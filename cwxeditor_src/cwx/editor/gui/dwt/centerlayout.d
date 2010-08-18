@@ -1,0 +1,107 @@
+
+module cwx.editor.gui.dwt.centerlayout;
+
+import cwx.props;
+import cwx.editor.gui.dwt.utils;
+
+import dwt.DWT;
+import dwt.widgets.Control;
+import dwt.widgets.Composite;
+import dwt.widgets.Layout;
+import dwt.graphics.Point;
+
+public:
+
+class Insets {
+	int n, e, s, w;
+	static Insets opCall(CInsets i) {
+		auto r = new Insets;
+		r.n = i.n;
+		r.e = i.e;
+		r.s = i.s;
+		r.w = i.w;
+		return r;
+	}
+}
+
+class CenterLayout : Layout {
+public:
+	this(int style = DWT.VERTICAL | DWT.HORIZONTAL, int margin = 5) {
+		_margin = margin;
+		_style = style;
+	}
+	bool fillVertical = false;
+	bool fillHorizontal = false;
+	int margin() {return _margin;}
+private:
+	int _margin;
+	int _style;
+	Point childSize(Control c) {
+		if (c.getLayoutData !is null && cast(Point) c.getLayoutData) {
+			return cast(Point) c.getLayoutData;
+		} else {
+			return c.computeSize(DWT.DEFAULT, DWT.DEFAULT);
+		}
+	}
+protected override:
+	Point computeSize(Composite composite, int wHint, int hHint, bool flushCache) {
+		if (wHint is DWT.DEFAULT) wHint = 0;
+		if (hHint is DWT.DEFAULT) hHint = 0;
+		foreach (c; composite.getChildren) {
+			auto p = childSize(c);
+			if (wHint < p.x) wHint = p.x;
+			if (hHint < p.y) hHint = p.y;
+		}
+		return new Point(wHint + _margin * 2, hHint + _margin * 2);
+	}
+	void layout(Composite composite, bool flushCache) {
+		auto s = composite.getClientArea;
+		foreach (c; composite.getChildren) {
+			int x = int.min;
+			int y = int.min;
+			int w = int.min;
+			int h = int.min;
+			if (c.getLayoutData && cast(Insets) c.getLayoutData) {
+				auto insets = cast(Insets) c.getLayoutData;
+				if (insets.e != DWT.DEFAULT && insets.w != DWT.DEFAULT) {
+					w = insets.e - insets.w;
+				} else if (insets.e != DWT.DEFAULT || insets.w != DWT.DEFAULT) {
+					w = c.computeSize(DWT.DEFAULT, DWT.DEFAULT).x;
+				}
+				if (insets.n != DWT.DEFAULT && insets.s != DWT.DEFAULT) {
+					h = insets.s - insets.n;
+				} else if (insets.s != DWT.DEFAULT || insets.n != DWT.DEFAULT) {
+					h = c.computeSize(DWT.DEFAULT, DWT.DEFAULT).y;
+				}
+				if (w > int.min) {
+					x = insets.w != DWT.DEFAULT ? insets.w : s.x + s.width - w - insets.e;
+				}
+				if (h > int.min) {
+					y = insets.n != DWT.DEFAULT ? insets.n : s.y + s.height - h - insets.s;
+				}
+			}
+			auto p = childSize(c);
+			if (fillHorizontal) {
+				if (x == int.min) x = _margin + s.x;
+				if (w == int.min) w = s.width - _margin * 2;
+			} else {
+				if (x == int.min) {
+					x = (DWT.HORIZONTAL & _style) != 0 ? (s.width - _margin * 2 - p.x) / 2 : 0;
+					x += _margin + s.x;
+				}
+				if (w == int.min) w = p.x;
+			}
+			if (fillVertical) {
+				if (y == int.min) y = _margin + s.y;
+				if (h == int.min) h = s.height - _margin * 2;
+			} else {
+				if (y == int.min) {
+					y = (DWT.VERTICAL & _style) != 0 ? (s.height - _margin * 2 - p.y) / 2 : 0;
+					y += _margin + s.y;
+				}
+				if (h == int.min) h = p.y;
+			}
+			c.setBounds(x, y, w, h);
+		}
+	}
+}

@@ -1,0 +1,167 @@
+diff -r f403c83322c3 dwt/custom/StyleRange.d
+--- a/dwt/custom/StyleRange.d	Sun Nov 08 20:58:32 2009 +0100
++++ b/dwt/custom/StyleRange.d	Tue May 25 10:22:30 2010 +0900
+@@ -25,6 +25,7 @@
+ 
+ static import tango.text.Text;
+ alias tango.text.Text.Text!(char) StringBuffer;
++import tango.util.Convert;
+ 
+ /**
+  * <code>StyleRange</code> defines a set of styles for a specified
+@@ -202,9 +203,9 @@
+ public override String toString() {
+     StringBuffer buffer = new StringBuffer();
+     buffer.append("StyleRange {");
+-    buffer.append(start);
++    buffer.append(to!(char[])(start));
+     buffer.append(", ");
+-    buffer.append(length);
++    buffer.append(to!(char[])(length));
+     buffer.append(", fontStyle=");
+     switch (fontStyle) {
+         case DWT.BOLD:
+diff -r f403c83322c3 dwt/custom/StyledText.d
+--- a/dwt/custom/StyledText.d	Sun Nov 08 20:58:32 2009 +0100
++++ b/dwt/custom/StyledText.d	Tue May 25 10:22:30 2010 +0900
+@@ -653,7 +653,7 @@
+         if (pageIndex !is -1 ) {
+             int pageTagLength = StyledTextPrintOptions.PAGE_TAG.length;
+             StringBuffer buffer = new StringBuffer(segment.substring (0, pageIndex));
+-            buffer.append (page);
++            buffer.append (to!(char[])(page));
+             buffer.append (segment.substring(pageIndex + pageTagLength));
+             segment = buffer.toString().dup;
+         }
+@@ -924,7 +924,7 @@
+         header.append(";");
+         for (int i = 1; i < fontTable.length; i++) {
+             header.append("\\f");
+-            header.append(i);
++            header.append(to!(char[])(i));
+             header.append(" ");
+             FontData fd = (cast(Font)fontTable[i]).getFontData()[0];
+             header.append(fd.getName());
+@@ -934,18 +934,18 @@
+         for (int i = 0; i < colorTable.length; i++) {
+             Color color = cast(Color) colorTable[i];
+             header.append("\\red");
+-            header.append(color.getRed());
++            header.append(to!(char[])(color.getRed()));
+             header.append("\\green");
+-            header.append(color.getGreen());
++            header.append(to!(char[])(color.getGreen()));
+             header.append("\\blue");
+-            header.append(color.getBlue());
++            header.append(to!(char[])(color.getBlue()));
+             header.append(";");
+         }
+         // some RTF readers ignore the deff0 font tag. Explicitly
+         // set the font for the whole document to work around this.
+         header.append("}\n{\\f0\\fs");
+         // font size is specified in half points
+-        header.append(fontData.getHeight() * 2);
++        header.append(to!(char[])(cast(int) fontData.getHeight() * 2));
+         header.append(" ");
+         write(header.toString(), 0);
+     }
+@@ -1232,7 +1232,7 @@
+      * Appends the given int to the data.
+      */
+     void write(int i) {
+-        buffer.append(i);
++        buffer.append(to!(char[])(i));
+     }
+     /**
+      * Appends the given character to the data.
+diff -r f403c83322c3 dwt/custom/TableCursor.d
+--- a/dwt/custom/TableCursor.d	Sun Nov 08 20:58:32 2009 +0100
++++ b/dwt/custom/TableCursor.d	Tue May 25 10:22:30 2010 +0900
+@@ -208,7 +208,7 @@
+         public void handleEvent(Event event) {
+             switch (event.type) {
+                 case DWT.Dispose :
+-                    dispose(event);
++                    this.outer.dispose(event);
+                     break;
+                 case DWT.FocusIn :
+                 case DWT.FocusOut :
+diff -r f403c83322c3 dwt/dnd/TableDragSourceEffect.d
+--- a/dwt/dnd/TableDragSourceEffect.d	Sun Nov 08 20:58:32 2009 +0100
++++ b/dwt/dnd/TableDragSourceEffect.d	Tue May 25 10:22:30 2010 +0900
+@@ -132,7 +132,7 @@
+                     OS.BitBlt (memHdc, 0, 0, srcWidth, srcHeight, srcHdc, 0, 0, OS.SRCCOPY);
+                     //byte[] srcData = new byte [sizeInBytes];
+                     //OS.MoveMemory (srcData, dibBM.bmBits, sizeInBytes);
+-                    byte[] srcData = (cast(byte*) dibBM.bmBits)[ 0 .. BITMAPINFOHEADER.sizeof ];
++                    byte[] srcData = (cast(byte*) dibBM.bmBits)[ 0 .. sizeInBytes ];
+ 
+                     PaletteData palette = new PaletteData(0xFF00, 0xFF0000, 0xFF000000);
+                     ImageData data = new ImageData(srcWidth, srcHeight, bm.bmBitsPixel, palette, bm.bmWidthBytes, srcData);
+diff -r f403c83322c3 dwt/dwthelper/ByteArrayOutputStream.d
+--- a/dwt/dwthelper/ByteArrayOutputStream.d	Sun Nov 08 20:58:32 2009 +0100
++++ b/dwt/dwthelper/ByteArrayOutputStream.d	Tue May 25 10:22:30 2010 +0900
+@@ -12,7 +12,7 @@
+     protected Array buffer;
+ 
+     public this (){
+-        buffer = new Array();
++        buffer = new Array(0);
+     }
+ 
+     public this ( int par_size ){
+diff -r f403c83322c3 dwt/dwthelper/File.d
+--- a/dwt/dwthelper/File.d	Sun Nov 08 20:58:32 2009 +0100
++++ b/dwt/dwthelper/File.d	Tue May 25 10:22:30 2010 +0900
+@@ -8,11 +8,7 @@
+ static import tango.io.model.IFile;
+ static import tango.io.FilePath;
+ static import tango.io.Path;
+-version (TANGOSVN) {
+-    static import tango.sys.Environment;
+-} else {
+-    static import tango.io.FileSystem;
+-}
++static import tango.sys.Environment;
+ 
+ public class File {
+ 
+@@ -73,12 +69,8 @@
+     }
+ 
+     public String getAbsolutePath(){
+-        version (TANGOSVN) {
+-            if ( mFilePath.isAbsolute ) return mFilePath.toString;
+-            else return mFilePath.absolute( tango.sys.Environment.Environment.cwd ).toString;
+-        } else {
+-            return tango.io.FileSystem.FileSystem.toAbsolute( mFilePath).toString;
+-        }
++        if ( mFilePath.isAbsolute ) return mFilePath.toString;
++        else return mFilePath.absolute( tango.sys.Environment.Environment.cwd ).toString;
+     }
+ 
+     public dwt.dwthelper.File.File getAbsoluteFile(){
+diff -r f403c83322c3 dwt/dwthelper/utils.d
+--- a/dwt/dwthelper/utils.d	Sun Nov 08 20:58:32 2009 +0100
++++ b/dwt/dwthelper/utils.d	Tue May 25 10:22:30 2010 +0900
+@@ -662,7 +662,7 @@
+         assert( tries-- > 0 );
+     }
+     Trace.formatln( "utf8OffsetDecr {}->{}", offset, res );
+-    Trace.memory( str );
++    //Trace.memory( str );
+     return res;
+ }
+ 
+diff -r f403c83322c3 dwt/widgets/FileDialog.d
+--- a/dwt/widgets/FileDialog.d	Sun Nov 08 20:58:32 2009 +0100
++++ b/dwt/widgets/FileDialog.d	Tue May 25 10:22:30 2010 +0900
+@@ -244,7 +244,7 @@
+     auto hHeap = OS.GetProcessHeap ();
+ 
+     /* Get the owner HWND for the dialog */
+-    HWND hwndOwner;
++    HWND hwndOwner = parent.handle;
+     auto hwndParent = parent.handle;
+ 
+     /*

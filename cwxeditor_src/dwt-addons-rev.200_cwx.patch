@@ -1,0 +1,93 @@
+diff -r eb3414669eb0 dwtx/dwtxhelper/Collection.d
+--- a/dwtx/dwtxhelper/Collection.d	Sat Mar 28 03:09:57 2009 +0100
++++ b/dwtx/dwtxhelper/Collection.d	Mon May 24 15:24:18 2010 +0900
+@@ -1738,7 +1738,6 @@
+     }
+     void   add(int index, Object element){
+         list.addAt(index,element);
+-        return true;
+     }
+     bool    add(Object o){
+         list.add(o);
+@@ -2376,7 +2375,6 @@
+         }
+         public void     clear(){
+             unsupported();
+-            return false; // make compiler happy
+         }
+         public bool     contains(Object o){
+             return list.contains(o);
+diff -r eb3414669eb0 dwtx/jface/resource/StringConverter.d
+--- a/dwtx/jface/resource/StringConverter.d	Sat Mar 28 03:09:57 2009 +0100
++++ b/dwtx/jface/resource/StringConverter.d	Mon May 24 15:24:18 2010 +0900
+@@ -30,6 +30,7 @@
+ static import tango.text.convert.Integer;
+ static import tango.text.Text;
+ alias tango.text.Text.Text!(char) StringBuffer;
++import tango.util.Convert : to;
+ 
+ /**
+  * Helper class for converting various data types to and from
+@@ -732,7 +733,7 @@
+         }
+ 
+         buffer.append(SEPARATOR);
+-        buffer.append(value.getHeight());
++        buffer.append(to!(char[])(value.getHeight()));
+         return buffer.toString();
+     }
+ 
+@@ -751,9 +752,9 @@
+     public static String asString(Point value) {
+         Assert.isNotNull(value);
+         StringBuffer buffer = new StringBuffer();
+-        buffer.append(value.x);
++        buffer.append(to!(char[])(value.x));
+         buffer.append(',');
+-        buffer.append(value.y);
++        buffer.append(to!(char[])(value.y));
+         return buffer.toString();
+     }
+ 
+@@ -773,13 +774,13 @@
+     public static String asString(Rectangle value) {
+         Assert.isNotNull(value);
+         StringBuffer buffer = new StringBuffer();
+-        buffer.append(value.x);
++        buffer.append(to!(char[])(value.x));
+         buffer.append(',');
+-        buffer.append(value.y);
++        buffer.append(to!(char[])(value.y));
+         buffer.append(',');
+-        buffer.append(value.width);
++        buffer.append(to!(char[])(value.width));
+         buffer.append(',');
+-        buffer.append(value.height);
++        buffer.append(to!(char[])(value.height));
+         return buffer.toString();
+     }
+ 
+@@ -798,11 +799,11 @@
+     public static String asString(RGB value) {
+         Assert.isNotNull(value);
+         StringBuffer buffer = new StringBuffer();
+-        buffer.append(value.red);
++        buffer.append(to!(char[])(value.red));
+         buffer.append(',');
+-        buffer.append(value.green);
++        buffer.append(to!(char[])(value.green));
+         buffer.append(',');
+-        buffer.append(value.blue);
++        buffer.append(to!(char[])(value.blue));
+         return buffer.toString();
+     }
+ 
+@@ -879,7 +880,7 @@
+             buffer.append(JFaceResources.getString("RegularFont")); //$NON-NLS-1$
+         }
+         buffer.append(SEPARATOR);
+-        buffer.append(value.getHeight());
++        buffer.append(to!(char[])(value.getHeight()));
+         return buffer.toString();
+ 
+     }

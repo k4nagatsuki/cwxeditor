@@ -1,0 +1,69 @@
+Index: etc/c/zlib.d
+===================================================================
+--- etc/c/zlib.d	(revision 66)
++++ etc/c/zlib.d	(working copy)
+@@ -36,8 +36,8 @@
+ 
+ extern (C):
+ 
+-char[] ZLIB_VERSION = "1.2.3";
+-const ZLIB_VERNUM = 0x1230;
++char[] ZLIB_VERSION_ = "1.2.3";
++const ZLIB_VERNUM_ = 0x1230;
+ 
+ /*
+      The 'zlib' compression library provides in-memory compression and
+@@ -219,7 +219,7 @@
+ }
+ /* The deflate compression method (the only one supported in this version) */
+ 
+-const int Z_NULL = 0;  /* for initializing zalloc, zfree, opaque */
++const int Z_NULL_ = 0;  /* for initializing zalloc, zfree, opaque */
+ 
+                         /* basic functions */
+ 
+@@ -232,7 +232,7 @@
+ 
+ int deflateInit(z_streamp strm, int level)
+ {
+-    return deflateInit_(strm, level, ZLIB_VERSION.ptr, z_stream.sizeof);
++    return deflateInit_(strm, level, ZLIB_VERSION_.ptr, z_stream.sizeof);
+ }
+ /* 
+      Initializes the internal stream state for compression. The fields
+@@ -357,7 +357,7 @@
+ 
+ int inflateInit(z_streamp strm)
+ {
+-    return inflateInit_(strm, ZLIB_VERSION.ptr, z_stream.sizeof);
++    return inflateInit_(strm, ZLIB_VERSION_.ptr, z_stream.sizeof);
+ }
+ /* 
+      Initializes the internal stream state for decompression. The fields
+@@ -502,7 +502,7 @@
+                  int  strategy)
+ {
+     return deflateInit2_(strm, level, method, windowBits, memLevel,
+-                         strategy, ZLIB_VERSION.ptr, z_stream.sizeof);
++                         strategy, ZLIB_VERSION_.ptr, z_stream.sizeof);
+ }
+ /*
+      This is another version of deflateInit with more compression options. The
+@@ -754,7 +754,7 @@
+ 
+ int inflateInit2(z_streamp strm, int windowBits)
+ {
+-    return inflateInit2_(strm, windowBits, ZLIB_VERSION.ptr, z_stream.sizeof);
++    return inflateInit2_(strm, windowBits, ZLIB_VERSION_.ptr, z_stream.sizeof);
+ }
+ /*   
+      This is another version of inflateInit with an extra parameter. The
+@@ -859,7 +859,7 @@
+ 
+ int inflateBackInit(z_stream* strm, int windowBits, ubyte* window)
+ {
+-    return inflateBackInit_(strm, windowBits, window, ZLIB_VERSION.ptr, z_stream.sizeof);   
++    return inflateBackInit_(strm, windowBits, window, ZLIB_VERSION_.ptr, z_stream.sizeof);   
+ }
+ /*
+      Initialize the internal stream state for decompression using inflateBack()

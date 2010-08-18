@@ -1,0 +1,587 @@
+
+module cwx.editor.gui.dwt.properties;
+
+import cwx.utils;
+import cwx.xml;
+
+import std.conv;
+import std.string;
+import std.file;
+import std.utf;
+
+import dwt.DWT;
+
+private:
+
+struct PropValue(string PKey, T, T Default, bool ReadOnly) {
+	private T _value = Default;
+	T defaultValue() {return Default;}
+	string key() {
+		return PKey;
+	}
+	static const bool READ_ONLY = ReadOnly;
+
+	static if (!ReadOnly) {
+		void opAssign(T value) {
+			_value = value;
+		}
+		void opCall(T value) {
+			_value = value;
+		}
+	}
+	void toNode(ref XNode node) {
+		static if (is (typeof(_value.toNode))) {
+			_value.toNode(node);
+		} else static if (isVArray!(T)) {
+			auto e = node.newElement(key);
+			foreach (v; _value) {
+				static if (is (typeof(v.toNode))) {
+					v.toNode(e);
+				} else {
+					e.newElement("value", to!(string)(v));
+				}
+			}
+		} else {
+			node.newElement(key, to!(string)(_value));
+		}
+	}
+	T opCall() {
+		return _value;
+	}
+	void fromNode(ref XNode node) {
+		static if (is (typeof(_value.fromNode))) {
+			_value.fromNode(node);
+		} else static if (isVArray!(T)) {
+			_value = [];
+			node.onTag[null] = (ref XNode v) {
+				static if (is (typeof(_value[0].fromNode))) {
+					typeof(_value[0]) val;
+					val.fromNode(v);
+					_value ~= val;
+				} else {
+					_value ~= to!(typeof(_value[0]))(v.value);
+				}
+			};
+			node.parse;
+		} else {
+			_value = to!(T)(node.value);
+		}
+	}
+}
+
+bool isSorted(T)(T arr) {
+	foreach (i, v; arr) {
+		if (arr.length <= i + 1) break;
+		if (v > arr[i + 1]) {
+			return false;
+		}
+	}
+	return true;
+}
+
+abstract class Properties {
+	private static string toFirstUpper(string val) {
+		return std.string.toupper(val[0 .. 1]) ~ val[1 .. $];
+	}
+	/// mixinによってプロパティの値と値を設定/取得する関数を生成する。
+	/// 例えば:
+	/// ---
+	/// mixin Property!("width", int, 100);
+	/// ---
+	/// 以上によって、以下のフィールドと関数が生成される。
+	/// ---
+	/// private final PropValue!("width", int, 100) _width;
+	/// int width() {
+	/// 	return _width();
+	/// }
+	/// void width(int value) {
+	/// 	_width = value;
+	/// }
+	/// ---
+	/// Params:
+	/// Name = プロパティ名。
+	/// VType = プロパティの型。
+	/// Default = プロパティのデフォルト値。
+	protected template Property(string Name, VType, VType Default, bool ReadOnly = false) {
+		mixin ("private final PropValue!("
+			~ "\"" ~ Name ~ "\", " ~ VType.stringof ~ ", " ~ Default.stringof ~ ", " ~ ReadOnly.stringof ~ ") "
+			~ "_" ~ Name ~ ";");
+		mixin (VType.stringof ~ " " ~ Name ~ "() {return _" ~ Name ~ "();}");
+		static if (!ReadOnly) {
+			mixin ("void " ~ Name ~ "(" ~ VType.stringof ~ " value) {_" ~ Name ~ " = value;}");
+		}
+	}
+	/// mixinによってXML化する関数及びXMLからプロパティ群をロードする関数を生成する。
+	/// Params:
+	/// SubClass = Propertiesのサブクラス。
+	/// Root = ルート要素の名前。
+	protected template XMLFuncs(SubClass : Properties, string Root = "") {
+		static if (Root.length > 0) {
+			string toXML() {
+				auto e = XNode.create(Root);
+				foreach (fld; this.tupleof) {
+					fld.toNode(e);
+				}
+				return e.text;
+			}
+			static SubClass fromXML(string xml) {
+				try {
+					return fromNode(XNode.parse(xml));
+				} catch (Exception) {
+					SubClass r;
+					return r;
+				}
+			}
+		}
+		void toNode(ref XNode node) {
+			static if (Root == "") {
+				auto e = node;
+			} else {
+				auto e = node.newElement(Root);
+			}
+			foreach (fld; this.tupleof) {
+				fld.toNode(e);
+			}
+		}
+		static SubClass fromNode(ref XNode node) {
+			auto r = new SubClass;
+			static if (Root == "") {
+				auto e = node;
+			} else {
+				auto e = node.child(Root, false);
+				if (!e.valid) e = node.child(toFirstUpper(Root), false);
+			}
+			if (e.valid) {
+				foreach (i, fld; r.tupleof) {
+					auto n = e.child(fld.key, false);
+					if (!n.valid) n = e.child(toFirstUpper(fld.key), false);
+					if (n.valid) {
+						try {
+							// FIXME: fld.fromNode()だと上手く行かない？
+							r.tupleof[i].fromNode(n);
+						} catch {
+						}
+					}
+				}
+			}
+			return r;
+		}
+	}
+}
+
+class WindowProps(string PropName, int Width, int Height)
+		: Properties {
+	mixin Property!("maximized", bool, false);
+	mixin Property!("minimized", bool, false);
+	mixin Property!("x", int, DWT.DEFAULT);
+	mixin Property!("y", int, DWT.DEFAULT);
+	mixin Property!("width", int, Width);
+	mixin Property!("height", int, Height);
+	mixin Property!("visible", bool, true);
+
+	mixin XMLFuncs!(WindowProps, PropName);
+}
+
+class MainWin : Properties {
+	mixin Property!("x", int, DWT.DEFAULT);
+	mixin Property!("y", int, DWT.DEFAULT);
+
+	mixin XMLFuncs!(MainWin, "mainWindow");
+}
+
+class ContWin : Properties {
+	mixin Property!("x", int, DWT.DEFAULT);
+	mixin Property!("y", int, DWT.DEFAULT);
+
+	mixin XMLFuncs!(ContWin, "contentsWindow");
+}
+
+class BgImagesDlg : Properties {
+	mixin Property!("width", int, DWT.DEFAULT);
+	mixin Property!("height", int, DWT.DEFAULT);
+
+	mixin XMLFuncs!(BgImagesDlg, "bgImagesDialog");
+}
+
+class EventWin(string Name, int Width, int Height) : Properties {
+	mixin Property!("x", int, DWT.DEFAULT);
+	mixin Property!("y", int, DWT.DEFAULT);
+	mixin Property!("maximized", bool, false);
+	mixin Property!("width", int, Width);
+	mixin Property!("height", int, Height);
+
+	mixin Property!("eventSashL", int, 2);
+	mixin Property!("eventSashR", int, 7);
+
+	mixin XMLFuncs!(EventWin, Name);
+}
+alias EventWin!("areaWindow", DWT.DEFAULT, DWT.DEFAULT) AreaWin;
+alias EventWin!("battleWindow", DWT.DEFAULT, DWT.DEFAULT) BattleWin;
+alias EventWin!("packageWindow", 800, 520) PackageWin;
+alias EventWin!("cardEventWindow", 800, 520) CardEventWin;
+
+struct BgImageSetting {
+	string name;
+	int x;
+	int y;
+	int width;
+	int height;
+	bool mask;
+	BgImageSetting dup() {
+		BgImageSetting r;
+		r.name = name;
+		r.x = x;
+		r.y = y;
+		r.width = width;
+		r.height = height;
+		r.mask = mask;
+		return r;
+	}
+	static BgImageSetting opCall(string name, int x, int y, int width, int height, bool mask) {
+		BgImageSetting r;
+		r.name = name;
+		r.x = x;
+		r.y = y;
+		r.width = width;
+		r.height = height;
+		r.mask = mask;
+		return r;
+	}
+	void toNode(ref XNode node) {
+		auto e = node.newElement("bgImageSetting");
+		e.newElement("name", name);
+		e.newElement("x", x);
+		e.newElement("y", y);
+		e.newElement("width", width);
+		e.newElement("height", height);
+		e.newElement("mask", mask);
+	}
+	void fromNode(ref XNode node) {
+		name = node.childText("Name", false);
+		if (!name) {
+			name = node.childText("name", true);
+			x = to!(int)(node.childText("x", true));
+			y = to!(int)(node.childText("y", true));
+			width = to!(int)(node.childText("width", true));
+			height = to!(int)(node.childText("height", true));
+			mask = to!(bool)(node.childText("mask", true));
+		} else {
+			x = to!(int)(node.childText("X", true));
+			y = to!(int)(node.childText("Y", true));
+			width = to!(int)(node.childText("Width", true));
+			height = to!(int)(node.childText("Height", true));
+			mask = to!(bool)(node.childText("Mask", true));
+		}
+	}
+}
+
+struct OuterTool {
+	string name;
+	string command;
+	string workDir;
+	OuterTool dup() {
+		OuterTool r;
+		r.name = name;
+		r.command = command;
+		r.workDir = workDir;
+		return r;
+	}
+	static OuterTool opCall(string name, string command, string workDir) {
+		OuterTool r;
+		r.name = name;
+		r.command = command;
+		r.workDir = workDir;
+		return r;
+	}
+	void toNode(ref XNode node) {
+		auto e = node.newElement("tool");
+		e.newElement("name", name);
+		e.newElement("command", command);
+		e.newElement("workDir", workDir);
+	}
+	void fromNode(ref XNode node) {
+		name = node.childText("Name", false);
+		if (!name) {
+			name = node.childText("name", true);
+			command = node.childText("command", true);
+			workDir = node.childText("workDir", true);
+		} else {
+			command = node.childText("Command", true);
+			workDir = node.childText("WorkDir", true);
+		}
+	}
+	static string parse(string str, string file, string sPath) {
+		dstring buf;
+		bool bs = false;
+		foreach (dchar c; str) {
+			if (bs) {
+				if (c == 'f' || c == 'F') {
+					buf ~= toUTF32(file);
+				} else if (c == 's' || c == 'S') {
+					buf ~= toUTF32(sPath);
+				} else if (c == '$') {
+					buf ~= "$"d;
+				} else {
+					buf ~= "$"d ~ c;
+				}
+				bs = false;
+			} else {
+				if (c == '$') {
+					bs = true;
+				} else {
+					buf ~= c;
+				}
+			}
+		}
+		if (bs) {
+			buf ~= "$";
+		}
+		return toUTF8(buf);
+	}
+}
+
+class FlexEtcProps : Properties {
+	mixin Property!("directorySashL", int, 2);
+	mixin Property!("directorySashR", int, 5);
+	mixin Property!("filesSortColumn", int, 1);
+	mixin Property!("filesSortDirection", int, DWT.UP);
+	mixin Property!("fileNameColumn", int, 300);
+	mixin Property!("fileExtColumn", int, 60);
+	mixin Property!("fileCountColumn", int, 60);
+	mixin Property!("areaIdColumn", int, 50);
+	mixin Property!("areaNameColumn", int, 400);
+	mixin Property!("areaCountColumn", int, 60);
+	mixin Property!("cardsWidth", int, 150);
+	mixin Property!("viewPartyCardsArea", bool, true);
+	mixin Property!("viewPartyCardsBattle", bool, true);
+	mixin Property!("viewPartyCardsEvent", bool, true);
+	mixin Property!("viewCards", bool, true);
+	mixin Property!("viewBgImages", bool, true);
+	mixin Property!("areaSashT", int, 5);
+	mixin Property!("areaSashB", int, 4);
+	mixin Property!("flagSashL", int, 3);
+	mixin Property!("flagSashR", int, 7);
+	mixin Property!("flagsWidth", int, 150, true);
+	mixin Property!("bgImageSampleWidth", int, 150, true);
+	mixin Property!("bgImageSampleHeight", int, 150, true);
+	mixin Property!("cardIdColumn", int, 50);
+	mixin Property!("cardNameColumn", int, 100);
+	mixin Property!("cardDescriptionColumn", int, 280);
+	mixin Property!("cardCountColumn", int, 60);
+	mixin Property!("couponWidth", int, 150, true);
+	mixin Property!("couponValueColumn", int, 40, true);
+	mixin Property!("physicalRadarWidth", int, 230, true);
+	mixin Property!("physicalRadarHeight", int, 160, true);
+	mixin Property!("enhanceRadarWidth", int, 230, true);
+	mixin Property!("enhanceRadarHeight", int, 175, true);
+	mixin Property!("idColumn", int, 50);
+	mixin Property!("nameTableWidth", int, 250, true);
+	mixin Property!("nameTableHeight", int, 250, true);
+	mixin Property!("flagNameTableWidth", int, 150, true);
+	mixin Property!("flagValueTableWidth", int, 100, true);
+	mixin Property!("nameWidth", int, 200, true);
+	mixin Property!("firesWidth", int, 120, true);
+	mixin Property!("flagNameWidth", int, 150, true);
+	mixin Property!("flagInitWidth", int, 50, true);
+	mixin Property!("flagValueWidth", int, 50, true);
+	mixin Property!("flagNameColumn", int, 190);
+	mixin Property!("flagInitColumn", int, 90);
+	mixin Property!("flagCountColumn", int, 60);
+	mixin Property!("filesWidth", int, 150, true);
+	mixin Property!("filesHeight", int, 150, true);
+	mixin Property!("talkersWidth", int, 100, true);
+	mixin Property!("motionsWidth", int, 150, true);
+	mixin Property!("cardDetails", bool, false);
+	mixin Property!("contentsWrapIndices", int[], [4, 6, 8]);
+	mixin Property!("contentsAutoOpen", bool, true);
+	mixin Property!("contentsContinue", bool, false);
+	mixin Property!("contentsFloat", bool, false);
+	mixin Property!("bgImageSettingsNameWidth", int, 150, true);
+	mixin Property!("bgImageSettingsNameHeight", int, 250, true);
+	mixin Property!("outerToolsNameWidth", int, 150, true);
+	mixin Property!("outerToolsNameHeight", int, 250, true);
+	mixin Property!("keyCodeWidth", int, 100, true);
+	mixin Property!("scenarioPath", string, "");
+	mixin Property!("tempPath", string, "");
+	mixin Property!("openHistories", string[], []);
+	mixin Property!("historyMax", int, 9);
+	mixin Property!("historySnipLength", int, 30);
+	version (Windows) {
+		mixin Property!("engine", string, "CardWirthPy.exe", true);
+		mixin Property!("enginePath", string, "CardWirthPy.exe");
+	} else {
+		mixin Property!("engine", string, "CardWirthPy", true);
+		mixin Property!("enginePath", string, "CardWirthPy");
+	}
+	mixin Property!("defaultSkin", string, "MedievalFantasy");
+	mixin Property!("defaultAuthor", string, "");
+
+	mixin Property!("expandXMLs", bool, false);
+	mixin Property!("xmlCopy", bool, false);
+
+	mixin Property!("replaceTextSummary", bool, false);
+	mixin Property!("replaceTextMessage", bool, true);
+	mixin Property!("replaceTextCardName", bool, false);
+	mixin Property!("replaceTextCardDescription", bool, false);
+	mixin Property!("replaceTextEventText", bool, false);
+	mixin Property!("replaceTextFlagAndStep", bool, false);
+	mixin Property!("replaceTextCoupon", bool, false);
+	mixin Property!("replaceTextGossip", bool, false);
+	mixin Property!("replaceTextEndScenario", bool, false);
+	mixin Property!("replaceTextAreaName", bool, false);
+	mixin Property!("replaceTextKeyCode", bool, false);
+
+	mixin Property!("flagTrues", string[], ["TRUE", "表示", "ON", "有", "可", "済み"], true);
+	mixin Property!("flagFalses", string[], ["FALSE", "非表示", "OFF", "無", "不可", "まだ"], true);
+
+	mixin Property!("bgImageSettings", BgImageSetting[], [
+		BgImageSetting("冒険者の宿", 116, 15, 400, 260, false),
+		BgImageSetting("冒険者の宿(フレーム)", 116, 14, 400, 261, true),
+		BgImageSetting("フル", 0, 0, 632, 420, false),
+		BgImageSetting("フル(マスク)", 0, 0, 632, 420, true),
+		BgImageSetting("カード", 0, 0, 74, 94, true),
+		BgImageSetting("冒険者カード", 0, 0, 95, 130, false),
+		BgImageSetting("ゲームオーバー", 116, 55, 400, 260, false),
+		BgImageSetting("Qubes 地面", 160, 80, 320, 160, true),
+		BgImageSetting("Qubes 左後", 80, 0, 240, 160, true),
+		BgImageSetting("Qubes 右後", 320, 0, 240, 160, true),
+		BgImageSetting("Qubes 左前", 80, 80, 240, 200, true),
+		BgImageSetting("Qubes 右前", 320, 80, 240, 200, true)
+	]);
+	mixin Property!("standardCoupons", string[], [
+		"：Ｒ", "＿１", "＿２", "＿３", "＿４", "＿５", "＿６"
+	], true);
+	mixin Property!("standardKeyCodes", string[], [
+		"攻撃",
+		"治療",
+		"魔法",
+		"召喚獣",
+		"気功法",
+		"遠距離攻撃",
+		"神聖な攻撃",
+		"魔法による攻撃",
+		"炎による攻撃",
+		"冷気による攻撃",
+		"暗殺",
+		"精神を回復",
+		"中毒を解除",
+		"麻痺を解除",
+		"眠り",
+		"麻痺",
+		"中毒",
+		"呪縛",
+		"沈黙",
+		"召喚",
+		"鑑定",
+		"解錠",
+		"呪縛を解除",
+		"沈黙を解除",
+		"魔法を解除",
+		"",
+		"魔力感知",
+		"生命感知",
+		"魔法の鍵",
+		"解読",
+		"石化",
+		"石化を解除",
+		"蝙蝠変化",
+		"明かり",
+		"目つぶし",
+		"魅了",
+		"透明",
+		"召喚獣を付与",
+		"暴露",
+		"即死",
+		"一撃必殺",
+		"対象消去",
+		"恐慌",
+		"不浄な攻撃",
+		"呪い",
+		"飛行",
+		"浮遊",
+		"灯火",
+		"",
+		"防御",
+		"ペナルティ",
+		"カード交換",
+		"逃走"
+	]);
+	version (Windows) {
+		mixin Property!("outerTools", OuterTool[], [
+			OuterTool("メモ帳", "notepad $F", ""),
+			OuterTool("ペイント", "mspaint $F", "")
+		]);
+	} else {
+		mixin Property!("outerTools", OuterTool[], []);
+	}
+
+	mixin XMLFuncs!(FlexEtcProps);
+}
+
+public class FlexProps {
+	const MainWin mainWin;
+	const WindowProps!("dataWindow", DWT.DEFAULT, 400) dataWin;
+	const WindowProps!("cardWindow", DWT.DEFAULT, 400) cardWin;
+	const WindowProps!("directoryWindow", DWT.DEFAULT, 400) dirWin;
+	const AreaWin areaWin;
+	const BattleWin battleWin;
+	const PackageWin packageWin;
+	const CardEventWin cardEventWin;
+	const ContWin contentsWin;
+	const BgImagesDlg bgImagesDlg;
+	const FlexEtcProps etc;
+
+	private string _path;
+	this(string xmlFileName) {
+		_path = xmlFileName;
+		if (exists(_path)) {
+			try {
+				auto node = XNode.parse(cast(string) read(_path));
+				if (node.name == "cwxeditor" || node.name == "CWXEditor") {
+					mainWin = typeof(mainWin).fromNode(node);
+					dataWin = typeof(dataWin).fromNode(node);
+					cardWin = typeof(cardWin).fromNode(node);
+					dirWin = typeof(dirWin).fromNode(node);
+					areaWin = typeof(areaWin).fromNode(node);
+					battleWin = typeof(battleWin).fromNode(node);
+					packageWin = typeof(packageWin).fromNode(node);
+					cardEventWin = typeof(cardEventWin).fromNode(node);
+					contentsWin = typeof(contentsWin).fromNode(node);
+					bgImagesDlg = typeof(bgImagesDlg).fromNode(node);
+					etc = typeof(etc).fromNode(node);
+					return;
+				}
+			} catch {
+			}
+		}
+		mainWin = new typeof(mainWin);
+		dataWin = new typeof(dataWin);
+		cardWin = new typeof(cardWin);
+		dirWin = new typeof(dirWin);
+		areaWin = new typeof(areaWin);
+		battleWin = new typeof(battleWin);
+		packageWin = new typeof(packageWin);
+		cardEventWin = new typeof(cardEventWin);
+		contentsWin = new typeof(contentsWin);
+		bgImagesDlg = new typeof(bgImagesDlg);
+		etc = new typeof(etc);
+	}
+	void save() {
+		save(_path);
+	}
+	void save(string xmlFileName) {
+		auto node = XNode.create("cwxeditor");
+		mainWin.toNode(node);
+		dataWin.toNode(node);
+		cardWin.toNode(node);
+		dirWin.toNode(node);
+		areaWin.toNode(node);
+		battleWin.toNode(node);
+		packageWin.toNode(node);
+		cardEventWin.toNode(node);
+		contentsWin.toNode(node);
+		bgImagesDlg.toNode(node);
+		etc.toNode(node);
+		write(xmlFileName, node.text);
+	}
+}

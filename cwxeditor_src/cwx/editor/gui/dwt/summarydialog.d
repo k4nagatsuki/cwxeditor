@@ -1,0 +1,369 @@
+
+module cwx.editor.gui.dwt.summarydialog;
+
+import cwx.utils;
+import cwx.usecounter;
+import cwx.summary;
+import cwx.area;
+import cwx.skin;
+
+import cwx.editor.gui.dwt.skin;
+import cwx.editor.gui.dwt.utils;
+import cwx.editor.gui.dwt.props;
+import cwx.editor.gui.dwt.commons;
+import cwx.editor.gui.dwt.materialselect;
+import cwx.editor.gui.dwt.imageselect;
+import cwx.editor.gui.dwt.centerlayout;
+import cwx.editor.gui.dwt.customtext;
+import cwx.editor.gui.dwt.customtable;
+
+import std.string;
+
+import dwt.widgets.Display;
+import dwt.widgets.Shell;
+import dwt.widgets.Control;
+import dwt.widgets.Composite;
+import dwt.widgets.Combo;
+import dwt.widgets.TabFolder;
+import dwt.widgets.TabItem;
+import dwt.widgets.Canvas;
+import dwt.widgets.Group;
+import dwt.widgets.Text;
+import dwt.widgets.Spinner;
+import dwt.widgets.Label;
+import dwt.widgets.Table;
+import dwt.widgets.TableColumn;
+import dwt.widgets.TableItem;
+import dwt.graphics.Image;
+import dwt.graphics.GC;
+import dwt.graphics.Font;
+import dwt.graphics.FontData;
+import dwt.graphics.Color;
+import dwt.events.PaintListener;
+import dwt.events.PaintEvent;
+import dwt.events.DisposeListener;
+import dwt.events.DisposeEvent;
+import dwt.layout.FillLayout;
+import dwt.layout.GridLayout;
+import dwt.layout.GridData;
+
+import dwtx.jface.dialogs.Dialog;
+import dwtx.jface.dialogs.IDialogConstants;
+
+public:
+
+/// シナリオの概略を設定するダイアログ。
+class SummaryDialog : Dialog {
+private:
+	Commons _comm;
+	Props _prop;
+	Summary _summ;
+
+	Canvas _summImage;
+	Text _sname;
+	ImageSelect!(MtType.CARD) _imgPath;
+	FixedWidthText _desc;
+	Text _author;
+	Spinner _levMin, _levMax;
+	Table _startArea;
+	Spinner _rCouponNum;
+	Text _rCoupons;
+	Combo _type;
+	// TODO Tag
+	// TODO Label
+
+	void levMaxEnter(int enter) {
+		if (enter > 0 && _levMin.getSelection != 0 && enter < _levMin.getSelection) {
+			_levMin.setSelection = enter;
+		}
+	}
+	void levMinEnter(int enter) {
+		if (enter > 0 && _levMax.getSelection != 0 && enter > _levMax.getSelection) {
+			_levMax.setSelection = enter;
+		}
+	}
+
+	class PListener : PaintListener {
+		override void paintControl(PaintEvent e) {
+			auto d = Display.getCurrent;
+			scope buf = new Image(d, _prop.looks.summarySize.width, _prop.looks.summarySize.height);
+			scope (exit) buf.dispose;
+			scope gc = new GC(buf);
+			scope (exit) gc.dispose;
+
+			auto skin = findSkin(_prop, _summ);
+			{
+				scope img = new Image(d, summary(skin));
+				gc.drawImage(img, 0, 0);
+				img.dispose;
+			}
+			if (_imgPath.image !is null && _imgPath.image.length > 0) {
+				string imgPath = skin.findImagePath(_imgPath.image, _summ.scenarioPath);
+				if (imgPath.length) {
+					scope img = new Image(d, loadImage(imgPath));
+					gc.drawImage(img, _prop.looks.summaryImageXY.x, _prop.looks.summaryImageXY.y);
+					img.dispose;
+				}
+			}
+			{
+				void drawCenterText(FontData fontData, string text, int y) {
+					scope font = new Font(d, fontData);
+					gc.setFont = font;
+					scope p = gc.stringExtent(text);
+					gc.drawString(text, (_prop.looks.summarySize.width - p.x) / 2, y, true);
+					font.dispose;
+				}
+				scope c = new Color(d, dwtData(_prop.looks.summaryLevelColor));
+				gc.setForeground = c;
+				drawCenterText(dwtData(_prop.looks.summaryLevelFont),
+					_prop.msgs.targetLevel(_levMin.getSelection, _levMax.getSelection),
+					_prop.looks.summaryLevelY);
+				c.dispose;
+				gc.setForeground = d.getSystemColor(DWT.COLOR_BLACK);
+				drawCenterText(dwtData(_prop.looks.summaryTitleFont),
+					_sname.getText, _prop.looks.summaryTitleY);
+				{
+					scope font = new Font(d, dwtData(_prop.looks.summaryDescFont));
+					gc.setFont = font;
+					int hig = gc.getFontMetrics.getHeight;
+					int x = _prop.looks.summaryDescXY.x;
+					int y = _prop.looks.summaryDescXY.y;
+					gc.drawText(_desc.getRRText, x, y, DWT.DRAW_DELIMITER | DWT.DRAW_TRANSPARENT);
+					gc.setFont = null;
+					font.dispose;
+				}
+				drawCenterText(dwtData(_prop.looks.summaryPageFont),
+					_prop.msgs.summaryPageDummy, _prop.looks.summaryPageY);
+			}
+
+			auto bx = (_summImage.getSize.x - _prop.looks.summarySize.width) / 2;
+			auto by = (_summImage.getSize.y - _prop.looks.summarySize.height) / 2;
+			e.gc.drawImage(buf, bx, by);
+		}
+	}
+	void constructTab1(TabFolder tabf) {
+		auto comp = new Composite(tabf, DWT.BORDER);
+		comp.setLayout = zeroGridLayout(1);
+		_summImage = new Canvas(comp, DWT.DOUBLE_BUFFERED);
+		auto gd = new GridData(GridData.FILL_BOTH);
+		gd.widthHint = _prop.looks.summarySize.width;
+		gd.heightHint = _prop.looks.summarySize.height;
+		_summImage.setLayoutData = gd;
+		_summImage.addPaintListener(new PListener);
+		auto tab = new TabItem(tabf, DWT.NONE);
+		tab.setText = _prop.msgs.summaryImage;
+		tab.setControl = comp;
+	}
+	private void setCDataX(Control c, GridData data) {
+		auto p = c.computeSize(DWT.DEFAULT, DWT.DEFAULT);
+		data.widthHint = p.x;
+		c.setLayoutData = data;
+	}
+	private void setCDataXY(Control c, GridData data) {
+		auto p = c.computeSize(DWT.DEFAULT, DWT.DEFAULT);
+		data.widthHint = p.x;
+		data.heightHint = p.y;
+		c.setLayoutData = data;
+	}
+	void constructTab2(TabFolder tabf) {
+		auto comp = new Composite(tabf, DWT.NONE);
+		comp.setLayout = new GridLayout(2, false);
+		auto skin = findSkin(_prop, _summ);
+		{
+			_imgPath = new ImageSelect!(MtType.CARD)(comp, DWT.NONE, _comm, _prop, _summ,
+				_prop.looks.cardSize.width, _prop.looks.cardSize.height, _summ.legacy);
+			_imgPath.image = _summ.imagePath;
+			auto gd = new GridData(GridData.FILL_BOTH);
+			gd.verticalSpan = 3;
+			_imgPath.widget.setLayoutData = gd;
+		}
+		{
+			auto grp = new Group(comp, DWT.NONE);
+			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
+			grp.setLayout = new GridLayout(1, true);
+			grp.setText = _prop.msgs.title;
+			_sname = new Text(grp, DWT.BORDER);
+			setCDataX(_sname, new GridData(GridData.FILL_HORIZONTAL));
+			_sname.setText = _summ.scenarioName;
+		}
+		{
+			auto grp = new Group(comp, DWT.NONE);
+			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
+			grp.setLayout = new GridLayout(1, true);
+			grp.setText = _prop.msgs.author;
+			_author = new Text(grp, DWT.BORDER);
+			setCDataX(_author, new GridData(GridData.FILL_HORIZONTAL));
+			_author.setText = _summ.author;
+		}
+		{
+			auto grp = new Group(comp, DWT.NONE);
+			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
+			grp.setLayout = new CenterLayout(DWT.HORIZONTAL, 0);
+			grp.setText = _prop.msgs.targetLevel;
+			auto compL = new Composite(grp, DWT.NONE);
+			compL.setLayout = new GridLayout(3, false);
+			_levMin = new Spinner(compL, DWT.BORDER);
+			_levMin.setSelection = _summ.levelMin;
+			_levMin.setMinimum = 0;
+			_levMin.setMaximum = _prop.looks.levelMax;
+			new SpinnerEdit(_levMin, &levMinEnter);
+			auto lbl = new Label(compL, DWT.NONE);
+			lbl.setText = _prop.msgs.levSep;
+			lbl.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
+			_levMax = new Spinner(compL, DWT.BORDER);
+			_levMax.setSelection = _summ.levelMax;
+			_levMax.setMinimum = 0;
+			_levMax.setMaximum = _prop.looks.levelMax;
+			new SpinnerEdit(_levMax, &levMaxEnter);
+		}
+		{
+			auto grp = new Group(comp, DWT.NONE);
+			auto gl = new GridData(GridData.FILL_BOTH);
+			gl.horizontalSpan = 2;
+			grp.setLayoutData = gl;
+			grp.setLayout = new CenterLayout(DWT.HORIZONTAL);
+			grp.setText = _prop.msgs.desc;
+			_desc = new FixedWidthText(dwtData(_prop.looks.summaryDescFont), _prop.looks.summaryDescLen, grp, DWT.BORDER);
+			_desc.widget.setLayoutData = _desc.computeTextBaseSize(_prop.looks.summaryDescLine);
+			_desc.setText = _summ.desc;
+		}
+		auto tab = new TabItem(tabf, DWT.NONE);
+		tab.setText = _prop.msgs.baseData;
+		tab.setControl = comp;
+	}
+	void constructTab3(TabFolder tabf) {
+		auto comp = new Composite(tabf, DWT.NONE);
+		comp.setLayout = new GridLayout(2, false);
+		{
+			auto comp2 = new Composite(comp, DWT.NONE);
+			comp2.setLayoutData = new GridData(GridData.FILL_BOTH);
+			comp2.setLayout = zeroMarginGridLayout(1, true);
+			{
+				auto grp = new Group(comp2, DWT.NONE);
+				grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+				grp.setText = _prop.msgs.scenarioType;
+				grp.setLayout = new GridLayout(1, true);
+				_type = new Combo(grp, DWT.BORDER | DWT.DROP_DOWN | DWT.READ_ONLY);
+				_type.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+				foreach (type; skinTable(_prop).keys.sort) {
+					_type.add(type);
+				}
+				int index = _type.indexOf(_summ.type);
+				_type.setText = index >= 0 ? _summ.type : _prop.var.etc.defaultSkin;
+			}
+			{
+				auto grp = new Group(comp2, DWT.NONE);
+				grp.setLayoutData = new GridData(GridData.FILL_BOTH);
+				grp.setText = _prop.msgs.qualification;
+				grp.setLayout = new GridLayout(2, false);
+				{
+					auto lblN = new Label(grp, DWT.NONE);
+					lblN.setText = _prop.msgs.rCouponNum;
+					_rCouponNum = new Spinner(grp, DWT.BORDER);
+					_rCouponNum.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+					_rCouponNum.setSelection = _summ.rCouponNum;
+					_rCouponNum.setMaximum = 999;
+					_rCouponNum.setMinimum = 0;
+				}
+				{
+					auto lblR = new Label(grp, DWT.NONE);
+					auto gd = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
+					gd.horizontalSpan = 2;
+					lblR.setLayoutData = gd;
+					lblR.setText = _prop.msgs.rCoupons;
+				}
+				{
+					_rCoupons = new Text(grp, DWT.BORDER | DWT.MULTI | DWT.WRAP);
+					auto gd = new GridData(GridData.FILL_BOTH);
+					gd.horizontalSpan = 2;
+					setCDataXY(_rCoupons, gd);
+					string buf;
+					foreach (i, t; _summ.rCoupons) {
+						buf ~= t;
+						buf ~= "\n";
+					}
+					_rCoupons.setText = buf;
+				}
+			}
+		}
+		{
+			auto grp = new Group(comp, DWT.NONE);
+			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
+			grp.setText = _prop.msgs.startArea;
+			grp.setLayout = new GridLayout(1, false);
+			_startArea = new Table(grp, DWT.SINGLE | DWT.FULL_SELECTION | DWT.BORDER | DWT.V_SCROLL);
+			auto idCol = new TableColumn(_startArea, DWT.NONE);
+			saveColumnWidth!("prop.var.etc.idColumn")(_prop, idCol);
+			auto nameCol = new FullTableColumn(_startArea, DWT.NONE);
+			setCDataXY(_startArea, new GridData(GridData.FILL_BOTH));
+			foreach (i, area; _summ.areas) {
+				auto itm = new TableItem(_startArea, DWT.NONE);
+				itm.setData = area;
+				itm.setImage(0, _prop.images.area);
+				itm.setText(0, to!(string)(area.id));
+				itm.setText(1, area.name);
+				if (area.id == _summ.startArea) {
+					_startArea.setSelection(i);
+				}
+			}
+			_startArea.showSelection;
+		}
+		auto tab = new TabItem(tabf, DWT.NONE);
+		tab.setText = _prop.msgs.etcData;
+		tab.setControl = comp;
+	}
+public:
+	this(Commons comm, Props prop, Shell shell, Summary summ) {
+		assert (summ !is null);
+		super(shell);
+		_comm = comm;
+		_summ = summ;
+		_prop = prop;
+	}
+
+protected:
+	override void configureShell(Shell shell) {
+		super.configureShell(shell);
+		shell.setText = _prop.msgs.dlgTitSummary(_summ.scenarioName);
+	}
+
+	override Control createDialogArea(Composite parent) {
+		auto area = cast(Composite) super.createDialogArea(parent);
+		area.setLayout = new FillLayout;
+		auto tabf = new TabFolder(area, DWT.NONE);
+		constructTab1(tabf);
+		constructTab2(tabf);
+		constructTab3(tabf);
+		return area;
+	}
+
+	override void createButtonsForButtonBar(Composite parent) {
+		createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
+		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
+	}
+
+	override void buttonPressed(int buttonId) {
+		if (buttonId == IDialogConstants.OK_ID) {
+			_summ.scenarioName = _sname.getText;
+			_summ.author = _author.getText;
+			_summ.desc = _desc.getRRText;
+			_summ.imagePath = _imgPath.image;
+			_summ.levelMin = _levMin.getSelection;
+			_summ.levelMax = _levMax.getSelection;
+			string[] rcs;
+			foreach (s; splitlines(_rCoupons.getText)) {
+				if (s.length > 0) {
+					rcs ~= s;
+				}
+			}
+			_summ.rCoupons = rcs;
+			_summ.rCouponNum = _rCouponNum.getSelection;
+			_summ.startArea = _startArea.getItemCount > 0 && _startArea.getSelection.length > 0
+				? (cast(Area) _startArea.getSelection[0].getData).id : 0;
+			_summ.type = _type.getText;
+		}
+		setReturnCode(buttonId);
+		close;
+		super.buttonPressed(buttonId);
+	}
+}

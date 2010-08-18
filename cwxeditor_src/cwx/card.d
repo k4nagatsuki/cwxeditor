@@ -1,0 +1,1239 @@
+
+module cwx.card;
+
+import cwx.coupon;
+import cwx.event;
+import cwx.motion;
+import cwx.flag;
+import cwx.utils;
+import cwx.usecounter;
+import cwx.types;
+import cwx.race;
+import cwx.xml;
+
+public:
+
+/// カード絡みの例外。
+class CardException : Exception {
+public:
+	this(string msg) {
+		super(msg);
+	}
+}
+
+/// エリア等に属さない独立したカードの親クラス。
+abstract class Card : IPathUser {
+private:
+	ulong _id;
+	string _name;
+	string _desc;
+	void delegate() _change = null;
+	PathUser _path;
+public:
+	/// 唯一のコンストラクタ。
+	/// Params:
+	/// id = カードID。
+	/// name = 名前。
+	/// imagePath = 画像のパス。
+	/// desc = 解説。
+	this(ulong id, string name, string imagePath, string desc) {
+		_id = id;
+		_name = name;
+		_desc = desc;
+		_path = new PathUser;
+		_path.path = imagePath;
+	}
+	/// 変更ハンドラを登録する。
+	void changeHandler(void delegate() change) {
+		_change = change;
+	}
+	/// 変更ハンドラを返す。
+	protected void delegate() changeHandler() {
+		return _change;
+	}
+	/// 変更を通知する。
+	protected void changed() {
+		if (_change) _change();
+	}
+	/// 使用回数カウンタ。
+	UseCounter useCounter() {
+		return _path.useCounter;
+	}
+	/// 使用回数カウンタを登録する。
+	void setUseCounter(UseCounter uc) {
+		_path.setUseCounter(uc);
+	}
+	/// 使用回数カウンタを取り除く。
+	void removeUseCounter() {
+		_path.removeUseCounter;
+	}
+	/// 画像パスの変更を通知する。
+	void change(PathId id) {
+		_path.change(id);
+	}
+
+	/// カードID。
+	void id(ulong id) {
+		if (_id != id) changed;
+		_id = id;
+	}
+	/// ditto
+	ulong id() {
+		return _id;
+	}
+
+	/// カード名。
+	string name() {
+		return _name;
+	}
+	/// ditto
+	void name(string name) {
+		if (_name != name) changed;
+		_name = name;
+	}
+
+	/// カード画像。
+	string path() {
+		return _path.path;
+	}
+	/// ditto
+	void path(string path) {
+		if (_path.path != path) changed;
+		_path.path = path;
+	}
+
+	/// 解説。
+	string desc() {
+		return _desc;
+	}
+	/// ditto
+	void desc(string desc) {
+		if (_desc != desc) changed;
+		_desc = desc;
+	}
+
+	/// nodeからID情報を抽出する。存在しない場合は0。
+	static ulong readId(ref XNode node) {
+		auto pNode = node.child("Property", false);
+		if (!pNode.valid) return 0UL;
+		string idStr = pNode.childText("Id", false);
+		if (!idStr) return 0UL;
+		return to!(ulong)(idStr);
+	}
+
+	/// 指定されたXMLノードにProperty情報を追加する。
+	protected XNode setProp(ref XNode node) {
+		auto pNode = node.newElement("Property");
+		pNode.newElement("Id", id);
+		pNode.newElement("Name", name);
+		pNode.newElement("ImagePath", encodePath(path));
+		pNode.newElement("Description", encodeLf(desc));
+		return pNode;
+	}
+	/// 指定されたXMLノードからProperty情報を読み出す。
+	protected void loadProp(ref XNode pNode, string ver) {
+		string idStr = null;
+		pNode.onTag["Id"] = (ref XNode n) {idStr = n.value;};
+		pNode.onTag["ImagePath"] = (ref XNode n) {_path.path = decodePath(n.value);};
+		_name = null;
+		pNode.onTag["Name"] = (ref XNode n) {_name = n.value;};
+		pNode.onTag["Description"] = (ref XNode n) {_desc = decodeLf2(n.value);};
+		pNode.parse;
+		if (!idStr) throw new CardException("Id not found");
+		if (!_name) _name = "";
+		_id = to!(long)(idStr);
+	}
+
+	override int opCmp(Object o) {
+		return _id - (cast(Card) o)._id;
+	}
+}
+
+/// キャストカード。
+class CastCard : Card {
+private:
+	mixin RaceParam!(true);
+
+	uint _lev;
+	uint _life;
+	uint _lifeMax;
+
+	Mentality _mentali = Mentality.NORMAL;
+	uint _mentaliRound = 0;
+	uint _para = 0;
+	uint _poi = 0;
+	uint _bindRound = 0;
+	uint _slntRound = 0;
+	uint _faceUpRound = 0;
+	uint _antiMgcRound = 0;
+	int _rEnh[Enhance];
+	uint _rEnhRound[Enhance];
+	Coupon[] _coupon;
+	ItemCard[] _items;
+	SkillCard[] _skills;
+	BeastCard[] _beasts;
+public:
+	/// キャストカードのXML要素名。
+	static const string XML_NAME = "CastCard";
+	/// キャストカード群のXML要素名。
+	static const string XML_NAME_M = "CastCards";
+	static alias toCastId toID;
+	protected override void delegate() changeHandler() {return super.changeHandler;}
+	override void changeHandler(void delegate() change) {
+		foreach (c; _items) {
+			c.changeHandler = change;
+		}
+		foreach (c; _skills) {
+			c.changeHandler = change;
+		}
+		foreach (c; _beasts) {
+			c.changeHandler = change;
+		}
+		super.changeHandler = change;
+	}
+	/// 唯一のコンストラクタ。
+	/// Params:
+	/// id = カードID。
+	/// name = 名前。
+	/// imagePath = 画像のパス。
+	/// desc = 解説。
+	/// lev = レベル。
+	/// lifeMax = ヒットポイント最大値。
+	this(ulong id, string name, string imagePath, string desc, uint lev, uint lifeMax) {
+		super(id, name, imagePath, desc);
+		_lev = lev;
+		_life = lifeMax;
+		_lifeMax = lifeMax;
+
+		constructRace;
+		_rEnh[Enhance.ACTION] = 0;
+		_rEnh[Enhance.AVOID] = 0;
+		_rEnh[Enhance.RESIST] = 0;
+		_rEnh[Enhance.DEFENSE] = 0;
+		_rEnhRound[Enhance.ACTION] = 0;
+		_rEnhRound[Enhance.AVOID] = 0;
+		_rEnhRound[Enhance.RESIST] = 0;
+		_rEnhRound[Enhance.DEFENSE] = 0;
+	}
+	/// 使用回数カウンタ。
+	void setUseCounter(UseCounter uc) {
+		foreach (c; _items) {
+			c.setUseCounter = uc;
+		}
+		foreach (c; _skills) {
+			c.setUseCounter = uc;
+		}
+		foreach (c; _beasts) {
+			c.setUseCounter = uc;
+		}
+		super.setUseCounter = uc;
+	}
+	/// ditto
+	UseCounter useCounter() {
+		return super.useCounter;
+	}
+	/// ditto
+	void removeUseCounter() {
+		foreach (c; _items) {
+			c.removeUseCounter;
+		}
+		foreach (c; _skills) {
+			c.removeUseCounter;
+		}
+		foreach (c; _beasts) {
+			c.removeUseCounter;
+		}
+		super.removeUseCounter;
+	}
+	/// レベル。
+	uint level() {return _lev;}
+	/// ditto
+	void level(uint lev) {
+		if (_lev != lev) changed;
+		_lev = lev;
+	}
+	/// ヒットポイント。
+	uint life() {return _life;}
+	/// ditto
+	void life(uint life) {
+		if (_life != life) changed;
+		_life = life;
+	}
+	/// ヒットポイント最大値。
+	uint lifeMax() {return _lifeMax;}
+	/// ditto
+	void lifeMax(uint lifeMax) {
+		if (_lifeMax != lifeMax) changed;
+		_lifeMax = lifeMax;
+	}
+	// 適性値を返す。
+	int aptitude(Physical phy, Mental m) {
+		return physical(phy) + mental(m);
+	}
+
+	/// 所持するクーポン。
+	Coupon[] coupons() {return _coupon;}
+	/// ditto
+	void coupons(Coupon[] coupon) {
+		if (_coupon != coupon) changed;
+		_coupon = coupon;
+	}
+
+	private C __add(C)(ref C[] arr, C c) {
+		if (contains!("a is b")(arr, c)) {
+			remove(c);
+		}
+		scope doc = XNode.create(C.XML_NAME);
+		c.toNodeImpl(doc);
+		c = C.createFromNode(doc, LATEST_VERSION);
+		if (arr.length > 0 && arr[$ - 1].id >= c.id) {
+			c.id = arr[$ - 1].id + 1L;
+		}
+		if (useCounter) {
+			c.setUseCounter = useCounter;
+		}
+		c.changeHandler = changeHandler;
+		arr ~= c;
+		changed;
+		return c;
+	}
+	private void __removeC(C)(ref C[] arr, C card) {
+		foreach (i, c; arr) {
+			if (c is card) {
+				arr[i].removeUseCounter;
+				arr[i].changeHandler = null;
+				arr = arr[0 .. i] ~ arr[i + 1 .. $];
+				changed;
+			}
+		}
+	}
+	private void __remove(C)(ref C[] arr, ulong id) {
+		foreach (i, c; arr) {
+			if (c.id == id) {
+				arr[i].removeUseCounter;
+				arr[i].changeHandler = null;
+				arr = arr[0 .. i] ~ arr[i + 1 .. $];
+				changed;
+			}
+		}
+	}
+	private C __find(C)(C[] arr, ulong id) {
+		foreach (c; arr) {
+			if (c.id == id) {
+				return c;
+			}
+		}
+		return null;
+	}
+	private T __insert(T, alias ToID)(ref T[] arr, int index, T c) {
+		if (arr.length == index) {
+			return __add!(T)(arr, c);
+		} else {
+			int oldIdx = indexOf(c);
+			if (oldIdx >= 0) {
+				remove(c);
+				if (oldIdx < index) index--;
+			}
+			c.id(index == 0 ? 1L : arr[index - 1].id() + 1L);
+			arr = arr[0 .. index] ~ c ~ arr[index .. $];
+			for (size_t i = index + 1; i < arr.length; i++) {
+				if (arr[i - 1].id == arr[i].id) {
+					ulong o = arr[i].id();
+					arr[i].id = arr[i].id + 1L;
+				}
+			}
+			c.setUseCounter = useCounter;
+			c.changeHandler = changeHandler;
+			changeHandler;
+			return c;
+		}
+	}
+	/// 所持アイテム。
+	ItemCard[] items() {return _items;}
+	/// ditto
+	ItemCard add(ItemCard card) {return __add(_items, card);}
+	/// ditto
+	void removeItem(ulong id) {__remove(_items, id);}
+	/// ditto
+	ItemCard item(ulong id) {
+		return __find(_items, id);
+	}
+	/// ditto
+	void remove(ItemCard c) {
+		__removeC(_items, c);
+	}
+	/// ditto
+	ItemCard insert(int index, ItemCard c) {
+		return __insert!(ItemCard, toItemId)(_items, index, c);
+	}
+	/// 所持スキル。
+	SkillCard[] skills() {return _skills;}
+	/// ditto
+	SkillCard add(SkillCard card) {return __add(_skills, card);}
+	/// ditto
+	void removeSkill(ulong id) {__remove(_skills, id);}
+	/// ditto
+	SkillCard skill(ulong id) {
+		return __find(_skills, id);
+	}
+	/// ditto
+	void remove(SkillCard c) {
+		__removeC(_skills, c);
+	}
+	/// ditto
+	SkillCard insert(int index, SkillCard c) {
+		return __insert!(SkillCard, toSkillId)(_skills, index, c);
+	}
+	/// 所持召喚獣。
+	BeastCard[] beasts() {return _beasts;}
+	/// ditto
+	BeastCard add(BeastCard card) {return __add(_beasts, card);}
+	/// ditto
+	void removeBeast(ulong id) {__remove(_beasts, id);}
+	/// ditto
+	BeastCard beast(ulong id) {
+		return __find(_beasts, id);
+	}
+	/// ditto
+	void remove(BeastCard c) {
+		__removeC(_beasts, c);
+	}
+	/// ditto
+	BeastCard insert(int index, BeastCard c) {
+		return __insert!(BeastCard, toBeastId)(_beasts, index, c);
+	}
+
+	/// 指定された要素のindexを検索する。
+	int indexOf(T)(T c) {
+		static if (is (T == SkillCard)) {
+			return .indexOf!("a is b")(_skills, c);
+		} else static if (is (T == ItemCard)) {
+			return .indexOf!("a is b")(_items, c);
+		} else static if (is (T == BeastCard)) {
+			return .indexOf!("a is b")(_beasts, c);
+		} else {
+			static assert (0);
+		}
+	}
+
+	/// 精神状態。
+	Mentality mentality() {return _mentali;}
+	/// ditto
+	void mentality(Mentality mentali) {
+		if (_mentali != mentali) changed;
+		_mentali = mentali;
+	}
+	/// 精神異常の残り時間。
+	uint mentalityRound() {return _mentaliRound;}
+	/// ditto
+	void mentalityRound(uint round) {
+		if (_mentaliRound != round) changed;
+		_mentaliRound = round;
+	}
+	/// 麻痺の値。
+	uint paralyze() {return _para;}
+	/// ditto
+	void paralyze(uint value) {
+		if (_para != value) changed;
+		_para = value;
+	}
+	/// 毒の値。
+	uint poison() {return _poi;}
+	/// ditto
+	void poison(uint value) {
+		if (_poi != value) changed;
+		_poi = value;
+	}
+	/// 呪縛の残り時間。
+	uint bindRound() {return _bindRound;}
+	/// ditto
+	void bindRound(uint round) {
+		if (_bindRound != round) changed;
+		_bindRound = round;
+	}
+	/// 沈黙の残り時間。
+	uint silenceRound() {return _slntRound;}
+	/// ditto
+	void silenceRound(uint round) {
+		if (_slntRound != round) changed;
+		_slntRound = round;
+	}
+	/// 暴露の残り時間。
+	uint faceUpRound() {return _faceUpRound;}
+	/// ditto
+	void faceUpRound(uint round) {
+		if (_faceUpRound != round) changed;
+		_faceUpRound = round;
+	}
+	/// 魔法無効状態の残り時間。
+	uint antiMagicRound() {return _antiMgcRound;}
+	/// ditto
+	void antiMagicRound(uint round) {
+		if (_antiMgcRound != round) changed;
+		_antiMgcRound = round;
+	}
+	/// 能力値ボーナスの値。
+	int enhance(Enhance enh) {return _rEnh[enh];}
+	/// ditto
+	void enhance(Enhance enh, int value) {
+		if (_rEnh[enh] != value) changed;
+		_rEnh[enh] = value;
+	}
+	/// 能力値ボーナスの残り時間。
+	uint enhanceRound(Enhance enh) {return _rEnhRound[enh];}
+	/// ditto
+	void enhanceRound(Enhance enh, uint round) {
+		if (_rEnhRound[enh] != round) changed;
+		_rEnhRound[enh] = round;
+	}
+
+	/// XMLテキストに変換する。
+	string toXML() {
+		auto n = XNode.create(XML_NAME);
+		toNodeImpl(n);
+		return n.text;
+	}
+	/// 自身をXMLノードにして指定されたノードに追加する。
+	XNode toNode(ref XNode parent) {
+		auto cNode = parent.newElement(XML_NAME);
+		toNodeImpl(cNode);
+		return cNode;
+	}
+	private void toNodeImpl(ref XNode cNode) {
+		auto pNode = setProp(cNode);
+		pNode.newElement("Level", level);
+		pNode.newElement("Life", life).newAttr("max", lifeMax);
+		setFeature(pNode);
+		setAbility(pNode);
+		{
+			auto sNode = pNode.newElement("Status");
+			sNode.newElement("Mentality", fromMentality(mentality)).newAttr("duration", mentalityRound);
+			sNode.newElement("Paralyze", paralyze);
+			sNode.newElement("Poison", poison);
+			sNode.newElement("Bind").newAttr("duration", bindRound);
+			sNode.newElement("Silence").newAttr("duration", silenceRound);
+			sNode.newElement("FaceUp").newAttr("duration", faceUpRound);
+			sNode.newElement("AntiMagic").newAttr("duration", antiMagicRound);
+		}
+		{
+			auto eNode = pNode.newElement("Enhance");
+			eNode.newElement("Action", enhance(Enhance.ACTION))
+				.newAttr("duration", enhanceRound(Enhance.ACTION));
+			eNode.newElement("Avoid", enhance(Enhance.AVOID))
+				.newAttr("duration", enhanceRound(Enhance.AVOID));
+			eNode.newElement("Resist", enhance(Enhance.RESIST))
+				.newAttr("duration", enhanceRound(Enhance.RESIST));
+			eNode.newElement("Defense", enhance(Enhance.DEFENSE))
+				.newAttr("duration", enhanceRound(Enhance.DEFENSE));
+		}
+		{
+			auto cpNode = pNode.newElement("Coupons");
+			foreach (c; coupons) {
+				c.toNode(cpNode);
+			}
+		}
+		{
+			auto cardNode = cNode.newElement("ItemCards");
+			foreach (c; items) {
+				c.toNode(cardNode);
+			}
+		}
+		{
+			auto cardNode = cNode.newElement("SkillCards");
+			foreach (c; skills) {
+				c.toNode(cardNode);
+			}
+		}
+		{
+			auto cardNode = cNode.newElement("BeastCards");
+			foreach (c; beasts) {
+				c.toNode(cardNode);
+			}
+		}
+	}
+
+	/// XMLノードからインスタンスを生成する。
+	/// Throws:
+	/// AreaException = XML内のデータ不足時。
+	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
+	static CastCard createFromNode(XNode cNode, string ver) {
+		if (cNode.name != XML_NAME) throw new CardException("Node is not cast card: " ~ cNode.name);
+		auto r = new CastCard(0, "", "", "", 1, 1);
+		cNode.onTag["Property"] = (ref XNode pNode) {
+			pNode.onTag["Level"] = (ref XNode n) {r._lev = n.valueTo!(int);};
+			pNode.onTag["Life"] = (ref XNode n) {
+				r._life = n.valueTo!(int);
+				r._lifeMax = n.attr!(int)("max", true);
+			};
+			pNode.onTag["Feature"] = (ref XNode n) {r.loadFeature(n, ver);};
+			pNode.onTag["Ability"] = (ref XNode n) {r.loadAbility(n, ver);};
+
+			pNode.onTag["Status"] = (ref XNode sNode) {
+				sNode.onTag["Mentality"] = (ref XNode n) {
+					r.mentality = toMentality(n.value);
+					r.mentalityRound = n.attr!(int)("duration", true);
+				};
+				sNode.onTag["Paralyze"] = (ref XNode n) {
+					r.paralyze = n.valueTo!(int);
+				};
+				sNode.onTag["Poison"] = (ref XNode n) {
+					r.poison = n.valueTo!(int);
+				};
+				sNode.onTag["Bind"] = (ref XNode n) {
+					r.bindRound =  n.attr!(int)("duration", true);
+				};
+				sNode.onTag["Silence"] = (ref XNode n) {
+					r.silenceRound =  n.attr!(int)("duration", true);
+				};
+				sNode.onTag["FaceUp"] = (ref XNode n) {
+					r.faceUpRound =  n.attr!(int)("duration", true);
+				};
+				sNode.onTag["AntiMagic"] = (ref XNode n) {
+					r.antiMagicRound =  n.attr!(int)("duration", true);
+				};
+			};
+			pNode.onTag["Enhance"] = (ref XNode n) {
+				void setEnh(ref XNode n, Enhance enh) {
+					r.enhance(enh, n.valueTo!(int));
+					r.enhanceRound(enh, n.attr!(int)("duration", true));
+				}
+				n.onTag["Action"] = (ref XNode n) {setEnh(n, Enhance.ACTION);};
+				n.onTag["Avoid"] = (ref XNode n) {setEnh(n, Enhance.AVOID);};
+				n.onTag["Resist"] = (ref XNode n) {setEnh(n, Enhance.RESIST);};
+				n.onTag["Defense"] = (ref XNode n) {setEnh(n, Enhance.DEFENSE);};
+				n.parse;
+			};
+			pNode.onTag["Coupons"] = (ref XNode n) {
+				n.onTag["Coupon"] = (ref XNode n) {
+					r._coupon ~= Coupon.fromNode(n, ver);
+				};
+				n.parse;
+			};
+			r.loadProp(pNode, ver);
+		};
+
+		cNode.onTag["ItemCards"] = (ref XNode n) {
+			n.onTag[ItemCard.XML_NAME] = (ref XNode n) {
+				r._items ~= ItemCard.createFromNode(n, ver);
+			};
+			n.parse;
+			r._items.sort;
+		};
+		cNode.onTag["SkillCards"] = (ref XNode n) {
+			n.onTag[SkillCard.XML_NAME] = (ref XNode n) {
+				r._skills ~= SkillCard.createFromNode(n, ver);
+			};
+			n.parse;
+			r._skills.sort;
+		};
+		cNode.onTag["BeastCards"] = (ref XNode n) {
+			n.onTag[BeastCard.XML_NAME] = (ref XNode n) {
+				r._beasts ~= BeastCard.createFromNode(n, ver);
+			};
+			n.parse;
+			r._beasts.sort;
+		};
+		cNode.parse;
+		return r;
+	}
+}
+
+/// スキル・アイテム・召喚獣といった、「効果」のあるカードの親クラス。
+private class EffectCard : Card, EventTreeOwner, IPathUser {
+private:
+	string _scenario = "";
+	string _author = "";
+	Physical _phy = Physical.DEX;
+	Mental _mtl = Mental.AGGRESSIVE;
+	CardTarget _targ = CardTarget.NONE;
+	bool _allRange = false;
+	bool _spell = false;
+	EffectType _effTyp = EffectType.PHYSIC;
+	Resist _res = Resist.AVOID;
+	int _suc = 0;
+	CardVisual _vis = CardVisual.NONE;
+	int[Enhance] _enh;
+	PathUser _se1;
+	PathUser _se2;
+	string[] _keyCodes = [];
+	Premium _premi = Premium.NORMAL;
+	MotionUser _muser;
+	AbstractEventTreeOwner _ceto;
+public:
+	/// 唯一のコンストラクタ。
+	/// Params:
+	/// id = カードID。
+	/// name = 名前。
+	/// imagePath = 画像のパス。
+	/// desc = 解説。
+	this(ulong id, string name, string imagePath, string desc) {
+		super(id, name, imagePath, desc);
+		_ceto = new class AbstractEventTreeOwner {
+			override bool canHasFireEnter() {return false;}
+			override bool canHasFireLose() {return false;}
+			override bool canHasFireEscape() {return false;}
+			override bool canHasFireRound() {return false;}
+			override bool canHasFireKeyCode() {return false;}
+			override size_t[] areaPath() {return [0];}
+		};
+		_muser = new MotionUser;
+		_se1 = new PathUser;
+		_se2 = new PathUser;
+		_enh = [Enhance.AVOID:0, Enhance.RESIST:0, Enhance.DEFENSE:0];
+	}
+
+	/// カードが属するシナリオ名、及びカードの製作者。
+	/// 他のシナリオからのインポート等があるため、
+	/// 現在のシナリオと同一になるとは限らない。
+	string scenario() {return _scenario;}
+	/// ditto
+	void scenario(string scenario) {
+		if (_scenario != scenario) changed;
+		_scenario = scenario;
+	}
+	/// ditto
+	string author() {return _author;}
+	/// ditto
+	void author(string author) {
+		if (_author != author) changed;
+		_author = author;
+	}
+
+	/// カードの適正。肉体要素。
+	Physical physical() {return _phy;}
+	/// ditto
+	void physical(Physical phy) {
+		if (_phy != phy) changed;
+		_phy = phy;
+	}
+	/// カードの適正。精神要素。
+	Mental mental() {return _mtl;}
+	/// ditto
+	void mental(Mental mtl) {
+		if (_mtl != mtl) changed;
+		_mtl = mtl;
+	}
+
+	/// カードの標的。
+	CardTarget target() {return _targ;}
+	/// ditto
+	void target(CardTarget targ) {
+		if (_targ != targ) changed;
+		_targ = targ;
+	}
+	/// 全体が標的となるか。
+	bool allRange() {return _allRange;}
+	/// ditto
+	void allRange(bool allRange) {
+		if (_allRange != allRange) changed;
+		_allRange = allRange;
+	}
+	/// 使用時に発声が必要か。
+	bool spell() {return _spell;}
+	/// ditto
+	void spell(bool spell) {
+		if (_spell != spell) changed;
+		_spell = spell;
+	}
+	/// 効果のタイプ。物理、魔法、魔法的物理、物理的魔法。
+	EffectType effectType() {return _effTyp;}
+	/// ditto
+	void effectType(EffectType effTyp) {
+		if (_effTyp != effTyp) changed;
+		_effTyp = effTyp;
+	}
+	/// 回避属性。回避か抵抗か。
+	Resist resist() {return _res;}
+	/// ditto
+	void resist(Resist res) {
+		if (_res != res) changed;
+		_res = res;
+	}
+	/// 成功率。-5～+5。
+	int successRate() {return _suc;}
+	/// ditto
+	void successRate(int suc) {
+		if (_suc != suc) changed;
+		_suc = suc;
+	}
+	/// カードの視覚効果。
+	CardVisual visual() {return _vis;}
+	/// ditto
+	void visual(CardVisual vis) {
+		if (_vis != vis) changed;
+		_vis = vis;
+	}
+	/// 使用時の能力値ボーナス。
+	int enhance(Enhance enh) {return _enh[enh];}
+	/// ditto
+	void enhance(Enhance enh, int val) {
+		if (_enh[enh] != val) changed;
+		_enh[enh] = val;
+	}
+	/// 使用時サウンド。
+	string soundPath1() {return _se1.path;}
+	/// ditto
+	void soundPath1(string path) {
+		if (_se1.path != path) changed;
+		_se1.path = path;
+	}
+	/// 命中時サウンド。
+	string soundPath2() {return _se2.path;}
+	/// ditto
+	void soundPath2(string path) {
+		if (_se2.path != path) changed;
+		_se2.path = path;
+	}
+	/// キーコード。
+	string[] keyCodes() {return _keyCodes;}
+	/// ditto
+	void keyCodes(string[] keyCodes) {
+		if (_keyCodes != keyCodes) changed;
+		_keyCodes = keyCodes;
+	}
+	/// カードの希少価値。
+	Premium premium() {return _premi;}
+	/// ditto
+	void premium(Premium premi) {
+		if (_premi != premi) changed;
+		_premi = premi;
+	}
+	/// カードの効果。
+	Motion[] motions() {return _muser.motions;}
+	/// ditto
+	void motions(Motion[] motions) {
+		_muser.motions = motions;
+	}
+	override void changeHandler(void delegate() change) {
+		_ceto.changeHandler = change;
+		_muser.changeHandler = change;
+		super.changeHandler = change;
+	}
+	protected override void delegate() changeHandler() {
+		return super.changeHandler;
+	}
+	override void setUseCounter(UseCounter uc) {
+		_ceto.setUseCounter = uc;
+		_muser.setUseCounter = uc;
+		super.setUseCounter = uc;
+	}
+	override void removeUseCounter() {
+		_ceto.removeUseCounter;
+		_muser.removeUseCounter;
+		super.removeUseCounter;
+	}
+
+	override EventTree[] trees() {return _ceto.trees;}
+
+	override bool canHasFireEnter() {return _ceto.canHasFireEnter;}
+	override bool canHasFireLose() {return _ceto.canHasFireLose;}
+	override bool canHasFireEscape() {return _ceto.canHasFireEscape;}
+	override bool canHasFireRound() {return _ceto.canHasFireRound;}
+	override bool canHasFireKeyCode() {return _ceto.canHasFireKeyCode;}
+	override size_t[] areaPath() {return _ceto.areaPath;}
+	EventTree etFromPath(size_t[] path) {
+		if (path[0] == 0) {
+			return trees[path[1]];
+		}
+		assert (0);
+	}
+
+	override void add(EventTree evt) {return _ceto.add(evt);}
+	override void insert(int index, EventTree evt) {return _ceto.insert(index, evt);}
+	override void removeEvent(int index) {return _ceto.removeEvent(index);}
+	override void remove(EventTree et) {return _ceto.remove(et);}
+	override void swapEventTree(int index1, int index2) {return _ceto.swapEventTree(index1, index2);}
+
+	/// 指定されたXMLノードに効果カード関連の情報を追加する。
+	protected XNode setEffProp(ref XNode node) {
+		auto pNode = setProp(node);
+		pNode.newElement("Scenario", scenario);
+		pNode.newElement("Author", author);
+		auto a = pNode.newElement("Ability");
+		a.newAttr("physical", fromPhysical(physical));
+		a.newAttr("mental", fromMental(mental));
+		pNode.newElement("Target", fromCardTarget(target)).newAttr("allrange", fromBool(allRange));
+		pNode.newElement("EffectType", fromEffectType(effectType)).newAttr("spell", fromBool(spell));
+		pNode.newElement("ResistType", fromResist(resist));
+		pNode.newElement("SuccessRate", successRate);
+		pNode.newElement("VisualEffect", fromCardVisual(visual));
+		auto enh = pNode.newElement("Enhance");
+		enh.newAttr("avoid", enhance(Enhance.AVOID));
+		enh.newAttr("resist", enhance(Enhance.RESIST));
+		enh.newAttr("defense", enhance(Enhance.DEFENSE));
+		pNode.newElement("SoundPath", encodePath(soundPath1));
+		pNode.newElement("SoundPath2", encodePath(soundPath2));
+		pNode.newElement("KeyCodes", encodeLf(keyCodes, false));
+		pNode.newElement("Premium", fromPremium(premium));
+		auto mNode = node.newElement("Motions");
+		foreach (m; motions) {
+			m.toNode(mNode);
+		}
+		_ceto.appendEventsToNode(node);
+		return pNode;
+	}
+	/// 指定されたXMLノードから効果カード関連のデータを読み出す。
+	protected void loadEffProp(ref XNode pNode, string ver) {
+		assert (pNode.name == "Property");
+		pNode.onTag["Scenario"] = (ref XNode n) {_scenario = n.value;};
+		pNode.onTag["Author"] = (ref XNode n) {_author = n.value;};
+		pNode.onTag["Ability"] = (ref XNode n) {
+			_phy = toPhysical(n.attr("physical", true));
+			_mtl = toMental(n.attr("mental", true));
+		};
+		pNode.onTag["Target"] = (ref XNode n) {
+			_targ = toCardTarget(n.value);
+			_allRange = parseBool(n.attr("allrange", true));
+		};
+		pNode.onTag["EffectType"] = (ref XNode n) {
+			_effTyp = toEffectType(n.value);
+			_spell = parseBool(n.attr("spell", true));
+		};
+		pNode.onTag["ResistType"] = (ref XNode n) {_res = toResist(n.value);};
+		pNode.onTag["SuccessRate"] = (ref XNode n) {_suc = n.valueTo!(int);};
+		pNode.onTag["VisualEffect"] = (ref XNode n) {_vis = toCardVisual(n.value);};
+		pNode.onTag["Enhance"] = (ref XNode n) {
+			_enh[Enhance.AVOID] = n.attr!(int)("avoid", true);
+			_enh[Enhance.RESIST] = n.attr!(int)("resist", true);
+			_enh[Enhance.DEFENSE] = n.attr!(int)("defense", true);
+		};
+		pNode.onTag["SoundPath"] = (ref XNode n) {_se1.path = decodePath(n.value);};
+		pNode.onTag["SoundPath2"] = (ref XNode n) {_se2.path = decodePath(n.value);};
+		pNode.onTag["KeyCodes"] = (ref XNode n) {_keyCodes = decodeLf(n.value);};
+		pNode.onTag["Premium"] = (ref XNode n) {_premi = toPremium(n.value);};
+		loadProp(pNode, ver);
+	}
+	/// ditto
+	protected void loadEffV(ref XNode node, string ver) {
+		node.onTag["Motions"] = (ref XNode n) {
+			Motion[] motions;
+			n.onTag["Motion"] = (ref XNode n) {
+				motions ~= Motion.createFromNode(n, ver);
+			};
+			n.parse;
+			_muser.motions = motions;
+		};
+		node.onTag["Events"] = (ref XNode n) {
+			_ceto.addAll(AbstractEventTreeOwner.loadEventsFromNode(n, ver));
+		};
+		node.parse;
+	}
+}
+
+/// スキルカード。
+class SkillCard : EffectCard {
+private:
+	uint _level;
+	bool _hold = false;
+	int _useLimit = 0;
+public:
+	/// スキルカードのXML要素名。
+	static const string XML_NAME = "SkillCard";
+	/// スキルカード群のXML要素名。
+	static const string XML_NAME_M = "SkillCards";
+	static alias toSkillId toID;
+	/// 唯一のコンストラクタ。
+	/// Params:
+	/// id = カードID。
+	/// name = 名前。
+	/// imagePath = 画像のパス。
+	/// desc = 解説。
+	this(ulong id, string name, string imagePath, string desc) {
+		super(id, name, imagePath, desc);
+	}
+
+	/// レベル。
+	uint level() {return _level;}
+	/// ditto
+	void level(uint level) {
+		if (_level != level) changed;
+		_level = level;
+	}
+
+	/// 残り使用回数。
+	uint useLimit() {return _useLimit;}
+	/// ditto
+	void useLimit(uint useLimit) {
+		if (_useLimit != useLimit) changed;
+		_useLimit = useLimit;
+	}
+
+	/// ホールド状態か。
+	bool hold() {return _hold;}
+	/// ditto
+	void hold(bool hold) {
+		if (_hold != hold) changed;
+		_hold = hold;
+	}
+
+	/// XMLテキストに変換する。
+	string toXML() {
+		auto n = XNode.create(XML_NAME);
+		toNodeImpl(n);
+		return n.text;
+	}
+	/// 自身をXMLノードにして指定されたノードに追加する。
+	XNode toNode(ref XNode parent) {
+		auto cNode = parent.newElement(XML_NAME);
+		toNodeImpl(cNode);
+		return cNode;
+	}
+	private void toNodeImpl(ref XNode cNode) {
+		auto pNode = setEffProp(cNode);
+		pNode.newElement("Level", level);
+		pNode.newElement("UseLimit", useLimit);
+		pNode.newElement("Hold", fromBool(hold));
+	}
+
+	/// XMLノードからインスタンスを生成する。
+	/// Throws:
+	/// AreaException = XML内のデータ不足時。
+	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
+	static SkillCard createFromNode(ref XNode cNode, string ver) {
+		if (cNode.name != XML_NAME) throw new CardException("Node is not skill card: " ~ cNode.name);
+		auto r = new SkillCard(0, "", "", "");
+		cNode.onTag["Property"] = (ref XNode pNode) {
+			pNode.onTag["Level"] = (ref XNode n) {r._level = n.valueTo!(int);};
+			pNode.onTag["UseLimit"] = (ref XNode n) {r._useLimit = n.valueTo!(int);};
+			pNode.onTag["Hold"] = (ref XNode n) {r._hold = parseBool(n.value);};
+			r.loadEffProp(pNode, ver);
+		};
+		r.loadEffV(cNode, ver);
+		return r;
+	}
+}
+
+/// アイテムカード。
+class ItemCard : EffectCard {
+private:
+	int[Enhance] _oEnh;
+	uint _price = 0;
+	uint _useLimit = 0;
+	uint _useLimitMax = 0;
+	bool _hold = false;
+public:
+	/// アイテムカードのXML要素名。
+	static const string XML_NAME = "ItemCard";
+	/// アイテムカード群のXML要素名。
+	static const string XML_NAME_M = "ItemCards";
+	static alias toItemId toID;
+	/// 唯一のコンストラクタ。
+	/// Params:
+	/// id = カードID。
+	/// name = 名前。
+	/// imagePath = 画像のパス。
+	/// desc = 解説。
+	this(ulong id, string name, string imagePath, string desc) {
+		super(id, name, imagePath, desc);
+		_oEnh = [Enhance.AVOID:0, Enhance.RESIST:0, Enhance.DEFENSE:0];
+	}
+
+	/// 使用回数。0で無制限。
+	uint useLimit() {return _useLimit;}
+	/// ditto
+	void useLimit(uint useLimit) {
+		if (_useLimit != useLimit) changed;
+		_useLimit = useLimit;
+	}
+
+	/// 最大使用回数。0で無制限。
+	uint useLimitMax() {return _useLimitMax;}
+	/// ditto
+	void useLimitMax(uint useLimitMax) {
+		if (_useLimitMax != useLimitMax) changed;
+		_useLimitMax = useLimitMax;
+	}
+
+	/// 値段。
+	uint price() {return _price;}
+	/// ditto
+	void price(uint price) {
+		if (_price != price) changed;
+		_price = price;
+	}
+
+	/// 所持者の能力値ボーナス。
+	int enhanceOwner(Enhance enh) {return _oEnh[enh];}
+	/// ditto
+	void enhanceOwner(Enhance enh, int val) {
+		if (_oEnh[enh] != val) changed;
+		_oEnh[enh] = val;
+	}
+
+	/// ホールド状態か。
+	bool hold() {return _hold;}
+	/// ditto
+	void hold(bool hold) {
+		if (_hold != hold) changed;
+		_hold = hold;
+	}
+
+	/// XMLテキストに変換する。
+	string toXML() {
+		auto n = XNode.create(XML_NAME);
+		toNodeImpl(n);
+		return n.text;
+	}
+	/// 自身をXMLノードにして指定されたノードに追加する。
+	XNode toNode(ref XNode parent) {
+		auto cNode = parent.newElement(XML_NAME);
+		toNodeImpl(cNode);
+		return cNode;
+	}
+	private void toNodeImpl(ref XNode cNode) {
+		auto pNode = setEffProp(cNode);
+		pNode.newElement("UseLimit", useLimit).newAttr("max", useLimitMax);
+		pNode.newElement("Price", price);
+		auto eo = pNode.newElement("EnhanceOwner");
+		eo.newAttr("avoid", enhanceOwner(Enhance.AVOID));
+		eo.newAttr("resist", enhanceOwner(Enhance.RESIST));
+		eo.newAttr("defense", enhanceOwner(Enhance.DEFENSE));
+		pNode.newElement("Hold", fromBool(hold));
+	}
+
+	/// XMLノードからインスタンスを生成する。
+	/// Params:
+	/// cNode = XMLノード。
+	/// Throws:
+	/// AreaException = XML内のデータ不足時。
+	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
+	static ItemCard createFromNode(ref XNode cNode, string ver) {
+		if (cNode.name != XML_NAME) throw new CardException("Node is not item card: " ~ cNode.name);
+		auto r = new ItemCard(0, "", "", "");
+		cNode.onTag["Property"] = (ref XNode pNode) {
+			pNode.onTag["UseLimit"] = (ref XNode n) {
+				r._useLimit = n.valueTo!(int);
+				r._useLimitMax = n.attr!(int)("max", true);
+			};
+			pNode.onTag["Price"] = (ref XNode n) {r._price = n.valueTo!(int);};
+			pNode.onTag["EnhanceOwner"] = (ref XNode n) {
+				r._oEnh[Enhance.AVOID] = n.attr!(int)("avoid", true);
+				r._oEnh[Enhance.RESIST] = n.attr!(int)("resist", true);
+				r._oEnh[Enhance.DEFENSE] = n.attr!(int)("defense", true);
+			};
+			pNode.onTag["Hold"] = (ref XNode n) {r._hold = parseBool(n.value);};
+			r.loadEffProp(pNode, ver);
+		};
+		r.loadEffV(cNode, ver);
+		return r;
+	}
+}
+
+/// 召喚獣カード。
+class BeastCard : EffectCard {
+private:
+	uint _useLimit = 0;
+public:
+	/// 召喚獣カードのXML要素名。
+	static const string XML_NAME = "BeastCard";
+	/// 召喚獣カード群のXML要素名。
+	static const string XML_NAME_M = "BeastCards";
+	static alias toBeastId toID;
+	/// 唯一のコンストラクタ。
+	/// Params:
+	/// id = カードID。
+	/// name = 名前。
+	/// imagePath = 画像のパス。
+	/// desc = 解説。
+	this(ulong id, string name, string imagePath, string desc) {
+		super(id, name, imagePath, desc);
+	}
+
+	/// 使用回数。0で無制限。
+	uint useLimit() {return _useLimit;}
+	/// ditto
+	void useLimit(uint useLimit) {
+		if (_useLimit != useLimit) changed;
+		_useLimit = useLimit;
+	}
+
+	/// 自身をXMLノードにして指定されたノードに追加する。
+	XNode toNode(ref XNode parent) {
+		auto cNode = parent.newElement(XML_NAME);
+		toNodeImpl(cNode);
+		return cNode;
+	}
+	private void toNodeImpl(ref XNode cNode) {
+		assert (cNode.name == XML_NAME);
+		auto pNode = setEffProp(cNode);
+		pNode.newElement("UseLimit", useLimit);
+	}
+	/// コピーを生成する。
+	BeastCard dup() {
+		auto node = XNode.create(BeastCard.XML_NAME);
+		toNodeImpl(node);
+		return BeastCard.createFromNode(node, LATEST_VERSION);
+	}
+	/// XMLテキストに変換する。
+	string toXML() {
+		auto n = XNode.create(XML_NAME);
+		toNodeImpl(n);
+		return n.text;
+	}
+	/// XMLノードからインスタンスを生成する。
+	/// Params:
+	/// cNode = XMLノード。
+	/// Throws:
+	/// AreaException = XML内のデータ不足時。
+	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
+	static BeastCard createFromNode(ref XNode cNode, string ver) {
+		if (cNode.name != XML_NAME) throw new CardException("Node is not beast card: " ~ cNode.name);
+		auto r = new BeastCard(0, "", "", "");
+		cNode.onTag["Property"] = (ref XNode pNode) {
+			pNode.onTag["UseLimit"] = (ref XNode n) {r._useLimit = n.valueTo!(int);};
+			r.loadEffProp(pNode, ver);
+		};
+		r.loadEffV(cNode, ver);
+		return r;
+	}
+}
+
+/// 情報カード。
+class InfoCard : Card {
+public:
+	/// 情報カードのXML要素名。
+	static const string XML_NAME = "InfoCard";
+	/// 情報カード群のXML要素名。
+	static const string XML_NAME_M = "InfoCards";
+	static alias toInfoId toID;
+	/// 唯一のコンストラクタ。
+	/// Params:
+	/// id = カードID。
+	/// name = 名前。
+	/// imagePath = 画像のパス。
+	/// desc = 解説。
+	this(ulong id, string name, string imagePath, string desc) {
+		super(id, name, imagePath, desc);
+	}
+
+	/// XMLテキストに変換する。
+	string toXML() {
+		auto n = XNode.create(XML_NAME);
+		toNodeImpl(n);
+		return n.text;
+	}
+	/// 自身をXMLノードにして指定されたノードに追加する。
+	XNode toNode(ref XNode parent) {
+		auto cNode = parent.newElement(XML_NAME);
+		toNodeImpl(cNode);
+		return cNode;
+	}
+	private void toNodeImpl(ref XNode cNode) {
+		setProp(cNode);
+	}
+	/// XMLノードからインスタンスを生成する。
+	/// Params:
+	/// cNode = XMLノード。
+	/// Throws:
+	/// AreaException = XML内のデータ不足時。
+	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
+	static InfoCard createFromNode(ref XNode cNode, string ver) {
+		if (cNode.name != XML_NAME) throw new CardException("Node is not info card: " ~ cNode.name);
+		auto r = new InfoCard(0, "", "", "");
+		cNode.onTag["Property"] = (ref XNode node) {
+			r.loadProp(node, ver);
+		};
+		cNode.parse;
+		return r;
+	}
+}
