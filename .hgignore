@@ -1,0 +1,10 @@
+syntax: glob
+cwxeditor_src/cwxeditor.exe
+cwxeditor_src/cwxeditor.res
+cwxeditor_src/cwxeditor.xml
+cwxeditor_src/cwxeditor_error.log
+
+syntax: regexp
+^cwxeditor_src/Scenario/.*
+^cwxeditor_src/temp.*
+^cwxeditor_src/.*\.dll
