@@ -1249,6 +1249,7 @@ private InfoCard loadInfo(std.stream.InputStream f) {
 /// 4.0形式のCardWirthシナリオを保存する。
 void saveLScenario(Summary summ) {
 	scope wids = new HashSet!(string);
+	string scName = summ.scenarioName;
 	string scPath = summ.scenarioPath;
 	{
 		auto file = "~Summary.wsm";
@@ -1263,7 +1264,7 @@ void saveLScenario(Summary summ) {
 		scope f = new std.stream.BufferedFile
 			(std.path.join(scPath, file), std.stream.FileMode.OutNew);
 		scope (exit) f.close;
-		writeArea(f, scPath, a);
+		writeArea(f, scName, scPath, a);
 		wids.add(file);
 	}
 	foreach (a; summ.battles) {
@@ -1271,7 +1272,7 @@ void saveLScenario(Summary summ) {
 		scope f = new std.stream.BufferedFile
 			(std.path.join(scPath, file), std.stream.FileMode.OutNew);
 		scope (exit) f.close;
-		writeBattle(f, scPath, a);
+		writeBattle(f, scName, scPath, a);
 		wids.add(file);
 	}
 	foreach (a; summ.packages) {
@@ -1279,7 +1280,7 @@ void saveLScenario(Summary summ) {
 		scope f = new std.stream.BufferedFile
 			(std.path.join(scPath, file), std.stream.FileMode.OutNew);
 		scope (exit) f.close;
-		writePackage(f, scPath, a);
+		writePackage(f, scName, scPath, a);
 		wids.add(file);
 	}
 	foreach (c; summ.casts) {
@@ -1287,7 +1288,7 @@ void saveLScenario(Summary summ) {
 		scope f = new std.stream.BufferedFile
 			(std.path.join(scPath, file), std.stream.FileMode.OutNew);
 		scope (exit) f.close;
-		writeCast(f, scPath, c);
+		writeCast(f, scName, scPath, c);
 		wids.add(file);
 	}
 	foreach (c; summ.skills) {
@@ -1295,7 +1296,7 @@ void saveLScenario(Summary summ) {
 		scope f = new std.stream.BufferedFile
 			(std.path.join(scPath, file), std.stream.FileMode.OutNew);
 		scope (exit) f.close;
-		writeSkill(f, scPath, c);
+		writeSkill(f, scName, scPath, c);
 		wids.add(file);
 	}
 	foreach (c; summ.items) {
@@ -1303,7 +1304,7 @@ void saveLScenario(Summary summ) {
 		scope f = new std.stream.BufferedFile
 			(std.path.join(scPath, file), std.stream.FileMode.OutNew);
 		scope (exit) f.close;
-		writeItem(f, scPath, c);
+		writeItem(f, scName, scPath, c);
 		wids.add(file);
 	}
 	foreach (c; summ.beasts) {
@@ -1311,7 +1312,7 @@ void saveLScenario(Summary summ) {
 		scope f = new std.stream.BufferedFile
 			(std.path.join(scPath, file), std.stream.FileMode.OutNew);
 		scope (exit) f.close;
-		writeBeast(f, scPath, c);
+		writeBeast(f, scName, scPath, c);
 		wids.add(file);
 	}
 	foreach (c; summ.infos) {
@@ -1319,7 +1320,7 @@ void saveLScenario(Summary summ) {
 		scope f = new std.stream.BufferedFile
 			(std.path.join(scPath, file), std.stream.FileMode.OutNew);
 		scope (exit) f.close;
-		writeInfo(f, scPath, c);
+		writeInfo(f, scName, scPath, c);
 		wids.add(file);
 	}
 	scope regex = std.regexp.RegExp("^(Area|Battle|Package|Mate|Skill|Item|Beast|Info)[0-9]+\\.wid$");
@@ -1562,7 +1563,7 @@ private void writeSummary(std.stream.OutputStream f, Summary summ) {
 	writeUIntL(f, summ.levelMin);
 	writeUIntL(f, summ.levelMax);
 }
-private void writeMotion(std.stream.OutputStream f, string scPath, Motion m) {
+private void writeMotion(std.stream.OutputStream f, string scName, string scPath, Motion m) {
 	byte tType;
 	byte type;
 	switch (m.type) {
@@ -1754,7 +1755,7 @@ private void writeMotion(std.stream.OutputStream f, string scPath, Motion m) {
 		auto beast = m.beast;
 		if (beast) {
 			writeUIntL(f, 0x1);
-			writeBeast(f, scPath, beast);
+			writeBeast(f, scName, scPath, beast);
 		} else {
 			writeUIntL(f, 0x0);
 		}
@@ -1762,7 +1763,7 @@ private void writeMotion(std.stream.OutputStream f, string scPath, Motion m) {
 	default: throw new SummaryException("Unknown motion: " ~ to!(string)(tType) ~ ", " ~ to!(string)(type));
 	}
 }
-private void writeContent(std.stream.OutputStream f, string scPath, Content e) {
+private void writeContent(std.stream.OutputStream f, string scName, string scPath, Content e) {
 	auto d = e.detail;
 	void wb(byte type) {
 		f.write(type);
@@ -1770,7 +1771,7 @@ private void writeContent(std.stream.OutputStream f, string scPath, Content e) {
 		if (d.owner) {
 			writeUIntL(f, 40000 + e.next.length);
 			foreach (child; e.next) {
-				writeContent(f, scPath, child);
+				writeContent(f, scName, scPath, child);
 			}
 		} else {
 			writeUIntL(f, 40000);
@@ -1831,7 +1832,7 @@ private void writeContent(std.stream.OutputStream f, string scPath, Content e) {
 		f.write(fromCardVisual(e.cardVisual));
 		writeUIntL(f, e.motions.length);
 		foreach (m; e.motions) {
-			writeMotion(f, scPath, m);
+			writeMotion(f, scName, scPath, m);
 		}
 	} else if (e.type is CType.BRANCH_SELECT) {
 		wb(12);
@@ -2034,16 +2035,16 @@ private void writeContent(std.stream.OutputStream f, string scPath, Content e) {
 		assert (0, "event");
 	}
 }
-private void writeCEventTree(std.stream.OutputStream f, string scPath, EventTree tree) {
+private void writeCEventTree(std.stream.OutputStream f, string scName, string scPath, EventTree tree) {
 	writeUIntL(f, tree.starts.length);
 	foreach (evt; tree.starts) {
-		writeContent(f, scPath, evt);
+		writeContent(f, scName, scPath, evt);
 	}
 }
-private void writeEventTree(std.stream.OutputStream f, string scPath, EventTree tree) {
+private void writeEventTree(std.stream.OutputStream f, string scName, string scPath, EventTree tree) {
 	writeUIntL(f, tree.starts.length);
 	foreach (evt; tree.starts) {
-		writeContent(f, scPath, evt);
+		writeContent(f, scName, scPath, evt);
 	}
 	int[] igs;
 	if (tree.fireEnter) igs ~= 1;
@@ -2081,14 +2082,14 @@ private void writeBgImages(std.stream.OutputStream f, BgImage[] backs) {
 		writeBgImage(f, b);
 	}
 }
-private void writeArea(std.stream.OutputStream f, string scPath, Area a) {
+private void writeArea(std.stream.OutputStream f, string scName, string scPath, Area a) {
 	f.write(cast(byte) 0x0);
 	writeUIntL(f, 0x0);
 	writeString(f, a.name);
 	writeUIntL(f, cast(uint) (a.id + 40000u));
 	writeUIntL(f, a.trees.length);
 	foreach (tree; a.trees) {
-		writeEventTree(f, scPath, tree);
+		writeEventTree(f, scName, scPath, tree);
 	}
 	writeBool(f, !a.spAuto);
 	writeUIntL(f, a.cards.length);
@@ -2103,7 +2104,7 @@ private void writeArea(std.stream.OutputStream f, string scPath, Area a) {
 		writeString(f, c.desc);
 		writeUIntL(f, c.trees.length);
 		foreach (tree; c.trees) {
-			writeEventTree(f, scPath, tree);
+			writeEventTree(f, scName, scPath, tree);
 		}
 		writeString(f, c.flag);
 		writeUIntL(f, cast(uint) rndtol(c.scale * 100.0));
@@ -2113,14 +2114,14 @@ private void writeArea(std.stream.OutputStream f, string scPath, Area a) {
 	}
 	writeBgImages(f, a.backs);
 }
-private void writeBattle(std.stream.OutputStream f, string scPath, Battle a) {
+private void writeBattle(std.stream.OutputStream f, string scName, string scPath, Battle a) {
 	f.write(cast(byte) 0x1);
 	writeUIntL(f, 0x0);
 	writeString(f, a.name);
 	writeUIntL(f, cast(uint) (a.id + 40000u));
 	writeUIntL(f, a.trees.length);
 	foreach (tree; a.trees) {
-		writeEventTree(f, scPath, tree);
+		writeEventTree(f, scName, scPath, tree);
 	}
 	writeBool(f, !a.spAuto);
 	writeUIntL(f, a.cards.length);
@@ -2128,7 +2129,7 @@ private void writeBattle(std.stream.OutputStream f, string scPath, Battle a) {
 		writeUIntL(f, cast(uint) c.id);
 		writeUIntL(f, c.trees.length);
 		foreach (tree; c.trees) {
-			writeEventTree(f, scPath, tree);
+			writeEventTree(f, scName, scPath, tree);
 		}
 		writeString(f, c.flag);
 		writeUIntL(f, cast(uint) rndtol(c.scale * 100.0));
@@ -2138,16 +2139,16 @@ private void writeBattle(std.stream.OutputStream f, string scPath, Battle a) {
 	}
 	writeString(f, a.music);
 }
-private void writePackage(std.stream.OutputStream f, string scPath, Package a) {
+private void writePackage(std.stream.OutputStream f, string scName, string scPath, Package a) {
 	writeUIntL(f, 0x4);
 	writeString(f, a.name);
 	writeUIntL(f, cast(uint) a.id);
 	writeUIntL(f, a.trees.length);
 	foreach (tree; a.trees) {
-		writeCEventTree(f, scPath, tree);
+		writeCEventTree(f, scName, scPath, tree);
 	}
 }
-private void writeCast(std.stream.OutputStream f, string scPath, CastCard c) {
+private void writeCast(std.stream.OutputStream f, string scName, string scPath, CastCard c) {
 	f.write(cast(byte) 0x2);
 	writeImage(f, scPath, c.path);
 	writeString(f, c.name);
@@ -2199,15 +2200,15 @@ private void writeCast(std.stream.OutputStream f, string scPath, CastCard c) {
 	writeUIntL(f, c.enhanceRound(Enhance.DEFENSE));
 	writeUIntL(f, c.items.length);
 	foreach (cc; c.items) {
-		writeItem(f, scPath, cc);
+		writeItem(f, scName, scPath, cc);
 	}
 	writeUIntL(f, c.skills.length);
 	foreach (cc; c.skills) {
-		writeSkill(f, scPath, cc);
+		writeSkill(f, scName, scPath, cc);
 	}
 	writeUIntL(f, c.beasts.length);
 	foreach (cc; c.beasts) {
-		writeBeast(f, scPath, cc);
+		writeBeast(f, scName, scPath, cc);
 	}
 	writeUIntL(f, c.coupons.length);
 	foreach (cc; c.coupons) {
@@ -2215,7 +2216,7 @@ private void writeCast(std.stream.OutputStream f, string scPath, CastCard c) {
 		writeIntL(f, cc.value);
 	}
 }
-private void writeEffCard(std.stream.OutputStream f, string scPath, EffectCard c, byte type) {
+private void writeEffCard(std.stream.OutputStream f, string scName, string scPath, EffectCard c, byte type) {
 	f.write(type);
 	writeImage(f, scPath, c.path);
 	writeString(f, c.name);
@@ -2232,7 +2233,7 @@ private void writeEffCard(std.stream.OutputStream f, string scPath, EffectCard c
 	f.write(fromCardVisual(c.visual));
 	writeUIntL(f, c.motions.length);
 	foreach (m; c.motions) {
-		writeMotion(f, scPath, m);
+		writeMotion(f, scName, scPath, m);
 	}
 	writeIntL(f, c.enhance(Enhance.AVOID));
 	writeIntL(f, c.enhance(Enhance.RESIST));
@@ -2247,21 +2248,21 @@ private void writeEffCard(std.stream.OutputStream f, string scPath, EffectCard c
 		}
 	}
 	f.write(fromPremium(c.premium));
-	writeString(f, c.scenario);
+	writeString(f, scName);
 	writeString(f, c.author);
 	writeUIntL(f, c.trees.length);
 	foreach (tree; c.trees) {
-		writeCEventTree(f, scPath, tree);
+		writeCEventTree(f, scName, scPath, tree);
 	}
 }
-private void writeSkill(std.stream.OutputStream f, string scPath, SkillCard c) {
-	writeEffCard(f, scPath, c, 0x5);
+private void writeSkill(std.stream.OutputStream f, string scName, string scPath, SkillCard c) {
+	writeEffCard(f, scName, scPath, c, 0x5);
 	writeBool(f, c.hold);
 	writeUIntL(f, c.level);
 	writeUIntL(f, c.useLimit);
 }
-private void writeItem(std.stream.OutputStream f, string scPath, ItemCard c) {
-	writeEffCard(f, scPath, c, 0x3);
+private void writeItem(std.stream.OutputStream f, string scName, string scPath, ItemCard c) {
+	writeEffCard(f, scName, scPath, c, 0x3);
 	writeBool(f, c.hold);
 	writeUIntL(f, c.useLimit);
 	writeUIntL(f, c.useLimitMax);
@@ -2270,12 +2271,12 @@ private void writeItem(std.stream.OutputStream f, string scPath, ItemCard c) {
 	writeUIntL(f, c.enhanceOwner(Enhance.RESIST));
 	writeUIntL(f, c.enhanceOwner(Enhance.DEFENSE));
 }
-private void writeBeast(std.stream.OutputStream f, string scPath, BeastCard c) {
-	writeEffCard(f, scPath, c, 0x6);
+private void writeBeast(std.stream.OutputStream f, string scName, string scPath, BeastCard c) {
+	writeEffCard(f, scName, scPath, c, 0x6);
 	writeBool(f, false); // Hold
 	writeUIntL(f, c.useLimit);
 }
-private void writeInfo(std.stream.OutputStream f, string scPath, InfoCard c) {
+private void writeInfo(std.stream.OutputStream f, string scName, string scPath, InfoCard c) {
 	f.write(cast(byte) 0x4);
 	writeImage(f, scPath, c.path);
 	writeString(f, c.name);
