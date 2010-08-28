@@ -578,6 +578,7 @@ class Content : IPathUser, IBattleUser, IPackageUser, IFlagUser, IStepUser,
 			~ (New ? "if (!_" ~ Name ~ ") _" ~ Name ~ " = new " ~ T.stringof ~ ";" : "")
 			~ "if (_" ~ Name ~ Get ~ " != val) changed;"
 			~ "setValUCs(this._" ~ Name ~ Get ~ ");"
+			~ "setValUCs(_" ~ Name ~ ", _uc, this);"
 			~ "setValUCs(val, _uc, this);"
 			~ "_" ~ Name ~ Set ~ " = val;"
 		"}");
@@ -662,9 +663,9 @@ class Content : IPathUser, IBattleUser, IPackageUser, IFlagUser, IStepUser,
 		}
 	}
 	/// 効果タイプ。
-	mixin Prop!(EffectType, "effectType", EffectType.PHYSIC);
+	mixin Prop!(EffectType, "effectType", EffectType.NONE);
 	/// 抵抗属性。
-	mixin Prop!(Resist, "resist", Resist.AVOID);
+	mixin Prop!(Resist, "resist", Resist.UNFAIL);
 	/// 背景切替方式。
 	mixin Prop!(Transition, "transition", Transition.DEFAULT);
 

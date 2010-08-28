@@ -726,6 +726,19 @@ public:
 			_comm.refStandardKeyCodes.add(&refKeyCodes);
 		}
 		_comm.replText.add(&replText);
+		static if (is (A == Area)) {
+			_comm.refArea.add(&refreshTitle);
+		} else static if (is (A == Battle)) {
+			_comm.refBattle.add(&refreshTitle);
+		} else static if (is (A == Package)) {
+			_comm.refPackage.add(&refreshTitle);
+		} else static if (is (A == SkillCard)) {
+			_comm.refSkill.add(&refreshTitle);
+		} else static if (is (A == ItemCard)) {
+			_comm.refItem.add(&refreshTitle);
+		} else static if (is (A == BeastCard)) {
+			_comm.refBeast.add(&refreshTitle);
+		} else static assert (0);
 		_sash.addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) {
 				int[] ws = _sash.getWeights;
@@ -748,6 +761,19 @@ public:
 					_comm.refStandardKeyCodes.remove(&refKeyCodes);
 				}
 				_comm.replText.remove(&replText);
+				static if (is (A == Area)) {
+					_comm.refArea.remove(&refreshTitle);
+				} else static if (is (A == Battle)) {
+					_comm.refBattle.remove(&refreshTitle);
+				} else static if (is (A == Package)) {
+					_comm.refPackage.remove(&refreshTitle);
+				} else static if (is (A == SkillCard)) {
+					_comm.refSkill.remove(&refreshTitle);
+				} else static if (is (A == ItemCard)) {
+					_comm.refItem.remove(&refreshTitle);
+				} else static if (is (A == BeastCard)) {
+					_comm.refBeast.remove(&refreshTitle);
+				} else static assert (0);
 			}
 		});
 		_sash.setLayoutData = new GridData(GridData.FILL_BOTH);
@@ -785,6 +811,11 @@ public:
 	/// エリアの名称表示を更新する。
 	void refreshTitle() {
 		_cards.getItems[0].setText = _area.name;
+	}
+	private void refreshTitle(A area) {
+		if (area is _area) {
+			_cards.getItems[0].setText = _area.name;
+		}
 	}
 	static if (!is (C == void)) {
 		private string cardName(C c) {
@@ -934,7 +965,7 @@ public:
 	private void up(TreeItem itm, bool store) {
 		if (_etree.isFocusControl) {
 			_etree.up;
-		} else {
+		} else if (_cards.isFocusControl) {
 			__ud!("before(parent, from)", "to >= 0")(itm, &treeItemUp, store);
 		}
 	}
@@ -944,7 +975,7 @@ public:
 	private void down(TreeItem itm, bool store) {
 		if (_etree.isFocusControl) {
 			_etree.down;
-		} else {
+		} else if (_cards.isFocusControl) {
 			__ud!("after(parent, from)", "to < keyCodeLen")(itm, &treeItemDown, store);
 		}
 	}
