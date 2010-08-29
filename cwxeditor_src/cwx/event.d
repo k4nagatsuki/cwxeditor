@@ -280,6 +280,8 @@ public:
 			_text = text;
 		}
 	}
+	/// 使用回数カウンタ。
+	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを設定する。
 	void setUseCounter(UseCounter uc) {
 		foreach (u; _fontusers) {
@@ -374,6 +376,8 @@ public:
 	void parent(Content s) {
 		_parent = s;
 	}
+	/// 使用回数カウンタ。
+	UseCounter useCounter() {return _text.useCounter;}
 	/// 使用回数カウンタを設定・除去する。
 	void setUseCounter(UseCounter uc) {
 		_text.setUseCounter(uc);
@@ -538,6 +542,9 @@ class Content : IPathUser, IBattleUser, IPackageUser, IFlagUser, IStepUser,
 
 	private void setValUCs(T)(T val, UseCounter uc = null, Content c = null) {
 		static if (is(typeof(val.setUseCounter(uc)))) {
+			if (val.useCounter) {
+				val.removeUseCounter;
+			}
 			val.setUseCounter(uc);
 			static if (is(typeof(val.parent))) {
 				if (c && val.parent) throw new EventException("used other event.");

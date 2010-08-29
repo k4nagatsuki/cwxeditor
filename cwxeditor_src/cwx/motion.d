@@ -149,6 +149,8 @@ public:
 		if (_change) _change();
 	}
 
+	/// 使用回数カウンタ。
+	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
 	void setUseCounter(UseCounter uc) {
 		foreach (m; _motions) {
@@ -223,6 +225,8 @@ public:
 		if (_beast) _beast.changeHandler = change;
 		_change = change;
 	}
+	/// 使用回数カウンタ。
+	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
 	void setUseCounter(UseCounter uc) {
 		if (_beast) {

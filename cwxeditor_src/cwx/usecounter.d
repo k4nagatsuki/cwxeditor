@@ -150,6 +150,8 @@ public:
 		return _flag;
 	}
 
+	/// 使用回数カウンタ。
+	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
 	void setUseCounter(UseCounter uc) {
 		if (uc && _flag) {
@@ -231,6 +233,8 @@ public:
 		return _step;
 	}
 
+	/// 使用回数カウンタ。
+	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
 	void setUseCounter(UseCounter uc) {
 		if (uc && _step) {
@@ -283,6 +287,8 @@ public:
 		return _id;
 	}
 
+	/// 使用回数カウンタ。
+	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
 	void setUseCounter(UseCounter uc) {
 		if (uc && _id >= 0) {
@@ -335,6 +341,8 @@ public:
 		return _id;
 	}
 
+	/// 使用回数カウンタ。
+	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
 	void setUseCounter(UseCounter uc) {
 		if (uc && _id >= 0) {
@@ -387,6 +395,8 @@ public:
 		return _id;
 	}
 
+	/// 使用回数カウンタ。
+	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
 	void setUseCounter(UseCounter uc) {
 		if (uc && _id >= 0) {
@@ -520,6 +530,8 @@ public:
 	/// ファイルパス。
 	string path() {return _path.isBinImg ? _path.binImg : cast(string) _path;}
 
+	/// 使用回数カウンタ。
+	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
 	void setUseCounter(UseCounter uc) {
 		if (uc && _path.valid) {
@@ -536,10 +548,6 @@ public:
 			_uc.path.remove(_path, this);
 		}
 		_uc = null;
-	}
-	/// 使用回数カウンタ。
-	UseCounter useCounter() {
-		return _uc;
 	}
 
 	override void change(PathId newVal) {
@@ -577,6 +585,8 @@ public:
 		return _id;
 	}
 
+	/// 使用回数カウンタ。
+	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
 	void setUseCounter(UseCounter uc) {
 		if (uc && _id >= 0) {
@@ -629,6 +639,8 @@ public:
 		return _id;
 	}
 
+	/// 使用回数カウンタ。
+	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
 	void setUseCounter(UseCounter uc) {
 		if (uc && _id >= 0) {
@@ -681,6 +693,8 @@ public:
 		return _id;
 	}
 
+	/// 使用回数カウンタ。
+	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
 	void setUseCounter(UseCounter uc) {
 		if (uc && _id >= 0) {
@@ -733,6 +747,8 @@ public:
 		return _id;
 	}
 
+	/// 使用回数カウンタ。
+	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
 	void setUseCounter(UseCounter uc) {
 		if (uc && _id >= 0) {
@@ -785,6 +801,8 @@ public:
 		return _id;
 	}
 
+	/// 使用回数カウンタ。
+	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
 	void setUseCounter(UseCounter uc) {
 		if (uc && _id >= 0) {
