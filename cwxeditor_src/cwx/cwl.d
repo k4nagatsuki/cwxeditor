@@ -37,9 +37,7 @@ S loadLScenario(S)(string p, string skin) {
 	S summ;
 	ulong startAreaId;
 	{
-		auto f = new std.stream.BufferedFile(summPath);
-		scope (exit) f.close;
-		summ = loadSummary!(S)(f, skin, sPath, startAreaId);
+		summ = loadSummary!(S)(ByteIO(std.file.read(summPath)), skin, sPath, startAreaId);
 	}
 	static if (is (typeof(summ.areas))) Area[] areas;
 	static if (is (typeof(summ.battles))) Battle[] battles;
@@ -53,8 +51,7 @@ S loadLScenario(S)(string p, string skin) {
 		file = std.path.join(sPath, file);
 		try {
 			if (fnmatch(getExt(file), "wid")) {
-				auto f = new std.stream.BufferedFile(file);
-				scope (exit) f.close;
+				auto f = ByteIO(std.file.read(file));
 				bool sWith(string f, string s) {
 					return f.length > s.length && fnmatch(f[0u .. s.length], s);
 				}
@@ -254,25 +251,19 @@ private Premium toPremium(byte b) {
 	default: throw new SummaryException("Unknown card premium: " ~ to!(string)(b));
 	}
 }
-private bool readBool(std.stream.InputStream f) {
-	byte b;
-	f.read(b);
-	return b ? true : false;
+private bool readBool(ref ByteIO f) {
+	return f.readByte ? true : false;
 }
-private string readImage(std.stream.InputStream f) {
-	uint len = readUIntL(f);
+private string readImage(ref ByteIO f) {
+	uint len = f.readUIntL;
 	if (!len) return "";
-	ubyte[] img;
-	img.length = len;
-	f.read(img);
+	ubyte[] img = f.read(len);
 	return bImgToStr(cast(byte[]) img);
 }
-private string readString(std.stream.InputStream f, bool lns = false, bool cutText = false) {
-	uint len = readUIntL(f);
+private string readString(ref ByteIO f, bool lns = false, bool cutText = false) {
+	uint len = f.readUIntL;
 	if (!len) return "";
-	char[] str;
-	str.length = len;
-	f.read(cast(ubyte[]) str);
+	char[] str = cast(char[]) f.read(len);
 	if (!lns && str[$ - 1] == '\0') str = str[0 .. $ - 1];
 	str = touni(str);
 	if (cutText) {
@@ -281,11 +272,11 @@ private string readString(std.stream.InputStream f, bool lns = false, bool cutTe
 	str = replace(str, "\r\n", "\n");
 	return str;
 }
-private string[] readStrings(std.stream.InputStream f) {
+private string[] readStrings(ref ByteIO f) {
 	auto str = readString(f, true);
 	return str.length ? splitlines(str) : cast(string[]) [];
 }
-private S loadSummary(S)(std.stream.InputStream f, string skin, string sPath, out ulong startAreaId) {
+private S loadSummary(S)(ref ByteIO f, string skin, string sPath, out ulong startAreaId) {
 	string img = readImage(f);
 	static if (is (S == Summary)) {
 		byte b;
@@ -294,8 +285,8 @@ private S loadSummary(S)(std.stream.InputStream f, string skin, string sPath, ou
 		summ.desc = readString(f, true);
 		summ.author = readString(f);
 		summ.rCoupons = readStrings(f);
-		summ.rCouponNum = readUIntL(f);
-		startAreaId = readUIntL(f) - 40000u;
+		summ.rCouponNum = f.readUIntL;
+		startAreaId = f.readUIntL - 40000u;
 		FlagDir flagsParent(string path) {
 			FlagDir dir = summ.flagDirRoot;
 			string par = FlagDir.up(path);
@@ -313,10 +304,10 @@ private S loadSummary(S)(std.stream.InputStream f, string skin, string sPath, ou
 			}
 			return dir;
 		}
-		uint stepNum = readUIntL(f);
+		uint stepNum = f.readUIntL;
 		for (uint i = 0u; i < stepNum; i++) {
 			string path = readString(f);
-			uint sel = readUIntL(f);
+			uint sel = f.readUIntL;
 			string[] vals;
 			vals.length = 10u;
 			for (uint j = 0u; j < 10u; j++) {
@@ -327,7 +318,7 @@ private S loadSummary(S)(std.stream.InputStream f, string skin, string sPath, ou
 			}
 		}
 		summ.flagDirRoot.sortSteps(true);
-		uint flagNum = readUIntL(f);
+		uint flagNum = f.readUIntL;
 		for (uint i = 0u; i < flagNum; i++) {
 			string path = readString(f);
 			bool sel = readBool(f);
@@ -338,38 +329,34 @@ private S loadSummary(S)(std.stream.InputStream f, string skin, string sPath, ou
 			}
 		}
 		summ.flagDirRoot.sortFlags(true);
-		readUIntL(f);
-		summ.levelMin = readUIntL(f);
-		summ.levelMax = readUIntL(f);
+		f.readUIntL;
+		summ.levelMin = f.readUIntL;
+		summ.levelMax = f.readUIntL;
 		return summ;
 	} else {
 		return new S(sPath, readString(f), true);
 	}
 }
-private Motion readMotion(std.stream.InputStream f) {
-	byte tType;
-	f.read(tType);
-	byte b;
-	f.read(b);
-	f.read(b);
-	f.read(b);
-	f.read(b);
-	f.read(b);
-	byte elb;
-	f.read(elb);
+private Motion readMotion(ref ByteIO f) {
+	byte tType = f.readByte;
+	f.readByte;
+	f.readByte;
+	f.readByte;
+	f.readByte;
+	f.readByte;
+	byte elb = f.readByte;
 	auto el = toElement(elb);
 	byte type;
 	if (tType == 8) {
 		type = 0u;
 	} else {
-		f.read(type);
+		type = f.readByte;
 	}
 	switch (tType) {
 	case 0, 1: {
-		byte dmgTypB;
-		f.read(dmgTypB);
+		byte dmgTypB = f.readByte;
 		auto dmgTyp = toDamageType(dmgTypB);
-		uint val = readUIntL(f);
+		uint val = f.readUIntL;
 		Motion m;
 		if (tType == 0u) {
 			switch (type) {
@@ -399,7 +386,7 @@ private Motion readMotion(std.stream.InputStream f) {
 		}
 	}
 	case 3, 4: {
-		uint rnd = readUIntL(f);
+		uint rnd = f.readUIntL;
 		Motion m;
 		if (tType == 3u) {
 			switch (type) {
@@ -428,8 +415,8 @@ private Motion readMotion(std.stream.InputStream f) {
 		return m;
 	}
 	case 5: {
-		uint val = readUIntL(f);
-		uint rnd = readUIntL(f);
+		uint val = f.readUIntL;
+		uint rnd = f.readUIntL;
 		Motion m;
 		switch (type) {
 		case 0: m = new Motion(MType.ENHANCE_ACTION, el); break;
@@ -465,7 +452,7 @@ private Motion readMotion(std.stream.InputStream f) {
 	}
 	case 8: {
 		BeastCard beast = null;
-		uint bNum = readUIntL(f); // 常に0か1のはず
+		uint bNum = f.readUIntL; // 常に0か1のはず
 		for (uint i = 0u; i < bNum ; i++) {
 			beast = loadBeast(f);
 		}
@@ -476,18 +463,17 @@ private Motion readMotion(std.stream.InputStream f) {
 	default: throw new SummaryException("Unknown motion: " ~ to!(string)(tType) ~ ", " ~ to!(string)(type));
 	}
 }
-private Content readContent(std.stream.InputStream f) {
-	byte b;
-	f.read(b);
+private Content readContent(ref ByteIO f) {
+	byte type = f.readByte;
 	string name = readString(f);
-	uint cNum = readUIntL(f) - 40000u;
+	uint cNum = f.readUIntL - 40000u;
 	Content[] childs;
 	childs.length = cNum;
 	for (uint i = 0u; i < cNum; i++) {
 		childs[i] = readContent(f);
 	}
 	Content e;
-	switch (b) {
+	switch (type) {
 	case 0:
 		e = new Content(CType.START, name);
 		break;
@@ -497,7 +483,7 @@ private Content readContent(std.stream.InputStream f) {
 		break;
 	case 2:
 		e = new Content(CType.START_BATTLE, name);
-		e.battle = readUIntL(f);
+		e.battle = f.readUIntL;
 		break;
 	case 3:
 		e = new Content(CType.END, name);
@@ -508,7 +494,7 @@ private Content readContent(std.stream.InputStream f) {
 		break;
 	case 5:
 		e = new Content(CType.CHANGE_AREA, name);
-		e.area = readUIntL(f);
+		e.area = f.readUIntL;
 		e.transition = Transition.DEFAULT;
 		e.transitionSpeed = 5u;
 		break;
@@ -547,23 +533,19 @@ private Content readContent(std.stream.InputStream f) {
 		break;
 	case 10:
 		e = new Content(CType.WAIT, name);
-		e.wait = readUIntL(f);
+		e.wait = f.readUIntL;
 		break;
 	case 11: {
-		uint effLev = readUIntL(f);
-		byte effTarget;
-		f.read(effTarget);
+		uint effLev = f.readUIntL;
+		byte effTarget = f.readByte;
 		if (effTarget == 2) effTarget = 6;
-		byte effType;
-		f.read(effType);
-		byte effResist;
-		f.read(effResist);
-		int effSuc = readIntL(f);
+		byte effType = f.readByte;
+		byte effResist = f.readByte;
+		int effSuc = f.readIntL;
 		string sp = readString(f);
 		string effSePath = sp == "（なし）" ? "" : sp;
-		byte effVis;
-		f.read(effVis);
-		uint effMotionNum = readUIntL(f);
+		byte effVis = f.readByte;
+		uint effMotionNum = f.readUIntL;
 		Motion[] effMotions;
 		effMotions.length = effMotionNum;
 		for (uint i = 0u; i < effMotionNum; i++) {
@@ -589,11 +571,10 @@ private Content readContent(std.stream.InputStream f) {
 		break;
 	}
 	case 13: {
-		uint val = readUIntL(f);
-		byte targ;
-		f.read(targ);
-		uint phy = readUIntL(f);
-		int mtl = readIntL(f);
+		uint val = f.readUIntL;
+		byte targ = f.readByte;
+		uint phy = f.readUIntL;
+		int mtl = f.readIntL;
 		e = new Content(CType.BRANCH_ABILITY, name);
 		e.targetS = toTarget(targ);
 		e.mental = toMental(mtl);
@@ -603,7 +584,7 @@ private Content readContent(std.stream.InputStream f) {
 	}
 	case 14:
 		e = new Content(CType.BRANCH_RANDOM, name);
-		e.percent = readUIntL(f);
+		e.percent = f.readUIntL;
 		break;
 	case 15:
 		e = new Content(CType.BRANCH_FLAG, name);
@@ -623,7 +604,7 @@ private Content readContent(std.stream.InputStream f) {
 		break;
 	case 18: {
 		string step = readString(f);
-		uint val = readUIntL(f);
+		uint val = f.readUIntL;
 		e = new Content(CType.SET_STEP, name);
 		e.step = step;
 		e.stepValue = val;
@@ -631,13 +612,12 @@ private Content readContent(std.stream.InputStream f) {
 	}
 	case 19:
 		e = new Content(CType.BRANCH_CAST, name);
-		e.casts = readUIntL(f);
+		e.casts = f.readUIntL;
 		break;
 	case 20: {
-		ulong id = readUIntL(f);
-		uint num = readUIntL(f);
-		byte rng;
-		f.read(rng);
+		ulong id = f.readUIntL;
+		uint num = f.readUIntL;
+		byte rng = f.readByte;
 		e = new Content(CType.BRANCH_ITEM, name);
 		e.item = id;
 		e.range = toRange(rng);
@@ -645,10 +625,9 @@ private Content readContent(std.stream.InputStream f) {
 		break;
 	}
 	case 21: {
-		ulong id = readUIntL(f);
-		uint num = readUIntL(f);
-		byte rng;
-		f.read(rng);
+		ulong id = f.readUIntL;
+		uint num = f.readUIntL;
+		byte rng = f.readByte;
 		e = new Content(CType.BRANCH_SKILL, name);
 		e.skill = id;
 		e.range = toRange(rng);
@@ -657,13 +636,12 @@ private Content readContent(std.stream.InputStream f) {
 	}
 	case 22:
 		e = new Content(CType.BRANCH_INFO, name);
-		e.info = readUIntL(f);
+		e.info = f.readUIntL;
 		break;
 	case 23: {
-		ulong id = readUIntL(f);
-		uint num = readUIntL(f);
-		byte rng;
-		f.read(rng);
+		ulong id = f.readUIntL;
+		uint num = f.readUIntL;
+		byte rng = f.readByte;
 		e = new Content(CType.BRANCH_BEAST, name);
 		e.beast = id;
 		e.range = toRange(rng);
@@ -672,13 +650,12 @@ private Content readContent(std.stream.InputStream f) {
 	}
 	case 24:
 		e = new Content(CType.BRANCH_MONEY, name);
-		e.money = readUIntL(f);
+		e.money = f.readUIntL;
 		break;
 	case 25: {
 		string coupon = readString(f);
-		readUIntL(f);
-		byte rng;
-		f.read(rng);
+		f.readUIntL;
+		byte rng = f.readByte;
 		e = new Content(CType.BRANCH_COUPON, name);
 		e.coupon = coupon;
 		e.range = toRange(rng);
@@ -686,13 +663,12 @@ private Content readContent(std.stream.InputStream f) {
 	}
 	case 26:
 		e = new Content(CType.GET_CAST, name);
-		e.casts = readUIntL(f);
+		e.casts = f.readUIntL;
 		break;
 	case 27: {
-		ulong id = readUIntL(f);
-		uint num = readUIntL(f);
-		byte rng;
-		f.read(rng);
+		ulong id = f.readUIntL;
+		uint num = f.readUIntL;
+		byte rng = f.readByte;
 		e = new Content(CType.GET_ITEM, name);
 		e.item = id;
 		e.range = toRange(rng);
@@ -700,10 +676,9 @@ private Content readContent(std.stream.InputStream f) {
 		break;
 	}
 	case 28: {
-		ulong id = readUIntL(f);
-		uint num = readUIntL(f);
-		byte rng;
-		f.read(rng);
+		ulong id = f.readUIntL;
+		uint num = f.readUIntL;
+		byte rng = f.readByte;
 		e = new Content(CType.GET_SKILL, name);
 		e.skill = id;
 		e.range = toRange(rng);
@@ -712,13 +687,12 @@ private Content readContent(std.stream.InputStream f) {
 	}
 	case 29:
 		e = new Content(CType.GET_INFO, name);
-		e.info = readUIntL(f);
+		e.info = f.readUIntL;
 		break;
 	case 30: {
-		ulong id = readUIntL(f);
-		uint num = readUIntL(f);
-		byte rng;
-		f.read(rng);
+		ulong id = f.readUIntL;
+		uint num = f.readUIntL;
+		byte rng = f.readByte;
 		e = new Content(CType.GET_BEAST, name);
 		e.beast = id;
 		e.range = toRange(rng);
@@ -727,13 +701,12 @@ private Content readContent(std.stream.InputStream f) {
 	}
 	case 31:
 		e = new Content(CType.GET_MONEY, name);
-		e.money = readUIntL(f);
+		e.money = f.readUIntL;
 		break;
 	case 32: {
 		string coupon = readString(f);
-		int val = readIntL(f);
-		byte rng;
-		f.read(rng);
+		int val = f.readIntL;
+		byte rng = f.readByte;
 		e = new Content(CType.GET_COUPON, name);
 		e.coupon = coupon;
 		e.range = toRange(rng);
@@ -742,13 +715,12 @@ private Content readContent(std.stream.InputStream f) {
 	}
 	case 33:
 		e = new Content(CType.LOSE_CAST, name);
-		e.casts = readUIntL(f);
+		e.casts = f.readUIntL;
 		break;
 	case 34: {
-		ulong id = readUIntL(f);
-		uint num = readUIntL(f);
-		byte rng;
-		f.read(rng);
+		ulong id = f.readUIntL;
+		uint num = f.readUIntL;
+		byte rng = f.readByte;
 		e = new Content(CType.LOSE_ITEM, name);
 		e.item = id;
 		e.range = toRange(rng);
@@ -756,10 +728,9 @@ private Content readContent(std.stream.InputStream f) {
 		break;
 	}
 	case 35: {
-		ulong id = readUIntL(f);
-		uint num = readUIntL(f);
-		byte rng;
-		f.read(rng);
+		ulong id = f.readUIntL;
+		uint num = f.readUIntL;
+		byte rng = f.readByte;
 		e = new Content(CType.LOSE_SKILL, name);
 		e.skill = id;
 		e.range = toRange(rng);
@@ -768,13 +739,12 @@ private Content readContent(std.stream.InputStream f) {
 	}
 	case 36:
 		e = new Content(CType.LOSE_INFO, name);
-		e.info = readUIntL(f);
+		e.info = f.readUIntL;
 		break;
 	case 37: {
-		ulong id = readUIntL(f);
-		uint num = readUIntL(f);
-		byte rng;
-		f.read(rng);
+		ulong id = f.readUIntL;
+		uint num = f.readUIntL;
+		byte rng = f.readByte;
 		e = new Content(CType.LOSE_BEAST, name);
 		e.beast = id;
 		e.range = toRange(rng);
@@ -783,21 +753,19 @@ private Content readContent(std.stream.InputStream f) {
 	}
 	case 38:
 		e = new Content(CType.LOSE_MONEY, name);
-		e.money = readUIntL(f);
+		e.money = f.readUIntL;
 		break;
 	case 39: {
 		string coupon = readString(f);
-		readUIntL(f);
-		byte rng;
-		f.read(rng);
+		f.readUIntL;
+		byte rng = f.readByte;
 		e = new Content(CType.LOSE_COUPON, name);
 		e.coupon = coupon;
 		e.range = toRange(rng);
 		break;
 	}
 	case 40: {
-		byte targ;
-		f.read(targ);
+		byte targ = f.readByte;
 		Talker t;
 		switch (toTarget(targ).m) {
 		case Target.M.SELECTED: t = Talker.SELECTED; break;
@@ -805,7 +773,7 @@ private Content readContent(std.stream.InputStream f) {
 		case Target.M.RANDOM: t = Talker.RANDOM; break;
 		default: throw new SummaryException("Unknown talker: " ~ to!(string)(targ));
 		}
-		uint dlgNum = readUIntL(f);
+		uint dlgNum = f.readUIntL;
 		SDialog[] dlgs;
 		for (uint i = 0u; i < dlgNum; i++) {
 			string[] coupons = readStrings(f);
@@ -831,7 +799,7 @@ private Content readContent(std.stream.InputStream f) {
 		break;
 	case 44: {
 		string step = readString(f);
-		uint val = readUIntL(f);
+		uint val = f.readUIntL;
 		e = new Content(CType.BRANCH_STEP, name);
 		e.step = step;
 		e.stepValue = val;
@@ -842,17 +810,15 @@ private Content readContent(std.stream.InputStream f) {
 		break;
 	case 46: {
 		bool avg = readBool(f);
-		uint val = readUIntL(f);
+		uint val = f.readUIntL;
 		e = new Content(CType.BRANCH_LEVEL, name);
 		e.average = avg;
 		e.level = val;
 		break;
 	}
 	case 47: {
-		byte stat;
-		f.read(stat);
-		byte targ;
-		f.read(targ);
+		byte stat = f.readByte;
+		byte targ = f.readByte;
 		e = new Content(CType.BRANCH_STATUS, name);
 		e.targetNS = toTarget(targ);
 		e.status = toStatus(stat);
@@ -860,7 +826,7 @@ private Content readContent(std.stream.InputStream f) {
 	}
 	case 48:
 		e = new Content(CType.BRANCH_PARTY_NUMBER, name);
-		e.partyNumber = readUIntL(f);
+		e.partyNumber = f.readUIntL;
 		break;
 	case 49:
 		e = new Content(CType.SHOW_PARTY, name);
@@ -877,11 +843,11 @@ private Content readContent(std.stream.InputStream f) {
 		break;
 	case 53:
 		e = new Content(CType.LINK_PACKAGE, name);
-		e.packages = readUIntL(f);
+		e.packages = f.readUIntL;
 		break;
 	case 54:
 		e = new Content(CType.CALL_PACKAGE, name);
-		e.packages = readUIntL(f);
+		e.packages = f.readUIntL;
 		break;
 	case 55:
 		e = new Content(CType.BRANCH_AREA, name);
@@ -925,7 +891,7 @@ private Content readContent(std.stream.InputStream f) {
 		e = new Content(CType.CHECK_FLAG, name);
 		e.flag = readString(f);
 		break;
-	default: throw new SummaryException("Unknown content type: " ~ to!(string)(b));
+	default: throw new SummaryException("Unknown content type: " ~ to!(string)(type));
 	}
 	if (e.detail.owner) {
 		foreach (c; childs) {
@@ -934,27 +900,27 @@ private Content readContent(std.stream.InputStream f) {
 	}
 	return e;
 }
-private EventTree readCEventTree(std.stream.InputStream f) {
+private EventTree readCEventTree(ref ByteIO f) {
 	auto tree = new EventTree("");
 	auto dest = tree.starts[0u];
-	uint cNum = readUIntL(f);
+	uint cNum = f.readUIntL;
 	for (uint i = 0u; i < cNum; i++) {
 		tree.add(readContent(f));
 	}
 	tree.remove(dest);
 	return tree;
 }
-private EventTree readEventTree(std.stream.InputStream f) {
+private EventTree readEventTree(ref ByteIO f) {
 	auto tree = new EventTree("");
 	auto dest = tree.starts[0u];
-	uint cNum = readUIntL(f);
+	uint cNum = f.readUIntL;
 	for (uint i = 0u; i < cNum; i++) {
 		tree.add(readContent(f));
 	}
 	tree.remove(dest);
-	uint igNum = readUIntL(f);
+	uint igNum = f.readUIntL;
 	for (uint i = 0u; i < igNum; i++) {
-		int ig = readIntL(f);
+		int ig = f.readIntL;
 		if (ig < 0) {
 			tree.addRound(-ig);
 		} else {
@@ -969,21 +935,21 @@ private EventTree readEventTree(std.stream.InputStream f) {
 	tree.keyCodes = readStrings(f);
 	return tree;
 }
-private BgImage readBgImage(std.stream.InputStream f) {
+private BgImage readBgImage(ref ByteIO f) {
 	byte b;
-	int x = readIntL(f);
-	int y = readIntL(f);
-	int w = readUIntL(f) - 40000u;
-	int h = readUIntL(f);
+	int x = f.readIntL;
+	int y = f.readIntL;
+	int w = f.readUIntL - 40000u;
+	int h = f.readUIntL;
 	string imgPath = readString(f);
 	bool mask = readBool(f);
 	string flag = readString(f);
-	f.read(b);
+	f.readByte;
 	return new BgImage(imgPath, flag, x, y, w, h, mask);
 }
-private BgImage[] readBgImages(std.stream.InputStream f) {
+private BgImage[] readBgImages(ref ByteIO f) {
 	BgImage[] bgImgs;
-	bgImgs.length = readUIntL(f);
+	bgImgs.length = f.readUIntL;
 	for (uint i = 0u; i < bgImgs.length; i++) {
 		bgImgs[i] = readBgImage(f);
 	}
@@ -998,35 +964,34 @@ private BgImage[] readBgImages(std.stream.InputStream f) {
 		return bgImgs;
 	}
 }
-private Area loadArea(std.stream.InputStream f) {
-	byte b;
-	f.read(b);
-	readUIntL(f);
+private Area loadArea(ref ByteIO f) {
+	f.readByte;
+	f.readUIntL;
 	string name = readString(f);
-	ulong id = readUIntL(f) - 40000u;
+	ulong id = f.readUIntL - 40000u;
 	auto a = new Area(id, name);
-	uint evtNum = readUIntL(f);
+	uint evtNum = f.readUIntL;
 	for (uint i = 0; i < evtNum; i++) {
 		a.add(readEventTree(f));
 	}
 	a.spAuto = !readBool(f);
-	uint cNum = readUIntL(f);
+	uint cNum = f.readUIntL;
 	for (uint i = 0; i < cNum; i++) {
-		f.read(b);
+		f.readByte;
 		string img = readImage(f);
 		string cName = readString(f);
-		readUIntL(f);
+		f.readUIntL;
 		string desc = readString(f);
-		uint cEvtNum = readUIntL(f);
+		uint cEvtNum = f.readUIntL;
 		EventTree[] trees;
 		trees.length = cEvtNum;
 		for (uint j = 0; j < cEvtNum; j++) {
 			trees[j] = readEventTree(f);
 		}
 		string flag = readString(f);
-		real scale = readUIntL(f) / 100.0;
-		int x = readIntL(f);
-		int y = readIntL(f);
+		real scale = f.readUIntL / 100.0;
+		int x = f.readIntL;
+		int y = f.readIntL;
 		string imgPath = readString(f);
 		auto c = new MenuCard(cName, imgPath.length ? imgPath : img, desc, flag, x, y, scale);
 		foreach (tree; trees) {
@@ -1039,31 +1004,30 @@ private Area loadArea(std.stream.InputStream f) {
 	}
 	return a;
 }
-private Battle loadBattle(std.stream.InputStream f) {
-	byte b;
-	f.read(b);
-	readUIntL(f);
+private Battle loadBattle(ref ByteIO f) {
+	f.readByte;
+	f.readUIntL;
 	string name = readString(f);
-	ulong id = readUIntL(f) - 40000;
+	ulong id = f.readUIntL - 40000;
 	auto r = new Battle(id, name, "");
-	uint evtNum = readUIntL(f);
+	uint evtNum = f.readUIntL;
 	for (uint i = 0u; i < evtNum; i++) {
 		r.add(readEventTree(f));
 	}
 	r.spAuto = !readBool(f);
-	uint cNum = readUIntL(f);
+	uint cNum = f.readUIntL;
 	for (uint i = 0u; i < cNum; i++) {
-		ulong cId = readUIntL(f);
-		uint cEvtNum = readUIntL(f);
+		ulong cId = f.readUIntL;
+		uint cEvtNum = f.readUIntL;
 		EventTree[] cTrees;
 		cTrees.length = cEvtNum;
 		for (uint j = 0u; j < cEvtNum; j++) {
 			cTrees[j] = readEventTree(f);
 		}
 		string flag = readString(f);
-		real scale = readUIntL(f) / 100.0;
-		int x = readIntL(f);
-		int y = readIntL(f);
+		real scale = f.readUIntL / 100.0;
+		int x = f.readIntL;
+		int y = f.readIntL;
 		bool escape = readBool(f);
 		auto c = new EnemyCard(cId, escape, flag, x, y, scale);
 		foreach (tree; cTrees) {
@@ -1074,23 +1038,22 @@ private Battle loadBattle(std.stream.InputStream f) {
 	r.music = readString(f);
 	return r;
 }
-private Package loadPackage(std.stream.InputStream f) {
-	readUIntL(f);
+private Package loadPackage(ref ByteIO f) {
+	f.readUIntL;
 	string name = readString(f);
-	ulong id = readUIntL(f);
+	ulong id = f.readUIntL;
 	auto r = new Package(id, name);
-	uint evtNum = readUIntL(f);
+	uint evtNum = f.readUIntL;
 	for (uint i = 0u; i < evtNum; i++) {
 		r.add(readCEventTree(f));
 	}
 	return r;
 }
-private CastCard loadCast(std.stream.InputStream f) {
-	byte b;
-	f.read(b);
+private CastCard loadCast(ref ByteIO f) {
+	f.readByte;
 	string img = readImage(f);
 	string name = readString(f);
-	ulong id = readUIntL(f) - 40000;
+	ulong id = f.readUIntL - 40000;
 	auto r = new CastCard(id, name, img, "", 1u, 1u);
 	r.weaponResist = readBool(f);
 	r.magicResist = readBool(f);
@@ -1102,96 +1065,90 @@ private CastCard loadCast(std.stream.InputStream f) {
 	r.resist(Element.ICE, readBool(f));
 	r.weakness(Element.FIRE, readBool(f));
 	r.weakness(Element.ICE, readBool(f));
-	r.level = readUIntL(f);
-	readUIntL(f); // 所持金。現行エンジンでは未使用
+	r.level = f.readUIntL;
+	f.readUIntL; // 所持金。現行エンジンでは未使用
 	r.desc = readString(f, true, true);
-	r.life = readUIntL(f);
-	r.lifeMax = readUIntL(f);
-	r.paralyze = readUIntL(f);
-	r.poison = readUIntL(f);
-	r.defaultEnhance(Enhance.AVOID, readUIntL(f));
-	r.defaultEnhance(Enhance.RESIST, readUIntL(f));
-	r.defaultEnhance(Enhance.DEFENSE, readUIntL(f));
-	r.physical(Physical.DEX, readUIntL(f));
-	r.physical(Physical.AGL, readUIntL(f));
-	r.physical(Physical.INT, readUIntL(f));
-	r.physical(Physical.STR, readUIntL(f));
-	r.physical(Physical.VIT, readUIntL(f));
-	r.physical(Physical.MIN, readUIntL(f));
-	r.mental(Mental.AGGRESSIVE, readIntL(f));
-	r.mental(Mental.CHEERFUL, readIntL(f));
-	r.mental(Mental.BRAVE, readIntL(f));
-	r.mental(Mental.CAUTIOUS, readIntL(f));
-	r.mental(Mental.TRICKISH, readIntL(f));
-	f.read(b);
-	r.mentality = toMentality(b);
-	r.mentalityRound = readUIntL(f);
-	r.bindRound = readUIntL(f);
-	r.silenceRound = readUIntL(f);
-	r.faceUpRound = readUIntL(f);
-	r.antiMagicRound = readUIntL(f);
-	r.enhance(Enhance.ACTION, readUIntL(f));
-	r.enhanceRound(Enhance.ACTION, readUIntL(f));
-	r.enhance(Enhance.AVOID, readUIntL(f));
-	r.enhanceRound(Enhance.AVOID, readUIntL(f));
-	r.enhance(Enhance.RESIST, readUIntL(f));
-	r.enhanceRound(Enhance.RESIST, readUIntL(f));
-	r.enhance(Enhance.DEFENSE, readUIntL(f));
-	r.enhanceRound(Enhance.DEFENSE, readUIntL(f));
-	uint itmNum = readUIntL(f);
+	r.life = f.readUIntL;
+	r.lifeMax = f.readUIntL;
+	r.paralyze = f.readUIntL;
+	r.poison = f.readUIntL;
+	r.defaultEnhance(Enhance.AVOID, f.readUIntL);
+	r.defaultEnhance(Enhance.RESIST, f.readUIntL);
+	r.defaultEnhance(Enhance.DEFENSE, f.readUIntL);
+	r.physical(Physical.DEX, f.readUIntL);
+	r.physical(Physical.AGL, f.readUIntL);
+	r.physical(Physical.INT, f.readUIntL);
+	r.physical(Physical.STR, f.readUIntL);
+	r.physical(Physical.VIT, f.readUIntL);
+	r.physical(Physical.MIN, f.readUIntL);
+	r.mental(Mental.AGGRESSIVE, f.readIntL);
+	r.mental(Mental.CHEERFUL, f.readIntL);
+	r.mental(Mental.BRAVE, f.readIntL);
+	r.mental(Mental.CAUTIOUS, f.readIntL);
+	r.mental(Mental.TRICKISH, f.readIntL);
+	r.mentality = toMentality(f.readByte);
+	r.mentalityRound = f.readUIntL;
+	r.bindRound = f.readUIntL;
+	r.silenceRound = f.readUIntL;
+	r.faceUpRound = f.readUIntL;
+	r.antiMagicRound = f.readUIntL;
+	r.enhance(Enhance.ACTION, f.readUIntL);
+	r.enhanceRound(Enhance.ACTION, f.readUIntL);
+	r.enhance(Enhance.AVOID, f.readUIntL);
+	r.enhanceRound(Enhance.AVOID, f.readUIntL);
+	r.enhance(Enhance.RESIST, f.readUIntL);
+	r.enhanceRound(Enhance.RESIST, f.readUIntL);
+	r.enhance(Enhance.DEFENSE, f.readUIntL);
+	r.enhanceRound(Enhance.DEFENSE, f.readUIntL);
+	uint itmNum = f.readUIntL;
 	for (uint i = 0u; i < itmNum; i++) {
 		r.add(loadItem(f));
 	}
-	uint sklNum = readUIntL(f);
+	uint sklNum = f.readUIntL;
 	for (uint i = 0u; i < sklNum; i++) {
 		r.add(loadSkill(f));
 	}
-	uint bstNum = readUIntL(f);
+	uint bstNum = f.readUIntL;
 	for (uint i = 0u; i < bstNum; i++) {
 		r.add(loadBeast(f));
 	}
-	uint cpnNum = readUIntL(f);
+	uint cpnNum = f.readUIntL;
 	Coupon[] cpns;
 	cpns.length = cpnNum;
 	for (uint i = 0u; i < cpnNum; i++) {
 		string coupon = readString(f);
-		int val = readIntL(f);
+		int val = f.readIntL;
 		cpns[i] = new Coupon(coupon, val);
 	}
 	r.coupons = cpns;
 	return r;
 }
-private C readEffCard(C)(std.stream.InputStream f) {
-	byte b;
-	f.read(b);
+private C readEffCard(C)(ref ByteIO f) {
+	f.readByte;
 	string img = readImage(f);
 	string name = readString(f);
-	ulong id = readUIntL(f) - 40000;
+	ulong id = f.readUIntL - 40000;
 	string desc = readString(f);
 	auto r = new C(id, name, img, desc);
-	r.physical = toPhysical(readUIntL(f));
-	r.mental = toMental(readIntL(f));
+	r.physical = toPhysical(f.readUIntL);
+	r.mental = toMental(f.readIntL);
 	r.spell = readBool(f);
 	r.allRange = readBool(f);
-	f.read(b);
-	r.target = toCardTarget(b);
-	f.read(b);
-	r.effectType = toEffectType(b);
-	f.read(b);
-	r.resist = toResist(b);
-	r.successRate = readIntL(f);
-	f.read(b);
-	r.visual = toCardVisual(b);
-	uint mNum = readUIntL(f);
+	r.target = toCardTarget(f.readByte);
+	r.effectType = toEffectType(f.readByte);
+	r.resist = toResist(f.readByte);
+	r.successRate = f.readIntL;
+	r.visual = toCardVisual(f.readByte);
+	uint mNum = f.readUIntL;
 	Motion[] motions;
 	motions.length = mNum;
 	for (uint i = 0u; i < mNum; i++) {
 		motions[i] = readMotion(f);
 	}
 	r.motions = motions;
-	r.enhance(Enhance.AVOID, readIntL(f));
-	r.enhance(Enhance.RESIST, readIntL(f));
-	r.enhance(Enhance.DEFENSE, readIntL(f));
+	r.enhance(Enhance.AVOID, f.readIntL);
+	r.enhance(Enhance.RESIST, f.readIntL);
+	r.enhance(Enhance.DEFENSE, f.readIntL);
 	string sp1 = readString(f);
 	r.soundPath1 = sp1 == "（なし）" ? "" : sp1;
 	string sp2 = readString(f);
@@ -1202,46 +1159,44 @@ private C readEffCard(C)(std.stream.InputStream f) {
 		keyCodes[i] = readString(f);
 	}
 	r.keyCodes = keyCodes;
-	f.read(b);
-	r.premium = toPremium(b);
+	r.premium = toPremium(f.readByte);
 	r.scenario = readString(f);
 	r.author = readString(f);
-	uint evtNum = readUIntL(f);
+	uint evtNum = f.readUIntL;
 	for (uint i = 0u; i < evtNum; i++) {
 		r.add(readCEventTree(f));
 	}
 	return r;
 }
-private SkillCard loadSkill(std.stream.InputStream f) {
+private SkillCard loadSkill(ref ByteIO f) {
 	auto r = readEffCard!(SkillCard)(f);
 	r.hold = readBool(f);
-	r.level = readUIntL(f);
-	r.useLimit = readUIntL(f);
+	r.level = f.readUIntL;
+	r.useLimit = f.readUIntL;
 	return r;
 }
-private ItemCard loadItem(std.stream.InputStream f) {
+private ItemCard loadItem(ref ByteIO f) {
 	auto r = readEffCard!(ItemCard)(f);
 	r.hold = readBool(f);
-	r.useLimit = readUIntL(f);
-	r.useLimitMax = readUIntL(f);
-	r.price = readUIntL(f);
-	r.enhanceOwner(Enhance.AVOID, readUIntL(f));
-	r.enhanceOwner(Enhance.RESIST, readUIntL(f));
-	r.enhanceOwner(Enhance.DEFENSE, readUIntL(f));
+	r.useLimit = f.readUIntL;
+	r.useLimitMax = f.readUIntL;
+	r.price = f.readUIntL;
+	r.enhanceOwner(Enhance.AVOID, f.readUIntL);
+	r.enhanceOwner(Enhance.RESIST, f.readUIntL);
+	r.enhanceOwner(Enhance.DEFENSE, f.readUIntL);
 	return r;
 }
-private BeastCard loadBeast(std.stream.InputStream f) {
+private BeastCard loadBeast(ref ByteIO f) {
 	auto r = readEffCard!(BeastCard)(f);
 	readBool(f); // Hold
-	r.useLimit = readUIntL(f);
+	r.useLimit = f.readUIntL;
 	return r;
 }
-private InfoCard loadInfo(std.stream.InputStream f) {
-	byte b;
-	f.read(b);
+private InfoCard loadInfo(ref ByteIO f) {
+	f.readByte;
 	string img = readImage(f);
 	string name = readString(f);
-	ulong id = readUIntL(f) - 40000;
+	ulong id = f.readUIntL - 40000;
 	string desc = readString(f);
 	return new InfoCard(id, name, img, desc);
 }
@@ -1253,74 +1208,65 @@ void saveLScenario(Summary summ) {
 	string scPath = summ.scenarioPath;
 	{
 		auto file = "~Summary.wsm";
-		scope f = new std.stream.BufferedFile
-			(std.path.join(scPath, file), std.stream.FileMode.OutNew);
-		scope (exit) f.close;
+		ByteIO f;
 		writeSummary(f, summ);
+		std.file.write(std.path.join(scPath, file), f.bytes);
 		wids.add(file);
 	}
 	foreach (a; summ.areas) {
 		auto file = "~Area" ~ to!(string)(a.id) ~ ".wid";
-		scope f = new std.stream.BufferedFile
-			(std.path.join(scPath, file), std.stream.FileMode.OutNew);
-		scope (exit) f.close;
+		ByteIO f;
 		writeArea(f, scName, scPath, a);
+		std.file.write(std.path.join(scPath, file), f.bytes);
 		wids.add(file);
 	}
 	foreach (a; summ.battles) {
 		auto file = "~Battle" ~ to!(string)(a.id) ~ ".wid";
-		scope f = new std.stream.BufferedFile
-			(std.path.join(scPath, file), std.stream.FileMode.OutNew);
-		scope (exit) f.close;
+		ByteIO f;
 		writeBattle(f, scName, scPath, a);
+		std.file.write(std.path.join(scPath, file), f.bytes);
 		wids.add(file);
 	}
 	foreach (a; summ.packages) {
 		auto file = "~Package" ~ to!(string)(a.id) ~ ".wid";
-		scope f = new std.stream.BufferedFile
-			(std.path.join(scPath, file), std.stream.FileMode.OutNew);
-		scope (exit) f.close;
+		ByteIO f;
 		writePackage(f, scName, scPath, a);
+		std.file.write(std.path.join(scPath, file), f.bytes);
 		wids.add(file);
 	}
 	foreach (c; summ.casts) {
 		auto file = "~Mate" ~ to!(string)(c.id) ~ ".wid";
-		scope f = new std.stream.BufferedFile
-			(std.path.join(scPath, file), std.stream.FileMode.OutNew);
-		scope (exit) f.close;
+		ByteIO f;
 		writeCast(f, scName, scPath, c);
+		std.file.write(std.path.join(scPath, file), f.bytes);
 		wids.add(file);
 	}
 	foreach (c; summ.skills) {
 		auto file = "~Skill" ~ to!(string)(c.id) ~ ".wid";
-		scope f = new std.stream.BufferedFile
-			(std.path.join(scPath, file), std.stream.FileMode.OutNew);
-		scope (exit) f.close;
+		ByteIO f;
 		writeSkill(f, scName, scPath, c);
+		std.file.write(std.path.join(scPath, file), f.bytes);
 		wids.add(file);
 	}
 	foreach (c; summ.items) {
 		auto file = "~Item" ~ to!(string)(c.id) ~ ".wid";
-		scope f = new std.stream.BufferedFile
-			(std.path.join(scPath, file), std.stream.FileMode.OutNew);
-		scope (exit) f.close;
+		ByteIO f;
 		writeItem(f, scName, scPath, c);
+		std.file.write(std.path.join(scPath, file), f.bytes);
 		wids.add(file);
 	}
 	foreach (c; summ.beasts) {
 		auto file = "~Beast" ~ to!(string)(c.id) ~ ".wid";
-		scope f = new std.stream.BufferedFile
-			(std.path.join(scPath, file), std.stream.FileMode.OutNew);
-		scope (exit) f.close;
+		ByteIO f;
 		writeBeast(f, scName, scPath, c);
+		std.file.write(std.path.join(scPath, file), f.bytes);
 		wids.add(file);
 	}
 	foreach (c; summ.infos) {
 		auto file = "~Info" ~ to!(string)(c.id) ~ ".wid";
-		scope f = new std.stream.BufferedFile
-			(std.path.join(scPath, file), std.stream.FileMode.OutNew);
-		scope (exit) f.close;
+		ByteIO f;
 		writeInfo(f, scName, scPath, c);
+		std.file.write(std.path.join(scPath, file), f.bytes);
 		wids.add(file);
 	}
 	scope regex = std.regexp.RegExp("^(Area|Battle|Package|Mate|Skill|Item|Beast|Info)[0-9]+\\.wid$");
@@ -1484,12 +1430,12 @@ private byte fromPremium(Premium v) {
 	default: throw new SummaryException("Unknown card premium value: " ~ to!(string)(cast(int) v));
 	}
 }
-private void writeBool(std.stream.OutputStream f, bool b) {
-	f.write(cast(byte) (b ? 1 : 0));
+private void writeBool(ref ByteIO f, bool b) {
+	f.writeL(cast(byte) (b ? 1 : 0));
 }
-private void writeImage(std.stream.OutputStream f, string scPath, string imgPath) {
+private void writeImage(ref ByteIO f, string scPath, string imgPath) {
 	if (!imgPath.length) {
-		writeUIntL(f, 0);
+		f.writeL(cast(uint) 0);
 		return;
 	}
 	ubyte[] bytes;
@@ -1498,10 +1444,10 @@ private void writeImage(std.stream.OutputStream f, string scPath, string imgPath
 	} else {
 		bytes = cast(ubyte[]) std.file.read(std.path.join(scPath, imgPath));
 	}
-	writeUIntL(f, bytes.length);
+	f.writeL(cast(uint) bytes.length);
 	f.write(bytes);
 }
-private void writeString(std.stream.OutputStream f, string str, bool lns = false, bool cutText = false) {
+private void writeString(ref ByteIO f, string str, bool lns = false, bool cutText = false) {
 	str = replace(str, "\n", "\r\n");
 	if (cutText) {
 		str = "TEXT\r\n" ~ str;
@@ -1509,40 +1455,40 @@ private void writeString(std.stream.OutputStream f, string str, bool lns = false
 	if (str.length) {
 		str = tosjis(str);
 		if (!lns) str ~= "\0";
-		writeUIntL(f, str.length);
-		f.write(cast(ubyte[]) str);
+		f.writeL(cast(uint) str.length);
+		f.writeL(cast(ubyte[]) str);
 	} else {
 		if (lns) {
-			writeUIntL(f, 0);
+			f.writeL(cast(uint) 0);
 		} else {
-			writeUIntL(f, 1);
-			f.write(cast(char) 0x0);
+			f.writeL(cast(uint) 1);
+			f.writeL(cast(char) 0x0);
 		}
 	}
 }
-private void writeStrings(std.stream.OutputStream f, string[] strs) {
+private void writeStrings(ref ByteIO f, string[] strs) {
 	if (strs.length) {
 		auto s = std.string.join(strs, "\n");
 		if (s.length && s[$ - 1] != '\n') s ~= '\n';
 		writeString(f,  s, true);
 	} else {
-		writeUIntL(f, 0);
+		f.writeL(cast(uint) 0);
 	}
 }
 
-private void writeSummary(std.stream.OutputStream f, Summary summ) {
+private void writeSummary(ref ByteIO f, Summary summ) {
 	writeImage(f, summ.scenarioPath, summ.imagePath);
 	writeString(f, summ.scenarioName);
 	writeString(f, summ.desc, true);
 	writeString(f, summ.author);
 	writeStrings(f, summ.rCoupons);
-	writeUIntL(f, summ.rCouponNum);
-	writeUIntL(f, cast(uint) (summ.startArea + 40000u));
+	f.writeL(cast(uint) summ.rCouponNum);
+	f.writeL(cast(uint) (summ.startArea + 40000u));
 	auto steps = summ.flagDirRoot.allSteps;
-	writeUIntL(f, steps.length);
+	f.writeL(cast(uint) steps.length);
 	foreach (step; steps) {
 		writeString(f, step.path);
-		writeUIntL(f, step.select);
+		f.writeL(cast(uint) step.select);
 		for (uint i = 0u; i < 10u; i++) {
 			if (i < step.count) {
 				writeString(f, step.getValue(i));
@@ -1552,18 +1498,18 @@ private void writeSummary(std.stream.OutputStream f, Summary summ) {
 		}
 	}
 	auto flags = summ.flagDirRoot.allFlags;
-	writeUIntL(f, flags.length);
+	f.writeL(cast(uint) flags.length);
 	foreach (flag; flags) {
 		writeString(f, flag.path);
 		writeBool(f, flag.onOff);
 		writeString(f, flag.on);
 		writeString(f, flag.off);
 	}
-	writeUIntL(f, 0u);
-	writeUIntL(f, summ.levelMin);
-	writeUIntL(f, summ.levelMax);
+	f.writeL(cast(uint) 0u);
+	f.writeL(cast(uint) summ.levelMin);
+	f.writeL(cast(uint) summ.levelMax);
 }
-private void writeMotion(std.stream.OutputStream f, string scName, string scPath, Motion m) {
+private void writeMotion(ref ByteIO f, string scName, string scPath, Motion m) {
 	byte tType;
 	byte type;
 	switch (m.type) {
@@ -1726,11 +1672,11 @@ private void writeMotion(std.stream.OutputStream f, string scName, string scPath
 	default: assert (0);
 	}
 	f.write(tType);
-	f.write(cast(byte) 0x8);
-	f.write(cast(byte) 0x4);
-	f.write(cast(byte) 0x0);
-	f.write(cast(byte) 0x0);
-	f.write(cast(byte) 0x0);
+	f.writeL(cast(byte) 0x8);
+	f.writeL(cast(byte) 0x4);
+	f.writeL(cast(byte) 0x0);
+	f.writeL(cast(byte) 0x0);
+	f.writeL(cast(byte) 0x0);
 	f.write(fromElement(m.element));
 	if (tType != 8) {
 		f.write(type);
@@ -1738,43 +1684,43 @@ private void writeMotion(std.stream.OutputStream f, string scName, string scPath
 	switch (tType) {
 	case 0, 1:
 		f.write(fromDamageType(m.damageType));
-		writeUIntL(f, m.uValue);
+		f.writeL(cast(uint) m.uValue);
 		break;
 	case 2:
 		break;
 	case 3, 4:
-		writeUIntL(f, m.detail.use(MArg.ROUND) ? m.round : 0xA);
+		f.writeL(cast(uint) m.detail.use(MArg.ROUND) ? m.round : 0xA);
 		break;
 	case 5:
-		writeUIntL(f, m.aValue);
-		writeUIntL(f, m.round);
+		f.writeL(cast(uint) m.aValue);
+		f.writeL(cast(uint) m.round);
 		break;
 	case 6, 7:
 		break;
 	case 8:
 		auto beast = m.beast;
 		if (beast) {
-			writeUIntL(f, 0x1);
+			f.writeL(cast(uint) 0x1);
 			writeBeast(f, scName, scPath, beast);
 		} else {
-			writeUIntL(f, 0x0);
+			f.writeL(cast(uint) 0x0);
 		}
 		break;
 	default: throw new SummaryException("Unknown motion: " ~ to!(string)(tType) ~ ", " ~ to!(string)(type));
 	}
 }
-private void writeContent(std.stream.OutputStream f, string scName, string scPath, Content e) {
+private void writeContent(ref ByteIO f, string scName, string scPath, Content e) {
 	auto d = e.detail;
 	void wb(byte type) {
 		f.write(type);
 		writeString(f, e.name);
 		if (d.owner) {
-			writeUIntL(f, 40000 + e.next.length);
+			f.writeL(cast(uint) 40000 + e.next.length);
 			foreach (child; e.next) {
 				writeContent(f, scName, scPath, child);
 			}
 		} else {
-			writeUIntL(f, 40000);
+			f.writeL(cast(uint) 40000);
 		}
 	}
 	if (e.type is CType.START) {
@@ -1784,7 +1730,7 @@ private void writeContent(std.stream.OutputStream f, string scName, string scPat
 		writeString(f, e.start);
 	} else if (e.type is CType.START_BATTLE) {
 		wb(2);
-		writeUIntL(f, cast(uint) e.battle);
+		f.writeL(cast(uint) e.battle);
 	} else if (e.type is CType.END) {
 		wb(3);
 		writeBool(f, e.complete);
@@ -1792,7 +1738,7 @@ private void writeContent(std.stream.OutputStream f, string scName, string scPat
 		wb(4);
 	} else if (e.type is CType.CHANGE_AREA) {
 		wb(5);
-		writeUIntL(f, cast(uint) e.area);
+		f.writeL(cast(uint) e.area);
 	} else if (e.type is CType.TALK_MESSAGE) {
 		wb(6);
 		string path;
@@ -1818,19 +1764,19 @@ private void writeContent(std.stream.OutputStream f, string scName, string scPat
 		writeString(f, e.soundPath);
 	} else if (e.type is CType.WAIT) {
 		wb(10);
-		writeUIntL(f, e.wait);
+		f.writeL(cast(uint) e.wait);
 	} else if (e.type is CType.EFFECT) {
 		wb(11);
-		writeUIntL(f, e.level);
+		f.writeL(cast(uint) e.level);
 		byte targ = fromTarget(e.targetNS);
 		if (targ == 6) targ = 2;
 		f.write(targ);
 		f.write(fromEffectType(e.effectType));
 		f.write(fromResist(e.resist));
-		writeIntL(f, e.successRate);
+		f.writeL(cast(int) e.successRate);
 		writeString(f, e.soundPath.length ? e.soundPath : "（なし）");
 		f.write(fromCardVisual(e.cardVisual));
-		writeUIntL(f, e.motions.length);
+		f.writeL(cast(uint) e.motions.length);
 		foreach (m; e.motions) {
 			writeMotion(f, scName, scPath, m);
 		}
@@ -1840,13 +1786,13 @@ private void writeContent(std.stream.OutputStream f, string scName, string scPat
 		writeBool(f, e.random);
 	} else if (e.type is CType.BRANCH_ABILITY) {
 		wb(13);
-		writeUIntL(f, e.level);
+		f.writeL(cast(uint) e.level);
 		f.write(fromTarget(e.targetS));
-		writeUIntL(f, fromPhysical(e.physical));
-		writeIntL(f, fromMental(e.mental));
+		f.writeL(cast(uint) fromPhysical(e.physical));
+		f.writeL(cast(int) fromMental(e.mental));
 	} else if (e.type is CType.BRANCH_RANDOM) {
 		wb(14);
-		writeUIntL(f, e.percent);
+		f.writeL(cast(uint) e.percent);
 	} else if (e.type is CType.BRANCH_FLAG) {
 		wb(15);
 		writeString(f, e.flag);
@@ -1860,103 +1806,103 @@ private void writeContent(std.stream.OutputStream f, string scName, string scPat
 	} else if (e.type is CType.SET_STEP) {
 		wb(18);
 		writeString(f, e.step);
-		writeUIntL(f, e.stepValue);
+		f.writeL(cast(uint) e.stepValue);
 	} else if (e.type is CType.BRANCH_CAST) {
 		wb(19);
-		writeUIntL(f, cast(uint) e.casts);
+		f.writeL(cast(uint) e.casts);
 	} else if (e.type is CType.BRANCH_ITEM) {
 		wb(20);
-		writeUIntL(f, cast(uint) e.item);
-		writeUIntL(f, e.cardNumber);
+		f.writeL(cast(uint) e.item);
+		f.writeL(cast(uint) e.cardNumber);
 		f.write(fromRange(e.range));
 	} else if (e.type is CType.BRANCH_SKILL) {
 		wb(21);
-		writeUIntL(f, cast(uint) e.skill);
-		writeUIntL(f, e.cardNumber);
+		f.writeL(cast(uint) e.skill);
+		f.writeL(cast(uint) e.cardNumber);
 		f.write(fromRange(e.range));
 	} else if (e.type is CType.BRANCH_INFO) {
 		wb(22);
-		writeUIntL(f, cast(uint) e.info);
+		f.writeL(cast(uint) e.info);
 	} else if (e.type is CType.BRANCH_BEAST) {
 		wb(23);
-		writeUIntL(f, cast(uint) e.beast);
-		writeUIntL(f, e.cardNumber);
+		f.writeL(cast(uint) e.beast);
+		f.writeL(cast(uint) e.cardNumber);
 		f.write(fromRange(e.range));
 	} else if (e.type is CType.BRANCH_MONEY) {
 		wb(24);
-		writeUIntL(f, e.money);
+		f.writeL(cast(uint) e.money);
 	} else if (e.type is CType.BRANCH_COUPON) {
 		wb(25);
 		writeString(f, e.coupon);
-		writeIntL(f, 0x0);
+		f.writeL(cast(int) 0x0);
 		f.write(fromRange(e.range));
 	} else if (e.type is CType.GET_CAST) {
 		wb(26);
-		writeUIntL(f, cast(uint) e.casts);
+		f.writeL(cast(uint) e.casts);
 	} else if (e.type is CType.GET_ITEM) {
 		wb(27);
-		writeUIntL(f, cast(uint) e.item);
-		writeUIntL(f, e.cardNumber);
+		f.writeL(cast(uint) e.item);
+		f.writeL(cast(uint) e.cardNumber);
 		f.write(fromRange(e.range));
 	} else if (e.type is CType.GET_SKILL) {
 		wb(28);
-		writeUIntL(f, cast(uint) e.skill);
-		writeUIntL(f, e.cardNumber);
+		f.writeL(cast(uint) e.skill);
+		f.writeL(cast(uint) e.cardNumber);
 		f.write(fromRange(e.range));
 	} else if (e.type is CType.GET_INFO) {
 		wb(29);
-		writeUIntL(f, cast(uint) e.info);
+		f.writeL(cast(uint) e.info);
 	} else if (e.type is CType.GET_BEAST) {
 		wb(30);
-		writeUIntL(f, cast(uint) e.beast);
-		writeUIntL(f, e.cardNumber);
+		f.writeL(cast(uint) e.beast);
+		f.writeL(cast(uint) e.cardNumber);
 		f.write(fromRange(e.range));
 	} else if (e.type is CType.GET_MONEY) {
 		wb(31);
-		writeUIntL(f, e.money);
+		f.writeL(cast(uint) e.money);
 	} else if (e.type is CType.GET_COUPON) {
 		wb(32);
 		writeString(f, e.coupon);
-		writeIntL(f, e.couponValue);
+		f.writeL(cast(int) e.couponValue);
 		f.write(fromRange(e.range));
 	} else if (e.type is CType.LOSE_CAST) {
 		wb(33);
-		writeUIntL(f, cast(uint) e.casts);
+		f.writeL(cast(uint) e.casts);
 	} else if (e.type is CType.LOSE_ITEM) {
 		wb(34);
-		writeUIntL(f, cast(uint) e.item);
-		writeUIntL(f, e.cardNumber);
+		f.writeL(cast(uint) e.item);
+		f.writeL(cast(uint) e.cardNumber);
 		f.write(fromRange(e.range));
 	} else if (e.type is CType.LOSE_SKILL) {
 		wb(35);
-		writeUIntL(f, cast(uint) e.skill);
-		writeUIntL(f, e.cardNumber);
+		f.writeL(cast(uint) e.skill);
+		f.writeL(cast(uint) e.cardNumber);
 		f.write(fromRange(e.range));
 	} else if (e.type is CType.LOSE_INFO) {
 		wb(36);
-		writeUIntL(f, cast(uint) e.info);
+		f.writeL(cast(uint) e.info);
 	} else if (e.type is CType.LOSE_BEAST) {
 		wb(37);
-		writeUIntL(f, cast(uint) e.beast);
-		writeUIntL(f, e.cardNumber);
+		f.writeL(cast(uint) e.beast);
+		f.writeL(cast(uint) e.cardNumber);
 		f.write(fromRange(e.range));
 	} else if (e.type is CType.LOSE_MONEY) {
 		wb(38);
-		writeUIntL(f, e.money);
+		f.writeL(cast(uint) e.money);
 	} else if (e.type is CType.LOSE_COUPON) {
 		wb(39);
 		writeString(f, e.coupon);
-		writeIntL(f, 0x0);
+		f.writeL(cast(int) 0x0);
 		f.write(fromRange(e.range));
 	} else if (e.type is CType.TALK_DIALOG) {
 		wb(40);
 		switch (e.talkerNC) {
-		case Talker.SELECTED: f.write(cast(byte) 0); break;
-		case Talker.RANDOM: f.write(cast(byte) 1); break;
-		case Talker.UNSELECTED: f.write(cast(byte) 2); break;
+		case Talker.SELECTED: f.writeL(cast(byte) 0); break;
+		case Talker.RANDOM: f.writeL(cast(byte) 1); break;
+		case Talker.UNSELECTED: f.writeL(cast(byte) 2); break;
 		default: throw new SummaryException("Unknown talker value: " ~ to!(string)(cast(int) e.talkerNC));
 		}
-		writeUIntL(f, e.dialogs.length);
+		f.writeL(cast(uint) e.dialogs.length);
 		foreach (dlg; e.dialogs) {
 			writeStrings(f, dlg.rCoupons);
 			writeString(f, lastRet(dlg.text), true);
@@ -1973,20 +1919,20 @@ private void writeContent(std.stream.OutputStream f, string scName, string scPat
 	} else if (e.type is CType.BRANCH_STEP) {
 		wb(44);
 		writeString(f, e.step);
-		writeUIntL(f, e.stepValue);
+		f.writeL(cast(uint) e.stepValue);
 	} else if (e.type is CType.ELAPSE_TIME) {
 		wb(45);
 	} else if (e.type is CType.BRANCH_LEVEL) {
 		wb(46);
 		writeBool(f, e.average);
-		writeUIntL(f, e.level);
+		f.writeL(cast(uint) e.level);
 	} else if (e.type is CType.BRANCH_STATUS) {
 		wb(47);
 		f.write(fromStatus(e.status));
 		f.write(fromTarget(e.targetNS));
 	} else if (e.type is CType.BRANCH_PARTY_NUMBER) {
 		wb(48);
-		writeUIntL(f, e.partyNumber);
+		f.writeL(cast(uint) e.partyNumber);
 	} else if (e.type is CType.SHOW_PARTY) {
 		wb(49);
 	} else if (e.type is CType.HIDE_PARTY) {
@@ -1998,10 +1944,10 @@ private void writeContent(std.stream.OutputStream f, string scName, string scPat
 		writeString(f, e.start);
 	} else if (e.type is CType.LINK_PACKAGE) {
 		wb(53);
-		writeUIntL(f, cast(uint) e.packages);
+		f.writeL(cast(uint) e.packages);
 	} else if (e.type is CType.CALL_PACKAGE) {
 		wb(54);
-		writeUIntL(f, cast(uint) e.packages);
+		f.writeL(cast(uint) e.packages);
 	} else if (e.type is CType.BRANCH_AREA) {
 		wb(55);
 	} else if (e.type is CType.BRANCH_BATTLE) {
@@ -2035,14 +1981,14 @@ private void writeContent(std.stream.OutputStream f, string scName, string scPat
 		assert (0, "event");
 	}
 }
-private void writeCEventTree(std.stream.OutputStream f, string scName, string scPath, EventTree tree) {
-	writeUIntL(f, tree.starts.length);
+private void writeCEventTree(ref ByteIO f, string scName, string scPath, EventTree tree) {
+	f.writeL(cast(uint) tree.starts.length);
 	foreach (evt; tree.starts) {
 		writeContent(f, scName, scPath, evt);
 	}
 }
-private void writeEventTree(std.stream.OutputStream f, string scName, string scPath, EventTree tree) {
-	writeUIntL(f, tree.starts.length);
+private void writeEventTree(ref ByteIO f, string scName, string scPath, EventTree tree) {
+	f.writeL(cast(uint) tree.starts.length);
 	foreach (evt; tree.starts) {
 		writeContent(f, scName, scPath, evt);
 	}
@@ -2053,106 +1999,106 @@ private void writeEventTree(std.stream.OutputStream f, string scName, string scP
 	foreach (rnd; tree.rounds) {
 		igs ~= -(cast(int) rnd);
 	}
-	writeUIntL(f, igs.length);
+	f.writeL(cast(uint) igs.length);
 	foreach (ig; igs) {
-		writeIntL(f, ig);
+		f.writeL(cast(int) ig);
 	}
 	writeStrings(f, tree.keyCodes);
 }
-private void writeBgImage(std.stream.OutputStream f, BgImage b) {
-	writeIntL(f, b.x);
-	writeIntL(f, b.y);
-	writeUIntL(f, b.width + 40000u);
-	writeUIntL(f, b.height);
+private void writeBgImage(ref ByteIO f, BgImage b) {
+	f.writeL(cast(int) b.x);
+	f.writeL(cast(int) b.y);
+	f.writeL(cast(uint) b.width + 40000u);
+	f.writeL(cast(uint) b.height);
 	writeString(f, b.path);
 	writeBool(f, b.mask);
 	writeString(f, b.flag);
-	f.write(cast(byte) 0x0);
+	f.writeL(cast(byte) 0x0);
 }
-private void writeBgImages(std.stream.OutputStream f, BgImage[] backs) {
+private void writeBgImages(ref ByteIO f, BgImage[] backs) {
 	if (backs.length && backs[0].path != "" && backs[0].flag == ""
 			&& backs[0].x == 0 && backs[0].y == 0
 			&& backs[0].width == 632 && backs[0].height == 420 && !backs[0].mask) {
-		writeUIntL(f, backs.length);
+		f.writeL(cast(uint) backs.length);
 	} else {
-		writeUIntL(f, backs.length + 1u);
+		f.writeL(cast(uint) backs.length + 1u);
 		writeBgImage(f, new BgImage("", "", 0, 0, 632, 420, false));
 	}
 	foreach (b; backs) {
 		writeBgImage(f, b);
 	}
 }
-private void writeArea(std.stream.OutputStream f, string scName, string scPath, Area a) {
-	f.write(cast(byte) 0x0);
-	writeUIntL(f, 0x0);
+private void writeArea(ref ByteIO f, string scName, string scPath, Area a) {
+	f.writeL(cast(byte) 0x0);
+	f.writeL(cast(uint) 0x0);
 	writeString(f, a.name);
-	writeUIntL(f, cast(uint) (a.id + 40000u));
-	writeUIntL(f, a.trees.length);
+	f.writeL(cast(uint) (a.id + 40000u));
+	f.writeL(cast(uint) a.trees.length);
 	foreach (tree; a.trees) {
 		writeEventTree(f, scName, scPath, tree);
 	}
 	writeBool(f, !a.spAuto);
-	writeUIntL(f, a.cards.length);
+	f.writeL(cast(uint) a.cards.length);
 	foreach (c; a.cards) {
-		f.write(cast(byte) 0x0);
+		f.writeL(cast(byte) 0x0);
 		writeImage(f, scPath, isBinImg(c.path) ? c.path : "");
 		writeString(f, c.name);
-		f.write(cast(byte) 0x40);
-		f.write(cast(byte) 0x9C);
-		f.write(cast(byte) 0x0);
-		f.write(cast(byte) 0x0);
+		f.writeL(cast(byte) 0x40);
+		f.writeL(cast(byte) 0x9C);
+		f.writeL(cast(byte) 0x0);
+		f.writeL(cast(byte) 0x0);
 		writeString(f, c.desc);
-		writeUIntL(f, c.trees.length);
+		f.writeL(cast(uint) c.trees.length);
 		foreach (tree; c.trees) {
 			writeEventTree(f, scName, scPath, tree);
 		}
 		writeString(f, c.flag);
-		writeUIntL(f, cast(uint) rndtol(c.scale * 100.0));
-		writeIntL(f, c.x);
-		writeIntL(f, c.y);
+		f.writeL(cast(uint) rndtol(c.scale * 100.0));
+		f.writeL(cast(int) c.x);
+		f.writeL(cast(int) c.y);
 		writeString(f, isBinImg(c.path) ? "" : c.path);
 	}
 	writeBgImages(f, a.backs);
 }
-private void writeBattle(std.stream.OutputStream f, string scName, string scPath, Battle a) {
-	f.write(cast(byte) 0x1);
-	writeUIntL(f, 0x0);
+private void writeBattle(ref ByteIO f, string scName, string scPath, Battle a) {
+	f.writeL(cast(byte) 0x1);
+	f.writeL(cast(uint) 0x0);
 	writeString(f, a.name);
-	writeUIntL(f, cast(uint) (a.id + 40000u));
-	writeUIntL(f, a.trees.length);
+	f.writeL(cast(uint) (a.id + 40000u));
+	f.writeL(cast(uint) a.trees.length);
 	foreach (tree; a.trees) {
 		writeEventTree(f, scName, scPath, tree);
 	}
 	writeBool(f, !a.spAuto);
-	writeUIntL(f, a.cards.length);
+	f.writeL(cast(uint) a.cards.length);
 	foreach (c; a.cards) {
-		writeUIntL(f, cast(uint) c.id);
-		writeUIntL(f, c.trees.length);
+		f.writeL(cast(uint) c.id);
+		f.writeL(cast(uint) c.trees.length);
 		foreach (tree; c.trees) {
 			writeEventTree(f, scName, scPath, tree);
 		}
 		writeString(f, c.flag);
-		writeUIntL(f, cast(uint) rndtol(c.scale * 100.0));
-		writeIntL(f, c.x);
-		writeIntL(f, c.y);
+		f.writeL(cast(uint) rndtol(c.scale * 100.0));
+		f.writeL(cast(int) c.x);
+		f.writeL(cast(int) c.y);
 		writeBool(f, c.escape);
 	}
 	writeString(f, a.music);
 }
-private void writePackage(std.stream.OutputStream f, string scName, string scPath, Package a) {
-	writeUIntL(f, 0x4);
+private void writePackage(ref ByteIO f, string scName, string scPath, Package a) {
+	f.writeL(cast(uint) 0x4);
 	writeString(f, a.name);
-	writeUIntL(f, cast(uint) a.id);
-	writeUIntL(f, a.trees.length);
+	f.writeL(cast(uint) a.id);
+	f.writeL(cast(uint) a.trees.length);
 	foreach (tree; a.trees) {
 		writeCEventTree(f, scName, scPath, tree);
 	}
 }
-private void writeCast(std.stream.OutputStream f, string scName, string scPath, CastCard c) {
-	f.write(cast(byte) 0x2);
+private void writeCast(ref ByteIO f, string scName, string scPath, CastCard c) {
+	f.writeL(cast(byte) 0x2);
 	writeImage(f, scPath, c.path);
 	writeString(f, c.name);
-	writeUIntL(f, cast(uint) (c.id + 40000u));
+	f.writeL(cast(uint) (c.id + 40000u));
 	writeBool(f, c.weaponResist);
 	writeBool(f, c.magicResist);
 	writeBool(f, c.undead);
@@ -2163,81 +2109,81 @@ private void writeCast(std.stream.OutputStream f, string scName, string scPath, 
 	writeBool(f, c.resist(Element.ICE));
 	writeBool(f, c.weakness(Element.FIRE));
 	writeBool(f, c.weakness(Element.ICE));
-	writeUIntL(f, c.level);
-	writeUIntL(f, 0u); // 所持金。現行エンジンでは未使用
+	f.writeL(cast(uint) c.level);
+	f.writeL(cast(uint) 0u); // 所持金。現行エンジンでは未使用
 	writeString(f, c.desc, true, true);
-	writeUIntL(f, c.life);
-	writeUIntL(f, c.lifeMax);
-	writeUIntL(f, c.paralyze);
-	writeUIntL(f, c.poison);
-	writeUIntL(f, c.defaultEnhance(Enhance.AVOID));
-	writeUIntL(f, c.defaultEnhance(Enhance.RESIST));
-	writeUIntL(f, c.defaultEnhance(Enhance.DEFENSE));
-	writeUIntL(f, c.physical(Physical.DEX));
-	writeUIntL(f, c.physical(Physical.AGL));
-	writeUIntL(f, c.physical(Physical.INT));
-	writeUIntL(f, c.physical(Physical.STR));
-	writeUIntL(f, c.physical(Physical.VIT));
-	writeUIntL(f, c.physical(Physical.MIN));
-	writeIntL(f, c.mental(Mental.AGGRESSIVE));
-	writeIntL(f, c.mental(Mental.CHEERFUL));
-	writeIntL(f, c.mental(Mental.BRAVE));
-	writeIntL(f, c.mental(Mental.CAUTIOUS));
-	writeIntL(f, c.mental(Mental.TRICKISH));
+	f.writeL(cast(uint) c.life);
+	f.writeL(cast(uint) c.lifeMax);
+	f.writeL(cast(uint) c.paralyze);
+	f.writeL(cast(uint) c.poison);
+	f.writeL(cast(int) c.defaultEnhance(Enhance.AVOID));
+	f.writeL(cast(int) c.defaultEnhance(Enhance.RESIST));
+	f.writeL(cast(int) c.defaultEnhance(Enhance.DEFENSE));
+	f.writeL(cast(uint) c.physical(Physical.DEX));
+	f.writeL(cast(uint) c.physical(Physical.AGL));
+	f.writeL(cast(uint) c.physical(Physical.INT));
+	f.writeL(cast(uint) c.physical(Physical.STR));
+	f.writeL(cast(uint) c.physical(Physical.VIT));
+	f.writeL(cast(uint) c.physical(Physical.MIN));
+	f.writeL(cast(int) c.mental(Mental.AGGRESSIVE));
+	f.writeL(cast(int) c.mental(Mental.CHEERFUL));
+	f.writeL(cast(int) c.mental(Mental.BRAVE));
+	f.writeL(cast(int) c.mental(Mental.CAUTIOUS));
+	f.writeL(cast(int) c.mental(Mental.TRICKISH));
 	f.write(fromMentality(c.mentality));
-	writeUIntL(f, c.mentalityRound);
-	writeUIntL(f, c.bindRound);
-	writeUIntL(f, c.silenceRound);
-	writeUIntL(f, c.faceUpRound);
-	writeUIntL(f, c.antiMagicRound);
-	writeUIntL(f, c.enhance(Enhance.ACTION));
-	writeUIntL(f, c.enhanceRound(Enhance.ACTION));
-	writeUIntL(f, c.enhance(Enhance.AVOID));
-	writeUIntL(f, c.enhanceRound(Enhance.AVOID));
-	writeUIntL(f, c.enhance(Enhance.RESIST));
-	writeUIntL(f, c.enhanceRound(Enhance.RESIST));
-	writeUIntL(f, c.enhance(Enhance.DEFENSE));
-	writeUIntL(f, c.enhanceRound(Enhance.DEFENSE));
-	writeUIntL(f, c.items.length);
+	f.writeL(cast(uint) c.mentalityRound);
+	f.writeL(cast(uint) c.bindRound);
+	f.writeL(cast(uint) c.silenceRound);
+	f.writeL(cast(uint) c.faceUpRound);
+	f.writeL(cast(uint) c.antiMagicRound);
+	f.writeL(cast(int) c.enhance(Enhance.ACTION));
+	f.writeL(cast(uint) c.enhanceRound(Enhance.ACTION));
+	f.writeL(cast(int) c.enhance(Enhance.AVOID));
+	f.writeL(cast(uint) c.enhanceRound(Enhance.AVOID));
+	f.writeL(cast(int) c.enhance(Enhance.RESIST));
+	f.writeL(cast(uint) c.enhanceRound(Enhance.RESIST));
+	f.writeL(cast(int) c.enhance(Enhance.DEFENSE));
+	f.writeL(cast(uint) c.enhanceRound(Enhance.DEFENSE));
+	f.writeL(cast(uint) c.items.length);
 	foreach (cc; c.items) {
 		writeItem(f, scName, scPath, cc);
 	}
-	writeUIntL(f, c.skills.length);
+	f.writeL(cast(uint) c.skills.length);
 	foreach (cc; c.skills) {
 		writeSkill(f, scName, scPath, cc);
 	}
-	writeUIntL(f, c.beasts.length);
+	f.writeL(cast(uint) c.beasts.length);
 	foreach (cc; c.beasts) {
 		writeBeast(f, scName, scPath, cc);
 	}
-	writeUIntL(f, c.coupons.length);
+	f.writeL(cast(uint) c.coupons.length);
 	foreach (cc; c.coupons) {
 		writeString(f, cc.name);
-		writeIntL(f, cc.value);
+		f.writeL(cast(int) cc.value);
 	}
 }
-private void writeEffCard(std.stream.OutputStream f, string scName, string scPath, EffectCard c, byte type) {
+private void writeEffCard(ref ByteIO f, string scName, string scPath, EffectCard c, byte type) {
 	f.write(type);
 	writeImage(f, scPath, c.path);
 	writeString(f, c.name);
-	writeUIntL(f, cast(uint) (c.id + 40000u));
+	f.writeL(cast(uint) (c.id + 40000u));
 	writeString(f, c.desc);
-	writeUIntL(f, fromPhysical(c.physical));
-	writeIntL(f, fromMental(c.mental));
+	f.writeL(cast(uint) fromPhysical(c.physical));
+	f.writeL(cast(int) fromMental(c.mental));
 	writeBool(f, c.spell);
 	writeBool(f, c.allRange);
 	f.write(fromCardTarget(c.target));
 	f.write(fromEffectType(c.effectType));
 	f.write(fromResist(c.resist));
-	writeIntL(f, c.successRate);
+	f.writeL(cast(int) c.successRate);
 	f.write(fromCardVisual(c.visual));
-	writeUIntL(f, c.motions.length);
+	f.writeL(cast(uint) c.motions.length);
 	foreach (m; c.motions) {
 		writeMotion(f, scName, scPath, m);
 	}
-	writeIntL(f, c.enhance(Enhance.AVOID));
-	writeIntL(f, c.enhance(Enhance.RESIST));
-	writeIntL(f, c.enhance(Enhance.DEFENSE));
+	f.writeL(cast(int) c.enhance(Enhance.AVOID));
+	f.writeL(cast(int) c.enhance(Enhance.RESIST));
+	f.writeL(cast(int) c.enhance(Enhance.DEFENSE));
 	writeString(f, c.soundPath1.length ? c.soundPath1 : "（なし）");
 	writeString(f, c.soundPath2.length ? c.soundPath2 : "（なし）");
 	for (uint i = 0u; i < 5u; i++) {
@@ -2250,36 +2196,36 @@ private void writeEffCard(std.stream.OutputStream f, string scName, string scPat
 	f.write(fromPremium(c.premium));
 	writeString(f, scName);
 	writeString(f, c.author);
-	writeUIntL(f, c.trees.length);
+	f.writeL(cast(uint) c.trees.length);
 	foreach (tree; c.trees) {
 		writeCEventTree(f, scName, scPath, tree);
 	}
 }
-private void writeSkill(std.stream.OutputStream f, string scName, string scPath, SkillCard c) {
+private void writeSkill(ref ByteIO f, string scName, string scPath, SkillCard c) {
 	writeEffCard(f, scName, scPath, c, 0x5);
 	writeBool(f, c.hold);
-	writeUIntL(f, c.level);
-	writeUIntL(f, c.useLimit);
+	f.writeL(cast(uint) c.level);
+	f.writeL(cast(uint) c.useLimit);
 }
-private void writeItem(std.stream.OutputStream f, string scName, string scPath, ItemCard c) {
+private void writeItem(ref ByteIO f, string scName, string scPath, ItemCard c) {
 	writeEffCard(f, scName, scPath, c, 0x3);
 	writeBool(f, c.hold);
-	writeUIntL(f, c.useLimit);
-	writeUIntL(f, c.useLimitMax);
-	writeUIntL(f, c.price);
-	writeUIntL(f, c.enhanceOwner(Enhance.AVOID));
-	writeUIntL(f, c.enhanceOwner(Enhance.RESIST));
-	writeUIntL(f, c.enhanceOwner(Enhance.DEFENSE));
+	f.writeL(cast(uint) c.useLimit);
+	f.writeL(cast(uint) c.useLimitMax);
+	f.writeL(cast(uint) c.price);
+	f.writeL(cast(int) c.enhanceOwner(Enhance.AVOID));
+	f.writeL(cast(int) c.enhanceOwner(Enhance.RESIST));
+	f.writeL(cast(int) c.enhanceOwner(Enhance.DEFENSE));
 }
-private void writeBeast(std.stream.OutputStream f, string scName, string scPath, BeastCard c) {
+private void writeBeast(ref ByteIO f, string scName, string scPath, BeastCard c) {
 	writeEffCard(f, scName, scPath, c, 0x6);
 	writeBool(f, false); // Hold
-	writeUIntL(f, c.useLimit);
+	f.writeL(cast(uint) c.useLimit);
 }
-private void writeInfo(std.stream.OutputStream f, string scName, string scPath, InfoCard c) {
-	f.write(cast(byte) 0x4);
+private void writeInfo(ref ByteIO f, string scName, string scPath, InfoCard c) {
+	f.writeL(cast(byte) 0x4);
 	writeImage(f, scPath, c.path);
 	writeString(f, c.name);
-	writeUIntL(f, cast(uint) (c.id + 40000u));
+	f.writeL(cast(uint) (c.id + 40000u));
 	writeString(f, c.desc);
 }
