@@ -5,7 +5,9 @@ import cwx.utils;
 import cwx.usecounter;
 import cwx.summary;
 import cwx.area;
+import cwx.event;
 import cwx.skin;
+import cwx.card;
 
 import cwx.editor.gui.dwt.skin;
 import cwx.editor.gui.dwt.utils;
@@ -342,8 +344,51 @@ protected:
 		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
 	}
 
+	private void setNamesOne(C : EffectCard)(ref C card) {
+		if (card.scenario == _summ.scenarioName && card.author == _summ.author) {
+			card.author = _author.getText;
+			card.scenario = _sname.getText;
+		}
+	}
+	private void setNames(C)(C[] cards) {
+		foreach (ref card; cards) {
+			setNamesOne(card);
+		}
+		setContentNames(cards);
+	}
+	private void setContentNames(C : EventTreeOwner)(C[] etos) {
+		void setContentNames(Content c) {
+			foreach (m; c.motions) {
+				auto beast = m.beast;
+				if (beast) {
+					setNamesOne(beast);
+				}
+			}
+			foreach (n; c.next) setContentNames(n);
+		}
+		foreach (ref eto; etos) {
+			foreach (ref tree; eto.trees) {
+				foreach (ref start; tree.starts) {
+					setContentNames(start);
+				}
+			}
+		}
+	}
 	override void buttonPressed(int buttonId) {
 		if (buttonId == IDialogConstants.OK_ID) {
+			setNames(_summ.skills);
+			setNames(_summ.items);
+			setNames(_summ.beasts);
+			foreach (card; _summ.casts) {
+				setNames(card.skills);
+				setNames(card.items);
+				setNames(card.beasts);
+			}
+			setContentNames(_summ.areas);
+			foreach (area; _summ.areas) setContentNames(area.cards);
+			setContentNames(_summ.battles);
+			foreach (area; _summ.battles) setContentNames(area.cards);
+			setContentNames(_summ.packages);
 			_summ.scenarioName = _sname.getText;
 			_summ.author = _author.getText;
 			_summ.desc = _desc.getRRText;

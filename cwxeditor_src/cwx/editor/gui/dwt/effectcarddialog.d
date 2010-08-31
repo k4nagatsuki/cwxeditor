@@ -746,6 +746,8 @@ protected:
 					if (c.getText.length > 0) last = i + 1;
 				}
 				keyCodes.length = last;
+				_card.scenario = _summ.scenarioName;
+				_card.author = _summ.author;
 				_card.keyCodes = keyCodes;
 			} else {
 				buttonId = IDialogConstants.CANCEL_ID;
