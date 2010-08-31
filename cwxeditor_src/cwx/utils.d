@@ -940,7 +940,7 @@ void copyAll(string a, string b) in {
 	assert (isdir(a));
 	assert (isdir(b));
 } body {
-	foreach (file; listdir(a)) {
+	foreach (file; clistdir(a)) {
 		string fPath = std.path.join(a, file);
 		string tPath = std.path.join(b, file);
 		if (isdir(fPath)) {
@@ -960,7 +960,7 @@ void delAll(string delpath, bool force = true) {
 		try {
 			preRemove(delpath);
 			if (isdir(delpath)) {
-				foreach (file; listdir(delpath)) {
+				foreach (file; clistdir(delpath)) {
 					__delAll(std.path.join(delpath, file), ee);
 				}
 				rmdir(delpath);
@@ -1141,7 +1141,6 @@ template FileCache(T ...) {
 	static const CACHE_MAX = 1024;
 	static Cache[FCPt] caches;
 	static string[] cachePaths;
-	static std.date.d_time ftc, fta, ftm;
 	void putCache(string path, T v) {
 		if (!exists(path)) return;
 		path = nabs(path);
@@ -1149,15 +1148,97 @@ template FileCache(T ...) {
 			caches.remove(FCPt(cachePaths[0u]));
 			cachePaths = cachePaths[1u .. $];
 		}
-		std.file.getTimes(path, ftc, fta, ftm);
-		caches[FCPt(path)] = Cache(ftm, v);
+		caches[FCPt(path)] = Cache(lastModified(path), v);
 		cachePaths ~= path;
 	}
 	Cache* cache(string path) {
 		if (!exists(path)) return null;
 		path = nabs(path);
-		std.file.getTimes(path, ftc, fta, ftm);
 		auto cache = FCPt(path) in caches;
-		return cache && cache.ftm == ftm ? cache : null;
+		return cache && cache.ftm == lastModified(path) ? cache : null;
 	}
+}
+
+version (Windows) {
+	private extern (Windows) {
+		BOOL GetFileTime(HANDLE hFile, LPFILETIME lpCreationTime, LPFILETIME lpLastAccessTime, LPFILETIME lpLastWriteTime);
+	}
+	/// ファイルの最終更新日時を返す。
+	d_time lastModified(string path) {
+		d_time conv(ref FILETIME ft) {
+			SYSTEMTIME st;
+			if (!FileTimeToSystemTime(&ft, &st)) {
+				throw new FileException(path, GetLastError);
+			}
+			auto time = MakeTime(st.wHour, st.wMinute, st.wSecond, st.wMilliseconds);
+			auto day = MakeDay(st.wYear, st.wMonth - 1, st.wDay);
+			return MakeDate(day, time);
+		}
+		if (GetVersion < 0x80000000) {
+			WIN32_FIND_DATAW fd;
+			auto h = FindFirstFileW(std.utf.toUTF16z(path), &fd);
+			if (h != INVALID_HANDLE_VALUE) {
+				scope (exit) FindClose(h);
+				return conv(fd.ftLastWriteTime);
+			}
+		} else {
+			WIN32_FIND_DATA fd;
+			auto h = FindFirstFileA((tosjis(path) ~ "\0").ptr, &fd);
+			if (h != INVALID_HANDLE_VALUE) {
+				scope (exit) FindClose(h);
+				return conv(fd.ftLastWriteTime);
+			}
+		}
+		throw new FileException(path, GetLastError);
+	}
+	/// listdir()にはパフォーマンス問題がある。
+	string[] clistdir(string path) {
+		string[] r;
+		clistdir(path, (string file) {
+			r ~= file;
+			return true;
+		});
+		return r;
+	}
+	/// ditto
+	void clistdir(string path, bool delegate(string) callback) {
+		path = std.path.join(path, "*");
+		if (GetVersion < 0x80000000) {
+			WIN32_FIND_DATAW fd;
+			auto h = FindFirstFileW(std.utf.toUTF16z(path), &fd);
+			if (h != INVALID_HANDLE_VALUE) {
+				scope (exit) FindClose(h);
+				do {
+					string file = toUTF8(fd.cFileName[0 .. wcslen(fd.cFileName.ptr)]);
+					if (file != "." && file != "..") {
+						if (!callback(file)) break;
+					}
+				} while (FindNextFileW(h, &fd));
+			} else {
+				throw new FileException(path, GetLastError);
+			}
+		} else {
+			WIN32_FIND_DATA fd;
+			auto h = FindFirstFileA((tosjis(path) ~ "\0").ptr, &fd);
+			if (h != INVALID_HANDLE_VALUE) {
+				scope (exit) FindClose(h);
+				do {
+					string file = touni(fd.cFileName[0 .. strlen(fd.cFileName.ptr)]);
+					if (file != "." && file != "..") {
+						if (!callback(file)) break;
+					}
+				} while (FindNextFileA(h, &fd));
+			} else {
+				throw new FileException(path, GetLastError);
+			}
+		}
+	}
+} else {
+	/// ファイルの最終更新日時を返す。
+	d_time lastModified(string path) {
+		d_time ftc, fta, ftm;
+		getTimes(path, ftc, fta, ftm);
+		return ftm;
+	}
+	alias listdir clistdir;
 }

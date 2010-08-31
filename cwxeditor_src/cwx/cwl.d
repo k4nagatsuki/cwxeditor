@@ -47,7 +47,7 @@ S loadLScenario(S)(string p, string skin) {
 	static if (is (typeof(summ.items))) ItemCard[] items;
 	static if (is (typeof(summ.beasts))) BeastCard[] beasts;
 	static if (is (typeof(summ.infos))) InfoCard[] infos;
-	foreach (file; listdir(sPath)) {
+	foreach (file; clistdir(sPath)) {
 		file = std.path.join(sPath, file);
 		try {
 			if (fnmatch(getExt(file), "wid")) {
@@ -1270,7 +1270,7 @@ void saveLScenario(Summary summ) {
 		wids.add(file);
 	}
 	scope regex = std.regexp.RegExp("^(Area|Battle|Package|Mate|Skill|Item|Beast|Info)[0-9]+\\.wid$");
-	foreach (file; std.file.listdir(scPath)) {
+	foreach (file; clistdir(scPath)) {
 		if (regex.test(file, 0) || std.path.fnmatch(file, "Summary.wsm")) {
 			scope path = std.path.join(scPath, file);
 			preRemove(path);

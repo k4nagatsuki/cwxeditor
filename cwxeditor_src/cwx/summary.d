@@ -68,7 +68,7 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 		static void __loadXML1(A)(string targPath, string name, ref A[] areas,
 				UseCounter uc, void delegate() change, string ver) {
 			if (exists(targPath)) {
-				foreach (p; listdir(targPath)) {
+				foreach (p; clistdir(targPath)) {
 					p = std.path.join(targPath, p);
 					if (!isdir(p) && fnmatch(getExt(p), "xml")) {
 						try {
@@ -886,7 +886,7 @@ public:
 		saveXMLs(_sPath);
 	}
 	private static void delAllXML(string p) {
-		foreach (t; listdir(p)) {
+		foreach (t; clistdir(p)) {
 			t = std.path.join(p, t);
 			if (!isdir(t) && fnmatch(getExt(t), "xml")) {
 				std.file.remove(t);
@@ -897,7 +897,7 @@ public:
 		if (targs.length == 0) {
 			if (exists(path) && isdir(path)) {
 				delAllXML(path);
-				if (listdir(path).length == 0) {
+				if (clistdir(path).length == 0) {
 					rmdir(path);
 				}
 			}
@@ -1051,7 +1051,7 @@ public:
 	/// カード画像のマップを生成して返す。
 	private string[][byte[]] cardImgTable(string mtdir, Skin skin, UseCounter uc) {
 		string[][byte[]] r;
-		foreach (file; listdir(mtdir)) {
+		foreach (file; clistdir(mtdir)) {
 			if (skin.isCardImage(std.path.join(mtdir, file))) {
 				r[cast(byte[]) std.file.read(std.path.join(mtdir, file))] ~= std.path.join(skin.materialPath, file);
 			}
@@ -1107,7 +1107,7 @@ public:
 		auto temp = Summary.createTempDir(tempPath, scenarioName);
 		auto mt = std.path.join(temp, toSkin.materialPath);
 		mkdir(mt);
-		foreach (file; listdir(scenarioPath)) {
+		foreach (file; clistdir(scenarioPath)) {
 			auto p = std.path.join(scenarioPath, file);
 			try {
 				if (isdir(p)) {

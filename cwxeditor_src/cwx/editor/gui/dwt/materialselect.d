@@ -372,7 +372,7 @@ private:
 		if (hasTarg(dir, false)) {
 			_dirs.add(dir.length <= cut ? "/" : toViewPath(dir[cut .. $]));
 		}
-		foreach (f; listdir(dir)) {
+		foreach (f; clistdir(dir)) {
 			f = std.path.join(dir, f);
 			if (isdir(f)) {
 				searchTarg(f, cut);

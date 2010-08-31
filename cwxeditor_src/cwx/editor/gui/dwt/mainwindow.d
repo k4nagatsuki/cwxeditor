@@ -511,7 +511,7 @@ public:
 			_prop.var.etc.tempPath = "temp";
 		}
 		if (exists(_prop.tempPath)) {
-			foreach (temp; listdir(_prop.tempPath)) {
+			foreach (temp; clistdir(_prop.tempPath)) {
 				temp = std.path.join(_prop.tempPath, temp);
 				if (exists(temp) && isdir(temp)) {
 					auto lock = std.path.join(temp, "cwxeditor.lock");

@@ -109,7 +109,7 @@ ZipArchive zip(string targ, bool top, string[] excludePath = []) {
 			if (fnmatch(file, ex)) return;
 		}
 		if (isdir(file)) {
-			string[] list = listdir(file);
+			string[] list = clistdir(file);
 			if (list.length > 0) {
 				foreach (c; list) {
 					archive(std.path.join(file, c));
@@ -118,11 +118,7 @@ ZipArchive zip(string targ, bool top, string[] excludePath = []) {
 			}
 		}
 		auto am = new ArchiveMember;
-		d_time ftc;
-		d_time fta;
-		d_time ftm;
-		getTimes(file, ftc, fta, ftm);
-		am.time = toDosFileTime(ftm);
+		am.time = toDosFileTime(lastModified(file));
 		am.compressionMethod = 8;
 		auto name = file;
 		if (isdir(file)) {
@@ -147,7 +143,7 @@ ZipArchive zip(string targ, bool top, string[] excludePath = []) {
 		archive(path);
 	} else {
 		cut = path.length + sep.length;
-		foreach (c; listdir(path)) {
+		foreach (c; clistdir(path)) {
 			archive(std.path.join(path, c));
 		}
 	}

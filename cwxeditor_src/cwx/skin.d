@@ -36,7 +36,7 @@ class Skin {
 		} else {
 			auto skinsDir = std.path.join(getDirName(enginePath), "Data" ~ sep ~ "Skin" ~ sep);
 			Skin[string] r;
-			foreach (skinDir; listdir(skinsDir)) {
+			foreach (skinDir; clistdir(skinsDir)) {
 				skinDir = std.path.join(skinsDir, skinDir);
 				if (!isdir(skinDir)) continue;
 				auto file = std.path.join(skinDir, "Skin.xml");
@@ -104,7 +104,7 @@ class Skin {
 		if (std.file.exists(cw)) {
 			enginePath = cw;
 		} else {
-			foreach (file; std.file.listdir(path)) {
+			foreach (file; clistdir(path)) {
 				if ((file.length > "Wirth.exe".length
 						&& fnmatch(file[$ - "Wirth.exe".length .. $], "Wirth.exe"))
 						|| (fnmatch(getExt(file), "exe")
@@ -329,7 +329,7 @@ class Skin {
 			}
 		}
 		string[] r;
-		foreach (fp; listdir(dir)) {
+		foreach (fp; clistdir(dir)) {
 			fp = std.path.join(dir, fp);
 			if (isT(fp)) {
 				r ~= getBaseName(fp);
@@ -498,7 +498,7 @@ class Skin {
 			sNode.parse;
 			_spChars = typeof(_spChars).init;
 			auto fd = std.path.join(resourceDir, "Font");
-			foreach (path; listdir(fd)) {
+			foreach (path; clistdir(fd)) {
 				path = std.path.join(fd, path);
 				if (!isdir(path) && fnmatch(getExt(path), _resExtImg)) {
 					_spChars[toUniUpper(toUTF32(getBaseName(path))[0])] = path;

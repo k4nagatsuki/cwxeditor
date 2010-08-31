@@ -164,12 +164,11 @@ private:
 				if (.isdir(path)) {
 					fc.time = d_time_nan;
 					fcs ~= fc;
-					foreach (c; listdir(path)) {
+					foreach (c; clistdir(path)) {
 						list(std.path.join(path, c));
 					}
 				} else {
-					d_time ftc, fta;
-					std.file.getTimes(path, ftc, fta, fc.time);
+					fc.time = lastModified(path);
 					fcs ~= fc;
 				}
 			}
@@ -235,7 +234,7 @@ private:
 			_files.deselectAll;
 			auto path = (cast(FileNameObj) _dirs.getSelection[0].getData).array;
 			FileNameObj[] list;
-			foreach (ref f; listdir(path)) {
+			foreach (ref f; clistdir(path)) {
 				list ~= new FileNameObj(std.path.join(path, f));
 			}
 			if (_files.getSortColumn is _sortName.column) {
@@ -320,7 +319,7 @@ private:
 		}
 		itm.setData = new FileNameObj(full);
 		string[] subs;
-		foreach (p; listdir(path)) {
+		foreach (p; clistdir(path)) {
 			p = std.path.join(path, p);
 			if (isdir(p)) subs ~= p;
 		}
@@ -638,7 +637,7 @@ private:
 						}
 						if (isdir(from)) {
 							if (!.exists(to)) mkdir(to);
-							foreach (child; listdir(from)) {
+							foreach (child; clistdir(from)) {
 								copy(to, std.path.join(from, child));
 							}
 							if (!dir) dir = to;
@@ -670,7 +669,7 @@ private:
 						to = createNewFileName(to, isdir);
 						if (isdir) {
 							mkdir(to);
-							foreach (child; listdir(from)) {
+							foreach (child; clistdir(from)) {
 								renameCopy(to, std.path.join(from, child));
 							}
 							if (!dir) dir = to;
@@ -751,7 +750,7 @@ private:
 			void pchange(string file) {
 				auto oldP = frd ~ nabs(file)[tod.length .. $];
 				if (.isdir(file)) {
-					foreach (c; listdir(file)) {
+					foreach (c; clistdir(file)) {
 						pchange(std.path.join(file, c));
 					}
 				} else {
@@ -760,7 +759,7 @@ private:
 					_summ.useCounter.change(toPathId(p1), toPathId(p2));
 				}
 			}
-			foreach (c; listdir(path)) {
+			foreach (c; clistdir(path)) {
 				pchange(std.path.join(path, c));
 			}
 		} else {
@@ -951,7 +950,7 @@ private:
 		auto skin = findSkin(_prop, _summ);
 		void addTo(string path) {
 			FileNameObj[] list;
-			foreach (p; listdir(path)) {
+			foreach (p; clistdir(path)) {
 				list ~= new FileNameObj(std.path.join(path, p));
 			}
 			list = .sort(list, &compFExt);
