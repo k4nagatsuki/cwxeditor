@@ -10,8 +10,26 @@ import cwx.usecounter;
 import cwx.types;
 import cwx.race;
 import cwx.xml;
+import cwx.utils;
 
 public:
+
+/// カードの所持者である事を示すインタフェース。
+interface CastOwner : CWXPath {
+	CastCard[] casts();
+}
+interface SkillOwner : CWXPath {
+	SkillCard[] skills();
+}
+interface ItemOwner : CWXPath {
+	ItemCard[] items();
+}
+interface BeastOwner : CWXPath {
+	BeastCard[] beasts();
+}
+interface InfoOwner : CWXPath {
+	InfoCard[] infos();
+}
 
 /// カード絡みの例外。
 class CardException : Exception {
@@ -22,7 +40,7 @@ public:
 }
 
 /// エリア等に属さない独立したカードの親クラス。
-abstract class Card : IPathUser {
+abstract class Card : CWXPath, IPathUser {
 private:
 	ulong _id;
 	string _name;
@@ -40,7 +58,7 @@ public:
 		_id = id;
 		_name = name;
 		_desc = desc;
-		_path = new PathUser;
+		_path = new PathUser(this);
 		_path.path = imagePath;
 	}
 	/// 変更ハンドラを登録する。
@@ -150,7 +168,7 @@ public:
 }
 
 /// キャストカード。
-class CastCard : Card {
+class CastCard : Card, SkillOwner, ItemOwner, BeastOwner {
 private:
 	mixin RaceParam!(true);
 
@@ -293,6 +311,7 @@ public:
 			c.setUseCounter = useCounter;
 		}
 		c.changeHandler = changeHandler;
+		c.owner = this;
 		arr ~= c;
 		changed;
 		return c;
@@ -302,6 +321,7 @@ public:
 			if (c is card) {
 				arr[i].removeUseCounter;
 				arr[i].changeHandler = null;
+				arr[i].owner = null;
 				arr = arr[0 .. i] ~ arr[i + 1 .. $];
 				changed;
 			}
@@ -312,6 +332,7 @@ public:
 			if (c.id == id) {
 				arr[i].removeUseCounter;
 				arr[i].changeHandler = null;
+				arr[i].owner = null;
 				arr = arr[0 .. i] ~ arr[i + 1 .. $];
 				changed;
 			}
@@ -344,6 +365,7 @@ public:
 			}
 			c.setUseCounter = useCounter;
 			c.changeHandler = changeHandler;
+			c.owner = this;
 			changeHandler;
 			return c;
 		}
@@ -636,10 +658,16 @@ public:
 		cNode.parse;
 		return r;
 	}
+
+	private CastOwner _owner = null;
+	package void owner(CastOwner owner) {_owner = owner;}
+	string cwxPath() {
+		return _owner ? cpjoin(_owner, "castcard", .indexOf!("a is b")(_owner.casts, this)) : "";
+	}
 }
 
 /// スキル・アイテム・召喚獣といった、「効果」のあるカードの親クラス。
-private class EffectCard : Card, EventTreeOwner, IPathUser {
+private abstract class EffectCard : Card, EventTreeOwner, IPathUser {
 private:
 	string _scenario = "";
 	string _author = "";
@@ -675,10 +703,11 @@ public:
 			override bool canHasFireRound() {return false;}
 			override bool canHasFireKeyCode() {return false;}
 			override size_t[] areaPath() {return [0];}
+			string cwxPath() {return this.outer.cwxPath;}
 		};
-		_muser = new MotionUser;
-		_se1 = new PathUser;
-		_se2 = new PathUser;
+		_muser = new MotionUser(this);
+		_se1 = new PathUser(this);
+		_se2 = new PathUser(this);
 		_enh = [Enhance.AVOID:0, Enhance.RESIST:0, Enhance.DEFENSE:0];
 	}
 
@@ -1001,6 +1030,12 @@ public:
 		r.loadEffV(cNode, ver);
 		return r;
 	}
+
+	private SkillOwner _owner = null;
+	package void owner(SkillOwner owner) {_owner = owner;}
+	string cwxPath() {
+		return _owner ? cpjoin(_owner, "skillcard", indexOf!("a is b")(_owner.skills, this)) : "";
+	}
 }
 
 /// アイテムカード。
@@ -1117,6 +1152,12 @@ public:
 		r.loadEffV(cNode, ver);
 		return r;
 	}
+
+	private ItemOwner _owner = null;
+	package void owner(ItemOwner owner) {_owner = owner;}
+	string cwxPath() {
+		return _owner ? cpjoin(_owner, "itemcard", indexOf!("a is b")(_owner.items, this)) : "";
+	}
 }
 
 /// 召喚獣カード。
@@ -1186,6 +1227,12 @@ public:
 		r.loadEffV(cNode, ver);
 		return r;
 	}
+
+	private BeastOwner _owner = null;
+	package void owner(BeastOwner owner) {_owner = owner;}
+	string cwxPath() {
+		return _owner ? cpjoin(_owner, "beastcard", indexOf!("a is b")(_owner.beasts, this)) : "";
+	}
 }
 
 /// 情報カード。
@@ -1235,5 +1282,11 @@ public:
 		};
 		cNode.parse;
 		return r;
+	}
+
+	private InfoOwner _owner = null;
+	package void owner(InfoOwner owner) {_owner = owner;}
+	string cwxPath() {
+		return _owner ? cpjoin(_owner, "infocard", indexOf!("a is b")(_owner.infos, this)) : "";
 	}
 }

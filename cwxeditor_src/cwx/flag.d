@@ -3,6 +3,7 @@ module cwx.flag;
 
 import cwx.utils;
 import cwx.xml;
+import cwx.usecounter;
 
 import std.string;
 import std.regexp;
@@ -72,7 +73,7 @@ private void toNode(ref XNode ret, FlagDir dir) {
 }
 
 /// フラグ。
-public class Flag {
+public class Flag : CWXPath {
 private:
 	string _name;
 	string _on;
@@ -103,6 +104,10 @@ public:
 	private void parent(FlagDir parent) {
 		assert (!parent || !parent.getFlag(name));
 		_parent = parent;
+	}
+	/// 最上位のディレクトリ。
+	FlagDir root() {
+		return _parent.root;
 	}
 	/// 変更ハンドラを設定する。
 	void changeHandler(void delegate() change) {
@@ -184,10 +189,13 @@ public:
 		e.newElement("True", on);
 		e.newElement("False", off);
 	}
+	override string cwxPath() {
+		return cpjoin(_parent, "flag", indexOf!("a is b")(_parent.flags, this));
+	}
 }
 
 /// ステップ。
-public class Step {
+public class Step : CWXPath {
 private:
 	string _name;
 	string[] _vals;
@@ -215,6 +223,10 @@ public:
 	private void parent(FlagDir parent) {
 		assert (!parent || !parent.getStep(name));
 		_parent = parent;
+	}
+	/// 最上位のディレクトリ。
+	FlagDir root() {
+		return _parent.root;
 	}
 	/// 変更ハンドラを設定する。
 	void changeHandler(void delegate() change) {
@@ -324,13 +336,17 @@ public:
 			e.newElement("Value" ~ to!(string)(i), _vals[i]);
 		}
 	}
+	override string cwxPath() {
+		return cpjoin(_parent, "step", indexOf!("a is b")(_parent.steps, this));
+	}
 }
 
 /// フラグ/ステップ、及びサブディレクトリを格納するディレクトリ。
-public class FlagDir {
+public class FlagDir : CWXPath {
 private:
 	string _name = "";
-	FlagDir _parent;
+	CWXPath _owner = null;
+	FlagDir _parent = null;
 	FlagDir[] _subdir;
 	Flag[] _flags;
 	Step[] _steps;
@@ -342,8 +358,9 @@ public:
 	/// ditto
 	static const string SEPARATOR_REGEX = "\\\\";
 	/// ルートディレクトリを生成する。
-	this() {
+	package this(CWXPath owner) {
 		_id = format("%08X", &this) ~ "-" ~ to!(string)(getUTCtime);
+		_owner = owner;
 	}
 	/// サブディレクトリを生成する。
 	/// Params:
@@ -351,6 +368,14 @@ public:
 	this(string name) {
 		_id = format("%08X", &this) ~ "-" ~ to!(string)(getUTCtime);
 		_name = validName(name);
+	}
+	override string cwxPath() {
+		if (_owner) {
+			return cpjoin(_owner, "variable");
+		} else if (_parent) {
+			return cpjoin(_parent, "dir", indexOf!("a is b")(_parent.subDirs, this));
+		}
+		return "";
 	}
 	/// 親ディレクトリ。
 	FlagDir parent() {
@@ -671,13 +696,13 @@ public:
 		int sepLen = SEPARATOR.length;
 		return (len <= tlen) && (tpath[0 .. len] == path);
 	} unittest {
-		auto dir1 = new FlagDir;
+		auto dir1 = new FlagDir(cast(CWXPath) null);
 		auto dir2 = new FlagDir("aaaaA");
 		dir1.add(dir2);
 		auto dir3 = new FlagDir("fsadfawegGGGg");
 		dir2.add(dir3);
 
-		auto dir4 = new FlagDir;
+		auto dir4 = new FlagDir(cast(CWXPath) null);
 		auto dir5 = new FlagDir("aAAAA");
 		dir4.add(dir5);
 		auto dir6 = new FlagDir("fsadFAwegGGGga");
@@ -1091,7 +1116,7 @@ public:
 	/// change = 変更を通知するハンドラ。
 	/// Returns: ディレクトリツリー。
 	static FlagDir fromXmlNode(ref XNode node, void delegate() change, string ver) {
-		auto root = new FlagDir;
+		auto root = new FlagDir("");
 		node.onTag["Flags"] = (ref XNode node) {
 			__fromXmlNode!(Flag)(node, root, "Flag", &Flag.createFromNode, ver);
 		};

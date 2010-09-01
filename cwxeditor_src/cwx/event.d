@@ -236,7 +236,7 @@ struct CDetail {
 }
 
 /// メッセージやダイアログが持つテキスト。
-private class TextHolder : IPathUser, IFlagUser, IStepUser {
+private class TextHolder : CWXPath, IPathUser, IFlagUser, IStepUser {
 private:
 	string _text;
 	PathUser[] _fontusers;
@@ -258,21 +258,21 @@ public:
 			removeTextUseCounter;
 			_fontusers = [];
 			foreach (f; fonts) {
-				auto u = new PathUser;
+				auto u = new PathUser(this);
 				if (_uc !is null) u.setUseCounter(_uc);
 				u.path = f;
 				_fontusers ~= u;
 			}
 			_flagusers = [];
 			foreach (f; flags) {
-				auto u = new FlagUser;
+				auto u = new FlagUser(this);
 				if (_uc !is null) u.setUseCounter(_uc);
 				u.flag = f;
 				_flagusers ~= u;
 			}
 			_stepusers = [];
 			foreach (s; steps) {
-				auto u = new StepUser;
+				auto u = new StepUser(this);
 				if (_uc !is null) u.setUseCounter(_uc);
 				u.step = s;
 				_stepusers ~= u;
@@ -331,10 +331,18 @@ public:
 			u.change(id);
 		}
 	}
+	private CWXPath _owner = null;
+	private void owner(CWXPath owner) {_owner = owner;}
+	string cwxPath() {
+		if (_owner) {
+			return cpjoin(_owner, "text");
+		}
+		return "";
+	}
 }
 
 /// 口調分け条件とメッセージ内容を持つクラス。
-static class SDialog : IPathUser, IFlagUser, IStepUser {
+static class SDialog : CWXPath, IPathUser, IFlagUser, IStepUser {
 private:
 	string[] _rCoupons;
 	TextHolder _text;
@@ -414,9 +422,14 @@ public:
 		node.parse;
 		return new SDialog(text, rCoupons);
 	}
+	private Content _owner = null;
+	private void owner(Content owner) {_owner = owner;}
+	string cwxPath() {
+		return _owner ? cpjoin(_owner, "dialog") : "";
+	}
 }
 
-class Content : IPathUser, IBattleUser, IPackageUser, IFlagUser, IStepUser,
+class Content : CWXPath, IPathUser, IBattleUser, IPackageUser, IFlagUser, IStepUser,
 		ICastUser, IItemUser, ISkillUser, IBeastUser, IInfoUser {
 	private EventTree _tree = null;
 
@@ -460,6 +473,14 @@ class Content : IPathUser, IBattleUser, IPackageUser, IFlagUser, IStepUser,
 	}
 	/// ditto
 	Content parent() {return _parent;}
+	override string cwxPath() {
+		if (_parent) {
+			return cpjoin(_parent, indexOf!("a is b")(_parent.next, this));
+		} else if (_tree) {
+			return cpjoin(_tree, indexOf!("a is b")(_tree.starts, this));
+		}
+		return "";
+	}
 
 	/// EventTreeからこのコンテントに到達するまでのindex群を返す。
 	size_t[] ctPath() {
@@ -562,7 +583,7 @@ class Content : IPathUser, IBattleUser, IPackageUser, IFlagUser, IStepUser,
 	/// 
 	/// private AreaUser _area;
 	/// void area(ulong val) {
-	/// 	if (!_area) _area = new AreaUser;
+	/// 	if (!_area) _area = new AreaUser(this);
 	/// 	if (_area.area != val) changed;
 	/// 	setValUCs(this._area.area, null, null);
 	/// 	setValUCs(val, _uc, this);
@@ -582,7 +603,10 @@ class Content : IPathUser, IBattleUser, IPackageUser, IFlagUser, IStepUser,
 			~ "static if (is(typeof(check_" ~ Name ~ "(val)))) {"
 			~ "    if (!check_" ~ Name ~ "(val)) throw new EventException(\"Invalid " ~ Name ~ "\");"
 			~ "}"
-			~ (New ? "if (!_" ~ Name ~ ") _" ~ Name ~ " = new " ~ T.stringof ~ ";" : "")
+			~ (New ? (is(typeof(new T))
+				? "if (!_" ~ Name ~ ") _" ~ Name ~ " = new " ~ T.stringof ~ ";"
+				: "if (!_" ~ Name ~ ") _" ~ Name ~ " = new " ~ T.stringof ~ "(this);"
+			) : "")
 			~ "if (_" ~ Name ~ Get ~ " != val) changed;"
 			~ "setValUCs(this._" ~ Name ~ Get ~ ");"
 			~ "setValUCs(_" ~ Name ~ ", _uc, this);"
@@ -1115,7 +1139,7 @@ private string fromTalker(Talker talker) {
 }
 
 /// イベントツリー。発火条件と実行するイベント群を持つ。
-public class EventTree {
+public class EventTree : CWXPath {
 private:
 	EventTreeOwner _owner;
 
@@ -1149,6 +1173,9 @@ public:
 		add(new Content(CType.START, name));
 	}
 	EventTreeOwner owner() {return _owner;}
+	override string cwxPath() {
+		return _owner ? cpjoin(_owner, "event", indexOf!("a is b")(_owner.trees, this)) : "";
+	}
 	/// 変更ハンドラを登録する。
 	void changeHandler(void delegate() change) {
 		foreach (s; _starts) {
@@ -1566,7 +1593,7 @@ public:
 }
 
 /// イベントツリーの所持者。エリアや効果カード等。
-public interface EventTreeOwner {
+public interface EventTreeOwner : CWXPath {
 	/// イベントツリー群。
 	EventTree[] trees();
 

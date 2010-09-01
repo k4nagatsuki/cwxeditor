@@ -8,7 +8,29 @@ import std.ctype;
 import std.path;
 import std.string;
 
-public:
+/// シナリオ内パスを取得できるオブジェクトである事を示す。
+interface CWXPath {
+	/// シナリオ内パス。
+	string cwxPath();
+}
+
+/// シナリオ内パスを結合する。
+string cpjoin(CWXPath owner, int index) {
+	return cpjoin(owner, "", index);
+}
+/// ditto
+string cpjoin(CWXPath owner, string category, int index) {
+	if (category.length) {
+		return owner.cwxPath ~ ":" ~ category ~ "/" ~ to!(string)(index);
+	} else {
+		return owner.cwxPath ~ "/" ~ to!(string)(index);
+	}
+}
+/// ditto
+string cpjoin(CWXPath owner, string name) {
+	return owner.cwxPath ~ "/" ~ name;
+}
+
 /// Kの使用者。
 interface User(K) {
 	void change(K newVal);
@@ -133,7 +155,11 @@ class FlagUser : IFlagUser {
 private:
 	UseCounter _uc;
 	string _flag;
+	CWXPath _cwxPath;
 public:
+	/// パスを示すオブジェクトを指定してインスタンスを生成。
+	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
+	string cwxPath() {return _cwxPath.cwxPath;}
 	/// フラグを設定する。
 	/// Params:
 	/// flag = フラグ。
@@ -216,7 +242,11 @@ class StepUser : IStepUser {
 private:
 	UseCounter _uc;
 	string _step;
+	CWXPath _cwxPath;
 public:
+	/// パスを示すオブジェクトを指定してインスタンスを生成。
+	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
+	string cwxPath() {return _cwxPath.cwxPath;}
 	/// ステップを設定する。
 	/// Params:
 	/// step = ステップ。
@@ -270,7 +300,11 @@ class AreaUser : IAreaUser {
 private:
 	UseCounter _uc;
 	ulong _id = 0;
+	CWXPath _cwxPath;
 public:
+	/// パスを示すオブジェクトを指定してインスタンスを生成。
+	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
+	string cwxPath() {return _cwxPath.cwxPath;}
 	/// エリアIDを設定する。
 	/// Params:
 	/// id = エリアID。
@@ -324,7 +358,11 @@ class BattleUser : IBattleUser {
 private:
 	UseCounter _uc;
 	ulong _id = 0;
+	CWXPath _cwxPath;
 public:
+	/// パスを示すオブジェクトを指定してインスタンスを生成。
+	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
+	string cwxPath() {return _cwxPath.cwxPath;}
 	/// バトルIDを設定する。
 	/// Params:
 	/// id = バトルID。
@@ -378,7 +416,11 @@ class PackageUser : IPackageUser {
 private:
 	UseCounter _uc;
 	ulong _id = 0;
+	CWXPath _cwxPath;
 public:
+	/// パスを示すオブジェクトを指定してインスタンスを生成。
+	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
+	string cwxPath() {return _cwxPath.cwxPath;}
 	/// パッケージIDを設定する。
 	/// Params:
 	/// id = パッケージID。
@@ -513,7 +555,11 @@ class PathUser : IPathUser {
 private:
 	UseCounter _uc;
 	PathId _path;
+	CWXPath _cwxPath;
 public:
+	/// パスを示すオブジェクトを指定してインスタンスを生成。
+	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
+	string cwxPath() {return _cwxPath.cwxPath;}
 	/// ファイルパスを設定する。
 	void path(string path) {
 		if (_uc !is null) {
@@ -568,7 +614,11 @@ class CastUser : ICastUser {
 private:
 	UseCounter _uc;
 	ulong _id = 0;
+	CWXPath _cwxPath;
 public:
+	/// パスを示すオブジェクトを指定してインスタンスを生成。
+	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
+	string cwxPath() {return _cwxPath.cwxPath;}
 	/// キャストIDを設定する。
 	/// Params:
 	/// id = キャストID。
@@ -622,7 +672,11 @@ class SkillUser : ISkillUser {
 private:
 	UseCounter _uc;
 	ulong _id = 0;
+	CWXPath _cwxPath;
 public:
+	/// パスを示すオブジェクトを指定してインスタンスを生成。
+	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
+	string cwxPath() {return _cwxPath.cwxPath;}
 	/// スキルIDを設定する。
 	/// Params:
 	/// id = スキルID。
@@ -676,7 +730,11 @@ class ItemUser : IItemUser {
 private:
 	UseCounter _uc;
 	ulong _id = 0;
+	CWXPath _cwxPath;
 public:
+	/// パスを示すオブジェクトを指定してインスタンスを生成。
+	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
+	string cwxPath() {return _cwxPath.cwxPath;}
 	/// アイテムIDを設定する。
 	/// Params:
 	/// id = アイテムID。
@@ -730,7 +788,11 @@ class BeastUser : IBeastUser {
 private:
 	UseCounter _uc;
 	ulong _id = 0;
+	CWXPath _cwxPath;
 public:
+	/// パスを示すオブジェクトを指定してインスタンスを生成。
+	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
+	string cwxPath() {return _cwxPath.cwxPath;}
 	/// 召喚獣IDを設定する。
 	/// Params:
 	/// id = 召喚獣ID。
@@ -784,7 +846,11 @@ class InfoUser : IInfoUser {
 private:
 	UseCounter _uc;
 	ulong _id = 0;
+	CWXPath _cwxPath;
 public:
+	/// パスを示すオブジェクトを指定してインスタンスを生成。
+	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
+	string cwxPath() {return _cwxPath.cwxPath;}
 	/// 情報カードIDを設定する。
 	/// Params:
 	/// id = 情報カードID。

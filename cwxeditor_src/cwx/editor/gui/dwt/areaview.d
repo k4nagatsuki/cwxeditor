@@ -178,7 +178,9 @@ private:
 		class UndoMusic : AUndo {
 			private PathUser _path;
 			this () {
-				_path = new PathUser;
+				_path = new PathUser(new class CWXPath {
+					override string cwxPath() {return "";}
+				});
 				_path.setUseCounter(_summ.useCounter.sub);
 				_path.path = _area.music;
 			}

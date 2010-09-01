@@ -11,6 +11,19 @@ import cwx.card;
 
 import std.math;
 
+/// エリア等の所持者を示すインタフェース。
+interface AreaOwner : CWXPath {
+	Area[] areas();
+}
+/// ditto
+interface BattleOwner : CWXPath {
+	Battle[] battles();
+}
+/// ditto
+interface PackageOwner : CWXPath {
+	Package[] packages();
+}
+
 /// XMLテキストを元にエリアを生成して返す。
 /// Params:
 /// xml = XMLテキスト。
@@ -42,7 +55,7 @@ private:
 public:
 	/// 唯一のコンストラクタ。
 	this(string flag, int x, int y, real scale) {
-		_user = new FlagUser;
+		_user = new FlagUser(this);
 		_user.flag = flag;
 		_x = x;
 		_y = y;
@@ -135,16 +148,19 @@ public:
 /// バトルに配置するカード。
 public class EnemyCard : AbstractSpCard, ICastUser {
 private:
-	Battle _owner;
+	Battle _owner = null;
 	bool _escape;
 	CastUser _user;
 public:
 	/// 唯一のコンストラクタ。
 	this(ulong id, bool escape, string flag, int x, int y, real scale) {
 		super(flag, x, y, scale);
-		_user = new CastUser;
+		_user = new CastUser(this);
 		_user.casts = id;
 		_escape = escape;
+	}
+	string cwxPath() {
+		return _owner ? cpjoin(_owner, "enemycard", indexOf!("a is b")(_owner.cards, this)) : "";
 	}
 	override size_t[] areaPath() {
 		if (_owner) {
@@ -279,10 +295,13 @@ public:
 	this(string name, string path, string desc, string flag,
 			int x, int y, real scale) {
 		super(flag, x, y, scale);
-		_user = new PathUser;
+				_user = new PathUser(this);
 		_user.path = path;
 		_name = name;
 		_desc = desc;
+	}
+	string cwxPath() {
+		return _owner ? cpjoin(_owner, "menucard", indexOf!("a is b")(_owner.cards, this)) : "";
 	}
 	override size_t[] areaPath() {
 		if (_owner) {
@@ -490,7 +509,7 @@ public:
 }
 
 /// エリア。
-public class Area : AbstractArea {
+public class Area : AbstractArea, BgImageOwner {
 private:
 	BgImage[] _bgImgs;
 	MenuCard[] _cards;
@@ -593,6 +612,7 @@ public:
 	void append(BgImage back) {
 		back.changeHandler = changeHandler;
 		if (useCounter) back.setUseCounter = useCounter;
+		back.owner = this;
 		_bgImgs ~= back;
 		changed;
 	}
@@ -603,6 +623,7 @@ public:
 		} else {
 			back.changeHandler = changeHandler;
 			if (useCounter) back.setUseCounter = useCounter;
+			back.owner = this;
 			_bgImgs = _bgImgs[0 .. index] ~ back ~ _bgImgs[index .. $];
 			changed;
 		}
@@ -611,6 +632,7 @@ public:
 	void removeBgImage(int index) {
 		_bgImgs[index].changeHandler = null;
 		_bgImgs[index].removeUseCounter;
+		_bgImgs[index].owner = null;
 		_bgImgs = _bgImgs[0 .. index] ~ _bgImgs[index + 1 .. $];
 		changed;
 	}
@@ -760,6 +782,11 @@ public:
 		}
 		return false;
 	}
+	private AreaOwner _owner = null;
+	package void owner(AreaOwner owner) {_owner = owner;}
+	string cwxPath() {
+		return _owner ? cpjoin(_owner, "area", indexOf!("a is b")(_owner.areas, this)) : "";
+	}
 }
 
 /// パッケージ。
@@ -834,6 +861,11 @@ public:
 
 		return r;
 	}
+	private PackageOwner _owner = null;
+	package void owner(PackageOwner owner) {_owner = owner;}
+	string cwxPath() {
+		return _owner ? cpjoin(_owner, "package", indexOf!("a is b")(_owner.packages, this)) : "";
+	}
 }
 
 /// バトル。
@@ -850,7 +882,7 @@ public:
 	///  music = BGMのファイルパス。
 	this(ulong id, string name, string music) {
 		super(id, name);
-		_music = new PathUser;
+		_music = new PathUser(this);
 		_music.path = music;
 	}
 	protected override void delegate() changeHandler() {return super.changeHandler;}
@@ -1046,5 +1078,10 @@ public:
 		} catch (Exception e) {
 		}
 		return false;
+	}
+	private BattleOwner _owner = null;
+	package void owner(BattleOwner owner) {_owner = owner;}
+	string cwxPath() {
+		return _owner ? cpjoin(_owner, "battle", indexOf!("a is b")(_owner.battles, this)) : "";
 	}
 }

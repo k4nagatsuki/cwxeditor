@@ -25,7 +25,7 @@ import cwx.sjis;
 unittest {
 	try {
 		loadLScenario!(Summary)("", "");
-		loadLScenario!(CardContainer!(true, true, true, true, false))("", "");
+		loadLScenario!(Importable)("", "");
 	} catch {}
 }
 

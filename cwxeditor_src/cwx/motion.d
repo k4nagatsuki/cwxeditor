@@ -134,12 +134,17 @@ struct MDetail {
 }
 
 /// 一連の効果の保持者の親クラス。
-class MotionUser {
+class MotionUser : CWXPath {
 private:
 	Motion[] _motions;
 	void delegate() _change = null;
 	UseCounter _uc = null;
+	CWXPath _cwxPath;
 public:
+	/// パスを示すオブジェクトを指定してインスタンスを生成。
+	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
+	override string cwxPath() {return _cwxPath.cwxPath;}
+
 	/// 変更ハンドラを登録する。
 	void changeHandler(void delegate() change) {
 		_change = change;
@@ -178,10 +183,12 @@ public:
 			foreach (m; _motions) {
 				m.changeHandler = null;
 				m.removeUseCounter;
+				m._owner = null;
 			}
 			foreach (m; motions) {
 				m.changeHandler = _change;
 				if (_uc) m.setUseCounter(_uc);
+				m._owner = this;
 			}
 			_motions = motions;
 		}
@@ -193,7 +200,7 @@ public:
 }
 
 /// 効果クラス。
-class Motion {
+class Motion : CWXPath, BeastOwner {
 private:
 	MType _type;
 
@@ -207,6 +214,8 @@ private:
 	int _aValue = 0;
 	uint _round = 10u;
 	BeastCard _beast = null;
+
+	MotionUser _owner = null;
 public:
 	static const XML_NAME = "Motion";
 
@@ -297,10 +306,13 @@ public:
 	/// 召喚獣。
 	BeastCard beast() {return _beast;}
 	/// ditto
+	BeastCard[] beasts() {return _beast ? [_beast] : [];}
+	/// ditto
 	void beast(BeastCard beast) {
 		if (_beast) {
 			_beast.changeHandler = null;
 			_beast.removeUseCounter;
+			_beast.owner = null;
 		}
 		if (beast) {
 			setBeastImpl(beast.dup);
@@ -318,6 +330,7 @@ public:
 		_beast.id = 1L;
 		_beast.changeHandler = _change;
 		if (_uc) _beast.setUseCounter(_uc);
+		_beast.owner = this;
 	}
 	/// 召喚獣カードの画像イメージのパスが該当するものであれば更新する。
 	void change(PathId id) {
@@ -378,5 +391,9 @@ public:
 			node.parse;
 		}
 		return r;
+	}
+
+	override string cwxPath() {
+		return _owner ? cpjoin(_owner, indexOf!("a is b")(_owner.motions, this)) : "";
 	}
 }

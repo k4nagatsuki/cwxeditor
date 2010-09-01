@@ -14,7 +14,7 @@ public:
 }
 
 /// 背景イメージ。
-public class BgImage : FlagUser, IPathUser {
+public class BgImage : FlagUser, CWXPath, IPathUser {
 private:
 	bool _mask = false;
 	PathUser _user;
@@ -37,7 +37,8 @@ public:
 	/// h = 高さ。
 	/// mask = 透明色を使用するか。
 	this (string path, string flag, int x, int y, int w, int h, bool mask) {
-		_user = new PathUser;
+		super (this);
+		_user = new PathUser(this);
 		_user.path = path;
 		super.flag = flag;
 		_x = x;
@@ -216,10 +217,20 @@ public:
 		node.parse;
 		return new BgImage(path, flag, x, y, w, h, mask);
 	}
+	private BgImageOwner _owner;
+	package void owner(BgImageOwner owner) {_owner = owner;}
+	override string cwxPath() {
+		return _owner ? cpjoin(_owner, "background", indexOf!("a is b")(_owner.backs, this)) : "";
+	}
+}
+
+/// BgImage所持者のインタフェース。
+interface BgImageOwner : CWXPath {
+	BgImage[] backs();
 }
 
 /// BgImageのコンテナ。背景変更イベントで使用。
-class BgImageContainer {
+class BgImageContainer : BgImageOwner {
 private:
 	BgImage[] _bgImgs;
 public:
@@ -227,16 +238,24 @@ public:
 	this(BgImage[] bgImgs) {
 		_bgImgs = bgImgs;
 	}
+	override string cwxPath() {return "";}
 	/// 背景イメージ群。
 	BgImage[] backs() {
 		return _bgImgs;
 	}
 	/// ditto
 	void backs(BgImage[] bgImgs) {
+		foreach (b; _bgImgs) {
+			b.owner = null;
+		}
+		foreach (b; bgImgs) {
+			b.owner = this;
+		}
 		_bgImgs = bgImgs;
 	}
 	/// 背景イメージを追加。
 	void append(BgImage back) {
+		back.owner = this;
 		_bgImgs ~= back;
 	}
 	/// ditto
@@ -244,11 +263,13 @@ public:
 		if (_bgImgs.length == index) {
 			append(back);
 		} else {
+			back.owner = this;
 			_bgImgs = _bgImgs[0 .. index] ~ back ~ _bgImgs[index .. $];
 		}
 	}
 	/// 背景イメージを除外。
 	void removeBgImage(int index) {
+		_bgImgs[index].owner = null;
 		_bgImgs = _bgImgs[0 .. index] ~ _bgImgs[index + 1 .. $];
 	}
 	/// 背景イメージのインデックスを交換。
