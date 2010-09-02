@@ -402,12 +402,14 @@ public:
 			forceFocus(flags.widget);
 			current = dir;
 			flags.select(dir.flags[index]);
+			return true;
 		} break;
 		case "step": {
 			if (index >= dir.steps.length) return false;
 			forceFocus(flags.widget);
 			current = dir;
 			flags.select(dir.steps[index]);
+			return true;
 		} break;
 		case "dir": {
 			if (index >= dir.subDirs.length) return false;
