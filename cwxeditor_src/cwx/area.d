@@ -8,6 +8,7 @@ import cwx.usecounter;
 import cwx.background;
 import cwx.xml;
 import cwx.card;
+import cwx.path;
 
 import std.math;
 

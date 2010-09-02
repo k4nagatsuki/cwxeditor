@@ -7,6 +7,7 @@ import cwx.motion;
 import cwx.background;
 import cwx.usecounter;
 import cwx.xml;
+import cwx.path;
 
 import std.date;
 import std.string;

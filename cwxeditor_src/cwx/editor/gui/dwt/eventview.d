@@ -7,6 +7,8 @@ import cwx.summary;
 import cwx.card;
 import cwx.utils;
 import cwx.skin;
+import cwx.usecounter;
+import cwx.path;
 
 import cwx.editor.gui.dwt.props;
 import cwx.editor.gui.dwt.skin;
@@ -1262,4 +1264,49 @@ public:
 	}
 	void undo() {_undo.undo;}
 	void redo() {_undo.redo;}
+
+	bool openCWXPath(string path) {
+		auto cate = cpcategory(path);
+		auto index = cpindex(path);
+		bool open(TreeItem itm) {
+			if (index >= itm.getItemCount) {
+				return false;
+			}
+			__select(itm.getItem(index));
+			return _etree.openCWXPath(cpbottom(path));
+		}
+		static if (is(C : MenuCard) || is(C : EnemyCard)) {
+			bool card() {
+				if (index + 1 >= _cards.getItemCount) {
+					return false;
+				}
+				auto itm = _cards.getItem(index + 1);
+				path = cpbottom(path);
+				cate = cpcategory(path);
+				index = cpindex(path);
+				return open(itm);
+			}
+		}
+		switch (cate) {
+		case "event": {
+			return open(_cards.getItem(0));
+		} break;
+		case "menucard": {
+			static if (is(C : MenuCard)) {
+				return card;
+			}
+		} break;
+		case "enemycard": {
+			static if (is(C : EnemyCard)) {
+				return card;
+			}
+		} break;
+		case "": {
+			.forceFocus(_cards);
+			return true;
+		} break;
+		default: break;
+		}
+		return false;
+	}
 }

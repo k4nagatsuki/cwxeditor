@@ -6,6 +6,9 @@ import cwx.card;
 import cwx.event;
 import cwx.summary;
 import cwx.skin;
+import cwx.utils;
+import cwx.path;
+
 import cwx.editor.gui.dwt.utils;
 import cwx.editor.gui.dwt.skin;
 import cwx.editor.gui.dwt.props;
@@ -198,6 +201,9 @@ public:
 		bool canDoTCPD() {
 			return _eview.canDoTCPD;
 		}
+	}
+	bool openCWXPath(string path) {
+		return _eview.openCWXPath(path);
 	}
 }
 

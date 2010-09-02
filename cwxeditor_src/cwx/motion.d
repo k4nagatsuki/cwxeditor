@@ -6,6 +6,7 @@ import cwx.card;
 import cwx.usecounter;
 import cwx.utils;
 import cwx.xml;
+import cwx.path;
 
 public:
 

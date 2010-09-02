@@ -14,23 +14,21 @@ void main(string[] args) {
 	auto sys = new System;
 	string ini = join(getDirName(args[0u]), "cwxeditor.xml");
 	if (args.length > 1) {
-		ulong[] areas;
-		ulong[] battles;
-		ulong[] packages;
+		string[] openPaths;
 		size_t sc = 1u;
 		for (int i = 1; i < args.length; i++) {
 			try {
 				switch (args[i]) {
 				case "-a": // エリア表示
-					if (i + 1 < args.length) areas ~= to!(ulong)(args[i + 1]);
+					if (i + 1 < args.length) openPaths ~= "area:id:" ~ args[i + 1];
 					sc = i + 2u;
 					break;
 				case "-b": // バトル表示
-					if (i + 1 < args.length) battles ~= to!(ulong)(args[i + 1]);
+					if (i + 1 < args.length) openPaths ~= "battle:id:" ~ args[i + 1];
 					sc = i + 2u;
 					break;
 				case "-p": // パッケージ表示
-					if (i + 1 < args.length) packages ~= to!(ulong)(args[i + 1]);
+					if (i + 1 < args.length) openPaths ~= "package:id:" ~ args[i + 1];
 					sc = i + 2u;
 					break;
 				case "-ini": // 設定ファイル指定
@@ -44,7 +42,7 @@ void main(string[] args) {
 					} else {
 						dir = "Directory";
 					}
-					writefln("Usage: cwxeditor [-help | -ini <PATH> | <OpenID ...>] <SCENARIO>");
+					writefln("Usage: cwxeditor [-help | -ini <PATH>] <SCENARIO> [<CWXPath ...>]");
 					writefln("");
 					writefln("  Options:");
 					writefln("    -help        print help");
@@ -54,14 +52,20 @@ void main(string[] args) {
 					writefln("    -a   <ID>    open area from <ID>");
 					writefln("    -b   <ID>    open battle from <ID>");
 					writefln("    -p   <ID>    open package from <ID>");
+					writefln("  OpenPath:");
+					writefln("    <CWXPath>    open resource from <CWXPath>");
 					return;
 				default:
+					if (i > sc) {
+						openPaths ~= args[i];
+					}
+					break;
 				}
 			} catch {}
 		}
 		if (sc < args.length) {
 			auto main = new MainWindow(args[0], ini, sys);
-			main.doCWX(args[sc], areas, battles, packages);
+			main.doCWX(args[sc], openPaths);
 			return;
 		}
 	}

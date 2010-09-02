@@ -3,7 +3,7 @@ module cwx.flag;
 
 import cwx.utils;
 import cwx.xml;
-import cwx.usecounter;
+import cwx.path;
 
 import std.string;
 import std.regexp;

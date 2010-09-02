@@ -66,6 +66,7 @@ public:
 	string loadProgress(string fname, uint max, uint worked) {
 		return to!(string)(rndtol(cast(real) worked / max * 100.0)) ~ "% 完了 - " ~ getBaseName(fname) ~ "を展開中 - CWXEditor";
 	}
+	string cwxPathOpenError(string path) {return "パス [" ~ path ~ "] を開けません。";}
 
 	string loadSkinError(string name) {return "スキン「" ~ name ~ "」が見つかりません。";}
 	string useDefaultSkin(string name, string defSkin) {return "スキン「" ~ name ~ "」が見つかりません。\nデフォルトのスキン「" ~ defSkin ~ "」を使用します。";}

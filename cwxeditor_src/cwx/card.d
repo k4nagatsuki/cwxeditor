@@ -11,6 +11,7 @@ import cwx.types;
 import cwx.race;
 import cwx.xml;
 import cwx.utils;
+import cwx.path;
 
 public:
 

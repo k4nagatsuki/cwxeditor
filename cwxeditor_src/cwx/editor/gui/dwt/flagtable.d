@@ -31,6 +31,7 @@ import dwt.widgets.Text;
 import dwt.widgets.Label;
 import dwt.widgets.Combo;
 import dwt.widgets.Table;
+import dwt.widgets.Widget;
 import dwt.events.SelectionEvent;
 import dwt.events.SelectionAdapter;
 import dwt.events.FocusEvent;
@@ -641,6 +642,7 @@ public:
 
 		return flags;
 	}
+	Widget widget() {return flags;}
 
 	bool setFocus() {
 		return flags.setFocus;
@@ -715,6 +717,25 @@ public:
 	void add(Step step) {
 		_dir.add(step);
 		refresh;
+	}
+
+	private void select(Object flag) {
+		flags.deselectAll;
+		foreach (i, itm; flags.getItems) {
+			if (itm.getData is flag) {
+				flags.select = i;
+				break;
+			}
+		}
+		return;
+	}
+	/// フラグを選択する。
+	void select(Flag flag) {
+		select(flag);
+	}
+	/// ステップを選択する。
+	void select(Step step) {
+		select(step);
 	}
 
 	/// コントロールを解放する。

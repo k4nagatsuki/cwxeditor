@@ -11,6 +11,7 @@ import cwx.types;
 import cwx.skin;
 import cwx.usecounter;
 import cwx.background;
+import cwx.path;
 
 import cwx.editor.gui.dwt.utils;
 import cwx.editor.gui.dwt.props;
@@ -60,6 +61,7 @@ import dwt.events.DisposeEvent;
 import dwt.dwthelper.utils;
 import dwt.dnd.Clipboard;
 import dwt.dnd.ByteArrayTransfer;
+import dwt.dnd.TextTransfer;
 import dwt.dnd.DND;
 import dwt.dnd.DragSourceAdapter;
 import dwt.dnd.DragSourceListener;
@@ -1489,6 +1491,10 @@ public:
 			new MenuItem(menu, DWT.SEPARATOR);
 			appendMenuTCPD(prop, menu, this, true, true, true, true);
 			_tree.setMenu = menu;
+			debug {
+				new MenuItem(menu, DWT.SEPARATOR);
+				createMenuItem(menu, "debug: Create CWX &Path", null, &createCWXPath);
+			}
 		}
 		_tree.addSelectionListener(new SListener);
 
@@ -1563,6 +1569,17 @@ public:
 
 	void undo() {_undo.undo;}
 	void redo() {_undo.redo;}
+	debug {
+		void createCWXPath() {
+			auto itm = selection;
+			if (itm) {
+				auto cb = new Clipboard(Display.getCurrent);
+				scope (exit) cb.dispose;
+				auto c = cast(Content) itm.getData;
+				cb.setContents([new ArrayWrapperString(c.cwxPath)], [TextTransfer.getInstance]);
+			}
+		}
+	}
 
 	void refresh(EventTree et) {
 		_setStatusLine("");
@@ -2097,4 +2114,25 @@ public:
 	private void __refreshPaths(string path) {refreshStatusLine;}
 	private void __deletePaths() {refreshStatusLine;}
 	private void __replacePaths(string from, string to) {refreshStatusLine;}
+
+	private bool openCWXPathImpl(T)(T itm, string path) {
+		auto cate = cpcategory(path);
+		if (cate == "") {
+			auto index = cpindex(path);
+			if (index >= itm.getItemCount) return false;
+			auto child = itm.getItem(index);
+			path = cpbottom(path);
+			if (path == "" || cpcategory(path) != "") {
+				forceFocus(_tree);
+				_tree.select = child;
+				return true;
+			} else {
+				return openCWXPathImpl(child, path);
+			}
+		}
+		return false;
+	}
+	bool openCWXPath(string path) {
+		return openCWXPathImpl(_tree, path);
+	}
 }

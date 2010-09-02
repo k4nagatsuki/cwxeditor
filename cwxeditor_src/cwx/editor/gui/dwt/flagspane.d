@@ -2,7 +2,9 @@
 module cwx.editor.gui.dwt.flagspane;
 
 import cwx.flag;
+import cwx.utils;
 import cwx.usecounter;
+import cwx.path;
 
 import cwx.editor.gui.dwt.utils;
 import cwx.editor.gui.dwt.props;
@@ -102,6 +104,10 @@ public:
 		_flags.useCounter = uc;
 		_dirs.useCounter = uc;
 		_dirs.rootDir = root;
+	}
+
+	bool openCWXPath(string path) {
+		return _dirs.openCWXPath(path);
 	}
 
 	FlagDirTree dirs() {

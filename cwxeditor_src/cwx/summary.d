@@ -18,6 +18,7 @@ import cwx.props;
 import cwx.archive;
 import cwx.xml;
 import cwx.skin;
+import cwx.path;
 
 public:
 

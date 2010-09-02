@@ -4,6 +4,7 @@ module cwx.background;
 import cwx.usecounter;
 import cwx.utils;
 import cwx.xml;
+import cwx.path;
 
 /// エリア絡みの例外。
 public class AreaException : Exception {

@@ -5,6 +5,7 @@ import cwx.area;
 import cwx.summary;
 import cwx.skin;
 import cwx.utils;
+import cwx.path;
 
 import cwx.editor.gui.dwt.areaview;
 import cwx.editor.gui.dwt.eventview;
@@ -277,6 +278,14 @@ public:
 		}
 		bool canDoTCPD() {
 			return _win.isFocusControl;
+		}
+	}
+	bool openCWXPath(string path) {
+		if (path == "") {
+			_tabf.setSelection = _tabA;
+			return true;
+		} else {
+			return _eview.openCWXPath(path);
 		}
 	}
 }

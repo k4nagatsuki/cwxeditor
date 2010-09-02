@@ -10,6 +10,7 @@ import cwx.background;
 import cwx.usecounter;
 import cwx.xml;
 import cwx.skin;
+import cwx.path;
 
 import cwx.editor.gui.dwt.props;
 import cwx.editor.gui.dwt.utils;
@@ -162,7 +163,23 @@ private:
 	}
 	void openArea() {
 		auto area = getSelectionArea;
-		if (area) _comm.openArea(_prop, _summ, area);
+		if (area) {
+			auto a = cast(Area) area;
+			if (a) {
+				_comm.openArea(_prop, _summ, a);
+				return;
+			}
+			auto b = cast(Battle) area;
+			if (b) {
+				_comm.openArea(_prop, _summ, b);
+				return;
+			}
+			auto p = cast(Package) area;
+			if (p) {
+				_comm.openArea(_prop, _summ, p);
+				return;
+			}
+		}
 	}
 
 	class DragArea : DragSourceAdapter {

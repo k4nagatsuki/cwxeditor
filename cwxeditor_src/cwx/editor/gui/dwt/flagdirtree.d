@@ -3,10 +3,12 @@ module cwx.editor.gui.dwt.flagdirtree;
 
 import cwx.utils;
 import cwx.flag;
+import cwx.usecounter;
+import cwx.path;
+
 import cwx.editor.gui.dwt.utils;
 import cwx.editor.gui.dwt.props;
 import cwx.editor.gui.dwt.commons;
-import cwx.usecounter;
 import cwx.editor.gui.dwt.flagtable;
 import cwx.editor.gui.dwt.xmlbytestransfer;
 
@@ -389,5 +391,38 @@ public:
 		current = root;
 		dirsV.refresh;
 		dirsV.expandAll;
+	}
+
+	private bool openCWXPathImpl(FlagDir dir, string path) {
+		auto cate = cpcategory(path);
+		auto index = cpindex(path);
+		switch (cate) {
+		case "flag": {
+			if (index >= dir.flags.length) return false;
+			forceFocus(flags.widget);
+			current = dir;
+			flags.select(dir.flags[index]);
+		} break;
+		case "step": {
+			if (index >= dir.steps.length) return false;
+			forceFocus(flags.widget);
+			current = dir;
+			flags.select(dir.steps[index]);
+		} break;
+		case "dir": {
+			if (index >= dir.subDirs.length) return false;
+			return openCWXPathImpl(dir.subDirs[index], cpbottom(path));
+		} break;
+		case "": {
+			forceFocus(dirs);
+			current = dir;
+			return true;
+		}
+		default: break;
+		}
+		return false;
+	}
+	bool openCWXPath(string path) {
+		return openCWXPathImpl(root, path);
 	}
 }

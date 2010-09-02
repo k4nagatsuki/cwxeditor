@@ -12,6 +12,7 @@ import cwx.editor.gui.dwt.skin;
 import cwx.editor.gui.dwt.props;
 import cwx.editor.gui.dwt.utils;
 import cwx.editor.gui.dwt.areaview;
+import cwx.editor.gui.dwt.mainwindow;
 import cwx.editor.gui.dwt.areawindow;
 import cwx.editor.gui.dwt.cardwindow;
 import cwx.editor.gui.dwt.eventwindow;
@@ -113,9 +114,10 @@ class Commons {
 		_iews = new typeof(_iews);
 		_bews = new typeof(_bews);
 	}
-	private Shell _win, _areaWin, _cardWin;
-	void baseShell(Shell win, Shell areaWin, Shell cardWin) {
-		_win = win;
+	private MainWindow _main;
+	private Shell _areaWin, _cardWin;
+	void baseShell(MainWindow main, Shell areaWin, Shell cardWin) {
+		_main = main;
 		_areaWin = areaWin;
 		_cardWin = cardWin;
 	}
@@ -158,70 +160,76 @@ class Commons {
 	private HashSet!(AreaWindow) _aws;
 	private HashSet!(BattleWindow) _bws;
 	private HashSet!(PackageWindow) _pws;
-	private void __openArea(A, Window)(Props prop, Summary summ, A area, HashSet!(Window) ws) {
+	private Window __openArea(A, Window)(Props prop, Summary summ, A area, HashSet!(Window) ws) {
 		foreach (w; ws) {
 			if (w.eventTreeOwner == area) {
 				w.shell.setMinimized = false;
 				w.shell.setActive;
-				return;
+				return w;
 			}
 		}
-		auto w = new Window(this, prop, summ, _win, _areaWin, area);
+		auto w = new Window(this, prop, summ, _main.shell, _areaWin, area);
 		w.shell.addShellListener(new CloseRemover!(Window)(ws, w));
 		ws.add(w);
 		w.shell.open;
+		return w;
 	}
-	void openArea(Props prop, Summary summ, AbstractArea area) {
-		if (area) {
-			if (cast(Area) area) {
-				__openArea!(Area, AreaWindow)(prop, summ, cast(Area) area, _aws);
-			} else if (cast(Battle) area) {
-				__openArea!(Battle, BattleWindow)(prop, summ, cast(Battle) area, _bws);
-			} else {
-				assert (cast(Package) area);
-				__openArea!(Package, PackageWindow)(prop, summ, cast(Package) area, _pws);
-			}
-		}
+	AreaWindow openArea(Props prop, Summary summ, Area area) {
+		if (!area) return null;
+		return __openArea!(Area, AreaWindow)(prop, summ, area, _aws);
+	}
+	BattleWindow openArea(Props prop, Summary summ, Battle area) {
+		if (!area) return null;
+		return __openArea!(Battle, BattleWindow)(prop, summ, area, _bws);
+	}
+	PackageWindow openArea(Props prop, Summary summ, Package area) {
+		if (!area) return null;
+		return __openArea!(Package, PackageWindow)(prop, summ, area, _pws);
 	}
 
 	private HashSet!(HandCardWindow) _hws;
-	void openHands(Props prop, Summary summ, CastCard c) {
+	HandCardWindow openHands(Props prop, Summary summ, CastCard c) {
 		foreach (w; _hws) {
 			if (w.owner is c) {
 				w.shell.setMinimized = false;
 				w.shell.setActive;
-				return;
+				return w;
 			}
 		}
-		auto hcw = new HandCardWindow(this, prop, summ, _win);
+		auto hcw = new HandCardWindow(this, prop, summ, _main.shell);
 		_hws.add(hcw);
 		hcw.shell.addShellListener(new CloseRemover!(HandCardWindow)(_hws, hcw));
 		hcw.refresh(summ, c);
 		hcw.open;
+		return hcw;
 	}
 	private HashSet!(SkillEventWindow) _sews;
 	private HashSet!(ItemEventWindow) _iews;
 	private HashSet!(BeastEventWindow) _bews;
-	void __openUseEvent(C, Window)(Props prop, Summary summ, C c, HashSet!(Window) ews) {
+	Window __openUseEvent(C, Window)(Props prop, Summary summ, C c, HashSet!(Window) ews) {
 		foreach (w; ews) {
 			if (w.eventTreeOwner is c) {
 				w.shell.setMinimized = false;
 				w.shell.setActive;
-				return;
+				return w;
 			}
 		}
-		auto ew = new Window(this, prop, summ, _win, _cardWin, c);
+		auto ew = new Window(this, prop, summ, _main.shell, _cardWin, c);
 		ews.add(ew);
 		ew.shell.addShellListener(new CloseRemover!(Window)(ews, ew));
 		ew.shell.open;
+		return ew;
 	}
-	void openUseEvents(Props prop, Summary summ, SkillCard c) {
-		__openUseEvent!(SkillCard, SkillEventWindow)(prop, summ, c, _sews);
+	SkillEventWindow openUseEvents(Props prop, Summary summ, SkillCard c) {
+		return __openUseEvent!(SkillCard, SkillEventWindow)(prop, summ, c, _sews);
 	}
-	void openUseEvents(Props prop, Summary summ, ItemCard c) {
-		__openUseEvent!(ItemCard, ItemEventWindow)(prop, summ, c, _iews);
+	ItemEventWindow openUseEvents(Props prop, Summary summ, ItemCard c) {
+		return __openUseEvent!(ItemCard, ItemEventWindow)(prop, summ, c, _iews);
 	}
-	void openUseEvents(Props prop, Summary summ, BeastCard c) {
-		__openUseEvent!(BeastCard, BeastEventWindow)(prop, summ, c, _bews);
+	BeastEventWindow openUseEvents(Props prop, Summary summ, BeastCard c) {
+		return __openUseEvent!(BeastCard, BeastEventWindow)(prop, summ, c, _bews);
+	}
+	bool openCWXPath(string path) {
+		return _main.openCWXPath(path);
 	}
 }

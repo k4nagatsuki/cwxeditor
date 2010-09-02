@@ -11,6 +11,7 @@ import cwx.imagesize;
 import cwx.xml;
 import cwx.skin;
 import cwx.usecounter;
+import cwx.path;
 
 import cwx.editor.gui.sound;
 

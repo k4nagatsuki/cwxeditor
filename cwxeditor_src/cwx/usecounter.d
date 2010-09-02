@@ -3,33 +3,11 @@ module cwx.usecounter;
 
 import cwx.flag;
 import cwx.utils;
+import cwx.path;
 
 import std.ctype;
 import std.path;
 import std.string;
-
-/// シナリオ内パスを取得できるオブジェクトである事を示す。
-interface CWXPath {
-	/// シナリオ内パス。
-	string cwxPath();
-}
-
-/// シナリオ内パスを結合する。
-string cpjoin(CWXPath owner, int index) {
-	return cpjoin(owner, "", index);
-}
-/// ditto
-string cpjoin(CWXPath owner, string category, int index) {
-	if (category.length) {
-		return owner.cwxPath ~ ":" ~ category ~ "/" ~ to!(string)(index);
-	} else {
-		return owner.cwxPath ~ "/" ~ to!(string)(index);
-	}
-}
-/// ditto
-string cpjoin(CWXPath owner, string name) {
-	return owner.cwxPath ~ "/" ~ name;
-}
 
 /// Kの使用者。
 interface User(K) {

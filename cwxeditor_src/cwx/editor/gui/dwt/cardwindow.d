@@ -8,6 +8,7 @@ import cwx.usecounter;
 import cwx.types;
 import cwx.xml;
 import cwx.skin;
+import cwx.path;
 
 import cwx.editor.gui.dwt.images;
 import cwx.editor.gui.dwt.skin;
@@ -1512,6 +1513,84 @@ public:
 		bool canDoTCPD() {
 			return EditMode;
 		}
+	}
+
+	static if (UseCast || UseSkill || UseItem || UseBeast) {
+		private bool openCWXPathEff(int C)(string path) {
+			auto cate = cpcategory(path);
+			auto index = cpindex(path);
+			bool isId = cwx.utils.endsWith(cate, ":id");
+			typeof(_pane[C].cards[0]) card;
+			if (isId) {
+				card = _pane[C].card(index);
+				if (!card) return false;
+				index = indexOf!("a is b")(_pane[C].cards, card);
+			} else {
+				if (index >= _pane[C].cards.length) return false;
+				card = _pane[C].cards[index];
+			}
+			path = cpbottom(path);
+			if (path == "") {
+				forceFocus(_pane[C].widget);
+				_pane[C].select(index);
+				return true;
+			}
+			static if (is(PCardOwner : Summary)) {
+				static if (UseCast && C == CAST) {
+					cate = cpcategory(path);
+					switch (cate) {
+					case "skillcard", "itemcard", "beastcard",
+							"skillcard:id", "itemcard:id", "beastcard:id": {
+						forceFocus(_pane[C].widget);
+						return _comm.openHands(_prop, _summ, card).openCWXPath(path);
+					} break;
+					default: break;
+					}
+				} else {
+					if (cpcategory(path) == "event") {
+						forceFocus(_pane[C].widget);
+						return _comm.openUseEvents(_prop, _summ, card).openCWXPath(path);
+					}
+				}
+			}
+			return false;
+		}
+	}
+	bool openCWXPath(string path) {
+		auto cate = cpcategory(path);
+		switch (cate) {
+		case "castcard", "castcard:id": {
+			static if (UseCast) {
+				return openCWXPathEff!(CAST)(path);
+			}
+		} break;
+		case "skillcard", "skillcard:id": {
+			static if (UseSkill) {
+				return openCWXPathEff!(SKILL)(path);
+			}
+		} break;
+		case "itemcard", "itemcard:id": {
+			static if (UseItem) {
+				return openCWXPathEff!(ITEM)(path);
+			}
+		} break;
+		case "beastcard", "beastcard:id": {
+			static if (UseBeast) {
+				return openCWXPathEff!(BEAST)(path);
+			}
+		} break;
+		case "infocard", "infocard:id": {
+			static if (UseInfo) {
+				auto index = cpindex(path);
+				if (index >= _owner.infos.length) return false;
+				forceFocus(_pane[INFO].widget);
+				_pane[INFO].select(index);
+				return true;
+			}
+		} break;
+		default: break;
+		}
+		return false;
 	}
 }
 

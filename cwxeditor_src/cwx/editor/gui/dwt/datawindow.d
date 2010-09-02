@@ -7,6 +7,7 @@ import cwx.flag;
 import cwx.utils;
 import cwx.usecounter;
 import cwx.skin;
+import cwx.path;
 
 import cwx.editor.gui.dwt.props;
 import cwx.editor.gui.dwt.utils;
@@ -316,5 +317,45 @@ public:
 		bool canDoTCPD() {
 			return _win.isFocusControl;
 		}
+	}
+
+	private bool openCWXPathAf(Window)(Window w, string path) {
+		if (w) {
+			tabf.setSelection = tabA;
+			return w.openCWXPath(cpbottom(path));
+		}
+		return false;
+	}
+	bool openCWXPath(string path) {
+		auto cate = cpcategory(path);
+		auto index = cpindex(path);
+		switch (cate) {
+		case "area": {
+			if (index >= _summ.areas.length) return false;
+			return openCWXPathAf(_comm.openArea(_prop, _summ, _summ.areas[index]), path);
+		} break;
+		case "area:id": {
+			return openCWXPathAf(_comm.openArea(_prop, _summ, _summ.area(index)), path);
+		} break;
+		case "battle": {
+			if (index >= _summ.battles.length) return false;
+			return openCWXPathAf(_comm.openArea(_prop, _summ, _summ.battles[index]), path);
+		} break;
+		case "battle:id": {
+			return openCWXPathAf(_comm.openArea(_prop, _summ, _summ.battle(index)), path);
+		} break;
+		case "package": {
+			if (index >= _summ.packages.length) return false;
+			return openCWXPathAf(_comm.openArea(_prop, _summ, _summ.packages[index]), path);
+		} break;
+		case "package:id": {
+			return openCWXPathAf(_comm.openArea(_prop, _summ, _summ.packages(index)), path);
+		} break;
+		case "variable": {
+			return _flags.openCWXPath(cpbottom(path));
+		} break;
+		default: break;
+		}
+		return false;
 	}
 }

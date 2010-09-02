@@ -17,6 +17,7 @@ import cwx.archive;
 import cwx.usecounter;
 import cwx.props;
 import cwx.skin;
+import cwx.path;
 
 import cwx.editor.gui.dwt.images;
 import cwx.editor.gui.dwt.datawindow;
@@ -182,22 +183,21 @@ private:
 		if (_prop.var.dirWin.visible) _dirWin.open;
 		addHistory;
 	}
-	ulong[] _openAreas, _openBattles, _openPackages;
+	string[] _openPaths;
 	void openScenarioImpl(Summary summ) {
 		if (summ) {
 			openScenario(summ);
-			foreach (id; _openAreas) {
-				_dataWin.openArea(id);
+			foreach (path; _openPaths) {
+				try {
+					if (openCWXPath(path)) {
+						continue;
+					}
+				} catch (Exception e) {
+					debugln(e);
+				}
+				MessageBox.showWarning(_prop.msgs.cwxPathOpenError(path), _prop.msgs.dlgTitWarning, shell);
 			}
-			_openAreas.length = 0u;
-			foreach (id; _openBattles) {
-				_dataWin.openBattle(id);
-			}
-			_openBattles.length = 0u;
-			foreach (id; _openPackages) {
-				_dataWin.openPackage(id);
-			}
-			_openPackages.length = 0u;
+			_openPaths.length = 0u;
 		}
 	}
 	void openScenario() {
@@ -493,7 +493,7 @@ private:
 		createMenuItem(_menuFile, _prop.msgs.menuClose, _prop.images.menuClose, &exitAll);
 	}
 public:
-	this(string appPath, string propFilePath, cwx.system.System sys) {
+	this (string appPath, string propFilePath, cwx.system.System sys) {
 		_prop = new Props(propFilePath, new CProps(appPath, sys));
 		if (_prop.var.etc.tempPath.length == 0) {
 			string t = getenv("TEMP");
@@ -626,18 +626,31 @@ public:
 		_dataWin = new DataWindow(_comm, _prop, _win);
 		_cardWin = new MainCardWindow(_comm, _prop, _win);
 		_dirWin = new DirectoryWindow(_comm, _prop, _win);
-		_comm.baseShell(_win, _dataWin.shell, _cardWin.shell);
+		_comm.baseShell(this, _dataWin.shell, _cardWin.shell);
 	}
 
-	void doCWX(string scenarioPath = null, ulong[] openAreas = [], ulong[] openBattles = [], ulong[] openPackages = []) {
+	Shell shell() {return _win;}
+
+	bool openCWXPath(string path) {
+		path = toLower(path);
+		auto cate = cpcategory(path);
+		switch (cate) {
+		case "area", "battle", "package", "area:id", "battle:id", "package:id", "variable": {
+			return _dataWin.openCWXPath(path);
+		} case "castcard", "skillcard", "itemcard", "beastcard", "infocard"
+				"castcard:id", "skillcard:id", "itemcard:id", "beastcard:id", "infocard:id": {
+			return _cardWin.openCWXPath(path);
+		} default: return false;
+		}
+	}
+
+	void doCWX(string scenarioPath = null, string[] openPaths = []) {
 		if (!_win) return;
 		auto d = _win.getDisplay;
 		_win.pack;
 		_win.open;
 		if (scenarioPath) {
-			_openAreas = openAreas;
-			_openBattles = openBattles;
-			_openPackages = openPackages;
+			_openPaths = openPaths;
 			openScenario(scenarioPath);
 		}
 
