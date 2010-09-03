@@ -393,11 +393,15 @@ public:
 		auto itms = _result.getSelection;
 		if (itms.length) {
 			auto path = (cast(CWXPath) itms[0].getData).cwxPath;
-			if (!_comm.openCWXPath(path)) {
-				MessageBox.showWarning(_prop.msgs.cwxPathOpenError(path), _prop.msgs.dlgTitWarning, _win);
-			} else {
-				_win.setActive;
+			try {
+				if (_comm.openCWXPath(path)) {
+					_win.setActive;
+					return;
+				}
+			} catch (Exception e) {
+				debugln(e);
 			}
+			MessageBox.showWarning(_prop.msgs.cwxPathOpenError(path), _prop.msgs.dlgTitWarning, _win);
 		}
 	}
 	private void addResult(CWXPath path) {
