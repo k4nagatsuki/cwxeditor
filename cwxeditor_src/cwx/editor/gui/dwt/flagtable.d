@@ -719,7 +719,7 @@ public:
 		refresh;
 	}
 
-	private void select(Object flag) {
+	private void selectImpl(Object flag) {
 		flags.deselectAll;
 		foreach (i, itm; flags.getItems) {
 			if (itm.getData is flag) {
@@ -727,15 +727,14 @@ public:
 				break;
 			}
 		}
-		return;
 	}
 	/// フラグを選択する。
 	void select(Flag flag) {
-		select(flag);
+		selectImpl(flag);
 	}
 	/// ステップを選択する。
 	void select(Step step) {
-		select(step);
+		selectImpl(step);
 	}
 
 	/// コントロールを解放する。

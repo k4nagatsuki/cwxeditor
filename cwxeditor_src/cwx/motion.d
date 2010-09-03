@@ -135,16 +135,16 @@ struct MDetail {
 }
 
 /// 一連の効果の保持者の親クラス。
-class MotionUser : CWXPath {
+class MotionUser {
 private:
 	Motion[] _motions;
 	void delegate() _change = null;
 	UseCounter _uc = null;
-	CWXPath _cwxPath;
+	MotionOwner _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
-	override string cwxPath() {return _cwxPath.cwxPath;}
+	this (MotionOwner cwxPath) {_cwxPath = cwxPath;}
+	string cwxPath() {return _cwxPath.cwxPath;}
 
 	/// 変更ハンドラを登録する。
 	void changeHandler(void delegate() change) {
@@ -189,7 +189,7 @@ public:
 			foreach (m; motions) {
 				m.changeHandler = _change;
 				if (_uc) m.setUseCounter(_uc);
-				m._owner = this;
+				m._owner = _cwxPath;
 			}
 			_motions = motions;
 		}
@@ -198,6 +198,11 @@ public:
 	Motion[] motions() {
 		return _motions;
 	}
+}
+
+/// 効果の所持者である事を示すインタフェース。
+interface MotionOwner : CWXPath {
+	Motion[] motions();
 }
 
 /// 効果クラス。
@@ -216,7 +221,7 @@ private:
 	uint _round = 10u;
 	BeastCard _beast = null;
 
-	MotionUser _owner = null;
+	MotionOwner _owner = null;
 public:
 	static const XML_NAME = "Motion";
 
@@ -396,5 +401,17 @@ public:
 
 	override string cwxPath() {
 		return _owner ? cpjoin(_owner, indexOf!("a is b")(_owner.motions, this)) : "";
+	}
+	override CWXPath findCWXPath(string path) {
+		if (path == "") return this;
+		auto cate = cpcategory(path);
+		switch (cate) {
+		case "beastcard": {
+			auto index = cpindex(path);
+			return index == 0 && beast ? beast.findCWXPath(cpbottom(path)) : null;
+		}
+		default: break;
+		}
+		return null;
 	}
 }

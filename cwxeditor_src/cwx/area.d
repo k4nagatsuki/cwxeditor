@@ -788,6 +788,24 @@ public:
 	string cwxPath() {
 		return _owner ? cpjoin(_owner, "area", indexOf!("a is b")(_owner.areas, this)) : "";
 	}
+	CWXPath findCWXPath(string path) {
+		if (path == "") return this;
+		auto cate = cpcategory(path);
+		switch (cate) {
+		case "menucard": {
+			auto index = cpindex(path);
+			if (index >= cards.length) return null;
+			return cards[index].findCWXPath(cpbottom(path));
+		}
+		case "background": {
+			auto index = cpindex(path);
+			if (index >= backs.length) return null;
+			return backs[index].findCWXPath(cpbottom(path));
+		}
+		default: break;
+		}
+		return super.findCWXPath(path);
+	}
 }
 
 /// パッケージ。
@@ -1084,5 +1102,18 @@ public:
 	package void owner(BattleOwner owner) {_owner = owner;}
 	string cwxPath() {
 		return _owner ? cpjoin(_owner, "battle", indexOf!("a is b")(_owner.battles, this)) : "";
+	}
+	CWXPath findCWXPath(string path) {
+		if (path == "") return this;
+		auto cate = cpcategory(path);
+		switch (cate) {
+		case "enemycard": {
+			auto index = cpindex(path);
+			if (index >= cards.length) return null;
+			return cards[index].findCWXPath(cpbottom(path));
+		}
+		default: break;
+		}
+		return super.findCWXPath(path);
 	}
 }

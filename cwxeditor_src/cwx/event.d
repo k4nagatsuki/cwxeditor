@@ -340,6 +340,10 @@ public:
 		}
 		return "";
 	}
+	CWXPath findCWXPath(string path) {
+		if (path == "") return this;
+		return null;
+	}
 }
 
 /// 口調分け条件とメッセージ内容を持つクラス。
@@ -423,15 +427,23 @@ public:
 		node.parse;
 		return new SDialog(text, rCoupons);
 	}
-	private Content _owner = null;
-	private void owner(Content owner) {_owner = owner;}
 	string cwxPath() {
-		return _owner ? cpjoin(_owner, "dialog") : "";
+		return _parent ? cpjoin(_parent, "dialog", indexOf!("a is b")(_parent.dialogs, this)) : "";
+	}
+	override CWXPath findCWXPath(string path) {
+		if (path == "") return this;
+		auto cate = cpcategory(path);
+		if (cate == "text") {
+			auto index = cpindex(path);
+			if (index > 0) return null;
+			return _text.findCWXPath(cpbottom(path));
+		}
+		return null;
 	}
 }
 
 class Content : CWXPath, IPathUser, IBattleUser, IPackageUser, IFlagUser, IStepUser,
-		ICastUser, IItemUser, ISkillUser, IBeastUser, IInfoUser {
+		ICastUser, IItemUser, ISkillUser, IBeastUser, IInfoUser, MotionOwner {
 	private EventTree _tree = null;
 
 	/// 型と後続テキストnameを指定してインスタンスを生成。
@@ -481,6 +493,29 @@ class Content : CWXPath, IPathUser, IBattleUser, IPackageUser, IFlagUser, IStepU
 			return cpjoin(_tree, indexOf!("a is b")(_tree.starts, this));
 		}
 		return "";
+	}
+	override CWXPath findCWXPath(string path) {
+		if (path == "") return this;
+		auto cate = cpcategory(path);
+		switch (cate) {
+		case "": {
+			auto index = cpindex(path);
+			if (index >= _next.length) return null;
+			return _next[index].findCWXPath(cpbottom(path));
+		}
+		case "dialog": {
+			auto index = cpindex(path);
+			if (index >= dialogs.length) return null;
+			return dialogs[index].findCWXPath(cpbottom(path));
+		}
+		case "text": {
+			auto index = cpindex(path);
+			if (index > 0) return null;
+			return _text.findCWXPath(cpbottom(path));
+		}
+		default: break;
+		}
+		return null;
 	}
 
 	/// EventTreeからこのコンテントに到達するまでのindex群を返す。
@@ -1177,6 +1212,16 @@ public:
 	override string cwxPath() {
 		return _owner ? cpjoin(_owner, "event", indexOf!("a is b")(_owner.trees, this)) : "";
 	}
+	CWXPath findCWXPath(string path) {
+		if (path == "") return this;
+		auto cate = cpcategory(path);
+		if (cate == "") {
+			auto index = cpindex(path);
+			if (index >= _starts.length) return null;
+			return _starts[index].findCWXPath(cpbottom(path));
+		}
+		return null;
+	}
 	/// 変更ハンドラを登録する。
 	void changeHandler(void delegate() change) {
 		foreach (s; _starts) {
@@ -1632,6 +1677,17 @@ private:
 	void delegate() _change;
 public:
 	override abstract size_t[] areaPath();
+
+	CWXPath findCWXPath(string path) {
+		if (path == "") return this;
+		auto cate = cpcategory(path);
+		if (cate == "event") {
+			auto index = cpindex(path);
+			if (index >= _evts.length) return null;
+			return _evts[index].findCWXPath(cpbottom(path));
+		}
+		return null;
+	}
 
 	/// 使用回数カウンタ。
 	UseCounter useCounter() {

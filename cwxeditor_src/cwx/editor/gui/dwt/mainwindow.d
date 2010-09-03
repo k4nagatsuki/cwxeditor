@@ -105,6 +105,7 @@ private:
 			string name = dlg.name;
 			string skinName = dlg.skinName;
 			_comm.closeAll;
+			if (_replDlg) _replDlg.widget.close;
 			auto p = Summary.createTempDir(_prop.tempPath, name);
 			_dataWin.create(p, name, skinName);
 			if (_dataWin.summary.expandXMLs) {
@@ -173,6 +174,7 @@ private:
 			summ.type = _prop.var.etc.defaultSkin;
 		}
 		_comm.closeAll;
+		if (_replDlg) _replDlg.widget.close;
 		_dataWin.load(summ);
 		_cardWin.refresh(summ);
 		_dirWin.refresh(summ);
@@ -303,10 +305,15 @@ private:
 			_win.close;
 		}
 	}
+	private ReplaceDialog _replDlg = null;
 	void replaceText() {
 		if (_dataWin.summary) {
-			auto dlg = new ReplaceDialog(_comm, _prop, _win, _dataWin.summary);
-			dlg.open;
+			if (!_replDlg || _replDlg.widget.isDisposed) {
+				_replDlg = new ReplaceDialog(_comm, _prop, _win, _dataWin.summary);
+			} else {
+				_replDlg.widget.setMinimized = false;
+				_replDlg.widget.setActive;
+			}
 		}
 	}
 	void clipboardToXML() {
@@ -633,6 +640,9 @@ public:
 
 	bool openCWXPath(string path) {
 		path = toLower(path);
+		if (path == "") {
+			return _dataWin.openCWXPath(path);
+		}
 		auto cate = cpcategory(path);
 		switch (cate) {
 		case "area", "battle", "package", "area:id", "battle:id", "package:id", "variable": {

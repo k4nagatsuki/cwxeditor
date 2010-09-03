@@ -2125,6 +2125,7 @@ public:
 			if (path == "" || cpcategory(path) != "") {
 				forceFocus(_tree);
 				_tree.select = child;
+				refreshStatusLine;
 				return true;
 			} else {
 				return openCWXPathImpl(child, path);

@@ -327,6 +327,11 @@ public:
 		return false;
 	}
 	bool openCWXPath(string path) {
+		if (path == "") {
+			_win.setMinimized = false;
+			_win.setActive;
+			return true;
+		}
 		auto cate = cpcategory(path);
 		auto index = cpindex(path);
 		switch (cate) {

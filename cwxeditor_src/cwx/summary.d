@@ -322,6 +322,72 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 			}
 		}
 	}
+	private CWXPath findCWXPathImpl(string path, string cate) {
+		switch (cate) {
+		case "castcard": {
+			static if (UseCast) {
+				auto index = cpindex(path);
+				return index < casts.length ? casts[index].findCWXPath(cpbottom(path)) : null;
+			}
+		}
+		case "castcard:id": {
+			static if (UseCast) {
+				auto card = casts(cpindex(path));
+				return card ? card.findCWXPath(cpbottom(path)) : null;
+			}
+		}
+		case "skillcard": {
+			static if (UseSkill) {
+				auto index = cpindex(path);
+				return index < skills.length ? skills[index].findCWXPath(cpbottom(path)) : null;
+			}
+		}
+		case "skillcard:id": {
+			static if (UseSkill) {
+				auto card = skill(cpindex(path));
+				return card ? card.findCWXPath(cpbottom(path)) : null;
+			}
+		}
+		case "itemcard": {
+			static if (UseItem) {
+				auto index = cpindex(path);
+				return index < items.length ? items[index].findCWXPath(cpbottom(path)) : null;
+			}
+		}
+		case "itemcard:id": {
+			static if (UseItem) {
+				auto card = item(cpindex(path));
+				return card ? card.findCWXPath(cpbottom(path)) : null;
+			}
+		}
+		case "beastcard": {
+			static if (UseBeast) {
+				auto index = cpindex(path);
+				return index < beasts.length ? beasts[index].findCWXPath(cpbottom(path)) : null;
+			}
+		}
+		case "beastcard:id": {
+			static if (UseBeast) {
+				auto card = beast(cpindex(path));
+				return card ? card.findCWXPath(cpbottom(path)) : null;
+			}
+		}
+		case "infocard": {
+			static if (UseInfo) {
+				auto index = cpindex(path);
+				return index < infos.length ? infos[index].findCWXPath(cpbottom(path)) : null;
+			}
+		}
+		case "infocard:id": {
+			static if (UseInfo) {
+				auto card = info(cpindex(path));
+				return card ? card.findCWXPath(cpbottom(path)) : null;
+			}
+		}
+		default: break;
+		}
+		return null;
+	}
 }
 
 /// 貼り紙。シナリオの情報が入る。
@@ -379,6 +445,38 @@ public:
 		lock;
 	}
 	override string cwxPath() {return "";}
+	override CWXPath findCWXPath(string path) {
+		if (path == "") return this;
+		auto cate = cpcategory(path);
+		switch (cate) {
+		case "area": {
+			auto index = cpindex(path);
+			return index < areas.length ? areas[index].findCWXPath(cpbottom(path)) : null;
+		}
+		case "area:id": {
+			auto area = area(cpindex(path));
+			return area ? area.findCWXPath(cpbottom(path)) : null;
+		}
+		case "battle": {
+			auto index = cpindex(path);
+			return index < battles.length ? battles[index].findCWXPath(cpbottom(path)) : null;
+		}
+		case "battle:id": {
+			auto area = battle(cpindex(path));
+			return area ? area.findCWXPath(cpbottom(path)) : null;
+		}
+		case "package": {
+			auto index = cpindex(path);
+			return index < packages.length ? packages[index].findCWXPath(cpbottom(path)) : null;
+		}
+		case "package:id": {
+			auto area = packages(cpindex(path));
+			return area ? area.findCWXPath(cpbottom(path)) : null;
+		}
+		default: break;
+		}
+		return findCWXPathImpl(path, cate);
+	}
 	/// マシン上で一意なID。
 	string id() {
 		return _id;
@@ -1246,148 +1344,152 @@ template CardContainer(bool UseCast, bool UseSkill, bool UseItem, bool UseBeast,
 		~ (UseCast ? ", BeastOwner" : "")
 		~ (UseCast ? ", InfoOwner" : "")
 		~ "{"
-		~ "    mixin CardContainerImpl;"
+		~ "    mixin CardContainerImpl!(UseCast, UseSkill, UseItem, UseBeast, UseInfo);"
 		~ "}");
-	template CardContainerImpl() {
-	private:
-		string _sPath;
-		string _sname;
-		string _id;
-		string _type = "";
-		bool _legacy;
-	public:
-		mixin STemplate!(UseCast, UseSkill, UseItem, UseBeast, UseInfo);
+}
+private template CardContainerImpl(bool UseCast, bool UseSkill, bool UseItem, bool UseBeast, bool UseInfo) {
+private:
+	string _sPath;
+	string _sname;
+	string _id;
+	string _type = "";
+	bool _legacy;
+public:
+	mixin STemplate!(UseCast, UseSkill, UseItem, UseBeast, UseInfo);
 
-		/// 唯一のコンストラクタ。
-		this(string sPath, string sname, bool legacy) {
-			_id = format("%08X", &this) ~ "-" ~ to!(string)(getUTCtime);
-			_sPath = sPath;
-			_sname = sname;
-			_legacy = legacy;
-		}
-		override string cwxPath() {return "";}
-		/// マシン上で一意なID。
-		string id() {
-			return _id;
-		}
-		/// クラシックな形式ならtrue。
-		bool legacy() {return _legacy;}
-		/// スキン。
-		string type() {return _type;}
+	/// 唯一のコンストラクタ。
+	this(string sPath, string sname, bool legacy) {
+		_id = format("%08X", &this) ~ "-" ~ to!(string)(getUTCtime);
+		_sPath = sPath;
+		_sname = sname;
+		_legacy = legacy;
+	}
+	override string cwxPath() {return "";}
+	override CWXPath findCWXPath(string path) {
+		if (path == "") return this;
+		return findCWXPathImpl(path, cpcategory(path));
+	}
+	/// マシン上で一意なID。
+	string id() {
+		return _id;
+	}
+	/// クラシックな形式ならtrue。
+	bool legacy() {return _legacy;}
+	/// スキン。
+	string type() {return _type;}
 
-		/// シナリオのディレクトリ。
-		string scenarioPath() {
-			return _sPath;
-		}
-		/// シナリオ名。
-		string scenarioName() {
-			return _sname;
-		}
+	/// シナリオのディレクトリ。
+	string scenarioPath() {
+		return _sPath;
+	}
+	/// シナリオ名。
+	string scenarioName() {
+		return _sname;
+	}
 
-		/// カードを追加する。
-		static if (UseCast) void add(CastCard c) {_cast ~= c;}
-		/// ditto
-		static if (UseSkill) void add(SkillCard c) {_skl ~= c;}
-		/// ditto
-		static if (UseItem) void add(ItemCard c) {_itm ~= c;}
-		/// ditto
-		static if (UseBeast) void add(BeastCard c) {_bst ~= c;}
-		/// ditto
-		static if (UseInfo) void add(InfoCard c) {_info ~= c;}
+	/// カードを追加する。
+	static if (UseCast) void add(CastCard c) {_cast ~= c;}
+	/// ditto
+	static if (UseSkill) void add(SkillCard c) {_skl ~= c;}
+	/// ditto
+	static if (UseItem) void add(ItemCard c) {_itm ~= c;}
+	/// ditto
+	static if (UseBeast) void add(BeastCard c) {_bst ~= c;}
+	/// ditto
+	static if (UseInfo) void add(InfoCard c) {_info ~= c;}
 
-		/// 指定された要素のindexを検索する。
-		int indexOf(T)(T c) {
-			static if (UseCast && is (T == CastCard)) {
-				return .indexOf!("a is b")(_cast, c);
-			} else static if (UseSkill && is (T == SkillCard)) {
-				return .indexOf!("a is b")(_skl, c);
-			} else static if (UseItem && is (T == ItemCard)) {
-				return .indexOf!("a is b")(_itm, c);
-			} else static if (UseBeast && is (T == BeastCard)) {
-				return .indexOf!("a is b")(_bst, c);
-			} else static if (UseInfo && is (T == InfoCard)) {
-				return .indexOf!("a is b")(_info, c);
-			} else {
-				static assert (0);
-			}
-		}
-
-		private static CardContainer fromNode(ref XNode summNode, string sPath, out string ver) {
-			string sname = null;
-			string type = "";
-			ver = summNode.attr("dataVersion", false);
-			if (!ver) ver = "";
-			summNode.onTag["Property"] = (ref XNode node) {
-				node.onTag["Name"] = (ref XNode node) {sname = node.value;};
-				node.onTag["Type"] = (ref XNode node) {type = node.value;};
-				node.parse;
-			};
-			summNode.parse;
-			if (!sname) throw new SummaryException("Scenario name is not found: " ~ sPath);
-			auto cc = new CardContainer(sPath, sname, false);
-			cc._type = type;
-			return cc;
-		}
-
-		/// XMLを元にしたインスタンス。
-		/// Params:
-		/// sPath = シナリオディレクトリのパス。
-		/// xmls = シナリオの各XMLデータ。
-		/// Throws:
-		/// SummaryException = xmlsにSummary定義のXML文書が含まれていない、または壊れている。
-		/// XmlException = XMLパースエラー発生時。
-		/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
-		static CardContainer fromXMLs(string sPath, string[string][string] xmls) {
-			auto parent = "" in xmls;
-			if (!parent) throw new SummaryException("invalid xmls");
-			auto summXML = "Summary.xml" in *parent;
-			if (!summXML) throw new SummaryException("invalid parent of xmls");
-			scope summNode = XNode.parse(*summXML);
-			if (summNode.name == "Summary") {
-				string ver;
-				auto cc = fromNode(summNode, sPath, ver);
-
-				static if (UseCast) __loadXML2!(CastCard)(xmls, PATH_CAST, CastCard.XML_NAME, cc._cast, null, null, ver);
-				static if (UseSkill) __loadXML2!(SkillCard)(xmls, PATH_SKILL, SkillCard.XML_NAME, cc._skl, null, null, ver);
-				static if (UseItem) __loadXML2!(ItemCard)(xmls, PATH_ITEM, ItemCard.XML_NAME, cc._itm, null, null, ver);
-				static if (UseBeast) __loadXML2!(BeastCard)(xmls, PATH_BEAST, BeastCard.XML_NAME, cc._bst, null,null, ver);
-				static if (UseInfo) __loadXML2!(InfoCard)(xmls, PATH_INFO, InfoCard.XML_NAME, cc._info, null, null, ver);
-
-				return cc;
-			}
-			throw new SummaryException("File is not summary");
-		}
-
-		/// XMLを元にしたインスタンス。
-		/// Params:
-		/// path = Summary.xmlのパス。
-		/// Throws:
-		/// SummaryException = ファイルはSummary定義のXML文書ではない。
-		/// IOException = ファイル読込み例外発生時。
-		/// XmlException = XMLパースエラー発生時。
-		/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
-		/// FileLoadException = Summary.xml以外での読込例外発生時。
-		static CardContainer fromXMLs(string path) {
-			scope summNode = XNode.parse(cast(string) std.file.read(path));
-			if (summNode.name == "Summary") {
-				string par = getDirName(path);
-				string ver;
-				auto cc = fromNode(summNode, par, ver);
-
-				static if (UseCast) __loadXML1!(CastCard)(std.path.join(par, PATH_CAST), CastCard.XML_NAME, cc._cast, null, null, ver);
-				static if (UseSkill) __loadXML1!(SkillCard)(std.path.join(par, PATH_SKILL), SkillCard.XML_NAME, cc._skl, null, null, ver);
-				static if (UseItem) __loadXML1!(ItemCard)(std.path.join(par, PATH_ITEM), ItemCard.XML_NAME, cc._itm, null, null, ver);
-				static if (UseBeast) __loadXML1!(BeastCard)(std.path.join(par, PATH_BEAST), BeastCard.XML_NAME, cc._bst, null,null, ver);
-				static if (UseInfo) __loadXML1!(InfoCard)(std.path.join(par, PATH_INFO), InfoCard.XML_NAME, cc._info, null, null, ver);
-
-				return cc;
-			}
-			throw new SummaryException("File is not summary: " ~ path);
+	/// 指定された要素のindexを検索する。
+	int indexOf(T)(T c) {
+		static if (UseCast && is (T == CastCard)) {
+			return .indexOf!("a is b")(_cast, c);
+		} else static if (UseSkill && is (T == SkillCard)) {
+			return .indexOf!("a is b")(_skl, c);
+		} else static if (UseItem && is (T == ItemCard)) {
+			return .indexOf!("a is b")(_itm, c);
+		} else static if (UseBeast && is (T == BeastCard)) {
+			return .indexOf!("a is b")(_bst, c);
+		} else static if (UseInfo && is (T == InfoCard)) {
+			return .indexOf!("a is b")(_info, c);
+		} else {
+			static assert (0);
 		}
 	}
+
+	private static CardContainer fromNode(ref XNode summNode, string sPath, out string ver) {
+		string sname = null;
+		string type = "";
+		ver = summNode.attr("dataVersion", false);
+		if (!ver) ver = "";
+		summNode.onTag["Property"] = (ref XNode node) {
+			node.onTag["Name"] = (ref XNode node) {sname = node.value;};
+			node.onTag["Type"] = (ref XNode node) {type = node.value;};
+			node.parse;
+		};
+		summNode.parse;
+		if (!sname) throw new SummaryException("Scenario name is not found: " ~ sPath);
+		auto cc = new CardContainer(sPath, sname, false);
+		cc._type = type;
+		return cc;
+	}
+
+	/// XMLを元にしたインスタンス。
+	/// Params:
+	/// sPath = シナリオディレクトリのパス。
+	/// xmls = シナリオの各XMLデータ。
+	/// Throws:
+	/// SummaryException = xmlsにSummary定義のXML文書が含まれていない、または壊れている。
+	/// XmlException = XMLパースエラー発生時。
+	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
+	static CardContainer fromXMLs(string sPath, string[string][string] xmls) {
+		auto parent = "" in xmls;
+		if (!parent) throw new SummaryException("invalid xmls");
+		auto summXML = "Summary.xml" in *parent;
+		if (!summXML) throw new SummaryException("invalid parent of xmls");
+		scope summNode = XNode.parse(*summXML);
+		if (summNode.name == "Summary") {
+			string ver;
+			auto cc = fromNode(summNode, sPath, ver);
+
+			static if (UseCast) __loadXML2!(CastCard)(xmls, PATH_CAST, CastCard.XML_NAME, cc._cast, null, null, ver);
+			static if (UseSkill) __loadXML2!(SkillCard)(xmls, PATH_SKILL, SkillCard.XML_NAME, cc._skl, null, null, ver);
+			static if (UseItem) __loadXML2!(ItemCard)(xmls, PATH_ITEM, ItemCard.XML_NAME, cc._itm, null, null, ver);
+			static if (UseBeast) __loadXML2!(BeastCard)(xmls, PATH_BEAST, BeastCard.XML_NAME, cc._bst, null,null, ver);
+			static if (UseInfo) __loadXML2!(InfoCard)(xmls, PATH_INFO, InfoCard.XML_NAME, cc._info, null, null, ver);
+
+			return cc;
+		}
+		throw new SummaryException("File is not summary");
+	}
+
+	/// XMLを元にしたインスタンス。
+	/// Params:
+	/// path = Summary.xmlのパス。
+	/// Throws:
+	/// SummaryException = ファイルはSummary定義のXML文書ではない。
+	/// IOException = ファイル読込み例外発生時。
+	/// XmlException = XMLパースエラー発生時。
+	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
+	/// FileLoadException = Summary.xml以外での読込例外発生時。
+	static CardContainer fromXMLs(string path) {
+		scope summNode = XNode.parse(cast(string) std.file.read(path));
+		if (summNode.name == "Summary") {
+			string par = getDirName(path);
+			string ver;
+			auto cc = fromNode(summNode, par, ver);
+
+			static if (UseCast) __loadXML1!(CastCard)(std.path.join(par, PATH_CAST), CastCard.XML_NAME, cc._cast, null, null, ver);
+			static if (UseSkill) __loadXML1!(SkillCard)(std.path.join(par, PATH_SKILL), SkillCard.XML_NAME, cc._skl, null, null, ver);
+			static if (UseItem) __loadXML1!(ItemCard)(std.path.join(par, PATH_ITEM), ItemCard.XML_NAME, cc._itm, null, null, ver);
+			static if (UseBeast) __loadXML1!(BeastCard)(std.path.join(par, PATH_BEAST), BeastCard.XML_NAME, cc._bst, null,null, ver);
+			static if (UseInfo) __loadXML1!(InfoCard)(std.path.join(par, PATH_INFO), InfoCard.XML_NAME, cc._info, null, null, ver);
+
+			return cc;
+		}
+		throw new SummaryException("File is not summary: " ~ path);
+	}
 }
-alias CardContainer!(true, true, true, true, true).CardContainer Importable;
-alias CardContainer!(false, true, true, true, false).CardContainer HandCards;
+alias CardContainer!(true, true, true, true, true) Importable;
+alias CardContainer!(false, true, true, true, false) HandCards;
 unittest {
 	new Importable("", "", false);
 	new HandCards("", "", false);

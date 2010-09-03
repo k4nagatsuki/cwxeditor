@@ -51,6 +51,8 @@ public:
 
 	Image app() {return imgd!(resourceDir ~ "new.png");}
 
+	Image summary() {return imgd!(resourceDir ~ "summary.png");}
+
 	Image cards() {return imgd!(resourceDir ~ "cards.png");}
 	Image backs() {return imgd!(resourceDir ~ "backs.png");}
 

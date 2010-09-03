@@ -223,6 +223,10 @@ public:
 	override string cwxPath() {
 		return _owner ? cpjoin(_owner, "background", indexOf!("a is b")(_owner.backs, this)) : "";
 	}
+	override CWXPath findCWXPath(string path) {
+		if (path == "") return this;
+		return null;
+	}
 }
 
 /// BgImage所持者のインタフェース。
@@ -240,6 +244,19 @@ public:
 		_bgImgs = bgImgs;
 	}
 	override string cwxPath() {return "";}
+	override CWXPath findCWXPath(string path) {
+		if (path == "") return this;
+		auto cate = cpcategory(path);
+		switch (cate) {
+		case "background": {
+			auto index = cpindex(path);
+			if (index >= _bgImgs.length) return null;
+			return _bgImgs[index].findCWXPath(cpbottom(path));
+		}
+		default: break;
+		}
+		return null;
+	}
 	/// 背景イメージ群。
 	BgImage[] backs() {
 		return _bgImgs;

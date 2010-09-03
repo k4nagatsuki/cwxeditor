@@ -281,7 +281,7 @@ public:
 		}
 	}
 	bool openCWXPath(string path) {
-		if (path == "") {
+		if (path == "" || (is(A : Area) && cpcategory(path) == "background")) {
 			_tabf.setSelection = _tabA;
 			return true;
 		} else {

@@ -406,6 +406,8 @@ class FlexEtcProps : Properties {
 	mixin Property!("openHistories", string[], []);
 	mixin Property!("historyMax", int, 9);
 	mixin Property!("historySnipLength", int, 30);
+	mixin Property!("searchResultTableWidth", int, 400, true);
+	mixin Property!("searchResultTableHeight", int, 200, true);
 	version (Windows) {
 		mixin Property!("engine", string, "CardWirthPy.exe", true);
 		mixin Property!("enginePath", string, "CardWirthPy.exe");

@@ -1627,7 +1627,7 @@ private:
 	static const bool UseItem = IndexOf!(ItemCard, Cards) >= 0;
 	static const bool UseBeast = IndexOf!(BeastCard, Cards) >= 0;
 	static const bool UseInfo = IndexOf!(InfoCard, Cards) >= 0;
-	alias CardContainer!(UseCast, UseSkill, UseItem, UseBeast, UseInfo).CardContainer CC;
+	alias CardContainer!(UseCast, UseSkill, UseItem, UseBeast, UseInfo) CC;
 	alias CardWindow!("addCardWindow(owner.scenarioName, owner.scenarioPath)", CC, CC, ToCardOwner, Cards) ACW;
 	static class AddS {
 		Commons comm;

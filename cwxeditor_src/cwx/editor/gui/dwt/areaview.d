@@ -181,6 +181,7 @@ private:
 			this () {
 				_path = new PathUser(new class CWXPath {
 					override string cwxPath() {return "";}
+					override CWXPath findCWXPath(string path) {return null;}
 				});
 				_path.setUseCounter(_summ.useCounter.sub);
 				_path.path = _area.music;

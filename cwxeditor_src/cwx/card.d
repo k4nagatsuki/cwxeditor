@@ -665,10 +665,45 @@ public:
 	string cwxPath() {
 		return _owner ? cpjoin(_owner, "castcard", .indexOf!("a is b")(_owner.casts, this)) : "";
 	}
+	CWXPath findCWXPath(string path) {
+		if (path == "") return this;
+		auto cate = cpcategory(path);
+		switch (cate) {
+		case "skillcard": {
+			auto index = cpindex(path);
+			if (index >= skills.length) return null;
+			return skills[index].findCWXPath(cpbottom(path));
+		}
+		case "skillcard:id": {
+			auto card = skill(cpindex(path));
+			return card ? card.findCWXPath(cpbottom(path)) : null;
+		}
+		case "itemcard": {
+			auto index = cpindex(path);
+			if (index >= items.length) return null;
+			return items[index].findCWXPath(cpbottom(path));
+		}
+		case "itemcard:id": {
+			auto card = item(cpindex(path));
+			return card ? card.findCWXPath(cpbottom(path)) : null;
+		}
+		case "beastcard": {
+			auto index = cpindex(path);
+			if (index >= beasts.length) return null;
+			return beasts[index].findCWXPath(cpbottom(path));
+		}
+		case "beastcard:id": {
+			auto card = beast(cpindex(path));
+			return card ? card.findCWXPath(cpbottom(path)) : null;
+		}
+		default: break;
+		}
+		return null;
+	}
 }
 
 /// スキル・アイテム・召喚獣といった、「効果」のあるカードの親クラス。
-private abstract class EffectCard : Card, EventTreeOwner, IPathUser {
+private abstract class EffectCard : Card, EventTreeOwner, MotionOwner, IPathUser {
 private:
 	string _scenario = "";
 	string _author = "";
@@ -947,6 +982,10 @@ public:
 			_ceto.addAll(AbstractEventTreeOwner.loadEventsFromNode(n, ver));
 		};
 		node.parse;
+	}
+	CWXPath findCWXPath(string path) {
+		if (path == "") return this;
+		return _ceto.findCWXPath(path);
 	}
 }
 
@@ -1289,5 +1328,9 @@ public:
 	package void owner(InfoOwner owner) {_owner = owner;}
 	string cwxPath() {
 		return _owner ? cpjoin(_owner, "infocard", indexOf!("a is b")(_owner.infos, this)) : "";
+	}
+	CWXPath findCWXPath(string path) {
+		if (path == "") return this;
+		return null;
 	}
 }

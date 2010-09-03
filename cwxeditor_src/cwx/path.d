@@ -9,6 +9,9 @@ import std.string;
 interface CWXPath {
 	/// シナリオ内パス。
 	string cwxPath();
+	/// パスが示すオブジェクトを返す。
+	/// 見つからない場合はnullを返す。
+	CWXPath findCWXPath(string);
 }
 
 /// シナリオ内パスを結合する。
@@ -46,7 +49,7 @@ string cpbottom(string path) {
 string cpcategory(string path) {
 	string top = cptop(path);
 	int index = std.string.rfind(top, ":");
-	return index >= 0 ? top[0 .. index] : "";
+	return index >= 0 ? top[0 .. index] : top;
 } unittest {
 	assert (cpcategory("area:3/event:0/:5/:0/:1") == "area");
 }

@@ -12,6 +12,7 @@ import cwx.event;
 import cwx.race;
 import cwx.system;
 import cwx.motion;
+import cwx.background;
 
 import std.path;
 import std.math;
@@ -145,7 +146,7 @@ public:
 	string menuOpenDirectory() {return ttOpenDirectory ~ "(&O)";}
 
 	string menuEdit() {return "編集(&E)";}
-	string ttReplaceText() {return "テキスト置換";}
+	string ttReplaceText() {return "テキスト検索/置換";}
 	string menuReplaceText() {return ttReplaceText ~ "(&T)...";}
 	string ttRefresh() {return "最新の情報に更新";}
 	string ttRefreshS() {return "更新";}
@@ -183,13 +184,14 @@ public:
 	string menuTable() {return "テーブル(&T)";}
 	string menuVariable() {return "状態変数(&V)";}
 
+	string summary() {return "シナリオの設定";}
 	string area() {return "エリア";}
 	string battle() {return "バトル";}
 	string packages() {return "パッケージ";}
 
-	string dlgTitReplaceText() {return "テキスト置換";}
-	string replText() {return "置換するテキスト";}
-	string replTextFrom() {return "置換前";}
+	string dlgTitReplaceText() {return "テキスト検索/置換";}
+	string replText() {return "検索/置換するテキスト";}
+	string replTextFrom() {return "検索(置換前)";}
 	string replTextTo() {return "置換後";}
 	string replTextTarget() {return "置換対象";}
 	string replTextSummary() {return "貼り紙";}
@@ -203,12 +205,57 @@ public:
 	string replTextEndScenario() {return "終了印";}
 	string replTextAreaName() {return "エリア/バトル/パッケージ名";}
 	string replTextKeyCode() {return "キーコード";}
-	string replace() {return "置換";}
+	string search() {return "検索(&F)";}
+	string replace() {return "全て置換(&R)";}
 	string replaceExit() {return "閉じる";}
-	string dlgTitReplTextResult() {return "置換結果";}
-	string dlgMsgReplTextResult(size_t count) {
-		return count == 0 ? "置換対象が見つかりません。"
-			: to!(string)(count) ~ "箇所の置換を行いました。";
+	string searchResult(size_t count) {
+		return to!(string)(count) ~ "件の検索結果";
+	}
+	string replTextResult(size_t count) {
+		return to!(string)(count) ~ "箇所の置換";
+	}
+	string searchResultBgImage(BgImage back) {
+		return "背景画像 - " ~ back.path;
+	}
+	string searchResultIds(C)(C c) {
+		string name;
+		static if (is(C : Area)) {
+			name = "エリア";
+		} else static if (is(C : Battle)) {
+			name = "バトル";
+		} else static if (is(C : Package)) {
+			name = "パッケージ";
+		} else static if (is(C : CastCard)) {
+			name = "キャスト";
+		} else static if (is(C : SkillCard)) {
+			name = "スキル";
+		} else static if (is(C : ItemCard)) {
+			name = "アイテム";
+		} else static if (is(C : BeastCard)) {
+			name = "召喚獣";
+		} else static if (is(C : InfoCard)) {
+			name = "情報";
+		} else static assert (0);
+		return name ~ "(" ~ to!(string)(c.id) ~ ") - " ~ c.name;
+	}
+	string searchResultFlags(F)(F f) {
+		static if (is(F : Flag)) {
+			return "フラグ - " ~ f.path;
+		} else static if (is(F : Step)) {
+			return "ステップ - " ~ f.path;
+		} else static if (is(F : FlagDir)) {
+			return "ディレクトリ - " ~ f.path;
+		} else static assert (0);
+	}
+	string searchResultEventTree(EventTree evt) {
+		return "イベントツリー - " ~ evt.name;
+	}
+	string searchResultMenuCard(MenuCard c) {
+		return "メニューカード - " ~ c.name;
+	}
+	string searchResultEnemyCard(EnemyCard c, in Summary summ) {
+		auto card = summ.casts(c.id);
+		return "エネミーカード - " ~ (card ? card.name : "(対象無し)");
 	}
 
 	/// イベント設定。

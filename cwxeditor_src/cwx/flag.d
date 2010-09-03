@@ -192,6 +192,10 @@ public:
 	override string cwxPath() {
 		return cpjoin(_parent, "flag", indexOf!("a is b")(_parent.flags, this));
 	}
+	override CWXPath findCWXPath(string path) {
+		if (path == "") return this;
+		return null;
+	}
 }
 
 /// ステップ。
@@ -339,6 +343,10 @@ public:
 	override string cwxPath() {
 		return cpjoin(_parent, "step", indexOf!("a is b")(_parent.steps, this));
 	}
+	override CWXPath findCWXPath(string path) {
+		if (path == "") return this;
+		return null;
+	}
 }
 
 /// フラグ/ステップ、及びサブディレクトリを格納するディレクトリ。
@@ -376,6 +384,29 @@ public:
 			return cpjoin(_parent, "dir", indexOf!("a is b")(_parent.subDirs, this));
 		}
 		return "";
+	}
+	override CWXPath findCWXPath(string path) {
+		if (path == "") return this;
+		auto cate = cpcategory(path);
+		switch (cate) {
+		case "flag": {
+			auto index = cpindex(path);
+			if (index >= flags.length) return null;
+			return flags[index].findCWXPath(cpbottom(path));
+		}
+		case "step": {
+			auto index = cpindex(path);
+			if (index >= steps.length) return null;
+			return steps[index].findCWXPath(cpbottom(path));
+		}
+		case "dir": {
+			auto index = cpindex(path);
+			if (index >= subDirs.length) return null;
+			return subDirs[index].findCWXPath(cpbottom(path));
+		}
+		default: break;
+		}
+		return null;
 	}
 	/// 親ディレクトリ。
 	FlagDir parent() {

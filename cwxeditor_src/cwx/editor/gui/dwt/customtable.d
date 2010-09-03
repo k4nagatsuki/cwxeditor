@@ -1,6 +1,8 @@
 
 module cwx.editor.gui.dwt.customtable;
 
+import cwx.utils : debugln;
+
 import std.compat;
 
 import dwt.DWT;
@@ -130,14 +132,13 @@ class FullTableColumn {
 		auto trim = tbl.computeTrim(DWT.DEFAULT, DWT.DEFAULT, DWT.DEFAULT, DWT.DEFAULT);
 		int width = tbl.getSize.x;
 		foreach (c; tbl.getColumns) {
-			if (c !is this) {
+			if (c !is _column) {
 				width -= c.getWidth;
 			}
 		}
 		width += trim.x;
 		width -= trim.width;
 		_column.setWidth = _packWidth > width ? _packWidth : width;
-		tbl.removeListener(DWT.Resize, _rl);
 	}
 	private class RL : Listener {
 		override void handleEvent(Event e) {
