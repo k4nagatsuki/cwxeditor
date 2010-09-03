@@ -144,8 +144,18 @@ private:
 			bool expand = old.expandXMLs;
 			if (old.legacy) {
 				auto wsm = std.path.join(old.scenarioPath, "Summary.wsm");
-				bool legacy = true;
-				loadScenarioFromFile!(Summary)(_prop, _win, expand, old, wsm, &openScenario);
+				if (old.useTemp) {
+					try {
+						openScenario(old.reloadXMLs);
+					} catch (Exception e) {
+						debugln(e);
+						MessageBox.showWarning(_prop.msgs.reloadError
+							(_dataWin.summary.scenarioPath) ~ "\n" ~ e.msg,
+							_prop.msgs.dlgTitWarning, _win);
+					}
+				} else {
+					loadScenarioFromFile!(Summary)(_prop, _win, expand, old, wsm, &openScenario);
+				}
 			} else if (expand) {
 				try {
 					openScenario(old.reloadXMLs);
@@ -378,7 +388,11 @@ private:
 	void addHistory() {
 		string hist;
 		if (_dataWin.summary.legacy) {
-			hist = std.path.join(_dataWin.summary.scenarioPath, "Summary.wsm");
+			if (_dataWin.summary.useTemp) {
+				hist = _dataWin.summary.zipName;
+			} else {
+				hist = std.path.join(_dataWin.summary.scenarioPath, "Summary.wsm");
+			}
 		} else if (_dataWin.summary.useTemp) {
 			hist = _dataWin.summary.zipName;
 			if (!hist.length) return;
@@ -414,6 +428,9 @@ private:
 				text = cuthist(hist[0u .. $ - "Summary.wsm".length - std.path.sep.length],
 					_prop.var.etc.historySnipLength);
 				img = _prop.images.classic;
+			} else if (std.path.fnmatch(getExt(hist), "cab")) {
+				text = cuthist(hist, _prop.var.etc.historySnipLength);
+				img = _prop.images.scenarioArchive;
 			} else {
 				text = cuthist(hist, _prop.var.etc.historySnipLength);
 				img = _prop.images.unknown;

@@ -12,9 +12,7 @@ import cwx.usecounter;
 import cwx.props;
 import cwx.imagesize;
 import cwx.skin;
-version (Windows) {
-	import cwx.cab;
-}
+import cwx.cab;
 
 import cwx.editor.gui.sound;
 import cwx.editor.gui.dwt.images;
@@ -969,10 +967,8 @@ void addCastCoupons(Combo combo, Props prop, bool talker) {
 }
 
 string[] scenarioFilter() {
-	version (Windows) {
-		if (canUncab) {
-			return ["*.wsn;Summary.xml;*.cab;Summary.wsm"];
-		}
+	if (canUncab) {
+		return ["*.wsn;Summary.xml;*.cab;Summary.wsm"];
 	}
 	return ["*.wsn;Summary.xml;Summary.wsm"];
 }

@@ -863,7 +863,7 @@ private string __createF(bool Dir)(string parent, string name, string ext, strin
 	string r;
 	void create() {
 		r = prefix ~ name;
-		if (ext.length && Dir) r = addExt(r, ext);
+		if (ext.length) r = addExt(r, ext);
 		r = std.path.join(parent, r);
 		r = createNewFileName(r, Dir);
 		static if (Dir) {
@@ -892,7 +892,7 @@ string createFileI(string parent, string name, string ext, string prefix) {
 }
 /// ditto
 string createFolder(string parent, string name) {
-	return __createF!(true)(parent, name, null, "");
+	return __createF!(true)(parent, name, "", "");
 }
 
 /// ファイル削除の準備を行う。

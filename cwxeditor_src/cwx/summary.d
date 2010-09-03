@@ -19,9 +19,7 @@ import cwx.archive;
 import cwx.xml;
 import cwx.skin;
 import cwx.path;
-version (Windows) {
-	import cwx.cab;
-}
+import cwx.cab;
 
 public:
 
@@ -223,28 +221,26 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 			}
 			return temp;
 		}
-		version (Windows) {
-			string suncab(string fname) {
-				auto temp = createTempDir(tempPath, getBaseName(getName(fname)), false);
-				if (!.uncab(fname, temp)) {
-					delAll(temp);
-					return null;
-				}
-				auto ld = clistdir(temp);
-				if (ld.length == 1 && isdir(std.path.join(temp, ld[0]))) {
-					// ディレクトリを一つ挟んでいるのでtempPath直下に移動
-					string temp2 = createNewFileName(std.path.join(tempPath, ld[0]), true);
-					.rename(std.path.join(temp, ld[0]), temp2);
-					delAll(temp);
-					temp = temp2;
-				}
-				if (!.exists(std.path.join(temp, "Summary.wsm"))) {
-					delAll(temp);
-					return null;
-				}
-				createLockFile(temp);
-				return temp;
+		string suncab(string fname) {
+			auto temp = createTempDir(tempPath, getBaseName(getName(fname)), false);
+			if (!.uncab(fname, temp)) {
+				delAll(temp);
+				return null;
 			}
+			auto ld = clistdir(temp);
+			if (ld.length == 1 && isdir(std.path.join(temp, ld[0]))) {
+				// ディレクトリを一つ挟んでいるのでtempPath直下に移動
+				string temp2 = createNewFileName(std.path.join(tempPath, ld[0]), true);
+				.rename(std.path.join(temp, ld[0]), temp2);
+				delAll(temp);
+				temp = temp2;
+			}
+			if (!.exists(std.path.join(temp, "Summary.wsm"))) {
+				delAll(temp);
+				return null;
+			}
+			createLockFile(temp);
+			return temp;
 		}
 		S load(string p) {
 			S r;
@@ -278,28 +274,24 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 						r._legacy = true;
 						r._zipName = "";
 						return r;
-					}
-					version (Windows) {
-						if (fnmatch(getExt(fname), "cab")) {
-							string fn = suncab(fname);
-							if (fn) {
-								try {
-									S r = loadLegacy(fn);
-									r._expandXMLs = false;
-									r._useTemp = true;
-									r._legacy = true;
-									r._zipName = fname;
-									r.lock;
-									return r;
-								} catch (Exception e) {
-									delAll(fn);
-									throw e;
-								}
+ 					} else if (canUncab && fnmatch(getExt(fname), "cab")) {
+						string fn = suncab(fname);
+						if (fn) {
+							try {
+								S r = loadLegacy(fn);
+								r._expandXMLs = false;
+								r._useTemp = true;
+								r._legacy = true;
+								r._zipName = fname;
+								r.lock;
+								return r;
+							} catch (Exception e) {
+								delAll(fn);
+								throw e;
 							}
-							throw new SummaryException(prop.msgs.notScenario(fname));
 						}
-					}
-					if (fnmatch(getBaseName(fname), "Summary.xml")) {
+						throw new SummaryException(prop.msgs.notScenario(fname));
+					} else if (fnmatch(getBaseName(fname), "Summary.xml")) {
 						expand = true;
 						auto r = load(getDirName(fname));
 						r._expandXMLs = true;
@@ -362,6 +354,7 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 	void delTemp() {
 		if (useTemp) {
 			_lock.close;
+			_lock = null;
 			try {
 				delAll(scenarioPath, true);
 				_useTemp = false;
@@ -549,9 +542,7 @@ public:
 	}
 
 	/// 圧縮して保存した事を通知する。
-	private void toArchive(string zipName, string scenarioPath, bool expandXMLs) in {
-		assert (_zipName == "");
-	} body {
+	private void toArchive(string zipName, string scenarioPath, bool expandXMLs) {
 		_expandXMLs = expandXMLs;
 		_useTemp = true;
 		_zipName = zipName;
@@ -1162,15 +1153,20 @@ public:
 		return summ;
 	}
 
-	/// XMLファイルを再読込し、新しいSummaryを生成して返す。
+	/// XMLファイルまたはクラシックなシナリオを再読込し、新しいSummaryを生成して返す。
 	Summary reloadXMLs() {
-		auto summ = summaryFromXML(scenarioPath,
-			cast(string) std.file.read(std.path.join(scenarioPath, "Summary.xml")));
+		Summary summ;
+		if (legacy) {
+			summ = loadLScenario!(S)(scenarioPath, "MedievalFantasy");
+		} else {
+			summ = summaryFromXML(scenarioPath,
+				cast(string) std.file.read(std.path.join(scenarioPath, "Summary.xml")));
+			fromXMLs(summ);
+		}
 		summ._expandXMLs = expandXMLs;
 		summ._zipName = zipName;
 		summ._useTemp = useTemp;
 		summ._legacy = legacy;
-		fromXMLs(summ);
 		if (useTemp) {
 			summ._lock = _lock;
 		}
@@ -1262,6 +1258,9 @@ public:
 		auto mt = std.path.join(temp, toSkin.materialPath);
 		mkdir(mt);
 		foreach (file; clistdir(scenarioPath)) {
+			if (fnmatch(file, "cwxeditor.lock")) {
+				continue;
+			}
 			auto p = std.path.join(scenarioPath, file);
 			try {
 				if (isdir(p)) {
@@ -1321,6 +1320,7 @@ public:
 				showWarn(prop.msgs.fileCopyError(fail));
 			}
 			scope (failure) delAll(temp);
+			delTemp;
 			saveProc(prop, true, fname, temp, true, defExpandXMLs);
 		} else if (useTemp) {
 			// 新しいアーカイブを作成
