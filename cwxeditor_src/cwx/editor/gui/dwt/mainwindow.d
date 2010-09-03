@@ -105,7 +105,6 @@ private:
 			string name = dlg.name;
 			string skinName = dlg.skinName;
 			_comm.closeAll;
-			if (_replDlg) _replDlg.widget.close;
 			auto p = Summary.createTempDir(_prop.tempPath, name);
 			_dataWin.create(p, name, skinName);
 			if (_dataWin.summary.expandXMLs) {
@@ -113,6 +112,7 @@ private:
 			}
 			_cardWin.refresh(_dataWin.summary);
 			_dirWin.refresh(_dataWin.summary);
+			if (_replDlg) _replDlg.summary = _dataWin.summary;
 			__refreshTitle;
 			if (old) old.delTemp;
 			if (_prop.var.dataWin.visible) _dataWin.open;
@@ -174,10 +174,10 @@ private:
 			summ.type = _prop.var.etc.defaultSkin;
 		}
 		_comm.closeAll;
-		if (_replDlg) _replDlg.widget.close;
 		_dataWin.load(summ);
 		_cardWin.refresh(summ);
 		_dirWin.refresh(summ);
+		if (_replDlg) _replDlg.summary = summ;
 		_comm.refScenarioName.call;
 		_comm.refScenarioPath.call;
 		if (_prop.var.dataWin.visible) _dataWin.open;

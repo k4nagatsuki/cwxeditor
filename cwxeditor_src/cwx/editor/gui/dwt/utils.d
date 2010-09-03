@@ -12,6 +12,9 @@ import cwx.usecounter;
 import cwx.props;
 import cwx.imagesize;
 import cwx.skin;
+version (Windows) {
+	import cwx.cab;
+}
 
 import cwx.editor.gui.sound;
 import cwx.editor.gui.dwt.images;
@@ -965,10 +968,19 @@ void addCastCoupons(Combo combo, Props prop, bool talker) {
 	}
 }
 
+string[] scenarioFilter() {
+	version (Windows) {
+		if (canUncab) {
+			return ["*.wsn;Summary.xml;*.cab;Summary.wsm"];
+		}
+	}
+	return ["*.wsn;Summary.xml;Summary.wsm"];
+}
+
 S[] loadScenarios(S)(Props prop, Shell w, bool expandXMLs, string dlgTitle, void delegate (S[]) loaded = null, bool oThr = true) {
 	auto dlg = new FileDialog(w, DWT.PRIMARY_MODAL | DWT.APPLICATION_MODAL | DWT.MULTI | DWT.OPEN);
 	scope (exit) dlg.dispose;
-	dlg.setFilterExtensions = ["*.wsn;Summary.xml;Summary.wsm"];
+	dlg.setFilterExtensions = scenarioFilter;
 	dlg.setFilterNames = [prop.msgs.filterScenario];
 	dlg.setText = dlgTitle;
 	dlg.setFilterPath = scenarioFilterPath(prop);
@@ -1119,7 +1131,7 @@ string scenarioFilterPath(Props prop) {
 S loadScenario(S)(Props prop, Shell w, bool expandXMLs, S old, string dlgTitle, void delegate (S) loaded = null, bool oThr = true) {
 	auto dlg = new FileDialog(w, DWT.PRIMARY_MODAL | DWT.APPLICATION_MODAL | DWT.SINGLE | DWT.OPEN);
 	scope (exit) dlg.dispose;
-	dlg.setFilterExtensions = ["*.wsn;Summary.xml;Summary.wsm"];
+	dlg.setFilterExtensions = scenarioFilter;
 	dlg.setFilterNames = [prop.msgs.filterScenario];
 	dlg.setText = dlgTitle;
 	dlg.setFilterPath = scenarioFilterPath(prop);

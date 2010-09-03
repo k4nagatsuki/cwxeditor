@@ -139,6 +139,10 @@ public:
 	Shell widget() {
 		return _win;
 	}
+	void summary(Summary summ) {
+		_summ = summ;
+		_result.removeAll;
+	}
 
 	private void setup() {
 		auto area = _win;

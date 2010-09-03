@@ -19,6 +19,9 @@ import cwx.archive;
 import cwx.xml;
 import cwx.skin;
 import cwx.path;
+version (Windows) {
+	import cwx.cab;
+}
 
 public:
 
@@ -170,7 +173,7 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 	/// XMLファイルを展開しているか。
 	bool expandXMLs() {return _expandXMLs;}
 	/// 現在のscenarioPathは一時展開先か。
-	bool useTemp() {return _useTemp && !_legacy;}
+	bool useTemp() {return _useTemp;}
 	/// 元の圧縮ファイル名は何か。圧縮されていないシナリオの場合は""。
 	string zipName() {return _zipName;}
 	/// ditto
@@ -180,13 +183,16 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 
 	alias typeof(this) S;
 
-	static string createTempDir(string tempPath, string name) {
+	static string createTempDir(string tempPath, string name, bool createLockFile = true) {
 		string base = cwx.utils.toHex(name);
 		base = base.length > 15 ? base[0 .. 15] : base;
 		auto temp = createNewFileName(std.path.join(tempPath, base), true);
 		mkdirRecurse(temp);
-		std.file.write(std.path.join(temp, "cwxeditor.lock"), []);
+		if (createLockFile) typeof(this).createLockFile(temp);
 		return temp;
+	}
+	static void createLockFile(string temp) {
+		std.file.write(std.path.join(temp, "cwxeditor.lock"), []);
 	}
 
 	static S loadScenarioFromFile(CProps prop, string fname, bool expand, string tempPath, S old,
@@ -216,6 +222,29 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 				}, setMax, worked);
 			}
 			return temp;
+		}
+		version (Windows) {
+			string suncab(string fname) {
+				auto temp = createTempDir(tempPath, getBaseName(getName(fname)), false);
+				if (!.uncab(fname, temp)) {
+					delAll(temp);
+					return null;
+				}
+				auto ld = clistdir(temp);
+				if (ld.length == 1 && isdir(std.path.join(temp, ld[0]))) {
+					// ディレクトリを一つ挟んでいるのでtempPath直下に移動
+					string temp2 = createNewFileName(std.path.join(tempPath, ld[0]), true);
+					.rename(std.path.join(temp, ld[0]), temp2);
+					delAll(temp);
+					temp = temp2;
+				}
+				if (!.exists(std.path.join(temp, "Summary.wsm"))) {
+					delAll(temp);
+					return null;
+				}
+				createLockFile(temp);
+				return temp;
+			}
 		}
 		S load(string p) {
 			S r;
@@ -249,7 +278,28 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 						r._legacy = true;
 						r._zipName = "";
 						return r;
-					} else if (fnmatch(getBaseName(fname), "Summary.xml")) {
+					}
+					version (Windows) {
+						if (fnmatch(getExt(fname), "cab")) {
+							string fn = suncab(fname);
+							if (fn) {
+								try {
+									S r = loadLegacy(fn);
+									r._expandXMLs = false;
+									r._useTemp = true;
+									r._legacy = true;
+									r._zipName = fname;
+									r.lock;
+									return r;
+								} catch (Exception e) {
+									delAll(fn);
+									throw e;
+								}
+							}
+							throw new SummaryException(prop.msgs.notScenario(fname));
+						}
+					}
+					if (fnmatch(getBaseName(fname), "Summary.xml")) {
 						expand = true;
 						auto r = load(getDirName(fname));
 						r._expandXMLs = true;
