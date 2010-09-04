@@ -166,6 +166,7 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 	private bool _useTemp = true;
 	private File _lock = null;
 	private string _zipName = "";
+	private string _tempPath = "";
 	private bool _legacy = false;
 
 	/// XMLファイルを展開しているか。
@@ -221,21 +222,19 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 			}
 			return temp;
 		}
-		string suncab(string fname) {
+		string suncab(string fname, out string summPath) {
 			auto temp = createTempDir(tempPath, getBaseName(getName(fname)), false);
 			if (!.uncab(fname, temp)) {
 				delAll(temp);
 				return null;
 			}
+			summPath = temp;
 			auto ld = clistdir(temp);
 			if (ld.length == 1 && isdir(std.path.join(temp, ld[0]))) {
-				// ディレクトリを一つ挟んでいるのでtempPath直下に移動
-				string temp2 = createNewFileName(std.path.join(tempPath, ld[0]), true);
-				.rename(std.path.join(temp, ld[0]), temp2);
-				delAll(temp);
-				temp = temp2;
+				// ディレクトリを一つ挟んでいる
+				summPath = std.path.join(temp, ld[0]);
 			}
-			if (!.exists(std.path.join(temp, "Summary.wsm"))) {
+			if (!.exists(std.path.join(summPath, "Summary.wsm"))) {
 				delAll(temp);
 				return null;
 			}
@@ -275,14 +274,16 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 						r._zipName = "";
 						return r;
  					} else if (canUncab && fnmatch(getExt(fname), "cab")) {
-						string fn = suncab(fname);
+ 						string summPath;
+						string fn = suncab(fname, summPath);
 						if (fn) {
 							try {
-								S r = loadLegacy(fn);
+								S r = loadLegacy(summPath);
 								r._expandXMLs = false;
 								r._useTemp = true;
 								r._legacy = true;
 								r._zipName = fname;
+								r._tempPath = fn;
 								r.lock;
 								return r;
 							} catch (Exception e) {
@@ -356,9 +357,10 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 			_lock.close;
 			_lock = null;
 			try {
-				delAll(scenarioPath, true);
+				delAll(_tempPath.length ? _tempPath : scenarioPath, true);
 				_useTemp = false;
 				_zipName = null;
+				_tempPath = "";
 			} catch (Exception e) {
 				debugln(e.toString);
 				lock;
