@@ -183,7 +183,8 @@ private:
 
 	bool isDef(string p, bool isDir) {
 		if (_summ.legacy) {
-			return std.path.fnmatch(getExt(p), "wid") || std.path.fnmatch(getExt(p), "wsm");
+			return std.path.fnmatch(getExt(p), "wid") || std.path.fnmatch(getExt(p), "wsm")
+				|| (_summ.useTemp && std.path.fnmatch(getBaseName(p), "cwxeditor.lock"));
 		} else {
 			string fl = getBaseName(p);
 			if (isDir) {
