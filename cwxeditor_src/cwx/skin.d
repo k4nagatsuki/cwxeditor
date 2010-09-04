@@ -56,7 +56,7 @@ class Skin {
 	static Skin legacySkin(CProps prop, string enginePath, string sPath) {
 		string resDir, lEnginePath;
 		findLegacy(sPath, resDir, lEnginePath);
-		resDir = nabs(resDir);
+		resDir = resDir.length ? nabs(resDir) : "";
 		lEnginePath = nabs(lEnginePath);
 		auto p = resDir in lSkins;
 		if (p) {

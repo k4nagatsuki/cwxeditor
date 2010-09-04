@@ -1347,6 +1347,12 @@ public:
 			bool expand = false;
 			if (legacy && !legacyToX) {
 				saveLScenario(this);
+				if (useTemp) {
+					.cab(temp, zipName, null, (string file) {
+						return !fnmatch(getBaseName(file), "cwxeditor.lock");
+					});
+					_zipName = zipName;
+				}
 			} else if (archive || useTemp || legacyToX) {
 				auto oldPath = scenarioPath;
 				if (expandXMLs) {

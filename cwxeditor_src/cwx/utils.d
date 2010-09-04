@@ -1036,22 +1036,35 @@ class HashSet(T) {
 }
 
 version (Windows) {
+	private const STARTF_USESHOWWINDOW = 0x01;
+	private const CREATE_NEW_CONSOLE = 0x10;
+
 	/// プロセスを起動する。成功した場合はtrueを返す。
-	bool exec(string process, string workDir = "") {
+	bool exec(string process, string workDir = "", bool console = true, bool wait = false) {
 		STARTUPINFO setup;
 		setup.cb = setup.sizeof;
 		memset(&setup, 0, setup.sizeof);
 		PROCESS_INFORMATION info;
 
+		DWORD flag = 0;
+		if (!console) {
+			setup.dwFlags = STARTF_USESHOWWINDOW;
+			setup.wShowWindow = SW_HIDE;
+			flag |= CREATE_NEW_CONSOLE;
+		}
+
 		int r;
 		if (GetVersion < 0x80000000) {
-			r = CreateProcessW(null, toUTF16z(process), null, null, false, 0, null,
+			r = CreateProcessW(null, toUTF16z(process), null, null, false, flag, null,
 				workDir.length ? toUTF16z(workDir) : null, &setup, &info);
 		} else {
-			r = CreateProcessA(null, toStringz(process), null, null, false, 0, null,
+			r = CreateProcessA(null, toStringz(process), null, null, false, flag, null,
 				workDir.length ? toStringz(workDir) : null, &setup, &info);
 		}
 		if (r) {
+			if (wait) {
+				WaitForSingleObject(info.hProcess, INFINITE);
+			}
 			CloseHandle(info.hThread);
 			return true;
 		}
@@ -1067,7 +1080,7 @@ version (Windows) {
 	import std.process;
 	/// プロセスを起動する。成功した場合はtrueを返す。
 	/// FIXME: まったくテストしていない
-	bool exec(string process, string workDir = "") {
+	bool exec(string process, string workDir = "", bool console = true, bool wait = false) {
 		auto pid = fork;
 		if (pid < 0) {
 			return false;
