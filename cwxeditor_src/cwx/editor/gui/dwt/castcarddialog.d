@@ -51,11 +51,16 @@ import dwt.widgets.Menu;
 import dwt.widgets.MenuItem;
 import dwt.layout.GridLayout;
 import dwt.layout.GridData;
+import dwt.layout.RowLayout;
+import dwt.layout.RowData;
+import dwt.layout.FillLayout;
 import dwt.graphics.Image;
 import dwt.events.DisposeListener;
 import dwt.events.DisposeEvent;
 import dwt.events.SelectionAdapter;
 import dwt.events.SelectionEvent;
+import dwt.events.ModifyListener;
+import dwt.events.ModifyEvent;
 import dwt.dwthelper.utils;
 import dwt.dnd.DND;
 import dwt.dnd.DragSourceAdapter;
@@ -112,6 +117,20 @@ private:
 	Scale[Mental] _mtl;
 	int[Enhance] _enhTbl;
 	RadarSpinner _enh;
+
+	Spinner _life;
+	Button _lifeUseMax;
+	Spinner[Enhance] _liveEnh;
+	Spinner[Enhance] _enhRound;
+	Spinner _paralyze;
+	Spinner _poison;
+	Spinner _bind;
+	Spinner _silence;
+	Spinner _faceUp;
+	Spinner _antiMagic;
+	Mentality[int] _mtlyTbl;
+	Combo _mtly;
+	Spinner _mtlyRound;
 
 	Race selectedRace() {
 		if (_race) {
@@ -409,6 +428,7 @@ private:
 				_lifeMax.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				_lifeMax.setMinimum = 1;
 				_lifeMax.setMaximum = _prop.looks.lifeMax;
+				_lifeMax.addModifyListener(new LifeMaxL);
 				auto hint = new Label(comp2, DWT.RIGHT);
 				hint.setText = _prop.msgs.rangeHint(1, _prop.looks.lifeMax);
 				auto lifec = new Button(comp2, DWT.PUSH);
@@ -444,6 +464,17 @@ private:
 		auto tab = new TabItem(tabf, DWT.NONE);
 		tab.setText = _prop.msgs.card;
 		tab.setControl = comp;
+	}
+	void setMaxLife() {
+		_life.setMaximum = _lifeMax.getSelection;
+		if (_lifeUseMax.getSelection) {
+			_life.setSelection = _lifeMax.getSelection;
+		}
+	}
+	class LifeMaxL : ModifyListener {
+		public override void modifyText(ModifyEvent e) {
+			setMaxLife;
+		}
 	}
 	void constructDesc(TabFolder tabf) {
 		auto comp = new Composite(tabf, DWT.NONE);
@@ -606,7 +637,8 @@ private:
 		tab.setText = _prop.msgs.makings;
 		tab.setControl = comp;
 	}
-	Composite createButtonGroup(Composite parent, string name, int row, int horSpan = 1, bool min = false) {
+	Composite createButtonGroup(Composite parent, string name,
+			int row, int horSpan = 1, bool min = false) {
 		auto grp = new Group(parent, DWT.NONE);
 		grp.setText = name;
 		auto gd = new GridData(GridData.FILL_BOTH);
@@ -888,6 +920,198 @@ private:
 		tab.setText = _prop.msgs.castEnhance;
 		tab.setControl = comp;
 	}
+	void constructStatus(TabFolder tabf) {
+		auto comp = new Composite(tabf, DWT.NONE);
+		comp.setLayout = new GridLayout(1, false);
+		Label[] lbls1, lbls2;
+		Composite[] spns;
+		Spinner createSpn(Composite comp) {
+			// なぜかCompositeを挟まなければSpinner#computeSize()が大きめの値を返す
+			Composite comp2 = new Composite(comp, DWT.NONE);
+			comp2.setLayout = new FillLayout;
+			auto spn = new Spinner(comp2, DWT.BORDER);
+			spns ~= comp2;
+			return spn;
+		}
+		Composite createGrp(string text) {
+			auto grp = new Group(comp, DWT.NONE);
+			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
+			auto gl = new GridLayout(2, false);
+			gl.horizontalSpacing = 15;
+			grp.setLayout = gl;
+			grp.setText = text;
+			return grp;
+		}
+		Composite createComp(Composite grp) {
+			auto comp2 = new Composite(grp, DWT.NONE);
+			comp2.setLayoutData = new GridData(GridData.FILL_BOTH);
+			auto rl = new RowLayout(DWT.HORIZONTAL);
+			rl.center = true;
+			rl.marginLeft = 0;
+			rl.marginRight = 0;
+			rl.marginTop = 0;
+			rl.marginBottom = 0;
+			comp2.setLayout = rl;
+			return comp2;
+		}
+		{
+			auto grp = createGrp(_prop.msgs.lifeAndMentality);
+			{
+				auto comp2 = createComp(grp);
+				auto l = new Label(comp2, DWT.NONE);
+				l.setText = _prop.msgs.life;
+				lbls1 ~= l;
+				_life = new Spinner(comp2, DWT.BORDER);
+				_lifeUseMax = new Button(comp2, DWT.CHECK);
+				_lifeUseMax.setText = _prop.msgs.useMax;
+				_lifeUseMax.addSelectionListener(new LifeUseMax);
+			}
+			{
+				auto comp2 = createComp(grp);
+				auto lm = new Label(comp2, DWT.NONE);
+				lm.setText = _prop.msgs.mentality;
+				lbls1 ~= lm;
+				_mtly = new Combo(comp2, DWT.BORDER | DWT.DROP_DOWN | DWT.READ_ONLY);
+				_mtly.setVisibleItemCount = 20;
+				foreach (i, mtly; [Mentality.NORMAL, Mentality.PANIC, Mentality.BRAVE,
+						Mentality.OVERHEAT, Mentality.CONFUSE, Mentality.SLEEP]) {
+					_mtly.add(_prop.msgs.mentality(mtly));
+					_mtlyTbl[i] = mtly;
+					if (_card && _card.mentality is mtly) {
+						_mtly.select = i;
+					}
+				}
+				if (_mtly.getSelectionIndex < 0) _mtly.select = 0;
+				_mtly.addSelectionListener(new SelMentality);
+				_mtlyRound = createSpn(comp2);
+				_mtlyRound.setMaximum = _prop.looks.roundMax;
+				_mtlyRound.setMinimum = 0;
+				spns ~= _mtlyRound;
+				auto lm2  = new Label(comp2, DWT.NONE);
+				lm2.setText = _prop.msgs.unitRound;
+			}
+		}
+		{
+			auto grp = createGrp(_prop.msgs.enhanceLiveBonus);
+			foreach (enh; [Enhance.ACTION, Enhance.AVOID, Enhance.RESIST, Enhance.DEFENSE]) {
+				auto comp2 = createComp(grp);
+				auto l = new Label(comp2, DWT.NONE);
+				l.setText = _prop.msgs.enhanceLiveBonus(enh);
+				lbls1 ~= l;
+				auto spn = createSpn(comp2);
+				spn.setMaximum = _prop.looks.enhanceMax;
+				spn.setMinimum = -(cast(int) _prop.looks.enhanceMax);
+				spns ~= spn;
+				_liveEnh[enh] = spn;
+				auto rnd = createSpn(comp2);
+				rnd.setMaximum = _prop.looks.roundMax;
+				rnd.setMinimum = 0;
+				spns ~= rnd;
+				_enhRound[enh] = rnd;
+				auto l2  = new Label(comp2, DWT.NONE);
+				l2.setText = _prop.msgs.unitRound;
+				spn.addSelectionListener(new LiveEnh);
+			}
+		}
+		Spinner createStSpn(Composite grp, string name, uint max, string val) {
+			auto comp2 = createComp(grp);
+			auto l = new Label(comp2, DWT.NONE);
+			l.setText = name;
+			lbls1 ~= l;
+			auto spn = createSpn(comp2);
+			spn.setMaximum = max;
+			spn.setMinimum = 0;
+			spns ~= spn;
+			auto l2  = new Label(comp2, DWT.NONE);
+			l2.setText = val;
+			lbls2 ~= l2;
+			return spn;
+		}
+		{
+			auto grp = createGrp(_prop.msgs.status);
+			_paralyze = createStSpn(grp, _prop.msgs.silence, _prop.looks.paralyzeMax, _prop.msgs.unitValue);
+			_poison = createStSpn(grp, _prop.msgs.bind, _prop.looks.poisonMax, _prop.msgs.unitValue);
+			_bind = createStSpn(grp, _prop.msgs.bind, _prop.looks.roundMax, _prop.msgs.unitRound);
+			_silence = createStSpn(grp, _prop.msgs.silence, _prop.looks.roundMax, _prop.msgs.unitRound);
+			_faceUp = createStSpn(grp, _prop.msgs.faceUp, _prop.looks.roundMax, _prop.msgs.unitRound);
+			_antiMagic = createStSpn(grp, _prop.msgs.antiMagic, _prop.looks.roundMax, _prop.msgs.unitRound);
+		}
+		void setlblw(Control[] lbls) {
+			int maxW = 0;
+			foreach (lbl; lbls) {
+				int w = lbl.computeSize(DWT.DEFAULT, DWT.DEFAULT).x;
+				if (maxW < w) maxW = w;
+			}
+			foreach (lbl; lbls) {
+				auto gd = new RowData(maxW, DWT.DEFAULT);
+				lbl.setLayoutData = gd;
+			}
+		}
+		setlblw(cast(Control[]) lbls1);
+		setlblw(cast(Control[]) lbls2);
+		setlblw(cast(Control[]) spns);
+		{
+			auto reset = new Button(comp, DWT.PUSH);
+			reset.setText = _prop.msgs.resetLiveStatus;
+			reset.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
+			reset.addSelectionListener(new ResetLiveStatus);
+		}
+		auto tab = new TabItem(tabf, DWT.NONE);
+		tab.setText = _prop.msgs.liveStatus;
+		tab.setControl = comp;
+	}
+	class LiveEnh : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			changeLiveEnhance;
+		}
+	}
+	class SelMentality : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			changeMentality;
+		}
+	}
+	class LifeUseMax : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			changeLifeUseMax;
+		}
+	}
+	class ResetLiveStatus : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			resetLiveStatus;
+		}
+	}
+	void changeLiveEnhance() {
+		foreach (enh, spn; _liveEnh) {
+			_enhRound[enh].setEnabled = spn.getSelection != 0;
+		}
+	}
+	void changeMentality() {
+		_mtlyRound.setEnabled = _mtly.getSelectionIndex != 0;
+	}
+	void changeLifeUseMax() {
+		_life.setEnabled = !_lifeUseMax.getSelection;
+	}
+	void resetLiveStatus() {
+		_life.setSelection = _lifeMax.getSelection;
+		_lifeUseMax.setSelection = true;
+		foreach (enh, spn; _liveEnh) {
+			spn.setSelection = 0;
+		}
+		foreach (enh, spn; _enhRound) {
+			spn.setSelection = 0;
+		}
+		_paralyze.setSelection = 0;
+		_poison.setSelection = 0;
+		_bind.setSelection = 0;
+		_silence.setSelection = 0;
+		_faceUp.setSelection = 0;
+		_antiMagic.setSelection = 0;
+		_mtly.select = 0;
+		_mtlyRound.setSelection = 0;
+		changeLiveEnhance;
+		changeMentality;
+		changeLifeUseMax;
+	}
 public:
 	this(Commons comm, Props prop, Shell shell, Summary summ, CastCard card) {
 		assert (summ !is null);
@@ -922,6 +1146,7 @@ protected:
 		constructPhysical(tabf);
 		constructMental(tabf);
 		constructEnhance(tabf);
+		constructStatus(tabf);
 
 		// Windows Vistaだとタブの横幅が凄いことになったので必要最低限にする。
 		scope maxSize = new Point(0, 0);
@@ -1012,6 +1237,25 @@ protected:
 			foreach (enh, i; _enhTbl) {
 				_enh.setValue(i, _card.defaultEnhance(enh));
 			}
+
+			_life.setSelection = _card.life;
+			_lifeUseMax.setSelection = _card.life == _card.lifeMax;
+			foreach (enh, spn; _liveEnh) {
+				spn.setSelection = _card.enhance(enh);
+			}
+			foreach (enh, spn; _enhRound) {
+				spn.setSelection = _card.enhanceRound(enh);
+			}
+			_paralyze.setSelection = _card.paralyze;
+			_poison.setSelection = _card.poison;
+			_bind.setSelection = _card.bindRound;
+			_silence.setSelection = _card.silenceRound;
+			_faceUp.setSelection = _card.faceUpRound;
+			_antiMagic.setSelection = _card.antiMagicRound;
+			_mtlyRound.setSelection = _card.mentalityRound;
+			changeLiveEnhance;
+			changeMentality;
+			changeLifeUseMax;
 		} else {
 			_imgPath.image = "";
 			if (_race) _race.select = 0;
@@ -1029,7 +1273,10 @@ protected:
 			bonus.length = _enh.paramCount;
 			bonus[] = 0;
 			_enh.setValues(bonus);
+
+			resetLiveStatus;
 		}
+		setMaxLife;
 		return area;
 	}
 
@@ -1099,6 +1346,25 @@ protected:
 				foreach (enh, i; _enhTbl) {
 					_card.defaultEnhance(enh, _enh.getValue(i));
 				}
+
+				_card.life = _lifeUseMax.getSelection ? _card.lifeMax : _life.getSelection;
+				foreach (enh, spn; _liveEnh) {
+					_card.enhance(enh, spn.getSelection);
+				}
+				foreach (enh, spn; _enhRound) {
+					if (_card.enhance(enh) != 0) {
+						_card.enhanceRound(enh, spn.getSelection);
+					}
+				}
+				_card.paralyze = _paralyze.getSelection;
+				_card.poison = _poison.getSelection;
+				_card.bindRound = _bind.getSelection;
+				_card.silenceRound = _silence.getSelection;
+				_card.faceUpRound = _faceUp.getSelection;
+				_card.antiMagicRound = _antiMagic.getSelection;
+				_card.mentality = _mtlyTbl[_mtly.getSelectionIndex];
+				_card.mentalityRound = _card.mentality == Mentality.NORMAL
+					? 0 : _mtlyRound.getSelection;
 			} else {
 				buttonId = IDialogConstants.CANCEL_ID;
 			}

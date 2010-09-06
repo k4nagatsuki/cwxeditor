@@ -1252,6 +1252,21 @@ public:
 			return "防御";
 		}
 	}
+	string mentality() {
+		return "精神状態";
+	}
+	string mentality(Mentality m) {
+		switch (m) {
+		case Mentality.NORMAL: return "正常";
+		case Mentality.SLEEP: return "睡眠";
+		case Mentality.CONFUSE: return "混乱";
+		case Mentality.OVERHEAT: return "激昂";
+		case Mentality.BRAVE: return "勇敢";
+		case Mentality.PANIC: return "恐慌";
+		default: assert (0);
+		}
+	}
+
 	string enhanceBonus(Enhance r) {
 		return enhance(r) ~ "ボーナス";
 	}
@@ -1449,6 +1464,30 @@ public:
 	string mentalCalc() {return "標準値";}
 	string castEnhance() {return "能力修正";}
 	string basicEnhance() {return "標準値";}
+
+	string liveStatus() {return "初期状態";}
+	string lifeAndMentality() {return "体力と精神状態";}
+	string enhanceLiveBonus() {return "能力ボーナス/ペナルティ";}
+	string enhanceLiveBonus(Enhance enh) {
+		switch (enh) {
+		case Enhance.ACTION: return "行動";
+		case Enhance.AVOID: return "回避";
+		case Enhance.RESIST: return "抵抗";
+		case Enhance.DEFENSE: return "防御";
+		default: assert (0);
+		}
+	}
+	string useMax() {return "最大値を使用";}
+	string status() {return "異常状態";}
+	string paralyze() {return "麻痺/石化";}
+	string poison() {return "中毒";}
+	string bind() {return "呪縛";}
+	string silence() {return "沈黙";}
+	string faceUp() {return "暴露";}
+	string antiMagic() {return "魔法無効";}
+	string unitValue() {return "点";}
+	string unitRound() {return "ラウンド";}
+	string resetLiveStatus() {return "通常状態に戻す";}
 
 	string needSpellGroup() {return "発声による発動";}
 	string needSpell() {return "沈黙時に使用不可";}
@@ -1695,6 +1734,9 @@ public:
 	uint motionValueMax() {return 999;}
 	uint moneyMax() {return priceMax;}
 	uint waitMax() {return 1000;}
+	uint roundMax() {return 999;}
+	uint paralyzeMax() {return 40;}
+	uint poisonMax() {return 40;}
 
 	uint transitionSpeedMax() {return 10;}
 	uint transitionSpeedDef() {return 5;}
