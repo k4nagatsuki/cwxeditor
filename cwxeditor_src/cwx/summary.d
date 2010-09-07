@@ -1350,7 +1350,7 @@ public:
 			if (legacy && !legacyToX) {
 				saveLScenario(this);
 				if (useTemp) {
-					.cab(temp, zipName, null, (string file) {
+					.cab(temp, zipName, (string file) {
 						return !fnmatch(getBaseName(file), "cwxeditor.lock");
 					});
 					_zipName = zipName;
