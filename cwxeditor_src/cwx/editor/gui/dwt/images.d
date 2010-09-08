@@ -5,6 +5,7 @@ import cwx.utils;
 import cwx.props;
 
 import cwx.editor.gui.dwt.utils;
+import cwx.editor.gui.dwt.props;
 
 import std.math;
 import std.file;
@@ -19,6 +20,7 @@ import dwt.widgets.Composite;
 import dwt.widgets.Control;
 import dwt.widgets.Listener;
 import dwt.widgets.Event;
+import dwt.graphics.Color;
 import dwt.graphics.Device;
 import dwt.graphics.GC;
 import dwt.graphics.Image;
@@ -67,13 +69,21 @@ public enum Toggle {
 /// 画像を重ねて1枚のイメージを作成する。
 public class PileImage {
 private:
+	public enum TPos {
+		LEFT,
+		RIGHT
+	}
 	struct AppImg {
 		CInsets insets;
 		string path = "";
+		string text = "";
 		ImageData data = null;
 		bool transparent;
 		int maskX;
 		int maskY;
+		CFont font;
+		CRGB fontColor;
+		TPos textPos = TPos.LEFT;
 	}
 	string _title = null;
 	FontData titFont = null;
@@ -173,16 +183,33 @@ public:
 		append.maskY = maskY;
 		appends ~= append;
 	}
-	/// 前面に画像を追加する。
-	/// Params:
-	/// data = 画像のデータ。
-	/// insets = 内側の隙間。
-	/// See_Also: createImage();
+	/// ditto
 	void append(ImageData data, CInsets insets) {
 		AppImg append;
 		append.insets = insets;
 		append.data = data;
 		appends ~= append;
+	}
+	/// ditto
+	void append(ImageData data, CPoint point) {
+		append(data, CInsets(point.y,
+			initW - (point.x + data.width),
+			initH - (point.y + data.height),
+			point.x));
+	}
+	/// 前面に文字列を追加する。
+	void append(string text, CInsets insets, CFont font, CRGB fontColor, TPos pos = TPos.LEFT) {
+		AppImg append;
+		append.text = text;
+		append.insets = insets;
+		append.font = font;
+		append.fontColor = fontColor;
+		append.textPos = pos;
+		appends ~= append;
+	}
+	/// ditto
+	void append(string text, CPoint point, CFont font, CRGB fontColor) {
+		append(text, CInsets(point.y, 0, 0, point.x), font, fontColor, TPos.LEFT);
 	}
 	void setPath(string path) {
 		this.path = path;
@@ -236,6 +263,7 @@ public:
 		auto cur = Display.getCurrent();
 		auto bmp = new Image(cur, initW, initH);
 		auto dc = new GC(bmp);
+		dc.setTextAntialias = false;
 
 		ImageData matImgData;
 		if (this.data) {
@@ -253,21 +281,50 @@ public:
 		matImg.dispose;
 
 		foreach (a; appends) {
-			try {
-				ImageData imgData;
-				if (a.data) {
-					imgData = a.data;
-				} else {
-					imgData = loadImage(a.path, a.transparent, a.maskX, a.maskY);
+			if (a.path.length || a.data) {
+				try {
+					ImageData imgData;
+					if (a.data) {
+						imgData = a.data;
+					} else {
+						imgData = loadImage(a.path, a.transparent, a.maskX, a.maskY);
+					}
+					imgData = imgData.scaledTo
+						(initW - a.insets.w - a.insets.e,
+						initH - a.insets.n - a.insets.s);
+					auto img = new Image(cur, imgData);
+					scope (exit) img.dispose;
+					dc.drawImage(img, a.insets.w, a.insets.n);
+				} catch (DWTException e) {
+					// ファイルが無い場合は表示しない。
 				}
-				imgData = imgData.scaledTo
-					(initW - a.insets.w - a.insets.e,
-					initH - a.insets.n - a.insets.s);
-				auto img = new Image(cur, imgData);
-				dc.drawImage(img, a.insets.w, a.insets.n);
-				img.dispose;
-			} catch (DWTException e) {
-				// ファイルが無い場合は表示しない。
+			}
+			if (a.text.length) {
+				try {
+					auto font = new Font(cur, dwtData(a.font));
+					scope (exit) font.dispose;
+					dc.setFont = font;
+					scope (exit) dc.setFont = null;
+					int alpha;
+					auto color = new Color(cur, dwtData(a.fontColor, alpha));
+					scope (exit) color.dispose;
+					auto fore = dc.getForeground;
+					dc.setForeground = color;
+					scope (exit) dc.setForeground = fore;
+					dc.setAlpha = alpha;
+					scope (exit) dc.setAlpha = 255;
+					switch (a.textPos) {
+					case TPos.LEFT: {
+						dc.drawText(a.text, a.insets.w, a.insets.n, true);
+					} break;
+					case TPos.RIGHT: {
+						int tw = dc.textExtent(a.text).x;
+						dc.drawText(a.text, initW - a.insets.e - tw, a.insets.n, true);
+					} break;
+					default: assert (0);
+					}
+				} catch (DWTException e) {
+				}
 			}
 		}
 

@@ -885,8 +885,136 @@ ImageData castCardImage(Props prop, Skin skin, CastCard c, string sPath) {
 	auto matPad = prop.looks.castCardInsets;
 	int w = cardSize.width + matPad.e + matPad.w;
 	int h = cardSize.height + matPad.n + matPad.s;
-	scope r = new PileImage(castCard(skin), w, h);
+	ImageData id;
+	if (c.life == 0) {
+		id = castCardFaint(skin);
+	} else if (c.paralyze >= prop.looks.stoneBorder) {
+		id = castCardPetrif(skin);
+	} else if (c.paralyze > 0) {
+		id = castCardParaly(skin);
+	} else if (c.bindRound > 0) {
+		id = castCardBind(skin);
+	} else if (c.mentality == Mentality.SLEEP && c.mentalityRound > 0) {
+		id = castCardSleep(skin);
+	} else if (c.life < c.lifeMax / 5) {
+		id = castCardDanger(skin);
+	} else if (c.life < c.lifeMax) {
+		id = castCardInjury(skin);
+	} else {
+		id = castCard(skin);
+	}
+	scope r = new PileImage(id, w, h);
+	auto stp = prop.looks.castLifeBarPoint;
+	if (c.faceUpRound > 0) {
+		r.append(to!(string)(c.level),
+			prop.looks.castCardLevelInsets,
+			prop.looks.castCardLevelFont,
+			prop.looks.castCardLevelColor,
+			PileImage.TPos.RIGHT);
+	}
 	r.append(skin.findImagePath(c.path, sPath), matPad, true);
+	int stMax = prop.looks.statusVerMax;
+	if (c.faceUpRound > 0) {
+		auto d = Display.getCurrent;
+		auto lgid = lifeGuage(skin);
+		int lgw = lgid.width;
+		int lgh = lgid.height;
+		if (lgw > 1 && lgh > 1) {
+			try {
+				lgid.transparentPixel = lgid.getPixel(lgw / 2, lgh / 2);
+				auto lgi = new Image(d, lgid);
+				scope (exit) lgi.dispose;
+				auto lbid = lifeBar(skin);
+				auto lbi = new Image(d, lbid);
+				scope (exit) lbi.dispose;
+				auto bmp = new Image(d, lgw, lgh);
+				scope (exit) bmp.dispose;
+				auto gc = new GC(bmp);
+				scope (exit) gc.dispose;
+				int lbh = lbid.height;
+				auto ln = cast(real) c.life / c.lifeMax;
+				gc.drawImage(lbi, lgw, 0, lgw, lbh, 0, (lgh - lbh) / 2, lgw, lbh);
+				gc.drawImage(lbi, 0, 0, cast(int) (lgw * ln), lbh, 0, (lgh - lbh) / 2, cast(int) (lgw * ln), lbh);
+				gc.drawImage(lgi, 0, 0);
+				auto life = bmp.getImageData;
+				life.transparentPixel = life.getPixel(0, 0);
+				r.append(life, stp);
+				stp.y -= lgh + 2;
+				stMax--;
+			} catch (DWTException e) {
+				debugln(e);
+			}
+		}
+	}
+	stp.x = prop.looks.statusX;
+	stp.y -= 3;
+	int styf = stp.y;
+	int stc = 0;
+	void status(ImageData id) {
+		r.append(id, stp);
+		stc++;
+		if (stc >= stMax) {
+			stp.x += id.width + 1;
+			stp.y = styf;
+			stc = 0;
+		} else {
+			stp.y -= id.height + 1;
+		}
+	}
+	if (c.poison > 0) status(poison(skin));
+	if (c.silenceRound > 0) status(silence(skin));
+	if (c.faceUpRound > 0) status(faceUp(skin));
+	if (c.antiMagicRound > 0) status(antiMagic(skin));
+	void enh(Enhance enh) {
+		if (c.enhance(enh) > 0 && c.enhanceRound(enh) > 0) {
+			status(enhanceUp(skin, enh));
+		} else if (c.enhance(enh) < 0 && c.enhanceRound(enh) > 0) {
+			status(enhanceDown(skin, enh));
+		}
+	}
+	enh(Enhance.ACTION);
+	enh(Enhance.AVOID);
+	enh(Enhance.RESIST);
+	enh(Enhance.DEFENSE);
+	int beastCountMax = prop.looks.beastCardMaxNum(c.level);
+	int beastCount = 0;
+	foreach (b; c.beasts) {
+		if (b.useLimit > 0) {
+			beastCount++;
+			if (beastCount >= beastCountMax) break;
+		}
+	}
+	if (beastCount > 0) {
+		auto d = Display.getCurrent;
+		auto bid = summon(skin);
+		auto bmp = new Image(d, bid.width, bid.height);
+		scope (exit) bmp.dispose;
+		auto gc = new GC(bmp);
+		scope (exit) gc.dispose;
+		auto bi = new Image(d, bid);
+		scope (exit) bi.dispose;
+		gc.drawImage(bi, 0, 0);
+		auto bff = new Font(d, dwtData(prop.looks.beastNumFont));
+		scope (exit) bff.dispose;
+		gc.setFont = bff;
+		string s = to!(string)(beastCount);
+		auto cw = gc.textExtent(s).x;
+		auto mt = gc.getFontMetrics;
+		auto tx = bid.width - cw - 1;
+		auto ty = bid.height - mt.getAscent - 1;
+		gc.setForeground = d.getSystemColor(DWT.COLOR_BLACK);
+		gc.drawText(s, tx - 1, ty, true);
+		gc.drawText(s, tx, ty - 1, true);
+		gc.drawText(s, tx + 1, ty, true);
+		gc.drawText(s, tx, ty + 1, true);
+		gc.drawText(s, tx - 1, ty - 1, true);
+		gc.drawText(s, tx - 1, ty + 1, true);
+		gc.drawText(s, tx + 1, ty - 1, true);
+		gc.drawText(s, tx + 1, ty + 1, true);
+		gc.setForeground = d.getSystemColor(DWT.COLOR_WHITE);
+		gc.drawText(s, tx, ty, true);
+		r.append(bmp.getImageData, stp);
+	}
 	r.setTitle(c.name, dwtData(prop.looks.castCardNameFont), dwtData(prop.looks.castCardNamePoint));
 	return r.createImageData;
 }
@@ -919,7 +1047,19 @@ ImageData cardImage(C)(Props prop, Skin skin, C c, string sPath, CastCard owner 
 		}
 	}
 	r.append(skin.findImagePath(c.path, sPath), matPad, true);
-	static if (!is (C == InfoCard)) {
+	static if (!is(C == InfoCard)) {
+		if (prop.sys.isPenalty(c)) {
+			auto pid = cardPenalty(skin);
+			pid.transparentPixel = pid.getPixel(pid.width / 2, pid.height / 2);
+			r.append(pid, CPoint(0, 0));
+		}
+		static if (is(typeof(c.hold))) {
+			if (c.hold) {
+				auto hid = cardHold(skin);
+				hid.transparentPixel = hid.getPixel(hid.width / 2, hid.height / 2);
+				r.append(hid, CPoint(0, 0));
+			}
+		}
 		if (owner) {
 			int apt = owner.aptitude(c.physical, c.mental);
 			ImageData aimg;

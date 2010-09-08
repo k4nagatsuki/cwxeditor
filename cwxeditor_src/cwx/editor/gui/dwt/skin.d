@@ -6,6 +6,7 @@ import cwx.race;
 import cwx.utils;
 import cwx.skin;
 import cwx.imagesize;
+import cwx.types;
 
 import cwx.editor.gui.dwt.props;
 import cwx.editor.gui.dwt.utils;
@@ -66,9 +67,9 @@ ImageData loadBgImage(Skin skin, string path) {
  	return skin.isBgImage(path) ? loadImage(path) : null;
 }
 
-private ImageData createImg(string delegate(out bool mask, out bool rMask) res) {
+private ImageData createImg(T ...)(string delegate(out bool, out bool, T) res, T t) {
 	bool mask, rMask;
-	auto path = res(mask, rMask);
+	auto path = res(mask, rMask, t);
 	return imgd(path, mask, rMask);
 }
 
@@ -76,10 +77,32 @@ ImageData summary(Skin skin) {return createImg(&skin.resSummary);}
 
 ImageData menuCard(Skin skin) {return createImg(&skin.resMenuCard);}
 ImageData castCard(Skin skin) {return createImg(&skin.resCastCard);}
+ImageData castCardInjury(Skin skin) {return createImg(&skin.resCastCardInjury);}
+ImageData castCardDanger(Skin skin) {return createImg(&skin.resCastCardDanger);}
+ImageData castCardFaint(Skin skin) {return createImg(&skin.resCastCardFaint);}
+ImageData castCardBind(Skin skin) {return createImg(&skin.resCastCardBind);}
+ImageData castCardParaly(Skin skin) {return createImg(&skin.resCastCardParaly);}
+ImageData castCardPetrif(Skin skin) {return createImg(&skin.resCastCardPetrif);}
+ImageData castCardSleep(Skin skin) {return createImg(&skin.resCastCardSleep);}
+ImageData lifeBar(Skin skin) {return createImg(&skin.resLifeBar);}
+ImageData lifeGuage(Skin skin) {return createImg(&skin.resLifeGuage);}
+ImageData enhanceUp(Skin skin, Enhance enh) {return createImg(&skin.resEnhanceUp, enh);}
+ImageData enhanceDown(Skin skin, Enhance enh) {return createImg(&skin.resEnhanceDown, enh);}
+ImageData mentality(Skin skin, Mentality mtly) {return createImg(&skin.resMentality, mtly);}
+ImageData bind(Skin skin) {return createImg(&skin.resBind);}
+ImageData silence(Skin skin) {return createImg(&skin.resSilence);}
+ImageData faceUp(Skin skin) {return createImg(&skin.resFaceUp);}
+ImageData antiMagic(Skin skin) {return createImg(&skin.resAntiMagic);}
+ImageData paralyze(Skin skin) {return createImg(&skin.resParalyze);}
+ImageData poison(Skin skin) {return createImg(&skin.resPoison);}
+ImageData summon(Skin skin) {return createImg(&skin.resSummon);}
+
 ImageData itemCard(Skin skin) {return createImg(&skin.resItemCard);}
 ImageData skillCard(Skin skin) {return createImg(&skin.resSkillCard);}
 ImageData beastCard(Skin skin) {return createImg(&skin.resBeastCard);}
 ImageData infoCard(Skin skin) {return createImg(&skin.resInfoCard);}
+ImageData cardHold(Skin skin) {return createImg(&skin.resCardHold);}
+ImageData cardPenalty(Skin skin) {return createImg(&skin.resCardPenalty);}
 
 ImageData rare(Skin skin) {return createImg(&skin.resRare);}
 ImageData premier(Skin skin) {return createImg(&skin.resPremier);}

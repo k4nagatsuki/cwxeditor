@@ -212,7 +212,6 @@ private:
 					_owner.remove(c);
 					refresh;
 					delCard(c);
-					_comm.refUseCount.call;
 				}
 			}
 		}
@@ -255,6 +254,10 @@ private:
 		} else {
 			static assert (0);
 		}
+		_comm.refUseCount.call;
+		static if (is (CardOwner : CastCard) && is (C : BeastCard)) {
+			_comm.refCast.call(_owner);
+		}
 	}
 	class CT : TCPD {
 		Table widget() {
@@ -273,7 +276,6 @@ private:
 					_tbl.getSelection[0].dispose;
 					_tbl.redraw;
 					delCard(c);
-					_comm.refUseCount.call;
 				}
 			}
 		}
@@ -736,6 +738,12 @@ private:
 		}
 		static if (EditMode) {
 			static if (is (C == CastCard)) {
+				_comm.refCast.add(&__refCast);
+				_list.addDisposeListener(new class DisposeListener {
+					override void widgetDisposed(DisposeEvent e) {
+						_comm.refCast.remove(&__refCast);
+					}
+				});
 				auto pop = new Menu(parent.getShell, DWT.POP_UP);
 				createMenuItem(pop, _prop.msgs.menuEditHand, _prop.images.menuEditHand, &editHand);
 				new MenuItem(pop, DWT.SEPARATOR);
@@ -814,6 +822,11 @@ public:
 			__refresh;
 		}
 	}
+	static if (EditMode && is (C == CastCard)) {
+		private void __refCast(CastCard c) {
+			refresh;
+		}
+	}
 	void showCardList() {
 		if (!_viewList) {
 			_viewList = true;
@@ -841,6 +854,9 @@ public:
 				_owner.add(dlg.card);
 				refresh;
 				select(__cards.length - 1);
+				static if (is (CardOwner : CastCard) && is (C : BeastCard)) {
+					_comm.refCast.call(_owner);
+				}
 			}
 		}
 		static if (is (CardOwner == Summary)) {
@@ -887,6 +903,9 @@ public:
 			}
 			pasteRefresh(adds);
 			_comm.refUseCount.call;
+			static if (is (CardOwner : CastCard) && is (C : BeastCard)) {
+				_comm.refCast.call(_owner);
+			}
 			return true;
 		}
 		void pasteRefresh(C[] cs) {

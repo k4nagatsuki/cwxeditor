@@ -1,6 +1,7 @@
 
 module cwx.system;
 
+import cwx.card;
 import cwx.features;
 import cwx.utils;
 
@@ -172,5 +173,13 @@ class System {
 	/// ditto
 	string makingsCoupon(Makings m) {
 		return "＿" ~ makingsName(m);
+	}
+
+	/// ペナルティカードであればtrue。
+	bool isPenalty(EffectCard card) {
+		foreach (kc; card.keyCodes) {
+			if (kc == "ペナルティ") return true;
+		}
+		return false;
 	}
 }

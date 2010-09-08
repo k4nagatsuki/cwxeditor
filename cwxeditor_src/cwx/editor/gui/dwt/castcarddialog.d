@@ -1029,8 +1029,8 @@ private:
 		}
 		{
 			auto grp = createGrp(_prop.msgs.status);
-			_paralyze = createStSpn(grp, _prop.msgs.silence, _prop.looks.paralyzeMax, _prop.msgs.unitValue);
-			_poison = createStSpn(grp, _prop.msgs.bind, _prop.looks.poisonMax, _prop.msgs.unitValue);
+			_paralyze = createStSpn(grp, _prop.msgs.paralyze, _prop.looks.paralyzeMax, _prop.msgs.unitValue);
+			_poison = createStSpn(grp, _prop.msgs.poison, _prop.looks.poisonMax, _prop.msgs.unitValue);
 			_bind = createStSpn(grp, _prop.msgs.bind, _prop.looks.roundMax, _prop.msgs.unitRound);
 			_silence = createStSpn(grp, _prop.msgs.silence, _prop.looks.roundMax, _prop.msgs.unitRound);
 			_faceUp = createStSpn(grp, _prop.msgs.faceUp, _prop.looks.roundMax, _prop.msgs.unitRound);
@@ -1349,7 +1349,11 @@ protected:
 
 				_card.life = _lifeUseMax.getSelection ? _card.lifeMax : _life.getSelection;
 				foreach (enh, spn; _liveEnh) {
-					_card.enhance(enh, spn.getSelection);
+					if (_enhRound[enh].getSelection > 0) {
+						_card.enhance(enh, spn.getSelection);
+					} else {
+						_card.enhance(enh, 0);
+					}
 				}
 				foreach (enh, spn; _enhRound) {
 					if (_card.enhance(enh) != 0) {
@@ -1362,7 +1366,8 @@ protected:
 				_card.silenceRound = _silence.getSelection;
 				_card.faceUpRound = _faceUp.getSelection;
 				_card.antiMagicRound = _antiMagic.getSelection;
-				_card.mentality = _mtlyTbl[_mtly.getSelectionIndex];
+				_card.mentality = _mtlyRound.getSelection == 0
+					? Mentality.NORMAL : _mtlyTbl[_mtly.getSelectionIndex];
 				_card.mentalityRound = _card.mentality == Mentality.NORMAL
 					? 0 : _mtlyRound.getSelection;
 			} else {

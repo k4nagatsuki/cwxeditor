@@ -7,6 +7,7 @@ import cwx.utils;
 import cwx.props;
 import cwx.imagesize;
 import cwx.xml;
+import cwx.types;
 
 import std.ctype;
 import std.file;
@@ -149,11 +150,79 @@ class Skin {
 	string skinFile() {return _skinFile;}
 
 	/// リソース画像のパス。
-	string resSummary(out bool mask, out bool rMask) {return join(tableDir, addExt("Bill", extImage));}
+	string resSummary(out bool mask, out bool rMask) {
+		return join(tableDir, addExt("Bill", _legacyPath.length ? extImage : resExtImage));
+	}
 	/// ditto
 	string resMenuCard(out bool mask, out bool rMask) {return join(resourceDir, addExt("CardBg" ~ sep ~ "NORMAL", resExtImage));}
+
 	/// ditto
 	string resCastCard(out bool mask, out bool rMask) {return join(resourceDir, addExt("CardBg" ~ sep ~ "LARGE", resExtImage));}
+	/// ditto
+	string resCastCardInjury(out bool mask, out bool rMask) {return join(resourceDir, addExt("CardBg" ~ sep ~ "INJURY", resExtImage));}
+	/// ditto
+	string resCastCardDanger(out bool mask, out bool rMask) {return join(resourceDir, addExt("CardBg" ~ sep ~ "DANGER", resExtImage));}
+	/// ditto
+	string resCastCardFaint(out bool mask, out bool rMask) {return join(resourceDir, addExt("CardBg" ~ sep ~ "FAINT", resExtImage));}
+	/// ditto
+	string resCastCardBind(out bool mask, out bool rMask) {return join(resourceDir, addExt("CardBg" ~ sep ~ "BIND", resExtImage));}
+	/// ditto
+	string resCastCardParaly(out bool mask, out bool rMask) {return join(resourceDir, addExt("CardBg" ~ sep ~ "PARALY", resExtImage));}
+	/// ditto
+	string resCastCardPetrif(out bool mask, out bool rMask) {return join(resourceDir, addExt("CardBg" ~ sep ~ "PETRIF", resExtImage));}
+	/// ditto
+	string resCastCardSleep(out bool mask, out bool rMask) {return join(resourceDir, addExt("CardBg" ~ sep ~ "SLEEP", resExtImage));}
+	/// ditto
+	string resLifeBar(out bool mask, out bool rMask) {return join(resourceDir, addExt("Status" ~ sep ~ "LIFEBAR", resExtImage));}
+	/// ditto
+	string resLifeGuage(out bool mask, out bool rMask) {return join(resourceDir, addExt("Status" ~ sep ~ "LIFEGUAGE", resExtImage));}
+	/// ditto
+	string resEnhanceUp(out bool mask, out bool rMask, Enhance enh) {
+		switch (enh) {
+		case Enhance.ACTION: return join(resourceDir, addExt("Status" ~ sep ~ "UP0", resExtImage));
+		case Enhance.AVOID: return join(resourceDir, addExt("Status" ~ sep ~ "UP1", resExtImage));
+		case Enhance.RESIST: return join(resourceDir, addExt("Status" ~ sep ~ "UP2", resExtImage));
+		case Enhance.DEFENSE: return join(resourceDir, addExt("Status" ~ sep ~ "UP3", resExtImage));
+		default: assert (0);
+		}
+	}
+	/// ditto
+	string resEnhanceDown(out bool mask, out bool rMask, Enhance enh) {
+		switch (enh) {
+		case Enhance.ACTION: return join(resourceDir, addExt("Status" ~ sep ~ "DOWN0", resExtImage));
+		case Enhance.AVOID: return join(resourceDir, addExt("Status" ~ sep ~ "DOWN1", resExtImage));
+		case Enhance.RESIST: return join(resourceDir, addExt("Status" ~ sep ~ "DOWN2", resExtImage));
+		case Enhance.DEFENSE: return join(resourceDir, addExt("Status" ~ sep ~ "DOWN3", resExtImage));
+		default: assert (0);
+		}
+	}
+	/// ditto
+	string resMentality(out bool mask, out bool rMask, Mentality mtly) {
+		switch (mtly) {
+		case Mentality.NORMAL: return join(resourceDir, addExt("Status" ~ sep ~ "MIND0", resExtImage));
+		case Mentality.SLEEP: return join(resourceDir, addExt("Status" ~ sep ~ "MIND1", resExtImage));
+		case Mentality.CONFUSE: return join(resourceDir, addExt("Status" ~ sep ~ "MIND2", resExtImage));
+		case Mentality.OVERHEAT: return join(resourceDir, addExt("Status" ~ sep ~ "MIND3", resExtImage));
+		case Mentality.BRAVE: return join(resourceDir, addExt("Status" ~ sep ~ "MIND4", resExtImage));
+		case Mentality.PANIC: return join(resourceDir, addExt("Status" ~ sep ~ "MIND5", resExtImage));
+		default: assert (0);
+		}
+	}
+	/// ditto
+	string resBind(out bool mask, out bool rMask) {return join(resourceDir, addExt("Status" ~ sep ~ "MAGIC0", resExtImage));}
+	/// ditto
+	string resSilence(out bool mask, out bool rMask) {return join(resourceDir, addExt("Status" ~ sep ~ "MAGIC1", resExtImage));}
+	/// ditto
+	string resFaceUp(out bool mask, out bool rMask) {return join(resourceDir, addExt("Status" ~ sep ~ "MAGIC2", resExtImage));}
+	/// ditto
+	string resAntiMagic(out bool mask, out bool rMask) {return join(resourceDir, addExt("Status" ~ sep ~ "MAGIC3", resExtImage));}
+	/// ditto
+	string resParalyze(out bool mask, out bool rMask) {return join(resourceDir, addExt("Status" ~ sep ~ "BODY1", resExtImage));}
+	/// ditto
+	string resPoison(out bool mask, out bool rMask) {return join(resourceDir, addExt("Status" ~ sep ~ "BODY0", resExtImage));}
+	/// ditto
+	string resSummon(out bool mask, out bool rMask) {return join(resourceDir, addExt("Status" ~ sep ~ "SUMMON", resExtImage));}
+
 	/// ditto
 	string resItemCard(out bool mask, out bool rMask) {return join(resourceDir, addExt("CardBg" ~ sep ~ "ITEM", resExtImage));}
 	/// ditto
@@ -162,6 +231,10 @@ class Skin {
 	string resBeastCard(out bool mask, out bool rMask) {return join(resourceDir, addExt("CardBg" ~ sep ~ "BEAST", resExtImage));}
 	/// ditto
 	string resInfoCard(out bool mask, out bool rMask) {return join(resourceDir, addExt("CardBg" ~ sep ~ "INFO", resExtImage));}
+	/// ditto
+	string resCardHold(out bool mask, out bool rMask) {return join(resourceDir, addExt("CardBg" ~ sep ~ "HOLD", resExtImage));}
+	/// ditto
+	string resCardPenalty(out bool mask, out bool rMask) {return join(resourceDir, addExt("CardBg" ~ sep ~ "PENALTY", resExtImage));}
 	/// ditto
 	string resRare(out bool mask, out bool rMask) {
 		mask = true;

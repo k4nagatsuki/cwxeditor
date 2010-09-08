@@ -2154,10 +2154,11 @@ public:
 
 	static if (is (C == EnemyCard)) {
 		private void __refreshCast(CastCard castCard) {
+			auto skin = findSkin(_prop, summ);
 			foreach (i, c; area.cards) {
 				if (castCard.id == _area.cards[i].id) {
 					auto img = imagePane.images[cardsIndex + i];
-					img.setPath(0, findSkin(_prop, _summ).findImagePath(castCard.path, summary.scenarioPath));
+					img.setImageData(castCardImage(_prop, skin, castCard, _summ.scenarioPath));
 					img.title = castCard.name;
 					img.createImage;
 					cardList.setItem(i, castCard.name);
@@ -2167,10 +2168,11 @@ public:
 			imagePane.redraw;
 		}
 		private void __deleteCast(CastCard castCard) {
+			auto skin = findSkin(_prop, summ);
 			foreach (i, c; area.cards) {
 				if (castCard.id == c.id) {
 					auto img = imagePane.images[cardsIndex + i];
-					img.setPath(0, "");
+					img.setImageData(.castCard(skin));
 					img.title = "";
 					img.createImage;
 					cardList.setItem(i, "");
@@ -2501,11 +2503,9 @@ protected override:
 		auto skin = findSkin(prop, summ);
 		auto castCard = summary.casts(card.id);
 		if (castCard) {
-			return createCastCardImage
-				(prop, skin, castCard.name, skin.findImagePath(castCard.path, summary.scenarioPath),
-				card.x, card.y, card.scale);
+			return createCastCardImage(prop, skin, castCard, _summ.scenarioPath, card.x, card.y, card.scale);
 		} else {
-			return createCastCardImage(prop, skin, "", "", card.x, card.y, card.scale);
+			return createCastCardImage(prop, skin, null, _summ.scenarioPath, card.x, card.y, card.scale);
 		}
 	}
 	string cardImagePath(EnemyCard card) {
@@ -2551,8 +2551,7 @@ PileImage createCastCardBackImage(Props prop, Skin skin, int x, int y) {
 	return r;
 }
 
-FlexImage createCardImageCommon(Props prop,ImageData card, CInsets matPad,
-		string path, int x, int y, real scale) {
+FlexImage createCardImageCommon(Props prop, ImageData card, CInsets matPad, int x, int y, real scale) {
 	auto cardSize = prop.looks.cardSize;
 	int w = cardSize.width + matPad.e + matPad.w;
 	int h = cardSize.height + matPad.n + matPad.s;
@@ -2563,7 +2562,6 @@ FlexImage createCardImageCommon(Props prop,ImageData card, CInsets matPad,
 	r.maximumHeight = cast(int) rndtol(h * prop.looks.cardSizeMax);
 	r.ratioFix = true;
 	r.transparent = false;
-	r.append(path, matPad, true);
 	r.newWidth = cast(int) rndtol(w * scale);
 	r.newHeight = cast(int) rndtol(h * scale);
 	return r;
@@ -2572,9 +2570,14 @@ FlexImage createCardImageCommon(Props prop,ImageData card, CInsets matPad,
 /// キャストカード画像を生成する。
 /// Returns: カード画像。
 FlexImage createCastCardImage
-		(Props prop, Skin skin, string title, string path, int x, int y, real scale) {
-	auto r = createCardImageCommon(prop, castCard(skin), prop.looks.castCardInsets, path, x, y, scale);
-	r.setTitle(title, dwtData(prop.looks.castCardNameFont), dwtData(prop.looks.castCardNamePoint));
+		(Props prop, Skin skin, CastCard card, string sPath, int x, int y, real scale) {
+	auto matPad = prop.looks.castCardInsets;
+	FlexImage r;
+	if (card) {
+		r = createCardImageCommon(prop, castCardImage(prop, skin, card, sPath), matPad, x, y, scale);
+	} else {
+		r = createCardImageCommon(prop, castCard(skin), matPad, x, y, scale);
+	}
 	r.resize;
 	return r;
 }
@@ -2583,7 +2586,9 @@ FlexImage createCastCardImage
 /// Returns: カード画像。
 FlexImage createMenuCardImage
 		(Props prop, Skin skin, string title, string path, int x, int y, real scale) {
-	auto r = createCardImageCommon(prop, menuCard(skin), prop.looks.menuCardInsets, path, x, y, scale);
+	auto matPad = prop.looks.menuCardInsets;
+	auto r = createCardImageCommon(prop, menuCard(skin), matPad, x, y, scale);
+	r.append(path, matPad, true);
 	r.setTitle(title, dwtData(prop.looks.menuCardNameFont), dwtData(prop.looks.menuCardNamePoint));
 	r.resize;
 	return r;

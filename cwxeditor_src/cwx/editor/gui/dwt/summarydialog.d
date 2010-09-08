@@ -115,12 +115,15 @@ private:
 					gc.drawString(text, (_prop.looks.summarySize.width - p.x) / 2, y, true);
 					font.dispose;
 				}
-				scope c = new Color(d, dwtData(_prop.looks.summaryLevelColor));
+				int alpha;
+				scope c = new Color(d, dwtData(_prop.looks.summaryLevelColor, alpha));
 				gc.setForeground = c;
+				gc.setAlpha = alpha;
 				drawCenterText(dwtData(_prop.looks.summaryLevelFont),
 					_prop.msgs.targetLevel(_levMin.getSelection, _levMax.getSelection),
 					_prop.looks.summaryLevelY);
 				c.dispose;
+				gc.setAlpha = 255;
 				gc.setForeground = d.getSystemColor(DWT.COLOR_BLACK);
 				drawCenterText(dwtData(_prop.looks.summaryTitleFont),
 					_sname.getText, _prop.looks.summaryTitleY);

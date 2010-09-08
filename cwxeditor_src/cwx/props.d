@@ -43,6 +43,7 @@ struct CRGB {
 	uint r;
 	uint g;
 	uint b;
+	uint a = 255;
 }
 
 /// フォント情報。
@@ -1737,6 +1738,7 @@ public:
 	uint roundMax() {return 999;}
 	uint paralyzeMax() {return 40;}
 	uint poisonMax() {return 40;}
+	uint stoneBorder() {return 20;}
 
 	uint transitionSpeedMax() {return 10;}
 	uint transitionSpeedDef() {return 5;}
@@ -1744,6 +1746,14 @@ public:
 	CSize viewSize() {return CSize(632, 420);}
 
 	CFont castCardNameFont(){return CFont("IPA UIゴシック", 9, true, false);}
+	CFont castCardLevelFont(){return CFont("IPA明朝", 24, true, true);}
+	CInsets castCardLevelInsets(){return CInsets(2, 8, 0, 0);}
+	CRGB castCardLevelColor() {return CRGB(0, 0, 0, 128);}
+	CPoint castLifeBarPoint() {return CPoint(8, 110);}
+	int statusX() {return 7;}
+	uint statusVerMax() {return 6;}
+	CFont beastNumFont(){return CFont("IPAゴシック", 9, false, false);}
+
 	CFont menuCardNameFont(){return castCardNameFont;}
 	CFont cardNameFont(){return castCardNameFont;}
 	CFont summaryLevelFont() {return CFont("IPA明朝", 10, true, true);}

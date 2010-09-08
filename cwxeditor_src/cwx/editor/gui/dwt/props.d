@@ -402,7 +402,10 @@ Point dwtData(CPoint v) {return new Point(v.x, v.y);}
 /// ditto
 Point dwtData(CSize v) {return new Point(v.width, v.height);}
 /// ditto
-RGB dwtData(CRGB v) {return new RGB(cast(int) v.r, cast(int) v.g, cast(int) v.b);}
+RGB dwtData(CRGB v, out int alpha) {
+	alpha = v.a;
+	return new RGB(cast(int) v.r, cast(int) v.g, cast(int) v.b);
+}
 /// ditto
 FontData dwtData(CFont v) {
 	int flag = DWT.NONE;
