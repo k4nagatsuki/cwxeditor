@@ -2159,7 +2159,6 @@ public:
 				if (castCard.id == _area.cards[i].id) {
 					auto img = imagePane.images[cardsIndex + i];
 					img.setImageData(castCardImage(_prop, skin, castCard, _summ.scenarioPath));
-					img.title = castCard.name;
 					img.createImage;
 					cardList.setItem(i, castCard.name);
 					if (_renameCard) _renameCard(i);
@@ -2173,7 +2172,6 @@ public:
 				if (castCard.id == c.id) {
 					auto img = imagePane.images[cardsIndex + i];
 					img.setImageData(.castCard(skin));
-					img.title = "";
 					img.createImage;
 					cardList.setItem(i, "");
 				}

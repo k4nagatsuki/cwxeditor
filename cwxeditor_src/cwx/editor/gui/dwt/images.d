@@ -242,6 +242,8 @@ public:
 		this.titPoint = titPoint;
 	}
 	void title(string title) {
+		assert (titFont);
+		assert (titPoint);
 		_title = title;
 	}
 	string title() {

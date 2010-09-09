@@ -503,10 +503,12 @@ class FlexEtcProps : Properties {
 		"浮遊",
 		"灯火",
 		"",
+		"フェイント",
 		"防御",
-		"ペナルティ",
+		"逃走",
 		"カード交換",
-		"逃走"
+		"ペナルティ",
+		"リサイクル"
 	]);
 	version (Windows) {
 		mixin Property!("outerTools", OuterTool[], [

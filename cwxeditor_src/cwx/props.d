@@ -1752,10 +1752,13 @@ public:
 	CPoint castLifeBarPoint() {return CPoint(8, 110);}
 	int statusX() {return 7;}
 	uint statusVerMax() {return 6;}
-	CFont beastNumFont(){return CFont("IPAゴシック", 9, false, false);}
+	CFont beastNumFont(){return CFont("IPA Pゴシック", 9, false, false);}
 
 	CFont menuCardNameFont(){return castCardNameFont;}
 	CFont cardNameFont(){return castCardNameFont;}
+	CFont useCountFont(){return CFont("IPA明朝", 12, true, false);}
+	CPoint useCountPoint(){return CPoint(10, 90);}
+	CRGB recycleNumColor() {return CRGB(255, 255, 0);}
 	CFont summaryLevelFont() {return CFont("IPA明朝", 10, true, true);}
 	CFont summaryTitleFont() {return CFont("IPA明朝", 16, true, false);}
 	CFont summaryDescFont() {return CFont("IPAゴシック", 10, true, false);}

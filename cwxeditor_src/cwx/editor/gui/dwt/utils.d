@@ -880,6 +880,20 @@ bool openFolder(string path) {
 	}
 }
 
+void hemming(GC gc, string s, int tx, int ty, Color color) {
+	auto d = Display.getCurrent;
+	gc.setForeground = d.getSystemColor(DWT.COLOR_BLACK);
+	gc.drawText(s, tx - 1, ty, true);
+	gc.drawText(s, tx, ty - 1, true);
+	gc.drawText(s, tx + 1, ty, true);
+	gc.drawText(s, tx, ty + 1, true);
+	gc.drawText(s, tx - 1, ty - 1, true);
+	gc.drawText(s, tx - 1, ty + 1, true);
+	gc.drawText(s, tx + 1, ty - 1, true);
+	gc.drawText(s, tx + 1, ty + 1, true);
+	gc.setForeground = color;
+	gc.drawText(s, tx, ty, true);
+}
 ImageData castCardImage(Props prop, Skin skin, CastCard c, string sPath) {
 	auto cardSize = prop.looks.cardSize;
 	auto matPad = prop.looks.castCardInsets;
@@ -991,6 +1005,7 @@ ImageData castCardImage(Props prop, Skin skin, CastCard c, string sPath) {
 		scope (exit) bmp.dispose;
 		auto gc = new GC(bmp);
 		scope (exit) gc.dispose;
+		gc.setTextAntialias = false;
 		auto bi = new Image(d, bid);
 		scope (exit) bi.dispose;
 		gc.drawImage(bi, 0, 0);
@@ -1001,18 +1016,8 @@ ImageData castCardImage(Props prop, Skin skin, CastCard c, string sPath) {
 		auto cw = gc.textExtent(s).x;
 		auto mt = gc.getFontMetrics;
 		auto tx = bid.width - cw - 1;
-		auto ty = bid.height - mt.getAscent - 1;
-		gc.setForeground = d.getSystemColor(DWT.COLOR_BLACK);
-		gc.drawText(s, tx - 1, ty, true);
-		gc.drawText(s, tx, ty - 1, true);
-		gc.drawText(s, tx + 1, ty, true);
-		gc.drawText(s, tx, ty + 1, true);
-		gc.drawText(s, tx - 1, ty - 1, true);
-		gc.drawText(s, tx - 1, ty + 1, true);
-		gc.drawText(s, tx + 1, ty - 1, true);
-		gc.drawText(s, tx + 1, ty + 1, true);
-		gc.setForeground = d.getSystemColor(DWT.COLOR_WHITE);
-		gc.drawText(s, tx, ty, true);
+		auto ty = bid.height - mt.getAscent - 2;
+		hemming(gc, s, tx, ty, d.getSystemColor(DWT.COLOR_WHITE));
 		r.append(bmp.getImageData, stp);
 	}
 	r.setTitle(c.name, dwtData(prop.looks.castCardNameFont), dwtData(prop.looks.castCardNamePoint));
@@ -1082,6 +1087,36 @@ ImageData cardImage(C)(Props prop, Skin skin, C c, string sPath, CastCard owner 
 		}
 	}
 	r.setTitle(c.name, dwtData(prop.looks.cardNameFont), dwtData(prop.looks.cardNamePoint));
+	static if (is(C : ItemCard) || is(C : BeastCard)) {
+		static if (is(C : ItemCard)) {
+			auto ul = c.useLimitMax;
+		} else static if (is(C : BeastCard)) {
+			auto ul = c.useLimit;
+		} else static assert (0);
+		if (ul > 0) {
+			auto d = Display.getCurrent;
+			auto img = new Image(d, r.createImageData);
+			scope (exit) img.dispose;
+			auto gc = new GC(img);
+			scope (exit) gc.dispose;
+			gc.setTextAntialias = false;
+			auto font = new Font(d, dwtData(prop.looks.useCountFont));
+			scope (exit) font.dispose;
+			gc.setFont = font;
+			bool res = prop.sys.isRecycle(c);
+			int alpha;
+			auto color = res
+				? new Color(d, dwtData(prop.looks.recycleNumColor, alpha))
+				: d.getSystemColor(DWT.COLOR_WHITE);
+			scope (exit) {
+				if (res) color.dispose;
+			}
+			auto p = prop.looks.useCountPoint;
+			string s = to!(string)(c.useLimit);
+			hemming(gc, s, p.x, p.y, color);
+			return img.getImageData;
+		}
+	}
 	return r.createImageData;
 }
 

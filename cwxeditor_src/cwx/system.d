@@ -177,9 +177,10 @@ class System {
 
 	/// ペナルティカードであればtrue。
 	bool isPenalty(EffectCard card) {
-		foreach (kc; card.keyCodes) {
-			if (kc == "ペナルティ") return true;
-		}
-		return false;
+		return contains(card.keyCodes, "ペナルティ");
+	}
+	/// リサイクルカードであればtrue。
+	bool isRecycle(EffectCard card) {
+		return contains(card.keyCodes, "リサイクル");
 	}
 }
