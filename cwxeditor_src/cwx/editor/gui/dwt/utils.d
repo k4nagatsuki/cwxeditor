@@ -902,7 +902,7 @@ ImageData castCardImage(Props prop, Skin skin, CastCard c, string sPath) {
 	ImageData id;
 	if (c.life == 0) {
 		id = castCardFaint(skin);
-	} else if (c.paralyze >= prop.looks.stoneBorder) {
+	} else if (c.paralyze > prop.looks.stoneBorder) {
 		id = castCardPetrif(skin);
 	} else if (c.paralyze > 0) {
 		id = castCardParaly(skin);
@@ -910,7 +910,7 @@ ImageData castCardImage(Props prop, Skin skin, CastCard c, string sPath) {
 		id = castCardBind(skin);
 	} else if (c.mentality == Mentality.SLEEP && c.mentalityRound > 0) {
 		id = castCardSleep(skin);
-	} else if (c.life < c.lifeMax / 5) {
+	} else if (c.life <= c.lifeMax / 5) {
 		id = castCardDanger(skin);
 	} else if (c.life < c.lifeMax) {
 		id = castCardInjury(skin);
@@ -973,6 +973,16 @@ ImageData castCardImage(Props prop, Skin skin, CastCard c, string sPath) {
 			stc = 0;
 		} else {
 			stp.y -= id.height + 1;
+		}
+	}
+	if (c.mentalityRound > 0) {
+		switch (c.mentality) {
+		case Mentality.NORMAL: break;
+		case Mentality.SLEEP: break;
+		case Mentality.CONFUSE, Mentality.OVERHEAT, Mentality.BRAVE, Mentality.PANIC: {
+			status(mentality(skin, c.mentality));
+		} break;
+		default: assert (0);
 		}
 	}
 	if (c.poison > 0) status(poison(skin));

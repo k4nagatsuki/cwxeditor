@@ -16,11 +16,11 @@ public:
 /// 精神状態。
 enum Mentality {
 	NORMAL, /// 正常。
-	PANIC, /// 恐慌。
-	BRAVE, /// 勇敢。
-	OVERHEAT, /// 激昂。
+	SLEEP, /// 睡眠。
 	CONFUSE, /// 混乱。
-	SLEEP /// 睡眠。
+	OVERHEAT, /// 激昂。
+	BRAVE, /// 勇敢。
+	PANIC /// 恐慌。
 }
 /// ditto
 Mentality toMentality(string s) {

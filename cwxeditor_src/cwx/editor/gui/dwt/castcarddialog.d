@@ -973,8 +973,8 @@ private:
 				lbls1 ~= lm;
 				_mtly = new Combo(comp2, DWT.BORDER | DWT.DROP_DOWN | DWT.READ_ONLY);
 				_mtly.setVisibleItemCount = 20;
-				foreach (i, mtly; [Mentality.NORMAL, Mentality.PANIC, Mentality.BRAVE,
-						Mentality.OVERHEAT, Mentality.CONFUSE, Mentality.SLEEP]) {
+				foreach (i, mtly; [Mentality.NORMAL, Mentality.SLEEP, Mentality.CONFUSE,
+						Mentality.OVERHEAT, Mentality.BRAVE, Mentality.PANIC]) {
 					_mtly.add(_prop.msgs.mentality(mtly));
 					_mtlyTbl[i] = mtly;
 					if (_card && _card.mentality is mtly) {
@@ -985,7 +985,7 @@ private:
 				_mtly.addSelectionListener(new SelMentality);
 				_mtlyRound = createSpn(comp2);
 				_mtlyRound.setMaximum = _prop.looks.roundMax;
-				_mtlyRound.setMinimum = 0;
+				_mtlyRound.setMinimum = 1;
 				spns ~= _mtlyRound;
 				auto lm2  = new Label(comp2, DWT.NONE);
 				lm2.setText = _prop.msgs.unitRound;
@@ -1005,7 +1005,7 @@ private:
 				_liveEnh[enh] = spn;
 				auto rnd = createSpn(comp2);
 				rnd.setMaximum = _prop.looks.roundMax;
-				rnd.setMinimum = 0;
+				rnd.setMinimum = 1;
 				spns ~= rnd;
 				_enhRound[enh] = rnd;
 				auto l2  = new Label(comp2, DWT.NONE);

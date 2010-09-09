@@ -225,11 +225,11 @@ private Mental toMental(int b) {
 private Mentality toMentality(byte b) {
 	switch (b) {
 	case 0: return Mentality.NORMAL;
-	case 1: return Mentality.PANIC;
-	case 2: return Mentality.BRAVE;
+	case 1: return Mentality.SLEEP;
+	case 2: return Mentality.CONFUSE;
 	case 3: return Mentality.OVERHEAT;
-	case 4: return Mentality.CONFUSE;
-	case 5: return Mentality.SLEEP;
+	case 4: return Mentality.BRAVE;
+	case 5: return Mentality.PANIC;
 	default: throw new SummaryException("Unknown mentality: " ~ to!(string)(b));
 	}
 }
@@ -1404,11 +1404,11 @@ private int fromMental(Mental v) {
 private byte fromMentality(Mentality v) {
 	switch (v) {
 	case Mentality.NORMAL: return 0;
-	case Mentality.PANIC: return 1;
-	case Mentality.BRAVE: return 2;
+	case Mentality.SLEEP: return 1;
+	case Mentality.CONFUSE: return 2;
 	case Mentality.OVERHEAT: return 3;
-	case Mentality.CONFUSE: return 4;
-	case Mentality.SLEEP: return 5;
+	case Mentality.BRAVE: return 4;
+	case Mentality.PANIC: return 5;
 	default: throw new SummaryException("Unknown mentality value: " ~ to!(string)(cast(int) v));
 	}
 }
