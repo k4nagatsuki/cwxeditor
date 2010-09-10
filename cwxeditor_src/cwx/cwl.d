@@ -112,30 +112,34 @@ S loadLScenario(S)(string p, string skin) {
 
 /// fileのIDと型を返す。
 TypeInfo getType(string file, out ulong id) {
-	auto f = ByteIO(std.file.read(file));
-	file = getBaseName(file);
-	// 今の所ファイル名しか見分ける手段が無い
-	if (sWith(file, "Package")) {
-		if (f.readUIntL != 0x4) return null;
-		readString(f);
-		id = f.readUIntL;
-		return typeid(Package);
-	} else {
-		TypeInfo type;
-		switch (f.readByte) {
-		case 0x0: type = typeid(Area); break;
-		case 0x1: type = typeid(Battle); break;
-		case 0x2: type = typeid(CastCard); break;
-		case 0x5: type = typeid(SkillCard); break;
-		case 0x3: type = typeid(ItemCard); break;
-		case 0x6: type = typeid(BeastCard); break;
-		case 0x4: type = typeid(InfoCard); break;
-		default: return null;
+	try {
+		auto f = ByteIO(std.file.read(file));
+		file = getBaseName(file);
+		// 今の所ファイル名しか見分ける手段が無い
+		if (sWith(file, "Package")) {
+			if (f.readUIntL != 0x4) return null;
+			readString(f);
+			id = f.readUIntL;
+			return typeid(Package);
+		} else {
+			TypeInfo type;
+			switch (f.readByte) {
+			case 0x0: type = typeid(Area); break;
+			case 0x1: type = typeid(Battle); break;
+			case 0x2: type = typeid(CastCard); break;
+			case 0x5: type = typeid(SkillCard); break;
+			case 0x3: type = typeid(ItemCard); break;
+			case 0x6: type = typeid(BeastCard); break;
+			case 0x4: type = typeid(InfoCard); break;
+			default: return null;
+			}
+			readImage(f);
+			readString(f);
+			id = f.readUIntL - 40000L;
+			return type;
 		}
-		readImage(f);
-		readString(f);
-		id = f.readUIntL - 40000L;
-		return type;
+	} catch (Exception e) {
+		return null;
 	}
 }
 
