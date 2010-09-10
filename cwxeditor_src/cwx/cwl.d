@@ -29,6 +29,9 @@ unittest {
 	} catch {}
 }
 
+private bool sWith(string f, string s) {
+	return f.length > s.length && fnmatch(f[0u .. s.length], s);
+}
 /// 4.0形式のCardWirthシナリオを読込む。
 S loadLScenario(S)(string p, string skin) {
 	auto sPath = p;
@@ -52,9 +55,6 @@ S loadLScenario(S)(string p, string skin) {
 		try {
 			if (fnmatch(getExt(file), "wid")) {
 				auto f = ByteIO(std.file.read(file));
-				bool sWith(string f, string s) {
-					return f.length > s.length && fnmatch(f[0u .. s.length], s);
-				}
 				auto base = getBaseName(file);
 				static if (is (typeof(summ.areas))) if (sWith(base, "Area")) {
 					areas ~= loadArea(f);
@@ -109,6 +109,36 @@ S loadLScenario(S)(string p, string skin) {
 	}
 	return summ;
 }
+
+/// fileのIDと型を返す。
+TypeInfo getType(string file, out ulong id) {
+	auto f = ByteIO(std.file.read(file));
+	file = getBaseName(file);
+	// 今の所ファイル名しか見分ける手段が無い
+	if (sWith(file, "Package")) {
+		if (f.readUIntL != 0x4) return null;
+		readString(f);
+		id = f.readUIntL;
+		return typeid(Package);
+	} else {
+		TypeInfo type;
+		switch (f.readByte) {
+		case 0x0: type = typeid(Area); break;
+		case 0x1: type = typeid(Battle); break;
+		case 0x2: type = typeid(CastCard); break;
+		case 0x5: type = typeid(SkillCard); break;
+		case 0x3: type = typeid(ItemCard); break;
+		case 0x6: type = typeid(BeastCard); break;
+		case 0x4: type = typeid(InfoCard); break;
+		default: return null;
+		}
+		readImage(f);
+		readString(f);
+		id = f.readUIntL - 40000L;
+		return type;
+	}
+}
+
 private Target toTarget(byte b) {
 	switch (b) {
 	case 0: return Target(Target.M.SELECTED, false);

@@ -51,6 +51,15 @@ struct ByteIO {
 	}
 	/// Byte列の終りに達していればtrue。
 	bool eob() {return _pointer >= _bytes.length;}
+	/// seekする。
+	void seek(int bytes) {
+		if (bytes < 0) {
+			enforce(_pointer >= -bytes, new Exception("read over."));
+		} else if (bytes > 0) {
+			enforce(_pointer + bytes < _bytes.length, new Exception("read over."));
+		}
+		_pointer += bytes;
+	}
 	/// Byteを読込む。
 	ubyte readUByte() {
 		enforce(_pointer < _bytes.length, new Exception("read over."));
@@ -97,6 +106,7 @@ struct ByteIO {
 	void read(byte[] buf) {read(cast(ubyte[]) buf);}
 	/// Byte列を読込む。
 	ubyte[] read(size_t len) {
+		enforce(_pointer + len <= _bytes.length, new Exception("read over."));
 		ubyte[] r = _bytes[_pointer .. _pointer + len];
 		_pointer += len;
 		return r;

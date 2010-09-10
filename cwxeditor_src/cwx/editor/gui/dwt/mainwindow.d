@@ -9,6 +9,8 @@ import std.process;
 import std.thread;
 
 import cwx.cwl;
+import cwx.area;
+import cwx.card;
 import cwx.summary;
 import cwx.event;
 import cwx.flag;
@@ -217,6 +219,33 @@ private:
 		loadScenario!(Summary)(_prop, _win, _prop.var.etc.expandXMLs, old, _prop.msgs.dlgTitOpenScenario, &openScenarioImpl);
 	}
 	void openScenario(string fname) {
+		if (fnmatch(getExt(fname), "wid")) {
+			ulong id;
+			auto type = cwx.cwl.getType(fname, id);
+			if (type) {
+				string ts;
+				if (type is typeid(Area)) {
+					ts = "area";
+				} else if (type is typeid(Battle)) {
+					ts = "battle";
+				} else if (type is typeid(Package)) {
+					ts = "package";
+				} else if (type is typeid(CastCard)) {
+					ts = "castcard";
+				} else if (type is typeid(SkillCard)) {
+					ts = "skillcard";
+				} else if (type is typeid(ItemCard)) {
+					ts = "itemcard";
+				} else if (type is typeid(BeastCard)) {
+					ts = "beastcard";
+				} else if (type is typeid(InfoCard)) {
+					ts = "infocard";
+				}
+				ts ~= ":id:" ~ to!(string)(id);
+				_openPaths ~= ts;
+			}
+			fname = getDirName(fname);
+		}
 		auto old = _dataWin.summary;
 		loadScenarioFromFile!(Summary)(_prop, _win, _prop.var.etc.expandXMLs, old, fname, &openScenarioImpl);
 	}
@@ -663,8 +692,8 @@ public:
 		auto cate = cpcategory(path);
 		switch (cate) {
 		case "area", "battle", "package", "area:id", "battle:id", "package:id", "variable": {
-			return _dataWin.openCWXPath(path);
-		} case "castcard", "skillcard", "itemcard", "beastcard", "infocard"
+				return _dataWin.openCWXPath(path);
+			} case "castcard", "skillcard", "itemcard", "beastcard", "infocard",
 				"castcard:id", "skillcard:id", "itemcard:id", "beastcard:id", "infocard:id": {
 			return _cardWin.openCWXPath(path);
 		} default: return false;
