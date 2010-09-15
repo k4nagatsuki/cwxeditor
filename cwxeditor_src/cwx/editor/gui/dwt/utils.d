@@ -1707,3 +1707,14 @@ private void forceFocusImpl(Widget widget, Widget child) {
 	}
 	assert (0);
 }
+
+/// Controlの階層構造を表示する。
+void writeRec(Control c, string tab = "") {
+	std.stdio.writef(tab ~ c.toString);
+	std.stdio.writefln(c.isDisposed ? " disposed" : "");
+	if (cast(Composite) c) {
+		foreach (cc; (cast(Composite) c).getChildren) {
+			writeRec(cc, tab ~ "  ");
+		}
+	}
+}

@@ -1001,6 +1001,16 @@ int indexOf(string pred = "a == b", T)(T[] arr, T a) {
 	return -1;
 }
 
+/// arrからaを除去する。
+T[] remove(string pred = "a == b", T)(ref T[] arr, T a) {
+	foreach (i, b; arr) {
+		if (mixin (pred)) {
+			return (arr = arr[0 .. i] ~ arr[i + 1 .. $]);
+		}
+	}
+	return arr;
+}
+
 /// 簡単なhashset。
 class HashSet(T) {
 	private int[T] a;
