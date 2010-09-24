@@ -4,12 +4,16 @@ module cwx.editor.gui.dwt.properties;
 import cwx.utils;
 import cwx.xml;
 
+import cwx.editor.gui.dwt.dockingfolder;
+
 import std.conv;
 import std.string;
 import std.file;
 import std.utf;
 
 import dwt.DWT;
+import dwt.widgets.Control;
+import dwt.widgets.Composite;
 
 private:
 
@@ -185,6 +189,9 @@ class WindowProps(string PropName, int Width, int Height)
 class MainWin : Properties {
 	mixin Property!("x", int, DWT.DEFAULT);
 	mixin Property!("y", int, DWT.DEFAULT);
+	mixin Property!("width", int, 1024);
+	mixin Property!("height", int, 768);
+	mixin Property!("maximized", bool, false);
 
 	mixin XMLFuncs!(MainWin, "mainWindow");
 }
@@ -341,6 +348,7 @@ struct OuterTool {
 }
 
 class FlexEtcProps : Properties {
+	mixin Property!("singleWindow", bool, true);
 	mixin Property!("directorySashL", int, 2);
 	mixin Property!("directorySashR", int, 5);
 	mixin Property!("filesSortColumn", int, 1);
@@ -570,10 +578,24 @@ public class FlexProps {
 		bgImagesDlg = new typeof(bgImagesDlg);
 		etc = new typeof(etc);
 	}
-	void save() {
-		save(_path);
+	DockingFolderCTC loadDock(Composite parent, int style, Control delegate(Composite, string) create) {
+		DockingFolderCTC r = null;
+		if (exists(_path)) {
+			try {
+				auto node = XNode.parse(cast(string) read(_path));
+				node.onTag["dockingFolder"] = (ref XNode node) {
+					r = DockingFolderCTC.fromNode(node, parent, style, create);
+				};
+				node.parse;
+			} catch {
+			}
+		}
+		return r;
 	}
-	void save(string xmlFileName) {
+	void save(DockingFolderCTC dock) {
+		save(_path, dock);
+	}
+	void save(string xmlFileName, DockingFolderCTC dock) {
 		auto node = XNode.create("cwxeditor");
 		mainWin.toNode(node);
 		dataWin.toNode(node);
@@ -586,6 +608,9 @@ public class FlexProps {
 		contentsWin.toNode(node);
 		bgImagesDlg.toNode(node);
 		etc.toNode(node);
+		if (dock) {
+			dock.toNode(node);
+		}
 		write(xmlFileName, node.text);
 	}
 }

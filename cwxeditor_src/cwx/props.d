@@ -75,6 +75,8 @@ public:
 	string scenarioName() {return "シナリオ名";}
 	string type() {return "タイプ";}
 
+	string newScenarioName() {return "新規シナリオ";}
+
 	string dlgMsgDelete(string[] files) {
 		return files.length == 1
 			? getBaseName(files[0]) ~ "を削除してよろしいですか？"
@@ -746,8 +748,15 @@ public:
 	string unzip(string name) {return name ~ "を展開しています……";}
 
 	/// データウィンドウ
-	string dataWindowName(string name, string path) {
-		return "データウィンドウ - [ " ~ name ~ " ] - " ~ path;
+	string dataTabName(Summary summ) {
+		return "データ";
+	}
+	string dataWindowName(Summary summ) {
+		if (summ) {
+			return "データ - [ " ~ summ.scenarioName ~ " ] - " ~ summ.scenarioPath;
+		} else {
+			return "データ";
+		}
 	}
 	string scenarioView() {return "シナリオビューリスト";}
 	string variableView() {return "状態変数インスペクタ";}
@@ -772,8 +781,8 @@ public:
 	/// フラグのディレクトリ。
 	string flagDirRoot() {return "Data";}
 	string flagDirNew() {return "新規フォルダ";}
-	string ttNewDir() {return "フォルダの作成";}
-	string menuNewDir() {return ttNewDir ~ "(&N)...";}
+	string ttNewFlagDir() {return "フォルダの作成";}
+	string menuNewFlagDir() {return ttNewFlagDir ~ "(&N)...";}
 	int menuNewDirA() {return -1;}
 
 	/// フラグ/ステップのテーブル。
@@ -875,9 +884,18 @@ public:
 	string height() {return "高";}
 	string scale() {return "拡大率";}
 
+	private string __viewNameTab(ulong id, string name) {
+		return to!(string)(id) ~ "." ~ name;
+	}
 	private string __viewName(string kind, ulong id, string name) {
 		return "[" ~ kind ~ "] - " ~ to!(string)(id) ~ " - " ~ name;
 	}
+	string areaViewNameTab(ulong id, string name) {return __viewNameTab(id, name);}
+	string battleViewNameTab(ulong id, string name) {return __viewNameTab(id, name);}
+	string packageViewNameTab(ulong id, string name) {return __viewNameTab(id, name);}
+	string skillViewNameTab(ulong id, string name) {return __viewNameTab(id, name);}
+	string itemViewNameTab(ulong id, string name) {return __viewNameTab(id, name);}
+	string beastViewNameTab(ulong id, string name) {return __viewNameTab(id, name);}
 	string areaViewName(ulong id, string name) {return __viewName("エリア", id, name);}
 	string battleViewName(ulong id, string name) {return __viewName("バトル", id, name);}
 	string packageViewName(ulong id, string name) {return __viewName("パッケージ", id, name);}
@@ -885,10 +903,18 @@ public:
 	string itemViewName(ulong id, string name) {return __viewName("アイテム", id, name);}
 	string beastViewName(ulong id, string name) {return __viewName("召喚獣", id, name);}
 
-	string handCards(ulong id, string name) {return __viewName("所有カード", id, name);}
+	string handCards(ulong id, string name) {
+		return __viewName("所有カード", id, name);
+	}
+	string handCardsTab(ulong id, string name) {
+		return __viewNameTab(id, name);
+	}
 	string cardCount() {return "使用数";}
 	string addCardWindow(string name, string path) {
 		return "カードのインポート - [ " ~ name ~ " ] - " ~ path;
+	}
+	string addCardTab(string name, string path) {
+		return name;
 	}
 
 	string cardAndBackView() {return "カードと背景";}
@@ -1366,8 +1392,15 @@ public:
 	string natureUnknown() {return "その他";}
 
 	/// カードウィンドウ。
-	string cardWindowName(string name, string path) {
-		return "カードウィンドウ - [ " ~ name ~ " ] - " ~ path;
+	string cardTabName(Summary summ) {
+		return "カード";
+	}
+	string cardWindowName(Summary summ) {
+		if (summ) {
+			return "カード - [ " ~ summ.scenarioName ~ " ] - " ~ summ.scenarioPath;
+		} else {
+			return "カード";
+		}
 	}
 	string dlgTitAddScenario() {return "インポート元の選択";}
 
@@ -1552,8 +1585,15 @@ public:
 	}
 
 	/// 素材管理ウィンドウ。
-	string dirWindowName(string name, string path) {
-		return "素材管理ウィンドウ - [ " ~ name ~ " ] - " ~ path;
+	string dirTabName(Summary summ) {
+		return "ファイル";
+	}
+	string dirWindowName(Summary summ) {
+		if (summ) {
+			return "ファイル - [ " ~ summ.scenarioName ~ " ] - " ~ summ.scenarioPath;
+		} else {
+			return "ファイル";
+		}
 	}
 	string fileName() {return "ファイル名";}
 	string fileExt() {return "拡張子";}
@@ -1586,6 +1626,7 @@ public:
 	string openHistoryClear() {return "履歴のクリア";}
 	string dlgMsgHistoryClear() {return "履歴を削除してよろしいですか？";}
 	string settingEtc() {return "その他";}
+	string singleWindow() {return "シングルウィンドウモード(再起動後に反映されます)";}
 	string expandXMLs() {return "圧縮されたシナリオの読込み時にXMLファイルを展開する";}
 	string contentsFloat() {return "コンテンツボックスを別ウィンドウで表示する";}
 	string xmlCopy() {return "コピーや切り取りを常にXML形式で行う";}

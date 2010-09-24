@@ -7,6 +7,7 @@ import std.zip;
 import std.utf;
 import std.process;
 import std.thread;
+import std.metastrings;
 
 import cwx.cwl;
 import cwx.area;
@@ -27,6 +28,7 @@ import cwx.editor.gui.dwt.cardwindow;
 import cwx.editor.gui.dwt.directorywindow;
 import cwx.editor.gui.dwt.settingsdialog;
 import cwx.editor.gui.dwt.replacedialog;
+import cwx.editor.gui.dwt.dockingfolder;
 import cwx.editor.gui.dwt.xmlbytestransfer;
 
 import cwx.editor.gui.dwt.props;
@@ -67,6 +69,8 @@ import dwt.widgets.MessageBox;
 import dwt.graphics.Image;
 import dwt.program.Program;
 import dwt.layout.FillLayout;
+import dwt.layout.RowLayout;
+import dwt.layout.RowData;
 import dwt.layout.GridLayout;
 import dwt.layout.GridData;
 import dwt.dnd.DND;
@@ -86,6 +90,7 @@ public:
 class MainWindow {
 private:
 	Shell _win = null;
+	DockingFolderCTC _dock = null;
 
 	Props _prop;
 	Commons _comm;
@@ -95,31 +100,37 @@ private:
 	DirectoryWindow _dirWin;
 
 	void __refreshTitle() {
-		_win.setText = _prop.msgs.mainWindowName
-			(_dataWin.summary.scenarioName, getDirName(_dataWin.scenarioPath));
+		if (summary) {
+			_win.setText = _prop.msgs.mainWindowName
+				(summary.scenarioName, getDirName(_dataWin.scenarioPath));
+		} else {
+			_win.setText = _prop.msgs.mainWindowName(null, null);
+		}
 	}
 
 	void createScenario() {
 		if (qSave) {
 			auto dlg = new CreateScenarioDialog(_prop, _win);
 			if (dlg.open != IDialogConstants.OK_ID) return;
-			auto old = _dataWin.summary;
+			auto old = summary;
 			string name = dlg.name;
 			string skinName = dlg.skinName;
 			_comm.closeAll;
 			auto p = Summary.createTempDir(_prop.tempPath, name);
 			_dataWin.create(p, name, skinName);
-			if (_dataWin.summary.expandXMLs) {
-				_dataWin.summary.saveXMLs(_dataWin.summary.scenarioPath);
+			if (summary.expandXMLs) {
+				summary.saveXMLs(summary.scenarioPath);
 			}
-			_cardWin.refresh(_dataWin.summary);
-			_dirWin.refresh(_dataWin.summary);
-			if (_replDlg) _replDlg.summary = _dataWin.summary;
+			_cardWin.refresh(summary);
+			_dirWin.refresh(summary);
+			if (_replDlg) _replDlg.summary = summary;
 			__refreshTitle;
 			if (old) old.delTemp;
-			if (_prop.var.dataWin.visible) _dataWin.open;
-			if (_prop.var.cardWin.visible) _cardWin.open;
-			if (_prop.var.dirWin.visible) _dirWin.open;
+			if (!dock) {
+				if (_prop.var.dataWin.visible) _comm.openDataWin;
+				if (_prop.var.cardWin.visible) _comm.openCardWin;
+				if (_prop.var.dirWin.visible) _comm.openDirWin;
+			}
 		}
 	}
 	class DTListener : DropTargetAdapter {
@@ -136,7 +147,7 @@ private:
 		}
 	}
 	void reload() {
-		auto old = _dataWin.summary;
+		auto old = summary;
 		if (old.useTemp && !old.zipName.length) {
 			MessageBox.showWarning(_prop.msgs.reloadBeforeSaveError(old.scenarioName),
 				_prop.msgs.dlgTitWarning, _win);
@@ -152,7 +163,7 @@ private:
 					} catch (Exception e) {
 						debugln(e);
 						MessageBox.showWarning(_prop.msgs.reloadError
-							(_dataWin.summary.scenarioPath) ~ "\n" ~ e.msg,
+							(summary.scenarioPath) ~ "\n" ~ e.msg,
 							_prop.msgs.dlgTitWarning, _win);
 					}
 				} else {
@@ -164,7 +175,7 @@ private:
 				} catch (Exception e) {
 					debugln(e);
 					MessageBox.showWarning(_prop.msgs.reloadError
-						(_dataWin.summary.scenarioPath) ~ "\n" ~ e.msg,
+						(summary.scenarioPath) ~ "\n" ~ e.msg,
 						_prop.msgs.dlgTitWarning, _win);
 				}
 			} else {
@@ -192,9 +203,11 @@ private:
 		if (_replDlg) _replDlg.summary = summ;
 		_comm.refScenarioName.call;
 		_comm.refScenarioPath.call;
-		if (_prop.var.dataWin.visible) _dataWin.open;
-		if (_prop.var.cardWin.visible) _cardWin.open;
-		if (_prop.var.dirWin.visible) _dirWin.open;
+		if (!dock) {
+			if (_prop.var.dataWin.visible) _comm.openDataWin;
+			if (_prop.var.cardWin.visible) _comm.openCardWin;
+			if (_prop.var.dirWin.visible) _comm.openDirWin;
+		}
 		addHistory;
 	}
 	string[] _openPaths;
@@ -215,7 +228,7 @@ private:
 		}
 	}
 	void openScenario() {
-		auto old = _dataWin.summary;
+		auto old = summary;
 		loadScenario!(Summary)(_prop, _win, _prop.var.etc.expandXMLs, old, _prop.msgs.dlgTitOpenScenario, &openScenarioImpl);
 	}
 	void openScenario(string fname) {
@@ -246,7 +259,7 @@ private:
 			}
 			fname = getDirName(fname);
 		}
-		auto old = _dataWin.summary;
+		auto old = summary;
 		loadScenarioFromFile!(Summary)(_prop, _win, _prop.var.etc.expandXMLs, old, fname, &openScenarioImpl);
 	}
 	void saveScenario() {
@@ -256,15 +269,15 @@ private:
 		save(shell);
 	}
 	bool save(Shell shell) {
-		if (_dataWin.summary) {
-			if (!_dataWin.summary.isSaved) {
+		if (summary) {
+			if (!summary.isSaved) {
 				// いまだ保存されていない場合は名前をつけて保存
 				return __saveScenarioA(shell);
 			} else {
 				shell.setCursor = Display.getCurrent.getSystemCursor(DWT.CURSOR_WAIT);
 				scope (exit) shell.setCursor = null;
 				try {
-					_dataWin.summary.saveOverwrite(_prop.parent);
+					summary.saveOverwrite(_prop.parent);
 					_comm.saved.call;
 					addHistory;
 					return true;
@@ -281,13 +294,13 @@ private:
 		__saveScenarioA(_win);
 	}
 	bool __saveScenarioA(Shell shell) {
-		if (_dataWin.summary) {
+		if (summary) {
 			auto dlg = new FileDialog(shell, DWT.PRIMARY_MODAL | DWT.APPLICATION_MODAL | DWT.SINGLE | DWT.SAVE);
 			dlg.setFilterExtensions = ["*.wsn"];
 			dlg.setFilterNames = [_prop.msgs.filterScenarioSave];
 			dlg.setText = _prop.msgs.dlgTitSaveScenario;
 			dlg.setFilterPath = scenarioFilterPath(_prop);
-			dlg.setFileName = _dataWin.summary.scenarioName ~ ".wsn";
+			dlg.setFileName = summary.scenarioName ~ ".wsn";
 			dlg.setOverwrite = true;
 			string fname = dlg.open;
 			if (fname) {
@@ -297,7 +310,7 @@ private:
 				bool expandXMLs = _prop.var.etc.expandXMLs;
 				Skin defSkin = .findSkin2(_prop, _prop.var.etc.defaultSkin);
 				try {
-					_dataWin.summary.saveWithName(_prop.parent, fname, tempPath, expandXMLs, defSkin, (string msg) {
+					summary.saveWithName(_prop.parent, fname, tempPath, expandXMLs, defSkin, (string msg) {
 						MessageBox.showWarning(msg, _prop.msgs.dlgTitWarning, shell);
 					});
 					_prop.var.etc.scenarioPath = nabs(dlg.getFilterPath);
@@ -315,28 +328,28 @@ private:
 		return false;
 	}
 	void execEngine() {
-		string engine = _dataWin.summary ? findSkin(_prop, _dataWin.summary).engine : _prop.var.etc.enginePath;
+		string engine = summary ? findSkin(_prop, summary).engine : _prop.var.etc.enginePath;
 		if (!exec(engine, getDirName(nabs(engine)))) {
 			MessageBox.showWarning(_prop.msgs.errorExecEngine(engine),
 				_prop.msgs.dlgTitWarning, _win);
 		}
 	}
 	void openDataWindow() {
-		if (_dataWin.summary) {
+		if (summary) {
 			_prop.var.dataWin.visible = true;
-			_dataWin.open;
+			_comm.openDataWin;
 		}
 	}
 	void openCardWindow() {
-		if (_dataWin.summary) {
+		if (summary) {
 			_prop.var.cardWin.visible = true;
-			_cardWin.open;
+			_comm.openCardWin;
 		}
 	}
 	void openDirWindow() {
-		if (_dataWin.summary) {
+		if (summary) {
 			_prop.var.dirWin.visible = true;
-			_dirWin.open;
+			_comm.openDirWin;
 		}
 	}
 	void exitAll() {
@@ -346,9 +359,9 @@ private:
 	}
 	private ReplaceDialog _replDlg = null;
 	void replaceText() {
-		if (_dataWin.summary) {
+		if (summary) {
 			if (!_replDlg || _replDlg.widget.isDisposed) {
-				_replDlg = new ReplaceDialog(_comm, _prop, _win, _dataWin.summary);
+				_replDlg = new ReplaceDialog(_comm, _prop, _win, summary);
 			} else {
 				_replDlg.widget.setMinimized = false;
 				_replDlg.widget.setActive;
@@ -365,14 +378,14 @@ private:
 	}
 
 	bool qSave(bool reload = false) {
-		if (_dataWin.summary && (_dataWin.summary.isChanged || _dirWin.isChanged)) {
+		if (summary && (summary.isChanged || _dirWin.isChanged)) {
 			MessageBox dlg;
 			if (reload) {
 				dlg = new MessageBox(_win, DWT.OK | DWT.CANCEL | DWT.ICON_QUESTION);
-				dlg.setMessage = _prop.msgs.dlgMsgIsSaveBeforeReload(_dataWin.summary.scenarioName);
+				dlg.setMessage = _prop.msgs.dlgMsgIsSaveBeforeReload(summary.scenarioName);
 			} else {
 				dlg = new MessageBox(_win, DWT.YES | DWT.NO | DWT.CANCEL | DWT.ICON_QUESTION);
-				dlg.setMessage = _prop.msgs.dlgMsgIsSaveBeforeExit(_dataWin.summary.scenarioName);
+				dlg.setMessage = _prop.msgs.dlgMsgIsSaveBeforeExit(summary.scenarioName);
 			}
 			scope (exit) dlg.dispose;
 			dlg.setText = _prop.msgs.dlgTitQuestion;
@@ -394,7 +407,27 @@ private:
 			e.doit = qSave;
 		}
 	}
+	class DListener : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			_comm.refScenarioName.remove(&__refreshTitle);
+			_comm.refScenarioPath.remove(&__refreshTitle);
+			_comm.replText.remove(&__refreshTitle);
 
+			auto b = _win.getBounds;
+			_prop.var.mainWin.x = b.x;
+			_prop.var.mainWin.y = b.y;
+			if (dock) {
+				_prop.var.mainWin.maximized = _win.getMaximized;
+				if (!_prop.var.mainWin.maximized) {
+					_prop.var.mainWin.width = b.width;
+					_prop.var.mainWin.height = b.height;
+				}
+			}
+			_win.setVisible = false;
+			_comm.closeAll;
+			_prop.var.save(dock);
+		}
+	}
 	void settings() {
 		auto dlg = new SettingsDialog(_prop, _win);
 		string[] oldHist = _prop.var.etc.openHistories;
@@ -416,17 +449,17 @@ private:
 
 	void addHistory() {
 		string hist;
-		if (_dataWin.summary.legacy) {
-			if (_dataWin.summary.useTemp) {
-				hist = _dataWin.summary.zipName;
+		if (summary.legacy) {
+			if (summary.useTemp) {
+				hist = summary.zipName;
 			} else {
-				hist = std.path.join(_dataWin.summary.scenarioPath, "Summary.wsm");
+				hist = std.path.join(summary.scenarioPath, "Summary.wsm");
 			}
-		} else if (_dataWin.summary.useTemp) {
-			hist = _dataWin.summary.zipName;
+		} else if (summary.useTemp) {
+			hist = summary.zipName;
 			if (!hist.length) return;
 		} else {
-			hist = std.path.join(_dataWin.summary.scenarioPath, "Summary.xml");
+			hist = std.path.join(summary.scenarioPath, "Summary.xml");
 		}
 		hist = nabs(hist);
 		foreach (i, h; _prop.var.etc.openHistories) {
@@ -593,7 +626,11 @@ public:
 			return;
 		}
 
-		_win = new Shell(d, DWT.DIALOG_TRIM | DWT.MIN);
+		if (_prop.var.etc.singleWindow) {
+			_win = new Shell;
+		} else {
+			_win = new Shell(DWT.DIALOG_TRIM | DWT.MIN);
+		}
 		_win.setImage = _prop.images.app;
 
 		_comm = new Commons;
@@ -601,88 +638,387 @@ public:
 		_comm.refScenarioName.add(&__refreshTitle);
 		_comm.refScenarioPath.add(&__refreshTitle);
 		_comm.replText.add(&__refreshTitle);
-		_win.addDisposeListener(new class DisposeListener {
-			override void widgetDisposed(DisposeEvent e) {
-				_comm.refScenarioName.remove(&__refreshTitle);
-				_comm.refScenarioPath.remove(&__refreshTitle);
-				_comm.replText.remove(&__refreshTitle);
-			}
-		});
-
+		_win.addDisposeListener(new DListener);
 		_win.addShellListener(new SListener);
 		foreach (f; _prop.looks.fontFiles) {
 			d.loadFont(engineDir ~ f);
 		}
 		_win.setText(_prop.msgs.mainWindowName(null, null));
-		_win.setLayout = windowGridLayout(1);
-		int tx = _prop.var.mainWin.x == DWT.DEFAULT ? _win.getBounds.x : _prop.var.mainWin.x;
-		int ty = _prop.var.mainWin.y == DWT.DEFAULT ? _win.getBounds.y : _prop.var.mainWin.y;
-		intoDisplay(tx, ty, _win.getSize.x, _win.getSize.y);
-		_win.setBounds(tx, ty, _win.getSize.x, _win.getSize.y);
-		_win.addDisposeListener(new class DisposeListener {
-			override void widgetDisposed(DisposeEvent e) {
-				_prop.var.mainWin.x = _win.getBounds.x;
-				_prop.var.mainWin.y = _win.getBounds.y;
+		_win.setLayout = windowGridLayout(1, true);
+
+		auto toolComp = new Composite(_win, DWT.NONE);
+		toolComp.setLayout = new FillLayout;
+		if (_prop.var.etc.singleWindow) {
+			_dock = _prop.var.loadDock(_win, DWT.NONE, delegate Control(Composite parent, string key) {
+				switch (key) {
+				case "data": {
+					_dataWin = new DataWindow(_comm, _prop, parent);
+					return _dataWin.shell;
+				}
+				case "card": {
+					_cardWin = new MainCardWindow(_comm, _prop, parent);
+					return _cardWin.shell;
+				}
+				case "file": {
+					_dirWin = new DirectoryWindow(_comm, _prop, parent);
+					return _dirWin.shell;
+				}
+				default:
+					debugln("Unknown pane key: " ~ key);
+					throw new Exception("Unknown pane key: " ~ key);
+				}
+			});
+			void initDock() {
+				_dock.canMove = &dockCanMove;
+				_dock.newPaneName = &dockNewPaneName;
+				_dock.selectEvent ~= &dockSelect;
+				_dock.area.setLayoutData = new GridData(GridData.FILL_BOTH);
 			}
-		});
+			if (_dock) {
+				initDock;
+				if (!_dataWin) _dataWin = new DataWindow(_comm, _prop, null);
+				if (!_cardWin) _cardWin = new MainCardWindow(_comm, _prop, null);
+				if (!_dirWin) _dirWin = new DirectoryWindow(_comm, _prop, null);
+			} else {
+				_dock = new DockingFolderCTC(_win, DWT.NONE, "work");
+				initDock;
+				auto data = _dock.addPane(_dock.first, Dir.S, 3, 1, "data");
+				_dataWin = new DataWindow(_comm, _prop, data);
+				_dock.add(_dataWin.shell, _dataWin.title, "data", true);
+				_cardWin = new MainCardWindow(_comm, _prop, data);
+				_dock.add(_cardWin.shell, _cardWin.title, "card", false);
+				_dirWin = new DirectoryWindow(_comm, _prop, data);
+				_dock.add(_dirWin.shell, _dirWin.title, "file", false);
+			}
+		} else {
+			_dataWin = new DataWindow(_comm, _prop, _win);
+			_cardWin = new MainCardWindow(_comm, _prop, _win);
+			_dirWin = new DirectoryWindow(_comm, _prop, _win);
+		}
 		{
+			_mainMenu = new HashSet!(string);
 			auto bar = new Menu(_win, DWT.BAR);
 
 			_menuFile = createMenu(bar, _prop.msgs.menuFile);
 			createFileMenu;
 
+			void mCreateMenuItem(Menu m, string text, Image img, void delegate() dlg) {
+				createMenuItem(m, text, img, dlg);
+				_mainMenu.add(text);
+			}
 			auto me = createMenu(bar, _prop.msgs.menuEdit);
-			createMenuItem(me, _prop.msgs.menuReplaceText, _prop.images.menuReplaceText, &replaceText);
-			createMenuItem(me, _prop.msgs.menuToXML, _prop.images.menuToXML, &clipboardToXML);
+			if (_prop.var.etc.singleWindow) {
+				mixin (MenuAction!("me", "Undo"));
+				mixin (MenuAction!("me", "Redo"));
+				new MenuItem(me, DWT.SEPARATOR);
+				mixin (MenuAction!("me", "Cut"));
+				mixin (MenuAction!("me", "Copy"));
+				mixin (MenuAction!("me", "Paste"));
+				mixin (MenuAction!("me", "Del"));
+				new MenuItem(me, DWT.SEPARATOR);
+				mixin (MenuAction!("me", "Up"));
+				mixin (MenuAction!("me", "Down"));
+				new MenuItem(me, DWT.SEPARATOR);
+			}
+			mCreateMenuItem(me, _prop.msgs.menuReplaceText, _prop.images.menuReplaceText, &replaceText);
+			if (_prop.var.etc.singleWindow) {
+				mixin (MenuAction!("me", "ReplacePath"));
+			}
+			mCreateMenuItem(me, _prop.msgs.menuToXML, _prop.images.menuToXML, &clipboardToXML);
 			new MenuItem(me, DWT.SEPARATOR);
-			createMenuItem(me, _prop.msgs.menuReload, _prop.images.menuReload, &reload);
+			mCreateMenuItem(me, _prop.msgs.menuReload, _prop.images.menuReload, &reload);
 
 			auto mv = createMenu(bar, _prop.msgs.menuView);
-			createMenuItem(mv, _prop.msgs.menuDataWin, _prop.images.menuDataWin, &openDataWindow);
-			createMenuItem(mv, _prop.msgs.menuCardWin, _prop.images.menuCardWin, &openCardWindow);
-			createMenuItem(mv, _prop.msgs.menuDirWin, _prop.images.menuDirWin, &openDirWindow);
+			mCreateMenuItem(mv, _prop.msgs.menuDataWin, _prop.images.menuDataWin, &openDataWindow);
+			mCreateMenuItem(mv, _prop.msgs.menuCardWin, _prop.images.menuCardWin, &openCardWindow);
+			mCreateMenuItem(mv, _prop.msgs.menuDirWin, _prop.images.menuDirWin, &openDirWindow);
+			if (_prop.var.etc.singleWindow) {
+				new MenuItem(mv, DWT.SEPARATOR);
+				mixin (MenuAction!("mv", "Refresh"));
+			}
+
+			if (_prop.var.etc.singleWindow) {
+				auto ma = createMenu(bar, _prop.msgs.menuTable);
+				mixin (MenuAction!("ma", "Summary"));
+				new MenuItem(ma, DWT.SEPARATOR);
+				mixin (MenuAction!("ma", "NewArea", DWT.PUSH, "_dataWin.createArea"));
+				mixin (MenuAction!("ma", "NewBattle", DWT.PUSH, "_dataWin.createBattle"));
+				mixin (MenuAction!("ma", "NewPackage", DWT.PUSH, "_dataWin.createPackage"));
+
+				auto mf = createMenu(bar, _prop.msgs.menuVariable);
+				mixin (MenuAction!("mf", "NewFlagDir", DWT.PUSH, "_dataWin.createFlagDir"));
+				mixin (MenuAction!("mf", "NewFlag", DWT.PUSH, "_dataWin.createFlag"));
+				mixin (MenuAction!("mf", "NewStep", DWT.PUSH, "_dataWin.createStep"));
+
+				auto mc = createMenu(bar, _prop.msgs.menuCards);
+				auto g = new RadioGroup!(MenuItem);
+				mixin (MenuAction!("mc", "ShowCardList", DWT.RADIO));
+				g.append(_menu[_prop.msgs.menuShowCardList]);
+				mixin (MenuAction!("mc", "ShowCardTable", DWT.RADIO));
+				g.append(_menu[_prop.msgs.menuShowCardTable]);
+				_menuRG ~= g;
+				new MenuItem(mc, DWT.SEPARATOR);
+				mixin (MenuAction!("mc", "NewCast", DWT.PUSH, "newCast"));
+				mixin (MenuAction!("mc", "NewSkill", DWT.PUSH, "newSkill"));
+				mixin (MenuAction!("mc", "NewItem", DWT.PUSH, "newItem"));
+				mixin (MenuAction!("mc", "NewBeast", DWT.PUSH, "newBeast"));
+				mixin (MenuAction!("mc", "NewInfo", DWT.PUSH, "newInfo"));
+				new MenuItem(mc, DWT.SEPARATOR);
+				mixin (MenuAction!("mc", "AddScenario", DWT.PUSH, "_cardWin.addScenario"));
+			}
 
 			auto mt = createMenu(bar, _prop.msgs.menuTools);
-			createMenuItem(mt, _prop.msgs.menuExecEngine, _prop.images.menuExecEngine, &execEngine);
+			mCreateMenuItem(mt, _prop.msgs.menuExecEngine, _prop.images.menuExecEngine, &execEngine);
 			new MenuItem(mt, DWT.SEPARATOR);
-			createMenuItem(mt, _prop.msgs.menuSettings, _prop.images.menuSettings, &settings);
+			mCreateMenuItem(mt, _prop.msgs.menuSettings, _prop.images.menuSettings, &settings);
 
 			_win.setMenuBar = bar;
 		}
-
 		{
-			auto bar = new ToolBar(_win, DWT.FLAT);
-			createToolItem(bar, _prop.msgs.ttNew, _prop.images.menuNew, &createScenario);
-			createToolItem(bar, _prop.msgs.ttOpen, _prop.images.menuOpen, &openScenarioM);
-			createToolItem(bar, _prop.msgs.ttSave, _prop.images.menuSave, &saveScenario);
-			createToolItem(bar, _prop.msgs.ttSaveA, _prop.images.menuSaveA, &saveScenarioA);
+			_mainTool = new HashSet!(string);
+			auto bar = new ToolBar(toolComp, DWT.FLAT);
+			void mCreateToolItem(ToolBar bar, string text, Image img, void delegate() dlg) {
+				createToolItem(bar, text, img, dlg);
+				_mainTool.add(text);
+			}
+			bar.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+			mCreateToolItem(bar, _prop.msgs.ttNew, _prop.images.menuNew, &createScenario);
+			mCreateToolItem(bar, _prop.msgs.ttOpen, _prop.images.menuOpen, &openScenarioM);
+			mCreateToolItem(bar, _prop.msgs.ttSave, _prop.images.menuSave, &saveScenario);
+			mCreateToolItem(bar, _prop.msgs.ttSaveA, _prop.images.menuSaveA, &saveScenarioA);
 			new ToolItem(bar, DWT.SEPARATOR);
-			createToolItem(bar, _prop.msgs.ttReplaceText, _prop.images.menuReplaceText, &replaceText);
-			createToolItem(bar, _prop.msgs.ttToXML, _prop.images.menuToXML, &clipboardToXML);
+			mCreateToolItem(bar, _prop.msgs.ttReplaceText, _prop.images.menuReplaceText, &replaceText);
+			if (_prop.var.etc.singleWindow) {
+				mixin (ToolAction!("bar", "ReplacePath"));
+			}
+			mCreateToolItem(bar, _prop.msgs.ttToXML, _prop.images.menuToXML, &clipboardToXML);
 			new ToolItem(bar, DWT.SEPARATOR);
-			createToolItem(bar, _prop.msgs.ttReload, _prop.images.menuReload, &reload);
+			mCreateToolItem(bar, _prop.msgs.ttReload, _prop.images.menuReload, &reload);
 			new ToolItem(bar, DWT.SEPARATOR);
-			createToolItem(bar, _prop.msgs.ttDataWin, _prop.images.menuDataWin, &openDataWindow);
-			createToolItem(bar, _prop.msgs.ttCardWin, _prop.images.menuCardWin, &openCardWindow);
-			createToolItem(bar, _prop.msgs.ttDirWin, _prop.images.menuDirWin, &openDirWindow);
+			mCreateToolItem(bar, _prop.msgs.ttDataWin, _prop.images.menuDataWin, &openDataWindow);
+			mCreateToolItem(bar, _prop.msgs.ttCardWin, _prop.images.menuCardWin, &openCardWindow);
+			mCreateToolItem(bar, _prop.msgs.ttDirWin, _prop.images.menuDirWin, &openDirWindow);
 			new ToolItem(bar, DWT.SEPARATOR);
-			createToolItem(bar, _prop.msgs.ttExecEngine, _prop.images.menuExecEngine, &execEngine);
+			if (_prop.var.etc.singleWindow) {
+				mixin (ToolAction!("bar", "Refresh"));
+				new ToolItem(bar, DWT.SEPARATOR);
+				mixin (ToolAction!("bar", "Undo"));
+				mixin (ToolAction!("bar", "Redo"));
+				new ToolItem(bar, DWT.SEPARATOR);
+				mixin (ToolAction!("bar", "Cut"));
+				mixin (ToolAction!("bar", "Copy"));
+				mixin (ToolAction!("bar", "Paste"));
+				mixin (ToolAction!("bar", "Del"));
+				new ToolItem(bar, DWT.SEPARATOR);
+				mixin (ToolAction!("bar", "Up"));
+				mixin (ToolAction!("bar", "Down"));
+				new ToolItem(bar, DWT.SEPARATOR);
+				mixin (ToolAction!("bar", "Summary", DWT.PUSH, "_dataWin.editSummary"));
+				new ToolItem(bar, DWT.SEPARATOR);
+				mixin (ToolAction!("bar", "NewArea", DWT.PUSH, "_dataWin.createArea"));
+				mixin (ToolAction!("bar", "NewBattle", DWT.PUSH, "_dataWin.createBattle"));
+				mixin (ToolAction!("bar", "NewPackage", DWT.PUSH, "_dataWin.createPackage"));
+				new ToolItem(bar, DWT.SEPARATOR);
+				mixin (ToolAction!("bar", "NewFlagDir", DWT.PUSH, "_dataWin.createFlagDir"));
+				mixin (ToolAction!("bar", "NewFlag", DWT.PUSH, "_dataWin.createFlag"));
+				mixin (ToolAction!("bar", "NewStep", DWT.PUSH, "_dataWin.createStep"));
+				new ToolItem(bar, DWT.SEPARATOR);
+				auto g = new RadioGroup!(ToolItem);
+				mixin (ToolAction!("bar", "ShowCardList", DWT.RADIO));
+				g.append(_tool[_prop.msgs.ttShowCardList]);
+				mixin (ToolAction!("bar", "ShowCardTable", DWT.RADIO));
+				g.append(_tool[_prop.msgs.ttShowCardTable]);
+				_toolRG ~= g;
+				new ToolItem(bar, DWT.SEPARATOR);
+				mixin (ToolAction!("bar", "NewCast", DWT.PUSH, "newCast"));
+				mixin (ToolAction!("bar", "NewSkill", DWT.PUSH, "newSkill"));
+				mixin (ToolAction!("bar", "NewItem", DWT.PUSH, "newItem"));
+				mixin (ToolAction!("bar", "NewBeast", DWT.PUSH, "newBeast"));
+				mixin (ToolAction!("bar", "NewInfo", DWT.PUSH, "newInfo"));
+				new ToolItem(bar, DWT.SEPARATOR);
+				mixin (ToolAction!("bar", "AddScenario", DWT.PUSH, "_cardWin.addScenario"));
+				new ToolItem(bar, DWT.SEPARATOR);
+			}
+			mCreateToolItem(bar, _prop.msgs.ttExecEngine, _prop.images.menuExecEngine, &execEngine);
 			new ToolItem(bar, DWT.SEPARATOR);
-			createToolItem(bar, _prop.msgs.ttSettings, _prop.images.menuSettings, &settings);
+			mCreateToolItem(bar, _prop.msgs.ttSettings, _prop.images.menuSettings, &settings);
 			new ToolItem(bar, DWT.SEPARATOR);
-			createToolItem(bar, _prop.msgs.ttClose, _prop.images.menuClose, &exitAll);
+			mCreateToolItem(bar, _prop.msgs.ttClose, _prop.images.menuClose, &exitAll);
+			_toolBar = bar;
 
 			auto drop = new DropTarget(bar, DND.DROP_DEFAULT | DND.DROP_LINK);
 			drop.setTransfer([FileTransfer.getInstance]);
 			drop.addDropListener(new DTListener);
 		}
-		_dataWin = new DataWindow(_comm, _prop, _win);
-		_cardWin = new MainCardWindow(_comm, _prop, _win);
-		_dirWin = new DirectoryWindow(_comm, _prop, _win);
-		_comm.baseShell(this, _dataWin.shell, _cardWin.shell);
+		_comm.baseShell(this, _dataWin, _cardWin, _dirWin);
+
+		int tx = _prop.var.mainWin.x == DWT.DEFAULT ? _win.getBounds.x : _prop.var.mainWin.x;
+		int ty = _prop.var.mainWin.y == DWT.DEFAULT ? _win.getBounds.y : _prop.var.mainWin.y;
+		if (_prop.var.etc.singleWindow) {
+			intoDisplay(tx, ty, _prop.var.mainWin.width, _prop.var.mainWin.height);
+			_win.setBounds(tx, ty, _prop.var.mainWin.width, _prop.var.mainWin.height);
+			_win.setMaximized = _prop.var.mainWin.maximized;
+			_win.layout(true);
+		} else {
+			_win.pack;
+			intoDisplay(tx, ty, _win.getSize.x, _win.getSize.y);
+			_win.setBounds(tx, ty, _win.getSize.x, _win.getSize.y);
+		}
+	}
+	private template NewCard(string Name) {
+		static const NewCard = "auto cw = cast(ICardWindow) _tlp;"
+			~ "if (cw) {"
+			~ "    cw.create" ~ Name ~ ";"
+			~ "} else {"
+			~ "    _comm.openCardWin;"
+			~ "    _cardWin.create" ~ Name ~ ";"
+			~ "}";
+	}
+	private void newCast() {mixin (NewCard!("Cast"));}
+	private void newSkill() {mixin (NewCard!("Skill"));}
+	private void newItem() {mixin (NewCard!("Item"));}
+	private void newInfo() {mixin (NewCard!("Info"));}
+	private void newBeast() {mixin (NewCard!("Beast"));}
+
+	private MenuItem[string] _menu;
+	private ToolItem[string] _tool;
+	private RadioGroup!(MenuItem)[] _menuRG;
+	private RadioGroup!(ToolItem)[] _toolRG;
+	private HashSet!(string) _mainMenu;
+	private HashSet!(string) _mainTool;
+	private ToolBar _toolBar;
+	private TopLevelPanel _tlp = null;
+	private template MenuAction(string M, string S, int Style = DWT.PUSH, string Act = "") {
+		static if (Act.length) {
+			static const MenuAction = "_mainMenu.add(_prop.msgs.menu" ~ S ~ ");"
+				~ "_menu[_prop.msgs.menu" ~ S ~ "] = createMenuItem(" ~ M ~ ", _prop.msgs.menu" ~ S ~ ", _prop.images.menu" ~ S ~ ", &"
+				~ Act ~ ", " ~ ToString!(Style) ~ ");";
+		} else {
+			static const MenuAction = "_menu[_prop.msgs.menu" ~ S ~ "] = createMenuItem(" ~ M ~ ", _prop.msgs.menu" ~ S ~ ", _prop.images.menu" ~ S ~ ", "
+				~ "&menuAction!(\"" ~ S ~ "\"), " ~ ToString!(Style) ~ ");";
+		}
+	}
+	private template ToolAction(string T, string S, int Style = DWT.PUSH, string Act = "") {
+		static if (Act.length) {
+			static const ToolAction = "_mainTool.add(_prop.msgs.tt" ~ S ~ ");"
+				~ "_tool[_prop.msgs.tt" ~ S ~ "] = createToolItem(" ~ T ~ ", _prop.msgs.tt" ~ S ~ ", _prop.images.menu" ~ S ~ ", &"
+				~ Act ~ ", " ~ ToString!(Style) ~ ");";
+		} else {
+			static const ToolAction = "_tool[_prop.msgs.tt" ~ S ~ "] = createToolItem(" ~ T ~ ", _prop.msgs.tt" ~ S ~ ", _prop.images.menu" ~ S ~ ", "
+				~ "&toolAction!(\"" ~ S ~ "\"), " ~ ToString!(Style) ~ ");";
+		}
+	}
+	private void menuAction(string S)() {
+		assert (_tlp);
+		auto s = mixin ("_prop.msgs.menu" ~ S);
+		auto act = _tlp.menuAction(s);
+		assert (act);
+		act();
+		if (_tlp.menuChecked(s)) {
+			auto t = _tlp.menuToTool(s);
+			if (t) {
+				auto b = _tool[t];
+				foreach (g; _toolRG) {
+					if (g.contains(b)) {
+						foreach (gb; g.set) {
+							gb.setSelection = gb is b;
+						}
+						return;
+					}
+				}
+				b.setSelection = _tlp.toolChecked(t)();
+			}
+		}
+	}
+	private void toolAction(string S)() {
+		assert (_tlp);
+		auto s = mixin ("_prop.msgs.tt" ~ S);
+		auto act = _tlp.toolAction(s);
+		assert (act);
+		act();
+		if (_tlp.toolChecked(s)) {
+			auto t = _tlp.toolToMenu(s);
+			if (t) {
+				auto b = _menu[t];
+				foreach (g; _menuRG) {
+					if (g.contains(b)) {
+						foreach (gb; g.set) {
+							gb.setSelection = gb is b;
+						}
+						return;
+					}
+				}
+				b.setSelection = _tlp.menuChecked(t)();
+			}
+		}
 	}
 
+	private void dockSelect(string key) {
+		assert (_dock.control(key), key);
+		auto tlp = (cast(TLPData) _dock.control(key).getData).tlp;
+		assert (tlp, key);
+		_tlp = tlp;
+		void setupMenu(MenuItem menu) {
+			if (menu.getText == _prop.msgs.menuFile) return;
+			auto s = menu.getStyle;
+			if (s & DWT.PUSH) {
+				if(_mainMenu.contains(menu.getText)) return;
+				menu.setEnabled = tlp.menuAction(menu.getText) !is null;
+			} else if ((s & DWT.RADIO) || (s & DWT.CHECK)) {
+				if(_mainMenu.contains(menu.getText)) return;
+				auto chk = tlp.menuChecked(menu.getText);
+				if (chk) {
+					menu.setEnabled = true;
+					menu.setSelection = chk();
+				} else {
+					menu.setEnabled = false;
+				}
+			} else if (s & DWT.CASCADE) {
+				foreach (itm; menu.getMenu.getItems) {
+					setupMenu(itm);
+				}
+			}
+		}
+		foreach (itm; _win.getMenuBar.getItems) {
+			setupMenu(itm);
+		}
+		foreach (itm; _toolBar.getItems) {
+			auto s = itm.getStyle;
+			auto text = itm.getToolTipText;
+			if (s & DWT.PUSH) {
+				if(_mainTool.contains(text)) continue;
+				itm.setEnabled = tlp.toolAction(text) !is null;
+			} else if ((s & DWT.RADIO) || (s & DWT.CHECK)) {
+				if(_mainTool.contains(text)) continue;
+				auto chk = tlp.toolChecked(text);
+				if (chk) {
+					itm.setEnabled = true;
+					itm.setSelection = chk();
+				} else {
+					itm.setEnabled = false;
+				}
+			}
+		}
+	}
+	private bool dockCanMove(string ctrlKey, string dropPaneKey) {
+		if (!dropPaneKey.length) return true;
+		bool iswa = cwx.utils.startsWith(dropPaneKey, "work");
+		if (cwx.utils.startsWith(ctrlKey, "work")) {
+			return iswa;
+		} else {
+			return !iswa;
+		}
+	}
+	private string dockNewPaneName(string ctrlKey) {
+		if (cwx.utils.startsWith(ctrlKey, "work")) {
+			return _dock.newPaneKey("work");
+		}
+		return "";
+	}
 	Shell shell() {return _win;}
+	DockingFolderCTC dock() {return _dock;}
+
+	Summary summary() {return _dataWin.summary;}
 
 	bool openCWXPath(string path) {
 		path = toLower(path);
@@ -703,7 +1039,6 @@ public:
 	void doCWX(string scenarioPath = null, string[] openPaths = []) {
 		if (!_win) return;
 		auto d = _win.getDisplay;
-		_win.pack;
 		_win.open;
 		if (scenarioPath) {
 			_openPaths = openPaths;
@@ -739,10 +1074,9 @@ public:
 			}
 		}
 		d.dispose;
-		if (_dataWin.summary && _dataWin.summary.useTemp) {
-			_dataWin.summary.delTemp;
+		if (summary && summary.useTemp) {
+			summary.delTemp;
 		}
-		_prop.var.save;
 	}
 }
 

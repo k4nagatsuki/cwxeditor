@@ -472,7 +472,9 @@ private:
 				auto dlg = new SpeakDialog(_prop, skin, _tree.getShell, null);
 				return IDialogConstants.OK_ID == dlg.open ? dlg.event : null;
 			} else {
-				return new Content(type, name);
+				auto r = new Content(type, name);
+				r.dialogs = [new SDialog];
+				return r;
 			}
 		} case CType.PLAY_BGM: {
 			if (_autoOpen) {

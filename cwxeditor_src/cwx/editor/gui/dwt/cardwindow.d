@@ -1003,7 +1003,21 @@ template InfoCardPane(PCardOwner, CardOwner, ToCardOwner) {
 	alias CardPane!(PCardOwner, CardOwner, InfoCard, ToCardOwner, "infos", "info") InfoCardPane;
 }
 
-class CardWindow(string Title, PCardOwner, CardOwner, ToCardOwner, Cards ...) : TCPD {
+interface ICardWindow {
+	bool canCreateCast();
+	bool canCreateSkill();
+	bool canCreateItem();
+	bool canCreateBeast();
+	bool canCreateInfo();
+	void createCast();
+	void createSkill();
+	void createItem();
+	void createBeast();
+	void createInfo();
+}
+
+class CardWindow(string ShellTitle, string Title, PCardOwner, CardOwner, ToCardOwner, Cards ...)
+		: TopLevelPanel, TCPD, ICardWindow {
 private:
 	static const bool EditMode = is (ToCardOwner == void);
 	static const bool UseCast = IndexOf!(CastCard, Cards) >= 0;
@@ -1045,12 +1059,13 @@ private:
 	TabItem[Cards.length] _tab;
 
 	Props _prop;
-	Shell _win;
+	Composite _win;
 	TabFolder _tabf;
 	PCardOwner _summ;
 	CardOwner _owner;
 	Commons _comm;
 
+	bool _viewList;
 	MenuItem _listM;
 	MenuItem _tblM;
 	ToolItem _listT;
@@ -1075,11 +1090,11 @@ private:
 		refreshTitle;
 	}
 	void saveScenario() {
-		_comm.save.call(_win);
+		_comm.save.call(_win.getShell);
 	}
 	static if (EditMode && is (CardOwner == Summary)) {
 		alias AddCard!(CardOwner, Cards) AC;
-		HashSet!(Shell) _aws;
+		HashSet!(Composite) _aws;
 		void sac(int Index)(AC.ACW w) {
 			w.setAdd!(Index)(&add!(Index));
 			static if (Index + 1 < Cards.length) {
@@ -1090,13 +1105,14 @@ private:
 			foreach (wo; ws) {
 				auto w = cast(AC.ACW) wo;
 				sac!(0)(w);
-				w.shell.addShellListener(new CloseRemover!(Shell)(_aws, w.shell));
+				w.shell.addDisposeListener(new CloseRemover!(Composite)(_aws, w.shell));
 				_aws.add(w.shell);
-				w.open;
+				_comm.open(w, "side");
 			}
 		}
-		void addScenario() {
-			AC.openScenario(_comm, _prop, topShell(_win), _summ, _owner, &__addScenario);
+		public void addScenario() {
+			if (!_summ) return;
+			AC.openScenario(_comm, _prop, _win, _summ, _owner, &__addScenario);
 		}
 		class DropScenario : DropTargetAdapter {
 			override void dragEnter(DropTargetEvent e){
@@ -1105,7 +1121,7 @@ private:
 			override void drop(DropTargetEvent e) {
 				auto arr = cast(FileNames) e.data;
 				if (arr && arr.array.length > 0) {
-					AC.openScenario(_comm, _prop, topShell(_win), _summ, _owner, arr.array, &__addScenario);
+					AC.openScenario(_comm, _prop, _win, _summ, _owner, arr.array, &__addScenario);
 				}
 			}
 		}
@@ -1120,85 +1136,49 @@ private:
 			}
 		}
 	}
-	void showCardList() {
-		if (!_listM.getSelection) {
-			_listM.setSelection = true;
-			_listT.setSelection = true;
-			_tblM.setSelection = false;
-			_tblT.setSelection = false;
-
-			foreach (i, f; _pane) {
-				f.showCardList;
-				_tab[i].setControl = f.widget;
-			}
-
-			static if (is (CardOwner == Summary)) {
-				_prop.var.etc.cardDetails = false;
-			}
-		}
-	}
-	void showCardTable() {
-		if (!_tblM.getSelection) {
-			_listM.setSelection = false;
-			_listT.setSelection = false;
-			_tblM.setSelection = true;
-			_tblT.setSelection = true;
-
-			foreach (i, f; _pane) {
-				f.showCardTable;
-				_tab[i].setControl = f.widget;
-			}
-
-			static if (is (CardOwner == Summary)) {
-				_prop.var.etc.cardDetails = true;
-			}
-		}
-	}
 	static if (UseCast && !EditMode) {
-		HashSet!(AddHandCardWindow) _hws;
 		void openHand() {
 			auto sels = _pane[CAST].__selections;
 			foreach (sel; sels) {
-				foreach (w; _hws) {
-					if (w.owner is sel) {
-						w.shell.setMinimized = false;
-						w.shell.setActive;
-						return;
-					}
-				}
-				auto hcw = new AddHandCardWindow
-					(_comm, _prop, topShell(_win), _summ, sel, _toc);
-				hcw.setAdd!(hcw.SKILL)(_pane[SKILL].getAddCard);
-				hcw.setAdd!(hcw.ITEM)(_pane[ITEM].getAddCard);
-				hcw.setAdd!(hcw.BEAST)(_pane[BEAST].getAddCard);
-				_hws.add(hcw);
-				hcw.shell.addShellListener(new CloseRemover!(AddHandCardWindow)(_hws, hcw));
-				hcw.open;
+				auto ahcw = _comm.openAddHands(_prop, _summ, sel, _toc);
+				ahcw.setAdd!(ahcw.SKILL)(_pane[SKILL].getAddCard);
+				ahcw.setAdd!(ahcw.ITEM)(_pane[ITEM].getAddCard);
+				ahcw.setAdd!(ahcw.BEAST)(_pane[BEAST].getAddCard);
 			}
 		}
 	}
 public:
 	static if (EditMode) {
 		static if (is (CardOwner == Summary)) {
-			this(Commons comm, Props prop, Shell parent) {
-				construct(comm, prop, null, parent);
+			this(Commons comm, Props prop, Composite parent) {
+				_aws = new HashSet!(Composite);
+				_comm = comm;
+				_prop = prop;
+				if (parent) construct(comm, prop, null, parent);
+			}
+			void reconstruct(Composite parent) {
+				if (_win && !_win.isDisposed) return;
+				construct(_comm, _prop, _summ, parent);
+				if (_owner) refresh(_owner);
 			}
 		} else {
-			this(Commons comm, Props prop, PCardOwner summ, Shell parent) {
+			this(Commons comm, Props prop, PCardOwner summ, Composite parent) {
 				construct(comm, prop, summ, parent);
 			}
 		}
-		void construct(Commons comm, Props prop, PCardOwner summ, Shell parent) {
+		void construct(Commons comm, Props prop, PCardOwner summ, Composite parent) {
 			construct1(comm, prop, parent);
 			static if (is (CardOwner == Summary)) {
-				_aws = new HashSet!(Shell);
-				_win.addShellListener(new class ShellAdapter {
-					override void shellClosed(ShellEvent e) {
-						(cast(Shell) e.widget).setVisible = false;
-						e.doit = false;
-						_prop.var.cardWin.visible = false;
-					}
-				});
+				auto shell = cast(Shell) _win;
+				if (shell) {
+					shell.addShellListener(new class ShellAdapter {
+						override void shellClosed(ShellEvent e) {
+							(cast(Shell) e.widget).setVisible = false;
+							e.doit = false;
+							_prop.var.cardWin.visible = false;
+						}
+					});
+				}
 			}
 			static if (is (CardOwner == CastCard) && is (PCardOwner == Summary)) {
 				_comm.refCast.add(&__refOwner);
@@ -1210,7 +1190,7 @@ public:
 					}
 				});
 			}
-			construct2(prop);
+			construct2;
 			_comm.refScenarioName.add(&refreshTitle);
 			_comm.refScenarioPath.add(&refreshTitle);
 			_win.addDisposeListener(new class DisposeListener {
@@ -1238,96 +1218,127 @@ public:
 			}
 		}
 		this(Commons comm, Props prop,
-				Shell parent, PCardOwner summ, CardOwner owner, ToCardOwner toc) {
+				Composite parent, PCardOwner summ, CardOwner owner, ToCardOwner toc) {
 			_toc = toc;
 			construct1(comm, prop, parent);
-			static if (UseCast) {
-				_hws = new HashSet!(AddHandCardWindow);
-				_win.addShellListener(new class ShellAdapter {
-					override void shellClosed(ShellEvent e) {
-						foreach (w; _hws.toArray) {
-							w.shell.close;
-						}
+			static if (is (CardOwner == CastCard)) {
+				_comm.closeAdds.add(&__closeAdds);
+				_win.addDisposeListener(new class DisposeListener {
+					override void widgetDisposed(DisposeEvent e) {
+						_comm.closeAdds.remove(&__closeAdds);
+					}
+				});
+			}
+			static if (is (CardOwner == Importable)) {
+				_win.addDisposeListener(new class DisposeListener {
+					override void widgetDisposed(DisposeEvent e) {
+						_comm.closeAdds.call(_summ);
 					}
 				});
 			}
 			_summ = summ;
-			construct2(prop);
+			construct2;
 			__refreshAll(summ, owner);
 		}
 	}
-	private void construct1(Commons comm, Props prop, Shell parent) {
+	private void construct1(Commons comm, Props prop, Composite parent) {
 		_comm = comm;
-		_win = new Shell(parent, DWT.SHELL_TRIM);
-		_win.setImage = prop.images.app;
+		_prop = prop;
+		Shell shell = null;
+		auto parShl = cast(Shell) parent;
+		if (parShl) {
+			shell = new Shell(parShl, DWT.SHELL_TRIM);
+			shell.setImage = prop.images.app;
+			_win = shell;
+		} else {
+			_win = new Composite(parent, DWT.NONE);
+		}
+		_win.setData = new TLPData(this);
 		_win.setLayout = new FillLayout;
 		auto comp = new Composite(_win, DWT.NONE);
 		comp.setLayout = windowGridLayout(1, true);
-		{
-			auto bar = new Menu(_win, DWT.BAR);
+		if (shell) {
+			{
+				auto bar = new Menu(shell, DWT.BAR);
 
-			auto mf = createMenu(bar, prop.msgs.menuFile);
-			static if (EditMode) {
-				createMenuItem(mf, prop.msgs.menuSave, prop.images.menuSave, &saveScenario);
-				new MenuItem(mf, DWT.SEPARATOR);
-			}
-			createMenuItem(mf, prop.msgs.menuCloseWin, prop.images.menuCloseWin, &_win.close);
-
-			auto me = createMenu(bar, prop.msgs.menuEdit);
-			static if (EditMode) {
-				appendMenuTCPD(prop, me, this);
-			} else {
-				createMenuItem(me, prop.msgs.menuAdd, prop.images.menuAdd, &addCard);
-				new MenuItem(me, DWT.SEPARATOR);
-				appendMenuTCPD(prop, me, this, false, true, false, false);
-			}
-
-			auto mv = createMenu(bar, prop.msgs.menuView);
-			static if (EditMode) {
-				createMenuItem(mv, prop.msgs.menuRefresh, prop.images.menuRefresh, &__refresh);
-				new MenuItem(mv, DWT.SEPARATOR);
-			}
-			_listM = createMenuItem(mv, prop.msgs.menuShowCardList, prop.images.menuShowCardList, &showCardList, DWT.RADIO);
-			_tblM = createMenuItem(mv, prop.msgs.menuShowCardTable, prop.images.menuShowCardTable, &showCardTable, DWT.RADIO);
-
-			static if (EditMode) {
-				auto mt = createMenu(bar, prop.msgs.menuNewCards);
-				static if (is (CardOwner == Summary)) {
-					createMenuItem(mt, prop.msgs.menuAddScenario, prop.images.menuAddScenario, &addScenario);
-					new MenuItem(mt, DWT.SEPARATOR);
+				auto mf = createMenu(bar, prop.msgs.menuFile);
+				static if (EditMode) {
+					createMenuItem(mf, prop.msgs.menuSave, prop.images.menuSave, &saveScenario);
+					new MenuItem(mf, DWT.SEPARATOR);
 				}
-				static if (UseCast) createMenuItem(mt, prop.msgs.menuNewCast, prop.images.menuNewCast, &create!(CAST));
-				static if (UseSkill) createMenuItem(mt, prop.msgs.menuNewSkill, prop.images.menuNewSkill, &create!(SKILL));
-				static if (UseItem) createMenuItem(mt, prop.msgs.menuNewItem, prop.images.menuNewItem, &create!(ITEM));
-				static if (UseBeast) createMenuItem(mt, prop.msgs.menuNewBeast, prop.images.menuNewBeast, &create!(BEAST));
-				static if (UseInfo) createMenuItem(mt, prop.msgs.menuNewInfo, prop.images.menuNewInfo, &create!(INFO));
+				createMenuItem(mf, prop.msgs.menuCloseWin, prop.images.menuCloseWin, &shell.close);
+
+				auto me = createMenu(bar, prop.msgs.menuEdit);
+				static if (EditMode) {
+					appendMenuTCPD(prop, me, this);
+				} else {
+					createMenuItem(me, prop.msgs.menuAdd, prop.images.menuAdd, &addCard);
+					new MenuItem(me, DWT.SEPARATOR);
+					appendMenuTCPD(prop, me, this, false, true, false, false);
+				}
+
+				auto mv = createMenu(bar, prop.msgs.menuView);
+				static if (EditMode) {
+					createMenuItem(mv, prop.msgs.menuRefresh, prop.images.menuRefresh, &__refresh);
+					new MenuItem(mv, DWT.SEPARATOR);
+				}
+				_listM = createMenuItem(mv, prop.msgs.menuShowCardList, prop.images.menuShowCardList, &showCardList, DWT.RADIO);
+				_tblM = createMenuItem(mv, prop.msgs.menuShowCardTable, prop.images.menuShowCardTable, &showCardTable, DWT.RADIO);
+
+				static if (EditMode) {
+					auto mt = createMenu(bar, prop.msgs.menuNewCards);
+					static if (is (CardOwner == Summary)) {
+						createMenuItem(mt, prop.msgs.menuAddScenario, prop.images.menuAddScenario, &addScenario);
+						new MenuItem(mt, DWT.SEPARATOR);
+					}
+					static if (UseCast) createMenuItem(mt, prop.msgs.menuNewCast, prop.images.menuNewCast, &create!(CAST));
+					static if (UseSkill) createMenuItem(mt, prop.msgs.menuNewSkill, prop.images.menuNewSkill, &create!(SKILL));
+					static if (UseItem) createMenuItem(mt, prop.msgs.menuNewItem, prop.images.menuNewItem, &create!(ITEM));
+					static if (UseBeast) createMenuItem(mt, prop.msgs.menuNewBeast, prop.images.menuNewBeast, &create!(BEAST));
+					static if (UseInfo) createMenuItem(mt, prop.msgs.menuNewInfo, prop.images.menuNewInfo, &create!(INFO));
+				}
+				shell.setMenuBar = bar;
 			}
-
-			_win.setMenuBar = bar;
-		}
-		{
-			auto bar = new ToolBar(comp, DWT.FLAT);
-
-			static if (EditMode) {
-				static if (is (CardOwner == Summary)) {
-					createToolItem(bar, prop.msgs.ttAddScenario, prop.images.menuAddScenario, &addScenario);
+			{
+				auto bar = new ToolBar(comp, DWT.FLAT);
+				static if (EditMode) {
+					static if (is (CardOwner == Summary)) {
+						createToolItem(bar, prop.msgs.ttAddScenario, prop.images.menuAddScenario, &addScenario);
+						new ToolItem(bar, DWT.SEPARATOR);
+					}
+				}
+				static if (EditMode) {
+					createToolItem(bar, prop.msgs.ttRefresh, prop.images.menuRefresh, &__refresh);
 					new ToolItem(bar, DWT.SEPARATOR);
+					static if (UseCast) createToolItem(bar, prop.msgs.ttNewCast, prop.images.menuNewCast, &create!(CAST));
+					static if (UseSkill) createToolItem(bar, prop.msgs.ttNewSkill, prop.images.menuNewSkill, &create!(SKILL));
+					static if (UseItem) createToolItem(bar, prop.msgs.ttNewItem, prop.images.menuNewItem, &create!(ITEM));
+					static if (UseBeast) createToolItem(bar, prop.msgs.ttNewBeast, prop.images.menuNewBeast, &create!(BEAST));
+					static if (UseInfo) createToolItem(bar, prop.msgs.ttNewInfo, prop.images.menuNewInfo, &create!(INFO));
+				} else {
+					createToolItem(bar, prop.msgs.ttAdd, prop.images.menuAdd, &addCard);
 				}
-			}
-			static if (EditMode) {
-				createToolItem(bar, prop.msgs.ttRefresh, prop.images.menuRefresh, &__refresh);
 				new ToolItem(bar, DWT.SEPARATOR);
-				static if (UseCast) createToolItem(bar, prop.msgs.ttNewCast, prop.images.menuNewCast, &create!(CAST));
-				static if (UseSkill) createToolItem(bar, prop.msgs.ttNewSkill, prop.images.menuNewSkill, &create!(SKILL));
-				static if (UseItem) createToolItem(bar, prop.msgs.ttNewItem, prop.images.menuNewItem, &create!(ITEM));
-				static if (UseBeast) createToolItem(bar, prop.msgs.ttNewBeast, prop.images.menuNewBeast, &create!(BEAST));
-				static if (UseInfo) createToolItem(bar, prop.msgs.ttNewInfo, prop.images.menuNewInfo, &create!(INFO));
-			} else {
-				createToolItem(bar, prop.msgs.ttAdd, prop.images.menuAdd, &addCard);
+				_listT = createToolItem(bar, prop.msgs.ttShowCardList, prop.images.menuShowCardList, &showCardList, DWT.RADIO);
+				_tblT = createToolItem(bar, prop.msgs.ttShowCardTable, prop.images.menuShowCardTable, &showCardTable, DWT.RADIO);
 			}
-			new ToolItem(bar, DWT.SEPARATOR);
-			_listT = createToolItem(bar, prop.msgs.ttShowCardList, prop.images.menuShowCardList, &showCardList, DWT.RADIO);
-			_tblT = createToolItem(bar, prop.msgs.ttShowCardTable, prop.images.menuShowCardTable, &showCardTable, DWT.RADIO);
+		} else {
+			static if (EditMode) {
+				appendMenuTCPD(prop, this, this);
+				putMenuAction(prop.msgs.menuRefresh, prop.msgs.ttRefresh, &__refresh);
+				static if (is (CardOwner == Summary)) {
+					putMenuAction(prop.msgs.menuAddScenario, prop.msgs.ttAddScenario, &addScenario);
+				}
+				static if (UseCast) putMenuAction(prop.msgs.menuNewCast, prop.msgs.ttNewCast, &create!(CAST));
+				static if (UseSkill) putMenuAction(prop.msgs.menuNewSkill, prop.msgs.ttNewSkill, &create!(SKILL));
+				static if (UseItem) putMenuAction(prop.msgs.menuNewItem, prop.msgs.ttNewItem, &create!(ITEM));
+				static if (UseBeast) putMenuAction(prop.msgs.menuNewBeast, prop.msgs.ttNewBeast, &create!(BEAST));
+				static if (UseInfo) putMenuAction(prop.msgs.menuNewInfo, prop.msgs.ttNewInfo, &create!(INFO));
+			} else {
+				appendMenuTCPD(prop, this, this, false, true, false, false);
+			}
+			putMenuChecked(prop.msgs.menuShowCardList, prop.msgs.ttShowCardList, &showCardList, &isViewList);
+			putMenuChecked(prop.msgs.menuShowCardTable, prop.msgs.ttShowCardTable, &showCardTable, &isViewTable);
 		}
 		_tabf = new TabFolder(comp, DWT.NONE);
 		_tabf.setLayoutData = new GridData(GridData.FILL_BOTH);
@@ -1338,8 +1349,98 @@ public:
 			drop.addDropListener(new DropScenario);
 		}
 	}
-	private void construct2(Props prop) {
-		_prop = prop;
+	void showCardList() {
+		if (!_viewList) {
+			_viewList = true;
+			if (_win && !_win.isDisposed) {
+				if (_listM) {
+					_listM.setSelection = true;
+					_listT.setSelection = true;
+					_tblM.setSelection = false;
+					_tblT.setSelection = false;
+				}
+				foreach (i, f; _pane) {
+					f.showCardList;
+					_tab[i].setControl = f.widget;
+				}
+			}
+			static if (is (CardOwner == Summary)) {
+				_prop.var.etc.cardDetails = false;
+			}
+		}
+	}
+	void showCardTable() {
+		if (_viewList) {
+			_viewList = false;
+			if (_win && !_win.isDisposed) {
+				if (_listM) {
+					_listM.setSelection = false;
+					_listT.setSelection = false;
+					_tblM.setSelection = true;
+					_tblT.setSelection = true;
+				}
+				foreach (i, f; _pane) {
+					f.showCardTable;
+					_tab[i].setControl = f.widget;
+				}
+			}
+			static if (is (CardOwner == Summary)) {
+				_prop.var.etc.cardDetails = true;
+			}
+		}
+	}
+	void createCast() {
+		if (!_summ) return;
+		static if (EditMode && UseCast) {
+			create!(CAST);
+		} else {
+			throw new Exception("can not create cast");
+		}
+	}
+	void createSkill() {
+		if (!_summ) return;
+		static if (EditMode && UseSkill) {
+			create!(SKILL);
+		} else {
+			throw new Exception("can not create skill");
+		}
+	}
+	void createItem() {
+		if (!_summ) return;
+		static if (EditMode && UseItem) {
+			create!(ITEM);
+		} else {
+			throw new Exception("can not create item");
+		}
+	}
+	void createBeast() {
+		if (!_summ) return;
+		static if (EditMode && UseBeast) {
+			create!(BEAST);
+		} else {
+			throw new Exception("can not create beast");
+		}
+	}
+	void createInfo() {
+		if (!_summ) return;
+		static if (EditMode && UseInfo) {
+			create!(INFO);
+		} else {
+			throw new Exception("can not create info");
+		}
+	}
+	bool canCreateCast() {return EditMode && UseCast;}
+	bool canCreateSkill() {return EditMode && UseSkill;}
+	bool canCreateItem() {return EditMode && UseItem;}
+	bool canCreateBeast() {return EditMode && UseBeast;}
+	bool canCreateInfo() {return EditMode && UseInfo;}
+	private bool isViewList() {
+		return _viewList;
+	}
+	private bool isViewTable() {
+		return !_viewList;
+	}
+	private void construct2() {
 		newPane!(0);
 		static class ColResize : ControlAdapter {
 			TableColumn[] cols;
@@ -1370,49 +1471,55 @@ public:
 		foreach (i, f; _pane) {
 			_tab[i] = new TabItem(_tabf, DWT.NONE);
 			static if (UseCast) {
-				if (i == CAST) _tab[i].setText = prop.msgs.casts;
+				if (i == CAST) _tab[i].setText = _prop.msgs.casts;
 			}
 			static if (UseSkill) {
-				if (i == SKILL) _tab[i].setText = prop.msgs.skill;
+				if (i == SKILL) _tab[i].setText = _prop.msgs.skill;
 			}
 			static if (UseItem) {
-				if (i == ITEM) _tab[i].setText = prop.msgs.item;
+				if (i == ITEM) _tab[i].setText = _prop.msgs.item;
 			}
 			static if (UseBeast) {
-				if (i == BEAST) _tab[i].setText = prop.msgs.beast;
+				if (i == BEAST) _tab[i].setText = _prop.msgs.beast;
 			}
 			static if (UseInfo) {
-				if (i == INFO) _tab[i].setText = prop.msgs.info;
+				if (i == INFO) _tab[i].setText = _prop.msgs.info;
 			}
 			_tcpd ~= f;
 			addTable(f.cardTable);
 		}
 		showCardList;
-		scope wp = _win.computeSize(DWT.DEFAULT, DWT.DEFAULT);
-		int width = _prop.var.cardWin.width == DWT.DEFAULT ? wp.x : _prop.var.cardWin.width;
-		static if (is (CardOwner == Summary)) {
-			int x = _prop.var.cardWin.x == DWT.DEFAULT ? _win.getBounds.x : _prop.var.cardWin.x + _win.getParent.getBounds.x;
-			int y = _prop.var.cardWin.y == DWT.DEFAULT ? _win.getBounds.y : _prop.var.cardWin.y + _win.getParent.getBounds.y;
-			intoDisplay(x, y, width, _prop.var.cardWin.height);
-			_win.setBounds(x, y, width, _prop.var.cardWin.height);
-			_win.setMaximized = _prop.var.cardWin.maximized;
-			_win.setMinimized = _prop.var.cardWin.minimized;
-			_win.addControlListener(new SizeL);
-		} else {
-			_win.setSize(width, _prop.var.cardWin.height);
+		auto shell = cast(Shell) _win;
+		if (shell) {
+			scope wp = shell.computeSize(DWT.DEFAULT, DWT.DEFAULT);
+			int width = _prop.var.cardWin.width == DWT.DEFAULT ? wp.x : _prop.var.cardWin.width;
+			static if (is (CardOwner == Summary)) {
+				int x = _prop.var.cardWin.x == DWT.DEFAULT ? shell.getBounds.x : _prop.var.cardWin.x + shell.getParent.getBounds.x;
+				int y = _prop.var.cardWin.y == DWT.DEFAULT ? shell.getBounds.y : _prop.var.cardWin.y + shell.getParent.getBounds.y;
+				intoDisplay(x, y, width, _prop.var.cardWin.height);
+				shell.setBounds(x, y, width, _prop.var.cardWin.height);
+				shell.setMaximized = _prop.var.cardWin.maximized;
+				shell.setMinimized = _prop.var.cardWin.minimized;
+				shell.addControlListener(new SizeL);
+			} else {
+				shell.setSize(width, _prop.var.cardWin.height);
+			}
 		}
-		if (prop.var.etc.cardDetails) showCardTable;
+		if (_prop.var.etc.cardDetails) showCardTable;
 	}
 	private class SizeL : ControlAdapter {
 		private void saveCardWin() {
-			if (!_win.getMaximized && !_win.getMinimized) {
-				_prop.var.cardWin.width = _win.getSize.x;
-				_prop.var.cardWin.height = _win.getSize.y;
-				_prop.var.cardWin.x = _win.getBounds.x - _win.getParent.getBounds.x;
-				_prop.var.cardWin.y = _win.getBounds.y - _win.getParent.getBounds.y;
+			auto shell = cast(Shell) _win;
+			if (shell) {
+				if (!shell.getMaximized && !shell.getMinimized) {
+					_prop.var.cardWin.width = shell.getSize.x;
+					_prop.var.cardWin.height = shell.getSize.y;
+					_prop.var.cardWin.x = shell.getBounds.x - shell.getParent.getBounds.x;
+					_prop.var.cardWin.y = shell.getBounds.y - shell.getParent.getBounds.y;
+				}
+				_prop.var.cardWin.maximized = shell.getMaximized;
+				_prop.var.cardWin.minimized = shell.getMinimized;
 			}
-			_prop.var.cardWin.maximized = _win.getMaximized;
-			_prop.var.cardWin.minimized = _win.getMinimized;
 		}
 		override void controlMoved(ControlEvent e) {
 			saveCardWin;
@@ -1421,8 +1528,15 @@ public:
 			saveCardWin;
 		}
 	}
+	static if (!EditMode && is(CardOwner == CastCard)) {
+		private void __closeAdds(Importable importable) {
+			if (_summ is importable) {
+				_comm.close(_win);
+			}
+		}
+	}
 
-	Shell shell() {
+	Composite shell() {
 		return _win;
 	}
 	CardOwner owner() {
@@ -1440,21 +1554,20 @@ public:
 		}
 		private void __delOwner(CastCard c) {
 			if (_owner is c) {
-				_win.close;
+				_comm.close(_win);
 			}
 		}
 	}
 
-	/// ウィンドウを開く。
-	void open() {
-		if (_owner) {
-			_win.setMinimized = false;
-			_win.open;
+	string title() {
+		auto shl = cast(Shell) _win;
+		if (shl) {
+			return mixin ("_prop.msgs." ~ ShellTitle);
 		}
+		return mixin ("_prop.msgs." ~ Title);
 	}
-
 	void refreshTitle() {
-		mixin ("shell.setText = _prop.msgs." ~ Title ~ ";");
+		if (_win && !_win.isDisposed) _comm.setTitle(shell, title);
 	}
 
 	static if (EditMode) {
@@ -1471,21 +1584,23 @@ public:
 	private void __refreshAll(PCardOwner summ, CardOwner owner) {
 		static if (EditMode && is (CardOwner == Summary)) {
 			foreach (w; _aws.toArray) {
-				w.close;
+				_comm.close(w);
 			}
 		}
 		_owner = owner;
 		_summ = summ;
-		foreach (f; _pane) {
-			f.refreshAll(summ, owner);
+		if (_win && !_win.isDisposed) {
+			foreach (f; _pane) {
+				f.refreshAll(summ, owner);
+			}
+			refreshTitle;
 		}
-		refreshTitle;
 	}
 	static if (EditMode) {
 		void add(int Index)(ref XNode node, string ver) {
 			if (_pane[Index].addFromNode(node, ver)) {
 				_tabf.setSelection = _tab[Index];
-				_win.setVisible = true;
+				_comm.openCardWin;
 			}
 		}
 	} else {
@@ -1607,19 +1722,20 @@ public:
 	}
 }
 
-alias CardWindow!("handCards(owner.id, owner.name)",
+alias CardWindow!("handCards(owner.id, owner.name)", "handCardsTab(owner.id, owner.name)",
 	Importable, CastCard, Summary, SkillCard, ItemCard, BeastCard) AddHandCardWindow;
 
 // FIXME: 以下の二つをaliasにすると前方参照のエラーが発生する
 class HandCardWindow : CardWindow!("handCards(owner.id, owner.name)",
+		"handCardsTab(owner.id, owner.name)",
 		Summary, CastCard, void, SkillCard, ItemCard, BeastCard) {
-	this (Commons comm, Props prop, Summary summ, Shell parent) {
+	this (Commons comm, Props prop, Summary summ, Composite parent) {
 		super (comm, prop, summ, parent);
 	}
 }
-class MainCardWindow : CardWindow!("cardWindowName(owner.scenarioName, owner.scenarioPath)",
+class MainCardWindow : CardWindow!("cardWindowName(owner)", "cardTabName(owner)",
 		Summary, Summary, void, CastCard, SkillCard, ItemCard, BeastCard, InfoCard) {
-	this (Commons comm, Props prop, Shell parent) {
+	this (Commons comm, Props prop, Composite parent) {
 		super (comm, prop, parent);
 	}
 }
@@ -1641,15 +1757,17 @@ private:
 	static const bool UseBeast = IndexOf!(BeastCard, Cards) >= 0;
 	static const bool UseInfo = IndexOf!(InfoCard, Cards) >= 0;
 	alias CardContainer!(UseCast, UseSkill, UseItem, UseBeast, UseInfo) CC;
-	alias CardWindow!("addCardWindow(owner.scenarioName, owner.scenarioPath)", CC, CC, ToCardOwner, Cards) ACW;
+	alias CardWindow!("addCardWindow(owner.scenarioName, owner.scenarioPath)",
+		"addCardTab(owner.scenarioName, owner.scenarioPath)",
+		CC, CC, ToCardOwner, Cards) ACW;
 	static class AddS {
 		Commons comm;
 		Props prop;
-		Shell parent;
+		Composite parent;
 		ToCardOwner toc;
 		void delegate(Object[]) addScenario;
 		this (Commons comm, Props prop,
-				Shell parent, ToCardOwner toc, void delegate(Object[]) addScenario) {
+				Composite parent, ToCardOwner toc, void delegate(Object[]) addScenario) {
 			this.comm = comm;
 			this.prop = prop;
 			this.parent = parent;
@@ -1660,7 +1778,8 @@ private:
 			ACW[] r;
 			foreach (i, cc; ccs) {
 				if (cc) {
-					auto acw = new ACW(comm, prop, parent, cc, cc, toc);
+					auto shl = cast(Shell) parent;
+					auto acw = new ACW(comm, prop, shl ? parent : comm.sidePane, cc, cc, toc);
 					acw.shell.addDisposeListener(new DelTemp!(CC)(cc));
 					r ~= acw;
 				}
@@ -1669,15 +1788,25 @@ private:
 		}
 	}
 	this() {}
+	static Composite pane(Composite parent) {
+		auto shl = cast(Shell) parent;
+		if (shl) {
+			return topShell(shl);
+		} else {
+			return parent;
+		}
+	}
 public:
 	static void openScenario(Commons comm, Props prop,
-			Shell parent, Summary summ, ToCardOwner toc, void delegate(Object[]) addScenario) {
+			Composite parent, Summary summ, ToCardOwner toc, void delegate(Object[]) addScenario) {
+		parent = pane(parent);
 		auto addS = new AddS(comm, prop, parent, toc, addScenario);
-		loadScenarios!(CC)(prop, parent, false, prop.msgs.dlgTitAddScenario, &addS.addS);
+		loadScenarios!(CC)(prop, parent.getShell, false, prop.msgs.dlgTitAddScenario, &addS.addS);
 	}
 	static void openScenario(Commons comm, Props prop,
-			Shell parent, Summary summ, ToCardOwner toc, string[] files, void delegate(Object[]) addScenario) {
+			Composite parent, Summary summ, ToCardOwner toc, string[] files, void delegate(Object[]) addScenario) {
+		parent = pane(parent);
 		auto addS = new AddS(comm, prop, parent, toc, addScenario);
-		loadScenariosFromFile!(CC)(prop, parent, false, files, &addS.addS);
+		loadScenariosFromFile!(CC)(prop, parent.getShell, false, files, &addS.addS);
 	}
 }

@@ -651,7 +651,7 @@ protected:
 			appendMenuTCPD(_prop, me, _view, true, true, true, true);
 			auto mv = createMenu(_bar, _prop.msgs.menuView);
 			createMenuItem(mv, _prop.msgs.menuRefresh, _prop.images.menuRefresh, &_view.refresh);
-			_view.setupMenu(_bar, {});
+			_view.setupMenu(_bar);
 		}
 		if (!_summ.legacy) {
 			{

@@ -469,50 +469,60 @@ public:
 	bool canDoTCPD();
 }
 
-void appendMenuTCPD(Props prop, Menu me, TCPD tcpd, bool t = true, bool c = true, bool p = true, bool d = false) {
-	class InTCPD {
-		TCPD tcpd;
-		void cut() {
-			if (cast(Text) Display.getCurrent.getFocusControl) {
-				(cast(Text) Display.getCurrent.getFocusControl).cut;
-			} else if (cast(Combo) Display.getCurrent.getFocusControl) {
-				(cast(Combo) Display.getCurrent.getFocusControl).cut;
-			} else if (cast(CCombo) Display.getCurrent.getFocusControl) {
-				(cast(CCombo) Display.getCurrent.getFocusControl).cut;
-			} else {
-				tcpd.cut;
-			}
-		}
-		void copy() {
-			if (cast(Text) Display.getCurrent.getFocusControl) {
-				(cast(Text) Display.getCurrent.getFocusControl).copy;
-			} else if (cast(Combo) Display.getCurrent.getFocusControl) {
-				(cast(Combo) Display.getCurrent.getFocusControl).copy;
-			} else if (cast(CCombo) Display.getCurrent.getFocusControl) {
-				(cast(CCombo) Display.getCurrent.getFocusControl).copy;
-			} else {
-				tcpd.copy;
-			}
-		}
-		void paste() {
-			if (cast(Text) Display.getCurrent.getFocusControl) {
-				(cast(Text) Display.getCurrent.getFocusControl).paste;
-			} else if (cast(Combo) Display.getCurrent.getFocusControl) {
-				(cast(Combo) Display.getCurrent.getFocusControl).paste;
-			} else if (cast(CCombo) Display.getCurrent.getFocusControl) {
-				(cast(CCombo) Display.getCurrent.getFocusControl).paste;
-			} else {
-				tcpd.paste;
-			}
-		}
-		void del() {
-			if (cast(Text) Display.getCurrent.getFocusControl) {
-				(cast(Text) Display.getCurrent.getFocusControl).insert("");
-			} else {
-				tcpd.del;
-			}
+private class InTCPD {
+	TCPD tcpd;
+	void cut() {
+		if (cast(Text) Display.getCurrent.getFocusControl) {
+			(cast(Text) Display.getCurrent.getFocusControl).cut;
+		} else if (cast(Combo) Display.getCurrent.getFocusControl) {
+			(cast(Combo) Display.getCurrent.getFocusControl).cut;
+		} else if (cast(CCombo) Display.getCurrent.getFocusControl) {
+			(cast(CCombo) Display.getCurrent.getFocusControl).cut;
+		} else {
+			tcpd.cut;
 		}
 	}
+	void copy() {
+		if (cast(Text) Display.getCurrent.getFocusControl) {
+			(cast(Text) Display.getCurrent.getFocusControl).copy;
+		} else if (cast(Combo) Display.getCurrent.getFocusControl) {
+			(cast(Combo) Display.getCurrent.getFocusControl).copy;
+		} else if (cast(CCombo) Display.getCurrent.getFocusControl) {
+			(cast(CCombo) Display.getCurrent.getFocusControl).copy;
+		} else {
+			tcpd.copy;
+		}
+	}
+	void paste() {
+		if (cast(Text) Display.getCurrent.getFocusControl) {
+			(cast(Text) Display.getCurrent.getFocusControl).paste;
+		} else if (cast(Combo) Display.getCurrent.getFocusControl) {
+			(cast(Combo) Display.getCurrent.getFocusControl).paste;
+		} else if (cast(CCombo) Display.getCurrent.getFocusControl) {
+			(cast(CCombo) Display.getCurrent.getFocusControl).paste;
+		} else {
+			tcpd.paste;
+		}
+	}
+	void del() {
+		if (cast(Text) Display.getCurrent.getFocusControl) {
+			(cast(Text) Display.getCurrent.getFocusControl).insert("");
+		} else {
+			tcpd.del;
+		}
+	}
+}
+void appendMenuTCPD(Props prop, TopLevelPanel tlp, TCPD tcpd,
+		bool t = true, bool c = true, bool p = true, bool d = false) {
+	auto itcpd = new InTCPD;
+	itcpd.tcpd = tcpd;
+	if (t) tlp.putMenuAction(prop.msgs.menuCut, prop.msgs.ttCut, &itcpd.cut);
+	if (c) tlp.putMenuAction(prop.msgs.menuCopy, prop.msgs.ttCopy, &itcpd.copy);
+	if (p) tlp.putMenuAction(prop.msgs.menuPaste, prop.msgs.ttPaste, &itcpd.paste);
+	if (d) tlp.putMenuAction(prop.msgs.menuDel, prop.msgs.ttDel, &itcpd.del);
+}
+void appendMenuTCPD(Props prop, Menu me, TCPD tcpd,
+		bool t = true, bool c = true, bool p = true, bool d = false) {
 	auto itcpd = new InTCPD;
 	itcpd.tcpd = tcpd;
 	if (t) createMenuItem(me, prop.msgs.menuCut, prop.images.menuCut, &itcpd.cut);
@@ -664,6 +674,16 @@ ToolItem createToolItem(ToolBar bar, string text, Image img,
 	return createToolItem(bar, text, null, img, func, style);
 }
 
+bool hasFocus(Control c) {
+	auto ctrl = Display.getCurrent.getFocusControl;
+	if (c is ctrl) return true;
+	auto parent = ctrl.getParent;
+	while (parent) {
+		if (c is parent) return true;
+		parent = parent.getParent;
+	}
+	return false;
+}
 Shell topShell(Shell shell) {
 	auto parent = cast(Shell) shell.getParent;
 	while (parent.getParent) {
@@ -671,14 +691,14 @@ Shell topShell(Shell shell) {
 	}
 	return parent;
 }
-class CloseRemover(Window) : ShellAdapter {
+class CloseRemover(Window) : DisposeListener {
 	private HashSet!(Window) _ws;
 	private Window _w;
 	public this(HashSet!(Window) ws, Window w) {
 		_ws = ws;
 		_w = w;
 	}
-	public override void shellClosed(ShellEvent e) {
+	public override void widgetDisposed(DisposeEvent e) {
 		foreach (w; _ws) {
 			if (_w is w) {
 				_ws.remove(_w);
@@ -737,6 +757,7 @@ public:
 class RadioGroup(B : Widget) {
 public:
 	this() {
+		_set = new HashSet!(B);
 		_l = new L;
 	}
 	void select(B b) {
@@ -746,7 +767,12 @@ public:
 			_sel = b;
 		}
 	}
+	bool contains(B b) {
+		return _set.contains(b);
+	}
+	HashSet!(B) set() {return _set;}
 	void append(B b) {
+		_set.add(b);
 		assert ((b.getStyle & DWT.RADIO) != 0);
 		if (_sel is null){
 			if (b.getSelection) {
@@ -758,6 +784,7 @@ public:
 		b.addListener(DWT.Selection, _l);
 	}
 private:
+	HashSet!(B) _set;
 	B _sel = null;
 	Listener _l;
 	class L : Listener {

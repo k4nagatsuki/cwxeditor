@@ -556,8 +556,8 @@ public:
 				if (path) addResult(path);
 				return true;
 			}
-			return false;
 		}
+		return false;
 	}
 
 	private bool replCard(C)(CWXPath path, C card, ref size_t count) {

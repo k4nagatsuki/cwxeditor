@@ -34,7 +34,7 @@ import dwt.events.SelectionAdapter;
 
 public:
 
-class TAreaWindow(V, A, C) : TCPD {
+class TAreaWindow(V, A, C) : TopLevelPanel, TCPD {
 private:
 	Commons _comm;
 
@@ -42,8 +42,8 @@ private:
 	TabItem _tabA;
 	TabItem _tabE;
 
-	Shell _win;
-	Shell _areaWin;
+	Composite _win;
+	Shell _areaWin = null;
 
 	A _area;
 	Props _prop;
@@ -74,17 +74,12 @@ private:
 			_eview.down;
 		}
 	}
-	void areaViewSetFocus() {
-		_tabf.setSelection(_tabA);
-		_eview.closeToolWindow;
-		_aview.setFocus;
-	}
 	void saveScenario() {
-		_comm.save.call(_win);
+		_comm.save.call(_win.getShell);
 	}
 	void __deleteArea(A area) {
 		if (_area is area) {
-			_win.close;
+			_comm.close(_win);
 		}
 	}
 	void __refArea(A area) {
@@ -93,20 +88,23 @@ private:
 		}
 	}
 	void __refreshTitle() {
-		static if (is (A == Area)) {
-			_win.setText = _prop.msgs.areaViewName(_area.id, _area.name);
-		} else static if (is (A == Battle)) {
-			_win.setText = _prop.msgs.battleViewName(_area.id, _area.name);
-		} else {
-			static assert (0);
-		}
+		_comm.setTitle(_win, title);
 	}
 public:
-	this(Commons comm, Props prop, Summary summ, Shell parent, Shell areaWin, A area) {
+	this(Commons comm, Props prop, Summary summ, Composite parent, Shell areaWin, A area) {
 		_comm = comm;
 		_area = area;
 		_undo = new UndoManager(1024);
-		_win = new Shell(parent, DWT.SHELL_TRIM);
+		Shell shell = null;
+		auto parShl = cast(Shell) parent;
+		if (parShl) {
+			shell = new Shell(parShl, DWT.SHELL_TRIM);
+			shell.setImage = prop.images.app;
+			_win = shell;
+		} else {
+			_win = new Composite(parent, DWT.NONE);
+		}
+		_win.setData = new TLPData(this);
 		static if (is (A == Area)) {
 			_comm.delArea.add(&__deleteArea);
 			_comm.refArea.add(&__refArea);
@@ -138,7 +136,6 @@ public:
 				_comm.replText.remove(&__refreshTitle);
 			}
 		});
-		_win.setImage = prop.images.app;
 		_win.setLayout = windowGridLayout(1, true);
 		_prop = prop;
 		_tabf = new TabFolder(_win, DWT.NONE);
@@ -159,12 +156,13 @@ public:
 			}
 		});
 
-		auto bar = new Menu(_win, DWT.BAR);
-		{
+		if (shell) {
+			auto bar = new Menu(shell, DWT.BAR);
+
 			auto mf = createMenu(bar, _prop.msgs.menuFile);
 			createMenuItem(mf, _prop.msgs.menuSave, _prop.images.menuSave, &saveScenario);
 			new MenuItem(mf, DWT.SEPARATOR);
-			createMenuItem(mf, _prop.msgs.menuCloseWin, _prop.images.menuCloseWin, &_win.close);
+			createMenuItem(mf, _prop.msgs.menuCloseWin, _prop.images.menuCloseWin, &shell.close);
 
 			auto me = createMenu(bar, _prop.msgs.menuEdit);
 			createMenuItem(me, _prop.msgs.menuUndo, _prop.images.menuUndo, &undo);
@@ -178,13 +176,20 @@ public:
 			auto mv = createMenu(bar, _prop.msgs.menuView);
 			createMenuItem(mv, _prop.msgs.menuRefresh, _prop.images.menuRefresh, &refresh);
 
-			_win.setMenuBar = bar;
+			shell.setMenuBar = bar;
+		} else {
+			putMenuAction(_prop.msgs.menuUndo, _prop.msgs.ttUndo, &undo);
+			putMenuAction(_prop.msgs.menuRedo, _prop.msgs.ttRedo, &redo);
+			putMenuAction(_prop.msgs.menuUp, _prop.msgs.ttUp, &up);
+			putMenuAction(_prop.msgs.menuDown, _prop.msgs.ttDown, &down);
+			appendMenuTCPD(_prop, this, this, true, true, true, true);
+			putMenuAction(_prop.msgs.menuRefresh, _prop.msgs.ttRefresh, &refresh);
 		}
 		{
-			_aview = new V(comm, prop, summ, area, _tabf, _undo);
+			_aview = new V(comm, prop, summ, area, _tabf, shell ? null : this, _undo);
 			_tabA.setControl(_aview);
 			_tcpd ~= _aview;
-			_aview.setupMenu(bar, &areaViewSetFocus);
+			if (shell) _aview.setupMenu(shell.getMenuBar);
 		}
 		{
 			_eview = new EventView!(A, C, true)(comm, prop, summ, area, _tabf, _undo);
@@ -195,7 +200,7 @@ public:
 		}
 		__refreshTitle;
 
-		_win.pack;
+		if (shell) shell.pack;
 
 		static if (is(V == AreaView)) {
 			auto winProps = _prop.var.areaWin;
@@ -204,17 +209,35 @@ public:
 		} else {
 			static assert (0);
 		}
-		scope wp = _win.computeSize(DWT.DEFAULT, DWT.DEFAULT);
-		int width = winProps.width == DWT.DEFAULT ? wp.x : winProps.width;
-		int height = winProps.height == DWT.DEFAULT ? wp.y : winProps.height;
-		int x = winProps.x == DWT.DEFAULT ? _win.getBounds.x : winProps.x + areaWin.getBounds.x;
-		int y = winProps.y == DWT.DEFAULT ? _win.getBounds.y : winProps.y + areaWin.getBounds.y;
-		intoDisplay(x, y, width, height);
-		_win.setBounds(x, y, width, height);
-		_win.setMaximized = winProps.maximized;
-		_areaWin = areaWin;
+		if (shell) {
+			scope wp = shell.computeSize(DWT.DEFAULT, DWT.DEFAULT);
+			int width = winProps.width == DWT.DEFAULT ? wp.x : winProps.width;
+			int height = winProps.height == DWT.DEFAULT ? wp.y : winProps.height;
+			int x = winProps.x == DWT.DEFAULT ? shell.getBounds.x : winProps.x + areaWin.getBounds.x;
+			int y = winProps.y == DWT.DEFAULT ? shell.getBounds.y : winProps.y + areaWin.getBounds.y;
+			intoDisplay(x, y, width, height);
+			shell.setBounds(x, y, width, height);
+			shell.setMaximized = winProps.maximized;
+			_areaWin = areaWin;
+		}
 
 		_eview.refresh(_tabf.getSelection[0] is _tabE);
+	}
+	string title() {
+		auto shl = cast(Shell) _win;
+		static if (is (A == Area)) {
+			if (shl) {
+				return _prop.msgs.areaViewName(_area.id, _area.name);
+			}
+			return _prop.msgs.areaViewNameTab(_area.id, _area.name);
+		} else static if (is (A == Battle)) {
+			if (shl) {
+				return _prop.msgs.battleViewName(_area.id, _area.name);
+			}
+			return _prop.msgs.battleViewNameTab(_area.id, _area.name);
+		} else {
+			static assert (0);
+		}
 	}
 	private void saveWin() {
 		static if (is(V == AreaView)) {
@@ -224,20 +247,23 @@ public:
 		} else {
 			static assert (0);
 		}
-		if (!_win.getMaximized) {
-			winProps.width = _win.getSize.x;
-			winProps.height = _win.getSize.y;
-			if (_areaWin.isDisposed) {
-				winProps.x = _win.getBounds.x - _prop.var.areaWin.x;
-				winProps.y = _win.getBounds.y - _prop.var.areaWin.y;
-			} else {
-				winProps.x = _win.getBounds.x - _areaWin.getBounds.x;
-				winProps.y = _win.getBounds.y - _areaWin.getBounds.y;
+		auto shell = cast(Shell) _win;
+		if (shell) {
+			if (!shell.getMaximized) {
+				winProps.width = shell.getSize.x;
+				winProps.height = shell.getSize.y;
+				if (_areaWin.isDisposed) {
+					winProps.x = shell.getBounds.x - _prop.var.areaWin.x;
+					winProps.y = shell.getBounds.y - _prop.var.areaWin.y;
+				} else {
+					winProps.x = shell.getBounds.x - _areaWin.getBounds.x;
+					winProps.y = shell.getBounds.y - _areaWin.getBounds.y;
+				}
 			}
+			winProps.maximized = shell.getMaximized;
 		}
-		winProps.maximized = _win.getMaximized;
 	}
-	Shell shell() {
+	Composite shell() {
 		return _win;
 	}
 
@@ -277,7 +303,7 @@ public:
 			}
 		}
 		bool canDoTCPD() {
-			return _win.isFocusControl;
+			return .hasFocus(_win);
 		}
 	}
 	bool openCWXPath(string path) {

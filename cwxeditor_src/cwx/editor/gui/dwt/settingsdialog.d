@@ -47,6 +47,7 @@ private:
 	Text _tempDir;
 	Text _author;
 	Spinner _histMax;
+	Button _singleWindow;
 	Button _expandXMLs;
 	Button _contentsFloat;
 	Button _xmlCopy;
@@ -305,6 +306,8 @@ private:
 			grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			grp.setText = _prop.msgs.settingEtc;
 			grp.setLayout = new GridLayout(1, false);
+			_singleWindow = new Button(grp, DWT.CHECK);
+			_singleWindow.setText = _prop.msgs.singleWindow;
 			_expandXMLs = new Button(grp, DWT.CHECK);
 			_expandXMLs.setText = _prop.msgs.expandXMLs;
 			_contentsFloat = new Button(grp, DWT.CHECK);
@@ -645,6 +648,7 @@ protected:
 		_author.setText = _prop.var.etc.defaultAuthor;
 		_histMax.setSelection = _prop.var.etc.historyMax;
 		_expandXMLs.setSelection = _prop.var.etc.expandXMLs;
+		_singleWindow.setSelection = _prop.var.etc.singleWindow;
 		_contentsFloat.setSelection = _prop.var.etc.contentsFloat;
 		_xmlCopy.setSelection = _prop.var.etc.xmlCopy;
 
@@ -711,6 +715,7 @@ protected:
 			_prop.var.etc.tempPath = temp;
 			_prop.var.etc.defaultAuthor = _author.getText;
 			_prop.var.etc.historyMax = _histMax.getSelection;
+			_prop.var.etc.singleWindow = _singleWindow.getSelection;
 			_prop.var.etc.expandXMLs = _expandXMLs.getSelection;
 			_prop.var.etc.xmlCopy = _xmlCopy.getSelection;
 			_prop.var.etc.contentsFloat = _contentsFloat.getSelection;

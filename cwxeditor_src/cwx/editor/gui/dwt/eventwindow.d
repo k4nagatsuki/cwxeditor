@@ -16,6 +16,7 @@ import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.eventview;
 import cwx.editor.gui.dwt.undo;
 
+import dwt.widgets.Composite;
 import dwt.widgets.Shell;
 import dwt.widgets.ToolBar;
 import dwt.widgets.ToolItem;
@@ -29,24 +30,32 @@ import dwt.events.ShellAdapter;
 import dwt.events.DisposeEvent;
 import dwt.events.DisposeListener;
 
-class EventWindow(A : EventTreeOwner) : TCPD {
+class EventWindow(A : EventTreeOwner) : TopLevelPanel, TCPD {
 private:
 	A _eto;
 	Commons _comm;
 	Props _prop;
 
-	Shell _win;
-	Shell _parent2;
+	Composite _win;
+	Shell _parent2 = null;
 
 	EventView!(A, void, false) _eview;
 
 	void saveScenario() {
-		_comm.save.call(_win);
+		_comm.save.call(_win.getShell);
 	}
 public:
-	this(Commons comm, Props prop, Summary summ, Shell parent, Shell parent2, A eto) {
-		_win = new Shell(parent, DWT.SHELL_TRIM);
-		_win.setImage = prop.images.app;
+	this(Commons comm, Props prop, Summary summ, Composite parent, Shell parent2, A eto) {
+		Shell shell = null;
+		auto parShl = cast(Shell) parent;
+		if (parShl) {
+			shell = new Shell(parShl, DWT.SHELL_TRIM);
+			shell.setImage = prop.images.app;
+			_win = shell;
+		} else {
+			_win = new Composite(parent, DWT.NONE);
+		}
+		_win.setData = new TLPData(this);
 		_win.setLayout = windowGridLayout(1, true);
 		_prop = prop;
 		_eto = eto;
@@ -93,12 +102,13 @@ public:
 			_eview = new EventView!(A, void, false)(comm, prop, summ, eto, _win, new UndoManager(1024));
 			_eview.setLayoutData = new GridData(GridData.FILL_BOTH);
 		}
-		auto bar = new Menu(_win, DWT.BAR);
-		{
+		if (shell) {
+			auto bar = new Menu(shell, DWT.BAR);
+
 			auto mf = createMenu(bar, _prop.msgs.menuFile);
 			createMenuItem(mf, _prop.msgs.menuSave, _prop.images.menuSave, &saveScenario);
 			new MenuItem(mf, DWT.SEPARATOR);
-			createMenuItem(mf, _prop.msgs.menuCloseWin, _prop.images.menuCloseWin, &_win.close);
+			createMenuItem(mf, _prop.msgs.menuCloseWin, _prop.images.menuCloseWin, &shell.close);
 
 			auto me = createMenu(bar, _prop.msgs.menuEdit);
 			createMenuItem(me, _prop.msgs.menuUndo, _prop.images.menuUndo, &_eview.undo);
@@ -109,24 +119,32 @@ public:
 			new MenuItem(me, DWT.SEPARATOR);
 			appendMenuTCPD(_prop, me, this, true, true, true, true);
 
-			_win.setMenuBar = bar;
+			shell.setMenuBar = bar;
+		} else {
+			appendMenuTCPD(_prop, this, this, true, true, true, true);
+			putMenuAction(_prop.msgs.menuUndo, _prop.msgs.ttUndo, &_eview.undo);
+			putMenuAction(_prop.msgs.menuRedo, _prop.msgs.ttRedo, &_eview.redo);
+			putMenuAction(_prop.msgs.menuUp, _prop.msgs.ttUp, &_eview.up);
+			putMenuAction(_prop.msgs.menuDown, _prop.msgs.ttDown, &_eview.down);
 		}
 
-		static if (is(A == Package)) {
-			auto winProps = _prop.var.packageWin;
-		} else static if (is(A : EffectCard)) {
-			auto winProps = _prop.var.cardEventWin;
-		} else {
-			static assert (0);
+		if (shell) {
+			static if (is(A == Package)) {
+				auto winProps = _prop.var.packageWin;
+			} else static if (is(A : EffectCard)) {
+				auto winProps = _prop.var.cardEventWin;
+			} else {
+				static assert (0);
+			}
+			int width = winProps.width;
+			int height = winProps.height;
+			int x = winProps.x == DWT.DEFAULT ? shell.getBounds.x : winProps.x + parent2.getBounds.x;
+			int y = winProps.y == DWT.DEFAULT ? shell.getBounds.y : winProps.y + parent2.getBounds.y;
+			intoDisplay(x, y, width, height);
+			shell.setBounds(x, y, width, height);
+			shell.setMaximized = winProps.maximized;
+			_parent2 = parent2;
 		}
-		int width = winProps.width;
-		int height = winProps.height;
-		int x = winProps.x == DWT.DEFAULT ? _win.getBounds.x : winProps.x + parent2.getBounds.x;
-		int y = winProps.y == DWT.DEFAULT ? _win.getBounds.y : winProps.y + parent2.getBounds.y;
-		intoDisplay(x, y, width, height);
-		_win.setBounds(x, y, width, height);
-		_win.setMaximized = winProps.maximized;
-		_parent2 = parent2;
 
 		_eview.refresh;
 		__refreshTitle;
@@ -141,25 +159,28 @@ public:
 		} else {
 			static assert (0);
 		}
-		if (!_win.getMaximized) {
-			winProps.width = _win.getSize.x;
-			winProps.height = _win.getSize.y;
-			if (_parent2.isDisposed) {
-				winProps.x = _win.getBounds.x - parentProps.x;
-				winProps.y = _win.getBounds.y - parentProps.y;
-			} else {
-				winProps.x = _win.getBounds.x - _parent2.getBounds.x;
-				winProps.y = _win.getBounds.y - _parent2.getBounds.y;
+		auto shell = cast(Shell) _win;
+		if (shell) {
+			if (!shell.getMaximized) {
+				winProps.width = shell.getSize.x;
+				winProps.height = shell.getSize.y;
+				if (_parent2.isDisposed) {
+					winProps.x = shell.getBounds.x - parentProps.x;
+					winProps.y = shell.getBounds.y - parentProps.y;
+				} else {
+					winProps.x = shell.getBounds.x - _parent2.getBounds.x;
+					winProps.y = shell.getBounds.y - _parent2.getBounds.y;
+				}
 			}
+			winProps.maximized = shell.getMaximized;
 		}
-		winProps.maximized = _win.getMaximized;
 	}
-	Shell shell() {
+	Composite shell() {
 		return _win;
 	}
 	private void __deleteOwner(A a) {
 		if (_eto is a) {
-			_win.close;
+			_comm.close(_win);
 		}
 	}
 	private void __refOwner(A a) {
@@ -167,18 +188,34 @@ public:
 			__refreshTitle;
 		}
 	}
-	private void __refreshTitle() {
+	string title() {
+		auto shl = cast(Shell) _win;
 		static if (is (A == Package)) {
-			_win.setText = _prop.msgs.packageViewName(_eto.id, _eto.name);
+			if (shl) {
+				return _prop.msgs.packageViewName(_eto.id, _eto.name);
+			}
+			return _prop.msgs.packageViewNameTab(_eto.id, _eto.name);
 		} else static if (is (A == SkillCard)) {
-			_win.setText = _prop.msgs.skillViewName(_eto.id, _eto.name);
+			if (shl) {
+				return _prop.msgs.skillViewName(_eto.id, _eto.name);
+			}
+			return _prop.msgs.skillViewNameTab(_eto.id, _eto.name);
 		} else static if (is (A == ItemCard)) {
-			_win.setText = _prop.msgs.itemViewName(_eto.id, _eto.name);
+			if (shl) {
+				return _prop.msgs.itemViewName(_eto.id, _eto.name);
+			}
+			return _prop.msgs.itemViewNameTab(_eto.id, _eto.name);
 		} else static if (is (A == BeastCard)) {
-			_win.setText = _prop.msgs.beastViewName(_eto.id, _eto.name);
+			if (shl) {
+				return _prop.msgs.beastViewName(_eto.id, _eto.name);
+			}
+			return _prop.msgs.beastViewNameTab(_eto.id, _eto.name);
 		} else {
 			static assert (0);
 		}
+	}
+	private void __refreshTitle() {
+		_comm.setTitle(_win, title);
 		_eview.refreshTitle;
 	}
 	/// Returns: 編集中のイベントツリー所持者。

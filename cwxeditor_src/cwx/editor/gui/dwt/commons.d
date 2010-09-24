@@ -16,13 +16,20 @@ import cwx.editor.gui.dwt.mainwindow;
 import cwx.editor.gui.dwt.areawindow;
 import cwx.editor.gui.dwt.cardwindow;
 import cwx.editor.gui.dwt.eventwindow;
+import cwx.editor.gui.dwt.directorywindow;
+import cwx.editor.gui.dwt.datawindow;
+import cwx.editor.gui.dwt.dockingfolder;
 
 import dwt.widgets.Shell;
+import dwt.widgets.Composite;
+import dwt.widgets.Control;
+import dwt.events.DisposeListener;
+import dwt.events.DisposeEvent;
 
 private struct Dlg(Arg ...) {
 	private void delegate(Object, Arg)[] _dlg;
 	private NoS[] _noss;
-	class NoS {
+	private class NoS {
 		void delegate(Arg) dlg;
 		void call(Object sender, Arg arg) {
 			dlg(arg);
@@ -71,6 +78,72 @@ private struct Dlg(Arg ...) {
 	}
 }
 
+/// 最上位のパネル。
+abstract class TopLevelPanel {
+	abstract string title();
+	abstract Composite shell();
+
+	private void delegate()[string] _act;
+	private void delegate()[string] _tt;
+	private string[string] _menuToTool;
+	private string[string] _toolToMenu;
+	void putMenuAction(string menuText, void delegate() dlg) {
+		if (!(menuText in _act)) _act[menuText] = dlg;
+	}
+	void putMenuAction(string menuText, string ttText, void delegate() dlg) {
+		putMenuAction(menuText, dlg);
+		if (!(ttText in _tt)) {
+			_tt[ttText] = dlg;
+		}
+		_menuToTool[menuText] = ttText;
+		_toolToMenu[ttText] = menuText;
+	}
+	private bool delegate()[string] _chk;
+	private bool delegate()[string] _ttChk;
+	void putMenuChecked(string menuText, void delegate() dlg, bool delegate() get) {
+		if (!(menuText in _act)) _act[menuText] = dlg;
+		if (!(menuText in _chk)) _chk[menuText] = get;
+	}
+	void putMenuChecked(string menuText, string ttText, void delegate() dlg, bool delegate() get) {
+		putMenuChecked(menuText, dlg, get);
+		if (!(ttText in _tt)) _tt[ttText] = dlg;
+		if (!(ttText in _ttChk)) _ttChk[ttText] = get;
+		_menuToTool[menuText] = ttText;
+		_toolToMenu[ttText] = menuText;
+	}
+	string toolToMenu(string ttText) {
+		auto p = ttText in _toolToMenu;
+		return p ? *p : null;
+	}
+	string menuToTool(string menuText) {
+		auto p = menuText in _menuToTool;
+		return p ? *p : null;
+	}
+	void delegate() menuAction(string menuText) {
+		auto p = menuText in _act;
+		return p ? *p : null;
+	}
+	void delegate() toolAction(string ttText) {
+		auto p = ttText in _tt;
+		return p ? *p : null;
+	}
+	bool delegate() menuChecked(string menuText) {
+		auto p = menuText in _chk;
+		return p ? *p : null;
+	}
+	bool delegate() toolChecked(string ttText) {
+		auto p = ttText in _ttChk;
+		return p ? *p : null;
+	}
+}
+class TLPData {
+	TopLevelPanel tlp;
+	Object main = null;
+	this (TopLevelPanel tlp) {
+		this.tlp = tlp;
+	}
+}
+
 class Commons {
 	Dlg!(Shell) save;
 	Dlg!() saved;
@@ -105,51 +178,29 @@ class Commons {
 	Dlg!(Package) refPackage;
 	Dlg!(Package) delPackage;
 
+	Dlg!(Importable) closeAdds;
+
+	private HashSet!(Composite) _ws;
+	private Object[Composite] _wos;
 	this() {
-		_aws = new typeof(_aws);
-		_bws = new typeof(_bws);
-		_pws = new typeof(_pws);
-		_hws = new typeof(_hws);
-		_sews = new typeof(_sews);
-		_iews = new typeof(_iews);
-		_bews = new typeof(_bews);
+		_ws = new HashSet!(Composite);
 	}
 	private MainWindow _main;
-	private Shell _areaWin, _cardWin;
-	void baseShell(MainWindow main, Shell areaWin, Shell cardWin) {
+	private DataWindow _dataWin;
+	private MainCardWindow _cardWin;
+	private DirectoryWindow _dirWin;
+	void baseShell(MainWindow main, DataWindow dataWin, MainCardWindow cardWin, DirectoryWindow dirWin) {
 		_main = main;
-		_areaWin = areaWin;
+		_dataWin = dataWin;
 		_cardWin = cardWin;
+		_dirWin = dirWin;
 	}
+	
 	void closeAll() {
-		foreach (w; _aws.toArray) {
-			(cast(AreaWindow) w).shell.close;
+		foreach (w; _ws.toArray) {
+			close(w);
 		}
-		assert (_aws.size == 0);
-		foreach (w; _bws.toArray) {
-			(cast(BattleWindow) w).shell.close;
-		}
-		assert (_bws.size == 0);
-		foreach (w; _pws.toArray) {
-			(cast(PackageWindow) w).shell.close;
-		}
-		assert (_pws.size == 0);
-		foreach (w; _hws.toArray) {
-			(cast(HandCardWindow) w).shell.close;
-		}
-		assert (_hws.size == 0);
-		foreach (w; _sews.toArray) {
-			(cast(SkillEventWindow) w).shell.close;
-		}
-		assert (_sews.size == 0);
-		foreach (w; _iews.toArray) {
-			(cast(ItemEventWindow) w).shell.close;
-		}
-		assert (_iews.size == 0);
-		foreach (w; _bews.toArray) {
-			(cast(BeastEventWindow) w).shell.close;
-		}
-		assert (_bews.size == 0);
+		assert (_ws.size == 0);
 	}
 
 	/// アクティブなコンテントツールボックス。
@@ -157,78 +208,170 @@ class Commons {
 	Shell actToolWin() {return _actToolWin;}
 	private Shell _actToolWin = null;
 
-	private HashSet!(AreaWindow) _aws;
-	private HashSet!(BattleWindow) _bws;
-	private HashSet!(PackageWindow) _pws;
-	private Window __openArea(A, Window)(Props prop, Summary summ, A area, HashSet!(Window) ws) {
-		foreach (w; ws) {
-			if (w.eventTreeOwner == area) {
-				w.shell.setMinimized = false;
-				w.shell.setActive;
-				return w;
+	private Window rOpen(Window, Main)(Main m) {
+		foreach (w; _ws) {
+			if ((cast(TLPData) w.getData).main is m) {
+				auto shl = cast(Shell) w;
+				if (shl) {
+					shl.setMinimized = false;
+					shl.setActive;
+				} else {
+					.forceFocus(w);
+				}
+				return cast(Window) _wos[w];
 			}
 		}
-		auto w = new Window(this, prop, summ, _main.shell, _areaWin, area);
-		w.shell.addShellListener(new CloseRemover!(Window)(ws, w));
-		ws.add(w);
-		w.shell.open;
+		return null;
+	}
+	private Window __open(string Pane, Window, Main, string Etc, Args ...)(Main m, Args args) {
+		auto w = rOpen!(Window)(m);
+		if (!w) {
+			w = __open2!(Pane, Window, Main, Etc, Args)(m, args);
+		}
 		return w;
 	}
-	AreaWindow openArea(Props prop, Summary summ, Area area) {
+	private Window __open2(string Pane, Window, Main, string Etc, Args ...)(Main m, Args args) {
+		auto w = new Window(args);
+		_ws.add(w.shell);
+		_wos[w.shell] = w;
+		w.shell.addDisposeListener(new CloseRemover!(Composite)(_ws, w.shell));
+		w.shell.addDisposeListener(new SCL);
+		(cast(TLPData) w.shell.getData).main = m;
+		static if (Etc.length) mixin (Etc);
+		open(w, Pane);
+		return w;
+	}
+	private class SCL : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			auto shl = cast(Composite) e.widget;
+			_wos.remove(shl);
+		}
+	}
+	private string workPaneKey() {
+		return _main.dock.findPane("work")[0];
+	}
+	private Composite workPane() {
+		if (!_main.dock) return _main.shell;
+		return _main.dock.pane(workPaneKey);
+	}
+	Composite sidePane() {
+		if (!_main.dock) return _main.shell;
+		auto s = _main.dock.findPane("side");
+		if (s.length) return _main.dock.pane(s[0]);
+		return _main.dock.addPane(workPane, Dir.E, 3, 1, _main.dock.newCtrlKey("side"));
+	}
+	private Window __openArea(A, Window)(Props prop, Summary summ, A area) {
 		if (!area) return null;
-		return __openArea!(Area, AreaWindow)(prop, summ, area, _aws);
+		return __open!("work", Window, A, "", Commons, Props, Summary, Composite, Shell, A)
+			(area, this, prop, summ, workPane, cast(Shell) _dataWin.shell, area);
+	}
+	AreaWindow openArea(Props prop, Summary summ, Area area) {
+		return __openArea!(Area, AreaWindow)(prop, summ, area);
 	}
 	BattleWindow openArea(Props prop, Summary summ, Battle area) {
-		if (!area) return null;
-		return __openArea!(Battle, BattleWindow)(prop, summ, area, _bws);
+		return __openArea!(Battle, BattleWindow)(prop, summ, area);
 	}
 	PackageWindow openArea(Props prop, Summary summ, Package area) {
-		if (!area) return null;
-		return __openArea!(Package, PackageWindow)(prop, summ, area, _pws);
+		return __openArea!(Package, PackageWindow)(prop, summ, area);
 	}
 
-	private HashSet!(HandCardWindow) _hws;
 	HandCardWindow openHands(Props prop, Summary summ, CastCard c) {
-		foreach (w; _hws) {
-			if (w.owner is c) {
-				w.shell.setMinimized = false;
-				w.shell.setActive;
-				return w;
-			}
-		}
-		auto hcw = new HandCardWindow(this, prop, summ, _main.shell);
-		_hws.add(hcw);
-		hcw.shell.addShellListener(new CloseRemover!(HandCardWindow)(_hws, hcw));
-		hcw.refresh(summ, c);
-		hcw.open;
-		return hcw;
+		auto w = rOpen!(HandCardWindow)(c);
+		if (w) return w;
+		return __open2!("side", HandCardWindow, CastCard, "w.refresh(args[2], m);", Commons, Props, Summary, Composite)
+			(c, this, prop, summ, sidePane);
 	}
-	private HashSet!(SkillEventWindow) _sews;
-	private HashSet!(ItemEventWindow) _iews;
-	private HashSet!(BeastEventWindow) _bews;
-	Window __openUseEvent(C, Window)(Props prop, Summary summ, C c, HashSet!(Window) ews) {
-		foreach (w; ews) {
-			if (w.eventTreeOwner is c) {
-				w.shell.setMinimized = false;
-				w.shell.setActive;
-				return w;
-			}
-		}
-		auto ew = new Window(this, prop, summ, _main.shell, _cardWin, c);
-		ews.add(ew);
-		ew.shell.addShellListener(new CloseRemover!(Window)(ews, ew));
-		ew.shell.open;
-		return ew;
+	AddHandCardWindow openAddHands(Props prop, Importable summ, CastCard c, Summary toc) {
+		auto w = rOpen!(AddHandCardWindow)(c);
+		if (w) return w;
+		return __open2!("side", AddHandCardWindow, CastCard, "", Commons, Props, Composite, Importable, CastCard, Summary)
+			(c, this, prop, sidePane, summ, c, toc);
+	}
+
+	Window __openUseEvent(C, Window)(Props prop, Summary summ, C c) {
+		return __open!("work", Window, C, "", Commons, Props, Summary, Composite, Shell, C)
+			(c, this, prop, summ, workPane, cast(Shell) _cardWin.shell, c);
 	}
 	SkillEventWindow openUseEvents(Props prop, Summary summ, SkillCard c) {
-		return __openUseEvent!(SkillCard, SkillEventWindow)(prop, summ, c, _sews);
+		return __openUseEvent!(SkillCard, SkillEventWindow)(prop, summ, c);
 	}
 	ItemEventWindow openUseEvents(Props prop, Summary summ, ItemCard c) {
-		return __openUseEvent!(ItemCard, ItemEventWindow)(prop, summ, c, _iews);
+		return __openUseEvent!(ItemCard, ItemEventWindow)(prop, summ, c);
 	}
 	BeastEventWindow openUseEvents(Props prop, Summary summ, BeastCard c) {
-		return __openUseEvent!(BeastCard, BeastEventWindow)(prop, summ, c, _bews);
+		return __openUseEvent!(BeastCard, BeastEventWindow)(prop, summ, c);
 	}
+	private void show(Composite c, string pane, Dir dir, string key,
+			Control delegate(Composite) create, string text) {
+		auto shl = cast(Shell) c;
+		if (shl) {
+			shl.setMinimized = false;
+			shl.open;
+		} else {
+			if (_main.dock.keyFromCtrl(c)) {
+				.forceFocus(c);
+				return;
+			}
+			Composite p;
+			string[] ps = _main.dock.findPane(pane);
+			if (!ps.length) {
+				p = _main.dock.pane(ps[0]);
+			} else {
+				int l, r;
+				if (dir == Dir.N || dir == Dir.W) {
+					l = 1;
+					r = dir == Dir.N ? 3 : 4;
+				} else {
+					l = dir == Dir.S ? 3 : 4;
+					r = 1;
+				}
+				p = _main.dock.addPane(workPane, dir, l, r, _main.dock.newPaneKey(pane));
+			}
+			_main.dock.add(create(p), text, key, true);
+		}
+	}
+	private void openMain(string Pane, Dir D, Win)(Win win) {
+		auto shl = cast(Shell) win.shell;
+		show(win.shell, Pane, D, "", delegate Control(Composite p) {
+			win.reconstruct(p);
+			return win.shell;
+		}, win.title);
+	}
+	void openDataWin() {
+		openMain!("data", Dir.S)(_dataWin);
+	}
+	void openCardWin() {
+		openMain!("data", Dir.S)(_cardWin);
+	}
+	void openDirWin() {
+		openMain!("data", Dir.S)(_dirWin);
+	}
+	void open(TopLevelPanel tlp, string pane) {
+		auto shl = cast(Shell) tlp.shell;
+		if (shl) {
+			shl.open;
+		} else {
+			_main.dock.add(tlp.shell, tlp.title, _main.dock.newCtrlKey(pane), true);
+		}
+	}
+
+	void setTitle(Composite comp, string text) {
+		auto shell = cast(Shell) comp;
+		if (shell) {
+			shell.setText = text;
+		} else {
+			_main.dock.tabText(_main.dock.keyFromCtrl(comp), text);
+		}
+	}
+	void close(Composite comp) {
+		auto shell = cast(Shell) comp;
+		if (shell) {
+			shell.close;
+		} else {
+			_main.dock.close(_main.dock.keyFromCtrl(comp));
+		}
+	}
+
 	bool openCWXPath(string path) {
 		return _main.openCWXPath(path);
 	}

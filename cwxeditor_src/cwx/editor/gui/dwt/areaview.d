@@ -435,7 +435,6 @@ private:
 
 	ImagePane _imgp;
 
-	void delegate() _getFocus;
 	bool _viewParty = true;
 
 	Summary _summ;
@@ -1202,7 +1201,7 @@ private:
 	}
 	static if (UseCards) {
 		void __setAuto(bool value) {
-			if (_imgp.isVisible) _getFocus();
+			if (_imgp.isVisible) .forceFocus(this);
 			_area.spAuto = value;
 			_customMenu.setSelection = !value;
 			_customTMenu.setSelection = !value;
@@ -1211,8 +1210,9 @@ private:
 		}
 	}
 
+	private TopLevelPanel _tlp;
 public:
-	this(Commons comm, Props prop, Summary summ, A area, Composite parent, UndoManager undo) {
+	this(Commons comm, Props prop, Summary summ, A area, Composite parent, TopLevelPanel tlp, UndoManager undo) {
 		super(parent, DWT.NONE);
 		auto gl = windowGridLayout(2);
 		gl.marginWidth = 0;
@@ -1223,6 +1223,7 @@ public:
 		_area = area;
 		_comm = comm;
 		_undo = undo;
+		_tlp = tlp;
 		_comm.refSkin.add(&refresh);
 		_comm.delPaths.add(&refresh);
 		_comm.replPath.add(&refreshR);
@@ -1291,6 +1292,7 @@ public:
 			static assert (0);
 		}
 
+		if (_tlp) setupTLP(_tlp);
 		{
 			auto toolbar = new ToolBar(this, DWT.FLAT);
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
@@ -1565,7 +1567,7 @@ public:
 	static if (UseCards && UseBacks) {
 		private void reverseView(T)(ref bool view, List list, int[T] edits, T[] delegate() col, int startIndex,
 				MenuItem menu, ToolItem titm) {
-			if (_imgp.isVisible) _getFocus();
+			if (_imgp.isVisible) .forceFocus(this);
 			view = !view;
 			list.setEnabled = view;
 			for (int i = 0; i < col().length; i++) {
@@ -1690,12 +1692,32 @@ public:
 		}
 	}
 
+	bool isViewParty() {return _viewParty;}
+	static if (UseCards) {
+		bool spCustom() {return !_area.spAuto;}
+	}
+	private void setupTLP(TopLevelPanel tlp) {
+		_tlp.putMenuChecked(_prop.msgs.menuViewParty, &reverseViewParty, &isViewParty);
+		static if (UseCards && UseBacks) {
+			_tlp.putMenuChecked(_prop.msgs.menuViewCards, &reverseViewCards, &isViewCards);
+			_tlp.putMenuChecked(_prop.msgs.menuViewBacks, &reverseViewBacks, &isViewBacks);
+		}
+		static if (UseCards) {
+			_tlp.putMenuChecked(_prop.msgs.menuAuto, &setAuto, &_area.spAuto);
+			_tlp.putMenuChecked(_prop.msgs.menuCustom, &setCustom, &spCustom);
+		}
+		_tlp.putMenuAction(_prop.msgs.menuRefresh, _prop.msgs.ttRefresh, &refresh);
+		_tlp.putMenuAction(_prop.msgs.menuUndo, _prop.msgs.ttUndo, &undo);
+		_tlp.putMenuAction(_prop.msgs.menuRedo, _prop.msgs.ttRedo, &redo);
+		_tlp.putMenuAction(_prop.msgs.menuUp, _prop.msgs.ttUp, &up);
+		_tlp.putMenuAction(_prop.msgs.menuDown, _prop.msgs.ttDown, &down);
+	}
+
 	/// メニューにAreaViewで使用するアイテムを設定する。
 	/// Params:
 	/// bar = メニュー。
-	void setupMenu(Menu bar, void delegate() getFocus) {
+	void setupMenu(Menu bar) {
 		auto mv = createMenu(bar, _prop.msgs.menuCardsAndBacks);
-		_getFocus = getFocus;
 		_vpMenu = createMenuItem(mv, _prop.msgs.menuViewParty, _prop.images.menuViewParty,
 			&reverseViewParty, DWT.CHECK);
 		_vpMenu.setSelection = _viewParty;
@@ -1730,8 +1752,10 @@ public:
 	/// Params:
 	/// bar = ツールバー。
 	private void setupToolBar(ToolBar bar) {
-		createToolItem(bar, _prop.msgs.ttRefresh, _prop.images.menuRefresh, &refresh);
-		new ToolItem(bar, DWT.SEPARATOR);
+		if (!_tlp) {
+			createToolItem(bar, _prop.msgs.ttRefresh, _prop.images.menuRefresh, &refresh);
+			new ToolItem(bar, DWT.SEPARATOR);
+		}
 		_vpTMenu = createToolItem(bar,
 			_prop.msgs.ttViewParty, _prop.images.menuViewParty,
 			&reverseViewParty, DWT.CHECK);
@@ -1748,12 +1772,14 @@ public:
 			_vbTMenu.setSelection = _viewBacks;
 		}
 		new ToolItem(bar, DWT.SEPARATOR);
-		createToolItem(bar, _prop.msgs.ttUndo, _prop.images.menuUndo, &undo);
-		createToolItem(bar, _prop.msgs.ttRedo, _prop.images.menuRedo, &redo);
-		new ToolItem(bar, DWT.SEPARATOR);
-		createToolItem(bar, _prop.msgs.ttUp, _prop.images.menuUp, &up);
-		createToolItem(bar, _prop.msgs.ttDown, _prop.images.menuDown, &down);
-		new ToolItem(bar, DWT.SEPARATOR);
+		if (!_tlp) {
+			createToolItem(bar, _prop.msgs.ttUndo, _prop.images.menuUndo, &undo);
+			createToolItem(bar, _prop.msgs.ttRedo, _prop.images.menuRedo, &redo);
+			new ToolItem(bar, DWT.SEPARATOR);
+			createToolItem(bar, _prop.msgs.ttUp, _prop.images.menuUp, &up);
+			createToolItem(bar, _prop.msgs.ttDown, _prop.images.menuDown, &down);
+			new ToolItem(bar, DWT.SEPARATOR);
+		}
 		static if (UseCards) {
 			_autoTMenu = createToolItem(bar, _prop.msgs.ttAuto, _prop.images.menuAuto, &setAuto, DWT.RADIO);
 			_customTMenu = createToolItem(bar, _prop.msgs.ttCustom, _prop.images.menuCustom, &setCustom, DWT.RADIO);
@@ -2415,8 +2441,8 @@ public:
 }
 
 class AreaView : AbstractAreaView!(Area, MenuCard, true, true) {
-	this(Commons comm, Props prop, Summary summ, Area area, Composite parent, UndoManager undo) {
-		super(comm, prop, summ, area, parent, undo);
+	this(Commons comm, Props prop, Summary summ, Area area, Composite parent, TopLevelPanel tlp, UndoManager undo) {
+		super(comm, prop, summ, area, parent, tlp, undo);
 	}
 protected override:
 	string cardName(MenuCard element) {
@@ -2433,8 +2459,8 @@ protected override:
 
 class BattleView : AbstractAreaView!(Battle, EnemyCard, true, false) {
 	private Commons _comm;
-	this(Commons comm, Props prop, Summary summ, Battle btl, Composite parent, UndoManager undo) {
-		super(comm, prop, summ, btl, parent, undo);
+	this(Commons comm, Props prop, Summary summ, Battle btl, Composite parent, TopLevelPanel tlp, UndoManager undo) {
+		super(comm, prop, summ, btl, parent, tlp, undo);
 		_comm = comm;
 		{
 			auto target = new DropTarget(imagePane, DND.DROP_DEFAULT | DND.DROP_LINK);
@@ -2516,7 +2542,11 @@ protected override:
 	}
 }
 
-alias AbstractAreaView!(BgImageContainer, void, false, true) BgImagesView;
+class BgImagesView : AbstractAreaView!(BgImageContainer, void, false, true) {
+	this(Commons comm, Props prop, Summary summ, BgImageContainer bic, Composite parent, UndoManager undo) {
+		super(comm, prop, summ, bic, parent, null, undo);
+	}
+}
 
 /// 背景画像を生成する。
 /// Returns: 背景画像。

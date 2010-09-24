@@ -46,10 +46,10 @@ import dwt.events.ControlEvent;
 import dwtx.jface.dialogs.IDialogConstants;
 
 public:
-class DataWindow : TCPD {
+class DataWindow : TopLevelPanel, TCPD {
 private:
 	Commons _comm;
-	Shell _win;
+	Composite _win;
 	AreaTable _areas;
 	FlagsPane _flags;
 	Props _prop;
@@ -61,69 +61,39 @@ private:
 
 	TCPD[] _tcpd;
 
-	void createFlagDir() {
-		tabf.setSelection(tabF);
-		_flags.dirs.setFocus;
-		_flags.dirs.createDir;
-	}
-	void createFlag() {
-		tabf.setSelection(tabF);
-		_flags.flags.setFocus;
-		_flags.flags.createFlag;
-	}
-	void createStep() {
-		tabf.setSelection(tabF);
-		_flags.flags.setFocus;
-		_flags.flags.createStep;
-	}
-	void close() {
-		_win.setVisible = false;
-	}
-
-	void editSummary() {
-		string oldName = _summ.scenarioName;
-		string oldType = _summ.type;
-		auto dlg = new SummaryDialog(_comm, _prop, _win, _summ);
-		if (IDialogConstants.OK_ID == dlg.open) {
-			_areas.refresh;
-			_comm.refUseCount.call;
-			if (oldName != _summ.scenarioName) _comm.refScenarioName.call;
-			if (oldType != _summ.type) {_comm.refSkin.call;}
-		}
-	}
-	void createArea() {
-		tabf.setSelection(tabA);
-		_areas.setFocus;
-		_areas.createArea;
-	}
-	void createBattle() {
-		tabf.setSelection(tabA);
-		_areas.setFocus;
-		_areas.createBattle;
-	}
-	void createPackage() {
-		tabf.setSelection(tabA);
-		_areas.setFocus;
-		_areas.createPackage;
-	}
-
 	void saveScenario() {
-		_comm.save.call(_win);
+		_comm.save.call(_win.getShell);
 	}
 public:
-	this(Commons comm, Props prop, Shell parent) {
-		_win = new Shell(parent, DWT.SHELL_TRIM);
-		_win.setImage = prop.images.app;
-		_win.addShellListener(new class ShellAdapter {
-			public override void shellClosed(ShellEvent e) {
-				_win.setVisible = false;
-				e.doit = false;
-				_prop.var.dataWin.visible = false;
-			}
-		});
-		_win.setLayout = windowGridLayout(1, true);
+	this(Commons comm, Props prop, Composite parent) {
 		_prop = prop;
 		_comm = comm;
+		if (parent) construct(parent);
+	}
+	void reconstruct(Composite parent) {
+		if (_win && !_win.isDisposed) return;
+		construct(parent);
+		if (_summ) refresh;
+	}
+	private void construct(Composite parent) {
+		Shell shell = null;
+		auto parShl = cast(Shell) parent;
+		if (parShl) {
+			shell = new Shell(parShl, DWT.SHELL_TRIM);
+			shell.setImage = _prop.images.app;
+			shell.addShellListener(new class ShellAdapter {
+				public override void shellClosed(ShellEvent e) {
+					(cast(Shell) e.widget).setVisible = false;
+					e.doit = false;
+					_prop.var.dataWin.visible = false;
+				}
+			});
+			_win = shell;
+		} else {
+			_win = new Composite(parent, DWT.NONE);
+		}
+		_win.setData = new TLPData(this);
+		_win.setLayout = windowGridLayout(1, true);
 
 		_comm.refScenarioName.add(&__refreshTitle);
 		_comm.refScenarioPath.add(&__refreshTitle);
@@ -135,43 +105,54 @@ public:
 				_comm.replText.remove(&__refreshTitle);
 			}
 		});
-		{
-			auto bar = new Menu(_win, DWT.BAR);
+		if (shell) {
+			{
+				auto bar = new Menu(shell, DWT.BAR);
 
-			auto mf = createMenu(bar, _prop.msgs.menuFile);
-			createMenuItem(mf, _prop.msgs.menuSave, _prop.images.menuSave, &saveScenario);
-			new MenuItem(mf, DWT.SEPARATOR);
-			createMenuItem(mf, _prop.msgs.menuCloseWin, _prop.images.menuCloseWin, &close);
+				auto mf = createMenu(bar, _prop.msgs.menuFile);
+				createMenuItem(mf, _prop.msgs.menuSave, _prop.images.menuSave, &saveScenario);
+				new MenuItem(mf, DWT.SEPARATOR);
+				createMenuItem(mf, _prop.msgs.menuCloseWin, _prop.images.menuCloseWin, &shell.close);
 
-			auto me = createMenu(bar, _prop.msgs.menuEdit);
-			appendMenuTCPD(_prop, me, this);
+				auto me = createMenu(bar, _prop.msgs.menuEdit);
+				appendMenuTCPD(_prop, me, this);
 
-			auto mt = createMenu(bar, _prop.msgs.menuTable);
-			createMenuItem(mt, _prop.msgs.menuNewArea, _prop.images.menuNewArea, &createArea);
-			createMenuItem(mt, _prop.msgs.menuNewBattle, _prop.images.menuNewBattle, &createBattle);
-			createMenuItem(mt, _prop.msgs.menuNewPackage, _prop.images.menuNewPackage, &createPackage);
+				auto mt = createMenu(bar, _prop.msgs.menuTable);
+				createMenuItem(mt, _prop.msgs.menuNewArea, _prop.images.menuNewArea, &createArea);
+				createMenuItem(mt, _prop.msgs.menuNewBattle, _prop.images.menuNewBattle, &createBattle);
+				createMenuItem(mt, _prop.msgs.menuNewPackage, _prop.images.menuNewPackage, &createPackage);
 
-			auto mv = createMenu(bar, _prop.msgs.menuVariable);
-			createMenuItem(mv, _prop.msgs.menuNewDir, _prop.images.menuNewFlagDir, &createFlagDir);
-			new MenuItem(mv, DWT.SEPARATOR);
-			createMenuItem(mv, _prop.msgs.menuNewFlag, _prop.images.menuNewFlag, &createFlag);
-			createMenuItem(mv, _prop.msgs.menuNewStep, _prop.images.menuNewStep, &createStep);
+				auto mv = createMenu(bar, _prop.msgs.menuVariable);
+				createMenuItem(mv, _prop.msgs.menuNewFlagDir, _prop.images.menuNewFlagDir, &createFlagDir);
+				new MenuItem(mv, DWT.SEPARATOR);
+				createMenuItem(mv, _prop.msgs.menuNewFlag, _prop.images.menuNewFlag, &createFlag);
+				createMenuItem(mv, _prop.msgs.menuNewStep, _prop.images.menuNewStep, &createStep);
 
-			_win.setMenuBar = bar;
-		}
-		{
-			auto bar = new ToolBar(_win, DWT.FLAT);
-			bar.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+				shell.setMenuBar = bar;
+			}
+			{
+				auto bar = new ToolBar(shell, DWT.FLAT);
+				bar.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 
-			createToolItem(bar, _prop.msgs.ttSummary, _prop.images.menuSummary, &editSummary);
-			new ToolItem(bar, DWT.SEPARATOR);
-			createToolItem(bar, _prop.msgs.ttNewArea, _prop.images.menuNewArea, &createArea);
-			createToolItem(bar, _prop.msgs.ttNewBattle, _prop.images.menuNewBattle, &createBattle);
-			createToolItem(bar, _prop.msgs.ttNewPackage, _prop.images.menuNewPackage, &createPackage);
-			new ToolItem(bar, DWT.SEPARATOR);
-			createToolItem(bar, _prop.msgs.ttNewFlag, _prop.images.menuNewFlag, &createFlag);
-			createToolItem(bar, _prop.msgs.ttNewStep, _prop.images.menuNewStep, &createStep);
-			createToolItem(bar, _prop.msgs.ttNewDir, _prop.images.menuNewFlagDir, &createFlagDir);
+				createToolItem(bar, _prop.msgs.ttSummary, _prop.images.menuSummary, &editSummary);
+				new ToolItem(bar, DWT.SEPARATOR);
+				createToolItem(bar, _prop.msgs.ttNewArea, _prop.images.menuNewArea, &createArea);
+				createToolItem(bar, _prop.msgs.ttNewBattle, _prop.images.menuNewBattle, &createBattle);
+				createToolItem(bar, _prop.msgs.ttNewPackage, _prop.images.menuNewPackage, &createPackage);
+				new ToolItem(bar, DWT.SEPARATOR);
+				createToolItem(bar, _prop.msgs.ttNewFlag, _prop.images.menuNewFlag, &createFlag);
+				createToolItem(bar, _prop.msgs.ttNewStep, _prop.images.menuNewStep, &createStep);
+				createToolItem(bar, _prop.msgs.ttNewFlagDir, _prop.images.menuNewFlagDir, &createFlagDir);
+			}
+		} else {
+			appendMenuTCPD(_prop, this, this);
+			putMenuAction(_prop.msgs.menuNewArea, _prop.msgs.ttNewArea, &createArea);
+			putMenuAction(_prop.msgs.menuNewBattle, _prop.msgs.ttNewBattle, &createBattle);
+			putMenuAction(_prop.msgs.menuNewPackage, _prop.msgs.ttNewPackage, &createPackage);
+			putMenuAction(_prop.msgs.menuNewFlagDir, _prop.msgs.ttNewFlagDir, &createFlagDir);
+			putMenuAction(_prop.msgs.menuNewFlag, _prop.msgs.ttNewFlag, &createFlag);
+			putMenuAction(_prop.msgs.menuNewStep, _prop.msgs.ttNewStep, &createStep);
+			putMenuAction(_prop.msgs.menuSummary, _prop.msgs.ttSummary, &editSummary);
 		}
 		{
 			tabf = new TabFolder(_win, DWT.NONE);
@@ -191,23 +172,25 @@ public:
 			_tcpd ~= _flags.flags;
 			_tcpd ~= _flags.dirs;
 		}
-		scope wp = _win.computeSize(DWT.DEFAULT, DWT.DEFAULT);
-		int width = _prop.var.dataWin.width == DWT.DEFAULT ? wp.x : _prop.var.dataWin.width;
-		int height = _prop.var.dataWin.height == DWT.DEFAULT ? wp.y : _prop.var.dataWin.height;
-		int x = _prop.var.dataWin.x == DWT.DEFAULT ? _win.getBounds.x : _prop.var.dataWin.x + _win.getParent.getBounds.x;
-		int y = _prop.var.dataWin.y == DWT.DEFAULT ? _win.getBounds.y : _prop.var.dataWin.y + _win.getParent.getBounds.y;
-		intoDisplay(x, y, width, height);
-		_win.setBounds(x, y, width, height);
-		_win.setMaximized = _prop.var.dataWin.maximized;
-		_win.setMinimized = _prop.var.dataWin.minimized;
-		_win.addControlListener(new class ControlAdapter {
-			override void controlMoved(ControlEvent e) {
-				saveDataWin;
-			}
-			override void controlResized(ControlEvent e) {
-				saveDataWin;
-			}
-		});
+		if (shell) {
+			scope wp = shell.computeSize(DWT.DEFAULT, DWT.DEFAULT);
+			int width = _prop.var.dataWin.width == DWT.DEFAULT ? wp.x : _prop.var.dataWin.width;
+			int height = _prop.var.dataWin.height == DWT.DEFAULT ? wp.y : _prop.var.dataWin.height;
+			int x = _prop.var.dataWin.x == DWT.DEFAULT ? shell.getBounds.x : _prop.var.dataWin.x + shell.getParent.getBounds.x;
+			int y = _prop.var.dataWin.y == DWT.DEFAULT ? shell.getBounds.y : _prop.var.dataWin.y + shell.getParent.getBounds.y;
+			intoDisplay(x, y, width, height);
+			shell.setBounds(x, y, width, height);
+			shell.setMaximized = _prop.var.dataWin.maximized;
+			shell.setMinimized = _prop.var.dataWin.minimized;
+			shell.addControlListener(new class ControlAdapter {
+				override void controlMoved(ControlEvent e) {
+					saveDataWin;
+				}
+				override void controlResized(ControlEvent e) {
+					saveDataWin;
+				}
+			});
+		}
 		_comm.refScenarioName.add(&__refreshTitle);
 		_win.addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) {
@@ -216,24 +199,19 @@ public:
 		});
 	}
 	private void saveDataWin() {
-		auto win = _win;
-		if (!win.getMaximized && !win.getMinimized) {
-			_prop.var.dataWin.width = win.getSize.x;
-			_prop.var.dataWin.height = win.getSize.y;
-			_prop.var.dataWin.x = win.getBounds.x - win.getParent.getBounds.x;
-			_prop.var.dataWin.y = win.getBounds.y - win.getParent.getBounds.y;
-		}
-		_prop.var.dataWin.maximized = win.getMaximized;
-		_prop.var.dataWin.minimized = win.getMinimized;
-	}
-	Shell shell() {return _win;}
-	/// ウィンドウを開く。
-	void open() {
-		if (_summ) {
-			_win.setMinimized = false;
-			_win.open;
+		auto win = cast(Shell) _win;
+		if (win) {
+			if (!win.getMaximized && !win.getMinimized) {
+				_prop.var.dataWin.width = win.getSize.x;
+				_prop.var.dataWin.height = win.getSize.y;
+				_prop.var.dataWin.x = win.getBounds.x - win.getParent.getBounds.x;
+				_prop.var.dataWin.y = win.getBounds.y - win.getParent.getBounds.y;
+			}
+			_prop.var.dataWin.maximized = win.getMaximized;
+			_prop.var.dataWin.minimized = win.getMinimized;
 		}
 	}
+	Composite shell() {return _win;}
 	/// エリアビューを開く。
 	void openArea(ulong id) {
 		_areas.openArea(id);
@@ -247,8 +225,70 @@ public:
 		_areas.openPackage(id);
 	}
 
+	void createArea() {
+		if (!_summ) return;
+		_comm.openDataWin;
+		tabf.setSelection(tabA);
+		_areas.setFocus;
+		_areas.createArea;
+	}
+	void createBattle() {
+		if (!_summ) return;
+		_comm.openDataWin;
+		tabf.setSelection(tabA);
+		_areas.setFocus;
+		_areas.createBattle;
+	}
+	void createPackage() {
+		if (!_summ) return;
+		_comm.openDataWin;
+		tabf.setSelection(tabA);
+		_areas.setFocus;
+		_areas.createPackage;
+	}
+	void createFlagDir() {
+		if (!_summ) return;
+		_comm.openDataWin;
+		tabf.setSelection(tabF);
+		_flags.dirs.setFocus;
+		_flags.dirs.createDir;
+	}
+	void createFlag() {
+		if (!_summ) return;
+		_comm.openDataWin;
+		tabf.setSelection(tabF);
+		_flags.flags.setFocus;
+		_flags.flags.createFlag;
+	}
+	void createStep() {
+		if (!_summ) return;
+		_comm.openDataWin;
+		tabf.setSelection(tabF);
+		_flags.flags.setFocus;
+		_flags.flags.createStep;
+	}
+	void editSummary() {
+		if (!_summ) return;
+		string oldName = _summ.scenarioName;
+		string oldType = _summ.type;
+		auto dlg = new SummaryDialog(_comm, _prop, _win.getShell, _summ);
+		if (IDialogConstants.OK_ID == dlg.open) {
+			_areas.refresh;
+			_comm.refUseCount.call;
+			if (oldName != _summ.scenarioName) _comm.refScenarioName.call;
+			if (oldType != _summ.type) {_comm.refSkin.call;}
+		}
+	}
+
+	string title() {
+		auto shl = cast(Shell) _win;
+		if (shl) {
+			return _prop.msgs.dataWindowName(_summ);
+		}
+		return _prop.msgs.dataTabName(_summ);
+	}
 	private void __refreshTitle() {
-		_win.setText = _prop.msgs.dataWindowName(_summ.scenarioName, _summ.scenarioPath);
+		_comm.setTitle(_win, title);
 	}
 	private void refresh() {
 		__refreshTitle;
@@ -273,7 +313,7 @@ public:
 	/// FileLoadException = Summary.xml以外での読込例外発生時。
 	void load(Summary summ) {
 		_summ = summ;
-		refresh;
+		if (_win && !_win.isDisposed) refresh;
 	}
 
 	/// Returns: 貼り紙。
@@ -315,7 +355,7 @@ public:
 			}
 		}
 		bool canDoTCPD() {
-			return _win.isFocusControl;
+			return .hasFocus(_win);
 		}
 	}
 
@@ -328,8 +368,7 @@ public:
 	}
 	bool openCWXPath(string path) {
 		if (path == "") {
-			_win.setMinimized = false;
-			_win.setActive;
+			_comm.openDataWin;
 			return true;
 		}
 		auto cate = cpcategory(path);

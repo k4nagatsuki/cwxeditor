@@ -317,6 +317,20 @@ private:
 			}
 		}
 	}
+	class MListener : MouseAdapter {
+		public override void mouseDoubleClick(MouseEvent e) {
+			if (_areas.isFocusControl && e.button == 1) {
+				openArea;
+			}
+		}
+	}
+	class KListener : KeyAdapter {
+		public override void keyPressed(KeyEvent e) {
+			if (_areas.isFocusControl && e.character == DWT.CR) {
+				openArea;
+			}
+		}
+	}
 public:
 	this(Commons comm, Props prop, Composite parent, FlagTable flags) {
 		_comm = comm;
@@ -326,7 +340,7 @@ public:
 		_comm.refUseCount.add(&__refreshUseCount);
 		_comm.replText.add(&refresh);
 		_areas = new Table(parent, DWT.BORDER | DWT.FULL_SELECTION);
-		_areas.addDisposeListener( new class DisposeListener {
+		_areas.addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) {
 				_comm.refUseCount.remove(&__refreshUseCount);
 				_comm.replText.remove(&refresh);
@@ -353,20 +367,8 @@ public:
 		appendMenuTCPD(prop, menu, this);
 		_areas.setMenu = menu;
 
-		_areas.addMouseListener = new class MouseAdapter {
-			public override void mouseDoubleClick(MouseEvent e) {
-				if (_areas.isFocusControl && e.button == 1) {
-					openArea;
-				}
-			}
-		};
-		_areas.addKeyListener = new class KeyAdapter {
-			public override void keyPressed(KeyEvent e) {
-				if (_areas.isFocusControl && e.character == DWT.CR) {
-					openArea;
-				}
-			}
-		};
+		_areas.addMouseListener(new MListener);
+		_areas.addKeyListener(new KListener);
 		auto drag = new DragSource(_areas, DND.DROP_MOVE | DND.DROP_COPY);
 		drag.setTransfer([XMLBytesTransfer.getInstance]);
 		drag.addDragListener(new DragArea);

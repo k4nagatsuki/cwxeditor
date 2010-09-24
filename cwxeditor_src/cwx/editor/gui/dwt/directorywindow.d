@@ -89,7 +89,7 @@ private struct FC {
 
 alias ArrayWrapperString FileNameObj;
 
-class DirectoryWindow : TCPD {
+class DirectoryWindow : TopLevelPanel, TCPD {
 private:
 	static if (fnmatch("A", "a")) {
 		alias icmp comp;
@@ -611,7 +611,7 @@ private:
 				bool over = false;
 				if (exists.length > 0) {
 					auto dlg = new MessageBox
-						(_win, DWT.ICON_QUESTION | DWT.YES | DWT.NO | DWT.CANCEL);
+						(_win.getShell, DWT.ICON_QUESTION | DWT.YES | DWT.NO | DWT.CANCEL);
 					scope (exit) dlg.dispose;
 					dlg.setText = _prop.msgs.dlgTitQuestion;
 					dlg.setMessage = _prop.msgs.dlgMsgDropOverWriteFiles(exists);
@@ -707,7 +707,7 @@ private:
 		return r;
 	}
 
-	Shell _win;
+	Composite _win;
 	SplitPane _sash;
 	Tree _dirs;
 	TreeEdit _dirsEdit;
@@ -830,7 +830,7 @@ private:
 		}
 	}
 	void __refreshTitle() {
-		_win.setText = _prop.msgs.dirWindowName(_summ.scenarioName, _summ.scenarioPath);
+		_comm.setTitle(_win, title);
 	}
 	void __refresh() {
 		refreshDirs(selDirPath);
@@ -843,7 +843,7 @@ private:
 		}
 	}
 	void saveScenario() {
-		_comm.save.call(_win);
+		_comm.save.call(_win.getShell);
 	}
 	class Exec {
 		private OuterTool _tool;
@@ -854,7 +854,7 @@ private:
 				file ~= `"` ~ f ~ `"`;
 				if (i + 1 < sf.length) file ~= " ";
 			}
-			string sp = _summ.scenarioPath;
+			string sp = _summ ? _summ.scenarioPath : getcwd;
 			auto cwd = getcwd;
 			string wd = OuterTool.parse(_tool.workDir, file, sp);
 			if (wd.length > 0) {
@@ -868,7 +868,7 @@ private:
 			if (!exec(cmd, wd)) {
 				MessageBox.showWarning
 					(_prop.msgs.errorExec(_tool.name),
-					_prop.msgs.dlgTitWarning, _win);
+					_prop.msgs.dlgTitWarning, _win.getShell);
 			}
 		}
 		this(Menu menu, OuterTool tool) {
@@ -878,7 +878,7 @@ private:
 	}
 	void createFilesMenu() {
 		if (_files.getMenu) _files.getMenu.dispose;
-		auto menu = new Menu(_win, DWT.POP_UP);
+		auto menu = new Menu(_win.getShell, DWT.POP_UP);
 		createMenuItem(menu, _prop.msgs.menuReplacePath, _prop.images.menuReplacePath, &replace);
 		new MenuItem(menu, DWT.SEPARATOR);
 		createMenuItem(menu, _prop.msgs.menuNewFolder, _prop.images.menuNewFolder, &createDirFiles);
@@ -942,6 +942,7 @@ private:
 		}
 	}
 	void __replace(string sel) {
+		if (!_summ || !_win || _win.isDisposed) return;
 		string[] from;
 		foreach (path; _summ.useCounter.path.keys) {
 			auto p = cast(string) path;
@@ -976,7 +977,7 @@ private:
 		foreach (p; skin.sounds) {
 			to ~= p;
 		}
-		auto dlg = new ReplacePathDialog(_prop, _win, from, to, sel);
+		auto dlg = new ReplacePathDialog(_prop, _win.getShell, from, to, sel);
 		if (IDialogConstants.OK_ID == dlg.open) {
 			_summ.useCounter.change(toPathId(dlg.from), toPathId(dlg.to), true);
 			_comm.replPath.call(dlg.from, dlg.to);
@@ -985,7 +986,7 @@ private:
 	}
 	class SClose : ShellAdapter {
 		override void shellClosed(ShellEvent e) {
-			_win.setVisible = false;
+			(cast(Shell) e.widget).setVisible = false;
 			e.doit = false;
 			_prop.var.dirWin.visible = false;
 			_prop.var.etc.filesSortDirection = _files.getSortDirection;
@@ -1000,15 +1001,59 @@ private:
 			}
 		}
 	}
+	class FDListener : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			_comm.refOuterTools.remove(&createFilesMenu);
+		}
+	}
+	class DListener : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			_comm.refScenarioName.remove(&__refreshTitle);
+			_comm.refScenarioPath.remove(&__refreshTitle);
+			_comm.refUseCount.remove(&__refreshUseCount);
+			_comm.refPaths.remove(&__refPaths);
+			_comm.delPaths.remove(&__delPaths);
+			_comm.saved.remove(&refCheckPaths);
+			_comm.replText.remove(&__refreshTitle);
+			_sImgFolder.dispose;
+			_sImgCards.dispose;
+			_sImgBacks.dispose;
+			_sImgBgm.dispose;
+			_sImgSe.dispose;
+			_sImgUnknown.dispose;
+		}
+	}
+	class SDListener : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			_prop.var.etc.directorySashL = _sash.getWeights[0];
+			_prop.var.etc.directorySashR = _sash.getWeights[1];
+		}
+	}
 public:
-	this(Commons comm, Props prop, Shell parent) {
-		_cuts = new typeof(_cuts);
-		_win = new Shell(parent, DWT.SHELL_TRIM);
-		_win.setImage = prop.images.app;
-		_win.addShellListener(new SClose);
-		_win.setLayout = windowGridLayout(1, true);
+	this(Commons comm, Props prop, Composite parent) {
 		_prop = prop;
 		_comm = comm;
+		if (parent) construct(parent);
+	}
+	void reconstruct(Composite parent) {
+		if (_win && !_win.isDisposed) return;
+		construct(parent);
+		if (_summ) refresh(_summ);
+	}
+	private void construct(Composite parent) {
+		_cuts = new typeof(_cuts);
+		Shell shell = null;
+		auto parShl = cast(Shell) parent;
+		if (parShl) {
+			shell = new Shell(parShl, DWT.SHELL_TRIM);
+			shell.setImage = _prop.images.app;
+			shell.addShellListener(new SClose);
+			_win = shell;
+		} else {
+			_win = new Composite(parent, DWT.NONE);
+		}
+		_win.setData = new TLPData(this);
+		_win.setLayout = windowGridLayout(1, true);
 		_comm.refScenarioName.add(&__refreshTitle);
 		_comm.refScenarioPath.add(&__refreshTitle);
 		_comm.refUseCount.add(&__refreshUseCount);
@@ -1022,32 +1067,16 @@ public:
 		_sImgBgm = skeletonImage(_prop.images.bgm);
 		_sImgSe = skeletonImage(_prop.images.se);
 		_sImgUnknown = skeletonImage(_prop.images.unknown);
-		_win.addDisposeListener(new class DisposeListener {
-			override void widgetDisposed(DisposeEvent e) {
-				_comm.refScenarioName.remove(&__refreshTitle);
-				_comm.refScenarioPath.remove(&__refreshTitle);
-				_comm.refUseCount.remove(&__refreshUseCount);
-				_comm.refPaths.remove(&__refPaths);
-				_comm.delPaths.remove(&__delPaths);
-				_comm.saved.remove(&refCheckPaths);
-				_comm.replText.remove(&__refreshTitle);
-				_sImgFolder.dispose;
-				_sImgCards.dispose;
-				_sImgBacks.dispose;
-				_sImgBgm.dispose;
-				_sImgSe.dispose;
-				_sImgUnknown.dispose;
-			}
-		});
-		{
-			auto bar = new Menu(_win, DWT.BAR);
+		_win.addDisposeListener(new DListener);
+		if (shell) {
+			auto bar = new Menu(shell, DWT.BAR);
 
 			auto mf = createMenu(bar, _prop.msgs.menuFile);
 			createMenuItem(mf, _prop.msgs.menuOpenDirectory, _prop.images.folder, &openDirectory);
 			new MenuItem(mf, DWT.SEPARATOR);
 			createMenuItem(mf, _prop.msgs.menuSave, _prop.images.menuSave, &saveScenario);
 			new MenuItem(mf, DWT.SEPARATOR);
-			createMenuItem(mf, _prop.msgs.menuCloseWin, _prop.images.menuCloseWin, &_win.close);
+			createMenuItem(mf, _prop.msgs.menuCloseWin, _prop.images.menuCloseWin, &shell.close);
 
 			auto me = createMenu(bar, _prop.msgs.menuEdit);
 			createMenuItem(me, _prop.msgs.menuReplacePath, _prop.images.menuReplacePath, &replace);
@@ -1059,29 +1088,46 @@ public:
 			auto mv = createMenu(bar, _prop.msgs.menuView);
 			createMenuItem(mv, _prop.msgs.menuRefresh, _prop.images.menuRefresh, &__refresh);
 
-			_win.setMenuBar = bar;
+			shell.setMenuBar = bar;
+		} else {
+			appendMenuTCPD(_prop, this, this, true, true, true, true);
+			putMenuAction(_prop.msgs.menuReplacePath, _prop.msgs.ttReplacePath, &replace);
+			putMenuAction(_prop.msgs.menuRefresh, _prop.msgs.ttRefresh, &__refresh);
 		}
-		{
-			auto bar = new ToolBar(_win, DWT.FLAT);
+		void setupToolBar(ToolBar bar) {
 			bar.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 
 			createToolItem(bar, _prop.msgs.ttOpenDirectory, _prop.images.folder, &openDirectory);
-			new ToolItem(bar, DWT.SEPARATOR);
-			createToolItem(bar, _prop.msgs.ttRefresh, _prop.images.menuRefresh, &__refresh);
-			new ToolItem(bar, DWT.SEPARATOR);
-			createToolItem(bar, _prop.msgs.ttReplacePath, _prop.images.menuReplacePath, &replace);
+			if (shell) {
+				new ToolItem(bar, DWT.SEPARATOR);
+				createToolItem(bar, _prop.msgs.ttRefresh, _prop.images.menuRefresh, &__refresh);
+				new ToolItem(bar, DWT.SEPARATOR);
+				createToolItem(bar, _prop.msgs.ttReplacePath, _prop.images.menuReplacePath, &replace);
+			}
 			new ToolItem(bar, DWT.SEPARATOR);
 			createToolItem(bar, _prop.msgs.ttNewFolder, _prop.images.menuNewFolder, &__createDir);
-			new ToolItem(bar, DWT.SEPARATOR);
-			createToolItem(bar, _prop.msgs.ttCut, _prop.images.menuCut, &cut);
-			createToolItem(bar, _prop.msgs.ttCopy, _prop.images.menuCopy, &copy);
-			createToolItem(bar, _prop.msgs.ttPaste, _prop.images.menuPaste, &paste);
-			createToolItem(bar, _prop.msgs.ttDel, _prop.images.menuDel, &del);
+			if (shell) {
+				new ToolItem(bar, DWT.SEPARATOR);
+				createToolItem(bar, _prop.msgs.ttCut, _prop.images.menuCut, &cut);
+				createToolItem(bar, _prop.msgs.ttCopy, _prop.images.menuCopy, &copy);
+				createToolItem(bar, _prop.msgs.ttPaste, _prop.images.menuPaste, &paste);
+				createToolItem(bar, _prop.msgs.ttDel, _prop.images.menuDel, &del);
+			}
 		}
 		_sash = new SplitPane(_win, DWT.HORIZONTAL);
 		_sash.setLayoutData = new GridData(GridData.FILL_BOTH);
-		_dirs = new Tree(_sash, DWT.SINGLE | DWT.BORDER | DWT.VIRTUAL);
-		_sash.setControl1 = _dirs;
+		if (shell) {
+			setupToolBar(new ToolBar(_win, DWT.FLAT));
+			_dirs = new Tree(_sash, DWT.SINGLE | DWT.BORDER | DWT.VIRTUAL);
+			_sash.setControl1 = _dirs;
+		} else {
+			auto dirsComp = new Composite(_sash, DWT.NONE);
+			dirsComp.setLayout = zeroGridLayout(1, true);
+			setupToolBar(new ToolBar(dirsComp, DWT.FLAT));
+			_dirs = new Tree(dirsComp, DWT.SINGLE | DWT.BORDER | DWT.VIRTUAL);
+			_dirs.setLayoutData = new GridData(GridData.FILL_BOTH);
+			_sash.setControl1 = dirsComp;
+		}
 		{
 			_dirs.addSelectionListener(new DirsSelection);
 			_dirsEdit = new TreeEdit(_dirs, &dirsEditEnd, &dirsCreateEditor);
@@ -1095,7 +1141,7 @@ public:
 			drag.setTransfer([FileTransfer.getInstance]);
 			drag.addDragListener(new FilesDrag!(Tree));
 
-			auto menu = new Menu(_win, DWT.POP_UP);
+			auto menu = new Menu(_win.getShell, DWT.POP_UP);
 			createMenuItem(menu, _prop.msgs.menuNewFolder, _prop.images.menuNewFolder, &createDirDirs);
 			new MenuItem(menu, DWT.SEPARATOR);
 			appendMenuTCPD(_prop, menu, this, true, true, true, true);
@@ -1147,68 +1193,68 @@ public:
 			st.doSort(_prop.var.etc.filesSortDirection);
 
 			_comm.refOuterTools.add(&createFilesMenu);
-			_files.addDisposeListener(new class DisposeListener {
-				override void widgetDisposed(DisposeEvent e) {
-					_comm.refOuterTools.remove(&createFilesMenu);
-				}
-			});
+			_files.addDisposeListener(new FDListener);
 			createFilesMenu;
 		}
-		_sash.setWeights
-			([_prop.var.etc.directorySashL, _prop.var.etc.directorySashR]);
-		_sash.addDisposeListener(new class DisposeListener {
-			override void widgetDisposed(DisposeEvent e) {
-				_prop.var.etc.directorySashL = _sash.getWeights[0];
-				_prop.var.etc.directorySashR = _sash.getWeights[1];
-			}
-		});
-		scope wp = _win.computeSize(DWT.DEFAULT, DWT.DEFAULT);
-		int width = _prop.var.dirWin.width == DWT.DEFAULT
-			? wp.x : _prop.var.dirWin.width;
-		int height = _prop.var.dirWin.height == DWT.DEFAULT
-			? wp.y : _prop.var.dirWin.height;
-		int x = _prop.var.dirWin.x == DWT.DEFAULT
-			? _win.getBounds.x : _prop.var.dirWin.x + _win.getParent.getBounds.x;
-		int y = _prop.var.dirWin.y == DWT.DEFAULT
-			? _win.getBounds.y : _prop.var.dirWin.y + _win.getParent.getBounds.y;
-		intoDisplay(x, y, width, height);
-		_win.setBounds(x, y, width, height);
-		_win.setMaximized = _prop.var.dirWin.maximized;
-		_win.setMinimized = _prop.var.dirWin.minimized;
-		_win.addControlListener(new class ControlAdapter {
-			override void controlMoved(ControlEvent e) {
-				saveWin;
-			}
-			override void controlResized(ControlEvent e) {
-				saveWin;
-			}
-		});
+		_sash.setWeights([_prop.var.etc.directorySashL, _prop.var.etc.directorySashR]);
+		_sash.addDisposeListener(new SDListener);
+		if (shell) {
+			shell.pack;
+			scope wp = shell.computeSize(DWT.DEFAULT, DWT.DEFAULT);
+			int width = _prop.var.dirWin.width == DWT.DEFAULT
+				? wp.x : _prop.var.dirWin.width;
+			int height = _prop.var.dirWin.height == DWT.DEFAULT
+				? wp.y : _prop.var.dirWin.height;
+			int x = _prop.var.dirWin.x == DWT.DEFAULT
+				? shell.getBounds.x : _prop.var.dirWin.x + shell.getParent.getBounds.x;
+			int y = _prop.var.dirWin.y == DWT.DEFAULT
+				? shell.getBounds.y : _prop.var.dirWin.y + shell.getParent.getBounds.y;
+			intoDisplay(x, y, width, height);
+			shell.setBounds(x, y, width, height);
+			shell.setMaximized = _prop.var.dirWin.maximized;
+			shell.setMinimized = _prop.var.dirWin.minimized;
+			shell.addControlListener(new class ControlAdapter {
+				override void controlMoved(ControlEvent e) {
+					saveWin;
+				}
+				override void controlResized(ControlEvent e) {
+					saveWin;
+				}
+			});
+		}
 	}
 	private void saveWin() {
-		auto win = _win;
-		if (!win.getMaximized && !win.getMinimized) {
-			_prop.var.dirWin.width = win.getSize.x;
-			_prop.var.dirWin.height = win.getSize.y;
-			_prop.var.dirWin.x = win.getBounds.x - win.getParent.getBounds.x;
-			_prop.var.dirWin.y = win.getBounds.y - win.getParent.getBounds.y;
+		auto win = cast(Shell) _win;
+		if (win) {
+			if (!win.getMaximized && !win.getMinimized) {
+				_prop.var.dirWin.width = win.getSize.x;
+				_prop.var.dirWin.height = win.getSize.y;
+				_prop.var.dirWin.x = win.getBounds.x - win.getParent.getBounds.x;
+				_prop.var.dirWin.y = win.getBounds.y - win.getParent.getBounds.y;
+			}
+			_prop.var.dirWin.maximized = win.getMaximized;
+			_prop.var.dirWin.minimized = win.getMinimized;
 		}
-		_prop.var.dirWin.maximized = win.getMaximized;
-		_prop.var.dirWin.minimized = win.getMinimized;
 	}
 
-	void open() {
-		if (_summ) {
-			_win.setMinimized = false;
-			_win.open;
+	Composite shell() {return _win;}
+
+	string title() {
+		auto shl = cast(Shell) _win;
+		if (shl) {
+			return _prop.msgs.dirWindowName(_summ);
 		}
+		return _prop.msgs.dirTabName(_summ);
 	}
 
 	void refresh(Summary summ) {
 		_summ = summ;
-		refreshDirs(std.path.join(_summ.scenarioPath, findSkin(_prop, summ).materialPath));
-		refreshFiles(null);
-		refCheckPaths;
-		__refreshTitle;
+		if (_win && !_win.isDisposed) {
+			refreshDirs(std.path.join(_summ.scenarioPath, findSkin(_prop, summ).materialPath));
+			refreshFiles(null);
+			refCheckPaths;
+			__refreshTitle;
+		}
 	}
 
 	bool isChanged() {
@@ -1326,7 +1372,7 @@ public:
 			if (_dirs.getSelection.length == 0) return;
 			if (!_dirs.getSelection[0].getParentItem) return;
 		}
-		auto dlg = new MessageBox(_win, DWT.ICON_QUESTION | DWT.OK | DWT.CANCEL);
+		auto dlg = new MessageBox(_win.getShell, DWT.ICON_QUESTION | DWT.OK | DWT.CANCEL);
 		scope (exit) dlg.dispose;
 		dlg.setText = _prop.msgs.dlgTitQuestion;
 		auto dir = selDirPath;

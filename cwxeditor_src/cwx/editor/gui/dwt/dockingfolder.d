@@ -1,10 +1,10 @@
 
 module cwx.editor.gui.dwt.dockingfolder;
 
-import dwt.all;
-
 import cwx.utils;
 import cwx.xml;
+
+import dwt.all;
 
 import std.file;
 import std.compat;
@@ -14,6 +14,14 @@ alias DockingFolder!(TabFolder, DWT.NONE) DockingFolderT;
 alias DockingFolder!(CTabFolder, DWT.BORDER | DWT.FLAT) DockingFolderCT;
 alias DockingFolder!(CTabFolder, DWT.BORDER | DWT.FLAT | DWT.CLOSE) DockingFolderCTC;
 
+/// 方角。
+enum Dir {
+	N, /// 北。
+	E, /// 東。
+	S, /// 南。
+	W /// 西。
+}
+
 class DockingFolder(TabF, int Style) {
 	static if (is(TabF == TabFolder)) {
 		alias TabItem Tab;
@@ -21,27 +29,125 @@ class DockingFolder(TabF, int Style) {
 		alias CTabItem Tab;
 	} else static assert (0);
 	private static const CLOSE = is(TabF == CTabFolder) && (Style & DWT.CLOSE);
-	private enum DPos {
-		N, E, S, W, C, NONE
-	}
+	private enum DPos {N, E, S, W, C, NONE}
+
 	private Composite _area;
+
 	private string[Control] _ctrls;
 	private Control[string] _keys;
-	private this (Composite parent, int style, bool createTabf) {
+	private string[TabF] _tabfs;
+	private TabF[string] _tKeys;
+	private TabF[] _tabfList;
+	private bool[string] _vanish;
+
+	private FocusL _fl;
+	private this (Composite parent, int style, bool createTabf, string firstPaneKey = "") {
 		_area = new Composite(parent, style);
 		_area.setLayout = new FillLayout;
-		if (createTabf) newTabf(_area);
+		if (createTabf) newTabf(_area, firstPaneKey, true);
+		_fl = new FocusL;
+		Display.getCurrent.addFilter(DWT.FocusIn, _fl);
 	}
-	this (Composite parent, int style) {
-		this (parent, style, true);
+	override void dispose() {
+		Display.getCurrent.removeFilter(DWT.FocusIn, _fl);
 	}
-	Composite parentFromKey(string key) {
-		auto p = key in _keys;
-		return p ? p.getParent : null;
+	/// 唯一のコンストラクタ。
+	/// firstPaneKeyに""を指定した場合は自動的にkeyが生成される。
+	this (Composite parent, int style, string firstPaneKey = "") {
+		this (parent, style, true, firstPaneKey);
 	}
+	/// 新しくペインのkeyを生成して返す。
+	string newPaneKey(string prefix) {
+		int i = 0;
+		string key = prefix;
+		while (key in _tKeys) {
+			i++;
+			key = prefix ~ to!(string)(i);
+		}
+		return key;
+	}
+	/// 新しくControlのkeyを生成して返す。
+	string newCtrlKey(string prefix) {
+		int i = 0;
+		string key = prefix;
+		while (key in _keys) {
+			i++;
+			key = prefix ~ to!(string)(i);
+		}
+		return key;
+	}
+	/// Controlを移動する際、移動の可否を決定するためのdelegate。
+	/// nullの場合は常に移動可能となる。
+	/// ctrlKeyには移動するControlのkeyが、dropPaneKeyには移動先の
+	/// keyが渡されるが、移動先が新規ペインならdropPaneKeyは""になる。
+	bool delegate (string ctrlKey, string dropPaneKey) canMove = null;
+	/// 移動によって生成される新規ペインの名前を指定したい場合に
+	/// その名前を返すdelegate。
+	/// ""を返すと自動的に生成される。
+	string delegate (string ctrlKey) newPaneName = null;
+
+	private string newTabfKey() {
+		string key;
+		int i = _tabfs.length;
+		do {
+			key = format("t%d", i);
+			i++;
+		} while (key in _tKeys);
+		return key;
+	}
+	/// 全てのペインを返す。
+	Composite[] panes() {return cast(Composite[]) _tabfList;}
+	/// ditto
+	string[] paneKeys() {return _tKeys.keys;}
+	/// keyに該当するペインを返す。
+	/// 存在しない場合はnullを返す。
+	Composite pane(string key) {
+		auto p = key in _tKeys;
+		return p ? *p : null;
+	}
+	/// ペインのkeyを返す。
+	/// 非対象のペインであれば""を返す。
+	string key(Composite pane) {
+		auto tabf = cast(TabF) pane;
+		if (!tabf) throw new Exception("Invalid composite");
+		auto p = tabf in _tabfs;
+		return p ? *p : "";
+	}
+	/// keyに該当するControlを返す。
+	/// 存在しない場合はnullを返す。
 	Control control(string key) {
 		auto p = key in _keys;
 		return p ? *p : null;
+	}
+	/// Controlのkeyを返す。
+	/// 非対象のControlであれば""を返す。
+	string keyFromCtrl(Control ctrl) {
+		auto p = ctrl in _ctrls;
+		return p ? *p : "";
+	}
+	/// 全てのControlを返す。
+	Control[] controls() {return _ctrls.keys;}
+	/// ditto
+	string[] controlKeys() {return _keys.keys;}
+	/// 指定されたペインに含まれるControlの一覧。
+	Control[] controls(string key) {
+		auto tabf = cast(TabF) pane(key);
+		if (!tabf) return [];
+		Control[] r;
+		foreach (tab; tabf.getItems) {
+			r ~= tab.getControl;
+		}
+		return r;
+	}
+	/// ditto
+	string[] controlKeys(string key) {
+		auto tabf = cast(TabF) pane(key);
+		if (!tabf) return [];
+		string[] r;
+		foreach (tab; tabf.getItems) {
+			r ~= _ctrls[tab.getControl];
+		}
+		return r;
 	}
 	private Tab tab(string key) {
 		auto p = key in _keys;
@@ -53,6 +159,8 @@ class DockingFolder(TabF, int Style) {
 		}
 		assert (0);
 	}
+	/// keyに該当するControlタブのテキストを設定する。
+	/// 該当するControlが存在しなければfalseを返す。
 	bool tabText(string key, string text) {
 		auto t = tab(key);
 		if (t) {
@@ -61,19 +169,109 @@ class DockingFolder(TabF, int Style) {
 		}
 		return false;
 	}
+	/// keyに該当するControlタブのテキストを返す。
+	/// 該当するControlが存在しなければnullを返す。
 	string tabText(string key) {
 		auto t = tab(key);
 		return t ? t.getText : null;
 	}
-	Composite first() {return composites[0];}
+	/// 最も古いペイン。
+	Composite first() {return panes[0];}
+	/// ditto
+	string firstKey() {return _tabfs[cast(TabF) first];}
+	/// 全てのペインの親となるComposite。
 	Composite area() {return _area;}
-	private TabF newTabf(Composite parent) {
-		auto tabf = new TabF(parent, Style);
-		_tabfs ~= tabf;
+	/// 指定されたペインが空になった時に消滅するか否か。
+	bool vanish(string key) {
+		auto p = key in _vanish;
+		return p ? *p : true;
+	}
+	/// ditto
+	void vanish(string key, bool vanish) {
+		_vanish[key] = vanish;
+	}
+	/// ペインbaseに対して、dir方向にペインを追加する。
+	/// Param:
+	///  lWeight, rWeight = 分割した際のサイズの割合。
+	///  key = 新たなペインのkey。""を指定した場合は自動的に生成される。
+	///        自動生成されたキーは必ず"t"+連番("t%d")の形式になる。
+	///  vanish = 新たなペインが空になった際に消滅するのであればtrue。
+	/// Returns: 生成されたペイン。
+	Composite addPane(string base, Dir dir, int lWeight = 1, int rWeight = 1, string key = "", bool vanish = true) {
+		return addPane(pane(base), dir, lWeight, rWeight, key, vanish);
+	}
+	/// ditto
+	Composite addPane(Composite base, Dir dir, int lWeight = 1, int rWeight = 1, string key = "", bool vanish = true) {
+		auto tabf = cast(TabF) base;
+		if (!tabf && !(tabf in _tabfs)) throw new Exception("invalid base");
+		if (key in _tKeys) throw new Exception("invalid key");
+		int style = dir == Dir.N || dir == Dir.S ? DWT.VERTICAL : DWT.HORIZONTAL;
+		bool before = dir == Dir.N || dir == Dir.W;
+		if (!key.length) key = newTabfKey;
+		return newSash(tabf, style, before, lWeight, rWeight, key, vanish);
+	}
+	/// Controlを追加する。
+	/// ctrlの親は必ずこのインスタンスに含まれるペインでなくてはならない。
+	void add(Control ctrl, string tabText, string key, bool select = false) {
+		if (!key.length || (key in _keys)) throw new Exception("invalid key: " ~ key);
+		auto tabf = cast(TabF) ctrl.getParent;
+		if (!tabf) throw new Exception("no tabfolder");
+		auto tab = new Tab(tabf, DWT.NONE);
+		tab.setText = tabText;
+		tab.setControl = ctrl;
+		ctrl.addPaintListener(new PL);
+		_ctrls[ctrl] = key;
+		_keys[key] = ctrl;
+		if (select) {
+			tabf.setSelection = tab;
+			tabf.setFocus;
+		}
+	}
+	/// prefixから始まるペインのkeyを全て返す。
+	string[] findPane(string prefix) {
+		string[] r;
+		foreach (key, pane; _tKeys) {
+			if (cwx.utils.startsWith(key, prefix)) {
+				r ~= key;
+			}
+		}
+		return r;
+	}
+	/// prefixから始まるControlのkeyを全て返す。
+	string[] findCtrl(string prefix) {
+		string[] r;
+		foreach (key, ctrl; _keys) {
+			if (cwx.utils.startsWith(key, prefix)) {
+				r ~= key;
+			}
+		}
+		return r;
+	}
+	/// Controlを閉じる。該当するControlが無かった場合はfalseを返す。
+	bool close(string key) {
+		auto t = tab(key);
+		if (t) {
+			t.getControl.dispose;
+			t.dispose;
+			return true;
+		}
+		return false;
+	}
+	/// Controlタブが選択された際、Controlをkeyを引数に呼出される。
+	void delegate(string)[] selectEvent;
+
+	private TabF newTabf(Composite parent, string key, bool vanish) {
+		if (!key.length) key = newTabfKey;
+		auto tabf = new TabF(parent, Style | DWT.NO_MERGE_PAINTS);
+		_tKeys[key] = tabf;
+		_tabfs[tabf] = key;
+		_tabfList ~= tabf;
+		if (!vanish) _vanish[key] = false;
 
 		static if (CLOSE) {
 			tabf.addCTabFolderListener(new CTFL);
 		}
+		tabf.addSelectionListener(new SelTab);
 		tabf.addPaintListener(new PLT);
 		auto drag = new DragSource(tabf, DND.DROP_MOVE);
 		drag.setTransfer = [TextTransfer.getInstance];
@@ -88,13 +286,22 @@ class DockingFolder(TabF, int Style) {
 	private DPos _dropPos = DPos.NONE;
 	private DPos _drawPos = DPos.NONE;
 	private TabF _drawTabf = null;
+	private void removeTabf(TabF tabf) {
+		tabf.dispose;
+		_tabfList = .remove!("a is b")(_tabfList, tabf);
+		auto key = _tabfs[tabf];
+		_tKeys.remove(key);
+		_tabfs.remove(tabf);
+		if (key in _vanish) _vanish.remove(key);
+		reconstruct;
+	}
 	private class CTFL :  CTabFolderListener {
 		void itemClosed(CTabFolderEvent e) {
 			auto tabf = cast(TabF) e.widget;
-			if (tabf.getItemCount == 1 && area.getChildren[0] !is tabf) {
-				tabf.dispose;
-				_tabfs = .remove!("a is b")(_tabfs, tabf);
-				reconstruct;
+			(cast(Tab) e.item).getControl.dispose;
+			auto key = _tabfs[tabf];
+			if (vanish(key) && tabf.getItemCount == 1 && area.getChildren[0] !is tabf) {
+				removeTabf(tabf);
 				area.layout(true);
 			}
 		}
@@ -148,11 +355,22 @@ class DockingFolder(TabF, int Style) {
 		case DPos.NONE: break;
 		}
 	}
+	private bool canDrop(TabF tabf) {
+		if (!_dragItm) return false;
+		if (_dropPos == DPos.NONE) return false;
+		if (canMove) {
+			auto ctrlKey = _ctrls[_dragItm.getControl];
+			auto dropPaneKey = _dropPos == DPos.C ? _tabfs[tabf] : "";
+			return canMove(ctrlKey, dropPaneKey);
+		}
+		return true;
+	}
 	private class PLT : PaintListener {
 		override void paintControl(PaintEvent e) {
 			auto tabf = cast(TabF) e.widget;
-			if (tabf.getItemCount > 0) return;
 			if (tabf !is _drawTabf) return;
+			if (tabf.getItemCount > 0) return;
+			if (!canDrop(tabf)) return;
 			auto ca = tabf.getClientArea;
 			drawDropMark(e.gc, ca.x, ca.y, ca.width, ca.height);
 		}
@@ -161,6 +379,7 @@ class DockingFolder(TabF, int Style) {
 		override void paintControl(PaintEvent e) {
 			auto tabf = (cast(Control) e.widget).getParent;
 			if (tabf !is _drawTabf) return;
+			if (!canDrop(cast(TabF) tabf)) return;
 			drawDropMark(e.gc, e.x, e.y, e.width, e.height);
 		}
 	}
@@ -185,10 +404,8 @@ class DockingFolder(TabF, int Style) {
 				auto tabf = _dragItm.getParent;
 				_dragItm.dispose;
 				_dragItm = null;
-				if (tabf.getItemCount == 0) {
-					tabf.dispose;
-					_tabfs = .remove!("a is b")(_tabfs, tabf);
-					reconstruct;
+				if (tabf.getItemCount == 0 && vanish(_tabfs[tabf])) {
+					removeTabf(tabf);
 				}
 				area.layout(true);
 			}
@@ -212,21 +429,20 @@ class DockingFolder(TabF, int Style) {
 			tabf.setInsertMark(tab, after);
 		}
 	}
-	private static void redrawTab(TabF tabf) {
+	private static Tab selected(TabF tabf) {
 		static if (is(typeof(tabf.getSelection()) == Tab)) {
-			auto tab = tabf.getSelection;
-			if (tab) {
-				tab.getControl.redraw;
-			} else {
-				tabf.redraw;
-			}
+			return tabf.getSelection;
 		} else {
 			auto tabs = tabf.getSelection;
-			if (tabs.length) {
-				tabs[0].getControl.redraw;
-			} else {
-				tabf.redraw;
-			}
+			return tabs.length ? tabs[0] : null;
+		}
+	}
+	private static void redrawTab(TabF tabf) {
+		auto tab = selected(tabf);
+		if (tab) {
+			tab.getControl.redraw;
+		} else {
+			tabf.redraw;
 		}
 	}
 	private class DTL : DropTargetAdapter {
@@ -241,7 +457,6 @@ class DockingFolder(TabF, int Style) {
 			redrawTab(_tabf);
 		}
 		override void dragOver(DropTargetEvent e) {
-			if (!_dragItm) return;
 			_drawTabf = _tabf;
 			auto p = _tabf.toControl(e.x, e.y);
 			auto itm = _tabf.getItem(p);
@@ -276,6 +491,7 @@ class DockingFolder(TabF, int Style) {
 					_dropPos = DPos.C;
 				}
 			}
+			if (!canDrop(_tabf)) _dropPos = DPos.NONE;
 			if (_dropPos != DPos.NONE) e.detail = DND.DROP_MOVE;
 			if (_dropPos != dropPos) {
 				_drawPos = _dropPos;
@@ -290,6 +506,7 @@ class DockingFolder(TabF, int Style) {
 				_dropPos = DPos.NONE;
 			}
 			if (_dropPos == DPos.NONE || !e.data || !_dragItm) return;
+			if (!canDrop(_tabf)) return;
 			auto sash = _tabf.getParent;
 			void newTab(TabF tabf, int index) {
 				auto tab = index != -1
@@ -297,10 +514,15 @@ class DockingFolder(TabF, int Style) {
 					: new Tab(tabf, _dragItm.getStyle);
 				auto c = _dragItm.getControl;
 				c.setParent = tabf;
+				{
+					_onNewTab = true;
+					scope (exit) _onNewTab = false;
+					_dragItm.setControl = null;
+				}
 				tab.setControl = c;
-				_dragItm.setControl = null;
 				tab.setText = _dragItm.getText;
 				tabf.setSelection = tab;
+				tabf.setFocus;
 			}
 			int putCenter() {
 				auto dropItm = _tabf.getItem(_tabf.toControl(e.x, e.y));
@@ -313,39 +535,33 @@ class DockingFolder(TabF, int Style) {
 				newTab(_tabf, dropItm ? i1 : -1);
 				return DND.DROP_MOVE;
 			}
-			int newSash(int style, bool before) {
+			int nSash(int style, bool before) {
 				if (_tabf is _dragItm.getParent && _tabf.getItemCount == 1) {
 					return DND.DROP_NONE;
 				}
-				int[] weights;
-				auto sashf = cast(SashForm) sash;
-				if (sashf) weights = sashf.getWeights;
-				scope (exit) if(sashf) sashf.setWeights = weights;
-				auto aft = afters(_tabf);
-				auto nSash = new SashForm(sash, style);
-				addAfters(aft);
-				if (before) {
-					newTab(newTabf(nSash), -1);
-					_tabf.setParent = nSash;
-				} else {
-					_tabf.setParent = nSash;
-					newTab(newTabf(nSash), -1);
+				string key = "";
+				if (newPaneName) {
+					auto ctrlKey = _ctrls[_dragItm.getControl];
+					key = newPaneName(ctrlKey);
 				}
-				nSash.setWeights([1, 1]);
+				if (!key.length) key = newTabfKey;
+				auto tabf = newSash(_tabf, style, before, 1, 1, key, true);
+				newTab(tabf, -1);
+				tabf.setFocus;
 				return DND.DROP_MOVE;
 			}
 			switch (_dropPos) {
 			case DPos.N: {
-				e.detail = newSash(DWT.VERTICAL, true);
+				e.detail = nSash(DWT.VERTICAL, true);
 			} break;
 			case DPos.E: {
-				e.detail = newSash(DWT.HORIZONTAL, false);
+				e.detail = nSash(DWT.HORIZONTAL, false);
 			} break;
 			case DPos.S: {
-				e.detail = newSash(DWT.VERTICAL, false);
+				e.detail = nSash(DWT.VERTICAL, false);
 			} break;
 			case DPos.W: {
-				e.detail = newSash(DWT.HORIZONTAL, true);
+				e.detail = nSash(DWT.HORIZONTAL, true);
 			} break;
 			case DPos.C: {
 				e.detail = putCenter;
@@ -354,13 +570,79 @@ class DockingFolder(TabF, int Style) {
 			}
 		}
 	}
-	private TabF[] _tabfs;
+	private bool _onNewTab = false;
+	private class SelTab : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			auto tabf = cast(TabF) e.widget;
+			if (tabf.isFocusControl) selectTab(tabf);
+		}
+	}
+	private class FocusL : Listener {
+		override void handleEvent(Event e) {
+			void control(Control ctrl) {
+				if (ctrl.getShell !is area.getShell) return;
+				auto pane = cast(Composite) ctrl;
+				if (!pane) pane = ctrl.getParent;
+				while (pane) {
+					auto tabf = cast(TabF) pane;
+					if (tabf && tabf in _tabfs) {
+						selectTab(tabf);
+						break;
+					}
+					pane = pane.getParent;
+				}
+			}
+			auto ctrl = Display.getCurrent.getFocusControl;
+			if (ctrl) {
+				control(ctrl);
+			} else {
+				_oldSel = "";
+			}
+		}
+	}
+	private string _oldSel = "";
+	private void selectTab(TabF tabf) {
+		if (_onNewTab) return;
+		auto tab = selected(tabf);
+		if (!tab) return;
+		if (tab.isDisposed) return;
+		auto ctrl = tab.getControl;
+		auto key = _ctrls[ctrl];
+		if (_oldSel != key) {
+			_oldSel = key;
+			foreach (ls; selectEvent) {
+				ls(_ctrls[ctrl]);
+			}
+		}
+	}
+	private TabF newSash(TabF targ, int style, bool before, int lWeight, int rWeight, string key, bool vanish) {
+		auto parent = targ.getParent;
+		int[] weights;
+		auto sashf = cast(SashForm) parent;
+		if (sashf) weights = sashf.getWeights;
+		scope (exit) if(sashf) sashf.setWeights = weights;
+		auto aft = afters(targ);
+		auto nSash = new SashForm(parent, style);
+		addAfters(aft);
+		TabF r;
+		if (before) {
+			r = newTabf(nSash, key, vanish);
+			targ.setParent = nSash;
+		} else {
+			targ.setParent = nSash;
+			r = newTabf(nSash, key, vanish);
+		}
+		nSash.setWeights([lWeight, rWeight]);
+		return r;
+	}
 
+	/// XMLノードにして返す。
 	XNode toNode() {
 		auto r = XNode.create("dockingFolder");
 		toNode(r, area.getChildren[0]);
 		return r;
 	}
+	/// ditto
 	XNode toNode(ref XNode parent) {
 		auto r = parent.newElement("dockingFolder");
 		toNode(r, area.getChildren[0]);
@@ -383,8 +665,12 @@ class DockingFolder(TabF, int Style) {
 		} else {
 			auto tabf = cast(TabF) c;
 			assert (tabf);
+			string key = _tabfs[tabf];
 			auto r = parent.newElement("tabs");
-			r.newAttr("select", tabf.getSelectionIndex);
+			auto sel = tabf.getSelectionIndex;
+			if (sel >= 0) r.newAttr("select", sel);
+			if (!vanish(key)) r.newAttr("vanish", false);
+			r.newAttr("key", key);
 			foreach (tab; tabf.getItems) {
 				auto t = r.newElement("tab");
 				t.newAttr("key", _ctrls[tab.getControl]);
@@ -393,6 +679,10 @@ class DockingFolder(TabF, int Style) {
 			return r;
 		}
 	}
+	/// XMLノードから生成して返す。
+	/// Param:
+	///  create = XMLノード内にControlのkeyが見つかった時に
+	///           呼出され、Controlを生成して返すdelegate。
 	static DockingFolder fromNode(ref XNode node, Composite parent, int style,
 			Control delegate(Composite, string) create) {
 		assert (node.name == "dockingFolder");
@@ -411,13 +701,15 @@ class DockingFolder(TabF, int Style) {
 				sash.setWeights([node.attr!(int)("lWeight", true), node.attr!(int)("rWeight", true)]);
 			} break;
 			case "tabs": {
-				auto tabf = r.newTabf(par);
+				auto key = node.attr("key", true);
+				auto vanish = node.attr!(bool)("vanish", false, true);
+				auto tabf = r.newTabf(par, key, vanish);
 				node.onTag["tab"] = (ref XNode node) {
 					auto key = node.attr("key", true);
 					r.add(create(tabf, key), node.attr("name", true), key);
 				};
 				node.parse;
-				tabf.setSelection = node.attr!(int)("select", true);
+				tabf.setSelection = node.attr!(int)("select", false, -1);
 			} break;
 			default: break;
 			}
@@ -425,22 +717,5 @@ class DockingFolder(TabF, int Style) {
 		node.onTag[null] = &proc;
 		node.parse;
 		return r;
-	}
-
-	Composite[] composites() {return cast(Composite[]) _tabfs;}
-	void addAll(Control[string] ctrls, string[string] titles) {
-		foreach (key, ctrl; ctrls) {
-			add(ctrl, titles[key], key);
-		}
-	}
-	void add(Control ctrl, string tabText, string key) {
-		auto tabf = cast(TabF) ctrl.getParent;
-		if (!tabf) throw new Exception("no tabfolder");
-		auto tab = new Tab(tabf, DWT.NONE);
-		tab.setText = tabText;
-		tab.setControl = ctrl;
-		ctrl.addPaintListener(new PL);
-		_ctrls[ctrl] = key;
-		_keys[key] = ctrl;
 	}
 }

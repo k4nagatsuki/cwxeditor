@@ -1077,7 +1077,7 @@ class Content : CWXPath, IPathUser, IBattleUser, IPackageUser, IFlagUser, IStepU
 					dlgs ~= SDialog.createFromNode(node, ver);
 				};
 				node.parse;
-				if (dlgs.length == 0) throw new EventException("Dialog not found.");
+				if (dlgs.length == 0) dlgs ~= new SDialog;
 				r.dialogs = dlgs;
 			};
 		}
