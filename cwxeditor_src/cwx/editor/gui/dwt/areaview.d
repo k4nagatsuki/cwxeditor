@@ -25,6 +25,7 @@ import cwx.editor.gui.dwt.spcarddialog;
 import cwx.editor.gui.dwt.bgimagedialog;
 import cwx.editor.gui.dwt.materialselect;
 import cwx.editor.gui.dwt.xmlbytestransfer;
+import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.undo;
 
 import std.math;
@@ -46,6 +47,7 @@ import dwt.widgets.Spinner;
 import dwt.custom.SashForm;
 import dwt.custom.CLabel;
 import dwt.custom.CCombo;
+import dwt.custom.ScrolledComposite;
 import dwt.graphics.ImageData;
 import dwt.graphics.Image;
 import dwt.layout.GridLayout;
@@ -996,16 +998,24 @@ private:
 			static assert (0);
 		}
 	}
-	void createImagePane(Composite parent) {
-		_imgp = new ImagePane(parent, DWT.BORDER | DWT.NO_BACKGROUND);
+	Control createImagePane(Composite parent) {
+		auto sc = new ScrolledComposite(parent, DWT.BORDER | DWT.H_SCROLL | DWT.V_SCROLL);
+		sc.setExpandHorizontal = false;
+		sc.setExpandVertical = false;
+		auto vs = _prop.looks.viewSize;
+		sc.getHorizontalBar.setIncrement = vs.width / 20;
+		sc.getVerticalBar.setIncrement = vs.height / 20;
+		sc.getHorizontalBar.setPageIncrement = vs.width / 5;
+		sc.getVerticalBar.setPageIncrement = vs.height / 5;
+		sc.setLayoutData = new GridData(GridData.FILL_BOTH);
+		_imgp = new ImagePane(sc, DWT.NO_BACKGROUND);
+		sc.setContent(_imgp);
+		sc.setMinSize(vs.width, vs.height);
+		_imgp.setSize(vs.width, vs.height);
 		auto ipe = new IPEditListener;
 		_imgp.addMouseListener(ipe);
 		_imgp.addKeyListener(ipe);
 		_imgp.changingImages(&changingImages);
-		auto gd = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
-		gd.widthHint = _prop.looks.viewSize.width;
-		gd.heightHint = _prop.looks.viewSize.height;
-		_imgp.setLayoutData(gd);
 		{
 			auto menu = new Menu(parent.getShell, DWT.POP_UP);
 			appendMenuTCPD(_prop, menu, _tcpd, true, true, true, true);
@@ -1027,6 +1037,7 @@ private:
 			_imgp.setMenu(menu);
 			usingPopupMenuAccelerator(_imgp);
 		}
+		return sc;
 	}
 	void changingImages() {
 		_undo ~= new UndoEdit;
@@ -1214,7 +1225,7 @@ private:
 public:
 	this(Commons comm, Props prop, Summary summ, A area, Composite parent, TopLevelPanel tlp, UndoManager undo) {
 		super(parent, DWT.NONE);
-		auto gl = windowGridLayout(2);
+		auto gl = windowGridLayout(1);
 		gl.marginWidth = 0;
 		gl.marginHeight = 0;
 		setLayout = gl;
@@ -1295,20 +1306,20 @@ public:
 		if (_tlp) setupTLP(_tlp);
 		{
 			auto toolbar = new ToolBar(this, DWT.FLAT);
-			auto gd = new GridData(GridData.FILL_HORIZONTAL);
-			gd.horizontalSpan = 2;
-			toolbar.setLayoutData = gd;
+			toolbar.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			setupToolBar(toolbar);
 		}
+		auto lrSash = new SplitPane(this, DWT.HORIZONTAL);
+		lrSash.setLayoutData = new GridData(GridData.FILL_BOTH);
 		{
 			Composite listsP;
 			static if (UseCards && UseBacks) {
-				_sash = new SashForm(this, DWT.VERTICAL);
+				_sash = new SashForm(lrSash, DWT.VERTICAL);
 				listsP = _sash;
 			} else {
-				listsP = new Composite(this, DWT.NONE);
+				listsP = new Composite(lrSash, DWT.NONE);
 			}
-			setGridMinW(listsP, _prop.var.etc.cardsWidth, GridData.FILL_BOTH);
+			lrSash.setControl1 = listsP;
 			listsP.setLayout = zeroGridLayout(1);
 			static if (UseCards) {
 				static if (is (C == MenuCard)) {
@@ -1355,11 +1366,6 @@ public:
 				_sash.setWeights([_prop.var.etc.areaSashT, _prop.var.etc.areaSashB]);
 			}
 
-			listsP.addDisposeListener(new class DisposeListener {
-				override void widgetDisposed(DisposeEvent e) {
-					_prop.var.etc.cardsWidth = (cast(Composite) e.widget).getSize.x;
-				}
-			});
 			static if (UseCards && UseBacks) {
 				_sash.addDisposeListener(new class DisposeListener {
 					override void widgetDisposed(DisposeEvent e) {
@@ -1370,7 +1376,7 @@ public:
 			}
 		}
 		{
-			createImagePane(this);
+			lrSash.setControl2 = createImagePane(lrSash);
 			static if (is (C == MenuCard) || UseBacks) {
 				auto target = new DropTarget(_imgp, DND.DROP_DEFAULT | DND.DROP_COPY);
 				static if (is (C == MenuCard)) {
@@ -1389,6 +1395,14 @@ public:
 				_imgp.append(img);
 			}
 		}
+		lrSash.setWeights = [_prop.var.etc.areaViewL, _prop.var.etc.areaViewR];
+		lrSash.addDisposeListener(new class DisposeListener {
+			override void widgetDisposed(DisposeEvent e) {
+				auto ws = (cast(SplitPane) e.widget).getWeights;
+				_prop.var.etc.areaViewL = ws[0];
+				_prop.var.etc.areaViewR = ws[1];
+			}
+		});
 		static if (UseCards) _cardsV.setInput(_area);
 		static if (UseBacks) _backsV.setInput(_area);
 	}

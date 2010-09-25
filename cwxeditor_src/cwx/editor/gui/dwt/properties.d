@@ -361,7 +361,8 @@ class FlexEtcProps : Properties {
 	mixin Property!("areaIdColumn", int, 50);
 	mixin Property!("areaNameColumn", int, 400);
 	mixin Property!("areaCountColumn", int, 60);
-	mixin Property!("cardsWidth", int, 150);
+	mixin Property!("areaViewL", int, 1);
+	mixin Property!("areaViewR", int, 4);
 	mixin Property!("viewPartyCardsArea", bool, true);
 	mixin Property!("viewPartyCardsBattle", bool, true);
 	mixin Property!("viewPartyCardsEvent", bool, true);
