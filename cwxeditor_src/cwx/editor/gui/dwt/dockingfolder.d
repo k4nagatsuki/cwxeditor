@@ -615,7 +615,8 @@ class DockingFolder(TabF, int Style) {
 		if (!tab) return;
 		if (tab.isDisposed) return;
 		auto ctrl = tab.getControl;
-		auto key = _ctrls[ctrl];
+		auto key = keyFromCtrl(ctrl);
+		if (!key.length) return;
 		if (_oldSel != key) {
 			_oldSel = key;
 			foreach (ls; selectEvent) {
@@ -714,10 +715,12 @@ class DockingFolder(TabF, int Style) {
 				auto tabf = r.newTabf(par, key, vanish);
 				node.onTag["tab"] = (ref XNode node) {
 					auto key = node.attr("key", true);
-					r.add(create(tabf, key), node.attr("name", true), key);
+					auto v = create(tabf, key);
+					if (v) r.add(v, node.attr("name", true), key);
 				};
 				node.parse;
-				tabf.setSelection = node.attr!(int)("select", false, -1);
+				auto i = node.attr!(int)("select", false, -1);
+				if (i < tabf.getItemCount) tabf.setSelection = i;
 			} break;
 			default: break;
 			}

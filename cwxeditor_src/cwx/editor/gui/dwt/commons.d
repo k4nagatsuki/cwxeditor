@@ -365,6 +365,10 @@ class Commons {
 		openMain!("file", "data", Dir.S)(_dirWin);
 	}
 	void open(TopLevelPanel tlp, string pane) {
+		_ws.add(tlp.shell);
+		_wos[tlp.shell] = tlp;
+		tlp.shell.addDisposeListener(new CloseRemover!(Composite)(_ws, tlp.shell));
+		tlp.shell.addDisposeListener(new SCL);
 		auto shl = cast(Shell) tlp.shell;
 		if (shl) {
 			shl.open;

@@ -1,6 +1,45 @@
+diff -r f403c83322c3 dwt/custom/CTabItem.d
+--- a/dwt/custom/CTabItem.d	Sun Nov 08 20:58:32 2009 +0100
++++ b/dwt/custom/CTabItem.d	Sat Sep 25 20:37:08 2010 +0900
+@@ -32,6 +32,8 @@
+ import dwt.widgets.Widget;
+ import dwt.custom.CTabFolder;
+ 
++import tango.text.convert.Utf;
++
+ /**
+  * Instances of this class represent a selectable user interface object
+  * that represent a page in a notebook widget.
+@@ -173,7 +175,7 @@
+         end = layout.getPreviousOffset(end, DWT.MOVEMENT_CLUSTER);
+     }
+     layout.dispose();
+-    return end is 0 ? text.substring(0, 1) : text ~ ellipses;
++	return end is 0 ? .toString(toString32(text)[0 .. 1]) : text ~ ellipses;
+ }
+ 
+ public override void dispose() {
+@@ -859,14 +861,14 @@
+     if (minimum) {
+         int minChars = parent.minChars;
+         text = minChars is 0 ? null : getText();
+-        if (text !is null && text.length > minChars) {
++        if (text !is null && toString32(text).length > minChars) {
+             if (useEllipses()) {
+                 int end = minChars < ELLIPSIS.length + 1 ? minChars : minChars - ELLIPSIS.length;
+-                text = text[ 0 .. end ];
++            	text = .toString(toString32(text)[ 0 .. end ]);
+                 if (minChars > ELLIPSIS.length + 1) text ~= ELLIPSIS;
+             } else {
+                 int end = minChars;
+-                text = text[ 0 .. end ];
++                text = .toString(toString32(text)[ 0 .. end ]);
+             }
+         }
+     } else {
 diff -r f403c83322c3 dwt/custom/StyleRange.d
 --- a/dwt/custom/StyleRange.d	Sun Nov 08 20:58:32 2009 +0100
-+++ b/dwt/custom/StyleRange.d	Wed Sep 15 20:24:57 2010 +0900
++++ b/dwt/custom/StyleRange.d	Sat Sep 25 20:37:08 2010 +0900
 @@ -25,6 +25,7 @@
  
  static import tango.text.Text;
@@ -23,7 +62,7 @@ diff -r f403c83322c3 dwt/custom/StyleRange.d
          case DWT.BOLD:
 diff -r f403c83322c3 dwt/custom/StyledText.d
 --- a/dwt/custom/StyledText.d	Sun Nov 08 20:58:32 2009 +0100
-+++ b/dwt/custom/StyledText.d	Wed Sep 15 20:24:57 2010 +0900
++++ b/dwt/custom/StyledText.d	Sat Sep 25 20:37:08 2010 +0900
 @@ -653,7 +653,7 @@
          if (pageIndex !is -1 ) {
              int pageTagLength = StyledTextPrintOptions.PAGE_TAG.length;
@@ -76,7 +115,7 @@ diff -r f403c83322c3 dwt/custom/StyledText.d
       * Appends the given character to the data.
 diff -r f403c83322c3 dwt/custom/TableCursor.d
 --- a/dwt/custom/TableCursor.d	Sun Nov 08 20:58:32 2009 +0100
-+++ b/dwt/custom/TableCursor.d	Wed Sep 15 20:24:57 2010 +0900
++++ b/dwt/custom/TableCursor.d	Sat Sep 25 20:37:08 2010 +0900
 @@ -208,7 +208,7 @@
          public void handleEvent(Event event) {
              switch (event.type) {
@@ -88,7 +127,7 @@ diff -r f403c83322c3 dwt/custom/TableCursor.d
                  case DWT.FocusOut :
 diff -r f403c83322c3 dwt/dnd/OleEnumFORMATETC.d
 --- a/dwt/dnd/OleEnumFORMATETC.d	Sun Nov 08 20:58:32 2009 +0100
-+++ b/dwt/dnd/OleEnumFORMATETC.d	Wed Sep 15 20:24:57 2010 +0900
++++ b/dwt/dnd/OleEnumFORMATETC.d	Sat Sep 25 20:37:08 2010 +0900
 @@ -114,7 +114,7 @@
  
      if (refCount is 0) {
@@ -100,7 +139,7 @@ diff -r f403c83322c3 dwt/dnd/OleEnumFORMATETC.d
      return refCount;
 diff -r f403c83322c3 dwt/dnd/TableDragSourceEffect.d
 --- a/dwt/dnd/TableDragSourceEffect.d	Sun Nov 08 20:58:32 2009 +0100
-+++ b/dwt/dnd/TableDragSourceEffect.d	Wed Sep 15 20:24:57 2010 +0900
++++ b/dwt/dnd/TableDragSourceEffect.d	Sat Sep 25 20:37:08 2010 +0900
 @@ -132,7 +132,7 @@
                      OS.BitBlt (memHdc, 0, 0, srcWidth, srcHeight, srcHdc, 0, 0, OS.SRCCOPY);
                      //byte[] srcData = new byte [sizeInBytes];
@@ -112,7 +151,7 @@ diff -r f403c83322c3 dwt/dnd/TableDragSourceEffect.d
                      ImageData data = new ImageData(srcWidth, srcHeight, bm.bmBitsPixel, palette, bm.bmWidthBytes, srcData);
 diff -r f403c83322c3 dwt/dwthelper/ByteArrayOutputStream.d
 --- a/dwt/dwthelper/ByteArrayOutputStream.d	Sun Nov 08 20:58:32 2009 +0100
-+++ b/dwt/dwthelper/ByteArrayOutputStream.d	Wed Sep 15 20:24:57 2010 +0900
++++ b/dwt/dwthelper/ByteArrayOutputStream.d	Sat Sep 25 20:37:08 2010 +0900
 @@ -12,7 +12,7 @@
      protected Array buffer;
  
@@ -124,7 +163,7 @@ diff -r f403c83322c3 dwt/dwthelper/ByteArrayOutputStream.d
      public this ( int par_size ){
 diff -r f403c83322c3 dwt/dwthelper/File.d
 --- a/dwt/dwthelper/File.d	Sun Nov 08 20:58:32 2009 +0100
-+++ b/dwt/dwthelper/File.d	Wed Sep 15 20:24:57 2010 +0900
++++ b/dwt/dwthelper/File.d	Sat Sep 25 20:37:08 2010 +0900
 @@ -8,11 +8,7 @@
  static import tango.io.model.IFile;
  static import tango.io.FilePath;
@@ -155,7 +194,7 @@ diff -r f403c83322c3 dwt/dwthelper/File.d
      public dwt.dwthelper.File.File getAbsoluteFile(){
 diff -r f403c83322c3 dwt/dwthelper/utils.d
 --- a/dwt/dwthelper/utils.d	Sun Nov 08 20:58:32 2009 +0100
-+++ b/dwt/dwthelper/utils.d	Wed Sep 15 20:24:57 2010 +0900
++++ b/dwt/dwthelper/utils.d	Sat Sep 25 20:37:08 2010 +0900
 @@ -662,7 +662,7 @@
          assert( tries-- > 0 );
      }
@@ -167,7 +206,7 @@ diff -r f403c83322c3 dwt/dwthelper/utils.d
  
 diff -r f403c83322c3 dwt/widgets/FileDialog.d
 --- a/dwt/widgets/FileDialog.d	Sun Nov 08 20:58:32 2009 +0100
-+++ b/dwt/widgets/FileDialog.d	Wed Sep 15 20:24:57 2010 +0900
++++ b/dwt/widgets/FileDialog.d	Sat Sep 25 20:37:08 2010 +0900
 @@ -244,7 +244,7 @@
      auto hHeap = OS.GetProcessHeap ();
  

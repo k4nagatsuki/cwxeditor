@@ -687,10 +687,13 @@ public:
 				}
 				default:
 					debugln("Unknown pane key: " ~ key);
-					throw new Exception("Unknown pane key: " ~ key);
+					return null;
 				}
 			});
 			void initDock() {
+				if (!_dock.findPane("work").length) {
+					_dock.addPane(_dock.first, Dir.N, 3, 1, "work", false);
+				}
 				_dock.canMove = &dockCanMove;
 				_dock.newPaneName = &dockNewPaneName;
 				_dock.selectEvent ~= &dockSelect;
