@@ -349,6 +349,8 @@ struct OuterTool {
 
 class FlexEtcProps : Properties {
 	mixin Property!("singleWindow", bool, true);
+	mixin Property!("toolsOrder", int[], []);
+	mixin Property!("toolsWrapIndices", int[], []);
 	mixin Property!("directorySashL", int, 2);
 	mixin Property!("directorySashR", int, 5);
 	mixin Property!("filesSortColumn", int, 1);
@@ -400,6 +402,7 @@ class FlexEtcProps : Properties {
 	mixin Property!("talkersWidth", int, 100, true);
 	mixin Property!("motionsWidth", int, 150, true);
 	mixin Property!("cardDetails", bool, false);
+	mixin Property!("contentsOrder", int[], []);
 	mixin Property!("contentsWrapIndices", int[], [4, 6, 8]);
 	mixin Property!("contentsAutoOpen", bool, true);
 	mixin Property!("contentsContinue", bool, false);

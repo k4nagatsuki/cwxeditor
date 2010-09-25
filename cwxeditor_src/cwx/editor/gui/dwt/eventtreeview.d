@@ -1246,6 +1246,81 @@ private:
 		g.append(itm);
 		return itm;
 	}
+	class CDListener : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			auto cbar = cast(CoolBar) e.widget;
+			_prop.var.etc.contentsOrder = cbar.getItemOrder;
+			_prop.var.etc.contentsWrapIndices = cbar.getWrapIndices;
+			_prop.var.etc.contentsAutoOpen = _autoOpen;
+			_prop.var.etc.contentsContinue = _conti;
+		}
+	}
+	class CCListener : ControlAdapter {
+		override void controlResized(ControlEvent e) {
+			if (_toolWin) {
+				_toolWin.layout;
+			} else {
+				_comp.layout;
+			}
+		}
+	}
+	class TDListener : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			if (_toolWin.getVisible) {
+				saveToolWinPos;
+			}
+		}
+	}
+	class TCListener : ControlAdapter {
+		override void controlMoved(ControlEvent e) {
+			auto pb = _toolWin.getParent.getBounds;
+			auto tb = _toolWin.getBounds;
+			_toolWin.setBounds(tb.x + pb.x - _parX, tb.y + pb.y - _parY, tb.width, tb.height);
+			_parX = pb.x;
+			_parY = pb.y;
+		}
+	}
+	class PSListener : ShellAdapter {
+		override void shellActivated(ShellEvent e) {
+			auto oldAct = _comm.actToolWin;
+			if (oldAct && !oldAct.isDisposed && oldAct.isVisible) {
+				oldAct.setVisible = false;
+			}
+			_comm.actToolWin = _toolWin;
+			_toolWin.setVisible = _toolWinVisible;
+		}
+	}
+	class TRDListener : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			foreach (cur; _cursors) {
+				cur.dispose;
+			}
+			_comm.refCast.remove(&__refreshCast);
+			_comm.delCast.remove(&__refreshCast);
+			_comm.refSkill.remove(&__refreshSkill);
+			_comm.delSkill.remove(&__refreshSkill);
+			_comm.refItem.remove(&__refreshItem);
+			_comm.delItem.remove(&__refreshItem);
+			_comm.refBeast.remove(&__refreshBeast);
+			_comm.delBeast.remove(&__refreshBeast);
+			_comm.refInfo.remove(&__refreshInfo);
+			_comm.delInfo.remove(&__refreshInfo);
+			_comm.refArea.remove(&__refreshArea);
+			_comm.delArea.remove(&__refreshArea);
+			_comm.refBattle.remove(&__refreshBattle);
+			_comm.delBattle.remove(&__refreshBattle);
+			_comm.refPackage.remove(&__refreshPackage);
+			_comm.delPackage.remove(&__refreshPackage);
+			_comm.refFlagAndStep.remove(&__refreshFlagAndStep);
+			_comm.delFlagAndStep.remove(&__refreshFlagAndStep);
+			_comm.refPath.remove(&__refreshPath);
+			_comm.refPaths.remove(&__refreshPaths);
+			_comm.delPaths.remove(&__deletePaths);
+			_comm.replPath.remove(&__replacePaths);
+			_comm.replText.remove(&__refreshCard);
+			_comm.replText.remove(&__refreshEventText);
+		}
+	}
 public:
 	this(Commons comm, Props prop, Summary summ, Composite parent, UndoManager undo,
 			void delegate(size_t[]) forceSel,
@@ -1299,14 +1374,6 @@ public:
 			cbar.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			auto g = new RadioGroup!(ToolItem);
 			_radioGroup = g;
-
-			CoolItem createCoolItem(CoolBar cbar, ToolBar tbar) {
-				auto itm = new CoolItem(cbar, DWT.PUSH);
-				itm.setControl = tbar;
-				auto p = tbar.computeSize(DWT.DEFAULT, DWT.DEFAULT);
-				itm.setSize(itm.computeSize(p.x, p.y));
-				return itm;
-			}
 
 			auto atm = new ToolBar(cbar, DWT.FLAT);
 			_arrowTI = createToolItem(atm, _prop.msgs.evtArrow, _prop.images.evtArrow, &arrow, DWT.RADIO);
@@ -1411,24 +1478,17 @@ public:
 			createEI(CType.LOSE_GOSSIP, e7, g);
 			createCoolItem(cbar, e7);
 
-			cbar.setWrapIndices(_prop.var.etc.contentsWrapIndices);
+			if (_prop.var.etc.contentsOrder.length == cbar.getItemCount) {
+				cbar.setItemOrder(_prop.var.etc.contentsOrder);
+			}
+			int[] wi;
+			foreach (i; _prop.var.etc.contentsWrapIndices) {
+				if (i < cbar.getItemCount) wi ~= i;
+			}
+			cbar.setWrapIndices(wi);
 
-			cbar.addControlListener(new class ControlAdapter {
-				public override void controlResized(ControlEvent e) {
-					if (_toolWin) {
-						_toolWin.layout;
-					} else {
-						_comp.layout;
-					}
-				}
-			});
-			cbar.addDisposeListener(new class DisposeListener {
-				public override void widgetDisposed(DisposeEvent e) {
-					_prop.var.etc.contentsWrapIndices = (cast(CoolBar) e.widget).getWrapIndices;
-					_prop.var.etc.contentsAutoOpen = _autoOpen;
-					_prop.var.etc.contentsContinue = _conti;
-				}
-			});
+			cbar.addControlListener(new CCListener);
+			cbar.addDisposeListener(new CDListener);
 		}
 		if (_toolWin) {
 			auto dummy = new Composite(_toolWin, DWT.NONE);
@@ -1445,43 +1505,14 @@ public:
 			_parX = pb.x;
 			_parY = pb.y;
 			_toolWin.setBounds(tx, ty, ts.x, ts.y);
-			_toolWin.addDisposeListener(new class DisposeListener {
-				override void widgetDisposed(DisposeEvent e) {
-					if (_toolWin.getVisible) {
-						saveToolWinPos;
-					}
-				}
-			});
-			_toolWin.getParent.addControlListener(new class ControlAdapter {
-				override void controlMoved(ControlEvent e) {
-					auto pb = _toolWin.getParent.getBounds;
-					auto tb = _toolWin.getBounds;
-					_toolWin.setBounds(tb.x + pb.x - _parX, tb.y + pb.y - _parY, tb.width, tb.height);
-					_parX = pb.x;
-					_parY = pb.y;
-				}
-			});
-			parent.getShell.addShellListener(new class ShellAdapter {
-				override void shellActivated(ShellEvent e) {
-					auto oldAct = _comm.actToolWin;
-					if (oldAct && !oldAct.isDisposed && oldAct.isVisible) {
-						oldAct.setVisible = false;
-					}
-					_comm.actToolWin = _toolWin;
-					_toolWin.setVisible = _toolWinVisible;
-				}
-			});
+			_toolWin.addDisposeListener(new TDListener);
+			_toolWin.getParent.addControlListener(new TCListener);
+			parent.getShell.addShellListener(new PSListener);
 		}
 		_tree = new Tree(_comp, DWT.SINGLE | DWT.BORDER);
 		_tree.setLayoutData = new GridData(GridData.FILL_BOTH);
 		new TreeEdit(_tree, &editEnd, &createEditor);
-		_tree.addDisposeListener(new class DisposeListener {
-			public override void widgetDisposed(DisposeEvent e) {
-				foreach (cur; _cursors) {
-					cur.dispose;
-				}
-			}
-		});
+		_tree.addDisposeListener(new TRDListener);
 		_tree.addMouseListener(new CreateL);
 		auto editl = new EditL;
 		_tree.addKeyListener(editl);
@@ -1524,34 +1555,6 @@ public:
 		_comm.replPath.add(&__replacePaths);
 		_comm.replText.add(&__refreshCard);
 		_comm.replText.add(&__refreshEventText);
-		_tree.addDisposeListener(new class DisposeListener {
-			override void widgetDisposed(DisposeEvent e) {
-				_comm.refCast.remove(&__refreshCast);
-				_comm.delCast.remove(&__refreshCast);
-				_comm.refSkill.remove(&__refreshSkill);
-				_comm.delSkill.remove(&__refreshSkill);
-				_comm.refItem.remove(&__refreshItem);
-				_comm.delItem.remove(&__refreshItem);
-				_comm.refBeast.remove(&__refreshBeast);
-				_comm.delBeast.remove(&__refreshBeast);
-				_comm.refInfo.remove(&__refreshInfo);
-				_comm.delInfo.remove(&__refreshInfo);
-				_comm.refArea.remove(&__refreshArea);
-				_comm.delArea.remove(&__refreshArea);
-				_comm.refBattle.remove(&__refreshBattle);
-				_comm.delBattle.remove(&__refreshBattle);
-				_comm.refPackage.remove(&__refreshPackage);
-				_comm.delPackage.remove(&__refreshPackage);
-				_comm.refFlagAndStep.remove(&__refreshFlagAndStep);
-				_comm.delFlagAndStep.remove(&__refreshFlagAndStep);
-				_comm.refPath.remove(&__refreshPath);
-				_comm.refPaths.remove(&__refreshPaths);
-				_comm.delPaths.remove(&__deletePaths);
-				_comm.replPath.remove(&__replacePaths);
-				_comm.replText.remove(&__refreshCard);
-				_comm.replText.remove(&__refreshEventText);
-			}
-		});
 
 		auto dt = new DropTarget(_tree, DND.DROP_DEFAULT | DND.DROP_MOVE);
 		dt.setTransfer = [XMLBytesTransfer.getInstance];

@@ -641,12 +641,13 @@ public:
 		_win.addDisposeListener(new DListener);
 		_win.addShellListener(new SListener);
 		foreach (f; _prop.looks.fontFiles) {
-			d.loadFont(engineDir ~ f);
+			d.loadFont(std.path.join(engineDir, f));
 		}
 		_win.setText(_prop.msgs.mainWindowName(null, null));
 		_win.setLayout = windowGridLayout(1, true);
 
 		auto toolComp = new Composite(_win, DWT.NONE);
+		toolComp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		toolComp.setLayout = new FillLayout;
 		if (_prop.var.etc.singleWindow) {
 			_dock = _prop.var.loadDock(_win, DWT.NONE, delegate Control(Composite parent, string key) {
@@ -774,45 +775,72 @@ public:
 
 			_win.setMenuBar = bar;
 		}
-		{
-			_mainTool = new HashSet!(string);
-			auto bar = new ToolBar(toolComp, DWT.FLAT);
-			void mCreateToolItem(ToolBar bar, string text, Image img, void delegate() dlg) {
-				createToolItem(bar, text, img, dlg);
-				_mainTool.add(text);
+		_mainTool = new HashSet!(string);
+		void mCreateToolItem(ToolBar bar, string text, Image img, void delegate() dlg) {
+			createToolItem(bar, text, img, dlg);
+			_mainTool.add(text);
+		}
+		if (_prop.var.etc.singleWindow) {
+			auto cbar = new CoolBar(toolComp, DWT.FLAT);
+			cbar.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+			cbar.addControlListener(new CCListener);
+			cbar.addDisposeListener(new CDListener);
+			void createCoolItem(CoolBar cbar, ToolBar tbar) {
+				.createCoolItem(cbar, tbar);
+				_toolBar ~= tbar;
 			}
-			bar.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-			mCreateToolItem(bar, _prop.msgs.ttNew, _prop.images.menuNew, &createScenario);
-			mCreateToolItem(bar, _prop.msgs.ttOpen, _prop.images.menuOpen, &openScenarioM);
-			mCreateToolItem(bar, _prop.msgs.ttSave, _prop.images.menuSave, &saveScenario);
-			mCreateToolItem(bar, _prop.msgs.ttSaveA, _prop.images.menuSaveA, &saveScenarioA);
-			new ToolItem(bar, DWT.SEPARATOR);
-			mCreateToolItem(bar, _prop.msgs.ttReplaceText, _prop.images.menuReplaceText, &replaceText);
-			if (_prop.var.etc.singleWindow) {
-				mixin (ToolAction!("bar", "ReplacePath"));
-			}
-			mCreateToolItem(bar, _prop.msgs.ttToXML, _prop.images.menuToXML, &clipboardToXML);
-			new ToolItem(bar, DWT.SEPARATOR);
-			mCreateToolItem(bar, _prop.msgs.ttReload, _prop.images.menuReload, &reload);
-			new ToolItem(bar, DWT.SEPARATOR);
-			mCreateToolItem(bar, _prop.msgs.ttDataWin, _prop.images.menuDataWin, &openDataWindow);
-			mCreateToolItem(bar, _prop.msgs.ttCardWin, _prop.images.menuCardWin, &openCardWindow);
-			mCreateToolItem(bar, _prop.msgs.ttDirWin, _prop.images.menuDirWin, &openDirWindow);
-			new ToolItem(bar, DWT.SEPARATOR);
-			if (_prop.var.etc.singleWindow) {
-				mixin (ToolAction!("bar", "Refresh"));
+			{
+				auto bar = new ToolBar(cbar, DWT.FLAT);
+				mCreateToolItem(bar, _prop.msgs.ttNew, _prop.images.menuNew, &createScenario);
+				mCreateToolItem(bar, _prop.msgs.ttOpen, _prop.images.menuOpen, &openScenarioM);
+				mCreateToolItem(bar, _prop.msgs.ttSave, _prop.images.menuSave, &saveScenario);
+				mCreateToolItem(bar, _prop.msgs.ttSaveA, _prop.images.menuSaveA, &saveScenarioA);
 				new ToolItem(bar, DWT.SEPARATOR);
+				mCreateToolItem(bar, _prop.msgs.ttReload, _prop.images.menuReload, &reload);
+				createCoolItem(cbar, bar);
+			}
+			{
+				auto bar = new ToolBar(cbar, DWT.FLAT);
+				mixin (ToolAction!("bar", "Refresh"));
+				createCoolItem(cbar, bar);
+			}
+			{
+				auto bar = new ToolBar(cbar, DWT.FLAT);
 				mixin (ToolAction!("bar", "Undo"));
 				mixin (ToolAction!("bar", "Redo"));
-				new ToolItem(bar, DWT.SEPARATOR);
+				createCoolItem(cbar, bar);
+			}
+			{
+				auto bar = new ToolBar(cbar, DWT.FLAT);
 				mixin (ToolAction!("bar", "Cut"));
 				mixin (ToolAction!("bar", "Copy"));
 				mixin (ToolAction!("bar", "Paste"));
 				mixin (ToolAction!("bar", "Del"));
-				new ToolItem(bar, DWT.SEPARATOR);
+				createCoolItem(cbar, bar);
+			}
+			{
+				auto bar = new ToolBar(cbar, DWT.FLAT);
 				mixin (ToolAction!("bar", "Up"));
 				mixin (ToolAction!("bar", "Down"));
+				createCoolItem(cbar, bar);
+			}
+			{
+				auto bar = new ToolBar(cbar, DWT.FLAT);
+				mCreateToolItem(bar, _prop.msgs.ttReplaceText, _prop.images.menuReplaceText, &replaceText);
+				mixin (ToolAction!("bar", "ReplacePath"));
 				new ToolItem(bar, DWT.SEPARATOR);
+				mCreateToolItem(bar, _prop.msgs.ttToXML, _prop.images.menuToXML, &clipboardToXML);
+				createCoolItem(cbar, bar);
+			}
+			{
+				auto bar = new ToolBar(cbar, DWT.FLAT);
+				mCreateToolItem(bar, _prop.msgs.ttDataWin, _prop.images.menuDataWin, &openDataWindow);
+				mCreateToolItem(bar, _prop.msgs.ttCardWin, _prop.images.menuCardWin, &openCardWindow);
+				mCreateToolItem(bar, _prop.msgs.ttDirWin, _prop.images.menuDirWin, &openDirWindow);
+				createCoolItem(cbar, bar);
+			}
+			{
+				auto bar = new ToolBar(cbar, DWT.FLAT);
 				mixin (ToolAction!("bar", "Summary", DWT.PUSH, "_dataWin.editSummary"));
 				new ToolItem(bar, DWT.SEPARATOR);
 				mixin (ToolAction!("bar", "NewArea", DWT.PUSH, "_dataWin.createArea"));
@@ -822,7 +850,10 @@ public:
 				mixin (ToolAction!("bar", "NewFlagDir", DWT.PUSH, "_dataWin.createFlagDir"));
 				mixin (ToolAction!("bar", "NewFlag", DWT.PUSH, "_dataWin.createFlag"));
 				mixin (ToolAction!("bar", "NewStep", DWT.PUSH, "_dataWin.createStep"));
-				new ToolItem(bar, DWT.SEPARATOR);
+				createCoolItem(cbar, bar);
+			}
+			{
+				auto bar = new ToolBar(cbar, DWT.FLAT);
 				auto g = new RadioGroup!(ToolItem);
 				mixin (ToolAction!("bar", "ShowCardList", DWT.RADIO));
 				g.append(_tool[_prop.msgs.ttShowCardList]);
@@ -837,14 +868,52 @@ public:
 				mixin (ToolAction!("bar", "NewInfo", DWT.PUSH, "newInfo"));
 				new ToolItem(bar, DWT.SEPARATOR);
 				mixin (ToolAction!("bar", "AddScenario", DWT.PUSH, "_cardWin.addScenario"));
-				new ToolItem(bar, DWT.SEPARATOR);
+				createCoolItem(cbar, bar);
 			}
+			{
+				auto bar = new ToolBar(cbar, DWT.FLAT);
+				mCreateToolItem(bar, _prop.msgs.ttExecEngine, _prop.images.menuExecEngine, &execEngine);
+				new ToolItem(bar, DWT.SEPARATOR);
+				mCreateToolItem(bar, _prop.msgs.ttSettings, _prop.images.menuSettings, &settings);
+				new ToolItem(bar, DWT.SEPARATOR);
+				mCreateToolItem(bar, _prop.msgs.ttClose, _prop.images.menuClose, &exitAll);
+				createCoolItem(cbar, bar);
+			}
+			if (_prop.var.etc.toolsOrder.length == cbar.getItemCount) {
+				cbar.setItemOrder(_prop.var.etc.toolsOrder);
+			}
+			int[] wi;
+			foreach (i; _prop.var.etc.toolsWrapIndices) {
+				if (i < cbar.getItemCount) wi ~= i;
+			}
+			cbar.setWrapIndices(wi);
+
+			auto drop = new DropTarget(cbar, DND.DROP_DEFAULT | DND.DROP_LINK);
+			drop.setTransfer([FileTransfer.getInstance]);
+			drop.addDropListener(new DTListener);
+		} else {
+			auto bar = new ToolBar(toolComp, DWT.FLAT);
+			bar.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+			mCreateToolItem(bar, _prop.msgs.ttNew, _prop.images.menuNew, &createScenario);
+			mCreateToolItem(bar, _prop.msgs.ttOpen, _prop.images.menuOpen, &openScenarioM);
+			mCreateToolItem(bar, _prop.msgs.ttSave, _prop.images.menuSave, &saveScenario);
+			mCreateToolItem(bar, _prop.msgs.ttSaveA, _prop.images.menuSaveA, &saveScenarioA);
+			new ToolItem(bar, DWT.SEPARATOR);
+			mCreateToolItem(bar, _prop.msgs.ttReplaceText, _prop.images.menuReplaceText, &replaceText);
+			mCreateToolItem(bar, _prop.msgs.ttToXML, _prop.images.menuToXML, &clipboardToXML);
+			new ToolItem(bar, DWT.SEPARATOR);
+			mCreateToolItem(bar, _prop.msgs.ttReload, _prop.images.menuReload, &reload);
+			new ToolItem(bar, DWT.SEPARATOR);
+			mCreateToolItem(bar, _prop.msgs.ttDataWin, _prop.images.menuDataWin, &openDataWindow);
+			mCreateToolItem(bar, _prop.msgs.ttCardWin, _prop.images.menuCardWin, &openCardWindow);
+			mCreateToolItem(bar, _prop.msgs.ttDirWin, _prop.images.menuDirWin, &openDirWindow);
+			new ToolItem(bar, DWT.SEPARATOR);
 			mCreateToolItem(bar, _prop.msgs.ttExecEngine, _prop.images.menuExecEngine, &execEngine);
 			new ToolItem(bar, DWT.SEPARATOR);
 			mCreateToolItem(bar, _prop.msgs.ttSettings, _prop.images.menuSettings, &settings);
 			new ToolItem(bar, DWT.SEPARATOR);
 			mCreateToolItem(bar, _prop.msgs.ttClose, _prop.images.menuClose, &exitAll);
-			_toolBar = bar;
+			_toolBar ~= bar;
 
 			auto drop = new DropTarget(bar, DND.DROP_DEFAULT | DND.DROP_LINK);
 			drop.setTransfer([FileTransfer.getInstance]);
@@ -863,6 +932,19 @@ public:
 			_win.pack;
 			intoDisplay(tx, ty, _win.getSize.x, _win.getSize.y);
 			_win.setBounds(tx, ty, _win.getSize.x, _win.getSize.y);
+		}
+		dockSelect("data");
+	}
+	private class CCListener : ControlAdapter {
+		override void controlResized(ControlEvent e) {
+			_win.layout;
+		}
+	}
+	private class CDListener : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			auto cbar = cast(CoolBar) e.widget;
+			_prop.var.etc.toolsOrder = cbar.getItemOrder;
+			_prop.var.etc.toolsWrapIndices = cbar.getWrapIndices;
 		}
 	}
 	private template NewCard(string Name) {
@@ -886,7 +968,7 @@ public:
 	private RadioGroup!(ToolItem)[] _toolRG;
 	private HashSet!(string) _mainMenu;
 	private HashSet!(string) _mainTool;
-	private ToolBar _toolBar;
+	private ToolBar[] _toolBar;
 	private TopLevelPanel _tlp = null;
 	private template MenuAction(string M, string S, int Style = DWT.PUSH, string Act = "") {
 		static if (Act.length) {
@@ -982,20 +1064,22 @@ public:
 		foreach (itm; _win.getMenuBar.getItems) {
 			setupMenu(itm);
 		}
-		foreach (itm; _toolBar.getItems) {
-			auto s = itm.getStyle;
-			auto text = itm.getToolTipText;
-			if (s & DWT.PUSH) {
-				if(_mainTool.contains(text)) continue;
-				itm.setEnabled = tlp.toolAction(text) !is null;
-			} else if ((s & DWT.RADIO) || (s & DWT.CHECK)) {
-				if(_mainTool.contains(text)) continue;
-				auto chk = tlp.toolChecked(text);
-				if (chk) {
-					itm.setEnabled = true;
-					itm.setSelection = chk();
-				} else {
-					itm.setEnabled = false;
+		foreach (bar; _toolBar) {
+			foreach (itm; bar.getItems) {
+				auto s = itm.getStyle;
+				auto text = itm.getToolTipText;
+				if (s & DWT.PUSH) {
+					if(_mainTool.contains(text)) continue;
+					itm.setEnabled = tlp.toolAction(text) !is null;
+				} else if ((s & DWT.RADIO) || (s & DWT.CHECK)) {
+					if(_mainTool.contains(text)) continue;
+					auto chk = tlp.toolChecked(text);
+					if (chk) {
+						itm.setEnabled = true;
+						itm.setSelection = chk();
+					} else {
+						itm.setEnabled = false;
+					}
 				}
 			}
 		}
