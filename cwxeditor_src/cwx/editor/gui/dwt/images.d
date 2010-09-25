@@ -265,7 +265,6 @@ public:
 		auto cur = Display.getCurrent();
 		auto bmp = new Image(cur, initW, initH);
 		auto dc = new GC(bmp);
-		dc.setTextAntialias = false;
 
 		ImageData matImgData;
 		if (this.data) {
@@ -317,11 +316,15 @@ public:
 					scope (exit) dc.setAlpha = 255;
 					switch (a.textPos) {
 					case TPos.LEFT: {
+						dc.setTextAntialias = false;
 						dc.drawText(a.text, a.insets.w, a.insets.n, true);
+						dc.setTextAntialias = true;
 					} break;
 					case TPos.RIGHT: {
 						int tw = dc.textExtent(a.text).x;
+						dc.setTextAntialias = false;
 						dc.drawText(a.text, initW - a.insets.e - tw, a.insets.n, true);
+						dc.setTextAntialias = true;
 					} break;
 					default: assert (0);
 					}
@@ -334,7 +337,9 @@ public:
 			auto font = new Font(cur, titFont);
 			dc.setFont = font;
 			dc.setForeground(cur.getSystemColor(DWT.COLOR_BLACK));
+			dc.setTextAntialias = false;
 			dc.drawText(_title, titPoint.x, titPoint.y, true);
+			dc.setTextAntialias = true;
 			dc.setFont(null);
 			font.dispose;
 		}
