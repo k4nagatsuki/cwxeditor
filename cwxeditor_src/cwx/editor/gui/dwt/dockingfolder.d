@@ -33,7 +33,7 @@ class DockingFolder(TabF, int Style) {
 	private static const CLOSE = is(TabF == CTabFolder) && (Style & DWT.CLOSE);
 	private enum DPos {N, E, S, W, C, NONE}
 
-	private Composite _area;
+	private Composite _comp, _area;
 
 	private string[Control] _ctrls;
 	private Control[string] _keys;
@@ -42,13 +42,23 @@ class DockingFolder(TabF, int Style) {
 	private TabF[] _tabfList;
 	private bool[string] _vanish;
 
+	private Canvas _canvas;
+
 	private FocusL _fl;
 	private this (Composite parent, int style, bool createTabf, string firstPaneKey = "") {
-		_area = new Composite(parent, style);
-		auto cl = new CenterLayout(DWT.HORIZONTAL | DWT.VERTICAL, 0);
-		cl.fillHorizontal = true;
-		cl.fillVertical = true;
-		_area.setLayout = cl;
+		_comp = new Composite(parent, DWT.NONE);
+		_comp.setLayout = new CenterLayout(DWT.HORIZONTAL | DWT.VERTICAL, 0);
+
+		_canvas = new Canvas(_comp, DWT.TRANSPARENT);
+		_canvas.setLayoutData = new Rectangle(0, 0, 0, 0);
+		auto drop = new DropTarget(_canvas, DND.DROP_MOVE);
+		drop.setTransfer = [TextTransfer.getInstance];
+		drop.addDropListener(new DTL);
+		_canvas.addPaintListener(new PL);
+
+		_area = new Composite(_comp, style);
+		_area.setLayoutData = new CenterLayoutData(true, true);
+		_area.setLayout = new FillLayout;
 		if (createTabf) newTabf(_area, firstPaneKey, true);
 		_fl = new FocusL;
 		Display.getCurrent.addFilter(DWT.FocusIn, _fl);
@@ -185,7 +195,7 @@ class DockingFolder(TabF, int Style) {
 	/// ditto
 	string firstKey() {return _tabfs[cast(TabF) first];}
 	/// 全てのペインの親となるComposite。
-	Composite area() {return _area;}
+	Composite area() {return _comp;}
 	/// 指定されたペインが空になった時に消滅するか否か。
 	bool vanish(string key) {
 		auto p = key in _vanish;
@@ -214,7 +224,7 @@ class DockingFolder(TabF, int Style) {
 		bool before = dir == Dir.N || dir == Dir.W;
 		if (!key.length) key = newTabfKey;
 		auto r = newSash(tabf, style, before, lWeight, rWeight, key, vanish);
-		area.layout(true);
+		_area.layout(true);
 		return r;
 	}
 	/// Controlを追加する。
@@ -226,7 +236,6 @@ class DockingFolder(TabF, int Style) {
 		auto tab = new Tab(tabf, DWT.NONE);
 		tab.setText = tabText;
 		tab.setControl = ctrl;
-		ctrl.addPaintListener(new PL);
 		_ctrls[ctrl] = key;
 		_keys[key] = ctrl;
 		if (select) {
@@ -279,13 +288,9 @@ class DockingFolder(TabF, int Style) {
 			tabf.addCTabFolderListener(new CTFL);
 		}
 		tabf.addSelectionListener(new SelTab);
-		tabf.addPaintListener(new PLT);
 		auto drag = new DragSource(tabf, DND.DROP_MOVE);
 		drag.setTransfer = [TextTransfer.getInstance];
 		drag.addDragListener(new DSL(tabf));
-		auto drop = new DropTarget(tabf, DND.DROP_MOVE);
-		drop.setTransfer = [TextTransfer.getInstance];
-		drop.addDropListener(new DTL(tabf));
 
 		return tabf;
 	}
@@ -314,9 +319,9 @@ class DockingFolder(TabF, int Style) {
 		_keys.remove(ctrlKey);
 		tab.getControl.dispose;
 		auto key = _tabfs[tabf];
-		if (vanish(key) && tabf.getItemCount == 1 && area.getChildren[0] !is tabf) {
+		if (vanish(key) && tabf.getItemCount == 1 && _area.getChildren[0] !is tabf) {
 			removeTabf(tabf);
-			area.layout(true);
+			_area.layout(true);
 		}
 	}
 	/// Controlツリーの再構築。
@@ -337,7 +342,7 @@ class DockingFolder(TabF, int Style) {
 				comp.dispose;
 				tree(children[0]);
 			} else if (children.length == 2) {
-				// area.layout(true)が効かない事があるので
+				// _area.layout(true)が効かない事があるので
 				// SashFormを作り直さなければならない
 				auto aft = afters(comp);
 				auto weights = comp.getWeights;
@@ -352,7 +357,7 @@ class DockingFolder(TabF, int Style) {
 				comp.dispose;
 			}
 		}
-		tree(area.getChildren[0]);
+		tree(_area.getChildren[0]);
 	}
 	private void drawDropMark(GC gc, int x, int y, int w, int h) {
 		auto d = Display.getCurrent;
@@ -372,28 +377,21 @@ class DockingFolder(TabF, int Style) {
 		if (!_dragItm) return false;
 		if (_dropPos == DPos.NONE) return false;
 		if (canMove) {
-			auto ctrlKey = _ctrls[_dragItm.getControl];
+			auto p = _dragItm.getControl in _ctrls;
+			if (!p) return false;
+			auto ctrlKey = *p;
 			auto dropPaneKey = _dropPos == DPos.C ? _tabfs[tabf] : "";
 			return canMove(ctrlKey, dropPaneKey);
 		}
 		return true;
 	}
-	private class PLT : PaintListener {
-		override void paintControl(PaintEvent e) {
-			auto tabf = cast(TabF) e.widget;
-			if (tabf !is _drawTabf) return;
-			if (tabf.getItemCount > 0) return;
-			if (!canDrop(tabf)) return;
-			auto ca = tabf.getClientArea;
-			drawDropMark(e.gc, ca.x, ca.y, ca.width, ca.height);
-		}
-	}
 	private class PL : PaintListener {
 		override void paintControl(PaintEvent e) {
-			auto tabf = (cast(Control) e.widget).getParent;
-			if (tabf !is _drawTabf) return;
-			if (!canDrop(cast(TabF) tabf)) return;
-			drawDropMark(e.gc, e.x, e.y, e.width, e.height);
+			if (!_drawTabf) return;
+			if (!canDrop(_drawTabf)) return;
+			auto pos = boundsOnCanvas(_drawTabf);
+			auto ca = _drawTabf.getClientArea;
+			drawDropMark(e.gc, pos.x + ca.x, pos.y + ca.y, ca.width, ca.height);
 		}
 	}
 	private class DSL : DragSourceListener {
@@ -405,6 +403,8 @@ class DockingFolder(TabF, int Style) {
 			if (itm) {
 				_dragItm = itm;
 				e.doit = true;
+				_canvas.setLayoutData = new CenterLayoutData(true, true);
+				_comp.layout(true);
 			}
 		}
 		override void dragSetData(DragSourceEvent e) {
@@ -413,6 +413,10 @@ class DockingFolder(TabF, int Style) {
 			}
 		}
 		override void dragFinished(DragSourceEvent e) {
+			_drawTabf = null;
+			_canvas.setLayoutData = new Rectangle(0, 0, 0, 0);
+			_canvas.redraw;
+			_comp.layout(true);
 			if (e.detail == DND.DROP_MOVE) {
 				auto tabf = _dragItm.getParent;
 				_dragItm.dispose;
@@ -420,7 +424,7 @@ class DockingFolder(TabF, int Style) {
 				if (tabf.getItemCount == 0 && vanish(_tabfs[tabf])) {
 					removeTabf(tabf);
 				}
-				area.layout(true);
+				_area.layout(true);
 			}
 		}
 	}
@@ -450,65 +454,79 @@ class DockingFolder(TabF, int Style) {
 			return tabs.length ? tabs[0] : null;
 		}
 	}
-	private static void redrawTab(TabF tabf) {
-		auto tab = selected(tabf);
-		if (tab) {
-			tab.getControl.redraw;
-		} else {
-			tabf.redraw;
-		}
+	private Rectangle boundsOnDisplay(Control ctrl) {
+		auto p = ctrl.toDisplay(0, 0);
+		auto s = ctrl.getSize;
+		return new Rectangle(p.x, p.y, s.x, s.y);
+	}
+	private Rectangle boundsOnCanvas(Control ctrl) {
+		auto cvp = _canvas.toDisplay(0, 0);
+		auto cp = ctrl.toDisplay(0, 0);
+		auto s = ctrl.getSize;
+		return new Rectangle(cp.x - cvp.x, cp.y - cvp.y, s.x, s.y);
 	}
 	private class DTL : DropTargetAdapter {
-		private TabF _tabf;
-		this (TabF tabf) {_tabf = tabf;}
 		override void dragEnter(DropTargetEvent e) {
 			dragOver(e);
 		}
 		override void dragLeave(DropTargetEvent e) {
 			e.detail = DND.DROP_NONE;
 			_drawPos = DPos.NONE;
-			redrawTab(_tabf);
+			_drawTabf = null;
+			_canvas.redraw;
+		}
+		private TabF getTabf(int x, int y) {
+			foreach (t; _tabfList) {
+				if (boundsOnDisplay(t).contains(x, y)) {
+					return t;
+				}
+			}
+			return null;
 		}
 		override void dragOver(DropTargetEvent e) {
-			_drawTabf = _tabf;
-			auto p = _tabf.toControl(e.x, e.y);
-			auto itm = _tabf.getItem(p);
+			auto drawTabf = _drawTabf;
 			auto dropPos = _dropPos;
 			_dropPos = DPos.NONE;
 			e.detail = DND.DROP_NONE;
-			if (itm) {
-				setInsertMark(_tabf, itm, false);
-				_dropPos = DPos.C;
-			} else {
-				setInsertMark(_tabf, null, false);
-				auto ca = _tabf.getClientArea;
-				auto size = _tabf.getSize;
-				int x = p.x, y = p.y;
-				int w = size.x, h = size.y;
-				int xn = w - x, yn = h - y;
-				if (y < ca.y || (_tabf is _dragItm.getParent && _tabf.getItemCount == 1)) {
+			auto tabf = getTabf(e.x, e.y);
+			_drawTabf = tabf;
+			if (tabf) {
+				auto p = tabf.toControl(e.x, e.y);
+				auto itm = tabf.getItem(p);
+				if (itm) {
+					setInsertMark(tabf, itm, false);
 					_dropPos = DPos.C;
-					if (_tabf.getItemCount > 0) {
-						int index = _tabf.getItemCount - 1;
-						setInsertMark(_tabf, _tabf.getItem(index), true);
+				} else {
+					setInsertMark(tabf, null, false);
+					auto ca = tabf.getClientArea;
+					auto size = tabf.getSize;
+					int x = p.x, y = p.y;
+					int w = size.x, h = size.y;
+					int xn = w - x, yn = h - y;
+					if (y < ca.y || (tabf is _dragItm.getParent && tabf.getItemCount == 1)) {
+						_dropPos = DPos.C;
+						if (tabf.getItemCount > 0) {
+							int index = tabf.getItemCount - 1;
+							setInsertMark(tabf, tabf.getItem(index), true);
+						}
+					} else if (y <= x && y <= xn && y < h / 3) {
+						_dropPos = DPos.N;
+					} else if (xn <= y && xn <= yn && x > w - w / 3) {
+						_dropPos = DPos.E;
+					} else if (yn <= x && yn <= xn && y > h - h / 3) {
+						_dropPos = DPos.S;
+					} else if (x <= y && x <= yn && x < w / 3) {
+						_dropPos = DPos.W;
+					} else if (0 <= x && 0 <= y && x < w && y < h) {
+						_dropPos = DPos.C;
 					}
-				} else if (y <= x && y <= xn && y < h / 3) {
-					_dropPos = DPos.N;
-				} else if (xn <= y && xn <= yn && x > w - w / 3) {
-					_dropPos = DPos.E;
-				} else if (yn <= x && yn <= xn && y > h - h / 3) {
-					_dropPos = DPos.S;
-				} else if (x <= y && x <= yn && x < w / 3) {
-					_dropPos = DPos.W;
-				} else if (0 <= x && 0 <= y && x < w && y < h) {
-					_dropPos = DPos.C;
 				}
+				if (!canDrop(tabf)) _dropPos = DPos.NONE;
+				if (_dropPos != DPos.NONE) e.detail = DND.DROP_MOVE;
 			}
-			if (!canDrop(_tabf)) _dropPos = DPos.NONE;
-			if (_dropPos != DPos.NONE) e.detail = DND.DROP_MOVE;
-			if (_dropPos != dropPos) {
+			if (_dropPos != dropPos || _drawTabf !is drawTabf) {
 				_drawPos = _dropPos;
-				redrawTab(_tabf);
+				_canvas.redraw;
 			}
 		}
 		override void drop(DropTargetEvent e) {
@@ -519,8 +537,10 @@ class DockingFolder(TabF, int Style) {
 				_dropPos = DPos.NONE;
 			}
 			if (_dropPos == DPos.NONE || !e.data || !_dragItm) return;
-			if (!canDrop(_tabf)) return;
-			auto sash = _tabf.getParent;
+			auto dropTarg = getTabf(e.x, e.y);
+			if (!dropTarg) return;
+			if (!canDrop(dropTarg)) return;
+			auto sash = dropTarg.getParent;
 			void newTab(TabF tabf, int index) {
 				auto tab = index != -1
 					? new Tab(tabf, _dragItm.getStyle, index)
@@ -538,18 +558,18 @@ class DockingFolder(TabF, int Style) {
 				tabf.setFocus;
 			}
 			int putCenter() {
-				auto dropItm = _tabf.getItem(_tabf.toControl(e.x, e.y));
+				auto dropItm = dropTarg.getItem(dropTarg.toControl(e.x, e.y));
 				if (dropItm is _dragItm) return DND.DROP_NONE;
-				int i1 = dropItm ? cwx.utils.indexOf!("a is b")(_tabf.getItems, dropItm) : _tabf.getItemCount;
-				if (_tabf is _dragItm.getParent) {
-					int i2 = cwx.utils.indexOf!("a is b")(_tabf.getItems, _dragItm);
+				int i1 = dropItm ? cwx.utils.indexOf!("a is b")(dropTarg.getItems, dropItm) : dropTarg.getItemCount;
+				if (dropTarg is _dragItm.getParent) {
+					int i2 = cwx.utils.indexOf!("a is b")(dropTarg.getItems, _dragItm);
 					if (i2 + 1 == i1) return DND.DROP_NONE;
 				}
-				newTab(_tabf, dropItm ? i1 : -1);
+				newTab(dropTarg, dropItm ? i1 : -1);
 				return DND.DROP_MOVE;
 			}
 			int nSash(int style, bool before) {
-				if (_tabf is _dragItm.getParent && _tabf.getItemCount == 1) {
+				if (dropTarg is _dragItm.getParent && dropTarg.getItemCount == 1) {
 					return DND.DROP_NONE;
 				}
 				string key = "";
@@ -558,7 +578,7 @@ class DockingFolder(TabF, int Style) {
 					key = newPaneName(ctrlKey);
 				}
 				if (!key.length) key = newTabfKey;
-				auto tabf = newSash(_tabf, style, before, 1, 1, key, true);
+				auto tabf = newSash(dropTarg, style, before, 1, 1, key, true);
 				newTab(tabf, -1);
 				tabf.setFocus;
 				return DND.DROP_MOVE;
@@ -653,13 +673,13 @@ class DockingFolder(TabF, int Style) {
 	/// XMLノードにして返す。
 	XNode toNode() {
 		auto r = XNode.create("dockingFolder");
-		toNode(r, area.getChildren[0]);
+		toNode(r, _area.getChildren[0]);
 		return r;
 	}
 	/// ditto
 	XNode toNode(ref XNode parent) {
 		auto r = parent.newElement("dockingFolder");
-		toNode(r, area.getChildren[0]);
+		toNode(r, _area.getChildren[0]);
 		return r;
 	}
 	private XNode toNode(ref XNode parent, Control c) {
@@ -701,7 +721,7 @@ class DockingFolder(TabF, int Style) {
 			Control delegate(Composite, string) create) {
 		assert (node.name == "dockingFolder");
 		DockingFolder r = new DockingFolder(parent, style, false);
-		Composite par = r.area;
+		Composite par = r._area;
 		void proc(ref XNode node) {
 			switch (node.name) {
 			case "sash": {

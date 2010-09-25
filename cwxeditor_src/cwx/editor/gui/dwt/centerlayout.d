@@ -1,6 +1,7 @@
 
 module cwx.editor.gui.dwt.centerlayout;
 
+import cwx.utils;
 import cwx.props;
 import cwx.editor.gui.dwt.utils;
 
@@ -9,11 +10,28 @@ import dwt.widgets.Control;
 import dwt.widgets.Composite;
 import dwt.widgets.Layout;
 import dwt.graphics.Point;
+import dwt.graphics.Rectangle;
 
 public:
 
+class CenterLayoutData {
+	bool fillVertical = false;
+	bool fillHorizontal = false;
+	this (bool fillVertical, bool fillHorizontal) {
+		this.fillVertical = fillVertical;
+		this.fillHorizontal = fillHorizontal;
+	}
+}
 class Insets {
 	int n, e, s, w;
+	static Insets opCall(int n, int e, int s, int w) {
+		auto r = new Insets;
+		r.n = n;
+		r.e = e;
+		r.s = s;
+		r.w = w;
+		return r;
+	}
 	static Insets opCall(CInsets i) {
 		auto r = new Insets;
 		r.n = i.n;
@@ -61,7 +79,7 @@ protected override:
 			int y = int.min;
 			int w = int.min;
 			int h = int.min;
-			if (c.getLayoutData && cast(Insets) c.getLayoutData) {
+			if (cast(Insets) c.getLayoutData) {
 				auto insets = cast(Insets) c.getLayoutData;
 				if (insets.e != DWT.DEFAULT && insets.w != DWT.DEFAULT) {
 					w = insets.e - insets.w;
@@ -80,8 +98,16 @@ protected override:
 					y = insets.n != DWT.DEFAULT ? insets.n : s.y + s.height - h - insets.s;
 				}
 			}
+			if (cast(Rectangle) c.getLayoutData) {
+				auto rect = cast(Rectangle) c.getLayoutData;
+				x = rect.x;
+				y = rect.y;
+				w = rect.width;
+				h = rect.height;
+			}
+			auto cld = cast(CenterLayoutData) c.getLayoutData;
 			auto p = childSize(c);
-			if (fillHorizontal) {
+			if (fillHorizontal || (cld && cld.fillHorizontal)) {
 				if (x == int.min) x = _margin + s.x;
 				if (w == int.min) w = s.width - _margin * 2;
 			} else {
@@ -91,7 +117,7 @@ protected override:
 				}
 				if (w == int.min) w = p.x;
 			}
-			if (fillVertical) {
+			if (fillVertical || (cld && cld.fillVertical)) {
 				if (y == int.min) y = _margin + s.y;
 				if (h == int.min) h = s.height - _margin * 2;
 			} else {
