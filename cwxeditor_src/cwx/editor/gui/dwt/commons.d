@@ -308,13 +308,13 @@ class Commons {
 			shl.setMinimized = false;
 			shl.open;
 		} else {
-			if (_main.dock.keyFromCtrl(c)) {
+			if (_main.dock.control(key)) {
 				.forceFocus(c);
 				return;
 			}
 			Composite p;
 			string[] ps = _main.dock.findPane(pane);
-			if (!ps.length) {
+			if (ps.length) {
 				p = _main.dock.pane(ps[0]);
 			} else {
 				int l, r;
@@ -330,21 +330,21 @@ class Commons {
 			_main.dock.add(create(p), text, key, true);
 		}
 	}
-	private void openMain(string Pane, Dir D, Win)(Win win) {
+	private void openMain(string Key, string Pane, Dir D, Win)(Win win) {
 		auto shl = cast(Shell) win.shell;
-		show(win.shell, Pane, D, "", delegate Control(Composite p) {
+		show(win.shell, Pane, D, Key, delegate Control(Composite p) {
 			win.reconstruct(p);
 			return win.shell;
 		}, win.title);
 	}
 	void openDataWin() {
-		openMain!("data", Dir.S)(_dataWin);
+		openMain!("data", "data", Dir.S)(_dataWin);
 	}
 	void openCardWin() {
-		openMain!("data", Dir.S)(_cardWin);
+		openMain!("card", "data", Dir.S)(_cardWin);
 	}
 	void openDirWin() {
-		openMain!("data", Dir.S)(_dirWin);
+		openMain!("file", "data", Dir.S)(_dirWin);
 	}
 	void open(TopLevelPanel tlp, string pane) {
 		auto shl = cast(Shell) tlp.shell;

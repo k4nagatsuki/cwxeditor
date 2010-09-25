@@ -335,19 +335,19 @@ private:
 		}
 	}
 	void openDataWindow() {
-		if (summary) {
+		if (summary || dock) {
 			_prop.var.dataWin.visible = true;
 			_comm.openDataWin;
 		}
 	}
 	void openCardWindow() {
-		if (summary) {
+		if (summary || dock) {
 			_prop.var.cardWin.visible = true;
 			_comm.openCardWin;
 		}
 	}
 	void openDirWindow() {
-		if (summary) {
+		if (summary || dock) {
 			_prop.var.dirWin.visible = true;
 			_comm.openDirWin;
 		}
