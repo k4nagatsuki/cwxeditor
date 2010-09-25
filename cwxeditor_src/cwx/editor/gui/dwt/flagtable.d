@@ -749,10 +749,12 @@ public:
 
 	override {
 		void cut() {
+			if (!_dir) return;
 			copy();
 			del();
 		}
 		void copy() {
+			if (!_dir) return;
 			Flag[] fs;
 			Step[] ss;
 			if (getSelectionFlagAndStep(fs, ss)) {
@@ -762,6 +764,7 @@ public:
 			}
 		}
 		void paste() {
+			if (!_dir) return;
 			auto cb = new Clipboard(Display.getCurrent);
 			scope (exit) cb.dispose;
 			auto c = CBtoXML(cb);
@@ -777,6 +780,7 @@ public:
 			}
 		}
 		void del() {
+			if (!_dir) return;
 			Flag[] fs;
 			Step[] ss;
 			foreach (itm; flags.getSelection) {

@@ -1114,13 +1114,15 @@ public:
 				createToolItem(bar, _prop.msgs.ttDel, _prop.images.menuDel, &del);
 			}
 		}
-		_sash = new SplitPane(_win, DWT.HORIZONTAL);
-		_sash.setLayoutData = new GridData(GridData.FILL_BOTH);
 		if (shell) {
 			setupToolBar(new ToolBar(_win, DWT.FLAT));
+			_sash = new SplitPane(_win, DWT.HORIZONTAL);
+			_sash.setLayoutData = new GridData(GridData.FILL_BOTH);
 			_dirs = new Tree(_sash, DWT.SINGLE | DWT.BORDER | DWT.VIRTUAL);
 			_sash.setControl1 = _dirs;
 		} else {
+			_sash = new SplitPane(_win, DWT.HORIZONTAL);
+			_sash.setLayoutData = new GridData(GridData.FILL_BOTH);
 			auto dirsComp = new Composite(_sash, DWT.NONE);
 			dirsComp.setLayout = zeroGridLayout(1, true);
 			setupToolBar(new ToolBar(dirsComp, DWT.FLAT));
@@ -1213,14 +1215,15 @@ public:
 			shell.setBounds(x, y, width, height);
 			shell.setMaximized = _prop.var.dirWin.maximized;
 			shell.setMinimized = _prop.var.dirWin.minimized;
-			shell.addControlListener(new class ControlAdapter {
-				override void controlMoved(ControlEvent e) {
-					saveWin;
-				}
-				override void controlResized(ControlEvent e) {
-					saveWin;
-				}
-			});
+			shell.addControlListener(new SCListener);
+		}
+	}
+	private class SCListener : ControlAdapter {
+		override void controlMoved(ControlEvent e) {
+			saveWin;
+		}
+		override void controlResized(ControlEvent e) {
+			saveWin;
 		}
 	}
 	private void saveWin() {

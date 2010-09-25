@@ -331,6 +331,12 @@ private:
 			}
 		}
 	}
+	class ADListener : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			_comm.refUseCount.remove(&__refreshUseCount);
+			_comm.replText.remove(&refresh);
+		}
+	}
 public:
 	this(Commons comm, Props prop, Composite parent, FlagTable flags) {
 		_comm = comm;
@@ -340,12 +346,7 @@ public:
 		_comm.refUseCount.add(&__refreshUseCount);
 		_comm.replText.add(&refresh);
 		_areas = new Table(parent, DWT.BORDER | DWT.FULL_SELECTION);
-		_areas.addDisposeListener(new class DisposeListener {
-			override void widgetDisposed(DisposeEvent e) {
-				_comm.refUseCount.remove(&__refreshUseCount);
-				_comm.replText.remove(&refresh);
-			}
-		});
+		_areas.addDisposeListener(new ADListener);
 		_areasV = new TableViewer(_areas);
 		_areas.setHeaderVisible = true;
 		auto idCol = new TableColumn(_areas, DWT.NULL);
