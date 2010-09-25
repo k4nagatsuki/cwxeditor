@@ -120,7 +120,7 @@ private:
 	TreeViewer dirsV;
 	FlagTable flags;
 
-	FlagDir root;
+	FlagDir root = null;
 	TreeEdit edit;
 
 	class DirSelection : SelectionAdapter {
@@ -228,6 +228,7 @@ public:
 		this.prop = prop;
 		this.flags = flags;
 	}
+	Control widget() {return dirs;}
 
 	void refresh() {
 		refresh(null);
@@ -319,18 +320,16 @@ public:
 		return root;
 	}
 
-	bool setFocus() {
-		return dirs.setFocus;
-	}
-
 	override {
 		void cut() {
-			if (current != root) {
+			if (!root) return;
+			if (current !is root) {
 				copy();
 				del();
 			}
 		}
 		void copy() {
+			if (!root) return;
 			if (dirs.getSelection.length > 0) {
 				auto cb = new Clipboard(Display.getCurrent);
 				scope (exit) cb.dispose;
@@ -338,6 +337,7 @@ public:
 			}
 		}
 		void paste() {
+			if (!root) return;
 			auto cb = new Clipboard(Display.getCurrent);
 			scope (exit) cb.dispose;
 			auto c = CBtoXML(cb);
@@ -362,6 +362,7 @@ public:
 			}
 		}
 		void del() {
+			if (!root) return;
 			auto cur = current;
 			if (cur != root) {
 				Flag[] cFlags = cur.allFlags;

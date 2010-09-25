@@ -45,17 +45,22 @@ import dwt.events.ControlEvent;
 
 import dwtx.jface.dialogs.IDialogConstants;
 
-public:
-class DataWindow : TopLevelPanel, TCPD {
+class AbstractDataWindow(bool UseArea, bool UseFlag) : TopLevelPanel, TCPD {
 private:
 	Commons _comm;
 	Composite _win;
-	AreaTable _areas;
-	FlagsPane _flags;
+	static if (UseArea) {
+		AreaTable _areas;
+	}
+	static if (UseFlag) {
+		FlagsPane _flags;
+	}
 	Props _prop;
-	TabFolder tabf;
-	TabItem tabA;
-	TabItem tabF;
+	static if (UseArea && UseFlag) {
+		TabFolder tabf;
+		TabItem tabA;
+		TabItem tabF;
+	}
 
 	Summary _summ = null;
 
@@ -85,7 +90,9 @@ public:
 				public override void shellClosed(ShellEvent e) {
 					(cast(Shell) e.widget).setVisible = false;
 					e.doit = false;
-					_prop.var.dataWin.visible = false;
+					static if (UseArea && UseFlag) {
+						_prop.var.dataWin.visible = false;
+					}
 				}
 			});
 			_win = shell;
@@ -117,79 +124,110 @@ public:
 				auto me = createMenu(bar, _prop.msgs.menuEdit);
 				appendMenuTCPD(_prop, me, this);
 
-				auto mt = createMenu(bar, _prop.msgs.menuTable);
-				createMenuItem(mt, _prop.msgs.menuNewArea, _prop.images.menuNewArea, &createArea);
-				createMenuItem(mt, _prop.msgs.menuNewBattle, _prop.images.menuNewBattle, &createBattle);
-				createMenuItem(mt, _prop.msgs.menuNewPackage, _prop.images.menuNewPackage, &createPackage);
-
-				auto mv = createMenu(bar, _prop.msgs.menuVariable);
-				createMenuItem(mv, _prop.msgs.menuNewFlagDir, _prop.images.menuNewFlagDir, &createFlagDir);
-				new MenuItem(mv, DWT.SEPARATOR);
-				createMenuItem(mv, _prop.msgs.menuNewFlag, _prop.images.menuNewFlag, &createFlag);
-				createMenuItem(mv, _prop.msgs.menuNewStep, _prop.images.menuNewStep, &createStep);
-
+				static if (UseArea) {
+					auto mt = createMenu(bar, _prop.msgs.menuTable);
+					static if (UseFlag) {
+						createMenuItem(mt, _prop.msgs.menuSummary, _prop.images.menuSummary, &editSummary);
+						new MenuItem(mt, DWT.SEPARATOR);
+					}
+					createMenuItem(mt, _prop.msgs.menuNewArea, _prop.images.menuNewArea, &createArea);
+					createMenuItem(mt, _prop.msgs.menuNewBattle, _prop.images.menuNewBattle, &createBattle);
+					createMenuItem(mt, _prop.msgs.menuNewPackage, _prop.images.menuNewPackage, &createPackage);
+				}
+				static if (UseFlag) {
+					auto mv = createMenu(bar, _prop.msgs.menuVariable);
+					createMenuItem(mv, _prop.msgs.menuNewFlagDir, _prop.images.menuNewFlagDir, &createFlagDir);
+					new MenuItem(mv, DWT.SEPARATOR);
+					createMenuItem(mv, _prop.msgs.menuNewFlag, _prop.images.menuNewFlag, &createFlag);
+					createMenuItem(mv, _prop.msgs.menuNewStep, _prop.images.menuNewStep, &createStep);
+				}
 				shell.setMenuBar = bar;
 			}
 			{
 				auto bar = new ToolBar(shell, DWT.FLAT);
 				bar.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 
-				createToolItem(bar, _prop.msgs.ttSummary, _prop.images.menuSummary, &editSummary);
-				new ToolItem(bar, DWT.SEPARATOR);
-				createToolItem(bar, _prop.msgs.ttNewArea, _prop.images.menuNewArea, &createArea);
-				createToolItem(bar, _prop.msgs.ttNewBattle, _prop.images.menuNewBattle, &createBattle);
-				createToolItem(bar, _prop.msgs.ttNewPackage, _prop.images.menuNewPackage, &createPackage);
-				new ToolItem(bar, DWT.SEPARATOR);
-				createToolItem(bar, _prop.msgs.ttNewFlag, _prop.images.menuNewFlag, &createFlag);
-				createToolItem(bar, _prop.msgs.ttNewStep, _prop.images.menuNewStep, &createStep);
-				createToolItem(bar, _prop.msgs.ttNewFlagDir, _prop.images.menuNewFlagDir, &createFlagDir);
+				static if (UseArea && UseFlag) {
+					createToolItem(bar, _prop.msgs.ttSummary, _prop.images.menuSummary, &editSummary);
+				}
+				static if (UseArea) {
+					new ToolItem(bar, DWT.SEPARATOR);
+					createToolItem(bar, _prop.msgs.ttNewArea, _prop.images.menuNewArea, &createArea);
+					createToolItem(bar, _prop.msgs.ttNewBattle, _prop.images.menuNewBattle, &createBattle);
+					createToolItem(bar, _prop.msgs.ttNewPackage, _prop.images.menuNewPackage, &createPackage);
+				}
+				static if (UseFlag) {
+					new ToolItem(bar, DWT.SEPARATOR);
+					createToolItem(bar, _prop.msgs.ttNewFlag, _prop.images.menuNewFlag, &createFlag);
+					createToolItem(bar, _prop.msgs.ttNewStep, _prop.images.menuNewStep, &createStep);
+					createToolItem(bar, _prop.msgs.ttNewFlagDir, _prop.images.menuNewFlagDir, &createFlagDir);
+				}
 			}
 		} else {
 			appendMenuTCPD(_prop, this, this);
-			putMenuAction(_prop.msgs.menuNewArea, _prop.msgs.ttNewArea, &createArea);
-			putMenuAction(_prop.msgs.menuNewBattle, _prop.msgs.ttNewBattle, &createBattle);
-			putMenuAction(_prop.msgs.menuNewPackage, _prop.msgs.ttNewPackage, &createPackage);
-			putMenuAction(_prop.msgs.menuNewFlagDir, _prop.msgs.ttNewFlagDir, &createFlagDir);
-			putMenuAction(_prop.msgs.menuNewFlag, _prop.msgs.ttNewFlag, &createFlag);
-			putMenuAction(_prop.msgs.menuNewStep, _prop.msgs.ttNewStep, &createStep);
-			putMenuAction(_prop.msgs.menuSummary, _prop.msgs.ttSummary, &editSummary);
+			static if (UseArea && UseFlag) {
+				putMenuAction(_prop.msgs.menuSummary, _prop.msgs.ttSummary, &editSummary);
+			}
+			static if (UseArea) {
+				putMenuAction(_prop.msgs.menuNewArea, _prop.msgs.ttNewArea, &createArea);
+				putMenuAction(_prop.msgs.menuNewBattle, _prop.msgs.ttNewBattle, &createBattle);
+				putMenuAction(_prop.msgs.menuNewPackage, _prop.msgs.ttNewPackage, &createPackage);
+			}
+			static if (UseFlag) {
+				putMenuAction(_prop.msgs.menuNewFlagDir, _prop.msgs.ttNewFlagDir, &createFlagDir);
+				putMenuAction(_prop.msgs.menuNewFlag, _prop.msgs.ttNewFlag, &createFlag);
+				putMenuAction(_prop.msgs.menuNewStep, _prop.msgs.ttNewStep, &createStep);
+			}
 		}
 		{
-			tabf = new TabFolder(_win, DWT.NONE);
-			tabf.setLayoutData = new GridData(GridData.FILL_BOTH);
+			static if (UseArea && UseFlag) {
+				tabf = new TabFolder(_win, DWT.NONE);
+				tabf.setLayoutData = new GridData(GridData.FILL_BOTH);
 
-			_flags = new FlagsPane(_comm, _prop, tabf);
-			_areas = new AreaTable(_comm, _prop, tabf, _flags.flags);
+				_flags = new FlagsPane(_comm, _prop, tabf);
+				_areas = new AreaTable(_comm, _prop, tabf, _flags.flags);
 
-			tabA = new TabItem(tabf, DWT.NONE);
-			tabA.setText = _prop.msgs.scenarioView;
-			tabA.setControl(_areas.table);
-			tabF = new TabItem(tabf, DWT.NONE);
-			tabF.setText = _prop.msgs.variableView;
-			tabF.setControl(_flags.widget);
+				tabA = new TabItem(tabf, DWT.NONE);
+				tabA.setText = _prop.msgs.scenarioView;
+				tabA.setControl(_areas.table);
+				tabF = new TabItem(tabf, DWT.NONE);
+				tabF.setText = _prop.msgs.variableView;
+				tabF.setControl(_flags.widget);
 
-			_tcpd ~= _areas;
-			_tcpd ~= _flags.flags;
-			_tcpd ~= _flags.dirs;
+				_tcpd ~= _areas;
+				_tcpd ~= _flags.flags;
+				_tcpd ~= _flags.dirs;
+			} else static if (UseArea) {
+				_areas = new AreaTable(_comm, _prop, _win, null);
+				_areas.table.setLayoutData = new GridData(GridData.FILL_BOTH);
+				_tcpd ~= _areas;
+			} else static if (UseFlag) {
+				_flags = new FlagsPane(_comm, _prop, _win);
+				_flags.widget.setLayoutData = new GridData(GridData.FILL_BOTH);
+				_tcpd ~= _flags.flags;
+				_tcpd ~= _flags.dirs;
+			} else static assert (0);
 		}
-		if (shell) {
-			scope wp = shell.computeSize(DWT.DEFAULT, DWT.DEFAULT);
-			int width = _prop.var.dataWin.width == DWT.DEFAULT ? wp.x : _prop.var.dataWin.width;
-			int height = _prop.var.dataWin.height == DWT.DEFAULT ? wp.y : _prop.var.dataWin.height;
-			int x = _prop.var.dataWin.x == DWT.DEFAULT ? shell.getBounds.x : _prop.var.dataWin.x + shell.getParent.getBounds.x;
-			int y = _prop.var.dataWin.y == DWT.DEFAULT ? shell.getBounds.y : _prop.var.dataWin.y + shell.getParent.getBounds.y;
-			intoDisplay(x, y, width, height);
-			shell.setBounds(x, y, width, height);
-			shell.setMaximized = _prop.var.dataWin.maximized;
-			shell.setMinimized = _prop.var.dataWin.minimized;
-			shell.addControlListener(new class ControlAdapter {
-				override void controlMoved(ControlEvent e) {
-					saveDataWin;
-				}
-				override void controlResized(ControlEvent e) {
-					saveDataWin;
-				}
-			});
+		static if (UseArea && UseFlag) {
+			if (shell) {
+				scope wp = shell.computeSize(DWT.DEFAULT, DWT.DEFAULT);
+				int width = _prop.var.dataWin.width == DWT.DEFAULT ? wp.x : _prop.var.dataWin.width;
+				int height = _prop.var.dataWin.height == DWT.DEFAULT ? wp.y : _prop.var.dataWin.height;
+				int x = _prop.var.dataWin.x == DWT.DEFAULT ? shell.getBounds.x : _prop.var.dataWin.x + shell.getParent.getBounds.x;
+				int y = _prop.var.dataWin.y == DWT.DEFAULT ? shell.getBounds.y : _prop.var.dataWin.y + shell.getParent.getBounds.y;
+				intoDisplay(x, y, width, height);
+				shell.setBounds(x, y, width, height);
+				shell.setMaximized = _prop.var.dataWin.maximized;
+				shell.setMinimized = _prop.var.dataWin.minimized;
+				shell.addControlListener(new class ControlAdapter {
+					override void controlMoved(ControlEvent e) {
+						saveDataWin;
+					}
+					override void controlResized(ControlEvent e) {
+						saveDataWin;
+					}
+				});
+			}
 		}
 		_comm.refScenarioName.add(&__refreshTitle);
 		_win.addDisposeListener(new class DisposeListener {
@@ -198,110 +236,141 @@ public:
 			}
 		});
 	}
-	private void saveDataWin() {
-		auto win = cast(Shell) _win;
-		if (win) {
-			if (!win.getMaximized && !win.getMinimized) {
-				_prop.var.dataWin.width = win.getSize.x;
-				_prop.var.dataWin.height = win.getSize.y;
-				_prop.var.dataWin.x = win.getBounds.x - win.getParent.getBounds.x;
-				_prop.var.dataWin.y = win.getBounds.y - win.getParent.getBounds.y;
+	static if (UseArea && UseFlag) {
+		private void saveDataWin() {
+			auto win = cast(Shell) _win;
+			if (win) {
+				if (!win.getMaximized && !win.getMinimized) {
+					_prop.var.dataWin.width = win.getSize.x;
+					_prop.var.dataWin.height = win.getSize.y;
+					_prop.var.dataWin.x = win.getBounds.x - win.getParent.getBounds.x;
+					_prop.var.dataWin.y = win.getBounds.y - win.getParent.getBounds.y;
+				}
+				_prop.var.dataWin.maximized = win.getMaximized;
+				_prop.var.dataWin.minimized = win.getMinimized;
 			}
-			_prop.var.dataWin.maximized = win.getMaximized;
-			_prop.var.dataWin.minimized = win.getMinimized;
 		}
 	}
 	Composite shell() {return _win;}
-	/// エリアビューを開く。
-	void openArea(ulong id) {
-		_areas.openArea(id);
-	}
-	/// ditto
-	void openBattle(ulong id) {
-		_areas.openBattle(id);
-	}
-	/// ditto
-	void openPackage(ulong id) {
-		_areas.openPackage(id);
-	}
 
-	void createArea() {
-		if (!_summ) return;
-		_comm.openDataWin;
-		tabf.setSelection(tabA);
-		_areas.setFocus;
-		_areas.createArea;
+	static if (UseArea) {
+		void editSummary() {
+			if (!_summ) return;
+			string oldName = _summ.scenarioName;
+			string oldType = _summ.type;
+			auto dlg = new SummaryDialog(_comm, _prop, _win.getShell, _summ);
+			if (IDialogConstants.OK_ID == dlg.open) {
+				_areas.refresh;
+				_comm.refUseCount.call;
+				if (oldName != _summ.scenarioName) _comm.refScenarioName.call;
+				if (oldType != _summ.type) {_comm.refSkin.call;}
+			}
+		}
+		void create(string path, string name, string type) {
+			scope mFPath = std.path.join(path, findSkin2(_prop, type).materialPath);
+			if (!exists(mFPath) || !isdir(mFPath)) mkdir(mFPath);
+			_summ = new Summary(name, type, path, false);
+			_summ.author = _prop.var.etc.defaultAuthor;
+			refresh;
+		}
+
+		/// エリアビューを開く。
+		void openArea(ulong id) {
+			_areas.openArea(id);
+		}
+		/// ditto
+		void openBattle(ulong id) {
+			_areas.openBattle(id);
+		}
+		/// ditto
+		void openPackage(ulong id) {
+			_areas.openPackage(id);
+		}
+		void createArea() {
+			if (!_summ) return;
+			_comm.openDataWin;
+			.forceFocus(_areas.table);
+			_areas.createArea;
+		}
+		void createBattle() {
+			if (!_summ) return;
+			_comm.openDataWin;
+			.forceFocus(_areas.table);
+			_areas.createBattle;
+		}
+		void createPackage() {
+			if (!_summ) return;
+			_comm.openDataWin;
+			.forceFocus(_areas.table);
+			_areas.createPackage;
+		}
 	}
-	void createBattle() {
-		if (!_summ) return;
-		_comm.openDataWin;
-		tabf.setSelection(tabA);
-		_areas.setFocus;
-		_areas.createBattle;
-	}
-	void createPackage() {
-		if (!_summ) return;
-		_comm.openDataWin;
-		tabf.setSelection(tabA);
-		_areas.setFocus;
-		_areas.createPackage;
-	}
-	void createFlagDir() {
-		if (!_summ) return;
-		_comm.openDataWin;
-		tabf.setSelection(tabF);
-		_flags.dirs.setFocus;
-		_flags.dirs.createDir;
-	}
-	void createFlag() {
-		if (!_summ) return;
-		_comm.openDataWin;
-		tabf.setSelection(tabF);
-		_flags.flags.setFocus;
-		_flags.flags.createFlag;
-	}
-	void createStep() {
-		if (!_summ) return;
-		_comm.openDataWin;
-		tabf.setSelection(tabF);
-		_flags.flags.setFocus;
-		_flags.flags.createStep;
-	}
-	void editSummary() {
-		if (!_summ) return;
-		string oldName = _summ.scenarioName;
-		string oldType = _summ.type;
-		auto dlg = new SummaryDialog(_comm, _prop, _win.getShell, _summ);
-		if (IDialogConstants.OK_ID == dlg.open) {
-			_areas.refresh;
-			_comm.refUseCount.call;
-			if (oldName != _summ.scenarioName) _comm.refScenarioName.call;
-			if (oldType != _summ.type) {_comm.refSkin.call;}
+	static if (UseFlag) {
+		void createFlagDir() {
+			if (!_summ) return;
+			static if (UseArea) {
+				_comm.openDataWin;
+			} else {
+				_comm.openFlagWin;
+			}
+			.forceFocus(_flags.dirs.widget);
+			_flags.dirs.createDir;
+		}
+		void createFlag() {
+			if (!_summ) return;
+			static if (UseArea) {
+				_comm.openDataWin;
+			} else {
+				_comm.openFlagWin;
+			}
+			.forceFocus(_flags.flags.widget);
+			_flags.flags.createFlag;
+		}
+		void createStep() {
+			if (!_summ) return;
+			static if (UseArea) {
+				_comm.openDataWin;
+			} else {
+				_comm.openFlagWin;
+			}
+			.forceFocus(_flags.flags.widget);
+			_flags.flags.createStep;
 		}
 	}
 
 	string title() {
 		auto shl = cast(Shell) _win;
-		if (shl) {
-			return _prop.msgs.dataWindowName(_summ);
-		}
-		return _prop.msgs.dataTabName(_summ);
+		static if (UseArea && UseFlag) {
+			if (shl) {
+				return _prop.msgs.dataWindowName(_summ);
+			}
+			return _prop.msgs.dataTabName(_summ);
+		} else static if (UseArea) {
+			if (shl) {
+				return _prop.msgs.areasWindowName(_summ);
+			}
+			return _prop.msgs.areasTabName(_summ);
+		} else static if (UseFlag) {
+			if (shl) {
+				return _prop.msgs.flagWindowName(_summ);
+			}
+			return _prop.msgs.flagTabName(_summ);
+		} else static assert (0);
 	}
 	private void __refreshTitle() {
 		_comm.setTitle(_win, title);
 	}
 	private void refresh() {
 		__refreshTitle;
-		_flags.setFlagDirTree(_summ.flagDirRoot, _summ.useCounter);
-		_areas.summary = _summ;
-		tabf.setSelection = tabA;
-	}
-	void create(string path, string name, string type) {
-		scope mFPath = std.path.join(path, findSkin2(_prop, type).materialPath);
-		if (!exists(mFPath) || !isdir(mFPath)) mkdir(mFPath);
-		_summ = new Summary(name, type, path, false);
-		_summ.author = _prop.var.etc.defaultAuthor;
-		refresh;
+		static if (UseFlag) {
+			_flags.setFlagDirTree(_summ.flagDirRoot, _summ.useCounter);
+		}
+		static if (UseArea) {
+			_areas.summary = _summ;
+			static if (UseFlag) {
+				tabf.setSelection = tabA;
+			}
+		}
 	}
 
 	/// 指定されたディレクトリにあるSummary.xmlからシナリオをロードする。
@@ -319,10 +388,6 @@ public:
 	/// Returns: 貼り紙。
 	Summary summary() {
 		return _summ;
-	}
-	/// Returns: 編集中のシナリオのディレクトリ。
-	string scenarioPath() {
-		return _summ.scenarioPath;
 	}
 
 	override {
@@ -361,45 +426,69 @@ public:
 
 	private bool openCWXPathAf(Window)(Window w, string path) {
 		if (w) {
-			tabf.setSelection = tabA;
+			static if (UseArea && UseFlag) {
+				tabf.setSelection = tabA;
+			}
 			return w.openCWXPath(cpbottom(path));
 		}
 		return false;
 	}
 	bool openCWXPath(string path) {
 		if (path == "") {
-			_comm.openDataWin;
+			static if (UseArea) {
+				_comm.openDataWin;
+			} else {
+				_comm.openFlagWin;
+			}
 			return true;
 		}
 		auto cate = cpcategory(path);
 		auto index = cpindex(path);
 		switch (cate) {
 		case "area": {
-			if (index >= _summ.areas.length) return false;
-			return openCWXPathAf(_comm.openArea(_prop, _summ, _summ.areas[index]), path);
+			static if (UseArea) {
+				if (index >= _summ.areas.length) return false;
+				return openCWXPathAf(_comm.openArea(_prop, _summ, _summ.areas[index]), path);
+			}
 		} break;
 		case "area:id": {
-			return openCWXPathAf(_comm.openArea(_prop, _summ, _summ.area(index)), path);
+			static if (UseArea) {
+				return openCWXPathAf(_comm.openArea(_prop, _summ, _summ.area(index)), path);
+			}
 		} break;
 		case "battle": {
-			if (index >= _summ.battles.length) return false;
-			return openCWXPathAf(_comm.openArea(_prop, _summ, _summ.battles[index]), path);
+			static if (UseArea) {
+				if (index >= _summ.battles.length) return false;
+				return openCWXPathAf(_comm.openArea(_prop, _summ, _summ.battles[index]), path);
+			}
 		} break;
 		case "battle:id": {
-			return openCWXPathAf(_comm.openArea(_prop, _summ, _summ.battle(index)), path);
+			static if (UseArea) {
+				return openCWXPathAf(_comm.openArea(_prop, _summ, _summ.battle(index)), path);
+			}
 		} break;
 		case "package": {
-			if (index >= _summ.packages.length) return false;
-			return openCWXPathAf(_comm.openArea(_prop, _summ, _summ.packages[index]), path);
+			static if (UseArea) {
+				if (index >= _summ.packages.length) return false;
+				return openCWXPathAf(_comm.openArea(_prop, _summ, _summ.packages[index]), path);
+			}
 		} break;
 		case "package:id": {
-			return openCWXPathAf(_comm.openArea(_prop, _summ, _summ.packages(index)), path);
+			static if (UseArea) {
+				return openCWXPathAf(_comm.openArea(_prop, _summ, _summ.packages(index)), path);
+			}
 		} break;
 		case "variable": {
-			return _flags.openCWXPath(cpbottom(path));
+			static if (UseFlag) {
+				return _flags.openCWXPath(cpbottom(path));
+			}
 		} break;
 		default: break;
 		}
 		return false;
 	}
 }
+
+alias AbstractDataWindow!(true, true) DataWindow;
+alias AbstractDataWindow!(true, false) TableWindow;
+alias AbstractDataWindow!(false, true) FlagWindow;

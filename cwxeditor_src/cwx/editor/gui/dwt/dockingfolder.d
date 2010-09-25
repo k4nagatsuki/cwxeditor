@@ -208,7 +208,9 @@ class DockingFolder(TabF, int Style) {
 		int style = dir == Dir.N || dir == Dir.S ? DWT.VERTICAL : DWT.HORIZONTAL;
 		bool before = dir == Dir.N || dir == Dir.W;
 		if (!key.length) key = newTabfKey;
-		return newSash(tabf, style, before, lWeight, rWeight, key, vanish);
+		auto r = newSash(tabf, style, before, lWeight, rWeight, key, vanish);
+		area.layout(true);
+		return r;
 	}
 	/// Controlを追加する。
 	/// ctrlの親は必ずこのインスタンスに含まれるペインでなくてはならない。
@@ -251,7 +253,7 @@ class DockingFolder(TabF, int Style) {
 	bool close(string key) {
 		auto t = tab(key);
 		if (t) {
-			t.getControl.dispose;
+			close(t);
 			t.dispose;
 			return true;
 		}
@@ -297,13 +299,19 @@ class DockingFolder(TabF, int Style) {
 	}
 	private class CTFL :  CTabFolderListener {
 		void itemClosed(CTabFolderEvent e) {
-			auto tabf = cast(TabF) e.widget;
-			(cast(Tab) e.item).getControl.dispose;
-			auto key = _tabfs[tabf];
-			if (vanish(key) && tabf.getItemCount == 1 && area.getChildren[0] !is tabf) {
-				removeTabf(tabf);
-				area.layout(true);
-			}
+			close(cast(Tab) e.item);
+		}
+	}
+	private void close(Tab tab) {
+		auto tabf = tab.getParent;
+		auto ctrlKey = keyFromCtrl(tab.getControl);
+		_ctrls.remove(tab.getControl);
+		_keys.remove(ctrlKey);
+		tab.getControl.dispose;
+		auto key = _tabfs[tabf];
+		if (vanish(key) && tabf.getItemCount == 1 && area.getChildren[0] !is tabf) {
+			removeTabf(tabf);
+			area.layout(true);
 		}
 	}
 	/// Controlツリーの再構築。

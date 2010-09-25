@@ -103,6 +103,7 @@ public:
 	Image menuSaveA() {return imgd!(resourceDir ~ "save_a.png");}
 
 	Image menuDataWin() {return imgd!(resourceDir ~ "data_win.png");}
+	Image menuFlagWin() {return imgd!(resourceDir ~ "flag_win.png");}
 	Image menuCardWin() {return imgd!(resourceDir ~ "card_win.png");}
 	Image menuDirWin() {return imgd!(resourceDir ~ "dir_win.png");}
 

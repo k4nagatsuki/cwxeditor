@@ -186,12 +186,22 @@ class Commons {
 		_ws = new HashSet!(Composite);
 	}
 	private MainWindow _main;
-	private DataWindow _dataWin;
+	private DataWindow _dataWin = null;
+	private TableWindow _tableWin = null;
+	private FlagWindow _flagWin = null;
 	private MainCardWindow _cardWin;
 	private DirectoryWindow _dirWin;
 	void baseShell(MainWindow main, DataWindow dataWin, MainCardWindow cardWin, DirectoryWindow dirWin) {
 		_main = main;
 		_dataWin = dataWin;
+		_cardWin = cardWin;
+		_dirWin = dirWin;
+	}
+	void baseShell(MainWindow main, TableWindow tableWin, FlagWindow flagWin,
+			MainCardWindow cardWin, DirectoryWindow dirWin) {
+		_main = main;
+		_tableWin = tableWin;
+		_flagWin = flagWin;
 		_cardWin = cardWin;
 		_dirWin = dirWin;
 	}
@@ -263,7 +273,8 @@ class Commons {
 	private Window __openArea(A, Window)(Props prop, Summary summ, A area) {
 		if (!area) return null;
 		return __open!("work", Window, A, "", Commons, Props, Summary, Composite, Shell, A)
-			(area, this, prop, summ, workPane, cast(Shell) _dataWin.shell, area);
+			(area, this, prop, summ, workPane,
+			cast(Shell) (_dataWin ? _dataWin.shell : _tableWin.shell), area);
 	}
 	AreaWindow openArea(Props prop, Summary summ, Area area) {
 		return __openArea!(Area, AreaWindow)(prop, summ, area);
@@ -338,7 +349,14 @@ class Commons {
 		}, win.title);
 	}
 	void openDataWin() {
-		openMain!("data", "data", Dir.S)(_dataWin);
+		if (_dataWin) {
+			openMain!("data", "data", Dir.S)(_dataWin);
+		} else {
+			openMain!("data", "data", Dir.S)(_tableWin);
+		}
+	}
+	void openFlagWin() {
+		openMain!("flag", "data", Dir.S)(_flagWin);
 	}
 	void openCardWin() {
 		openMain!("card", "data", Dir.S)(_cardWin);

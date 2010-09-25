@@ -147,7 +147,7 @@ private:
 
 	Commons _comm;
 	Props _prop;
-	FlagTable _flags;
+	FlagTable _flags = null;
 	Summary _summ;
 
 	Table _areas;
@@ -377,10 +377,6 @@ public:
 		drop.addDropListener(new DropArea);
 	}
 
-	void setFocus() {
-		_areas.setFocus;
-	}
-
 	Control table() {
 		return _areas;
 	}
@@ -479,7 +475,7 @@ public:
 							_summ.useCounter.change(toBattleId(oldId), toBattleId(newId));
 						}
 					}
-					_flags.refresh;
+					if (_flags) _flags.refresh;
 					_areasV.refresh;
 					_comm.refUseCount.call;
 				}
@@ -497,7 +493,7 @@ public:
 					assert (cast(Package) area);
 					_comm.delPackage.call(cast(Package) area);
 				}
-				_flags.refresh;
+				if (_flags) _flags.refresh;
 				_areasV.refresh;
 				_comm.refUseCount.call;
 			}

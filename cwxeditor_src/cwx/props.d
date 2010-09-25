@@ -173,6 +173,8 @@ public:
 	string menuView() {return "表示(&V)";}
 	string ttDataWin() {return "データウィンドウ";}
 	string menuDataWin() {return ttDataWin ~ "(&D)";}
+	string ttFlagWin() {return "状態変数ウィンドウ";}
+	string menuFlagWin() {return ttFlagWin ~ "(&V)";}
 	string ttCardWin() {return "カードウィンドウ";}
 	string menuCardWin() {return ttCardWin ~ "(&W)";}
 	string ttDirWin() {return "素材管理ウィンドウ";}
@@ -756,6 +758,26 @@ public:
 			return "データ - [ " ~ summ.scenarioName ~ " ] - " ~ summ.scenarioPath;
 		} else {
 			return "データ";
+		}
+	}
+	string areasTabName(Summary summ) {
+		return "エリア";
+	}
+	string areasWindowName(Summary summ) {
+		if (summ) {
+			return "エリア - [ " ~ summ.scenarioName ~ " ] - " ~ summ.scenarioPath;
+		} else {
+			return "エリア";
+		}
+	}
+	string flagTabName(Summary summ) {
+		return "フラグ";
+	}
+	string flagWindowName(Summary summ) {
+		if (summ) {
+			return "フラグ - [ " ~ summ.scenarioName ~ " ] - " ~ summ.scenarioPath;
+		} else {
+			return "フラグ";
 		}
 	}
 	string scenarioView() {return "シナリオビューリスト";}

@@ -642,11 +642,7 @@ public:
 
 		return flags;
 	}
-	Widget widget() {return flags;}
-
-	bool setFocus() {
-		return flags.setFocus;
-	}
+	Control widget() {return flags;}
 
 	private void __refreshUseCount() {
 		foreach (itm; flags.getItems) {

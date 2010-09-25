@@ -95,14 +95,16 @@ private:
 	Props _prop;
 	Commons _comm;
 
-	DataWindow _dataWin;
+	DataWindow _dataWin = null;
+	TableWindow _tableWin = null;
+	FlagWindow _flagWin = null;
 	MainCardWindow _cardWin;
 	DirectoryWindow _dirWin;
 
 	void __refreshTitle() {
 		if (summary) {
 			_win.setText = _prop.msgs.mainWindowName
-				(summary.scenarioName, getDirName(_dataWin.scenarioPath));
+				(summary.scenarioName, getDirName(summary.scenarioPath));
 		} else {
 			_win.setText = _prop.msgs.mainWindowName(null, null);
 		}
@@ -117,10 +119,15 @@ private:
 			string skinName = dlg.skinName;
 			_comm.closeAll;
 			auto p = Summary.createTempDir(_prop.tempPath, name);
-			_dataWin.create(p, name, skinName);
+			if (_dataWin) {
+				_dataWin.create(p, name, skinName);
+			} else {
+				_tableWin.create(p, name, skinName);
+			}
 			if (summary.expandXMLs) {
 				summary.saveXMLs(summary.scenarioPath);
 			}
+			if (_flagWin) _flagWin.load(summary);
 			_cardWin.refresh(summary);
 			_dirWin.refresh(summary);
 			if (_replDlg) _replDlg.summary = summary;
@@ -197,7 +204,12 @@ private:
 			summ.type = _prop.var.etc.defaultSkin;
 		}
 		_comm.closeAll;
-		_dataWin.load(summ);
+		if (_dataWin) {
+			_dataWin.load(summ);
+		} else {
+			_tableWin.load(summ);
+			_flagWin.load(summ);
+		}
 		_cardWin.refresh(summ);
 		_dirWin.refresh(summ);
 		if (_replDlg) _replDlg.summary = summ;
@@ -338,6 +350,11 @@ private:
 		if (summary || dock) {
 			_prop.var.dataWin.visible = true;
 			_comm.openDataWin;
+		}
+	}
+	void openFlagWindow() {
+		if (dock) {
+			_comm.openFlagWin;
 		}
 	}
 	void openCardWindow() {
@@ -653,8 +670,12 @@ public:
 			_dock = _prop.var.loadDock(_win, DWT.NONE, delegate Control(Composite parent, string key) {
 				switch (key) {
 				case "data": {
-					_dataWin = new DataWindow(_comm, _prop, parent);
-					return _dataWin.shell;
+					_tableWin = new TableWindow(_comm, _prop, parent);
+					return _tableWin.shell;
+				}
+				case "flag": {
+					_flagWin = new FlagWindow(_comm, _prop, parent);
+					return _flagWin.shell;
 				}
 				case "card": {
 					_cardWin = new MainCardWindow(_comm, _prop, parent);
@@ -677,15 +698,34 @@ public:
 			}
 			if (_dock) {
 				initDock;
-				if (!_dataWin) _dataWin = new DataWindow(_comm, _prop, null);
-				if (!_cardWin) _cardWin = new MainCardWindow(_comm, _prop, null);
-				if (!_dirWin) _dirWin = new DirectoryWindow(_comm, _prop, null);
+				if (_tableWin) {
+					_dock.tabText("data", _tableWin.title);
+				} else {
+					_tableWin = new TableWindow(_comm, _prop, null);
+				}
+				if (_flagWin) {
+					_dock.tabText("flag", _flagWin.title);
+				} else {
+					_flagWin = new FlagWindow(_comm, _prop, null);
+				}
+				if (_cardWin) {
+					_dock.tabText("card", _cardWin.title);
+				} else {
+					_cardWin = new MainCardWindow(_comm, _prop, null);
+				}
+				if (_dirWin) {
+					_dock.tabText("file", _dirWin.title);
+				} else {
+					_dirWin = new DirectoryWindow(_comm, _prop, null);
+				}
 			} else {
 				_dock = new DockingFolderCTC(_win, DWT.NONE, "work");
 				initDock;
 				auto data = _dock.addPane(_dock.first, Dir.S, 3, 1, "data");
-				_dataWin = new DataWindow(_comm, _prop, data);
-				_dock.add(_dataWin.shell, _dataWin.title, "data", true);
+				_tableWin = new TableWindow(_comm, _prop, data);
+				_dock.add(_tableWin.shell, _tableWin.title, "data", true);
+				_flagWin = new FlagWindow(_comm, _prop, data);
+				_dock.add(_flagWin.shell, _flagWin.title, "flag", true);
 				_cardWin = new MainCardWindow(_comm, _prop, data);
 				_dock.add(_cardWin.shell, _cardWin.title, "card", false);
 				_dirWin = new DirectoryWindow(_comm, _prop, data);
@@ -742,14 +782,14 @@ public:
 				auto ma = createMenu(bar, _prop.msgs.menuTable);
 				mixin (MenuAction!("ma", "Summary"));
 				new MenuItem(ma, DWT.SEPARATOR);
-				mixin (MenuAction!("ma", "NewArea", DWT.PUSH, "_dataWin.createArea"));
-				mixin (MenuAction!("ma", "NewBattle", DWT.PUSH, "_dataWin.createBattle"));
-				mixin (MenuAction!("ma", "NewPackage", DWT.PUSH, "_dataWin.createPackage"));
+				mixin (MenuAction!("ma", "NewArea", DWT.PUSH, "_tableWin.createArea"));
+				mixin (MenuAction!("ma", "NewBattle", DWT.PUSH, "_tableWin.createBattle"));
+				mixin (MenuAction!("ma", "NewPackage", DWT.PUSH, "_tableWin.createPackage"));
 
 				auto mf = createMenu(bar, _prop.msgs.menuVariable);
-				mixin (MenuAction!("mf", "NewFlagDir", DWT.PUSH, "_dataWin.createFlagDir"));
-				mixin (MenuAction!("mf", "NewFlag", DWT.PUSH, "_dataWin.createFlag"));
-				mixin (MenuAction!("mf", "NewStep", DWT.PUSH, "_dataWin.createStep"));
+				mixin (MenuAction!("mf", "NewFlagDir", DWT.PUSH, "_flagWin.createFlagDir"));
+				mixin (MenuAction!("mf", "NewFlag", DWT.PUSH, "_flagWin.createFlag"));
+				mixin (MenuAction!("mf", "NewStep", DWT.PUSH, "_flagWin.createStep"));
 
 				auto mc = createMenu(bar, _prop.msgs.menuCards);
 				auto g = new RadioGroup!(MenuItem);
@@ -835,21 +875,22 @@ public:
 			{
 				auto bar = new ToolBar(cbar, DWT.FLAT);
 				mCreateToolItem(bar, _prop.msgs.ttDataWin, _prop.images.menuDataWin, &openDataWindow);
+				mCreateToolItem(bar, _prop.msgs.ttFlagWin, _prop.images.menuFlagWin, &openFlagWindow);
 				mCreateToolItem(bar, _prop.msgs.ttCardWin, _prop.images.menuCardWin, &openCardWindow);
 				mCreateToolItem(bar, _prop.msgs.ttDirWin, _prop.images.menuDirWin, &openDirWindow);
 				createCoolItem(cbar, bar);
 			}
 			{
 				auto bar = new ToolBar(cbar, DWT.FLAT);
-				mixin (ToolAction!("bar", "Summary", DWT.PUSH, "_dataWin.editSummary"));
+				mixin (ToolAction!("bar", "Summary", DWT.PUSH, "_tableWin.editSummary"));
 				new ToolItem(bar, DWT.SEPARATOR);
-				mixin (ToolAction!("bar", "NewArea", DWT.PUSH, "_dataWin.createArea"));
-				mixin (ToolAction!("bar", "NewBattle", DWT.PUSH, "_dataWin.createBattle"));
-				mixin (ToolAction!("bar", "NewPackage", DWT.PUSH, "_dataWin.createPackage"));
+				mixin (ToolAction!("bar", "NewArea", DWT.PUSH, "_tableWin.createArea"));
+				mixin (ToolAction!("bar", "NewBattle", DWT.PUSH, "_tableWin.createBattle"));
+				mixin (ToolAction!("bar", "NewPackage", DWT.PUSH, "_tableWin.createPackage"));
 				new ToolItem(bar, DWT.SEPARATOR);
-				mixin (ToolAction!("bar", "NewFlagDir", DWT.PUSH, "_dataWin.createFlagDir"));
-				mixin (ToolAction!("bar", "NewFlag", DWT.PUSH, "_dataWin.createFlag"));
-				mixin (ToolAction!("bar", "NewStep", DWT.PUSH, "_dataWin.createStep"));
+				mixin (ToolAction!("bar", "NewFlagDir", DWT.PUSH, "_flagWin.createFlagDir"));
+				mixin (ToolAction!("bar", "NewFlag", DWT.PUSH, "_flagWin.createFlag"));
+				mixin (ToolAction!("bar", "NewStep", DWT.PUSH, "_flagWin.createStep"));
 				createCoolItem(cbar, bar);
 			}
 			{
@@ -891,6 +932,8 @@ public:
 			auto drop = new DropTarget(cbar, DND.DROP_DEFAULT | DND.DROP_LINK);
 			drop.setTransfer([FileTransfer.getInstance]);
 			drop.addDropListener(new DTListener);
+
+			_comm.baseShell(this, _tableWin, _flagWin, _cardWin, _dirWin);
 		} else {
 			auto bar = new ToolBar(toolComp, DWT.FLAT);
 			bar.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
@@ -918,8 +961,9 @@ public:
 			auto drop = new DropTarget(bar, DND.DROP_DEFAULT | DND.DROP_LINK);
 			drop.setTransfer([FileTransfer.getInstance]);
 			drop.addDropListener(new DTListener);
+
+			_comm.baseShell(this, _dataWin, _cardWin, _dirWin);
 		}
-		_comm.baseShell(this, _dataWin, _cardWin, _dirWin);
 
 		int tx = _prop.var.mainWin.x == DWT.DEFAULT ? _win.getBounds.x : _prop.var.mainWin.x;
 		int ty = _prop.var.mainWin.y == DWT.DEFAULT ? _win.getBounds.y : _prop.var.mainWin.y;
@@ -933,7 +977,7 @@ public:
 			intoDisplay(tx, ty, _win.getSize.x, _win.getSize.y);
 			_win.setBounds(tx, ty, _win.getSize.x, _win.getSize.y);
 		}
-		dockSelect("data");
+		if (_dock) dockSelect("data");
 	}
 	private class CCListener : ControlAdapter {
 		override void controlResized(ControlEvent e) {
@@ -1036,7 +1080,8 @@ public:
 	}
 
 	private void dockSelect(string key) {
-		assert (_dock.control(key), key);
+		if (!_dock) return;
+		if (!_dock.control(key)) return;
 		auto tlp = (cast(TLPData) _dock.control(key).getData).tlp;
 		assert (tlp, key);
 		_tlp = tlp;
@@ -1102,18 +1147,24 @@ public:
 	Shell shell() {return _win;}
 	DockingFolderCTC dock() {return _dock;}
 
-	Summary summary() {return _dataWin.summary;}
+	Summary summary() {return _dataWin ? _dataWin.summary : _tableWin.summary;}
 
 	bool openCWXPath(string path) {
 		path = toLower(path);
 		if (path == "") {
-			return _dataWin.openCWXPath(path);
+			return true;
 		}
 		auto cate = cpcategory(path);
 		switch (cate) {
 		case "area", "battle", "package", "area:id", "battle:id", "package:id", "variable": {
+			if (_dataWin) {
 				return _dataWin.openCWXPath(path);
-			} case "castcard", "skillcard", "itemcard", "beastcard", "infocard",
+			} else if (cate == "variable") {
+				return _flagWin.openCWXPath(path);
+			} else {
+				return _tableWin.openCWXPath(path);
+			}
+		} case "castcard", "skillcard", "itemcard", "beastcard", "infocard",
 				"castcard:id", "skillcard:id", "itemcard:id", "beastcard:id", "infocard:id": {
 			return _cardWin.openCWXPath(path);
 		} default: return false;
