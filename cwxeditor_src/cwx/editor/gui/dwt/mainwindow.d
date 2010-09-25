@@ -441,8 +441,13 @@ private:
 				}
 			}
 			_win.setVisible = false;
-			_comm.closeAll;
-			_prop.var.save(dock);
+			try {
+				_comm.closeAll;
+				_prop.var.save(dock);
+			} catch (Object e) {
+				_win.setVisible = true;
+				throw e;
+			}
 		}
 	}
 	void settings() {

@@ -4,6 +4,8 @@ module cwx.editor.gui.dwt.dockingfolder;
 import cwx.utils;
 import cwx.xml;
 
+import cwx.editor.gui.dwt.centerlayout;
+
 import dwt.all;
 
 import std.file;
@@ -43,7 +45,10 @@ class DockingFolder(TabF, int Style) {
 	private FocusL _fl;
 	private this (Composite parent, int style, bool createTabf, string firstPaneKey = "") {
 		_area = new Composite(parent, style);
-		_area.setLayout = new FillLayout;
+		auto cl = new CenterLayout(DWT.HORIZONTAL | DWT.VERTICAL, 0);
+		cl.fillHorizontal = true;
+		cl.fillVertical = true;
+		_area.setLayout = cl;
 		if (createTabf) newTabf(_area, firstPaneKey, true);
 		_fl = new FocusL;
 		Display.getCurrent.addFilter(DWT.FocusIn, _fl);

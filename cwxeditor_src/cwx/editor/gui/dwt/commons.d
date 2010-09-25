@@ -242,10 +242,6 @@ class Commons {
 	}
 	private Window __open2(string Pane, Window, Main, string Etc, Args ...)(Main m, Args args) {
 		auto w = new Window(args);
-		_ws.add(w.shell);
-		_wos[w.shell] = w;
-		w.shell.addDisposeListener(new CloseRemover!(Composite)(_ws, w.shell));
-		w.shell.addDisposeListener(new SCL);
 		(cast(TLPData) w.shell.getData).main = m;
 		static if (Etc.length) mixin (Etc);
 		open(w, Pane);
