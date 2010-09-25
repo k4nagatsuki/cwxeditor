@@ -793,10 +793,17 @@ public:
 
 				auto mc = createMenu(bar, _prop.msgs.menuCards);
 				auto g = new RadioGroup!(MenuItem);
-				mixin (MenuAction!("mc", "ShowCardList", DWT.RADIO));
-				g.append(_menu[_prop.msgs.menuShowCardList]);
-				mixin (MenuAction!("mc", "ShowCardTable", DWT.RADIO));
-				g.append(_menu[_prop.msgs.menuShowCardTable]);
+				mixin (MenuAction!("mc", "ShowCardList", DWT.RADIO, "showCardList!(\"menu\")"));
+				auto scl = _menu[_prop.msgs.menuShowCardList];
+				g.append(scl);
+				mixin (MenuAction!("mc", "ShowCardTable", DWT.RADIO, "showCardTable!(\"menu\")"));
+				auto sct = _menu[_prop.msgs.menuShowCardTable];
+				g.append(sct);
+				if (_prop.var.etc.cardDetails) {
+					sct.setSelection = true;
+				} else {
+					scl.setSelection = true;
+				}
 				_menuRG ~= g;
 				new MenuItem(mc, DWT.SEPARATOR);
 				mixin (MenuAction!("mc", "NewCast", DWT.PUSH, "newCast"));
@@ -896,10 +903,17 @@ public:
 			{
 				auto bar = new ToolBar(cbar, DWT.FLAT);
 				auto g = new RadioGroup!(ToolItem);
-				mixin (ToolAction!("bar", "ShowCardList", DWT.RADIO));
-				g.append(_tool[_prop.msgs.ttShowCardList]);
-				mixin (ToolAction!("bar", "ShowCardTable", DWT.RADIO));
-				g.append(_tool[_prop.msgs.ttShowCardTable]);
+				mixin (ToolAction!("bar", "ShowCardList", DWT.RADIO, "showCardList!(\"tool\")"));
+				auto scl = _tool[_prop.msgs.ttShowCardList];
+				g.append(scl);
+				mixin (ToolAction!("bar", "ShowCardTable", DWT.RADIO, "showCardTable!(\"tool\")"));
+				auto sct = _tool[_prop.msgs.ttShowCardTable];
+				g.append(sct);
+				if (_prop.var.etc.cardDetails) {
+					sct.setSelection = true;
+				} else {
+					scl.setSelection = true;
+				}
 				_toolRG ~= g;
 				new ToolItem(bar, DWT.SEPARATOR);
 				mixin (ToolAction!("bar", "NewCast", DWT.PUSH, "newCast"));
@@ -1000,6 +1014,24 @@ public:
 			~ "    _cardWin.create" ~ Name ~ ";"
 			~ "}";
 	}
+	private void showCardList(string MT)() {
+		auto cw = cast(ICardWindow) _tlp;
+		if (cw) {
+			mixin (MT ~ "Action!(\"ShowCardList\");");
+		} else {
+			_cardWin.showCardList;
+			mixin (MT ~ "ActionAfter!(\"ShowCardList\");");
+		}
+	}
+	private void showCardTable(string MT)() {
+		auto cw = cast(ICardWindow) _tlp;
+		if (cw) {
+			mixin (MT ~ "Action!(\"ShowCardTable\");");
+		} else {
+			_cardWin.showCardTable;
+			mixin (MT ~ "ActionAfter!(\"ShowCardTable\");");
+		}
+	}
 	private void newCast() {mixin (NewCard!("Cast"));}
 	private void newSkill() {mixin (NewCard!("Skill"));}
 	private void newItem() {mixin (NewCard!("Item"));}
@@ -1040,6 +1072,10 @@ public:
 		auto act = _tlp.menuAction(s);
 		assert (act);
 		act();
+		menuActionAfter!(S);
+	}
+	private void menuActionAfter(string S)() {
+		auto s = mixin ("_prop.msgs.menu" ~ S);
 		if (_tlp.menuChecked(s)) {
 			auto t = _tlp.menuToTool(s);
 			if (t) {
@@ -1062,6 +1098,10 @@ public:
 		auto act = _tlp.toolAction(s);
 		assert (act);
 		act();
+		toolActionAfter!(S);
+	}
+	private void toolActionAfter(string S)() {
+		auto s = mixin ("_prop.msgs.tt" ~ S);
 		if (_tlp.toolChecked(s)) {
 			auto t = _tlp.toolToMenu(s);
 			if (t) {

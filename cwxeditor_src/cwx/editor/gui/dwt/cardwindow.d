@@ -32,8 +32,6 @@ import dwt.widgets.Shell;
 import dwt.widgets.Display;
 import dwt.widgets.Control;
 import dwt.widgets.Composite;
-import dwt.widgets.TabFolder;
-import dwt.widgets.TabItem;
 import dwt.widgets.ToolBar;
 import dwt.widgets.ToolItem;
 import dwt.widgets.Menu;
@@ -58,6 +56,8 @@ import dwt.events.KeyAdapter;
 import dwt.events.KeyEvent;
 import dwt.events.ControlAdapter;
 import dwt.events.ControlEvent;
+import dwt.custom.CTabFolder;
+import dwt.custom.CTabItem;
 import dwt.dwthelper.utils;
 import dwt.dnd.DND;
 import dwt.dnd.ByteArrayTransfer;
@@ -1056,11 +1056,11 @@ private:
 		}
 	}
 	PTypes!(Cards) _pane;
-	TabItem[Cards.length] _tab;
+	CTabItem[Cards.length] _tab;
 
 	Props _prop;
 	Composite _win;
-	TabFolder _tabf;
+	CTabFolder _tabf;
 	PCardOwner _summ;
 	CardOwner _owner;
 	Commons _comm;
@@ -1129,7 +1129,7 @@ private:
 	static if (!EditMode) {
 		void addCard() {
 			foreach (i, f; _pane) {
-				if (_tabf.getSelection[0] is _tab[i]) {
+				if (_tabf.getSelection is _tab[i]) {
 					f.addCard;
 					return;
 				}
@@ -1340,7 +1340,7 @@ public:
 			putMenuChecked(prop.msgs.menuShowCardList, prop.msgs.ttShowCardList, &showCardList, &isViewList);
 			putMenuChecked(prop.msgs.menuShowCardTable, prop.msgs.ttShowCardTable, &showCardTable, &isViewTable);
 		}
-		_tabf = new TabFolder(comp, DWT.NONE);
+		_tabf = new CTabFolder(comp, DWT.BORDER);
 		_tabf.setLayoutData = new GridData(GridData.FILL_BOTH);
 
 		static if (EditMode && is (CardOwner == Summary)) {
@@ -1469,7 +1469,7 @@ public:
 			}
 		}
 		foreach (i, f; _pane) {
-			_tab[i] = new TabItem(_tabf, DWT.NONE);
+			_tab[i] = new CTabItem(_tabf, DWT.NONE);
 			static if (UseCast) {
 				if (i == CAST) _tab[i].setText = _prop.msgs.casts;
 			}
@@ -1488,6 +1488,7 @@ public:
 			_tcpd ~= f;
 			addTable(f.cardTable);
 		}
+		_tabf.setSelection = 0;
 		showCardList;
 		auto shell = cast(Shell) _win;
 		if (shell) {
