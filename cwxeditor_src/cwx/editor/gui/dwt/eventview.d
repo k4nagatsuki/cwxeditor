@@ -984,12 +984,14 @@ public:
 
 	private void setupToolBar(ToolBar bar) {
 		_toolbar = bar;
-		createToolItem(bar, _prop.msgs.ttUndo, _prop.images.menuUndo, &undo);
-		createToolItem(bar, _prop.msgs.ttRedo, _prop.images.menuRedo, &redo);
-		new ToolItem(bar, DWT.SEPARATOR);
-		createToolItem(bar, _prop.msgs.ttUp, _prop.images.menuUp, &up);
-		createToolItem(bar, _prop.msgs.ttDown, _prop.images.menuDown, &down);
-		new ToolItem(bar, DWT.SEPARATOR);
+		if (!_comm.singleWindowMode) {
+			createToolItem(bar, _prop.msgs.ttUndo, _prop.images.menuUndo, &undo);
+			createToolItem(bar, _prop.msgs.ttRedo, _prop.images.menuRedo, &redo);
+			new ToolItem(bar, DWT.SEPARATOR);
+			createToolItem(bar, _prop.msgs.ttUp, _prop.images.menuUp, &up);
+			createToolItem(bar, _prop.msgs.ttDown, _prop.images.menuDown, &down);
+			new ToolItem(bar, DWT.SEPARATOR);
+		}
 		{
 			auto treeKindItm = new ToolItem(bar, DWT.SEPARATOR);
 			_treeKind = new CCombo(bar, DWT.READ_ONLY | DWT.DROP_DOWN | DWT.BORDER);

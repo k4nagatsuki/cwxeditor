@@ -392,6 +392,7 @@ class Commons {
 			_main.dock.close(_main.dock.keyFromCtrl(comp));
 		}
 	}
+	bool singleWindowMode() {return _main.dock !is null;}
 
 	bool openCWXPath(string path) {
 		return _main.openCWXPath(path);
