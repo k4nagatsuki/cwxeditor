@@ -419,6 +419,7 @@ private:
 		return true;
 	}
 
+	private CoolBar _cbar = null;
 	class SListener : ShellAdapter {
 		override void shellClosed(ShellEvent e) {
 			e.doit = qSave;
@@ -447,6 +448,10 @@ private:
 					foreach (ctrl; dock.controls) {
 						ctrl.dispose;
 					}
+				}
+				if (_cbar) {
+					_prop.var.etc.toolsWrapIndices = _cbar.getWrapIndices;
+					_prop.var.etc.toolsOrder = _cbar.getItemOrder;
 				}
 				_prop.var.save(dock);
 			} catch (Object e) {
@@ -844,7 +849,7 @@ public:
 			auto cbar = new CoolBar(toolComp, DWT.FLAT);
 			cbar.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			cbar.addControlListener(new CCListener);
-			cbar.addDisposeListener(new CDListener);
+			_cbar = cbar;
 			void createCoolItem(CoolBar cbar, ToolBar tbar) {
 				.createCoolItem(cbar, tbar);
 				_toolBar ~= tbar;
@@ -947,14 +952,14 @@ public:
 				mCreateToolItem(bar, _prop.msgs.ttClose, _prop.images.menuClose, &exitAll);
 				createCoolItem(cbar, bar);
 			}
-			if (_prop.var.etc.toolsOrder.length == cbar.getItemCount) {
-				cbar.setItemOrder(_prop.var.etc.toolsOrder);
-			}
 			int[] wi;
 			foreach (i; _prop.var.etc.toolsWrapIndices) {
 				if (i < cbar.getItemCount) wi ~= i;
 			}
 			cbar.setWrapIndices(wi);
+			if (_prop.var.etc.toolsOrder.length == cbar.getItemCount) {
+				cbar.setItemOrder(_prop.var.etc.toolsOrder);
+			}
 
 			auto drop = new DropTarget(cbar, DND.DROP_DEFAULT | DND.DROP_LINK);
 			drop.setTransfer([FileTransfer.getInstance]);
@@ -1009,13 +1014,6 @@ public:
 	private class CCListener : ControlAdapter {
 		override void controlResized(ControlEvent e) {
 			_win.layout;
-		}
-	}
-	private class CDListener : DisposeListener {
-		override void widgetDisposed(DisposeEvent e) {
-			auto cbar = cast(CoolBar) e.widget;
-			_prop.var.etc.toolsOrder = cbar.getItemOrder;
-			_prop.var.etc.toolsWrapIndices = cbar.getWrapIndices;
 		}
 	}
 	private template NewCard(string Name) {
