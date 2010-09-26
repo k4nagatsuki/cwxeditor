@@ -228,7 +228,8 @@ public:
 		this.prop = prop;
 		this.flags = flags;
 	}
-	Control widget() {return dirs;}
+	private Composite _comp = null;
+	Control widget() {return _comp;}
 
 	void refresh() {
 		refresh(null);
@@ -264,7 +265,9 @@ public:
 	/// Params:
 	/// parent = 親コントロール。
 	Control createControl(Composite parent) {
-		dirs = new Tree(parent, DWT.SINGLE | DWT.BORDER);
+		_comp = new Composite(parent, DWT.NONE);
+		_comp.setLayout = new FillLayout;
+		dirs = new Tree(_comp, DWT.SINGLE | DWT.BORDER);
 		dirsV = new TreeViewer(dirs);
 		dirsV.setContentProvider(new FlagDirContentProvider);
 		dirsV.setLabelProvider(new FlagDirLabelProvider);
@@ -291,7 +294,7 @@ public:
 				_comm.replText.remove(&refresh);
 			}
 		});
-		return dirs;
+		return _comp;
 	}
 
 	/// 新規ディレクトリを生成する。

@@ -1124,8 +1124,10 @@ public:
 			setupToolBar(new ToolBar(_win, DWT.FLAT));
 			_sash = new SplitPane(_win, _prop.var.etc.directorySashV ? DWT.VERTICAL : DWT.HORIZONTAL);
 			_sash.setLayoutData = new GridData(GridData.FILL_BOTH);
-			_dirs = new Tree(_sash, DWT.SINGLE | DWT.BORDER | DWT.VIRTUAL);
-			_sash.setControl1 = _dirs;
+			auto dirsComp = new Composite(_sash, DWT.NONE);
+			dirsComp.setLayout = new FillLayout;
+			_dirs = new Tree(dirsComp, DWT.SINGLE | DWT.BORDER | DWT.VIRTUAL);
+			_sash.setControl1 = dirsComp;
 		} else {
 			_sash = new SplitPane(_win, _prop.var.etc.directorySashV ? DWT.VERTICAL : DWT.HORIZONTAL);
 			_sash.setLayoutData = new GridData(GridData.FILL_BOTH);
@@ -1155,8 +1157,10 @@ public:
 			appendMenuTCPD(_prop, menu, this, true, true, true, true);
 			_dirs.setMenu(menu);
 		}
-		_files = new Table(_sash, DWT.MULTI | DWT.FULL_SELECTION | DWT.BORDER | DWT.VIRTUAL);
-		_sash.setControl2 = _files;
+		auto fComp = new Composite(_sash, DWT.NONE);
+		fComp.setLayout = new FillLayout;
+		_files = new Table(fComp, DWT.MULTI | DWT.FULL_SELECTION | DWT.BORDER | DWT.VIRTUAL);
+		_sash.setControl2 = fComp;
 		{
 			_files.setHeaderVisible = true;
 			auto namec = new TableColumn(_files, DWT.NONE);

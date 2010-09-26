@@ -1773,5 +1773,6 @@ SplitPane changeVHSide(SplitPane sash) {
 	sp.setWeights = ws;
 	sash.dispose;
 	sp.getParent.layout(true);
+	sp.layout(true);
 	return sp;
 }

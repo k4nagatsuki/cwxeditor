@@ -604,7 +604,9 @@ public:
 	/// Params:
 	/// parent = 親コントロール。
 	Control createControl(Composite parent) {
-		flags = new Table(parent, DWT.MULTI | DWT.BORDER | DWT.FULL_SELECTION);
+		_comp = new Composite(parent, DWT.NONE);
+		_comp.setLayout = new FillLayout;
+		flags = new Table(_comp, DWT.MULTI | DWT.BORDER | DWT.FULL_SELECTION);
 		flagsV = new TableViewer(flags);
 		flags.setHeaderVisible = true;
 		auto nameCol = new TableColumn(flags, DWT.NULL);
@@ -640,9 +642,10 @@ public:
 			}
 		});
 
-		return flags;
+		return _comp;
 	}
-	Control widget() {return flags;}
+	private Composite _comp = null;
+	Control widget() {return _comp;}
 
 	private void __refreshUseCount() {
 		foreach (itm; flags.getItems) {
