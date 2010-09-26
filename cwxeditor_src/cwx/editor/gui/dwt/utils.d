@@ -20,6 +20,7 @@ import cwx.editor.gui.dwt.props;
 import cwx.editor.gui.dwt.properties;
 import cwx.editor.gui.dwt.skin;
 import cwx.editor.gui.dwt.commons;
+import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.xmlbytestransfer;
 
 import std.utf;
@@ -1751,6 +1752,26 @@ CoolItem createCoolItem(CoolBar cbar, ToolBar tbar) {
 	itm.setControl = tbar;
 	auto p = tbar.computeSize(DWT.DEFAULT, DWT.DEFAULT);
 	itm.setMinimumSize(p.x, p.y);
-	itm.setPreferredSize(p.x, p.y);
 	return itm;
+}
+
+SplitPane changeVHSide(SplitPane sash) {
+	auto style = sash.getStyle & !DWT.HORIZONTAL & !DWT.VERTICAL;
+	assert (!(style & DWT.HORIZONTAL));
+	assert (!(style & DWT.VERTICAL));
+	auto vh = (sash.getStyle & DWT.VERTICAL) ? DWT.HORIZONTAL : DWT.VERTICAL;
+	auto sp = new SplitPane(sash.getParent, style | vh);
+	assert ((sash.getStyle & DWT.VERTICAL)
+		? ((sp.getStyle & DWT.HORIZONTAL) && !(sp.getStyle & DWT.VERTICAL))
+		: ((sp.getStyle & DWT.VERTICAL) && !(sp.getStyle & DWT.HORIZONTAL)));
+	auto ws = sash.getWeights;
+	sash.getControl1.setParent = sp;
+	sp.setControl1 = sash.getControl1;
+	sash.getControl2.setParent = sp;
+	sp.setControl2 = sash.getControl2;
+	sp.setLayoutData = sash.getLayoutData;
+	sp.setWeights = ws;
+	sash.dispose;
+	sp.getParent.layout(true);
+	return sp;
 }

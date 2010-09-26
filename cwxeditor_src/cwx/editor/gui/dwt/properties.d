@@ -353,6 +353,7 @@ class FlexEtcProps : Properties {
 	mixin Property!("toolsWrapIndices", int[], [8]);
 	mixin Property!("directorySashL", int, 2);
 	mixin Property!("directorySashR", int, 5);
+	mixin Property!("directorySashV", bool, false);
 	mixin Property!("filesSortColumn", int, 1);
 	mixin Property!("filesSortDirection", int, DWT.UP);
 	mixin Property!("fileNameColumn", int, 300);
@@ -372,6 +373,7 @@ class FlexEtcProps : Properties {
 	mixin Property!("areaSashB", int, 4);
 	mixin Property!("flagSashL", int, 3);
 	mixin Property!("flagSashR", int, 7);
+	mixin Property!("flagSashV", bool, false);
 	mixin Property!("flagsWidth", int, 150, true);
 	mixin Property!("bgImageSampleWidth", int, 150, true);
 	mixin Property!("bgImageSampleHeight", int, 150, true);

@@ -34,6 +34,8 @@ import dwt.widgets.Text;
 import dwt.widgets.Label;
 import dwt.widgets.Combo;
 import dwt.widgets.Table;
+import dwt.widgets.ToolBar;
+import dwt.widgets.ToolItem;
 import dwt.events.SelectionEvent;
 import dwt.events.SelectionAdapter;
 import dwt.events.FocusEvent;
@@ -65,6 +67,7 @@ import dwt.dnd.DropTarget;
 /// このコントロールを用いてフラグとステップの編集を行う。
 public class FlagsPane {
 private:
+	Composite _comp;
 	SplitPane _sash;
 	Props _prop;
 
@@ -72,27 +75,51 @@ private:
 	FlagTable _flags;
 
 public:
-	this(Commons comm, Props prop, Composite parent) {
-		_sash = new SplitPane(parent, DWT.HORIZONTAL);
+	this(Commons comm, Props prop, Composite parent, bool chgVH) {
 		_prop = prop;
+
+		_comp = new Composite(parent, DWT.NONE);
+		_comp.setLayout = new FillLayout;
+		_sash = new SplitPane(_comp, _prop.var.etc.flagSashV ? DWT.VERTICAL : DWT.HORIZONTAL);
 
 		_flags = new FlagTable(comm, prop);
 		_dirs = new FlagDirTree(comm, prop, _flags);
 
-		_sash.setControl1 = _dirs.createControl(_sash);
+		if (chgVH) {
+			auto left = new Composite(_sash, DWT.NONE);
+			left.setLayout = zeroGridLayout(1, true);
+			_sash.setControl1 = left;
+			auto bar = new ToolBar(left, DWT.FLAT);
+			bar.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+			createToolItem(bar, _prop.msgs.ttChangeVH, _prop.images.menuChangeVH, &changeVHSide);
+			_dirs.createControl(left);
+			_dirs.widget.setLayoutData = new GridData(GridData.FILL_BOTH);
+		} else {
+			_sash.setControl1 = _dirs.createControl(_sash);
+		}
 		_sash.setControl2 = _flags.createControl(_sash);
 
 		_sash.setWeights([_prop.var.etc.flagSashL, _prop.var.etc.flagSashR]);
-		_sash.addDisposeListener(new class DisposeListener {
-			override void widgetDisposed(DisposeEvent e) {
-				_prop.var.etc.flagSashL = _sash.getWeights[0];
-				_prop.var.etc.flagSashR = _sash.getWeights[1];
-			}
-		});
+		_sdl = new DListener;
+		_sash.addDisposeListener(_sdl);
+	}
+	private DListener _sdl;
+	private class DListener : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			_prop.var.etc.flagSashL = _sash.getWeights[0];
+			_prop.var.etc.flagSashR = _sash.getWeights[1];
+			_prop.var.etc.flagSashV = (_sash.getStyle & DWT.VERTICAL) != 0;
+		}
 	}
 
-	SplitPane widget() {
-		return _sash;
+	Control widget() {
+		return _comp;
+	}
+
+	void changeVHSide() {
+		_sash.removeDisposeListener(_sdl);
+		_sash = .changeVHSide(_sash);
+		_sash.addDisposeListener(_sdl);
 	}
 
 	/// フラグのディレクトリツリーを設定し、各コンポーネントに

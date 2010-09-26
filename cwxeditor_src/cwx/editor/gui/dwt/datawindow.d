@@ -124,6 +124,11 @@ public:
 				auto me = createMenu(bar, _prop.msgs.menuEdit);
 				appendMenuTCPD(_prop, me, this);
 
+				static if (UseFlag) {
+					auto mi = createMenu(bar, _prop.msgs.menuView);
+					createMenuItem(mi, _prop.msgs.menuChangeVH, _prop.images.menuChangeVH, &changeVHSide);
+				}
+
 				static if (UseArea) {
 					auto mt = createMenu(bar, _prop.msgs.menuTable);
 					static if (UseFlag) {
@@ -161,6 +166,8 @@ public:
 					createToolItem(bar, _prop.msgs.ttNewFlag, _prop.images.menuNewFlag, &createFlag);
 					createToolItem(bar, _prop.msgs.ttNewStep, _prop.images.menuNewStep, &createStep);
 					createToolItem(bar, _prop.msgs.ttNewFlagDir, _prop.images.menuNewFlagDir, &createFlagDir);
+					new ToolItem(bar, DWT.SEPARATOR);
+					createToolItem(bar, _prop.msgs.ttChangeVH, _prop.images.menuChangeVH, &changeVHSide);
 				}
 			}
 		} else {
@@ -184,7 +191,7 @@ public:
 				tabf = new TabFolder(_win, DWT.NONE);
 				tabf.setLayoutData = new GridData(GridData.FILL_BOTH);
 
-				_flags = new FlagsPane(_comm, _prop, tabf);
+				_flags = new FlagsPane(_comm, _prop, tabf, shell is null);
 				_areas = new AreaTable(_comm, _prop, tabf, _flags.flags);
 
 				tabA = new TabItem(tabf, DWT.NONE);
@@ -202,7 +209,7 @@ public:
 				_areas.table.setLayoutData = new GridData(GridData.FILL_BOTH);
 				_tcpd ~= _areas;
 			} else static if (UseFlag) {
-				_flags = new FlagsPane(_comm, _prop, _win);
+				_flags = new FlagsPane(_comm, _prop, _win, shell is null);
 				_flags.widget.setLayoutData = new GridData(GridData.FILL_BOTH);
 				_tcpd ~= _flags.flags;
 				_tcpd ~= _flags.dirs;
@@ -335,6 +342,10 @@ public:
 			}
 			.forceFocus(_flags.flags.widget);
 			_flags.flags.createStep;
+		}
+		private void changeVHSide() {
+			.forceFocus(_flags.widget);
+			_flags.changeVHSide;
 		}
 	}
 

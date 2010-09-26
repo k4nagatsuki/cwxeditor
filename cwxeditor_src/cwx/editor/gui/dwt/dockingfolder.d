@@ -578,7 +578,7 @@ class DockingFolder(TabF, int Style) {
 					key = newPaneName(ctrlKey);
 				}
 				if (!key.length) key = newTabfKey;
-				auto tabf = newSash(dropTarg, style, before, 1, 1, key, true);
+				auto tabf = newSash(dropTarg, style | DWT.SMOOTH, before, 1, 1, key, true);
 				newTab(tabf, -1);
 				tabf.setFocus;
 				return DND.DROP_MOVE;
@@ -728,7 +728,7 @@ class DockingFolder(TabF, int Style) {
 				auto oldPar = par;
 				scope (exit) par = oldPar;
 				auto type = node.attr("type", true);
-				auto sash = new SashForm(par, type == "vertical" ? DWT.VERTICAL : DWT.HORIZONTAL);
+				auto sash = new SashForm(par, (type == "vertical" ? DWT.VERTICAL : DWT.HORIZONTAL) | DWT.SMOOTH);
 				par = sash;
 				node.onTag[null] = &proc;
 				node.parse;

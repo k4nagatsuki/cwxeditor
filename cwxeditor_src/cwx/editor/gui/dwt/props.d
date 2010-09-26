@@ -107,6 +107,8 @@ public:
 	Image menuCardWin() {return imgd!(resourceDir ~ "card_win.png");}
 	Image menuDirWin() {return imgd!(resourceDir ~ "dir_win.png");}
 
+	Image menuChangeVH() {return imgd!(resourceDir ~ "chg_vh.png");}
+
 	Image menuExecEngine() {return imgd!(resourceDir ~ "exec_engine.png");}
 	Image menuSettings() {return imgd!(resourceDir ~ "settings.png");}
 

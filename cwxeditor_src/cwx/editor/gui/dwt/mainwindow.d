@@ -443,6 +443,11 @@ private:
 			_win.setVisible = false;
 			try {
 				_comm.closeAll;
+				if (dock) {
+					foreach (ctrl; dock.controls) {
+						ctrl.dispose;
+					}
+				}
 				_prop.var.save(dock);
 			} catch (Object e) {
 				_win.setVisible = true;

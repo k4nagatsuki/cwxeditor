@@ -1023,10 +1023,12 @@ private:
 			_sImgUnknown.dispose;
 		}
 	}
+	private SDListener _sdl;
 	class SDListener : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
 			_prop.var.etc.directorySashL = _sash.getWeights[0];
 			_prop.var.etc.directorySashR = _sash.getWeights[1];
+			_prop.var.etc.directorySashV = (_sash.getStyle & DWT.VERTICAL) != 0;
 		}
 	}
 public:
@@ -1087,6 +1089,8 @@ public:
 
 			auto mv = createMenu(bar, _prop.msgs.menuView);
 			createMenuItem(mv, _prop.msgs.menuRefresh, _prop.images.menuRefresh, &__refresh);
+			new MenuItem(mv, DWT.SEPARATOR);
+			createMenuItem(mv, _prop.msgs.menuChangeVH, _prop.images.menuChangeVH, &changeVHSide);
 
 			shell.setMenuBar = bar;
 		} else {
@@ -1113,15 +1117,17 @@ public:
 				createToolItem(bar, _prop.msgs.ttPaste, _prop.images.menuPaste, &paste);
 				createToolItem(bar, _prop.msgs.ttDel, _prop.images.menuDel, &del);
 			}
+			new ToolItem(bar, DWT.SEPARATOR);
+			createToolItem(bar, _prop.msgs.ttChangeVH, _prop.images.menuChangeVH, &changeVHSide);
 		}
 		if (shell) {
 			setupToolBar(new ToolBar(_win, DWT.FLAT));
-			_sash = new SplitPane(_win, DWT.HORIZONTAL);
+			_sash = new SplitPane(_win, _prop.var.etc.directorySashV ? DWT.VERTICAL : DWT.HORIZONTAL);
 			_sash.setLayoutData = new GridData(GridData.FILL_BOTH);
 			_dirs = new Tree(_sash, DWT.SINGLE | DWT.BORDER | DWT.VIRTUAL);
 			_sash.setControl1 = _dirs;
 		} else {
-			_sash = new SplitPane(_win, DWT.HORIZONTAL);
+			_sash = new SplitPane(_win, _prop.var.etc.directorySashV ? DWT.VERTICAL : DWT.HORIZONTAL);
 			_sash.setLayoutData = new GridData(GridData.FILL_BOTH);
 			auto dirsComp = new Composite(_sash, DWT.NONE);
 			dirsComp.setLayout = zeroGridLayout(1, true);
@@ -1199,7 +1205,8 @@ public:
 			createFilesMenu;
 		}
 		_sash.setWeights([_prop.var.etc.directorySashL, _prop.var.etc.directorySashR]);
-		_sash.addDisposeListener(new SDListener);
+		_sdl = new SDListener;
+		_sash.addDisposeListener(_sdl);
 		if (shell) {
 			shell.pack;
 			scope wp = shell.computeSize(DWT.DEFAULT, DWT.DEFAULT);
@@ -1248,6 +1255,12 @@ public:
 			return _prop.msgs.dirWindowName(_summ);
 		}
 		return _prop.msgs.dirTabName(_summ);
+	}
+
+	private void changeVHSide() {
+		_sash.removeDisposeListener(_sdl);
+		_sash = .changeVHSide(_sash);
+		_sash.addDisposeListener(_sdl);
 	}
 
 	void refresh(Summary summ) {

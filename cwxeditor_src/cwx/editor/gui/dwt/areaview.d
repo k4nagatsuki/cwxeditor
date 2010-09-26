@@ -1314,7 +1314,7 @@ public:
 		{
 			Composite listsP;
 			static if (UseCards && UseBacks) {
-				_sash = new SashForm(lrSash, DWT.VERTICAL);
+				_sash = new SashForm(lrSash, DWT.VERTICAL | DWT.SMOOTH);
 				listsP = _sash;
 			} else {
 				listsP = new Composite(lrSash, DWT.NONE);

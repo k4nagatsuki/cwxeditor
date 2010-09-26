@@ -148,6 +148,9 @@ public:
 	}
 	string menuOpenDirectory() {return ttOpenDirectory ~ "(&O)";}
 
+	string ttChangeVH() {return "分割領域の縦横を切替";}
+	string menuChangeVH() {return ttChangeVH ~ "(&V)" ~ "";}
+
 	string menuEdit() {return "編集(&E)";}
 	string ttReplaceText() {return "テキスト検索/置換";}
 	string menuReplaceText() {return ttReplaceText ~ "(&T)...";}
