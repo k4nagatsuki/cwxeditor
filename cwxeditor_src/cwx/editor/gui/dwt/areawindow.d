@@ -239,6 +239,15 @@ public:
 			static assert (0);
 		}
 	}
+	Image image() {
+		static if (is (A == Area)) {
+			return _prop.images.area;
+		} else static if (is (A == Battle)) {
+			return _prop.images.battle;
+		} else {
+			static assert (0);
+		}
+	}
 	private void saveWin() {
 		static if (is(V == AreaView)) {
 			auto winProps = _prop.var.areaWin;

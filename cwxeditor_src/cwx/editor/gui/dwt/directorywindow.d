@@ -934,13 +934,6 @@ private:
 			}
 		}
 	}
-	void replace() {
-		if (_files.getSelectionIndex >= 0) {
-			__replace(toRelPath((cast(FileNameObj) _files.getItem(_files.getSelectionIndex).getData).array));
-		} else {
-			__replace(null);
-		}
-	}
 	void __replace(string sel) {
 		if (!_summ || !_win || _win.isDisposed) return;
 		string[] from;
@@ -1253,6 +1246,9 @@ public:
 
 	Composite shell() {return _win;}
 
+	Image image() {
+		return _prop.images.menuDirWin;
+	}
 	string title() {
 		auto shl = cast(Shell) _win;
 		if (shl) {
@@ -1261,6 +1257,14 @@ public:
 		return _prop.msgs.dirTabName(_summ);
 	}
 
+	void replace() {
+		if (!_summ) return;
+		if (_files.getSelectionIndex >= 0) {
+			__replace(toRelPath((cast(FileNameObj) _files.getItem(_files.getSelectionIndex).getData).array));
+		} else {
+			__replace(null);
+		}
+	}
 	private void changeVHSide() {
 		_sash.removeDisposeListener(_sdl);
 		_sash = .changeVHSide(_sash);

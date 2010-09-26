@@ -190,6 +190,23 @@ class DockingFolder(TabF, int Style) {
 		auto t = tab(key);
 		return t ? t.getText : null;
 	}
+	/// keyに該当するControlタブのイメージを設定する。
+	/// 該当するControlが存在しなければfalseを返す。
+	bool tabImage(string key, Image image) {
+		auto t = tab(key);
+		if (t) {
+			t.setImage = image;
+			return true;
+		}
+		return false;
+	}
+	/// keyに該当するControlタブのイメージを返す。
+	/// イメージが設定されていないか、
+	/// 該当するControlが存在しなければnullを返す。
+	Image tabText(string key) {
+		auto t = tab(key);
+		return t ? t.getImage : null;
+	}
 	/// 最も古いペイン。
 	Composite first() {return panes[0];}
 	/// ditto
@@ -230,11 +247,16 @@ class DockingFolder(TabF, int Style) {
 	/// Controlを追加する。
 	/// ctrlの親は必ずこのインスタンスに含まれるペインでなくてはならない。
 	void add(Control ctrl, string tabText, string key, bool select = false) {
+		add(ctrl, tabText, null, key, select);
+	}
+	/// ditto
+	void add(Control ctrl, string tabText, Image tabImage, string key, bool select = false) {
 		if (!key.length || (key in _keys)) throw new Exception("invalid key: " ~ key);
 		auto tabf = cast(TabF) ctrl.getParent;
 		if (!tabf) throw new Exception("no tabfolder");
 		auto tab = new Tab(tabf, DWT.NONE);
 		tab.setText = tabText;
+		tab.setImage = tabImage;
 		tab.setControl = ctrl;
 		_ctrls[ctrl] = key;
 		_keys[key] = ctrl;
@@ -554,6 +576,7 @@ class DockingFolder(TabF, int Style) {
 				}
 				tab.setControl = c;
 				tab.setText = _dragItm.getText;
+				tab.setImage = _dragItm.getImage;
 				tabf.setSelection = tab;
 				tabf.setFocus;
 			}

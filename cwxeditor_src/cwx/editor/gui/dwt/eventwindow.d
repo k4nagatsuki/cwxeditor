@@ -188,6 +188,19 @@ public:
 			__refreshTitle;
 		}
 	}
+	Image image() {
+		static if (is (A == Package)) {
+			return _prop.images.packages;
+		} else static if (is (A == SkillCard)) {
+			return _prop.images.skill;
+		} else static if (is (A == ItemCard)) {
+			return _prop.images.item;
+		} else static if (is (A == BeastCard)) {
+			return _prop.images.beast;
+		} else {
+			static assert (0);
+		}
+	}
 	string title() {
 		auto shl = cast(Shell) _win;
 		static if (is (A == Package)) {

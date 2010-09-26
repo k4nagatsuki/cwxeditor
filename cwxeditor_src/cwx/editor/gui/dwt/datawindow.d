@@ -349,6 +349,15 @@ public:
 		}
 	}
 
+	Image image() {
+		static if (UseArea && UseFlag) {
+			return _prop.images.menuDataWin;
+		} else static if (UseArea) {
+			return _prop.images.menuDataWin;
+		} else static if (UseFlag) {
+			return _prop.images.menuFlagWin;
+		} else static assert (0);
+	}
 	string title() {
 		auto shl = cast(Shell) _win;
 		static if (UseArea && UseFlag) {

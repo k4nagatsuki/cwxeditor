@@ -717,21 +717,25 @@ public:
 			if (_dock) {
 				initDock;
 				if (_tableWin) {
+					_dock.tabImage("data", _tableWin.image);
 					_dock.tabText("data", _tableWin.title);
 				} else {
 					_tableWin = new TableWindow(_comm, _prop, null);
 				}
 				if (_flagWin) {
+					_dock.tabImage("flag", _flagWin.image);
 					_dock.tabText("flag", _flagWin.title);
 				} else {
 					_flagWin = new FlagWindow(_comm, _prop, null);
 				}
 				if (_cardWin) {
+					_dock.tabImage("card", _cardWin.image);
 					_dock.tabText("card", _cardWin.title);
 				} else {
 					_cardWin = new MainCardWindow(_comm, _prop, null);
 				}
 				if (_dirWin) {
+					_dock.tabImage("file", _dirWin.image);
 					_dock.tabText("file", _dirWin.title);
 				} else {
 					_dirWin = new DirectoryWindow(_comm, _prop, null);
@@ -781,7 +785,7 @@ public:
 			}
 			mCreateMenuItem(me, _prop.msgs.menuReplaceText, _prop.images.menuReplaceText, &replaceText);
 			if (_prop.var.etc.singleWindow) {
-				mixin (MenuAction!("me", "ReplacePath"));
+				mixin (MenuAction!("me", "ReplacePath", DWT.PUSH, "_dirWin.replace"));
 			}
 			mCreateMenuItem(me, _prop.msgs.menuToXML, _prop.images.menuToXML, &clipboardToXML);
 			new MenuItem(me, DWT.SEPARATOR);
@@ -798,7 +802,7 @@ public:
 
 			if (_prop.var.etc.singleWindow) {
 				auto ma = createMenu(bar, _prop.msgs.menuTable);
-				mixin (MenuAction!("ma", "Summary"));
+				mixin (MenuAction!("ma", "Summary", DWT.PUSH, "_tableWin.editSummary"));
 				new MenuItem(ma, DWT.SEPARATOR);
 				mixin (MenuAction!("ma", "NewArea", DWT.PUSH, "_tableWin.createArea"));
 				mixin (MenuAction!("ma", "NewBattle", DWT.PUSH, "_tableWin.createBattle"));
@@ -891,7 +895,7 @@ public:
 			{
 				auto bar = new ToolBar(cbar, DWT.FLAT);
 				mCreateToolItem(bar, _prop.msgs.ttReplaceText, _prop.images.menuReplaceText, &replaceText);
-				mixin (ToolAction!("bar", "ReplacePath"));
+				mixin (ToolAction!("bar", "ReplacePath", DWT.PUSH, "_dirWin.replace"));
 				new ToolItem(bar, DWT.SEPARATOR);
 				mCreateToolItem(bar, _prop.msgs.ttToXML, _prop.images.menuToXML, &clipboardToXML);
 				createCoolItem(cbar, bar);
@@ -947,9 +951,6 @@ public:
 				mCreateToolItem(bar, _prop.msgs.ttExecEngine, _prop.images.menuExecEngine, &execEngine);
 				new ToolItem(bar, DWT.SEPARATOR);
 				mCreateToolItem(bar, _prop.msgs.ttSettings, _prop.images.menuSettings, &settings);
-				new ToolItem(bar, DWT.SEPARATOR);
-				mCreateToolItem(bar, _prop.msgs.ttClose, _prop.images.menuClose, &exitAll);
-				createCoolItem(cbar, bar);
 			}
 			int[] wi;
 			foreach (i; _prop.var.etc.toolsWrapIndices) {

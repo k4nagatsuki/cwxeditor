@@ -774,13 +774,13 @@ public:
 		}
 	}
 	string flagTabName(Summary summ) {
-		return "フラグ";
+		return "状態変数";
 	}
 	string flagWindowName(Summary summ) {
 		if (summ) {
-			return "フラグ - [ " ~ summ.scenarioName ~ " ] - " ~ summ.scenarioPath;
+			return "状態変数 - [ " ~ summ.scenarioName ~ " ] - " ~ summ.scenarioPath;
 		} else {
-			return "フラグ";
+			return "状態変数";
 		}
 	}
 	string scenarioView() {return "シナリオビューリスト";}

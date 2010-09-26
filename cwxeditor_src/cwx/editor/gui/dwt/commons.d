@@ -25,6 +25,7 @@ import dwt.widgets.Composite;
 import dwt.widgets.Control;
 import dwt.events.DisposeListener;
 import dwt.events.DisposeEvent;
+import dwt.graphics.Image;
 
 private struct Dlg(Arg ...) {
 	private void delegate(Object, Arg)[] _dlg;
@@ -81,6 +82,7 @@ private struct Dlg(Arg ...) {
 /// 最上位のパネル。
 abstract class TopLevelPanel {
 	abstract string title();
+	abstract Image image();
 	abstract Composite shell();
 
 	private void delegate()[string] _act;
@@ -309,7 +311,7 @@ class Commons {
 		return __openUseEvent!(BeastCard, BeastEventWindow)(prop, summ, c);
 	}
 	private void show(Composite c, string pane, Dir dir, string key,
-			Control delegate(Composite) create, string text) {
+			TopLevelPanel delegate(Composite) create, string text) {
 		auto shl = cast(Shell) c;
 		if (shl) {
 			shl.setMinimized = false;
@@ -334,14 +336,15 @@ class Commons {
 				}
 				p = _main.dock.addPane(workPane, dir, l, r, _main.dock.newPaneKey(pane));
 			}
-			_main.dock.add(create(p), text, key, true);
+			auto tlp = create(p);
+			_main.dock.add(tlp.shell, text, tlp.image, key, true);
 		}
 	}
 	private void openMain(string Key, string Pane, Dir D, Win)(Win win) {
 		auto shl = cast(Shell) win.shell;
-		show(win.shell, Pane, D, Key, delegate Control(Composite p) {
+		show(win.shell, Pane, D, Key, delegate TopLevelPanel(Composite p) {
 			win.reconstruct(p);
-			return win.shell;
+			return win;
 		}, win.title);
 	}
 	void openDataWin() {
@@ -369,7 +372,7 @@ class Commons {
 		if (shl) {
 			shl.open;
 		} else {
-			_main.dock.add(tlp.shell, tlp.title, _main.dock.newCtrlKey(pane), true);
+			_main.dock.add(tlp.shell, tlp.title, tlp.image, _main.dock.newCtrlKey(pane), true);
 		}
 	}
 

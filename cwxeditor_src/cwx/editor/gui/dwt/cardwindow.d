@@ -1016,7 +1016,8 @@ interface ICardWindow {
 	void createInfo();
 }
 
-class CardWindow(string ShellTitle, string Title, PCardOwner, CardOwner, ToCardOwner, Cards ...)
+class CardWindow(string ShellTitle, string Title, string ShellImage,
+		PCardOwner, CardOwner, ToCardOwner, Cards ...)
 		: TopLevelPanel, TCPD, ICardWindow {
 private:
 	static const bool EditMode = is (ToCardOwner == void);
@@ -1567,6 +1568,9 @@ public:
 		}
 		return mixin ("_prop.msgs." ~ Title);
 	}
+	Image image() {
+		return mixin ("_prop.images." ~ ShellImage);
+	}
 	void refreshTitle() {
 		if (_win && !_win.isDisposed) _comm.setTitle(shell, title);
 	}
@@ -1724,18 +1728,18 @@ public:
 }
 
 alias CardWindow!("handCards(owner.id, owner.name)", "handCardsTab(owner.id, owner.name)",
-	Importable, CastCard, Summary, SkillCard, ItemCard, BeastCard) AddHandCardWindow;
+	"menuAddScenario", Importable, CastCard, Summary, SkillCard, ItemCard, BeastCard) AddHandCardWindow;
 
 // FIXME: 以下の二つをaliasにすると前方参照のエラーが発生する
 class HandCardWindow : CardWindow!("handCards(owner.id, owner.name)",
-		"handCardsTab(owner.id, owner.name)",
+		"handCardsTab(owner.id, owner.name)", "menuOpenHand",
 		Summary, CastCard, void, SkillCard, ItemCard, BeastCard) {
 	this (Commons comm, Props prop, Summary summ, Composite parent) {
 		super (comm, prop, summ, parent);
 	}
 }
 class MainCardWindow : CardWindow!("cardWindowName(owner)", "cardTabName(owner)",
-		Summary, Summary, void, CastCard, SkillCard, ItemCard, BeastCard, InfoCard) {
+		"menuCardWin", Summary, Summary, void, CastCard, SkillCard, ItemCard, BeastCard, InfoCard) {
 	this (Commons comm, Props prop, Composite parent) {
 		super (comm, prop, parent);
 	}
@@ -1759,7 +1763,7 @@ private:
 	static const bool UseInfo = IndexOf!(InfoCard, Cards) >= 0;
 	alias CardContainer!(UseCast, UseSkill, UseItem, UseBeast, UseInfo) CC;
 	alias CardWindow!("addCardWindow(owner.scenarioName, owner.scenarioPath)",
-		"addCardTab(owner.scenarioName, owner.scenarioPath)",
+		"addCardTab(owner.scenarioName, owner.scenarioPath)", "menuAddScenario",
 		CC, CC, ToCardOwner, Cards) ACW;
 	static class AddS {
 		Commons comm;
