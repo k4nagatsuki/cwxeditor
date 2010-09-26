@@ -1483,7 +1483,7 @@ public:
 			}
 			int[] wi;
 			foreach (i; _prop.var.etc.contentsWrapIndices) {
-				if (i < cbar.getItemCount) wi ~= i;
+				if (i > 0 && i < cbar.getItemCount) wi ~= i;
 			}
 			cbar.setWrapIndices(wi);
 

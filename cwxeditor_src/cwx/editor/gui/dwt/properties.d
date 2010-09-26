@@ -350,7 +350,7 @@ struct OuterTool {
 class FlexEtcProps : Properties {
 	mixin Property!("singleWindow", bool, true);
 	mixin Property!("toolsOrder", int[], []);
-	mixin Property!("toolsWrapIndices", int[], [8]);
+	mixin Property!("toolsWrapIndices", int[], [7]);
 	mixin Property!("directorySashL", int, 2);
 	mixin Property!("directorySashR", int, 5);
 	mixin Property!("directorySashV", bool, false);

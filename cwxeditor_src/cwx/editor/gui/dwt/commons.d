@@ -346,19 +346,19 @@ class Commons {
 	}
 	void openDataWin() {
 		if (_dataWin) {
-			openMain!("data", "data", Dir.S)(_dataWin);
+			openMain!("data", "data", Dir.N)(_dataWin);
 		} else {
-			openMain!("data", "data", Dir.S)(_tableWin);
+			openMain!("data", "data", Dir.N)(_tableWin);
 		}
 	}
 	void openFlagWin() {
-		openMain!("flag", "data", Dir.S)(_flagWin);
+		openMain!("flag", "data", Dir.N)(_flagWin);
 	}
 	void openCardWin() {
-		openMain!("card", "data", Dir.S)(_cardWin);
+		openMain!("card", "data", Dir.N)(_cardWin);
 	}
 	void openDirWin() {
-		openMain!("file", "data", Dir.S)(_dirWin);
+		openMain!("file", "data", Dir.N)(_dirWin);
 	}
 	void open(TopLevelPanel tlp, string pane) {
 		_ws.add(tlp.shell);

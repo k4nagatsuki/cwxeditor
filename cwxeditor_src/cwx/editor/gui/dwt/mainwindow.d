@@ -739,7 +739,7 @@ public:
 			} else {
 				_dock = new DockingFolderCTC(_win, DWT.NONE, "work");
 				initDock;
-				auto data = _dock.addPane(_dock.first, Dir.S, 3, 1, "data");
+				auto data = _dock.addPane(_dock.first, Dir.N, 1, 3, "data");
 				_tableWin = new TableWindow(_comm, _prop, data);
 				_dock.add(_tableWin.shell, _tableWin.title, "data", true);
 				_flagWin = new FlagWindow(_comm, _prop, data);
@@ -847,7 +847,6 @@ public:
 		}
 		if (_prop.var.etc.singleWindow) {
 			auto cbar = new CoolBar(toolComp, DWT.FLAT);
-			cbar.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			cbar.addControlListener(new CCListener);
 			_cbar = cbar;
 			void createCoolItem(CoolBar cbar, ToolBar tbar) {
@@ -954,7 +953,7 @@ public:
 			}
 			int[] wi;
 			foreach (i; _prop.var.etc.toolsWrapIndices) {
-				if (i < cbar.getItemCount) wi ~= i;
+				if (i > 0 && i < cbar.getItemCount) wi ~= i;
 			}
 			cbar.setWrapIndices(wi);
 			if (_prop.var.etc.toolsOrder.length == cbar.getItemCount) {
@@ -968,7 +967,6 @@ public:
 			_comm.baseShell(this, _tableWin, _flagWin, _cardWin, _dirWin);
 		} else {
 			auto bar = new ToolBar(toolComp, DWT.FLAT);
-			bar.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			mCreateToolItem(bar, _prop.msgs.ttNew, _prop.images.menuNew, &createScenario);
 			mCreateToolItem(bar, _prop.msgs.ttOpen, _prop.images.menuOpen, &openScenarioM);
 			mCreateToolItem(bar, _prop.msgs.ttSave, _prop.images.menuSave, &saveScenario);
