@@ -981,7 +981,9 @@ public:
 	/// ]
 	/// ---
 	string[string][string] toXMLs() {
-		string[string][string] r = ["":["Summary.xml":summaryToXML]];
+		string e = "";
+		string[string] s = ["Summary.xml":summaryToXML];
+		string[string][string] r = [e:s];
 
 		void put(string parent, string[string] p) {
 			if (p.length) {

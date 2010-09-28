@@ -75,7 +75,7 @@ private:
 	FlagTable _flags;
 
 public:
-	this(Commons comm, Props prop, Composite parent, bool chgVH) {
+	this(Commons comm, Props prop, Composite parent) {
 		_prop = prop;
 
 		_comp = new Composite(parent, DWT.NONE);
@@ -85,19 +85,8 @@ public:
 		_flags = new FlagTable(comm, prop);
 		_dirs = new FlagDirTree(comm, prop, _flags);
 
-		if (chgVH) {
-			auto left = new Composite(_sash, DWT.NONE);
-			left.setLayout = zeroGridLayout(1, true);
-			_sash.setControl1 = left;
-			auto bar = new ToolBar(left, DWT.FLAT);
-			bar.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-			createToolItem(bar, _prop.msgs.ttChangeVH, _prop.images.menuChangeVH, &changeVHSide);
-			_dirs.createControl(left);
-			_dirs.widget.setLayoutData = new GridData(GridData.FILL_BOTH);
-		} else {
-			_sash.setControl1 = _dirs.createControl(_sash);
-		}
-		_sash.setControl2 = _flags.createControl(_sash);
+		_dirs.createControl(_sash);
+		_flags.createControl(_sash);
 
 		_sash.setWeights([_prop.var.etc.flagSashL, _prop.var.etc.flagSashR]);
 		_sdl = new DListener;
@@ -110,6 +99,9 @@ public:
 			_prop.var.etc.flagSashR = _sash.getWeights[1];
 			_prop.var.etc.flagSashV = (_sash.getStyle & DWT.VERTICAL) != 0;
 		}
+	}
+	void setupTLP(TopLevelPanel tlp) {
+		tlp.putMenuAction(MenuID.ChangeVH, &changeVHSide);
 	}
 
 	Control widget() {

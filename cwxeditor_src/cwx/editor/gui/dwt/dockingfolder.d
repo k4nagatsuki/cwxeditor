@@ -4,6 +4,7 @@ module cwx.editor.gui.dwt.dockingfolder;
 import cwx.utils;
 import cwx.xml;
 
+import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.centerlayout;
 
 import dwt.all;
@@ -50,21 +51,31 @@ class DockingFolder(TabF, int Style) {
 		_comp.setLayout = new CenterLayout(DWT.HORIZONTAL | DWT.VERTICAL, 0);
 
 		_canvas = new Canvas(_comp, DWT.TRANSPARENT);
-		_canvas.setLayoutData = new Rectangle(0, 0, 0, 0);
+		_canvas.setLayoutData = new CenterLayoutData(true, true);
+		_canvas.setVisible = false;
 		auto drop = new DropTarget(_canvas, DND.DROP_MOVE);
 		drop.setTransfer = [TextTransfer.getInstance];
 		drop.addDropListener(new DTL);
 		_canvas.addPaintListener(new PL);
 
 		_area = new Composite(_comp, style);
+		_area.addListener(DWT.Dispose, new DListener);
 		_area.setLayoutData = new CenterLayoutData(true, true);
 		_area.setLayout = new FillLayout;
 		if (createTabf) newTabf(_area, firstPaneKey, true);
 		_fl = new FocusL;
 		Display.getCurrent.addFilter(DWT.FocusIn, _fl);
 	}
-	override void dispose() {
-		Display.getCurrent.removeFilter(DWT.FocusIn, _fl);
+	private bool _canSave = true;
+	private class DListener : Listener {
+		override void handleEvent(Event e) {
+			Display.getCurrent.removeFilter(DWT.FocusIn, _fl);
+			if (_canSave) {
+				try {
+					saveTree;
+				} catch {}
+			}
+		}
 	}
 	/// 唯一のコンストラクタ。
 	/// firstPaneKeyに""を指定した場合は自動的にkeyが生成される。
@@ -172,7 +183,7 @@ class DockingFolder(TabF, int Style) {
 				return tab;
 			}
 		}
-		assert (0);
+		assert (0, "dockingfolder#tab");
 	}
 	/// keyに該当するControlタブのテキストを設定する。
 	/// 該当するControlが存在しなければfalseを返す。
@@ -349,7 +360,7 @@ class DockingFolder(TabF, int Style) {
 	/// Controlツリーの再構築。
 	private void reconstruct() {
 		void tree(Control ctrl) {
-			auto comp = cast(SashForm) ctrl;
+			auto comp = cast(SplitPane) ctrl;
 			if (!comp) return;
 			Control[] children;
 			foreach (ch; comp.getChildren) {
@@ -365,17 +376,19 @@ class DockingFolder(TabF, int Style) {
 				tree(children[0]);
 			} else if (children.length == 2) {
 				// _area.layout(true)が効かない事があるので
-				// SashFormを作り直さなければならない
+				// SplitPaneを作り直さなければならない
 				auto aft = afters(comp);
 				auto weights = comp.getWeights;
-				auto sash = new SashForm(comp.getParent, comp.getStyle);
+				auto sash = new SplitPane(comp.getParent, comp.getStyle);
 				addAfters(aft);
-				foreach (c; children) c.setParent = sash;
+				foreach (c; children) {
+					c.setParent = sash;
+				}
 				comp.dispose;
 				foreach (child; children) tree(child);
 				sash.setWeights = weights;
 			} else {
-				assert (!children.length);
+				assert (!children.length, "dockingfolder#reconstruct");
 				comp.dispose;
 			}
 		}
@@ -425,8 +438,7 @@ class DockingFolder(TabF, int Style) {
 			if (itm) {
 				_dragItm = itm;
 				e.doit = true;
-				_canvas.setLayoutData = new CenterLayoutData(true, true);
-				_comp.layout(true);
+				_canvas.setVisible = true;
 			}
 		}
 		override void dragSetData(DragSourceEvent e) {
@@ -436,8 +448,7 @@ class DockingFolder(TabF, int Style) {
 		}
 		override void dragFinished(DragSourceEvent e) {
 			_drawTabf = null;
-			_canvas.setLayoutData = new Rectangle(0, 0, 0, 0);
-			_canvas.redraw;
+			_canvas.setVisible = false;
 			_comp.layout(true);
 			if (e.detail == DND.DROP_MOVE) {
 				auto tabf = _dragItm.getParent;
@@ -453,7 +464,7 @@ class DockingFolder(TabF, int Style) {
 	private static Control[] afters(Control targ) {
 		auto pcs = targ.getParent.getChildren;
 		int pi = cwx.utils.indexOf!("a is b")(pcs, targ);
-		assert (pi != -1);
+		assert (pi != -1, "dockingfolder#afters");
 		return pcs[pi + 1 .. $];
 	}
 	private static void addAfters(Control[] afters) {
@@ -601,7 +612,7 @@ class DockingFolder(TabF, int Style) {
 					key = newPaneName(ctrlKey);
 				}
 				if (!key.length) key = newTabfKey;
-				auto tabf = newSash(dropTarg, style | DWT.SMOOTH, before, 1, 1, key, true);
+				auto tabf = newSash(dropTarg, style, before, 1, 1, key, true);
 				newTab(tabf, -1);
 				tabf.setFocus;
 				return DND.DROP_MOVE;
@@ -675,11 +686,11 @@ class DockingFolder(TabF, int Style) {
 	private TabF newSash(TabF targ, int style, bool before, int lWeight, int rWeight, string key, bool vanish) {
 		auto parent = targ.getParent;
 		int[] weights;
-		auto sashf = cast(SashForm) parent;
+		auto sashf = cast(SplitPane) parent;
 		if (sashf) weights = sashf.getWeights;
 		scope (exit) if(sashf) sashf.setWeights = weights;
 		auto aft = afters(targ);
-		auto nSash = new SashForm(parent, style);
+		auto nSash = new SplitPane(parent, style);
 		addAfters(aft);
 		TabF r;
 		if (before) {
@@ -693,47 +704,159 @@ class DockingFolder(TabF, int Style) {
 		return r;
 	}
 
+	private static struct Tabf {
+		string key;
+		bool vanish;
+		int select;
+		Tabi[] tabs;
+	}
+	private static struct Tabi {
+		string key;
+		string name;
+	}
+	private static struct Sashf {
+		bool vertical;
+		int lWeight;
+		int rWeight;
+		Sashf* lSash;
+		Tabf* lTabf;
+		Sashf* rSash;
+		Tabf* rTabf;
+	}
+	private static struct Area {
+		Sashf* sash;
+		Tabf* tabf;
+	}
+	private Area* _tree = null;
+	private void saveTree() {
+		auto area = new Area;
+		saveTree(_area.getChildren[0], area.sash, area.tabf);
+		assert ((area.sash || area.tabf) && !(area.sash && area.tabf), "dockingfolder#saveTree 1");
+		_tree = area;
+	}
+	private void saveTree(Control c, out Sashf* sa, out Tabf* ta) {
+		auto sash = cast(SplitPane) c;
+		if (sash) {
+			sa = new Sashf;
+			ta = null;
+			sa.vertical = (sash.getStyle & DWT.VERTICAL) != 0;
+			auto weights = sash.getWeights;
+			sa.lWeight = weights[0];
+			sa.rWeight = weights[1];
+			bool left = true;
+			assert (sash.getChildren.length == 3, "dockingfolder#saveTree 2");
+			foreach (child; sash.getChildren) {
+				if (!(cast(Sash) child)) {
+					if (left) {
+						saveTree(child, sa.lSash, sa.lTabf);
+						left = false;
+					} else {
+						saveTree(child, sa.rSash, sa.rTabf);
+						break;
+					}
+				}
+			}
+			assert ((sa.lSash || sa.lTabf) && !(sa.lSash && sa.lTabf), "dockingfolder#saveTree 3");
+			assert ((sa.rSash || sa.rTabf) && !(sa.rSash && sa.rTabf), "dockingfolder#saveTree 4");
+		} else {
+			ta = new Tabf;
+			sa = null;
+			auto tabf = cast(TabF) c;
+			assert (tabf, "dockingfolder#saveTree 5");
+			ta.key = _tabfs[tabf];
+			ta.select = tabf.getSelectionIndex;
+			ta.vanish = vanish(ta.key);
+			ta.tabs.length = tabf.getItemCount;
+			foreach (i, tab; tabf.getItems) {
+				ta.tabs[i].key = _ctrls[tab.getControl];
+				ta.tabs[i].name = tab.getText;
+			}
+		}
+	}
+
 	/// XMLノードにして返す。
+	/// dispose後も呼出し可能。
 	XNode toNode() {
 		auto r = XNode.create("dockingFolder");
-		toNode(r, _area.getChildren[0]);
+		toNodeImpl(r);
 		return r;
 	}
 	/// ditto
 	XNode toNode(ref XNode parent) {
 		auto r = parent.newElement("dockingFolder");
-		toNode(r, _area.getChildren[0]);
+		toNodeImpl(r);
 		return r;
 	}
-	private XNode toNode(ref XNode parent, Control c) {
-		auto sash = cast(SashForm) c;
-		if (sash) {
-			auto r = parent.newElement("sash");
-			r.newAttr("type", (sash.getStyle & DWT.VERTICAL) ? "vertical" : "horizontal");
-			auto weights = sash.getWeights;
-			r.newAttr("lWeight", weights[0]);
-			r.newAttr("rWeight", weights[1]);
-			foreach (child; sash.getChildren) {
-				if (!(cast(Sash) child)) {
-					toNode(r, child);
-				}
-			}
-			return r;
+	private XNode toNodeImpl(ref XNode r) {
+		if (!_area.isDisposed) {
+			saveTree;
+		}
+		assert (_tree, "dockingfolder#toNodeImpl");
+		if (_tree.sash) {
+			return toNodeImpl(r, _tree.sash);
 		} else {
-			auto tabf = cast(TabF) c;
-			assert (tabf);
-			string key = _tabfs[tabf];
-			auto r = parent.newElement("tabs");
-			auto sel = tabf.getSelectionIndex;
-			if (sel >= 0) r.newAttr("select", sel);
-			if (!vanish(key)) r.newAttr("vanish", false);
-			r.newAttr("key", key);
-			foreach (tab; tabf.getItems) {
-				auto t = r.newElement("tab");
-				t.newAttr("key", _ctrls[tab.getControl]);
-				t.newAttr("name", tab.getText);
+			return toNodeImpl(r, _tree.tabf);
+		}
+	}
+	private XNode toNodeImpl(ref XNode parent, Sashf* sa) {
+		auto r = parent.newElement("sash");
+		r.newAttr("type", sa.vertical ? VERTICAL : HORIZONTAL);
+		r.newAttr("lWeight", sa.lWeight);
+		r.newAttr("rWeight", sa.rWeight);
+		void n(Sashf* sa, Tabf* ta) {
+			if (sa) {
+				toNodeImpl(r, sa);
+			} else {
+				toNodeImpl(r, ta);
 			}
-			return r;
+		}
+		n(sa.lSash, sa.lTabf);
+		n(sa.rSash, sa.rTabf);
+		return r;
+	}
+	private XNode toNodeImpl(ref XNode parent, Tabf* ta) {
+		auto r = parent.newElement("tabs");
+		if (ta.select >= 0) r.newAttr("select", ta.select);
+		if (!ta.vanish) r.newAttr("vanish", ta.vanish);
+		r.newAttr("key", ta.key);
+		foreach (ref tab; ta.tabs) {
+			auto t = r.newElement("tab");
+			t.newAttr("key", tab.key);
+			t.newAttr("name", tab.name);
+		}
+		return r;
+	}
+	private static const HORIZONTAL = "horizontal";
+	private static const VERTICAL = "vertical";
+	private static struct Proc {
+		DockingFolder r;
+		Composite par;
+		Control delegate(Composite, string) create;
+		void sash(ref XNode node) {
+			string type = node.attr("type", true);
+			/// FIXME: たまに type == VERTICAL の所でアクセス違反が起きる？
+			auto sash = new SplitPane(par, type == VERTICAL ? DWT.VERTICAL : DWT.HORIZONTAL);
+			Proc proc;
+			proc.r = r;
+			proc.par = sash;
+			proc.create = create;
+			node.onTag["sash"] = &proc.sash;
+			node.onTag["tabs"] = &proc.tabs;
+			node.parse;
+			sash.setWeights([node.attr!(int)("lWeight", true), node.attr!(int)("rWeight", true)]);
+		}
+		void tabs(ref XNode node) {
+			auto key = node.attr("key", true);
+			auto vanish = node.attr!(bool)("vanish", false, true);
+			auto tabf = r.newTabf(par, key, vanish);
+			node.onTag["tab"] = (ref XNode node) {
+				auto key = node.attr("key", true);
+				auto v = create(tabf, key);
+				if (v) r.add(v, node.attr("name", true), key);
+			};
+			node.parse;
+			auto i = node.attr!(int)("select", false, -1);
+			if (i < tabf.getItemCount) tabf.setSelection = i;
 		}
 	}
 	/// XMLノードから生成して返す。
@@ -742,39 +865,24 @@ class DockingFolder(TabF, int Style) {
 	///           呼出され、Controlを生成して返すdelegate。
 	static DockingFolder fromNode(ref XNode node, Composite parent, int style,
 			Control delegate(Composite, string) create) {
-		assert (node.name == "dockingFolder");
-		DockingFolder r = new DockingFolder(parent, style, false);
-		Composite par = r._area;
-		void proc(ref XNode node) {
-			switch (node.name) {
-			case "sash": {
-				auto oldPar = par;
-				scope (exit) par = oldPar;
-				auto type = node.attr("type", true);
-				auto sash = new SashForm(par, (type == "vertical" ? DWT.VERTICAL : DWT.HORIZONTAL) | DWT.SMOOTH);
-				par = sash;
-				node.onTag[null] = &proc;
-				node.parse;
-				sash.setWeights([node.attr!(int)("lWeight", true), node.attr!(int)("rWeight", true)]);
-			} break;
-			case "tabs": {
-				auto key = node.attr("key", true);
-				auto vanish = node.attr!(bool)("vanish", false, true);
-				auto tabf = r.newTabf(par, key, vanish);
-				node.onTag["tab"] = (ref XNode node) {
-					auto key = node.attr("key", true);
-					auto v = create(tabf, key);
-					if (v) r.add(v, node.attr("name", true), key);
-				};
-				node.parse;
-				auto i = node.attr!(int)("select", false, -1);
-				if (i < tabf.getItemCount) tabf.setSelection = i;
-			} break;
-			default: break;
+		assert (node.name == "dockingFolder", "dockingfolder#fromNode");
+		DockingFolder r = null;
+		try {
+			r = new DockingFolder(parent, style, false);
+			Proc proc;
+			proc.r = r;
+			proc.par = r._area;
+			proc.create = create;
+			node.onTag["sash"] = &proc.sash;
+			node.onTag["tabs"] = &proc.tabs;
+			node.parse;
+			return r;
+		} catch (Exception e) {
+			if (r && r.area) {
+				r._canSave = false;
+				r.area.dispose;
 			}
+			throw e;
 		}
-		node.onTag[null] = &proc;
-		node.parse;
-		return r;
 	}
 }

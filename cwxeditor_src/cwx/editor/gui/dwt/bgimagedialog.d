@@ -140,6 +140,10 @@ protected:
 		shell.setText = _back ? _prop.msgs.dlgTitBgImage : _prop.msgs.dlgTitNewBgImage;
 	}
 
+	override bool isResizable() {
+        return true;
+    }
+
 	override Control createDialogArea(Composite parent) {
 		auto area = cast(Composite) super.createDialogArea(parent);
 		area.setLayout = zeroGridLayout(1);;

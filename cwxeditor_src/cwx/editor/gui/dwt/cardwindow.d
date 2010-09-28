@@ -1326,20 +1326,20 @@ public:
 		} else {
 			static if (EditMode) {
 				appendMenuTCPD(prop, this, this);
-				putMenuAction(prop.msgs.menuRefresh, prop.msgs.ttRefresh, &__refresh);
+				putMenuAction(MenuID.Refresh, &__refresh);
 				static if (is (CardOwner == Summary)) {
-					putMenuAction(prop.msgs.menuAddScenario, prop.msgs.ttAddScenario, &addScenario);
+					putMenuAction(MenuID.AddScenario, &addScenario);
 				}
-				static if (UseCast) putMenuAction(prop.msgs.menuNewCast, prop.msgs.ttNewCast, &create!(CAST));
-				static if (UseSkill) putMenuAction(prop.msgs.menuNewSkill, prop.msgs.ttNewSkill, &create!(SKILL));
-				static if (UseItem) putMenuAction(prop.msgs.menuNewItem, prop.msgs.ttNewItem, &create!(ITEM));
-				static if (UseBeast) putMenuAction(prop.msgs.menuNewBeast, prop.msgs.ttNewBeast, &create!(BEAST));
-				static if (UseInfo) putMenuAction(prop.msgs.menuNewInfo, prop.msgs.ttNewInfo, &create!(INFO));
+				static if (UseCast) putMenuAction(MenuID.NewCast, &create!(CAST));
+				static if (UseSkill) putMenuAction(MenuID.NewSkill, &create!(SKILL));
+				static if (UseItem) putMenuAction(MenuID.NewItem, &create!(ITEM));
+				static if (UseBeast) putMenuAction(MenuID.NewBeast, &create!(BEAST));
+				static if (UseInfo) putMenuAction(MenuID.NewInfo, &create!(INFO));
 			} else {
 				appendMenuTCPD(prop, this, this, false, true, false, false);
 			}
-			putMenuChecked(prop.msgs.menuShowCardList, prop.msgs.ttShowCardList, &showCardList, &isViewList);
-			putMenuChecked(prop.msgs.menuShowCardTable, prop.msgs.ttShowCardTable, &showCardTable, &isViewTable);
+			putMenuChecked(MenuID.ShowCardList, &showCardList, &isViewList);
+			putMenuChecked(MenuID.ShowCardTable, &showCardTable, &isViewTable);
 		}
 		_tabf = new CTabFolder(comp, DWT.BORDER);
 		_tabf.setLayoutData = new GridData(GridData.FILL_BOTH);

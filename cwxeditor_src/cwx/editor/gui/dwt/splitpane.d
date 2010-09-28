@@ -1,6 +1,8 @@
 
 module cwx.editor.gui.dwt.splitpane;
 
+import std.math;
+
 import dwt.DWT;
 import dwt.DWTException;
 import dwt.widgets.Sash;
@@ -19,11 +21,9 @@ import cwx.utils;
 /// SashFormはウィンドウサイズ変更時に左側のサイズを固定する等の
 /// 設定が出来ないので再実装。
 class SplitPane : Composite {
-	private Control _c1 = null, _c2 = null;
 	private Sash _sash = null;
-	private FormData _sfd = null;
+	private FormData _sfd = null, _fd1 = null, _fd2 = null;
 	private int[] _weights = [1, 1];
-	private Listener _resizeL = null;
 	private int _style;
 
 	this (Composite parent, int style) {
@@ -32,8 +32,10 @@ class SplitPane : Composite {
 		style &= !DWT.HORIZONTAL;
 		super (parent, style);
 		setLayout(new FormLayout);
-		_resizeL = new ResizeL;
-		addListener(DWT.Resize, _resizeL);
+		_fd1 = new FormData;
+		_fd2 = new FormData;
+		_sfd = new FormData;
+		addListener(DWT.Resize, new ResizeL);
 	}
 	override int getStyle() {return _style;}
 	int[] getWeights() {
@@ -57,58 +59,82 @@ class SplitPane : Composite {
 		auto ca = getClientArea;
 		if (getStyle & DWT.VERTICAL) {
 			if (ca.height == 0) return false;
-			int lw = cast(int) (ca.height * (cast(real) l / full));
-			if (lw < 0) lw = 0;
+			int lw = cast(int) rndtol((ca.height - SASH_WIDTH) * (cast(real) l / full));
 			_sfd.top = new FormAttachment(0, lw);
 		} else {
 			if (ca.width == 0) return false;
-			int lw = cast(int) (ca.width * (cast(real) l / full));
-			if (lw < 0) lw = 0;
+			int lw = cast(int) rndtol((ca.width - SASH_WIDTH) * (cast(real) l / full));
 			_sfd.left = new FormAttachment(0, lw);
 		}
+		relo;
+		return true;
+	}
+	private void relo() {
+		auto ca = getClientArea;
+		if (getStyle & DWT.VERTICAL) {
+			int lw = _sfd.top.offset;
+			if (lw < MIN) lw = MIN;
+			if (lw + SASH_WIDTH >= ca.height - MIN) lw = ca.height - SASH_WIDTH - MIN;
+			_sfd.top.offset = lw;
+			_fd1.bottom.control = _sash;
+			_fd2.top.control = _sash;
+		} else {
+			int lw = _sfd.left.offset;
+			if (lw < MIN) lw = MIN;
+			if (lw + SASH_WIDTH >= ca.width - MIN) lw = ca.width - SASH_WIDTH - MIN;
+			_sfd.left.offset = lw;
+			_fd1.right.control = _sash;
+			_fd2.left.control = _sash;
+		}
+		_sash.setLayoutData = _sfd;
+		auto cs = getChildren;
+		cs[0].setLayoutData = _fd1;
+		cs[1].setLayoutData = _fd2;
 		layout(true);
 		refreshWeights;
-		return true;
 	}
 	private class ResizeL : Listener {
 		private bool _first = true;
 		override void handleEvent(Event e) {
 			if (_first) {
+				if (getChildren.length < 2) {
+					return;
+				}
+				if (!_sash) initSash;
 				_first = !resize;
+			} else if (isVisible) {
+				relo;
 			} else {
-				layout(true);
-				refreshWeights;
+				resize;
 			}
 		}
 	}
 	private void refreshWeights() {
-		if (_c1 && _c2) {
+		auto cs = getChildren;
+		if (cs[0] && cs[1]) {
+			auto ca = getClientArea;
 			if (getStyle & DWT.VERTICAL) {
-				_weights = [_c1.getSize.y, _c2.getSize.y];
+				int l = _sfd.top.offset - ca.y;
+				_weights = [l, ca.height - l - SASH_WIDTH];
 			} else {
-				_weights = [_c1.getSize.x, _c2.getSize.x];
+				int l = _sfd.left.offset - ca.x;
+				_weights = [l, ca.width - l - SASH_WIDTH];
 			}
 		}
 	}
-	Control getControl1() {return _c1;}
-	void setControl1(Control c) {
-		if (_c1) throw new DWTException("SplitPane control 1");
-		_c1 = c;
+	private void initSash() {
 		_sash = new Sash(this, (getStyle & DWT.HORIZONTAL) ? DWT.VERTICAL : DWT.HORIZONTAL);
-		auto c1fd = new FormData;
 		if (getStyle & DWT.VERTICAL) {
-			c1fd.left = new FormAttachment(0, 0);
-			c1fd.right = new FormAttachment(100, 0);
-			c1fd.top = new FormAttachment(0, 0);
-			c1fd.bottom = new FormAttachment(_sash, 0);
+			_fd1.left = new FormAttachment(0, 0);
+			_fd1.right = new FormAttachment(100, 0);
+			_fd1.top = new FormAttachment(0, 0);
+			_fd1.bottom = new FormAttachment(_sash, 0);
 		} else {
-			c1fd.left = new FormAttachment(0, 0);
-			c1fd.right = new FormAttachment(_sash, 0);
-			c1fd.top = new FormAttachment(0, 0);
-			c1fd.bottom = new FormAttachment(100, 0);
+			_fd1.left = new FormAttachment(0, 0);
+			_fd1.right = new FormAttachment(_sash, 0);
+			_fd1.top = new FormAttachment(0, 0);
+			_fd1.bottom = new FormAttachment(100, 0);
 		}
-		_c1.setLayoutData = c1fd;
-		_sfd = new FormData;
 		if (getStyle & DWT.VERTICAL) {
 			_sfd.left = new FormAttachment(0, 0);
 			_sfd.top = new FormAttachment(50, 0);
@@ -118,11 +144,23 @@ class SplitPane : Composite {
 			_sfd.top = new FormAttachment(0, 0);
 			_sfd.bottom = new FormAttachment(100, 0);
 		}
+		if (getStyle & DWT.VERTICAL) {
+			_fd2.left = new FormAttachment(0, 0);
+			_fd2.right = new FormAttachment(100, 0);
+			_fd2.top = new FormAttachment(_sash, 0);
+			_fd2.bottom = new FormAttachment(100, 0);
+		} else {
+			_fd2.left = new FormAttachment(_sash, 0);
+			_fd2.right = new FormAttachment(100, 0);
+			_fd2.top = new FormAttachment(0, 0);
+			_fd2.bottom = new FormAttachment(100, 0);
+		}
 		_sfd.width = SASH_WIDTH;
 		_sash.setLayoutData = _sfd;
 		_sash.addListener(DWT.Selection, new SSelL);
 	}
 	private static const SASH_WIDTH = 3;
+	private static const MIN = 10;
 	private class SSelL : Listener {
 		override void handleEvent(Event e) {
 			auto sb = _sash.getBounds;
@@ -133,8 +171,7 @@ class SplitPane : Composite {
 				if (SashForm.DRAG_MINIMUM > e.y) e.y = SashForm.DRAG_MINIMUM;
 				if (e.y != sb.y)  {
 					_sfd.top = new FormAttachment(0, e.y);
-					layout(true);
-					refreshWeights;
+					relo;
 				}
 			} else {
 				int right = cb.width - sb.width - SashForm.DRAG_MINIMUM;
@@ -142,28 +179,9 @@ class SplitPane : Composite {
 				if (SashForm.DRAG_MINIMUM > e.x) e.x = SashForm.DRAG_MINIMUM;
 				if (e.x != sb.x)  {
 					_sfd.left = new FormAttachment(0, e.x);
-					layout(true);
-					refreshWeights;
+					relo;
 				}
 			}
 		}
-	}
-	Control getControl2() {return _c2;}
-	void setControl2(Control c) {
-		if (_c2) throw new DWTException("SplitPane control 2");
-		_c2 = c;
-		auto fd = new FormData;
-		if (getStyle & DWT.VERTICAL) {
-			fd.left = new FormAttachment(0, 0);
-			fd.right = new FormAttachment(100, 0);
-			fd.top = new FormAttachment(_sash, 0);
-			fd.bottom = new FormAttachment(100, 0);
-		} else {
-			fd.left = new FormAttachment(_sash, 0);
-			fd.right = new FormAttachment(100, 0);
-			fd.top = new FormAttachment(0, 0);
-			fd.bottom = new FormAttachment(100, 0);
-		}
-		_c2.setLayoutData = fd;
 	}
 }

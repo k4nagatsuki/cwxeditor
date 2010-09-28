@@ -173,17 +173,17 @@ public:
 		} else {
 			appendMenuTCPD(_prop, this, this);
 			static if (UseArea && UseFlag) {
-				putMenuAction(_prop.msgs.menuSummary, _prop.msgs.ttSummary, &editSummary);
+				putMenuAction(MenuID.Summary, &editSummary);
 			}
 			static if (UseArea) {
-				putMenuAction(_prop.msgs.menuNewArea, _prop.msgs.ttNewArea, &createArea);
-				putMenuAction(_prop.msgs.menuNewBattle, _prop.msgs.ttNewBattle, &createBattle);
-				putMenuAction(_prop.msgs.menuNewPackage, _prop.msgs.ttNewPackage, &createPackage);
+				putMenuAction(MenuID.NewArea, &createArea);
+				putMenuAction(MenuID.NewBattle, &createBattle);
+				putMenuAction(MenuID.NewPackage, &createPackage);
 			}
 			static if (UseFlag) {
-				putMenuAction(_prop.msgs.menuNewFlagDir, _prop.msgs.ttNewFlagDir, &createFlagDir);
-				putMenuAction(_prop.msgs.menuNewFlag, _prop.msgs.ttNewFlag, &createFlag);
-				putMenuAction(_prop.msgs.menuNewStep, _prop.msgs.ttNewStep, &createStep);
+				putMenuAction(MenuID.NewFlagDir, &createFlagDir);
+				putMenuAction(MenuID.NewFlag, &createFlag);
+				putMenuAction(MenuID.NewStep, &createStep);
 			}
 		}
 		{
@@ -191,7 +191,8 @@ public:
 				tabf = new TabFolder(_win, DWT.NONE);
 				tabf.setLayoutData = new GridData(GridData.FILL_BOTH);
 
-				_flags = new FlagsPane(_comm, _prop, tabf, shell is null);
+				_flags = new FlagsPane(_comm, _prop, tabf);
+				_flags.setupTLP(this);
 				_areas = new AreaTable(_comm, _prop, tabf, _flags.flags);
 
 				tabA = new TabItem(tabf, DWT.NONE);
@@ -209,7 +210,8 @@ public:
 				_areas.table.setLayoutData = new GridData(GridData.FILL_BOTH);
 				_tcpd ~= _areas;
 			} else static if (UseFlag) {
-				_flags = new FlagsPane(_comm, _prop, _win, shell is null);
+				_flags = new FlagsPane(_comm, _prop, _win);
+				_flags.setupTLP(this);
 				_flags.widget.setLayoutData = new GridData(GridData.FILL_BOTH);
 				_tcpd ~= _flags.flags;
 				_tcpd ~= _flags.dirs;
@@ -263,15 +265,7 @@ public:
 	static if (UseArea) {
 		void editSummary() {
 			if (!_summ) return;
-			string oldName = _summ.scenarioName;
-			string oldType = _summ.type;
-			auto dlg = new SummaryDialog(_comm, _prop, _win.getShell, _summ);
-			if (IDialogConstants.OK_ID == dlg.open) {
-				_areas.refresh;
-				_comm.refUseCount.call;
-				if (oldName != _summ.scenarioName) _comm.refScenarioName.call;
-				if (oldType != _summ.type) {_comm.refSkin.call;}
-			}
+			_areas.editSummary;
 		}
 		void create(string path, string name, string type) {
 			scope mFPath = std.path.join(path, findSkin2(_prop, type).materialPath);

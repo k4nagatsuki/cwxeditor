@@ -517,10 +517,10 @@ void appendMenuTCPD(Props prop, TopLevelPanel tlp, TCPD tcpd,
 		bool t = true, bool c = true, bool p = true, bool d = false) {
 	auto itcpd = new InTCPD;
 	itcpd.tcpd = tcpd;
-	if (t) tlp.putMenuAction(prop.msgs.menuCut, prop.msgs.ttCut, &itcpd.cut);
-	if (c) tlp.putMenuAction(prop.msgs.menuCopy, prop.msgs.ttCopy, &itcpd.copy);
-	if (p) tlp.putMenuAction(prop.msgs.menuPaste, prop.msgs.ttPaste, &itcpd.paste);
-	if (d) tlp.putMenuAction(prop.msgs.menuDel, prop.msgs.ttDel, &itcpd.del);
+	if (t) tlp.putMenuAction(MenuID.Cut, &itcpd.cut);
+	if (c) tlp.putMenuAction(MenuID.Copy, &itcpd.copy);
+	if (p) tlp.putMenuAction(MenuID.Paste, &itcpd.paste);
+	if (d) tlp.putMenuAction(MenuID.Del, &itcpd.del);
 }
 void appendMenuTCPD(Props prop, Menu me, TCPD tcpd,
 		bool t = true, bool c = true, bool p = true, bool d = false) {
@@ -1765,10 +1765,11 @@ SplitPane changeVHSide(SplitPane sash) {
 		? ((sp.getStyle & DWT.HORIZONTAL) && !(sp.getStyle & DWT.VERTICAL))
 		: ((sp.getStyle & DWT.VERTICAL) && !(sp.getStyle & DWT.HORIZONTAL)));
 	auto ws = sash.getWeights;
-	sash.getControl1.setParent = sp;
-	sp.setControl1 = sash.getControl1;
-	sash.getControl2.setParent = sp;
-	sp.setControl2 = sash.getControl2;
+	foreach (c; sash.getChildren) {
+		if (!(cast(Sash) c)) {
+			c.setParent = sp;
+		}
+	}
 	sp.setLayoutData = sash.getLayoutData;
 	sp.setWeights = ws;
 	sash.dispose;

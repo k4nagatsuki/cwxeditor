@@ -350,7 +350,7 @@ struct OuterTool {
 class FlexEtcProps : Properties {
 	mixin Property!("singleWindow", bool, true);
 	mixin Property!("toolsOrder", int[], []);
-	mixin Property!("toolsWrapIndices", int[], [7]);
+	mixin Property!("toolsWrapIndices", int[], [8]);
 	mixin Property!("directorySashL", int, 2);
 	mixin Property!("directorySashR", int, 5);
 	mixin Property!("directorySashV", bool, false);
@@ -587,13 +587,25 @@ public class FlexProps {
 	DockingFolderCTC loadDock(Composite parent, int style, Control delegate(Composite, string) create) {
 		DockingFolderCTC r = null;
 		if (exists(_path)) {
-			try {
-				auto node = XNode.parse(cast(string) read(_path));
-				node.onTag["dockingFolder"] = (ref XNode node) {
-					r = DockingFolderCTC.fromNode(node, parent, style, create);
-				};
-				node.parse;
-			} catch {
+			int retryCount = 0;
+			while (!r) {
+				try {
+					auto node = XNode.parse(cast(string) read(_path));
+					void df(ref XNode node) {
+						r = DockingFolderCTC.fromNode(node, parent, style, create);
+					}
+					node.onTag["dockingFolder"] = &df;
+					node.parse;
+				} catch (Exception e) {
+					// FIXME: DockingFolder.fromNode()内でたまにアクセス違反が発生する
+					debug debugln(e);
+					if (r && r.area) r.area.dispose;
+					retryCount++;
+					if (retryCount > 100) {
+						debugln(e);
+						return null;
+					}
+				}
 			}
 		}
 		return r;

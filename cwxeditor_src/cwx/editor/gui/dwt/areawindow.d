@@ -178,12 +178,12 @@ public:
 
 			shell.setMenuBar = bar;
 		} else {
-			putMenuAction(_prop.msgs.menuUndo, _prop.msgs.ttUndo, &undo);
-			putMenuAction(_prop.msgs.menuRedo, _prop.msgs.ttRedo, &redo);
-			putMenuAction(_prop.msgs.menuUp, _prop.msgs.ttUp, &up);
-			putMenuAction(_prop.msgs.menuDown, _prop.msgs.ttDown, &down);
+			putMenuAction(MenuID.Undo, &undo);
+			putMenuAction(MenuID.Redo, &redo);
+			putMenuAction(MenuID.Up, &up);
+			putMenuAction(MenuID.Down, &down);
 			appendMenuTCPD(_prop, this, this, true, true, true, true);
-			putMenuAction(_prop.msgs.menuRefresh, _prop.msgs.ttRefresh, &refresh);
+			putMenuAction(MenuID.Refresh, &refresh);
 		}
 		{
 			_aview = new V(comm, prop, summ, area, _tabf, shell ? null : this, _undo);

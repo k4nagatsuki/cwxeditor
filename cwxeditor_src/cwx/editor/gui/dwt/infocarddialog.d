@@ -62,6 +62,10 @@ protected:
 		shell.setText = _card ? _prop.msgs.dlgTitInfo(_card.name) : _prop.msgs.dlgTitNewInfo;
 	}
 
+	override bool isResizable() {
+        return true;
+    }
+
 	override Control createDialogArea(Composite parent) {
 		auto area = cast(Composite) super.createDialogArea(parent);
 		area.setLayout = new GridLayout(1, false);
@@ -86,7 +90,7 @@ protected:
 		}
 		{
 			auto grp = new Group(area, DWT.NONE);
-			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
+			grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			grp.setLayout = new CenterLayout(DWT.HORIZONTAL);
 			grp.setText = _prop.msgs.desc;
 			_desc = new FixedWidthText(dwtData(_prop.looks.cardDescFont), _prop.looks.cardDescLen, grp, DWT.BORDER);

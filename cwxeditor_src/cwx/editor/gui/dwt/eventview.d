@@ -781,7 +781,6 @@ public:
 		_sash.setLayoutData = new GridData(GridData.FILL_BOTH);
 		{
 			_cards = new Tree(_sash, DWT.SINGLE | DWT.BORDER);
-			_sash.setControl1 = _cards;
 			_cards.addSelectionListener(new SListener);
 			auto menu = new Menu(parent.getShell, DWT.POP_UP);
 			appendMenuTCPD(_prop, menu, this, true, true, true, true);
@@ -789,7 +788,6 @@ public:
 		}
 		{
 			_etree = new EventTreeView(comm, prop, summ, _sash, _undo, &forceSel, &refreshTopStart, &setStatusLine);
-			_sash.setControl2 = _etree.widget;
 			auto _edit = new TreeEdit(_cards, &editEnd, &createEditor);
 			setupToolBar(toolbar);
 		}

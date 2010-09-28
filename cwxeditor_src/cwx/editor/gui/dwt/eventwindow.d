@@ -122,10 +122,10 @@ public:
 			shell.setMenuBar = bar;
 		} else {
 			appendMenuTCPD(_prop, this, this, true, true, true, true);
-			putMenuAction(_prop.msgs.menuUndo, _prop.msgs.ttUndo, &_eview.undo);
-			putMenuAction(_prop.msgs.menuRedo, _prop.msgs.ttRedo, &_eview.redo);
-			putMenuAction(_prop.msgs.menuUp, _prop.msgs.ttUp, &_eview.up);
-			putMenuAction(_prop.msgs.menuDown, _prop.msgs.ttDown, &_eview.down);
+			putMenuAction(MenuID.Undo, &_eview.undo);
+			putMenuAction(MenuID.Redo, &_eview.redo);
+			putMenuAction(MenuID.Up, &_eview.up);
+			putMenuAction(MenuID.Down, &_eview.down);
 		}
 
 		if (shell) {

@@ -476,7 +476,7 @@ private:
 	}
 
 	static if (UseCards && UseBacks) {
-		SashForm _sash;
+		SplitPane _sash;
 	}
 
 	ImagePane imagePane() {return _imgp;}
@@ -1187,7 +1187,6 @@ private:
 	List createList(C)(Composite parent, string name, Image image,
 			out ListViewer v, TCPD tcpd, void delegate(C) edit, C[] delegate() items) {
 		auto comp = new Composite(parent, DWT.NONE);
-		comp.setLayoutData = new GridData(GridData.FILL_BOTH);
 		comp.setLayout = zeroGridLayout(1);
 		auto label = new CLabel(comp, DWT.NONE);
 		label.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
@@ -1314,13 +1313,12 @@ public:
 		{
 			Composite listsP;
 			static if (UseCards && UseBacks) {
-				_sash = new SashForm(lrSash, DWT.VERTICAL | DWT.SMOOTH);
+				_sash = new SplitPane(lrSash, DWT.VERTICAL);
 				listsP = _sash;
 			} else {
 				listsP = new Composite(lrSash, DWT.NONE);
+				listsP.setLayout = new FillLayout;
 			}
-			lrSash.setControl1 = listsP;
-			listsP.setLayout = zeroGridLayout(1);
 			static if (UseCards) {
 				static if (is (C == MenuCard)) {
 					_cards = createList(listsP, prop.msgs.menuCards,
@@ -1365,7 +1363,6 @@ public:
 				});
 				_sash.setWeights([_prop.var.etc.areaSashT, _prop.var.etc.areaSashB]);
 			}
-
 			static if (UseCards && UseBacks) {
 				_sash.addDisposeListener(new class DisposeListener {
 					override void widgetDisposed(DisposeEvent e) {
@@ -1376,7 +1373,7 @@ public:
 			}
 		}
 		{
-			lrSash.setControl2 = createImagePane(lrSash);
+			createImagePane(lrSash);
 			static if (is (C == MenuCard) || UseBacks) {
 				auto target = new DropTarget(_imgp, DND.DROP_DEFAULT | DND.DROP_COPY);
 				static if (is (C == MenuCard)) {
@@ -1711,20 +1708,20 @@ public:
 		bool spCustom() {return !_area.spAuto;}
 	}
 	private void setupTLP(TopLevelPanel tlp) {
-		_tlp.putMenuChecked(_prop.msgs.menuViewParty, &reverseViewParty, &isViewParty);
+		_tlp.putMenuChecked(MenuID.ViewParty, &reverseViewParty, &isViewParty);
 		static if (UseCards && UseBacks) {
-			_tlp.putMenuChecked(_prop.msgs.menuViewCards, &reverseViewCards, &isViewCards);
-			_tlp.putMenuChecked(_prop.msgs.menuViewBacks, &reverseViewBacks, &isViewBacks);
+			_tlp.putMenuChecked(MenuID.ViewCards, &reverseViewCards, &isViewCards);
+			_tlp.putMenuChecked(MenuID.ViewBacks, &reverseViewBacks, &isViewBacks);
 		}
 		static if (UseCards) {
-			_tlp.putMenuChecked(_prop.msgs.menuAuto, &setAuto, &_area.spAuto);
-			_tlp.putMenuChecked(_prop.msgs.menuCustom, &setCustom, &spCustom);
+			_tlp.putMenuChecked(MenuID.Auto, &setAuto, &_area.spAuto);
+			_tlp.putMenuChecked(MenuID.Custom, &setCustom, &spCustom);
 		}
-		_tlp.putMenuAction(_prop.msgs.menuRefresh, _prop.msgs.ttRefresh, &refresh);
-		_tlp.putMenuAction(_prop.msgs.menuUndo, _prop.msgs.ttUndo, &undo);
-		_tlp.putMenuAction(_prop.msgs.menuRedo, _prop.msgs.ttRedo, &redo);
-		_tlp.putMenuAction(_prop.msgs.menuUp, _prop.msgs.ttUp, &up);
-		_tlp.putMenuAction(_prop.msgs.menuDown, _prop.msgs.ttDown, &down);
+		_tlp.putMenuAction(MenuID.Refresh, &refresh);
+		_tlp.putMenuAction(MenuID.Undo, &undo);
+		_tlp.putMenuAction(MenuID.Redo, &redo);
+		_tlp.putMenuAction(MenuID.Up, &up);
+		_tlp.putMenuAction(MenuID.Down, &down);
 	}
 
 	/// メニューにAreaViewで使用するアイテムを設定する。

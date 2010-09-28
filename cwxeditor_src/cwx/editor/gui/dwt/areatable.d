@@ -19,6 +19,7 @@ import cwx.editor.gui.dwt.flagtable;
 import cwx.editor.gui.dwt.areaview;
 import cwx.editor.gui.dwt.areawindow;
 import cwx.editor.gui.dwt.eventwindow;
+import cwx.editor.gui.dwt.summarydialog;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.xmlbytestransfer;
 
@@ -31,6 +32,7 @@ import dwt.widgets.TableColumn;
 import dwt.widgets.TableItem;
 import dwt.widgets.Text;
 import dwt.widgets.Menu;
+import dwt.widgets.MenuItem;
 import dwt.graphics.Image;
 import dwt.dwthelper.utils;
 import dwt.events.ShellEvent;
@@ -66,7 +68,7 @@ import dwtx.jface.action.IAction;
 import dwtx.jface.action.MenuManager;
 import dwtx.jface.action.Separator;
 
-public:
+import dwtx.jface.dialogs.IDialogConstants;
 
 /// エリア・バトル・パッケージの一覧を表示する。
 class AreaTable : TCPD {
@@ -365,6 +367,8 @@ public:
 		_areasEdit = new TableTextEdit(_areas, 1, &editEnd);
 
 		auto menu = new Menu(parent.getShell, DWT.POP_UP);
+		createMenuItem(menu, _prop.msgs.menuSummary, _prop.images.menuSummary, &editSummary);
+		new MenuItem(menu, DWT.SEPARATOR);
 		appendMenuTCPD(prop, menu, this);
 		_areas.setMenu = menu;
 
@@ -376,6 +380,19 @@ public:
 		auto drop = new DropTarget(_areas, DND.DROP_DEFAULT | DND.DROP_MOVE);
 		drop.setTransfer([XMLBytesTransfer.getInstance]);
 		drop.addDropListener(new DropArea);
+	}
+
+	void editSummary() {
+		if (!_summ) return;
+		string oldName = _summ.scenarioName;
+		string oldType = _summ.type;
+		auto dlg = new SummaryDialog(_comm, _prop, _areas.getShell, _summ);
+		if (IDialogConstants.OK_ID == dlg.open) {
+			refresh;
+			_comm.refUseCount.call;
+			if (oldName != _summ.scenarioName) _comm.refScenarioName.call;
+			if (oldType != _summ.type) {_comm.refSkin.call;}
+		}
 	}
 
 	Control table() {

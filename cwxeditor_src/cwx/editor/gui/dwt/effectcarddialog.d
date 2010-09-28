@@ -549,10 +549,15 @@ protected:
 		}
 	}
 
+	override bool isResizable() {
+        return true;
+    }
+
 	override Control createDialogArea(Composite parent) {
 		auto area = cast(Composite) super.createDialogArea(parent);
 		auto cl = new CenterLayout(DWT.NONE, 0);
 		cl.fillHorizontal = true;
+		cl.fillVertical = true;
 		area.setLayout = cl;
 		auto tabf = new TabFolder(area, DWT.NONE);
 

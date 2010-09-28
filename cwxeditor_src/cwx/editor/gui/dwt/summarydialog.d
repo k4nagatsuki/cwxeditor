@@ -332,6 +332,10 @@ protected:
 		shell.setText = _prop.msgs.dlgTitSummary(_summ.scenarioName);
 	}
 
+	override bool isResizable() {
+        return true;
+    }
+
 	override Control createDialogArea(Composite parent) {
 		auto area = cast(Composite) super.createDialogArea(parent);
 		area.setLayout = new FillLayout;

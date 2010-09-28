@@ -85,56 +85,21 @@ abstract class TopLevelPanel {
 	abstract Image image();
 	abstract Composite shell();
 
-	private void delegate()[string] _act;
-	private void delegate()[string] _tt;
-	private string[string] _menuToTool;
-	private string[string] _toolToMenu;
-	void putMenuAction(string menuText, void delegate() dlg) {
-		if (!(menuText in _act)) _act[menuText] = dlg;
+	private void delegate()[MenuID] _act;
+	void putMenuAction(MenuID menuID, void delegate() dlg) {
+		if (!(menuID in _act)) _act[menuID] = dlg;
 	}
-	void putMenuAction(string menuText, string ttText, void delegate() dlg) {
-		putMenuAction(menuText, dlg);
-		if (!(ttText in _tt)) {
-			_tt[ttText] = dlg;
-		}
-		_menuToTool[menuText] = ttText;
-		_toolToMenu[ttText] = menuText;
+	private bool delegate()[MenuID] _chk;
+	void putMenuChecked(MenuID menuID, void delegate() dlg, bool delegate() get) {
+		if (!(menuID in _act)) _act[menuID] = dlg;
+		if (!(menuID in _chk)) _chk[menuID] = get;
 	}
-	private bool delegate()[string] _chk;
-	private bool delegate()[string] _ttChk;
-	void putMenuChecked(string menuText, void delegate() dlg, bool delegate() get) {
-		if (!(menuText in _act)) _act[menuText] = dlg;
-		if (!(menuText in _chk)) _chk[menuText] = get;
-	}
-	void putMenuChecked(string menuText, string ttText, void delegate() dlg, bool delegate() get) {
-		putMenuChecked(menuText, dlg, get);
-		if (!(ttText in _tt)) _tt[ttText] = dlg;
-		if (!(ttText in _ttChk)) _ttChk[ttText] = get;
-		_menuToTool[menuText] = ttText;
-		_toolToMenu[ttText] = menuText;
-	}
-	string toolToMenu(string ttText) {
-		auto p = ttText in _toolToMenu;
+	void delegate() menuAction(MenuID menuID) {
+		auto p = menuID in _act;
 		return p ? *p : null;
 	}
-	string menuToTool(string menuText) {
-		auto p = menuText in _menuToTool;
-		return p ? *p : null;
-	}
-	void delegate() menuAction(string menuText) {
-		auto p = menuText in _act;
-		return p ? *p : null;
-	}
-	void delegate() toolAction(string ttText) {
-		auto p = ttText in _tt;
-		return p ? *p : null;
-	}
-	bool delegate() menuChecked(string menuText) {
-		auto p = menuText in _chk;
-		return p ? *p : null;
-	}
-	bool delegate() toolChecked(string ttText) {
-		auto p = ttText in _ttChk;
+	bool delegate() menuChecked(MenuID menuID) {
+		auto p = menuID in _chk;
 		return p ? *p : null;
 	}
 }

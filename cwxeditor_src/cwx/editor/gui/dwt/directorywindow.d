@@ -1088,49 +1088,36 @@ public:
 			shell.setMenuBar = bar;
 		} else {
 			appendMenuTCPD(_prop, this, this, true, true, true, true);
-			putMenuAction(_prop.msgs.menuReplacePath, _prop.msgs.ttReplacePath, &replace);
-			putMenuAction(_prop.msgs.menuRefresh, _prop.msgs.ttRefresh, &__refresh);
+			putMenuAction(MenuID.ReplacePath, &replace);
+			putMenuAction(MenuID.Refresh, &__refresh);
+			putMenuAction(MenuID.OpenDirectory, &openDirectory);
+			putMenuAction(MenuID.NewFolder, &__createDir);
+			putMenuAction(MenuID.ChangeVH, &changeVHSide);
 		}
-		void setupToolBar(ToolBar bar) {
+		if (shell) {
+			auto bar = new ToolBar(_win, DWT.FLAT);
 			bar.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 
 			createToolItem(bar, _prop.msgs.ttOpenDirectory, _prop.images.folder, &openDirectory);
-			if (shell) {
-				new ToolItem(bar, DWT.SEPARATOR);
-				createToolItem(bar, _prop.msgs.ttRefresh, _prop.images.menuRefresh, &__refresh);
-				new ToolItem(bar, DWT.SEPARATOR);
-				createToolItem(bar, _prop.msgs.ttReplacePath, _prop.images.menuReplacePath, &replace);
-			}
+			new ToolItem(bar, DWT.SEPARATOR);
+			createToolItem(bar, _prop.msgs.ttRefresh, _prop.images.menuRefresh, &__refresh);
+			new ToolItem(bar, DWT.SEPARATOR);
+			createToolItem(bar, _prop.msgs.ttReplacePath, _prop.images.menuReplacePath, &replace);
 			new ToolItem(bar, DWT.SEPARATOR);
 			createToolItem(bar, _prop.msgs.ttNewFolder, _prop.images.menuNewFolder, &__createDir);
-			if (shell) {
-				new ToolItem(bar, DWT.SEPARATOR);
-				createToolItem(bar, _prop.msgs.ttCut, _prop.images.menuCut, &cut);
-				createToolItem(bar, _prop.msgs.ttCopy, _prop.images.menuCopy, &copy);
-				createToolItem(bar, _prop.msgs.ttPaste, _prop.images.menuPaste, &paste);
-				createToolItem(bar, _prop.msgs.ttDel, _prop.images.menuDel, &del);
-			}
+			new ToolItem(bar, DWT.SEPARATOR);
+			createToolItem(bar, _prop.msgs.ttCut, _prop.images.menuCut, &cut);
+			createToolItem(bar, _prop.msgs.ttCopy, _prop.images.menuCopy, &copy);
+			createToolItem(bar, _prop.msgs.ttPaste, _prop.images.menuPaste, &paste);
+			createToolItem(bar, _prop.msgs.ttDel, _prop.images.menuDel, &del);
 			new ToolItem(bar, DWT.SEPARATOR);
 			createToolItem(bar, _prop.msgs.ttChangeVH, _prop.images.menuChangeVH, &changeVHSide);
 		}
-		if (shell) {
-			setupToolBar(new ToolBar(_win, DWT.FLAT));
-			_sash = new SplitPane(_win, _prop.var.etc.directorySashV ? DWT.VERTICAL : DWT.HORIZONTAL);
-			_sash.setLayoutData = new GridData(GridData.FILL_BOTH);
-			auto dirsComp = new Composite(_sash, DWT.NONE);
-			dirsComp.setLayout = new FillLayout;
-			_dirs = new Tree(dirsComp, DWT.SINGLE | DWT.BORDER | DWT.VIRTUAL);
-			_sash.setControl1 = dirsComp;
-		} else {
-			_sash = new SplitPane(_win, _prop.var.etc.directorySashV ? DWT.VERTICAL : DWT.HORIZONTAL);
-			_sash.setLayoutData = new GridData(GridData.FILL_BOTH);
-			auto dirsComp = new Composite(_sash, DWT.NONE);
-			dirsComp.setLayout = zeroGridLayout(1, true);
-			setupToolBar(new ToolBar(dirsComp, DWT.FLAT));
-			_dirs = new Tree(dirsComp, DWT.SINGLE | DWT.BORDER | DWT.VIRTUAL);
-			_dirs.setLayoutData = new GridData(GridData.FILL_BOTH);
-			_sash.setControl1 = dirsComp;
-		}
+		_sash = new SplitPane(_win, _prop.var.etc.directorySashV ? DWT.VERTICAL : DWT.HORIZONTAL);
+		_sash.setLayoutData = new GridData(GridData.FILL_BOTH);
+		auto dirsComp = new Composite(_sash, DWT.NONE);
+		dirsComp.setLayout = new FillLayout;
+		_dirs = new Tree(dirsComp, DWT.SINGLE | DWT.BORDER | DWT.VIRTUAL);
 		{
 			_dirs.addSelectionListener(new DirsSelection);
 			_dirsEdit = new TreeEdit(_dirs, &dirsEditEnd, &dirsCreateEditor);
@@ -1153,7 +1140,6 @@ public:
 		auto fComp = new Composite(_sash, DWT.NONE);
 		fComp.setLayout = new FillLayout;
 		_files = new Table(fComp, DWT.MULTI | DWT.FULL_SELECTION | DWT.BORDER | DWT.VIRTUAL);
-		_sash.setControl2 = fComp;
 		{
 			_files.setHeaderVisible = true;
 			auto namec = new TableColumn(_files, DWT.NONE);

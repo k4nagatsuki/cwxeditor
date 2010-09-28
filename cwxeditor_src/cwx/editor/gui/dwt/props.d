@@ -83,44 +83,6 @@ public:
 	Image couponHigh() {return imgd!(resourceDir ~ "coupon.png");}
 	Image couponDelete() {return imgd!(resourceDir ~ "evt_stop.png");}
 
-	Image menuRefresh() {return imgd!(resourceDir ~ "refresh.png");}
-
-	Image menuUndo() {return imgd!(resourceDir ~ "undo.png");}
-	Image menuRedo() {return imgd!(resourceDir ~ "redo.png");}
-
-	Image menuCut() {return imgd!(resourceDir ~ "cut.png");}
-	Image menuCopy() {return imgd!(resourceDir ~ "copy.png");}
-	Image menuPaste() {return imgd!(resourceDir ~ "paste.png");}
-	Image menuDel() {return imgd!(resourceDir ~ "del.png");}
-
-	Image menuToXML() {return imgd!(resourceDir ~ "toxml.png");}
-
-	Image menuNew() {return imgd!(resourceDir ~ "new.png");}
-	Image menuOpen() {return imgd!(resourceDir ~ "open.png");}
-	Image menuClose() {return imgd!(resourceDir ~ "close.png");}
-	Image menuCloseWin() {return imgd!(resourceDir ~ "close_win.png");}
-	Image menuSave() {return imgd!(resourceDir ~ "save.png");}
-	Image menuSaveA() {return imgd!(resourceDir ~ "save_a.png");}
-
-	Image menuDataWin() {return imgd!(resourceDir ~ "data_win.png");}
-	Image menuFlagWin() {return imgd!(resourceDir ~ "flag_win.png");}
-	Image menuCardWin() {return imgd!(resourceDir ~ "card_win.png");}
-	Image menuDirWin() {return imgd!(resourceDir ~ "dir_win.png");}
-
-	Image menuChangeVH() {return imgd!(resourceDir ~ "chg_vh.png");}
-
-	Image menuExecEngine() {return imgd!(resourceDir ~ "exec_engine.png");}
-	Image menuSettings() {return imgd!(resourceDir ~ "settings.png");}
-
-	Image menuSummary() {return imgd!(resourceDir ~ "summary.png");}
-	Image menuNewArea() {return imgd!(resourceDir ~ "area_new.png");}
-	Image menuNewBattle() {return imgd!(resourceDir ~ "battle_new.png");}
-	Image menuNewPackage() {return imgd!(resourceDir ~ "package_new.png");}
-
-	Image menuNewFlagDir() {return imgd!(resourceDir ~ "flagdir_new.png");}
-	Image menuNewFlag() {return imgd!(resourceDir ~ "flag_new.png");}
-	Image menuNewStep() {return imgd!(resourceDir ~ "step_new.png");}
-
 	Image stopBGM() {return imgd!(resourceDir ~ "sound_stop.png");}
 	Image playBGM() {return imgd!(resourceDir ~ "sound_play.png");}
 
@@ -278,52 +240,10 @@ public:
 		}
 	}
 
-	Image menuViewParty() {return imgd!(resourceDir ~ "partyCards.png");}
-	Image menuViewCards() {return imgd!(resourceDir ~ "cards.png");}
-	Image menuViewBacks() {return imgd!(resourceDir ~ "backs.png");}
-	Image menuUp() {return imgd!(resourceDir ~ "up.png");}
-	Image menuDown() {return imgd!(resourceDir ~ "down.png");}
-	Image menuNewMenuCard() {return imgd!(resourceDir ~ "card_new.png");}
-	Image menuNewEnemyCard() {return imgd!(resourceDir ~ "card_new.png");}
-	Image menuNewBack() {return imgd!(resourceDir ~ "back_new.png");}
-	Image menuAuto() {return imgd!(resourceDir ~ "auto.png");}
-	Image menuCustom() {return imgd!(resourceDir ~ "custom.png");}
-	Image menuMask() {return imgd!(resourceDir ~ "mask.png");}
-	Image menuDoEscape() {return imgd!(resourceDir ~ "escape.png");}
-	Image menuPosTop() {return imgd!(resourceDir ~ "pos_top.png");}
-	Image menuPosBottom() {return imgd!(resourceDir ~ "pos_bottom.png");}
-	Image menuPosLeft() {return imgd!(resourceDir ~ "pos_left.png");}
-	Image menuPosRight() {return imgd!(resourceDir ~ "pos_right.png");}
-	Image menuPosEven() {return imgd!(resourceDir ~ "pos_even.png");}
-	Image menuScaleMin() {return imgd!(resourceDir ~ "scale_min.png");}
-	Image menuScaleMiddle() {return imgd!(resourceDir ~ "scale_middle.png");}
-	Image menuScaleMax() {return imgd!(resourceDir ~ "scale_max.png");}
-	Image menuScaleEvenBig() {return imgd!(resourceDir ~ "scale_even_big.png");}
-	Image menuScaleEvenSmall() {return imgd!(resourceDir ~ "scale_even_small.png");}
-
-	Image menuNewEventTree() {return imgd!(resourceDir ~ "event_tree.png");}
-	Image menuNewEventFire() {return imgd!(resourceDir ~ "def_start.png");}
-	Image menuTreeOpen() {return imgd!(resourceDir ~ "tree_open.png");}
-	Image menuTreeClose() {return imgd!(resourceDir ~ "tree_close.png");}
 	Image eventTree() {return imgd!(resourceDir ~ "event_tree.png");}
 	Image defStart() {return imgd!(resourceDir ~ "def_start.png");}
 	Image keyCode() {return imgd!(resourceDir ~ "key_code.png");}
 	Image round() {return imgd!(resourceDir ~ "round.png");}
-
-	Image menuShowCardList() {return imgd!(resourceDir ~ "card_list.png");}
-	Image menuShowCardTable() {return imgd!(resourceDir ~ "card_table.png");}
-	Image menuAddScenario() {return imgd!(resourceDir ~ "add_scenario.png");}
-	Image menuNewCast() {return imgd!(resourceDir ~ "cast_new.png");}
-	Image menuNewSkill() {return imgd!(resourceDir ~ "skill_new.png");}
-	Image menuNewItem() {return imgd!(resourceDir ~ "item_new.png");}
-	Image menuNewBeast() {return imgd!(resourceDir ~ "beast_new.png");}
-	Image menuNewInfo() {return imgd!(resourceDir ~ "info_new.png");}
-
-	Image menuAdd() {return imgd!(resourceDir ~ "add.png");}
-
-	Image menuEditHand() {return imgd!(resourceDir ~ "card_hand.png");}
-	Image menuOpenHand() {return imgd!(resourceDir ~ "card_hand.png");}
-	Image menuEditUseEvent() {return imgd!(resourceDir ~ "event_tree.png");}
 
 	Image addCoupon() {return imgd!(resourceDir ~ "coupon.png");}
 	Image altCoupon() {return imgd!(resourceDir ~ "alt_coupon.png");}
@@ -363,15 +283,171 @@ public:
 	Image copyToUpper() {return imgd!(resourceDir ~ "copy_dialog_u.png");}
 	Image copyToLower() {return imgd!(resourceDir ~ "copy_dialog_l.png");}
 
+	Image summaryFile() {return imgd!(resourceDir ~ "summary_file.png");}
+	Image scenarioArchive() {return imgd!(resourceDir ~ "scenario_arc.png");}
+	Image classic() {return imgd!(resourceDir ~ "classic.png");}
+
+	Image menuRefresh() {return imgd!(resourceDir ~ "refresh.png");}
+
+	Image menuUndo() {return imgd!(resourceDir ~ "undo.png");}
+	Image menuRedo() {return imgd!(resourceDir ~ "redo.png");}
+
+	Image menuCut() {return imgd!(resourceDir ~ "cut.png");}
+	Image menuCopy() {return imgd!(resourceDir ~ "copy.png");}
+	Image menuPaste() {return imgd!(resourceDir ~ "paste.png");}
+	Image menuDel() {return imgd!(resourceDir ~ "del.png");}
+
+	Image menuToXML() {return imgd!(resourceDir ~ "toxml.png");}
+
+	Image menuNew() {return imgd!(resourceDir ~ "new.png");}
+	Image menuOpen() {return imgd!(resourceDir ~ "open.png");}
+	Image menuClose() {return imgd!(resourceDir ~ "close.png");}
+	Image menuCloseWin() {return imgd!(resourceDir ~ "close_win.png");}
+	Image menuSave() {return imgd!(resourceDir ~ "save.png");}
+	Image menuSaveA() {return imgd!(resourceDir ~ "save_a.png");}
+
+	Image menuDataWin() {return imgd!(resourceDir ~ "data_win.png");}
+	Image menuFlagWin() {return imgd!(resourceDir ~ "flag_win.png");}
+	Image menuCardWin() {return imgd!(resourceDir ~ "card_win.png");}
+	Image menuDirWin() {return imgd!(resourceDir ~ "dir_win.png");}
+
+	Image menuChangeVH() {return imgd!(resourceDir ~ "chg_vh.png");}
+
+	Image menuExecEngine() {return imgd!(resourceDir ~ "exec_engine.png");}
+	Image menuSettings() {return imgd!(resourceDir ~ "settings.png");}
+
+	Image menuSummary() {return imgd!(resourceDir ~ "summary.png");}
+	Image menuNewArea() {return imgd!(resourceDir ~ "area_new.png");}
+	Image menuNewBattle() {return imgd!(resourceDir ~ "battle_new.png");}
+	Image menuNewPackage() {return imgd!(resourceDir ~ "package_new.png");}
+
+	Image menuNewFlagDir() {return imgd!(resourceDir ~ "flagdir_new.png");}
+	Image menuNewFlag() {return imgd!(resourceDir ~ "flag_new.png");}
+	Image menuNewStep() {return imgd!(resourceDir ~ "step_new.png");}
+
+	Image menuViewParty() {return imgd!(resourceDir ~ "partyCards.png");}
+	Image menuViewCards() {return imgd!(resourceDir ~ "cards.png");}
+	Image menuViewBacks() {return imgd!(resourceDir ~ "backs.png");}
+	Image menuUp() {return imgd!(resourceDir ~ "up.png");}
+	Image menuDown() {return imgd!(resourceDir ~ "down.png");}
+	Image menuNewMenuCard() {return imgd!(resourceDir ~ "card_new.png");}
+	Image menuNewEnemyCard() {return imgd!(resourceDir ~ "card_new.png");}
+	Image menuNewBack() {return imgd!(resourceDir ~ "back_new.png");}
+	Image menuAuto() {return imgd!(resourceDir ~ "auto.png");}
+	Image menuCustom() {return imgd!(resourceDir ~ "custom.png");}
+	Image menuMask() {return imgd!(resourceDir ~ "mask.png");}
+	Image menuDoEscape() {return imgd!(resourceDir ~ "escape.png");}
+	Image menuPosTop() {return imgd!(resourceDir ~ "pos_top.png");}
+	Image menuPosBottom() {return imgd!(resourceDir ~ "pos_bottom.png");}
+	Image menuPosLeft() {return imgd!(resourceDir ~ "pos_left.png");}
+	Image menuPosRight() {return imgd!(resourceDir ~ "pos_right.png");}
+	Image menuPosEven() {return imgd!(resourceDir ~ "pos_even.png");}
+	Image menuScaleMin() {return imgd!(resourceDir ~ "scale_min.png");}
+	Image menuScaleMiddle() {return imgd!(resourceDir ~ "scale_middle.png");}
+	Image menuScaleMax() {return imgd!(resourceDir ~ "scale_max.png");}
+	Image menuScaleEvenBig() {return imgd!(resourceDir ~ "scale_even_big.png");}
+	Image menuScaleEvenSmall() {return imgd!(resourceDir ~ "scale_even_small.png");}
+
+	Image menuNewEventTree() {return imgd!(resourceDir ~ "event_tree.png");}
+	Image menuNewEventFire() {return imgd!(resourceDir ~ "def_start.png");}
+	Image menuTreeOpen() {return imgd!(resourceDir ~ "tree_open.png");}
+	Image menuTreeClose() {return imgd!(resourceDir ~ "tree_close.png");}
+
+	Image menuShowCardList() {return imgd!(resourceDir ~ "card_list.png");}
+	Image menuShowCardTable() {return imgd!(resourceDir ~ "card_table.png");}
+	Image menuAddScenario() {return imgd!(resourceDir ~ "add_scenario.png");}
+	Image menuNewCast() {return imgd!(resourceDir ~ "cast_new.png");}
+	Image menuNewSkill() {return imgd!(resourceDir ~ "skill_new.png");}
+	Image menuNewItem() {return imgd!(resourceDir ~ "item_new.png");}
+	Image menuNewBeast() {return imgd!(resourceDir ~ "beast_new.png");}
+	Image menuNewInfo() {return imgd!(resourceDir ~ "info_new.png");}
+
+	Image menuAdd() {return imgd!(resourceDir ~ "add.png");}
+
+	Image menuEditHand() {return imgd!(resourceDir ~ "card_hand.png");}
+	Image menuOpenHand() {return imgd!(resourceDir ~ "card_hand.png");}
+	Image menuEditUseEvent() {return imgd!(resourceDir ~ "event_tree.png");}
+
+	Image menuOpenDirectory() {return imgd!(resourceDir ~ "folder.png");}
 	Image menuNewFolder() {return imgd!(resourceDir ~ "folder_new.png");}
 	Image menuReplacePath() {return imgd!(resourceDir ~ "replace.png");}
 
 	Image menuReplaceText() {return imgd!(resourceDir ~ "repl_text.png");}
 	Image menuReload() {return imgd!(resourceDir ~ "reload.png");}
+}
 
-	Image summaryFile() {return imgd!(resourceDir ~ "summary_file.png");}
-	Image scenarioArchive() {return imgd!(resourceDir ~ "scenario_arc.png");}
-	Image classic() {return imgd!(resourceDir ~ "classic.png");}
+enum MenuID : int {
+	Refresh,
+	Undo,
+	Redo,
+	Cut,
+	Copy,
+	Paste,
+	Del,
+	ToXML,
+	New,
+	Open,
+	Close,
+	CloseWin,
+	Save,
+	SaveA,
+	DataWin,
+	FlagWin,
+	CardWin,
+	DirWin,
+	ChangeVH,
+	ExecEngine,
+	Settings,
+	Summary,
+	NewArea,
+	NewBattle,
+	NewPackage,
+	NewFlagDir,
+	NewFlag,
+	NewStep,
+	ViewParty,
+	ViewCards,
+	ViewBacks,
+	Up,
+	Down,
+	NewMenuCard,
+	NewEnemyCard,
+	NewBack,
+	Auto,
+	Custom,
+	Mask,
+	DoEscape,
+	PosTop,
+	PosBottom,
+	PosLeft,
+	PosRight,
+	PosEven,
+	ScaleMin,
+	ScaleMiddle,
+	ScaleMax,
+	ScaleEvenBig,
+	ScaleEvenSmall,
+	NewEventTree,
+	NewEventFire,
+	TreeOpen,
+	TreeClose,
+	ShowCardList,
+	ShowCardTable,
+	AddScenario,
+	NewCast,
+	NewSkill,
+	NewItem,
+	NewBeast,
+	NewInfo,
+	Add,
+	EditHand,
+	OpenHand,
+	EditUseEvent,
+	OpenDirectory,
+	NewFolder,
+	ReplacePath,
+	ReplaceText,
+	Reload
 }
 
 public class Props {
