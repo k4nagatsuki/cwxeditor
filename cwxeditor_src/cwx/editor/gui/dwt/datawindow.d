@@ -43,8 +43,6 @@ import dwt.events.DisposeEvent;
 import dwt.events.ControlAdapter;
 import dwt.events.ControlEvent;
 
-import dwtx.jface.dialogs.IDialogConstants;
-
 class AbstractDataWindow(bool UseArea, bool UseFlag) : TopLevelPanel, TCPD {
 private:
 	Commons _comm;

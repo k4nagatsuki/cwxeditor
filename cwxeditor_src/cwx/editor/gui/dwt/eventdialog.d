@@ -25,6 +25,8 @@ import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.materialselect;
 import cwx.editor.gui.dwt.motionview;
 import cwx.editor.gui.dwt.undo;
+import cwx.editor.gui.dwt.absdialog;
+import cwx.editor.gui.dwt.splitpane;
 
 import std.math;
 import std.path;
@@ -64,11 +66,8 @@ import dwt.layout.FillLayout;
 import dwt.layout.GridLayout;
 import dwt.layout.GridData;
 
-import dwtx.jface.dialogs.Dialog;
-import dwtx.jface.dialogs.IDialogConstants;
-
 /// エリア・バトル・パッケージ・キャスト・情報の選択を行うダイアログ。
-class AreaSelectDialog(CType Type, A, string Areas) : Dialog {
+class AreaSelectDialog(CType Type, A, string Areas) : AbsDialog {
 private:
 	Props _prop;
 	Summary _summ;
@@ -86,41 +85,36 @@ public:
 		assert (!evt || evt.type is Type);
 		assert (summ);
 	} body {
-		super(shell);
 		_summ = summ;
 		_prop = prop;
 		_evt = evt;
+		static if (Type == CType.CHANGE_AREA) {
+			string text = _prop.msgs.dlgTitAreaSelect;
+		} else static if (Type == CType.START_BATTLE) {
+			string text = _prop.msgs.dlgTitBattleSelect;
+		} else static if (Type == CType.CALL_PACKAGE || Type == CType.LINK_PACKAGE) {
+			string text = _prop.msgs.dlgTitPackageSelect;
+		} else static if (Type == CType.BRANCH_CAST || Type == CType.GET_CAST || Type == CType.LOSE_CAST) {
+			string text = _prop.msgs.dlgTitCastSelect;
+		} else static if (Type == CType.BRANCH_INFO || Type == CType.GET_INFO || Type == CType.LOSE_INFO) {
+			string text = _prop.msgs.dlgTitInfoSelect;
+		} else {
+			static assert (0);
+		}
+		super(prop, shell, text, prop.images.content(Type), true, prop.var.selEvtDlg);
 	}
 
 	Content event() {
 		return _evt;
 	}
 protected:
-	override void configureShell(Shell shell) {
-		super.configureShell(shell);
-		static if (Type == CType.CHANGE_AREA) {
-			shell.setText = _prop.msgs.dlgTitAreaSelect;
-		} else static if (Type == CType.START_BATTLE) {
-			shell.setText = _prop.msgs.dlgTitBattleSelect;
-		} else static if (Type == CType.CALL_PACKAGE || Type == CType.LINK_PACKAGE) {
-			shell.setText = _prop.msgs.dlgTitPackageSelect;
-		} else static if (Type == CType.BRANCH_CAST || Type == CType.GET_CAST || Type == CType.LOSE_CAST) {
-			shell.setText = _prop.msgs.dlgTitCastSelect;
-		} else static if (Type == CType.BRANCH_INFO || Type == CType.GET_INFO || Type == CType.LOSE_INFO) {
-			shell.setText = _prop.msgs.dlgTitInfoSelect;
-		} else {
-			static assert (0);
-		}
-	}
-
-	override Control createDialogArea(Composite parent) {
-		auto area = cast(Composite) super.createDialogArea(parent);
+	override void setup(Composite area) {
 		area.setLayout = new GridLayout(1, false);
 		_list = new Table(area, DWT.SINGLE | DWT.FULL_SELECTION | DWT.BORDER | DWT.V_SCROLL);
 		auto idCol = new TableColumn(_list, DWT.NONE);
 		saveColumnWidth!("prop.var.etc.idColumn")(_prop, idCol);
 		auto nameCol = new FullTableColumn(_list, DWT.NONE);
-		auto gd = new GridData(GridData.FILL_HORIZONTAL);
+		auto gd = new GridData(GridData.FILL_BOTH);
 		gd.widthHint = _prop.var.etc.nameTableWidth;
 		gd.heightHint = _prop.var.etc.nameTableHeight;
 		_list.setLayoutData = gd;
@@ -199,16 +193,10 @@ protected:
 			}
 		}
 		_list.showSelection;
-		return area;
 	}
 
-	override void createButtonsForButtonBar(Composite parent) {
-		createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
-		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
-	}
-
-	override void buttonPressed(int buttonId) {
-		if (buttonId == IDialogConstants.OK_ID) {
+	override bool close(bool ok) {
+		if (ok) {
 			auto id = (cast(A) _list.getSelection[0].getData).id;
 			if (!_evt) {
 				_evt = new Content(Type, "");
@@ -237,14 +225,12 @@ protected:
 				static assert (0);
 			}
 		}
-		setReturnCode(buttonId);
-		close;
-		super.buttonPressed(buttonId);
+		return ok;
 	}
 }
 
 /// スタートコンテントの選択を行うダイアログ。
-class StartSelectDialog(CType Type) : Dialog {
+class StartSelectDialog(CType Type) : AbsDialog {
 private:
 	Props _prop;
 	Content[] _starts;
@@ -259,27 +245,21 @@ public:
 		}
 		assert (!evt || evt.type == Type);
 	} body {
-		super(shell);
 		_prop = prop;
 		_starts = starts;
 		_evt = evt;
+		super(prop, shell, prop.msgs.dlgTitStartSelect, prop.images.content(Type), true, prop.var.selEvtDlg);
 	}
 
 	Content event() {
 		return _evt;
 	}
 protected:
-	override void configureShell(Shell shell) {
-		super.configureShell(shell);
-		shell.setText = _prop.msgs.dlgTitStartSelect;
-	}
-
-	override Control createDialogArea(Composite parent) {
-		auto area = cast(Composite) super.createDialogArea(parent);
+	override void setup(Composite area) {
 		area.setLayout = new GridLayout(1, false);
 		_list = new Table(area, DWT.SINGLE | DWT.FULL_SELECTION | DWT.BORDER | DWT.V_SCROLL);
 		auto nameCol = new FullTableColumn(_list, DWT.NONE);
-		auto gd = new GridData(GridData.FILL_HORIZONTAL);
+		auto gd = new GridData(GridData.FILL_BOTH);
 		gd.widthHint = _prop.var.etc.nameTableWidth;
 		gd.heightHint = _prop.var.etc.nameTableHeight;
 		_list.setLayoutData = gd;
@@ -294,28 +274,20 @@ protected:
 			}
 		}
 		_list.showSelection;
-		return area;
 	}
 
-	override void createButtonsForButtonBar(Composite parent) {
-		createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
-		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
-	}
-
-	override void buttonPressed(int buttonId) {
-		if (buttonId == IDialogConstants.OK_ID) {
+	override bool close(bool ok) {
+		if (ok) {
 			auto name = (cast(Content) _list.getSelection[0].getData).name;
 			if (!_evt) _evt = new Content(Type, "");
 			_evt.start = name;
 		}
-		setReturnCode(buttonId);
-		close;
-		super.buttonPressed(buttonId);
+		return ok;
 	}
 }
 
 /// クリアイベントの設定を行うダイアログ。
-class ClearEventDialog : Dialog {
+class ClearEventDialog : AbsDialog {
 private:
 	Props _prop;
 	Content _evt;
@@ -327,22 +299,16 @@ public:
 	this(Props prop, Shell shell, Content evt) in {
 		assert (!evt || evt.type is CType.END);
 	} body {
-		super(shell);
 		_prop = prop;
 		_evt = evt;
+		super(prop, shell, prop.msgs.dlgTitClear, prop.images.content(CType.END), false);
 	}
 
 	Content event() {
 		return _evt;
 	}
 protected:
-	override void configureShell(Shell shell) {
-		super.configureShell(shell);
-		shell.setText = _prop.msgs.dlgTitClear;
-	}
-
-	override Control createDialogArea(Composite parent) {
-		auto area = cast(Composite) super.createDialogArea(parent);
+	override void setup(Composite area) {
 		auto cl = new CenterLayout;
 		cl.fillHorizontal = true;
 		area.setLayout = cl;
@@ -365,29 +331,21 @@ protected:
 		} else {
 			_mark.setSelection = true;
 		}
-		return area;
 	}
 
-	override void createButtonsForButtonBar(Composite parent) {
-		createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
-		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
-	}
-
-	override void buttonPressed(int buttonId) {
-		if (buttonId == IDialogConstants.OK_ID) {
+	override bool close(bool ok) {
+		if (ok) {
 			if (!_evt) {
 				_evt = new Content(CType.END, "");
 			}
 			_evt.complete = _mark.getSelection;
 		}
-		setReturnCode(buttonId);
-		close;
-		super.buttonPressed(buttonId);
+		return ok;
 	}
 }
 
 /// 取得を除くクーポン関連イベントの設定を行うダイアログ。
-class CouponEventDialog(CType Type, bool EditValue) : Dialog {
+class CouponEventDialog(CType Type, bool EditValue) : AbsDialog {
 private:
 	Props _prop;
 	Content _evt;
@@ -402,22 +360,16 @@ public:
 	this(Props prop, Shell shell, Content evt) in {
 		assert (!evt || evt.type == Type);
 	} body {
-		super(shell);
 		_prop = prop;
 		_evt = evt;
+		super(prop, shell, prop.msgs.dlgTitCoupon, prop.images.content(Type), true, prop.var.couponEvtDlg);
 	}
 
 	Content event() {
 		return _evt;
 	}
 protected:
-	override void configureShell(Shell shell) {
-		super.configureShell(shell);
-		shell.setText = _prop.msgs.dlgTitCoupon;
-	}
-
-	override Control createDialogArea(Composite parent) {
-		auto area = cast(Composite) super.createDialogArea(parent);
+	override void setup(Composite area) {
 		area.setLayout = new GridLayout(2, false);
 		{
 			auto grp = new Group(area, DWT.NONE);
@@ -477,16 +429,10 @@ protected:
 				_value.setSelection = 0;
 			}
 		}
-		return area;
 	}
 
-	override void createButtonsForButtonBar(Composite parent) {
-		createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
-		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
-	}
-
-	override void buttonPressed(int buttonId) {
-		if (buttonId == IDialogConstants.OK_ID) {
+	override bool close(bool ok) {
+		if (ok) {
 			if (!_evt) _evt = new Content(Type, "");
 			foreach (range, radio; _range) {
 				if (radio.getSelection) {
@@ -499,14 +445,12 @@ protected:
 				}
 			}
 		}
-		setReturnCode(buttonId);
-		close;
-		super.buttonPressed(buttonId);
+		return ok;
 	}
 }
 
 /// 終了印とゴシップの設定を行うダイアログ。
-private class OneTextEventDialog(CType Type, string Title, string Name, string Get, string Set) : Dialog {
+private class OneTextEventDialog(CType Type, string Title, string Name, string Get, string Set) : AbsDialog {
 private:
 	Props _prop;
 	Content _evt;
@@ -517,30 +461,28 @@ public:
 	this(Props prop, Shell shell, Content evt) in {
 		assert (!evt || evt.type == Type);
 	} body {
-		super(shell);
 		_prop = prop;
 		_evt = evt;
+		super(prop, shell, mixin (Title), prop.images.content(Type), true, prop.var.inputEvtDlg);
 	}
 
 	Content event() {
 		return _evt;
 	}
 protected:
-	override void configureShell(Shell shell) {
-		super.configureShell(shell);
-		shell.setText = mixin (Title);
-	}
-
-	override Control createDialogArea(Composite parent) {
-		auto area = cast(Composite) super.createDialogArea(parent);
+	override void setup(Composite area) {
 		area.setLayout = new GridLayout(1, false);
 		{
 			auto grp = new Group(area, DWT.NONE);
 			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
 			grp.setText = mixin (Name);
-			grp.setLayout = new GridLayout(1, true);
+			auto cl = new CenterLayout(DWT.HORIZONTAL | DWT.VERTICAL, 0);
+			cl.fillHorizontal = true;
+			grp.setLayout = cl;
+			auto comp = new Composite(grp, DWT.NONE);
+			comp.setLayout = new GridLayout(1, true);
 
-			_text = new Text(grp, DWT.BORDER);
+			_text = new Text(comp, DWT.BORDER);
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
 			gd.widthHint = _prop.var.etc.nameWidth;
 			_text.setLayoutData = gd;
@@ -549,23 +491,15 @@ protected:
 		if (_evt) {
 			_text.setText = mixin (Get);
 		}
-		return area;
 	}
 
-	override void createButtonsForButtonBar(Composite parent) {
-		createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
-		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
-	}
-
-	override void buttonPressed(int buttonId) {
-		if (buttonId == IDialogConstants.OK_ID) {
+	override bool close(bool ok) {
+		if (ok) {
 			if (!_evt) _evt = new Content(Type, "");
 			string text = _text.getText;
 			mixin (Set);
 		}
-		setReturnCode(buttonId);
-		close;
-		super.buttonPressed(buttonId);
+		return ok;
 	}
 }
 
@@ -580,14 +514,13 @@ template EndEventDialog(CType Type) {
 }
 
 /// 背景変更イベントの設定を行うダイアログ。
-class BgImagesDialog : Dialog {
+class BgImagesDialog : AbsDialog {
 private:
 	Commons _comm;
 	Props _prop;
 	Summary _summ;
 	Combo _ts;
 	Spinner _tsSpeed;
-	Menu _bar;
 	Transition[int] _tsTbl;
 
 	Content _evt = null;
@@ -599,10 +532,11 @@ public:
 	this(Commons comm, Props prop, Shell shell, Summary summ, Content evt) in {
 		assert (!evt || evt.type == CType.CHANGE_BG_IMAGE);
 	} body {
-		super(shell);
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
+		super(prop, shell, _prop.msgs.dlgTitBgImages,
+			_prop.images.content(CType.CHANGE_BG_IMAGE), true, _prop.var.bgImagesDlg);
 
 		BgImage[] bgImages;
 		if (evt) {
@@ -618,30 +552,16 @@ public:
 		return _evt;
 	}
 protected:
-	override void configureShell(Shell shell) {
-		super.configureShell(shell);
-		shell.setText = _prop.msgs.dlgTitBgImages;
-		_bar = new Menu(shell, DWT.BAR);
-		shell.setMenuBar = _bar;
-	}
+	override void setup(Composite area) {
+		auto bar = new Menu(area.getShell, DWT.BAR);
+		area.getShell.setMenuBar = bar;
 
-	override Point getInitialSize() {
-		return _prop.var.bgImagesDlg.width == DWT.DEFAULT
-			? super.getInitialSize : new Point(_prop.var.bgImagesDlg.width, _prop.var.bgImagesDlg.height);
-	}
-
-	override bool isResizable() {
-        return true;
-    }
-
-	override Control createDialogArea(Composite parent) {
-		auto area = cast(Composite) super.createDialogArea(parent);
 		area.setLayout = new GridLayout(1, false);
 		auto skin = findSkin(_prop, _summ);
 		{
 			_view = new BgImagesView(_comm, _prop, _summ, _cont, area, new UndoManager(1024));
 			_view.setLayoutData = new GridData(GridData.FILL_BOTH);
-			auto me = createMenu(_bar, _prop.msgs.menuEdit);
+			auto me = createMenu(bar, _prop.msgs.menuEdit);
 			createMenuItem(me, _prop.msgs.menuUndo, _prop.images.menuUndo, &_view.undo);
 			createMenuItem(me, _prop.msgs.menuRedo, _prop.images.menuRedo, &_view.redo);
 			new MenuItem(me, DWT.SEPARATOR);
@@ -649,9 +569,9 @@ protected:
 			createMenuItem(me, _prop.msgs.menuDown, _prop.images.menuDown, &_view.down);
 			new MenuItem(me, DWT.SEPARATOR);
 			appendMenuTCPD(_prop, me, _view, true, true, true, true);
-			auto mv = createMenu(_bar, _prop.msgs.menuView);
+			auto mv = createMenu(bar, _prop.msgs.menuView);
 			createMenuItem(mv, _prop.msgs.menuRefresh, _prop.images.menuRefresh, &_view.refresh);
-			_view.setupMenu(_bar);
+			_view.setupMenu(bar);
 		}
 		if (!_summ.legacy) {
 			{
@@ -685,16 +605,10 @@ protected:
 				_tsSpeed.setSelection = _prop.looks.transitionSpeedDef;
 			}
 		}
-		return area;
 	}
 
-	override void createButtonsForButtonBar(Composite parent) {
-		createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
-		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
-	}
-
-	override void buttonPressed(int buttonId) {
-		if (buttonId == IDialogConstants.OK_ID) {
+	override bool close(bool ok) {
+		if (ok) {
 			if (!_evt) _evt = new Content(CType.CHANGE_BG_IMAGE, "");
 			_evt.bgImages = _cont.backs;
 			if (!_summ.legacy) {
@@ -704,17 +618,12 @@ protected:
 				_evt.transitionSpeed = tsSpeed;
 			}
 		}
-		auto size = getShell.getSize;
-		_prop.var.bgImagesDlg.width = size.x;
-		_prop.var.bgImagesDlg.height = size.y;
-		setReturnCode(buttonId);
-		close;
-		super.buttonPressed(buttonId);
+		return ok;
 	}
 }
 
 /// BGMイベントの設定を行うダイアログ。
-class BgmDialog : Dialog {
+class BgmDialog : AbsDialog {
 private:
 	Commons _comm;
 	Props _prop;
@@ -769,24 +678,18 @@ public:
 	this(Commons comm, Props prop, Shell shell, Summary summ, Content evt) in {
 		assert (!evt || evt.type == CType.PLAY_BGM);
 	} body {
-		super(shell);
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
 		_evt = evt;
+		super(prop, shell, prop.msgs.dlgTitBGM, prop.images.content(CType.PLAY_BGM), true, prop.var.soundEvtDlg);
 	}
 
 	Content event() {
 		return _evt;
 	}
 protected:
-	override void configureShell(Shell shell) {
-		super.configureShell(shell);
-		shell.setText = _prop.msgs.dlgTitBGM;
-	}
-
-	override Control createDialogArea(Composite parent) {
-		auto area = cast(Composite) super.createDialogArea(parent);
+	override void setup(Composite area) {
 		area.setLayout = new GridLayout(4, false);
 		{
 			auto skin = findSkin(_prop, _summ);
@@ -795,13 +698,14 @@ protected:
 			_msel.createDirsCombo(area).setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 
 			_play = new Button(area, DWT.TOGGLE);
+			_play.setLayoutData = new GridData;
 			_play.setToolTipText = _prop.msgs.playBGM;
 			_play.setImage = _prop.images.playBGM;
 			auto pbgm = new PlayBGM;
 			_play.addSelectionListener(pbgm);
 			_play.addDisposeListener(new StopBGM);
-			_msel.createRefreshButton(area, false);
-			_msel.createDirectoryButton(area, false);
+			_msel.createRefreshButton(area, false).setLayoutData = new GridData;
+			_msel.createDirectoryButton(area, false).setLayoutData = new GridData;
 
 			auto gd = new GridData(GridData.FILL_BOTH);
 			gd.horizontalSpan = 4;
@@ -813,27 +717,19 @@ protected:
 			list.addKeyListener(pbgm);
 		}
 		_msel.path = _evt ? _evt.bgmPath : "";
-		return area;
 	}
 
-	override void createButtonsForButtonBar(Composite parent) {
-		createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
-		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
-	}
-
-	override void buttonPressed(int buttonId) {
-		if (buttonId == IDialogConstants.OK_ID) {
+	override bool close(bool ok) {
+		if (ok) {
 			if (!_evt) _evt = new Content(CType.PLAY_BGM, "");
 			_evt.bgmPath = _msel.path;
 		}
-		setReturnCode(buttonId);
-		close;
-		super.buttonPressed(buttonId);
+		return ok;
 	}
 }
 
 /// 効果音イベントの設定を行うダイアログ。
-class SeDialog : Dialog {
+class SeDialog : AbsDialog {
 private:
 	Commons _comm;
 	Props _prop;
@@ -870,24 +766,18 @@ public:
 	this(Commons comm, Props prop, Shell shell, Summary summ, Content evt) in {
 		assert (!evt || evt.type == CType.PLAY_SOUND);
 	} body {
-		super(shell);
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
 		_evt = evt;
+		super(prop, shell, prop.msgs.dlgTitSE, prop.images.content(CType.PLAY_SOUND), true, prop.var.soundEvtDlg);
 	}
 
 	Content event() {
 		return _evt;
 	}
 protected:
-	override void configureShell(Shell shell) {
-		super.configureShell(shell);
-		shell.setText = _prop.msgs.dlgTitSE;
-	}
-
-	override Control createDialogArea(Composite parent) {
-		auto area = cast(Composite) super.createDialogArea(parent);
+	override void setup(Composite area) {
 		area.setLayout = new GridLayout(5, false);
 		{
 			auto skin = findSkin(_prop, _summ);
@@ -896,6 +786,7 @@ protected:
 			_msel.createDirsCombo(area).setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 
 			auto stop = new Button(area, DWT.PUSH);
+			stop.setLayoutData = new GridData;
 			stop.setToolTipText = _prop.msgs.stopSound;
 			stop.setImage = _prop.images.stopSound;
 			auto sse = new StopSE;
@@ -906,8 +797,8 @@ protected:
 			play.setImage = _prop.images.playSound;
 			auto pse = new PlaySE;
 			play.addSelectionListener(pse);
-			_msel.createRefreshButton(area, false);
-			_msel.createDirectoryButton(area, false);
+			_msel.createRefreshButton(area, false).setLayoutData = new GridData;
+			_msel.createDirectoryButton(area, false).setLayoutData = new GridData;
 
 			auto gd = new GridData(GridData.FILL_BOTH);
 			gd.horizontalSpan = 5;
@@ -919,27 +810,19 @@ protected:
 			list.addMouseListener(pse);
 		}
 		_msel.path = _evt ? _evt.soundPath : "";
-		return area;
 	}
 
-	override void createButtonsForButtonBar(Composite parent) {
-		createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
-		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
-	}
-
-	override void buttonPressed(int buttonId) {
-		if (buttonId == IDialogConstants.OK_ID) {
+	override bool close(bool ok) {
+		if (ok) {
 			if (!_evt) _evt = new Content(CType.PLAY_SOUND, "");
 			_evt.soundPath = _msel.path;
 		}
-		setReturnCode(buttonId);
-		close;
-		super.buttonPressed(buttonId);
+		return ok;
 	}
 }
 
 /// 数値の設定を行うダイアログ。
-private class NumericEventDialog(CType Type, string Title, string Name, string Max, string Get, string Set, uint Min = 0, uint Def = 0) : Dialog {
+private class NumericEventDialog(CType Type, string Title, string Name, string Max, string Get, string Set, uint Min = 0, uint Def = 0) : AbsDialog {
 private:
 	Props _prop;
 	Content _evt;
@@ -950,20 +833,15 @@ public:
 	this(Props prop, Shell shell, Content evt) in {
 		assert (!evt || evt.type == Type);
 	} body {
-		super(shell);
 		_prop = prop;
 		_evt = evt;
+		super(prop, shell, mixin (Title), prop.images.content(Type), false);
 	}
 
 	Content event() {
 		return _evt;
 	}
 protected:
-	override void configureShell(Shell shell) {
-		super.configureShell(shell);
-		shell.setText = mixin (Title);
-	}
-
 	private class PM : SelectionAdapter {
 		private int _v;
 		this(int v) {_v = v;}
@@ -971,8 +849,7 @@ protected:
 			_value.setSelection = _value.getSelection + _v;
 		}
 	}
-	override Control createDialogArea(Composite parent) {
-		auto area = cast(Composite) super.createDialogArea(parent);
+	override void setup(Composite area) {
 		area.setLayout = new GridLayout(1, false);
 		{
 			auto grp = new Group(area, DWT.NONE);
@@ -1018,23 +895,15 @@ protected:
 		} else {
 			_value.setSelection = Def;
 		}
-		return area;
 	}
 
-	override void createButtonsForButtonBar(Composite parent) {
-		createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
-		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
-	}
-
-	override void buttonPressed(int buttonId) {
-		if (buttonId == IDialogConstants.OK_ID) {
+	override bool close(bool ok) {
+		if (ok) {
 			if (!_evt) _evt = new Content(Type, "");
 			int value = _value.getSelection;
 			mixin (Set);
 		}
-		setReturnCode(buttonId);
-		close;
-		super.buttonPressed(buttonId);
+		return ok;
 	}
 }
 
@@ -1053,7 +922,7 @@ template MoneyEventDialog(CType Type) {
 }
 
 /// 効果イベントの設定を行うダイアログ。
-class EffectDialog : Dialog {
+class EffectDialog : AbsDialog {
 private:
 	Commons _comm;
 	Props _prop;
@@ -1074,25 +943,22 @@ public:
 	this(Commons comm, Props prop, Shell shell, Summary summ, Content evt) in {
 		assert (!evt || evt.type == CType.EFFECT);
 	} body {
-		super(shell);
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
 		_evt = evt;
+		super(prop, shell, prop.msgs.dlgTitEffect, prop.images.content(CType.EFFECT), true, prop.var.effEvtDlg);
 	}
 
 	Content event() {
 		return _evt;
 	}
 protected:
-	override void configureShell(Shell shell) {
-		super.configureShell(shell);
-		shell.setText = _prop.msgs.dlgTitEffect;
-	}
-
-	override Control createDialogArea(Composite parent) {
-		auto area = cast(Composite) super.createDialogArea(parent);
-		area.setLayout = new CenterLayout;
+	override void setup(Composite area) {
+		auto cl = new CenterLayout;
+		cl.fillHorizontal = true;
+		cl.fillVertical = true;
+		area.setLayout = cl;
 		auto tabf = new TabFolder(area, DWT.NONE);
 		auto tabM = new TabItem(tabf, DWT.NONE);
 		tabM.setText = _prop.msgs.motion;
@@ -1219,16 +1085,10 @@ protected:
 			_vis[CardVisual.NONE].setSelection = true;
 			_targ[Target.M.SELECTED].setSelection = true;
 		}
-		return area;
 	}
 
-	override void createButtonsForButtonBar(Composite parent) {
-		createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
-		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
-	}
-
-	override void buttonPressed(int buttonId) {
-		if (buttonId == IDialogConstants.OK_ID) {
+	override bool close(bool ok) {
+		if (ok) {
 			if (!_evt) _evt = new Content(CType.EFFECT, "");
 			_evt.motions = _mview.motions;
 			_evt.level = _lev.getSelection;
@@ -1239,20 +1099,19 @@ protected:
 			_evt.cardVisual = getRadioValue!(CardVisual)(_vis);
 			_evt.targetNS = Target(getRadioValue!(Target.M)(_targ), false);
 		}
-		setReturnCode(buttonId);
-		close;
-		super.buttonPressed(buttonId);
+		return ok;
 	}
 }
 
 /// フラグ・ステップの選択・設定を行うダイアログ。
-private class FlagStepDialog(CType Type, F, bool SelValue, string Title) : Dialog {
+private class FlagStepDialog(CType Type, F, bool SelValue, string Title) : AbsDialog {
 private:
 	Props _prop;
 	FlagDir _root;
 	Content _evt;
 	F[] _data;
 
+	SplitPane _sash;
 	List _flags;
 	List _values;
 
@@ -1300,27 +1159,26 @@ public:
 	this(Props prop, Shell shell, FlagDir root, Content evt) in {
 		assert (!evt || evt.type == Type);
 	} body {
-		super(shell);
 		_prop = prop;
 		_root = root;
 		_evt = evt;
+		super(prop, shell, mixin (Title), prop.images.content(Type), true, prop.var.flagEvtDlg);
 	}
 
 	Content event() {
 		return _evt;
 	}
 protected:
-	override void configureShell(Shell shell) {
-		super.configureShell(shell);
-		shell.setText = mixin (Title);
-	}
-
-	override Control createDialogArea(Composite parent) {
-		auto area = cast(Composite) super.createDialogArea(parent);
-		area.setLayout = new GridLayout(2, false);
+	override void setup(Composite area) {
+		area.setLayout = new FillLayout;
+		_sash = new SplitPane(area, DWT.HORIZONTAL);
+		auto left = new Composite(_sash, DWT.NONE);
+		left.setLayout = zeroGridLayout(1);
+		auto right = new Composite(_sash, DWT.NONE);
+		right.setLayout = zeroGridLayout(1);
 		{
-			auto l1 = new CLabel(area, DWT.NONE);
-			auto l2 = new CLabel(area, DWT.NONE);
+			auto l1 = new CLabel(left, DWT.NONE);
+			auto l2 = new CLabel(right, DWT.NONE);
 			static if (is (F == Flag)) {
 				l1.setText = _prop.msgs.flag;
 				l1.setImage = _prop.images.flag;
@@ -1334,9 +1192,8 @@ protected:
 			}
 		}
 		{
-			_flags = new List(area, DWT.SINGLE | DWT.BORDER | DWT.V_SCROLL);
+			_flags = new List(left, DWT.SINGLE | DWT.BORDER | DWT.V_SCROLL);
 			auto gd = new GridData(GridData.FILL_BOTH);
-			gd.widthHint = _prop.var.etc.flagNameTableWidth;
 			gd.heightHint = _prop.var.etc.nameTableHeight;
 			_flags.setLayoutData = gd;
 			static if (is (F == Flag)) {
@@ -1354,9 +1211,8 @@ protected:
 			_flags.addSelectionListener(new SListener);
 		}
 		{
-			_values = new List(area, DWT.SINGLE | DWT.BORDER | DWT.V_SCROLL);
+			_values = new List(right, DWT.SINGLE | DWT.BORDER | DWT.V_SCROLL);
 			auto gd = new GridData(GridData.FILL_BOTH);
-			gd.widthHint = _prop.var.etc.flagValueTableWidth;
 			gd.heightHint = _prop.var.etc.nameTableHeight;
 			_values.setLayoutData = gd;
 			_values.setEnabled = SelValue;
@@ -1387,16 +1243,11 @@ protected:
 			refreshValues;
 			static if (SelValue) _sel = 0;
 		}
-		return area;
+		_sash.setWeights([_prop.var.etc.flagEventSashL, _prop.var.etc.flagEventSashR]);
 	}
 
-	override void createButtonsForButtonBar(Composite parent) {
-		createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
-		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
-	}
-
-	override void buttonPressed(int buttonId) {
-		if (buttonId == IDialogConstants.OK_ID) {
+	override bool close(bool ok) {
+		if (ok) {
 			if (!_evt) _evt = new Content(Type, "");
 			static if (is (F == Flag)) {
 				_evt.flag = _flags.getSelection[0];
@@ -1412,9 +1263,10 @@ protected:
 				static assert (0);
 			}
 		}
-		setReturnCode(buttonId);
-		close;
-		super.buttonPressed(buttonId);
+		auto ws = _sash.getWeights;
+		_prop.var.etc.flagEventSashL = ws[0];
+		_prop.var.etc.flagEventSashR = ws[1];
+		return ok;
 	}
 }
 
@@ -1429,7 +1281,7 @@ alias FlagStepDialog!(CType.REVERSE_FLAG, Flag, false, "_prop.msgs.dlgTitFlagR")
 alias FlagStepDialog!(CType.CHECK_FLAG, Flag, false, "_prop.msgs.dlgTitFlagJudge") FlagJudgeDialog;
 
 /// メンバ選択分岐の設定を行うダイアログ。
-class BrMemberDialog : Dialog {
+class BrMemberDialog : AbsDialog {
 private:
 	Props _prop;
 	Content _evt;
@@ -1442,22 +1294,16 @@ public:
 	this(Props prop, Shell shell, Content evt) in {
 		assert (!evt || evt.type == CType.BRANCH_SELECT);
 	} body {
-		super(shell);
 		_prop = prop;
 		_evt = evt;
+		super(prop, shell, prop.msgs.dlgTitBrMember, prop.images.content(CType.BRANCH_SELECT), false);
 	}
 
 	Content event() {
 		return _evt;
 	}
 protected:
-	override void configureShell(Shell shell) {
-		super.configureShell(shell);
-		shell.setText = _prop.msgs.dlgTitBrMember;
-	}
-
-	override Control createDialogArea(Composite parent) {
-		auto area = cast(Composite) super.createDialogArea(parent);
+	override void setup(Composite area) {
 		area.setLayout = new GridLayout(2, false);
 		void createR(string title, string trueText, string falseText, ref Button[] btns) {
 			auto grp = new Group(area, DWT.NONE);
@@ -1484,28 +1330,20 @@ protected:
 			_all[0].setSelection = true;
 			_random[0].setSelection = true;
 		}
-		return area;
 	}
 
-	override void createButtonsForButtonBar(Composite parent) {
-		createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
-		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
-	}
-
-	override void buttonPressed(int buttonId) {
-		if (buttonId == IDialogConstants.OK_ID) {
+	override bool close(bool ok) {
+		if (ok) {
 			if (!_evt) _evt = new Content(CType.BRANCH_SELECT, "");
 			_evt.targetAll = _all[1].getSelection;
 			_evt.random = _random[1].getSelection;
 		}
-		setReturnCode(buttonId);
-		close;
-		super.buttonPressed(buttonId);
+		return ok;
 	}
 }
 
 /// 能力判定分岐の設定を行うダイアログ。
-class BrPowerDialog : Dialog {
+class BrPowerDialog : AbsDialog {
 private:
 	Props _prop;
 	Content _evt;
@@ -1521,22 +1359,16 @@ public:
 	this(Props prop, Shell shell, Content evt) in {
 		assert (!evt || evt.type == CType.BRANCH_ABILITY);
 	} body {
-		super(shell);
 		_prop = prop;
 		_evt = evt;
+		super(prop, shell, prop.msgs.dlgTitBrPower, prop.images.content(CType.BRANCH_ABILITY), false);
 	}
 
 	Content event() {
 		return _evt;
 	}
 protected:
-	override void configureShell(Shell shell) {
-		super.configureShell(shell);
-		shell.setText = _prop.msgs.dlgTitBrPower;
-	}
-
-	override Control createDialogArea(Composite parent) {
-		auto area = cast(Composite) super.createDialogArea(parent);
+	override void setup(Composite area) {
 		area.setLayout = new GridLayout(3, false);
 		{
 			auto comp = new Composite(area, DWT.NONE);
@@ -1626,16 +1458,10 @@ protected:
 			_phy[Physical.DEX].setSelection = true;
 			_mtl[Mental.AGGRESSIVE].setSelection = true;
 		}
-		return area;
 	}
 
-	override void createButtonsForButtonBar(Composite parent) {
-		createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
-		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
-	}
-
-	override void buttonPressed(int buttonId) {
-		if (buttonId == IDialogConstants.OK_ID) {
+	override bool close(bool ok) {
+		if (ok) {
 			if (!_evt) _evt = new Content(CType.BRANCH_ABILITY, "");
 			auto targ = Target(getRadioValue!(Target.M)(_targ), _sleep[0].getSelection);
 			_evt.level = _lev.getSelection;
@@ -1643,14 +1469,12 @@ protected:
 			_evt.physical = getRadioValue!(Physical)(_phy);
 			_evt.mental = getRadioValue!(Mental)(_mtl);
 		}
-		setReturnCode(buttonId);
-		close;
-		super.buttonPressed(buttonId);
+		return ok;
 	}
 }
 
 /// レベル判定分岐の設定を行うダイアログ。
-class BrLevelDialog : Dialog {
+class BrLevelDialog : AbsDialog {
 private:
 	Props _prop;
 	Content _evt;
@@ -1662,22 +1486,16 @@ public:
 	this(Props prop, Shell shell, Content evt) in {
 		assert (!evt || evt.type == CType.BRANCH_LEVEL);
 	} body {
-		super(shell);
 		_prop = prop;
 		_evt = evt;
+		super(prop, shell, prop.msgs.dlgTitBrLevel, prop.images.content(CType.BRANCH_LEVEL), false);
 	}
 
 	Content event() {
 		return _evt;
 	}
 protected:
-	override void configureShell(Shell shell) {
-		super.configureShell(shell);
-		shell.setText = _prop.msgs.dlgTitBrLevel;
-	}
-
-	override Control createDialogArea(Composite parent) {
-		auto area = cast(Composite) super.createDialogArea(parent);
+	override void setup(Composite area) {
 		area.setLayout = new GridLayout(2, false);
 		{
 			auto grp = new Group(area, DWT.NONE);
@@ -1713,28 +1531,20 @@ protected:
 			_ave[1].setSelection = true;
 			_lev.setSelection = 1;
 		}
-		return area;
 	}
 
-	override void createButtonsForButtonBar(Composite parent) {
-		createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
-		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
-	}
-
-	override void buttonPressed(int buttonId) {
-		if (buttonId == IDialogConstants.OK_ID) {
+	override bool close(bool ok) {
+		if (ok) {
 			if (!_evt) _evt = new Content(CType.BRANCH_LEVEL, "");
 			_evt.average = _ave[0].getSelection;
 			_evt.level = _lev.getSelection;
 		}
-		setReturnCode(buttonId);
-		close;
-		super.buttonPressed(buttonId);
+		return ok;
 	}
 }
 
 /// 状態分岐の設定を行うダイアログ。
-class BrStateDialog : Dialog {
+class BrStateDialog : AbsDialog {
 private:
 	Props _prop;
 	Content _evt;
@@ -1746,22 +1556,16 @@ public:
 	this(Props prop, Shell shell, Content evt) in {
 		assert (!evt || evt.type == CType.BRANCH_STATUS);
 	} body {
-		super(shell);
 		_prop = prop;
 		_evt = evt;
+		super(prop, shell, prop.msgs.dlgTitBrState, prop.images.content(CType.BRANCH_STATUS), false);
 	}
 
 	Content event() {
 		return _evt;
 	}
 protected:
-	override void configureShell(Shell shell) {
-		super.configureShell(shell);
-		shell.setText = _prop.msgs.dlgTitBrState;
-	}
-
-	override Control createDialogArea(Composite parent) {
-		auto area = cast(Composite) super.createDialogArea(parent);
+	override void setup(Composite area) {
 		area.setLayout = new GridLayout(1, false);
 		{
 			auto grp = new Group(area, DWT.NONE);
@@ -1813,29 +1617,21 @@ protected:
 			_targ[Target.M.SELECTED].setSelection = true;
 			_stat[Status.ACTIVE].setSelection = true;
 		}
-		return area;
 	}
 
-	override void createButtonsForButtonBar(Composite parent) {
-		createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
-		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
-	}
-
-	override void buttonPressed(int buttonId) {
-		if (buttonId == IDialogConstants.OK_ID) {
+	override bool close(bool ok) {
+		if (ok) {
 			if (!_evt) _evt = new Content(CType.BRANCH_STATUS, "");
 			auto targ = Target(getRadioValue!(Target.M)(_targ), false);
 			_evt.targetNS = targ;
 			_evt.status = getRadioValue!(Status)(_stat);
 		}
-		setReturnCode(buttonId);
-		close;
-		super.buttonPressed(buttonId);
+		return ok;
 	}
 }
 
 /// カード取得・喪失・所持判定の設定を行うダイアログ。
-private class CardEventDialog(CType Type, C : EffectCard, string Cards, string Title, bool Delete, Range RangeDef) : Dialog {
+private class CardEventDialog(CType Type, C : EffectCard, string Cards, string Title, bool Delete, Range RangeDef) : AbsDialog {
 private:
 	Props _prop;
 	Summary _summ;
@@ -1858,23 +1654,17 @@ public:
 		assert (!evt || evt.type == Type);
 	} body {
 		assert (summ);
-		super(shell);
 		_summ = summ;
 		_prop = prop;
 		_evt = evt;
+		super(prop, shell, mixin (Title), _prop.images.content(Type), true, _prop.var.cardEvtDlg);
 	}
 
 	Content event() {
 		return _evt;
 	}
 protected:
-	override void configureShell(Shell shell) {
-		super.configureShell(shell);
-		shell.setText = mixin (Title);
-	}
-
-	override Control createDialogArea(Composite parent) {
-		auto area = cast(Composite) super.createDialogArea(parent);
+	override void setup(Composite area) {
 		area.setLayout = new GridLayout(2, false);
 		{
 			auto comp = new Composite(area, DWT.NONE);
@@ -1883,16 +1673,20 @@ protected:
 			{
 				auto grp = new Group(comp, DWT.NONE);
 				grp.setText = _prop.msgs.cardNumber;
-				grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				grp.setLayout = new GridLayout(2, false);
-				_num = new Spinner(grp, DWT.BORDER);
+				grp.setLayoutData = new GridData(GridData.FILL_BOTH);
+				auto cl = new CenterLayout(DWT.HORIZONTAL | DWT.VERTICAL, 0);
+				cl.fillHorizontal = true;
+				grp.setLayout = cl;
+				auto comp2 = new Composite(grp, DWT.NONE);
+				comp2.setLayout = new GridLayout(2, false);
+				_num = new Spinner(comp2, DWT.BORDER);
 				_num.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				_num.setMinimum = 1;
 				_num.setMaximum = _prop.looks.cardNumberMax;
-				auto l = new Label(grp, DWT.NONE);
+				auto l = new Label(comp2, DWT.NONE);
 				l.setText = _prop.msgs.rangeHint(_num.getMinimum, _num.getMaximum);
 				static if (Delete) {
-					_allDel = new Button(grp, DWT.CHECK);
+					_allDel = new Button(comp2, DWT.CHECK);
 					_allDel.setText = _prop.msgs.cardAllDelete;
 					auto gd = new GridData;
 					gd.horizontalSpan = 2;
@@ -1919,7 +1713,7 @@ protected:
 			auto idCol = new TableColumn(_list, DWT.NONE);
 			saveColumnWidth!("prop.var.etc.idColumn")(_prop, idCol);
 			auto nameCol = new FullTableColumn(_list, DWT.NONE);
-			auto gd = new GridData(GridData.FILL_HORIZONTAL);
+			auto gd = new GridData(GridData.FILL_BOTH);
 			gd.widthHint = _prop.var.etc.nameTableWidth;
 			gd.heightHint = _prop.var.etc.nameTableHeight;
 			_list.setLayoutData = gd;
@@ -1975,16 +1769,10 @@ protected:
 			_num.setSelection = 1;
 			_range[RangeDef].setSelection = true;
 		}
-		return area;
 	}
 
-	override void createButtonsForButtonBar(Composite parent) {
-		createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
-		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
-	}
-
-	override void buttonPressed(int buttonId) {
-		if (buttonId == IDialogConstants.OK_ID) {
+	override bool close(bool ok) {
+		if (ok) {
 			if (!_evt) _evt = new Content(Type, "");
 			auto id = (cast(C) _list.getSelection[0].getData).id;
 			static if (is (C == SkillCard)) {
@@ -2007,9 +1795,7 @@ protected:
 				_evt.cardNumber = _num.getSelection;
 			}
 		}
-		setReturnCode(buttonId);
-		close;
-		super.buttonPressed(buttonId);
+		return ok;
 	}
 }
 
@@ -2024,7 +1810,7 @@ alias CardEventDialog!(CType.LOSE_ITEM, ItemCard, "_summ.items", "_prop.msgs.dlg
 alias CardEventDialog!(CType.LOSE_BEAST, BeastCard, "_summ.beasts", "_prop.msgs.dlgTitLostBeast", true, Range.FIELD) LostBeastDialog;
 
 /// 画面再構築イベントの設定を行うダイアログ。
-class RefreshDialog : Dialog {
+class RefreshDialog : AbsDialog {
 private:
 	Props _prop;
 	Combo _ts;
@@ -2037,7 +1823,7 @@ public:
 	this(Props prop, Shell shell, Content evt) in {
 		assert (!evt || evt.type == CType.REDISPLAY);
 	} body {
-		super(shell);
+		super(prop, shell, prop.msgs.dlgTitRefresh, prop.images.content(CType.REDISPLAY), false);
 		_prop = prop;
 		_evt = evt;
 	}
@@ -2046,13 +1832,7 @@ public:
 		return _evt;
 	}
 protected:
-	override void configureShell(Shell shell) {
-		super.configureShell(shell);
-		shell.setText = _prop.msgs.dlgTitRefresh;
-	}
-
-	override Control createDialogArea(Composite parent) {
-		auto area = cast(Composite) super.createDialogArea(parent);
+	override void setup(Composite area) {
 		area.setLayout = new GridLayout(1, false);
 		{
 			auto grp = new Group(area, DWT.NONE);
@@ -2090,24 +1870,16 @@ protected:
 			_ts.select = 0;
 			_tsSpeed.setSelection = _prop.looks.transitionSpeedDef;
 		}
-		return area;
 	}
 
-	override void createButtonsForButtonBar(Composite parent) {
-		createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
-		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
-	}
-
-	override void buttonPressed(int buttonId) {
-		if (buttonId == IDialogConstants.OK_ID) {
+	override bool close(bool ok) {
+		if (ok) {
 			if (!_evt) _evt = new Content(CType.REDISPLAY, "");
 			auto ts = _tsTbl[_ts.getSelectionIndex];
 			uint tsSpeed = _tsSpeed.getSelection;
 			_evt.transition = ts;
 			_evt.transitionSpeed = tsSpeed;
 		}
-		setReturnCode(buttonId);
-		close;
-		super.buttonPressed(buttonId);
+		return ok;
 	}
 }

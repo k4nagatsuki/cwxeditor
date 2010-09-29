@@ -16,6 +16,7 @@ import cwx.editor.gui.dwt.imageselect;
 import cwx.editor.gui.dwt.customtext;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.centerlayout;
+import cwx.editor.gui.dwt.absdialog;
 
 import dwt.DWT;
 import dwt.widgets.Display;
@@ -27,12 +28,9 @@ import dwt.widgets.Label;
 import dwt.layout.GridLayout;
 import dwt.layout.GridData;
 
-import dwtx.jface.dialogs.Dialog;
-import dwtx.jface.dialogs.IDialogConstants;
-
 public:
 
-class InfoCardDialog : Dialog {
+class InfoCardDialog : AbsDialog {
 private:
 	Commons _comm;
 	Props _prop;
@@ -46,28 +44,19 @@ private:
 public:
 	this(Commons comm, Props prop, Shell shell, Summary summ, InfoCard card) {
 		assert (summ !is null);
-		super(shell);
 		_comm = comm;
 		_summ = summ;
 		_card = card;
 		_prop = prop;
+		super(prop, shell, _card ? _prop.msgs.dlgTitInfo(_card.name) : _prop.msgs.dlgTitNewInfo,
+			_prop.images.info, true, _prop.var.infoCardDlg);
 	}
 
 	InfoCard card() {
 		return _card;
 	}
 protected:
-	override void configureShell(Shell shell) {
-		super.configureShell(shell);
-		shell.setText = _card ? _prop.msgs.dlgTitInfo(_card.name) : _prop.msgs.dlgTitNewInfo;
-	}
-
-	override bool isResizable() {
-        return true;
-    }
-
-	override Control createDialogArea(Composite parent) {
-		auto area = cast(Composite) super.createDialogArea(parent);
+	override void setup(Composite area) {
 		area.setLayout = new GridLayout(1, false);
 		{
 			auto grp = new Group(area, DWT.NONE);
@@ -81,6 +70,7 @@ protected:
 			_name.widget.setLayoutData = gd;
 			auto l = new Label(grp, DWT.NONE);
 			l.setText = _prop.msgs.nameLimit(_prop.looks.nameLimit);
+			checker(_name.widget);
 		}
 		{
 			auto skin = findSkin(_prop, _summ);
@@ -103,31 +93,19 @@ protected:
 		} else {
 			_imgPath.image = "";
 		}
-		return area;
 	}
 
-	override void createButtonsForButtonBar(Composite parent) {
-		createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
-		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
-	}
-
-	override void buttonPressed(int buttonId) {
-		if (buttonId == IDialogConstants.OK_ID) {
-			if (_name.getText.length > 0) {
-				if (_card) {
-					_card.name = _name.getText;
-					_card.path = _imgPath.image;
-					_card.desc = wrapReturnCode(_desc.getText);
-				} else {
-					_card = new InfoCard(_summ.newId!(InfoCard), _name.getText,
-						_imgPath.image, wrapReturnCode(_desc.getText));
-				}
+	override bool close(bool ok) {
+		if (ok) {
+			if (_card) {
+				_card.name = _name.getText;
+				_card.path = _imgPath.image;
+				_card.desc = wrapReturnCode(_desc.getText);
 			} else {
-				buttonId = IDialogConstants.CANCEL_ID;
+				_card = new InfoCard(_summ.newId!(InfoCard), _name.getText,
+					_imgPath.image, wrapReturnCode(_desc.getText));
 			}
 		}
-		setReturnCode(buttonId);
-		close;
-		super.buttonPressed(buttonId);
+		return ok;
 	}
 }

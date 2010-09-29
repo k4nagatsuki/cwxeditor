@@ -82,8 +82,6 @@ import dwtx.jface.viewers.Viewer;
 import dwtx.jface.viewers.ListViewer;
 import dwtx.jface.viewers.LabelProvider;
 import dwtx.jface.viewers.IStructuredContentProvider;
-import dwtx.jface.dialogs.Dialog;
-import dwtx.jface.dialogs.IDialogConstants;
 
 public:
 
@@ -1610,7 +1608,7 @@ public:
 				if (_summ.casts.length == 0) return;
 			}
 			auto dlg = new SpCardDialog!(C)(_comm, _prop, getShell, _summ, null);
-			if (IDialogConstants.OK_ID == dlg.open) {
+			if (dlg.open) {
 				int index = insertIndex(_cards);
 				static if (UseBacks) {
 					_undo ~= new UndoInsert([index], []);
@@ -1630,7 +1628,7 @@ public:
 			}
 			auto undo = new UndoEdit;
 			auto dlg = new SpCardDialog!(C)(_comm, _prop, getShell, _summ, card);
-			if (IDialogConstants.OK_ID == dlg.open) {
+			if (dlg.open) {
 				_undo ~= undo;
 				int index;
 				foreach (i, c; _area.cards) {
@@ -1661,7 +1659,7 @@ public:
 	static if (UseBacks) {
 		void createBackground() {
 			auto dlg = new BgImageDialog(_comm, _prop, getShell, _summ, null);
-			if (IDialogConstants.OK_ID == dlg.open) {
+			if (dlg.open) {
 				int index = insertIndex(_backs);
 				static if (UseCards) {
 					_undo ~= new UndoInsert([], [index]);
@@ -1681,7 +1679,7 @@ public:
 			}
 			auto undo = new UndoEdit;
 			auto dlg = new BgImageDialog(_comm, _prop, getShell, _summ, back);
-			if (IDialogConstants.OK_ID == dlg.open) {
+			if (dlg.open) {
 				_undo ~= undo;
 				foreach (i, b; _area.backs) {
 					if (b is back) {

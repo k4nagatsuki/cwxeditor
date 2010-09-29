@@ -246,10 +246,19 @@ public:
 		_area.setSelection = _prop.var.etc.replaceTextAreaName;
 		_keyCode.setSelection = _prop.var.etc.replaceTextKeyCode;
 		_win.addDisposeListener(new DL);
-		_win.pack;
+		auto cs = _win.computeSize(DWT.DEFAULT, DWT.DEFAULT);
+		auto size = _prop.var.replaceDlg;
+		if (size.width != DWT.DEFAULT) cs.x = size.width;
+		if (size.height != DWT.DEFAULT) cs.x = size.height;
+		_win.setSize = cs;
 	}
 	private class DL : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
+			if (!_win.getMaximized) {
+				auto s = _win.getSize;
+				_prop.var.replaceDlg.width = s.x;
+				_prop.var.replaceDlg.height = s.y;
+			}
 			_prop.var.etc.replaceTextSummary = _summary.getSelection;
 			_prop.var.etc.replaceTextMessage = _msg.getSelection;
 			_prop.var.etc.replaceTextCardName = _cardName.getSelection;

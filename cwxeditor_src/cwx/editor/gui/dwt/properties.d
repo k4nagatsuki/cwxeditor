@@ -4,6 +4,7 @@ module cwx.editor.gui.dwt.properties;
 import cwx.utils;
 import cwx.xml;
 
+import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.dockingfolder;
 
 import std.conv;
@@ -174,7 +175,7 @@ abstract class Properties {
 }
 
 class WindowProps(string PropName, int Width, int Height)
-		: Properties {
+		: Properties, DSize {
 	mixin Property!("maximized", bool, false);
 	mixin Property!("minimized", bool, false);
 	mixin Property!("x", int, DWT.DEFAULT);
@@ -186,7 +187,7 @@ class WindowProps(string PropName, int Width, int Height)
 	mixin XMLFuncs!(WindowProps, PropName);
 }
 
-class MainWin : Properties {
+class MainWin : Properties, DSize {
 	mixin Property!("x", int, DWT.DEFAULT);
 	mixin Property!("y", int, DWT.DEFAULT);
 	mixin Property!("width", int, 1024);
@@ -203,14 +204,15 @@ class ContWin : Properties {
 	mixin XMLFuncs!(ContWin, "contentsWindow");
 }
 
-class BgImagesDlg : Properties {
-	mixin Property!("width", int, DWT.DEFAULT);
-	mixin Property!("height", int, DWT.DEFAULT);
+class DialogParam(string Name, int WidthDef = DWT.DEFAULT, int HeightDef = DWT.DEFAULT)
+		: Properties, DSize {
+	mixin Property!("width", int, WidthDef);
+	mixin Property!("height", int, HeightDef);
 
-	mixin XMLFuncs!(BgImagesDlg, "bgImagesDialog");
+	mixin XMLFuncs!(DialogParam, Name);
 }
 
-class EventWin(string Name, int Width, int Height) : Properties {
+class EventWin(string Name, int Width, int Height) : Properties, DSize {
 	mixin Property!("x", int, DWT.DEFAULT);
 	mixin Property!("y", int, DWT.DEFAULT);
 	mixin Property!("maximized", bool, false);
@@ -390,8 +392,8 @@ class FlexEtcProps : Properties {
 	mixin Property!("idColumn", int, 50);
 	mixin Property!("nameTableWidth", int, 250, true);
 	mixin Property!("nameTableHeight", int, 250, true);
-	mixin Property!("flagNameTableWidth", int, 150, true);
-	mixin Property!("flagValueTableWidth", int, 100, true);
+	mixin Property!("flagEventSashL", int, 3);
+	mixin Property!("flagEventSashR", int, 2);
 	mixin Property!("nameWidth", int, 200, true);
 	mixin Property!("firesWidth", int, 120, true);
 	mixin Property!("flagNameWidth", int, 150, true);
@@ -546,7 +548,29 @@ public class FlexProps {
 	const PackageWin packageWin;
 	const CardEventWin cardEventWin;
 	const ContWin contentsWin;
-	const BgImagesDlg bgImagesDlg;
+	const DialogParam!("replaceDialog") replaceDlg;
+	const DialogParam!("summaryDialog") summaryDlg;
+	const DialogParam!("menuCardDialog") menuCardDlg;
+	const DialogParam!("areaBackgroundDialog") areaBackgroundDlg;
+	const DialogParam!("enemyCardDialog") enemyCardDlg;
+	const DialogParam!("castCardDialog") castCardDlg;
+	const DialogParam!("skillCardDialog") skillCardDlg;
+	const DialogParam!("itemCardDialog") itemCardDlg;
+	const DialogParam!("beastCardDialog") beastCardDlg;
+	const DialogParam!("infoCardDialog") infoCardDlg;
+	const DialogParam!("bgImagesDialog") bgImagesDlg;
+	const DialogParam!("flagDialog") flagDlg;
+	const DialogParam!("stepDialog") stepDlg;
+	const DialogParam!("newScenarioDialog") newScDlg;
+	const DialogParam!("speakDialog") speakDlg;
+	const DialogParam!("messageDialog") msgDlg;
+	const DialogParam!("cardEventDialog") cardEvtDlg;
+	const DialogParam!("flagEventDialog", 300) flagEvtDlg;
+	const DialogParam!("effectEventDialog") effEvtDlg;
+	const DialogParam!("soundEventDialog") soundEvtDlg;
+	const DialogParam!("couponEventDialog") couponEvtDlg;
+	const DialogParam!("inputEventDialog") inputEvtDlg;
+	const DialogParam!("selectEventDialog") selEvtDlg;
 	const FlexEtcProps etc;
 
 	private string _path;
@@ -556,33 +580,33 @@ public class FlexProps {
 			try {
 				auto node = XNode.parse(cast(string) read(_path));
 				if (node.name == "cwxeditor" || node.name == "CWXEditor") {
-					mainWin = typeof(mainWin).fromNode(node);
-					dataWin = typeof(dataWin).fromNode(node);
-					cardWin = typeof(cardWin).fromNode(node);
-					dirWin = typeof(dirWin).fromNode(node);
-					areaWin = typeof(areaWin).fromNode(node);
-					battleWin = typeof(battleWin).fromNode(node);
-					packageWin = typeof(packageWin).fromNode(node);
-					cardEventWin = typeof(cardEventWin).fromNode(node);
-					contentsWin = typeof(contentsWin).fromNode(node);
-					bgImagesDlg = typeof(bgImagesDlg).fromNode(node);
-					etc = typeof(etc).fromNode(node);
+					foreach (i, fld; this.tupleof) {
+						this.tupleof[i] = fromNode(node, fld);
+					}
 					return;
 				}
 			} catch {
 			}
 		}
-		mainWin = new typeof(mainWin);
-		dataWin = new typeof(dataWin);
-		cardWin = new typeof(cardWin);
-		dirWin = new typeof(dirWin);
-		areaWin = new typeof(areaWin);
-		battleWin = new typeof(battleWin);
-		packageWin = new typeof(packageWin);
-		cardEventWin = new typeof(cardEventWin);
-		contentsWin = new typeof(contentsWin);
-		bgImagesDlg = new typeof(bgImagesDlg);
-		etc = new typeof(etc);
+		foreach (i, fld; this.tupleof) {
+			this.tupleof[i] = newField(fld);
+		}
+	}
+	T fromNode(T)(ref XNode node, T t) {
+		static if (is(typeof(T.fromNode(node)))) {
+			if (!t) {
+				return T.fromNode(node);
+			}
+		}
+		return t;
+	}
+	T newField(T)(T t) {
+		static if (is(typeof(new T))) {
+			if (!t) {
+				return new T;
+			}
+		}
+		return t;
 	}
 	DockingFolderCTC loadDock(Composite parent, int style, Control delegate(Composite, string) create) {
 		DockingFolderCTC r = null;
@@ -615,20 +639,17 @@ public class FlexProps {
 	}
 	void save(string xmlFileName, DockingFolderCTC dock) {
 		auto node = XNode.create("cwxeditor");
-		mainWin.toNode(node);
-		dataWin.toNode(node);
-		cardWin.toNode(node);
-		dirWin.toNode(node);
-		areaWin.toNode(node);
-		battleWin.toNode(node);
-		packageWin.toNode(node);
-		cardEventWin.toNode(node);
-		contentsWin.toNode(node);
-		bgImagesDlg.toNode(node);
-		etc.toNode(node);
+		foreach (i, fld; this.tupleof) {
+			toNode(node, fld);
+		}
 		if (dock) {
 			dock.toNode(node);
 		}
 		write(xmlFileName, node.text);
+	}
+	void toNode(T)(ref XNode node, T t) {
+		static if (is(typeof(t.toNode(node)))) {
+			t.toNode(node);
+		}
 	}
 }

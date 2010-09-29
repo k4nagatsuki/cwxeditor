@@ -148,6 +148,12 @@ public:
 	Point sampleSize() {
 		return new Point(_w, _h);
 	}
+	Combo dirsCombo() {
+		return _msel.dirsCombo;
+	}
+	List fileList() {
+		return _msel.fileList;
+	}
 private:
 	class PListener : PaintListener {
 		public override void paintControl(PaintEvent e) {

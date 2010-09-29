@@ -29,6 +29,8 @@ import cwx.editor.gui.dwt.directorywindow;
 import cwx.editor.gui.dwt.settingsdialog;
 import cwx.editor.gui.dwt.replacedialog;
 import cwx.editor.gui.dwt.dockingfolder;
+import cwx.editor.gui.dwt.absdialog;
+import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.xmlbytestransfer;
 
 import cwx.editor.gui.dwt.props;
@@ -83,9 +85,6 @@ import dwt.dnd.TextTransfer;
 import dwt.dnd.Transfer;
 import dwt.dwthelper.utils;
 
-import dwtx.jface.dialogs.IDialogConstants;
-import dwtx.jface.dialogs.Dialog;
-
 public:
 class MainWindow {
 private:
@@ -103,8 +102,8 @@ private:
 
 	void __refreshTitle() {
 		if (summary) {
-			_win.setText = _prop.msgs.mainWindowName
-				(summary.scenarioName, getDirName(summary.scenarioPath));
+			string path = summary.scenarioPath;
+			_win.setText = _prop.msgs.mainWindowName(summary.scenarioName, path);
 		} else {
 			_win.setText = _prop.msgs.mainWindowName(null, null);
 		}
@@ -113,7 +112,7 @@ private:
 	void createScenario() {
 		if (qSave) {
 			auto dlg = new CreateScenarioDialog(_prop, _win);
-			if (dlg.open != IDialogConstants.OK_ID) return;
+			if (!dlg.open) return;
 			auto old = summary;
 			string name = dlg.name;
 			string skinName = dlg.skinName;
@@ -466,7 +465,7 @@ private:
 		string[] oldKeyCodes = _prop.var.etc.standardKeyCodes;
 		auto tools = _prop.var.etc.outerTools;
 		string enginePath = _prop.var.etc.enginePath;
-		if (IDialogConstants.OK_ID == dlg.open) {
+		if (dlg.open) {
 			if (oldKeyCodes != _prop.var.etc.standardKeyCodes) {
 				_comm.refStandardKeyCodes.call;
 			}
@@ -647,7 +646,7 @@ public:
 		d.setAppName = _prop.msgs.application;
 		if (!.exists(_prop.var.etc.enginePath)) {
 			auto dlg = new SettingsDialog(_prop, null);
-			if (IDialogConstants.OK_ID != dlg.open) return;
+			if (!dlg.open) return;
 		}
 
 		string engineDir = getDirName(nabs(_prop.var.etc.enginePath));
@@ -962,6 +961,7 @@ public:
 				mixin (ToolAction!("bar", "ExecEngine", DWT.PUSH, "execEngine"));
 				new ToolItem(bar, DWT.SEPARATOR);
 				mixin (ToolAction!("bar", "Settings", DWT.PUSH, "settings"));
+				createCoolItem(cbar, bar);
 			}
 			int[] wi;
 			foreach (i; _prop.var.etc.toolsWrapIndices) {
@@ -1235,7 +1235,7 @@ public:
 	}
 }
 
-class CreateScenarioDialog : Dialog {
+class CreateScenarioDialog : AbsDialog {
 private:
 	Props _prop;
 
@@ -1245,8 +1245,8 @@ private:
 
 public:
 	this(Props prop, Shell shell) {
-		super(shell);
 		_prop = prop;
+		super(_prop, shell, _prop.msgs.dlgTitNewScenario, _prop.images.menuNew, true, _prop.var.newScDlg);
 	}
 
 	string name() {
@@ -1256,52 +1256,39 @@ public:
 		return _skinVal;
 	}
 protected:
-	override void configureShell(Shell shell) {
-		super.configureShell(shell);
-		shell.setText = _prop.msgs.dlgTitNewScenario;
-	}
-
-	override Control createDialogArea(Composite parent) {
-		auto area = cast(Composite) super.createDialogArea(parent);
-		area.setLayout = new GridLayout(2, false);
+	override void setup(Composite area) {
+		auto cl = new CenterLayout(DWT.HORIZONTAL | DWT.VERTICAL, 0);
+		cl.fillHorizontal = true;
+		area.setLayout = cl;
+		auto comp = new Composite(area, DWT.NONE);
+		comp.setLayout = new GridLayout(2, false);
 		{
-			auto l = new Label(area, DWT.NONE);
+			auto l = new Label(comp, DWT.NONE);
 			l.setText = _prop.msgs.scenarioName;
-			_name = new dwt.widgets.Text.Text(area, DWT.BORDER);
+			_name = new dwt.widgets.Text.Text(comp, DWT.BORDER);
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
 			gd.widthHint = _prop.var.etc.nameWidth;
 			_name.setLayoutData = gd;
+			checker(_name);
 		}
 		{
-			auto l = new Label(area, DWT.NONE);
+			auto l = new Label(comp, DWT.NONE);
 			l.setText = _prop.msgs.type;
-			_skinC = new Combo(area, DWT.BORDER | DWT.DROP_DOWN | DWT.READ_ONLY);
+			_skinC = new Combo(comp, DWT.BORDER | DWT.DROP_DOWN | DWT.READ_ONLY);
 			_skinC.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			foreach (type; .skinTable(_prop).keys.sort) {
 				_skinC.add(type);
 			}
 			_skinC.setText = _prop.var.etc.defaultSkin;
+			checker(_skinC);
 		}
-
-		return area;
 	}
 
-	override void createButtonsForButtonBar(Composite parent) {
-		createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
-		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
-	}
-
-	override void buttonPressed(int buttonId) {
-		if (buttonId == IDialogConstants.OK_ID) {
-			if (_name.getText.length == 0) {
-				buttonId = IDialogConstants.CANCEL_ID;
-			} else {
-				_nameVal = _name.getText;
-				_skinVal = _skinC.getText;
-			}
+	override bool close(bool ok) {
+		if (ok) {
+			_nameVal = _name.getText;
+			_skinVal = _skinC.getText;
 		}
-		setReturnCode(buttonId);
-		close;
-		super.buttonPressed(buttonId);
+		return ok;
 	}
 }

@@ -68,8 +68,6 @@ import dwtx.jface.action.IAction;
 import dwtx.jface.action.MenuManager;
 import dwtx.jface.action.Separator;
 
-import dwtx.jface.dialogs.IDialogConstants;
-
 /// エリア・バトル・パッケージの一覧を表示する。
 class AreaTable : TCPD {
 private:
@@ -387,7 +385,7 @@ public:
 		string oldName = _summ.scenarioName;
 		string oldType = _summ.type;
 		auto dlg = new SummaryDialog(_comm, _prop, _areas.getShell, _summ);
-		if (IDialogConstants.OK_ID == dlg.open) {
+		if (dlg.open) {
 			refresh;
 			_comm.refUseCount.call;
 			if (oldName != _summ.scenarioName) _comm.refScenarioName.call;

@@ -18,6 +18,7 @@ import cwx.editor.gui.dwt.imageselect;
 import cwx.editor.gui.dwt.customtext;
 import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.centerlayout;
+import cwx.editor.gui.dwt.absdialog;
 
 import dwt.DWT;
 import dwt.widgets.Display;
@@ -51,13 +52,10 @@ import dwt.events.SelectionAdapter;
 import dwt.events.SelectionEvent;
 import dwt.dwthelper.utils;
 
-import dwtx.jface.dialogs.Dialog;
-import dwtx.jface.dialogs.IDialogConstants;
-
 public:
 
 /// 背景画像の設定を行うダイアログ。
-class BgImageDialog : Dialog {
+class BgImageDialog : AbsDialog {
 private:
 	Commons _comm;
 	Props _prop;
@@ -123,7 +121,9 @@ private:
 public:
 	this(Commons comm, Props prop, Shell shell, Summary summ, BgImage back) {
 		assert (summ !is null);
-		super(shell);
+		super(prop, shell,
+			_back ? _prop.msgs.dlgTitBgImage : _prop.msgs.dlgTitNewBgImage,
+			_prop.images.backs, true, _prop.var.areaBackgroundDlg);
 		_comm = comm;
 		_summ = summ;
 		_back = back;
@@ -135,17 +135,7 @@ public:
 		return _back;
 	}
 protected:
-	override void configureShell(Shell shell) {
-		super.configureShell(shell);
-		shell.setText = _back ? _prop.msgs.dlgTitBgImage : _prop.msgs.dlgTitNewBgImage;
-	}
-
-	override bool isResizable() {
-        return true;
-    }
-
-	override Control createDialogArea(Composite parent) {
-		auto area = cast(Composite) super.createDialogArea(parent);
+	override void setup(Composite area) {
 		area.setLayout = zeroGridLayout(1);;
 		{
 			auto comp = new Composite(area, DWT.NONE);
@@ -269,38 +259,27 @@ protected:
 		auto spnl = new SModL;
 		_w.addModifyListener(spnl);
 		_h.addModifyListener(spnl);
-		return area;
 	}
 
-	override void createButtonsForButtonBar(Composite parent) {
-		createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
-		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
-	}
-
-	override void buttonPressed(int buttonId) {
-		if (buttonId == IDialogConstants.OK_ID) {
-			if (_imgPath.image.length > 0) {
-				int fidx = _flag.getSelectionIndex;
-				string flag = fidx > 0 ? _flag.getItem(fidx).getText : "";
-				if (_back) {
-					_back.path = _imgPath.image;
-					_back.flag = flag;
-					_back.x = _x.getSelection;
-					_back.y = _y.getSelection;
-					_back.width = _w.getSelection;
-					_back.height = _h.getSelection;
-					_back.mask = _mask.getSelection;
-				} else {
-					_back = new BgImage(_imgPath.image, flag,
-						_x.getSelection, _y.getSelection, _w.getSelection, _h.getSelection,
-						_mask.getSelection);
-				}
+	override bool close(bool ok) {
+		if (ok && _imgPath.image.length > 0) {
+			int fidx = _flag.getSelectionIndex;
+			string flag = fidx > 0 ? _flag.getItem(fidx).getText : "";
+			if (_back) {
+				_back.path = _imgPath.image;
+				_back.flag = flag;
+				_back.x = _x.getSelection;
+				_back.y = _y.getSelection;
+				_back.width = _w.getSelection;
+				_back.height = _h.getSelection;
+				_back.mask = _mask.getSelection;
 			} else {
-				buttonId = IDialogConstants.CANCEL_ID;
+				_back = new BgImage(_imgPath.image, flag,
+					_x.getSelection, _y.getSelection, _w.getSelection, _h.getSelection,
+					_mask.getSelection);
 			}
+			return true;
 		}
-		setReturnCode(buttonId);
-		close;
-		super.buttonPressed(buttonId);
+		return false;
 	}
 }

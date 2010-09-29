@@ -18,6 +18,7 @@ import cwx.editor.gui.dwt.imageselect;
 import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.customtext;
 import cwx.editor.gui.dwt.customtable;
+import cwx.editor.gui.dwt.absdialog;
 
 import std.string;
 
@@ -49,13 +50,10 @@ import dwt.layout.FillLayout;
 import dwt.layout.GridLayout;
 import dwt.layout.GridData;
 
-import dwtx.jface.dialogs.Dialog;
-import dwtx.jface.dialogs.IDialogConstants;
-
 public:
 
 /// シナリオの概略を設定するダイアログ。
-class SummaryDialog : Dialog {
+class SummaryDialog : AbsDialog {
 private:
 	Commons _comm;
 	Props _prop;
@@ -190,6 +188,7 @@ private:
 			_sname = new Text(grp, DWT.BORDER);
 			setCDataX(_sname, new GridData(GridData.FILL_HORIZONTAL));
 			_sname.setText = _summ.scenarioName;
+			checker(_sname);
 		}
 		{
 			auto grp = new Group(comp, DWT.NONE);
@@ -320,35 +319,20 @@ private:
 public:
 	this(Commons comm, Props prop, Shell shell, Summary summ) {
 		assert (summ !is null);
-		super(shell);
 		_comm = comm;
 		_summ = summ;
 		_prop = prop;
+		super(prop, shell, _prop.msgs.dlgTitSummary(_summ.scenarioName),
+			_prop.images.summary, true, _prop.var.summaryDlg);
 	}
 
 protected:
-	override void configureShell(Shell shell) {
-		super.configureShell(shell);
-		shell.setText = _prop.msgs.dlgTitSummary(_summ.scenarioName);
-	}
-
-	override bool isResizable() {
-        return true;
-    }
-
-	override Control createDialogArea(Composite parent) {
-		auto area = cast(Composite) super.createDialogArea(parent);
+	override void setup(Composite area) {
 		area.setLayout = new FillLayout;
 		auto tabf = new TabFolder(area, DWT.NONE);
 		constructTab1(tabf);
 		constructTab2(tabf);
 		constructTab3(tabf);
-		return area;
-	}
-
-	override void createButtonsForButtonBar(Composite parent) {
-		createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
-		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
 	}
 
 	private void setNamesOne(C : EffectCard)(ref C card) {
@@ -381,8 +365,8 @@ protected:
 			}
 		}
 	}
-	override void buttonPressed(int buttonId) {
-		if (buttonId == IDialogConstants.OK_ID) {
+	override bool close(bool ok) {
+		if (ok) {
 			setNames(_summ.skills);
 			setNames(_summ.items);
 			setNames(_summ.beasts);
@@ -414,8 +398,6 @@ protected:
 				? (cast(Area) _startArea.getSelection[0].getData).id : 0;
 			_summ.type = _type.getText;
 		}
-		setReturnCode(buttonId);
-		close;
-		super.buttonPressed(buttonId);
+		return ok;
 	}
 }

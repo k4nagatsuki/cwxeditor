@@ -13,6 +13,7 @@ import cwx.editor.gui.dwt.skin;
 import cwx.editor.gui.dwt.props;
 import cwx.editor.gui.dwt.properties;
 import cwx.editor.gui.dwt.splitpane;
+import cwx.editor.gui.dwt.absdialog;
 
 import std.date;
 import std.file;
@@ -68,9 +69,6 @@ import dwt.dnd.DropTargetEvent;
 import dwt.dnd.Clipboard;
 import dwt.program.Program;
 import dwt.dwthelper.utils;
-
-import dwtx.jface.dialogs.IDialogConstants;
-import dwtx.jface.dialogs.Dialog;
 
 private struct FC {
 	string path;
@@ -971,7 +969,7 @@ private:
 			to ~= p;
 		}
 		auto dlg = new ReplacePathDialog(_prop, _win.getShell, from, to, sel);
-		if (IDialogConstants.OK_ID == dlg.open) {
+		if (dlg.open) {
 			_summ.useCounter.change(toPathId(dlg.from), toPathId(dlg.to), true);
 			_comm.replPath.call(dlg.from, dlg.to);
 			_comm.refUseCount.call;
@@ -1419,7 +1417,7 @@ public:
 	}
 }
 
-class ReplacePathDialog : Dialog {
+class ReplacePathDialog : AbsDialog {
 private:
 	Props _prop;
 
@@ -1432,11 +1430,11 @@ private:
 	string _baseT, _replT;
 public:
 	this(Props prop, Shell shell, string[] fromPaths, string[] toPaths, string selPath) {
-		super(shell);
 		_prop = prop;
 		_fromPaths = fromPaths;
 		_toPaths = toPaths;
 		_selPath = selPath;
+		super(prop, shell, _prop.msgs.dlgTitReplacePath, _prop.images.menuReplacePath, false);
 	}
 
 	string from() {
@@ -1446,13 +1444,7 @@ public:
 		return _replT;
 	}
 protected:
-	override void configureShell(Shell shell) {
-		super.configureShell(shell);
-		shell.setText = _prop.msgs.dlgTitReplacePath;
-	}
-
-	override Control createDialogArea(Composite parent) {
-		auto area = cast(Composite) super.createDialogArea(parent);
+	override void setup(Composite area) {
 		area.setLayout = new GridLayout(2, false);
 		{
 			auto l = new Label(area, DWT.NONE);
@@ -1463,6 +1455,7 @@ protected:
 			}
 			if (_selPath) _base.setText = _selPath;
 			_base.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+			checker(_base);
 		}
 		{
 			auto l = new Label(area, DWT.NONE);
@@ -1472,38 +1465,27 @@ protected:
 			foreach (p; _toPaths) {
 				_repl.add(p);
 			}
+			checker(_repl);
 		}
-
-		return area;
 	}
 
-	override void createButtonsForButtonBar(Composite parent) {
-		createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
-		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
-	}
-
-	override void buttonPressed(int buttonId) {
-		if (buttonId == IDialogConstants.OK_ID) {
-			if (_base.getText.length == 0 || _repl.getText.length == 0) {
-				buttonId = IDialogConstants.CANCEL_ID;
-			} else {
-				try {
-					.exists(_repl.getText);
-				} catch {
-					auto dlg = new MessageBox(_repl.getShell, DWT.ICON_WARNING | DWT.OK);
-					scope (exit) dlg.dispose;
-					dlg.setText = _prop.msgs.dlgTitWarning;
-					dlg.setMessage = _prop.msgs.errorReplacePath;
-					dlg.open;
-					_repl.setFocus;
-					return;
-				}
-				_baseT = _base.getText;
-				_replT = _repl.getText;
+	override bool close(bool ok, out bool cancel) {
+		if (ok) {
+			try {
+				.exists(_repl.getText);
+			} catch {
+				auto dlg = new MessageBox(_repl.getShell, DWT.ICON_WARNING | DWT.OK);
+				scope (exit) dlg.dispose;
+				dlg.setText = _prop.msgs.dlgTitWarning;
+				dlg.setMessage = _prop.msgs.errorReplacePath;
+				dlg.open;
+				_repl.setFocus;
+				cancel = true;
+				return false;
 			}
+			_baseT = _base.getText;
+			_replT = _repl.getText;
 		}
-		setReturnCode(buttonId);
-		close;
-		super.buttonPressed(buttonId);
+		return ok;
 	}
 }

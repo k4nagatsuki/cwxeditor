@@ -7,6 +7,7 @@ import cwx.editor.gui.dwt.props;
 import cwx.editor.gui.dwt.properties;
 import cwx.editor.gui.dwt.utils;
 import cwx.editor.gui.dwt.centerlayout;
+import cwx.editor.gui.dwt.absdialog;
 
 import std.path;
 import std.file;
@@ -35,10 +36,7 @@ import dwt.events.ModifyEvent;
 import dwt.layout.GridLayout;
 import dwt.layout.GridData;
 
-import dwtx.jface.dialogs.IDialogConstants;
-import dwtx.jface.dialogs.Dialog;
-
-class SettingsDialog : Dialog {
+class SettingsDialog : AbsDialog {
 private:
 	Props _prop;
 
@@ -247,6 +245,7 @@ private:
 			refr.addSelectionListener(new class SelectionAdapter {
 				override void widgetSelected(SelectionEvent e) {selectEngine;}
 			});
+			checker(_enginePath);
 		}
 		{
 			auto grp = new Group(comp, DWT.NONE);
@@ -625,18 +624,12 @@ private:
 	}
 public:
 	this(Props prop, Shell shell) {
-		super(shell);
+		super(prop, shell, prop.msgs.dlgTitSettings, prop.images.menuSettings, false);
 		_prop = prop;
 	}
 
 protected:
-	override void configureShell(Shell shell) {
-		super.configureShell(shell);
-		shell.setText = _prop.msgs.dlgTitSettings;
-	}
-
-	override Control createDialogArea(Composite parent) {
-		auto area = cast(Composite) super.createDialogArea(parent);
+	override void setup(Composite area) {
 		area.setLayout = new CenterLayout(DWT.VERTICAL | DWT.HORIZONTAL, 0);
 		auto tabf = new TabFolder(area, DWT.NONE);
 		construct1(tabf);
@@ -673,17 +666,10 @@ protected:
 		}
 		if (_tools.length > 0) _toolsL.select = 0;
 		selectOuterTool;
-
-		return area;
 	}
 
-	override void createButtonsForButtonBar(Composite parent) {
-		createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
-		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
-	}
-
-	override void buttonPressed(int buttonId) {
-		if (buttonId == IDialogConstants.OK_ID) {
+	override bool close(bool ok, out bool cancel) {
+		if (ok) {
 			void err(TabItem tab, Text t, string msg) {
 				auto dlg = new MessageBox(t.getShell, DWT.ICON_WARNING | DWT.OK);
 				scope (exit) dlg.dispose;
@@ -698,18 +684,21 @@ protected:
 				engine = _enginePath.getText;
 			} catch {
 				err(_tabB, _enginePath, _prop.msgs.errorEnginePath(_prop.var.etc.engine));
-				return;
+				cancel = true;
+				return false;
 			}
 			if (!.exists(engine) || .isdir(engine)) {
 				err(_tabB, _enginePath, _prop.msgs.errorEnginePath(_prop.var.etc.engine));
-				return;
+				cancel = true;
+				return false;
 			}
 			string temp;
 			try {
 				temp = _tempDir.getText;
 			} catch {
 				err(_tabB, _tempDir, _prop.msgs.errorTempPath);
-				return;
+				cancel = true;
+				return false;
 			}
 			_prop.var.etc.enginePath = engine;
 			_prop.var.etc.tempPath = temp;
@@ -736,8 +725,6 @@ protected:
 			}
 			_prop.var.etc.outerTools = _tools;
 		}
-		setReturnCode(buttonId);
-		close;
-		super.buttonPressed(buttonId);
+		return ok;
 	}
 }

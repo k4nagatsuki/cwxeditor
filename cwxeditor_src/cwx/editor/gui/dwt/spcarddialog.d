@@ -17,6 +17,7 @@ import cwx.editor.gui.dwt.customtext;
 import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.commons;
+import cwx.editor.gui.dwt.absdialog;
 
 import std.math;
 
@@ -52,13 +53,10 @@ import dwt.events.SelectionAdapter;
 import dwt.events.SelectionEvent;
 import dwt.dwthelper.utils;
 
-import dwtx.jface.dialogs.Dialog;
-import dwtx.jface.dialogs.IDialogConstants;
-
 public:
 
 /// メニューカードの設定を行うダイアログ。
-class SpCardDialog(C : AbstractSpCard) : Dialog {
+class SpCardDialog(C : AbstractSpCard) : AbsDialog {
 private:
 	Commons _comm;
 	Props _prop;
@@ -103,39 +101,34 @@ private:
 public:
 	this(Commons comm, Props prop, Shell shell, Summary summ, C card) {
 		assert (summ !is null);
-		super(shell);
 		_comm = comm;
 		_summ = summ;
 		_card = card;
 		_prop = prop;
+		static if (is (C == MenuCard)) {
+			string text = _card ? _prop.msgs.dlgTitMenuCard(_card.name) : _prop.msgs.dlgTitNewMenuCard;
+			auto size = _prop.var.menuCardDlg;
+		} else static if (is (C == EnemyCard)) {
+			auto size = _prop.var.enemyCardDlg;
+			string text;
+			if (_card) {
+				auto c = _summ.casts(_card.id);
+				text = c ? _prop.msgs.dlgTitEnemyCard(c.name) : _prop.msgs.dlgTitNewEnemyCard;
+			} else {
+				text = _prop.msgs.dlgTitNewEnemyCard;
+			}
+		} else {
+			static assert (0);
+		}
+		super(prop, shell, text, _prop.images.cards, true, size);
 	}
 
 	C card() {
 		return _card;
 	}
 protected:
-	override void configureShell(Shell shell) {
-		super.configureShell(shell);
-		static if (is (C == MenuCard)) {
-			shell.setText = _card ? _prop.msgs.dlgTitMenuCard(_card.name) : _prop.msgs.dlgTitNewMenuCard;
-		} else static if (is (C == EnemyCard)) {
-			if (_card) {
-				auto c = _summ.casts(_card.id);
-				shell.setText = c ? _prop.msgs.dlgTitEnemyCard(c.name) : _prop.msgs.dlgTitNewEnemyCard;
-			} else {
-				shell.setText = _prop.msgs.dlgTitNewEnemyCard;
-			}
-		} else {
-			static assert (0);
-		}
-	}
 
-	override bool isResizable() {
-        return true;
-    }
-
-	override Control createDialogArea(Composite parent) {
-		auto area = cast(Composite) super.createDialogArea(parent);
+	override void setup(Composite area) {
 		auto cl = new CenterLayout(DWT.NONE, 0);
 		cl.fillHorizontal = true;
 		cl.fillVertical = true;
@@ -158,6 +151,7 @@ protected:
 						grp.setText = _prop.msgs.name;
 						_name = new Text(grp, DWT.BORDER);
 						_name.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+						checker(_name);
 					} else static if (is (C == EnemyCard)) {
 						grp.setLayout = new GridLayout(2, false);
 						grp.setText = _prop.msgs.enemyCardBase;
@@ -307,16 +301,10 @@ protected:
 			_scale.setSelection = 100;
 		}
 		_flag.showSelection;
-		return area;
 	}
 
-	override void createButtonsForButtonBar(Composite parent) {
-		createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
-		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
-	}
-
-	override void buttonPressed(int buttonId) {
-		if (buttonId == IDialogConstants.OK_ID) {
+	override bool close(bool ok) {
+		if (ok) {
 			int fidx = _flag.getSelectionIndex;
 			string flag = fidx > 0 ? _flag.getItem(fidx).getText : "";
 			if (_card) {
@@ -355,8 +343,6 @@ protected:
 				}
 			}
 		}
-		setReturnCode(buttonId);
-		close;
-		super.buttonPressed(buttonId);
+		return ok;
 	}
 }

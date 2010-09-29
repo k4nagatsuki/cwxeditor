@@ -1047,6 +1047,9 @@ public:
 	/// 正当な名前に変換する。
 	/// フラグ・ステップ・ディレクトリ名にパス区切り文字'\'を使う事は出来ない。
 	static string validName(string name) {
+		if (!name.length) {
+			name = "_";
+		}
 		return replace(name, SEPARATOR, "");
 	}
 

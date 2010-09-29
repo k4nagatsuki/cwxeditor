@@ -70,9 +70,6 @@ import dwt.dnd.DropTargetAdapter;
 import dwt.dnd.DropTargetEvent;
 import dwt.dnd.Clipboard;
 
-import dwtx.jface.dialogs.Dialog;
-import dwtx.jface.dialogs.IDialogConstants;
-
 public:
 
 private class CardPane(PCardOwner, CardOwner, C : Card, ToCardOwner, string GetAll, string GetFromId) : TCPD {
@@ -480,7 +477,7 @@ private:
 			} else {
 				static assert (0, typeof(C));
 			}
-			if (IDialogConstants.OK_ID == dlg.open) {
+			if (dlg.open) {
 				refresh;
 				refCard(c);
 			}
@@ -850,7 +847,7 @@ public:
 			} else {
 				static assert (0);
 			}
-			if (IDialogConstants.OK_ID == dlg.open) {
+			if (dlg.open) {
 				_owner.add(dlg.card);
 				refresh;
 				select(__cards.length - 1);

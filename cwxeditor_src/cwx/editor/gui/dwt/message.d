@@ -6,6 +6,7 @@ import cwx.types;
 import cwx.event;
 import cwx.summary;
 import cwx.skin;
+
 import cwx.editor.gui.dwt.props;
 import cwx.editor.gui.dwt.skin;
 import cwx.editor.gui.dwt.utils;
@@ -14,6 +15,7 @@ import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.customtext;
 import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.materialselect;
+import cwx.editor.gui.dwt.absdialog;
 
 import std.utf;
 import std.string;
@@ -53,10 +55,7 @@ import dwt.events.ShellEvent;
 import dwt.events.ModifyListener;
 import dwt.events.ModifyEvent;
 
-import dwtx.jface.dialogs.Dialog;
-import dwtx.jface.dialogs.IDialogConstants;
-
-class SpeakDialog : Dialog {
+class SpeakDialog : AbsDialog {
 private:
 	Props _prop;
 	Skin _skin;
@@ -184,26 +183,21 @@ private:
 	}
 public:
 	this(Props prop, Skin skin, Shell shell, Content evt) {
-		super(shell);
 		_prop = prop;
 		_skin = skin;
 		_evt = evt;
+		super(prop, shell, prop.msgs.dlgTitSpeak, prop.images.content(CType.TALK_DIALOG), true, prop.var.speakDlg);
 	}
 
 	Content event() {
 		return _evt;
 	}
 protected:
-	override void configureShell(Shell shell) {
-		super.configureShell(shell);
-		shell.setText = _prop.msgs.dlgTitSpeak;
-	}
-	override Control createDialogArea(Composite parent) {
-		auto area = cast(Composite) super.createDialogArea(parent);
+	override void setup(Composite area) {
 		area.setLayout = windowGridLayout(1, true);
 		{
 			auto comp = new Composite(area, DWT.NONE);
-			comp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+			comp.setLayoutData = new GridData(GridData.FILL_BOTH);
 			comp.setLayout = new GridLayout(2, false);
 			_dlgsL = new Table(comp, DWT.SINGLE | DWT.FULL_SELECTION | DWT.BORDER | DWT.V_SCROLL);
 			new FullTableColumn(_dlgsL, DWT.NONE);
@@ -276,14 +270,9 @@ protected:
 			_oldSel = _dlgs[0];
 			_dlgsL.select = 0;
 		}
-		return area;
 	}
-	override void createButtonsForButtonBar(Composite parent) {
-		createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
-		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
-	}
-	override void buttonPressed(int buttonId) {
-		if (buttonId == IDialogConstants.OK_ID) {
+	override bool close(bool ok) {
+		if (ok) {
 			sets;
 			Talker talker;
 			switch (_talkers.getSelectionIndex) {
@@ -301,13 +290,11 @@ protected:
 			_evt.dialogs = _dlgs;
 			_evt.talkerNC = talker;
 		}
-		setReturnCode(buttonId);
-		close;
-		super.buttonPressed(buttonId);
+		return ok;
 	}
 }
 
-class MessageDialog : Dialog {
+class MessageDialog : AbsDialog {
 private:
 	Commons _comm;
 	Props _prop;
@@ -352,23 +339,18 @@ private:
 	}
 public:
 	this(Commons comm, Props prop, Summary summ, Shell shell, Content evt) {
-		super(shell);
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
 		_evt = evt;
+		super(prop, shell, prop.msgs.dlgTitMessage, prop.images.content(CType.TALK_MESSAGE), true, prop.var.msgDlg);
 	}
 
 	Content event() {
 		return _evt;
 	}
 protected:
-	override void configureShell(Shell shell) {
-		super.configureShell(shell);
-		shell.setText = _prop.msgs.dlgTitMessage;
-	}
-	override Control createDialogArea(Composite parent) {
-		auto area = cast(Composite) super.createDialogArea(parent);
+	override void setup(Composite area) {
 		area.setLayout = windowGridLayout(1, true);
 		_tabf = new TabFolder(area, DWT.NONE);
 		_tabf.setLayoutData = new GridData(GridData.FILL_BOTH);
@@ -420,14 +402,9 @@ protected:
 		} else {
 			_tabf.setSelection = 1;
 		}
-		return area;
 	}
-	override void createButtonsForButtonBar(Composite parent) {
-		createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
-		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
-	}
-	override void buttonPressed(int buttonId) {
-		if (buttonId == IDialogConstants.OK_ID) {
+	override bool close(bool ok) {
+		if (ok) {
 			string text;
 			string path = "";
 			Talker talker;
@@ -462,9 +439,7 @@ protected:
 			_evt.talkerC = talker;
 			_evt.cardPath = path;
 		}
-		setReturnCode(buttonId);
-		close;
-		super.buttonPressed(buttonId);
+		return ok;
 	}
 }
 

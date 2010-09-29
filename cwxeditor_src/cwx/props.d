@@ -63,6 +63,9 @@ public:
 	string dlgTitQuestion() {return "確認 - CWXEditor";}
 	string unknownError() {return "処理中にエラーが発生しました。cwxeditor_error.logを確認してください。";}
 
+	string dlgTextOK() {return "&OK";}
+	string dlgTextCancel() {return "キャンセル";}
+
 	string fileCopyError(string path) {return path ~ "のコピー中にエラーが発生しました。";}
 	string reloadError(string path) {return path ~ "の再読込中にエラーが発生しました。";}
 	string loadProgress(string fname, uint max, uint worked) {

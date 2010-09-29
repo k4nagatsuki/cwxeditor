@@ -3,11 +3,13 @@ module cwx.editor.gui.dwt.flagtable;
 
 import cwx.flag;
 import cwx.utils;
+import cwx.usecounter;
+
 import cwx.editor.gui.dwt.utils;
 import cwx.editor.gui.dwt.props;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.xmlbytestransfer;
-import cwx.usecounter;
+import cwx.editor.gui.dwt.absdialog;
 
 import dwt.DWT;
 import dwt.DWTException;
@@ -62,8 +64,6 @@ import dwt.dnd.DropTargetAdapter;
 import dwt.dnd.DropTargetEvent;
 import dwt.dnd.DropTarget;
 
-import dwtx.jface.dialogs.Dialog;
-import dwtx.jface.dialogs.IDialogConstants;
 import dwtx.jface.viewers.Viewer;
 import dwtx.jface.viewers.TableViewer;
 import dwtx.jface.viewers.TreeViewer;
@@ -79,7 +79,7 @@ import dwtx.jface.viewers.TextCellEditor;
 
 /// ステップ設定用のダイアログ。
 /// 値は強制的に10件になる。
-public class StepEditDialog : Dialog {
+public class StepEditDialog : AbsDialog {
 private:
 	Props prop;
 	Step _step;
@@ -110,20 +110,18 @@ public:
 	/// step = 設定するステップ。新規の場合はnull。
 	this(Props prop, Shell shell, FlagDir dir, Step step = null) {
 		assert (step is null || step.parent == dir);
-		super(shell);
+		super(prop, shell, prop.msgs.dlgTitStep, prop.images.step, true, prop.var.stepDlg);
 		this.prop = prop;
 		this.dir = dir;
 		this._step = step;
 	}
 
-protected:
-	override void configureShell(Shell shell) {
-		super.configureShell(shell);
-		shell.setText(prop.msgs.dlgTitStep);
+	/// Returns: 編集対象となったステップ。
+	Step step() {
+		return _step;
 	}
-
-	override Control createDialogArea(Composite parent) {
-		auto area = cast(Composite) super.createDialogArea(parent);
+protected:
+	override void setup(Composite area) {
 		area.setLayout = zeroGridLayout(1);
 		{
 			auto comp = new Composite(area, DWT.NULL);
@@ -132,7 +130,8 @@ protected:
 
 			(new Label(comp, DWT.NULL)).setText = prop.msgs.dlgLblStepName;
 			stepName = new Text(comp, DWT.BORDER);
-			setGridMinW(stepName, prop.var.etc.flagNameWidth);
+			setGridMinW(stepName, prop.var.etc.flagNameWidth, GridData.FILL_HORIZONTAL);
+			checker(stepName);
 
 			auto gd = new GridData(GridData.FILL_VERTICAL);
 			gd.heightHint = 0;
@@ -147,7 +146,7 @@ protected:
 			.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		{
 			auto comp = new Composite(area, DWT.NULL);
-			comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			comp.setLayoutData(new GridData(GridData.FILL_BOTH));
 
 			// 何列かに分けて値のフィールドを配置する
 			Composite valsComp;
@@ -204,17 +203,10 @@ protected:
 		stepName.selectAll;
 		stepInit.setItems(vals);
 		stepInit.select(_step is null ? 0 : _step.select);
-
-		return area;
 	}
 
-	override void createButtonsForButtonBar(Composite parent) {
-		createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
-		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
-	}
-
-	override void buttonPressed(int buttonId) {
-		if (buttonId == IDialogConstants.OK_ID) {
+	override bool close(bool ok) {
+		if (ok) {
 			string[] vals;
 			foreach (stepVal; stepVals) {
 				vals ~= stepVal.getText;
@@ -224,28 +216,17 @@ protected:
 				_step.setValues(vals, stepInit.getSelectionIndex);
 			} else {
 				auto name = FlagDir.validName(stepName.getText);
-				if (name.length > 0) {
-					name = dir.createNewStepName(name);
-					_step = new Step(name, vals, stepInit.getSelectionIndex);
-					dir.add(_step);
-				} else {
-					buttonId = IDialogConstants.CANCEL_ID;
-				}
+				name = dir.createNewStepName(name);
+				_step = new Step(name, vals, stepInit.getSelectionIndex);
+				dir.add(_step);
 			}
 		}
-		setReturnCode(buttonId);
-		close();
-		super.buttonPressed(buttonId);
-	}
-
-	/// Returns: 編集対象となったステップ。
-	Step step() {
-		return _step;
+		return ok;
 	}
 }
 
 /// フラグ設定用のダイアログ。
-public class FlagEditDialog : Dialog {
+public class FlagEditDialog : AbsDialog {
 private:
 	Props prop;
 	Flag _flag;
@@ -283,18 +264,17 @@ public:
 	/// flag = 設定するフラグ。新規の場合はnull。
 	this(Props prop, Shell shell, FlagDir dir, Flag flag = null) {
 		assert (flag is null || flag.parent == dir);
-		super(shell);
+		super(prop, shell, prop.msgs.dlgTitFlag, prop.images.flag, true, prop.var.flagDlg);
 		this.prop = prop;
 		this._flag = flag;
 		this.dir = dir;
 	}
 
-protected:
-	override void configureShell(Shell shell) {
-		super.configureShell(shell);
-		shell.setText(prop.msgs.dlgTitFlag);
+	/// Returns: 編集対象となったフラグ。
+	Flag flag() {
+		return _flag;
 	}
-
+protected:
 	private static void setMinW(Control c, int minW, int gridStyle = DWT.NULL) {
 		auto gd = new GridData(gridStyle);
 		int w = c.computeSize(DWT.DEFAULT, DWT.DEFAULT).x;
@@ -302,8 +282,7 @@ protected:
 		c.setLayoutData(gd);
 	}
 
-	override Control createDialogArea(Composite parent) {
-		auto area = cast(Composite) super.createDialogArea(parent);
+	override void setup(Composite area) {
 		area.setLayout = zeroGridLayout(1);
 		{
 			auto comp = new Composite(area, DWT.NULL);
@@ -312,7 +291,8 @@ protected:
 
 			(new Label(comp, DWT.NULL)).setText = prop.msgs.dlgLblFlagName;
 			flagName = new Text(comp, DWT.BORDER);
-			setGridMinW(flagName, prop.var.etc.flagNameWidth);
+			setGridMinW(flagName, prop.var.etc.flagNameWidth, GridData.FILL_HORIZONTAL);
+			checker(flagName);
 
 			auto gd = new GridData(GridData.FILL_VERTICAL);
 			gd.heightHint = 0;
@@ -326,7 +306,7 @@ protected:
 			.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		{
 			auto comp = new Composite(area, DWT.NULL);
-			comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			comp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			comp.setLayout(new GridLayout(2, false));
 
 			(new Label(comp, DWT.NULL)).setText = prop.msgs.dlgLblFlagTrue;
@@ -365,18 +345,10 @@ protected:
 			flagInit.select = 0;
 		}
 		flagName.selectAll;
-
-		return area;
 	}
 
-	override void createButtonsForButtonBar(Composite parent) {
-		createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
-		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
-	}
-
-	override void buttonPressed(int buttonId) {
-		// 重複があるとき/名前が空欄のときのチェックはFlag.name()に任せる。
-		if (buttonId == IDialogConstants.OK_ID) {
+	override bool close(bool ok) {
+		if (ok) {
 			if (_flag !is null) {
 				_flag.name = flagName.getText;
 				_flag.onOff = flagInit.getSelectionIndex == 0;
@@ -384,23 +356,13 @@ protected:
 				_flag.off = flagFalse.getText;
 			} else {
 				auto name = FlagDir.validName(flagName.getText);
-				if (name.length > 0) {
-					name = dir.createNewFlagName(name);
-					_flag = new Flag(name, flagTrue.getText, flagFalse.getText,
-						flagInit.getSelectionIndex == 0);
-					dir.add(_flag);
-				} else {
-					buttonId = IDialogConstants.CANCEL_ID;
-				}
+				name = dir.createNewFlagName(name);
+				_flag = new Flag(name, flagTrue.getText, flagFalse.getText,
+					flagInit.getSelectionIndex == 0);
+				dir.add(_flag);
 			}
 		}
-		setReturnCode(buttonId);
-		close();
-		super.buttonPressed(buttonId);
-	}
-	/// Returns: 編集対象となったフラグ。
-	Flag flag() {
-		return _flag;
+		return ok;
 	}
 }
 
@@ -482,7 +444,7 @@ private:
 	void editFlag(FlagDir parent, Flag flag) {
 		string old = flag ? flag.path : null;
 		auto dlg = new FlagEditDialog(prop, flags.getShell, parent, flag);
-		if (IDialogConstants.OK_ID == dlg.open) {
+		if (dlg.open) {
 			if (old && old != flag.path) uc.change(toFlagId(old), toFlagId(flag.path));
 			refresh;
 			for (int i = _dir.steps.length; i < flags.getItemCount; i++) {
@@ -497,7 +459,7 @@ private:
 	void editStep(FlagDir parent, Step step) {
 		string old = step ? step.path : null;
 		auto dlg = new StepEditDialog(prop, flags.getShell, parent, step);
-		if (IDialogConstants.OK_ID == dlg.open) {
+		if (dlg.open) {
 			if (old && old != step.path) uc.change(toStepId(old), toStepId(step.path));
 			refresh;
 			for (int i = 0; i < _dir.steps.length; i++) {

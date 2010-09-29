@@ -22,6 +22,7 @@ import cwx.editor.gui.dwt.skin;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.xmlbytestransfer;
+import cwx.editor.gui.dwt.centerlayout;
 
 import std.utf;
 import std.ctype;
@@ -1651,17 +1652,21 @@ Composite createDefSoundCombo(Props prop, Skin skin, Composite parent, out Combo
 }
 Composite createSuccessRateScale(Props prop, Composite parent, out Scale sucRate) {
 	auto grp = new Group(parent, DWT.NONE);
+	auto cl = new CenterLayout(DWT.HORIZONTAL | DWT.VERTICAL, 0);
+	cl.fillHorizontal = true;
+	grp.setLayout = cl;
 	grp.setText = prop.msgs.successRate;
-	grp.setLayout = new GridLayout(3, false);
-	auto allf = new Label(grp, DWT.CENTER);
+	auto comp = new Composite(grp, DWT.NONE);
+	comp.setLayout = new GridLayout(3, false);
+	auto allf = new Label(comp, DWT.CENTER);
 	allf.setText = prop.msgs.allFail;
-	sucRate = new Scale(grp, DWT.NONE);
+	sucRate = new Scale(comp, DWT.NONE);
 	sucRate.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 	// 0以上でないといけないらしい
 	sucRate.setMinimum = 0;
 	sucRate.setMaximum = prop.looks.successRateMax * 2;
 	sucRate.setPageIncrement = prop.looks.successRateMax;
-	auto alls = new Label(grp, DWT.CENTER);
+	auto alls = new Label(comp, DWT.CENTER);
 	alls.setText = prop.msgs.allSuccess;
 	return grp;
 }

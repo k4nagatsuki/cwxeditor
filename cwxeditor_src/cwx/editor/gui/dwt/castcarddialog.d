@@ -22,6 +22,7 @@ import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.radarspinner;
 import cwx.editor.gui.dwt.xmlbytestransfer;
+import cwx.editor.gui.dwt.absdialog;
 
 import std.date;
 import std.string;
@@ -73,13 +74,10 @@ import dwt.dnd.Clipboard;
 import dwt.dnd.Transfer;
 import dwt.dnd.ByteArrayTransfer;
 
-import dwtx.jface.dialogs.Dialog;
-import dwtx.jface.dialogs.IDialogConstants;
-
 public:
 
 /// キャストカードの設定を行うダイアログ。
-class CastCardDialog : Dialog {
+class CastCardDialog : AbsDialog {
 private:
 	string _id;
 
@@ -383,6 +381,7 @@ private:
 				_name.widget.setLayoutData = gd;
 				auto l = new Label(grp, DWT.NONE);
 				l.setText = _prop.msgs.nameLimit(_prop.looks.nameLimit);
+				checker(_name.widget);
 			}
 			{
 				_imgPath = new ImageSelect!(MtType.CARD)(comp2, DWT.NONE, _comm, _prop, _summ,
@@ -1115,29 +1114,20 @@ private:
 public:
 	this(Commons comm, Props prop, Shell shell, Summary summ, CastCard card) {
 		assert (summ !is null);
-		super(shell);
 		_id = format("%08X", &this) ~ "-" ~ to!(string)(getUTCtime);
 		_comm = comm;
 		_summ = summ;
 		_card = card;
 		_prop = prop;
+		super(prop, shell, _card ? _prop.msgs.dlgTitCast(_card.name) : _prop.msgs.dlgTitNewCast,
+			_prop.images.casts, true, _prop.var.castCardDlg);
 	}
 
 	CastCard card() {
 		return _card;
 	}
 protected:
-	override void configureShell(Shell shell) {
-		super.configureShell(shell);
-		shell.setText = _card ? _prop.msgs.dlgTitCast(_card.name) : _prop.msgs.dlgTitNewCast;
-	}
-
-	override bool isResizable() {
-        return true;
-    }
-
-	override Control createDialogArea(Composite parent) {
-		auto area = cast(Composite) super.createDialogArea(parent);
+	override void setup(Composite area) {
 		auto cl = new CenterLayout(DWT.NONE, 0);
 		cl.fillHorizontal = true;
 		cl.fillVertical = true;
@@ -1282,12 +1272,6 @@ protected:
 			resetLiveStatus;
 		}
 		setMaxLife;
-		return area;
-	}
-
-	override void createButtonsForButtonBar(Composite parent) {
-		createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
-		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
 	}
 
 	private Coupon createCoupon(E)(Button[E] radios, string delegate(E) coupon) {
@@ -1298,89 +1282,83 @@ protected:
 		}
 		return null;
 	}
-	override void buttonPressed(int buttonId) {
-		if (buttonId == IDialogConstants.OK_ID) {
-			if (_name.getText.length > 0) {
-				if (_card) {
-					_card.path = _imgPath.image;
-					_card.desc = _desc.getRRText;
-					_card.name = _name.getText;
-					_card.level = _level.getSelection;
-					_card.lifeMax = _lifeMax.getSelection;
-					_card.life = _lifeMax.getSelection;
-				} else {
-					_card = new CastCard(_summ.newId!(CastCard), _name.getText, _imgPath.image,
-						_desc.getRRText, _level.getSelection, _lifeMax.getSelection);
-				}
-				Coupon[] cs;
-				auto sex = createCoupon!(Sex)(_sex, &_prop.sys.sexCoupon);
-				if (sex) cs ~= sex;
-				auto race = selectedRace;
-				if (race) {
-					cs ~= new Coupon(_prop.msgs.raceCoupon(race), 0);
-				}
-				auto period = createCoupon!(Period)(_period, &_prop.sys.periodCoupon);
-				if (period) cs ~= period;
-				auto nature = createCoupon!(Nature)(_nature, &_prop.sys.natureCoupon);
-				if (nature) cs ~= nature;
-				foreach (m, radio; _makings) {
-					if (radio.getSelection) {
-						cs ~= new Coupon(_prop.sys.makingsCoupon(m), 0);
-					}
-				}
-				cs ~= coupons;
-				_card.coupons = cs;
-				_card.weaponResist = _resW.getSelection;
-				_card.magicResist = _resM.getSelection;
-				_card.undead = _undead.getSelection;
-				_card.automaton = _automaton.getSelection;
-				_card.unholy = _unholy.getSelection;
-				_card.constructure = _constructure.getSelection;
-				foreach (e, radio; _res) {
-					_card.resist(e, radio.getSelection);
-				}
-				foreach (e, radio; _weak) {
-					_card.weakness(e, radio.getSelection);
-				}
-				foreach (phy, i; _phyTbl) {
-					_card.physical(phy, _phy.getValue(i));
-				}
-				foreach (mtl, scale; _mtl) {
-					_card.mental(mtl, cast(int) scale.getSelection - _prop.looks.mentalMax);
-				}
-				foreach (enh, i; _enhTbl) {
-					_card.defaultEnhance(enh, _enh.getValue(i));
-				}
-
-				_card.life = _lifeUseMax.getSelection ? _card.lifeMax : _life.getSelection;
-				foreach (enh, spn; _liveEnh) {
-					if (_enhRound[enh].getSelection > 0) {
-						_card.enhance(enh, spn.getSelection);
-					} else {
-						_card.enhance(enh, 0);
-					}
-				}
-				foreach (enh, spn; _enhRound) {
-					if (_card.enhance(enh) != 0) {
-						_card.enhanceRound(enh, spn.getSelection);
-					}
-				}
-				_card.paralyze = _paralyze.getSelection;
-				_card.poison = _poison.getSelection;
-				_card.bindRound = _bind.getSelection;
-				_card.silenceRound = _silence.getSelection;
-				_card.faceUpRound = _faceUp.getSelection;
-				_card.antiMagicRound = _antiMagic.getSelection;
-				_card.mentality = _mtlyRound.getSelection == 0
-					? Mentality.NORMAL : _mtlyTbl[_mtly.getSelectionIndex];
-				_card.mentalityRound = _card.mentality == Mentality.NORMAL
-					? 0 : _mtlyRound.getSelection;
+	override bool close(bool ok) {
+		if (ok) {
+			if (_card) {
+				_card.path = _imgPath.image;
+				_card.desc = _desc.getRRText;
+				_card.name = _name.getText;
+				_card.level = _level.getSelection;
+				_card.lifeMax = _lifeMax.getSelection;
+				_card.life = _lifeMax.getSelection;
 			} else {
-				buttonId = IDialogConstants.CANCEL_ID;
+				_card = new CastCard(_summ.newId!(CastCard), _name.getText, _imgPath.image,
+					_desc.getRRText, _level.getSelection, _lifeMax.getSelection);
 			}
+			Coupon[] cs;
+			auto sex = createCoupon!(Sex)(_sex, &_prop.sys.sexCoupon);
+			if (sex) cs ~= sex;
+			auto race = selectedRace;
+			if (race) {
+				cs ~= new Coupon(_prop.msgs.raceCoupon(race), 0);
+			}
+			auto period = createCoupon!(Period)(_period, &_prop.sys.periodCoupon);
+			if (period) cs ~= period;
+			auto nature = createCoupon!(Nature)(_nature, &_prop.sys.natureCoupon);
+			if (nature) cs ~= nature;
+			foreach (m, radio; _makings) {
+				if (radio.getSelection) {
+					cs ~= new Coupon(_prop.sys.makingsCoupon(m), 0);
+				}
+			}
+			cs ~= coupons;
+			_card.coupons = cs;
+			_card.weaponResist = _resW.getSelection;
+			_card.magicResist = _resM.getSelection;
+			_card.undead = _undead.getSelection;
+			_card.automaton = _automaton.getSelection;
+			_card.unholy = _unholy.getSelection;
+			_card.constructure = _constructure.getSelection;
+			foreach (e, radio; _res) {
+				_card.resist(e, radio.getSelection);
+			}
+			foreach (e, radio; _weak) {
+				_card.weakness(e, radio.getSelection);
+			}
+			foreach (phy, i; _phyTbl) {
+				_card.physical(phy, _phy.getValue(i));
+			}
+			foreach (mtl, scale; _mtl) {
+				_card.mental(mtl, cast(int) scale.getSelection - _prop.looks.mentalMax);
+			}
+			foreach (enh, i; _enhTbl) {
+				_card.defaultEnhance(enh, _enh.getValue(i));
+			}
+
+			_card.life = _lifeUseMax.getSelection ? _card.lifeMax : _life.getSelection;
+			foreach (enh, spn; _liveEnh) {
+				if (_enhRound[enh].getSelection > 0) {
+					_card.enhance(enh, spn.getSelection);
+				} else {
+					_card.enhance(enh, 0);
+				}
+			}
+			foreach (enh, spn; _enhRound) {
+				if (_card.enhance(enh) != 0) {
+					_card.enhanceRound(enh, spn.getSelection);
+				}
+			}
+			_card.paralyze = _paralyze.getSelection;
+			_card.poison = _poison.getSelection;
+			_card.bindRound = _bind.getSelection;
+			_card.silenceRound = _silence.getSelection;
+			_card.faceUpRound = _faceUp.getSelection;
+			_card.antiMagicRound = _antiMagic.getSelection;
+			_card.mentality = _mtlyRound.getSelection == 0
+				? Mentality.NORMAL : _mtlyTbl[_mtly.getSelectionIndex];
+			_card.mentalityRound = _card.mentality == Mentality.NORMAL
+				? 0 : _mtlyRound.getSelection;
 		}
-		setReturnCode(buttonId);
-		close;
-		super.buttonPressed(buttonId);
+		return ok;
 	}
 }

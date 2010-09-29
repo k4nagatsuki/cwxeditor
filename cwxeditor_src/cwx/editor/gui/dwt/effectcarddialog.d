@@ -21,6 +21,7 @@ import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.motionview;
 import cwx.editor.gui.dwt.radarspinner;
+import cwx.editor.gui.dwt.absdialog;
 
 import std.path;
 
@@ -55,13 +56,10 @@ import dwt.events.SelectionAdapter;
 import dwt.events.SelectionEvent;
 import dwt.dwthelper.utils;
 
-import dwtx.jface.dialogs.Dialog;
-import dwtx.jface.dialogs.IDialogConstants;
-
 public:
 
 /// 手札カードの設定を行うダイアログ。
-class EffectCardDialog(C) : Dialog {
+class EffectCardDialog(C) : AbsDialog {
 private:
 	Commons _comm;
 	Props _prop;
@@ -150,6 +148,7 @@ private:
 				_name.widget.setLayoutData = gd;
 				auto l = new Label(grp, DWT.NONE);
 				l.setText = _prop.msgs.nameLimit(_prop.looks.nameLimit);
+				checker(_name.widget);
 			}
 			{
 				auto skin = findSkin(_prop, _summ);
@@ -176,7 +175,7 @@ private:
 			{
 				auto grp = new Group(comp2, DWT.NONE);
 				grp.setText = _prop.msgs.elementProps;
-				grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+				grp.setLayoutData = new GridData(GridData.FILL_BOTH);
 				grp.setLayout = new GridLayout(2, true);
 				foreach (i, eff; [EffectType.PHYSIC, EffectType.MAGIC,
 						EffectType.MAGICAL_PHYSIC, EffectType.PHYSICAL_MAGIC,
@@ -187,6 +186,7 @@ private:
 						gd.horizontalSpan = 2;
 						radio.setLayoutData = gd;
 					}
+					radio.setLayoutData = new GridData(GridData.FILL_BOTH);
 					radio.setText = _prop.msgs.effectType(eff);
 					_effTyp[eff] = radio;
 				}
@@ -194,10 +194,11 @@ private:
 			{
 				auto grp = new Group(comp2, DWT.NONE);
 				grp.setText = _prop.msgs.resistProps;
-				grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+				grp.setLayoutData = new GridData(GridData.FILL_BOTH);
 				grp.setLayout = new GridLayout(2, true);
 				foreach (res; [Resist.AVOID, Resist.RESIST, Resist.UNFAIL]) {
 					auto radio = new Button(grp, DWT.RADIO);
+					radio.setLayoutData = new GridData(GridData.FILL_BOTH);
 					radio.setText = _prop.msgs.resist(res);
 					_res[res] = radio;
 				}
@@ -525,36 +526,33 @@ private:
 public:
 	this(Commons comm, Props prop, Shell shell, Summary summ, C card) {
 		assert (summ !is null);
-		super(shell);
 		_comm = comm;
 		_summ = summ;
 		_card = card;
 		_prop = prop;
+		static if (is (C == SkillCard)) {
+			string text = _card ? _prop.msgs.dlgTitSkill(_card.name) : _prop.msgs.dlgTitNewSkill;
+			auto img = _prop.images.skill;
+			auto size = _prop.var.skillCardDlg;
+		} else static if (is (C == ItemCard)) {
+			string text = _card ? _prop.msgs.dlgTitItem(_card.name) : _prop.msgs.dlgTitNewItem;
+			auto img = _prop.images.item;
+			auto size = _prop.var.itemCardDlg;
+		} else static if (is (C == BeastCard)) {
+			string text = _card ? _prop.msgs.dlgTitBeast(_card.name) : _prop.msgs.dlgTitNewBeast;
+			auto img = _prop.images.beast;
+			auto size = _prop.var.beastCardDlg;
+		} else {
+			static assert (0);
+		}
+		super(prop, shell, text, img, true, size);
 	}
 
 	C card() {
 		return _card;
 	}
 protected:
-	override void configureShell(Shell shell) {
-		super.configureShell(shell);
-		static if (is (C == SkillCard)) {
-			shell.setText = _card ? _prop.msgs.dlgTitSkill(_card.name) : _prop.msgs.dlgTitNewSkill;
-		} else static if (is (C == ItemCard)) {
-			shell.setText = _card ? _prop.msgs.dlgTitItem(_card.name) : _prop.msgs.dlgTitNewItem;
-		} else static if (is (C == BeastCard)) {
-			shell.setText = _card ? _prop.msgs.dlgTitBeast(_card.name) : _prop.msgs.dlgTitNewBeast;
-		} else {
-			static assert (0);
-		}
-	}
-
-	override bool isResizable() {
-        return true;
-    }
-
-	override Control createDialogArea(Composite parent) {
-		auto area = cast(Composite) super.createDialogArea(parent);
+	override void setup(Composite area) {
 		auto cl = new CenterLayout(DWT.NONE, 0);
 		cl.fillHorizontal = true;
 		cl.fillVertical = true;
@@ -660,7 +658,6 @@ protected:
 		} else static if (is (C == BeastCard)) {
 			calcPrice(_useCount.getSelection);
 		}
-		return area;
 	}
 	private void __refreshEnblOneAll() {
 		_oneAllGrp.setEnabled
@@ -671,95 +668,90 @@ protected:
 		_all.setEnabled = _oneAllGrp.getEnabled;
 	}
 
-	override void createButtonsForButtonBar(Composite parent) {
-		createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
-		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
-	}
-
-	override void buttonPressed(int buttonId) {
-		if (buttonId == IDialogConstants.OK_ID) {
-			if (_name.getText.length > 0) {
-				if (_effTyp[EffectType.NONE].getSelection
-						&& (!_card || _card.effectType != EffectType.NONE)) {
-					auto dlg = new MessageBox(getShell, DWT.ICON_QUESTION | DWT.OK | DWT.CANCEL);
-					scope (exit) dlg.dispose;
-					dlg.setMessage = _prop.msgs.warningEffectTypeNone;
-					dlg.setText = _prop.msgs.dlgTitQuestion;
-					if (DWT.CANCEL == dlg.open) return;
-				}
-				bool hasVanishCast(Motion[] ms) {
-					foreach (m; ms) {
-						if (m.type == MType.VANISH_TARGET && m.element != cast(int) Element.MIRACLE) {
-							return true;
-						}
-					}
+	override bool close(bool ok, out bool cancel) {
+		if (ok) {
+			if (_effTyp[EffectType.NONE].getSelection
+					&& (!_card || _card.effectType != EffectType.NONE)) {
+				auto dlg = new MessageBox(getShell, DWT.ICON_QUESTION | DWT.OK | DWT.CANCEL);
+				scope (exit) dlg.dispose;
+				dlg.setMessage = _prop.msgs.warningEffectTypeNone;
+				dlg.setText = _prop.msgs.dlgTitQuestion;
+				if (DWT.CANCEL == dlg.open) {
+					cancel = true;
 					return false;
 				}
-				auto motions = _motions.motions;
-				if (hasVanishCast(motions) && (!_card || !hasVanishCast(_card.motions))) {
-					auto dlg = new MessageBox(getShell, DWT.ICON_QUESTION | DWT.OK | DWT.CANCEL);
-					scope (exit) dlg.dispose;
-					dlg.setMessage = _prop.msgs.warningVanishCast;
-					dlg.setText = _prop.msgs.dlgTitQuestion;
-					if (DWT.CANCEL == dlg.open) return;
-				}
-				if (_card) {
-					_card.path = _imgPath.image;
-					_card.desc = wrapReturnCode(_desc.getText);
-					_card.name = _name.getText;
-				} else {
-					_card = new C(_summ.newId!(C), _name.getText,
-						_imgPath.image, wrapReturnCode(_desc.getText));
-				}
-				_card.spell = _needSpell.getSelection;
-				putRadioValue!(EffectType)(_effTyp, &_card.effectType);
-				putRadioValue!(Resist)(_res, &_card.resist);
-				putRadioValue!(Physical)(_phy, &_card.physical);
-				putRadioValue!(Mental)(_mtl, &_card.mental);
-				static if (is (C == SkillCard)) {
-					_card.level = _level.getSelection;
-				}
-				static if (is (C == ItemCard)) {
-					_card.useLimitMax = _useCount.getSelection;
-					_card.useLimit = _useCount.getSelection;
-				} else static if (is (C == BeastCard)) {
-					_card.useLimit = _useCount.getSelection;
-				}
-				static if (is (C == ItemCard)) {
-					_card.price = _price.getSelection;
-				}
-				_card.motions = motions;
-				foreach (e, index; _useModTbl) {
-					_card.enhance(e, _useMod.getValue(index));
-				}
-				static if (is (C == ItemCard)) {
-					foreach (e, index; _hasModTbl) {
-						_card.enhanceOwner(e, _hasMod.getValue(index));
+			}
+			bool hasVanishCast(Motion[] ms) {
+				foreach (m; ms) {
+					if (m.type == MType.VANISH_TARGET && m.element != cast(int) Element.MIRACLE) {
+						return true;
 					}
 				}
-				putRadioValue!(CardTarget)(_targ, &_card.target);
-				_card.allRange = _oneAllGrp.isEnabled && _all.getSelection;
-				putRadioValue!(CardVisual)(_vis, &_card.visual);
-				putRadioValue!(Premium)(_prem, &_card.premium);
-				_card.successRate = cast(int) _sucRate.getSelection - _prop.looks.successRateMax;
-				_card.soundPath1 = _se1.getSelectionIndex > 0 ? _se1.getText : "";
-				_card.soundPath2 = _se2.getSelectionIndex > 0 ? _se2.getText : "";
-				string[] keyCodes;
-				int last = 0;
-				foreach (i, c; _keyCodes) {
-					keyCodes ~= c.getText;
-					if (c.getText.length > 0) last = i + 1;
-				}
-				keyCodes.length = last;
-				_card.scenario = _summ.scenarioName;
-				_card.author = _summ.author;
-				_card.keyCodes = keyCodes;
-			} else {
-				buttonId = IDialogConstants.CANCEL_ID;
+				return false;
 			}
+			auto motions = _motions.motions;
+			if (hasVanishCast(motions) && (!_card || !hasVanishCast(_card.motions))) {
+				auto dlg = new MessageBox(getShell, DWT.ICON_QUESTION | DWT.OK | DWT.CANCEL);
+				scope (exit) dlg.dispose;
+				dlg.setMessage = _prop.msgs.warningVanishCast;
+				dlg.setText = _prop.msgs.dlgTitQuestion;
+				if (DWT.CANCEL == dlg.open) {
+					cancel = true;
+					return false;
+				}
+			}
+			if (_card) {
+				_card.path = _imgPath.image;
+				_card.desc = wrapReturnCode(_desc.getText);
+				_card.name = _name.getText;
+			} else {
+				_card = new C(_summ.newId!(C), _name.getText,
+					_imgPath.image, wrapReturnCode(_desc.getText));
+			}
+			_card.spell = _needSpell.getSelection;
+			putRadioValue!(EffectType)(_effTyp, &_card.effectType);
+			putRadioValue!(Resist)(_res, &_card.resist);
+			putRadioValue!(Physical)(_phy, &_card.physical);
+			putRadioValue!(Mental)(_mtl, &_card.mental);
+			static if (is (C == SkillCard)) {
+				_card.level = _level.getSelection;
+			}
+			static if (is (C == ItemCard)) {
+				_card.useLimitMax = _useCount.getSelection;
+				_card.useLimit = _useCount.getSelection;
+			} else static if (is (C == BeastCard)) {
+				_card.useLimit = _useCount.getSelection;
+			}
+			static if (is (C == ItemCard)) {
+				_card.price = _price.getSelection;
+			}
+			_card.motions = motions;
+			foreach (e, index; _useModTbl) {
+				_card.enhance(e, _useMod.getValue(index));
+			}
+			static if (is (C == ItemCard)) {
+				foreach (e, index; _hasModTbl) {
+					_card.enhanceOwner(e, _hasMod.getValue(index));
+				}
+			}
+			putRadioValue!(CardTarget)(_targ, &_card.target);
+			_card.allRange = _oneAllGrp.isEnabled && _all.getSelection;
+			putRadioValue!(CardVisual)(_vis, &_card.visual);
+			putRadioValue!(Premium)(_prem, &_card.premium);
+			_card.successRate = cast(int) _sucRate.getSelection - _prop.looks.successRateMax;
+			_card.soundPath1 = _se1.getSelectionIndex > 0 ? _se1.getText : "";
+			_card.soundPath2 = _se2.getSelectionIndex > 0 ? _se2.getText : "";
+			string[] keyCodes;
+			int last = 0;
+			foreach (i, c; _keyCodes) {
+				keyCodes ~= c.getText;
+				if (c.getText.length > 0) last = i + 1;
+			}
+			keyCodes.length = last;
+			_card.scenario = _summ.scenarioName;
+			_card.author = _summ.author;
+			_card.keyCodes = keyCodes;
 		}
-		setReturnCode(buttonId);
-		close;
-		super.buttonPressed(buttonId);
+		return ok;
 	}
 }

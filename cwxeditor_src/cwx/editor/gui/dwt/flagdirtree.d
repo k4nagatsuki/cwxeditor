@@ -61,8 +61,6 @@ import dwt.dnd.DropTargetEvent;
 import dwt.dnd.DropTarget;
 import dwt.dnd.Clipboard;
 
-import dwtx.jface.dialogs.Dialog;
-import dwtx.jface.dialogs.IDialogConstants;
 import dwtx.jface.viewers.Viewer;
 import dwtx.jface.viewers.TableViewer;
 import dwtx.jface.viewers.TreeViewer;
