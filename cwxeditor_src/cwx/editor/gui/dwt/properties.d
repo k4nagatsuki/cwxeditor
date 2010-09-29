@@ -558,7 +558,7 @@ public class FlexProps {
 	const DialogParam!("itemCardDialog") itemCardDlg;
 	const DialogParam!("beastCardDialog") beastCardDlg;
 	const DialogParam!("infoCardDialog") infoCardDlg;
-	const DialogParam!("bgImagesDialog") bgImagesDlg;
+	const DialogParam!("bgImagesDialog", 800) bgImagesDlg;
 	const DialogParam!("flagDialog") flagDlg;
 	const DialogParam!("stepDialog") stepDlg;
 	const DialogParam!("newScenarioDialog") newScDlg;

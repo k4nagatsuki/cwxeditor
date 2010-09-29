@@ -192,7 +192,7 @@ protected:
 			}
 			{
 				auto grp = new Group(comp, DWT.NONE);
-				grp.setLayoutData = new GridData(GridData.FILL_VERTICAL);
+				grp.setLayoutData = new GridData(GridData.FILL_BOTH);
 				grp.setLayout = new GridLayout(2, false);
 				grp.setText = _prop.msgs.refFlag;
 				_flag = new Table(grp, DWT.SINGLE | DWT.FULL_SELECTION | DWT.BORDER);

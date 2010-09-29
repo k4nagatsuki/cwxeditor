@@ -121,14 +121,14 @@ private:
 public:
 	this(Commons comm, Props prop, Shell shell, Summary summ, BgImage back) {
 		assert (summ !is null);
-		super(prop, shell,
-			_back ? _prop.msgs.dlgTitBgImage : _prop.msgs.dlgTitNewBgImage,
-			_prop.images.backs, true, _prop.var.areaBackgroundDlg);
 		_comm = comm;
 		_summ = summ;
 		_back = back;
 		_prop = prop;
 		_selected = back !is null;
+		super(prop, shell,
+			_back ? _prop.msgs.dlgTitBgImage : _prop.msgs.dlgTitNewBgImage,
+			_prop.images.backs, true, _prop.var.areaBackgroundDlg);
 	}
 
 	BgImage back() {
@@ -136,7 +136,7 @@ public:
 	}
 protected:
 	override void setup(Composite area) {
-		area.setLayout = zeroGridLayout(1);;
+		area.setLayout = zeroGridLayout(1);
 		{
 			auto comp = new Composite(area, DWT.NONE);
 			comp.setLayout = new GridLayout(2, false);
@@ -148,7 +148,7 @@ protected:
 			}
 			{
 				auto grp = new Group(comp, DWT.NONE);
-				grp.setLayoutData = new GridData(GridData.FILL_VERTICAL);
+				grp.setLayoutData = new GridData(GridData.FILL_BOTH);
 				grp.setLayout = new GridLayout(2, false);
 				grp.setText = _prop.msgs.refFlag;
 				_flag = new Table(grp, DWT.SINGLE | DWT.FULL_SELECTION | DWT.BORDER);
