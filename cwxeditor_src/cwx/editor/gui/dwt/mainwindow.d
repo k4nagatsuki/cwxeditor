@@ -403,6 +403,7 @@ private:
 			}
 			scope (exit) dlg.dispose;
 			dlg.setText = _prop.msgs.dlgTitQuestion;
+			_win.setMinimized = false;
 			switch (dlg.open) {
 			case DWT.YES, DWT.OK:
 				return reload ? true : save(_win);

@@ -735,7 +735,7 @@ public:
 
 	/// メインウィンドウ。
 	string mainWindowName(string name, string path) {
-		return name !is null ? "CWXEditor - [ " ~ name ~ " ] - " ~ path : "CWXEditor";
+		return name !is null ? "" ~ name ~ " [ " ~ path ~ " ] - CWXEditor" : "CWXEditor";
 	}
 	string errorExecEngine(string enginePath) {
 		return getBaseName(enginePath) ~ "の起動に失敗しました。";
