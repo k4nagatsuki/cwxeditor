@@ -55,84 +55,15 @@ import dwt.dnd.DropTargetEvent;
 import dwt.dnd.DropTarget;
 import dwt.dnd.Clipboard;
 
-import dwtx.jface.viewers.Viewer;
-import dwtx.jface.viewers.TableViewer;
-import dwtx.jface.viewers.IStructuredContentProvider;
-import dwtx.jface.viewers.ITableLabelProvider;
-import dwtx.jface.viewers.ILabelProviderListener;
-import dwtx.jface.viewers.ICellModifier;
-import dwtx.jface.viewers.TextCellEditor;
-import dwtx.jface.viewers.CellEditor;
-import dwtx.jface.action.Action;
-import dwtx.jface.action.IAction;
-import dwtx.jface.action.MenuManager;
-import dwtx.jface.action.Separator;
-
 /// エリア・バトル・パッケージの一覧を表示する。
 class AreaTable : TCPD {
 private:
-	class AreaTableContentProvider : IStructuredContentProvider {
-	public:
-		override Object[] getElements(Object inputElement) {
-			AbstractArea[] r;
-			if (cast(Summary) inputElement) {
-				auto summ = cast(Summary) inputElement;
-				r ~= summ.areas;
-				r ~= summ.battles;
-				r ~= summ.packages;
-			}
-			return r;
-		}
-		override void inputChanged(Viewer viewer, Object oldInput, Object newInput) {}
-		override void dispose() {}
-	}
-
-	class AreaTableLabelProvider : ITableLabelProvider {
-	public:
-		override string getColumnText(Object element, int columnIndex) {
-			switch (columnIndex) {
-			case 0:
-				return to!(string)((cast(AbstractArea) element).id);
-			case 1:
-				return (cast(AbstractArea) element).name;
-			case 2:
-				if (cast(Area) element) {
-					return to!(string)(_summ.useCounter.area.get(toAreaId((cast(AbstractArea) element).id)));
-				} else if (cast(Battle) element) {
-					return to!(string)(_summ.useCounter.battle.get(toBattleId((cast(AbstractArea) element).id)));
-				} else {
-					assert (cast(Package) element);
-					return to!(string)(_summ.useCounter.packages.get(toPackageId((cast(AbstractArea) element).id)));
-				}
-				return "";
-			}
-		}
-		override Image getColumnImage(Object element, int columnIndex) {
-			if (columnIndex == 0) {
-				if (cast(Area) element) {
-					return _prop.images.area;
-				} else if (cast(Battle) element) {
-					return _prop.images.battle;
-				} else {
-					assert (cast(Package) element);
-					return _prop.images.packages;
-				}
-			}
-			return null;
-		}
-		override void addListener(ILabelProviderListener listener) {}
-		override void removeListener(ILabelProviderListener listener) {}
-		override bool isLabelProperty(Object element, string property) {
-			return property == "name";
-		}
-		override void dispose() {}
-	}
-
 	void editEnd(TableItem itm, int column, string newText) {
 		assert (column == 1);
 		if (newText.length > 0) {
 			auto area = cast(AbstractArea) itm.getData;
 			area.name = newText;
+			itm.setText(NAME, newText);
 			if (cast(Area) area) {
 				_comm.refArea.call(cast(Area) area);
 			} else if (cast(Battle) area) {
@@ -141,9 +72,11 @@ private:
 				assert (cast(Package) area);
 				_comm.refPackage.call(cast(Package) area);
 			}
-			_areasV.update(area, null);
 		}
 	}
+	private static const ID = 0;
+	private static const NAME = 1;
+	private static const UC = 2;
 
 	Commons _comm;
 	Props _prop;
@@ -151,7 +84,6 @@ private:
 	Summary _summ;
 
 	Table _areas;
-	TableViewer _areasV;
 	TableTextEdit _areasEdit;
 
 	AbstractArea getSelectionArea() {
@@ -198,6 +130,7 @@ private:
 			if (e.detail == DND.DROP_MOVE) {
 				auto area = _data;
 				_summ.remove(area);
+				delItem(area);
 				if (cast(Area) area) {
 					_comm.delArea.call(cast(Area) area);
 				} else if (cast(Battle) area) {
@@ -206,7 +139,6 @@ private:
 					assert (cast(Package) area);
 					_comm.delPackage.call(cast(Package) area);
 				}
-				_areasV.refresh;
 			}
 		}
 	}
@@ -270,16 +202,19 @@ private:
 					}
 					index = revId(index);
 					auto area = cast(AbstractArea) tbl.getSelection[0].getData;
+					tbl.getSelection[0].dispose;
 					if (tid == typeid(Area)) {
 						_summ.insert(index, cast(Area) area);
+						newAreaItem(index);
 					} else if (tid == typeid(Battle)) {
 						_summ.insert(index, cast(Battle) area);
+						newBattleItem(index);
 					} else {
 						assert (tid == typeid(Package));
 						_summ.insert(index, cast(Package) area);
+						newPackageItem(index);
 					}
 					e.detail = DND.DROP_NONE;
-					_areasV.refresh;
 				} else {
 					// 他のリストからのコピー
 					index = revId(index);
@@ -287,15 +222,17 @@ private:
 					if (tid == typeid(Area)) {
 						area = Area.createFromNode(node, LATEST_VERSION);
 						_summ.insert(index, cast(Area) area);
+						newAreaItem(index);
 					} else if (tid == typeid(Battle)) {
 						area = Battle.createFromNode(node, LATEST_VERSION);
 						_summ.insert(index, cast(Battle) area);
+						newBattleItem(index);
 					} else {
 						assert (tid == typeid(Package));
 						area = Package.createFromNode(node, LATEST_VERSION);
 						_summ.insert(index, cast(Package) area);
+						newPackageItem(index);
 					}
-					_areasV.refresh;
 					e.detail = DND.DROP_NONE;
 					_comm.refUseCount.call;
 				}
@@ -337,6 +274,48 @@ private:
 			_comm.replText.remove(&refresh);
 		}
 	}
+
+	private void refreshAreas() {
+		_areas.removeAll;
+		if (_summ) {
+			foreach (i, a; _summ.areas) {
+				newAreaItem(i);
+			}
+			foreach (i, a; _summ.battles) {
+				newBattleItem(i);
+			}
+			foreach (i, a; _summ.packages) {
+				newPackageItem(i);
+			}
+		}
+	}
+	void item(AbstractArea a, Image img, int uc, int index = -1) {
+		TableItem itm;
+		if (index >= 0) {
+			itm = new TableItem(_areas, DWT.NONE, index);
+		} else {
+			itm = new TableItem(_areas, DWT.NONE);
+		}
+		itm.setImage(0, img);
+		itm.setText(ID, to!(string)(a.id));
+		itm.setText(NAME, a.name);
+		itm.setText(UC, to!(string)(uc));
+		itm.setData = a;
+	}
+	private void newAreaItem(int index) {
+		auto a = _summ.areas[index];
+		item(a, _prop.images.area, _summ.useCounter.get(toAreaId(a.id)), index);
+	}
+	private void newBattleItem(int index) {
+		auto a = _summ.battles[index];
+		index += _summ.areas.length;
+		item(a, _prop.images.battle, _summ.useCounter.get(toBattleId(a.id)), index);
+	}
+	private void newPackageItem(int index) {
+		auto a = _summ.packages[index];
+		index += _summ.areas.length + _summ.battles.length;
+		item(a, _prop.images.packages, _summ.useCounter.get(toPackageId(a.id)), index);
+	}
 public:
 	this(Commons comm, Props prop, Composite parent, FlagTable flags) {
 		_comm = comm;
@@ -347,7 +326,6 @@ public:
 		_comm.replText.add(&refresh);
 		_areas = new Table(parent, DWT.BORDER | DWT.FULL_SELECTION);
 		_areas.addDisposeListener(new ADListener);
-		_areasV = new TableViewer(_areas);
 		_areas.setHeaderVisible = true;
 		auto idCol = new TableColumn(_areas, DWT.NULL);
 		idCol.setText = prop.msgs.areaId;
@@ -358,9 +336,6 @@ public:
 		auto countCol = new TableColumn(_areas, DWT.NULL);
 		countCol.setText = prop.msgs.areaCount;
 		saveColumnWidth!("prop.var.etc.areaCountColumn")(prop, countCol);
-
-		_areasV.setContentProvider(new AreaTableContentProvider);
-		_areasV.setLabelProvider(new AreaTableLabelProvider);
 
 		_areasEdit = new TableTextEdit(_areas, 1, &editEnd);
 
@@ -398,12 +373,12 @@ public:
 	}
 
 	void refresh() {
-		_areasV.refresh;
+		refreshAreas;
 	}
 
 	void summary(Summary summ) {
 		_summ = summ;
-		_areasV.setInput(_summ);
+		refreshAreas;
 	}
 
 	/// 新規エリアが作成され、名前の入力待ちになる。
@@ -415,9 +390,9 @@ public:
 		tree.enter = true;
 		area.add(tree);
 		_summ.add(area);
-		_areasV.refresh;
-		_areas.setSelection = _summ.areas.length - 1;
-		_areas.showSelection;
+		int index = _summ.areas.length - 1;
+		newAreaItem(index);
+		selArea(index);
 		_areasEdit.startEdit;
 	}
 
@@ -425,9 +400,9 @@ public:
 	void createBattle() {
 		auto btl = new Battle(_summ.newBattleId, _prop.msgs.battleNew, findSkin(_prop, _summ).defBattle);
 		_summ.add(btl);
-		_areasV.refresh;
-		_areas.setSelection = _summ.areas.length + _summ.battles.length - 1;
-		_areas.showSelection;
+		int index = _summ.battles.length - 1;
+		newBattleItem(index);
+		selBattle(index);
 		_areasEdit.startEdit;
 	}
 
@@ -436,10 +411,22 @@ public:
 		auto pkg = new Package(_summ.newPackageId, _prop.msgs.packageNew);
 		pkg.add(new EventTree(_prop.msgs.packageTree));
 		_summ.add(pkg);
-		_areasV.refresh;
-		_areas.setSelection = _summ.areas.length + _summ.battles.length + _summ.packages.length - 1;
-		_areas.showSelection;
+		int index = _summ.packages.length - 1;
+		newPackageItem(index);
+		selPackage(index);
 		_areasEdit.startEdit;
+	}
+	private void selArea(int index) {
+		_areas.setSelection = index;
+		_areas.showSelection;
+	}
+	private void selBattle(int index) {
+		_areas.setSelection = _summ.areas.length + index;
+		_areas.showSelection;
+	}
+	private void selPackage(int index) {
+		_areas.setSelection = _summ.areas.length + _summ.battles.length + index;
+		_areas.showSelection;
 	}
 
 	void openArea(ulong id) {
@@ -476,23 +463,31 @@ public:
 					auto oldId = area.id;
 					if (cast(Area) area) {
 						auto newId = _summ.add(cast(Area) area);
+						int index = _summ.areas.length - 1;
+						newAreaItem(index);
+						selArea(index);
 						if (sameSummary && !_summ.hasAreaId(oldId)) {
 							_summ.useCounter.change(toAreaId(oldId), toAreaId(newId));
 						}
 					} else if (cast(Package) area) {
 						auto newId = _summ.add(cast(Package) area);
+						int index = _summ.packages.length - 1;
+						newPackageItem(index);
+						selPackage(index);
 						if (sameSummary && !_summ.hasPackageId(oldId)) {
 							_summ.useCounter.change(toPackageId(oldId), toPackageId(newId));
 						}
 					} else {
 						assert (cast(Battle) area);
 						auto newId = _summ.add(cast(Battle) area);
+						int index = _summ.battles.length - 1;
+						newBattleItem(index);
+						selBattle(index);
 						if (sameSummary && !_summ.hasBattleId(oldId)) {
 							_summ.useCounter.change(toBattleId(oldId), toBattleId(newId));
 						}
 					}
 					if (_flags) _flags.refresh;
-					_areasV.refresh;
 					_comm.refUseCount.call;
 				}
 			}
@@ -501,6 +496,7 @@ public:
 			auto area = getSelectionArea;
 			if (area) {
 				_summ.remove(area);
+				delItem(area);
 				if (cast(Area) area) {
 					_comm.delArea.call(cast(Area) area);
 				} else if (cast(Battle) area) {
@@ -510,12 +506,19 @@ public:
 					_comm.delPackage.call(cast(Package) area);
 				}
 				if (_flags) _flags.refresh;
-				_areasV.refresh;
 				_comm.refUseCount.call;
 			}
 		}
 		bool canDoTCPD() {
 			return _areas.isFocusControl;
+		}
+	}
+	private void delItem(AbstractArea area) {
+		foreach (itm; _areas.getItems) {
+			if (itm.getData is area) {
+				itm.dispose;
+				break;
+			}
 		}
 	}
 }

@@ -17,13 +17,13 @@ import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.undo;
 
 import dwt.widgets.Shell;
-import dwt.widgets.TabFolder;
-import dwt.widgets.TabItem;
 import dwt.widgets.ToolBar;
 import dwt.widgets.ToolItem;
 import dwt.widgets.Menu;
 import dwt.widgets.MenuItem;
 import dwt.widgets.Composite;
+import dwt.custom.CTabFolder;
+import dwt.custom.CTabItem;
 import dwt.layout.GridLayout;
 import dwt.layout.GridData;
 import dwt.graphics.Image;
@@ -38,9 +38,9 @@ class TAreaWindow(V, A, C) : TopLevelPanel, TCPD {
 private:
 	Commons _comm;
 
-	TabFolder _tabf;
-	TabItem _tabA;
-	TabItem _tabE;
+	CTabFolder _tabf;
+	CTabItem _tabA;
+	CTabItem _tabE;
 
 	Composite _win;
 	Shell _areaWin = null;
@@ -138,17 +138,17 @@ public:
 		});
 		_win.setLayout = windowGridLayout(1, true);
 		_prop = prop;
-		_tabf = new TabFolder(_win, DWT.NONE);
+		_tabf = new CTabFolder(_win, DWT.BORDER);
 		_tabf.setLayoutData = new GridData(GridData.FILL_BOTH);
 		if (cast(Area) area || cast(Battle) area) {
-			_tabA = new TabItem(_tabf, DWT.NONE);
+			_tabA = new CTabItem(_tabf, DWT.NONE);
 			_tabA.setText = _prop.msgs.cardAndBackView;
 		}
-		_tabE = new TabItem(_tabf, DWT.NONE);
+		_tabE = new CTabItem(_tabf, DWT.NONE);
 		_tabE.setText = _prop.msgs.eventView;
 		_tabf.addSelectionListener(new class SelectionAdapter {
 			override void widgetSelected(SelectionEvent e) {
-				if (_tabf.getSelection[0] is _tabE) {
+				if (_tabf.getSelection is _tabE) {
 					_eview.openToolWindow;
 				} else {
 					_eview.closeToolWindow;
@@ -221,7 +221,7 @@ public:
 			_areaWin = areaWin;
 		}
 
-		_eview.refresh(_tabf.getSelection[0] is _tabE);
+		_eview.refresh(_tabf.getSelection is _tabE);
 	}
 	string title() {
 		auto shl = cast(Shell) _win;

@@ -31,13 +31,13 @@ import dwt.widgets.Shell;
 import dwt.widgets.Text;
 import dwt.widgets.ToolBar;
 import dwt.widgets.ToolItem;
-import dwt.widgets.TabFolder;
-import dwt.widgets.TabItem;
 import dwt.widgets.Listener;
 import dwt.widgets.List;
 import dwt.widgets.Table;
 import dwt.widgets.TableColumn;
 import dwt.widgets.TableItem;
+import dwt.custom.CTabFolder;
+import dwt.custom.CTabItem;
 import dwt.graphics.Image;
 import dwt.graphics.ImageData;
 import dwt.graphics.PaletteData;
@@ -300,7 +300,7 @@ private:
 	Props _prop;
 	Summary _summ;
 	Content _evt;
-	TabFolder _tabf;
+	CTabFolder _tabf;
 	FixedWidthText _textA, _textB;
 	MaterialSelect!(MtType.CARD, Combo, Combo) _msel;
 
@@ -352,7 +352,7 @@ public:
 protected:
 	override void setup(Composite area) {
 		area.setLayout = windowGridLayout(1, true);
-		_tabf = new TabFolder(area, DWT.NONE);
+		_tabf = new CTabFolder(area, DWT.BORDER);
 		_tabf.setLayoutData = new GridData(GridData.FILL_BOTH);
 		{
 			auto comp = new Composite(_tabf, DWT.NONE);
@@ -370,7 +370,7 @@ protected:
 			gd.widthHint = s.x;
 			gd.heightHint = s.y;
 			_textA.widget.setLayoutData = gd;
-			auto tab = new TabItem(_tabf, DWT.NONE);
+			auto tab = new CTabItem(_tabf, DWT.NONE);
 			tab.setText = _prop.msgs.imageMessage;
 			tab.setControl = comp;
 		}
@@ -379,7 +379,7 @@ protected:
 			comp.setLayout = new CenterLayout;
 			_textB = createMessagePane(_prop, false, comp);
 			_textB.widget.setLayoutData = _textB.computeTextBaseSize(_prop.looks.messageLine);
-			auto tab = new TabItem(_tabf, DWT.NONE);
+			auto tab = new CTabItem(_tabf, DWT.NONE);
 			tab.setText = _prop.msgs.noImageMessage;
 			tab.setControl = comp;
 		}

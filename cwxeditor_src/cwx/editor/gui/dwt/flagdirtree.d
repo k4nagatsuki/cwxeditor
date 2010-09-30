@@ -61,61 +61,13 @@ import dwt.dnd.DropTargetEvent;
 import dwt.dnd.DropTarget;
 import dwt.dnd.Clipboard;
 
-import dwtx.jface.viewers.Viewer;
-import dwtx.jface.viewers.TableViewer;
-import dwtx.jface.viewers.TreeViewer;
-import dwtx.jface.viewers.ITreeContentProvider;
-import dwtx.jface.viewers.IStructuredContentProvider;
-import dwtx.jface.viewers.ITableLabelProvider;
-import dwtx.jface.viewers.LabelProvider;
-import dwtx.jface.viewers.ILabelProviderListener;
-import dwtx.jface.viewers.TreeSelection;
-import dwtx.jface.viewers.TreePath;
-import dwtx.jface.viewers.ICellModifier;
-import dwtx.jface.viewers.TextCellEditor;
-
 public class FlagDirTree : TCPD {
 private:
-	class FlagDirContentProvider : ITreeContentProvider {
-	public override:
-		Object[] getChildren(Object parentElement) {
-			return (cast(FlagDir) parentElement).subDirs;
-		}
-		Object getParent(Object element) {
-			return (cast(FlagDir) element).parent;
-		}
-		bool hasChildren(Object element) {
-			return (cast(FlagDir) element).subDirs.length > 0;
-		}
-		Object[] getElements(Object inputElement) {
-			if (cast(FlagDir) inputElement) {
-				return (cast(FlagDir) inputElement).subDirs;
-			} else if (root !is null) {
-				return [root];
-			} else {
-				return [];
-			}
-		}
-		void dispose() {}
-		void inputChanged(Viewer viewer, Object oldInput, Object newInput) {}
-	}
-	class FlagDirLabelProvider : LabelProvider {
-	public override:
-		string getText(Object element) {
-			return element == root ? prop.msgs.flagDirRoot : (cast(FlagDir) element).name;
-		}
-		Image getImage(Object element) {
-			return prop.images.flagDir;
-		}
-		void dispose() {}
-	}
-
 	Props prop;
 	UseCounter uc;
 	Commons _comm;
 
 	Tree dirs;
-	TreeViewer dirsV;
 	FlagTable flags;
 
 	FlagDir root = null;
@@ -212,14 +164,88 @@ private:
 	}
 
 	void editEnd(TreeItem itm, Control c) {
-		(cast(FlagDir) itm.getData).name = (cast(Text) c).getText;
-		dirsV.refresh(itm.getData);
+		auto dir = cast(FlagDir) itm.getData;
+		dir.name = (cast(Text) c).getText;
+		itm.setText = dir.name;
 	}
 
 	Control createEditor(TreeItem itm) {
 		return itm.getData != root ? createTextEditor(dirs, itm.getText) : null;
 	}
 
+	private void refreshDirs() {
+		dirs.setRedraw = false;
+		scope (exit) dirs.setRedraw = true;
+		auto exAll = expandAll;
+		auto sel = current;
+		dirs.removeAll;
+		if (root) {
+			newItem(root, dirs, exAll);
+			if (sel) {
+				current = sel;
+			}
+		}
+	}
+	private FlagDir[] expandAll() {
+		FlagDir[] all(TreeItem itm) {
+			FlagDir[] r;
+			auto dir = cast(FlagDir) itm.getData;
+			if (itm.getExpanded) r ~= dir;
+			foreach (sub; itm.getItems) {
+				r ~= all(sub);
+			}
+			return r;
+		}
+		return dirs.getItemCount ? all(dirs.getItem(0)) : cast(FlagDir[]) [];
+	}
+	private void newItem(T)(FlagDir dir, T parent, FlagDir[] exAll) {
+		auto sItm = new TreeItem(parent, DWT.NONE);
+		sItm.setImage = prop.images.flagDir;
+		static if (is(T : Tree)) {
+			sItm.setText = prop.msgs.flagDirRoot;
+		} else {
+			sItm.setText = dir.name;
+		}
+		sItm.setData = dir;
+		foreach (sub; dir.subDirs) {
+			newItem(sub, sItm, exAll);
+		}
+		if (contains!("a is b")(exAll, dir)) {
+			sItm.setExpanded = true;
+		}
+	}
+	private void refreshDirs(FlagDir targ) {
+		dirs.setRedraw = false;
+		scope (exit) dirs.setRedraw = true;
+		auto itm = find(targ);
+		if (itm) {
+			auto exAll = expandAll;
+			auto sel = current;
+			itm.removeAll;
+			foreach (sub; targ.subDirs) {
+				newItem(sub, itm, exAll);
+			}
+			if (sel) current = sel;
+		}
+	}
+	private TreeItem findImpl(TreeItem parent, FlagDir dir) {
+		if (parent.getData is dir) return parent;
+		foreach (itm; parent.getItems) {
+			auto r = findImpl(itm, dir);
+			if (r) return r;
+		}
+		return null;
+	}
+	private TreeItem find(FlagDir dir) {
+		if (!root) return null;
+		return findImpl(dirs.getItem(0), dir);
+	}
+	private void select(FlagDir dir) {
+		auto itm = find(dir);
+		if (itm) {
+			dirs.select = itm;
+		}
+	}
 public:
 	this(Commons comm, Props prop, FlagTable flags) {
 		_comm = comm;
@@ -232,20 +258,17 @@ public:
 	void refresh() {
 		refresh(null);
 	}
-
 	void refresh(string selPath) {
-		dirs.setRedraw = false;
-		if (selPath is null) {
+		if (!selPath) {
 			selPath = current.path;
 		}
-		dirsV.refresh(root);
+		refreshDirs;
 		select(selPath);
-		dirs.setRedraw = true;
 	}
 
 	void select(string path) {
 		auto dir = FlagDir.searchPath(root, path);
-		if (dir is null) {
+		if (!dir) {
 			current = root;
 		} else {
 			current = dir;
@@ -266,13 +289,8 @@ public:
 		_comp = new Composite(parent, DWT.NONE);
 		_comp.setLayout = new FillLayout;
 		dirs = new Tree(_comp, DWT.SINGLE | DWT.BORDER);
-		dirsV = new TreeViewer(dirs);
-		dirsV.setContentProvider(new FlagDirContentProvider);
-		dirsV.setLabelProvider(new FlagDirLabelProvider);
 
 		edit = new TreeEdit(dirs, &editEnd, &createEditor);
-
-		dirsV.setInput(new Object);
 
 		dirs.addSelectionListener(new DirSelection);
 		auto menu = new Menu(dirs.getShell, DWT.POP_UP);
@@ -302,21 +320,22 @@ public:
 		auto cur = current;
 		auto dir = new FlagDir(cur.createNewDirName(prop.msgs.flagDirNew));
 		cur.add(dir);
-		dirsV.refresh(cur);
+		refreshDirs(cur);
 		current = dir;
 		edit.startEdit;
 	}
 
 	private void current(FlagDir dir) {
-		auto sel = new TreeSelection(new TreePath([dir]));
-		dirsV.setSelection(sel);
+		auto itm = find(dir);
+		dirs.select = itm;
+		dirs.showSelection;
 		flags.dir = dir;
 	}
 
 	private FlagDir current() {
-		auto s = cast(TreeSelection) dirsV.getSelection;
-		if (!s.isEmpty) {
-			return cast(FlagDir) s.getPaths[0].getLastSegment;
+		auto sels = dirs.getSelection;
+		if (sels.length) {
+			return cast(FlagDir) sels[0].getData;
 		}
 		return root;
 	}
@@ -350,6 +369,8 @@ public:
 				switch (cur.appendFromXML(c, LATEST_VERSION, true, true, cFlags, cSteps, newPath)) {
 				case FlagDir.AppendXmlResult.DIR_SUCCESS:
 					refresh(newPath);
+					auto itm = find(current);
+					if (itm) treeExpandedAll(itm);
 					break;
 				case FlagDir.AppendXmlResult.FLAG_STEP_SUCCESS:
 					flags.refresh;
@@ -371,7 +392,7 @@ public:
 				auto p = cur.parent;
 				p.remove(cur);
 				current = p;
-				dirsV.refresh(p);
+				refreshDirs(p);
 				_comm.delFlagAndStep.call(cFlags, cSteps);
 			}
 		}
@@ -390,9 +411,8 @@ public:
 	/// root = ルートディレクトリ。
 	void rootDir(FlagDir root) {
 		this.root = root;
+		refreshDirs;
 		current = root;
-		dirsV.refresh;
-		dirsV.expandAll;
 	}
 
 	private bool openCWXPathImpl(FlagDir dir, string path) {

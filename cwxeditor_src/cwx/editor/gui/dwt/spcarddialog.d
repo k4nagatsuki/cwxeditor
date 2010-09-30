@@ -33,8 +33,6 @@ import dwt.widgets.Label;
 import dwt.widgets.Listener;
 import dwt.widgets.Group;
 import dwt.widgets.Button;
-import dwt.widgets.TabFolder;
-import dwt.widgets.TabItem;
 import dwt.widgets.Spinner;
 import dwt.widgets.Table;
 import dwt.widgets.TableColumn;

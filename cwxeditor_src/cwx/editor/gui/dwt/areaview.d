@@ -78,11 +78,6 @@ import dwt.dnd.Transfer;
 import dwt.dnd.Clipboard;
 import dwt.dwthelper.utils;
 
-import dwtx.jface.viewers.Viewer;
-import dwtx.jface.viewers.ListViewer;
-import dwtx.jface.viewers.LabelProvider;
-import dwtx.jface.viewers.IStructuredContentProvider;
-
 public:
 
 private P spnValue(string T, N, P)(N[] keys, P val) {
@@ -308,13 +303,11 @@ private:
 				foreach (i; _cs.keys.sort) {
 					appendCard(i, _cs[i], true, false);
 				}
-				_cardsV.refresh;
 			}
 			static if (UseBacks) {
 				foreach (i; _bs.keys.sort) {
 					appendBgImage(i, _bs[i], true, false);
 				}
-				_backsV.refresh;
 			}
 			refreshSelected;
 		}
@@ -484,7 +477,6 @@ private:
 		C[PileImage] _cardTbl;
 		int[C] _editC;
 		List _cards;
-		ListViewer _cardsV;
 		MenuItem _vcMenu;
 		ToolItem _vcTMenu;
 		MenuItem _autoMenu;
@@ -517,20 +509,6 @@ private:
 				assert(_editC.length == 1);
 				return __cancelSpn!(T, C)(_editC);
 			}
-		}
-		class CardsLabelProvider : LabelProvider {
-			public override string getText(Object element) {
-				assert(cast(C) element);
-				return cardName(cast(C) element);
-			}
-		}
-		class CardsContentProvider : IStructuredContentProvider {
-		public override:
-			Object[] getElements(Object inputElement) {
-				return (cast(A) inputElement).cards;
-			}
-			void dispose() {}
-			void inputChanged(Viewer viewer, Object oldInput, Object newInput) {}
 		}
 		class SCListener : SelectionAdapter {
 			public override void widgetSelected(SelectionEvent e) {
@@ -566,7 +544,6 @@ private:
 		BgImage[PileImage] _backTbl;
 		int[BgImage] _editB;
 		List _backs;
-		ListViewer _backsV;
 		MenuItem _vbMenu;
 		ToolItem _vbTMenu;
 		ToolItem _maskTMenu;
@@ -590,20 +567,6 @@ private:
 				assert(_editB.length == 1);
 				return __cancelSpn!(T, BgImage)(_editB);
 			}
-		}
-		class BacksLabelProvider : LabelProvider {
-			public override string getText(Object element) {
-				assert(cast(BgImage) element);
-				return getBaseName((cast(BgImage) element).path);
-			}
-		}
-		class BacksContentProvider : IStructuredContentProvider {
-		public override:
-			Object[] getElements(Object inputElement) {
-				return (cast(A) inputElement).backs;
-			}
-			void dispose() {}
-			void inputChanged(Viewer viewer, Object oldInput, Object newInput) {}
 		}
 		class SBListener : SelectionAdapter {
 			public override void widgetSelected(SelectionEvent e) {
@@ -748,39 +711,53 @@ private:
 		}
 		return sels;
 	}
-	int[] __up(T)(bool view, ListViewer listV, void delegate(int, int) swap,
-			int startIndex) {
-		auto list = listV.getList;
+	static if (UseCards) {
+		private void refreshCards() {
+			auto cs = _area.cards;
+			string[] itms;
+			itms.length = cs.length;
+			foreach (i, c; cs) itms[i] = cardName(c);
+			_cards.setItems(itms);
+		}
+	}
+	static if (UseBacks) {
+		private void refreshBacks() {
+			auto cs = _area.backs;
+			string[] itms;
+			itms.length = cs.length;
+			foreach (i, c; cs) itms[i] = getBaseName(c.path);
+			_backs.setItems(itms);
+		}
+	}
+	int[] __up(T)(bool view, List list, void delegate(int, int) swap, int startIndex) {
 		int[] indices;
 		if (view && list.getItemCount > 0 && !list.isSelected(0)) {
 			for (int i = 1; i < list.getItemCount; i++) {
 				if (list.isSelected(i)) {
 					_imgp.swap(i + startIndex - 1, i + startIndex);
 					swap(i - 1, i);
+					string temp = list.getItem(i - 1);
+					list.setItem(i - 1, list.getItem(i));
+					list.setItem(i, temp);
 					indices ~= i;
 				}
 			}
 		}
-		if (indices.length > 0) {
-			listV.refresh;
-		}
 		return indices;
 	}
-	int[] __down(T)(bool view, ListViewer listV, void delegate(int, int) swap,
-			int startIndex) {
-		auto list = listV.getList;
+	int[] __down(T)(bool view, List list, void delegate(int, int) swap, int startIndex) {
 		int[] indices;
 		if (view && list.getItemCount > 0 && !list.isSelected(list.getItemCount - 1)) {
 			for (int i = list.getItemCount - 2; i >= 0; i--) {
 				if (list.isSelected(i)) {
 					_imgp.swap(i + startIndex + 1, i + startIndex);
 					swap(i + 1, i);
+					string temp = list.getItem(i + 1);
+					list.setItem(i + 1, list.getItem(i));
+					list.setItem(i, temp);
 					indices ~= i;
 				}
 			}
-		}
-		if (indices.length > 0) {
-			listV.refresh;
 		}
 		return indices;
 	}
@@ -1182,8 +1159,8 @@ private:
 			if (e.character == DWT.CR) edit(e);
 		}
 	}
-	List createList(C)(Composite parent, string name, Image image,
-			out ListViewer v, TCPD tcpd, void delegate(C) edit, C[] delegate() items) {
+	List createList(C)(Composite parent, string name, Image image, TCPD tcpd,
+			void delegate(C) edit, C[] delegate() items) {
 		auto comp = new Composite(parent, DWT.NONE);
 		comp.setLayout = zeroGridLayout(1);
 		auto label = new CLabel(comp, DWT.NONE);
@@ -1198,7 +1175,6 @@ private:
 		gd.widthHint = 0;
 		gd.heightHint = 0;
 		list.setLayoutData = gd;
-		v = new ListViewer(list);
 		{
 			auto menu = new Menu(parent.getShell, DWT.POP_UP);
 			appendMenuTCPD(_prop, menu, tcpd, true, true, true, true);
@@ -1320,14 +1296,12 @@ public:
 			static if (UseCards) {
 				static if (is (C == MenuCard)) {
 					_cards = createList(listsP, prop.msgs.menuCards,
-						prop.images.cards, _cardsV, ctcpd, &editCard, &_area.cards);
+						prop.images.cards, ctcpd, &editCard, &_area.cards);
 				} else static if (is (C == EnemyCard)) {
 					_cards = createList(listsP, prop.msgs.enemyCards,
-						prop.images.cards, _cardsV, ctcpd, &editCard, &_area.cards);
+						prop.images.cards, ctcpd, &editCard, &_area.cards);
 				}
 				_cards.addSelectionListener(new SCListener);
-				_cardsV.setLabelProvider(new CardsLabelProvider);
-				_cardsV.setContentProvider(new CardsContentProvider);
 				static if (is (C == MenuCard)) {
 					auto target = new DropTarget(_cards, DND.DROP_DEFAULT | DND.DROP_COPY);
 					target.setTransfer([cast(Transfer) FileTransfer.getInstance, XMLBytesTransfer.getInstance]);
@@ -1336,10 +1310,8 @@ public:
 			}
 			static if (UseBacks) {
 				_backs = createList(listsP, prop.msgs.backs,
-					prop.images.backs, _backsV, btcpd, &editBack, &_area.backs);
+					prop.images.backs, btcpd, &editBack, &_area.backs);
 				_backs.addSelectionListener(new SBListener);
-				_backsV.setLabelProvider(new BacksLabelProvider);
-				_backsV.setContentProvider(new BacksContentProvider);
 				new BLDropTarget(_backs);
 			}
 			static if (UseCards && UseBacks) {
@@ -1398,8 +1370,8 @@ public:
 				_prop.var.etc.areaViewR = ws[1];
 			}
 		});
-		static if (UseCards) _cardsV.setInput(_area);
-		static if (UseBacks) _backsV.setInput(_area);
+		static if (UseCards) refreshCards;
+		static if (UseBacks) refreshBacks;
 	}
 
 	A area() {
@@ -1547,11 +1519,11 @@ public:
 		int[] refC;
 		int[] refB;
 		static if (UseCards) {
-			refC = __up!(C)(_viewCards, _cardsV, &_area.swapCards, cardsIndex);
+			refC = __up!(C)(_viewCards, _cards, &_area.swapCards, cardsIndex);
 			if (_upCard) _upCard(refC);
 		}
 		static if (UseBacks) {
-			refB = __up!(BgImage)(_viewBacks, _backsV, &_area.swapBacks, 0);
+			refB = __up!(BgImage)(_viewBacks, _backs, &_area.swapBacks, 0);
 		}
 		refreshSelected;
 		if (refC.length > 0 || refB.length > 0) _imgp.redraw;
@@ -1564,11 +1536,11 @@ public:
 		int[] refC;
 		int[] refB;
 		static if (UseCards) {
-			refC = __down!(C)(_viewCards, _cardsV, &_area.swapCards, cardsIndex);
+			refC = __down!(C)(_viewCards, _cards, &_area.swapCards, cardsIndex);
 			if (_downCard) _downCard(refC);
 		}
 		static if (UseBacks) {
-			refB = __down!(BgImage)(_viewBacks, _backsV, &_area.swapBacks, 0);
+			refB = __down!(BgImage)(_viewBacks, _backs, &_area.swapBacks, 0);
 		}
 		refreshSelected;
 		if (refC.length > 0 || refB.length > 0) _imgp.redraw;
@@ -1888,9 +1860,7 @@ public:
 			_imgp.deselectAll;
 			_imgp.insert(cardsIndex + index, img);
 			_area.insert(index, card);
-			if (refresh) {
-				_cardsV.refresh;
-			}
+			_cards.add(cardName(card), index);
 			if (select && _viewCards) {
 				_imgp.select(img);
 				if (refresh) {
@@ -1917,6 +1887,7 @@ public:
 				if (_appendCard) _appendCard(index + i, card);
 			}
 			_imgp.insert(cardsIndex + index, imgs);
+			foreach (i, c; cards) _cards.add(cardName(c), index + i);
 			if (select && _viewCards) _imgp.select(imgs);
 		}
 		static if (is (C == MenuCard)) {
@@ -2003,9 +1974,7 @@ public:
 			auto img = create(back);
 			_imgp.insert(index, img);
 			_area.insert(index, back);
-			if (refresh) {
-				_backsV.refresh;
-			}
+			_backs.add(getBaseName(back.path), index);
 			if (select && _viewBacks) {
 				_imgp.select(img);
 				if (refresh) {
@@ -2032,6 +2001,7 @@ public:
 				imgs ~= create(back);
 			}
 			_imgp.insert(index, imgs);
+			foreach (i, b; backs) _backs.add(getBaseName(b.path), index + i);
 			if (select && _viewBacks) _imgp.select(imgs);
 		}
 		private int backFromFile(string fname, int x, int y, int w, int h, bool fromImgPane) {
@@ -2273,7 +2243,6 @@ public:
 							_area.insert(index, b);
 						}
 						appendBgImages(iib, bs, true);
-						_backsV.refresh;
 						auto iic = insertIndex(_cards);
 						foreach (i, c; cs) {
 							int index = iic + i;
@@ -2281,7 +2250,6 @@ public:
 							_area.insert(index, c);
 						}
 						appendCards(iic, cs, true);
-						_cardsV.refresh;
 						if (_viewCards || _viewBacks) _imgp.redraw;
 						refreshSelected;
 						_comm.refUseCount.call;
@@ -2301,8 +2269,6 @@ public:
 					removeBack(i);
 					_backs.remove(i);
 				}
-				_cardsV.refresh;
-				_backsV.refresh;
 				_imgp.redraw;
 				refreshSelected;
 				_comm.refUseCount.call;
@@ -2349,7 +2315,6 @@ public:
 								_area.insert(index, c);
 							}
 							appendCards(insertIndex(_cards), cs, true);
-							_cardsV.refresh;
 							if (_viewCards) _imgp.redraw;
 							refreshSelected;
 							_comm.refUseCount.call;
@@ -2369,7 +2334,6 @@ public:
 					removeCard(i);
 					_cards.remove(i);
 				}
-				_cardsV.refresh;
 				_imgp.redraw;
 				refreshSelected;
 				_comm.refUseCount.call;
@@ -2415,7 +2379,6 @@ public:
 								_area.insert(index, b);
 							}
 							appendBgImages(insertIndex(_backs), bs, true);
-							_backsV.refresh;
 							if (_viewBacks) _imgp.redraw;
 							refreshSelected;
 							_comm.refUseCount.call;
@@ -2435,7 +2398,6 @@ public:
 					removeBack(i);
 					_backs.remove(i);
 				}
-				_backsV.refresh;
 				_imgp.redraw;
 				refreshSelected;
 				_comm.refUseCount.call;

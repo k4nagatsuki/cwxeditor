@@ -8,7 +8,23 @@ import cwx.editor.gui.dwt.utils;
 
 import std.compat;
 
-import dwt.all;
+import dwt.DWT;
+import dwt.widgets.Shell;
+import dwt.widgets.Composite;
+import dwt.widgets.Button;
+import dwt.widgets.Combo;
+import dwt.widgets.Text;
+import dwt.widgets.Label;
+import dwt.custom.CCombo;
+import dwt.layout.GridLayout;
+import dwt.layout.GridData;
+import dwt.graphics.Image;
+import dwt.events.SelectionAdapter;
+import dwt.events.SelectionEvent;
+import dwt.events.ShellAdapter;
+import dwt.events.ShellEvent;
+import dwt.events.ModifyListener;
+import dwt.events.ModifyEvent;
 
 interface DSize {
 	void width(int);

@@ -19,8 +19,6 @@ import dwt.widgets.Shell;
 import dwt.widgets.Control;
 import dwt.widgets.Composite;
 import dwt.widgets.List;
-import dwt.widgets.TabFolder;
-import dwt.widgets.TabItem;
 import dwt.widgets.Group;
 import dwt.widgets.Spinner;
 import dwt.widgets.Button;
@@ -29,6 +27,8 @@ import dwt.widgets.Label;
 import dwt.widgets.FileDialog;
 import dwt.widgets.DirectoryDialog;
 import dwt.widgets.MessageBox;
+import dwt.custom.CTabFolder;
+import dwt.custom.CTabItem;
 import dwt.events.SelectionAdapter;
 import dwt.events.SelectionEvent;
 import dwt.events.ModifyListener;
@@ -40,7 +40,7 @@ class SettingsDialog : AbsDialog {
 private:
 	Props _prop;
 
-	TabItem _tabB;
+	CTabItem _tabB;
 	Text _enginePath;
 	Text _tempDir;
 	Text _author;
@@ -50,7 +50,7 @@ private:
 	Button _contentsFloat;
 	Button _xmlCopy;
 
-	TabItem _tabS;
+	CTabItem _tabS;
 	List _bgStgsL;
 	BgImageSetting[] _bgStgs;
 	Text _bgImgName;
@@ -62,7 +62,7 @@ private:
 	Button _bgImgDel;
 	Text _keyCodes;
 
-	TabItem _tabT;
+	CTabItem _tabT;
 	List _toolsL;
 	OuterTool[] _tools;
 	Text _toolName;
@@ -227,10 +227,10 @@ private:
 			_toolWorkDir.setText = "";
 		}
 	}
-	void construct1(TabFolder tabf) {
+	void construct1(CTabFolder tabf) {
 		auto comp = new Composite(tabf, DWT.NONE);
 		comp.setLayout = new GridLayout(1, false);
-		_tabB = new TabItem(tabf, DWT.NONE);
+		_tabB = new CTabItem(tabf, DWT.NONE);
 		_tabB.setText = _prop.msgs.baseSettings;
 		_tabB.setControl = comp;
 		{
@@ -338,10 +338,10 @@ private:
 		});
 		return spn;
 	}
-	void construct2(TabFolder tabf) {
+	void construct2(CTabFolder tabf) {
 		auto comp = new Composite(tabf, DWT.NONE);
 		comp.setLayout = new GridLayout(2, false);
-		_tabS = new TabItem(tabf, DWT.NONE);
+		_tabS = new CTabItem(tabf, DWT.NONE);
 		_tabS.setText = _prop.msgs.bgImageAndKeyCode;
 		_tabS.setControl = comp;
 		{
@@ -460,10 +460,10 @@ private:
 			_keyCodes.setLayoutData = gd;
 		}
 	}
-	void construct3(TabFolder tabf) {
+	void construct3(CTabFolder tabf) {
 		auto comp = new Composite(tabf, DWT.NONE);
 		comp.setLayout = new GridLayout(1, false);
-		_tabT = new TabItem(tabf, DWT.NONE);
+		_tabT = new CTabItem(tabf, DWT.NONE);
 		_tabT.setText = _prop.msgs.outerTools;
 		_tabT.setControl = comp;
 		{
@@ -631,7 +631,7 @@ public:
 protected:
 	override void setup(Composite area) {
 		area.setLayout = new CenterLayout(DWT.VERTICAL | DWT.HORIZONTAL, 0);
-		auto tabf = new TabFolder(area, DWT.NONE);
+		auto tabf = new CTabFolder(area, DWT.BORDER);
 		construct1(tabf);
 		construct2(tabf);
 		construct3(tabf);
@@ -670,7 +670,7 @@ protected:
 
 	override bool close(bool ok, out bool cancel) {
 		if (ok) {
-			void err(TabItem tab, Text t, string msg) {
+			void err(CTabItem tab, Text t, string msg) {
 				auto dlg = new MessageBox(t.getShell, DWT.ICON_WARNING | DWT.OK);
 				scope (exit) dlg.dispose;
 				dlg.setText = _prop.msgs.dlgTitWarning;

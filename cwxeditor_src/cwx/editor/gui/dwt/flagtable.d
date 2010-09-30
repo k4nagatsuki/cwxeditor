@@ -64,19 +64,6 @@ import dwt.dnd.DropTargetAdapter;
 import dwt.dnd.DropTargetEvent;
 import dwt.dnd.DropTarget;
 
-import dwtx.jface.viewers.Viewer;
-import dwtx.jface.viewers.TableViewer;
-import dwtx.jface.viewers.TreeViewer;
-import dwtx.jface.viewers.ITreeContentProvider;
-import dwtx.jface.viewers.IStructuredContentProvider;
-import dwtx.jface.viewers.ITableLabelProvider;
-import dwtx.jface.viewers.LabelProvider;
-import dwtx.jface.viewers.ILabelProviderListener;
-import dwtx.jface.viewers.TreeSelection;
-import dwtx.jface.viewers.TreePath;
-import dwtx.jface.viewers.ICellModifier;
-import dwtx.jface.viewers.TextCellEditor;
-
 /// ステップ設定用のダイアログ。
 /// 値は強制的に10件になる。
 public class StepEditDialog : AbsDialog {
@@ -368,68 +355,46 @@ protected:
 
 public class FlagTable : TCPD {
 private:
-	class FlagTableContentProvider : IStructuredContentProvider {
-	public:
-		override Object[] getElements(Object inputElement) {
-			Object[] r;
-			if (_dir !is null && (cast(FlagDir) inputElement)) {
-				auto _dir = cast(FlagDir) inputElement;
-				r ~= _dir.steps;
-				r ~= _dir.flags;
-			}
-			return r;
-		}
-		override void inputChanged(Viewer viewer, Object oldInput, Object newInput) {}
-		override void dispose() {}
-	}
-
-	class FlagTableLabelProvider : ITableLabelProvider {
-		override string getColumnText(Object element, int columnIndex) {
-			if (cast(Flag) element) {
-				auto flag = cast(Flag) element;
-				switch (columnIndex) {
-				case 0:
-					return flag.name;
-				case 1:
-					return flag.onOff ? flag.on : flag.off;
-				case 2:
-					return to!(string)(uc.flag.get(toFlagId(flag.path)));
-				default:
-					assert (false);
-				}
-			} else {
-				assert (cast(Step) element);
-				auto step = cast(Step) element;
-				switch (columnIndex) {
-				case 0:
-					return step.name;
-				case 1:
-					return step.value;
-				case 2:
-					return to!(string)(uc.step.get(toStepId(step.path)));
-				default:
-					assert (false);
-				}
-			}
-			assert (false);
-		}
-		override Image getColumnImage(Object element, int columnIndex) {
-			if (columnIndex == 0) {
-				if (cast(Flag) element) {
-					return prop.images.flag;
+	static const NAME = 0;
+	static const VALUE = 1;
+	static const UC = 2;
+	void refreshFlags() {
+		if (_dir) {
+			int i = 0;
+			foreach (f; _dir.steps) {
+				TableItem itm;
+				if (i < flags.getItemCount) {
+					itm = flags.getItem(i);
 				} else {
-					assert (cast(Step) element);
-					return prop.images.step;
+					itm = new TableItem(flags, DWT.NONE);
 				}
+				itm.setImage(0, prop.images.step);
+				itm.setText(NAME, f.name);
+				itm.setText(VALUE, f.value);
+				itm.setText(UC, to!(string)(uc.get(toStepId(f.path))));
+				itm.setData = f;
+				i++;
 			}
-			return null;
+			foreach (f; _dir.flags) {
+				TableItem itm;
+				if (i < flags.getItemCount) {
+					itm = flags.getItem(i);
+				} else {
+					itm = new TableItem(flags, DWT.NONE);
+				}
+				itm.setImage(0, prop.images.flag);
+				itm.setText(NAME, f.name);
+				itm.setText(VALUE, f.onOff ? f.on : f.off);
+				itm.setText(UC, to!(string)(uc.get(toFlagId(f.path))));
+				itm.setData = f;
+				i++;
+			}
+			if (i < flags.getItemCount) {
+				flags.remove(i, flags.getItemCount - 1);
+			}
+		} else {
+			flags.removeAll;
 		}
-		override void addListener(ILabelProviderListener listener) {}
-		override void removeListener(ILabelProviderListener listener) {}
-		override bool isLabelProperty(Object element, string property) {
-			return false;
-		}
-		override void dispose() {}
 	}
 
 	Props prop;
@@ -437,7 +402,6 @@ private:
 	UseCounter uc;
 
 	Table flags;
-	TableViewer flagsV;
 
 	FlagDir _dir = null;
 
@@ -446,13 +410,7 @@ private:
 		auto dlg = new FlagEditDialog(prop, flags.getShell, parent, flag);
 		if (dlg.open) {
 			if (old && old != flag.path) uc.change(toFlagId(old), toFlagId(flag.path));
-			refresh;
-			for (int i = _dir.steps.length; i < flags.getItemCount; i++) {
-				if (flags.getItem(i).getText(0) == dlg.flag.name) {
-					flags.select = i;
-					break;
-				}
-			}
+			refresh(dlg.flag.name);
 			_comm.refFlagAndStep.call([dlg.flag], []);
 		}
 	}
@@ -461,13 +419,7 @@ private:
 		auto dlg = new StepEditDialog(prop, flags.getShell, parent, step);
 		if (dlg.open) {
 			if (old && old != step.path) uc.change(toStepId(old), toStepId(step.path));
-			refresh;
-			for (int i = 0; i < _dir.steps.length; i++) {
-				if (flags.getItem(i).getText(0) == dlg.step.name) {
-					flags.select = i;
-					break;
-				}
-			}
+			refresh(dlg.step.name);
 			_comm.refFlagAndStep.call([], [dlg.step]);
 		}
 	}
@@ -569,7 +521,6 @@ public:
 		_comp = new Composite(parent, DWT.NONE);
 		_comp.setLayout = new FillLayout;
 		flags = new Table(_comp, DWT.MULTI | DWT.BORDER | DWT.FULL_SELECTION);
-		flagsV = new TableViewer(flags);
 		flags.setHeaderVisible = true;
 		auto nameCol = new TableColumn(flags, DWT.NULL);
 		nameCol.setText = prop.msgs.flagName;
@@ -580,10 +531,6 @@ public:
 		auto countCol = new TableColumn(flags, DWT.NULL);
 		countCol.setText = prop.msgs.flagCount;
 		saveColumnWidth!("prop.var.etc.flagCountColumn")(prop, countCol);
-
-		flagsV.setColumnProperties(["", "", ""]);
-		flagsV.setContentProvider(new FlagTableContentProvider);
-		flagsV.setLabelProvider(new FlagTableLabelProvider);
 
 		flags.addKeyListener(new KListener);
 		flags.addMouseListener(new MListener);
@@ -623,18 +570,26 @@ public:
 		refresh(null);
 	}
 	void refresh(string selName) {
-		if (_dir !is null && flagsV !is null) {
+		if (_dir) {
+			string[] sels;
+			if (selName) {
+				sels ~= selName;
+			} else {
+				foreach (itm; flags.getSelection) {
+					sels ~= itm.getText(NAME);
+				}
+			}
 			flags.deselectAll;
 			_dir.sortSteps;
 			_dir.sortFlags;
-			flagsV.setInput(_dir);
-			if (selName !is null) {
-				for (int i = 0; i < flags.getItemCount; i++) {
-					if (flags.getItem(i).getText(0) == selName) {
-						flags.select(i);
-						break;
-					}
+			refreshFlags;
+			foreach (i, itm; flags.getItems) {
+				if (contains(sels, itm.getText(NAME))) {
+					flags.select(i);
 				}
+			}
+			if (selName) {
+				flags.showSelection;
 			}
 		}
 	}

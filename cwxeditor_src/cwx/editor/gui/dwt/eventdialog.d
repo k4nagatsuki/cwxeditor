@@ -42,8 +42,6 @@ import dwt.widgets.List;
 import dwt.widgets.Text;
 import dwt.widgets.Spinner;
 import dwt.widgets.Label;
-import dwt.widgets.TabFolder;
-import dwt.widgets.TabItem;
 import dwt.widgets.Table;
 import dwt.widgets.TableColumn;
 import dwt.widgets.TableItem;
@@ -51,6 +49,8 @@ import dwt.widgets.ToolBar;
 import dwt.widgets.Scale;
 import dwt.widgets.Menu;
 import dwt.widgets.MenuItem;
+import dwt.custom.CTabFolder;
+import dwt.custom.CTabItem;
 import dwt.custom.CLabel;
 import dwt.events.DisposeListener;
 import dwt.events.DisposeEvent;
@@ -959,14 +959,14 @@ protected:
 		cl.fillHorizontal = true;
 		cl.fillVertical = true;
 		area.setLayout = cl;
-		auto tabf = new TabFolder(area, DWT.NONE);
-		auto tabM = new TabItem(tabf, DWT.NONE);
+		auto tabf = new CTabFolder(area, DWT.BORDER);
+		auto tabM = new CTabItem(tabf, DWT.NONE);
 		tabM.setText = _prop.msgs.motion;
 		{
 			_mview = new MotionView(_comm, _prop, _summ, tabf);
 			tabM.setControl = _mview;
 		}
-		auto tabS = new TabItem(tabf, DWT.NONE);
+		auto tabS = new CTabItem(tabf, DWT.NONE);
 		tabS.setText = _prop.msgs.settings;
 		{
 			auto comp = new Composite(tabf, DWT.NONE);

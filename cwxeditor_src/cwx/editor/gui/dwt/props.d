@@ -23,31 +23,36 @@ import cwx.editor.gui.dwt.properties;
 
 import dwt.widgets.Display;
 import dwt.graphics.Image;
+import dwt.graphics.ImageData;
 import dwt.dwthelper.utils;
-import dwtx.jface.resource.ImageRegistry;
-import dwtx.jface.resource.ImageDescriptor;
+import dwt.dwthelper.ByteArrayInputStream;
 
 public class Images {
 private:
-	ImageRegistry _imgReg;
+	Image[string] _imgReg;
 	Image imgd(string Path)() {
-		Image img;
-		if (_imgReg) {
-			img = _imgReg.get(Path);
+		auto p = Path in _imgReg;
+		if (p) {
+			return *p;
 		} else {
-			_imgReg = new ImageRegistry;
-			img = null;
-		}
-		if (!img) {
-			auto imgData = ImageDescriptor.createFromFile(getImportData!(Path)).getImageData;
+			auto s = new ByteArrayInputStream(cast(byte[]) getImportData!(Path).data);
+			scope (exit) s.close;
+			auto imgData = new ImageData(s);
 			imgData.transparentPixel = imgData.getPixel(0, 0);
-			img = new Image(Display.getCurrent, imgData);
-			_imgReg.put(Path, img);
+			auto img = new Image(Display.getCurrent, imgData);
+			_imgReg[Path] = img;
+			return img;
 		}
-		return img;
 	}
 	static string resourceDir() {return "";}
 public:
+	void disposeImages() {
+		foreach (p, img; _imgReg) {
+			img.dispose;
+		}
+		typeof(_imgReg) imgReg;
+		_imgReg = imgReg;
+	}
 
 	Image app() {return imgd!(resourceDir ~ "new.png");}
 

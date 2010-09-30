@@ -38,8 +38,6 @@ import dwt.widgets.Label;
 import dwt.widgets.Listener;
 import dwt.widgets.Group;
 import dwt.widgets.Button;
-import dwt.widgets.TabFolder;
-import dwt.widgets.TabItem;
 import dwt.widgets.Spinner;
 import dwt.widgets.Scale;
 import dwt.widgets.Table;
@@ -50,6 +48,8 @@ import dwt.widgets.ToolBar;
 import dwt.widgets.ToolItem;
 import dwt.widgets.Menu;
 import dwt.widgets.MenuItem;
+import dwt.custom.CTabFolder;
+import dwt.custom.CTabItem;
 import dwt.layout.GridLayout;
 import dwt.layout.GridData;
 import dwt.layout.RowLayout;
@@ -358,7 +358,7 @@ private:
 		}
 	}
 
-	void constructBase(TabFolder tabf) {
+	void constructBase(CTabFolder tabf) {
 		auto comp = new Composite(tabf, DWT.NONE);
 		comp.setLayout = new GridLayout(2, false);
 		auto skin = findSkin(_prop, _summ);
@@ -460,7 +460,7 @@ private:
 				_race.addSelectionListener(new SelectRace);
 			}
 		}
-		auto tab = new TabItem(tabf, DWT.NONE);
+		auto tab = new CTabItem(tabf, DWT.NONE);
 		tab.setText = _prop.msgs.card;
 		tab.setControl = comp;
 	}
@@ -475,7 +475,7 @@ private:
 			setMaxLife;
 		}
 	}
-	void constructDesc(TabFolder tabf) {
+	void constructDesc(CTabFolder tabf) {
 		auto comp = new Composite(tabf, DWT.NONE);
 		comp.setLayout = new GridLayout(2, false);
 		{
@@ -492,11 +492,11 @@ private:
 			p.y = DWT.DEFAULT;
 			_desc.widget.setLayoutData = p;
 		}
-		auto tab = new TabItem(tabf, DWT.NONE);
+		auto tab = new CTabItem(tabf, DWT.NONE);
 		tab.setText = _prop.msgs.desc;
 		tab.setControl = comp;
 	}
-	void constructHistory(TabFolder tabf) {
+	void constructHistory(CTabFolder tabf) {
 		auto comp = new Composite(tabf, DWT.NONE);
 		comp.setLayout = new GridLayout(2, false);
 		{
@@ -599,7 +599,7 @@ private:
 				_natureU = createR(comp3, _prop.msgs.natureUnknown);
 			}
 		}
-		auto tab = new TabItem(tabf, DWT.NONE);
+		auto tab = new CTabItem(tabf, DWT.NONE);
 		tab.setText = _prop.msgs.history;
 		tab.setControl = comp;
 	}
@@ -613,7 +613,7 @@ private:
 			}
 		}
 	};
-	void constructMakings(TabFolder tabf) {
+	void constructMakings(CTabFolder tabf) {
 		auto comp = new Composite(tabf, DWT.NONE);
 		comp.setLayout = new GridLayout(1, false);
 		{
@@ -632,7 +632,7 @@ private:
 				createR(reverseMakings(m));
 			}
 		}
-		auto tab = new TabItem(tabf, DWT.NONE);
+		auto tab = new CTabItem(tabf, DWT.NONE);
 		tab.setText = _prop.msgs.makings;
 		tab.setControl = comp;
 	}
@@ -664,7 +664,7 @@ private:
 			}
 		}
 	};
-	void constructResist(TabFolder tabf) {
+	void constructResist(CTabFolder tabf) {
 		auto comp = new Composite(tabf, DWT.NONE);
 		comp.setLayout = new GridLayout(1, false);
 		Button createC(Composite parent, string name, string desc) {
@@ -726,11 +726,11 @@ private:
 			basic.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
 			basic.addSelectionListener(new BasicResist);
 		}
-		auto tab = new TabItem(tabf, DWT.NONE);
+		auto tab = new CTabItem(tabf, DWT.NONE);
 		tab.setText = _prop.msgs.tolerant;
 		tab.setControl = comp;
 	}
-	void constructPhysical(TabFolder tabf) {
+	void constructPhysical(CTabFolder tabf) {
 		auto comp = new Composite(tabf, DWT.NONE);
 		comp.setLayout = new GridLayout(1, false);
 		{
@@ -760,7 +760,7 @@ private:
 			basic.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
 			basic.addSelectionListener(new CalcPhysical);
 		}
-		auto tab = new TabItem(tabf, DWT.NONE);
+		auto tab = new CTabItem(tabf, DWT.NONE);
 		tab.setText = _prop.msgs.physicalParams;
 		tab.setControl = comp;
 	}
@@ -814,7 +814,7 @@ private:
 			_phy.setValues(vals);
 		}
 	}
-	void constructMental(TabFolder tabf) {
+	void constructMental(CTabFolder tabf) {
 		auto comp = new Composite(tabf, DWT.NONE);
 		comp.setLayout = new GridLayout(1, false);
 		{
@@ -846,7 +846,7 @@ private:
 			basic.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
 			basic.addSelectionListener(new CalcMental);
 		}
-		auto tab = new TabItem(tabf, DWT.NONE);
+		auto tab = new CTabItem(tabf, DWT.NONE);
 		tab.setText = _prop.msgs.mentalParams;
 		tab.setControl = comp;
 	}
@@ -886,7 +886,7 @@ private:
 			}
 		}
 	}
-	void constructEnhance(TabFolder tabf) {
+	void constructEnhance(CTabFolder tabf) {
 		auto comp = new Composite(tabf, DWT.NONE);
 		comp.setLayout = new GridLayout(1, false);
 		{
@@ -915,11 +915,11 @@ private:
 			basic.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
 			basic.addSelectionListener(new BasicEnhance);
 		}
-		auto tab = new TabItem(tabf, DWT.NONE);
+		auto tab = new CTabItem(tabf, DWT.NONE);
 		tab.setText = _prop.msgs.castEnhance;
 		tab.setControl = comp;
 	}
-	void constructStatus(TabFolder tabf) {
+	void constructStatus(CTabFolder tabf) {
 		auto comp = new Composite(tabf, DWT.NONE);
 		comp.setLayout = new GridLayout(1, false);
 		Label[] lbls1, lbls2;
@@ -1055,7 +1055,7 @@ private:
 			reset.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
 			reset.addSelectionListener(new ResetLiveStatus);
 		}
-		auto tab = new TabItem(tabf, DWT.NONE);
+		auto tab = new CTabItem(tabf, DWT.NONE);
 		tab.setText = _prop.msgs.liveStatus;
 		tab.setControl = comp;
 	}
@@ -1132,7 +1132,7 @@ protected:
 		cl.fillHorizontal = true;
 		cl.fillVertical = true;
 		area.setLayout = cl;
-		auto tabf = new TabFolder(area, DWT.NONE);
+		auto tabf = new CTabFolder(area, DWT.BORDER);
 		constructBase(tabf);
 		constructDesc(tabf);
 		constructHistory(tabf);

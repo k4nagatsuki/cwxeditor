@@ -26,11 +26,11 @@ import dwt.widgets.CoolBar;
 import dwt.widgets.CoolItem;
 import dwt.widgets.ToolBar;
 import dwt.widgets.ToolItem;
-import dwt.widgets.TabFolder;
-import dwt.widgets.TabItem;
 import dwt.widgets.Shell;
 import dwt.widgets.Menu;
 import dwt.widgets.MenuItem;
+import dwt.custom.CTabFolder;
+import dwt.custom.CTabItem;
 import dwt.graphics.Image;
 import dwt.layout.FillLayout;
 import dwt.layout.GridLayout;
@@ -55,9 +55,9 @@ private:
 	}
 	Props _prop;
 	static if (UseArea && UseFlag) {
-		TabFolder tabf;
-		TabItem tabA;
-		TabItem tabF;
+		CTabFolder tabf;
+		CTabItem tabA;
+		CTabItem tabF;
 	}
 
 	Summary _summ = null;
@@ -186,17 +186,17 @@ public:
 		}
 		{
 			static if (UseArea && UseFlag) {
-				tabf = new TabFolder(_win, DWT.NONE);
+				tabf = new CTabFolder(_win, DWT.BORDER);
 				tabf.setLayoutData = new GridData(GridData.FILL_BOTH);
 
 				_flags = new FlagsPane(_comm, _prop, tabf);
 				_flags.setupTLP(this);
 				_areas = new AreaTable(_comm, _prop, tabf, _flags.flags);
 
-				tabA = new TabItem(tabf, DWT.NONE);
+				tabA = new CTabItem(tabf, DWT.NONE);
 				tabA.setText = _prop.msgs.scenarioView;
 				tabA.setControl(_areas.table);
-				tabF = new TabItem(tabf, DWT.NONE);
+				tabF = new CTabItem(tabf, DWT.NONE);
 				tabF.setText = _prop.msgs.variableView;
 				tabF.setControl(_flags.widget);
 

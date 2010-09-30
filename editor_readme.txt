@@ -161,7 +161,7 @@ Win98系列は試してないけどどう考えても無理だと思った。
 ライブラリ:
 	・Tango 0.99.9
 	・tangobos (based on Phobos 1.024)
-	・Windows DWT 3.4 1 と DWT Addons Package
+	・Windows DWT 3.4 1
 
 　後はSubversionとMercurialのクライアントがあると楽です。
 
@@ -180,28 +180,25 @@ svn co http://svn.dsource.org/projects/tangobos/trunk@63
 微妙に変えただけですがこれで問題は起きなくなるはず。TortoiseSVNを使うと
 簡単にパッチ当てができるみたいです。
 
-　次にdwt-winとdwt-addoonsをMercurialのリポジトリから取ってきます。
+　次にdwt-winをMercurialのリポジトリから取ってきます。
 ---
 hg clone -r 341 http://hg.dsource.org/projects/dwt-win
-hg clone -r 200 http://hg.dsource.org/projects/dwt-addons
 ---
 　例によってバグがあるのでパッチを当てます。svnと違ってhgには自力でパッチを
 当てる機能がついてるみたいです。ナイスだね。
 ---
 cd dwt-win
 hg patch dwt-win-rev.341_cwx.patch
-cd ../dwt-addons
-hg patch dwt-addons-rev.200_cwx.patch
 ---
 　こんな感じで。
-　後、WindowsでおｎDWTのビルドにはimport-libsが必要なので忘れずに取得して
+　後、WindowsでのDWTのビルドにはimport-libsが必要なので忘れずに取得して
 Tangoのlibフォルダに入れるなりしておきます。
 　http://downloads.dsource.org/projects/dwt/dwt-win-importlibs.zip
 
 　後はTangoの"bin/sc.ini"を弄くってtangobosやDWTのインポートフォルダやら
 リソースフォルダやらを探しに行くようにしておきましょう。
 ---
-DFLAGS="-I%@P%\..\tangobos" "-I%@P%\..\import" "-I%@P%\..\import\tango\core\vendor" -version=Tango -defaultlib=tango.lib -debuglib=tango.lib -L+tango.lib "-I%@P%\..\dwt-win" "-I%@P%\..\dwt-addons" "-J%@P%\..\dwt-win\res" "-J%@P%\..\dwt-addons\res"
+DFLAGS="-I%@P%\..\tangobos" "-I%@P%\..\import" "-I%@P%\..\import\tango\core\vendor" -version=Tango -defaultlib=tango.lib -debuglib=tango.lib -L+tango.lib "-I%@P%\..\dwt-win" "-J%@P%\..\dwt-win\res"
 ---
 　長ッ！
 

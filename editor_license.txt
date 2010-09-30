@@ -52,8 +52,7 @@
 ・DWT(http://www.dsource.org/projects/dwt/)はEclipse Public Licenseの下に
 　頒布されています。
 　http://www.eclipse.org/legal/epl-v10.html
-・dwt-win-rev.*_cwx.patch及びdwt-addons-rev.*_cwx.patchも同ライセンスの下に
-　頒布されるものとします。
+・dwt-win-rev.*_cwx.patchも同ライセンスの下に頒布されるものとします。
 ・Tango(http://www.dsource.org/projects/tango/)は修正BSDライセンスの下に
 　頒布されています:
   Copyright (c) 2004-2008, Tango contributors All rights reserved.

@@ -27,8 +27,6 @@ import dwt.widgets.Shell;
 import dwt.widgets.Control;
 import dwt.widgets.Composite;
 import dwt.widgets.Combo;
-import dwt.widgets.TabFolder;
-import dwt.widgets.TabItem;
 import dwt.widgets.Canvas;
 import dwt.widgets.Group;
 import dwt.widgets.Text;
@@ -37,6 +35,8 @@ import dwt.widgets.Label;
 import dwt.widgets.Table;
 import dwt.widgets.TableColumn;
 import dwt.widgets.TableItem;
+import dwt.custom.CTabFolder;
+import dwt.custom.CTabItem;
 import dwt.graphics.Image;
 import dwt.graphics.GC;
 import dwt.graphics.Font;
@@ -144,7 +144,7 @@ private:
 			e.gc.drawImage(buf, bx, by);
 		}
 	}
-	void constructTab1(TabFolder tabf) {
+	void constructTab1(CTabFolder tabf) {
 		auto comp = new Composite(tabf, DWT.BORDER);
 		comp.setLayout = zeroGridLayout(1);
 		_summImage = new Canvas(comp, DWT.DOUBLE_BUFFERED);
@@ -153,7 +153,7 @@ private:
 		gd.heightHint = _prop.looks.summarySize.height;
 		_summImage.setLayoutData = gd;
 		_summImage.addPaintListener(new PListener);
-		auto tab = new TabItem(tabf, DWT.NONE);
+		auto tab = new CTabItem(tabf, DWT.NONE);
 		tab.setText = _prop.msgs.summaryImage;
 		tab.setControl = comp;
 	}
@@ -168,7 +168,7 @@ private:
 		data.heightHint = p.y;
 		c.setLayoutData = data;
 	}
-	void constructTab2(TabFolder tabf) {
+	void constructTab2(CTabFolder tabf) {
 		auto comp = new Composite(tabf, DWT.NONE);
 		comp.setLayout = new GridLayout(2, false);
 		auto skin = findSkin(_prop, _summ);
@@ -231,11 +231,11 @@ private:
 			_desc.widget.setLayoutData = _desc.computeTextBaseSize(_prop.looks.summaryDescLine);
 			_desc.setText = _summ.desc;
 		}
-		auto tab = new TabItem(tabf, DWT.NONE);
+		auto tab = new CTabItem(tabf, DWT.NONE);
 		tab.setText = _prop.msgs.baseData;
 		tab.setControl = comp;
 	}
-	void constructTab3(TabFolder tabf) {
+	void constructTab3(CTabFolder tabf) {
 		auto comp = new Composite(tabf, DWT.NONE);
 		comp.setLayout = new GridLayout(2, false);
 		{
@@ -312,7 +312,7 @@ private:
 			}
 			_startArea.showSelection;
 		}
-		auto tab = new TabItem(tabf, DWT.NONE);
+		auto tab = new CTabItem(tabf, DWT.NONE);
 		tab.setText = _prop.msgs.etcData;
 		tab.setControl = comp;
 	}
@@ -329,7 +329,7 @@ public:
 protected:
 	override void setup(Composite area) {
 		area.setLayout = new FillLayout;
-		auto tabf = new TabFolder(area, DWT.NONE);
+		auto tabf = new CTabFolder(area, DWT.BORDER);
 		constructTab1(tabf);
 		constructTab2(tabf);
 		constructTab3(tabf);

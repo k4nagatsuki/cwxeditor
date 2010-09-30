@@ -60,8 +60,6 @@ import dwt.widgets.CoolItem;
 import dwt.widgets.Display;
 import dwt.widgets.ToolBar;
 import dwt.widgets.ToolItem;
-import dwt.widgets.TabFolder;
-import dwt.widgets.TabItem;
 import dwt.widgets.Shell;
 import dwt.widgets.Menu;
 import dwt.widgets.MenuItem;
@@ -1230,6 +1228,7 @@ public:
 				}
 			}
 		}
+		_prop.images.disposeImages;
 		d.dispose;
 		_prop.var.save(dock);
 	}

@@ -33,9 +33,70 @@ import std.path;
 import std.thread;
 import std.process;
 
-import dwt.all;
-
-import dwtx.jface.action.Action;
+import dwt.DWTException;
+import dwt.widgets.Widget;
+import dwt.widgets.Display;
+import dwt.widgets.Listener;
+import dwt.widgets.Event;
+import dwt.widgets.Control;
+import dwt.widgets.Composite;
+import dwt.widgets.Spinner;
+import dwt.widgets.Item;
+import dwt.widgets.Tree;
+import dwt.widgets.TreeItem;
+import dwt.widgets.Table;
+import dwt.widgets.TableColumn;
+import dwt.widgets.TableItem;
+import dwt.widgets.ToolBar;
+import dwt.widgets.ToolItem;
+import dwt.widgets.CoolBar;
+import dwt.widgets.CoolItem;
+import dwt.widgets.Menu;
+import dwt.widgets.MenuItem;
+import dwt.widgets.Combo;
+import dwt.widgets.Text;
+import dwt.widgets.Scale;
+import dwt.widgets.Shell;
+import dwt.widgets.MessageBox;
+import dwt.widgets.Button;
+import dwt.widgets.Group;
+import dwt.widgets.Label;
+import dwt.widgets.TabFolder;
+import dwt.widgets.Sash;
+import dwt.widgets.FileDialog;
+import dwt.custom.CLabel;
+import dwt.custom.CCombo;
+import dwt.custom.CTabFolder;
+import dwt.custom.TreeEditor;
+import dwt.custom.TableEditor;
+import dwt.events.KeyAdapter;
+import dwt.events.KeyEvent;
+import dwt.events.MouseAdapter;
+import dwt.events.MouseEvent;
+import dwt.events.SelectionListener;
+import dwt.events.SelectionAdapter;
+import dwt.events.SelectionEvent;
+import dwt.events.FocusListener;
+import dwt.events.FocusEvent;
+import dwt.events.ModifyListener;
+import dwt.events.ModifyEvent;
+import dwt.events.DisposeListener;
+import dwt.events.DisposeEvent;
+import dwt.graphics.ImageData;
+import dwt.graphics.PaletteData;
+import dwt.graphics.Image;
+import dwt.graphics.GC;
+import dwt.graphics.Color;
+import dwt.graphics.Font;
+import dwt.layout.GridLayout;
+import dwt.layout.GridData;
+import dwt.dnd.DND;
+import dwt.dnd.DropTargetAdapter;
+import dwt.dnd.DropTargetEvent;
+import dwt.dnd.DropTarget;
+import dwt.dnd.FileTransfer;
+import dwt.dwthelper.utils;
+import dwt.dwthelper.ByteArrayInputStream;
 
 public:
 
@@ -588,21 +649,66 @@ int convertAccelerator(string text) {
 		string acc_text = text[t_index + 1 .. $];
 		int acc = 0;
 		string kc;
+		int mod(string s) {
+			switch (toLower(s)) {
+			case "control", "ctrl": return DWT.CONTROL;
+			case "shift": return DWT.SHIFT;
+			case "alt": return DWT.ALT;
+			case "command": return DWT.COMMAND;
+			default: return 0;
+			}
+		}
 		while (true) {
 			int p_index = dwt.dwthelper.utils.indexOf(acc_text, '+');
 			if (p_index >= 0 && p_index < acc_text.length - 1) {
-				acc |= Action.findModifier(acc_text[0 .. p_index]);
+				acc |= mod(acc_text[0 .. p_index]);
 				acc_text = acc_text[p_index + 1 .. $];
 			} else {
 				kc = acc_text;
 				break;
 			}
 		}
+		int ek(string s) {
+			switch (toLower(s)) {
+			case "backspace": return DWT.BS;
+			case "enter", "return": return DWT.CR;
+			case "delete": return DWT.DEL;
+			case "escape", "esc": return DWT.ESC;
+			case "tab": return DWT.TAB;
+			case "space": return ' ';
+			case "arrow_up": return DWT.ARROW_UP;
+			case "arrow_down": return DWT.ARROW_DOWN;
+			case "arrow_left": return DWT.ARROW_LEFT;
+			case "arrow_right": return DWT.ARROW_RIGHT;
+			case "page_up": return DWT.PAGE_UP;
+			case "page_down": return DWT.PAGE_DOWN;
+			case "home": return DWT.HOME;
+			case "end": return DWT.END;
+			case "insert": return DWT.INSERT;
+			case "f1": return DWT.F1;
+			case "f2": return DWT.F2;
+			case "f3": return DWT.F3;
+			case "f4": return DWT.F4;
+			case "f5": return DWT.F5;
+			case "f6": return DWT.F6;
+			case "f7": return DWT.F7;
+			case "f8": return DWT.F8;
+			case "f9": return DWT.F9;
+			case "f10": return DWT.F10;
+			case "f11": return DWT.F11;
+			case "f12": return DWT.F12;
+			case "f13": return DWT.F13;
+			case "f14": return DWT.F14;
+			case "f15": return DWT.F15;
+			default: return 0;
+			}
+		}
 		if (kc.length > 1) {
-			try {
-				acc |= Action.findKeyCode(kc);
-			} catch {
-				acc |= Action.findModifier(kc);
+			auto k = ek(kc);
+			if (k != 0) {
+				acc |= k;
+			} else {
+				acc |= mod(kc);
 			}
 		} else {
 			acc |= kc[0];
@@ -610,6 +716,9 @@ int convertAccelerator(string text) {
 		return acc;
 	}
 	return 0;
+} unittest {
+	assert (convertAccelerator("test\tCTRL+ARROW_UP") == (DWT.ARROW_UP | DWT.CTRL));
+	assert (convertAccelerator("test\tShift+A") == (DWT.SHIFT | 'A'));
 }
 
 MenuItem createMenuItem(Menu sub, string text, Image img,

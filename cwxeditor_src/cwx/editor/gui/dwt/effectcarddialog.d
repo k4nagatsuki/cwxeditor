@@ -36,13 +36,13 @@ import dwt.widgets.Label;
 import dwt.widgets.Group;
 import dwt.widgets.Button;
 import dwt.widgets.MessageBox;
-import dwt.widgets.TabFolder;
-import dwt.widgets.TabItem;
 import dwt.widgets.Spinner;
 import dwt.widgets.Scale;
 import dwt.widgets.Table;
 import dwt.widgets.TableColumn;
 import dwt.widgets.TableItem;
+import dwt.custom.CTabFolder;
+import dwt.custom.CTabItem;
 import dwt.custom.CLabel;
 import dwt.custom.CTabFolder;
 import dwt.custom.CTabItem;
@@ -126,7 +126,7 @@ private:
 		}
 	}
 
-	TabItem constructMain(TabFolder tabf) {
+	CTabItem constructMain(CTabFolder tabf) {
 		auto comp = new Composite(tabf, DWT.NONE);
 		comp.setLayout = new GridLayout(2, false);
 		{
@@ -182,11 +182,12 @@ private:
 						EffectType.NONE]) {
 					auto radio = new Button(grp, DWT.RADIO);
 					if (2 <= i) {
-						auto gd = new GridData;
+						auto gd = new GridData(GridData.FILL_BOTH);
 						gd.horizontalSpan = 2;
 						radio.setLayoutData = gd;
+					} else {
+						radio.setLayoutData = new GridData(GridData.FILL_BOTH);
 					}
-					radio.setLayoutData = new GridData(GridData.FILL_BOTH);
 					radio.setText = _prop.msgs.effectType(eff);
 					_effTyp[eff] = radio;
 				}
@@ -204,12 +205,12 @@ private:
 				}
 			}
 		}
-		auto tab = new TabItem(tabf, DWT.NONE);
+		auto tab = new CTabItem(tabf, DWT.NONE);
 		tab.setText = _prop.msgs.card;
 		tab.setControl = comp;
 		return tab;
 	}
-	TabItem constructDesc(TabFolder tabf) {
+	CTabItem constructDesc(CTabFolder tabf) {
 		auto comp = new Composite(tabf, DWT.NONE);
 		comp.setLayout = new GridLayout(2, false);
 		static if (is (C == SkillCard)) {
@@ -282,7 +283,7 @@ private:
 			_desc = new FixedWidthText(dwtData(_prop.looks.cardDescFont), _prop.looks.cardDescLen, grp, DWT.BORDER);
 			_desc.widget.setLayoutData = _desc.computeTextBaseSize(_prop.looks.cardDescLine);
 		}
-		auto tab = new TabItem(tabf, DWT.NONE);
+		auto tab = new CTabItem(tabf, DWT.NONE);
 		static if (is (C == SkillCard)) {
 			tab.setText = _prop.msgs.levelAndDesc;
 		} else static if (is (C == ItemCard) || is (C == BeastCard)) {
@@ -291,7 +292,7 @@ private:
 		tab.setControl = comp;
 		return tab;
 	}
-	TabItem constructApt(TabFolder tabf) {
+	CTabItem constructApt(CTabFolder tabf) {
 		auto comp = new Composite(tabf, DWT.NONE);
 		comp.setLayout = new GridLayout(2, false);
 		{
@@ -333,7 +334,7 @@ private:
 				_mtl[m] = radio;
 			}
 		}
-		auto tab = new TabItem(tabf, DWT.NONE);
+		auto tab = new CTabItem(tabf, DWT.NONE);
 		tab.setText = _prop.msgs.apt;
 		tab.setControl = comp;
 		return tab;
@@ -359,43 +360,43 @@ private:
 		useMod.lineStep = _prop.looks.enhanceMax / 2;
 		return useMod;
 	}
-	TabItem constructUseModify(TabFolder tabf) {
+	CTabItem constructUseModify(CTabFolder tabf) {
 		auto comp = new Composite(tabf, DWT.NONE);
 		comp.setLayout = new GridLayout(2, false);
 		{
 			_useMod = createMod(comp, _prop.msgs.useModify, _useModTbl);
 		}
-		auto tab = new TabItem(tabf, DWT.NONE);
+		auto tab = new CTabItem(tabf, DWT.NONE);
 		tab.setText = _prop.msgs.useBonus;
 		tab.setControl = comp;
 		return tab;
 	}
 	static if (is (C == ItemCard)) {
-		TabItem constructHaveModify(TabFolder tabf) {
+		CTabItem constructHaveModify(CTabFolder tabf) {
 			auto comp = new Composite(tabf, DWT.NONE);
 			comp.setLayout = new GridLayout(2, false);
 			{
 				_hasMod = createMod(comp, _prop.msgs.haveModify, _hasModTbl);
 			}
-			auto tab = new TabItem(tabf, DWT.NONE);
+			auto tab = new CTabItem(tabf, DWT.NONE);
 			tab.setText = _prop.msgs.haveBonus;
 			tab.setControl = comp;
 			return tab;
 		}
 	}
-	TabItem constructMotion(TabFolder tabf) {
+	CTabItem constructMotion(CTabFolder tabf) {
 		auto comp = new Composite(tabf, DWT.NONE);
 		comp.setLayout = new GridLayout(1, false);
 		{
 			_motions = new MotionView(_comm, _prop, _summ, comp);
 			_motions.setLayoutData = new GridData(GridData.FILL_BOTH);
 		}
-		auto tab = new TabItem(tabf, DWT.NONE);
+		auto tab = new CTabItem(tabf, DWT.NONE);
 		tab.setControl = comp;
 		tab.setText = _prop.msgs.motion;
 		return tab;
 	}
-	TabItem constructProps(TabFolder tabf) {
+	CTabItem constructProps(CTabFolder tabf) {
 		auto comp = new Composite(tabf, DWT.NONE);
 		comp.setLayout = new GridLayout(1, false);
 		{
@@ -482,12 +483,12 @@ private:
 			createSuccessRateScale(_prop, comp, _sucRate)
 				.setLayoutData = new GridData(GridData.FILL_BOTH);
 		}
-		auto tab = new TabItem(tabf, DWT.NONE);
+		auto tab = new CTabItem(tabf, DWT.NONE);
 		tab.setText = _prop.msgs.cardProps;
 		tab.setControl = comp;
 		return tab;
 	}
-	TabItem constructKeyCode(TabFolder tabf) {
+	CTabItem constructKeyCode(CTabFolder tabf) {
 		auto comp = new Composite(tabf, DWT.NONE);
 		comp.setLayout = new GridLayout(2, false);
 		auto skin = findSkin(_prop, _summ);
@@ -518,7 +519,7 @@ private:
 				_keyCodes[i].setItems(_prop.var.etc.standardKeyCodes);
 			}
 		}
-		auto tab = new TabItem(tabf, DWT.NONE);
+		auto tab = new CTabItem(tabf, DWT.NONE);
 		tab.setText = _prop.msgs.seAndKeyCode;
 		tab.setControl = comp;
 		return tab;
@@ -557,7 +558,7 @@ protected:
 		cl.fillHorizontal = true;
 		cl.fillVertical = true;
 		area.setLayout = cl;
-		auto tabf = new TabFolder(area, DWT.NONE);
+		auto tabf = new CTabFolder(area, DWT.BORDER);
 
 		constructMain(tabf);
 		constructDesc(tabf);
