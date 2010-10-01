@@ -327,9 +327,11 @@ public:
 
 	private void current(FlagDir dir) {
 		auto itm = find(dir);
-		dirs.select = itm;
-		dirs.showSelection;
-		flags.dir = dir;
+		if (itm) {
+			dirs.select = itm;
+			dirs.showSelection;
+			flags.dir = dir;
+		}
 	}
 
 	private FlagDir current() {
