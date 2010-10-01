@@ -743,13 +743,13 @@ public:
 				initDock;
 				auto data = _dock.addPane(_dock.first, Dir.N, 1, 3, "data");
 				_tableWin = new TableWindow(_comm, _prop, data);
-				_dock.add(_tableWin.shell, _tableWin.title, "data", true);
+				_dock.add(_tableWin.shell, _tableWin.title, _tableWin.image, "data", true);
 				_flagWin = new FlagWindow(_comm, _prop, data);
-				_dock.add(_flagWin.shell, _flagWin.title, "flag", true);
+				_dock.add(_flagWin.shell, _flagWin.title, _flagWin.image, "flag", true);
 				_cardWin = new MainCardWindow(_comm, _prop, data);
-				_dock.add(_cardWin.shell, _cardWin.title, "card", false);
+				_dock.add(_cardWin.shell, _cardWin.title, _cardWin.image, "card", false);
 				_dirWin = new DirectoryWindow(_comm, _prop, data);
-				_dock.add(_dirWin.shell, _dirWin.title, "file", false);
+				_dock.add(_dirWin.shell, _dirWin.title, _dirWin.image, "file", false);
 			}
 		} else {
 			_dataWin = new DataWindow(_comm, _prop, _win);
