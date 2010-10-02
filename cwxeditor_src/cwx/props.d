@@ -157,6 +157,8 @@ public:
 	string menuEdit() {return "編集(&E)";}
 	string ttReplaceText() {return "テキスト検索/置換";}
 	string menuReplaceText() {return ttReplaceText ~ "(&T)...";}
+	string ttCEdit() {return "編集";}
+	string menuCEdit() {return ttCEdit ~ "(&E)" ~ "\tEnter";}
 	string ttRefresh() {return "最新の情報に更新";}
 	string ttRefreshS() {return "更新";}
 	string menuRefresh() {return ttRefresh ~ "(&R)" ~ "\tF5";}

@@ -941,21 +941,18 @@ private:
 		refreshControls;
 		_imgp.redraw;
 	}
-	class IPEditListener : MouseAdapter, KeyListener {
+	class IPEditListener : MouseAdapter {
 		override void mouseDoubleClick(MouseEvent e) {
 			int i = _imgp.findSelectedIndex(e.x, e.y);
 			if (i >= 0) {
 				editImagePane(i);
 			}
 		}
-		override void keyReleased(KeyEvent e) {}
-		override void keyPressed(KeyEvent e) {
-			if (e.character == DWT.CR) {
-				int i = _imgp.selectedIndex;
-				if (i >= 0) {
-					editImagePane(i);
-				}
-			}
+	}
+	void edit() {
+		int i = _imgp.selectedIndex;
+		if (i >= 0) {
+			editImagePane(i);
 		}
 	}
 	void editImagePane(int i) {
@@ -989,10 +986,11 @@ private:
 		_imgp.setSize(vs.width, vs.height);
 		auto ipe = new IPEditListener;
 		_imgp.addMouseListener(ipe);
-		_imgp.addKeyListener(ipe);
 		_imgp.changingImages(&changingImages);
 		{
 			auto menu = new Menu(parent.getShell, DWT.POP_UP);
+			createMenuItem(menu, _prop.msgs.menuCEdit, _prop.images.menuCEdit, &edit);
+			new MenuItem(menu, DWT.SEPARATOR);
 			appendMenuTCPD(_prop, menu, _tcpd, true, true, true, true);
 			new MenuItem(menu, DWT.SEPARATOR);
 			createMenuItem(menu, _prop.msgs.menuPosTop, _prop.images.menuPosTop, &posTop);
@@ -1137,7 +1135,7 @@ private:
 		refreshControls;
 	}
 
-	class MKListener(C) : MouseAdapter, KeyListener {
+	class MKListener(C) : MouseAdapter {
 		private void delegate(C) _edit;
 		private C[] delegate() _items;
 		this(void delegate(C) edit, C[] delegate() items) {
@@ -1154,10 +1152,6 @@ private:
 		override void mouseDoubleClick(MouseEvent e) {
 			edit(e);
 		}
-		override void keyReleased(KeyEvent e) {}
-		override void keyPressed(KeyEvent e) {
-			if (e.character == DWT.CR) edit(e);
-		}
 	}
 	List createList(C)(Composite parent, string name, Image image, TCPD tcpd,
 			void delegate(C) edit, C[] delegate() items) {
@@ -1170,13 +1164,14 @@ private:
 		auto list = new List(comp, DWT.MULTI | DWT.BORDER | DWT.H_SCROLL | DWT.V_SCROLL);
 		auto mkl = new MKListener!(C)(edit, items);
 		list.addMouseListener(mkl);
-		list.addKeyListener(mkl);
 		auto gd = new GridData(GridData.FILL_BOTH);
 		gd.widthHint = 0;
 		gd.heightHint = 0;
 		list.setLayoutData = gd;
 		{
 			auto menu = new Menu(parent.getShell, DWT.POP_UP);
+			createMenuItem(menu, _prop.msgs.menuCEdit, _prop.images.menuCEdit, &this.edit);
+			new MenuItem(menu, DWT.SEPARATOR);
 			appendMenuTCPD(_prop, menu, tcpd, true, true, true, true);
 			list.setMenu(menu);
 			usingPopupMenuAccelerator(list);

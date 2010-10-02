@@ -294,6 +294,8 @@ public:
 
 	Image menuRefresh() {return imgd!(resourceDir ~ "refresh.png");}
 
+	Image menuCEdit() {return imgd!(resourceDir ~ "edit.png");}
+
 	Image menuUndo() {return imgd!(resourceDir ~ "undo.png");}
 	Image menuRedo() {return imgd!(resourceDir ~ "redo.png");}
 
@@ -383,6 +385,7 @@ public:
 
 enum MenuID : int {
 	Refresh,
+	CEdit,
 	Undo,
 	Redo,
 	Cut,

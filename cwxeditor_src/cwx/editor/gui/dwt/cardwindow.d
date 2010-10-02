@@ -586,6 +586,21 @@ private:
 		toNode(doc, sels);
 		return doc.text;
 	}
+	static if (EditMode) {
+		void edit() {
+			if (_viewList) {
+				int index = _list.selection;
+				if (index >= 0) {
+					edit(_list.card(index));
+				}
+			} else {
+				int index = _tbl.getSelectionIndex;
+				if (index >= 0) {
+					edit(cast(C) _tbl.getItem(index).getData);
+				}
+			}
+		}
+	}
 	class LMouse : MouseAdapter {
 		override void mouseDoubleClick(MouseEvent e) {
 			int index = _list.selection;
@@ -742,16 +757,22 @@ private:
 					}
 				});
 				auto pop = new Menu(parent.getShell, DWT.POP_UP);
+				createMenuItem(pop, prop.msgs.menuCEdit, prop.images.menuCEdit, &edit);
+				new MenuItem(pop, DWT.SEPARATOR);
 				createMenuItem(pop, _prop.msgs.menuEditHand, _prop.images.menuEditHand, &editHand);
 				new MenuItem(pop, DWT.SEPARATOR);
 				appendMenuTCPD(_prop, pop, this);
 			} else static if (is (C == SkillCard) || is (C == ItemCard) || is (C == BeastCard)) {
 				auto pop = new Menu(parent.getShell, DWT.POP_UP);
+				createMenuItem(pop, prop.msgs.menuCEdit, prop.images.menuCEdit, &edit);
+				new MenuItem(pop, DWT.SEPARATOR);
 				createMenuItem(pop, _prop.msgs.menuEditUseEvent, _prop.images.menuEditUseEvent, &editUseEvent);
 				new MenuItem(pop, DWT.SEPARATOR);
 				appendMenuTCPD(_prop, pop, this);
 			} else static if (is (C == InfoCard)) {
 				auto pop = new Menu(parent.getShell, DWT.POP_UP);
+				createMenuItem(pop, prop.msgs.menuCEdit, prop.images.menuCEdit, &edit);
+				new MenuItem(pop, DWT.SEPARATOR);
 				appendMenuTCPD(_prop, pop, this);
 			} else {
 				static assert (0);

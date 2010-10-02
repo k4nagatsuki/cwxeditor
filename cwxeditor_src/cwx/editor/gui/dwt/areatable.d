@@ -340,6 +340,8 @@ public:
 		_areasEdit = new TableTextEdit(_areas, 1, &editEnd);
 
 		auto menu = new Menu(parent.getShell, DWT.POP_UP);
+		createMenuItem(menu, prop.msgs.menuCEdit, prop.images.menuCEdit, &openArea);
+		new MenuItem(menu, DWT.SEPARATOR);
 		createMenuItem(menu, _prop.msgs.menuSummary, _prop.images.menuSummary, &editSummary);
 		new MenuItem(menu, DWT.SEPARATOR);
 		appendMenuTCPD(prop, menu, this);

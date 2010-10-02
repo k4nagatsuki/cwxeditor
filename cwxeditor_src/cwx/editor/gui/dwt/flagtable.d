@@ -24,6 +24,7 @@ import dwt.widgets.Composite;
 import dwt.widgets.Tree;
 import dwt.widgets.TreeItem;
 import dwt.widgets.Menu;
+import dwt.widgets.MenuItem;
 import dwt.dnd.Clipboard;
 import dwt.custom.TreeEditor;
 import dwt.widgets.Table;
@@ -535,6 +536,8 @@ public:
 		flags.addKeyListener(new KListener);
 		flags.addMouseListener(new MListener);
 		auto menu = new Menu(flags.getShell, DWT.POP_UP);
+		createMenuItem(menu, prop.msgs.menuCEdit, prop.images.menuCEdit, &startEdit);
+		new MenuItem(menu, DWT.SEPARATOR);
 		appendMenuTCPD(prop, menu, this);
 		flags.setMenu(menu);
 

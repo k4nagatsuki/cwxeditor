@@ -1517,6 +1517,8 @@ public:
 		_tree.addMouseListener(editl);
 		{
 			auto menu = new Menu(parent.getShell, DWT.POP_UP);
+			createMenuItem(menu, prop.msgs.menuCEdit, prop.images.menuCEdit, &edit);
+			new MenuItem(menu, DWT.SEPARATOR);
 			createMenuItem(menu, _prop.msgs.menuUndo, _prop.images.menuUndo, &this.undo);
 			createMenuItem(menu, _prop.msgs.menuRedo, _prop.images.menuRedo, &this.redo);
 			new MenuItem(menu, DWT.SEPARATOR);
