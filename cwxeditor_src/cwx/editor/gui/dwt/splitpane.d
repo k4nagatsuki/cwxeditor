@@ -184,4 +184,42 @@ class SplitPane : Composite {
 			}
 		}
 	}
+	override Point computeSize(int wHint, int hHint) {
+		return computeSize(wHint, hHint, true);
+	}
+	override Point computeSize(int wHint, int hHint, bool change) {
+		Point[] size;
+		foreach (c; getChildren) {
+			if (!(cast(Sash) c)) {
+				size ~= c.computeSize(DWT.DEFAULT, DWT.DEFAULT);
+			}
+		}
+		int x = 0, y = 0;
+		if (wHint != DWT.DEFAULT) {
+			x = wHint;
+		} else if (getStyle & DWT.VERTICAL) {
+			foreach (s; size) {
+				if (x < s.x) x = s.x;
+			}
+		} else {
+			foreach (s; size) {
+				x += s.x;
+			}
+			x += SASH_WIDTH;
+		}
+		if (hHint != DWT.DEFAULT) {
+			y = hHint;
+		} else if (getStyle & DWT.VERTICAL) {
+			foreach (s; size) {
+				y += s.y;
+			}
+			y += SASH_WIDTH;
+		} else {
+			foreach (s; size) {
+				if (y < s.y) y = s.y;
+			}
+		}
+		scope rect = computeTrim(DWT.DEFAULT, DWT.DEFAULT, x, y);
+		return new Point(rect.width, rect.height);
+	}
 }
