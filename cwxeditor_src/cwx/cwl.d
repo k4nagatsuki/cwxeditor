@@ -32,6 +32,10 @@ unittest {
 private bool sWith(string f, string s) {
 	return f.length > s.length && fnmatch(f[0u .. s.length], s);
 }
+private struct RData {
+	string sPath;
+	string skin;
+}
 /// 4.0形式のCardWirthシナリオを読込む。
 S loadLScenario(S)(string p, string skin) {
 	auto sPath = p;
@@ -39,8 +43,9 @@ S loadLScenario(S)(string p, string skin) {
 	if (!exists(summPath)) throw new SummaryException("Not Scenario: " ~ p);
 	S summ;
 	ulong startAreaId;
+	auto d = RData(sPath, skin);
 	{
-		summ = loadSummary!(S)(ByteIO(std.file.read(summPath)), skin, sPath, startAreaId);
+		summ = loadSummary!(S)(d, ByteIO(std.file.read(summPath)), startAreaId);
 	}
 	static if (is (typeof(summ.areas))) Area[] areas;
 	static if (is (typeof(summ.battles))) Battle[] battles;
@@ -57,28 +62,28 @@ S loadLScenario(S)(string p, string skin) {
 				auto f = ByteIO(std.file.read(file));
 				auto base = getBaseName(file);
 				static if (is (typeof(summ.areas))) if (sWith(base, "Area")) {
-					areas ~= loadArea(f);
+					areas ~= loadArea(d, f);
 				}
 				static if (is (typeof(summ.battles))) if (sWith(base, "Battle")) {
-					battles ~= loadBattle(f);
+					battles ~= loadBattle(d, f);
 				}
 				static if (is (typeof(summ.packages))) if (sWith(base, "Package")) {
-					packages ~= loadPackage(f);
+					packages ~= loadPackage(d, f);
 				}
 				static if (is (typeof(summ.casts))) if (sWith(base, "Mate")) {
-					casts ~= loadCast(f);
+					casts ~= loadCast(d, f);
 				}
 				static if (is (typeof(summ.skills))) if (sWith(base, "Skill")) {
-					skills ~= loadSkill(f);
+					skills ~= loadSkill(d, f);
 				}
 				static if (is (typeof(summ.items))) if (sWith(base, "Item")) {
-					items ~= loadItem(f);
+					items ~= loadItem(d, f);
 				}
 				static if (is (typeof(summ.beasts))) if (sWith(base, "Beast")) {
-					beasts ~= loadBeast(f);
+					beasts ~= loadBeast(d, f);
 				}
 				static if (is (typeof(summ.infos))) if (sWith(base, "Info")) {
-					infos ~= loadInfo(f);
+					infos ~= loadInfo(d, f);
 				}
 			}
 		} catch (Exception e) {
@@ -133,7 +138,10 @@ TypeInfo getType(string file, out ulong id) {
 			case 0x4: type = typeid(InfoCard); break;
 			default: return null;
 			}
-			readImage(f);
+			// readImage
+			uint len = f.readUIntL;
+			if (len) f.read(len);
+
 			readString(f);
 			id = f.readUIntL - 40000L;
 			return type;
@@ -288,10 +296,27 @@ private Premium toPremium(byte b) {
 private bool readBool(ref ByteIO f) {
 	return f.readByte ? true : false;
 }
-private string readImage(ref ByteIO f) {
+private string readImage(in RData d, ref ByteIO f) {
 	uint len = f.readUIntL;
 	if (!len) return "";
 	ubyte[] img = f.read(len);
+	if (endsWith(img, cast(ubyte[]) B_IMG_REF)) {
+		size_t index = size_t.max;
+		foreach_reverse (i, c; img[0 .. $ - B_IMG_REF.length]) {
+			if (c == '\0') {
+				index = i + 1;
+				break;
+			}
+		}
+		if (index != size_t.max) {
+			auto s = cast(string) img[index .. $ - B_IMG_REF.length];
+			if (.exists(std.path.join(d.sPath, s))) {
+				return s;
+			} else {
+				return bImgToStr(cast(byte[]) img[0 .. index - 1]);
+			}
+		}
+	}
 	return bImgToStr(cast(byte[]) img);
 }
 private string readString(ref ByteIO f, bool lns = false, bool cutText = false) {
@@ -310,11 +335,11 @@ private string[] readStrings(ref ByteIO f) {
 	auto str = readString(f, true);
 	return str.length ? splitlines(str) : cast(string[]) [];
 }
-private S loadSummary(S)(ref ByteIO f, string skin, string sPath, out ulong startAreaId) {
-	string img = readImage(f);
+private S loadSummary(S)(in RData d, ref ByteIO f, out ulong startAreaId) {
+	string img = readImage(d, f);
 	static if (is (S == Summary)) {
 		byte b;
-		auto summ = new Summary(readString(f), skin, sPath, true);
+		auto summ = new Summary(readString(f), d.skin, d.sPath, true);
 		summ.imagePath = img;
 		summ.desc = readString(f, true);
 		summ.author = readString(f);
@@ -368,10 +393,10 @@ private S loadSummary(S)(ref ByteIO f, string skin, string sPath, out ulong star
 		summ.levelMax = f.readUIntL;
 		return summ;
 	} else {
-		return new S(sPath, readString(f), true);
+		return new S(d.sPath, readString(f), true);
 	}
 }
-private Motion readMotion(ref ByteIO f) {
+private Motion readMotion(in RData d, ref ByteIO f) {
 	byte tType = f.readByte;
 	f.readByte;
 	f.readByte;
@@ -488,7 +513,7 @@ private Motion readMotion(ref ByteIO f) {
 		BeastCard beast = null;
 		uint bNum = f.readUIntL; // 常に0か1のはず
 		for (uint i = 0u; i < bNum ; i++) {
-			beast = loadBeast(f);
+			beast = loadBeast(d, f);
 		}
 		auto m = new Motion(MType.SUMMON_BEAST, el);
 		m.beast = beast;
@@ -497,14 +522,14 @@ private Motion readMotion(ref ByteIO f) {
 	default: throw new SummaryException("Unknown motion: " ~ to!(string)(tType) ~ ", " ~ to!(string)(type));
 	}
 }
-private Content readContent(ref ByteIO f) {
+private Content readContent(in RData d, ref ByteIO f) {
 	byte type = f.readByte;
 	string name = readString(f);
 	uint cNum = f.readUIntL - 40000u;
 	Content[] childs;
 	childs.length = cNum;
 	for (uint i = 0u; i < cNum; i++) {
-		childs[i] = readContent(f);
+		childs[i] = readContent(d, f);
 	}
 	Content e;
 	switch (type) {
@@ -583,7 +608,7 @@ private Content readContent(ref ByteIO f) {
 		Motion[] effMotions;
 		effMotions.length = effMotionNum;
 		for (uint i = 0u; i < effMotionNum; i++) {
-			effMotions[i] = readMotion(f);
+			effMotions[i] = readMotion(d, f);
 		}
 		e = new Content(CType.EFFECT, name);
 		e.level = effLev;
@@ -934,22 +959,22 @@ private Content readContent(ref ByteIO f) {
 	}
 	return e;
 }
-private EventTree readCEventTree(ref ByteIO f) {
+private EventTree readCEventTree(in RData d, ref ByteIO f) {
 	auto tree = new EventTree("");
 	auto dest = tree.starts[0u];
 	uint cNum = f.readUIntL;
 	for (uint i = 0u; i < cNum; i++) {
-		tree.add(readContent(f));
+		tree.add(readContent(d, f));
 	}
 	tree.remove(dest);
 	return tree;
 }
-private EventTree readEventTree(ref ByteIO f) {
+private EventTree readEventTree(in RData d, ref ByteIO f) {
 	auto tree = new EventTree("");
 	auto dest = tree.starts[0u];
 	uint cNum = f.readUIntL;
 	for (uint i = 0u; i < cNum; i++) {
-		tree.add(readContent(f));
+		tree.add(readContent(d, f));
 	}
 	tree.remove(dest);
 	uint igNum = f.readUIntL;
@@ -998,7 +1023,7 @@ private BgImage[] readBgImages(ref ByteIO f) {
 		return bgImgs;
 	}
 }
-private Area loadArea(ref ByteIO f) {
+private Area loadArea(in RData d, ref ByteIO f) {
 	f.readByte;
 	f.readUIntL;
 	string name = readString(f);
@@ -1006,13 +1031,13 @@ private Area loadArea(ref ByteIO f) {
 	auto a = new Area(id, name);
 	uint evtNum = f.readUIntL;
 	for (uint i = 0; i < evtNum; i++) {
-		a.add(readEventTree(f));
+		a.add(readEventTree(d, f));
 	}
 	a.spAuto = !readBool(f);
 	uint cNum = f.readUIntL;
 	for (uint i = 0; i < cNum; i++) {
 		f.readByte;
-		string img = readImage(f);
+		string img = readImage(d, f);
 		string cName = readString(f);
 		f.readUIntL;
 		string desc = readString(f);
@@ -1020,7 +1045,7 @@ private Area loadArea(ref ByteIO f) {
 		EventTree[] trees;
 		trees.length = cEvtNum;
 		for (uint j = 0; j < cEvtNum; j++) {
-			trees[j] = readEventTree(f);
+			trees[j] = readEventTree(d, f);
 		}
 		string flag = readString(f);
 		real scale = f.readUIntL / 100.0;
@@ -1038,7 +1063,7 @@ private Area loadArea(ref ByteIO f) {
 	}
 	return a;
 }
-private Battle loadBattle(ref ByteIO f) {
+private Battle loadBattle(in RData d, ref ByteIO f) {
 	f.readByte;
 	f.readUIntL;
 	string name = readString(f);
@@ -1046,7 +1071,7 @@ private Battle loadBattle(ref ByteIO f) {
 	auto r = new Battle(id, name, "");
 	uint evtNum = f.readUIntL;
 	for (uint i = 0u; i < evtNum; i++) {
-		r.add(readEventTree(f));
+		r.add(readEventTree(d, f));
 	}
 	r.spAuto = !readBool(f);
 	uint cNum = f.readUIntL;
@@ -1056,7 +1081,7 @@ private Battle loadBattle(ref ByteIO f) {
 		EventTree[] cTrees;
 		cTrees.length = cEvtNum;
 		for (uint j = 0u; j < cEvtNum; j++) {
-			cTrees[j] = readEventTree(f);
+			cTrees[j] = readEventTree(d, f);
 		}
 		string flag = readString(f);
 		real scale = f.readUIntL / 100.0;
@@ -1072,20 +1097,20 @@ private Battle loadBattle(ref ByteIO f) {
 	r.music = readString(f);
 	return r;
 }
-private Package loadPackage(ref ByteIO f) {
+private Package loadPackage(in RData d, ref ByteIO f) {
 	f.readUIntL;
 	string name = readString(f);
 	ulong id = f.readUIntL;
 	auto r = new Package(id, name);
 	uint evtNum = f.readUIntL;
 	for (uint i = 0u; i < evtNum; i++) {
-		r.add(readCEventTree(f));
+		r.add(readCEventTree(d, f));
 	}
 	return r;
 }
-private CastCard loadCast(ref ByteIO f) {
+private CastCard loadCast(in RData d, ref ByteIO f) {
 	f.readByte;
-	string img = readImage(f);
+	string img = readImage(d, f);
 	string name = readString(f);
 	ulong id = f.readUIntL - 40000;
 	auto r = new CastCard(id, name, img, "", 1u, 1u);
@@ -1136,15 +1161,15 @@ private CastCard loadCast(ref ByteIO f) {
 	r.enhanceRound(Enhance.DEFENSE, f.readUIntL);
 	uint itmNum = f.readUIntL;
 	for (uint i = 0u; i < itmNum; i++) {
-		r.add(loadItem(f));
+		r.add(loadItem(d, f));
 	}
 	uint sklNum = f.readUIntL;
 	for (uint i = 0u; i < sklNum; i++) {
-		r.add(loadSkill(f));
+		r.add(loadSkill(d, f));
 	}
 	uint bstNum = f.readUIntL;
 	for (uint i = 0u; i < bstNum; i++) {
-		r.add(loadBeast(f));
+		r.add(loadBeast(d, f));
 	}
 	uint cpnNum = f.readUIntL;
 	Coupon[] cpns;
@@ -1157,9 +1182,9 @@ private CastCard loadCast(ref ByteIO f) {
 	r.coupons = cpns;
 	return r;
 }
-private C readEffCard(C)(ref ByteIO f) {
+private C readEffCard(C)(in RData d, ref ByteIO f) {
 	f.readByte;
-	string img = readImage(f);
+	string img = readImage(d, f);
 	string name = readString(f);
 	ulong id = f.readUIntL - 40000;
 	string desc = readString(f);
@@ -1177,7 +1202,7 @@ private C readEffCard(C)(ref ByteIO f) {
 	Motion[] motions;
 	motions.length = mNum;
 	for (uint i = 0u; i < mNum; i++) {
-		motions[i] = readMotion(f);
+		motions[i] = readMotion(d, f);
 	}
 	r.motions = motions;
 	r.enhance(Enhance.AVOID, f.readIntL);
@@ -1198,19 +1223,19 @@ private C readEffCard(C)(ref ByteIO f) {
 	r.author = readString(f);
 	uint evtNum = f.readUIntL;
 	for (uint i = 0u; i < evtNum; i++) {
-		r.add(readCEventTree(f));
+		r.add(readCEventTree(d, f));
 	}
 	return r;
 }
-private SkillCard loadSkill(ref ByteIO f) {
-	auto r = readEffCard!(SkillCard)(f);
+private SkillCard loadSkill(in RData d, ref ByteIO f) {
+	auto r = readEffCard!(SkillCard)(d, f);
 	r.hold = readBool(f);
 	r.level = f.readUIntL;
 	r.useLimit = f.readUIntL;
 	return r;
 }
-private ItemCard loadItem(ref ByteIO f) {
-	auto r = readEffCard!(ItemCard)(f);
+private ItemCard loadItem(in RData d, ref ByteIO f) {
+	auto r = readEffCard!(ItemCard)(d, f);
 	r.hold = readBool(f);
 	r.useLimit = f.readUIntL;
 	r.useLimitMax = f.readUIntL;
@@ -1220,99 +1245,102 @@ private ItemCard loadItem(ref ByteIO f) {
 	r.enhanceOwner(Enhance.DEFENSE, f.readUIntL);
 	return r;
 }
-private BeastCard loadBeast(ref ByteIO f) {
-	auto r = readEffCard!(BeastCard)(f);
+private BeastCard loadBeast(in RData d, ref ByteIO f) {
+	auto r = readEffCard!(BeastCard)(d, f);
 	readBool(f); // Hold
 	r.useLimit = f.readUIntL;
 	return r;
 }
-private InfoCard loadInfo(ref ByteIO f) {
+private InfoCard loadInfo(in RData d, ref ByteIO f) {
 	f.readByte;
-	string img = readImage(f);
+	string img = readImage(d, f);
 	string name = readString(f);
 	ulong id = f.readUIntL - 40000;
 	string desc = readString(f);
 	return new InfoCard(id, name, img, desc);
 }
 
+struct SData {
+	string sPath;
+	bool saveInnerImagePath;
+}
 /// 4.0形式のCardWirthシナリオを保存する。
-void saveLScenario(Summary summ) {
+void saveLScenario(Summary summ, bool saveInnerImagePath = false) {
 	scope wids = new HashSet!(string);
-	string scName = summ.scenarioName;
-	string scPath = summ.scenarioPath;
+	auto d = SData(summ.scenarioPath, saveInnerImagePath);
 	{
 		auto file = "~Summary.wsm";
 		ByteIO f;
-		writeSummary(f, summ);
-		std.file.write(std.path.join(scPath, file), f.bytes);
+		writeSummary(d, f, summ);
+		std.file.write(std.path.join(d.sPath, file), f.bytes);
 		wids.add(file);
 	}
 	foreach (a; summ.areas) {
 		auto file = "~Area" ~ to!(string)(a.id) ~ ".wid";
 		ByteIO f;
-		writeArea(f, scPath, a);
-		std.file.write(std.path.join(scPath, file), f.bytes);
+		writeArea(d, f, a);
+		std.file.write(std.path.join(d.sPath, file), f.bytes);
 		wids.add(file);
 	}
 	foreach (a; summ.battles) {
 		auto file = "~Battle" ~ to!(string)(a.id) ~ ".wid";
 		ByteIO f;
-		writeBattle(f, scPath, a);
-		std.file.write(std.path.join(scPath, file), f.bytes);
+		writeBattle(d, f, a);
+		std.file.write(std.path.join(d.sPath, file), f.bytes);
 		wids.add(file);
 	}
 	foreach (a; summ.packages) {
 		auto file = "~Package" ~ to!(string)(a.id) ~ ".wid";
 		ByteIO f;
-		writePackage(f, scPath, a);
-		std.file.write(std.path.join(scPath, file), f.bytes);
+		writePackage(d, f, a);
+		std.file.write(std.path.join(d.sPath, file), f.bytes);
 		wids.add(file);
 	}
 	foreach (c; summ.casts) {
 		auto file = "~Mate" ~ to!(string)(c.id) ~ ".wid";
 		ByteIO f;
-		writeCast(f, scPath, c);
-		std.file.write(std.path.join(scPath, file), f.bytes);
+		writeCast(d, f, c);
+		std.file.write(std.path.join(d.sPath, file), f.bytes);
 		wids.add(file);
 	}
 	foreach (c; summ.skills) {
 		auto file = "~Skill" ~ to!(string)(c.id) ~ ".wid";
 		ByteIO f;
-		writeSkill(f, scPath, c);
-		std.file.write(std.path.join(scPath, file), f.bytes);
+		writeSkill(d, f, c);
+		std.file.write(std.path.join(d.sPath, file), f.bytes);
 		wids.add(file);
 	}
 	foreach (c; summ.items) {
 		auto file = "~Item" ~ to!(string)(c.id) ~ ".wid";
 		ByteIO f;
-		writeItem(f, scPath, c);
-		std.file.write(std.path.join(scPath, file), f.bytes);
+		writeItem(d, f, c);
+		std.file.write(std.path.join(d.sPath, file), f.bytes);
 		wids.add(file);
 	}
 	foreach (c; summ.beasts) {
 		auto file = "~Beast" ~ to!(string)(c.id) ~ ".wid";
 		ByteIO f;
-		writeBeast(f, scPath, c);
-		std.file.write(std.path.join(scPath, file), f.bytes);
+		writeBeast(d, f, c);
+		std.file.write(std.path.join(d.sPath, file), f.bytes);
 		wids.add(file);
 	}
 	foreach (c; summ.infos) {
 		auto file = "~Info" ~ to!(string)(c.id) ~ ".wid";
 		ByteIO f;
-		writeInfo(f, scPath, c);
-		std.file.write(std.path.join(scPath, file), f.bytes);
+		writeInfo(d, f, c);
+		std.file.write(std.path.join(d.sPath, file), f.bytes);
 		wids.add(file);
 	}
 	scope regex = std.regexp.RegExp("^(Area|Battle|Package|Mate|Skill|Item|Beast|Info)[0-9]+\\.wid$");
-	foreach (file; clistdir(scPath)) {
+	foreach (file; clistdir(d.sPath)) {
 		if (regex.test(file, 0) || std.path.fnmatch(file, "Summary.wsm")) {
-			scope path = std.path.join(scPath, file);
+			scope path = std.path.join(d.sPath, file);
 			preRemove(path);
 			std.file.remove(path);
 		}
 	}
 	foreach (file; wids) {
-		std.file.rename(std.path.join(scPath, file), std.path.join(scPath, file[1u .. $]));
+		std.file.rename(std.path.join(d.sPath, file), std.path.join(d.sPath, file[1u .. $]));
 	}
 }
 
@@ -1464,10 +1492,11 @@ private byte fromPremium(Premium v) {
 	default: throw new SummaryException("Unknown card premium value: " ~ to!(string)(cast(int) v));
 	}
 }
+private const B_IMG_REF = ":INNER_BINARY_IMAGE";
 private void writeBool(ref ByteIO f, bool b) {
 	f.writeL(cast(byte) (b ? 1 : 0));
 }
-private void writeImage(ref ByteIO f, string scPath, string imgPath) {
+private void writeImage(in SData d, ref ByteIO f, string imgPath) {
 	if (!imgPath.length) {
 		f.writeL(cast(uint) 0);
 		return;
@@ -1476,7 +1505,11 @@ private void writeImage(ref ByteIO f, string scPath, string imgPath) {
 	if (isBinImg(imgPath)) {
 		bytes = cast(ubyte[]) strToBImg(imgPath);
 	} else {
-		bytes = cast(ubyte[]) std.file.read(std.path.join(scPath, imgPath));
+		bytes = cast(ubyte[]) std.file.read(std.path.join(d.sPath, imgPath));
+		if (d.saveInnerImagePath) {
+			bytes ~= '\0';
+			bytes ~= cast(ubyte[]) (imgPath ~ B_IMG_REF);
+		}
 	}
 	f.writeL(cast(uint) bytes.length);
 	f.write(bytes);
@@ -1510,8 +1543,8 @@ private void writeStrings(ref ByteIO f, string[] strs) {
 	}
 }
 
-private void writeSummary(ref ByteIO f, Summary summ) {
-	writeImage(f, summ.scenarioPath, summ.imagePath);
+private void writeSummary(in SData d, ref ByteIO f, Summary summ) {
+	writeImage(d, f, summ.imagePath);
 	writeString(f, summ.scenarioName);
 	writeString(f, summ.desc, true);
 	writeString(f, summ.author);
@@ -1543,7 +1576,7 @@ private void writeSummary(ref ByteIO f, Summary summ) {
 	f.writeL(cast(uint) summ.levelMin);
 	f.writeL(cast(uint) summ.levelMax);
 }
-private void writeMotion(ref ByteIO f, string scPath, Motion m) {
+private void writeMotion(in SData d, ref ByteIO f, Motion m) {
 	byte tType;
 	byte type;
 	switch (m.type) {
@@ -1735,7 +1768,7 @@ private void writeMotion(ref ByteIO f, string scPath, Motion m) {
 		auto beast = m.beast;
 		if (beast) {
 			f.writeL(cast(uint) 0x1);
-			writeBeast(f, scPath, beast);
+			writeBeast(d, f, beast);
 		} else {
 			f.writeL(cast(uint) 0x0);
 		}
@@ -1743,15 +1776,15 @@ private void writeMotion(ref ByteIO f, string scPath, Motion m) {
 	default: throw new SummaryException("Unknown motion: " ~ to!(string)(tType) ~ ", " ~ to!(string)(type));
 	}
 }
-private void writeContent(ref ByteIO f, string scPath, Content e) {
-	auto d = e.detail;
+private void writeContent(in SData d, ref ByteIO f, Content e) {
+	auto dt = e.detail;
 	void wb(byte type) {
 		f.write(type);
 		writeString(f, e.name);
-		if (d.owner) {
+		if (dt.owner) {
 			f.writeL(cast(uint) 40000 + e.next.length);
 			foreach (child; e.next) {
-				writeContent(f, scPath, child);
+				writeContent(d, f, child);
 			}
 		} else {
 			f.writeL(cast(uint) 40000);
@@ -1812,7 +1845,7 @@ private void writeContent(ref ByteIO f, string scPath, Content e) {
 		f.write(fromCardVisual(e.cardVisual));
 		f.writeL(cast(uint) e.motions.length);
 		foreach (m; e.motions) {
-			writeMotion(f, scPath, m);
+			writeMotion(d, f, m);
 		}
 	} else if (e.type is CType.BRANCH_SELECT) {
 		wb(12);
@@ -2015,16 +2048,16 @@ private void writeContent(ref ByteIO f, string scPath, Content e) {
 		assert (0, "event");
 	}
 }
-private void writeCEventTree(ref ByteIO f, string scPath, EventTree tree) {
+private void writeCEventTree(in SData d, ref ByteIO f, EventTree tree) {
 	f.writeL(cast(uint) tree.starts.length);
 	foreach (evt; tree.starts) {
-		writeContent(f, scPath, evt);
+		writeContent(d, f, evt);
 	}
 }
-private void writeEventTree(ref ByteIO f, string scPath, EventTree tree) {
+private void writeEventTree(in SData d, ref ByteIO f, EventTree tree) {
 	f.writeL(cast(uint) tree.starts.length);
 	foreach (evt; tree.starts) {
-		writeContent(f, scPath, evt);
+		writeContent(d, f, evt);
 	}
 	int[] igs;
 	if (tree.fireEnter) igs ~= 1;
@@ -2062,20 +2095,20 @@ private void writeBgImages(ref ByteIO f, BgImage[] backs) {
 		writeBgImage(f, b);
 	}
 }
-private void writeArea(ref ByteIO f, string scPath, Area a) {
+private void writeArea(in SData d, ref ByteIO f, Area a) {
 	f.writeL(cast(byte) 0x0);
 	f.writeL(cast(uint) 0x0);
 	writeString(f, a.name);
 	f.writeL(cast(uint) (a.id + 40000u));
 	f.writeL(cast(uint) a.trees.length);
 	foreach (tree; a.trees) {
-		writeEventTree(f, scPath, tree);
+		writeEventTree(d, f, tree);
 	}
 	writeBool(f, !a.spAuto);
 	f.writeL(cast(uint) a.cards.length);
 	foreach (c; a.cards) {
 		f.writeL(cast(byte) 0x0);
-		writeImage(f, scPath, isBinImg(c.path) ? c.path : "");
+		writeImage(d, f, isBinImg(c.path) ? c.path : "");
 		writeString(f, c.name);
 		f.writeL(cast(byte) 0x40);
 		f.writeL(cast(byte) 0x9C);
@@ -2084,7 +2117,7 @@ private void writeArea(ref ByteIO f, string scPath, Area a) {
 		writeString(f, c.desc);
 		f.writeL(cast(uint) c.trees.length);
 		foreach (tree; c.trees) {
-			writeEventTree(f, scPath, tree);
+			writeEventTree(d, f, tree);
 		}
 		writeString(f, c.flag);
 		f.writeL(cast(uint) rndtol(c.scale * 100.0));
@@ -2094,14 +2127,14 @@ private void writeArea(ref ByteIO f, string scPath, Area a) {
 	}
 	writeBgImages(f, a.backs);
 }
-private void writeBattle(ref ByteIO f, string scPath, Battle a) {
+private void writeBattle(in SData d, ref ByteIO f, Battle a) {
 	f.writeL(cast(byte) 0x1);
 	f.writeL(cast(uint) 0x0);
 	writeString(f, a.name);
 	f.writeL(cast(uint) (a.id + 40000u));
 	f.writeL(cast(uint) a.trees.length);
 	foreach (tree; a.trees) {
-		writeEventTree(f, scPath, tree);
+		writeEventTree(d, f, tree);
 	}
 	writeBool(f, !a.spAuto);
 	f.writeL(cast(uint) a.cards.length);
@@ -2109,7 +2142,7 @@ private void writeBattle(ref ByteIO f, string scPath, Battle a) {
 		f.writeL(cast(uint) c.id);
 		f.writeL(cast(uint) c.trees.length);
 		foreach (tree; c.trees) {
-			writeEventTree(f, scPath, tree);
+			writeEventTree(d, f, tree);
 		}
 		writeString(f, c.flag);
 		f.writeL(cast(uint) rndtol(c.scale * 100.0));
@@ -2119,18 +2152,18 @@ private void writeBattle(ref ByteIO f, string scPath, Battle a) {
 	}
 	writeString(f, a.music);
 }
-private void writePackage(ref ByteIO f, string scPath, Package a) {
+private void writePackage(in SData d, ref ByteIO f, Package a) {
 	f.writeL(cast(uint) 0x4);
 	writeString(f, a.name);
 	f.writeL(cast(uint) a.id);
 	f.writeL(cast(uint) a.trees.length);
 	foreach (tree; a.trees) {
-		writeCEventTree(f, scPath, tree);
+		writeCEventTree(d, f, tree);
 	}
 }
-private void writeCast(ref ByteIO f, string scPath, CastCard c) {
+private void writeCast(in SData d, ref ByteIO f, CastCard c) {
 	f.writeL(cast(byte) 0x2);
-	writeImage(f, scPath, c.path);
+	writeImage(d, f, c.path);
 	writeString(f, c.name);
 	f.writeL(cast(uint) (c.id + 40000u));
 	writeBool(f, c.weaponResist);
@@ -2180,15 +2213,15 @@ private void writeCast(ref ByteIO f, string scPath, CastCard c) {
 	f.writeL(cast(uint) c.enhanceRound(Enhance.DEFENSE));
 	f.writeL(cast(uint) c.items.length);
 	foreach (cc; c.items) {
-		writeItem(f, scPath, cc);
+		writeItem(d, f, cc);
 	}
 	f.writeL(cast(uint) c.skills.length);
 	foreach (cc; c.skills) {
-		writeSkill(f, scPath, cc);
+		writeSkill(d, f, cc);
 	}
 	f.writeL(cast(uint) c.beasts.length);
 	foreach (cc; c.beasts) {
-		writeBeast(f, scPath, cc);
+		writeBeast(d, f, cc);
 	}
 	f.writeL(cast(uint) c.coupons.length);
 	foreach (cc; c.coupons) {
@@ -2196,9 +2229,9 @@ private void writeCast(ref ByteIO f, string scPath, CastCard c) {
 		f.writeL(cast(int) cc.value);
 	}
 }
-private void writeEffCard(ref ByteIO f, string scPath, EffectCard c, byte type) {
+private void writeEffCard(in SData d, ref ByteIO f, EffectCard c, byte type) {
 	f.write(type);
-	writeImage(f, scPath, c.path);
+	writeImage(d, f, c.path);
 	writeString(f, c.name);
 	f.writeL(cast(uint) (c.id + 40000u));
 	writeString(f, c.desc);
@@ -2213,7 +2246,7 @@ private void writeEffCard(ref ByteIO f, string scPath, EffectCard c, byte type) 
 	f.write(fromCardVisual(c.visual));
 	f.writeL(cast(uint) c.motions.length);
 	foreach (m; c.motions) {
-		writeMotion(f, scPath, m);
+		writeMotion(d, f, m);
 	}
 	f.writeL(cast(int) c.enhance(Enhance.AVOID));
 	f.writeL(cast(int) c.enhance(Enhance.RESIST));
@@ -2232,17 +2265,17 @@ private void writeEffCard(ref ByteIO f, string scPath, EffectCard c, byte type) 
 	writeString(f, c.author);
 	f.writeL(cast(uint) c.trees.length);
 	foreach (tree; c.trees) {
-		writeCEventTree(f, scPath, tree);
+		writeCEventTree(d, f, tree);
 	}
 }
-private void writeSkill(ref ByteIO f, string scPath, SkillCard c) {
-	writeEffCard(f, scPath, c, 0x5);
+private void writeSkill(in SData d, ref ByteIO f, SkillCard c) {
+	writeEffCard(d, f, c, 0x5);
 	writeBool(f, c.hold);
 	f.writeL(cast(uint) c.level);
 	f.writeL(cast(uint) c.useLimit);
 }
-private void writeItem(ref ByteIO f, string scPath, ItemCard c) {
-	writeEffCard(f, scPath, c, 0x3);
+private void writeItem(in SData d, ref ByteIO f, ItemCard c) {
+	writeEffCard(d, f, c, 0x3);
 	writeBool(f, c.hold);
 	f.writeL(cast(uint) c.useLimit);
 	f.writeL(cast(uint) c.useLimitMax);
@@ -2251,14 +2284,14 @@ private void writeItem(ref ByteIO f, string scPath, ItemCard c) {
 	f.writeL(cast(int) c.enhanceOwner(Enhance.RESIST));
 	f.writeL(cast(int) c.enhanceOwner(Enhance.DEFENSE));
 }
-private void writeBeast(ref ByteIO f, string scPath, BeastCard c) {
-	writeEffCard(f, scPath, c, 0x6);
+private void writeBeast(in SData d, ref ByteIO f, BeastCard c) {
+	writeEffCard(d, f, c, 0x6);
 	writeBool(f, false); // Hold
 	f.writeL(cast(uint) c.useLimit);
 }
-private void writeInfo(ref ByteIO f, string scPath, InfoCard c) {
+private void writeInfo(in SData d, ref ByteIO f, InfoCard c) {
 	f.writeL(cast(byte) 0x4);
-	writeImage(f, scPath, c.path);
+	writeImage(d, f, c.path);
 	writeString(f, c.name);
 	f.writeL(cast(uint) (c.id + 40000u));
 	writeString(f, c.desc);

@@ -1305,13 +1305,13 @@ public:
 		return !useTemp || zipName.length;
 	}
 	/// 上書き保存。
-	void saveOverwrite(CProps prop) in {
+	void saveOverwrite(CProps prop, bool saveInnerImagePath) in {
 		assert (isSaved);
 	} body {
-		saveProc(prop, false, zipName, scenarioPath, false, expandXMLs);
+		saveProc(prop, saveInnerImagePath, false, zipName, scenarioPath, false, expandXMLs);
 	}
 	/// 名前をつけて保存。
-	void saveWithName(CProps prop, string fname, string tempPath,
+	void saveWithName(CProps prop, bool saveInnerImagePath, string fname, string tempPath,
 			bool defExpandXMLs, Skin defSkin, void delegate(string) showWarn) in {
 		assert (fnmatch(getExt(fname), "wsn"));
 	} body {
@@ -1325,13 +1325,13 @@ public:
 			}
 			scope (failure) delAll(temp);
 			delTemp;
-			saveProc(prop, true, fname, temp, true, defExpandXMLs);
+			saveProc(prop, saveInnerImagePath, true, fname, temp, true, defExpandXMLs);
 		} else if (useTemp) {
 			// 新しいアーカイブを作成
 			string oldZip = _zipName;
 			_zipName = fname;
 			scope (failure) _zipName = oldZip;
-			saveProc(prop, false, zipName, scenarioPath, false, defExpandXMLs);
+			saveProc(prop, saveInnerImagePath, false, zipName, scenarioPath, false, defExpandXMLs);
 		} else {
 			// 展開済みシナリオからアーカイブに変換
 			auto oldPath = scenarioPath;
@@ -1342,15 +1342,15 @@ public:
 				scenarioPath = oldPath;
 				delAll(p);
 			}
-			saveProc(prop, true, fname, p, false, defExpandXMLs);
+			saveProc(prop, saveInnerImagePath, true, fname, p, false, defExpandXMLs);
 		}
 	}
-	private void saveProc(CProps prop, bool archive, string zipName, string temp,
-			bool legacyToX, bool defExpandXMLs) {
+	private void saveProc(CProps prop, bool saveInnerImagePath, bool archive,
+			string zipName, string temp, bool legacyToX, bool defExpandXMLs) {
 		try {
 			bool expand = false;
 			if (legacy && !legacyToX) {
-				saveLScenario(this);
+				saveLScenario(this, saveInnerImagePath);
 				if (useTemp) {
 					.cab(temp, zipName, (string file) {
 						return !fnmatch(getBaseName(file), "cwxeditor.lock");

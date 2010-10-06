@@ -286,7 +286,7 @@ private:
 				shell.setCursor = Display.getCurrent.getSystemCursor(DWT.CURSOR_WAIT);
 				scope (exit) shell.setCursor = null;
 				try {
-					summary.saveOverwrite(_prop.parent);
+					summary.saveOverwrite(_prop.parent, _prop.var.etc.saveInnerImagePath);
 					_comm.saved.call;
 					addHistory;
 					return true;
@@ -319,9 +319,10 @@ private:
 				bool expandXMLs = _prop.var.etc.expandXMLs;
 				Skin defSkin = .findSkin2(_prop, _prop.var.etc.defaultSkin);
 				try {
-					summary.saveWithName(_prop.parent, fname, tempPath, expandXMLs, defSkin, (string msg) {
-						MessageBox.showWarning(msg, _prop.msgs.dlgTitWarning, shell);
-					});
+					summary.saveWithName(_prop.parent, _prop.var.etc.saveInnerImagePath,
+						fname, tempPath, expandXMLs, defSkin, (string msg) {
+							MessageBox.showWarning(msg, _prop.msgs.dlgTitWarning, shell);
+						});
 					_prop.var.etc.scenarioPath = nabs(dlg.getFilterPath);
 					_comm.saved.call;
 					_comm.refScenarioPath.call;

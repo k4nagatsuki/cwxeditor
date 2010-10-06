@@ -1660,6 +1660,7 @@ public:
 	string expandXMLs() {return "圧縮されたシナリオの読込み時にXMLファイルを展開する";}
 	string contentsFloat() {return "コンテンツボックスを別ウィンドウで表示する";}
 	string xmlCopy() {return "コピーや切り取りを常にXML形式で行う";}
+	string saveInnerImagePath() {return "クラシックなシナリオで格納イメージにファイルパスを埋め込む";}
 
 	string bgImageAndKeyCode() {return "背景とキーコード";}
 	string newBgImageSetting() {return "新規作成";}

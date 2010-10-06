@@ -436,6 +436,7 @@ class FlexEtcProps : Properties {
 
 	mixin Property!("expandXMLs", bool, false);
 	mixin Property!("xmlCopy", bool, false);
+	mixin Property!("saveInnerImagePath", bool, false);
 
 	mixin Property!("replaceTextSummary", bool, false);
 	mixin Property!("replaceTextMessage", bool, true);
