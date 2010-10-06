@@ -156,7 +156,7 @@ public:
 
 	string menuEdit() {return "編集(&E)";}
 	string ttReplaceText() {return "テキスト検索/置換";}
-	string menuReplaceText() {return ttReplaceText ~ "(&T)...";}
+	string menuReplaceText() {return ttReplaceText ~ "(&F)...\tCtrl+F";}
 	string ttCEdit() {return "編集";}
 	string menuCEdit() {return ttCEdit ~ "(&E)" ~ "\tEnter";}
 	string ttRefresh() {return "最新の情報に更新";}
@@ -820,7 +820,7 @@ public:
 	string flagInit() {return "初期値";}
 	string flagCount() {return "利用数";}
 	string ttNewFlag() {return "フラグの作成";}
-	string menuNewFlag() {return ttNewFlag ~ "(&F)..." ~ "\tCtrl+F";}
+	string menuNewFlag() {return ttNewFlag ~ "(&F)..." ~ "\tCtrl+L";}
 	string ttNewStep() {return "ステップの作成";}
 	string menuNewStep() {return ttNewStep ~ "(&S)..." ~ "\tCtrl+P";}
 
