@@ -72,7 +72,7 @@ public:
 	/// oldKey = 変更前のキー。
 	/// newKey = 変更後のキー。
 	/// dup = 変更後の重複を許可するか。
-	private void change(K oldKey, K newKey, bool dup = false) {
+	void change(K oldKey, K newKey, bool dup = false) {
 		if (oldKey != newKey && (oldKey in _cont)) {
 			if (newKey in _cont) {
 				if (!dup) debugln(format(oldKey, " to ", newKey, " : ", _cont[newKey].toArray));

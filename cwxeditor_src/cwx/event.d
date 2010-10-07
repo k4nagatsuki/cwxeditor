@@ -236,6 +236,15 @@ struct CDetail {
 	}
 }
 
+/// スタートのID。
+typedef string StartId;
+/// 文字列をスタートIDに変換。
+StartId toStartId(string start) {return cast(StartId) start;}
+/// スタートコンテントの使用者。
+alias User!(StartId) IStartUser;
+/// スタートコンテントの使用回数カウンタ。
+alias UCCont!(StartId, IStartUser) SUseCounter;
+
 /// メッセージやダイアログが持つテキスト。
 private class TextHolder : CWXPath, IPathUser, IFlagUser, IStepUser {
 private:
@@ -443,7 +452,7 @@ public:
 }
 
 class Content : CWXPath, IPathUser, IBattleUser, IPackageUser, IFlagUser, IStepUser,
-		ICastUser, IItemUser, ISkillUser, IBeastUser, IInfoUser, MotionOwner {
+		ICastUser, IItemUser, ISkillUser, IBeastUser, IInfoUser, IStartUser, MotionOwner {
 	private EventTree _tree = null;
 
 	/// 型と後続テキストnameを指定してインスタンスを生成。
@@ -469,7 +478,7 @@ class Content : CWXPath, IPathUser, IBattleUser, IPackageUser, IFlagUser, IStepU
 		if (_name != name) {
 			changed;
 			if (_type is CType.START && _tree) {
-				_tree.refreshStartName(_name, name);
+				_tree.startUseCounter.change(toStartId(_name), toStartId(name), true);
 			}
 		}
 		_name = name;
@@ -560,6 +569,7 @@ class Content : CWXPath, IPathUser, IBattleUser, IPackageUser, IFlagUser, IStepU
 		if (c.parent) c.parent.remove(c);
 		c.parent = this;
 		if (_uc !is null) c.setUseCounter(useCounter);
+		if (_suc !is null) c.setSUseCounter(startUseCounter);
 		c.changeHandler = changeHandler;
 		_next ~= c;
 		changed;
@@ -572,6 +582,7 @@ class Content : CWXPath, IPathUser, IBattleUser, IPackageUser, IFlagUser, IStepU
 			if (c.parent) c.parent.remove(c);
 			c.parent = this;
 			if (_uc !is null) c.setUseCounter(useCounter);
+			if (_suc !is null) c.setSUseCounter(startUseCounter);
 			c.changeHandler = changeHandler;
 			_next = _next[0 .. index] ~ c ~ _next[index .. $];
 			changed;
@@ -581,6 +592,7 @@ class Content : CWXPath, IPathUser, IBattleUser, IPackageUser, IFlagUser, IStepU
 	/// 後続コンテントを除外する。
 	void remove(int index) {
 		if (_uc !is null) _next[index].removeUseCounter;
+		if (_suc !is null) _next[index].removeSUseCounter;
 		_next[index].changeHandler = null;
 		_next[index].parent = null;
 		_next = _next[0 .. index] ~ _next[index + 1 .. $];
@@ -659,6 +671,18 @@ class Content : CWXPath, IPathUser, IBattleUser, IPackageUser, IFlagUser, IStepU
 		mixin Prop!(T, T, Name, Def);
 	}
 
+	private string _start = "";
+	/// スタート名。
+	void start(string start) {
+		if (_suc) {
+			if (_start) _suc.remove(toStartId(_start), this);
+			if (start) _suc.add(toStartId(start), this);
+		}
+		_start = start;
+	}
+	/// ditto
+	string start() {return _start;}
+
 	/// エリアID。
 	mixin Prop!(AreaUser, ulong, "area", 0UL, ".area", ".area", true);
 	/// バトルID。
@@ -694,8 +718,6 @@ class Content : CWXPath, IPathUser, IBattleUser, IPackageUser, IFlagUser, IStepU
 	/// ダイアログ。
 	mixin Prop!(SDialog[], "dialogs", []);
 
-	/// スタート名。
-	mixin Prop!(string, "start", "");
 	/// クーポン名。
 	mixin Prop!(string, "coupon", "");
 	/// ゴシップ。
@@ -771,14 +793,6 @@ class Content : CWXPath, IPathUser, IBattleUser, IPackageUser, IFlagUser, IStepU
 	/// 背景画像群。
 	mixin Prop!(BgImage[], "bgImages", []);
 
-	/// コンテントが属するEventTree内のStartの名称が変更された際に呼出される。
-	void refreshStartName(string oldName, string newName) {
-		if (start == oldName) start = newName;
-		foreach (c; _next) {
-			c.refreshStartName(oldName, newName);
-		}
-	}
-
 	private void delegate() _change;
 	/// 変更ハンドラを登録する。
 	void changeHandler(void delegate() change) {
@@ -827,6 +841,36 @@ class Content : CWXPath, IPathUser, IBattleUser, IPackageUser, IFlagUser, IStepU
 	}
 	/// 使用回数カウンタを返す。存在しない場合はnullを返す。
 	UseCounter useCounter() {return _uc;}
+
+	private SUseCounter _suc = null;
+	/// スタートの使用回数カウンタを設定・除去する。
+	void setSUseCounter(SUseCounter suc) {
+		if (suc && _start) {
+			suc.add(toStartId(_start), this);
+		}
+		if (_suc && _start) {
+			_suc.remove(toStartId(_start), this);
+		}
+		foreach (c; next) {
+			c.setSUseCounter(suc);
+		}
+		_suc = suc;
+	}
+	/// ditto
+	void removeSUseCounter() {
+		if (_suc && _start) {
+			_suc.remove(toStartId(_start), this);
+		}
+		foreach (c; next) {
+			c.removeUseCounter;
+		}
+		_suc = null;
+	}
+	/// スタートの使用回数カウンタ。
+	SUseCounter startUseCounter() {return _suc;}
+	override void change(StartId newVal) {
+		_start = newVal;
+	}
 
 	private void idChangeImpl(T, Id)(ref T v, Id id) {
 		static if (is(T : EventTree)) return;
@@ -1189,6 +1233,7 @@ private:
 
 	Content[] _starts;
 	UseCounter _uc;
+	SUseCounter _suc;
 	void delegate() _change = null;
 
 	this(Content[] starts) in {
@@ -1196,9 +1241,11 @@ private:
 			assert (c.type is CType.START);
 		}
 	} body {
+		_suc = new SUseCounter;
 		_starts = starts;
 		foreach (s; _starts) {
 			s._tree = this;
+			s.setSUseCounter(_suc);
 		}
 	}
 	this() {
@@ -1206,6 +1253,7 @@ private:
 public:
 	/// イベントツリー名を指定してインスタンスを生成。
 	this(string name) {
+		_suc = new SUseCounter;
 		add(new Content(CType.START, name));
 	}
 	EventTreeOwner owner() {return _owner;}
@@ -1249,14 +1297,6 @@ public:
 		return _starts[0].name;
 	}
 
-	/// このイベントツリーに含まれるスタートコンテントの使用者に
-	/// oldNameというスタートコンテントを指しているものがあれば、
-	/// newNameに置換する。
-	void refreshStartName(string oldName, string newName) {
-		foreach (s; _starts) {
-			s.refreshStartName(oldName, newName);
-		}
-	}
 	/// スタートコンテントのインデックスを交換。
 	void swapStart(int index1, int index2) {
 		if (index1 != index2) changed;
@@ -1279,6 +1319,7 @@ public:
 		if (_uc !is null) {
 			evt.setUseCounter(_uc);
 		}
+		evt.setSUseCounter(_suc);
 		evt._tree = this;
 		evt.changeHandler = changeHandler;
 		_starts ~= evt;
@@ -1291,6 +1332,7 @@ public:
 		if (_uc !is null) {
 			evt.setUseCounter(_uc);
 		}
+		evt.setSUseCounter(_suc);
 		evt._tree = this;
 		evt.changeHandler = changeHandler;
 		_starts = _starts[0u .. index] ~ evt ~ _starts[index .. $];
@@ -1303,6 +1345,7 @@ public:
 		if (_uc !is null) {
 			_starts[index].removeUseCounter;
 		}
+		_starts[index].removeSUseCounter;
 		_starts[index]._tree = null;
 		_starts[index].changeHandler = null;
 		_starts = _starts[0 .. index] ~ _starts[index + 1 .. $];
@@ -1362,6 +1405,9 @@ public:
 		}
 		_uc = null;
 	}
+
+	/// スタートの使用回数カウンタ。
+	SUseCounter startUseCounter() {return _suc;}
 
 	/// エリア到着時・クリック時・パッケージ開始時・勝利・死亡時に発火するか。
 	void enter(bool enter) {
