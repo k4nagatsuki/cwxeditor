@@ -675,13 +675,20 @@ public:
 			d.loadFont(std.path.join(engineDir, f));
 		}
 		_win.setText(_prop.msgs.mainWindowName(null, null));
-		_win.setLayout = windowGridLayout(1, true);
+		if (_prop.var.etc.singleWindow) {
+			_win.setLayout = zeroGridLayout(1, true);
+		} else {
+			_win.setLayout = windowGridLayout(1, true);
+		}
 
 		auto toolComp = new Composite(_win, DWT.NONE);
 		toolComp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		toolComp.setLayout = new FillLayout;
 		if (_prop.var.etc.singleWindow) {
-			_dock = _prop.var.loadDock(_win, DWT.NONE, delegate Control(Composite parent, string key) {
+			auto dockComp = new Composite(_win, DWT.NONE);
+			dockComp.setLayoutData = new GridData(GridData.FILL_BOTH);
+			dockComp.setLayout = windowGridLayout(1, true);
+			_dock = _prop.var.loadDock(dockComp, DWT.NONE, delegate Control(Composite parent, string key) {
 				switch (key) {
 				case "data": {
 					_tableWin = new TableWindow(_comm, _prop, parent);
@@ -740,7 +747,7 @@ public:
 					_dirWin = new DirectoryWindow(_comm, _prop, null);
 				}
 			} else {
-				_dock = new DockingFolderCTC(_win, DWT.NONE, "work");
+				_dock = new DockingFolderCTC(dockComp, DWT.NONE, "work");
 				initDock;
 				auto data = _dock.addPane(_dock.first, Dir.N, 1, 3, "data");
 				_tableWin = new TableWindow(_comm, _prop, data);

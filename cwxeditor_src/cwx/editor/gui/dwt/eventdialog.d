@@ -1173,8 +1173,9 @@ public:
 	}
 protected:
 	override void setup(Composite area) {
-		area.setLayout = new FillLayout;
+		area.setLayout = new GridLayout(1, true);
 		_sash = new SplitPane(area, DWT.HORIZONTAL);
+		_sash.setLayoutData = new GridData(GridData.FILL_BOTH);
 		auto left = new Composite(_sash, DWT.NONE);
 		left.setLayout = zeroGridLayout(1);
 		auto right = new Composite(_sash, DWT.NONE);

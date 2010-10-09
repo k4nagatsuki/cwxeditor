@@ -10,6 +10,7 @@ import cwx.editor.gui.dwt.props;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.xmlbytestransfer;
 import cwx.editor.gui.dwt.absdialog;
+import cwx.editor.gui.dwt.centerlayout;
 
 import dwt.DWT;
 import dwt.DWTException;
@@ -168,9 +169,6 @@ protected:
 			comp.setLayout = new GridLayout(gdc, false);
 		}
 
-		(new Label(area, DWT.SEPARATOR | DWT.HORIZONTAL))
-			.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-
 		string[] vals;
 		if (_step !is null) {
 			stepName.setText = _step.name;
@@ -295,8 +293,12 @@ protected:
 		(new Label(area, DWT.SEPARATOR | DWT.HORIZONTAL))
 			.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		{
-			auto comp = new Composite(area, DWT.NULL);
-			comp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			auto ocomp = new Composite(area, DWT.NONE);
+			ocomp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			auto cl = new CenterLayout(DWT.HORIZONTAL | DWT.VERTICAL, 0);
+			cl.fillHorizontal = true;
+			ocomp.setLayout = cl;
+			auto comp = new Composite(ocomp, DWT.NONE);
 			comp.setLayout(new GridLayout(2, false));
 
 			(new Label(comp, DWT.NULL)).setText = prop.msgs.dlgLblFlagTrue;
@@ -317,9 +319,6 @@ protected:
 			flagFalse.addSelectionListener = fmod;
 			setGridMinW(flagFalse, prop.var.etc.flagValueWidth, GridData.FILL_HORIZONTAL);
 		}
-
-		(new Label(area, DWT.SEPARATOR | DWT.HORIZONTAL))
-			.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 		if (_flag !is null) {
 			flagName.setText = _flag.name;

@@ -1130,10 +1130,7 @@ public:
 	}
 protected:
 	override void setup(Composite area) {
-		auto cl = new CenterLayout(DWT.NONE, 0);
-		cl.fillHorizontal = true;
-		cl.fillVertical = true;
-		area.setLayout = cl;
+		area.setLayout = windowGridLayout(1);
 		auto tabf = new CTabFolder(area, DWT.BORDER);
 		constructBase(tabf);
 		constructDesc(tabf);
@@ -1153,7 +1150,10 @@ protected:
 			if (maxSize.y < size.y) maxSize.y = size.y;
 		}
 		scope rect = tabf.computeTrim(DWT.DEFAULT, DWT.DEFAULT, maxSize.x, maxSize.y);
-		tabf.setLayoutData = new Point(rect.width, rect.height);
+		auto gd = new GridData(GridData.FILL_BOTH);
+		gd.widthHint = rect.width;
+		gd.heightHint = rect.height;
+		tabf.setLayoutData = gd;
 
 		auto skin = findSkin(_prop, _summ);
 		if (_card) {
