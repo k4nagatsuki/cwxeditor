@@ -89,6 +89,10 @@ class Skin {
 					resDir = join(p, "D_" ~ c ~ "1");
 					return true;
 				}
+				if (std.file.exists(join(p, [c] ~ "_dt" ~ sep ~ "Table" ~ sep ~ "MapOfWirth.BMP"))) {
+					resDir = join(p, [c] ~ "_dt");
+					return true;
+				}
 			}
 			return false;
 		}

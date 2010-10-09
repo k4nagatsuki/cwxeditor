@@ -1225,6 +1225,7 @@ version (Windows) {
 	}
 	/// ditto
 	void clistdir(string path, bool delegate(string) callback) {
+		if (!.exists(path) || !.isdir(path)) return;
 		path = std.path.join(path, "*");
 		if (GetVersion < 0x80000000) {
 			WIN32_FIND_DATAW fd;

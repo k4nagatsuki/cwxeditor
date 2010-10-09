@@ -14,6 +14,7 @@ class System {
 	/// (拡張子は除く)を指定する。
 	/// バリアントの型名については次のサイトを参照した。
 	/// http://www.geocities.jp/chikuan_shusui/history/variant_engine.htm
+	/// http://dwandnl.web.fc2.com/darkwirth/
 	string sexName(Sex s, string legacyName) {
 		switch (s) {
 		case Sex.MALE: return "♂";
@@ -34,23 +35,31 @@ class System {
 	/// ditto
 	string natureName(Nature n, string legacyName) {
 		switch (n) {
-		case Nature.SPI: return "標準型";
+		case Nature.SPI: {
+			switch (toLower(legacyName)) {
+			case "darkwirth": return "他種族";
+			default: return "標準型";
+			}
+		}
 		case Nature.INT: {
 			switch (toLower(legacyName)) {
 			case "s_c_wirth": return "理性型";
 			case "oedowirth": return "参謀型";
+			case "darkwirth": return "妖木族";
 			default: return "知将型";
 			}
 		}
 		case Nature.AGL: {
 			switch (toLower(legacyName)) {
 			case "oedowirth": return "隠密型";
+			case "darkwirth": return "人獣族";
 			default: return "万能型";
 			}
 		}
 		case Nature.SCH: {
 			switch (toLower(legacyName)) {
 			case "s_c_wirth": return "秀才型";
+			case "darkwirth": return "小悪魔";
 			default:return "策士型";
 			}
 		}
@@ -58,30 +67,35 @@ class System {
 			switch (toLower(legacyName)) {
 			case "s_c_wirth": return "根性型";
 			case "oedowirth": return "剣客型";
+			case "darkwirth": return "悪鬼族";
 			default: return "勇将型";
 			}
 		}
 		case Nature.VIT: {
 			switch (toLower(legacyName)) {
 			case "s_c_wirth": return "熱血型";
+			case "darkwirth": return "蜥蜴族";
 			default: return "豪傑型";
 			}
 		}
 		case Nature.BRI: {
 			switch (toLower(legacyName)) {
 			case "oedowirth": return "秀英型";
+			case "darkwirth": return "人狼族";
 			default: return "英明型";
 			}
 		}
 		case Nature.MAT: {
 			switch (toLower(legacyName)) {
 			case "oedowirth": return "剣豪型";
+			case "darkwirth": return "鬼人族";
 			default: return "無双型";
 			}
 		}
 		case Nature.GEN: {
 			switch (toLower(legacyName)) {
 			case "oedowirth": return "賢才型";
+			case "darkwirth": return "大悪魔";
 			default: return "天才型";
 			}
 		}
@@ -89,6 +103,7 @@ class System {
 			switch (toLower(legacyName)) {
 			case "s_c_wirth": return "努力型";
 			case "oedowirth": return "晩成型";
+			case "darkwirth": return "妖虫族";
 			default: return "凡庸型";
 			}
 		}
@@ -96,10 +111,16 @@ class System {
 			switch (toLower(legacyName)) {
 			case "s_c_wirth": return "超人型";
 			case "oedowirth": return "覇道型";
+			case "darkwirth": return "闇の者";
 			default: return "英雄型";
 			}
 		}
-		case Nature.DIV: return "神仙型";
+		case Nature.DIV: {
+			switch (toLower(legacyName)) {
+			case "darkwirth": return "闇の者";
+			default: return "神竜族";
+			}
+		}
 		default: assert (0);
 		}
 	}
