@@ -415,6 +415,7 @@ public:
 		this.root = root;
 		refreshDirs;
 		current = root;
+		treeExpandedAll(dirs);
 	}
 
 	private bool openCWXPathImpl(FlagDir dir, string path) {
