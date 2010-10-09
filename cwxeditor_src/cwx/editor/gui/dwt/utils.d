@@ -1268,24 +1268,24 @@ ImageData cardImage(C)(Props prop, Skin skin, C c, string sPath, CastCard owner 
 	return r.createImageData;
 }
 
-void addCastCoupons(Combo combo, Props prop, bool talker) {
+void addCastCoupons(Combo combo, Props prop, bool talker, string legacyName) {
 	if (!talker) {
 		foreach (c; prop.var.etc.standardCoupons) {
 			combo.add(c);
 		}
 	}
 	foreach (e; SEX_ALL) {
-		combo.add(prop.sys.sexCoupon(e));
+		combo.add(prop.sys.sexCoupon(e, legacyName));
 	}
 	foreach (e; PERIOD_ALL) {
-		combo.add(prop.sys.periodCoupon(e));
+		combo.add(prop.sys.periodCoupon(e, legacyName));
 	}
 	foreach (e; NATURE_DEF) {
-		combo.add(prop.sys.natureCoupon(e));
+		combo.add(prop.sys.natureCoupon(e, legacyName));
 	}
 	foreach (e; MAKINGS_LEFT) {
-		combo.add(prop.sys.makingsCoupon(e));
-		combo.add(prop.sys.makingsCoupon(reverseMakings(e)));
+		combo.add(prop.sys.makingsCoupon(e, legacyName));
+		combo.add(prop.sys.makingsCoupon(reverseMakings(e), legacyName));
 	}
 }
 

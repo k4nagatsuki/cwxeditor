@@ -6,69 +6,15 @@ import cwx.features;
 import cwx.utils;
 
 class System {
-	private Sex[string] _sexTbl;
-	private Period[string] _periodTbl;
-	private Nature[string] _natureTbl;
-	private Makings[string] _makingsTbl;
-
 	/// 唯一のコンストラクタ。
-	this () {
-		foreach (e; SEX_ALL) {
-			_sexTbl[sexCoupon(e)] = e;
-		}
-		foreach (e; PERIOD_ALL) {
-			_periodTbl[periodCoupon(e)] = e;
-		}
-		foreach (e; NATURE_DEF) {
-			_natureTbl[natureCoupon(e)] = e;
-		}
-		foreach (e; MAKINGS_LEFT) {
-			_makingsTbl[makingsCoupon(e)] = e;
-			auto re = reverseMakings(e);
-			_makingsTbl[makingsCoupon(re)] = re;
-		}
-	}
-
-	/// クーポンから特性を取得し、oに格納する。
-	/// クーポンが特性に関連付けられない場合はfalseを返す。
-	bool toSex(string coupon, Sex o) {
-		auto p = coupon in _sexTbl;
-		if (p) {
-			o = *p;
-			return true;
-		}
-		return false;
-	}
-	/// ditto
-	bool toPeriod(string coupon, Period o) {
-		auto p = coupon in _periodTbl;
-		if (p) {
-			o = *p;
-			return true;
-		}
-		return false;
-	}
-	/// ditto
-	bool toNature(string coupon, Nature o) {
-		auto p = coupon in _natureTbl;
-		if (p) {
-			o = *p;
-			return true;
-		}
-		return false;
-	}
-	/// ditto
-	bool toMakings(string coupon, Makings o) {
-		auto p = coupon in _makingsTbl;
-		if (p) {
-			o = *p;
-			return true;
-		}
-		return false;
-	}
+	this () {}
 
 	/// 各特性を名前に変換する。名前は'＿'を除いてクーポンと一致する。
-	string sexName(Sex s) {
+	/// クラシックなシナリオの場合、legacyNameにエンジンのファイル名
+	/// (拡張子は除く)を指定する。
+	/// バリアントの型名については次のサイトを参照した。
+	/// http://www.geocities.jp/chikuan_shusui/history/variant_engine.htm
+	string sexName(Sex s, string legacyName) {
 		switch (s) {
 		case Sex.MALE: return "♂";
 		case Sex.FEMALE: return "♀";
@@ -76,7 +22,7 @@ class System {
 		}
 	}
 	/// ditto
-	string periodName(Period p) {
+	string periodName(Period p, string legacyName) {
 		switch (p) {
 		case Period.CHILD: return "子供";
 		case Period.YOUNG: return "若者";
@@ -86,25 +32,79 @@ class System {
 		}
 	}
 	/// ditto
-	string natureName(Nature n) {
+	string natureName(Nature n, string legacyName) {
 		switch (n) {
 		case Nature.SPI: return "標準型";
-		case Nature.INT: return "知将型";
-		case Nature.AGL: return "万能型";
-		case Nature.SCH: return "策士型";
-		case Nature.STR: return "勇将型";
-		case Nature.VIT: return "豪傑型";
-		case Nature.BRI: return "英明型";
-		case Nature.MAT: return "無双型";
-		case Nature.GEN: return "天才型";
-		case Nature.MED: return "凡庸型";
-		case Nature.HER: return "英雄型";
+		case Nature.INT: {
+			switch (toLower(legacyName)) {
+			case "s_c_wirth": return "理性型";
+			case "oedowirth": return "参謀型";
+			default: return "知将型";
+			}
+		}
+		case Nature.AGL: {
+			switch (toLower(legacyName)) {
+			case "oedowirth": return "隠密型";
+			default: return "万能型";
+			}
+		}
+		case Nature.SCH: {
+			switch (toLower(legacyName)) {
+			case "s_c_wirth": return "秀才型";
+			default:return "策士型";
+			}
+		}
+		case Nature.STR: {
+			switch (toLower(legacyName)) {
+			case "s_c_wirth": return "根性型";
+			case "oedowirth": return "剣客型";
+			default: return "勇将型";
+			}
+		}
+		case Nature.VIT: {
+			switch (toLower(legacyName)) {
+			case "s_c_wirth": return "熱血型";
+			default: return "豪傑型";
+			}
+		}
+		case Nature.BRI: {
+			switch (toLower(legacyName)) {
+			case "oedowirth": return "秀英型";
+			default: return "英明型";
+			}
+		}
+		case Nature.MAT: {
+			switch (toLower(legacyName)) {
+			case "oedowirth": return "剣豪型";
+			default: return "無双型";
+			}
+		}
+		case Nature.GEN: {
+			switch (toLower(legacyName)) {
+			case "oedowirth": return "賢才型";
+			default: return "天才型";
+			}
+		}
+		case Nature.MED: {
+			switch (toLower(legacyName)) {
+			case "s_c_wirth": return "努力型";
+			case "oedowirth": return "晩成型";
+			default: return "凡庸型";
+			}
+		}
+		case Nature.HER: {
+			switch (toLower(legacyName)) {
+			case "s_c_wirth": return "超人型";
+			case "oedowirth": return "覇道型";
+			default: return "英雄型";
+			}
+		}
 		case Nature.DIV: return "神仙型";
 		default: assert (0);
 		}
 	}
 	/// ditto
-	string makingsName(Makings m) {
+	string makingsName(Makings m, string legacyName) {
 		switch (m) {
 		case Makings.LOOKS_B: return "秀麗";
 		case Makings.LOOKS_U: return "醜悪";
@@ -159,20 +159,20 @@ class System {
 	}
 
 	/// 各特性をクーポンに変換する。
-	string sexCoupon(Sex p) {
-		return "＿" ~ sexName(p);
+	string sexCoupon(Sex p, string legacyName) {
+		return "＿" ~ sexName(p, legacyName);
 	}
 	/// ditto
-	string periodCoupon(Period p) {
-		return "＿" ~ periodName(p);
+	string periodCoupon(Period p, string legacyName) {
+		return "＿" ~ periodName(p, legacyName);
 	}
 	/// ditto
-	string natureCoupon(Nature n) {
-		return "＿" ~ natureName(n);
+	string natureCoupon(Nature n, string legacyName) {
+		return "＿" ~ natureName(n, legacyName);
 	}
 	/// ditto
-	string makingsCoupon(Makings m) {
-		return "＿" ~ makingsName(m);
+	string makingsCoupon(Makings m, string legacyName) {
+		return "＿" ~ makingsName(m, legacyName);
 	}
 
 	/// ペナルティカードであればtrue。

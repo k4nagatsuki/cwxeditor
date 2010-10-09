@@ -499,6 +499,7 @@ private:
 	void constructHistory(CTabFolder tabf) {
 		auto comp = new Composite(tabf, DWT.NONE);
 		comp.setLayout = new GridLayout(2, false);
+		auto skin = findSkin(_prop, _summ);
 		{
 			auto grp = new Group(comp, DWT.NONE);
 			grp.setText = _prop.msgs.coupons;
@@ -580,21 +581,21 @@ private:
 			{
 				auto comp3 = createButtonGroup(comp2, _prop.msgs.sex, 1, 1);
 				foreach (s; SEX_ALL) {
-					_sex[s] = createR(comp3, _prop.sys.sexName(s));
+					_sex[s] = createR(comp3, _prop.sys.sexName(s, skin.legacyName));
 				}
 				_sexU = createR(comp3, _prop.msgs.sexUnknown);
 			}
 			{
 				auto comp3 = createButtonGroup(comp2, _prop.msgs.period, 2, 1);
 				foreach (p; PERIOD_ALL) {
-					_period[p] = createR(comp3, _prop.sys.periodName(p));
+					_period[p] = createR(comp3, _prop.sys.periodName(p, skin.legacyName));
 				}
 				_periodU = createR(comp3, _prop.msgs.periodUnknown);
 			}
 			{
 				auto comp3 = createButtonGroup(comp2, _prop.msgs.nature, 2, 2);
 				foreach (n; NATURE_DEF) {
-					_nature[n] = createR(comp3, _prop.sys.natureName(n));
+					_nature[n] = createR(comp3, _prop.sys.natureName(n, skin.legacyName));
 				}
 				_natureU = createR(comp3, _prop.msgs.natureUnknown);
 			}
@@ -616,6 +617,7 @@ private:
 	void constructMakings(CTabFolder tabf) {
 		auto comp = new Composite(tabf, DWT.NONE);
 		comp.setLayout = new GridLayout(1, false);
+		auto skin = findSkin(_prop, _summ);
 		{
 			auto comp3 = createButtonGroup(comp, _prop.msgs.coupons, 4, 1, true);
 			auto sl = new MSListener;
@@ -623,7 +625,7 @@ private:
 				void createR(Makings m) {
 					auto radio = new Button(comp3, DWT.CHECK);
 					radio.setLayoutData = new GridData(GridData.FILL_BOTH);
-					radio.setText = _prop.sys.makingsName(m);
+					radio.setText = _prop.sys.makingsName(m, skin.legacyName);
 					radio.setData = new Integer(m);
 					radio.addSelectionListener(sl);
 					_makings[m] = radio;
@@ -1153,6 +1155,7 @@ protected:
 		scope rect = tabf.computeTrim(DWT.DEFAULT, DWT.DEFAULT, maxSize.x, maxSize.y);
 		tabf.setLayoutData = new Point(rect.width, rect.height);
 
+		auto skin = findSkin(_prop, _summ);
 		if (_card) {
 			_imgPath.image = _card.path;
 			if (_race) _race.select = 0;
@@ -1164,34 +1167,34 @@ protected:
 			scope makings = new HashSet!(Makings);
 			cp: foreach (c; _card.coupons) {
 				foreach (s; SEX_ALL) {
-					if (c.name == _prop.sys.sexCoupon(s)) {
+					if (c.name == _prop.sys.sexCoupon(s, skin.legacyName)) {
 						if (!sex) _sex[s].setSelection = true;
 						sex = true;
 						continue cp;
 					}
 				}
 				foreach (per; PERIOD_ALL) {
-					if (c.name == _prop.sys.periodCoupon(per)) {
+					if (c.name == _prop.sys.periodCoupon(per, skin.legacyName)) {
 						if (!period) _period[per].setSelection = true;
 						period = true;
 						continue cp;
 					}
 				}
 				foreach (nat; NATURE_DEF) {
-					if (c.name == _prop.sys.natureCoupon(nat)) {
+					if (c.name == _prop.sys.natureCoupon(nat, skin.legacyName)) {
 						if (!nature) _nature[nat].setSelection = true;
 						nature = true;
 						continue cp;
 					}
 				}
 				foreach (m; MAKINGS_LEFT) {
-					if (c.name == _prop.sys.makingsCoupon(m)) {
+					if (c.name == _prop.sys.makingsCoupon(m, skin.legacyName)) {
 						if (!makings.contains(m)) _makings[m].setSelection = true;
 						makings.add(m);
 						continue cp;
 					}
 					auto r = reverseMakings(m);
-					if (c.name == _prop.sys.makingsCoupon(r)) {
+					if (c.name == _prop.sys.makingsCoupon(r, skin.legacyName)) {
 						if (!makings.contains(m)) _makings[r].setSelection = true;
 						makings.add(m);
 						continue cp;
@@ -1274,10 +1277,10 @@ protected:
 		setMaxLife;
 	}
 
-	private Coupon createCoupon(E)(Button[E] radios, string delegate(E) coupon) {
+	private Coupon createCoupon(E)(Button[E] radios, string delegate(E, string) coupon, string legacyName) {
 		foreach (e, radio; radios) {
 			if (radio.getSelection) {
-				return new Coupon(coupon(e), 0);
+				return new Coupon(coupon(e, legacyName), 0);
 			}
 		}
 		return null;
@@ -1295,20 +1298,22 @@ protected:
 				_card = new CastCard(_summ.newId!(CastCard), _name.getText, _imgPath.image,
 					_desc.getRRText, _level.getSelection, _lifeMax.getSelection);
 			}
+			auto skin = findSkin(_prop, _summ);
+			string legacyName = skin.legacyName;
 			Coupon[] cs;
-			auto sex = createCoupon!(Sex)(_sex, &_prop.sys.sexCoupon);
+			auto sex = createCoupon!(Sex)(_sex, &_prop.sys.sexCoupon, legacyName);
 			if (sex) cs ~= sex;
 			auto race = selectedRace;
 			if (race) {
 				cs ~= new Coupon(_prop.msgs.raceCoupon(race), 0);
 			}
-			auto period = createCoupon!(Period)(_period, &_prop.sys.periodCoupon);
+			auto period = createCoupon!(Period)(_period, &_prop.sys.periodCoupon, legacyName);
 			if (period) cs ~= period;
-			auto nature = createCoupon!(Nature)(_nature, &_prop.sys.natureCoupon);
+			auto nature = createCoupon!(Nature)(_nature, &_prop.sys.natureCoupon, legacyName);
 			if (nature) cs ~= nature;
 			foreach (m, radio; _makings) {
 				if (radio.getSelection) {
-					cs ~= new Coupon(_prop.sys.makingsCoupon(m), 0);
+					cs ~= new Coupon(_prop.sys.makingsCoupon(m, legacyName), 0);
 				}
 			}
 			cs ~= coupons;

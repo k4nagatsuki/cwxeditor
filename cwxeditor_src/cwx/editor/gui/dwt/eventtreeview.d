@@ -389,7 +389,6 @@ private:
 	}
 
 	Content create(CType type, string name) {
-		auto skin = findSkin(_prop, _summ);
 		switch (type) {
 		case CType.START: {
 			return new Content(type, createNewName(_prop.msgs.defaultStartName, (string name) {
@@ -467,7 +466,7 @@ private:
 			}
 		} case CType.TALK_DIALOG: {
 			if (_autoOpen) {
-				auto dlg = new SpeakDialog(_prop, skin, _tree.getShell, null);
+				auto dlg = new SpeakDialog(_prop, _tree.getShell, _summ, null);
 				return dlg.open ? dlg.event : null;
 			} else {
 				auto r = new Content(type, name);
@@ -635,7 +634,7 @@ private:
 			}
 		} case CType.BRANCH_COUPON: {
 			if (_autoOpen) {
-				auto dlg = new CouponEventDialog!(CType.BRANCH_COUPON, false)(_prop, _tree.getShell, null);
+				auto dlg = new CouponEventDialog!(CType.BRANCH_COUPON, false)(_prop, _tree.getShell, _summ, null);
 				return dlg.open ? dlg.event : null;
 			} else {
 				return new Content(type, name);
@@ -742,7 +741,7 @@ private:
 			}
 		} case CType.GET_COUPON: {
 			if (_autoOpen) {
-				auto dlg = new CouponEventDialog!(CType.GET_COUPON, true)(_prop, _tree.getShell, null);
+				auto dlg = new CouponEventDialog!(CType.GET_COUPON, true)(_prop, _tree.getShell, _summ, null);
 				return dlg.open ? dlg.event : null;
 			} else {
 				return new Content(type, name);
@@ -813,7 +812,7 @@ private:
 			}
 		} case CType.LOSE_COUPON: {
 			if (_autoOpen) {
-				auto dlg = new CouponEventDialog!(CType.LOSE_COUPON, false)(_prop, _tree.getShell, null);
+				auto dlg = new CouponEventDialog!(CType.LOSE_COUPON, false)(_prop, _tree.getShell, _summ, null);
 				return dlg.open ? dlg.event : null;
 			} else {
 				return new Content(type, name);
@@ -848,7 +847,6 @@ private:
 	}
 
 	bool edit(Content evt) {
-		auto skin = findSkin(_prop, _summ);
 		switch (evt.type) {
 		case CType.START: {
 			return false;
@@ -888,7 +886,7 @@ private:
 				(_comm, _prop, _summ, _tree.getShell, evt);
 			return dlg.open;
 		} case CType.TALK_DIALOG: {
-			auto dlg = new SpeakDialog(_prop, skin, _tree.getShell, evt);
+			auto dlg = new SpeakDialog(_prop, _tree.getShell, _summ, evt);
 			return dlg.open;
 		} case CType.PLAY_BGM: {
 			auto dlg = new BgmDialog(_comm, _prop, _tree.getShell, _summ, evt);
@@ -971,7 +969,7 @@ private:
 			auto dlg = new MoneyEventDialog!(CType.BRANCH_MONEY)(_prop, _tree.getShell, evt);
 			return dlg.open;
 		} case CType.BRANCH_COUPON: {
-			auto dlg = new CouponEventDialog!(CType.BRANCH_COUPON, false)(_prop, _tree.getShell, evt);
+			auto dlg = new CouponEventDialog!(CType.BRANCH_COUPON, false)(_prop, _tree.getShell, _summ, evt);
 			return dlg.open;
 		} case CType.BRANCH_COMPLETE_STAMP: {
 			auto dlg = new EndEventDialog!(CType.BRANCH_COMPLETE_STAMP)(_prop, _tree.getShell, evt);
@@ -1029,7 +1027,7 @@ private:
 			auto dlg = new MoneyEventDialog!(CType.GET_MONEY)(_prop, _tree.getShell, evt);
 			return dlg.open;
 		} case CType.GET_COUPON: {
-			auto dlg = new CouponEventDialog!(CType.GET_COUPON, true)(_prop, _tree.getShell, evt);
+			auto dlg = new CouponEventDialog!(CType.GET_COUPON, true)(_prop, _tree.getShell, _summ, evt);
 			return dlg.open;
 		} case CType.GET_COMPLETE_STAMP: {
 			auto dlg = new EndEventDialog!(CType.GET_COMPLETE_STAMP)(_prop, _tree.getShell, evt);
@@ -1063,7 +1061,7 @@ private:
 			auto dlg = new MoneyEventDialog!(CType.LOSE_MONEY)(_prop, _tree.getShell, evt);
 			return dlg.open;
 		} case CType.LOSE_COUPON: {
-			auto dlg = new CouponEventDialog!(CType.LOSE_COUPON, false)(_prop, _tree.getShell, evt);
+			auto dlg = new CouponEventDialog!(CType.LOSE_COUPON, false)(_prop, _tree.getShell, _summ, evt);
 			return dlg.open;
 		} case CType.LOSE_COMPLETE_STAMP: {
 			auto dlg = new EndEventDialog!(CType.LOSE_COMPLETE_STAMP)(_prop, _tree.getShell, evt);

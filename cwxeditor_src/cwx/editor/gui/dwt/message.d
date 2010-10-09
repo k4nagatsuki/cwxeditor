@@ -58,7 +58,7 @@ import dwt.events.ModifyEvent;
 class SpeakDialog : AbsDialog {
 private:
 	Props _prop;
-	Skin _skin;
+	Summary _summ;
 	Content _evt;
 	Combo _talkers;
 	SDialog[] _dlgs;
@@ -182,9 +182,9 @@ private:
 		}
 	}
 public:
-	this(Props prop, Skin skin, Shell shell, Content evt) {
+	this(Props prop, Shell shell, Summary summ, Content evt) {
 		_prop = prop;
-		_skin = skin;
+		_summ = summ;
 		_evt = evt;
 		super(prop, shell, prop.msgs.dlgTitSpeak, prop.images.content(CType.TALK_DIALOG), true, prop.var.speakDlg);
 	}
@@ -230,9 +230,9 @@ protected:
 			comp.setLayout = new GridLayout(2, false);
 			Control tp;
 			if (_evt) {
-				tp = createTalkerPane2(comp, _prop, _evt.talkerNC, _evt.dialogs[0].rCoupons, _talkers, _rCoupons);
+				tp = createTalkerPane2(comp, _prop, _summ, _evt.talkerNC, _evt.dialogs[0].rCoupons, _talkers, _rCoupons);
 			} else {
-				tp = createTalkerPane2(comp, _prop, Talker.SELECTED, [], _talkers, _rCoupons);
+				tp = createTalkerPane2(comp, _prop, _summ, Talker.SELECTED, [], _talkers, _rCoupons);
 			}
 			tp.setLayoutData = new GridData(GridData.FILL_BOTH);
 			_text = createMessagePane(_prop, true, comp);
@@ -243,12 +243,13 @@ protected:
 			_text.widget.setLayoutData = gd;
 			_text.widget.addModifyListener(new ModL);
 		}
+		auto skin = findSkin(_prop, _summ);
 		{
-			auto bar = createSCharBar(area, &insert, &put, _prop, _skin);
+			auto bar = createSCharBar(area, &insert, &put, _prop, skin);
 			bar.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		}
 		{
-			auto bar = createSkinSCharBar(area, &insert, _prop, _skin);
+			auto bar = createSkinSCharBar(area, &insert, _prop, skin);
 			bar.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		}
 		if (_evt) {
@@ -443,7 +444,7 @@ protected:
 	}
 }
 
-private Composite createTalkerPane2(Composite parent, Props prop, Talker talker,
+private Composite createTalkerPane2(Composite parent, Props prop, Summary summ, Talker talker,
 		string[] coupons, out Combo talkerCombo, out Text couponList) {
 	auto comp = new Composite(parent, DWT.NONE);
 	comp.setLayout = new GridLayout(2, false);
@@ -472,11 +473,12 @@ private Composite createTalkerPane2(Composite parent, Props prop, Talker talker,
 	auto couponCombo = new Combo(comp, DWT.DROP_DOWN | DWT.BORDER);
 	couponCombo.setVisibleItemCount = 20;
 	auto push = new Button(comp, DWT.PUSH);
+	auto skin = findSkin(prop, summ);
 	{
 		auto gd = new GridData(GridData.FILL_HORIZONTAL);
 		gd.widthHint = prop.var.etc.talkersWidth;
 		couponCombo.setLayoutData = gd;
-		addCastCoupons(couponCombo, prop, true);
+		addCastCoupons(couponCombo, prop, true, skin.legacyName);
 		couponCombo.select = 0;
 		push.setToolTipText = prop.msgs.setTalkerCoupon;
 		push.setImage = prop.images.setTalkerCoupon;
@@ -519,18 +521,19 @@ private Composite createTalkerPane
 	static class Img {
 		private Canvas _canvas;
 		private Props _prop;
-		private Skin _skin;
-		this(Props prop, Skin skin) {
+		private Summary _summ;
+		this(Props prop, Summary summ) {
 			_prop = prop;
-			_skin = skin;
+			_summ = summ;
 		}
 		void redraw() {
 			_canvas.redraw;
 		}
-		Canvas createCanvas(Composite parent, Skin skin, Summary summ,
+		Canvas createCanvas(Composite parent,
 				MaterialSelect!(MtType.CARD, Combo, Combo) msel) {
+			auto skin = findSkin(_prop, _summ);
 			_canvas = new Canvas(parent, DWT.BORDER);
-			_canvas.addPaintListener(new class(skin, summ, msel) PaintListener {
+			_canvas.addPaintListener(new class(skin, _summ, msel) PaintListener {
 				private Summary _summ;
 				private MaterialSelect!(MtType.CARD, Combo, Combo) _msel;
 				this(Skin skin, Summary summ, MaterialSelect!(MtType.CARD, Combo, Combo) msel) {
@@ -583,8 +586,7 @@ private Composite createTalkerPane
 		gl.marginHeight = 0;
 		comp.setLayout = gl;
 	}
-	auto skin = findSkin(prop, summ);
-	auto image = new Img(prop, skin);
+	auto image = new Img(prop, summ);
 	string[] ss = [
 		prop.msgs.talker(Talker.SELECTED),
 		prop.msgs.talker(Talker.UNSELECTED),
@@ -602,7 +604,7 @@ private Composite createTalkerPane
 		l.setLayoutData = gd;
 	}
 	{
-		auto canvas = image.createCanvas(comp, skin, summ, msel);
+		auto canvas = image.createCanvas(comp, msel);
 		auto gd = new GridData(GridData.FILL_BOTH);
 		auto s = canvas.computeSize(prop.looks.cardSize.width, prop.looks.cardSize.height);
 		gd.widthHint = s.x;

@@ -349,6 +349,7 @@ class CouponEventDialog(CType Type, bool EditValue) : AbsDialog {
 private:
 	Props _prop;
 	Content _evt;
+	Summary _summ;
 
 	Button[Range] _range;
 	Combo _name;
@@ -357,11 +358,12 @@ private:
 	}
 
 public:
-	this(Props prop, Shell shell, Content evt) in {
+	this(Props prop, Shell shell, Summary summ, Content evt) in {
 		assert (!evt || evt.type == Type);
 	} body {
 		_prop = prop;
 		_evt = evt;
+		_summ = summ;
 		super(prop, shell, prop.msgs.dlgTitCoupon, prop.images.content(Type), true, prop.var.couponEvtDlg);
 	}
 
@@ -371,6 +373,7 @@ public:
 protected:
 	override void setup(Composite area) {
 		area.setLayout = new GridLayout(2, false);
+		auto skin = findSkin(_prop, _summ);
 		{
 			auto grp = new Group(area, DWT.NONE);
 			grp.setLayoutData = new GridData(GridData.FILL_VERTICAL);
@@ -400,7 +403,7 @@ protected:
 					gd.horizontalSpan = 3;
 					gd.widthHint = _prop.var.etc.nameWidth;
 					_name.setLayoutData = gd;
-					addCastCoupons(_name, _prop, false);
+					addCastCoupons(_name, _prop, false, skin.legacyName);
 				}
 				static if (EditValue) {
 					auto ll = new Label(comp, DWT.RIGHT);
