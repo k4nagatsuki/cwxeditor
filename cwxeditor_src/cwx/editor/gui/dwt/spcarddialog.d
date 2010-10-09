@@ -18,6 +18,7 @@ import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.absdialog;
+import cwx.editor.gui.dwt.splitpane;
 
 import std.math;
 
@@ -96,6 +97,19 @@ private:
 	Spinner _y;
 	Spinner _scale;
 
+	class SDListener : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			auto sash = cast(SplitPane) e.widget;
+			auto ws = sash.getWeights;
+			static if (is (C == MenuCard)) {
+				_prop.var.etc.menuCardSashL = ws[0];
+				_prop.var.etc.menuCardSashR = ws[1];
+			} else static if (is (C == EnemyCard)) {
+				_prop.var.etc.enemyCardSashL = ws[0];
+				_prop.var.etc.enemyCardSashR = ws[1];
+			} else static assert (0);
+		}
+	}
 public:
 	this(Commons comm, Props prop, Shell shell, Summary summ, C card) {
 		assert (summ !is null);
@@ -133,78 +147,87 @@ protected:
 		area.setLayout = cl;
 		{
 			auto comp = new Composite(area, DWT.NONE);
-			comp.setLayout = new GridLayout(2, false);
+			comp.setLayout = new GridLayout(1, false);
 			{
-				auto comp2 = new Composite(comp, DWT.NONE);
-				comp2.setLayoutData = new GridData(GridData.FILL_BOTH);
-				auto gl = new GridLayout(1, false);
-				gl.marginWidth = 0;
-				gl.marginHeight = 0;
-				comp2.setLayout = gl;
+				auto sash = new SplitPane(comp, DWT.HORIZONTAL);
+				sash.setLayoutData = new GridData(GridData.FILL_BOTH);
 				{
-					auto grp = new Group(comp2, DWT.NONE);
-					grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-					static if (is (C == MenuCard)) {
-						grp.setLayout = new GridLayout(1, false);
-						grp.setText = _prop.msgs.name;
-						_name = new Text(grp, DWT.BORDER);
-						_name.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-						checker(_name);
-					} else static if (is (C == EnemyCard)) {
-						grp.setLayout = new GridLayout(2, false);
-						grp.setText = _prop.msgs.enemyCardBase;
-						_casts = new Combo(grp, DWT.BORDER | DWT.DROP_DOWN | DWT.READ_ONLY);
-						foreach (c; _summ.casts) {
-							_casts.add(c.name);
-						}
-						_casts.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-						_casts.addSelectionListener(new Repaint);
-						_escape = new Button(grp, DWT.TOGGLE);
-						_escape.setImage = _prop.images.menuDoEscape;
-
-						_escape.setToolTipText = _prop.msgs.ttDoEscape;
-					} else {
-						static assert (0);
-					}
-				}
-				{
-					static if (is (C == MenuCard)) {
-						auto skin = findSkin(_prop, _summ);
-						_imgPath = new ImageSelect!(MtType.CARD)(comp2, DWT.NONE, _comm, _prop, _summ,
-							_prop.looks.cardSize.width, _prop.looks.cardSize.height, _summ.legacy);
-						_imgPath.widget.setLayoutData = new GridData(GridData.FILL_BOTH);
-					} else static if (is (C == EnemyCard)) {
+					auto comp2 = new Composite(sash, DWT.NONE);
+					auto gl = new GridLayout(1, false);
+					gl.marginWidth = 0;
+					gl.marginHeight = 0;
+					comp2.setLayout = gl;
+					{
 						auto grp = new Group(comp2, DWT.NONE);
-						grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-						grp.setLayout = new CenterLayout;
-						grp.setText = _prop.msgs.image;
-						_image = new Canvas(grp, DWT.BORDER | DWT.DOUBLE_BUFFERED);
-						auto rect = _image.computeTrim(DWT.DEFAULT, DWT.DEFAULT,
-							_prop.looks.cardSize.width, _prop.looks.cardSize.height);
-						_image.setLayoutData = new Point(rect.width, rect.height);
-						_image.addPaintListener(new CardPaint);
-					} else {
-						static assert (0);
+						grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+						static if (is (C == MenuCard)) {
+							grp.setLayout = new GridLayout(1, false);
+							grp.setText = _prop.msgs.name;
+							_name = new Text(grp, DWT.BORDER);
+							_name.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+							checker(_name);
+						} else static if (is (C == EnemyCard)) {
+							grp.setLayout = new GridLayout(2, false);
+							grp.setText = _prop.msgs.enemyCardBase;
+							_casts = new Combo(grp, DWT.BORDER | DWT.DROP_DOWN | DWT.READ_ONLY);
+							foreach (c; _summ.casts) {
+								_casts.add(c.name);
+							}
+							auto gd = new GridData(GridData.FILL_HORIZONTAL);
+							gd.widthHint = _prop.var.etc.nameWidth;
+							_casts.setLayoutData = gd;
+							_casts.addSelectionListener(new Repaint);
+							_escape = new Button(grp, DWT.TOGGLE);
+							_escape.setImage = _prop.images.menuDoEscape;
+
+							_escape.setToolTipText = _prop.msgs.ttDoEscape;
+						} else {
+							static assert (0);
+						}
+					}
+					{
+						static if (is (C == MenuCard)) {
+							auto skin = findSkin(_prop, _summ);
+							_imgPath = new ImageSelect!(MtType.CARD)(comp2, DWT.NONE, _comm, _prop, _summ,
+								_prop.looks.cardSize.width, _prop.looks.cardSize.height, _summ.legacy);
+							_imgPath.widget.setLayoutData = new GridData(GridData.FILL_BOTH);
+						} else static if (is (C == EnemyCard)) {
+							auto grp = new Group(comp2, DWT.NONE);
+							grp.setLayoutData = new GridData(GridData.FILL_BOTH);
+							grp.setLayout = new CenterLayout;
+							grp.setText = _prop.msgs.image;
+							_image = new Canvas(grp, DWT.BORDER | DWT.DOUBLE_BUFFERED);
+							auto rect = _image.computeTrim(DWT.DEFAULT, DWT.DEFAULT,
+								_prop.looks.cardSize.width, _prop.looks.cardSize.height);
+							_image.setLayoutData = new Point(rect.width, rect.height);
+							_image.addPaintListener(new CardPaint);
+						} else {
+							static assert (0);
+						}
 					}
 				}
-			}
-			{
-				auto grp = new Group(comp, DWT.NONE);
-				grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-				grp.setLayout = new GridLayout(2, false);
-				grp.setText = _prop.msgs.refFlag;
-				_flag = new Table(grp, DWT.SINGLE | DWT.FULL_SELECTION | DWT.BORDER);
-				auto gd = new GridData(GridData.FILL_BOTH);
-				gd.widthHint = 150;
-				_flag.setLayoutData = gd;
-				auto colN = new FullTableColumn(_flag, DWT.NONE);
+				{
+					auto grp = new Group(sash, DWT.NONE);
+					grp.setLayout = new GridLayout(2, false);
+					grp.setText = _prop.msgs.refFlag;
+					_flag = new Table(grp, DWT.SINGLE | DWT.FULL_SELECTION | DWT.BORDER);
+					auto gd = new GridData(GridData.FILL_BOTH);
+					gd.widthHint = _prop.var.etc.flagsWidth;
+					gd.heightHint = _prop.var.etc.flagsHeight;
+					_flag.setLayoutData = gd;
+					auto colN = new FullTableColumn(_flag, DWT.NONE);
+				}
+				static if (is (C == MenuCard)) {
+					sash.setWeights = [_prop.var.etc.menuCardSashL, _prop.var.etc.menuCardSashR];
+				} else static if (is (C == EnemyCard)) {
+					sash.setWeights = [_prop.var.etc.enemyCardSashL, _prop.var.etc.enemyCardSashR];
+				} else static assert (0);
+				sash.addDisposeListener(new SDListener);
 			}
 			{
 				auto grp = new Group(comp, DWT.NONE);
 				grp.setText = _prop.msgs.cardPosition;
-				auto ggd = new GridData(GridData.FILL_HORIZONTAL);
-				ggd.horizontalSpan = 2;
-				grp.setLayoutData = ggd;
+				grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				grp.setLayout = new CenterLayout(DWT.HORIZONTAL | DWT.VERTICAL, 0);
 				auto comp2 = new Composite(grp, DWT.NONE);
 				comp2.setLayout = new GridLayout(3, false);
@@ -233,9 +256,7 @@ protected:
 			static if (is (C == MenuCard)) {
 				{
 					auto grp = new Group(comp, DWT.NONE);
-					auto ggd = new GridData(GridData.FILL_HORIZONTAL);
-					ggd.horizontalSpan = 2;
-					grp.setLayoutData = ggd;
+					grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 					grp.setLayout = new CenterLayout(DWT.HORIZONTAL);
 					grp.setText = _prop.msgs.desc;
 					_desc = new FixedWidthText(dwtData(_prop.looks.cardDescFont), _prop.looks.cardDescLen, grp, DWT.BORDER);

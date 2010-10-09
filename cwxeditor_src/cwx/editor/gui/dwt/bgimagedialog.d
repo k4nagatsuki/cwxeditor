@@ -19,6 +19,7 @@ import cwx.editor.gui.dwt.customtext;
 import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.absdialog;
+import cwx.editor.gui.dwt.splitpane;
 
 import dwt.DWT;
 import dwt.widgets.Display;
@@ -116,6 +117,14 @@ private:
 			}
 		}
 	}
+	class SDListener : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			auto sash = cast(SplitPane) e.widget;
+			auto ws = sash.getWeights;
+			_prop.var.etc.backSashL = ws[0];
+			_prop.var.etc.backSashR = ws[1];
+		}
+	}
 public:
 	this(Commons comm, Props prop, Shell shell, Summary summ, BgImage back) {
 		assert (summ !is null);
@@ -135,32 +144,35 @@ public:
 protected:
 	override void setup(Composite area) {
 		area.setLayout = zeroGridLayout(1);
+		auto skin = findSkin(_prop, _summ);
 		{
 			auto comp = new Composite(area, DWT.NONE);
-			comp.setLayout = new GridLayout(2, false);
+			comp.setLayout = new GridLayout(1, false);
 			{
-				auto skin = findSkin(_prop, _summ);
-				_imgPath = new ImageSelect!(MtType.BG_IMG)(comp, DWT.NONE, _comm, _prop, _summ,
-					_prop.var.etc.bgImageSampleWidth, _prop.var.etc.bgImageSampleHeight, false, &select);
-				_imgPath.widget.setLayoutData = new GridData(GridData.FILL_BOTH);
-			}
-			{
-				auto grp = new Group(comp, DWT.NONE);
-				grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-				grp.setLayout = new GridLayout(2, false);
-				grp.setText = _prop.msgs.refFlag;
-				_flag = new Table(grp, DWT.SINGLE | DWT.FULL_SELECTION | DWT.BORDER);
-				auto gd = new GridData(GridData.FILL_BOTH);
-				gd.widthHint = _prop.var.etc.flagsWidth;
-				_flag.setLayoutData = gd;
-				auto colN = new FullTableColumn(_flag, DWT.NONE);
+				auto sash = new SplitPane(comp, DWT.HORIZONTAL);
+				sash.setLayoutData = new GridData(GridData.FILL_BOTH);
+				{
+					_imgPath = new ImageSelect!(MtType.BG_IMG)(sash, DWT.NONE, _comm, _prop, _summ,
+						_prop.var.etc.bgImageSampleWidth, _prop.var.etc.bgImageSampleHeight, false, &select);
+				}
+				{
+					auto grp = new Group(sash, DWT.NONE);
+					grp.setLayout = new GridLayout(2, false);
+					grp.setText = _prop.msgs.refFlag;
+					_flag = new Table(grp, DWT.SINGLE | DWT.FULL_SELECTION | DWT.BORDER);
+					auto gd = new GridData(GridData.FILL_BOTH);
+					gd.widthHint = _prop.var.etc.flagsWidth;
+					gd.heightHint = _prop.var.etc.flagsHeight;
+					_flag.setLayoutData = gd;
+					auto colN = new FullTableColumn(_flag, DWT.NONE);
+				}
+				sash.setWeights = [_prop.var.etc.backSashL, _prop.var.etc.backSashR];
+				sash.addDisposeListener(new SDListener);
 			}
 			{
 				auto grp = new Group(comp, DWT.NONE);
 				grp.setText = _prop.msgs.cardPosition;
-				auto ggd = new GridData(GridData.FILL_HORIZONTAL);
-				ggd.horizontalSpan = 2;
-				grp.setLayoutData = ggd;
+				grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				grp.setLayout = new CenterLayout(DWT.HORIZONTAL | DWT.VERTICAL, 0);
 				auto comp2 = new Composite(grp, DWT.NONE);
 				comp2.setLayout = new GridLayout(5, false);
@@ -189,9 +201,7 @@ protected:
 			{
 				auto comp2 = new Composite(comp, DWT.NONE);
 				comp2.setLayout = new GridLayout(2, false);
-				auto cgd = new GridData(GridData.HORIZONTAL_ALIGN_END);
-				cgd.horizontalSpan = 2;
-				comp2.setLayoutData = cgd;
+				comp2.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
 				auto l = new Label(comp2, DWT.NONE);
 				l.setText = _prop.msgs.bgImageSettings;
 				_easy = new Combo(comp2, DWT.BORDER | DWT.DROP_DOWN | DWT.READ_ONLY);
@@ -212,9 +222,7 @@ protected:
 		}
 		{
 			auto l = new Label(area, DWT.SEPARATOR | DWT.HORIZONTAL);
-			auto cgd = new GridData(GridData.FILL_HORIZONTAL);
-			cgd.horizontalSpan = 2;
-			l.setLayoutData = cgd;
+			l.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		}
 
 		auto nof = new TableItem(_flag, DWT.NONE);

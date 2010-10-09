@@ -377,6 +377,13 @@ class FlexEtcProps : Properties {
 	mixin Property!("flagSashR", int, 7);
 	mixin Property!("flagSashV", bool, false);
 	mixin Property!("flagsWidth", int, 150, true);
+	mixin Property!("flagsHeight", int, 200, true);
+	mixin Property!("menuCardSashL", int, 5);
+	mixin Property!("menuCardSashR", int, 3);
+	mixin Property!("enemyCardSashL", int, 3);
+	mixin Property!("enemyCardSashR", int, 5);
+	mixin Property!("backSashL", int, 5);
+	mixin Property!("backSashR", int, 3);
 	mixin Property!("bgImageSampleWidth", int, 150, true);
 	mixin Property!("bgImageSampleHeight", int, 150, true);
 	mixin Property!("cardIdColumn", int, 50);

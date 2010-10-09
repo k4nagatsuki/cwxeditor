@@ -9,12 +9,15 @@ import cwx.editor.gui.dwt.utils;
 import std.compat;
 
 import dwt.DWT;
+import dwt.widgets.Display;
 import dwt.widgets.Shell;
 import dwt.widgets.Composite;
 import dwt.widgets.Button;
 import dwt.widgets.Combo;
 import dwt.widgets.Text;
 import dwt.widgets.Label;
+import dwt.widgets.Listener;
+import dwt.widgets.Event;
 import dwt.custom.CCombo;
 import dwt.layout.GridLayout;
 import dwt.layout.GridData;
@@ -90,9 +93,25 @@ abstract class AbsDialog {
 		_ret = true;
 		_win.close;
 	}
+	private bool _enterClose;
+	void enterClose(bool value) {_enterClose = value;}
+	bool enterClose() {return _enterClose;}
+	private class CKListener : Listener {
+		override void handleEvent(Event e) {
+			if (e.character == DWT.CR) {
+				_ret = true;
+				_win.close;
+			}
+		}
+	}
 	private void cancel() {_win.close;}
 	bool open() {
 		setup(_area);
+		CKListener ckl = null;
+		if (_enterClose) {
+			ckl = new CKListener;
+			Display.getCurrent.addFilter(DWT.KeyDown, ckl);
+		}
 		if (_size) {
 			auto p = new Point(_size.width, _size.height);
 			if (p.x == DWT.DEFAULT || p.y == DWT.DEFAULT) {
@@ -113,6 +132,9 @@ abstract class AbsDialog {
 		auto d = _win.getDisplay;
 		while (!_win.isDisposed) {
 			if (!d.readAndDispatch) d.sleep;
+		}
+		if (ckl) {
+			Display.getCurrent.removeFilter(DWT.KeyDown, ckl);
 		}
 		return _ret;
 	}

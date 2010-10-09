@@ -102,6 +102,7 @@ public:
 		this.prop = prop;
 		this.dir = dir;
 		this._step = step;
+		enterClose = true;
 	}
 
 	/// Returns: 編集対象となったステップ。
@@ -256,6 +257,7 @@ public:
 		this.prop = prop;
 		this._flag = flag;
 		this.dir = dir;
+		enterClose = true;
 	}
 
 	/// Returns: 編集対象となったフラグ。
