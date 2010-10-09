@@ -855,7 +855,7 @@ public:
 			_win.setMenuBar = bar;
 		}
 		if (_prop.var.etc.singleWindow) {
-			auto cbar = new CoolBar(toolComp, DWT.FLAT);
+			auto cbar = new CoolBar(toolComp, DWT.NONE);
 			cbar.addControlListener(new CCListener);
 			cbar.addDisposeListener(new CDListener);
 			_cbar = cbar;
