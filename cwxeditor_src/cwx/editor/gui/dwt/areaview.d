@@ -160,10 +160,10 @@ private:
 				auto spAuto = _area.spAuto;
 				_area.spAuto = _spAuto;
 				_spAuto = spAuto;
-				_autoMenu.setSelection = _area.spAuto;
-				_autoTMenu.setSelection = _area.spAuto;
-				_customMenu.setSelection = !_area.spAuto;
-				_customTMenu.setSelection = !_area.spAuto;
+				if (_autoMenu) _autoMenu.setSelection = _area.spAuto;
+				if (_autoTMenu) _autoTMenu.setSelection = _area.spAuto;
+				if (_customMenu) _customMenu.setSelection = !_area.spAuto;
+				if (_customTMenu) _customTMenu.setSelection = !_area.spAuto;
 			}
 			override void undo() {impl;}
 			override void redo() {impl;}
@@ -1180,12 +1180,11 @@ private:
 	}
 	static if (UseCards) {
 		void __setAuto(bool value) {
-			if (_imgp.isVisible) .forceFocus(this);
 			_area.spAuto = value;
-			_customMenu.setSelection = !value;
-			_customTMenu.setSelection = !value;
-			_autoMenu.setSelection = value;
-			_autoTMenu.setSelection = value;
+			if (_autoMenu) _autoMenu.setSelection = value;
+			if (_autoTMenu) _autoTMenu.setSelection = value;
+			if (_customMenu) _customMenu.setSelection = !value;
+			if (_customTMenu) _customTMenu.setSelection = !value;
 		}
 	}
 
@@ -1557,8 +1556,8 @@ public:
 			if (!view) {
 				list.deselectAll;
 			}
-			menu.setSelection = view;
-			titm.setSelection = view;
+			if (menu) menu.setSelection = view;
+			if (titm) titm.setSelection = view;
 			refreshControls;
 			_imgp.redraw;
 		}
