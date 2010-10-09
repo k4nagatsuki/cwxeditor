@@ -319,8 +319,12 @@ public:
 		_uc = null;
 	}
 	override void change(AreaId newVal) {
+		if (_handleChange) _handleChange(newVal);
 		_id = newVal;
 	}
+	private void delegate(AreaId) _handleChange = null;
+	/// change呼出しをdlgに通知する。
+	void handleChange(void delegate(AreaId) dlg) {_handleChange = dlg;}
 }
 
 /// バトルのID。
@@ -377,8 +381,12 @@ public:
 		_uc = null;
 	}
 	override void change(BattleId newVal) {
+		if (_handleChange) _handleChange(newVal);
 		_id = newVal;
 	}
+	private void delegate(BattleId) _handleChange = null;
+	/// change呼出しをdlgに通知する。
+	void handleChange(void delegate(BattleId) dlg) {_handleChange = dlg;}
 }
 
 /// パッケージのID。

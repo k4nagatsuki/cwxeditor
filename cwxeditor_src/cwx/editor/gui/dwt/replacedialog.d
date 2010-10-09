@@ -280,6 +280,32 @@ public:
 		_replMode = true;
 		replaceImpl;
 	}
+	private void searchId(IUser, string Prop, T)(CWXPath path, T id) {
+		auto user = cast(IUser) path;
+		if (user) {
+			if (mixin ("user." ~ Prop) == id) addResult(user);
+		}
+		auto eto = cast(EventTreeOwner) path;
+		if (eto) {
+			foreach (o; eto.trees) searchId!(IUser, Prop, T)(o, id);
+		}
+		auto area = cast(Area) path;
+		if (area) {
+			foreach (o; area.cards) searchId!(IUser, Prop, T)(o, id);
+			foreach (o; area.backs) searchId!(IUser, Prop, T)(o, id);
+		}
+		auto battle = cast(Battle) path;
+		if (battle) {
+			foreach (o; battle.cards) searchId!(IUser, Prop, T)(o, id);
+			foreach (o; battle.backs) searchId!(IUser, Prop, T)(o, id);
+		}
+		auto casts = cast(CastCard) path;
+		if (casts) {
+			foreach (o; casts.skills) searchId!(IUser, Prop, T)(o, id);
+			foreach (o; casts.items) searchId!(IUser, Prop, T)(o, id);
+			foreach (o; casts.beasts) searchId!(IUser, Prop, T)(o, id);
+		}
+	}
 	private void replaceImpl() {
 		string from = _from.getText;
 		if (from.length == 0) return;

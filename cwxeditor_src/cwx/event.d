@@ -162,8 +162,8 @@ static this () {
 		CType.BRANCH_LEVEL:CDetail("Branch", "Level", true, [CArg.AVERAGE:_("average"), CArg.LEVEL:"value"]),
 		CType.BRANCH_STATUS:CDetail("Branch", "Status", true, [CArg.TARGET_NS:_("targetm"), CArg.STATUS:"status"]),
 		CType.BRANCH_PARTY_NUMBER:CDetail("Branch", "PartyNumber", true, [CArg.PARTY_NUMBER:"value"]),
-		CType.BRANCH_AREA:CDetail("Branch", "Area", true),
-		CType.BRANCH_BATTLE:CDetail("Branch", "Battle", true),
+		CType.BRANCH_AREA:CDetail("Branch", "Area", true, true, false),
+		CType.BRANCH_BATTLE:CDetail("Branch", "Battle", true, false, true),
 		CType.BRANCH_IS_BATTLE:CDetail("Branch", "IsBattle", true),
 		CType.BRANCH_CAST:CDetail("Branch", "Cast", true, [CArg.CAST:"id"]),
 		CType.BRANCH_ITEM:CDetail("Branch", "Item", true, [CArg.ITEM:_("id"), CArg.RANGE:"targets", CArg.CARD_NUMBER:"number"]),
@@ -214,6 +214,8 @@ struct CDetail {
 	string name;
 	string type;
 	bool owner;
+	bool areaBr = false;
+	bool battleBr = false;
 
 	string[CArg] args;
 	/// argを使用するコンテントであればtrueを返す。
@@ -226,12 +228,18 @@ struct CDetail {
 		string[CArg] args;
 		return CDetail(name, type, owner, args);
 	}
-	static CDetail opCall(string name, string type, bool owner, string[CArg] args) {
+	static CDetail opCall(string name, string type, bool owner, bool areaBr, bool battleBr) {
+		string[CArg] args;
+		return CDetail(name, type, owner, args, areaBr, battleBr);
+	}
+	static CDetail opCall(string name, string type, bool owner, string[CArg] args, bool areaBr = false, bool battleBr = false) {
 		CDetail r;
 		r.name = name;
 		r.type = type;
 		r.owner = owner;
 		r.args = args;
+		r.areaBr = areaBr;
+		r.battleBr = battleBr;
 		return r;
 	}
 }
@@ -451,7 +459,7 @@ public:
 	}
 }
 
-class Content : CWXPath, IPathUser, IBattleUser, IPackageUser, IFlagUser, IStepUser,
+class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser, IFlagUser, IStepUser,
 		ICastUser, IItemUser, ISkillUser, IBeastUser, IInfoUser, IStartUser, MotionOwner {
 	private EventTree _tree = null;
 
@@ -480,6 +488,28 @@ class Content : CWXPath, IPathUser, IBattleUser, IPackageUser, IFlagUser, IStepU
 			if (_type is CType.START && _tree) {
 				_tree.startUseCounter.change(toStartId(_name), toStartId(name), true);
 			}
+			if (_parent && _parent.detail.areaBr) {
+				if (icmp(name, "default") == 0) {
+					area = 0;
+				} else if (isNumeric(name)) {
+					try {
+						area = to!(ulong)(name);
+					} catch {
+						area = 0;
+					}
+				}
+			}
+			if (_parent && _parent.detail.battleBr) {
+				if (icmp(name, "default") == 0) {
+					battle = 0;
+				} else if (isNumeric(name)) {
+					try {
+						battle = to!(ulong)(name);
+					} catch {
+						battle = 0;
+					}
+				}
+			}
 		}
 		_name = name;
 	}
@@ -491,6 +521,37 @@ class Content : CWXPath, IPathUser, IBattleUser, IPackageUser, IFlagUser, IStepU
 	private void parent(Content parent) in {
 		assert (!parent || parent.detail.owner);
 	} body {
+		if (_parent is parent) return;
+		bool oldAreaBr = _parent && _parent.detail.areaBr;
+		bool oldBattleBr = _parent && _parent.detail.battleBr;
+		bool newAreaBr = parent && parent.detail.areaBr;
+		bool newBattleBr = parent && parent.detail.battleBr;
+		if (!oldAreaBr && newAreaBr) {
+			if (icmp(name, "default") == 0) {
+				area = 0;
+			} else if (isNumeric(name)) {
+				try {
+					area = to!(ulong)(name);
+				} catch {
+					area = 0;
+				}
+			}
+		} else if (oldAreaBr && !newAreaBr) {
+			area = 0;
+		}
+		if (!oldBattleBr && newBattleBr) {
+			if (icmp(name, "default") == 0) {
+				battle = 0;
+			} else if (isNumeric(name)) {
+				try {
+					battle = to!(ulong)(name);
+				} catch {
+					battle = 0;
+				}
+			}
+		} else if (oldBattleBr && !newBattleBr) {
+			battle = 0;
+		}
 		_parent = parent;
 	}
 	/// ditto
@@ -653,7 +714,11 @@ class Content : CWXPath, IPathUser, IBattleUser, IPackageUser, IFlagUser, IStepU
 			~ "}"
 			~ (New ? (is(typeof(new T))
 				? "if (!_" ~ Name ~ ") _" ~ Name ~ " = new " ~ T.stringof ~ ";"
-				: "if (!_" ~ Name ~ ") _" ~ Name ~ " = new " ~ T.stringof ~ "(this);"
+				: "if (!_" ~ Name ~ ") {"
+				~ "    _" ~ Name ~ " = new " ~ T.stringof ~ "(this);"
+				~ "    static if (is(T == AreaUser)) _" ~ Name ~ ".handleChange = &areaChg;"
+				~ "    static if (is(T == BattleUser)) _" ~ Name ~ ".handleChange = &battleChg;"
+				~ "}"
 			) : "")
 			~ "if (_" ~ Name ~ Get ~ " != val) changed;"
 			~ "setValUCs(this._" ~ Name ~ Get ~ ");"
@@ -685,8 +750,26 @@ class Content : CWXPath, IPathUser, IBattleUser, IPackageUser, IFlagUser, IStepU
 
 	/// エリアID。
 	mixin Prop!(AreaUser, ulong, "area", 0UL, ".area", ".area", true);
+	private bool check_area(ulong id) {
+		areaChg(toAreaId(id));
+		return true;
+	}
+	private void areaChg(AreaId id) {
+		if (area != id && _parent && _parent.detail.areaBr) {
+			_name = id == 0 ? "Default" : to!(string)(cast(ulong) id);
+		}
+	}
 	/// バトルID。
 	mixin Prop!(BattleUser, ulong, "battle", 0UL, ".battle", ".battle", true);
+	private bool check_battle(ulong id) {
+		battleChg(toBattleId(id));
+		return true;
+	}
+	private void battleChg(BattleId id) {
+		if (battle != id && _parent && _parent.detail.battleBr) {
+			_name = id == 0 ? "Default" : to!(string)(cast(ulong) id);
+		}
+	}
 	/// パッケージID。
 	mixin Prop!(PackageUser, ulong, "packages", 0UL, ".packages", ".packages", true);
 	/// フラグ。
@@ -890,6 +973,7 @@ class Content : CWXPath, IPathUser, IBattleUser, IPackageUser, IFlagUser, IStepU
 		}
 	}
 	override void change(PathId id) {idChange(id);}
+	override void change(AreaId id) {idChange(id);}
 	override void change(BattleId id) {idChange(id);}
 	override void change(PackageId id) {idChange(id);}
 	override void change(FlagId id) {idChange(id);}

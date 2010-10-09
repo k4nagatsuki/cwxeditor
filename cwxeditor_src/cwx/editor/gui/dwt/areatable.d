@@ -93,6 +93,11 @@ private:
 		}
 		return null;
 	}
+	void refreshIDs() {
+		foreach (itm; _areas.getItems) {
+			itm.setText(ID, to!(string)((cast(AbstractArea) itm.getData).id));
+		}
+	}
 	void openArea() {
 		auto area = getSelectionArea;
 		if (area) {
@@ -214,6 +219,7 @@ private:
 						_summ.insert(index, cast(Package) area);
 						newPackageItem(index);
 					}
+					refreshIDs;
 					e.detail = DND.DROP_NONE;
 				} else {
 					// 他のリストからのコピー

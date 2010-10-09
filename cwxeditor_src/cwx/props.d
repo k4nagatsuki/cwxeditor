@@ -1026,8 +1026,10 @@ public:
 		}
 	}
 	string evtChildBrStepN(Step step, ref string text) {
-		uint ate = 0;
-		int val = text == evtChildDefault ? -1 : (isNumeric(text) ? to!(int)(text) : -1);
+		int val = -1;
+		try {
+			val = text == evtChildDefault ? -1 : (isNumeric(text) ? to!(int)(text) : -1);
+		} catch {}
 		if (step is null) {
 			return "指定無し = " ~ (val >= 0 ? "Step - " ~ to!(string)(val) : "その他");
 		} else {
@@ -1088,15 +1090,16 @@ public:
 	string evtChildBrArea(Area[] areas, ref string text) {
 		assert (areas == areas.sort);
 		if (text.length > 0) {
-			uint ate = 0;
-			long val = text == evtChildDefault ? -1 : (isNumeric(text) ? to!(long)(text) : -1);
-			if (ate > 0 && val >= 0) {
-				foreach (a; areas) {
-					if (a.id == val) {
-						return "エリア = " ~ a.name;
+			try {
+				long val = text == evtChildDefault ? -1 : (isNumeric(text) ? to!(long)(text) : -1);
+				if (val >= 0) {
+					foreach (a; areas) {
+						if (a.id == val) {
+							return "エリア = " ~ a.name;
+						}
 					}
 				}
-			}
+			} catch {}
 		}
 		text = evtChildDefault;
 		return "エリア = その他";
@@ -1104,15 +1107,16 @@ public:
 	string evtChildBrBattle(Battle[] btls, ref string text) {
 		assert (btls == btls.sort);
 		if (text.length > 0) {
-			uint ate = 0;
-			long val = text == evtChildDefault ? -1 : (isNumeric(text) ? to!(long)(text) : -1);
-			if (ate > 0 && val >= 0) {
-				foreach (b; btls) {
-					if (b.id == val) {
-						return "バトル = " ~ b.name;
+			try {
+				long val = text == evtChildDefault ? -1 : (isNumeric(text) ? to!(long)(text) : -1);
+				if (val >= 0) {
+					foreach (b; btls) {
+						if (b.id == val) {
+							return "バトル = " ~ b.name;
+						}
 					}
 				}
-			}
+			} catch {}
 		}
 		text = evtChildDefault;
 		return "バトル = その他";

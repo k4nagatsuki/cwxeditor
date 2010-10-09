@@ -689,7 +689,7 @@ private:
 				return new Content(type, name);
 			}
 		} case CType.CHECK_FLAG: {
-			if (_autoOpen && _summ.flagDirRoot.allSteps.length > 0) {
+			if (_autoOpen && _summ.flagDirRoot.allFlags.length > 0) {
 				auto dlg = new FlagJudgeDialog(_prop, _tree.getShell, _summ.flagDirRoot, null);
 				return dlg.open ? dlg.event : null;
 			} else {
@@ -1669,6 +1669,7 @@ public:
 			store(evt);
 			evt.name = name;
 			itm.setText = combo.getText;
+			_comm.refUseCount.call;
 		}
 		refreshStatusLine;
 	}
