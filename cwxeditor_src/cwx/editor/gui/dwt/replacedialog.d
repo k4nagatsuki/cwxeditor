@@ -68,6 +68,7 @@ private:
 	CTabItem _tabID;
 	CTabItem _tabPath;
 	CTabItem _tabUnuse;
+	CTabItem _tabDupBr;
 	Button _replace;
 
 	Text _from;
@@ -470,6 +471,19 @@ private:
 		tab.setControl = comp;
 		_tabUnuse = tab;
 	}
+	void constructDupBr(CTabFolder tabf) {
+		auto comp = new Composite(tabf, DWT.NONE);
+		comp.setLayout = new GridLayout(1, true);
+		{
+			auto l = new Label(comp, DWT.NONE);
+			l.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+			l.setText = _prop.msgs.replDupBr;
+		}
+		auto tab = new CTabItem(tabf, DWT.NONE);
+		tab.setText = _prop.msgs.replForDupBr;
+		tab.setControl = comp;
+		_tabDupBr = tab;
+	}
 public:
 	this(Commons comm, Props prop, Shell shell, Summary summ) {
 		_comm = comm;
@@ -511,6 +525,7 @@ public:
 			constructID(_tabf);
 			constructPath(_tabf);
 			constructUnuse(_tabf);
+			constructDupBr(_tabf);
 			_tabf.addSelectionListener(new TSListener);
 		}
 		{
@@ -649,54 +664,56 @@ public:
 			replacePathImpl;
 		} else if (_tabf.getSelection is _tabUnuse) {
 			searchUnuseImpl;
+		} else if (_tabf.getSelection is _tabDupBr) {
+			searchDupBrImpl;
 		} else assert (0);
 	}
-	private void searchUnuseStart(ref uint count) {
-		foreach (o; _summ.areas) searchUnuseStart(o, count);
-		foreach (o; _summ.battles) searchUnuseStart(o, count);
-		foreach (o; _summ.packages) searchUnuseStart(o, count);
-		foreach (o; _summ.casts) searchUnuseStart(o, count);
-		foreach (o; _summ.skills) searchUnuseStart(o, count);
-		foreach (o; _summ.items) searchUnuseStart(o, count);
-		foreach (o; _summ.beasts) searchUnuseStart(o, count);
-		foreach (o; _summ.infos) searchUnuseStart(o, count);
+	private void searchAll(ref uint count,
+			void delegate(CWXPath path, ref uint count) dlg) {
+		foreach (o; _summ.areas) searchAll(o, count, dlg);
+		foreach (o; _summ.battles) searchAll(o, count, dlg);
+		foreach (o; _summ.packages) searchAll(o, count, dlg);
+		foreach (o; _summ.casts) searchAll(o, count, dlg);
+		foreach (o; _summ.skills) searchAll(o, count, dlg);
+		foreach (o; _summ.items) searchAll(o, count, dlg);
+		foreach (o; _summ.beasts) searchAll(o, count, dlg);
+		foreach (o; _summ.infos) searchAll(o, count, dlg);
 	}
-	private void searchUnuseStart(CWXPath path, ref uint count) {
+	private void searchAll(CWXPath path, ref uint count,
+			void delegate(CWXPath path, ref uint count) dlg) {
+		dlg(path, count);
 		auto eto = cast(EventTreeOwner) path;
 		if (eto) {
-			foreach (tree; eto.trees) {
-				foreach (s; tree.starts[1 .. $]) {
-					if (tree.startUseCounter.get(toStartId(s.name)) == 0) {
-						addResult(s);
-					}
-				}
-				searchUnuseStart(tree, count);
-			}
+			foreach (o; eto.trees) searchAll(o, count, dlg);
+		}
+		auto et = cast(EventTree) path;
+		if (et) {
+			foreach (o; et.starts) searchAll(o, count, dlg);
 		}
 		auto c = cast(Content) path;
 		if (c) {
-			foreach (o; c.next) searchUnuseStart(o, count);
+			foreach (o; c.next) searchAll(o, count, dlg);
 		}
 		auto area = cast(Area) path;
 		if (area) {
-			foreach (o; area.cards) searchUnuseStart(o, count);
-			foreach (o; area.backs) searchUnuseStart(o, count);
+			foreach (o; area.cards) searchAll(o, count, dlg);
+			foreach (o; area.backs) searchAll(o, count, dlg);
 		}
 		auto battle = cast(Battle) path;
 		if (battle) {
-			foreach (o; battle.cards) searchUnuseStart(o, count);
+			foreach (o; battle.cards) searchAll(o, count, dlg);
 		}
 		auto casts = cast(CastCard) path;
 		if (casts) {
-			foreach (o; casts.skills) searchUnuseStart(o, count);
-			foreach (o; casts.items) searchUnuseStart(o, count);
-			foreach (o; casts.beasts) searchUnuseStart(o, count);
+			foreach (o; casts.skills) searchAll(o, count, dlg);
+			foreach (o; casts.items) searchAll(o, count, dlg);
+			foreach (o; casts.beasts) searchAll(o, count, dlg);
 		}
 		auto mo = cast(MotionOwner) path;
 		if (mo) {
 			foreach (m; mo.motions) {
 				if (m.beast) {
-					searchUnuseStart(m.beast, count);
+					searchAll(m.beast, count, dlg);
 				}
 			}
 		}
@@ -801,11 +818,39 @@ public:
 			searchUnuseImpl2!("toInfoId(o.id)")(_summ.infos, count);
 		}
 		if (unuseStart) {
-			searchUnuseStart(count);
+			searchAll(count, (CWXPath path, ref uint count) {
+				auto et = cast(EventTree) path;
+				if (et) {
+					foreach (s; et.starts[1 .. $]) {
+						if (et.startUseCounter.get(toStartId(s.name)) == 0) {
+							addResult(s);
+							count++;
+						}
+					}
+				}
+			});
 		}
 		if (unusePath) {
 			searchUnuseImpl2!("toPathId(o)")(allMaterials(true), count);
 		}
+		setResultStatus(count);
+	}
+	private void searchDupBrImpl() {
+		uint count = 0;
+		searchAll(count, (CWXPath path, ref uint count) {
+			auto c = cast(Content) path;
+			if (c && c.detail.owner && c.type != CType.TALK_MESSAGE && c.type != CType.TALK_DIALOG) {
+				auto set = new HashSet!(string);
+				foreach (cld; c.next) {
+					if (cld.name == "") continue;
+					if (set.contains(cld.name)) {
+						addResult(c);
+						count++;
+					}
+					set.add(cld.name);
+				}
+			}
+		});
 		setResultStatus(count);
 	}
 	private void replaceTextImpl() {

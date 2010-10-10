@@ -208,12 +208,15 @@ public:
 	string replForID() {return "ID検索";}
 	string replForPath() {return "素材検索";}
 	string replForUnuse() {return "未使用検索";}
+	string replForDupBr() {return "重複分岐検索";}
+
+	string replDupBr() {return "重複する分岐(フラグ分岐が両方ともTRUEになっている等)を検索します。";}
 
 	string replFrom() {return "検索(置換前)";}
 	string replTo() {return "置換後";}
 
 	string replText() {return "検索/置換するテキスト";}
-	string replTextTarget() {return "置換対象";}
+	string replTextTarget() {return "検索/置換対象";}
 	string replTextSummary() {return "貼り紙";}
 	string replTextMessage() {return "メッセージ";}
 	string replTextCardName() {return "カード名";}
