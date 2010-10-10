@@ -208,9 +208,9 @@ public:
 	string replForID() {return "ID検索";}
 	string replForPath() {return "素材検索";}
 	string replForUnuse() {return "未使用検索";}
-	string replForDupBr() {return "重複分岐検索";}
+	string replForError() {return "誤り検索";}
 
-	string replDupBr() {return "重複する分岐(フラグ分岐が両方ともTRUEになっている等)を検索します。";}
+	string replError() {return "重複する分岐(フラグ分岐が両方ともTRUEになっている等)・条件クーポンに抜けがある台詞コンテント・存在しない素材を参照しているコンテント等を検索します。";}
 
 	string replFrom() {return "検索(置換前)";}
 	string replTo() {return "置換後";}

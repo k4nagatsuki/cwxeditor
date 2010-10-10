@@ -602,6 +602,12 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			return [indexOf!("a is b")(_tree.starts, this)];
 		}
 	}
+	/// このコンテントが属すツリーを返す。
+	EventTree tree() {
+		auto ps = parentStart;
+		if (ps) return ps._tree;
+		return null;
+	}
 	/// このコンテントが属すスタートコンテントを返す。
 	Content parentStart() {
 		if (type is CType.START) return this;

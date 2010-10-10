@@ -761,6 +761,7 @@ private:
 			static assert (0);
 		}
 		_comm.refPath.call(frp, trp, isdir);
+		_comm.refUseCount.call;
 		return to;
 	}
 	void dirsEditEnd(TreeItem itm, Control c) {

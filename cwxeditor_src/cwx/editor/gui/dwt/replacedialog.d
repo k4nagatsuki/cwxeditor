@@ -10,6 +10,7 @@ import cwx.card;
 import cwx.motion;
 import cwx.flag;
 import cwx.usecounter;
+import cwx.types;
 import cwx.path;
 import cwx.background;
 
@@ -68,7 +69,7 @@ private:
 	CTabItem _tabID;
 	CTabItem _tabPath;
 	CTabItem _tabUnuse;
-	CTabItem _tabDupBr;
+	CTabItem _tabError;
 	Button _replace;
 
 	Text _from;
@@ -471,18 +472,18 @@ private:
 		tab.setControl = comp;
 		_tabUnuse = tab;
 	}
-	void constructDupBr(CTabFolder tabf) {
+	void constructError(CTabFolder tabf) {
 		auto comp = new Composite(tabf, DWT.NONE);
 		comp.setLayout = new GridLayout(1, true);
 		{
-			auto l = new Label(comp, DWT.NONE);
+			auto l = new Label(comp, DWT.WRAP);
 			l.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-			l.setText = _prop.msgs.replDupBr;
+			l.setText = _prop.msgs.replError;
 		}
 		auto tab = new CTabItem(tabf, DWT.NONE);
-		tab.setText = _prop.msgs.replForDupBr;
+		tab.setText = _prop.msgs.replForError;
 		tab.setControl = comp;
-		_tabDupBr = tab;
+		_tabError = tab;
 	}
 public:
 	this(Commons comm, Props prop, Shell shell, Summary summ) {
@@ -525,7 +526,7 @@ public:
 			constructID(_tabf);
 			constructPath(_tabf);
 			constructUnuse(_tabf);
-			constructDupBr(_tabf);
+			constructError(_tabf);
 			_tabf.addSelectionListener(new TSListener);
 		}
 		{
@@ -664,12 +665,13 @@ public:
 			replacePathImpl;
 		} else if (_tabf.getSelection is _tabUnuse) {
 			searchUnuseImpl;
-		} else if (_tabf.getSelection is _tabDupBr) {
-			searchDupBrImpl;
+		} else if (_tabf.getSelection is _tabError) {
+			searchErrorImpl;
 		} else assert (0);
 	}
 	private void searchAll(ref uint count,
 			void delegate(CWXPath path, ref uint count) dlg) {
+		dlg(_summ, count);
 		foreach (o; _summ.areas) searchAll(o, count, dlg);
 		foreach (o; _summ.battles) searchAll(o, count, dlg);
 		foreach (o; _summ.packages) searchAll(o, count, dlg);
@@ -692,6 +694,7 @@ public:
 		}
 		auto c = cast(Content) path;
 		if (c) {
+			foreach (o; c.backs) searchAll(o, count, dlg);
 			foreach (o; c.next) searchAll(o, count, dlg);
 		}
 		auto area = cast(Area) path;
@@ -835,19 +838,114 @@ public:
 		}
 		setResultStatus(count);
 	}
-	private void searchDupBrImpl() {
+	private void searchErrorImpl() {
 		uint count = 0;
+		auto froot = _summ.flagDirRoot;
+		auto sPath = _summ.scenarioPath;
+		auto skin = findSkin(_prop, _summ);
 		searchAll(count, (CWXPath path, ref uint count) {
+			auto summ = cast(Summary) path;
+			if (summ) {
+				if ((summ.imagePath != "" && !isBinImg(summ.imagePath) && !skin.findPath(summ.imagePath, skin.extImage, skin.tableDir, sPath).length)
+						|| !summ.area(summ.startArea)) {
+					addResult(path);
+					count++;
+					return;
+				}
+			}
+			auto card = cast(Card) path;
+			if (card) {
+				if (card.path != "" && !isBinImg(card.path) && !skin.findPath(card.path, skin.extImage, skin.tableDir, sPath).length) {
+					addResult(path);
+					count++;
+					return;
+				}
+			}
+			auto bi = cast(BgImage) path;
+			if (bi) {
+				if (!skin.findPath(bi.path, skin.extImage, skin.tableDir, sPath).length) {
+					addResult(path);
+					count++;
+					return;
+				}
+			}
+			auto mc = cast(MenuCard) path;
+			if (mc) {
+				if (mc.path != "" && !isBinImg(mc.path) && !skin.findPath(mc.path, skin.extImage, skin.tableDir, sPath).length) {
+					addResult(path);
+					count++;
+					return;
+				}
+			}
+			auto ec = cast(EnemyCard) path;
+			if (ec) {
+				if (ec.id == 0 || !_summ.casts(ec.id)) {
+					addResult(path);
+					count++;
+					return;
+				}
+			}
 			auto c = cast(Content) path;
-			if (c && c.detail.owner && c.type != CType.TALK_MESSAGE && c.type != CType.TALK_DIALOG) {
+			if (!c) return;
+			if (c.detail.owner && c.type != CType.TALK_MESSAGE && c.type != CType.TALK_DIALOG) {
 				auto set = new HashSet!(string);
 				foreach (cld; c.next) {
 					if (cld.name == "") continue;
 					if (set.contains(cld.name)) {
-						addResult(c);
+						addResult(path);
 						count++;
+						return;
 					}
 					set.add(cld.name);
+				}
+			}
+			if (c.type == CType.TALK_DIALOG) {
+				if (c.dialogs.length) {
+					if (c.dialogs[$ - 1].rCoupons.length) {
+						addResult(path);
+						count++;
+						return;
+					} else {
+						foreach (dlg; c.dialogs[0 .. $ - 1]) {
+							if (!dlg.rCoupons.length) {
+								addResult(path);
+								count++;
+								return;
+							}
+						}
+					}
+				}
+			}
+			bool hasStart() {
+				foreach (s; c.tree.starts) {
+					if (s.name == c.start) return true;
+				}
+				return false;
+			}
+			if ((c.flag != "" && !froot.findFlag(c.flag))
+					|| (c.step != "" && !froot.findStep(c.step))
+					|| (c.type == CType.TALK_MESSAGE && c.talkerC == Talker.IMAGE
+						&& c.cardPath != "" && !skin.findPath(c.cardPath, skin.extImage, skin.tableDir, sPath).length)
+					|| (c.bgmPath != "" && !skin.findPath(c.bgmPath, skin.extBgm, skin.bgmDir, sPath).length)
+					|| (c.soundPath != "" && !skin.findPath(c.soundPath, skin.extSound, skin.seDir, sPath).length)
+					|| (c.area != 0 && !_summ.area(c.area))
+					|| (c.battle != 0 && !_summ.battle(c.battle))
+					|| (c.packages != 0 && !_summ.packages(c.packages))
+					|| (c.casts != 0 && !_summ.casts(c.casts))
+					|| (c.item != 0 && !_summ.item(c.item))
+					|| (c.skill != 0 && !_summ.skill(c.skill))
+					|| (c.beast != 0 && !_summ.beast(c.beast))
+					|| (c.info != 0 && !_summ.info(c.info))
+					|| (c.start != "" && !hasStart)) {
+				addResult(path);
+				count++;
+				return;
+			}
+			foreach (m; c.motions) {
+				if (m.type == MType.SUMMON_BEAST && !m.beast) {
+					addResult(path);
+					count++;
+					return;
 				}
 			}
 		});
