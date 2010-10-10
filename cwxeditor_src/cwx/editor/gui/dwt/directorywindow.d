@@ -180,22 +180,7 @@ private:
 	}
 
 	bool isDef(string p, bool isDir) {
-		if (_summ.legacy) {
-			return std.path.fnmatch(getExt(p), "wid") || std.path.fnmatch(getExt(p), "wsm")
-				|| (_summ.useTemp && std.path.fnmatch(getBaseName(p), "cwxeditor.lock"));
-		} else {
-			string fl = getBaseName(p);
-			if (isDir) {
-				if (isScenarioSystemDir(fl)) {
-					return true;
-				}
-			} else {
-				if (std.path.fnmatch(fl, "Summary.xml") || std.path.fnmatch(fl, "cwxeditor.lock")) {
-					return true;
-				}
-			}
-		}
-		return false;
+		return _summ.isSystemFile(p);
 	}
 
 	void refreshDirs(string sel) {
@@ -934,46 +919,7 @@ private:
 	}
 	void __replace(string sel) {
 		if (!_summ || !_win || _win.isDisposed) return;
-		string[] from;
-		foreach (path; _summ.useCounter.path.keys) {
-			auto p = cast(string) path;
-			if (!path.isBinImg) from ~= p;
-		}
-		string[] to;
-		auto skin = findSkin(_prop, _summ);
-		void addTo(string path) {
-			FileNameObj[] list;
-			foreach (p; clistdir(path)) {
-				list ~= new FileNameObj(std.path.join(path, p));
-			}
-			list = .sort(list, &compFExt);
-			foreach (p; list) {
-				if (.isdir(p.array)) {
-					addTo(p.array);
-				} else if (skin.isCardImage(p.array)
-						|| skin.isBgImage(p.array)
-						|| skin.isBGM(p.array)
-						|| skin.isSE(p.array)) {
-					to ~= toRelPath(p.array);
-				}
-			}
-		}
-		addTo(_summ.scenarioPath);
-		foreach (p; skin.tables) {
-			to ~= p;
-		}
-		foreach (p; skin.musics) {
-			to ~= p;
-		}
-		foreach (p; skin.sounds) {
-			to ~= p;
-		}
-		auto dlg = new ReplacePathDialog(_prop, _win.getShell, from, to, sel);
-		if (dlg.open) {
-			_summ.useCounter.change(toPathId(dlg.from), toPathId(dlg.to), true);
-			_comm.replPath.call(dlg.from, dlg.to);
-			_comm.refUseCount.call;
-		}
+		_comm.replacePath(sel);
 	}
 	class SClose : ShellAdapter {
 		override void shellClosed(ShellEvent e) {
@@ -1295,6 +1241,46 @@ public:
 		if (dir) openFolder(dir);
 	}
 
+	private bool selectImpl(T)(T tree, string path) {
+		foreach (itm; tree.getItems) {
+			auto fno = cast(FileNameObj) itm.getData;
+			if (fnmatch(fno.array, path)) {
+				_dirs.select = itm;
+				return true;
+			}
+			if (selectImpl(itm, path)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	bool select(string path) {
+		try {
+			if (.exists(path)) {
+				path = nabs(path);
+				auto isdir = .isdir(path);
+				string dir = isdir ? path : getDirName(path);
+				bool r = selectImpl(_dirs, dir);
+				if (r) {
+					_dirs.showSelection;
+					if (!isdir) {
+						foreach (i, itm; _files.getItems) {
+							auto fno = cast(FileNameObj) itm.getData;
+							if (fnmatch(fno.array, path)) {
+								_files.select = i;
+								_files.showSelection;
+								return true;
+							}
+						}
+						return false;
+					}
+					return true;
+				}
+			}
+		} catch {}
+		return false;
+	}
+
 	override void cut() {
 		if (!canDoTCPD) return;
 		if (_dirs.isFocusControl) {
@@ -1414,78 +1400,5 @@ public:
 	}
 	override bool canDoTCPD() {
 		return _dirs.isFocusControl || _files.isFocusControl;
-	}
-}
-
-class ReplacePathDialog : AbsDialog {
-private:
-	Props _prop;
-
-	string[] _fromPaths;
-	string[] _toPaths;
-	string _selPath;
-	Combo _base;
-	Combo _repl;
-
-	string _baseT, _replT;
-public:
-	this(Props prop, Shell shell, string[] fromPaths, string[] toPaths, string selPath) {
-		_prop = prop;
-		_fromPaths = fromPaths;
-		_toPaths = toPaths;
-		_selPath = selPath;
-		super(prop, shell, _prop.msgs.dlgTitReplacePath, _prop.images.menuReplacePath, false);
-	}
-
-	string from() {
-		return _baseT;
-	}
-	string to() {
-		return _replT;
-	}
-protected:
-	override void setup(Composite area) {
-		area.setLayout = new GridLayout(2, false);
-		{
-			auto l = new Label(area, DWT.NONE);
-			l.setText = _prop.msgs.replacePathFrom;
-			_base = new Combo(area, DWT.BORDER | DWT.DROP_DOWN);
-			foreach (p; _fromPaths) {
-				_base.add(p);
-			}
-			if (_selPath) _base.setText = _selPath;
-			_base.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-			checker(_base);
-		}
-		{
-			auto l = new Label(area, DWT.NONE);
-			l.setText = _prop.msgs.replacePathTo;
-			_repl = new Combo(area, DWT.BORDER | DWT.DROP_DOWN);
-			_repl.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-			foreach (p; _toPaths) {
-				_repl.add(p);
-			}
-			checker(_repl);
-		}
-	}
-
-	override bool close(bool ok, out bool cancel) {
-		if (ok) {
-			try {
-				.exists(_repl.getText);
-			} catch {
-				auto dlg = new MessageBox(_repl.getShell, DWT.ICON_WARNING | DWT.OK);
-				scope (exit) dlg.dispose;
-				dlg.setText = _prop.msgs.dlgTitWarning;
-				dlg.setMessage = _prop.msgs.errorReplacePath;
-				dlg.open;
-				_repl.setFocus;
-				cancel = true;
-				return false;
-			}
-			_baseT = _base.getText;
-			_replT = _repl.getText;
-		}
-		return ok;
 	}
 }

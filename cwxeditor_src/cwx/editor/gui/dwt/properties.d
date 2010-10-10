@@ -445,17 +445,30 @@ class FlexEtcProps : Properties {
 	mixin Property!("xmlCopy", bool, false);
 	mixin Property!("saveInnerImagePath", bool, false);
 
-	mixin Property!("replaceTextSummary", bool, false);
+	mixin Property!("replaceTextSummary", bool, true);
 	mixin Property!("replaceTextMessage", bool, true);
-	mixin Property!("replaceTextCardName", bool, false);
-	mixin Property!("replaceTextCardDescription", bool, false);
-	mixin Property!("replaceTextEventText", bool, false);
-	mixin Property!("replaceTextFlagAndStep", bool, false);
-	mixin Property!("replaceTextCoupon", bool, false);
-	mixin Property!("replaceTextGossip", bool, false);
-	mixin Property!("replaceTextEndScenario", bool, false);
-	mixin Property!("replaceTextAreaName", bool, false);
-	mixin Property!("replaceTextKeyCode", bool, false);
+	mixin Property!("replaceTextCardName", bool, true);
+	mixin Property!("replaceTextCardDescription", bool, true);
+	mixin Property!("replaceTextEventText", bool, true);
+	mixin Property!("replaceTextStart", bool, true);
+	mixin Property!("replaceTextFlagAndStep", bool, true);
+	mixin Property!("replaceTextCoupon", bool, true);
+	mixin Property!("replaceTextGossip", bool, true);
+	mixin Property!("replaceTextEndScenario", bool, true);
+	mixin Property!("replaceTextAreaName", bool, true);
+	mixin Property!("replaceTextKeyCode", bool, true);
+	mixin Property!("searchUnusedFlag", bool, true);
+	mixin Property!("searchUnusedStep", bool, true);
+	mixin Property!("searchUnusedArea", bool, true);
+	mixin Property!("searchUnusedBattle", bool, true);
+	mixin Property!("searchUnusedPackage", bool, true);
+	mixin Property!("searchUnusedCast", bool, true);
+	mixin Property!("searchUnusedSkill", bool, true);
+	mixin Property!("searchUnusedItem", bool, true);
+	mixin Property!("searchUnusedBeast", bool, true);
+	mixin Property!("searchUnusedInfo", bool, true);
+	mixin Property!("searchUnusedStart", bool, true);
+	mixin Property!("searchUnusedPath", bool, true);
 
 	mixin Property!("flagTrues", string[], ["TRUE", "表示", "ON", "有", "可", "済み"], true);
 	mixin Property!("flagFalses", string[], ["FALSE", "非表示", "OFF", "無", "不可", "まだ"], true);
@@ -628,6 +641,7 @@ public class FlexProps {
 					}
 					node.onTag["dockingFolder"] = &df;
 					node.parse;
+					return r;
 				} catch (Exception e) {
 					// FIXME: DockingFolder.fromNode()内でたまにアクセス違反が発生する
 					debug debugln(e);

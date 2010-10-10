@@ -98,7 +98,7 @@ abstract class AbsDialog {
 	bool enterClose() {return _enterClose;}
 	private class CKListener : Listener {
 		override void handleEvent(Event e) {
-			if (e.character == DWT.CR) {
+			if (e.character == DWT.CR && _win is Display.getCurrent.getActiveShell) {
 				_ret = true;
 				_win.close;
 			}
@@ -126,7 +126,10 @@ abstract class AbsDialog {
 		if (_win.getParent) {
 			auto b = _win.getParent.getBounds;
 			auto p = _win.getSize;
-			_win.setLocation = new Point(b.x + (b.width - p.x) / 2, b.y + (b.height - p.y) / 2);
+			int x = b.x + (b.width - p.x) / 2;
+			int y = b.y + (b.height - p.y) / 2;
+			intoDisplay(x, y, p.x, p.y);
+			_win.setLocation = new Point(x, y);
 		}
 		_win.open;
 		auto d = _win.getDisplay;

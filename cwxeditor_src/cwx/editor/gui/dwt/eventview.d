@@ -728,6 +728,7 @@ public:
 			_comm.refStandardKeyCodes.add(&refKeyCodes);
 		}
 		_comm.replText.add(&replText);
+		_comm.replID.add(&replText);
 		static if (is (A == Area)) {
 			_comm.refArea.add(&refreshTitle);
 		} else static if (is (A == Battle)) {
@@ -763,6 +764,7 @@ public:
 					_comm.refStandardKeyCodes.remove(&refKeyCodes);
 				}
 				_comm.replText.remove(&replText);
+				_comm.replID.remove(&replText);
 				static if (is (A == Area)) {
 					_comm.refArea.remove(&refreshTitle);
 				} else static if (is (A == Battle)) {

@@ -374,14 +374,7 @@ private:
 	}
 	private ReplaceDialog _replDlg = null;
 	void replaceText() {
-		if (summary) {
-			if (!_replDlg || _replDlg.widget.isDisposed) {
-				_replDlg = new ReplaceDialog(_comm, _prop, _win, summary);
-			} else {
-				_replDlg.widget.setMinimized = false;
-				_replDlg.widget.setActive;
-			}
-		}
+		openReplWin;
 	}
 	void clipboardToXML() {
 		auto cb = new Clipboard(Display.getCurrent);
@@ -788,9 +781,6 @@ public:
 				new MenuItem(me, DWT.SEPARATOR);
 			}
 			mixin (MenuAction!("me", "ReplaceText", DWT.PUSH, "replaceText"));
-			if (_prop.var.etc.singleWindow) {
-				mixin (MenuAction!("me", "ReplacePath", DWT.PUSH, "_dirWin.replace"));
-			}
 			mixin (MenuAction!("me", "ToXML", DWT.PUSH, "clipboardToXML"));
 			new MenuItem(me, DWT.SEPARATOR);
 			mixin (MenuAction!("me", "Reload", DWT.PUSH, "reload"));
@@ -901,7 +891,6 @@ public:
 			{
 				auto bar = new ToolBar(cbar, DWT.FLAT);
 				mixin (ToolAction!("bar", "ReplaceText", DWT.PUSH, "replaceText"));
-				mixin (ToolAction!("bar", "ReplacePath", DWT.PUSH, "_dirWin.replace"));
 				new ToolItem(bar, DWT.SEPARATOR);
 				mixin (ToolAction!("bar", "ToXML", DWT.PUSH, "clipboardToXML"));
 				createCoolItem(cbar, bar);
@@ -1177,6 +1166,25 @@ public:
 	DockingFolderCTC dock() {return _dock;}
 
 	Summary summary() {return _dataWin ? _dataWin.summary : _tableWin.summary;}
+
+	ReplaceDialog openReplWin() {
+		if (summary) {
+			if (!_replDlg || _replDlg.widget.isDisposed) {
+				_replDlg = new ReplaceDialog(_comm, _prop, _win, summary);
+				auto b = _win.getBounds;
+				auto p = _replDlg.widget.getSize;
+				int x = b.x + (b.width - p.x) / 2;
+				int y = b.y + (b.height - p.y) / 2;
+				intoDisplay(x, y, p.x, p.y);
+				_replDlg.widget.setLocation = new Point(x, y);
+			} else {
+				_replDlg.widget.setMinimized = false;
+				_replDlg.widget.setActive;
+			}
+			return _replDlg;
+		}
+		return null;
+	}
 
 	bool openCWXPath(string path) {
 		path = toLower(path);

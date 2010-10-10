@@ -379,7 +379,7 @@ public:
 	Image menuNewFolder() {return imgd!(resourceDir ~ "folder_new.png");}
 	Image menuReplacePath() {return imgd!(resourceDir ~ "replace.png");}
 
-	Image menuReplaceText() {return imgd!(resourceDir ~ "repl_text.png");}
+	Image menuReplaceText() {return imgd!(resourceDir ~ "replace.png");}
 	Image menuReload() {return imgd!(resourceDir ~ "reload.png");}
 }
 

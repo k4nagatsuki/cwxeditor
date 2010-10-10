@@ -459,8 +459,10 @@ public:
 	}
 }
 
-class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser, IFlagUser, IStepUser,
-		ICastUser, IItemUser, ISkillUser, IBeastUser, IInfoUser, IStartUser, MotionOwner {
+class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
+		IFlagUser, IStepUser,
+		ICastUser, IItemUser, ISkillUser, IBeastUser, IInfoUser, IStartUser,
+		MotionOwner, BgImageOwner {
 	private EventTree _tree = null;
 
 	/// 型と後続テキストnameを指定してインスタンスを生成。
@@ -671,6 +673,9 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser, IFlagU
 	}
 
 	private void setValUCs(T)(T val, UseCounter uc = null, Content c = null) {
+		static if (is(typeof(val.owner(this)))) {
+			val.owner = this;
+		}
 		static if (is(typeof(val.setUseCounter(uc)))) {
 			if (val.useCounter) {
 				val.removeUseCounter;
@@ -874,7 +879,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser, IFlagU
 	mixin Prop!(uint, "wait", 0u);
 
 	/// 背景画像群。
-	mixin Prop!(BgImage[], "bgImages", []);
+	mixin Prop!(BgImage[], "backs", []);
 
 	private void delegate() _change;
 	/// 変更ハンドラを登録する。
@@ -1090,7 +1095,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser, IFlagU
 		}
 		atnPut!(CArg.TALKER_NC, "talkerNC", "fromTalker")(e, d);
 
-		if (d.use(CArg.BG_IMAGES)) BgImage.toNode(bgImages, e);
+		if (d.use(CArg.BG_IMAGES)) BgImage.toNode(backs, e);
 
 		auto ce = e.newElement("Contents");
 		foreach (sub; _next) {
@@ -1234,7 +1239,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser, IFlagU
 
 		if (d.use(CArg.BG_IMAGES)) {
 			en.onTag["BgImages"] = (ref XNode node) {
-				r.bgImages = BgImage.bgImagesFromNode(node, ver);
+				r.backs = BgImage.bgImagesFromNode(node, ver);
 			};
 		}
 

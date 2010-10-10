@@ -543,6 +543,27 @@ public:
 		return _uc;
 	}
 
+	/// シナリオのシステムファイルまたはディレクトリであればtrueを返す。
+	bool isSystemFile(string p) {
+		auto dir = .isdir(p);
+		if (!dir && useTemp && .fnmatch(getBaseName(p), "cwxeditor.lock")) {
+			return true;
+		}
+		if (legacy) {
+			if (dir) return false;
+			auto ext = getExt(p);
+			return .fnmatch(ext, "wid") || .fnmatch(ext, "wsm");
+		} else {
+			string fl = getBaseName(p);
+			if (dir) {
+				return isScenarioSystemDir(fl);
+			} else {
+				return cast(bool) .fnmatch(fl, "Summary.xml");
+			}
+		}
+		return false;
+	}
+
 	/// 圧縮して保存した事を通知する。
 	private void toArchive(string zipName, string scenarioPath, bool expandXMLs) {
 		_expandXMLs = expandXMLs;

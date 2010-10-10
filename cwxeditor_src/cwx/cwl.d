@@ -581,7 +581,7 @@ private Content readContent(in RData d, ref ByteIO f) {
 	case 8: {
 		BgImage[] bgImgs = readBgImages(f);
 		e = new Content(CType.CHANGE_BG_IMAGE, name);
-		e.bgImages = bgImgs;
+		e.backs = bgImgs;
 		e.transition = Transition.DEFAULT;
 		e.transitionSpeed = 5u;
 		break;
@@ -1825,7 +1825,7 @@ private void writeContent(in SData d, ref ByteIO f, Content e) {
 		writeString(f, e.bgmPath);
 	} else if (e.type is CType.CHANGE_BG_IMAGE) {
 		wb(8);
-		writeBgImages(f, e.bgImages);
+		writeBgImages(f, e.backs);
 	} else if (e.type is CType.PLAY_SOUND) {
 		wb(9);
 		writeString(f, e.soundPath);

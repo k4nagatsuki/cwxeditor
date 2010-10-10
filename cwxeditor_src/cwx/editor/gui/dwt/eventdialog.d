@@ -544,7 +544,7 @@ public:
 		BgImage[] bgImages;
 		if (evt) {
 			_evt = evt;
-			foreach (b; evt.bgImages) {
+			foreach (b; evt.backs) {
 				bgImages ~= b.dup;
 			}
 		}
@@ -613,7 +613,7 @@ protected:
 	override bool close(bool ok) {
 		if (ok) {
 			if (!_evt) _evt = new Content(CType.CHANGE_BG_IMAGE, "");
-			_evt.bgImages = _cont.backs;
+			_evt.backs = _cont.backs;
 			if (!_summ.legacy) {
 				auto ts = _tsTbl[_ts.getSelectionIndex];
 				uint tsSpeed = _tsSpeed.getSelection;

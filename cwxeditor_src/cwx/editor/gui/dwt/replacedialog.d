@@ -18,8 +18,11 @@ import cwx.editor.gui.dwt.utils;
 import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.commons;
+import cwx.editor.gui.dwt.skin;
 
 import std.string;
+import std.file;
+import std.path;
 
 import dwt.widgets.Shell;
 import dwt.widgets.Text;
@@ -31,6 +34,12 @@ import dwt.widgets.Label;
 import dwt.widgets.MessageBox;
 import dwt.widgets.Table;
 import dwt.widgets.TableItem;
+import dwt.widgets.Combo;
+import dwt.widgets.Spinner;
+import dwt.custom.CTabFolder;
+import dwt.custom.CTabItem;
+import dwt.events.ShellAdapter;
+import dwt.events.ShellEvent;
 import dwt.events.SelectionAdapter;
 import dwt.events.SelectionEvent;
 import dwt.events.MouseAdapter;
@@ -44,8 +53,9 @@ import dwt.layout.GridData;
 import dwt.layout.RowLayout;
 import dwt.layout.RowData;
 import dwt.graphics.Image;
+import dwt.dwthelper.utils : ArrayWrapperString;
 
-/// テキスト検索と置換を行うダイアログ。
+/// 検索と置換を行うダイアログ。
 class ReplaceDialog {
 private:
 	Commons _comm;
@@ -53,9 +63,24 @@ private:
 	Summary _summ;
 
 	Shell _win;
+	CTabFolder _tabf;
+	CTabItem _tabText;
+	CTabItem _tabID;
+	CTabItem _tabPath;
+	CTabItem _tabUnuse;
+	Button _replace;
 
 	Text _from;
 	Text _to;
+	Combo _idKind;
+	Combo _fromID;
+	Spinner _fromIDVal;
+	ulong[int] _fromIDTbl;
+	Combo _toID;
+	Spinner _toIDVal;
+	ulong[int] _toIDTbl;
+	Combo _fromPath;
+	Combo _toPath;
 
 	/// 貼り紙
 	Button _summary;
@@ -69,6 +94,8 @@ private:
 	Button _cardDesc;
 	/// イベントテキスト
 	Button _event;
+	/// スタート名
+	Button _start;
 	/// フラグ/ステップ
 	Button _flag;
 	/// クーポン
@@ -82,6 +109,19 @@ private:
 	/// キーコード
 	Button _keyCode;
 
+	Button _unuseFlag;
+	Button _unuseStep;
+	Button _unuseArea;
+	Button _unuseBattle;
+	Button _unusePackage;
+	Button _unuseCast;
+	Button _unuseSkill;
+	Button _unuseItem;
+	Button _unuseBeast;
+	Button _unuseInfo;
+	Button _unuseStart;
+	Button _unusePath;
+
 	Table _result;
 	Label _status;
 
@@ -90,12 +130,27 @@ private:
 	bool cardName() {return _cardName.getSelection;}
 	bool cardDesc() {return _cardDesc.getSelection;}
 	bool event() {return _event.getSelection;}
+	bool start() {return _start.getSelection;}
 	bool flag() {return _flag.getSelection;}
 	bool coupon() {return _coupon.getSelection;}
 	bool gossip() {return _gossip.getSelection;}
 	bool end() {return _end.getSelection;}
 	bool area() {return _area.getSelection;}
 	bool keyCode() {return _keyCode.getSelection;}
+
+	bool unuseFlag() {return _unuseFlag.getSelection;}
+	bool unuseStep() {return _unuseStep.getSelection;}
+	bool unuseArea() {return _unuseArea.getSelection;}
+	bool unuseBattle() {return _unuseBattle.getSelection;}
+	bool unusePackage() {return _unusePackage.getSelection;}
+	bool unuseCast() {return _unuseCast.getSelection;}
+	bool unuseSkill() {return _unuseSkill.getSelection;}
+	bool unuseItem() {return _unuseItem.getSelection;}
+	bool unuseBeast() {return _unuseBeast.getSelection;}
+	bool unuseInfo() {return _unuseInfo.getSelection;}
+	bool unuseStart() {return _unuseStart.getSelection;}
+	bool unusePath() {return _unusePath.getSelection;}
+
 	class ML : MouseAdapter {
 		public override void mouseDoubleClick(MouseEvent e) {
 			if (_result.isFocusControl && e.button == 1) {
@@ -117,64 +172,160 @@ private:
 			}
 		}
 	}
-	class KLR : KeyAdapter {
-		public override void keyPressed(KeyEvent e) {
-			if (_to.isFocusControl && e.character == DWT.CR) {
-				replace;
-			}
+	static const ID_AREA = 0;
+	static const ID_BATTLE = 1;
+	static const ID_PACKAGE = 2;
+	static const ID_CAST = 3;
+	static const ID_SKILL = 4;
+	static const ID_ITEM = 5;
+	static const ID_BEAST = 6;
+	static const ID_INFO = 7;
+	private void setupIDsImpl2(T)(T[] arr, Combo combo, Spinner spn, ref ulong[int] tbl) {
+		ulong[int] tbl2;
+		string oldSel = combo.getText;
+		combo.removeAll;
+		combo.add(_prop.msgs.replSetID);
+		foreach (i, a; arr) {
+			combo.add(to!(string)(a.id) ~ "." ~ a.name);
+			tbl2[i + 1] = a.id;
+		}
+		combo.select = arr.length ? 1 : 0;
+		if (oldSel) {
+			auto i = combo.indexOf(oldSel);
+			if (i >= 0) combo.select = i;
+		}
+		spn.setEnabled = combo.getSelectionIndex == 0;
+		tbl = tbl2;
+	}
+	private void setupIDsImpl1(T)(T[] arr) {
+		setupIDsImpl2(arr, _fromID, _fromIDVal, _fromIDTbl);
+		setupIDsImpl2(arr, _toID, _toIDVal, _toIDTbl);
+	}
+	private void setupIDs() {
+		switch (_idKind.getSelectionIndex) {
+		case ID_AREA: setupIDsImpl1(_summ.areas); break;
+		case ID_BATTLE: setupIDsImpl1(_summ.battles); break;
+		case ID_PACKAGE: setupIDsImpl1(_summ.packages); break;
+		case ID_CAST: setupIDsImpl1(_summ.casts); break;
+		case ID_SKILL: setupIDsImpl1(_summ.skills); break;
+		case ID_ITEM: setupIDsImpl1(_summ.items); break;
+		case ID_BEAST: setupIDsImpl1(_summ.beasts); break;
+		case ID_INFO: setupIDsImpl1(_summ.infos); break;
+		default: assert (0);
 		}
 	}
-public:
-	this(Commons comm, Props prop, Shell shell, Summary summ) {
-		_comm = comm;
-		_prop = prop;
-		_summ = summ;
-		_win = new Shell(shell, DWT.SHELL_TRIM);
-		_win.setText = _prop.msgs.dlgTitReplaceText;
-		_win.setImage = prop.images.app;
-		setup;
-		_win.open;
-		_win.setActive;
+	private string[] allMaterials(bool scenarioOnly) {
+		auto sPath = nabs(_summ.scenarioPath);
+		auto tbl = new HashSet!(PathId);
+		string[] paths;
+		void find(string p) {
+			if (_summ.isSystemFile(p)) return;
+			if (.isdir(p)) {
+				clistdir(p, (string c) {
+					c = std.path.join(p, c);
+					find(c);
+					return true;
+				});
+			} else {
+				auto path = abs2rel(sPath, p);
+				paths ~= path;
+				tbl.add(toPathId(path));
+			}
+		}
+		find(sPath);
+		if (!scenarioOnly) {
+			auto skin = findSkin(_prop, _summ);
+			foreach (p; skin.tables) {
+				tbl.add(toPathId(p));
+				paths ~= p;
+			}
+			foreach (p; skin.musics) {
+				tbl.add(toPathId(p));
+				paths ~= p;
+			}
+			foreach (p; skin.sounds) {
+				tbl.add(toPathId(p));
+				paths ~= p;
+			}
+			foreach (path; _summ.useCounter.path.keys) {
+				auto p = cast(string) path;
+				if (!path.isBinImg && !tbl.contains(path)) {
+					paths ~= p;
+				}
+			}
+		}
+		return paths;
 	}
-	Shell widget() {
-		return _win;
+	private void setupPaths() {
+		string[] paths = [""] ~ allMaterials(false);
+		void setPaths(Combo combo) {
+			auto old = combo.getText;
+			combo.setItems(paths);
+			combo.setText = old;
+		}
+		setPaths(_fromPath);
+		setPaths(_toPath);
 	}
-	void summary(Summary summ) {
-		_summ = summ;
-		_result.removeAll;
+	class SListener : ShellAdapter {
+		override void shellActivated(ShellEvent e) {
+			setupIDs;
+			setupPaths;
+		}
 	}
-
-	private void setup() {
-		auto area = _win;
-		area.setLayout = new GridLayout(2, false);
+	class SelID : SelectionAdapter {
+		private Spinner _spn;
+		this (Spinner spn) {_spn = spn;}
+		override void widgetSelected(SelectionEvent e) {
+			auto combo = cast(Combo) e.widget;
+			_spn.setEnabled = combo.getSelectionIndex == 0;
+		}
+	}
+	class SelIDKind : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			setupIDs;
+		}
+	}
+	private void tabChanged() {
+		auto sel = _tabf.getSelection;
+		if (!sel) return;
+		auto comp = cast(Composite) sel.getControl;
+		if (_result.getParent is comp) return;
+		_result.setParent = comp;
+		comp.layout(true);
+		_replace.setEnabled = sel !is _tabUnuse;
+	}
+	class TSListener : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			tabChanged;
+		}
+	}
+	void constructText(CTabFolder tabf) {
+		auto comp = new Composite(tabf, DWT.NONE);
+		comp.setLayout = new GridLayout(1, true);
 		{
-			auto grp = new Group(area, DWT.NONE);
-			auto gd = new GridData(GridData.FILL_HORIZONTAL);
-			gd.horizontalSpan = 2;
-			grp.setLayoutData = gd;
+			auto grp = new Group(comp, DWT.NONE);
+			grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			grp.setText = _prop.msgs.replText;
 			grp.setLayout = new GridLayout(2, false);
 			auto lf = new Label(grp, DWT.NONE);
-			lf.setText = _prop.msgs.replTextFrom;
+			lf.setText = _prop.msgs.replFrom;
 			_from = new Text(grp, DWT.BORDER);
-			gd = new GridData(GridData.FILL_HORIZONTAL);
+			auto gd = new GridData(GridData.FILL_HORIZONTAL);
 			gd.widthHint = _prop.var.etc.nameWidth;
 			_from.setLayoutData = gd;
 			_from.addKeyListener(new KLS);
 			auto lt = new Label(grp, DWT.NONE);
-			lt.setText = _prop.msgs.replTextTo;
+			lt.setText = _prop.msgs.replTo;
 			_to = new Text(grp, DWT.BORDER);
 			_to.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-			_to.addKeyListener(new KLR);
+			_to.addKeyListener(new KLS);
 		}
 		{
-			auto grp = new Group(area, DWT.NONE);
+			auto grp = new Group(comp, DWT.NONE);
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
-			gd.horizontalSpan = 2;
 			gd.widthHint = _prop.var.etc.searchResultTableWidth;
 			grp.setLayoutData = gd;
 			grp.setText = _prop.msgs.replTextTarget;
-			grp.setLayout = new CenterLayout;
 			auto rl = new RowLayout(DWT.HORIZONTAL);
 			rl.wrap = true;
 			rl.pack = false;
@@ -189,6 +340,7 @@ public:
 			_cardName = createB(_prop.msgs.replTextCardName);
 			_cardDesc = createB(_prop.msgs.replTextCardDesc);
 			_event = createB(_prop.msgs.replTextEventText);
+			_start = createB(_prop.msgs.replTextStart);
 			_flag = createB(_prop.msgs.replTextFlagAndStep);
 			_coupon = createB(_prop.msgs.replTextCoupon);
 			_gossip = createB(_prop.msgs.replTextGossip);
@@ -196,10 +348,175 @@ public:
 			_area = createB(_prop.msgs.replTextAreaName);
 			_keyCode = createB(_prop.msgs.replTextKeyCode);
 		}
+		auto tab = new CTabItem(tabf, DWT.NONE);
+		tab.setText = _prop.msgs.replForText;
+		tab.setControl = comp;
+		_tabText = tab;
+	}
+	void constructID(CTabFolder tabf) {
+		auto comp = new Composite(tabf, DWT.NONE);
+		comp.setLayout = new GridLayout(1, true);
 		{
-			_result = new Table(area, DWT.BORDER | DWT.SINGLE | DWT.FULL_SELECTION | DWT.V_SCROLL);
-			auto gd = new GridData(GridData.FILL_HORIZONTAL | GridData.FILL_VERTICAL);
-			gd.horizontalSpan = 2;
+			auto grp = new Group(comp, DWT.NONE);
+			grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+			grp.setText = _prop.msgs.replID;
+			grp.setLayout = new GridLayout(3, false);
+			{
+				auto l = new Label(grp, DWT.NONE);
+				l.setText = _prop.msgs.replIDKind;
+				_idKind = new Combo(grp, DWT.BORDER | DWT.DROP_DOWN | DWT.READ_ONLY);
+				_idKind.setVisibleItemCount = 20;
+				_idKind.add(_prop.msgs.replIDArea);
+				_idKind.add(_prop.msgs.replIDBattle);
+				_idKind.add(_prop.msgs.replIDPackage);
+				_idKind.add(_prop.msgs.replIDCast);
+				_idKind.add(_prop.msgs.replIDSkill);
+				_idKind.add(_prop.msgs.replIDItem);
+				_idKind.add(_prop.msgs.replIDBeast);
+				_idKind.add(_prop.msgs.replIDInfo);
+				_idKind.select = 0;
+				auto gd = new GridData;
+				gd.horizontalSpan = 2;
+				_idKind.setLayoutData = gd;
+				_idKind.addSelectionListener(new SelIDKind);
+			}
+			{
+				auto sep = new Label(grp, DWT.SEPARATOR | DWT.HORIZONTAL);
+				auto gd = new GridData(GridData.FILL_HORIZONTAL);
+				gd.horizontalSpan = 3;
+				sep.setLayoutData = gd;
+			}
+			void setupID(string text, ref Combo combo, ref Spinner spn) {
+				auto l = new Label(grp, DWT.NONE);
+				l.setText = text;
+				combo = new Combo(grp, DWT.BORDER | DWT.DROP_DOWN | DWT.READ_ONLY);
+				combo.setVisibleItemCount = 20;
+				auto gd = new GridData(GridData.FILL_HORIZONTAL);
+				gd.widthHint = _prop.var.etc.nameWidth;
+				combo.setLayoutData = gd;
+				spn = new Spinner(grp, DWT.BORDER);
+				spn.setMinimum = 1;
+				spn.setMaximum = _prop.looks.idMax;
+				combo.addSelectionListener(new SelID(spn));
+				combo.addKeyListener(new KLS);
+				spn.addKeyListener(new KLS);
+			}
+			setupID(_prop.msgs.replFrom, _fromID, _fromIDVal);
+			setupID(_prop.msgs.replTo, _toID, _toIDVal);
+		}
+		auto tab = new CTabItem(tabf, DWT.NONE);
+		tab.setText = _prop.msgs.replForID;
+		tab.setControl = comp;
+		_tabID = tab;
+	}
+	void constructPath(CTabFolder tabf) {
+		auto comp = new Composite(tabf, DWT.NONE);
+		comp.setLayout = new GridLayout(1, true);
+		{
+			auto grp = new Group(comp, DWT.NONE);
+			grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+			grp.setText = _prop.msgs.replPath;
+			grp.setLayout = new GridLayout(2, false);
+			Combo setupPath(string text) {
+				auto l = new Label(grp, DWT.NONE);
+				l.setText = text;
+				auto combo = new Combo(grp, DWT.BORDER | DWT.DROP_DOWN);
+				combo.setVisibleItemCount = 20;
+				auto gd = new GridData(GridData.FILL_HORIZONTAL);
+				gd.widthHint = _prop.var.etc.nameWidth;
+				combo.setLayoutData = gd;
+				combo.addKeyListener(new KLS);
+				return combo;
+			}
+			_fromPath = setupPath(_prop.msgs.replFrom);
+			_toPath = setupPath(_prop.msgs.replTo);
+		}
+		auto tab = new CTabItem(tabf, DWT.NONE);
+		tab.setText = _prop.msgs.replForPath;
+		tab.setControl = comp;
+		_tabPath = tab;
+	}
+	void constructUnuse(CTabFolder tabf) {
+		auto comp = new Composite(tabf, DWT.NONE);
+		comp.setLayout = new GridLayout(1, true);
+		{
+			auto grp = new Group(comp, DWT.NONE);
+			grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+			grp.setText = _prop.msgs.replUnuseTarget;
+			auto rl = new RowLayout(DWT.HORIZONTAL);
+			rl.wrap = true;
+			rl.pack = false;
+			grp.setLayout = rl;
+			Button createB(string text) {
+				auto b = new Button(grp, DWT.CHECK);
+				b.setText = text;
+				return b;
+			}
+			_unuseFlag = createB(_prop.msgs.replUnuseFlag);
+			_unuseStep = createB(_prop.msgs.replUnuseStep);
+			_unuseArea = createB(_prop.msgs.replUnuseArea);
+			_unuseBattle = createB(_prop.msgs.replUnuseBattle);
+			_unusePackage = createB(_prop.msgs.replUnusePackage);
+			_unuseCast = createB(_prop.msgs.replUnuseCast);
+			_unuseSkill = createB(_prop.msgs.replUnuseSkill);
+			_unuseItem = createB(_prop.msgs.replUnuseItem);
+			_unuseBeast = createB(_prop.msgs.replUnuseBeast);
+			_unuseInfo = createB(_prop.msgs.replUnuseInfo);
+			_unuseStart = createB(_prop.msgs.replUnuseStart);
+			_unusePath = createB(_prop.msgs.replUnusePath);
+		}
+		auto tab = new CTabItem(tabf, DWT.NONE);
+		tab.setText = _prop.msgs.replForUnuse;
+		tab.setControl = comp;
+		_tabUnuse = tab;
+	}
+public:
+	this(Commons comm, Props prop, Shell shell, Summary summ) {
+		_comm = comm;
+		_prop = prop;
+		_summ = summ;
+		_win = new Shell(shell, DWT.SHELL_TRIM);
+		_win.setText = _prop.msgs.dlgTitReplaceText;
+		_win.setImage = prop.images.menuReplaceText;
+		setup;
+		_win.open;
+		_win.setActive;
+	}
+	Shell widget() {
+		return _win;
+	}
+	void summary(Summary summ) {
+		_summ = summ;
+		_result.removeAll;
+	}
+
+	void replacePath(string from) {
+		reset;
+		_fromPath.setText = from;
+		_toPath.setText = "";
+		_tabf.setSelection = _tabPath;
+		tabChanged;
+	}
+
+	private void setup() {
+		_win.addShellListener(new SListener);
+		_win.setLayout = zeroGridLayout(1, true);
+		auto area = new Composite(_win, DWT.NONE);
+		area.setLayoutData = new GridData(GridData.FILL_BOTH);
+		area.setLayout = windowGridLayout(1, true);
+		_tabf = new CTabFolder(area, DWT.BORDER);
+		{
+			_tabf.setLayoutData = new GridData(GridData.FILL_BOTH);
+			constructText(_tabf);
+			constructID(_tabf);
+			constructPath(_tabf);
+			constructUnuse(_tabf);
+			_tabf.addSelectionListener(new TSListener);
+		}
+		{
+			_result = new Table(cast(Composite) _tabf.getItems[0].getControl,
+				DWT.BORDER | DWT.SINGLE | DWT.FULL_SELECTION | DWT.V_SCROLL);
+			auto gd = new GridData(GridData.FILL_BOTH);
 			gd.widthHint = _prop.var.etc.searchResultTableWidth;
 			gd.heightHint = _prop.var.etc.searchResultTableHeight;
 			_result.setLayoutData = gd;
@@ -208,10 +525,18 @@ public:
 			new FullTableColumn(_result, DWT.NONE);
 		}
 		{
-			_status = new Label(area, DWT.NONE);
+			auto sep = new Label(_win, DWT.SEPARATOR | DWT.HORIZONTAL);
+			sep.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+		}
+		{
+			auto bArea = new Composite(_win, DWT.NONE);
+			bArea.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+			bArea.setLayout = new GridLayout(2, false);
+			_status = new Label(bArea, DWT.NONE);
 			_status.setText = _prop.msgs.searchResult(0);
 			_status.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-			auto comp = new Composite(area, DWT.NONE);
+			auto comp = new Composite(bArea, DWT.NONE);
+			comp.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
 			auto gl = new GridLayout(3, true);
 			gl.marginWidth = 0;
 			gl.marginHeight = 0;
@@ -231,7 +556,7 @@ public:
 				return b;
 			}
 			createButton(_prop.msgs.search, &search);
-			createButton(_prop.msgs.replace, &replace);
+			_replace = createButton(_prop.msgs.replace, &replace);
 			createButton(_prop.msgs.replaceExit, &exit);
 		}
 		_summary.setSelection = _prop.var.etc.replaceTextSummary;
@@ -240,11 +565,24 @@ public:
 		_cardDesc.setSelection = _prop.var.etc.replaceTextCardDescription;
 		_event.setSelection = _prop.var.etc.replaceTextEventText;
 		_flag.setSelection = _prop.var.etc.replaceTextFlagAndStep;
+		_start.setSelection = _prop.var.etc.replaceTextStart;
 		_coupon.setSelection = _prop.var.etc.replaceTextCoupon;
 		_gossip.setSelection = _prop.var.etc.replaceTextGossip;
 		_end.setSelection = _prop.var.etc.replaceTextEndScenario;
 		_area.setSelection = _prop.var.etc.replaceTextAreaName;
 		_keyCode.setSelection = _prop.var.etc.replaceTextKeyCode;
+		_unuseFlag.setSelection = _prop.var.etc.searchUnusedFlag;
+		_unuseStep.setSelection = _prop.var.etc.searchUnusedStep;
+		_unuseArea.setSelection = _prop.var.etc.searchUnusedArea;
+		_unuseBattle.setSelection = _prop.var.etc.searchUnusedBattle;
+		_unusePackage.setSelection = _prop.var.etc.searchUnusedPackage;
+		_unuseCast.setSelection = _prop.var.etc.searchUnusedCast;
+		_unuseSkill.setSelection = _prop.var.etc.searchUnusedSkill;
+		_unuseItem.setSelection = _prop.var.etc.searchUnusedItem;
+		_unuseBeast.setSelection = _prop.var.etc.searchUnusedBeast;
+		_unuseInfo.setSelection = _prop.var.etc.searchUnusedInfo;
+		_unuseStart.setSelection = _prop.var.etc.searchUnusedStart;
+		_unusePath.setSelection = _prop.var.etc.searchUnusedPath;
 		_win.addDisposeListener(new DL);
 		auto cs = _win.computeSize(DWT.DEFAULT, DWT.DEFAULT);
 		auto size = _prop.var.replaceDlg;
@@ -264,12 +602,25 @@ public:
 			_prop.var.etc.replaceTextCardName = _cardName.getSelection;
 			_prop.var.etc.replaceTextCardDescription = _cardDesc.getSelection;
 			_prop.var.etc.replaceTextEventText = _event.getSelection;
+			_prop.var.etc.replaceTextStart = _start.getSelection;
 			_prop.var.etc.replaceTextFlagAndStep = _flag.getSelection;
 			_prop.var.etc.replaceTextCoupon = _coupon.getSelection;
 			_prop.var.etc.replaceTextGossip = _gossip.getSelection;
 			_prop.var.etc.replaceTextEndScenario = _end.getSelection;
 			_prop.var.etc.replaceTextAreaName = _area.getSelection;
 			_prop.var.etc.replaceTextKeyCode = _keyCode.getSelection;
+			_prop.var.etc.searchUnusedFlag = _unuseFlag.getSelection;
+			_prop.var.etc.searchUnusedStep = _unuseStep.getSelection;
+			_prop.var.etc.searchUnusedArea = _unuseArea.getSelection;
+			_prop.var.etc.searchUnusedBattle = _unuseBattle.getSelection;
+			_prop.var.etc.searchUnusedPackage = _unusePackage.getSelection;
+			_prop.var.etc.searchUnusedCast = _unuseCast.getSelection;
+			_prop.var.etc.searchUnusedSkill = _unuseSkill.getSelection;
+			_prop.var.etc.searchUnusedItem = _unuseItem.getSelection;
+			_prop.var.etc.searchUnusedBeast = _unuseBeast.getSelection;
+			_prop.var.etc.searchUnusedInfo = _unuseInfo.getSelection;
+			_prop.var.etc.searchUnusedStart = _unuseStart.getSelection;
+			_prop.var.etc.searchUnusedPath = _unusePath.getSelection;
 		}
 	}
 	private void search() {
@@ -280,38 +631,188 @@ public:
 		_replMode = true;
 		replaceImpl;
 	}
-	private void searchId(IUser, string Prop, T)(CWXPath path, T id) {
-		auto user = cast(IUser) path;
-		if (user) {
-			if (mixin ("user." ~ Prop) == id) addResult(user);
-		}
-		auto eto = cast(EventTreeOwner) path;
-		if (eto) {
-			foreach (o; eto.trees) searchId!(IUser, Prop, T)(o, id);
-		}
-		auto area = cast(Area) path;
-		if (area) {
-			foreach (o; area.cards) searchId!(IUser, Prop, T)(o, id);
-			foreach (o; area.backs) searchId!(IUser, Prop, T)(o, id);
-		}
-		auto battle = cast(Battle) path;
-		if (battle) {
-			foreach (o; battle.cards) searchId!(IUser, Prop, T)(o, id);
-			foreach (o; battle.backs) searchId!(IUser, Prop, T)(o, id);
-		}
-		auto casts = cast(CastCard) path;
-		if (casts) {
-			foreach (o; casts.skills) searchId!(IUser, Prop, T)(o, id);
-			foreach (o; casts.items) searchId!(IUser, Prop, T)(o, id);
-			foreach (o; casts.beasts) searchId!(IUser, Prop, T)(o, id);
+	private void reset() {
+		_result.removeAll;
+		if (_replMode) {
+			_status.setText = _prop.msgs.replResult(0);
+		} else {
+			_status.setText = _prop.msgs.searchResult(0);
 		}
 	}
 	private void replaceImpl() {
+		reset;
+		if (_tabf.getSelection is _tabText) {
+			replaceTextImpl;
+		} else if (_tabf.getSelection is _tabID) {
+			replaceIDImpl;
+		} else if (_tabf.getSelection is _tabPath) {
+			replacePathImpl;
+		} else if (_tabf.getSelection is _tabUnuse) {
+			searchUnuseImpl;
+		} else assert (0);
+	}
+	private void searchUnuseStart(ref uint count) {
+		foreach (o; _summ.areas) searchUnuseStart(o, count);
+		foreach (o; _summ.battles) searchUnuseStart(o, count);
+		foreach (o; _summ.packages) searchUnuseStart(o, count);
+		foreach (o; _summ.casts) searchUnuseStart(o, count);
+		foreach (o; _summ.skills) searchUnuseStart(o, count);
+		foreach (o; _summ.items) searchUnuseStart(o, count);
+		foreach (o; _summ.beasts) searchUnuseStart(o, count);
+		foreach (o; _summ.infos) searchUnuseStart(o, count);
+	}
+	private void searchUnuseStart(CWXPath path, ref uint count) {
+		auto eto = cast(EventTreeOwner) path;
+		if (eto) {
+			foreach (tree; eto.trees) {
+				foreach (s; tree.starts[1 .. $]) {
+					if (tree.startUseCounter.get(toStartId(s.name)) == 0) {
+						addResult(s);
+					}
+				}
+				searchUnuseStart(tree, count);
+			}
+		}
+		auto c = cast(Content) path;
+		if (c) {
+			foreach (o; c.next) searchUnuseStart(o, count);
+		}
+		auto area = cast(Area) path;
+		if (area) {
+			foreach (o; area.cards) searchUnuseStart(o, count);
+			foreach (o; area.backs) searchUnuseStart(o, count);
+		}
+		auto battle = cast(Battle) path;
+		if (battle) {
+			foreach (o; battle.cards) searchUnuseStart(o, count);
+		}
+		auto casts = cast(CastCard) path;
+		if (casts) {
+			foreach (o; casts.skills) searchUnuseStart(o, count);
+			foreach (o; casts.items) searchUnuseStart(o, count);
+			foreach (o; casts.beasts) searchUnuseStart(o, count);
+		}
+		auto mo = cast(MotionOwner) path;
+		if (mo) {
+			foreach (m; mo.motions) {
+				if (m.beast) {
+					searchUnuseStart(m.beast, count);
+				}
+			}
+		}
+	}
+	private void setResultStatus(uint count) {
+		if (count > 0) {
+			if (_replMode) _summ.changed;
+			_comm.refUseCount.call;
+		}
+		if (_replMode) {
+			_status.setText = _prop.msgs.replResult(count);
+		} else {
+			_status.setText = _prop.msgs.searchResult(count);
+		}
+	}
+	private void replaceIDImpl2(ID)(ID from, ID to) {
+		auto uc = _summ.useCounter;
+		auto users = uc.values(from);
+		if (_replMode) uc.change(from, to, true);
+		foreach (user; users) {
+			addResult(user.owner);
+		}
+		setResultStatus(users.length);
+		if (users.length) _comm.replID.call;
+	}
+	private void replaceIDImpl() {
+		ulong getID(Combo combo, Spinner spn, ulong[int] tbl) {
+			if (combo.getSelectionIndex == 0) {
+				return spn.getSelection;
+			} else {
+				return tbl[combo.getSelectionIndex];
+			}
+		}
+		ulong from = getID(_fromID, _fromIDVal, _fromIDTbl);
+		ulong to = getID(_toID, _toIDVal, _toIDTbl);
+		if (from == to) _replMode = false;
+		switch (_idKind.getSelectionIndex) {
+		case ID_AREA: replaceIDImpl2(toAreaId(from), toAreaId(to)); break;
+		case ID_BATTLE: replaceIDImpl2(toBattleId(from), toBattleId(to)); break;
+		case ID_PACKAGE: replaceIDImpl2(toPackageId(from), toPackageId(to)); break;
+		case ID_CAST: replaceIDImpl2(toCastId(from), toCastId(to)); break;
+		case ID_SKILL: replaceIDImpl2(toSkillId(from), toSkillId(to)); break;
+		case ID_ITEM: replaceIDImpl2(toItemId(from), toItemId(to)); break;
+		case ID_BEAST: replaceIDImpl2(toBeastId(from), toBeastId(to)); break;
+		case ID_INFO: replaceIDImpl2(toInfoId(from), toInfoId(to)); break;
+		default: assert (0);
+		}
+	}
+	private void replacePathImpl() {
+		if (!_fromPath.getText.length) return;
+		auto from = toPathId(_fromPath.getText);
+		auto to = toPathId(_toPath.getText);
+		if (from == to) _replMode = false;
+		auto uc = _summ.useCounter;
+		auto users = uc.values(from);
+		if (_replMode) uc.change(from, to, true);
+		foreach (user; users) {
+			addResult(user.owner);
+		}
+		setResultStatus(users.length);
+		if (users.length) _comm.replPath.call(cast(string) from, cast(string) to);
+	}
+	private void searchUnuseImpl2(string ToId, T)(T[] all, ref uint count) {
+		foreach (o; all) {
+			if (_summ.useCounter.get(mixin (ToId)) == 0) {
+				addResult(o);
+				count++;
+			}
+		}
+	}
+	private void searchUnuseImpl() {
+		_replMode = false;
+		uint count = 0;
+		if (unuseFlag) {
+			searchUnuseImpl2!("toFlagId(o.path)")(_summ.flagDirRoot.allFlags, count);
+		}
+		if (unuseStep) {
+			searchUnuseImpl2!("toStepId(o.path)")(_summ.flagDirRoot.allSteps, count);
+		}
+		if (unuseArea) {
+			searchUnuseImpl2!("toAreaId(o.id)")(_summ.areas, count);
+		}
+		if (unuseBattle) {
+			searchUnuseImpl2!("toBattleId(o.id)")(_summ.battles, count);
+		}
+		if (unusePackage) {
+			searchUnuseImpl2!("toPackageId(o.id)")(_summ.packages, count);
+		}
+		if (unuseCast) {
+			searchUnuseImpl2!("toCastId(o.id)")(_summ.casts, count);
+		}
+		if (unuseSkill) {
+			searchUnuseImpl2!("toSkillId(o.id)")(_summ.skills, count);
+		}
+		if (unuseItem) {
+			searchUnuseImpl2!("toItemId(o.id)")(_summ.items, count);
+		}
+		if (unuseBeast) {
+			searchUnuseImpl2!("toBeastId(o.id)")(_summ.beasts, count);
+		}
+		if (unuseInfo) {
+			searchUnuseImpl2!("toInfoId(o.id)")(_summ.infos, count);
+		}
+		if (unuseStart) {
+			searchUnuseStart(count);
+		}
+		if (unusePath) {
+			searchUnuseImpl2!("toPathId(o)")(allMaterials(true), count);
+		}
+		setResultStatus(count);
+	}
+	private void replaceTextImpl() {
 		string from = _from.getText;
-		if (from.length == 0) return;
+		if (!from.length) return;
 		string to = _to.getText;
-		if (from == to) return;
-		_result.removeAll;
+		if (from == to) _replMode = false;
 		size_t count = 0;
 		bool sr = false;
 		if (summary) {
@@ -371,12 +872,16 @@ public:
 			}
 			foreach (c; a.cards) {
 				replCard(c, c, count);
+				replEvent(c, count);
 			}
 			replEvent(a, count);
 		}
 		foreach (b; _summ.battles) {
 			if (area) {
 				repl(b, &b.name, &b.name, count);
+			}
+			foreach (c; b.cards) {
+				replEvent(c, count);
 			}
 			replEvent(b, count);
 		}
@@ -413,15 +918,8 @@ public:
 			}
 			replFS(_summ.flagDirRoot);
 		}
-		if (count > 0) {
-			_comm.refUseCount.call;
-			_comm.replText.call;
-		}
-		if (_replMode) {
-			_status.setText = _prop.msgs.replTextResult(count);
-		} else {
-			_status.setText = _prop.msgs.searchResult(count);
-		}
+		setResultStatus(count);
+		if (count > 0) _comm.replText.call;
 	}
 	private void exit() {
 		_win.close;
@@ -431,17 +929,55 @@ public:
 	private void openPath() {
 		auto itms = _result.getSelection;
 		if (itms.length) {
-			auto path = (cast(CWXPath) itms[0].getData).cwxPath;
-			try {
-				if (_comm.openCWXPath(path)) {
+			auto rp = cast(CWXPath) itms[0].getData;
+			if (rp) {
+				auto path = rp.cwxPath;
+				try {
+					if (_comm.openCWXPath(path)) {
+						_win.setActive;
+						return;
+					}
+				} catch (Exception e) {
+					debugln(e);
+				}
+				MessageBox.showWarning(_prop.msgs.cwxPathOpenError(path), _prop.msgs.dlgTitWarning, _win);
+			} else {
+				auto p = cast(PathString) itms[0].getData;
+				assert (p);
+				auto path = nabs(std.path.join(_summ.scenarioPath, p.array));
+				if (_comm.openFilePath(path)) {
 					_win.setActive;
 					return;
 				}
-			} catch (Exception e) {
-				debugln(e);
+				MessageBox.showWarning(_prop.msgs.filePathOpenError(path), _prop.msgs.dlgTitWarning, _win);
 			}
-			MessageBox.showWarning(_prop.msgs.cwxPathOpenError(path), _prop.msgs.dlgTitWarning, _win);
 		}
+	}
+	Image fimage(string file) {
+		try {
+			if (!.exists(file)) {
+				auto skin = findSkin(_prop, _summ);
+				if (.isdir(file)) {
+					return _prop.images.folder;
+				} else if (skin.isCardImage(file)) {
+					return _prop.images.cards;
+				} else if (skin.isBgImage(file)) {
+					return _prop.images.backs;
+				} else if (skin.isBGM(file)) {
+					return _prop.images.bgm;
+				} else if (skin.isSE(file)) {
+					return _prop.images.se;
+				}
+			}
+		} catch {}
+		return _prop.images.unknown;
+	}
+	private alias ArrayWrapperString PathString;
+	private void addResult(string path) {
+		auto itm = new TableItem(_result, DWT.NONE);
+		itm.setImage = fimage(std.path.join(_summ.scenarioPath, path));
+		itm.setText = path;
+		itm.setData = new PathString(path);
 	}
 	private void addResult(CWXPath path) {
 		auto itm = new TableItem(_result, DWT.NONE);
@@ -621,6 +1157,12 @@ public:
 			bool r = false;
 			if (event && (!eo || eo.type == CType.TALK_MESSAGE || eo.type == CType.TALK_DIALOG)) {
 				r |= repl(null, &e.name, &e.name, count);
+			}
+			if (start) {
+				r |= repl(null, &e.start, &e.start, count);
+				if (e.type == CType.START) {
+					r |= repl(null, &e.name, &e.name, count);
+				}
 			}
 			if (coupon) {
 				r |= repl(null, &e.coupon, &e.coupon, count);

@@ -137,6 +137,7 @@ class Commons {
 	Dlg!(Flag[], Step[]) refFlagAndStep;
 	Dlg!(Flag[], Step[]) delFlagAndStep;
 	Dlg!() replText;
+	Dlg!() replID;
 
 	Dlg!(Area) refArea;
 	Dlg!(Area) delArea;
@@ -361,5 +362,13 @@ class Commons {
 
 	bool openCWXPath(string path) {
 		return _main.openCWXPath(path);
+	}
+	bool openFilePath(string path) {
+		openDirWin;
+		return _dirWin.select(path);
+	}
+	void replacePath(string from) {
+		auto replWin = _main.openReplWin;
+		if (replWin) replWin.replacePath(from);
 	}
 }

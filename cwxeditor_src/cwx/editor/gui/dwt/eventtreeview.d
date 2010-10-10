@@ -425,7 +425,7 @@ private:
 		} case CType.CHANGE_BG_IMAGE: {
 			auto p = _prop.looks.viewSize;
 			auto c = new Content(type, name);
-			c.bgImages = [new BgImage(findSkin(_prop, _summ).firstBgImage, "", 0, 0, p.width, p.height, false)];
+			c.backs = [new BgImage(findSkin(_prop, _summ).firstBgImage, "", 0, 0, p.width, p.height, false)];
 			if (_autoOpen) {
 				auto dlg = new BgImagesDialog(_comm, _prop, _tree.getShell, _summ, c);
 				return dlg.open ? dlg.event : null;
@@ -1315,6 +1315,7 @@ private:
 			_comm.replPath.remove(&__replacePaths);
 			_comm.replText.remove(&__refreshCard);
 			_comm.replText.remove(&__refreshEventText);
+			_comm.replID.remove(&__refreshCard);
 		}
 	}
 public:
@@ -1553,6 +1554,7 @@ public:
 		_comm.replPath.add(&__replacePaths);
 		_comm.replText.add(&__refreshCard);
 		_comm.replText.add(&__refreshEventText);
+		_comm.replID.add(&__refreshCard);
 
 		auto dt = new DropTarget(_tree, DND.DROP_DEFAULT | DND.DROP_MOVE);
 		dt.setTransfer = [XMLBytesTransfer.getInstance];

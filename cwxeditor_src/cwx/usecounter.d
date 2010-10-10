@@ -24,7 +24,8 @@ public:
 	/// key = キー。
 	/// Returns: 使用回数。
 	uint get(K key) {
-		return (key in _cont) ? _cont[key].size : 0;
+		auto p = key in _cont;
+		return p ? p.size : 0;
 	}
 
 	/// キーの一覧を返す。
@@ -38,7 +39,8 @@ public:
 	/// key = キー。
 	/// Returns: 使用者の一覧。
 	U[] values(K key) {
-		return _cont[key].toArray;
+		auto p = key in _cont;
+		return p ? p.toArray : cast(U[]) [];
 	}
 
 	/// キーの使用者を追加する。
@@ -137,7 +139,11 @@ private:
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
 	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
+	/// このオブジェクトの所有者。
+	CWXPath owner() {return _cwxPath;}
+	/// このオブジェクトの所有者のリソースパス。
 	string cwxPath() {return _cwxPath.cwxPath;}
+
 	/// フラグを設定する。
 	/// Params:
 	/// flag = フラグ。
@@ -224,7 +230,11 @@ private:
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
 	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
+	/// このオブジェクトの所有者。
+	CWXPath owner() {return _cwxPath;}
+	/// このオブジェクトの所有者のリソースパス。
 	string cwxPath() {return _cwxPath.cwxPath;}
+
 	/// ステップを設定する。
 	/// Params:
 	/// step = ステップ。
@@ -282,7 +292,11 @@ private:
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
 	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
+	/// このオブジェクトの所有者。
+	CWXPath owner() {return _cwxPath;}
+	/// このオブジェクトの所有者のリソースパス。
 	string cwxPath() {return _cwxPath.cwxPath;}
+
 	/// エリアIDを設定する。
 	/// Params:
 	/// id = エリアID。
@@ -344,7 +358,11 @@ private:
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
 	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
+	/// このオブジェクトの所有者。
+	CWXPath owner() {return _cwxPath;}
+	/// このオブジェクトの所有者のリソースパス。
 	string cwxPath() {return _cwxPath.cwxPath;}
+
 	/// バトルIDを設定する。
 	/// Params:
 	/// id = バトルID。
@@ -406,7 +424,11 @@ private:
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
 	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
+	/// このオブジェクトの所有者。
+	CWXPath owner() {return _cwxPath;}
+	/// このオブジェクトの所有者のリソースパス。
 	string cwxPath() {return _cwxPath.cwxPath;}
+
 	/// パッケージIDを設定する。
 	/// Params:
 	/// id = パッケージID。
@@ -545,7 +567,11 @@ private:
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
 	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
+	/// このオブジェクトの所有者。
+	CWXPath owner() {return _cwxPath;}
+	/// このオブジェクトの所有者のリソースパス。
 	string cwxPath() {return _cwxPath.cwxPath;}
+
 	/// ファイルパスを設定する。
 	void path(string path) {
 		if (_uc !is null) {
@@ -604,7 +630,11 @@ private:
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
 	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
+	/// このオブジェクトの所有者。
+	CWXPath owner() {return _cwxPath;}
+	/// このオブジェクトの所有者のリソースパス。
 	string cwxPath() {return _cwxPath.cwxPath;}
+
 	/// キャストIDを設定する。
 	/// Params:
 	/// id = キャストID。
@@ -662,7 +692,11 @@ private:
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
 	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
+	/// このオブジェクトの所有者。
+	CWXPath owner() {return _cwxPath;}
+	/// このオブジェクトの所有者のリソースパス。
 	string cwxPath() {return _cwxPath.cwxPath;}
+
 	/// スキルIDを設定する。
 	/// Params:
 	/// id = スキルID。
@@ -720,7 +754,11 @@ private:
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
 	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
+	/// このオブジェクトの所有者。
+	CWXPath owner() {return _cwxPath;}
+	/// このオブジェクトの所有者のリソースパス。
 	string cwxPath() {return _cwxPath.cwxPath;}
+
 	/// アイテムIDを設定する。
 	/// Params:
 	/// id = アイテムID。
@@ -778,7 +816,11 @@ private:
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
 	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
+	/// このオブジェクトの所有者。
+	CWXPath owner() {return _cwxPath;}
+	/// このオブジェクトの所有者のリソースパス。
 	string cwxPath() {return _cwxPath.cwxPath;}
+
 	/// 召喚獣IDを設定する。
 	/// Params:
 	/// id = 召喚獣ID。
@@ -836,7 +878,11 @@ private:
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
 	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
+	/// このオブジェクトの所有者。
+	CWXPath owner() {return _cwxPath;}
+	/// このオブジェクトの所有者のリソースパス。
 	string cwxPath() {return _cwxPath.cwxPath;}
+
 	/// 情報カードIDを設定する。
 	/// Params:
 	/// id = 情報カードID。
@@ -999,4 +1045,16 @@ public:
 			static assert (0);
 		}
 	}
+	/// idの使用者一覧を返す。
+	FlagUser[] values(FlagId id) {return flag.values(id);}
+	StepUser[] values(StepId id) {return step.values(id);} /// ditto
+	AreaUser[] values(AreaId id) {return area.values(id);} /// ditto
+	BattleUser[] values(BattleId id) {return battle.values(id);} /// ditto
+	PackageUser[] values(PackageId id) {return packages.values(id);} /// ditto
+	PathUser[] values(PathId id) {return path.values(id);} /// ditto
+	CastUser[] values(CastId id) {return casts.values(id);} /// ditto
+	SkillUser[] values(SkillId id) {return skill.values(id);} /// ditto
+	ItemUser[] values(ItemId id) {return item.values(id);} /// ditto
+	BeastUser[] values(BeastId id) {return beast.values(id);} /// ditto
+	InfoUser[] values(InfoId id) {return info.values(id);} /// ditto
 }

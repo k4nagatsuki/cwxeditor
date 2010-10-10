@@ -72,6 +72,7 @@ public:
 		return to!(string)(rndtol(cast(real) worked / max * 100.0)) ~ "% 完了 - " ~ getBaseName(fname) ~ "を展開中 - CWXEditor";
 	}
 	string cwxPathOpenError(string path) {return "パス [" ~ path ~ "] を開けません。";}
+	string filePathOpenError(string path) {return "パス [" ~ path ~ "] を開けません。";}
 
 	string loadSkinError(string name) {return "スキン「" ~ name ~ "」が見つかりません。";}
 	string useDefaultSkin(string name, string defSkin) {return "スキン「" ~ name ~ "」が見つかりません。\nデフォルトのスキン「" ~ defSkin ~ "」を使用します。";}
@@ -155,7 +156,7 @@ public:
 	string menuChangeVH() {return ttChangeVH ~ "(&V)" ~ "";}
 
 	string menuEdit() {return "編集(&E)";}
-	string ttReplaceText() {return "テキスト検索/置換";}
+	string ttReplaceText() {return "検索と置換";}
 	string menuReplaceText() {return ttReplaceText ~ "(&F)...\tCtrl+F";}
 	string ttCEdit() {return "編集";}
 	string menuCEdit() {return ttCEdit ~ "(&E)" ~ "\tEnter";}
@@ -202,29 +203,65 @@ public:
 	string battle() {return "バトル";}
 	string packages() {return "パッケージ";}
 
-	string dlgTitReplaceText() {return "テキスト検索/置換";}
+	string dlgTitReplaceText() {return "検索と置換";}
+	string replForText() {return "テキスト検索";}
+	string replForID() {return "ID検索";}
+	string replForPath() {return "素材検索";}
+	string replForUnuse() {return "未使用検索";}
+
+	string replFrom() {return "検索(置換前)";}
+	string replTo() {return "置換後";}
+
 	string replText() {return "検索/置換するテキスト";}
-	string replTextFrom() {return "検索(置換前)";}
-	string replTextTo() {return "置換後";}
 	string replTextTarget() {return "置換対象";}
 	string replTextSummary() {return "貼り紙";}
 	string replTextMessage() {return "メッセージ";}
 	string replTextCardName() {return "カード名";}
 	string replTextCardDesc() {return "カード解説";}
 	string replTextEventText() {return "イベントテキスト";}
+	string replTextStart() {return "スタートコンテント";}
 	string replTextFlagAndStep() {return "フラグ/ステップ";}
 	string replTextCoupon() {return "クーポン";}
 	string replTextGossip() {return "ゴシップ";}
 	string replTextEndScenario() {return "終了印";}
 	string replTextAreaName() {return "エリア/バトル/パッケージ名";}
 	string replTextKeyCode() {return "キーコード";}
+
+	string replID() {return "検索/置換対象";}
+	string replIDKind() {return "対象";}
+	string replIDArea() {return "エリア";}
+	string replIDBattle() {return "バトル";}
+	string replIDPackage() {return "パッケージ";}
+	string replIDCast() {return "キャストカード";}
+	string replIDSkill() {return "スキルカード";}
+	string replIDItem() {return "アイテムカード";}
+	string replIDBeast() {return "召喚獣カード";}
+	string replIDInfo() {return "情報カード";}
+	string replSetID() {return "(IDを直接指定)";}
+
+	string replPath() {return "検索/置換する素材";}
+
+	string replUnuseTarget() {return "検索対象";}
+	string replUnuseFlag() {return "フラグ";}
+	string replUnuseStep() {return "ステップ";}
+	string replUnuseArea() {return "エリア";}
+	string replUnuseBattle() {return "バトル";}
+	string replUnusePackage() {return "パッケージ";}
+	string replUnuseCast() {return "キャストカード";}
+	string replUnuseSkill() {return "スキルカード";}
+	string replUnuseItem() {return "アイテムカード";}
+	string replUnuseBeast() {return "召喚獣カード";}
+	string replUnuseInfo() {return "情報カード";}
+	string replUnuseStart() {return "スタートコンテント";}
+	string replUnusePath() {return "素材";}
+
 	string search() {return "検索(&F)";}
 	string replace() {return "全て置換(&R)";}
 	string replaceExit() {return "閉じる";}
 	string searchResult(size_t count) {
 		return to!(string)(count) ~ "件の検索結果";
 	}
-	string replTextResult(size_t count) {
+	string replResult(size_t count) {
 		return to!(string)(count) ~ "箇所の置換";
 	}
 	string searchResultBgImage(BgImage back) {
@@ -554,9 +591,9 @@ public:
 			return a is null ? "指定無し" : "エリアビュー「" ~ a.name ~ "」";
 		} case CType.CHANGE_BG_IMAGE: {
 			string buf = "背景ファイル = ";
-			foreach (i, b; evt.bgImages) {
+			foreach (i, b; evt.backs) {
 				buf ~= "[" ~ b.path ~ "]";
-				if (i + 1 < evt.bgImages.length) buf ~= " ";
+				if (i + 1 < evt.backs.length) buf ~= " ";
 			}
 			return buf;
 		} case CType.EFFECT: {
@@ -1642,10 +1679,6 @@ public:
 	string newFolder() {return ttNewFolder;}
 	string ttReplacePath() {return "素材の差替え";}
 	string menuReplacePath() {return ttReplacePath ~ "(&R)...";}
-	string dlgTitReplacePath() {return "素材の差替え";}
-	string replacePathFrom() {return "差替元";}
-	string replacePathTo() {return "差替先";}
-	string errorReplacePath() {return "差替先のファイルパスが正しくありません。";}
 
 	/// エディタ設定ダイアログ。
 	string baseSettings() {return "基本設定";}
@@ -1815,6 +1848,8 @@ public:
 	uint paralyzeMax() {return 40;}
 	uint poisonMax() {return 40;}
 	uint stoneBorder() {return 20;}
+
+	uint idMax() {return 99999;}
 
 	uint transitionSpeedMax() {return 10;}
 	uint transitionSpeedDef() {return 5;}

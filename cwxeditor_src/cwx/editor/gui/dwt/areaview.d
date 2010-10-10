@@ -1206,12 +1206,14 @@ public:
 		_comm.delPaths.add(&refresh);
 		_comm.replPath.add(&refreshR);
 		_comm.replText.add(&replText);
+		_comm.replID.add(&replText);
 		addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) {
 				_comm.refSkin.remove(&refresh);
 				_comm.delPaths.remove(&refresh);
 				_comm.replPath.remove(&refreshR);
 				_comm.replText.remove(&replText);
+				_comm.replID.remove(&replText);
 			}
 		});
 		static if (is (C == EnemyCard)) {

@@ -633,8 +633,9 @@ public:
 
 protected:
 	override void setup(Composite area) {
-		area.setLayout = new CenterLayout(DWT.VERTICAL | DWT.HORIZONTAL, 0);
+		area.setLayout = windowGridLayout(1, true);
 		auto tabf = new CTabFolder(area, DWT.BORDER);
+		tabf.setLayoutData = new GridData(GridData.FILL_BOTH);
 		construct1(tabf);
 		construct2(tabf);
 		construct3(tabf);
