@@ -569,7 +569,7 @@ public class FlexProps {
 	const PackageWin packageWin;
 	const CardEventWin cardEventWin;
 	const ContWin contentsWin;
-	const DialogParam!("replaceDialog") replaceDlg;
+	const DialogParam!("replaceDialog", 600) replaceDlg;
 	const DialogParam!("summaryDialog") summaryDlg;
 	const DialogParam!("menuCardDialog") menuCardDlg;
 	const DialogParam!("areaBackgroundDialog") areaBackgroundDlg;
