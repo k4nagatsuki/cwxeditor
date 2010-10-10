@@ -71,7 +71,6 @@ class DockingFolder(TabF, int Style) {
 	private string[TabF] _tabfs;
 	private TabF[string] _tKeys;
 	private TabF[] _tabfList;
-	private bool[string] _vanish;
 
 	private Canvas _canvas;
 
@@ -92,7 +91,7 @@ class DockingFolder(TabF, int Style) {
 		_area.addListener(DWT.Dispose, new DListener);
 		_area.setLayoutData = new CenterLayoutData(true, true);
 		_area.setLayout = new FillLayout;
-		if (createTabf) newTabf(_area, firstPaneKey, true);
+		if (createTabf) newTabf(_area, firstPaneKey);
 		_fl = new FocusL;
 		Display.getCurrent.addFilter(DWT.FocusIn, _fl);
 	}
@@ -254,34 +253,32 @@ class DockingFolder(TabF, int Style) {
 	string firstKey() {return _tabfs[cast(TabF) first];}
 	/// 全てのペインの親となるComposite。
 	Composite area() {return _comp;}
-	/// 指定されたペインが空になった時に消滅するか否か。
-	bool vanish(string key) {
-		auto p = key in _vanish;
-		return p ? *p : true;
+	private bool vanish(string key) {
+		return canVanish ? canVanish(key) : true;
 	}
+	/// keyのペインが空になった際に呼び出される。
+	/// falseを返す事で、ペインの消去を回避する事ができる。
 	/// ditto
-	void vanish(string key, bool vanish) {
-		_vanish[key] = vanish;
-	}
+	bool delegate(string key) canVanish = null;
+
 	/// ペインbaseに対して、dir方向にペインを追加する。
 	/// Param:
 	///  lWeight, rWeight = 分割した際のサイズの割合。
 	///  key = 新たなペインのkey。""を指定した場合は自動的に生成される。
 	///        自動生成されたキーは必ず"t"+連番("t%d")の形式になる。
-	///  vanish = 新たなペインが空になった際に消滅するのであればtrue。
 	/// Returns: 生成されたペイン。
-	Composite addPane(string base, Dir dir, int lWeight = 1, int rWeight = 1, string key = "", bool vanish = true) {
-		return addPane(pane(base), dir, lWeight, rWeight, key, vanish);
+	Composite addPane(string base, Dir dir, int lWeight = 1, int rWeight = 1, string key = "") {
+		return addPane(pane(base), dir, lWeight, rWeight, key);
 	}
 	/// ditto
-	Composite addPane(Composite base, Dir dir, int lWeight = 1, int rWeight = 1, string key = "", bool vanish = true) {
+	Composite addPane(Composite base, Dir dir, int lWeight = 1, int rWeight = 1, string key = "") {
 		auto tabf = cast(TabF) base;
 		if (!tabf && !(tabf in _tabfs)) throw new Exception("invalid base");
 		if (key in _tKeys) throw new Exception("invalid key");
 		int style = dir == Dir.N || dir == Dir.S ? DWT.VERTICAL : DWT.HORIZONTAL;
 		bool before = dir == Dir.N || dir == Dir.W;
 		if (!key.length) key = newTabfKey;
-		auto r = newSash(tabf, style, before, lWeight, rWeight, key, vanish);
+		auto r = newSash(tabf, style, before, lWeight, rWeight, key);
 		_area.layout(true);
 		return r;
 	}
@@ -339,13 +336,12 @@ class DockingFolder(TabF, int Style) {
 	/// Controlタブが選択された際、Controlをkeyを引数に呼出される。
 	void delegate(string)[] selectEvent;
 
-	private TabF newTabf(Composite parent, string key, bool vanish) {
+	private TabF newTabf(Composite parent, string key) {
 		if (!key.length) key = newTabfKey;
 		auto tabf = new TabF(parent, Style | DWT.NO_MERGE_PAINTS);
 		_tKeys[key] = tabf;
 		_tabfs[tabf] = key;
 		_tabfList ~= tabf;
-		if (!vanish) _vanish[key] = false;
 
 		static if (CLOSE) {
 			tabf.addCTabFolderListener(new CTFL);
@@ -367,7 +363,6 @@ class DockingFolder(TabF, int Style) {
 		auto key = _tabfs[tabf];
 		_tKeys.remove(key);
 		_tabfs.remove(tabf);
-		if (key in _vanish) _vanish.remove(key);
 		reconstruct;
 	}
 	private class CTFL :  CTabFolderListener {
@@ -642,7 +637,7 @@ class DockingFolder(TabF, int Style) {
 					key = newPaneName(ctrlKey);
 				}
 				if (!key.length) key = newTabfKey;
-				auto tabf = newSash(dropTarg, style, before, 1, 1, key, true);
+				auto tabf = newSash(dropTarg, style, before, 1, 1, key);
 				newTab(tabf, -1);
 				tabf.setFocus;
 				return DND.DROP_MOVE;
@@ -713,7 +708,7 @@ class DockingFolder(TabF, int Style) {
 			}
 		}
 	}
-	private TabF newSash(TabF targ, int style, bool before, int lWeight, int rWeight, string key, bool vanish) {
+	private TabF newSash(TabF targ, int style, bool before, int lWeight, int rWeight, string key) {
 		auto parent = targ.getParent;
 		int[] weights;
 		auto sashf = cast(SplitPane) parent;
@@ -724,11 +719,11 @@ class DockingFolder(TabF, int Style) {
 		addAfters(aft);
 		TabF r;
 		if (before) {
-			r = newTabf(nSash, key, vanish);
+			r = newTabf(nSash, key);
 			targ.setParent = nSash;
 		} else {
 			targ.setParent = nSash;
-			r = newTabf(nSash, key, vanish);
+			r = newTabf(nSash, key);
 		}
 		nSash.setWeights([lWeight, rWeight]);
 		return r;
@@ -736,7 +731,6 @@ class DockingFolder(TabF, int Style) {
 
 	private static struct Tabf {
 		string key;
-		bool vanish;
 		int select;
 		Tabi[] tabs;
 	}
@@ -795,7 +789,6 @@ class DockingFolder(TabF, int Style) {
 			assert (tabf, "dockingfolder#saveTree 5");
 			ta.key = _tabfs[tabf];
 			ta.select = tabf.getSelectionIndex;
-			ta.vanish = vanish(ta.key);
 			ta.tabs.length = tabf.getItemCount;
 			foreach (i, tab; tabf.getItems) {
 				ta.tabs[i].key = _ctrls[tab.getControl];
@@ -847,7 +840,6 @@ class DockingFolder(TabF, int Style) {
 	private XNode toNodeImpl(ref XNode parent, Tabf* ta) {
 		auto r = parent.newElement("tabs");
 		if (ta.select >= 0) r.newAttr("select", ta.select);
-		if (!ta.vanish) r.newAttr("vanish", ta.vanish);
 		r.newAttr("key", ta.key);
 		foreach (ref tab; ta.tabs) {
 			auto t = r.newElement("tab");
@@ -877,8 +869,7 @@ class DockingFolder(TabF, int Style) {
 		}
 		void tabs(ref XNode node) {
 			auto key = node.attr("key", true);
-			auto vanish = node.attr!(bool)("vanish", false, true);
-			auto tabf = r.newTabf(par, key, vanish);
+			auto tabf = r.newTabf(par, key);
 			node.onTag["tab"] = (ref XNode node) {
 				auto key = node.attr("key", true);
 				auto v = create(tabf, key);

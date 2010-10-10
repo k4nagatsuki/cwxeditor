@@ -706,10 +706,11 @@ public:
 			});
 			void initDock() {
 				if (!_dock.findPane("work").length) {
-					_dock.addPane(_dock.first, Dir.N, 3, 1, "work", false);
+					_dock.addPane(_dock.first, Dir.N, 3, 1, "work");
 				}
 				_dock.canMove = &dockCanMove;
 				_dock.newPaneName = &dockNewPaneName;
+				_dock.canVanish = &dockCanVanish;
 				_dock.selectEvent ~= &dockSelect;
 				_dock.area.setLayoutData = new GridData(GridData.FILL_BOTH);
 			}
@@ -1155,6 +1156,12 @@ public:
 		} else {
 			return !iswa;
 		}
+	}
+	private bool dockCanVanish(string key) {
+		if (cwx.utils.startsWith(key, "work")) {
+			return _dock.findPane("work").length > 1;
+		}
+		return true;
 	}
 	private string dockNewPaneName(string ctrlKey) {
 		if (cwx.utils.startsWith(ctrlKey, "work")) {
