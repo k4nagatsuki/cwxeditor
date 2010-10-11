@@ -227,6 +227,7 @@ public:
 		if (path == "") return this;
 		return null;
 	}
+	CWXPath[] cwxChilds() {return [];}
 }
 
 /// BgImage所持者のインタフェース。
@@ -256,6 +257,11 @@ public:
 		default: break;
 		}
 		return null;
+	}
+	CWXPath[] cwxChilds() {
+		CWXPath[] r;
+		r ~= cast(CWXPath[]) backs;
+		return r;
 	}
 	/// 背景イメージ群。
 	BgImage[] backs() {

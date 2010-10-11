@@ -196,6 +196,7 @@ public:
 		if (path == "") return this;
 		return null;
 	}
+	override CWXPath[] cwxChilds() {return [];}
 }
 
 /// ステップ。
@@ -347,6 +348,7 @@ public:
 		if (path == "") return this;
 		return null;
 	}
+	override CWXPath[] cwxChilds() {return [];}
 }
 
 /// フラグ/ステップ、及びサブディレクトリを格納するディレクトリ。
@@ -407,6 +409,13 @@ public:
 		default: break;
 		}
 		return null;
+	}
+	override CWXPath[] cwxChilds() {
+		CWXPath[] r;
+		r ~= cast(CWXPath[]) flags;
+		r ~= cast(CWXPath[]) steps;
+		r ~= cast(CWXPath[]) subDirs;
+		return r;
 	}
 	/// 親ディレクトリ。
 	FlagDir parent() {

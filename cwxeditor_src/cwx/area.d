@@ -806,6 +806,13 @@ public:
 		}
 		return super.findCWXPath(path);
 	}
+	CWXPath[] cwxChilds() {
+		CWXPath[] r;
+		r ~= cast(CWXPath[]) cards;
+		r ~= cast(CWXPath[]) backs;
+		r ~= super.cwxChilds;
+		return r;
+	}
 }
 
 /// パッケージ。
@@ -1115,5 +1122,11 @@ public:
 		default: break;
 		}
 		return super.findCWXPath(path);
+	}
+	CWXPath[] cwxChilds() {
+		CWXPath[] r;
+		r ~= cast(CWXPath[]) cards;
+		r ~= super.cwxChilds;
+		return r;
 	}
 }

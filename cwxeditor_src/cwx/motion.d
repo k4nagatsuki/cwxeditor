@@ -414,4 +414,9 @@ public:
 		}
 		return null;
 	}
+	CWXPath[] cwxChilds() {
+		CWXPath[] r;
+		if (_beast) r ~= _beast;
+		return r;
+	}
 }

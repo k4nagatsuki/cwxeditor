@@ -12,6 +12,8 @@ interface CWXPath {
 	/// パスが示すオブジェクトを返す。
 	/// 見つからない場合はnullを返す。
 	CWXPath findCWXPath(string);
+	/// 直下のパスを全て返す。
+	CWXPath[] cwxChilds();
 }
 
 /// シナリオ内パスを結合する。

@@ -433,6 +433,15 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 		}
 		return null;
 	}
+	private CWXPath[] cwxChildsImpl() {
+		CWXPath[] r;
+		static if (UseCast) r ~= cast(CWXPath[]) casts;
+		static if (UseSkill) r ~= cast(CWXPath[]) skills;
+		static if (UseItem) r ~= cast(CWXPath[]) items;
+		static if (UseBeast) r ~= cast(CWXPath[]) beasts;
+		static if (UseInfo) r ~= cast(CWXPath[]) infos;
+		return r;
+	}
 }
 
 /// 貼り紙。シナリオの情報が入る。
@@ -521,6 +530,15 @@ public:
 		default: break;
 		}
 		return findCWXPathImpl(path, cate);
+	}
+	override CWXPath[] cwxChilds() {
+		CWXPath[] r;
+		r ~= cast(CWXPath[]) areas;
+		r ~= cast(CWXPath[]) battles;
+		r ~= cast(CWXPath[]) packages;
+		r ~= cwxChildsImpl;
+		r ~= flagDirRoot;
+		return r;
 	}
 	/// マシン上で一意なID。
 	string id() {
@@ -1450,6 +1468,7 @@ public:
 		if (path == "") return this;
 		return findCWXPathImpl(path, cpcategory(path));
 	}
+	override CWXPath[] cwxChilds() {return cwxChildsImpl;}
 	/// マシン上で一意なID。
 	string id() {
 		return _id;

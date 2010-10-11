@@ -700,6 +700,13 @@ public:
 		}
 		return null;
 	}
+	CWXPath[] cwxChilds() {
+		CWXPath[] r;
+		r ~= cast(CWXPath[]) skills;
+		r ~= cast(CWXPath[]) items;
+		r ~= cast(CWXPath[]) beasts;
+		return r;
+	}
 }
 
 /// スキル・アイテム・召喚獣といった、「効果」のあるカードの親クラス。
@@ -986,6 +993,12 @@ public:
 	CWXPath findCWXPath(string path) {
 		if (path == "") return this;
 		return _ceto.findCWXPath(path);
+	}
+	CWXPath[] cwxChilds() {
+		CWXPath[] r;
+		r ~= cast(CWXPath[]) motions;
+		r ~= _ceto.cwxChilds;
+		return r;
 	}
 }
 
@@ -1333,4 +1346,5 @@ public:
 		if (path == "") return this;
 		return null;
 	}
+	CWXPath[] cwxChilds() {return [];}
 }

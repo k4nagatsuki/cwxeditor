@@ -361,6 +361,7 @@ public:
 		if (path == "") return this;
 		return null;
 	}
+	CWXPath[] cwxChilds() {return [];}
 }
 
 /// 口調分け条件とメッセージ内容を持つクラス。
@@ -457,6 +458,7 @@ public:
 		}
 		return null;
 	}
+	CWXPath[] cwxChilds() {return _text.cwxChilds;}
 }
 
 class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
@@ -588,6 +590,15 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		default: break;
 		}
 		return null;
+	}
+	CWXPath[] cwxChilds() {
+		CWXPath[] r;
+		r ~= cast(CWXPath[]) next;
+		r ~= cast(CWXPath[]) dialogs;
+		r ~= _text;
+		r ~= cast(CWXPath[]) motions;
+		r ~= cast(CWXPath[]) backs;
+		return r;
 	}
 
 	/// EventTreeからこのコンテントに到達するまでのindex群を返す。
@@ -1365,6 +1376,11 @@ public:
 		}
 		return null;
 	}
+	CWXPath[] cwxChilds() {
+		CWXPath[] r;
+		r ~= cast(CWXPath[]) starts;
+		return r;
+	}
 	/// 変更ハンドラを登録する。
 	void changeHandler(void delegate() change) {
 		foreach (s; _starts) {
@@ -1828,6 +1844,11 @@ public:
 			return _evts[index].findCWXPath(cpbottom(path));
 		}
 		return null;
+	}
+	CWXPath[] cwxChilds() {
+		CWXPath[] r;
+		r ~= cast(CWXPath[]) trees;
+		return r;
 	}
 
 	/// 使用回数カウンタ。
