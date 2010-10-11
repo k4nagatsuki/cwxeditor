@@ -217,6 +217,8 @@ private:
 			if (_prop.var.cardWin.visible) _comm.openCardWin;
 			if (_prop.var.dirWin.visible) _comm.openDirWin;
 		}
+		setupMenu(_menu);
+		setupMenu(_tool);
 		addHistory;
 	}
 	string[] _openPaths;
@@ -323,7 +325,6 @@ private:
 						fname, tempPath, expandXMLs, defSkin, (string msg) {
 							MessageBox.showWarning(msg, _prop.msgs.dlgTitWarning, shell);
 						});
-					_prop.var.etc.scenarioPath = nabs(dlg.getFilterPath);
 					_comm.saved.call;
 					_comm.refScenarioPath.call;
 					_comm.refSkin.call;
@@ -486,6 +487,7 @@ private:
 			hist = std.path.join(summary.scenarioPath, "Summary.xml");
 		}
 		hist = nabs(hist);
+		_prop.var.etc.scenarioPath = summary.useTemp ? getDirName(hist) : getDirName(getDirName(hist));
 		foreach (i, h; _prop.var.etc.openHistories) {
 			if (std.path.fnmatch(h, hist)) {
 				_prop.var.etc.openHistories
@@ -845,6 +847,21 @@ public:
 
 			_win.setMenuBar = bar;
 		}
+
+		_noSummMenu = new HashSet!(MenuID);
+		_noSummMenu.add(MenuID.New);
+		_noSummMenu.add(MenuID.Open);
+		_noSummMenu.add(MenuID.ToXML);
+		_noSummMenu.add(MenuID.DataWin);
+		_noSummMenu.add(MenuID.FlagWin);
+		_noSummMenu.add(MenuID.CardWin);
+		_noSummMenu.add(MenuID.DirWin);
+		_noSummMenu.add(MenuID.ChangeVH);
+		_noSummMenu.add(MenuID.ShowCardList);
+		_noSummMenu.add(MenuID.ShowCardTable);
+		_noSummMenu.add(MenuID.ExecEngine);
+		_noSummMenu.add(MenuID.Settings);
+
 		if (_prop.var.etc.singleWindow) {
 			auto cbar = new CoolBar(toolComp, DWT.NONE);
 			cbar.addControlListener(new CCListener);
@@ -1065,6 +1082,7 @@ public:
 	private void newInfo() {mixin (NewCard!("Info"));}
 	private void newBeast() {mixin (NewCard!("Beast"));}
 
+	private HashSet!(MenuID) _noSummMenu;
 	private MenuItem[MenuID] _menu;
 	private ToolItem[MenuID] _tool;
 	private RadioGroup!(MenuItem)[] _menuRG;
@@ -1123,18 +1141,26 @@ public:
 
 	private void setupMenu(M)(M[MenuID] menus) {
 		foreach (id, itm; menus) {
-			auto s = itm.getStyle;
-			if (s & DWT.PUSH) {
-				if(_mainMenu.contains(id)) continue;
-				itm.setEnabled = _tlp.menuAction(id) !is null;
-			} else if ((s & DWT.RADIO) || (s & DWT.CHECK)) {
-				if(_mainMenu.contains(id)) continue;
-				auto chk = _tlp.menuChecked(id);
-				if (chk) {
-					itm.setEnabled = true;
-					itm.setSelection = chk();
-				} else {
-					itm.setEnabled = false;
+			if (!summary && !_noSummMenu.contains(id)) {
+				itm.setEnabled = false;
+				continue;
+			}
+			if (_mainMenu.contains(id)) {
+				itm.setEnabled = true;
+				continue;
+			}
+			if (_tlp) {
+				auto s = itm.getStyle;
+				if (s & DWT.PUSH) {
+					itm.setEnabled = _tlp.menuAction(id) !is null;
+				} else if ((s & DWT.RADIO) || (s & DWT.CHECK)) {
+					auto chk = _tlp.menuChecked(id);
+					if (chk) {
+						itm.setEnabled = true;
+						itm.setSelection = chk();
+					} else {
+						itm.setEnabled = false;
+					}
 				}
 			}
 		}

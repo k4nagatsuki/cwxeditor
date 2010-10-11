@@ -294,7 +294,7 @@ private:
 		if (_result.getParent is comp) return;
 		_result.setParent = comp;
 		comp.layout(true);
-		_replace.setEnabled = sel !is _tabUnuse;
+		_replace.setEnabled = sel !is _tabUnuse && sel !is _tabError;
 	}
 	class TSListener : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {

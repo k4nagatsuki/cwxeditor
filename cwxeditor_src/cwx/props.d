@@ -1687,6 +1687,7 @@ public:
 	string baseSettings() {return "基本設定";}
 	string reference() {return "参照...";}
 	string enginePath(string appName) {return appName ~ "の場所(必須)";}
+	string dlgTitEnginePath(string appName) {return appName ~ "の場所";}
 	string tempDir() {return "シナリオの一時展開先";}
 	string tempDirDesc() {return "wsn圧縮されたシナリオの一時的な展開先を選択してください。";}
 	string skin() {return "スキン";}

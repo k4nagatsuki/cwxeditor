@@ -138,7 +138,7 @@ private:
 	}
 	void selectEngine() {
 		selectFile(_enginePath, [_prop.var.etc.engine], [_prop.var.etc.engine],
-			_prop.var.etc.engine, _prop.msgs.enginePath(_prop.var.etc.engine),
+			_prop.var.etc.engine, _prop.msgs.dlgTitEnginePath(_prop.var.etc.engine),
 			_prop.var.etc.enginePath);
 	}
 	void selectProgram(int i) {

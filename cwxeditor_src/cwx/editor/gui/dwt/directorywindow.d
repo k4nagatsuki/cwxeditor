@@ -184,6 +184,11 @@ private:
 	}
 
 	void refreshDirs(string sel) {
+		if (!_win || _win.isDisposed) return;
+		if (!_summ) {
+			_dirs.removeAll;
+			return;
+		}
 		_dirs.setRedraw = false;
 		int hs = _dirs.getHorizontalBar.getSelection;
 		auto topItm = _dirs.getTopItem;
@@ -203,6 +208,11 @@ private:
 		_dirs.showSelection;
 	}
 	void refreshFiles(string[] sels) {
+		if (!_win || _win.isDisposed) return;
+		if (!_summ) {
+			_files.removeAll;
+			return;
+		}
 		_files.setRedraw = false;
 		scope (exit) _files.setRedraw = true;
 		scope (exit) fimageThrStart;
@@ -675,17 +685,21 @@ private:
 		return false;
 	}
 	string selDirPath() {
-		if (_dirs.getSelection.length > 0) {
-			return (cast(FileNameObj) _dirs.getSelection[0].getData).array;
+		if (_win && !_win.isDisposed) {
+			if (_dirs.getSelection.length > 0) {
+				return (cast(FileNameObj) _dirs.getSelection[0].getData).array;
+			}
 		}
 		return null;
 	}
 	string[] selFiles() {
 		string[] r;
-		auto sels = _files.getSelection;
-		r.length = sels.length;
-		foreach (i, itm; sels) {
-			r[i] = (cast(FileNameObj) itm.getData).array;
+		if (_win && !_win.isDisposed) {
+			auto sels = _files.getSelection;
+			r.length = sels.length;
+			foreach (i, itm; sels) {
+				r[i] = (cast(FileNameObj) itm.getData).array;
+			}
 		}
 		return r;
 	}

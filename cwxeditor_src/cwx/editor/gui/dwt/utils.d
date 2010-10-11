@@ -1457,19 +1457,11 @@ S loadScenario(S)(Props prop, Shell w, bool expandXMLs, S old, string dlgTitle, 
 	string fname = dlg.open;
 	if (fname) {
 		auto put = new class Object {
-			Props prop;
-			string filterPath;
 			void delegate (S) loaded;
 			void put(S r) {
-				if (r) {
-					filterPath = nabs(filterPath);
-					prop.var.etc.scenarioPath = r.useTemp ? filterPath : getDirName(filterPath);
-				}
 				if (loaded) loaded(r);
 			}
 		};
-		put.prop = prop;
-		put.filterPath = dlg.getFilterPath;
 		put.loaded = loaded;
 		S r = loadScenarioFromFile!(S)(prop, w, expandXMLs, old, fname, &put.put, oThr);
 		if (!oThr && r) put.put(r);
