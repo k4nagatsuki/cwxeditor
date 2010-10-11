@@ -8,6 +8,7 @@ import cwx.background;
 import cwx.usecounter;
 import cwx.xml;
 import cwx.path;
+import cwx.props;
 
 import std.date;
 import std.string;
@@ -131,76 +132,86 @@ enum CArg {
 	BG_IMAGES
 }
 
+/// 後続コンテントのnameの型。
+enum CNextType {
+	NONE, /// 無し。
+	TEXT, /// テキスト。
+	BOOL, /// True/False。
+	STEP, /// ステップ値。
+	ID_AREA, /// エリアID。
+	ID_BATTLE /// バトルID。
+}
+
 static this () {
 	string _(string v) {return v;}
 	CONTENT_DETAILS = [
-		CType.START:CDetail("Start", "", true),
-		CType.START_BATTLE:CDetail("Start", "Battle", false, [CArg.BATTLE:"id"]),
-		CType.END:CDetail("End", "", false, [CArg.COMPLETE:"complete"]),
-		CType.END_BAD_END:CDetail("End", "BadEnd", false),
-		CType.CHANGE_AREA:CDetail("Change", "Area", false, [CArg.AREA:_("id"), CArg.TRANSITION:"transition", CArg.TRANSITION_SPEED:"transitionspeed"]),
-		CType.CHANGE_BG_IMAGE:CDetail("Change", "BgImage", true, [CArg.BG_IMAGES:_(null), CArg.TRANSITION:"transition", CArg.TRANSITION_SPEED:"transitionspeed"]),
-		CType.EFFECT:CDetail("Effect", "", true, [CArg.LEVEL:_("level"), CArg.TARGET_NS:"targetm", CArg.EFFECT_TYPE:"effecttype", CArg.RESIST:"resisttype",
+		CType.START:CDetail("Start", "", CNextType.NONE, true),
+		CType.START_BATTLE:CDetail("Start", "Battle", CNextType.NONE, false, [CArg.BATTLE:"id"]),
+		CType.END:CDetail("End", "", CNextType.NONE, false, [CArg.COMPLETE:"complete"]),
+		CType.END_BAD_END:CDetail("End", "BadEnd", CNextType.NONE, false),
+		CType.CHANGE_AREA:CDetail("Change", "Area", CNextType.NONE, false, [CArg.AREA:_("id"), CArg.TRANSITION:"transition", CArg.TRANSITION_SPEED:"transitionspeed"]),
+		CType.CHANGE_BG_IMAGE:CDetail("Change", "BgImage", CNextType.NONE, true, [CArg.BG_IMAGES:_(null), CArg.TRANSITION:"transition", CArg.TRANSITION_SPEED:"transitionspeed"]),
+		CType.EFFECT:CDetail("Effect", "", CNextType.NONE, true, [CArg.LEVEL:_("level"), CArg.TARGET_NS:"targetm", CArg.EFFECT_TYPE:"effecttype", CArg.RESIST:"resisttype",
 			CArg.SUCCESS_RATE:"successrate", CArg.SOUND_PATH:_("sound"), CArg.CARD_VISUAL:"visual", CArg.MOTIONS:null]),
-		CType.EFFECT_BREAK:CDetail("Effect", "Break", false),
-		CType.LINK_START:CDetail("Link", "Start", false, [CArg.START:"link"]),
-		CType.LINK_PACKAGE:CDetail("Link", "Package", false, [CArg.PACKAGE:"link"]),
-		CType.TALK_MESSAGE:CDetail("Talk", "Message", true, [CArg.TALKER_C:_("path"), CArg.TEXT:null]),
-		CType.TALK_DIALOG:CDetail("Talk", "Dialog", true, [CArg.TALKER_NC:_("targetm"), CArg.DIALOGS:null]),
-		CType.PLAY_BGM:CDetail("Play", "Bgm", true, [CArg.BGM_PATH:"path"]),
-		CType.PLAY_SOUND:CDetail("Play", "Sound", true, [CArg.SOUND_PATH:"path"]),
-		CType.WAIT:CDetail("Wait", "", true, [CArg.WAIT:"value"]),
-		CType.ELAPSE_TIME:CDetail("Elapse", "Time", true),
-		CType.CALL_START:CDetail("Call", "Start", true, [CArg.START:"call"]),
-		CType.CALL_PACKAGE:CDetail("Call", "Package", true, [CArg.PACKAGE:"call"]),
-		CType.BRANCH_FLAG:CDetail("Branch", "Flag", true, [CArg.FLAG:"flag"]),
-		CType.BRANCH_MULTI_STEP:CDetail("Branch", "MultiStep", true, [CArg.STEP:"step"]),
-		CType.BRANCH_STEP:CDetail("Branch", "Step", true, [CArg.STEP:_("step"), CArg.STEP_VALUE:"value"]),
-		CType.BRANCH_SELECT:CDetail("Branch", "Select", true, [CArg.TARGET_ALL:_("targetall"), CArg.RANDOM:"random"]),
-		CType.BRANCH_ABILITY:CDetail("Branch", "Ability", true, [CArg.TARGET_S:_("targetm"), CArg.MENTAL:"mental", CArg.PHYSICAL:"physical", CArg.LEVEL:"value"]),
-		CType.BRANCH_RANDOM:CDetail("Branch", "Random", true, [CArg.PERCENT:"value"]),
-		CType.BRANCH_LEVEL:CDetail("Branch", "Level", true, [CArg.AVERAGE:_("average"), CArg.LEVEL:"value"]),
-		CType.BRANCH_STATUS:CDetail("Branch", "Status", true, [CArg.TARGET_NS:_("targetm"), CArg.STATUS:"status"]),
-		CType.BRANCH_PARTY_NUMBER:CDetail("Branch", "PartyNumber", true, [CArg.PARTY_NUMBER:"value"]),
-		CType.BRANCH_AREA:CDetail("Branch", "Area", true, true, false),
-		CType.BRANCH_BATTLE:CDetail("Branch", "Battle", true, false, true),
-		CType.BRANCH_IS_BATTLE:CDetail("Branch", "IsBattle", true),
-		CType.BRANCH_CAST:CDetail("Branch", "Cast", true, [CArg.CAST:"id"]),
-		CType.BRANCH_ITEM:CDetail("Branch", "Item", true, [CArg.ITEM:_("id"), CArg.RANGE:"targets", CArg.CARD_NUMBER:"number"]),
-		CType.BRANCH_SKILL:CDetail("Branch", "Skill", true, [CArg.SKILL:_("id"), CArg.RANGE:"targets", CArg.CARD_NUMBER:"number"]),
-		CType.BRANCH_INFO:CDetail("Branch", "Info", true, [CArg.INFO:"id"]),
-		CType.BRANCH_BEAST:CDetail("Branch", "Beast", true, [CArg.BEAST:_("id"), CArg.RANGE:"targets", CArg.CARD_NUMBER:"number"]),
-		CType.BRANCH_MONEY:CDetail("Branch", "Money", true, [CArg.MONEY:"value"]),
-		CType.BRANCH_COUPON:CDetail("Branch", "Coupon", true, [CArg.COUPON:_("coupon"), CArg.RANGE:"targets"]),
-		CType.BRANCH_COMPLETE_STAMP:CDetail("Branch", "CompleteStamp", true, [CArg.COMPLETE_STAMP:"scenario"]),
-		CType.BRANCH_GOSSIP:CDetail("Branch", "Gossip", true, [CArg.GOSSIP:"gossip"]),
-		CType.SET_FLAG:CDetail("Set", "Flag", true, [CArg.FLAG:_("flag"), CArg.FLAG_VALUE:"value"]),
-		CType.SET_STEP:CDetail("Set", "Step", true, [CArg.STEP:_("step"), CArg.STEP_VALUE:"value"]),
-		CType.SET_STEP_UP:CDetail("Set", "StepUp", true, [CArg.STEP:"step"]),
-		CType.SET_STEP_DOWN:CDetail("Set", "StepDown", true, [CArg.STEP:"step"]),
-		CType.REVERSE_FLAG:CDetail("Reverse", "Flag", true, [CArg.FLAG:"flag"]),
-		CType.CHECK_FLAG:CDetail("Check", "Flag", true, [CArg.FLAG:"flag"]),
-		CType.GET_CAST:CDetail("Get", "Cast", true, [CArg.CAST:"id"]),
-		CType.GET_ITEM:CDetail("Get", "Item", true, [CArg.ITEM:_("id"), CArg.RANGE:"targets", CArg.CARD_NUMBER:"number"]),
-		CType.GET_SKILL:CDetail("Get", "Skill", true, [CArg.SKILL:_("id"), CArg.RANGE:"targets", CArg.CARD_NUMBER:"number"]),
-		CType.GET_INFO:CDetail("Get", "Info", true, [CArg.INFO:"id"]),
-		CType.GET_BEAST:CDetail("Get", "Beast", true, [CArg.BEAST:_("id"), CArg.RANGE:"targets", CArg.CARD_NUMBER:"number"]),
-		CType.GET_MONEY:CDetail("Get", "Money", true, [CArg.MONEY:"value"]),
-		CType.GET_COUPON:CDetail("Get", "Coupon", true, [CArg.COUPON:_("coupon"), CArg.RANGE:"targets", CArg.COUPON_VALUE:"value"]),
-		CType.GET_COMPLETE_STAMP:CDetail("Get", "CompleteStamp", true, [CArg.COMPLETE_STAMP:"scenario"]),
-		CType.GET_GOSSIP:CDetail("Get", "Gossip", true, [CArg.GOSSIP:"gossip"]),
-		CType.LOSE_CAST:CDetail("Lose", "Cast", true, [CArg.CAST:"id"]),
-		CType.LOSE_ITEM:CDetail("Lose", "Item", true, [CArg.ITEM:_("id"), CArg.RANGE:"targets", CArg.CARD_NUMBER:"number"]),
-		CType.LOSE_SKILL:CDetail("Lose", "Skill", true, [CArg.SKILL:_("id"), CArg.RANGE:"targets", CArg.CARD_NUMBER:"number"]),
-		CType.LOSE_INFO:CDetail("Lose", "Info", true, [CArg.INFO:"id"]),
-		CType.LOSE_BEAST:CDetail("Lose", "Beast", true, [CArg.BEAST:_("id"), CArg.RANGE:"targets", CArg.CARD_NUMBER:"number"]),
-		CType.LOSE_MONEY:CDetail("Lose", "Money", true, [CArg.MONEY:"value"]),
-		CType.LOSE_COUPON:CDetail("Lose", "Coupon", true, [CArg.COUPON:_("coupon"), CArg.RANGE:"targets"]),
-		CType.LOSE_COMPLETE_STAMP:CDetail("Lose", "CompleteStamp", true, [CArg.COMPLETE_STAMP:"scenario"]),
-		CType.LOSE_GOSSIP:CDetail("Lose", "Gossip", true, [CArg.GOSSIP:"gossip"]),
-		CType.SHOW_PARTY:CDetail("Show", "Party", true),
-		CType.HIDE_PARTY:CDetail("Hide", "Party", true),
-		CType.REDISPLAY:CDetail("Redisplay", "", true, [CArg.TRANSITION:_("transition"), CArg.TRANSITION_SPEED:"transitionspeed"])
+		CType.EFFECT_BREAK:CDetail("Effect", "Break", CNextType.NONE, false),
+		CType.LINK_START:CDetail("Link", "Start", CNextType.NONE, false, [CArg.START:"link"]),
+		CType.LINK_PACKAGE:CDetail("Link", "Package", CNextType.NONE, false, [CArg.PACKAGE:"link"]),
+		CType.TALK_MESSAGE:CDetail("Talk", "Message", CNextType.TEXT, true, [CArg.TALKER_C:_("path"), CArg.TEXT:null]),
+		CType.TALK_DIALOG:CDetail("Talk", "Dialog", CNextType.TEXT, true, [CArg.TALKER_NC:_("targetm"), CArg.DIALOGS:null]),
+		CType.PLAY_BGM:CDetail("Play", "Bgm", CNextType.NONE, true, [CArg.BGM_PATH:"path"]),
+		CType.PLAY_SOUND:CDetail("Play", "Sound", CNextType.NONE, true, [CArg.SOUND_PATH:"path"]),
+		CType.WAIT:CDetail("Wait", "", CNextType.NONE, true, [CArg.WAIT:"value"]),
+		CType.ELAPSE_TIME:CDetail("Elapse", "Time", CNextType.NONE, true),
+		CType.CALL_START:CDetail("Call", "Start", CNextType.NONE, true, [CArg.START:"call"]),
+		CType.CALL_PACKAGE:CDetail("Call", "Package", CNextType.NONE, true, [CArg.PACKAGE:"call"]),
+		CType.BRANCH_FLAG:CDetail("Branch", "Flag", CNextType.BOOL, true, [CArg.FLAG:"flag"]),
+		CType.BRANCH_MULTI_STEP:CDetail("Branch", "MultiStep", CNextType.STEP, true, [CArg.STEP:"step"]),
+		CType.BRANCH_STEP:CDetail("Branch", "Step", CNextType.NONE, true, [CArg.STEP:_("step"), CArg.STEP_VALUE:"value"]),
+		CType.BRANCH_SELECT:CDetail("Branch", "Select", CNextType.NONE, true, [CArg.TARGET_ALL:_("targetall"), CArg.RANDOM:"random"]),
+		CType.BRANCH_ABILITY:CDetail("Branch", "Ability", CNextType.NONE, true, [CArg.TARGET_S:_("targetm"), CArg.MENTAL:"mental", CArg.PHYSICAL:"physical", CArg.LEVEL:"value"]),
+		CType.BRANCH_RANDOM:CDetail("Branch", "Random", CNextType.NONE, true, [CArg.PERCENT:"value"]),
+		CType.BRANCH_LEVEL:CDetail("Branch", "Level", CNextType.NONE, true, [CArg.AVERAGE:_("average"), CArg.LEVEL:"value"]),
+		CType.BRANCH_STATUS:CDetail("Branch", "Status", CNextType.NONE, true, [CArg.TARGET_NS:_("targetm"), CArg.STATUS:"status"]),
+		CType.BRANCH_PARTY_NUMBER:CDetail("Branch", "PartyNumber", CNextType.NONE, true, [CArg.PARTY_NUMBER:"value"]),
+		CType.BRANCH_AREA:CDetail("Branch", "Area", CNextType.ID_AREA, true),
+		CType.BRANCH_BATTLE:CDetail("Branch", "Battle", CNextType.ID_BATTLE, true),
+		CType.BRANCH_IS_BATTLE:CDetail("Branch", "IsBattle", CNextType.BOOL, true),
+		CType.BRANCH_CAST:CDetail("Branch", "Cast", CNextType.BOOL, true, [CArg.CAST:"id"]),
+		CType.BRANCH_ITEM:CDetail("Branch", "Item", CNextType.BOOL, true, [CArg.ITEM:_("id"), CArg.RANGE:"targets", CArg.CARD_NUMBER:"number"]),
+		CType.BRANCH_SKILL:CDetail("Branch", "Skill", CNextType.BOOL, true, [CArg.SKILL:_("id"), CArg.RANGE:"targets", CArg.CARD_NUMBER:"number"]),
+		CType.BRANCH_INFO:CDetail("Branch", "Info", CNextType.BOOL, true, [CArg.INFO:"id"]),
+		CType.BRANCH_BEAST:CDetail("Branch", "Beast", CNextType.BOOL, true, [CArg.BEAST:_("id"), CArg.RANGE:"targets", CArg.CARD_NUMBER:"number"]),
+		CType.BRANCH_MONEY:CDetail("Branch", "Money", CNextType.BOOL, true, [CArg.MONEY:"value"]),
+		CType.BRANCH_COUPON:CDetail("Branch", "Coupon", CNextType.BOOL, true, [CArg.COUPON:_("coupon"), CArg.RANGE:"targets"]),
+		CType.BRANCH_COMPLETE_STAMP:CDetail("Branch", "CompleteStamp", CNextType.BOOL, true, [CArg.COMPLETE_STAMP:"scenario"]),
+		CType.BRANCH_GOSSIP:CDetail("Branch", "Gossip", CNextType.BOOL, true, [CArg.GOSSIP:"gossip"]),
+		CType.SET_FLAG:CDetail("Set", "Flag", CNextType.NONE, true, [CArg.FLAG:_("flag"), CArg.FLAG_VALUE:"value"]),
+		CType.SET_STEP:CDetail("Set", "Step", CNextType.NONE, true, [CArg.STEP:_("step"), CArg.STEP_VALUE:"value"]),
+		CType.SET_STEP_UP:CDetail("Set", "StepUp", CNextType.NONE, true, [CArg.STEP:"step"]),
+		CType.SET_STEP_DOWN:CDetail("Set", "StepDown", CNextType.NONE, true, [CArg.STEP:"step"]),
+		CType.REVERSE_FLAG:CDetail("Reverse", "Flag", CNextType.NONE, true, [CArg.FLAG:"flag"]),
+		CType.CHECK_FLAG:CDetail("Check", "Flag", CNextType.NONE, true, [CArg.FLAG:"flag"]),
+		CType.GET_CAST:CDetail("Get", "Cast", CNextType.NONE, true, [CArg.CAST:"id"]),
+		CType.GET_ITEM:CDetail("Get", "Item", CNextType.NONE, true, [CArg.ITEM:_("id"), CArg.RANGE:"targets", CArg.CARD_NUMBER:"number"]),
+		CType.GET_SKILL:CDetail("Get", "Skill", CNextType.NONE, true, [CArg.SKILL:_("id"), CArg.RANGE:"targets", CArg.CARD_NUMBER:"number"]),
+		CType.GET_INFO:CDetail("Get", "Info", CNextType.NONE, true, [CArg.INFO:"id"]),
+		CType.GET_BEAST:CDetail("Get", "Beast", CNextType.NONE, true, [CArg.BEAST:_("id"), CArg.RANGE:"targets", CArg.CARD_NUMBER:"number"]),
+		CType.GET_MONEY:CDetail("Get", "Money", CNextType.NONE, true, [CArg.MONEY:"value"]),
+		CType.GET_COUPON:CDetail("Get", "Coupon", CNextType.NONE, true, [CArg.COUPON:_("coupon"), CArg.RANGE:"targets", CArg.COUPON_VALUE:"value"]),
+		CType.GET_COMPLETE_STAMP:CDetail("Get", "CompleteStamp", CNextType.NONE, true, [CArg.COMPLETE_STAMP:"scenario"]),
+		CType.GET_GOSSIP:CDetail("Get", "Gossip", CNextType.NONE, true, [CArg.GOSSIP:"gossip"]),
+		CType.LOSE_CAST:CDetail("Lose", "Cast", CNextType.NONE, true, [CArg.CAST:"id"]),
+		CType.LOSE_ITEM:CDetail("Lose", "Item", CNextType.NONE, true, [CArg.ITEM:_("id"), CArg.RANGE:"targets", CArg.CARD_NUMBER:"number"]),
+		CType.LOSE_SKILL:CDetail("Lose", "Skill", CNextType.NONE, true, [CArg.SKILL:_("id"), CArg.RANGE:"targets", CArg.CARD_NUMBER:"number"]),
+		CType.LOSE_INFO:CDetail("Lose", "Info", CNextType.NONE, true, [CArg.INFO:"id"]),
+		CType.LOSE_BEAST:CDetail("Lose", "Beast", CNextType.NONE, true, [CArg.BEAST:_("id"), CArg.RANGE:"targets", CArg.CARD_NUMBER:"number"]),
+		CType.LOSE_MONEY:CDetail("Lose", "Money", CNextType.NONE, true, [CArg.MONEY:"value"]),
+		CType.LOSE_COUPON:CDetail("Lose", "Coupon", CNextType.NONE, true, [CArg.COUPON:_("coupon"), CArg.RANGE:"targets"]),
+		CType.LOSE_COMPLETE_STAMP:CDetail("Lose", "CompleteStamp", CNextType.NONE, true, [CArg.COMPLETE_STAMP:"scenario"]),
+		CType.LOSE_GOSSIP:CDetail("Lose", "Gossip", CNextType.NONE, true, [CArg.GOSSIP:"gossip"]),
+		CType.SHOW_PARTY:CDetail("Show", "Party", CNextType.NONE, true),
+		CType.HIDE_PARTY:CDetail("Hide", "Party", CNextType.NONE, true),
+		CType.REDISPLAY:CDetail("Redisplay", "", CNextType.NONE, true, [CArg.TRANSITION:_("transition"), CArg.TRANSITION_SPEED:"transitionspeed"])
 	];
 	foreach (cType, ref detail; CONTENT_DETAILS) {
 		CTYPE_MAP[detail.name][detail.type] = cType;
@@ -213,9 +224,8 @@ private CType[string][string] CTYPE_MAP;
 struct CDetail {
 	string name;
 	string type;
+	CNextType nextType;
 	bool owner;
-	bool areaBr = false;
-	bool battleBr = false;
 
 	string[CArg] args;
 	/// argを使用するコンテントであればtrueを返す。
@@ -224,22 +234,17 @@ struct CDetail {
 	/// 子要素を使用する等の理由で属性名が存在しない場合はnullを返す。
 	string attr(CArg arg) {return args[arg];}
 
-	static CDetail opCall(string name, string type, bool owner) {
+	static CDetail opCall(string name, string type, CNextType nextType, bool owner) {
 		string[CArg] args;
-		return CDetail(name, type, owner, args);
+		return CDetail(name, type, nextType, owner, args);
 	}
-	static CDetail opCall(string name, string type, bool owner, bool areaBr, bool battleBr) {
-		string[CArg] args;
-		return CDetail(name, type, owner, args, areaBr, battleBr);
-	}
-	static CDetail opCall(string name, string type, bool owner, string[CArg] args, bool areaBr = false, bool battleBr = false) {
+	static CDetail opCall(string name, string type, CNextType nextType, bool owner, string[CArg] args) {
 		CDetail r;
 		r.name = name;
 		r.type = type;
+		r.nextType = nextType;
 		r.owner = owner;
 		r.args = args;
-		r.areaBr = areaBr;
-		r.battleBr = battleBr;
 		return r;
 	}
 }
@@ -484,6 +489,129 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	/// コンテントの概要。
 	CDetail detail() {return CONTENT_DETAILS[type];}
 
+	/// 型変換が可能であればtrue。
+	bool canConvert(CType type) {
+		if (type == this.type) return false;
+		if (type == CType.START || this.type == CType.START) return false;
+		return next.length ? CONTENT_DETAILS[type].owner : true;
+	}
+
+	private void resetValue(CArg Arg, T, T Init)(in CDetail d, void delegate(T) set) {
+		if (!d.use(Arg)) {
+			set(Init);
+		}
+	}
+	/// コンテントの型を変換。
+	void type(CType type, CProps prop) {
+		if (!canConvert(type)) throw new Exception("can not convert: " ~ prop.msgs.content(type));
+		if (_type == type) return;
+		changed;
+		auto od = detail;
+		auto d = CONTENT_DETAILS[type];
+		foreach (n; next) {
+			void setNum() {
+				if (prop.msgs.evtChildDefault != n.name && !isNumeric(n.name) || n.name == "0") {
+					n.name = prop.msgs.evtChildDefault;
+				}
+			}
+			switch (d.nextType) {
+			case CNextType.NONE: n.name = ""; break;
+			case CNextType.TEXT: break;
+			case CNextType.BOOL: {
+				if (prop.msgs.evtChildTrue != n.name && prop.msgs.evtChildFalse != n.name) {
+					n.name = prop.msgs.evtChildTrue;
+				}
+			} break;
+			case CNextType.STEP: {
+				if (prop.msgs.evtChildDefault != n.name && !isNumeric(n.name)) {
+					n.name = prop.msgs.evtChildDefault;
+				}
+			} break;
+			case CNextType.ID_AREA: {
+				setNum;
+				if (n.name != prop.msgs.evtChildDefault) {
+					try {
+						n.area = to!(ulong)(n.name);
+					} catch {
+						n.area = 0;
+					}
+				} else {
+					n.area = 0;
+				}
+			} break;
+			case CNextType.ID_BATTLE: {
+				setNum;
+				if (n.name != prop.msgs.evtChildDefault) {
+					try {
+						n.battle = to!(ulong)(n.name);
+					} catch {
+						n.battle = 0;
+					}
+				} else {
+					n.battle = 0;
+				}
+			} break;
+			}
+		}
+		_type = type;
+
+		resetValue!(CArg.AREA, ulong, 0)(d, &area);
+		resetValue!(CArg.BATTLE, ulong, 0)(d, &battle);
+		resetValue!(CArg.PACKAGE, ulong, 0)(d, &packages);
+		resetValue!(CArg.FLAG, string, "")(d, &flag);
+		resetValue!(CArg.STEP, string, "")(d, &step);
+		resetValue!(CArg.BGM_PATH, string, "")(d, &bgmPath);
+		resetValue!(CArg.SOUND_PATH, string, "")(d, &soundPath);
+		resetValue!(CArg.CAST, ulong, 0)(d, &casts);
+		resetValue!(CArg.ITEM, ulong, 0)(d, &item);
+		resetValue!(CArg.SKILL, ulong, 0)(d, &skill);
+		resetValue!(CArg.BEAST, ulong, 0)(d, &beast);
+		resetValue!(CArg.INFO, ulong, 0)(d, &info);
+
+		resetValue!(CArg.START, string, "")(d, &start);
+		resetValue!(CArg.COUPON, string, "")(d, &coupon);
+		resetValue!(CArg.GOSSIP, string, "")(d, &gossip);
+		resetValue!(CArg.COMPLETE_STAMP, string, "")(d, &completeStamp);
+
+		resetValue!(CArg.MENTAL, Mental, Mental.init)(d, &mental);
+		resetValue!(CArg.PHYSICAL, Physical, Physical.init)(d, &physical);
+		resetValue!(CArg.STATUS, Status, Status.ACTIVE)(d, &status);
+		resetValue!(CArg.RANGE, Range, Range.SELECTED)(d, &range);
+		resetValue!(CArg.CARD_VISUAL, CardVisual, CardVisual.NONE)(d, &cardVisual);
+		resetValue!(CArg.EFFECT_TYPE, EffectType, EffectType.NONE)(d, &effectType);
+		resetValue!(CArg.RESIST, Resist, Resist.UNFAIL)(d, &resist);
+		resetValue!(CArg.TRANSITION, Transition, Transition.DEFAULT)(d, &transition);
+
+		resetValue!(CArg.TARGET_ALL, bool, true)(d, &targetAll);
+		resetValue!(CArg.RANDOM, bool, false)(d, &random);
+		resetValue!(CArg.AVERAGE, bool, false)(d, &average);
+		resetValue!(CArg.COMPLETE, bool, false)(d, &complete);
+
+		resetValue!(CArg.LEVEL, int, 0)(d, &level);
+		resetValue!(CArg.SUCCESS_RATE, int, 5)(d, &successRate);
+		resetValue!(CArg.TRANSITION_SPEED, uint, 5u)(d, &transitionSpeed);
+		resetValue!(CArg.PERCENT, uint, 50u)(d, &percent);
+		resetValue!(CArg.FLAG_VALUE, bool, true)(d, &flagValue);
+		resetValue!(CArg.STEP_VALUE, uint, 0)(d, &stepValue);
+		resetValue!(CArg.COUPON_VALUE, int, 0)(d, &couponValue);
+		resetValue!(CArg.PARTY_NUMBER, uint, 1)(d, &partyNumber);
+		resetValue!(CArg.CARD_NUMBER, uint, 1)(d, &cardNumber);
+		resetValue!(CArg.MONEY, uint, 0)(d, &money);
+		resetValue!(CArg.WAIT, uint, 0)(d, &wait);
+
+		resetValue!(CArg.MOTIONS, Motion[], [])(d, &motions);
+
+		resetValue!(CArg.TEXT, string, "")(d, &text);
+		resetValue!(CArg.DIALOGS, SDialog[], [])(d, &dialogs);
+
+		resetValue!(CArg.TARGET_S, Target, Target(Target.M.SELECTED, true))(d, &targetS);
+		resetValue!(CArg.TARGET_NS, Target, Target(Target.M.SELECTED, false))(d, &targetNS);
+		resetValue!(CArg.TALKER_C, Talker, Talker.NARRATION)(d, &talkerC);
+		resetValue!(CArg.TALKER_NC, Talker, Talker.SELECTED)(d, &talkerNC);
+
+		resetValue!(CArg.BG_IMAGES, BgImage[], [])(d, &backs);
+	}
+
 	private string _name;
 	/// テキスト。
 	void name(string name) {
@@ -492,7 +620,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			if (_type is CType.START && _tree) {
 				_tree.startUseCounter.change(toStartId(_name), toStartId(name), true);
 			}
-			if (_parent && _parent.detail.areaBr) {
+			if (_parent && _parent.detail.nextType == CNextType.ID_AREA) {
 				if (icmp(name, "default") == 0) {
 					area = 0;
 				} else if (isNumeric(name)) {
@@ -503,7 +631,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 					}
 				}
 			}
-			if (_parent && _parent.detail.battleBr) {
+			if (_parent && _parent.detail.nextType == CNextType.ID_BATTLE) {
 				if (icmp(name, "default") == 0) {
 					battle = 0;
 				} else if (isNumeric(name)) {
@@ -526,10 +654,10 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		assert (!parent || parent.detail.owner);
 	} body {
 		if (_parent is parent) return;
-		bool oldAreaBr = _parent && _parent.detail.areaBr;
-		bool oldBattleBr = _parent && _parent.detail.battleBr;
-		bool newAreaBr = parent && parent.detail.areaBr;
-		bool newBattleBr = parent && parent.detail.battleBr;
+		bool oldAreaBr = _parent && _parent.detail.nextType == CNextType.ID_AREA;
+		bool oldBattleBr = _parent && _parent.detail.nextType == CNextType.ID_BATTLE;
+		bool newAreaBr = parent && parent.detail.nextType == CNextType.ID_AREA;
+		bool newBattleBr = parent && parent.detail.nextType == CNextType.ID_BATTLE;
 		if (!oldAreaBr && newAreaBr) {
 			if (icmp(name, "default") == 0) {
 				area = 0;
@@ -777,7 +905,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		return true;
 	}
 	private void areaChg(AreaId id) {
-		if (area != id && _parent && _parent.detail.areaBr) {
+		if (area != id && _parent && _parent.detail.nextType == CNextType.ID_AREA) {
 			_name = id == 0 ? "Default" : to!(string)(cast(ulong) id);
 		}
 	}
@@ -788,7 +916,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		return true;
 	}
 	private void battleChg(BattleId id) {
-		if (battle != id && _parent && _parent.detail.battleBr) {
+		if (battle != id && _parent && _parent.detail.nextType == CNextType.ID_BATTLE) {
 			_name = id == 0 ? "Default" : to!(string)(cast(ulong) id);
 		}
 	}
@@ -1359,8 +1487,14 @@ private:
 public:
 	/// イベントツリー名を指定してインスタンスを生成。
 	this(string name) {
+		this(new Content(CType.START, name));
+	}
+	/// スタートコンテントを指定してインスタンスを生成。
+	this(Content start) in {
+		assert (start.type == CType.START);
+	} body {
 		_suc = new SUseCounter;
-		add(new Content(CType.START, name));
+		add(start);
 	}
 	EventTreeOwner owner() {return _owner;}
 	override string cwxPath() {

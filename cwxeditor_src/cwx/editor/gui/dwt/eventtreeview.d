@@ -227,11 +227,8 @@ private:
 			}
 		}
 	}
-	void store(Content evt1, Content evt2) {
-		_undo ~= new UndoContent([evt1, evt2]);
-	}
-	void store(Content evt) {
-		_undo ~= new UndoContent([evt]);
+	void store(Content[] evt ...) {
+		_undo ~= new UndoContent(evt);
 	}
 	class UndoSwap : ETVUndo {
 		private int _upIndex;
@@ -318,6 +315,26 @@ private:
 		auto itm = tree.getItem(path[0]);
 		if (path.length == 1) return itm;
 		return fromPathImpl(itm, path[1 .. $]);
+	}
+	class UndoCP : Undo {
+		private UndoContent _undoC;
+		private UndoDelete _undoD;
+		this (Content[] conts, int index, Content start) {
+			_undoC = new UndoContent(conts);
+			_undoD = new UndoDelete(index, start);
+		}
+		override void undo() {
+			_undoD.undo;
+			_undoC.undo;
+		}
+		override void redo() {
+			_undoC.redo;
+			_undoD.redo;
+		}
+		override void dispose() {
+			_undoC.dispose;
+			_undoD.dispose;
+		}
 	}
 
 	void edit() {
@@ -1092,6 +1109,7 @@ private:
 	class SListener : SelectionAdapter {
 		public override void widgetSelected(SelectionEvent e) {
 			assert (cast(Content) e.item.getData);
+			refreshConvMenu;
 			refreshStatusLine;
 		}
 	}
@@ -1204,42 +1222,66 @@ private:
 			return null;
 		}
 	}
-	ToolItem createEI(CType type, ToolBar bar, RadioGroup!(ToolItem) g) {
-		class CreateEvent {
-			/* FIXME: インタフェース外の変数に触るとアクセス違反 */
-			private EventTreeView _v;
+	private CreateEvent[] _conts;
+	private class CreateEvent {
+		CType type;
+		MenuItem convMenuItem;
 
-			private CType _type;
-			private ToolItem _itm;
-			private Cursor _cursor;
-			this (EventTreeView v, CType type, Cursor cursor) {
-				_v = v;
-				_type = type;
-				_cursor = cursor;
-			}
-			void create() {
-				if (_itm.getSelection) {
-					_v._comp.setCursor = _cursor;
-					if (_v._toolWin) {
-						_v._toolWin.setCursor = _cursor;
-					}
-					_v._arrowMode = false;
-					_v._cType = _type;
-					_v._evtTI = _itm;
+		/* FIXME: インタフェース外の変数に触るとアクセス違反 */
+		private EventTreeView _v;
+
+		private ToolItem _itm;
+		private Cursor _cursor;
+		this (EventTreeView v, CType type, Cursor cursor) {
+			this.type = type;
+			_v = v;
+			_cursor = cursor;
+		}
+		void create() {
+			if (_itm.getSelection) {
+				_v._comp.setCursor = _cursor;
+				if (_v._toolWin) {
+					_v._toolWin.setCursor = _cursor;
 				}
-			}
-			void ti(ToolItem ti) {
-				_itm = ti;
+				_v._arrowMode = false;
+				_v._cType = type;
+				_v._evtTI = _itm;
 			}
 		}
+		void ti(ToolItem ti) {
+			_itm = ti;
+		}
+		void convert() {
+			auto sel = selection;
+			if (!sel) return;
+			auto c = cast(Content) sel.getData;
+			store(c);
+			assert (c.canConvert(type), "convert menu item enabled");
+			c.type(type, _prop.parent);
+			sel.setImage = _prop.images.content(type);
+			foreach (itm; sel.getItems) {
+				itm.setText = eventText(c, cast(Content) itm.getData);
+			}
+			refreshConvMenu;
+			refreshStatusLine;
+			_comm.refUseCount.call;
+		}
+	}
+	ToolItem createEI(CType type, ToolBar bar, RadioGroup!(ToolItem) g, Menu convMenu) {
+		auto text = _prop.msgs.content(type);
 		auto img = _prop.images.content(type);
 		auto imgData = img.getImageData;
 		auto cursor = new Cursor(Display.getCurrent, imgData, imgData.width / 2, imgData.height / 2);
 		_cursors ~= cursor;
 		auto ce = new CreateEvent(this, type, cursor);
-		auto itm = createToolItem(bar, _prop.msgs.content(type), img, &ce.create, DWT.RADIO);
+		auto itm = createToolItem(bar, text, img, &ce.create, DWT.RADIO);
 		ce.ti = itm;
 		g.append(itm);
+		if (type != CType.START) {
+			ce.convMenuItem = createMenuItem(convMenu, text, img, &ce.convert);
+			ce.convMenuItem.setEnabled = false;
+			_conts ~= ce;
+		}
 		return itm;
 	}
 	class CDListener : DisposeListener {
@@ -1351,6 +1393,22 @@ public:
 				}
 			});
 		}
+		auto popup = new Menu(parent.getShell, DWT.POP_UP);
+		createMenuItem(popup, prop.msgs.menuCEdit, prop.images.menuCEdit, &edit);
+		new MenuItem(popup, DWT.SEPARATOR);
+		createMenuItem(popup, _prop.msgs.menuUndo, _prop.images.menuUndo, &this.undo);
+		createMenuItem(popup, _prop.msgs.menuRedo, _prop.images.menuRedo, &this.redo);
+		new MenuItem(popup, DWT.SEPARATOR);
+		appendMenuTCPD(prop, popup, this, true, true, true, true);
+		new MenuItem(popup, DWT.SEPARATOR);
+		createMenuItem(popup, _prop.msgs.menuStartToPackage, _prop.images.menuStartToPackage, &startToPackage);
+		auto convMI = createMenuItem(popup, _prop.msgs.menuConvertContent, _prop.images.menuConvertContent, null, DWT.CASCADE);
+		auto conv = new Menu(parent.getShell, DWT.DROP_DOWN);
+		convMI.setMenu = conv;
+		debug {
+			new MenuItem(popup, DWT.SEPARATOR);
+			createMenuItem(popup, "debug: Create CWX &Path", null, &createCWXPath);
+		}
 		{
 			_autoOpen = _prop.var.etc.contentsAutoOpen;
 			_conti = _prop.var.etc.contentsContinue;
@@ -1386,93 +1444,100 @@ public:
 			createCoolItem(cbar, mode);
 
 			auto e8 = new ToolBar(cbar, DWT.FLAT);
-			createEI(CType.SHOW_PARTY, e8, g);
-			createEI(CType.HIDE_PARTY, e8, g);
-			createEI(CType.CHANGE_BG_IMAGE, e8, g);
-			createEI(CType.REDISPLAY, e8, g);
+			createEI(CType.SHOW_PARTY, e8, g, conv);
+			createEI(CType.HIDE_PARTY, e8, g, conv);
+			createEI(CType.CHANGE_BG_IMAGE, e8, g, conv);
+			createEI(CType.REDISPLAY, e8, g, conv);
 			createCoolItem(cbar, e8);
+			new MenuItem(conv, DWT.SEPARATOR);
 
 			auto e1 = new ToolBar(cbar, DWT.FLAT);
-			createEI(CType.START, e1, g);
-			createEI(CType.START_BATTLE, e1, g);
-			createEI(CType.END, e1, g);
-			createEI(CType.END_BAD_END, e1, g);
-			createEI(CType.CHANGE_AREA, e1, g);
-			createEI(CType.EFFECT_BREAK, e1, g);
-			createEI(CType.LINK_START, e1, g);
-			createEI(CType.LINK_PACKAGE, e1, g);
+			createEI(CType.START, e1, g, conv);
+			createEI(CType.START_BATTLE, e1, g, conv);
+			createEI(CType.END, e1, g, conv);
+			createEI(CType.END_BAD_END, e1, g, conv);
+			createEI(CType.CHANGE_AREA, e1, g, conv);
+			createEI(CType.EFFECT_BREAK, e1, g, conv);
+			createEI(CType.LINK_START, e1, g, conv);
+			createEI(CType.LINK_PACKAGE, e1, g, conv);
 			createCoolItem(cbar, e1);
+			new MenuItem(conv, DWT.SEPARATOR);
 
 			auto e2 = new ToolBar(cbar, DWT.FLAT);
-			createEI(CType.TALK_MESSAGE, e2, g);
-			createEI(CType.TALK_DIALOG, e2, g);
-			createEI(CType.PLAY_BGM, e2, g);
-			createEI(CType.PLAY_SOUND, e2, g);
-			createEI(CType.WAIT, e2, g);
-			createEI(CType.ELAPSE_TIME, e2, g);
-			createEI(CType.EFFECT, e2, g);
-			createEI(CType.CALL_START, e2, g);
-			createEI(CType.CALL_PACKAGE, e2, g);
+			createEI(CType.TALK_MESSAGE, e2, g, conv);
+			createEI(CType.TALK_DIALOG, e2, g, conv);
+			createEI(CType.PLAY_BGM, e2, g, conv);
+			createEI(CType.PLAY_SOUND, e2, g, conv);
+			createEI(CType.WAIT, e2, g, conv);
+			createEI(CType.ELAPSE_TIME, e2, g, conv);
+			createEI(CType.EFFECT, e2, g, conv);
+			createEI(CType.CALL_START, e2, g, conv);
+			createEI(CType.CALL_PACKAGE, e2, g, conv);
 			createCoolItem(cbar, e2);
+			new MenuItem(conv, DWT.SEPARATOR);
 
 			auto e3 = new ToolBar(cbar, DWT.FLAT);
-			createEI(CType.BRANCH_FLAG, e3, g);
-			createEI(CType.SET_FLAG, e3, g);
-			createEI(CType.REVERSE_FLAG, e3, g);
-			createEI(CType.BRANCH_MULTI_STEP, e3, g);
-			createEI(CType.BRANCH_STEP, e3, g);
-			createEI(CType.SET_STEP, e3, g);
-			createEI(CType.SET_STEP_UP, e3, g);
-			createEI(CType.SET_STEP_DOWN, e3, g);
-			createEI(CType.CHECK_FLAG, e3, g);
+			createEI(CType.BRANCH_FLAG, e3, g, conv);
+			createEI(CType.SET_FLAG, e3, g, conv);
+			createEI(CType.REVERSE_FLAG, e3, g, conv);
+			createEI(CType.BRANCH_MULTI_STEP, e3, g, conv);
+			createEI(CType.BRANCH_STEP, e3, g, conv);
+			createEI(CType.SET_STEP, e3, g, conv);
+			createEI(CType.SET_STEP_UP, e3, g, conv);
+			createEI(CType.SET_STEP_DOWN, e3, g, conv);
+			createEI(CType.CHECK_FLAG, e3, g, conv);
 			createCoolItem(cbar, e3);
+			new MenuItem(conv, DWT.SEPARATOR);
 
 			auto e4 = new ToolBar(cbar, DWT.FLAT);
-			createEI(CType.BRANCH_SELECT, e4, g);
-			createEI(CType.BRANCH_ABILITY, e4, g);
-			createEI(CType.BRANCH_RANDOM, e4, g);
-			createEI(CType.BRANCH_LEVEL, e4, g);
-			createEI(CType.BRANCH_STATUS, e4, g);
-			createEI(CType.BRANCH_PARTY_NUMBER, e4, g);
-			createEI(CType.BRANCH_AREA, e4, g);
-			createEI(CType.BRANCH_BATTLE, e4, g);
-			createEI(CType.BRANCH_IS_BATTLE, e4, g);
+			createEI(CType.BRANCH_SELECT, e4, g, conv);
+			createEI(CType.BRANCH_ABILITY, e4, g, conv);
+			createEI(CType.BRANCH_RANDOM, e4, g, conv);
+			createEI(CType.BRANCH_LEVEL, e4, g, conv);
+			createEI(CType.BRANCH_STATUS, e4, g, conv);
+			createEI(CType.BRANCH_PARTY_NUMBER, e4, g, conv);
+			createEI(CType.BRANCH_AREA, e4, g, conv);
+			createEI(CType.BRANCH_BATTLE, e4, g, conv);
+			createEI(CType.BRANCH_IS_BATTLE, e4, g, conv);
 			createCoolItem(cbar, e4);
+			new MenuItem(conv, DWT.SEPARATOR);
 
 			auto e5 = new ToolBar(cbar, DWT.FLAT);
-			createEI(CType.BRANCH_CAST, e5, g);
-			createEI(CType.BRANCH_ITEM, e5, g);
-			createEI(CType.BRANCH_SKILL, e5, g);
-			createEI(CType.BRANCH_INFO, e5, g);
-			createEI(CType.BRANCH_BEAST, e5, g);
-			createEI(CType.BRANCH_MONEY, e5, g);
-			createEI(CType.BRANCH_COUPON, e5, g);
-			createEI(CType.BRANCH_COMPLETE_STAMP, e5, g);
-			createEI(CType.BRANCH_GOSSIP, e5, g);
+			createEI(CType.BRANCH_CAST, e5, g, conv);
+			createEI(CType.BRANCH_ITEM, e5, g, conv);
+			createEI(CType.BRANCH_SKILL, e5, g, conv);
+			createEI(CType.BRANCH_INFO, e5, g, conv);
+			createEI(CType.BRANCH_BEAST, e5, g, conv);
+			createEI(CType.BRANCH_MONEY, e5, g, conv);
+			createEI(CType.BRANCH_COUPON, e5, g, conv);
+			createEI(CType.BRANCH_COMPLETE_STAMP, e5, g, conv);
+			createEI(CType.BRANCH_GOSSIP, e5, g, conv);
 			createCoolItem(cbar, e5);
+			new MenuItem(conv, DWT.SEPARATOR);
 
 			auto e6 = new ToolBar(cbar, DWT.FLAT);
-			createEI(CType.GET_CAST, e6, g);
-			createEI(CType.GET_ITEM, e6, g);
-			createEI(CType.GET_SKILL, e6, g);
-			createEI(CType.GET_INFO, e6, g);
-			createEI(CType.GET_BEAST, e6, g);
-			createEI(CType.GET_MONEY, e6, g);
-			createEI(CType.GET_COUPON, e6, g);
-			createEI(CType.GET_COMPLETE_STAMP, e6, g);
-			createEI(CType.GET_GOSSIP, e6, g);
+			createEI(CType.GET_CAST, e6, g, conv);
+			createEI(CType.GET_ITEM, e6, g, conv);
+			createEI(CType.GET_SKILL, e6, g, conv);
+			createEI(CType.GET_INFO, e6, g, conv);
+			createEI(CType.GET_BEAST, e6, g, conv);
+			createEI(CType.GET_MONEY, e6, g, conv);
+			createEI(CType.GET_COUPON, e6, g, conv);
+			createEI(CType.GET_COMPLETE_STAMP, e6, g, conv);
+			createEI(CType.GET_GOSSIP, e6, g, conv);
 			createCoolItem(cbar, e6);
+			new MenuItem(conv, DWT.SEPARATOR);
 
 			auto e7 = new ToolBar(cbar, DWT.FLAT);
-			createEI(CType.LOSE_CAST, e7, g);
-			createEI(CType.LOSE_ITEM, e7, g);
-			createEI(CType.LOSE_SKILL, e7, g);
-			createEI(CType.LOSE_INFO, e7, g);
-			createEI(CType.LOSE_BEAST, e7, g);
-			createEI(CType.LOSE_MONEY, e7, g);
-			createEI(CType.LOSE_COUPON, e7, g);
-			createEI(CType.LOSE_COMPLETE_STAMP, e7, g);
-			createEI(CType.LOSE_GOSSIP, e7, g);
+			createEI(CType.LOSE_CAST, e7, g, conv);
+			createEI(CType.LOSE_ITEM, e7, g, conv);
+			createEI(CType.LOSE_SKILL, e7, g, conv);
+			createEI(CType.LOSE_INFO, e7, g, conv);
+			createEI(CType.LOSE_BEAST, e7, g, conv);
+			createEI(CType.LOSE_MONEY, e7, g, conv);
+			createEI(CType.LOSE_COUPON, e7, g, conv);
+			createEI(CType.LOSE_COMPLETE_STAMP, e7, g, conv);
+			createEI(CType.LOSE_GOSSIP, e7, g, conv);
 			createCoolItem(cbar, e7);
 
 			if (_prop.var.etc.contentsOrder.length == cbar.getItemCount) {
@@ -1515,18 +1580,7 @@ public:
 		_tree.addKeyListener(editl);
 		_tree.addMouseListener(editl);
 		{
-			auto menu = new Menu(parent.getShell, DWT.POP_UP);
-			createMenuItem(menu, prop.msgs.menuCEdit, prop.images.menuCEdit, &edit);
-			new MenuItem(menu, DWT.SEPARATOR);
-			createMenuItem(menu, _prop.msgs.menuUndo, _prop.images.menuUndo, &this.undo);
-			createMenuItem(menu, _prop.msgs.menuRedo, _prop.images.menuRedo, &this.redo);
-			new MenuItem(menu, DWT.SEPARATOR);
-			appendMenuTCPD(prop, menu, this, true, true, true, true);
-			_tree.setMenu = menu;
-			debug {
-				new MenuItem(menu, DWT.SEPARATOR);
-				createMenuItem(menu, "debug: Create CWX &Path", null, &createCWXPath);
-			}
+			_tree.setMenu = popup;
 		}
 		_tree.addSelectionListener(new SListener);
 
@@ -1584,6 +1638,68 @@ public:
 				cb.setContents([new ArrayWrapperString(c.cwxPath)], [TextTransfer.getInstance]);
 			}
 		}
+	}
+
+	private void refreshConvMenu() {
+		if (!_et || !selection) {
+			foreach (ce; _conts) {
+				ce.convMenuItem.setEnabled = false;
+			}
+		} else {
+			auto c = cast(Content) selection.getData;
+			foreach (ce; _conts) {
+				ce.convMenuItem.setEnabled = c.canConvert(ce.type);
+			}
+		}
+	}
+	private void startToPackage() {
+		if (!_et || !selection) return;
+		auto sel = selection;
+		if (!sel) return;
+		auto base = cast(Content) selection.getData;
+		auto startItm = sel;
+		while (sel.getParentItem) sel = sel.getParentItem;
+		auto start = base.parentStart;
+		assert (start);
+		assert (start is startItm.getData, start.name ~ " : " ~ startItm.getText);
+		int index = _tree.indexOf(startItm);
+		if (index == 0) return;
+		TreeItem[] users;
+		Content[] conts = [start];
+		void find(TreeItem itm) {
+			auto c = cast(Content) itm.getData;
+			if (c.start == start.name) {
+				users ~= itm;
+				conts ~= c;
+			}
+			foreach (cld; itm.getItems) find(cld);
+		}
+		foreach (itm; _tree.getItems) find(itm);
+		auto ucp = new UndoCP(conts, index, start);;
+		auto id = _comm.createPackage(start);
+		if (id == 0) {
+			ucp.dispose;
+			return;
+		}
+		_undo ~= ucp;
+		delImpl(startItm, false);
+		foreach (itm; users) {
+			auto c = cast(Content) itm.getData;
+			switch (c.type) {
+			case CType.LINK_START: {
+				c.type(CType.LINK_PACKAGE, _prop.parent);
+				c.packages = id;
+			} break;
+			case CType.CALL_START: {
+				c.type(CType.CALL_PACKAGE, _prop.parent);
+				c.packages = id;
+			} break;
+			default: assert (0);
+			}
+			itm.setImage = _prop.images.content(c.type);
+		}
+		refreshStatusLine;
+		_comm.refUseCount.call;
 	}
 
 	void refresh(EventTree et) {
@@ -1719,8 +1835,7 @@ public:
 	private Control createEditor(TreeItem itm) {
 		auto parent = itm.getParentItem;
 		if (parent) {
-			if ((cast(Content) parent.getData).type == CType.TALK_MESSAGE
-					|| (cast(Content) parent.getData).type == CType.TALK_DIALOG) {
+			if ((cast(Content) parent.getData).detail.nextType == CNextType.TEXT) {
 				return createTextEditor(_tree, (cast(Content) itm.getData).name);
 			}
 		} else if (_tree.getItem(0) is itm) {
@@ -1791,7 +1906,7 @@ public:
 		assert (parent.detail.owner);
 	} body {
 		if (!parent) return e.name;
-		if (parent.type == CType.TALK_MESSAGE || parent.type == CType.TALK_DIALOG) {
+		if (parent.detail.nextType == CNextType.TEXT) {
 			return e.name.length > 0 ? e.name : " ";
 		}
 		string name = e.name;

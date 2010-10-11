@@ -720,7 +720,13 @@ int convertAccelerator(string text) {
 	assert (convertAccelerator("test\tCTRL+ARROW_UP") == (DWT.ARROW_UP | DWT.CTRL));
 	assert (convertAccelerator("test\tShift+A") == (DWT.SHIFT | 'A'));
 }
-
+private class MenuSel : SelectionAdapter {
+	private void delegate() _func;
+	public this(void delegate() func) {_func = func;}
+	public override void widgetSelected(SelectionEvent e) {
+		_func();
+	}
+}
 MenuItem createMenuItem(Menu sub, string text, Image img,
 		void delegate() func, int style = DWT.PUSH) {
 	auto itm = new MenuItem(sub, style);
@@ -729,13 +735,9 @@ MenuItem createMenuItem(Menu sub, string text, Image img,
 	if (accr > -1) {
 		itm.setAccelerator = accr;
 	}
-	itm.addSelectionListener(new class SelectionAdapter {
-		private void delegate() _func;
-		public this() {_func = func;}
-		public override void widgetSelected(SelectionEvent e) {
-			_func();
-		}
-	});
+	if (func) {
+		itm.addSelectionListener(new MenuSel(func));
+	}
 	if (img) itm.setImage = img;
 	return itm;
 }
@@ -753,11 +755,9 @@ ToolItem createToolItem(ToolBar bar, string tip, string text, Image img,
 	itm.setText = text;
 	itm.setToolTipText = tip;
 	itm.setImage = img;
-	itm.addSelectionListener(new class SelectionAdapter {
-		private void delegate() _func;
-		public this() {_func = func;}
-		public override void widgetSelected(SelectionEvent e) {_func();}
-	});
+	if (func) {
+		itm.addSelectionListener(new MenuSel(func));
+	}
 	return itm;
 }
 
@@ -765,18 +765,20 @@ ToolItem createToolItem(ToolBar bar, string text, Image img,
 		void delegate() func, int style = DWT.PUSH) {
 	return createToolItem(bar, text, null, img, func, style);
 }
-
+private class ToolSel : SelectionAdapter {
+	private void delegate(ToolItem) _func;
+	public this(void delegate(ToolItem) func) {_func = func;}
+	public override void widgetSelected(SelectionEvent e) {_func(cast(ToolItem) e.widget);}
+}
 ToolItem createToolItem(ToolBar bar, string tip, string text, Image img,
 		void delegate(ToolItem) func, int style = DWT.PUSH) {
 	auto itm = new ToolItem(bar, style);
 	itm.setText = text;
 	itm.setToolTipText = tip;
 	itm.setImage = img;
-	itm.addSelectionListener(new class SelectionAdapter {
-		private void delegate(ToolItem) _func;
-		public this() {_func = func;}
-		public override void widgetSelected(SelectionEvent e) {_func(cast(ToolItem) e.widget);}
-	});
+	if (func) {
+		itm.addSelectionListener(new ToolSel(func));
+	}
 	return itm;
 }
 
@@ -1786,6 +1788,7 @@ E getRadioValue(E)(Button[E] radios) {
 }
 
 void forceFocus(Widget widget) {
+	if (widget is Display.getCurrent.getFocusControl) return;
 	forceFocusImpl(widget, null);
 }
 

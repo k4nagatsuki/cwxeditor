@@ -381,6 +381,9 @@ public:
 
 	Image menuReplaceText() {return imgd!(resourceDir ~ "replace.png");}
 	Image menuReload() {return imgd!(resourceDir ~ "reload.png");}
+
+	Image menuStartToPackage() {return imgd!(resourceDir ~ "s_to_p.png");}
+	Image menuConvertContent() {return imgd!(resourceDir ~ "conv_cont.png");}
 }
 
 enum MenuID : int {
@@ -455,7 +458,9 @@ enum MenuID : int {
 	NewFolder,
 	ReplacePath,
 	ReplaceText,
-	Reload
+	Reload,
+	StartToPackage,
+	ConvertContent
 }
 
 public class Props {

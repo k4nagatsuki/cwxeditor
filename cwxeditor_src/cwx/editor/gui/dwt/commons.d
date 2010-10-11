@@ -6,6 +6,7 @@ import cwx.area;
 import cwx.flag;
 import cwx.summary;
 import cwx.utils;
+import cwx.event;
 import cwx.skin;
 
 import cwx.editor.gui.dwt.skin;
@@ -370,5 +371,14 @@ class Commons {
 	void replacePath(string from) {
 		auto replWin = _main.openReplWin;
 		if (replWin) replWin.replacePath(from);
+	}
+
+	ulong createPackage(Content baseStart) {
+		openDataWin;
+		if (_dataWin) {
+			return _dataWin.createPackage(baseStart);
+		} else {
+			return _tableWin.createPackage(baseStart);
+		}
 	}
 }

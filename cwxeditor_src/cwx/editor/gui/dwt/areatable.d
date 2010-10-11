@@ -415,14 +415,21 @@ public:
 	}
 
 	/// 新規パッケージが作成され、名前の入力待ちになる。
-	void createPackage() {
-		auto pkg = new Package(_summ.newPackageId, _prop.msgs.packageNew);
-		pkg.add(new EventTree(_prop.msgs.packageTree));
+	ulong createPackage(Content baseStart = null) {
+		auto pkg = new Package(_summ.newPackageId, baseStart ? baseStart.name : _prop.msgs.packageNew);
+		EventTree et;
+		if (baseStart) {
+			et = new EventTree(baseStart);
+		} else {
+			et = new EventTree(_prop.msgs.packageTree);
+		}
+		pkg.add(et);
 		_summ.add(pkg);
 		int index = _summ.packages.length - 1;
 		newPackageItem(index);
 		selPackage(index);
 		_areasEdit.startEdit;
+		return pkg.id;
 	}
 	private void selArea(int index) {
 		_areas.setSelection = index;

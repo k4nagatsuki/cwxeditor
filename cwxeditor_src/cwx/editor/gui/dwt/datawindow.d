@@ -298,10 +298,13 @@ public:
 			_areas.createBattle;
 		}
 		void createPackage() {
-			if (!_summ) return;
+			createPackage(null);
+		}
+		ulong createPackage(Content baseStart) {
+			if (!_summ) return 0;
 			_comm.openDataWin;
 			.forceFocus(_areas.table);
-			_areas.createPackage;
+			return _areas.createPackage(baseStart);
 		}
 	}
 	static if (UseFlag) {

@@ -887,7 +887,7 @@ public:
 			}
 			auto c = cast(Content) path;
 			if (!c) return;
-			if (c.detail.owner && c.type != CType.TALK_MESSAGE && c.type != CType.TALK_DIALOG) {
+			if (c.detail.owner && c.detail.nextType != CNextType.TEXT) {
 				auto set = new HashSet!(string);
 				foreach (cld; c.next) {
 					if (cld.name == "") continue;
@@ -1298,7 +1298,7 @@ public:
 		void replE(Content eo, Content e) {
 			assert (!eo || eo.detail.owner);
 			bool r = false;
-			if (event && (!eo || eo.type == CType.TALK_MESSAGE || eo.type == CType.TALK_DIALOG)) {
+			if (event && (!eo || eo.detail.nextType == CNextType.TEXT)) {
 				r |= repl(null, &e.name, &e.name, count);
 			}
 			if (start) {

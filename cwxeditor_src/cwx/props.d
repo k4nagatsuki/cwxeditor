@@ -312,6 +312,11 @@ public:
 	}
 
 	/// イベント設定。
+	string ttStartToPackage() {return "このツリーをパッケージ化する";}
+	string menuStartToPackage() {return ttStartToPackage ~ "(&P)";}
+	string ttConvertContent() {return "変換";}
+	string menuConvertContent() {return ttConvertContent ~ "(&R)";}
+
 	string dlgTitAreaSelect() {return "エリアの選択";}
 	string dlgTitBattleSelect() {return "バトルの選択";}
 	string dlgTitPackageSelect() {return "パッケージの選択";}
