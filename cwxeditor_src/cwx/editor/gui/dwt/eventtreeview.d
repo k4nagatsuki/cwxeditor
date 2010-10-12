@@ -1657,8 +1657,7 @@ public:
 		auto sel = selection;
 		if (!sel) return;
 		auto base = cast(Content) selection.getData;
-		auto startItm = sel;
-		while (sel.getParentItem) sel = sel.getParentItem;
+		auto startItm = topItem(sel);
 		auto start = base.parentStart;
 		assert (start);
 		assert (start is startItm.getData, start.name ~ " : " ~ startItm.getText);
