@@ -1034,7 +1034,7 @@ void hemming(GC gc, string s, int tx, int ty, Color color) {
 	gc.setForeground = color;
 	gc.drawText(s, tx, ty, true);
 }
-ImageData castCardImage(Props prop, Skin skin, CastCard c, string sPath) {
+ImageData castCardImage(Props prop, Skin skin, CastCard c, string sPath, bool dbgMode) {
 	auto cardSize = prop.looks.cardSize;
 	auto matPad = prop.looks.castCardInsets;
 	int w = cardSize.width + matPad.e + matPad.w;
@@ -1068,7 +1068,7 @@ ImageData castCardImage(Props prop, Skin skin, CastCard c, string sPath) {
 	}
 	r.append(skin.findImagePath(c.path, sPath), matPad, true);
 	int stMax = prop.looks.statusVerMax;
-	if (c.faceUpRound > 0) {
+	if (c.faceUpRound > 0 || dbgMode) {
 		auto d = Display.getCurrent;
 		auto lgid = lifeGuage(skin);
 		int lgw = lgid.width;

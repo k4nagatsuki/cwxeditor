@@ -242,7 +242,7 @@ public:
 		this.titPoint = titPoint;
 	}
 	void title(string title) {
-		assert (titFont);
+		assert (titFont !is null);
 		assert (titPoint);
 		_title = title;
 	}

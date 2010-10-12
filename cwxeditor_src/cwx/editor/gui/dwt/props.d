@@ -333,6 +333,7 @@ public:
 	Image menuNewStep() {return imgd!(resourceDir ~ "step_new.png");}
 
 	Image menuViewParty() {return imgd!(resourceDir ~ "partyCards.png");}
+	Image menuEnemyCardDebugView() {return imgd!(resourceDir ~ "card_life.png");}
 	Image menuViewCards() {return imgd!(resourceDir ~ "cards.png");}
 	Image menuViewBacks() {return imgd!(resourceDir ~ "backs.png");}
 	Image menuUp() {return imgd!(resourceDir ~ "up.png");}
@@ -360,6 +361,7 @@ public:
 	Image menuTreeOpen() {return imgd!(resourceDir ~ "tree_open.png");}
 	Image menuTreeClose() {return imgd!(resourceDir ~ "tree_close.png");}
 
+	Image menuShowCardLife() {return imgd!(resourceDir ~ "card_life.png");}
 	Image menuShowCardList() {return imgd!(resourceDir ~ "card_list.png");}
 	Image menuShowCardTable() {return imgd!(resourceDir ~ "card_table.png");}
 	Image menuAddScenario() {return imgd!(resourceDir ~ "add_scenario.png");}
@@ -417,6 +419,7 @@ enum MenuID : int {
 	NewFlag,
 	NewStep,
 	ViewParty,
+	EnemyCardDebugView,
 	ViewCards,
 	ViewBacks,
 	Up,
@@ -442,6 +445,7 @@ enum MenuID : int {
 	NewEventFire,
 	TreeOpen,
 	TreeClose,
+	ShowCardLife,
 	ShowCardList,
 	ShowCardTable,
 	AddScenario,

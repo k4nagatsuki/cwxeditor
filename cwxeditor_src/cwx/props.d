@@ -923,6 +923,8 @@ public:
 	string menuCardsAndBacks() {return "カードと背景" ~ "(&A)";}
 	string ttViewParty() {return "パーティカードの表示";}
 	string menuViewParty() {return ttViewParty ~ "(&P)";}
+	string ttEnemyCardDebugView() {return "カードライフ表示";}
+	string menuEnemyCardDebugView() {return ttEnemyCardDebugView ~ "(&L)";}
 	string ttViewCards() {return "カードの表示";}
 	string menuViewCards() {return ttViewCards ~ "(&V)";}
 	string ttViewBacks() {return "背景の表示";}
@@ -1483,7 +1485,9 @@ public:
 	}
 	string dlgTitAddScenario() {return "インポート元の選択";}
 
-	string ttShowCardList() {return "カードビュー表示";}
+	string ttShowCardLife() {return "カードライフ表示";}
+	string menuShowCardLife() {return ttShowCardLife ~ "(&L)";}
+	string ttShowCardList() {return "カード表示";}
 	string menuShowCardList() {return ttShowCardList ~ "(&C)";}
 	string ttShowCardTable() {return "詳細表示";}
 	string menuShowCardTable() {return ttShowCardTable ~ "(&D)";}

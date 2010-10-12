@@ -368,6 +368,7 @@ class FlexEtcProps : Properties {
 	mixin Property!("areaViewR", int, 4);
 	mixin Property!("viewPartyCardsArea", bool, true);
 	mixin Property!("viewPartyCardsBattle", bool, true);
+	mixin Property!("viewEnemyCardDebug", bool, false);
 	mixin Property!("viewPartyCardsEvent", bool, true);
 	mixin Property!("viewCards", bool, true);
 	mixin Property!("viewBgImages", bool, true);
@@ -413,6 +414,7 @@ class FlexEtcProps : Properties {
 	mixin Property!("filesHeight", int, 150, true);
 	mixin Property!("talkersWidth", int, 100, true);
 	mixin Property!("motionsWidth", int, 150, true);
+	mixin Property!("cardLife", bool, false);
 	mixin Property!("cardDetails", bool, false);
 	mixin Property!("contentsOrder", int[], []);
 	mixin Property!("contentsWrapIndices", int[], [4, 6, 8]);

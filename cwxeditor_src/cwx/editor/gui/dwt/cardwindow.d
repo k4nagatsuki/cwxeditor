@@ -72,6 +72,8 @@ import dwt.dnd.Clipboard;
 
 public:
 
+private enum CViewMode {INIT, LIFE, CARD, TABLE}
+
 private class CardPane(PCardOwner, CardOwner, C : Card, ToCardOwner, string GetAll, string GetFromId) : TCPD {
 private:
 	static const bool EditMode = is (ToCardOwner == void);
@@ -99,7 +101,7 @@ private:
 	CardList!(C) _list;
 	Table _tbl;
 	Image _cimg;
-	bool _viewList = true;
+	CViewMode _viewMode = CViewMode.INIT;
 	TCPD[] _tcpd;
 	static if (!EditMode) {
 		ToCardOwner _toc;
@@ -109,13 +111,7 @@ private:
 		__refresh;
 	}
 	void __refresh() {
-		if (_viewList) {
-			_list.refresh(__cards, &__cardImage);
-			int sel = _list.selection;
-			if (sel >= 0) {
-				_list.scroll(sel);
-			}
-		} else {
+		if (_viewMode == CViewMode.TABLE) {
 			C sel = null;
 			auto sels = _tbl.getSelection;
 			if (sels.length > 0) {
@@ -129,15 +125,21 @@ private:
 				}
 			}
 			_tbl.showSelection;
+		} else {
+			_list.refresh(__cards, &__cardImage);
+			int sel = _list.selection;
+			if (sel >= 0) {
+				_list.scroll(sel);
+			}
 		}
 	}
 	void select(int index) {
-		if (_viewList) {
-			_list.select(index);
-			_list.scroll(index);
-		} else {
+		if (_viewMode == CViewMode.TABLE) {
 			_tbl.select(index);
 			_tbl.showSelection;
+		} else {
+			_list.select(index);
+			_list.scroll(index);
 		}
 	}
 	void createTableItem(C c, int index = -1) {
@@ -458,7 +460,7 @@ private:
 	ImageData __cardImage(C c) {
 		auto skin = .findSkin(_prop, _summ);
 		static if (is (C == CastCard)) {
-			return castCardImage(_prop, skin, c, ownerScenarioPath);
+			return castCardImage(_prop, skin, c, ownerScenarioPath, _viewMode == CViewMode.LIFE);
 		} else static if (!is (C == InfoCard) && is (CardOwner == CastCard)) {
 			return cardImage!(C)(_prop, skin, c, ownerScenarioPath, _owner);
 		} else {
@@ -514,9 +516,7 @@ private:
 	}
 
 	C[] __selections() {
-		if (_viewList) {
-			return _list.selectionCards;
-		} else {
+		if (_viewMode == CViewMode.TABLE) {
 			C[] r;
 			auto sels = _tbl.getSelection;
 			r.length = sels.length;
@@ -524,13 +524,15 @@ private:
 				r[i] = cast(C) sels[i].getData;
 			}
 			return r;
+		} else {
+			return _list.selectionCards;
 		}
 	}
 	C __selection() {
-		if (_viewList) {
-			return _list.selectionCard;
-		} else {
+		if (_viewMode == CViewMode.TABLE) {
 			return _tbl.getSelectionIndex >= 0 ? cast(C) _tbl.getSelection[0].getData : null;
+		} else {
+			return _list.selectionCard;
 		}
 	}
 	void __refList() {
@@ -588,15 +590,15 @@ private:
 	}
 	static if (EditMode) {
 		void edit() {
-			if (_viewList) {
-				int index = _list.selection;
-				if (index >= 0) {
-					edit(_list.card(index));
-				}
-			} else {
+			if (_viewMode == CViewMode.TABLE) {
 				int index = _tbl.getSelectionIndex;
 				if (index >= 0) {
 					edit(cast(C) _tbl.getItem(index).getData);
+				}
+			} else {
+				int index = _list.selection;
+				if (index >= 0) {
+					edit(_list.card(index));
 				}
 			}
 		}
@@ -829,10 +831,10 @@ public:
 		return _summ;
 	}
 	Control widget() {
-		if (_viewList) {
-			return _list;
-		} else {
+		if (_viewMode == CViewMode.TABLE) {
 			return _tbl;
+		} else {
+			return _list;
 		}
 	}
 	void refresh() {
@@ -845,15 +847,21 @@ public:
 			refresh;
 		}
 	}
+	void showCardLife() {
+		if (_viewMode != CViewMode.LIFE) {
+			_viewMode = CViewMode.LIFE;
+			__refList;
+		}
+	}
 	void showCardList() {
-		if (!_viewList) {
-			_viewList = true;
+		if (_viewMode != CViewMode.CARD) {
+			_viewMode = CViewMode.CARD;
 			__refList;
 		}
 	}
 	void showCardTable() {
-		if (_viewList) {
-			_viewList = false;
+		if (_viewMode != CViewMode.TABLE) {
+			_viewMode = CViewMode.TABLE;
 			__refTbl;
 		}
 	}
@@ -879,7 +887,7 @@ public:
 		}
 		static if (is (CardOwner == Summary)) {
 			private void __refreshUseCount() {
-				if (!_viewList) {
+				if (_viewMode == CViewMode.TABLE) {
 					foreach (itm; _tbl.getItems) {
 						auto c = cast(C) itm.getData;
 						itm.setText(3, to!(string)(_summ.useCounter.get(C.toID(c.id))));
@@ -927,16 +935,16 @@ public:
 			return true;
 		}
 		void pasteRefresh(C[] cs) {
-			if (_viewList) {
-				refresh;
-				_list.select(_list.count - 1);
-				_list.scroll(_list.count - 1);
-			} else {
+			if (_viewMode == CViewMode.TABLE) {
 				foreach (c; cs) {
 					createTableItem(c);
 				}
 				_tbl.setSelection = [_tbl.getItemCount - 1];
 				_tbl.showSelection;
+			} else {
+				refresh;
+				_list.select(_list.count - 1);
+				_list.scroll(_list.count - 1);
 			}
 		}
 	} else {
@@ -1084,9 +1092,11 @@ private:
 	CardOwner _owner;
 	Commons _comm;
 
-	bool _viewList;
+	CViewMode _viewMode = CViewMode.INIT;
+	MenuItem _lifeM;
 	MenuItem _listM;
 	MenuItem _tblM;
+	ToolItem _lifeT;
 	ToolItem _listT;
 	ToolItem _tblT;
 
@@ -1301,6 +1311,7 @@ public:
 					createMenuItem(mv, prop.msgs.menuRefresh, prop.images.menuRefresh, &__refresh);
 					new MenuItem(mv, DWT.SEPARATOR);
 				}
+				_lifeM = createMenuItem(mv, prop.msgs.menuShowCardLife, prop.images.menuShowCardLife, &showCardLife, DWT.RADIO);
 				_listM = createMenuItem(mv, prop.msgs.menuShowCardList, prop.images.menuShowCardList, &showCardList, DWT.RADIO);
 				_tblM = createMenuItem(mv, prop.msgs.menuShowCardTable, prop.images.menuShowCardTable, &showCardTable, DWT.RADIO);
 
@@ -1338,6 +1349,7 @@ public:
 					createToolItem(bar, prop.msgs.ttAdd, prop.images.menuAdd, &addCard);
 				}
 				new ToolItem(bar, DWT.SEPARATOR);
+				_lifeT = createToolItem(bar, prop.msgs.ttShowCardLife, prop.images.menuShowCardLife, &showCardLife, DWT.RADIO);
 				_listT = createToolItem(bar, prop.msgs.ttShowCardList, prop.images.menuShowCardList, &showCardList, DWT.RADIO);
 				_tblT = createToolItem(bar, prop.msgs.ttShowCardTable, prop.images.menuShowCardTable, &showCardTable, DWT.RADIO);
 			}
@@ -1356,6 +1368,7 @@ public:
 			} else {
 				appendMenuTCPD(prop, this, this, false, true, false, false);
 			}
+			putMenuChecked(MenuID.ShowCardLife, &showCardLife, &isViewLife);
 			putMenuChecked(MenuID.ShowCardList, &showCardList, &isViewList);
 			putMenuChecked(MenuID.ShowCardTable, &showCardTable, &isViewTable);
 		}
@@ -1368,11 +1381,36 @@ public:
 			drop.addDropListener(new DropScenario);
 		}
 	}
-	void showCardList() {
-		if (!_viewList) {
-			_viewList = true;
+	void showCardLife() {
+		if (_viewMode != CViewMode.LIFE) {
+			_viewMode = CViewMode.LIFE;
 			if (_win && !_win.isDisposed) {
 				if (_listM) {
+					_lifeM.setSelection = true;
+					_lifeT.setSelection = true;
+					_listM.setSelection = false;
+					_listT.setSelection = false;
+					_tblM.setSelection = false;
+					_tblT.setSelection = false;
+				}
+				foreach (i, f; _pane) {
+					f.showCardLife;
+					_tab[i].setControl = f.widget;
+				}
+			}
+			static if (is (CardOwner == Summary)) {
+				_prop.var.etc.cardLife = true;
+				_prop.var.etc.cardDetails = false;
+			}
+		}
+	}
+	void showCardList() {
+		if (_viewMode != CViewMode.CARD) {
+			_viewMode = CViewMode.CARD;
+			if (_win && !_win.isDisposed) {
+				if (_listM) {
+					_lifeM.setSelection = false;
+					_lifeT.setSelection = false;
 					_listM.setSelection = true;
 					_listT.setSelection = true;
 					_tblM.setSelection = false;
@@ -1384,15 +1422,18 @@ public:
 				}
 			}
 			static if (is (CardOwner == Summary)) {
+				_prop.var.etc.cardLife = false;
 				_prop.var.etc.cardDetails = false;
 			}
 		}
 	}
 	void showCardTable() {
-		if (_viewList) {
-			_viewList = false;
+		if (_viewMode != CViewMode.TABLE) {
+			_viewMode = CViewMode.TABLE;
 			if (_win && !_win.isDisposed) {
 				if (_listM) {
+					_lifeM.setSelection = false;
+					_lifeT.setSelection = false;
 					_listM.setSelection = false;
 					_listT.setSelection = false;
 					_tblM.setSelection = true;
@@ -1404,6 +1445,7 @@ public:
 				}
 			}
 			static if (is (CardOwner == Summary)) {
+				_prop.var.etc.cardLife = false;
 				_prop.var.etc.cardDetails = true;
 			}
 		}
@@ -1453,11 +1495,14 @@ public:
 	bool canCreateItem() {return EditMode && UseItem;}
 	bool canCreateBeast() {return EditMode && UseBeast;}
 	bool canCreateInfo() {return EditMode && UseInfo;}
+	private bool isViewLife() {
+		return _viewMode == CViewMode.LIFE;
+	}
 	private bool isViewList() {
-		return _viewList;
+		return _viewMode == CViewMode.CARD;
 	}
 	private bool isViewTable() {
-		return !_viewList;
+		return _viewMode == CViewMode.TABLE;
 	}
 	private void construct2() {
 		newPane!(0);
@@ -1508,7 +1553,11 @@ public:
 			addTable(f.cardTable);
 		}
 		_tabf.setSelection = 0;
-		showCardList;
+		if (_prop.var.etc.cardLife) {
+			showCardLife;
+		} else {
+			showCardList;
+		}
 		auto shell = cast(Shell) _win;
 		if (shell) {
 			scope wp = shell.computeSize(DWT.DEFAULT, DWT.DEFAULT);
@@ -1525,7 +1574,9 @@ public:
 				shell.setSize(width, _prop.var.cardWin.height);
 			}
 		}
-		if (_prop.var.etc.cardDetails) showCardTable;
+		if (!_prop.var.etc.cardLife && _prop.var.etc.cardDetails) {
+			showCardTable;
+		}
 	}
 	private class SizeL : ControlAdapter {
 		private void saveCardWin() {

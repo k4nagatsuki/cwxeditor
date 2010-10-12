@@ -818,13 +818,18 @@ public:
 
 				auto mc = createMenu(bar, _prop.msgs.menuCards);
 				auto g = new RadioGroup!(MenuItem);
+				mixin (MenuAction!("mc", "ShowCardLife", DWT.RADIO, "showCardLife"));
+				auto scf = _menu[MenuID.ShowCardLife];
+				g.append(scf);
 				mixin (MenuAction!("mc", "ShowCardList", DWT.RADIO, "showCardList"));
 				auto scl = _menu[MenuID.ShowCardList];
 				g.append(scl);
 				mixin (MenuAction!("mc", "ShowCardTable", DWT.RADIO, "showCardTable"));
 				auto sct = _menu[MenuID.ShowCardTable];
 				g.append(sct);
-				if (_prop.var.etc.cardDetails) {
+				if (_prop.var.etc.cardLife) {
+					scf.setSelection = true;
+ 				} else if (_prop.var.etc.cardDetails) {
 					sct.setSelection = true;
 				} else {
 					scl.setSelection = true;
@@ -857,6 +862,7 @@ public:
 		_noSummMenu.add(MenuID.CardWin);
 		_noSummMenu.add(MenuID.DirWin);
 		_noSummMenu.add(MenuID.ChangeVH);
+		_noSummMenu.add(MenuID.ShowCardLife);
 		_noSummMenu.add(MenuID.ShowCardList);
 		_noSummMenu.add(MenuID.ShowCardTable);
 		_noSummMenu.add(MenuID.ExecEngine);
@@ -942,13 +948,18 @@ public:
 			{
 				auto bar = new ToolBar(cbar, DWT.FLAT);
 				auto g = new RadioGroup!(ToolItem);
+				mixin (ToolAction!("bar", "ShowCardLife", DWT.RADIO, "showCardLife"));
+				auto scf = _tool[MenuID.ShowCardLife];
+				g.append(scf);
 				mixin (ToolAction!("bar", "ShowCardList", DWT.RADIO, "showCardList"));
 				auto scl = _tool[MenuID.ShowCardList];
 				g.append(scl);
 				mixin (ToolAction!("bar", "ShowCardTable", DWT.RADIO, "showCardTable"));
 				auto sct = _tool[MenuID.ShowCardTable];
 				g.append(sct);
-				if (_prop.var.etc.cardDetails) {
+				if (_prop.var.etc.cardLife) {
+					scf.setSelection = true;
+				} else if (_prop.var.etc.cardDetails) {
 					sct.setSelection = true;
 				} else {
 					scl.setSelection = true;
@@ -1056,6 +1067,15 @@ public:
 			dirWin.openDirectory;
 		} else {
 			openFolder(summary.scenarioPath);
+		}
+	}
+	private void showCardLife() {
+		auto cw = cast(ICardWindow) _tlp;
+		if (cw) {
+			menuAction!(MenuID.ShowCardLife);
+		} else {
+			_cardWin.showCardLife;
+			menuActionAfter!(MenuID.ShowCardLife);
 		}
 	}
 	private void showCardList() {

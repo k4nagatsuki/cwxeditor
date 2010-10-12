@@ -435,9 +435,19 @@ private:
 	MenuItem _vpMenu;
 	ToolItem _vpTMenu;
 	static if (is (C == EnemyCard)) {
+		protected bool debugMode() {return _dbgMode;}
+		bool _dbgMode = false;
+		MenuItem _dbgMenu;
+		ToolItem _dbgTMenu;
 		ToolItem _escTMenu;
 		ToolItem _bgmTMenu;
 		MaterialSelect!(MtType.BGM, CCombo, CCombo) _bgm;
+		void reverseDebugMode() {
+			_dbgMode = !_dbgMode;
+			if (_dbgMenu) _dbgMenu.setSelection = _dbgMode;
+			if (_dbgTMenu) _dbgTMenu.setSelection = _dbgMode;
+			refreshPanel;
+		}
 		void setEscape() {
 			_undo ~= new UndoEdit;
 			foreach (c; _editC.keys) {
@@ -1231,6 +1241,7 @@ public:
 			_viewParty = _prop.var.etc.viewPartyCardsArea;
 		} else static if (is (A == Battle)) {
 			_viewParty = _prop.var.etc.viewPartyCardsBattle;
+			_dbgMode = _prop.var.etc.viewEnemyCardDebug;
 		} else static if (is (A == BgImageContainer)) {
 			_viewParty = _prop.var.etc.viewPartyCardsEvent;
 		} else {
@@ -1242,6 +1253,7 @@ public:
 					_prop.var.etc.viewPartyCardsArea = _viewParty;
 				} else static if (is (A == Battle)) {
 					_prop.var.etc.viewPartyCardsBattle = _viewParty;
+					_prop.var.etc.viewEnemyCardDebug = _dbgMode;
 				} else static if (is (A == BgImageContainer)) {
 					_prop.var.etc.viewPartyCardsEvent = _viewParty;
 				} else {
@@ -1395,15 +1407,13 @@ public:
 	private void refreshPanel() {
 		static if (UseCards) {
 			foreach (i, c; _area.cards) {
-				auto img = cast(FlexImage) _imgp.images[cardsIndex + i];
-				img.title = cardName(c);
-				img.setPath(0, cardImagePath(c));
+				auto img = createCardImage(c);
 				img.newX = c.x;
 				img.newY = c.y;
 				img.scale = c.scale;
 				img.resize;
-				img.createImage;
-				_cards.setItem(i, img.title);
+				_imgp.set(cardsIndex + i, img);
+				_cards.setItem(i, cardName(c));
 			}
 		}
 		static if (UseBacks) {
@@ -1431,9 +1441,7 @@ public:
 	void refresh() {
 		static if (UseCards) {
 			foreach (i, c; _area.cards) {
-				auto img = _imgp.images[cardsIndex + i];
-				img.setPath(0, cardImagePath(c));
-				img.createImage;
+				_imgp.set(cardsIndex + i, createCardImage(c));
 			}
 			static if (is (C == EnemyCard)) {
 				_bgm.refresh;
@@ -1699,6 +1707,14 @@ public:
 		_vpMenu = createMenuItem(mv, _prop.msgs.menuViewParty, _prop.images.menuViewParty,
 			&reverseViewParty, DWT.CHECK);
 		_vpMenu.setSelection = _viewParty;
+		static if (UseCards && is(C == EnemyCard)) {
+			new MenuItem(mv, DWT.SEPARATOR);
+			_dbgMenu = createMenuItem(mv,
+				_prop.msgs.menuEnemyCardDebugView,
+				_prop.images.menuEnemyCardDebugView,
+				&reverseDebugMode, DWT.CHECK);
+			_dbgMenu.setSelection = _dbgMode;
+		}
 		static if (UseCards && UseBacks) {
 			new MenuItem(mv, DWT.SEPARATOR);
 			_vcMenu = createMenuItem(mv, _prop.msgs.menuViewCards, _prop.images.menuViewCards,
@@ -1738,6 +1754,14 @@ public:
 			_prop.msgs.ttViewParty, _prop.images.menuViewParty,
 			&reverseViewParty, DWT.CHECK);
 		_vpTMenu.setSelection = _viewParty;
+		static if (UseCards && is(C == EnemyCard)) {
+			new ToolItem(bar, DWT.SEPARATOR);
+			_dbgTMenu = createToolItem(bar,
+				_prop.msgs.ttEnemyCardDebugView,
+				_prop.images.menuEnemyCardDebugView,
+				&reverseDebugMode, DWT.CHECK);
+			_dbgTMenu.setSelection = _dbgMode;
+		}
 		static if (UseCards && UseBacks) {
 			new ToolItem(bar, DWT.SEPARATOR);
 			_vcTMenu = createToolItem(bar,
@@ -2160,7 +2184,7 @@ public:
 			foreach (i, c; area.cards) {
 				if (castCard.id == _area.cards[i].id) {
 					auto img = imagePane.images[cardsIndex + i];
-					img.setImageData(castCardImage(_prop, skin, castCard, _summ.scenarioPath));
+					img.setImageData(castCardImage(_prop, skin, castCard, _summ.scenarioPath, _dbgMode));
 					img.createImage;
 					cardList.setItem(i, castCard.name);
 					if (_renameCard) _renameCard(i);
@@ -2495,9 +2519,9 @@ protected override:
 		auto skin = findSkin(prop, summ);
 		auto castCard = summary.casts(card.id);
 		if (castCard) {
-			return createCastCardImage(prop, skin, castCard, _summ.scenarioPath, card.x, card.y, card.scale);
+			return createCastCardImage(prop, skin, castCard, _summ.scenarioPath, card.x, card.y, card.scale, debugMode);
 		} else {
-			return createCastCardImage(prop, skin, null, _summ.scenarioPath, card.x, card.y, card.scale);
+			return createCastCardImage(prop, skin, null, _summ.scenarioPath, card.x, card.y, card.scale, debugMode);
 		}
 	}
 	string cardImagePath(EnemyCard card) {
@@ -2566,11 +2590,11 @@ FlexImage createCardImageCommon(Props prop, ImageData card, CInsets matPad, int 
 /// キャストカード画像を生成する。
 /// Returns: カード画像。
 FlexImage createCastCardImage
-		(Props prop, Skin skin, CastCard card, string sPath, int x, int y, real scale) {
+		(Props prop, Skin skin, CastCard card, string sPath, int x, int y, real scale, bool dbgMode) {
 	auto matPad = prop.looks.castCardInsets;
 	FlexImage r;
 	if (card) {
-		r = createCardImageCommon(prop, castCardImage(prop, skin, card, sPath), matPad, x, y, scale);
+		r = createCardImageCommon(prop, castCardImage(prop, skin, card, sPath, dbgMode), matPad, x, y, scale);
 	} else {
 		r = createCardImageCommon(prop, castCard(skin), matPad, x, y, scale);
 	}
