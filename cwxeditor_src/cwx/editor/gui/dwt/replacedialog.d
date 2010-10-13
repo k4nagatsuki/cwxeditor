@@ -501,8 +501,10 @@ public:
 		return _win;
 	}
 	void summary(Summary summ) {
-		_summ = summ;
-		_result.removeAll;
+		if (!_win.isDisposed) {
+			_summ = summ;
+			_result.removeAll;
+		}
 	}
 
 	void replacePath(string from) {

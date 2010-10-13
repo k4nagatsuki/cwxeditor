@@ -127,7 +127,7 @@ private:
 			if (_flagWin) _flagWin.load(summary);
 			_cardWin.refresh(summary);
 			_dirWin.refresh(summary);
-			if (_replDlg) _replDlg.summary = summary;
+			if (_replDlg && !_replDlg.widget.isDisposed) _replDlg.summary = summary;
 			__refreshTitle;
 			if (old) old.delTemp;
 			if (!dock) {
@@ -209,7 +209,7 @@ private:
 		}
 		_cardWin.refresh(summ);
 		_dirWin.refresh(summ);
-		if (_replDlg) _replDlg.summary = summ;
+		if (_replDlg && !_replDlg.widget.isDisposed) _replDlg.summary = summ;
 		_comm.refScenarioName.call;
 		_comm.refScenarioPath.call;
 		if (!dock) {
