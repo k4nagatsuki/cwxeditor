@@ -20,15 +20,22 @@ import dwt.widgets.Display;
 import dwt.graphics.ImageData;
 import dwt.graphics.Image;
 
-Skin findSkin(Summary)(Props prop, Summary summ, bool notFoundIsError = true) {
+Skin findSkin(Summary)(Props prop, Summary summ) {
 	if (summ.legacy) return Skin.find(prop.parent, prop.var.etc.enginePath, summ);
-	return findSkin2(prop, summ.type, notFoundIsError);
+	return findSkin2(prop, summ.type);
 }
-Skin findSkin2(Props prop, string type, bool notFoundIsError = true) {
+Skin findSkin2(Props prop, string type) {
 	auto p = type in skinTable(prop);
 	if (p) return *p;
-	if (notFoundIsError) throw new Exception("Skin is not found: " ~ type);
-	return null;
+	static Skin[Props] emptySkins;
+	p = prop in emptySkins;
+	if (p) return *p;
+	auto r = new Skin(prop.parent, prop.var.etc.enginePath);
+	emptySkins[prop] = r;
+	return r;
+}
+bool hasSkin(Props prop, string type) {
+	return (type in skinTable(prop)) !is null;
 }
 Skin[string] skinTable(Props prop) {
 	return Skin.table(prop.parent, prop.var.etc.enginePath);
@@ -87,7 +94,8 @@ version (Windows) {
 			img.destroy;
 			if (mask) {
 				data.transparentPixel = data.getPixel(0, 0);
-			} else if (rmask) {
+			}
+			if (rmask) {
 				data.transparentPixel = data.getPixel(data.width - 1, 0);
 			}
 			putCache(path, data);

@@ -25,11 +25,23 @@ class Skin {
 		if (summ.legacy) {
 			return legacySkin(prop, enginePath, summ.scenarioPath);
 		}
-		return table(prop, enginePath)[summ.type];
+		static Skin[CProps] emptySkins;
+		auto tbl = table(prop, enginePath);
+		auto p = summ.type in tbl;
+		if (p) return *p;
+		auto pp = prop in emptySkins;
+		if (pp) return *pp;
+		auto r = new Skin(prop, enginePath);
+		emptySkins[prop] = r;
+		return r;
 	}
 
 	private static Skin[string][string] skinTable;
 	static Skin[string] table(CProps prop, string enginePath) {
+		if (!enginePath.length) {
+			Skin[string] tbl;
+			return tbl;
+		}
 		enginePath = nabs(enginePath);
 		auto p = enginePath in skinTable;
 		if (p) {
@@ -63,13 +75,38 @@ class Skin {
 		if (p) {
 			return *p;
 		} else {
-			auto skin = new Skin(prop, table(prop, enginePath)["MedievalFantasy"].skinFile, enginePath);
+			auto tbl = table(prop, enginePath);
+			auto sp = "MedievalFantasy" in tbl;
+			Skin skin;
+			if (sp) {
+				skin = new Skin(prop, sp.skinFile, enginePath);
+			} else {
+				skin = new Skin(prop, enginePath);
+			}
 			skin._extImg = "bmp";
 			skin._extBgm = "mid";
 			skin._extSound = "wav";
 			skin._legacy = true;
 			skin._legacyPath = resDir;
 			skin._legacyEngine = lEnginePath;
+			if (!('A' in skin._spChars)) skin._spChars['A'] = "";
+			if (!('C' in skin._spChars)) skin._spChars['C'] = "";
+			if (!('D' in skin._spChars)) skin._spChars['D'] = "";
+			if (!('E' in skin._spChars)) skin._spChars['E'] = "";
+			if (!('F' in skin._spChars)) skin._spChars['F'] = "";
+			if (!('G' in skin._spChars)) skin._spChars['G'] = "";
+			if (!('H' in skin._spChars)) skin._spChars['H'] = "";
+			if (!('J' in skin._spChars)) skin._spChars['J'] = "";
+			if (!('K' in skin._spChars)) skin._spChars['K'] = "";
+			if (!('L' in skin._spChars)) skin._spChars['L'] = "";
+			if (!('N' in skin._spChars)) skin._spChars['N'] = "";
+			if (!('O' in skin._spChars)) skin._spChars['O'] = "";
+			if (!('P' in skin._spChars)) skin._spChars['P'] = "";
+			if (!('Q' in skin._spChars)) skin._spChars['Q'] = "";
+			if (!('S' in skin._spChars)) skin._spChars['S'] = "";
+			if (!('W' in skin._spChars)) skin._spChars['W'] = "";
+			if (!('X' in skin._spChars)) skin._spChars['X'] = "";
+			if (!('Z' in skin._spChars)) skin._spChars['Z'] = "";
 			lSkins[resDir] = skin;
 			return skin;
 		}
@@ -144,10 +181,16 @@ class Skin {
 	private string[dchar] _spChars;
 	private Race[] _races;
 
-	private this(CProps prop, string skinFile, string enginePath) {
+	/// 空のスキンを生成する。
+	this (CProps prop, string enginePath) {
 		_prop = prop;
 		_enginePath = enginePath;
-		loadFromXML(skinFile);
+	}
+	private this (CProps prop, string skinFile, string enginePath) {
+		this (prop, enginePath);
+		if (skinFile.length) {
+			loadFromXML(skinFile);
+		}
 	}
 	string name() {return _name;}
 	string type() {return _type;}

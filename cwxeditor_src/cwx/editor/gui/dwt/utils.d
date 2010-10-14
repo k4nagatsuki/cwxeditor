@@ -1443,6 +1443,7 @@ S[] loadScenariosFromFile(S)(Props prop, Shell w, bool expandXMLs, string[] file
 
 string scenarioFilterPath(Props prop) {
 	if (prop.var.etc.scenarioPath.length == 0) {
+		if (prop.var.etc.enginePath.length == 0) return "";
 		return nabs(std.path.join(getDirName(prop.var.etc.enginePath), "Scenario"));
 	} else {
 		return nabs(prop.var.etc.scenarioPath);

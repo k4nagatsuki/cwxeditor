@@ -74,7 +74,7 @@ public:
 	string cwxPathOpenError(string path) {return "パス [" ~ path ~ "] を開けません。";}
 	string filePathOpenError(string path) {return "パス [" ~ path ~ "] を開けません。";}
 
-	string loadSkinError(string name) {return "スキン「" ~ name ~ "」が見つかりません。";}
+	string loadSkinError(string name) {return "デフォルトのスキン「" ~ name ~ "」が見つかりません。\n一部リソース画像が非表示になります。";}
 	string useDefaultSkin(string name, string defSkin) {return "スキン「" ~ name ~ "」が見つかりません。\nデフォルトのスキン「" ~ defSkin ~ "」を使用します。";}
 	string scenarioName() {return "シナリオ名";}
 	string type() {return "タイプ";}
@@ -1696,6 +1696,7 @@ public:
 	string baseSettings() {return "基本設定";}
 	string reference() {return "参照...";}
 	string enginePath(string appName) {return appName ~ "の場所(必須)";}
+	string enginePathAtten() {return "※ クラシックなシナリオのみに使用する場合は空欄にしてください";}
 	string dlgTitEnginePath(string appName) {return appName ~ "の場所";}
 	string tempDir() {return "シナリオの一時展開先";}
 	string tempDirDesc() {return "wsn圧縮されたシナリオの一時的な展開先を選択してください。";}

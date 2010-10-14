@@ -252,6 +252,10 @@ private:
 				foreach (type; skinTable(_prop).keys.sort) {
 					_type.add(type);
 				}
+				if (!_type.getItemCount) {
+					// スキンが無い
+					_type.add(_prop.var.etc.defaultSkin);
+				}
 				int index = _type.indexOf(_summ.type);
 				_type.setText = index >= 0 ? _summ.type : _prop.var.etc.defaultSkin;
 			}

@@ -246,7 +246,11 @@ private:
 			refr.addSelectionListener(new class SelectionAdapter {
 				override void widgetSelected(SelectionEvent e) {selectEngine;}
 			});
-			checker(_enginePath);
+			auto l = new Label(grp, DWT.NONE);
+			l.setText = _prop.msgs.enginePathAtten;
+			auto gd = new GridData;
+			gd.horizontalSpan = 2;
+			l.setLayoutData = gd;
 		}
 		{
 			auto grp = new Group(comp, DWT.NONE);
@@ -692,10 +696,12 @@ protected:
 				cancel = true;
 				return false;
 			}
-			if (!.exists(engine) || .isdir(engine)) {
-				err(_tabB, _enginePath, _prop.msgs.errorEnginePath(_prop.var.etc.engine));
-				cancel = true;
-				return false;
+			if (engine.length) {
+				if (!.exists(engine) || .isdir(engine)) {
+					err(_tabB, _enginePath, _prop.msgs.errorEnginePath(_prop.var.etc.engine));
+					cancel = true;
+					return false;
+				}
 			}
 			string temp;
 			try {

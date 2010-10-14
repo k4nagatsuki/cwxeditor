@@ -195,7 +195,7 @@ private:
 	}
 	void openScenario(Summary summ) {
 		assert (summ);
-		if (!findSkin(_prop, summ, false)) {
+		if (!hasSkin(_prop, summ.type) && summ.type != _prop.var.etc.defaultSkin) {
 			MessageBox.showWarning(_prop.msgs.useDefaultSkin(summ.type, _prop.var.etc.defaultSkin),
 				_prop.msgs.dlgTitWarning, _win);
 			summ.type = _prop.var.etc.defaultSkin;
@@ -340,9 +340,11 @@ private:
 	}
 	void execEngine() {
 		string engine = summary ? findSkin(_prop, summary).engine : _prop.var.etc.enginePath;
-		if (!exec(engine, getDirName(nabs(engine)))) {
-			MessageBox.showWarning(_prop.msgs.errorExecEngine(engine),
-				_prop.msgs.dlgTitWarning, _win);
+		if (engine.length) {
+			if (!exec(engine, getDirName(nabs(engine)))) {
+				MessageBox.showWarning(_prop.msgs.errorExecEngine(engine),
+					_prop.msgs.dlgTitWarning, _win);
+			}
 		}
 	}
 	void openDataWindow() {
@@ -458,7 +460,6 @@ private:
 		string[] oldHist = _prop.var.etc.openHistories;
 		string[] oldKeyCodes = _prop.var.etc.standardKeyCodes;
 		auto tools = _prop.var.etc.outerTools;
-		string enginePath = _prop.var.etc.enginePath;
 		if (dlg.open) {
 			if (oldKeyCodes != _prop.var.etc.standardKeyCodes) {
 				_comm.refStandardKeyCodes.call;
@@ -639,17 +640,19 @@ public:
 
 		auto d = new Display;
 		d.setAppName = _prop.msgs.application;
-		if (!.exists(_prop.var.etc.enginePath)) {
+		if (_prop.var.etc.enginePath.length && !.exists(_prop.var.etc.enginePath)) {
 			auto dlg = new SettingsDialog(_prop, null);
 			if (!dlg.open) return;
 		}
 
-		string engineDir = getDirName(nabs(_prop.var.etc.enginePath));
-		auto skinTable = .skinTable(_prop);
-		if (!(_prop.var.etc.defaultSkin in skinTable)) {
-			MessageBox.showWarning(_prop.msgs.loadSkinError(_prop.var.etc.defaultSkin),
-				_prop.msgs.dlgTitWarning, null);
-			return;
+		string engineDir = "";
+		if (_prop.var.etc.enginePath.length) {
+			engineDir = getDirName(nabs(_prop.var.etc.enginePath));
+			auto skinTable = .skinTable(_prop);
+			if (!(_prop.var.etc.defaultSkin in skinTable)) {
+				MessageBox.showWarning(_prop.msgs.loadSkinError(_prop.var.etc.defaultSkin),
+					_prop.msgs.dlgTitWarning, null);
+			}
 		}
 
 		if (_prop.var.etc.singleWindow) {
