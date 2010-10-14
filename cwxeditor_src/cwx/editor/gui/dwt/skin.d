@@ -85,7 +85,11 @@ version (Windows) {
 			auto img = Image.win32_new(Display.getCurrent, DWT.BITMAP, hbmp);
 			auto data = img.getImageData;
 			img.destroy;
-			if (rmask) data.transparentPixel = data.getPixel(data.width - 1, 0);
+			if (mask) {
+				data.transparentPixel = data.getPixel(0, 0);
+			} else if (rmask) {
+				data.transparentPixel = data.getPixel(data.width - 1, 0);
+			}
 			putCache(path, data);
 			return data;
 		}
