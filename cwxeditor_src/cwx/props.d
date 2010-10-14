@@ -1870,26 +1870,60 @@ public:
 
 	CSize viewSize() {return CSize(632, 420);}
 
-	CFont castCardNameFont(){return CFont("IPA UIゴシック", 9, true, false);}
-	CFont castCardLevelFont(){return CFont("IPA明朝", 24, true, true);}
+	private static string gothic(bool legacy) {
+		version (Windows) {
+			if (legacy) return "ＭＳ ゴシック";
+		}
+		return "IPAゴシック";
+	}
+	private static string pgothic(bool legacy) {
+		version (Windows) {
+			if (legacy) return "ＭＳ Ｐゴシック";
+		}
+		return "IPA Pゴシック";
+	}
+	private static string mincho(bool legacy) {
+		version (Windows) {
+			if (legacy) return "ＭＳ 明朝";
+		}
+		return "IPA明朝";
+	}
+	private static string uigothic(bool legacy) {
+		version (Windows) {
+			if (legacy) return "MS UI Gothic";
+		}
+		return "IPA UIゴシック";
+	}
+	CFont castCardNameFont(bool legacy){return CFont(uigothic(legacy), 9, true, false);}
+	CFont castCardLevelFont(bool legacy){return CFont(mincho(legacy), 24, true, true);}
 	CInsets castCardLevelInsets(){return CInsets(2, 8, 0, 0);}
 	CRGB castCardLevelColor() {return CRGB(0, 0, 0, 128);}
 	CPoint castLifeBarPoint() {return CPoint(8, 110);}
 	int statusX() {return 7;}
 	uint statusVerMax() {return 6;}
-	CFont beastNumFont(){return CFont("IPA Pゴシック", 9, false, false);}
+		CFont beastNumFont(bool legacy){return CFont(pgothic(legacy), 9, false, false);}
 
-	CFont menuCardNameFont(){return castCardNameFont;}
-	CFont cardNameFont(){return castCardNameFont;}
-	CFont useCountFont(){return CFont("IPA明朝", 12, true, false);}
+	CFont menuCardNameFont(bool legacy){return castCardNameFont(legacy);}
+	CFont cardNameFont(bool legacy){return castCardNameFont(legacy);}
+	CFont useCountFont(bool legacy){return CFont(mincho(legacy), 12, true, false);}
 	CPoint useCountPoint(){return CPoint(10, 90);}
 	CRGB recycleNumColor() {return CRGB(255, 255, 0);}
-	CFont summaryLevelFont() {return CFont("IPA明朝", 10, true, true);}
-	CFont summaryTitleFont() {return CFont("IPA明朝", 16, true, false);}
-	CFont summaryDescFont() {return CFont("IPAゴシック", 10, true, false);}
-	CFont summaryPageFont() {return CFont("IPAゴシック", 9, true, false);}
-	CFont cardDescFont() {return CFont("IPAゴシック", 10, false, false);}
-	CFont messageFont() {return CFont("IPAゴシック", 16, false, false);}
+	CFont summaryLevelFont(bool legacy) {return CFont(mincho(legacy), 10, true, true);}
+	CFont summaryTitleFont(bool legacy) {return CFont(mincho(legacy), 16, true, false);}
+	CFont summaryDescFont(bool legacy) {
+		version (Windows) {
+			if (legacy) return CFont(mincho(legacy), 10, true, false);
+		}
+		return CFont(gothic(legacy), 10, true, false);
+	}
+	CFont summaryPageFont(bool legacy) {return CFont(gothic(legacy), 9, true, false);}
+	CFont cardDescFont(bool legacy) {return CFont(gothic(legacy), 10, false, false);}
+	CFont messageFont(bool legacy) {
+		version (Windows) {
+			if (legacy) return CFont(mincho(legacy), 16, true, false);
+		}
+		return CFont(gothic(legacy), 16, false, false);
+	}
 }
 
 public class CProps {

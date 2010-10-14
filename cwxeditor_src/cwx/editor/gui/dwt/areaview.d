@@ -2609,7 +2609,7 @@ FlexImage createMenuCardImage
 	auto matPad = prop.looks.menuCardInsets;
 	auto r = createCardImageCommon(prop, menuCard(skin), matPad, x, y, scale);
 	r.append(path, matPad, true);
-	r.setTitle(title, dwtData(prop.looks.menuCardNameFont), dwtData(prop.looks.menuCardNamePoint));
+	r.setTitle(title, dwtData(prop.looks.menuCardNameFont(skin.legacy)), dwtData(prop.looks.menuCardNamePoint));
 	r.resize;
 	return r;
 }

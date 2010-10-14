@@ -117,16 +117,16 @@ private:
 				scope c = new Color(d, dwtData(_prop.looks.summaryLevelColor, alpha));
 				gc.setForeground = c;
 				gc.setAlpha = alpha;
-				drawCenterText(dwtData(_prop.looks.summaryLevelFont),
+				drawCenterText(dwtData(_prop.looks.summaryLevelFont(_summ.legacy)),
 					_prop.msgs.targetLevel(_levMin.getSelection, _levMax.getSelection),
 					_prop.looks.summaryLevelY);
 				c.dispose;
 				gc.setAlpha = 255;
 				gc.setForeground = d.getSystemColor(DWT.COLOR_BLACK);
-				drawCenterText(dwtData(_prop.looks.summaryTitleFont),
+				drawCenterText(dwtData(_prop.looks.summaryTitleFont(_summ.legacy)),
 					_sname.getText, _prop.looks.summaryTitleY);
 				{
-					scope font = new Font(d, dwtData(_prop.looks.summaryDescFont));
+					scope font = new Font(d, dwtData(_prop.looks.summaryDescFont(_summ.legacy)));
 					gc.setFont = font;
 					int hig = gc.getFontMetrics.getHeight;
 					int x = _prop.looks.summaryDescXY.x;
@@ -135,7 +135,7 @@ private:
 					gc.setFont = null;
 					font.dispose;
 				}
-				drawCenterText(dwtData(_prop.looks.summaryPageFont),
+				drawCenterText(dwtData(_prop.looks.summaryPageFont(_summ.legacy)),
 					_prop.msgs.summaryPageDummy, _prop.looks.summaryPageY);
 			}
 
@@ -227,7 +227,7 @@ private:
 			grp.setLayoutData = gl;
 			grp.setLayout = new CenterLayout(DWT.HORIZONTAL);
 			grp.setText = _prop.msgs.desc;
-			_desc = new FixedWidthText(dwtData(_prop.looks.summaryDescFont), _prop.looks.summaryDescLen, grp, DWT.BORDER);
+			_desc = new FixedWidthText(dwtData(_prop.looks.summaryDescFont(_summ.legacy)), _prop.looks.summaryDescLen, grp, DWT.BORDER);
 			_desc.widget.setLayoutData = _desc.computeTextBaseSize(_prop.looks.summaryDescLine);
 			_desc.setText = _summ.desc;
 		}

@@ -1062,7 +1062,7 @@ ImageData castCardImage(Props prop, Skin skin, CastCard c, string sPath, bool db
 	if (c.faceUpRound > 0) {
 		r.append(to!(string)(c.level),
 			prop.looks.castCardLevelInsets,
-			prop.looks.castCardLevelFont,
+			prop.looks.castCardLevelFont(skin.legacy),
 			prop.looks.castCardLevelColor,
 			PileImage.TPos.RIGHT);
 	}
@@ -1159,7 +1159,7 @@ ImageData castCardImage(Props prop, Skin skin, CastCard c, string sPath, bool db
 		auto bi = new Image(d, bid);
 		scope (exit) bi.dispose;
 		gc.drawImage(bi, 0, 0);
-		auto bff = new Font(d, dwtData(prop.looks.beastNumFont));
+		auto bff = new Font(d, dwtData(prop.looks.beastNumFont(skin.legacy)));
 		scope (exit) bff.dispose;
 		gc.setFont = bff;
 		string s = to!(string)(beastCount);
@@ -1170,7 +1170,7 @@ ImageData castCardImage(Props prop, Skin skin, CastCard c, string sPath, bool db
 		hemming(gc, s, tx, ty, d.getSystemColor(DWT.COLOR_WHITE));
 		r.append(bmp.getImageData, stp);
 	}
-	r.setTitle(c.name, dwtData(prop.looks.castCardNameFont), dwtData(prop.looks.castCardNamePoint));
+	r.setTitle(c.name, dwtData(prop.looks.castCardNameFont(skin.legacy)), dwtData(prop.looks.castCardNamePoint));
 	return r.createImageData;
 }
 ImageData cardImage(C)(Props prop, Skin skin, C c, string sPath, CastCard owner = null) {
@@ -1236,7 +1236,7 @@ ImageData cardImage(C)(Props prop, Skin skin, C c, string sPath, CastCard owner 
 			}
 		}
 	}
-	r.setTitle(c.name, dwtData(prop.looks.cardNameFont), dwtData(prop.looks.cardNamePoint));
+	r.setTitle(c.name, dwtData(prop.looks.cardNameFont(skin.legacy)), dwtData(prop.looks.cardNamePoint));
 	static if (is(C : ItemCard) || is(C : BeastCard)) {
 		static if (is(C : ItemCard)) {
 			auto ul = c.useLimitMax;
@@ -1250,7 +1250,7 @@ ImageData cardImage(C)(Props prop, Skin skin, C c, string sPath, CastCard owner 
 			auto gc = new GC(img);
 			scope (exit) gc.dispose;
 			gc.setTextAntialias = false;
-			auto font = new Font(d, dwtData(prop.looks.useCountFont));
+			auto font = new Font(d, dwtData(prop.looks.useCountFont(skin.legacy)));
 			scope (exit) font.dispose;
 			gc.setFont = font;
 			bool res = prop.sys.isRecycle(c);

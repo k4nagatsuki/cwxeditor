@@ -141,7 +141,7 @@ private:
 				grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				grp.setLayout = new GridLayout(2, false);
 				grp.setText = _prop.msgs.name;
-				_name = new GBLimitText(_prop.looks.messageFont.name,
+				_name = new GBLimitText(_prop.looks.messageFont(_summ.legacy).name,
 					_prop.looks.nameLimit, grp, DWT.BORDER);
 				auto gd = new GridData(GridData.FILL_HORIZONTAL);
 				gd.widthHint = _name.computeSize(DWT.DEFAULT, DWT.DEFAULT).x;
@@ -280,7 +280,7 @@ private:
 			gd.horizontalSpan = 2;
 			grp.setLayout = new CenterLayout(DWT.HORIZONTAL);
 			grp.setText = _prop.msgs.desc;
-			_desc = new FixedWidthText(dwtData(_prop.looks.cardDescFont), _prop.looks.cardDescLen, grp, DWT.BORDER);
+			_desc = new FixedWidthText(dwtData(_prop.looks.cardDescFont(_summ.legacy)), _prop.looks.cardDescLen, grp, DWT.BORDER);
 			_desc.widget.setLayoutData = _desc.computeTextBaseSize(_prop.looks.cardDescLine);
 		}
 		auto tab = new CTabItem(tabf, DWT.NONE);

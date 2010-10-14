@@ -224,6 +224,7 @@ protected:
 			createToolItem(bar, _prop.msgs.copyToUpper, _prop.images.copyToUpper, &copyToUpper);
 			createToolItem(bar, _prop.msgs.copyToLower, _prop.images.copyToLower, &copyToLower);
 		}
+		auto skin = findSkin(_prop, _summ);
 		{
 			auto comp = new Composite(area, DWT.NONE);
 			comp.setLayoutData = new GridData(GridData.FILL_BOTH);
@@ -235,7 +236,7 @@ protected:
 				tp = createTalkerPane2(comp, _prop, _summ, Talker.SELECTED, [], _talkers, _rCoupons);
 			}
 			tp.setLayoutData = new GridData(GridData.FILL_BOTH);
-			_text = createMessagePane(_prop, true, comp);
+			_text = createMessagePane(_prop, true, comp, skin);
 			auto gd = new GridData;
 			auto s = _text.computeTextBaseSize(_prop.looks.messageLine);
 			gd.widthHint = s.x;
@@ -243,7 +244,6 @@ protected:
 			_text.widget.setLayoutData = gd;
 			_text.widget.addModifyListener(new ModL);
 		}
-		auto skin = findSkin(_prop, _summ);
 		{
 			auto bar = createSCharBar(area, &insert, &put, _prop, skin);
 			bar.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
@@ -355,6 +355,7 @@ protected:
 		area.setLayout = windowGridLayout(1, true);
 		_tabf = new CTabFolder(area, DWT.BORDER);
 		_tabf.setLayoutData = new GridData(GridData.FILL_BOTH);
+		auto skin = findSkin(_prop, _summ);
 		{
 			auto comp = new Composite(_tabf, DWT.NONE);
 			comp.setLayout = new GridLayout(2, false);
@@ -365,7 +366,7 @@ protected:
 				tp = createTalkerPane(comp, _comm, _prop, _summ, Talker.SELECTED, "", _msel);
 			}
 			tp.setLayoutData = new GridData(GridData.FILL_BOTH);
-			_textA = createMessagePane(_prop, true, comp);
+			_textA = createMessagePane(_prop, true, comp, skin);
 			auto gd = new GridData;
 			auto s = _textA.computeTextBaseSize(_prop.looks.messageLine);
 			gd.widthHint = s.x;
@@ -378,13 +379,12 @@ protected:
 		{
 			auto comp = new Composite(_tabf, DWT.NONE);
 			comp.setLayout = new CenterLayout;
-			_textB = createMessagePane(_prop, false, comp);
+			_textB = createMessagePane(_prop, false, comp, skin);
 			_textB.widget.setLayoutData = _textB.computeTextBaseSize(_prop.looks.messageLine);
 			auto tab = new CTabItem(_tabf, DWT.NONE);
 			tab.setText = _prop.msgs.noImageMessage;
 			tab.setControl = comp;
 		}
-		auto skin = findSkin(_prop, _summ);
 		{
 			auto bar = createSCharBar(area, &insert, &put, _prop, skin);
 			bar.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
@@ -642,9 +642,9 @@ private Composite createTalkerPane
 	return comp;
 }
 
-private FixedWidthText createMessagePane(Props prop, bool image, Composite parent) {
+private FixedWidthText createMessagePane(Props prop, bool image, Composite parent, Skin skin) {
 	int len = image ? prop.looks.messageImageLen : prop.looks.messageLen;
-	auto r = new FixedWidthText(dwtData(prop.looks.messageFont), len, parent, DWT.BORDER);
+	auto r = new FixedWidthText(dwtData(prop.looks.messageFont(skin.legacy)), len, parent, DWT.BORDER);
 	r.widget.setBackground = Display.getCurrent.getSystemColor(DWT.COLOR_DARK_BLUE);
 	r.widget.setForeground = Display.getCurrent.getSystemColor(DWT.COLOR_WHITE);
 	return r;

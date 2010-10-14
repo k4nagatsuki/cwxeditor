@@ -259,7 +259,7 @@ protected:
 					grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 					grp.setLayout = new CenterLayout(DWT.HORIZONTAL);
 					grp.setText = _prop.msgs.desc;
-					_desc = new FixedWidthText(dwtData(_prop.looks.cardDescFont), _prop.looks.cardDescLen, grp, DWT.BORDER);
+					_desc = new FixedWidthText(dwtData(_prop.looks.cardDescFont(_summ.legacy)), _prop.looks.cardDescLen, grp, DWT.BORDER);
 					_desc.widget.setLayoutData = _desc.computeTextBaseSize(_prop.looks.cardDescLine);
 				}
 			}
