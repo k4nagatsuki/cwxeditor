@@ -302,6 +302,10 @@ class Skin {
 	/// 属すと思われるパスを返す。
 	string engine() {return _legacyEngine.length ? _legacyEngine : _enginePath;}
 
+	/// クラシックなCardWirth本体のパス。
+	/// 所属エンジンが無いか、クラシックでないシナリオの編集中であれば""を返す。
+	string legacyEngine() {return _legacyEngine.length ? _legacyEngine : "";}
+
 	/// クラシックなシナリオの編集中は、拡張子を除く所属エンジンのパスを返す。
 	/// 所属エンジンが無いか、クラシックでないシナリオの編集中であれば""を返す。
 	string legacyName() {return _legacyEngine.length ? getName(getBaseName(_legacyEngine)) : "";}
