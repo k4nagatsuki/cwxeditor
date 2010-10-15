@@ -76,6 +76,7 @@ class Skin {
 			return *p;
 		} else {
 			auto tbl = table(prop, enginePath);
+			// 標準のスキンをベースにする
 			auto sp = "MedievalFantasy" in tbl;
 			Skin skin;
 			if (sp) {
@@ -355,6 +356,14 @@ class Skin {
 
 	/// クラシックなCardWirthEditorで作成されたシナリオのスキンならtrue。
 	bool legacy() {return _legacy;}
+
+	/// エンジン内のリソースを使用している場合はtrue。
+	bool useLegacyRes() {
+		version (Windows) {
+			return legacyEngine.length > 0;
+		}
+		return false;
+	}
 
 	/// シナリオの素材を置くディレクトリの標準。シナリオのルートからの相対パス。
 	string materialPath() {

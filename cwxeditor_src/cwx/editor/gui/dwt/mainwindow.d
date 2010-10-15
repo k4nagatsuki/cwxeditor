@@ -195,7 +195,7 @@ private:
 	}
 	void openScenario(Summary summ) {
 		assert (summ);
-		if (!hasSkin(_prop, summ.type) && summ.type != _prop.var.etc.defaultSkin) {
+		if (summ.type.length && !hasSkin(_prop, summ.type)) {
 			MessageBox.showWarning(_prop.msgs.useDefaultSkin(summ.type, _prop.var.etc.defaultSkin),
 				_prop.msgs.dlgTitWarning, _win);
 			summ.type = _prop.var.etc.defaultSkin;
@@ -1350,6 +1350,10 @@ protected:
 			_skinC.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			foreach (type; .skinTable(_prop).keys.sort) {
 				_skinC.add(type);
+			}
+			if (!_skinC.getItemCount) {
+				// スキンが無い
+				_skinC.add(_prop.var.etc.defaultSkin);
 			}
 			_skinC.setText = _prop.var.etc.defaultSkin;
 			checker(_skinC);

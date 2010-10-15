@@ -238,6 +238,7 @@ private:
 	void constructTab3(CTabFolder tabf) {
 		auto comp = new Composite(tabf, DWT.NONE);
 		comp.setLayout = new GridLayout(2, false);
+		auto skin = findSkin(_prop, _summ);
 		{
 			auto comp2 = new Composite(comp, DWT.NONE);
 			comp2.setLayoutData = new GridData(GridData.FILL_BOTH);
@@ -249,6 +250,9 @@ private:
 				grp.setLayout = new GridLayout(1, true);
 				_type = new Combo(grp, DWT.BORDER | DWT.DROP_DOWN | DWT.READ_ONLY);
 				_type.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+				if (_summ.legacy) {
+					_type.add(_prop.msgs.legacyEngineSkin(skin.engine));
+				}
 				foreach (type; skinTable(_prop).keys.sort) {
 					_type.add(type);
 				}
@@ -256,8 +260,12 @@ private:
 					// スキンが無い
 					_type.add(_prop.var.etc.defaultSkin);
 				}
-				int index = _type.indexOf(_summ.type);
-				_type.setText = index >= 0 ? _summ.type : _prop.var.etc.defaultSkin;
+				if (!_summ.type.length) {
+					_type.select = 0;
+				} else {
+					int index = _type.indexOf(_summ.type);
+					_type.setText = index >= 0 ? _summ.type : _prop.var.etc.defaultSkin;
+				}
 			}
 			{
 				auto grp = new Group(comp2, DWT.NONE);
@@ -400,7 +408,11 @@ protected:
 			_summ.rCouponNum = _rCouponNum.getSelection;
 			_summ.startArea = _startArea.getItemCount > 0 && _startArea.getSelection.length > 0
 				? (cast(Area) _startArea.getSelection[0].getData).id : 0;
-			_summ.type = _type.getText;
+			if (_summ.legacy && _type.getSelectionIndex == 0) {
+				_summ.type = "";
+			} else {
+				_summ.type = _type.getText;
+			}
 		}
 		return ok;
 	}

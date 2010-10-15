@@ -21,7 +21,9 @@ import dwt.graphics.ImageData;
 import dwt.graphics.Image;
 
 Skin findSkin(Summary)(Props prop, Summary summ) {
-	if (summ.legacy) return Skin.find(prop.parent, prop.var.etc.enginePath, summ);
+	if (summ.legacy && !summ.type.length) {
+		return Skin.find(prop.parent, prop.var.etc.enginePath, summ);
+	}
 	return findSkin2(prop, summ.type);
 }
 Skin findSkin2(Props prop, string type) {

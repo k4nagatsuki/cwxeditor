@@ -252,7 +252,7 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 			return r;
 		}
 		S loadLegacy(string p) {
-			S r = loadLScenario!(S)(p, "MedievalFantasy");
+			S r = loadLScenario!(S)(p, "");
 			if (old) old.delTemp;
 			return r;
 		}
@@ -1200,7 +1200,7 @@ public:
 	Summary reloadXMLs() {
 		Summary summ;
 		if (legacy) {
-			summ = loadLScenario!(S)(scenarioPath, "MedievalFantasy");
+			summ = loadLScenario!(S)(scenarioPath, "");
 		} else {
 			summ = summaryFromXML(scenarioPath,
 				cast(string) std.file.read(std.path.join(scenarioPath, "Summary.xml")));

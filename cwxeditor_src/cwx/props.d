@@ -914,6 +914,9 @@ public:
 	string rCouponNum() {return "必要数";}
 	string rCoupons() {return "必要とする称号";}
 	string startArea() {return "シナリオ開始エリア";}
+	string legacyEngineSkin(string lEnginePath) {
+		return "(" ~ getBaseName(lEnginePath) ~ "のリソースを使用)";
+	}
 
 	/// エリア・戦闘・パッケージウィンドウ。
 	string ttUp() {return "上へ";}
