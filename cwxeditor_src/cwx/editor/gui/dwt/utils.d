@@ -1363,6 +1363,13 @@ S[] loadScenariosFromFile(S)(Props prop, Shell w, bool expandXMLs, string[] file
 						}
 					});
 				}
+				scope (failure) {
+					display.syncExec(new class Runnable {
+						void run() {
+							w.setText = oldTit;
+						}
+					});
+				}
 				string fname;
 				uint max;
 				uint worked;
@@ -1393,9 +1400,9 @@ S[] loadScenariosFromFile(S)(Props prop, Shell w, bool expandXMLs, string[] file
 						break;
 					}
 				}
-				if (r.length) {
-					display.syncExec(new class Runnable {
-						void run() {
+				display.syncExec(new class Runnable {
+					void run() {
+						if (r.length) {
 							try {
 								w.setText = oldTit;
 								loaded(r);
@@ -1407,9 +1414,11 @@ S[] loadScenariosFromFile(S)(Props prop, Shell w, bool expandXMLs, string[] file
 							} catch {
 								clear;
 							}
+						} else {
+							w.setText = oldTit;
 						}
-					});
-				}
+					}
+				});
 				return 0;
 			}
 		};
@@ -1508,6 +1517,13 @@ private S loadScenarioFromFileImpl(S)(Props prop, Shell w, bool expandXMLs, S ol
 						});
 					}
 				}
+				scope (failure) {
+					display.syncExec(new class Runnable {
+						void run() {
+							w.setText = oldTit;
+						}
+					});
+				}
 				uint worked = 0u;
 				uint max;
 				auto setWorked = new class Runnable {
@@ -1529,11 +1545,11 @@ private S loadScenarioFromFileImpl(S)(Props prop, Shell w, bool expandXMLs, S ol
 							display.asyncExec(setWorked);
 						});
 					temp = r.useTemp ? r.scenarioPath : "";
-					if (r) {
-						display.syncExec(new class Runnable {
-							void run() {
+					display.syncExec(new class Runnable {
+						void run() {
+							w.setText = oldTit;
+							if (r) {
 								try {
-									w.setText = oldTit;
 									loaded(r);
 								} catch (Exception e) {
 									debugln(e);
@@ -1542,8 +1558,8 @@ private S loadScenarioFromFileImpl(S)(Props prop, Shell w, bool expandXMLs, S ol
 									clear;
 								}
 							}
-						});
-					}
+						}
+					});
 				} catch (SummaryException e) {
 					display.asyncExec(new class Runnable {
 						void run() {
@@ -1552,6 +1568,7 @@ private S loadScenarioFromFileImpl(S)(Props prop, Shell w, bool expandXMLs, S ol
 							} catch {
 								clear;
 							}
+							w.setText = oldTit;
 						}
 					});
 				}
