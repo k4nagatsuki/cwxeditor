@@ -509,7 +509,7 @@ private:
 				text = cuthist(hist[0u .. $ - "Summary.wsm".length - std.path.sep.length],
 					_prop.var.etc.historySnipLength);
 				img = _prop.images.classic;
-			} else if (std.path.fnmatch(getExt(hist), "cab")) {
+			} else if (fnmatch(getExt(hist), "cab") || fnmatch(getExt(hist), "zip")) {
 				text = cuthist(hist, _prop.var.etc.historySnipLength);
 				img = _prop.images.scenarioArchive;
 			} else {

@@ -7,6 +7,7 @@ import std.path;
 import std.zip;
 import std.date;
 import std.string;
+import std.utf;
 
 import cwx.cwl;
 import cwx.flag;
@@ -20,6 +21,7 @@ import cwx.xml;
 import cwx.skin;
 import cwx.path;
 import cwx.cab;
+import cwx.sjis;
 
 public:
 
@@ -222,11 +224,42 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 			}
 			return temp;
 		}
+		ZipArchive scArc(string fname, string ext) {
+			auto arc = new ZipArchive(std.file.read(fname));
+			foreach (am; arc.directory) {
+				string name;
+				try {
+					.validate(am.name);
+					name = am.name;
+				} catch {
+					name = touni(am.name);
+				}
+				name = replace(name, "/", sep);
+				if (fnmatch(getBaseName(name), addExt("Summary", ext))) {
+					return arc;
+				}
+			}
+			return null;
+		}
 		string suncab(string fname, out string summPath) {
-			auto temp = createTempDir(tempPath, getBaseName(getName(fname)), false);
-			if (!.uncab(fname, temp)) {
-				delAll(temp);
-				return null;
+			string temp;
+			if (fnmatch(getExt(fname), "cab")) {
+				temp = createTempDir(tempPath, getBaseName(getName(fname)), false);
+				if (!.uncab(fname, temp)) {
+					delAll(temp);
+					return null;
+				}
+			} else {
+				// zipと仮定
+				auto arc = scArc(fname, "wsm");
+				if (!arc) return null;
+				temp = createTempDir(tempPath, getBaseName(getName(fname)), false);
+				try {
+					.unzip(temp, arc);
+				} catch {
+					delAll(temp);
+					return null;
+				}
 			}
 			summPath = temp;
 			auto ld = clistdir(temp);
@@ -256,6 +289,26 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 			if (old) old.delTemp;
 			return r;
 		}
+		S legacyCommon() {
+			string summPath;
+			string fn = suncab(fname, summPath);
+			if (fn) {
+				try {
+					S r = loadLegacy(summPath);
+					r._expandXMLs = false;
+					r._useTemp = true;
+					r._legacy = true;
+					r._zipName = fname;
+					r._tempPath = fn;
+					r.lock;
+					return r;
+				} catch (Exception e) {
+					delAll(fn);
+					throw e;
+				}
+			}
+			throw new SummaryException(prop.msgs.notScenario(fname));
+		}
 		if (fname) {
 			if (exists(fname)) {
 				try {
@@ -274,24 +327,7 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 						r._zipName = "";
 						return r;
  					} else if (canUncab && fnmatch(getExt(fname), "cab")) {
- 						string summPath;
-						string fn = suncab(fname, summPath);
-						if (fn) {
-							try {
-								S r = loadLegacy(summPath);
-								r._expandXMLs = false;
-								r._useTemp = true;
-								r._legacy = true;
-								r._zipName = fname;
-								r._tempPath = fn;
-								r.lock;
-								return r;
-							} catch (Exception e) {
-								delAll(fn);
-								throw e;
-							}
-						}
-						throw new SummaryException(prop.msgs.notScenario(fname));
+ 						return legacyCommon;
 					} else if (fnmatch(getBaseName(fname), "Summary.xml")) {
 						expand = true;
 						auto r = load(getDirName(fname));
@@ -301,33 +337,31 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 						r._zipName = "";
 						return r;
 					} else {
-						scope arc = new ZipArchive(std.file.read(fname));
-						foreach (am; arc.directory) {
-							if (am.name == "Summary.xml") {
-								bool cancel;
-								string zipname = fname;
-								fname = sunzip(getBaseName(fname), arc, cancel);
-								if (fname.length) {
-									try {
-										S r = load(fname);
-										r._expandXMLs = expand;
-										r._useTemp = true;
-										r._zipName = zipname;
-										r._legacy = false;
-										r.lock;
-										return r;
-									} catch (Exception e) {
-										delAll(fname);
-										throw e;
-									}
-								} else if (cancel) {
-									delAll(getDirName(fname));
-									return null;
+						auto arc = scArc(fname, "xml");
+						if (arc) {
+							bool cancel;
+							string zipname = fname;
+							fname = sunzip(getBaseName(fname), arc, cancel);
+							if (fname.length) {
+								try {
+									S r = load(fname);
+									r._expandXMLs = expand;
+									r._useTemp = true;
+									r._zipName = zipname;
+									r._legacy = false;
+									r.lock;
+									return r;
+								} catch (Exception e) {
+									delAll(fname);
+									throw e;
 								}
+							} else if (cancel) {
+								delAll(getDirName(fname));
+								return null;
 							}
+						} else {
+ 							return legacyCommon;
 						}
-						// シナリオの圧縮ファイルではない。
-						throw new SummaryException(prop.msgs.notScenario(fname));
 					}
 				} catch (ZipException e) {
 					debugln(e);
@@ -1391,9 +1425,13 @@ public:
 			if (legacy && !legacyToX) {
 				saveLScenario(this, saveInnerImagePath);
 				if (useTemp) {
-					.cab(temp, zipName, (string file) {
-						return !fnmatch(getBaseName(file), "cwxeditor.lock");
-					});
+					if (fnmatch(getExt(zipName), "cab")) {
+						.cab(temp, zipName, (string file) {
+							return !fnmatch(getBaseName(file), "cwxeditor.lock");
+						});
+					} else {
+						.zip(temp, zipName, true, [std.path.join(temp, "cwxeditor.lock")], true);
+					}
 					_zipName = zipName;
 				}
 			} else if (archive || useTemp || legacyToX) {

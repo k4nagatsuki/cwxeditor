@@ -1293,9 +1293,9 @@ void addCastCoupons(Combo combo, Props prop, bool talker, string legacyName) {
 
 string[] scenarioFilter() {
 	if (canUncab) {
-		return ["*.wsn;Summary.xml;*.cab;Summary.wsm"];
+		return ["*.wsn;Summary.xml;*.cab;*.zip;Summary.wsm"];
 	}
-	return ["*.wsn;Summary.xml;Summary.wsm"];
+	return ["*.wsn;Summary.xml;*.zip;Summary.wsm"];
 }
 
 S[] loadScenarios(S)(Props prop, Shell w, bool expandXMLs, string dlgTitle, void delegate (S[]) loaded = null, bool oThr = true) {

@@ -956,6 +956,7 @@ void copyAll(string a, string b) in {
 /// Params:
 /// force = trueを指定した場合、途中でエラーが発生しても中断しない。
 void delAll(string delpath, bool force = true) {
+	if (!.exists(delpath)) return;
 	void __delAll(string delpath, ref Exception ee) {
 		try {
 			preRemove(delpath);
@@ -1182,6 +1183,14 @@ template FileCache(T ...) {
 	}
 }
 
+/// 親ディレクトリへの移動が含まれているパスであればtrueを返す。
+bool hasParDir(string path) {
+	path = normal(path);
+	if (startsWith(path, pardir ~ sep)) return true;
+	if (std.string.find(path, sep ~ pardir ~ sep) != -1) return true;
+	return false;
+}
+
 version (Windows) {
 	private extern (Windows) {
 		BOOL GetFileTime(HANDLE hFile, LPFILETIME lpCreationTime, LPFILETIME lpLastAccessTime, LPFILETIME lpLastWriteTime);
@@ -1234,7 +1243,7 @@ version (Windows) {
 				scope (exit) FindClose(h);
 				do {
 					string file = toUTF8(fd.cFileName[0 .. wcslen(fd.cFileName.ptr)]);
-					if (file != "." && file != "..") {
+					if (file != curdir && file != pardir) {
 						if (!callback(file)) break;
 					}
 				} while (FindNextFileW(h, &fd));
@@ -1248,7 +1257,7 @@ version (Windows) {
 				scope (exit) FindClose(h);
 				do {
 					string file = touni(fd.cFileName[0 .. strlen(fd.cFileName.ptr)]);
-					if (file != "." && file != "..") {
+					if (file != curdir && file != pardir) {
 						if (!callback(file)) break;
 					}
 				} while (FindNextFileA(h, &fd));

@@ -13,6 +13,7 @@ import cwx.race;
 import cwx.system;
 import cwx.motion;
 import cwx.background;
+import cwx.cab;
 
 import std.path;
 import std.math;
@@ -806,7 +807,13 @@ public:
 	string dlgTitNewScenario() {return "新規シナリオの作成";}
 	string createError(string path) {return path ~ "でシナリオの作成に失敗しました。";}
 	string dlgTitOpenScenario() {return "シナリオを開く";}
-	string filterScenario() {return "シナリオファイル (Summary.xml;*.wsn;Summary.wid)";}
+	string filterScenario() {
+		if (canUncab) {
+			return "シナリオファイル (*.wsn;Summary.xml;Summary.wid;*.cab;*.zip)";
+		} else {
+			return "シナリオファイル (*.wsn;Summary.xml;Summary.wid;*.zip)";
+		}
+	}
 	string dlgTitSaveScenario() {return "名前を付けて保存";}
 	string filterScenarioSave() {return "XMLシナリオファイル (*.wsn)";}
 	string notScenario(string name) {return name ~ "はシナリオ圧縮ファイルではありません";}

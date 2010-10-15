@@ -292,9 +292,18 @@ version (Windows) {
 					auto prm = cast(Prm*) pNotify.pv;
 					strcpy(path.ptr, prm.dest);
 					auto cpp = cast(char*) pNotify.psz1;
-					if (strstr(cpp, "..".ptr)) return INVALID_HANDLE_VALUE;
+					auto len = strlen(cpp);
+					for (size_t i = 0; i < len; i++) {
+						if (cpp[i] == '/') cpp[i] = '\\';
+					}
+					if (len >= 3 && cpp[0] == '.'  && cpp[1] == '.' && cpp[2] == '\\') {
+						return INVALID_HANDLE_VALUE;
+					}
+					if (strstr(cpp, ("\\..\\").ptr)) {
+						return INVALID_HANDLE_VALUE;
+					}
 					if (prm.expand) {
-						auto pt = touni(cpp[0 .. strlen(cpp)]);
+						auto pt = touni(cpp[0 .. len]);
 						auto cp = prm.expand(pt);
 						if (!cp.length) {
 							prm.onExpand = null;

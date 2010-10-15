@@ -9,6 +9,7 @@ import std.path;
 import std.zip;
 import std.utf;
 import std.date;
+import std.string;
 import std.c.string : strlen;
 
 /// ZIPファイルを展開する。
@@ -62,10 +63,10 @@ void unzip(ZipArchive arc,
 			name = touni(name);
 			validate(name);
 		}
-		string nml = normal(name);
-		if (name.length > 0 && !startsWith(nml, ".." ~ sep)) {
+		string nml = replace(name, "/", sep);
+		if (name.length > 0 && !hasParDir(nml)) {
 			// 属性が不思議なことになってるので0x10だけで判断するのは避ける
-			bool isDir = ((am.externalAttributes & 0x10) != 0 || name[$ - 1] == '/') && am.expandedSize == 0;
+			bool isDir = ((am.externalAttributes & 0x10) != 0 || name[$ - 1] == '\\') && am.expandedSize == 0;
 			fileProc(nml, arc.expand(am), isDir);
 		}
 		if (progress !is null) {
@@ -96,7 +97,11 @@ ArchiveMember archive(string name, ubyte[] data, bool isDir) {
 /// targの内容をすべて含めたZipArchiveを返す。
 /// targがディレクトリの場合、topにtrueを指定すると
 /// targ自体もアーカイブに含める。
-ZipArchive zip(string targ, bool top, string[] excludePath = []) {
+/// Params:
+/// excludePath = 圧縮から除外するパスのリスト。
+/// useSysEnc = trueにするとファイル名にシステムの文字コードをそのまま使用する。
+///             falseの場合はUTF-8を使用する。
+ZipArchive zip(string targ, bool top, string[] excludePath = [], bool useSysEnc = false) {
 	auto arc = new ZipArchive;
 	scope path = nabs(targ);
 	foreach (ref ex; excludePath) {
@@ -127,9 +132,17 @@ ZipArchive zip(string targ, bool top, string[] excludePath = []) {
 		am.externalAttributes = getAttributes(file);
 		am.internalAttributes = 1;
 		name = name[cut .. $];
-		// ファイル名はUTF-8
-		am.flags |= 0x800;
-		am.name = name;
+		if (useSysEnc) {
+			version (Windows) {
+				am.name = tosjis(name);
+			} else {
+				am.name = name;
+			}
+		} else {
+			// ファイル名はUTF-8
+			am.flags |= 0x800;
+			am.name = name;
+		}
 		if (!isdir(file)) {
 			am.expandedData = cast(ubyte[]) std.file.read(file);
 		}
@@ -150,7 +163,7 @@ ZipArchive zip(string targ, bool top, string[] excludePath = []) {
 }
 
 /// targをzip圧縮し、パスzipに保存する。
-void zip(string targ, string zip, bool top, string[] excludePath = []) {
+void zip(string targ, string zip, bool top, string[] excludePath = [], bool useSysEnc = false) {
 	scope arc = .zip(targ, top, excludePath);
 	std.file.write(zip, arc.build);
 }
