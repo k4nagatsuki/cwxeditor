@@ -1059,7 +1059,7 @@ ImageData castCardImage(Props prop, Skin skin, CastCard c, string sPath, bool db
 	}
 	scope r = new PileImage(id, w, h);
 	auto stp = prop.looks.castLifeBarPoint;
-	if (c.faceUpRound > 0) {
+	if (dbgMode || c.faceUpRound > 0) {
 		r.append(to!(string)(c.level),
 			prop.looks.castCardLevelInsets,
 			prop.looks.castCardLevelFont(skin.legacy),
@@ -1068,7 +1068,7 @@ ImageData castCardImage(Props prop, Skin skin, CastCard c, string sPath, bool db
 	}
 	r.append(skin.findImagePath(c.path, sPath), matPad, true);
 	int stMax = prop.looks.statusVerMax;
-	if (c.faceUpRound > 0 || dbgMode) {
+	if (dbgMode || c.faceUpRound > 0) {
 		auto d = Display.getCurrent;
 		auto lgid = lifeGuage(skin);
 		int lgw = lgid.width;
