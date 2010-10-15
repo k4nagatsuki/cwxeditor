@@ -1368,7 +1368,8 @@ protected:
 				_skinVal = "";
 				auto dlg = new DirectoryDialog(getShell);
 				scope (exit) dlg.dispose;
-				dlg.setMessage = _prop.msgs.newClassicDir;
+				dlg.setText = _prop.msgs.newClassicDir;
+				dlg.setMessage = _prop.msgs.newClassicDirDesc;
 				dlg.setFilterPath = _prop.var.etc.scenarioPath;
 				while (true) {
 					auto path = dlg.open;

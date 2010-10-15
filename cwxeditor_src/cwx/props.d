@@ -80,6 +80,9 @@ public:
 	string type() {return "タイプ";}
 	string classic() {return "(クラシック)";}
 	string newClassicDir() {
+		return "シナリオ作成先の選択";
+	}
+	string newClassicDirDesc() {
 		version (Windows) {
 			return "シナリオを作成するフォルダを選択してください。";
 		} else {
