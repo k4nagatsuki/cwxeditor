@@ -81,9 +81,9 @@ public:
 	string classic() {return "(クラシック)";}
 	string newClassicDir() {
 		version (Windows) {
-			return "シナリオを作成するフォルダを選択";
+			return "シナリオを作成するフォルダを選択してください。";
 		} else {
-			return "シナリオを作成するディレクトリを選択";
+			return "シナリオを作成するディレクトリを選択してください。";
 		}
 	}
 	string notEmptyDir(string dir) {
