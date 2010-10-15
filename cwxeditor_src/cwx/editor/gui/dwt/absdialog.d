@@ -142,15 +142,15 @@ abstract class AbsDialog {
 		return _ret;
 	}
 	private void check() {
-		bool enbl = false;
-		for (size_t i = 0; !enbl && i < _chk1.length; i++) {
-			enbl |= _chk1[i].getText && _chk1[i].getText.length > 0;
+		bool enbl = true;
+		for (size_t i = 0; enbl && i < _chk1.length; i++) {
+			enbl &= _chk1[i].getText && _chk1[i].getText.length > 0;
 		}
-		for (size_t i = 0; !enbl && i < _chk2.length; i++) {
-			enbl |= _chk2[i].getText && _chk2[i].getText.length > 0;
+		for (size_t i = 0; enbl && i < _chk2.length; i++) {
+			enbl &= _chk2[i].getText && _chk2[i].getText.length > 0;
 		}
-		for (size_t i = 0; !enbl && i < _chk3.length; i++) {
-			enbl |= _chk3[i].getText && _chk3[i].getText.length > 0;
+		for (size_t i = 0; enbl && i < _chk3.length; i++) {
+			enbl &= _chk3[i].getText && _chk3[i].getText.length > 0;
 		}
 		_okBtn.setEnabled = enbl;
 	}

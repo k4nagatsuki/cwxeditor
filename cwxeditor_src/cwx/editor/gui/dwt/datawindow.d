@@ -265,13 +265,6 @@ public:
 			if (!_summ) return;
 			_areas.editSummary;
 		}
-		void create(string path, string name, string type) {
-			scope mFPath = std.path.join(path, findSkin2(_prop, type).materialPath);
-			if (!exists(mFPath) || !isdir(mFPath)) mkdir(mFPath);
-			_summ = new Summary(name, type, path, false);
-			_summ.author = _prop.var.etc.defaultAuthor;
-			refresh;
-		}
 
 		/// エリアビューを開く。
 		void openArea(ulong id) {
@@ -391,7 +384,7 @@ public:
 	/// 指定されたディレクトリにあるSummary.xmlからシナリオをロードする。
 	/// Throws:
 	/// SummaryException = ファイルはSummary定義のXML文書ではない。
-	/// IOException = ファイル読込み例外発生時。
+	/// FileException = ファイル読込み例外発生時。
 	/// XmlException = XMLパースエラー発生時。
 	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
 	/// FileLoadException = Summary.xml以外での読込例外発生時。

@@ -78,6 +78,17 @@ public:
 	string useDefaultSkin(string name, string defSkin) {return "スキン「" ~ name ~ "」が見つかりません。\nデフォルトのスキン「" ~ defSkin ~ "」を使用します。";}
 	string scenarioName() {return "シナリオ名";}
 	string type() {return "タイプ";}
+	string classic() {return "(クラシック)";}
+	string newClassicDir() {
+		version (Windows) {
+			return "シナリオを作成するフォルダを選択";
+		} else {
+			return "シナリオを作成するディレクトリを選択";
+		}
+	}
+	string notEmptyDir(string dir) {
+		return dir ~ "は空ではありません。\n本当にここでシナリオを作成しますか？";
+	}
 
 	string newScenarioName() {return "新規シナリオ";}
 

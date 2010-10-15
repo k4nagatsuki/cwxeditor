@@ -21,7 +21,6 @@ import std.c.string : strlen;
 /// Throws:
 /// ZipException = アーカイブの展開に失敗した。
 /// UtfException = アーカイブに含まれるファイル名の文字コード解決が出来なかった。
-/// IOException = ディレクトリの作成に失敗した。
 /// FileException = ファイル入出力に失敗した。
 void unzip(string parent, string zip,
 		void delegate(uint) setProgressNum = null,

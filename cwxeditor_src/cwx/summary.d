@@ -1055,7 +1055,7 @@ public:
 	/// Params:
 	/// path = 保存先のパス。
 	/// Throws:
-	/// IOException = ファイル削除時・保存時例外発生時。
+	/// FileException = ファイル削除時・保存時例外発生時。
 	void saveXMLs(string path) {
 		std.file.write(std.path.join(path, "Summary.xml"), summaryToXML);
 
@@ -1186,7 +1186,7 @@ public:
 	/// path = Summary.xmlのパス。
 	/// Throws:
 	/// SummaryException = ファイルはSummary定義のXML文書ではない。
-	/// IOException = ファイル読込み例外発生時。
+	/// FileException = ファイル読込み例外発生時。
 	/// XmlException = XMLパースエラー発生時。
 	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
 	/// FileLoadException = Summary.xml以外での読込例外発生時。
@@ -1566,7 +1566,7 @@ public:
 	/// path = Summary.xmlのパス。
 	/// Throws:
 	/// SummaryException = ファイルはSummary定義のXML文書ではない。
-	/// IOException = ファイル読込み例外発生時。
+	/// FileException = ファイル読込み例外発生時。
 	/// XmlException = XMLパースエラー発生時。
 	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
 	/// FileLoadException = Summary.xml以外での読込例外発生時。

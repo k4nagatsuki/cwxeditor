@@ -442,6 +442,7 @@ class FlexEtcProps : Properties {
 	}
 	mixin Property!("defaultSkin", string, "MedievalFantasy");
 	mixin Property!("defaultAuthor", string, "");
+	mixin Property!("canCreateClassic", bool, false);
 
 	mixin Property!("expandXMLs", bool, false);
 	mixin Property!("xmlCopy", bool, false);

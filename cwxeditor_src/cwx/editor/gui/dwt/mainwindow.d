@@ -111,30 +111,20 @@ private:
 		if (qSave) {
 			auto dlg = new CreateScenarioDialog(_prop, _win);
 			if (!dlg.open) return;
-			auto old = summary;
-			string name = dlg.name;
-			string skinName = dlg.skinName;
-			_comm.closeAll;
-			auto p = Summary.createTempDir(_prop.tempPath, name);
-			if (_dataWin) {
-				_dataWin.create(p, name, skinName);
+			Summary summ;
+			if (dlg.legacy) {
+				summ = new Summary(dlg.name, dlg.skin, dlg.classicFolder, true);
 			} else {
-				_tableWin.create(p, name, skinName);
+				auto p = Summary.createTempDir(_prop.tempPath, dlg.name);
+				auto mFPath = std.path.join(p, findSkin2(_prop, dlg.skin).materialPath);
+				if (!exists(mFPath) || !isdir(mFPath)) mkdir(mFPath);
+				summ = new Summary(dlg.name, dlg.skin, p, false);
+				if (summ.expandXMLs) {
+					summ.saveXMLs(summ.scenarioPath);
+				}
 			}
-			if (summary.expandXMLs) {
-				summary.saveXMLs(summary.scenarioPath);
-			}
-			if (_flagWin) _flagWin.load(summary);
-			_cardWin.refresh(summary);
-			_dirWin.refresh(summary);
-			if (_replDlg && !_replDlg.widget.isDisposed) _replDlg.summary = summary;
-			__refreshTitle;
-			if (old) old.delTemp;
-			if (!dock) {
-				if (_prop.var.dataWin.visible) _comm.openDataWin;
-				if (_prop.var.cardWin.visible) _comm.openCardWin;
-				if (_prop.var.dirWin.visible) _comm.openDirWin;
-			}
+			summ.author = _prop.var.etc.defaultAuthor;
+			openScenario(summ);
 		}
 	}
 	class DTListener : DropTargetAdapter {
@@ -195,6 +185,7 @@ private:
 	}
 	void openScenario(Summary summ) {
 		assert (summ);
+		auto old = summary;
 		if (summ.type.length && !hasSkin(_prop, summ.type)) {
 			MessageBox.showWarning(_prop.msgs.useDefaultSkin(summ.type, _prop.var.etc.defaultSkin),
 				_prop.msgs.dlgTitWarning, _win);
@@ -220,6 +211,7 @@ private:
 		setupMenu(_menu);
 		setupMenu(_tool);
 		addHistory;
+		if (old) old.delTemp;
 	}
 	string[] _openPaths;
 	void openScenarioImpl(Summary summ) {
@@ -632,7 +624,7 @@ public:
 						try {
 							std.file.remove(lock);
 							delAll(temp);
-						} catch (IOException e) {}
+						} catch (Exception e) {}
 					}
 				}
 			}
@@ -1313,19 +1305,24 @@ private:
 
 	dwt.widgets.Text.Text _name;
 	Combo _skinC;
-	string _nameVal, _skinVal;
+	string _nameVal, _skinVal, _classicFolder;
 
 public:
-	this(Props prop, Shell shell) {
+	this (Props prop, Shell shell) {
 		_prop = prop;
 		super(_prop, shell, _prop.msgs.dlgTitNewScenario, _prop.images.menuNew, true, _prop.var.newScDlg);
+		enterClose = true;
 	}
 
 	string name() {
 		return _nameVal;
 	}
-	string skinName() {
+	string skin() {
 		return _skinVal;
+	}
+	bool legacy() {return _skinVal.length == 0;}
+	string classicFolder() {
+		return _classicFolder;
 	}
 protected:
 	override void setup(Composite area) {
@@ -1355,15 +1352,45 @@ protected:
 				// スキンが無い
 				_skinC.add(_prop.var.etc.defaultSkin);
 			}
+			if (_prop.var.etc.canCreateClassic) {
+				_skinC.add(_prop.msgs.classic);
+			}
 			_skinC.setText = _prop.var.etc.defaultSkin;
+			if (_skinC.getSelectionIndex == -1) _skinC.select = 0;
 			checker(_skinC);
 		}
 	}
 
-	override bool close(bool ok) {
+	override bool close(bool ok, out bool cancel) {
 		if (ok) {
 			_nameVal = _name.getText;
-			_skinVal = _skinC.getText;
+			if (_prop.var.etc.canCreateClassic && _skinC.getSelectionIndex == _skinC.getItemCount - 1) {
+				_skinVal = "";
+				auto dlg = new DirectoryDialog(getShell);
+				scope (exit) dlg.dispose;
+				dlg.setMessage = _prop.msgs.newClassicDir;
+				dlg.setFilterPath = _prop.var.etc.scenarioPath;
+				while (true) {
+					auto path = dlg.open;
+					if (path) {
+						if (clistdir(path).length) {
+							auto q = new MessageBox(getShell, DWT.OK | DWT.CANCEL | DWT.ICON_QUESTION);
+							scope (exit) q.dispose;
+							q.setText = _prop.msgs.dlgTitQuestion;
+							q.setMessage = _prop.msgs.notEmptyDir(path);
+							if (DWT.OK != q.open) continue;
+						}
+						_prop.var.etc.scenarioPath = dlg.getFilterPath;
+						_classicFolder = path;
+					} else {
+						ok = false;
+						cancel = true;
+					}
+					break;
+				}
+			} else {
+				_skinVal = _skinC.getText;
+			}
 		}
 		return ok;
 	}

@@ -156,6 +156,7 @@ private:
 	}
 	string selectDir(Text dir, string title, string msg, string p) {
 		auto dlg = new DirectoryDialog(dir.getShell);
+		scope (exit) dlg.dispose;
 		dlg.setText = title;
 		dlg.setMessage = msg;
 		string path;
