@@ -903,17 +903,11 @@ public:
 			}
 			if (c.type == CType.TALK_DIALOG) {
 				if (c.dialogs.length) {
-					if (c.dialogs[$ - 1].rCoupons.length) {
-						addResult(path);
-						count++;
-						return;
-					} else {
-						foreach (dlg; c.dialogs[0 .. $ - 1]) {
-							if (!dlg.rCoupons.length) {
-								addResult(path);
-								count++;
-								return;
-							}
+					foreach (dlg; c.dialogs[0 .. $ - 1]) {
+						if (!dlg.rCoupons.length) {
+							addResult(path);
+							count++;
+							return;
 						}
 					}
 				}
