@@ -70,7 +70,7 @@ void debugln(T ...)(T vals) {
 	}
 	debug {
 		version (Windows) {
-			printf("%s\n\0".ptr, (tosjis(buf) ~ "\0").ptr);
+			printf("%s\n\0".ptr, tosjisz(buf));
 			dout.flush;
 		} else {
 			writefln("%s", buf);
@@ -903,7 +903,7 @@ void preRemove(string delpath) {
 			wchar* fname = std.utf.toUTF16z(delpath);
 			SetFileAttributesW(fname, FILE_ATTRIBUTE_NORMAL);
 		} else {
-			char* fname = tosjis(delpath ~ '\0').ptr;
+			char* fname = tosjisz(delpath);
 			SetFileAttributesA(fname, FILE_ATTRIBUTE_NORMAL);
 		}
 	}
@@ -1215,7 +1215,7 @@ version (Windows) {
 			}
 		} else {
 			WIN32_FIND_DATA fd;
-			auto h = FindFirstFileA((tosjis(path) ~ "\0").ptr, &fd);
+			auto h = FindFirstFileA(tosjisz(path), &fd);
 			if (h != INVALID_HANDLE_VALUE) {
 				scope (exit) FindClose(h);
 				return conv(fd.ftLastWriteTime);
@@ -1252,7 +1252,7 @@ version (Windows) {
 			}
 		} else {
 			WIN32_FIND_DATA fd;
-			auto h = FindFirstFileA((tosjis(path) ~ "\0").ptr, &fd);
+			auto h = FindFirstFileA(tosjisz(path), &fd);
 			if (h != INVALID_HANDLE_VALUE) {
 				scope (exit) FindClose(h);
 				do {

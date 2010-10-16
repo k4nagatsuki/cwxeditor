@@ -5,6 +5,7 @@ import cwx.summary;
 import cwx.usecounter;
 import cwx.utils;
 import cwx.skin;
+import cwx.sjis;
 
 import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.commons;
@@ -21,6 +22,7 @@ import std.path;
 import std.string;
 import std.process;
 import std.thread;
+import std.utf;
 
 import dwt.DWT;
 import dwt.custom.SashForm;
@@ -69,6 +71,18 @@ import dwt.dnd.DropTargetEvent;
 import dwt.dnd.Clipboard;
 import dwt.program.Program;
 import dwt.dwthelper.utils;
+
+version (Windows) {
+	import std.c.windows.windows;
+	private extern (Windows) {
+		const DWORD WAIT_TIMEOUT = 0x102;
+		const DWORD WAIT_FAILED = 0xffffffff;
+		HANDLE FindFirstChangeNotificationA(LPCSTR, BOOL, DWORD);
+		HANDLE FindFirstChangeNotificationW(LPCWSTR, BOOL, DWORD);
+		BOOL FindNextChangeNotification(HANDLE);
+		BOOL FindCloseChangeNotification(HANDLE);
+	}
+}
 
 private struct FC {
 	string path;
@@ -978,10 +992,95 @@ private:
 	private SDListener _sdl;
 	class SDListener : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
+			_trace = false;
 			_prop.var.etc.directorySashL = _sash.getWeights[0];
 			_prop.var.etc.directorySashR = _sash.getWeights[1];
 			_prop.var.etc.directorySashV = (_sash.getStyle & DWT.VERTICAL) != 0;
 		}
+	}
+
+	private Thread _traceThr = null;
+	private bool _trace = false;
+	private int trace() {
+		Summary summ = _summ;
+		if (!summ) return 0;
+		auto win = _win;
+		bool canDoThr() {
+			return _trace && _prop.var.etc.traceDirectories
+				&& win && !win.isDisposed && summ is _summ;
+		}
+
+		version (Windows) {
+			HANDLE h;
+			DWORD fs = FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME;
+			if (GetVersion < 0x80000000) {
+				h = FindFirstChangeNotificationW(toUTF16z(summ.scenarioPath), TRUE, fs);
+			} else {
+				h = FindFirstChangeNotificationA(tosjisz(summ.scenarioPath), TRUE, fs);
+			}
+			if (h == INVALID_HANDLE_VALUE) return 0;
+			scope (exit) FindCloseChangeNotification(h);
+			void next() {
+				if (!FindNextChangeNotification(h)) {
+					debugln("FindNextChangeNotification failed: ", GetLastError);
+					_trace = false;
+				}
+			}
+			while (canDoThr) {
+				switch (WaitForSingleObject(h, 1000)) {
+				case WAIT_TIMEOUT: {
+					next;
+				} break;
+				case WAIT_FAILED: {
+					debugln("WaitForSingleObject failed: ", GetLastError);
+					_trace = false;
+				} break;
+				default: {
+					if (!canDoThr) break;
+					_display.syncExec(new class Runnable {
+						override void run() {__refresh;}
+					});
+					next;
+				} break;
+				}
+			}
+		} else {
+			d_time[string] dirTimes;
+			void refreshDirTimes() {
+				d_time[string] times;
+				void refr(string path) {
+					if (summ.isSystemFile(path)) return;
+					times[path] = lastModified(path);
+					foreach (sub; clistdir(path)) {
+						sub = std.path.join(path, sub);
+						if (isdir(sub)) refr(sub);
+					}
+				}
+				refr(nabs(summ.scenarioPath));
+				dirTimes = times;
+			}
+			refreshDirTimes;
+			while (canDoThr) {
+				tango.core.Thread.Thread.sleep(1); // 1 sec
+				if (!canDoThr) break;
+				bool chk(string path) {
+					if (summ.isSystemFile(path)) return false;
+					if (dirTimes[path] != lastModified(path)) return true;
+					foreach (sub; clistdir(path)) {
+						sub = std.path.join(path, sub);
+						if (isdir(sub) && chk(sub)) return true;
+					}
+					return false;
+				}
+				if (chk(nabs(summ.scenarioPath))) {
+					_display.syncExec(new class Runnable {
+						override void run() {__refresh;}
+					});
+					refreshDirTimes;
+				}
+			}
+		}
+		return 0;
 	}
 public:
 	this(Commons comm, Props prop, Composite parent) {
@@ -1166,6 +1265,17 @@ public:
 			shell.setMinimized = _prop.var.dirWin.minimized;
 			shell.addControlListener(new SCListener);
 		}
+		startTrace;
+	}
+	void startTrace() {
+		if (!_prop.var.etc.traceDirectories) return;
+		if (_traceThr) {
+			_trace = false;
+			_traceThr.wait;
+		}
+		_trace = true;
+		_traceThr = new Thread(&trace);
+		_traceThr.start;
 	}
 	private class SCListener : ControlAdapter {
 		override void controlMoved(ControlEvent e) {
@@ -1223,6 +1333,7 @@ public:
 			refreshFiles(null);
 			refCheckPaths;
 			__refreshTitle;
+			startTrace;
 		}
 	}
 

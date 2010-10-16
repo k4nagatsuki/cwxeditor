@@ -101,7 +101,7 @@ private void __play(string file, bool loop) {
 			if (file.length > 0 && !music) {
 				version (Windows) {
 					// Unicodeで日本語パスを渡すと失敗するので変換しておく
-					music = getSymbol!(Mix_LoadMUS)(mixer, "Mix_LoadMUS")((tosjis(file) ~ '\0').ptr);
+					music = getSymbol!(Mix_LoadMUS)(mixer, "Mix_LoadMUS")(tosjisz(file));
 				} else {
 					music = getSymbol!(Mix_LoadMUS)(mixer, "Mix_LoadMUS")((file ~ "\0").ptr);
 				}

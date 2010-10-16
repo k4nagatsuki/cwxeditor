@@ -1736,6 +1736,13 @@ public:
 	string contentsFloat() {return "コンテンツボックスを別ウィンドウで表示する";}
 	string xmlCopy() {return "コピーや切り取りを常にXML形式で行う";}
 	string saveInnerImagePath() {return "クラシックなシナリオで格納イメージにファイルパスを埋め込む";}
+	string traceDirectories() {
+		version (Windows) {
+			return "ファイル・フォルダの変更を自動的に追跡する";
+		} else {
+			return "ファイル・ディレクトリの変更を自動的に追跡する";
+		}
+	}
 
 	string bgImageAndKeyCode() {return "背景とキーコード";}
 	string newBgImageSetting() {return "新規作成";}

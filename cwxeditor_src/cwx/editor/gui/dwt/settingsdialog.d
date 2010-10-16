@@ -50,6 +50,7 @@ private:
 	Button _contentsFloat;
 	Button _xmlCopy;
 	Button _saveInnerImagePath;
+	Button _traceDirectories;
 
 	CTabItem _tabS;
 	List _bgStgsL;
@@ -321,6 +322,8 @@ private:
 			_xmlCopy.setText = _prop.msgs.xmlCopy;
 			_saveInnerImagePath = new Button(grp, DWT.CHECK);
 			_saveInnerImagePath.setText = _prop.msgs.saveInnerImagePath;
+			_traceDirectories = new Button(grp, DWT.CHECK);
+			_traceDirectories.setText = _prop.msgs.traceDirectories;
 		}
 	}
 	Spinner createS(string Set)(SettingsDialog v, Composite parent, string name, int max, int min) {
@@ -654,6 +657,7 @@ protected:
 		_contentsFloat.setSelection = _prop.var.etc.contentsFloat;
 		_xmlCopy.setSelection = _prop.var.etc.xmlCopy;
 		_saveInnerImagePath.setSelection = _prop.var.etc.saveInnerImagePath;
+		_traceDirectories.setSelection = _prop.var.etc.traceDirectories;
 
 		_bgStgs.length = _prop.var.etc.bgImageSettings.length;
 		foreach (i, stg; _prop.var.etc.bgImageSettings) {
@@ -720,6 +724,7 @@ protected:
 			_prop.var.etc.expandXMLs = _expandXMLs.getSelection;
 			_prop.var.etc.xmlCopy = _xmlCopy.getSelection;
 			_prop.var.etc.saveInnerImagePath = _saveInnerImagePath.getSelection;
+			_prop.var.etc.traceDirectories = _traceDirectories.getSelection;
 			_prop.var.etc.contentsFloat = _contentsFloat.getSelection;
 			if (_prop.var.etc.historyMax < _prop.var.etc.openHistories.length) {
 				_prop.var.etc.openHistories

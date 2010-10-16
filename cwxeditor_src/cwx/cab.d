@@ -309,7 +309,7 @@ version (Windows) {
 							prm.onExpand = null;
 							return INVALID_HANDLE_VALUE;
 						}
-						strcat(path.ptr, (tosjis(cp) ~ "\0").ptr);
+						strcat(path.ptr, tosjisz(cp));
 					} else {
 						strcat(path.ptr, cast(char*) pNotify.psz1);
 					}
@@ -403,13 +403,13 @@ version (Windows) {
 		ccab.szDisk[] = '\0';
 		ccab.szCab[] = '\0';
 		ccab.szCabPath[] = '\0';
-		strcpy(ccab.szCab.ptr, (tosjis(cab) ~ "\0").ptr);
+		strcpy(ccab.szCab.ptr, tosjisz(cab));
 		return FCICreate(&erf, &FNFCIFILEPLACED, &FNFCIALLOC, &FNFCIFREE, 
 			&FNFCIOPEN, &FNFCIREAD, &FNFCIWRITE, &FNFCICLOSE, &FNFCISEEK, &FNFCIDELETE,
 			&FNFCIGETTEMPFILE, &ccab, null);
 	}
 	private bool add(HFCI hfci, string file, string pathOnCab, TCOMP tcomp = tcompTYPE_MSZIP) {
-		return FCIAddFile(hfci, (tosjis(nabs(file)) ~ "\0").ptr, (tosjis(pathOnCab) ~ "\0").ptr, FALSE,
+		return FCIAddFile(hfci, tosjisz(nabs(file)), tosjisz(pathOnCab), FALSE,
 			null, &FNFCISTATUS, &FNFCIGETOPENINFO, tcomp) != 0;
 	}
 	private bool flush(HFCI hfci) {
@@ -425,7 +425,7 @@ version (Windows) {
 	}
 	private bool isCab(HFDI hfdi, string cab) {
 		FDICABINETINFO info;
-		auto h = CreateFileA((tosjis(cab) ~ "\0").ptr, GENERIC_READ, 0, null, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, null);
+		auto h = CreateFileA(tosjisz(cab), GENERIC_READ, 0, null, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, null);
 		if (h == INVALID_HANDLE_VALUE) return false;
 		scope (exit) CloseHandle(h);
 		return FDIIsCabinet(hfdi, cast(INT*) h, &info) != 0;
@@ -434,9 +434,9 @@ version (Windows) {
 		cab = nabs(cab);
 		dir = nabs(dir) ~ sep;
 		Prm prm;
-		prm.dest = (tosjis(dir) ~ "\0").ptr;
+		prm.dest = tosjisz(dir);
 		prm.expand = expand;
-		return FDICopy(hfdi, (tosjis(cab) ~ "\0").ptr, "".ptr, 0, &FNFDINOTIFY, null, &prm) != 0;
+		return FDICopy(hfdi, tosjisz(cab), "".ptr, 0, &FNFDINOTIFY, null, &prm) != 0;
 	}
 	private struct Prm {
 		char* dest = null;

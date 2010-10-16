@@ -165,3 +165,8 @@ string convTo(CP CP1, CP CP2)(string s) {
 alias convTo!(CP.SJIS, CP.UNI) tosjis;
 /// Shift JIS文字列をUTF-8に変換。
 alias convTo!(CP.UNI, CP.SJIS) touni;
+
+/// UTF-8文字列を0終端のShift JIS文字列に変換。
+char* tosjisz(string s) {
+	return (tosjis(s) ~ '\0').ptr;
+}
