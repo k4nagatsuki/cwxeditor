@@ -461,6 +461,14 @@ public:
 		_itmW = itmW;
 		_itmH = itmH;
 	}
+	void setLayoutValues(int marginX, int spaceX, int marginY, int spaceY, int defWrap) {
+		_marginX = marginX;
+		_spaceX = spaceX;
+		_marginY = marginY;
+		_spaceY = spaceY;
+		_defWrap = defWrap;
+		if (isVisible) redraw;
+	}
 	override {
 		void redraw(int x, int y, int width, int height, bool all) {
 			super.redraw(x, y, width, height, all);

@@ -34,6 +34,9 @@ struct PropValue(string PKey, T, T Default, bool ReadOnly) {
 			_value = value;
 		}
 	}
+	T init() {
+		return Default;
+	}
 	void toNode(ref XNode node) {
 		static if (is (typeof(_value.toNode))) {
 			_value.toNode(node);
@@ -125,7 +128,9 @@ abstract class Properties {
 			string toXML() {
 				auto e = XNode.create(Root);
 				foreach (fld; this.tupleof) {
-					fld.toNode(e);
+					if (!fld.READ_ONLY || fld() != fld.init) {
+						fld.toNode(e);
+					}
 				}
 				return e.text;
 			}
@@ -145,7 +150,9 @@ abstract class Properties {
 				auto e = node.newElement(Root);
 			}
 			foreach (fld; this.tupleof) {
-				fld.toNode(e);
+				if (!fld.READ_ONLY || fld() != fld.init) {
+					fld.toNode(e);
+				}
 			}
 		}
 		static SubClass fromNode(ref XNode node) {
@@ -416,6 +423,11 @@ class FlexEtcProps : Properties {
 	mixin Property!("motionsWidth", int, 150, true);
 	mixin Property!("cardLife", bool, false);
 	mixin Property!("cardDetails", bool, false);
+	mixin Property!("cardsMarginX", int, 5, true);
+	mixin Property!("cardsSpaceX", int, 8, true);
+	mixin Property!("cardsMarginY", int, 5, true);
+	mixin Property!("cardsSpaceY", int, 8, true);
+	mixin Property!("cardsDefaultWrap", int, 4, true);
 	mixin Property!("contentsOrder", int[], []);
 	mixin Property!("contentsWrapIndices", int[], [4, 6, 8]);
 	mixin Property!("contentsAutoOpen", bool, true);

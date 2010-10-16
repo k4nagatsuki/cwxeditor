@@ -661,6 +661,8 @@ private:
 	}
 	void createCardList(Composite parent) {
 		_list = new CardList!(C)(parent, DWT.V_SCROLL | (EditMode ? DWT.SINGLE : DWT.MULTI) | DWT.BORDER);
+		_list.setLayoutValues(_prop.var.etc.cardsMarginX, _prop.var.etc.cardsSpaceX,
+			_prop.var.etc.cardsMarginY, _prop.var.etc.cardsSpaceY, _prop.var.etc.cardsDefaultWrap);
 		_tbl = new Table(parent, DWT.FULL_SELECTION | (EditMode ? DWT.SINGLE : DWT.MULTI) | DWT.BORDER);
 		_tbl.setHeaderVisible = true;
 		auto idCol = new TableColumn(_tbl, DWT.NONE);
