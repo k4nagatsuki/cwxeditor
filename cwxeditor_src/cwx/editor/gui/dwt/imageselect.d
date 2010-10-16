@@ -68,10 +68,7 @@ public:
 		{
 			auto compl = new Composite(_group, DWT.NONE);
 			compl.setLayoutData = new GridData(GridData.FILL_VERTICAL);
-			auto lgl = new GridLayout(1, false);
-			lgl.marginWidth = 0;
-			lgl.marginHeight = 0;
-			compl.setLayout = lgl;
+			compl.setLayout = zeroMarginGridLayout(1, false);
 			{
 				auto comp = new Composite(compl, DWT.NONE);
 				comp.setLayoutData = new GridData(GridData.FILL_BOTH);
@@ -92,10 +89,7 @@ public:
 			{
 				auto comp = new Composite(compl, DWT.NONE);
 				comp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				auto gl = new GridLayout(2, false);
-				gl.marginWidth = 0;
-				gl.marginHeight = 0;
-				comp.setLayout = gl;
+				comp.setLayout = zeroMarginGridLayout(2, false);
 				_msel.createRefreshButton(comp, true).setLayoutData
 					= new GridData(GridData.FILL_BOTH);
 				_msel.createDirectoryButton(comp, false).setLayoutData
@@ -107,10 +101,7 @@ public:
 			auto cgd = new GridData(GridData.FILL_BOTH);
 			cgd.verticalSpan = 2;
 			comp.setLayoutData = cgd;
-			auto gl = new GridLayout(1, false);
-			gl.marginHeight = 0;
-			gl.marginWidth = 0;
-			comp.setLayout = gl;
+			comp.setLayout = zeroMarginGridLayout(1, false);
 			{
 				_msel.createDirsCombo(comp).setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			}

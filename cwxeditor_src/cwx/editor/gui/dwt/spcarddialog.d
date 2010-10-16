@@ -153,10 +153,7 @@ protected:
 				sash.setLayoutData = new GridData(GridData.FILL_BOTH);
 				{
 					auto comp2 = new Composite(sash, DWT.NONE);
-					auto gl = new GridLayout(1, false);
-					gl.marginWidth = 0;
-					gl.marginHeight = 0;
-					comp2.setLayout = gl;
+					comp2.setLayout = zeroMarginGridLayout(1, false);
 					{
 						auto grp = new Group(comp2, DWT.NONE);
 						grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);

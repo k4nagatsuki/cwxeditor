@@ -581,10 +581,7 @@ private Composite createTalkerPane
 	}
 	auto comp = new Composite(parent, DWT.NONE);
 	{
-		auto gl = new GridLayout(1, true);
-		gl.marginWidth = 0;
-		gl.marginHeight = 0;
-		comp.setLayout = gl;
+		comp.setLayout = zeroMarginGridLayout(1, true);
 	}
 	auto image = new Img(prop, summ);
 	string[] ss = [
@@ -614,10 +611,7 @@ private Composite createTalkerPane
 	{
 		auto compl = new Composite(comp, DWT.NONE);
 		compl.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-		auto gl = new GridLayout(2, false);
-		gl.marginWidth = 0;
-		gl.marginHeight = 0;
-		compl.setLayout = gl;
+		compl.setLayout = zeroMarginGridLayout(2, false);
 		msel.createRefreshButton(compl, true).setLayoutData
 			= new GridData(GridData.FILL_BOTH);
 		msel.createDirectoryButton(compl, false).setLayoutData

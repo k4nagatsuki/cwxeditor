@@ -8,6 +8,7 @@ import cwx.editor.gui.dwt.properties;
 import cwx.editor.gui.dwt.utils;
 import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.absdialog;
+import cwx.editor.gui.dwt.splitpane;
 
 import std.path;
 import std.file;
@@ -33,6 +34,8 @@ import dwt.events.SelectionAdapter;
 import dwt.events.SelectionEvent;
 import dwt.events.ModifyListener;
 import dwt.events.ModifyEvent;
+import dwt.events.DisposeListener;
+import dwt.events.DisposeEvent;
 import dwt.layout.GridLayout;
 import dwt.layout.GridData;
 
@@ -351,22 +354,23 @@ private:
 	}
 	void construct2(CTabFolder tabf) {
 		auto comp = new Composite(tabf, DWT.NONE);
-		comp.setLayout = new GridLayout(2, false);
 		_tabS = new CTabItem(tabf, DWT.NONE);
 		_tabS.setText = _prop.msgs.bgImageAndKeyCode;
 		_tabS.setControl = comp;
+		comp.setLayout = new GridLayout(1, true);
+		auto sash = new SplitPane(comp, DWT.HORIZONTAL);
+		sash.setLayoutData = new GridData(GridData.FILL_BOTH);
 		{
-			auto grp = new Group(comp, DWT.NONE);
+			auto grp = new Group(sash, DWT.NONE);
 			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-			grp.setLayout = new GridLayout(2, false);
+			grp.setLayout = new GridLayout(1, true);
 			grp.setText = _prop.msgs.bgImageSettings;
+			auto leftSash = new SplitPane(grp, DWT.HORIZONTAL);
+			leftSash.setLayoutData = new GridData(GridData.FILL_BOTH);
 			{
-				auto comp2 = new Composite(grp, DWT.NONE);
-				auto cgd = new GridData(GridData.FILL_BOTH);
-				cgd.verticalSpan = 3;
-				comp2.setLayoutData = cgd;
-				comp2.setLayout = zeroMarginGridLayout(2, true);
-				_bgStgsL = new List(comp2, DWT.BORDER | DWT.SINGLE | DWT.V_SCROLL);
+				auto left = new Composite(leftSash, DWT.NONE);
+				left.setLayout = zeroMarginGridLayout(2, true);
+				_bgStgsL = new List(left, DWT.BORDER | DWT.SINGLE | DWT.V_SCROLL);
 				auto gd = new GridData(GridData.FILL_BOTH);
 				gd.widthHint = _prop.var.etc.bgImageSettingsNameWidth;
 				gd.heightHint = _prop.var.etc.bgImageSettingsNameHeight;
@@ -375,14 +379,14 @@ private:
 				_bgStgsL.addSelectionListener(new class SelectionAdapter {
 					override void widgetSelected(SelectionEvent e) {selectBgImageSetting;}
 				});
-				auto up = new Button(comp2, DWT.PUSH);
+				auto up = new Button(left, DWT.PUSH);
 				up.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				up.setText = _prop.msgs.ttUp;
 				up.setImage = _prop.images.menuUp;
 				up.addSelectionListener(new class SelectionAdapter {
 					override void widgetSelected(SelectionEvent e) {upBgImage;}
 				});
-				auto down = new Button(comp2, DWT.PUSH);
+				auto down = new Button(left, DWT.PUSH);
 				down.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				down.setText = _prop.msgs.ttDown;
 				down.setImage = _prop.images.menuDown;
@@ -390,49 +394,64 @@ private:
 					override void widgetSelected(SelectionEvent e) {downBgImage;}
 				});
 			}
-			auto comp2 = new Composite(grp, DWT.NONE);
-			comp2.setLayoutData = new GridData(GridData.FILL_VERTICAL);
-			comp2.setLayout = zeroMarginGridLayout(4, false);
+			leftSash.setWeights = [_prop.var.etc.bgImageSettingsSashL, _prop.var.etc.bgImageSettingsSashR];
+			leftSash.addDisposeListener(new class DisposeListener {
+				override void widgetDisposed(DisposeEvent e) {
+					auto ws = (cast(SplitPane) e.widget).getWeights;
+					_prop.var.etc.bgImageSettingsSashL = ws[0];
+					_prop.var.etc.bgImageSettingsSashR = ws[1];
+				}
+			});
+			auto right = new Composite(leftSash, DWT.NONE);
+			right.setLayout = zeroMarginGridLayout(1, true);
 			{
-				auto comp3 = new Composite(comp2, DWT.NONE);
-				auto gd = new GridData(GridData.FILL_HORIZONTAL);
-				gd.horizontalSpan = 4;
-				comp3.setLayoutData = gd;
-				comp3.setLayout = zeroMarginGridLayout(2, false);
-				_bgImgName = new Text(comp3, DWT.BORDER);
-				auto ngd = new GridData(GridData.FILL_HORIZONTAL);
-				ngd.widthHint = _prop.var.etc.bgImageSettingsNameWidth;
-				_bgImgName.setLayoutData = ngd;
-				_bgImgMask = new Button(comp3, DWT.TOGGLE);
-				_bgImgMask.setImage = _prop.images.menuMask;
-				_bgImgMask.setToolTipText = _prop.msgs.ttMask;
-				_bgImgName.addModifyListener(new class ModifyListener {
-					override void modifyText(ModifyEvent e) {
-						int i = _bgStgsL.getSelectionIndex;
-						if (i < 0 || _bgStgsL.getItem(i) == _bgImgName.getText) return;
-						_bgStgsL.setItem(i, _bgImgName.getText);
-						_bgStgs[i].name = _bgImgName.getText;
-					}
-				});
-				_bgImgMask.addSelectionListener(new class SelectionAdapter {
-					override void widgetSelected(SelectionEvent e) {
-						int i = _bgStgsL.getSelectionIndex;
-						if (i < 0) return;
-						_bgStgs[i].mask = _bgImgMask.getSelection;
-					}
-				});
+				auto comp2 = new Composite(right, DWT.NONE);
+				comp2.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+				comp2.setLayout = zeroMarginGridLayout(4, false);
+				{
+					auto comp3 = new Composite(comp2, DWT.NONE);
+					auto gd = new GridData(GridData.FILL_HORIZONTAL);
+					gd.horizontalSpan = 4;
+					comp3.setLayoutData = gd;
+					comp3.setLayout = zeroMarginGridLayout(2, false);
+					_bgImgName = new Text(comp3, DWT.BORDER);
+					auto ngd = new GridData(GridData.FILL_HORIZONTAL);
+					ngd.widthHint = _prop.var.etc.bgImageSettingsNameWidth;
+					_bgImgName.setLayoutData = ngd;
+					_bgImgMask = new Button(comp3, DWT.TOGGLE);
+					_bgImgMask.setImage = _prop.images.menuMask;
+					_bgImgMask.setToolTipText = _prop.msgs.ttMask;
+					_bgImgName.addModifyListener(new class ModifyListener {
+						override void modifyText(ModifyEvent e) {
+							int i = _bgStgsL.getSelectionIndex;
+							if (i < 0 || _bgStgsL.getItem(i) == _bgImgName.getText) return;
+							_bgStgsL.setItem(i, _bgImgName.getText);
+							_bgStgs[i].name = _bgImgName.getText;
+						}
+					});
+					_bgImgMask.addSelectionListener(new class SelectionAdapter {
+						override void widgetSelected(SelectionEvent e) {
+							int i = _bgStgsL.getSelectionIndex;
+							if (i < 0) return;
+							_bgStgs[i].mask = _bgImgMask.getSelection;
+						}
+					});
+				}
+				_bgImgX = createS!("_bgStgs[i].x = spn.getSelection;")
+					(this, comp2, _prop.msgs.left, _prop.looks.posLeftMax, _prop.looks.posLeftMin);
+				_bgImgY = createS!("_bgStgs[i].y = spn.getSelection;")
+					(this, comp2, _prop.msgs.top, _prop.looks.posTopMax, _prop.looks.posTopMin);
+				_bgImgW = createS!("_bgStgs[i].width = spn.getSelection;")
+					(this, comp2, _prop.msgs.width, _prop.looks.backWidthMax, _prop.looks.backWidthMin);
+				_bgImgH = createS!("_bgStgs[i].height = spn.getSelection;")
+					(this, comp2, _prop.msgs.height, _prop.looks.backHeightMax, _prop.looks.backHeightMin);
 			}
-			_bgImgX = createS!("_bgStgs[i].x = spn.getSelection;")
-				(this, comp2, _prop.msgs.left, _prop.looks.posLeftMax, _prop.looks.posLeftMin);
-			_bgImgY = createS!("_bgStgs[i].y = spn.getSelection;")
-				(this, comp2, _prop.msgs.top, _prop.looks.posTopMax, _prop.looks.posTopMin);
-			_bgImgW = createS!("_bgStgs[i].width = spn.getSelection;")
-				(this, comp2, _prop.msgs.width, _prop.looks.backWidthMax, _prop.looks.backWidthMin);
-			_bgImgH = createS!("_bgStgs[i].height = spn.getSelection;")
-				(this, comp2, _prop.msgs.height, _prop.looks.backHeightMax, _prop.looks.backHeightMin);
 			{
-				auto newBstg = new Button(grp, DWT.PUSH);
-				newBstg.setLayoutData = new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_END);
+				auto buttons = new Composite(right, DWT.NONE);
+				buttons.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
+				buttons.setLayout = zeroMarginGridLayout(2, true);
+				auto newBstg = new Button(buttons, DWT.PUSH);
+				newBstg.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				newBstg.setText = _prop.msgs.newBgImageSetting;
 				newBstg.addSelectionListener(new class SelectionAdapter {
 					override void widgetSelected(SelectionEvent e) {
@@ -442,8 +461,8 @@ private:
 						selectBgImageSetting;
 					}
 				});
-				_bgImgDel = new Button(grp, DWT.PUSH);
-				_bgImgDel.setLayoutData = new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_END);
+				_bgImgDel = new Button(buttons, DWT.PUSH);
+				_bgImgDel.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				_bgImgDel.setText = _prop.msgs.delBgImageSetting;
 				_bgImgDel.addSelectionListener(new class SelectionAdapter {
 					override void widgetSelected(SelectionEvent e) {
@@ -460,7 +479,7 @@ private:
 			}
 		}
 		{
-			auto grp = new Group(comp, DWT.NONE);
+			auto grp = new Group(sash, DWT.NONE);
 			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
 			grp.setLayout = new GridLayout(1, false);
 			grp.setText = _prop.msgs.standardKeyCode;
@@ -470,6 +489,14 @@ private:
 			gd.heightHint = 0;
 			_keyCodes.setLayoutData = gd;
 		}
+		sash.setWeights = [_prop.var.etc.bgImageKeyCodeSashL, _prop.var.etc.bgImageKeyCodeSashR];
+		sash.addDisposeListener(new class DisposeListener {
+			override void widgetDisposed(DisposeEvent e) {
+				auto ws = (cast(SplitPane) e.widget).getWeights;
+				_prop.var.etc.bgImageKeyCodeSashL = ws[0];
+				_prop.var.etc.bgImageKeyCodeSashR = ws[1];
+			}
+		});
 	}
 	void construct3(CTabFolder tabf) {
 		auto comp = new Composite(tabf, DWT.NONE);
@@ -480,15 +507,14 @@ private:
 		{
 			auto grp = new Group(comp, DWT.NONE);
 			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-			grp.setLayout = new GridLayout(2, false);
+			grp.setLayout = new GridLayout(1, true);
 			grp.setText = _prop.msgs.outerToolsTitle;
+			auto sash = new SplitPane(grp, DWT.HORIZONTAL);
+			sash.setLayoutData = new GridData(GridData.FILL_BOTH);
 			{
-				auto comp2 = new Composite(grp, DWT.NONE);
-				auto cgd = new GridData(GridData.FILL_VERTICAL);
-				cgd.verticalSpan = 3;
-				comp2.setLayoutData = cgd;
-				comp2.setLayout = zeroMarginGridLayout(2, true);
-				_toolsL = new List(comp2, DWT.BORDER | DWT.SINGLE | DWT.V_SCROLL);
+				auto left = new Composite(sash, DWT.NONE);
+				left.setLayout = zeroMarginGridLayout(2, true);
+				_toolsL = new List(left, DWT.BORDER | DWT.SINGLE | DWT.V_SCROLL);
 				auto gd = new GridData(GridData.FILL_BOTH);
 				gd.widthHint = _prop.var.etc.outerToolsNameWidth;
 				gd.heightHint = _prop.var.etc.outerToolsNameHeight;
@@ -497,14 +523,14 @@ private:
 				_toolsL.addSelectionListener(new class SelectionAdapter {
 					override void widgetSelected(SelectionEvent e) {selectOuterTool;}
 				});
-				auto up = new Button(comp2, DWT.PUSH);
+				auto up = new Button(left, DWT.PUSH);
 				up.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				up.setText = _prop.msgs.ttUp;
 				up.setImage = _prop.images.menuUp;
 				up.addSelectionListener(new class SelectionAdapter {
 					override void widgetSelected(SelectionEvent e) {upTool;}
 				});
-				auto down = new Button(comp2, DWT.PUSH);
+				auto down = new Button(left, DWT.PUSH);
 				down.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				down.setText = _prop.msgs.ttDown;
 				down.setImage = _prop.images.menuDown;
@@ -512,100 +538,107 @@ private:
 					override void widgetSelected(SelectionEvent e) {downTool;}
 				});
 			}
-			auto comp2 = new Composite(grp, DWT.NONE);
-			comp2.setLayoutData = new GridData(GridData.FILL_BOTH);
-			comp2.setLayout = zeroMarginGridLayout(3, false);
+			auto right = new Composite(sash, DWT.NONE);
+			right.setLayout = zeroMarginGridLayout(1, true);
 			{
-				auto l = new Label(comp2, DWT.NONE);
-				l.setText = _prop.msgs.outerToolName;
-				_toolName = new Text(comp2, DWT.BORDER);
-				auto gd = new GridData(GridData.FILL_HORIZONTAL);
-				gd.horizontalSpan = 2;
-				gd.widthHint = _prop.var.etc.outerToolsNameWidth;
-				_toolName.setLayoutData = gd;
-				_toolName.addModifyListener(new class ModifyListener {
-					override void modifyText(ModifyEvent e) {
-						int i = _toolsL.getSelectionIndex;
-						if (i < 0 || _toolsL.getItem(i) == _toolName.getText) return;
-						_toolsL.setItem(i, _toolName.getText);
-						_tools[i].name = _toolName.getText;
-					}
-				});
+				auto comp2 = new Composite(right, DWT.NONE);
+				comp2.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+				comp2.setLayout = zeroMarginGridLayout(3, false);
+				{
+					auto l = new Label(comp2, DWT.NONE);
+					l.setText = _prop.msgs.outerToolName;
+					_toolName = new Text(comp2, DWT.BORDER);
+					auto gd = new GridData(GridData.FILL_HORIZONTAL);
+					gd.horizontalSpan = 2;
+					gd.widthHint = _prop.var.etc.outerToolsNameWidth;
+					_toolName.setLayoutData = gd;
+					_toolName.addModifyListener(new class ModifyListener {
+						override void modifyText(ModifyEvent e) {
+							int i = _toolsL.getSelectionIndex;
+							if (i < 0 || _toolsL.getItem(i) == _toolName.getText) return;
+							_toolsL.setItem(i, _toolName.getText);
+							_tools[i].name = _toolName.getText;
+						}
+					});
+				}
+				{
+					auto l = new Label(comp2, DWT.NONE);
+					l.setText = _prop.msgs.outerToolCommand;
+					_toolCommand = new Text(comp2, DWT.BORDER);
+					auto gd = new GridData(GridData.FILL_HORIZONTAL);
+					gd.widthHint = 0;
+					_toolCommand.setLayoutData = gd;
+					_toolCommandRef = new Button(comp2, DWT.PUSH);
+					_toolCommandRef.setText = _prop.msgs.reference;
+					_toolCommandRef.addSelectionListener(new class SelectionAdapter {
+						override void widgetSelected(SelectionEvent e) {
+							int i = _toolsL.getSelectionIndex;
+							if (i < 0) return;
+							selectProgram(i);
+						}
+					});
+					_toolCommand.addModifyListener(new class ModifyListener {
+						override void modifyText(ModifyEvent e) {
+							int i = _toolsL.getSelectionIndex;
+							if (i < 0) return;
+							_tools[i].command = _toolCommand.getText;
+						}
+					});
+				}
+				{
+					auto l = new Label(comp2, DWT.NONE);
+					l.setText = _prop.msgs.outerToolWorkDir;
+					_toolWorkDir = new Text(comp2, DWT.BORDER);
+					auto gd = new GridData(GridData.FILL_HORIZONTAL);
+					gd.widthHint = 0;
+					_toolWorkDir.setLayoutData = gd;
+					_toolWorkDirRef = new Button(comp2, DWT.PUSH);
+					_toolWorkDirRef.setText = _prop.msgs.reference;
+					_toolWorkDirRef.addSelectionListener(new class SelectionAdapter {
+						override void widgetSelected(SelectionEvent e) {
+							int i = _toolsL.getSelectionIndex;
+							if (i < 0) return;
+							selectWorkDir(i);
+						}
+					});
+					_toolWorkDir.addModifyListener(new class ModifyListener {
+						override void modifyText(ModifyEvent e) {
+							int i = _toolsL.getSelectionIndex;
+							if (i < 0) return;
+							_tools[i].workDir = _toolWorkDir.getText;
+						}
+					});
+				}
+				{
+					auto dummy = new Composite(comp2, DWT.NONE);
+					auto gd = new GridData;
+					gd.verticalSpan = 3;
+					gd.widthHint = 0;
+					gd.heightHint = 0;
+					dummy.setLayoutData = gd;
+					auto hint1 = new Label(comp2, DWT.NONE);
+					hint1.setText = _prop.msgs.toolsHint1;
+					auto gd1 = new GridData;
+					gd1.horizontalSpan = 2;
+					hint1.setLayoutData = gd1;
+					auto hint2 = new Label(comp2, DWT.NONE);
+					hint2.setText = _prop.msgs.toolsHint2;
+					auto gd2 = new GridData;
+					gd2.horizontalSpan = 2;
+					hint2.setLayoutData = gd2;
+					auto hint3 = new Label(comp2, DWT.NONE);
+					hint3.setText = _prop.msgs.toolsHint3;
+					auto gd3 = new GridData;
+					gd3.horizontalSpan = 2;
+					hint3.setLayoutData = gd3;
+				}
 			}
 			{
-				auto l = new Label(comp2, DWT.NONE);
-				l.setText = _prop.msgs.outerToolCommand;
-				_toolCommand = new Text(comp2, DWT.BORDER);
-				auto gd = new GridData(GridData.FILL_HORIZONTAL);
-				gd.widthHint = 0;
-				_toolCommand.setLayoutData = gd;
-				_toolCommandRef = new Button(comp2, DWT.PUSH);
-				_toolCommandRef.setText = _prop.msgs.reference;
-				_toolCommandRef.addSelectionListener(new class SelectionAdapter {
-					override void widgetSelected(SelectionEvent e) {
-						int i = _toolsL.getSelectionIndex;
-						if (i < 0) return;
-						selectProgram(i);
-					}
-				});
-				_toolCommand.addModifyListener(new class ModifyListener {
-					override void modifyText(ModifyEvent e) {
-						int i = _toolsL.getSelectionIndex;
-						if (i < 0) return;
-						_tools[i].command = _toolCommand.getText;
-					}
-				});
-			}
-			{
-				auto l = new Label(comp2, DWT.NONE);
-				l.setText = _prop.msgs.outerToolWorkDir;
-				_toolWorkDir = new Text(comp2, DWT.BORDER);
-				auto gd = new GridData(GridData.FILL_HORIZONTAL);
-				gd.widthHint = 0;
-				_toolWorkDir.setLayoutData = gd;
-				_toolWorkDirRef = new Button(comp2, DWT.PUSH);
-				_toolWorkDirRef.setText = _prop.msgs.reference;
-				_toolWorkDirRef.addSelectionListener(new class SelectionAdapter {
-					override void widgetSelected(SelectionEvent e) {
-						int i = _toolsL.getSelectionIndex;
-						if (i < 0) return;
-						selectWorkDir(i);
-					}
-				});
-				_toolWorkDir.addModifyListener(new class ModifyListener {
-					override void modifyText(ModifyEvent e) {
-						int i = _toolsL.getSelectionIndex;
-						if (i < 0) return;
-						_tools[i].workDir = _toolWorkDir.getText;
-					}
-				});
-			}
-			{
-				auto dummy = new Composite(comp2, DWT.NONE);
-				auto gd = new GridData;
-				gd.verticalSpan = 3;
-				gd.widthHint = 0;
-				gd.heightHint = 0;
-				dummy.setLayoutData = gd;
-				auto hint1 = new Label(comp2, DWT.NONE);
-				hint1.setText = _prop.msgs.toolsHint1;
-				auto gd1 = new GridData;
-				gd1.horizontalSpan = 2;
-				hint1.setLayoutData = gd1;
-				auto hint2 = new Label(comp2, DWT.NONE);
-				hint2.setText = _prop.msgs.toolsHint2;
-				auto gd2 = new GridData;
-				gd2.horizontalSpan = 2;
-				hint2.setLayoutData = gd2;
-				auto hint3 = new Label(comp2, DWT.NONE);
-				hint3.setText = _prop.msgs.toolsHint3;
-				auto gd3 = new GridData;
-				gd3.horizontalSpan = 2;
-				hint3.setLayoutData = gd3;
-			}
-			{
-				auto newTool = new Button(grp, DWT.PUSH);
-				newTool.setLayoutData = new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_END);
+				auto buttons = new Composite(right, DWT.NONE);
+				buttons.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
+				buttons.setLayout = zeroMarginGridLayout(2, true);
+				auto newTool = new Button(buttons, DWT.PUSH);
+				newTool.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				newTool.setText = _prop.msgs.newOuterTool;
 				newTool.addSelectionListener(new class SelectionAdapter {
 					override void widgetSelected(SelectionEvent e) {
@@ -615,8 +648,8 @@ private:
 						selectOuterTool;
 					}
 				});
-				_toolDel = new Button(grp, DWT.PUSH);
-				_toolDel.setLayoutData = new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_END);
+				_toolDel = new Button(buttons, DWT.PUSH);
+				_toolDel.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				_toolDel.setText = _prop.msgs.delOuterTool;
 				_toolDel.addSelectionListener(new class SelectionAdapter {
 					override void widgetSelected(SelectionEvent e) {
@@ -631,11 +664,19 @@ private:
 					}
 				});
 			}
+			sash.setWeights = [_prop.var.etc.outerToolsSashL, _prop.var.etc.outerToolsSashR];
+			sash.addDisposeListener(new class DisposeListener {
+				override void widgetDisposed(DisposeEvent e) {
+					auto ws = (cast(SplitPane) e.widget).getWeights;
+					_prop.var.etc.outerToolsSashL = ws[0];
+					_prop.var.etc.outerToolsSashR = ws[1];
+				}
+			});
 		}
 	}
 public:
 	this(Props prop, Shell shell) {
-		super(prop, shell, prop.msgs.dlgTitSettings, prop.images.menuSettings, false);
+		super(prop, shell, prop.msgs.dlgTitSettings, prop.images.menuSettings, true, prop.var.settingsDlg);
 		_prop = prop;
 	}
 

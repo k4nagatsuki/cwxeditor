@@ -132,10 +132,7 @@ private:
 		{
 			auto comp2 = new Composite(comp, DWT.NONE);
 			comp2.setLayoutData = new GridData(GridData.FILL_BOTH);
-			auto gl = new GridLayout(1, false);
-			gl.marginWidth = 0;
-			gl.marginHeight = 0;
-			comp2.setLayout = gl;
+			comp2.setLayout = zeroMarginGridLayout(1, false);
 			{
 				auto grp = new Group(comp2, DWT.NONE);
 				grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
@@ -160,10 +157,7 @@ private:
 		{
 			auto comp2 = new Composite(comp, DWT.NONE);
 			comp2.setLayoutData = new GridData(GridData.FILL_VERTICAL);
-			auto gl = new GridLayout(1, false);
-			gl.marginWidth = 0;
-			gl.marginHeight = 0;
-			comp2.setLayout = gl;
+			comp2.setLayout = zeroMarginGridLayout(1, false);
 			{
 				auto grp = new Group(comp2, DWT.NONE);
 				grp.setLayoutData = new GridData(GridData.FILL_BOTH);
@@ -402,19 +396,13 @@ private:
 		{
 			auto tcomp = new Composite(comp, DWT.NONE);
 			tcomp.setLayoutData = new GridData(GridData.FILL_BOTH);
-			auto tgl = new GridLayout(2, false);
-			tgl.marginWidth = 0;
-			tgl.marginHeight = 0;
-			tcomp.setLayout = tgl;
+			tcomp.setLayout = zeroMarginGridLayout(2, false);
 			{
 				auto comp2 = new Composite(tcomp, DWT.NONE);
 				auto gd = new GridData(GridData.FILL_BOTH);
 				gd.verticalSpan = 2;
 				comp2.setLayoutData = gd;
-				auto gl = new GridLayout(1, false);
-				gl.marginWidth = 0;
-				gl.marginHeight = 0;
-				comp2.setLayout = gl;
+				comp2.setLayout = zeroMarginGridLayout(1, false);
 				{
 					auto grp = new Group(comp2, DWT.NONE);
 					grp.setText = _prop.msgs.effectTarget;

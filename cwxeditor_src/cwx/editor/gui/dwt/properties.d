@@ -425,6 +425,12 @@ class FlexEtcProps : Properties {
 	mixin Property!("bgImageSettingsNameHeight", int, 250, true);
 	mixin Property!("outerToolsNameWidth", int, 150, true);
 	mixin Property!("outerToolsNameHeight", int, 250, true);
+	mixin Property!("bgImageSettingsSashL", int, 1);
+	mixin Property!("bgImageSettingsSashR", int, 1);
+	mixin Property!("bgImageKeyCodeSashL", int, 2);
+	mixin Property!("bgImageKeyCodeSashR", int, 1);
+	mixin Property!("outerToolsSashL", int, 1);
+	mixin Property!("outerToolsSashR", int, 2);
 	mixin Property!("keyCodeWidth", int, 100, true);
 	mixin Property!("scenarioPath", string, "");
 	mixin Property!("tempPath", string, "");
@@ -573,6 +579,7 @@ public class FlexProps {
 	const PackageWin packageWin;
 	const CardEventWin cardEventWin;
 	const ContWin contentsWin;
+	const DialogParam!("settingsDialog") settingsDlg;
 	const DialogParam!("replaceDialog", 600) replaceDlg;
 	const DialogParam!("summaryDialog") summaryDlg;
 	const DialogParam!("menuCardDialog") menuCardDlg;

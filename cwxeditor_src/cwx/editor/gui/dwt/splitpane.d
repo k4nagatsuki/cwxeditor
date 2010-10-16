@@ -23,7 +23,7 @@ import cwx.utils;
 class SplitPane : Composite {
 	private Sash _sash = null;
 	private FormData _sfd = null, _fd1 = null, _fd2 = null;
-	private int[] _weights = [1, 1];
+	private int[] _weights = [0, 0];
 	private int _style;
 
 	this (Composite parent, int style) {
@@ -43,16 +43,24 @@ class SplitPane : Composite {
 	}
 	void setWeights(int[] weights) {
 		if (weights.length != 2) throw new Exception("SplitPane weights length");
-		if (weights[0u] <= 0 || weights[1u] <= 0) {
-			_weights = [1, 1];
-		} else {
-			_weights = [weights[0u], weights[1u]];
-		}
+		_weights = weights.dup;
 		resize;
+	}
+	private int[] computeWeights() {
+		auto cs = getChildren;
+		if (cs.length >= 2) {
+			int l = cs[0].computeSize(DWT.DEFAULT, DWT.DEFAULT).x;
+			int r = cs[0].computeSize(DWT.DEFAULT, DWT.DEFAULT).x;
+			return [l, r];
+		}
+		return [1, 1];
 	}
 	private bool resize() {
 		assert (_weights);
 		assert (_weights.length == 2u);
+		if (_weights[0u] <= 0 || _weights[1u] <= 0) {
+			_weights = computeWeights;
+		}
 		int l = _weights[0u];
 		int r = _weights[1u];
 		int full = l + r;

@@ -365,10 +365,7 @@ private:
 		{
 			auto comp2 = new Composite(comp, DWT.NONE);
 			comp2.setLayoutData = new GridData(GridData.FILL_BOTH);
-			auto gl = new GridLayout(1, false);
-			gl.marginWidth = 0;
-			gl.marginHeight = 0;
-			comp2.setLayout = gl;
+			comp2.setLayout = zeroMarginGridLayout(1, false);
 			{
 				auto grp = new Group(comp2, DWT.NONE);
 				grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
@@ -392,20 +389,14 @@ private:
 		{
 			auto compr = new Composite(comp, DWT.NONE);
 			compr.setLayoutData = new GridData(GridData.FILL_VERTICAL);
-			auto rgl = new GridLayout(1, false);
-			rgl.marginWidth = 0;
-			rgl.marginHeight = 0;
-			compr.setLayout = rgl;
+			compr.setLayout = zeroMarginGridLayout(1, false);
 			{
 				auto grp = new Group(compr, DWT.NONE);
 				grp.setLayoutData = new GridData(GridData.FILL_BOTH);
 				grp.setLayout = new CenterLayout;
 				grp.setText = _prop.msgs.level;
 				auto comp2 = new Composite(grp, DWT.NONE);
-				auto gl = new GridLayout(2, false);
-				gl.marginWidth = 0;
-				gl.marginHeight = 0;
-				comp2.setLayout = gl;
+				comp2.setLayout = zeroMarginGridLayout(2, false);
 				_level = new Spinner(comp2, DWT.BORDER);
 				_level.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				_level.setMinimum = 1;
@@ -419,10 +410,7 @@ private:
 				grp.setLayout = new CenterLayout;
 				grp.setText = _prop.msgs.life;
 				auto comp2 = new Composite(grp, DWT.NONE);
-				auto gl = new GridLayout(2, false);
-				gl.marginWidth = 0;
-				gl.marginHeight = 0;
-				comp2.setLayout = gl;
+				comp2.setLayout = zeroMarginGridLayout(2, false);
 				_lifeMax = new Spinner(comp2, DWT.BORDER);
 				_lifeMax.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				_lifeMax.setMinimum = 1;
@@ -568,10 +556,7 @@ private:
 		{
 			auto comp2 = new Composite(comp, DWT.NONE);
 			comp2.setLayoutData = new GridData(GridData.FILL_VERTICAL);
-			auto cgl = new GridLayout(2, false);
-			cgl.marginWidth = 0;
-			cgl.marginHeight = 0;
-			comp2.setLayout = cgl;
+			comp2.setLayout = zeroMarginGridLayout(2, false);
 			Button createR(Composite parent, string name) {
 				auto radio = new Button(parent, DWT.RADIO);
 				radio.setLayoutData = new GridData(GridData.FILL_BOTH);

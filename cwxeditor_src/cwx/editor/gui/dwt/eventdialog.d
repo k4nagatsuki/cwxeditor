@@ -160,10 +160,7 @@ protected:
 				{
 					auto comp = new Composite(area, DWT.NONE);
 					comp.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
-					auto gl = new GridLayout(3, false);
-					gl.marginWidth = 0;
-					gl.marginHeight = 0;
-					comp.setLayout = gl;
+					comp.setLayout = zeroMarginGridLayout(3, false);
 					auto lt = new Label(comp, DWT.NONE);
 					lt.setText = _prop.msgs.transition;
 					_ts = new Combo(comp, DWT.BORDER | DWT.DROP_DOWN | DWT.READ_ONLY);
@@ -580,10 +577,7 @@ protected:
 			{
 				auto comp = new Composite(area, DWT.NONE);
 				comp.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
-				auto gl = new GridLayout(5, false);
-				gl.marginWidth = 0;
-				gl.marginHeight = 0;
-				comp.setLayout = gl;
+				comp.setLayout = zeroMarginGridLayout(5, false);
 				auto lt = new Label(comp, DWT.NONE);
 				lt.setText = _prop.msgs.transition;
 				_ts = new Combo(comp, DWT.BORDER | DWT.DROP_DOWN | DWT.READ_ONLY);
@@ -1844,10 +1838,7 @@ protected:
 			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
 			grp.setLayout = new CenterLayout;
 			auto comp = new Composite(grp, DWT.NONE);
-			auto gl = new GridLayout(3, false);
-			gl.marginWidth = 0;
-			gl.marginHeight = 0;
-			comp.setLayout = gl;
+			comp.setLayout = zeroMarginGridLayout(3, false);
 			auto lt = new Label(comp, DWT.NONE);
 			lt.setText = _prop.msgs.transition;
 			_ts = new Combo(comp, DWT.BORDER | DWT.DROP_DOWN | DWT.READ_ONLY);

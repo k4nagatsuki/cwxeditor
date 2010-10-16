@@ -395,10 +395,7 @@ public:
 		_prop = prop;
 		_summ = summ;
 
-		auto layout = new GridLayout(3, false);
-		layout.marginWidth = 0;
-		layout.marginHeight = 0;
-		setLayout = layout;
+		setLayout = zeroMarginGridLayout(3, false);
 		{
 			auto mtabf = new CTabFolder(this, DWT.FLAT | DWT.BORDER);
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
@@ -539,10 +536,7 @@ public:
 			_editComp.setLayout = motionStack;
 			Composite createC() {
 				auto c = new Composite(_editComp, DWT.NONE);
-				auto gl = new GridLayout(1, false);
-				gl.marginWidth = 0;
-				gl.marginHeight = 0;
-				c.setLayout = gl;
+				c.setLayout = zeroMarginGridLayout(1, false);
 				return c;
 			}
 			_summonComp = createC;
