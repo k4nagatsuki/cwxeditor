@@ -1261,7 +1261,16 @@ private:
 			auto c = cast(Content) sel.getData;
 			store(c);
 			assert (c.canConvert(type), "convert menu item enabled");
+			auto oldd = c.detail;
 			c.type(type, _prop.parent);
+			auto newd = c.detail;
+			if (newd.use(CArg.BG_IMAGES) && !oldd.use(CArg.BG_IMAGES)) {
+				auto p = _prop.looks.viewSize;
+				c.backs = [new BgImage(findSkin(_prop, _summ).firstBgImage, "", 0, 0, p.width, p.height, false)];
+			}
+			if (newd.use(CArg.DIALOGS) && !oldd.use(CArg.DIALOGS)) {
+				c.dialogs = [new SDialog];
+			}
 			sel.setImage = _prop.images.content(type);
 			foreach (itm; sel.getItems) {
 				itm.setText = eventText(c, cast(Content) itm.getData);
