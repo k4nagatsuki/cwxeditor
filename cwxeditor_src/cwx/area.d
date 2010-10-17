@@ -30,20 +30,23 @@ interface PackageOwner : CWXPath {
 /// xml = XMLテキスト。
 /// sameId = 貼り紙のID。
 /// sameSummary = 生成するエリアが元々属していた貼り紙が、sameIdが指す貼り紙と同一であるか。
-/// Returns: エリア。
+/// Returns: エリア。エリアでない場合はnull。
 /// Throws:
-/// AreaException = XMLテキストがエリアのデータではない。
 /// XmlException = パース失敗。
 /// IllegalArgumentException = 数値であるべきデータが数値でない。
 AbstractArea createAreaFromXML(string xml, string summId, out bool sameSummary, string ver) {
-	scope e = XNode.parse(xml);
-	auto id = e.attr("summaryId", false);
-	sameSummary = id && id == summId;;
-	switch (e.name) {
-	case "Area": return Area.createFromNode(e, ver);
-	case "Battle": return Battle.createFromNode(e, ver);
-	case "Package": return Package.createFromNode(e, ver);
-	default: throw new AreaException("Unknown area xml: " ~ xml);
+	try {
+		scope e = XNode.parse(xml);
+		auto id = e.attr("summaryId", false);
+		sameSummary = id && id == summId;;
+		switch (e.name) {
+		case "Area": return Area.createFromNode(e, ver);
+		case "Battle": return Battle.createFromNode(e, ver);
+		case "Package": return Package.createFromNode(e, ver);
+		default: return null;
+		}
+	} catch (Exception e) {
+		return null;
 	}
 }
 
