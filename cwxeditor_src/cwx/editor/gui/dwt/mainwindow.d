@@ -758,12 +758,12 @@ public:
 				_dirWin = new DirectoryWindow(_comm, _prop, data);
 				_dock.add(_dirWin.shell, _dirWin.title, _dirWin.image, "file", false);
 			}
-			_status = new Label(dockComp, DWT.BORDER);
+			_status = new Label(dockComp, DWT.NONE);
 		} else {
 			_dataWin = new DataWindow(_comm, _prop, _win);
 			_cardWin = new MainCardWindow(_comm, _prop, _win);
 			_dirWin = new DirectoryWindow(_comm, _prop, _win);
-			_status = new Label(_win, DWT.BORDER);
+			_status = new Label(_win, DWT.NONE);
 		}
 		_status.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		{

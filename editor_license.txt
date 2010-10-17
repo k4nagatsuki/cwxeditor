@@ -50,7 +50,7 @@
 [ 静的リンクしているライブラリのライセンス ]
 
 ・DWT(http://www.dsource.org/projects/dwt/)はEclipse Public Licenseの下に
-　頒布されています。
+　頒布されています。EPL.txtか、次のURIを参照してください。
 　http://www.eclipse.org/legal/epl-v10.html
 ・dwt-win-rev.*_cwx.patchも同ライセンスの下に頒布されるものとします。
 ・Tango(http://www.dsource.org/projects/tango/)は修正BSDライセンスの下に
@@ -116,14 +116,14 @@ BGMやSEの再生のために動的リンクするライブラリをいくつか同梱してあります。
 
 ・SDL.dllは、The Simple DirectMedia Layer (SDL)の共有ライブラリです。
 　http://www.libsdl.org/
-　ライセンスはLGPL。
+　ライセンスはLGPLなので、LGPL.txtか、次のURIを参照してください。
 　http://www.gnu.org/copyleft/lesser.html
 ・SDL_mixer.dllはSDL_mixerの共有ライブラリです。
 　http://www.libsdl.org/projects/SDL_mixer/
-　これもライセンスはLGPL。
-, smpeg.dllはSMPEGの共有ライブラリです。
+　これもライセンスはLGPLです。
+・smpeg.dllはSMPEGの共有ライブラリです。
 　http://www.lokigames.com/development/smpeg.php3
-　またまたライセンスはLGPL。
+　またまたライセンスはLGPLです。
 ・libogg-0.dllとlibvorbis-0.dllとlibvorbisfile-3.dllはOggVorbisの
 　共有ライブラリです。修正BSDライセンスの下に頒布されています:
 　Copyright (c) 2002-2004 Xiph.org Foundation

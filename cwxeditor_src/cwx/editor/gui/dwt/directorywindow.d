@@ -1297,7 +1297,7 @@ public:
 		_sdl = new SDListener;
 		_sash.addDisposeListener(_sdl);
 		if (shell) {
-			_status = new Label(_win, DWT.BORDER);
+			_status = new Label(_win, DWT.NONE);
 			_status.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		}
 		if (shell) {

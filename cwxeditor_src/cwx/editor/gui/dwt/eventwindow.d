@@ -130,7 +130,7 @@ public:
 			putMenuAction(MenuID.Down, &_eview.down);
 		}
 		if (shell) {
-			_status = new Label(_win, DWT.BORDER);
+			_status = new Label(_win, DWT.NONE);
 			_status.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		}
 

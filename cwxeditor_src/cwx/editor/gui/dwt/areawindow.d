@@ -204,7 +204,7 @@ public:
 				&_eview.upCard, &_eview.downCard);
 		}
 		if (shell) {
-			_status = new Label(_win, DWT.BORDER);
+			_status = new Label(_win, DWT.NONE);
 			_status.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		}
 		__refreshTitle;

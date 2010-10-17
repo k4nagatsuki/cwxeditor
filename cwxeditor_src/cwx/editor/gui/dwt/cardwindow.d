@@ -1583,7 +1583,7 @@ public:
 		}
 		auto shell = cast(Shell) _win;
 		if (shell) {
-			_status = new Label(_comp, DWT.BORDER);
+			_status = new Label(_comp, DWT.NONE);
 			_status.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		}
 
