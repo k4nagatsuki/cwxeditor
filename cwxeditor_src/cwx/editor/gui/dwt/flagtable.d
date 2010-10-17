@@ -406,6 +406,7 @@ private:
 	Table flags;
 
 	FlagDir _dir = null;
+	string _statusLine = "";
 
 	void editFlag(FlagDir parent, Flag flag) {
 		string old = flag ? flag.path : null;
@@ -509,7 +510,17 @@ private:
 			}
 		}
 	}
-
+	class SListener : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			refreshStatusLine;
+		}
+	}
+	class DListener : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			_comm.refUseCount.remove(&__refreshUseCount);
+			_comm.replText.remove(&refresh);
+		}
+	}
 public:
 	this(Commons comm, Props prop) {
 		_comm = comm;
@@ -548,17 +559,28 @@ public:
 
 		_comm.refUseCount.add(&__refreshUseCount);
 		_comm.replText.add(&refresh);
-		flags.addDisposeListener(new class DisposeListener {
-			override void widgetDisposed(DisposeEvent e) {
-				_comm.refUseCount.remove(&__refreshUseCount);
-				_comm.replText.remove(&refresh);
-			}
-		});
+		flags.addSelectionListener(new SListener);
+		flags.addDisposeListener(new DListener);
 
 		return _comp;
 	}
 	private Composite _comp = null;
 	Control widget() {return _comp;}
+
+	private void refreshStatusLine() {
+		Flag[] fs;
+		Step[] ss;
+		if (_dir) {
+			fs = _dir.flags;
+			ss = _dir.steps;
+		}
+		Flag[] selFlags;
+		Step[] selSteps;
+		getSelectionFlagAndStep(selFlags, selSteps);
+		_statusLine = prop.msgs.flagStatus(fs, ss, selFlags, selSteps);
+		_comm.statusLine(flags, _statusLine);
+	}
+	string statusLine() {return _statusLine;}
 
 	private void __refreshUseCount() {
 		foreach (itm; flags.getItems) {
@@ -596,6 +618,7 @@ public:
 				flags.showSelection;
 			}
 		}
+		refreshStatusLine;
 	}
 
 	/// フラグ生成のダイアログボックスを開く。

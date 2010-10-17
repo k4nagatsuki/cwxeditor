@@ -22,6 +22,7 @@ import dwt.widgets.ToolItem;
 import dwt.widgets.Menu;
 import dwt.widgets.MenuItem;
 import dwt.widgets.Composite;
+import dwt.widgets.Label;
 import dwt.custom.CTabFolder;
 import dwt.custom.CTabItem;
 import dwt.layout.GridLayout;
@@ -43,6 +44,7 @@ private:
 	CTabItem _tabE;
 
 	Composite _win;
+	Label _status = null;
 	Shell _areaWin = null;
 
 	A _area;
@@ -89,6 +91,17 @@ private:
 	}
 	void __refreshTitle() {
 		_comm.setTitle(_win, title);
+	}
+	class TabSel : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			if (_tabf.getSelection is _tabE) {
+				_comm.statusLine(_win, _eview.statusLine);
+				_eview.openToolWindow;
+			} else {
+				_comm.statusLine(_win, _aview.statusLine);
+				_eview.closeToolWindow;
+			}
+		}
 	}
 public:
 	this(Commons comm, Props prop, Summary summ, Composite parent, Shell areaWin, A area) {
@@ -146,15 +159,7 @@ public:
 		}
 		_tabE = new CTabItem(_tabf, DWT.NONE);
 		_tabE.setText = _prop.msgs.eventView;
-		_tabf.addSelectionListener(new class SelectionAdapter {
-			override void widgetSelected(SelectionEvent e) {
-				if (_tabf.getSelection is _tabE) {
-					_eview.openToolWindow;
-				} else {
-					_eview.closeToolWindow;
-				}
-			}
-		});
+		_tabf.addSelectionListener(new TabSel);
 
 		if (shell) {
 			auto bar = new Menu(shell, DWT.BAR);
@@ -198,6 +203,10 @@ public:
 			_aview.setCardFuncs(&_eview.removeCard, &_eview.appendCard, &_eview.renameCard,
 				&_eview.upCard, &_eview.downCard);
 		}
+		if (shell) {
+			_status = new Label(_win, DWT.BORDER);
+			_status.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+		}
 		__refreshTitle;
 
 		if (shell) shell.pack;
@@ -223,6 +232,16 @@ public:
 
 		_eview.refresh(_tabf.getSelection is _tabE);
 	}
+
+	Image image() {
+		static if (is (A == Area)) {
+			return _prop.images.area;
+		} else static if (is (A == Battle)) {
+			return _prop.images.battle;
+		} else {
+			static assert (0);
+		}
+	}
 	string title() {
 		auto shl = cast(Shell) _win;
 		static if (is (A == Area)) {
@@ -239,15 +258,8 @@ public:
 			static assert (0);
 		}
 	}
-	Image image() {
-		static if (is (A == Area)) {
-			return _prop.images.area;
-		} else static if (is (A == Battle)) {
-			return _prop.images.battle;
-		} else {
-			static assert (0);
-		}
-	}
+	Label statusText() {return _status;}
+
 	private void saveWin() {
 		static if (is(V == AreaView)) {
 			auto winProps = _prop.var.areaWin;

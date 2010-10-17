@@ -31,7 +31,7 @@ import dwt.widgets.Control;
 import dwt.widgets.Combo;
 import dwt.widgets.Display;
 import dwt.widgets.Tree;
-alias dwt.widgets.Text.Text WText;
+import dwt.widgets.Text;
 import dwt.widgets.TreeItem;
 import dwt.widgets.Table;
 import dwt.widgets.TableColumn;
@@ -75,6 +75,7 @@ import dwt.dwthelper.utils;
 version (Windows) {
 	import std.c.windows.windows;
 	private extern (Windows) {
+		const DWORD WAIT_ABANDONED = 0x80;
 		const DWORD WAIT_TIMEOUT = 0x102;
 		const DWORD WAIT_FAILED = 0xffffffff;
 		HANDLE FindFirstChangeNotificationA(LPCSTR, BOOL, DWORD);
@@ -199,6 +200,7 @@ private:
 
 	void refreshDirs(string sel) {
 		if (!_win || _win.isDisposed) return;
+		scope (exit) refreshStatusLine;
 		if (!_summ) {
 			_dirs.removeAll;
 			return;
@@ -223,6 +225,7 @@ private:
 	}
 	void refreshFiles(string[] sels) {
 		if (!_win || _win.isDisposed) return;
+		scope (exit) refreshStatusLine;
 		if (!_summ) {
 			_files.removeAll;
 			return;
@@ -489,6 +492,11 @@ private:
 			refreshFiles([]);
 		}
 	}
+	class FilesSelection : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			refreshStatusLine;
+		}
+	}
 	class FileSelect : KeyAdapter, MouseListener {
 	private:
 		void select() {
@@ -719,6 +727,7 @@ private:
 	}
 
 	Composite _win;
+	Label _status = null;
 	SplitPane _sash;
 	Tree _dirs;
 	TreeEdit _dirsEdit;
@@ -793,7 +802,7 @@ private:
 		return to;
 	}
 	void dirsEditEnd(TreeItem itm, Control c) {
-		string text = (cast(WText) c).getText;
+		string text = (cast(Text) c).getText;
 		if (text.length == 0) return;
 		auto from = (cast(FileNameObj) itm.getData).array;
 		string frd = nabs(from);
@@ -974,6 +983,7 @@ private:
 	}
 	class DListener : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
+			_trace = false;
 			_comm.refScenarioName.remove(&__refreshTitle);
 			_comm.refScenarioPath.remove(&__refreshTitle);
 			_comm.refUseCount.remove(&__refreshUseCount);
@@ -992,7 +1002,6 @@ private:
 	private SDListener _sdl;
 	class SDListener : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
-			_trace = false;
 			_prop.var.etc.directorySashL = _sash.getWeights[0];
 			_prop.var.etc.directorySashR = _sash.getWeights[1];
 			_prop.var.etc.directorySashV = (_sash.getStyle & DWT.VERTICAL) != 0;
@@ -1002,66 +1011,101 @@ private:
 	private Thread _traceThr = null;
 	private bool _trace = false;
 	private int trace() {
-		Summary summ = _summ;
-		if (!summ) return 0;
+		Summary summ = null;
 		auto win = _win;
 		bool canDoThr() {
-			return _trace && _prop.var.etc.traceDirectories
-				&& win && !win.isDisposed && summ is _summ;
+			return _trace && _prop.var.etc.traceDirectories && win && !win.isDisposed;
 		}
-
+		void sleep() {
+			tango.core.Thread.Thread.sleep(1); // 1sec
+		}
 		version (Windows) {
-			HANDLE h;
-			DWORD fs = FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME;
-			if (GetVersion < 0x80000000) {
-				h = FindFirstChangeNotificationW(toUTF16z(summ.scenarioPath), TRUE, fs);
-			} else {
-				h = FindFirstChangeNotificationA(tosjisz(summ.scenarioPath), TRUE, fs);
+			HANDLE h = INVALID_HANDLE_VALUE;
+			bool setup() {
+				if (h != INVALID_HANDLE_VALUE) FindCloseChangeNotification(h);
+				h = INVALID_HANDLE_VALUE;
+				if (summ) {
+					DWORD fs = FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME;
+					if (GetVersion < 0x80000000) {
+						h = FindFirstChangeNotificationW(toUTF16z(summ.scenarioPath), TRUE, fs);
+					} else {
+						h = FindFirstChangeNotificationA(tosjisz(summ.scenarioPath), TRUE, fs);
+					}
+					return h != INVALID_HANDLE_VALUE;
+				}
+				return true;
 			}
-			if (h == INVALID_HANDLE_VALUE) return 0;
-			scope (exit) FindCloseChangeNotification(h);
+			scope (exit) {
+				if (h != INVALID_HANDLE_VALUE) FindCloseChangeNotification(h);
+			}
 			void next() {
 				if (!FindNextChangeNotification(h)) {
 					debugln("FindNextChangeNotification failed: ", GetLastError);
 					_trace = false;
 				}
 			}
-			while (canDoThr) {
+			while (true) {
+				if (summ !is _summ) {
+					summ = _summ;
+					if (!canDoThr) break;
+					if (!setup) {
+						debugln("FindFirstChangeNotification failed: ", GetLastError);
+						break;
+					}
+				}
+				if (!canDoThr) break;
+				if (!summ) {
+					sleep;
+					continue;
+				}
 				switch (WaitForSingleObject(h, 1000)) {
 				case WAIT_TIMEOUT: {
 					next;
 				} break;
-				case WAIT_FAILED: {
-					debugln("WaitForSingleObject failed: ", GetLastError);
+				case WAIT_ABANDONED: {
 					_trace = false;
-				} break;
-				default: {
+					break;
+				}
+				case WAIT_OBJECT_0: {
 					if (!canDoThr) break;
 					_display.syncExec(new class Runnable {
 						override void run() {__refresh;}
 					});
 					next;
 				} break;
+				case WAIT_FAILED: {
+					debugln("WaitForSingleObject failed: ", GetLastError);
+					_trace = false;
+				} break;
+				default: break;
 				}
 			}
 		} else {
 			d_time[string] dirTimes;
-			void refreshDirTimes() {
+			void setup() {
 				d_time[string] times;
-				void refr(string path) {
-					if (summ.isSystemFile(path)) return;
-					times[path] = lastModified(path);
-					foreach (sub; clistdir(path)) {
-						sub = std.path.join(path, sub);
-						if (isdir(sub)) refr(sub);
+				if (summ) {
+					void refr(string path) {
+						if (summ.isSystemFile(path)) return;
+						times[path] = lastModified(path);
+						foreach (sub; clistdir(path)) {
+							sub = std.path.join(path, sub);
+							if (isdir(sub)) refr(sub);
+						}
 					}
+					refr(nabs(summ.scenarioPath));
 				}
-				refr(nabs(summ.scenarioPath));
 				dirTimes = times;
 			}
-			refreshDirTimes;
-			while (canDoThr) {
-				tango.core.Thread.Thread.sleep(1); // 1 sec
+			while (true) {
+				if (summ !is _summ) {
+					summ = _summ;
+					if (!canDoThr) break;
+					setup;
+				}
+				if (!canDoThr) break;
+				sleep;
+				if (!summ) continue;
 				if (!canDoThr) break;
 				bool chk(string path) {
 					if (summ.isSystemFile(path)) return false;
@@ -1076,11 +1120,14 @@ private:
 					_display.syncExec(new class Runnable {
 						override void run() {__refresh;}
 					});
-					refreshDirTimes;
+					setup;
 				}
 			}
 		}
 		return 0;
+	}
+	void refreshStatusLine() {
+		_comm.statusLine(_win, _prop.msgs.dirStatus(_files.getItemCount, selFiles));
 	}
 public:
 	this(Commons comm, Props prop, Composite parent) {
@@ -1199,6 +1246,7 @@ public:
 		fComp.setLayout = new FillLayout;
 		_files = new Table(fComp, DWT.MULTI | DWT.FULL_SELECTION | DWT.BORDER | DWT.VIRTUAL);
 		{
+			_files.addSelectionListener(new FilesSelection);
 			_files.setHeaderVisible = true;
 			auto namec = new TableColumn(_files, DWT.NONE);
 			namec.setText = _prop.msgs.fileName;
@@ -1249,6 +1297,10 @@ public:
 		_sdl = new SDListener;
 		_sash.addDisposeListener(_sdl);
 		if (shell) {
+			_status = new Label(_win, DWT.BORDER);
+			_status.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+		}
+		if (shell) {
 			shell.pack;
 			scope wp = shell.computeSize(DWT.DEFAULT, DWT.DEFAULT);
 			int width = _prop.var.dirWin.width == DWT.DEFAULT
@@ -1265,7 +1317,7 @@ public:
 			shell.setMinimized = _prop.var.dirWin.minimized;
 			shell.addControlListener(new SCListener);
 		}
-		startTrace;
+		if (_prop.var.etc.traceDirectories) startTrace;
 	}
 	void startTrace() {
 		if (!_prop.var.etc.traceDirectories) return;
@@ -1311,6 +1363,7 @@ public:
 		}
 		return _prop.msgs.dirTabName(_summ);
 	}
+	Label statusText() {return _status;}
 
 	void replace() {
 		if (!_summ) return;
@@ -1333,7 +1386,6 @@ public:
 			refreshFiles(null);
 			refCheckPaths;
 			__refreshTitle;
-			startTrace;
 		}
 	}
 

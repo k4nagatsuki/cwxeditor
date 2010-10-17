@@ -21,6 +21,8 @@ import dwt.custom.CTabFolder;
 import dwt.custom.CTabItem;
 import dwt.custom.CTabFolderListener;
 import dwt.custom.CTabFolderEvent;
+import dwt.events.MouseAdapter;
+import dwt.events.MouseEvent;
 import dwt.events.SelectionAdapter;
 import dwt.events.SelectionEvent;
 import dwt.events.PaintListener;
@@ -139,7 +141,7 @@ class DockingFolder(TabF, int Style) {
 	/// 移動によって生成される新規ペインの名前を指定したい場合に
 	/// その名前を返すdelegate。
 	/// ""を返すと自動的に生成される。
-	string delegate (string ctrlKey) newPaneName = null;
+	string delegate (string ctrlKey, string basePane, Dir dir) newPaneName = null;
 
 	private string newTabfKey() {
 		string key;
@@ -323,13 +325,14 @@ class DockingFolder(TabF, int Style) {
 		}
 		return r;
 	}
-	/// Controlを閉じる。該当するControlが無かった場合はfalseを返す。
+	/// Controlを閉じる。閉じる事が可能な該当するControlが無かった場合はfalseを返す。
 	bool close(string key) {
 		auto t = tab(key);
 		if (t) {
-			close(t);
-			t.dispose;
-			return true;
+			if (close(t)) {
+				t.dispose;
+				return true;
+			}
 		}
 		return false;
 	}
@@ -347,6 +350,7 @@ class DockingFolder(TabF, int Style) {
 			tabf.addCTabFolderListener(new CTFL);
 		}
 		tabf.addSelectionListener(new SelTab);
+		tabf.addMouseListener(new ClickTab);
 		auto drag = new DragSource(tabf, DND.DROP_MOVE);
 		drag.setTransfer = [TextTransfer.getInstance];
 		drag.addDragListener(new DSL(tabf));
@@ -370,7 +374,7 @@ class DockingFolder(TabF, int Style) {
 			close(cast(Tab) e.item);
 		}
 	}
-	private void close(Tab tab) {
+	private bool close(Tab tab) {
 		auto tabf = tab.getParent;
 		auto ctrlKey = keyFromCtrl(tab.getControl);
 		_ctrls.remove(tab.getControl);
@@ -380,7 +384,9 @@ class DockingFolder(TabF, int Style) {
 		if (vanish(key) && tabf.getItemCount == 1 && _area.getChildren[0] !is tabf) {
 			removeTabf(tabf);
 			_area.layout(true);
+			return true;
 		}
+		return false;
 	}
 	/// Controlツリーの再構築。
 	private void reconstruct() {
@@ -631,13 +637,21 @@ class DockingFolder(TabF, int Style) {
 				if (dropTarg is _dragItm.getParent && dropTarg.getItemCount == 1) {
 					return DND.DROP_NONE;
 				}
-				string key = "";
+				string newKey = "";
 				if (newPaneName) {
 					auto ctrlKey = _ctrls[_dragItm.getControl];
-					key = newPaneName(ctrlKey);
+					Dir dir;
+					switch (_dropPos) {
+					case DPos.N: dir = Dir.N; break;
+					case DPos.E: dir = Dir.E; break;
+					case DPos.S: dir = Dir.S; break;
+					case DPos.W: dir = Dir.W; break;
+					default: assert (0);
+					}
+					newKey = newPaneName(ctrlKey, key(dropTarg), dir);
 				}
-				if (!key.length) key = newTabfKey;
-				auto tabf = newSash(dropTarg, style, before, 1, 1, key);
+				if (!newKey.length) newKey = newTabfKey;
+				auto tabf = newSash(dropTarg, style, before, 1, 1, newKey);
 				newTab(tabf, -1);
 				tabf.setFocus;
 				return DND.DROP_MOVE;
@@ -667,6 +681,12 @@ class DockingFolder(TabF, int Style) {
 		override void widgetSelected(SelectionEvent e) {
 			auto tabf = cast(TabF) e.widget;
 			if (tabf.isFocusControl) selectTab(tabf);
+		}
+	}
+	private class ClickTab : MouseAdapter {
+		override void mouseDown(MouseEvent e) {
+			auto tabf = cast(TabF) e.widget;
+			tabf.setFocus;
 		}
 	}
 	private class FocusL : Listener {

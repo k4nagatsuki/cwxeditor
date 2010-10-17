@@ -24,6 +24,7 @@ import cwx.editor.gui.dwt.dockingfolder;
 import dwt.widgets.Shell;
 import dwt.widgets.Composite;
 import dwt.widgets.Control;
+import dwt.widgets.Label;
 import dwt.events.DisposeListener;
 import dwt.events.DisposeEvent;
 import dwt.graphics.Image;
@@ -85,6 +86,7 @@ abstract class TopLevelPanel {
 	abstract string title();
 	abstract Image image();
 	abstract Composite shell();
+	protected abstract Label statusText();
 
 	private void delegate()[MenuID] _act;
 	void putMenuAction(MenuID menuID, void delegate() dlg) {
@@ -102,6 +104,13 @@ abstract class TopLevelPanel {
 	bool delegate() menuChecked(MenuID menuID) {
 		auto p = menuID in _chk;
 		return p ? *p : null;
+	}
+	private string _status = "";
+	string statusLine() {return _status;}
+	void statusLine(string statusLine) {
+		_status = statusLine;
+		auto t = statusText;
+		if (t) t.setText = std.string.replace(statusLine, "&", "&&");
 	}
 }
 class TLPData {
@@ -308,7 +317,6 @@ class Commons {
 		}
 	}
 	private void openMain(string Key, string Pane, Dir D, Win)(Win win) {
-		auto shl = cast(Shell) win.shell;
 		show(win.shell, Pane, D, Key, delegate TopLevelPanel(Composite p) {
 			win.reconstruct(p);
 			return win;
@@ -360,6 +368,20 @@ class Commons {
 		}
 	}
 	bool singleWindowMode() {return _main.dock !is null;}
+
+	void statusLine(Control base, string status) {
+		if (!_main) return;
+		TLPData data = null;
+		while (base && (data = cast(TLPData) base.getData) is null) {
+			base = base.getParent;
+		}
+		if (data) {
+			data.tlp.statusLine = status;
+		}
+		if (singleWindowMode) {
+			_main.statusLine = status;
+		}
+	}
 
 	bool openCWXPath(string path) {
 		return _main.openCWXPath(path);

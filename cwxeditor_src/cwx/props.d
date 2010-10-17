@@ -70,8 +70,11 @@ public:
 	string fileCopyError(string path) {return path ~ "のコピー中にエラーが発生しました。";}
 	string reloadError(string path) {return path ~ "の再読込中にエラーが発生しました。";}
 	string loadProgress(string fname, uint max, uint worked) {
-		return to!(string)(rndtol(cast(real) worked / max * 100.0)) ~ "% 完了 - " ~ getBaseName(fname) ~ "を展開中 - CWXEditor";
+		return to!(string)(rndtol(cast(real) worked / max * 100.0)) ~ "% 完了 - " ~ getBaseName(fname) ~ "を展開中";
 	}
+	string loading(string fname) {return fname ~ "の読込みを開始";}
+	string loaded(string sName) {return sName ~ "の読込みを完了";}
+	string loaded(size_t count) {return format("%d件の読込みを完了", count);}
 	string cwxPathOpenError(string path) {return "パス [" ~ path ~ "] を開けません。";}
 	string filePathOpenError(string path) {return "パス [" ~ path ~ "] を開けません。";}
 
@@ -822,6 +825,7 @@ public:
 	string saveError(string name) {return name ~ "の保存に失敗しました。";}
 	string dlgTitUnzip() {return "圧縮ファイルの展開 - CWXEditor";}
 	string unzip(string name) {return name ~ "を展開しています……";}
+	string loadErrorStatus() {return "シナリオの読込みに失敗";}
 
 	/// データウィンドウ
 	string dataTabName(Summary summ) {
@@ -844,6 +848,18 @@ public:
 			return "エリア";
 		}
 	}
+	string areaStatus(Area[] as, Battle[] bs, Package[] ps, AbstractArea sel) {
+		string[] l;
+		if (as.length) l ~= format("%d件のエリア", as.length);
+		if (bs.length) l ~= format("%d件のバトル", bs.length);
+		if (ps.length) l ~= format("%d件のパッケージ", ps.length);
+		string r;
+		foreach (i, s; l) {
+			if (i > 0) r ~= " ";
+			r ~= s;
+		}
+		return r;
+	}
 	string flagTabName(Summary summ) {
 		return "状態変数";
 	}
@@ -853,6 +869,22 @@ public:
 		} else {
 			return "状態変数";
 		}
+	}
+	string flagStatus(Flag[] flags, Step[] steps, Flag[] selFlags, Step[] selSteps) {
+		string r;
+		if (flags.length && steps.length) {
+			r = format("%d個のフラグと%d個のステップ", flags.length, steps.length);
+		} else if (flags.length) {
+			r = format("%d個のフラグ", flags.length);
+		} else if (steps.length) {
+			r = format("%d個のステップ", steps.length);
+		} else {
+			r = "";
+		}
+		if (selFlags.length || selSteps.length) {
+			r ~= format(" (%d個を選択)", selFlags.length + selSteps.length);
+		}
+		return r;
 	}
 	string scenarioView() {return "シナリオビューリスト";}
 	string variableView() {return "状態変数インスペクタ";}
@@ -984,6 +1016,22 @@ public:
 	string width() {return "幅";}
 	string height() {return "高";}
 	string scale() {return "拡大率";}
+
+	string areaViewStatus(AbstractSpCard[] cards, BgImage[] backs) {
+		if (cards.length == 0 && backs.length == 0) {
+			return "";
+		} else if (cards.length == 1 && backs.length == 0) {
+			return cards[0].flag == "" ? "フラグ指定無し" : "フラグ = " ~ cards[0].flag;
+		} else if (cards.length == 0 && backs.length == 1) {
+			return backs[0].flag == "" ? "フラグ指定無し" : "フラグ = " ~ backs[0].flag;
+		} else if (cards.length > 0 && backs.length == 0) {
+			return to!(string)(cards.length) ~ "枚のカード";
+		} else if (cards.length == 0 && backs.length > 0) {
+			return to!(string)(backs.length) ~ "枚の背景";
+		} else {
+			return to!(string)(cards.length) ~ "枚のカード " ~ to!(string)(backs.length) ~ "枚の背景";
+		}
+	}
 
 	private string __viewNameTab(ulong id, string name) {
 		return to!(string)(id) ~ "." ~ name;
@@ -1509,6 +1557,19 @@ public:
 	}
 	string dlgTitAddScenario() {return "インポート元の選択";}
 
+	string cardStatus(C)(size_t cardCount, C[] selCards) {
+		string r = to!(string)(cardCount) ~ "枚のカード";
+		if (selCards.length == 1) {
+			r ~= " (ID = " ~ to!(string)(selCards[0].id) ~ ")";
+		} else if (selCards.length) {
+			r ~= " (" ~ to!(string)(selCards.length) ~ "枚を選択中)";
+		}
+		return r;
+	}
+	string handCardStatus(C)(size_t cardCount, C[] selCards, int max) {
+		return to!(string)(cardCount) ~ "枚のカード (有効枚数 = " ~ to!(string)(max) ~ ")";
+	}
+
 	string ttShowCardLife() {return "レベルとライフを表示";}
 	string menuShowCardLife() {return ttShowCardLife ~ "(&L)";}
 	string ttShowCardList() {return "カード表示";}
@@ -1542,10 +1603,6 @@ public:
 	string item() {return "アイテム";}
 	string beast() {return "召喚獣";}
 	string info() {return "情報";}
-	string cardListToolTip(int count) {return to!(string)(count) ~ "枚";}
-	string handCardListToolTip(int count, int max) {
-		return cardListToolTip(count) ~ " (有効枚数 = " ~ to!(string)(max) ~ ")";
-	}
 
 	string cardId() {return "ID";}
 	string cardName() {return "名称";}
@@ -1701,6 +1758,13 @@ public:
 		} else {
 			return "ファイル";
 		}
+	}
+	string dirStatus(uint fileCount, string[] selFiles) {
+		auto r = to!(string)(fileCount) ~ "個のファイル";
+		if (selFiles.length) {
+			r ~= " (" ~ to!(string)(selFiles.length) ~ "個を選択中)";
+		}
+		return r;
 	}
 	string fileName() {return "ファイル名";}
 	string fileExt() {return "拡張子";}

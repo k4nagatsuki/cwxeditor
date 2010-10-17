@@ -40,6 +40,7 @@ import dwt.widgets.MessageBox;
 import dwt.widgets.Table;
 import dwt.widgets.TableColumn;
 import dwt.widgets.TableItem;
+import dwt.widgets.Label;
 import dwt.graphics.Image;
 import dwt.graphics.ImageData;
 import dwt.layout.GridData;
@@ -106,7 +107,28 @@ private:
 	static if (!EditMode) {
 		ToCardOwner _toc;
 	}
+	string _statusLine = "";
 
+	string statusLine() {return _statusLine;}
+	void refreshStatusLine() {
+		if (!_tbl || !_list || !_comm) return;
+		if (_owner) {
+			auto c = cards.length;
+			auto s = __selections;
+			static if (is (C == SkillCard) && is (CardOwner == CastCard)) {
+				_statusLine = _prop.msgs.handCardStatus(c, s, _prop.looks.skillCardMaxNum(owner.level));
+			} else static if (is (C == ItemCard) && is (CardOwner == CastCard)) {
+				_statusLine = _prop.msgs.handCardStatus(c, s, _prop.looks.itemCardMaxNum(owner.level));
+			} else static if (is (C == BeastCard) && is (CardOwner == CastCard)) {
+				_statusLine = _prop.msgs.handCardStatus(c, s, _prop.looks.beastCardMaxNum(owner.level));
+			} else {
+				_statusLine = _prop.msgs.cardStatus(c, s);
+			}
+		} else {
+			_statusLine = "";
+		}
+		_comm.statusLine(_tbl, _statusLine);
+	}
 	void __refreshR(string from, string to) {
 		__refresh;
 	}
@@ -132,6 +154,7 @@ private:
 				_list.scroll(sel);
 			}
 		}
+		refreshStatusLine;
 	}
 	void select(int index) {
 		if (_viewMode == CViewMode.TABLE) {
@@ -141,6 +164,7 @@ private:
 			_list.select(index);
 			_list.scroll(index);
 		}
+		refreshStatusLine;
 	}
 	void createTableItem(C c, int index = -1) {
 		auto itm = index >= 0
@@ -190,6 +214,7 @@ private:
 						addFromNode(node, LATEST_VERSION);
 					} catch {}
 				}
+				refreshStatusLine;
 			}
 		}
 		override bool canDoTCPD() {
@@ -229,6 +254,7 @@ private:
 		} else {
 			static assert (0);
 		}
+		refreshStatusLine;
 	}
 	void delCard(C c) {
 		static if (is (C == CastCard)) {
@@ -257,6 +283,7 @@ private:
 		static if (is (CardOwner : CastCard) && is (C : BeastCard)) {
 			_comm.refCast.call(_owner);
 		}
+		refreshStatusLine;
 	}
 	class CT : TCPD {
 		Table widget() {
@@ -319,6 +346,7 @@ private:
 							index++;
 						}
 						insert(adds[$ - 1], true);
+						refreshStatusLine;
 					} else {
 						e.detail = DND.DROP_NONE;
 						// 他のリストからのコピー
@@ -338,6 +366,7 @@ private:
 							}
 							insert(adds[$ - 1], false);
 							_comm.refUseCount.call;
+							refreshStatusLine;
 						}
 					}
 				} catch (Exception e) {
@@ -370,6 +399,7 @@ private:
 				int index = _list.indexOf(c);
 				_list.select(index);
 				_list.scroll(index);
+				refreshStatusLine;
 			}
 		}
 		class CTDTListener : DropTargetAdapter {
@@ -485,17 +515,6 @@ private:
 			}
 		}
 	}
-	string cardToolTip(C c) {
-		static if (is (C == SkillCard) && is (CardOwner == CastCard)) {
-			return __handsToolTip(c, __cards.length, &_prop.looks.skillCardMaxNum);
-		} else static if (is (C == ItemCard) && is (CardOwner == CastCard)) {
-			return __handsToolTip(c, __cards.length, &_prop.looks.itemCardMaxNum);
-		} else static if (is (C == BeastCard) && is (CardOwner == CastCard)) {
-			return __handsToolTip(c, __cards.length, &_prop.looks.beastCardMaxNum);
-		} else {
-			return __toolTip(c, __cards.length);
-		}
-	}
 	static if (EditMode) {
 		static if (is (C == CastCard)) {
 			void editHand() {
@@ -548,6 +567,7 @@ private:
 		} else {
 			_list.deselectAll;
 		}
+		refreshStatusLine;
 	}
 	void __refTbl() {
 		int index = _list.selection;
@@ -556,24 +576,7 @@ private:
 			_tbl.setSelection = [index];
 			_tbl.showSelection;
 		}
-	}
-	string __toolTip(C c, int count) {
-		if (c) {
-			return null;
-		} else {
-			return _prop.msgs.cardListToolTip(count);
-		}
-	}
-	static if (is (CardOwner == CastCard)) {
-		string __handsToolTip(C c, int count, uint delegate(uint) max) {
-			if (c) {
-				return null;
-			} else if (owner) {
-				return _prop.msgs.handCardListToolTip(count, max(owner.level));
-			} else {
-				return "";
-			}
-		}
+		refreshStatusLine;
 	}
 	void toNode(ref XNode sn, C[] sels) {
 		sn.newAttr("summId", ownerId);
@@ -659,11 +662,18 @@ private:
 			}
 		}
 	}
+	private class SelChanged : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			refreshStatusLine;
+		}
+	}
 	void createCardList(Composite parent) {
 		_list = new CardList!(C)(parent, DWT.V_SCROLL | (EditMode ? DWT.SINGLE : DWT.MULTI) | DWT.BORDER);
 		_list.setLayoutValues(_prop.var.etc.cardsMarginX, _prop.var.etc.cardsSpaceX,
 			_prop.var.etc.cardsMarginY, _prop.var.etc.cardsSpaceY, _prop.var.etc.cardsDefaultWrap);
+		_list.selectChanged(&refreshStatusLine);
 		_tbl = new Table(parent, DWT.FULL_SELECTION | (EditMode ? DWT.SINGLE : DWT.MULTI) | DWT.BORDER);
+		_tbl.addSelectionListener(new SelChanged);
 		_tbl.setHeaderVisible = true;
 		auto idCol = new TableColumn(_tbl, DWT.NONE);
 		idCol.setText = _prop.msgs.cardId;
@@ -689,7 +699,6 @@ private:
 		_tcpd ~= cl_;
 		int w = _prop.looks.cardSize.width + matPad.e + matPad.w;
 		int h = _prop.looks.cardSize.height + matPad.n + matPad.s;
-		_list.setToolTip = &cardToolTip;
 		_list.setCardSize(w, h);
 
 		auto ct_ = new CT;
@@ -793,6 +802,7 @@ private:
 		}
 		_list.setMenu = pop;
 		_tbl.setMenu = pop;
+		refreshStatusLine;
 	}
 public:
 	static if (!EditMode) {
@@ -843,6 +853,7 @@ public:
 		if (_owner) {
 			__refresh;
 		}
+		refreshStatusLine;
 	}
 	static if (EditMode && is (C == CastCard)) {
 		private void __refCast(CastCard c) {
@@ -948,6 +959,7 @@ public:
 				_list.select(_list.count - 1);
 				_list.scroll(_list.count - 1);
 			}
+			refreshStatusLine;
 		}
 	} else {
 		private void delegate(ref XNode, string) _addc;
@@ -1089,6 +1101,8 @@ private:
 
 	Props _prop;
 	Composite _win;
+	Composite _comp;
+	Label _status = null;
 	CTabFolder _tabf;
 	PCardOwner _summ;
 	CardOwner _owner;
@@ -1143,7 +1157,7 @@ private:
 		}
 		public void addScenario() {
 			if (!_summ) return;
-			AC.openScenario(_comm, _prop, _win, _summ, _owner, &__addScenario);
+			AC.openScenario(_comm, _prop, _win, &setStatusLine, _summ, _owner, &__addScenario);
 		}
 		class DropScenario : DropTargetAdapter {
 			override void dragEnter(DropTargetEvent e){
@@ -1152,7 +1166,7 @@ private:
 			override void drop(DropTargetEvent e) {
 				auto arr = cast(FileNames) e.data;
 				if (arr && arr.array.length > 0) {
-					AC.openScenario(_comm, _prop, _win, _summ, _owner, arr.array, &__addScenario);
+					AC.openScenario(_comm, _prop, _win, &setStatusLine, _summ, _owner, arr.array, &__addScenario);
 				}
 			}
 		}
@@ -1178,6 +1192,9 @@ private:
 			}
 		}
 	}
+	void setStatusLine(string status) {
+		_comm.statusLine(_win, status);
+	}
 public:
 	static if (EditMode) {
 		static if (is (CardOwner == Summary)) {
@@ -1198,6 +1215,7 @@ public:
 			}
 		}
 		void construct(Commons comm, Props prop, PCardOwner summ, Composite parent) {
+			_viewMode = CViewMode.INIT;
 			construct1(comm, prop, parent);
 			static if (is (CardOwner == Summary)) {
 				auto shell = cast(Shell) _win;
@@ -1286,8 +1304,8 @@ public:
 		}
 		_win.setData = new TLPData(this);
 		_win.setLayout = new FillLayout;
-		auto comp = new Composite(_win, DWT.NONE);
-		comp.setLayout = windowGridLayout(1, true);
+		_comp = new Composite(_win, DWT.NONE);
+		_comp.setLayout = windowGridLayout(1, true);
 		if (shell) {
 			{
 				auto bar = new Menu(shell, DWT.BAR);
@@ -1332,7 +1350,7 @@ public:
 				shell.setMenuBar = bar;
 			}
 			{
-				auto bar = new ToolBar(comp, DWT.FLAT);
+				auto bar = new ToolBar(_comp, DWT.FLAT);
 				static if (EditMode) {
 					static if (is (CardOwner == Summary)) {
 						createToolItem(bar, prop.msgs.ttAddScenario, prop.images.menuAddScenario, &addScenario);
@@ -1374,13 +1392,19 @@ public:
 			putMenuChecked(MenuID.ShowCardList, &showCardList, &isViewList);
 			putMenuChecked(MenuID.ShowCardTable, &showCardTable, &isViewTable);
 		}
-		_tabf = new CTabFolder(comp, DWT.BORDER);
+		_tabf = new CTabFolder(_comp, DWT.BORDER);
 		_tabf.setLayoutData = new GridData(GridData.FILL_BOTH);
+		_tabf.addSelectionListener(new SelChanged);
 
 		static if (EditMode && is (CardOwner == Summary)) {
-			auto drop = new DropTarget(comp, DND.DROP_DEFAULT | DND.DROP_LINK);
+			auto drop = new DropTarget(_comp, DND.DROP_DEFAULT | DND.DROP_LINK);
 			drop.setTransfer([FileTransfer.getInstance]);
 			drop.addDropListener(new DropScenario);
+		}
+	}
+	private class SelChanged : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			refreshStatusLine;
 		}
 	}
 	void showCardLife() {
@@ -1404,6 +1428,7 @@ public:
 				_prop.var.etc.cardLife = true;
 				_prop.var.etc.cardDetails = false;
 			}
+			refreshStatusLine;
 		}
 	}
 	void showCardList() {
@@ -1427,6 +1452,7 @@ public:
 				_prop.var.etc.cardLife = false;
 				_prop.var.etc.cardDetails = false;
 			}
+			refreshStatusLine;
 		}
 	}
 	void showCardTable() {
@@ -1450,6 +1476,7 @@ public:
 				_prop.var.etc.cardLife = false;
 				_prop.var.etc.cardDetails = true;
 			}
+			refreshStatusLine;
 		}
 	}
 	void createCast() {
@@ -1554,13 +1581,18 @@ public:
 			_tcpd ~= f;
 			addTable(f.cardTable);
 		}
+		auto shell = cast(Shell) _win;
+		if (shell) {
+			_status = new Label(_comp, DWT.BORDER);
+			_status.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+		}
+
 		_tabf.setSelection = 0;
 		if (_prop.var.etc.cardLife) {
 			showCardLife;
 		} else {
 			showCardList;
 		}
-		auto shell = cast(Shell) _win;
 		if (shell) {
 			scope wp = shell.computeSize(DWT.DEFAULT, DWT.DEFAULT);
 			int width = _prop.var.cardWin.width == DWT.DEFAULT ? wp.x : _prop.var.cardWin.width;
@@ -1632,6 +1664,9 @@ public:
 		}
 	}
 
+	Image image() {
+		return mixin ("_prop.images." ~ ShellImage);
+	}
 	string title() {
 		auto shl = cast(Shell) _win;
 		if (shl) {
@@ -1639,9 +1674,8 @@ public:
 		}
 		return mixin ("_prop.msgs." ~ Title);
 	}
-	Image image() {
-		return mixin ("_prop.images." ~ ShellImage);
-	}
+	Label statusText() {return _status;}
+
 	void refreshTitle() {
 		if (_win && !_win.isDisposed) _comm.setTitle(shell, title);
 	}
@@ -1683,6 +1717,16 @@ public:
 		void setAdd(int Index)(void delegate(ref XNode node, string) addc) {
 			_pane[Index].setAddCard = addc;
 		}
+	}
+	private void refreshStatusLine() {
+		int i = _tabf.getSelectionIndex;
+		string s = "";
+		static if (UseCast) if (i == CAST) s = _pane[CAST].statusLine;
+		static if (UseSkill) if (i == SKILL) s = _pane[SKILL].statusLine;
+		static if (UseItem) if (i == ITEM) s = _pane[ITEM].statusLine;
+		static if (UseBeast) if (i == BEAST) s = _pane[BEAST].statusLine;
+		static if (UseInfo) if (i == INFO) s = _pane[INFO].statusLine;
+		_comm.statusLine(_tabf, s);
 	}
 
 	override {
@@ -1873,16 +1917,16 @@ private:
 		}
 	}
 public:
-	static void openScenario(Commons comm, Props prop,
-			Composite parent, Summary summ, ToCardOwner toc, void delegate(Object[]) addScenario) {
+	static void openScenario(Commons comm, Props prop, Composite parent, void delegate(string) status,
+			Summary summ, ToCardOwner toc, void delegate(Object[]) addScenario) {
 		parent = pane(parent);
 		auto addS = new AddS(comm, prop, parent, toc, addScenario);
-		loadScenarios!(CC)(prop, parent.getShell, false, prop.msgs.dlgTitAddScenario, &addS.addS);
+		loadScenarios!(CC)(prop, parent.getShell, status, false, prop.msgs.dlgTitAddScenario, &addS.addS);
 	}
-	static void openScenario(Commons comm, Props prop,
-			Composite parent, Summary summ, ToCardOwner toc, string[] files, void delegate(Object[]) addScenario) {
+	static void openScenario(Commons comm, Props prop, Composite parent, void delegate(string) status,
+			Summary summ, ToCardOwner toc, string[] files, void delegate(Object[]) addScenario) {
 		parent = pane(parent);
 		auto addS = new AddS(comm, prop, parent, toc, addScenario);
-		loadScenariosFromFile!(CC)(prop, parent.getShell, false, files, &addS.addS);
+		loadScenariosFromFile!(CC)(prop, parent.getShell, status, false, files, &addS.addS);
 	}
 }

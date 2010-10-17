@@ -108,6 +108,8 @@ public:
 		return _comp;
 	}
 
+	string statusLine() {return _flags.statusLine;}
+
 	void changeVHSide() {
 		_sash.removeDisposeListener(_sdl);
 		_sash = .changeVHSide(_sash);

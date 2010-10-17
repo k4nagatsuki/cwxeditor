@@ -100,9 +100,10 @@ private:
 
 	void delegate(size_t[]) _forceSel;
 	void delegate() _refreshTopStart;
-	void delegate(string) _setStatusLine;
 
 	Cursor[] _cursors;
+
+	string _statusLine;
 
 	void autoOpen() {
 		_autoOpen = _autoOpenTI.getSelection;
@@ -1101,10 +1102,11 @@ private:
 	void refreshStatusLine() {
 		auto itm = selection;
 		if (itm) {
-			_setStatusLine(_prop.msgs.contentText(cast(Content) itm.getData, _summ));
+			_statusLine = _prop.msgs.contentText(cast(Content) itm.getData, _summ);
 		} else {
-			_setStatusLine("");
+			_statusLine = "";
 		}
+		_comm.statusLine(_tree, _statusLine);
 	}
 	class SListener : SelectionAdapter {
 		public override void widgetSelected(SelectionEvent e) {
@@ -1363,15 +1365,13 @@ private:
 public:
 	this(Commons comm, Props prop, Summary summ, Composite parent, UndoManager undo,
 			void delegate(size_t[]) forceSel,
-			void delegate() refreshTopStart,
-			void delegate(string) setStatusLine) {
+			void delegate() refreshTopStart) {
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
 		_undo = undo;
 		_forceSel = forceSel;
 		_refreshTopStart = refreshTopStart;
-		_setStatusLine = setStatusLine;
 
 		_comp = new Composite(parent, DWT.NONE);
 		_comp.setLayout = zeroGridLayout(1, false);
@@ -1626,6 +1626,8 @@ public:
 
 	Control widget() {return _comp;}
 
+	string statusLine() {return _statusLine;}
+
 	void undo() {_undo.undo;}
 	void redo() {_undo.redo;}
 	debug {
@@ -1702,7 +1704,8 @@ public:
 	}
 
 	void refresh(EventTree et) {
-		_setStatusLine("");
+		_comm.statusLine(_tree, "");
+		_statusLine = "";
 		if (_et !is et) {
 			_et = et;
 			_tree.setRedraw = false;

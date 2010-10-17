@@ -27,6 +27,7 @@ import dwt.widgets.CoolItem;
 import dwt.widgets.ToolBar;
 import dwt.widgets.ToolItem;
 import dwt.widgets.Shell;
+import dwt.widgets.Label;
 import dwt.widgets.Menu;
 import dwt.widgets.MenuItem;
 import dwt.custom.CTabFolder;
@@ -38,6 +39,8 @@ import dwt.layout.GridData;
 import dwt.events.KeyListener;
 import dwt.events.ShellAdapter;
 import dwt.events.ShellEvent;
+import dwt.events.SelectionAdapter;
+import dwt.events.SelectionEvent;
 import dwt.events.DisposeListener;
 import dwt.events.DisposeEvent;
 import dwt.events.ControlAdapter;
@@ -47,6 +50,7 @@ class AbstractDataWindow(bool UseArea, bool UseFlag) : TopLevelPanel, TCPD {
 private:
 	Commons _comm;
 	Composite _win;
+	Label _status = null;
 	static if (UseArea) {
 		AreaTable _areas;
 	}
@@ -66,6 +70,18 @@ private:
 
 	void saveScenario() {
 		_comm.save.call(_win.getShell);
+	}
+	static if (UseArea && UseFlag) {
+		class SListener : SelectionAdapter {
+			override void widgetSelected(SelectionEvent e) {
+				if (tabf.getSelection is tabA) {
+					_comm.statusLine(tabf, _areas.statusLine);
+				} else {
+					assert (tabf.getSelection is tabF);
+					_comm.statusLine(tabf, _flags.statusLine);
+				}
+			}
+		}
 	}
 public:
 	this(Commons comm, Props prop, Composite parent) {
@@ -188,6 +204,7 @@ public:
 			static if (UseArea && UseFlag) {
 				tabf = new CTabFolder(_win, DWT.BORDER);
 				tabf.setLayoutData = new GridData(GridData.FILL_BOTH);
+				tabf.addSelectionListener(new SListener);
 
 				_flags = new FlagsPane(_comm, _prop, tabf);
 				_flags.setupTLP(this);
@@ -214,6 +231,10 @@ public:
 				_tcpd ~= _flags.flags;
 				_tcpd ~= _flags.dirs;
 			} else static assert (0);
+		}
+		if (shell) {
+			_status = new Label(_win, DWT.BORDER);
+			_status.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		}
 		static if (UseArea && UseFlag) {
 			if (shell) {
@@ -365,6 +386,8 @@ public:
 			return _prop.msgs.flagTabName(_summ);
 		} else static assert (0);
 	}
+	Label statusText() {return _status;}
+
 	private void __refreshTitle() {
 		_comm.setTitle(_win, title);
 	}

@@ -1074,6 +1074,7 @@ private:
 					_ySpn.setSelection = y == spnValue!("a.y", BgImage, int)(_editB.keys, 0) ? y : 0;
 				}
 			}
+			statusLine = _prop.msgs.areaViewStatus(cast(AbstractSpCard[]) _editC.keys, _editB.keys);
 		} else static if (UseCards) {
 			bool enbl = _editC.length > 0;
 			_xSpn.setEnabled = enbl;
@@ -1099,6 +1100,7 @@ private:
 					_escTMenu.setSelection = spnValue!("a.escape", C, bool)(_editC.keys, false);
 				}
 			}
+			statusLine = _prop.msgs.areaViewStatus(cast(AbstractSpCard[]) _editC.keys, cast(BgImage[]) []);
 		} else static if (UseBacks) {
 			bool enbl = _editB.length > 0;
 			_xSpn.setEnabled = enbl;
@@ -1120,6 +1122,7 @@ private:
 				_hSpn.setSelection = spnValue!("a.height", BgImage, int)(_editB.keys, 0);
 				_maskTMenu.setSelection = spnValue!("a.mask", BgImage, bool)(_editB.keys, false);
 			}
+			statusLine = _prop.msgs.areaViewStatus(cast(AbstractSpCard[]) [], _editB.keys);
 		} else {
 			static assert (0);
 		}
@@ -1329,6 +1332,8 @@ public:
 						if (e.button == 1 && (e.stateMask & DWT.CTRL) == 0 && (e.stateMask & DWT.SHIFT) == 0) {
 							_imgp.deselectRange(0, _area.backs.length);
 							_backs.deselectAll;
+							typeof(_editB) editB;
+							_editB = editB;
 						}
 					}
 				});
@@ -1337,6 +1342,8 @@ public:
 						if (e.button == 1 && (e.stateMask & DWT.CTRL) == 0 && (e.stateMask & DWT.SHIFT) == 0) {
 							_imgp.deselectRange(cardsIndex, cardsIndex + _area.cards.length);
 							_cards.deselectAll;
+							typeof(_editC) editC;
+							_editC = editC;
 						}
 					}
 				});
@@ -1382,6 +1389,12 @@ public:
 		static if (UseCards) refreshCards;
 		static if (UseBacks) refreshBacks;
 	}
+	private string _statusLine;
+	private void statusLine(string statusLine) {
+		_statusLine = statusLine;
+		_comm.statusLine(_imgp, statusLine);
+	}
+	string statusLine() {return _statusLine;}
 
 	A area() {
 		return _area;

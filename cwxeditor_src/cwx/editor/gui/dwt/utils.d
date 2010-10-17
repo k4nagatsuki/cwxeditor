@@ -1291,6 +1291,153 @@ void addCastCoupons(Combo combo, Props prop, bool talker, string legacyName) {
 	}
 }
 
+private class LSFFThr(S, bool Array) {
+	Display display;
+	Display current;
+	Props prop;
+	Shell w;
+	bool expandXMLs;
+	string fname;
+	static if (Array) {
+		string[] files;
+		string[] temps;
+		void clear() {
+			foreach (temp; temps) delAll(temp);
+		}
+		void delegate(S[]) loaded;
+	} else {
+		S old;
+		string temp = "";
+		void clear() {
+			if (temp.length) delAll(temp);
+		}
+		void delegate(S) loaded;
+	}
+	void delegate(string) status;
+	class Start : Runnable {
+		void run() {
+			status(prop.msgs.loading(fname));
+		}
+	}
+	class Exit : Runnable {
+		void run() {
+			try {
+				w.setCursor = null;
+				w.setEnabled = true;
+			} catch {
+				clear;
+			}
+		}
+	}
+	class Failed : Runnable {
+		void run() {
+			status(prop.msgs.loadErrorStatus);
+		}
+	}
+	uint worked = 0u;
+	uint max;
+	class Working : Runnable {
+		void run() {
+			try {
+				status(prop.msgs.loadProgress(fname, max, worked));
+			} catch {
+				clear;
+			}
+		}
+	}
+	class Load : Runnable {
+		static if (Array) {
+			S[] r;
+			this (S[] r) {this.r = r;}
+			bool success() {return r.length > 0;}
+		} else {
+			S r;
+			this (S r) {this.r = r;}
+			bool success() {return r !is null;}
+		}
+		void run() {
+			if (success) {
+				try {
+					static if (Array) {
+						if (r.length == 1) {
+							status(prop.msgs.loaded(r[0].scenarioName));
+						} else {
+							status(prop.msgs.loaded(r.length));
+						}
+					} else {
+						status(prop.msgs.loaded(r.scenarioName));
+					}
+					loaded(r);
+				} catch (Exception e) {
+					debugln(e);
+					MessageBox.showWarning(e.msg, prop.msgs.dlgTitWarning, w);
+					status(prop.msgs.loadErrorStatus);
+				} catch {
+					clear;
+				}
+			}
+		}
+	}
+	class Error : Runnable {
+		SummaryException e;
+		this (SummaryException e) {this.e = e;}
+		void run() {
+			try {
+				MessageBox.showWarning(e.msg, prop.msgs.dlgTitWarning, w);
+			} catch {
+				clear;
+			}
+			status(prop.msgs.loadErrorStatus);
+		}
+	}
+	Runnable working;
+	void setMax(uint maxv) {
+		max = maxv;
+		display.syncExec(working);
+	}
+	void setWork(uint workedv) {
+		worked = workedv;
+		display.asyncExec(working);
+	}
+	int run() {
+		scope (exit) {
+			if (!current) {
+				display.syncExec(new Exit);
+			}
+		}
+		scope (failure) {
+			display.syncExec(new Failed);
+		}
+		working = new Working;
+		static if (Array) {
+			S[] r;
+			foreach (i, path; files) {
+				fname = path;
+				display.syncExec(new Start);
+				S s = loadScenarioFromFileImpl!(S)(prop, w, status, expandXMLs,
+					null, path, null, false, display, &setMax, &setWork);
+				if (s) {
+					r ~= s;
+					if (s.useTemp) temps ~= s.scenarioPath;
+				} else {
+					break;
+				}
+			}
+			display.syncExec(new Load(r));
+		} else {
+			display.syncExec(new Start);
+			try {
+				S r = S.loadScenarioFromFile(prop.parent, fname, prop.var.etc.expandXMLs,
+					prop.tempPath, old, &setMax, &setWork);
+				temp = r.useTemp ? r.scenarioPath : "";
+				display.syncExec(new Load(r));
+			} catch (SummaryException e) {
+				display.syncExec(new Error(e));
+			}
+		}
+		return 0;
+	}
+}
 string[] scenarioFilter() {
 	if (canUncab) {
 		return ["*.wsn;Summary.xml;*.cab;*.zip;Summary.wsm"];
@@ -1298,7 +1445,8 @@ string[] scenarioFilter() {
 	return ["*.wsn;Summary.xml;*.zip;Summary.wsm"];
 }
 
-S[] loadScenarios(S)(Props prop, Shell w, bool expandXMLs, string dlgTitle, void delegate (S[]) loaded = null, bool oThr = true) {
+S[] loadScenarios(S)(Props prop, Shell w, void delegate(string) status,
+		bool expandXMLs, string dlgTitle, void delegate (S[]) loaded = null, bool oThr = true) {
 	auto dlg = new FileDialog(w, DWT.PRIMARY_MODAL | DWT.APPLICATION_MODAL | DWT.MULTI | DWT.OPEN);
 	scope (exit) dlg.dispose;
 	dlg.setFilterExtensions = scenarioFilter;
@@ -1326,109 +1474,25 @@ S[] loadScenarios(S)(Props prop, Shell w, bool expandXMLs, string dlgTitle, void
 		foreach (file; dlg.getFileNames) {
 			files ~= std.path.join(dlg.getFilterPath, file);
 		}
-		S[] r = loadScenariosFromFile!(S)(prop, w, expandXMLs, files, &put.put, oThr);
+		S[] r = loadScenariosFromFile!(S)(prop, w, status, expandXMLs, files, &put.put, oThr);
 		if (!oThr && r.length) put.put(r);
 		return r;
 	}
 	return [];
 }
 
-S[] loadScenariosFromFile(S)(Props prop, Shell w, bool expandXMLs, string[] files, void delegate (S[]) loaded = null, bool oThr = true) {
+S[] loadScenariosFromFile(S)(Props prop, Shell w, void delegate(string) status,
+		bool expandXMLs, string[] files, void delegate (S[]) loaded = null, bool oThr = true) {
 	auto display = Display.getCurrent;
 	if (oThr && loaded) {
-		auto thr = new class Object {
-			Display display;
-			Props prop;
-			Shell w;
-			bool expandXMLs;
-			string[] files;
-			void delegate (S[]) loaded;
-			string oldTit;
-			int run() {
-				string[] temps;
-				void clear() {
-					foreach (temp; temps) {
-						delAll(temp);
-					}
-				}
-				scope (exit) {
-					display.syncExec(new class Runnable {
-						void run() {
-							try {
-								w.setCursor = null;
-								w.setEnabled = true;
-							} catch {
-								clear;
-							}
-						}
-					});
-				}
-				scope (failure) {
-					display.syncExec(new class Runnable {
-						void run() {
-							w.setText = oldTit;
-						}
-					});
-				}
-				string fname;
-				uint max;
-				uint worked;
-				auto setWorked = new class Runnable {
-					void run() {
-						try {
-							w.setText = prop.msgs.loadProgress(fname, max, worked);
-						} catch {
-							clear;
-						}
-					}
-				};
-				S[] r;
-				foreach (i, path; files) {
-					fname = path;
-					S s = loadScenarioFromFileImpl!(S)(prop, w, expandXMLs, null, path, null, false, display,
-						(uint maxv) {
-							max = maxv;
-							display.syncExec(setWorked);
-						}, (uint workedv) {
-							worked = workedv;
-							display.asyncExec(setWorked);
-						});
-					if (s) {
-						r ~= s;
-						if (s.useTemp) temps ~= s.scenarioPath;
-					} else {
-						break;
-					}
-				}
-				display.syncExec(new class Runnable {
-					void run() {
-						if (r.length) {
-							try {
-								w.setText = oldTit;
-								loaded(r);
-								return;
-							} catch (Exception e) {
-								debugln(e);
-								MessageBox.showWarning(e.msg, prop.msgs.dlgTitWarning, w);
-								clear;
-							} catch {
-								clear;
-							}
-						} else {
-							w.setText = oldTit;
-						}
-					}
-				});
-				return 0;
-			}
-		};
+		auto thr = new LSFFThr!(S, true);
 		thr.display = display;
 		thr.prop = prop;
 		thr.w = w;
 		thr.expandXMLs = expandXMLs;
 		thr.files = files;
 		thr.loaded = loaded;
-		thr.oldTit = w.getText;
+		thr.status = status;
 		w.setCursor = display.getSystemCursor(DWT.CURSOR_WAIT);
 		scope (exit) w.setCursor = null;
 		auto t = new Thread(&thr.run);
@@ -1439,7 +1503,7 @@ S[] loadScenariosFromFile(S)(Props prop, Shell w, bool expandXMLs, string[] file
 		scope (exit) w.setCursor = null;
 		S[] r;
 		foreach (i, path; files) {
-			S s = loadScenarioFromFileImpl!(S)(prop, w, expandXMLs, null, path, null, false, display);
+			S s = loadScenarioFromFileImpl!(S)(prop, w, status, expandXMLs, null, path, null, false, display);
 			if (s) {
 				r ~= s;
 			} else {
@@ -1459,7 +1523,8 @@ string scenarioFilterPath(Props prop) {
 	}
 }
 
-S loadScenario(S)(Props prop, Shell w, bool expandXMLs, S old, string dlgTitle, void delegate (S) loaded = null, bool oThr = true) {
+S loadScenario(S)(Props prop, Shell w, void delegate(string) status,
+		bool expandXMLs, S old, string dlgTitle, void delegate (S) loaded = null, bool oThr = true) {
 	auto dlg = new FileDialog(w, DWT.PRIMARY_MODAL | DWT.APPLICATION_MODAL | DWT.SINGLE | DWT.OPEN);
 	scope (exit) dlg.dispose;
 	dlg.setFilterExtensions = scenarioFilter;
@@ -1475,106 +1540,22 @@ S loadScenario(S)(Props prop, Shell w, bool expandXMLs, S old, string dlgTitle, 
 			}
 		};
 		put.loaded = loaded;
-		S r = loadScenarioFromFile!(S)(prop, w, expandXMLs, old, fname, &put.put, oThr);
+		S r = loadScenarioFromFile!(S)(prop, w, status, expandXMLs, old, fname, &put.put, oThr);
 		if (!oThr && r) put.put(r);
 		return r;
 	}
 	return null;
 }
 
-S loadScenarioFromFile(S)(Props prop, Shell w, bool expandXMLs, S old, string fname, void delegate (S) loaded = null, bool oThr = true) {
-	return loadScenarioFromFileImpl!(S)(prop, w, expandXMLs, old, fname, loaded, oThr, null);
+S loadScenarioFromFile(S)(Props prop, Shell w, void delegate(string) status,
+		bool expandXMLs, S old, string fname, void delegate (S) loaded = null, bool oThr = true) {
+	return loadScenarioFromFileImpl!(S)(prop, w, status, expandXMLs, old, fname, loaded, oThr, null);
 }
-private S loadScenarioFromFileImpl(S)(Props prop, Shell w, bool expandXMLs, S old, string fname, void delegate (S) loaded = null, bool oThr = true, Display current = null,
+private S loadScenarioFromFileImpl(S)(Props prop, Shell w, void delegate(string) status,
+		bool expandXMLs, S old, string fname, void delegate (S) loaded = null, bool oThr = true, Display current = null,
 		void delegate (uint) setMax = null, void delegate (uint) worked = null) {
 	if (oThr && loaded) {
-		auto thr = new class Object {
-			Display display;
-			Display current;
-			Props prop;
-			Shell w;
-			bool expandXMLs;
-			S old;
-			string fname;
-			void delegate (S) loaded;
-			string oldTit;
-			int run() {
-				string temp = "";
-				void clear() {
-					if (temp.length) delAll(temp);
-				}
-				scope (exit) {
-					if (!current) {
-						display.syncExec(new class Runnable {
-							void run() {
-								try {
-									w.setCursor = null;
-									w.setEnabled = true;
-								} catch {
-									clear;
-								}
-							}
-						});
-					}
-				}
-				scope (failure) {
-					display.syncExec(new class Runnable {
-						void run() {
-							w.setText = oldTit;
-						}
-					});
-				}
-				uint worked = 0u;
-				uint max;
-				auto setWorked = new class Runnable {
-					void run() {
-						try {
-							w.setText = prop.msgs.loadProgress(fname, max, worked);
-						} catch {
-							clear;
-						}
-					}
-				};
-				try {
-					S r = S.loadScenarioFromFile(prop.parent, fname, prop.var.etc.expandXMLs, prop.tempPath, old,
-						(uint maxv) {
-							max = maxv;
-							display.syncExec(setWorked);
-						}, (uint workedv) {
-							worked = workedv;
-							display.asyncExec(setWorked);
-						});
-					temp = r.useTemp ? r.scenarioPath : "";
-					display.syncExec(new class Runnable {
-						void run() {
-							w.setText = oldTit;
-							if (r) {
-								try {
-									loaded(r);
-								} catch (Exception e) {
-									debugln(e);
-									MessageBox.showWarning(e.msg, prop.msgs.dlgTitWarning, w);
-								} catch {
-									clear;
-								}
-							}
-						}
-					});
-				} catch (SummaryException e) {
-					display.asyncExec(new class Runnable {
-						void run() {
-							try {
-								MessageBox.showWarning(e.msg, prop.msgs.dlgTitWarning, w);
-							} catch {
-								clear;
-							}
-							w.setText = oldTit;
-						}
-					});
-				}
-				return 0;
-			}
-		};
+		auto thr = new LSFFThr!(S, false);
 		thr.display = current ? current : Display.getCurrent;
 		thr.current = current;
 		thr.prop = prop;
@@ -1583,10 +1564,10 @@ private S loadScenarioFromFileImpl(S)(Props prop, Shell w, bool expandXMLs, S ol
 		thr.old = old;
 		thr.fname = fname;
 		thr.loaded = loaded;
+		thr.status = status;
 		if (!current) {
 			w.setCursor = Display.getCurrent.getSystemCursor(DWT.CURSOR_WAIT);
 			w.setEnabled = false;
-			thr.oldTit = w.getText;
 		}
 		auto t = new Thread(&thr.run);
 		t.start;

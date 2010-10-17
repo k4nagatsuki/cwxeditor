@@ -89,6 +89,7 @@ public:
 					} else {
 						select(_cur);
 					}
+					selectChanged;
 				} else {
 					switch (e.keyCode) {
 					case DWT.PAGE_UP:
@@ -164,12 +165,15 @@ public:
 					if (_ctrl) {
 						if (isSelected(_mouseP)) {
 							deselect(_mouseP);
+							selectChanged;
 						} else {
 							select(_mouseP);
+							selectChanged;
 						}
 					} else if (!_shift) {
 						deselectAll;
 						select(_mouseP);
+						selectChanged;
 					}
 				}
 				_dragging = false;
@@ -212,10 +216,12 @@ public:
 									select(i);
 									_shiftP = i;
 								}
+								selectChanged;
 							} else {
 								if (!isSelected(i)) deselectAll;
 								select(i);
 								_shiftP = i;
+								selectChanged;
 							}
 							setCursor(i);
 						} else if (e.button == 3) {
@@ -224,6 +230,7 @@ public:
 								_shiftP = i;
 								select(i);
 								setCursor(i);
+								selectChanged;
 							}
 						}
 					}
@@ -231,6 +238,7 @@ public:
 					deselectAll;
 					_shiftP = -1;
 					_mouseP = -1;
+					selectChanged;
 				}
 			}
 		});
@@ -239,6 +247,7 @@ public:
 				if ((getStyle & DWT.MULTI) != 0) {
 					if (_ctrl && _mouseP >= 0) {
 						select(_mouseP);
+						selectChanged;
 					}
 				}
 				_dragging = true;
@@ -260,6 +269,7 @@ public:
 			public override void handleEvent(Event e) {
 				if ((getStyle & DWT.MULTI) == 0 && _sels.length == 0 && _items.length > 0) {
 					select(0);
+					selectChanged;
 				}
 				if (_cur >= 0) redraw(_cur);
 			}
@@ -269,6 +279,14 @@ public:
 				if (_cur >= 0) redraw(_cur);
 			}
 		});
+	}
+	/// 選択の変更をdlgに通知する。
+	void selectChanged(void delegate() dlg) {
+		_selected ~= dlg;
+	}
+	private void delegate()[] _selected;
+	private void selectChanged() {
+		foreach (dlg; _selected) dlg();
 	}
 	/// 指定されたインデックスをカーソル位置にする。
 	/// Params:
@@ -283,6 +301,7 @@ public:
 		}
 		if ((getStyle & DWT.MULTI) == 0) {
 			this.select(_cur);
+			selectChanged;
 		}
 		if (scroll) this.scroll(_cur);
 	}
@@ -383,6 +402,7 @@ public:
 		__resize;
 		scrollX(ox);
 		scrollY(oy);
+		selectChanged;
 	}
 	int count() {
 		return _items.length;

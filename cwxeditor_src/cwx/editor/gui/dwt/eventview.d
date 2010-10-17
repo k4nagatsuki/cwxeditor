@@ -75,7 +75,6 @@ private:
 	Tree _cards;
 	TreeEdit _edit;
 	EventTreeView _etree;
-	Label _statbar;
 
 	ToolBar _toolbar;
 	CCombo _treeKind;
@@ -360,9 +359,6 @@ private:
 	}
 	void selection(int index) {
 		__select(_cards.getItems[index]);
-	}
-	void setStatusLine(string msg) {
-		_statbar.setText = std.string.replace(msg, "&", "&&");
 	}
 	private TreeItem selectionParent() {
 		auto itm = selection;
@@ -789,7 +785,7 @@ public:
 			_cards.setMenu = menu;
 		}
 		{
-			_etree = new EventTreeView(comm, prop, summ, _sash, _undo, &forceSel, &refreshTopStart, &setStatusLine);
+			_etree = new EventTreeView(comm, prop, summ, _sash, _undo, &forceSel, &refreshTopStart);
 			auto _edit = new TreeEdit(_cards, &editEnd, &createEditor);
 			setupToolBar(toolbar);
 		}
@@ -803,10 +799,6 @@ public:
 			_sash.setWeights = [_prop.var.cardEventWin.eventSashL, _prop.var.cardEventWin.eventSashR];
 		} else {
 			static assert (0);
-		}
-		{
-			_statbar = new Label(this, DWT.BORDER);
-			_statbar.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		}
 	}
 
@@ -1119,6 +1111,8 @@ public:
 	void closeToolWindow() {
 		_etree.closeToolWindow;
 	}
+
+	string statusLine() {return _etree.statusLine;}
 
 	override {
 		void cut() {

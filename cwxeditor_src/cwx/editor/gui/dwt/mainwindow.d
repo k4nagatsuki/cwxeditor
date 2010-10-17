@@ -66,6 +66,7 @@ import dwt.widgets.MenuItem;
 import dwt.widgets.FileDialog;
 import dwt.widgets.DirectoryDialog;
 import dwt.widgets.MessageBox;
+import dwt.widgets.Text;
 import dwt.graphics.Image;
 import dwt.program.Program;
 import dwt.layout.FillLayout;
@@ -84,9 +85,10 @@ import dwt.dnd.Transfer;
 import dwt.dwthelper.utils;
 
 public:
-class MainWindow {
+class MainWindow : TopLevelPanel {
 private:
 	Shell _win = null;
+	Label _status = null;
 	DockingFolderCTC _dock = null;
 
 	Props _prop;
@@ -161,7 +163,7 @@ private:
 							_prop.msgs.dlgTitWarning, _win);
 					}
 				} else {
-					loadScenarioFromFile!(Summary)(_prop, _win, expand, old, wsm, &openScenario);
+					loadScenarioFromFile!(Summary)(_prop, _win, &setStatusLine, expand, old, wsm, &openScenario);
 				}
 			} else if (expand) {
 				try {
@@ -174,7 +176,7 @@ private:
 				}
 			} else {
 				assert (old.zipName.length);
-				loadScenarioFromFile!(Summary)(_prop, _win, expand, old, old.zipName, &openScenario);
+				loadScenarioFromFile!(Summary)(_prop, _win, &setStatusLine, expand, old, old.zipName, &openScenario);
 			}
 		}
 	}
@@ -225,14 +227,15 @@ private:
 				} catch (Exception e) {
 					debugln(e);
 				}
-				MessageBox.showWarning(_prop.msgs.cwxPathOpenError(path), _prop.msgs.dlgTitWarning, shell);
+				MessageBox.showWarning(_prop.msgs.cwxPathOpenError(path), _prop.msgs.dlgTitWarning, _win);
 			}
 			_openPaths.length = 0u;
 		}
 	}
 	void openScenario() {
 		auto old = summary;
-		loadScenario!(Summary)(_prop, _win, _prop.var.etc.expandXMLs, old, _prop.msgs.dlgTitOpenScenario, &openScenarioImpl);
+		loadScenario!(Summary)(_prop, _win, &setStatusLine,
+			_prop.var.etc.expandXMLs, old, _prop.msgs.dlgTitOpenScenario, &openScenarioImpl);
 	}
 	void openScenario(string fname) {
 		if (fnmatch(getExt(fname), "wid")) {
@@ -263,7 +266,7 @@ private:
 			fname = getDirName(fname);
 		}
 		auto old = summary;
-		loadScenarioFromFile!(Summary)(_prop, _win, _prop.var.etc.expandXMLs, old, fname, &openScenarioImpl);
+		loadScenarioFromFile!(Summary)(_prop, _win, &setStatusLine, _prop.var.etc.expandXMLs, old, fname, &openScenarioImpl);
 	}
 	void saveScenario() {
 		save(_win);
@@ -656,6 +659,7 @@ public:
 		} else {
 			_win = new Shell(DWT.DIALOG_TRIM | DWT.MIN);
 		}
+		_win.setData = new TLPData(this);
 		_win.setImage = _prop.images.app;
 
 		_comm = new Commons;
@@ -754,11 +758,14 @@ public:
 				_dirWin = new DirectoryWindow(_comm, _prop, data);
 				_dock.add(_dirWin.shell, _dirWin.title, _dirWin.image, "file", false);
 			}
+			_status = new Label(dockComp, DWT.BORDER);
 		} else {
 			_dataWin = new DataWindow(_comm, _prop, _win);
 			_cardWin = new MainCardWindow(_comm, _prop, _win);
 			_dirWin = new DirectoryWindow(_comm, _prop, _win);
+			_status = new Label(_win, DWT.BORDER);
 		}
+		_status.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		{
 			_mainMenu = new HashSet!(MenuID);
 			auto bar = new Menu(_win, DWT.BAR);
@@ -1130,6 +1137,7 @@ public:
 		}
 	}
 	private void menuActionAfterImpl(MenuID ID, T)(T[MenuID] tools, RadioGroup!(T)[] rg) {
+		if (!_tlp) return;
 		if (_tlp.menuChecked(ID)) {
 			auto p = ID in tools;
 			if (p) {
@@ -1147,7 +1155,7 @@ public:
 		}
 	}
 	private void menuAction(MenuID ID)() {
-		assert (_tlp);
+		if (!_tlp) return;
 		auto act = _tlp.menuAction(ID);
 		assert (act);
 		act();
@@ -1190,6 +1198,7 @@ public:
 		auto tlp = (cast(TLPData) _dock.control(key).getData).tlp;
 		assert (tlp, key);
 		_tlp = tlp;
+		statusLine = tlp.statusLine;
 		setupMenu(_menu);
 		setupMenu(_tool);
 	}
@@ -1206,15 +1215,27 @@ public:
 		if (cwx.utils.startsWith(key, "work")) {
 			return _dock.findPane("work").length > 1;
 		}
+		if (_dock.panes.length == 2) {
+			statusLine = "";
+		}
 		return true;
 	}
-	private string dockNewPaneName(string ctrlKey) {
+	private string dockNewPaneName(string ctrlKey, string basePane, Dir dir) {
 		if (cwx.utils.startsWith(ctrlKey, "work")) {
 			return _dock.newPaneKey("work");
+		} else if (cwx.utils.startsWith(basePane, "work") && (dir == Dir.E || dir == Dir.W)) {
+			return _dock.newPaneKey("side");
 		}
 		return "";
 	}
-	Shell shell() {return _win;}
+	private void setStatusLine(string status) {
+		_comm.statusLine(_win, status);
+	}
+
+	string title() {return _win.getText;}
+	Image image() {return _win.getImage;}
+	Composite shell() {return _win;}
+	Label statusText() {return _status;}
 	DockingFolderCTC dock() {return _dock;}
 
 	Summary summary() {return _dataWin ? _dataWin.summary : _tableWin.summary;}

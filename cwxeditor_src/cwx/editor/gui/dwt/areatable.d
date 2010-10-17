@@ -35,12 +35,14 @@ import dwt.widgets.Menu;
 import dwt.widgets.MenuItem;
 import dwt.graphics.Image;
 import dwt.dwthelper.utils;
-import dwt.events.ShellEvent;
 import dwt.events.ShellAdapter;
-import dwt.events.KeyEvent;
+import dwt.events.ShellEvent;
+import dwt.events.SelectionAdapter;
+import dwt.events.SelectionEvent;
 import dwt.events.KeyAdapter;
-import dwt.events.MouseEvent;
+import dwt.events.KeyEvent;
 import dwt.events.MouseAdapter;
+import dwt.events.MouseEvent;
 import dwt.events.DisposeListener;
 import dwt.events.DisposeEvent;
 import dwt.dnd.DND;
@@ -85,6 +87,20 @@ private:
 
 	Table _areas;
 	TableTextEdit _areasEdit;
+
+	string _statusLine = "";
+	void refreshStatusLine() {
+		Area[] areas;
+		Battle[] battles;
+		Package[] packages;
+		if (_summ) {
+			areas = _summ.areas;
+			battles = _summ.battles;
+			packages = _summ.packages;
+		}
+		_statusLine = _prop.msgs.areaStatus(areas, battles, packages, getSelectionArea);
+		_comm.statusLine(_areas, _statusLine);
+	}
 
 	AbstractArea getSelectionArea() {
 		auto itm = _areas.getSelection;
@@ -144,6 +160,7 @@ private:
 					assert (cast(Package) area);
 					_comm.delPackage.call(cast(Package) area);
 				}
+				refreshStatusLine;
 			}
 		}
 	}
@@ -220,6 +237,7 @@ private:
 						newPackageItem(index);
 					}
 					refreshIDs;
+					refreshStatusLine;
 					e.detail = DND.DROP_NONE;
 				} else {
 					// 他のリストからのコピー
@@ -241,6 +259,7 @@ private:
 					}
 					e.detail = DND.DROP_NONE;
 					_comm.refUseCount.call;
+					refreshStatusLine;
 				}
 			} catch (Exception e) {
 				debugln(e);
@@ -294,6 +313,7 @@ private:
 				newPackageItem(i);
 			}
 		}
+		refreshStatusLine;
 	}
 	void item(AbstractArea a, Image img, int uc, int index = -1) {
 		TableItem itm;
@@ -322,6 +342,11 @@ private:
 		index += _summ.areas.length + _summ.battles.length;
 		item(a, _prop.images.packages, _summ.useCounter.get(toPackageId(a.id)), index);
 	}
+	private class SListener : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			refreshStatusLine;
+		}
+	}
 public:
 	this(Commons comm, Props prop, Composite parent, FlagTable flags) {
 		_comm = comm;
@@ -332,6 +357,7 @@ public:
 		_comm.replText.add(&refresh);
 		_areas = new Table(parent, DWT.BORDER | DWT.FULL_SELECTION);
 		_areas.addDisposeListener(new ADListener);
+		_areas.addSelectionListener(new SListener);
 		_areas.setHeaderVisible = true;
 		auto idCol = new TableColumn(_areas, DWT.NULL);
 		idCol.setText = prop.msgs.areaId;
@@ -380,6 +406,8 @@ public:
 		return _areas;
 	}
 
+	string statusLine() {return _statusLine;}
+
 	void refresh() {
 		refreshAreas;
 	}
@@ -402,6 +430,7 @@ public:
 		newAreaItem(index);
 		selArea(index);
 		_areasEdit.startEdit;
+		refreshStatusLine;
 	}
 
 	/// 新規バトルが作成され、名前の入力待ちになる。
@@ -412,6 +441,7 @@ public:
 		newBattleItem(index);
 		selBattle(index);
 		_areasEdit.startEdit;
+		refreshStatusLine;
 	}
 
 	/// 新規パッケージが作成され、名前の入力待ちになる。
@@ -429,6 +459,7 @@ public:
 		newPackageItem(index);
 		selPackage(index);
 		_areasEdit.startEdit;
+		refreshStatusLine;
 		return pkg.id;
 	}
 	private void selArea(int index) {
@@ -504,6 +535,7 @@ public:
 					}
 					if (_flags) _flags.refresh;
 					_comm.refUseCount.call;
+					refreshStatusLine;
 				}
 			}
 		}
@@ -522,6 +554,7 @@ public:
 				}
 				if (_flags) _flags.refresh;
 				_comm.refUseCount.call;
+				refreshStatusLine;
 			}
 		}
 		bool canDoTCPD() {

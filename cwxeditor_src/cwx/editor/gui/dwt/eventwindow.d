@@ -18,6 +18,7 @@ import cwx.editor.gui.dwt.undo;
 
 import dwt.widgets.Composite;
 import dwt.widgets.Shell;
+import dwt.widgets.Label;
 import dwt.widgets.ToolBar;
 import dwt.widgets.ToolItem;
 import dwt.widgets.Menu;
@@ -37,6 +38,7 @@ private:
 	Props _prop;
 
 	Composite _win;
+	Label _status = null;
 	Shell _parent2 = null;
 
 	EventView!(A, void, false) _eview;
@@ -126,6 +128,10 @@ public:
 			putMenuAction(MenuID.Redo, &_eview.redo);
 			putMenuAction(MenuID.Up, &_eview.up);
 			putMenuAction(MenuID.Down, &_eview.down);
+		}
+		if (shell) {
+			_status = new Label(_win, DWT.BORDER);
+			_status.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		}
 
 		if (shell) {
@@ -227,6 +233,7 @@ public:
 			static assert (0);
 		}
 	}
+	Label statusText() {return _status;}
 	private void __refreshTitle() {
 		_comm.setTitle(_win, title);
 		_eview.refreshTitle;
