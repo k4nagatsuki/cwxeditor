@@ -1334,6 +1334,7 @@ public:
 							_backs.deselectAll;
 							typeof(_editB) editB;
 							_editB = editB;
+							refreshControls;
 						}
 					}
 				});
@@ -1344,6 +1345,7 @@ public:
 							_cards.deselectAll;
 							typeof(_editC) editC;
 							_editC = editC;
+							refreshControls;
 						}
 					}
 				});

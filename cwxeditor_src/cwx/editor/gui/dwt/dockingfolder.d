@@ -104,7 +104,9 @@ class DockingFolder(TabF, int Style) {
 			if (_canSave) {
 				try {
 					saveTree;
-				} catch {}
+				} catch (Exception e) {
+					debugln(e);
+				}
 			}
 		}
 	}
@@ -329,10 +331,9 @@ class DockingFolder(TabF, int Style) {
 	bool close(string key) {
 		auto t = tab(key);
 		if (t) {
-			if (close(t)) {
-				t.dispose;
-				return true;
-			}
+			close(t);
+			t.dispose;
+			return true;
 		}
 		return false;
 	}
@@ -374,7 +375,7 @@ class DockingFolder(TabF, int Style) {
 			close(cast(Tab) e.item);
 		}
 	}
-	private bool close(Tab tab) {
+	private void close(Tab tab) {
 		auto tabf = tab.getParent;
 		auto ctrlKey = keyFromCtrl(tab.getControl);
 		_ctrls.remove(tab.getControl);
@@ -384,9 +385,7 @@ class DockingFolder(TabF, int Style) {
 		if (vanish(key) && tabf.getItemCount == 1 && _area.getChildren[0] !is tabf) {
 			removeTabf(tabf);
 			_area.layout(true);
-			return true;
 		}
-		return false;
 	}
 	/// Controlツリーの再構築。
 	private void reconstruct() {
