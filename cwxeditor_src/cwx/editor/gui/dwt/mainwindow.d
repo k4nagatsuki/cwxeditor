@@ -1223,8 +1223,12 @@ public:
 	private string dockNewPaneName(string ctrlKey, string basePane, Dir dir) {
 		if (cwx.utils.startsWith(ctrlKey, "work")) {
 			return _dock.newPaneKey("work");
-		} else if (cwx.utils.startsWith(basePane, "work") && (dir == Dir.E || dir == Dir.W)) {
-			return _dock.newPaneKey("side");
+		} else if (cwx.utils.startsWith(basePane, "work")) {
+			if (dir == Dir.E || dir == Dir.W) {
+				return _dock.newPaneKey("side");
+			} else if (dir == Dir.N || dir == Dir.S) {
+				return _dock.newPaneKey("data");
+			}
 		}
 		return "";
 	}
