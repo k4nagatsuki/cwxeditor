@@ -375,6 +375,7 @@ private:
 				auto sItm = createTreeItem(_tree, evt, evt.name, _prop.images.content(CType.START), index);
 				_tree.select = sItm;
 				_tree.showSelection;
+				refreshConvMenu;
 				refreshStatusLine;
 				if (!_conti) arrow;
 			} else {
@@ -391,6 +392,7 @@ private:
 						_tree.showSelection;
 						_comm.refUseCount.call;
 					}
+					refreshConvMenu;
 					refreshStatusLine;
 					if (!_conti) arrow;
 				}
