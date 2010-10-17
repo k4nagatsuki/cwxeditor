@@ -369,7 +369,6 @@ private:
 			}
 		}
 		assert (!_fimgThr);
-		_display = Display.getCurrent;
 		_fimgThr = new Thread(&fimageThr);
 		_fimgThr.start;
 	}
@@ -983,7 +982,6 @@ private:
 	}
 	class DListener : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
-			_trace = false;
 			_comm.refScenarioName.remove(&__refreshTitle);
 			_comm.refScenarioPath.remove(&__refreshTitle);
 			_comm.refUseCount.remove(&__refreshUseCount);
@@ -1007,14 +1005,31 @@ private:
 			_prop.var.etc.directorySashV = (_sash.getStyle & DWT.VERTICAL) != 0;
 		}
 	}
-
+	private class RefreshThr : Runnable {
+		override void run() {__refresh;}
+	}
+	private class TraceChkThr : Runnable {
+		bool result = false;
+		override void run() {
+			result = !_display.isDisposed
+				&& _prop.var.etc.traceDirectories && _win && !_win.isDisposed;
+		}
+	}
+	private Runnable _refreshThr;
+	private TraceChkThr _traceChkThr;
 	private Thread _traceThr = null;
-	private bool _trace = false;
 	private int trace() {
 		Summary summ = null;
-		auto win = _win;
-		bool canDoThr() {
-			return _trace && _prop.var.etc.traceDirectories && win && !win.isDisposed;
+		bool canDoChk() {
+			if (!summ) return false;
+			synchronized (_display.classinfo) {
+				if (!_display.isDisposed) {
+					_display.syncExec(_traceChkThr);
+				} else {
+					_traceChkThr.result = false;
+				}
+			}
+			return _traceChkThr.result;
 		}
 		void sleep() {
 			tango.core.Thread.Thread.sleep(1); // 1sec
@@ -1041,20 +1056,17 @@ private:
 			void next() {
 				if (!FindNextChangeNotification(h)) {
 					debugln("FindNextChangeNotification failed: ", GetLastError);
-					_trace = false;
 				}
 			}
-			while (true) {
+			while (!_display.isDisposed) {
 				if (summ !is _summ) {
 					summ = _summ;
-					if (!canDoThr) break;
 					if (!setup) {
 						debugln("FindFirstChangeNotification failed: ", GetLastError);
-						break;
+						continue;
 					}
 				}
-				if (!canDoThr) break;
-				if (!summ) {
+				if (!canDoChk) {
 					sleep;
 					continue;
 				}
@@ -1063,19 +1075,15 @@ private:
 					next;
 				} break;
 				case WAIT_ABANDONED: {
-					_trace = false;
 					break;
 				}
 				case WAIT_OBJECT_0: {
-					if (!canDoThr) break;
-					_display.syncExec(new class Runnable {
-						override void run() {__refresh;}
-					});
+					if (!canDoChk) continue;
+					_display.syncExec(_refreshThr);
 					next;
 				} break;
 				case WAIT_FAILED: {
 					debugln("WaitForSingleObject failed: ", GetLastError);
-					_trace = false;
 				} break;
 				default: break;
 				}
@@ -1097,16 +1105,13 @@ private:
 				}
 				dirTimes = times;
 			}
-			while (true) {
+			while (!_display.isDisposed) {
 				if (summ !is _summ) {
 					summ = _summ;
-					if (!canDoThr) break;
 					setup;
 				}
-				if (!canDoThr) break;
 				sleep;
-				if (!summ) continue;
-				if (!canDoThr) break;
+				if (!canDoChk) continue;
 				bool chk(string path) {
 					if (summ.isSystemFile(path)) return false;
 					if (dirTimes[path] != lastModified(path)) return true;
@@ -1117,9 +1122,7 @@ private:
 					return false;
 				}
 				if (chk(nabs(summ.scenarioPath))) {
-					_display.syncExec(new class Runnable {
-						override void run() {__refresh;}
-					});
+					_display.syncExec(_refreshThr);
 					setup;
 				}
 			}
@@ -1133,7 +1136,15 @@ public:
 	this(Commons comm, Props prop, Composite parent) {
 		_prop = prop;
 		_comm = comm;
+		_display = Display.getCurrent;
 		if (parent) construct(parent);
+
+		// FXIME: 本当は素材管理ウィンドウ非表示時は止めておきたかったが
+		// シナリオ読込み後のスレッドの開始に失敗する事があるので常時起動
+		_refreshThr = new RefreshThr;
+		_traceChkThr = new TraceChkThr;
+		_traceThr = new Thread(&trace);
+		_traceThr.start;
 	}
 	void reconstruct(Composite parent) {
 		if (_win && !_win.isDisposed) return;
@@ -1317,17 +1328,6 @@ public:
 			shell.setMinimized = _prop.var.dirWin.minimized;
 			shell.addControlListener(new SCListener);
 		}
-		if (_prop.var.etc.traceDirectories) startTrace;
-	}
-	void startTrace() {
-		if (!_prop.var.etc.traceDirectories) return;
-		if (_traceThr) {
-			_trace = false;
-			_traceThr.wait;
-		}
-		_trace = true;
-		_traceThr = new Thread(&trace);
-		_traceThr.start;
 	}
 	private class SCListener : ControlAdapter {
 		override void controlMoved(ControlEvent e) {

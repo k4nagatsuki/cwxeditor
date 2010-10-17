@@ -455,16 +455,12 @@ private:
 		string[] oldHist = _prop.var.etc.openHistories;
 		string[] oldKeyCodes = _prop.var.etc.standardKeyCodes;
 		auto tools = _prop.var.etc.outerTools;
-		bool trace = _prop.var.etc.traceDirectories;
 		if (dlg.open) {
 			if (oldKeyCodes != _prop.var.etc.standardKeyCodes) {
 				_comm.refStandardKeyCodes.call;
 			}
 			if (tools != _prop.var.etc.outerTools) {
 				_comm.refOuterTools.call;
-			}
-			if (!trace && _prop.var.etc.traceDirectories) {
-				_dirWin.startTrace;
 			}
 		}
 		if (oldHist != _prop.var.etc.openHistories) {
