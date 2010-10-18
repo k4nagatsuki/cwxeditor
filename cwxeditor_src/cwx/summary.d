@@ -597,17 +597,19 @@ public:
 
 	/// シナリオのシステムファイルまたはディレクトリであればtrueを返す。
 	bool isSystemFile(string p) {
-		auto dir = .isdir(p);
-		if (!dir && useTemp && .fnmatch(getBaseName(p), "cwxeditor.lock")) {
+		return isSystemFile(p, cast(bool) .isdir(p));
+	}
+	bool isSystemFile(string p, bool isdir) {
+		if (!isdir && useTemp && .fnmatch(getBaseName(p), "cwxeditor.lock")) {
 			return true;
 		}
 		if (legacy) {
-			if (dir) return false;
+			if (isdir) return false;
 			auto ext = getExt(p);
 			return .fnmatch(ext, "wid") || .fnmatch(ext, "wsm");
 		} else {
 			string fl = getBaseName(p);
-			if (dir) {
+			if (isdir) {
 				return isScenarioSystemDir(fl);
 			} else {
 				return cast(bool) .fnmatch(fl, "Summary.xml");

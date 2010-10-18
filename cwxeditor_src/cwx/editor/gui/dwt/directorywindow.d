@@ -195,7 +195,7 @@ private:
 	}
 
 	bool isDef(string p, bool isDir) {
-		return _summ.isSystemFile(p);
+		return _summ.isSystemFile(p, isDir);
 	}
 
 	void refreshDirs(string sel) {
