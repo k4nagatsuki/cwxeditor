@@ -96,6 +96,15 @@ public:
 	Image evtAddContinue() {return imgd!(resourceDir ~ "evt_add_continue.png");}
 	Image evtAutoOpen() {return imgd!(resourceDir ~ "evt_auto_edit.png");}
 
+	Image menuEvtTerminal() {return imgd!(resourceDir ~ "evt_j_term.png");}
+	Image menuEvtStandard() {return imgd!(resourceDir ~ "evt_j_std.png");}
+	Image menuEvtData() {return imgd!(resourceDir ~ "evt_j_data.png");}
+	Image menuEvtUtility() {return imgd!(resourceDir ~ "evt_j_util.png");}
+	Image menuEvtBranch() {return imgd!(resourceDir ~ "evt_j_br.png");}
+	Image menuEvtGet() {return imgd!(resourceDir ~ "evt_j_get.png");}
+	Image menuEvtLost() {return imgd!(resourceDir ~ "evt_j_lost.png");}
+	Image menuEvtVisual() {return imgd!(resourceDir ~ "evt_j_vis.png");}
+
 	Image content(CType type) {
 		switch (type) {
 		case CType.START: return imgd!(resourceDir ~ "evt_start.png");

@@ -188,7 +188,7 @@ private:
 	void openScenario(Summary summ) {
 		assert (summ);
 		auto old = summary;
-		if (summ.type.length && !hasSkin(_prop, summ.type)) {
+		if (summ.type.length && !hasSkin(_prop, summ.type) && summ.type != _prop.var.etc.defaultSkin) {
 			MessageBox.showWarning(_prop.msgs.useDefaultSkin(summ.type, _prop.var.etc.defaultSkin),
 				_prop.msgs.dlgTitWarning, _win);
 			summ.type = _prop.var.etc.defaultSkin;

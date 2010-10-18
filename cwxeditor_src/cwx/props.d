@@ -470,6 +470,23 @@ public:
 	string evtAddContinue() {return "連続で配置";}
 	string evtAutoOpen() {return "配置と同時に編集";}
 
+	string ttEvtTerminal() {return "開始/終端";}
+	string menuEvtTerminal() {return ttEvtTerminal ~ "(&T)";}
+	string ttEvtStandard() {return "基本";}
+	string menuEvtStandard() {return ttEvtStandard ~ "(&S)";}
+	string ttEvtData() {return "変数操作/分岐";}
+	string menuEvtData() {return ttEvtData ~ "(&D)";}
+	string ttEvtUtility() {return "状況分岐";}
+	string menuEvtUtility() {return ttEvtUtility ~ "(&U)";}
+	string ttEvtBranch() {return "保有分岐";}
+	string menuEvtBranch() {return ttEvtBranch ~ "(&B)";}
+	string ttEvtGet() {return "取得";}
+	string menuEvtGet() {return ttEvtGet ~ "(&G)";}
+	string ttEvtLost() {return "喪失";}
+	string menuEvtLost() {return ttEvtLost ~ "(&L)";}
+	string ttEvtVisual() {return "外観操作";}
+	string menuEvtVisual() {return ttEvtVisual ~ "(&V)";}
+
 	string content(CType type) {
 		switch (type) {
 		case CType.START: return "スタート";

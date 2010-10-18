@@ -1855,11 +1855,17 @@ void writeRec(Control c, string tab = "") {
 	}
 }
 
-CoolItem createCoolItem(CoolBar cbar, ToolBar tbar) {
-	auto itm = new CoolItem(cbar, DWT.PUSH);
+CoolItem createCoolItem(CoolBar cbar, ToolBar tbar, int index = -1) {
+	CoolItem itm;
+	if (index >= 0) {
+		itm = new CoolItem(cbar, DWT.PUSH, index);
+	} else {
+		itm = new CoolItem(cbar, DWT.PUSH);
+	}
 	itm.setControl = tbar;
 	auto p = tbar.computeSize(DWT.DEFAULT, DWT.DEFAULT);
 	itm.setMinimumSize(p.x, p.y);
+	itm.setPreferredSize(p.x, p.y);
 	return itm;
 }
 

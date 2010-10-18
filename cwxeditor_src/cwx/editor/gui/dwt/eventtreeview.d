@@ -1373,6 +1373,19 @@ private:
 			_comm.replID.remove(&__refreshCard);
 		}
 	}
+	class TSListener : ShellAdapter {
+		public override void shellClosed(ShellEvent e) {
+			_toolWin.setVisible = false;
+			e.doit = false;
+		}
+	}
+	class TMListener : MouseAdapter {
+		override void mouseDown(MouseEvent e) {
+			if (e.button == 3) {
+				arrow;
+			}
+		}
+	}
 public:
 	this(Commons comm, Props prop, Summary summ, Composite parent, UndoManager undo,
 			void delegate(size_t[]) forceSel,
@@ -1390,19 +1403,8 @@ public:
 			_toolWin = new Shell(parent.getShell, DWT.TITLE | DWT.RESIZE | DWT.TOOL);
 			_toolWin.setLayout = zeroGridLayout(1);
 			_toolWin.setText = prop.msgs.tools;
-			_toolWin.addShellListener(new class ShellAdapter {
-				public override void shellClosed(ShellEvent e) {
-					_toolWin.setVisible = false;
-					e.doit = false;
-				}
-			});
-			_toolWin.addMouseListener(new class MouseAdapter {
-				override void mouseDown(MouseEvent e) {
-					if (e.button == 3) {
-						arrow;
-					}
-				}
-			});
+			_toolWin.addShellListener(new TSListener);
+			_toolWin.addMouseListener(new TMListener);
 		}
 		auto popup = new Menu(parent.getShell, DWT.POP_UP);
 		createMenuItem(popup, prop.msgs.menuCEdit, prop.images.menuCEdit, &edit);
@@ -1429,127 +1431,138 @@ public:
 				cbar = new CoolBar(_toolWin, DWT.NONE);
 			} else {
 				cbar = new CoolBar(_comp, DWT.NONE);
-				cbar.addMouseListener(new class MouseAdapter {
-					override void mouseDown(MouseEvent e) {
-						if (e.button == 3) {
-							arrow;
-						}
-					}
-				});
+				cbar.addMouseListener(new TMListener);
 			}
 			cbar.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			auto g = new RadioGroup!(ToolItem);
 			_radioGroup = g;
+			Menu convMenu(string text, Image img) {
+				auto mi = createMenuItem(conv, text, img, null, DWT.CASCADE);
+				auto m = new Menu(parent.getShell, DWT.DROP_DOWN);
+				mi.setMenu = m;
+				return m;
+			}
 
 			auto atm = new ToolBar(cbar, DWT.FLAT);
+			atm.addMouseListener(new TMListener);
 			_arrowTI = createToolItem(atm, _prop.msgs.evtArrow, _prop.images.evtArrow, &arrow, DWT.RADIO);
 			_arrowTI.setSelection = true;
 			g.append(_arrowTI);
 			createCoolItem(cbar, atm);
 
 			auto mode = new ToolBar(cbar, DWT.FLAT);
+			mode.addMouseListener(new TMListener);
 			_contiTI = createToolItem(mode, _prop.msgs.evtAddContinue, _prop.images.evtAddContinue, &addContinue, DWT.CHECK);
 			_contiTI.setSelection = _conti;
 			_autoOpenTI = createToolItem(mode, _prop.msgs.evtAutoOpen, _prop.images.evtAutoOpen, &autoOpen, DWT.CHECK);
 			_autoOpenTI.setSelection = _autoOpen;
 			createCoolItem(cbar, mode);
 
-			auto e8 = new ToolBar(cbar, DWT.FLAT);
-			createEI(CType.SHOW_PARTY, e8, g, conv);
-			createEI(CType.HIDE_PARTY, e8, g, conv);
-			createEI(CType.CHANGE_BG_IMAGE, e8, g, conv);
-			createEI(CType.REDISPLAY, e8, g, conv);
-			createCoolItem(cbar, e8);
-			new MenuItem(conv, DWT.SEPARATOR);
-
 			auto e1 = new ToolBar(cbar, DWT.FLAT);
+			e1.addMouseListener(new TMListener);
+			auto e1c = convMenu(_prop.msgs.menuEvtTerminal, _prop.images.menuEvtTerminal);
 			createEI(CType.START, e1, g, conv);
-			createEI(CType.START_BATTLE, e1, g, conv);
-			createEI(CType.END, e1, g, conv);
-			createEI(CType.END_BAD_END, e1, g, conv);
-			createEI(CType.CHANGE_AREA, e1, g, conv);
-			createEI(CType.EFFECT_BREAK, e1, g, conv);
-			createEI(CType.LINK_START, e1, g, conv);
-			createEI(CType.LINK_PACKAGE, e1, g, conv);
+			createEI(CType.START_BATTLE, e1, g, e1c);
+			createEI(CType.END, e1, g, e1c);
+			createEI(CType.END_BAD_END, e1, g, e1c);
+			createEI(CType.CHANGE_AREA, e1, g, e1c);
+			createEI(CType.EFFECT_BREAK, e1, g, e1c);
+			createEI(CType.LINK_START, e1, g, e1c);
+			createEI(CType.LINK_PACKAGE, e1, g, e1c);
 			createCoolItem(cbar, e1);
-			new MenuItem(conv, DWT.SEPARATOR);
 
 			auto e2 = new ToolBar(cbar, DWT.FLAT);
-			createEI(CType.TALK_MESSAGE, e2, g, conv);
-			createEI(CType.TALK_DIALOG, e2, g, conv);
-			createEI(CType.PLAY_BGM, e2, g, conv);
-			createEI(CType.PLAY_SOUND, e2, g, conv);
-			createEI(CType.WAIT, e2, g, conv);
-			createEI(CType.ELAPSE_TIME, e2, g, conv);
-			createEI(CType.EFFECT, e2, g, conv);
-			createEI(CType.CALL_START, e2, g, conv);
-			createEI(CType.CALL_PACKAGE, e2, g, conv);
+			e2.addMouseListener(new TMListener);
+			auto e2c = convMenu(_prop.msgs.menuEvtStandard, _prop.images.menuEvtStandard);
+			createEI(CType.TALK_MESSAGE, e2, g, e2c);
+			createEI(CType.TALK_DIALOG, e2, g, e2c);
+			createEI(CType.PLAY_BGM, e2, g, e2c);
+			createEI(CType.PLAY_SOUND, e2, g, e2c);
+			createEI(CType.WAIT, e2, g, e2c);
+			createEI(CType.ELAPSE_TIME, e2, g, e2c);
+			createEI(CType.EFFECT, e2, g, e2c);
+			createEI(CType.CALL_START, e2, g, e2c);
+			createEI(CType.CALL_PACKAGE, e2, g, e2c);
 			createCoolItem(cbar, e2);
-			new MenuItem(conv, DWT.SEPARATOR);
 
 			auto e3 = new ToolBar(cbar, DWT.FLAT);
-			createEI(CType.BRANCH_FLAG, e3, g, conv);
-			createEI(CType.SET_FLAG, e3, g, conv);
-			createEI(CType.REVERSE_FLAG, e3, g, conv);
-			createEI(CType.BRANCH_MULTI_STEP, e3, g, conv);
-			createEI(CType.BRANCH_STEP, e3, g, conv);
-			createEI(CType.SET_STEP, e3, g, conv);
-			createEI(CType.SET_STEP_UP, e3, g, conv);
-			createEI(CType.SET_STEP_DOWN, e3, g, conv);
-			createEI(CType.CHECK_FLAG, e3, g, conv);
+			e3.addMouseListener(new TMListener);
+			auto e3c = convMenu(_prop.msgs.menuEvtData, _prop.images.menuEvtData);
+			createEI(CType.BRANCH_FLAG, e3, g, e3c);
+			createEI(CType.SET_FLAG, e3, g, e3c);
+			createEI(CType.REVERSE_FLAG, e3, g, e3c);
+			createEI(CType.BRANCH_MULTI_STEP, e3, g, e3c);
+			createEI(CType.BRANCH_STEP, e3, g, e3c);
+			createEI(CType.SET_STEP, e3, g, e3c);
+			createEI(CType.SET_STEP_UP, e3, g, e3c);
+			createEI(CType.SET_STEP_DOWN, e3, g, e3c);
+			createEI(CType.CHECK_FLAG, e3, g, e3c);
 			createCoolItem(cbar, e3);
-			new MenuItem(conv, DWT.SEPARATOR);
 
 			auto e4 = new ToolBar(cbar, DWT.FLAT);
-			createEI(CType.BRANCH_SELECT, e4, g, conv);
-			createEI(CType.BRANCH_ABILITY, e4, g, conv);
-			createEI(CType.BRANCH_RANDOM, e4, g, conv);
-			createEI(CType.BRANCH_LEVEL, e4, g, conv);
-			createEI(CType.BRANCH_STATUS, e4, g, conv);
-			createEI(CType.BRANCH_PARTY_NUMBER, e4, g, conv);
-			createEI(CType.BRANCH_AREA, e4, g, conv);
-			createEI(CType.BRANCH_BATTLE, e4, g, conv);
-			createEI(CType.BRANCH_IS_BATTLE, e4, g, conv);
+			e4.addMouseListener(new TMListener);
+			auto e4c = convMenu(_prop.msgs.menuEvtUtility, _prop.images.menuEvtUtility);
+			createEI(CType.BRANCH_SELECT, e4, g, e4c);
+			createEI(CType.BRANCH_ABILITY, e4, g, e4c);
+			createEI(CType.BRANCH_RANDOM, e4, g, e4c);
+			createEI(CType.BRANCH_LEVEL, e4, g, e4c);
+			createEI(CType.BRANCH_STATUS, e4, g, e4c);
+			createEI(CType.BRANCH_PARTY_NUMBER, e4, g, e4c);
+			createEI(CType.BRANCH_AREA, e4, g, e4c);
+			createEI(CType.BRANCH_BATTLE, e4, g, e4c);
+			createEI(CType.BRANCH_IS_BATTLE, e4, g, e4c);
 			createCoolItem(cbar, e4);
-			new MenuItem(conv, DWT.SEPARATOR);
 
 			auto e5 = new ToolBar(cbar, DWT.FLAT);
-			createEI(CType.BRANCH_CAST, e5, g, conv);
-			createEI(CType.BRANCH_ITEM, e5, g, conv);
-			createEI(CType.BRANCH_SKILL, e5, g, conv);
-			createEI(CType.BRANCH_INFO, e5, g, conv);
-			createEI(CType.BRANCH_BEAST, e5, g, conv);
-			createEI(CType.BRANCH_MONEY, e5, g, conv);
-			createEI(CType.BRANCH_COUPON, e5, g, conv);
-			createEI(CType.BRANCH_COMPLETE_STAMP, e5, g, conv);
-			createEI(CType.BRANCH_GOSSIP, e5, g, conv);
+			e5.addMouseListener(new TMListener);
+			auto e5c = convMenu(_prop.msgs.menuEvtBranch, _prop.images.menuEvtBranch);
+			createEI(CType.BRANCH_CAST, e5, g, e5c);
+			createEI(CType.BRANCH_ITEM, e5, g, e5c);
+			createEI(CType.BRANCH_SKILL, e5, g, e5c);
+			createEI(CType.BRANCH_INFO, e5, g, e5c);
+			createEI(CType.BRANCH_BEAST, e5, g, e5c);
+			createEI(CType.BRANCH_MONEY, e5, g, e5c);
+			createEI(CType.BRANCH_COUPON, e5, g, e5c);
+			createEI(CType.BRANCH_COMPLETE_STAMP, e5, g, e5c);
+			createEI(CType.BRANCH_GOSSIP, e5, g, e5c);
 			createCoolItem(cbar, e5);
-			new MenuItem(conv, DWT.SEPARATOR);
 
 			auto e6 = new ToolBar(cbar, DWT.FLAT);
-			createEI(CType.GET_CAST, e6, g, conv);
-			createEI(CType.GET_ITEM, e6, g, conv);
-			createEI(CType.GET_SKILL, e6, g, conv);
-			createEI(CType.GET_INFO, e6, g, conv);
-			createEI(CType.GET_BEAST, e6, g, conv);
-			createEI(CType.GET_MONEY, e6, g, conv);
-			createEI(CType.GET_COUPON, e6, g, conv);
-			createEI(CType.GET_COMPLETE_STAMP, e6, g, conv);
-			createEI(CType.GET_GOSSIP, e6, g, conv);
+			e6.addMouseListener(new TMListener);
+			auto e6c = convMenu(_prop.msgs.menuEvtGet, _prop.images.menuEvtGet);
+			createEI(CType.GET_CAST, e6, g, e6c);
+			createEI(CType.GET_ITEM, e6, g, e6c);
+			createEI(CType.GET_SKILL, e6, g, e6c);
+			createEI(CType.GET_INFO, e6, g, e6c);
+			createEI(CType.GET_BEAST, e6, g, e6c);
+			createEI(CType.GET_MONEY, e6, g, e6c);
+			createEI(CType.GET_COUPON, e6, g, e6c);
+			createEI(CType.GET_COMPLETE_STAMP, e6, g, e6c);
+			createEI(CType.GET_GOSSIP, e6, g, e6c);
 			createCoolItem(cbar, e6);
-			new MenuItem(conv, DWT.SEPARATOR);
 
 			auto e7 = new ToolBar(cbar, DWT.FLAT);
-			createEI(CType.LOSE_CAST, e7, g, conv);
-			createEI(CType.LOSE_ITEM, e7, g, conv);
-			createEI(CType.LOSE_SKILL, e7, g, conv);
-			createEI(CType.LOSE_INFO, e7, g, conv);
-			createEI(CType.LOSE_BEAST, e7, g, conv);
-			createEI(CType.LOSE_MONEY, e7, g, conv);
-			createEI(CType.LOSE_COUPON, e7, g, conv);
-			createEI(CType.LOSE_COMPLETE_STAMP, e7, g, conv);
-			createEI(CType.LOSE_GOSSIP, e7, g, conv);
+			e7.addMouseListener(new TMListener);
+			auto e7c = convMenu(_prop.msgs.menuEvtLost, _prop.images.menuEvtLost);
+			createEI(CType.LOSE_CAST, e7, g, e7c);
+			createEI(CType.LOSE_ITEM, e7, g, e7c);
+			createEI(CType.LOSE_SKILL, e7, g, e7c);
+			createEI(CType.LOSE_INFO, e7, g, e7c);
+			createEI(CType.LOSE_BEAST, e7, g, e7c);
+			createEI(CType.LOSE_MONEY, e7, g, e7c);
+			createEI(CType.LOSE_COUPON, e7, g, e7c);
+			createEI(CType.LOSE_COMPLETE_STAMP, e7, g, e7c);
+			createEI(CType.LOSE_GOSSIP, e7, g, e7c);
 			createCoolItem(cbar, e7);
+
+			auto e8 = new ToolBar(cbar, DWT.FLAT);
+			e8.addMouseListener(new TMListener);
+			auto e8c = convMenu(_prop.msgs.menuEvtVisual, _prop.images.menuEvtVisual);
+			createEI(CType.SHOW_PARTY, e8, g, e8c);
+			createEI(CType.HIDE_PARTY, e8, g, e8c);
+			createEI(CType.CHANGE_BG_IMAGE, e8, g, e8c);
+			createEI(CType.REDISPLAY, e8, g, e8c);
+			createCoolItem(cbar, e8, 2);
 
 			if (_prop.var.etc.contentsOrder.length == cbar.getItemCount) {
 				cbar.setItemOrder(_prop.var.etc.contentsOrder);
