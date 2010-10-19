@@ -21,6 +21,7 @@ import cwx.editor.gui.dwt.directorywindow;
 import cwx.editor.gui.dwt.datawindow;
 import cwx.editor.gui.dwt.dockingfolder;
 
+import dwt.widgets.Display;
 import dwt.widgets.Shell;
 import dwt.widgets.Composite;
 import dwt.widgets.Control;
@@ -371,15 +372,20 @@ class Commons {
 
 	void statusLine(Control base, string status) {
 		if (!_main) return;
-		TLPData data = null;
-		while (base && (data = cast(TLPData) base.getData) is null) {
-			base = base.getParent;
+		TLPData tlp(Control base) {
+			TLPData data = null;
+			while (base && (data = cast(TLPData) base.getData) is null) {
+				base = base.getParent;
+			}
+			return data;
 		}
+		auto data = tlp(base);
 		if (data) {
 			data.tlp.statusLine = status;
 		}
 		if (singleWindowMode) {
-			_main.statusLine = status;
+			auto data2 = tlp(Display.getCurrent.getFocusControl);
+			if (data is data2) _main.statusLine = status;
 		}
 	}
 
