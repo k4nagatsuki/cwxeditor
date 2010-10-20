@@ -21,6 +21,7 @@ import cwx.editor.gui.dwt.eventdialog;
 import cwx.editor.gui.dwt.message;
 import cwx.editor.gui.dwt.xmlbytestransfer;
 import cwx.editor.gui.dwt.undo;
+import cwx.editor.gui.dwt.properties;
 
 import std.string;
 
@@ -443,9 +444,8 @@ private:
 				return new Content(type, name);
 			}
 		} case CType.CHANGE_BG_IMAGE: {
-			auto p = _prop.looks.viewSize;
 			auto c = new Content(type, name);
-			c.backs = [new BgImage(findSkin(_prop, _summ).firstBgImage, "", 0, 0, p.width, p.height, false)];
+			c.backs = BgImageS.createBgImages(findSkin(_prop, _summ), _prop.var.etc.bgImagesDefault);
 			if (_autoOpen) {
 				auto dlg = new BgImagesDialog(_comm, _prop, _tree.getShell, _summ, c);
 				return dlg.open ? dlg.event : null;
@@ -1265,8 +1265,7 @@ private:
 			c.type(type, _prop.parent);
 			auto newd = c.detail;
 			if (newd.use(CArg.BG_IMAGES) && !oldd.use(CArg.BG_IMAGES)) {
-				auto p = _prop.looks.viewSize;
-				c.backs = [new BgImage(findSkin(_prop, _summ).firstBgImage, "", 0, 0, p.width, p.height, false)];
+				c.backs = BgImageS.createBgImages(findSkin(_prop, _summ), _prop.var.etc.bgImagesDefault);
 			}
 			if (newd.use(CArg.DIALOGS) && !oldd.use(CArg.DIALOGS)) {
 				c.dialogs = [new SDialog];

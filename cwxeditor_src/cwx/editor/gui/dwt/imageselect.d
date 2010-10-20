@@ -55,7 +55,6 @@ public:
 			int w, int h, bool canIncluding, void delegate() refresh = null) {
 		_group = new Group(parent, style);
 		_prop = prop;
-		_summ = summ;
 		_refresh = refresh;
 		_w = w;
 		_h = h;
@@ -77,14 +76,13 @@ public:
 				_image.setLayoutData = _image.computeSize(w, h);
 				_image.addPaintListener(new PListener);
 			}
-			auto skin = findSkin(_prop, _summ);
 			if (canIncluding) {
 				_msel = new MaterialSelect!(Type, Combo, List)
-					(comm, prop, _summ, &__refresh,
+					(comm, prop, summ, &__refresh,
 					[prop.msgs.imageNone, prop.msgs.imageIncluding], 1);
 			} else {
 				_msel = new MaterialSelect!(Type, Combo, List)
-					(comm, prop, _summ, &__refresh, [prop.msgs.imageNone]);
+					(comm, prop, summ, &__refresh, [prop.msgs.imageNone]);
 			}
 			{
 				auto comp = new Composite(compl, DWT.NONE);
@@ -179,7 +177,6 @@ private:
 	}
 	Group _group;
 	Props _prop;
-	Summary _summ;
 	Canvas _image;
 	MaterialSelect!(Type, Combo, List) _msel;
 	int _w, _h;

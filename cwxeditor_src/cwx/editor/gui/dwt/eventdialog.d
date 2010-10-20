@@ -553,25 +553,11 @@ public:
 	}
 protected:
 	override void setup(Composite area) {
-		auto bar = new Menu(area.getShell, DWT.BAR);
-		area.getShell.setMenuBar = bar;
-
 		area.setLayout = new GridLayout(1, false);
 		auto skin = findSkin(_prop, _summ);
 		{
-			_view = new BgImagesView(_comm, _prop, _summ, _cont, area, new UndoManager(1024));
+			_view = createBgImagesViewAndMenu(_comm, _prop, _summ, _cont, area);
 			_view.setLayoutData = new GridData(GridData.FILL_BOTH);
-			auto me = createMenu(bar, _prop.msgs.menuEdit);
-			createMenuItem(me, _prop.msgs.menuUndo, _prop.images.menuUndo, &_view.undo);
-			createMenuItem(me, _prop.msgs.menuRedo, _prop.images.menuRedo, &_view.redo);
-			new MenuItem(me, DWT.SEPARATOR);
-			createMenuItem(me, _prop.msgs.menuUp, _prop.images.menuUp, &_view.up);
-			createMenuItem(me, _prop.msgs.menuDown, _prop.images.menuDown, &_view.down);
-			new MenuItem(me, DWT.SEPARATOR);
-			appendMenuTCPD(_prop, me, _view, true, true, true, true);
-			auto mv = createMenu(bar, _prop.msgs.menuView);
-			createMenuItem(mv, _prop.msgs.menuRefresh, _prop.images.menuRefresh, &_view.refresh);
-			_view.setupMenu(bar);
 		}
 		if (!_summ.legacy) {
 			{

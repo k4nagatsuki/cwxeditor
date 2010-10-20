@@ -9,6 +9,7 @@ import cwx.background;
 import cwx.imagesize;
 import cwx.skin;
 
+import cwx.editor.gui.dwt.properties;
 import cwx.editor.gui.dwt.props;
 import cwx.editor.gui.dwt.skin;
 import cwx.editor.gui.dwt.utils;
@@ -62,6 +63,7 @@ private:
 	BgImage _back;
 
 	ImageSelect!(MtType.BG_IMG) _imgPath;
+	BgImageSetting[] _bgImageSettings;
 	Table _flag;
 	Spinner _x;
 	Spinner _y;
@@ -107,7 +109,7 @@ private:
 				break;
 			default:
 				_selected = true;
-				auto s = _prop.var.etc.bgImageSettings[i - 2];
+				auto s = _bgImageSettings[i - 2];
 				_x.setSelection = s.x;
 				_y.setSelection = s.y;
 				_w.setSelection = s.width;
@@ -126,16 +128,22 @@ private:
 		}
 	}
 public:
-	this(Commons comm, Props prop, Shell shell, Summary summ, BgImage back) {
-		assert (summ !is null);
+	this(Commons comm, Props prop, Shell shell, Summary summ, BgImageSetting[] bgImageSettings, BgImage back) {
 		_comm = comm;
 		_summ = summ;
+		_bgImageSettings = bgImageSettings;
 		_back = back;
 		_prop = prop;
 		_selected = back !is null;
+		DSize size;
+		if (_summ) {
+			size = _prop.var.areaBackgroundDlg;
+		} else {
+			size = _prop.var.areaBackgroundNFDlg;
+		}
 		super(prop, shell,
 			_back ? _prop.msgs.dlgTitBgImage : _prop.msgs.dlgTitNewBgImage,
-			_prop.images.backs, true, _prop.var.areaBackgroundDlg);
+			_prop.images.backs, true, size);
 	}
 
 	BgImage back() {
@@ -148,12 +156,15 @@ protected:
 		{
 			auto comp = new Composite(area, DWT.NONE);
 			comp.setLayout = new GridLayout(1, false);
-			{
+			void imgs(Composite parent) {
+				_imgPath = new ImageSelect!(MtType.BG_IMG)(parent, DWT.NONE, _comm, _prop, _summ,
+					_prop.var.etc.bgImageSampleWidth, _prop.var.etc.bgImageSampleHeight, false, &select);
+			}
+			if (_summ) {
 				auto sash = new SplitPane(comp, DWT.HORIZONTAL);
 				sash.setLayoutData = new GridData(GridData.FILL_BOTH);
 				{
-					_imgPath = new ImageSelect!(MtType.BG_IMG)(sash, DWT.NONE, _comm, _prop, _summ,
-						_prop.var.etc.bgImageSampleWidth, _prop.var.etc.bgImageSampleHeight, false, &select);
+					imgs(sash);
 				}
 				{
 					auto grp = new Group(sash, DWT.NONE);
@@ -168,6 +179,10 @@ protected:
 				}
 				sash.setWeights = [_prop.var.etc.backSashL, _prop.var.etc.backSashR];
 				sash.addDisposeListener(new SDListener);
+			} else {
+				// フラグ無し
+				imgs(comp);
+				_imgPath.widget.setLayoutData = new GridData(GridData.FILL_BOTH);
 			}
 			{
 				auto grp = new Group(comp, DWT.NONE);
@@ -208,7 +223,7 @@ protected:
 				_easy.setVisibleItemCount = 20;
 				_easy.add(_prop.msgs.bgImageSettingCustom);
 				_easy.add(_prop.msgs.bgImageSettingOriginal);
-				foreach (bs; _prop.var.etc.bgImageSettings) {
+				foreach (bs; _bgImageSettings) {
 					_easy.add(bs.name);
 				}
 				_easy.addSelectionListener(new SettingsListener);
@@ -225,26 +240,30 @@ protected:
 			l.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		}
 
-		auto nof = new TableItem(_flag, DWT.NONE);
-		nof.setText = _prop.msgs.noFlag;
-		foreach (flag; _summ.flagDirRoot.allFlags) {
-			auto itm = new TableItem(_flag, DWT.NONE);
-			itm.setImage = _prop.images.flag;
-			itm.setText = flag.path;
-			itm.setData = flag;
+		if (_flag) {
+			auto nof = new TableItem(_flag, DWT.NONE);
+			nof.setText = _prop.msgs.noFlag;
+			foreach (flag; _summ.flagDirRoot.allFlags) {
+				auto itm = new TableItem(_flag, DWT.NONE);
+				itm.setImage = _prop.images.flag;
+				itm.setText = flag.path;
+				itm.setData = flag;
+			}
 		}
 		if (_back) {
 			_imgPath.image = _back.path;
 			_imgPath.mask = _back.mask;
-			if (_back.flag.length > 0) {
-				foreach (i, itm; _flag.getItems) {
-					if (itm.getText == _back.flag) {
-						_flag.select(i);
-						break;
+			if (_flag) {
+				if (_back.flag.length > 0) {
+					foreach (i, itm; _flag.getItems) {
+						if (itm.getText == _back.flag) {
+							_flag.select(i);
+							break;
+						}
 					}
+				} else {
+					_flag.select(0);
 				}
-			} else {
-				_flag.select(0);
 			}
 			_x.setSelection = _back.x;
 			_y.setSelection = _back.y;
@@ -254,14 +273,14 @@ protected:
 		} else {
 			_imgPath.image = "";
 			_imgPath.mask = false;
-			_flag.select(0);
+			if (_flag) _flag.select(0);
 			_x.setSelection = 0;
 			_y.setSelection = 0;
 			_w.setSelection = 0;
 			_h.setSelection = 0;
 			_mask.setSelection = false;
 		}
-		_flag.showSelection;
+		if (_flag) _flag.showSelection;
 		auto spnl = new SModL;
 		_w.addModifyListener(spnl);
 		_h.addModifyListener(spnl);
@@ -269,8 +288,13 @@ protected:
 
 	override bool close(bool ok) {
 		if (ok && _imgPath.image.length > 0) {
-			int fidx = _flag.getSelectionIndex;
-			string flag = fidx > 0 ? _flag.getItem(fidx).getText : "";
+			string flag;
+			if (_flag) {
+				int fidx = _flag.getSelectionIndex;
+				flag = fidx > 0 ? _flag.getItem(fidx).getText : "";
+			} else {
+				flag = "";
+			}
 			if (_back) {
 				_back.path = _imgPath.image;
 				_back.flag = flag;

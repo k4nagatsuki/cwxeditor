@@ -451,7 +451,7 @@ private:
 		}
 	}
 	void settings() {
-		auto dlg = new SettingsDialog(_prop, _win);
+		auto dlg = new SettingsDialog(_comm, _prop, _win);
 		string[] oldHist = _prop.var.etc.openHistories;
 		string[] oldKeyCodes = _prop.var.etc.standardKeyCodes;
 		auto tools = _prop.var.etc.outerTools;
@@ -633,10 +633,12 @@ public:
 			}
 		}
 
+		_comm = new Commons;
+
 		auto d = new Display;
 		d.setAppName = _prop.msgs.application;
 		if (_prop.var.etc.enginePath.length && !.exists(_prop.var.etc.enginePath)) {
-			auto dlg = new SettingsDialog(_prop, null);
+			auto dlg = new SettingsDialog(_comm, _prop, null);
 			if (!dlg.open) return;
 		}
 
@@ -658,7 +660,6 @@ public:
 		_win.setData = new TLPData(this);
 		_win.setImage = _prop.images.app;
 
-		_comm = new Commons;
 		_comm.save.add(&savec);
 		_comm.refScenarioName.add(&__refreshTitle);
 		_comm.refScenarioPath.add(&__refreshTitle);

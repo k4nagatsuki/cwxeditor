@@ -5,6 +5,7 @@ import cwx.cwl;
 import cwx.race;
 import cwx.utils;
 import cwx.skin;
+import cwx.summary;
 import cwx.imagesize;
 import cwx.types;
 
@@ -20,11 +21,18 @@ import dwt.widgets.Display;
 import dwt.graphics.ImageData;
 import dwt.graphics.Image;
 
-Skin findSkin(Summary)(Props prop, Summary summ) {
-	if (summ.legacy && !summ.type.length) {
-		return Skin.find(prop.parent, prop.var.etc.enginePath, summ);
+Skin findSkin(S = Summary)(Props prop, S summ) {
+	static if (is(typeof(summ.type))) {
+		if (!summ) {
+			return findSkin2(prop, prop.var.etc.defaultSkin);
+		}
+		if (summ.legacy && !summ.type.length) {
+			return Skin.find(prop.parent, prop.var.etc.enginePath, summ);
+		}
+		return findSkin2(prop, summ.type);
+	} else {
+		return findSkin2(prop, prop.var.etc.defaultSkin);
 	}
-	return findSkin2(prop, summ.type);
 }
 Skin findSkin2(Props prop, string type) {
 	auto p = type in skinTable(prop);

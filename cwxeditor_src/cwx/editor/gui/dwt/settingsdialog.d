@@ -1,14 +1,18 @@
 
 module cwx.editor.gui.dwt.settingsdialog;
 
+import cwx.background;
 import cwx.utils;
 
 import cwx.editor.gui.dwt.props;
 import cwx.editor.gui.dwt.properties;
 import cwx.editor.gui.dwt.utils;
+import cwx.editor.gui.dwt.skin;
 import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.splitpane;
+import cwx.editor.gui.dwt.commons;
+import cwx.editor.gui.dwt.areaview;
 
 import std.path;
 import std.file;
@@ -41,6 +45,7 @@ import dwt.layout.GridData;
 
 class SettingsDialog : AbsDialog {
 private:
+	Commons _comm;
 	Props _prop;
 
 	CTabItem _tabB;
@@ -58,6 +63,7 @@ private:
 	CTabItem _tabS;
 	List _bgStgsL;
 	BgImageSetting[] _bgStgs;
+	BgImageS[] _bgImagesDefault;
 	Text _bgImgName;
 	Spinner _bgImgX;
 	Spinner _bgImgY;
@@ -352,6 +358,14 @@ private:
 		});
 		return spn;
 	}
+	class DefBgSetting : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			auto dlg = new DefBgImgDialog(_comm, _prop, getShell, _bgImagesDefault, _bgStgs);
+			if (dlg.open) {
+				_bgImagesDefault = dlg.backs;
+			}
+		}
+	}
 	void construct2(CTabFolder tabf) {
 		auto comp = new Composite(tabf, DWT.NONE);
 		_tabS = new CTabItem(tabf, DWT.NONE);
@@ -360,8 +374,21 @@ private:
 		comp.setLayout = new GridLayout(1, true);
 		auto sash = new SplitPane(comp, DWT.HORIZONTAL);
 		sash.setLayoutData = new GridData(GridData.FILL_BOTH);
+		auto back = new Composite(sash, DWT.NONE);
+		back.setLayout = zeroMarginGridLayout(1, true);
 		{
-			auto grp = new Group(sash, DWT.NONE);
+			auto grp = new Group(back, DWT.NONE);
+			grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+			auto cl = new CenterLayout;
+			cl.fillHorizontal = true;
+			grp.setLayout = cl;
+			grp.setText = _prop.msgs.bgImagesDefault;
+			auto defBtn = new Button(grp, DWT.PUSH);
+			defBtn.setText = _prop.msgs.setBgImagesDefault;
+			defBtn.addSelectionListener(new DefBgSetting);
+		}
+		{
+			auto grp = new Group(back, DWT.NONE);
 			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
 			grp.setLayout = new GridLayout(1, true);
 			grp.setText = _prop.msgs.bgImageSettings;
@@ -675,8 +702,9 @@ private:
 		}
 	}
 public:
-	this(Props prop, Shell shell) {
+	this(Commons comm, Props prop, Shell shell) {
 		super(prop, shell, prop.msgs.dlgTitSettings, prop.images.menuSettings, true, prop.var.settingsDlg);
+		_comm = comm;
 		_prop = prop;
 	}
 
@@ -706,6 +734,7 @@ protected:
 			_bgStgs[i] = stg.dup;
 		}
 		if (_bgStgs.length > 0) _bgStgsL.select = 0;
+		_bgImagesDefault = _prop.var.etc.bgImagesDefault;
 		selectBgImageSetting;
 
 		string buf = "";
@@ -772,6 +801,7 @@ protected:
 					= _prop.var.etc.openHistories[0 .. _prop.var.etc.historyMax];
 			}
 			_prop.var.etc.bgImageSettings = _bgStgs;
+			_prop.var.etc.bgImagesDefault = _bgImagesDefault;
 			string[] lines = splitlines(_keyCodes.getText);
 			if (lines.length > 0) {
 				int i;
@@ -784,6 +814,42 @@ protected:
 			}
 			_prop.var.etc.outerTools = _tools;
 		}
+		return ok;
+	}
+}
+
+class DefBgImgDialog : AbsDialog {
+private:
+	Commons _comm;
+	Props _prop;
+	BgImageSetting[] _settings;
+
+	BgImageContainer _cont;
+	BgImagesView _view;
+
+public:
+	this(Commons comm, Props prop, Shell shell, BgImageS[] bgImagesDefault, BgImageSetting[] settings) {
+		super(prop, shell, prop.msgs.dlgTitBgImagesDefault,
+			prop.images.menuSettings, true, prop.var.bgImagesDlg);
+		_comm = comm;
+		_prop = prop;
+
+		BgImage[] bgImages;
+		auto skin = findSkin(_prop, null);
+		_cont = new BgImageContainer(BgImageS.createBgImages(skin, bgImagesDefault));
+	}
+
+	BgImageS[] backs() {return BgImageS.createBgImageSs(_cont.backs);}
+protected:
+	override void setup(Composite area) {
+		area.setLayout = new GridLayout(1, false);
+		{
+			_view = createBgImagesViewAndMenu(_comm, _prop, null, _cont, area);
+			_view.setLayoutData = new GridData(GridData.FILL_BOTH);
+		}
+	}
+
+	override bool close(bool ok) {
 		return ok;
 	}
 }

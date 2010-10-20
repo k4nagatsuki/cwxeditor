@@ -21,6 +21,7 @@ import cwx.editor.gui.dwt.areawindow;
 import cwx.editor.gui.dwt.eventwindow;
 import cwx.editor.gui.dwt.summarydialog;
 import cwx.editor.gui.dwt.commons;
+import cwx.editor.gui.dwt.properties;
 import cwx.editor.gui.dwt.xmlbytestransfer;
 
 import dwt.widgets.Display;
@@ -420,8 +421,10 @@ public:
 	/// 新規エリアが作成され、名前の入力待ちになる。
 	void createArea() {
 		auto area = new Area(_summ.newAreaId, _prop.msgs.areaNew);
-		auto p = _prop.looks.viewSize;
-		area.append(new BgImage(findSkin(_prop, _summ).firstBgImage, "", 0, 0, p.width, p.height, false));
+		auto bgImages = BgImageS.createBgImages(findSkin(_prop, _summ), _prop.var.etc.bgImagesDefault);
+		foreach (b; bgImages) {
+			area.append(b);
+		}
 		auto tree = new EventTree(_prop.msgs.enterTree);
 		tree.enter = true;
 		area.add(tree);

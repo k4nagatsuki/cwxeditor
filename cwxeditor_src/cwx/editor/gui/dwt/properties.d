@@ -3,6 +3,8 @@ module cwx.editor.gui.dwt.properties;
 
 import cwx.utils;
 import cwx.xml;
+import cwx.skin;
+import cwx.background;
 
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.dockingfolder;
@@ -10,6 +12,7 @@ import cwx.editor.gui.dwt.dockingfolder;
 import std.conv;
 import std.string;
 import std.file;
+import std.path;
 import std.utf;
 
 import dwt.DWT;
@@ -356,6 +359,52 @@ struct OuterTool {
 	}
 }
 
+/// 背景画像のデフォルト設定を示すための構造体。
+/// 拡張子はスキンによるため、nameには拡張子を含めない。
+struct BgImageS {
+	string name;
+	int x;
+	int y;
+	uint width;
+	uint height;
+	bool mask;
+	void toNode(ref XNode e) {
+		auto r = e.newElement("background");
+		r.newAttr("name", name);
+		r.newAttr("x", x);
+		r.newAttr("y", y);
+		r.newAttr("width", width);
+		r.newAttr("height", height);
+		r.newAttr("mask", mask);
+	}
+	void fromNode(ref XNode node) {
+		if (node.name != "background") throw new Exception("Node is not background");
+		name = node.attr!(string)("name", true);
+		x = node.attr!(int)("x", true);
+		y = node.attr!(int)("y", true);
+		width = node.attr!(uint)("width", true);
+		height = node.attr!(uint)("height", true);
+		mask = node.attr!(bool)("mask", true);
+	}
+	static BgImageS[] createBgImageSs(BgImage[] bgs) {
+		BgImageS[] r;
+		r.length = bgs.length;
+		foreach (i, b; bgs) {
+			r[i] = BgImageS(getName(b.path), b.x, b.y, b.width, b.height, b.mask);
+		}
+		return r;
+	}
+	static BgImage[] createBgImages(Skin skin, BgImageS[] bgs) {
+		BgImage[] r;
+		r.length = bgs.length;
+		foreach (i, b; bgs) {
+			r[i] = new BgImage(skin.findImagePath(addExt(b.name, skin.extImage), ""),
+				"", b.x, b.y, b.width, b.height, b.mask);
+		}
+		return r;
+	}
+}
+
 class FlexEtcProps : Properties {
 	mixin Property!("singleWindow", bool, true);
 	mixin Property!("toolsOrder", int[], []);
@@ -437,6 +486,7 @@ class FlexEtcProps : Properties {
 	mixin Property!("bgImageSettingsNameHeight", int, 250, true);
 	mixin Property!("outerToolsNameWidth", int, 150, true);
 	mixin Property!("outerToolsNameHeight", int, 250, true);
+	mixin Property!("bgImagesDefault", BgImageS[], [BgImageS("MapOfWirth", 0, 0, 632, 420, false)]);
 	mixin Property!("bgImageSettingsSashL", int, 1);
 	mixin Property!("bgImageSettingsSashR", int, 1);
 	mixin Property!("bgImageKeyCodeSashL", int, 2);
@@ -458,7 +508,7 @@ class FlexEtcProps : Properties {
 		mixin Property!("engine", string, "CardWirthPy", true);
 		mixin Property!("enginePath", string, "CardWirthPy");
 	}
-	mixin Property!("defaultSkin", string, "MedievalFantasy");
+	mixin Property!("defaultSkin", string, "MedievalFantasy", true);
 	mixin Property!("defaultAuthor", string, "");
 	mixin Property!("canCreateClassic", bool, false);
 
@@ -596,6 +646,7 @@ public class FlexProps {
 	const DialogParam!("summaryDialog") summaryDlg;
 	const DialogParam!("menuCardDialog") menuCardDlg;
 	const DialogParam!("areaBackgroundDialog") areaBackgroundDlg;
+	const DialogParam!("areaBackgroundNFDialog") areaBackgroundNFDlg;
 	const DialogParam!("enemyCardDialog") enemyCardDlg;
 	const DialogParam!("castCardDialog") castCardDlg;
 	const DialogParam!("skillCardDialog") skillCardDlg;

@@ -179,7 +179,7 @@ private:
 					override CWXPath findCWXPath(string path) {return null;}
 					override CWXPath[] cwxChilds() {return [];}
 				});
-				_path.setUseCounter(_summ.useCounter.sub);
+				if (_summ) _path.setUseCounter(_summ.useCounter.sub);
 				_path.path = _area.music;
 			}
 			private void impl() {
@@ -285,14 +285,14 @@ private:
 			static if (UseCards) {
 				foreach (i; _cards.getSelectionIndices) {
 					auto c = C.createFromNode(_area.cards[i].toNode, LATEST_VERSION);
-					c.setUseCounter(_summ.useCounter.sub);
+					if (_summ) c.setUseCounter(_summ.useCounter.sub);
 					_cs[i] = c;
 				}
 			}
 			static if (UseBacks) {
 				foreach (i; _backs.getSelectionIndices) {
 					auto b = _area.backs[i].dup;
-					b.setUseCounter(_summ.useCounter.sub);
+					if (_summ) b.setUseCounter(_summ.useCounter.sub);
 					_bs[i] = b;
 				}
 			}
@@ -345,7 +345,7 @@ private:
 					} else static if (is(C == EnemyCard)) {
 						c = new C(c.id, c.escape, c.flag, c.x, c.y, c.scale);
 					} else static assert (0);
-					c.setUseCounter(_summ.useCounter.sub);
+					if (_summ) c.setUseCounter(_summ.useCounter.sub);
 					cs[i] = c;
 				}
 				return cs;
@@ -357,7 +357,7 @@ private:
 				foreach (i; indices) {
 					auto b = _area.backs[i];
 					b = b.dup;
-					b.setUseCounter(_summ.useCounter.sub);
+					if (_summ) b.setUseCounter(_summ.useCounter.sub);
 					bs[i] = b;
 				}
 				return bs;
@@ -1435,7 +1435,7 @@ public:
 			auto skin = findSkin(_prop, _summ);
 			foreach (i, b; _area.backs) {
 				auto img = cast(FlexImage) _imgp.images[i];
-				string path = skin.findImagePath(b.path, _summ.scenarioPath);
+				string path = skin.findImagePath(b.path, _summ ? _summ.scenarioPath : "");
 				uint w, h;
 				imageSize(path, w, h);
 				img.setPath(path);
@@ -1466,7 +1466,7 @@ public:
 			foreach (i, b; _area.backs) {
 				auto img = _imgp.images[i];
 				uint w, h;
-				string path = findSkin(_prop, _summ).findImagePath(b.path, _summ.scenarioPath);
+				string path = findSkin(_prop, _summ).findImagePath(b.path, _summ ? _summ.scenarioPath : "");
 				try {
 					if (imageSize(path, w, h)) {
 						img.setPath(path);
@@ -1597,6 +1597,7 @@ public:
 	static if (UseCards) {
 		void createCard() {
 			static if (is (C == EnemyCard)) {
+				if (!_summ) return;
 				if (_summ.casts.length == 0) return;
 			}
 			auto dlg = new SpCardDialog!(C)(_comm, _prop, getShell, _summ, null);
@@ -1650,7 +1651,7 @@ public:
 	}
 	static if (UseBacks) {
 		void createBackground() {
-			auto dlg = new BgImageDialog(_comm, _prop, getShell, _summ, null);
+			auto dlg = new BgImageDialog(_comm, _prop, getShell, _summ, _prop.var.etc.bgImageSettings, null);
 			if (dlg.open) {
 				int index = insertIndex(_backs);
 				static if (UseCards) {
@@ -1670,7 +1671,7 @@ public:
 				}
 			}
 			auto undo = new UndoEdit;
-			auto dlg = new BgImageDialog(_comm, _prop, getShell, _summ, back);
+			auto dlg = new BgImageDialog(_comm, _prop, getShell, _summ, _prop.var.etc.bgImageSettings, back);
 			if (dlg.open) {
 				_undo ~= undo;
 				foreach (i, b; _area.backs) {
@@ -1928,6 +1929,7 @@ public:
 		}
 		static if (is (C == MenuCard)) {
 			private int cardFromFile(string fname, int x, int y, bool fromImgPane) {
+				if (!_summ) return -1;
 				if (!hasPath(_summ.scenarioPath, fname)) {
 					auto dlg = new MessageBox(getShell, DWT.ICON_QUESTION | DWT.YES | DWT.NO | DWT.CANCEL);
 					scope (exit) dlg.dispose;
@@ -1945,10 +1947,11 @@ public:
 			}
 			private class CLDropTarget : DropTargetAdapter {
 				override void dragEnter(DropTargetEvent e){
-					e.detail = DND.DROP_COPY;
+					e.detail = _summ ? DND.DROP_COPY : DND.DROP_NONE;
 				}
 				private int[] addC;
 				override void drop(DropTargetEvent e) {
+					assert (_summ);
 					scope (exit) addC = [];
 					auto arr = cast(FileNames) e.data;
 					if (arr) {
@@ -1980,6 +1983,7 @@ public:
 					}
 				}
 				private bool doFile(string path) {
+					assert (_summ);
 					if (findSkin(_prop, _summ).isCardImage(path)) {
 						int i = cardFromFile(path, 0, 0, false);
 						if (i == -1) {
@@ -2023,7 +2027,7 @@ public:
 		private FlexImage create(BgImage back) {
 			auto skin = findSkin(_prop, _summ);
 			auto img = createBackgroundImage
-				(skin, skin.findImagePath(back.path, _summ.scenarioPath),
+				(skin, skin.findImagePath(back.path, _summ ? _summ.scenarioPath : ""),
 				back.x, back.y, back.width, back.height, back.mask);
 			_backTbl[img] = back;
 			img.visible = _viewBacks;
@@ -2041,6 +2045,7 @@ public:
 			if (select && _viewBacks) _imgp.select(imgs);
 		}
 		private int backFromFile(string fname, int x, int y, int w, int h, bool fromImgPane) {
+			if (!_summ) return -1;
 			if (!hasPath(_summ.scenarioPath, fname)) {
 				auto dlg = new MessageBox(getShell, DWT.ICON_QUESTION | DWT.YES | DWT.NO | DWT.CANCEL);
 				scope (exit) dlg.dispose;
@@ -2061,9 +2066,11 @@ public:
 			this(Control c) {
 				super(c);
 			}
-		protected:
 			private int[] addB;
+		protected:
+			override bool canDrop() {return _summ !is null;}
 			bool doFile(string path, int x, int y) {
+				assert (_summ);
 				auto img = loadBgImage(findSkin(_prop, _summ), path);
 				if (img) {
 					int i = backFromFile(path, 0, 0, img.width, img.height, false);
@@ -2075,6 +2082,7 @@ public:
 				return false;
 			}
 			void doExit(string[] copy) {
+				assert (_summ);
 				scope (exit) addB = [];
 				if (copy.length > 0) {
 					static if (UseCards) {
@@ -2103,11 +2111,12 @@ public:
 	}
 	private class IPDropTarget : DropTargetAdapter {
 		override void dragEnter(DropTargetEvent e){
-			e.detail = DND.DROP_COPY;
+			e.detail = _summ ? DND.DROP_COPY : DND.DROP_NONE;
 		}
 		static if (UseCards) private int[] addC;
 		static if (UseBacks) private int[] addB;
 		override void drop(DropTargetEvent e) {
+			assert (_summ);
 			static if (UseCards) scope (exit) addC = [];
 			static if (UseBacks) scope (exit) addB = [];
 			auto arr = cast(FileNames) e.data;
@@ -2149,6 +2158,7 @@ public:
 			}
 		}
 		private bool doFile(string path, int x, int y) {
+			assert (_summ);
 			auto skin = findSkin(_prop, _summ);
 			static if ((UseCards && is (C == MenuCard)) && UseBacks) {
 				if (skin.isCardImage(path)) {
@@ -2195,11 +2205,11 @@ public:
 
 	static if (is (C == EnemyCard)) {
 		private void __refreshCast(CastCard castCard) {
-			auto skin = findSkin(_prop, summ);
+			auto skin = findSkin(_prop, _summ);
 			foreach (i, c; area.cards) {
 				if (castCard.id == _area.cards[i].id) {
 					auto img = imagePane.images[cardsIndex + i];
-					img.setImageData(castCardImage(_prop, skin, castCard, _summ.scenarioPath, _dbgMode));
+					img.setImageData(castCardImage(_prop, skin, castCard, _summ ? _summ.scenarioPath : "", _dbgMode));
 					img.createImage;
 					cardList.setItem(i, castCard.name);
 					if (_renameCard) _renameCard(i);
@@ -2208,7 +2218,7 @@ public:
 			imagePane.redraw;
 		}
 		private void __deleteCast(CastCard castCard) {
-			auto skin = findSkin(_prop, summ);
+			auto skin = findSkin(_prop, _summ);
 			foreach (i, c; area.cards) {
 				if (castCard.id == c.id) {
 					auto img = imagePane.images[cardsIndex + i];
@@ -2627,4 +2637,22 @@ FlexImage createMenuCardImage
 	r.setTitle(title, dwtData(prop.looks.menuCardNameFont(skin.legacy)), dwtData(prop.looks.menuCardNamePoint));
 	r.resize;
 	return r;
+}
+
+BgImagesView createBgImagesViewAndMenu(Commons comm, Props prop, Summary summ, BgImageContainer cont, Composite parent) {
+	auto view = new BgImagesView(comm, prop, summ, cont, parent, new UndoManager(1024));
+	auto bar = new Menu(parent.getShell, DWT.BAR);
+	parent.getShell.setMenuBar = bar;
+	auto me = createMenu(bar, prop.msgs.menuEdit);
+	createMenuItem(me, prop.msgs.menuUndo, prop.images.menuUndo, &view.undo);
+	createMenuItem(me, prop.msgs.menuRedo, prop.images.menuRedo, &view.redo);
+	new MenuItem(me, DWT.SEPARATOR);
+	createMenuItem(me, prop.msgs.menuUp, prop.images.menuUp, &view.up);
+	createMenuItem(me, prop.msgs.menuDown, prop.images.menuDown, &view.down);
+	new MenuItem(me, DWT.SEPARATOR);
+	appendMenuTCPD(prop, me, view, true, true, true, true);
+	auto mv = createMenu(bar, prop.msgs.menuView);
+	createMenuItem(mv, prop.msgs.menuRefresh, prop.images.menuRefresh, &view.refresh);
+	view.setupMenu(bar);
+	return view;
 }

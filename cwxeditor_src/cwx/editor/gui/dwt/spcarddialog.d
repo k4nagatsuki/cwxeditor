@@ -74,8 +74,11 @@ private:
 			override void paintControl(PaintEvent e) {
 				if (_casts.getSelectionIndex >= 0) {
 					auto canv = cast(Canvas) e.widget;
-					string path = findSkin(_prop, _summ).findImagePath
-						(_summ.casts[_casts.getSelectionIndex].path, _summ.scenarioPath);
+					string path = "";
+					if (_summ) {
+						path = findSkin(_prop, _summ).findImagePath
+							(_summ.casts[_casts.getSelectionIndex].path, _summ.scenarioPath);
+					}
 					if (path.length > 0) {
 						scope img = new Image(Display.getCurrent, loadImage(path));
 						scope (exit) img.dispose;
@@ -112,7 +115,6 @@ private:
 	}
 public:
 	this(Commons comm, Props prop, Shell shell, Summary summ, C card) {
-		assert (summ !is null);
 		_comm = comm;
 		_summ = summ;
 		_card = card;
@@ -124,7 +126,7 @@ public:
 			auto size = _prop.var.enemyCardDlg;
 			string text;
 			if (_card) {
-				auto c = _summ.casts(_card.id);
+				auto c = _summ ? _summ.casts(_card.id) : null;
 				text = c ? _prop.msgs.dlgTitEnemyCard(c.name) : _prop.msgs.dlgTitNewEnemyCard;
 			} else {
 				text = _prop.msgs.dlgTitNewEnemyCard;
@@ -167,8 +169,10 @@ protected:
 							grp.setLayout = new GridLayout(2, false);
 							grp.setText = _prop.msgs.enemyCardBase;
 							_casts = new Combo(grp, DWT.BORDER | DWT.DROP_DOWN | DWT.READ_ONLY);
-							foreach (c; _summ.casts) {
-								_casts.add(c.name);
+							if (_summ) {
+								foreach (c; _summ.casts) {
+									_casts.add(c.name);
+								}
 							}
 							auto gd = new GridData(GridData.FILL_HORIZONTAL);
 							gd.widthHint = _prop.var.etc.nameWidth;
@@ -186,7 +190,7 @@ protected:
 						static if (is (C == MenuCard)) {
 							auto skin = findSkin(_prop, _summ);
 							_imgPath = new ImageSelect!(MtType.CARD)(comp2, DWT.NONE, _comm, _prop, _summ,
-								_prop.looks.cardSize.width, _prop.looks.cardSize.height, _summ.legacy);
+								_prop.looks.cardSize.width, _prop.looks.cardSize.height, _summ ? _summ.legacy : false);
 							_imgPath.widget.setLayoutData = new GridData(GridData.FILL_BOTH);
 						} else static if (is (C == EnemyCard)) {
 							auto grp = new Group(comp2, DWT.NONE);
@@ -256,7 +260,7 @@ protected:
 					grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 					grp.setLayout = new CenterLayout(DWT.HORIZONTAL);
 					grp.setText = _prop.msgs.desc;
-					_desc = new FixedWidthText(dwtData(_prop.looks.cardDescFont(_summ.legacy)), _prop.looks.cardDescLen, grp, DWT.BORDER);
+					_desc = new FixedWidthText(dwtData(_prop.looks.cardDescFont(_summ ? _summ.legacy : false)), _prop.looks.cardDescLen, grp, DWT.BORDER);
 					_desc.widget.setLayoutData = _desc.computeTextBaseSize(_prop.looks.cardDescLine);
 				}
 			}
@@ -265,11 +269,13 @@ protected:
 
 		auto nof = new TableItem(_flag, DWT.NONE);
 		nof.setText = _prop.msgs.noFlag;
-		foreach (flag; _summ.flagDirRoot.allFlags) {
-			auto itm = new TableItem(_flag, DWT.NONE);
-			itm.setImage = _prop.images.flag;
-			itm.setText = flag.path;
-			itm.setData = flag;
+		if (_summ) {
+			foreach (flag; _summ.flagDirRoot.allFlags) {
+				auto itm = new TableItem(_flag, DWT.NONE);
+				itm.setImage = _prop.images.flag;
+				itm.setText = flag.path;
+				itm.setData = flag;
+			}
 		}
 		if (_card) {
 			static if (is (C == MenuCard)) {
@@ -277,10 +283,12 @@ protected:
 				_desc.setText = _card.desc;
 				_name.setText = _card.name;
 			} else static if (is (C == EnemyCard)) {
-				foreach (i, c; _summ.casts) {
-					if (c.id == _card.id) {
-						_casts.select = i;
-						break;
+				if (_summ) {
+					foreach (i, c; _summ.casts) {
+						if (c.id == _card.id) {
+							_casts.select = i;
+							break;
+						}
 					}
 				}
 				_escape.setSelection = _card.escape;
@@ -329,7 +337,7 @@ protected:
 					_card.desc = wrapReturnCode(_desc.getText);
 					_card.name = _name.getText;
 				} else static if (is (C == EnemyCard)) {
-					if (_casts.getSelectionIndex >= 0) {
+					if (_summ && _casts.getSelectionIndex >= 0) {
 						_card.id = _summ.casts[_casts.getSelectionIndex].id;
 					} else {
 						_card.id = 0;
@@ -349,7 +357,7 @@ protected:
 						_x.getSelection, _y.getSelection, _scale.getSelection / 100.0);
 				} else static if (is (C == EnemyCard)) {
 					ulong id;
-					if (_casts.getSelectionIndex >= 0) {
+					if (_summ && _casts.getSelectionIndex >= 0) {
 						id = _summ.casts[_casts.getSelectionIndex].id;
 					}
 					_card = new C(id, _escape.getSelection,

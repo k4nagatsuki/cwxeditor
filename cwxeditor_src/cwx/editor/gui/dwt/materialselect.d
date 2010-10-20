@@ -102,7 +102,9 @@ public:
 				super(c);
 			}
 		protected override:
+			bool canDrop() {return _summ !is null;}
 			string[] doAll(string[] files) {
+				assert (_summ);
 				string[] r;
 				foreach (f; files) {
 					if (isTarg(f) && !hasPath(_summ.scenarioPath, f)) {
@@ -121,10 +123,12 @@ public:
 				return [];
 			}
 			bool doFile(string path, int x, int y) {
+				assert (_summ);
 				copyTo(_summ.scenarioPath, path, _skin.materialPath);
 				return true;
 			}
 			void doExit() {
+				assert (_summ);
 				refreshPaths(_skin.materialPath);
 				_comm.refPaths.call(this.outer, _skin.materialPath);
 			}
@@ -170,7 +174,7 @@ public:
 			if (_dirs.getSelectionIndex == _tbl) {
 				return std.path.join(defDir, f);
 			} else {
-				return std.path.join(std.path.join(_summ.scenarioPath, p), f);
+				return std.path.join(std.path.join(_summ ? _summ.scenarioPath : "", p), f);
 			}
 		}
 		return "";
@@ -228,7 +232,7 @@ private:
 		public override void widgetSelected(SelectionEvent e) {
 			if (_dirs.getSelectionIndex == _tbl) {
 				openFolder(defDir);
-			} else {
+			} else if (_summ) {
 				string cur = currentDir;
 				if (cur) {
 					openFolder(std.path.join(_summ.scenarioPath, cur));
@@ -340,10 +344,10 @@ private:
 			if (_dirs.getItemCount == _defs.length) {
 				_fileList.setEnabled = false;
 			} else {
-				string st;
+				string st = "";
 				if (_tbl > -1) {
 					st = defDir;
-				} else {
+				} else if (_summ) {
 					st = _dirs.getItem(_defs.length);
 					if (st == "/") {
 						st = _summ.scenarioPath;
@@ -351,20 +355,27 @@ private:
 						st = std.path.join(_summ.scenarioPath, fromViewPath(st));
 					}
 				}
-				__refreshList(st, forceRefresh);
-				static if (is(C : Combo) || is(C : CCombo)) {
-					_fileList.add(_prop.msgs.fileNone, 0);
-					_fileList.select = 0;
+				if (st.length) {
+					__refreshList(st, forceRefresh);
+					static if (is(C : Combo) || is(C : CCombo)) {
+						_fileList.add(_prop.msgs.fileNone, 0);
+						_fileList.select = 0;
+					} else {
+						_fileList.select = -1;
+					}
 				} else {
 					_fileList.select = -1;
 				}
 			}
 		} else if (_dirs.getSelectionIndex == _tbl) {
 			__refreshList(defDir, forceRefresh);
-		} else {
-			string st = _dirs.getText == "/"
-				? _summ.scenarioPath
-				: std.path.join(_summ.scenarioPath, fromViewPath(_dirs.getText));
+		} else if (_summ) {
+			string st;
+			if (_dirs.getText == "/") {
+				st = _summ.scenarioPath;
+			} else {
+				st = std.path.join(_summ.scenarioPath, fromViewPath(_dirs.getText));
+			}
 			__refreshList(st, forceRefresh);
 		}
 	}
@@ -384,9 +395,6 @@ private:
 		if (oldSel < 0) oldSel = 0;
 		string oldSelS = _dirs.getText;
 		_dirs.removeAll;
-		string st = _summ.scenarioPath;
-		size_t cut = st.length;
-		if (!endsWith(st, sep) && !endsWith(st, altsep)) cut++;
 		foreach (def; _defs) {
 			_dirs.add(def);
 		}
@@ -396,7 +404,13 @@ private:
 			_tbl = _dirs.getItemCount;
 			_dirs.add(_prop.msgs.pathDef);
 		}
-		searchTarg(_summ.scenarioPath, cut);
+		size_t cut = 0;
+		if (_summ) {
+			string st = _summ.scenarioPath;
+			cut = st.length;
+			if (!endsWith(st, sep) && !endsWith(st, altsep)) cut++;
+			searchTarg(_summ.scenarioPath, cut);
+		}
 		if (!select) {
 			void selectOld() {
 				if (oldSel < _defs.length) {
@@ -414,7 +428,7 @@ private:
 			if (isBinImg(_path)) {
 				_dirs.select = _including;
 			} else {
-				auto p = _skin.findPathF(_path, defExt, defDir, _summ.scenarioPath, def);
+				auto p = _skin.findPathF(_path, defExt, defDir, _summ ? _summ.scenarioPath : "", def);
 				if (p.length > 0) {
 					if (def) {
 						if (_tbl == -1) {
@@ -423,7 +437,7 @@ private:
 						} else {
 							_dirs.select = _tbl;
 						}
-					} else {
+					} else if (_summ) {
 						auto pt = getDirName(p);
 						pt = pt.length <= cut ? sep : pt[cut .. $];
 						pt = toViewPath(pt);

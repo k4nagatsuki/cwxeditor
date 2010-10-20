@@ -827,7 +827,7 @@ private:
 	Control _c;
 	class DListener : DropTargetAdapter {
 		override void dragEnter(DropTargetEvent e){
-			e.detail = DND.DROP_COPY;
+			e.detail = canDrop ? DND.DROP_COPY : DND.DROP_NONE;
 		}
 		override void drop(DropTargetEvent e) {
 			auto arr = cast(FileNames) e.data;
@@ -858,6 +858,9 @@ public:
 	}
 	Control control() {
 		return _c;
+	}
+	protected bool canDrop() {
+		return true;
 	}
 	protected string[] doAll(string[] files) {
 		return files;

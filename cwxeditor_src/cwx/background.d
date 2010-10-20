@@ -190,10 +190,6 @@ public:
 		sn.newAttr("height", "420");
 	}
 
-	/// XMLノードからインスタンスを生成。
-	/// Throws:
-	/// AreaException = nodeがBgImageでない。またはデータが不足している。
-	/// IllegalArgmentException = 数値であるべきデータが数値でない。
 	static BgImage createFromNode(ref XNode node, string ver) {
 		if (node.name != "BgImage") throw new AreaException("Node is not BgImage");
 		bool mask = parseBool(node.attr("mask", true));

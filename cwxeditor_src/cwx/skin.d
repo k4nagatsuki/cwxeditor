@@ -538,9 +538,6 @@ class Skin {
 		return _races;
 	}
 
-	/// エリア等を作成した際、最初に配置されている背景画像の名前。
-	string firstBgImage() {return addExt("MapOfWirth", extImage);}
-
 	/// バトルを作成した際、最初に設定されているBGMの名前。
 	string defBattle() {return addExt("DefBattle", extBgm);}
 

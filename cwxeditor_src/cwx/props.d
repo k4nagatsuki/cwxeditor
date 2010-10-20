@@ -1857,6 +1857,10 @@ public:
 	}
 	string newOuterTool() {return "新規作成";}
 	string delOuterTool() {return "削除";}
+
+	string bgImagesDefault() {return "デフォルト背景";}
+	string setBgImagesDefault() {return "デフォルト背景の設定";}
+	string dlgTitBgImagesDefault() {return "デフォルト背景の設定";}
 }
 
 public class Looks {
