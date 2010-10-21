@@ -73,7 +73,7 @@ abstract class AbsDialog {
 		}
 		_okBtn = createButton(prop.msgs.dlgTextOK, &ok);
 		if (apply) {
-			_apply = createButton(prop.msgs.dlgTextApply, &this.apply);
+			_apply = createButton(prop.msgs.dlgTextApply, &applyFunc);
 		}
 		createButton(prop.msgs.dlgTextCancel, &cancel);
 	}
@@ -147,6 +147,12 @@ abstract class AbsDialog {
 		}
 		return _ret || _applied;
 	}
+	private void applyFunc() {
+		if (apply) {
+			_apply.setEnabled = false;
+			_applied = true;
+		}
+	}
 	private void check() {
 		bool enbl = true;
 		for (size_t i = 0; enbl && i < _chk1.length; i++) {
@@ -166,7 +172,7 @@ abstract class AbsDialog {
 			check;
 		}
 	}
-	protected void applyEnabled() {
+	protected final void applyEnabled() {
 		_apply.setEnabled = true;
 	}
 	protected void checkerImpl(T)(T text) {
@@ -189,9 +195,8 @@ abstract class AbsDialog {
 		checkerImpl(text);
 	}
 	protected void setup(Composite area);
-	protected void apply() {
-		_apply.setEnabled = false;
-		_applied = true;
+	protected bool apply() {
+		return true;
 	}
 	protected bool close(bool ok, out bool cancel) {
 		cancel = false;

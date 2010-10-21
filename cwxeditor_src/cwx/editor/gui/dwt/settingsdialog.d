@@ -832,7 +832,7 @@ protected:
 		selectOuterTool;
 	}
 
-	private bool applyImpl() {
+	override bool apply() {
 		void err(CTabItem tab, Text t, string msg) {
 			auto dlg = new MessageBox(t.getShell, DWT.ICON_WARNING | DWT.OK);
 			scope (exit) dlg.dispose;
@@ -891,14 +891,9 @@ protected:
 		_prop.var.etc.outerTools = _tools;
 		return true;
 	}
-	override void apply() {
-		if (applyImpl) {
-			super.apply;
-		}
-	}
 	override bool close(bool ok, out bool cancel) {
 		if (ok) {
-			ok = applyImpl;
+			ok = apply;
 			if (!ok) cancel = true;
 		}
 		return ok;
