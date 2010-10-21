@@ -103,7 +103,7 @@ abstract class AbsDialog {
 	bool enterClose() {return _enterClose;}
 	private class CKListener : Listener {
 		override void handleEvent(Event e) {
-			if (e.character == DWT.CR && _win is Display.getCurrent.getActiveShell) {
+			if (_okBtn.isEnabled && e.character == DWT.CR && _win is Display.getCurrent.getActiveShell) {
 				_ret = true;
 				_win.close;
 			}

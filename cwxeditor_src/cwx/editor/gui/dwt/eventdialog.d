@@ -102,6 +102,7 @@ public:
 			static assert (0);
 		}
 		super(prop, shell, text, prop.images.content(Type), true, prop.var.selEvtDlg);
+		enterClose = true;
 	}
 
 	Content event() {
@@ -246,6 +247,7 @@ public:
 		_starts = starts;
 		_evt = evt;
 		super(prop, shell, prop.msgs.dlgTitStartSelect, prop.images.content(Type), true, prop.var.selEvtDlg);
+		enterClose = true;
 	}
 
 	Content event() {
@@ -299,6 +301,7 @@ public:
 		_prop = prop;
 		_evt = evt;
 		super(prop, shell, prop.msgs.dlgTitClear, prop.images.content(CType.END), false);
+		enterClose = true;
 	}
 
 	Content event() {
@@ -362,6 +365,7 @@ public:
 		_evt = evt;
 		_summ = summ;
 		super(prop, shell, prop.msgs.dlgTitCoupon, prop.images.content(Type), true, prop.var.couponEvtDlg);
+		enterClose = true;
 	}
 
 	Content event() {
@@ -464,6 +468,7 @@ public:
 		_prop = prop;
 		_evt = evt;
 		super(prop, shell, mixin (Title), prop.images.content(Type), true, prop.var.inputEvtDlg);
+		enterClose = true;
 	}
 
 	Content event() {
@@ -666,6 +671,7 @@ public:
 		_summ = summ;
 		_evt = evt;
 		super(prop, shell, prop.msgs.dlgTitBGM, prop.images.content(CType.PLAY_BGM), true, prop.var.soundEvtDlg);
+		enterClose = true;
 	}
 
 	Content event() {
@@ -754,6 +760,7 @@ public:
 		_summ = summ;
 		_evt = evt;
 		super(prop, shell, prop.msgs.dlgTitSE, prop.images.content(CType.PLAY_SOUND), true, prop.var.soundEvtDlg);
+		enterClose = true;
 	}
 
 	Content event() {
@@ -819,6 +826,7 @@ public:
 		_prop = prop;
 		_evt = evt;
 		super(prop, shell, mixin (Title), prop.images.content(Type), false);
+		enterClose = true;
 	}
 
 	Content event() {
@@ -931,6 +939,7 @@ public:
 		_summ = summ;
 		_evt = evt;
 		super(prop, shell, prop.msgs.dlgTitEffect, prop.images.content(CType.EFFECT), true, prop.var.effEvtDlg);
+		enterClose = true;
 	}
 
 	Content event() {
@@ -1146,6 +1155,7 @@ public:
 		_root = root;
 		_evt = evt;
 		super(prop, shell, mixin (Title), prop.images.content(Type), true, prop.var.flagEvtDlg);
+		enterClose = true;
 	}
 
 	Content event() {
@@ -1281,6 +1291,7 @@ public:
 		_prop = prop;
 		_evt = evt;
 		super(prop, shell, prop.msgs.dlgTitBrMember, prop.images.content(CType.BRANCH_SELECT), false);
+		enterClose = true;
 	}
 
 	Content event() {
@@ -1346,6 +1357,7 @@ public:
 		_prop = prop;
 		_evt = evt;
 		super(prop, shell, prop.msgs.dlgTitBrPower, prop.images.content(CType.BRANCH_ABILITY), false);
+		enterClose = true;
 	}
 
 	Content event() {
@@ -1473,6 +1485,7 @@ public:
 		_prop = prop;
 		_evt = evt;
 		super(prop, shell, prop.msgs.dlgTitBrLevel, prop.images.content(CType.BRANCH_LEVEL), false);
+		enterClose = true;
 	}
 
 	Content event() {
@@ -1543,6 +1556,7 @@ public:
 		_prop = prop;
 		_evt = evt;
 		super(prop, shell, prop.msgs.dlgTitBrState, prop.images.content(CType.BRANCH_STATUS), false);
+		enterClose = true;
 	}
 
 	Content event() {
@@ -1642,6 +1656,7 @@ public:
 		_prop = prop;
 		_evt = evt;
 		super(prop, shell, mixin (Title), _prop.images.content(Type), true, _prop.var.cardEvtDlg);
+		enterClose = true;
 	}
 
 	Content event() {
@@ -1810,6 +1825,7 @@ public:
 		super(prop, shell, prop.msgs.dlgTitRefresh, prop.images.content(CType.REDISPLAY), false);
 		_prop = prop;
 		_evt = evt;
+		enterClose = true;
 	}
 
 	Content event() {
