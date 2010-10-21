@@ -65,6 +65,7 @@ public:
 	string unknownError() {return "処理中にエラーが発生しました。cwxeditor_error.logを確認してください。";}
 
 	string dlgTextOK() {return "&OK";}
+	string dlgTextApply() {return "適用";}
 	string dlgTextCancel() {return "キャンセル";}
 
 	string fileCopyError(string path) {return path ~ "のコピー中にエラーが発生しました。";}
@@ -1800,7 +1801,7 @@ public:
 	/// エディタ設定ダイアログ。
 	string baseSettings() {return "基本設定";}
 	string reference() {return "参照...";}
-	string enginePath(string appName) {return appName ~ "の場所(必須)";}
+	string enginePath(string appName) {return appName ~ "の場所(原則必須)";}
 	string enginePathAtten() {return "※ クラシックなシナリオのみに使用する場合は空欄にしてください";}
 	string dlgTitEnginePath(string appName) {return appName ~ "の場所";}
 	string tempDir() {return "シナリオの一時展開先";}

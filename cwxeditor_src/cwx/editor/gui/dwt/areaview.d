@@ -1651,7 +1651,7 @@ public:
 	}
 	static if (UseBacks) {
 		void createBackground() {
-			auto dlg = new BgImageDialog(_comm, _prop, getShell, _summ, _prop.var.etc.bgImageSettings, null);
+			auto dlg = new BgImageDialog(_comm, _prop, getShell, _summ, null);
 			if (dlg.open) {
 				int index = insertIndex(_backs);
 				static if (UseCards) {
@@ -1671,7 +1671,7 @@ public:
 				}
 			}
 			auto undo = new UndoEdit;
-			auto dlg = new BgImageDialog(_comm, _prop, getShell, _summ, _prop.var.etc.bgImageSettings, back);
+			auto dlg = new BgImageDialog(_comm, _prop, getShell, _summ, back);
 			if (dlg.open) {
 				_undo ~= undo;
 				foreach (i, b; _area.backs) {

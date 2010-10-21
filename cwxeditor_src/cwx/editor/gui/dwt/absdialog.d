@@ -40,7 +40,7 @@ abstract class AbsDialog {
 	private Shell _win;
 	private DSize _size;
 	private Composite _area;
-	this (Props prop, Shell parent, string text, Image img, bool resizable, DSize size = null) {
+	this (Props prop, Shell parent, string text, Image img, bool resizable, DSize size = null, bool apply = false) {
 		_size = size;
 		_win = new Shell(parent, (resizable ? DWT.SHELL_TRIM : DWT.DIALOG_TRIM) | DWT.APPLICATION_MODAL);
 		_win.setText = text;
@@ -56,7 +56,7 @@ abstract class AbsDialog {
 
 		auto buttons = new Composite(_win, DWT.NONE);
 		buttons.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
-		buttons.setLayout = new GridLayout(2, true);
+		buttons.setLayout = new GridLayout(apply ? 3 : 2, true);
 		Button createButton(string text, void delegate() push) {
 			auto b = new Button(buttons, DWT.PUSH);
 			b.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
@@ -72,10 +72,15 @@ abstract class AbsDialog {
 			return b;
 		}
 		_okBtn = createButton(prop.msgs.dlgTextOK, &ok);
+		if (apply) {
+			_apply = createButton(prop.msgs.dlgTextApply, &this.apply);
+		}
 		createButton(prop.msgs.dlgTextCancel, &cancel);
 	}
 	protected Shell getShell() {return _win;}
 	private Button _okBtn;
+	private bool _applied = false;
+	private Button _apply = null;
 	private class SListener : ShellAdapter {
 		override void shellClosed(ShellEvent e) {
 			bool cancel;
@@ -131,6 +136,7 @@ abstract class AbsDialog {
 			intoDisplay(x, y, p.x, p.y);
 			_win.setLocation = new Point(x, y);
 		}
+		if (_apply) _apply.setEnabled = false;
 		_win.open;
 		auto d = _win.getDisplay;
 		while (!_win.isDisposed) {
@@ -139,7 +145,7 @@ abstract class AbsDialog {
 		if (ckl) {
 			Display.getCurrent.removeFilter(DWT.KeyDown, ckl);
 		}
-		return _ret;
+		return _ret || _applied;
 	}
 	private void check() {
 		bool enbl = true;
@@ -159,6 +165,9 @@ abstract class AbsDialog {
 			auto t = cast(Text) e.widget;
 			check;
 		}
+	}
+	protected void applyEnabled() {
+		_apply.setEnabled = true;
 	}
 	protected void checkerImpl(T)(T text) {
 		check;
@@ -180,6 +189,10 @@ abstract class AbsDialog {
 		checkerImpl(text);
 	}
 	protected void setup(Composite area);
+	protected void apply() {
+		_apply.setEnabled = false;
+		_applied = true;
+	}
 	protected bool close(bool ok, out bool cancel) {
 		cancel = false;
 		return close(ok);

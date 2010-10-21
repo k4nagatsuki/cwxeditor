@@ -63,7 +63,6 @@ private:
 	BgImage _back;
 
 	ImageSelect!(MtType.BG_IMG) _imgPath;
-	BgImageSetting[] _bgImageSettings;
 	Table _flag;
 	Spinner _x;
 	Spinner _y;
@@ -109,7 +108,7 @@ private:
 				break;
 			default:
 				_selected = true;
-				auto s = _bgImageSettings[i - 2];
+				auto s = _prop.var.etc.bgImageSettings[i - 2];
 				_x.setSelection = s.x;
 				_y.setSelection = s.y;
 				_w.setSelection = s.width;
@@ -128,10 +127,9 @@ private:
 		}
 	}
 public:
-	this(Commons comm, Props prop, Shell shell, Summary summ, BgImageSetting[] bgImageSettings, BgImage back) {
+	this(Commons comm, Props prop, Shell shell, Summary summ, BgImage back) {
 		_comm = comm;
 		_summ = summ;
-		_bgImageSettings = bgImageSettings;
 		_back = back;
 		_prop = prop;
 		_selected = back !is null;
@@ -223,7 +221,7 @@ protected:
 				_easy.setVisibleItemCount = 20;
 				_easy.add(_prop.msgs.bgImageSettingCustom);
 				_easy.add(_prop.msgs.bgImageSettingOriginal);
-				foreach (bs; _bgImageSettings) {
+				foreach (bs; _prop.var.etc.bgImageSettings) {
 					_easy.add(bs.name);
 				}
 				_easy.addSelectionListener(new SettingsListener);

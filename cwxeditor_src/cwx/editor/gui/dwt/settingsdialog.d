@@ -83,6 +83,14 @@ private:
 	Button _toolWorkDirRef;
 	Button _toolDel;
 
+	class Mod : SelectionAdapter, ModifyListener {
+		override void widgetSelected(SelectionEvent e) {
+			if (!_onProc) applyEnabled;
+		}
+		override void modifyText(ModifyEvent e) {
+			if (!_onProc) applyEnabled;
+		}
+	}
 	void upBgImage() {
 		int i = _bgStgsL.getSelectionIndex;
 		if (i <= 0) return;
@@ -93,6 +101,7 @@ private:
 		_bgStgs[i - 1] = _bgStgs[i];
 		_bgStgs[i] = temp;
 		_bgStgsL.select = i - 1;
+		applyEnabled;
 	}
 	void downBgImage() {
 		int i = _bgStgsL.getSelectionIndex;
@@ -104,6 +113,7 @@ private:
 		_bgStgs[i + 1] = _bgStgs[i];
 		_bgStgs[i] = temp;
 		_bgStgsL.select = i + 1;
+		applyEnabled;
 	}
 	void upTool() {
 		int i = _toolsL.getSelectionIndex;
@@ -115,6 +125,7 @@ private:
 		_tools[i - 1] = _tools[i];
 		_tools[i] = temp;
 		_toolsL.select = i - 1;
+		applyEnabled;
 	}
 	void downTool() {
 		int i = _toolsL.getSelectionIndex;
@@ -126,6 +137,7 @@ private:
 		_tools[i + 1] = _tools[i];
 		_tools[i] = temp;
 		_toolsL.select = i + 1;
+		applyEnabled;
 	}
 	static string selectFile(Text file, string[] name, string[] ext, string fileName, string title, string p) {
 		auto dlg = new FileDialog(file.getShell, DWT.PRIMARY_MODAL | DWT.APPLICATION_MODAL | DWT.SINGLE | DWT.OPEN);
@@ -196,7 +208,10 @@ private:
 			_tools[i].workDir = fname;
 		}
 	}
+	private bool _onProc = false;
 	void selectBgImageSetting() {
+		_onProc = true;
+		scope (exit) _onProc = false;
 		int i = _bgStgsL.getSelectionIndex;
 		_bgImgName.setEnabled = i >= 0;
 		_bgImgX.setEnabled = i >= 0;
@@ -222,6 +237,8 @@ private:
 		}
 	}
 	void selectOuterTool() {
+		_onProc = true;
+		scope (exit) _onProc = false;
 		int i = _toolsL.getSelectionIndex;
 		_toolName.setEnabled = i >= 0;
 		_toolCommand.setEnabled = i >= 0;
@@ -239,6 +256,24 @@ private:
 			_toolWorkDir.setText = "";
 		}
 	}
+	class SelEngine : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {selectEngine;}
+	}
+	class SelTemp : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {selectTemp;}
+	}
+	class ClearHist : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			auto dlg = new MessageBox(_histMax.getShell, DWT.ICON_QUESTION | DWT.OK | DWT.CANCEL);
+			scope (exit) dlg.dispose;
+			dlg.setText = _prop.msgs.dlgTitQuestion;
+			dlg.setMessage = _prop.msgs.dlgMsgHistoryClear;
+			if (DWT.OK == dlg.open) {
+				_prop.var.etc.openHistories = [];
+				(cast(Control) e.widget).setEnabled = false;
+			}
+		}
+	}
 	void construct1(CTabFolder tabf) {
 		auto comp = new Composite(tabf, DWT.NONE);
 		comp.setLayout = new GridLayout(1, false);
@@ -252,11 +287,10 @@ private:
 			grp.setText = _prop.msgs.enginePath(_prop.var.etc.engine);
 			_enginePath = new Text(grp, DWT.BORDER);
 			_enginePath.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+			_enginePath.addModifyListener(_mod);
 			auto refr = new Button(grp, DWT.PUSH);
 			refr.setText = _prop.msgs.reference;
-			refr.addSelectionListener(new class SelectionAdapter {
-				override void widgetSelected(SelectionEvent e) {selectEngine;}
-			});
+			refr.addSelectionListener(new SelEngine);
 			auto l = new Label(grp, DWT.NONE);
 			l.setText = _prop.msgs.enginePathAtten;
 			auto gd = new GridData;
@@ -270,11 +304,10 @@ private:
 			grp.setText = _prop.msgs.tempDir;
 			_tempDir = new Text(grp, DWT.BORDER);
 			_tempDir.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+			_tempDir.addModifyListener(_mod);
 			auto refr = new Button(grp, DWT.PUSH);
 			refr.setText = _prop.msgs.reference;
-			refr.addSelectionListener(new class SelectionAdapter {
-				override void widgetSelected(SelectionEvent e) {selectTemp;}
-			});
+			refr.addSelectionListener(new SelTemp);
 		}
 		{
 			auto comp2 = new Composite(comp, DWT.NONE);
@@ -288,6 +321,7 @@ private:
 				grp.setLayout = cl;
 				grp.setText = _prop.msgs.scenarioAuthor;
 				_author = new Text(grp, DWT.BORDER);
+				_author.addModifyListener(_mod);
 			}
 			{
 				auto grp = new Group(comp2, DWT.NONE);
@@ -299,21 +333,11 @@ private:
 				_histMax = new Spinner(grp, DWT.BORDER);
 				_histMax.setMinimum = 0;
 				_histMax.setMaximum = 99;
+				_histMax.addModifyListener(_mod);
 				auto clear = new Button(grp, DWT.PUSH);
 				clear.setEnabled = _prop.var.etc.openHistories.length > 0;
 				clear.setText = _prop.msgs.openHistoryClear;
-				clear.addSelectionListener(new class SelectionAdapter {
-					override void widgetSelected(SelectionEvent e) {
-						auto dlg = new MessageBox(_histMax.getShell, DWT.ICON_QUESTION | DWT.OK | DWT.CANCEL);
-						scope (exit) dlg.dispose;
-						dlg.setText = _prop.msgs.dlgTitQuestion;
-						dlg.setMessage = _prop.msgs.dlgMsgHistoryClear;
-						if (DWT.OK == dlg.open) {
-							_prop.var.etc.openHistories = [];
-							(cast(Control) e.widget).setEnabled = false;
-						}
-					}
-				});
+				clear.addSelectionListener(new ClearHist);
 			}
 		}
 		{
@@ -323,16 +347,37 @@ private:
 			grp.setLayout = new GridLayout(1, false);
 			_singleWindow = new Button(grp, DWT.CHECK);
 			_singleWindow.setText = _prop.msgs.singleWindow;
+			_singleWindow.addSelectionListener(_mod);
 			_expandXMLs = new Button(grp, DWT.CHECK);
 			_expandXMLs.setText = _prop.msgs.expandXMLs;
+			_expandXMLs.addSelectionListener(_mod);
 			_contentsFloat = new Button(grp, DWT.CHECK);
 			_contentsFloat.setText = _prop.msgs.contentsFloat;
+			_contentsFloat.addSelectionListener(_mod);
 			_xmlCopy = new Button(grp, DWT.CHECK);
 			_xmlCopy.setText = _prop.msgs.xmlCopy;
+			_xmlCopy.addSelectionListener(_mod);
 			_saveInnerImagePath = new Button(grp, DWT.CHECK);
 			_saveInnerImagePath.setText = _prop.msgs.saveInnerImagePath;
+			_saveInnerImagePath.addSelectionListener(_mod);
 			_traceDirectories = new Button(grp, DWT.CHECK);
 			_traceDirectories.setText = _prop.msgs.traceDirectories;
+			_traceDirectories.addSelectionListener(_mod);
+		}
+	}
+	class ModSpin(string Set) : ModifyListener {
+		// FIXME: テンプレート外へのアクセスでアクセス違反
+		private SettingsDialog _v;
+		this(SettingsDialog v) {
+			_v = v;
+		}
+		override void modifyText(ModifyEvent e) {
+			if (_onProc) return;
+			int i = _v._bgStgsL.getSelectionIndex;
+			if (i < 0) return;
+			auto spn = cast(Spinner) e.widget;
+			mixin ("_v." ~ Set);
+			applyEnabled;
 		}
 	}
 	Spinner createS(string Set)(SettingsDialog v, Composite parent, string name, int max, int min) {
@@ -343,27 +388,83 @@ private:
 		spn.setMaximum = max;
 		spn.setMinimum = min;
 		spn.setSelection = 0;
-		spn.addModifyListener(new class(v) ModifyListener {
-			// FIXME: テンプレート外へのアクセスでアクセス違反
-			private SettingsDialog _v;
-			this(SettingsDialog v) {
-				_v = v;
-			}
-			override void modifyText(ModifyEvent e) {
-				int i = _v._bgStgsL.getSelectionIndex;
-				if (i < 0) return;
-				auto spn = cast(Spinner) e.widget;
-				mixin ("_v." ~ Set);
-			}
-		});
+		spn.addModifyListener(new ModSpin!(Set)(v));
 		return spn;
 	}
 	class DefBgSetting : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			auto dlg = new DefBgImgDialog(_comm, _prop, getShell, _bgImagesDefault, _bgStgs);
+			auto dlg = new DefBgImgDialog(_comm, _prop, getShell, _bgImagesDefault);
 			if (dlg.open) {
 				_bgImagesDefault = dlg.backs;
+				applyEnabled;
 			}
+		}
+	}
+	class SelBgImgStg : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {selectBgImageSetting;}
+	}
+	class UpBgImgStg : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			upBgImage;
+		}
+	}
+	class DownBgImgStg : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			downBgImage;
+		}
+	}
+	class DBgImgStg : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			auto ws = (cast(SplitPane) e.widget).getWeights;
+			_prop.var.etc.bgImageSettingsSashL = ws[0];
+			_prop.var.etc.bgImageSettingsSashR = ws[1];
+		}
+	}
+	class ModBgImgName : ModifyListener {
+		override void modifyText(ModifyEvent e) {
+			if (_onProc) return;
+			int i = _bgStgsL.getSelectionIndex;
+			if (i < 0 || _bgStgsL.getItem(i) == _bgImgName.getText) return;
+			_bgStgsL.setItem(i, _bgImgName.getText);
+			_bgStgs[i].name = _bgImgName.getText;
+			applyEnabled;
+		}
+	}
+	class PushBgImgStg : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			int i = _bgStgsL.getSelectionIndex;
+			if (i < 0) return;
+			_bgStgs[i].mask = _bgImgMask.getSelection;
+			applyEnabled;
+		}
+	}
+	class NewBgImgStg : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			_bgStgs ~= BgImageSetting(_prop.msgs.newBgImageSettingName, 0, 0, 0, 0, false);
+			_bgStgsL.add(_bgStgs[$ - 1].name);
+			_bgStgsL.select = _bgStgs.length - 1;
+			selectBgImageSetting;
+			applyEnabled;
+		}
+	}
+	class DelBgImgStg : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			int i = _bgStgsL.getSelectionIndex;
+			if (i < 0) return;
+			_bgStgsL.remove(i);
+			_bgStgs = _bgStgs[0 .. i] ~ _bgStgs[i + 1 .. $];
+			if (_bgStgs.length > 0) {
+				_bgStgsL.select = i < _bgStgs.length ? i : _bgStgs.length - 1;
+			}
+			selectBgImageSetting;
+			applyEnabled;
+		}
+	}
+	class DBgImgKeyCodeSash : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			auto ws = (cast(SplitPane) e.widget).getWeights;
+			_prop.var.etc.bgImageKeyCodeSashL = ws[0];
+			_prop.var.etc.bgImageKeyCodeSashR = ws[1];
 		}
 	}
 	void construct2(CTabFolder tabf) {
@@ -403,32 +504,20 @@ private:
 				gd.heightHint = _prop.var.etc.bgImageSettingsNameHeight;
 				gd.horizontalSpan = 2;
 				_bgStgsL.setLayoutData = gd;
-				_bgStgsL.addSelectionListener(new class SelectionAdapter {
-					override void widgetSelected(SelectionEvent e) {selectBgImageSetting;}
-				});
+				_bgStgsL.addSelectionListener(new SelBgImgStg);
 				auto up = new Button(left, DWT.PUSH);
 				up.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				up.setText = _prop.msgs.ttUp;
 				up.setImage = _prop.images.menuUp;
-				up.addSelectionListener(new class SelectionAdapter {
-					override void widgetSelected(SelectionEvent e) {upBgImage;}
-				});
+				up.addSelectionListener(new UpBgImgStg);
 				auto down = new Button(left, DWT.PUSH);
 				down.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				down.setText = _prop.msgs.ttDown;
 				down.setImage = _prop.images.menuDown;
-				down.addSelectionListener(new class SelectionAdapter {
-					override void widgetSelected(SelectionEvent e) {downBgImage;}
-				});
+				down.addSelectionListener(new DownBgImgStg);
 			}
 			leftSash.setWeights = [_prop.var.etc.bgImageSettingsSashL, _prop.var.etc.bgImageSettingsSashR];
-			leftSash.addDisposeListener(new class DisposeListener {
-				override void widgetDisposed(DisposeEvent e) {
-					auto ws = (cast(SplitPane) e.widget).getWeights;
-					_prop.var.etc.bgImageSettingsSashL = ws[0];
-					_prop.var.etc.bgImageSettingsSashR = ws[1];
-				}
-			});
+			leftSash.addDisposeListener(new DBgImgStg);
 			auto right = new Composite(leftSash, DWT.NONE);
 			right.setLayout = zeroMarginGridLayout(1, true);
 			{
@@ -448,21 +537,8 @@ private:
 					_bgImgMask = new Button(comp3, DWT.TOGGLE);
 					_bgImgMask.setImage = _prop.images.menuMask;
 					_bgImgMask.setToolTipText = _prop.msgs.ttMask;
-					_bgImgName.addModifyListener(new class ModifyListener {
-						override void modifyText(ModifyEvent e) {
-							int i = _bgStgsL.getSelectionIndex;
-							if (i < 0 || _bgStgsL.getItem(i) == _bgImgName.getText) return;
-							_bgStgsL.setItem(i, _bgImgName.getText);
-							_bgStgs[i].name = _bgImgName.getText;
-						}
-					});
-					_bgImgMask.addSelectionListener(new class SelectionAdapter {
-						override void widgetSelected(SelectionEvent e) {
-							int i = _bgStgsL.getSelectionIndex;
-							if (i < 0) return;
-							_bgStgs[i].mask = _bgImgMask.getSelection;
-						}
-					});
+					_bgImgName.addModifyListener(new ModBgImgName);
+					_bgImgMask.addSelectionListener(new PushBgImgStg);
 				}
 				_bgImgX = createS!("_bgStgs[i].x = spn.getSelection;")
 					(this, comp2, _prop.msgs.left, _prop.looks.posLeftMax, _prop.looks.posLeftMin);
@@ -480,29 +556,11 @@ private:
 				auto newBstg = new Button(buttons, DWT.PUSH);
 				newBstg.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				newBstg.setText = _prop.msgs.newBgImageSetting;
-				newBstg.addSelectionListener(new class SelectionAdapter {
-					override void widgetSelected(SelectionEvent e) {
-						_bgStgs ~= BgImageSetting(_prop.msgs.newBgImageSettingName, 0, 0, 0, 0, false);
-						_bgStgsL.add(_bgStgs[$ - 1].name);
-						_bgStgsL.select = _bgStgs.length - 1;
-						selectBgImageSetting;
-					}
-				});
+				newBstg.addSelectionListener(new NewBgImgStg);
 				_bgImgDel = new Button(buttons, DWT.PUSH);
 				_bgImgDel.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				_bgImgDel.setText = _prop.msgs.delBgImageSetting;
-				_bgImgDel.addSelectionListener(new class SelectionAdapter {
-					override void widgetSelected(SelectionEvent e) {
-						int i = _bgStgsL.getSelectionIndex;
-						if (i < 0) return;
-						_bgStgsL.remove(i);
-						_bgStgs = _bgStgs[0 .. i] ~ _bgStgs[i + 1 .. $];
-						if (_bgStgs.length > 0) {
-							_bgStgsL.select = i < _bgStgs.length ? i : _bgStgs.length - 1;
-						}
-						selectBgImageSetting;
-					}
-				});
+				_bgImgDel.addSelectionListener(new DelBgImgStg);
 			}
 		}
 		{
@@ -511,19 +569,100 @@ private:
 			grp.setLayout = new GridLayout(1, false);
 			grp.setText = _prop.msgs.standardKeyCode;
 			_keyCodes = new Text(grp, DWT.BORDER | DWT.MULTI | DWT.V_SCROLL);
+			_keyCodes.addModifyListener(_mod);
 			auto gd = new GridData(GridData.FILL_BOTH);
 			gd.widthHint = _prop.var.etc.keyCodeWidth;
 			gd.heightHint = 0;
 			_keyCodes.setLayoutData = gd;
 		}
 		sash.setWeights = [_prop.var.etc.bgImageKeyCodeSashL, _prop.var.etc.bgImageKeyCodeSashR];
-		sash.addDisposeListener(new class DisposeListener {
-			override void widgetDisposed(DisposeEvent e) {
-				auto ws = (cast(SplitPane) e.widget).getWeights;
-				_prop.var.etc.bgImageKeyCodeSashL = ws[0];
-				_prop.var.etc.bgImageKeyCodeSashR = ws[1];
+		sash.addDisposeListener(new DBgImgKeyCodeSash);
+	}
+	class SelOutTools : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {selectOuterTool;}
+	}
+	class UpOutTools : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			upTool;
+		}
+	}
+	class DownOutTools : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			downTool;
+		}
+	}
+	class ModOutToolName : ModifyListener {
+		override void modifyText(ModifyEvent e) {
+			if (_onProc) return;
+			int i = _toolsL.getSelectionIndex;
+			if (i < 0 || _toolsL.getItem(i) == _toolName.getText) return;
+			_toolsL.setItem(i, _toolName.getText);
+			_tools[i].name = _toolName.getText;
+			applyEnabled;
+		}
+	}
+	class PushToolCmdRef : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			int i = _toolsL.getSelectionIndex;
+			if (i < 0) return;
+			selectProgram(i);
+			applyEnabled;
+		}
+	}
+	class ModToolCmd : ModifyListener {
+		override void modifyText(ModifyEvent e) {
+			if (_onProc) return;
+			int i = _toolsL.getSelectionIndex;
+			if (i < 0) return;
+			_tools[i].command = _toolCommand.getText;
+			applyEnabled;
+		}
+	}
+	class PushToolWorkDirRef : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			int i = _toolsL.getSelectionIndex;
+			if (i < 0) return;
+			selectWorkDir(i);
+			applyEnabled;
+		}
+	}
+	class ModToolWorkDir : ModifyListener {
+		override void modifyText(ModifyEvent e) {
+			if (_onProc) return;
+			int i = _toolsL.getSelectionIndex;
+			if (i < 0) return;
+			_tools[i].workDir = _toolWorkDir.getText;
+			applyEnabled;
+		}
+	}
+	class NewOutTool : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			_tools ~= OuterTool(_prop.msgs.newOuterToolName, "", "");
+			_toolsL.add(_tools[$ - 1].name);
+			_toolsL.select = _tools.length - 1;
+			selectOuterTool;
+			applyEnabled;
+		}
+	}
+	class DelOutTool : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			int i = _toolsL.getSelectionIndex;
+			if (i < 0) return;
+			_toolsL.remove(i);
+			_tools = _tools[0 .. i] ~ _tools[i + 1 .. $];
+			if (_tools.length > 0) {
+				_toolsL.select = i < _tools.length ? i : _tools.length - 1;
 			}
-		});
+			selectOuterTool;
+			applyEnabled;
+		}
+	}
+	class DOutToolsSash : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			auto ws = (cast(SplitPane) e.widget).getWeights;
+			_prop.var.etc.outerToolsSashL = ws[0];
+			_prop.var.etc.outerToolsSashR = ws[1];
+		}
 	}
 	void construct3(CTabFolder tabf) {
 		auto comp = new Composite(tabf, DWT.NONE);
@@ -547,23 +686,17 @@ private:
 				gd.heightHint = _prop.var.etc.outerToolsNameHeight;
 				gd.horizontalSpan = 2;
 				_toolsL.setLayoutData = gd;
-				_toolsL.addSelectionListener(new class SelectionAdapter {
-					override void widgetSelected(SelectionEvent e) {selectOuterTool;}
-				});
+				_toolsL.addSelectionListener(new SelOutTools);
 				auto up = new Button(left, DWT.PUSH);
 				up.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				up.setText = _prop.msgs.ttUp;
 				up.setImage = _prop.images.menuUp;
-				up.addSelectionListener(new class SelectionAdapter {
-					override void widgetSelected(SelectionEvent e) {upTool;}
-				});
+				up.addSelectionListener(new UpOutTools);
 				auto down = new Button(left, DWT.PUSH);
 				down.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				down.setText = _prop.msgs.ttDown;
 				down.setImage = _prop.images.menuDown;
-				down.addSelectionListener(new class SelectionAdapter {
-					override void widgetSelected(SelectionEvent e) {downTool;}
-				});
+				down.addSelectionListener(new DownOutTools);
 			}
 			auto right = new Composite(sash, DWT.NONE);
 			right.setLayout = zeroMarginGridLayout(1, true);
@@ -579,14 +712,7 @@ private:
 					gd.horizontalSpan = 2;
 					gd.widthHint = _prop.var.etc.outerToolsNameWidth;
 					_toolName.setLayoutData = gd;
-					_toolName.addModifyListener(new class ModifyListener {
-						override void modifyText(ModifyEvent e) {
-							int i = _toolsL.getSelectionIndex;
-							if (i < 0 || _toolsL.getItem(i) == _toolName.getText) return;
-							_toolsL.setItem(i, _toolName.getText);
-							_tools[i].name = _toolName.getText;
-						}
-					});
+					_toolName.addModifyListener(new ModOutToolName);
 				}
 				{
 					auto l = new Label(comp2, DWT.NONE);
@@ -597,20 +723,8 @@ private:
 					_toolCommand.setLayoutData = gd;
 					_toolCommandRef = new Button(comp2, DWT.PUSH);
 					_toolCommandRef.setText = _prop.msgs.reference;
-					_toolCommandRef.addSelectionListener(new class SelectionAdapter {
-						override void widgetSelected(SelectionEvent e) {
-							int i = _toolsL.getSelectionIndex;
-							if (i < 0) return;
-							selectProgram(i);
-						}
-					});
-					_toolCommand.addModifyListener(new class ModifyListener {
-						override void modifyText(ModifyEvent e) {
-							int i = _toolsL.getSelectionIndex;
-							if (i < 0) return;
-							_tools[i].command = _toolCommand.getText;
-						}
-					});
+					_toolCommandRef.addSelectionListener(new PushToolCmdRef);
+					_toolCommand.addModifyListener(new ModToolCmd);
 				}
 				{
 					auto l = new Label(comp2, DWT.NONE);
@@ -621,20 +735,8 @@ private:
 					_toolWorkDir.setLayoutData = gd;
 					_toolWorkDirRef = new Button(comp2, DWT.PUSH);
 					_toolWorkDirRef.setText = _prop.msgs.reference;
-					_toolWorkDirRef.addSelectionListener(new class SelectionAdapter {
-						override void widgetSelected(SelectionEvent e) {
-							int i = _toolsL.getSelectionIndex;
-							if (i < 0) return;
-							selectWorkDir(i);
-						}
-					});
-					_toolWorkDir.addModifyListener(new class ModifyListener {
-						override void modifyText(ModifyEvent e) {
-							int i = _toolsL.getSelectionIndex;
-							if (i < 0) return;
-							_tools[i].workDir = _toolWorkDir.getText;
-						}
-					});
+					_toolWorkDirRef.addSelectionListener(new PushToolWorkDirRef);
+					_toolWorkDir.addModifyListener(new ModToolWorkDir);
 				}
 				{
 					auto dummy = new Composite(comp2, DWT.NONE);
@@ -667,43 +769,20 @@ private:
 				auto newTool = new Button(buttons, DWT.PUSH);
 				newTool.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				newTool.setText = _prop.msgs.newOuterTool;
-				newTool.addSelectionListener(new class SelectionAdapter {
-					override void widgetSelected(SelectionEvent e) {
-						_tools ~= OuterTool(_prop.msgs.newOuterToolName, "", "");
-						_toolsL.add(_tools[$ - 1].name);
-						_toolsL.select = _tools.length - 1;
-						selectOuterTool;
-					}
-				});
+				newTool.addSelectionListener(new NewOutTool);
 				_toolDel = new Button(buttons, DWT.PUSH);
 				_toolDel.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				_toolDel.setText = _prop.msgs.delOuterTool;
-				_toolDel.addSelectionListener(new class SelectionAdapter {
-					override void widgetSelected(SelectionEvent e) {
-						int i = _toolsL.getSelectionIndex;
-						if (i < 0) return;
-						_toolsL.remove(i);
-						_tools = _tools[0 .. i] ~ _tools[i + 1 .. $];
-						if (_tools.length > 0) {
-							_toolsL.select = i < _tools.length ? i : _tools.length - 1;
-						}
-						selectOuterTool;
-					}
-				});
+				_toolDel.addSelectionListener(new DelOutTool);
 			}
 			sash.setWeights = [_prop.var.etc.outerToolsSashL, _prop.var.etc.outerToolsSashR];
-			sash.addDisposeListener(new class DisposeListener {
-				override void widgetDisposed(DisposeEvent e) {
-					auto ws = (cast(SplitPane) e.widget).getWeights;
-					_prop.var.etc.outerToolsSashL = ws[0];
-					_prop.var.etc.outerToolsSashR = ws[1];
-				}
-			});
+			sash.addDisposeListener(new DOutToolsSash);
 		}
 	}
+	private Mod _mod;
 public:
 	this(Commons comm, Props prop, Shell shell) {
-		super(prop, shell, prop.msgs.dlgTitSettings, prop.images.menuSettings, true, prop.var.settingsDlg);
+		super(prop, shell, prop.msgs.dlgTitSettings, prop.images.menuSettings, true, prop.var.settingsDlg, true);
 		_comm = comm;
 		_prop = prop;
 	}
@@ -713,6 +792,7 @@ protected:
 		area.setLayout = windowGridLayout(1, true);
 		auto tabf = new CTabFolder(area, DWT.BORDER);
 		tabf.setLayoutData = new GridData(GridData.FILL_BOTH);
+		_mod = new Mod;
 		construct1(tabf);
 		construct2(tabf);
 		construct3(tabf);
@@ -752,67 +832,74 @@ protected:
 		selectOuterTool;
 	}
 
+	private bool applyImpl() {
+		void err(CTabItem tab, Text t, string msg) {
+			auto dlg = new MessageBox(t.getShell, DWT.ICON_WARNING | DWT.OK);
+			scope (exit) dlg.dispose;
+			dlg.setText = _prop.msgs.dlgTitWarning;
+			dlg.setMessage = msg;
+			dlg.open;
+			tab.getParent.setSelection = tab;
+			t.setFocus;
+		}
+		string engine;
+		try {
+			engine = _enginePath.getText;
+		} catch {
+			err(_tabB, _enginePath, _prop.msgs.errorEnginePath(_prop.var.etc.engine));
+			return false;
+		}
+		if (engine.length) {
+			if (!.exists(engine) || .isdir(engine)) {
+				err(_tabB, _enginePath, _prop.msgs.errorEnginePath(_prop.var.etc.engine));
+				return false;
+			}
+		}
+		string temp;
+		try {
+			temp = _tempDir.getText;
+		} catch {
+			err(_tabB, _tempDir, _prop.msgs.errorTempPath);
+			return false;
+		}
+		_prop.var.etc.enginePath = engine;
+		_prop.var.etc.tempPath = temp;
+		_prop.var.etc.defaultAuthor = _author.getText;
+		_prop.var.etc.historyMax = _histMax.getSelection;
+		_prop.var.etc.singleWindow = _singleWindow.getSelection;
+		_prop.var.etc.expandXMLs = _expandXMLs.getSelection;
+		_prop.var.etc.xmlCopy = _xmlCopy.getSelection;
+		_prop.var.etc.saveInnerImagePath = _saveInnerImagePath.getSelection;
+		_prop.var.etc.traceDirectories = _traceDirectories.getSelection;
+		_prop.var.etc.contentsFloat = _contentsFloat.getSelection;
+		if (_prop.var.etc.historyMax < _prop.var.etc.openHistories.length) {
+			_prop.var.etc.openHistories
+				= _prop.var.etc.openHistories[0 .. _prop.var.etc.historyMax];
+		}
+		_prop.var.etc.bgImageSettings = _bgStgs;
+		_prop.var.etc.bgImagesDefault = _bgImagesDefault;
+		string[] lines = splitlines(_keyCodes.getText);
+		if (lines.length > 0) {
+			int i;
+			for (i = lines.length - 1; i >= 0 && lines[i].length == 0; i--) {
+				;
+			}
+			_prop.var.etc.standardKeyCodes = lines[0 .. i + 1];
+		} else {
+			_prop.var.etc.standardKeyCodes = [];
+		}
+		_prop.var.etc.outerTools = _tools;
+		return true;
+	}
+	override void apply() {
+		if (applyImpl) {
+			super.apply;
+		}
+	}
 	override bool close(bool ok, out bool cancel) {
 		if (ok) {
-			void err(CTabItem tab, Text t, string msg) {
-				auto dlg = new MessageBox(t.getShell, DWT.ICON_WARNING | DWT.OK);
-				scope (exit) dlg.dispose;
-				dlg.setText = _prop.msgs.dlgTitWarning;
-				dlg.setMessage = msg;
-				dlg.open;
-				tab.getParent.setSelection = tab;
-				t.setFocus;
-			}
-			string engine;
-			try {
-				engine = _enginePath.getText;
-			} catch {
-				err(_tabB, _enginePath, _prop.msgs.errorEnginePath(_prop.var.etc.engine));
-				cancel = true;
-				return false;
-			}
-			if (engine.length) {
-				if (!.exists(engine) || .isdir(engine)) {
-					err(_tabB, _enginePath, _prop.msgs.errorEnginePath(_prop.var.etc.engine));
-					cancel = true;
-					return false;
-				}
-			}
-			string temp;
-			try {
-				temp = _tempDir.getText;
-			} catch {
-				err(_tabB, _tempDir, _prop.msgs.errorTempPath);
-				cancel = true;
-				return false;
-			}
-			_prop.var.etc.enginePath = engine;
-			_prop.var.etc.tempPath = temp;
-			_prop.var.etc.defaultAuthor = _author.getText;
-			_prop.var.etc.historyMax = _histMax.getSelection;
-			_prop.var.etc.singleWindow = _singleWindow.getSelection;
-			_prop.var.etc.expandXMLs = _expandXMLs.getSelection;
-			_prop.var.etc.xmlCopy = _xmlCopy.getSelection;
-			_prop.var.etc.saveInnerImagePath = _saveInnerImagePath.getSelection;
-			_prop.var.etc.traceDirectories = _traceDirectories.getSelection;
-			_prop.var.etc.contentsFloat = _contentsFloat.getSelection;
-			if (_prop.var.etc.historyMax < _prop.var.etc.openHistories.length) {
-				_prop.var.etc.openHistories
-					= _prop.var.etc.openHistories[0 .. _prop.var.etc.historyMax];
-			}
-			_prop.var.etc.bgImageSettings = _bgStgs;
-			_prop.var.etc.bgImagesDefault = _bgImagesDefault;
-			string[] lines = splitlines(_keyCodes.getText);
-			if (lines.length > 0) {
-				int i;
-				for (i = lines.length - 1; i >= 0 && lines[i].length == 0; i--) {
-					;
-				}
-				_prop.var.etc.standardKeyCodes = lines[0 .. i + 1];
-			} else {
-				_prop.var.etc.standardKeyCodes = [];
-			}
-			_prop.var.etc.outerTools = _tools;
+			ok = applyImpl;
+			if (!ok) cancel = true;
 		}
 		return ok;
 	}
@@ -822,13 +909,12 @@ class DefBgImgDialog : AbsDialog {
 private:
 	Commons _comm;
 	Props _prop;
-	BgImageSetting[] _settings;
 
 	BgImageContainer _cont;
 	BgImagesView _view;
 
 public:
-	this(Commons comm, Props prop, Shell shell, BgImageS[] bgImagesDefault, BgImageSetting[] settings) {
+	this(Commons comm, Props prop, Shell shell, BgImageS[] bgImagesDefault) {
 		super(prop, shell, prop.msgs.dlgTitBgImagesDefault,
 			prop.images.menuSettings, true, prop.var.bgImagesDlg);
 		_comm = comm;
