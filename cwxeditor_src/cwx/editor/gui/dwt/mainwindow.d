@@ -749,7 +749,7 @@ public:
 				_tableWin = new TableWindow(_comm, _prop, data);
 				_dock.add(_tableWin.shell, _tableWin.title, _tableWin.image, "data", true);
 				_flagWin = new FlagWindow(_comm, _prop, data);
-				_dock.add(_flagWin.shell, _flagWin.title, _flagWin.image, "flag", true);
+				_dock.add(_flagWin.shell, _flagWin.title, _flagWin.image, "flag", false);
 				_cardWin = new MainCardWindow(_comm, _prop, data);
 				_dock.add(_cardWin.shell, _cardWin.title, _cardWin.image, "card", false);
 				_dirWin = new DirectoryWindow(_comm, _prop, data);
