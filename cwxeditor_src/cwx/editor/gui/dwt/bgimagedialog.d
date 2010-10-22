@@ -142,6 +142,7 @@ public:
 		super(prop, shell,
 			_back ? _prop.msgs.dlgTitBgImage : _prop.msgs.dlgTitNewBgImage,
 			_prop.images.backs, true, size);
+		enterClose = true;
 	}
 
 	BgImage back() {

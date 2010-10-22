@@ -135,6 +135,7 @@ public:
 			static assert (0);
 		}
 		super(prop, shell, text, _prop.images.cards, true, size);
+		enterClose = true;
 	}
 
 	C card() {

@@ -50,6 +50,7 @@ public:
 		_prop = prop;
 		super(prop, shell, _card ? _prop.msgs.dlgTitInfo(_card.name) : _prop.msgs.dlgTitNewInfo,
 			_prop.images.info, true, _prop.var.infoCardDlg);
+		enterClose = true;
 	}
 
 	InfoCard card() {
