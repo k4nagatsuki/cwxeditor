@@ -1035,19 +1035,19 @@ public:
 	string height() {return "高";}
 	string scale() {return "拡大率";}
 
-	string areaViewStatus(AbstractSpCard[] cards, BgImage[] backs) {
-		if (cards.length == 0 && backs.length == 0) {
-			return "";
-		} else if (cards.length == 1 && backs.length == 0) {
+	string areaViewStatus(AbstractSpCard[] cards, BgImage[] backs, bool useFlag) {
+		if (cards.length == 1 && backs.length == 0 && useFlag) {
 			return cards[0].flag == "" ? "フラグ指定無し" : "フラグ = " ~ cards[0].flag;
-		} else if (cards.length == 0 && backs.length == 1) {
+		} else if (cards.length == 0 && backs.length == 1 && useFlag) {
 			return backs[0].flag == "" ? "フラグ指定無し" : "フラグ = " ~ backs[0].flag;
 		} else if (cards.length > 0 && backs.length == 0) {
 			return to!(string)(cards.length) ~ "枚のカード";
 		} else if (cards.length == 0 && backs.length > 0) {
 			return to!(string)(backs.length) ~ "枚の背景";
-		} else {
+		} else if (cards.length > 0 && backs.length > 0) {
 			return to!(string)(cards.length) ~ "枚のカード " ~ to!(string)(backs.length) ~ "枚の背景";
+		} else {
+			return "";
 		}
 	}
 

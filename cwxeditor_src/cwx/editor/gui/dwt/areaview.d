@@ -1074,7 +1074,7 @@ private:
 					_ySpn.setSelection = y == spnValue!("a.y", BgImage, int)(_editB.keys, 0) ? y : 0;
 				}
 			}
-			statusLine = _prop.msgs.areaViewStatus(cast(AbstractSpCard[]) _editC.keys, _editB.keys);
+			statusLine = _prop.msgs.areaViewStatus(cast(AbstractSpCard[]) _editC.keys, _editB.keys, _summ !is null);
 		} else static if (UseCards) {
 			bool enbl = _editC.length > 0;
 			_xSpn.setEnabled = enbl;
@@ -1100,7 +1100,7 @@ private:
 					_escTMenu.setSelection = spnValue!("a.escape", C, bool)(_editC.keys, false);
 				}
 			}
-			statusLine = _prop.msgs.areaViewStatus(cast(AbstractSpCard[]) _editC.keys, cast(BgImage[]) []);
+			statusLine = _prop.msgs.areaViewStatus(cast(AbstractSpCard[]) _editC.keys, cast(BgImage[]) [], _summ !is null);
 		} else static if (UseBacks) {
 			bool enbl = _editB.length > 0;
 			_xSpn.setEnabled = enbl;
@@ -1122,7 +1122,7 @@ private:
 				_hSpn.setSelection = spnValue!("a.height", BgImage, int)(_editB.keys, 0);
 				_maskTMenu.setSelection = spnValue!("a.mask", BgImage, bool)(_editB.keys, false);
 			}
-			statusLine = _prop.msgs.areaViewStatus(cast(AbstractSpCard[]) [], _editB.keys);
+			statusLine = _prop.msgs.areaViewStatus(cast(AbstractSpCard[]) [], _editB.keys, _summ !is null);
 		} else {
 			static assert (0);
 		}
