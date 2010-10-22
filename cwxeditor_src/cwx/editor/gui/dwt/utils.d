@@ -13,6 +13,7 @@ import cwx.props;
 import cwx.imagesize;
 import cwx.skin;
 import cwx.cab;
+import cwx.structs;
 
 import cwx.editor.gui.sound;
 import cwx.editor.gui.dwt.images;

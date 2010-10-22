@@ -18,6 +18,8 @@ import cwx.race;
 import cwx.system;
 import cwx.motion;
 import cwx.props;
+import cwx.structs;
+
 import cwx.editor.gui.dwt.utils;
 import cwx.editor.gui.dwt.properties;
 

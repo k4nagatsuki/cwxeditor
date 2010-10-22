@@ -3,6 +3,8 @@ module cwx.editor.gui.dwt.centerlayout;
 
 import cwx.utils;
 import cwx.props;
+import cwx.structs;
+
 import cwx.editor.gui.dwt.utils;
 
 import dwt.DWT;

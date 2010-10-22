@@ -12,6 +12,7 @@ import cwx.xml;
 import cwx.skin;
 import cwx.usecounter;
 import cwx.path;
+import cwx.structs;
 
 import cwx.editor.gui.sound;
 

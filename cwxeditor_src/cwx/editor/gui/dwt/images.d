@@ -3,6 +3,7 @@ module cwx.editor.gui.dwt.images;
 
 import cwx.utils;
 import cwx.props;
+import cwx.structs;
 
 import cwx.editor.gui.dwt.utils;
 import cwx.editor.gui.dwt.props;
