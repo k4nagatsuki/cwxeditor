@@ -14,6 +14,7 @@ import cwx.imagesize;
 import cwx.skin;
 import cwx.cab;
 import cwx.structs;
+import cwx.jpy;
 
 import cwx.editor.gui.sound;
 import cwx.editor.gui.dwt.images;

@@ -129,6 +129,30 @@ string bImgToStr(byte[] bimg) {
 	return B_IMG ~ std.base64.encode(cast(string) bimg);
 }
 
+/// 16進数文字列xを整数に変換する。
+int xtoi(string x) {
+	int i = 0;
+	foreach (char c; x) {
+		i <<= 4;
+		if ('a' <= c && c <= 'z') {
+			i += c - 'a' + 10;
+		} else if ('A' <= c && c <= 'Z') {
+			i += c - 'A' + 10;
+		} else if ('0' <= c && c <= '9') {
+			i += c - '0';
+		} else {
+			throw new Exception("invalid x: " ~ x);
+		}
+	}
+	return i;
+} unittest {
+	assert (xtoi("FF") == 255, to!(string)(xtoi("FF")));
+	assert (xtoi("ff") == 255);
+	assert (xtoi("FFFE") == 65534);
+	assert (xtoi("0F") == 15);
+	assert (xtoi("10") == 16);
+}
+
 /// D2のstd.conv.toの代替。
 T2 to(T2, T1)(T1 val) {
 	static if (is(T2 : string)) {
@@ -195,16 +219,21 @@ string nabs(string path) {
 	return normal(rel2abs(path));
 }
 
+/// 大/小文字を区別しないstartsWith。
+bool istartsWith(string a, string b) {
+	return a.length >= b.length && icmp(a[0 .. b.length], b) == 0;
+}
+
 /// ファイルパスに対応したstartsWith。
 bool fnstartsWith(string a, string b) {
 	static if (fnmatch("A", "a")) {
-		return a.length >= b.length && icmp(a[0 .. b.length], b) == 0;
+		return istartsWith(a, b);
 	} else {
 		return startsWith(a, b);
 	}
 }
 
-	/// 絶対パスであればtrueを返す。
+/// 絶対パスであればtrueを返す。
 bool isabs(string path) {
 	version (Windows) {
 		return startsWith(path, `\`) || std.path.isabs(path);

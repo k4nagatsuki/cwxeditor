@@ -2,8 +2,11 @@
 module cwx.jpy;
 
 import cwx.structs;
+import cwx.utils;
 
 import std.compat;
+import std.string;
+import std.regexp;
 
 enum Animation {
 	NONE = 0,
@@ -105,7 +108,102 @@ enum Turn {
 	RIGHT = 2
 }
 
+private {
+	CPoint pointVal(string value) {
+		auto sp = std.string.split(value, ",");
+		if (sp.length < 2) throw new Exception("invalid point: " ~ value);
+		return CPoint(to!(int)(strip(sp[0])), to!(int)(strip(sp[1])));
+	}
+	CRect rectVal(string value) {
+		auto sp = std.string.split(value, ",");
+		if (sp.length < 4) throw new Exception("invalid rect: " ~ value);
+		return CRect(to!(int)(strip(sp[0])), to!(int)(strip(sp[1])),
+			to!(int)(strip(sp[2])), to!(int)(strip(sp[3])));
+	}
+	CRGB rgbVal(string value) {
+		if (value.length < 7 && value[0] != '$') throw new Exception("invalid rgb: " ~ value);
+		auto sr = value[1 .. 3];
+		auto sg = value[3 .. 5];
+		auto sb = value[5 .. 7];
+		return CRGB(xtoi(sr), xtoi(sg), xtoi(sb));
+	}
+	Enum enumVal(Enum)(string value) {
+		return cast(Enum) to!(int)(value);
+	}
+	string strVal(string value) {return value;}
+	int intVal(string value) {return to!(int)(value);}
+	bool boolVal(string value) {return value == "1";}
+}
+/// Jpy1の1ファイルの定義。
 struct Jpy1 {
+	/// ファイルに含まれるセクション。
+	Jpy1Sec[] sections;
+	/// pathからJpy1を読込む。
+	static Jpy1 load(string path) {
+		Jpy1 r;
+		foreach (line; splitlines(cast(string) std.file.read(path))) {
+			line = strip(line);
+			if (!line.length || line[0] == ';') continue;
+			if (line[0] == '[' && line[$ - 1] == ']') {
+				// label
+				Jpy1Sec sec;
+				sec.label = strip(line[1 .. $ - 1]);
+				r.sections ~= sec;
+				continue;
+			}
+			if (!r.sections.length) throw new Exception("label not found");
+			with (r.sections[$ - 1]) {
+				// contents
+				int eq = std.string.find(line, '=');
+				if (eq == -1) throw new Exception("invalid line: " ~ line);
+				auto key = strip(line[0 .. eq]);
+				auto value = strip(line[eq + 1 .. $]);
+				switch (toLower(key)) {
+				case "backwidth": backwidth = intVal(value); break;
+				case "backheight": backheight = intVal(value); break;
+				case "backcolor": backcolor = rgbVal(value); break;
+				case "width": width = intVal(value); break;
+				case "height": height = intVal(value); break;
+				case "color": color = rgbVal(value); break;
+				case "dirdepth": dirdepth = intVal(value); break;
+				case "filename": filename = strVal(value); break;
+				case "dirtype": dirtype = enumVal!(Dirtype)(value); break;
+				case "loadcache": loadcache = enumVal!(Cache)(value); break;
+				case "savecache": savecache = enumVal!(Cache)(value); break;
+				case "visible": visible = boolVal(value); break;
+				case "position": position = pointVal(value); break;
+				case "transparent": transparent = boolVal(value); break;
+				case "clip": clip = rectVal(value); break;
+				case "paintmode": paintmode = enumVal!(Paintmode)(value); break;
+				case "alpha": alpha = intVal(value); break;
+				case "animeclip": animeclip = rectVal(value); break;
+				case "animation": animation = enumVal!(Animation)(value); break;
+				case "animeposition": animeposition = pointVal(value); break;
+				case "animemove": animemove = pointVal(value); break;
+				case "wait": wait = intVal(value); break;
+				case "animespeed": animespeed = intVal(value); break;
+				case "smooth": smooth = boolVal(value); break;
+				case "exchange": exchange = enumVal!(Exchange)(value); break;
+				case "colormap": colormap = enumVal!(Colormap)(value); break;
+				case "filter": filter = enumVal!(Filter)(value); break;
+				case "mask": mask = enumVal!(Mask)(value); break;
+				case "noise": noise = enumVal!(Noise)(value); break;
+				case "noisepoint": noisepoint = intVal(value); break;
+				case "turn": turn = enumVal!(Turn)(value); break;
+				case "flip": flip = boolVal(value); break;
+				case "mirror": mirror = boolVal(value); break;
+				case "comment": comment = strVal(value); break;
+				default: throw new Exception("invalid command: " ~ line);
+				}
+			}
+		}
+		return r;
+	}
+}
+
+/// Jpy1のセクションブロック。
+struct Jpy1Sec {
+	/// セクションのラベル。
 	string label;
 
 	int backwidth = -1; // 画像が無い場合の自動サイズは632
@@ -148,40 +246,194 @@ struct Jpy1 {
 	string comment = "";
 }
 
-const JPTX_BR = "br";
-const JPTX_B = "b";
-const JPTX_I = "i";
-const JPTX_U = "u";
-const JPTX_S = "s";
-const JPTX_SHIFTX = "shiftx";
-const JPTX_SHIFTY = "shifty";
-const JPTX_LINEHEIGHT = "lineheight";
-const JPTX_FONT = "font";
-const JPTX_FONT_ATTR_FACE = "face";
-const JPTX_FONT_ATTR_COLOR = "color";
-const JPTX_FONT_ATTR_PIXELS = "pixels";
+private struct JptxTag {
+	string name;
+	int tagValue;
+	string[string] attr;
+	static JptxTag parse(string startTag) {
+		auto reg = search(startTag, "^<[A-Z]+", "i");
+		if (!reg) throw new Exception("invalid start tag: " ~ startTag);
+		JptxTag tag;
+		tag.name = toLower(reg.match(0)[1 .. $]);
+		auto p = reg.post;
+		if (!p.length) throw new Exception("invalid start tag: " ~ startTag);
+		if (startsWith(p, "=\"")) {
+			int ei = std.string.find(p[2 .. $], '"');
+			if (ei == -1) throw new Exception("invalid start tag: " ~ startTag);
+			tag.tagValue = to!(int)(p[2 .. ei + 2]);
+			p = p[ei + 4 .. $];
+		}
+		static const ATTR = " *([A-Z]+)=\"([^\"]+)\"";
+		auto areg = search(p, ATTR, "i");
+		while (areg) {
+			tag.attr[toLower(areg.match(1))] = areg.match(2);
+			areg = search(areg.post, ATTR, "i");
+		}
+		return tag;
+	} unittest {
+		auto t1 = JptxTag.parse("<b>");
+		assert (t1.name == "b");
+		auto t2 = JptxTag.parse("<lineheight=\"80\">");
+		assert (t2.name == "lineheight");
+		assert (t2.tagValue == 80);
+		auto t3 = JptxTag.parse("<font face=\"face\" pixels=\"14\">");
+		assert (t3.name == "font");
+		assert (t3.attr["face"] == "face");
+		assert (t3.attr["pixels"] == "14");
+	}
+}
+private struct JptxParser {
+	bool autoline = true;
 
-class JptxNode {
-	string left;
-	JptxNode child = null;
-	string right = "";
+	void delegate(string) onText = null;
 
-	// style
-	string[] lines;
+	void delegate() onBR = null;
+
+	void delegate() onB = null;
+	void delegate() onI = null;
+	void delegate() onU = null;
+	void delegate() onS = null;
+	void delegate(int) onShiftx = null;
+	void delegate(int) onShifty = null;
+	void delegate(int) onLineheight = null;
+	void delegate(string face, CRGB color, int pixels) onFont = null;
+
+	void delegate() onEndB = null;
+	void delegate() onEndI = null;
+	void delegate() onEndU = null;
+	void delegate() onEndS = null;
+	void delegate() onEndShiftx = null;
+	void delegate() onEndShifty = null;
+	void delegate() onEndLineheight = null;
+	void delegate() onEndFont = null;
+
+	private void startTag(string tagText) {
+		auto tag = JptxTag.parse(tagText);
+		switch (tag.name) {
+		case "br": {
+			if (onBR) onBR();
+		} break;
+		case "b": {
+			if (onB) onB();
+		} break;
+		case "i": {
+			if (onI) onI();
+		} break;
+		case "u": {
+			if (onU) onU();
+		} break;
+		case "s": {
+			if (onS) onS();
+		} break;
+		case "shiftx": {
+			if (onShiftx) onShiftx(tag.tagValue);
+		} break;
+		case "shifty": {
+			if (onShifty) onShifty(tag.tagValue);
+		} break;
+		case "lineheight": {
+			if (onLineheight) onLineheight(tag.tagValue);
+		} break;
+		case "font": {
+			if (onFont) {
+				string face = "";
+				CRGB rgb = CRGB(-1, -1, -1);
+				int pixels = -1;
+				auto pFace = "face" in tag.attr;
+				if (pFace) face = strVal(*pFace);
+				auto pRgb = "color" in tag.attr;
+				if (pRgb) rgb = rgbVal(*pRgb);
+				auto pPixels = "pixels" in tag.attr;
+				if (pPixels) pixels = intVal(*pPixels);
+				onFont(face, rgb, pixels);
+			}
+		} break;
+		default: assert (0);
+		}
+	}
+	private void endTag(string tagText) {
+		auto tag = tagText[2 .. $ - 1];
+		switch (tag) {
+		case "b": {
+			if (onEndB) onEndB();
+		} break;
+		case "i": {
+			if (onEndI) onEndI();
+		} break;
+		case "u": {
+			if (onEndU) onEndU();
+		} break;
+		case "s": {
+			if (onEndS) onEndS();
+		} break;
+		case "shiftx": {
+			if (onEndShiftx) onEndShiftx();
+		} break;
+		case "shifty": {
+			if (onEndShifty) onEndShifty();
+		} break;
+		case "lineheight": {
+			if (onEndLineheight) onEndLineheight();
+		} break;
+		case "font": {
+			if (onEndFont) onEndFont();
+		} break;
+		default: assert (0);
+		}
+	}
+	void parse(string text) {
+		if (autoline) {
+			auto lines = splitlines(text);
+			text = "";
+			foreach (i, line; lines) {
+				if (line.length) {
+					text ~= line;
+					if (i + 1 < lines.length) text ~= "<br>";
+				}
+			}
+		} else {
+			text = replace(text, "\r\n", "");
+			text = replace(text, "\r", "");
+			text = replace(text, "\n", "");
+		}
+		while (text.length) {
+			auto reg = search(text, "</(b|i|u|s|shiftx|shifty|lineheight|font)>|<(br|b|i|u|s|shiftx=\"-?[0-9]+\"|shifty=\"-?[0-9]+\"|lineheight=\"-?[0-9]+\"|font( +(face=\".+\"|color=\"\\$[0-9A-Fa-f]{6}\"|pixels=\"[0-9]+\"))+)>", "i");
+			if (reg) {
+				if (onText && reg.pre.length) onText(reg.pre);
+				auto m = reg.match(0);
+				if (startsWith(m, "</")) {
+					endTag(m);
+				} else {
+					startTag(m);
+				}
+				text = reg.post;
+				continue;
+			}
+			if (onText) {
+				onText(text);
+			}
+			text = "";
+		}
+	}
+}
+
+/// Jptxの描画状態。
+struct JptxParam {
 	bool b = false;
 	bool i = false;
 	bool u = false;
 	bool s = false;
 	int shiftx = 0;
 	int shifty = 0;
-	int lineheight = 100; // %
-	string font_face = "";
-	CRGB font_color = CRGB(-1, -1, -1);
-	int font_pixels = -1;
+	int lineheight = 100;
+	string face = "";
+	CRGB color = CRGB(-1, -1, -1);
+	int pixels = -1;
 }
-
+/// Jptxの1ファイルの定義。
 struct Jptx {
-	JptxNode text;
+	/// テキスト。タグがそのままの形で含まれる。
+	string text;
 
 	CRGB backcolor = CRGB(255, 255, 255);
 	int backwidth = -1;
@@ -193,6 +445,281 @@ struct Jptx {
 	string fontface = "ＭＳ　Ｐゴシック";
 	int antialias = false;
 	bool fonttransparent = false;
+
+	unittest {
+		Jptx jptx;
+		jptx.text = "Jptxのテスト。<br>改行した後、<b>太字<i>かつ斜体</i></b><s>打ち消し</s>"
+			~ "<font color=\"$000000\" face=\"font!\" pixels=\"28\">font!の黒の28px"
+			~ "<font color=\"$FF0000\">ここはfont!の赤の28px</font>ここもfont!の黒の28px</font>"
+			~ "<shiftx=\"20\">shiftx=20<shiftx=\"-10\">shiftx=10</shiftx>shiftx=20</shiftx>"
+			~ "<shifty=\"20\">shifty=20<shifty=\"-10\">shifty=10</shifty>shifty=20</shifty>"
+			~ "<lineheight=\"50\">高さ50%<lineheight=\"30\">高さ30%</lineheight></lineheight>";
+		jptx.fontface = "testfont";
+		jptx.lineheight = 80;
+		jptx.fontpixels = 18;
+		jptx.fontcolor = CRGB(128, 128, 128);
+		int count = 0;
+		jptx.parse((string text, in JptxParam param) {
+			void chk(string t, bool b, bool i, bool u, bool s,
+					int shiftx, int shifty, int lineheight,
+					string face, CRGB color, int pixels) {
+				assert (text == t, to!(string)(count) ~ ", " ~ text);
+				assert (param.b == b, to!(string)(count));
+				assert (param.i == i, to!(string)(count));
+				assert (param.u == u, to!(string)(count));
+				assert (param.s == s, to!(string)(count));
+				assert (param.shiftx == shiftx, format("%d, %d", count, param.shiftx));
+				assert (param.shifty == shifty, format("%d, %d", count, param.shifty));
+				assert (param.lineheight == lineheight, format("%d, %d", count, param.lineheight));
+				assert (param.face == face, format("%d, %s", count, param.face));
+				assert (param.color == color, format("%d, %d:%d:%d", count, param.color.r, param.color.g, param.color.b));
+				assert (param.pixels == pixels, format("%d, %d", count, param.pixels));
+			}
+			switch (count) {
+			case 0: {
+				chk("Jptxのテスト。", false, false, false, false,
+					0, 0, 80, "testfont", CRGB(128, 128, 128), 18);
+			} break;
+			case 1: {
+				chk("\n", false, false, false, false,
+					0, 0, 80, "testfont", CRGB(128, 128, 128), 18);
+			} break;
+			case 2: {
+				chk("改行した後、", false, false, false, false,
+					0, 0, 80, "testfont", CRGB(128, 128, 128), 18);
+			} break;
+			case 3: {
+				chk("太字", true, false, false, false,
+					0, 0, 80, "testfont", CRGB(128, 128, 128), 18);
+			} break;
+			case 4: {
+				chk("かつ斜体", true, true, false, false,
+					0, 0, 80, "testfont", CRGB(128, 128, 128), 18);
+			} break;
+			case 5: {
+				chk("打ち消し", false, false, false, true,
+					0, 0, 80, "testfont", CRGB(128, 128, 128), 18);
+			} break;
+			case 6: {
+				chk("font!の黒の28px", false, false, false, false,
+					0, 0, 80, "font!", CRGB(0, 0, 0), 28);
+			} break;
+			case 7: {
+				chk("ここはfont!の赤の28px", false, false, false, false,
+					0, 0, 80, "font!", CRGB(255, 0, 0), 28);
+			} break;
+			case 8: {
+				chk("ここもfont!の黒の28px", false, false, false, false,
+					0, 0, 80, "font!", CRGB(0, 0, 0), 28);
+			} break;
+			case 9: {
+				chk("shiftx=20", false, false, false, false,
+					20, 0, 80, "testfont", CRGB(128, 128, 128), 18);
+			} break;
+			case 10: {
+				chk("shiftx=10", false, false, false, false,
+					10, 0, 80, "testfont", CRGB(128, 128, 128), 18);
+			} break;
+			case 11: {
+				chk("shiftx=20", false, false, false, false,
+					20, 0, 80, "testfont", CRGB(128, 128, 128), 18);
+			} break;
+			case 12: {
+				chk("shifty=20", false, false, false, false,
+					0, 20, 80, "testfont", CRGB(128, 128, 128), 18);
+			} break;
+			case 13: {
+				chk("shifty=10", false, false, false, false,
+					0, 10, 80, "testfont", CRGB(128, 128, 128), 18);
+			} break;
+			case 14: {
+				chk("shifty=20", false, false, false, false,
+					0, 20, 80, "testfont", CRGB(128, 128, 128), 18);
+			} break;
+			case 15: {
+				chk("高さ50%", false, false, false, false,
+					0, 0, 50, "testfont", CRGB(128, 128, 128), 18);
+			} break;
+			case 16: {
+				chk("高さ30%", false, false, false, false,
+					0, 0, 30, "testfont", CRGB(128, 128, 128), 18);
+			} break;
+			default: assert (0);
+			}
+			count++;
+		});
+	}
+	/// textを分析し、経過をonTextに渡す。
+	/// 改行は独立したテキスト"\n"として渡される。
+	void parse(void delegate(string text, in JptxParam param) onText) {
+		JptxParam param;
+		param.b = false;
+		param.i = false;
+		param.u = false;
+		param.s = false;
+		param.shiftx = 0;
+		param.shifty = 0;
+		param.lineheight = lineheight;
+		param.face = fontface;
+		param.color = fontcolor;
+		param.pixels = fontpixels;
+		// stack
+		int sB = 0, sI = 0, sU = 0, sS = 0;
+		int[] sShiftx, sShifty, sLineheight;
+		string[] sFace;
+		CRGB[] sColor;
+		int[] sPixels;
+		// parse
+		JptxParser parser;
+		parser.onB = () {
+			sB++;
+			param.b = true;
+		};
+		parser.onEndB = () {
+			sB--;
+			if (sB <= 0) param.b = false;
+		};
+		parser.onI = () {
+			sI++;
+			param.i = true;
+		};
+		parser.onEndI = () {
+			sI--;
+			if (sI <= 0) param.i = false;
+		};
+		parser.onU = () {
+			sU++;
+			param.u = true;
+		};
+		parser.onEndU = () {
+			sU--;
+			if (sU <= 0) param.u = false;
+		};
+		parser.onS = () {
+			sS++;
+			param.s = true;
+		};
+		parser.onEndS = () {
+			sS--;
+			if (sS <= 0) param.s = false;
+		};
+		parser.onShiftx = (int shiftx) {
+			sShiftx ~= shiftx;
+			param.shiftx += shiftx;
+		};
+		parser.onEndShiftx = () {
+			if (!sShiftx.length) return;
+			param.shiftx -= sShiftx[$ - 1];
+			sShiftx = sShiftx[0 .. $ - 1];
+		};
+		parser.onShifty = (int shifty) {
+			sShifty ~= shifty;
+			param.shifty += shifty;
+		};
+		parser.onEndShifty = () {
+			if (!sShifty.length) return;
+			param.shifty -= sShifty[$ - 1];
+			sShifty = sShifty[0 .. $ - 1];
+		};
+		parser.onLineheight = (int lineheight) {
+			sLineheight ~= lineheight;
+			param.lineheight = lineheight;
+		};
+		parser.onEndLineheight = () {
+			if (!sLineheight.length) return;
+			sLineheight = sLineheight[0 .. $ - 1];
+			param.lineheight = sLineheight.length ? sLineheight[$ - 1] : 100;
+		};
+		parser.onFont = (string face, CRGB color, int pixels) {
+			if (!face.length) face = param.face;
+			if (color.r == -1) color = param.color;
+			if (pixels == -1) pixels = param.pixels;
+			sFace ~= face;
+			sColor ~= color;
+			sPixels ~= pixels;
+			param.face = face;
+			param.color = color;
+			param.pixels = pixels;
+		};
+		parser.onEndFont = () {
+			if (!sFace.length) return;
+			sFace = sFace[0 .. $ - 1];
+			param.face = sFace.length ? sFace[$ - 1] : fontface;
+			sColor = sColor[0 .. $ - 1];
+			param.color = sColor.length ? sColor[$ - 1] : fontcolor;
+			sPixels = sPixels[0 .. $ - 1];
+			param.pixels = sPixels.length ? sPixels[$ - 1] : fontpixels;
+		};
+		parser.onBR = () {
+			onText("\n", param);
+		};
+		parser.onText = (string text) {
+			onText(text, param);
+		};
+		parser.parse(text);
+	}
+	/// pathからJptxを読込む。
+	static Jptx load(string path) {
+		Jptx r;
+		string t = "";
+		bool textFirst = true;
+		bool init = false;
+		bool text = false;
+		foreach (line; splitlines(cast(string) std.file.read(path))) {
+			auto sline = strip(line);
+			if (sline.length && sline[0] == '[' && sline[$ - 1] == ']') {
+				// label
+				switch (strip(sline[1 .. $ - 1])) {
+				case "jptx:init": {
+					init = true;
+					text = false;
+				} break;
+				case "jptx:begin": {
+					init = false;
+					text = true;
+				} break;
+				case "jptx:end": {
+					init = true;
+					text = false;
+					continue; // jptx:endのみその行の解釈を終了する
+				}
+				default:
+				}
+			}
+			if (init) {
+				with (r) {
+					// init
+					int eq = std.string.find(sline, '=');
+					if (eq == -1) throw new Exception("invalid line: " ~ line);
+					auto key = strip(sline[0 .. eq]);
+					auto value = strip(sline[eq + 1 .. $]);
+					switch (toLower(key)) {
+					case "backcolor": backcolor = rgbVal(value); break;
+					case "backwidth": backwidth = intVal(value); break;
+					case "backheight": backheight = intVal(value); break;
+					case "autoline": autoline = boolVal(value); break;
+					case "lineheight": lineheight = intVal(value); break;
+					case "fontpixels": fontpixels = intVal(value); break;
+					case "fontcolor": fontcolor = rgbVal(value); break;
+					case "fontface": fontface = strVal(value); break;
+					case "antialias": antialias = intVal(value); break;
+					case "fonttransparent": fonttransparent = boolVal(value); break;
+					default: throw new Exception("invalid command: " ~ line);
+					}
+				}
+			}
+			if (text) {
+				if (textFirst) {
+					textFirst = false;
+				} else {
+					t ~= "\n";
+				}
+				t ~= line;
+			}
+		}
+		r.text = t;
+		return r;
+	}
 }
 
 enum Copymode {
@@ -205,6 +732,7 @@ enum Copymode {
 const JPDC_COMMENT_FILE = "file";
 const JPDC_COMMENT_DIR = "dir";
 
+/// Jpdcの1ファイルの定義。
 struct Jpdc {
 	CRect clip = CRect(0, 0, 0, 0);
 	Copymode copymode = Copymode.AUTO;
