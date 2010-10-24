@@ -80,7 +80,8 @@ private:
 							(_summ.casts[_casts.getSelectionIndex].path, _summ.scenarioPath);
 					}
 					if (path.length > 0) {
-						scope img = new Image(Display.getCurrent, loadImage(path));
+						auto skin = findSkin(_prop, _summ);
+						scope img = new Image(Display.getCurrent, loadImage(skin, path));
 						scope (exit) img.dispose;
 						e.gc.drawImage(img, 0, 0);
 					}

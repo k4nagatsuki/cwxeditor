@@ -13,6 +13,7 @@ import cwx.skin;
 import cwx.usecounter;
 import cwx.path;
 import cwx.structs;
+import cwx.sjis;
 
 import cwx.editor.gui.sound;
 
@@ -28,9 +29,11 @@ import cwx.editor.gui.dwt.materialselect;
 import cwx.editor.gui.dwt.xmlbytestransfer;
 import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.undo;
+import cwx.editor.gui.dwt.jpyimage;
 
 import std.math;
 import std.path;
+import std.file;
 
 import dwt.DWTException;
 import dwt.widgets.Display;
@@ -1438,7 +1441,7 @@ public:
 				auto img = cast(FlexImage) _imgp.images[i];
 				string path = skin.findImagePath(b.path, _summ ? _summ.scenarioPath : "");
 				uint w, h;
-				imageSize(path, w, h);
+				dwtImageSize(skin, path, w, h);
 				img.setPath(path);
 				img.baseWidth(w);
 				img.baseHeight(h);
@@ -1464,12 +1467,13 @@ public:
 			}
 		}
 		static if (UseBacks) {
+			auto skin = findSkin(_prop, _summ);
 			foreach (i, b; _area.backs) {
 				auto img = _imgp.images[i];
 				uint w, h;
 				string path = findSkin(_prop, _summ).findImagePath(b.path, _summ ? _summ.scenarioPath : "");
 				try {
-					if (imageSize(path, w, h)) {
+					if (dwtImageSize(skin, path, w, h)) {
 						img.setPath(path);
 						img.baseWidth = w;
 						img.baseHeight = h;
@@ -2570,14 +2574,21 @@ class BgImagesView : AbstractAreaView!(BgImageContainer, void, false, true) {
 /// Returns: 背景画像。
 FlexImage createBackgroundImage
 		(Skin skin, string path, int x, int y, int w, int h, bool transparent) {
-	uint baseW, baseH;
-	try {
-		imageSize(path, baseW, baseH);
-	} catch {
-		baseW = w;
-		baseH = h;
+	FlexImage r;
+	auto ext = getExt(path);
+	if (fnmatch(ext, "jpy1") || fnmatch(ext, "jptx") || fnmatch(ext, "jpdc")) {
+		auto data = loadJPYImage(skin, path);
+		r = new FlexImage(data, x, y, data.width, data.height);
+	} else {
+		uint baseW = w, baseH = h;
+		try {
+			dwtImageSize(skin, path, baseW, baseH);
+		} catch {
+			baseW = w;
+			baseH = h;
+		}
+		r = new FlexImage(path, x, y, baseW, baseH);
 	}
-	auto r = new FlexImage(path, x, y, baseW, baseH);
 	r.transparent = transparent;
 	r.newWidth = w;
 	r.newHeight = h;

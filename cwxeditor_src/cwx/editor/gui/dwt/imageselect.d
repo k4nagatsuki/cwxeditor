@@ -55,6 +55,7 @@ public:
 			int w, int h, bool canIncluding, void delegate() refresh = null) {
 		_group = new Group(parent, style);
 		_prop = prop;
+		_summ = summ;
 		_refresh = refresh;
 		_w = w;
 		_h = h;
@@ -148,7 +149,7 @@ private:
 		public override void paintControl(PaintEvent e) {
 			auto path = filePath;
 			if (path !is null && path.length > 0) {
-				scope data = loadImage(path, _mask);
+				scope data = loadImage(findSkin(_prop, _summ), path, _mask);
 				scope img = new Image(Display.getCurrent, data);
 				scope area = _image.getClientArea;
 				int x, y, w, h;
@@ -177,6 +178,7 @@ private:
 	}
 	Group _group;
 	Props _prop;
+	Summary _summ;
 	Canvas _image;
 	MaterialSelect!(Type, Combo, List) _msel;
 	int _w, _h;

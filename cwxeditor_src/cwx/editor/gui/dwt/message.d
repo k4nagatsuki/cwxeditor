@@ -564,7 +564,7 @@ private Composite createTalkerPane
 						break;
 					default:
 						// カード画像
-						image = new Image(Display.getCurrent, loadImage(_msel.filePath));
+						image = new Image(Display.getCurrent, loadImage(findSkin(_prop, _summ), _msel.filePath));
 						dis = true;
 					}
 					auto dw = image.getImageData.width;

@@ -78,7 +78,7 @@ private:
 			if (file.length > 0) {
 				try {
 					uint x, y;
-					imageSize(file, x, y);
+					dwtImageSize(findSkin(_prop, _summ), file, x, y);
 					_w.setSelection = x;
 					_h.setSelection = y;
 					_selected = true;

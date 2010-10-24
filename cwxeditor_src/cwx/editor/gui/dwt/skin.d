@@ -120,14 +120,14 @@ version (Windows) {
 /// path = ファイルパス。
 /// Returns: カード画像。カード画像でないならnull。
 ImageData loadCardImage(Skin skin, string path) {
-	return skin.isCardImage(path) ? loadImage(path) : null;
+	return skin.isCardImage(path) ? loadImage(skin, path) : null;
 }
 /// 背景画像として使用可能であればイメージデータを生成して返す。
 /// Params:
 /// path = ファイルパス。
 /// Returns: 背景画像。背景画像でないならnull。
 ImageData loadBgImage(Skin skin, string path) {
- 	return skin.isBgImage(path) ? loadImage(path) : null;
+ 	return skin.isBgImage(path) ? loadImage(skin, path) : null;
 }
 
 private ImageData createImg(T ...)(string lEnginePath, string resName,

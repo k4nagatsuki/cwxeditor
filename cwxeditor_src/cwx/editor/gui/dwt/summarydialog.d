@@ -100,7 +100,7 @@ private:
 			if (_imgPath.image !is null && _imgPath.image.length > 0) {
 				string imgPath = skin.findImagePath(_imgPath.image, _summ.scenarioPath);
 				if (imgPath.length) {
-					scope img = new Image(d, loadImage(imgPath));
+					scope img = new Image(d, loadImage(skin, imgPath));
 					gc.drawImage(img, _prop.looks.summaryImageXY.x, _prop.looks.summaryImageXY.y);
 					img.dispose;
 				}

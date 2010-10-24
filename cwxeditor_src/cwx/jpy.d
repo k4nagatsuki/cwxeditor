@@ -3,10 +3,12 @@ module cwx.jpy;
 
 import cwx.structs;
 import cwx.utils;
+import cwx.sjis;
 
 import std.compat;
 import std.string;
 import std.regexp;
+import std.utf;
 
 enum Animation {
 	NONE = 0,
@@ -38,7 +40,7 @@ enum Dirtype {
 	CURRENT = 1,
 	TABLE = 2,
 	SCHEME = 3,
-	FIRST_FILE = 4,
+	SCENARIO = 4,
 	WAV = 5,
 	PARENT = 6,
 	PROGRAM = 7
@@ -130,7 +132,14 @@ private {
 	Enum enumVal(Enum)(string value) {
 		return cast(Enum) to!(int)(value);
 	}
-	string strVal(string value) {return value;}
+	string strVal(string value) {
+		try {
+			validate(value);
+			return value;
+		} catch {
+			return touni(value);
+		}
+	}
 	int intVal(string value) {return to!(int)(value);}
 	bool boolVal(string value) {return value == "1";}
 }
@@ -348,12 +357,12 @@ private struct JptxParser {
 				onFont(face, rgb, pixels);
 			}
 		} break;
-		default: assert (0);
+		default: assert (0, tag.name);
 		}
 	}
 	private void endTag(string tagText) {
 		auto tag = tagText[2 .. $ - 1];
-		switch (tag) {
+		switch (toLower(tag)) {
 		case "b": {
 			if (onEndB) onEndB();
 		} break;
@@ -378,7 +387,7 @@ private struct JptxParser {
 		case "font": {
 			if (onEndFont) onEndFont();
 		} break;
-		default: assert (0);
+		default: assert (0, tag);
 		}
 	}
 	void parse(string text) {
@@ -386,10 +395,8 @@ private struct JptxParser {
 			auto lines = splitlines(text);
 			text = "";
 			foreach (i, line; lines) {
-				if (line.length) {
-					text ~= line;
-					if (i + 1 < lines.length) text ~= "<br>";
-				}
+				text ~= line;
+				if (i + 1 < lines.length) text ~= "<br>";
 			}
 		} else {
 			text = replace(text, "\r\n", "");
@@ -667,21 +674,28 @@ struct Jptx {
 		bool text = false;
 		foreach (line; splitlines(cast(string) std.file.read(path))) {
 			auto sline = strip(line);
+			if (!text && sline.length && sline[0] == ';') continue;
 			if (sline.length && sline[0] == '[' && sline[$ - 1] == ']') {
 				// label
 				switch (strip(sline[1 .. $ - 1])) {
 				case "jptx:init": {
-					init = true;
-					text = false;
+					if (!text) {
+						init = true;
+						text = false;
+						continue;
+					}
 				} break;
 				case "jptx:begin": {
-					init = false;
-					text = true;
+					if (!text) {
+						init = false;
+						text = true;
+						continue;
+					}
 				} break;
 				case "jptx:end": {
 					init = true;
 					text = false;
-					continue; // jptx:endのみその行の解釈を終了する
+					continue;
 				}
 				default:
 				}
@@ -714,8 +728,16 @@ struct Jptx {
 				} else {
 					t ~= "\n";
 				}
-				t ~= line;
+				try {
+					validate(line);
+					t ~= line;
+				} catch {
+					t ~= touni(line);
+				}
 			}
+		}
+		if (t.length && t[$ - 1] == '\n') {
+			t = t[0 .. $ - 1];
 		}
 		r.text = t;
 		return r;
@@ -734,8 +756,45 @@ const JPDC_COMMENT_DIR = "dir";
 
 /// Jpdcの1ファイルの定義。
 struct Jpdc {
-	CRect clip = CRect(0, 0, 0, 0);
+	CRect clip = CRect(0, 0, 632, 420);
 	Copymode copymode = Copymode.AUTO;
 	string saveFileName = "";
 	string savecomment = "";
+
+	/// pathからJpdcを読込む。
+	static Jpdc load(string path) {
+		Jpdc r;
+		bool init = false;
+		foreach (line; splitlines(cast(string) std.file.read(path))) {
+			line = strip(line);
+			if (!line.length || line[0] == ';') continue;
+			if (line[0] == '[' && line[$ - 1] == ']') {
+				// label
+				switch (strip(line[1 .. $ - 1])) {
+				case "jpdc:init": {
+					init = true;
+					continue;
+				} break;
+				default:
+				}
+			}
+			if (init) {
+				with (r) {
+					// init
+					int eq = std.string.find(line, '=');
+					if (eq == -1) throw new Exception("invalid line: " ~ line);
+					auto key = strip(line[0 .. eq]);
+					auto value = strip(line[eq + 1 .. $]);
+					switch (toLower(key)) {
+					case "clip": clip = rectVal(value); break;
+					case "copymode": copymode = enumVal!(Copymode)(value); break;
+					case "savefilename": saveFileName = strVal(value); break;
+					case "savecomment": savecomment = strVal(value); break;
+					default: throw new Exception("invalid command: " ~ line);
+					}
+				}
+			}
+		}
+		return r;
+	}
 }

@@ -14,7 +14,6 @@ import cwx.imagesize;
 import cwx.skin;
 import cwx.cab;
 import cwx.structs;
-import cwx.jpy;
 
 import cwx.editor.gui.sound;
 import cwx.editor.gui.dwt.images;
@@ -25,6 +24,7 @@ import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.xmlbytestransfer;
 import cwx.editor.gui.dwt.centerlayout;
+import cwx.editor.gui.dwt.jpyimage;
 
 import std.utf;
 import std.ctype;
@@ -102,7 +102,26 @@ import dwt.dwthelper.ByteArrayInputStream;
 
 public:
 
+bool dwtImageSize(Skin skin, string path, out uint width, out uint height) {
+	auto ext = getExt(path);
+	if (std.path.fnmatch(ext, "jpy1")
+			|| std.path.fnmatch(ext, "jptx")
+			|| std.path.fnmatch(ext, "jpdc")) {
+		auto img = loadJPYImage(skin, path);
+		if (img) {
+			width = img.width;
+			height = img.height;
+			return true;
+		}
+		return false;
+	}
+	return imageSize(path, width, height);
+}
+
 ImageData loadImage(string path, bool mask = true, int maskX = 0, int maskY = 0) {
+	return loadImage(null, path, mask, maskX, maskY);
+}
+ImageData loadImage(Skin skin, string path, bool mask = true, int maskX = 0, int maskY = 0) {
 	mixin FileCache!(byte[]);
 
 	if (path !is null && path.length > 0) {
@@ -110,8 +129,8 @@ ImageData loadImage(string path, bool mask = true, int maskX = 0, int maskY = 0)
 		if (std.path.fnmatch(ext, "jpy1")
 				|| std.path.fnmatch(ext, "jptx")
 				|| std.path.fnmatch(ext, "jpdc")) {
-			auto data = new ImageData(632, 420, 8, new PaletteData(0, 0, 0));
-			data.transparentPixel = data.getPixel(0, 0);
+			auto data = loadJPYImage(skin, path);
+			if (mask) data.transparentPixel = data.getPixel(maskX, maskY);
 			return data;
 		}
 		try {
