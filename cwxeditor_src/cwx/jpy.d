@@ -101,7 +101,8 @@ enum Paintmode {
 	NONE = 0,
 	AND = 1,
 	OR = 2,
-	BLEND = 3
+	BLEND = 3,
+	NO_PAINT = 4
 }
 
 enum Turn {

@@ -126,7 +126,7 @@ private ImageData loadJPYImageImpl(Skin skin, string path) {
 			simg.dispose;
 			simg = new Image(d, data);
 		}
-		if (sec.visible) {
+		if (sec.visible && sec.paintmode != Paintmode.NO_PAINT) {
 			if (sec.alpha < 0xFF && sec.paintmode == Paintmode.BLEND) {
 				gc.setAlpha = sec.alpha;
 			}

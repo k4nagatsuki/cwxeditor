@@ -398,8 +398,11 @@ struct BgImageS {
 		BgImage[] r;
 		r.length = bgs.length;
 		foreach (i, b; bgs) {
-			r[i] = new BgImage(skin.findImagePath(addExt(b.name, skin.extImage), ""),
-				"", b.x, b.y, b.width, b.height, b.mask);
+			auto path = skin.findImagePath(addExt(b.name, skin.extImage), "");
+			if (path.length) {
+				path = abs2rel(skin.tableDir, nabs(path));
+			}
+			r[i] = new BgImage(path, "", b.x, b.y, b.width, b.height, b.mask);
 		}
 		return r;
 	}
