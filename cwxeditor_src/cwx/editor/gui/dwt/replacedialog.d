@@ -169,7 +169,7 @@ private:
 	}
 	class KLS : KeyAdapter {
 		public override void keyPressed(KeyEvent e) {
-			if (_from.isFocusControl && e.character == DWT.CR) {
+			if (e.character == DWT.CR) {
 				search;
 			}
 		}
