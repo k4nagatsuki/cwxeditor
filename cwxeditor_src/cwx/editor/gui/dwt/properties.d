@@ -401,6 +401,8 @@ struct BgImageS {
 			auto path = skin.findImagePath(addExt(b.name, skin.extImage), "");
 			if (path.length) {
 				path = abs2rel(skin.tableDir, nabs(path));
+			} else {
+				path = addExt(b.name, skin.extImage);
 			}
 			r[i] = new BgImage(path, "", b.x, b.y, b.width, b.height, b.mask);
 		}

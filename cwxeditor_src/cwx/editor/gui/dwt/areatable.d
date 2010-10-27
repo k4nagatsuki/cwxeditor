@@ -110,9 +110,29 @@ private:
 		}
 		return null;
 	}
+	void callRefArea(AbstractArea area) {
+		auto a = cast(Area) area;
+		if (a) {
+			_comm.refArea.call(a);
+			return;
+		}
+		auto b = cast(Battle) area;
+		if (b) {
+			_comm.refBattle.call(b);
+			return;
+		}
+		auto p = cast(Package) area;
+		if (p) {
+			_comm.refPackage.call(p);
+			return;
+		}
+	}
 	void refreshIDs() {
 		foreach (itm; _areas.getItems) {
-			itm.setText(ID, to!(string)((cast(AbstractArea) itm.getData).id));
+			auto area = cast(AbstractArea) itm.getData;
+			auto str = to!(string)(area.id);
+			if (str != itm.getText(ID)) callRefArea(area);
+			itm.setText(ID, str);
 		}
 	}
 	void openArea() {
@@ -237,6 +257,7 @@ private:
 						_summ.insert(index, cast(Package) area);
 						newPackageItem(index);
 					}
+					callRefArea(area);
 					refreshIDs;
 					refreshStatusLine;
 					e.detail = DND.DROP_NONE;

@@ -319,6 +319,14 @@ private:
 					int index = indexOf(p);
 					bool samePane = _id == node.attr("paneId", false);
 					bool sameSc = ownerId == node.attr("summId", false);
+					ulong[C] oldIDs;
+					foreach (card; cards) oldIDs[card] = card.id;
+					scope (exit) {
+						foreach (card; cards) {
+							auto pc = card in oldIDs;
+							if (pc && *pc != card.id) refCard(card); 
+						}
+					}
 					if (sameSc && samePane) {
 						// 同一リスト内で移動。
 						int count = cardCount;
@@ -1588,7 +1596,9 @@ public:
 		}
 
 		_tabf.setSelection = 0;
-		if (_prop.var.etc.cardLife) {
+		bool life = _prop.var.etc.cardLife;
+		bool detail = _prop.var.etc.cardDetails;
+		if (life) {
 			showCardLife;
 		} else {
 			showCardList;
@@ -1608,7 +1618,7 @@ public:
 				shell.setSize(width, _prop.var.cardWin.height);
 			}
 		}
-		if (!_prop.var.etc.cardLife && _prop.var.etc.cardDetails) {
+		if (!life && detail) {
 			showCardTable;
 		}
 	}
