@@ -801,7 +801,7 @@ public:
 			mixin (MenuAction!("mv", "DirWin", DWT.PUSH, "openDirWindow"));
 			if (_prop.var.etc.singleWindow) {
 				new MenuItem(mv, DWT.SEPARATOR);
-				mixin (MenuAction!("mv", "Refresh"));
+				mixin (MenuAction!("mv", "Refresh", DWT.PUSH, "refreshAll"));
 				new MenuItem(mv, DWT.SEPARATOR);
 				mixin (MenuAction!("mv", "ChangeVH"));
 			}
@@ -892,7 +892,7 @@ public:
 			}
 			{
 				auto bar = new ToolBar(cbar, DWT.FLAT);
-				mixin (ToolAction!("bar", "Refresh"));
+				mixin (ToolAction!("bar", "Refresh", DWT.PUSH, "refreshAll"));
 				createCoolItem(cbar, bar);
 			}
 			{
@@ -1062,6 +1062,15 @@ public:
 			~ "    _comm.openCardWin;"
 			~ "    _cardWin.create" ~ Name ~ ";"
 			~ "}";
+	}
+	private void refreshAll() {
+		if (!_dock) return;
+		foreach (ctrl; _dock.controls) {
+			auto tlpData = cast(TLPData) ctrl.getData;
+			if (!tlpData) continue;
+			auto act = tlpData.tlp.menuAction(MenuID.Refresh);
+			if (act) act();
+		}
 	}
 	private void openDirectory() {
 		if (!summary) return;
