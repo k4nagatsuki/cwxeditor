@@ -1426,7 +1426,7 @@ public:
 	private void refreshPanel() {
 		static if (UseCards) {
 			foreach (i, c; _area.cards) {
-				auto img = createCardImage(c);
+				auto img = create(c);
 				img.newX = c.x;
 				img.newY = c.y;
 				img.scale = c.scale;
@@ -1459,9 +1459,11 @@ public:
 	}
 	void refresh() {
 		static if (UseCards) {
+			auto sels = _imgp.selectedIndices;
 			foreach (i, c; _area.cards) {
-				_imgp.set(cardsIndex + i, createCardImage(c));
+				_imgp.set(cardsIndex + i, create(c));
 			}
+			_imgp.select = sels;
 			static if (is (C == EnemyCard)) {
 				_bgm.refresh;
 			}
