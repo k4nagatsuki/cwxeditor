@@ -746,6 +746,17 @@ private:
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
+		static if (is (C == CastCard)) {
+			_cimg = prop.images.casts;
+		} else static if (is (C == SkillCard)) {
+			_cimg = prop.images.skill;
+		} else static if (is (C == ItemCard)) {
+			_cimg = prop.images.item;
+		} else static if (is (C == BeastCard)) {
+			_cimg = prop.images.beast;
+		} else static if (is (C == InfoCard)) {
+			_cimg = prop.images.info;
+		}
 		createCardList(parent);
 		static if (is (PCardOwner == Summary)) {
 			_comm.refSkin.add(&__refresh);
@@ -828,17 +839,6 @@ public:
 		}
 	} else static if (is (C : Card)) {
 		this(Commons comm, Props prop, PCardOwner summ, Composite parent) {
-			static if (is (C == SkillCard)) {
-				_cimg = prop.images.casts;
-			} else static if (is (C == SkillCard)) {
-				_cimg = prop.images.skill;
-			} else static if (is (C == ItemCard)) {
-				_cimg = prop.images.item;
-			} else static if (is (C == BeastCard)) {
-				_cimg = prop.images.beast;
-			} else static if (is (C == InfoCard)) {
-				_cimg = prop.images.info;
-			}
 			construct(comm, prop, summ, parent);
 		}
 	} else {

@@ -180,8 +180,8 @@ private ImageData loadJPTXImage(string path) {
 		int fStyle = DWT.NORMAL;
 		if (param.b) fStyle |= DWT.BOLD;
 		if (param.i) fStyle |= DWT.ITALIC;
-		auto fontData = new FontData(param.face, jptx.fontpixels, fStyle);
-		fontData.height = cast(float) (jptx.fontpixels * (72.0 / d.getDPI.y));
+		auto h = cast(int) (jptx.fontpixels * (72.0 / d.getDPI.y) + 0.5);
+		auto fontData = new FontData(param.face, h, fStyle);
 		auto font = new Font(d, fontData);
 		scope (exit) font.dispose;
 		gc.setFont = font;
