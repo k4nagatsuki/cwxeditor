@@ -1059,33 +1059,38 @@ private:
 				}
 			}
 			while (!_display.isDisposed) {
-				if (summ !is _summ) {
-					summ = _summ;
-					if (!setup) {
-						debugln("FindFirstChangeNotification failed: ", GetLastError);
+				try {
+					if (summ !is _summ) {
+						summ = _summ;
+						if (!setup) {
+							debugln("FindFirstChangeNotification failed: ", GetLastError);
+							continue;
+						}
+					}
+					if (!canDoChk) {
+						sleep;
 						continue;
 					}
-				}
-				if (!canDoChk) {
+					switch (WaitForSingleObject(h, 1000)) {
+					case WAIT_TIMEOUT: {
+						next;
+					} break;
+					case WAIT_ABANDONED: {
+						break;
+					}
+					case WAIT_OBJECT_0: {
+						if (!canDoChk) continue;
+						_display.syncExec(_refreshThr);
+						next;
+					} break;
+					case WAIT_FAILED: {
+						debugln("WaitForSingleObject failed: ", GetLastError);
+					} break;
+					default: break;
+					}
+				} catch (Exception e) {
+					debugln(e);
 					sleep;
-					continue;
-				}
-				switch (WaitForSingleObject(h, 1000)) {
-				case WAIT_TIMEOUT: {
-					next;
-				} break;
-				case WAIT_ABANDONED: {
-					break;
-				}
-				case WAIT_OBJECT_0: {
-					if (!canDoChk) continue;
-					_display.syncExec(_refreshThr);
-					next;
-				} break;
-				case WAIT_FAILED: {
-					debugln("WaitForSingleObject failed: ", GetLastError);
-				} break;
-				default: break;
 				}
 			}
 		} else {
@@ -1106,24 +1111,29 @@ private:
 				dirTimes = times;
 			}
 			while (!_display.isDisposed) {
-				if (summ !is _summ) {
-					summ = _summ;
-					setup;
-				}
-				sleep;
-				if (!canDoChk) continue;
-				bool chk(string path) {
-					if (summ.isSystemFile(path)) return false;
-					if (dirTimes[path] != lastModified(path)) return true;
-					foreach (sub; clistdir(path)) {
-						sub = std.path.join(path, sub);
-						if (isdir(sub) && chk(sub)) return true;
+				try {
+					if (summ !is _summ) {
+						summ = _summ;
+						setup;
 					}
-					return false;
-				}
-				if (chk(nabs(summ.scenarioPath))) {
-					_display.syncExec(_refreshThr);
-					setup;
+					sleep;
+					if (!canDoChk) continue;
+					bool chk(string path) {
+						if (summ.isSystemFile(path)) return false;
+						if (dirTimes[path] != lastModified(path)) return true;
+						foreach (sub; clistdir(path)) {
+							sub = std.path.join(path, sub);
+							if (isdir(sub) && chk(sub)) return true;
+						}
+						return false;
+					}
+					if (chk(nabs(summ.scenarioPath))) {
+						_display.syncExec(_refreshThr);
+						setup;
+					}
+				} catch (Exception e) {
+					debugln(e);
+					sleep;
 				}
 			}
 		}
