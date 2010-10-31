@@ -1174,6 +1174,13 @@ public:
 
 	private void setupMenu(M)(M[MenuID] menus) {
 		foreach (id, itm; menus) {
+			if (_tlp) {
+				auto s = itm.getStyle;
+				if ((s & DWT.RADIO) || (s & DWT.CHECK)) {
+					auto chk = _tlp.menuChecked(id);
+					if (chk) itm.setSelection = chk();
+				}
+			}
 			if (!summary && !_noSummMenu.contains(id)) {
 				itm.setEnabled = false;
 				continue;
@@ -1182,20 +1189,7 @@ public:
 				itm.setEnabled = true;
 				continue;
 			}
-			if (_tlp) {
-				auto s = itm.getStyle;
-				if (s & DWT.PUSH) {
-					itm.setEnabled = _tlp.menuAction(id) !is null;
-				} else if ((s & DWT.RADIO) || (s & DWT.CHECK)) {
-					auto chk = _tlp.menuChecked(id);
-					if (chk) {
-						itm.setEnabled = true;
-						itm.setSelection = chk();
-					} else {
-						itm.setEnabled = false;
-					}
-				}
-			}
+			itm.setEnabled = _tlp && _tlp.menuAction(id);
 		}
 	}
 	private void dockSelect(string key) {
