@@ -5,12 +5,15 @@ import cwx.skin;
 import cwx.utils;
 import cwx.structs;
 import cwx.jpy;
+import cwx.sjis;
 
 import cwx.editor.gui.dwt.props;
 import cwx.editor.gui.dwt.utils;
 
 import std.file;
 import std.path;
+import std.string;
+import std.utf;
 
 import dwt.DWT;
 import dwt.DWTException;
@@ -145,6 +148,28 @@ private ImageData loadJPYImageImpl(Skin skin, string path) {
 	return img.getImageData;
 }
 
+version (Windows) {
+	import std.c.string;
+	import std.c.windows.windows;
+	private extern (Windows) {
+		const DEFAULT_CHARSET = 0x1;
+		const OUT_DEFAULT_PRECIS = 0x0;
+		const CLIP_DEFAULT_PRECIS = 0x0;
+		const DEFAULT_QUALITY = 0x0;
+		const ANTIALIASED_QUALITY = 0x4;
+		const DEFAULT_PITCH = 0x0;
+		const FIXED_PITCH = 0x1;
+		const VARIABLE_PITCH = 0x2;
+		const FF_DONTCARE = (0x0 << 4);
+		const FF_ROMAN = (0x1 << 4);
+		const FF_MODERN = (0x3 << 4);
+		HFONT CreateFontW(int, int, int, int, int, DWORD, DWORD, DWORD, DWORD, DWORD, DWORD, DWORD, DWORD, LPCWSTR);
+		HFONT CreateFontA(int, int, int, int, int, DWORD, DWORD, DWORD, DWORD, DWORD, DWORD, DWORD, DWORD, LPCSTR);
+	}
+}
+/// この実装は実質Windows専用である。
+/// 他のOSではレンダリング結果が大幅に異なる。
+/// また、antialiasプロパティの値は一切反映されない。
 private ImageData loadJPTXImage(string path) {
 	auto jptx = Jptx.load(path);
 	if (jptx.backwidth == 0 || jptx.backheight == 0) return blankImage;
@@ -160,12 +185,16 @@ private ImageData loadJPTXImage(string path) {
 	scope (exit) img.dispose;
 	auto gc = new GC(img);
 	scope (exit) gc.dispose;
+	// FIXME: 現行の実装で必ずantialiasがかかってしまう
+	version (Windows) {} else {
+		gc.setTextAntialias = DWT.ON;
+//		gc.setTextAntialias = jptx.antialias ? DWT.ON : DWT.OFF;
+	}
 	int alpha;
 	auto cBack = new Color(d, dwtData(jptx.backcolor, alpha));
 	scope (exit) cBack.dispose;
 	gc.setBackground = d.getSystemColor(DWT.COLOR_BLACK);
 	gc.fillRectangle(0, 0, width, height);
-	gc.setTextAntialias = jptx.antialias;
 	if (jptx.fonttransparent) {
 		auto cFore = new Color(d, dwtData(jptx.fontcolor, alpha));
 		scope (exit) cFore.dispose;
@@ -177,12 +206,36 @@ private ImageData loadJPTXImage(string path) {
 	int autoW = 1;
 	int autoH = 1;
 	jptx.parse((string text, in JptxParam param) {
-		int fStyle = DWT.NORMAL;
-		if (param.b) fStyle |= DWT.BOLD;
-		if (param.i) fStyle |= DWT.ITALIC;
-		auto h = cast(int) (jptx.fontpixels * (72.0 / d.getDPI.y) + 0.5);
-		auto fontData = new FontData(param.face, h, fStyle);
-		auto font = new Font(d, fontData);
+		version (Windows) {
+			int fh = jptx.fontpixels;
+			DWORD fwg = param.b ? FW_BOLD : FW_NORMAL;
+			DWORD fi = param.i ? TRUE : FALSE;
+			DWORD fu = param.u ? TRUE : FALSE;
+			DWORD fs = param.s ? TRUE : FALSE;
+			DWORD fc = DEFAULT_CHARSET;
+			DWORD fop = OUT_DEFAULT_PRECIS;
+			DWORD fclp = CLIP_DEFAULT_PRECIS;
+			// FIXME: 現行の実装で必ずantialiasがかかってしまう
+			DWORD fq = ANTIALIASED_QUALITY;
+//			DWORD fq = jptx.antialias ? ANTIALIASED_QUALITY : DEFAULT_QUALITY;
+			DWORD fp = DEFAULT_PITCH | FF_DONTCARE;
+			HFONT hf;
+			if (GetVersion < 0x80000000) {
+				hf = CreateFontW(fh, 0, 0, 0, fwg, fi, fu, fs, fc, fop, fclp, fq,
+					fp, toUTF16z(param.face));
+			} else {
+				hf = CreateFontA(fh, 0, 0, 0, fwg, fi, fu, fs, fc, fop, fclp, fq,
+					fp, tosjisz(param.face));
+			}
+			auto font = Font.win32_new(d, hf);
+		} else {
+			int fStyle = DWT.NORMAL;
+			if (param.b) fStyle |= DWT.BOLD;
+			if (param.i) fStyle |= DWT.ITALIC;
+			auto h = cast(int) (jptx.fontpixels * (72.0 / d.getDPI.y) + 0.5);
+			auto fontData = new FontData(param.face, h, fStyle);
+			auto font = new Font(d, fontData);
+		}
 		scope (exit) font.dispose;
 		gc.setFont = font;
 		int height = gc.getFontMetrics.getHeight;
@@ -196,15 +249,18 @@ private ImageData loadJPTXImage(string path) {
 		auto cFore = new Color(d, dwtData(param.color, alpha));
 		scope (exit) cFore.dispose;
 		gc.setForeground = cFore;
-		gc.drawText(text, x + param.shiftx, y + param.shifty);
+		int tx = x + param.shiftx, ty = y + param.shifty;
+		gc.drawText(text, tx, ty);
 		int w = gc.textExtent(text).x;
-		if (param.s) {
-			int ly = y + height / 2;
-			gc.drawLine(x, ly, x + w, ly);
-		}
-		if (param.u) {
-			int ly = y + height;
-			gc.drawLine(x, ly, x + w, ly);
+		version (Windows) {} else {
+			if (param.s) {
+				int ly = y + height / 2;
+				gc.drawLine(x, ly, x + w, ly);
+			}
+			if (param.u) {
+				int ly = y + height;
+				gc.drawLine(x, ly, x + w, ly);
+			}
 		}
 		x += w;
 		if (x > autoW) autoW = x;

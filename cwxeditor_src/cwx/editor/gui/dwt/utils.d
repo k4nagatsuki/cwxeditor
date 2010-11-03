@@ -1179,7 +1179,7 @@ ImageData castCardImage(Props prop, Skin skin, CastCard c, string sPath, bool db
 		scope (exit) bmp.dispose;
 		auto gc = new GC(bmp);
 		scope (exit) gc.dispose;
-		gc.setTextAntialias = false;
+		gc.setTextAntialias = DWT.OFF;
 		auto bi = new Image(d, bid);
 		scope (exit) bi.dispose;
 		gc.drawImage(bi, 0, 0);
@@ -1273,7 +1273,7 @@ ImageData cardImage(C)(Props prop, Skin skin, C c, string sPath, CastCard owner 
 			scope (exit) img.dispose;
 			auto gc = new GC(img);
 			scope (exit) gc.dispose;
-			gc.setTextAntialias = false;
+			gc.setTextAntialias = DWT.OFF;
 			auto font = new Font(d, dwtData(prop.looks.useCountFont(skin.legacy)));
 			scope (exit) font.dispose;
 			gc.setFont = font;

@@ -317,15 +317,15 @@ public:
 					scope (exit) dc.setAlpha = 255;
 					switch (a.textPos) {
 					case TPos.LEFT: {
-						dc.setTextAntialias = false;
+						dc.setTextAntialias = DWT.OFF;
 						dc.drawText(a.text, a.insets.w, a.insets.n, true);
-						dc.setTextAntialias = true;
+						dc.setTextAntialias = DWT.ON;
 					} break;
 					case TPos.RIGHT: {
 						int tw = dc.textExtent(a.text).x;
-						dc.setTextAntialias = false;
+						dc.setTextAntialias = DWT.OFF;
 						dc.drawText(a.text, initW - a.insets.e - tw, a.insets.n, true);
-						dc.setTextAntialias = true;
+						dc.setTextAntialias = DWT.ON;
 					} break;
 					default: assert (0);
 					}
@@ -338,9 +338,9 @@ public:
 			auto font = new Font(cur, titFont);
 			dc.setFont = font;
 			dc.setForeground(cur.getSystemColor(DWT.COLOR_BLACK));
-			dc.setTextAntialias = false;
+			dc.setTextAntialias = DWT.OFF;
 			dc.drawText(_title, titPoint.x, titPoint.y, true);
-			dc.setTextAntialias = true;
+			dc.setTextAntialias = DWT.ON;
 			dc.setFont(null);
 			font.dispose;
 		}
