@@ -79,6 +79,36 @@ void filterImpl(T)(T f, ref FC rgb) {
 	}
 }
 
+ubyte[] flip(ubyte[] data, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
+	if (data.length < 3 || depth < 24 || width < 1 || height < 1) return data;
+	size_t bpp = bytesPerLine / width;
+	for (size_t y1 = 0; y1 < height / 2; y1++) {
+		for (size_t x = 0; x < width; x++) {
+			size_t y2 = height - y1 - 1;
+			size_t i = y1 * width * bpp + x * bpp;
+			size_t j = y2 * width * bpp + x * bpp;
+			swap(data[i + 0], data[j + 0]);
+			swap(data[i + 1], data[j + 1]);
+			swap(data[i + 2], data[j + 2]);
+		}
+	}
+	return data;
+}
+ubyte[] mirror(ubyte[] data, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
+	if (data.length < 3 || depth < 24 || width < 1 || height < 1) return data;
+	size_t bpp = bytesPerLine / width;
+	for (size_t y = 0; y < height; y++) {
+		for (size_t x1 = 0; x1 < width / 2; x1++) {
+			size_t x2 = width - x1 - 1;
+			size_t i = y * width * bpp + x1 * bpp;
+			size_t j = y * width * bpp + x2 * bpp;
+			swap(data[i + 0], data[j + 0]);
+			swap(data[i + 1], data[j + 1]);
+			swap(data[i + 2], data[j + 2]);
+		}
+	}
+	return data;
+}
 ubyte[] filter(T)(T f, ubyte[] data, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
 	if (data.length < 3 || depth < 24 || width < 1 || height < 1) return data;
 	size_t bpp = bytesPerLine / width;

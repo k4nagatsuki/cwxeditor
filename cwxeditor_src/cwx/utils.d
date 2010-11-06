@@ -214,6 +214,13 @@ T2 to(T2, T1)(T1 val) {
 	}
 }
 
+/// t1とt2を入替える。
+void swap(T)(ref T t1, ref T t2) {
+	T temp = t1;
+	t1 = t2;
+	t2 = temp;
+}
+
 /// 絶対パス化と正規化を行う。
 string nabs(string path) {
 	return normal(rel2abs(path));
