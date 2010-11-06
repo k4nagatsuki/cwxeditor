@@ -125,14 +125,16 @@ private ImageData loadJPYImageImpl(Skin skin, string path) {
 		auto dimg = new Image(d, data);
 		scope (exit) dimg.dispose;
 		sgc.drawImage(dimg, 0, 0, data.width, data.height, 0, 0, sw, sh);
-		// 非対応
-		// smooth/filter
+		// 非対応: smooth
 		data = simg.getImageData;
 		if (sec.colorexchange != Colorexchange.NONE) {
 			data.data = cast(byte[]) colorexchange(sec.colorexchange, cast(ubyte[]) data.data, data.depth, data.width, data.height, data.bytesPerLine);
 		}
 		if (sec.colormap != Colormap.NONE) {
 			data.data = cast(byte[]) colormap(sec.colormap, cast(ubyte[]) data.data, data.depth, data.width, data.height, data.bytesPerLine);
+		}
+		if (sec.filter != Filter.NONE) {
+			data.data = cast(byte[]) filter(sec.filter, cast(ubyte[]) data.data, data.depth, data.width, data.height, data.bytesPerLine);
 		}
 		if (sec.mask != Mask.NONE) {
 			data.data = cast(byte[]) mask(sec.mask, cast(ubyte[]) data.data, data.depth, data.width, data.height, data.bytesPerLine);

@@ -74,7 +74,7 @@ ubyte[] mirror(ubyte[] data, size_t depth, size_t width, size_t height, size_t b
 	}
 	return data;
 }
-void filterImpl(T)(T f, ref FC rgb) {
+void pixelProcImpl(T)(T f, ref FC rgb) {
 	static if (is(T == Colorexchange)) {
 		void push(int r, int g, int b) {
 			rgb.r = r;
@@ -92,7 +92,7 @@ void filterImpl(T)(T f, ref FC rgb) {
 		}
 	} else static if (is(T == Colormap)) {
 		void push(int rp, int gp, int bp) {
-			filterImpl(Colormap.GRAY_SCALE, rgb);
+			pixelProcImpl(Colormap.GRAY_SCALE, rgb);
 			rgb.r += rp;
 			rgb.g += gp;
 			rgb.b += bp;
@@ -123,6 +123,25 @@ void filterImpl(T)(T f, ref FC rgb) {
 		default: assert (0);
 		}
 		round(rgb);
+	} else static if (is(T == Filter)) {
+		void push(int r, int g, int b) {
+			rgb.r = r;
+			rgb.g = g;
+			rgb.b = b;
+		}
+		switch (f) {
+		case Filter.MONO: {
+			if (rgb.r == 0 && rgb.g == 0 && rgb.b == 0) {
+				push(255, 255, 255);
+			} else {
+				push(0, 0, 0);
+			}
+		} break;
+		case Filter.NEGA: {
+			push(255 - rgb.r, 255 - rgb.g, 255 - rgb.b);
+		} break;
+		default: assert (0);
+		}
 	}
 }
 private void round(ref FC rgb) {
@@ -134,49 +153,202 @@ private void round(ref FC rgb) {
 	if (rgb.b > 255) rgb.b = 255;
 }
 /// Colorexchange・Colormap・Filter・Maskの効果を適用する。
-private ubyte[] filters(T)(T f, ubyte[] data, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
+private ubyte[] pixelProc(T)(T f, ubyte[] data, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
 	if (data.length < 3 || depth < 24 || width < 1 || height < 1) return data;
 	size_t bpp = bytesPerLine / width;
-	static if (is(T == Mask)) {
-		auto mColor = FC(data[2], data[1], data[0]);
-	}
 	for (size_t y = 0; y < height; y++) {
 		for (size_t x = 0; x < width; x++) {
 			size_t i = y * width * bpp + x * bpp;
-			static if (is(T == Mask)) {
-				if (((f is Mask.V_LINE || f is Mask.MESH) && !(x & 0x1))
-						|| ((f is Mask.H_LINE || f is Mask.MESH) && !(y & 0x1))) {
-					data[i + 2] = mColor.r;
-					data[i + 1] = mColor.g;
-					data[i + 0] = mColor.b;
-				}
-			} else {
-				auto fc = FC(data[i + 2], data[i + 1], data[i + 0]);
-				filterImpl!(T)(f, fc);
-				data[i + 2] = fc.r;
-				data[i + 1] = fc.g;
-				data[i + 0] = fc.b;
-			}
+			auto fc = FC(data[i + 2], data[i + 1], data[i + 0]);
+			pixelProcImpl!(T)(f, fc);
+			data[i + 2] = fc.r;
+			data[i + 1] = fc.g;
+			data[i + 0] = fc.b;
 		}
 	}
 	return data;
 }
 /// Colorexchangeの効果を適用する。
 ubyte[] colorexchange(Colorexchange f, ubyte[] data, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
-	return filters(f, data, depth, width, height, bytesPerLine);
+	return pixelProc(f, data, depth, width, height, bytesPerLine);
 }
 /// Colormapの効果を適用する。
 ubyte[] colormap(Colormap f, ubyte[] data, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
-	return filters(f, data, depth, width, height, bytesPerLine);
+	return pixelProc(f, data, depth, width, height, bytesPerLine);
+}
+private ubyte[] emboss(ubyte[] data, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
+	if (data.length < 3 || depth < 24 || width < 1 || height < 1) return data;
+	size_t bpp = bytesPerLine / width;
+	for (size_t y = 0; y < height; y++) {
+		for (size_t x = 0; x < width; x++) {
+			size_t i = y * width * bpp + x * bpp;
+			int jx = x + 1 < width ? x + 1 : x;
+			int jy = y + 1 < height ? y + 1 : y;
+			int j = jy * width * bpp + jx * bpp;
+			auto val = (data[j + 2] + data[j + 1] + data[j + 0]) / 3
+				- (data[i + 2] + data[i + 1] + data[i + 0]) / 3 + 128;
+			if (val < 0 || val > 255) val = 0;
+			data[i + 2] = val;
+			data[i + 1] = val;
+			data[i + 0] = val;
+		}
+	}
+	return data;
+}
+private ubyte[] deffusion(ubyte[] data, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
+	if (data.length < 3 || depth < 24 || width < 1 || height < 1) return data;
+	uint nextSeed = rand;
+	rand_seed(1, 0); // 拡散値を固定する
+	scope (exit) rand_seed(nextSeed, 0);
+	size_t bpp = bytesPerLine / width;
+	ubyte[] r = new ubyte[data.length];
+	for (size_t y = 0; y < height; y++) {
+		// cwconv.dllの実装では縦方向への拡散が微妙だがそれに合わせる
+		// 真に拡散させたい場合、jyの計算はxのループの内側にあるべき
+		int jy = y + cast(int) rand % 3;
+		if (jy < 0) jy = 0;
+		if (height <= jy) jy = height - 1;
+		for (size_t x = 0; x < width; x++) {
+			size_t i = y * width * bpp + x * bpp;
+			auto fc = FC(data[i + 2], data[i + 1], data[i + 0]);
+			int jx = x + cast(int) rand % 3;
+			if (jx < 0) jx = 0;
+			if (width <= jx) jx = width - 1;
+			int j = jy * width * bpp + jx * bpp;
+			r[i + 2] = data[j + 2];
+			r[i + 1] = data[j + 1];
+			r[i + 0] = data[j + 0];
+		}
+	}
+	return r;
 }
 /// Filterの効果を適用する。
 ubyte[] filter(Filter f, ubyte[] data, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
-	// TODO
-	return data;
+	if (f is Filter.NONE || data.length < 3 || depth < 24 || width < 1 || height < 1) return data;
+	switch (f) {
+	case Filter.MONO, Filter.NEGA: {
+		return pixelProc(f, data, depth, width, height, bytesPerLine);
+	}
+	case Filter.DIFFUSION: return deffusion(data, depth, width, height, bytesPerLine);
+	case Filter.EMBOSS: return emboss(data, depth, width, height, bytesPerLine);
+	default: break;
+	}
+	int[3][3] ft;
+	int en = 1, adj = 0;
+	switch (f) {
+	case Filter.SHADE: {
+		en = 9;
+		foreach (ref ln; ft) ln[] = 1;
+	} break;
+	case Filter.SHARP: {
+		en = 16;
+		ft[0][0] = -1;
+		ft[0][1] = -1;
+		ft[0][2] = -1;
+		ft[1][0] = -1;
+		ft[1][1] = 24;
+		ft[1][2] = -1;
+		ft[2][0] = -1;
+		ft[2][1] = -1;
+		ft[2][2] = -1;
+	} break;
+	case Filter.SUN: {
+		en = 16;
+		ft[0][0] = 1;
+		ft[0][1] = 3;
+		ft[0][2] = 1;
+		ft[1][0] = 3;
+		ft[1][1] = 5;
+		ft[1][2] = 3;
+		ft[2][0] = 1;
+		ft[2][1] = 3;
+		ft[2][2] = 1;
+	} break;
+	case Filter.C_EMBOSS: {
+		ft[0][0] = -1;
+		ft[0][1] = -1;
+		ft[0][2] = -1;
+		ft[1][0] = 0;
+		ft[1][1] = 1;
+		ft[1][2] = 0;
+		ft[2][0] = 1;
+		ft[2][1] = 1;
+		ft[2][2] = 1;
+	} break;
+	case Filter.D_EMBOSS: {
+		adj = 128;
+		ft[0][0] = -1;
+		ft[0][1] = -2;
+		ft[0][2] = -1;
+		ft[1][0] = 0;
+		ft[1][1] = 0;
+		ft[1][2] = 0;
+		ft[2][0] = 1;
+		ft[2][1] = 2;
+		ft[2][2] = 1;
+	} break;
+	case Filter.ELEC: {
+		ft[0][0] = 1;
+		ft[0][1] = 1;
+		ft[0][2] = 1;
+		ft[1][0] = 1;
+		ft[1][1] = -15;
+		ft[1][2] = 1;
+		ft[2][0] = 1;
+		ft[2][1] = 1;
+		ft[2][2] = 1;
+	} break;
+	default: assert (0);
+	}
+	size_t bpp = bytesPerLine / width;
+	ubyte[] result = new ubyte[data.length];
+	for (size_t y = 0; y < height; y++) {
+		for (size_t x = 0; x < width; x++) {
+			int r = 0, g = 0, b = 0;
+			for (int xt = 0; xt < 3; xt++) {
+				for (int yt = 0; yt < 3; yt++) {
+					int xti = x + xt - 1;
+					if (xti < 0) xti = 0;
+					if (width <= xti) xti = width - 1;
+					int yti = y + yt - 1;
+					if (yti < 0) yti = 0;
+					if (height <= yti) yti = height - 1;
+					size_t it = yti * width * bpp + xti * bpp;
+					r += data[it + 2] * ft[yt][xt];
+					g += data[it + 1] * ft[yt][xt];
+					b += data[it + 0] * ft[yt][xt];
+				}
+			}
+			r = r / en + adj;
+			g = g / en + adj;
+			b = b / en + adj;
+			auto fc = FC(r, g, b);
+			round(fc);
+			size_t i = y * width * bpp + x * bpp;
+			result[i + 2] = fc.r;
+			result[i + 1] = fc.g;
+			result[i + 0] = fc.b;
+		}
+	}
+	return result;
 }
 /// Maskの効果を適用する。
 ubyte[] mask(Mask f, ubyte[] data, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
-	return filters(f, data, depth, width, height, bytesPerLine);
+	if (data.length < 3 || depth < 24 || width < 1 || height < 1) return data;
+	size_t bpp = bytesPerLine / width;
+	auto mColor = FC(data[2], data[1], data[0]);
+	for (size_t y = 0; y < height; y++) {
+		for (size_t x = 0; x < width; x++) {
+			size_t i = y * width * bpp + x * bpp;
+			if (((f is Mask.V_LINE || f is Mask.MESH) && !(x & 0x1))
+					|| ((f is Mask.H_LINE || f is Mask.MESH) && !(y & 0x1))) {
+				data[i + 2] = mColor.r;
+				data[i + 1] = mColor.g;
+				data[i + 0] = mColor.b;
+			}
+		}
+	}
+	return data;
 }
 void noiseImpl(Noise f, ref FC rgb, int value) {
 	switch (f) {
