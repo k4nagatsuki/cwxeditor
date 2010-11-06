@@ -7,13 +7,73 @@ import cwx.sjis;
 
 import std.compat;
 import std.string;
+import std.random;
 import std.regexp;
 import std.utf;
 
 private struct FC {
 	int r, g, b;
 }
-
+private void swapBytes(ref ubyte[] data, size_t i, size_t j) {
+	swap(data[i + 0], data[j + 0]);
+	swap(data[i + 1], data[j + 1]);
+	swap(data[i + 2], data[j + 2]);
+}
+/// Turnの効果を適用する。
+void turn(ref ubyte[] data, ref size_t width, ref size_t height, ref size_t bytesPerLine, Turn f, size_t depth) {
+	if (f is Turn.NONE || data.length < 3 || depth < 24 || width < 1 || height < 1) return;
+	size_t bpp = bytesPerLine / width;
+	size_t nw = height;
+	size_t nh = width;
+	size_t nbpl = bpp * width;
+	ubyte[] ndata = new ubyte[nbpl * height];
+	for (size_t y = 0; y < height; y++) {
+		for (size_t x = 0; x < width; x++) {
+			size_t i = y * width * bpp + x * bpp;
+			size_t j;
+			switch (f) {
+			case Turn.LEFT: j = x * nw * bpp + (height - 1 - y) * bpp; break;
+			case Turn.RIGHT: j = (width - 1 - x) * nw * bpp + y * bpp; break;
+			default: assert (0);
+			}
+			ndata[j + 0] = data[i + 0];
+			ndata[j + 1] = data[i + 1];
+			ndata[j + 2] = data[i + 2];
+		}
+	}
+	data = ndata;
+	width = nw;
+	height = nh;
+	bytesPerLine = nbpl;
+}
+/// Flipの効果を適用する。
+ubyte[] flip(ubyte[] data, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
+	if (data.length < 3 || depth < 24 || width < 1 || height < 1) return data;
+	size_t bpp = bytesPerLine / width;
+	for (size_t y1 = 0; y1 < height / 2; y1++) {
+		for (size_t x = 0; x < width; x++) {
+			size_t y2 = height - y1 - 1;
+			size_t i = y1 * width * bpp + x * bpp;
+			size_t j = y2 * width * bpp + x * bpp;
+			swapBytes(data, i, j);
+		}
+	}
+	return data;
+}
+/// Mirrorの効果を適用する。
+ubyte[] mirror(ubyte[] data, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
+	if (data.length < 3 || depth < 24 || width < 1 || height < 1) return data;
+	size_t bpp = bytesPerLine / width;
+	for (size_t y = 0; y < height; y++) {
+		for (size_t x1 = 0; x1 < width / 2; x1++) {
+			size_t x2 = width - x1 - 1;
+			size_t i = y * width * bpp + x1 * bpp;
+			size_t j = y * width * bpp + x2 * bpp;
+			swapBytes(data, i, j);
+		}
+	}
+	return data;
+}
 void filterImpl(T)(T f, ref FC rgb) {
 	static if (is(T == Colorexchange)) {
 		void push(int r, int g, int b) {
@@ -62,82 +122,19 @@ void filterImpl(T)(T f, ref FC rgb) {
 		case Colormap.DARK_SKY: push(-255, 0, 0); break;
 		default: assert (0);
 		}
-		if (rgb.r < 0) rgb.r = 0;
-		if (rgb.r > 255) rgb.r = 255;
-		if (rgb.g < 0) rgb.g = 0;
-		if (rgb.g > 255) rgb.g = 255;
-		if (rgb.b < 0) rgb.b = 0;
-		if (rgb.b > 255) rgb.b = 255;
-	} else static if (is(T == Filter)) {
-		switch (f) {
-		// TODO
-		}
-	} else static if (is(T == Noise)) {
-		switch (f) {
-		// TODO
-		}
+		round(rgb);
 	}
 }
-
-private void swapBytes(ref ubyte[] data, size_t i, size_t j) {
-	swap(data[i + 0], data[j + 0]);
-	swap(data[i + 1], data[j + 1]);
-	swap(data[i + 2], data[j + 2]);
+private void round(ref FC rgb) {
+	if (rgb.r < 0) rgb.r = 0;
+	if (rgb.r > 255) rgb.r = 255;
+	if (rgb.g < 0) rgb.g = 0;
+	if (rgb.g > 255) rgb.g = 255;
+	if (rgb.b < 0) rgb.b = 0;
+	if (rgb.b > 255) rgb.b = 255;
 }
-
-void turn(ref ubyte[] data, ref size_t width, ref size_t height, ref size_t bytesPerLine, Turn f, size_t depth) {
-	if (f is Turn.NONE || data.length < 3 || depth < 24 || width < 1 || height < 1) return;
-	size_t bpp = bytesPerLine / width;
-	size_t nw = height;
-	size_t nh = width;
-	size_t nbpl = bpp * width;
-	ubyte[] ndata = new ubyte[nbpl * height];
-	for (size_t y = 0; y < height; y++) {
-		for (size_t x = 0; x < width; x++) {
-			size_t i = y * width * bpp + x * bpp;
-			size_t j;
-			switch (f) {
-			case Turn.LEFT: j = x * nw * bpp + (height - 1 - y) * bpp; break;
-			case Turn.RIGHT: j = (width - 1 - x) * nw * bpp + y * bpp; break;
-			default: assert (0);
-			}
-			ndata[j + 0] = data[i + 0];
-			ndata[j + 1] = data[i + 1];
-			ndata[j + 2] = data[i + 2];
-		}
-	}
-	data = ndata;
-	width = nw;
-	height = nh;
-	bytesPerLine = nbpl;
-}
-ubyte[] flip(ubyte[] data, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
-	if (data.length < 3 || depth < 24 || width < 1 || height < 1) return data;
-	size_t bpp = bytesPerLine / width;
-	for (size_t y1 = 0; y1 < height / 2; y1++) {
-		for (size_t x = 0; x < width; x++) {
-			size_t y2 = height - y1 - 1;
-			size_t i = y1 * width * bpp + x * bpp;
-			size_t j = y2 * width * bpp + x * bpp;
-			swapBytes(data, i, j);
-		}
-	}
-	return data;
-}
-ubyte[] mirror(ubyte[] data, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
-	if (data.length < 3 || depth < 24 || width < 1 || height < 1) return data;
-	size_t bpp = bytesPerLine / width;
-	for (size_t y = 0; y < height; y++) {
-		for (size_t x1 = 0; x1 < width / 2; x1++) {
-			size_t x2 = width - x1 - 1;
-			size_t i = y * width * bpp + x1 * bpp;
-			size_t j = y * width * bpp + x2 * bpp;
-			swapBytes(data, i, j);
-		}
-	}
-	return data;
-}
-ubyte[] filter(T)(T f, ubyte[] data, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
+/// Colorexchange・Colormap・Filter・Maskの効果を適用する。
+private ubyte[] filters(T)(T f, ubyte[] data, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
 	if (data.length < 3 || depth < 24 || width < 1 || height < 1) return data;
 	size_t bpp = bytesPerLine / width;
 	static if (is(T == Mask)) {
@@ -156,6 +153,104 @@ ubyte[] filter(T)(T f, ubyte[] data, size_t depth, size_t width, size_t height, 
 			} else {
 				auto fc = FC(data[i + 2], data[i + 1], data[i + 0]);
 				filterImpl!(T)(f, fc);
+				data[i + 2] = fc.r;
+				data[i + 1] = fc.g;
+				data[i + 0] = fc.b;
+			}
+		}
+	}
+	return data;
+}
+/// Colorexchangeの効果を適用する。
+ubyte[] colorexchange(Colorexchange f, ubyte[] data, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
+	return filters(f, data, depth, width, height, bytesPerLine);
+}
+/// Colormapの効果を適用する。
+ubyte[] colormap(Colormap f, ubyte[] data, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
+	return filters(f, data, depth, width, height, bytesPerLine);
+}
+/// Filterの効果を適用する。
+ubyte[] filter(Filter f, ubyte[] data, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
+	// TODO
+	return data;
+}
+/// Maskの効果を適用する。
+ubyte[] mask(Mask f, ubyte[] data, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
+	return filters(f, data, depth, width, height, bytesPerLine);
+}
+void noiseImpl(Noise f, ref FC rgb, int value) {
+	switch (f) {
+	case Noise.NONE: return;
+	case Noise.LIGHT: {
+		rgb.r += value;
+		rgb.g += value;
+		rgb.b += value;
+	} break;
+	case Noise.MONO: {
+		int val = (rgb.r > value || rgb.g > value || rgb.b > value) ? 255 : 0;
+		rgb.r = val;
+		rgb.g = val;
+		rgb.b = val;
+	} break;
+	case Noise.NOISE: {
+		if (value >= 0) {
+			auto val = cast(int) rand % value;
+			rgb.r += val;
+			rgb.g += val;
+			rgb.b += val;
+		} else {
+			int val = (rand & 1) ? 255 : 0;
+			rgb.r = val;
+			rgb.g = val;
+			rgb.b = val;
+		}
+	} break;
+	case Noise.C_NOISE: {
+		if (value >= 0) {
+			rgb.r += cast(int) rand % value;
+			rgb.g += cast(int) rand % value;
+			rgb.b += cast(int) rand % value;
+		} else {
+			rgb.r = (rand & 1) ? 255 : 0;
+			rgb.g = (rand & 1) ? 255 : 0;
+			rgb.b = (rand & 1) ? 255 : 0;
+		}
+	} break;
+	default: assert (0);
+	}
+	round(rgb);
+}
+/// Noiseの効果を適用する。
+ubyte[] noise(Noise f, int value, ubyte[] data, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
+	if (f is Noise.NONE || value == 0 || data.length < 3 || depth < 24 || width < 1 || height < 1) {
+		return data;
+	}
+	value %= 256;
+	if (f is Noise.MOSAIC && value < 0) return data;
+	uint nextSeed = 0;
+	if (f is Noise.NOISE || f is Noise.C_NOISE) {
+		nextSeed = rand;
+		rand_seed(42, 0); // ノイズを固定する
+	}
+	scope (exit) {
+		if (f is Noise.NOISE || f is Noise.C_NOISE) {
+			rand_seed(nextSeed, 0);
+		}
+	}
+	size_t bpp = bytesPerLine / width;
+	for (size_t y = 0; y < height; y++) {
+		for (size_t x = 0; x < width; x++) {
+			size_t i = y * width * bpp + x * bpp;
+			if (f is Noise.MOSAIC) {
+				// cwconv.dllの実装では平均値を求めず左上の値を取っているので
+				// それに合わせる
+				size_t j = (y - y % value) * width * bpp + (x - x % value) * bpp;
+				data[i + 0] = data[j + 0];
+				data[i + 1] = data[j + 1];
+				data[i + 2] = data[j + 2];
+			} else {
+				auto fc = FC(data[i + 2], data[i + 1], data[i + 0]);
+				noiseImpl(f, fc, value);
 				data[i + 2] = fc.r;
 				data[i + 1] = fc.g;
 				data[i + 0] = fc.b;
@@ -246,7 +341,7 @@ enum Mask {
 enum Noise {
 	NONE = 0,
 	LIGHT = 1,
-	TWO = 2,
+	MONO = 2,
 	NOISE = 3,
 	C_NOISE = 4,
 	MOSAIC = 5
