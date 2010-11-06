@@ -207,6 +207,18 @@ void setGridMinW(Control c, int minW, int gridStyle = DWT.NULL) {
 	c.setLayoutData(gd);
 }
 
+Composite centerGroup(Composite parent, string text, bool fillH = true, bool fillV = false, Object layoutData = null) {
+	auto grp = new Group(parent, DWT.NONE);
+	grp.setLayoutData = layoutData;
+	auto cl = new CenterLayout(DWT.HORIZONTAL | DWT.VERTICAL, 0);
+	cl.fillHorizontal = fillH;
+	cl.fillVertical = fillV;
+	grp.setLayout = cl;
+	grp.setText = text;
+	auto comp = new Composite(grp, DWT.NONE);
+	return comp;
+}
+
 class SpinnerEdit {
 private:
 	Spinner _spn;

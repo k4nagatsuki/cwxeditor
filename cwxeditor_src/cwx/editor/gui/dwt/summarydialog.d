@@ -19,6 +19,7 @@ import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.customtext;
 import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.absdialog;
+import cwx.editor.gui.dwt.splitpane;
 
 import std.string;
 
@@ -69,6 +70,7 @@ private:
 	Spinner _rCouponNum;
 	Text _rCoupons;
 	Combo _type;
+	SplitPane _tab2Sash, _tab3Sash;
 	// TODO Tag
 	// TODO Label
 
@@ -170,61 +172,57 @@ private:
 	}
 	void constructTab2(CTabFolder tabf) {
 		auto comp = new Composite(tabf, DWT.NONE);
-		comp.setLayout = new GridLayout(2, false);
-		auto skin = findSkin(_prop, _summ);
+		comp.setLayout = new GridLayout(1, true);
 		{
-			_imgPath = new ImageSelect!(MtType.CARD)(comp, DWT.NONE, _comm, _prop, _summ,
-				_prop.looks.cardSize.width, _prop.looks.cardSize.height, _summ.legacy);
-			_imgPath.image = _summ.imagePath;
-			auto gd = new GridData(GridData.FILL_BOTH);
-			gd.verticalSpan = 3;
-			_imgPath.widget.setLayoutData = gd;
+			_tab2Sash = new SplitPane(comp, DWT.HORIZONTAL);
+			_tab2Sash.setLayoutData = new GridData(GridData.FILL_BOTH);
+			auto skin = findSkin(_prop, _summ);
+			{
+				_imgPath = new ImageSelect!(MtType.CARD)(_tab2Sash, DWT.NONE, _comm, _prop, _summ,
+					_prop.looks.cardSize.width, _prop.looks.cardSize.height, _summ.legacy);
+				_imgPath.image = _summ.imagePath;
+			}
+			{
+				auto comp2 = new Composite(_tab2Sash, DWT.NONE);
+				comp2.setLayout = zeroGridLayout(1, true);
+				{
+					auto grp = centerGroup(comp2, _prop.msgs.title, true, false, new GridData(GridData.FILL_BOTH));
+					grp.setLayout = new GridLayout(1, true);
+					_sname = new Text(grp, DWT.BORDER);
+					setCDataX(_sname, new GridData(GridData.FILL_HORIZONTAL));
+					_sname.setText = _summ.scenarioName;
+					checker(_sname);
+				}
+				{
+					auto grp = centerGroup(comp2, _prop.msgs.author, true, false, new GridData(GridData.FILL_BOTH));
+					grp.setLayout = new GridLayout(1, true);
+					_author = new Text(grp, DWT.BORDER);
+					setCDataX(_author, new GridData(GridData.FILL_HORIZONTAL));
+					_author.setText = _summ.author;
+				}
+				{
+					auto grp = centerGroup(comp2, _prop.msgs.targetLevel, false, false, new GridData(GridData.FILL_BOTH));
+					grp.setLayout = new GridLayout(3, false);
+					_levMin = new Spinner(grp, DWT.BORDER);
+					_levMin.setSelection = _summ.levelMin;
+					_levMin.setMinimum = 0;
+					_levMin.setMaximum = _prop.looks.levelMax;
+					new SpinnerEdit(_levMin, &levMinEnter);
+					auto lbl = new Label(grp, DWT.NONE);
+					lbl.setText = _prop.msgs.levSep;
+					lbl.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
+					_levMax = new Spinner(grp, DWT.BORDER);
+					_levMax.setSelection = _summ.levelMax;
+					_levMax.setMinimum = 0;
+					_levMax.setMaximum = _prop.looks.levelMax;
+					new SpinnerEdit(_levMax, &levMaxEnter);
+				}
+			}
+			_tab2Sash.setWeights = [_prop.var.etc.summaryParamSashL, _prop.var.etc.summaryParamSashR];
 		}
 		{
 			auto grp = new Group(comp, DWT.NONE);
-			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-			grp.setLayout = new GridLayout(1, true);
-			grp.setText = _prop.msgs.title;
-			_sname = new Text(grp, DWT.BORDER);
-			setCDataX(_sname, new GridData(GridData.FILL_HORIZONTAL));
-			_sname.setText = _summ.scenarioName;
-			checker(_sname);
-		}
-		{
-			auto grp = new Group(comp, DWT.NONE);
-			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-			grp.setLayout = new GridLayout(1, true);
-			grp.setText = _prop.msgs.author;
-			_author = new Text(grp, DWT.BORDER);
-			setCDataX(_author, new GridData(GridData.FILL_HORIZONTAL));
-			_author.setText = _summ.author;
-		}
-		{
-			auto grp = new Group(comp, DWT.NONE);
-			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-			grp.setLayout = new CenterLayout(DWT.HORIZONTAL, 0);
-			grp.setText = _prop.msgs.targetLevel;
-			auto compL = new Composite(grp, DWT.NONE);
-			compL.setLayout = new GridLayout(3, false);
-			_levMin = new Spinner(compL, DWT.BORDER);
-			_levMin.setSelection = _summ.levelMin;
-			_levMin.setMinimum = 0;
-			_levMin.setMaximum = _prop.looks.levelMax;
-			new SpinnerEdit(_levMin, &levMinEnter);
-			auto lbl = new Label(compL, DWT.NONE);
-			lbl.setText = _prop.msgs.levSep;
-			lbl.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
-			_levMax = new Spinner(compL, DWT.BORDER);
-			_levMax.setSelection = _summ.levelMax;
-			_levMax.setMinimum = 0;
-			_levMax.setMaximum = _prop.looks.levelMax;
-			new SpinnerEdit(_levMax, &levMaxEnter);
-		}
-		{
-			auto grp = new Group(comp, DWT.NONE);
-			auto gl = new GridData(GridData.FILL_BOTH);
-			gl.horizontalSpan = 2;
-			grp.setLayoutData = gl;
+			grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			grp.setLayout = new CenterLayout(DWT.HORIZONTAL);
 			grp.setText = _prop.msgs.desc;
 			_desc = new FixedWidthText(dwtData(_prop.looks.summaryDescFont(_summ.legacy)), _prop.looks.summaryDescLen, grp, DWT.BORDER);
@@ -237,92 +235,96 @@ private:
 	}
 	void constructTab3(CTabFolder tabf) {
 		auto comp = new Composite(tabf, DWT.NONE);
-		comp.setLayout = new GridLayout(2, false);
-		auto skin = findSkin(_prop, _summ);
+		comp.setLayout = new GridLayout(1, true);
 		{
-			auto comp2 = new Composite(comp, DWT.NONE);
-			comp2.setLayoutData = new GridData(GridData.FILL_BOTH);
-			comp2.setLayout = zeroMarginGridLayout(1, true);
+			_tab3Sash = new SplitPane(comp, DWT.HORIZONTAL);
+			_tab3Sash.setLayoutData = new GridData(GridData.FILL_BOTH);
+			auto skin = findSkin(_prop, _summ);
 			{
-				auto grp = new Group(comp2, DWT.NONE);
-				grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				grp.setText = _prop.msgs.scenarioType;
-				grp.setLayout = new GridLayout(1, true);
-				_type = new Combo(grp, DWT.BORDER | DWT.DROP_DOWN | DWT.READ_ONLY);
-				_type.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				if (_summ.legacy) {
-					_type.add(_prop.msgs.legacyEngineSkin(skin.engine));
-				}
-				foreach (type; skinTable(_prop).keys.sort) {
-					_type.add(type);
-				}
-				if (!_type.getItemCount) {
-					// スキンが無い
-					_type.add(_prop.var.etc.defaultSkin);
-				}
-				if (!_summ.type.length) {
-					_type.select = 0;
-				} else {
-					int index = _type.indexOf(_summ.type);
-					_type.setText = index >= 0 ? _summ.type : _prop.var.etc.defaultSkin;
-				}
-			}
-			{
-				auto grp = new Group(comp2, DWT.NONE);
-				grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-				grp.setText = _prop.msgs.qualification;
-				grp.setLayout = new GridLayout(2, false);
+				auto comp2 = new Composite(_tab3Sash, DWT.NONE);
+				comp2.setLayout = zeroMarginGridLayout(1, true);
 				{
-					auto lblN = new Label(grp, DWT.NONE);
-					lblN.setText = _prop.msgs.rCouponNum;
-					_rCouponNum = new Spinner(grp, DWT.BORDER);
-					_rCouponNum.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-					_rCouponNum.setSelection = _summ.rCouponNum;
-					_rCouponNum.setMaximum = 999;
-					_rCouponNum.setMinimum = 0;
-				}
-				{
-					auto lblR = new Label(grp, DWT.NONE);
-					auto gd = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
-					gd.horizontalSpan = 2;
-					lblR.setLayoutData = gd;
-					lblR.setText = _prop.msgs.rCoupons;
-				}
-				{
-					_rCoupons = new Text(grp, DWT.BORDER | DWT.MULTI | DWT.WRAP);
-					auto gd = new GridData(GridData.FILL_BOTH);
-					gd.horizontalSpan = 2;
-					setCDataXY(_rCoupons, gd);
-					string buf;
-					foreach (i, t; _summ.rCoupons) {
-						buf ~= t;
-						buf ~= "\n";
+					auto grp = new Group(comp2, DWT.NONE);
+					grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+					grp.setText = _prop.msgs.scenarioType;
+					grp.setLayout = new GridLayout(1, true);
+					_type = new Combo(grp, DWT.BORDER | DWT.DROP_DOWN | DWT.READ_ONLY);
+					_type.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+					if (_summ.legacy) {
+						_type.add(_prop.msgs.legacyEngineSkin(skin.engine));
 					}
-					_rCoupons.setText = buf;
+					foreach (type; skinTable(_prop).keys.sort) {
+						_type.add(type);
+					}
+					if (!_type.getItemCount) {
+						// スキンが無い
+						_type.add(_prop.var.etc.defaultSkin);
+					}
+					if (!_summ.type.length) {
+						_type.select = 0;
+					} else {
+						int index = _type.indexOf(_summ.type);
+						_type.setText = index >= 0 ? _summ.type : _prop.var.etc.defaultSkin;
+					}
+				}
+				{
+					auto grp = new Group(comp2, DWT.NONE);
+					grp.setLayoutData = new GridData(GridData.FILL_BOTH);
+					grp.setText = _prop.msgs.qualification;
+					grp.setLayout = new GridLayout(2, false);
+					{
+						auto lblN = new Label(grp, DWT.NONE);
+						lblN.setText = _prop.msgs.rCouponNum;
+						_rCouponNum = new Spinner(grp, DWT.BORDER);
+						_rCouponNum.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+						_rCouponNum.setSelection = _summ.rCouponNum;
+						_rCouponNum.setMaximum = 999;
+						_rCouponNum.setMinimum = 0;
+					}
+					{
+						auto lblR = new Label(grp, DWT.NONE);
+						auto gd = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
+						gd.horizontalSpan = 2;
+						lblR.setLayoutData = gd;
+						lblR.setText = _prop.msgs.rCoupons;
+					}
+					{
+						_rCoupons = new Text(grp, DWT.BORDER | DWT.MULTI | DWT.WRAP);
+						auto gd = new GridData(GridData.FILL_BOTH);
+						gd.horizontalSpan = 2;
+						setCDataXY(_rCoupons, gd);
+						string buf;
+						foreach (i, t; _summ.rCoupons) {
+							buf ~= t;
+							buf ~= "\n";
+						}
+						_rCoupons.setText = buf;
+					}
 				}
 			}
-		}
-		{
-			auto grp = new Group(comp, DWT.NONE);
-			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-			grp.setText = _prop.msgs.startArea;
-			grp.setLayout = new GridLayout(1, false);
-			_startArea = new Table(grp, DWT.SINGLE | DWT.FULL_SELECTION | DWT.BORDER | DWT.V_SCROLL);
-			auto idCol = new TableColumn(_startArea, DWT.NONE);
-			saveColumnWidth!("prop.var.etc.idColumn")(_prop, idCol);
-			auto nameCol = new FullTableColumn(_startArea, DWT.NONE);
-			setCDataXY(_startArea, new GridData(GridData.FILL_BOTH));
-			foreach (i, area; _summ.areas) {
-				auto itm = new TableItem(_startArea, DWT.NONE);
-				itm.setData = area;
-				itm.setImage(0, _prop.images.area);
-				itm.setText(0, to!(string)(area.id));
-				itm.setText(1, area.name);
-				if (area.id == _summ.startArea) {
-					_startArea.setSelection(i);
+			{
+				auto grp = new Group(_tab3Sash, DWT.NONE);
+				grp.setLayoutData = new GridData(GridData.FILL_BOTH);
+				grp.setText = _prop.msgs.startArea;
+				grp.setLayout = new GridLayout(1, false);
+				_startArea = new Table(grp, DWT.SINGLE | DWT.FULL_SELECTION | DWT.BORDER | DWT.V_SCROLL);
+				auto idCol = new TableColumn(_startArea, DWT.NONE);
+				saveColumnWidth!("prop.var.etc.idColumn")(_prop, idCol);
+				auto nameCol = new FullTableColumn(_startArea, DWT.NONE);
+				setCDataXY(_startArea, new GridData(GridData.FILL_BOTH));
+				foreach (i, area; _summ.areas) {
+					auto itm = new TableItem(_startArea, DWT.NONE);
+					itm.setData = area;
+					itm.setImage(0, _prop.images.area);
+					itm.setText(0, to!(string)(area.id));
+					itm.setText(1, area.name);
+					if (area.id == _summ.startArea) {
+						_startArea.setSelection(i);
+					}
 				}
+				_startArea.showSelection;
 			}
-			_startArea.showSelection;
+			_tab3Sash.setWeights = [_prop.var.etc.rCouponsStartAreaSashL, _prop.var.etc.rCouponsStartAreaSashR];
 		}
 		auto tab = new CTabItem(tabf, DWT.NONE);
 		tab.setText = _prop.msgs.etcData;
@@ -340,8 +342,9 @@ public:
 
 protected:
 	override void setup(Composite area) {
-		area.setLayout = new FillLayout;
+		area.setLayout = windowGridLayout(1, true);
 		auto tabf = new CTabFolder(area, DWT.BORDER);
+		tabf.setLayoutData = new GridData(GridData.FILL_BOTH);
 		constructTab1(tabf);
 		constructTab2(tabf);
 		constructTab3(tabf);
@@ -414,6 +417,12 @@ protected:
 				_summ.type = _type.getText;
 			}
 		}
+		auto ws1 = _tab2Sash.getWeights;
+		_prop.var.etc.summaryParamSashL = ws1[0];
+		_prop.var.etc.summaryParamSashR = ws1[1];
+		auto ws2 = _tab3Sash.getWeights;
+		_prop.var.etc.rCouponsStartAreaSashL = ws2[0];
+		_prop.var.etc.rCouponsStartAreaSashR = ws2[1];
 		return ok;
 	}
 }

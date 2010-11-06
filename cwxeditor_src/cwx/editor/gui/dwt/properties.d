@@ -425,6 +425,10 @@ class FlexEtcProps : Properties {
 	mixin Property!("areaIdColumn", int, 50);
 	mixin Property!("areaNameColumn", int, 400);
 	mixin Property!("areaCountColumn", int, 60);
+	mixin Property!("summaryParamSashL", int, 2);
+	mixin Property!("summaryParamSashR", int, 1);
+	mixin Property!("rCouponsStartAreaSashL", int, 1);
+	mixin Property!("rCouponsStartAreaSashR", int, 1);
 	mixin Property!("areaViewL", int, 1);
 	mixin Property!("areaViewR", int, 4);
 	mixin Property!("viewPartyCardsArea", bool, true);
