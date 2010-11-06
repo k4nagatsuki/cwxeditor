@@ -80,15 +80,28 @@ void filterImpl(T)(T f, ref FC rgb) {
 }
 
 ubyte[] filter(T)(T f, ubyte[] data, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
+	if (data.length < 3 || depth < 24 || width < 1 || height < 1) return data;
 	size_t bpp = bytesPerLine / width;
+	static if (is(T == Mask)) {
+		auto mColor = FC(data[2], data[1], data[0]);
+	}
 	for (size_t y = 0; y < height; y++) {
 		for (size_t x = 0; x < width; x++) {
 			size_t i = y * width * bpp + x * bpp;
-			auto fc = FC(data[i + 2], data[i + 1], data[i + 0]);
-			filterImpl!(T)(f, fc);
-			data[i + 2] = fc.r;
-			data[i + 1] = fc.g;
-			data[i + 0] = fc.b;
+			static if (is(T == Mask)) {
+				if (((f is Mask.V_LINE || f is Mask.MESH) && !(x & 0x1))
+						|| ((f is Mask.H_LINE || f is Mask.MESH) && !(y & 0x1))) {
+					data[i + 2] = mColor.r;
+					data[i + 1] = mColor.g;
+					data[i + 0] = mColor.b;
+				}
+			} else {
+				auto fc = FC(data[i + 2], data[i + 1], data[i + 0]);
+				filterImpl!(T)(f, fc);
+				data[i + 2] = fc.r;
+				data[i + 1] = fc.g;
+				data[i + 0] = fc.b;
+			}
 		}
 	}
 	return data;
