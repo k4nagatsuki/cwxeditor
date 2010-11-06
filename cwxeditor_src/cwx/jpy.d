@@ -79,6 +79,38 @@ void filterImpl(T)(T f, ref FC rgb) {
 	}
 }
 
+private void swapBytes(ref ubyte[] data, size_t i, size_t j) {
+	swap(data[i + 0], data[j + 0]);
+	swap(data[i + 1], data[j + 1]);
+	swap(data[i + 2], data[j + 2]);
+}
+
+void turn(ref ubyte[] data, ref size_t width, ref size_t height, ref size_t bytesPerLine, Turn f, size_t depth) {
+	if (f is Turn.NONE || data.length < 3 || depth < 24 || width < 1 || height < 1) return;
+	size_t bpp = bytesPerLine / width;
+	size_t nw = height;
+	size_t nh = width;
+	size_t nbpl = bpp * width;
+	ubyte[] ndata = new ubyte[nbpl * height];
+	for (size_t y = 0; y < height; y++) {
+		for (size_t x = 0; x < width; x++) {
+			size_t i = y * width * bpp + x * bpp;
+			size_t j;
+			switch (f) {
+			case Turn.LEFT: j = x * nw * bpp + (height - 1 - y) * bpp; break;
+			case Turn.RIGHT: j = (width - 1 - x) * nw * bpp + y * bpp; break;
+			default: assert (0);
+			}
+			ndata[j + 0] = data[i + 0];
+			ndata[j + 1] = data[i + 1];
+			ndata[j + 2] = data[i + 2];
+		}
+	}
+	data = ndata;
+	width = nw;
+	height = nh;
+	bytesPerLine = nbpl;
+}
 ubyte[] flip(ubyte[] data, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
 	if (data.length < 3 || depth < 24 || width < 1 || height < 1) return data;
 	size_t bpp = bytesPerLine / width;
@@ -87,9 +119,7 @@ ubyte[] flip(ubyte[] data, size_t depth, size_t width, size_t height, size_t byt
 			size_t y2 = height - y1 - 1;
 			size_t i = y1 * width * bpp + x * bpp;
 			size_t j = y2 * width * bpp + x * bpp;
-			swap(data[i + 0], data[j + 0]);
-			swap(data[i + 1], data[j + 1]);
-			swap(data[i + 2], data[j + 2]);
+			swapBytes(data, i, j);
 		}
 	}
 	return data;
@@ -102,9 +132,7 @@ ubyte[] mirror(ubyte[] data, size_t depth, size_t width, size_t height, size_t b
 			size_t x2 = width - x1 - 1;
 			size_t i = y * width * bpp + x1 * bpp;
 			size_t j = y * width * bpp + x2 * bpp;
-			swap(data[i + 0], data[j + 0]);
-			swap(data[i + 1], data[j + 1]);
-			swap(data[i + 2], data[j + 2]);
+			swapBytes(data, i, j);
 		}
 	}
 	return data;

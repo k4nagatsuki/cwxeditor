@@ -54,6 +54,11 @@ private ImageData loadJPYImageImpl(Skin skin, string path) {
 	scope (exit) img.dispose;
 	auto gc = new GC(img);
 	scope (exit) gc.dispose;
+	int alpha;
+	auto bc = new Color(d, dwtData(init.backcolor, alpha));
+	scope (exit) bc.dispose;
+	gc.setBackground = bc;
+	gc.fillRectangle(0, 0, width, height);
 	path = nabs(path);
 	ImageData[Cache] cache;
 	foreach (i, sec; jpy.sections) {
@@ -114,7 +119,6 @@ private ImageData loadJPYImageImpl(Skin skin, string path) {
 		scope (exit) simg.dispose;
 		auto sgc = new GC(simg);
 		scope (exit) sgc.dispose;
-		int alpha;
 		auto sbc = new Color(d, dwtData(sec.color, alpha));
 		scope (exit) sbc.dispose;
 		sgc.setBackground = sbc;
@@ -122,7 +126,7 @@ private ImageData loadJPYImageImpl(Skin skin, string path) {
 		scope (exit) dimg.dispose;
 		sgc.drawImage(dimg, 0, 0, data.width, data.height, 0, 0, sw, sh);
 		// 非対応
-		// paintmode/smooth/filter/noise/noisepoint/turn
+		// paintmode/smooth/filter/noise/noisepoint
 		data = simg.getImageData;
 		if (sec.colorexchange != Colorexchange.NONE) {
 			data.data = cast(byte[]) filter(sec.colorexchange, cast(ubyte[]) data.data, data.depth, data.width, data.height, data.bytesPerLine);
@@ -132,6 +136,17 @@ private ImageData loadJPYImageImpl(Skin skin, string path) {
 		}
 		if (sec.mask != Mask.NONE) {
 			data.data = cast(byte[]) filter(sec.mask, cast(ubyte[]) data.data, data.depth, data.width, data.height, data.bytesPerLine);
+		}
+		if (sec.turn != Turn.NONE) {
+			ubyte[] bytes = cast(ubyte[]) data.data;
+			size_t dw = data.width;
+			size_t dh = data.height;
+			size_t bpl = data.bytesPerLine;
+			turn(bytes, dw, dh, bpl, sec.turn, data.depth);
+			data.data = cast(byte[]) bytes;
+			data.width = dw;
+			data.height = dh;
+			data.bytesPerLine = bpl;
 		}
 		if (sec.flip) {
 			data.data = cast(byte[]) flip(cast(ubyte[]) data.data, data.depth, data.width, data.height, data.bytesPerLine);
