@@ -122,13 +122,19 @@ private ImageData loadJPYImageImpl(Skin skin, string path) {
 		scope (exit) dimg.dispose;
 		sgc.drawImage(dimg, 0, 0, data.width, data.height, 0, 0, sw, sh);
 		// 非対応
-		// paintmode/smooth/exchange/colormap/filter/mask/noise/noisepoint/turn/flip/mirror
-		if (sec.transparent) {
-			data = simg.getImageData;
-			data.transparentPixel = data.getPixel(0, 0);
-			simg.dispose;
-			simg = new Image(d, data);
+		// paintmode/smooth/filter/mask/noise/noisepoint/turn/flip/mirror
+		data = simg.getImageData;
+		if (sec.colorexchange != Colorexchange.NONE) {
+			data.data = cast(byte[]) filter(sec.colorexchange, cast(ubyte[]) data.data, data.depth, data.width, data.height, data.bytesPerLine);
 		}
+		if (sec.colormap != Colormap.NONE) {
+			data.data = cast(byte[]) filter(sec.colormap, cast(ubyte[]) data.data, data.depth, data.width, data.height, data.bytesPerLine);
+		}
+		if (sec.transparent) {
+			data.transparentPixel = data.getPixel(0, 0);
+		}
+		simg.dispose;
+		simg = new Image(d, data);
 		if (sec.visible && sec.paintmode != Paintmode.NO_PAINT) {
 			if (sec.alpha < 0xFF && sec.paintmode == Paintmode.BLEND) {
 				gc.setAlpha = sec.alpha;

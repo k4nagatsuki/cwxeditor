@@ -10,6 +10,90 @@ import std.string;
 import std.regexp;
 import std.utf;
 
+private struct FC {
+	int r, g, b;
+}
+
+void filterImpl(T)(T f, ref FC rgb) {
+	static if (is(T == Colorexchange)) {
+		void push(int r, int g, int b) {
+			rgb.r = r;
+			rgb.g = g;
+			rgb.b = b;
+		}
+		switch (f) {
+		case Colorexchange.NONE: return;
+		case Colorexchange.GBR: push(rgb.g, rgb.b, rgb.r); break;
+		case Colorexchange.BRG: push(rgb.b, rgb.r, rgb.g); break;
+		case Colorexchange.GRB: push(rgb.g, rgb.r, rgb.b); break;
+		case Colorexchange.BGR: push(rgb.b, rgb.g, rgb.r); break;
+		case Colorexchange.RBG: push(rgb.r, rgb.b, rgb.g); break;
+		default: assert (0);
+		}
+	} else static if (is(T == Colormap)) {
+		void push(int rp, int gp, int bp) {
+			filterImpl(Colormap.GRAY_SCALE, rgb);
+			rgb.r += rp;
+			rgb.g += gp;
+			rgb.b += bp;
+		}
+		switch (f) {
+		case Colormap.NONE: return;
+		case Colormap.GRAY_SCALE: {
+			int v = (rgb.r + rgb.g + rgb.b) / 3;
+			rgb.r = v;
+			rgb.g = v;
+			rgb.b = v;
+			return;
+		}
+		case Colormap.SEPIA: push(30, 0, -30); break;
+		case Colormap.PINK: push(255, 0, 30); break;
+		case Colormap.SUNNY_RED: push(255, 0, 0); break;
+		case Colormap.LEAF_GREEN: push(0, 255, 0); break;
+		case Colormap.OCEAN_BLUE: push(0, 0, 255); break;
+		case Colormap.LIGHTNING: push(191, 191, 0); break;
+		case Colormap.PURPLE_LIGHT: push(191, 0, 191); break;
+		case Colormap.AQUA_LIGHT: push(0, 191, 191); break;
+		case Colormap.CRIMSON: push(0, -255, -255); break;
+		case Colormap.DARK_GREEN: push(-255, 0, -255); break;
+		case Colormap.DARK_BLUE: push(-255, -255, 0); break;
+		case Colormap.SWAMP: push(0, 0, -255); break;
+		case Colormap.DARK_PURPLE: push(0, -255, 0); break;
+		case Colormap.DARK_SKY: push(-255, 0, 0); break;
+		default: assert (0);
+		}
+		if (rgb.r < 0) rgb.r = 0;
+		if (rgb.r > 255) rgb.r = 255;
+		if (rgb.g < 0) rgb.g = 0;
+		if (rgb.g > 255) rgb.g = 255;
+		if (rgb.b < 0) rgb.b = 0;
+		if (rgb.b > 255) rgb.b = 255;
+	} else static if (is(T == Filter)) {
+		switch (f) {
+		// TODO
+		}
+	} else static if (is(T == Noise)) {
+		switch (f) {
+		// TODO
+		}
+	}
+}
+
+ubyte[] filter(T)(T f, ubyte[] data, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
+	size_t bpp = bytesPerLine / width;
+	for (size_t y = 0; y < height; y++) {
+		for (size_t x = 0; x < width; x++) {
+			size_t i = y * width * bpp + x * bpp;
+			auto fc = FC(data[i + 2], data[i + 1], data[i + 0]);
+			filterImpl!(T)(f, fc);
+			data[i + 2] = fc.r;
+			data[i + 1] = fc.g;
+			data[i + 0] = fc.b;
+		}
+	}
+	return data;
+}
+
 enum Animation {
 	NONE = 0,
 	DRAW = 1,
@@ -19,21 +103,21 @@ enum Animation {
 }
 enum Colormap {
 	NONE = 0,
-	MONO = 1,
+	GRAY_SCALE = 1,
 	SEPIA = 2,
-	MONO_MAGENTA = 3,
-	MONO_RED = 4,
-	MONO_GREEN = 5,
-	MONO_BLUE = 6,
-	MONO_YELLOW = 7,
-	MONO_PURPLE = 8,
-	MONO_CYAN = 9,
-	MONO_D_RED = 10,
-	MONO_D_GREEN = 11,
-	MONO_D_BLUE = 12,
-	MONO_D_YELLOW = 13,
-	MONO_D_PURPLE = 14,
-	MONO_D_CYAN = 15
+	PINK = 3,
+	SUNNY_RED = 4,
+	LEAF_GREEN = 5,
+	OCEAN_BLUE = 6,
+	LIGHTNING = 7,
+	PURPLE_LIGHT = 8,
+	AQUA_LIGHT = 9,
+	CRIMSON = 10,
+	DARK_GREEN = 11,
+	DARK_BLUE = 12,
+	SWAMP = 13,
+	DARK_PURPLE = 14,
+	DARK_SKY = 15
 }
 
 enum Dirtype {
@@ -46,7 +130,7 @@ enum Dirtype {
 	PROGRAM = 7
 }
 
-enum Exchange {
+enum Colorexchange {
 	NONE = 0,
 	GBR = 1,
 	BRG = 2,
@@ -193,7 +277,7 @@ struct Jpy1 {
 				case "wait": wait = intVal(value); break;
 				case "animespeed": animespeed = intVal(value); break;
 				case "smooth": smooth = boolVal(value); break;
-				case "exchange": exchange = enumVal!(Exchange)(value); break;
+				case "colorexchange": colorexchange = enumVal!(Colorexchange)(value); break;
 				case "colormap": colormap = enumVal!(Colormap)(value); break;
 				case "filter": filter = enumVal!(Filter)(value); break;
 				case "mask": mask = enumVal!(Mask)(value); break;
@@ -243,7 +327,7 @@ struct Jpy1Sec {
 	int animespeed = 0;
 	bool smooth = false;
 
-	Exchange exchange = Exchange.NONE;
+	Colorexchange colorexchange = Colorexchange.NONE;
 	Colormap colormap = Colormap.NONE;
 	Filter filter = Filter.NONE;
 	Mask mask = Mask.NONE;
