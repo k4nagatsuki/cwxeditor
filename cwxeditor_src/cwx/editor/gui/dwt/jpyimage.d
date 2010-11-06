@@ -126,7 +126,7 @@ private ImageData loadJPYImageImpl(Skin skin, string path) {
 		scope (exit) dimg.dispose;
 		sgc.drawImage(dimg, 0, 0, data.width, data.height, 0, 0, sw, sh);
 		// 非対応
-		// paintmode/smooth/filter
+		// smooth/filter
 		data = simg.getImageData;
 		if (sec.colorexchange != Colorexchange.NONE) {
 			data.data = cast(byte[]) colorexchange(sec.colorexchange, cast(ubyte[]) data.data, data.depth, data.width, data.height, data.bytesPerLine);
@@ -157,8 +157,53 @@ private ImageData loadJPYImageImpl(Skin skin, string path) {
 		if (sec.mirror) {
 			data.data = cast(byte[]) mirror(cast(ubyte[]) data.data, data.depth, data.width, data.height, data.bytesPerLine);
 		}
-		if (sec.transparent) {
-			data.transparentPixel = data.getPixel(0, 0);
+		void fill(bool delegate(ubyte r, ubyte g, ubyte b) isMask) {
+			size_t bpp = data.bytesPerLine / data.width;
+			for (size_t y = 0; y < data.height; y++) {
+				for (size_t x = 0; x < data.width; x++) {
+					size_t i = y * data.width * bpp + x * bpp;
+					if (isMask(data.data[i + 2], data.data[i + 1], data.data[i + 0])) {
+						data.setAlpha(x, y, 0);
+					} else {
+						data.setAlpha(x, y, 255);
+					}
+				}
+			}
+		}
+		switch (sec.paintmode) {
+		case Paintmode.AND: {
+			if (sec.transparent) {
+				ubyte fr = data.data[2];
+				ubyte fg = data.data[1];
+				ubyte fb = data.data[0];
+				fill((ubyte r, ubyte g, ubyte b) {
+					return (r == 255 && g == 255 && b == 255) || (r == fr && g == fg && b == fb);
+				});
+			} else {
+				fill((ubyte r, ubyte g, ubyte b) {
+					return r == 255 && g == 255 && b == 255;
+				});
+			}
+		} break;
+		case Paintmode.OR: {
+			if (sec.transparent) {
+				ubyte fr = data.data[2];
+				ubyte fg = data.data[1];
+				ubyte fb = data.data[0];
+				fill((ubyte r, ubyte g, ubyte b) {
+					return (r == 0 && g == 0 && b == 0) || (r == fr && g == fg && b == fb);
+				});
+			} else {
+				fill((ubyte r, ubyte g, ubyte b) {
+					return r == 0 && g == 0 && b == 0;
+				});
+			}
+		} break;
+		default: {
+			if (sec.transparent) {
+				data.transparentPixel = data.getPixel(0, 0);
+			}
+		} break;
 		}
 		simg.dispose;
 		simg = new Image(d, data);
