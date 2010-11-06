@@ -468,7 +468,9 @@ struct Jpy1Sec {
 
 	int backwidth = -1; // 画像が無い場合の自動サイズは632
 	int backheight = -1; // 画像が無い場合は自動サイズは420
-	CRGB backcolor = CRGB(255, 255, 255);
+	// FIXME: マニュアルによれば初期値は白だがcwconv.dllの実装は黒
+//	CRGB backcolor = CRGB(255, 255, 255);
+	CRGB backcolor = CRGB(0, 0, 0);
 	int width = -1;
 	int height = -1;
 	CRGB color = CRGB(255, 255, 255);
