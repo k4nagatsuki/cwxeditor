@@ -5,6 +5,7 @@ import cwx.skin;
 import cwx.utils;
 import cwx.structs;
 import cwx.jpy;
+import cwx.graphics;
 import cwx.sjis;
 
 import cwx.editor.gui.dwt.props;
@@ -112,21 +113,14 @@ private ImageData loadJPYImageImpl(Skin skin, string path) {
 			data = loadImage(skin, fname, false);
 		}
 		if (!data) continue;
-		int sw = data.width, sh = data.height;
-		if (sec.width > 0) sw = sec.width;
-		if (sec.height > 0) sh = sec.height;
-		auto simg = new Image(d, sw, sh);
-		scope (exit) simg.dispose;
-		auto sgc = new GC(simg);
-		scope (exit) sgc.dispose;
-		auto sbc = new Color(d, dwtData(sec.color, alpha));
-		scope (exit) sbc.dispose;
-		sgc.setBackground = sbc;
-		auto dimg = new Image(d, data);
+		auto dimg = new Image(d, data.width, data.height);
 		scope (exit) dimg.dispose;
-		sgc.drawImage(dimg, 0, 0, data.width, data.height, 0, 0, sw, sh);
-		// 非対応: smooth
-		data = simg.getImageData;
+		auto dgc = new GC(dimg);
+		scope (exit) dgc.dispose;
+		auto timg = new Image(d, data);
+		scope (exit) timg.dispose;
+		dgc.drawImage(timg, 0, 0);
+		data = dimg.getImageData;
 		if (sec.colorexchange != Colorexchange.NONE) {
 			data.data = cast(byte[]) colorexchange(sec.colorexchange, cast(ubyte[]) data.data, data.depth, data.width, data.height, data.bytesPerLine);
 		}
@@ -158,6 +152,21 @@ private ImageData loadJPYImageImpl(Skin skin, string path) {
 		}
 		if (sec.mirror) {
 			data.data = cast(byte[]) mirror(cast(ubyte[]) data.data, data.depth, data.width, data.height, data.bytesPerLine);
+		}
+		int sw = data.width, sh = data.height;
+		if (sec.width > 0) sw = sec.width;
+		if (sec.height > 0) sh = sec.height;
+		if (sw != data.width || sh != data.height) {
+			if (sec.smooth) {
+				size_t bpl;
+				data.data = cast(byte[]) smoothResize(sw, sh, cast(ubyte[]) data.data, data.depth, data.width, data.height,
+					data.bytesPerLine, bpl);
+				data.width = sw;
+				data.height = sh;
+				data.bytesPerLine = bpl;
+			} else {
+				data = data.scaledTo(sw, sh);
+			}
 		}
 		void fill(bool delegate(ubyte r, ubyte g, ubyte b) isMask) {
 			size_t bpp = data.bytesPerLine / data.width;
@@ -207,9 +216,12 @@ private ImageData loadJPYImageImpl(Skin skin, string path) {
 			}
 		} break;
 		}
-		simg.dispose;
-		simg = new Image(d, data);
+		if (sec.savecache != Cache.NONE) {
+			cache[sec.savecache] = data;
+		}
 		if (sec.visible && sec.paintmode != Paintmode.NO_PAINT) {
+			auto simg = new Image(d, data);
+			scope (exit) simg.dispose;
 			if (sec.alpha < 0xFF && sec.paintmode == Paintmode.BLEND) {
 				gc.setAlpha = sec.alpha;
 			}
@@ -220,9 +232,6 @@ private ImageData loadJPYImageImpl(Skin skin, string path) {
 			} else {
 				gc.drawImage(simg, sec.position.x, sec.position.y);
 			}
-		}
-		if (sec.savecache != Cache.NONE) {
-			cache[sec.savecache] = simg.getImageData;
 		}
 	}
 	return img.getImageData;

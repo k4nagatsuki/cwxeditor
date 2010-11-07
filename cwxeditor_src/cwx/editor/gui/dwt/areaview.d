@@ -1424,72 +1424,27 @@ public:
 		}
 	}
 	private void refreshPanel() {
+		auto sels = _imgp.selectedIndices;
 		static if (UseCards) {
 			foreach (i, c; _area.cards) {
-				auto img = create(c);
-				img.newX = c.x;
-				img.newY = c.y;
-				img.scale = c.scale;
-				img.resize;
-				_imgp.set(cardsIndex + i, img);
+				_imgp.set(cardsIndex + i, create(c));
 				_cards.setItem(i, cardName(c));
 			}
 		}
 		static if (UseBacks) {
-			auto skin = findSkin(_prop, _summ);
 			foreach (i, b; _area.backs) {
-				auto img = cast(FlexImage) _imgp.images[i];
-				string path = skin.findImagePath(b.path, _summ ? _summ.scenarioPath : "");
-				uint w, h;
-				dwtImageSize(skin, path, w, h);
-				img.setPath(path);
-				img.baseWidth(w);
-				img.baseHeight(h);
-				img.newX = b.x;
-				img.newY = b.y;
-				img.newWidth = b.width;
-				img.newHeight = b.height;
-				img.transparent =  b.mask;
-				img.resize;
-				img.createImage;
-				_backs.setItem(i, getBaseName(path));
+				_imgp.set(i, create(b));
+				_backs.setItem(i, getBaseName(b.path));
 			}
 		}
+		_imgp.select = sels;
 		_imgp.redraw;
 	}
 	void refresh() {
-		static if (UseCards) {
-			auto sels = _imgp.selectedIndices;
-			foreach (i, c; _area.cards) {
-				_imgp.set(cardsIndex + i, create(c));
-			}
-			_imgp.select = sels;
-			static if (is (C == EnemyCard)) {
-				_bgm.refresh;
-			}
+		static if (UseCards && is (C == EnemyCard)) {
+			_bgm.refresh;
 		}
-		static if (UseBacks) {
-			auto skin = findSkin(_prop, _summ);
-			foreach (i, b; _area.backs) {
-				auto img = _imgp.images[i];
-				uint w, h;
-				string path = findSkin(_prop, _summ).findImagePath(b.path, _summ ? _summ.scenarioPath : "");
-				try {
-					if (dwtImageSize(skin, path, w, h)) {
-						img.setPath(path);
-						img.baseWidth = w;
-						img.baseHeight = h;
-						img.createImage;
-						continue;
-					}
-				} catch {}
-				img.setPath = "";
-				img.baseWidth = 0;
-				img.baseHeight = 0;
-				img.createImage;
-			}
-		}
-		_imgp.redraw;
+		refreshPanel;
 	}
 	static if (UseCards) {
 		void setCardFuncs(void delegate(int) removeCard,
