@@ -117,21 +117,33 @@ private ImageData loadJPYImageImpl(Skin skin, string path) {
 		scope (exit) dimg.dispose;
 		auto dgc = new GC(dimg);
 		scope (exit) dgc.dispose;
+		auto dbc = new Color(d, dwtData(sec.color, alpha));
+		scope (exit) dbc.dispose;
+		dgc.setBackground = dbc;
+		dgc.drawRectangle(0, 0, data.width, data.height);
 		auto timg = new Image(d, data);
 		scope (exit) timg.dispose;
-		dgc.drawImage(timg, 0, 0);
+		if (sec.clip.width > 0 && sec.clip.height > 0) {
+			dgc.drawImage(timg, sec.clip.x, sec.clip.y, sec.clip.width, sec.clip.height,
+				0, 0, data.width, data.height);
+		} else {
+			dgc.drawImage(timg, 0, 0);
+		}
 		data = dimg.getImageData;
 		if (sec.colorexchange != Colorexchange.NONE) {
 			data.data = cast(byte[]) colorexchange(sec.colorexchange, cast(ubyte[]) data.data, data.depth, data.width, data.height, data.bytesPerLine);
 		}
-		if (sec.colormap != Colormap.NONE) {
-			data.data = cast(byte[]) colormap(sec.colormap, cast(ubyte[]) data.data, data.depth, data.width, data.height, data.bytesPerLine);
-		}
 		if (sec.filter != Filter.NONE) {
 			data.data = cast(byte[]) filter(sec.filter, cast(ubyte[]) data.data, data.depth, data.width, data.height, data.bytesPerLine);
 		}
-		if (sec.mask != Mask.NONE) {
-			data.data = cast(byte[]) mask(sec.mask, cast(ubyte[]) data.data, data.depth, data.width, data.height, data.bytesPerLine);
+		if (sec.colormap != Colormap.NONE) {
+			data.data = cast(byte[]) colormap(sec.colormap, cast(ubyte[]) data.data, data.depth, data.width, data.height, data.bytesPerLine);
+		}
+		if (sec.flip) {
+			data.data = cast(byte[]) flip(cast(ubyte[]) data.data, data.depth, data.width, data.height, data.bytesPerLine);
+		}
+		if (sec.mirror) {
+			data.data = cast(byte[]) mirror(cast(ubyte[]) data.data, data.depth, data.width, data.height, data.bytesPerLine);
 		}
 		if (sec.noise != Noise.NONE && sec.noisepoint != 0) {
 			data.data = cast(byte[]) noise(sec.noise, sec.noisepoint, cast(ubyte[]) data.data, data.depth, data.width, data.height, data.bytesPerLine);
@@ -147,12 +159,6 @@ private ImageData loadJPYImageImpl(Skin skin, string path) {
 			data.height = dh;
 			data.bytesPerLine = bpl;
 		}
-		if (sec.flip) {
-			data.data = cast(byte[]) flip(cast(ubyte[]) data.data, data.depth, data.width, data.height, data.bytesPerLine);
-		}
-		if (sec.mirror) {
-			data.data = cast(byte[]) mirror(cast(ubyte[]) data.data, data.depth, data.width, data.height, data.bytesPerLine);
-		}
 		int sw = data.width, sh = data.height;
 		if (sec.width > 0) sw = sec.width;
 		if (sec.height > 0) sh = sec.height;
@@ -167,6 +173,9 @@ private ImageData loadJPYImageImpl(Skin skin, string path) {
 			} else {
 				data = data.scaledTo(sw, sh);
 			}
+		}
+		if (sec.mask != Mask.NONE) {
+			data.data = cast(byte[]) mask(sec.mask, cast(ubyte[]) data.data, data.depth, data.width, data.height, data.bytesPerLine);
 		}
 		void fill(bool delegate(ubyte r, ubyte g, ubyte b) isMask) {
 			size_t bpp = data.bytesPerLine / data.width;
@@ -226,12 +235,7 @@ private ImageData loadJPYImageImpl(Skin skin, string path) {
 				gc.setAlpha = sec.alpha;
 			}
 			scope (exit) gc.setAlpha = 0xFF;
-			if (sec.clip.width > 0 && sec.clip.height > 0) {
-				gc.drawImage(simg, sec.clip.x, sec.clip.y, sec.clip.width, sec.clip.height,
-					sec.position.x, sec.position.y, sec.clip.width, sec.clip.height);
-			} else {
-				gc.drawImage(simg, sec.position.x, sec.position.y);
-			}
+			gc.drawImage(simg, sec.position.x, sec.position.y);
 		}
 	}
 	return img.getImageData;
