@@ -200,118 +200,126 @@ private:
 
 	void refreshDirs(string sel) {
 		if (!_win || _win.isDisposed) return;
-		scope (exit) refreshStatusLine;
-		if (!_summ) {
+		try {
+			scope (exit) refreshStatusLine;
+			if (!_summ) {
+				_dirs.removeAll;
+				return;
+			}
+			_dirs.setRedraw = false;
+			scope (exit) _dirs.setRedraw = true;
+			int hs = _dirs.getHorizontalBar.getSelection;
+			auto topItm = _dirs.getTopItem;
+			string top = null;
+			if (topItm) {
+				top = (cast(FileNameObj) topItm.getData).array;
+				if (!.exists(top)) top = null;
+			}
+			TreeItem nTopItm = null;
 			_dirs.removeAll;
-			return;
+			if (!addp(_dirs, _summ.scenarioPath, sel ? nabs(sel) : null, top, nTopItm)) {
+				_dirs.setSelection(_dirs.getItems[0]);
+			}
+			if (nTopItm) _dirs.setTopItem = nTopItm;
+			_dirs.getHorizontalBar.setSelection = hs;
+			_dirs.showSelection;
+		} catch (Exception e) {
+			debugln(e);
 		}
-		_dirs.setRedraw = false;
-		int hs = _dirs.getHorizontalBar.getSelection;
-		auto topItm = _dirs.getTopItem;
-		string top = null;
-		if (topItm) {
-			top = (cast(FileNameObj) topItm.getData).array;
-			if (!.exists(top)) top = null;
-		}
-		TreeItem nTopItm = null;
-		_dirs.removeAll;
-		if (!addp(_dirs, _summ.scenarioPath, sel ? nabs(sel) : null, top, nTopItm)) {
-			_dirs.setSelection(_dirs.getItems[0]);
-		}
-		_dirs.setRedraw = true;
-		if (nTopItm) _dirs.setTopItem = nTopItm;
-		_dirs.getHorizontalBar.setSelection = hs;
-		_dirs.showSelection;
 	}
 	void refreshFiles(string[] sels) {
 		if (!_win || _win.isDisposed) return;
-		scope (exit) refreshStatusLine;
-		if (!_summ) {
-			_files.removeAll;
-			return;
-		}
-		_files.setRedraw = false;
-		scope (exit) _files.setRedraw = true;
-		scope (exit) fimageThrStart;
-		scope selset = new HashSet!(string);
-		if (sels) {
-			foreach (path; sels) {
-				if (.exists(path)) {
-					selset.add(nabs(path));
-				}
+		try {
+			scope (exit) refreshStatusLine;
+			if (!_summ) {
+				_files.removeAll;
+				return;
 			}
-		}
-		if (_dirs.getSelection.length > 0) {
-			_files.deselectAll;
-			auto path = (cast(FileNameObj) _dirs.getSelection[0].getData).array;
-			FileNameObj[] list;
-			foreach (ref f; clistdir(path)) {
-				list ~= new FileNameObj(std.path.join(path, f));
-			}
-			if (_files.getSortColumn is _sortName.column) {
-				if (_files.getSortDirection == DWT.UP) {
-					list = .sort(list, &compFName);
-				} else {
-					assert (_files.getSortDirection == DWT.DOWN);
-					list = .sort(list, &revCompFName);
-				}
-			} else if (_files.getSortColumn is _sortExt.column) {
-				if (_files.getSortDirection == DWT.UP) {
-					list = .sort(list, &compFExt);
-				} else {
-					assert (_files.getSortDirection == DWT.DOWN);
-					list = .sort(list, &revCompFExt);
-				}
-			} else {
-				assert (_files.getSortColumn is _sortCount.column);
-				if (_files.getSortDirection == DWT.UP) {
-					list = .sort(list, &compFCount);
-				} else {
-					assert (_files.getSortDirection == DWT.DOWN);
-					list = .sort(list, &revCompFCount);
-				}
-			}
-			int count = 0;
-			int oldC = _files.getItemCount;
-			bool sp = cast(bool) std.path.fnmatch(nabs(path), nabs(_summ.scenarioPath));
-			foreach (i, p; list) {
-				if (sp) {
-					if (isDef(p.array, cast(bool) .isdir(p.array))) continue;
-				}
-				TableItem itm;
-				if (count < oldC) {
-					itm = _files.getItem(count);
-				} else {
-					itm = new TableItem(_files, DWT.NONE);
-				}
-				auto img = fimage(p.array);
-				itm.setImage(0, img);
-				if (.isdir(p.array)) {
-					itm.setText(0, getBaseName(p.array));
-					itm.setText(1, "");
-					itm.setText(2, "");
-				} else {
-					itm.setText(0, getBaseName(getName(p.array)));
-					itm.setText(1, getExt(p.array));
-					itm.setText(2, to!(string)
-						(_summ.useCounter.path.get(toPathId(toRelPath(p.array)))));
-				}
-				auto fpath = nabs(p.array);
-				itm.setData = new FileNameObj(fpath);
-				if (selset.size > 0) {
-					if (selset.contains(nabs(p.array))) {
-						_files.select = i;
+			_files.setRedraw = false;
+			scope (exit) _files.setRedraw = true;
+			scope (exit) fimageThrStart;
+			scope selset = new HashSet!(string);
+			if (sels) {
+				foreach (path; sels) {
+					if (.exists(path)) {
+						selset.add(nabs(path));
 					}
 				}
-				count++;
 			}
-			if (count < oldC) _files.remove(count, oldC - 1);
-			if (count > 0 && !sels) {
-				_files.setTopIndex = 0;
+			if (_dirs.getSelection.length > 0) {
+				_files.deselectAll;
+				auto path = (cast(FileNameObj) _dirs.getSelection[0].getData).array;
+				FileNameObj[] list;
+				foreach (ref f; clistdir(path)) {
+					list ~= new FileNameObj(std.path.join(path, f));
+				}
+				if (_files.getSortColumn is _sortName.column) {
+					if (_files.getSortDirection == DWT.UP) {
+						list = .sort(list, &compFName);
+					} else {
+						assert (_files.getSortDirection == DWT.DOWN);
+						list = .sort(list, &revCompFName);
+					}
+				} else if (_files.getSortColumn is _sortExt.column) {
+					if (_files.getSortDirection == DWT.UP) {
+						list = .sort(list, &compFExt);
+					} else {
+						assert (_files.getSortDirection == DWT.DOWN);
+						list = .sort(list, &revCompFExt);
+					}
+				} else {
+					assert (_files.getSortColumn is _sortCount.column);
+					if (_files.getSortDirection == DWT.UP) {
+						list = .sort(list, &compFCount);
+					} else {
+						assert (_files.getSortDirection == DWT.DOWN);
+						list = .sort(list, &revCompFCount);
+					}
+				}
+				int count = 0;
+				int oldC = _files.getItemCount;
+				bool sp = cast(bool) std.path.fnmatch(nabs(path), nabs(_summ.scenarioPath));
+				foreach (i, p; list) {
+					if (sp) {
+						if (isDef(p.array, cast(bool) .isdir(p.array))) continue;
+					}
+					TableItem itm;
+					if (count < oldC) {
+						itm = _files.getItem(count);
+					} else {
+						itm = new TableItem(_files, DWT.NONE);
+					}
+					auto img = fimage(p.array);
+					itm.setImage(0, img);
+					if (.isdir(p.array)) {
+						itm.setText(0, getBaseName(p.array));
+						itm.setText(1, "");
+						itm.setText(2, "");
+					} else {
+						itm.setText(0, getBaseName(getName(p.array)));
+						itm.setText(1, getExt(p.array));
+						itm.setText(2, to!(string)
+							(_summ.useCounter.path.get(toPathId(toRelPath(p.array)))));
+					}
+					auto fpath = nabs(p.array);
+					itm.setData = new FileNameObj(fpath);
+					if (selset.size > 0) {
+						if (selset.contains(nabs(p.array))) {
+							_files.select = i;
+						}
+					}
+					count++;
+				}
+				if (count < oldC) _files.remove(count, oldC - 1);
+				if (count > 0 && !sels) {
+					_files.setTopIndex = 0;
+				}
+				_files.showSelection;
+			} else {
+				_files.removeAll;
 			}
-			_files.showSelection;
-		} else {
-			_files.removeAll;
+		} catch (Exception e) {
+			debugln(e);
 		}
 	}
 	bool addp(T)(T parItm, string path, string sel, string top, ref TreeItem topItm) {
