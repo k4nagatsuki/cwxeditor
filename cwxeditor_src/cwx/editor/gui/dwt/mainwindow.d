@@ -1065,7 +1065,7 @@ public:
 	}
 	private void refreshAll() {
 		if (!_dock) return;
-		foreach (ctrl; _dock.controls) {
+		foreach (ctrl; _dock.showingControls) {
 			auto tlpData = cast(TLPData) ctrl.getData;
 			if (!tlpData) continue;
 			auto act = tlpData.tlp.menuAction(MenuID.Refresh);

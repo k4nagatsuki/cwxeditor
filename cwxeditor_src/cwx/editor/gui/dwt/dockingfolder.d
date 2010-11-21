@@ -208,6 +208,14 @@ class DockingFolder(TabF, int Style) {
 		}
 		return r;
 	}
+	/// 現在表示中のコントロールの一覧を返す。
+	Control[] showingControls() {
+		Control[] r;
+		foreach (tabf; _tabfList) {
+			r ~= selected(tabf).getControl;
+		}
+		return r;
+	}
 	private Tab tab(string key) {
 		auto p = key in _keys;
 		if (!p) return null;
