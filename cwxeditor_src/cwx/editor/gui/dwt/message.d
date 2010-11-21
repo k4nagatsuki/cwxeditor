@@ -91,6 +91,7 @@ private:
 			_dlgs = _dlgs[0 .. index] ~ _dlgs[index + 1 .. $];
 			_dlgsL.remove(index);
 			_dlgsL.select = index < _dlgs.length ? index : _dlgs.length - 1;
+			_oldSel = _dlgs[_dlgsL.getSelectionIndex];
 			selectChanged;
 		}
 	}
