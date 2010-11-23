@@ -1014,7 +1014,9 @@ private:
 		}
 	}
 	private class RefreshThr : Runnable {
-		override void run() {__refresh;}
+		override void run() {
+			__refresh;
+		}
 	}
 	private class TraceChkThr : Runnable {
 		bool result = false;
@@ -1028,6 +1030,9 @@ private:
 	private Thread _traceThr = null;
 	private int trace() {
 		Summary summ = null;
+		void sleep() {
+			tango.core.Thread.Thread.sleep(1); // 1sec
+		}
 		bool canDoChk() {
 			if (!summ) return false;
 			synchronized (_display.classinfo) {
@@ -1038,9 +1043,6 @@ private:
 				}
 			}
 			return _traceChkThr.result;
-		}
-		void sleep() {
-			tango.core.Thread.Thread.sleep(1); // 1sec
 		}
 		version (Windows) {
 			HANDLE h = INVALID_HANDLE_VALUE;
@@ -1088,6 +1090,9 @@ private:
 					}
 					case WAIT_OBJECT_0: {
 						if (!canDoChk) continue;
+						while (_dirsEdit.isEditing || _filesEdit.isEditing) {
+							sleep;
+						}
 						_display.syncExec(_refreshThr);
 						next;
 					} break;
@@ -1136,6 +1141,9 @@ private:
 						return false;
 					}
 					if (chk(nabs(summ.scenarioPath))) {
+						while (_dirsEdit.isEditing || _filesEdit.isEditing) {
+							sleep;
+						}
 						_display.syncExec(_refreshThr);
 						setup;
 					}

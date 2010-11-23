@@ -443,6 +443,7 @@ private:
 		} else {
 			editEnd(editor.getItem, editC, newText);
 		}
+		_tee = null;
 	}
 
 	void startEdit(Item itm) {
@@ -486,6 +487,9 @@ public:
 			_tee.setFocus;
 		}
 	}
+	bool isEditing() {
+		return _tee !is null;
+	}
 }
 
 /// ツリーのテキストを編集可能にする。
@@ -517,6 +521,7 @@ private:
 
 	void end(Control ctrl) {
 		editEnd(editor.getItem, ctrl);
+		_tee = null;
 	}
 
 	void startEdit(Item itm) {
@@ -553,6 +558,9 @@ public:
 		if (sels.length == 1) {
 			startEdit(sels[0]);
 		}
+	}
+	bool isEditing() {
+		return _tee !is null;
 	}
 }
 
