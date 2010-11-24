@@ -822,10 +822,12 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			val.owner = this;
 		}
 		static if (is(typeof(val.setUseCounter(uc)))) {
-			if (val.useCounter) {
+			if (val.useCounter || !uc) {
 				val.removeUseCounter;
 			}
-			val.setUseCounter(uc);
+			if (uc) {
+				val.setUseCounter(uc);
+			}
 			static if (is(typeof(val.parent))) {
 				if (c && val.parent) throw new EventException("used other event.");
 				val.parent = c;
@@ -864,15 +866,16 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			~ "}"
 			~ (New ? (is(typeof(new T))
 				? "if (!_" ~ Name ~ ") _" ~ Name ~ " = new " ~ T.stringof ~ ";"
+				~ "setValUCs(_" ~ Name ~ ", _uc, this);"
 				: "if (!_" ~ Name ~ ") {"
 				~ "    _" ~ Name ~ " = new " ~ T.stringof ~ "(this);"
+				~ "    setValUCs(_" ~ Name ~ ", _uc, this);"
 				~ "    static if (is(T == AreaUser)) _" ~ Name ~ ".handleChange = &areaChg;"
 				~ "    static if (is(T == BattleUser)) _" ~ Name ~ ".handleChange = &battleChg;"
 				~ "}"
 			) : "")
 			~ "if (_" ~ Name ~ Get ~ " != val) changed;"
 			~ "setValUCs(this._" ~ Name ~ Get ~ ");"
-			~ "setValUCs(_" ~ Name ~ ", _uc, this);"
 			~ "setValUCs(val, _uc, this);"
 			~ "_" ~ Name ~ Set ~ " = val;"
 		"}");
