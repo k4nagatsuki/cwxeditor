@@ -221,7 +221,10 @@ private:
 		auto tbl = new HashSet!(PathId);
 		string[] paths;
 		void find(string p) {
-			if (_summ.isSystemFile(p)) return;
+			if (_summ.isSystemFile(p)
+					|| containsPath(_prop.var.etc.ignorePaths, getBaseName(p))) {
+				return;
+			}
 			if (.isdir(p)) {
 				clistdir(p, (string c) {
 					c = std.path.join(p, c);

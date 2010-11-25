@@ -451,21 +451,14 @@ private:
 		}
 	}
 	void settings() {
-		auto dlg = new SettingsDialog(_comm, _prop, _win);
 		string[] oldHist = _prop.var.etc.openHistories;
-		string[] oldKeyCodes = _prop.var.etc.standardKeyCodes;
-		auto tools = _prop.var.etc.outerTools;
-		if (dlg.open) {
-			if (oldKeyCodes != _prop.var.etc.standardKeyCodes) {
-				_comm.refStandardKeyCodes.call;
-			}
-			if (tools != _prop.var.etc.outerTools) {
-				_comm.refOuterTools.call;
+		scope (exit) {
+			if (oldHist != _prop.var.etc.openHistories) {
+				createFileMenu;
 			}
 		}
-		if (oldHist != _prop.var.etc.openHistories) {
-			createFileMenu;
-		}
+		auto dlg = new SettingsDialog(_comm, _prop, _win);
+		dlg.open;
 	}
 
 	void addHistory() {

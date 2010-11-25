@@ -212,7 +212,8 @@ class DockingFolder(TabF, int Style) {
 	Control[] showingControls() {
 		Control[] r;
 		foreach (tabf; _tabfList) {
-			r ~= selected(tabf).getControl;
+			auto tab = selected(tabf);
+			if (tab) r ~= tab.getControl;
 		}
 		return r;
 	}

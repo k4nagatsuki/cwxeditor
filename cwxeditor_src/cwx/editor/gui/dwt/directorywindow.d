@@ -195,7 +195,7 @@ private:
 	}
 
 	bool isDef(string p, bool isDir) {
-		return _summ.isSystemFile(p, isDir);
+		return _summ.isSystemFile(p, isDir) || containsPath(_prop.var.etc.ignorePaths, getBaseName(p));
 	}
 
 	void refreshDirs(string sel) {
@@ -997,6 +997,7 @@ private:
 			_comm.delPaths.remove(&__delPaths);
 			_comm.saved.remove(&refCheckPaths);
 			_comm.replText.remove(&__refreshTitle);
+			_comm.refIgnorePaths.remove(&__refresh);
 			_sImgFolder.dispose;
 			_sImgCards.dispose;
 			_sImgBacks.dispose;
@@ -1112,7 +1113,10 @@ private:
 				d_time[string] times;
 				if (summ) {
 					void refr(string path) {
-						if (summ.isSystemFile(path)) return;
+						if (summ.isSystemFile(path)
+								|| containsPath(_prop.var.etc.ignorePaths, getBaseName(path))) {
+							return;
+						}
 						times[path] = lastModified(path);
 						foreach (sub; clistdir(path)) {
 							sub = std.path.join(path, sub);
@@ -1132,7 +1136,10 @@ private:
 					sleep;
 					if (!canDoChk) continue;
 					bool chk(string path) {
-						if (summ.isSystemFile(path)) return false;
+						if (summ.isSystemFile(path)
+								|| containsPath(_prop.var.etc.ignorePaths, getBaseName(path))) {
+							return false;
+						}
 						if (dirTimes[path] != lastModified(path)) return true;
 						foreach (sub; clistdir(path)) {
 							sub = std.path.join(path, sub);
@@ -1198,6 +1205,7 @@ public:
 		_comm.delPaths.add(&__delPaths);
 		_comm.saved.add(&refCheckPaths);
 		_comm.replText.add(&__refreshTitle);
+		_comm.refIgnorePaths.add(&__refresh);
 		_sImgFolder = skeletonImage(_prop.images.folder);
 		_sImgCards = skeletonImage(_prop.images.cards);
 		_sImgBacks = skeletonImage(_prop.images.backs);

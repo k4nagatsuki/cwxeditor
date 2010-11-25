@@ -231,6 +231,17 @@ bool istartsWith(string a, string b) {
 	return a.length >= b.length && icmp(a[0 .. b.length], b) == 0;
 }
 
+/// pathがlistに含まれていればtrueを返す。
+bool containsPath(string[] list, string path) {
+	foreach (l; list) {
+		if (fnmatch(path, l)) return true;
+	}
+	return false;
+} unittest {
+	assert (containsPath(["*.txt"], "test.txt"));
+	assert (containsPath([".*"], ".svn"));
+}
+
 /// ファイルパスに対応したstartsWith。
 bool fnstartsWith(string a, string b) {
 	static if (fnmatch("A", "a")) {

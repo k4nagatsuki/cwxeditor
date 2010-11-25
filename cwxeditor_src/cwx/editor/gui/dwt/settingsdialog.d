@@ -53,6 +53,7 @@ private:
 	Text _tempDir;
 	Text _author;
 	Spinner _histMax;
+	Text _ignorePaths;
 	Button _singleWindow;
 	Button _expandXMLs;
 	Button _contentsFloat;
@@ -341,28 +342,45 @@ private:
 			}
 		}
 		{
-			auto grp = new Group(comp, DWT.NONE);
-			grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-			grp.setText = _prop.msgs.settingEtc;
-			grp.setLayout = new GridLayout(1, false);
-			_singleWindow = new Button(grp, DWT.CHECK);
-			_singleWindow.setText = _prop.msgs.singleWindow;
-			_singleWindow.addSelectionListener(_mod);
-			_expandXMLs = new Button(grp, DWT.CHECK);
-			_expandXMLs.setText = _prop.msgs.expandXMLs;
-			_expandXMLs.addSelectionListener(_mod);
-			_contentsFloat = new Button(grp, DWT.CHECK);
-			_contentsFloat.setText = _prop.msgs.contentsFloat;
-			_contentsFloat.addSelectionListener(_mod);
-			_xmlCopy = new Button(grp, DWT.CHECK);
-			_xmlCopy.setText = _prop.msgs.xmlCopy;
-			_xmlCopy.addSelectionListener(_mod);
-			_saveInnerImagePath = new Button(grp, DWT.CHECK);
-			_saveInnerImagePath.setText = _prop.msgs.saveInnerImagePath;
-			_saveInnerImagePath.addSelectionListener(_mod);
-			_traceDirectories = new Button(grp, DWT.CHECK);
-			_traceDirectories.setText = _prop.msgs.traceDirectories;
-			_traceDirectories.addSelectionListener(_mod);
+			auto comp2 = new Composite(comp, DWT.NONE);
+			comp2.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+			comp2.setLayout = zeroMarginGridLayout(2, false);
+			{
+				auto grp = new Group(comp2, DWT.NONE);
+				grp.setLayoutData = new GridData(GridData.FILL_BOTH);
+				grp.setText = _prop.msgs.ignorePaths;
+				grp.setLayout = new GridLayout(1, false);
+				_ignorePaths = new Text(grp, DWT.BORDER | DWT.MULTI | DWT.V_SCROLL);
+				_ignorePaths.addModifyListener(_mod);
+				auto gd = new GridData(GridData.FILL_BOTH);
+				gd.widthHint = _prop.var.etc.inorePathsWidth;
+				gd.heightHint = 0;
+				_ignorePaths.setLayoutData = gd;
+			}
+			{
+				auto grp = new Group(comp2, DWT.NONE);
+				grp.setLayoutData = new GridData(GridData.FILL_VERTICAL);
+				grp.setText = _prop.msgs.settingEtc;
+				grp.setLayout = new GridLayout(1, false);
+				_singleWindow = new Button(grp, DWT.CHECK);
+				_singleWindow.setText = _prop.msgs.singleWindow;
+				_singleWindow.addSelectionListener(_mod);
+				_expandXMLs = new Button(grp, DWT.CHECK);
+				_expandXMLs.setText = _prop.msgs.expandXMLs;
+				_expandXMLs.addSelectionListener(_mod);
+				_contentsFloat = new Button(grp, DWT.CHECK);
+				_contentsFloat.setText = _prop.msgs.contentsFloat;
+				_contentsFloat.addSelectionListener(_mod);
+				_xmlCopy = new Button(grp, DWT.CHECK);
+				_xmlCopy.setText = _prop.msgs.xmlCopy;
+				_xmlCopy.addSelectionListener(_mod);
+				_saveInnerImagePath = new Button(grp, DWT.CHECK);
+				_saveInnerImagePath.setText = _prop.msgs.saveInnerImagePath;
+				_saveInnerImagePath.addSelectionListener(_mod);
+				_traceDirectories = new Button(grp, DWT.CHECK);
+				_traceDirectories.setText = _prop.msgs.traceDirectories;
+				_traceDirectories.addSelectionListener(_mod);
+			}
 		}
 	}
 	class ModSpin(string Set) : ModifyListener {
@@ -801,6 +819,11 @@ protected:
 		_tempDir.setText = _prop.var.etc.tempPath;
 		_author.setText = _prop.var.etc.defaultAuthor;
 		_histMax.setSelection = _prop.var.etc.historyMax;
+		string ipbuf = "";
+		foreach (path; _prop.var.etc.ignorePaths) {
+			ipbuf ~= path ~ "\n";
+		}
+		_ignorePaths.setText = ipbuf;
 		_expandXMLs.setSelection = _prop.var.etc.expandXMLs;
 		_singleWindow.setSelection = _prop.var.etc.singleWindow;
 		_contentsFloat.setSelection = _prop.var.etc.contentsFloat;
@@ -862,10 +885,34 @@ protected:
 			err(_tabB, _tempDir, _prop.msgs.errorTempPath);
 			return false;
 		}
+		string[] oldKeyCodes = _prop.var.etc.standardKeyCodes;
+		auto tools = _prop.var.etc.outerTools;
+		string[] oldIgnorePaths = _prop.var.etc.ignorePaths;
+		scope (exit) {
+			if (oldKeyCodes != _prop.var.etc.standardKeyCodes) {
+				_comm.refStandardKeyCodes.call;
+			}
+			if (tools != _prop.var.etc.outerTools) {
+				_comm.refOuterTools.call;
+			}
+			if (oldIgnorePaths != _prop.var.etc.ignorePaths) {
+				_comm.refIgnorePaths.call;
+			}
+		}
 		_prop.var.etc.enginePath = engine;
 		_prop.var.etc.tempPath = temp;
 		_prop.var.etc.defaultAuthor = _author.getText;
 		_prop.var.etc.historyMax = _histMax.getSelection;
+		string[] ipLines = splitlines(_ignorePaths.getText);
+		if (ipLines.length > 0) {
+			int i;
+			for (i = ipLines.length - 1; i >= 0 && ipLines[i].length == 0; i--) {
+				;
+			}
+			_prop.var.etc.ignorePaths = ipLines[0 .. i + 1];
+		} else {
+			_prop.var.etc.ignorePaths = [];
+		}
 		_prop.var.etc.singleWindow = _singleWindow.getSelection;
 		_prop.var.etc.expandXMLs = _expandXMLs.getSelection;
 		_prop.var.etc.xmlCopy = _xmlCopy.getSelection;

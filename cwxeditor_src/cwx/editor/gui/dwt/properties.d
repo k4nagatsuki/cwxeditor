@@ -491,6 +491,7 @@ class FlexEtcProps : Properties {
 	mixin Property!("contentsAutoOpen", bool, true);
 	mixin Property!("contentsContinue", bool, false);
 	mixin Property!("contentsFloat", bool, false);
+	mixin Property!("inorePathsWidth", int, 50, true);
 	mixin Property!("bgImageSettingsNameWidth", int, 150, true);
 	mixin Property!("bgImageSettingsNameHeight", int, 250, true);
 	mixin Property!("outerToolsNameWidth", int, 150, true);
@@ -636,6 +637,7 @@ class FlexEtcProps : Properties {
 	} else {
 		mixin Property!("outerTools", OuterTool[], []);
 	}
+	mixin Property!("ignorePaths", string[], [".*"]);
 
 	mixin XMLFuncs!(FlexEtcProps);
 }

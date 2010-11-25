@@ -1777,6 +1777,7 @@ public:
 	string openHistoryMax() {return "履歴保存件数";}
 	string openHistoryClear() {return "履歴のクリア";}
 	string dlgMsgHistoryClear() {return "履歴を削除してよろしいですか？";}
+	string ignorePaths() {return "無視ファイル(改行区切り)";}
 	string settingEtc() {return "その他";}
 	string singleWindow() {return "シングルウィンドウモード(再起動後に反映されます)";}
 	string expandXMLs() {return "圧縮されたシナリオの読込み時にXMLファイルを展開する";}

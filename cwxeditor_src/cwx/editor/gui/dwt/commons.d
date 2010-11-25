@@ -149,6 +149,7 @@ class Commons {
 	Dlg!(Flag[], Step[]) delFlagAndStep;
 	Dlg!() replText;
 	Dlg!() replID;
+	Dlg!() refIgnorePaths;
 
 	Dlg!(Area) refArea;
 	Dlg!(Area) delArea;

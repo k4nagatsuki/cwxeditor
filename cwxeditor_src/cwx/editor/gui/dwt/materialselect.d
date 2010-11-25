@@ -73,6 +73,7 @@ public:
 		_comm.delPaths.add(&__delPaths);
 		_comm.replPath.add(&__replPath);
 		_comm.refSkin.add(&__refSkin);
+		_comm.refIgnorePaths.add(&refresh);
 		_dirs.addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) {
 				_comm.refPaths.remove(&__refPaths);
@@ -80,6 +81,7 @@ public:
 				_comm.delPaths.remove(&__delPaths);
 				_comm.replPath.remove(&__replPath);
 				_comm.refSkin.remove(&__refSkin);
+				_comm.refIgnorePaths.remove(&refresh);
 			}
 		});
 		return _dirs;
@@ -384,6 +386,7 @@ private:
 			_dirs.add(dir.length <= cut ? "/" : toViewPath(dir[cut .. $]));
 		}
 		foreach (f; clistdir(dir)) {
+			if (containsPath(_prop.var.etc.ignorePaths, f)) continue;
 			f = std.path.join(dir, f);
 			if (isdir(f)) {
 				searchTarg(f, cut);
