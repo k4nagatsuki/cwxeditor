@@ -55,6 +55,7 @@ private:
 	Spinner _histMax;
 	Text _ignorePaths;
 	Button _singleWindow;
+	Button _smoothingCard;
 	Button _expandXMLs;
 	Button _contentsFloat;
 	Button _xmlCopy;
@@ -343,7 +344,7 @@ private:
 		}
 		{
 			auto comp2 = new Composite(comp, DWT.NONE);
-			comp2.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+			comp2.setLayoutData = new GridData(GridData.FILL_BOTH);
 			comp2.setLayout = zeroMarginGridLayout(2, false);
 			{
 				auto grp = new Group(comp2, DWT.NONE);
@@ -353,7 +354,7 @@ private:
 				_ignorePaths = new Text(grp, DWT.BORDER | DWT.MULTI | DWT.V_SCROLL);
 				_ignorePaths.addModifyListener(_mod);
 				auto gd = new GridData(GridData.FILL_BOTH);
-				gd.widthHint = _prop.var.etc.inorePathsWidth;
+				gd.widthHint = _prop.var.etc.ignorePathsWidth;
 				gd.heightHint = 0;
 				_ignorePaths.setLayoutData = gd;
 			}
@@ -365,6 +366,9 @@ private:
 				_singleWindow = new Button(grp, DWT.CHECK);
 				_singleWindow.setText = _prop.msgs.singleWindow;
 				_singleWindow.addSelectionListener(_mod);
+				_smoothingCard = new Button(grp, DWT.CHECK);
+				_smoothingCard.setText = _prop.msgs.smoothingCard;
+				_smoothingCard.addSelectionListener(_mod);
 				_expandXMLs = new Button(grp, DWT.CHECK);
 				_expandXMLs.setText = _prop.msgs.expandXMLs;
 				_expandXMLs.addSelectionListener(_mod);
@@ -825,6 +829,7 @@ protected:
 		}
 		_ignorePaths.setText = ipbuf;
 		_expandXMLs.setSelection = _prop.var.etc.expandXMLs;
+		_smoothingCard.setSelection = _prop.var.etc.smoothingCard;
 		_singleWindow.setSelection = _prop.var.etc.singleWindow;
 		_contentsFloat.setSelection = _prop.var.etc.contentsFloat;
 		_xmlCopy.setSelection = _prop.var.etc.xmlCopy;
@@ -888,6 +893,7 @@ protected:
 		string[] oldKeyCodes = _prop.var.etc.standardKeyCodes;
 		auto tools = _prop.var.etc.outerTools;
 		string[] oldIgnorePaths = _prop.var.etc.ignorePaths;
+		bool oldSmoothingCard = _prop.var.etc.smoothingCard;
 		scope (exit) {
 			if (oldKeyCodes != _prop.var.etc.standardKeyCodes) {
 				_comm.refStandardKeyCodes.call;
@@ -897,6 +903,9 @@ protected:
 			}
 			if (oldIgnorePaths != _prop.var.etc.ignorePaths) {
 				_comm.refIgnorePaths.call;
+			}
+			if (oldSmoothingCard != _prop.var.etc.smoothingCard) {
+				_comm.refCardState.call;
 			}
 		}
 		_prop.var.etc.enginePath = engine;
@@ -914,6 +923,7 @@ protected:
 			_prop.var.etc.ignorePaths = [];
 		}
 		_prop.var.etc.singleWindow = _singleWindow.getSelection;
+		_prop.var.etc.smoothingCard = _smoothingCard.getSelection;
 		_prop.var.etc.expandXMLs = _expandXMLs.getSelection;
 		_prop.var.etc.xmlCopy = _xmlCopy.getSelection;
 		_prop.var.etc.saveInnerImagePath = _saveInnerImagePath.getSelection;

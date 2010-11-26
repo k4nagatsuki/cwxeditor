@@ -431,6 +431,10 @@ ubyte[] smoothResize(size_t newWidth, size_t newHeight,
 		ubyte[] data, size_t depth, size_t width, size_t height, size_t bytesPerLine,
 		out size_t newBytesPerLine) {
 	if (data.length < 3 || depth < 24 || width < 1 || height < 1) return data;
+	if (width == newWidth && height == newHeight) {
+		newBytesPerLine = bytesPerLine;
+		return data;
+	}
 	// 双線形補完
 	real pw = cast(real) newWidth / width;
 	real ph = cast(real) newHeight / height;

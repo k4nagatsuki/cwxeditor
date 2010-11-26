@@ -1780,6 +1780,7 @@ public:
 	string ignorePaths() {return "無視ファイル(改行区切り)";}
 	string settingEtc() {return "その他";}
 	string singleWindow() {return "シングルウィンドウモード(再起動後に反映されます)";}
+	string smoothingCard() {return "カードのサイズ変更時にスムージングを行う";}
 	string expandXMLs() {return "圧縮されたシナリオの読込み時にXMLファイルを展開する";}
 	string contentsFloat() {return "コンテンツボックスを別ウィンドウで表示する";}
 	string xmlCopy() {return "コピーや切り取りを常にXML形式で行う";}

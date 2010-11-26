@@ -4,6 +4,7 @@ module cwx.editor.gui.dwt.images;
 import cwx.utils;
 import cwx.props;
 import cwx.structs;
+import cwx.graphics;
 
 import cwx.editor.gui.dwt.utils;
 import cwx.editor.gui.dwt.props;
@@ -98,6 +99,7 @@ private:
 	ImageData data = null;
 
 	bool _visible = true;
+	bool _smoothing = false;
 
 	int initW, initH;
 
@@ -350,7 +352,18 @@ public:
 		}
 		bmp.dispose;
 		dc.dispose;
-		return bmpData.scaledTo(width, height);
+		if (smoothing) {
+			auto data = cast(ubyte[]) bmpData.data;
+			size_t bpl;
+			bmpData.data = cast(byte[]) smoothResize(width, height, data,
+				bmpData.depth, bmpData.width, bmpData.height, bmpData.bytesPerLine, bpl);
+			bmpData.width = width;
+			bmpData.height = height;
+			bmpData.bytesPerLine = bpl;
+		} else {
+			bmpData = bmpData.scaledTo(width, height);
+		}
+		return bmpData;
 	}
 	/// 画像を描画する。
 	/// Params:
@@ -368,6 +381,15 @@ public:
 	/// v = 表示するか。
 	void visible(bool v) {
 		_visible = v;
+	}
+	/// Returns: 拡大・縮小時に平滑化するか。
+	bool smoothing() {
+		return _smoothing;
+	}
+	/// Params:
+	/// smoothing = 表示するか。
+	void smoothing(bool smoothing) {
+		_smoothing = smoothing;
 	}
 	/// Returns: 透明色を使用するか。
 	bool transparent() {

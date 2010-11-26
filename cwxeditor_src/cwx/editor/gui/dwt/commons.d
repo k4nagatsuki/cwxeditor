@@ -150,6 +150,7 @@ class Commons {
 	Dlg!() replText;
 	Dlg!() replID;
 	Dlg!() refIgnorePaths;
+	Dlg!() refCardState;
 
 	Dlg!(Area) refArea;
 	Dlg!(Area) delArea;
