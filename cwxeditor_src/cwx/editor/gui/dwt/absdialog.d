@@ -101,21 +101,11 @@ abstract class AbsDialog {
 	private bool _enterClose;
 	void enterClose(bool value) {_enterClose = value;}
 	bool enterClose() {return _enterClose;}
-	private class CKListener : Listener {
-		override void handleEvent(Event e) {
-			if (_okBtn.isEnabled && e.character == DWT.CR && _win is Display.getCurrent.getActiveShell) {
-				_ret = true;
-				_win.close;
-			}
-		}
-	}
 	private void cancel() {_win.close;}
 	bool open() {
 		setup(_area);
-		CKListener ckl = null;
 		if (_enterClose) {
-			ckl = new CKListener;
-			Display.getCurrent.addFilter(DWT.KeyDown, ckl);
+			_win.setDefaultButton = _okBtn;
 		}
 		if (_size) {
 			auto p = new Point(_size.width, _size.height);
@@ -141,9 +131,6 @@ abstract class AbsDialog {
 		auto d = _win.getDisplay;
 		while (!_win.isDisposed) {
 			if (!d.readAndDispatch) d.sleep;
-		}
-		if (ckl) {
-			Display.getCurrent.removeFilter(DWT.KeyDown, ckl);
 		}
 		return _ret || _applied;
 	}
