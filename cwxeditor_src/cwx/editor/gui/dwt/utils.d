@@ -1055,6 +1055,9 @@ void treeUnexpandedAll(Tree tree) {
 	tree.setRedraw = true;
 }
 
+version (Windows) {} else {
+	import dwt.program.Program;
+}
 bool openFolder(string path) {
 	path = nabs(path);
 	version (Windows) {

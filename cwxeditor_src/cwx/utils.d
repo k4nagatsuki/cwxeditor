@@ -256,7 +256,7 @@ bool isabs(string path) {
 	version (Windows) {
 		return startsWith(path, `\`) || std.path.isabs(path);
 	} else {
-		return std.path.isabs(path);
+		return std.path.isabs(path) != 0;
 	}
 }
 
@@ -1129,10 +1129,8 @@ version (Windows) {
 		return false;
 	}
 } else {
-	version (linux) {
-		import std.c.posix.posix;
-	} else {
-		import std.c.unix.unix;
+	private extern (C) {
+		int fork();
 	}
 	import std.c.stdlib;
 	import std.process;
