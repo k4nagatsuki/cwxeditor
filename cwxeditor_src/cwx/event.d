@@ -247,6 +247,9 @@ struct CDetail {
 		r.args = args;
 		return r;
 	}
+	static CDetail fromType(CType type) {
+		return CONTENT_DETAILS[type];
+	}
 }
 
 /// スタートのID。

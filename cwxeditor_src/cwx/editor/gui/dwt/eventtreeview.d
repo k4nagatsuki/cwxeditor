@@ -140,7 +140,10 @@ private:
 	class CreateL : MouseAdapter {
 		override void mouseDown(MouseEvent e) {
 			if (e.button == 1) {
-				create;
+				create(null);
+			} else if (e.button == 2 && !_arrowMode) {
+				auto itm = _tree.getItem(new Point(e.x, e.y));
+				if (itm) create(itm);
 			} else if (e.button == 3) {
 				arrow;
 			}
@@ -356,12 +359,13 @@ private:
 			}
 		}
 	}
-	void create() {
+	void create(TreeItem insertTo) {
 		if (!_tree.getItems.length) return;
 		if (!_arrowMode) {
 			_tree.setRedraw = false;
 			scope (exit) _tree.setRedraw = true;
 			if (_cType == CType.START) {
+				if (insertTo) return;
 				auto evt = create(_cType, "");
 				assert (evt);
 				auto sel = selection;
@@ -380,16 +384,37 @@ private:
 				refreshStatusLine;
 				if (!_conti) arrow;
 			} else {
+				if (insertTo && !CDetail.fromType(_cType).owner) return;
 				auto sels = _tree.getSelection;
-				if (sels.length > 0 && (cast(Content) sels[0].getData).detail.owner) {
-					auto owner = cast(Content) sels[0].getData;
-					auto evt = create(_cType, "");
+				if (insertTo || (sels.length > 0 && (cast(Content) sels[0].getData).detail.owner)) {
+					TreeItem oItm;
+					if (insertTo) {
+						oItm = insertTo.getParentItem;
+						if (!oItm) return;
+					} else {
+						oItm = sels[0];
+					}
+					auto owner = cast(Content) oItm.getData;
+					Content evt;
+					if (insertTo) {
+						evt = create(_cType, (cast(Content) insertTo.getData).name);
+					} else {
+						evt = create(_cType, "");
+					}
 					if (evt) {
 						store(owner);
 						owner.add(evt);
-						auto itm = createTreeItem(sels[0], evt, eventText(owner, evt), _prop.images.content(evt.type));
-						sels[0].setExpanded = true;
+						TreeItem itm = createTreeItem(oItm, evt, eventText(owner, evt), _prop.images.content(evt.type));
+						oItm.setExpanded = true;
 						_tree.setSelection = [itm];
+						if (insertTo) {
+							auto tcc = cast(Content) insertTo.getData;
+							owner.remove(tcc);
+							evt.add(tcc);
+							insertTo.dispose;
+							createChilds(itm, evt, false);
+							itm.setExpanded = true;
+						}
 						_tree.showSelection;
 						_comm.refUseCount.call;
 					}
