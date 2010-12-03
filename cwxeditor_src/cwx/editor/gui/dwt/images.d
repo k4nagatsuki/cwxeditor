@@ -38,6 +38,8 @@ import dwt.dnd.DropTarget;
 import dwt.dnd.DropTargetAdapter;
 import dwt.dnd.DropTargetEvent;
 import dwt.events.PaintListener;
+import dwt.events.KeyAdapter;
+import dwt.events.KeyEvent;
 import dwt.events.MouseAdapter;
 import dwt.events.MouseListener;
 import dwt.events.MouseMoveListener;
@@ -635,9 +637,15 @@ public:
 	/// w = 幅。
 	/// Returns: 丸めた幅。
 	int roundWidth(int w) {
-		w = minW > w ? minW : w;
-		w = maxW < w ? maxW : w;
-		return w;
+		if (whconst) {
+			// 縦横比固定
+			real scale = newHeight / cast(real) initH;
+			return cast(int) rndtol(initW * scale);
+		} else {
+			w = minW > w ? minW : w;
+			w = maxW < w ? maxW : w;
+			return w;
+		}
 	}
 	/// Returns: 仮の幅。
 	int newWidth() {
@@ -647,7 +655,8 @@ public:
 	/// Params:
 	/// w = 幅。
 	void newWidth(int w) {
-		newR.width = roundWidth(w);
+		newR.width = w;
+		newR.height = roundHeight(newR.height);
 		retoggle();
 	}
 	/// 高さを設定可能な値に丸めて返す。
@@ -673,7 +682,8 @@ public:
 	/// Params:
 	/// h = 高さ。
 	void newHeight(int h) {
-		newR.height = roundHeight(h);
+		newR.height = h;
+		newR.width = roundWidth(newR.width);
 		retoggle();
 	}
 	/// 位置とサイズを仮に設定する。確定するにはresize()を使用。
@@ -841,6 +851,55 @@ private:
 			}
 		}
 	}
+	class KListener : KeyAdapter {
+		override void keyPressed(KeyEvent ke) {
+			switch (ke.keyCode) {
+			case DWT.ARROW_UP: {
+				redrawProc((FlexImage img) {
+					if (ke.stateMask & DWT.SHIFT) {
+						img.newHeight = img.newHeight - 1;
+					} else {
+						img.newY = img.newY - 1;
+					}
+				});
+			} break;
+			case DWT.ARROW_RIGHT: {
+				redrawProc((FlexImage img) {
+					if (ke.stateMask & DWT.SHIFT) {
+						img.newWidth = img.newWidth + 1;
+					} else {
+						img.newX = img.newX + 1;
+					}
+				});
+			} break;
+			case DWT.ARROW_DOWN: {
+				redrawProc((FlexImage img) {
+					if (ke.stateMask & DWT.SHIFT) {
+						img.newHeight = img.newHeight + 1;
+					} else {
+						img.newY = img.newY + 1;
+					}
+				});
+			} break;
+			case DWT.ARROW_LEFT: {
+				redrawProc((FlexImage img) {
+					if (ke.stateMask & DWT.SHIFT) {
+						img.newWidth = img.newWidth - 1;
+					} else {
+						img.newX = img.newX - 1;
+					}
+				});
+			} break;
+			case DWT.ESC: {
+				redrawProc((FlexImage img) {img.reset;});
+			} break;
+			case DWT.CR: {
+				redrawProc((FlexImage img) {img.resize;});
+			} break;
+			default: break;
+			}
+		}
+	}
 	class MMListener : MouseMoveListener {
 		override void mouseMove(MouseEvent me) {
 			int x = me.x;
@@ -965,25 +1024,36 @@ private:
 				}
 				doDeselectAll;
 				_mouseP = null;
+			} else if (me.button == 2) {
+				auto ids = selectedIndices;
+				if (ids.length == 0 || !changeSelect(x, y)) {
+					int i = findIndex(x, y);
+					if (i >= 0) {
+						doDeselectAll;
+						doSelect(cast(FlexImage) images[i]);
+					}
+				}
 			} else if (me.button == 3) {
 				dragTgl = Toggle.NONE;
-				foreach (img; dragImgs.keys) {
-					void sr(ref Rectangle rect) {
-						auto tgls = img.tglSize / 2;
-						rect.x -= tgls;
-						rect.y -= tgls;
-						rect.width += img.tglSize;
-						rect.height += img.tglSize;
-					}
-					auto newArea = img.newBounds;
-					sr(newArea);
-					auto oldArea = img.bounds;
-					sr(oldArea);
-					img.reset;
-					redraw(oldArea.x, oldArea.y, oldArea.width, oldArea.height, false);
-					redraw(newArea.x, newArea.y, newArea.width, newArea.height, false);
-				}
+				redrawProc((FlexImage img) {img.reset;});
 			}
+		}
+	}
+	void redrawProc(void delegate(FlexImage) proc) {
+		foreach (img; dragImgs.keys) {
+			void sr(ref Rectangle rect) {
+				rect.x -= img.tglSize;
+				rect.y -= img.tglSize;
+				rect.width += img.tglSize * 2;
+				rect.height += img.tglSize * 2;
+			}
+			auto newArea = img.newBounds;
+			sr(newArea);
+			auto oldArea = img.bounds;
+			sr(oldArea);
+			proc(img);
+			redraw(oldArea.x, oldArea.y, oldArea.width, oldArea.height, false);
+			redraw(newArea.x, newArea.y, newArea.width, newArea.height, false);
 		}
 	}
 	class FocusLost : Listener {
@@ -1058,15 +1128,17 @@ private:
 	}
 
 	/// 選択イメージが一つだけの場合、背後のイメージに切り替える。
-	void changeSelect(int x, int y) {
+	bool changeSelect(int x, int y) {
 		auto tsels = findSelectedIndices(x, y);
 		auto imgs = findIndices(x, y);
 		if (tsels.length == 1 && selectedIndices.length == 1 && imgs.length > 1) {
 			int i = indexOf(imgs, tsels[0]);
 			assert (i >= 0);
 			doDeselect(cast(FlexImage) images[tsels[0]]);
-			doSelect(cast(FlexImage) images[i + 1 < imgs.length ? imgs[i + 1] : imgs[0]]);
+			doSelect(cast(FlexImage) images[i > 0 ? imgs[i - 1] : imgs[$ - 1]]);
+			return true;
 		}
+		return false;
 	}
 public:
 
@@ -1255,6 +1327,7 @@ public:
 		addListener(DWT.MouseDown, new MouseDown);
 		addListener(DWT.MouseUp, new MouseUp);
 		addMouseMoveListener(new MMListener);
+		addKeyListener(new KListener);
 		addListener(DWT.FocusOut, new FocusLost);
 		addPaintListener(new PListener);
 		addDisposeListener(new DListener);

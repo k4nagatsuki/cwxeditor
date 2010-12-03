@@ -958,9 +958,11 @@ private:
 	}
 	class IPEditListener : MouseAdapter {
 		override void mouseDoubleClick(MouseEvent e) {
-			int i = _imgp.findSelectedIndex(e.x, e.y);
-			if (i >= 0) {
-				editImagePane(i);
+			if (e.button == 0) {
+				int i = _imgp.findSelectedIndex(e.x, e.y);
+				if (i >= 0) {
+					editImagePane(i);
+				}
 			}
 		}
 	}
@@ -1168,7 +1170,9 @@ private:
 			}
 		}
 		override void mouseDoubleClick(MouseEvent e) {
-			edit(e);
+			if (e.button == 0) {
+				edit(e);
+			}
 		}
 	}
 	List createList(C)(Composite parent, string name, Image image, TCPD tcpd,
