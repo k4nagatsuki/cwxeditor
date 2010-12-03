@@ -565,6 +565,14 @@ public:
 		createImage;
 		retoggle;
 	}
+	/// サイズと移動の仮設定を最初の状態に戻す。
+	void reset() {
+		newR.x = x;
+		newR.y = y;
+		newR.width = width;
+		newR.height = height;
+		retoggle;
+	}
 	/// 画像を描画する。
 	/// Params:
 	/// dc = キャンバス。
@@ -953,9 +961,27 @@ private:
 						if (!img.selected) doDeselectAll;
 						doSelect(img);
 					}
-				} else {
-					doDeselectAll;
-					_mouseP = null;
+					return;
+				}
+				doDeselectAll;
+				_mouseP = null;
+			} else if (me.button == 3) {
+				dragTgl = Toggle.NONE;
+				foreach (img; dragImgs.keys) {
+					void sr(ref Rectangle rect) {
+						auto tgls = img.tglSize / 2;
+						rect.x -= tgls;
+						rect.y -= tgls;
+						rect.width += img.tglSize;
+						rect.height += img.tglSize;
+					}
+					auto newArea = img.newBounds;
+					sr(newArea);
+					auto oldArea = img.bounds;
+					sr(oldArea);
+					img.reset;
+					redraw(oldArea.x, oldArea.y, oldArea.width, oldArea.height, false);
+					redraw(newArea.x, newArea.y, newArea.width, newArea.height, false);
 				}
 			}
 		}
@@ -1028,6 +1054,18 @@ private:
 
 			e.gc.drawImage(buf, 0, 0);
 			buf.dispose;
+		}
+	}
+
+	/// 選択イメージが一つだけの場合、背後のイメージに切り替える。
+	void changeSelect(int x, int y) {
+		auto tsels = findSelectedIndices(x, y);
+		auto imgs = findIndices(x, y);
+		if (tsels.length == 1 && selectedIndices.length == 1 && imgs.length > 1) {
+			int i = indexOf(imgs, tsels[0]);
+			assert (i >= 0);
+			doDeselect(cast(FlexImage) images[tsels[0]]);
+			doSelect(cast(FlexImage) images[i + 1 < imgs.length ? imgs[i + 1] : imgs[0]]);
 		}
 	}
 public:
@@ -1122,6 +1160,14 @@ public:
 			if (fi && fi.visible && fi.bounds.contains(x, y)) return i;
 		}
 		return -1;
+	}
+	int[] findIndices(int x, int y) {
+		int[] r;
+		foreach (i, img; backs) {
+			auto fi = cast(FlexImage) img;
+			if (fi && fi.visible && fi.bounds.contains(x, y)) r ~= i;
+		}
+		return r;
 	}
 	int findSelectedIndex(int x, int y) {
 		foreach_reverse (i, img; backs) {
