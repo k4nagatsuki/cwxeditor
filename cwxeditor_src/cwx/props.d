@@ -962,6 +962,8 @@ public:
 	string menuCardsAndBacks() {return "カードと背景" ~ "(&A)";}
 	string ttViewParty() {return "パーティカードの表示";}
 	string menuViewParty() {return ttViewParty ~ "(&P)";}
+	string ttFixed() {return "イメージの固定";}
+	string menuFixed() {return ttFixed ~ "(&F)";}
 	string ttEnemyCardDebugView() {return "レベルとライフを表示";}
 	string menuEnemyCardDebugView() {return ttEnemyCardDebugView ~ "(&L)";}
 	string ttViewCards() {return "カードの表示";}

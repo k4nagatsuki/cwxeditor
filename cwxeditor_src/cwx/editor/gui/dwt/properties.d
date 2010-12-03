@@ -435,6 +435,9 @@ class FlexEtcProps : Properties {
 	mixin Property!("viewPartyCardsBattle", bool, true);
 	mixin Property!("viewEnemyCardDebug", bool, false);
 	mixin Property!("viewPartyCardsEvent", bool, true);
+	mixin Property!("fixedImagesArea", bool, false);
+	mixin Property!("fixedImagesBattle", bool, false);
+	mixin Property!("fixedImagesEvent", bool, false);
 	mixin Property!("viewCards", bool, true);
 	mixin Property!("viewBgImages", bool, true);
 	mixin Property!("areaSashT", int, 5);

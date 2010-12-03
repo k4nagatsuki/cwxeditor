@@ -434,10 +434,13 @@ private:
 	ImagePane _imgp;
 
 	bool _viewParty = true;
+	bool _fixed = false;
 
 	Summary _summ;
 	MenuItem _vpMenu;
+	MenuItem _vfMenu;
 	ToolItem _vpTMenu;
+	ToolItem _vfTMenu;
 	static if (is (C == EnemyCard)) {
 		protected bool debugMode() {return _dbgMode;}
 		bool _dbgMode = false;
@@ -1256,11 +1259,14 @@ public:
 		}
 		static if (is (A == Area)) {
 			_viewParty = _prop.var.etc.viewPartyCardsArea;
+			_fixed = _prop.var.etc.fixedImagesArea;
 		} else static if (is (A == Battle)) {
 			_viewParty = _prop.var.etc.viewPartyCardsBattle;
+			_fixed = _prop.var.etc.fixedImagesBattle;
 			_dbgMode = _prop.var.etc.viewEnemyCardDebug;
 		} else static if (is (A == BgImageContainer)) {
 			_viewParty = _prop.var.etc.viewPartyCardsEvent;
+			_fixed = _prop.var.etc.fixedImagesEvent;
 		} else {
 			static assert (0);
 		}
@@ -1268,11 +1274,14 @@ public:
 			public override void widgetDisposed(DisposeEvent e) {
 				static if (is (A == Area)) {
 					_prop.var.etc.viewPartyCardsArea = _viewParty;
+					_prop.var.etc.fixedImagesArea = _fixed;
 				} else static if (is (A == Battle)) {
 					_prop.var.etc.viewPartyCardsBattle = _viewParty;
+					_prop.var.etc.fixedImagesBattle = _fixed;
 					_prop.var.etc.viewEnemyCardDebug = _dbgMode;
 				} else static if (is (A == BgImageContainer)) {
 					_prop.var.etc.viewPartyCardsEvent = _viewParty;
+					_prop.var.etc.fixedImagesEvent = _fixed;
 				} else {
 					static assert (0);
 				}
@@ -1677,11 +1686,13 @@ public:
 	}
 
 	bool isViewParty() {return _viewParty;}
+	bool isFixed() {return _fixed;}
 	static if (UseCards) {
 		bool spCustom() {return !_area.spAuto;}
 	}
 	private void setupTLP(TopLevelPanel tlp) {
 		_tlp.putMenuChecked(MenuID.ViewParty, &reverseViewParty, &isViewParty);
+		_tlp.putMenuChecked(MenuID.Fixed, &reverseFixed, &isFixed);
 		static if (UseCards && UseBacks) {
 			_tlp.putMenuChecked(MenuID.ViewCards, &reverseViewCards, &isViewCards);
 			_tlp.putMenuChecked(MenuID.ViewBacks, &reverseViewBacks, &isViewBacks);
@@ -1705,6 +1716,10 @@ public:
 		_vpMenu = createMenuItem(mv, _prop.msgs.menuViewParty, _prop.images.menuViewParty,
 			&reverseViewParty, DWT.CHECK);
 		_vpMenu.setSelection = _viewParty;
+		new MenuItem(mv, DWT.SEPARATOR);
+		_vfMenu = createMenuItem(mv, _prop.msgs.menuFixed, _prop.images.menuFixed,
+			&reverseFixed, DWT.CHECK);
+		_vfMenu.setSelection = _fixed;
 		static if (UseCards && is(C == EnemyCard)) {
 			new MenuItem(mv, DWT.SEPARATOR);
 			_dbgMenu = createMenuItem(mv,
@@ -1752,6 +1767,11 @@ public:
 			_prop.msgs.ttViewParty, _prop.images.menuViewParty,
 			&reverseViewParty, DWT.CHECK);
 		_vpTMenu.setSelection = _viewParty;
+		new ToolItem(bar, DWT.SEPARATOR);
+		_vfTMenu = createToolItem(bar,
+			_prop.msgs.ttFixed, _prop.images.menuFixed,
+			&reverseFixed, DWT.CHECK);
+		_vfTMenu.setSelection = _fixed;
 		static if (UseCards && is(C == EnemyCard)) {
 			new ToolItem(bar, DWT.SEPARATOR);
 			_dbgTMenu = createToolItem(bar,
@@ -1858,6 +1878,18 @@ public:
 		if (_vpTMenu) _vpTMenu.setSelection = _viewParty;
 		_imgp.redraw;
 	}
+	void reverseFixed() {
+		_fixed = !_fixed;
+		static if (UseCards) {
+			_imgp.fixedRange(_fixed, cardsIndex, cardsIndex + _area.cards.length);
+		}
+		static if (UseBacks) {
+			_imgp.fixedRange(_fixed, 0, _area.backs.length);
+		}
+		if (_vfMenu) _vfMenu.setSelection = _fixed;
+		if (_vfTMenu) _vfTMenu.setSelection = _fixed;
+		_imgp.redraw;
+	}
 	private int insertIndex(List list) {
 		int[] indices = list.getSelectionIndices.sort;
 		return indices.length ? indices[$ - 1] + 1 : list.getItemCount;
@@ -1894,6 +1926,7 @@ public:
 			auto img = createCardImage(card, _prop.var.etc.smoothingCard);
 			_cardTbl[img] = card;
 			img.visible = isViewCards;
+			img.fixed = isFixed;
 			img.addSelectionListener(&selectImageC);
 			img.addResizeListener(&resizeImageC);
 			return img;
@@ -2013,6 +2046,7 @@ public:
 				back.x, back.y, back.width, back.height, back.mask);
 			_backTbl[img] = back;
 			img.visible = _viewBacks;
+			img.fixed = isFixed;
 			img.addSelectionListener(&selectImageB);
 			img.addResizeListener(&resizeImageB);
 			return img;

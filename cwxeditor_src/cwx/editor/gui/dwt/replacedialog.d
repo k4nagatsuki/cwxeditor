@@ -167,13 +167,6 @@ private:
 			}
 		}
 	}
-	class KLS : KeyAdapter {
-		public override void keyPressed(KeyEvent e) {
-			if (e.character == DWT.CR) {
-				search;
-			}
-		}
-	}
 	static const ID_AREA = 0;
 	static const ID_BATTLE = 1;
 	static const ID_PACKAGE = 2;
@@ -318,12 +311,10 @@ private:
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
 			gd.widthHint = _prop.var.etc.nameWidth;
 			_from.setLayoutData = gd;
-			_from.addKeyListener(new KLS);
 			auto lt = new Label(grp, DWT.NONE);
 			lt.setText = _prop.msgs.replTo;
 			_to = new Text(grp, DWT.BORDER);
 			_to.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-			_to.addKeyListener(new KLS);
 		}
 		{
 			auto grp = new Group(comp, DWT.NONE);
@@ -403,8 +394,6 @@ private:
 				spn.setMinimum = 1;
 				spn.setMaximum = _prop.looks.idMax;
 				combo.addSelectionListener(new SelID(spn));
-				combo.addKeyListener(new KLS);
-				spn.addKeyListener(new KLS);
 			}
 			setupID(_prop.msgs.replFrom, _fromID, _fromIDVal);
 			setupID(_prop.msgs.replTo, _toID, _toIDVal);
@@ -430,7 +419,6 @@ private:
 				auto gd = new GridData(GridData.FILL_HORIZONTAL);
 				gd.widthHint = _prop.var.etc.nameWidth;
 				combo.setLayoutData = gd;
-				combo.addKeyListener(new KLS);
 				return combo;
 			}
 			_fromPath = setupPath(_prop.msgs.replFrom);
@@ -576,7 +564,7 @@ public:
 				b.addSelectionListener(sa);
 				return b;
 			}
-			createButton(_prop.msgs.search, &search);
+			_win.setDefaultButton(createButton(_prop.msgs.search, &search));
 			_replace = createButton(_prop.msgs.replace, &replace);
 			createButton(_prop.msgs.replaceExit, &exit);
 		}

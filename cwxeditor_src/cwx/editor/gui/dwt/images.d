@@ -483,6 +483,8 @@ private:
 	uint tglSize = 5;
 
 	Rectangle[Toggle] tgls;
+
+	bool _fixed = false;
 public:
 	/// 画像のファイルパス、位置、本来のサイズを指定してインスタンスを生成する。
 	/// パスが存在しない場合、描画のタイミングで単に表示されない。
@@ -544,14 +546,24 @@ public:
 	void maximumHeight(int maxH) {
 		this.maxH = maxH;
 	}
-	/// Returns: 縦横比固定か。
+	/// 縦横比固定か。
 	bool ratioFix() {
 		return whconst;
 	}
-	/// Params:
-	/// whconst = 縦横比固定ならtrue。
+	/// ditto
 	void ratioFix(bool whconst) {
 		this.whconst = whconst;
+	}
+	/// サイズ・位置固定モードか。
+	bool fixed() {return _fixed;}
+	/// ditto
+	void fixed(bool value) {
+		_fixed = value;
+		if (value) {
+			reset;
+		} else {
+			retoggle;
+		}
 	}
 	/// サイズ変更/移動更作業を終えてサイズ/位置を確定し、画像をその位置に配置する。
 	/// 配置後、createImage()が実行される。
@@ -617,6 +629,7 @@ public:
 	/// x = 横位置。
 	/// See_Also: resize()
 	void newX(int x) {
+		if (fixed) return;
 		newR.x = x;
 		retoggle();
 	}
@@ -629,8 +642,16 @@ public:
 	/// y = 縦位置。
 	/// See_Also: resize()
 	void newY(int y) {
+		if (fixed) return;
 		newR.y = y;
 		retoggle();
+	}
+	/// 幅を設定可能な値に丸めて返す。
+	/// 縦横比固定の影響を受けない。
+	int roundMWidth(int w) {
+		w = minW > w ? minW : w;
+		w = maxW < w ? maxW : w;
+		return w;
 	}
 	/// 幅を設定可能な値に丸めて返す。
 	/// Params:
@@ -642,9 +663,7 @@ public:
 			real scale = newHeight / cast(real) initH;
 			return cast(int) rndtol(initW * scale);
 		} else {
-			w = minW > w ? minW : w;
-			w = maxW < w ? maxW : w;
-			return w;
+			return roundMWidth(w);
 		}
 	}
 	/// Returns: 仮の幅。
@@ -655,9 +674,17 @@ public:
 	/// Params:
 	/// w = 幅。
 	void newWidth(int w) {
+		if (fixed) return;
 		newR.width = w;
 		newR.height = roundHeight(newR.height);
 		retoggle();
+	}
+	/// 高さを設定可能な値に丸めて返す。
+	/// 縦横比固定の影響を受けない。
+	int roundMHeight(int h) {
+		h = minH > h ? minH : h;
+		h = maxH < h ? maxH : h;
+		return h;
 	}
 	/// 高さを設定可能な値に丸めて返す。
 	/// Params:
@@ -669,9 +696,7 @@ public:
 			real scale = newWidth / cast(real) initW;
 			return cast(int) rndtol(initH * scale);
 		} else {
-			h = minH > h ? minH : h;
-			h = maxH < h ? maxH : h;
-			return h;
+			return roundMHeight(h);
 		}
 	}
 	/// Returns: 仮の高さ。
@@ -682,6 +707,7 @@ public:
 	/// Params:
 	/// h = 高さ。
 	void newHeight(int h) {
+		if (fixed) return;
 		newR.height = h;
 		newR.width = roundWidth(newR.width);
 		retoggle();
@@ -690,9 +716,10 @@ public:
 	/// Params:
 	/// rect = 位置とサイズ。
 	void newBounds(Rectangle rect) {
+		if (fixed) return;
 		newR.x = rect.x;
 		newR.y = rect.y;
-		newR.width = roundWidth(rect.width);
+		newR.width = rect.width;
 		newR.height = roundHeight(rect.height);
 		retoggle();
 	}
@@ -700,7 +727,8 @@ public:
 	/// Params:
 	/// scale = 元のサイズに対するスケール
 	void scale(real scale) {
-		newR.width = roundWidth(cast(int) rndtol(initW * scale));
+		if (fixed) return;
+		newR.width = cast(int) rndtol(initW * scale);
 		newR.height = roundHeight(cast(int) rndtol(initH * rect.height));
 		retoggle();
 	}
@@ -744,12 +772,17 @@ public:
 	];
 
 	private void retoggle() {
-		Toggle[] tgls = whconst ? RESIZE_TOGGLES_CORNER : RESIZE_TOGGLES;
-		foreach (key; this.tgls.keys) {
-			this.tgls.remove(key);
-		}
-		foreach (tgl; tgls) {
-			this.tgls[tgl] = toggleRect(tgl);
+		if (fixed) {
+			typeof(this.tgls) tgls;
+			this.tgls = tgls;
+		} else {
+			Toggle[] tgls = whconst ? RESIZE_TOGGLES_CORNER : RESIZE_TOGGLES;
+			foreach (key; this.tgls.keys) {
+				this.tgls.remove(key);
+			}
+			foreach (tgl; tgls) {
+				this.tgls[tgl] = toggleRect(tgl);
+			}
 		}
 	}
 
@@ -786,13 +819,18 @@ public:
 	/// 移動後に描画する領域を返す。
 	/// Returns: 描画する領域。
 	Rectangle drawNewArea() {
-		return new Rectangle(newR.x - tglSize, newR.y - tglSize,
-			newR.width + tglSize * 2, newR.height + tglSize * 2);
+		if (fixed) {
+			return newBounds;
+		} else {
+			return new Rectangle(newR.x - tglSize, newR.y - tglSize,
+				newR.width + tglSize * 2, newR.height + tglSize * 2);
+		}
 	}
 	/// 描画する領域を返す。
 	/// Returns: 描画する領域。
 	Rectangle drawArea() {
 		auto r = bounds;
+		if (fixed) return r;
 		return new Rectangle(r.x - tglSize, r.y - tglSize,
 			r.width + tglSize * 2, r.height + tglSize * 2);
 	}
@@ -910,62 +948,59 @@ private:
 				}
 				int movX = x - dragStartX;
 				int movY = y - dragStartY;
-				foreach (pimg; dragImgs.keys) {
-					if (cast(FlexImage) pimg) {
-						auto img = cast(FlexImage) pimg;
-						if (img.selected) {
-							auto rect = dragImgs[img];
-							Rectangle newRect = new Rectangle(img.x, img.y, img.width, img.height);
-							switch (dragTgl) {
-							case Toggle.LEFT_TOP, Toggle.LEFT_MIDDLE, Toggle.LEFT_BOTTOM:
-								int w = rect.width - movX;
-								newRect.width = img.roundWidth(w);
-								break;
-							case Toggle.RIGHT_TOP, Toggle.RIGHT_MIDDLE, Toggle.RIGHT_BOTTOM:
-								int w = rect.width + movX;
-								newRect.width = img.roundWidth(w);
-								break;
-							default:
-								break;
-							}
-							switch (dragTgl) {
-							case Toggle.LEFT_TOP, Toggle.MIDDLE_TOP, Toggle.RIGHT_TOP:
-								int h = rect.height - movY;
-								newRect.height = img.roundHeight(h);
-								break;
-							case Toggle.LEFT_BOTTOM, Toggle.MIDDLE_BOTTOM, Toggle.RIGHT_BOTTOM:
-								int h = rect.height + movY;
-								newRect.height = img.roundHeight(h);
-								break;
-							default:
-								break;
-							}
-							switch (dragTgl) {
-							case Toggle.LEFT_TOP, Toggle.MIDDLE_TOP, Toggle.RIGHT_TOP:
-								newRect.y = rect.y + (rect.height - newRect.height);
-								break;
-							case Toggle.MOVE:
-								newRect.y = rect.y + movY;
-								break;
-							default:
-								break;
-							}
-							switch (dragTgl) {
-							case Toggle.LEFT_TOP, Toggle.LEFT_MIDDLE, Toggle.LEFT_BOTTOM:
-								newRect.x = rect.x + (rect.width - newRect.width);
-								break;
-							case Toggle.MOVE:
-								newRect.x = rect.x + movX;
-								break;
-							default:
-								break;
-							}
-							scope oldArea = img.drawNewArea;
-							img.newBounds = newRect;
-							scope newArea = img.drawNewArea;
-							redraw(oldArea.x, oldArea.y, oldArea.width, oldArea.height, false);
-							redraw(newArea.x, newArea.y, newArea.width, newArea.height, false);
+				foreach (img; dragImgs.keys) {
+					if (img.selected && !img.fixed) {
+						auto rect = dragImgs[img];
+						Rectangle newRect = new Rectangle(img.x, img.y, img.width, img.height);
+						switch (dragTgl) {
+						case Toggle.LEFT_TOP, Toggle.LEFT_MIDDLE, Toggle.LEFT_BOTTOM:
+							int w = rect.width - movX;
+							newRect.width = img.roundMWidth(w);
+							break;
+						case Toggle.RIGHT_TOP, Toggle.RIGHT_MIDDLE, Toggle.RIGHT_BOTTOM:
+							int w = rect.width + movX;
+							newRect.width = img.roundMWidth(w);
+							break;
+						default:
+							break;
 						}
+						switch (dragTgl) {
+						case Toggle.LEFT_TOP, Toggle.MIDDLE_TOP, Toggle.RIGHT_TOP:
+							int h = rect.height - movY;
+							newRect.height = img.roundHeight(h);
+							break;
+						case Toggle.LEFT_BOTTOM, Toggle.MIDDLE_BOTTOM, Toggle.RIGHT_BOTTOM:
+							int h = rect.height + movY;
+							newRect.height = img.roundHeight(h);
+							break;
+						default:
+							break;
+						}
+						switch (dragTgl) {
+						case Toggle.LEFT_TOP, Toggle.MIDDLE_TOP, Toggle.RIGHT_TOP:
+							newRect.y = rect.y + (rect.height - newRect.height);
+							break;
+						case Toggle.MOVE:
+							newRect.y = rect.y + movY;
+							break;
+						default:
+							break;
+						}
+						switch (dragTgl) {
+						case Toggle.LEFT_TOP, Toggle.LEFT_MIDDLE, Toggle.LEFT_BOTTOM:
+							newRect.x = rect.x + (rect.width - newRect.width);
+							break;
+						case Toggle.MOVE:
+							newRect.x = rect.x + movX;
+							break;
+						default:
+							break;
+						}
+						scope oldArea = img.drawNewArea;
+						img.newBounds = newRect;
+						scope newArea = img.drawNewArea;
+						redraw(oldArea.x, oldArea.y, oldArea.width, oldArea.height, false);
+						redraw(newArea.x, newArea.y, newArea.width, newArea.height, false);
 					}
 				}
 				moved = true;
@@ -1041,16 +1076,8 @@ private:
 	}
 	void redrawProc(void delegate(FlexImage) proc) {
 		foreach (img; dragImgs.keys) {
-			void sr(ref Rectangle rect) {
-				rect.x -= img.tglSize;
-				rect.y -= img.tglSize;
-				rect.width += img.tglSize * 2;
-				rect.height += img.tglSize * 2;
-			}
-			auto newArea = img.newBounds;
-			sr(newArea);
-			auto oldArea = img.bounds;
-			sr(oldArea);
+			auto newArea = img.drawNewArea;
+			auto oldArea = img.drawArea;
 			proc(img);
 			redraw(oldArea.x, oldArea.y, oldArea.width, oldArea.height, false);
 			redraw(newArea.x, newArea.y, newArea.width, newArea.height, false);
@@ -1261,6 +1288,19 @@ public:
 		auto fi = cast(FlexImage) img;
 		if (fi && (fi in dragImgs)) {
 			dragImgs.remove(fi);
+		}
+	}
+
+	void fixedRange(bool fixed, int from, int to) {
+		foreach (img; images[from .. to]) {
+			auto fi = cast(FlexImage) img;
+			if (fi) {
+				auto newArea = fi.drawNewArea;
+				auto oldArea = fi.drawArea;
+				fi.fixed = fixed;
+				redraw(oldArea.x, oldArea.y, oldArea.width, oldArea.height, false);
+				redraw(newArea.x, newArea.y, newArea.width, newArea.height, false);
+			}
 		}
 	}
 

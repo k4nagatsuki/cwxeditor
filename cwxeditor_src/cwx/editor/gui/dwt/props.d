@@ -344,6 +344,7 @@ public:
 	Image menuNewStep() {return imgd!(resourceDir ~ "step_new.png");}
 
 	Image menuViewParty() {return imgd!(resourceDir ~ "partyCards.png");}
+	Image menuFixed() {return imgd!(resourceDir ~ "fixed.png");}
 	Image menuEnemyCardDebugView() {return imgd!(resourceDir ~ "card_life.png");}
 	Image menuViewCards() {return imgd!(resourceDir ~ "cards.png");}
 	Image menuViewBacks() {return imgd!(resourceDir ~ "backs.png");}
@@ -430,6 +431,7 @@ enum MenuID : int {
 	NewFlag,
 	NewStep,
 	ViewParty,
+	Fixed,
 	EnemyCardDebugView,
 	ViewCards,
 	ViewBacks,
