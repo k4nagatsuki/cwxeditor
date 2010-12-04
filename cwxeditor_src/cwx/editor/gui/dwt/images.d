@@ -587,23 +587,31 @@ public:
 		newR.height = height;
 		retoggle;
 	}
+	/// トグル以外の画像を描画する。
+	void drawImage(GC gc) {
+		if (visible) {
+			super.draw(gc);
+		}
+	}
+	/// トグルを描画する。
+	void drawToggle(GC gc) {
+		if (visible && selected) {
+			gc.setBackground(Display.getCurrent.getSystemColor(DWT.COLOR_WHITE));
+			gc.setForeground(Display.getCurrent.getSystemColor(DWT.COLOR_BLACK));
+			gc.drawFocus(newX, newY, newWidth, newHeight);
+			foreach (rect; tgls.values) {
+				gc.fillRectangle(rect.x + 1, rect.y + 1, tglSize - 1, tglSize - 1);
+				gc.drawRectangle(rect);
+			}
+		}
+	}
+
 	/// 画像を描画する。
 	/// Params:
 	/// dc = キャンバス。
 	void draw(GC gc) {
-		if (visible) {
-			super.draw(gc);
-
-			if (selected) {
-				gc.setBackground(Display.getCurrent.getSystemColor(DWT.COLOR_WHITE));
-				gc.setForeground(Display.getCurrent.getSystemColor(DWT.COLOR_BLACK));
-				gc.drawFocus(newX, newY, newWidth, newHeight);
-				foreach (rect; tgls.values) {
-					gc.fillRectangle(rect.x + 1, rect.y + 1, tglSize - 1, tglSize - 1);
-					gc.drawRectangle(rect);
-				}
-			}
-		}
+		drawImage(gc);
+		drawToggle(gc);
 	}
 	/// Returns: 選択中か。
 	bool selected() {
