@@ -675,7 +675,7 @@ public:
 	/// w = 幅。
 	void newWidth(int w) {
 		if (fixed) return;
-		newR.width = w;
+		newR.width = roundMWidth(w);
 		newR.height = roundHeight(newR.height);
 		retoggle();
 	}
@@ -708,7 +708,7 @@ public:
 	/// h = 高さ。
 	void newHeight(int h) {
 		if (fixed) return;
-		newR.height = h;
+		newR.height = roundMHeight(h);
 		newR.width = roundWidth(newR.width);
 		retoggle();
 	}
@@ -719,8 +719,13 @@ public:
 		if (fixed) return;
 		newR.x = rect.x;
 		newR.y = rect.y;
-		newR.width = rect.width;
-		newR.height = roundHeight(rect.height);
+		if (newR.width >= newR.height) {
+			newR.width = roundMWidth(rect.width);
+			newR.height = roundHeight(rect.height);
+		} else {
+			newR.height = roundMHeight(rect.height);
+			newR.width = roundWidth(rect.width);
+		}
 		retoggle();
 	}
 	/// スケールを指定してサイズを設定する。
@@ -967,11 +972,11 @@ private:
 						switch (dragTgl) {
 						case Toggle.LEFT_TOP, Toggle.MIDDLE_TOP, Toggle.RIGHT_TOP:
 							int h = rect.height - movY;
-							newRect.height = img.roundHeight(h);
+							newRect.height = img.roundMHeight(h);
 							break;
 						case Toggle.LEFT_BOTTOM, Toggle.MIDDLE_BOTTOM, Toggle.RIGHT_BOTTOM:
 							int h = rect.height + movY;
-							newRect.height = img.roundHeight(h);
+							newRect.height = img.roundMHeight(h);
 							break;
 						default:
 							break;
