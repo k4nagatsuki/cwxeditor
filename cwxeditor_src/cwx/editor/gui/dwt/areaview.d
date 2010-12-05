@@ -961,7 +961,7 @@ private:
 	}
 	class IPEditListener : MouseAdapter {
 		override void mouseDoubleClick(MouseEvent e) {
-			if (e.button == 0) {
+			if (e.button == 1) {
 				int i = _imgp.findSelectedIndex(e.x, e.y);
 				if (i >= 0) {
 					editImagePane(i);
@@ -1173,7 +1173,7 @@ private:
 			}
 		}
 		override void mouseDoubleClick(MouseEvent e) {
-			if (e.button == 0) {
+			if (e.button == 1) {
 				edit(e);
 			}
 		}
