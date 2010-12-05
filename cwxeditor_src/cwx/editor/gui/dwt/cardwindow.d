@@ -616,6 +616,7 @@ private:
 	}
 	class LMouse : MouseAdapter {
 		override void mouseDoubleClick(MouseEvent e) {
+			if (e.button != 1) return;
 			int index = _list.selection;
 			if (index >= 0) {
 				scope p = _list.toControl(e.x, e.y);
@@ -631,6 +632,7 @@ private:
 	}
 	class TMouse : MouseAdapter {
 		override void mouseDoubleClick(MouseEvent e) {
+			if (e.button != 1) return;
 			int index = _tbl.getSelectionIndex;
 			if (index >= 0) {
 				scope p = _tbl.toControl(e.x, e.y);

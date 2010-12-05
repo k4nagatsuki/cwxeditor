@@ -445,7 +445,9 @@ private:
 	class MListener : MouseAdapter {
 	public:
 		override void mouseDoubleClick(MouseEvent e) {
-			startEdit;
+			if (e.button == 1) {
+				startEdit;
+			}
 		}
 	}
 	class KListener : KeyAdapter {
