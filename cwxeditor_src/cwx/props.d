@@ -601,7 +601,7 @@ public:
 		} case CType.CHANGE_BG_IMAGE: {
 			string buf = "背景ファイル = ";
 			foreach (i, b; evt.backs) {
-				buf ~= "[" ~ b.path ~ "]";
+				buf ~= "[" ~ encodePath(b.path) ~ "]";
 				if (i + 1 < evt.backs.length) buf ~= " ";
 			}
 			return buf;
@@ -628,7 +628,7 @@ public:
 			case Talker.CARD:
 				return "[カード]: " ~ std.string.replace(evt.text, "\n", "");
 			case Talker.IMAGE:
-				return "[" ~ evt.cardPath ~ "]: " ~ std.string.replace(evt.text, "\n", "");
+				return "[" ~ encodePath(evt.cardPath) ~ "]: " ~ std.string.replace(evt.text, "\n", "");
 			default: assert (0);
 			}
 		} case CType.TALK_DIALOG: {
@@ -643,9 +643,9 @@ public:
 				return std.string.replace(evt.dialogs[0].text, "\n", "");
 			}
 		} case CType.PLAY_BGM: {
-			return evt.bgmPath is null || evt.bgmPath.length == 0 ? "BGM停止" : "BGMとして「" ~ evt.bgmPath ~ "」を演奏";
+			return evt.bgmPath is null || evt.bgmPath.length == 0 ? "BGM停止" : "BGMとして「" ~ encodePath(evt.bgmPath) ~ "」を演奏";
 		} case CType.PLAY_SOUND: {
-			return evt.soundPath is null || evt.soundPath.length == 0 ? "指定無し" : "効果音「" ~ evt.soundPath ~ "」を鳴らす";
+			return evt.soundPath is null || evt.soundPath.length == 0 ? "指定無し" : "効果音「" ~ encodePath(evt.soundPath) ~ "」を鳴らす";
 		} case CType.WAIT: {
 			return "空白時間 = " ~ to!(string)(evt.wait) ~ " × 0.1秒";
 		} case CType.ELAPSE_TIME: {

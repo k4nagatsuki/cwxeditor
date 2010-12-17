@@ -665,7 +665,7 @@ private:
 							}
 							if (!dir) dir = to;
 							if (!fout) {
-								std.file.remove(from);
+								delAll(from);
 								string p1 = toRelPath(from);
 								string p2 = toRelPath(to);
 								_comm.refPath.call(p1, p2, true);
