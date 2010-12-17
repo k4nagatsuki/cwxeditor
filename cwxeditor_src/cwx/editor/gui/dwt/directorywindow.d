@@ -171,21 +171,25 @@ private:
 	FC[] allPaths() {
 		FC[] fcs;
 		if (_summ) {
-			void list(string path) {
-				FC fc;
-				fc.path = path;
-				if (.isdir(path)) {
-					fc.time = d_time_nan;
-					fcs ~= fc;
-					foreach (c; clistdir(path)) {
-						list(std.path.join(path, c));
+			try {
+				void list(string path) {
+					FC fc;
+					fc.path = path;
+					if (.isdir(path)) {
+						fc.time = d_time_nan;
+						fcs ~= fc;
+						foreach (c; clistdir(path)) {
+							list(std.path.join(path, c));
+						}
+					} else {
+						fc.time = lastModified(path);
+						fcs ~= fc;
 					}
-				} else {
-					fc.time = lastModified(path);
-					fcs ~= fc;
 				}
+				list(_summ.scenarioPath);
+			} catch (Exception e) {
+				debugln(e);
 			}
-			list(_summ.scenarioPath);
 		}
 		return fcs.sort;
 	}
