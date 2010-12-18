@@ -48,7 +48,7 @@ public:
 	string useDefaultSkin(string name, string defSkin) {return "スキン「" ~ name ~ "」が見つかりません。\nデフォルトのスキン「" ~ defSkin ~ "」を使用します。";}
 	string scenarioName() {return "シナリオ名";}
 	string type() {return "タイプ";}
-	string classic() {return "(クラシック)";}
+	string classic() {return "[クラシック]";}
 	string newClassicDir() {
 		return "シナリオ作成先の選択";
 	}
@@ -72,13 +72,13 @@ public:
 	}
 
 	string image() {return "イメージ";}
-	string pathDef() {return "(デフォルト)";}
-	string imageNone() {return "(イメージ無し)";}
-	string fileNone() {return "(ファイルを選択)";}
-	string imageIncluding() {return "(イメージ格納)";}
-	string seNone() {return "(サウンド無し)";}
-	string bgmStop() {return "(BGM停止)";}
-	string bgmNone() {return "(BGM無し)";}
+	string pathDef() {return "[デフォルト]";}
+	string imageNone() {return "[イメージ無し]";}
+	string fileNone() {return "[ファイルを選択]";}
+	string imageIncluding() {return "[イメージ格納]";}
+	string seNone() {return "[サウンド無し]";}
+	string bgmStop() {return "[BGM停止]";}
+	string bgmNone() {return "[BGM無し]";}
 	string dlgMsgIsSaveBeforeReload(string name) {return name ~ "は変更されています。再読込しますか？";}
 	string reloadBeforeSaveError(string name) {return name ~ "は保存されていないため、再読込できません。";}
 	string dlgMsgIsSaveBeforeExit(string name) {return name ~ "は変更されています。保存しますか？";}
@@ -224,7 +224,7 @@ public:
 	string replIDItem() {return "アイテムカード";}
 	string replIDBeast() {return "召喚獣カード";}
 	string replIDInfo() {return "情報カード";}
-	string replSetID() {return "(IDを直接指定)";}
+	string replSetID() {return "[IDを直接指定]";}
 
 	string replPath() {return "検索/置換する素材";}
 
@@ -292,7 +292,7 @@ public:
 	}
 	string searchResultEnemyCard(EnemyCard c, in Summary summ) {
 		auto card = summ.casts(c.id);
-		return "エネミーカード - " ~ (card ? card.name : "(対象無し)");
+		return "エネミーカード - " ~ (card ? card.name : "[対象無し]");
 	}
 
 	/// イベント設定。
@@ -360,7 +360,7 @@ public:
 	string transition(Transition t) {
 		switch (t) {
 		case Transition.DEFAULT:
-			return "(プレイヤーの設定を使用)";
+			return "[プレイヤーの設定を使用]";
 		case Transition.NONE:
 			return "アニメーション無し";
 		case Transition.FADE:
@@ -922,7 +922,7 @@ public:
 	}
 
 	/// 貼り紙設定ダイアログ関連。
-	string dlgTitSummary(string sname) {return "概略の設定 - [ " ~ sname ~ "]";}
+	string dlgTitSummary(string sname) {return "概略の設定 - [ " ~ sname ~ " ]";}
 	string summaryImage() {return "表示イメージ";}
 	string baseData() {return "基本データ";}
 	string etcData() {return "詳細データ";}
@@ -951,7 +951,7 @@ public:
 	string rCoupons() {return "必要とする称号";}
 	string startArea() {return "シナリオ開始エリア";}
 	string legacyEngineSkin(string lEnginePath) {
-		return "(" ~ getBaseName(lEnginePath) ~ "のリソースを使用)";
+		return "[" ~ getBaseName(lEnginePath) ~ "のリソースを使用]";
 	}
 
 	/// エリア・戦闘・パッケージウィンドウ。
@@ -1617,7 +1617,7 @@ public:
 	string sex() {return "性別";}
 	string period() {return "年代";}
 	string race() {return "種族";}
-	string noRace() {return "(未指定)";}
+	string noRace() {return "[未指定]";}
 	string raceCoupon(Race race) {return "＠Ｒ" ~ race.name;}
 	string nature() {return "素質";}
 	string makings() {return "特徴";}
@@ -1704,7 +1704,7 @@ public:
 	string se() {return "効果音";}
 	string se1() {return "初期効果";}
 	string se2() {return "二次効果";}
-	string soundNone() {return "(効果音無し)";}
+	string soundNone() {return "[効果音無し]";}
 	string stopSound() {return "停止";}
 	string playSound() {return "再生";}
 	string keyCodes() {return "イベント発火のキーコード";}
