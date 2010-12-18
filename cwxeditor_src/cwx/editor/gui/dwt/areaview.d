@@ -2471,6 +2471,44 @@ public:
 	}
 	void undo() {_undo.undo;}
 	void redo() {_undo.redo;}
+
+	bool openCWXPath(string path) {
+		auto cate = cpcategory(path);
+		auto index = cpindex(path);
+		bool sel(List list) {
+			if (index >= list.getItemCount) return false;
+			.forceFocus(_imgp);
+			list.deselectAll;
+			list.select = index;
+			list.showSelection;
+			return true;
+		}
+		static if (UseCards && is(C : MenuCard)) {
+			if (cate == "menucard") {
+				if (sel(_cards)) {
+					listSelectC;
+					return true;
+				}
+			}
+		}
+		static if (UseCards && is(C : EnemyCard)) {
+			if (cate == "enemycard") {
+				if (sel(_cards)) {
+					listSelectC;
+					return true;
+				}
+			}
+		}
+		static if (UseBacks) {
+			if (cate == "background") {
+				if (sel(_backs)) {
+					listSelectB;
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 }
 
 class AreaView : AbstractAreaView!(Area, MenuCard, true, true) {

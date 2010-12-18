@@ -328,9 +328,12 @@ public:
 		}
 	}
 	bool openCWXPath(string path) {
-		if (path == "" || (is(A : Area) && cpcategory(path) == "background")) {
+		auto cate = cpcategory(path);
+		if (path == "") {
 			_tabf.setSelection = _tabA;
 			return true;
+		} else if (cate == "menucard" || cate == "enemycard" || cate == "background") {
+			return _aview.openCWXPath(path);
 		} else {
 			return _eview.openCWXPath(path);
 		}

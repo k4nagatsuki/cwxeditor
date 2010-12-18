@@ -1496,10 +1496,15 @@ public:
 		this(new Content(CType.START, name));
 	}
 	/// スタートコンテントを指定してインスタンスを生成。
+	/// startがすでにイベントツリーに所属している場合、
+	/// コピーが生成される。
 	this(Content start) in {
 		assert (start.type == CType.START);
 	} body {
 		_suc = new SUseCounter;
+		if (start.tree) {
+			start = start.createFromNode(start.toNode, LATEST_VERSION);
+		}
 		add(start);
 	}
 	EventTreeOwner owner() {return _owner;}

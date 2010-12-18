@@ -1724,7 +1724,7 @@ public:
 			foreach (cld; itm.getItems) find(cld);
 		}
 		foreach (itm; _tree.getItems) find(itm);
-		auto ucp = new UndoCP(conts, index, start);;
+		auto ucp = new UndoCP(conts, index, start);
 		auto id = _comm.createPackage(start);
 		if (id == 0) {
 			ucp.dispose;

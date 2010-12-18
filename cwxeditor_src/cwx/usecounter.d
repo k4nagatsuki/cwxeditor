@@ -302,8 +302,8 @@ public:
 	/// id = エリアID。
 	void area(ulong id) {
 		if (_uc !is null) {
-			if (_id >= 0) _uc.area.remove(toAreaId(_id), this);
-			if (id >= 0) _uc.area.add(toAreaId(id), this);
+			if (_id > 0) _uc.area.remove(toAreaId(_id), this);
+			if (id > 0) _uc.area.add(toAreaId(id), this);
 		}
 		_id = id;
 	}
@@ -317,17 +317,17 @@ public:
 	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
 	void setUseCounter(UseCounter uc) {
-		if (uc && _id >= 0) {
+		if (uc && _id > 0) {
 			uc.area.add(toAreaId(_id), this);
 		}
-		if (_uc && _id >= 0) {
+		if (_uc && _id > 0) {
 			_uc.area.remove(toAreaId(_id), this);
 		}
 		_uc = uc;
 	}
 	/// ditto
 	void removeUseCounter() {
-		if (_uc && _id >= 0) {
+		if (_uc && _id > 0) {
 			_uc.area.remove(toAreaId(_id), this);
 		}
 		_uc = null;
@@ -368,8 +368,8 @@ public:
 	/// id = バトルID。
 	void battle(ulong id) {
 		if (_uc !is null) {
-			if (_id >= 0) _uc.battle.remove(toBattleId(_id), this);
-			if (id >= 0) _uc.battle.add(toBattleId(id), this);
+			if (_id > 0) _uc.battle.remove(toBattleId(_id), this);
+			if (id > 0) _uc.battle.add(toBattleId(id), this);
 		}
 		_id = id;
 	}
@@ -383,17 +383,17 @@ public:
 	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
 	void setUseCounter(UseCounter uc) {
-		if (uc && _id >= 0) {
+		if (uc && _id > 0) {
 			uc.battle.add(toBattleId(_id), this);
 		}
-		if (_uc && _id >= 0) {
+		if (_uc && _id > 0) {
 			_uc.battle.remove(toBattleId(_id), this);
 		}
 		_uc = uc;
 	}
 	/// ditto
 	void removeUseCounter() {
-		if (_uc && _id >= 0) {
+		if (_uc && _id > 0) {
 			_uc.battle.remove(toBattleId(_id), this);
 		}
 		_uc = null;
@@ -434,8 +434,8 @@ public:
 	/// id = パッケージID。
 	void packages(ulong id) {
 		if (_uc !is null) {
-			if (_id >= 0) _uc.packages.remove(toPackageId(_id), this);
-			if (id >= 0) _uc.packages.add(toPackageId(id), this);
+			if (_id > 0) _uc.packages.remove(toPackageId(_id), this);
+			if (id > 0) _uc.packages.add(toPackageId(id), this);
 		}
 		_id = id;
 	}
@@ -449,17 +449,17 @@ public:
 	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
 	void setUseCounter(UseCounter uc) {
-		if (uc && _id >= 0) {
+		if (uc && _id > 0) {
 			uc.packages.add(toPackageId(_id), this);
 		}
-		if (_uc && _id >= 0) {
+		if (_uc && _id > 0) {
 			_uc.packages.remove(toPackageId(_id), this);
 		}
 		_uc = uc;
 	}
 	/// ditto
 	void removeUseCounter() {
-		if (_uc && _id >= 0) {
+		if (_uc && _id > 0) {
 			_uc.packages.remove(toPackageId(_id), this);
 		}
 		_uc = null;
@@ -640,8 +640,8 @@ public:
 	/// id = キャストID。
 	void casts(ulong id) {
 		if (_uc !is null) {
-			if (_id >= 0) _uc.casts.remove(toCastId(_id), this);
-			if (id >= 0) _uc.casts.add(toCastId(id), this);
+			if (_id > 0) _uc.casts.remove(toCastId(_id), this);
+			if (id > 0) _uc.casts.add(toCastId(id), this);
 		}
 		_id = id;
 	}
@@ -655,17 +655,17 @@ public:
 	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
 	void setUseCounter(UseCounter uc) {
-		if (uc && _id >= 0) {
+		if (uc && _id > 0) {
 			uc.casts.add(toCastId(_id), this);
 		}
-		if (_uc && _id >= 0) {
+		if (_uc && _id > 0) {
 			_uc.casts.remove(toCastId(_id), this);
 		}
 		_uc = uc;
 	}
 	/// ditto
 	void removeUseCounter() {
-		if (_uc && _id >= 0) {
+		if (_uc && _id > 0) {
 			_uc.casts.remove(toCastId(_id), this);
 		}
 		_uc = null;
@@ -702,8 +702,8 @@ public:
 	/// id = スキルID。
 	void skill(ulong id) {
 		if (_uc !is null) {
-			if (_id >= 0) _uc.skill.remove(toSkillId(_id), this);
-			if (id >= 0) _uc.skill.add(toSkillId(id), this);
+			if (_id > 0) _uc.skill.remove(toSkillId(_id), this);
+			if (id > 0) _uc.skill.add(toSkillId(id), this);
 		}
 		_id = id;
 	}
@@ -717,17 +717,17 @@ public:
 	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
 	void setUseCounter(UseCounter uc) {
-		if (uc && _id >= 0) {
+		if (uc && _id > 0) {
 			uc.skill.add(toSkillId(_id), this);
 		}
-		if (_uc && _id >= 0) {
+		if (_uc && _id > 0) {
 			_uc.skill.remove(toSkillId(_id), this);
 		}
 		_uc = uc;
 	}
 	/// ditto
 	void removeUseCounter() {
-		if (_uc && _id >= 0) {
+		if (_uc && _id > 0) {
 			_uc.skill.remove(toSkillId(_id), this);
 		}
 		_uc = null;
@@ -764,8 +764,8 @@ public:
 	/// id = アイテムID。
 	void item(ulong id) {
 		if (_uc !is null) {
-			if (_id >= 0) _uc.item.remove(toItemId(_id), this);
-			if (id >= 0) _uc.item.add(toItemId(id), this);
+			if (_id > 0) _uc.item.remove(toItemId(_id), this);
+			if (id > 0) _uc.item.add(toItemId(id), this);
 		}
 		_id = id;
 	}
@@ -779,17 +779,17 @@ public:
 	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
 	void setUseCounter(UseCounter uc) {
-		if (uc && _id >= 0) {
+		if (uc && _id > 0) {
 			uc.item.add(toItemId(_id), this);
 		}
-		if (_uc && _id >= 0) {
+		if (_uc && _id > 0) {
 			_uc.item.remove(toItemId(_id), this);
 		}
 		_uc = uc;
 	}
 	/// ditto
 	void removeUseCounter() {
-		if (_uc && _id >= 0) {
+		if (_uc && _id > 0) {
 			_uc.item.remove(toItemId(_id), this);
 		}
 		_uc = null;
@@ -826,8 +826,8 @@ public:
 	/// id = 召喚獣ID。
 	void beast(ulong id) {
 		if (_uc !is null) {
-			if (_id >= 0) _uc.beast.remove(toBeastId(_id), this);
-			if (id >= 0) _uc.beast.add(toBeastId(id), this);
+			if (_id > 0) _uc.beast.remove(toBeastId(_id), this);
+			if (id > 0) _uc.beast.add(toBeastId(id), this);
 		}
 		_id = id;
 	}
@@ -841,17 +841,17 @@ public:
 	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
 	void setUseCounter(UseCounter uc) {
-		if (uc && _id >= 0) {
+		if (uc && _id > 0) {
 			uc.beast.add(toBeastId(_id), this);
 		}
-		if (_uc && _id >= 0) {
+		if (_uc && _id > 0) {
 			_uc.beast.remove(toBeastId(_id), this);
 		}
 		_uc = uc;
 	}
 	/// ditto
 	void removeUseCounter() {
-		if (_uc && _id >= 0) {
+		if (_uc && _id > 0) {
 			_uc.beast.remove(toBeastId(_id), this);
 		}
 		_uc = null;
@@ -888,8 +888,8 @@ public:
 	/// id = 情報カードID。
 	void info(ulong id) {
 		if (_uc !is null) {
-			if (_id >= 0) _uc.info.remove(toInfoId(_id), this);
-			if (id >= 0) _uc.info.add(toInfoId(id), this);
+			if (_id > 0) _uc.info.remove(toInfoId(_id), this);
+			if (id > 0) _uc.info.add(toInfoId(id), this);
 		}
 		_id = id;
 	}
@@ -903,17 +903,17 @@ public:
 	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
 	void setUseCounter(UseCounter uc) {
-		if (uc && _id >= 0) {
+		if (uc && _id > 0) {
 			uc.info.add(toInfoId(_id), this);
 		}
-		if (_uc && _id >= 0) {
+		if (_uc && _id > 0) {
 			_uc.info.remove(toInfoId(_id), this);
 		}
 		_uc = uc;
 	}
 	/// ditto
 	void removeUseCounter() {
-		if (_uc && _id >= 0) {
+		if (_uc && _id > 0) {
 			_uc.info.remove(toInfoId(_id), this);
 		}
 		_uc = null;

@@ -1004,6 +1004,9 @@ public:
 				replCard(c, c, count);
 				replEvent(c, count);
 			}
+			foreach (c; a.backs) {
+				replBgImage(c, c, count);
+			}
 			replEvent(a, count);
 		}
 		foreach (b; _summ.battles) {
@@ -1261,6 +1264,18 @@ public:
 		return false;
 	}
 
+	private bool replBgImage(CWXPath path, BgImage back, ref size_t count) {
+		string from = _from.getText;
+		string to = _to.getText;
+		bool r = false;
+		if (flag) {
+			r |= repl(null, &back.flag, &back.flag, count);
+		}
+		if (r && path) {
+			addResult(path);
+		}
+		return r;
+	}
 	private bool replCard(C)(CWXPath path, C card, ref size_t count) {
 		string from = _from.getText;
 		string to = _to.getText;
@@ -1270,6 +1285,11 @@ public:
 		}
 		if (cardDesc) {
 			r |= repl(null, &card.desc, &card.desc, count);
+		}
+		if (flag) {
+			static if (is (C : IFlagUser)) {
+				r |= repl(null, &card.flag, &card.flag, count);
+			}
 		}
 		static if (is (C : EffectCard)) {
 			r |= replKeyCode!(C)(null, card, count);
@@ -1287,6 +1307,10 @@ public:
 			bool r = false;
 			if (event && (!eo || eo.detail.nextType == CNextType.TEXT)) {
 				r |= repl(null, &e.name, &e.name, count);
+			}
+			if (flag) {
+				r |= repl(null, &e.flag, &e.flag, count);
+				r |= repl(null, &e.step, &e.step, count);
 			}
 			if (start) {
 				r |= repl(null, &e.start, &e.start, count);
@@ -1314,6 +1338,9 @@ public:
 						r |= replRqCoupons!(typeof(dlg))(null, dlg, count);
 					}
 				}
+			}
+			foreach (b; e.backs) {
+				r |= replBgImage(null, b, count);
 			}
 			foreach (m; e.motions) {
 				if (m.beast) {
