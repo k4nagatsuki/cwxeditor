@@ -25,7 +25,7 @@ string cpjoin(CWXPath owner, string category, int index) {
 	auto ocp = owner.cwxPath;
 	string cn;
 	cn = category ~ ":" ~ to!(string)(index);
-	return ocp.length ? owner.cwxPath ~ "/" ~ cn : cn;
+	return ocp.length ? ocp ~ "/" ~ cn : cn;
 }
 /// ditto
 string cpjoin(CWXPath owner, string name) {

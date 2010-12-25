@@ -473,12 +473,25 @@ template isVArray(T) {
 /// base = xxxxの場合、use(base)がfalseであればxxxx (2)、
 /// さらにuse("xxxx (2)")がfalseを返せばxxxx (3)……というように、
 /// 付記した数字をインクリメントしていく。
+/// baseが単純な数値なら+1する。
 /// Params:
 /// base = 元となる名前。
 /// use = 名前を使用するか否かの判定関数。
 /// space = falseの場合は括弧の前のスペースを付けない。
 /// Returns: 新しい名前。
 string createNewName(string base, bool delegate(string) use, bool space = true) {
+	if (std.regexp.find(base, `\-?[0-9]+$`) >= 0) {
+		try {
+			long i = to!(long)(base);
+			while (true) {
+				if (i + 1 < i) break; // overflow
+				i++;
+				auto s = to!(string)(i);
+				if (use(s)) return s;
+			}
+		} catch (Exception e) {
+		}
+	}
 	int i = 2;
 	string rexp = `\([0-9]+\)$`;
 	if (space) rexp = " " ~ rexp;
