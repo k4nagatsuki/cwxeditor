@@ -482,6 +482,9 @@ public:
 		_prop = prop;
 		_summ = summ;
 		_win = new Shell(shell, DWT.SHELL_TRIM);
+		if (shell) {
+			_win.setImeInputMode = shell.getImeInputMode;
+		}
 		_win.setText = _prop.msgs.dlgTitReplaceText;
 		_win.setImage = prop.images.menuReplaceText;
 		setup;

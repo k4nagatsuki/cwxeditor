@@ -81,9 +81,11 @@ abstract class AbsDialog {
 	private Button _okBtn;
 	private bool _applied = false;
 	private Button _apply = null;
+	private int _imeMode = DWT.NONE;
 	private class SListener : ShellAdapter {
 		override void shellClosed(ShellEvent e) {
 			bool cancel;
+			_imeMode = _win.getImeInputMode;
 			_ret = close(_ret, cancel);
 			e.doit = !cancel;
 			if (e.doit && _size) {
@@ -118,19 +120,25 @@ abstract class AbsDialog {
 		} else {
 			_win.pack;
 		}
-		if (_win.getParent) {
-			auto b = _win.getParent.getBounds;
+		auto par = cast(Shell) _win.getParent;
+		if (par) {
+			auto b = par.getBounds;
 			auto p = _win.getSize;
 			int x = b.x + (b.width - p.x) / 2;
 			int y = b.y + (b.height - p.y) / 2;
 			intoDisplay(x, y, p.x, p.y);
 			_win.setLocation = new Point(x, y);
+			_imeMode = par.getImeInputMode;
+			_win.setImeInputMode = _imeMode;
 		}
 		if (_apply) _apply.setEnabled = false;
 		_win.open;
 		auto d = _win.getDisplay;
 		while (!_win.isDisposed) {
 			if (!d.readAndDispatch) d.sleep;
+		}
+		if (par) {
+			par.setImeInputMode = _imeMode;
 		}
 		return _ret || _applied;
 	}
