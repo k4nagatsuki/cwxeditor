@@ -568,13 +568,15 @@ public:
 	/// サイズ変更/移動更作業を終えてサイズ/位置を確定し、画像をその位置に配置する。
 	/// 配置後、createImage()が実行される。
 	/// See_Also: createImage();
-	void resize() {
+	void resize(bool callListeners = true) {
 		bounds = newR;
-		foreach (l; l_resizes) {
-			l(this, x, y, width, height);
-		}
-		foreach (l; lc_resizes) {
-			l(this, x, y, cast(real) width / initW);
+		if (callListeners) {
+			foreach (l; l_resizes) {
+				l(this, x, y, width, height);
+			}
+			foreach (l; lc_resizes) {
+				l(this, x, y, cast(real) width / initW);
+			}
 		}
 		createImage;
 		retoggle;

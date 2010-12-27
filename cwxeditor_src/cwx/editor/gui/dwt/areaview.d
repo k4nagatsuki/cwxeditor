@@ -656,7 +656,7 @@ private:
 			{
 				auto a = cast(FlexImage) _imgp.images[startIndex + i];
 				mixin (N);
-				a.resize;
+				a.resize(false);
 			}
 		}
 	}
@@ -680,7 +680,7 @@ private:
 		static if (UseCards && UseBacks) {
 			assert(_editC.length + _editB.length > 0);
 			if (_editC.length + _editB.length > 1) {
-				return 0;
+				return oldVal;
 			} else if (_editC.length == 1) {
 				return __cancelSpn!(T, C)(_editC);
 			} else {

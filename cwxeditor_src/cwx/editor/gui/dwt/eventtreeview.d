@@ -1775,7 +1775,9 @@ public:
 		treeExpandedAll(_tree);
 	}
 	void treeClose() {
-		treeUnexpandedAll(_tree);
+		foreach (itm; _tree.getItems) {
+			itm.setExpanded = false;
+		}
 	}
 	private void editEnd(TreeItem itm, Control c) {
 		auto t = cast(Text) c;

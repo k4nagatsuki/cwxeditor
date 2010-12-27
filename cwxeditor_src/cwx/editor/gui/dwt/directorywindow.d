@@ -205,6 +205,18 @@ private:
 	void refreshDirs(string sel) {
 		if (!_win || _win.isDisposed) return;
 		try {
+			bool[string] expands;
+			void exps(TreeItem itm) {
+				if (itm.getExpanded) {
+					expands[(cast(FileNameObj) itm.getData).array] = true;
+				}
+				foreach (sub; itm.getItems) {
+					exps(sub);
+				}
+			}
+			foreach (itm; _dirs.getItems) {
+				exps(itm);
+			}
 			scope (exit) refreshStatusLine;
 			if (!_summ) {
 				_dirs.removeAll;
@@ -225,6 +237,17 @@ private:
 				_dirs.setSelection(_dirs.getItems[0]);
 			}
 			if (nTopItm) _dirs.setTopItem = nTopItm;
+			void expst(TreeItem itm) {
+				if ((cast(FileNameObj) itm.getData).array in expands) {
+					itm.setExpanded = true;
+				}
+				foreach (sub; itm.getItems) {
+					expst(sub);
+				}
+			}
+			foreach (itm; _dirs.getItems) {
+				expst(itm);
+			}
 			_dirs.getHorizontalBar.setSelection = hs;
 			_dirs.showSelection;
 		} catch (Exception e) {
@@ -855,10 +878,14 @@ private:
 
 	void __refreshUseCount() {
 		foreach (itm; _files.getItems) {
-			auto file = (cast(FileNameObj) itm.getData).array;
-			if (isdir(file)) continue;
-			auto c = _summ.useCounter.path.get(toPathId(toRelPath(file)));
-			itm.setText(2, to!(string)(c));
+			try {
+				auto file = (cast(FileNameObj) itm.getData).array;
+				if (!.exists(file) || .isdir(file)) continue;
+				auto c = _summ.useCounter.path.get(toPathId(toRelPath(file)));
+				itm.setText(2, to!(string)(c));
+			} catch (Exception e) {
+				debugln(e);
+			}
 		}
 	}
 	void __refreshTitle() {

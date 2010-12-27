@@ -226,10 +226,13 @@ private:
 	void delegate(int value) _edit;
 	void delegate(int value) _enter;
 	int delegate(int oldVal) _cancel;
+	bool _noEdit = false;
 	void enter() {
 		if (_spn.getText.length > 0 && _oldVal != _spn.getSelection) {
 			_enter(_spn.getSelection);
 		} else {
+			_noEdit = true;
+			scope (exit) _noEdit = false;
 			_spn.setSelection = _cancel !is null ? _cancel(_oldVal) : _oldVal;
 		}
 		_oldVal = _spn.getSelection;
@@ -239,6 +242,8 @@ private:
 			if (e.character == DWT.CR) {
 				enter;
 			} else if (e.character == DWT.ESC) {
+				_noEdit = true;
+				scope (exit) _noEdit = false;
 				_spn.setSelection = _cancel !is null ? _cancel(_oldVal) : _oldVal;
 				_oldVal = _spn.getSelection;
 			}
@@ -254,7 +259,7 @@ private:
 	}
 	class MDListener : ModifyListener {
 		public override void modifyText(ModifyEvent e) {
-			if (_spn.isFocusControl && _edit !is null) {
+			if (_spn.isFocusControl && _edit !is null && !_noEdit) {
 				_edit(_spn.getSelection);
 			}
 		}
