@@ -431,6 +431,7 @@ class FlexEtcProps : Properties {
 	mixin Property!("rCouponsStartAreaSashR", int, 1);
 	mixin Property!("areaViewL", int, 1);
 	mixin Property!("areaViewR", int, 4);
+	mixin Property!("partyCardAlpha", int, 176, true);
 	mixin Property!("viewPartyCardsArea", bool, true);
 	mixin Property!("viewPartyCardsBattle", bool, true);
 	mixin Property!("viewEnemyCardDebug", bool, false);

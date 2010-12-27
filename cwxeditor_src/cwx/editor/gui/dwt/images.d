@@ -96,6 +96,7 @@ private:
 	Rectangle rect;
 	bool t = false;
 	bool s = false;
+	int _alpha = 255;
 	Image _img;
 	string path = "";
 	ImageData data = null;
@@ -372,6 +373,9 @@ public:
 	/// dc = キャンバス。
 	void draw(GC gc) {
 		if (_visible && _img) {
+			int olda = gc.getAlpha;
+			gc.setAlpha = alpha;
+			scope (exit) gc.setAlpha = olda;
 			gc.drawImage(_img, x, y);
 		}
 	}
@@ -393,16 +397,18 @@ public:
 	void smoothing(bool smoothing) {
 		_smoothing = smoothing;
 	}
-	/// Returns: 透明色を使用するか。
+	/// 透明色を使用するか。
 	bool transparent() {
 		return t;
 	}
-	/// Params:
-	/// t = 透明色を使用するか。
-	/// See_Also: createImage();
+	/// ditto
 	void transparent(bool t) {
 		this.t = t;
 	}
+	/// 透明度。0(透明)～255(不透明)。
+	int alpha() {return _alpha;}
+	/// ditto
+	void alpha(int val) {_alpha = val;}
 	/// Returns: 横位置。
 	int x() {
 		return rect.x;

@@ -1399,6 +1399,7 @@ public:
 			static if (UseCards) appendCards(0, area.cards, false);
 			foreach (p; _prop.looks.partyCardXY) {
 				auto img = createCastCardBackImage(_prop, findSkin(_prop, _summ), p.x, p.y);
+				img.alpha = _prop.var.etc.partyCardAlpha;
 				img.visible = _viewParty;
 				_imgp.append(img);
 			}
