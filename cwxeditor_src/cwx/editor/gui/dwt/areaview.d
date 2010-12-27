@@ -52,6 +52,9 @@ import dwt.custom.SashForm;
 import dwt.custom.CLabel;
 import dwt.custom.CCombo;
 import dwt.custom.ScrolledComposite;
+import dwt.graphics.GC;
+import dwt.graphics.Color;
+import dwt.graphics.RGB;
 import dwt.graphics.ImageData;
 import dwt.graphics.Image;
 import dwt.layout.GridLayout;
@@ -433,12 +436,15 @@ private:
 
 	ImagePane _imgp;
 
+	bool _viewMsg = false;
 	bool _viewParty = true;
 	bool _fixed = false;
 
 	Summary _summ;
+	MenuItem _vmMenu;
 	MenuItem _vpMenu;
 	MenuItem _vfMenu;
+	ToolItem _vmTMenu;
 	ToolItem _vpTMenu;
 	ToolItem _vfTMenu;
 	static if (is (C == EnemyCard)) {
@@ -1258,13 +1264,16 @@ public:
 			});
 		}
 		static if (is (A == Area)) {
+			_viewMsg = _prop.var.etc.viewMessageArea;
 			_viewParty = _prop.var.etc.viewPartyCardsArea;
 			_fixed = _prop.var.etc.fixedImagesArea;
 		} else static if (is (A == Battle)) {
+			_viewMsg = _prop.var.etc.viewMessageBattle;
 			_viewParty = _prop.var.etc.viewPartyCardsBattle;
 			_fixed = _prop.var.etc.fixedImagesBattle;
 			_dbgMode = _prop.var.etc.viewEnemyCardDebug;
 		} else static if (is (A == BgImageContainer)) {
+			_viewMsg = _prop.var.etc.viewMessageEvent;
 			_viewParty = _prop.var.etc.viewPartyCardsEvent;
 			_fixed = _prop.var.etc.fixedImagesEvent;
 		} else {
@@ -1273,13 +1282,16 @@ public:
 		addDisposeListener(new class DisposeListener {
 			public override void widgetDisposed(DisposeEvent e) {
 				static if (is (A == Area)) {
+					_prop.var.etc.viewMessageArea = _viewMsg;
 					_prop.var.etc.viewPartyCardsArea = _viewParty;
 					_prop.var.etc.fixedImagesArea = _fixed;
 				} else static if (is (A == Battle)) {
+					_prop.var.etc.viewMessageBattle = _viewMsg;
 					_prop.var.etc.viewPartyCardsBattle = _viewParty;
 					_prop.var.etc.fixedImagesBattle = _fixed;
 					_prop.var.etc.viewEnemyCardDebug = _dbgMode;
 				} else static if (is (A == BgImageContainer)) {
+					_prop.var.etc.viewMessageEvent = _viewMsg;
 					_prop.var.etc.viewPartyCardsEvent = _viewParty;
 					_prop.var.etc.fixedImagesEvent = _fixed;
 				} else {
@@ -1401,6 +1413,11 @@ public:
 				auto img = createCastCardBackImage(_prop, findSkin(_prop, _summ), p.x, p.y);
 				img.alpha = _prop.var.etc.partyCardAlpha;
 				img.visible = _viewParty;
+				_imgp.append(img);
+			}
+			{
+				auto img = createMessageImage(_prop);
+				img.visible = _viewMsg;
 				_imgp.append(img);
 			}
 		}
@@ -1686,6 +1703,7 @@ public:
 		}
 	}
 
+	bool isViewMsg() {return _viewMsg;}
 	bool isViewParty() {return _viewParty;}
 	bool isFixed() {return _fixed;}
 	static if (UseCards) {
@@ -1717,6 +1735,9 @@ public:
 		_vpMenu = createMenuItem(mv, _prop.msgs.menuViewParty, _prop.images.menuViewParty,
 			&reverseViewParty, DWT.CHECK);
 		_vpMenu.setSelection = _viewParty;
+		_vmMenu = createMenuItem(mv, _prop.msgs.menuViewMsg, _prop.images.menuViewMsg,
+			&reverseViewMsg, DWT.CHECK);
+		_vmMenu.setSelection = _viewMsg;
 		new MenuItem(mv, DWT.SEPARATOR);
 		_vfMenu = createMenuItem(mv, _prop.msgs.menuFixed, _prop.images.menuFixed,
 			&reverseFixed, DWT.CHECK);
@@ -1768,6 +1789,10 @@ public:
 			_prop.msgs.ttViewParty, _prop.images.menuViewParty,
 			&reverseViewParty, DWT.CHECK);
 		_vpTMenu.setSelection = _viewParty;
+		_vmTMenu = createToolItem(bar,
+			_prop.msgs.ttViewMsg, _prop.images.menuViewMsg,
+			&reverseViewMsg, DWT.CHECK);
+		_vmTMenu.setSelection = _viewMsg;
 		new ToolItem(bar, DWT.SEPARATOR);
 		_vfTMenu = createToolItem(bar,
 			_prop.msgs.ttFixed, _prop.images.menuFixed,
@@ -1871,12 +1896,19 @@ public:
 
 	void reverseViewParty() {
 		_viewParty = !_viewParty;
-		for (int i = _imgp.images.length - 1;
-				i >= _imgp.images.length - _prop.looks.partyCardXY.length; i--) {
+		for (int i = _imgp.images.length - 2;
+				i >= _imgp.images.length - _prop.looks.partyCardXY.length - 1; i--) {
 			_imgp.images[i].visible = _viewParty;
 		}
 		if (_vpMenu) _vpMenu.setSelection = _viewParty;
 		if (_vpTMenu) _vpTMenu.setSelection = _viewParty;
+		_imgp.redraw;
+	}
+	void reverseViewMsg() {
+		_viewMsg = !_viewMsg;
+		_imgp.images[$ - 1].visible = _viewMsg;
+		if (_vmMenu) _vmMenu.setSelection = _viewMsg;
+		if (_vmTMenu) _vmTMenu.setSelection = _viewMsg;
 		_imgp.redraw;
 	}
 	void reverseFixed() {
@@ -2724,4 +2756,36 @@ BgImagesView createBgImagesViewAndMenu(Commons comm, Props prop, Summary summ, B
 	createMenuItem(mv, prop.msgs.menuRefresh, prop.images.menuRefresh, &view.refresh);
 	view.setupMenu(bar);
 	return view;
+}
+
+PileImage createMessageImage(Props prop) {
+	auto d = Display.getCurrent;
+	auto rect = prop.looks.messageBounds;
+	auto bh = prop.looks.messageButtonHeight;
+	auto canvas = new Image(d, rect.width, rect.height + bh);
+	scope (exit) canvas.dispose;
+	auto gc = new GC(canvas);
+	scope (exit) gc.dispose;
+	int alpha;
+	auto c1 = new Color(d, dwtData(prop.looks.messageLineColor1, alpha));
+	scope (exit) c1.dispose;
+	auto c2 = new Color(d, dwtData(prop.looks.messageLineColor2, alpha));
+	scope (exit) c2.dispose;
+	auto c3 = new Color(d, dwtData(prop.looks.messageBackColor, alpha));
+	scope (exit) c3.dispose;
+	gc.setForeground = c1;
+	gc.drawRectangle(0, 0, rect.width - 1, rect.height - 1);
+	gc.drawRectangle(2, 2, rect.width - 5, rect.height - 5);
+	gc.drawRectangle(0, rect.height, rect.width - 1, bh - 1);
+	gc.drawRectangle(2, rect.height + 2, rect.width - 5, bh - 5);
+	gc.setForeground = c2;
+	gc.drawRectangle(1, 1, rect.width - 3, rect.height - 3);
+	gc.drawRectangle(1, rect.height + 1, rect.width - 3, bh - 3);
+	gc.setBackground = c3;
+	gc.fillRectangle(3, 3, rect.width - 6, rect.height - 6);
+	gc.fillRectangle(3, rect.height + 3, rect.width - 6, bh - 6);
+	auto img = new PileImage(canvas.getImageData, rect.x, rect.y, rect.width, rect.height + bh);
+	img.alpha = prop.var.etc.messageAlpha;
+	img.createImage;
+	return img;
 }

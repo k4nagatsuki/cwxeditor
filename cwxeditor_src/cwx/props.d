@@ -962,6 +962,8 @@ public:
 	string menuCardsAndBacks() {return "カードと背景" ~ "(&A)";}
 	string ttViewParty() {return "パーティカードの表示";}
 	string menuViewParty() {return ttViewParty ~ "(&P)";}
+	string ttViewMsg() {return "メッセージ枠の表示";}
+	string menuViewMsg() {return ttViewMsg ~ "(&M)";}
 	string ttFixed() {return "イメージの固定";}
 	string menuFixed() {return ttFixed ~ "(&F)";}
 	string ttEnemyCardDebugView() {return "レベルとライフを表示";}
@@ -1880,6 +1882,12 @@ public:
 			CPoint(528, 285)
 		];
 	}
+
+	CRect messageBounds() {return CRect(81, 50, 470, 180);}
+	int messageButtonHeight() {return 26;}
+	CRGB messageLineColor1() {return CRGB(0, 0, 0);}
+	CRGB messageLineColor2() {return CRGB(128, 0, 0);}
+	CRGB messageBackColor() {return CRGB(0, 0, 128);}
 	int levelMax() {return 15;}
 
 	int aptVeryHigh() {return 15;}

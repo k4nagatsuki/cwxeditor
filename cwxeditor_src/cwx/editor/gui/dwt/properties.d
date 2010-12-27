@@ -436,6 +436,10 @@ class FlexEtcProps : Properties {
 	mixin Property!("viewPartyCardsBattle", bool, true);
 	mixin Property!("viewEnemyCardDebug", bool, false);
 	mixin Property!("viewPartyCardsEvent", bool, true);
+	mixin Property!("messageAlpha", int, 176, true);
+	mixin Property!("viewMessageArea", bool, false);
+	mixin Property!("viewMessageBattle", bool, false);
+	mixin Property!("viewMessageEvent", bool, false);
 	mixin Property!("fixedImagesArea", bool, false);
 	mixin Property!("fixedImagesBattle", bool, false);
 	mixin Property!("fixedImagesEvent", bool, false);
