@@ -343,8 +343,8 @@ public:
 	Image menuNewFlag() {return imgd!(resourceDir ~ "flag_new.png");}
 	Image menuNewStep() {return imgd!(resourceDir ~ "step_new.png");}
 
-	Image menuViewParty() {return imgd!(resourceDir ~ "partyCards.png");}
-	Image menuViewMsg() {return imgd!(resourceDir ~ "viewMsg.png");}
+	Image menuViewParty() {return imgd!(resourceDir ~ "party_cards.png");}
+	Image menuViewMsg() {return imgd!(resourceDir ~ "view_msg.png");}
 	Image menuFixed() {return imgd!(resourceDir ~ "fixed.png");}
 	Image menuEnemyCardDebugView() {return imgd!(resourceDir ~ "card_life.png");}
 	Image menuViewCards() {return imgd!(resourceDir ~ "cards.png");}
