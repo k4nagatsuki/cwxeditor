@@ -484,10 +484,10 @@ string createNewName(string base, bool delegate(string) use, bool space = true) 
 		try {
 			long i = to!(long)(base);
 			while (true) {
-				if (i + 1 < i) break; // overflow
-				i++;
 				auto s = to!(string)(i);
 				if (use(s)) return s;
+				if (i + 1 < i) break; // overflow
+				i++;
 			}
 		} catch (Exception e) {
 		}
