@@ -32,7 +32,10 @@ class FixedWidthText {
 		_widget.setFont = new Font(Display.getCurrent, fontData);
 		_gc = new GC(_widget);
 		_gc.setFont = _widget.getFont;
-		_width = _gc.getAdvanceWidth(' ') * num;
+		// FIXME: Windows環境で太字にするとサイズが合わなくなる
+/+		_width = _gc.getAdvanceWidth(' ') * num;
++/		_width = _gc.textExtent("　").x * (num / 2);
+		if (num & 1) _width += _gc.textExtent(" ").x;
 
 		_widget.addListener(DWT.Dispose, new class Listener {
 			override void handleEvent(Event e) {
