@@ -237,12 +237,11 @@ protected:
 				tp = createTalkerPane2(comp, _prop, _summ, Talker.SELECTED, [], _talkers, _rCoupons);
 			}
 			tp.setLayoutData = new GridData(GridData.FILL_BOTH);
-			_text = createMessagePane(_prop, true, comp, skin);
-			auto gd = new GridData;
-			auto s = _text.computeTextBaseSize(_prop.looks.messageLine);
-			gd.widthHint = s.x;
-			gd.heightHint = s.y;
-			_text.widget.setLayoutData = gd;
+			auto msgComp = new Composite(comp, DWT.NONE);
+			msgComp.setLayoutData = new GridData(GridData.FILL_VERTICAL);
+			msgComp.setLayout(new CenterLayout(DWT.HORIZONTAL | DWT.VERTICAL, 0));
+			_text = createMessagePane(_prop, true, msgComp, skin);
+			_text.widget.setLayoutData = _text.computeTextBaseSize(_prop.looks.messageLine);
 			_text.widget.addModifyListener(new ModL);
 		}
 		{
@@ -367,12 +366,11 @@ protected:
 				tp = createTalkerPane(comp, _comm, _prop, _summ, Talker.SELECTED, "", _msel);
 			}
 			tp.setLayoutData = new GridData(GridData.FILL_BOTH);
-			_textA = createMessagePane(_prop, true, comp, skin);
-			auto gd = new GridData;
-			auto s = _textA.computeTextBaseSize(_prop.looks.messageLine);
-			gd.widthHint = s.x;
-			gd.heightHint = s.y;
-			_textA.widget.setLayoutData = gd;
+			auto msgComp = new Composite(comp, DWT.NONE);
+			msgComp.setLayoutData = new GridData(GridData.FILL_VERTICAL);
+			msgComp.setLayout(new CenterLayout(DWT.HORIZONTAL | DWT.VERTICAL, 0));
+			_textA = createMessagePane(_prop, true, msgComp, skin);
+			_textA.widget.setLayoutData = _textA.computeTextBaseSize(_prop.looks.messageLine);
 			auto tab = new CTabItem(_tabf, DWT.NONE);
 			tab.setText = _prop.msgs.imageMessage;
 			tab.setControl = comp;

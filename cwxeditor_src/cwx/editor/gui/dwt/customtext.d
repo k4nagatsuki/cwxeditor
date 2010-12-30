@@ -1,6 +1,8 @@
 
 module cwx.editor.gui.dwt.customtext;
 
+import cwx.utils;
+
 import std.compat;
 import std.utf;
 import std.string;

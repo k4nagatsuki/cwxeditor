@@ -1913,12 +1913,7 @@ public:
 	int cardDescLen() {return 38;}
 	int cardDescLine() {return 7;}
 
-	version (Windows) {
-		// FIXME: どうしても1文字分広くなってしまう
-		int messageImageLen() {return 33;}
-	} else {
-		int messageImageLen() {return 34;}
-	}
+	int messageImageLen() {return 34;}
 	int messageLen() {return 44;}
 	int messageLine() {return 7;}
 
