@@ -804,7 +804,7 @@ private:
 			string tod = nabs(to);
 			void pchange(string file) {
 				auto oldP = frd ~ nabs(file)[tod.length .. $];
-				if (.isdir(file)) {
+				if (.exists(file) && .isdir(file)) {
 					foreach (c; clistdir(file)) {
 						pchange(std.path.join(file, c));
 					}
@@ -814,8 +814,8 @@ private:
 					_summ.useCounter.change(toPathId(p1), toPathId(p2));
 				}
 			}
-			foreach (c; clistdir(path)) {
-				pchange(std.path.join(path, c));
+			foreach (c; clistdir(to)) {
+				pchange(std.path.join(to, c));
 			}
 		} else {
 			string p1 = frp;
