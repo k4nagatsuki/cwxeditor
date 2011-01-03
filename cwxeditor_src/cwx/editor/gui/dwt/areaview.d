@@ -824,7 +824,7 @@ private:
 				x1 = mixin (X);
 				a = fi2;
 				x2 = mixin (X);
-				return x1 > x2;
+				return x1 < x2;
 			}
 			targs = .sort(targs, &ficmp);
 			auto a = targs[0];
