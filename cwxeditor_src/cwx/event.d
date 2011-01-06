@@ -1489,6 +1489,7 @@ private:
 		}
 	}
 	this() {
+		_suc = new SUseCounter;
 	}
 public:
 	/// イベントツリー名を指定してインスタンスを生成。

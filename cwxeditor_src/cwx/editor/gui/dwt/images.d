@@ -645,7 +645,6 @@ public:
 	/// x = 横位置。
 	/// See_Also: resize()
 	void newX(int x) {
-		if (fixed) return;
 		newR.x = x;
 		retoggle();
 	}
@@ -658,7 +657,6 @@ public:
 	/// y = 縦位置。
 	/// See_Also: resize()
 	void newY(int y) {
-		if (fixed) return;
 		newR.y = y;
 		retoggle();
 	}
@@ -690,7 +688,6 @@ public:
 	/// Params:
 	/// w = 幅。
 	void newWidth(int w) {
-		if (fixed) return;
 		newR.width = roundMWidth(w);
 		newR.height = roundHeight(newR.height);
 		retoggle();
@@ -723,7 +720,6 @@ public:
 	/// Params:
 	/// h = 高さ。
 	void newHeight(int h) {
-		if (fixed) return;
 		newR.height = roundMHeight(h);
 		newR.width = roundWidth(newR.width);
 		retoggle();
@@ -732,7 +728,6 @@ public:
 	/// Params:
 	/// rect = 位置とサイズ。
 	void newBounds(Rectangle rect) {
-		if (fixed) return;
 		newR.x = rect.x;
 		newR.y = rect.y;
 		if (newR.width >= newR.height) {
@@ -748,7 +743,6 @@ public:
 	/// Params:
 	/// scale = 元のサイズに対するスケール
 	void scale(real scale) {
-		if (fixed) return;
 		newR.width = cast(int) rndtol(initW * scale);
 		newR.height = roundHeight(cast(int) rndtol(initH * rect.height));
 		retoggle();
@@ -841,7 +835,7 @@ public:
 	/// Returns: 描画する領域。
 	Rectangle drawNewArea() {
 		if (fixed) {
-			return newBounds;
+			return new Rectangle(newR.x - 1, newR.y - 1, newR.width + 2, newR.height + 2);
 		} else {
 			return new Rectangle(newR.x - tglSize, newR.y - tglSize,
 				newR.width + tglSize * 2, newR.height + tglSize * 2);
@@ -1107,6 +1101,7 @@ private:
 	class FocusLost : Listener {
 		override void handleEvent(Event me) {
 			dragTgl = Toggle.NONE;
+			redrawProc((FlexImage img) {img.resize;});
 		}
 	}
 	class MouseUp : Listener {
@@ -1172,6 +1167,17 @@ private:
 
 			e.gc.drawImage(buf, 0, 0);
 			buf.dispose;
+		}
+	}
+	class Traverse : Listener {
+		public override void handleEvent(Event e) {
+			switch (e.detail) {
+			case DWT.TRAVERSE_ARROW_NEXT, DWT.TRAVERSE_ARROW_PREVIOUS:
+				e.doit = false;
+				break;
+			default:
+				e.doit = true;
+			}
 		}
 	}
 
@@ -1390,6 +1396,7 @@ public:
 		addMouseMoveListener(new MMListener);
 		addKeyListener(new KListener);
 		addListener(DWT.FocusOut, new FocusLost);
+		addListener(DWT.Traverse, new Traverse);
 		addPaintListener(new PListener);
 		addDisposeListener(new DListener);
 
