@@ -32,6 +32,14 @@ unittest {
 private bool sWith(string f, string s) {
 	return f.length > s.length && fnmatch(f[0u .. s.length], s);
 }
+private string encodePathLegacy(string path) {
+	// エフェクトブースターは'/'区切りのパスを受け付けない
+	return isBinImg(path) ? path : replace(path, sep, "\\");
+}
+private string decodePathLegacy(string path) {
+	return isBinImg(path) ? path : replace(path, "\\", sep);
+}
+
 private struct RData {
 	string sPath;
 	string skin;
@@ -571,12 +579,12 @@ private Content readContent(in RData d, ref ByteIO f) {
 		e = new Content(CType.TALK_MESSAGE, name);
 		e.text = readString(f, true);
 		e.talkerC = msgTalker;
-		e.cardPath = msgTalker != Talker.IMAGE ? "" : decodePath(msgPath);
+		e.cardPath = msgTalker != Talker.IMAGE ? "" : decodePathLegacy(msgPath);
 		break;
 	}
 	case 7:
 		e = new Content(CType.PLAY_BGM, name);
-		e.bgmPath = decodePath(readString(f));
+		e.bgmPath = decodePathLegacy(readString(f));
 		break;
 	case 8: {
 		BgImage[] bgImgs = readBgImages(f);
@@ -588,7 +596,7 @@ private Content readContent(in RData d, ref ByteIO f) {
 	}
 	case 9:
 		e = new Content(CType.PLAY_SOUND, name);
-		e.soundPath = decodePath(readString(f));
+		e.soundPath = decodePathLegacy(readString(f));
 		break;
 	case 10:
 		e = new Content(CType.WAIT, name);
@@ -602,7 +610,7 @@ private Content readContent(in RData d, ref ByteIO f) {
 		byte effResist = f.readByte;
 		int effSuc = f.readIntL;
 		string sp = readString(f);
-		string effSePath = sp == "（なし）" ? "" : decodePath(sp);
+		string effSePath = sp == "（なし）" ? "" : decodePathLegacy(sp);
 		byte effVis = f.readByte;
 		uint effMotionNum = f.readUIntL;
 		Motion[] effMotions;
@@ -1000,7 +1008,7 @@ private BgImage readBgImage(ref ByteIO f) {
 	int y = f.readIntL;
 	int w = f.readUIntL - 40000u;
 	int h = f.readUIntL;
-	string imgPath = decodePath(readString(f));
+	string imgPath = decodePathLegacy(readString(f));
 	bool mask = readBool(f);
 	string flag = readString(f);
 	f.readByte;
@@ -1051,7 +1059,7 @@ private Area loadArea(in RData d, ref ByteIO f) {
 		real scale = f.readUIntL / 100.0;
 		int x = f.readIntL;
 		int y = f.readIntL;
-		string imgPath = decodePath(readString(f));
+		string imgPath = decodePathLegacy(readString(f));
 		auto c = new MenuCard(cName, imgPath.length ? imgPath : img, desc, flag, x, y, scale);
 		foreach (tree; trees) {
 			c.add(tree);
@@ -1094,7 +1102,7 @@ private Battle loadBattle(in RData d, ref ByteIO f) {
 		}
 		r.append(c);
 	}
-	r.music = decodePath(readString(f));
+	r.music = decodePathLegacy(readString(f));
 	return r;
 }
 private Package loadPackage(in RData d, ref ByteIO f) {
@@ -1209,9 +1217,9 @@ private C readEffCard(C)(in RData d, ref ByteIO f) {
 	r.enhance(Enhance.RESIST, f.readIntL);
 	r.enhance(Enhance.DEFENSE, f.readIntL);
 	string sp1 = readString(f);
-	r.soundPath1 = sp1 == "（なし）" ? "" : decodePath(sp1);
+	r.soundPath1 = sp1 == "（なし）" ? "" : decodePathLegacy(sp1);
 	string sp2 = readString(f);
-	r.soundPath2 = sp2 == "（なし）" ? "" : decodePath(sp2);
+	r.soundPath2 = sp2 == "（なし）" ? "" : decodePathLegacy(sp2);
 	string[] keyCodes;
 	keyCodes.length = 5u;
 	for (uint i = 0u; i < 5u; i++) {
@@ -1815,20 +1823,20 @@ private void writeContent(in SData d, ref ByteIO f, Content e) {
 		case Talker.UNSELECTED: path = "??Unselected"; break;
 		case Talker.RANDOM: path = "??Random"; break;
 		case Talker.CARD: path = "??Card"; break;
-		case Talker.IMAGE: path = encodePath(e.cardPath); break;
+		case Talker.IMAGE: path = encodePathLegacy(e.cardPath); break;
 		default: assert (0, "event 6");
 		}
 		writeString(f, path);
 		writeString(f, lastRet(e.text), true);
 	} else if (e.type is CType.PLAY_BGM) {
 		wb(7);
-		writeString(f, encodePath(e.bgmPath));
+		writeString(f, encodePathLegacy(e.bgmPath));
 	} else if (e.type is CType.CHANGE_BG_IMAGE) {
 		wb(8);
 		writeBgImages(f, e.backs);
 	} else if (e.type is CType.PLAY_SOUND) {
 		wb(9);
-		writeString(f, encodePath(e.soundPath));
+		writeString(f, encodePathLegacy(e.soundPath));
 	} else if (e.type is CType.WAIT) {
 		wb(10);
 		f.writeL(cast(uint) e.wait);
@@ -1841,7 +1849,7 @@ private void writeContent(in SData d, ref ByteIO f, Content e) {
 		f.write(fromEffectType(e.effectType));
 		f.write(fromResist(e.resist));
 		f.writeL(cast(int) e.successRate);
-		writeString(f, e.soundPath.length ? encodePath(e.soundPath) : "（なし）");
+		writeString(f, e.soundPath.length ? encodePathLegacy(e.soundPath) : "（なし）");
 		f.write(fromCardVisual(e.cardVisual));
 		f.writeL(cast(uint) e.motions.length);
 		foreach (m; e.motions) {
@@ -2077,7 +2085,7 @@ private void writeBgImage(ref ByteIO f, BgImage b) {
 	f.writeL(cast(int) b.y);
 	f.writeL(cast(uint) b.width + 40000u);
 	f.writeL(cast(uint) b.height);
-	writeString(f, encodePath(b.path));
+	writeString(f, encodePathLegacy(b.path));
 	writeBool(f, b.mask);
 	writeString(f, b.flag);
 	f.writeL(cast(byte) 0x0);
@@ -2123,7 +2131,7 @@ private void writeArea(in SData d, ref ByteIO f, Area a) {
 		f.writeL(cast(uint) rndtol(c.scale * 100.0));
 		f.writeL(cast(int) c.x);
 		f.writeL(cast(int) c.y);
-		writeString(f, isBinImg(c.path) ? "" : encodePath(c.path));
+		writeString(f, isBinImg(c.path) ? "" : encodePathLegacy(c.path));
 	}
 	writeBgImages(f, a.backs);
 }
@@ -2150,7 +2158,7 @@ private void writeBattle(in SData d, ref ByteIO f, Battle a) {
 		f.writeL(cast(int) c.y);
 		writeBool(f, c.escape);
 	}
-	writeString(f, encodePath(a.music));
+	writeString(f, encodePathLegacy(a.music));
 }
 private void writePackage(in SData d, ref ByteIO f, Package a) {
 	f.writeL(cast(uint) 0x4);
@@ -2251,8 +2259,8 @@ private void writeEffCard(in SData d, ref ByteIO f, EffectCard c, byte type) {
 	f.writeL(cast(int) c.enhance(Enhance.AVOID));
 	f.writeL(cast(int) c.enhance(Enhance.RESIST));
 	f.writeL(cast(int) c.enhance(Enhance.DEFENSE));
-	writeString(f, c.soundPath1.length ? encodePath(c.soundPath1) : "（なし）");
-	writeString(f, c.soundPath2.length ? encodePath(c.soundPath2) : "（なし）");
+	writeString(f, c.soundPath1.length ? encodePathLegacy(c.soundPath1) : "（なし）");
+	writeString(f, c.soundPath2.length ? encodePathLegacy(c.soundPath2) : "（なし）");
 	for (uint i = 0u; i < 5u; i++) {
 		if (i < c.keyCodes.length) {
 			writeString(f, c.keyCodes[i]);

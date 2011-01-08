@@ -480,16 +480,14 @@ template isVArray(T) {
 /// space = falseの場合は括弧の前のスペースを付けない。
 /// Returns: 新しい名前。
 string createNewName(string base, bool delegate(string) use, bool space = true) {
-	if (std.regexp.find(base, `\-?[0-9]+$`) >= 0) {
+	if (std.regexp.find(base, `^-?[1-9][0-9]*$`) >= 0) {
 		try {
 			long i = to!(long)(base);
 			while (true) {
-debugln("debug: ", 0, ", base: ", base, ", i: ", i);
 				auto s = to!(string)(i);
 				if (use(s)) return s;
 				if (i + 1 < i) break; // overflow
 				i++;
-debugln("debug: ", 1, ", base: ", base, ", i: ", i);
 			}
 		} catch (Exception e) {
 		}
@@ -507,9 +505,7 @@ debugln("debug: ", 1, ", base: ", base, ", i: ", i);
 		}
 	}
 	for (; !use(name); i++) {
-debugln("debug: ", 2, ", base: ", base, ", i: ", i);
 		name = base ~ (space ? " (" : "(") ~ .to!(string)(i) ~ ")";
-debugln("debug: ", 3, ", base: ", base, ", i: ", i);
 	}
 	return name;
 } unittest {

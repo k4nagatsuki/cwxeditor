@@ -89,9 +89,6 @@ string convTo(CP CP1, CP CP2)(string s) {
 				}
 			}
 			buf.length = len;
-			debug version (Windows) {
-				assert (strcmp(std.windows.charset.toMBSz(s), (buf ~ "\0").ptr) == 0, "to sjis: " ~ s);
-			}
 			return buf;
 		} else {
 			init;
