@@ -759,7 +759,7 @@ public class FlexProps {
 			toNode(node, fld);
 		}
 		if (dock) {
-			dock.toNode(node);
+			dock.toNode(node, ["work"]);
 		}
 		write(xmlFileName, node.text);
 	}

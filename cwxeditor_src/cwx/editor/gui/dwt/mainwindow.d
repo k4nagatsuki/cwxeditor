@@ -458,7 +458,9 @@ private:
 			}
 		}
 		auto dlg = new SettingsDialog(_comm, _prop, _win);
-		dlg.open;
+		if (dlg.open) {
+			_prop.var.save(dock);
+		}
 	}
 
 	void addHistory() {
@@ -487,6 +489,7 @@ private:
 		_prop.var.etc.openHistories = [hist]
 			~ (_prop.var.etc.openHistories.length < _prop.var.etc.historyMax
 			? _prop.var.etc.openHistories : _prop.var.etc.openHistories[0 .. $ - 1]);
+		_prop.var.save(dock);
 		createFileMenu;
 	}
 	class Hist {

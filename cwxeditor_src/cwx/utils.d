@@ -104,14 +104,14 @@ debug {
 			~ "timer.start;"
 			~ "scope (exit) {"
 			~ "timer.stop;"
-			~ "t[" ~ ToString!(I) ~ "] += timer.milliseconds;"
+			~ ".t[" ~ ToString!(I) ~ "] += timer.milliseconds;"
 			~ "}";
 	}
 	const BPerfS = "scope timer = new std.perf.PerformanceCounter; timer.start;";
 	template BPerf(int I) {
 		static const BPerf
 			= "timer.stop;"
-			~ "t[" ~ ToString!(I) ~ "] += timer.milliseconds;"
+			~ ".t[" ~ ToString!(I) ~ "] += timer.milliseconds;"
 			~ "timer.start;";
 	}
 	static assert (FPerf!(10));

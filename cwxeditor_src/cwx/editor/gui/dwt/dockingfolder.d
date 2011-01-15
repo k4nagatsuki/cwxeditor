@@ -825,51 +825,58 @@ class DockingFolder(TabF, int Style) {
 		}
 	}
 
-	/// XMLノードにして返す。
-	/// dispose後も呼出し可能。
-	XNode toNode() {
+	/// XMLノードにして返す。dispose後も呼出し可能。
+	/// excludeに含まれる文字列で開始されるタブは無視される。
+	XNode toNode(string[] exclude = []) {
 		auto r = XNode.create("dockingFolder");
-		toNodeImpl(r);
+		toNodeImpl(r, exclude);
 		return r;
 	}
 	/// ditto
-	XNode toNode(ref XNode parent) {
+	XNode toNode(ref XNode parent, string[] exclude = []) {
 		auto r = parent.newElement("dockingFolder");
-		toNodeImpl(r);
+		toNodeImpl(r, exclude);
 		return r;
 	}
-	private XNode toNodeImpl(ref XNode r) {
+	private XNode toNodeImpl(ref XNode r, string[] exclude) {
 		if (!_area.isDisposed) {
 			saveTree;
 		}
 		assert (_tree, "dockingfolder#toNodeImpl");
 		if (_tree.sash) {
-			return toNodeImpl(r, _tree.sash);
+			return toNodeImpl(r, _tree.sash, exclude);
 		} else {
-			return toNodeImpl(r, _tree.tabf);
+			return toNodeImpl(r, _tree.tabf, exclude);
 		}
 	}
-	private XNode toNodeImpl(ref XNode parent, Sashf* sa) {
+	private XNode toNodeImpl(ref XNode parent, Sashf* sa, string[] exclude) {
 		auto r = parent.newElement("sash");
 		r.newAttr("type", sa.vertical ? VERTICAL : HORIZONTAL);
 		r.newAttr("lWeight", sa.lWeight);
 		r.newAttr("rWeight", sa.rWeight);
 		void n(Sashf* sa, Tabf* ta) {
 			if (sa) {
-				toNodeImpl(r, sa);
+				toNodeImpl(r, sa, exclude);
 			} else {
-				toNodeImpl(r, ta);
+				toNodeImpl(r, ta, exclude);
 			}
 		}
 		n(sa.lSash, sa.lTabf);
 		n(sa.rSash, sa.rTabf);
 		return r;
 	}
-	private XNode toNodeImpl(ref XNode parent, Tabf* ta) {
+	private XNode toNodeImpl(ref XNode parent, Tabf* ta, string[] exclude) {
 		auto r = parent.newElement("tabs");
 		if (ta.select >= 0) r.newAttr("select", ta.select);
 		r.newAttr("key", ta.key);
+		bool sc(string name) {
+			foreach (ex; exclude) {
+				if (cwx.utils.startsWith(name, ex)) return true;
+			}
+			return false;
+		}
 		foreach (ref tab; ta.tabs) {
+			if (sc(tab.key)) continue;
 			auto t = r.newElement("tab");
 			t.newAttr("key", tab.key);
 			t.newAttr("name", tab.name);
