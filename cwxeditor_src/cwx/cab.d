@@ -288,8 +288,9 @@ version (Windows) {
 				switch (type) {
 				case FDINOTIFICATIONTYPE.fdintCABINET_INFO: return 0;
 				case FDINOTIFICATIONTYPE.fdintCOPY_FILE: {
-					char[MAX_PATH] path;
 					auto prm = cast(Prm*) pNotify.pv;
+					char[] path;
+					path.length = MAX_PATH + strlen(prm.dest) + 1;
 					strcpy(path.ptr, prm.dest);
 					auto cpp = cast(char*) pNotify.psz1;
 					auto len = strlen(cpp);
