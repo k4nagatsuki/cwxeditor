@@ -382,7 +382,7 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 	private void lock() {
 		assert (!_lock);
 		if (useTemp) {
-			_lock = new File(std.path.join(scenarioPath, "cwxeditor.lock"), FileMode.OutNew);
+			_lock = new File(std.path.join(_tempPath, "cwxeditor.lock"), FileMode.OutNew);
 		}
 	}
 	/// 一時展開先を削除する。
