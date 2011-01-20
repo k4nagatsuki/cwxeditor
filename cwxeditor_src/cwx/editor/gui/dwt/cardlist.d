@@ -377,7 +377,7 @@ public:
 		deselectAll;
 		disposeItems;
 		foreach (c; cards) {
-			auto itm = new CardListItem!(C)(this, DWT.NONE, c, createImage(c));
+			auto itm = new CardListItem!(C)(this, DWT.NONE, c, createImage);
 			_items ~= itm;
 			if (_defItmW < 0 && _itmW < itm.width) _itmW = itm.width;
 			if (_defItmH < 0 && _itmH < itm.height) _itmH = itm.height;
@@ -604,10 +604,9 @@ private:
 		}
 	}
 	void __repaint(GC gc) {
-		int w = getClientArea.width;
-		if (_items.length == 0) {
-			return;
-		}
+		if (_items.length == 0) return;
+		auto rect = getClientArea;
+		int w = rect.width;
 		int index, iy, ix;
 		int x;
 		int y = _marginY - _origin.y;
@@ -618,19 +617,22 @@ private:
 				auto itm = _items[index];
 				itm.x = x;
 				itm.y = y;
-				if (gc) {
-					gc.drawImage(itm.getImage, x, y);
-					if (isFocusControl && _cur == index) {
-						int fx = x + _focusLinePadding;
-						int fy = y + _focusLinePadding;
-						int fw = itm.width - _focusLinePadding * 2;
-						int fh = itm.height - _focusLinePadding * 2;
-						gc.drawFocus(fx, fy, fw, fh);
-					}
-					if (index in _sels) {
-						gc.setAlpha = 64;
-						gc.fillRectangle(x, y, itm.width, itm.height);
-						gc.setAlpha = 255;
+				if (y < rect.y + rect.height) {
+					if (gc) {
+						itm.createImage;
+						gc.drawImage(itm.getImage, x, y);
+						if (isFocusControl && _cur == index) {
+							int fx = x + _focusLinePadding;
+							int fy = y + _focusLinePadding;
+							int fw = itm.width - _focusLinePadding * 2;
+							int fh = itm.height - _focusLinePadding * 2;
+							gc.drawFocus(fx, fy, fw, fh);
+						}
+						if (index in _sels) {
+							gc.setAlpha = 64;
+							gc.fillRectangle(x, y, itm.width, itm.height);
+							gc.setAlpha = 255;
+						}
 					}
 				}
 				x += _itmW;
@@ -712,13 +714,19 @@ private:
 private class CardListItem(C) : Item {
 private:
 	ImageData _imgData;
+	ImageData delegate(C) _createImage;
 	int _x, _y;
 public:
-	this(CardList!(C) parent, int style, C c, ImageData imgData) {
+	this(CardList!(C) parent, int style, C c, ImageData delegate(C) createImage) {
 		super(parent, style);
 		setData(c);
-		setImage(new Image(Display.getCurrent, imgData));
-		_imgData = imgData;
+		_createImage = createImage;
+	}
+	void createImage() {
+		if (!_imgData) {
+			_imgData = _createImage(cast(C) getData);
+			setImage(new Image(Display.getCurrent, _imgData));
+		}
 	}
 	int x() {
 		return _x;
@@ -733,13 +741,16 @@ public:
 		_y = y;
 	}
 	int width() {
+		createImage;
 		return _imgData.width;
 	}
 	int height() {
+		createImage;
 		return _imgData.height;
 	}
 	override void dispose() {
-		getImage.dispose;
+		auto img = getImage;
+		if (img) img.dispose;
 	}
 }
 
@@ -788,6 +799,7 @@ public override:
 			scope (exit) gc.dispose;
 			int maxW = 0;
 			foreach (s; sels) {
+				s.createImage;
 				gc.drawImage(s.getImage, s.x - left, s.y - top);
 				if (maxW < s.width) maxW = s.width;
 			}

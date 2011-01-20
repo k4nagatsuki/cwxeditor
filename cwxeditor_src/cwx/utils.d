@@ -100,19 +100,19 @@ debug {
 	}
 	template FPerf(int I) {
 		static const FPerf
-			= "scope timer = new std.perf.PerformanceCounter;"
-			~ "timer.start;"
+			= "scope f_timer = new std.perf.PerformanceCounter;"
+			~ "f_timer.start;"
 			~ "scope (exit) {"
-			~ "timer.stop;"
-			~ ".t[" ~ ToString!(I) ~ "] += timer.milliseconds;"
+			~ "f_timer.stop;"
+			~ ".t[" ~ ToString!(I) ~ "] += f_timer.milliseconds;"
 			~ "}";
 	}
-	const BPerfS = "scope timer = new std.perf.PerformanceCounter; timer.start;";
+	const BPerfS = "scope b_timer = new std.perf.PerformanceCounter; b_timer.start;";
 	template BPerf(int I) {
 		static const BPerf
-			= "timer.stop;"
-			~ ".t[" ~ ToString!(I) ~ "] += timer.milliseconds;"
-			~ "timer.start;";
+			= "b_timer.stop;"
+			~ ".t[" ~ ToString!(I) ~ "] += b_timer.milliseconds;"
+			~ "b_timer.start;";
 	}
 	static assert (FPerf!(10));
 	static assert (BPerf!(10));

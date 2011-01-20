@@ -148,6 +148,8 @@ private:
 			}
 			_tbl.showSelection;
 		} else {
+			_skinTemp = findSkin(_prop, _summ);
+			scope (exit) _skinTemp = null;
 			_list.refresh(__cards, &__cardImage);
 			int sel = _list.selection;
 			if (sel >= 0) {
@@ -495,8 +497,9 @@ private:
 			return _owner.id;
 		}
 	}
+	private Skin _skinTemp = null;
 	ImageData __cardImage(C c) {
-		auto skin = .findSkin(_prop, _summ);
+		Skin skin = _skinTemp ? _skinTemp : .findSkin(_prop, _summ);
 		static if (is (C == CastCard)) {
 			return castCardImage(_prop, skin, c, ownerScenarioPath, _viewMode == CViewMode.LIFE);
 		} else static if (!is (C == InfoCard) && is (CardOwner == CastCard)) {

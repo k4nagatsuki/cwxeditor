@@ -100,71 +100,98 @@ private struct FC {
 	}
 }
 
-alias ArrayWrapperString FileNameObj;
-
 class DirectoryWindow : TopLevelPanel, TCPD {
 private:
+	class FileNameObj {
+		private this () {
+			this.relPath = toRelPath(this.array);
+			this.ext = getExt(this.basename);
+			this.pathId = toPathId(this.relPath);
+			this.dir = isdir(this.array) != 0;
+		}
+		this (string fullPath) {
+			this.array = fullPath;
+			this.basename = getBaseName(this.array);
+			this ();
+		}
+		this (string parent, string basename) {
+			this.array = std.path.join(parent, basename);
+			this.basename = basename;
+			this ();
+		}
+		string array;
+		string basename;
+		string relPath;
+		string ext;
+		PathId pathId;
+		bool dir;
+	}
+
 	static if (fnmatch("A", "a")) {
 		alias icmp comp;
 	} else {
 		alias cmp comp;
 	}
-	bool compFNameS(string a, string b) {
-		auto ad = isdir(a);
-		auto bd = isdir(b);
-		if (ad && bd) return comp(getBaseName(a), getBaseName(b)) < 0;
+	bool compDirName(string a, string b) {
+		return comp(a, b) < 0;
+	}
+	bool compFullPath(string a, string b) {
+		return compFNameS(getBaseName(a), getBaseName(b), isdir(a) != 0, isdir(b) != 0);
+	}
+	bool compFNameS(string a, string b, bool ad, bool bd) {
+		if (ad && bd) return comp(a, b) < 0;
 		if (!ad && bd) return false;
 		if (ad && !bd) return true;
-		return comp(getBaseName(a), getBaseName(b)) < 0;
+		return comp(a, b) < 0;
 	}
 	bool compFName(FileNameObj a, FileNameObj b) {
-		return compFNameS(a.array, b.array);
+		return compFNameS(a.basename, b.basename, a.dir, b.dir);
 	}
 	bool revCompFName(FileNameObj a, FileNameObj b) {
-		auto ad = isdir(a.array);
-		auto bd = isdir(b.array);
-		if (ad && bd) return comp(getBaseName(a.array), getBaseName(b.array)) < 0;
+		auto ad = a.dir;
+		auto bd = b.dir;
+		if (ad && bd) return comp(a.basename, b.basename) < 0;
 		if (!ad && bd) return false;
 		if (ad && !bd) return true;
-		return comp(getBaseName(a.array), getBaseName(b.array)) > 0;
+		return comp(a.basename, b.basename) > 0;
 	}
 	bool compFExt(FileNameObj a, FileNameObj b) {
-		auto ad = isdir(a.array);
-		auto bd = isdir(b.array);
-		if (ad && bd) return comp(getBaseName(a.array), getBaseName(b.array)) < 0;
+		auto ad = a.dir;
+		auto bd = b.dir;
+		if (ad && bd) return comp(a.basename, b.basename) < 0;
 		if (!ad && bd) return false;
 		if (ad && !bd) return true;
-		int r = comp(getExt(a.array), getExt(b.array));
-		return r != 0 ? r < 0 : comp(getBaseName(a.array), getBaseName(b.array)) < 0;
+		int r = comp(a.ext, b.ext);
+		return r != 0 ? r < 0 : comp(a.basename, b.basename) < 0;
 	}
 	bool revCompFExt(FileNameObj a, FileNameObj b) {
-		auto ad = isdir(a.array);
-		auto bd = isdir(b.array);
-		if (ad && bd) return comp(getBaseName(a.array), getBaseName(b.array)) < 0;
+		auto ad = a.dir;
+		auto bd = b.dir;
+		if (ad && bd) return comp(a.basename, b.basename) < 0;
 		if (!ad && bd) return false;
 		if (ad && !bd) return true;
-		int r = comp(getExt(a.array), getExt(b.array));
-		return r != 0 ? r > 0 : comp(getBaseName(a.array), getBaseName(b.array)) < 0;
+		int r = comp(a.ext, b.ext);
+		return r != 0 ? r > 0 : comp(a.basename, b.basename) < 0;
 	}
 	bool compFCount(FileNameObj a, FileNameObj b) {
-		auto ad = isdir(a.array);
-		auto bd = isdir(b.array);
-		if (ad && bd) return comp(getBaseName(a.array), getBaseName(b.array)) < 0;
+		auto ad = a.dir;
+		auto bd = b.dir;
+		if (ad && bd) return comp(a.basename, b.basename) < 0;
 		if (!ad && bd) return false;
 		if (ad && !bd) return true;
-		int ac = _summ.useCounter.path.get(toPathId(toRelPath(a.array)));
-		int bc = _summ.useCounter.path.get(toPathId(toRelPath(b.array)));
+		int ac = _summ.useCounter.path.get(a.pathId);
+		int bc = _summ.useCounter.path.get(b.pathId);
 		int r = ac - bc;
 		return r != 0 ? r < 0 : compFName(a, b);
 	}
 	bool revCompFCount(FileNameObj a, FileNameObj b) {
-		auto ad = isdir(a.array);
-		auto bd = isdir(b.array);
-		if (ad && bd) return comp(getBaseName(a.array), getBaseName(b.array)) < 0;
+		auto ad = a.dir;
+		auto bd = b.dir;
+		if (ad && bd) return comp(a.basename, b.basename) < 0;
 		if (!ad && bd) return false;
 		if (ad && !bd) return true;
-		int ac = _summ.useCounter.path.get(toPathId(toRelPath(a.array)));
-		int bc = _summ.useCounter.path.get(toPathId(toRelPath(b.array)));
+		int ac = _summ.useCounter.path.get(a.pathId);
+		int bc = _summ.useCounter.path.get(b.pathId);
 		int r = ac - bc;
 		return r != 0 ? r > 0 : compFName(a, b);
 	}
@@ -277,8 +304,8 @@ private:
 				_files.deselectAll;
 				auto path = (cast(FileNameObj) _dirs.getSelection[0].getData).array;
 				FileNameObj[] list;
-				foreach (ref f; clistdir(path)) {
-					list ~= new FileNameObj(std.path.join(path, f));
+				foreach (f; clistdir(path)) {
+					list ~= new FileNameObj(path, f);
 				}
 				if (_files.getSortColumn is _sortName.column) {
 					if (_files.getSortDirection == DWT.UP) {
@@ -306,9 +333,10 @@ private:
 				int count = 0;
 				int oldC = _files.getItemCount;
 				bool sp = cast(bool) std.path.fnmatch(nabs(path), nabs(_summ.scenarioPath));
+				Skin skin = findSkin(_prop, _summ);
 				foreach (i, p; list) {
 					if (sp) {
-						if (isDef(p.array, cast(bool) .isdir(p.array))) continue;
+						if (isDef(p.array, p.dir)) continue;
 					}
 					TableItem itm;
 					if (count < oldC) {
@@ -316,22 +344,21 @@ private:
 					} else {
 						itm = new TableItem(_files, DWT.NONE);
 					}
-					auto img = fimage(p.array);
+					auto img = fimage(skin, p.array, p.dir);
 					itm.setImage(0, img);
 					if (.isdir(p.array)) {
-						itm.setText(0, getBaseName(p.array));
+						itm.setText(0, p.basename);
 						itm.setText(1, "");
 						itm.setText(2, "");
 					} else {
-						itm.setText(0, getBaseName(getName(p.array)));
-						itm.setText(1, getExt(p.array));
-						itm.setText(2, to!(string)
-							(_summ.useCounter.path.get(toPathId(toRelPath(p.array)))));
+						itm.setText(0, getName(p.basename));
+						itm.setText(1, p.ext);
+						itm.setText(2, to!(string)(_summ.useCounter.path.get(p.pathId)));
 					}
-					auto fpath = nabs(p.array);
-					itm.setData = new FileNameObj(fpath);
+					p.array = nabs(p.array);
+					itm.setData = p;
 					if (selset.size > 0) {
-						if (selset.contains(nabs(p.array))) {
+						if (selset.contains(p.array)) {
 							_files.select = i;
 						}
 					}
@@ -369,7 +396,7 @@ private:
 			p = std.path.join(path, p);
 			if (isdir(p)) subs ~= p;
 		}
-		subs = .sort(subs, &compFNameS);
+		subs = .sort(subs, &compDirName);
 		bool s = false;
 		foreach (p; subs) {
 			if (sp) {
@@ -478,15 +505,8 @@ private:
 			return _sImgUnknown;
 		}
 	}
-	Image fimage(string file) {
-		auto skin = findSkin(_prop, _summ);
-		if (isCutted(file)) {
-			return sfimage(file);
-		}
-		// isCardImage()は時間がかかるので別スレッドで実行
-		if (.isdir(file)) {
-			return _prop.images.folder;
-		} else if (skin.isBgImage(file)) {
+	Image fimage(Skin skin, string file) {
+		if (skin.isBgImage(file)) {
 			return _prop.images.backs;
 		} else if (skin.isBGM(file)) {
 			return _prop.images.bgm;
@@ -494,6 +514,28 @@ private:
 			return _prop.images.se;
 		} else {
 			return _prop.images.unknown;
+		}
+	}
+	Image fimage(Skin skin, string file, bool dir) {
+		if (isCutted(file)) {
+			return sfimage(file);
+		}
+		// isCardImage()は時間がかかるので別スレッドで実行
+		if (dir) {
+			return _prop.images.folder;
+		} else {
+			return fimage(skin, file);
+		}
+	}
+	Image fimage(string file) {
+		if (isCutted(file)) {
+			return sfimage(file);
+		}
+		// isCardImage()は時間がかかるので別スレッドで実行
+		if (.isdir(file)) {
+			return _prop.images.folder;
+		} else {
+			return fimage(findSkin(_prop, _summ), file);
 		}
 	}
 	Image sfimage(string file) {
@@ -671,7 +713,7 @@ private:
 						return false;
 					}
 				}
-				paths = .sort(paths, &compFNameS);
+				paths = .sort(paths, &compFullPath);
 				string dir = null;
 				string[] selfs;
 				foreach (file; paths) {
@@ -853,7 +895,7 @@ private:
 				drename(cc);
 			}
 			foreach (t; _files.getItems) {
-				t.setData = new FileNameObj(std.path.join(tod, getBaseName((cast(FileNameObj) t.getData).array)));
+				t.setData = new FileNameObj(std.path.join(tod, (cast(FileNameObj) t.getData).basename));
 			}
 		}
 	}
@@ -1433,7 +1475,7 @@ public:
 	void replace() {
 		if (!_summ) return;
 		if (_files.getSelectionIndex >= 0) {
-			__replace(toRelPath((cast(FileNameObj) _files.getItem(_files.getSelectionIndex).getData).array));
+			__replace((cast(FileNameObj) _files.getItem(_files.getSelectionIndex).getData).relPath);
 		} else {
 			__replace(null);
 		}
