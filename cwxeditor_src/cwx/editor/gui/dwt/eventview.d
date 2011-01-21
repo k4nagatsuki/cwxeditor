@@ -19,6 +19,8 @@ import cwx.editor.gui.dwt.eventtreeview;
 import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.xmlbytestransfer;
 import cwx.editor.gui.dwt.undo;
+import cwx.editor.gui.dwt.absdialog;
+import cwx.editor.gui.dwt.centerlayout;
 
 import std.string;
 
@@ -39,6 +41,7 @@ import dwt.widgets.Text;
 import dwt.widgets.Label;
 import dwt.widgets.Combo;
 import dwt.widgets.Spinner;
+import dwt.widgets.Group;
 import dwt.custom.SashForm;
 import dwt.custom.CCombo;
 import dwt.events.ShellEvent;
@@ -189,6 +192,9 @@ private:
 			tree.removeRoundsAll;
 			foreach (rnd; vals.rounds) tree.addRound(rnd);
 			_etree.refreshTreeName;
+			static if (UseFire) {
+				refreshFires(itm);
+			}
 		}
 		override void undo() {impl;}
 		override void redo() {impl;}
@@ -216,7 +222,9 @@ private:
 			}
 			_delUndo = new UndoDelete(tree);
 			owner.removeEvent(_insertIndex);
-			ownItm.getItem(_insertIndex).dispose;
+			auto itm = ownItm.getItem(_insertIndex);
+			if (_selItm is itm) _selItm = null;
+			itm.dispose;
 			_comm.refUseCount.call;
 		}
 		override void redo() {
@@ -703,6 +711,23 @@ private:
 			}
 		}
 	}
+	static if (UseFire) {
+		void addManyRounds() {
+			auto etItm = selectionEventTree;
+			if (!etItm) return;
+			auto parItm = selectionParent;
+			if (!parItm || !(cast(Battle) parItm.getData)) return;
+			auto dlg = new ManyRoundsDialog(_prop, _cards.getShell);
+			if (dlg.open) {
+				auto et = cast(EventTree) etItm.getData;
+				store(et);
+				assert (et);
+				et.addRounds(dlg.rounds);
+				refreshFires(etItm);
+				etItm.setExpanded = true;
+			}
+		}
+	}
 public:
 	this(Commons comm, Props prop, Summary summ, A area, Composite parent, UndoManager undo) {
 		super(parent, DWT.NONE);
@@ -782,6 +807,10 @@ public:
 			_cards.addSelectionListener(new SListener);
 			auto menu = new Menu(parent.getShell, DWT.POP_UP);
 			appendMenuTCPD(_prop, menu, this, true, true, true, true);
+			static if (is (A == Battle)) {
+				new MenuItem(menu, DWT.SEPARATOR);
+				createMenuItem(menu, _prop.msgs.menuAddManyRounds, _prop.images.menuAddManyRounds, &addManyRounds);
+			}
 			_cards.setMenu = menu;
 		}
 		{
@@ -832,8 +861,10 @@ public:
 			refreshTrees(itm);
 		}
 		void removeCard(int index) {
-			if (_selItm && _selItm.getParentItem is _cards.getItems[index + 1]) {
+			if (_selItm && !_selItm.isDisposed
+					&& _selItm.getParentItem is _cards.getItems[index + 1]) {
 				_etree.refresh(null);
+				_selItm = null;
 			}
 			_cards.getItems[index + 1].dispose;
 		}
@@ -1304,5 +1335,73 @@ public:
 		default: break;
 		}
 		return false;
+	}
+}
+
+private class ManyRoundsDialog : AbsDialog {
+private:
+	Props _prop;
+
+	Spinner _from;
+	Spinner _to;
+
+	uint[] _rounds;
+public:
+	this(Props prop, Shell shell) {
+		_prop = prop;
+		super(prop, shell, prop.msgs.dlgTitAddManyRounds, prop.images.menuAddManyRounds, false);
+		enterClose = true;
+	}
+
+	uint[] rounds() {
+		return _rounds;
+	}
+protected:
+	private class SelMin : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			int f = _from.getSelection;
+			if (f >= _to.getSelection) {
+				_to.setSelection = f;
+			}
+		}
+	}
+	private class SelMax : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			int t = _to.getSelection;
+			if (t <= _from.getSelection) {
+				_from.setSelection = t;
+			}
+		}
+	}
+	override void setup(Composite area) {
+		area.setLayout = new GridLayout(1, false);
+		{
+			auto grp = new Group(area, DWT.NONE);
+			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
+			grp.setText = _prop.msgs.manyRounds;
+			grp.setLayout = new CenterLayout(DWT.VERTICAL | DWT.HORIZONTAL, 0);
+			auto comp = new Composite(grp, DWT.NONE);
+			comp.setLayout = new GridLayout(4, false);
+			_from = new Spinner(comp, DWT.BORDER);
+			_from.setMinimum = 1;
+			_from.setMaximum = _prop.looks.roundMax;
+			_from.addSelectionListener(new SelMin);
+			auto l1 = new Label(comp, DWT.NONE);
+			l1.setText = _prop.msgs.roundSep;
+			_to = new Spinner(comp, DWT.BORDER);
+			_to.setMinimum = 1;
+			_to.setMaximum = _prop.looks.roundMax;
+			_to.addSelectionListener(new SelMax);
+			auto l2 = new Label(comp, DWT.NONE);
+			l2.setText = _prop.msgs.rangeHint(1, _prop.looks.roundMax);
+		}
+	}
+	override bool close(bool ok) {
+		if (ok) {
+			for (uint i = _from.getSelection; i <= _to.getSelection; i++) {
+				_rounds ~= i;
+			}
+		}
+		return ok;
 	}
 }

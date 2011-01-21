@@ -1203,6 +1203,11 @@ public:
 	string startUse() {return "使用時";}
 	string startRound(uint round) {return "ラウンド = " ~ to!(string)(round);}
 
+	string menuAddManyRounds() {return "複数のラウンドを追加";}
+	string manyRounds() {return "追加する発火ラウンドの範囲";}
+	string dlgTitAddManyRounds() {return "追加する発火ラウンドの範囲";}
+	string roundSep() {return "～";}
+
 	string enterTree() {return "到着";}
 	string selectTree() {return "クリック";}
 	string deadTree() {return "死亡";}

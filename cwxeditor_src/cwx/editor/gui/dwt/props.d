@@ -261,6 +261,8 @@ public:
 	Image keyCode() {return imgd!(resourceDir ~ "key_code.png");}
 	Image round() {return imgd!(resourceDir ~ "round.png");}
 
+	Image menuAddManyRounds() {return imgd!(resourceDir ~ "add_many_round.png");}
+
 	Image addCoupon() {return imgd!(resourceDir ~ "coupon.png");}
 	Image altCoupon() {return imgd!(resourceDir ~ "alt_coupon.png");}
 	Image delCoupon() {return imgd!(resourceDir ~ "evt_stop.png");}

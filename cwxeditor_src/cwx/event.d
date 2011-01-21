@@ -1696,12 +1696,24 @@ public:
 		return _lose;
 	}
 
-	/// 発火ラウンドを追加。
-	/// Returns: 追加できた場合はtrue。
+	/// 発火ラウンドを追加。追加できた場合はtrueを返す。
 	bool addRound(uint round) {
 		if (!fireRound(round)) {
 			changed;
 			_rounds ~= round;
+			return true;
+		}
+		return false;
+	}
+	/// ditto
+	bool addRounds(uint[] rounds) {
+		auto s = new HashSet!(uint);
+		foreach (r; _rounds) s.add(r);
+		foreach (r; rounds) s.add(r);
+		rounds = s.toArray.sort;
+		if (rounds != _rounds) {
+			changed;
+			_rounds = rounds;
 			return true;
 		}
 		return false;
