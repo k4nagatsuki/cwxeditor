@@ -74,8 +74,8 @@ private:
 	CTabItem _tabError;
 	Button _replace;
 
-	Text _from;
-	Text _to;
+	Combo _from;
+	Combo _to;
 	Combo _idKind;
 	Combo _fromID;
 	Spinner _fromIDVal;
@@ -312,13 +312,15 @@ private:
 			grp.setLayout = new GridLayout(2, false);
 			auto lf = new Label(grp, DWT.NONE);
 			lf.setText = _prop.msgs.replFrom;
-			_from = new Text(grp, DWT.BORDER);
+			_from = new Combo(grp, DWT.BORDER | DWT.DROP_DOWN);
+			_from.setVisibleItemCount = 20;
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
 			gd.widthHint = _prop.var.etc.nameWidth;
 			_from.setLayoutData = gd;
 			auto lt = new Label(grp, DWT.NONE);
 			lt.setText = _prop.msgs.replTo;
-			_to = new Text(grp, DWT.BORDER);
+			_to = new Combo(grp, DWT.BORDER | DWT.DROP_DOWN);
+			_to.setVisibleItemCount = 20;
 			_to.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		}
 		{
@@ -588,6 +590,8 @@ public:
 			_replace = createButton(_prop.msgs.replace, &replace);
 			createButton(_prop.msgs.replaceExit, &exit);
 		}
+		_from.setItems(_prop.var.etc.searchHistories);
+		_to.setItems(_prop.var.etc.replaceHistories);
 		_notIgnoreCase.setSelection = _prop.var.etc.replaceTextNotIgnoreCase;
 		_useRegex.setSelection = _prop.var.etc.replaceTextRegExp;
 		_summary.setSelection = _prop.var.etc.replaceTextSummary;
@@ -1062,6 +1066,7 @@ public:
 	}
 	private void replaceTextImpl() {
 		string from = _from.getText;
+		string to = _to.getText;
 		if (!from.length) return;
 		if (_useRegex.getSelection) {
 			try {
@@ -1073,7 +1078,7 @@ public:
 				return;
 			}
 		} else {
-			if (from == _to.getText) _replMode = false;
+			if (from == to) _replMode = false;
 		}
 		scope (exit) _regex = null;
 
@@ -1084,6 +1089,23 @@ public:
 		searchAll(_summ, count, &replaceTextImpl);
 		setResultStatus(count);
 		if (count > 0) _comm.replText.call;
+
+		if (!contains(_prop.var.etc.searchHistories, from)) {
+			_prop.var.etc.searchHistories = [from] ~ _prop.var.etc.searchHistories;
+			if (_prop.var.etc.searchHistories.length > _prop.var.etc.searchHistoryMax) {
+				_prop.var.etc.searchHistories = _prop.var.etc.searchHistories[0 .. $ - 1];
+			}
+			_from.setItems(_prop.var.etc.searchHistories);
+			_from.select = 0;
+		}
+		if (_replMode && to.length && !contains(_prop.var.etc.replaceHistories, to)) {
+			_prop.var.etc.replaceHistories = [to] ~ _prop.var.etc.replaceHistories;
+			if (_prop.var.etc.replaceHistories.length > _prop.var.etc.searchHistoryMax) {
+				_prop.var.etc.replaceHistories = _prop.var.etc.replaceHistories[0 .. $ - 1];
+			}
+			_to.setItems(_prop.var.etc.replaceHistories);
+			_to.select = 0;
+		}
 	}
 	private RegExp _regex = null;
 	private string fTextRepl(string s) {

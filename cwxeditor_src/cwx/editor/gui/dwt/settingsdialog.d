@@ -53,6 +53,7 @@ private:
 	Text _tempDir;
 	Text _author;
 	Spinner _histMax;
+	Spinner _sHistMax;
 	Text _ignorePaths;
 	Button _singleWindow;
 	Button _smoothingCard;
@@ -276,6 +277,19 @@ private:
 			}
 		}
 	}
+	class ClearSHist : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			auto dlg = new MessageBox(_sHistMax.getShell, DWT.ICON_QUESTION | DWT.OK | DWT.CANCEL);
+			scope (exit) dlg.dispose;
+			dlg.setText = _prop.msgs.dlgTitQuestion;
+			dlg.setMessage = _prop.msgs.dlgMsgSearchHistoryClear;
+			if (DWT.OK == dlg.open) {
+				_prop.var.etc.searchHistories = [];
+				_prop.var.etc.replaceHistories = [];
+				(cast(Control) e.widget).setEnabled = false;
+			}
+		}
+	}
 	void construct1(CTabFolder tabf) {
 		auto comp = new Composite(tabf, DWT.NONE);
 		comp.setLayout = new GridLayout(1, false);
@@ -317,7 +331,7 @@ private:
 			comp2.setLayout = zeroMarginGridLayout(2, false);
 			{
 				auto grp = new Group(comp2, DWT.NONE);
-				grp.setLayoutData = new GridData(GridData.FILL_BOTH);
+				grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_BEGINNING);
 				auto cl = new CenterLayout;
 				cl.fillHorizontal = true;
 				grp.setLayout = cl;
@@ -328,18 +342,32 @@ private:
 			{
 				auto grp = new Group(comp2, DWT.NONE);
 				grp.setLayoutData = new GridData(GridData.FILL_VERTICAL);
-				grp.setText = _prop.msgs.openHistory;
+				grp.setText = _prop.msgs.historiesSettings;
 				grp.setLayout = new GridLayout(3, false);
-				auto l = new Label(grp, DWT.NONE);
-				l.setText = _prop.msgs.openHistoryMax;
-				_histMax = new Spinner(grp, DWT.BORDER);
-				_histMax.setMinimum = 0;
-				_histMax.setMaximum = 99;
-				_histMax.addModifyListener(_mod);
-				auto clear = new Button(grp, DWT.PUSH);
-				clear.setEnabled = _prop.var.etc.openHistories.length > 0;
-				clear.setText = _prop.msgs.openHistoryClear;
-				clear.addSelectionListener(new ClearHist);
+				{
+					auto l = new Label(grp, DWT.NONE);
+					l.setText = _prop.msgs.openHistoryMax;
+					_histMax = new Spinner(grp, DWT.BORDER);
+					_histMax.setMinimum = 0;
+					_histMax.setMaximum = 99;
+					_histMax.addModifyListener(_mod);
+					auto clear = new Button(grp, DWT.PUSH);
+					clear.setEnabled = _prop.var.etc.openHistories.length > 0;
+					clear.setText = _prop.msgs.openHistoryClear;
+					clear.addSelectionListener(new ClearHist);
+				}
+				{
+					auto l = new Label(grp, DWT.NONE);
+					l.setText = _prop.msgs.searchHistoryMax;
+					_sHistMax = new Spinner(grp, DWT.BORDER);
+					_sHistMax.setMinimum = 0;
+					_sHistMax.setMaximum = 99;
+					_sHistMax.addModifyListener(_mod);
+					auto clear = new Button(grp, DWT.PUSH);
+					clear.setEnabled = _prop.var.etc.searchHistories.length > 0;
+					clear.setText = _prop.msgs.searchHistoryClear;
+					clear.addSelectionListener(new ClearSHist);
+				}
 			}
 		}
 		{
@@ -823,6 +851,7 @@ protected:
 		_tempDir.setText = _prop.var.etc.tempPath;
 		_author.setText = _prop.var.etc.defaultAuthor;
 		_histMax.setSelection = _prop.var.etc.historyMax;
+		_sHistMax.setSelection = _prop.var.etc.searchHistoryMax;
 		string ipbuf = "";
 		foreach (path; _prop.var.etc.ignorePaths) {
 			ipbuf ~= path ~ "\n";
@@ -912,6 +941,7 @@ protected:
 		_prop.var.etc.tempPath = temp;
 		_prop.var.etc.defaultAuthor = _author.getText;
 		_prop.var.etc.historyMax = _histMax.getSelection;
+		_prop.var.etc.searchHistoryMax = _sHistMax.getSelection;
 		string[] ipLines = splitlines(_ignorePaths.getText);
 		if (ipLines.length > 0) {
 			int i;
@@ -932,6 +962,10 @@ protected:
 		if (_prop.var.etc.historyMax < _prop.var.etc.openHistories.length) {
 			_prop.var.etc.openHistories
 				= _prop.var.etc.openHistories[0 .. _prop.var.etc.historyMax];
+		}
+		if (_prop.var.etc.searchHistoryMax < _prop.var.etc.searchHistories.length) {
+			_prop.var.etc.searchHistories
+				= _prop.var.etc.searchHistories[0 .. _prop.var.etc.searchHistoryMax];
 		}
 		_prop.var.etc.bgImageSettings = _bgStgs;
 		_prop.var.etc.bgImagesDefault = _bgImagesDefault;

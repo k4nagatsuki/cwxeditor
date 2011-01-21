@@ -1881,10 +1881,13 @@ public:
 	string tempDirDesc() {return "wsn圧縮されたシナリオの一時的な展開先を選択してください。";}
 	string skin() {return "スキン";}
 	string scenarioAuthor() {return "シナリオ作者(新規作成時に自動設定されます)";}
-	string openHistory() {return "履歴";}
-	string openHistoryMax() {return "履歴保存件数";}
-	string openHistoryClear() {return "履歴のクリア";}
-	string dlgMsgHistoryClear() {return "履歴を削除してよろしいですか？";}
+	string historiesSettings() {return "履歴";}
+	string openHistoryMax() {return "シナリオ履歴保存件数";}
+	string openHistoryClear() {return "クリア";}
+	string dlgMsgHistoryClear() {return "シナリオ履歴を削除してよろしいですか？";}
+	string searchHistoryMax() {return "検索/置換履歴保存件数";}
+	string searchHistoryClear() {return "クリア";}
+	string dlgMsgSearchHistoryClear() {return "検索/置換履歴を削除してよろしいですか？";}
 	string ignorePaths() {return "無視ファイル(改行区切り)";}
 	string settingEtc() {return "その他";}
 	string singleWindow() {return "シングルウィンドウモード(再起動後に反映されます)";}

@@ -536,6 +536,9 @@ class FlexEtcProps : Properties {
 	mixin Property!("saveInnerImagePath", bool, false);
 	mixin Property!("traceDirectories", bool, true);
 
+	mixin Property!("searchHistories", string[], []);
+	mixin Property!("replaceHistories", string[], []);
+	mixin Property!("searchHistoryMax", int, 50);
 	mixin Property!("replaceTextNotIgnoreCase", bool, false);
 	mixin Property!("replaceTextRegExp", bool, false);
 	mixin Property!("replaceTextSummary", bool, true);
