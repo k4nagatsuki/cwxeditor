@@ -8,6 +8,7 @@ import std.file;
 import std.path;
 import std.math;
 import std.string;
+import std.thread;
 
 import cwx.binary;
 import cwx.summary;
@@ -46,6 +47,14 @@ private struct RData {
 }
 /// 4.0形式のCardWirthシナリオを読込む。
 S loadLScenario(S)(string p, string skin) {
+	static const bool AR = is (S : AreaOwner);
+	static const bool BA = is (S : BattleOwner);
+	static const bool PA = is (S : PackageOwner);
+	static const bool CA = is (S : CastOwner);
+	static const bool SK = is (S : SkillOwner);
+	static const bool IT = is (S : ItemOwner);
+	static const bool BE = is (S : BeastOwner);
+	static const bool IN = is (S : InfoOwner);
 	auto sPath = p;
 	auto summPath = std.path.join(p, "Summary.wsm");
 	if (!exists(summPath)) throw new SummaryException("Not Scenario: " ~ p);
@@ -55,50 +64,81 @@ S loadLScenario(S)(string p, string skin) {
 	{
 		summ = loadSummary!(S)(d, ByteIO(std.file.read(summPath)), startAreaId);
 	}
-	static if (is (typeof(summ.areas))) Area[] areas;
-	static if (is (typeof(summ.battles))) Battle[] battles;
-	static if (is (typeof(summ.packages))) Package[] packages;
-	static if (is (typeof(summ.casts))) CastCard[] casts;
-	static if (is (typeof(summ.skills))) SkillCard[] skills;
-	static if (is (typeof(summ.items))) ItemCard[] items;
-	static if (is (typeof(summ.beasts))) BeastCard[] beasts;
-	static if (is (typeof(summ.infos))) InfoCard[] infos;
-	foreach (file; clistdir(sPath)) {
-		file = std.path.join(sPath, file);
-		try {
-			if (fnmatch(getExt(file), "wid")) {
-				auto f = ByteIO(std.file.read(file));
-				auto base = getBaseName(file);
-				static if (is (typeof(summ.areas))) if (sWith(base, "Area")) {
-					areas ~= loadArea(d, f);
-				}
-				static if (is (typeof(summ.battles))) if (sWith(base, "Battle")) {
-					battles ~= loadBattle(d, f);
-				}
-				static if (is (typeof(summ.packages))) if (sWith(base, "Package")) {
-					packages ~= loadPackage(d, f);
-				}
-				static if (is (typeof(summ.casts))) if (sWith(base, "Mate")) {
-					casts ~= loadCast(d, f);
-				}
-				static if (is (typeof(summ.skills))) if (sWith(base, "Skill")) {
-					skills ~= loadSkill(d, f);
-				}
-				static if (is (typeof(summ.items))) if (sWith(base, "Item")) {
-					items ~= loadItem(d, f);
-				}
-				static if (is (typeof(summ.beasts))) if (sWith(base, "Beast")) {
-					beasts ~= loadBeast(d, f);
-				}
-				static if (is (typeof(summ.infos))) if (sWith(base, "Info")) {
-					infos ~= loadInfo(d, f);
+	class Load {
+		static if (AR) Area[] areas;
+		static if (BA) Battle[] battles;
+		static if (PA) Package[] packages;
+		static if (CA) CastCard[] casts;
+		static if (SK) SkillCard[] skills;
+		static if (IT) ItemCard[] items;
+		static if (BE) BeastCard[] beasts;
+		static if (IN) InfoCard[] infos;
+		string[] files;
+		ulong wait = 0L;
+		int load() {
+			foreach (file; this.files) {
+				try {
+					auto f = ByteIO(std.file.read(file));
+					auto base = getBaseName(file);
+					static if (AR) if (sWith(base, "Area")) {
+						areas ~= .loadArea(d, f);
+					}
+					static if (BA) if (sWith(base, "Battle")) {
+						battles ~= .loadBattle(d, f);
+					}
+					static if (PA) if (sWith(base, "Package")) {
+						packages ~= .loadPackage(d, f);
+					}
+					static if (CA) if (sWith(base, "Mate")) {
+						casts ~= .loadCast(d, f);
+					}
+					static if (SK) if (sWith(base, "Skill")) {
+						skills ~= .loadSkill(d, f);
+					}
+					static if (IT) if (sWith(base, "Item")) {
+						items ~= .loadItem(d, f);
+					}
+					static if (BE) if (sWith(base, "Beast")) {
+						beasts ~= .loadBeast(d, f);
+					}
+					static if (IN) if (sWith(base, "Info")) {
+						infos ~= .loadInfo(d, f);
+					}
+				} catch (Exception e) {
+					debugln(file ~ " - " ~ e.msg);
+					throw e;
 				}
 			}
-		} catch (Exception e) {
-			debugln(file ~ " - " ~ e.msg);
-			throw e;
+			return 0;
 		}
 	}
+	auto load1 = new Load;
+	auto load2 = new Load;
+	foreach (file; clistdir(sPath)) {
+		if (fnmatch(getExt(file), "wid")) {
+			file = std.path.join(sPath, file);
+			auto size = std.file.getSize(file);
+			if (load1.wait < load2.wait) {
+				load1.files ~= file;
+				load1.wait += size;
+			} else {
+				load2.files ~= file;
+				load2.wait += size;
+			}
+		}
+	}
+	auto thr = new Thread(&load2.load);
+	thr.start;
+	load1.load;
+	thr.wait;
+	static if (AR) Area[] areas = load1.areas ~ load2.areas;
+	static if (BA) Battle[] battles = load1.battles ~ load2.battles;
+	static if (PA) Package[] packages = load1.packages ~ load2.packages;
+	static if (CA) CastCard[] casts = load1.casts ~ load2.casts;
+	static if (SK) SkillCard[] skills = load1.skills ~ load2.skills;
+	static if (IT) ItemCard[] items = load1.items ~ load2.items;
+	static if (BE) BeastCard[] beasts = load1.beasts ~ load2.beasts;
+	static if (IN) InfoCard[] infos = load1.infos ~ load2.infos;
 	static if (is (S == Summary)) {
 		foreach (a; areas.sort) summ.add(a, false);
 		foreach (a; battles.sort) summ.add(a, false);
@@ -111,14 +151,14 @@ S loadLScenario(S)(string p, string skin) {
 		summ.startArea = startAreaId;
 		summ.resetChanged;
 	} else {
-		static if (is (typeof(summ.areas))) foreach (a; areas.sort) summ.add(a);
-		static if (is (typeof(summ.battles))) foreach (a; battles.sort) summ.add(a);
-		static if (is (typeof(summ.packages))) foreach (a; packages.sort) summ.add(a);
-		static if (is (typeof(summ.casts))) foreach (a; casts.sort) summ.add(a);
-		static if (is (typeof(summ.skills))) foreach (a; skills.sort) summ.add(a);
-		static if (is (typeof(summ.items))) foreach (a; items.sort) summ.add(a);
-		static if (is (typeof(summ.beasts))) foreach (a; beasts.sort) summ.add(a);
-		static if (is (typeof(summ.infos))) foreach (a; infos.sort) summ.add(a);
+		static if (AR) foreach (a; areas.sort) summ.add(a);
+		static if (BA) foreach (a; battles.sort) summ.add(a);
+		static if (PA) foreach (a; packages.sort) summ.add(a);
+		static if (CA) foreach (a; casts.sort) summ.add(a);
+		static if (SK) foreach (a; skills.sort) summ.add(a);
+		static if (IT) foreach (a; items.sort) summ.add(a);
+		static if (BE) foreach (a; beasts.sort) summ.add(a);
+		static if (IN) foreach (a; infos.sort) summ.add(a);
 	}
 	return summ;
 }
