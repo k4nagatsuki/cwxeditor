@@ -13,6 +13,7 @@ import cwx.usecounter;
 import cwx.types;
 import cwx.path;
 import cwx.background;
+import cwx.skin;
 
 import cwx.editor.gui.dwt.props;
 import cwx.editor.gui.dwt.utils;
@@ -24,6 +25,7 @@ import cwx.editor.gui.dwt.skin;
 import std.string;
 import std.file;
 import std.path;
+import std.regexp;
 
 import dwt.widgets.Shell;
 import dwt.widgets.Text;
@@ -83,6 +85,9 @@ private:
 	ulong[int] _toIDTbl;
 	Combo _fromPath;
 	Combo _toPath;
+
+	Button _notIgnoreCase;
+	Button _useRegex;
 
 	/// 貼り紙
 	Button _summary;
@@ -315,6 +320,18 @@ private:
 			lt.setText = _prop.msgs.replTo;
 			_to = new Text(grp, DWT.BORDER);
 			_to.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+		}
+		{
+			auto grp = new Group(comp, DWT.NONE);
+			auto gd = new GridData(GridData.FILL_HORIZONTAL);
+			gd.widthHint = _prop.var.etc.searchResultTableWidth;
+			grp.setLayoutData = gd;
+			grp.setText = _prop.msgs.replCond;
+			grp.setLayout = new GridLayout(1, true);
+			_notIgnoreCase = new Button(grp, DWT.CHECK);
+			_notIgnoreCase.setText = _prop.msgs.replNotIgnoreCase;
+			_useRegex = new Button(grp, DWT.CHECK);
+			_useRegex.setText = _prop.msgs.replRegExp;
 		}
 		{
 			auto grp = new Group(comp, DWT.NONE);
@@ -571,6 +588,8 @@ public:
 			_replace = createButton(_prop.msgs.replace, &replace);
 			createButton(_prop.msgs.replaceExit, &exit);
 		}
+		_notIgnoreCase.setSelection = _prop.var.etc.replaceTextNotIgnoreCase;
+		_useRegex.setSelection = _prop.var.etc.replaceTextRegExp;
 		_summary.setSelection = _prop.var.etc.replaceTextSummary;
 		_msg.setSelection = _prop.var.etc.replaceTextMessage;
 		_cardName.setSelection = _prop.var.etc.replaceTextCardName;
@@ -609,6 +628,8 @@ public:
 				_prop.var.replaceDlg.width = s.x;
 				_prop.var.replaceDlg.height = s.y;
 			}
+			_prop.var.etc.replaceTextNotIgnoreCase = _notIgnoreCase.getSelection;
+			_prop.var.etc.replaceTextRegExp = _useRegex.getSelection;
 			_prop.var.etc.replaceTextSummary = _summary.getSelection;
 			_prop.var.etc.replaceTextMessage = _msg.getSelection;
 			_prop.var.etc.replaceTextCardName = _cardName.getSelection;
@@ -652,7 +673,6 @@ public:
 		}
 	}
 	private void replaceImpl() {
-		reset;
 		if (_tabf.getSelection is _tabText) {
 			replaceTextImpl;
 		} else if (_tabf.getSelection is _tabID) {
@@ -665,21 +685,29 @@ public:
 			searchErrorImpl;
 		} else assert (0);
 	}
-	private void searchAll(ref uint count,
-			void delegate(CWXPath path, ref uint count) dlg) {
-		dlg(_summ, count);
-		foreach (o; _summ.areas) searchAll(o, count, dlg);
-		foreach (o; _summ.battles) searchAll(o, count, dlg);
-		foreach (o; _summ.packages) searchAll(o, count, dlg);
-		foreach (o; _summ.casts) searchAll(o, count, dlg);
-		foreach (o; _summ.skills) searchAll(o, count, dlg);
-		foreach (o; _summ.items) searchAll(o, count, dlg);
-		foreach (o; _summ.beasts) searchAll(o, count, dlg);
-		foreach (o; _summ.infos) searchAll(o, count, dlg);
-	}
+	/// FIXME: おそらくinterfaceに関するdmdのバグで
+	///        cwxChildsがまったく機能しない。
 	private void searchAll(CWXPath path, ref uint count,
 			void delegate(CWXPath path, ref uint count) dlg) {
 		dlg(path, count);
+		auto summ = cast(Summary) path;
+		if (summ) {
+			foreach (o; summ.areas) searchAll(o, count, dlg);
+			foreach (o; summ.battles) searchAll(o, count, dlg);
+			foreach (o; summ.packages) searchAll(o, count, dlg);
+			foreach (o; summ.casts) searchAll(o, count, dlg);
+			foreach (o; summ.skills) searchAll(o, count, dlg);
+			foreach (o; summ.items) searchAll(o, count, dlg);
+			foreach (o; summ.beasts) searchAll(o, count, dlg);
+			foreach (o; summ.infos) searchAll(o, count, dlg);
+			searchAll(summ.flagDirRoot, count, dlg);
+		}
+		auto fdir = cast(FlagDir) path;
+		if (fdir) {
+			foreach (o; fdir.flags) searchAll(o, count, dlg);
+			foreach (o; fdir.steps) searchAll(o, count, dlg);
+			foreach (o; fdir.subDirs) searchAll(o, count, dlg);
+		}
 		auto eto = cast(EventTreeOwner) path;
 		if (eto) {
 			foreach (o; eto.trees) searchAll(o, count, dlg);
@@ -717,6 +745,7 @@ public:
 			}
 		}
 	}
+
 	private void setResultStatus(uint count) {
 		if (count > 0) {
 			if (_replMode) _summ.changed;
@@ -732,6 +761,8 @@ public:
 		auto uc = _summ.useCounter;
 		auto users = uc.values(from);
 		if (_replMode) uc.change(from, to, true);
+		_skinTemp = findSkin(_prop, _summ);
+		scope (exit) _skinTemp = null;
 		foreach (user; users) {
 			addResult(user.owner);
 		}
@@ -749,6 +780,7 @@ public:
 		ulong from = getID(_fromID, _fromIDVal, _fromIDTbl);
 		ulong to = getID(_toID, _toIDVal, _toIDTbl);
 		if (from == to) _replMode = false;
+		reset;
 		switch (_idKind.getSelectionIndex) {
 		case ID_AREA: replaceIDImpl2(toAreaId(from), toAreaId(to)); break;
 		case ID_BATTLE: replaceIDImpl2(toBattleId(from), toBattleId(to)); break;
@@ -769,6 +801,9 @@ public:
 		auto uc = _summ.useCounter;
 		auto users = uc.values(from);
 		if (_replMode) uc.change(from, to, true);
+		_skinTemp = findSkin(_prop, _summ);
+		scope (exit) _skinTemp = null;
+		reset;
 		foreach (user; users) {
 			addResult(user.owner);
 		}
@@ -786,6 +821,9 @@ public:
 	private void searchUnuseImpl() {
 		_replMode = false;
 		uint count = 0;
+		_skinTemp = findSkin(_prop, _summ);
+		scope (exit) _skinTemp = null;
+		reset;
 		if (unuseFlag) {
 			searchUnuseImpl2!("toFlagId(o.path)")(_summ.flagDirRoot.allFlags, count);
 		}
@@ -817,7 +855,7 @@ public:
 			searchUnuseImpl2!("toInfoId(o.id)")(_summ.infos, count);
 		}
 		if (unuseStart) {
-			searchAll(count, (CWXPath path, ref uint count) {
+			searchAll(_summ, count, (CWXPath path, ref uint count) {
 				auto et = cast(EventTree) path;
 				if (et) {
 					foreach (s; et.starts[1 .. $]) {
@@ -839,7 +877,8 @@ public:
 		auto froot = _summ.flagDirRoot;
 		auto sPath = _summ.scenarioPath;
 		auto skin = findSkin(_prop, _summ);
-		searchAll(count, (CWXPath path, ref uint count) {
+		reset;
+		searchAll(_summ, count, (CWXPath path, ref uint count) {
 			auto summ = cast(Summary) path;
 			if (summ) {
 				if ((summ.imagePath != "" && !isBinImg(summ.imagePath) && !skin.findPath(summ.imagePath, skin.extImage, skin.tableDir, sPath).length)
@@ -939,26 +978,25 @@ public:
 				}
 			}
 		});
+		_skinTemp = skin;
+		scope (exit) _skinTemp = null;
 		setResultStatus(count);
 	}
-	private void replaceTextImpl() {
-		string from = _from.getText;
-		if (!from.length) return;
-		string to = _to.getText;
-		if (from == to) _replMode = false;
-		size_t count = 0;
-		bool sr = false;
-		if (summary) {
-			sr |= repl(null, &_summ.scenarioName, &_summ.scenarioName, count);
-			sr |= repl(null, &_summ.desc, &_summ.desc, count);
+	private void replaceTextImpl(CWXPath c, ref size_t count) {
+		auto summ = cast(Summary) c;
+		if (summ) {
+			bool sr = false;
+			if (summary) {
+				sr |= repl(null, &summ.scenarioName, &summ.scenarioName, count);
+				sr |= repl(null, &summ.desc, &summ.desc, count);
+			}
+			if (coupon) {
+				sr |= replRqCoupons!(Summary)(null, _summ, count);
+			}
+			if (sr) addResult(summ);
 		}
-		if (coupon) {
-			sr |= replRqCoupons!(Summary)(null, _summ, count);
-		}
-		if (sr) {
-			addResult(_summ);
-		}
-		foreach (cc; _summ.casts) {
+		auto cc = cast(CastCard) c;
+		if (cc) {
 			bool r = replCard!(CastCard)(null, cc, count);
 			if (coupon) {
 				auto coupons = cc.coupons.dup;
@@ -968,94 +1006,112 @@ public:
 				}
 				cc.coupons = coupons;
 			}
-			if (r) {
-				addResult(cc);
-			}
-			foreach (c; cc.skills) {
-				replCard(c, c, count);
-				replEvent(c, count);
-			}
-			foreach (c; cc.items) {
-				replCard(c, c, count);
-				replEvent(c, count);
-			}
-			foreach (c; cc.beasts) {
-				replCard(c, c, count);
-				replEvent(c, count);
-			}
+			if (r) addResult(cc);
 		}
-		foreach (c; _summ.skills) {
-			replCard(c, c, count);
-			replEvent(c, count);
+		auto eff = cast(EffectCard) c;
+		if (eff) {
+			replCard(eff, eff, count);
 		}
-		foreach (c; _summ.items) {
-			replCard(c, c, count);
-			replEvent(c, count);
+		auto info = cast(InfoCard) c;
+		if (info) {
+			replCard(info, info, count);
 		}
-		foreach (c; _summ.beasts) {
-			replCard(c, c, count);
-			replEvent(c, count);
-		}
-		foreach (c; _summ.infos) {
-			replCard(c, c, count);
-		}
-		foreach (a; _summ.areas) {
+		auto a = cast(AbstractArea) c;
+		if (a) {
 			if (area) {
 				repl(a, &a.name, &a.name, count);
 			}
-			foreach (c; a.cards) {
-				replCard(c, c, count);
-				replEvent(c, count);
-			}
-			foreach (c; a.backs) {
-				replBgImage(c, c, count);
-			}
-			replEvent(a, count);
 		}
-		foreach (b; _summ.battles) {
-			if (area) {
-				repl(b, &b.name, &b.name, count);
-			}
-			foreach (c; b.cards) {
-				replEvent(c, count);
-			}
-			replEvent(b, count);
+		auto menu = cast(MenuCard) c;
+		if (menu) {
+			replCard(menu, menu, count);
 		}
-		foreach (p; _summ.packages) {
-			if (area) {
-				repl(p, &p.name, &p.name, count);
-			}
-			replEvent(p, count);
+		auto back = cast(BgImage) c;
+		if (back) {
+			replBgImage(back, back, count);
 		}
-		if (flag) {
-			void replFS(FlagDir dir) {
-				foreach (f; dir.flags) {
-					string old = f.name;
-					replFlagName(dir, f, count);
-					_summ.useCounter.change(toFlagId(old), toFlagId(f.name));
-					bool r = false;
-					r |= repl(null, &f.on, &f.on, count);
-					r |= repl(null, &f.off, &f.off, count);
-					if (r) addResult(f);
-				}
-				foreach (s; dir.steps) {
-					string old = s.name;
-					replFlagName(dir, s, count);
-					_summ.useCounter.change(toStepId(old), toStepId(s.name));
-					bool r = false;
-					foreach (i, v; s.values) {
-						r |= repl(null, {return v;}, (string t) {s.setValue(i, t);}, count);
-					}
-					if (r) addResult(s);
-				}
-				foreach (c; dir.subDirs) {
-					replFS(c);
-				}
-			}
-			replFS(_summ.flagDirRoot);
+		auto f = cast(Flag) c;
+		if (f) {
+			string old = f.name;
+			replFlagName(f.parent, f, count);
+			_summ.useCounter.change(toFlagId(old), toFlagId(f.name));
+			bool r = false;
+			r |= repl(null, &f.on, &f.on, count);
+			r |= repl(null, &f.off, &f.off, count);
+			if (r) addResult(f);
 		}
+		auto s = cast(Step) c;
+		if (s) {
+			string old = s.name;
+			replFlagName(s.parent, s, count);
+			_summ.useCounter.change(toStepId(old), toStepId(s.name));
+			bool r = false;
+			foreach (i, v; s.values) {
+				r |= repl(null, {return v;}, (string t) {s.setValue(i, t);}, count);
+			}
+			if (r) addResult(s);
+		}
+		auto et = cast(EventTree) c;
+		if (et) {
+			replKeyCode(et, et, count);
+		}
+		auto content = cast(Content) c;
+		if (content) {
+			replContent(content, count);
+		}
+	}
+	private void replaceTextImpl() {
+		string from = _from.getText;
+		if (!from.length) return;
+		if (_useRegex.getSelection) {
+			try {
+				_regex = RegExp(from, _notIgnoreCase.getSelection ? "gm" : "gim");
+			} catch (RegExpException e) {
+				MessageBox.showWarning
+					(_prop.msgs.regexError ~ "\n" ~ e.msg,
+					_prop.msgs.dlgTitWarning, _win);
+				return;
+			}
+		} else {
+			if (from == _to.getText) _replMode = false;
+		}
+		scope (exit) _regex = null;
+
+		size_t count = 0;
+		_skinTemp = findSkin(_prop, _summ);
+		scope (exit) _skinTemp = null;
+		reset;
+		searchAll(_summ, count, &replaceTextImpl);
 		setResultStatus(count);
 		if (count > 0) _comm.replText.call;
+	}
+	private RegExp _regex = null;
+	private string fTextRepl(string s) {
+		string to = _to.getText;
+		if (_regex) {
+			return _regex.replace(s, to);
+		}
+		string from = _from.getText;
+		if (_notIgnoreCase.getSelection) {
+			return .replace(s, from, to);
+		} else {
+			return .ireplace(s, from, to);
+		}
+	}
+	private size_t fTextCount(string s) {
+		if (_regex) {
+			size_t c = 0;
+			foreach (m; _regex.search(s)) {
+				c++;
+			}
+			return c;
+		}
+		string from = _from.getText;
+		if (_notIgnoreCase.getSelection) {
+			return .count(s, from);
+		} else {
+			return .icount(s, from);
+		}
 	}
 	private void exit() {
 		_win.close;
@@ -1089,10 +1145,11 @@ public:
 			}
 		}
 	}
+	private Skin _skinTemp = null;
 	Image fimage(string file) {
 		try {
 			if (!.exists(file)) {
-				auto skin = findSkin(_prop, _summ);
+				auto skin = _skinTemp ? _skinTemp : findSkin(_prop, _summ);
 				if (.isdir(file)) {
 					return _prop.images.folder;
 				} else if (skin.isCardImage(file)) {
@@ -1210,13 +1267,11 @@ public:
 		itm.setData = cast(Object) path;
 	}
 	private bool repl(CWXPath path, string delegate() get, void delegate(string) set, ref size_t count) {
-		string from = _from.getText;
-		string to = _to.getText;
 		string text = get();
-		auto c = .count(text, from);
+		auto c = fTextCount(text);
 		count += c;
 		if (c > 0) {
-			if (_replMode) set(.replace(text, from, to));
+			if (_replMode) set(fTextRepl(text));
 			if (path) addResult(path);
 			return true;
 		}
@@ -1224,13 +1279,11 @@ public:
 	}
 
 	private bool replFlagName(F)(FlagDir parent, F flag, ref size_t count) {
-		string from = _from.getText;
-		string to = _to.getText;
 		string text = flag.name;
-		auto c = .count(text, from);
+		auto c = fTextCount(text);
 		count += c;
 		if (c > 0) {
-			if (_replMode) flag.name = parent.validName(.replace(text, from, to));
+			if (_replMode) flag.name = parent.validName(fTextRepl(text));
 			addResult(flag);
 			return true;
 		}
@@ -1302,69 +1355,48 @@ public:
 		}
 		return r;
 	}
-	private void replEvent(EventTreeOwner owner, ref size_t count) {
+	void replContent(Content e, ref size_t count) {
+		auto eo = e.parent;
+		assert (!eo || eo.detail.owner);
 		string from = _from.getText;
 		string to = _to.getText;
-		void replE(Content eo, Content e) {
-			assert (!eo || eo.detail.owner);
-			bool r = false;
-			if (event && (!eo || eo.detail.nextType == CNextType.TEXT)) {
+		bool r = false;
+		if (event && (!eo || eo.detail.nextType == CNextType.TEXT)) {
+			r |= repl(null, &e.name, &e.name, count);
+		}
+		if (flag) {
+			r |= repl(null, &e.flag, &e.flag, count);
+			r |= repl(null, &e.step, &e.step, count);
+		}
+		if (start) {
+			r |= repl(null, &e.start, &e.start, count);
+			if (e.type == CType.START) {
 				r |= repl(null, &e.name, &e.name, count);
 			}
-			if (flag) {
-				r |= repl(null, &e.flag, &e.flag, count);
-				r |= repl(null, &e.step, &e.step, count);
-			}
-			if (start) {
-				r |= repl(null, &e.start, &e.start, count);
-				if (e.type == CType.START) {
-					r |= repl(null, &e.name, &e.name, count);
+		}
+		if (coupon) {
+			r |= repl(null, &e.coupon, &e.coupon, count);
+		}
+		if (gossip) {
+			r |= repl(null, &e.gossip, &e.gossip, count);
+		}
+		if (end) {
+			r |= repl(null, &e.completeStamp, &e.completeStamp, count);
+		}
+		if (msg) {
+			r |= repl(null, &e.text, &e.text, count);
+			auto dlgs = e.dialogs;
+			foreach (dlg; dlgs) {
+				if (msg) {
+					r |= repl(null, &dlg.text, &dlg.text, count);
 				}
-			}
-			if (coupon) {
-				r |= repl(null, &e.coupon, &e.coupon, count);
-			}
-			if (gossip) {
-				r |= repl(null, &e.gossip, &e.gossip, count);
-			}
-			if (end) {
-				r |= repl(null, &e.completeStamp, &e.completeStamp, count);
-			}
-			if (msg) {
-				r |= repl(null, &e.text, &e.text, count);
-				auto dlgs = e.dialogs;
-				foreach (dlg; dlgs) {
-					if (msg) {
-						r |= repl(null, &dlg.text, &dlg.text, count);
-					}
-					if (coupon) {
-						r |= replRqCoupons!(typeof(dlg))(null, dlg, count);
-					}
-				}
-			}
-			foreach (b; e.backs) {
-				r |= replBgImage(null, b, count);
-			}
-			foreach (m; e.motions) {
-				if (m.beast) {
-					r |= replCard!(BeastCard)(null, m.beast, count);
-					replEvent(m.beast, count);
-				}
-			}
-			if (r) {
-				addResult(e);
-			}
-			if (e.detail.owner) {
-				foreach (child; e.next) {
-					replE(e, child);
+				if (coupon) {
+					r |= replRqCoupons!(typeof(dlg))(null, dlg, count);
 				}
 			}
 		}
-		foreach (et; owner.trees) {
-			foreach (e; et.starts) {
-				replE(null, e);
-			}
-			replKeyCode(et, et, count);
+		if (r) {
+			addResult(e);
 		}
 	}
 }

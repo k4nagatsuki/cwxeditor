@@ -242,6 +242,10 @@ public:
 	string replUnuseStart() {return "スタートコンテント";}
 	string replUnusePath() {return "素材";}
 
+	string replNotIgnoreCase() {return "大文字と小文字を区別する(&C)";}
+	string replRegExp() {return "正規表現(&E)";}
+	string regexError() {return "正規表現が正しくありません。";}
+	string replCond() {return "検索条件";}
 	string search() {return "検索(&F)";}
 	string replace() {return "全て置換(&R)";}
 	string replaceExit() {return "閉じる";}

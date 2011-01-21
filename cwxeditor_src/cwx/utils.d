@@ -1333,3 +1333,33 @@ version (Windows) {
 	}
 	alias listdir clistdir;
 }
+
+/// sにsubがいくつ含まれているかを返す。
+/// std.string.count()と違って大文字と小文字を区別しない。
+size_t icount(string s, string sub) {
+	int c = 0;
+	while (true) {
+		auto i = ifind(s, sub);
+		if (i < 0) return c;
+		c++;
+		s = s[i + sub.length .. $];
+	}
+} unittest {
+	assert (icount("test", "Es") == 1);
+	assert (icount("aaaaaaa", "AA") == 3);
+}
+
+/// sに含まれるfromをtoに置換した結果を返す。
+/// std.string.replace()と違って大文字と小文字を区別しない。
+string ireplace(string s, string from, string to) {
+	string r = "";
+	while (true) {
+		auto i = ifind(s, from);
+		if (i < 0) return r ~ s;
+		r ~= s[0 .. i] ~ to;
+		s = s[i + from.length .. $];
+	}
+} unittest {
+	assert (ireplace("test", "Es", "TT") == "tTTt");
+	assert (ireplace("aaaaaaa", "AA", "BB") == "BBBBBBa");
+}
