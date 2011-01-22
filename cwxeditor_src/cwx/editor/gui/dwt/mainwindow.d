@@ -849,6 +849,9 @@ public:
 			new MenuItem(mt, DWT.SEPARATOR);
 			mixin (MenuAction!("mt", "Settings", DWT.PUSH, "settings"));
 
+			auto mh = createMenu(bar, _prop.msgs.menuHelp);
+			mixin (MenuAction!("mh", "Version", DWT.PUSH, "versionInfo"));
+
 			_win.setMenuBar = bar;
 		}
 
@@ -866,6 +869,7 @@ public:
 		_noSummMenu.add(MenuID.ShowCardTable);
 		_noSummMenu.add(MenuID.ExecEngine);
 		_noSummMenu.add(MenuID.Settings);
+		_noSummMenu.add(MenuID.Version);
 
 		if (_prop.var.etc.singleWindow) {
 			auto cbar = new CoolBar(toolComp, DWT.NONE);
@@ -1109,6 +1113,9 @@ public:
 	private void newItem() {mixin (NewCard!("Item"));}
 	private void newInfo() {mixin (NewCard!("Info"));}
 	private void newBeast() {mixin (NewCard!("Beast"));}
+	private void versionInfo() {
+		(new VersionDialog(_prop, _win)).open;
+	}
 
 	private HashSet!(MenuID) _noSummMenu;
 	private MenuItem[MenuID] _menu;
@@ -1419,5 +1426,39 @@ protected:
 			}
 		}
 		return ok;
+	}
+}
+
+class VersionDialog : AbsDialog {
+private:
+	Props _prop;
+
+public:
+	this(Props prop, Shell shell) {
+		super(prop, shell, prop.msgs.dlgTitVersion, prop.images.menuVersion, false, null, false, false);
+		_prop = prop;
+		enterClose = true;
+	}
+protected:
+	override void setup(Composite area) {
+		auto gl = new GridLayout(2, false);
+		gl.marginWidth = 10;
+		gl.horizontalSpacing = 15;
+		area.setLayout = gl;
+		auto d = Display.getCurrent;
+		auto img = new Label(area, DWT.CENTER);
+		img.setImage = _prop.images.icon;
+		auto gd = new GridData;
+		auto rect = _prop.images.icon.getBounds;
+		gd.widthHint = rect.width;
+		gd.heightHint = rect.height;
+		gd.verticalSpan = 3;
+		img.setLayoutData = gd;
+		auto l1 = new Label(area, DWT.NONE);
+		l1.setText = _prop.msgs.application ~ " / " ~ _prop.msgs.appVersion;
+		auto l2 = new Label(area, DWT.NONE);
+		l2.setText = _prop.msgs.appDesc;
+		auto l3 = new Label(area, DWT.NONE);
+		l3.setText = _prop.msgs.appBuild;
 	}
 }

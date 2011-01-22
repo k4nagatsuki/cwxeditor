@@ -57,6 +57,8 @@ public:
 	}
 
 	Image app() {return imgd!(resourceDir ~ "new.png");}
+	Image menuVersion() {return imgd!(resourceDir ~ "version.png");}
+	Image icon() {return imgd!("cwxeditor.ico");}
 
 	Image summary() {return imgd!(resourceDir ~ "summary.png");}
 
@@ -481,7 +483,8 @@ enum MenuID : int {
 	ReplaceText,
 	Reload,
 	StartToPackage,
-	ConvertContent
+	ConvertContent,
+	Version
 }
 
 public class Props {

@@ -23,6 +23,18 @@ import std.string;
 class Msgs {
 public:
 	string application() {return "CWXEditor";}
+	string dlgTitVersion() {return "バージョン情報";}
+	string appDesc() {return "Scenario editor for CardWirthPy.";}
+	string appVersion() {return chop(import("version.txt"));}
+	string appBuild() {
+		string buf = "Build: " ~ __TIMESTAMP__ ~ " ";
+		debug {
+			buf ~= "Debug";
+		} else {
+			buf ~= "Release";
+		}
+		return buf;
+	}
 
 	string dlgTitError() {return "エラー - CWXEditor";}
 	string dlgTitWarning() {return "警告 - CWXEditor";}
@@ -181,6 +193,10 @@ public:
 
 	string menuTable() {return "テーブル(&T)";}
 	string menuVariable() {return "状態変数(&V)";}
+
+	string menuHelp() {return "ヘルプ(&H)";}
+	string ttVersion() {return "バージョン情報";}
+	string menuVersion() {return ttVersion ~ "(&A)";}
 
 	string summary() {return "シナリオの設定";}
 	string area() {return "エリア";}

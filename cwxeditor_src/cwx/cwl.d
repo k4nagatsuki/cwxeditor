@@ -1314,71 +1314,111 @@ struct SData {
 }
 /// 4.0形式のCardWirthシナリオを保存する。
 void saveLScenario(Summary summ, bool saveInnerImagePath = false) {
-	scope wids = new HashSet!(string);
 	auto d = SData(summ.scenarioPath, saveInnerImagePath);
+	class Save {
+		Area[] areas;
+		Battle[] battles;
+		Package[] packages;
+		CastCard[] casts;
+		SkillCard[] skills;
+		ItemCard[] items;
+		BeastCard[] beasts;
+		InfoCard[] infos;
+		string[] wids;
+		int save() {
+			foreach (a; areas) {
+				auto file = "~Area" ~ to!(string)(a.id) ~ ".wid";
+				ByteIO f;
+				writeArea(d, f, a);
+				std.file.write(std.path.join(d.sPath, file), f.bytes);
+				wids ~= file;
+			}
+			foreach (a; battles) {
+				auto file = "~Battle" ~ to!(string)(a.id) ~ ".wid";
+				ByteIO f;
+				writeBattle(d, f, a);
+				std.file.write(std.path.join(d.sPath, file), f.bytes);
+				wids ~= file;
+			}
+			foreach (a; packages) {
+				auto file = "~Package" ~ to!(string)(a.id) ~ ".wid";
+				ByteIO f;
+				writePackage(d, f, a);
+				std.file.write(std.path.join(d.sPath, file), f.bytes);
+				wids ~= file;
+			}
+			foreach (c; casts) {
+				auto file = "~Mate" ~ to!(string)(c.id) ~ ".wid";
+				ByteIO f;
+				writeCast(d, f, c);
+				std.file.write(std.path.join(d.sPath, file), f.bytes);
+				wids ~= file;
+			}
+			foreach (c; skills) {
+				auto file = "~Skill" ~ to!(string)(c.id) ~ ".wid";
+				ByteIO f;
+				writeSkill(d, f, c);
+				std.file.write(std.path.join(d.sPath, file), f.bytes);
+				wids ~= file;
+			}
+			foreach (c; items) {
+				auto file = "~Item" ~ to!(string)(c.id) ~ ".wid";
+				ByteIO f;
+				writeItem(d, f, c);
+				std.file.write(std.path.join(d.sPath, file), f.bytes);
+				wids ~= file;
+			}
+			foreach (c; beasts) {
+				auto file = "~Beast" ~ to!(string)(c.id) ~ ".wid";
+				ByteIO f;
+				writeBeast(d, f, c);
+				std.file.write(std.path.join(d.sPath, file), f.bytes);
+				wids ~= file;
+			}
+			foreach (c; infos) {
+				auto file = "~Info" ~ to!(string)(c.id) ~ ".wid";
+				ByteIO f;
+				writeInfo(d, f, c);
+				std.file.write(std.path.join(d.sPath, file), f.bytes);
+				wids ~= file;
+			}
+			return 0;
+		}
+		void rename() {
+			foreach (file; wids) {
+				std.file.rename(std.path.join(d.sPath, file), std.path.join(d.sPath, file[1u .. $]));
+			}
+		}
+	}
+	auto save1 = new Save;
+	auto save2 = new Save;
 	{
 		auto file = "~Summary.wsm";
 		ByteIO f;
 		writeSummary(d, f, summ);
 		std.file.write(std.path.join(d.sPath, file), f.bytes);
-		wids.add(file);
+		save1.wids ~= file;
 	}
-	foreach (a; summ.areas) {
-		auto file = "~Area" ~ to!(string)(a.id) ~ ".wid";
-		ByteIO f;
-		writeArea(d, f, a);
-		std.file.write(std.path.join(d.sPath, file), f.bytes);
-		wids.add(file);
-	}
-	foreach (a; summ.battles) {
-		auto file = "~Battle" ~ to!(string)(a.id) ~ ".wid";
-		ByteIO f;
-		writeBattle(d, f, a);
-		std.file.write(std.path.join(d.sPath, file), f.bytes);
-		wids.add(file);
-	}
-	foreach (a; summ.packages) {
-		auto file = "~Package" ~ to!(string)(a.id) ~ ".wid";
-		ByteIO f;
-		writePackage(d, f, a);
-		std.file.write(std.path.join(d.sPath, file), f.bytes);
-		wids.add(file);
-	}
-	foreach (c; summ.casts) {
-		auto file = "~Mate" ~ to!(string)(c.id) ~ ".wid";
-		ByteIO f;
-		writeCast(d, f, c);
-		std.file.write(std.path.join(d.sPath, file), f.bytes);
-		wids.add(file);
-	}
-	foreach (c; summ.skills) {
-		auto file = "~Skill" ~ to!(string)(c.id) ~ ".wid";
-		ByteIO f;
-		writeSkill(d, f, c);
-		std.file.write(std.path.join(d.sPath, file), f.bytes);
-		wids.add(file);
-	}
-	foreach (c; summ.items) {
-		auto file = "~Item" ~ to!(string)(c.id) ~ ".wid";
-		ByteIO f;
-		writeItem(d, f, c);
-		std.file.write(std.path.join(d.sPath, file), f.bytes);
-		wids.add(file);
-	}
-	foreach (c; summ.beasts) {
-		auto file = "~Beast" ~ to!(string)(c.id) ~ ".wid";
-		ByteIO f;
-		writeBeast(d, f, c);
-		std.file.write(std.path.join(d.sPath, file), f.bytes);
-		wids.add(file);
-	}
-	foreach (c; summ.infos) {
-		auto file = "~Info" ~ to!(string)(c.id) ~ ".wid";
-		ByteIO f;
-		writeInfo(d, f, c);
-		std.file.write(std.path.join(d.sPath, file), f.bytes);
-		wids.add(file);
-	}
+	save1.areas = summ.areas[0 .. $ / 2];
+	save2.areas = summ.areas[$ / 2 .. $];
+	save1.battles = summ.battles[0 .. $ / 2];
+	save2.battles = summ.battles[$ / 2 .. $];
+	save1.packages = summ.packages[0 .. $ / 2];
+	save2.packages = summ.packages[$ / 2 .. $];
+	save1.casts = summ.casts[0 .. $ / 2];
+	save2.casts = summ.casts[$ / 2 .. $];
+	save1.skills = summ.skills[0 .. $ / 2];
+	save2.skills = summ.skills[$ / 2 .. $];
+	save1.items = summ.items[0 .. $ / 2];
+	save2.items = summ.items[$ / 2 .. $];
+	save1.beasts = summ.beasts[0 .. $ / 2];
+	save2.beasts = summ.beasts[$ / 2 .. $];
+	save1.infos = summ.infos[0 .. $ / 2];
+	save2.infos = summ.infos[$ / 2 .. $];
+	auto thr = new Thread(&save2.save);
+	thr.start;
+	save1.save;
+	thr.wait;
 	scope regex = std.regexp.RegExp("^(Area|Battle|Package|Mate|Skill|Item|Beast|Info)[0-9]+\\.wid$");
 	foreach (file; clistdir(d.sPath)) {
 		if (regex.test(file, 0) || std.path.fnmatch(file, "Summary.wsm")) {
@@ -1387,9 +1427,8 @@ void saveLScenario(Summary summ, bool saveInnerImagePath = false) {
 			std.file.remove(path);
 		}
 	}
-	foreach (file; wids) {
-		std.file.rename(std.path.join(d.sPath, file), std.path.join(d.sPath, file[1u .. $]));
-	}
+	save1.rename;
+	save2.rename;
 }
 
 private byte fromTarget(Target v) {
