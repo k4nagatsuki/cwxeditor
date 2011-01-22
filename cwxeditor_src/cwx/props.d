@@ -273,7 +273,7 @@ public:
 		return to!(string)(count) ~ "箇所の置換";
 	}
 	string searchResultBgImage(BgImage back) {
-		return "背景画像 - " ~ back.path;
+		return "背景画像 - " ~ encodePath(back.path);
 	}
 	string searchResultIds(C)(C c) {
 		string name;

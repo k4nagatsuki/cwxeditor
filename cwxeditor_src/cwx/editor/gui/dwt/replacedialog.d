@@ -231,7 +231,7 @@ private:
 				});
 			} else {
 				auto path = abs2rel(sPath, p);
-				paths ~= path;
+				paths ~= encodePath(path);
 				tbl.add(toPathId(path));
 			}
 		}
@@ -240,20 +240,20 @@ private:
 			auto skin = findSkin(_prop, _summ);
 			foreach (p; skin.tables) {
 				tbl.add(toPathId(p));
-				paths ~= p;
+				paths ~= encodePath(p);
 			}
 			foreach (p; skin.musics) {
 				tbl.add(toPathId(p));
-				paths ~= p;
+				paths ~= encodePath(p);
 			}
 			foreach (p; skin.sounds) {
 				tbl.add(toPathId(p));
-				paths ~= p;
+				paths ~= encodePath(p);
 			}
 			foreach (path; _summ.useCounter.path.keys) {
 				auto p = cast(string) path;
 				if (!path.isBinImg && !tbl.contains(path)) {
-					paths ~= p;
+					paths ~= encodePath(p);
 				}
 			}
 		}
@@ -1170,7 +1170,7 @@ public:
 	private Skin _skinTemp = null;
 	Image fimage(string file) {
 		try {
-			if (!.exists(file)) {
+			if (.exists(file)) {
 				auto skin = _skinTemp ? _skinTemp : findSkin(_prop, _summ);
 				if (.isdir(file)) {
 					return _prop.images.folder;
@@ -1191,7 +1191,7 @@ public:
 	private void addResult(string path) {
 		auto itm = new TableItem(_result, DWT.NONE);
 		itm.setImage = fimage(std.path.join(_summ.scenarioPath, path));
-		itm.setText = path;
+		itm.setText = encodePath(path);
 		itm.setData = new PathString(path);
 	}
 	private void addResult(CWXPath path) {
