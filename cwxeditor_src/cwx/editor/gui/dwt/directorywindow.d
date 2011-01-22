@@ -228,10 +228,10 @@ private:
 	}
 
 	bool isDef(string p, bool isDir) {
-		return _summ.isSystemFile(p, isDir) || isIgnore(p, isDir);
+		return _summ.isSystemFile(p, isDir) || isIgnore(p);
 	}
 
-	bool isIgnore(string p, bool isDir) {
+	bool isIgnore(string p) {
 		return containsPath(_prop.var.etc.ignorePaths, getBaseName(p));
 	}
 
@@ -344,7 +344,7 @@ private:
 					if (sp) {
 						if (isDef(p.array, p.dir)) continue;
 					} else {
-						if (isIgnore(p.array, p.dir)) continue;
+						if (isIgnore(p.array)) continue;
 					}
 					TableItem itm;
 					if (count < oldC) {
@@ -410,7 +410,7 @@ private:
 			if (sp) {
 				if (isDef(p, cast(bool) isdir(p))) continue;
 			} else {
-				if (isIgnore(p, cast(bool) isdir(p))) continue;
+				if (isIgnore(p)) continue;
 			}
 			s |= addp(itm, p, sel, top, topItm);
 		}
@@ -692,7 +692,7 @@ private:
 					if (top) {
 						if (isDef(to, cast(bool) isdir(file))) continue;
 					} else {
-						if (isIgnore(to, cast(bool) isdir(file))) continue;
+						if (isIgnore(to)) continue;
 					}
 					if (.exists(to)) {
 						bool tisdir = cast(bool) isdir(to);
@@ -1510,6 +1510,10 @@ public:
 		if (_win && !_win.isDisposed) {
 			refreshDirs(std.path.join(_summ.scenarioPath, findSkin(_prop, summ).materialPath));
 			refreshFiles(null);
+			auto root = _dirs.getItem(0);
+			root.setExpanded = true;
+			_dirs.setSelection = [root];
+			_dirs.showSelection;
 			refCheckPaths;
 			__refreshTitle;
 		}
