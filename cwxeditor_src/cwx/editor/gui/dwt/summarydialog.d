@@ -39,6 +39,7 @@ import dwt.widgets.TableItem;
 import dwt.custom.CTabFolder;
 import dwt.custom.CTabItem;
 import dwt.graphics.Image;
+import dwt.graphics.ImageData;
 import dwt.graphics.GC;
 import dwt.graphics.Font;
 import dwt.graphics.FontData;
@@ -88,7 +89,8 @@ private:
 	class PListener : PaintListener {
 		override void paintControl(PaintEvent e) {
 			auto d = Display.getCurrent;
-			scope buf = new Image(d, _prop.looks.summarySize.width, _prop.looks.summarySize.height);
+			auto size = _prop.looks.summarySize;
+			scope buf = new Image(d, size.width, size.height);
 			scope (exit) buf.dispose;
 			scope gc = new GC(buf);
 			scope (exit) gc.dispose;
@@ -112,7 +114,7 @@ private:
 					scope font = new Font(d, fontData);
 					gc.setFont = font;
 					scope p = gc.stringExtent(text);
-					gc.drawString(text, (_prop.looks.summarySize.width - p.x) / 2, y, true);
+					gc.drawString(text, (size.width - p.x) / 2, y, true);
 					font.dispose;
 				}
 				int alpha;
@@ -140,10 +142,30 @@ private:
 				drawCenterText(dwtData(_prop.looks.summaryPageFont(_summ.legacy)),
 					_prop.msgs.summaryPageDummy, _prop.looks.summaryPageY);
 			}
-
-			auto bx = (_summImage.getSize.x - _prop.looks.summarySize.width) / 2;
-			auto by = (_summImage.getSize.y - _prop.looks.summarySize.height) / 2;
-			e.gc.drawImage(buf, bx, by);
+			auto rect = _summImage.getClientArea;
+			if (rect.width < size.width || rect.height < size.height) {
+				real wp = cast(real) rect.width / size.width;
+				real hp = cast(real) rect.height / size.height;
+				ImageData data;
+				if (wp < hp) {
+					size.width = rect.width;
+					size.height = cast(int) (size.height * wp);
+				} else {
+					size.width = cast(int) (size.width * hp);
+					size.height = rect.height;
+				}
+				data = buf.getImageData.scaledTo(size.width, size.height);
+				buf.dispose;
+				buf = null;
+				if (size.width > 0 && size.height > 0) {
+					buf = new Image(d, data);
+				}
+			}
+			if (buf) {
+				auto bx = (rect.width - size.width) / 2;
+				auto by = (rect.height - size.height) / 2;
+				e.gc.drawImage(buf, bx, by);
+			}
 		}
 	}
 	void constructTab1(CTabFolder tabf) {
