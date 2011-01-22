@@ -222,11 +222,17 @@ private:
 	}
 	FC[] _checkPaths;
 	void refCheckPaths() {
- 		_checkPaths = allPaths;
+		if (_summ.useTemp) {
+	 		_checkPaths = allPaths;
+		}
 	}
 
 	bool isDef(string p, bool isDir) {
-		return _summ.isSystemFile(p, isDir) || containsPath(_prop.var.etc.ignorePaths, getBaseName(p));
+		return _summ.isSystemFile(p, isDir) || isIgnore(p, isDir);
+	}
+
+	bool isIgnore(string p, bool isDir) {
+		return containsPath(_prop.var.etc.ignorePaths, getBaseName(p));
 	}
 
 	void refreshDirs(string sel) {
@@ -337,6 +343,8 @@ private:
 				foreach (i, p; list) {
 					if (sp) {
 						if (isDef(p.array, p.dir)) continue;
+					} else {
+						if (isIgnore(p.array, p.dir)) continue;
 					}
 					TableItem itm;
 					if (count < oldC) {
@@ -401,6 +409,8 @@ private:
 		foreach (p; subs) {
 			if (sp) {
 				if (isDef(p, cast(bool) isdir(p))) continue;
+			} else {
+				if (isIgnore(p, cast(bool) isdir(p))) continue;
 			}
 			s |= addp(itm, p, sel, top, topItm);
 		}
@@ -629,7 +639,7 @@ private:
 				refreshFiles(sels);
 				_comm.refPaths.call(this.outer, toRelPath(sdp));
 				clearCut;
-				_summ.changed;
+				if (_summ.useTemp) _summ.changed;
 			}
 		}
 	}
@@ -681,6 +691,8 @@ private:
 					auto to = std.path.join(targ, getBaseName(file));
 					if (top) {
 						if (isDef(to, cast(bool) isdir(file))) continue;
+					} else {
+						if (isIgnore(to, cast(bool) isdir(file))) continue;
 					}
 					if (.exists(to)) {
 						bool tisdir = cast(bool) isdir(to);
@@ -745,7 +757,10 @@ private:
 							} else {
 								string p1 = toRelPath(from);
 								string p2 = toRelPath(to);
-								_summ.useCounter.change(toPathId(p1), toPathId(p2), true);
+								if (_summ.useCounter.get(toPathId(p1)) > 0) {
+									_summ.useCounter.change(toPathId(p1), toPathId(p2), true);
+									_summ.changed;
+								}
 								_comm.refPath.call(p1, p2, false);
 								rename(from, to);
 							}
@@ -774,7 +789,6 @@ private:
 				_comm.refPaths.call(this, toRelPath(selDirPath));
 				if (dir) refreshDirs(.exists(targ) ? targ : dir);
 				refreshFiles(selfs);
-				_summ.changed;
 				return true;
 			} catch (Exception e) {
 				debugln(e);
@@ -836,7 +850,6 @@ private:
 		if (.exists(to) && cast(bool) .isdir(to) == cast(bool) .isdir(path)) return null;
 		try {
 			rename(path, to);
-			_summ.changed;
 		} catch {
 			// 不正な名前
 			return null;
@@ -853,7 +866,10 @@ private:
 				} else {
 					string p1 = toRelPath(oldP);
 					string p2 = toRelPath(file);
-					_summ.useCounter.change(toPathId(p1), toPathId(p2));
+					if (_summ.useCounter.get(toPathId(p1)) > 0) {
+						_summ.useCounter.change(toPathId(p1), toPathId(p2));
+						_summ.changed;
+					}
 				}
 			}
 			foreach (c; clistdir(to)) {
@@ -862,7 +878,10 @@ private:
 		} else {
 			string p1 = frp;
 			string p2 = toRelPath(to);
-			_summ.useCounter.change(toPathId(p1), toPathId(p2));
+			if (_summ.useCounter.get(toPathId(p1)) > 0) {
+				_summ.useCounter.change(toPathId(p1), toPathId(p2));
+				_summ.changed;
+			}
 			_comm.refPath.call(p1, p2, false);
 		}
 		itm.setData = new FileNameObj(to);
@@ -1001,7 +1020,7 @@ private:
 			if (!.exists(fp)) {
 				mkdir(fp);
 				fp = nabs(fp);
-				_summ.changed;
+				if (_summ.useTemp) _summ.changed;
 				return true;
 			} else {
 				return false;
@@ -1497,7 +1516,10 @@ public:
 	}
 
 	bool isChanged() {
-		return _summ.isChanged || _checkPaths != allPaths;
+		if (_summ.useTemp) {
+			return _summ.isChanged || _checkPaths != allPaths;
+		}
+		return _summ.isChanged;
 	}
 
 	private void clearCut() {
@@ -1641,7 +1663,7 @@ public:
 			bool fromOut;
 			if (__paste(selDirPath, cast(FileNames) c, false, fromOut)) {
 				clearCut;
-				_summ.changed;
+				if (_summ.useTemp) _summ.changed;
 			}
 		}
 	}
@@ -1680,7 +1702,7 @@ public:
 		refreshDirs(dir);
 		refreshFiles(file);
 		_comm.delPaths.call(this);
-		_summ.changed;
+		if (_summ.useTemp) _summ.changed;
 		clearCut;
 	}
 	override bool canDoTCPD() {
