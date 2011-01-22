@@ -110,6 +110,9 @@ abstract class AbsDialog {
 	private bool _enterClose;
 	void enterClose(bool value) {_enterClose = value;}
 	bool enterClose() {return _enterClose;}
+	private bool _ffio = false;
+	void firstFocusIsOK(bool ffio) {_ffio = true;}
+	bool firstFocusIsOK() {return _ffio;}
 	private void cancel() {_win.close;}
 	bool open() {
 		setup(_area);
@@ -140,6 +143,7 @@ abstract class AbsDialog {
 		}
 		if (_apply) _apply.setEnabled = false;
 		_win.open;
+		if (firstFocusIsOK) _okBtn.setFocus;
 		auto d = _win.getDisplay;
 		while (!_win.isDisposed) {
 			if (!d.readAndDispatch) d.sleep;

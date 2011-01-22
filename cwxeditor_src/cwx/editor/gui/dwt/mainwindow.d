@@ -67,6 +67,7 @@ import dwt.widgets.FileDialog;
 import dwt.widgets.DirectoryDialog;
 import dwt.widgets.MessageBox;
 import dwt.widgets.Text;
+import dwt.widgets.Link;
 import dwt.graphics.Image;
 import dwt.program.Program;
 import dwt.layout.FillLayout;
@@ -1433,11 +1434,18 @@ class VersionDialog : AbsDialog {
 private:
 	Props _prop;
 
+	class OpenLink : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			auto prog = Program.findProgram("html");
+			if (prog) prog.execute(e.text);
+		}
+	}
 public:
 	this(Props prop, Shell shell) {
 		super(prop, shell, prop.msgs.dlgTitVersion, prop.images.menuVersion, false, null, false, false);
 		_prop = prop;
 		enterClose = true;
+		firstFocusIsOK = true;
 	}
 protected:
 	override void setup(Composite area) {
@@ -1452,13 +1460,14 @@ protected:
 		auto rect = _prop.images.icon.getBounds;
 		gd.widthHint = rect.width;
 		gd.heightHint = rect.height;
-		gd.verticalSpan = 3;
+		gd.verticalSpan = 2;
 		img.setLayoutData = gd;
-		auto l1 = new Label(area, DWT.NONE);
-		l1.setText = _prop.msgs.application ~ " / " ~ _prop.msgs.appVersion;
-		auto l2 = new Label(area, DWT.NONE);
-		l2.setText = _prop.msgs.appDesc;
-		auto l3 = new Label(area, DWT.NONE);
-		l3.setText = _prop.msgs.appBuild;
+		auto ln = new Link(area, DWT.NONE);
+		ln.setText = _prop.msgs.application ~ " / " ~ _prop.msgs.appVersion ~ "\n"
+			~ "<a>" ~ _prop.msgs.appWebSiteURI ~ "</a>\n"
+			~ _prop.msgs.appDesc;
+		ln.addSelectionListener(new OpenLink);
+		auto lb = new Label(area, DWT.NONE);
+		lb.setText = _prop.msgs.appBuild;
 	}
 }

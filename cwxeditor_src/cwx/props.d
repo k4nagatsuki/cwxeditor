@@ -25,7 +25,8 @@ public:
 	string application() {return "CWXEditor";}
 	string dlgTitVersion() {return "バージョン情報";}
 	string appDesc() {return "Scenario editor for CardWirthPy.";}
-	string appVersion() {return chop(import("version.txt"));}
+	string appVersion() {return splitlines(import("@version.txt"))[0];}
+	string appWebSiteURI() {return splitlines(import("@version.txt"))[1];}
 	string appBuild() {
 		string buf = "Build: " ~ __TIMESTAMP__ ~ " ";
 		debug {

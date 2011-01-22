@@ -1,0 +1,2 @@
+Version.1.00 Beta 33
+http://bitbucket.org/k4nagatsuki/cwxeditor/
