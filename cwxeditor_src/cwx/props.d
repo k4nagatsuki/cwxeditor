@@ -191,8 +191,8 @@ public:
 	string ttSettings() {return "エディタ設定";}
 	string menuSettings() {return ttSettings ~ "(&O)...";}
 
-	string menuTable() {return "テーブル(&T)";}
-	string menuVariable() {return "状態変数(&V)";}
+	string menuTable() {return "テーブル(&B)";}
+	string menuVariable() {return "状態変数(&R)";}
 
 	string menuHelp() {return "ヘルプ(&H)";}
 	string ttVersion() {return "バージョン情報";}

@@ -815,7 +815,7 @@ public:
 				mixin (MenuAction!("mf", "NewFlag", DWT.PUSH, "_flagWin.createFlag"));
 				mixin (MenuAction!("mf", "NewStep", DWT.PUSH, "_flagWin.createStep"));
 
-				auto mc = createMenu(bar, _prop.msgs.menuCards);
+				auto mc = createMenu(bar, _prop.msgs.menuNewCards);
 				auto g = new RadioGroup!(MenuItem);
 				mixin (MenuAction!("mc", "ShowCardLife", DWT.RADIO, "showCardLife"));
 				auto scf = _menu[MenuID.ShowCardLife];
