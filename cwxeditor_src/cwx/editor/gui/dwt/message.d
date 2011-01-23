@@ -6,6 +6,7 @@ import cwx.types;
 import cwx.event;
 import cwx.summary;
 import cwx.skin;
+import cwx.xml;
 
 import cwx.editor.gui.dwt.props;
 import cwx.editor.gui.dwt.skin;
@@ -16,6 +17,7 @@ import cwx.editor.gui.dwt.customtext;
 import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.materialselect;
 import cwx.editor.gui.dwt.absdialog;
+import cwx.editor.gui.dwt.xmlbytestransfer;
 
 import std.utf;
 import std.string;
@@ -36,6 +38,8 @@ import dwt.widgets.List;
 import dwt.widgets.Table;
 import dwt.widgets.TableColumn;
 import dwt.widgets.TableItem;
+import dwt.widgets.Menu;
+import dwt.widgets.MenuItem;
 import dwt.custom.CTabFolder;
 import dwt.custom.CTabItem;
 import dwt.graphics.Image;
@@ -54,6 +58,7 @@ import dwt.events.ShellAdapter;
 import dwt.events.ShellEvent;
 import dwt.events.ModifyListener;
 import dwt.events.ModifyEvent;
+import dwt.dnd.Clipboard;
 
 class SpeakDialog : AbsDialog {
 private:
@@ -76,14 +81,18 @@ private:
 		_rCoupons.setText = rcs;
 		_text.setText = dlg.text;
 	}
-	void createDialog() {
+	void createDialog(SDialog dlg) {
 		int index = _dlgsL.getSelectionIndex;
-		_dlgs = _dlgs[0 .. index] ~ new SDialog ~ _dlgs[index .. $];
-		auto itm = new TableItem(_dlgsL, DWT.NONE);
+		if (index < 0) index = _dlgs.length;
+		_dlgs = _dlgs[0 .. index] ~ dlg ~ _dlgs[index .. $];
+		auto itm = new TableItem(_dlgsL, DWT.NONE, index);
 		itm.setImage = _prop.images.content(CType.TALK_DIALOG);
 		_dlgsL.setSelection = [itm];
 		_dlgsL.showSelection;
 		selectChange;
+	}
+	void createDialog() {
+		createDialog(new SDialog);
 	}
 	void deleteDialog() {
 		if (_dlgs.length > 1) {
@@ -182,6 +191,41 @@ private:
 			_dlgsL.getItem(_dlgsL.getSelectionIndex).setText(0, text != "" ? text : " ");
 		}
 	}
+	SDialog selection() {
+		int index = _dlgsL.getSelectionIndex;
+		return index >= 0 ? _dlgs[index] : null;
+	}
+	class DialogsTCPD : TCPD {
+		void cut() {
+			if (_dlgsL.getItemCount > 1 && selection) {
+				copy;
+				del;
+			}
+		}
+		void copy() {
+			auto d = selection;
+			if (d) {
+				auto cb = new Clipboard(Display.getCurrent);
+				scope (exit) cb.dispose;
+				XMLtoCB(_prop, cb, d.toNode.text);
+			}
+		}
+		void paste() {
+			auto cb = new Clipboard(Display.getCurrent);
+			scope (exit) cb.dispose;
+			auto xml = CBtoXML(cb);
+			if (xml) {
+				try {
+					auto node = XNode.parse(xml);
+					if (node.name == SDialog.XML_NAME) {
+						createDialog(SDialog.createFromNode(node, LATEST_VERSION));
+					}
+				} catch {}
+			}
+		}
+		void del() {deleteDialog;}
+		bool canDoTCPD() {return _dlgsL.isFocusControl;}
+	}
 public:
 	this(Props prop, Shell shell, Summary summ, Content evt) {
 		_prop = prop;
@@ -207,6 +251,15 @@ protected:
 			gd.heightHint = 0;
 			_dlgsL.setLayoutData = gd;
 			_dlgsL.addSelectionListener(new SelL);
+
+			auto menu = new Menu(_dlgsL);
+			createMenuItem(menu, _prop.msgs.menuUp, _prop.images.menuUp, &up);
+			createMenuItem(menu, _prop.msgs.menuDown, _prop.images.menuDown, &down);
+			new MenuItem(menu, DWT.SEPARATOR);
+			appendMenuTCPD(_prop, menu, new DialogsTCPD);
+			_dlgsL.setMenu = menu;
+			usingPopupMenuAccelerator(_dlgsL);
+
 			auto bar = new ToolBar(comp, DWT.FLAT | DWT.VERTICAL);
 			bar.setLayoutData = new GridData(GridData.FILL_VERTICAL);
 			bar.addListener(DWT.Traverse, new class Listener {

@@ -379,6 +379,9 @@ private:
 	TextHolder _text;
 	Content _parent;
 public:
+	/// XML名。
+	static const XML_NAME = "Dialog";
+
 	/// 唯一のコンストラクタ。
 	this(string text = "", string[] rCoupons = []) {
 		_text = new TextHolder;
@@ -434,14 +437,23 @@ public:
 	void change(StepId id) {
 		_text.change(id);
 	}
+	XNode toNode() {
+		auto e = XNode.create(XML_NAME);
+		toNodeImpl(e);
+		return e;
+	}
 	void toNode(ref XNode node) {
 		assert (node.name == "Dialogs", node.name ~ " != Dialogs");
-		auto e = node.newElement("Dialog");
+		auto e = node.newElement(XML_NAME);
+		toNodeImpl(e);
+	}
+	private void toNodeImpl(ref XNode e) {
+		assert (e.name == XML_NAME, e.name ~ " != " ~ XML_NAME);
 		e.newElement("RequiredCoupons", encodeLf(rCoupons, true));
 		e.newElement("Text", encodeLf(text));
 	}
 	static SDialog createFromNode(ref XNode node, string ver) {
-		assert (node.name == "Dialog", node.name ~ " != Dialog");
+		assert (node.name == XML_NAME, node.name ~ " != " ~ XML_NAME);
 		string[] rCoupons;
 		string text;
 		node.onTag["RequiredCoupons"] = (ref XNode n) {

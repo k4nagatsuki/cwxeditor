@@ -240,6 +240,7 @@ alias EventWin!("packageWindow", 800, 520) PackageWin;
 alias EventWin!("cardEventWindow", 800, 520) CardEventWin;
 
 struct BgImageSetting {
+	static const XML_NAME = "bgImageSetting";
 	string name;
 	int x;
 	int y;
@@ -266,8 +267,16 @@ struct BgImageSetting {
 		r.mask = mask;
 		return r;
 	}
+	XNode toNode() {
+		auto e = XNode.create(XML_NAME);
+		toNodeImpl(e);
+		return e;
+	}
 	void toNode(ref XNode node) {
-		auto e = node.newElement("bgImageSetting");
+		auto e = node.newElement(XML_NAME);
+		toNodeImpl(e);
+	}
+	private void toNodeImpl(ref XNode e) {
 		e.newElement("name", name);
 		e.newElement("x", x);
 		e.newElement("y", y);
@@ -295,6 +304,7 @@ struct BgImageSetting {
 }
 
 struct OuterTool {
+	static const XML_NAME = "tool";
 	string name;
 	string command;
 	string workDir;
@@ -312,8 +322,16 @@ struct OuterTool {
 		r.workDir = workDir;
 		return r;
 	}
+	XNode toNode() {
+		auto e = XNode.create(XML_NAME);
+		toNodeImpl(e);
+		return e;
+	}
 	void toNode(ref XNode node) {
-		auto e = node.newElement("tool");
+		auto e = node.newElement(XML_NAME);
+		toNodeImpl(e);
+	}
+	private void toNodeImpl(ref XNode e) {
 		e.newElement("name", name);
 		e.newElement("command", command);
 		e.newElement("workDir", workDir);

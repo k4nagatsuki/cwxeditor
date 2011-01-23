@@ -3,6 +3,7 @@ module cwx.editor.gui.dwt.settingsdialog;
 
 import cwx.background;
 import cwx.utils;
+import cwx.xml;
 
 import cwx.editor.gui.dwt.props;
 import cwx.editor.gui.dwt.properties;
@@ -13,6 +14,7 @@ import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.areaview;
+import cwx.editor.gui.dwt.xmlbytestransfer;
 
 import std.path;
 import std.file;
@@ -32,6 +34,8 @@ import dwt.widgets.Label;
 import dwt.widgets.FileDialog;
 import dwt.widgets.DirectoryDialog;
 import dwt.widgets.MessageBox;
+import dwt.widgets.Menu;
+import dwt.widgets.MenuItem;
 import dwt.custom.CTabFolder;
 import dwt.custom.CTabItem;
 import dwt.events.SelectionAdapter;
@@ -42,6 +46,7 @@ import dwt.events.DisposeListener;
 import dwt.events.DisposeEvent;
 import dwt.layout.GridLayout;
 import dwt.layout.GridData;
+import dwt.dnd.Clipboard;
 
 class SettingsDialog : AbsDialog {
 private:
@@ -488,26 +493,38 @@ private:
 			applyEnabled;
 		}
 	}
+	void addBgImage(BgImageSetting bgStg) {
+		int index = _bgStgsL.getSelectionIndex;
+		if (index < 0) {
+			index = _bgStgs.length;
+			_bgStgs ~= bgStg;
+		} else {
+			_bgStgs = _bgStgs[0 .. index] ~ bgStg ~ _bgStgs[index .. $];
+		}
+		_bgStgsL.add(bgStg.name, index);
+		_bgStgsL.select = index;
+		selectBgImageSetting;
+		applyEnabled;
+	}
 	class NewBgImgStg : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			_bgStgs ~= BgImageSetting(_prop.msgs.newBgImageSettingName, 0, 0, 0, 0, false);
-			_bgStgsL.add(_bgStgs[$ - 1].name);
-			_bgStgsL.select = _bgStgs.length - 1;
-			selectBgImageSetting;
-			applyEnabled;
+			addBgImage(BgImageSetting(_prop.msgs.newBgImageSettingName, 0, 0, 0, 0, false));
 		}
+	}
+	void delBgImage() {
+		int i = _bgStgsL.getSelectionIndex;
+		if (i < 0) return;
+		_bgStgsL.remove(i);
+		_bgStgs = _bgStgs[0 .. i] ~ _bgStgs[i + 1 .. $];
+		if (_bgStgs.length > 0) {
+			_bgStgsL.select = i < _bgStgs.length ? i : _bgStgs.length - 1;
+		}
+		selectBgImageSetting;
+		applyEnabled;
 	}
 	class DelBgImgStg : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			int i = _bgStgsL.getSelectionIndex;
-			if (i < 0) return;
-			_bgStgsL.remove(i);
-			_bgStgs = _bgStgs[0 .. i] ~ _bgStgs[i + 1 .. $];
-			if (_bgStgs.length > 0) {
-				_bgStgsL.select = i < _bgStgs.length ? i : _bgStgs.length - 1;
-			}
-			selectBgImageSetting;
-			applyEnabled;
+			delBgImage;
 		}
 	}
 	class DBgImgKeyCodeSash : DisposeListener {
@@ -515,6 +532,42 @@ private:
 			auto ws = (cast(SplitPane) e.widget).getWeights;
 			_prop.var.etc.bgImageKeyCodeSashL = ws[0];
 			_prop.var.etc.bgImageKeyCodeSashR = ws[1];
+		}
+	}
+	class BgImagesTCPD : TCPD {
+		void cut() {
+			int i = _bgStgsL.getSelectionIndex;
+			if (i < 0) return;
+			copy;
+			del;
+		}
+		void copy() {
+			int i = _bgStgsL.getSelectionIndex;
+			if (i < 0) return;
+			auto cb = new Clipboard(Display.getCurrent);
+			scope (exit) cb.dispose;
+			XMLtoCB(_prop, cb, _bgStgs[i].toNode.text);
+		}
+		void paste() {
+			auto cb = new Clipboard(Display.getCurrent);
+			scope (exit) cb.dispose;
+			auto xml = CBtoXML(cb);
+			if (xml) {
+				try {
+					auto node = XNode.parse(xml);
+					if (node.name == BgImageSetting.XML_NAME) {
+						BgImageSetting stg;
+						stg.fromNode(node);
+						addBgImage(stg);
+					}
+				} catch {}
+			}
+		}
+		void del() {
+			delBgImage;
+		}
+		bool canDoTCPD() {
+			return _bgStgsL.isFocusControl;
 		}
 	}
 	void construct2(CTabFolder tabf) {
@@ -555,6 +608,15 @@ private:
 				gd.horizontalSpan = 2;
 				_bgStgsL.setLayoutData = gd;
 				_bgStgsL.addSelectionListener(new SelBgImgStg);
+
+				auto menu = new Menu(_bgStgsL);
+				createMenuItem(menu, _prop.msgs.menuUp, _prop.images.menuUp, &upBgImage);
+				createMenuItem(menu, _prop.msgs.menuDown, _prop.images.menuDown, &downBgImage);
+				new MenuItem(menu, DWT.SEPARATOR);
+				appendMenuTCPD(_prop, menu, new BgImagesTCPD);
+				_bgStgsL.setMenu = menu;
+				usingPopupMenuAccelerator(_bgStgsL);
+
 				auto up = new Button(left, DWT.PUSH);
 				up.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				up.setText = _prop.msgs.ttUp;
@@ -685,26 +747,38 @@ private:
 			applyEnabled;
 		}
 	}
+	void addTool(OuterTool tool) {
+		int index = _toolsL.getSelectionIndex;
+		if (index < 0) {
+			index = _tools.length;
+			_tools ~= tool;
+		} else {
+			_tools = _tools[0 .. index] ~ tool ~ _tools[index .. $];
+		}
+		_toolsL.add(tool.name, index);
+		_toolsL.select = index;
+		selectOuterTool;
+		applyEnabled;
+	}
 	class NewOutTool : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			_tools ~= OuterTool(_prop.msgs.newOuterToolName, "", "");
-			_toolsL.add(_tools[$ - 1].name);
-			_toolsL.select = _tools.length - 1;
-			selectOuterTool;
-			applyEnabled;
+			addTool(OuterTool(_prop.msgs.newOuterToolName, "", ""));
 		}
+	}
+	void delTool() {
+		int i = _toolsL.getSelectionIndex;
+		if (i < 0) return;
+		_toolsL.remove(i);
+		_tools = _tools[0 .. i] ~ _tools[i + 1 .. $];
+		if (_tools.length > 0) {
+			_toolsL.select = i < _tools.length ? i : _tools.length - 1;
+		}
+		selectOuterTool;
+		applyEnabled;
 	}
 	class DelOutTool : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			int i = _toolsL.getSelectionIndex;
-			if (i < 0) return;
-			_toolsL.remove(i);
-			_tools = _tools[0 .. i] ~ _tools[i + 1 .. $];
-			if (_tools.length > 0) {
-				_toolsL.select = i < _tools.length ? i : _tools.length - 1;
-			}
-			selectOuterTool;
-			applyEnabled;
+			delTool;
 		}
 	}
 	class DOutToolsSash : DisposeListener {
@@ -712,6 +786,42 @@ private:
 			auto ws = (cast(SplitPane) e.widget).getWeights;
 			_prop.var.etc.outerToolsSashL = ws[0];
 			_prop.var.etc.outerToolsSashR = ws[1];
+		}
+	}
+	class ToolsTCPD : TCPD {
+		void cut() {
+			int i = _toolsL.getSelectionIndex;
+			if (i < 0) return;
+			copy;
+			del;
+		}
+		void copy() {
+			int i = _toolsL.getSelectionIndex;
+			if (i < 0) return;
+			auto cb = new Clipboard(Display.getCurrent);
+			scope (exit) cb.dispose;
+			XMLtoCB(_prop, cb, _tools[i].toNode.text);
+		}
+		void paste() {
+			auto cb = new Clipboard(Display.getCurrent);
+			scope (exit) cb.dispose;
+			auto xml = CBtoXML(cb);
+			if (xml) {
+				try {
+					auto node = XNode.parse(xml);
+					if (node.name == OuterTool.XML_NAME) {
+						OuterTool tool;
+						tool.fromNode(node);
+						addTool(tool);
+					}
+				} catch {}
+			}
+		}
+		void del() {
+			delTool;
+		}
+		bool canDoTCPD() {
+			return _toolsL.isFocusControl;
 		}
 	}
 	void construct3(CTabFolder tabf) {
@@ -737,6 +847,15 @@ private:
 				gd.horizontalSpan = 2;
 				_toolsL.setLayoutData = gd;
 				_toolsL.addSelectionListener(new SelOutTools);
+
+				auto menu = new Menu(_toolsL);
+				createMenuItem(menu, _prop.msgs.menuUp, _prop.images.menuUp, &upTool);
+				createMenuItem(menu, _prop.msgs.menuDown, _prop.images.menuDown, &downTool);
+				new MenuItem(menu, DWT.SEPARATOR);
+				appendMenuTCPD(_prop, menu, new ToolsTCPD);
+				_toolsL.setMenu = menu;
+				usingPopupMenuAccelerator(_toolsL);
+
 				auto up = new Button(left, DWT.PUSH);
 				up.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				up.setText = _prop.msgs.ttUp;

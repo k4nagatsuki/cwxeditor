@@ -201,6 +201,8 @@ private:
 		itm.setText(0, coupon.name);
 		itm.setText(1, to!(string)(coupon.value));
 		itm.setData = coupon;
+		_coupons.setSelection = [itm];
+		_coupons.showSelection;
 	}
 	void addCoupon() {
 		if (_newCoupon.getText.length > 0) {
@@ -210,7 +212,7 @@ private:
 					return;
 				}
 			}
-			appendCoupon(new Coupon(_newCoupon.getText, _couponVal.getSelection));
+			appendCoupon(new Coupon(_newCoupon.getText, _couponVal.getSelection), _coupons.getSelectionIndex);
 		}
 	}
 	void altCoupon() {
@@ -234,6 +236,19 @@ private:
 		int i = _coupons.getSelectionIndex;
 		if (i >= 0) {
 			_coupons.remove(i);
+			if (i >= _coupons.getItemCount) i--;
+			if (i >= 0) {
+				_coupons.select = i;
+				selCoupon;
+			}
+		}
+	}
+	void selCoupon() {
+		auto sels = _coupons.getSelection;
+		if (sels.length > 0) {
+			auto c = cast(Coupon) sels[0].getData;
+			_newCoupon.setText = c.name;
+			_couponVal.setSelection = c.value;
 		}
 	}
 	void swap(int index1, int index2) {
@@ -345,7 +360,7 @@ private:
 				try {
 					auto node = XNode.parse(xml);
 					if (node.name == Coupon.XML_NAME) {
-						appendCoupon(Coupon.fromNode(node, LATEST_VERSION));
+						appendCoupon(Coupon.fromNode(node, LATEST_VERSION), _coupons.getSelectionIndex);
 					}
 				} catch {}
 			}
@@ -355,6 +370,14 @@ private:
 		}
 		override bool canDoTCPD() {
 			return _coupons.isFocusControl;
+		}
+	}
+
+	class SelLifeC : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			_lifeMax.setSelection = _prop.looks.lifeCalc(_level.getSelection,
+				_phy.getValue(_phyTbl[Physical.VIT]),
+				_phy.getValue(_phyTbl[Physical.MIN]));
 		}
 	}
 
@@ -423,13 +446,7 @@ private:
 				lgd.horizontalSpan = 2;
 				lifec.setLayoutData = lgd;
 				lifec.setText = _prop.msgs.lifeCalc;
-				lifec.addSelectionListener(new class SelectionAdapter {
-					override void widgetSelected(SelectionEvent e) {
-						_lifeMax.setSelection = _prop.looks.lifeCalc(_level.getSelection,
-							_phy.getValue(_phyTbl[Physical.VIT]),
-							_phy.getValue(_phyTbl[Physical.MIN]));
-					}
-				});
+				lifec.addSelectionListener(new SelLifeC);
 			}
 			if (!_summ.legacy) {
 				auto grp = new Group(compr, DWT.NONE);
@@ -484,6 +501,17 @@ private:
 		tab.setText = _prop.msgs.desc;
 		tab.setControl = comp;
 	}
+	class SelCoupon : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			selCoupon;
+		}
+	}
+	class HTBTraverse : Listener {
+		override void handleEvent(Event e) {e.doit = true;}
+	}
+	class HTBKeyDown : Listener {
+		override void handleEvent(Event e) {e.doit = true;}
+	}
 	void constructHistory(CTabFolder tabf) {
 		auto comp = new Composite(tabf, DWT.NONE);
 		comp.setLayout = new GridLayout(2, false);
@@ -498,12 +526,8 @@ private:
 				auto gd = new GridData(GridData.FILL_HORIZONTAL);
 				gd.horizontalSpan = 2;
 				toolbar.setLayoutData = gd;
-				toolbar.addListener(DWT.Traverse, new class Listener {
-					override void handleEvent(Event e) {e.doit = true;}
-				});
-				toolbar.addListener(DWT.KeyDown, new class Listener {
-					override void handleEvent(Event e) {e.doit = true;}
-				});
+				toolbar.addListener(DWT.Traverse, new HTBTraverse);
+				toolbar.addListener(DWT.KeyDown, new HTBKeyDown);
 				createToolItem(toolbar, _prop.msgs.addCoupon, _prop.images.addCoupon, &addCoupon);
 				createToolItem(toolbar, _prop.msgs.altCoupon, _prop.images.altCoupon, &altCoupon);
 				createToolItem(toolbar, _prop.msgs.delCoupon, _prop.images.couponDelete, &delCoupon);
@@ -536,16 +560,7 @@ private:
 				_coupons.setMenu = menu;
 				usingPopupMenuAccelerator(_coupons);
 			}
-			_coupons.addSelectionListener(new class SelectionAdapter {
-				override void widgetSelected(SelectionEvent e) {
-					auto sels = _coupons.getSelection;
-					if (sels.length > 0) {
-						auto c = cast(Coupon) sels[0].getData;
-						_newCoupon.setText = c.name;
-						_couponVal.setSelection = c.value;
-					}
-				}
-			});
+			_coupons.addSelectionListener(new SelCoupon);
 			auto drag = new DragSource(_coupons, DND.DROP_MOVE | DND.DROP_COPY);
 			drag.setTransfer([XMLBytesTransfer.getInstance]);
 			drag.addDragListener(new CDragListener);

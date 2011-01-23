@@ -211,6 +211,11 @@ private:
 		int index = _motions.getSelectionIndex;
 		if (index >= 0) {
 			_motions.remove(index);
+			if (index >= _motions.getItemCount) index--;
+			if (index >= 0) {
+				_motions.select = index;
+			}
+			_oldIndex = -1;
 			_motions.redraw;
 			__refreshSels;
 		}
