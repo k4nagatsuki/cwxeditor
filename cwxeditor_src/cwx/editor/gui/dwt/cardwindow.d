@@ -584,6 +584,13 @@ private:
 			if (index < 0 || cards.length <= index) return;
 			if (newId == 0) return;
 			if (index > 0 && cards[index - 1].id >= newId) return;
+			static if (is (CardOwner : Summary)) {
+				for (size_t i = index; i < cards.length; i++) {
+					ulong ni = ulong.max - cards.length + i;
+					owner.useCounter.change(C.toID(cards[i].id), C.toID(ni));
+					cards[i].id = ni;
+				}
+			}
 			for (size_t i = index; i < cards.length; i++) {
 				static if (is (CardOwner : Summary)) {
 					owner.useCounter.change(C.toID(cards[i].id), C.toID(newId));

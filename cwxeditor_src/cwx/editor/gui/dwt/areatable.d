@@ -464,10 +464,18 @@ public:
 		reNumberingBattle(0, 1);
 		reNumberingPackage(0, 1);
 	}
+	void reNumBef(A)(A[] arr, int index) {
+		for (size_t i = index; i < arr.length; i++) {
+			ulong ni = ulong.max - arr.length + i;
+			_summ.useCounter.change(A.toID(arr[i].id), A.toID(ni));
+			arr[i].id = ni;
+		}
+	}
 	void reNumberingArea(int index, ulong newId) {
 		if (index < 0 || _summ.areas.length <= index) return;
 		if (newId == 0) return;
 		if (index > 0 && _summ.areas[index - 1].id >= newId) return;
+		reNumBef(_summ.areas, index);
 		for (size_t i = index; i < _summ.areas.length; i++) {
 			_summ.useCounter.change(toAreaId(_summ.areas[i].id), toAreaId(newId));
 			_summ.areas[i].id = newId;
@@ -479,6 +487,7 @@ public:
 		if (index < 0 || _summ.battles.length <= index) return;
 		if (newId == 0) return;
 		if (index > 0 && _summ.battles[index - 1].id >= newId) return;
+		reNumBef(_summ.battles, index);
 		for (size_t i = index; i < _summ.battles.length; i++) {
 			_summ.useCounter.change(toBattleId(_summ.battles[i].id), toBattleId(newId));
 			_summ.battles[i].id = newId;
@@ -490,6 +499,7 @@ public:
 		if (index < 0 || _summ.packages.length <= index) return;
 		if (newId == 0) return;
 		if (index > 0 && _summ.packages[index - 1].id >= newId) return;
+		reNumBef(_summ.packages, index);
 		for (size_t i = index; i < _summ.packages.length; i++) {
 			_summ.useCounter.change(toPackageId(_summ.packages[i].id), toPackageId(newId));
 			_summ.packages[i].id = newId;
