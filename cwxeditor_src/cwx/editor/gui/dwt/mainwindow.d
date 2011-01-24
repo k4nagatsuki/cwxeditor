@@ -784,6 +784,7 @@ public:
 				new MenuItem(me, DWT.SEPARATOR);
 			}
 			mixin (MenuAction!("me", "ReplaceText", DWT.PUSH, "replaceText"));
+			mixin (MenuAction!("me", "ReNumberingAll", DWT.PUSH, "reNumberingAll"));
 			mixin (MenuAction!("me", "ToXML", DWT.PUSH, "clipboardToXML"));
 			new MenuItem(me, DWT.SEPARATOR);
 			mixin (MenuAction!("me", "Reload", DWT.PUSH, "reload"));
@@ -920,6 +921,8 @@ public:
 				auto bar = new ToolBar(cbar, DWT.FLAT);
 				mixin (ToolAction!("bar", "ReplaceText", DWT.PUSH, "replaceText"));
 				new ToolItem(bar, DWT.SEPARATOR);
+				mixin (ToolAction!("bar", "ReNumberingAll", DWT.PUSH, "reNumberingAll"));
+				new ToolItem(bar, DWT.SEPARATOR);
 				mixin (ToolAction!("bar", "ToXML", DWT.PUSH, "clipboardToXML"));
 				createCoolItem(cbar, bar);
 			}
@@ -1014,6 +1017,7 @@ public:
 			mixin (ToolAction!("bar", "SaveA", DWT.PUSH, "saveScenarioA"));
 			new ToolItem(bar, DWT.SEPARATOR);
 			mixin (ToolAction!("bar", "ReplaceText", DWT.PUSH, "replaceText"));
+			mixin (ToolAction!("bar", "ReNumberingAll", DWT.PUSH, "reNumberingAll"));
 			mixin (ToolAction!("bar", "ToXML", DWT.PUSH, "clipboardToXML"));
 			new ToolItem(bar, DWT.SEPARATOR);
 			mixin (ToolAction!("bar", "Reload", DWT.PUSH, "reload"));
@@ -1247,6 +1251,56 @@ public:
 	DockingFolderCTC dock() {return _dock;}
 
 	Summary summary() {return _dataWin ? _dataWin.summary : _tableWin.summary;}
+
+	void reNumbering(A)(A[] arr) {
+		ulong newId = 1;
+		foreach (a; arr) {
+			if (a.id != newId) {
+				summary.useCounter.change(A.toID(a.id), A.toID(newId));
+				a.id = newId;
+				static if (is (A : Area)) {
+					_comm.refArea.call(a);
+				} else static if (is (A : Battle)) {
+					_comm.refBattle.call(a);
+				} else static if (is (A : Package)) {
+					_comm.refPackage.call(a);
+				} else static if (is (A : CastCard)) {
+					_comm.refCast.call(a);
+				} else static if (is (A : SkillCard)) {
+					_comm.refSkill.call(a);
+				} else static if (is (A : ItemCard)) {
+					_comm.refItem.call(a);
+				} else static if (is (A : BeastCard)) {
+					_comm.refBeast.call(a);
+				} else static if (is (A : InfoCard)) {
+					_comm.refInfo.call(a);
+				}
+			}
+			newId++;
+		}
+	}
+	void reNumberingAll() {
+		if (!summary) return;
+		auto dlg = new MessageBox(_win, DWT.ICON_QUESTION | DWT.OK | DWT.CANCEL);
+		scope (exit) dlg.dispose;
+		dlg.setText = _prop.msgs.dlgTitQuestion;
+		dlg.setMessage = _prop.msgs.reNumberingAll;
+		if (DWT.OK == dlg.open) {
+			reNumbering(summary.areas);
+			reNumbering(summary.battles);
+			reNumbering(summary.packages);
+			reNumbering(summary.casts);
+			foreach (c; summary.casts) {
+				reNumbering(c.skills);
+				reNumbering(c.items);
+				reNumbering(c.beasts);
+			}
+			reNumbering(summary.skills);
+			reNumbering(summary.items);
+			reNumbering(summary.beasts);
+			reNumbering(summary.infos);
+		}
+	}
 
 	ReplaceDialog openReplWin() {
 		if (summary) {

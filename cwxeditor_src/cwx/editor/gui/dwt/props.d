@@ -394,6 +394,9 @@ public:
 	Image menuOpenHand() {return imgd!(resourceDir ~ "card_hand.png");}
 	Image menuEditUseEvent() {return imgd!(resourceDir ~ "event_tree.png");}
 
+	Image menuReNumbering() {return imgd!(resourceDir ~ "renum.png");}
+	Image menuReNumberingAll() {return imgd!(resourceDir ~ "renum_all.png");}
+
 	Image menuOpenDirectory() {return imgd!(resourceDir ~ "folder.png");}
 	Image menuNewFolder() {return imgd!(resourceDir ~ "folder_new.png");}
 	Image menuReplacePath() {return imgd!(resourceDir ~ "replace.png");}
@@ -478,6 +481,8 @@ enum MenuID : int {
 	OpenHand,
 	EditUseEvent,
 	OpenDirectory,
+	ReNumbering,
+	ReNumberingAll,
 	NewFolder,
 	ReplacePath,
 	ReplaceText,

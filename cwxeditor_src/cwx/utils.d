@@ -12,6 +12,7 @@ import std.uni;
 import std.utf;
 import std.base64;
 import std.stdio;
+import std.ctype;
 import std.cstream;
 import std.traits;
 import std.date;
@@ -1362,4 +1363,104 @@ string ireplace(string s, string from, string to) {
 } unittest {
 	assert (ireplace("test", "Es", "TT") == "tTTt");
 	assert (ireplace("aaaaaaa", "AA", "BB") == "BBBBBBa");
+}
+
+/// sに含まれるsubを検索してindexを返す。見つからなければ-1を返す。
+/// sub内の'*'は任意の文字列に、'?'は任意の1文字に展開される。
+/// ただし'\'の直後に続いた文字は展開されない。
+/// iを接頭詞とする関数は、大文字小文字を区別しない。
+/// Params:
+/// eq = 文字比較に使用する。
+/// len = 一致した長さを返す。
+int wfind(string s, string sub, bool delegate(char, char) eq, out size_t len) {
+	len = 0;
+	if (!s.length) return -1;
+	return wfindImpl(s, sub, eq, len);
+}
+/// ditto
+int wfind(string s, string sub, out size_t len) {
+	return wfind(s, sub, (char a, char b) {return a == b;}, len);
+}
+/// ditto
+int wfind(string s, string sub) {
+	size_t len;
+	return wfind(s, sub, len);
+}
+/// ditto
+int iwfind(string s, string sub, out size_t len) {
+	return wfind(s, sub, (char a, char b) {
+		return std.ctype.tolower(a) == std.ctype.tolower(b);
+	}, len);
+}
+/// ditto
+int iwfind(string s, string sub) {
+	size_t len;
+	return iwfind(s, sub, len);
+}
+int wfindImpl(string s, string sub, bool delegate(char, char) eq, out size_t len) {
+	len = 0;
+	if (!sub.length) return -1;
+	if (!s.length) {
+		foreach (c; sub) {
+			if (c != '*') return -1;
+		}
+		return 0;
+	}
+	size_t si = sub[0] == '\\' ? 1 : 0;
+	if (si && sub.length == 1) {
+		throw new Exception("Invalid literal: " ~ sub);
+	}
+	foreach (i, c; s) {
+		if (!si && '*' == sub[0]) {
+			if (sub.length - si == 1) {
+				len = s.length - i;
+				return i;
+			}
+			foreach_reverse (j, ct; s[i .. $]) {
+				if (0 == wfindImpl(s[j .. $], sub[si + 1 .. $], eq, len)) {
+					len += j;
+					return i;
+				}
+			}
+			return -1;
+		} else if (eq(c, sub[si]) || (!si && '?' == sub[0])) {
+			if (sub.length - si == 1) {
+				len = 1;
+				return i;
+			}
+			if (0 == wfindImpl(s[i + 1 .. $], sub[si + 1 .. $], eq, len)) {
+				len += 1;
+				return i;
+			}
+		}
+	}
+	return -1;
+} unittest {
+	size_t len;
+	assert (wfind("test", "test", len) == 0);
+	assert (len == 4);
+	assert (wfind("atest", "test", len) == 1);
+	assert (len == 4);
+	assert (wfind("test", "te?t", len) == 0);
+	assert (len == 4);
+	assert (wfind("abctest", "t*t", len) == 3);
+	assert (len == 4);
+	assert (wfind("test", "test*", len) == 0);
+	assert (len == 4);
+	assert (wfind("atest*", "test\\*", len) == 1);
+	assert (len == 5);
+	assert (wfind("abcdtest", "*test", len) == 0);
+	assert (len == 8);
+	assert (wfind("abcdte?st", "te\\?st", len) == 4);
+	assert (len == 5);
+	assert (wfind("abcdte\\st", "te\\\\st", len) == 4);
+	assert (len == 5);
+	assert (wfind("te\\st", "te\\st", len) == -1);
+
+	assert (iwfind("tEst", "te?t", len) == 0);
+	assert (len == 4);
+	assert (iwfind("abcTEST", "t*t", len) == 3);
+	assert (len == 4);
+	assert (iwfind("teST", "test*", len) == 0);
+	assert (len == 4);
 }

@@ -521,6 +521,7 @@ private:
 
 public:
 	static const XML_NAME = "Area";
+	alias toAreaId toID;
 
 	/// 唯一のコンストラクタ。
 	this(ulong id, string name) {
@@ -822,6 +823,7 @@ public:
 public class Package : AbstractArea {
 public:
 	static const XML_NAME = "Package";
+	alias toPackageId toID;
 
 	/// 唯一のコンストラクタ。
 	this(ulong id, string name) {
@@ -905,6 +907,7 @@ private:
 	PathUser _music;
 public:
 	static const XML_NAME = "Battle";
+	alias toBattleId toID;
 
 	/// 唯一のコンストラクタ。
 	/// Params:

@@ -21,6 +21,7 @@ import cwx.editor.gui.dwt.xmlbytestransfer;
 
 import std.utf;
 import std.string;
+import std.date;
 
 import dwt.DWT;
 import dwt.widgets.Button;
@@ -59,9 +60,20 @@ import dwt.events.ShellEvent;
 import dwt.events.ModifyListener;
 import dwt.events.ModifyEvent;
 import dwt.dnd.Clipboard;
+import dwt.dnd.DND;
+import dwt.dnd.DragSourceAdapter;
+import dwt.dnd.DragSourceEvent;
+import dwt.dnd.DragSource;
+import dwt.dnd.DropTargetAdapter;
+import dwt.dnd.DropTargetEvent;
+import dwt.dnd.DropTarget;
+import dwt.dnd.Clipboard;
+import dwt.dnd.Transfer;
 
 class SpeakDialog : AbsDialog {
 private:
+	string _id;
+
 	Props _prop;
 	Summary _summ;
 	Content _evt;
@@ -82,7 +94,12 @@ private:
 		_text.setText = dlg.text;
 	}
 	void createDialog(SDialog dlg) {
-		int index = _dlgsL.getSelectionIndex;
+		insertDialog(dlg, _dlgsL.getSelectionIndex);
+	}
+	void createDialog() {
+		createDialog(new SDialog);
+	}
+	void insertDialog(SDialog dlg, int index) {
 		if (index < 0) index = _dlgs.length;
 		_dlgs = _dlgs[0 .. index] ~ dlg ~ _dlgs[index .. $];
 		auto itm = new TableItem(_dlgsL, DWT.NONE, index);
@@ -91,18 +108,19 @@ private:
 		_dlgsL.showSelection;
 		selectChange;
 	}
-	void createDialog() {
-		createDialog(new SDialog);
-	}
-	void deleteDialog() {
-		if (_dlgs.length > 1) {
-			int index = _dlgsL.getSelectionIndex;
-			_dlgs = _dlgs[0 .. index] ~ _dlgs[index + 1 .. $];
-			_dlgsL.remove(index);
+	void deleteDialog(int index) {
+		if (index < 0) return;
+		bool sel = _dlgsL.getSelectionIndex == index;
+		_dlgs = _dlgs[0 .. index] ~ _dlgs[index + 1 .. $];
+		_dlgsL.remove(index);
+		if (sel) {
 			_dlgsL.select = index < _dlgs.length ? index : _dlgs.length - 1;
 			_oldSel = _dlgs[_dlgsL.getSelectionIndex];
 			selectChanged;
 		}
+	}
+	void deleteDialog() {
+		deleteDialog(_dlgsL.getSelectionIndex);
 	}
 	void up() {
 		int index = _dlgsL.getSelectionIndex;
@@ -226,8 +244,57 @@ private:
 		void del() {deleteDialog;}
 		bool canDoTCPD() {return _dlgsL.isFocusControl;}
 	}
+	class DDropListener : DropTargetAdapter {
+		override void dragEnter(DropTargetEvent e){
+			e.detail = DND.DROP_MOVE;
+		}
+		override void dragOver(DropTargetEvent e){
+			e.detail = DND.DROP_MOVE;
+		}
+		override void drop(DropTargetEvent e){
+			if (!isXMLBytes(e.data)) return;
+			e.detail = DND.DROP_NONE;
+			string xml = bytesToXML(e.data);
+			try {
+				auto node = XNode.parse(xml);
+				if (node.name != SDialog.XML_NAME) return;
+				scope p = (cast(DropTarget) e.getSource).getControl.toControl(e.x, e.y);
+				auto t = _dlgsL.getItem(p);
+				int index = t ? _dlgsL.indexOf(t) : _dlgsL.getItemCount;
+				insertDialog(SDialog.createFromNode(node, LATEST_VERSION), index);
+				if (_id == node.attr("paneId", false)) {
+					e.detail = DND.DROP_MOVE;
+				}
+			} catch {}
+		}
+	}
+	class DDragListener : DragSourceAdapter {
+		private TableItem _itm;
+		override void dragStart(DragSourceEvent e) {
+			e.doit = (cast(DragSource) e.getSource).getControl.isFocusControl;
+		}
+		override void dragSetData(DragSourceEvent e){
+			if (XMLBytesTransfer.getInstance.isSupportedType(e.dataType)) {
+				auto c = cast(Table) (cast(DragSource) e.getSource).getControl;
+				int index = c.getSelectionIndex;
+				if (index >= 0) {
+					auto d = _dlgs[index];
+					auto node = d.toNode;
+					node.newAttr("paneId", _id);
+					e.data = bytesFromXML(node.text);
+					_itm = c.getItem(index);
+				}
+			}
+		}
+		override void dragFinished(DragSourceEvent e) {
+			if (e.detail == DND.DROP_MOVE) {
+				deleteDialog(_dlgsL.indexOf(_itm));
+			}
+		}
+	}
 public:
 	this(Props prop, Shell shell, Summary summ, Content evt) {
+		_id = format("%08X", &this) ~ "-" ~ to!(string)(getUTCtime);
 		_prop = prop;
 		_summ = summ;
 		_evt = evt;
@@ -251,6 +318,13 @@ protected:
 			gd.heightHint = 0;
 			_dlgsL.setLayoutData = gd;
 			_dlgsL.addSelectionListener(new SelL);
+
+			auto drag = new DragSource(_dlgsL, DND.DROP_MOVE | DND.DROP_COPY);
+			drag.setTransfer([XMLBytesTransfer.getInstance]);
+			drag.addDragListener(new DDragListener);
+			auto drop = new DropTarget(_dlgsL, DND.DROP_DEFAULT | DND.DROP_MOVE | DND.DROP_COPY);
+			drop.setTransfer([XMLBytesTransfer.getInstance]);
+			drop.addDropListener(new DDropListener);
 
 			auto menu = new Menu(_dlgsL);
 			createMenuItem(menu, _prop.msgs.menuUp, _prop.images.menuUp, &up);

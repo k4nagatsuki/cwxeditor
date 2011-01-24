@@ -427,6 +427,11 @@ public:
 			return -1;
 		}
 	}
+	/// indexの画像を更新する。
+	void refresh(int index) {
+		_items[index].createImage(true);
+		redraw;
+	}
 	/// Returns: 選択されているカードの配列。
 	C[] selectionCards() {
 		C[] cs;
@@ -722,9 +727,11 @@ public:
 		setData(c);
 		_createImage = createImage;
 	}
-	void createImage() {
-		if (!_imgData) {
+	void createImage(bool force = false) {
+		if (!_imgData || force) {
 			_imgData = _createImage(cast(C) getData);
+			auto img = getImage;
+			if (img) img.dispose;
 			setImage(new Image(Display.getCurrent, _imgData));
 		}
 	}

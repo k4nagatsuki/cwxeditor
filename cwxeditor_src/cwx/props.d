@@ -1002,6 +1002,51 @@ public:
 	string menuNewBattle() {return ttNewBattle ~ "(&B)";}
 	string menuNewPackage() {return ttNewPackage ~ "(&K)";}
 
+	string ttReNumberingAll() {return "全てのIDを1から振り直す";}
+	string menuReNumberingAll() {return ttReNumberingAll ~ "(&A)";}
+	string reNumberingAll() {
+		return "全てのエリアやカードのIDの1から振り直します。\nよろしいですか？";
+	}
+
+	string ttReNumbering() {return "IDの振り直し";}
+	string menuReNumbering() {return ttReNumbering ~ "(&N)";}
+	string dlgTitReNumbering() {return "IDの振り直し";}
+	string reNumbering() {return "IDの振り直し";}
+	string reNumbering1(Card card, ulong min, ulong max) {
+		string buf;
+		if (cast(CastCard) card) {
+			buf = "キャスト";
+		} else if (cast(SkillCard) card) {
+			buf = "特殊技能";
+		} else if (cast(ItemCard) card) {
+			buf = "アイテム";
+		} else if (cast(BeastCard) card) {
+			buf = "召喚獣";
+		} else {
+			assert (cast(InfoCard) card);
+			buf = "情報";
+		}
+		return buf ~ "「" ~ card.name ~ "」以降のIDを";
+	}
+	string reNumbering1(AbstractArea area, ulong min, ulong max) {
+		string buf;
+		if (cast(Area) area) {
+			buf = "エリア";
+		} else if (cast(Battle) area) {
+			buf = "バトル";
+		} else {
+			assert (cast(Package) area);
+			buf = "パッケージ";
+		}
+		return buf ~ "「" ~ area.name ~ "」以降のIDを";
+	}
+	string reNumbering2(Card card, ulong min, ulong max) {
+		return "番から順に振り直す";
+	}
+	string reNumbering2(AbstractArea area, ulong min, ulong max) {
+		return "番から順に振り直す";
+	}
+
 	/// エリアのテーブル。
 	string areaId() {return "ID";}
 	string areaName() {return "名称";}

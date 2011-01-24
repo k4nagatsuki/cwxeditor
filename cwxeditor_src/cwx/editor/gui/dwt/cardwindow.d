@@ -10,6 +10,7 @@ import cwx.xml;
 import cwx.skin;
 import cwx.path;
 
+import cwx.editor.gui.dwt.commondialog;
 import cwx.editor.gui.dwt.images;
 import cwx.editor.gui.dwt.skin;
 import cwx.editor.gui.dwt.cardlist;
@@ -132,6 +133,21 @@ private:
 	void __refreshR(string from, string to) {
 		__refresh;
 	}
+	void refresh(C c) {
+		int i;
+		for (i = 0; i < cards.length; i++) {
+			if (cards[i] is c) {
+				break;
+			}
+		}
+		if (i >= cards.length) return;
+		if (_viewMode == CViewMode.TABLE) {
+			refreshTableItem(c, _tbl.getItem(i));
+		} else {
+			refreshListItem(i);
+		}
+		refreshStatusLine;
+	}
 	void __refresh() {
 		if (_viewMode == CViewMode.TABLE) {
 			C sel = null;
@@ -172,6 +188,12 @@ private:
 		auto itm = index >= 0
 			? new TableItem(_tbl, DWT.NONE, index)
 			: new TableItem(_tbl, DWT.NONE);
+		refreshTableItem(c, itm);
+	}
+	void refreshListItem(int index) {
+		_list.refresh(index);
+	}
+	void refreshTableItem(C c, TableItem itm) {
 		itm.setImage(0, _cimg);
 		itm.setText(0, to!(string)(c.id));
 		itm.setText(1, c.name);
@@ -244,15 +266,15 @@ private:
 	}
 	void refCard(C c) {
 		static if (is (C == CastCard)) {
-			_comm.refCast.call(c);
+			_comm.refCast.call(this, c);
 		} else static if (is (C == SkillCard)) {
-			_comm.refSkill.call(c);
+			_comm.refSkill.call(this, c);
 		} else static if (is (C == ItemCard)) {
-			_comm.refItem.call(c);
+			_comm.refItem.call(this, c);
 		} else static if (is (C == BeastCard)) {
-			_comm.refBeast.call(c);
+			_comm.refBeast.call(this, c);
 		} else static if (is (C == InfoCard)) {
-			_comm.refInfo.call(c);
+			_comm.refInfo.call(this, c);
 		} else {
 			static assert (0);
 		}
@@ -543,6 +565,35 @@ private:
 				}
 			}
 		}
+		void refreshIDs() {
+			if (_viewMode == CViewMode.TABLE) {
+				foreach (i, c; cards) {
+					_tbl.getItem(i).setText(0, to!(string)(c.id));
+				}
+			}
+		}
+		void reNumbering() {
+			auto index = selectionIndex;
+			auto dlg = new ReNumDialog!(C)(_prop, _list.getShell, cards[index],
+				index == 0 ? 1 : cards[index - 1].id + 1);
+			if (dlg.open) {
+				reNumbering(index, dlg.newId);
+			}
+		}
+		void reNumbering(int index, ulong newId) {
+			if (index < 0 || cards.length <= index) return;
+			if (newId == 0) return;
+			if (index > 0 && cards[index - 1].id >= newId) return;
+			for (size_t i = index; i < cards.length; i++) {
+				static if (is (CardOwner : Summary)) {
+					owner.useCounter.change(C.toID(cards[i].id), C.toID(newId));
+				}
+				cards[i].id = newId;
+				refCard(cards[i]);
+				newId++;
+			}
+			refreshIDs;
+		}
 	}
 
 	C[] __selections() {
@@ -556,6 +607,13 @@ private:
 			return r;
 		} else {
 			return _list.selectionCards;
+		}
+	}
+	int selectionIndex() {
+		if (_viewMode == CViewMode.TABLE) {
+			return _tbl.getSelectionIndex;
+		} else {
+			return _list.selection;
 		}
 	}
 	C __selection() {
@@ -787,12 +845,32 @@ private:
 		}
 		static if (EditMode) {
 			static if (is (C == CastCard)) {
-				_comm.refCast.add(&__refCast);
-				_list.addDisposeListener(new class DisposeListener {
-					override void widgetDisposed(DisposeEvent e) {
-						_comm.refCast.remove(&__refCast);
+				_comm.refCast.add(&refCardCallback);
+			} else static if (is (C == SkillCard)) {
+				_comm.refSkill.add(&refCardCallback);
+			} else static if (is (C == ItemCard)) {
+				_comm.refItem.add(&refCardCallback);
+			} else static if (is (C == BeastCard)) {
+				_comm.refBeast.add(&refCardCallback);
+			} else static if (is (C == InfoCard)) {
+				_comm.refInfo.add(&refCardCallback);
+			}
+			_list.addDisposeListener(new class DisposeListener {
+				override void widgetDisposed(DisposeEvent e) {
+					static if (is (C == CastCard)) {
+						_comm.refCast.remove(&refCardCallback);
+					} else static if (is (C == SkillCard)) {
+						_comm.refSkill.remove(&refCardCallback);
+					} else static if (is (C == ItemCard)) {
+						_comm.refItem.remove(&refCardCallback);
+					} else static if (is (C == BeastCard)) {
+						_comm.refBeast.remove(&refCardCallback);
+					} else static if (is (C == InfoCard)) {
+						_comm.refInfo.remove(&refCardCallback);
 					}
-				});
+				}
+			});
+			static if (is (C == CastCard)) {
 				auto pop = new Menu(parent.getShell, DWT.POP_UP);
 				createMenuItem(pop, prop.msgs.menuCEdit, prop.images.menuCEdit, &edit);
 				new MenuItem(pop, DWT.SEPARATOR);
@@ -814,6 +892,8 @@ private:
 			} else {
 				static assert (0);
 			}
+			new MenuItem(pop, DWT.SEPARATOR);
+			createMenuItem(pop, _prop.msgs.menuReNumbering, _prop.images.menuReNumbering, &reNumbering);
 		} else {
 			auto pop = new Menu(parent.getShell, DWT.POP_UP);
 			static if (is (C == CastCard)) {
@@ -868,9 +948,10 @@ public:
 		}
 		refreshStatusLine;
 	}
-	static if (EditMode && is (C == CastCard)) {
-		private void __refCast(CastCard c) {
-			refresh;
+	static if (EditMode){
+		private void refCardCallback(Object sender, C c) {
+			if (sender is this) return;
+			refresh(c);
 		}
 	}
 	void showCardLife() {
@@ -1418,6 +1499,13 @@ public:
 	private class SelChanged : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
 			refreshStatusLine;
+		}
+	}
+	static if (EditMode) {
+		void reNumberingAll() {
+			foreach (f; _pane) {
+				f.reNumbering(0, 1);
+			}
 		}
 	}
 	void showCardLife() {

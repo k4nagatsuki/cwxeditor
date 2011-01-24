@@ -12,6 +12,7 @@ import cwx.xml;
 import cwx.skin;
 import cwx.path;
 
+import cwx.editor.gui.dwt.commondialog;
 import cwx.editor.gui.dwt.props;
 import cwx.editor.gui.dwt.utils;
 import cwx.editor.gui.dwt.skin;
@@ -110,20 +111,41 @@ private:
 		}
 		return null;
 	}
+	void refArea(Object sender, Area a) {
+		if (sender is this) return;
+		foreach (itm; _areas.getItems[0 .. _summ.areas.length]) {
+			if (itm.getData is a) refData(a, itm);
+		}
+	}
+	void refBattle(Object sender, Battle a) {
+		if (sender is this) return;
+		size_t ai = _summ.areas.length;
+		foreach (itm; _areas.getItems[ai .. ai + _summ.battles.length]) {
+			if (itm.getData is a) refData(a, itm);
+		}
+	}
+	void refPackage(Object sender, Package a) {
+		if (sender is this) return;
+		size_t ai = _summ.areas.length;
+		size_t bi = _summ.battles.length;
+		foreach (itm; _areas.getItems[ai + bi .. ai + bi + _summ.packages.length]) {
+			if (itm.getData is a) refData(a, itm);
+		}
+	}
 	void callRefArea(AbstractArea area) {
 		auto a = cast(Area) area;
 		if (a) {
-			_comm.refArea.call(a);
+			_comm.refArea.call(this, a);
 			return;
 		}
 		auto b = cast(Battle) area;
 		if (b) {
-			_comm.refBattle.call(b);
+			_comm.refBattle.call(this, b);
 			return;
 		}
 		auto p = cast(Package) area;
 		if (p) {
-			_comm.refPackage.call(p);
+			_comm.refPackage.call(this, p);
 			return;
 		}
 	}
@@ -317,11 +339,13 @@ private:
 	}
 	class ADListener : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
+			_comm.refArea.remove(&refArea);
+			_comm.refBattle.remove(&refBattle);
+			_comm.refPackage.remove(&refPackage);
 			_comm.refUseCount.remove(&__refreshUseCount);
 			_comm.replText.remove(&refresh);
 		}
 	}
-
 	private void refreshAreas() {
 		_areas.removeAll;
 		if (_summ) {
@@ -350,6 +374,12 @@ private:
 		itm.setText(UC, to!(string)(uc));
 		itm.setData = a;
 	}
+	void refData(A)(A a, TableItem itm) {
+		itm.setText(ID, to!(string)(a.id));
+		itm.setText(NAME, a.name);
+		itm.setText(UC, to!(string)(_summ.useCounter.get(A.toID(a.id))));
+		itm.setData = a;
+	}
 	private void newAreaItem(int index) {
 		auto a = _summ.areas[index];
 		item(a, _prop.images.area, _summ.useCounter.get(toAreaId(a.id)), index);
@@ -375,6 +405,9 @@ public:
 		_prop = prop;
 		_flags = flags;
 
+		_comm.refArea.add(&refArea);
+		_comm.refBattle.add(&refBattle);
+		_comm.refPackage.add(&refPackage);
 		_comm.refUseCount.add(&__refreshUseCount);
 		_comm.replText.add(&refresh);
 		_areas = new Table(parent, DWT.BORDER | DWT.FULL_SELECTION);
@@ -399,6 +432,8 @@ public:
 		createMenuItem(menu, _prop.msgs.menuSummary, _prop.images.menuSummary, &editSummary);
 		new MenuItem(menu, DWT.SEPARATOR);
 		appendMenuTCPD(prop, menu, this);
+		new MenuItem(menu, DWT.SEPARATOR);
+		createMenuItem(menu, _prop.msgs.menuReNumbering, _prop.images.menuReNumbering, &reNumbering);
 		_areas.setMenu = menu;
 
 		_areas.addMouseListener(new MListener);
@@ -409,6 +444,90 @@ public:
 		auto drop = new DropTarget(_areas, DND.DROP_DEFAULT | DND.DROP_MOVE);
 		drop.setTransfer([XMLBytesTransfer.getInstance]);
 		drop.addDropListener(new DropArea);
+	}
+
+	private int toAreaIndex(int index) {
+		return (index >= 0 && index < _summ.areas.length) ? index : -1;
+	}
+	private int toBattleIndex(int index) {
+		return (index >= 0 && index < _summ.areas.length + _summ.battles.length)
+			? index - _summ.areas.length : -1;
+	}
+	private int toPackageIndex(int index) {
+		return (index >= 0 && index < _summ.areas.length
+			+ _summ.battles.length + _summ.packages.length)
+			? index - _summ.areas.length - _summ.battles.length : -1;
+	}
+
+	void reNumberingAll() {
+		reNumberingArea(0, 1);
+		reNumberingBattle(0, 1);
+		reNumberingPackage(0, 1);
+	}
+	void reNumberingArea(int index, ulong newId) {
+		if (index < 0 || _summ.areas.length <= index) return;
+		if (newId == 0) return;
+		if (index > 0 && _summ.areas[index - 1].id >= newId) return;
+		for (size_t i = index; i < _summ.areas.length; i++) {
+			_summ.useCounter.change(toAreaId(_summ.areas[i].id), toAreaId(newId));
+			_summ.areas[i].id = newId;
+			newId++;
+		}
+		refreshIDs;
+	}
+	void reNumberingBattle(int index, ulong newId) {
+		if (index < 0 || _summ.battles.length <= index) return;
+		if (newId == 0) return;
+		if (index > 0 && _summ.battles[index - 1].id >= newId) return;
+		for (size_t i = index; i < _summ.battles.length; i++) {
+			_summ.useCounter.change(toBattleId(_summ.battles[i].id), toBattleId(newId));
+			_summ.battles[i].id = newId;
+			newId++;
+		}
+		refreshIDs;
+	}
+	void reNumberingPackage(int index, ulong newId) {
+		if (index < 0 || _summ.packages.length <= index) return;
+		if (newId == 0) return;
+		if (index > 0 && _summ.packages[index - 1].id >= newId) return;
+		for (size_t i = index; i < _summ.packages.length; i++) {
+			_summ.useCounter.change(toPackageId(_summ.packages[i].id), toPackageId(newId));
+			_summ.packages[i].id = newId;
+			newId++;
+		}
+		refreshIDs;
+	}
+	void reNumbering() {
+		if (!_summ) return;
+		int index = _areas.getSelectionIndex;
+		if (index < 0) return;
+		int ai = toAreaIndex(index);
+		if (ai >= 0) {
+			auto dlg = new ReNumDialog!(Area)(_prop, _areas.getShell, _summ.areas[ai],
+				ai == 0 ? 1 : _summ.areas[ai - 1].id + 1);
+			if (dlg.open) {
+				reNumberingArea(ai, dlg.newId);
+			}
+			return;
+		}
+		int bi = toBattleIndex(index);
+		if (bi >= 0) {
+			auto dlg = new ReNumDialog!(Battle)(_prop, _areas.getShell, _summ.battles[bi],
+				bi == 0 ? 1 : _summ.battles[bi - 1].id + 1);
+			if (dlg.open) {
+				reNumberingBattle(bi, dlg.newId);
+			}
+			return;
+		}
+		int pi = toPackageIndex(index);
+		if (pi >= 0) {
+			auto dlg = new ReNumDialog!(Package)(_prop, _areas.getShell, _summ.packages[pi],
+				pi == 0 ? 1 : _summ.packages[pi - 1].id + 1);
+			if (dlg.open) {
+				reNumberingPackage(pi, dlg.newId);
+			}
+			return;
+		}
 	}
 
 	void editSummary() {
@@ -594,4 +713,3 @@ public:
 		}
 	}
 }
-
