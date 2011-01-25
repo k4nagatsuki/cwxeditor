@@ -332,7 +332,9 @@ public:
 		if (path == "") {
 			_tabf.setSelection = _tabA;
 			return true;
-		} else if (cate == "menucard" || cate == "enemycard" || cate == "background") {
+		} else if (((cate == "menucard" || cate == "enemycard")
+				&& cpbottom(path) == "")
+				|| cate == "background") {
 			return _aview.openCWXPath(path);
 		} else {
 			return _eview.openCWXPath(path);

@@ -347,12 +347,12 @@ private:
 			grp.setLayout = new GridLayout(1, true);
 			_notIgnoreCase = new Button(grp, DWT.CHECK);
 			_notIgnoreCase.setText = _prop.msgs.replNotIgnoreCase;
-			_useRegex = new Button(grp, DWT.CHECK);
-			_useRegex.setText = _prop.msgs.replRegExp;
-			_useRegex.addSelectionListener(new SelRegex);
 			_useWildcard = new Button(grp, DWT.CHECK);
 			_useWildcard.setText = _prop.msgs.replWildcard;
 			_useWildcard.addSelectionListener(new SelWildcard);
+			_useRegex = new Button(grp, DWT.CHECK);
+			_useRegex.setText = _prop.msgs.replRegExp;
+			_useRegex.addSelectionListener(new SelRegex);
 		}
 		{
 			auto grp = new Group(comp, DWT.NONE);
@@ -1114,21 +1114,27 @@ public:
 		setResultStatus(count);
 		if (count > 0) _comm.replText.call;
 
-		if (!contains(_prop.var.etc.searchHistories, from)) {
-			_prop.var.etc.searchHistories = [from] ~ _prop.var.etc.searchHistories;
-			if (_prop.var.etc.searchHistories.length > _prop.var.etc.searchHistoryMax) {
-				_prop.var.etc.searchHistories = _prop.var.etc.searchHistories[0 .. $ - 1];
+		void addHist(Combo combo, void delegate(string[]) set,
+				string[] delegate() get, int max, string text) {
+			if (text.length) {
+				string[] list = get();
+				if (.contains(list, text)) {
+					list = cwx.utils.remove(list, text);
+				}
+				list = [from] ~ list;
+				if (list.length > max) {
+					list = list[0 .. $ - 1];
+				}
+				set(list);
+				combo.setItems(list);
+				combo.select = 0;
 			}
-			_from.setItems(_prop.var.etc.searchHistories);
-			_from.select = 0;
 		}
-		if (_replMode && to.length && !contains(_prop.var.etc.replaceHistories, to)) {
-			_prop.var.etc.replaceHistories = [to] ~ _prop.var.etc.replaceHistories;
-			if (_prop.var.etc.replaceHistories.length > _prop.var.etc.searchHistoryMax) {
-				_prop.var.etc.replaceHistories = _prop.var.etc.replaceHistories[0 .. $ - 1];
-			}
-			_to.setItems(_prop.var.etc.replaceHistories);
-			_to.select = 0;
+		addHist(_from, &_prop.var.etc.searchHistories,
+			&_prop.var.etc.searchHistories, _prop.var.etc.searchHistoryMax, from);
+		if (_replMode) {
+			addHist(_to, &_prop.var.etc.replaceHistories,
+				&_prop.var.etc.replaceHistories, _prop.var.etc.searchHistoryMax, to);
 		}
 	}
 	private RegExp _regex = null;

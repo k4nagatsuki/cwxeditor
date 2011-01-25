@@ -1423,7 +1423,7 @@ class Wildcard {
 	private Wildcard _right;
 	private bool _ignoreCase;
 	private static bool eqw(dchar a, dchar b) {
-		return a == b || a == '\0' || b == '\0';
+		return a == b || b == '\0';
 	}
 	private static int findw(dstring s, dstring sub) {
 		if (s.length < sub.length) return -1;
