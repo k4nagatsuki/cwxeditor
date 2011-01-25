@@ -260,8 +260,9 @@ public:
 	string replUnusePath() {return "素材";}
 
 	string replNotIgnoreCase() {return "大文字と小文字を区別する(&C)";}
-	string replRegExp() {return "正規表現(&E)";}
+	string replRegExp() {return "正規表現(&E) (. = 任意1文字, * = 直前の文字の任意数繰返し, $1 = 1つめの文字列グループ ...)";}
 	string regexError() {return "正規表現が正しくありません。";}
+	string replWildcard() {return "ワイルドカード(&W) (* = 任意文字列, ? = 任意1文字, \\* = *, \\? = ?, \\\\ = \\)";}
 	string replCond() {return "検索条件";}
 	string search() {return "検索(&F)";}
 	string replace() {return "全て置換(&R)";}

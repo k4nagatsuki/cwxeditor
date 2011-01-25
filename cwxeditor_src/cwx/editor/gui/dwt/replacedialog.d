@@ -88,6 +88,21 @@ private:
 
 	Button _notIgnoreCase;
 	Button _useRegex;
+	Button _useWildcard;
+	class SelRegex : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			if (_useRegex.getSelection) {
+				_useWildcard.setSelection = false;
+			}
+		}
+	}
+	class SelWildcard : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			if (_useWildcard.getSelection) {
+				_useRegex.setSelection = false;
+			}
+		}
+	}
 
 	/// 貼り紙
 	Button _summary;
@@ -334,6 +349,10 @@ private:
 			_notIgnoreCase.setText = _prop.msgs.replNotIgnoreCase;
 			_useRegex = new Button(grp, DWT.CHECK);
 			_useRegex.setText = _prop.msgs.replRegExp;
+			_useRegex.addSelectionListener(new SelRegex);
+			_useWildcard = new Button(grp, DWT.CHECK);
+			_useWildcard.setText = _prop.msgs.replWildcard;
+			_useWildcard.addSelectionListener(new SelWildcard);
 		}
 		{
 			auto grp = new Group(comp, DWT.NONE);
@@ -594,6 +613,7 @@ public:
 		_to.setItems(_prop.var.etc.replaceHistories);
 		_notIgnoreCase.setSelection = _prop.var.etc.replaceTextNotIgnoreCase;
 		_useRegex.setSelection = _prop.var.etc.replaceTextRegExp;
+		_useWildcard.setSelection = _prop.var.etc.replaceTextWildcard;
 		_summary.setSelection = _prop.var.etc.replaceTextSummary;
 		_msg.setSelection = _prop.var.etc.replaceTextMessage;
 		_cardName.setSelection = _prop.var.etc.replaceTextCardName;
@@ -634,6 +654,7 @@ public:
 			}
 			_prop.var.etc.replaceTextNotIgnoreCase = _notIgnoreCase.getSelection;
 			_prop.var.etc.replaceTextRegExp = _useRegex.getSelection;
+			_prop.var.etc.replaceTextWildcard = _useWildcard.getSelection;
 			_prop.var.etc.replaceTextSummary = _summary.getSelection;
 			_prop.var.etc.replaceTextMessage = _msg.getSelection;
 			_prop.var.etc.replaceTextCardName = _cardName.getSelection;
@@ -1077,10 +1098,13 @@ public:
 					_prop.msgs.dlgTitWarning, _win);
 				return;
 			}
+		} else if (_useWildcard.getSelection) {
+			_wildcard = Wildcard(from, !_notIgnoreCase.getSelection);
 		} else {
 			if (from == to) _replMode = false;
 		}
 		scope (exit) _regex = null;
+		scope (exit) _wildcard = null;
 
 		size_t count = 0;
 		_skinTemp = findSkin(_prop, _summ);
@@ -1108,10 +1132,14 @@ public:
 		}
 	}
 	private RegExp _regex = null;
+	private Wildcard _wildcard = null;
 	private string fTextRepl(string s) {
 		string to = _to.getText;
 		if (_regex) {
 			return _regex.replace(s, to);
+		}
+		if (_wildcard) {
+			return _wildcard.replace(s, to);
 		}
 		string from = _from.getText;
 		if (_notIgnoreCase.getSelection) {
@@ -1127,6 +1155,9 @@ public:
 				c++;
 			}
 			return c;
+		}
+		if (_wildcard) {
+			return _wildcard.count(s);
 		}
 		string from = _from.getText;
 		if (_notIgnoreCase.getSelection) {

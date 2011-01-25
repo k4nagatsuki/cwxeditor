@@ -1365,102 +1365,165 @@ string ireplace(string s, string from, string to) {
 	assert (ireplace("aaaaaaa", "AA", "BB") == "BBBBBBa");
 }
 
-/// sに含まれるsubを検索してindexを返す。見つからなければ-1を返す。
-/// sub内の'*'は任意の文字列に、'?'は任意の1文字に展開される。
-/// ただし'\'の直後に続いた文字は展開されない。
-/// iを接頭詞とする関数は、大文字小文字を区別しない。
-/// Params:
-/// eq = 文字比較に使用する。
-/// len = 一致した長さを返す。
-int wfind(string s, string sub, bool delegate(char, char) eq, out size_t len) {
-	len = 0;
-	if (!s.length) return -1;
-	return wfindImpl(s, sub, eq, len);
-}
-/// ditto
-int wfind(string s, string sub, out size_t len) {
-	return wfind(s, sub, (char a, char b) {return a == b;}, len);
-}
-/// ditto
-int wfind(string s, string sub) {
-	size_t len;
-	return wfind(s, sub, len);
-}
-/// ditto
-int iwfind(string s, string sub, out size_t len) {
-	return wfind(s, sub, (char a, char b) {
-		return std.ctype.tolower(a) == std.ctype.tolower(b);
-	}, len);
-}
-/// ditto
-int iwfind(string s, string sub) {
-	size_t len;
-	return iwfind(s, sub, len);
-}
-int wfindImpl(string s, string sub, bool delegate(char, char) eq, out size_t len) {
-	len = 0;
-	if (!sub.length) return -1;
-	if (!s.length) {
-		foreach (c; sub) {
-			if (c != '*') return -1;
+/// ワイルドカードを用いてパターンマッチングを行う。
+/// *は任意の文字列に、?は任意の文字にそれぞれ一致し、
+/// \をエスケープ文字として使用する。
+class Wildcard {
+	/// sからマッチを探し、indexを返す。
+	/// 見つからなければ-1を返す。
+	int find(string s) {
+		if (!s.length) return -1;
+		if (_ignoreCase) s = std.string.tolower(s);
+		size_t len;
+		auto ds = toUTF32(s);
+		int i = find(ds, false, len);
+		if (i == -1) return -1;
+		return toUTF8(ds[0 .. i]).length;
+	}
+	/// s中のマッチする部分をtoに置換して返す。
+	string replace(string s, string to) {
+		if (!s.length) return s;
+		if (_ignoreCase) s = std.string.tolower(s);
+		auto ds = toUTF32(s);
+		auto dto = toUTF32(to);
+		dchar[] r;
+		size_t len;
+		while (true) {
+			if (!ds.length) break;
+			int i = find(ds, false, len);
+			if (i == -1) {
+				r ~= ds;
+				break;
+			}
+			r ~= ds[0 .. i] ~ dto;
+			ds = ds[i + len .. $];
 		}
-		return 0;
+		return toUTF8(r);
 	}
-	size_t si = sub[0] == '\\' ? 1 : 0;
-	if (si && sub.length == 1) {
-		throw new Exception("Invalid literal: " ~ sub);
-	}
-	foreach (i, c; s) {
-		if (!si && '*' == sub[0]) {
-			if (sub.length - si == 1) {
-				len = s.length - i;
-				return i;
+	/// s中のマッチする部分をカウントして返す。
+	size_t count(string s) {
+		if (!s.length) return 0;
+		if (_ignoreCase) s = std.string.tolower(s);
+		auto ds = toUTF32(s);
+		size_t r = 0;
+		size_t len;
+		while (true) {
+			if (!ds.length) break;
+			int i = find(ds, false, len);
+			if (i == -1) {
+				break;
 			}
-			foreach_reverse (j, ct; s[i .. $]) {
-				if (0 == wfindImpl(s[j .. $], sub[si + 1 .. $], eq, len)) {
-					len += j;
-					return i;
-				}
-			}
-			return -1;
-		} else if (eq(c, sub[si]) || (!si && '?' == sub[0])) {
-			if (sub.length - si == 1) {
-				len = 1;
-				return i;
-			}
-			if (0 == wfindImpl(s[i + 1 .. $], sub[si + 1 .. $], eq, len)) {
-				len += 1;
-				return i;
-			}
+			r++;
+			ds = ds[i + len .. $];
 		}
+		return r;
 	}
-	return -1;
-} unittest {
-	size_t len;
-	assert (wfind("test", "test", len) == 0);
-	assert (len == 4);
-	assert (wfind("atest", "test", len) == 1);
-	assert (len == 4);
-	assert (wfind("test", "te?t", len) == 0);
-	assert (len == 4);
-	assert (wfind("abctest", "t*t", len) == 3);
-	assert (len == 4);
-	assert (wfind("test", "test*", len) == 0);
-	assert (len == 4);
-	assert (wfind("atest*", "test\\*", len) == 1);
-	assert (len == 5);
-	assert (wfind("abcdtest", "*test", len) == 0);
-	assert (len == 8);
-	assert (wfind("abcdte?st", "te\\?st", len) == 4);
-	assert (len == 5);
-	assert (wfind("abcdte\\st", "te\\\\st", len) == 4);
-	assert (len == 5);
-	assert (wfind("te\\st", "te\\st", len) == -1);
 
-	assert (iwfind("tEst", "te?t", len) == 0);
-	assert (len == 4);
-	assert (iwfind("abcTEST", "t*t", len) == 3);
-	assert (len == 4);
-	assert (iwfind("teST", "test*", len) == 0);
-	assert (len == 4);
+	private dstring _left;
+	private Wildcard _right;
+	private bool _ignoreCase;
+	private static bool eqw(dchar a, dchar b) {
+		return a == b || a == '\0' || b == '\0';
+	}
+	private static int findw(dstring s, dstring sub) {
+		if (s.length < sub.length) return -1;
+		for (int i = 0; i <= s.length - sub.length; i++) {
+			int j;
+			for (j = 0; j < sub.length && eqw(s[i + j], sub[j]); j++) {}
+			if (j == sub.length) return i;
+		}
+		return -1;
+	}
+	private static int rfindw(dstring s, dstring sub) {
+		if (s.length < sub.length) return -1;
+		for (int i = s.length - sub.length; i >= 0; i--) {
+			int j;
+			for (j = 0; j < sub.length && eqw(s[i + j], sub[j]); j++) {}
+			if (j == sub.length) return i;
+		}
+		return -1;
+	}
+	private int find(dstring s, bool next, out size_t len) {
+		auto sbase = s;
+		while (true) {
+			int i = next ? rfindw(s, _left) : findw(s, _left);
+			if (i == -1) return -1;
+			if (_right) {
+				int j = _right.find(sbase[i + _left.length .. $], true, len);
+				if (j == -1) {
+					if (next) {
+						s = s[0 .. $ - 1];
+						continue;
+					}
+					return -1;
+				}
+				len += _left.length + j;
+				return i;
+			} else {
+				len = _left.length;
+				return i;
+			}
+		}
+	}
+	public static Wildcard opCall(string sub, bool ignoreCase = false) {
+		if (ignoreCase) sub = std.string.tolower(sub);
+		auto wild = new Wildcard;
+		wild._ignoreCase = ignoreCase;
+		bool onbs = false;
+		dchar[] buf;
+		foreach (i, dchar c; sub) {
+			switch (c) {
+			case '?': {
+				if (!onbs) {
+					buf ~= '\0';
+					onbs = false;
+					break;
+				}
+			} goto default;
+			case '*': {
+				if (!onbs) {
+					wild._left = buf;
+					while (i < sub.length && sub[i] == '*')
+						i++;
+					wild._right = Wildcard(sub[i .. $], false);
+					wild._right._ignoreCase = ignoreCase;
+					return wild;
+				}
+			} goto default;
+			case '\\': {
+				if (onbs) buf ~= c;
+				onbs = !onbs;
+			} break;
+			default: {
+				buf ~= c;
+				onbs = false;
+			}
+			}
+		}
+		if (onbs) buf ~= '\\';
+		wild._left = buf;
+		return wild;
+	}
+} unittest {
+	assert (Wildcard("test").find("test") == 0);
+	assert (Wildcard("test").find("atest") == 1);
+	assert (Wildcard("te?t").find("test") == 0);
+	assert (Wildcard("t*t").find("abctest") == 3);
+	assert (Wildcard("test*").find("test") == 0);
+	assert (Wildcard("test\\*").find("atest*") == 1);
+	assert (Wildcard("*test").find("abcdtest") == 0);
+	assert (Wildcard("te\\?st").find("abcdte?st") == 4);
+	assert (Wildcard("te\\\\st").find("abcdte\\st") == 4);
+	assert (Wildcard("t*st").find("testst") == 0);
+	assert (Wildcard("te\\st").find("te\\st") == -1);
+
+	assert (Wildcard("te?t", true).find("tEst") == 0);
+	assert (Wildcard("t*t", true).find("abcTEST") == 3);
+	assert (Wildcard("test*", true).find("teST") == 0);
+
+	assert (Wildcard("*").count("test") == 1);
+	assert (Wildcard("te?t").count("testtestest") == 2);
+
+	assert (Wildcard("t*s").replace("test", "A") == "At");
+	assert (Wildcard("???t").replace("testtestest", "BB") == "BBBBest");
 }
