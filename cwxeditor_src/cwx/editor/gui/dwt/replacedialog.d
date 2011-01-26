@@ -788,6 +788,8 @@ public:
 		if (_replMode) uc.change(from, to, true);
 		_skinTemp = findSkin(_prop, _summ);
 		scope (exit) _skinTemp = null;
+		_result.setRedraw = false;
+		scope (exit) _result.setRedraw = true;
 		foreach (user; users) {
 			addResult(user.owner);
 		}
@@ -828,6 +830,8 @@ public:
 		if (_replMode) uc.change(from, to, true);
 		_skinTemp = findSkin(_prop, _summ);
 		scope (exit) _skinTemp = null;
+		_result.setRedraw = false;
+		scope (exit) _result.setRedraw = true;
 		reset;
 		foreach (user; users) {
 			addResult(user.owner);
@@ -848,6 +852,8 @@ public:
 		uint count = 0;
 		_skinTemp = findSkin(_prop, _summ);
 		scope (exit) _skinTemp = null;
+		_result.setRedraw = false;
+		scope (exit) _result.setRedraw = true;
 		reset;
 		if (unuseFlag) {
 			searchUnuseImpl2!("toFlagId(o.path)")(_summ.flagDirRoot.allFlags, count);
@@ -1005,6 +1011,8 @@ public:
 		});
 		_skinTemp = skin;
 		scope (exit) _skinTemp = null;
+		_result.setRedraw = false;
+		scope (exit) _result.setRedraw = true;
 		setResultStatus(count);
 	}
 	private void replaceTextImpl(CWXPath c, ref size_t count) {
@@ -1109,6 +1117,8 @@ public:
 		size_t count = 0;
 		_skinTemp = findSkin(_prop, _summ);
 		scope (exit) _skinTemp = null;
+		_result.setRedraw = false;
+		scope (exit) _result.setRedraw = true;
 		reset;
 		searchAll(_summ, count, &replaceTextImpl);
 		setResultStatus(count);

@@ -1419,34 +1419,49 @@ class Wildcard {
 		return r;
 	}
 
-	private dstring _left;
+	private enum Pattern {
+		CHAR, QUESTION
+	}
+	private static struct WChar {
+		Pattern pattern;
+		dchar chr;
+		bool match(dchar c) {
+			switch (pattern) {
+			case Pattern.CHAR: {
+				return chr == c;
+			}
+			case Pattern.QUESTION: {
+				return true;
+			}
+			default: assert (0);
+			}
+		}
+	}
+	private WChar[] _left;
 	private Wildcard _right;
 	private bool _ignoreCase;
-	private static bool eqw(dchar a, dchar b) {
-		return a == b || b == '\0';
-	}
-	private static int findw(dstring s, dstring sub) {
-		if (s.length < sub.length) return -1;
-		for (int i = 0; i <= s.length - sub.length; i++) {
+	private int findw(dstring s) {
+		if (s.length < _left.length) return -1;
+		for (int i = 0; i <= s.length - _left.length; i++) {
 			int j;
-			for (j = 0; j < sub.length && eqw(s[i + j], sub[j]); j++) {}
-			if (j == sub.length) return i;
+			for (j = 0; j < _left.length && _left[j].match(s[i + j]); j++) {}
+			if (j == _left.length) return i;
 		}
 		return -1;
 	}
-	private static int rfindw(dstring s, dstring sub) {
-		if (s.length < sub.length) return -1;
-		for (int i = s.length - sub.length; i >= 0; i--) {
+	private int rfindw(dstring s) {
+		if (s.length < _left.length) return -1;
+		for (int i = s.length - _left.length; i >= 0; i--) {
 			int j;
-			for (j = 0; j < sub.length && eqw(s[i + j], sub[j]); j++) {}
-			if (j == sub.length) return i;
+			for (j = 0; j < _left.length && _left[j].match(s[i + j]); j++) {}
+			if (j == _left.length) return i;
 		}
 		return -1;
 	}
 	private int find(dstring s, bool next, out size_t len) {
 		auto sbase = s;
 		while (true) {
-			int i = next ? rfindw(s, _left) : findw(s, _left);
+			int i = next ? rfindw(s) : findw(s);
 			if (i == -1) return -1;
 			if (_right) {
 				int j = _right.find(sbase[i + _left.length .. $], true, len);
@@ -1470,19 +1485,17 @@ class Wildcard {
 		auto wild = new Wildcard;
 		wild._ignoreCase = ignoreCase;
 		bool onbs = false;
-		dchar[] buf;
 		foreach (i, dchar c; sub) {
 			switch (c) {
 			case '?': {
 				if (!onbs) {
-					buf ~= '\0';
+					wild._left ~= WChar(Pattern.QUESTION);
 					onbs = false;
 					break;
 				}
 			} goto default;
 			case '*': {
 				if (!onbs) {
-					wild._left = buf;
 					while (i < sub.length && sub[i] == '*')
 						i++;
 					wild._right = Wildcard(sub[i .. $], false);
@@ -1491,17 +1504,16 @@ class Wildcard {
 				}
 			} goto default;
 			case '\\': {
-				if (onbs) buf ~= c;
+				if (onbs) wild._left ~= WChar(Pattern.CHAR, c);
 				onbs = !onbs;
 			} break;
 			default: {
-				buf ~= c;
+				wild._left ~= WChar(Pattern.CHAR, c);
 				onbs = false;
 			}
 			}
 		}
-		if (onbs) buf ~= '\\';
-		wild._left = buf;
+		if (onbs) wild._left ~= WChar(Pattern.CHAR, '\\');
 		return wild;
 	}
 } unittest {
