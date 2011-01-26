@@ -622,7 +622,7 @@ private:
 				auto itm = _items[index];
 				itm.x = x;
 				itm.y = y;
-				if (y < rect.y + rect.height) {
+				if ((getStyle | DWT.VIRTUAL) || y < rect.y + rect.height) {
 					if (gc) {
 						itm.createImage;
 						gc.drawImage(itm.getImage, x, y);

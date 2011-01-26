@@ -746,7 +746,7 @@ private:
 		}
 	}
 	void createCardList(Composite parent) {
-		_list = new CardList!(C)(parent, DWT.V_SCROLL | (EditMode ? DWT.SINGLE : DWT.MULTI) | DWT.BORDER);
+		_list = new CardList!(C)(parent, DWT.VIRTUAL | DWT.V_SCROLL | (EditMode ? DWT.SINGLE : DWT.MULTI) | DWT.BORDER);
 		_list.setLayoutValues(_prop.var.etc.cardsMarginX, _prop.var.etc.cardsSpaceX,
 			_prop.var.etc.cardsMarginY, _prop.var.etc.cardsSpaceY, _prop.var.etc.cardsDefaultWrap);
 		_list.selectChanged(&refreshStatusLine);
