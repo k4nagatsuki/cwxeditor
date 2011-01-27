@@ -257,7 +257,6 @@ version (Windows) {
 		const FF_ROMAN = (0x1 << 4);
 		const FF_MODERN = (0x3 << 4);
 		HFONT CreateFontW(int, int, int, int, int, DWORD, DWORD, DWORD, DWORD, DWORD, DWORD, DWORD, DWORD, LPCWSTR);
-		HFONT CreateFontA(int, int, int, int, int, DWORD, DWORD, DWORD, DWORD, DWORD, DWORD, DWORD, DWORD, LPCSTR);
 	}
 }
 /// この実装は実質Windows専用である。
@@ -313,13 +312,8 @@ private ImageData loadJPTXImage(string path) {
 //			DWORD fq = jptx.antialias ? ANTIALIASED_QUALITY : DEFAULT_QUALITY;
 			DWORD fp = DEFAULT_PITCH | FF_DONTCARE;
 			HFONT hf;
-			if (GetVersion < 0x80000000) {
-				hf = CreateFontW(fh, 0, 0, 0, fwg, fi, fu, fs, fc, fop, fclp, fq,
-					fp, toUTF16z(param.face));
-			} else {
-				hf = CreateFontA(fh, 0, 0, 0, fwg, fi, fu, fs, fc, fop, fclp, fq,
-					fp, tosjisz(param.face));
-			}
+			hf = CreateFontW(fh, 0, 0, 0, fwg, fi, fu, fs, fc, fop, fclp, fq,
+				fp, toUTF16z(param.face));
 			auto font = Font.win32_new(d, hf);
 		} else {
 			int fStyle = DWT.NORMAL;

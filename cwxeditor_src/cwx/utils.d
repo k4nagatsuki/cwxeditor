@@ -50,10 +50,7 @@ private version (Windows) {
 			DWORD dwProcessId;
 			DWORD dwThreadId;
 		}
-		BOOL SetFileAttributesA(LPSTR, DWORD);
 		BOOL SetFileAttributesW(LPWSTR, DWORD);
-		BOOL CreateProcessA(LPCSTR, LPSTR, SECURITY_ATTRIBUTES*, SECURITY_ATTRIBUTES*,
-			BOOL, DWORD, LPVOID, LPCSTR, STARTUPINFO*, PROCESS_INFORMATION*);
 		BOOL CreateProcessW(LPCWSTR, LPWSTR, SECURITY_ATTRIBUTES*, SECURITY_ATTRIBUTES*,
 			BOOL, DWORD, LPVOID, LPCWSTR, STARTUPINFO*, PROCESS_INFORMATION*);
 	}
@@ -960,13 +957,8 @@ string createFolder(string parent, string name) {
 void preRemove(string delpath) {
 	version (Windows) {
 		// 書込み権限を付けておく
-		if (GetVersion < 0x80000000) {
-			wchar* fname = std.utf.toUTF16z(delpath);
-			SetFileAttributesW(fname, FILE_ATTRIBUTE_NORMAL);
-		} else {
-			char* fname = tosjisz(delpath);
-			SetFileAttributesA(fname, FILE_ATTRIBUTE_NORMAL);
-		}
+		wchar* fname = std.utf.toUTF16z(delpath);
+		SetFileAttributesW(fname, FILE_ATTRIBUTE_NORMAL);
 	}
 }
 
@@ -1126,13 +1118,8 @@ version (Windows) {
 		}
 
 		int r;
-		if (GetVersion < 0x80000000) {
-			r = CreateProcessW(null, toUTF16z(process), null, null, false, flag, null,
-				workDir.length ? toUTF16z(workDir) : null, &setup, &info);
-		} else {
-			r = CreateProcessA(null, toStringz(process), null, null, false, flag, null,
-				workDir.length ? toStringz(workDir) : null, &setup, &info);
-		}
+		r = CreateProcessW(null, toUTF16z(process), null, null, false, flag, null,
+			workDir.length ? toUTF16z(workDir) : null, &setup, &info);
 		if (r) {
 			if (wait) {
 				WaitForSingleObject(info.hProcess, INFINITE);
@@ -1265,20 +1252,11 @@ version (Windows) {
 			auto day = MakeDay(st.wYear, st.wMonth - 1, st.wDay);
 			return MakeDate(day, time);
 		}
-		if (GetVersion < 0x80000000) {
-			WIN32_FIND_DATAW fd;
-			auto h = FindFirstFileW(std.utf.toUTF16z(path), &fd);
-			if (h != INVALID_HANDLE_VALUE) {
-				scope (exit) FindClose(h);
-				return conv(fd.ftLastWriteTime);
-			}
-		} else {
-			WIN32_FIND_DATA fd;
-			auto h = FindFirstFileA(tosjisz(path), &fd);
-			if (h != INVALID_HANDLE_VALUE) {
-				scope (exit) FindClose(h);
-				return conv(fd.ftLastWriteTime);
-			}
+		WIN32_FIND_DATAW fd;
+		auto h = FindFirstFileW(std.utf.toUTF16z(path), &fd);
+		if (h != INVALID_HANDLE_VALUE) {
+			scope (exit) FindClose(h);
+			return conv(fd.ftLastWriteTime);
 		}
 		throw new FileException(path, GetLastError);
 	}
@@ -1295,34 +1273,18 @@ version (Windows) {
 	void clistdir(string path, bool delegate(string) callback) {
 		if (!.exists(path) || !.isdir(path)) return;
 		path = std.path.join(path, "*");
-		if (GetVersion < 0x80000000) {
-			WIN32_FIND_DATAW fd;
-			auto h = FindFirstFileW(std.utf.toUTF16z(path), &fd);
-			if (h != INVALID_HANDLE_VALUE) {
-				scope (exit) FindClose(h);
-				do {
-					string file = toUTF8(fd.cFileName[0 .. wcslen(fd.cFileName.ptr)]);
-					if (file != curdir && file != pardir) {
-						if (!callback(file)) break;
-					}
-				} while (FindNextFileW(h, &fd));
-			} else {
-				throw new FileException(path, GetLastError);
-			}
+		WIN32_FIND_DATAW fd;
+		auto h = FindFirstFileW(std.utf.toUTF16z(path), &fd);
+		if (h != INVALID_HANDLE_VALUE) {
+			scope (exit) FindClose(h);
+			do {
+				string file = toUTF8(fd.cFileName[0 .. wcslen(fd.cFileName.ptr)]);
+				if (file != curdir && file != pardir) {
+					if (!callback(file)) break;
+				}
+			} while (FindNextFileW(h, &fd));
 		} else {
-			WIN32_FIND_DATA fd;
-			auto h = FindFirstFileA(tosjisz(path), &fd);
-			if (h != INVALID_HANDLE_VALUE) {
-				scope (exit) FindClose(h);
-				do {
-					string file = touni(fd.cFileName[0 .. strlen(fd.cFileName.ptr)]);
-					if (file != curdir && file != pardir) {
-						if (!callback(file)) break;
-					}
-				} while (FindNextFileA(h, &fd));
-			} else {
-				throw new FileException(path, GetLastError);
-			}
+			throw new FileException(path, GetLastError);
 		}
 	}
 } else {
@@ -1373,7 +1335,6 @@ class Wildcard {
 	/// 見つからなければ-1を返す。
 	int find(string s) {
 		if (!s.length) return -1;
-		if (_ignoreCase) s = std.string.tolower(s);
 		size_t len;
 		auto ds = toUTF32(s);
 		int i = find(ds, false, len);
@@ -1383,7 +1344,6 @@ class Wildcard {
 	/// s中のマッチする部分をtoに置換して返す。
 	string replace(string s, string to) {
 		if (!s.length) return s;
-		if (_ignoreCase) s = std.string.tolower(s);
 		auto ds = toUTF32(s);
 		auto dto = toUTF32(to);
 		dchar[] r;
@@ -1403,7 +1363,6 @@ class Wildcard {
 	/// s中のマッチする部分をカウントして返す。
 	size_t count(string s) {
 		if (!s.length) return 0;
-		if (_ignoreCase) s = std.string.tolower(s);
 		auto ds = toUTF32(s);
 		size_t r = 0;
 		size_t len;
@@ -1425,10 +1384,15 @@ class Wildcard {
 	private static struct WChar {
 		Pattern pattern;
 		dchar chr;
+		bool ignoreCase;
 		bool match(dchar c) {
 			switch (pattern) {
 			case Pattern.CHAR: {
-				return chr == c;
+				if (ignoreCase) {
+					return std.ctype.tolower(chr) == std.ctype.tolower(c);
+				} else {
+					return chr == c;
+				}
 			}
 			case Pattern.QUESTION: {
 				return true;
@@ -1481,7 +1445,6 @@ class Wildcard {
 		}
 	}
 	public static Wildcard opCall(string sub, bool ignoreCase = false) {
-		if (ignoreCase) sub = std.string.tolower(sub);
 		auto wild = new Wildcard;
 		wild._ignoreCase = ignoreCase;
 		bool onbs = false;
@@ -1489,7 +1452,7 @@ class Wildcard {
 			switch (c) {
 			case '?': {
 				if (!onbs) {
-					wild._left ~= WChar(Pattern.QUESTION);
+					wild._left ~= WChar(Pattern.QUESTION, '\0', ignoreCase);
 					onbs = false;
 					break;
 				}
@@ -1498,22 +1461,21 @@ class Wildcard {
 				if (!onbs) {
 					while (i < sub.length && sub[i] == '*')
 						i++;
-					wild._right = Wildcard(sub[i .. $], false);
-					wild._right._ignoreCase = ignoreCase;
+					wild._right = Wildcard(sub[i .. $], ignoreCase);
 					return wild;
 				}
 			} goto default;
 			case '\\': {
-				if (onbs) wild._left ~= WChar(Pattern.CHAR, c);
+				if (onbs) wild._left ~= WChar(Pattern.CHAR, c, ignoreCase);
 				onbs = !onbs;
 			} break;
 			default: {
-				wild._left ~= WChar(Pattern.CHAR, c);
+				wild._left ~= WChar(Pattern.CHAR, c, ignoreCase);
 				onbs = false;
 			}
 			}
 		}
-		if (onbs) wild._left ~= WChar(Pattern.CHAR, '\\');
+		if (onbs) wild._left ~= WChar(Pattern.CHAR, '\\', ignoreCase);
 		return wild;
 	}
 } unittest {

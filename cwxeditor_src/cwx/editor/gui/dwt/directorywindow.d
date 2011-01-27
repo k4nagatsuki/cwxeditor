@@ -78,7 +78,6 @@ version (Windows) {
 		const DWORD WAIT_ABANDONED = 0x80;
 		const DWORD WAIT_TIMEOUT = 0x102;
 		const DWORD WAIT_FAILED = 0xffffffff;
-		HANDLE FindFirstChangeNotificationA(LPCSTR, BOOL, DWORD);
 		HANDLE FindFirstChangeNotificationW(LPCWSTR, BOOL, DWORD);
 		BOOL FindNextChangeNotification(HANDLE);
 		BOOL FindCloseChangeNotification(HANDLE);
@@ -1144,11 +1143,7 @@ private:
 				h = INVALID_HANDLE_VALUE;
 				if (summ) {
 					DWORD fs = FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME;
-					if (GetVersion < 0x80000000) {
-						h = FindFirstChangeNotificationW(toUTF16z(summ.scenarioPath), TRUE, fs);
-					} else {
-						h = FindFirstChangeNotificationA(tosjisz(summ.scenarioPath), TRUE, fs);
-					}
+					h = FindFirstChangeNotificationW(toUTF16z(summ.scenarioPath), TRUE, fs);
 					return h != INVALID_HANDLE_VALUE;
 				}
 				return true;

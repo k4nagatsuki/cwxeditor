@@ -67,11 +67,9 @@ private static ImageData imgd(string path, bool mask, bool rmask) {
 version (Windows) {
 	import std.c.windows.windows;
 	private extern (Windows) {
-		HINSTANCE LoadLibraryExA(LPCSTR, HANDLE, DWORD);
 		HINSTANCE LoadLibraryExW(LPCWSTR, HANDLE, DWORD);
 		const DWORD LOAD_LIBRARY_AS_DATAFILE = 0x2;
 		const DWORD LOAD_WITH_ALTERED_SEARCH_PATH = 0x8;
-		HBITMAP LoadBitmapA(HINSTANCE, LPCSTR);
 		HBITMAP LoadBitmapW(HINSTANCE, LPCWSTR);
 	}
 	private static ImageData imgr(string legacyEngine, string resName, bool mask, bool rmask) {
@@ -84,19 +82,11 @@ version (Windows) {
 			if (!.exists(legacyEngine)) return null;
 			// TODO lEnginePathからリソース読込み
 			HINSTANCE handle;
-			if (GetVersion < 0x80000000) {
-				handle = LoadLibraryExW(toUTF16z(legacyEngine), null, LOAD_LIBRARY_AS_DATAFILE | LOAD_WITH_ALTERED_SEARCH_PATH);
-			} else {
-				handle = LoadLibraryExA(toStringz(legacyEngine), null, LOAD_LIBRARY_AS_DATAFILE | LOAD_WITH_ALTERED_SEARCH_PATH);
-			}
+			handle = LoadLibraryExW(toUTF16z(legacyEngine), null, LOAD_LIBRARY_AS_DATAFILE | LOAD_WITH_ALTERED_SEARCH_PATH);
 			if (!handle) return null;
 			scope (exit) FreeLibrary(handle);
 			HBITMAP hbmp;
-			if (GetVersion < 0x80000000) {
-				hbmp = LoadBitmapW(handle, toUTF16z(resName));
-			} else {
-				hbmp = LoadBitmapA(handle, toStringz(resName));
-			}
+			hbmp = LoadBitmapW(handle, toUTF16z(resName));
 			if (!hbmp) return null;
 			scope (exit) DeleteObject(hbmp);
 			auto img = Image.win32_new(Display.getCurrent, DWT.BITMAP, hbmp);

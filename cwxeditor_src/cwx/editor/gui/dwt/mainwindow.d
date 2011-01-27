@@ -8,6 +8,7 @@ import std.utf;
 import std.process;
 import std.thread;
 import std.metastrings;
+import std.string;
 
 import cwx.cwl;
 import cwx.area;
@@ -84,6 +85,20 @@ import dwt.dnd.FileTransfer;
 import dwt.dnd.TextTransfer;
 import dwt.dnd.Transfer;
 import dwt.dwthelper.utils;
+
+version (Windows) {
+	import std.c.windows.windows;
+	private extern (Windows) {
+		HANDLE CreateNamedPipeW(LPCWSTR, DWORD, DWORD,
+			DWORD, DWORD, DWORD, DWORD, LPSECURITY_ATTRIBUTES);
+		BOOL ConnectNamedPipe(HANDLE, OVERLAPPED*);
+		BOOL DisconnectNamedPipe(HANDLE);
+		const PIPE_ACCESS_DUPLEX = 0x3;
+		const PIPE_TYPE_BYTE = 0x0;
+		const PIPE_READMODE_BYTE = 0x0;
+		const PIPE_WAIT = 0x0;
+	}
+}
 
 public:
 class MainWindow : TopLevelPanel {
@@ -216,6 +231,7 @@ private:
 		addHistory;
 		if (old) old.delTemp;
 	}
+	string _firstScenarioPath = null;
 	string[] _openPaths;
 	void openScenarioImpl(Summary summ) {
 		if (summ) {
@@ -239,33 +255,6 @@ private:
 			_prop.var.etc.expandXMLs, old, _prop.msgs.dlgTitOpenScenario, &openScenarioImpl);
 	}
 	void openScenario(string fname) {
-		if (fnmatch(getExt(fname), "wid")) {
-			ulong id;
-			auto type = cwx.cwl.getType(fname, id);
-			if (type) {
-				string ts;
-				if (type is typeid(Area)) {
-					ts = "area";
-				} else if (type is typeid(Battle)) {
-					ts = "battle";
-				} else if (type is typeid(Package)) {
-					ts = "package";
-				} else if (type is typeid(CastCard)) {
-					ts = "castcard";
-				} else if (type is typeid(SkillCard)) {
-					ts = "skillcard";
-				} else if (type is typeid(ItemCard)) {
-					ts = "itemcard";
-				} else if (type is typeid(BeastCard)) {
-					ts = "beastcard";
-				} else if (type is typeid(InfoCard)) {
-					ts = "infocard";
-				}
-				ts ~= ":id:" ~ to!(string)(id);
-				_openPaths ~= ts;
-			}
-			fname = getDirName(fname);
-		}
 		auto old = summary;
 		loadScenarioFromFile!(Summary)(_prop, _win, &setStatusLine, _prop.var.etc.expandXMLs, old, fname, &openScenarioImpl);
 	}
@@ -597,8 +586,129 @@ private:
 		if (_prop.var.etc.openHistories.length > 0) new MenuItem(_menuFile, DWT.SEPARATOR);
 		createMenuItem(_menuFile, _prop.msgs.menuClose, _prop.images.menuClose, &exitAll);
 	}
+	Display _display = null;
+	version (Windows) {
+		string _pipeName = "";
+		class OpenCWXPath : Runnable {
+			string path;
+			override void run() {
+				auto paths = split(path, ";");
+				if (!paths.length) paths = [""];
+				foreach (p; paths) {
+					try {
+						openCWXPath(p);
+					} catch {}
+				}
+			}
+		}
+		int pipeThr() {
+			if (!_pipeName.length) return -1;
+			auto pipe = CreateNamedPipeW(toUTF16z(_pipeName), PIPE_ACCESS_DUPLEX,
+				PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT,
+				2, MAX_PATH, MAX_PATH, 1000, null);
+			if (pipe == INVALID_HANDLE_VALUE) return -1;
+			scope (exit) CloseHandle(pipe);
+			char[MAX_PATH] buf;
+			DWORD len;
+			auto open = new OpenCWXPath;
+			while (ConnectNamedPipe(pipe, null)) {
+				scope (exit) DisconnectNamedPipe(pipe);
+				if (!ReadFile(pipe, buf.ptr, buf.length, &len, null)) continue;
+				string read = buf[0 .. len];
+				if (read == "quit") break;
+				auto summ = summary;
+				if (read == "get opened scenario" && summ) {
+					string send;
+					if (summ.useTemp) {
+						send = summ.zipName;
+					} else {
+						send = summ.scenarioPath;
+					}
+					if (!WriteFile(pipe, send.ptr, send.length, &len, null)) continue;
+					if (!ReadFile(pipe, buf.ptr, buf.length, &len, null)) continue;
+					read = buf[0 .. len];
+				}
+				if (cwx.utils.startsWith(read, "open cwxpath ")) {
+					open.path = read["open cwxpath ".length .. $];
+					_display.asyncExec(open);
+				}
+			}
+			return 0;
+		}
+		static const PIPE_APP_MAX = 256;
+	}
 public:
-	this (string appPath, string propFilePath, cwx.system.System sys) {
+	this (string appPath, string propFilePath, cwx.system.System sys,
+			string firstScenarioPath = null, string[] openPaths = []) {
+		if (firstScenarioPath && fnmatch(getExt(firstScenarioPath), "wid")) {
+			ulong id;
+			auto type = cwx.cwl.getType(firstScenarioPath, id);
+			if (type) {
+				string ts;
+				if (type is typeid(Area)) {
+					ts = "area";
+				} else if (type is typeid(Battle)) {
+					ts = "battle";
+				} else if (type is typeid(Package)) {
+					ts = "package";
+				} else if (type is typeid(CastCard)) {
+					ts = "castcard";
+				} else if (type is typeid(SkillCard)) {
+					ts = "skillcard";
+				} else if (type is typeid(ItemCard)) {
+					ts = "itemcard";
+				} else if (type is typeid(BeastCard)) {
+					ts = "beastcard";
+				} else if (type is typeid(InfoCard)) {
+					ts = "infocard";
+				}
+				ts ~= ":id:" ~ to!(string)(id);
+				openPaths ~= ts;
+			}
+			firstScenarioPath = getDirName(firstScenarioPath);
+		}
+		version (Windows) {
+			/// すでにfirstScenarioPathを開いている
+			/// 既存のcwxeditorプロセスがある場合、
+			/// そちらを開くようにする。
+			string path1 = "";
+			if (firstScenarioPath && .exists(firstScenarioPath)) {
+				path1 = nabs(firstScenarioPath);
+				auto ext = getExt(path1);
+				if (!.isdir(path1)
+						&& (fnmatch(ext, "xml") || fnmatch(ext, "wsm") || fnmatch(ext, "wid"))) {
+					path1 = nabs(getDirName(path1));
+				}
+			}
+			char[MAX_PATH] buf;
+			DWORD len;
+			for (size_t i = 0; i < PIPE_APP_MAX; i++) {
+				string pipeName = r"\\.\pipe\cwxeditor_" ~ to!(string)(i);
+				auto p = CreateFileW(toUTF16z(pipeName),
+					GENERIC_READ | GENERIC_WRITE, 0, null, OPEN_EXISTING, 0, null);
+				if (p == INVALID_HANDLE_VALUE) {
+					if (!_pipeName.length) _pipeName = pipeName;
+					if (!path1.length) break;
+					continue;
+				}
+				scope (exit) CloseHandle(p);
+				if (!path1.length) continue;
+				string send = "get opened scenario";
+				if (!WriteFile(p, send.ptr, send.length, &len, null)) continue;
+				if (!ReadFile(p, buf.ptr, buf.length, &len, null)) continue;
+				auto path2 = nabs(buf[0 .. len]);
+				if (!fnmatch(path1, path2)) continue;
+				send = "open cwxpath ";
+				foreach (j, s; openPaths) {
+					if (j > 0) send ~= ";";
+					send ~= s;
+				}
+				if (!WriteFile(p, send.ptr, send.length, &len, null)) continue;
+				return;
+			}
+		}
+		_firstScenarioPath = firstScenarioPath;
+		_openPaths = openPaths;
 		_prop = new Props(propFilePath, new CProps(appPath, sys));
 		if (_prop.var.etc.tempPath.length == 0) {
 			string t = getenv("TEMP");
@@ -633,6 +743,7 @@ public:
 		_comm = new Commons;
 
 		auto d = new Display;
+		_display = d;
 		d.setAppName = _prop.msgs.application;
 		if (_prop.var.etc.enginePath.length && !.exists(_prop.var.etc.enginePath)) {
 			auto dlg = new SettingsDialog(_comm, _prop, null);
@@ -1322,36 +1433,48 @@ public:
 	}
 
 	bool openCWXPath(string path) {
-		path = toLower(path);
-		if (path == "") {
+		if (!summary) return false;
+		bool open() {
+			path = toLower(path);
+			if (path == "") {
+				return true;
+			}
+			auto cate = cpcategory(path);
+			switch (cate) {
+			case "area", "battle", "package", "area:id", "battle:id", "package:id", "variable": {
+				if (_dataWin) {
+					return _dataWin.openCWXPath(path);
+				} else if (cate == "variable") {
+					return _flagWin.openCWXPath(path);
+				} else {
+					return _tableWin.openCWXPath(path);
+				}
+			} case "castcard", "skillcard", "itemcard", "beastcard", "infocard",
+					"castcard:id", "skillcard:id", "itemcard:id", "beastcard:id", "infocard:id": {
+				return _cardWin.openCWXPath(path);
+			} default: return false;
+			}
+		}
+		if (open) {
+			_win.setMinimized = false;
+			_win.forceActive;
 			return true;
 		}
-		auto cate = cpcategory(path);
-		switch (cate) {
-		case "area", "battle", "package", "area:id", "battle:id", "package:id", "variable": {
-			if (_dataWin) {
-				return _dataWin.openCWXPath(path);
-			} else if (cate == "variable") {
-				return _flagWin.openCWXPath(path);
-			} else {
-				return _tableWin.openCWXPath(path);
-			}
-		} case "castcard", "skillcard", "itemcard", "beastcard", "infocard",
-				"castcard:id", "skillcard:id", "itemcard:id", "beastcard:id", "infocard:id": {
-			return _cardWin.openCWXPath(path);
-		} default: return false;
-		}
+		return false;
 	}
 
-	void doCWX(string scenarioPath = null, string[] openPaths = []) {
+	void doCWX() {
 		if (!_win) return;
 		auto d = _win.getDisplay;
 		_win.open;
-		if (scenarioPath) {
-			_openPaths = openPaths;
-			openScenario(scenarioPath);
+		if (_firstScenarioPath) {
+			openScenario(_firstScenarioPath);
 		}
 
+		version (Windows) {
+			auto pipe = new Thread(&pipeThr);
+			pipe.start;
+		}
 		while (!_win.isDisposed) {
 			version (nocatch) {
 				if (!d.readAndDispatch) {
@@ -1383,6 +1506,16 @@ public:
 		_prop.images.disposeImages;
 		d.dispose;
 		_prop.var.save(dock);
+		version (Windows) {
+			auto p = CreateFileW(toUTF16z(_pipeName),
+				GENERIC_READ | GENERIC_WRITE, 0, null, OPEN_EXISTING, 0, null);
+			if (p != INVALID_HANDLE_VALUE) {
+				scope (exit) CloseHandle(p);
+				string pmsg = "quit";
+				DWORD len;
+				WriteFile(p, pmsg.ptr, pmsg.length, &len, null);
+			}
+		}
 	}
 }
 

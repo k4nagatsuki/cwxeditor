@@ -64,8 +64,8 @@ void main(string[] args) {
 			} catch {}
 		}
 		if (sc < args.length) {
-			auto main = new MainWindow(args[0], ini, sys);
-			main.doCWX(args[sc], openPaths);
+			auto main = new MainWindow(args[0], ini, sys, args[sc], openPaths);
+			main.doCWX;
 			return;
 		}
 	}
