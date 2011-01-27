@@ -1474,6 +1474,16 @@ public:
 		version (Windows) {
 			auto pipe = new Thread(&pipeThr);
 			pipe.start;
+			scope (exit) {
+				auto p = CreateFileW(toUTF16z(_pipeName),
+					GENERIC_READ | GENERIC_WRITE, 0, null, OPEN_EXISTING, 0, null);
+				if (p != INVALID_HANDLE_VALUE) {
+					scope (exit) CloseHandle(p);
+					string pmsg = "quit";
+					DWORD len;
+					WriteFile(p, pmsg.ptr, pmsg.length, &len, null);
+				}
+			}
 		}
 		while (!_win.isDisposed) {
 			version (nocatch) {
@@ -1506,16 +1516,6 @@ public:
 		_prop.images.disposeImages;
 		d.dispose;
 		_prop.var.save(dock);
-		version (Windows) {
-			auto p = CreateFileW(toUTF16z(_pipeName),
-				GENERIC_READ | GENERIC_WRITE, 0, null, OPEN_EXISTING, 0, null);
-			if (p != INVALID_HANDLE_VALUE) {
-				scope (exit) CloseHandle(p);
-				string pmsg = "quit";
-				DWORD len;
-				WriteFile(p, pmsg.ptr, pmsg.length, &len, null);
-			}
-		}
 	}
 }
 
