@@ -650,7 +650,7 @@ private:
 		version (Windows) {
 			auto pipe = CreateNamedPipeW(toUTF16z(_pipeName), PIPE_ACCESS_DUPLEX,
 				PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT,
-				2, MAX_PATH, MAX_PATH, 1000, null);
+				1, MAX_PATH, MAX_PATH, 1000, null);
 			if (pipe == INVALID_HANDLE_VALUE) return -1;
 			scope (exit) CloseHandle(pipe);
 			char[MAX_PATH] buf;
