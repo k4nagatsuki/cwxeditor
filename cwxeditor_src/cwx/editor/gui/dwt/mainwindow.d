@@ -98,6 +98,16 @@ version (Windows) {
 		const PIPE_READMODE_BYTE = 0x0;
 		const PIPE_WAIT = 0x0;
 	}
+} else {
+	version (linux) {
+		import std.c.linux.linux;
+	} else {
+		import std.c.unix.unix;
+	}
+	int mkfifo(char*, mode_t);
+
+	const S_IWUSR = 0200;
+	const S_IRUSR = 0400;
 }
 
 public:
@@ -255,6 +265,7 @@ private:
 			_prop.var.etc.expandXMLs, old, _prop.msgs.dlgTitOpenScenario, &openScenarioImpl);
 	}
 	void openScenario(string fname) {
+		decScenarioPath(fname, _openPaths);
 		auto old = summary;
 		loadScenarioFromFile!(Summary)(_prop, _win, &setStatusLine, _prop.var.etc.expandXMLs, old, fname, &openScenarioImpl);
 	}
@@ -586,63 +597,10 @@ private:
 		if (_prop.var.etc.openHistories.length > 0) new MenuItem(_menuFile, DWT.SEPARATOR);
 		createMenuItem(_menuFile, _prop.msgs.menuClose, _prop.images.menuClose, &exitAll);
 	}
-	Display _display = null;
-	version (Windows) {
-		string _pipeName = "";
-		class OpenCWXPath : Runnable {
-			string path;
-			override void run() {
-				auto paths = split(path, ";");
-				if (!paths.length) paths = [""];
-				foreach (p; paths) {
-					try {
-						openCWXPath(p);
-					} catch {}
-				}
-			}
-		}
-		int pipeThr() {
-			if (!_pipeName.length) return -1;
-			auto pipe = CreateNamedPipeW(toUTF16z(_pipeName), PIPE_ACCESS_DUPLEX,
-				PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT,
-				2, MAX_PATH, MAX_PATH, 1000, null);
-			if (pipe == INVALID_HANDLE_VALUE) return -1;
-			scope (exit) CloseHandle(pipe);
-			char[MAX_PATH] buf;
-			DWORD len;
-			auto open = new OpenCWXPath;
-			while (ConnectNamedPipe(pipe, null)) {
-				scope (exit) DisconnectNamedPipe(pipe);
-				if (!ReadFile(pipe, buf.ptr, buf.length, &len, null)) continue;
-				string read = buf[0 .. len];
-				if (read == "quit") break;
-				auto summ = summary;
-				if (read == "get opened scenario" && summ) {
-					string send;
-					if (summ.useTemp) {
-						send = summ.zipName;
-					} else {
-						send = summ.scenarioPath;
-					}
-					if (!WriteFile(pipe, send.ptr, send.length, &len, null)) continue;
-					if (!ReadFile(pipe, buf.ptr, buf.length, &len, null)) continue;
-					read = buf[0 .. len];
-				}
-				if (cwx.utils.startsWith(read, "open cwxpath ")) {
-					open.path = read["open cwxpath ".length .. $];
-					_display.asyncExec(open);
-				}
-			}
-			return 0;
-		}
-		static const PIPE_APP_MAX = 256;
-	}
-public:
-	this (string appPath, string propFilePath, cwx.system.System sys,
-			string firstScenarioPath = null, string[] openPaths = []) {
-		if (firstScenarioPath && fnmatch(getExt(firstScenarioPath), "wid")) {
+	void decScenarioPath(ref string scenarioPath, ref string[] openPaths) {
+		if (scenarioPath && fnmatch(getExt(scenarioPath), "wid")) {
 			ulong id;
-			auto type = cwx.cwl.getType(firstScenarioPath, id);
+			auto type = cwx.cwl.getType(scenarioPath, id);
 			if (type) {
 				string ts;
 				if (type is typeid(Area)) {
@@ -665,21 +623,115 @@ public:
 				ts ~= ":id:" ~ to!(string)(id);
 				openPaths ~= ts;
 			}
-			firstScenarioPath = getDirName(firstScenarioPath);
+			scenarioPath = getDirName(scenarioPath);
 		}
+	}
+	Display _display = null;
+	static const PIPE_APP_MAX = 256;
+	string _pipeName = "";
+	class OpenCWXPath : Runnable {
+		string path;
+		override void run() {
+			auto paths = split(path, ";");
+			if (!paths.length) paths = [""];
+			foreach (p; paths) {
+				try {
+					openCWXPath(p);
+				} catch {}
+			}
+		}
+	}
+	int pipeThr() {
+		if (!_pipeName.length) return -1;
 		version (Windows) {
-			/// すでにfirstScenarioPathを開いている
-			/// 既存のcwxeditorプロセスがある場合、
-			/// そちらを開くようにする。
-			string path1 = "";
-			if (firstScenarioPath && .exists(firstScenarioPath)) {
-				path1 = nabs(firstScenarioPath);
-				auto ext = getExt(path1);
-				if (!.isdir(path1)
-						&& (fnmatch(ext, "xml") || fnmatch(ext, "wsm") || fnmatch(ext, "wid"))) {
-					path1 = nabs(getDirName(path1));
+			auto pipe = CreateNamedPipeW(toUTF16z(_pipeName), PIPE_ACCESS_DUPLEX,
+				PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT,
+				2, MAX_PATH, MAX_PATH, 1000, null);
+			if (pipe == INVALID_HANDLE_VALUE) return -1;
+			scope (exit) CloseHandle(pipe);
+			char[MAX_PATH] buf;
+			DWORD len;
+			auto openPath = new OpenCWXPath;
+			while (ConnectNamedPipe(pipe, null)) {
+				scope (exit) DisconnectNamedPipe(pipe);
+				if (!ReadFile(pipe, buf.ptr, buf.length, &len, null)) continue;
+				string rstr = buf[0 .. len];
+				if (rstr == "quit") break;
+				auto summ = summary;
+				if (rstr == "get opened scenario" && summ) {
+					string send;
+					if (summ.useTemp) {
+						send = summ.zipName;
+					} else {
+						send = summ.scenarioPath;
+					}
+					if (!WriteFile(pipe, send.ptr, send.length, &len, null)) continue;
+					if (!ReadFile(pipe, buf.ptr, buf.length, &len, null)) continue;
+					rstr = buf[0 .. len];
+				}
+				if (cwx.utils.startsWith(rstr, "open cwxpath ")) {
+					openPath.path = rstr["open cwxpath ".length .. $];
+					_display.asyncExec(openPath);
 				}
 			}
+		} else {
+			auto pipe = toStringz(_pipeName);
+			if (mkfifo(pipe, S_IRUSR | S_IWUSR) != 0) return -1;
+			char[4096] buf;
+			auto openPath = new OpenCWXPath;
+			auto fd = open(pipe, O_RDONLY, 0);
+			while (fd != -1) {
+				scope (exit) {
+					if (fd != -1) close(fd);
+					fd = open(pipe, O_RDONLY, 0);
+				}
+				if (!read(fd, buf.ptr, buf.length) == -1) continue;
+				close(fd);
+				fd = -1;
+				string rstr = buf[0 .. len];
+				if (rstr == "quit") break;
+				auto summ = summary;
+				if (rstr == "get opened scenario" && summ) {
+					string send;
+					if (summ.useTemp) {
+						send = summ.zipName;
+					} else {
+						send = summ.scenarioPath;
+					}
+					if ((fd = open(pipe, O_WRONLY, 0)) == -1) continue;
+					if (write(fd, send.ptr, send.length) == -1) continue;
+					close(fd);
+					fd = -1;
+					if ((fd = open(pipe, O_RDONLY, 0)) == -1) continue;
+					if (read(fd, buf.ptr, buf.length) == -1) continue;
+					rstr = buf[0 .. len];
+				}
+				if (cwx.utils.startsWith(rstr, "open cwxpath ")) {
+					openPath.path = rstr["open cwxpath ".length .. $];
+					_display.asyncExec(openPath);
+				}
+			}
+		}
+		return 0;
+	}
+public:
+	this (string appPath, string propFilePath, cwx.system.System sys,
+			string firstScenarioPath = null, string[] openPaths = []) {
+		decScenarioPath(firstScenarioPath, openPaths);
+
+		/// すでにfirstScenarioPathを開いている
+		/// 既存のcwxeditorプロセスがある場合、
+		/// そちらを開くようにする。
+		string path1 = "";
+		if (firstScenarioPath && .exists(firstScenarioPath)) {
+			path1 = nabs(firstScenarioPath);
+			auto ext = getExt(path1);
+			if (!.isdir(path1)
+					&& (fnmatch(ext, "xml") || fnmatch(ext, "wsm") || fnmatch(ext, "wid"))) {
+				path1 = nabs(getDirName(path1));
+			}
+		}
+		version (Windows) {
 			char[MAX_PATH] buf;
 			DWORD len;
 			for (size_t i = 0; i < PIPE_APP_MAX; i++) {
@@ -704,6 +756,45 @@ public:
 					send ~= s;
 				}
 				if (!WriteFile(p, send.ptr, send.length, &len, null)) continue;
+				return;
+			}
+		} else {
+			char[4096] buf;
+			for (size_t i = 0; i < PIPE_APP_MAX; i++) {
+				string pipeName = r"\\.\pipe\cwxeditor_" ~ to!(string)(i);
+				auto pipe = toStringz(pipeName);
+				auto fd = open(pipe, O_RDONLY | O_NONBLOCK, 0);
+				scope (exit){
+					if (fd != -1) close(fd);
+				}
+				if (fd == -1) {
+					if (!_pipeName.length) _pipeName = pipeName;
+					if (!path1.length) break;
+					continue;
+				}
+				close(fd);
+				fd = -1;
+				if (!path1.length) continue;
+				string send = "get opened scenario";
+				if ((fd = open(pipe, O_WRONLY, 0)) == -1) continue;
+				if (write(fd, send.ptr, send.length) == -1) continue;
+				close(fd);
+				fd = -1;
+				if ((fd = open(pipe, O_RDONLY, 0)) == -1) continue;
+				if (read(fd, buf.ptr, buf.length) == -1) continue;
+				close(fd);
+				fd = -1;
+				auto path2 = nabs(buf[0 .. len]);
+				if (!fnmatch(path1, path2)) continue;
+				send = "open cwxpath ";
+				foreach (j, s; openPaths) {
+					if (j > 0) send ~= ";";
+					send ~= s;
+				}
+				if ((fd = open(pipe, O_WRONLY, 0)) == -1) continue;
+				if (write(fd, send.ptr, send.length) == -1) continue;
+				close(fd);
+				fd = -1;
 				return;
 			}
 		}
@@ -1471,9 +1562,9 @@ public:
 			openScenario(_firstScenarioPath);
 		}
 
+		auto pipe = new Thread(&pipeThr);
+		pipe.start;
 		version (Windows) {
-			auto pipe = new Thread(&pipeThr);
-			pipe.start;
 			scope (exit) {
 				auto p = CreateFileW(toUTF16z(_pipeName),
 					GENERIC_READ | GENERIC_WRITE, 0, null, OPEN_EXISTING, 0, null);
@@ -1482,6 +1573,15 @@ public:
 					string pmsg = "quit";
 					DWORD len;
 					WriteFile(p, pmsg.ptr, pmsg.length, &len, null);
+				}
+			}
+		} else {
+			scope (exit) {
+				auto fd = open(toStringz(_pipeName), O_WRONLY, 0);
+				if (fd != -1) {
+					scope (exit) close(fd);
+					string pmsg = "quit";
+					write(fd, pmsg.ptr, pmsg.length);
 				}
 			}
 		}
