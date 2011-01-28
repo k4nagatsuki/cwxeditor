@@ -101,8 +101,12 @@ version (Windows) {
 } else {
 	version (linux) {
 		import std.c.linux.linux;
+		alias std.c.linux.linux.read cread;
+		alias std.c.linux.linux.write cwrite;
 	} else {
 		import std.c.unix.unix;
+		alias std.c.unix.unix.read cread;
+		alias std.c.unix.unix.write cwrite;
 	}
 	int mkfifo(char*, mode_t);
 
@@ -145,7 +149,7 @@ private:
 			} else {
 				auto p = Summary.createTempDir(_prop.tempPath, dlg.name);
 				auto mFPath = std.path.join(p, findSkin2(_prop, dlg.skin).materialPath);
-				if (!exists(mFPath) || !isdir(mFPath)) mkdir(mFPath);
+				if (!exists(mFPath) || !isdir(mFPath)) std.file.mkdir(mFPath);
 				summ = new Summary(dlg.name, dlg.skin, p, false);
 				if (summ.expandXMLs) {
 					summ.saveXMLs(summ.scenarioPath);
@@ -675,7 +679,7 @@ private:
 				}
 			}
 		} else {
-			auto pipe = toStringz(_pipeName);
+			auto pipe = std.string.toStringz(_pipeName);
 			if (mkfifo(pipe, S_IRUSR | S_IWUSR) != 0) return -1;
 			char[4096] buf;
 			auto openPath = new OpenCWXPath;
@@ -685,7 +689,8 @@ private:
 					if (fd != -1) close(fd);
 					fd = open(pipe, O_RDONLY, 0);
 				}
-				if (!read(fd, buf.ptr, buf.length) == -1) continue;
+				auto len = cread(fd, buf.ptr, buf.length);
+				if (len == -1) continue;
 				close(fd);
 				fd = -1;
 				string rstr = buf[0 .. len];
@@ -699,11 +704,11 @@ private:
 						send = summ.scenarioPath;
 					}
 					if ((fd = open(pipe, O_WRONLY, 0)) == -1) continue;
-					if (write(fd, send.ptr, send.length) == -1) continue;
+					if (cwrite(fd, send.ptr, send.length) == -1) continue;
 					close(fd);
 					fd = -1;
 					if ((fd = open(pipe, O_RDONLY, 0)) == -1) continue;
-					if (read(fd, buf.ptr, buf.length) == -1) continue;
+					if ((len = cread(fd, buf.ptr, buf.length)) == -1) continue;
 					rstr = buf[0 .. len];
 				}
 				if (cwx.utils.startsWith(rstr, "open cwxpath ")) {
@@ -762,26 +767,25 @@ public:
 			char[4096] buf;
 			for (size_t i = 0; i < PIPE_APP_MAX; i++) {
 				string pipeName = r"\\.\pipe\cwxeditor_" ~ to!(string)(i);
-				auto pipe = toStringz(pipeName);
-				auto fd = open(pipe, O_RDONLY | O_NONBLOCK, 0);
-				scope (exit){
-					if (fd != -1) close(fd);
-				}
-				if (fd == -1) {
+				auto pipe = std.string.toStringz(pipeName);
+				if (access(pipe, 0) != 0) {
 					if (!_pipeName.length) _pipeName = pipeName;
 					if (!path1.length) break;
 					continue;
 				}
-				close(fd);
-				fd = -1;
 				if (!path1.length) continue;
 				string send = "get opened scenario";
-				if ((fd = open(pipe, O_WRONLY, 0)) == -1) continue;
-				if (write(fd, send.ptr, send.length) == -1) continue;
+				auto fd = open(pipe, O_WRONLY, 0);
+				scope (exit) {
+					if (fd != -1) close(fd);
+				}
+				if (fd == -1) continue;
+				if (cwrite(fd, send.ptr, send.length) == -1) continue;
 				close(fd);
 				fd = -1;
 				if ((fd = open(pipe, O_RDONLY, 0)) == -1) continue;
-				if (read(fd, buf.ptr, buf.length) == -1) continue;
+				auto len = cread(fd, buf.ptr, buf.length);
+				if (len == -1) continue;
 				close(fd);
 				fd = -1;
 				auto path2 = nabs(buf[0 .. len]);
@@ -792,7 +796,7 @@ public:
 					send ~= s;
 				}
 				if ((fd = open(pipe, O_WRONLY, 0)) == -1) continue;
-				if (write(fd, send.ptr, send.length) == -1) continue;
+				if (cwrite(fd, send.ptr, send.length) == -1) continue;
 				close(fd);
 				fd = -1;
 				return;
@@ -1577,11 +1581,11 @@ public:
 			}
 		} else {
 			scope (exit) {
-				auto fd = open(toStringz(_pipeName), O_WRONLY, 0);
+				auto fd = open(std.string.toStringz(_pipeName), O_WRONLY, 0);
 				if (fd != -1) {
 					scope (exit) close(fd);
 					string pmsg = "quit";
-					write(fd, pmsg.ptr, pmsg.length);
+					cwrite(fd, pmsg.ptr, pmsg.length);
 				}
 			}
 		}
