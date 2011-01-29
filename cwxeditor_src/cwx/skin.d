@@ -370,8 +370,16 @@ class Skin {
 		return legacy ? "" : "Material";
 	}
 
+	/// pathがシナリオ素材であればtrueを返す。
+	/// checkがfalseの場合、拡張子による判断のみを行う。
+	/// checkをtrueにすると、ファイルの存在と内容をチェックする。
+	/// (現行バージョンでは内容チェックは背景イメージのみ)
+	bool isMaterial(string path, bool check = false) {
+		return isSE(path, check) || isBGM(path, check) || isBgImage(path, check);
+	}
+
 	/// pathが効果音として使用可能か。
-	bool isSE(string path) {
+	bool isSE(string path, bool check = false) {
 		auto ext = getExt(path);
 		if (legacy && !fnmatch(ext, "wav")) return false;
 		// pygameの仕様で効果音にMP3は使えない
@@ -388,7 +396,7 @@ class Skin {
 		}
 	}
 	/// pathがBGMとして使用可能か。
-	bool isBGM(string path) {
+	bool isBGM(string path, bool check = false) {
 		auto ext = getExt(path);
 		if (legacy && !fnmatch(ext, "mid")
 				&& !fnmatch(ext, "midi")) {
@@ -421,7 +429,7 @@ class Skin {
 	}
 
 	/// pathが背景画像として使用可能か。
-	bool isBgImage(string path) {
+	bool isBgImage(string path, bool check = false) {
 		auto ext = getExt(path);
 		if (fnmatch(ext, "jpy1")
 				|| fnmatch(ext, "jptx")
@@ -435,7 +443,7 @@ class Skin {
 		}
 		try {
 			uint x, y;
-			return imageSize(path, x, y);
+			return !check || imageSize(path, x, y);
 		} catch (Exception e) {
 		}
 		return false;

@@ -107,6 +107,12 @@ private:
 			this.ext = getExt(this.basename);
 			this.pathId = toPathId(this.relPath);
 			this.dir = isdir(this.array) != 0;
+			if (this.dir) {
+				this.material = false;
+			} else {
+				auto skin = _skinTemp ? _skinTemp : findSkin(_prop, _summ);
+				this.material = skin.isMaterial(this.basename, false);
+			}
 		}
 		this (string fullPath) {
 			this.array = fullPath;
@@ -124,6 +130,7 @@ private:
 		string ext;
 		PathId pathId;
 		bool dir;
+		bool material;
 	}
 
 	static if (fnmatch("A", "a")) {
@@ -173,9 +180,9 @@ private:
 		return r != 0 ? r > 0 : comp(a.basename, b.basename) < 0;
 	}
 	bool compFCount(FileNameObj a, FileNameObj b) {
-		auto ad = a.dir;
-		auto bd = b.dir;
-		if (ad && bd) return comp(a.basename, b.basename) < 0;
+		auto ad = !a.material;
+		auto bd = !b.material;
+		if (ad && bd) return compFExt(a, b);
 		if (!ad && bd) return false;
 		if (ad && !bd) return true;
 		int ac = _summ.useCounter.path.get(a.pathId);
@@ -184,9 +191,9 @@ private:
 		return r != 0 ? r < 0 : compFName(a, b);
 	}
 	bool revCompFCount(FileNameObj a, FileNameObj b) {
-		auto ad = a.dir;
-		auto bd = b.dir;
-		if (ad && bd) return comp(a.basename, b.basename) < 0;
+		auto ad = !a.material;
+		auto bd = !b.material;
+		if (ad && bd) return compFExt(a, b);
 		if (!ad && bd) return false;
 		if (ad && !bd) return true;
 		int ac = _summ.useCounter.path.get(a.pathId);
@@ -286,9 +293,12 @@ private:
 			debugln(e);
 		}
 	}
+	Skin _skinTemp = null;
 	void refreshFiles(string[] sels) {
 		if (!_win || _win.isDisposed) return;
 		try {
+			_skinTemp = findSkin(_prop, _summ);
+			scope (exit) _skinTemp = null;
 			scope (exit) refreshStatusLine;
 			if (!_summ) {
 				_files.removeAll;
@@ -353,14 +363,18 @@ private:
 					}
 					auto img = fimage(skin, p.array, p.dir);
 					itm.setImage(0, img);
-					if (.isdir(p.array)) {
+					if (p.dir) {
 						itm.setText(0, p.basename);
 						itm.setText(1, "");
 						itm.setText(2, "");
-					} else {
+					} else if (p.material) {
 						itm.setText(0, getName(p.basename));
 						itm.setText(1, p.ext);
 						itm.setText(2, to!(string)(_summ.useCounter.path.get(p.pathId)));
+					} else {
+						itm.setText(0, getName(p.basename));
+						itm.setText(1, p.ext);
+						itm.setText(2, "");
 					}
 					p.array = nabs(p.array);
 					itm.setData = p;
@@ -939,9 +953,9 @@ private:
 	void __refreshUseCount() {
 		foreach (itm; _files.getItems) {
 			try {
-				auto file = (cast(FileNameObj) itm.getData).array;
-				if (!.exists(file) || .isdir(file)) continue;
-				auto c = _summ.useCounter.path.get(toPathId(toRelPath(file)));
+				auto file = cast(FileNameObj) itm.getData;
+				if (!.exists(file.array) || !file.material) continue;
+				auto c = _summ.useCounter.path.get(file.pathId);
 				itm.setText(2, to!(string)(c));
 			} catch (Exception e) {
 				debugln(e);
