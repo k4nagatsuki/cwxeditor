@@ -82,6 +82,13 @@ private struct Dlg(Arg ...) {
 	}
 }
 
+private class WrapDlg {
+	private void delegate() _dlg;
+	this (void delegate() dlg) {
+		_dlg = dlg;
+	}
+	void call(int stateMask) {_dlg();}
+}
 /// 最上位のパネル。
 abstract class TopLevelPanel {
 	abstract string title();
@@ -89,16 +96,27 @@ abstract class TopLevelPanel {
 	abstract Composite shell();
 	protected abstract Label statusText();
 
-	private void delegate()[MenuID] _act;
+	private void delegate(int stateMask)[MenuID] _act;
 	void putMenuAction(MenuID menuID, void delegate() dlg) {
+		if (!(menuID in _act)) {
+			_act[menuID] = &(new WrapDlg(dlg)).call;
+		}
+	}
+	void putMenuAction(MenuID menuID, void delegate(int stateMask) dlg) {
 		if (!(menuID in _act)) _act[menuID] = dlg;
 	}
 	private bool delegate()[MenuID] _chk;
 	void putMenuChecked(MenuID menuID, void delegate() dlg, bool delegate() get) {
+		if (!(menuID in _act)) {
+			_act[menuID] = &(new WrapDlg(dlg)).call;
+		}
+		if (!(menuID in _chk)) _chk[menuID] = get;
+	}
+	void putMenuChecked(MenuID menuID, void delegate(int stateMask) dlg, bool delegate() get) {
 		if (!(menuID in _act)) _act[menuID] = dlg;
 		if (!(menuID in _chk)) _chk[menuID] = get;
 	}
-	void delegate() menuAction(MenuID menuID) {
+	void delegate(int) menuAction(MenuID menuID) {
 		auto p = menuID in _act;
 		return p ? *p : null;
 	}

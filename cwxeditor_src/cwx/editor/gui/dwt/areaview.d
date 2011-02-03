@@ -2287,33 +2287,33 @@ public:
 			imagePane.redraw;
 		}
 	}
-	void cut() {
+	void cut(int stateMask) {
 		_undo ~= new UndoDelete;
-		_tcpd.cut;
+		_tcpd.cut(stateMask);
 	}
-	void copy() {
-		_tcpd.copy;
+	void copy(int stateMask) {
+		_tcpd.copy(stateMask);
 	}
-	void paste() {
-		_tcpd.paste;
+	void paste(int stateMask) {
+		_tcpd.paste(stateMask);
 	}
-	void del() {
+	void del(int stateMask) {
 		_undo ~= new UndoDelete;
 		delImpl;
 	}
 	private void delImpl() {
-		_tcpd.del;
+		_tcpd.del(0);
 	}
 	bool canDoTCPD() {
 		return _imgp.isVisible;
 	}
 	static if (UseCards && UseBacks) {
 		private class AllTCPD : TCPD {
-			void cut() {
-				copy;
-				del;
+			void cut(int stateMask) {
+				copy(stateMask);
+				del(stateMask);
 			}
-			void copy() {
+			void copy(int stateMask) {
 				scope MenuCard[] cards;
 				foreach (i; _cards.getSelectionIndices) {
 					cards ~= _area.cards[i];
@@ -2328,7 +2328,7 @@ public:
 					XMLtoCB(_prop, cb, Area.CBtoXML(cards, backs));
 				}
 			}
-			void paste() {
+			void paste(int stateMask) {
 				auto cb = new Clipboard(Display.getCurrent);
 				scope (exit) cb.dispose;
 				auto xml = CBtoXML(cb);
@@ -2360,7 +2360,7 @@ public:
 					}
 				}
 			}
-			void del() {
+			void del(int stateMask) {
 				int i;
 				while (0 <= (i = _cards.getSelectionIndex)) {
 					_area.removeCard(i);
@@ -2384,11 +2384,11 @@ public:
 
 	static if (UseCards) {
 		private class CardTCPD : TCPD {
-			void cut() {
-				copy;
-				del;
+			void cut(int stateMask) {
+				copy(stateMask);
+				del(stateMask);
 			}
-			void copy() {
+			void copy(int stateMask) {
 				scope C[] cards;
 				foreach (i; _cards.getSelectionIndices) {
 					cards ~= _area.cards[i];
@@ -2399,9 +2399,9 @@ public:
 					XMLtoCB(_prop, cb, A.CtoXML(cards));
 				}
 			}
-			void paste() {
+			void paste(int stateMask) {
 				static if (UseBacks) {
-					this.outer.paste;
+					this.outer.paste(stateMask);
 				} else {
 					auto cb = new Clipboard(Display.getCurrent);
 					scope (exit) cb.dispose;
@@ -2430,7 +2430,7 @@ public:
 					}
 				}
 			}
-			void del() {
+			void del(int stateMask) {
 				int i;
 				while (0 <= (i = _cards.getSelectionIndex)) {
 					_area.removeCard(i);
@@ -2448,11 +2448,11 @@ public:
 	}
 	static if (UseBacks) {
 		private class BgImageTCPD : TCPD {
-			void cut() {
-				copy;
-				del;
+			void cut(int stateMask) {
+				copy(stateMask);
+				del(stateMask);
 			}
-			void copy() {
+			void copy(int stateMask) {
 				scope BgImage[] backs;
 				foreach (i; _backs.getSelectionIndices) {
 					backs ~= _area.backs[i];
@@ -2463,9 +2463,9 @@ public:
 					XMLtoCB(_prop, cb, A.BtoXML(backs));
 				}
 			}
-			void paste() {
+			void paste(int stateMask) {
 				static if (UseCards) {
-					this.outer.paste;
+					this.outer.paste(stateMask);
 				} else {
 					auto cb = new Clipboard(Display.getCurrent);
 					scope (exit) cb.dispose;
@@ -2494,7 +2494,7 @@ public:
 					}
 				}
 			}
-			void del() {
+			void del(int stateMask) {
 				int i;
 				while (0 <= (i = _backs.getSelectionIndex)) {
 					_area.removeBgImage(i);

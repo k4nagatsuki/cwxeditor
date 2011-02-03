@@ -535,20 +535,20 @@ private:
 		}
 	}
 	class BgImagesTCPD : TCPD {
-		void cut() {
+		void cut(int stateMask) {
 			int i = _bgStgsL.getSelectionIndex;
 			if (i < 0) return;
-			copy;
-			del;
+			copy(stateMask);
+			del(stateMask);
 		}
-		void copy() {
+		void copy(int stateMask) {
 			int i = _bgStgsL.getSelectionIndex;
 			if (i < 0) return;
 			auto cb = new Clipboard(Display.getCurrent);
 			scope (exit) cb.dispose;
 			XMLtoCB(_prop, cb, _bgStgs[i].toNode.text);
 		}
-		void paste() {
+		void paste(int stateMask) {
 			auto cb = new Clipboard(Display.getCurrent);
 			scope (exit) cb.dispose;
 			auto xml = CBtoXML(cb);
@@ -563,7 +563,7 @@ private:
 				} catch {}
 			}
 		}
-		void del() {
+		void del(int stateMask) {
 			delBgImage;
 		}
 		bool canDoTCPD() {
@@ -789,20 +789,20 @@ private:
 		}
 	}
 	class ToolsTCPD : TCPD {
-		void cut() {
+		void cut(int stateMask) {
 			int i = _toolsL.getSelectionIndex;
 			if (i < 0) return;
-			copy;
-			del;
+			copy(stateMask);
+			del(stateMask);
 		}
-		void copy() {
+		void copy(int stateMask) {
 			int i = _toolsL.getSelectionIndex;
 			if (i < 0) return;
 			auto cb = new Clipboard(Display.getCurrent);
 			scope (exit) cb.dispose;
 			XMLtoCB(_prop, cb, _tools[i].toNode.text);
 		}
-		void paste() {
+		void paste(int stateMask) {
 			auto cb = new Clipboard(Display.getCurrent);
 			scope (exit) cb.dispose;
 			auto xml = CBtoXML(cb);
@@ -817,7 +817,7 @@ private:
 				} catch {}
 			}
 		}
-		void del() {
+		void del(int stateMask) {
 			delTool;
 		}
 		bool canDoTCPD() {

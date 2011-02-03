@@ -571,16 +571,16 @@ public:
 
 interface TCPD {
 public:
-	void cut();
-	void copy();
-	void paste();
-	void del();
+	void cut(int stateMask);
+	void copy(int stateMask);
+	void paste(int stateMask);
+	void del(int stateMask);
 	bool canDoTCPD();
 }
 
 private class InTCPD {
 	TCPD tcpd;
-	void cut() {
+	void cut(int stateMask) {
 		if (cast(Text) Display.getCurrent.getFocusControl) {
 			(cast(Text) Display.getCurrent.getFocusControl).cut;
 		} else if (cast(Combo) Display.getCurrent.getFocusControl) {
@@ -588,10 +588,10 @@ private class InTCPD {
 		} else if (cast(CCombo) Display.getCurrent.getFocusControl) {
 			(cast(CCombo) Display.getCurrent.getFocusControl).cut;
 		} else {
-			tcpd.cut;
+			tcpd.cut(stateMask);
 		}
 	}
-	void copy() {
+	void copy(int stateMask) {
 		if (cast(Text) Display.getCurrent.getFocusControl) {
 			(cast(Text) Display.getCurrent.getFocusControl).copy;
 		} else if (cast(Combo) Display.getCurrent.getFocusControl) {
@@ -599,10 +599,10 @@ private class InTCPD {
 		} else if (cast(CCombo) Display.getCurrent.getFocusControl) {
 			(cast(CCombo) Display.getCurrent.getFocusControl).copy;
 		} else {
-			tcpd.copy;
+			tcpd.copy(stateMask);
 		}
 	}
-	void paste() {
+	void paste(int stateMask) {
 		if (cast(Text) Display.getCurrent.getFocusControl) {
 			(cast(Text) Display.getCurrent.getFocusControl).paste;
 		} else if (cast(Combo) Display.getCurrent.getFocusControl) {
@@ -610,14 +610,14 @@ private class InTCPD {
 		} else if (cast(CCombo) Display.getCurrent.getFocusControl) {
 			(cast(CCombo) Display.getCurrent.getFocusControl).paste;
 		} else {
-			tcpd.paste;
+			tcpd.paste(stateMask);
 		}
 	}
-	void del() {
+	void del(int stateMask) {
 		if (cast(Text) Display.getCurrent.getFocusControl) {
 			(cast(Text) Display.getCurrent.getFocusControl).insert("");
 		} else {
-			tcpd.del;
+			tcpd.del(stateMask);
 		}
 	}
 }
@@ -766,15 +766,19 @@ int convertAccelerator(string text) {
 	assert (convertAccelerator("test\tCTRL+ARROW_UP") == (DWT.ARROW_UP | DWT.CTRL));
 	assert (convertAccelerator("test\tShift+A") == (DWT.SHIFT | 'A'));
 }
-private class MenuSel : SelectionAdapter {
-	private void delegate() _func;
-	public this(void delegate() func) {_func = func;}
+private class MenuSel(Dlg) : SelectionAdapter {
+	private Dlg _func;
+	public this(Dlg func) {_func = func;}
 	public override void widgetSelected(SelectionEvent e) {
-		_func();
+		static if (is(Dlg == void delegate(int))) {
+			_func(e.stateMask);
+		} else static if (is(Dlg == void delegate())) {
+			_func();
+		} else static assert (0);
 	}
 }
-MenuItem createMenuItem(Menu sub, string text, Image img,
-		void delegate() func, int style = DWT.PUSH) {
+private MenuItem createMenuItemImpl(Dlg)(Menu sub, string text, Image img,
+		Dlg func, int style = DWT.PUSH) {
 	auto itm = new MenuItem(sub, style);
 	itm.setText = text;
 	int accr = convertAccelerator(text);
@@ -782,10 +786,18 @@ MenuItem createMenuItem(Menu sub, string text, Image img,
 		itm.setAccelerator = accr;
 	}
 	if (func) {
-		itm.addSelectionListener(new MenuSel(func));
+		itm.addSelectionListener(new MenuSel!(Dlg)(func));
 	}
 	if (img) itm.setImage = img;
 	return itm;
+}
+MenuItem createMenuItem(Menu sub, string text, Image img,
+		void delegate(int stateMask) func, int style = DWT.PUSH) {
+	return createMenuItemImpl(sub, text, img, func, style);
+}
+MenuItem createMenuItem(Menu sub, string text, Image img,
+		void delegate() func, int style = DWT.PUSH) {
+	return createMenuItemImpl(sub, text, img, func, style);
 }
 Menu createMenu(Menu bar, string text) {
 	auto menu = new Menu(bar.getShell, DWT.DROP_DOWN);
@@ -795,21 +807,32 @@ Menu createMenu(Menu bar, string text) {
 	return menu;
 }
 
-ToolItem createToolItem(ToolBar bar, string tip, string text, Image img,
-		void delegate() func, int style = DWT.PUSH) {
+ToolItem createToolItemImpl(Dlg)(ToolBar bar, string tip, string text, Image img,
+		Dlg func, int style = DWT.PUSH) {
 	auto itm = new ToolItem(bar, style);
 	itm.setText = text;
 	itm.setToolTipText = tip;
 	itm.setImage = img;
 	if (func) {
-		itm.addSelectionListener(new MenuSel(func));
+		itm.addSelectionListener(new MenuSel!(Dlg)(func));
 	}
 	return itm;
 }
-
+ToolItem createToolItem(ToolBar bar, string tip, string text, Image img,
+		void delegate(int stateMsak) func, int style = DWT.PUSH) {
+	return createToolItemImpl(bar, tip, text, img, func, style);
+}
+ToolItem createToolItem(ToolBar bar, string tip, string text, Image img,
+		void delegate() func, int style = DWT.PUSH) {
+	return createToolItemImpl(bar, tip, text, img, func, style);
+}
+ToolItem createToolItem(ToolBar bar, string text, Image img,
+		void delegate(int stateMsak) func, int style = DWT.PUSH) {
+	return createToolItemImpl!(void delegate(int))(bar, text, null, img, func, style);
+}
 ToolItem createToolItem(ToolBar bar, string text, Image img,
 		void delegate() func, int style = DWT.PUSH) {
-	return createToolItem(bar, text, null, img, func, style);
+	return createToolItemImpl!(void delegate())(bar, text, null, img, func, style);
 }
 private class ToolSel : SelectionAdapter {
 	private void delegate(ToolItem) _func;

@@ -212,13 +212,13 @@ private:
 		itm.setData = c;
 	}
 	template CopyAndPaste() {
-		override void cut() {
+		override void cut(int stateMask) {
 			static if (EditMode) {
-				copy;
-				del;
+				copy(stateMask);
+				del(stateMask);
 			}
 		}
-		override void copy() {
+		override void copy(int stateMask) {
 			auto cs = __selections;
 			if (cs.length > 0) {
 				auto cb = new Clipboard(Display.getCurrent);
@@ -226,7 +226,7 @@ private:
 				XMLtoCB(_prop, cb, toXML(cs));
 			}
 		}
-		override void paste() {
+		override void paste(int stateMask) {
 			static if (EditMode) {
 				auto cb = new Clipboard(Display.getCurrent);
 				scope (exit) cb.dispose;
@@ -253,7 +253,7 @@ private:
 			return _list.selectionCard;
 		}
 		mixin CopyAndPaste;
-		override void del() {
+		override void del(int stateMask) {
 			static if (EditMode) {
 				auto c = selectionCard;
 				if (c) {
@@ -318,7 +318,7 @@ private:
 			return sels.length > 0 ? cast(C) sels[0].getData : null;
 		}
 		mixin CopyAndPaste;
-		override void del() {
+		override void del(int stateMask) {
 			static if (EditMode) {
 				auto c = selectionCard;
 				if (c) {
@@ -1088,36 +1088,36 @@ public:
 	}
 
 	override {
-		void cut() {
+		void cut(int stateMask) {
 			static if (EditMode) {
 				foreach (c; _tcpd) {
 					if (c.canDoTCPD) {
-						c.cut;
+						c.cut(stateMask);
 					}
 				}
 			}
 		}
-		void copy() {
+		void copy(int stateMask) {
 			foreach (c; _tcpd) {
 				if (c.canDoTCPD) {
-					c.copy;
+					c.copy(stateMask);
 				}
 			}
 		}
-		void paste() {
+		void paste(int stateMask) {
 			static if (EditMode) {
 				foreach (c; _tcpd) {
 					if (c.canDoTCPD) {
-						c.paste;
+						c.paste(stateMask);
 					}
 				}
 			}
 		}
-		void del() {
+		void del(int stateMask) {
 			static if (EditMode) {
 				foreach (c; _tcpd) {
 					if (c.canDoTCPD) {
-						c.del;
+						c.del(stateMask);
 					}
 				}
 			}
@@ -1840,36 +1840,36 @@ public:
 	}
 
 	override {
-		void cut() {
+		void cut(int stateMask) {
 			static if (EditMode) {
 				foreach (c; _tcpd) {
 					if (c.canDoTCPD) {
-						c.cut;
+						c.cut(stateMask);
 					}
 				}
 			}
 		}
-		void copy() {
+		void copy(int stateMask) {
 			foreach (c; _tcpd) {
 				if (c.canDoTCPD) {
-					c.copy;
+					c.copy(stateMask);
 				}
 			}
 		}
-		void paste() {
+		void paste(int stateMask) {
 			static if (EditMode) {
 				foreach (c; _tcpd) {
 					if (c.canDoTCPD) {
-						c.paste;
+						c.paste(stateMask);
 					}
 				}
 			}
 		}
-		void del() {
+		void del(int stateMask) {
 			static if (EditMode) {
 				foreach (c; _tcpd) {
 					if (c.canDoTCPD) {
-						c.del;
+						c.del(stateMask);
 					}
 				}
 			}

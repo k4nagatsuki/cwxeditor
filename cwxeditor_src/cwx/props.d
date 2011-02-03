@@ -80,8 +80,15 @@ public:
 
 	string dlgMsgDelete(string[] files) {
 		return files.length == 1
-			? getBaseName(files[0]) ~ "を削除してよろしいですか？"
-			: to!(string)(files.length) ~ "個の項目を削除してよろしいですか？";
+			? getBaseName(files[0]) ~ "を完全に削除しますか？"
+			: to!(string)(files.length) ~ "個の項目を完全に削除しますか？";
+	}
+	version (Windows) {
+		string dlgMsgDeleteRecycle(string[] files) {
+			return files.length == 1
+				? getBaseName(files[0]) ~ "をごみ箱に移動しますか？"
+				: to!(string)(files.length) ~ "個の項目をごみ箱に移動しますか？";
+		}
 	}
 
 	string image() {return "イメージ";}

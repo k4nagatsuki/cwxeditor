@@ -1601,7 +1601,7 @@ public:
 		return false;
 	}
 
-	override void cut() {
+	override void cut(int stateMask) {
 		if (!canDoTCPD) return;
 		if (_dirs.isFocusControl) {
 			if (_dirs.getSelection.length == 0) return;
@@ -1633,7 +1633,7 @@ public:
 			}
 		}
 	}
-	override void copy() {
+	override void copy(int stateMask) {
 		if (!canDoTCPD) return;
 		__copy;
 		fimageThrStart;
@@ -1667,7 +1667,7 @@ public:
 		}
 		return false;
 	}
-	override void paste() {
+	override void paste(int stateMask) {
 		if (!canDoTCPD) return;
 		auto cb = new Clipboard(Display.getCurrent);
 		scope (exit) cb.dispose;
@@ -1680,7 +1680,7 @@ public:
 			}
 		}
 	}
-	override void del() {
+	override void del(int stateMask) {
 		if (!canDoTCPD) return;
 		if (_dirs.isFocusControl) {
 			if (_dirs.getSelection.length == 0) return;
@@ -1696,20 +1696,77 @@ public:
 		foreach (i, f; file) {
 			fileNames[i] = nabs(f);
 		}
+		version (Windows) {
+			bool recycle = (stateMask & DWT.SHIFT) == 0;
+		}
 		if (_dirs.isFocusControl) {
 			if (!dir) return;
-			dlg.setMessage = _prop.msgs.dlgMsgDelete([nabs(dir)]);
+			version (Windows) {
+				if (recycle) {
+					dlg.setMessage = _prop.msgs.dlgMsgDeleteRecycle([nabs(dir)]);
+				} else {
+					dlg.setMessage = _prop.msgs.dlgMsgDelete([nabs(dir)]);
+				}
+			} else {
+				dlg.setMessage = _prop.msgs.dlgMsgDelete([nabs(dir)]);
+			}
 			if (DWT.OK == dlg.open) {
-				delAll(nabs(dir));
+				version (Windows) {
+					SHFILEOPSTRUCT ope;
+					ope.hwnd = cast(HANDLE) shell.handle;
+					ope.wFunc = FO_DELETE;
+					ope.pFrom = toUTF16z(dir ~ '\0' ~ '\0');
+					ope.pTo = null;
+					ope.fFlags = FOF_MULTIDESTFILES | FOF_NOCONFIRMATION;
+					if (recycle) ope.fFlags |= FOF_ALLOWUNDO;
+					ope.fAnyOperationsAborted = false;
+					ope.hNameMappings = null;
+					ope.lpszProgressTitle = null;
+					if (0 != SHFileOperationW(&ope)) return;
+				} else {
+						delAll(nabs(dir));
+				}
+			} else {
+				return;
 			}
 		} else {
 			assert (_files.isFocusControl);
 			if (file.length == 0) return;
-			dlg.setMessage = _prop.msgs.dlgMsgDelete(fileNames);
-			if (DWT.OK == dlg.open) {
-				foreach (f; file) {
-					delAll(f);
+			version (Windows) {
+				if (recycle) {
+					dlg.setMessage = _prop.msgs.dlgMsgDeleteRecycle(fileNames);
+				} else {
+					dlg.setMessage = _prop.msgs.dlgMsgDelete(fileNames);
 				}
+			} else {
+				dlg.setMessage = _prop.msgs.dlgMsgDelete(fileNames);
+			}
+			if (DWT.OK == dlg.open) {
+				version (Windows) {
+					wstring targ;
+					foreach (i, f; file) {
+						targ ~= toUTF16(f);
+						targ ~= '\0';
+					}
+					targ ~= '\0';
+					SHFILEOPSTRUCT ope;
+					ope.hwnd = cast(HANDLE) shell.handle;
+					ope.wFunc = FO_DELETE;
+					ope.pFrom = targ.ptr;
+					ope.pTo = null;
+					ope.fFlags = FOF_MULTIDESTFILES | FOF_NOCONFIRMATION;
+					if (recycle) ope.fFlags |= FOF_ALLOWUNDO;
+					ope.fAnyOperationsAborted = false;
+					ope.hNameMappings = null;
+					ope.lpszProgressTitle = null;
+					if (0 != SHFileOperationW(&ope)) return;
+				} else {
+					foreach (f; file) {
+						delAll(f);
+					}
+				}
+			} else {
+				return;
 			}
 		}
 		refreshDirs(dir);
@@ -1720,5 +1777,26 @@ public:
 	}
 	override bool canDoTCPD() {
 		return _dirs.isFocusControl || _files.isFocusControl;
+	}
+}
+
+version (Windows) {
+	private extern (Windows) {
+		alias ushort FILEOP_FLAGS;
+		const FOF_MULTIDESTFILES = 0x0001;
+		const FOF_NOCONFIRMATION = 0x0010;
+		const FOF_ALLOWUNDO = 0x0040;
+		INT SHFileOperationW(SHFILEOPSTRUCT*);
+		const FO_DELETE = 3;
+		struct SHFILEOPSTRUCT {
+			HWND  hwnd;
+			UINT  wFunc;
+			LPCWSTR  pFrom;
+			LPCWSTR  pTo;
+			FILEOP_FLAGS  fFlags;
+			BOOL fAnyOperationsAborted;
+			LPVOID  hNameMappings;
+			LPCWSTR lpszProgressTitle;
+		}
 	}
 }

@@ -243,17 +243,17 @@ public:
 		return _eto;
 	}
 	override {
-		void cut() {
-			_eview.cut;
+		void cut(int stateMask) {
+			_eview.cut(stateMask);
 		}
-		void copy() {
-			_eview.copy;
+		void copy(int stateMask) {
+			_eview.copy(stateMask);
 		}
-		void paste() {
-			_eview.paste;
+		void paste(int stateMask) {
+			_eview.paste(stateMask);
 		}
-		void del() {
-			_eview.del;
+		void del(int stateMask) {
+			_eview.del(stateMask);
 		}
 		bool canDoTCPD() {
 			return _eview.canDoTCPD;

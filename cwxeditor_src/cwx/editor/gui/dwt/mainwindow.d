@@ -1274,13 +1274,13 @@ public:
 			~ "    _cardWin.create" ~ Name ~ ";"
 			~ "}";
 	}
-	private void refreshAll() {
+	private void refreshAll(int stateMask) {
 		if (!_dock) return;
 		foreach (ctrl; _dock.showingControls) {
 			auto tlpData = cast(TLPData) ctrl.getData;
 			if (!tlpData) continue;
 			auto act = tlpData.tlp.menuAction(MenuID.Refresh);
-			if (act) act();
+			if (act) act(stateMask);
 		}
 	}
 	private void openDirectory() {
@@ -1292,28 +1292,28 @@ public:
 			openFolder(summary.scenarioPath);
 		}
 	}
-	private void showCardLife() {
+	private void showCardLife(int stateMask) {
 		auto cw = cast(ICardWindow) _tlp;
 		if (cw) {
-			menuAction!(MenuID.ShowCardLife);
+			menuAction!(MenuID.ShowCardLife)(stateMask);
 		} else {
 			_cardWin.showCardLife;
 			menuActionAfter!(MenuID.ShowCardLife);
 		}
 	}
-	private void showCardList() {
+	private void showCardList(int stateMask) {
 		auto cw = cast(ICardWindow) _tlp;
 		if (cw) {
-			menuAction!(MenuID.ShowCardList);
+			menuAction!(MenuID.ShowCardList)(stateMask);
 		} else {
 			_cardWin.showCardList;
 			menuActionAfter!(MenuID.ShowCardList);
 		}
 	}
-	private void showCardTable() {
+	private void showCardTable(int stateMask) {
 		auto cw = cast(ICardWindow) _tlp;
 		if (cw) {
-			menuAction!(MenuID.ShowCardTable);
+			menuAction!(MenuID.ShowCardTable)(stateMask);
 		} else {
 			_cardWin.showCardTable;
 			menuActionAfter!(MenuID.ShowCardTable);
@@ -1374,11 +1374,11 @@ public:
 			}
 		}
 	}
-	private void menuAction(MenuID ID)() {
+	private void menuAction(MenuID ID)(int stateMask) {
 		if (!_tlp) return;
 		auto act = _tlp.menuAction(ID);
 		assert (act);
-		act();
+		act(stateMask);
 		menuActionAfter!(ID);
 	}
 	private void menuActionAfter(MenuID ID)() {

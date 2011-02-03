@@ -1439,7 +1439,8 @@ public:
 		appendMenuTCPD(prop, popup, this, true, true, true, true);
 		new MenuItem(popup, DWT.SEPARATOR);
 		createMenuItem(popup, _prop.msgs.menuStartToPackage, _prop.images.menuStartToPackage, &startToPackage);
-		auto convMI = createMenuItem(popup, _prop.msgs.menuConvertContent, _prop.images.menuConvertContent, null, DWT.CASCADE);
+		void delegate() dlg = null;
+		auto convMI = createMenuItem(popup, _prop.msgs.menuConvertContent, _prop.images.menuConvertContent, dlg, DWT.CASCADE);
 		auto conv = new Menu(parent.getShell, DWT.DROP_DOWN);
 		convMI.setMenu = conv;
 		debug {
@@ -1461,7 +1462,7 @@ public:
 			auto g = new RadioGroup!(ToolItem);
 			_radioGroup = g;
 			Menu convMenu(string text, Image img) {
-				auto mi = createMenuItem(conv, text, img, null, DWT.CASCADE);
+				auto mi = createMenuItem(conv, text, img, dlg, DWT.CASCADE);
 				auto m = new Menu(parent.getShell, DWT.DROP_DOWN);
 				mi.setMenu = m;
 				return m;
@@ -2126,14 +2127,14 @@ public:
 	}
 
 	override {
-		void cut() {
+		void cut(int stateMask) {
 			auto itm = selection;
 			if (itm && itm !is _tree.getItems[0]) {
-				copy;
-				del;
+				copy(stateMask);
+				del(stateMask);
 			}
 		}
-		void copy() {
+		void copy(int stateMask) {
 			auto itm = selection;
 			if (itm) {
 				string xml = (cast(Content) itm.getData).toXML;
@@ -2142,7 +2143,7 @@ public:
 				XMLtoCB(_prop, cb, xml);
 			}
 		}
-		void paste() {
+		void paste(int stateMask) {
 			auto cb = new Clipboard(Display.getCurrent);
 			scope (exit) cb.dispose;
 			string c;
@@ -2200,7 +2201,7 @@ public:
 				refreshStatusLine;
 			}
 		}
-		void del() {
+		void del(int stateMask) {
 			auto itm = selection;
 			if (itm && itm !is _tree.getItems[0]) {
 				_tree.setRedraw = false;

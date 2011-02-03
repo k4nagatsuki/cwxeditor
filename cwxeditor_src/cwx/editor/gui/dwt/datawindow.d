@@ -422,31 +422,31 @@ public:
 	}
 
 	override {
-		void cut() {
+		void cut(int stateMask) {
 			foreach (c; _tcpd) {
 				if (c.canDoTCPD) {
-					c.cut;
+					c.cut(stateMask);
 				}
 			}
 		}
-		void copy() {
+		void copy(int stateMask) {
 			foreach (c; _tcpd) {
 				if (c.canDoTCPD) {
-					c.copy;
+					c.copy(stateMask);
 				}
 			}
 		}
-		void paste() {
+		void paste(int stateMask) {
 			foreach (c; _tcpd) {
 				if (c.canDoTCPD) {
-					c.paste;
+					c.paste(stateMask);
 				}
 			}
 		}
-		void del() {
+		void del(int stateMask) {
 			foreach (c; _tcpd) {
 				if (c.canDoTCPD) {
-					c.del;
+					c.del(stateMask);
 				}
 			}
 		}

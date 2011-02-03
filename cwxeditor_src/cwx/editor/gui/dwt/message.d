@@ -119,7 +119,7 @@ private:
 			selectChanged;
 		}
 	}
-	void deleteDialog() {
+	void deleteDialogSel() {
 		deleteDialog(_dlgsL.getSelectionIndex);
 	}
 	void up() {
@@ -214,13 +214,13 @@ private:
 		return index >= 0 ? _dlgs[index] : null;
 	}
 	class DialogsTCPD : TCPD {
-		void cut() {
+		void cut(int stateMask) {
 			if (_dlgsL.getItemCount > 1 && selection) {
-				copy;
-				del;
+				copy(stateMask);
+				del(stateMask);
 			}
 		}
-		void copy() {
+		void copy(int stateMask) {
 			auto d = selection;
 			if (d) {
 				auto cb = new Clipboard(Display.getCurrent);
@@ -228,7 +228,7 @@ private:
 				XMLtoCB(_prop, cb, d.toNode.text);
 			}
 		}
-		void paste() {
+		void paste(int stateMask) {
 			auto cb = new Clipboard(Display.getCurrent);
 			scope (exit) cb.dispose;
 			auto xml = CBtoXML(cb);
@@ -241,7 +241,7 @@ private:
 				} catch {}
 			}
 		}
-		void del() {deleteDialog;}
+		void del(int stateMask) {deleteDialogSel;}
 		bool canDoTCPD() {return _dlgsL.isFocusControl;}
 	}
 	class DDropListener : DropTargetAdapter {
@@ -343,7 +343,7 @@ protected:
 				override void handleEvent(dwt.widgets.Event.Event e) {e.doit = true;}
 			});
 			createToolItem(bar, _prop.msgs.createDialog, _prop.images.createDialog, &createDialog);
-			createToolItem(bar, _prop.msgs.deleteDialog, _prop.images.deleteDialog, &deleteDialog);
+			createToolItem(bar, _prop.msgs.deleteDialog, _prop.images.deleteDialog, &deleteDialogSel);
 			new ToolItem(bar, DWT.SEPARATOR);
 			createToolItem(bar, _prop.msgs.ttUp, _prop.images.menuUp, &up);
 			createToolItem(bar, _prop.msgs.ttDown, _prop.images.menuDown, &down);
