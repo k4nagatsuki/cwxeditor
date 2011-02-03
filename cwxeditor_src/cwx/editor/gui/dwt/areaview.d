@@ -255,13 +255,21 @@ private:
 			add(I);
 			reselect;
 			add(-I);
-			downImpl;
+			static if (I < 0) {
+				downImpl;
+			} else {
+				upImpl;
+			}
 		}
 		override void redo() {
 			udb;
 			scope (exit) uda;
 			reselect;
-			upImpl;
+			static if (I < 0) {
+				upImpl;
+			} else {
+				downImpl;
+			}
 		}
 		override void dispose() {}
 	}
