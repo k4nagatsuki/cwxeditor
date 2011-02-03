@@ -2127,14 +2127,14 @@ public:
 	}
 
 	override {
-		void cut(int stateMask) {
+		void cut(SelectionEvent se) {
 			auto itm = selection;
 			if (itm && itm !is _tree.getItems[0]) {
-				copy(stateMask);
-				del(stateMask);
+				copy(se);
+				del(se);
 			}
 		}
-		void copy(int stateMask) {
+		void copy(SelectionEvent se) {
 			auto itm = selection;
 			if (itm) {
 				string xml = (cast(Content) itm.getData).toXML;
@@ -2143,7 +2143,7 @@ public:
 				XMLtoCB(_prop, cb, xml);
 			}
 		}
-		void paste(int stateMask) {
+		void paste(SelectionEvent se) {
 			auto cb = new Clipboard(Display.getCurrent);
 			scope (exit) cb.dispose;
 			string c;
@@ -2201,7 +2201,7 @@ public:
 				refreshStatusLine;
 			}
 		}
-		void del(int stateMask) {
+		void del(SelectionEvent se) {
 			auto itm = selection;
 			if (itm && itm !is _tree.getItems[0]) {
 				_tree.setRedraw = false;

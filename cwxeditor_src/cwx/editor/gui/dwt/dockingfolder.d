@@ -17,6 +17,7 @@ import dwt.widgets.TabItem;
 import dwt.widgets.Listener;
 import dwt.widgets.Event;
 import dwt.widgets.Sash;
+import dwt.widgets.Menu;
 import dwt.custom.CTabFolder;
 import dwt.custom.CTabItem;
 import dwt.custom.CTabFolderListener;
@@ -63,7 +64,7 @@ class DockingFolder(TabF, int Style) {
 	} else static if (is(TabF == CTabFolder)) {
 		alias CTabItem Tab;
 	} else static assert (0);
-	private static const CLOSE = is(TabF == CTabFolder) && (Style & DWT.CLOSE);
+	private static const CLOSE = Style & DWT.CLOSE;
 	private enum DPos {N, E, S, W, C, NONE}
 
 	private Composite _comp, _area;
@@ -172,6 +173,26 @@ class DockingFolder(TabF, int Style) {
 		auto p = tabf in _tabfs;
 		return p ? *p : "";
 	}
+	/// paneKeyに該当するペインの選択中のControlのkeyを返す。
+	/// 選択中でない場合は""を返す。
+	string selectedCtrl(string paneKey) {
+		auto tabf = cast(TabF) pane(paneKey);
+		if (!tabf) return "";
+		auto sel = selected(tabf);
+		if (!sel) return "";
+		return _ctrls[sel.getControl];
+	}
+	/// paneKeyのペインに座標(スクリーン全体座標)に該当する
+	/// Controlのタブがあればkeyを返す。
+	/// 該当が無い場合は""を返す。
+	string control(string paneKey, int x, int y) {
+		auto tabf = cast(TabF) pane(paneKey);
+		if (!tabf) return "";
+		auto itm = tabf.getItem(tabf.toControl(x, y));
+		if (!itm) return "";
+		return _ctrls[itm.getControl];
+	}
+
 	/// keyに該当するControlを返す。
 	/// 存在しない場合はnullを返す。
 	Control control(string key) {
@@ -316,6 +337,11 @@ class DockingFolder(TabF, int Style) {
 			tabf.setFocus;
 		}
 	}
+	/// keyに該当するペインにmenuを登録する。
+	void setMenu(string key, Menu menu) {
+		auto p = pane(key);
+		if (p) p.setMenu = menu;
+	}
 	/// prefixから始まるペインのkeyを全て返す。
 	string[] findPane(string prefix) {
 		string[] r;
@@ -346,6 +372,60 @@ class DockingFolder(TabF, int Style) {
 		}
 		return false;
 	}
+	/// keyに該当しないControlを閉じる。
+	void closeEtc(string key) {
+		auto tab = this.tab(key);
+		if (!tab) return;
+		foreach (i, t; tab.getParent.getItems) {
+			if (t !is tab) {
+				close(t);
+				t.dispose;
+			}
+		}
+	}
+	/// keyの左側のControlを閉じる。
+	void closeLeft(string key) {
+		auto tab = this.tab(key);
+		if (!tab) return;
+		auto i = tab.getParent.indexOf(tab);
+		if (i <= 0) return;
+		foreach (t; tab.getParent.getItems[0 .. i]) {
+			close(t);
+			t.dispose;
+		}
+	}
+	/// keyの右側のControlを閉じる。
+	void closeRight(string key) {
+		auto tab = this.tab(key);
+		if (!tab) return;
+		auto i = tab.getParent.indexOf(tab);
+		if (i >= tab.getParent.getItemCount - 1) return;
+		foreach (t; tab.getParent.getItems[i + 1 .. $]) {
+			close(t);
+			t.dispose;
+		}
+	}
+	/// keyを含むペインの全てのControlを閉じる。
+	void closeAll(string key) {
+		auto tab = this.tab(key);
+		if (!tab) return;
+		foreach (t; tab.getParent.getItems) {
+			close(t);
+			t.dispose;
+		}
+	}
+
+	/// ペインが生成された際、ペインのkeyを引数に呼出される。
+	void delegate(string)[] createPaneEvent;
+	/// createPaneEventの追加と共に、
+	/// これまでに生成されたペインに対しての呼出しが行われる。
+	void addCreatePaneEvent(void delegate(string) createPaneEvent) {
+		this.createPaneEvent ~= createPaneEvent;
+		foreach (key; _tabfs) {
+			createPaneEvent(key);
+		}
+	}
+
 	/// Controlタブが選択された際、Controlをkeyを引数に呼出される。
 	void delegate(string)[] selectEvent;
 
@@ -357,13 +437,20 @@ class DockingFolder(TabF, int Style) {
 		_tabfList ~= tabf;
 
 		static if (CLOSE) {
-			tabf.addCTabFolderListener(new CTFL);
+			static if (is(TabF : CTabFolder)) {
+				tabf.addCTabFolderListener(new CTFL);
+			}
 		}
+
 		tabf.addSelectionListener(new SelTab);
 		tabf.addMouseListener(new ClickTab);
 		auto drag = new DragSource(tabf, DND.DROP_MOVE);
 		drag.setTransfer = [TextTransfer.getInstance];
 		drag.addDragListener(new DSL(tabf));
+
+		foreach (dlg; createPaneEvent) {
+			dlg(key);
+		}
 
 		return tabf;
 	}
@@ -920,11 +1007,13 @@ class DockingFolder(TabF, int Style) {
 	///  create = XMLノード内にControlのkeyが見つかった時に
 	///           呼出され、Controlを生成して返すdelegate。
 	static DockingFolder fromNode(ref XNode node, Composite parent, int style,
-			Control delegate(Composite, string) create) {
+			Control delegate(Composite, string) create,
+			void delegate(string) createPaneEvent = null) {
 		assert (node.name == "dockingFolder", "dockingfolder#fromNode");
 		DockingFolder r = null;
 		try {
 			r = new DockingFolder(parent, style, false);
+			if (createPaneEvent) r.createPaneEvent ~= createPaneEvent;
 			Proc proc;
 			proc.r = r;
 			proc.par = r._area;

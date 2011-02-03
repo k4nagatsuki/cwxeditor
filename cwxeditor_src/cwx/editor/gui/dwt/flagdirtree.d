@@ -343,14 +343,14 @@ public:
 	}
 
 	override {
-		void cut(int stateMask) {
+		void cut(SelectionEvent se) {
 			if (!root) return;
 			if (current !is root) {
-				copy(stateMask);
-				del(stateMask);
+				copy(se);
+				del(se);
 			}
 		}
-		void copy(int stateMask) {
+		void copy(SelectionEvent se) {
 			if (!root) return;
 			if (dirs.getSelection.length > 0) {
 				auto cb = new Clipboard(Display.getCurrent);
@@ -358,7 +358,7 @@ public:
 				XMLtoCB(prop, cb, getXML(prop.msgs.flagDirRoot, current));
 			}
 		}
-		void paste(int stateMask) {
+		void paste(SelectionEvent se) {
 			if (!root) return;
 			auto cb = new Clipboard(Display.getCurrent);
 			scope (exit) cb.dispose;
@@ -385,7 +385,7 @@ public:
 				_comm.refFlagAndStep.call(cFlags.values, cSteps.values);
 			}
 		}
-		void del(int stateMask) {
+		void del(SelectionEvent se) {
 			if (!root) return;
 			auto cur = current;
 			if (cur != root) {

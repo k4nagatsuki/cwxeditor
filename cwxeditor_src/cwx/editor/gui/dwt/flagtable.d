@@ -697,12 +697,12 @@ public:
 	}
 
 	override {
-		void cut(int stateMask) {
+		void cut(SelectionEvent se) {
 			if (!_dir) return;
-			copy(stateMask);
-			del(stateMask);
+			copy(se);
+			del(se);
 		}
-		void copy(int stateMask) {
+		void copy(SelectionEvent se) {
 			if (!_dir) return;
 			Flag[] fs;
 			Step[] ss;
@@ -712,7 +712,7 @@ public:
 				XMLtoCB(prop, cb, getXML(_dir, fs, ss));
 			}
 		}
-		void paste(int stateMask) {
+		void paste(SelectionEvent se) {
 			if (!_dir) return;
 			auto cb = new Clipboard(Display.getCurrent);
 			scope (exit) cb.dispose;
@@ -728,7 +728,7 @@ public:
 				}
 			}
 		}
-		void del(int stateMask) {
+		void del(SelectionEvent se) {
 			if (!_dir) return;
 			Flag[] fs;
 			Step[] ss;

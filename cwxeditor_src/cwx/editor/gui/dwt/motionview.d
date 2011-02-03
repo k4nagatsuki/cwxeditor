@@ -699,14 +699,14 @@ public:
 		return r;
 	}
 	private class MotionTCPD : TCPD {
-		override void cut(int stateMask) {
+		override void cut(SelectionEvent se) {
 			auto m = selection;
 			if (m) {
-				copy(stateMask);
-				del(stateMask);
+				copy(se);
+				del(se);
 			}
 		}
-		override void copy(int stateMask) {
+		override void copy(SelectionEvent se) {
 			auto m = selection;
 			if (m) {
 				auto cb = new Clipboard(Display.getCurrent);
@@ -714,7 +714,7 @@ public:
 				XMLtoCB(_prop, cb, m.toXML);
 			}
 		}
-		override void paste(int stateMask) {
+		override void paste(SelectionEvent se) {
 			auto cb = new Clipboard(Display.getCurrent);
 			scope (exit) cb.dispose;
 			auto xml = CBtoXML(cb);
@@ -731,7 +731,7 @@ public:
 				} catch {}
 			}
 		}
-		override void del(int stateMask) {
+		override void del(SelectionEvent se) {
 			removeMotion;
 		}
 		override bool canDoTCPD() {
@@ -761,15 +761,15 @@ public:
 			}
 			return false;
 		}
-		override void cut(int stateMask) {
+		override void cut(SelectionEvent se) {
 			if (__copy) {
-				del(stateMask);
+				del(se);
 			}
 		}
-		override void copy(int stateMask) {
+		override void copy(SelectionEvent se) {
 			__copy;
 		}
-		override void paste(int stateMask) {
+		override void paste(SelectionEvent se) {
 			auto cb = new Clipboard(Display.getCurrent);
 			scope (exit) cb.dispose;
 			auto xml = CBtoXML(cb);
@@ -779,7 +779,7 @@ public:
 				} catch {}
 			}
 		}
-		override void del(int stateMask) {
+		override void del(SelectionEvent se) {
 			auto m = selection;
 			if (m) {
 				assert (m.detail.use(MArg.BEAST));

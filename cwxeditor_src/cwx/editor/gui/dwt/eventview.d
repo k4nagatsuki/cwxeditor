@@ -1146,17 +1146,17 @@ public:
 	string statusLine() {return _etree.statusLine;}
 
 	override {
-		void cut(int stateMask) {
+		void cut(SelectionEvent se) {
 			if (_etree.isFocusControl) {
-				_etree.cut(stateMask);
+				_etree.cut(se);
 			} else {
-				copy(stateMask);
-				del(stateMask);
+				copy(se);
+				del(se);
 			}
 		}
-		void copy(int stateMask) {
+		void copy(SelectionEvent se) {
 			if (_etree.isFocusControl) {
-				_etree.copy(stateMask);
+				_etree.copy(se);
 			} else {
 				auto itm = selection;
 				if (!itm) return;
@@ -1191,9 +1191,9 @@ public:
 				XMLtoCB(_prop, cb, xml);
 			}
 		}
-		void paste(int stateMask) {
+		void paste(SelectionEvent se) {
 			if (_etree.isFocusControl) {
-				_etree.paste(stateMask);
+				_etree.paste(se);
 			} else {
 				auto itm = selection;
 				if (!itm) return;
@@ -1244,9 +1244,9 @@ public:
 				}
 			}
 		}
-		void del(int stateMask) {
+		void del(SelectionEvent se) {
 			if (_etree.isFocusControl) {
-				_etree.del(stateMask);
+				_etree.del(se);
 			} else {
 				auto itm = selection;
 				if (!itm) return;

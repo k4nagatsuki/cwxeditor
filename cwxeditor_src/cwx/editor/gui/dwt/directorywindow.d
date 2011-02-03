@@ -1601,7 +1601,7 @@ public:
 		return false;
 	}
 
-	override void cut(int stateMask) {
+	override void cut(SelectionEvent se) {
 		if (!canDoTCPD) return;
 		if (_dirs.isFocusControl) {
 			if (_dirs.getSelection.length == 0) return;
@@ -1633,7 +1633,7 @@ public:
 			}
 		}
 	}
-	override void copy(int stateMask) {
+	override void copy(SelectionEvent se) {
 		if (!canDoTCPD) return;
 		__copy;
 		fimageThrStart;
@@ -1667,7 +1667,7 @@ public:
 		}
 		return false;
 	}
-	override void paste(int stateMask) {
+	override void paste(SelectionEvent se) {
 		if (!canDoTCPD) return;
 		auto cb = new Clipboard(Display.getCurrent);
 		scope (exit) cb.dispose;
@@ -1680,7 +1680,7 @@ public:
 			}
 		}
 	}
-	override void del(int stateMask) {
+	override void del(SelectionEvent se) {
 		if (!canDoTCPD) return;
 		if (_dirs.isFocusControl) {
 			if (_dirs.getSelection.length == 0) return;
@@ -1697,7 +1697,7 @@ public:
 			fileNames[i] = nabs(f);
 		}
 		version (Windows) {
-			bool recycle = (stateMask & DWT.SHIFT) == 0;
+			bool recycle = (se.stateMask & DWT.SHIFT) == 0;
 		}
 		if (_dirs.isFocusControl) {
 			if (!dir) return;

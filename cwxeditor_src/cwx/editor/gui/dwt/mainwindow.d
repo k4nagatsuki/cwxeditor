@@ -917,6 +917,7 @@ public:
 				_dock.newPaneName = &dockNewPaneName;
 				_dock.canVanish = &dockCanVanish;
 				_dock.selectEvent ~= &dockSelect;
+				_dock.addCreatePaneEvent(&createPaneEvent);
 				_dock.area.setLayoutData = new GridData(GridData.FILL_BOTH);
 			}
 			if (_dock) {
@@ -1274,14 +1275,52 @@ public:
 			~ "    _cardWin.create" ~ Name ~ ";"
 			~ "}";
 	}
-	private void refreshAll(int stateMask) {
+	private void refreshAll(SelectionEvent se) {
 		if (!_dock) return;
 		foreach (ctrl; _dock.showingControls) {
 			auto tlpData = cast(TLPData) ctrl.getData;
 			if (!tlpData) continue;
 			auto act = tlpData.tlp.menuAction(MenuID.Refresh);
-			if (act) act(stateMask);
+			if (act) act(se);
 		}
+	}
+	private class TabMenu {
+		private string _paneKey;
+		this (string paneKey) {
+			_paneKey = paneKey;
+			auto comp = _dock.pane(paneKey);
+			auto menu = new Menu(comp.getShell, DWT.POP_UP);
+			createMenuItem(menu, _prop.msgs.menuClosePane, _prop.images.menuClosePane, &close);
+			new MenuItem(menu, DWT.SEPARATOR);
+			createMenuItem(menu, _prop.msgs.menuClosePaneAll, _prop.images.menuClosePaneAll, &closeAll);
+			createMenuItem(menu, _prop.msgs.menuClosePaneEtc, _prop.images.menuClosePaneEtc, &closeEtc);
+			createMenuItem(menu, _prop.msgs.menuClosePaneLeft, _prop.images.menuClosePaneLeft, &closeLeft);
+			createMenuItem(menu, _prop.msgs.menuClosePaneRight, _prop.images.menuClosePaneRight, &closeRight);
+			_dock.setMenu(paneKey, menu);
+		}
+		void close(SelectionEvent se) {
+			auto ctrl = _dock.selectedCtrl(_paneKey);
+			if (ctrl.length) _dock.close(ctrl);
+		}
+		void closeEtc(SelectionEvent se) {
+			auto ctrl = _dock.selectedCtrl(_paneKey);
+			if (ctrl.length) _dock.closeEtc(ctrl);
+		}
+		void closeLeft(SelectionEvent se) {
+			auto ctrl = _dock.selectedCtrl(_paneKey);
+			if (ctrl.length) _dock.closeLeft(ctrl);
+		}
+		void closeRight(SelectionEvent se) {
+			auto ctrl = _dock.selectedCtrl(_paneKey);
+			if (ctrl.length) _dock.closeRight(ctrl);
+		}
+		void closeAll(SelectionEvent se) {
+			auto ctrl = _dock.selectedCtrl(_paneKey);
+			if (ctrl.length) _dock.closeAll(ctrl);
+		}
+	}
+	private void createPaneEvent(string paneKey) {
+		new TabMenu(paneKey);
 	}
 	private void openDirectory() {
 		if (!summary) return;
@@ -1292,28 +1331,28 @@ public:
 			openFolder(summary.scenarioPath);
 		}
 	}
-	private void showCardLife(int stateMask) {
+	private void showCardLife(SelectionEvent se) {
 		auto cw = cast(ICardWindow) _tlp;
 		if (cw) {
-			menuAction!(MenuID.ShowCardLife)(stateMask);
+			menuAction!(MenuID.ShowCardLife)(se);
 		} else {
 			_cardWin.showCardLife;
 			menuActionAfter!(MenuID.ShowCardLife);
 		}
 	}
-	private void showCardList(int stateMask) {
+	private void showCardList(SelectionEvent se) {
 		auto cw = cast(ICardWindow) _tlp;
 		if (cw) {
-			menuAction!(MenuID.ShowCardList)(stateMask);
+			menuAction!(MenuID.ShowCardList)(se);
 		} else {
 			_cardWin.showCardList;
 			menuActionAfter!(MenuID.ShowCardList);
 		}
 	}
-	private void showCardTable(int stateMask) {
+	private void showCardTable(SelectionEvent se) {
 		auto cw = cast(ICardWindow) _tlp;
 		if (cw) {
-			menuAction!(MenuID.ShowCardTable)(stateMask);
+			menuAction!(MenuID.ShowCardTable)(se);
 		} else {
 			_cardWin.showCardTable;
 			menuActionAfter!(MenuID.ShowCardTable);
@@ -1374,11 +1413,11 @@ public:
 			}
 		}
 	}
-	private void menuAction(MenuID ID)(int stateMask) {
+	private void menuAction(MenuID ID)(SelectionEvent se) {
 		if (!_tlp) return;
 		auto act = _tlp.menuAction(ID);
 		assert (act);
-		act(stateMask);
+		act(se);
 		menuActionAfter!(ID);
 	}
 	private void menuActionAfter(MenuID ID)() {

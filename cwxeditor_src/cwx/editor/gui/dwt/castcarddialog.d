@@ -337,14 +337,14 @@ private:
 			auto sels = _coupons.getSelection;
 			return sels.length > 0 ? cast(Coupon) sels[0].getData : null;
 		}
-		override void cut(int stateMask) {
+		override void cut(SelectionEvent se) {
 			auto c = selection;
 			if (c) {
-				copy(stateMask);
-				del(stateMask);
+				copy(se);
+				del(se);
 			}
 		}
-		override void copy(int stateMask) {
+		override void copy(SelectionEvent se) {
 			auto c = selection;
 			if (c) {
 				auto cb = new Clipboard(Display.getCurrent);
@@ -352,7 +352,7 @@ private:
 				XMLtoCB(_prop, cb, c.toNode.text);
 			}
 		}
-		override void paste(int stateMask) {
+		override void paste(SelectionEvent se) {
 			auto cb = new Clipboard(Display.getCurrent);
 			scope (exit) cb.dispose;
 			auto xml = CBtoXML(cb);;
@@ -365,7 +365,7 @@ private:
 				} catch {}
 			}
 		}
-		override void del(int stateMask) {
+		override void del(SelectionEvent se) {
 			delCoupon;
 		}
 		override bool canDoTCPD() {

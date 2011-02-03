@@ -214,13 +214,13 @@ private:
 		return index >= 0 ? _dlgs[index] : null;
 	}
 	class DialogsTCPD : TCPD {
-		void cut(int stateMask) {
+		void cut(SelectionEvent se) {
 			if (_dlgsL.getItemCount > 1 && selection) {
-				copy(stateMask);
-				del(stateMask);
+				copy(se);
+				del(se);
 			}
 		}
-		void copy(int stateMask) {
+		void copy(SelectionEvent se) {
 			auto d = selection;
 			if (d) {
 				auto cb = new Clipboard(Display.getCurrent);
@@ -228,7 +228,7 @@ private:
 				XMLtoCB(_prop, cb, d.toNode.text);
 			}
 		}
-		void paste(int stateMask) {
+		void paste(SelectionEvent se) {
 			auto cb = new Clipboard(Display.getCurrent);
 			scope (exit) cb.dispose;
 			auto xml = CBtoXML(cb);
@@ -241,7 +241,7 @@ private:
 				} catch {}
 			}
 		}
-		void del(int stateMask) {deleteDialogSel;}
+		void del(SelectionEvent se) {deleteDialogSel;}
 		bool canDoTCPD() {return _dlgsL.isFocusControl;}
 	}
 	class DDropListener : DropTargetAdapter {

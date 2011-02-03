@@ -30,6 +30,7 @@ import dwt.events.ShellEvent;
 import dwt.events.ShellAdapter;
 import dwt.events.DisposeEvent;
 import dwt.events.DisposeListener;
+import dwt.events.SelectionEvent;
 
 class EventWindow(A : EventTreeOwner) : TopLevelPanel, TCPD {
 private:
@@ -243,17 +244,17 @@ public:
 		return _eto;
 	}
 	override {
-		void cut(int stateMask) {
-			_eview.cut(stateMask);
+		void cut(SelectionEvent se) {
+			_eview.cut(se);
 		}
-		void copy(int stateMask) {
-			_eview.copy(stateMask);
+		void copy(SelectionEvent se) {
+			_eview.copy(se);
 		}
-		void paste(int stateMask) {
-			_eview.paste(stateMask);
+		void paste(SelectionEvent se) {
+			_eview.paste(se);
 		}
-		void del(int stateMask) {
-			_eview.del(stateMask);
+		void del(SelectionEvent se) {
+			_eview.del(se);
 		}
 		bool canDoTCPD() {
 			return _eview.canDoTCPD;

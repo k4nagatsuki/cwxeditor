@@ -571,16 +571,16 @@ public:
 
 interface TCPD {
 public:
-	void cut(int stateMask);
-	void copy(int stateMask);
-	void paste(int stateMask);
-	void del(int stateMask);
+	void cut(SelectionEvent se);
+	void copy(SelectionEvent se);
+	void paste(SelectionEvent se);
+	void del(SelectionEvent se);
 	bool canDoTCPD();
 }
 
 private class InTCPD {
 	TCPD tcpd;
-	void cut(int stateMask) {
+	void cut(SelectionEvent se) {
 		if (cast(Text) Display.getCurrent.getFocusControl) {
 			(cast(Text) Display.getCurrent.getFocusControl).cut;
 		} else if (cast(Combo) Display.getCurrent.getFocusControl) {
@@ -588,10 +588,10 @@ private class InTCPD {
 		} else if (cast(CCombo) Display.getCurrent.getFocusControl) {
 			(cast(CCombo) Display.getCurrent.getFocusControl).cut;
 		} else {
-			tcpd.cut(stateMask);
+			tcpd.cut(se);
 		}
 	}
-	void copy(int stateMask) {
+	void copy(SelectionEvent se) {
 		if (cast(Text) Display.getCurrent.getFocusControl) {
 			(cast(Text) Display.getCurrent.getFocusControl).copy;
 		} else if (cast(Combo) Display.getCurrent.getFocusControl) {
@@ -599,10 +599,10 @@ private class InTCPD {
 		} else if (cast(CCombo) Display.getCurrent.getFocusControl) {
 			(cast(CCombo) Display.getCurrent.getFocusControl).copy;
 		} else {
-			tcpd.copy(stateMask);
+			tcpd.copy(se);
 		}
 	}
-	void paste(int stateMask) {
+	void paste(SelectionEvent se) {
 		if (cast(Text) Display.getCurrent.getFocusControl) {
 			(cast(Text) Display.getCurrent.getFocusControl).paste;
 		} else if (cast(Combo) Display.getCurrent.getFocusControl) {
@@ -610,14 +610,14 @@ private class InTCPD {
 		} else if (cast(CCombo) Display.getCurrent.getFocusControl) {
 			(cast(CCombo) Display.getCurrent.getFocusControl).paste;
 		} else {
-			tcpd.paste(stateMask);
+			tcpd.paste(se);
 		}
 	}
-	void del(int stateMask) {
+	void del(SelectionEvent se) {
 		if (cast(Text) Display.getCurrent.getFocusControl) {
 			(cast(Text) Display.getCurrent.getFocusControl).insert("");
 		} else {
-			tcpd.del(stateMask);
+			tcpd.del(se);
 		}
 	}
 }
@@ -770,8 +770,8 @@ private class MenuSel(Dlg) : SelectionAdapter {
 	private Dlg _func;
 	public this(Dlg func) {_func = func;}
 	public override void widgetSelected(SelectionEvent e) {
-		static if (is(Dlg == void delegate(int))) {
-			_func(e.stateMask);
+		static if (is(Dlg == void delegate(SelectionEvent))) {
+			_func(e);
 		} else static if (is(Dlg == void delegate())) {
 			_func();
 		} else static assert (0);
@@ -792,7 +792,7 @@ private MenuItem createMenuItemImpl(Dlg)(Menu sub, string text, Image img,
 	return itm;
 }
 MenuItem createMenuItem(Menu sub, string text, Image img,
-		void delegate(int stateMask) func, int style = DWT.PUSH) {
+		void delegate(SelectionEvent se) func, int style = DWT.PUSH) {
 	return createMenuItemImpl(sub, text, img, func, style);
 }
 MenuItem createMenuItem(Menu sub, string text, Image img,
@@ -819,7 +819,7 @@ ToolItem createToolItemImpl(Dlg)(ToolBar bar, string tip, string text, Image img
 	return itm;
 }
 ToolItem createToolItem(ToolBar bar, string tip, string text, Image img,
-		void delegate(int stateMsak) func, int style = DWT.PUSH) {
+		void delegate(SelectionEvent se) func, int style = DWT.PUSH) {
 	return createToolItemImpl(bar, tip, text, img, func, style);
 }
 ToolItem createToolItem(ToolBar bar, string tip, string text, Image img,
@@ -827,8 +827,8 @@ ToolItem createToolItem(ToolBar bar, string tip, string text, Image img,
 	return createToolItemImpl(bar, tip, text, img, func, style);
 }
 ToolItem createToolItem(ToolBar bar, string text, Image img,
-		void delegate(int stateMsak) func, int style = DWT.PUSH) {
-	return createToolItemImpl!(void delegate(int))(bar, text, null, img, func, style);
+		void delegate(SelectionEvent se) func, int style = DWT.PUSH) {
+	return createToolItemImpl!(void delegate(SelectionEvent))(bar, text, null, img, func, style);
 }
 ToolItem createToolItem(ToolBar bar, string text, Image img,
 		void delegate() func, int style = DWT.PUSH) {

@@ -91,6 +91,17 @@ public:
 		}
 	}
 
+	string ttClosePane() {return "閉じる";}
+	string menuClosePane() {return ttClosePane ~ "(&C)";}
+	string ttClosePaneEtc() {return "このタブ以外を閉じる";}
+	string menuClosePaneEtc() {return ttClosePaneEtc ~ "(&W)";}
+	string ttClosePaneLeft() {return "これより左を閉じる";}
+	string menuClosePaneLeft() {return ttClosePaneLeft ~ "(&L)";}
+	string ttClosePaneRight() {return "これより右を閉じる";}
+	string menuClosePaneRight() {return ttClosePaneRight ~ "(&R)";}
+	string ttClosePaneAll() {return "全てのタブを閉じる";}
+	string menuClosePaneAll() {return ttClosePaneAll ~ "(&A)";}
+
 	string image() {return "イメージ";}
 	string pathDef() {return "[デフォルト]";}
 	string imageNone() {return "[イメージ無し]";}

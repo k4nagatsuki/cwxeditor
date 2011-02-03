@@ -295,31 +295,31 @@ public:
 	void undo() {_undo.undo;}
 	void redo() {_undo.redo;}
 	override {
-		void cut(int stateMask) {
+		void cut(SelectionEvent se) {
 			foreach (c; _tcpd) {
 				if (c.canDoTCPD) {
-					c.cut(stateMask);
+					c.cut(se);
 				}
 			}
 		}
-		void copy(int stateMask) {
+		void copy(SelectionEvent se) {
 			foreach (c; _tcpd) {
 				if (c.canDoTCPD) {
-					c.copy(stateMask);
+					c.copy(se);
 				}
 			}
 		}
-		void paste(int stateMask) {
+		void paste(SelectionEvent se) {
 			foreach (c; _tcpd) {
 				if (c.canDoTCPD) {
-					c.paste(stateMask);
+					c.paste(se);
 				}
 			}
 		}
-		void del(int stateMask) {
+		void del(SelectionEvent se) {
 			foreach (c; _tcpd) {
 				if (c.canDoTCPD) {
-					c.del(stateMask);
+					c.del(se);
 				}
 			}
 		}

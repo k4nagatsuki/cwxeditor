@@ -406,6 +406,12 @@ public:
 
 	Image menuStartToPackage() {return imgd!(resourceDir ~ "s_to_p.png");}
 	Image menuConvertContent() {return imgd!(resourceDir ~ "conv_cont.png");}
+
+	Image menuClosePane() {return imgd!(resourceDir ~ "close_pane.png");}
+	Image menuClosePaneEtc() {return imgd!(resourceDir ~ "close_pane_e.png");}
+	Image menuClosePaneLeft() {return imgd!(resourceDir ~ "close_pane_l.png");}
+	Image menuClosePaneRight() {return imgd!(resourceDir ~ "close_pane_r.png");}
+	Image menuClosePaneAll() {return imgd!(resourceDir ~ "close_pane_a.png");}
 }
 
 enum MenuID : int {

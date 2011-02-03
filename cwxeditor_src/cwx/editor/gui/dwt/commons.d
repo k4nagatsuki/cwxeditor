@@ -26,6 +26,7 @@ import dwt.widgets.Shell;
 import dwt.widgets.Composite;
 import dwt.widgets.Control;
 import dwt.widgets.Label;
+import dwt.events.SelectionEvent;
 import dwt.events.DisposeListener;
 import dwt.events.DisposeEvent;
 import dwt.graphics.Image;
@@ -82,13 +83,6 @@ private struct Dlg(Arg ...) {
 	}
 }
 
-private class WrapDlg {
-	private void delegate() _dlg;
-	this (void delegate() dlg) {
-		_dlg = dlg;
-	}
-	void call(int stateMask) {_dlg();}
-}
 /// 最上位のパネル。
 abstract class TopLevelPanel {
 	abstract string title();
@@ -96,13 +90,20 @@ abstract class TopLevelPanel {
 	abstract Composite shell();
 	protected abstract Label statusText();
 
-	private void delegate(int stateMask)[MenuID] _act;
+	private static class WrapDlg {
+		private void delegate() _dlg;
+		this (void delegate() dlg) {
+			_dlg = dlg;
+		}
+		void call(SelectionEvent se) {_dlg();}
+	}
+	private void delegate(SelectionEvent)[MenuID] _act;
 	void putMenuAction(MenuID menuID, void delegate() dlg) {
 		if (!(menuID in _act)) {
 			_act[menuID] = &(new WrapDlg(dlg)).call;
 		}
 	}
-	void putMenuAction(MenuID menuID, void delegate(int stateMask) dlg) {
+	void putMenuAction(MenuID menuID, void delegate(SelectionEvent se) dlg) {
 		if (!(menuID in _act)) _act[menuID] = dlg;
 	}
 	private bool delegate()[MenuID] _chk;
@@ -112,11 +113,11 @@ abstract class TopLevelPanel {
 		}
 		if (!(menuID in _chk)) _chk[menuID] = get;
 	}
-	void putMenuChecked(MenuID menuID, void delegate(int stateMask) dlg, bool delegate() get) {
+	void putMenuChecked(MenuID menuID, void delegate(SelectionEvent se) dlg, bool delegate() get) {
 		if (!(menuID in _act)) _act[menuID] = dlg;
 		if (!(menuID in _chk)) _chk[menuID] = get;
 	}
-	void delegate(int) menuAction(MenuID menuID) {
+	void delegate(SelectionEvent) menuAction(MenuID menuID) {
 		auto p = menuID in _act;
 		return p ? *p : null;
 	}

@@ -639,11 +639,11 @@ public:
 	}
 
 	override {
-		void cut(int stateMask) {
-			copy(stateMask);
-			del(stateMask);
+		void cut(SelectionEvent se) {
+			copy(se);
+			del(se);
 		}
-		void copy(int stateMask) {
+		void copy(SelectionEvent se) {
 			auto area = getSelectionArea;
 			if (area !is null) {
 				auto cb = new Clipboard(Display.getCurrent);
@@ -651,7 +651,7 @@ public:
 				XMLtoCB(_prop, cb, area.toXML(_summ.id));
 			}
 		}
-		void paste(int stateMask) {
+		void paste(SelectionEvent se) {
 			auto cb = new Clipboard(Display.getCurrent);
 			scope (exit) cb.dispose;
 			auto c = CBtoXML(cb);
@@ -692,7 +692,7 @@ public:
 				}
 			}
 		}
-		void del(int stateMask) {
+		void del(SelectionEvent se) {
 			auto area = getSelectionArea;
 			if (area) {
 				_summ.remove(area);
