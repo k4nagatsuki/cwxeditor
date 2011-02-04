@@ -193,6 +193,7 @@ private:
 							_prop.msgs.dlgTitWarning, _win);
 					}
 				} else {
+					if (!.exists(wsm)) wsm = old.scenarioPath;
 					loadScenarioFromFile!(Summary)(_prop, _win, &setStatusLine, expand, old, wsm, &openScenario);
 				}
 			} else if (expand) {
