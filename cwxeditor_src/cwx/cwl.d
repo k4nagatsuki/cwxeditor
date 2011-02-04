@@ -9,6 +9,7 @@ import std.path;
 import std.math;
 import std.string;
 import std.thread;
+import std.regexp;
 
 import cwx.binary;
 import cwx.summary;
@@ -46,7 +47,10 @@ private struct RData {
 	string skin;
 }
 /// 4.0形式のCardWirthシナリオを読込む。
-S loadLScenario(S)(string p, string skin) {
+/// Params:
+/// newName = シナリオ名。null以外が指定された場合、
+///           Summary.wsmが存在しない際はこの名前で新規に作成する。
+S loadLScenario(S)(string p, string skin, string newName = null) {
 	static const bool AR = is (S : AreaOwner);
 	static const bool BA = is (S : BattleOwner);
 	static const bool PA = is (S : PackageOwner);
@@ -57,12 +61,22 @@ S loadLScenario(S)(string p, string skin) {
 	static const bool IN = is (S : InfoOwner);
 	auto sPath = p;
 	auto summPath = std.path.join(p, "Summary.wsm");
-	if (!exists(summPath)) throw new SummaryException("Not Scenario: " ~ p);
 	S summ;
+	RData d;
 	ulong startAreaId;
-	auto d = RData(sPath, skin);
-	{
-		summ = loadSummary!(S)(d, ByteIO(std.file.read(summPath)), startAreaId);
+	if (.exists(summPath)) {
+		d = RData(sPath, skin);
+		{
+			summ = loadSummary!(S)(d, ByteIO(std.file.read(summPath)), startAreaId);
+		}
+	} else {
+		if (!newName) throw new SummaryException("Not Scenario: " ~ p);
+		d = RData(sPath, skin);
+		static if (is(S == Summary)) {
+			summ = new Summary(newName, d.skin, d.sPath, true);
+		} else {
+			summ = new S(d.sPath, newName, true);
+		}
 	}
 	class Load {
 		static if (AR) Area[] areas;
@@ -166,6 +180,26 @@ S loadLScenario(S)(string p, string skin) {
 /// fileのIDと型を返す。
 TypeInfo getType(string file, out ulong id) {
 	try {
+		if (!.exists(file)) {
+			bool chk(string prefix) {
+				if (!sWith(file, prefix)) return false;
+				if (file.length < prefix.length + 5) return false;
+				if (!fnmatch(getExt(file), "wid")) return false;
+				string i = file[prefix.length .. $ - 4];
+				if (!RegExp("^[0-9]+$").match(i)) return false;
+				id = to!(ulong)(i);
+				return true;
+			}
+			if (chk("Area")) return typeid(Area);
+			if (chk("Battle")) return typeid(Battle);
+			if (chk("Package")) return typeid(Package);
+			if (chk("Mate")) return typeid(CastCard);
+			if (chk("Skill")) return typeid(SkillCard);
+			if (chk("Item")) return typeid(ItemCard);
+			if (chk("Beast")) return typeid(BeastCard);
+			if (chk("Info")) return typeid(InfoCard);
+			return null;
+		}
 		auto f = ByteIO(std.file.read(file));
 		file = getBaseName(file);
 		// 今の所ファイル名しか見分ける手段が無い
@@ -398,7 +432,7 @@ private S loadSummary(S)(in RData d, ref ByteIO f, out ulong startAreaId) {
 			FlagDir dir = summ.flagDirRoot;
 			string par = FlagDir.up(path);
 			if (par.length) {
-				string[] spPath = .split(par, "\\")[0u .. $ - 1u];
+				string[] spPath = std.string.split(par, "\\")[0u .. $ - 1u];
 				while (spPath.length) {
 					auto sub = dir.getSubDir(spPath[0u]);
 					if (!sub) {

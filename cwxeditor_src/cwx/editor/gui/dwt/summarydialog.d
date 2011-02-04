@@ -272,7 +272,7 @@ private:
 					grp.setLayout = new GridLayout(1, true);
 					_type = new Combo(grp, DWT.BORDER | DWT.DROP_DOWN | DWT.READ_ONLY);
 					_type.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-					if (_summ.legacy) {
+					if (_summ.legacy && skin.legacyEngine.length) {
 						_type.add(_prop.msgs.legacyEngineSkin(skin.engine));
 					}
 					foreach (type; skinTable(_prop).keys.sort) {

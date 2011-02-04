@@ -1503,7 +1503,8 @@ private class LSFFThr(S, bool Array) {
 			display.syncExec(new Start);
 			try {
 				S r = S.loadScenarioFromFile(prop.parent, fname, prop.var.etc.expandXMLs,
-					prop.tempPath, old, &setMax, &setWork);
+					prop.tempPath, old, &setMax, &setWork,
+					isdir(fname) ? getBaseName(fname) : getBaseName(getDirName(fname)));
 				temp = r.useTemp ? r.scenarioPath : "";
 				display.syncExec(new Load(r));
 			} catch (SummaryException e) {
@@ -1515,9 +1516,9 @@ private class LSFFThr(S, bool Array) {
 }
 string[] scenarioFilter() {
 	if (canUncab) {
-		return ["*.wsn;Summary.xml;*.cab;*.zip;Summary.wsm"];
+		return ["*.wsn;Summary.xml;*.cab;*.zip;Summary.wsm;*.wid"];
 	}
-	return ["*.wsn;Summary.xml;*.zip;Summary.wsm"];
+	return ["*.wsn;Summary.xml;*.zip;Summary.wsm;*.wid"];
 }
 
 S[] loadScenarios(S)(Props prop, Shell w, void delegate(string) status,
@@ -1545,11 +1546,15 @@ S[] loadScenarios(S)(Props prop, Shell w, void delegate(string) status,
 		put.prop = prop;
 		put.filterPath = dlg.getFilterPath;
 		put.loaded = loaded;
-		string[] files;
+		auto files = new HashSet!(string);
 		foreach (file; dlg.getFileNames) {
-			files ~= std.path.join(dlg.getFilterPath, file);
+			if (fnmatch(getExt(file), "wid")) {
+				file = getDirName(file);
+			}
+			files.add(nabs(std.path.join(dlg.getFilterPath, file)));
 		}
-		S[] r = loadScenariosFromFile!(S)(prop, w, status, expandXMLs, files, &put.put, oThr);
+		S[] r = loadScenariosFromFile!(S)(prop, w, status, expandXMLs,
+			files.toArray, &put.put, oThr);
 		if (!oThr && r.length) put.put(r);
 		return r;
 	}
@@ -1599,7 +1604,7 @@ string scenarioFilterPath(Props prop) {
 }
 
 S loadScenario(S)(Props prop, Shell w, void delegate(string) status,
-		bool expandXMLs, S old, string dlgTitle, void delegate (S) loaded = null, bool oThr = true) {
+		bool expandXMLs, S old, string dlgTitle, ref string[] openPaths, void delegate (S) loaded = null, bool oThr = true) {
 	auto dlg = new FileDialog(w, DWT.PRIMARY_MODAL | DWT.APPLICATION_MODAL | DWT.SINGLE | DWT.OPEN);
 	scope (exit) dlg.dispose;
 	dlg.setFilterExtensions = scenarioFilter;
@@ -1608,6 +1613,7 @@ S loadScenario(S)(Props prop, Shell w, void delegate(string) status,
 	dlg.setFilterPath = scenarioFilterPath(prop);
 	string fname = dlg.open;
 	if (fname) {
+		decScenarioPath(fname, openPaths);
 		auto put = new class Object {
 			void delegate (S) loaded;
 			void put(S r) {
@@ -1653,7 +1659,9 @@ private S loadScenarioFromFileImpl(S)(Props prop, Shell w, void delegate(string)
 			if (!current) w.setCursor = null;
 		}
 		try {
-			return S.loadScenarioFromFile(prop.parent, fname, prop.var.etc.expandXMLs, prop.tempPath, old, setMax, worked);
+			return S.loadScenarioFromFile(prop.parent, fname, prop.var.etc.expandXMLs,
+				prop.tempPath, old, setMax, worked,
+				isdir(fname) ? getBaseName(fname) : getBaseName(getDirName(fname)));
 		} catch (SummaryException e) {
 			MessageBox.showWarning(e.msg, prop.msgs.dlgTitWarning, w);
 		}

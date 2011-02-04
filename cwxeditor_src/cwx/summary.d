@@ -197,7 +197,7 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 	}
 
 	static S loadScenarioFromFile(CProps prop, string fname, bool expand, string tempPath, S old,
-			void delegate(uint) setMax, void delegate(uint) worked) {
+			void delegate(uint) setMax, void delegate(uint) worked, string newName = null) {
 		string[string][string] xmls;
 		string sunzip(string fname, ZipArchive arc, out bool cancel = false) {
 			auto temp = createTempDir(tempPath, getBaseName(getName(fname)));
@@ -285,7 +285,7 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 			return r;
 		}
 		S loadLegacy(string p) {
-			S r = loadLScenario!(S)(p, "");
+			S r = loadLScenario!(S)(p, "", newName);
 			if (old) old.delTemp;
 			return r;
 		}
@@ -310,7 +310,7 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 			throw new SummaryException(prop.msgs.notScenario(fname));
 		}
 		if (fname) {
-			if (exists(fname)) {
+			if (newName || exists(fname)) {
 				try {
 					if (isdir(fname)) {
 						if (exists(std.path.join(fname, "Summary.xml"))) {
@@ -319,13 +319,16 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 							fname = std.path.join(fname, "Summary.wsm");
 						}
 					}
-					if (fnmatch(getBaseName(fname), "Summary.wsm")) {
-						auto r = loadLegacy(getDirName(fname));
+					S ll(string fname) {
+						auto r = loadLegacy(fname);
 						r._expandXMLs = false;
 						r._useTemp = false;
 						r._legacy = true;
 						r._zipName = "";
 						return r;
+					}
+					if (fnmatch(getBaseName(fname), "Summary.wsm")) {
+						return ll(getDirName(fname));
  					} else if (canUncab && fnmatch(getExt(fname), "cab")) {
  						return legacyCommon;
 					} else if (fnmatch(getBaseName(fname), "Summary.xml")) {
@@ -336,6 +339,8 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 						r._legacy = false;
 						r._zipName = "";
 						return r;
+					} else if (isdir(fname)) {
+						return ll(fname);
 					} else {
 						auto arc = scArc(fname, "xml");
 						if (arc) {
@@ -1236,7 +1241,7 @@ public:
 	Summary reloadXMLs() {
 		Summary summ;
 		if (legacy) {
-			summ = loadLScenario!(S)(scenarioPath, "");
+			summ = loadLScenario!(S)(scenarioPath, "", scenarioName);
 		} else {
 			summ = summaryFromXML(scenarioPath,
 				cast(string) std.file.read(std.path.join(scenarioPath, "Summary.xml")));
@@ -1669,4 +1674,36 @@ bool isScenarioSystemDir(string dir) {
 		|| std.path.fnmatch(dir, PATH_ITEM)
 		|| std.path.fnmatch(dir, PATH_BEAST)
 		|| std.path.fnmatch(dir, PATH_INFO);
+}
+
+/// シナリオ関連ファイルのパスを分解し、シナリオフォルダと
+/// パスに含まれるリソースパスに分ける。
+void decScenarioPath(ref string scenarioPath, ref string[] openPaths) {
+	if (scenarioPath && fnmatch(getExt(scenarioPath), "wid")) {
+		ulong id;
+		auto type = cwx.cwl.getType(scenarioPath, id);
+		if (type) {
+			string ts;
+			if (type is typeid(Area)) {
+				ts = "area";
+			} else if (type is typeid(Battle)) {
+				ts = "battle";
+			} else if (type is typeid(Package)) {
+				ts = "package";
+			} else if (type is typeid(CastCard)) {
+				ts = "castcard";
+			} else if (type is typeid(SkillCard)) {
+				ts = "skillcard";
+			} else if (type is typeid(ItemCard)) {
+				ts = "itemcard";
+			} else if (type is typeid(BeastCard)) {
+				ts = "beastcard";
+			} else if (type is typeid(InfoCard)) {
+				ts = "infocard";
+			}
+			ts ~= ":id:" ~ to!(string)(id);
+			openPaths ~= ts;
+		}
+		scenarioPath = getDirName(scenarioPath);
+	}
 }

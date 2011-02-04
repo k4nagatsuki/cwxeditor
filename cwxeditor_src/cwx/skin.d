@@ -70,7 +70,7 @@ class Skin {
 		string resDir, lEnginePath;
 		findLegacy(sPath, resDir, lEnginePath);
 		resDir = resDir.length ? nabs(resDir) : "";
-		lEnginePath = nabs(lEnginePath);
+		lEnginePath = lEnginePath.length ? nabs(lEnginePath) : "";
 		auto p = resDir in lSkins;
 		if (p) {
 			return *p;

@@ -935,9 +935,9 @@ public:
 	string dlgTitOpenScenario() {return "シナリオを開く";}
 	string filterScenario() {
 		if (canUncab) {
-			return "シナリオファイル (*.wsn;Summary.xml;Summary.wid;*.cab;*.zip)";
+			return "シナリオファイル (*.wsn;Summary.xml;*.cab;*.zip;Summary.wsm;*.wid)";
 		} else {
-			return "シナリオファイル (*.wsn;Summary.xml;Summary.wid;*.zip)";
+			return "シナリオファイル (*.wsn;Summary.xml;*.zip;Summary.wsm;*.wid)";
 		}
 	}
 	string dlgTitSaveScenario() {return "名前を付けて保存";}

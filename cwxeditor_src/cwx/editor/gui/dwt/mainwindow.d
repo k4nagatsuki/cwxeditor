@@ -266,9 +266,13 @@ private:
 	void openScenario() {
 		auto old = summary;
 		loadScenario!(Summary)(_prop, _win, &setStatusLine,
-			_prop.var.etc.expandXMLs, old, _prop.msgs.dlgTitOpenScenario, &openScenarioImpl);
+			_prop.var.etc.expandXMLs, old, _prop.msgs.dlgTitOpenScenario,
+			_openPaths, &openScenarioImpl);
 	}
 	void openScenario(string fname) {
+		if (fnmatch(getExt(fname), "wsm") && !.exists(fname)) {
+			fname = getDirName(fname);
+		}
 		decScenarioPath(fname, _openPaths);
 		auto old = summary;
 		loadScenarioFromFile!(Summary)(_prop, _win, &setStatusLine, _prop.var.etc.expandXMLs, old, fname, &openScenarioImpl);
@@ -601,35 +605,6 @@ private:
 		if (_prop.var.etc.openHistories.length > 0) new MenuItem(_menuFile, DWT.SEPARATOR);
 		createMenuItem(_menuFile, _prop.msgs.menuClose, _prop.images.menuClose, &exitAll);
 	}
-	void decScenarioPath(ref string scenarioPath, ref string[] openPaths) {
-		if (scenarioPath && fnmatch(getExt(scenarioPath), "wid")) {
-			ulong id;
-			auto type = cwx.cwl.getType(scenarioPath, id);
-			if (type) {
-				string ts;
-				if (type is typeid(Area)) {
-					ts = "area";
-				} else if (type is typeid(Battle)) {
-					ts = "battle";
-				} else if (type is typeid(Package)) {
-					ts = "package";
-				} else if (type is typeid(CastCard)) {
-					ts = "castcard";
-				} else if (type is typeid(SkillCard)) {
-					ts = "skillcard";
-				} else if (type is typeid(ItemCard)) {
-					ts = "itemcard";
-				} else if (type is typeid(BeastCard)) {
-					ts = "beastcard";
-				} else if (type is typeid(InfoCard)) {
-					ts = "infocard";
-				}
-				ts ~= ":id:" ~ to!(string)(id);
-				openPaths ~= ts;
-			}
-			scenarioPath = getDirName(scenarioPath);
-		}
-	}
 	Display _display = null;
 	static const PIPE_APP_MAX = 256;
 	string _pipeName = "";
@@ -723,7 +698,6 @@ public:
 	this (string appPath, string propFilePath, cwx.system.System sys,
 			string firstScenarioPath = null, string[] openPaths = []) {
 		decScenarioPath(firstScenarioPath, openPaths);
-
 		/// すでにfirstScenarioPathを開いている
 		/// 既存のcwxeditorプロセスがある場合、
 		/// そちらを開くようにする。
