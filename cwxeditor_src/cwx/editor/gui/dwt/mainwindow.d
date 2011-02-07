@@ -101,17 +101,24 @@ version (Windows) {
 } else {
 	version (linux) {
 		import std.c.linux.linux;
+		import std.c.linux.socket;
 		alias std.c.linux.linux.read cread;
 		alias std.c.linux.linux.write cwrite;
+		alias std.c.linux.socket.bind cbind;
 	} else {
 		import std.c.unix.unix;
 		alias std.c.unix.unix.read cread;
 		alias std.c.unix.unix.write cwrite;
+		alias std.c.unix.unix.bind cbind;
 	}
-	int mkfifo(char*, mode_t);
-
-	const S_IWUSR = 0200;
-	const S_IRUSR = 0400;
+	import std.c.string;
+	extern (C) {
+		alias ushort sa_family_t;
+		struct sockaddr_un {
+			sa_family_t sun_family;
+			char[sockaddr.sizeof - sa_family_t.sizeof] sun_path;
+		}
+	}
 }
 
 public:
@@ -655,20 +662,23 @@ private:
 				}
 			}
 		} else {
-			auto pipe = std.string.toStringz(_pipeName);
-			if (mkfifo(pipe, S_IRUSR | S_IWUSR) != 0) return -1;
+			auto pipe = socket(PF_UNIX, SOCK_STREAM, 0);
+			if (pipe == -1) return -1;
+			scope (exit) close(pipe);
+			sockaddr_un laddr;
+			laddr.sun_family = AF_UNIX;
+			strcpy(&(laddr.sun_path[1]), _pipeName.ptr);
+			if (0 != cbind(pipe, cast(sockaddr*) &laddr, laddr.sizeof)) return -1;
+			if (0 != listen(pipe, 1)) return -1;
 			char[4096] buf;
+			int len;
 			auto openPath = new OpenCWXPath;
-			auto fd = open(pipe, O_RDONLY, 0);
-			while (fd != -1) {
-				scope (exit) {
-					if (fd != -1) close(fd);
-					fd = open(pipe, O_RDONLY, 0);
-				}
-				auto len = cread(fd, buf.ptr, buf.length);
-				if (len == -1) continue;
-				close(fd);
-				fd = -1;
+			typeof(pipe) rsock;
+			sockaddr_un raddr;
+			socklen_t rsocklen;
+			while (-1 != (rsock = accept(pipe, cast(sockaddr*) &raddr, &rsocklen))) {
+				scope (exit) close(rsock);
+				if (-1 == (len = cread(pipe, buf.ptr, buf.length))) continue;
 				string rstr = buf[0 .. len];
 				if (rstr == "quit") break;
 				auto summ = summary;
@@ -679,12 +689,8 @@ private:
 					} else {
 						send = summ.scenarioPath;
 					}
-					if ((fd = open(pipe, O_WRONLY, 0)) == -1) continue;
-					if (cwrite(fd, send.ptr, send.length) == -1) continue;
-					close(fd);
-					fd = -1;
-					if ((fd = open(pipe, O_RDONLY, 0)) == -1) continue;
-					if ((len = cread(fd, buf.ptr, buf.length)) == -1) continue;
+					if (-1 == cwrite(pipe, send.ptr, send.length)) continue;
+					if (-1 == (len = cread(pipe, buf.ptr, buf.length))) continue;
 					rstr = buf[0 .. len];
 				}
 				if (cwx.utils.startsWith(rstr, "open cwxpath ")) {
@@ -692,6 +698,7 @@ private:
 					_display.asyncExec(openPath);
 				}
 			}
+			close(pipe);
 		}
 		return 0;
 	}
@@ -741,28 +748,23 @@ public:
 		} else {
 			char[4096] buf;
 			for (size_t i = 0; i < PIPE_APP_MAX; i++) {
-				string pipeName = r"\\.\pipe\cwxeditor_" ~ to!(string)(i);
-				auto pipe = std.string.toStringz(pipeName);
-				if (access(pipe, 0) != 0) {
+				string pipeName = r"/pipe/cwxeditor_" ~ to!(string)(i);
+				auto p = socket(PF_UNIX, SOCK_STREAM, 0);
+				if (-1 == p) continue;
+				scope (exit) close(p);
+				sockaddr_un raddr;
+				raddr.sun_family = AF_INET;
+				strcpy(&(raddr.sun_path[1]), pipeName.ptr);
+				if (-1 == connect(p, cast(sockaddr*) &raddr, raddr.sizeof)) {
 					if (!_pipeName.length) _pipeName = pipeName;
 					if (!path1.length) break;
 					continue;
 				}
 				if (!path1.length) continue;
 				string send = "get opened scenario";
-				auto fd = open(pipe, O_WRONLY, 0);
-				scope (exit) {
-					if (fd != -1) close(fd);
-				}
-				if (fd == -1) continue;
-				if (cwrite(fd, send.ptr, send.length) == -1) continue;
-				close(fd);
-				fd = -1;
-				if ((fd = open(pipe, O_RDONLY, 0)) == -1) continue;
-				auto len = cread(fd, buf.ptr, buf.length);
-				if (len == -1) continue;
-				close(fd);
-				fd = -1;
+				if (-1 == cwrite(p, send.ptr, send.length)) continue;
+				int len = cread(p, buf.ptr, buf.length);
+				if (-1 == len) continue;
 				auto path2 = nabs(buf[0 .. len]);
 				if (!fnmatch(path1, path2)) continue;
 				send = "open cwxpath ";
@@ -770,10 +772,7 @@ public:
 					if (j > 0) send ~= ";";
 					send ~= s;
 				}
-				if ((fd = open(pipe, O_WRONLY, 0)) == -1) continue;
-				if (cwrite(fd, send.ptr, send.length) == -1) continue;
-				close(fd);
-				fd = -1;
+				if (-1 == cwrite(p, send.ptr, send.length)) continue;
 				return;
 			}
 		}
