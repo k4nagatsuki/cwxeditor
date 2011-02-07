@@ -61,18 +61,10 @@ string LATEST_VERSION = "";
 string debugLog = "cwxeditor_error.log";
 
 /// デバグログに文字列を出力する。
-void debugln(T ...)(T vals) {
+void fdebugln(T ...)(T vals) {
 	char[] buf;
 	foreach (v; vals) {
 		buf ~= to!(char[])(v);
-	}
-	debug {
-		version (Windows) {
-			printf("%s\n\0".ptr, tosjisz(buf));
-			dout.flush;
-		} else {
-			writefln("%s", buf);
-		}
 	}
 	d_time d = getUTCtime;
 	d = UTCtoLocalTime(d);
@@ -85,6 +77,23 @@ void debugln(T ...)(T vals) {
 	std.file.append(debugLog,
 		format("%04d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, min, sec)
 		~ "\t" ~ buf ~ linesep);
+}
+/// debugコンパイルされている際は デバグログに文字列を出力すると
+/// 共にfdebugln()を呼出し、ファイル出力する。
+void debugln(T ...)(T vals) {
+	debug {
+		char[] buf;
+		foreach (v; vals) {
+			buf ~= to!(char[])(v);
+		}
+		version (Windows) {
+			printf("%s\n\0".ptr, tosjisz(buf));
+			dout.flush;
+		} else {
+			writefln("%s", buf);
+		}
+		fdebugln!(T)(vals);
+	}
 }
 
 debug {

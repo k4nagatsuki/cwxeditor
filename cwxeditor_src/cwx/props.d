@@ -20,6 +20,12 @@ import std.path;
 import std.math;
 import std.string;
 
+version (Windows) {
+	static const DIR = "フォルダ";
+} else {
+	static const DIR = "ディレクトリ";
+}
+
 class Msgs {
 public:
 	string application() {return "CWXEditor";}
@@ -40,7 +46,16 @@ public:
 	string dlgTitError() {return "エラー - CWXEditor";}
 	string dlgTitWarning() {return "警告 - CWXEditor";}
 	string dlgTitQuestion() {return "確認 - CWXEditor";}
-	string unknownError() {return "処理中にエラーが発生しました。cwxeditor_error.logを確認してください。";}
+	string unknownError() {
+		version (Windows) {
+			static const CWX_EDITOR = "cwxeditor.exe";
+		} else {
+			static const CWX_EDITOR = "cwxeditor";
+		}
+		return "処理の途中で" ~ application ~ "の制作者が意図していないエラーが発生しました。\n"
+			~ "データが壊れている可能性を考慮して、シナリオを保存せずに終了する事をお勧めします。\n"
+			~ "エラーの内容は" ~ CWX_EDITOR ~ "と同じ" ~ DIR ~ "にある、cwxeditor_error.logに記録されます。";
+	}
 
 	string dlgTextOK() {return "&OK";}
 	string dlgTextApply() {return "適用";}
@@ -66,11 +81,7 @@ public:
 		return "シナリオ作成先の選択";
 	}
 	string newClassicDirDesc() {
-		version (Windows) {
-			return "シナリオを作成するフォルダを選択してください。";
-		} else {
-			return "シナリオを作成するディレクトリを選択してください。";
-		}
+		return "シナリオを作成する" ~ DIR ~ "を選択してください。";
 	}
 	string notEmptyDir(string dir) {
 		return dir ~ "は空ではありません。\n本当にここでシナリオを作成しますか？";
@@ -115,7 +126,7 @@ public:
 	string dlgMsgIsSaveBeforeExit(string name) {return name ~ "は変更されています。保存しますか？";}
 	string dlgMsgDropFiles(string[] paths) {
 		return (paths.length == 1 ? paths[0] : (to!(string)(paths.length) ~ "個のファイル"))
-			~ "をシナリオフォルダにコピーしますか？";
+			~ "をシナリオ" ~ DIR ~ "にコピーしますか？";
 	}
 	string dlgMsgDropOverWriteFiles(string[] paths) {
 		return (paths.length == 1
@@ -159,11 +170,7 @@ public:
 	string ttReload() {return "再読込";}
 	string menuReload() {return ttReload ~ "(&R)";}
 	string ttOpenDirectory() {
-		version (Windows) {
-			return "フォルダを開く";
-		} else {
-			return "ディレクトリを開く";
-		}
+		return DIR ~ "を開く";
 	}
 	string menuOpenDirectory() {return ttOpenDirectory ~ "(&O)";}
 
@@ -1247,11 +1254,11 @@ public:
 	/// カード/背景配置領域関連。
 	string dlgTitDropCard() {return "カード画像の追加";}
 	string dlgMsgDropCard(string fname) {
-		return "カード画像をシナリオフォルダにコピーしますか？\n" ~ fname;
+		return "カード画像をシナリオ" ~ DIR ~ "にコピーしますか？\n" ~ fname;
 	}
 	string dlgTitDropBack() {return "背景画像の追加";}
 	string dlgMsgDropBack(string fname) {
-		return "背景画像をシナリオフォルダにコピーしますか？\n" ~ fname;
+		return "背景画像をシナリオ" ~ DIR ~ "にコピーしますか？\n" ~ fname;
 	}
 
 	string refFlag() {return "フラグ参照先";}
@@ -1947,11 +1954,7 @@ public:
 	string fileExt() {return "拡張子";}
 	string fileCount() {return "使用数";}
 	string errorExec(string appName) {return appName ~ "の起動に失敗しました。";}
-	version (Windows) {
-		string ttNewFolder() {return "新規フォルダ";}
-	} else {
-		string ttNewFolder() {return "新規ディレクトリ";}
-	}
+	string ttNewFolder() {return "新規" ~ DIR;}
 	string menuNewFolder() {return ttNewFolder ~ "(&I)";}
 	string newFolder() {return ttNewFolder;}
 	string ttReplacePath() {return "素材の差替え";}
@@ -1983,11 +1986,7 @@ public:
 	string xmlCopy() {return "コピーや切り取りを常にXML形式で行う";}
 	string saveInnerImagePath() {return "クラシックなシナリオで格納イメージにファイルパスを埋め込む";}
 	string traceDirectories() {
-		version (Windows) {
-			return "ファイル・フォルダの変更を自動的に追跡する";
-		} else {
-			return "ファイル・ディレクトリの変更を自動的に追跡する";
-		}
+		return "ファイル・" ~ DIR ~ "の変更を自動的に追跡する";
 	}
 
 	string bgImageAndKeyCode() {return "背景とキーコード";}
@@ -2007,18 +2006,14 @@ public:
 	string newOuterToolName() {return "新規外部ツール";}
 	string toolsHint1() {return "$F = ファイル名";}
 	string toolsHint3() {return "$$ = $";}
+	string outerToolWorkDir() {return "作業" ~ DIR;}
+	string toolWorkDir() {return "作業" ~ DIR ~ "の選択";}
+	string toolWorkDirDesc() {return "外部ツールの作業" ~ DIR ~ "を選択してください。";}
+	string toolsHint2() {return "$S = シナリオの" ~ DIR;}
 	version (Windows) {
-		string outerToolWorkDir() {return "作業フォルダ";}
 		string[] toolTName() {return ["実行ファイル (*.exe)", "すべてのファイル (*.*)"];}
-		string toolWorkDir() {return "作業フォルダの選択";}
-		string toolWorkDirDesc() {return "外部ツールの作業フォルダを選択してください。";}
-		string toolsHint2() {return "$S = シナリオのフォルダ";}
 	} else {
-		string outerToolWorkDir() {return "作業ディレクトリ";}
 		string[] toolTName() {return ["すべてのファイル (*.*)"];}
-		string toolWorkDir() {return "作業ディレクトリの選択";}
-		string toolWorkDirDesc() {return "外部ツールの作業ディレクトリを選択してください。";}
-		string toolsHint2() {return "$S = シナリオのディレクトリ";}
 	}
 	string newOuterTool() {return "新規作成";}
 	string delOuterTool() {return "削除";}

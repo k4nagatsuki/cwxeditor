@@ -1614,18 +1614,18 @@ public:
 						d.sleep;
 					}
 				} catch (Exception e) {
-					debugln(e.msg ~ ", " ~ e.file ~ ", " ~ to!(string)(e.line));
+					fdebugln(e.msg ~ ", " ~ e.file ~ ", " ~ to!(string)(e.line));
 					auto dlg = new MessageBox(_win, DWT.ICON_ERROR | DWT.OK);
 					scope (exit) dlg.dispose;
 					dlg.setText = _prop.msgs.dlgTitError;
-					dlg.setMessage = _prop.msgs.unknownError ~ "\n" ~ e.msg;
+					dlg.setMessage = _prop.msgs.unknownError ~ "\n---\n" ~ e.msg;
 					dlg.open;
 				} catch (Object o) {
-					debugln(o.toString);
+					fdebugln(o.toString);
 					auto dlg = new MessageBox(_win, DWT.ICON_ERROR | DWT.OK);
 					scope (exit) dlg.dispose;
 					dlg.setText = _prop.msgs.dlgTitError;
-					dlg.setMessage = _prop.msgs.unknownError ~ "\n" ~ o.toString;
+					dlg.setMessage = _prop.msgs.unknownError ~ "\n---\n" ~ o.toString;
 					dlg.open;
 				}
 			}
