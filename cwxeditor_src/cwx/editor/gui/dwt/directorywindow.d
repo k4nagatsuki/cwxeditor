@@ -83,6 +83,28 @@ version (Windows) {
 		BOOL FindCloseChangeNotification(HANDLE);
 	}
 }
+version (linux) {
+	import std.c.linux.linux;
+	private extern (C) {
+		int inotify_init1(int);
+		int inotify_add_watch(int, char*, uint);
+		const IN_NONBLOCK = 0x4000;
+		const IN_MODIFY = 0x0002;
+		const IN_ATTRIB = 0x0004;
+		const IN_MOVED_FROM = 0x0040;
+		const IN_MOVED_TO = 0x0080;
+		const IN_CREATE = 0x0100;
+		const IN_DELETE = 0x0200;
+		const IN_DELETE_SELF = 0x0400;
+		struct inotify_event {
+			int wd;
+			uint mask;
+			uint cookie;
+			uint len;
+			char* name;
+		};
+	}
+}
 
 private struct FC {
 	string path;
@@ -753,7 +775,7 @@ private:
 							return;
 						}
 						if (isdir(from)) {
-							if (!.exists(to)) mkdir(to);
+							if (!.exists(to)) std.file.mkdir(to);
 							foreach (child; clistdir(from)) {
 								copy(to, std.path.join(from, child));
 							}
@@ -788,7 +810,7 @@ private:
 						string to = std.path.join(parent, getBaseName(from));
 						to = createNewFileName(to, isdir);
 						if (isdir) {
-							mkdir(to);
+							std.file.mkdir(to);
 							foreach (child; clistdir(from)) {
 								renameCopy(to, std.path.join(from, child));
 							}
@@ -987,8 +1009,8 @@ private:
 				file ~= `"` ~ f ~ `"`;
 				if (i + 1 < sf.length) file ~= " ";
 			}
-			string sp = _summ ? _summ.scenarioPath : getcwd;
-			auto cwd = getcwd;
+			string sp = _summ ? _summ.scenarioPath : std.file.getcwd;
+			auto cwd = std.file.getcwd;
 			string wd = OuterTool.parse(_tool.workDir, file, sp);
 			if (wd.length > 0) {
 				if (!std.path.isabs(wd)) {
@@ -1031,7 +1053,7 @@ private:
 			string p = std.path.join(dir, name);
 			fp = p;
 			if (!.exists(fp)) {
-				mkdir(fp);
+				std.file.mkdir(fp);
 				fp = nabs(fp);
 				if (_summ.useTemp) _summ.changed;
 				return true;
@@ -1208,49 +1230,35 @@ private:
 					sleep;
 				}
 			}
-		} else (linux) {
-			static extern (C) {
-				int inotify_init1(int);
-				int inotify_add_watch(int, char*, uint32_t);
-				const IN_NONBLOCK = 0x4000;
-				const IN_MODIFY = 0x0002;
-				const IN_ATTRIB = 0x0004;
-				const IN_MOVED_FROM = 0x0040;
-				const IN_MOVED_TO = 0x0080;
-				const IN_CREATE = 0x0100;
-				const IN_DELETE = 0x0200;
-				const IN_DELETE_SELF = 0x0400;
-				struct inotify_event {
-					int wd;
-					uint32_t mask;
-					uint32_t cookie;
-					uint32_t len;
-					char* name;
-				};
-			}
+		} else version (linux) {
 			extern (C) int h = -1;
-			bool setup(string path) {
-				if (h != -1) inotify_close(h);
+			bool setup() {
+				if (h != -1) close(h);
 				h = inotify_init1(IN_NONBLOCK);
 				if (h == -1) return false;
-				foreach (file; clistdir(path)) {
-					file = std.path.join(path, file);
-					if (isdir(file)) {
-						inotify_add_watch(h, toStringz(file), );
-						setup(file);
+				void put(string path) {
+					foreach (file; clistdir(path)) {
+						file = std.path.join(path, file);
+						if (isdir(file)) {
+							inotify_add_watch(h, std.string.toStringz(file),
+								IN_MODIFY | IN_ATTRIB | IN_MOVED_FROM | IN_MOVED_TO
+								| IN_CREATE | IN_DELETE | IN_DELETE_SELF);
+							put(file);
+						}
 					}
 				}
+				put(summ.scenarioPath);
 				return true;
 			}
 			scope (exit) {
-				if (h != -1) inotify_close(h);
+				if (h != -1) close(h);
 			}
 			while (!_display.isDisposed) {
 				try {
 					if (summ !is _summ) {
 						summ = _summ;
 						if (!setup) {
-							debugln("inotify_init1() failed: ", errno);
+							debugln("inotify_init1() failed");
 							continue;
 						}
 					}
@@ -1259,7 +1267,7 @@ private:
 						continue;
 					}
 					byte[inotify_event.sizeof * 1024] buf;
-					auto len = read(h, buf.ptr, buf.sizeof);
+					auto len = std.c.linux.linux.read(h, buf.ptr, buf.sizeof);
 					if (-1 == len) break;
 					if (0 == len) {
 						sleep;
