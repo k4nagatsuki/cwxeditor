@@ -411,7 +411,11 @@ private:
 		if (_summ) {
 			string st = _summ.scenarioPath;
 			cut = st.length;
-			if (!endsWith(st, sep) && !endsWith(st, altsep)) cut++;
+			static if (altsep.length) {
+				if (!endsWith(st, sep) && !endsWith(st, altsep)) cut++;
+			} else {
+				if (!endsWith(st, sep)) cut++;
+			}
 			searchTarg(_summ.scenarioPath, cut);
 		}
 		if (!select) {

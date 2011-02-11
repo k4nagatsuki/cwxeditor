@@ -1,6 +1,6 @@
 diff -r b6e9904989ed base/src/java/lang/Character.d
 --- a/base/src/java/lang/Character.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/base/src/java/lang/Character.d	Fri Feb 11 00:58:56 2011 +0900
++++ b/base/src/java/lang/Character.d	Fri Feb 11 17:58:57 2011 +0900
 @@ -155,7 +155,7 @@
  
  bool CharacterIsDefined( dchar ch ){
@@ -12,7 +12,7 @@ diff -r b6e9904989ed base/src/java/lang/Character.d
          return false;
 diff -r b6e9904989ed base/src/java/util/zip/InflaterInputStream.d
 --- a/base/src/java/util/zip/InflaterInputStream.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/base/src/java/util/zip/InflaterInputStream.d	Fri Feb 11 00:58:56 2011 +0900
++++ b/base/src/java/util/zip/InflaterInputStream.d	Fri Feb 11 17:58:57 2011 +0900
 @@ -6,7 +6,7 @@
  import java.lang.all;
  import java.io.InputStream;
@@ -22,9 +22,48 @@ diff -r b6e9904989ed base/src/java/util/zip/InflaterInputStream.d
      import tango.io.device.Conduit;
      version(Windows){
          pragma(lib,"zlib.lib");
+diff -r b6e9904989ed org.eclipse.swt.gtk.linux.x86/src/org/eclipse/swt/custom/CTabItem.d
+--- a/org.eclipse.swt.gtk.linux.x86/src/org/eclipse/swt/custom/CTabItem.d	Sat Nov 13 14:15:51 2010 +0100
++++ b/org.eclipse.swt.gtk.linux.x86/src/org/eclipse/swt/custom/CTabItem.d	Fri Feb 11 17:58:57 2011 +0900
+@@ -32,6 +32,8 @@
+ import org.eclipse.swt.widgets.Widget;
+ import org.eclipse.swt.custom.CTabFolder;
+ 
++import tango.text.convert.Utf;
++
+ /**
+  * Instances of this class represent a selectable user interface object
+  * that represent a page in a notebook widget.
+@@ -173,7 +175,7 @@
+         end = layout.getPreviousOffset(end, SWT.MOVEMENT_CLUSTER);
+     }
+     layout.dispose();
+-    return end is 0 ? text.substring(0, 1) : text ~ ellipses;
++    return end is 0 ? .toString(toString32(text)[0 .. 1]) : text ~ ellipses;
+ }
+ 
+ public override void dispose() {
+@@ -859,14 +861,14 @@
+     if (minimum) {
+         int minChars = parent.minChars;
+         text = minChars is 0 ? null : getText();
+-        if (text !is null && text.length > minChars) {
++        if (text !is null && toString32(text).length > minChars) {
+             if (useEllipses()) {
+                 int end = minChars < ELLIPSIS.length + 1 ? minChars : minChars - ELLIPSIS.length;
+-                text = text[ 0 .. end ];
++                text = .toString(toString32(text)[ 0 .. end ]);
+                 if (minChars > ELLIPSIS.length + 1) text ~= ELLIPSIS;
+             } else {
+                 int end = minChars;
+-                text = text[ 0 .. end ];
++                text = .toString(toString32(text)[ 0 .. end ]);
+             }
+         }
+     } else {
 diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/custom/CTabItem.d
 --- a/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/custom/CTabItem.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/custom/CTabItem.d	Fri Feb 11 00:58:56 2011 +0900
++++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/custom/CTabItem.d	Fri Feb 11 17:58:57 2011 +0900
 @@ -32,6 +32,8 @@
  import org.eclipse.swt.widgets.Widget;
  import org.eclipse.swt.custom.CTabFolder;
@@ -63,7 +102,7 @@ diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/custom/
      } else {
 diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/dnd/TableDragSourceEffect.d
 --- a/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/dnd/TableDragSourceEffect.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/dnd/TableDragSourceEffect.d	Fri Feb 11 00:58:56 2011 +0900
++++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/dnd/TableDragSourceEffect.d	Fri Feb 11 17:58:57 2011 +0900
 @@ -132,7 +132,7 @@
                      OS.BitBlt (memHdc, 0, 0, srcWidth, srcHeight, srcHdc, 0, 0, OS.SRCCOPY);
                      //byte[] srcData = new byte [sizeInBytes];
@@ -75,7 +114,7 @@ diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/dnd/Tab
                      ImageData data = new ImageData(srcWidth, srcHeight, bm.bmBitsPixel, palette, bm.bmWidthBytes, srcData);
 diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/FileDialog.d
 --- a/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/FileDialog.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/FileDialog.d	Fri Feb 11 00:58:56 2011 +0900
++++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/FileDialog.d	Fri Feb 11 17:58:57 2011 +0900
 @@ -244,7 +244,7 @@
      auto hHeap = OS.GetProcessHeap ();
  
@@ -87,7 +126,7 @@ diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets
      /*
 diff -r b6e9904989ed rakefile
 --- a/rakefile	Sat Nov 13 14:15:51 2010 +0100
-+++ b/rakefile	Fri Feb 11 00:58:56 2011 +0900
++++ b/rakefile	Fri Feb 11 17:58:57 2011 +0900
 @@ -10,8 +10,7 @@
  class String
      def to_path

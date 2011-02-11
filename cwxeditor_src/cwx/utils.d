@@ -282,7 +282,9 @@ char[] rel2abs(char[] path) {
 
 /// 正規化を行う。
 string normal(string path) {
-	path = replace(path, altsep, sep);
+	static if (altsep.length) {
+		path = replace(path, altsep, sep);
+	}
 	scope spl = std.string.split(path, sep);
 	string[] buf;
 	foreach (i, str; spl) {
@@ -919,7 +921,9 @@ string getenv(string env) {
 private string __createF(bool Dir)(string parent, string name, string ext, string prefix) {
 	string clean(string name) {
 		name = replace(name, sep, "");
-		name = replace(name, altsep, "");
+		static if (altsep.length) {
+			name = replace(name, altsep, "");
+		}
 		name = replace(name, ".", "");
 		name = replace(name, " ", "");
 		if (name.length == 0) {

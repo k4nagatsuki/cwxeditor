@@ -85,6 +85,7 @@ version (Windows) {
 } else version (linux) {
 	import std.c.linux.linux;
 	private extern (C) {
+		uint sleep(uint);
 		int inotify_init1(int);
 		int inotify_add_watch(int, char*, uint);
 		const IN_NONBLOCK = 0x4000;
@@ -877,7 +878,9 @@ private:
 		string frp = toRelPath(path);
 		string frd = nabs(path);
 		newName = std.string.replace(newName, sep, "");
-		newName = std.string.replace(newName, altsep, "");
+		static if (altsep.length) {
+			newName = std.string.replace(newName, altsep, "");
+		}
 		auto to = std.path.join(getDirName(path), newName);
 		bool isdir = cast(bool) .isdir(path);
 		if (!isdir && getExt(path).length > 0) {
@@ -1163,7 +1166,7 @@ private:
 			version (Windows) {
 				Sleep(1000); // 1sec
 			} else {
-				sleep(1); // 1sec
+				.sleep(1); // 1sec
 			}
 		}
 		bool canDoChk() {

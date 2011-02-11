@@ -1,8 +1,6 @@
 
 [[[ CWXEditor ビルドガイド ]]]
 
-[ Windowsの場合 ]
-
 ビルドツール:
 	・dmd 1.056
 	・bud 3.04
@@ -12,6 +10,9 @@
 	・DWT2 rev.111
 
 　後はSubversionとMercurialのクライアントがあると楽です。
+
+
+[ Windowsの場合 ]
 
 　まずTango(dmdのバンドル版がいい感じです)を手に入れてパスを通して使えるように
 しておきましょう。
@@ -76,4 +77,51 @@ build_releaseです。後はbudが一晩でやってくれました。
 
 [ linuxの場合 ]
 
-　いまだにビルド成功したことない。
+　まずはTango(dmdのバンドル版がいい感じです)を手に入れてパスを通して使えるように
+しておきましょう。
+　http://downloads.dsource.org/projects/tango/0.99.9/tango-0.99.9-bin-linux-with-dmd.1.056.tar.gz
+
+　次にtangobosのtrunkからrev.63を手に入れておきます。
+---
+svn co http://svn.dsource.org/projects/tangobos/trunk@63
+---
+　このままだとzlibが干渉してコンパイルできないとか色々超常現象が起こるので
+パッチを当てます。"tangobos-rev.63_cwx.patch"がそれです。Z_NULLとかの名前を
+微妙に変えただけですがこれで問題は起きなくなるはず。
+
+　次にDWT2をMercurialのリポジトリから取ってきます。
+---
+hg clone -r 111 http://hg.dsource.org/projects/dwt2
+---
+　例によってバグがあるのでパッチを当てます。svnと違ってhgには自力でパッチを
+当てる機能がついてるみたいです。ナイスだね。
+---
+cd dwt2
+hg patch dwt2-rev.111_cwx.patch
+---
+　こんな感じで。
+
+　DWT2はビルドにrakeを使います。apt-getなりで手に入れておいてください。
+　rakeが使えるようになったら、"base"と"swt"をビルドし、ライブラリを作ります。
+　 dwt-base.a
+　 org.eclipse.swt.gtk.linux.x86.a
+　dwt2/libにある状態では何をどうしてもリンクできなかったので、cwxeditor_src/
+に放り込んでしまってください。
+　名前が"lib"から始まっていないのが悪いのですが、そのままリンクする方法が
+あるんでしょうか。自分は完膚無きまでにタコなので、分かっている人は教えて
+くださると助かります。
+
+　後はTangoの"bin/sc.ini"を弄くってtangobosやDWT2のインポートフォルダやら
+リソースフォルダやらを探しに行くようにしておきましょう。
+---
+DFLAGS=-I%@P%/../tangobos -I%@P%/../import -I%@P%/../include -I%@P%/../import/tango/core/vendor -L-L%@P%/../lib -version=Tango -defaultlib=tango-dmd -debuglib=tango-dmd -J%@P%/../dwt2/res -I%@P%/../dwt2/imp -L-L%@P%/../tangobos
+---
+
+　ここまで準備をすれば、後はレスポンスファイルを指定してdmdを実行するだけ。
+---
+dmd @linux_d.rsp
+---
+　成功すると思います。多分すると思う。するんじゃないかな。
+
+　後はどうかDWTが死なないことを私と一緒に祈ってください。
+

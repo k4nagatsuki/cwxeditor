@@ -80,7 +80,9 @@ void unzip(ZipArchive arc,
 ArchiveMember archive(string name, ubyte[] data, bool isDir) {
 	if (data.length && isDir) throw new Exception("not directory");
 	name = std.string.replace(name, sep, "/");
-	name = std.string.replace(name, altsep, "/");
+	static if (altsep.length) {
+		name = std.string.replace(name, altsep, "/");
+	}
 	auto am = new ArchiveMember;
 	am.time = toDosFileTime(getUTCtime);
 	am.compressionMethod = 8;

@@ -551,7 +551,15 @@ struct PathId {
 }
 /// 文字列をファイルパスIDに変換。
 PathId toPathId(string id) {
-	return isBinImg(id) ? PathId(BI_PATH_ID, id) : PathId(replace(replace(id, sep, "/"), altsep, "/"));
+	if (isBinImg(id)) {
+		return PathId(BI_PATH_ID, id);
+	} else {
+		id = replace(id, sep, "/");
+		static if (altsep.length) {
+			id = replace(id, altsep, "/");
+		}
+		return PathId(id);
+	}
 }
 /// ファイルパスの使用者。
 interface IPathUser : User!(PathId) {
