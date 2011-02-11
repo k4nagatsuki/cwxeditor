@@ -16,22 +16,22 @@ import cwx.editor.gui.dwt.skin;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.undo;
 
-import dwt.widgets.Shell;
-import dwt.widgets.ToolBar;
-import dwt.widgets.ToolItem;
-import dwt.widgets.Menu;
-import dwt.widgets.MenuItem;
-import dwt.widgets.Composite;
-import dwt.widgets.Label;
-import dwt.custom.CTabFolder;
-import dwt.custom.CTabItem;
-import dwt.layout.GridLayout;
-import dwt.layout.GridData;
-import dwt.graphics.Image;
-import dwt.events.DisposeEvent;
-import dwt.events.DisposeListener;
-import dwt.events.SelectionEvent;
-import dwt.events.SelectionAdapter;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionAdapter;
 
 public:
 
@@ -111,11 +111,11 @@ public:
 		Shell shell = null;
 		auto parShl = cast(Shell) parent;
 		if (parShl) {
-			shell = new Shell(parShl, DWT.SHELL_TRIM);
+			shell = new Shell(parShl, SWT.SHELL_TRIM);
 			shell.setImage = prop.images.app;
 			_win = shell;
 		} else {
-			_win = new Composite(parent, DWT.NONE);
+			_win = new Composite(parent, SWT.NONE);
 		}
 		_win.setData = new TLPData(this);
 		static if (is (A == Area)) {
@@ -151,31 +151,31 @@ public:
 		});
 		_win.setLayout = windowGridLayout(1, true);
 		_prop = prop;
-		_tabf = new CTabFolder(_win, DWT.BORDER);
+		_tabf = new CTabFolder(_win, SWT.BORDER);
 		_tabf.setLayoutData = new GridData(GridData.FILL_BOTH);
 		if (cast(Area) area || cast(Battle) area) {
-			_tabA = new CTabItem(_tabf, DWT.NONE);
+			_tabA = new CTabItem(_tabf, SWT.NONE);
 			_tabA.setText = _prop.msgs.cardAndBackView;
 		}
-		_tabE = new CTabItem(_tabf, DWT.NONE);
+		_tabE = new CTabItem(_tabf, SWT.NONE);
 		_tabE.setText = _prop.msgs.eventView;
 		_tabf.addSelectionListener(new TabSel);
 
 		if (shell) {
-			auto bar = new Menu(shell, DWT.BAR);
+			auto bar = new Menu(shell, SWT.BAR);
 
 			auto mf = createMenu(bar, _prop.msgs.menuFile);
 			createMenuItem(mf, _prop.msgs.menuSave, _prop.images.menuSave, &saveScenario);
-			new MenuItem(mf, DWT.SEPARATOR);
+			new MenuItem(mf, SWT.SEPARATOR);
 			createMenuItem(mf, _prop.msgs.menuCloseWin, _prop.images.menuCloseWin, &shell.close);
 
 			auto me = createMenu(bar, _prop.msgs.menuEdit);
 			createMenuItem(me, _prop.msgs.menuUndo, _prop.images.menuUndo, &undo);
 			createMenuItem(me, _prop.msgs.menuRedo, _prop.images.menuRedo, &redo);
-			new MenuItem(me, DWT.SEPARATOR);
+			new MenuItem(me, SWT.SEPARATOR);
 			createMenuItem(me, _prop.msgs.menuUp, _prop.images.menuUp, &up);
 			createMenuItem(me, _prop.msgs.menuDown, _prop.images.menuDown, &down);
-			new MenuItem(me, DWT.SEPARATOR);
+			new MenuItem(me, SWT.SEPARATOR);
 			appendMenuTCPD(_prop, me, this, true, true, true, true);
 
 			auto mv = createMenu(bar, _prop.msgs.menuView);
@@ -204,7 +204,7 @@ public:
 				&_eview.upCard, &_eview.downCard);
 		}
 		if (shell) {
-			_status = new Label(_win, DWT.NONE);
+			_status = new Label(_win, SWT.NONE);
 			_status.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		}
 		__refreshTitle;
@@ -219,11 +219,11 @@ public:
 			static assert (0);
 		}
 		if (shell) {
-			scope wp = shell.computeSize(DWT.DEFAULT, DWT.DEFAULT);
-			int width = winProps.width == DWT.DEFAULT ? wp.x : winProps.width;
-			int height = winProps.height == DWT.DEFAULT ? wp.y : winProps.height;
-			int x = winProps.x == DWT.DEFAULT ? shell.getBounds.x : winProps.x + areaWin.getBounds.x;
-			int y = winProps.y == DWT.DEFAULT ? shell.getBounds.y : winProps.y + areaWin.getBounds.y;
+			scope wp = shell.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+			int width = winProps.width == SWT.DEFAULT ? wp.x : winProps.width;
+			int height = winProps.height == SWT.DEFAULT ? wp.y : winProps.height;
+			int x = winProps.x == SWT.DEFAULT ? shell.getBounds.x : winProps.x + areaWin.getBounds.x;
+			int y = winProps.y == SWT.DEFAULT ? shell.getBounds.y : winProps.y + areaWin.getBounds.y;
 			intoDisplay(x, y, width, height);
 			shell.setBounds(x, y, width, height);
 			shell.setMaximized = winProps.maximized;

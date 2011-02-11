@@ -5,31 +5,31 @@ import cwx.utils;
 
 import std.math;
 
-import dwt.DWT;
-import dwt.widgets.Display;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Display;
 
-import dwt.widgets.Composite;
-import dwt.widgets.Control;
-import dwt.widgets.Label;
-import dwt.widgets.Listener;
-import dwt.widgets.Event;
-import dwt.widgets.Spinner;
-import dwt.graphics.Rectangle;
-import dwt.graphics.GC;
-import dwt.graphics.Color;
-import dwt.graphics.Image;
-import dwt.graphics.Font;
-import dwt.events.PaintListener;
-import dwt.events.PaintEvent;
-import dwt.events.ModifyListener;
-import dwt.events.ModifyEvent;
-import dwt.events.VerifyListener;
-import dwt.events.VerifyEvent;
-import dwt.events.SelectionListener;
-import dwt.events.SelectionEvent;
-import dwt.layout.GridLayout;
-import dwt.layout.GridData;
-import dwt.dwthelper.utils;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Spinner;
+import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.events.PaintListener;
+import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.VerifyListener;
+import org.eclipse.swt.events.VerifyEvent;
+import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.GridData;
+import java.lang.all;
 
 public:
 
@@ -61,11 +61,11 @@ class RadarSpinner : Composite {
 	private const int TOGGLE_SIZE = 5;
 	private const int TOGGLE_CATCH_SIZE = 11;
 	private const int MARGIN = 7;
-	private int _antialias = DWT.DEFAULT;
+	private int _antialias = SWT.DEFAULT;
 	private bool _side = true;
 	private bool _oval = false;
 	private int[] _borderlines;
-	private int _ovalW = DWT.DEFAULT, _ovalH = DWT.DEFAULT;
+	private int _ovalW = SWT.DEFAULT, _ovalH = SWT.DEFAULT;
 	private Color _ovalBack;
 	private Color _ovalFore;
 	private bool _readOnly;
@@ -77,20 +77,20 @@ class RadarSpinner : Composite {
 
 	/// Params:
 	/// parent = 親コンポーネント。
-	/// style = スタイル。指定可能なスタイルはDWT.BORDER、DWT.READ_ONLY。
+	/// style = スタイル。指定可能なスタイルはSWT.BORDER、DWT.READ_ONLY。
 	this(Composite parent, int style) {
-		super(parent, style | DWT.DOUBLE_BUFFERED);
-		setBackgroundMode = DWT.INHERIT_DEFAULT;
-		_ovalFore = Display.getCurrent.getSystemColor(DWT.COLOR_LIST_FOREGROUND);
-		_ovalBack = Display.getCurrent.getSystemColor(DWT.COLOR_LIST_BACKGROUND);
-		_readOnly = (style & DWT.READ_ONLY) != 0;
+		super(parent, style | SWT.DOUBLE_BUFFERED);
+		setBackgroundMode = SWT.INHERIT_DEFAULT;
+		_ovalFore = Display.getCurrent.getSystemColor(SWT.COLOR_LIST_FOREGROUND);
+		_ovalBack = Display.getCurrent.getSystemColor(SWT.COLOR_LIST_BACKGROUND);
+		_readOnly = (style & SWT.READ_ONLY) != 0;
 		if (!_readOnly) {
 			_mod_redraw = new class Listener {
 				override void handleEvent(Event e) {
 					redraw;
 				}
 			};
-			addListener(DWT.MouseMove, new class Listener {
+			addListener(SWT.MouseMove, new class Listener {
 				override void handleEvent(Event e) {
 					if (_onDrag >= 0) {
 						int x = e.x;
@@ -113,7 +113,7 @@ class RadarSpinner : Composite {
 					}
 				}
 			});
-			addListener(DWT.MouseUp, new class Listener {
+			addListener(SWT.MouseUp, new class Listener {
 				override void handleEvent(Event e) {
 					if (e.button == 1) {
 						_onDrag = -1;
@@ -121,7 +121,7 @@ class RadarSpinner : Composite {
 					}
 				}
 			});
-			addListener(DWT.MouseDown, new class Listener {
+			addListener(SWT.MouseDown, new class Listener {
 				override void handleEvent(Event e) {
 					if (e.button == 1) {
 						_onDrag = __cursor_get(e.x, e.y);
@@ -132,13 +132,13 @@ class RadarSpinner : Composite {
 				}
 			});
 		}
-		addListener(DWT.Resize, new class Listener {
+		addListener(SWT.Resize, new class Listener {
 			override void handleEvent(Event e) {
 				_mod = true;
 				__resize;
 			}
 		});
-		addListener(DWT.Paint, new class Listener {
+		addListener(SWT.Paint, new class Listener {
 			override void handleEvent(Event e) {
 				__resize;
 				scope size = getClientArea;
@@ -161,7 +161,7 @@ class RadarSpinner : Composite {
 							}
 							gc.setForeground = _ovalFore;
 							gc.setLineWidth = 1;
-							gc.setLineStyle = DWT.LINE_DASH;
+							gc.setLineStyle = SWT.LINE_DASH;
 						} else if (!isBorderline(_step_c + _min - 1 - i)) {
 							if (_oval) {
 								auto oval = _ovals[i];
@@ -181,7 +181,7 @@ class RadarSpinner : Composite {
 							}
 						}
 					}
-					gc.setLineStyle = DWT.LINE_SOLID;
+					gc.setLineStyle = SWT.LINE_SOLID;
 					foreach (line; _borderlines) {
 						if (_oval) {
 							auto oval = _ovals[$ + _min - 1 - line];
@@ -190,7 +190,7 @@ class RadarSpinner : Composite {
 							gc.drawPolygon(_polys[$ + _min - 1 - line]);
 						}
 					}
-					gc.setLineStyle = DWT.LINE_DASH;
+					gc.setLineStyle = SWT.LINE_DASH;
 					foreach (i, tgls; _tgls) {
 						gc.drawLine(tgls[0].x, tgls[0].y, tgls[$ - 1].x, tgls[$ - 1].y);
 					}
@@ -198,7 +198,7 @@ class RadarSpinner : Composite {
 					gc.setLineWidth = 1;
 				}
 				if (_step_c > 0) {
-					gc.setLineStyle = DWT.LINE_SOLID;
+					gc.setLineStyle = SWT.LINE_SOLID;
 					scope int[] poly;
 					poly.length = _spns.length * 2;
 					foreach (i, spn; _spns) {
@@ -291,8 +291,8 @@ class RadarSpinner : Composite {
 		_borderlines.length = 0;
 		_names = names;
 		_step_c = step_c;
-		if (_ovalW == DWT.DEFAULT) _ovalW = _step_c * 10;
-		if (_ovalH == DWT.DEFAULT) _ovalH = _step_c * 10;
+		if (_ovalW == SWT.DEFAULT) _ovalW = _step_c * 10;
+		if (_ovalH == SWT.DEFAULT) _ovalH = _step_c * 10;
 		_param_c = names.length;
 		_min = min;
 
@@ -300,14 +300,14 @@ class RadarSpinner : Composite {
 		_comps.length = _param_c;
 		_lbls.length = _param_c;
 		foreach (i, ref comp; _comps) {
-			comp = new Composite(this, DWT.NONE);
+			comp = new Composite(this, SWT.NONE);
 			comp.setCapture = false;
 			auto gl = new GridLayout(1, true);
 			gl.marginWidth = 0;
 			gl.marginHeight = 0;
 			gl.verticalSpacing = 2;
 			comp.setLayout = gl;
-			auto lbl = new Label(comp, DWT.CENTER | DWT.EMBEDDED);
+			auto lbl = new Label(comp, SWT.CENTER | SWT.EMBEDDED);
 			lbl.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			lbl.setText = names[i];
 			lbl.setForeground = getForeground;
@@ -315,18 +315,18 @@ class RadarSpinner : Composite {
 			lbl.setCapture = false;
 			Control spn;
 			if (_readOnly) {
-				auto sspn = new Label(comp, DWT.BORDER | DWT.CENTER | DWT.EMBEDDED);
+				auto sspn = new Label(comp, SWT.BORDER | SWT.CENTER | SWT.EMBEDDED);
 				sspn.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				sspn.setData = new Integer(min);
 				spn = sspn;
 			} else {
-				auto sspn = new Spinner(comp, DWT.BORDER);
-				sspn.addListener(DWT.Modify, _mod_redraw);
+				auto sspn = new Spinner(comp, SWT.BORDER);
+				sspn.addListener(SWT.Modify, _mod_redraw);
 				sspn.setMinimum = min;
 				sspn.setMaximum = step_c - 1 + min;
 				sspn.setSelection = min;
 				sspn.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_CENTER);
-				sspn.addListener(DWT.Selection, new SpnListener(i));
+				sspn.addListener(SWT.Selection, new SpnListener(i));
 				spn = sspn;
 			}
 			_lbls[i] = lbl;
@@ -356,7 +356,7 @@ class RadarSpinner : Composite {
 			int ty = tgl.y - TOGGLE_CATCH_SIZE / 2;
 			scope rect = new Rectangle(tx, ty, TOGGLE_CATCH_SIZE, TOGGLE_CATCH_SIZE);
 			if (rect.contains(x, y)) {
-				setCursor = Display.getCurrent.getSystemCursor(DWT.CURSOR_CROSS);
+				setCursor = Display.getCurrent.getSystemCursor(SWT.CURSOR_CROSS);
 				return true;
 			}
 		}
@@ -423,7 +423,7 @@ class RadarSpinner : Composite {
 					sspn.setMaximum = abs(v);
 				}
 			}
-			scope s = comp.computeSize(DWT.DEFAULT, DWT.DEFAULT);
+			scope s = comp.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 			if (_readOnly) {
 				(cast(Label) _spns[i]).setText = to!(string)(old);
 			} else {
@@ -577,14 +577,14 @@ class RadarSpinner : Composite {
 		return _ovalStep;
 	}
 	/// 描画時のアンチエイリアス設定。
-	/// 初期値はDWT.DEFAULT。
+	/// 初期値はSWT.DEFAULT。
 	/// Params:
-	/// antialias = DWT.ONまたはDWT.OFFまたはDWT.DEFAULT。
+	/// antialias = SWT.ONまたはSWT.OFFまたはSWT.DEFAULT。
 	void antialias(int antialias) {
 		_antialias = antialias;
 		redraw;
 	}
-	/// アンチエイリアス設定。DWT.ONまたはDWT.OFFまたはDWT.DEFAULT。
+	/// アンチエイリアス設定。DWT.ONまたはSWT.OFFまたはSWT.DEFAULT。
 	int antialias() {
 		return _antialias;
 	}
@@ -749,8 +749,8 @@ class RadarSpinner : Composite {
 	}
 	/// 円の描画色を設定する。
 	/// Params:
-	/// fore = 前景色。初期値はDWT.COLOR_LIST_FOREGROUND。
-	/// back = 背景色。初期値はDWT.COLOR_LIST_BACKGROUND。
+	/// fore = 前景色。初期値はSWT.COLOR_LIST_FOREGROUND。
+	/// back = 背景色。初期値はSWT.COLOR_LIST_BACKGROUND。
 	void setRadarColor(Color fore, Color back) {
 		_ovalFore = fore;
 		_ovalBack = back;
@@ -785,17 +785,17 @@ class RadarSpinner : Composite {
 		}
 		Point computeSize(int wHint, int hHint, bool changed) {
 			int x, y;
-			if (wHint != DWT.DEFAULT && hHint != DWT.DEFAULT) {
+			if (wHint != SWT.DEFAULT && hHint != SWT.DEFAULT) {
 				return new Point(wHint, hHint);
-			} else if (wHint == DWT.DEFAULT && hHint != DWT.DEFAULT) {
+			} else if (wHint == SWT.DEFAULT && hHint != SWT.DEFAULT) {
 				return new Point(hHint, hHint);
-			} else if (wHint != DWT.DEFAULT && hHint == DWT.DEFAULT) {
+			} else if (wHint != SWT.DEFAULT && hHint == SWT.DEFAULT) {
 				return new Point(wHint, wHint);
 			} else {
-				assert (wHint == DWT.DEFAULT && hHint == DWT.DEFAULT);
+				assert (wHint == SWT.DEFAULT && hHint == SWT.DEFAULT);
 				if (_names.length == 0) {
-					int w = _ovalW != DWT.DEFAULT ? _ovalW : 0;
-					int h = _ovalH != DWT.DEFAULT ? _ovalH : 0;
+					int w = _ovalW != SWT.DEFAULT ? _ovalW : 0;
+					int h = _ovalH != SWT.DEFAULT ? _ovalH : 0;
 					return new Point(w, h);
 				}
 				int w = _ovalW + TOGGLE_SIZE + MARGIN * 2 + _maxSize.x * 2;

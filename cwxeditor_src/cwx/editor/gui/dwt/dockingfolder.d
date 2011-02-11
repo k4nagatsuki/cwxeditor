@@ -7,48 +7,48 @@ import cwx.xml;
 import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.centerlayout;
 
-import dwt.DWT;
-import dwt.widgets.Display;
-import dwt.widgets.Canvas;
-import dwt.widgets.Control;
-import dwt.widgets.Composite;
-import dwt.widgets.TabFolder;
-import dwt.widgets.TabItem;
-import dwt.widgets.Listener;
-import dwt.widgets.Event;
-import dwt.widgets.Sash;
-import dwt.widgets.Menu;
-import dwt.custom.CTabFolder;
-import dwt.custom.CTabItem;
-import dwt.custom.CTabFolderListener;
-import dwt.custom.CTabFolderEvent;
-import dwt.events.MouseAdapter;
-import dwt.events.MouseEvent;
-import dwt.events.SelectionAdapter;
-import dwt.events.SelectionEvent;
-import dwt.events.PaintListener;
-import dwt.events.PaintEvent;
-import dwt.layout.FillLayout;
-import dwt.graphics.Image;
-import dwt.graphics.GC;
-import dwt.graphics.Rectangle;
-import dwt.dnd.DND;
-import dwt.dnd.DropTarget;
-import dwt.dnd.DropTargetAdapter;
-import dwt.dnd.DropTargetEvent;
-import dwt.dnd.DragSource;
-import dwt.dnd.DragSourceListener;
-import dwt.dnd.DragSourceEvent;
-import dwt.dnd.TextTransfer;
-import dwt.dwthelper.utils;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Canvas;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.TabFolder;
+import org.eclipse.swt.widgets.TabItem;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Sash;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.custom.CTabFolderListener;
+import org.eclipse.swt.custom.CTabFolderEvent;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.PaintListener;
+import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.DropTarget;
+import org.eclipse.swt.dnd.DropTargetAdapter;
+import org.eclipse.swt.dnd.DropTargetEvent;
+import org.eclipse.swt.dnd.DragSource;
+import org.eclipse.swt.dnd.DragSourceListener;
+import org.eclipse.swt.dnd.DragSourceEvent;
+import org.eclipse.swt.dnd.TextTransfer;
+import java.lang.all;
 
 import std.file;
 import std.compat;
 import std.string;
 
-alias DockingFolder!(TabFolder, DWT.NONE) DockingFolderT;
-alias DockingFolder!(CTabFolder, DWT.BORDER | DWT.FLAT) DockingFolderCT;
-alias DockingFolder!(CTabFolder, DWT.BORDER | DWT.FLAT | DWT.CLOSE) DockingFolderCTC;
+alias DockingFolder!(TabFolder, SWT.NONE) DockingFolderT;
+alias DockingFolder!(CTabFolder, SWT.BORDER | SWT.FLAT) DockingFolderCT;
+alias DockingFolder!(CTabFolder, SWT.BORDER | SWT.FLAT | SWT.CLOSE) DockingFolderCTC;
 
 /// 方角。
 enum Dir {
@@ -64,7 +64,7 @@ class DockingFolder(TabF, int Style) {
 	} else static if (is(TabF == CTabFolder)) {
 		alias CTabItem Tab;
 	} else static assert (0);
-	private static const CLOSE = Style & DWT.CLOSE;
+	private static const CLOSE = Style & SWT.CLOSE;
 	private enum DPos {N, E, S, W, C, NONE}
 
 	private Composite _comp, _area;
@@ -79,10 +79,10 @@ class DockingFolder(TabF, int Style) {
 
 	private FocusL _fl;
 	private this (Composite parent, int style, bool createTabf, string firstPaneKey = "") {
-		_comp = new Composite(parent, DWT.NONE);
-		_comp.setLayout = new CenterLayout(DWT.HORIZONTAL | DWT.VERTICAL, 0);
+		_comp = new Composite(parent, SWT.NONE);
+		_comp.setLayout = new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0);
 
-		_canvas = new Canvas(_comp, DWT.TRANSPARENT);
+		_canvas = new Canvas(_comp, SWT.TRANSPARENT);
 		_canvas.setLayoutData = new CenterLayoutData(true, true);
 		_canvas.setVisible = false;
 		auto drop = new DropTarget(_canvas, DND.DROP_MOVE);
@@ -91,17 +91,17 @@ class DockingFolder(TabF, int Style) {
 		_canvas.addPaintListener(new PL);
 
 		_area = new Composite(_comp, style);
-		_area.addListener(DWT.Dispose, new DListener);
+		_area.addListener(SWT.Dispose, new DListener);
 		_area.setLayoutData = new CenterLayoutData(true, true);
 		_area.setLayout = new FillLayout;
 		if (createTabf) newTabf(_area, firstPaneKey);
 		_fl = new FocusL;
-		Display.getCurrent.addFilter(DWT.FocusIn, _fl);
+		Display.getCurrent.addFilter(SWT.FocusIn, _fl);
 	}
 	private bool _canSave = true;
 	private class DListener : Listener {
 		override void handleEvent(Event e) {
-			Display.getCurrent.removeFilter(DWT.FocusIn, _fl);
+			Display.getCurrent.removeFilter(SWT.FocusIn, _fl);
 			if (_canSave) {
 				try {
 					saveTree;
@@ -309,7 +309,7 @@ class DockingFolder(TabF, int Style) {
 		auto tabf = cast(TabF) base;
 		if (!tabf && !(tabf in _tabfs)) throw new Exception("invalid base");
 		if (key in _tKeys) throw new Exception("invalid key");
-		int style = dir == Dir.N || dir == Dir.S ? DWT.VERTICAL : DWT.HORIZONTAL;
+		int style = dir == Dir.N || dir == Dir.S ? SWT.VERTICAL : SWT.HORIZONTAL;
 		bool before = dir == Dir.N || dir == Dir.W;
 		if (!key.length) key = newTabfKey;
 		auto r = newSash(tabf, style, before, lWeight, rWeight, key);
@@ -326,7 +326,7 @@ class DockingFolder(TabF, int Style) {
 		if (!key.length || (key in _keys)) throw new Exception("invalid key: " ~ key);
 		auto tabf = cast(TabF) ctrl.getParent;
 		if (!tabf) throw new Exception("no tabfolder");
-		auto tab = new Tab(tabf, DWT.NONE);
+		auto tab = new Tab(tabf, SWT.NONE);
 		tab.setText = tabText;
 		tab.setImage = tabImage;
 		tab.setControl = ctrl;
@@ -431,7 +431,7 @@ class DockingFolder(TabF, int Style) {
 
 	private TabF newTabf(Composite parent, string key) {
 		if (!key.length) key = newTabfKey;
-		auto tabf = new TabF(parent, Style | DWT.NO_MERGE_PAINTS);
+		auto tabf = new TabF(parent, Style | SWT.NO_MERGE_PAINTS);
 		_tKeys[key] = tabf;
 		_tabfs[tabf] = key;
 		_tabfList ~= tabf;
@@ -522,7 +522,7 @@ class DockingFolder(TabF, int Style) {
 	}
 	private void drawDropMark(GC gc, int x, int y, int w, int h) {
 		auto d = Display.getCurrent;
-		gc.setBackground = d.getSystemColor(DWT.COLOR_BLACK);
+		gc.setBackground = d.getSystemColor(SWT.COLOR_BLACK);
 		gc.setAlpha = 0xff / 2;
 		gc.setLineWidth = 5;
 		switch (_drawPos) {
@@ -753,16 +753,16 @@ class DockingFolder(TabF, int Style) {
 			}
 			switch (_dropPos) {
 			case DPos.N: {
-				e.detail = nSash(DWT.VERTICAL, true);
+				e.detail = nSash(SWT.VERTICAL, true);
 			} break;
 			case DPos.E: {
-				e.detail = nSash(DWT.HORIZONTAL, false);
+				e.detail = nSash(SWT.HORIZONTAL, false);
 			} break;
 			case DPos.S: {
-				e.detail = nSash(DWT.VERTICAL, false);
+				e.detail = nSash(SWT.VERTICAL, false);
 			} break;
 			case DPos.W: {
-				e.detail = nSash(DWT.HORIZONTAL, true);
+				e.detail = nSash(SWT.HORIZONTAL, true);
 			} break;
 			case DPos.C: {
 				e.detail = putCenter;
@@ -878,7 +878,7 @@ class DockingFolder(TabF, int Style) {
 		if (sash) {
 			sa = new Sashf;
 			ta = null;
-			sa.vertical = (sash.getStyle & DWT.VERTICAL) != 0;
+			sa.vertical = (sash.getStyle & SWT.VERTICAL) != 0;
 			auto weights = sash.getWeights;
 			sa.lWeight = weights[0];
 			sa.rWeight = weights[1];
@@ -979,7 +979,7 @@ class DockingFolder(TabF, int Style) {
 		void sash(ref XNode node) {
 			string type = node.attr("type", true);
 			/// FIXME: たまに type == VERTICAL の所でアクセス違反が起きる？
-			auto sash = new SplitPane(par, type == VERTICAL ? DWT.VERTICAL : DWT.HORIZONTAL);
+			auto sash = new SplitPane(par, type == VERTICAL ? SWT.VERTICAL : SWT.HORIZONTAL);
 			Proc proc;
 			proc.r = r;
 			proc.par = sash;

@@ -25,36 +25,36 @@ import cwx.editor.gui.dwt.absdialog;
 
 import std.path;
 
-import dwt.DWT;
-import dwt.widgets.Display;
-import dwt.widgets.Shell;
-import dwt.widgets.Canvas;
-import dwt.widgets.Control;
-import dwt.widgets.Composite;
-import dwt.widgets.Combo;
-import dwt.widgets.Label;
-import dwt.widgets.Group;
-import dwt.widgets.Button;
-import dwt.widgets.MessageBox;
-import dwt.widgets.Spinner;
-import dwt.widgets.Scale;
-import dwt.widgets.Table;
-import dwt.widgets.TableColumn;
-import dwt.widgets.TableItem;
-import dwt.custom.CTabFolder;
-import dwt.custom.CTabItem;
-import dwt.custom.CLabel;
-import dwt.custom.CTabFolder;
-import dwt.custom.CTabItem;
-import dwt.custom.StackLayout;
-import dwt.layout.GridLayout;
-import dwt.layout.GridData;
-import dwt.graphics.Image;
-import dwt.events.DisposeListener;
-import dwt.events.DisposeEvent;
-import dwt.events.SelectionAdapter;
-import dwt.events.SelectionEvent;
-import dwt.dwthelper.utils;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Canvas;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.MessageBox;
+import org.eclipse.swt.widgets.Spinner;
+import org.eclipse.swt.widgets.Scale;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.custom.CLabel;
+import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.custom.StackLayout;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import java.lang.all;
 
 public:
 
@@ -127,54 +127,54 @@ private:
 	}
 
 	CTabItem constructMain(CTabFolder tabf) {
-		auto comp = new Composite(tabf, DWT.NONE);
+		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout = new GridLayout(2, false);
 		{
-			auto comp2 = new Composite(comp, DWT.NONE);
+			auto comp2 = new Composite(comp, SWT.NONE);
 			comp2.setLayoutData = new GridData(GridData.FILL_BOTH);
 			comp2.setLayout = zeroMarginGridLayout(1, false);
 			{
-				auto grp = new Group(comp2, DWT.NONE);
+				auto grp = new Group(comp2, SWT.NONE);
 				grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				grp.setLayout = new GridLayout(2, false);
 				grp.setText = _prop.msgs.name;
 				_name = new GBLimitText(_prop.looks.messageFont(_summ.legacy).name,
-					_prop.looks.nameLimit, grp, DWT.BORDER);
+					_prop.looks.nameLimit, grp, SWT.BORDER);
 				auto gd = new GridData(GridData.FILL_HORIZONTAL);
-				gd.widthHint = _name.computeSize(DWT.DEFAULT, DWT.DEFAULT).x;
+				gd.widthHint = _name.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
 				_name.widget.setLayoutData = gd;
-				auto l = new Label(grp, DWT.NONE);
+				auto l = new Label(grp, SWT.NONE);
 				l.setText = _prop.msgs.nameLimit(_prop.looks.nameLimit);
 				checker(_name.widget);
 			}
 			{
 				auto skin = findSkin(_prop, _summ);
-				_imgPath = new ImageSelect!(MtType.CARD)(comp2, DWT.NONE, _comm, _prop, _summ,
+				_imgPath = new ImageSelect!(MtType.CARD)(comp2, SWT.NONE, _comm, _prop, _summ,
 					_prop.looks.cardSize.width, _prop.looks.cardSize.height, _summ.legacy);
 				_imgPath.widget.setLayoutData = new GridData(GridData.FILL_BOTH);
 			}
 		}
 		{
-			auto comp2 = new Composite(comp, DWT.NONE);
+			auto comp2 = new Composite(comp, SWT.NONE);
 			comp2.setLayoutData = new GridData(GridData.FILL_VERTICAL);
 			comp2.setLayout = zeroMarginGridLayout(1, false);
 			{
-				auto grp = new Group(comp2, DWT.NONE);
+				auto grp = new Group(comp2, SWT.NONE);
 				grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-				grp.setLayout = new CenterLayout(DWT.VERTICAL);
+				grp.setLayout = new CenterLayout(SWT.VERTICAL);
 				grp.setText = _prop.msgs.needSpellGroup;
-				_needSpell = new Button(grp, DWT.CHECK);
+				_needSpell = new Button(grp, SWT.CHECK);
 				_needSpell.setText = _prop.msgs.needSpell;
 			}
 			{
-				auto grp = new Group(comp2, DWT.NONE);
+				auto grp = new Group(comp2, SWT.NONE);
 				grp.setText = _prop.msgs.elementProps;
 				grp.setLayoutData = new GridData(GridData.FILL_BOTH);
 				grp.setLayout = new GridLayout(2, true);
 				foreach (i, eff; [EffectType.PHYSIC, EffectType.MAGIC,
 						EffectType.MAGICAL_PHYSIC, EffectType.PHYSICAL_MAGIC,
 						EffectType.NONE]) {
-					auto radio = new Button(grp, DWT.RADIO);
+					auto radio = new Button(grp, SWT.RADIO);
 					if (2 <= i) {
 						auto gd = new GridData(GridData.FILL_BOTH);
 						gd.horizontalSpan = 2;
@@ -187,66 +187,66 @@ private:
 				}
 			}
 			{
-				auto grp = new Group(comp2, DWT.NONE);
+				auto grp = new Group(comp2, SWT.NONE);
 				grp.setText = _prop.msgs.resistProps;
 				grp.setLayoutData = new GridData(GridData.FILL_BOTH);
 				grp.setLayout = new GridLayout(2, true);
 				foreach (res; [Resist.AVOID, Resist.RESIST, Resist.UNFAIL]) {
-					auto radio = new Button(grp, DWT.RADIO);
+					auto radio = new Button(grp, SWT.RADIO);
 					radio.setLayoutData = new GridData(GridData.FILL_BOTH);
 					radio.setText = _prop.msgs.resist(res);
 					_res[res] = radio;
 				}
 			}
 		}
-		auto tab = new CTabItem(tabf, DWT.NONE);
+		auto tab = new CTabItem(tabf, SWT.NONE);
 		tab.setText = _prop.msgs.card;
 		tab.setControl = comp;
 		return tab;
 	}
 	CTabItem constructDesc(CTabFolder tabf) {
-		auto comp = new Composite(tabf, DWT.NONE);
+		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout = new GridLayout(2, false);
 		static if (is (C == SkillCard)) {
 			{
-				auto grp = new Group(comp, DWT.NONE);
+				auto grp = new Group(comp, SWT.NONE);
 				grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				grp.setLayout = new CenterLayout;
 				grp.setText = _prop.msgs.skillLevel;
-				auto comp2 = new Composite(grp, DWT.NONE);
+				auto comp2 = new Composite(grp, SWT.NONE);
 				comp2.setLayout = new GridLayout(2, false);
-				_level = new Spinner(comp2, DWT.BORDER);
+				_level = new Spinner(comp2, SWT.BORDER);
 				_level.setMaximum = _prop.looks.skillLevelMax;
 				_level.setMinimum = 0;
-				auto l = new Label(comp2, DWT.NONE);
+				auto l = new Label(comp2, SWT.NONE);
 				l.setText = _prop.msgs.rangeHint(0, _prop.looks.skillLevelMax);
 			}
 		} else static if (is (C == ItemCard) || is (C == BeastCard)) {
 			{
-				auto grp = new Group(comp, DWT.NONE);
+				auto grp = new Group(comp, SWT.NONE);
 				grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				grp.setLayout = new CenterLayout;
 				grp.setText = _prop.msgs.useCountGroup;
-				auto comp2 = new Composite(grp, DWT.NONE);
+				auto comp2 = new Composite(grp, SWT.NONE);
 				comp2.setLayout = new GridLayout(2, false);
-				_useCount = new Spinner(comp2, DWT.BORDER);
+				_useCount = new Spinner(comp2, SWT.BORDER);
 				_useCount.setMaximum = _prop.looks.useCountMax;
 				_useCount.setMinimum = 0;
-				auto l = new Label(comp2, DWT.NONE);
+				auto l = new Label(comp2, SWT.NONE);
 				l.setText = _prop.msgs.useCountRange(_prop.looks.useCountMax);
 			}
 		} else {
 			static assert (0);
 		}
 		{
-			auto grp = new Group(comp, DWT.NONE);
+			auto grp = new Group(comp, SWT.NONE);
 			grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			grp.setLayout = new CenterLayout;
 			grp.setText = _prop.msgs.price;
-			auto comp2 = new Composite(grp, DWT.NONE);
+			auto comp2 = new Composite(grp, SWT.NONE);
 			comp2.setLayout = new GridLayout(2, false);
 			static if (is (C == SkillCard) || is (C == BeastCard)) {
-				_price = new Spinner(comp2, DWT.BORDER | DWT.READ_ONLY);
+				_price = new Spinner(comp2, SWT.BORDER | SWT.READ_ONLY);
 				_price.setMaximum = _prop.looks.priceMax;
 				static if (is (C == SkillCard)) {
 					new SpinnerEdit(_level, &calcPrice, &calcPrice, &priceCancel);
@@ -255,29 +255,29 @@ private:
 				} else {
 					static assert (0);
 				}
-				auto l = new Label(comp2, DWT.NONE);
+				auto l = new Label(comp2, SWT.NONE);
 				l.setText = _prop.msgs.priceAuto;
 			} else static if (is (C == ItemCard)) {
-				_price = new Spinner(comp2, DWT.BORDER);
+				_price = new Spinner(comp2, SWT.BORDER);
 				_price.setMaximum = _prop.looks.priceMax;
 				_price.setMinimum = 0;
-				auto l = new Label(comp2, DWT.NONE);
+				auto l = new Label(comp2, SWT.NONE);
 				l.setText = _prop.msgs.rangeHint(0, _prop.looks.priceMax);
 			} else {
 				static assert (0);
 			}
 		}
 		{
-			auto grp = new Group(comp, DWT.NONE);
+			auto grp = new Group(comp, SWT.NONE);
 			auto gd = new GridData(GridData.FILL_BOTH);
 			grp.setLayoutData = gd;
 			gd.horizontalSpan = 2;
-			grp.setLayout = new CenterLayout(DWT.HORIZONTAL);
+			grp.setLayout = new CenterLayout(SWT.HORIZONTAL);
 			grp.setText = _prop.msgs.desc;
-			_desc = new FixedWidthText(dwtData(_prop.looks.cardDescFont(_summ.legacy)), _prop.looks.cardDescLen, grp, DWT.BORDER);
+			_desc = new FixedWidthText(dwtData(_prop.looks.cardDescFont(_summ.legacy)), _prop.looks.cardDescLen, grp, SWT.BORDER);
 			_desc.widget.setLayoutData = _desc.computeTextBaseSize(_prop.looks.cardDescLine);
 		}
-		auto tab = new CTabItem(tabf, DWT.NONE);
+		auto tab = new CTabItem(tabf, SWT.NONE);
 		static if (is (C == SkillCard)) {
 			tab.setText = _prop.msgs.levelAndDesc;
 		} else static if (is (C == ItemCard) || is (C == BeastCard)) {
@@ -287,33 +287,33 @@ private:
 		return tab;
 	}
 	CTabItem constructApt(CTabFolder tabf) {
-		auto comp = new Composite(tabf, DWT.NONE);
+		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout = new GridLayout(2, false);
 		{
-			auto grp = new Group(comp, DWT.NONE);
+			auto grp = new Group(comp, SWT.NONE);
 			grp.setText = _prop.msgs.aptPhysical;
 			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-			auto cl = new CenterLayout(DWT.HORIZONTAL, 0);
+			auto cl = new CenterLayout(SWT.HORIZONTAL, 0);
 			cl.fillVertical = true;
 			grp.setLayout = cl;
-			auto comp2 = new Composite(grp, DWT.NONE);
+			auto comp2 = new Composite(grp, SWT.NONE);
 			comp2.setLayout = new GridLayout(1, true);
 			foreach (phy; [Physical.DEX, Physical.AGL, Physical.INT,
 					Physical.STR, Physical.VIT, Physical.MIN]) {
-				auto radio = new Button(comp2, DWT.RADIO);
+				auto radio = new Button(comp2, SWT.RADIO);
 				radio.setLayoutData = new GridData(GridData.FILL_VERTICAL);
 				radio.setText = _prop.msgs.physical(phy);
 				_phy[phy] = radio;
 			}
 		}
 		{
-			auto grp = new Group(comp, DWT.NONE);
+			auto grp = new Group(comp, SWT.NONE);
 			grp.setText = _prop.msgs.aptMental;
 			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-			auto cl = new CenterLayout(DWT.HORIZONTAL, 0);
+			auto cl = new CenterLayout(SWT.HORIZONTAL, 0);
 			cl.fillVertical = true;
 			grp.setLayout = cl;
-			auto comp2 = new Composite(grp, DWT.NONE);
+			auto comp2 = new Composite(grp, SWT.NONE);
 			auto gl = new GridLayout(2, true);
 			gl.horizontalSpacing = 15;
 			comp2.setLayout = gl;
@@ -322,23 +322,23 @@ private:
 				Mental.BRAVE, Mental.UNBRAVE, Mental.CAUTIOUS, Mental.UNCAUTIOUS,
 				Mental.TRICKISH, Mental.UNTRICKISH];
 			foreach (i, m; Ms) {
-				auto radio = new Button(comp2, DWT.RADIO);
+				auto radio = new Button(comp2, SWT.RADIO);
 				radio.setLayoutData = new GridData(GridData.FILL_BOTH);
 				radio.setText = _prop.msgs.mental(m);
 				_mtl[m] = radio;
 			}
 		}
-		auto tab = new CTabItem(tabf, DWT.NONE);
+		auto tab = new CTabItem(tabf, SWT.NONE);
 		tab.setText = _prop.msgs.apt;
 		tab.setControl = comp;
 		return tab;
 	}
 	RadarSpinner createMod(Composite comp, string title, ref int[Enhance] tbl) {
-		auto grp = new Group(comp, DWT.NONE);
+		auto grp = new Group(comp, SWT.NONE);
 		grp.setText = title;
 		grp.setLayoutData = new GridData(GridData.FILL_BOTH);
 		grp.setLayout = new CenterLayout;
-		auto useMod = new RadarSpinner(grp, DWT.NONE);
+		auto useMod = new RadarSpinner(grp, SWT.NONE);
 		static const Es = [Enhance.AVOID, Enhance.RESIST, Enhance.DEFENSE];
 		string[] names;
 		names.length = Es.length;
@@ -355,66 +355,66 @@ private:
 		return useMod;
 	}
 	CTabItem constructUseModify(CTabFolder tabf) {
-		auto comp = new Composite(tabf, DWT.NONE);
+		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout = new GridLayout(2, false);
 		{
 			_useMod = createMod(comp, _prop.msgs.useModify, _useModTbl);
 		}
-		auto tab = new CTabItem(tabf, DWT.NONE);
+		auto tab = new CTabItem(tabf, SWT.NONE);
 		tab.setText = _prop.msgs.useBonus;
 		tab.setControl = comp;
 		return tab;
 	}
 	static if (is (C == ItemCard)) {
 		CTabItem constructHaveModify(CTabFolder tabf) {
-			auto comp = new Composite(tabf, DWT.NONE);
+			auto comp = new Composite(tabf, SWT.NONE);
 			comp.setLayout = new GridLayout(2, false);
 			{
 				_hasMod = createMod(comp, _prop.msgs.haveModify, _hasModTbl);
 			}
-			auto tab = new CTabItem(tabf, DWT.NONE);
+			auto tab = new CTabItem(tabf, SWT.NONE);
 			tab.setText = _prop.msgs.haveBonus;
 			tab.setControl = comp;
 			return tab;
 		}
 	}
 	CTabItem constructMotion(CTabFolder tabf) {
-		auto comp = new Composite(tabf, DWT.NONE);
+		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout = new GridLayout(1, false);
 		{
 			_motions = new MotionView(_comm, _prop, _summ, comp);
 			_motions.setLayoutData = new GridData(GridData.FILL_BOTH);
 		}
-		auto tab = new CTabItem(tabf, DWT.NONE);
+		auto tab = new CTabItem(tabf, SWT.NONE);
 		tab.setControl = comp;
 		tab.setText = _prop.msgs.motion;
 		return tab;
 	}
 	CTabItem constructProps(CTabFolder tabf) {
-		auto comp = new Composite(tabf, DWT.NONE);
+		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout = new GridLayout(1, false);
 		{
-			auto tcomp = new Composite(comp, DWT.NONE);
+			auto tcomp = new Composite(comp, SWT.NONE);
 			tcomp.setLayoutData = new GridData(GridData.FILL_BOTH);
 			tcomp.setLayout = zeroMarginGridLayout(2, false);
 			{
-				auto comp2 = new Composite(tcomp, DWT.NONE);
+				auto comp2 = new Composite(tcomp, SWT.NONE);
 				auto gd = new GridData(GridData.FILL_BOTH);
 				gd.verticalSpan = 2;
 				comp2.setLayoutData = gd;
 				comp2.setLayout = zeroMarginGridLayout(1, false);
 				{
-					auto grp = new Group(comp2, DWT.NONE);
+					auto grp = new Group(comp2, SWT.NONE);
 					grp.setText = _prop.msgs.effectTarget;
 					grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-					auto cl = new CenterLayout(DWT.HORIZONTAL, 0);
+					auto cl = new CenterLayout(SWT.HORIZONTAL, 0);
 					cl.fillVertical = true;
 					grp.setLayout = cl;
-					auto comp3 = new Composite(grp, DWT.NONE);
+					auto comp3 = new Composite(grp, SWT.NONE);
 					comp3.setLayout = new GridLayout(2, false);
 					foreach (t; [CardTarget.NONE, CardTarget.USER,
 							CardTarget.PARTY, CardTarget.ENEMY, CardTarget.BOTH]) {
-						auto radio = new Button(comp3, DWT.RADIO);
+						auto radio = new Button(comp3, SWT.RADIO);
 						radio.setLayoutData = new GridData(GridData.FILL_BOTH);
 						radio.setText = _prop.msgs.cardTarget(t);
 						radio.addSelectionListener(new OASelect);
@@ -422,19 +422,19 @@ private:
 					}
 				}
 				{
-					auto grp = new Group(comp2, DWT.NONE);
+					auto grp = new Group(comp2, SWT.NONE);
 					grp.setText = _prop.msgs.effectRange;
 					grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 					auto cl = new CenterLayout;
 					cl.fillVertical = true;
 					grp.setLayout = cl;
-					auto comp3 = new Composite(grp, DWT.NONE);
+					auto comp3 = new Composite(grp, SWT.NONE);
 					comp3.setLayout = new GridLayout(2, false);
-					auto one = new Button(comp3, DWT.RADIO);
+					auto one = new Button(comp3, SWT.RADIO);
 					one.setLayoutData = new GridData(GridData.FILL_BOTH);
 					one.setText = _prop.msgs.cardTargetOne;
 					_one = one;
-					auto all = new Button(comp3, DWT.RADIO);
+					auto all = new Button(comp3, SWT.RADIO);
 					all.setLayoutData = new GridData(GridData.FILL_BOTH);
 					all.setText = _prop.msgs.cardTargetAll;
 					_all = all;
@@ -442,25 +442,25 @@ private:
 				}
 			}
 			{
-				auto grp = new Group(tcomp, DWT.NONE);
+				auto grp = new Group(tcomp, SWT.NONE);
 				grp.setText = _prop.msgs.effectVisual;
 				grp.setLayoutData = new GridData(GridData.FILL_BOTH);
 				grp.setLayout = new GridLayout(2, false);
 				foreach (v; [CardVisual.NONE, CardVisual.HORIZONTAL,
 						CardVisual.REVERSE, CardVisual.VERTICAL]) {
-					auto radio = new Button(grp, DWT.RADIO);
+					auto radio = new Button(grp, SWT.RADIO);
 					radio.setLayoutData = new GridData(GridData.FILL_BOTH);
 					radio.setText = _prop.msgs.cardVisual(v);
 					_vis[v] = radio;
 				}
 			}
 			{
-				auto grp = new Group(tcomp, DWT.NONE);
+				auto grp = new Group(tcomp, SWT.NONE);
 				grp.setText = _prop.msgs.cardPremium;
 				grp.setLayoutData = new GridData(GridData.FILL_BOTH);
 				grp.setLayout = new GridLayout(1, false);
 				foreach (p; [Premium.NORMAL, Premium.RARE, Premium.PREMIUM]) {
-					auto radio = new Button(grp, DWT.RADIO);
+					auto radio = new Button(grp, SWT.RADIO);
 					radio.setLayoutData = new GridData(GridData.FILL_BOTH);
 					radio.setText = _prop.msgs.premium(p);
 					_prem[p] = radio;
@@ -471,17 +471,17 @@ private:
 			createSuccessRateScale(_prop, comp, _sucRate)
 				.setLayoutData = new GridData(GridData.FILL_BOTH);
 		}
-		auto tab = new CTabItem(tabf, DWT.NONE);
+		auto tab = new CTabItem(tabf, SWT.NONE);
 		tab.setText = _prop.msgs.cardProps;
 		tab.setControl = comp;
 		return tab;
 	}
 	CTabItem constructKeyCode(CTabFolder tabf) {
-		auto comp = new Composite(tabf, DWT.NONE);
+		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout = new GridLayout(2, false);
 		auto skin = findSkin(_prop, _summ);
 		{
-			auto grp = new Group(comp, DWT.NONE);
+			auto grp = new Group(comp, SWT.NONE);
 			grp.setText = _prop.msgs.se;
 			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
 			grp.setLayout = new GridLayout(1, false);
@@ -491,7 +491,7 @@ private:
 				= new GridData(GridData.FILL_BOTH);
 		}
 		{
-			auto grp = new Group(comp, DWT.NONE);
+			auto grp = new Group(comp, SWT.NONE);
 			grp.setText = _prop.msgs.keyCodes;
 			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
 			if (_summ.legacy) {
@@ -501,13 +501,13 @@ private:
 			}
 			grp.setLayout = new GridLayout(_keyCodes.length >= 8 ? 2 : 1, true);
 			for (int i = 0; i < _keyCodes.length; i++) {
-				_keyCodes[i] = new Combo(grp, DWT.BORDER | DWT.DROP_DOWN);
+				_keyCodes[i] = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN);
 				_keyCodes[i].setVisibleItemCount = 20;
 				_keyCodes[i].setLayoutData = new GridData(GridData.FILL_BOTH);
 				_keyCodes[i].setItems(_prop.var.etc.standardKeyCodes);
 			}
 		}
-		auto tab = new CTabItem(tabf, DWT.NONE);
+		auto tab = new CTabItem(tabf, SWT.NONE);
 		tab.setText = _prop.msgs.seAndKeyCode;
 		tab.setControl = comp;
 		return tab;
@@ -543,7 +543,7 @@ public:
 protected:
 	override void setup(Composite area) {
 		area.setLayout = windowGridLayout(1);
-		auto tabf = new CTabFolder(area, DWT.BORDER);
+		auto tabf = new CTabFolder(area, SWT.BORDER);
 
 		constructMain(tabf);
 		constructDesc(tabf);
@@ -560,11 +560,11 @@ protected:
 		// Windows Vistaだとタブの横幅が凄いことになったので必要最低限にする。
 		scope maxSize = new Point(0, 0);
 		foreach (tab; tabf.getItems) {
-			scope size = tab.getControl.computeSize(DWT.DEFAULT, DWT.DEFAULT);
+			scope size = tab.getControl.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 			if (maxSize.x < size.x) maxSize.x = size.x;
 			if (maxSize.y < size.y) maxSize.y = size.y;
 		}
-		scope rect = tabf.computeTrim(DWT.DEFAULT, DWT.DEFAULT, maxSize.x, maxSize.y);
+		scope rect = tabf.computeTrim(SWT.DEFAULT, SWT.DEFAULT, maxSize.x, maxSize.y);
 		auto gd = new GridData(GridData.FILL_BOTH);
 		gd.widthHint = rect.width;
 		gd.heightHint = rect.height;
@@ -661,11 +661,11 @@ protected:
 		if (ok) {
 			if (_effTyp[EffectType.NONE].getSelection
 					&& (!_card || _card.effectType != EffectType.NONE)) {
-				auto dlg = new MessageBox(getShell, DWT.ICON_QUESTION | DWT.OK | DWT.CANCEL);
+				auto dlg = new MessageBox(getShell, SWT.ICON_QUESTION | SWT.OK | SWT.CANCEL);
 				scope (exit) dlg.dispose;
 				dlg.setMessage = _prop.msgs.warningEffectTypeNone;
 				dlg.setText = _prop.msgs.dlgTitQuestion;
-				if (DWT.CANCEL == dlg.open) {
+				if (SWT.CANCEL == dlg.open) {
 					cancel = true;
 					return false;
 				}
@@ -680,11 +680,11 @@ protected:
 			}
 			auto motions = _motions.motions;
 			if (hasVanishCast(motions) && (!_card || !hasVanishCast(_card.motions))) {
-				auto dlg = new MessageBox(getShell, DWT.ICON_QUESTION | DWT.OK | DWT.CANCEL);
+				auto dlg = new MessageBox(getShell, SWT.ICON_QUESTION | SWT.OK | SWT.CANCEL);
 				scope (exit) dlg.dispose;
 				dlg.setMessage = _prop.msgs.warningVanishCast;
 				dlg.setText = _prop.msgs.dlgTitQuestion;
-				if (DWT.CANCEL == dlg.open) {
+				if (SWT.CANCEL == dlg.open) {
 					cancel = true;
 					return false;
 				}

@@ -15,9 +15,9 @@ import std.file;
 import std.path;
 import std.utf;
 
-import dwt.DWT;
-import dwt.widgets.Control;
-import dwt.widgets.Composite;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Composite;
 
 private:
 
@@ -188,8 +188,8 @@ class WindowProps(string PropName, int Width, int Height)
 		: Properties, DSize {
 	mixin Property!("maximized", bool, false);
 	mixin Property!("minimized", bool, false);
-	mixin Property!("x", int, DWT.DEFAULT);
-	mixin Property!("y", int, DWT.DEFAULT);
+	mixin Property!("x", int, SWT.DEFAULT);
+	mixin Property!("y", int, SWT.DEFAULT);
 	mixin Property!("width", int, Width);
 	mixin Property!("height", int, Height);
 	mixin Property!("visible", bool, true);
@@ -198,8 +198,8 @@ class WindowProps(string PropName, int Width, int Height)
 }
 
 class MainWin : Properties, DSize {
-	mixin Property!("x", int, DWT.DEFAULT);
-	mixin Property!("y", int, DWT.DEFAULT);
+	mixin Property!("x", int, SWT.DEFAULT);
+	mixin Property!("y", int, SWT.DEFAULT);
 	mixin Property!("width", int, 1024);
 	mixin Property!("height", int, 768);
 	mixin Property!("maximized", bool, false);
@@ -208,13 +208,13 @@ class MainWin : Properties, DSize {
 }
 
 class ContWin : Properties {
-	mixin Property!("x", int, DWT.DEFAULT);
-	mixin Property!("y", int, DWT.DEFAULT);
+	mixin Property!("x", int, SWT.DEFAULT);
+	mixin Property!("y", int, SWT.DEFAULT);
 
 	mixin XMLFuncs!(ContWin, "contentsWindow");
 }
 
-class DialogParam(string Name, int WidthDef = DWT.DEFAULT, int HeightDef = DWT.DEFAULT)
+class DialogParam(string Name, int WidthDef = SWT.DEFAULT, int HeightDef = SWT.DEFAULT)
 		: Properties, DSize {
 	mixin Property!("width", int, WidthDef);
 	mixin Property!("height", int, HeightDef);
@@ -223,8 +223,8 @@ class DialogParam(string Name, int WidthDef = DWT.DEFAULT, int HeightDef = DWT.D
 }
 
 class EventWin(string Name, int Width, int Height) : Properties, DSize {
-	mixin Property!("x", int, DWT.DEFAULT);
-	mixin Property!("y", int, DWT.DEFAULT);
+	mixin Property!("x", int, SWT.DEFAULT);
+	mixin Property!("y", int, SWT.DEFAULT);
 	mixin Property!("maximized", bool, false);
 	mixin Property!("width", int, Width);
 	mixin Property!("height", int, Height);
@@ -234,8 +234,8 @@ class EventWin(string Name, int Width, int Height) : Properties, DSize {
 
 	mixin XMLFuncs!(EventWin, Name);
 }
-alias EventWin!("areaWindow", DWT.DEFAULT, DWT.DEFAULT) AreaWin;
-alias EventWin!("battleWindow", DWT.DEFAULT, DWT.DEFAULT) BattleWin;
+alias EventWin!("areaWindow", SWT.DEFAULT, SWT.DEFAULT) AreaWin;
+alias EventWin!("battleWindow", SWT.DEFAULT, SWT.DEFAULT) BattleWin;
 alias EventWin!("packageWindow", 800, 520) PackageWin;
 alias EventWin!("cardEventWindow", 800, 520) CardEventWin;
 
@@ -436,7 +436,7 @@ class FlexEtcProps : Properties {
 	mixin Property!("directorySashR", int, 5);
 	mixin Property!("directorySashV", bool, false);
 	mixin Property!("filesSortColumn", int, 1);
-	mixin Property!("filesSortDirection", int, DWT.UP);
+	mixin Property!("filesSortDirection", int, SWT.UP);
 	mixin Property!("fileNameColumn", int, 300);
 	mixin Property!("fileExtColumn", int, 60);
 	mixin Property!("fileCountColumn", int, 60);
@@ -677,9 +677,9 @@ class FlexEtcProps : Properties {
 
 public class FlexProps {
 	const MainWin mainWin;
-	const WindowProps!("dataWindow", DWT.DEFAULT, 400) dataWin;
-	const WindowProps!("cardWindow", DWT.DEFAULT, 400) cardWin;
-	const WindowProps!("directoryWindow", DWT.DEFAULT, 400) dirWin;
+	const WindowProps!("dataWindow", SWT.DEFAULT, 400) dataWin;
+	const WindowProps!("cardWindow", SWT.DEFAULT, 400) cardWin;
+	const WindowProps!("directoryWindow", SWT.DEFAULT, 400) dirWin;
 	const AreaWin areaWin;
 	const BattleWin battleWin;
 	const PackageWin packageWin;
@@ -753,7 +753,8 @@ public class FlexProps {
 			int retryCount = 0;
 			while (!r) {
 				try {
-					auto node = XNode.parse(cast(string) read(_path));
+					auto text = cast(string) read(_path);
+					auto node = XNode.parse(text);
 					void df(ref XNode node) {
 						r = DockingFolderCTC.fromNode(node, parent, style, create);
 					}

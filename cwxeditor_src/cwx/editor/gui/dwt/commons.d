@@ -21,15 +21,15 @@ import cwx.editor.gui.dwt.directorywindow;
 import cwx.editor.gui.dwt.datawindow;
 import cwx.editor.gui.dwt.dockingfolder;
 
-import dwt.widgets.Display;
-import dwt.widgets.Shell;
-import dwt.widgets.Composite;
-import dwt.widgets.Control;
-import dwt.widgets.Label;
-import dwt.events.SelectionEvent;
-import dwt.events.DisposeListener;
-import dwt.events.DisposeEvent;
-import dwt.graphics.Image;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.graphics.Image;
 
 private struct Dlg(Arg ...) {
 	private void delegate(Object, Arg)[] _dlg;

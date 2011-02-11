@@ -23,52 +23,53 @@ import std.utf;
 import std.string;
 import std.date;
 
-import dwt.DWT;
-import dwt.widgets.Button;
-import dwt.widgets.Canvas;
-import dwt.widgets.Composite;
-import dwt.widgets.Combo;
-import dwt.widgets.Control;
-import dwt.widgets.Display;
-import dwt.widgets.Shell;
-import dwt.widgets.Text;
-import dwt.widgets.ToolBar;
-import dwt.widgets.ToolItem;
-import dwt.widgets.Listener;
-import dwt.widgets.List;
-import dwt.widgets.Table;
-import dwt.widgets.TableColumn;
-import dwt.widgets.TableItem;
-import dwt.widgets.Menu;
-import dwt.widgets.MenuItem;
-import dwt.custom.CTabFolder;
-import dwt.custom.CTabItem;
-import dwt.graphics.Image;
-import dwt.graphics.ImageData;
-import dwt.graphics.PaletteData;
-import dwt.graphics.RGB;
-import dwt.layout.GridLayout;
-import dwt.layout.GridData;
-import dwt.events.PaintListener;
-import dwt.events.PaintEvent;
-import dwt.events.DisposeListener;
-import dwt.events.DisposeEvent;
-import dwt.events.SelectionAdapter;
-import dwt.events.SelectionEvent;
-import dwt.events.ShellAdapter;
-import dwt.events.ShellEvent;
-import dwt.events.ModifyListener;
-import dwt.events.ModifyEvent;
-import dwt.dnd.Clipboard;
-import dwt.dnd.DND;
-import dwt.dnd.DragSourceAdapter;
-import dwt.dnd.DragSourceEvent;
-import dwt.dnd.DragSource;
-import dwt.dnd.DropTargetAdapter;
-import dwt.dnd.DropTargetEvent;
-import dwt.dnd.DropTarget;
-import dwt.dnd.Clipboard;
-import dwt.dnd.Transfer;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Canvas;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.List;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.PaletteData;
+import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.events.PaintListener;
+import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.ShellAdapter;
+import org.eclipse.swt.events.ShellEvent;
+import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.DragSourceAdapter;
+import org.eclipse.swt.dnd.DragSourceEvent;
+import org.eclipse.swt.dnd.DragSource;
+import org.eclipse.swt.dnd.DropTargetAdapter;
+import org.eclipse.swt.dnd.DropTargetEvent;
+import org.eclipse.swt.dnd.DropTarget;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.Transfer;
 
 class SpeakDialog : AbsDialog {
 private:
@@ -102,7 +103,7 @@ private:
 	void insertDialog(SDialog dlg, int index) {
 		if (index < 0) index = _dlgs.length;
 		_dlgs = _dlgs[0 .. index] ~ dlg ~ _dlgs[index .. $];
-		auto itm = new TableItem(_dlgsL, DWT.NONE, index);
+		auto itm = new TableItem(_dlgsL, SWT.NONE, index);
 		itm.setImage = _prop.images.content(CType.TALK_DIALOG);
 		_dlgsL.setSelection = [itm];
 		_dlgsL.showSelection;
@@ -308,11 +309,11 @@ protected:
 	override void setup(Composite area) {
 		area.setLayout = windowGridLayout(1, true);
 		{
-			auto comp = new Composite(area, DWT.NONE);
+			auto comp = new Composite(area, SWT.NONE);
 			comp.setLayoutData = new GridData(GridData.FILL_BOTH);
 			comp.setLayout = new GridLayout(2, false);
-			_dlgsL = new Table(comp, DWT.SINGLE | DWT.FULL_SELECTION | DWT.BORDER | DWT.V_SCROLL);
-			new FullTableColumn(_dlgsL, DWT.NONE);
+			_dlgsL = new Table(comp, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.V_SCROLL);
+			new FullTableColumn(_dlgsL, SWT.NONE);
 			auto gd = new GridData(GridData.FILL_BOTH);
 			gd.widthHint = 0;
 			gd.heightHint = 0;
@@ -329,32 +330,32 @@ protected:
 			auto menu = new Menu(_dlgsL);
 			createMenuItem(menu, _prop.msgs.menuUp, _prop.images.menuUp, &up);
 			createMenuItem(menu, _prop.msgs.menuDown, _prop.images.menuDown, &down);
-			new MenuItem(menu, DWT.SEPARATOR);
+			new MenuItem(menu, SWT.SEPARATOR);
 			appendMenuTCPD(_prop, menu, new DialogsTCPD);
 			_dlgsL.setMenu = menu;
 			usingPopupMenuAccelerator(_dlgsL);
 
-			auto bar = new ToolBar(comp, DWT.FLAT | DWT.VERTICAL);
+			auto bar = new ToolBar(comp, SWT.FLAT | SWT.VERTICAL);
 			bar.setLayoutData = new GridData(GridData.FILL_VERTICAL);
-			bar.addListener(DWT.Traverse, new class Listener {
-				override void handleEvent(dwt.widgets.Event.Event e) {e.doit = true;}
+			bar.addListener(SWT.Traverse, new class Listener {
+				override void handleEvent(Event e) {e.doit = true;}
 			});
-			bar.addListener(DWT.KeyDown, new class Listener {
-				override void handleEvent(dwt.widgets.Event.Event e) {e.doit = true;}
+			bar.addListener(SWT.KeyDown, new class Listener {
+				override void handleEvent(Event e) {e.doit = true;}
 			});
 			createToolItem(bar, _prop.msgs.createDialog, _prop.images.createDialog, &createDialog);
 			createToolItem(bar, _prop.msgs.deleteDialog, _prop.images.deleteDialog, &deleteDialogSel);
-			new ToolItem(bar, DWT.SEPARATOR);
+			new ToolItem(bar, SWT.SEPARATOR);
 			createToolItem(bar, _prop.msgs.ttUp, _prop.images.menuUp, &up);
 			createToolItem(bar, _prop.msgs.ttDown, _prop.images.menuDown, &down);
-			new ToolItem(bar, DWT.SEPARATOR);
+			new ToolItem(bar, SWT.SEPARATOR);
 			createToolItem(bar, _prop.msgs.copyToDialogs, _prop.images.copyToDialogs, &copyToDialogs);
 			createToolItem(bar, _prop.msgs.copyToUpper, _prop.images.copyToUpper, &copyToUpper);
 			createToolItem(bar, _prop.msgs.copyToLower, _prop.images.copyToLower, &copyToLower);
 		}
 		auto skin = findSkin(_prop, _summ);
 		{
-			auto comp = new Composite(area, DWT.NONE);
+			auto comp = new Composite(area, SWT.NONE);
 			comp.setLayoutData = new GridData(GridData.FILL_BOTH);
 			comp.setLayout = new GridLayout(2, false);
 			Control tp;
@@ -364,9 +365,9 @@ protected:
 				tp = createTalkerPane2(comp, _prop, _summ, Talker.SELECTED, [], _talkers, _rCoupons);
 			}
 			tp.setLayoutData = new GridData(GridData.FILL_BOTH);
-			auto msgComp = new Composite(comp, DWT.NONE);
+			auto msgComp = new Composite(comp, SWT.NONE);
 			msgComp.setLayoutData = new GridData(GridData.FILL_VERTICAL);
-			msgComp.setLayout(new CenterLayout(DWT.HORIZONTAL | DWT.VERTICAL, 0));
+			msgComp.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0));
 			_text = createMessagePane(_prop, true, msgComp, skin);
 			_text.widget.setLayoutData = _text.computeTextBaseSize(_prop.looks.messageLine);
 			_text.widget.addModifyListener(new ModL);
@@ -381,7 +382,7 @@ protected:
 		}
 		if (_evt) {
 			foreach (dlg; _evt.dialogs) {
-				auto itm = new TableItem(_dlgsL, DWT.NONE);
+				auto itm = new TableItem(_dlgsL, SWT.NONE);
 				itm.setImage = _prop.images.content(CType.TALK_DIALOG);
 				string text = std.string.replace(dlg.text, "\n", "");
 				// FIXME: ""をsetTextするとArgument cannot be null
@@ -392,7 +393,7 @@ protected:
 			_dlgsL.select = 0;
 			selectChanged;
 		} else {
-			auto itm = new TableItem(_dlgsL, DWT.NONE);
+			auto itm = new TableItem(_dlgsL, SWT.NONE);
 			itm.setImage = _prop.images.content(CType.TALK_DIALOG);
 			_dlgs = [new SDialog];
 			_oldSel = _dlgs[0];
@@ -480,11 +481,11 @@ public:
 protected:
 	override void setup(Composite area) {
 		area.setLayout = windowGridLayout(1, true);
-		_tabf = new CTabFolder(area, DWT.BORDER);
+		_tabf = new CTabFolder(area, SWT.BORDER);
 		_tabf.setLayoutData = new GridData(GridData.FILL_BOTH);
 		auto skin = findSkin(_prop, _summ);
 		{
-			auto comp = new Composite(_tabf, DWT.NONE);
+			auto comp = new Composite(_tabf, SWT.NONE);
 			comp.setLayout = new GridLayout(2, false);
 			Control tp;
 			if (_evt) {
@@ -493,21 +494,21 @@ protected:
 				tp = createTalkerPane(comp, _comm, _prop, _summ, Talker.SELECTED, "", _msel);
 			}
 			tp.setLayoutData = new GridData(GridData.FILL_BOTH);
-			auto msgComp = new Composite(comp, DWT.NONE);
+			auto msgComp = new Composite(comp, SWT.NONE);
 			msgComp.setLayoutData = new GridData(GridData.FILL_VERTICAL);
-			msgComp.setLayout(new CenterLayout(DWT.HORIZONTAL | DWT.VERTICAL, 0));
+			msgComp.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0));
 			_textA = createMessagePane(_prop, true, msgComp, skin);
 			_textA.widget.setLayoutData = _textA.computeTextBaseSize(_prop.looks.messageLine);
-			auto tab = new CTabItem(_tabf, DWT.NONE);
+			auto tab = new CTabItem(_tabf, SWT.NONE);
 			tab.setText = _prop.msgs.imageMessage;
 			tab.setControl = comp;
 		}
 		{
-			auto comp = new Composite(_tabf, DWT.NONE);
+			auto comp = new Composite(_tabf, SWT.NONE);
 			comp.setLayout = new CenterLayout;
 			_textB = createMessagePane(_prop, false, comp, skin);
 			_textB.widget.setLayoutData = _textB.computeTextBaseSize(_prop.looks.messageLine);
-			auto tab = new CTabItem(_tabf, DWT.NONE);
+			auto tab = new CTabItem(_tabf, SWT.NONE);
 			tab.setText = _prop.msgs.noImageMessage;
 			tab.setControl = comp;
 		}
@@ -572,10 +573,10 @@ protected:
 
 private Composite createTalkerPane2(Composite parent, Props prop, Summary summ, Talker talker,
 		string[] coupons, out Combo talkerCombo, out Text couponList) {
-	auto comp = new Composite(parent, DWT.NONE);
+	auto comp = new Composite(parent, SWT.NONE);
 	comp.setLayout = new GridLayout(2, false);
 	{
-		talkerCombo = new Combo(comp, DWT.READ_ONLY | DWT.DROP_DOWN | DWT.BORDER);
+		talkerCombo = new Combo(comp, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
 		auto gd = new GridData(GridData.FILL_HORIZONTAL);
 		gd.horizontalSpan = 2;
 		talkerCombo.setLayoutData = gd;
@@ -596,9 +597,9 @@ private Composite createTalkerPane2(Composite parent, Props prop, Summary summ, 
 			talkerCombo.select = 0;
 		}
 	}
-	auto couponCombo = new Combo(comp, DWT.DROP_DOWN | DWT.BORDER);
+	auto couponCombo = new Combo(comp, SWT.DROP_DOWN | SWT.BORDER);
 	couponCombo.setVisibleItemCount = 20;
-	auto push = new Button(comp, DWT.PUSH);
+	auto push = new Button(comp, SWT.PUSH);
 	auto skin = findSkin(prop, summ);
 	{
 		auto gd = new GridData(GridData.FILL_HORIZONTAL);
@@ -610,7 +611,7 @@ private Composite createTalkerPane2(Composite parent, Props prop, Summary summ, 
 		push.setImage = prop.images.setTalkerCoupon;
 	}
 	{
-		couponList = new Text(comp, DWT.BORDER | DWT.MULTI | DWT.V_SCROLL);
+		couponList = new Text(comp, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
 		auto gd = new GridData(GridData.FILL_BOTH);
 		gd.horizontalSpan = 2;
 		couponList.setLayoutData = gd;
@@ -658,7 +659,7 @@ private Composite createTalkerPane
 		Canvas createCanvas(Composite parent,
 				MaterialSelect!(MtType.CARD, Combo, Combo) msel) {
 			auto skin = findSkin(_prop, _summ);
-			_canvas = new Canvas(parent, DWT.BORDER);
+			_canvas = new Canvas(parent, SWT.BORDER);
 			_canvas.addPaintListener(new class(skin, _summ, msel) PaintListener {
 				private Summary _summ;
 				private MaterialSelect!(MtType.CARD, Combo, Combo) _msel;
@@ -705,7 +706,7 @@ private Composite createTalkerPane
 			return _canvas;
 		}
 	}
-	auto comp = new Composite(parent, DWT.NONE);
+	auto comp = new Composite(parent, SWT.NONE);
 	{
 		comp.setLayout = zeroMarginGridLayout(1, true);
 	}
@@ -735,7 +736,7 @@ private Composite createTalkerPane
 		canvas.setLayoutData = gd;
 	}
 	{
-		auto compl = new Composite(comp, DWT.NONE);
+		auto compl = new Composite(comp, SWT.NONE);
 		compl.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		compl.setLayout = zeroMarginGridLayout(2, false);
 		msel.createRefreshButton(compl, true).setLayoutData
@@ -764,9 +765,9 @@ private Composite createTalkerPane
 
 private FixedWidthText createMessagePane(Props prop, bool image, Composite parent, Skin skin) {
 	int len = image ? prop.looks.messageImageLen : prop.looks.messageLen;
-	auto r = new FixedWidthText(dwtData(prop.looks.messageFont(skin.legacy)), len, parent, DWT.BORDER);
-	r.widget.setBackground = Display.getCurrent.getSystemColor(DWT.COLOR_DARK_BLUE);
-	r.widget.setForeground = Display.getCurrent.getSystemColor(DWT.COLOR_WHITE);
+	auto r = new FixedWidthText(dwtData(prop.looks.messageFont(skin.legacy)), len, parent, SWT.BORDER);
+	r.widget.setBackground = Display.getCurrent.getSystemColor(SWT.COLOR_DARK_BLUE);
+	r.widget.setForeground = Display.getCurrent.getSystemColor(SWT.COLOR_WHITE);
 	return r;
 }
 
@@ -794,19 +795,19 @@ private class PutColor {
 }
 private ToolBar createSCharBar(Composite parent,
 		void delegate(string) insert, void delegate(dchar) putColor, Props prop, Skin skin) {
-	auto bar = new ToolBar(parent, DWT.FLAT);
-	bar.addListener(DWT.Traverse, new class Listener {
-		override void handleEvent(dwt.widgets.Event.Event e) {e.doit = true;}
+	auto bar = new ToolBar(parent, SWT.FLAT);
+	bar.addListener(SWT.Traverse, new class Listener {
+		override void handleEvent(Event e) {e.doit = true;}
 	});
-	bar.addListener(DWT.KeyDown, new class Listener {
-		override void handleEvent(dwt.widgets.Event.Event e) {e.doit = true;}
+	bar.addListener(SWT.KeyDown, new class Listener {
+		override void handleEvent(Event e) {e.doit = true;}
 	});
 	createToolItem(bar, prop.msgs.defaultColor, prop.images.defaultColor, &(new PutColor(putColor, 'W')).put);
 	createToolItem(bar, prop.msgs.red, prop.images.red, &(new PutColor(putColor, 'R')).put);
 	createToolItem(bar, prop.msgs.blue, prop.images.blue, &(new PutColor(putColor, 'B')).put);
 	createToolItem(bar, prop.msgs.green, prop.images.green, &(new PutColor(putColor, 'G')).put);
 	createToolItem(bar, prop.msgs.yellow, prop.images.yellow, &(new PutColor(putColor, 'Y')).put);
-	new ToolItem(bar, DWT.SEPARATOR);
+	new ToolItem(bar, SWT.SEPARATOR);
 	createToolItem(bar, prop.msgs.scTalker(Talker.SELECTED), prop.images.scTalker(Talker.SELECTED),
 		&(new PutC(insert, "#M")).put);
 	createToolItem(bar, prop.msgs.scTalker(Talker.UNSELECTED), prop.images.scTalker(Talker.UNSELECTED),
@@ -822,12 +823,12 @@ private ToolBar createSCharBar(Composite parent,
 }
 
 private ToolBar createSkinSCharBar(Composite parent, void delegate(string) insert, Props prop, Skin skin) {
-	auto bar = new ToolBar(parent, DWT.FLAT);
-	bar.addListener(DWT.Traverse, new class Listener {
-		override void handleEvent(dwt.widgets.Event.Event e) {e.doit = true;}
+	auto bar = new ToolBar(parent, SWT.FLAT);
+	bar.addListener(SWT.Traverse, new class Listener {
+		override void handleEvent(Event e) {e.doit = true;}
 	});
-	bar.addListener(DWT.KeyDown, new class Listener {
-		override void handleEvent(dwt.widgets.Event.Event e) {e.doit = true;}
+	bar.addListener(SWT.KeyDown, new class Listener {
+		override void handleEvent(Event e) {e.doit = true;}
 	});
 	Image[] imgs;
 	foreach (spc; skin.spChars.keys) {

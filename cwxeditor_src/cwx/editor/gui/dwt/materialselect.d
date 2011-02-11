@@ -15,25 +15,25 @@ import std.file;
 import std.path;
 import std.string;
 
-import dwt.DWT;
-import dwt.DWTException;
-import dwt.widgets.Composite;
-import dwt.widgets.Control;
-import dwt.widgets.Display;
-import dwt.widgets.Group;
-import dwt.widgets.Combo;
-import dwt.widgets.List;
-import dwt.widgets.Button;
-import dwt.widgets.MessageBox;
-import dwt.custom.CCombo;
-import dwt.layout.GridLayout;
-import dwt.layout.GridData;
-import dwt.graphics.Image;
-import dwt.events.SelectionAdapter;
-import dwt.events.SelectionEvent;
-import dwt.events.DisposeListener;
-import dwt.events.DisposeEvent;
-import dwt.dnd.DropTargetAdapter;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.SWTException;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.widgets.List;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.MessageBox;
+import org.eclipse.swt.custom.CCombo;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.dnd.DropTargetAdapter;
 
 public:
 
@@ -58,10 +58,10 @@ public:
 
 	D createDirsCombo(Composite parent) {
 		static if (is (D == Combo)) {
-			_dirs = new D(parent, DWT.BORDER | DWT.READ_ONLY | DWT.DROP_DOWN);
+			_dirs = new D(parent, SWT.BORDER | SWT.READ_ONLY | SWT.DROP_DOWN);
 			_dirs.setVisibleItemCount = 20;
 		} else static if (is (D == CCombo)) {
-			_dirs = new D(parent, DWT.BORDER | DWT.READ_ONLY);
+			_dirs = new D(parent, SWT.BORDER | SWT.READ_ONLY);
 			_dirs.setVisibleItemCount = 20;
 		} else {
 			static assert (0);
@@ -88,12 +88,12 @@ public:
 	}
 	C createFileList(Composite parent) {
 		static if (is (C == List)) {
-			_fileList = new C(parent, DWT.BORDER | DWT.V_SCROLL | DWT.H_SCROLL);
+			_fileList = new C(parent, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
 		} else static if (is (C == Combo)) {
-			_fileList = new C(parent, DWT.BORDER | DWT.READ_ONLY | DWT.DROP_DOWN);
+			_fileList = new C(parent, SWT.BORDER | SWT.READ_ONLY | SWT.DROP_DOWN);
 			_fileList.setVisibleItemCount = 20;
 		} else static if (is (C == CCombo)) {
-			_fileList = new C(parent, DWT.BORDER | DWT.READ_ONLY);
+			_fileList = new C(parent, SWT.BORDER | SWT.READ_ONLY);
 			_fileList.setVisibleItemCount = 20;
 		} else {
 			static assert (0);
@@ -114,11 +114,11 @@ public:
 					}
 				}
 				if (r.length > 0) {
-					auto dlg = new MessageBox(control.getShell, DWT.ICON_QUESTION | DWT.YES | DWT.NO);
+					auto dlg = new MessageBox(control.getShell, SWT.ICON_QUESTION | SWT.YES | SWT.NO);
 					scope (exit) dlg.dispose;
 					dlg.setMessage = _prop.msgs.dlgMsgDropFiles(r);
 					dlg.setText = _prop.msgs.dlgTitDropFiles;
-					if (DWT.YES == dlg.open) {
+					if (SWT.YES == dlg.open) {
 						return r;
 					}
 				}
@@ -138,7 +138,7 @@ public:
 		return _fileList;
 	}
 	Button createRefreshButton(Composite parent, bool text) {
-		auto refBtn = new Button(parent, DWT.PUSH);
+		auto refBtn = new Button(parent, SWT.PUSH);
 		refBtn.setImage = _prop.images.menuRefresh;
 		if (text) {
 			refBtn.setText = _prop.msgs.ttRefreshS;
@@ -149,7 +149,7 @@ public:
 		return refBtn;
 	}
 	Button createDirectoryButton(Composite parent, bool text) {
-		auto dirBtn = new Button(parent, DWT.PUSH);
+		auto dirBtn = new Button(parent, SWT.PUSH);
 		dirBtn.setLayoutData = new GridData(GridData.FILL_VERTICAL);
 		dirBtn.setImage = _prop.images.folder;
 		dirBtn.addSelectionListener(new DSListener);

@@ -24,42 +24,42 @@ import cwx.editor.gui.dwt.centerlayout;
 
 import std.string;
 
-import dwt.DWT;
-import dwt.widgets.Control;
-import dwt.widgets.Display;
-import dwt.widgets.Shell;
-import dwt.widgets.Composite;
-import dwt.widgets.ToolBar;
-import dwt.widgets.ToolItem;
-import dwt.widgets.CoolBar;
-import dwt.widgets.CoolItem;
-import dwt.widgets.Menu;
-import dwt.widgets.MenuItem;
-import dwt.widgets.Tree;
-import dwt.widgets.TreeItem;
-import dwt.widgets.Text;
-import dwt.widgets.Label;
-import dwt.widgets.Combo;
-import dwt.widgets.Spinner;
-import dwt.widgets.Group;
-import dwt.custom.SashForm;
-import dwt.custom.CCombo;
-import dwt.events.ShellEvent;
-import dwt.events.ShellAdapter;
-import dwt.events.ControlEvent;
-import dwt.events.ControlAdapter;
-import dwt.events.DisposeEvent;
-import dwt.events.DisposeListener;
-import dwt.events.SelectionEvent;
-import dwt.events.SelectionAdapter;
-import dwt.graphics.Image;
-import dwt.layout.FillLayout;
-import dwt.layout.GridLayout;
-import dwt.layout.GridData;
-import dwt.custom.CLabel;
-import dwt.dwthelper.utils;
-import dwt.dnd.Clipboard;
-import dwt.dnd.ByteArrayTransfer;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.swt.widgets.CoolBar;
+import org.eclipse.swt.widgets.CoolItem;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swt.widgets.TreeItem;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.widgets.Spinner;
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.custom.CCombo;
+import org.eclipse.swt.events.ShellEvent;
+import org.eclipse.swt.events.ShellAdapter;
+import org.eclipse.swt.events.ControlEvent;
+import org.eclipse.swt.events.ControlAdapter;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.custom.CLabel;
+import java.lang.all;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.ByteArrayTransfer;
 
 public:
 
@@ -280,7 +280,7 @@ private:
 		private int _upIndex;
 		this (int ownerIndex, int swapIndex1, int swapIndex2) {
 			_ownerIndex = ownerIndex;
-			_upIndex = max(swapIndex1, swapIndex2);
+			_upIndex = swapIndex1 > swapIndex2 ? swapIndex1 : swapIndex2;
 		}
 		private void impl() {
 			udb;
@@ -730,7 +730,7 @@ private:
 	}
 public:
 	this(Commons comm, Props prop, Summary summ, A area, Composite parent, UndoManager undo) {
-		super(parent, DWT.NONE);
+		super(parent, SWT.NONE);
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
@@ -741,10 +741,10 @@ public:
 		gl.marginHeight = 0;
 		setLayout = gl;
 
-		auto toolbar = new ToolBar(this, DWT.FLAT);
+		auto toolbar = new ToolBar(this, SWT.FLAT);
 		toolbar.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 
-		_sash = new SplitPane(this, DWT.HORIZONTAL);
+		_sash = new SplitPane(this, SWT.HORIZONTAL);
 		static if (is (A == Area) || is (A == Battle)) {
 			_comm.refStandardKeyCodes.add(&refKeyCodes);
 		}
@@ -803,12 +803,12 @@ public:
 		});
 		_sash.setLayoutData = new GridData(GridData.FILL_BOTH);
 		{
-			_cards = new Tree(_sash, DWT.SINGLE | DWT.BORDER);
+			_cards = new Tree(_sash, SWT.SINGLE | SWT.BORDER);
 			_cards.addSelectionListener(new SListener);
-			auto menu = new Menu(parent.getShell, DWT.POP_UP);
+			auto menu = new Menu(parent.getShell, SWT.POP_UP);
 			appendMenuTCPD(_prop, menu, this, true, true, true, true);
 			static if (is (A == Battle)) {
-				new MenuItem(menu, DWT.SEPARATOR);
+				new MenuItem(menu, SWT.SEPARATOR);
 				createMenuItem(menu, _prop.msgs.menuAddManyRounds, _prop.images.menuAddManyRounds, &addManyRounds);
 			}
 			_cards.setMenu = menu;
@@ -1010,14 +1010,14 @@ public:
 		if (!_comm.singleWindowMode) {
 			createToolItem(bar, _prop.msgs.ttUndo, _prop.images.menuUndo, &undo);
 			createToolItem(bar, _prop.msgs.ttRedo, _prop.images.menuRedo, &redo);
-			new ToolItem(bar, DWT.SEPARATOR);
+			new ToolItem(bar, SWT.SEPARATOR);
 			createToolItem(bar, _prop.msgs.ttUp, _prop.images.menuUp, &up);
 			createToolItem(bar, _prop.msgs.ttDown, _prop.images.menuDown, &down);
-			new ToolItem(bar, DWT.SEPARATOR);
+			new ToolItem(bar, SWT.SEPARATOR);
 		}
 		{
-			auto treeKindItm = new ToolItem(bar, DWT.SEPARATOR);
-			_treeKind = new CCombo(bar, DWT.READ_ONLY | DWT.DROP_DOWN | DWT.BORDER);
+			auto treeKindItm = new ToolItem(bar, SWT.SEPARATOR);
+			_treeKind = new CCombo(bar, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
 			_treeKind.add(_prop.msgs.eventTreeKindSystem);
 			_treeKind.setText = _prop.msgs.eventTreeKindSystem;
 			static if (is (A == Area) || is (A == Battle)) {
@@ -1027,21 +1027,21 @@ public:
 				_treeKind.add(_prop.msgs.eventTreeKindRound);
 			}
 			treeKindItm.setControl = _treeKind;
-			treeKindItm.setWidth = _treeKind.computeSize(DWT.DEFAULT, DWT.DEFAULT).x;
+			treeKindItm.setWidth = _treeKind.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
 			_treeKind.addSelectionListener(new KSListener);
 		}
-		new ToolItem(bar, DWT.SEPARATOR);
+		new ToolItem(bar, SWT.SEPARATOR);
 		{
-			_fireItm = new ToolItem(bar, DWT.SEPARATOR);
+			_fireItm = new ToolItem(bar, SWT.SEPARATOR);
 			_fireItm.setWidth = _prop.var.etc.firesWidth;
 			createCombo(true, areaDefVals);
 		}
-		new ToolItem(bar, DWT.SEPARATOR);
+		new ToolItem(bar, SWT.SEPARATOR);
 		createToolItem(bar, _prop.msgs.ttNewEventTree, _prop.images.menuNewEventTree, &createEventTree);
 		static if (UseFire) {
 			createToolItem(bar, _prop.msgs.ttNewEventFire, _prop.images.menuNewEventFire, &createEventFire);
 		}
-		new ToolItem(bar, DWT.SEPARATOR);
+		new ToolItem(bar, SWT.SEPARATOR);
 		createToolItem(bar, _prop.msgs.ttNewTreeOpen, _prop.images.menuTreeOpen, &_etree.treeOpen);
 		createToolItem(bar, _prop.msgs.ttNewTreeClose, _prop.images.menuTreeClose, &_etree.treeClose);
 	}
@@ -1082,8 +1082,8 @@ public:
 		}
 	}
 	private void createCombo(bool readOnly, string[] vals, bool visLong = false) {
-		int style = DWT.BORDER | DWT.DROP_DOWN;
-		if (readOnly) style |= DWT.READ_ONLY;
+		int style = SWT.BORDER | SWT.DROP_DOWN;
+		if (readOnly) style |= SWT.READ_ONLY;
 		auto c = new CCombo(_toolbar, style);
 		if (visLong) c.setVisibleItemCount = 20;
 		foreach (i, v; vals) {
@@ -1125,7 +1125,7 @@ public:
 					createCombo(false, _prop.var.etc.standardKeyCodes, true);
 					break;
 				case 2:
-					auto spn = new Spinner(_toolbar, DWT.BORDER);
+					auto spn = new Spinner(_toolbar, SWT.BORDER);
 					spn.setMaximum = 9999;
 					spn.setMinimum = 1;
 					spn.setSelection = 1;
@@ -1376,23 +1376,23 @@ protected:
 	override void setup(Composite area) {
 		area.setLayout = new GridLayout(1, false);
 		{
-			auto grp = new Group(area, DWT.NONE);
+			auto grp = new Group(area, SWT.NONE);
 			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
 			grp.setText = _prop.msgs.manyRounds;
-			grp.setLayout = new CenterLayout(DWT.VERTICAL | DWT.HORIZONTAL, 0);
-			auto comp = new Composite(grp, DWT.NONE);
+			grp.setLayout = new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0);
+			auto comp = new Composite(grp, SWT.NONE);
 			comp.setLayout = new GridLayout(4, false);
-			_from = new Spinner(comp, DWT.BORDER);
+			_from = new Spinner(comp, SWT.BORDER);
 			_from.setMinimum = 1;
 			_from.setMaximum = _prop.looks.roundMax;
 			_from.addSelectionListener(new SelMin);
-			auto l1 = new Label(comp, DWT.NONE);
+			auto l1 = new Label(comp, SWT.NONE);
 			l1.setText = _prop.msgs.roundSep;
-			_to = new Spinner(comp, DWT.BORDER);
+			_to = new Spinner(comp, SWT.BORDER);
 			_to.setMinimum = 1;
 			_to.setMaximum = _prop.looks.roundMax;
 			_to.addSelectionListener(new SelMax);
-			auto l2 = new Label(comp, DWT.NONE);
+			auto l2 = new Label(comp, SWT.NONE);
 			l2.setText = _prop.msgs.rangeHint(1, _prop.looks.roundMax);
 		}
 	}

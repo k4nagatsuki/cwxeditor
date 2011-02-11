@@ -3,21 +3,21 @@ module cwx.editor.gui.dwt.cardlist;
 
 import cwx.utils;
 
-import dwt.DWT;
-import dwt.widgets.Display;
-import dwt.widgets.Composite;
-import dwt.widgets.Listener;
-import dwt.widgets.Event;
-import dwt.widgets.ScrollBar;
-import dwt.widgets.Item;
-import dwt.graphics.ImageData;
-import dwt.graphics.Image;
-import dwt.graphics.GC;
-import dwt.graphics.Point;
-import dwt.graphics.Rectangle;
-import dwt.dnd.DragSource;
-import dwt.dnd.DragSourceEvent;
-import dwt.dnd.DragSourceEffect;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.ScrollBar;
+import org.eclipse.swt.widgets.Item;
+import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.dnd.DragSource;
+import org.eclipse.swt.dnd.DragSourceEvent;
+import org.eclipse.swt.dnd.DragSourceEffect;
 
 public:
 
@@ -25,14 +25,14 @@ class CardList(C) : Composite {
 public:
 	/// Params:
 	/// parent = 親コンポーネント。
-	/// style = スタイル。使用可能なスタイルはDWT.MULTI、DWT.V_SCROLL、DWT.H_SCROLL。
+	/// style = スタイル。使用可能なスタイルはSWT.MULTI、DWT.V_SCROLL、DWT.H_SCROLL。
 	this(Composite parent, int style) {
-		super(parent, style | DWT.NO_BACKGROUND);
+		super(parent, style | SWT.NO_BACKGROUND);
 		_origin = new Point(0, 0);
-		setBackground = Display.getCurrent.getSystemColor(DWT.COLOR_LIST_BACKGROUND);
+		setBackground = Display.getCurrent.getSystemColor(SWT.COLOR_LIST_BACKGROUND);
 		void setupBar(ScrollBar scr, void delegate(int) setOrigin) {
 			if (scr !is null) {
-				scr.addListener(DWT.Selection, new class(scr, setOrigin) Listener {
+				scr.addListener(SWT.Selection, new class(scr, setOrigin) Listener {
 					private ScrollBar _bar;
 					private void delegate(int) _setOrigin;
 					public this(ScrollBar bar, void delegate(int) setOrigin) {
@@ -47,12 +47,12 @@ public:
 		}
 		setupBar(getVerticalBar, &scrollY);
 		setupBar(getHorizontalBar, &scrollX);
-		addListener(DWT.Dispose, new class Listener {
+		addListener(SWT.Dispose, new class Listener {
 			public override void handleEvent(Event e) {
 				disposeItems;
 			}
 		});
-		addListener(DWT.Paint, new class Listener {
+		addListener(SWT.Paint, new class Listener {
 			public override void handleEvent(Event e) {
 				auto area = getClientArea;
 				scope img = new Image(Display.getCurrent, area.width, area.height);
@@ -65,15 +65,15 @@ public:
 				img.dispose;
 			}
 		});
-		addListener(DWT.Resize, new class Listener {
+		addListener(SWT.Resize, new class Listener {
 			public override void handleEvent(Event e) {
 				__resize;
 			}
 		});
-		addListener(DWT.Traverse, new class Listener {
+		addListener(SWT.Traverse, new class Listener {
 			public override void handleEvent(Event e) {
 				switch (e.detail) {
-				case DWT.TRAVERSE_ARROW_NEXT, DWT.TRAVERSE_ARROW_PREVIOUS:
+				case SWT.TRAVERSE_ARROW_NEXT, SWT.TRAVERSE_ARROW_PREVIOUS:
 					e.doit = false;
 					break;
 				default:
@@ -81,9 +81,9 @@ public:
 				}
 			}
 		});
-		addListener(DWT.KeyDown, new class Listener {
+		addListener(SWT.KeyDown, new class Listener {
 			public override void handleEvent(Event e) {
-				if (e.character == DWT.CR && (getStyle & DWT.MULTI) != 0) {
+				if (e.character == SWT.CR && (getStyle & SWT.MULTI) != 0) {
 					if (_cur in _sels) {
 						deselect(_cur);
 					} else {
@@ -92,31 +92,31 @@ public:
 					selectChanged;
 				} else {
 					switch (e.keyCode) {
-					case DWT.PAGE_UP:
+					case SWT.PAGE_UP:
 						auto bar = getVerticalBar;
 						if (bar !is null) {
 							scrollY(bar.getSelection - bar.getPageIncrement);
 						}
 						break;
-					case DWT.PAGE_DOWN:
+					case SWT.PAGE_DOWN:
 						auto bar = getVerticalBar;
 						if (bar !is null) {
 							scrollY(bar.getSelection + bar.getPageIncrement);
 						}
 						break;
-					case DWT.HOME:
+					case SWT.HOME:
 						auto bar = getVerticalBar;
 						if (bar !is null) {
 							scrollY(bar.getMinimum);
 						}
 						break;
-					case DWT.END:
+					case SWT.END:
 						auto bar = getVerticalBar;
 						if (bar !is null) {
 							scrollY(bar.getMaximum - bar.getThumb);
 						}
 						break;
-					case DWT.ARROW_UP:
+					case SWT.ARROW_UP:
 						int nCur = _cur - _wrap;
 						if (nCur < 0) {
 							nCur = _wrap * (_line - 1) + _cur;
@@ -124,14 +124,14 @@ public:
 						}
 						setCursor(nCur, true);
 						break;
-					case DWT.ARROW_DOWN:
+					case SWT.ARROW_DOWN:
 						int nCur = _cur + _wrap;
 						if (_items.length <= nCur) {
 							nCur = _cur % _wrap;
 						}
 						setCursor(nCur, true);
 						break;
-					case DWT.ARROW_LEFT:
+					case SWT.ARROW_LEFT:
 						int nCur;
 						if (isFirstCol(_cur)) {
 							nCur = _cur + _wrap - 1;
@@ -141,7 +141,7 @@ public:
 						}
 						setCursor(nCur, true);
 						break;
-					case DWT.ARROW_RIGHT:
+					case SWT.ARROW_RIGHT:
 						int nCur;
 						if (_cur == _items.length - 1) {
 							int d = _items.length % _wrap;
@@ -159,9 +159,9 @@ public:
 				}
 			}
 		});
-		addListener(DWT.MouseUp, new class Listener {
+		addListener(SWT.MouseUp, new class Listener {
 			public override void handleEvent(Event e) {
-				if (!_dragging && (getStyle & DWT.MULTI) != 0 && e.button == 1 && _mouseP >= 0) {
+				if (!_dragging && (getStyle & SWT.MULTI) != 0 && e.button == 1 && _mouseP >= 0) {
 					if (_ctrl) {
 						if (isSelected(_mouseP)) {
 							deselect(_mouseP);
@@ -180,15 +180,15 @@ public:
 				_mouseP = -1;
 			}
 		});
-		addListener(DWT.MouseDown, new class Listener {
+		addListener(SWT.MouseDown, new class Listener {
 			public override void handleEvent(Event e) {
 				_dragging = false;
-				_shift = (e.stateMask & DWT.SHIFT) != 0;
-				_ctrl = (e.stateMask & DWT.CTRL) != 0;
+				_shift = (e.stateMask & SWT.SHIFT) != 0;
+				_ctrl = (e.stateMask & SWT.CTRL) != 0;
 				int i = searchIndex(e.x, e.y);
 				if (i >= 0) {
 					_mouseP = i;
-					if ((getStyle & DWT.MULTI) == 0) {
+					if ((getStyle & SWT.MULTI) == 0) {
 						if (e.button == 1 || e.button == 3) {
 							_mouseP = i;
 							// SINGLEモードではsetCursor()で同時に選択が行われる
@@ -242,9 +242,9 @@ public:
 				}
 			}
 		});
-		addListener(DWT.DragDetect, new class Listener {
+		addListener(SWT.DragDetect, new class Listener {
 			public override void handleEvent(Event e) {
-				if ((getStyle & DWT.MULTI) != 0) {
+				if ((getStyle & SWT.MULTI) != 0) {
 					if (_ctrl && _mouseP >= 0) {
 						select(_mouseP);
 						selectChanged;
@@ -255,7 +255,7 @@ public:
 		});
 		setDragDetect = false;
 		setData(DragSource.DEFAULT_DRAG_SOURCE_EFFECT, new CardListDragSourceEffect!(C)(this));
-		addListener(DWT.MouseMove, new class Listener {
+		addListener(SWT.MouseMove, new class Listener {
 			public override void handleEvent(Event e) {
 				int index = searchIndex(e.x, e.y);
 				if (_oldMoveIndex != index) {
@@ -265,16 +265,16 @@ public:
 				}
 			}
 		});
-		addListener(DWT.FocusIn, new class Listener {
+		addListener(SWT.FocusIn, new class Listener {
 			public override void handleEvent(Event e) {
-				if ((getStyle & DWT.MULTI) == 0 && _sels.length == 0 && _items.length > 0) {
+				if ((getStyle & SWT.MULTI) == 0 && _sels.length == 0 && _items.length > 0) {
 					select(0);
 					selectChanged;
 				}
 				if (_cur >= 0) redraw(_cur);
 			}
 		});
-		addListener(DWT.FocusOut, new class Listener {
+		addListener(SWT.FocusOut, new class Listener {
 			public override void handleEvent(Event e) {
 				if (_cur >= 0) redraw(_cur);
 			}
@@ -299,7 +299,7 @@ public:
 			if (index >= 0) redraw(index);
 			_cur = index;
 		}
-		if ((getStyle & DWT.MULTI) == 0) {
+		if ((getStyle & SWT.MULTI) == 0) {
 			this.select(_cur);
 			selectChanged;
 		}
@@ -336,7 +336,7 @@ public:
 	/// index = インデックス。
 	void select(int index) {
 		if (!(index in _sels)) {
-			if ((getStyle & DWT.MULTI) == 0) {
+			if ((getStyle & SWT.MULTI) == 0) {
 				deselectAll;
 				_sels[index] = _items[index];
 				_cur = index;
@@ -377,7 +377,7 @@ public:
 		deselectAll;
 		disposeItems;
 		foreach (c; cards) {
-			auto itm = new CardListItem!(C)(this, DWT.NONE, c, createImage);
+			auto itm = new CardListItem!(C)(this, SWT.NONE, c, createImage);
 			_items ~= itm;
 			if (_defItmW < 0 && _itmW < itm.width) _itmW = itm.width;
 			if (_defItmH < 0 && _itmH < itm.height) _itmH = itm.height;
@@ -506,12 +506,12 @@ public:
 		}
 		Point computeSize(int wHint, int hHint, bool change) {
 			int x, y;
-			if (wHint != DWT.DEFAULT) {
+			if (wHint != SWT.DEFAULT) {
 				x = wHint;
 			} else {
 				x = _marginX * 2 + (_itmW * _defWrap) + (_spaceX * (_defWrap - 1));
 			}
-			if (hHint != DWT.DEFAULT) {
+			if (hHint != SWT.DEFAULT) {
 				y = hHint;
 			} else {
 				if (_items.length > 0) {
@@ -522,7 +522,7 @@ public:
 					y = _marginY * 2;
 				}
 			}
-			scope rect = computeTrim(DWT.DEFAULT, DWT.DEFAULT, x, y);
+			scope rect = computeTrim(SWT.DEFAULT, SWT.DEFAULT, x, y);
 			return new Point(rect.width, rect.height);
 		}
 	}
@@ -615,14 +615,14 @@ private:
 		int index, iy, ix;
 		int x;
 		int y = _marginY - _origin.y;
-		if (gc) gc.setBackground = Display.getCurrent.getSystemColor(DWT.COLOR_LIST_SELECTION);
+		if (gc) gc.setBackground = Display.getCurrent.getSystemColor(SWT.COLOR_LIST_SELECTION);
 		for (iy = 0; iy < _line; iy++) {
 			x = _marginX - _origin.x;
 			for (ix = 0; ix < _wrap && (index = iy * _wrap + ix) < _items.length; ix++) {
 				auto itm = _items[index];
 				itm.x = x;
 				itm.y = y;
-				if ((getStyle | DWT.VIRTUAL) || y < rect.y + rect.height) {
+				if ((getStyle | SWT.VIRTUAL) || y < rect.y + rect.height) {
 					if (gc) {
 						itm.createImage;
 						gc.drawImage(itm.getImage, x, y);
@@ -651,7 +651,7 @@ private:
 		auto rect = getClientArea;
 		int prW, prH;
 		if (_items.length == 0) {
-			auto s = computeSize(DWT.DEFAULT, DWT.DEFAULT);
+			auto s = computeSize(SWT.DEFAULT, SWT.DEFAULT);
 			prW = s.x;
 			prH = s.y;
 			_wrap = _items.length;

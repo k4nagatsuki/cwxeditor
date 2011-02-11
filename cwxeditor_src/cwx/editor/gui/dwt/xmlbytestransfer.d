@@ -5,10 +5,10 @@ import std.compat;
 
 import cwx.editor.gui.dwt.props;
 
-import dwt.dnd.Clipboard;
-import dwt.dnd.TextTransfer;
-import dwt.dnd.ByteArrayTransfer;
-import dwt.dwthelper.utils;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.ByteArrayTransfer;
+import java.lang.all;
 
 private static const string XML_HEADER_S = `<?xml `;
 private static const byte[] XML_HEADER = cast(byte[]) XML_HEADER_S;

@@ -8,26 +8,26 @@ import cwx.editor.gui.dwt.utils;
 
 import std.compat;
 
-import dwt.DWT;
-import dwt.widgets.Display;
-import dwt.widgets.Shell;
-import dwt.widgets.Composite;
-import dwt.widgets.Button;
-import dwt.widgets.Combo;
-import dwt.widgets.Text;
-import dwt.widgets.Label;
-import dwt.widgets.Listener;
-import dwt.widgets.Event;
-import dwt.custom.CCombo;
-import dwt.layout.GridLayout;
-import dwt.layout.GridData;
-import dwt.graphics.Image;
-import dwt.events.SelectionAdapter;
-import dwt.events.SelectionEvent;
-import dwt.events.ShellAdapter;
-import dwt.events.ShellEvent;
-import dwt.events.ModifyListener;
-import dwt.events.ModifyEvent;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.custom.CCombo;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.ShellAdapter;
+import org.eclipse.swt.events.ShellEvent;
+import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.ModifyEvent;
 
 interface DSize {
 	void width(int);
@@ -42,26 +42,26 @@ abstract class AbsDialog {
 	private Composite _area;
 	this (Props prop, Shell parent, string text, Image img, bool resizable, DSize size = null, bool apply = false, bool cancel = true) {
 		_size = size;
-		_win = new Shell(parent, (resizable ? DWT.SHELL_TRIM : DWT.DIALOG_TRIM) | DWT.APPLICATION_MODAL);
+		_win = new Shell(parent, (resizable ? SWT.SHELL_TRIM : SWT.DIALOG_TRIM) | SWT.APPLICATION_MODAL);
 		_win.setText = text;
 		_win.setImage = img;
 		_win.setLayout = zeroGridLayout(1, true);
 		_win.addShellListener(new SListener);
 
-		_area = new Composite(_win, DWT.NONE);
+		_area = new Composite(_win, SWT.NONE);
 		_area.setLayoutData = new GridData(GridData.FILL_BOTH);
 
-		auto sep = new Label(_win, DWT.SEPARATOR | DWT.HORIZONTAL);
+		auto sep = new Label(_win, SWT.SEPARATOR | SWT.HORIZONTAL);
 		sep.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 
-		auto buttons = new Composite(_win, DWT.NONE);
+		auto buttons = new Composite(_win, SWT.NONE);
 		buttons.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
 		int gll = 1;
 		if (apply) gll++;
 		if (cancel) gll++;
 		buttons.setLayout = new GridLayout(gll, true);
 		Button createButton(string text, void delegate() push) {
-			auto b = new Button(buttons, DWT.PUSH);
+			auto b = new Button(buttons, SWT.PUSH);
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
 			gd.widthHint = 85;
 			b.setLayoutData = gd;
@@ -88,7 +88,7 @@ abstract class AbsDialog {
 	private Button _okBtn;
 	private bool _applied = false;
 	private Button _apply = null;
-	private int _imeMode = DWT.NONE;
+	private int _imeMode = SWT.NONE;
 	private class SListener : ShellAdapter {
 		override void shellClosed(ShellEvent e) {
 			bool cancel;
@@ -121,10 +121,10 @@ abstract class AbsDialog {
 		}
 		if (_size) {
 			auto p = new Point(_size.width, _size.height);
-			if (p.x == DWT.DEFAULT || p.y == DWT.DEFAULT) {
-				auto cs = _win.computeSize(DWT.DEFAULT, DWT.DEFAULT);
-				p.x = p.x == DWT.DEFAULT ? cs.x : p.x;
-				p.y = p.y == DWT.DEFAULT ? cs.y : p.y;
+			if (p.x == SWT.DEFAULT || p.y == SWT.DEFAULT) {
+				auto cs = _win.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+				p.x = p.x == SWT.DEFAULT ? cs.x : p.x;
+				p.y = p.y == SWT.DEFAULT ? cs.y : p.y;
 			}
 			_win.setSize = p;
 		} else {

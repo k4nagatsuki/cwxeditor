@@ -13,38 +13,38 @@ import std.math;
 import std.file;
 import std.path;
 
-import dwt.DWT;
-import dwt.DWTException;
-import dwt.widgets.Display;
-import dwt.widgets.Shell;
-import dwt.widgets.Canvas;
-import dwt.widgets.Composite;
-import dwt.widgets.Control;
-import dwt.widgets.Listener;
-import dwt.widgets.Event;
-import dwt.graphics.Color;
-import dwt.graphics.Device;
-import dwt.graphics.GC;
-import dwt.graphics.Image;
-import dwt.graphics.ImageData;
-import dwt.graphics.Cursor;
-import dwt.graphics.Font;
-import dwt.graphics.FontData;
-import dwt.graphics.Point;
-import dwt.graphics.Rectangle;
-import dwt.graphics.GCData;
-import dwt.dnd.DND;
-import dwt.dnd.DropTarget;
-import dwt.dnd.DropTargetAdapter;
-import dwt.dnd.DropTargetEvent;
-import dwt.events.PaintListener;
-import dwt.events.KeyAdapter;
-import dwt.events.KeyEvent;
-import dwt.events.MouseAdapter;
-import dwt.events.MouseListener;
-import dwt.events.MouseMoveListener;
-import dwt.events.DisposeListener;
-import dwt.events.DisposeEvent;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.SWTException;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Canvas;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Device;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.Cursor;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.graphics.GCData;
+import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.DropTarget;
+import org.eclipse.swt.dnd.DropTargetAdapter;
+import org.eclipse.swt.dnd.DropTargetEvent;
+import org.eclipse.swt.events.PaintListener;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseListener;
+import org.eclipse.swt.events.MouseMoveListener;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.DisposeEvent;
 
 /// イメージを拡大・縮小・移動させるためのトグル。
 public enum Toggle {
@@ -302,7 +302,7 @@ public:
 					auto img = new Image(cur, imgData);
 					scope (exit) img.dispose;
 					dc.drawImage(img, a.insets.w, a.insets.n);
-				} catch (DWTException e) {
+				} catch (SWTException e) {
 					// ファイルが無い場合は表示しない。
 				}
 			}
@@ -322,19 +322,19 @@ public:
 					scope (exit) dc.setAlpha = 255;
 					switch (a.textPos) {
 					case TPos.LEFT: {
-						dc.setTextAntialias = DWT.OFF;
+						dc.setTextAntialias = SWT.OFF;
 						dc.drawText(a.text, a.insets.w, a.insets.n, true);
-						dc.setTextAntialias = DWT.ON;
+						dc.setTextAntialias = SWT.ON;
 					} break;
 					case TPos.RIGHT: {
 						int tw = dc.textExtent(a.text).x;
-						dc.setTextAntialias = DWT.OFF;
+						dc.setTextAntialias = SWT.OFF;
 						dc.drawText(a.text, initW - a.insets.e - tw, a.insets.n, true);
-						dc.setTextAntialias = DWT.ON;
+						dc.setTextAntialias = SWT.ON;
 					} break;
 					default: assert (0);
 					}
-				} catch (DWTException e) {
+				} catch (SWTException e) {
 				}
 			}
 		}
@@ -342,10 +342,10 @@ public:
 		if (_title !is null) {
 			auto font = new Font(cur, titFont);
 			dc.setFont = font;
-			dc.setForeground(cur.getSystemColor(DWT.COLOR_BLACK));
-			dc.setTextAntialias = DWT.OFF;
+			dc.setForeground(cur.getSystemColor(SWT.COLOR_BLACK));
+			dc.setTextAntialias = SWT.OFF;
 			dc.drawText(_title, titPoint.x, titPoint.y, true);
-			dc.setTextAntialias = DWT.ON;
+			dc.setTextAntialias = SWT.ON;
 			dc.setFont(null);
 			font.dispose;
 		}
@@ -604,8 +604,8 @@ public:
 	/// トグルを描画する。
 	void drawToggle(GC gc) {
 		if (visible && selected) {
-			gc.setBackground(Display.getCurrent.getSystemColor(DWT.COLOR_WHITE));
-			gc.setForeground(Display.getCurrent.getSystemColor(DWT.COLOR_BLACK));
+			gc.setBackground(Display.getCurrent.getSystemColor(SWT.COLOR_WHITE));
+			gc.setForeground(Display.getCurrent.getSystemColor(SWT.COLOR_BLACK));
 			gc.drawFocus(newX, newY, newWidth, newHeight);
 			foreach (rect; tgls.values) {
 				gc.fillRectangle(rect.x + 1, rect.y + 1, tglSize - 1, tglSize - 1);
@@ -907,46 +907,46 @@ private:
 	class KListener : KeyAdapter {
 		override void keyPressed(KeyEvent ke) {
 			switch (ke.keyCode) {
-			case DWT.ARROW_UP: {
+			case SWT.ARROW_UP: {
 				redrawProc((FlexImage img) {
-					if (ke.stateMask & DWT.SHIFT) {
+					if (ke.stateMask & SWT.SHIFT) {
 						img.newHeight = img.newHeight - 1;
 					} else {
 						img.newY = img.newY - 1;
 					}
 				});
 			} break;
-			case DWT.ARROW_RIGHT: {
+			case SWT.ARROW_RIGHT: {
 				redrawProc((FlexImage img) {
-					if (ke.stateMask & DWT.SHIFT) {
+					if (ke.stateMask & SWT.SHIFT) {
 						img.newWidth = img.newWidth + 1;
 					} else {
 						img.newX = img.newX + 1;
 					}
 				});
 			} break;
-			case DWT.ARROW_DOWN: {
+			case SWT.ARROW_DOWN: {
 				redrawProc((FlexImage img) {
-					if (ke.stateMask & DWT.SHIFT) {
+					if (ke.stateMask & SWT.SHIFT) {
 						img.newHeight = img.newHeight + 1;
 					} else {
 						img.newY = img.newY + 1;
 					}
 				});
 			} break;
-			case DWT.ARROW_LEFT: {
+			case SWT.ARROW_LEFT: {
 				redrawProc((FlexImage img) {
-					if (ke.stateMask & DWT.SHIFT) {
+					if (ke.stateMask & SWT.SHIFT) {
 						img.newWidth = img.newWidth - 1;
 					} else {
 						img.newX = img.newX - 1;
 					}
 				});
 			} break;
-			case DWT.ESC: {
+			case SWT.ESC: {
 				redrawProc((FlexImage img) {img.reset;});
 			} break;
-			case DWT.CR: {
+			case SWT.CR: {
 				redrawProc((FlexImage img) {img.resize;});
 			} break;
 			default: break;
@@ -1039,7 +1039,7 @@ private:
 		override void handleEvent(Event me) {
 			setFocus;
 			moved = false;
-			_ctrl = (me.stateMask & DWT.SHIFT) != 0 || (me.stateMask & DWT.CTRL) != 0;
+			_ctrl = (me.stateMask & SWT.SHIFT) != 0 || (me.stateMask & SWT.CTRL) != 0;
 			int x = me.x;
 			int y = me.y;
 			if (me.button == 1) {
@@ -1159,7 +1159,7 @@ private:
 			auto buf = new Image(getShell.getDisplay, getSize.x, getSize.y);
 			auto gc = new GC(buf);
 
-			gc.setBackground(getShell.getDisplay.getSystemColor(DWT.COLOR_DARK_BLUE));
+			gc.setBackground(getShell.getDisplay.getSystemColor(SWT.COLOR_DARK_BLUE));
 			gc.fillRectangle(0, 0, getSize.x, getSize.y);
 			foreach (bmp; backs) {
 				bmp.draw(gc);
@@ -1172,7 +1172,7 @@ private:
 	class Traverse : Listener {
 		public override void handleEvent(Event e) {
 			switch (e.detail) {
-			case DWT.TRAVERSE_ARROW_NEXT, DWT.TRAVERSE_ARROW_PREVIOUS:
+			case SWT.TRAVERSE_ARROW_NEXT, SWT.TRAVERSE_ARROW_PREVIOUS:
 				e.doit = false;
 				break;
 			default:
@@ -1391,23 +1391,23 @@ public:
 	/// 唯一のコンストラクタ。
 	this(Composite parent, int style) {
 		super(parent, style);
-		addListener(DWT.MouseDown, new MouseDown);
-		addListener(DWT.MouseUp, new MouseUp);
+		addListener(SWT.MouseDown, new MouseDown);
+		addListener(SWT.MouseUp, new MouseUp);
 		addMouseMoveListener(new MMListener);
 		addKeyListener(new KListener);
-		addListener(DWT.FocusOut, new FocusLost);
-		addListener(DWT.Traverse, new Traverse);
+		addListener(SWT.FocusOut, new FocusLost);
+		addListener(SWT.Traverse, new Traverse);
 		addPaintListener(new PListener);
 		addDisposeListener(new DListener);
 
-		toggleCursors[Toggle.LEFT_TOP] = display.getSystemCursor(DWT.CURSOR_SIZENWSE);
-		toggleCursors[Toggle.RIGHT_BOTTOM] = display.getSystemCursor(DWT.CURSOR_SIZENWSE);
-		toggleCursors[Toggle.RIGHT_TOP] = display.getSystemCursor(DWT.CURSOR_SIZENESW);
-		toggleCursors[Toggle.LEFT_BOTTOM] = display.getSystemCursor(DWT.CURSOR_SIZENESW);
-		toggleCursors[Toggle.LEFT_MIDDLE] = display.getSystemCursor(DWT.CURSOR_SIZEWE);
-		toggleCursors[Toggle.RIGHT_MIDDLE] = display.getSystemCursor(DWT.CURSOR_SIZEWE);
-		toggleCursors[Toggle.MIDDLE_TOP] = display.getSystemCursor(DWT.CURSOR_SIZENS);
-		toggleCursors[Toggle.MIDDLE_BOTTOM] = display.getSystemCursor(DWT.CURSOR_SIZENS);
+		toggleCursors[Toggle.LEFT_TOP] = display.getSystemCursor(SWT.CURSOR_SIZENWSE);
+		toggleCursors[Toggle.RIGHT_BOTTOM] = display.getSystemCursor(SWT.CURSOR_SIZENWSE);
+		toggleCursors[Toggle.RIGHT_TOP] = display.getSystemCursor(SWT.CURSOR_SIZENESW);
+		toggleCursors[Toggle.LEFT_BOTTOM] = display.getSystemCursor(SWT.CURSOR_SIZENESW);
+		toggleCursors[Toggle.LEFT_MIDDLE] = display.getSystemCursor(SWT.CURSOR_SIZEWE);
+		toggleCursors[Toggle.RIGHT_MIDDLE] = display.getSystemCursor(SWT.CURSOR_SIZEWE);
+		toggleCursors[Toggle.MIDDLE_TOP] = display.getSystemCursor(SWT.CURSOR_SIZENS);
+		toggleCursors[Toggle.MIDDLE_BOTTOM] = display.getSystemCursor(SWT.CURSOR_SIZENS);
 		toggleCursors[Toggle.MOVE] = null;
 		toggleCursors[Toggle.NONE] = null;
 	}

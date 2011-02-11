@@ -5,6 +5,7 @@ cwxeditor_src/cwxeditor.xml
 cwxeditor_src/cwxeditor_error.log
 
 syntax: regexp
+^cwxeditor_src/objs/.*
 ^cwxeditor_src/Scenario/.*
-^cwxeditor_src/temp.*
+^cwxeditor_src/temp/.*
 ^cwxeditor_src/.*\.dll

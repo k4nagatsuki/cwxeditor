@@ -17,9 +17,9 @@ import std.utf;
 import std.ctype;
 import std.file;
 
-import dwt.widgets.Display;
-import dwt.graphics.ImageData;
-import dwt.graphics.Image;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.Image;
 
 Skin findSkin(S = Summary)(Props prop, S summ) {
 	static if (is(typeof(summ.type))) {
@@ -89,7 +89,7 @@ version (Windows) {
 			hbmp = LoadBitmapW(handle, toUTF16z(resName));
 			if (!hbmp) return null;
 			scope (exit) DeleteObject(hbmp);
-			auto img = Image.win32_new(Display.getCurrent, DWT.BITMAP, hbmp);
+			auto img = Image.win32_new(Display.getCurrent, SWT.BITMAP, hbmp);
 			auto data = img.getImageData;
 			img.destroy;
 			if (mask) {

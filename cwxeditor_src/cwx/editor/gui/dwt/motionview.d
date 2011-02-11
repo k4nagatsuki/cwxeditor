@@ -21,54 +21,54 @@ import cwx.editor.gui.dwt.xmlbytestransfer;
 import std.string;
 import std.date;
 
-import dwt.DWT;
-import dwt.widgets.Button;
-import dwt.widgets.Canvas;
-import dwt.widgets.Combo;
-import dwt.widgets.Composite;
-import dwt.widgets.Control;
-import dwt.widgets.Display;
-import dwt.widgets.Group;
-import dwt.widgets.Label;
-import dwt.widgets.Menu;
-import dwt.widgets.MenuItem;
-import dwt.widgets.Table;
-import dwt.widgets.TableColumn;
-import dwt.widgets.TableItem;
-import dwt.widgets.Text;
-import dwt.widgets.ToolItem;
-import dwt.widgets.ToolBar;
-import dwt.widgets.Scale;
-import dwt.widgets.Spinner;
-import dwt.widgets.Event;
-import dwt.widgets.Listener;
-import dwt.custom.CTabFolder;
-import dwt.custom.CTabItem;
-import dwt.custom.StackLayout;
-import dwt.graphics.Image;
-import dwt.events.KeyListener;
-import dwt.events.KeyEvent;
-import dwt.events.MouseAdapter;
-import dwt.events.MouseEvent;
-import dwt.events.SelectionAdapter;
-import dwt.events.SelectionEvent;
-import dwt.events.DisposeListener;
-import dwt.events.DisposeEvent;
-import dwt.events.PaintListener;
-import dwt.events.PaintEvent;
-import dwt.layout.GridLayout;
-import dwt.layout.GridData;
-import dwt.dwthelper.utils;
-import dwt.dnd.DND;
-import dwt.dnd.DragSourceAdapter;
-import dwt.dnd.DragSourceEvent;
-import dwt.dnd.DragSource;
-import dwt.dnd.DropTargetAdapter;
-import dwt.dnd.DropTargetEvent;
-import dwt.dnd.DropTarget;
-import dwt.dnd.Clipboard;
-import dwt.dnd.Transfer;
-import dwt.dnd.ByteArrayTransfer;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Canvas;
+import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.Scale;
+import org.eclipse.swt.widgets.Spinner;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.custom.StackLayout;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.events.KeyListener;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.PaintListener;
+import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.GridData;
+import java.lang.all;
+import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.DragSourceAdapter;
+import org.eclipse.swt.dnd.DragSourceEvent;
+import org.eclipse.swt.dnd.DragSource;
+import org.eclipse.swt.dnd.DropTargetAdapter;
+import org.eclipse.swt.dnd.DropTargetEvent;
+import org.eclipse.swt.dnd.DropTarget;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.dnd.ByteArrayTransfer;
 
 public:
 
@@ -173,7 +173,7 @@ private:
 		}
 		void keyReleased(KeyEvent e) {}
 		void keyPressed(KeyEvent e) {
-			if (e.character == DWT.CR) {
+			if (e.character == SWT.CR) {
 				if (editBeast) {
 					e.doit = false;
 				}
@@ -223,9 +223,9 @@ private:
 	void appendMotion(Motion motion, int index = -1) {
 		TableItem itm;
 		if (index >= 0) {
-			itm = new TableItem(_motions, DWT.NONE, index);
+			itm = new TableItem(_motions, SWT.NONE, index);
 		} else {
-			itm = new TableItem(_motions, DWT.NONE);
+			itm = new TableItem(_motions, SWT.NONE);
 		}
 		itm.setImage = _prop.images.motion(motion.type);
 		itm.setText = _descs[motion.type];
@@ -325,7 +325,7 @@ private:
 				e.gc.drawImage(img, x, y);
 				img.dispose;
 				if (pane.isFocusControl) {
-					e.gc.setBackground = Display.getCurrent.getSystemColor(DWT.COLOR_LIST_SELECTION);
+					e.gc.setBackground = Display.getCurrent.getSystemColor(SWT.COLOR_LIST_SELECTION);
 					e.gc.setAlpha = 64;
 					e.gc.fillRectangle(x, y, data.width, data.height);
 					e.gc.setAlpha = 255;
@@ -394,7 +394,7 @@ private:
 	}
 public:
 	this(Commons comm, Props prop, Summary summ, Composite parent) {
-		super(parent, DWT.NONE);
+		super(parent, SWT.NONE);
 		_id = format("%08X", &this) ~ "-" ~ to!(string)(getUTCtime);
 		_comm = comm;
 		_prop = prop;
@@ -402,25 +402,25 @@ public:
 
 		setLayout = zeroMarginGridLayout(3, false);
 		{
-			auto mtabf = new CTabFolder(this, DWT.FLAT | DWT.BORDER);
+			auto mtabf = new CTabFolder(this, SWT.FLAT | SWT.BORDER);
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
 			gd.widthHint = 0;
 			gd.horizontalSpan = 3;
 			mtabf.setLayoutData = gd;
 			ToolBar createBar(string name) {
-				auto bar = new ToolBar(mtabf, DWT.FLAT);
-				bar.addListener(DWT.Traverse, new class Listener {
+				auto bar = new ToolBar(mtabf, SWT.FLAT);
+				bar.addListener(SWT.Traverse, new class Listener {
 					override void handleEvent(Event e) {e.doit = true;}
 				});
-				bar.addListener(DWT.KeyDown, new class Listener {
+				bar.addListener(SWT.KeyDown, new class Listener {
 					override void handleEvent(Event e) {e.doit = true;}
 				});
 				createToolItem(bar, _prop.msgs.msnDelete, _prop.images.msnDelete, &removeMotion);
-				new ToolItem(bar, DWT.SEPARATOR);
+				new ToolItem(bar, SWT.SEPARATOR);
 				createToolItem(bar, _prop.msgs.ttUp, _prop.images.menuUp, &up);
 				createToolItem(bar, _prop.msgs.ttDown, _prop.images.menuDown, &down);
-				new ToolItem(bar, DWT.SEPARATOR);
-				auto tab = new CTabItem(mtabf, DWT.NONE);
+				new ToolItem(bar, SWT.SEPARATOR);
+				auto tab = new CTabItem(mtabf, SWT.NONE);
 				tab.setControl = bar;
 				tab.setText = name;
 				return bar;
@@ -503,7 +503,7 @@ public:
 			mtabf.setSelection(0);
 		}
 		{
-			_motions = new Table(this, DWT.BORDER | DWT.SINGLE | DWT.V_SCROLL | DWT.FULL_SELECTION);
+			_motions = new Table(this, SWT.BORDER | SWT.SINGLE | SWT.V_SCROLL | SWT.FULL_SELECTION);
 			auto gd = new GridData(GridData.FILL_BOTH);
 			gd.widthHint = _prop.var.etc.motionsWidth;
 			_motions.setLayoutData = gd;
@@ -511,46 +511,46 @@ public:
 			auto menu = new Menu(_motions);
 			createMenuItem(menu, _prop.msgs.menuUp, _prop.images.menuUp, &up);
 			createMenuItem(menu, _prop.msgs.menuDown, _prop.images.menuDown, &down);
-			new MenuItem(menu, DWT.SEPARATOR);
+			new MenuItem(menu, SWT.SEPARATOR);
 			appendMenuTCPD(_prop, menu, new MotionTCPD);
 			_motions.setMenu = menu;
 			usingPopupMenuAccelerator(_motions);
-			auto col = new FullTableColumn(_motions, DWT.NONE);
+			auto col = new FullTableColumn(_motions, SWT.NONE);
 			col.column.setText = _prop.msgs.motionKind;
 		}
 		{
-			_motionElm = new Table(this, DWT.BORDER | DWT.SINGLE | DWT.NO_SCROLL | DWT.FULL_SELECTION);
+			_motionElm = new Table(this, SWT.BORDER | SWT.SINGLE | SWT.NO_SCROLL | SWT.FULL_SELECTION);
 			_motionElm.setLayoutData = new GridData(GridData.FILL_VERTICAL);
 			_motionElm.setHeaderVisible = true;
 			_motionElm.addSelectionListener(new SelElement);
 			_motionElm.setEnabled = false;
-			auto col = new FullTableColumn(_motionElm, DWT.NONE);
+			auto col = new FullTableColumn(_motionElm, SWT.NONE);
 			col.column.setText = _prop.msgs.motionElement;
 			foreach (elm; [Element.ALL, Element.HEALTH, Element.MIND,
 					Element.MIRACLE, Element.MAGIC, Element.FIRE, Element.ICE]) {
-				auto itm = new TableItem(_motionElm, DWT.NONE);
+				auto itm = new TableItem(_motionElm, SWT.NONE);
 				itm.setImage = _prop.images.element(elm);
 				itm.setText = _prop.msgs.element(elm);
 				itm.setData = new Integer(elm);
 			}
 		}
 		{
-			_editComp = new Composite(this, DWT.NONE);
+			_editComp = new Composite(this, SWT.NONE);
 			_editComp.setLayoutData = new GridData(GridData.FILL_VERTICAL);
 			auto motionStack = new StackLayout;
 			_editComp.setLayout = motionStack;
 			Composite createC() {
-				auto c = new Composite(_editComp, DWT.NONE);
+				auto c = new Composite(_editComp, SWT.NONE);
 				c.setLayout = zeroMarginGridLayout(1, false);
 				return c;
 			}
 			_summonComp = createC;
 			{
-				auto grp = new Group(_summonComp, DWT.NONE);
+				auto grp = new Group(_summonComp, SWT.NONE);
 				grp.setLayoutData = new GridData(GridData.FILL_BOTH);
 				grp.setLayout = new GridLayout(2, false);
 				grp.setText = _prop.msgs.motionBeast;
-				_beasts = new Combo(grp, DWT.BORDER | DWT.DROP_DOWN | DWT.READ_ONLY);
+				_beasts = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 				_beasts.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				_beasts.add(_prop.msgs.beastNone);
 				_beastTbl[0] = null;
@@ -558,32 +558,32 @@ public:
 					_beastTbl[i + 1] = c;
 					_beasts.add(c.name);
 				}
-				auto setBeast = new Button(grp, DWT.PUSH);
+				auto setBeast = new Button(grp, SWT.PUSH);
 				setBeast.setImage = _prop.images.setBeast;
 				setBeast.setToolTipText = _prop.msgs.setBeast;
 				setBeast.addSelectionListener(new SetBeast);
-				_beastImg = new Canvas(grp, DWT.BORDER | DWT.DOUBLE_BUFFERED);
-				_beastImg.addListener(DWT.Traverse, new class Listener {
+				_beastImg = new Canvas(grp, SWT.BORDER | SWT.DOUBLE_BUFFERED);
+				_beastImg.addListener(SWT.Traverse, new class Listener {
 					override void handleEvent(Event e) {
 						e.doit = true;
 					}
 				});
-				_beastImg.addListener(DWT.KeyDown, new class Listener {
+				_beastImg.addListener(SWT.KeyDown, new class Listener {
 					override void handleEvent(Event e) {
 						e.doit = true;
 					}
 				});
-				_beastImg.addListener(DWT.MouseDown, new class Listener {
+				_beastImg.addListener(SWT.MouseDown, new class Listener {
 					override void handleEvent(Event e) {
 						if (e.button == 1) (cast(Canvas) e.widget).setFocus;
 					}
 				});
-				_beastImg.addListener(DWT.FocusOut, new class Listener {
+				_beastImg.addListener(SWT.FocusOut, new class Listener {
 					override void handleEvent(Event e) {
 						(cast(Canvas) e.widget).redraw;
 					}
 				});
-				_beastImg.addListener(DWT.FocusIn, new class Listener {
+				_beastImg.addListener(SWT.FocusIn, new class Listener {
 					override void handleEvent(Event e) {
 						(cast(Canvas) e.widget).redraw;
 					}
@@ -609,17 +609,17 @@ public:
 			}
 			Spinner createSpinner(Composite parent, string name, int max, string hint,
 					void delegate(int) edit, int delegate(int) cancel) {
-				auto rgrp = new Group(parent, DWT.NONE);
+				auto rgrp = new Group(parent, SWT.NONE);
 				rgrp.setText = name;
 				rgrp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				rgrp.setLayout = new CenterLayout(DWT.VERTICAL | DWT.HORIZONTAL, 0);
-				auto rcomp = new Composite(rgrp, DWT.NONE);
+				rgrp.setLayout = new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0);
+				auto rcomp = new Composite(rgrp, SWT.NONE);
 				rcomp.setLayout = new GridLayout(2, false);
-				auto round = new Spinner(rcomp, DWT.BORDER);
+				auto round = new Spinner(rcomp, SWT.BORDER);
 				round.setMaximum = max;
 				round.setMinimum = 1;
 				new SpinnerEdit(round, edit, edit, cancel);
-				auto l_round = new Label(rcomp, DWT.NONE);
+				auto l_round = new Label(rcomp, SWT.NONE);
 				l_round.setText = hint;
 				return round;
 			}
@@ -629,12 +629,12 @@ public:
 			}
 			_abilityComp = createC;
 			{
-				auto vgrp = new Group(_abilityComp, DWT.NONE);
+				auto vgrp = new Group(_abilityComp, SWT.NONE);
 				vgrp.setText = _prop.msgs.motionEnhValue;
-				vgrp.setLayout = new CenterLayout(DWT.VERTICAL | DWT.HORIZONTAL, 0);
-				auto vcomp = new Composite(vgrp, DWT.NONE);
+				vgrp.setLayout = new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0);
+				auto vcomp = new Composite(vgrp, SWT.NONE);
 				vcomp.setLayout = new GridLayout(2, false);
-				_abiVal = new Scale(vcomp, DWT.NONE);
+				_abiVal = new Scale(vcomp, SWT.NONE);
 				auto gd_av = new GridData(GridData.FILL_HORIZONTAL);
 				gd_av.horizontalSpan = 2;
 				_abiVal.setLayoutData = gd_av;
@@ -642,10 +642,10 @@ public:
 				_abiVal.setMaximum = _prop.looks.motionAbilityValueMax * 2;
 				_abiVal.setPageIncrement = _prop.looks.motionAbilityValueMax / 2;
 				_abiVal.addSelectionListener(new AbiValListener);
-				auto l_min = new Label(vcomp, DWT.NONE);
+				auto l_min = new Label(vcomp, SWT.NONE);
 				l_min.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
 				l_min.setText = to!(string)(cast(int) _prop.looks.motionAbilityValueMax * -1);
-				auto l_max = new Label(vcomp, DWT.NONE);
+				auto l_max = new Label(vcomp, SWT.NONE);
 				l_max.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
 				l_max.setText = "+" ~ to!(string)(_prop.looks.motionAbilityValueMax);
 				_abiRound = createRoundC(_abilityComp);
@@ -656,15 +656,15 @@ public:
 			}
 			_valueComp = createC;
 			{
-				auto grp = new Group(_valueComp, DWT.NONE);
+				auto grp = new Group(_valueComp, SWT.NONE);
 				grp.setText = _prop.msgs.motionDamageType;
-				grp.setLayout = new CenterLayout(DWT.VERTICAL | DWT.HORIZONTAL, 0);
+				grp.setLayout = new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0);
 				grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				auto comp = new Composite(grp, DWT.NONE);
+				auto comp = new Composite(grp, SWT.NONE);
 				comp.setLayout = new GridLayout(1, false);
 				auto dtl = new DamageTypeListener;
 				foreach (typ; [DamageType.LEVEL_RATIO, DamageType.NORMAL, DamageType.MAX]) {
-					auto radio = new Button(comp, DWT.RADIO);
+					auto radio = new Button(comp, SWT.RADIO);
 					radio.setText = _prop.msgs.damageType(typ);
 					radio.addSelectionListener(dtl);
 					_dmgTyp[typ] = radio;

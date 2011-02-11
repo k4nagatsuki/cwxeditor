@@ -20,31 +20,31 @@ import cwx.editor.gui.dwt.summarydialog;
 import std.file;
 import std.path;
 
-import dwt.widgets.Control;
-import dwt.widgets.Composite;
-import dwt.widgets.CoolBar;
-import dwt.widgets.CoolItem;
-import dwt.widgets.ToolBar;
-import dwt.widgets.ToolItem;
-import dwt.widgets.Shell;
-import dwt.widgets.Label;
-import dwt.widgets.Menu;
-import dwt.widgets.MenuItem;
-import dwt.custom.CTabFolder;
-import dwt.custom.CTabItem;
-import dwt.graphics.Image;
-import dwt.layout.FillLayout;
-import dwt.layout.GridLayout;
-import dwt.layout.GridData;
-import dwt.events.KeyListener;
-import dwt.events.ShellAdapter;
-import dwt.events.ShellEvent;
-import dwt.events.SelectionAdapter;
-import dwt.events.SelectionEvent;
-import dwt.events.DisposeListener;
-import dwt.events.DisposeEvent;
-import dwt.events.ControlAdapter;
-import dwt.events.ControlEvent;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.CoolBar;
+import org.eclipse.swt.widgets.CoolItem;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.events.KeyListener;
+import org.eclipse.swt.events.ShellAdapter;
+import org.eclipse.swt.events.ShellEvent;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.ControlAdapter;
+import org.eclipse.swt.events.ControlEvent;
 
 class AbstractDataWindow(bool UseArea, bool UseFlag) : TopLevelPanel, TCPD {
 private:
@@ -98,7 +98,7 @@ public:
 		Shell shell = null;
 		auto parShl = cast(Shell) parent;
 		if (parShl) {
-			shell = new Shell(parShl, DWT.SHELL_TRIM);
+			shell = new Shell(parShl, SWT.SHELL_TRIM);
 			shell.setImage = _prop.images.app;
 			shell.addShellListener(new class ShellAdapter {
 				public override void shellClosed(ShellEvent e) {
@@ -111,7 +111,7 @@ public:
 			});
 			_win = shell;
 		} else {
-			_win = new Composite(parent, DWT.NONE);
+			_win = new Composite(parent, SWT.NONE);
 		}
 		_win.setData = new TLPData(this);
 		_win.setLayout = windowGridLayout(1, true);
@@ -128,11 +128,11 @@ public:
 		});
 		if (shell) {
 			{
-				auto bar = new Menu(shell, DWT.BAR);
+				auto bar = new Menu(shell, SWT.BAR);
 
 				auto mf = createMenu(bar, _prop.msgs.menuFile);
 				createMenuItem(mf, _prop.msgs.menuSave, _prop.images.menuSave, &saveScenario);
-				new MenuItem(mf, DWT.SEPARATOR);
+				new MenuItem(mf, SWT.SEPARATOR);
 				createMenuItem(mf, _prop.msgs.menuCloseWin, _prop.images.menuCloseWin, &shell.close);
 
 				auto me = createMenu(bar, _prop.msgs.menuEdit);
@@ -147,7 +147,7 @@ public:
 					auto mt = createMenu(bar, _prop.msgs.menuTable);
 					static if (UseFlag) {
 						createMenuItem(mt, _prop.msgs.menuSummary, _prop.images.menuSummary, &editSummary);
-						new MenuItem(mt, DWT.SEPARATOR);
+						new MenuItem(mt, SWT.SEPARATOR);
 					}
 					createMenuItem(mt, _prop.msgs.menuNewArea, _prop.images.menuNewArea, &createArea);
 					createMenuItem(mt, _prop.msgs.menuNewBattle, _prop.images.menuNewBattle, &createBattle);
@@ -156,31 +156,31 @@ public:
 				static if (UseFlag) {
 					auto mv = createMenu(bar, _prop.msgs.menuVariable);
 					createMenuItem(mv, _prop.msgs.menuNewFlagDir, _prop.images.menuNewFlagDir, &createFlagDir);
-					new MenuItem(mv, DWT.SEPARATOR);
+					new MenuItem(mv, SWT.SEPARATOR);
 					createMenuItem(mv, _prop.msgs.menuNewFlag, _prop.images.menuNewFlag, &createFlag);
 					createMenuItem(mv, _prop.msgs.menuNewStep, _prop.images.menuNewStep, &createStep);
 				}
 				shell.setMenuBar = bar;
 			}
 			{
-				auto bar = new ToolBar(shell, DWT.FLAT);
+				auto bar = new ToolBar(shell, SWT.FLAT);
 				bar.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 
 				static if (UseArea && UseFlag) {
 					createToolItem(bar, _prop.msgs.ttSummary, _prop.images.menuSummary, &editSummary);
 				}
 				static if (UseArea) {
-					new ToolItem(bar, DWT.SEPARATOR);
+					new ToolItem(bar, SWT.SEPARATOR);
 					createToolItem(bar, _prop.msgs.ttNewArea, _prop.images.menuNewArea, &createArea);
 					createToolItem(bar, _prop.msgs.ttNewBattle, _prop.images.menuNewBattle, &createBattle);
 					createToolItem(bar, _prop.msgs.ttNewPackage, _prop.images.menuNewPackage, &createPackage);
 				}
 				static if (UseFlag) {
-					new ToolItem(bar, DWT.SEPARATOR);
+					new ToolItem(bar, SWT.SEPARATOR);
 					createToolItem(bar, _prop.msgs.ttNewFlag, _prop.images.menuNewFlag, &createFlag);
 					createToolItem(bar, _prop.msgs.ttNewStep, _prop.images.menuNewStep, &createStep);
 					createToolItem(bar, _prop.msgs.ttNewFlagDir, _prop.images.menuNewFlagDir, &createFlagDir);
-					new ToolItem(bar, DWT.SEPARATOR);
+					new ToolItem(bar, SWT.SEPARATOR);
 					createToolItem(bar, _prop.msgs.ttChangeVH, _prop.images.menuChangeVH, &changeVHSide);
 				}
 			}
@@ -202,7 +202,7 @@ public:
 		}
 		{
 			static if (UseArea && UseFlag) {
-				tabf = new CTabFolder(_win, DWT.BORDER);
+				tabf = new CTabFolder(_win, SWT.BORDER);
 				tabf.setLayoutData = new GridData(GridData.FILL_BOTH);
 				tabf.addSelectionListener(new SListener);
 
@@ -210,10 +210,10 @@ public:
 				_flags.setupTLP(this);
 				_areas = new AreaTable(_comm, _prop, tabf, _flags.flags);
 
-				tabA = new CTabItem(tabf, DWT.NONE);
+				tabA = new CTabItem(tabf, SWT.NONE);
 				tabA.setText = _prop.msgs.scenarioView;
 				tabA.setControl(_areas.table);
-				tabF = new CTabItem(tabf, DWT.NONE);
+				tabF = new CTabItem(tabf, SWT.NONE);
 				tabF.setText = _prop.msgs.variableView;
 				tabF.setControl(_flags.widget);
 
@@ -233,16 +233,16 @@ public:
 			} else static assert (0);
 		}
 		if (shell) {
-			_status = new Label(_win, DWT.NONE);
+			_status = new Label(_win, SWT.NONE);
 			_status.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		}
 		static if (UseArea && UseFlag) {
 			if (shell) {
-				scope wp = shell.computeSize(DWT.DEFAULT, DWT.DEFAULT);
-				int width = _prop.var.dataWin.width == DWT.DEFAULT ? wp.x : _prop.var.dataWin.width;
-				int height = _prop.var.dataWin.height == DWT.DEFAULT ? wp.y : _prop.var.dataWin.height;
-				int x = _prop.var.dataWin.x == DWT.DEFAULT ? shell.getBounds.x : _prop.var.dataWin.x + shell.getParent.getBounds.x;
-				int y = _prop.var.dataWin.y == DWT.DEFAULT ? shell.getBounds.y : _prop.var.dataWin.y + shell.getParent.getBounds.y;
+				scope wp = shell.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+				int width = _prop.var.dataWin.width == SWT.DEFAULT ? wp.x : _prop.var.dataWin.width;
+				int height = _prop.var.dataWin.height == SWT.DEFAULT ? wp.y : _prop.var.dataWin.height;
+				int x = _prop.var.dataWin.x == SWT.DEFAULT ? shell.getBounds.x : _prop.var.dataWin.x + shell.getParent.getBounds.x;
+				int y = _prop.var.dataWin.y == SWT.DEFAULT ? shell.getBounds.y : _prop.var.dataWin.y + shell.getParent.getBounds.y;
 				intoDisplay(x, y, width, height);
 				shell.setBounds(x, y, width, height);
 				shell.setMaximized = _prop.var.dataWin.maximized;

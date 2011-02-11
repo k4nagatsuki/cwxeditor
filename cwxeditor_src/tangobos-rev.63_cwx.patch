@@ -1,7 +1,7 @@
 Index: etc/c/zlib.d
 ===================================================================
---- etc/c/zlib.d	(revision 66)
-+++ etc/c/zlib.d	(working copy)
+--- etc/c/zlib.d	(リビジョン 66)
++++ etc/c/zlib.d	(作業コピー)
 @@ -36,8 +36,8 @@
  
  extern (C):
@@ -67,3 +67,16 @@ Index: etc/c/zlib.d
  }
  /*
       Initialize the internal stream state for decompression using inflateBack()
+Index: win32.mak
+===================================================================
+--- win32.mak	(リビジョン 66)
++++ win32.mak	(作業コピー)
+@@ -91,7 +91,7 @@
+ 	Czlib.obj
+ 
+ 
+-OBJS= crc32.obj $(OBJ_STD) $(OBJ_ETC)
++OBJS= crc32.obj $(OBJ_STD) $(OBJ_ETC) Czlib.obj
+ 
+ DOCS=	$(DOC)\std_path.html $(DOC)\std_math.html $(DOC)\std_outbuffer.html \
+ 	$(DOC)\std_stream.html $(DOC)\std_string.html $(DOC)\std_base64.html \

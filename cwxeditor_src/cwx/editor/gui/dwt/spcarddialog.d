@@ -22,35 +22,35 @@ import cwx.editor.gui.dwt.splitpane;
 
 import std.math;
 
-import dwt.DWT;
-import dwt.widgets.Display;
-import dwt.widgets.Shell;
-import dwt.widgets.Canvas;
-import dwt.widgets.Control;
-import dwt.widgets.Combo;
-import dwt.widgets.Composite;
-import dwt.widgets.Event;
-import dwt.widgets.Label;
-import dwt.widgets.Listener;
-import dwt.widgets.Group;
-import dwt.widgets.Button;
-import dwt.widgets.Spinner;
-import dwt.widgets.Table;
-import dwt.widgets.TableColumn;
-import dwt.widgets.TableItem;
-import dwt.widgets.Text;
-import dwt.widgets.Menu;
-import dwt.widgets.MenuItem;
-import dwt.layout.GridLayout;
-import dwt.layout.GridData;
-import dwt.graphics.Image;
-import dwt.events.DisposeListener;
-import dwt.events.DisposeEvent;
-import dwt.events.PaintListener;
-import dwt.events.PaintEvent;
-import dwt.events.SelectionAdapter;
-import dwt.events.SelectionEvent;
-import dwt.dwthelper.utils;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Canvas;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Spinner;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.PaintListener;
+import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import java.lang.all;
 
 public:
 
@@ -145,32 +145,32 @@ public:
 protected:
 
 	override void setup(Composite area) {
-		auto cl = new CenterLayout(DWT.NONE, 0);
+		auto cl = new CenterLayout(SWT.NONE, 0);
 		cl.fillHorizontal = true;
 		cl.fillVertical = true;
 		area.setLayout = cl;
 		{
-			auto comp = new Composite(area, DWT.NONE);
+			auto comp = new Composite(area, SWT.NONE);
 			comp.setLayout = new GridLayout(1, false);
 			{
-				auto sash = new SplitPane(comp, DWT.HORIZONTAL);
+				auto sash = new SplitPane(comp, SWT.HORIZONTAL);
 				sash.setLayoutData = new GridData(GridData.FILL_BOTH);
 				{
-					auto comp2 = new Composite(sash, DWT.NONE);
+					auto comp2 = new Composite(sash, SWT.NONE);
 					comp2.setLayout = zeroMarginGridLayout(1, false);
 					{
-						auto grp = new Group(comp2, DWT.NONE);
+						auto grp = new Group(comp2, SWT.NONE);
 						grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 						static if (is (C == MenuCard)) {
 							grp.setLayout = new GridLayout(1, false);
 							grp.setText = _prop.msgs.name;
-							_name = new Text(grp, DWT.BORDER);
+							_name = new Text(grp, SWT.BORDER);
 							_name.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 							checker(_name);
 						} else static if (is (C == EnemyCard)) {
 							grp.setLayout = new GridLayout(2, false);
 							grp.setText = _prop.msgs.enemyCardBase;
-							_casts = new Combo(grp, DWT.BORDER | DWT.DROP_DOWN | DWT.READ_ONLY);
+							_casts = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 							if (_summ) {
 								foreach (c; _summ.casts) {
 									_casts.add(c.name);
@@ -180,7 +180,7 @@ protected:
 							gd.widthHint = _prop.var.etc.nameWidth;
 							_casts.setLayoutData = gd;
 							_casts.addSelectionListener(new Repaint);
-							_escape = new Button(grp, DWT.TOGGLE);
+							_escape = new Button(grp, SWT.TOGGLE);
 							_escape.setImage = _prop.images.menuDoEscape;
 
 							_escape.setToolTipText = _prop.msgs.ttDoEscape;
@@ -191,16 +191,16 @@ protected:
 					{
 						static if (is (C == MenuCard)) {
 							auto skin = findSkin(_prop, _summ);
-							_imgPath = new ImageSelect!(MtType.CARD)(comp2, DWT.NONE, _comm, _prop, _summ,
+							_imgPath = new ImageSelect!(MtType.CARD)(comp2, SWT.NONE, _comm, _prop, _summ,
 								_prop.looks.cardSize.width, _prop.looks.cardSize.height, _summ ? _summ.legacy : false);
 							_imgPath.widget.setLayoutData = new GridData(GridData.FILL_BOTH);
 						} else static if (is (C == EnemyCard)) {
-							auto grp = new Group(comp2, DWT.NONE);
+							auto grp = new Group(comp2, SWT.NONE);
 							grp.setLayoutData = new GridData(GridData.FILL_BOTH);
 							grp.setLayout = new CenterLayout;
 							grp.setText = _prop.msgs.image;
-							_image = new Canvas(grp, DWT.BORDER | DWT.DOUBLE_BUFFERED);
-							auto rect = _image.computeTrim(DWT.DEFAULT, DWT.DEFAULT,
+							_image = new Canvas(grp, SWT.BORDER | SWT.DOUBLE_BUFFERED);
+							auto rect = _image.computeTrim(SWT.DEFAULT, SWT.DEFAULT,
 								_prop.looks.cardSize.width, _prop.looks.cardSize.height);
 							_image.setLayoutData = new Point(rect.width, rect.height);
 							_image.addPaintListener(new CardPaint);
@@ -210,15 +210,15 @@ protected:
 					}
 				}
 				{
-					auto grp = new Group(sash, DWT.NONE);
+					auto grp = new Group(sash, SWT.NONE);
 					grp.setLayout = new GridLayout(2, false);
 					grp.setText = _prop.msgs.refFlag;
-					_flag = new Table(grp, DWT.SINGLE | DWT.FULL_SELECTION | DWT.BORDER);
+					_flag = new Table(grp, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER);
 					auto gd = new GridData(GridData.FILL_BOTH);
 					gd.widthHint = _prop.var.etc.flagsWidth;
 					gd.heightHint = _prop.var.etc.flagsHeight;
 					_flag.setLayoutData = gd;
-					auto colN = new FullTableColumn(_flag, DWT.NONE);
+					auto colN = new FullTableColumn(_flag, SWT.NONE);
 				}
 				static if (is (C == MenuCard)) {
 					sash.setWeights = [_prop.var.etc.menuCardSashL, _prop.var.etc.menuCardSashR];
@@ -228,24 +228,24 @@ protected:
 				sash.addDisposeListener(new SDListener);
 			}
 			{
-				auto grp = new Group(comp, DWT.NONE);
+				auto grp = new Group(comp, SWT.NONE);
 				grp.setText = _prop.msgs.cardPosition;
 				grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				grp.setLayout = new CenterLayout(DWT.HORIZONTAL | DWT.VERTICAL, 0);
-				auto comp2 = new Composite(grp, DWT.NONE);
+				grp.setLayout = new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0);
+				auto comp2 = new Composite(grp, SWT.NONE);
 				comp2.setLayout = new GridLayout(3, false);
 				Spinner createS(string name, int max, int min, bool percent = false) {
-					auto comp3 = new Composite(comp2, DWT.NONE);
+					auto comp3 = new Composite(comp2, SWT.NONE);
 					auto gl = new GridLayout(percent ? 3 : 2, false);
 					gl.marginHeight = 0;
 					comp3.setLayout = gl;
-					auto l = new Label(comp3, DWT.NONE);
+					auto l = new Label(comp3, SWT.NONE);
 					l.setText = name;
-					auto spn = new Spinner(comp3, DWT.BORDER);
+					auto spn = new Spinner(comp3, SWT.BORDER);
 					spn.setMaximum = max;
 					spn.setMinimum = min;
 					if (percent) {
-						auto lp = new Label(comp3, DWT.NONE);
+						auto lp = new Label(comp3, SWT.NONE);
 						lp.setText = "%";
 					}
 					return spn;
@@ -258,22 +258,22 @@ protected:
 			}
 			static if (is (C == MenuCard)) {
 				{
-					auto grp = new Group(comp, DWT.NONE);
+					auto grp = new Group(comp, SWT.NONE);
 					grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-					grp.setLayout = new CenterLayout(DWT.HORIZONTAL);
+					grp.setLayout = new CenterLayout(SWT.HORIZONTAL);
 					grp.setText = _prop.msgs.desc;
-					_desc = new FixedWidthText(dwtData(_prop.looks.cardDescFont(_summ ? _summ.legacy : false)), _prop.looks.cardDescLen, grp, DWT.BORDER);
+					_desc = new FixedWidthText(dwtData(_prop.looks.cardDescFont(_summ ? _summ.legacy : false)), _prop.looks.cardDescLen, grp, SWT.BORDER);
 					_desc.widget.setLayoutData = _desc.computeTextBaseSize(_prop.looks.cardDescLine);
 				}
 			}
-			comp.setLayoutData = area.computeSize(DWT.DEFAULT, DWT.DEFAULT);
+			comp.setLayoutData = area.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 		}
 
-		auto nof = new TableItem(_flag, DWT.NONE);
+		auto nof = new TableItem(_flag, SWT.NONE);
 		nof.setText = _prop.msgs.noFlag;
 		if (_summ) {
 			foreach (flag; _summ.flagDirRoot.allFlags) {
-				auto itm = new TableItem(_flag, DWT.NONE);
+				auto itm = new TableItem(_flag, SWT.NONE);
 				itm.setImage = _prop.images.flag;
 				itm.setText = flag.path;
 				itm.setData = flag;

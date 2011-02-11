@@ -23,34 +23,34 @@ import cwx.editor.gui.dwt.splitpane;
 
 import std.string;
 
-import dwt.widgets.Display;
-import dwt.widgets.Shell;
-import dwt.widgets.Control;
-import dwt.widgets.Composite;
-import dwt.widgets.Combo;
-import dwt.widgets.Canvas;
-import dwt.widgets.Group;
-import dwt.widgets.Text;
-import dwt.widgets.Spinner;
-import dwt.widgets.Label;
-import dwt.widgets.Table;
-import dwt.widgets.TableColumn;
-import dwt.widgets.TableItem;
-import dwt.custom.CTabFolder;
-import dwt.custom.CTabItem;
-import dwt.graphics.Image;
-import dwt.graphics.ImageData;
-import dwt.graphics.GC;
-import dwt.graphics.Font;
-import dwt.graphics.FontData;
-import dwt.graphics.Color;
-import dwt.events.PaintListener;
-import dwt.events.PaintEvent;
-import dwt.events.DisposeListener;
-import dwt.events.DisposeEvent;
-import dwt.layout.FillLayout;
-import dwt.layout.GridLayout;
-import dwt.layout.GridData;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.widgets.Canvas;
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.Spinner;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.events.PaintListener;
+import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.GridData;
 
 public:
 
@@ -126,7 +126,7 @@ private:
 					_prop.looks.summaryLevelY);
 				c.dispose;
 				gc.setAlpha = 255;
-				gc.setForeground = d.getSystemColor(DWT.COLOR_BLACK);
+				gc.setForeground = d.getSystemColor(SWT.COLOR_BLACK);
 				drawCenterText(dwtData(_prop.looks.summaryTitleFont(_summ.legacy)),
 					_sname.getText, _prop.looks.summaryTitleY);
 				{
@@ -135,7 +135,7 @@ private:
 					int hig = gc.getFontMetrics.getHeight;
 					int x = _prop.looks.summaryDescXY.x;
 					int y = _prop.looks.summaryDescXY.y;
-					gc.drawText(_desc.getRRText, x, y, DWT.DRAW_DELIMITER | DWT.DRAW_TRANSPARENT);
+					gc.drawText(_desc.getRRText, x, y, SWT.DRAW_DELIMITER | SWT.DRAW_TRANSPARENT);
 					gc.setFont = null;
 					font.dispose;
 				}
@@ -169,48 +169,48 @@ private:
 		}
 	}
 	void constructTab1(CTabFolder tabf) {
-		auto comp = new Composite(tabf, DWT.BORDER);
+		auto comp = new Composite(tabf, SWT.BORDER);
 		comp.setLayout = zeroGridLayout(1);
-		_summImage = new Canvas(comp, DWT.DOUBLE_BUFFERED);
+		_summImage = new Canvas(comp, SWT.DOUBLE_BUFFERED);
 		auto gd = new GridData(GridData.FILL_BOTH);
 		gd.widthHint = _prop.looks.summarySize.width;
 		gd.heightHint = _prop.looks.summarySize.height;
 		_summImage.setLayoutData = gd;
 		_summImage.addPaintListener(new PListener);
-		auto tab = new CTabItem(tabf, DWT.NONE);
+		auto tab = new CTabItem(tabf, SWT.NONE);
 		tab.setText = _prop.msgs.summaryImage;
 		tab.setControl = comp;
 	}
 	private void setCDataX(Control c, GridData data) {
-		auto p = c.computeSize(DWT.DEFAULT, DWT.DEFAULT);
+		auto p = c.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 		data.widthHint = p.x;
 		c.setLayoutData = data;
 	}
 	private void setCDataXY(Control c, GridData data) {
-		auto p = c.computeSize(DWT.DEFAULT, DWT.DEFAULT);
+		auto p = c.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 		data.widthHint = p.x;
 		data.heightHint = p.y;
 		c.setLayoutData = data;
 	}
 	void constructTab2(CTabFolder tabf) {
-		auto comp = new Composite(tabf, DWT.NONE);
+		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout = new GridLayout(1, true);
 		{
-			_tab2Sash = new SplitPane(comp, DWT.HORIZONTAL);
+			_tab2Sash = new SplitPane(comp, SWT.HORIZONTAL);
 			_tab2Sash.setLayoutData = new GridData(GridData.FILL_BOTH);
 			auto skin = findSkin(_prop, _summ);
 			{
-				_imgPath = new ImageSelect!(MtType.CARD)(_tab2Sash, DWT.NONE, _comm, _prop, _summ,
+				_imgPath = new ImageSelect!(MtType.CARD)(_tab2Sash, SWT.NONE, _comm, _prop, _summ,
 					_prop.looks.cardSize.width, _prop.looks.cardSize.height, _summ.legacy);
 				_imgPath.image = _summ.imagePath;
 			}
 			{
-				auto comp2 = new Composite(_tab2Sash, DWT.NONE);
+				auto comp2 = new Composite(_tab2Sash, SWT.NONE);
 				comp2.setLayout = zeroGridLayout(1, true);
 				{
 					auto grp = centerGroup(comp2, _prop.msgs.title, true, false, new GridData(GridData.FILL_BOTH));
 					grp.setLayout = new GridLayout(1, true);
-					_sname = new Text(grp, DWT.BORDER);
+					_sname = new Text(grp, SWT.BORDER);
 					setCDataX(_sname, new GridData(GridData.FILL_HORIZONTAL));
 					_sname.setText = _summ.scenarioName;
 					checker(_sname);
@@ -218,22 +218,22 @@ private:
 				{
 					auto grp = centerGroup(comp2, _prop.msgs.author, true, false, new GridData(GridData.FILL_BOTH));
 					grp.setLayout = new GridLayout(1, true);
-					_author = new Text(grp, DWT.BORDER);
+					_author = new Text(grp, SWT.BORDER);
 					setCDataX(_author, new GridData(GridData.FILL_HORIZONTAL));
 					_author.setText = _summ.author;
 				}
 				{
 					auto grp = centerGroup(comp2, _prop.msgs.targetLevel, false, false, new GridData(GridData.FILL_BOTH));
 					grp.setLayout = new GridLayout(3, false);
-					_levMin = new Spinner(grp, DWT.BORDER);
+					_levMin = new Spinner(grp, SWT.BORDER);
 					_levMin.setSelection = _summ.levelMin;
 					_levMin.setMinimum = 0;
 					_levMin.setMaximum = _prop.looks.levelMax;
 					new SpinnerEdit(_levMin, &levMinEnter);
-					auto lbl = new Label(grp, DWT.NONE);
+					auto lbl = new Label(grp, SWT.NONE);
 					lbl.setText = _prop.msgs.levSep;
 					lbl.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
-					_levMax = new Spinner(grp, DWT.BORDER);
+					_levMax = new Spinner(grp, SWT.BORDER);
 					_levMax.setSelection = _summ.levelMax;
 					_levMax.setMinimum = 0;
 					_levMax.setMaximum = _prop.looks.levelMax;
@@ -243,34 +243,34 @@ private:
 			_tab2Sash.setWeights = [_prop.var.etc.summaryParamSashL, _prop.var.etc.summaryParamSashR];
 		}
 		{
-			auto grp = new Group(comp, DWT.NONE);
+			auto grp = new Group(comp, SWT.NONE);
 			grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-			grp.setLayout = new CenterLayout(DWT.HORIZONTAL);
+			grp.setLayout = new CenterLayout(SWT.HORIZONTAL);
 			grp.setText = _prop.msgs.desc;
-			_desc = new FixedWidthText(dwtData(_prop.looks.summaryDescFont(_summ.legacy)), _prop.looks.summaryDescLen, grp, DWT.BORDER);
+			_desc = new FixedWidthText(dwtData(_prop.looks.summaryDescFont(_summ.legacy)), _prop.looks.summaryDescLen, grp, SWT.BORDER);
 			_desc.widget.setLayoutData = _desc.computeTextBaseSize(_prop.looks.summaryDescLine);
 			_desc.setText = _summ.desc;
 		}
-		auto tab = new CTabItem(tabf, DWT.NONE);
+		auto tab = new CTabItem(tabf, SWT.NONE);
 		tab.setText = _prop.msgs.baseData;
 		tab.setControl = comp;
 	}
 	void constructTab3(CTabFolder tabf) {
-		auto comp = new Composite(tabf, DWT.NONE);
+		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout = new GridLayout(1, true);
 		{
-			_tab3Sash = new SplitPane(comp, DWT.HORIZONTAL);
+			_tab3Sash = new SplitPane(comp, SWT.HORIZONTAL);
 			_tab3Sash.setLayoutData = new GridData(GridData.FILL_BOTH);
 			auto skin = findSkin(_prop, _summ);
 			{
-				auto comp2 = new Composite(_tab3Sash, DWT.NONE);
+				auto comp2 = new Composite(_tab3Sash, SWT.NONE);
 				comp2.setLayout = zeroMarginGridLayout(1, true);
 				{
-					auto grp = new Group(comp2, DWT.NONE);
+					auto grp = new Group(comp2, SWT.NONE);
 					grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 					grp.setText = _prop.msgs.scenarioType;
 					grp.setLayout = new GridLayout(1, true);
-					_type = new Combo(grp, DWT.BORDER | DWT.DROP_DOWN | DWT.READ_ONLY);
+					_type = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 					_type.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 					if (_summ.legacy && skin.legacyEngine.length) {
 						_type.add(_prop.msgs.legacyEngineSkin(skin.engine));
@@ -290,28 +290,28 @@ private:
 					}
 				}
 				{
-					auto grp = new Group(comp2, DWT.NONE);
+					auto grp = new Group(comp2, SWT.NONE);
 					grp.setLayoutData = new GridData(GridData.FILL_BOTH);
 					grp.setText = _prop.msgs.qualification;
 					grp.setLayout = new GridLayout(2, false);
 					{
-						auto lblN = new Label(grp, DWT.NONE);
+						auto lblN = new Label(grp, SWT.NONE);
 						lblN.setText = _prop.msgs.rCouponNum;
-						_rCouponNum = new Spinner(grp, DWT.BORDER);
+						_rCouponNum = new Spinner(grp, SWT.BORDER);
 						_rCouponNum.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 						_rCouponNum.setSelection = _summ.rCouponNum;
 						_rCouponNum.setMaximum = 999;
 						_rCouponNum.setMinimum = 0;
 					}
 					{
-						auto lblR = new Label(grp, DWT.NONE);
+						auto lblR = new Label(grp, SWT.NONE);
 						auto gd = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
 						gd.horizontalSpan = 2;
 						lblR.setLayoutData = gd;
 						lblR.setText = _prop.msgs.rCoupons;
 					}
 					{
-						_rCoupons = new Text(grp, DWT.BORDER | DWT.MULTI | DWT.WRAP);
+						_rCoupons = new Text(grp, SWT.BORDER | SWT.MULTI | SWT.WRAP);
 						auto gd = new GridData(GridData.FILL_BOTH);
 						gd.horizontalSpan = 2;
 						setCDataXY(_rCoupons, gd);
@@ -325,17 +325,17 @@ private:
 				}
 			}
 			{
-				auto grp = new Group(_tab3Sash, DWT.NONE);
+				auto grp = new Group(_tab3Sash, SWT.NONE);
 				grp.setLayoutData = new GridData(GridData.FILL_BOTH);
 				grp.setText = _prop.msgs.startArea;
 				grp.setLayout = new GridLayout(1, false);
-				_startArea = new Table(grp, DWT.SINGLE | DWT.FULL_SELECTION | DWT.BORDER | DWT.V_SCROLL);
-				auto idCol = new TableColumn(_startArea, DWT.NONE);
+				_startArea = new Table(grp, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.V_SCROLL);
+				auto idCol = new TableColumn(_startArea, SWT.NONE);
 				saveColumnWidth!("prop.var.etc.idColumn")(_prop, idCol);
-				auto nameCol = new FullTableColumn(_startArea, DWT.NONE);
+				auto nameCol = new FullTableColumn(_startArea, SWT.NONE);
 				setCDataXY(_startArea, new GridData(GridData.FILL_BOTH));
 				foreach (i, area; _summ.areas) {
-					auto itm = new TableItem(_startArea, DWT.NONE);
+					auto itm = new TableItem(_startArea, SWT.NONE);
 					itm.setData = area;
 					itm.setImage(0, _prop.images.area);
 					itm.setText(0, to!(string)(area.id));
@@ -348,7 +348,7 @@ private:
 			}
 			_tab3Sash.setWeights = [_prop.var.etc.rCouponsStartAreaSashL, _prop.var.etc.rCouponsStartAreaSashR];
 		}
-		auto tab = new CTabItem(tabf, DWT.NONE);
+		auto tab = new CTabItem(tabf, SWT.NONE);
 		tab.setText = _prop.msgs.etcData;
 		tab.setControl = comp;
 	}
@@ -365,7 +365,7 @@ public:
 protected:
 	override void setup(Composite area) {
 		area.setLayout = windowGridLayout(1, true);
-		auto tabf = new CTabFolder(area, DWT.BORDER);
+		auto tabf = new CTabFolder(area, SWT.BORDER);
 		tabf.setLayoutData = new GridData(GridData.FILL_BOTH);
 		constructTab1(tabf);
 		constructTab2(tabf);

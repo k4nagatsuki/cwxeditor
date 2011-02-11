@@ -24,53 +24,53 @@ import std.process;
 import std.thread;
 import std.utf;
 
-import dwt.DWT;
-import dwt.custom.SashForm;
-import dwt.widgets.Composite;
-import dwt.widgets.Control;
-import dwt.widgets.Combo;
-import dwt.widgets.Display;
-import dwt.widgets.Tree;
-import dwt.widgets.Text;
-import dwt.widgets.TreeItem;
-import dwt.widgets.Table;
-import dwt.widgets.TableColumn;
-import dwt.widgets.TableItem;
-import dwt.widgets.Shell;
-import dwt.widgets.MessageBox;
-import dwt.widgets.Menu;
-import dwt.widgets.MenuItem;
-import dwt.widgets.ToolBar;
-import dwt.widgets.ToolItem;
-import dwt.widgets.Label;
-import dwt.events.DisposeListener;
-import dwt.events.DisposeEvent;
-import dwt.events.ControlAdapter;
-import dwt.events.ControlEvent;
-import dwt.events.ShellAdapter;
-import dwt.events.ShellEvent;
-import dwt.events.SelectionAdapter;
-import dwt.events.SelectionEvent;
-import dwt.events.KeyAdapter;
-import dwt.events.KeyEvent;
-import dwt.events.MouseListener;
-import dwt.events.MouseEvent;
-import dwt.graphics.Image;
-import dwt.layout.FillLayout;
-import dwt.layout.GridData;
-import dwt.layout.GridLayout;
-import dwt.dnd.DND;
-import dwt.dnd.Transfer;
-import dwt.dnd.FileTransfer;
-import dwt.dnd.DragSource;
-import dwt.dnd.DragSourceAdapter;
-import dwt.dnd.DragSourceEvent;
-import dwt.dnd.DropTarget;
-import dwt.dnd.DropTargetAdapter;
-import dwt.dnd.DropTargetEvent;
-import dwt.dnd.Clipboard;
-import dwt.program.Program;
-import dwt.dwthelper.utils;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.TreeItem;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.MessageBox;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.ControlAdapter;
+import org.eclipse.swt.events.ControlEvent;
+import org.eclipse.swt.events.ShellAdapter;
+import org.eclipse.swt.events.ShellEvent;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.MouseListener;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.dnd.FileTransfer;
+import org.eclipse.swt.dnd.DragSource;
+import org.eclipse.swt.dnd.DragSourceAdapter;
+import org.eclipse.swt.dnd.DragSourceEvent;
+import org.eclipse.swt.dnd.DropTarget;
+import org.eclipse.swt.dnd.DropTargetAdapter;
+import org.eclipse.swt.dnd.DropTargetEvent;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.program.Program;
+import java.lang.all;
 
 version (Windows) {
 	import std.c.windows.windows;
@@ -82,8 +82,7 @@ version (Windows) {
 		BOOL FindNextChangeNotification(HANDLE);
 		BOOL FindCloseChangeNotification(HANDLE);
 	}
-}
-version (linux) {
+} else version (linux) {
 	import std.c.linux.linux;
 	private extern (C) {
 		int inotify_init1(int);
@@ -104,6 +103,8 @@ version (linux) {
 			char* name;
 		};
 	}
+} else {
+	import std.c.unix.unix;
 }
 
 private struct FC {
@@ -345,25 +346,25 @@ private:
 					list ~= new FileNameObj(path, f);
 				}
 				if (_files.getSortColumn is _sortName.column) {
-					if (_files.getSortDirection == DWT.UP) {
+					if (_files.getSortDirection == SWT.UP) {
 						list = .sort(list, &compFName);
 					} else {
-						assert (_files.getSortDirection == DWT.DOWN);
+						assert (_files.getSortDirection == SWT.DOWN);
 						list = .sort(list, &revCompFName);
 					}
 				} else if (_files.getSortColumn is _sortExt.column) {
-					if (_files.getSortDirection == DWT.UP) {
+					if (_files.getSortDirection == SWT.UP) {
 						list = .sort(list, &compFExt);
 					} else {
-						assert (_files.getSortDirection == DWT.DOWN);
+						assert (_files.getSortDirection == SWT.DOWN);
 						list = .sort(list, &revCompFExt);
 					}
 				} else {
 					assert (_files.getSortColumn is _sortCount.column);
-					if (_files.getSortDirection == DWT.UP) {
+					if (_files.getSortDirection == SWT.UP) {
 						list = .sort(list, &compFCount);
 					} else {
-						assert (_files.getSortDirection == DWT.DOWN);
+						assert (_files.getSortDirection == SWT.DOWN);
 						list = .sort(list, &revCompFCount);
 					}
 				}
@@ -381,7 +382,7 @@ private:
 					if (count < oldC) {
 						itm = _files.getItem(count);
 					} else {
-						itm = new TableItem(_files, DWT.NONE);
+						itm = new TableItem(_files, SWT.NONE);
 					}
 					auto img = fimage(skin, p.array, p.dir);
 					itm.setImage(0, img);
@@ -420,7 +421,7 @@ private:
 		}
 	}
 	bool addp(T)(T parItm, string path, string sel, string top, ref TreeItem topItm) {
-		auto itm = new TreeItem(parItm, DWT.NONE);
+		auto itm = new TreeItem(parItm, SWT.NONE);
 		auto full = nabs(path);
 		if (fnmatch("A", "a") ? _cuts.contains(toLower(full)) : _cuts.contains(full)) {
 			itm.setImage = _sImgFolder;
@@ -464,7 +465,7 @@ private:
 
 	// isCardImage()は時間がかかるので別スレッドで実行。
 	private Display _display = null;
-	private Thread _fimgThr = null;
+	private std.thread.Thread _fimgThr = null;
 	private bool _fimgStop = false;
 	private string[] _fimgPs;
 	private void fimageThrStart() {
@@ -476,7 +477,7 @@ private:
 			}
 		}
 		assert (!_fimgThr);
-		_fimgThr = new Thread(&fimageThr);
+		_fimgThr = new std.thread.Thread(&fimageThr);
 		_fimgThr.start;
 	}
 	private void fimageThrStop() {
@@ -645,7 +646,7 @@ private:
 			}
 		}
 		void keyPressed(KeyEvent e) {
-			if (e.character == DWT.CR) {
+			if (e.character == SWT.CR) {
 				select;
 			}
 		}
@@ -749,14 +750,14 @@ private:
 				bool over = false;
 				if (exists.length > 0) {
 					auto dlg = new MessageBox
-						(_win.getShell, DWT.ICON_QUESTION | DWT.YES | DWT.NO | DWT.CANCEL);
+						(_win.getShell, SWT.ICON_QUESTION | SWT.YES | SWT.NO | SWT.CANCEL);
 					scope (exit) dlg.dispose;
 					dlg.setText = _prop.msgs.dlgTitQuestion;
 					dlg.setMessage = _prop.msgs.dlgMsgDropOverWriteFiles(exists);
 					int r = dlg.open;
-					if (r == DWT.YES) {
+					if (r == SWT.YES) {
 						over = true;
-					} else if (r == DWT.CANCEL) {
+					} else if (r == SWT.CANCEL) {
 						return false;
 					}
 				}
@@ -1033,15 +1034,15 @@ private:
 	}
 	void createFilesMenu() {
 		if (_files.getMenu) _files.getMenu.dispose;
-		auto menu = new Menu(_win.getShell, DWT.POP_UP);
+		auto menu = new Menu(_win.getShell, SWT.POP_UP);
 		createMenuItem(menu, _prop.msgs.menuReplacePath, _prop.images.menuReplacePath, &replace);
-		new MenuItem(menu, DWT.SEPARATOR);
+		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(menu, _prop.msgs.menuNewFolder, _prop.images.menuNewFolder, &createDirFiles);
-		new MenuItem(menu, DWT.SEPARATOR);
+		new MenuItem(menu, SWT.SEPARATOR);
 		foreach (tool; _prop.var.etc.outerTools) {
 			new Exec(menu, tool);
 		}
-		if (_prop.var.etc.outerTools.length > 0) new MenuItem(menu, DWT.SEPARATOR);
+		if (_prop.var.etc.outerTools.length > 0) new MenuItem(menu, SWT.SEPARATOR);
 		appendMenuTCPD(_prop, menu, this, true, true, true, true);
 		_files.setMenu(menu);
 	}
@@ -1138,7 +1139,7 @@ private:
 		override void widgetDisposed(DisposeEvent e) {
 			_prop.var.etc.directorySashL = _sash.getWeights[0];
 			_prop.var.etc.directorySashR = _sash.getWeights[1];
-			_prop.var.etc.directorySashV = (_sash.getStyle & DWT.VERTICAL) != 0;
+			_prop.var.etc.directorySashV = (_sash.getStyle & SWT.VERTICAL) != 0;
 		}
 	}
 	private class RefreshThr : Runnable {
@@ -1155,11 +1156,15 @@ private:
 	}
 	private Runnable _refreshThr;
 	private TraceChkThr _traceChkThr;
-	private Thread _traceThr = null;
+	private std.thread.Thread _traceThr = null;
 	private int trace() {
 		Summary summ = null;
 		void sleep() {
-			tango.core.Thread.Thread.sleep(1); // 1sec
+			version (Windows) {
+				Sleep(1000); // 1sec
+			} else {
+				sleep(1); // 1sec
+			}
 		}
 		bool canDoChk() {
 			if (!summ) return false;
@@ -1352,7 +1357,7 @@ public:
 		// シナリオ読込み後のスレッドの開始に失敗する事があるので常時起動
 		_refreshThr = new RefreshThr;
 		_traceChkThr = new TraceChkThr;
-		_traceThr = new Thread(&trace);
+		_traceThr = new std.thread.Thread(&trace);
 		_traceThr.start;
 	}
 	void reconstruct(Composite parent) {
@@ -1365,12 +1370,12 @@ public:
 		Shell shell = null;
 		auto parShl = cast(Shell) parent;
 		if (parShl) {
-			shell = new Shell(parShl, DWT.SHELL_TRIM);
+			shell = new Shell(parShl, SWT.SHELL_TRIM);
 			shell.setImage = _prop.images.app;
 			shell.addShellListener(new SClose);
 			_win = shell;
 		} else {
-			_win = new Composite(parent, DWT.NONE);
+			_win = new Composite(parent, SWT.NONE);
 		}
 		_win.setData = new TLPData(this);
 		_win.setLayout = windowGridLayout(1, true);
@@ -1390,25 +1395,25 @@ public:
 		_sImgUnknown = skeletonImage(_prop.images.unknown);
 		_win.addDisposeListener(new DListener);
 		if (shell) {
-			auto bar = new Menu(shell, DWT.BAR);
+			auto bar = new Menu(shell, SWT.BAR);
 
 			auto mf = createMenu(bar, _prop.msgs.menuFile);
 			createMenuItem(mf, _prop.msgs.menuOpenDirectory, _prop.images.folder, &openDirectory);
-			new MenuItem(mf, DWT.SEPARATOR);
+			new MenuItem(mf, SWT.SEPARATOR);
 			createMenuItem(mf, _prop.msgs.menuSave, _prop.images.menuSave, &saveScenario);
-			new MenuItem(mf, DWT.SEPARATOR);
+			new MenuItem(mf, SWT.SEPARATOR);
 			createMenuItem(mf, _prop.msgs.menuCloseWin, _prop.images.menuCloseWin, &shell.close);
 
 			auto me = createMenu(bar, _prop.msgs.menuEdit);
 			createMenuItem(me, _prop.msgs.menuReplacePath, _prop.images.menuReplacePath, &replace);
-			new MenuItem(me, DWT.SEPARATOR);
+			new MenuItem(me, SWT.SEPARATOR);
 			createMenuItem(me, _prop.msgs.menuNewFolder, _prop.images.menuNewFolder, &__createDir);
-			new MenuItem(me, DWT.SEPARATOR);
+			new MenuItem(me, SWT.SEPARATOR);
 			appendMenuTCPD(_prop, me, this, true, true, true, true);
 
 			auto mv = createMenu(bar, _prop.msgs.menuView);
 			createMenuItem(mv, _prop.msgs.menuRefresh, _prop.images.menuRefresh, &__refresh);
-			new MenuItem(mv, DWT.SEPARATOR);
+			new MenuItem(mv, SWT.SEPARATOR);
 			createMenuItem(mv, _prop.msgs.menuChangeVH, _prop.images.menuChangeVH, &changeVHSide);
 
 			shell.setMenuBar = bar;
@@ -1421,29 +1426,29 @@ public:
 			putMenuAction(MenuID.ChangeVH, &changeVHSide);
 		}
 		if (shell) {
-			auto bar = new ToolBar(_win, DWT.FLAT);
+			auto bar = new ToolBar(_win, SWT.FLAT);
 			bar.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 
 			createToolItem(bar, _prop.msgs.ttOpenDirectory, _prop.images.folder, &openDirectory);
-			new ToolItem(bar, DWT.SEPARATOR);
+			new ToolItem(bar, SWT.SEPARATOR);
 			createToolItem(bar, _prop.msgs.ttRefresh, _prop.images.menuRefresh, &__refresh);
-			new ToolItem(bar, DWT.SEPARATOR);
+			new ToolItem(bar, SWT.SEPARATOR);
 			createToolItem(bar, _prop.msgs.ttReplacePath, _prop.images.menuReplacePath, &replace);
-			new ToolItem(bar, DWT.SEPARATOR);
+			new ToolItem(bar, SWT.SEPARATOR);
 			createToolItem(bar, _prop.msgs.ttNewFolder, _prop.images.menuNewFolder, &__createDir);
-			new ToolItem(bar, DWT.SEPARATOR);
+			new ToolItem(bar, SWT.SEPARATOR);
 			createToolItem(bar, _prop.msgs.ttCut, _prop.images.menuCut, &cut);
 			createToolItem(bar, _prop.msgs.ttCopy, _prop.images.menuCopy, &copy);
 			createToolItem(bar, _prop.msgs.ttPaste, _prop.images.menuPaste, &paste);
 			createToolItem(bar, _prop.msgs.ttDel, _prop.images.menuDel, &del);
-			new ToolItem(bar, DWT.SEPARATOR);
+			new ToolItem(bar, SWT.SEPARATOR);
 			createToolItem(bar, _prop.msgs.ttChangeVH, _prop.images.menuChangeVH, &changeVHSide);
 		}
-		_sash = new SplitPane(_win, _prop.var.etc.directorySashV ? DWT.VERTICAL : DWT.HORIZONTAL);
+		_sash = new SplitPane(_win, _prop.var.etc.directorySashV ? SWT.VERTICAL : SWT.HORIZONTAL);
 		_sash.setLayoutData = new GridData(GridData.FILL_BOTH);
-		auto dirsComp = new Composite(_sash, DWT.NONE);
+		auto dirsComp = new Composite(_sash, SWT.NONE);
 		dirsComp.setLayout = new FillLayout;
-		_dirs = new Tree(dirsComp, DWT.SINGLE | DWT.BORDER | DWT.VIRTUAL);
+		_dirs = new Tree(dirsComp, SWT.SINGLE | SWT.BORDER | SWT.VIRTUAL);
 		{
 			_dirs.addSelectionListener(new DirsSelection);
 			_dirsEdit = new TreeEdit(_dirs, &dirsEditEnd, &dirsCreateEditor);
@@ -1457,25 +1462,25 @@ public:
 			drag.setTransfer([FileTransfer.getInstance]);
 			drag.addDragListener(new FilesDrag!(Tree));
 
-			auto menu = new Menu(_win.getShell, DWT.POP_UP);
+			auto menu = new Menu(_win.getShell, SWT.POP_UP);
 			createMenuItem(menu, _prop.msgs.menuNewFolder, _prop.images.menuNewFolder, &createDirDirs);
-			new MenuItem(menu, DWT.SEPARATOR);
+			new MenuItem(menu, SWT.SEPARATOR);
 			appendMenuTCPD(_prop, menu, this, true, true, true, true);
 			_dirs.setMenu(menu);
 		}
-		auto fComp = new Composite(_sash, DWT.NONE);
+		auto fComp = new Composite(_sash, SWT.NONE);
 		fComp.setLayout = new FillLayout;
-		_files = new Table(fComp, DWT.MULTI | DWT.FULL_SELECTION | DWT.BORDER | DWT.VIRTUAL);
+		_files = new Table(fComp, SWT.MULTI | SWT.FULL_SELECTION | SWT.BORDER | SWT.VIRTUAL);
 		{
 			_files.addSelectionListener(new FilesSelection);
 			_files.setHeaderVisible = true;
-			auto namec = new TableColumn(_files, DWT.NONE);
+			auto namec = new TableColumn(_files, SWT.NONE);
 			namec.setText = _prop.msgs.fileName;
 			saveColumnWidth!("prop.var.etc.fileNameColumn")(_prop, namec);
-			auto extc = new TableColumn(_files, DWT.NONE);
+			auto extc = new TableColumn(_files, SWT.NONE);
 			extc.setText = _prop.msgs.fileExt;
 			saveColumnWidth!("prop.var.etc.fileExtColumn")(_prop, extc);
-			auto cc = new TableColumn(_files, DWT.NONE);
+			auto cc = new TableColumn(_files, SWT.NONE);
 			cc.setText = _prop.msgs.fileCount;
 			saveColumnWidth!("prop.var.etc.fileCountColumn")(_prop, cc);
 			_filesEdit = new TableTextEdit(_files, 0, &filesEditEnd);
@@ -1518,19 +1523,19 @@ public:
 		_sdl = new SDListener;
 		_sash.addDisposeListener(_sdl);
 		if (shell) {
-			_status = new Label(_win, DWT.NONE);
+			_status = new Label(_win, SWT.NONE);
 			_status.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		}
 		if (shell) {
 			shell.pack;
-			scope wp = shell.computeSize(DWT.DEFAULT, DWT.DEFAULT);
-			int width = _prop.var.dirWin.width == DWT.DEFAULT
+			scope wp = shell.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+			int width = _prop.var.dirWin.width == SWT.DEFAULT
 				? wp.x : _prop.var.dirWin.width;
-			int height = _prop.var.dirWin.height == DWT.DEFAULT
+			int height = _prop.var.dirWin.height == SWT.DEFAULT
 				? wp.y : _prop.var.dirWin.height;
-			int x = _prop.var.dirWin.x == DWT.DEFAULT
+			int x = _prop.var.dirWin.x == SWT.DEFAULT
 				? shell.getBounds.x : _prop.var.dirWin.x + shell.getParent.getBounds.x;
-			int y = _prop.var.dirWin.y == DWT.DEFAULT
+			int y = _prop.var.dirWin.y == SWT.DEFAULT
 				? shell.getBounds.y : _prop.var.dirWin.y + shell.getParent.getBounds.y;
 			intoDisplay(x, y, width, height);
 			shell.setBounds(x, y, width, height);
@@ -1761,7 +1766,7 @@ public:
 			if (_dirs.getSelection.length == 0) return;
 			if (!_dirs.getSelection[0].getParentItem) return;
 		}
-		auto dlg = new MessageBox(_win.getShell, DWT.ICON_QUESTION | DWT.OK | DWT.CANCEL);
+		auto dlg = new MessageBox(_win.getShell, SWT.ICON_QUESTION | SWT.OK | SWT.CANCEL);
 		scope (exit) dlg.dispose;
 		dlg.setText = _prop.msgs.dlgTitQuestion;
 		auto dir = selDirPath;
@@ -1772,7 +1777,7 @@ public:
 			fileNames[i] = nabs(f);
 		}
 		version (Windows) {
-			bool recycle = (se.stateMask & DWT.SHIFT) == 0;
+			bool recycle = (se.stateMask & SWT.SHIFT) == 0;
 		}
 		if (_dirs.isFocusControl) {
 			if (!dir) return;
@@ -1785,7 +1790,7 @@ public:
 			} else {
 				dlg.setMessage = _prop.msgs.dlgMsgDelete([nabs(dir)]);
 			}
-			if (DWT.OK == dlg.open) {
+			if (SWT.OK == dlg.open) {
 				version (Windows) {
 					SHFILEOPSTRUCT ope;
 					ope.hwnd = cast(HANDLE) shell.handle;
@@ -1816,7 +1821,7 @@ public:
 			} else {
 				dlg.setMessage = _prop.msgs.dlgMsgDelete(fileNames);
 			}
-			if (DWT.OK == dlg.open) {
+			if (SWT.OK == dlg.open) {
 				version (Windows) {
 					wstring targ;
 					foreach (i, f; file) {

@@ -27,52 +27,52 @@ import cwx.editor.gui.dwt.absdialog;
 import std.date;
 import std.string;
 
-import dwt.DWT;
-import dwt.widgets.Display;
-import dwt.widgets.Shell;
-import dwt.widgets.Control;
-import dwt.widgets.Composite;
-import dwt.widgets.Combo;
-import dwt.widgets.Event;
-import dwt.widgets.Label;
-import dwt.widgets.Listener;
-import dwt.widgets.Group;
-import dwt.widgets.Button;
-import dwt.widgets.Spinner;
-import dwt.widgets.Scale;
-import dwt.widgets.Table;
-import dwt.widgets.TableColumn;
-import dwt.widgets.TableItem;
-import dwt.widgets.Text;
-import dwt.widgets.ToolBar;
-import dwt.widgets.ToolItem;
-import dwt.widgets.Menu;
-import dwt.widgets.MenuItem;
-import dwt.custom.CTabFolder;
-import dwt.custom.CTabItem;
-import dwt.layout.GridLayout;
-import dwt.layout.GridData;
-import dwt.layout.RowLayout;
-import dwt.layout.RowData;
-import dwt.layout.FillLayout;
-import dwt.graphics.Image;
-import dwt.events.DisposeListener;
-import dwt.events.DisposeEvent;
-import dwt.events.SelectionAdapter;
-import dwt.events.SelectionEvent;
-import dwt.events.ModifyListener;
-import dwt.events.ModifyEvent;
-import dwt.dwthelper.utils;
-import dwt.dnd.DND;
-import dwt.dnd.DragSourceAdapter;
-import dwt.dnd.DragSourceEvent;
-import dwt.dnd.DragSource;
-import dwt.dnd.DropTargetAdapter;
-import dwt.dnd.DropTargetEvent;
-import dwt.dnd.DropTarget;
-import dwt.dnd.Clipboard;
-import dwt.dnd.Transfer;
-import dwt.dnd.ByteArrayTransfer;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Spinner;
+import org.eclipse.swt.widgets.Scale;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.RowLayout;
+import org.eclipse.swt.layout.RowData;
+import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.ModifyEvent;
+import java.lang.all;
+import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.DragSourceAdapter;
+import org.eclipse.swt.dnd.DragSourceEvent;
+import org.eclipse.swt.dnd.DragSource;
+import org.eclipse.swt.dnd.DropTargetAdapter;
+import org.eclipse.swt.dnd.DropTargetEvent;
+import org.eclipse.swt.dnd.DropTarget;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.dnd.ByteArrayTransfer;
 
 public:
 
@@ -193,9 +193,9 @@ private:
 	void appendCoupon(Coupon coupon, int index = -1) {
 		TableItem itm;
 		if (index >= 0) {
-			itm = new TableItem(_coupons, DWT.NONE, index);
+			itm = new TableItem(_coupons, SWT.NONE, index);
 		} else {
-			itm = new TableItem(_coupons, DWT.NONE);
+			itm = new TableItem(_coupons, SWT.NONE);
 		}
 		itm.setImage(0, couponImage(coupon.value));
 		itm.setText(0, coupon.name);
@@ -382,66 +382,66 @@ private:
 	}
 
 	void constructBase(CTabFolder tabf) {
-		auto comp = new Composite(tabf, DWT.NONE);
+		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout = new GridLayout(2, false);
 		auto skin = findSkin(_prop, _summ);
 		{
-			auto comp2 = new Composite(comp, DWT.NONE);
+			auto comp2 = new Composite(comp, SWT.NONE);
 			comp2.setLayoutData = new GridData(GridData.FILL_BOTH);
 			comp2.setLayout = zeroMarginGridLayout(1, false);
 			{
-				auto grp = new Group(comp2, DWT.NONE);
+				auto grp = new Group(comp2, SWT.NONE);
 				grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				grp.setLayout = new GridLayout(2, false);
 				grp.setText = _prop.msgs.name;
 				_name = new GBLimitText(_prop.looks.messageFont(_summ.legacy).name,
-					_prop.looks.nameLimit, grp, DWT.BORDER);
+					_prop.looks.nameLimit, grp, SWT.BORDER);
 				auto gd = new GridData(GridData.FILL_HORIZONTAL);
-				gd.widthHint = _name.computeSize(DWT.DEFAULT, DWT.DEFAULT).x;
+				gd.widthHint = _name.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
 				_name.widget.setLayoutData = gd;
-				auto l = new Label(grp, DWT.NONE);
+				auto l = new Label(grp, SWT.NONE);
 				l.setText = _prop.msgs.nameLimit(_prop.looks.nameLimit);
 				checker(_name.widget);
 			}
 			{
-				_imgPath = new ImageSelect!(MtType.CARD)(comp2, DWT.NONE, _comm, _prop, _summ,
+				_imgPath = new ImageSelect!(MtType.CARD)(comp2, SWT.NONE, _comm, _prop, _summ,
 					_prop.looks.cardSize.width, _prop.looks.cardSize.height, _summ.legacy);
 				_imgPath.widget.setLayoutData = new GridData(GridData.FILL_BOTH);
 			}
 		}
 		{
-			auto compr = new Composite(comp, DWT.NONE);
+			auto compr = new Composite(comp, SWT.NONE);
 			compr.setLayoutData = new GridData(GridData.FILL_VERTICAL);
 			compr.setLayout = zeroMarginGridLayout(1, false);
 			{
-				auto grp = new Group(compr, DWT.NONE);
+				auto grp = new Group(compr, SWT.NONE);
 				grp.setLayoutData = new GridData(GridData.FILL_BOTH);
 				grp.setLayout = new CenterLayout;
 				grp.setText = _prop.msgs.level;
-				auto comp2 = new Composite(grp, DWT.NONE);
+				auto comp2 = new Composite(grp, SWT.NONE);
 				comp2.setLayout = zeroMarginGridLayout(2, false);
-				_level = new Spinner(comp2, DWT.BORDER);
+				_level = new Spinner(comp2, SWT.BORDER);
 				_level.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				_level.setMinimum = 1;
 				_level.setMaximum = _prop.looks.castLevelMax;
-				auto hint = new Label(comp2, DWT.RIGHT);
+				auto hint = new Label(comp2, SWT.RIGHT);
 				hint.setText = _prop.msgs.rangeHint(1, _prop.looks.castLevelMax);
 			}
 			{
-				auto grp = new Group(compr, DWT.NONE);
+				auto grp = new Group(compr, SWT.NONE);
 				grp.setLayoutData = new GridData(GridData.FILL_BOTH);
 				grp.setLayout = new CenterLayout;
 				grp.setText = _prop.msgs.life;
-				auto comp2 = new Composite(grp, DWT.NONE);
+				auto comp2 = new Composite(grp, SWT.NONE);
 				comp2.setLayout = zeroMarginGridLayout(2, false);
-				_lifeMax = new Spinner(comp2, DWT.BORDER);
+				_lifeMax = new Spinner(comp2, SWT.BORDER);
 				_lifeMax.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				_lifeMax.setMinimum = 1;
 				_lifeMax.setMaximum = _prop.looks.lifeMax;
 				_lifeMax.addModifyListener(new LifeMaxL);
-				auto hint = new Label(comp2, DWT.RIGHT);
+				auto hint = new Label(comp2, SWT.RIGHT);
 				hint.setText = _prop.msgs.rangeHint(1, _prop.looks.lifeMax);
-				auto lifec = new Button(comp2, DWT.PUSH);
+				auto lifec = new Button(comp2, SWT.PUSH);
 				auto lgd = new GridData(GridData.FILL_HORIZONTAL);
 				lgd.horizontalSpan = 2;
 				lifec.setLayoutData = lgd;
@@ -449,13 +449,13 @@ private:
 				lifec.addSelectionListener(new SelLifeC);
 			}
 			if (!_summ.legacy) {
-				auto grp = new Group(compr, DWT.NONE);
+				auto grp = new Group(compr, SWT.NONE);
 				grp.setText = _prop.msgs.race;
 				grp.setLayoutData = new GridData(GridData.FILL_BOTH);
 				auto cl = new CenterLayout;
 				cl.fillHorizontal = true;
 				grp.setLayout = cl;
-				_race = new Combo(grp, DWT.BORDER | DWT.DROP_DOWN | DWT.READ_ONLY);
+				_race = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 				_race.setVisibleItemCount = 20;
 				_race.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				_race.add(_prop.msgs.noRace);
@@ -465,7 +465,7 @@ private:
 				_race.addSelectionListener(new SelectRace);
 			}
 		}
-		auto tab = new CTabItem(tabf, DWT.NONE);
+		auto tab = new CTabItem(tabf, SWT.NONE);
 		tab.setText = _prop.msgs.card;
 		tab.setControl = comp;
 	}
@@ -481,23 +481,23 @@ private:
 		}
 	}
 	void constructDesc(CTabFolder tabf) {
-		auto comp = new Composite(tabf, DWT.NONE);
+		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout = new GridLayout(2, false);
 		{
-			auto grp = new Group(comp, DWT.NONE);
+			auto grp = new Group(comp, SWT.NONE);
 			auto gd = new GridData(GridData.FILL_BOTH);
 			grp.setLayoutData = gd;
 			gd.horizontalSpan = 2;
-			auto cl = new CenterLayout(DWT.HORIZONTAL);
+			auto cl = new CenterLayout(SWT.HORIZONTAL);
 			cl.fillVertical = true;
 			grp.setLayout = cl;
 			grp.setText = _prop.msgs.desc;
-			_desc = new FixedWidthText(dwtData(_prop.looks.cardDescFont(_summ.legacy)), _prop.looks.cardDescLen, grp, DWT.BORDER);
+			_desc = new FixedWidthText(dwtData(_prop.looks.cardDescFont(_summ.legacy)), _prop.looks.cardDescLen, grp, SWT.BORDER);
 			auto p = _desc.computeTextBaseSize(1);
-			p.y = DWT.DEFAULT;
+			p.y = SWT.DEFAULT;
 			_desc.widget.setLayoutData = p;
 		}
-		auto tab = new CTabItem(tabf, DWT.NONE);
+		auto tab = new CTabItem(tabf, SWT.NONE);
 		tab.setText = _prop.msgs.desc;
 		tab.setControl = comp;
 	}
@@ -513,49 +513,49 @@ private:
 		override void handleEvent(Event e) {e.doit = true;}
 	}
 	void constructHistory(CTabFolder tabf) {
-		auto comp = new Composite(tabf, DWT.NONE);
+		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout = new GridLayout(2, false);
 		auto skin = findSkin(_prop, _summ);
 		{
-			auto grp = new Group(comp, DWT.NONE);
+			auto grp = new Group(comp, SWT.NONE);
 			grp.setText = _prop.msgs.coupons;
 			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
 			grp.setLayout = new GridLayout(2, false);
 			{
-				auto toolbar = new ToolBar(grp, DWT.FLAT);
+				auto toolbar = new ToolBar(grp, SWT.FLAT);
 				auto gd = new GridData(GridData.FILL_HORIZONTAL);
 				gd.horizontalSpan = 2;
 				toolbar.setLayoutData = gd;
-				toolbar.addListener(DWT.Traverse, new HTBTraverse);
-				toolbar.addListener(DWT.KeyDown, new HTBKeyDown);
+				toolbar.addListener(SWT.Traverse, new HTBTraverse);
+				toolbar.addListener(SWT.KeyDown, new HTBKeyDown);
 				createToolItem(toolbar, _prop.msgs.addCoupon, _prop.images.addCoupon, &addCoupon);
 				createToolItem(toolbar, _prop.msgs.altCoupon, _prop.images.altCoupon, &altCoupon);
 				createToolItem(toolbar, _prop.msgs.delCoupon, _prop.images.couponDelete, &delCoupon);
-				new ToolItem(toolbar, DWT.SEPARATOR);
+				new ToolItem(toolbar, SWT.SEPARATOR);
 				createToolItem(toolbar, _prop.msgs.ttUp, _prop.images.menuUp, &upCoupon);
 				createToolItem(toolbar, _prop.msgs.ttDown, _prop.images.menuDown, &downCoupon);
 			}
 			{
-				_newCoupon = new Text(grp, DWT.BORDER);
+				_newCoupon = new Text(grp, SWT.BORDER);
 				_newCoupon.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				_couponVal = new Spinner(grp, DWT.BORDER);
+				_couponVal = new Spinner(grp, SWT.BORDER);
 				_couponVal.setMinimum = cast(int) _prop.looks.couponValueMax * -1;
 				_couponVal.setMaximum = _prop.looks.couponValueMax;
 			}
 			{
-				_coupons = new Table(grp, DWT.BORDER | DWT.SINGLE | DWT.FULL_SELECTION);
+				_coupons = new Table(grp, SWT.BORDER | SWT.SINGLE | SWT.FULL_SELECTION);
 				auto gd = new GridData(GridData.FILL_BOTH);
 				gd.horizontalSpan = 2;
 				gd.widthHint = _prop.var.etc.couponWidth;
 				_coupons.setLayoutData = gd;
-				auto cc = new FullTableColumn(_coupons, DWT.NONE);
-				auto cv = new TableColumn(_coupons, DWT.NONE);
+				auto cc = new FullTableColumn(_coupons, SWT.NONE);
+				auto cv = new TableColumn(_coupons, SWT.NONE);
 				cv.setWidth = 40;
 				saveColumnWidth!("prop.var.etc.couponValueColumn")(_prop, cv);
 				auto menu = new Menu(_coupons);
 				createMenuItem(menu, _prop.msgs.menuUp, _prop.images.menuUp, &upCoupon);
 				createMenuItem(menu, _prop.msgs.menuDown, _prop.images.menuDown, &downCoupon);
-				new MenuItem(menu, DWT.SEPARATOR);
+				new MenuItem(menu, SWT.SEPARATOR);
 				appendMenuTCPD(_prop, menu, new CouponTCPD);
 				_coupons.setMenu = menu;
 				usingPopupMenuAccelerator(_coupons);
@@ -569,11 +569,11 @@ private:
 			drop.addDropListener(new CDropListener);
 		}
 		{
-			auto comp2 = new Composite(comp, DWT.NONE);
+			auto comp2 = new Composite(comp, SWT.NONE);
 			comp2.setLayoutData = new GridData(GridData.FILL_VERTICAL);
 			comp2.setLayout = zeroMarginGridLayout(2, false);
 			Button createR(Composite parent, string name) {
-				auto radio = new Button(parent, DWT.RADIO);
+				auto radio = new Button(parent, SWT.RADIO);
 				radio.setLayoutData = new GridData(GridData.FILL_BOTH);
 				radio.setText = name;
 				return radio;
@@ -600,7 +600,7 @@ private:
 				_natureU = createR(comp3, _prop.msgs.natureUnknown);
 			}
 		}
-		auto tab = new CTabItem(tabf, DWT.NONE);
+		auto tab = new CTabItem(tabf, SWT.NONE);
 		tab.setText = _prop.msgs.history;
 		tab.setControl = comp;
 	}
@@ -615,7 +615,7 @@ private:
 		}
 	};
 	void constructMakings(CTabFolder tabf) {
-		auto comp = new Composite(tabf, DWT.NONE);
+		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout = new GridLayout(1, false);
 		auto skin = findSkin(_prop, _summ);
 		{
@@ -623,7 +623,7 @@ private:
 			auto sl = new MSListener;
 			foreach (m; MAKINGS_LEFT) {
 				void createR(Makings m) {
-					auto radio = new Button(comp3, DWT.CHECK);
+					auto radio = new Button(comp3, SWT.CHECK);
 					radio.setLayoutData = new GridData(GridData.FILL_BOTH);
 					radio.setText = _prop.sys.makingsName(m, skin.legacyName);
 					radio.setData = new Integer(m);
@@ -634,21 +634,21 @@ private:
 				createR(reverseMakings(m));
 			}
 		}
-		auto tab = new CTabItem(tabf, DWT.NONE);
+		auto tab = new CTabItem(tabf, SWT.NONE);
 		tab.setText = _prop.msgs.makings;
 		tab.setControl = comp;
 	}
 	Composite createButtonGroup(Composite parent, string name,
 			int row, int horSpan = 1, bool min = false) {
-		auto grp = new Group(parent, DWT.NONE);
+		auto grp = new Group(parent, SWT.NONE);
 		grp.setText = name;
 		auto gd = new GridData(GridData.FILL_BOTH);
 		gd.horizontalSpan = horSpan;
 		grp.setLayoutData = gd;
-		auto cl = new CenterLayout(DWT.HORIZONTAL | DWT.VERTICAL, 0);
+		auto cl = new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0);
 		cl.fillVertical = true;
 		grp.setLayout = cl;
-		auto comp3 = new Composite(grp, DWT.NONE);
+		auto comp3 = new Composite(grp, SWT.NONE);
 		auto gl = new GridLayout(row, true);
 		if (min) gl.verticalSpacing = 2;
 		comp3.setLayout = gl;
@@ -667,23 +667,23 @@ private:
 		}
 	};
 	void constructResist(CTabFolder tabf) {
-		auto comp = new Composite(tabf, DWT.NONE);
+		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout = new GridLayout(1, false);
 		Button createC(Composite parent, string name, string desc) {
-			auto comp = new Composite(parent, DWT.NONE);
+			auto comp = new Composite(parent, SWT.NONE);
 			comp.setLayoutData = new GridData(GridData.FILL_BOTH);
 			comp.setLayout = zeroGridLayout(2, false);
-			auto c = new Button(comp, DWT.CHECK);
+			auto c = new Button(comp, SWT.CHECK);
 			auto cgd = new GridData(GridData.FILL_HORIZONTAL);
 			cgd.horizontalSpan = 2;
 			c.setLayoutData = cgd;
 			c.setText = name;
-			auto dummy = new Composite(comp, DWT.NONE);
+			auto dummy = new Composite(comp, SWT.NONE);
 			auto dgd = new GridData;
 			dgd.widthHint = 20;
 			dgd.heightHint = 0;
 			dummy.setLayoutData = dgd;
-			auto l = new Label(comp, DWT.NONE);
+			auto l = new Label(comp, SWT.NONE);
 			l.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			l.setText = desc;
 			return c;
@@ -714,8 +714,8 @@ private:
 					_weak[e] = weak;
 				}
 			}
-			auto ts = tcomp.computeSize(DWT.DEFAULT, DWT.DEFAULT);
-			auto bs = bcomp.computeSize(DWT.DEFAULT, DWT.DEFAULT);
+			auto ts = tcomp.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+			auto bs = bcomp.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 			int maxW = ts.x > bs.x ? ts.x : bs.x;
 			ts.x = maxW;
 			bs.x = maxW;
@@ -723,25 +723,25 @@ private:
 			bcomp.setLayoutData = bs;
 		}
 		{
-			auto basic = new Button(comp, DWT.PUSH);
+			auto basic = new Button(comp, SWT.PUSH);
 			basic.setText = _prop.msgs.basicResist;
 			basic.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
 			basic.addSelectionListener(new BasicResist);
 		}
-		auto tab = new CTabItem(tabf, DWT.NONE);
+		auto tab = new CTabItem(tabf, SWT.NONE);
 		tab.setText = _prop.msgs.tolerant;
 		tab.setControl = comp;
 	}
 	void constructPhysical(CTabFolder tabf) {
-		auto comp = new Composite(tabf, DWT.NONE);
+		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout = new GridLayout(1, false);
 		{
-			auto grp = new Group(comp, DWT.NONE);
+			auto grp = new Group(comp, SWT.NONE);
 			grp.setText = _prop.msgs.physicalParams;
 			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
 			auto cl = new CenterLayout;
 			grp.setLayout = cl;
-			_phy = new RadarSpinner(grp, DWT.NONE);
+			_phy = new RadarSpinner(grp, SWT.NONE);
 			static const Ps = [Physical.DEX, Physical.AGL, Physical.INT,
 				Physical.STR, Physical.VIT, Physical.MIN];
 			string[] names;
@@ -757,12 +757,12 @@ private:
 			_phy.lineStep = _prop.looks.physicalMax / 5;
 		}
 		{
-			auto basic = new Button(comp, DWT.PUSH);
+			auto basic = new Button(comp, SWT.PUSH);
 			basic.setText = _prop.msgs.physicalCalc;
 			basic.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
 			basic.addSelectionListener(new CalcPhysical);
 		}
-		auto tab = new CTabItem(tabf, DWT.NONE);
+		auto tab = new CTabItem(tabf, SWT.NONE);
 		tab.setText = _prop.msgs.physicalParams;
 		tab.setControl = comp;
 	}
@@ -817,10 +817,10 @@ private:
 		}
 	}
 	void constructMental(CTabFolder tabf) {
-		auto comp = new Composite(tabf, DWT.NONE);
+		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout = new GridLayout(1, false);
 		{
-			auto grp = new Group(comp, DWT.NONE);
+			auto grp = new Group(comp, SWT.NONE);
 			grp.setText = _prop.msgs.mentalParams;
 			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
 			auto ggl = new GridLayout(3, false);
@@ -829,26 +829,26 @@ private:
 			static const Ms = [Mental.AGGRESSIVE, Mental.CHEERFUL, Mental.BRAVE,
 				Mental.CAUTIOUS, Mental.TRICKISH];
 			foreach (m; Ms) {
-				auto minl = new Label(grp, DWT.NONE);
+				auto minl = new Label(grp, SWT.NONE);
 				minl.setText = _prop.msgs.mental(reverseMental(m));
-				auto scale = new Scale(grp, DWT.NONE);
+				auto scale = new Scale(grp, SWT.NONE);
 				scale.setLayoutData = new GridData(GridData.FILL_BOTH);
 				scale.setMaximum = _prop.looks.mentalMax * 2;
 				scale.setMinimum = 0;
 				scale.setIncrement = 1;
 				scale.setPageIncrement = _prop.looks.mentalMax;
-				auto maxl = new Label(grp, DWT.NONE);
+				auto maxl = new Label(grp, SWT.NONE);
 				maxl.setText = _prop.msgs.mental(m);
 				_mtl[m] = scale;
 			}
 		}
 		{
-			auto basic = new Button(comp, DWT.PUSH);
+			auto basic = new Button(comp, SWT.PUSH);
 			basic.setText = _prop.msgs.mentalCalc;
 			basic.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
 			basic.addSelectionListener(new CalcMental);
 		}
-		auto tab = new CTabItem(tabf, DWT.NONE);
+		auto tab = new CTabItem(tabf, SWT.NONE);
 		tab.setText = _prop.msgs.mentalParams;
 		tab.setControl = comp;
 	}
@@ -889,14 +889,14 @@ private:
 		}
 	}
 	void constructEnhance(CTabFolder tabf) {
-		auto comp = new Composite(tabf, DWT.NONE);
+		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout = new GridLayout(1, false);
 		{
-			auto grp = new Group(comp, DWT.NONE);
+			auto grp = new Group(comp, SWT.NONE);
 			grp.setText = _prop.msgs.castEnhance;
 			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
 			grp.setLayout = new CenterLayout;
-			_enh = new RadarSpinner(grp, DWT.NONE);
+			_enh = new RadarSpinner(grp, SWT.NONE);
 			static const Es = [Enhance.AVOID, Enhance.RESIST, Enhance.DEFENSE];
 			string[] names;
 			names.length = Es.length;
@@ -912,30 +912,30 @@ private:
 			_enh.lineStep = _prop.looks.enhanceMax / 2;
 		}
 		{
-			auto basic = new Button(comp, DWT.PUSH);
+			auto basic = new Button(comp, SWT.PUSH);
 			basic.setText = _prop.msgs.basicEnhance;
 			basic.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
 			basic.addSelectionListener(new BasicEnhance);
 		}
-		auto tab = new CTabItem(tabf, DWT.NONE);
+		auto tab = new CTabItem(tabf, SWT.NONE);
 		tab.setText = _prop.msgs.castEnhance;
 		tab.setControl = comp;
 	}
 	void constructStatus(CTabFolder tabf) {
-		auto comp = new Composite(tabf, DWT.NONE);
+		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout = new GridLayout(1, false);
 		Label[] lbls1, lbls2;
 		Composite[] spns;
 		Spinner createSpn(Composite comp) {
 			// なぜかCompositeを挟まなければSpinner#computeSize()が大きめの値を返す
-			Composite comp2 = new Composite(comp, DWT.NONE);
+			Composite comp2 = new Composite(comp, SWT.NONE);
 			comp2.setLayout = new FillLayout;
-			auto spn = new Spinner(comp2, DWT.BORDER);
+			auto spn = new Spinner(comp2, SWT.BORDER);
 			spns ~= comp2;
 			return spn;
 		}
 		Composite createGrp(string text) {
-			auto grp = new Group(comp, DWT.NONE);
+			auto grp = new Group(comp, SWT.NONE);
 			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
 			auto gl = new GridLayout(2, false);
 			gl.horizontalSpacing = 15;
@@ -944,9 +944,9 @@ private:
 			return grp;
 		}
 		Composite createComp(Composite grp) {
-			auto comp2 = new Composite(grp, DWT.NONE);
+			auto comp2 = new Composite(grp, SWT.NONE);
 			comp2.setLayoutData = new GridData(GridData.FILL_BOTH);
-			auto rl = new RowLayout(DWT.HORIZONTAL);
+			auto rl = new RowLayout(SWT.HORIZONTAL);
 			rl.center = true;
 			rl.marginLeft = 0;
 			rl.marginRight = 0;
@@ -959,20 +959,20 @@ private:
 			auto grp = createGrp(_prop.msgs.lifeAndMentality);
 			{
 				auto comp2 = createComp(grp);
-				auto l = new Label(comp2, DWT.NONE);
+				auto l = new Label(comp2, SWT.NONE);
 				l.setText = _prop.msgs.life;
 				lbls1 ~= l;
-				_life = new Spinner(comp2, DWT.BORDER);
-				_lifeUseMax = new Button(comp2, DWT.CHECK);
+				_life = new Spinner(comp2, SWT.BORDER);
+				_lifeUseMax = new Button(comp2, SWT.CHECK);
 				_lifeUseMax.setText = _prop.msgs.useMax;
 				_lifeUseMax.addSelectionListener(new LifeUseMax);
 			}
 			{
 				auto comp2 = createComp(grp);
-				auto lm = new Label(comp2, DWT.NONE);
+				auto lm = new Label(comp2, SWT.NONE);
 				lm.setText = _prop.msgs.mentality;
 				lbls1 ~= lm;
-				_mtly = new Combo(comp2, DWT.BORDER | DWT.DROP_DOWN | DWT.READ_ONLY);
+				_mtly = new Combo(comp2, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 				_mtly.setVisibleItemCount = 20;
 				foreach (i, mtly; [Mentality.NORMAL, Mentality.SLEEP, Mentality.CONFUSE,
 						Mentality.OVERHEAT, Mentality.BRAVE, Mentality.PANIC]) {
@@ -988,7 +988,7 @@ private:
 				_mtlyRound.setMaximum = _prop.looks.roundMax;
 				_mtlyRound.setMinimum = 1;
 				spns ~= _mtlyRound;
-				auto lm2  = new Label(comp2, DWT.NONE);
+				auto lm2  = new Label(comp2, SWT.NONE);
 				lm2.setText = _prop.msgs.unitRound;
 			}
 		}
@@ -996,7 +996,7 @@ private:
 			auto grp = createGrp(_prop.msgs.enhanceLiveBonus);
 			foreach (enh; [Enhance.ACTION, Enhance.AVOID, Enhance.RESIST, Enhance.DEFENSE]) {
 				auto comp2 = createComp(grp);
-				auto l = new Label(comp2, DWT.NONE);
+				auto l = new Label(comp2, SWT.NONE);
 				l.setText = _prop.msgs.enhanceLiveBonus(enh);
 				lbls1 ~= l;
 				auto spn = createSpn(comp2);
@@ -1009,21 +1009,21 @@ private:
 				rnd.setMinimum = 1;
 				spns ~= rnd;
 				_enhRound[enh] = rnd;
-				auto l2  = new Label(comp2, DWT.NONE);
+				auto l2  = new Label(comp2, SWT.NONE);
 				l2.setText = _prop.msgs.unitRound;
 				spn.addSelectionListener(new LiveEnh);
 			}
 		}
 		Spinner createStSpn(Composite grp, string name, uint max, string val) {
 			auto comp2 = createComp(grp);
-			auto l = new Label(comp2, DWT.NONE);
+			auto l = new Label(comp2, SWT.NONE);
 			l.setText = name;
 			lbls1 ~= l;
 			auto spn = createSpn(comp2);
 			spn.setMaximum = max;
 			spn.setMinimum = 0;
 			spns ~= spn;
-			auto l2  = new Label(comp2, DWT.NONE);
+			auto l2  = new Label(comp2, SWT.NONE);
 			l2.setText = val;
 			lbls2 ~= l2;
 			return spn;
@@ -1040,11 +1040,11 @@ private:
 		void setlblw(Control[] lbls) {
 			int maxW = 0;
 			foreach (lbl; lbls) {
-				int w = lbl.computeSize(DWT.DEFAULT, DWT.DEFAULT).x;
+				int w = lbl.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
 				if (maxW < w) maxW = w;
 			}
 			foreach (lbl; lbls) {
-				auto gd = new RowData(maxW, DWT.DEFAULT);
+				auto gd = new RowData(maxW, SWT.DEFAULT);
 				lbl.setLayoutData = gd;
 			}
 		}
@@ -1052,12 +1052,12 @@ private:
 		setlblw(cast(Control[]) lbls2);
 		setlblw(cast(Control[]) spns);
 		{
-			auto reset = new Button(comp, DWT.PUSH);
+			auto reset = new Button(comp, SWT.PUSH);
 			reset.setText = _prop.msgs.resetLiveStatus;
 			reset.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
 			reset.addSelectionListener(new ResetLiveStatus);
 		}
-		auto tab = new CTabItem(tabf, DWT.NONE);
+		auto tab = new CTabItem(tabf, SWT.NONE);
 		tab.setText = _prop.msgs.liveStatus;
 		tab.setControl = comp;
 	}
@@ -1131,7 +1131,7 @@ public:
 protected:
 	override void setup(Composite area) {
 		area.setLayout = windowGridLayout(1);
-		auto tabf = new CTabFolder(area, DWT.BORDER);
+		auto tabf = new CTabFolder(area, SWT.BORDER);
 		constructBase(tabf);
 		constructDesc(tabf);
 		constructHistory(tabf);
@@ -1145,11 +1145,11 @@ protected:
 		// Windows Vistaだとタブの横幅が凄いことになったので必要最低限にする。
 		scope maxSize = new Point(0, 0);
 		foreach (tab; tabf.getItems) {
-			scope size = tab.getControl.computeSize(DWT.DEFAULT, DWT.DEFAULT);
+			scope size = tab.getControl.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 			if (maxSize.x < size.x) maxSize.x = size.x;
 			if (maxSize.y < size.y) maxSize.y = size.y;
 		}
-		scope rect = tabf.computeTrim(DWT.DEFAULT, DWT.DEFAULT, maxSize.x, maxSize.y);
+		scope rect = tabf.computeTrim(SWT.DEFAULT, SWT.DEFAULT, maxSize.x, maxSize.y);
 		auto gd = new GridData(GridData.FILL_BOTH);
 		gd.widthHint = rect.width;
 		gd.heightHint = rect.height;

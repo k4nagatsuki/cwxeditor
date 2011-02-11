@@ -27,36 +27,36 @@ import std.file;
 import std.path;
 import std.regexp;
 
-import dwt.widgets.Shell;
-import dwt.widgets.Text;
-import dwt.widgets.Button;
-import dwt.widgets.Composite;
-import dwt.widgets.Control;
-import dwt.widgets.Group;
-import dwt.widgets.Label;
-import dwt.widgets.MessageBox;
-import dwt.widgets.Table;
-import dwt.widgets.TableItem;
-import dwt.widgets.Combo;
-import dwt.widgets.Spinner;
-import dwt.custom.CTabFolder;
-import dwt.custom.CTabItem;
-import dwt.events.ShellAdapter;
-import dwt.events.ShellEvent;
-import dwt.events.SelectionAdapter;
-import dwt.events.SelectionEvent;
-import dwt.events.MouseAdapter;
-import dwt.events.MouseEvent;
-import dwt.events.KeyAdapter;
-import dwt.events.KeyEvent;
-import dwt.events.DisposeListener;
-import dwt.events.DisposeEvent;
-import dwt.layout.GridLayout;
-import dwt.layout.GridData;
-import dwt.layout.RowLayout;
-import dwt.layout.RowData;
-import dwt.graphics.Image;
-import dwt.dwthelper.utils : ArrayWrapperString;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.MessageBox;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.widgets.Spinner;
+import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.events.ShellAdapter;
+import org.eclipse.swt.events.ShellEvent;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.RowLayout;
+import org.eclipse.swt.layout.RowData;
+import org.eclipse.swt.graphics.Image;
+import java.lang.all : ArrayWrapperString;
 
 /// 検索と置換を行うダイアログ。
 class ReplaceDialog {
@@ -182,7 +182,7 @@ private:
 	}
 	class KL : KeyAdapter {
 		public override void keyPressed(KeyEvent e) {
-			if (_result.isFocusControl && e.character == DWT.CR) {
+			if (_result.isFocusControl && e.character == SWT.CR) {
 				openPath;
 			}
 		}
@@ -318,54 +318,54 @@ private:
 		}
 	}
 	void constructText(CTabFolder tabf) {
-		auto comp = new Composite(tabf, DWT.NONE);
+		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout = new GridLayout(1, true);
 		{
-			auto grp = new Group(comp, DWT.NONE);
+			auto grp = new Group(comp, SWT.NONE);
 			grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			grp.setText = _prop.msgs.replText;
 			grp.setLayout = new GridLayout(2, false);
-			auto lf = new Label(grp, DWT.NONE);
+			auto lf = new Label(grp, SWT.NONE);
 			lf.setText = _prop.msgs.replFrom;
-			_from = new Combo(grp, DWT.BORDER | DWT.DROP_DOWN);
+			_from = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN);
 			_from.setVisibleItemCount = 20;
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
 			gd.widthHint = _prop.var.etc.nameWidth;
 			_from.setLayoutData = gd;
-			auto lt = new Label(grp, DWT.NONE);
+			auto lt = new Label(grp, SWT.NONE);
 			lt.setText = _prop.msgs.replTo;
-			_to = new Combo(grp, DWT.BORDER | DWT.DROP_DOWN);
+			_to = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN);
 			_to.setVisibleItemCount = 20;
 			_to.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		}
 		{
-			auto grp = new Group(comp, DWT.NONE);
+			auto grp = new Group(comp, SWT.NONE);
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
 			gd.widthHint = _prop.var.etc.searchResultTableWidth;
 			grp.setLayoutData = gd;
 			grp.setText = _prop.msgs.replCond;
 			grp.setLayout = new GridLayout(1, true);
-			_notIgnoreCase = new Button(grp, DWT.CHECK);
+			_notIgnoreCase = new Button(grp, SWT.CHECK);
 			_notIgnoreCase.setText = _prop.msgs.replNotIgnoreCase;
-			_useWildcard = new Button(grp, DWT.CHECK);
+			_useWildcard = new Button(grp, SWT.CHECK);
 			_useWildcard.setText = _prop.msgs.replWildcard;
 			_useWildcard.addSelectionListener(new SelWildcard);
-			_useRegex = new Button(grp, DWT.CHECK);
+			_useRegex = new Button(grp, SWT.CHECK);
 			_useRegex.setText = _prop.msgs.replRegExp;
 			_useRegex.addSelectionListener(new SelRegex);
 		}
 		{
-			auto grp = new Group(comp, DWT.NONE);
+			auto grp = new Group(comp, SWT.NONE);
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
 			gd.widthHint = _prop.var.etc.searchResultTableWidth;
 			grp.setLayoutData = gd;
 			grp.setText = _prop.msgs.replTextTarget;
-			auto rl = new RowLayout(DWT.HORIZONTAL);
+			auto rl = new RowLayout(SWT.HORIZONTAL);
 			rl.wrap = true;
 			rl.pack = false;
 			grp.setLayout = rl;
 			Button createB(string text) {
-				auto b = new Button(grp, DWT.CHECK);
+				auto b = new Button(grp, SWT.CHECK);
 				b.setText = text;
 				return b;
 			}
@@ -382,23 +382,23 @@ private:
 			_area = createB(_prop.msgs.replTextAreaName);
 			_keyCode = createB(_prop.msgs.replTextKeyCode);
 		}
-		auto tab = new CTabItem(tabf, DWT.NONE);
+		auto tab = new CTabItem(tabf, SWT.NONE);
 		tab.setText = _prop.msgs.replForText;
 		tab.setControl = comp;
 		_tabText = tab;
 	}
 	void constructID(CTabFolder tabf) {
-		auto comp = new Composite(tabf, DWT.NONE);
+		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout = new GridLayout(1, true);
 		{
-			auto grp = new Group(comp, DWT.NONE);
+			auto grp = new Group(comp, SWT.NONE);
 			grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			grp.setText = _prop.msgs.replID;
 			grp.setLayout = new GridLayout(3, false);
 			{
-				auto l = new Label(grp, DWT.NONE);
+				auto l = new Label(grp, SWT.NONE);
 				l.setText = _prop.msgs.replIDKind;
-				_idKind = new Combo(grp, DWT.BORDER | DWT.DROP_DOWN | DWT.READ_ONLY);
+				_idKind = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 				_idKind.setVisibleItemCount = 20;
 				_idKind.add(_prop.msgs.replIDArea);
 				_idKind.add(_prop.msgs.replIDBattle);
@@ -415,20 +415,20 @@ private:
 				_idKind.addSelectionListener(new SelIDKind);
 			}
 			{
-				auto sep = new Label(grp, DWT.SEPARATOR | DWT.HORIZONTAL);
+				auto sep = new Label(grp, SWT.SEPARATOR | SWT.HORIZONTAL);
 				auto gd = new GridData(GridData.FILL_HORIZONTAL);
 				gd.horizontalSpan = 3;
 				sep.setLayoutData = gd;
 			}
 			void setupID(string text, ref Combo combo, ref Spinner spn) {
-				auto l = new Label(grp, DWT.NONE);
+				auto l = new Label(grp, SWT.NONE);
 				l.setText = text;
-				combo = new Combo(grp, DWT.BORDER | DWT.DROP_DOWN | DWT.READ_ONLY);
+				combo = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 				combo.setVisibleItemCount = 20;
 				auto gd = new GridData(GridData.FILL_HORIZONTAL);
 				gd.widthHint = _prop.var.etc.nameWidth;
 				combo.setLayoutData = gd;
-				spn = new Spinner(grp, DWT.BORDER);
+				spn = new Spinner(grp, SWT.BORDER);
 				spn.setMinimum = 1;
 				spn.setMaximum = _prop.looks.idMax;
 				combo.addSelectionListener(new SelID(spn));
@@ -436,23 +436,23 @@ private:
 			setupID(_prop.msgs.replFrom, _fromID, _fromIDVal);
 			setupID(_prop.msgs.replTo, _toID, _toIDVal);
 		}
-		auto tab = new CTabItem(tabf, DWT.NONE);
+		auto tab = new CTabItem(tabf, SWT.NONE);
 		tab.setText = _prop.msgs.replForID;
 		tab.setControl = comp;
 		_tabID = tab;
 	}
 	void constructPath(CTabFolder tabf) {
-		auto comp = new Composite(tabf, DWT.NONE);
+		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout = new GridLayout(1, true);
 		{
-			auto grp = new Group(comp, DWT.NONE);
+			auto grp = new Group(comp, SWT.NONE);
 			grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			grp.setText = _prop.msgs.replPath;
 			grp.setLayout = new GridLayout(2, false);
 			Combo setupPath(string text) {
-				auto l = new Label(grp, DWT.NONE);
+				auto l = new Label(grp, SWT.NONE);
 				l.setText = text;
-				auto combo = new Combo(grp, DWT.BORDER | DWT.DROP_DOWN);
+				auto combo = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN);
 				combo.setVisibleItemCount = 20;
 				auto gd = new GridData(GridData.FILL_HORIZONTAL);
 				gd.widthHint = _prop.var.etc.nameWidth;
@@ -462,24 +462,24 @@ private:
 			_fromPath = setupPath(_prop.msgs.replFrom);
 			_toPath = setupPath(_prop.msgs.replTo);
 		}
-		auto tab = new CTabItem(tabf, DWT.NONE);
+		auto tab = new CTabItem(tabf, SWT.NONE);
 		tab.setText = _prop.msgs.replForPath;
 		tab.setControl = comp;
 		_tabPath = tab;
 	}
 	void constructUnuse(CTabFolder tabf) {
-		auto comp = new Composite(tabf, DWT.NONE);
+		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout = new GridLayout(1, true);
 		{
-			auto grp = new Group(comp, DWT.NONE);
+			auto grp = new Group(comp, SWT.NONE);
 			grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			grp.setText = _prop.msgs.replUnuseTarget;
-			auto rl = new RowLayout(DWT.HORIZONTAL);
+			auto rl = new RowLayout(SWT.HORIZONTAL);
 			rl.wrap = true;
 			rl.pack = false;
 			grp.setLayout = rl;
 			Button createB(string text) {
-				auto b = new Button(grp, DWT.CHECK);
+				auto b = new Button(grp, SWT.CHECK);
 				b.setText = text;
 				return b;
 			}
@@ -496,20 +496,20 @@ private:
 			_unuseStart = createB(_prop.msgs.replUnuseStart);
 			_unusePath = createB(_prop.msgs.replUnusePath);
 		}
-		auto tab = new CTabItem(tabf, DWT.NONE);
+		auto tab = new CTabItem(tabf, SWT.NONE);
 		tab.setText = _prop.msgs.replForUnuse;
 		tab.setControl = comp;
 		_tabUnuse = tab;
 	}
 	void constructError(CTabFolder tabf) {
-		auto comp = new Composite(tabf, DWT.NONE);
+		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout = new GridLayout(1, true);
 		{
-			auto l = new Label(comp, DWT.WRAP);
+			auto l = new Label(comp, SWT.WRAP);
 			l.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			l.setText = _prop.msgs.replError;
 		}
-		auto tab = new CTabItem(tabf, DWT.NONE);
+		auto tab = new CTabItem(tabf, SWT.NONE);
 		tab.setText = _prop.msgs.replForError;
 		tab.setControl = comp;
 		_tabError = tab;
@@ -519,7 +519,7 @@ public:
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
-		_win = new Shell(shell, DWT.SHELL_TRIM);
+		_win = new Shell(shell, SWT.SHELL_TRIM);
 		if (shell) {
 			_win.setImeInputMode = shell.getImeInputMode;
 		}
@@ -550,10 +550,10 @@ public:
 	private void setup() {
 		_win.addShellListener(new SListener);
 		_win.setLayout = zeroGridLayout(1, true);
-		auto area = new Composite(_win, DWT.NONE);
+		auto area = new Composite(_win, SWT.NONE);
 		area.setLayoutData = new GridData(GridData.FILL_BOTH);
 		area.setLayout = windowGridLayout(1, true);
-		_tabf = new CTabFolder(area, DWT.BORDER);
+		_tabf = new CTabFolder(area, SWT.BORDER);
 		{
 			_tabf.setLayoutData = new GridData(GridData.FILL_BOTH);
 			constructText(_tabf);
@@ -565,34 +565,34 @@ public:
 		}
 		{
 			_result = new Table(cast(Composite) _tabf.getItems[0].getControl,
-				DWT.BORDER | DWT.SINGLE | DWT.FULL_SELECTION | DWT.V_SCROLL);
+				SWT.BORDER | SWT.SINGLE | SWT.FULL_SELECTION | SWT.V_SCROLL);
 			auto gd = new GridData(GridData.FILL_BOTH);
 			gd.widthHint = _prop.var.etc.searchResultTableWidth;
 			gd.heightHint = _prop.var.etc.searchResultTableHeight;
 			_result.setLayoutData = gd;
 			_result.addMouseListener = new ML;
 			_result.addKeyListener = new KL;
-			new FullTableColumn(_result, DWT.NONE);
+			new FullTableColumn(_result, SWT.NONE);
 		}
 		{
-			auto sep = new Label(_win, DWT.SEPARATOR | DWT.HORIZONTAL);
+			auto sep = new Label(_win, SWT.SEPARATOR | SWT.HORIZONTAL);
 			sep.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		}
 		{
-			auto bArea = new Composite(_win, DWT.NONE);
+			auto bArea = new Composite(_win, SWT.NONE);
 			bArea.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			bArea.setLayout = new GridLayout(2, false);
-			_status = new Label(bArea, DWT.NONE);
+			_status = new Label(bArea, SWT.NONE);
 			_status.setText = _prop.msgs.searchResult(0);
 			_status.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-			auto comp = new Composite(bArea, DWT.NONE);
+			auto comp = new Composite(bArea, SWT.NONE);
 			comp.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
 			auto gl = new GridLayout(3, true);
 			gl.marginWidth = 0;
 			gl.marginHeight = 0;
 			comp.setLayout = gl;
 			Button createButton(string text, void delegate() push) {
-				auto b = new Button(comp, DWT.PUSH);
+				auto b = new Button(comp, SWT.PUSH);
 				b.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				b.setText = text;
 				auto sa = new class SelectionAdapter {
@@ -639,10 +639,10 @@ public:
 		_unuseStart.setSelection = _prop.var.etc.searchUnusedStart;
 		_unusePath.setSelection = _prop.var.etc.searchUnusedPath;
 		_win.addDisposeListener(new DL);
-		auto cs = _win.computeSize(DWT.DEFAULT, DWT.DEFAULT);
+		auto cs = _win.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 		auto size = _prop.var.replaceDlg;
-		if (size.width != DWT.DEFAULT) cs.x = size.width;
-		if (size.height != DWT.DEFAULT) cs.x = size.height;
+		if (size.width != SWT.DEFAULT) cs.x = size.width;
+		if (size.height != SWT.DEFAULT) cs.x = size.height;
 		_win.setSize = cs;
 	}
 	private class DL : DisposeListener {
@@ -1236,13 +1236,13 @@ public:
 	}
 	private alias ArrayWrapperString PathString;
 	private void addResult(string path) {
-		auto itm = new TableItem(_result, DWT.NONE);
+		auto itm = new TableItem(_result, SWT.NONE);
 		itm.setImage = fimage(std.path.join(_summ.scenarioPath, path));
 		itm.setText = encodePath(path);
 		itm.setData = new PathString(path);
 	}
 	private void addResult(CWXPath path) {
-		auto itm = new TableItem(_result, DWT.NONE);
+		auto itm = new TableItem(_result, SWT.NONE);
 		Image img = null;
 		string text = "*Error*";
 		auto sum = cast(Summary) path;

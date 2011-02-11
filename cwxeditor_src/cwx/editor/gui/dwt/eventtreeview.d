@@ -25,53 +25,53 @@ import cwx.editor.gui.dwt.properties;
 
 import std.string;
 
-import dwt.widgets.Control;
-import dwt.widgets.Combo;
-import dwt.widgets.Display;
-import dwt.widgets.Shell;
-import dwt.widgets.Composite;
-import dwt.widgets.Tree;
-import dwt.widgets.TreeItem;
-import dwt.widgets.CoolBar;
-import dwt.widgets.CoolItem;
-import dwt.widgets.ToolBar;
-import dwt.widgets.ToolItem;
-import dwt.widgets.Text;
-import dwt.widgets.Menu;
-import dwt.widgets.MenuItem;
-import dwt.custom.CCombo;
-import dwt.layout.GridData;
-import dwt.layout.GridLayout;
-import dwt.graphics.Image;
-import dwt.graphics.ImageData;
-import dwt.graphics.PaletteData;
-import dwt.graphics.RGB;
-import dwt.graphics.Cursor;
-import dwt.events.ControlAdapter;
-import dwt.events.ControlEvent;
-import dwt.events.KeyListener;
-import dwt.events.KeyEvent;
-import dwt.events.MouseAdapter;
-import dwt.events.MouseEvent;
-import dwt.events.ShellAdapter;
-import dwt.events.ShellEvent;
-import dwt.events.SelectionAdapter;
-import dwt.events.SelectionEvent;
-import dwt.events.DisposeListener;
-import dwt.events.DisposeEvent;
-import dwt.dwthelper.utils;
-import dwt.dnd.Clipboard;
-import dwt.dnd.ByteArrayTransfer;
-import dwt.dnd.TextTransfer;
-import dwt.dnd.DND;
-import dwt.dnd.DragSourceAdapter;
-import dwt.dnd.DragSourceListener;
-import dwt.dnd.DragSourceEvent;
-import dwt.dnd.DragSource;
-import dwt.dnd.DropTargetAdapter;
-import dwt.dnd.DropTargetListener;
-import dwt.dnd.DropTargetEvent;
-import dwt.dnd.DropTarget;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swt.widgets.TreeItem;
+import org.eclipse.swt.widgets.CoolBar;
+import org.eclipse.swt.widgets.CoolItem;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.custom.CCombo;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.PaletteData;
+import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.graphics.Cursor;
+import org.eclipse.swt.events.ControlAdapter;
+import org.eclipse.swt.events.ControlEvent;
+import org.eclipse.swt.events.KeyListener;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.ShellAdapter;
+import org.eclipse.swt.events.ShellEvent;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.DisposeEvent;
+import java.lang.all;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.ByteArrayTransfer;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.DragSourceAdapter;
+import org.eclipse.swt.dnd.DragSourceListener;
+import org.eclipse.swt.dnd.DragSourceEvent;
+import org.eclipse.swt.dnd.DragSource;
+import org.eclipse.swt.dnd.DropTargetAdapter;
+import org.eclipse.swt.dnd.DropTargetListener;
+import org.eclipse.swt.dnd.DropTargetEvent;
+import org.eclipse.swt.dnd.DropTarget;
 
 public:
 
@@ -126,7 +126,7 @@ private:
 			edit;
 		}
 		override void keyPressed(KeyEvent e) {
-			if (e.character == DWT.CR) {
+			if (e.character == SWT.CR) {
 				__edit;
 			}
 		}
@@ -238,7 +238,7 @@ private:
 	class UndoSwap : ETVUndo {
 		private int _upIndex;
 		this (int swapIndex1, int swapIndex2) {
-			_upIndex = max(swapIndex1, swapIndex2);
+			_upIndex = swapIndex1 > swapIndex2 ? swapIndex1 : swapIndex2;
 		}
 		private void impl() {
 			udb;
@@ -1311,7 +1311,7 @@ private:
 		auto cursor = new Cursor(Display.getCurrent, imgData, imgData.width / 2, imgData.height / 2);
 		_cursors ~= cursor;
 		auto ce = new CreateEvent(this, type, cursor);
-		auto itm = createToolItem(bar, text, img, &ce.create, DWT.RADIO);
+		auto itm = createToolItem(bar, text, img, &ce.create, SWT.RADIO);
 		ce.ti = itm;
 		g.append(itm);
 		if (type != CType.START) {
@@ -1421,30 +1421,30 @@ public:
 		_forceSel = forceSel;
 		_refreshTopStart = refreshTopStart;
 
-		_comp = new Composite(parent, DWT.NONE);
+		_comp = new Composite(parent, SWT.NONE);
 		_comp.setLayout = zeroGridLayout(1, false);
 		if (_prop.var.etc.contentsFloat) {
-			_toolWin = new Shell(parent.getShell, DWT.TITLE | DWT.RESIZE | DWT.TOOL);
+			_toolWin = new Shell(parent.getShell, SWT.TITLE | SWT.RESIZE | SWT.TOOL);
 			_toolWin.setLayout = zeroGridLayout(1);
 			_toolWin.setText = prop.msgs.tools;
 			_toolWin.addShellListener(new TSListener);
 			_toolWin.addMouseListener(new TMListener);
 		}
-		auto popup = new Menu(parent.getShell, DWT.POP_UP);
+		auto popup = new Menu(parent.getShell, SWT.POP_UP);
 		createMenuItem(popup, prop.msgs.menuCEdit, prop.images.menuCEdit, &edit);
-		new MenuItem(popup, DWT.SEPARATOR);
+		new MenuItem(popup, SWT.SEPARATOR);
 		createMenuItem(popup, _prop.msgs.menuUndo, _prop.images.menuUndo, &this.undo);
 		createMenuItem(popup, _prop.msgs.menuRedo, _prop.images.menuRedo, &this.redo);
-		new MenuItem(popup, DWT.SEPARATOR);
+		new MenuItem(popup, SWT.SEPARATOR);
 		appendMenuTCPD(prop, popup, this, true, true, true, true);
-		new MenuItem(popup, DWT.SEPARATOR);
+		new MenuItem(popup, SWT.SEPARATOR);
 		createMenuItem(popup, _prop.msgs.menuStartToPackage, _prop.images.menuStartToPackage, &startToPackage);
 		void delegate() dlg = null;
-		auto convMI = createMenuItem(popup, _prop.msgs.menuConvertContent, _prop.images.menuConvertContent, dlg, DWT.CASCADE);
-		auto conv = new Menu(parent.getShell, DWT.DROP_DOWN);
+		auto convMI = createMenuItem(popup, _prop.msgs.menuConvertContent, _prop.images.menuConvertContent, dlg, SWT.CASCADE);
+		auto conv = new Menu(parent.getShell, SWT.DROP_DOWN);
 		convMI.setMenu = conv;
 		debug {
-			new MenuItem(popup, DWT.SEPARATOR);
+			new MenuItem(popup, SWT.SEPARATOR);
 			createMenuItem(popup, "debug: Create CWX &Path", null, &createCWXPath);
 		}
 		{
@@ -1453,37 +1453,37 @@ public:
 
 			CoolBar cbar;
 			if (_prop.var.etc.contentsFloat) {
-				cbar = new CoolBar(_toolWin, DWT.NONE);
+				cbar = new CoolBar(_toolWin, SWT.NONE);
 			} else {
-				cbar = new CoolBar(_comp, DWT.NONE);
+				cbar = new CoolBar(_comp, SWT.NONE);
 				cbar.addMouseListener(new TMListener);
 			}
 			cbar.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			auto g = new RadioGroup!(ToolItem);
 			_radioGroup = g;
 			Menu convMenu(string text, Image img) {
-				auto mi = createMenuItem(conv, text, img, dlg, DWT.CASCADE);
-				auto m = new Menu(parent.getShell, DWT.DROP_DOWN);
+				auto mi = createMenuItem(conv, text, img, dlg, SWT.CASCADE);
+				auto m = new Menu(parent.getShell, SWT.DROP_DOWN);
 				mi.setMenu = m;
 				return m;
 			}
 
-			auto atm = new ToolBar(cbar, DWT.FLAT);
+			auto atm = new ToolBar(cbar, SWT.FLAT);
 			atm.addMouseListener(new TMListener);
-			_arrowTI = createToolItem(atm, _prop.msgs.evtArrow, _prop.images.evtArrow, &arrow, DWT.RADIO);
+			_arrowTI = createToolItem(atm, _prop.msgs.evtArrow, _prop.images.evtArrow, &arrow, SWT.RADIO);
 			_arrowTI.setSelection = true;
 			g.append(_arrowTI);
 			createCoolItem(cbar, atm);
 
-			auto mode = new ToolBar(cbar, DWT.FLAT);
+			auto mode = new ToolBar(cbar, SWT.FLAT);
 			mode.addMouseListener(new TMListener);
-			_contiTI = createToolItem(mode, _prop.msgs.evtAddContinue, _prop.images.evtAddContinue, &addContinue, DWT.CHECK);
+			_contiTI = createToolItem(mode, _prop.msgs.evtAddContinue, _prop.images.evtAddContinue, &addContinue, SWT.CHECK);
 			_contiTI.setSelection = _conti;
-			_autoOpenTI = createToolItem(mode, _prop.msgs.evtAutoOpen, _prop.images.evtAutoOpen, &autoOpen, DWT.CHECK);
+			_autoOpenTI = createToolItem(mode, _prop.msgs.evtAutoOpen, _prop.images.evtAutoOpen, &autoOpen, SWT.CHECK);
 			_autoOpenTI.setSelection = _autoOpen;
 			createCoolItem(cbar, mode);
 
-			auto e1 = new ToolBar(cbar, DWT.FLAT);
+			auto e1 = new ToolBar(cbar, SWT.FLAT);
 			e1.addMouseListener(new TMListener);
 			auto e1c = convMenu(_prop.msgs.menuEvtTerminal, _prop.images.menuEvtTerminal);
 			createEI(CType.START, e1, g, conv);
@@ -1496,7 +1496,7 @@ public:
 			createEI(CType.LINK_PACKAGE, e1, g, e1c);
 			createCoolItem(cbar, e1);
 
-			auto e2 = new ToolBar(cbar, DWT.FLAT);
+			auto e2 = new ToolBar(cbar, SWT.FLAT);
 			e2.addMouseListener(new TMListener);
 			auto e2c = convMenu(_prop.msgs.menuEvtStandard, _prop.images.menuEvtStandard);
 			createEI(CType.TALK_MESSAGE, e2, g, e2c);
@@ -1510,7 +1510,7 @@ public:
 			createEI(CType.CALL_PACKAGE, e2, g, e2c);
 			createCoolItem(cbar, e2);
 
-			auto e3 = new ToolBar(cbar, DWT.FLAT);
+			auto e3 = new ToolBar(cbar, SWT.FLAT);
 			e3.addMouseListener(new TMListener);
 			auto e3c = convMenu(_prop.msgs.menuEvtData, _prop.images.menuEvtData);
 			createEI(CType.BRANCH_FLAG, e3, g, e3c);
@@ -1524,7 +1524,7 @@ public:
 			createEI(CType.CHECK_FLAG, e3, g, e3c);
 			createCoolItem(cbar, e3);
 
-			auto e4 = new ToolBar(cbar, DWT.FLAT);
+			auto e4 = new ToolBar(cbar, SWT.FLAT);
 			e4.addMouseListener(new TMListener);
 			auto e4c = convMenu(_prop.msgs.menuEvtUtility, _prop.images.menuEvtUtility);
 			createEI(CType.BRANCH_SELECT, e4, g, e4c);
@@ -1538,7 +1538,7 @@ public:
 			createEI(CType.BRANCH_IS_BATTLE, e4, g, e4c);
 			createCoolItem(cbar, e4);
 
-			auto e5 = new ToolBar(cbar, DWT.FLAT);
+			auto e5 = new ToolBar(cbar, SWT.FLAT);
 			e5.addMouseListener(new TMListener);
 			auto e5c = convMenu(_prop.msgs.menuEvtBranch, _prop.images.menuEvtBranch);
 			createEI(CType.BRANCH_CAST, e5, g, e5c);
@@ -1552,7 +1552,7 @@ public:
 			createEI(CType.BRANCH_GOSSIP, e5, g, e5c);
 			createCoolItem(cbar, e5);
 
-			auto e6 = new ToolBar(cbar, DWT.FLAT);
+			auto e6 = new ToolBar(cbar, SWT.FLAT);
 			e6.addMouseListener(new TMListener);
 			auto e6c = convMenu(_prop.msgs.menuEvtGet, _prop.images.menuEvtGet);
 			createEI(CType.GET_CAST, e6, g, e6c);
@@ -1566,7 +1566,7 @@ public:
 			createEI(CType.GET_GOSSIP, e6, g, e6c);
 			createCoolItem(cbar, e6);
 
-			auto e7 = new ToolBar(cbar, DWT.FLAT);
+			auto e7 = new ToolBar(cbar, SWT.FLAT);
 			e7.addMouseListener(new TMListener);
 			auto e7c = convMenu(_prop.msgs.menuEvtLost, _prop.images.menuEvtLost);
 			createEI(CType.LOSE_CAST, e7, g, e7c);
@@ -1580,7 +1580,7 @@ public:
 			createEI(CType.LOSE_GOSSIP, e7, g, e7c);
 			createCoolItem(cbar, e7);
 
-			auto e8 = new ToolBar(cbar, DWT.FLAT);
+			auto e8 = new ToolBar(cbar, SWT.FLAT);
 			e8.addMouseListener(new TMListener);
 			auto e8c = convMenu(_prop.msgs.menuEvtVisual, _prop.images.menuEvtVisual);
 			createEI(CType.SHOW_PARTY, e8, g, e8c);
@@ -1602,16 +1602,16 @@ public:
 			cbar.addDisposeListener(new CDListener);
 		}
 		if (_toolWin) {
-			auto dummy = new Composite(_toolWin, DWT.NONE);
+			auto dummy = new Composite(_toolWin, SWT.NONE);
 			auto gd = new GridData(GridData.FILL_BOTH);
 			gd.heightHint = 0;
 			dummy.setLayoutData = gd;
 			_toolWin.setVisible = false;
 			auto pb = _toolWin.getParent.getBounds;
 			auto twb = _toolWin.getBounds;
-			auto ts = _toolWin.computeSize(DWT.DEFAULT, DWT.DEFAULT);
-			int tx = _prop.var.contentsWin.x == DWT.DEFAULT ? twb.x : pb.x + _prop.var.contentsWin.x;
-			int ty = _prop.var.contentsWin.y == DWT.DEFAULT ? twb.y : pb.y + _prop.var.contentsWin.y;
+			auto ts = _toolWin.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+			int tx = _prop.var.contentsWin.x == SWT.DEFAULT ? twb.x : pb.x + _prop.var.contentsWin.x;
+			int ty = _prop.var.contentsWin.y == SWT.DEFAULT ? twb.y : pb.y + _prop.var.contentsWin.y;
 			intoDisplay(tx, ty, ts.x, ts.y);
 			_parX = pb.x;
 			_parY = pb.y;
@@ -1620,7 +1620,7 @@ public:
 			_toolWin.getParent.addControlListener(new TCListener);
 			parent.getShell.addShellListener(new PSListener);
 		}
-		_tree = new Tree(_comp, DWT.SINGLE | DWT.BORDER);
+		_tree = new Tree(_comp, SWT.SINGLE | SWT.BORDER);
 		_tree.setLayoutData = new GridData(GridData.FILL_BOTH);
 		new TreeEdit(_tree, &editEnd, &createEditor);
 		_tree.addDisposeListener(new TRDListener);

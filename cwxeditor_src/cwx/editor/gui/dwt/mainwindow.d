@@ -41,50 +41,50 @@ import cwx.editor.gui.dwt.flagspane;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.utils;
 
-import dwt.events.SelectionAdapter;
-import dwt.events.SelectionEvent;
-import dwt.events.KeyListener;
-import dwt.events.ControlAdapter;
-import dwt.events.ControlEvent;
-import dwt.events.MouseMoveListener;
-import dwt.events.MouseEvent;
-import dwt.events.DisposeListener;
-import dwt.events.DisposeEvent;
-import dwt.events.ShellAdapter;
-import dwt.events.ShellEvent;
-import dwt.widgets.Control;
-import dwt.widgets.Composite;
-import dwt.widgets.Combo;
-import dwt.widgets.Label;
-import dwt.widgets.CoolBar;
-import dwt.widgets.CoolItem;
-import dwt.widgets.Display;
-import dwt.widgets.ToolBar;
-import dwt.widgets.ToolItem;
-import dwt.widgets.Shell;
-import dwt.widgets.Menu;
-import dwt.widgets.MenuItem;
-import dwt.widgets.FileDialog;
-import dwt.widgets.DirectoryDialog;
-import dwt.widgets.MessageBox;
-import dwt.widgets.Text;
-import dwt.widgets.Link;
-import dwt.graphics.Image;
-import dwt.program.Program;
-import dwt.layout.FillLayout;
-import dwt.layout.RowLayout;
-import dwt.layout.RowData;
-import dwt.layout.GridLayout;
-import dwt.layout.GridData;
-import dwt.dnd.DND;
-import dwt.dnd.Clipboard;
-import dwt.dnd.DropTarget;
-import dwt.dnd.DropTargetEvent;
-import dwt.dnd.DropTargetAdapter;
-import dwt.dnd.FileTransfer;
-import dwt.dnd.TextTransfer;
-import dwt.dnd.Transfer;
-import dwt.dwthelper.utils;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.KeyListener;
+import org.eclipse.swt.events.ControlAdapter;
+import org.eclipse.swt.events.ControlEvent;
+import org.eclipse.swt.events.MouseMoveListener;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.ShellAdapter;
+import org.eclipse.swt.events.ShellEvent;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.CoolBar;
+import org.eclipse.swt.widgets.CoolItem;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.FileDialog;
+import org.eclipse.swt.widgets.DirectoryDialog;
+import org.eclipse.swt.widgets.MessageBox;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.Link;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.program.Program;
+import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.RowLayout;
+import org.eclipse.swt.layout.RowData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.DropTarget;
+import org.eclipse.swt.dnd.DropTargetEvent;
+import org.eclipse.swt.dnd.DropTargetAdapter;
+import org.eclipse.swt.dnd.FileTransfer;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Transfer;
+import java.lang.all;
 
 version (Windows) {
 	import std.c.windows.windows;
@@ -297,7 +297,7 @@ private:
 				// いまだ保存されていない場合は名前をつけて保存
 				return __saveScenarioA(shell);
 			} else {
-				shell.setCursor = Display.getCurrent.getSystemCursor(DWT.CURSOR_WAIT);
+				shell.setCursor = Display.getCurrent.getSystemCursor(SWT.CURSOR_WAIT);
 				scope (exit) shell.setCursor = null;
 				try {
 					summary.saveOverwrite(_prop.parent, _prop.var.etc.saveInnerImagePath);
@@ -318,7 +318,7 @@ private:
 	}
 	bool __saveScenarioA(Shell shell) {
 		if (summary) {
-			auto dlg = new FileDialog(shell, DWT.PRIMARY_MODAL | DWT.APPLICATION_MODAL | DWT.SINGLE | DWT.SAVE);
+			auto dlg = new FileDialog(shell, SWT.PRIMARY_MODAL | SWT.APPLICATION_MODAL | SWT.SINGLE | SWT.SAVE);
 			dlg.setFilterExtensions = ["*.wsn"];
 			dlg.setFilterNames = [_prop.msgs.filterScenarioSave];
 			dlg.setText = _prop.msgs.dlgTitSaveScenario;
@@ -327,7 +327,7 @@ private:
 			dlg.setOverwrite = true;
 			string fname = dlg.open;
 			if (fname) {
-				shell.setCursor = Display.getCurrent.getSystemCursor(DWT.CURSOR_WAIT);
+				shell.setCursor = Display.getCurrent.getSystemCursor(SWT.CURSOR_WAIT);
 				scope (exit) shell.setCursor = null;
 				string tempPath = _prop.tempPath;
 				bool expandXMLs = _prop.var.etc.expandXMLs;
@@ -404,21 +404,21 @@ private:
 		if (summary && (summary.isChanged || _dirWin.isChanged)) {
 			MessageBox dlg;
 			if (reload) {
-				dlg = new MessageBox(_win, DWT.OK | DWT.CANCEL | DWT.ICON_QUESTION);
+				dlg = new MessageBox(_win, SWT.OK | SWT.CANCEL | SWT.ICON_QUESTION);
 				dlg.setMessage = _prop.msgs.dlgMsgIsSaveBeforeReload(summary.scenarioName);
 			} else {
-				dlg = new MessageBox(_win, DWT.YES | DWT.NO | DWT.CANCEL | DWT.ICON_QUESTION);
+				dlg = new MessageBox(_win, SWT.YES | SWT.NO | SWT.CANCEL | SWT.ICON_QUESTION);
 				dlg.setMessage = _prop.msgs.dlgMsgIsSaveBeforeExit(summary.scenarioName);
 			}
 			scope (exit) dlg.dispose;
 			dlg.setText = _prop.msgs.dlgTitQuestion;
 			_win.setMinimized = false;
 			switch (dlg.open) {
-			case DWT.YES, DWT.OK:
+			case SWT.YES, SWT.OK:
 				return reload ? true : save(_win);
-			case DWT.NO:
+			case SWT.NO:
 				return true;
-			case DWT.CANCEL:
+			case SWT.CANCEL:
 				return false;
 			default: assert (0);
 			}
@@ -604,13 +604,13 @@ private:
 		createMenuItem(_menuFile, _prop.msgs.menuOpen, _prop.images.menuOpen, &openScenarioM);
 		createMenuItem(_menuFile, _prop.msgs.menuSave, _prop.images.menuSave, &saveScenario);
 		createMenuItem(_menuFile, _prop.msgs.menuSaveA, _prop.images.menuSaveA, &saveScenarioA);
-		new MenuItem(_menuFile, DWT.SEPARATOR);
+		new MenuItem(_menuFile, SWT.SEPARATOR);
 		createMenuItem(_menuFile, _prop.msgs.menuReload, _prop.images.menuReload, &reload);
-		new MenuItem(_menuFile, DWT.SEPARATOR);
+		new MenuItem(_menuFile, SWT.SEPARATOR);
 		foreach (i, hist; _prop.var.etc.openHistories) {
 			new Hist(_menuFile, i + 1, hist);
 		}
-		if (_prop.var.etc.openHistories.length > 0) new MenuItem(_menuFile, DWT.SEPARATOR);
+		if (_prop.var.etc.openHistories.length > 0) new MenuItem(_menuFile, SWT.SEPARATOR);
 		createMenuItem(_menuFile, _prop.msgs.menuClose, _prop.images.menuClose, &exitAll);
 	}
 	Display _display = null;
@@ -832,7 +832,7 @@ public:
 		if (_prop.var.etc.singleWindow) {
 			_win = new Shell;
 		} else {
-			_win = new Shell(DWT.DIALOG_TRIM | DWT.MIN);
+			_win = new Shell(SWT.DIALOG_TRIM | SWT.MIN);
 		}
 		_win.setData = new TLPData(this);
 		_win.setImage = _prop.images.app;
@@ -852,15 +852,14 @@ public:
 		} else {
 			_win.setLayout = windowGridLayout(1, true);
 		}
-
-		auto toolComp = new Composite(_win, DWT.NONE);
+		auto toolComp = new Composite(_win, SWT.NONE);
 		toolComp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		toolComp.setLayout = new FillLayout;
 		if (_prop.var.etc.singleWindow) {
-			auto dockComp = new Composite(_win, DWT.NONE);
+			auto dockComp = new Composite(_win, SWT.NONE);
 			dockComp.setLayoutData = new GridData(GridData.FILL_BOTH);
 			dockComp.setLayout = windowGridLayout(1, true);
-			_dock = _prop.var.loadDock(dockComp, DWT.NONE, delegate Control(Composite parent, string key) {
+			_dock = _prop.var.loadDock(dockComp, SWT.NONE, delegate Control(Composite parent, string key) {
 				switch (key) {
 				case "data": {
 					_tableWin = new TableWindow(_comm, _prop, parent);
@@ -921,7 +920,7 @@ public:
 					_dirWin = new DirectoryWindow(_comm, _prop, null);
 				}
 			} else {
-				_dock = new DockingFolderCTC(dockComp, DWT.NONE, "work");
+				_dock = new DockingFolderCTC(dockComp, SWT.NONE, "work");
 				initDock;
 				auto data = _dock.addPane(_dock.first, Dir.N, 1, 3, "data");
 				_tableWin = new TableWindow(_comm, _prop, data);
@@ -933,80 +932,80 @@ public:
 				_dirWin = new DirectoryWindow(_comm, _prop, data);
 				_dock.add(_dirWin.shell, _dirWin.title, _dirWin.image, "file", false);
 			}
-			_status = new Label(dockComp, DWT.NONE);
+			_status = new Label(dockComp, SWT.NONE);
 		} else {
 			_dataWin = new DataWindow(_comm, _prop, _win);
 			_cardWin = new MainCardWindow(_comm, _prop, _win);
 			_dirWin = new DirectoryWindow(_comm, _prop, _win);
-			_status = new Label(_win, DWT.NONE);
+			_status = new Label(_win, SWT.NONE);
 		}
 		_status.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		{
 			_mainMenu = new HashSet!(MenuID);
-			auto bar = new Menu(_win, DWT.BAR);
+			auto bar = new Menu(_win, SWT.BAR);
 
 			_menuFile = createMenu(bar, _prop.msgs.menuFile);
 			createFileMenu;
 
 			auto me = createMenu(bar, _prop.msgs.menuEdit);
 			if (_prop.var.etc.singleWindow) {
-				mixin (MenuAction!("me", "OpenDirectory", DWT.PUSH, "openDirectory"));
-				new MenuItem(me, DWT.SEPARATOR);
+				mixin (MenuAction!("me", "OpenDirectory", SWT.PUSH, "openDirectory"));
+				new MenuItem(me, SWT.SEPARATOR);
 				mixin (MenuAction!("me", "Undo"));
 				mixin (MenuAction!("me", "Redo"));
-				new MenuItem(me, DWT.SEPARATOR);
+				new MenuItem(me, SWT.SEPARATOR);
 				mixin (MenuAction!("me", "Cut"));
 				mixin (MenuAction!("me", "Copy"));
 				mixin (MenuAction!("me", "Paste"));
 				mixin (MenuAction!("me", "Del"));
-				new MenuItem(me, DWT.SEPARATOR);
+				new MenuItem(me, SWT.SEPARATOR);
 				mixin (MenuAction!("me", "Up"));
 				mixin (MenuAction!("me", "Down"));
-				new MenuItem(me, DWT.SEPARATOR);
+				new MenuItem(me, SWT.SEPARATOR);
 			}
-			mixin (MenuAction!("me", "ReplaceText", DWT.PUSH, "replaceText"));
-			mixin (MenuAction!("me", "ReNumberingAll", DWT.PUSH, "reNumberingAll"));
-			mixin (MenuAction!("me", "ToXML", DWT.PUSH, "clipboardToXML"));
-			new MenuItem(me, DWT.SEPARATOR);
-			mixin (MenuAction!("me", "Reload", DWT.PUSH, "reload"));
+			mixin (MenuAction!("me", "ReplaceText", SWT.PUSH, "replaceText"));
+			mixin (MenuAction!("me", "ReNumberingAll", SWT.PUSH, "reNumberingAll"));
+			mixin (MenuAction!("me", "ToXML", SWT.PUSH, "clipboardToXML"));
+			new MenuItem(me, SWT.SEPARATOR);
+			mixin (MenuAction!("me", "Reload", SWT.PUSH, "reload"));
 			if (_prop.var.etc.singleWindow) {
-				new MenuItem(me, DWT.SEPARATOR);
+				new MenuItem(me, SWT.SEPARATOR);
 				mixin (MenuAction!("me", "NewFolder"));
 			}
 
 			auto mv = createMenu(bar, _prop.msgs.menuView);
-			mixin (MenuAction!("mv", "DataWin", DWT.PUSH, "openDataWindow"));
-			mixin (MenuAction!("mv", "CardWin", DWT.PUSH, "openCardWindow"));
-			mixin (MenuAction!("mv", "DirWin", DWT.PUSH, "openDirWindow"));
+			mixin (MenuAction!("mv", "DataWin", SWT.PUSH, "openDataWindow"));
+			mixin (MenuAction!("mv", "CardWin", SWT.PUSH, "openCardWindow"));
+			mixin (MenuAction!("mv", "DirWin", SWT.PUSH, "openDirWindow"));
 			if (_prop.var.etc.singleWindow) {
-				new MenuItem(mv, DWT.SEPARATOR);
-				mixin (MenuAction!("mv", "Refresh", DWT.PUSH, "refreshAll"));
-				new MenuItem(mv, DWT.SEPARATOR);
+				new MenuItem(mv, SWT.SEPARATOR);
+				mixin (MenuAction!("mv", "Refresh", SWT.PUSH, "refreshAll"));
+				new MenuItem(mv, SWT.SEPARATOR);
 				mixin (MenuAction!("mv", "ChangeVH"));
 			}
 
 			if (_prop.var.etc.singleWindow) {
 				auto ma = createMenu(bar, _prop.msgs.menuTable);
-				mixin (MenuAction!("ma", "Summary", DWT.PUSH, "_tableWin.editSummary"));
-				new MenuItem(ma, DWT.SEPARATOR);
-				mixin (MenuAction!("ma", "NewArea", DWT.PUSH, "_tableWin.createArea"));
-				mixin (MenuAction!("ma", "NewBattle", DWT.PUSH, "_tableWin.createBattle"));
-				mixin (MenuAction!("ma", "NewPackage", DWT.PUSH, "_tableWin.createPackage"));
+				mixin (MenuAction!("ma", "Summary", SWT.PUSH, "_tableWin.editSummary"));
+				new MenuItem(ma, SWT.SEPARATOR);
+				mixin (MenuAction!("ma", "NewArea", SWT.PUSH, "_tableWin.createArea"));
+				mixin (MenuAction!("ma", "NewBattle", SWT.PUSH, "_tableWin.createBattle"));
+				mixin (MenuAction!("ma", "NewPackage", SWT.PUSH, "_tableWin.createPackage"));
 
 				auto mf = createMenu(bar, _prop.msgs.menuVariable);
-				mixin (MenuAction!("mf", "NewFlagDir", DWT.PUSH, "_flagWin.createFlagDir"));
-				mixin (MenuAction!("mf", "NewFlag", DWT.PUSH, "_flagWin.createFlag"));
-				mixin (MenuAction!("mf", "NewStep", DWT.PUSH, "_flagWin.createStep"));
+				mixin (MenuAction!("mf", "NewFlagDir", SWT.PUSH, "_flagWin.createFlagDir"));
+				mixin (MenuAction!("mf", "NewFlag", SWT.PUSH, "_flagWin.createFlag"));
+				mixin (MenuAction!("mf", "NewStep", SWT.PUSH, "_flagWin.createStep"));
 
 				auto mc = createMenu(bar, _prop.msgs.menuNewCards);
 				auto g = new RadioGroup!(MenuItem);
-				mixin (MenuAction!("mc", "ShowCardLife", DWT.RADIO, "showCardLife"));
+				mixin (MenuAction!("mc", "ShowCardLife", SWT.RADIO, "showCardLife"));
 				auto scf = _menu[MenuID.ShowCardLife];
 				g.append(scf);
-				mixin (MenuAction!("mc", "ShowCardList", DWT.RADIO, "showCardList"));
+				mixin (MenuAction!("mc", "ShowCardList", SWT.RADIO, "showCardList"));
 				auto scl = _menu[MenuID.ShowCardList];
 				g.append(scl);
-				mixin (MenuAction!("mc", "ShowCardTable", DWT.RADIO, "showCardTable"));
+				mixin (MenuAction!("mc", "ShowCardTable", SWT.RADIO, "showCardTable"));
 				auto sct = _menu[MenuID.ShowCardTable];
 				g.append(sct);
 				if (_prop.var.etc.cardLife) {
@@ -1017,23 +1016,23 @@ public:
 					scl.setSelection = true;
 				}
 				_menuRG ~= g;
-				new MenuItem(mc, DWT.SEPARATOR);
-				mixin (MenuAction!("mc", "NewCast", DWT.PUSH, "newCast"));
-				mixin (MenuAction!("mc", "NewSkill", DWT.PUSH, "newSkill"));
-				mixin (MenuAction!("mc", "NewItem", DWT.PUSH, "newItem"));
-				mixin (MenuAction!("mc", "NewBeast", DWT.PUSH, "newBeast"));
-				mixin (MenuAction!("mc", "NewInfo", DWT.PUSH, "newInfo"));
-				new MenuItem(mc, DWT.SEPARATOR);
-				mixin (MenuAction!("mc", "AddScenario", DWT.PUSH, "_cardWin.addScenario"));
+				new MenuItem(mc, SWT.SEPARATOR);
+				mixin (MenuAction!("mc", "NewCast", SWT.PUSH, "newCast"));
+				mixin (MenuAction!("mc", "NewSkill", SWT.PUSH, "newSkill"));
+				mixin (MenuAction!("mc", "NewItem", SWT.PUSH, "newItem"));
+				mixin (MenuAction!("mc", "NewBeast", SWT.PUSH, "newBeast"));
+				mixin (MenuAction!("mc", "NewInfo", SWT.PUSH, "newInfo"));
+				new MenuItem(mc, SWT.SEPARATOR);
+				mixin (MenuAction!("mc", "AddScenario", SWT.PUSH, "_cardWin.addScenario"));
 			}
 
 			auto mt = createMenu(bar, _prop.msgs.menuTools);
-			mixin (MenuAction!("mt", "ExecEngine", DWT.PUSH, "execEngine"));
-			new MenuItem(mt, DWT.SEPARATOR);
-			mixin (MenuAction!("mt", "Settings", DWT.PUSH, "settings"));
+			mixin (MenuAction!("mt", "ExecEngine", SWT.PUSH, "execEngine"));
+			new MenuItem(mt, SWT.SEPARATOR);
+			mixin (MenuAction!("mt", "Settings", SWT.PUSH, "settings"));
 
 			auto mh = createMenu(bar, _prop.msgs.menuHelp);
-			mixin (MenuAction!("mh", "Version", DWT.PUSH, "versionInfo"));
+			mixin (MenuAction!("mh", "Version", SWT.PUSH, "versionInfo"));
 
 			_win.setMenuBar = bar;
 		}
@@ -1055,7 +1054,7 @@ public:
 		_noSummMenu.add(MenuID.Version);
 
 		if (_prop.var.etc.singleWindow) {
-			auto cbar = new CoolBar(toolComp, DWT.NONE);
+			auto cbar = new CoolBar(toolComp, SWT.NONE);
 			cbar.addControlListener(new CCListener);
 			cbar.addDisposeListener(new CDListener);
 			_cbar = cbar;
@@ -1064,28 +1063,28 @@ public:
 				_toolBar ~= tbar;
 			}
 			{
-				auto bar = new ToolBar(cbar, DWT.FLAT);
-				mixin (ToolAction!("bar", "New", DWT.PUSH, "createScenario"));
-				mixin (ToolAction!("bar", "Open", DWT.PUSH, "openScenarioM"));
-				mixin (ToolAction!("bar", "Save", DWT.PUSH, "saveScenario"));
-				mixin (ToolAction!("bar", "SaveA", DWT.PUSH, "saveScenarioA"));
-				new ToolItem(bar, DWT.SEPARATOR);
-				mixin (ToolAction!("bar", "Reload", DWT.PUSH, "reload"));
+				auto bar = new ToolBar(cbar, SWT.FLAT);
+				mixin (ToolAction!("bar", "New", SWT.PUSH, "createScenario"));
+				mixin (ToolAction!("bar", "Open", SWT.PUSH, "openScenarioM"));
+				mixin (ToolAction!("bar", "Save", SWT.PUSH, "saveScenario"));
+				mixin (ToolAction!("bar", "SaveA", SWT.PUSH, "saveScenarioA"));
+				new ToolItem(bar, SWT.SEPARATOR);
+				mixin (ToolAction!("bar", "Reload", SWT.PUSH, "reload"));
 				createCoolItem(cbar, bar);
 			}
 			{
-				auto bar = new ToolBar(cbar, DWT.FLAT);
-				mixin (ToolAction!("bar", "Refresh", DWT.PUSH, "refreshAll"));
+				auto bar = new ToolBar(cbar, SWT.FLAT);
+				mixin (ToolAction!("bar", "Refresh", SWT.PUSH, "refreshAll"));
 				createCoolItem(cbar, bar);
 			}
 			{
-				auto bar = new ToolBar(cbar, DWT.FLAT);
+				auto bar = new ToolBar(cbar, SWT.FLAT);
 				mixin (ToolAction!("bar", "Undo"));
 				mixin (ToolAction!("bar", "Redo"));
 				createCoolItem(cbar, bar);
 			}
 			{
-				auto bar = new ToolBar(cbar, DWT.FLAT);
+				auto bar = new ToolBar(cbar, SWT.FLAT);
 				mixin (ToolAction!("bar", "Cut"));
 				mixin (ToolAction!("bar", "Copy"));
 				mixin (ToolAction!("bar", "Paste"));
@@ -1093,56 +1092,56 @@ public:
 				createCoolItem(cbar, bar);
 			}
 			{
-				auto bar = new ToolBar(cbar, DWT.FLAT);
+				auto bar = new ToolBar(cbar, SWT.FLAT);
 				mixin (ToolAction!("bar", "Up"));
 				mixin (ToolAction!("bar", "Down"));
 				createCoolItem(cbar, bar);
 			}
 			{
-				auto bar = new ToolBar(cbar, DWT.FLAT);
-				mixin (ToolAction!("bar", "ReplaceText", DWT.PUSH, "replaceText"));
-				new ToolItem(bar, DWT.SEPARATOR);
-				mixin (ToolAction!("bar", "ReNumberingAll", DWT.PUSH, "reNumberingAll"));
-				new ToolItem(bar, DWT.SEPARATOR);
-				mixin (ToolAction!("bar", "ToXML", DWT.PUSH, "clipboardToXML"));
+				auto bar = new ToolBar(cbar, SWT.FLAT);
+				mixin (ToolAction!("bar", "ReplaceText", SWT.PUSH, "replaceText"));
+				new ToolItem(bar, SWT.SEPARATOR);
+				mixin (ToolAction!("bar", "ReNumberingAll", SWT.PUSH, "reNumberingAll"));
+				new ToolItem(bar, SWT.SEPARATOR);
+				mixin (ToolAction!("bar", "ToXML", SWT.PUSH, "clipboardToXML"));
 				createCoolItem(cbar, bar);
 			}
 			{
-				auto bar = new ToolBar(cbar, DWT.FLAT);
-				mixin (ToolAction!("bar", "DataWin", DWT.PUSH, "openDataWindow"));
-				mixin (ToolAction!("bar", "FlagWin", DWT.PUSH, "openFlagWindow"));
-				mixin (ToolAction!("bar", "CardWin", DWT.PUSH, "openCardWindow"));
-				mixin (ToolAction!("bar", "DirWin", DWT.PUSH, "openDirWindow"));
+				auto bar = new ToolBar(cbar, SWT.FLAT);
+				mixin (ToolAction!("bar", "DataWin", SWT.PUSH, "openDataWindow"));
+				mixin (ToolAction!("bar", "FlagWin", SWT.PUSH, "openFlagWindow"));
+				mixin (ToolAction!("bar", "CardWin", SWT.PUSH, "openCardWindow"));
+				mixin (ToolAction!("bar", "DirWin", SWT.PUSH, "openDirWindow"));
 				createCoolItem(cbar, bar);
 			}
 			{
-				auto bar = new ToolBar(cbar, DWT.FLAT);
+				auto bar = new ToolBar(cbar, SWT.FLAT);
 				mixin (ToolAction!("bar", "ChangeVH"));
 				createCoolItem(cbar, bar);
 			}
 			{
-				auto bar = new ToolBar(cbar, DWT.FLAT);
-				mixin (ToolAction!("bar", "Summary", DWT.PUSH, "_tableWin.editSummary"));
-				new ToolItem(bar, DWT.SEPARATOR);
-				mixin (ToolAction!("bar", "NewArea", DWT.PUSH, "_tableWin.createArea"));
-				mixin (ToolAction!("bar", "NewBattle", DWT.PUSH, "_tableWin.createBattle"));
-				mixin (ToolAction!("bar", "NewPackage", DWT.PUSH, "_tableWin.createPackage"));
-				new ToolItem(bar, DWT.SEPARATOR);
-				mixin (ToolAction!("bar", "NewFlagDir", DWT.PUSH, "_flagWin.createFlagDir"));
-				mixin (ToolAction!("bar", "NewFlag", DWT.PUSH, "_flagWin.createFlag"));
-				mixin (ToolAction!("bar", "NewStep", DWT.PUSH, "_flagWin.createStep"));
+				auto bar = new ToolBar(cbar, SWT.FLAT);
+				mixin (ToolAction!("bar", "Summary", SWT.PUSH, "_tableWin.editSummary"));
+				new ToolItem(bar, SWT.SEPARATOR);
+				mixin (ToolAction!("bar", "NewArea", SWT.PUSH, "_tableWin.createArea"));
+				mixin (ToolAction!("bar", "NewBattle", SWT.PUSH, "_tableWin.createBattle"));
+				mixin (ToolAction!("bar", "NewPackage", SWT.PUSH, "_tableWin.createPackage"));
+				new ToolItem(bar, SWT.SEPARATOR);
+				mixin (ToolAction!("bar", "NewFlagDir", SWT.PUSH, "_flagWin.createFlagDir"));
+				mixin (ToolAction!("bar", "NewFlag", SWT.PUSH, "_flagWin.createFlag"));
+				mixin (ToolAction!("bar", "NewStep", SWT.PUSH, "_flagWin.createStep"));
 				createCoolItem(cbar, bar);
 			}
 			{
-				auto bar = new ToolBar(cbar, DWT.FLAT);
+				auto bar = new ToolBar(cbar, SWT.FLAT);
 				auto g = new RadioGroup!(ToolItem);
-				mixin (ToolAction!("bar", "ShowCardLife", DWT.RADIO, "showCardLife"));
+				mixin (ToolAction!("bar", "ShowCardLife", SWT.RADIO, "showCardLife"));
 				auto scf = _tool[MenuID.ShowCardLife];
 				g.append(scf);
-				mixin (ToolAction!("bar", "ShowCardList", DWT.RADIO, "showCardList"));
+				mixin (ToolAction!("bar", "ShowCardList", SWT.RADIO, "showCardList"));
 				auto scl = _tool[MenuID.ShowCardList];
 				g.append(scl);
-				mixin (ToolAction!("bar", "ShowCardTable", DWT.RADIO, "showCardTable"));
+				mixin (ToolAction!("bar", "ShowCardTable", SWT.RADIO, "showCardTable"));
 				auto sct = _tool[MenuID.ShowCardTable];
 				g.append(sct);
 				if (_prop.var.etc.cardLife) {
@@ -1153,27 +1152,27 @@ public:
 					scl.setSelection = true;
 				}
 				_toolRG ~= g;
-				new ToolItem(bar, DWT.SEPARATOR);
-				mixin (ToolAction!("bar", "NewCast", DWT.PUSH, "newCast"));
-				mixin (ToolAction!("bar", "NewSkill", DWT.PUSH, "newSkill"));
-				mixin (ToolAction!("bar", "NewItem", DWT.PUSH, "newItem"));
-				mixin (ToolAction!("bar", "NewBeast", DWT.PUSH, "newBeast"));
-				mixin (ToolAction!("bar", "NewInfo", DWT.PUSH, "newInfo"));
-				new ToolItem(bar, DWT.SEPARATOR);
-				mixin (ToolAction!("bar", "AddScenario", DWT.PUSH, "_cardWin.addScenario"));
+				new ToolItem(bar, SWT.SEPARATOR);
+				mixin (ToolAction!("bar", "NewCast", SWT.PUSH, "newCast"));
+				mixin (ToolAction!("bar", "NewSkill", SWT.PUSH, "newSkill"));
+				mixin (ToolAction!("bar", "NewItem", SWT.PUSH, "newItem"));
+				mixin (ToolAction!("bar", "NewBeast", SWT.PUSH, "newBeast"));
+				mixin (ToolAction!("bar", "NewInfo", SWT.PUSH, "newInfo"));
+				new ToolItem(bar, SWT.SEPARATOR);
+				mixin (ToolAction!("bar", "AddScenario", SWT.PUSH, "_cardWin.addScenario"));
 				createCoolItem(cbar, bar);
 			}
 			{
-				auto bar = new ToolBar(cbar, DWT.FLAT);
-				mixin (ToolAction!("bar", "OpenDirectory", DWT.PUSH, "openDirectory"));
+				auto bar = new ToolBar(cbar, SWT.FLAT);
+				mixin (ToolAction!("bar", "OpenDirectory", SWT.PUSH, "openDirectory"));
 				mixin (ToolAction!("bar", "NewFolder"));
 				createCoolItem(cbar, bar);
 			}
 			{
-				auto bar = new ToolBar(cbar, DWT.FLAT);
-				mixin (ToolAction!("bar", "ExecEngine", DWT.PUSH, "execEngine"));
-				new ToolItem(bar, DWT.SEPARATOR);
-				mixin (ToolAction!("bar", "Settings", DWT.PUSH, "settings"));
+				auto bar = new ToolBar(cbar, SWT.FLAT);
+				mixin (ToolAction!("bar", "ExecEngine", SWT.PUSH, "execEngine"));
+				new ToolItem(bar, SWT.SEPARATOR);
+				mixin (ToolAction!("bar", "Settings", SWT.PUSH, "settings"));
 				createCoolItem(cbar, bar);
 			}
 			int[] wi;
@@ -1191,27 +1190,27 @@ public:
 
 			_comm.baseShell(this, _tableWin, _flagWin, _cardWin, _dirWin);
 		} else {
-			auto bar = new ToolBar(toolComp, DWT.FLAT);
-			mixin (ToolAction!("bar", "New", DWT.PUSH, "createScenario"));
-			mixin (ToolAction!("bar", "Open", DWT.PUSH, "openScenarioM"));
-			mixin (ToolAction!("bar", "Save", DWT.PUSH, "saveScenario"));
-			mixin (ToolAction!("bar", "SaveA", DWT.PUSH, "saveScenarioA"));
-			new ToolItem(bar, DWT.SEPARATOR);
-			mixin (ToolAction!("bar", "ReplaceText", DWT.PUSH, "replaceText"));
-			mixin (ToolAction!("bar", "ReNumberingAll", DWT.PUSH, "reNumberingAll"));
-			mixin (ToolAction!("bar", "ToXML", DWT.PUSH, "clipboardToXML"));
-			new ToolItem(bar, DWT.SEPARATOR);
-			mixin (ToolAction!("bar", "Reload", DWT.PUSH, "reload"));
-			new ToolItem(bar, DWT.SEPARATOR);
-			mixin (ToolAction!("bar", "DataWin", DWT.PUSH, "openDataWindow"));
-			mixin (ToolAction!("bar", "CardWin", DWT.PUSH, "openCardWindow"));
-			mixin (ToolAction!("bar", "DirWin", DWT.PUSH, "openDirWindow"));
-			new ToolItem(bar, DWT.SEPARATOR);
-			mixin (ToolAction!("bar", "ExecEngine", DWT.PUSH, "execEngine"));
-			new ToolItem(bar, DWT.SEPARATOR);
-			mixin (ToolAction!("bar", "Settings", DWT.PUSH, "settings"));
-			new ToolItem(bar, DWT.SEPARATOR);
-			mixin (ToolAction!("bar", "Close", DWT.PUSH, "exitAll"));
+			auto bar = new ToolBar(toolComp, SWT.FLAT);
+			mixin (ToolAction!("bar", "New", SWT.PUSH, "createScenario"));
+			mixin (ToolAction!("bar", "Open", SWT.PUSH, "openScenarioM"));
+			mixin (ToolAction!("bar", "Save", SWT.PUSH, "saveScenario"));
+			mixin (ToolAction!("bar", "SaveA", SWT.PUSH, "saveScenarioA"));
+			new ToolItem(bar, SWT.SEPARATOR);
+			mixin (ToolAction!("bar", "ReplaceText", SWT.PUSH, "replaceText"));
+			mixin (ToolAction!("bar", "ReNumberingAll", SWT.PUSH, "reNumberingAll"));
+			mixin (ToolAction!("bar", "ToXML", SWT.PUSH, "clipboardToXML"));
+			new ToolItem(bar, SWT.SEPARATOR);
+			mixin (ToolAction!("bar", "Reload", SWT.PUSH, "reload"));
+			new ToolItem(bar, SWT.SEPARATOR);
+			mixin (ToolAction!("bar", "DataWin", SWT.PUSH, "openDataWindow"));
+			mixin (ToolAction!("bar", "CardWin", SWT.PUSH, "openCardWindow"));
+			mixin (ToolAction!("bar", "DirWin", SWT.PUSH, "openDirWindow"));
+			new ToolItem(bar, SWT.SEPARATOR);
+			mixin (ToolAction!("bar", "ExecEngine", SWT.PUSH, "execEngine"));
+			new ToolItem(bar, SWT.SEPARATOR);
+			mixin (ToolAction!("bar", "Settings", SWT.PUSH, "settings"));
+			new ToolItem(bar, SWT.SEPARATOR);
+			mixin (ToolAction!("bar", "Close", SWT.PUSH, "exitAll"));
 			_toolBar ~= bar;
 
 			auto drop = new DropTarget(bar, DND.DROP_DEFAULT | DND.DROP_LINK);
@@ -1221,8 +1220,8 @@ public:
 			_comm.baseShell(this, _dataWin, _cardWin, _dirWin);
 		}
 
-		int tx = _prop.var.mainWin.x == DWT.DEFAULT ? _win.getBounds.x : _prop.var.mainWin.x;
-		int ty = _prop.var.mainWin.y == DWT.DEFAULT ? _win.getBounds.y : _prop.var.mainWin.y;
+		int tx = _prop.var.mainWin.x == SWT.DEFAULT ? _win.getBounds.x : _prop.var.mainWin.x;
+		int ty = _prop.var.mainWin.y == SWT.DEFAULT ? _win.getBounds.y : _prop.var.mainWin.y;
 		if (_prop.var.etc.singleWindow) {
 			intoDisplay(tx, ty, _prop.var.mainWin.width, _prop.var.mainWin.height);
 			_win.setBounds(tx, ty, _prop.var.mainWin.width, _prop.var.mainWin.height);
@@ -1263,9 +1262,9 @@ public:
 		this (string paneKey) {
 			_paneKey = paneKey;
 			auto comp = _dock.pane(paneKey);
-			auto menu = new Menu(comp.getShell, DWT.POP_UP);
+			auto menu = new Menu(comp.getShell, SWT.POP_UP);
 			createMenuItem(menu, _prop.msgs.menuClosePane, _prop.images.menuClosePane, &close);
-			new MenuItem(menu, DWT.SEPARATOR);
+			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(menu, _prop.msgs.menuClosePaneAll, _prop.images.menuClosePaneAll, &closeAll);
 			createMenuItem(menu, _prop.msgs.menuClosePaneEtc, _prop.images.menuClosePaneEtc, &closeEtc);
 			createMenuItem(menu, _prop.msgs.menuClosePaneLeft, _prop.images.menuClosePaneLeft, &closeLeft);
@@ -1349,7 +1348,7 @@ public:
 	private HashSet!(MenuID) _mainMenu;
 	private ToolBar[] _toolBar;
 	private TopLevelPanel _tlp = null;
-	private template MenuAction(string M, string S, int Style = DWT.PUSH, string Act = "") {
+	private template MenuAction(string M, string S, int Style = SWT.PUSH, string Act = "") {
 		static if (Act.length) {
 			static const MenuAction = "_mainMenu.add(MenuID." ~ S ~ ");"
 				~ "_menu[MenuID." ~ S ~ "] = createMenuItem(" ~ M ~ ", _prop.msgs.menu" ~ S ~ ", _prop.images.menu" ~ S ~ ", &"
@@ -1359,7 +1358,7 @@ public:
 				~ "&menuAction!(MenuID." ~ S ~ "), " ~ ToString!(Style) ~ ");";
 		}
 	}
-	private template ToolAction(string T, string S, int Style = DWT.PUSH, string Act = "") {
+	private template ToolAction(string T, string S, int Style = SWT.PUSH, string Act = "") {
 		static if (Act.length) {
 			static const ToolAction = "_mainMenu.add(MenuID." ~ S ~ ");"
 				~ "_tool[MenuID." ~ S ~ "] = createToolItem(" ~ T ~ ", _prop.msgs.tt" ~ S ~ ", _prop.images.menu" ~ S ~ ", &"
@@ -1403,7 +1402,7 @@ public:
 		foreach (id, itm; menus) {
 			if (_tlp) {
 				auto s = itm.getStyle;
-				if ((s & DWT.RADIO) || (s & DWT.CHECK)) {
+				if ((s & SWT.RADIO) || (s & SWT.CHECK)) {
 					auto chk = _tlp.menuChecked(id);
 					if (chk) itm.setSelection = chk();
 				}
@@ -1500,11 +1499,11 @@ public:
 	}
 	void reNumberingAll() {
 		if (!summary) return;
-		auto dlg = new MessageBox(_win, DWT.ICON_QUESTION | DWT.OK | DWT.CANCEL);
+		auto dlg = new MessageBox(_win, SWT.ICON_QUESTION | SWT.OK | SWT.CANCEL);
 		scope (exit) dlg.dispose;
 		dlg.setText = _prop.msgs.dlgTitQuestion;
 		dlg.setMessage = _prop.msgs.reNumberingAll;
-		if (DWT.OK == dlg.open) {
+		if (SWT.OK == dlg.open) {
 			reNumbering(summary.areas);
 			reNumbering(summary.battles);
 			reNumbering(summary.packages);
@@ -1579,7 +1578,7 @@ public:
 			openScenario(_firstScenarioPath);
 		}
 
-		auto pipe = new Thread(&pipeThr);
+		auto pipe = new std.thread.Thread(&pipeThr);
 		pipe.start;
 		version (Windows) {
 			scope (exit) {
@@ -1615,14 +1614,14 @@ public:
 					}
 				} catch (Exception e) {
 					fdebugln(e.msg ~ ", " ~ e.file ~ ", " ~ to!(string)(e.line));
-					auto dlg = new MessageBox(_win, DWT.ICON_ERROR | DWT.OK);
+					auto dlg = new MessageBox(_win, SWT.ICON_ERROR | SWT.OK);
 					scope (exit) dlg.dispose;
 					dlg.setText = _prop.msgs.dlgTitError;
 					dlg.setMessage = _prop.msgs.unknownError ~ "\n---\n" ~ e.msg;
 					dlg.open;
 				} catch (Object o) {
 					fdebugln(o.toString);
-					auto dlg = new MessageBox(_win, DWT.ICON_ERROR | DWT.OK);
+					auto dlg = new MessageBox(_win, SWT.ICON_ERROR | SWT.OK);
 					scope (exit) dlg.dispose;
 					dlg.setText = _prop.msgs.dlgTitError;
 					dlg.setMessage = _prop.msgs.unknownError ~ "\n---\n" ~ o.toString;
@@ -1640,7 +1639,7 @@ class CreateScenarioDialog : AbsDialog {
 private:
 	Props _prop;
 
-	dwt.widgets.Text.Text _name;
+	Text _name;
 	Combo _skinC;
 	string _nameVal, _skinVal, _classicFolder;
 
@@ -1663,24 +1662,24 @@ public:
 	}
 protected:
 	override void setup(Composite area) {
-		auto cl = new CenterLayout(DWT.HORIZONTAL | DWT.VERTICAL, 0);
+		auto cl = new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0);
 		cl.fillHorizontal = true;
 		area.setLayout = cl;
-		auto comp = new Composite(area, DWT.NONE);
+		auto comp = new Composite(area, SWT.NONE);
 		comp.setLayout = new GridLayout(2, false);
 		{
-			auto l = new Label(comp, DWT.NONE);
+			auto l = new Label(comp, SWT.NONE);
 			l.setText = _prop.msgs.scenarioName;
-			_name = new dwt.widgets.Text.Text(comp, DWT.BORDER);
+			_name = new Text(comp, SWT.BORDER);
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
 			gd.widthHint = _prop.var.etc.nameWidth;
 			_name.setLayoutData = gd;
 			checker(_name);
 		}
 		{
-			auto l = new Label(comp, DWT.NONE);
+			auto l = new Label(comp, SWT.NONE);
 			l.setText = _prop.msgs.type;
-			_skinC = new Combo(comp, DWT.BORDER | DWT.DROP_DOWN | DWT.READ_ONLY);
+			_skinC = new Combo(comp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 			_skinC.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			foreach (type; .skinTable(_prop).keys.sort) {
 				_skinC.add(type);
@@ -1712,11 +1711,11 @@ protected:
 					auto path = dlg.open;
 					if (path) {
 						if (clistdir(path).length) {
-							auto q = new MessageBox(getShell, DWT.OK | DWT.CANCEL | DWT.ICON_QUESTION);
+							auto q = new MessageBox(getShell, SWT.OK | SWT.CANCEL | SWT.ICON_QUESTION);
 							scope (exit) q.dispose;
 							q.setText = _prop.msgs.dlgTitQuestion;
 							q.setMessage = _prop.msgs.notEmptyDir(path);
-							if (DWT.OK != q.open) continue;
+							if (SWT.OK != q.open) continue;
 						}
 						_prop.var.etc.scenarioPath = dlg.getFilterPath;
 						_classicFolder = path;
@@ -1758,7 +1757,7 @@ protected:
 		gl.horizontalSpacing = 15;
 		area.setLayout = gl;
 		auto d = Display.getCurrent;
-		auto img = new Label(area, DWT.CENTER);
+		auto img = new Label(area, SWT.CENTER);
 		img.setImage = _prop.images.icon;
 		auto gd = new GridData;
 		auto rect = _prop.images.icon.getBounds;
@@ -1766,12 +1765,12 @@ protected:
 		gd.heightHint = rect.height;
 		gd.verticalSpan = 2;
 		img.setLayoutData = gd;
-		auto ln = new Link(area, DWT.NONE);
+		auto ln = new Link(area, SWT.NONE);
 		ln.setText = _prop.msgs.application ~ " / " ~ _prop.msgs.appVersion ~ "\n"
 			~ "<a>" ~ _prop.msgs.appWebSiteURI ~ "</a>\n"
 			~ _prop.msgs.appDesc;
 		ln.addSelectionListener(new OpenLink);
-		auto lb = new Label(area, DWT.NONE);
+		auto lb = new Label(area, SWT.NONE);
 		lb.setText = _prop.msgs.appBuild;
 	}
 }

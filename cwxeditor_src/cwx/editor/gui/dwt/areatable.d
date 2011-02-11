@@ -25,39 +25,39 @@ import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.properties;
 import cwx.editor.gui.dwt.xmlbytestransfer;
 
-import dwt.widgets.Display;
-import dwt.widgets.Shell;
-import dwt.widgets.Composite;
-import dwt.widgets.Control;
-import dwt.widgets.Table;
-import dwt.widgets.TableColumn;
-import dwt.widgets.TableItem;
-import dwt.widgets.Text;
-import dwt.widgets.Menu;
-import dwt.widgets.MenuItem;
-import dwt.graphics.Image;
-import dwt.dwthelper.utils;
-import dwt.events.ShellAdapter;
-import dwt.events.ShellEvent;
-import dwt.events.SelectionAdapter;
-import dwt.events.SelectionEvent;
-import dwt.events.KeyAdapter;
-import dwt.events.KeyEvent;
-import dwt.events.MouseAdapter;
-import dwt.events.MouseEvent;
-import dwt.events.DisposeListener;
-import dwt.events.DisposeEvent;
-import dwt.dnd.DND;
-import dwt.dnd.Transfer;
-import dwt.dnd.DragSource;
-import dwt.dnd.DragSourceListener;
-import dwt.dnd.DragSourceAdapter;
-import dwt.dnd.DragSourceEvent;
-import dwt.dnd.ByteArrayTransfer;
-import dwt.dnd.DropTargetAdapter;
-import dwt.dnd.DropTargetEvent;
-import dwt.dnd.DropTarget;
-import dwt.dnd.Clipboard;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.graphics.Image;
+import java.lang.all;
+import org.eclipse.swt.events.ShellAdapter;
+import org.eclipse.swt.events.ShellEvent;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.dnd.DragSource;
+import org.eclipse.swt.dnd.DragSourceListener;
+import org.eclipse.swt.dnd.DragSourceAdapter;
+import org.eclipse.swt.dnd.DragSourceEvent;
+import org.eclipse.swt.dnd.ByteArrayTransfer;
+import org.eclipse.swt.dnd.DropTargetAdapter;
+import org.eclipse.swt.dnd.DropTargetEvent;
+import org.eclipse.swt.dnd.DropTarget;
+import org.eclipse.swt.dnd.Clipboard;
 
 /// エリア・バトル・パッケージの一覧を表示する。
 class AreaTable : TCPD {
@@ -332,7 +332,7 @@ private:
 	}
 	class KListener : KeyAdapter {
 		public override void keyPressed(KeyEvent e) {
-			if (_areas.isFocusControl && e.character == DWT.CR) {
+			if (_areas.isFocusControl && e.character == SWT.CR) {
 				openArea;
 			}
 		}
@@ -364,9 +364,9 @@ private:
 	void item(AbstractArea a, Image img, int uc, int index = -1) {
 		TableItem itm;
 		if (index >= 0) {
-			itm = new TableItem(_areas, DWT.NONE, index);
+			itm = new TableItem(_areas, SWT.NONE, index);
 		} else {
-			itm = new TableItem(_areas, DWT.NONE);
+			itm = new TableItem(_areas, SWT.NONE);
 		}
 		itm.setImage(0, img);
 		itm.setText(ID, to!(string)(a.id));
@@ -410,29 +410,29 @@ public:
 		_comm.refPackage.add(&refPackage);
 		_comm.refUseCount.add(&__refreshUseCount);
 		_comm.replText.add(&refresh);
-		_areas = new Table(parent, DWT.BORDER | DWT.FULL_SELECTION);
+		_areas = new Table(parent, SWT.BORDER | SWT.FULL_SELECTION);
 		_areas.addDisposeListener(new ADListener);
 		_areas.addSelectionListener(new SListener);
 		_areas.setHeaderVisible = true;
-		auto idCol = new TableColumn(_areas, DWT.NULL);
+		auto idCol = new TableColumn(_areas, SWT.NULL);
 		idCol.setText = prop.msgs.areaId;
 		saveColumnWidth!("prop.var.etc.areaIdColumn")(prop, idCol);
-		auto nameCol = new TableColumn(_areas, DWT.NULL);
+		auto nameCol = new TableColumn(_areas, SWT.NULL);
 		nameCol.setText = prop.msgs.areaName;
 		saveColumnWidth!("prop.var.etc.areaNameColumn")(prop, nameCol);
-		auto countCol = new TableColumn(_areas, DWT.NULL);
+		auto countCol = new TableColumn(_areas, SWT.NULL);
 		countCol.setText = prop.msgs.areaCount;
 		saveColumnWidth!("prop.var.etc.areaCountColumn")(prop, countCol);
 
 		_areasEdit = new TableTextEdit(_areas, 1, &editEnd);
 
-		auto menu = new Menu(parent.getShell, DWT.POP_UP);
+		auto menu = new Menu(parent.getShell, SWT.POP_UP);
 		createMenuItem(menu, prop.msgs.menuCEdit, prop.images.menuCEdit, &openArea);
-		new MenuItem(menu, DWT.SEPARATOR);
+		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(menu, _prop.msgs.menuSummary, _prop.images.menuSummary, &editSummary);
-		new MenuItem(menu, DWT.SEPARATOR);
+		new MenuItem(menu, SWT.SEPARATOR);
 		appendMenuTCPD(prop, menu, this);
-		new MenuItem(menu, DWT.SEPARATOR);
+		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(menu, _prop.msgs.menuReNumbering, _prop.images.menuReNumbering, &reNumbering);
 		_areas.setMenu = menu;
 

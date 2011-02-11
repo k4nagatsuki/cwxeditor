@@ -1,10 +1,10 @@
 
 module cwx.editor.gui.dwt.props;
 
-public import dwt.DWT;
-public import dwt.graphics.Point;
-public import dwt.graphics.RGB;
-public import dwt.graphics.FontData;
+public import org.eclipse.swt.SWT;
+public import org.eclipse.swt.graphics.Point;
+public import org.eclipse.swt.graphics.RGB;
+public import org.eclipse.swt.graphics.FontData;
 
 import cwx.flag;
 import cwx.types;
@@ -23,11 +23,11 @@ import cwx.structs;
 import cwx.editor.gui.dwt.utils;
 import cwx.editor.gui.dwt.properties;
 
-import dwt.widgets.Display;
-import dwt.graphics.Image;
-import dwt.graphics.ImageData;
-import dwt.dwthelper.utils;
-import dwt.dwthelper.ByteArrayInputStream;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
+import java.lang.all;
+import java.io.ByteArrayInputStream;
 
 public class Images {
 private:
@@ -524,7 +524,7 @@ public:
 	FlexProps var() {return _var;}
 }
 
-/// CPoint等の構造体をDWTのクラスに変換するための関数。
+/// CPoint等の構造体をSWTのクラスに変換するための関数。
 Point dwtData(CPoint v) {return new Point(v.x, v.y);}
 /// ditto
 Point dwtData(CSize v) {return new Point(v.width, v.height);}
@@ -535,8 +535,8 @@ RGB dwtData(CRGB v, out int alpha) {
 }
 /// ditto
 FontData dwtData(CFont v) {
-	int flag = DWT.NONE;
-	if (v.bold) flag |= DWT.BOLD;
-	if (v.italic) flag |= DWT.ITALIC;
-	return new FontData(v.name, cast(int) v.point, flag == DWT.NONE ? DWT.NORMAL : flag);
+	int flag = SWT.NONE;
+	if (v.bold) flag |= SWT.BOLD;
+	if (v.italic) flag |= SWT.ITALIC;
+	return new FontData(v.name, cast(int) v.point, flag == SWT.NONE ? SWT.NORMAL : flag);
 }

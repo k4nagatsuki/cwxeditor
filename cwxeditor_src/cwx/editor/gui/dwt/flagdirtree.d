@@ -12,54 +12,54 @@ import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.flagtable;
 import cwx.editor.gui.dwt.xmlbytestransfer;
 
-import dwt.DWT;
-import dwt.DWTException;
-import dwt.widgets.Shell;
-import dwt.widgets.Control;
-import dwt.widgets.Display;
-import dwt.layout.FillLayout;
-import dwt.layout.GridLayout;
-import dwt.layout.GridData;
-import dwt.widgets.Composite;
-import dwt.widgets.Tree;
-import dwt.widgets.TreeItem;
-import dwt.custom.TreeEditor;
-import dwt.widgets.Table;
-import dwt.widgets.TableColumn;
-import dwt.widgets.TableItem;
-import dwt.widgets.Text;
-import dwt.widgets.Label;
-import dwt.widgets.Combo;
-import dwt.widgets.Table;
-import dwt.widgets.Menu;
-import dwt.events.SelectionEvent;
-import dwt.events.SelectionAdapter;
-import dwt.events.FocusEvent;
-import dwt.events.FocusListener;
-import dwt.events.KeyListener;
-import dwt.events.KeyAdapter;
-import dwt.events.KeyEvent;
-import dwt.events.MouseListener;
-import dwt.events.MouseAdapter;
-import dwt.events.MouseEvent;
-import dwt.events.ModifyListener;
-import dwt.events.ModifyEvent;
-import dwt.events.DisposeListener;
-import dwt.events.DisposeEvent;
-import dwt.graphics.Image;
-import dwt.graphics.ImageData;
-import dwt.dwthelper.utils;
-import dwt.dnd.DND;
-import dwt.dnd.Transfer;
-import dwt.dnd.TransferData;
-import dwt.dnd.DragSource;
-import dwt.dnd.DragSourceListener;
-import dwt.dnd.DragSourceEvent;
-import dwt.dnd.ByteArrayTransfer;
-import dwt.dnd.DropTargetAdapter;
-import dwt.dnd.DropTargetEvent;
-import dwt.dnd.DropTarget;
-import dwt.dnd.Clipboard;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.SWTException;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swt.widgets.TreeItem;
+import org.eclipse.swt.custom.TreeEditor;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.FocusListener;
+import org.eclipse.swt.events.KeyListener;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.MouseListener;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
+import java.lang.all;
+import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.dnd.TransferData;
+import org.eclipse.swt.dnd.DragSource;
+import org.eclipse.swt.dnd.DragSourceListener;
+import org.eclipse.swt.dnd.DragSourceEvent;
+import org.eclipse.swt.dnd.ByteArrayTransfer;
+import org.eclipse.swt.dnd.DropTargetAdapter;
+import org.eclipse.swt.dnd.DropTargetEvent;
+import org.eclipse.swt.dnd.DropTarget;
+import org.eclipse.swt.dnd.Clipboard;
 
 public class FlagDirTree : TCPD {
 private:
@@ -199,7 +199,7 @@ private:
 		return dirs.getItemCount ? all(dirs.getItem(0)) : cast(FlagDir[]) [];
 	}
 	private void newItem(T)(FlagDir dir, T parent, FlagDir[] exAll) {
-		auto sItm = new TreeItem(parent, DWT.NONE);
+		auto sItm = new TreeItem(parent, SWT.NONE);
 		sItm.setImage = prop.images.flagDir;
 		static if (is(T : Tree)) {
 			sItm.setText = prop.msgs.flagDirRoot;
@@ -286,14 +286,14 @@ public:
 	/// Params:
 	/// parent = 親コントロール。
 	Control createControl(Composite parent) {
-		_comp = new Composite(parent, DWT.NONE);
+		_comp = new Composite(parent, SWT.NONE);
 		_comp.setLayout = new FillLayout;
-		dirs = new Tree(_comp, DWT.SINGLE | DWT.BORDER);
+		dirs = new Tree(_comp, SWT.SINGLE | SWT.BORDER);
 
 		edit = new TreeEdit(dirs, &editEnd, &createEditor);
 
 		dirs.addSelectionListener(new DirSelection);
-		auto menu = new Menu(dirs.getShell, DWT.POP_UP);
+		auto menu = new Menu(dirs.getShell, SWT.POP_UP);
 		appendMenuTCPD(prop, menu, this);
 		dirs.setMenu(menu);
 

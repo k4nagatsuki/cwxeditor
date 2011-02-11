@@ -5,14 +5,14 @@ import cwx.utils : debugln;
 
 import std.compat;
 
-import dwt.DWT;
-import dwt.widgets.Event;
-import dwt.widgets.Listener;
-import dwt.widgets.Table;
-import dwt.widgets.TableColumn;
-import dwt.widgets.TableItem;
-import dwt.custom.TableCursor;
-import dwt.graphics.Image;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.custom.TableCursor;
+import org.eclipse.swt.graphics.Image;
 
 class TableSorter(DataT) {
 	private TableColumn _col;
@@ -22,7 +22,7 @@ class TableSorter(DataT) {
 		_col = col;
 		_cmp = cmp;
 		_revCmp = revCmp;
-		_col.addListener(DWT.Selection, new class Listener {
+		_col.addListener(SWT.Selection, new class Listener {
 			override void handleEvent(Event e) {
 				doSort;
 			}
@@ -49,13 +49,13 @@ class TableSorter(DataT) {
 	private bool compC(RowData c1, RowData c2) {
 		DataT a = cast(DataT) c1.data;
 		DataT b = cast(DataT) c2.data;
-		return _col.getParent.getSortDirection == DWT.UP
+		return _col.getParent.getSortDirection == SWT.UP
 			? _cmp(a, b) : (_revCmp ? _revCmp(a, b) : _cmp(b, a));
 	}
 	void doSort(int dir) {
 		auto tbl = _col.getParent;
 		tbl.setSortDirection = dir;
-		if (dir == DWT.NONE) return;
+		if (dir == SWT.NONE) return;
 		auto itms = tbl.getItems;
 		int count = tbl.getColumnCount;
 		scope RowData[] arr;
@@ -98,17 +98,17 @@ class TableSorter(DataT) {
 	}
 	void doSortR() {
 		auto tbl = _col.getParent;
-		if (tbl.getSortColumn is _col && tbl.getSortDirection != DWT.NONE) {
+		if (tbl.getSortColumn is _col && tbl.getSortDirection != SWT.NONE) {
 			doSort(tbl.getSortDirection);
 		}
 	}
 	void doSort() {
 		auto tbl = _col.getParent;
 		if (tbl.getSortColumn !is _col
-				|| tbl.getSortDirection == DWT.NONE || tbl.getSortDirection == DWT.DOWN) {
-			doSort(DWT.UP);
+				|| tbl.getSortDirection == SWT.NONE || tbl.getSortDirection == SWT.DOWN) {
+			doSort(SWT.UP);
 		} else {
-			doSort(DWT.DOWN);
+			doSort(SWT.DOWN);
 		}
 	}
 }
@@ -121,7 +121,7 @@ class FullTableColumn {
 		_column = new TableColumn(tbl, style);
 		_column.setResizable = false;
 		_rl = new RL;
-		tbl.addListener(DWT.Resize, _rl);
+		tbl.addListener(SWT.Resize, _rl);
 	}
 	TableColumn column() {
 		return _column;
@@ -129,7 +129,7 @@ class FullTableColumn {
 	private bool _ed = false;
 	private void __resize() {
 		auto tbl = _column.getParent;
-		auto trim = tbl.computeTrim(DWT.DEFAULT, DWT.DEFAULT, DWT.DEFAULT, DWT.DEFAULT);
+		auto trim = tbl.computeTrim(SWT.DEFAULT, SWT.DEFAULT, SWT.DEFAULT, SWT.DEFAULT);
 		int width = tbl.getSize.x;
 		foreach (c; tbl.getColumns) {
 			if (c !is _column) {

@@ -18,15 +18,15 @@ import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.absdialog;
 
-import dwt.DWT;
-import dwt.widgets.Display;
-import dwt.widgets.Shell;
-import dwt.widgets.Control;
-import dwt.widgets.Composite;
-import dwt.widgets.Group;
-import dwt.widgets.Label;
-import dwt.layout.GridLayout;
-import dwt.layout.GridData;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.GridData;
 
 public:
 
@@ -60,31 +60,31 @@ protected:
 	override void setup(Composite area) {
 		area.setLayout = new GridLayout(1, false);
 		{
-			auto grp = new Group(area, DWT.NONE);
+			auto grp = new Group(area, SWT.NONE);
 			grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			grp.setLayout = new GridLayout(2, false);
 			grp.setText = _prop.msgs.name;
 			_name = new GBLimitText(_prop.looks.messageFont(_summ.legacy).name,
-				_prop.looks.nameLimit, grp, DWT.BORDER);
+				_prop.looks.nameLimit, grp, SWT.BORDER);
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
-			gd.widthHint = _name.computeSize(DWT.DEFAULT, DWT.DEFAULT).x;
+			gd.widthHint = _name.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
 			_name.widget.setLayoutData = gd;
-			auto l = new Label(grp, DWT.NONE);
+			auto l = new Label(grp, SWT.NONE);
 			l.setText = _prop.msgs.nameLimit(_prop.looks.nameLimit);
 			checker(_name.widget);
 		}
 		{
 			auto skin = findSkin(_prop, _summ);
-			_imgPath = new ImageSelect!(MtType.CARD)(area, DWT.NONE, _comm, _prop, _summ,
+			_imgPath = new ImageSelect!(MtType.CARD)(area, SWT.NONE, _comm, _prop, _summ,
 				_prop.looks.cardSize.width, _prop.looks.cardSize.height, _summ.legacy);
 			_imgPath.widget.setLayoutData = new GridData(GridData.FILL_BOTH);
 		}
 		{
-			auto grp = new Group(area, DWT.NONE);
+			auto grp = new Group(area, SWT.NONE);
 			grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-			grp.setLayout = new CenterLayout(DWT.HORIZONTAL);
+			grp.setLayout = new CenterLayout(SWT.HORIZONTAL);
 			grp.setText = _prop.msgs.desc;
-			_desc = new FixedWidthText(dwtData(_prop.looks.cardDescFont(_summ.legacy)), _prop.looks.cardDescLen, grp, DWT.BORDER);
+			_desc = new FixedWidthText(dwtData(_prop.looks.cardDescFont(_summ.legacy)), _prop.looks.cardDescLen, grp, SWT.BORDER);
 			_desc.widget.setLayoutData = _desc.computeTextBaseSize(_prop.looks.cardDescLine);
 		}
 		if (_card) {

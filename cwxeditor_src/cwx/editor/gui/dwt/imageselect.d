@@ -11,28 +11,28 @@ import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.materialselect;
 
-import dwt.DWT;
-import dwt.DWTException;
-import dwt.widgets.Composite;
-import dwt.widgets.Control;
-import dwt.widgets.Canvas;
-import dwt.widgets.Display;
-import dwt.widgets.List;
-import dwt.widgets.Group;
-import dwt.widgets.Combo;
-import dwt.widgets.Button;
-import dwt.widgets.MessageBox;
-import dwt.layout.GridLayout;
-import dwt.layout.GridData;
-import dwt.graphics.Image;
-import dwt.graphics.ImageData;
-import dwt.events.PaintListener;
-import dwt.events.PaintEvent;
-import dwt.events.SelectionAdapter;
-import dwt.events.SelectionEvent;
-import dwt.events.DisposeListener;
-import dwt.events.DisposeEvent;
-import dwt.dnd.DropTargetAdapter;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.SWTException;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Canvas;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.List;
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.MessageBox;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.events.PaintListener;
+import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.dnd.DropTargetAdapter;
 
 public:
 
@@ -66,14 +66,14 @@ public:
 			_group.setText = prop.msgs.image;
 		}
 		{
-			auto compl = new Composite(_group, DWT.NONE);
+			auto compl = new Composite(_group, SWT.NONE);
 			compl.setLayoutData = new GridData(GridData.FILL_VERTICAL);
 			compl.setLayout = zeroMarginGridLayout(1, false);
 			{
-				auto comp = new Composite(compl, DWT.NONE);
+				auto comp = new Composite(compl, SWT.NONE);
 				comp.setLayoutData = new GridData(GridData.FILL_BOTH);
-				comp.setLayout = new CenterLayout(DWT.VERTICAL | DWT.HORIZONTAL, 0);
-				_image = new Canvas(comp, DWT.BORDER | DWT.DOUBLE_BUFFERED);
+				comp.setLayout = new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0);
+				_image = new Canvas(comp, SWT.BORDER | SWT.DOUBLE_BUFFERED);
 				_image.setLayoutData = _image.computeSize(w, h);
 				_image.addPaintListener(new PListener);
 			}
@@ -86,7 +86,7 @@ public:
 					(comm, prop, summ, &__refresh, [prop.msgs.imageNone]);
 			}
 			{
-				auto comp = new Composite(compl, DWT.NONE);
+				auto comp = new Composite(compl, SWT.NONE);
 				comp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				comp.setLayout = zeroMarginGridLayout(2, false);
 				_msel.createRefreshButton(comp, true).setLayoutData
@@ -96,7 +96,7 @@ public:
 			}
 		}
 		{
-			auto comp = new Composite(_group, DWT.NONE);
+			auto comp = new Composite(_group, SWT.NONE);
 			auto cgd = new GridData(GridData.FILL_BOTH);
 			cgd.verticalSpan = 2;
 			comp.setLayoutData = cgd;
@@ -108,7 +108,7 @@ public:
 				auto fileList = _msel.createFileList(comp);
 				auto gd = new GridData(GridData.FILL_BOTH);
 				gd.widthHint = _prop.var.etc.filesWidth;
-				gd.heightHint = fileList.computeSize(DWT.DEFAULT, DWT.DEFAULT).y;
+				gd.heightHint = fileList.computeSize(SWT.DEFAULT, SWT.DEFAULT).y;
 				fileList.setLayoutData = gd;
 			}
 		}

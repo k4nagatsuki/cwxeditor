@@ -16,15 +16,15 @@ import std.path;
 import std.string;
 import std.utf;
 
-import dwt.DWT;
-import dwt.DWTException;
-import dwt.widgets.Display;
-import dwt.graphics.Image;
-import dwt.graphics.ImageData;
-import dwt.graphics.PaletteData;
-import dwt.graphics.GC;
-import dwt.graphics.Color;
-import dwt.graphics.Font;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.SWTException;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.PaletteData;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
 
 /// JPYの動作をエミュレートするが、甚だ不完全。
 ImageData loadJPYImage(Skin skin, string path) {
@@ -279,13 +279,13 @@ private ImageData loadJPTXImage(string path) {
 	scope (exit) gc.dispose;
 	// FIXME: 現行の実装で必ずantialiasがかかってしまう
 	version (Windows) {} else {
-		gc.setTextAntialias = DWT.ON;
-//		gc.setTextAntialias = jptx.antialias ? DWT.ON : DWT.OFF;
+		gc.setTextAntialias = SWT.ON;
+//		gc.setTextAntialias = jptx.antialias ? SWT.ON : SWT.OFF;
 	}
 	int alpha;
 	auto cBack = new Color(d, dwtData(jptx.backcolor, alpha));
 	scope (exit) cBack.dispose;
-	gc.setBackground = d.getSystemColor(DWT.COLOR_BLACK);
+	gc.setBackground = d.getSystemColor(SWT.COLOR_BLACK);
 	gc.fillRectangle(0, 0, width, height);
 	if (jptx.fonttransparent) {
 		auto cFore = new Color(d, dwtData(jptx.fontcolor, alpha));
@@ -316,9 +316,9 @@ private ImageData loadJPTXImage(string path) {
 				fp, toUTF16z(param.face));
 			auto font = Font.win32_new(d, hf);
 		} else {
-			int fStyle = DWT.NORMAL;
-			if (param.b) fStyle |= DWT.BOLD;
-			if (param.i) fStyle |= DWT.ITALIC;
+			int fStyle = SWT.NORMAL;
+			if (param.b) fStyle |= SWT.BOLD;
+			if (param.i) fStyle |= SWT.ITALIC;
 			auto h = cast(int) (jptx.fontpixels * (72.0 / d.getDPI.y) + 0.5);
 			auto fontData = new FontData(param.face, h, fStyle);
 			auto font = new Font(d, fontData);
@@ -374,9 +374,9 @@ private ImageData loadJPDCImage(string path) {
 	scope (exit) img.dispose;
 	auto gc = new GC(img);
 	scope (exit) gc.dispose;
-	gc.setBackground = d.getSystemColor(DWT.COLOR_BLACK);
+	gc.setBackground = d.getSystemColor(SWT.COLOR_BLACK);
 	gc.fillRectangle(0, 0, img.width, img.height);
-	gc.setForeground = d.getSystemColor(DWT.COLOR_WHITE);
+	gc.setForeground = d.getSystemColor(SWT.COLOR_WHITE);
 	gc.drawText("JPDC Save to: " ~ (jpdc.saveFileName.length ? jpdc.saveFileName : "(undefined)"), 2, 2, true);
 	auto data = img.getImageData;
 	data.transparentPixel = data.getPixel(0, 0);

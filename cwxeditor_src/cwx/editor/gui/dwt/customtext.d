@@ -7,22 +7,22 @@ import std.compat;
 import std.utf;
 import std.string;
 
-import dwt.DWT;
-import dwt.DWTException;
-import dwt.widgets.Control;
-import dwt.widgets.Composite;
-import dwt.widgets.Display;
-import dwt.widgets.Text;
-import dwt.widgets.Item;
-import dwt.widgets.Widget;
-import dwt.widgets.Listener;
-import dwt.widgets.Event;
-import dwt.graphics.Image;
-import dwt.graphics.Font;
-import dwt.graphics.FontData;
-import dwt.graphics.GC;
-import dwt.graphics.Point;
-import dwt.dwthelper.utils;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.SWTException;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.Item;
+import org.eclipse.swt.widgets.Widget;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Point;
+import java.lang.all;
 
 /// 折り返しを反映したテキストを取得可能なText。
 class FixedWidthText {
@@ -30,7 +30,7 @@ class FixedWidthText {
 	private GC _gc;
 	private int _width;
 	this(FontData fontData, int num, Composite parent, int style) {
-		_widget = new Text(parent, style | DWT.MULTI | DWT.WRAP);
+		_widget = new Text(parent, style | SWT.MULTI | SWT.WRAP);
 		_widget.setFont = new Font(Display.getCurrent, fontData);
 		_gc = new GC(_widget);
 		_gc.setFont = _widget.getFont;
@@ -39,7 +39,7 @@ class FixedWidthText {
 +/		_width = _gc.textExtent("　").x * (num / 2) + 1;
 		if (num & 1) _width += _gc.textExtent(" ").x;
 
-		_widget.addListener(DWT.Dispose, new class Listener {
+		_widget.addListener(SWT.Dispose, new class Listener {
 			override void handleEvent(Event e) {
 				_widget.getFont.dispose;
 				_gc.dispose;
@@ -125,12 +125,12 @@ class GBLimitText {
 	/// font = 検証に使用するフォント。
 	/// num = 最大文字数。[' 'の幅 * num]が入力可能な文字列幅となる。
 	this(string font, int num, Composite parent, int style) {
-		_widget = new Text(parent, style | DWT.NO_BACKGROUND);
+		_widget = new Text(parent, style | SWT.NO_BACKGROUND);
 		_gc = new GC(_widget);
-		_gc.setFont = new Font(Display.getCurrent, new FontData(font, 10, DWT.NORMAL));
+		_gc.setFont = new Font(Display.getCurrent, new FontData(font, 10, SWT.NORMAL));
 		_width = _gc.textExtent(" ").x * num;
 
-		_widget.addListener(DWT.Verify, new class Listener {
+		_widget.addListener(SWT.Verify, new class Listener {
 			override void handleEvent(Event e) {
 				if (_ed) return;
 				scope dstring vText;
@@ -165,7 +165,7 @@ class GBLimitText {
 			}
 		});
 		// FIXME: 全角スペース入力でVerifyEventが入力文字を取れないようなので暫定
-		_widget.addListener(DWT.Modify, new class Listener {
+		_widget.addListener(SWT.Modify, new class Listener {
 			override void handleEvent(Event e) {
 				if (_ed) return;
 				if (_gc.textExtent(getText).x <= _width) {
@@ -183,7 +183,7 @@ class GBLimitText {
 				}
 			}
 		});
-		_widget.addListener(DWT.Dispose, new class Listener {
+		_widget.addListener(SWT.Dispose, new class Listener {
 			override void handleEvent(Event e) {
 				_gc.getFont.dispose;
 				_gc.dispose;
@@ -194,7 +194,7 @@ class GBLimitText {
 		return _widget;
 	}
 	Point computeSize(int wHint, int hHint) {
-		return _widget.computeSize(wHint == DWT.DEFAULT ? _width : wHint, hHint);
+		return _widget.computeSize(wHint == SWT.DEFAULT ? _width : wHint, hHint);
 	}
 	void insert(string text) {
 		_widget.insert = text;

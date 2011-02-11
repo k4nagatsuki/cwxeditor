@@ -35,70 +35,70 @@ import std.path;
 import std.thread;
 import std.process;
 
-import dwt.DWTException;
-import dwt.widgets.Widget;
-import dwt.widgets.Display;
-import dwt.widgets.Listener;
-import dwt.widgets.Event;
-import dwt.widgets.Control;
-import dwt.widgets.Composite;
-import dwt.widgets.Spinner;
-import dwt.widgets.Item;
-import dwt.widgets.Tree;
-import dwt.widgets.TreeItem;
-import dwt.widgets.Table;
-import dwt.widgets.TableColumn;
-import dwt.widgets.TableItem;
-import dwt.widgets.ToolBar;
-import dwt.widgets.ToolItem;
-import dwt.widgets.CoolBar;
-import dwt.widgets.CoolItem;
-import dwt.widgets.Menu;
-import dwt.widgets.MenuItem;
-import dwt.widgets.Combo;
-import dwt.widgets.Text;
-import dwt.widgets.Scale;
-import dwt.widgets.Shell;
-import dwt.widgets.MessageBox;
-import dwt.widgets.Button;
-import dwt.widgets.Group;
-import dwt.widgets.Label;
-import dwt.widgets.TabFolder;
-import dwt.widgets.Sash;
-import dwt.widgets.FileDialog;
-import dwt.custom.CLabel;
-import dwt.custom.CCombo;
-import dwt.custom.CTabFolder;
-import dwt.custom.TreeEditor;
-import dwt.custom.TableEditor;
-import dwt.events.KeyAdapter;
-import dwt.events.KeyEvent;
-import dwt.events.MouseAdapter;
-import dwt.events.MouseEvent;
-import dwt.events.SelectionListener;
-import dwt.events.SelectionAdapter;
-import dwt.events.SelectionEvent;
-import dwt.events.FocusListener;
-import dwt.events.FocusEvent;
-import dwt.events.ModifyListener;
-import dwt.events.ModifyEvent;
-import dwt.events.DisposeListener;
-import dwt.events.DisposeEvent;
-import dwt.graphics.ImageData;
-import dwt.graphics.PaletteData;
-import dwt.graphics.Image;
-import dwt.graphics.GC;
-import dwt.graphics.Color;
-import dwt.graphics.Font;
-import dwt.layout.GridLayout;
-import dwt.layout.GridData;
-import dwt.dnd.DND;
-import dwt.dnd.DropTargetAdapter;
-import dwt.dnd.DropTargetEvent;
-import dwt.dnd.DropTarget;
-import dwt.dnd.FileTransfer;
-import dwt.dwthelper.utils;
-import dwt.dwthelper.ByteArrayInputStream;
+import org.eclipse.swt.SWTException;
+import org.eclipse.swt.widgets.Widget;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Spinner;
+import org.eclipse.swt.widgets.Item;
+import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swt.widgets.TreeItem;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.swt.widgets.CoolBar;
+import org.eclipse.swt.widgets.CoolItem;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.Scale;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.MessageBox;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.TabFolder;
+import org.eclipse.swt.widgets.Sash;
+import org.eclipse.swt.widgets.FileDialog;
+import org.eclipse.swt.custom.CLabel;
+import org.eclipse.swt.custom.CCombo;
+import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.swt.custom.TreeEditor;
+import org.eclipse.swt.custom.TableEditor;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.FocusListener;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.PaletteData;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.DropTargetAdapter;
+import org.eclipse.swt.dnd.DropTargetEvent;
+import org.eclipse.swt.dnd.DropTarget;
+import org.eclipse.swt.dnd.FileTransfer;
+import java.lang.all;
+import java.io.ByteArrayInputStream;
 
 public:
 
@@ -152,7 +152,7 @@ ImageData loadImage(Skin skin, string path, bool mask = true, int maskX = 0, int
 			auto data = new ImageData(s);
 			if (mask) data.transparentPixel = data.getPixel(maskX, maskY);
 			return data;
-		} catch (DWTException e) {
+		} catch (SWTException e) {
 			debugln(e);
 		}
 	}
@@ -200,22 +200,22 @@ GridLayout windowGridLayout(int col, bool eqWid = false) {
 	return gl;
 }
 
-void setGridMinW(Control c, int minW, int gridStyle = DWT.NULL) {
+void setGridMinW(Control c, int minW, int gridStyle = SWT.NULL) {
 	auto gd = new GridData(gridStyle);
-	int w = c.computeSize(DWT.DEFAULT, DWT.DEFAULT).x;
+	int w = c.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
 	gd.widthHint = w > minW ? w : minW;
 	c.setLayoutData(gd);
 }
 
 Composite centerGroup(Composite parent, string text, bool fillH = true, bool fillV = false, Object layoutData = null) {
-	auto grp = new Group(parent, DWT.NONE);
+	auto grp = new Group(parent, SWT.NONE);
 	grp.setLayoutData = layoutData;
-	auto cl = new CenterLayout(DWT.HORIZONTAL | DWT.VERTICAL, 0);
+	auto cl = new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0);
 	cl.fillHorizontal = fillH;
 	cl.fillVertical = fillV;
 	grp.setLayout = cl;
 	grp.setText = text;
-	auto comp = new Composite(grp, DWT.NONE);
+	auto comp = new Composite(grp, SWT.NONE);
 	return comp;
 }
 
@@ -239,9 +239,9 @@ private:
 	}
 	class KListener : KeyAdapter {
 		public override void keyPressed(KeyEvent e) {
-			if (e.character == DWT.CR) {
+			if (e.character == SWT.CR) {
 				enter;
-			} else if (e.character == DWT.ESC) {
+			} else if (e.character == SWT.ESC) {
 				_noEdit = true;
 				scope (exit) _noEdit = false;
 				_spn.setSelection = _cancel !is null ? _cancel(_oldVal) : _oldVal;
@@ -345,7 +345,7 @@ public:
 		_selection = selection;
 	}
 	override void keyPressed(KeyEvent e) {
-		if (e.keyCode == DWT.F2) {
+		if (e.keyCode == SWT.F2) {
 			auto itm = _selection();
 			if (itm !is null) {
 				_startEdit(itm);
@@ -377,9 +377,9 @@ public:
 		enter();
 	}
 	override void keyPressed(KeyEvent e) {
-		if (e.character == DWT.CR) {
+		if (e.character == SWT.CR) {
 			enter();
-		} else if (e.keyCode == DWT.ESC) {
+		} else if (e.keyCode == SWT.ESC) {
 			ctrl.dispose;
 		}
 	}
@@ -393,14 +393,14 @@ public:
 }
 
 Text createTextEditor(Composite parent, string str) {
-	auto text = new Text(parent, DWT.BORDER);
+	auto text = new Text(parent, SWT.BORDER);
 	text.setText(str);
 	text.selectAll();
 	return text;
 }
 
 CCombo createComboEditor(Composite parent, string[] strs, string str) {
-	auto combo = new CCombo(parent, DWT.BORDER | DWT.READ_ONLY);
+	auto combo = new CCombo(parent, SWT.BORDER | SWT.READ_ONLY);
 	combo.setVisibleItemCount = 20;
 	foreach (s; strs) {
 		combo.add(s);
@@ -655,7 +655,7 @@ void usingPopupMenuAccelerator(Control c) {
 				foreach (mi; menu.getItems) {
 					int acc = toAccelerator(mi);
 					bool eqAcc() {
-						if ((acc & DWT.MODIFIER_MASK) == acc) {
+						if ((acc & SWT.MODIFIER_MASK) == acc) {
 							return (e.keyCode | e.stateMask) == acc;
 						} else if (toupper(e.keyCode) == toupper(e.character)) {
 							return (toupper(e.keyCode) | e.stateMask) == acc
@@ -663,8 +663,8 @@ void usingPopupMenuAccelerator(Control c) {
 						} else {
 							return (toupper(e.keyCode) | e.stateMask) == acc
 								|| (tolower(e.keyCode) | e.stateMask) == acc
-								|| (toupper(e.character) | (e.stateMask ^ DWT.SHIFT)) == acc
-								|| (tolower(e.character) | (e.stateMask ^ DWT.SHIFT)) == acc
+								|| (toupper(e.character) | (e.stateMask ^ SWT.SHIFT)) == acc
+								|| (tolower(e.character) | (e.stateMask ^ SWT.SHIFT)) == acc
 								|| (toupper(e.character) | e.stateMask) == acc
 								|| (tolower(e.character) | e.stateMask) == acc;
 						}
@@ -672,7 +672,7 @@ void usingPopupMenuAccelerator(Control c) {
 					if (eqAcc) {
 						scope evt = new Event;
 						evt.widget = e.widget;
-						mi.notifyListeners(DWT.Selection, evt);
+						mi.notifyListeners(SWT.Selection, evt);
 						e.doit = false;
 						return true;
 					}
@@ -697,15 +697,15 @@ int convertAccelerator(string text) {
 		string kc;
 		int mod(string s) {
 			switch (toLower(s)) {
-			case "control", "ctrl": return DWT.CONTROL;
-			case "shift": return DWT.SHIFT;
-			case "alt": return DWT.ALT;
-			case "command": return DWT.COMMAND;
+			case "control", "ctrl": return SWT.CONTROL;
+			case "shift": return SWT.SHIFT;
+			case "alt": return SWT.ALT;
+			case "command": return SWT.COMMAND;
 			default: return 0;
 			}
 		}
 		while (true) {
-			int p_index = dwt.dwthelper.utils.indexOf(acc_text, '+');
+			int p_index = cwx.utils.indexOf(acc_text, '+');
 			if (p_index >= 0 && p_index < acc_text.length - 1) {
 				acc |= mod(acc_text[0 .. p_index]);
 				acc_text = acc_text[p_index + 1 .. $];
@@ -716,36 +716,36 @@ int convertAccelerator(string text) {
 		}
 		int ek(string s) {
 			switch (toLower(s)) {
-			case "backspace": return DWT.BS;
-			case "enter", "return": return DWT.CR;
-			case "delete": return DWT.DEL;
-			case "escape", "esc": return DWT.ESC;
-			case "tab": return DWT.TAB;
+			case "backspace": return SWT.BS;
+			case "enter", "return": return SWT.CR;
+			case "delete": return SWT.DEL;
+			case "escape", "esc": return SWT.ESC;
+			case "tab": return SWT.TAB;
 			case "space": return ' ';
-			case "arrow_up": return DWT.ARROW_UP;
-			case "arrow_down": return DWT.ARROW_DOWN;
-			case "arrow_left": return DWT.ARROW_LEFT;
-			case "arrow_right": return DWT.ARROW_RIGHT;
-			case "page_up": return DWT.PAGE_UP;
-			case "page_down": return DWT.PAGE_DOWN;
-			case "home": return DWT.HOME;
-			case "end": return DWT.END;
-			case "insert": return DWT.INSERT;
-			case "f1": return DWT.F1;
-			case "f2": return DWT.F2;
-			case "f3": return DWT.F3;
-			case "f4": return DWT.F4;
-			case "f5": return DWT.F5;
-			case "f6": return DWT.F6;
-			case "f7": return DWT.F7;
-			case "f8": return DWT.F8;
-			case "f9": return DWT.F9;
-			case "f10": return DWT.F10;
-			case "f11": return DWT.F11;
-			case "f12": return DWT.F12;
-			case "f13": return DWT.F13;
-			case "f14": return DWT.F14;
-			case "f15": return DWT.F15;
+			case "arrow_up": return SWT.ARROW_UP;
+			case "arrow_down": return SWT.ARROW_DOWN;
+			case "arrow_left": return SWT.ARROW_LEFT;
+			case "arrow_right": return SWT.ARROW_RIGHT;
+			case "page_up": return SWT.PAGE_UP;
+			case "page_down": return SWT.PAGE_DOWN;
+			case "home": return SWT.HOME;
+			case "end": return SWT.END;
+			case "insert": return SWT.INSERT;
+			case "f1": return SWT.F1;
+			case "f2": return SWT.F2;
+			case "f3": return SWT.F3;
+			case "f4": return SWT.F4;
+			case "f5": return SWT.F5;
+			case "f6": return SWT.F6;
+			case "f7": return SWT.F7;
+			case "f8": return SWT.F8;
+			case "f9": return SWT.F9;
+			case "f10": return SWT.F10;
+			case "f11": return SWT.F11;
+			case "f12": return SWT.F12;
+			case "f13": return SWT.F13;
+			case "f14": return SWT.F14;
+			case "f15": return SWT.F15;
 			default: return 0;
 			}
 		}
@@ -763,8 +763,8 @@ int convertAccelerator(string text) {
 	}
 	return 0;
 } unittest {
-	assert (convertAccelerator("test\tCTRL+ARROW_UP") == (DWT.ARROW_UP | DWT.CTRL));
-	assert (convertAccelerator("test\tShift+A") == (DWT.SHIFT | 'A'));
+	assert (convertAccelerator("test\tCTRL+ARROW_UP") == (SWT.ARROW_UP | SWT.CTRL));
+	assert (convertAccelerator("test\tShift+A") == (SWT.SHIFT | 'A'));
 }
 private class MenuSel(Dlg) : SelectionAdapter {
 	private Dlg _func;
@@ -778,7 +778,7 @@ private class MenuSel(Dlg) : SelectionAdapter {
 	}
 }
 private MenuItem createMenuItemImpl(Dlg)(Menu sub, string text, Image img,
-		Dlg func, int style = DWT.PUSH) {
+		Dlg func, int style = SWT.PUSH) {
 	auto itm = new MenuItem(sub, style);
 	itm.setText = text;
 	int accr = convertAccelerator(text);
@@ -792,23 +792,23 @@ private MenuItem createMenuItemImpl(Dlg)(Menu sub, string text, Image img,
 	return itm;
 }
 MenuItem createMenuItem(Menu sub, string text, Image img,
-		void delegate(SelectionEvent se) func, int style = DWT.PUSH) {
+		void delegate(SelectionEvent se) func, int style = SWT.PUSH) {
 	return createMenuItemImpl(sub, text, img, func, style);
 }
 MenuItem createMenuItem(Menu sub, string text, Image img,
-		void delegate() func, int style = DWT.PUSH) {
+		void delegate() func, int style = SWT.PUSH) {
 	return createMenuItemImpl(sub, text, img, func, style);
 }
 Menu createMenu(Menu bar, string text) {
-	auto menu = new Menu(bar.getShell, DWT.DROP_DOWN);
-	auto mi = new MenuItem(bar, DWT.CASCADE);
+	auto menu = new Menu(bar.getShell, SWT.DROP_DOWN);
+	auto mi = new MenuItem(bar, SWT.CASCADE);
 	mi.setText = text;
 	mi.setMenu = menu;
 	return menu;
 }
 
 ToolItem createToolItemImpl(Dlg)(ToolBar bar, string tip, string text, Image img,
-		Dlg func, int style = DWT.PUSH) {
+		Dlg func, int style = SWT.PUSH) {
 	auto itm = new ToolItem(bar, style);
 	itm.setText = text;
 	itm.setToolTipText = tip;
@@ -819,19 +819,19 @@ ToolItem createToolItemImpl(Dlg)(ToolBar bar, string tip, string text, Image img
 	return itm;
 }
 ToolItem createToolItem(ToolBar bar, string tip, string text, Image img,
-		void delegate(SelectionEvent se) func, int style = DWT.PUSH) {
+		void delegate(SelectionEvent se) func, int style = SWT.PUSH) {
 	return createToolItemImpl(bar, tip, text, img, func, style);
 }
 ToolItem createToolItem(ToolBar bar, string tip, string text, Image img,
-		void delegate() func, int style = DWT.PUSH) {
+		void delegate() func, int style = SWT.PUSH) {
 	return createToolItemImpl(bar, tip, text, img, func, style);
 }
 ToolItem createToolItem(ToolBar bar, string text, Image img,
-		void delegate(SelectionEvent se) func, int style = DWT.PUSH) {
+		void delegate(SelectionEvent se) func, int style = SWT.PUSH) {
 	return createToolItemImpl!(void delegate(SelectionEvent))(bar, text, null, img, func, style);
 }
 ToolItem createToolItem(ToolBar bar, string text, Image img,
-		void delegate() func, int style = DWT.PUSH) {
+		void delegate() func, int style = SWT.PUSH) {
 	return createToolItemImpl!(void delegate())(bar, text, null, img, func, style);
 }
 private class ToolSel : SelectionAdapter {
@@ -840,7 +840,7 @@ private class ToolSel : SelectionAdapter {
 	public override void widgetSelected(SelectionEvent e) {_func(cast(ToolItem) e.widget);}
 }
 ToolItem createToolItem(ToolBar bar, string tip, string text, Image img,
-		void delegate(ToolItem) func, int style = DWT.PUSH) {
+		void delegate(ToolItem) func, int style = SWT.PUSH) {
 	auto itm = new ToolItem(bar, style);
 	itm.setText = text;
 	itm.setToolTipText = tip;
@@ -852,7 +852,7 @@ ToolItem createToolItem(ToolBar bar, string tip, string text, Image img,
 }
 
 ToolItem createToolItem(ToolBar bar, string text, Image img,
-		void delegate(ToolItem) func, int style = DWT.PUSH) {
+		void delegate(ToolItem) func, int style = SWT.PUSH) {
 	return createToolItem(bar, text, null, img, func, style);
 }
 
@@ -910,7 +910,7 @@ private:
 						break;
 					}
 					r ~= fname;
-				} catch (DWTException e) {
+				} catch (SWTException e) {
 				}
 			}
 			if (paths.length > 0) {
@@ -958,7 +958,7 @@ public:
 	HashSet!(B) set() {return _set;}
 	void append(B b) {
 		_set.add(b);
-		assert ((b.getStyle & DWT.RADIO) != 0);
+		assert ((b.getStyle & SWT.RADIO) != 0);
 		if (_sel is null){
 			if (b.getSelection) {
 				_sel = b;
@@ -966,7 +966,7 @@ public:
 		} else {
 			b.setSelection = false;
 		}
-		b.addListener(DWT.Selection, _l);
+		b.addListener(SWT.Selection, _l);
 	}
 private:
 	HashSet!(B) _set;
@@ -988,9 +988,9 @@ private:
 TreeItem createTreeItem(T)(T parent, Object data, string text, Image img, int index = -1) {
 	TreeItem r;
 	if (index >= 0) {
-		r = new TreeItem(parent, DWT.NONE, index);
+		r = new TreeItem(parent, SWT.NONE, index);
 	} else {
-		r = new TreeItem(parent, DWT.NONE);
+		r = new TreeItem(parent, SWT.NONE);
 	}
 	r.setData = data;
 	r.setText = text;
@@ -1084,7 +1084,7 @@ void treeUnexpandedAll(Tree tree) {
 }
 
 version (Windows) {} else {
-	import dwt.program.Program;
+	import org.eclipse.swt.program.Program;
 }
 bool openFolder(string path) {
 	path = nabs(path);
@@ -1097,7 +1097,7 @@ bool openFolder(string path) {
 
 void hemming(GC gc, string s, int tx, int ty, Color color) {
 	auto d = Display.getCurrent;
-	gc.setForeground = d.getSystemColor(DWT.COLOR_BLACK);
+	gc.setForeground = d.getSystemColor(SWT.COLOR_BLACK);
 	gc.drawText(s, tx - 1, ty, true);
 	gc.drawText(s, tx, ty - 1, true);
 	gc.drawText(s, tx + 1, ty, true);
@@ -1170,7 +1170,7 @@ ImageData castCardImage(Props prop, Skin skin, CastCard c, string sPath, bool db
 				r.append(life, stp);
 				stp.y -= lgh + 2;
 				stMax--;
-			} catch (DWTException e) {
+			} catch (SWTException e) {
 				debugln(e);
 			}
 		}
@@ -1230,7 +1230,7 @@ ImageData castCardImage(Props prop, Skin skin, CastCard c, string sPath, bool db
 		scope (exit) bmp.dispose;
 		auto gc = new GC(bmp);
 		scope (exit) gc.dispose;
-		gc.setTextAntialias = DWT.OFF;
+		gc.setTextAntialias = SWT.OFF;
 		auto bi = new Image(d, bid);
 		scope (exit) bi.dispose;
 		gc.drawImage(bi, 0, 0);
@@ -1242,7 +1242,7 @@ ImageData castCardImage(Props prop, Skin skin, CastCard c, string sPath, bool db
 		auto mt = gc.getFontMetrics;
 		auto tx = bid.width - cw - 1;
 		auto ty = bid.height - mt.getAscent - 2;
-		hemming(gc, s, tx, ty, d.getSystemColor(DWT.COLOR_WHITE));
+		hemming(gc, s, tx, ty, d.getSystemColor(SWT.COLOR_WHITE));
 		r.append(bmp.getImageData, stp);
 	}
 	r.setTitle(c.name, dwtData(prop.looks.castCardNameFont(skin.legacy)), dwtData(prop.looks.castCardNamePoint));
@@ -1324,7 +1324,7 @@ ImageData cardImage(C)(Props prop, Skin skin, C c, string sPath, CastCard owner 
 			scope (exit) img.dispose;
 			auto gc = new GC(img);
 			scope (exit) gc.dispose;
-			gc.setTextAntialias = DWT.OFF;
+			gc.setTextAntialias = SWT.OFF;
 			auto font = new Font(d, dwtData(prop.looks.useCountFont(skin.legacy)));
 			scope (exit) font.dispose;
 			gc.setFont = font;
@@ -1332,7 +1332,7 @@ ImageData cardImage(C)(Props prop, Skin skin, C c, string sPath, CastCard owner 
 			int alpha;
 			auto color = res
 				? new Color(d, dwtData(prop.looks.recycleNumColor, alpha))
-				: d.getSystemColor(DWT.COLOR_WHITE);
+				: d.getSystemColor(SWT.COLOR_WHITE);
 			scope (exit) {
 				if (res) color.dispose;
 			}
@@ -1523,7 +1523,7 @@ string[] scenarioFilter() {
 
 S[] loadScenarios(S)(Props prop, Shell w, void delegate(string) status,
 		bool expandXMLs, string dlgTitle, void delegate (S[]) loaded = null, bool oThr = true) {
-	auto dlg = new FileDialog(w, DWT.PRIMARY_MODAL | DWT.APPLICATION_MODAL | DWT.MULTI | DWT.OPEN);
+	auto dlg = new FileDialog(w, SWT.PRIMARY_MODAL | SWT.APPLICATION_MODAL | SWT.MULTI | SWT.OPEN);
 	scope (exit) dlg.dispose;
 	dlg.setFilterExtensions = scenarioFilter;
 	dlg.setFilterNames = [prop.msgs.filterScenario];
@@ -1573,13 +1573,13 @@ S[] loadScenariosFromFile(S)(Props prop, Shell w, void delegate(string) status,
 		thr.files = files;
 		thr.loaded = loaded;
 		thr.status = status;
-		w.setCursor = display.getSystemCursor(DWT.CURSOR_WAIT);
+		w.setCursor = display.getSystemCursor(SWT.CURSOR_WAIT);
 		scope (exit) w.setCursor = null;
-		auto t = new Thread(&thr.run);
+		auto t = new std.thread.Thread(&thr.run);
 		t.start;
 		return [];
 	} else {
-		w.setCursor = Display.getCurrent.getSystemCursor(DWT.CURSOR_WAIT);
+		w.setCursor = Display.getCurrent.getSystemCursor(SWT.CURSOR_WAIT);
 		scope (exit) w.setCursor = null;
 		S[] r;
 		foreach (i, path; files) {
@@ -1605,7 +1605,7 @@ string scenarioFilterPath(Props prop) {
 
 S loadScenario(S)(Props prop, Shell w, void delegate(string) status,
 		bool expandXMLs, S old, string dlgTitle, ref string[] openPaths, void delegate (S) loaded = null, bool oThr = true) {
-	auto dlg = new FileDialog(w, DWT.PRIMARY_MODAL | DWT.APPLICATION_MODAL | DWT.SINGLE | DWT.OPEN);
+	auto dlg = new FileDialog(w, SWT.PRIMARY_MODAL | SWT.APPLICATION_MODAL | SWT.SINGLE | SWT.OPEN);
 	scope (exit) dlg.dispose;
 	dlg.setFilterExtensions = scenarioFilter;
 	dlg.setFilterNames = [prop.msgs.filterScenario];
@@ -1647,14 +1647,14 @@ private S loadScenarioFromFileImpl(S)(Props prop, Shell w, void delegate(string)
 		thr.loaded = loaded;
 		thr.status = status;
 		if (!current) {
-			w.setCursor = Display.getCurrent.getSystemCursor(DWT.CURSOR_WAIT);
+			w.setCursor = Display.getCurrent.getSystemCursor(SWT.CURSOR_WAIT);
 			w.setEnabled = false;
 		}
-		auto t = new Thread(&thr.run);
+		auto t = new std.thread.Thread(&thr.run);
 		t.start;
 		return null;
 	} else {
-		if (!current) w.setCursor = Display.getCurrent.getSystemCursor(DWT.CURSOR_WAIT);
+		if (!current) w.setCursor = Display.getCurrent.getSystemCursor(SWT.CURSOR_WAIT);
 		scope (exit) {
 			if (!current) w.setCursor = null;
 		}
@@ -1682,7 +1682,7 @@ bool qMaterialCopy(Props prop, Skin skin, Shell shell,
 		}
 	}
 	if (paths.length == 0) return true;
-	auto copyM = new MessageBox(shell, DWT.YES | DWT.NO | DWT.CANCEL | DWT.ICON_QUESTION);
+	auto copyM = new MessageBox(shell, SWT.YES | SWT.NO | SWT.CANCEL | SWT.ICON_QUESTION);
 	scope (exit) copyM.dispose;
 	copyM.setText = prop.msgs.dlgTitQuestion;
 	uint bin = 0u;
@@ -1696,7 +1696,7 @@ bool qMaterialCopy(Props prop, Skin skin, Shell shell,
 	}
 	copyM.setMessage = prop.msgs.dlgMsgCopyMaterial(msgPaths, bin);
 	switch (copyM.open) {
-	case DWT.YES:
+	case SWT.YES:
 		bool err = false;
 		foreach (i, key; paths) {
 			string path = isBinImg(key) ? key : std.path.join(fromSPath, key);
@@ -1713,7 +1713,7 @@ bool qMaterialCopy(Props prop, Skin skin, Shell shell,
 			MessageBox.showWarning(prop.msgs.dlgMsgCopyError, prop.msgs.dlgTitWarning, shell);
 		}
 		return true;
-	case DWT.NO:
+	case SWT.NO:
 		if (!toIsLegacy) {
 			foreach (key; uc.path.keys) {
 				if (key.isBinImg) {
@@ -1722,7 +1722,7 @@ bool qMaterialCopy(Props prop, Skin skin, Shell shell,
 			}
 		}
 		return true;
-	case DWT.CANCEL:
+	case SWT.CANCEL:
 		return false;
 	}
 }
@@ -1797,10 +1797,10 @@ Composite createDefSoundCombo(Props prop, Skin skin, Composite parent, out Combo
 			}
 		}
 	}
-	auto comp2 = new Composite(parent, DWT.NONE);
+	auto comp2 = new Composite(parent, SWT.NONE);
 	if (title) {
 		comp2.setLayout = zeroMarginGridLayout(2, true);
-		auto l = new CLabel(comp2, DWT.NONE);
+		auto l = new CLabel(comp2, SWT.NONE);
 		auto gdl = new GridData(GridData.FILL_HORIZONTAL);
 		gdl.horizontalSpan = 2;
 		l.setLayoutData = gdl;
@@ -1809,7 +1809,7 @@ Composite createDefSoundCombo(Props prop, Skin skin, Composite parent, out Combo
 	} else {
 		comp2.setLayout = zeroMarginGridLayout(3, false);
 	}
-	combo = new Combo(comp2, DWT.BORDER | DWT.READ_ONLY | DWT.DROP_DOWN);
+	combo = new Combo(comp2, SWT.BORDER | SWT.READ_ONLY | SWT.DROP_DOWN);
 	combo.setVisibleItemCount = 20;
 	auto gdc = new GridData(GridData.FILL_HORIZONTAL);
 	if (title) {
@@ -1817,7 +1817,7 @@ Composite createDefSoundCombo(Props prop, Skin skin, Composite parent, out Combo
 	}
 	combo.setLayoutData = gdc;
 	combo.setItems = prop.msgs.soundNone ~ skin.sounds;
-	auto stop = new Button(comp2, DWT.PUSH);
+	auto stop = new Button(comp2, SWT.PUSH);
 	if (title) {
 		stop.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 	}
@@ -1826,7 +1826,7 @@ Composite createDefSoundCombo(Props prop, Skin skin, Composite parent, out Combo
 	auto sse = new StopSE;
 	stop.addSelectionListener(sse);
 	stop.addDisposeListener(sse);
-	auto play = new Button(comp2, DWT.PUSH);
+	auto play = new Button(comp2, SWT.PUSH);
 	if (title) {
 		play.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 	}
@@ -1836,22 +1836,22 @@ Composite createDefSoundCombo(Props prop, Skin skin, Composite parent, out Combo
 	return comp2;
 }
 Composite createSuccessRateScale(Props prop, Composite parent, out Scale sucRate) {
-	auto grp = new Group(parent, DWT.NONE);
-	auto cl = new CenterLayout(DWT.HORIZONTAL | DWT.VERTICAL, 0);
+	auto grp = new Group(parent, SWT.NONE);
+	auto cl = new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0);
 	cl.fillHorizontal = true;
 	grp.setLayout = cl;
 	grp.setText = prop.msgs.successRate;
-	auto comp = new Composite(grp, DWT.NONE);
+	auto comp = new Composite(grp, SWT.NONE);
 	comp.setLayout = new GridLayout(3, false);
-	auto allf = new Label(comp, DWT.CENTER);
+	auto allf = new Label(comp, SWT.CENTER);
 	allf.setText = prop.msgs.allFail;
-	sucRate = new Scale(comp, DWT.NONE);
+	sucRate = new Scale(comp, SWT.NONE);
 	sucRate.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 	// 0以上でないといけないらしい
 	sucRate.setMinimum = 0;
 	sucRate.setMaximum = prop.looks.successRateMax * 2;
 	sucRate.setPageIncrement = prop.looks.successRateMax;
-	auto alls = new Label(comp, DWT.CENTER);
+	auto alls = new Label(comp, SWT.CENTER);
 	alls.setText = prop.msgs.allSuccess;
 	return grp;
 }
@@ -1941,26 +1941,26 @@ void writeRec(Control c, string tab = "") {
 CoolItem createCoolItem(CoolBar cbar, ToolBar tbar, int index = -1) {
 	CoolItem itm;
 	if (index >= 0) {
-		itm = new CoolItem(cbar, DWT.PUSH, index);
+		itm = new CoolItem(cbar, SWT.PUSH, index);
 	} else {
-		itm = new CoolItem(cbar, DWT.PUSH);
+		itm = new CoolItem(cbar, SWT.PUSH);
 	}
 	itm.setControl = tbar;
-	auto p = tbar.computeSize(DWT.DEFAULT, DWT.DEFAULT);
+	auto p = tbar.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 	itm.setMinimumSize(p.x, p.y);
 	itm.setPreferredSize(p.x, p.y);
 	return itm;
 }
 
 SplitPane changeVHSide(SplitPane sash) {
-	auto style = sash.getStyle & !DWT.HORIZONTAL & !DWT.VERTICAL;
-	assert (!(style & DWT.HORIZONTAL));
-	assert (!(style & DWT.VERTICAL));
-	auto vh = (sash.getStyle & DWT.VERTICAL) ? DWT.HORIZONTAL : DWT.VERTICAL;
+	auto style = sash.getStyle & !SWT.HORIZONTAL & !SWT.VERTICAL;
+	assert (!(style & SWT.HORIZONTAL));
+	assert (!(style & SWT.VERTICAL));
+	auto vh = (sash.getStyle & SWT.VERTICAL) ? SWT.HORIZONTAL : SWT.VERTICAL;
 	auto sp = new SplitPane(sash.getParent, style | vh);
-	assert ((sash.getStyle & DWT.VERTICAL)
-		? ((sp.getStyle & DWT.HORIZONTAL) && !(sp.getStyle & DWT.VERTICAL))
-		: ((sp.getStyle & DWT.VERTICAL) && !(sp.getStyle & DWT.HORIZONTAL)));
+	assert ((sash.getStyle & SWT.VERTICAL)
+		? ((sp.getStyle & SWT.HORIZONTAL) && !(sp.getStyle & SWT.VERTICAL))
+		: ((sp.getStyle & SWT.VERTICAL) && !(sp.getStyle & SWT.HORIZONTAL)));
 	auto ws = sash.getWeights;
 	foreach (c; sash.getChildren) {
 		if (!(cast(Sash) c)) {

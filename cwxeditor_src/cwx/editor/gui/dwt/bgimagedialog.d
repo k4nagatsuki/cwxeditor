@@ -22,35 +22,35 @@ import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.splitpane;
 
-import dwt.DWT;
-import dwt.widgets.Display;
-import dwt.widgets.Shell;
-import dwt.widgets.Control;
-import dwt.widgets.Combo;
-import dwt.widgets.Composite;
-import dwt.widgets.Event;
-import dwt.widgets.Label;
-import dwt.widgets.Listener;
-import dwt.widgets.Group;
-import dwt.widgets.Button;
-import dwt.widgets.Spinner;
-import dwt.widgets.Table;
-import dwt.widgets.TableColumn;
-import dwt.widgets.TableItem;
-import dwt.widgets.Text;
-import dwt.widgets.Menu;
-import dwt.widgets.MenuItem;
-import dwt.layout.GridLayout;
-import dwt.layout.GridData;
-import dwt.graphics.Image;
-import dwt.graphics.ImageData;
-import dwt.events.DisposeListener;
-import dwt.events.DisposeEvent;
-import dwt.events.ModifyListener;
-import dwt.events.ModifyEvent;
-import dwt.events.SelectionAdapter;
-import dwt.events.SelectionEvent;
-import dwt.dwthelper.utils;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Spinner;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import java.lang.all;
 
 public:
 
@@ -153,28 +153,28 @@ protected:
 		area.setLayout = zeroGridLayout(1);
 		auto skin = findSkin(_prop, _summ);
 		{
-			auto comp = new Composite(area, DWT.NONE);
+			auto comp = new Composite(area, SWT.NONE);
 			comp.setLayout = new GridLayout(1, false);
 			void imgs(Composite parent) {
-				_imgPath = new ImageSelect!(MtType.BG_IMG)(parent, DWT.NONE, _comm, _prop, _summ,
+				_imgPath = new ImageSelect!(MtType.BG_IMG)(parent, SWT.NONE, _comm, _prop, _summ,
 					_prop.var.etc.bgImageSampleWidth, _prop.var.etc.bgImageSampleHeight, false, &select);
 			}
 			if (_summ) {
-				auto sash = new SplitPane(comp, DWT.HORIZONTAL);
+				auto sash = new SplitPane(comp, SWT.HORIZONTAL);
 				sash.setLayoutData = new GridData(GridData.FILL_BOTH);
 				{
 					imgs(sash);
 				}
 				{
-					auto grp = new Group(sash, DWT.NONE);
+					auto grp = new Group(sash, SWT.NONE);
 					grp.setLayout = new GridLayout(2, false);
 					grp.setText = _prop.msgs.refFlag;
-					_flag = new Table(grp, DWT.SINGLE | DWT.FULL_SELECTION | DWT.BORDER);
+					_flag = new Table(grp, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER);
 					auto gd = new GridData(GridData.FILL_BOTH);
 					gd.widthHint = _prop.var.etc.flagsWidth;
 					gd.heightHint = _prop.var.etc.flagsHeight;
 					_flag.setLayoutData = gd;
-					auto colN = new FullTableColumn(_flag, DWT.NONE);
+					auto colN = new FullTableColumn(_flag, SWT.NONE);
 				}
 				sash.setWeights = [_prop.var.etc.backSashL, _prop.var.etc.backSashR];
 				sash.addDisposeListener(new SDListener);
@@ -184,20 +184,20 @@ protected:
 				_imgPath.widget.setLayoutData = new GridData(GridData.FILL_BOTH);
 			}
 			{
-				auto grp = new Group(comp, DWT.NONE);
+				auto grp = new Group(comp, SWT.NONE);
 				grp.setText = _prop.msgs.cardPosition;
 				grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				grp.setLayout = new CenterLayout(DWT.HORIZONTAL | DWT.VERTICAL, 0);
-				auto comp2 = new Composite(grp, DWT.NONE);
+				grp.setLayout = new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0);
+				auto comp2 = new Composite(grp, SWT.NONE);
 				comp2.setLayout = new GridLayout(5, false);
 				Spinner createS(string name, int max, int min) {
-					auto comp3 = new Composite(comp2, DWT.NONE);
+					auto comp3 = new Composite(comp2, SWT.NONE);
 					auto gl = new GridLayout(2, false);
 					gl.marginHeight = 0;
 					comp3.setLayout = gl;
-					auto l = new Label(comp3, DWT.NONE);
+					auto l = new Label(comp3, SWT.NONE);
 					l.setText = name;
-					auto spn = new Spinner(comp3, DWT.BORDER);
+					auto spn = new Spinner(comp3, SWT.BORDER);
 					spn.setMaximum = max;
 					spn.setMinimum = min;
 					spn.setSelection = 0;
@@ -207,18 +207,18 @@ protected:
 				_y = createS(_prop.msgs.top, _prop.looks.posTopMax, _prop.looks.posTopMin);
 				_w = createS(_prop.msgs.width, _prop.looks.backWidthMax, _prop.looks.backWidthMin);
 				_h = createS(_prop.msgs.height, _prop.looks.backHeightMax, _prop.looks.backHeightMin);
-				_mask = new Button(comp2, DWT.TOGGLE);
+				_mask = new Button(comp2, SWT.TOGGLE);
 				_mask.setImage = _prop.images.menuMask;
 				_mask.setToolTipText = _prop.msgs.ttMask;
 				_mask.addSelectionListener(new MaskListener);
 			}
 			{
-				auto comp2 = new Composite(comp, DWT.NONE);
+				auto comp2 = new Composite(comp, SWT.NONE);
 				comp2.setLayout = new GridLayout(2, false);
 				comp2.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
-				auto l = new Label(comp2, DWT.NONE);
+				auto l = new Label(comp2, SWT.NONE);
 				l.setText = _prop.msgs.bgImageSettings;
-				_easy = new Combo(comp2, DWT.BORDER | DWT.DROP_DOWN | DWT.READ_ONLY);
+				_easy = new Combo(comp2, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 				_easy.setVisibleItemCount = 20;
 				_easy.add(_prop.msgs.bgImageSettingCustom);
 				_easy.add(_prop.msgs.bgImageSettingOriginal);
@@ -228,22 +228,22 @@ protected:
 				_easy.addSelectionListener(new SettingsListener);
 				_easy.select = 0;
 			}
-			scope p = comp.computeSize(DWT.DEFAULT, DWT.DEFAULT);
+			scope p = comp.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 			auto gd = new GridData(GridData.FILL_BOTH);
 			gd.widthHint = p.x;
 			gd.heightHint = p.y;
 			comp.setLayoutData = gd;
 		}
 		{
-			auto l = new Label(area, DWT.SEPARATOR | DWT.HORIZONTAL);
+			auto l = new Label(area, SWT.SEPARATOR | SWT.HORIZONTAL);
 			l.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		}
 
 		if (_flag) {
-			auto nof = new TableItem(_flag, DWT.NONE);
+			auto nof = new TableItem(_flag, SWT.NONE);
 			nof.setText = _prop.msgs.noFlag;
 			foreach (flag; _summ.flagDirRoot.allFlags) {
-				auto itm = new TableItem(_flag, DWT.NONE);
+				auto itm = new TableItem(_flag, SWT.NONE);
 				itm.setImage = _prop.images.flag;
 				itm.setText = flag.path;
 				itm.setData = flag;

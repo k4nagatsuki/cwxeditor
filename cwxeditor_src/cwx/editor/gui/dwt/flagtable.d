@@ -12,59 +12,60 @@ import cwx.editor.gui.dwt.xmlbytestransfer;
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.centerlayout;
 
-import dwt.DWT;
-import dwt.DWTException;
-import dwt.widgets.Shell;
-import dwt.widgets.Control;
-import dwt.widgets.Display;
-import dwt.layout.FillLayout;
-import dwt.layout.GridLayout;
-import dwt.layout.GridData;
-import dwt.custom.SashForm;
-import dwt.widgets.Composite;
-import dwt.widgets.Tree;
-import dwt.widgets.TreeItem;
-import dwt.widgets.Menu;
-import dwt.widgets.MenuItem;
-import dwt.dnd.Clipboard;
-import dwt.custom.TreeEditor;
-import dwt.widgets.Table;
-import dwt.widgets.TableColumn;
-import dwt.widgets.TableItem;
-import dwt.widgets.Text;
-import dwt.widgets.Label;
-import dwt.widgets.Combo;
-import dwt.widgets.Table;
-import dwt.widgets.Widget;
-import dwt.events.SelectionEvent;
-import dwt.events.SelectionAdapter;
-import dwt.events.FocusEvent;
-import dwt.events.FocusListener;
-import dwt.events.KeyListener;
-import dwt.events.KeyAdapter;
-import dwt.events.KeyEvent;
-import dwt.events.MouseListener;
-import dwt.events.MouseAdapter;
-import dwt.events.MouseEvent;
-import dwt.events.ModifyListener;
-import dwt.events.ModifyEvent;
-import dwt.events.FocusAdapter;
-import dwt.events.FocusEvent;
-import dwt.events.DisposeListener;
-import dwt.events.DisposeEvent;
-import dwt.graphics.Image;
-import dwt.graphics.ImageData;
-import dwt.dwthelper.utils;
-import dwt.dnd.DND;
-import dwt.dnd.Transfer;
-import dwt.dnd.TransferData;
-import dwt.dnd.DragSource;
-import dwt.dnd.DragSourceListener;
-import dwt.dnd.DragSourceEvent;
-import dwt.dnd.ByteArrayTransfer;
-import dwt.dnd.DropTargetAdapter;
-import dwt.dnd.DropTargetEvent;
-import dwt.dnd.DropTarget;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.SWTException;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swt.widgets.TreeItem;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.custom.TreeEditor;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.Widget;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.FocusListener;
+import org.eclipse.swt.events.KeyListener;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.MouseListener;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.FocusAdapter;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
+import java.lang.all;
+import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.dnd.TransferData;
+import org.eclipse.swt.dnd.DragSource;
+import org.eclipse.swt.dnd.DragSourceListener;
+import org.eclipse.swt.dnd.DragSourceEvent;
+import org.eclipse.swt.dnd.ByteArrayTransfer;
+import org.eclipse.swt.dnd.DropTargetAdapter;
+import org.eclipse.swt.dnd.DropTargetEvent;
+import org.eclipse.swt.dnd.DropTarget;
 
 /// ステップ設定用のダイアログ。
 /// 値は強制的に10件になる。
@@ -114,28 +115,28 @@ protected:
 	override void setup(Composite area) {
 		area.setLayout = zeroGridLayout(1);
 		{
-			auto comp = new Composite(area, DWT.NULL);
+			auto comp = new Composite(area, SWT.NULL);
 			comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			comp.setLayout = new GridLayout(5, false);
 
-			(new Label(comp, DWT.NULL)).setText = prop.msgs.dlgLblStepName;
-			stepName = new Text(comp, DWT.BORDER);
+			(new Label(comp, SWT.NULL)).setText = prop.msgs.dlgLblStepName;
+			stepName = new Text(comp, SWT.BORDER);
 			setGridMinW(stepName, prop.var.etc.flagNameWidth, GridData.FILL_HORIZONTAL);
 			checker(stepName);
 
 			auto gd = new GridData(GridData.FILL_VERTICAL);
 			gd.heightHint = 0;
-			(new Label(comp, DWT.SEPARATOR | DWT.VERTICAL)).setLayoutData(gd);
+			(new Label(comp, SWT.SEPARATOR | SWT.VERTICAL)).setLayoutData(gd);
 
-			(new Label(comp, DWT.NULL)).setText = prop.msgs.dlgLblStepInit;
-			stepInit = new Combo(comp, DWT.READ_ONLY);
+			(new Label(comp, SWT.NULL)).setText = prop.msgs.dlgLblStepInit;
+			stepInit = new Combo(comp, SWT.READ_ONLY);
 			stepInit.setVisibleItemCount = 20;
 			setGridMinW(stepInit, prop.var.etc.flagInitWidth);
 		}
-		(new Label(area, DWT.SEPARATOR | DWT.HORIZONTAL))
+		(new Label(area, SWT.SEPARATOR | SWT.HORIZONTAL))
 			.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		{
-			auto comp = new Composite(area, DWT.NULL);
+			auto comp = new Composite(area, SWT.NULL);
 			comp.setLayoutData(new GridData(GridData.FILL_BOTH));
 
 			// 何列かに分けて値のフィールドを配置する
@@ -147,16 +148,16 @@ protected:
 					if (0 < i) {
 						auto gd = new GridData(GridData.FILL_VERTICAL);
 						gd.heightHint = 0;
-						(new Label(comp, DWT.SEPARATOR | DWT.VERTICAL)).setLayoutData(gd);
+						(new Label(comp, SWT.SEPARATOR | SWT.VERTICAL)).setLayoutData(gd);
 						gdc++;
 					}
-					valsComp = new Composite(comp, DWT.NULL);
+					valsComp = new Composite(comp, SWT.NULL);
 					valsComp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 					valsComp.setLayout = new GridLayout(2, false);
 					gdc++;
 				}
-				(new Label(valsComp, DWT.NULL)).setText = prop.msgs.dlgLblStep(i);
-				stepVals ~= new Text(valsComp, DWT.BORDER);
+				(new Label(valsComp, SWT.NULL)).setText = prop.msgs.dlgLblStep(i);
+				stepVals ~= new Text(valsComp, SWT.BORDER);
 				stepVals[i].addModifyListener(new ModValue(i));
 				stepVals[i].addFocusListener(new class FocusAdapter {
 					override void focusGained(FocusEvent e) {
@@ -227,7 +228,7 @@ private:
 	class ModOnOff : SelectionAdapter, ModifyListener {
 	private:
 		int index;
-		void change(EventObject e) {
+		void change(E)(E e) {
 			if (index < flagInit.getItemCount) {
 				flagInit.setItem(index, (cast(Combo) e.getSource).getText);
 			}
@@ -263,9 +264,9 @@ public:
 		return _flag;
 	}
 protected:
-	private static void setMinW(Control c, int minW, int gridStyle = DWT.NULL) {
+	private static void setMinW(Control c, int minW, int gridStyle = SWT.NULL) {
 		auto gd = new GridData(gridStyle);
-		int w = c.computeSize(DWT.DEFAULT, DWT.DEFAULT).x;
+		int w = c.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
 		gd.widthHint = w > minW ? w : minW;
 		c.setLayoutData(gd);
 	}
@@ -273,36 +274,36 @@ protected:
 	override void setup(Composite area) {
 		area.setLayout = zeroGridLayout(1);
 		{
-			auto comp = new Composite(area, DWT.NULL);
+			auto comp = new Composite(area, SWT.NULL);
 			comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			comp.setLayout = new GridLayout(5, false);
 
-			(new Label(comp, DWT.NULL)).setText = prop.msgs.dlgLblFlagName;
-			flagName = new Text(comp, DWT.BORDER);
+			(new Label(comp, SWT.NULL)).setText = prop.msgs.dlgLblFlagName;
+			flagName = new Text(comp, SWT.BORDER);
 			setGridMinW(flagName, prop.var.etc.flagNameWidth, GridData.FILL_HORIZONTAL);
 			checker(flagName);
 
 			auto gd = new GridData(GridData.FILL_VERTICAL);
 			gd.heightHint = 0;
-			(new Label(comp, DWT.SEPARATOR | DWT.VERTICAL)).setLayoutData(gd);
+			(new Label(comp, SWT.SEPARATOR | SWT.VERTICAL)).setLayoutData(gd);
 
-			(new Label(comp, DWT.NULL)).setText = prop.msgs.dlgLblFlagInit;
-			flagInit = new Combo(comp, DWT.READ_ONLY);
+			(new Label(comp, SWT.NULL)).setText = prop.msgs.dlgLblFlagInit;
+			flagInit = new Combo(comp, SWT.READ_ONLY);
 			setGridMinW(flagInit, prop.var.etc.flagInitWidth);
 		}
-		(new Label(area, DWT.SEPARATOR | DWT.HORIZONTAL))
+		(new Label(area, SWT.SEPARATOR | SWT.HORIZONTAL))
 			.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		{
-			auto ocomp = new Composite(area, DWT.NONE);
+			auto ocomp = new Composite(area, SWT.NONE);
 			ocomp.setLayoutData(new GridData(GridData.FILL_BOTH));
-			auto cl = new CenterLayout(DWT.HORIZONTAL | DWT.VERTICAL, 0);
+			auto cl = new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0);
 			cl.fillHorizontal = true;
 			ocomp.setLayout = cl;
-			auto comp = new Composite(ocomp, DWT.NONE);
+			auto comp = new Composite(ocomp, SWT.NONE);
 			comp.setLayout(new GridLayout(2, false));
 
-			(new Label(comp, DWT.NULL)).setText = prop.msgs.dlgLblFlagTrue;
-			flagTrue = new Combo(comp, DWT.NULL);
+			(new Label(comp, SWT.NULL)).setText = prop.msgs.dlgLblFlagTrue;
+			flagTrue = new Combo(comp, SWT.NULL);
 			flagTrue.setItems(prop.var.etc.flagTrues);
 			flagTrue.setVisibleItemCount = 20;
 			auto tmod = new ModOnOff(0);
@@ -310,8 +311,8 @@ protected:
 			flagTrue.addSelectionListener = tmod;
 			setGridMinW(flagTrue, prop.var.etc.flagValueWidth, GridData.FILL_HORIZONTAL);
 
-			(new Label(comp, DWT.NULL)).setText = prop.msgs.dlgLblFlagFalse;
-			flagFalse = new Combo(comp, DWT.NULL);
+			(new Label(comp, SWT.NULL)).setText = prop.msgs.dlgLblFlagFalse;
+			flagFalse = new Combo(comp, SWT.NULL);
 			flagFalse.setItems(prop.var.etc.flagFalses);
 			flagFalse.setVisibleItemCount = 20;
 			auto fmod = new ModOnOff(1);
@@ -368,7 +369,7 @@ private:
 				if (i < flags.getItemCount) {
 					itm = flags.getItem(i);
 				} else {
-					itm = new TableItem(flags, DWT.NONE);
+					itm = new TableItem(flags, SWT.NONE);
 				}
 				itm.setImage(0, prop.images.step);
 				itm.setText(NAME, f.name);
@@ -382,7 +383,7 @@ private:
 				if (i < flags.getItemCount) {
 					itm = flags.getItem(i);
 				} else {
-					itm = new TableItem(flags, DWT.NONE);
+					itm = new TableItem(flags, SWT.NONE);
 				}
 				itm.setImage(0, prop.images.flag);
 				itm.setText(NAME, f.name);
@@ -453,7 +454,7 @@ private:
 	class KListener : KeyAdapter {
 	public:
 		override void keyPressed(KeyEvent e) {
-			if (e.character == DWT.CR) {
+			if (e.character == SWT.CR) {
 				startEdit;
 			}
 		}
@@ -533,25 +534,25 @@ public:
 	/// Params:
 	/// parent = 親コントロール。
 	Control createControl(Composite parent) {
-		_comp = new Composite(parent, DWT.NONE);
+		_comp = new Composite(parent, SWT.NONE);
 		_comp.setLayout = new FillLayout;
-		flags = new Table(_comp, DWT.MULTI | DWT.BORDER | DWT.FULL_SELECTION);
+		flags = new Table(_comp, SWT.MULTI | SWT.BORDER | SWT.FULL_SELECTION);
 		flags.setHeaderVisible = true;
-		auto nameCol = new TableColumn(flags, DWT.NULL);
+		auto nameCol = new TableColumn(flags, SWT.NULL);
 		nameCol.setText = prop.msgs.flagName;
 		saveColumnWidth!("prop.var.etc.flagNameColumn")(prop, nameCol);
-		auto initCol = new TableColumn(flags, DWT.NULL);
+		auto initCol = new TableColumn(flags, SWT.NULL);
 		initCol.setText = prop.msgs.flagInit;
 		saveColumnWidth!("prop.var.etc.flagInitColumn")(prop, initCol);
-		auto countCol = new TableColumn(flags, DWT.NULL);
+		auto countCol = new TableColumn(flags, SWT.NULL);
 		countCol.setText = prop.msgs.flagCount;
 		saveColumnWidth!("prop.var.etc.flagCountColumn")(prop, countCol);
 
 		flags.addKeyListener(new KListener);
 		flags.addMouseListener(new MListener);
-		auto menu = new Menu(flags.getShell, DWT.POP_UP);
+		auto menu = new Menu(flags.getShell, SWT.POP_UP);
 		createMenuItem(menu, prop.msgs.menuCEdit, prop.images.menuCEdit, &startEdit);
-		new MenuItem(menu, DWT.SEPARATOR);
+		new MenuItem(menu, SWT.SEPARATOR);
 		appendMenuTCPD(prop, menu, this);
 		flags.setMenu(menu);
 

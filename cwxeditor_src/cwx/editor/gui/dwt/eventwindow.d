@@ -16,21 +16,21 @@ import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.eventview;
 import cwx.editor.gui.dwt.undo;
 
-import dwt.widgets.Composite;
-import dwt.widgets.Shell;
-import dwt.widgets.Label;
-import dwt.widgets.ToolBar;
-import dwt.widgets.ToolItem;
-import dwt.widgets.Menu;
-import dwt.widgets.MenuItem;
-import dwt.layout.GridLayout;
-import dwt.layout.GridData;
-import dwt.graphics.Image;
-import dwt.events.ShellEvent;
-import dwt.events.ShellAdapter;
-import dwt.events.DisposeEvent;
-import dwt.events.DisposeListener;
-import dwt.events.SelectionEvent;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.events.ShellEvent;
+import org.eclipse.swt.events.ShellAdapter;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.SelectionEvent;
 
 class EventWindow(A : EventTreeOwner) : TopLevelPanel, TCPD {
 private:
@@ -52,11 +52,11 @@ public:
 		Shell shell = null;
 		auto parShl = cast(Shell) parent;
 		if (parShl) {
-			shell = new Shell(parShl, DWT.SHELL_TRIM);
+			shell = new Shell(parShl, SWT.SHELL_TRIM);
 			shell.setImage = prop.images.app;
 			_win = shell;
 		} else {
-			_win = new Composite(parent, DWT.NONE);
+			_win = new Composite(parent, SWT.NONE);
 		}
 		_win.setData = new TLPData(this);
 		_win.setLayout = windowGridLayout(1, true);
@@ -106,20 +106,20 @@ public:
 			_eview.setLayoutData = new GridData(GridData.FILL_BOTH);
 		}
 		if (shell) {
-			auto bar = new Menu(shell, DWT.BAR);
+			auto bar = new Menu(shell, SWT.BAR);
 
 			auto mf = createMenu(bar, _prop.msgs.menuFile);
 			createMenuItem(mf, _prop.msgs.menuSave, _prop.images.menuSave, &saveScenario);
-			new MenuItem(mf, DWT.SEPARATOR);
+			new MenuItem(mf, SWT.SEPARATOR);
 			createMenuItem(mf, _prop.msgs.menuCloseWin, _prop.images.menuCloseWin, &shell.close);
 
 			auto me = createMenu(bar, _prop.msgs.menuEdit);
 			createMenuItem(me, _prop.msgs.menuUndo, _prop.images.menuUndo, &_eview.undo);
 			createMenuItem(me, _prop.msgs.menuRedo, _prop.images.menuRedo, &_eview.redo);
-			new MenuItem(me, DWT.SEPARATOR);
+			new MenuItem(me, SWT.SEPARATOR);
 			createMenuItem(me, _prop.msgs.menuUp, _prop.images.menuUp, &_eview.up);
 			createMenuItem(me, _prop.msgs.menuDown, _prop.images.menuDown, &_eview.down);
-			new MenuItem(me, DWT.SEPARATOR);
+			new MenuItem(me, SWT.SEPARATOR);
 			appendMenuTCPD(_prop, me, this, true, true, true, true);
 
 			shell.setMenuBar = bar;
@@ -131,7 +131,7 @@ public:
 			putMenuAction(MenuID.Down, &_eview.down);
 		}
 		if (shell) {
-			_status = new Label(_win, DWT.NONE);
+			_status = new Label(_win, SWT.NONE);
 			_status.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		}
 
@@ -145,8 +145,8 @@ public:
 			}
 			int width = winProps.width;
 			int height = winProps.height;
-			int x = winProps.x == DWT.DEFAULT ? shell.getBounds.x : winProps.x + parent2.getBounds.x;
-			int y = winProps.y == DWT.DEFAULT ? shell.getBounds.y : winProps.y + parent2.getBounds.y;
+			int x = winProps.x == SWT.DEFAULT ? shell.getBounds.x : winProps.x + parent2.getBounds.x;
+			int y = winProps.y == SWT.DEFAULT ? shell.getBounds.y : winProps.y + parent2.getBounds.y;
 			intoDisplay(x, y, width, height);
 			shell.setBounds(x, y, width, height);
 			shell.setMaximized = winProps.maximized;

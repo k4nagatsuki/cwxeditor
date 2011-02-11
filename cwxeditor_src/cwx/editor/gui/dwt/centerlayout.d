@@ -7,12 +7,12 @@ import cwx.structs;
 
 import cwx.editor.gui.dwt.utils;
 
-import dwt.DWT;
-import dwt.widgets.Control;
-import dwt.widgets.Composite;
-import dwt.widgets.Layout;
-import dwt.graphics.Point;
-import dwt.graphics.Rectangle;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Layout;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 
 public:
 
@@ -46,7 +46,7 @@ class Insets {
 
 class CenterLayout : Layout {
 public:
-	this(int style = DWT.VERTICAL | DWT.HORIZONTAL, int margin = 5) {
+	this(int style = SWT.VERTICAL | SWT.HORIZONTAL, int margin = 5) {
 		_margin = margin;
 		_style = style;
 	}
@@ -60,13 +60,13 @@ private:
 		if (c.getLayoutData !is null && cast(Point) c.getLayoutData) {
 			return cast(Point) c.getLayoutData;
 		} else {
-			return c.computeSize(DWT.DEFAULT, DWT.DEFAULT);
+			return c.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 		}
 	}
 protected override:
 	Point computeSize(Composite composite, int wHint, int hHint, bool flushCache) {
-		if (wHint is DWT.DEFAULT) wHint = 0;
-		if (hHint is DWT.DEFAULT) hHint = 0;
+		if (wHint is SWT.DEFAULT) wHint = 0;
+		if (hHint is SWT.DEFAULT) hHint = 0;
 		foreach (c; composite.getChildren) {
 			auto p = childSize(c);
 			if (wHint < p.x) wHint = p.x;
@@ -83,21 +83,21 @@ protected override:
 			int h = int.min;
 			if (cast(Insets) c.getLayoutData) {
 				auto insets = cast(Insets) c.getLayoutData;
-				if (insets.e != DWT.DEFAULT && insets.w != DWT.DEFAULT) {
+				if (insets.e != SWT.DEFAULT && insets.w != SWT.DEFAULT) {
 					w = insets.e - insets.w;
-				} else if (insets.e != DWT.DEFAULT || insets.w != DWT.DEFAULT) {
-					w = c.computeSize(DWT.DEFAULT, DWT.DEFAULT).x;
+				} else if (insets.e != SWT.DEFAULT || insets.w != SWT.DEFAULT) {
+					w = c.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
 				}
-				if (insets.n != DWT.DEFAULT && insets.s != DWT.DEFAULT) {
+				if (insets.n != SWT.DEFAULT && insets.s != SWT.DEFAULT) {
 					h = insets.s - insets.n;
-				} else if (insets.s != DWT.DEFAULT || insets.n != DWT.DEFAULT) {
-					h = c.computeSize(DWT.DEFAULT, DWT.DEFAULT).y;
+				} else if (insets.s != SWT.DEFAULT || insets.n != SWT.DEFAULT) {
+					h = c.computeSize(SWT.DEFAULT, SWT.DEFAULT).y;
 				}
 				if (w > int.min) {
-					x = insets.w != DWT.DEFAULT ? insets.w : s.x + s.width - w - insets.e;
+					x = insets.w != SWT.DEFAULT ? insets.w : s.x + s.width - w - insets.e;
 				}
 				if (h > int.min) {
-					y = insets.n != DWT.DEFAULT ? insets.n : s.y + s.height - h - insets.s;
+					y = insets.n != SWT.DEFAULT ? insets.n : s.y + s.height - h - insets.s;
 				}
 			}
 			if (cast(Rectangle) c.getLayoutData) {
@@ -114,7 +114,7 @@ protected override:
 				if (w == int.min) w = s.width - _margin * 2;
 			} else {
 				if (x == int.min) {
-					x = (DWT.HORIZONTAL & _style) != 0 ? (s.width - _margin * 2 - p.x) / 2 : 0;
+					x = (SWT.HORIZONTAL & _style) != 0 ? (s.width - _margin * 2 - p.x) / 2 : 0;
 					x += _margin + s.x;
 				}
 				if (w == int.min) w = p.x;
@@ -124,7 +124,7 @@ protected override:
 				if (h == int.min) h = s.height - _margin * 2;
 			} else {
 				if (y == int.min) {
-					y = (DWT.VERTICAL & _style) != 0 ? (s.height - _margin * 2 - p.y) / 2 : 0;
+					y = (SWT.VERTICAL & _style) != 0 ? (s.height - _margin * 2 - p.y) / 2 : 0;
 					y += _margin + s.y;
 				}
 				if (h == int.min) h = p.y;

@@ -20,33 +20,33 @@ import std.path;
 import std.file;
 import std.string;
 
-import dwt.DWT;
-import dwt.widgets.Display;
-import dwt.widgets.Shell;
-import dwt.widgets.Control;
-import dwt.widgets.Composite;
-import dwt.widgets.List;
-import dwt.widgets.Group;
-import dwt.widgets.Spinner;
-import dwt.widgets.Button;
-import dwt.widgets.Text;
-import dwt.widgets.Label;
-import dwt.widgets.FileDialog;
-import dwt.widgets.DirectoryDialog;
-import dwt.widgets.MessageBox;
-import dwt.widgets.Menu;
-import dwt.widgets.MenuItem;
-import dwt.custom.CTabFolder;
-import dwt.custom.CTabItem;
-import dwt.events.SelectionAdapter;
-import dwt.events.SelectionEvent;
-import dwt.events.ModifyListener;
-import dwt.events.ModifyEvent;
-import dwt.events.DisposeListener;
-import dwt.events.DisposeEvent;
-import dwt.layout.GridLayout;
-import dwt.layout.GridData;
-import dwt.dnd.Clipboard;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.List;
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Spinner;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.FileDialog;
+import org.eclipse.swt.widgets.DirectoryDialog;
+import org.eclipse.swt.widgets.MessageBox;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.dnd.Clipboard;
 
 class SettingsDialog : AbsDialog {
 private:
@@ -148,7 +148,7 @@ private:
 		applyEnabled;
 	}
 	static string selectFile(Text file, string[] name, string[] ext, string fileName, string title, string p) {
-		auto dlg = new FileDialog(file.getShell, DWT.PRIMARY_MODAL | DWT.APPLICATION_MODAL | DWT.SINGLE | DWT.OPEN);
+		auto dlg = new FileDialog(file.getShell, SWT.PRIMARY_MODAL | SWT.APPLICATION_MODAL | SWT.SINGLE | SWT.OPEN);
 		dlg.setFilterExtensions = ext;
 		dlg.setFilterNames = name;
 		dlg.setText = title;
@@ -272,11 +272,11 @@ private:
 	}
 	class ClearHist : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			auto dlg = new MessageBox(_histMax.getShell, DWT.ICON_QUESTION | DWT.OK | DWT.CANCEL);
+			auto dlg = new MessageBox(_histMax.getShell, SWT.ICON_QUESTION | SWT.OK | SWT.CANCEL);
 			scope (exit) dlg.dispose;
 			dlg.setText = _prop.msgs.dlgTitQuestion;
 			dlg.setMessage = _prop.msgs.dlgMsgHistoryClear;
-			if (DWT.OK == dlg.open) {
+			if (SWT.OK == dlg.open) {
 				_prop.var.etc.openHistories = [];
 				(cast(Control) e.widget).setEnabled = false;
 			}
@@ -284,11 +284,11 @@ private:
 	}
 	class ClearSHist : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			auto dlg = new MessageBox(_sHistMax.getShell, DWT.ICON_QUESTION | DWT.OK | DWT.CANCEL);
+			auto dlg = new MessageBox(_sHistMax.getShell, SWT.ICON_QUESTION | SWT.OK | SWT.CANCEL);
 			scope (exit) dlg.dispose;
 			dlg.setText = _prop.msgs.dlgTitQuestion;
 			dlg.setMessage = _prop.msgs.dlgMsgSearchHistoryClear;
-			if (DWT.OK == dlg.open) {
+			if (SWT.OK == dlg.open) {
 				_prop.var.etc.searchHistories = [];
 				_prop.var.etc.replaceHistories = [];
 				(cast(Control) e.widget).setEnabled = false;
@@ -296,79 +296,79 @@ private:
 		}
 	}
 	void construct1(CTabFolder tabf) {
-		auto comp = new Composite(tabf, DWT.NONE);
+		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout = new GridLayout(1, false);
-		_tabB = new CTabItem(tabf, DWT.NONE);
+		_tabB = new CTabItem(tabf, SWT.NONE);
 		_tabB.setText = _prop.msgs.baseSettings;
 		_tabB.setControl = comp;
 		{
-			auto grp = new Group(comp, DWT.NONE);
+			auto grp = new Group(comp, SWT.NONE);
 			grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			grp.setLayout = new GridLayout(2, false);
 			grp.setText = _prop.msgs.enginePath(_prop.var.etc.engine);
-			_enginePath = new Text(grp, DWT.BORDER);
+			_enginePath = new Text(grp, SWT.BORDER);
 			_enginePath.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			_enginePath.addModifyListener(_mod);
-			auto refr = new Button(grp, DWT.PUSH);
+			auto refr = new Button(grp, SWT.PUSH);
 			refr.setText = _prop.msgs.reference;
 			refr.addSelectionListener(new SelEngine);
-			auto l = new Label(grp, DWT.NONE);
+			auto l = new Label(grp, SWT.NONE);
 			l.setText = _prop.msgs.enginePathAtten;
 			auto gd = new GridData;
 			gd.horizontalSpan = 2;
 			l.setLayoutData = gd;
 		}
 		{
-			auto grp = new Group(comp, DWT.NONE);
+			auto grp = new Group(comp, SWT.NONE);
 			grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			grp.setLayout = new GridLayout(2, false);
 			grp.setText = _prop.msgs.tempDir;
-			_tempDir = new Text(grp, DWT.BORDER);
+			_tempDir = new Text(grp, SWT.BORDER);
 			_tempDir.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			_tempDir.addModifyListener(_mod);
-			auto refr = new Button(grp, DWT.PUSH);
+			auto refr = new Button(grp, SWT.PUSH);
 			refr.setText = _prop.msgs.reference;
 			refr.addSelectionListener(new SelTemp);
 		}
 		{
-			auto comp2 = new Composite(comp, DWT.NONE);
+			auto comp2 = new Composite(comp, SWT.NONE);
 			comp2.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			comp2.setLayout = zeroMarginGridLayout(2, false);
 			{
-				auto grp = new Group(comp2, DWT.NONE);
+				auto grp = new Group(comp2, SWT.NONE);
 				grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_BEGINNING);
 				auto cl = new CenterLayout;
 				cl.fillHorizontal = true;
 				grp.setLayout = cl;
 				grp.setText = _prop.msgs.scenarioAuthor;
-				_author = new Text(grp, DWT.BORDER);
+				_author = new Text(grp, SWT.BORDER);
 				_author.addModifyListener(_mod);
 			}
 			{
-				auto grp = new Group(comp2, DWT.NONE);
+				auto grp = new Group(comp2, SWT.NONE);
 				grp.setLayoutData = new GridData(GridData.FILL_VERTICAL);
 				grp.setText = _prop.msgs.historiesSettings;
 				grp.setLayout = new GridLayout(3, false);
 				{
-					auto l = new Label(grp, DWT.NONE);
+					auto l = new Label(grp, SWT.NONE);
 					l.setText = _prop.msgs.openHistoryMax;
-					_histMax = new Spinner(grp, DWT.BORDER);
+					_histMax = new Spinner(grp, SWT.BORDER);
 					_histMax.setMinimum = 0;
 					_histMax.setMaximum = 99;
 					_histMax.addModifyListener(_mod);
-					auto clear = new Button(grp, DWT.PUSH);
+					auto clear = new Button(grp, SWT.PUSH);
 					clear.setEnabled = _prop.var.etc.openHistories.length > 0;
 					clear.setText = _prop.msgs.openHistoryClear;
 					clear.addSelectionListener(new ClearHist);
 				}
 				{
-					auto l = new Label(grp, DWT.NONE);
+					auto l = new Label(grp, SWT.NONE);
 					l.setText = _prop.msgs.searchHistoryMax;
-					_sHistMax = new Spinner(grp, DWT.BORDER);
+					_sHistMax = new Spinner(grp, SWT.BORDER);
 					_sHistMax.setMinimum = 0;
 					_sHistMax.setMaximum = 99;
 					_sHistMax.addModifyListener(_mod);
-					auto clear = new Button(grp, DWT.PUSH);
+					auto clear = new Button(grp, SWT.PUSH);
 					clear.setEnabled = _prop.var.etc.searchHistories.length > 0;
 					clear.setText = _prop.msgs.searchHistoryClear;
 					clear.addSelectionListener(new ClearSHist);
@@ -376,15 +376,15 @@ private:
 			}
 		}
 		{
-			auto comp2 = new Composite(comp, DWT.NONE);
+			auto comp2 = new Composite(comp, SWT.NONE);
 			comp2.setLayoutData = new GridData(GridData.FILL_BOTH);
 			comp2.setLayout = zeroMarginGridLayout(2, false);
 			{
-				auto grp = new Group(comp2, DWT.NONE);
+				auto grp = new Group(comp2, SWT.NONE);
 				grp.setLayoutData = new GridData(GridData.FILL_BOTH);
 				grp.setText = _prop.msgs.ignorePaths;
 				grp.setLayout = new GridLayout(1, false);
-				_ignorePaths = new Text(grp, DWT.BORDER | DWT.MULTI | DWT.V_SCROLL);
+				_ignorePaths = new Text(grp, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
 				_ignorePaths.addModifyListener(_mod);
 				auto gd = new GridData(GridData.FILL_BOTH);
 				gd.widthHint = _prop.var.etc.ignorePathsWidth;
@@ -392,29 +392,29 @@ private:
 				_ignorePaths.setLayoutData = gd;
 			}
 			{
-				auto grp = new Group(comp2, DWT.NONE);
+				auto grp = new Group(comp2, SWT.NONE);
 				grp.setLayoutData = new GridData(GridData.FILL_VERTICAL);
 				grp.setText = _prop.msgs.settingEtc;
 				grp.setLayout = new GridLayout(1, false);
-				_singleWindow = new Button(grp, DWT.CHECK);
+				_singleWindow = new Button(grp, SWT.CHECK);
 				_singleWindow.setText = _prop.msgs.singleWindow;
 				_singleWindow.addSelectionListener(_mod);
-				_smoothingCard = new Button(grp, DWT.CHECK);
+				_smoothingCard = new Button(grp, SWT.CHECK);
 				_smoothingCard.setText = _prop.msgs.smoothingCard;
 				_smoothingCard.addSelectionListener(_mod);
-				_expandXMLs = new Button(grp, DWT.CHECK);
+				_expandXMLs = new Button(grp, SWT.CHECK);
 				_expandXMLs.setText = _prop.msgs.expandXMLs;
 				_expandXMLs.addSelectionListener(_mod);
-				_contentsFloat = new Button(grp, DWT.CHECK);
+				_contentsFloat = new Button(grp, SWT.CHECK);
 				_contentsFloat.setText = _prop.msgs.contentsFloat;
 				_contentsFloat.addSelectionListener(_mod);
-				_xmlCopy = new Button(grp, DWT.CHECK);
+				_xmlCopy = new Button(grp, SWT.CHECK);
 				_xmlCopy.setText = _prop.msgs.xmlCopy;
 				_xmlCopy.addSelectionListener(_mod);
-				_saveInnerImagePath = new Button(grp, DWT.CHECK);
+				_saveInnerImagePath = new Button(grp, SWT.CHECK);
 				_saveInnerImagePath.setText = _prop.msgs.saveInnerImagePath;
 				_saveInnerImagePath.addSelectionListener(_mod);
-				_traceDirectories = new Button(grp, DWT.CHECK);
+				_traceDirectories = new Button(grp, SWT.CHECK);
 				_traceDirectories.setText = _prop.msgs.traceDirectories;
 				_traceDirectories.addSelectionListener(_mod);
 			}
@@ -436,9 +436,9 @@ private:
 		}
 	}
 	Spinner createS(string Set)(SettingsDialog v, Composite parent, string name, int max, int min) {
-		auto l = new Label(parent, DWT.NONE);
+		auto l = new Label(parent, SWT.NONE);
 		l.setText = name;
-		auto spn = new Spinner(parent, DWT.BORDER);
+		auto spn = new Spinner(parent, SWT.BORDER);
 		spn.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		spn.setMaximum = max;
 		spn.setMinimum = min;
@@ -571,37 +571,37 @@ private:
 		}
 	}
 	void construct2(CTabFolder tabf) {
-		auto comp = new Composite(tabf, DWT.NONE);
-		_tabS = new CTabItem(tabf, DWT.NONE);
+		auto comp = new Composite(tabf, SWT.NONE);
+		_tabS = new CTabItem(tabf, SWT.NONE);
 		_tabS.setText = _prop.msgs.bgImageAndKeyCode;
 		_tabS.setControl = comp;
 		comp.setLayout = new GridLayout(1, true);
-		auto sash = new SplitPane(comp, DWT.HORIZONTAL);
+		auto sash = new SplitPane(comp, SWT.HORIZONTAL);
 		sash.setLayoutData = new GridData(GridData.FILL_BOTH);
-		auto back = new Composite(sash, DWT.NONE);
+		auto back = new Composite(sash, SWT.NONE);
 		back.setLayout = zeroMarginGridLayout(1, true);
 		{
-			auto grp = new Group(back, DWT.NONE);
+			auto grp = new Group(back, SWT.NONE);
 			grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			auto cl = new CenterLayout;
 			cl.fillHorizontal = true;
 			grp.setLayout = cl;
 			grp.setText = _prop.msgs.bgImagesDefault;
-			auto defBtn = new Button(grp, DWT.PUSH);
+			auto defBtn = new Button(grp, SWT.PUSH);
 			defBtn.setText = _prop.msgs.setBgImagesDefault;
 			defBtn.addSelectionListener(new DefBgSetting);
 		}
 		{
-			auto grp = new Group(back, DWT.NONE);
+			auto grp = new Group(back, SWT.NONE);
 			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
 			grp.setLayout = new GridLayout(1, true);
 			grp.setText = _prop.msgs.bgImageSettings;
-			auto leftSash = new SplitPane(grp, DWT.HORIZONTAL);
+			auto leftSash = new SplitPane(grp, SWT.HORIZONTAL);
 			leftSash.setLayoutData = new GridData(GridData.FILL_BOTH);
 			{
-				auto left = new Composite(leftSash, DWT.NONE);
+				auto left = new Composite(leftSash, SWT.NONE);
 				left.setLayout = zeroMarginGridLayout(2, true);
-				_bgStgsL = new List(left, DWT.BORDER | DWT.SINGLE | DWT.V_SCROLL);
+				_bgStgsL = new List(left, SWT.BORDER | SWT.SINGLE | SWT.V_SCROLL);
 				auto gd = new GridData(GridData.FILL_BOTH);
 				gd.widthHint = _prop.var.etc.bgImageSettingsNameWidth;
 				gd.heightHint = _prop.var.etc.bgImageSettingsNameHeight;
@@ -612,17 +612,17 @@ private:
 				auto menu = new Menu(_bgStgsL);
 				createMenuItem(menu, _prop.msgs.menuUp, _prop.images.menuUp, &upBgImage);
 				createMenuItem(menu, _prop.msgs.menuDown, _prop.images.menuDown, &downBgImage);
-				new MenuItem(menu, DWT.SEPARATOR);
+				new MenuItem(menu, SWT.SEPARATOR);
 				appendMenuTCPD(_prop, menu, new BgImagesTCPD);
 				_bgStgsL.setMenu = menu;
 				usingPopupMenuAccelerator(_bgStgsL);
 
-				auto up = new Button(left, DWT.PUSH);
+				auto up = new Button(left, SWT.PUSH);
 				up.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				up.setText = _prop.msgs.ttUp;
 				up.setImage = _prop.images.menuUp;
 				up.addSelectionListener(new UpBgImgStg);
-				auto down = new Button(left, DWT.PUSH);
+				auto down = new Button(left, SWT.PUSH);
 				down.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				down.setText = _prop.msgs.ttDown;
 				down.setImage = _prop.images.menuDown;
@@ -630,23 +630,23 @@ private:
 			}
 			leftSash.setWeights = [_prop.var.etc.bgImageSettingsSashL, _prop.var.etc.bgImageSettingsSashR];
 			leftSash.addDisposeListener(new DBgImgStg);
-			auto right = new Composite(leftSash, DWT.NONE);
+			auto right = new Composite(leftSash, SWT.NONE);
 			right.setLayout = zeroMarginGridLayout(1, true);
 			{
-				auto comp2 = new Composite(right, DWT.NONE);
+				auto comp2 = new Composite(right, SWT.NONE);
 				comp2.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				comp2.setLayout = zeroMarginGridLayout(4, false);
 				{
-					auto comp3 = new Composite(comp2, DWT.NONE);
+					auto comp3 = new Composite(comp2, SWT.NONE);
 					auto gd = new GridData(GridData.FILL_HORIZONTAL);
 					gd.horizontalSpan = 4;
 					comp3.setLayoutData = gd;
 					comp3.setLayout = zeroMarginGridLayout(2, false);
-					_bgImgName = new Text(comp3, DWT.BORDER);
+					_bgImgName = new Text(comp3, SWT.BORDER);
 					auto ngd = new GridData(GridData.FILL_HORIZONTAL);
 					ngd.widthHint = _prop.var.etc.bgImageSettingsNameWidth;
 					_bgImgName.setLayoutData = ngd;
-					_bgImgMask = new Button(comp3, DWT.TOGGLE);
+					_bgImgMask = new Button(comp3, SWT.TOGGLE);
 					_bgImgMask.setImage = _prop.images.menuMask;
 					_bgImgMask.setToolTipText = _prop.msgs.ttMask;
 					_bgImgName.addModifyListener(new ModBgImgName);
@@ -662,25 +662,25 @@ private:
 					(this, comp2, _prop.msgs.height, _prop.looks.backHeightMax, _prop.looks.backHeightMin);
 			}
 			{
-				auto buttons = new Composite(right, DWT.NONE);
+				auto buttons = new Composite(right, SWT.NONE);
 				buttons.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
 				buttons.setLayout = zeroMarginGridLayout(2, true);
-				auto newBstg = new Button(buttons, DWT.PUSH);
+				auto newBstg = new Button(buttons, SWT.PUSH);
 				newBstg.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				newBstg.setText = _prop.msgs.newBgImageSetting;
 				newBstg.addSelectionListener(new NewBgImgStg);
-				_bgImgDel = new Button(buttons, DWT.PUSH);
+				_bgImgDel = new Button(buttons, SWT.PUSH);
 				_bgImgDel.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				_bgImgDel.setText = _prop.msgs.delBgImageSetting;
 				_bgImgDel.addSelectionListener(new DelBgImgStg);
 			}
 		}
 		{
-			auto grp = new Group(sash, DWT.NONE);
+			auto grp = new Group(sash, SWT.NONE);
 			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
 			grp.setLayout = new GridLayout(1, false);
 			grp.setText = _prop.msgs.standardKeyCode;
-			_keyCodes = new Text(grp, DWT.BORDER | DWT.MULTI | DWT.V_SCROLL);
+			_keyCodes = new Text(grp, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
 			_keyCodes.addModifyListener(_mod);
 			auto gd = new GridData(GridData.FILL_BOTH);
 			gd.widthHint = _prop.var.etc.keyCodeWidth;
@@ -825,22 +825,22 @@ private:
 		}
 	}
 	void construct3(CTabFolder tabf) {
-		auto comp = new Composite(tabf, DWT.NONE);
+		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout = new GridLayout(1, false);
-		_tabT = new CTabItem(tabf, DWT.NONE);
+		_tabT = new CTabItem(tabf, SWT.NONE);
 		_tabT.setText = _prop.msgs.outerTools;
 		_tabT.setControl = comp;
 		{
-			auto grp = new Group(comp, DWT.NONE);
+			auto grp = new Group(comp, SWT.NONE);
 			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
 			grp.setLayout = new GridLayout(1, true);
 			grp.setText = _prop.msgs.outerToolsTitle;
-			auto sash = new SplitPane(grp, DWT.HORIZONTAL);
+			auto sash = new SplitPane(grp, SWT.HORIZONTAL);
 			sash.setLayoutData = new GridData(GridData.FILL_BOTH);
 			{
-				auto left = new Composite(sash, DWT.NONE);
+				auto left = new Composite(sash, SWT.NONE);
 				left.setLayout = zeroMarginGridLayout(2, true);
-				_toolsL = new List(left, DWT.BORDER | DWT.SINGLE | DWT.V_SCROLL);
+				_toolsL = new List(left, SWT.BORDER | SWT.SINGLE | SWT.V_SCROLL);
 				auto gd = new GridData(GridData.FILL_BOTH);
 				gd.widthHint = _prop.var.etc.outerToolsNameWidth;
 				gd.heightHint = _prop.var.etc.outerToolsNameHeight;
@@ -851,32 +851,32 @@ private:
 				auto menu = new Menu(_toolsL);
 				createMenuItem(menu, _prop.msgs.menuUp, _prop.images.menuUp, &upTool);
 				createMenuItem(menu, _prop.msgs.menuDown, _prop.images.menuDown, &downTool);
-				new MenuItem(menu, DWT.SEPARATOR);
+				new MenuItem(menu, SWT.SEPARATOR);
 				appendMenuTCPD(_prop, menu, new ToolsTCPD);
 				_toolsL.setMenu = menu;
 				usingPopupMenuAccelerator(_toolsL);
 
-				auto up = new Button(left, DWT.PUSH);
+				auto up = new Button(left, SWT.PUSH);
 				up.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				up.setText = _prop.msgs.ttUp;
 				up.setImage = _prop.images.menuUp;
 				up.addSelectionListener(new UpOutTools);
-				auto down = new Button(left, DWT.PUSH);
+				auto down = new Button(left, SWT.PUSH);
 				down.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				down.setText = _prop.msgs.ttDown;
 				down.setImage = _prop.images.menuDown;
 				down.addSelectionListener(new DownOutTools);
 			}
-			auto right = new Composite(sash, DWT.NONE);
+			auto right = new Composite(sash, SWT.NONE);
 			right.setLayout = zeroMarginGridLayout(1, true);
 			{
-				auto comp2 = new Composite(right, DWT.NONE);
+				auto comp2 = new Composite(right, SWT.NONE);
 				comp2.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				comp2.setLayout = zeroMarginGridLayout(3, false);
 				{
-					auto l = new Label(comp2, DWT.NONE);
+					auto l = new Label(comp2, SWT.NONE);
 					l.setText = _prop.msgs.outerToolName;
-					_toolName = new Text(comp2, DWT.BORDER);
+					_toolName = new Text(comp2, SWT.BORDER);
 					auto gd = new GridData(GridData.FILL_HORIZONTAL);
 					gd.horizontalSpan = 2;
 					gd.widthHint = _prop.var.etc.outerToolsNameWidth;
@@ -884,47 +884,47 @@ private:
 					_toolName.addModifyListener(new ModOutToolName);
 				}
 				{
-					auto l = new Label(comp2, DWT.NONE);
+					auto l = new Label(comp2, SWT.NONE);
 					l.setText = _prop.msgs.outerToolCommand;
-					_toolCommand = new Text(comp2, DWT.BORDER);
+					_toolCommand = new Text(comp2, SWT.BORDER);
 					auto gd = new GridData(GridData.FILL_HORIZONTAL);
 					gd.widthHint = 0;
 					_toolCommand.setLayoutData = gd;
-					_toolCommandRef = new Button(comp2, DWT.PUSH);
+					_toolCommandRef = new Button(comp2, SWT.PUSH);
 					_toolCommandRef.setText = _prop.msgs.reference;
 					_toolCommandRef.addSelectionListener(new PushToolCmdRef);
 					_toolCommand.addModifyListener(new ModToolCmd);
 				}
 				{
-					auto l = new Label(comp2, DWT.NONE);
+					auto l = new Label(comp2, SWT.NONE);
 					l.setText = _prop.msgs.outerToolWorkDir;
-					_toolWorkDir = new Text(comp2, DWT.BORDER);
+					_toolWorkDir = new Text(comp2, SWT.BORDER);
 					auto gd = new GridData(GridData.FILL_HORIZONTAL);
 					gd.widthHint = 0;
 					_toolWorkDir.setLayoutData = gd;
-					_toolWorkDirRef = new Button(comp2, DWT.PUSH);
+					_toolWorkDirRef = new Button(comp2, SWT.PUSH);
 					_toolWorkDirRef.setText = _prop.msgs.reference;
 					_toolWorkDirRef.addSelectionListener(new PushToolWorkDirRef);
 					_toolWorkDir.addModifyListener(new ModToolWorkDir);
 				}
 				{
-					auto dummy = new Composite(comp2, DWT.NONE);
+					auto dummy = new Composite(comp2, SWT.NONE);
 					auto gd = new GridData;
 					gd.verticalSpan = 3;
 					gd.widthHint = 0;
 					gd.heightHint = 0;
 					dummy.setLayoutData = gd;
-					auto hint1 = new Label(comp2, DWT.NONE);
+					auto hint1 = new Label(comp2, SWT.NONE);
 					hint1.setText = _prop.msgs.toolsHint1;
 					auto gd1 = new GridData;
 					gd1.horizontalSpan = 2;
 					hint1.setLayoutData = gd1;
-					auto hint2 = new Label(comp2, DWT.NONE);
+					auto hint2 = new Label(comp2, SWT.NONE);
 					hint2.setText = _prop.msgs.toolsHint2;
 					auto gd2 = new GridData;
 					gd2.horizontalSpan = 2;
 					hint2.setLayoutData = gd2;
-					auto hint3 = new Label(comp2, DWT.NONE);
+					auto hint3 = new Label(comp2, SWT.NONE);
 					hint3.setText = _prop.msgs.toolsHint3;
 					auto gd3 = new GridData;
 					gd3.horizontalSpan = 2;
@@ -932,14 +932,14 @@ private:
 				}
 			}
 			{
-				auto buttons = new Composite(right, DWT.NONE);
+				auto buttons = new Composite(right, SWT.NONE);
 				buttons.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
 				buttons.setLayout = zeroMarginGridLayout(2, true);
-				auto newTool = new Button(buttons, DWT.PUSH);
+				auto newTool = new Button(buttons, SWT.PUSH);
 				newTool.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				newTool.setText = _prop.msgs.newOuterTool;
 				newTool.addSelectionListener(new NewOutTool);
-				_toolDel = new Button(buttons, DWT.PUSH);
+				_toolDel = new Button(buttons, SWT.PUSH);
 				_toolDel.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				_toolDel.setText = _prop.msgs.delOuterTool;
 				_toolDel.addSelectionListener(new DelOutTool);
@@ -959,7 +959,7 @@ public:
 protected:
 	override void setup(Composite area) {
 		area.setLayout = windowGridLayout(1, true);
-		auto tabf = new CTabFolder(area, DWT.BORDER);
+		auto tabf = new CTabFolder(area, SWT.BORDER);
 		tabf.setLayoutData = new GridData(GridData.FILL_BOTH);
 		_mod = new Mod;
 		construct1(tabf);
@@ -1010,7 +1010,7 @@ protected:
 
 	override bool apply() {
 		void err(CTabItem tab, Text t, string msg) {
-			auto dlg = new MessageBox(t.getShell, DWT.ICON_WARNING | DWT.OK);
+			auto dlg = new MessageBox(t.getShell, SWT.ICON_WARNING | SWT.OK);
 			scope (exit) dlg.dispose;
 			dlg.setText = _prop.msgs.dlgTitWarning;
 			dlg.setMessage = msg;

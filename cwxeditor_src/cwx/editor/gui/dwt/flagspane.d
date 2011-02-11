@@ -14,54 +14,54 @@ import cwx.editor.gui.dwt.flagdirtree;
 import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.xmlbytestransfer;
 
-import dwt.DWT;
-import dwt.DWTException;
-import dwt.widgets.Shell;
-import dwt.widgets.Control;
-import dwt.widgets.Display;
-import dwt.layout.FillLayout;
-import dwt.layout.GridLayout;
-import dwt.layout.GridData;
-import dwt.custom.SashForm;
-import dwt.widgets.Composite;
-import dwt.widgets.Tree;
-import dwt.widgets.TreeItem;
-import dwt.custom.TreeEditor;
-import dwt.widgets.Table;
-import dwt.widgets.TableColumn;
-import dwt.widgets.TableItem;
-import dwt.widgets.Text;
-import dwt.widgets.Label;
-import dwt.widgets.Combo;
-import dwt.widgets.Table;
-import dwt.widgets.ToolBar;
-import dwt.widgets.ToolItem;
-import dwt.events.SelectionEvent;
-import dwt.events.SelectionAdapter;
-import dwt.events.FocusEvent;
-import dwt.events.FocusListener;
-import dwt.events.DisposeEvent;
-import dwt.events.DisposeListener;
-import dwt.events.KeyAdapter;
-import dwt.events.KeyEvent;
-import dwt.events.MouseListener;
-import dwt.events.MouseAdapter;
-import dwt.events.MouseEvent;
-import dwt.events.ModifyListener;
-import dwt.events.ModifyEvent;
-import dwt.graphics.Image;
-import dwt.graphics.ImageData;
-import dwt.dwthelper.utils;
-import dwt.dnd.DND;
-import dwt.dnd.Transfer;
-import dwt.dnd.TransferData;
-import dwt.dnd.DragSource;
-import dwt.dnd.DragSourceListener;
-import dwt.dnd.DragSourceEvent;
-import dwt.dnd.ByteArrayTransfer;
-import dwt.dnd.DropTargetAdapter;
-import dwt.dnd.DropTargetEvent;
-import dwt.dnd.DropTarget;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.SWTException;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swt.widgets.TreeItem;
+import org.eclipse.swt.custom.TreeEditor;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.FocusListener;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.MouseListener;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
+import java.lang.all;
+import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.dnd.TransferData;
+import org.eclipse.swt.dnd.DragSource;
+import org.eclipse.swt.dnd.DragSourceListener;
+import org.eclipse.swt.dnd.DragSourceEvent;
+import org.eclipse.swt.dnd.ByteArrayTransfer;
+import org.eclipse.swt.dnd.DropTargetAdapter;
+import org.eclipse.swt.dnd.DropTargetEvent;
+import org.eclipse.swt.dnd.DropTarget;
 
 /// 状態変数インスペクタ。
 /// このコントロールを用いてフラグとステップの編集を行う。
@@ -78,9 +78,9 @@ public:
 	this(Commons comm, Props prop, Composite parent) {
 		_prop = prop;
 
-		_comp = new Composite(parent, DWT.NONE);
+		_comp = new Composite(parent, SWT.NONE);
 		_comp.setLayout = new FillLayout;
-		_sash = new SplitPane(_comp, _prop.var.etc.flagSashV ? DWT.VERTICAL : DWT.HORIZONTAL);
+		_sash = new SplitPane(_comp, _prop.var.etc.flagSashV ? SWT.VERTICAL : SWT.HORIZONTAL);
 
 		_flags = new FlagTable(comm, prop);
 		_dirs = new FlagDirTree(comm, prop, _flags);
@@ -97,7 +97,7 @@ public:
 		override void widgetDisposed(DisposeEvent e) {
 			_prop.var.etc.flagSashL = _sash.getWeights[0];
 			_prop.var.etc.flagSashR = _sash.getWeights[1];
-			_prop.var.etc.flagSashV = (_sash.getStyle & DWT.VERTICAL) != 0;
+			_prop.var.etc.flagSashV = (_sash.getStyle & SWT.VERTICAL) != 0;
 		}
 	}
 	void setupTLP(TopLevelPanel tlp) {

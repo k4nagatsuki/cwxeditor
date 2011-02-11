@@ -35,55 +35,55 @@ import std.math;
 import std.path;
 import std.file;
 
-import dwt.DWTException;
-import dwt.widgets.Display;
-import dwt.widgets.Composite;
-import dwt.widgets.Control;
-import dwt.widgets.MessageBox;
-import dwt.widgets.List;
-import dwt.widgets.ToolBar;
-import dwt.widgets.ToolItem;
-import dwt.widgets.Menu;
-import dwt.widgets.MenuItem;
-import dwt.widgets.Text;
-import dwt.widgets.Label;
-import dwt.widgets.Spinner;
-import dwt.custom.SashForm;
-import dwt.custom.CLabel;
-import dwt.custom.CCombo;
-import dwt.custom.ScrolledComposite;
-import dwt.graphics.GC;
-import dwt.graphics.Color;
-import dwt.graphics.RGB;
-import dwt.graphics.ImageData;
-import dwt.graphics.Image;
-import dwt.layout.GridLayout;
-import dwt.layout.GridData;
-import dwt.layout.FillLayout;
-import dwt.events.DisposeEvent;
-import dwt.events.DisposeListener;
-import dwt.events.SelectionEvent;
-import dwt.events.SelectionAdapter;
-import dwt.events.MouseEvent;
-import dwt.events.MouseAdapter;
-import dwt.events.ModifyEvent;
-import dwt.events.ModifyListener;
-import dwt.events.FocusEvent;
-import dwt.events.FocusAdapter;
-import dwt.events.FocusListener;
-import dwt.events.KeyEvent;
-import dwt.events.KeyAdapter;
-import dwt.events.KeyListener;
-import dwt.events.TypedEvent;
-import dwt.dnd.DND;
-import dwt.dnd.DropTarget;
-import dwt.dnd.DropTargetEvent;
-import dwt.dnd.DropTargetAdapter;
-import dwt.dnd.FileTransfer;
-import dwt.dnd.ByteArrayTransfer;
-import dwt.dnd.Transfer;
-import dwt.dnd.Clipboard;
-import dwt.dwthelper.utils;
+import org.eclipse.swt.SWTException;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.MessageBox;
+import org.eclipse.swt.widgets.List;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Spinner;
+import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.custom.CLabel;
+import org.eclipse.swt.custom.CCombo;
+import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.FocusAdapter;
+import org.eclipse.swt.events.FocusListener;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyListener;
+import org.eclipse.swt.events.TypedEvent;
+import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.DropTarget;
+import org.eclipse.swt.dnd.DropTargetEvent;
+import org.eclipse.swt.dnd.DropTargetAdapter;
+import org.eclipse.swt.dnd.FileTransfer;
+import org.eclipse.swt.dnd.ByteArrayTransfer;
+import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.dnd.Clipboard;
+import java.lang.all;
 
 public:
 
@@ -101,9 +101,9 @@ private P spnValue(string T, N, P)(N[] keys, P val) {
 }
 
 private void createLabel(ToolBar bar, string label) {
-	auto comp = new Composite(bar, DWT.NONE);
-	comp.setLayout = new CenterLayout(DWT.VERTICAL, 0);
-	auto lbl = new Label(comp, DWT.NONE);
+	auto comp = new Composite(bar, SWT.NONE);
+	comp.setLayout = new CenterLayout(SWT.VERTICAL, 0);
+	auto lbl = new Label(comp, SWT.NONE);
 	lbl.setText = label;
 	createToolItemC(bar, comp);
 }
@@ -111,7 +111,7 @@ private void createLabel(ToolBar bar, string label) {
 private Spinner createSpinner(ToolBar bar, string label, int max, int min, int sel,
 		void delegate(int value) edit, void delegate(int value) enter, int delegate(int oldVal) cancel) {
 	createLabel(bar, label ~ ":");
-	auto spn = new Spinner(bar, DWT.BORDER);
+	auto spn = new Spinner(bar, SWT.BORDER);
 	spn.setEnabled = false;
 	spn.setMaximum = max;
 	spn.setMinimum = min;
@@ -122,9 +122,9 @@ private Spinner createSpinner(ToolBar bar, string label, int max, int min, int s
 }
 
 private void createToolItemC(ToolBar bar, Control c) {
-	auto ti = new ToolItem(bar, DWT.SEPARATOR);
+	auto ti = new ToolItem(bar, SWT.SEPARATOR);
 	ti.setControl(c);
-	ti.setWidth(c.computeSize(DWT.DEFAULT, DWT.DEFAULT).x);
+	ti.setWidth(c.computeSize(SWT.DEFAULT, SWT.DEFAULT).x);
 }
 
 class AbstractAreaView(A, C, bool UseCards, bool UseBacks) : Composite, TCPD {
@@ -1005,7 +1005,7 @@ private:
 		}
 	}
 	Control createImagePane(Composite parent) {
-		auto sc = new ScrolledComposite(parent, DWT.BORDER | DWT.H_SCROLL | DWT.V_SCROLL);
+		auto sc = new ScrolledComposite(parent, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
 		sc.setExpandHorizontal = false;
 		sc.setExpandVertical = false;
 		auto vs = _prop.looks.viewSize;
@@ -1014,7 +1014,7 @@ private:
 		sc.getHorizontalBar.setPageIncrement = vs.width / 5;
 		sc.getVerticalBar.setPageIncrement = vs.height / 5;
 		sc.setLayoutData = new GridData(GridData.FILL_BOTH);
-		_imgp = new ImagePane(sc, DWT.NO_BACKGROUND);
+		_imgp = new ImagePane(sc, SWT.NO_BACKGROUND);
 		sc.setContent(_imgp);
 		sc.setMinSize(vs.width, vs.height);
 		_imgp.setSize(vs.width, vs.height);
@@ -1022,23 +1022,23 @@ private:
 		_imgp.addMouseListener(ipe);
 		_imgp.changingImages(&changingImages);
 		{
-			auto menu = new Menu(parent.getShell, DWT.POP_UP);
+			auto menu = new Menu(parent.getShell, SWT.POP_UP);
 			createMenuItem(menu, _prop.msgs.menuCEdit, _prop.images.menuCEdit, &edit);
-			new MenuItem(menu, DWT.SEPARATOR);
+			new MenuItem(menu, SWT.SEPARATOR);
 			appendMenuTCPD(_prop, menu, _tcpd, true, true, true, true);
-			new MenuItem(menu, DWT.SEPARATOR);
+			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(menu, _prop.msgs.menuPosTop, _prop.images.menuPosTop, &posTop);
 			createMenuItem(menu, _prop.msgs.menuPosBottom, _prop.images.menuPosBottom, &posBottom);
 			createMenuItem(menu, _prop.msgs.menuPosLeft, _prop.images.menuPosLeft, &posLeft);
 			createMenuItem(menu, _prop.msgs.menuPosRight, _prop.images.menuPosRight, &posRight);
 			createMenuItem(menu, _prop.msgs.menuPosEven, _prop.images.menuPosEven, &posEven);
 			static if (UseCards) {
-				new MenuItem(menu, DWT.SEPARATOR);
+				new MenuItem(menu, SWT.SEPARATOR);
 				createMenuItem(menu, _prop.msgs.menuScaleMin, _prop.images.menuScaleMin, &__scaleCMin);
 	 			createMenuItem(menu, _prop.msgs.menuScaleMiddle, _prop.images.menuScaleMiddle, &__scaleCMiddle);
 				createMenuItem(menu, _prop.msgs.menuScaleMax, _prop.images.menuScaleMax, &__scaleCMax);
 			}
-			new MenuItem(menu, DWT.SEPARATOR);
+			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(menu, _prop.msgs.menuScaleEvenBig, _prop.images.menuScaleEvenBig, &scaleEvenBig);
 			createMenuItem(menu, _prop.msgs.menuScaleEvenSmall, _prop.images.menuScaleEvenSmall, &scaleEvenSmall);
 			_imgp.setMenu(menu);
@@ -1194,13 +1194,13 @@ private:
 	}
 	List createList(C)(Composite parent, string name, Image image, TCPD tcpd,
 			void delegate(C) edit, C[] delegate() items) {
-		auto comp = new Composite(parent, DWT.NONE);
+		auto comp = new Composite(parent, SWT.NONE);
 		comp.setLayout = zeroGridLayout(1);
-		auto label = new CLabel(comp, DWT.NONE);
+		auto label = new CLabel(comp, SWT.NONE);
 		label.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		label.setText = name;
 		label.setImage = image;
-		auto list = new List(comp, DWT.MULTI | DWT.BORDER | DWT.H_SCROLL | DWT.V_SCROLL);
+		auto list = new List(comp, SWT.MULTI | SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
 		auto mkl = new MKListener!(C)(edit, items);
 		list.addMouseListener(mkl);
 		auto gd = new GridData(GridData.FILL_BOTH);
@@ -1208,9 +1208,9 @@ private:
 		gd.heightHint = 0;
 		list.setLayoutData = gd;
 		{
-			auto menu = new Menu(parent.getShell, DWT.POP_UP);
+			auto menu = new Menu(parent.getShell, SWT.POP_UP);
 			createMenuItem(menu, _prop.msgs.menuCEdit, _prop.images.menuCEdit, &this.edit);
-			new MenuItem(menu, DWT.SEPARATOR);
+			new MenuItem(menu, SWT.SEPARATOR);
 			appendMenuTCPD(_prop, menu, tcpd, true, true, true, true);
 			list.setMenu(menu);
 			usingPopupMenuAccelerator(list);
@@ -1230,7 +1230,7 @@ private:
 	private TopLevelPanel _tlp;
 public:
 	this(Commons comm, Props prop, Summary summ, A area, Composite parent, TopLevelPanel tlp, UndoManager undo) {
-		super(parent, DWT.NONE);
+		super(parent, SWT.NONE);
 		auto gl = windowGridLayout(1);
 		gl.marginWidth = 0;
 		gl.marginHeight = 0;
@@ -1333,19 +1333,19 @@ public:
 
 		if (_tlp) setupTLP(_tlp);
 		{
-			auto toolbar = new ToolBar(this, DWT.FLAT);
+			auto toolbar = new ToolBar(this, SWT.FLAT);
 			toolbar.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			setupToolBar(toolbar);
 		}
-		auto lrSash = new SplitPane(this, DWT.HORIZONTAL);
+		auto lrSash = new SplitPane(this, SWT.HORIZONTAL);
 		lrSash.setLayoutData = new GridData(GridData.FILL_BOTH);
 		{
 			Composite listsP;
 			static if (UseCards && UseBacks) {
-				_sash = new SplitPane(lrSash, DWT.VERTICAL);
+				_sash = new SplitPane(lrSash, SWT.VERTICAL);
 				listsP = _sash;
 			} else {
-				listsP = new Composite(lrSash, DWT.NONE);
+				listsP = new Composite(lrSash, SWT.NONE);
 				listsP.setLayout = new FillLayout;
 			}
 			static if (UseCards) {
@@ -1372,7 +1372,7 @@ public:
 			static if (UseCards && UseBacks) {
 				_cards.addMouseListener(new class MouseAdapter {
 					override void mouseDown(MouseEvent e) {
-						if (e.button == 1 && (e.stateMask & DWT.CTRL) == 0 && (e.stateMask & DWT.SHIFT) == 0) {
+						if (e.button == 1 && (e.stateMask & SWT.CTRL) == 0 && (e.stateMask & SWT.SHIFT) == 0) {
 							_imgp.deselectRange(0, _area.backs.length);
 							_backs.deselectAll;
 							typeof(_editB) editB;
@@ -1383,7 +1383,7 @@ public:
 				});
 				_backs.addMouseListener(new class MouseAdapter {
 					override void mouseDown(MouseEvent e) {
-						if (e.button == 1 && (e.stateMask & DWT.CTRL) == 0 && (e.stateMask & DWT.SHIFT) == 0) {
+						if (e.button == 1 && (e.stateMask & SWT.CTRL) == 0 && (e.stateMask & SWT.SHIFT) == 0) {
 							_imgp.deselectRange(cardsIndex, cardsIndex + _area.cards.length);
 							_cards.deselectAll;
 							typeof(_editC) editC;
@@ -1741,40 +1741,40 @@ public:
 	void setupMenu(Menu bar) {
 		auto mv = createMenu(bar, _prop.msgs.menuCardsAndBacks);
 		_vpMenu = createMenuItem(mv, _prop.msgs.menuViewParty, _prop.images.menuViewParty,
-			&reverseViewParty, DWT.CHECK);
+			&reverseViewParty, SWT.CHECK);
 		_vpMenu.setSelection = _viewParty;
 		_vmMenu = createMenuItem(mv, _prop.msgs.menuViewMsg, _prop.images.menuViewMsg,
-			&reverseViewMsg, DWT.CHECK);
+			&reverseViewMsg, SWT.CHECK);
 		_vmMenu.setSelection = _viewMsg;
-		new MenuItem(mv, DWT.SEPARATOR);
+		new MenuItem(mv, SWT.SEPARATOR);
 		_vfMenu = createMenuItem(mv, _prop.msgs.menuFixed, _prop.images.menuFixed,
-			&reverseFixed, DWT.CHECK);
+			&reverseFixed, SWT.CHECK);
 		_vfMenu.setSelection = _fixed;
 		static if (UseCards && is(C == EnemyCard)) {
-			new MenuItem(mv, DWT.SEPARATOR);
+			new MenuItem(mv, SWT.SEPARATOR);
 			_dbgMenu = createMenuItem(mv,
 				_prop.msgs.menuEnemyCardDebugView,
 				_prop.images.menuEnemyCardDebugView,
-				&reverseDebugMode, DWT.CHECK);
+				&reverseDebugMode, SWT.CHECK);
 			_dbgMenu.setSelection = _dbgMode;
 		}
 		static if (UseCards && UseBacks) {
-			new MenuItem(mv, DWT.SEPARATOR);
+			new MenuItem(mv, SWT.SEPARATOR);
 			_vcMenu = createMenuItem(mv, _prop.msgs.menuViewCards, _prop.images.menuViewCards,
-				&reverseViewCards, DWT.CHECK);
+				&reverseViewCards, SWT.CHECK);
 			_vcMenu.setSelection = _viewCards;
 			_vbMenu = createMenuItem(mv, _prop.msgs.menuViewBacks, _prop.images.menuViewBacks,
-				&reverseViewBacks, DWT.CHECK);
+				&reverseViewBacks, SWT.CHECK);
 			_vbMenu.setSelection = _viewBacks;
 		}
 		static if (UseCards) {
-			new MenuItem(mv, DWT.SEPARATOR);
-			_autoMenu = createMenuItem(mv, _prop.msgs.menuAuto, _prop.images.menuAuto, &setAuto, DWT.RADIO);
-			_customMenu = createMenuItem(mv, _prop.msgs.menuCustom, _prop.images.menuCustom, &setCustom, DWT.RADIO);
+			new MenuItem(mv, SWT.SEPARATOR);
+			_autoMenu = createMenuItem(mv, _prop.msgs.menuAuto, _prop.images.menuAuto, &setAuto, SWT.RADIO);
+			_customMenu = createMenuItem(mv, _prop.msgs.menuCustom, _prop.images.menuCustom, &setCustom, SWT.RADIO);
 			_autoMenu.setSelection = _area.spAuto;
 			_customMenu.setSelection = !_area.spAuto;
 		}
-		new MenuItem(mv, DWT.SEPARATOR);
+		new MenuItem(mv, SWT.SEPARATOR);
 		static if (is (C == MenuCard)) {
 			createMenuItem(mv, _prop.msgs.menuNewMenuCard, _prop.images.menuNewMenuCard, &createCard);
 		} else static if (is (C == EnemyCard)) {
@@ -1791,55 +1791,55 @@ public:
 	private void setupToolBar(ToolBar bar) {
 		if (!_tlp) {
 			createToolItem(bar, _prop.msgs.ttRefresh, _prop.images.menuRefresh, &refresh);
-			new ToolItem(bar, DWT.SEPARATOR);
+			new ToolItem(bar, SWT.SEPARATOR);
 		}
 		_vpTMenu = createToolItem(bar,
 			_prop.msgs.ttViewParty, _prop.images.menuViewParty,
-			&reverseViewParty, DWT.CHECK);
+			&reverseViewParty, SWT.CHECK);
 		_vpTMenu.setSelection = _viewParty;
 		_vmTMenu = createToolItem(bar,
 			_prop.msgs.ttViewMsg, _prop.images.menuViewMsg,
-			&reverseViewMsg, DWT.CHECK);
+			&reverseViewMsg, SWT.CHECK);
 		_vmTMenu.setSelection = _viewMsg;
-		new ToolItem(bar, DWT.SEPARATOR);
+		new ToolItem(bar, SWT.SEPARATOR);
 		_vfTMenu = createToolItem(bar,
 			_prop.msgs.ttFixed, _prop.images.menuFixed,
-			&reverseFixed, DWT.CHECK);
+			&reverseFixed, SWT.CHECK);
 		_vfTMenu.setSelection = _fixed;
 		static if (UseCards && is(C == EnemyCard)) {
-			new ToolItem(bar, DWT.SEPARATOR);
+			new ToolItem(bar, SWT.SEPARATOR);
 			_dbgTMenu = createToolItem(bar,
 				_prop.msgs.ttEnemyCardDebugView,
 				_prop.images.menuEnemyCardDebugView,
-				&reverseDebugMode, DWT.CHECK);
+				&reverseDebugMode, SWT.CHECK);
 			_dbgTMenu.setSelection = _dbgMode;
 		}
 		static if (UseCards && UseBacks) {
-			new ToolItem(bar, DWT.SEPARATOR);
+			new ToolItem(bar, SWT.SEPARATOR);
 			_vcTMenu = createToolItem(bar,
 				_prop.msgs.ttViewCards, _prop.images.menuViewCards,
-				&reverseViewCards, DWT.CHECK);
+				&reverseViewCards, SWT.CHECK);
 			_vcTMenu.setSelection = _viewCards;
 			_vbTMenu = createToolItem(bar,
 				_prop.msgs.ttViewBacks, _prop.images.menuViewBacks,
-				&reverseViewBacks, DWT.CHECK);
+				&reverseViewBacks, SWT.CHECK);
 			_vbTMenu.setSelection = _viewBacks;
 		}
-		new ToolItem(bar, DWT.SEPARATOR);
+		new ToolItem(bar, SWT.SEPARATOR);
 		if (!_tlp) {
 			createToolItem(bar, _prop.msgs.ttUndo, _prop.images.menuUndo, &undo);
 			createToolItem(bar, _prop.msgs.ttRedo, _prop.images.menuRedo, &redo);
-			new ToolItem(bar, DWT.SEPARATOR);
+			new ToolItem(bar, SWT.SEPARATOR);
 			createToolItem(bar, _prop.msgs.ttUp, _prop.images.menuUp, &up);
 			createToolItem(bar, _prop.msgs.ttDown, _prop.images.menuDown, &down);
-			new ToolItem(bar, DWT.SEPARATOR);
+			new ToolItem(bar, SWT.SEPARATOR);
 		}
 		static if (UseCards) {
-			_autoTMenu = createToolItem(bar, _prop.msgs.ttAuto, _prop.images.menuAuto, &setAuto, DWT.RADIO);
-			_customTMenu = createToolItem(bar, _prop.msgs.ttCustom, _prop.images.menuCustom, &setCustom, DWT.RADIO);
+			_autoTMenu = createToolItem(bar, _prop.msgs.ttAuto, _prop.images.menuAuto, &setAuto, SWT.RADIO);
+			_customTMenu = createToolItem(bar, _prop.msgs.ttCustom, _prop.images.menuCustom, &setCustom, SWT.RADIO);
 			_autoTMenu.setSelection = _area.spAuto;
 			_customTMenu.setSelection = !_area.spAuto;
-			new ToolItem(bar, DWT.SEPARATOR);
+			new ToolItem(bar, SWT.SEPARATOR);
 			static if (is (C == MenuCard)) {
 				createToolItem(bar, _prop.msgs.ttNewMenuCard, _prop.images.menuNewMenuCard, &createCard);
 			} else static if (is (C == EnemyCard)) {
@@ -1851,26 +1851,26 @@ public:
 		static if (UseBacks) {
 			createToolItem(bar, _prop.msgs.ttNewBack, _prop.images.menuNewBack, &createBackground);
 		}
-		new ToolItem(bar, DWT.SEPARATOR);
+		new ToolItem(bar, SWT.SEPARATOR);
 		_xSpn = createSpinner(bar, _prop.msgs.left, _prop.looks.posLeftMax, _prop.looks.posLeftMin, 0,
 			&editSpn!("a.newX = value;"), &enterSpn!("a.x = value;", "a.newX = value;"),
 			&cancelSpn!("a.x"));
-		new ToolItem(bar, DWT.SEPARATOR);
+		new ToolItem(bar, SWT.SEPARATOR);
 		_ySpn = createSpinner(bar, _prop.msgs.top, _prop.looks.posTopMax, _prop.looks.posTopMin, 0,
 			&editSpn!("a.newY = value;"), &enterSpn!("a.y = value;", "a.newY = value;"),
 			&cancelSpn!("a.y"));
 		static if (UseBacks) {
-			new ToolItem(bar, DWT.SEPARATOR);
+			new ToolItem(bar, SWT.SEPARATOR);
 			_wSpn = createSpinner(bar, _prop.msgs.width, _prop.looks.backWidthMax, _prop.looks.backWidthMin, 0,
 				&editSpnBack!("a.newWidth = value;"), &enterSpnBack!("a.width = value;", "a.newWidth = value;"),
 				&cancelSpnBack!("a.width"));
-			new ToolItem(bar, DWT.SEPARATOR);
+			new ToolItem(bar, SWT.SEPARATOR);
 			_hSpn = createSpinner(bar, _prop.msgs.height, _prop.looks.backHeightMax, _prop.looks.backHeightMin, 0,
 				&editSpnBack!("a.newHeight = value;"), &enterSpnBack!("a.height = value;", "a.newHeight = value;"),
 				&cancelSpnBack!("a.height"));
 		}
 		static if (UseCards) {
-			new ToolItem(bar, DWT.SEPARATOR);
+			new ToolItem(bar, SWT.SEPARATOR);
 			_scaleSpn = createSpinner(bar, _prop.msgs.scale,
 				cast(int) rndtol(_prop.looks.cardSizeMax * 100), cast(int) rndtol(_prop.looks.cardSizeMin * 100), 100,
 				&editSpnCard!("a.scale = value / 100.0;"),
@@ -1879,16 +1879,16 @@ public:
 			createLabel(bar, "%");
 		}
 		static if (UseBacks) {
-			new ToolItem(bar, DWT.SEPARATOR);
-			_maskTMenu = createToolItem(bar, _prop.msgs.ttMask, _prop.images.menuMask, &setMask, DWT.CHECK);
+			new ToolItem(bar, SWT.SEPARATOR);
+			_maskTMenu = createToolItem(bar, _prop.msgs.ttMask, _prop.images.menuMask, &setMask, SWT.CHECK);
 			_maskTMenu.setEnabled = false;
 		}
 		static if (is (C == EnemyCard)) {
-			new ToolItem(bar, DWT.SEPARATOR);
+			new ToolItem(bar, SWT.SEPARATOR);
 			_escTMenu = createToolItem(bar, _prop.msgs.ttDoEscape, _prop.images.menuDoEscape,
-					&setEscape, DWT.CHECK);
+					&setEscape, SWT.CHECK);
 			_escTMenu.setEnabled = false;
-			new ToolItem(bar, DWT.SEPARATOR);
+			new ToolItem(bar, SWT.SEPARATOR);
 			auto skin = findSkin(_prop, _summ);
 			_bgm = new MaterialSelect!(MtType.BGM, CCombo, CCombo)
 				(_comm, _prop, _summ, &selectBGM, [_prop.msgs.bgmNone]);
@@ -1896,7 +1896,7 @@ public:
 			createToolItemC(bar, dirs);
 			auto files = _bgm.createFileList(bar);
 			createToolItemC(bar, files);
-			_bgmTMenu = createToolItem(bar, _prop.msgs.playBGM, _prop.images.playBGM, &__playBGM, DWT.CHECK);
+			_bgmTMenu = createToolItem(bar, _prop.msgs.playBGM, _prop.images.playBGM, &__playBGM, SWT.CHECK);
 			_bgmTMenu.addDisposeListener(new StopBGM);
 			_bgm.path = _area.music;
 		}
@@ -1987,14 +1987,14 @@ public:
 			private int cardFromFile(string fname, int x, int y, bool fromImgPane) {
 				if (!_summ) return -1;
 				if (!hasPath(_summ.scenarioPath, fname)) {
-					auto dlg = new MessageBox(getShell, DWT.ICON_QUESTION | DWT.YES | DWT.NO | DWT.CANCEL);
+					auto dlg = new MessageBox(getShell, SWT.ICON_QUESTION | SWT.YES | SWT.NO | SWT.CANCEL);
 					scope (exit) dlg.dispose;
 					dlg.setMessage = _prop.msgs.dlgMsgDropCard(fname);
 					dlg.setText = _prop.msgs.dlgTitDropCard;
 					auto ret = dlg.open();
-					if (DWT.YES == ret) {
+					if (SWT.YES == ret) {
 						fname = copyTo(_summ.scenarioPath, fname, findSkin(_prop, _summ).materialPath);
-					} else if (DWT.CANCEL == ret) {
+					} else if (SWT.CANCEL == ret) {
 						return -1;
 					}
 				}
@@ -2016,7 +2016,7 @@ public:
 								if (!doFile(fname)) {
 									break;
 								}
-							} catch (DWTException e) {}
+							} catch (SWTException e) {}
 						}
 						if (addC.length) {
 							static if (UseBacks) {
@@ -2104,14 +2104,14 @@ public:
 		private int backFromFile(string fname, int x, int y, int w, int h, bool fromImgPane) {
 			if (!_summ) return -1;
 			if (!hasPath(_summ.scenarioPath, fname)) {
-				auto dlg = new MessageBox(getShell, DWT.ICON_QUESTION | DWT.YES | DWT.NO | DWT.CANCEL);
+				auto dlg = new MessageBox(getShell, SWT.ICON_QUESTION | SWT.YES | SWT.NO | SWT.CANCEL);
 				scope (exit) dlg.dispose;
 				dlg.setMessage = _prop.msgs.dlgMsgDropBack(fname);
 				dlg.setText = _prop.msgs.dlgTitDropBack;
 				auto ret = dlg.open();
-				if (DWT.YES == ret) {
+				if (SWT.YES == ret) {
 					fname = copyTo(_summ.scenarioPath, fname, findSkin(_prop, _summ).materialPath);
-				} else if (DWT.CANCEL == ret) {
+				} else if (SWT.CANCEL == ret) {
 					return -1;
 				}
 			}
@@ -2186,7 +2186,7 @@ public:
 							break;
 						}
 						append++;
-					} catch (DWTException e) {}
+					} catch (SWTException e) {}
 				}
 				if (append > 0) {
 					static if (UseCards && UseBacks) {
@@ -2750,15 +2750,15 @@ FlexImage createMenuCardImage(Props prop, Skin skin,
 
 BgImagesView createBgImagesViewAndMenu(Commons comm, Props prop, Summary summ, BgImageContainer cont, Composite parent) {
 	auto view = new BgImagesView(comm, prop, summ, cont, parent, new UndoManager(1024));
-	auto bar = new Menu(parent.getShell, DWT.BAR);
+	auto bar = new Menu(parent.getShell, SWT.BAR);
 	parent.getShell.setMenuBar = bar;
 	auto me = createMenu(bar, prop.msgs.menuEdit);
 	createMenuItem(me, prop.msgs.menuUndo, prop.images.menuUndo, &view.undo);
 	createMenuItem(me, prop.msgs.menuRedo, prop.images.menuRedo, &view.redo);
-	new MenuItem(me, DWT.SEPARATOR);
+	new MenuItem(me, SWT.SEPARATOR);
 	createMenuItem(me, prop.msgs.menuUp, prop.images.menuUp, &view.up);
 	createMenuItem(me, prop.msgs.menuDown, prop.images.menuDown, &view.down);
-	new MenuItem(me, DWT.SEPARATOR);
+	new MenuItem(me, SWT.SEPARATOR);
 	appendMenuTCPD(prop, me, view, true, true, true, true);
 	auto mv = createMenu(bar, prop.msgs.menuView);
 	createMenuItem(mv, prop.msgs.menuRefresh, prop.images.menuRefresh, &view.refresh);

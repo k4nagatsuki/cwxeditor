@@ -29,48 +29,48 @@ import std.string;
 import std.date;
 import std.typetuple;
 
-import dwt.widgets.Shell;
-import dwt.widgets.Display;
-import dwt.widgets.Control;
-import dwt.widgets.Composite;
-import dwt.widgets.ToolBar;
-import dwt.widgets.ToolItem;
-import dwt.widgets.Menu;
-import dwt.widgets.MenuItem;
-import dwt.widgets.MessageBox;
-import dwt.widgets.Table;
-import dwt.widgets.TableColumn;
-import dwt.widgets.TableItem;
-import dwt.widgets.Label;
-import dwt.graphics.Image;
-import dwt.graphics.ImageData;
-import dwt.layout.GridData;
-import dwt.layout.FillLayout;
-import dwt.events.SelectionAdapter;
-import dwt.events.SelectionEvent;
-import dwt.events.ShellAdapter;
-import dwt.events.ShellEvent;
-import dwt.events.DisposeListener;
-import dwt.events.DisposeEvent;
-import dwt.events.MouseAdapter;
-import dwt.events.MouseEvent;
-import dwt.events.KeyAdapter;
-import dwt.events.KeyEvent;
-import dwt.events.ControlAdapter;
-import dwt.events.ControlEvent;
-import dwt.custom.CTabFolder;
-import dwt.custom.CTabItem;
-import dwt.dwthelper.utils;
-import dwt.dnd.DND;
-import dwt.dnd.ByteArrayTransfer;
-import dwt.dnd.FileTransfer;
-import dwt.dnd.DragSource;
-import dwt.dnd.DragSourceAdapter;
-import dwt.dnd.DragSourceEvent;
-import dwt.dnd.DropTarget;
-import dwt.dnd.DropTargetAdapter;
-import dwt.dnd.DropTargetEvent;
-import dwt.dnd.Clipboard;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.MessageBox;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.ShellAdapter;
+import org.eclipse.swt.events.ShellEvent;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.ControlAdapter;
+import org.eclipse.swt.events.ControlEvent;
+import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.swt.custom.CTabItem;
+import java.lang.all;
+import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.ByteArrayTransfer;
+import org.eclipse.swt.dnd.FileTransfer;
+import org.eclipse.swt.dnd.DragSource;
+import org.eclipse.swt.dnd.DragSourceAdapter;
+import org.eclipse.swt.dnd.DragSourceEvent;
+import org.eclipse.swt.dnd.DropTarget;
+import org.eclipse.swt.dnd.DropTargetAdapter;
+import org.eclipse.swt.dnd.DropTargetEvent;
+import org.eclipse.swt.dnd.Clipboard;
 
 public:
 
@@ -186,8 +186,8 @@ private:
 	}
 	void createTableItem(C c, int index = -1) {
 		auto itm = index >= 0
-			? new TableItem(_tbl, DWT.NONE, index)
-			: new TableItem(_tbl, DWT.NONE);
+			? new TableItem(_tbl, SWT.NONE, index)
+			: new TableItem(_tbl, SWT.NONE);
 		refreshTableItem(c, itm);
 	}
 	void refreshListItem(int index) {
@@ -720,7 +720,7 @@ private:
 	}
 	class LKey : KeyAdapter {
 		override void keyPressed(KeyEvent e) {
-			if ((e.keyCode == DWT.F2 || e.character == DWT.CR) && _list.selection >= 0) {
+			if ((e.keyCode == SWT.F2 || e.character == SWT.CR) && _list.selection >= 0) {
 				static if (EditMode) {
 					edit(_list.selectionCard);
 				} else {
@@ -731,7 +731,7 @@ private:
 	}
 	class TKey : KeyAdapter {
 		override void keyPressed(KeyEvent e) {
-			if ((e.keyCode == DWT.F2 || e.character == DWT.CR) && _tbl.getSelectionIndex >= 0) {
+			if ((e.keyCode == SWT.F2 || e.character == SWT.CR) && _tbl.getSelectionIndex >= 0) {
 				static if (EditMode) {
 					edit(cast(C) _tbl.getSelection[0].getData);
 				} else {
@@ -746,24 +746,24 @@ private:
 		}
 	}
 	void createCardList(Composite parent) {
-		_list = new CardList!(C)(parent, DWT.VIRTUAL | DWT.V_SCROLL | (EditMode ? DWT.SINGLE : DWT.MULTI) | DWT.BORDER);
+		_list = new CardList!(C)(parent, SWT.VIRTUAL | SWT.V_SCROLL | (EditMode ? SWT.SINGLE : SWT.MULTI) | SWT.BORDER);
 		_list.setLayoutValues(_prop.var.etc.cardsMarginX, _prop.var.etc.cardsSpaceX,
 			_prop.var.etc.cardsMarginY, _prop.var.etc.cardsSpaceY, _prop.var.etc.cardsDefaultWrap);
 		_list.selectChanged(&refreshStatusLine);
-		_tbl = new Table(parent, DWT.FULL_SELECTION | (EditMode ? DWT.SINGLE : DWT.MULTI) | DWT.BORDER);
+		_tbl = new Table(parent, SWT.FULL_SELECTION | (EditMode ? SWT.SINGLE : SWT.MULTI) | SWT.BORDER);
 		_tbl.addSelectionListener(new SelChanged);
 		_tbl.setHeaderVisible = true;
-		auto idCol = new TableColumn(_tbl, DWT.NONE);
+		auto idCol = new TableColumn(_tbl, SWT.NONE);
 		idCol.setText = _prop.msgs.cardId;
 		saveColumnWidth!("prop.var.etc.cardIdColumn")(_prop, idCol);
-		auto nameCol = new TableColumn(_tbl, DWT.NONE);
+		auto nameCol = new TableColumn(_tbl, SWT.NONE);
 		nameCol.setText = _prop.msgs.cardName;
 		saveColumnWidth!("prop.var.etc.cardNameColumn")(_prop, nameCol);
-		auto descCol = new TableColumn(_tbl, DWT.NONE);
+		auto descCol = new TableColumn(_tbl, SWT.NONE);
 		descCol.setText = _prop.msgs.cardDesc;
 		saveColumnWidth!("prop.var.etc.cardDescriptionColumn")(_prop, descCol);
 		static if (is (CardOwner == Summary)) {
-			auto ucCol = new TableColumn(_tbl, DWT.NONE);
+			auto ucCol = new TableColumn(_tbl, SWT.NONE);
 			ucCol.setText = _prop.msgs.cardCount;
 			saveColumnWidth!("prop.var.etc.cardCountColumn")(_prop, ucCol);
 		}
@@ -878,37 +878,37 @@ private:
 				}
 			});
 			static if (is (C == CastCard)) {
-				auto pop = new Menu(parent.getShell, DWT.POP_UP);
+				auto pop = new Menu(parent.getShell, SWT.POP_UP);
 				createMenuItem(pop, prop.msgs.menuCEdit, prop.images.menuCEdit, &edit);
-				new MenuItem(pop, DWT.SEPARATOR);
+				new MenuItem(pop, SWT.SEPARATOR);
 				createMenuItem(pop, _prop.msgs.menuEditHand, _prop.images.menuEditHand, &editHand);
-				new MenuItem(pop, DWT.SEPARATOR);
+				new MenuItem(pop, SWT.SEPARATOR);
 				appendMenuTCPD(_prop, pop, this);
 			} else static if (is (C == SkillCard) || is (C == ItemCard) || is (C == BeastCard)) {
-				auto pop = new Menu(parent.getShell, DWT.POP_UP);
+				auto pop = new Menu(parent.getShell, SWT.POP_UP);
 				createMenuItem(pop, prop.msgs.menuCEdit, prop.images.menuCEdit, &edit);
-				new MenuItem(pop, DWT.SEPARATOR);
+				new MenuItem(pop, SWT.SEPARATOR);
 				createMenuItem(pop, _prop.msgs.menuEditUseEvent, _prop.images.menuEditUseEvent, &editUseEvent);
-				new MenuItem(pop, DWT.SEPARATOR);
+				new MenuItem(pop, SWT.SEPARATOR);
 				appendMenuTCPD(_prop, pop, this);
 			} else static if (is (C == InfoCard)) {
-				auto pop = new Menu(parent.getShell, DWT.POP_UP);
+				auto pop = new Menu(parent.getShell, SWT.POP_UP);
 				createMenuItem(pop, prop.msgs.menuCEdit, prop.images.menuCEdit, &edit);
-				new MenuItem(pop, DWT.SEPARATOR);
+				new MenuItem(pop, SWT.SEPARATOR);
 				appendMenuTCPD(_prop, pop, this);
 			} else {
 				static assert (0);
 			}
-			new MenuItem(pop, DWT.SEPARATOR);
+			new MenuItem(pop, SWT.SEPARATOR);
 			createMenuItem(pop, _prop.msgs.menuReNumbering, _prop.images.menuReNumbering, &reNumbering);
 		} else {
-			auto pop = new Menu(parent.getShell, DWT.POP_UP);
+			auto pop = new Menu(parent.getShell, SWT.POP_UP);
 			static if (is (C == CastCard)) {
 				createMenuItem(pop, _prop.msgs.menuOpenHand, _prop.images.menuOpenHand, _openHand);
-				new MenuItem(pop, DWT.SEPARATOR);
+				new MenuItem(pop, SWT.SEPARATOR);
 			}
 			createMenuItem(pop, _prop.msgs.menuAdd, _prop.images.menuAdd, &addCard);
-			new MenuItem(pop, DWT.SEPARATOR);
+			new MenuItem(pop, SWT.SEPARATOR);
 			appendMenuTCPD(_prop, pop, this, false, true, false, false);
 		}
 		_list.setMenu = pop;
@@ -1397,24 +1397,24 @@ public:
 		Shell shell = null;
 		auto parShl = cast(Shell) parent;
 		if (parShl) {
-			shell = new Shell(parShl, DWT.SHELL_TRIM);
+			shell = new Shell(parShl, SWT.SHELL_TRIM);
 			shell.setImage = prop.images.app;
 			_win = shell;
 		} else {
-			_win = new Composite(parent, DWT.NONE);
+			_win = new Composite(parent, SWT.NONE);
 		}
 		_win.setData = new TLPData(this);
 		_win.setLayout = new FillLayout;
-		_comp = new Composite(_win, DWT.NONE);
+		_comp = new Composite(_win, SWT.NONE);
 		_comp.setLayout = windowGridLayout(1, true);
 		if (shell) {
 			{
-				auto bar = new Menu(shell, DWT.BAR);
+				auto bar = new Menu(shell, SWT.BAR);
 
 				auto mf = createMenu(bar, prop.msgs.menuFile);
 				static if (EditMode) {
 					createMenuItem(mf, prop.msgs.menuSave, prop.images.menuSave, &saveScenario);
-					new MenuItem(mf, DWT.SEPARATOR);
+					new MenuItem(mf, SWT.SEPARATOR);
 				}
 				createMenuItem(mf, prop.msgs.menuCloseWin, prop.images.menuCloseWin, &shell.close);
 
@@ -1423,24 +1423,24 @@ public:
 					appendMenuTCPD(prop, me, this);
 				} else {
 					createMenuItem(me, prop.msgs.menuAdd, prop.images.menuAdd, &addCard);
-					new MenuItem(me, DWT.SEPARATOR);
+					new MenuItem(me, SWT.SEPARATOR);
 					appendMenuTCPD(prop, me, this, false, true, false, false);
 				}
 
 				auto mv = createMenu(bar, prop.msgs.menuView);
 				static if (EditMode) {
 					createMenuItem(mv, prop.msgs.menuRefresh, prop.images.menuRefresh, &__refresh);
-					new MenuItem(mv, DWT.SEPARATOR);
+					new MenuItem(mv, SWT.SEPARATOR);
 				}
-				_lifeM = createMenuItem(mv, prop.msgs.menuShowCardLife, prop.images.menuShowCardLife, &showCardLife, DWT.RADIO);
-				_listM = createMenuItem(mv, prop.msgs.menuShowCardList, prop.images.menuShowCardList, &showCardList, DWT.RADIO);
-				_tblM = createMenuItem(mv, prop.msgs.menuShowCardTable, prop.images.menuShowCardTable, &showCardTable, DWT.RADIO);
+				_lifeM = createMenuItem(mv, prop.msgs.menuShowCardLife, prop.images.menuShowCardLife, &showCardLife, SWT.RADIO);
+				_listM = createMenuItem(mv, prop.msgs.menuShowCardList, prop.images.menuShowCardList, &showCardList, SWT.RADIO);
+				_tblM = createMenuItem(mv, prop.msgs.menuShowCardTable, prop.images.menuShowCardTable, &showCardTable, SWT.RADIO);
 
 				static if (EditMode) {
 					auto mt = createMenu(bar, prop.msgs.menuNewCards);
 					static if (is (CardOwner == Summary)) {
 						createMenuItem(mt, prop.msgs.menuAddScenario, prop.images.menuAddScenario, &addScenario);
-						new MenuItem(mt, DWT.SEPARATOR);
+						new MenuItem(mt, SWT.SEPARATOR);
 					}
 					static if (UseCast) createMenuItem(mt, prop.msgs.menuNewCast, prop.images.menuNewCast, &create!(CAST));
 					static if (UseSkill) createMenuItem(mt, prop.msgs.menuNewSkill, prop.images.menuNewSkill, &create!(SKILL));
@@ -1451,16 +1451,16 @@ public:
 				shell.setMenuBar = bar;
 			}
 			{
-				auto bar = new ToolBar(_comp, DWT.FLAT);
+				auto bar = new ToolBar(_comp, SWT.FLAT);
 				static if (EditMode) {
 					static if (is (CardOwner == Summary)) {
 						createToolItem(bar, prop.msgs.ttAddScenario, prop.images.menuAddScenario, &addScenario);
-						new ToolItem(bar, DWT.SEPARATOR);
+						new ToolItem(bar, SWT.SEPARATOR);
 					}
 				}
 				static if (EditMode) {
 					createToolItem(bar, prop.msgs.ttRefresh, prop.images.menuRefresh, &__refresh);
-					new ToolItem(bar, DWT.SEPARATOR);
+					new ToolItem(bar, SWT.SEPARATOR);
 					static if (UseCast) createToolItem(bar, prop.msgs.ttNewCast, prop.images.menuNewCast, &create!(CAST));
 					static if (UseSkill) createToolItem(bar, prop.msgs.ttNewSkill, prop.images.menuNewSkill, &create!(SKILL));
 					static if (UseItem) createToolItem(bar, prop.msgs.ttNewItem, prop.images.menuNewItem, &create!(ITEM));
@@ -1469,10 +1469,10 @@ public:
 				} else {
 					createToolItem(bar, prop.msgs.ttAdd, prop.images.menuAdd, &addCard);
 				}
-				new ToolItem(bar, DWT.SEPARATOR);
-				_lifeT = createToolItem(bar, prop.msgs.ttShowCardLife, prop.images.menuShowCardLife, &showCardLife, DWT.RADIO);
-				_listT = createToolItem(bar, prop.msgs.ttShowCardList, prop.images.menuShowCardList, &showCardList, DWT.RADIO);
-				_tblT = createToolItem(bar, prop.msgs.ttShowCardTable, prop.images.menuShowCardTable, &showCardTable, DWT.RADIO);
+				new ToolItem(bar, SWT.SEPARATOR);
+				_lifeT = createToolItem(bar, prop.msgs.ttShowCardLife, prop.images.menuShowCardLife, &showCardLife, SWT.RADIO);
+				_listT = createToolItem(bar, prop.msgs.ttShowCardList, prop.images.menuShowCardList, &showCardList, SWT.RADIO);
+				_tblT = createToolItem(bar, prop.msgs.ttShowCardTable, prop.images.menuShowCardTable, &showCardTable, SWT.RADIO);
 			}
 		} else {
 			static if (EditMode) {
@@ -1493,7 +1493,7 @@ public:
 			putMenuChecked(MenuID.ShowCardList, &showCardList, &isViewList);
 			putMenuChecked(MenuID.ShowCardTable, &showCardTable, &isViewTable);
 		}
-		_tabf = new CTabFolder(_comp, DWT.BORDER);
+		_tabf = new CTabFolder(_comp, SWT.BORDER);
 		_tabf.setLayoutData = new GridData(GridData.FILL_BOTH);
 		_tabf.addSelectionListener(new SelChanged);
 
@@ -1670,7 +1670,7 @@ public:
 			}
 		}
 		foreach (i, f; _pane) {
-			_tab[i] = new CTabItem(_tabf, DWT.NONE);
+			_tab[i] = new CTabItem(_tabf, SWT.NONE);
 			static if (UseCast) {
 				if (i == CAST) _tab[i].setText = _prop.msgs.casts;
 			}
@@ -1691,7 +1691,7 @@ public:
 		}
 		auto shell = cast(Shell) _win;
 		if (shell) {
-			_status = new Label(_comp, DWT.NONE);
+			_status = new Label(_comp, SWT.NONE);
 			_status.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		}
 
@@ -1704,11 +1704,11 @@ public:
 			showCardList;
 		}
 		if (shell) {
-			scope wp = shell.computeSize(DWT.DEFAULT, DWT.DEFAULT);
-			int width = _prop.var.cardWin.width == DWT.DEFAULT ? wp.x : _prop.var.cardWin.width;
+			scope wp = shell.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+			int width = _prop.var.cardWin.width == SWT.DEFAULT ? wp.x : _prop.var.cardWin.width;
 			static if (is (CardOwner == Summary)) {
-				int x = _prop.var.cardWin.x == DWT.DEFAULT ? shell.getBounds.x : _prop.var.cardWin.x + shell.getParent.getBounds.x;
-				int y = _prop.var.cardWin.y == DWT.DEFAULT ? shell.getBounds.y : _prop.var.cardWin.y + shell.getParent.getBounds.y;
+				int x = _prop.var.cardWin.x == SWT.DEFAULT ? shell.getBounds.x : _prop.var.cardWin.x + shell.getParent.getBounds.x;
+				int y = _prop.var.cardWin.y == SWT.DEFAULT ? shell.getBounds.y : _prop.var.cardWin.y + shell.getParent.getBounds.y;
 				intoDisplay(x, y, width, _prop.var.cardWin.height);
 				shell.setBounds(x, y, width, _prop.var.cardWin.height);
 				shell.setMaximized = _prop.var.cardWin.maximized;
