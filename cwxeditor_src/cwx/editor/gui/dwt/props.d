@@ -412,6 +412,9 @@ public:
 	Image menuClosePaneLeft() {return imgd!(resourceDir ~ "close_pane_l.png");}
 	Image menuClosePaneRight() {return imgd!(resourceDir ~ "close_pane_r.png");}
 	Image menuClosePaneAll() {return imgd!(resourceDir ~ "close_pane_a.png");}
+
+	Image menuLockBar() {return imgd!(resourceDir ~ "lock_bar.png");}
+	Image menuResetBar() {return imgd!(resourceDir ~ "reset_bar.png");}
 }
 
 enum MenuID : int {

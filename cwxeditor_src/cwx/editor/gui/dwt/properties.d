@@ -23,7 +23,6 @@ private:
 
 struct PropValue(string PKey, T, T Default, bool ReadOnly) {
 	private T _value = Default;
-	T defaultValue() {return Default;}
 	string key() {
 		return PKey;
 	}
@@ -37,9 +36,7 @@ struct PropValue(string PKey, T, T Default, bool ReadOnly) {
 			_value = value;
 		}
 	}
-	T init() {
-		return Default;
-	}
+	static T init() {return Default;}
 	void toNode(ref XNode node) {
 		static if (is (typeof(_value.toNode))) {
 			_value.toNode(node);
@@ -118,6 +115,7 @@ abstract class Properties {
 			~ "\"" ~ Name ~ "\", " ~ VType.stringof ~ ", " ~ Default.stringof ~ ", " ~ ReadOnly.stringof ~ ") "
 			~ "_" ~ Name ~ ";");
 		mixin (VType.stringof ~ " " ~ Name ~ "() {return _" ~ Name ~ "();}");
+		mixin (VType.stringof ~ " " ~ Name ~ "_init() {return Default;}");
 		static if (!ReadOnly) {
 			mixin ("void " ~ Name ~ "(" ~ VType.stringof ~ " value) {_" ~ Name ~ " = value;}");
 		}
@@ -430,6 +428,7 @@ struct BgImageS {
 
 class FlexEtcProps : Properties {
 	mixin Property!("singleWindow", bool, true);
+	mixin Property!("toolsLock", bool, false);
 	mixin Property!("toolsOrder", int[], []);
 	mixin Property!("toolsWrapIndices", int[], [8]);
 	mixin Property!("directorySashL", int, 2);
@@ -513,6 +512,7 @@ class FlexEtcProps : Properties {
 	mixin Property!("cardsSpaceY", int, 8, true);
 	mixin Property!("cardsDefaultWrap", int, 4, true);
 	mixin Property!("contentsOrder", int[], []);
+	mixin Property!("contentsLock", bool, false);
 	mixin Property!("contentsWrapIndices", int[], [4, 6, 8]);
 	mixin Property!("contentsAutoOpen", bool, true);
 	mixin Property!("contentsContinue", bool, false);

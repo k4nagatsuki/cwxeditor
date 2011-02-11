@@ -84,6 +84,8 @@ import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.ControlAdapter;
+import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.PaletteData;
 import org.eclipse.swt.graphics.Image;
@@ -1938,6 +1940,96 @@ void writeRec(Control c, string tab = "") {
 	}
 }
 
+private class CBarListener(string Name) : ControlAdapter, DisposeListener {
+	private Props _prop;
+	private CoolBar _cbar;
+	MenuItem _lock;
+	this (Props prop, CoolBar cbar) {
+		_prop = prop;
+		_cbar = cbar;
+	}
+	override void widgetDisposed(DisposeEvent e) {
+		auto cbar = cast(CoolBar) e.widget;
+		int[] ixs;
+		for (int i = 0; i < _cbar.getItemCount; i++) {
+			ixs ~= i;
+		}
+		mixin ("_prop.var.etc." ~ Name ~ "Lock = cbar.getLocked;");
+		if (ixs == cbar.getItemOrder) {
+			mixin ("_prop.var.etc." ~ Name ~ "Order = [];");
+		} else {
+			mixin ("_prop.var.etc." ~ Name ~ "Order = cbar.getItemOrder;");
+		}
+		mixin ("_prop.var.etc." ~ Name ~ "WrapIndices = cbar.getWrapIndices;");
+	}
+	override void controlResized(ControlEvent e) {
+		auto cbar = cast(CoolBar) e.widget;
+		cbar.getShell.layout;
+	}
+	void reset() {
+		int[] ixs;
+		for (int i = 0; i < _cbar.getItemCount; i++) {
+			ixs ~= i;
+		}
+		_cbar.setItemOrder = ixs;
+		_cbar.setWrapIndices = mixin ("_prop.var.etc." ~ Name ~ "WrapIndices_init");
+		auto lock = _cbar.getLocked;
+		scope (exit) _cbar.setLocked = lock;
+		_cbar.setLocked = false;
+		foreach_reverse (i; _cbar.getItemOrder) {
+			resetCISize(_cbar.getItem(i));
+		}
+	}
+	void lock() {
+		_cbar.setLocked = !_cbar.getLocked;
+		if (_lock) _lock.setSelection = _cbar.getLocked;
+	}
+}
+CoolBar createCoolBar(string Name)(Props prop, Composite parent,
+		void delegate(CoolBar) setupItems) {
+	auto cbar = new CoolBar(parent, SWT.NONE);
+
+	auto ls = new CBarListener!(Name)(prop, cbar);
+	cbar.addControlListener(ls);
+	cbar.addDisposeListener(ls);
+
+	auto menu = new Menu(parent.getShell, SWT.POP_UP);
+	ls._lock = createMenuItem(menu, prop.msgs.menuLockBar, prop.images.menuLockBar, &ls.lock, SWT.CHECK);
+	new MenuItem(menu, SWT.SEPARATOR);
+	createMenuItem(menu, prop.msgs.menuResetBar,  prop.images.menuResetBar, &ls.reset);
+	cbar.setMenu = menu;
+
+	setupItems(cbar);
+
+	foreach (itm; cbar.getItems) {
+		itm.getControl.setMenu = menu;
+	}
+	if (mixin ("prop.var.etc." ~ Name ~ "Order.length") == cbar.getItemCount) {
+		cbar.setItemOrder = mixin ("prop.var.etc." ~ Name ~ "Order");
+	}
+	int[] wi;
+	foreach (i; mixin ("prop.var.etc." ~ Name ~ "WrapIndices")) {
+		if (i > 0 && i < cbar.getItemCount) wi ~= i;
+	}
+	if (wi != cbar.getWrapIndices) cbar.setWrapIndices = wi;
+	foreach_reverse (i; cbar.getItemOrder) {
+		resetCISize(cbar.getItem(i));
+	}
+	cbar.setLocked = mixin ("prop.var.etc." ~ Name ~ "Lock");
+	ls._lock.setSelection = cbar.getLocked;
+	return cbar;
+}
+
+void resetCISize(CoolItem itm) {
+	auto p = itm.getControl.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+	version (linux) {
+		// FIXME: スペースはあるのに末尾のアイコンが見えなくなる
+		//        GNOME 2.30.2
+		p.x += 10;
+	}
+	itm.setMinimumSize(p.x, p.y);
+}
+
 CoolItem createCoolItem(CoolBar cbar, ToolBar tbar, int index = -1) {
 	CoolItem itm;
 	if (index >= 0) {
@@ -1946,14 +2038,6 @@ CoolItem createCoolItem(CoolBar cbar, ToolBar tbar, int index = -1) {
 		itm = new CoolItem(cbar, SWT.PUSH);
 	}
 	itm.setControl = tbar;
-	auto p = tbar.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-	version (linux) {
-		// FIXME: スペースはあるのに末尾のアイコンが見えなくなる
-		//        GNOME 2.30.2
-		p.x += 10;
-	}
-	itm.setMinimumSize(p.x, p.y);
-	itm.setPreferredSize(p.x, p.y);
 	return itm;
 }
 

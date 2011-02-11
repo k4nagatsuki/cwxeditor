@@ -224,6 +224,11 @@ public:
 	string ttVersion() {return "バージョン情報";}
 	string menuVersion() {return ttVersion ~ "(&A)";}
 
+	string ttLockBar() {return "ツールバーを固定";}
+	string menuLockBar() {return ttLockBar ~ "(&L)";}
+	string ttResetBar() {return "配置をリセット";}
+	string menuResetBar() {return ttResetBar ~ "(&R)";}
+
 	string summary() {return "シナリオの設定";}
 	string area() {return "エリア";}
 	string battle() {return "バトル";}

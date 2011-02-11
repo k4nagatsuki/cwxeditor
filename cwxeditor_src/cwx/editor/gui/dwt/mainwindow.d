@@ -460,13 +460,6 @@ private:
 			}
 		}
 	}
-	class CDListener : DisposeListener {
-		override void widgetDisposed(DisposeEvent e) {
-			auto cbar = cast(CoolBar) e.widget;
-			_prop.var.etc.toolsWrapIndices = _cbar.getWrapIndices;
-			_prop.var.etc.toolsOrder = _cbar.getItemOrder;
-		}
-	}
 	void settings() {
 		string[] oldHist = _prop.var.etc.openHistories;
 		scope (exit) {
@@ -1054,137 +1047,127 @@ public:
 		_noSummMenu.add(MenuID.Version);
 
 		if (_prop.var.etc.singleWindow) {
-			auto cbar = new CoolBar(toolComp, SWT.NONE);
-			cbar.addControlListener(new CCListener);
-			cbar.addDisposeListener(new CDListener);
-			_cbar = cbar;
-			void createCoolItem(CoolBar cbar, ToolBar tbar) {
-				.createCoolItem(cbar, tbar);
-				_toolBar ~= tbar;
-			}
-			{
-				auto bar = new ToolBar(cbar, SWT.FLAT);
-				mixin (ToolAction!("bar", "New", SWT.PUSH, "createScenario"));
-				mixin (ToolAction!("bar", "Open", SWT.PUSH, "openScenarioM"));
-				mixin (ToolAction!("bar", "Save", SWT.PUSH, "saveScenario"));
-				mixin (ToolAction!("bar", "SaveA", SWT.PUSH, "saveScenarioA"));
-				new ToolItem(bar, SWT.SEPARATOR);
-				mixin (ToolAction!("bar", "Reload", SWT.PUSH, "reload"));
-				createCoolItem(cbar, bar);
-			}
-			{
-				auto bar = new ToolBar(cbar, SWT.FLAT);
-				mixin (ToolAction!("bar", "Refresh", SWT.PUSH, "refreshAll"));
-				createCoolItem(cbar, bar);
-			}
-			{
-				auto bar = new ToolBar(cbar, SWT.FLAT);
-				mixin (ToolAction!("bar", "Undo"));
-				mixin (ToolAction!("bar", "Redo"));
-				createCoolItem(cbar, bar);
-			}
-			{
-				auto bar = new ToolBar(cbar, SWT.FLAT);
-				mixin (ToolAction!("bar", "Cut"));
-				mixin (ToolAction!("bar", "Copy"));
-				mixin (ToolAction!("bar", "Paste"));
-				mixin (ToolAction!("bar", "Del"));
-				createCoolItem(cbar, bar);
-			}
-			{
-				auto bar = new ToolBar(cbar, SWT.FLAT);
-				mixin (ToolAction!("bar", "Up"));
-				mixin (ToolAction!("bar", "Down"));
-				createCoolItem(cbar, bar);
-			}
-			{
-				auto bar = new ToolBar(cbar, SWT.FLAT);
-				mixin (ToolAction!("bar", "ReplaceText", SWT.PUSH, "replaceText"));
-				new ToolItem(bar, SWT.SEPARATOR);
-				mixin (ToolAction!("bar", "ReNumberingAll", SWT.PUSH, "reNumberingAll"));
-				new ToolItem(bar, SWT.SEPARATOR);
-				mixin (ToolAction!("bar", "ToXML", SWT.PUSH, "clipboardToXML"));
-				createCoolItem(cbar, bar);
-			}
-			{
-				auto bar = new ToolBar(cbar, SWT.FLAT);
-				mixin (ToolAction!("bar", "DataWin", SWT.PUSH, "openDataWindow"));
-				mixin (ToolAction!("bar", "FlagWin", SWT.PUSH, "openFlagWindow"));
-				mixin (ToolAction!("bar", "CardWin", SWT.PUSH, "openCardWindow"));
-				mixin (ToolAction!("bar", "DirWin", SWT.PUSH, "openDirWindow"));
-				createCoolItem(cbar, bar);
-			}
-			{
-				auto bar = new ToolBar(cbar, SWT.FLAT);
-				mixin (ToolAction!("bar", "ChangeVH"));
-				createCoolItem(cbar, bar);
-			}
-			{
-				auto bar = new ToolBar(cbar, SWT.FLAT);
-				mixin (ToolAction!("bar", "Summary", SWT.PUSH, "_tableWin.editSummary"));
-				new ToolItem(bar, SWT.SEPARATOR);
-				mixin (ToolAction!("bar", "NewArea", SWT.PUSH, "_tableWin.createArea"));
-				mixin (ToolAction!("bar", "NewBattle", SWT.PUSH, "_tableWin.createBattle"));
-				mixin (ToolAction!("bar", "NewPackage", SWT.PUSH, "_tableWin.createPackage"));
-				new ToolItem(bar, SWT.SEPARATOR);
-				mixin (ToolAction!("bar", "NewFlagDir", SWT.PUSH, "_flagWin.createFlagDir"));
-				mixin (ToolAction!("bar", "NewFlag", SWT.PUSH, "_flagWin.createFlag"));
-				mixin (ToolAction!("bar", "NewStep", SWT.PUSH, "_flagWin.createStep"));
-				createCoolItem(cbar, bar);
-			}
-			{
-				auto bar = new ToolBar(cbar, SWT.FLAT);
-				auto g = new RadioGroup!(ToolItem);
-				mixin (ToolAction!("bar", "ShowCardLife", SWT.RADIO, "showCardLife"));
-				auto scf = _tool[MenuID.ShowCardLife];
-				g.append(scf);
-				mixin (ToolAction!("bar", "ShowCardList", SWT.RADIO, "showCardList"));
-				auto scl = _tool[MenuID.ShowCardList];
-				g.append(scl);
-				mixin (ToolAction!("bar", "ShowCardTable", SWT.RADIO, "showCardTable"));
-				auto sct = _tool[MenuID.ShowCardTable];
-				g.append(sct);
-				if (_prop.var.etc.cardLife) {
-					scf.setSelection = true;
-				} else if (_prop.var.etc.cardDetails) {
-					sct.setSelection = true;
-				} else {
-					scl.setSelection = true;
+			_cbar = createCoolBar!("tools")(_prop, toolComp, (CoolBar cbar) {
+				void createCoolItem(CoolBar cbar, ToolBar tbar) {
+					.createCoolItem(cbar, tbar);
+					_toolBar ~= tbar;
 				}
-				_toolRG ~= g;
-				new ToolItem(bar, SWT.SEPARATOR);
-				mixin (ToolAction!("bar", "NewCast", SWT.PUSH, "newCast"));
-				mixin (ToolAction!("bar", "NewSkill", SWT.PUSH, "newSkill"));
-				mixin (ToolAction!("bar", "NewItem", SWT.PUSH, "newItem"));
-				mixin (ToolAction!("bar", "NewBeast", SWT.PUSH, "newBeast"));
-				mixin (ToolAction!("bar", "NewInfo", SWT.PUSH, "newInfo"));
-				new ToolItem(bar, SWT.SEPARATOR);
-				mixin (ToolAction!("bar", "AddScenario", SWT.PUSH, "_cardWin.addScenario"));
-				createCoolItem(cbar, bar);
-			}
-			{
-				auto bar = new ToolBar(cbar, SWT.FLAT);
-				mixin (ToolAction!("bar", "OpenDirectory", SWT.PUSH, "openDirectory"));
-				mixin (ToolAction!("bar", "NewFolder"));
-				createCoolItem(cbar, bar);
-			}
-			{
-				auto bar = new ToolBar(cbar, SWT.FLAT);
-				mixin (ToolAction!("bar", "ExecEngine", SWT.PUSH, "execEngine"));
-				new ToolItem(bar, SWT.SEPARATOR);
-				mixin (ToolAction!("bar", "Settings", SWT.PUSH, "settings"));
-				createCoolItem(cbar, bar);
-			}
-			int[] wi;
-			foreach (i; _prop.var.etc.toolsWrapIndices) {
-				if (i > 0 && i < cbar.getItemCount) wi ~= i;
-			}
-			cbar.setWrapIndices(wi);
-			if (_prop.var.etc.toolsOrder.length == cbar.getItemCount) {
-				cbar.setItemOrder(_prop.var.etc.toolsOrder);
-			}
+				{
+					auto bar = new ToolBar(cbar, SWT.FLAT);
+					mixin (ToolAction!("bar", "New", SWT.PUSH, "createScenario"));
+					mixin (ToolAction!("bar", "Open", SWT.PUSH, "openScenarioM"));
+					mixin (ToolAction!("bar", "Save", SWT.PUSH, "saveScenario"));
+					mixin (ToolAction!("bar", "SaveA", SWT.PUSH, "saveScenarioA"));
+					new ToolItem(bar, SWT.SEPARATOR);
+					mixin (ToolAction!("bar", "Reload", SWT.PUSH, "reload"));
+					createCoolItem(cbar, bar);
+				}
+				{
+					auto bar = new ToolBar(cbar, SWT.FLAT);
+					mixin (ToolAction!("bar", "Refresh", SWT.PUSH, "refreshAll"));
+					createCoolItem(cbar, bar);
+				}
+				{
+					auto bar = new ToolBar(cbar, SWT.FLAT);
+					mixin (ToolAction!("bar", "Undo"));
+					mixin (ToolAction!("bar", "Redo"));
+					createCoolItem(cbar, bar);
+				}
+				{
+					auto bar = new ToolBar(cbar, SWT.FLAT);
+					mixin (ToolAction!("bar", "Cut"));
+					mixin (ToolAction!("bar", "Copy"));
+					mixin (ToolAction!("bar", "Paste"));
+					mixin (ToolAction!("bar", "Del"));
+					createCoolItem(cbar, bar);
+				}
+				{
+					auto bar = new ToolBar(cbar, SWT.FLAT);
+					mixin (ToolAction!("bar", "Up"));
+					mixin (ToolAction!("bar", "Down"));
+					createCoolItem(cbar, bar);
+				}
+				{
+					auto bar = new ToolBar(cbar, SWT.FLAT);
+					mixin (ToolAction!("bar", "ReplaceText", SWT.PUSH, "replaceText"));
+					new ToolItem(bar, SWT.SEPARATOR);
+					mixin (ToolAction!("bar", "ReNumberingAll", SWT.PUSH, "reNumberingAll"));
+					new ToolItem(bar, SWT.SEPARATOR);
+					mixin (ToolAction!("bar", "ToXML", SWT.PUSH, "clipboardToXML"));
+					createCoolItem(cbar, bar);
+				}
+				{
+					auto bar = new ToolBar(cbar, SWT.FLAT);
+					mixin (ToolAction!("bar", "DataWin", SWT.PUSH, "openDataWindow"));
+					mixin (ToolAction!("bar", "FlagWin", SWT.PUSH, "openFlagWindow"));
+					mixin (ToolAction!("bar", "CardWin", SWT.PUSH, "openCardWindow"));
+					mixin (ToolAction!("bar", "DirWin", SWT.PUSH, "openDirWindow"));
+					createCoolItem(cbar, bar);
+				}
+				{
+					auto bar = new ToolBar(cbar, SWT.FLAT);
+					mixin (ToolAction!("bar", "ChangeVH"));
+					createCoolItem(cbar, bar);
+				}
+				{
+					auto bar = new ToolBar(cbar, SWT.FLAT);
+					mixin (ToolAction!("bar", "Summary", SWT.PUSH, "_tableWin.editSummary"));
+					new ToolItem(bar, SWT.SEPARATOR);
+					mixin (ToolAction!("bar", "NewArea", SWT.PUSH, "_tableWin.createArea"));
+					mixin (ToolAction!("bar", "NewBattle", SWT.PUSH, "_tableWin.createBattle"));
+					mixin (ToolAction!("bar", "NewPackage", SWT.PUSH, "_tableWin.createPackage"));
+					new ToolItem(bar, SWT.SEPARATOR);
+					mixin (ToolAction!("bar", "NewFlagDir", SWT.PUSH, "_flagWin.createFlagDir"));
+					mixin (ToolAction!("bar", "NewFlag", SWT.PUSH, "_flagWin.createFlag"));
+					mixin (ToolAction!("bar", "NewStep", SWT.PUSH, "_flagWin.createStep"));
+					createCoolItem(cbar, bar);
+				}
+				{
+					auto bar = new ToolBar(cbar, SWT.FLAT);
+					auto g = new RadioGroup!(ToolItem);
+					mixin (ToolAction!("bar", "ShowCardLife", SWT.RADIO, "showCardLife"));
+					auto scf = _tool[MenuID.ShowCardLife];
+					g.append(scf);
+					mixin (ToolAction!("bar", "ShowCardList", SWT.RADIO, "showCardList"));
+					auto scl = _tool[MenuID.ShowCardList];
+					g.append(scl);
+					mixin (ToolAction!("bar", "ShowCardTable", SWT.RADIO, "showCardTable"));
+					auto sct = _tool[MenuID.ShowCardTable];
+					g.append(sct);
+					if (_prop.var.etc.cardLife) {
+						scf.setSelection = true;
+					} else if (_prop.var.etc.cardDetails) {
+						sct.setSelection = true;
+					} else {
+						scl.setSelection = true;
+					}
+					_toolRG ~= g;
+					new ToolItem(bar, SWT.SEPARATOR);
+					mixin (ToolAction!("bar", "NewCast", SWT.PUSH, "newCast"));
+					mixin (ToolAction!("bar", "NewSkill", SWT.PUSH, "newSkill"));
+					mixin (ToolAction!("bar", "NewItem", SWT.PUSH, "newItem"));
+					mixin (ToolAction!("bar", "NewBeast", SWT.PUSH, "newBeast"));
+					mixin (ToolAction!("bar", "NewInfo", SWT.PUSH, "newInfo"));
+					new ToolItem(bar, SWT.SEPARATOR);
+					mixin (ToolAction!("bar", "AddScenario", SWT.PUSH, "_cardWin.addScenario"));
+					createCoolItem(cbar, bar);
+				}
+				{
+					auto bar = new ToolBar(cbar, SWT.FLAT);
+					mixin (ToolAction!("bar", "OpenDirectory", SWT.PUSH, "openDirectory"));
+					mixin (ToolAction!("bar", "NewFolder"));
+					createCoolItem(cbar, bar);
+				}
+				{
+					auto bar = new ToolBar(cbar, SWT.FLAT);
+					mixin (ToolAction!("bar", "ExecEngine", SWT.PUSH, "execEngine"));
+					new ToolItem(bar, SWT.SEPARATOR);
+					mixin (ToolAction!("bar", "Settings", SWT.PUSH, "settings"));
+					createCoolItem(cbar, bar);
+				}
+			});
 
-			auto drop = new DropTarget(cbar, DND.DROP_DEFAULT | DND.DROP_LINK);
+			auto drop = new DropTarget(_cbar, DND.DROP_DEFAULT | DND.DROP_LINK);
 			drop.setTransfer([FileTransfer.getInstance]);
 			drop.addDropListener(new DTListener);
 
@@ -1233,11 +1216,6 @@ public:
 			_win.setBounds(tx, ty, _win.getSize.x, _win.getSize.y);
 		}
 		if (_dock) dockSelect("data");
-	}
-	private class CCListener : ControlAdapter {
-		override void controlResized(ControlEvent e) {
-			_win.layout;
-		}
 	}
 	private template NewCard(string Name) {
 		static const NewCard = "auto cw = cast(ICardWindow) _tlp;"
