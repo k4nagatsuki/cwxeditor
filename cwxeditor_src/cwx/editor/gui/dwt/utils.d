@@ -1947,6 +1947,11 @@ CoolItem createCoolItem(CoolBar cbar, ToolBar tbar, int index = -1) {
 	}
 	itm.setControl = tbar;
 	auto p = tbar.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+	version (linux) {
+		// FIXME: スペースはあるのに末尾のアイコンが見えなくなる
+		//        GNOME 2.30.2
+		p.x += 10;
+	}
 	itm.setMinimumSize(p.x, p.y);
 	itm.setPreferredSize(p.x, p.y);
 	return itm;

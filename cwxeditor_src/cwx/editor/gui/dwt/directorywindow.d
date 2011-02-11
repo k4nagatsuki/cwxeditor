@@ -86,7 +86,7 @@ version (Windows) {
 	import std.c.linux.linux;
 	private extern (C) {
 		uint sleep(uint);
-		int inotify_init1(int);
+		int inotify_init();
 		int inotify_add_watch(int, char*, uint);
 		const IN_NONBLOCK = 0x4000;
 		const IN_MODIFY = 0x0002;
@@ -1242,7 +1242,7 @@ private:
 			extern (C) int h = -1;
 			bool setup() {
 				if (h != -1) close(h);
-				h = inotify_init1(IN_NONBLOCK);
+				h = inotify_init();
 				if (h == -1) return false;
 				void put(string path) {
 					foreach (file; clistdir(path)) {
@@ -1266,7 +1266,7 @@ private:
 					if (summ !is _summ) {
 						summ = _summ;
 						if (!setup) {
-							debugln("inotify_init1() failed");
+							debugln("inotify_init() failed");
 							continue;
 						}
 					}

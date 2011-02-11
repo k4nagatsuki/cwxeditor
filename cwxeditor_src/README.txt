@@ -77,6 +77,21 @@ build_releaseです。後はbudが一晩でやってくれました。
 
 [ linuxの場合 ]
 
+　ビルドはできますが非常に不安定です。
+
+
+/ 事前に必要なパッケージ /
+
+　apt-get等で手に入れておきましょう。
+
+・rake
+・libgtk2.0-dev
+・libxtst-dev
+・libgnomeui-dev
+
+
+/ DライブラリとCWXEditorのビルド /
+
 　まずはTango(dmdのバンドル版がいい感じです)を手に入れてパスを通して使えるように
 しておきましょう。
 　http://downloads.dsource.org/projects/tango/0.99.9/tango-0.99.9-bin-linux-with-dmd.1.056.tar.gz
@@ -100,9 +115,14 @@ cd dwt2
 hg patch dwt2-rev.111_cwx.patch
 ---
 　こんな感じで。
+　さらに、org.eclipse.swt.browserがあると余計な依存関係が発生するので、
+消すか、どこかへ移動してしまう必要があります。
+---
+mv org.eclipse.swt.gtk.linux.x86/src/org/eclipse/swt/browser .
+---
 
-　DWT2はビルドにrakeを使います。apt-getなりで手に入れておいてください。
-　rakeが使えるようになったら、"base"と"swt"をビルドし、ライブラリを作ります。
+　DWT2はビルドにrakeを使います。
+　rakeで"base"と"swt"をビルドし、ライブラリを作りましょう。
 　 dwt-base.a
 　 org.eclipse.swt.gtk.linux.x86.a
 　dwt2/libにある状態では何をどうしてもリンクできなかったので、cwxeditor_src/
