@@ -1,15 +1,12 @@
 
 module cwx.binary;
 
+private import cwx.utils : enforce;
+
 private import std.compat;
 private import std.metastrings : ToString;
 private import std.stream : InputStream, OutputStream;
 
-private void enforce(lazy bool ok, lazy Exception e) {
-	if (!ok) {
-		throw e;
-	}
-}
 private string repeat(string s, int count) {
 	string buf;
 	for (int i = 0; i < count; i++) buf ~= s;

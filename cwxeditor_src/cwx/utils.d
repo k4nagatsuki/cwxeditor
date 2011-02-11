@@ -466,6 +466,13 @@ int qsearch(T)(in T[] ds, T c) {
 	assert (qsearch([1, 2, 4, 8, 16, 32, 64, 128, 256], 257) == -1);
 }
 
+/// D2のenforceの代替。
+void enforce(lazy bool ok, lazy Exception e) {
+	if (!ok) {
+		throw e;
+	}
+}
+
 private template isAssociativeArray(T) {
 	const bool isAssociativeArray = is(T.init.keys) && is(T.init.values);
 }

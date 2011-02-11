@@ -630,7 +630,7 @@ private:
 					_play.setToolTipText = _prop.msgs.stopBGM(getBaseName(path));
 					_play.setImage = _prop.images.stopBGM;
 					_playing = path;
-					playBGM(path);
+					playBGM(path, _summ.legacy);
 				} else {
 					_play.setSelection = false;
 					_playing = null;
@@ -731,7 +731,7 @@ private:
 		private void play() {
 			auto path = _msel.filePath;
 			if (path.length > 0) {
-				playSE(path);
+				playSE(path, _summ.legacy);
 			}
 		}
 		override void mouseUp(MouseEvent e) {}

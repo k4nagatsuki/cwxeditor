@@ -3,11 +3,19 @@ module cwx.editor.gui.sound;
 
 import std.compat;
 import std.loader;
+import std.utf;
 
 import cwx.sjis;
-import cwx.utils : debugln;
+import cwx.utils : debugln, enforce;
 
-private extern(C) {
+version (Windows) {
+	import std.c.windows.windows;
+	private extern (Windows) {
+		alias DWORD MCIERROR;
+		alias MCIERROR function(LPCWSTR, LPWSTR, UINT, HANDLE) mciSendStringW;
+	}
+}
+private extern (C) {
 	const uint SDL_INIT_AUDIO = 0x10;
 	version (LittleEndian) {
 		const ushort MIX_DEFAULT_FORMAT = AUDIO_S16LSB;
@@ -40,7 +48,16 @@ private T getSymbol(T)(HXModule mod, string name) {
 	return r;
 }
 
-static this() {
+version (Windows) {
+	private HXModule winmm = null;
+	private void initWinmm() {
+		winmm = ExeModule_Load("winmm.dll");
+		if (!winmm) {
+			debugln("error: winmm.dll initialize");
+		}
+	}
+}
+private void initSdl() {
 	version (Windows) {
 		static const SDL = "SDL.dll";
 		static const MIXER = "SDL_mixer.dll";
@@ -78,6 +95,12 @@ static this() {
 	}
 	debugln("error: SDL_mixer initialize");
 }
+static this() {
+	version (Windows) {
+		initWinmm;
+	}
+	initSdl;
+}
 
 static ~this() {
 	if (sdl) {
@@ -92,12 +115,35 @@ static ~this() {
 	}
 }
 
+version (Windows) {
+	private bool onLegacy = false;
+}
 private Mix_Music *music = null;
 
-private void __play(string file, bool loop) {
-	if (sdl) {
-		try {
-			stopBGM;
+private void __play(string file, bool loop, bool legacy) {
+	stopBGM;
+	onLegacy = legacy;
+	try {
+		version (Windows) {
+			if (winmm && legacy) {
+				auto ss = getSymbol!(mciSendStringW)(winmm, "mciSendStringW");
+				if (!ss) throw new Exception("mciSendStringW()");
+				// mpegvideoにするとなぜかopenが成功する上repeatが利くようになる
+				enforce(0 == ss(toUTF16z("open " ~ file ~ " alias s type mpegvideo"), null, 0, null),
+					new Exception("MCI open: " ~ file));
+				string p = "play s";
+				if (loop) p ~= " repeat";
+				enforce(0 == ss(toUTF16z(p), null, 0, null),
+					new Exception("MCI open: " ~ file));
+				return;
+			}
+		}
+	} catch (Exception e) {
+		debugln(e.msg);
+	}
+	onLegacy = false;
+	try {
+		if (sdl) {
 			if (file.length > 0 && !music) {
 				version (Windows) {
 					// Unicodeで日本語パスを渡すと失敗するので変換しておく
@@ -114,30 +160,35 @@ private void __play(string file, bool loop) {
 					return;
 				}
 			}
-		} catch (Exception e) {
-			debugln(e.msg);
 		}
+	} catch (Exception e) {
+		debugln(e.msg);
 	}
 }
 
 private void __stop() {
-	if (sdl && music) {
-		try {
+	try {
+		if (onLegacy) {
+			auto ss = getSymbol!(mciSendStringW)(winmm, "mciSendStringW");
+			if (!ss) throw new Exception("mciSendStringW()");
+			ss(toUTF16z("stop s"), null, 0, null);
+			ss(toUTF16z("close s"), null, 0, null);
+		} else if (sdl && music) {
 			if (0 == getSymbol!(Mix_HaltMusic)(mixer, "Mix_HaltMusic")()) {
 				getSymbol!(Mix_FreeMusic)(mixer, "Mix_FreeMusic")(music);
 				music = null;
 			} else {
 				debugln("error: Mix_HaltMusic");
 			}
-		} catch (Exception e) {
-			debugln(e);
 		}
+	} catch (Exception e) {
+		debugln(e);
 	}
 }
 
 /// BGMを再生する。
-void playBGM(string path) {
-	__play(path, true);
+void playBGM(string path, bool legacy) {
+	__play(path, true, legacy);
 }
 
 /// BGMを停止する。
@@ -146,8 +197,8 @@ void stopBGM() {
 }
 
 /// 効果音を再生する。
-void playSE(string path) {
-	__play(path, false);
+void playSE(string path, bool legacy) {
+	__play(path, false, legacy);
 }
 
 /// 効果音を停止する。

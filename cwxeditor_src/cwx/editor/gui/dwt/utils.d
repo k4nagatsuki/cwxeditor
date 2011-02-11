@@ -1793,7 +1793,7 @@ Composite createDefSoundCombo(Props prop, Skin skin, Composite parent, out Combo
 		}
 		override void widgetSelected(SelectionEvent e) {
 			if (_combo.getSelectionIndex > 0) {
-				playSE(std.path.join(_skin.seDir, _combo.getText));
+				playSE(std.path.join(_skin.seDir, _combo.getText), _skin.legacy);
 			}
 		}
 	}
