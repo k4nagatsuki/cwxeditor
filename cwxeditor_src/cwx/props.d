@@ -52,9 +52,9 @@ public:
 		} else {
 			static const CWX_EDITOR = "cwxeditor";
 		}
-		return "処理の途中で" ~ application ~ "の制作者が意図していないエラーが発生しました。\n"
+		return "処理の途中で" ~ application ~ "の制作者が意図していないエラーが発生しました。"
 			~ "データが壊れている可能性を考慮して、シナリオを保存せずに終了する事をお勧めします。\n"
-			~ "エラーの内容は" ~ CWX_EDITOR ~ "と同じ" ~ DIR ~ "にある、cwxeditor_error.logに記録されます。";
+			~ "エラー内容は" ~ CWX_EDITOR ~ "と同じ" ~ DIR ~ "にあるcwxeditor_error.logに記録されます。";
 	}
 
 	string dlgTextOK() {return "&OK";}

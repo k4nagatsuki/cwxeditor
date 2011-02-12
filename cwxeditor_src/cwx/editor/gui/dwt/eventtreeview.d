@@ -1331,6 +1331,7 @@ private:
 	}
 	class TDListener : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
+			assert (_toolWin);
 			if (_toolWin.isDisposed) return;
 			if (_toolWin.getVisible) {
 				saveToolWinPos;
@@ -1339,6 +1340,7 @@ private:
 	}
 	class TCListener : ControlAdapter {
 		override void controlMoved(ControlEvent e) {
+			assert (_toolWin);
 			if (_toolWin.isDisposed) return;
 			auto pb = _toolWin.getParent.getBounds;
 			auto tb = _toolWin.getBounds;
@@ -1349,6 +1351,7 @@ private:
 	}
 	class PSListener : ShellAdapter {
 		override void shellActivated(ShellEvent e) {
+			assert (_toolWin);
 			if (_toolWin.isDisposed) return;
 			auto oldAct = _comm.actToolWin;
 			if (oldAct && !oldAct.isDisposed && oldAct.isVisible) {
@@ -1396,6 +1399,7 @@ private:
 	}
 	class TSListener : ShellAdapter {
 		public override void shellClosed(ShellEvent e) {
+			assert (_toolWin);
 			if (_toolWin.isDisposed) return;
 			_toolWin.setVisible = false;
 			e.doit = false;
@@ -2096,8 +2100,8 @@ public:
 	}
 
 	void openToolWindow() {
-		if (_toolWin.isDisposed) return;
 		if (_toolWin) {
+			if (_toolWin.isDisposed) return;
 			if (_et) {
 				if (_opened) {
 					_toolWin.setVisible = true;
@@ -2113,8 +2117,8 @@ public:
 		}
 	}
 	void closeToolWindow() {
-		if (_toolWin.isDisposed) return;
 		if (_toolWin) {
+			if (_toolWin.isDisposed) return;
 			_toolWin.setVisible = false;
 			_toolWinVisible = false;
 		}
