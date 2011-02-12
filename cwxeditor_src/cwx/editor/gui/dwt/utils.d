@@ -1994,6 +1994,8 @@ CoolBar createCoolBar(string Name)(Props prop, Composite parent,
 		void delegate(CoolBar) setupItems) {
 	auto cbar = new CoolBar(parent, SWT.NONE);
 
+	setupItems(cbar);
+
 	auto ls = new CBarListener!(Name)(prop, cbar);
 	cbar.addControlListener(ls);
 	cbar.addDisposeListener(ls);
@@ -2003,8 +2005,6 @@ CoolBar createCoolBar(string Name)(Props prop, Composite parent,
 	new MenuItem(menu, SWT.SEPARATOR);
 	createMenuItem(menu, prop.msgs.menuResetBar,  prop.images.menuResetBar, &ls.reset);
 	cbar.setMenu = menu;
-
-	setupItems(cbar);
 
 	foreach (itm; cbar.getItems) {
 		itm.getControl.setMenu = menu;
@@ -2017,9 +2017,6 @@ CoolBar createCoolBar(string Name)(Props prop, Composite parent,
 		if (i > 0 && i < cbar.getItemCount) wi ~= i;
 	}
 	if (wi != cbar.getWrapIndices) cbar.setWrapIndices = wi;
-	foreach_reverse (i; cbar.getItemOrder) {
-		resetCISize(cbar.getItem(i));
-	}
 	cbar.setLocked = mixin ("prop.var.etc." ~ Name ~ "Lock");
 	ls._lock.setSelection = cbar.getLocked;
 	return cbar;
@@ -2043,6 +2040,7 @@ CoolItem createCoolItem(CoolBar cbar, ToolBar tbar, int index = -1) {
 		itm = new CoolItem(cbar, SWT.PUSH);
 	}
 	itm.setControl = tbar;
+	resetCISize(itm);
 	return itm;
 }
 
