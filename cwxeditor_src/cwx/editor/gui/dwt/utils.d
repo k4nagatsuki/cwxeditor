@@ -1970,9 +1970,6 @@ private class CBarListener(string Name) : ControlAdapter, DisposeListener {
 		}
 		_cbar.setItemOrder = ixs;
 		_cbar.setWrapIndices = mixin ("_prop.var.etc." ~ Name ~ "WrapIndices_init");
-		auto lock = _cbar.getLocked;
-		scope (exit) _cbar.setLocked = lock;
-		_cbar.setLocked = false;
 		foreach_reverse (i; _cbar.getItemOrder) {
 			resetCISize(_cbar.getItem(i));
 		}
@@ -1980,6 +1977,9 @@ private class CBarListener(string Name) : ControlAdapter, DisposeListener {
 	void lock() {
 		_cbar.setLocked = !_cbar.getLocked;
 		if (_lock) _lock.setSelection = _cbar.getLocked;
+		foreach_reverse (i; _cbar.getItemOrder) {
+			resetCISize(_cbar.getItem(i));
+		}
 	}
 }
 CoolBar createCoolBar(string Name)(Props prop, Composite parent,
@@ -2016,9 +2016,9 @@ CoolBar createCoolBar(string Name)(Props prop, Composite parent,
 
 void resetCISize(CoolItem itm) {
 	auto p = itm.getControl.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+	auto p2 = itm.computeSize(p.x, p.y);
 	itm.setMinimumSize(p.x, p.y);
-	p = itm.computeSize(p.x, p.y);
-	itm.setPreferredSize(p.x, p.y);
+	itm.setPreferredSize(p2.x, p2.y);
 }
 
 CoolItem createCoolItem(CoolBar cbar, ToolBar tbar, int index = -1) {
