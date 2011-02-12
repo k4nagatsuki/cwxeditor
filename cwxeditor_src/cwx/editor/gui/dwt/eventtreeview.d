@@ -42,6 +42,7 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.PaletteData;
@@ -428,7 +429,7 @@ private:
 	void arrow() {
 		_arrowMode = true;
 		_comp.setCursor = null;
-		if (_toolWin) {
+		if (_toolWin && !_toolWin.isDisposed) {
 			_toolWin.setCursor = null;
 		}
 		_radioGroup.select = _arrowTI;
@@ -1269,7 +1270,7 @@ private:
 		void create() {
 			if (_itm.getSelection) {
 				_v._comp.setCursor = _cursor;
-				if (_v._toolWin) {
+				if (_v._toolWin && !_v._toolWin.isDisposed) {
 					_v._toolWin.setCursor = _cursor;
 				}
 				_v._arrowMode = false;
@@ -1330,6 +1331,7 @@ private:
 	}
 	class TDListener : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
+			if (_toolWin.isDisposed) return;
 			if (_toolWin.getVisible) {
 				saveToolWinPos;
 			}
@@ -1337,6 +1339,7 @@ private:
 	}
 	class TCListener : ControlAdapter {
 		override void controlMoved(ControlEvent e) {
+			if (_toolWin.isDisposed) return;
 			auto pb = _toolWin.getParent.getBounds;
 			auto tb = _toolWin.getBounds;
 			_toolWin.setBounds(tb.x + pb.x - _parX, tb.y + pb.y - _parY, tb.width, tb.height);
@@ -1346,6 +1349,7 @@ private:
 	}
 	class PSListener : ShellAdapter {
 		override void shellActivated(ShellEvent e) {
+			if (_toolWin.isDisposed) return;
 			auto oldAct = _comm.actToolWin;
 			if (oldAct && !oldAct.isDisposed && oldAct.isVisible) {
 				oldAct.setVisible = false;
@@ -1384,10 +1388,15 @@ private:
 			_comm.replText.remove(&__refreshCard);
 			_comm.replText.remove(&__refreshEventText);
 			_comm.replID.remove(&__refreshCard);
+			if (_toolWin) {
+				saveToolWinPos;
+				_toolWin.dispose;
+			}
 		}
 	}
 	class TSListener : ShellAdapter {
 		public override void shellClosed(ShellEvent e) {
+			if (_toolWin.isDisposed) return;
 			_toolWin.setVisible = false;
 			e.doit = false;
 		}
@@ -1430,174 +1439,17 @@ public:
 		createMenuItem(popup, _prop.msgs.menuStartToPackage, _prop.images.menuStartToPackage, &startToPackage);
 		void delegate() dlg = null;
 		auto convMI = createMenuItem(popup, _prop.msgs.menuConvertContent, _prop.images.menuConvertContent, dlg, SWT.CASCADE);
-		auto conv = new Menu(parent.getShell, SWT.DROP_DOWN);
-		convMI.setMenu = conv;
+		_convM = new Menu(parent.getShell, SWT.DROP_DOWN);
+		convMI.setMenu = _convM;
 		debug {
 			new MenuItem(popup, SWT.SEPARATOR);
 			createMenuItem(popup, "debug: Create CWX &Path", null, &createCWXPath);
 		}
-		{
-			_autoOpen = _prop.var.etc.contentsAutoOpen;
-			_conti = _prop.var.etc.contentsContinue;
-
-			Composite cbarPar = _prop.var.etc.contentsFloat ? _toolWin : _comp;
-			createCoolBar!("contents")(_prop, cbarPar, (CoolBar cbar) {
-				if (!_prop.var.etc.contentsFloat) {
-					cbar.addMouseListener(new TMListener);
-				}
-				cbar.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				auto g = new RadioGroup!(ToolItem);
-				_radioGroup = g;
-				Menu convMenu(string text, Image img) {
-					auto mi = createMenuItem(conv, text, img, dlg, SWT.CASCADE);
-					auto m = new Menu(parent.getShell, SWT.DROP_DOWN);
-					mi.setMenu = m;
-					return m;
-				}
-
-				auto atm = new ToolBar(cbar, SWT.FLAT);
-				atm.addMouseListener(new TMListener);
-				_arrowTI = createToolItem(atm, _prop.msgs.evtArrow, _prop.images.evtArrow, &arrow, SWT.RADIO);
-				_arrowTI.setSelection = true;
-				g.append(_arrowTI);
-				createCoolItem(cbar, atm);
-
-				auto mode = new ToolBar(cbar, SWT.FLAT);
-				mode.addMouseListener(new TMListener);
-				_contiTI = createToolItem(mode, _prop.msgs.evtAddContinue, _prop.images.evtAddContinue, &addContinue, SWT.CHECK);
-				_contiTI.setSelection = _conti;
-				_autoOpenTI = createToolItem(mode, _prop.msgs.evtAutoOpen, _prop.images.evtAutoOpen, &autoOpen, SWT.CHECK);
-				_autoOpenTI.setSelection = _autoOpen;
-				createCoolItem(cbar, mode);
-
-				auto e1 = new ToolBar(cbar, SWT.FLAT);
-				e1.addMouseListener(new TMListener);
-				auto e1c = convMenu(_prop.msgs.menuEvtTerminal, _prop.images.menuEvtTerminal);
-				createEI(CType.START, e1, g, conv);
-				createEI(CType.START_BATTLE, e1, g, e1c);
-				createEI(CType.END, e1, g, e1c);
-				createEI(CType.END_BAD_END, e1, g, e1c);
-				createEI(CType.CHANGE_AREA, e1, g, e1c);
-				createEI(CType.EFFECT_BREAK, e1, g, e1c);
-				createEI(CType.LINK_START, e1, g, e1c);
-				createEI(CType.LINK_PACKAGE, e1, g, e1c);
-				createCoolItem(cbar, e1);
-
-				auto e2 = new ToolBar(cbar, SWT.FLAT);
-				e2.addMouseListener(new TMListener);
-				auto e2c = convMenu(_prop.msgs.menuEvtStandard, _prop.images.menuEvtStandard);
-				createEI(CType.TALK_MESSAGE, e2, g, e2c);
-				createEI(CType.TALK_DIALOG, e2, g, e2c);
-				createEI(CType.PLAY_BGM, e2, g, e2c);
-				createEI(CType.PLAY_SOUND, e2, g, e2c);
-				createEI(CType.WAIT, e2, g, e2c);
-				createEI(CType.ELAPSE_TIME, e2, g, e2c);
-				createEI(CType.EFFECT, e2, g, e2c);
-				createEI(CType.CALL_START, e2, g, e2c);
-				createEI(CType.CALL_PACKAGE, e2, g, e2c);
-				createCoolItem(cbar, e2);
-
-				auto e3 = new ToolBar(cbar, SWT.FLAT);
-				e3.addMouseListener(new TMListener);
-				auto e3c = convMenu(_prop.msgs.menuEvtData, _prop.images.menuEvtData);
-				createEI(CType.BRANCH_FLAG, e3, g, e3c);
-				createEI(CType.SET_FLAG, e3, g, e3c);
-				createEI(CType.REVERSE_FLAG, e3, g, e3c);
-				createEI(CType.BRANCH_MULTI_STEP, e3, g, e3c);
-				createEI(CType.BRANCH_STEP, e3, g, e3c);
-				createEI(CType.SET_STEP, e3, g, e3c);
-				createEI(CType.SET_STEP_UP, e3, g, e3c);
-				createEI(CType.SET_STEP_DOWN, e3, g, e3c);
-				createEI(CType.CHECK_FLAG, e3, g, e3c);
-				createCoolItem(cbar, e3);
-
-				auto e4 = new ToolBar(cbar, SWT.FLAT);
-				e4.addMouseListener(new TMListener);
-				auto e4c = convMenu(_prop.msgs.menuEvtUtility, _prop.images.menuEvtUtility);
-				createEI(CType.BRANCH_SELECT, e4, g, e4c);
-				createEI(CType.BRANCH_ABILITY, e4, g, e4c);
-				createEI(CType.BRANCH_RANDOM, e4, g, e4c);
-				createEI(CType.BRANCH_LEVEL, e4, g, e4c);
-				createEI(CType.BRANCH_STATUS, e4, g, e4c);
-				createEI(CType.BRANCH_PARTY_NUMBER, e4, g, e4c);
-				createEI(CType.BRANCH_AREA, e4, g, e4c);
-				createEI(CType.BRANCH_BATTLE, e4, g, e4c);
-				createEI(CType.BRANCH_IS_BATTLE, e4, g, e4c);
-				createCoolItem(cbar, e4);
-
-				auto e5 = new ToolBar(cbar, SWT.FLAT);
-				e5.addMouseListener(new TMListener);
-				auto e5c = convMenu(_prop.msgs.menuEvtBranch, _prop.images.menuEvtBranch);
-				createEI(CType.BRANCH_CAST, e5, g, e5c);
-				createEI(CType.BRANCH_ITEM, e5, g, e5c);
-				createEI(CType.BRANCH_SKILL, e5, g, e5c);
-				createEI(CType.BRANCH_INFO, e5, g, e5c);
-				createEI(CType.BRANCH_BEAST, e5, g, e5c);
-				createEI(CType.BRANCH_MONEY, e5, g, e5c);
-				createEI(CType.BRANCH_COUPON, e5, g, e5c);
-				createEI(CType.BRANCH_COMPLETE_STAMP, e5, g, e5c);
-				createEI(CType.BRANCH_GOSSIP, e5, g, e5c);
-				createCoolItem(cbar, e5);
-
-				auto e6 = new ToolBar(cbar, SWT.FLAT);
-				e6.addMouseListener(new TMListener);
-				auto e6c = convMenu(_prop.msgs.menuEvtGet, _prop.images.menuEvtGet);
-				createEI(CType.GET_CAST, e6, g, e6c);
-				createEI(CType.GET_ITEM, e6, g, e6c);
-				createEI(CType.GET_SKILL, e6, g, e6c);
-				createEI(CType.GET_INFO, e6, g, e6c);
-				createEI(CType.GET_BEAST, e6, g, e6c);
-				createEI(CType.GET_MONEY, e6, g, e6c);
-				createEI(CType.GET_COUPON, e6, g, e6c);
-				createEI(CType.GET_COMPLETE_STAMP, e6, g, e6c);
-				createEI(CType.GET_GOSSIP, e6, g, e6c);
-				createCoolItem(cbar, e6);
-
-				auto e7 = new ToolBar(cbar, SWT.FLAT);
-				e7.addMouseListener(new TMListener);
-				auto e7c = convMenu(_prop.msgs.menuEvtLost, _prop.images.menuEvtLost);
-				createEI(CType.LOSE_CAST, e7, g, e7c);
-				createEI(CType.LOSE_ITEM, e7, g, e7c);
-				createEI(CType.LOSE_SKILL, e7, g, e7c);
-				createEI(CType.LOSE_INFO, e7, g, e7c);
-				createEI(CType.LOSE_BEAST, e7, g, e7c);
-				createEI(CType.LOSE_MONEY, e7, g, e7c);
-				createEI(CType.LOSE_COUPON, e7, g, e7c);
-				createEI(CType.LOSE_COMPLETE_STAMP, e7, g, e7c);
-				createEI(CType.LOSE_GOSSIP, e7, g, e7c);
-				createCoolItem(cbar, e7);
-
-				auto e8 = new ToolBar(cbar, SWT.FLAT);
-				e8.addMouseListener(new TMListener);
-				auto e8c = convMenu(_prop.msgs.menuEvtVisual, _prop.images.menuEvtVisual);
-				createEI(CType.SHOW_PARTY, e8, g, e8c);
-				createEI(CType.HIDE_PARTY, e8, g, e8c);
-				createEI(CType.CHANGE_BG_IMAGE, e8, g, e8c);
-				createEI(CType.REDISPLAY, e8, g, e8c);
-				createCoolItem(cbar, e8, 2);
-
-				cbar.addDisposeListener(new CDListener);
-			});
-		}
-		if (_toolWin) {
-			auto dummy = new Composite(_toolWin, SWT.NONE);
-			auto gd = new GridData(GridData.FILL_BOTH);
-			gd.heightHint = 0;
-			dummy.setLayoutData = gd;
-			_toolWin.setVisible = false;
-			auto pb = _toolWin.getParent.getBounds;
-			auto twb = _toolWin.getBounds;
-			auto ts = _toolWin.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-			int tx = _prop.var.contentsWin.x == SWT.DEFAULT ? twb.x : pb.x + _prop.var.contentsWin.x;
-			int ty = _prop.var.contentsWin.y == SWT.DEFAULT ? twb.y : pb.y + _prop.var.contentsWin.y;
-			intoDisplay(tx, ty, ts.x, ts.y);
-			_parX = pb.x;
-			_parY = pb.y;
-			_toolWin.setBounds(tx, ty, ts.x, ts.y);
-			_toolWin.addDisposeListener(new TDListener);
-			_toolWin.getParent.addControlListener(new TCListener);
-			parent.getShell.addShellListener(new PSListener);
-		}
+		_autoOpen = _prop.var.etc.contentsAutoOpen;
+		_conti = _prop.var.etc.contentsContinue;
+		_cbarPar = new Composite(_prop.var.etc.contentsFloat ? _toolWin : _comp, SWT.NONE);
+		_cbarPar.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+		_cbarPar.setLayout = new FillLayout;
 		_tree = new Tree(_comp, SWT.SINGLE | SWT.BORDER);
 		_tree.setLayoutData = new GridData(GridData.FILL_BOTH);
 		new TreeEdit(_tree, &editEnd, &createEditor);
@@ -1647,8 +1499,174 @@ public:
 	private int _parX, _parY;
 	private void saveToolWinPos() {
 		assert (_toolWin);
+		if (_toolWin.isDisposed) return;
 		_prop.var.contentsWin.x = _toolWin.getBounds.x - _toolWin.getParent.getBounds.x;
 		_prop.var.contentsWin.y = _toolWin.getBounds.y - _toolWin.getParent.getBounds.y;
+	}
+	private Composite _cbarPar;
+	private Menu _convM;
+	private bool _constructTools = false;
+	void constructTools() {
+		if (_tree.isDisposed || _constructTools) return;
+		_constructTools = true;
+		auto cbar = createCoolBar!("contents")(_prop, _cbarPar, (CoolBar cbar) {
+			if (!_prop.var.etc.contentsFloat) {
+				cbar.addMouseListener(new TMListener);
+			}
+			auto g = new RadioGroup!(ToolItem);
+			_radioGroup = g;
+			void delegate() dlg = null;
+			Menu convMenu(string text, Image img) {
+				auto mi = createMenuItem(_convM, text, img, dlg, SWT.CASCADE);
+				auto m = new Menu(_tree.getShell, SWT.DROP_DOWN);
+				mi.setMenu = m;
+				return m;
+			}
+
+			auto atm = new ToolBar(cbar, SWT.FLAT);
+			atm.addMouseListener(new TMListener);
+			_arrowTI = createToolItem(atm, _prop.msgs.evtArrow, _prop.images.evtArrow, &arrow, SWT.RADIO);
+			_arrowTI.setSelection = true;
+			g.append(_arrowTI);
+			createCoolItem(cbar, atm);
+
+			auto mode = new ToolBar(cbar, SWT.FLAT);
+			mode.addMouseListener(new TMListener);
+			_contiTI = createToolItem(mode, _prop.msgs.evtAddContinue, _prop.images.evtAddContinue, &addContinue, SWT.CHECK);
+			_contiTI.setSelection = _conti;
+			_autoOpenTI = createToolItem(mode, _prop.msgs.evtAutoOpen, _prop.images.evtAutoOpen, &autoOpen, SWT.CHECK);
+			_autoOpenTI.setSelection = _autoOpen;
+			createCoolItem(cbar, mode);
+
+			auto e1 = new ToolBar(cbar, SWT.FLAT);
+			e1.addMouseListener(new TMListener);
+			auto e1c = convMenu(_prop.msgs.menuEvtTerminal, _prop.images.menuEvtTerminal);
+			createEI(CType.START, e1, g, _convM);
+			createEI(CType.START_BATTLE, e1, g, e1c);
+			createEI(CType.END, e1, g, e1c);
+			createEI(CType.END_BAD_END, e1, g, e1c);
+			createEI(CType.CHANGE_AREA, e1, g, e1c);
+			createEI(CType.EFFECT_BREAK, e1, g, e1c);
+			createEI(CType.LINK_START, e1, g, e1c);
+			createEI(CType.LINK_PACKAGE, e1, g, e1c);
+			createCoolItem(cbar, e1);
+
+			auto e2 = new ToolBar(cbar, SWT.FLAT);
+			e2.addMouseListener(new TMListener);
+			auto e2c = convMenu(_prop.msgs.menuEvtStandard, _prop.images.menuEvtStandard);
+			createEI(CType.TALK_MESSAGE, e2, g, e2c);
+			createEI(CType.TALK_DIALOG, e2, g, e2c);
+			createEI(CType.PLAY_BGM, e2, g, e2c);
+			createEI(CType.PLAY_SOUND, e2, g, e2c);
+			createEI(CType.WAIT, e2, g, e2c);
+			createEI(CType.ELAPSE_TIME, e2, g, e2c);
+			createEI(CType.EFFECT, e2, g, e2c);
+			createEI(CType.CALL_START, e2, g, e2c);
+			createEI(CType.CALL_PACKAGE, e2, g, e2c);
+			createCoolItem(cbar, e2);
+
+			auto e3 = new ToolBar(cbar, SWT.FLAT);
+			e3.addMouseListener(new TMListener);
+			auto e3c = convMenu(_prop.msgs.menuEvtData, _prop.images.menuEvtData);
+			createEI(CType.BRANCH_FLAG, e3, g, e3c);
+			createEI(CType.SET_FLAG, e3, g, e3c);
+			createEI(CType.REVERSE_FLAG, e3, g, e3c);
+			createEI(CType.BRANCH_MULTI_STEP, e3, g, e3c);
+			createEI(CType.BRANCH_STEP, e3, g, e3c);
+			createEI(CType.SET_STEP, e3, g, e3c);
+			createEI(CType.SET_STEP_UP, e3, g, e3c);
+			createEI(CType.SET_STEP_DOWN, e3, g, e3c);
+			createEI(CType.CHECK_FLAG, e3, g, e3c);
+			createCoolItem(cbar, e3);
+
+			auto e4 = new ToolBar(cbar, SWT.FLAT);
+			e4.addMouseListener(new TMListener);
+			auto e4c = convMenu(_prop.msgs.menuEvtUtility, _prop.images.menuEvtUtility);
+			createEI(CType.BRANCH_SELECT, e4, g, e4c);
+			createEI(CType.BRANCH_ABILITY, e4, g, e4c);
+			createEI(CType.BRANCH_RANDOM, e4, g, e4c);
+			createEI(CType.BRANCH_LEVEL, e4, g, e4c);
+			createEI(CType.BRANCH_STATUS, e4, g, e4c);
+			createEI(CType.BRANCH_PARTY_NUMBER, e4, g, e4c);
+			createEI(CType.BRANCH_AREA, e4, g, e4c);
+			createEI(CType.BRANCH_BATTLE, e4, g, e4c);
+			createEI(CType.BRANCH_IS_BATTLE, e4, g, e4c);
+			createCoolItem(cbar, e4);
+
+			auto e5 = new ToolBar(cbar, SWT.FLAT);
+			e5.addMouseListener(new TMListener);
+			auto e5c = convMenu(_prop.msgs.menuEvtBranch, _prop.images.menuEvtBranch);
+			createEI(CType.BRANCH_CAST, e5, g, e5c);
+			createEI(CType.BRANCH_ITEM, e5, g, e5c);
+			createEI(CType.BRANCH_SKILL, e5, g, e5c);
+			createEI(CType.BRANCH_INFO, e5, g, e5c);
+			createEI(CType.BRANCH_BEAST, e5, g, e5c);
+			createEI(CType.BRANCH_MONEY, e5, g, e5c);
+			createEI(CType.BRANCH_COUPON, e5, g, e5c);
+			createEI(CType.BRANCH_COMPLETE_STAMP, e5, g, e5c);
+			createEI(CType.BRANCH_GOSSIP, e5, g, e5c);
+			createCoolItem(cbar, e5);
+
+			auto e6 = new ToolBar(cbar, SWT.FLAT);
+			e6.addMouseListener(new TMListener);
+			auto e6c = convMenu(_prop.msgs.menuEvtGet, _prop.images.menuEvtGet);
+			createEI(CType.GET_CAST, e6, g, e6c);
+			createEI(CType.GET_ITEM, e6, g, e6c);
+			createEI(CType.GET_SKILL, e6, g, e6c);
+			createEI(CType.GET_INFO, e6, g, e6c);
+			createEI(CType.GET_BEAST, e6, g, e6c);
+			createEI(CType.GET_MONEY, e6, g, e6c);
+			createEI(CType.GET_COUPON, e6, g, e6c);
+			createEI(CType.GET_COMPLETE_STAMP, e6, g, e6c);
+			createEI(CType.GET_GOSSIP, e6, g, e6c);
+			createCoolItem(cbar, e6);
+
+			auto e7 = new ToolBar(cbar, SWT.FLAT);
+			e7.addMouseListener(new TMListener);
+			auto e7c = convMenu(_prop.msgs.menuEvtLost, _prop.images.menuEvtLost);
+			createEI(CType.LOSE_CAST, e7, g, e7c);
+			createEI(CType.LOSE_ITEM, e7, g, e7c);
+			createEI(CType.LOSE_SKILL, e7, g, e7c);
+			createEI(CType.LOSE_INFO, e7, g, e7c);
+			createEI(CType.LOSE_BEAST, e7, g, e7c);
+			createEI(CType.LOSE_MONEY, e7, g, e7c);
+			createEI(CType.LOSE_COUPON, e7, g, e7c);
+			createEI(CType.LOSE_COMPLETE_STAMP, e7, g, e7c);
+			createEI(CType.LOSE_GOSSIP, e7, g, e7c);
+			createCoolItem(cbar, e7);
+
+			auto e8 = new ToolBar(cbar, SWT.FLAT);
+			e8.addMouseListener(new TMListener);
+			auto e8c = convMenu(_prop.msgs.menuEvtVisual, _prop.images.menuEvtVisual);
+			createEI(CType.SHOW_PARTY, e8, g, e8c);
+			createEI(CType.HIDE_PARTY, e8, g, e8c);
+			createEI(CType.CHANGE_BG_IMAGE, e8, g, e8c);
+			createEI(CType.REDISPLAY, e8, g, e8c);
+			createCoolItem(cbar, e8, 2);
+
+			cbar.addDisposeListener(new CDListener);
+		});
+		if (_toolWin) {
+			auto dummy = new Composite(_toolWin, SWT.NONE);
+			auto gd = new GridData(GridData.FILL_BOTH);
+			gd.heightHint = 0;
+			dummy.setLayoutData = gd;
+			_toolWin.setVisible = false;
+			auto pb = _toolWin.getParent.getBounds;
+			auto size = _toolWin.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+			auto ts = _toolWin.getBounds;
+			int tx = _prop.var.contentsWin.x == SWT.DEFAULT ? ts.x : pb.x + _prop.var.contentsWin.x;
+			int ty = _prop.var.contentsWin.y == SWT.DEFAULT ? ts.y : pb.y + _prop.var.contentsWin.y;
+			intoDisplay(tx, ty, size.x, size.y);
+			_parX = pb.x;
+			_parY = pb.y;
+			_toolWin.setBounds(tx, ty, size.x, size.y);
+			_toolWin.addDisposeListener(new TDListener);
+			_toolWin.getParent.addControlListener(new TCListener);
+			_tree.getShell.addShellListener(new PSListener);
+		} else {
+			_cbarPar.getParent.layout(true);
+		}
 	}
 
 	Control widget() {return _comp;}
@@ -2078,6 +2096,7 @@ public:
 	}
 
 	void openToolWindow() {
+		if (_toolWin.isDisposed) return;
 		if (_toolWin) {
 			if (_et) {
 				if (_opened) {
@@ -2094,6 +2113,7 @@ public:
 		}
 	}
 	void closeToolWindow() {
+		if (_toolWin.isDisposed) return;
 		if (_toolWin) {
 			_toolWin.setVisible = false;
 			_toolWinVisible = false;

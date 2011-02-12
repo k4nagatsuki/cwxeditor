@@ -891,6 +891,7 @@ public:
 		}
 	}
 	void refresh(bool openToolWin = true) {
+		_etree.constructTools;
 		_etree.closeToolWindow;
 		_cards.removeAll;
 		{

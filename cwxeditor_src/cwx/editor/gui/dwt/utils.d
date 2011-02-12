@@ -2024,12 +2024,9 @@ CoolBar createCoolBar(string Name)(Props prop, Composite parent,
 
 void resetCISize(CoolItem itm) {
 	auto p = itm.getControl.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-	version (linux) {
-		// FIXME: スペースはあるのに末尾のアイコンが見えなくなる
-		//        GNOME 2.30.2
-		p.x += 10;
-	}
 	itm.setMinimumSize(p.x, p.y);
+	p = itm.computeSize(p.x, p.y);
+	itm.setPreferredSize(p.x, p.y);
 }
 
 CoolItem createCoolItem(CoolBar cbar, ToolBar tbar, int index = -1) {

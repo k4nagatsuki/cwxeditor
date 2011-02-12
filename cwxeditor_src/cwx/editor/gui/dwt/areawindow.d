@@ -52,6 +52,7 @@ private:
 
 	UndoManager _undo;
 
+	bool _firstEvtVSel = false;
 	V _aview;
 	EventView!(A, C, true) _eview;
 
@@ -95,6 +96,10 @@ private:
 	class TabSel : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
 			if (_tabf.getSelection is _tabE) {
+				if (!_firstEvtVSel) {
+					_eview.refresh(true);
+					_firstEvtVSel = true;
+				}
 				_comm.statusLine(_win, _eview.statusLine);
 				_eview.openToolWindow;
 			} else {
@@ -229,8 +234,6 @@ public:
 			shell.setMaximized = winProps.maximized;
 			_areaWin = areaWin;
 		}
-
-		_eview.refresh(_tabf.getSelection is _tabE);
 	}
 
 	Image image() {
