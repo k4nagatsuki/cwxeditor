@@ -75,6 +75,7 @@ class SpeakDialog : AbsDialog {
 private:
 	string _id;
 
+	Commons _comm;
 	Props _prop;
 	Summary _summ;
 	Content _evt;
@@ -294,8 +295,9 @@ private:
 		}
 	}
 public:
-	this(Props prop, Shell shell, Summary summ, Content evt) {
+	this(Commons comm, Props prop, Shell shell, Summary summ, Content evt) {
 		_id = format("%08X", &this) ~ "-" ~ to!(string)(getUTCtime);
+		_comm = comm;
 		_prop = prop;
 		_summ = summ;
 		_evt = evt;
@@ -353,22 +355,22 @@ protected:
 			createToolItem(bar, _prop.msgs.copyToUpper, _prop.images.copyToUpper, &copyToUpper);
 			createToolItem(bar, _prop.msgs.copyToLower, _prop.images.copyToLower, &copyToLower);
 		}
-		auto skin = findSkin(_prop, _summ);
+		auto skin = _comm.skin;
 		{
 			auto comp = new Composite(area, SWT.NONE);
 			comp.setLayoutData = new GridData(GridData.FILL_BOTH);
 			comp.setLayout = new GridLayout(2, false);
 			Control tp;
 			if (_evt) {
-				tp = createTalkerPane2(comp, _prop, _summ, _evt.talkerNC, _evt.dialogs[0].rCoupons, _talkers, _rCoupons);
+				tp = createTalkerPane2(comp, _comm, _prop, _summ, _evt.talkerNC, _evt.dialogs[0].rCoupons, _talkers, _rCoupons);
 			} else {
-				tp = createTalkerPane2(comp, _prop, _summ, Talker.SELECTED, [], _talkers, _rCoupons);
+				tp = createTalkerPane2(comp, _comm, _prop, _summ, Talker.SELECTED, [], _talkers, _rCoupons);
 			}
 			tp.setLayoutData = new GridData(GridData.FILL_BOTH);
 			auto msgComp = new Composite(comp, SWT.NONE);
 			msgComp.setLayoutData = new GridData(GridData.FILL_VERTICAL);
 			msgComp.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0));
-			_text = createMessagePane(_prop, true, msgComp, skin);
+			_text = createMessagePane(_prop, true, msgComp, _summ);
 			_text.widget.setLayoutData = _text.computeTextBaseSize(_prop.looks.messageLine);
 			_text.widget.addModifyListener(new ModL);
 		}
@@ -483,7 +485,7 @@ protected:
 		area.setLayout = windowGridLayout(1, true);
 		_tabf = new CTabFolder(area, SWT.BORDER);
 		_tabf.setLayoutData = new GridData(GridData.FILL_BOTH);
-		auto skin = findSkin(_prop, _summ);
+		auto skin = _comm.skin;
 		{
 			auto comp = new Composite(_tabf, SWT.NONE);
 			comp.setLayout = new GridLayout(2, false);
@@ -497,7 +499,7 @@ protected:
 			auto msgComp = new Composite(comp, SWT.NONE);
 			msgComp.setLayoutData = new GridData(GridData.FILL_VERTICAL);
 			msgComp.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0));
-			_textA = createMessagePane(_prop, true, msgComp, skin);
+			_textA = createMessagePane(_prop, true, msgComp, _summ);
 			_textA.widget.setLayoutData = _textA.computeTextBaseSize(_prop.looks.messageLine);
 			auto tab = new CTabItem(_tabf, SWT.NONE);
 			tab.setText = _prop.msgs.imageMessage;
@@ -506,7 +508,7 @@ protected:
 		{
 			auto comp = new Composite(_tabf, SWT.NONE);
 			comp.setLayout = new CenterLayout;
-			_textB = createMessagePane(_prop, false, comp, skin);
+			_textB = createMessagePane(_prop, false, comp, _summ);
 			_textB.widget.setLayoutData = _textB.computeTextBaseSize(_prop.looks.messageLine);
 			auto tab = new CTabItem(_tabf, SWT.NONE);
 			tab.setText = _prop.msgs.noImageMessage;
@@ -571,7 +573,7 @@ protected:
 	}
 }
 
-private Composite createTalkerPane2(Composite parent, Props prop, Summary summ, Talker talker,
+private Composite createTalkerPane2(Composite parent, Commons comm, Props prop, Summary summ, Talker talker,
 		string[] coupons, out Combo talkerCombo, out Text couponList) {
 	auto comp = new Composite(parent, SWT.NONE);
 	comp.setLayout = new GridLayout(2, false);
@@ -600,7 +602,7 @@ private Composite createTalkerPane2(Composite parent, Props prop, Summary summ, 
 	auto couponCombo = new Combo(comp, SWT.DROP_DOWN | SWT.BORDER);
 	couponCombo.setVisibleItemCount = 20;
 	auto push = new Button(comp, SWT.PUSH);
-	auto skin = findSkin(prop, summ);
+	auto skin = comm.skin;
 	{
 		auto gd = new GridData(GridData.FILL_HORIZONTAL);
 		gd.widthHint = prop.var.etc.talkersWidth;
@@ -647,9 +649,11 @@ private Composite createTalkerPane
 		out MaterialSelect!(MtType.CARD, Combo, Combo) msel) {
 	static class Img {
 		private Canvas _canvas;
+		private Commons _comm;
 		private Props _prop;
 		private Summary _summ;
-		this(Props prop, Summary summ) {
+		this(Commons comm, Props prop, Summary summ) {
+			_comm = comm;
 			_prop = prop;
 			_summ = summ;
 		}
@@ -658,12 +662,14 @@ private Composite createTalkerPane
 		}
 		Canvas createCanvas(Composite parent,
 				MaterialSelect!(MtType.CARD, Combo, Combo) msel) {
-			auto skin = findSkin(_prop, _summ);
+			auto skin = _comm.skin;
 			_canvas = new Canvas(parent, SWT.BORDER);
-			_canvas.addPaintListener(new class(skin, _summ, msel) PaintListener {
+			_canvas.addPaintListener(new class(_comm, _summ, msel) PaintListener {
+				private Commons _comm;
 				private Summary _summ;
 				private MaterialSelect!(MtType.CARD, Combo, Combo) _msel;
-				this(Skin skin, Summary summ, MaterialSelect!(MtType.CARD, Combo, Combo) msel) {
+				this(Commons comm, Summary summ, MaterialSelect!(MtType.CARD, Combo, Combo) msel) {
+					_comm = comm;
 					_summ = summ;
 					_msel = msel;
 				}
@@ -686,12 +692,12 @@ private Composite createTalkerPane
 						break;
 					case 3:
 						// カード
-						image = new Image(Display.getCurrent, menuCard(findSkin(_prop, _summ)));
+						image = new Image(Display.getCurrent, menuCard(_comm.skin));
 						dis = true;
 						break;
 					default:
 						// カード画像
-						image = new Image(Display.getCurrent, loadImage(findSkin(_prop, _summ), _msel.filePath));
+						image = new Image(Display.getCurrent, loadImage(_comm.skin, _msel.filePath));
 						dis = true;
 					}
 					auto dw = image.getImageData.width;
@@ -710,7 +716,7 @@ private Composite createTalkerPane
 	{
 		comp.setLayout = zeroMarginGridLayout(1, true);
 	}
-	auto image = new Img(prop, summ);
+	auto image = new Img(comm, prop, summ);
 	string[] ss = [
 		prop.msgs.talker(Talker.SELECTED),
 		prop.msgs.talker(Talker.UNSELECTED),
@@ -763,9 +769,9 @@ private Composite createTalkerPane
 	return comp;
 }
 
-private FixedWidthText createMessagePane(Props prop, bool image, Composite parent, Skin skin) {
+private FixedWidthText createMessagePane(Props prop, bool image, Composite parent, Summary summ) {
 	int len = image ? prop.looks.messageImageLen : prop.looks.messageLen;
-	auto r = new FixedWidthText(dwtData(prop.looks.messageFont(skin.legacy)), len, parent, SWT.BORDER);
+	auto r = new FixedWidthText(dwtData(prop.looks.messageFont(summ.legacy)), len, parent, SWT.BORDER);
 	r.widget.setBackground = Display.getCurrent.getSystemColor(SWT.COLOR_DARK_BLUE);
 	r.widget.setForeground = Display.getCurrent.getSystemColor(SWT.COLOR_WHITE);
 	return r;

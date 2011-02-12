@@ -76,11 +76,11 @@ private:
 					auto canv = cast(Canvas) e.widget;
 					string path = "";
 					if (_summ) {
-						path = findSkin(_prop, _summ).findImagePath
+						path = _comm.skin.findImagePath
 							(_summ.casts[_casts.getSelectionIndex].path, _summ.scenarioPath);
 					}
 					if (path.length > 0) {
-						auto skin = findSkin(_prop, _summ);
+						auto skin = _comm.skin;
 						scope img = new Image(Display.getCurrent, loadImage(skin, path));
 						scope (exit) img.dispose;
 						e.gc.drawImage(img, 0, 0);
@@ -190,7 +190,7 @@ protected:
 					}
 					{
 						static if (is (C == MenuCard)) {
-							auto skin = findSkin(_prop, _summ);
+							auto skin = _comm.skin;
 							_imgPath = new ImageSelect!(MtType.CARD)(comp2, SWT.NONE, _comm, _prop, _summ,
 								_prop.looks.cardSize.width, _prop.looks.cardSize.height, _summ ? _summ.legacy : false);
 							_imgPath.widget.setLayoutData = new GridData(GridData.FILL_BOTH);

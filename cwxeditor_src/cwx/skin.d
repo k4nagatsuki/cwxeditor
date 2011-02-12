@@ -18,22 +18,22 @@ import std.uni;
 public:
 
 class Skin {
-	static Skin find(Summary)(CProps prop, string enginePath, Summary summ)
-	out (skin) {
-		assert (summ.legacy == skin.legacy);
-	} body {
-		if (summ.legacy) {
-			return legacySkin(prop, enginePath, summ.scenarioPath);
+	static Skin find(CProps prop, string enginePath, string type, string sPath, bool legacy) {
+		if (legacy && !type.length) {
+			return legacySkin(prop, enginePath, sPath);
 		}
 		static Skin[CProps] emptySkins;
 		auto tbl = table(prop, enginePath);
-		auto p = summ.type in tbl;
+		auto p = type in tbl;
 		if (p) return *p;
 		auto pp = prop in emptySkins;
 		if (pp) return *pp;
 		auto r = new Skin(prop, enginePath);
 		emptySkins[prop] = r;
 		return r;
+	}
+	static Skin find2(Summary)(CProps prop, string enginePath, Summary summ) {
+		return find(prop, enginePath, summ.type, summ.scenarioPath, summ.legacy);
 	}
 
 	private static Skin[string][string] skinTable;
@@ -114,7 +114,7 @@ class Skin {
 	}
 	/// 指定されたシナリオが属すCardWirthを検索し、
 	/// そのリソースディレクトリとエンジンのパスを返す。
-	private static void findLegacy(string scPath, out string resDir, out string enginePath) {
+	static bool findLegacy(string scPath, out string resDir, out string enginePath) {
 		auto path = getDirName(scPath);
 		bool chk() {
 			auto p = path;
@@ -140,12 +140,13 @@ class Skin {
 			if (old == path) {
 				resDir ="";
 				enginePath = "";
-				return;
+				return false;
 			}
 		}
 		auto cw = join(path, "CardWirth.exe");
 		if (std.file.exists(cw)) {
 			enginePath = cw;
+			return true;
 		} else {
 			foreach (file; clistdir(path)) {
 				if ((file.length > "Wirth.exe".length
@@ -154,11 +155,12 @@ class Skin {
 						&& file.length > "CardWirth_".length
 						&& fnmatch(file[$ - "CardWirth_".length .. $], "CardWirth_"))) {
 					enginePath = join(path, file);
-					return;
+					return true;
 				}
 			}
 			enginePath = "";
 		}
+		return false;
 	}
 	private bool _legacy = false;
 	private string _legacyPath = "";
@@ -452,18 +454,21 @@ class Skin {
 	/// 特殊文字の情報。
 	string[dchar] spChars() {return _spChars;}
 
-	private bool has(alias isT)(string dir, bool forceRefresh) {
-		return list!(isT)(dir, forceRefresh).length > 0;
+	private bool has(alias isT)(string dir) {
+		foreach (file; clistdir(dir)) {
+			if (isT(std.path.join(dir, file))) return true;
+		}
+		return false;
 	}
 
 	/// 各種の素材がdirに含まれていればtrueを返す。
-	bool hasCardImage(string dir, bool forceRefresh) {return has!(isCardImage)(dir, forceRefresh);}
+	bool hasCardImage(string dir) {return has!(isCardImage)(dir);}
 	/// ditto
-	bool hasBgImage(string dir, bool forceRefresh) {return has!(isBgImage)(dir, forceRefresh);}
+	bool hasBgImage(string dir) {return has!(isBgImage)(dir);}
 	/// ditto
-	bool hasBGM(string dir, bool forceRefresh) {return has!(isBGM)(dir, forceRefresh);}
+	bool hasBGM(string dir) {return has!(isBGM)(dir);}
 	/// ditto
-	bool hasSE(string dir, bool forceRefresh) {return has!(isSE)(dir, forceRefresh);}
+	bool hasSE(string dir) {return has!(isSE)(dir);}
 
 	private string[] list(alias isT)(string dir, bool forceRefresh) {
 		mixin FileCache!(string[]);

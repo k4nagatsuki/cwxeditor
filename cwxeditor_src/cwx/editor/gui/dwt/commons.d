@@ -205,13 +205,19 @@ class Commons {
 		_cardWin = cardWin;
 		_dirWin = dirWin;
 	}
-	
+
 	void closeAll() {
 		foreach (w; _ws.toArray) {
 			close(w);
 		}
 		assert (_ws.size == 0);
 	}
+
+	private Skin _skin;
+	/// 現在のスキン。
+	void skin(Skin skin) {_skin = skin;}
+	/// ditto
+	Skin skin() {return _skin;}
 
 	/// アクティブなコンテントツールボックス。
 	void actToolWin(Shell v) {_actToolWin = v;}

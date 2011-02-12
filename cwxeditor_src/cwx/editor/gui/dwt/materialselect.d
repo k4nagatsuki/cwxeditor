@@ -53,7 +53,6 @@ public:
 		_refresh = refresh;
 		_defs = defs;
 		_including = including;
-		__refSkin;
 	}
 
 	D createDirsCombo(Composite parent) {
@@ -72,7 +71,6 @@ public:
 		_comm.refPath.add(&__refPath);
 		_comm.delPaths.add(&__delPaths);
 		_comm.replPath.add(&__replPath);
-		_comm.refSkin.add(&__refSkin);
 		_comm.refIgnorePaths.add(&refresh);
 		_dirs.addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) {
@@ -80,7 +78,6 @@ public:
 				_comm.refPath.remove(&__refPath);
 				_comm.delPaths.remove(&__delPaths);
 				_comm.replPath.remove(&__replPath);
-				_comm.refSkin.remove(&__refSkin);
 				_comm.refIgnorePaths.remove(&refresh);
 			}
 		});
@@ -126,13 +123,13 @@ public:
 			}
 			bool doFile(string path, int x, int y) {
 				assert (_summ);
-				copyTo(_summ.scenarioPath, path, _skin.materialPath);
+				copyTo(_summ.scenarioPath, path, _comm.skin.materialPath);
 				return true;
 			}
 			void doExit() {
 				assert (_summ);
-				refreshPaths(_skin.materialPath);
-				_comm.refPaths.call(this.outer, _skin.materialPath);
+				refreshPaths(_comm.skin.materialPath);
+				_comm.refPaths.call(this.outer, _comm.skin.materialPath);
 			}
 		};
 		return _fileList;
@@ -199,29 +196,29 @@ public:
 
 private:
 	static if (Type == MtType.CARD) {
-		string defExt() {return _skin.extImage;}
-		string defDir() {return _skin.tableDir;}
-		bool isTarg(string p) {return _skin.isCardImage(p);}
-		bool hasTarg(string p, bool re) {return _skin.hasCardImage(p, re);}
-		string[] targs(string dir, bool re) {return _skin.cards(dir, re);}
+		string defExt() {return _comm.skin.extImage;}
+		string defDir() {return _comm.skin.tableDir;}
+		bool isTarg(string p) {return _comm.skin.isCardImage(p);}
+		bool hasTarg(string p) {return _comm.skin.hasCardImage(p);}
+		string[] targs(string dir, bool re) {return _comm.skin.cards(dir, re);}
 	} else static if (Type == MtType.BG_IMG) {
-		string defExt() {return _skin.extImage;}
-		string defDir() {return _skin.tableDir;}
-		bool isTarg(string p) {return _skin.isBgImage(p);}
-		bool hasTarg(string p, bool re) {return _skin.hasBgImage(p, re);}
-		string[] targs(string dir, bool re) {return _skin.tables(dir, re);}
+		string defExt() {return _comm.skin.extImage;}
+		string defDir() {return _comm.skin.tableDir;}
+		bool isTarg(string p) {return _comm.skin.isBgImage(p);}
+		bool hasTarg(string p) {return _comm.skin.hasBgImage(p);}
+		string[] targs(string dir, bool re) {return _comm.skin.tables(dir, re);}
 	} else static if (Type == MtType.BGM) {
-		string defExt() {return _skin.extBgm;}
-		string defDir() {return _skin.bgmDir;}
-		bool isTarg(string p) {return _skin.isBGM(p);}
-		bool hasTarg(string p, bool re) {return _skin.hasBGM(p, re);}
-		string[] targs(string dir, bool re) {return _skin.musics(dir, re);}
+		string defExt() {return _comm.skin.extBgm;}
+		string defDir() {return _comm.skin.bgmDir;}
+		bool isTarg(string p) {return _comm.skin.isBGM(p);}
+		bool hasTarg(string p) {return _comm.skin.hasBGM(p);}
+		string[] targs(string dir, bool re) {return _comm.skin.musics(dir, re);}
 	} else static if (Type == MtType.SE) {
-		string defExt() {return _skin.extSound;}
-		string defDir() {return _skin.seDir;}
-		bool isTarg(string p) {return _skin.isSE(p);}
-		bool hasTarg(string p, bool re) {return _skin.hasSE(p, re);}
-		string[] targs(string dir, bool re) {return _skin.sounds(dir, re);}
+		string defExt() {return _comm.skin.extSound;}
+		string defDir() {return _comm.skin.seDir;}
+		bool isTarg(string p) {return _comm.skin.isSE(p);}
+		bool hasTarg(string p) {return _comm.skin.hasSE(p);}
+		string[] targs(string dir, bool re) {return _comm.skin.sounds(dir, re);}
 	} else static assert (0);
 
 	class RSListener : SelectionAdapter {
@@ -239,7 +236,7 @@ private:
 				if (cur) {
 					openFolder(std.path.join(_summ.scenarioPath, cur));
 				} else {
-					scope p = std.path.join(_summ.scenarioPath, _skin.materialPath);
+					scope p = std.path.join(_summ.scenarioPath, _comm.skin.materialPath);
 					if (exists(p)) {
 						openFolder(p);
 					} else {
@@ -382,7 +379,7 @@ private:
 		}
 	}
 	void searchTarg(string dir, size_t cut) {
-		if (hasTarg(dir, false)) {
+		if (hasTarg(dir)) {
 			_dirs.add(dir.length <= cut ? "/" : toViewPath(dir[cut .. $]));
 		}
 		foreach (f; clistdir(dir)) {
@@ -403,7 +400,7 @@ private:
 		}
 		auto tbl = defDir;
 		_tbl = -1;
-		if (hasTarg(tbl, false)) {
+		if (hasTarg(tbl)) {
 			_tbl = _dirs.getItemCount;
 			_dirs.add(_prop.msgs.pathDef);
 		}
@@ -435,7 +432,7 @@ private:
 			if (isBinImg(_path)) {
 				_dirs.select = _including;
 			} else {
-				auto p = _skin.findPathF(_path, defExt, defDir, _summ ? _summ.scenarioPath : "", def);
+				auto p = _comm.skin.findPathF(_path, defExt, defDir, _summ ? _summ.scenarioPath : "", def);
 				if (p.length > 0) {
 					if (def) {
 						if (_tbl == -1) {
@@ -507,12 +504,8 @@ private:
 			refreshPaths;
 		}
 	}
-	void __refSkin() {
-		_skin = findSkin(_prop, _summ);
-	}
 
 	Props _prop;
-	Skin _skin;
 	Commons _comm;
 	D _dirs;
 	Summary _summ;

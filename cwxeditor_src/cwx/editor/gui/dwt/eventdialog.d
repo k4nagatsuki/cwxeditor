@@ -347,6 +347,7 @@ protected:
 /// 取得を除くクーポン関連イベントの設定を行うダイアログ。
 class CouponEventDialog(CType Type, bool EditValue) : AbsDialog {
 private:
+	Commons _comm;
 	Props _prop;
 	Content _evt;
 	Summary _summ;
@@ -358,9 +359,10 @@ private:
 	}
 
 public:
-	this(Props prop, Shell shell, Summary summ, Content evt) in {
+	this(Commons comm, Props prop, Shell shell, Summary summ, Content evt) in {
 		assert (!evt || evt.type == Type);
 	} body {
+		_comm = comm;
 		_prop = prop;
 		_evt = evt;
 		_summ = summ;
@@ -374,7 +376,7 @@ public:
 protected:
 	override void setup(Composite area) {
 		area.setLayout = new GridLayout(2, false);
-		auto skin = findSkin(_prop, _summ);
+		auto skin = _comm.skin;
 		{
 			auto grp = new Group(area, SWT.NONE);
 			grp.setLayoutData = new GridData(GridData.FILL_VERTICAL);
@@ -559,7 +561,7 @@ public:
 protected:
 	override void setup(Composite area) {
 		area.setLayout = new GridLayout(1, false);
-		auto skin = findSkin(_prop, _summ);
+		auto skin = _comm.skin;
 		{
 			_view = createBgImagesViewAndMenu(_comm, _prop, _summ, _cont, area);
 			_view.setLayoutData = new GridData(GridData.FILL_BOTH);
@@ -681,7 +683,7 @@ protected:
 	override void setup(Composite area) {
 		area.setLayout = new GridLayout(4, false);
 		{
-			auto skin = findSkin(_prop, _summ);
+			auto skin = _comm.skin;
 			_msel = new MaterialSelect!(MtType.BGM, Combo, List)
 				(_comm, _prop, _summ, null, [_prop.msgs.bgmStop]);
 			_msel.createDirsCombo(area).setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
@@ -770,7 +772,7 @@ protected:
 	override void setup(Composite area) {
 		area.setLayout = new GridLayout(5, false);
 		{
-			auto skin = findSkin(_prop, _summ);
+			auto skin = _comm.skin;
 			_msel = new MaterialSelect!(MtType.SE, Combo, List)
 				(_comm, _prop, _summ, null, []);
 			_msel.createDirsCombo(area).setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
@@ -1046,7 +1048,7 @@ protected:
 					gd.horizontalSpan = 2;
 					grp.setLayoutData = gd;
 					grp.setLayout = new GridLayout(1, true);
-					createDefSoundCombo(_prop, findSkin(_prop, _summ), grp, _se)
+					createDefSoundCombo(_prop, _summ, _comm.skin, grp, _se)
 						.setLayoutData = new GridData(GridData.FILL_BOTH);
 				}
 				{

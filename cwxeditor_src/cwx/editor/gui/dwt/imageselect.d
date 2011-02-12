@@ -54,6 +54,7 @@ public:
 	this(Composite parent, int style, Commons comm, Props prop, Summary summ,
 			int w, int h, bool canIncluding, void delegate() refresh = null) {
 		_group = new Group(parent, style);
+		_comm = comm;
 		_prop = prop;
 		_summ = summ;
 		_refresh = refresh;
@@ -149,7 +150,7 @@ private:
 		public override void paintControl(PaintEvent e) {
 			auto path = filePath;
 			if (path !is null && path.length > 0) {
-				scope data = loadImage(findSkin(_prop, _summ), path, _mask);
+				scope data = loadImage(_comm.skin, path, _mask);
 				scope img = new Image(Display.getCurrent, data);
 				scope area = _image.getClientArea;
 				int x, y, w, h;
@@ -177,6 +178,7 @@ private:
 		_image.redraw;
 	}
 	Group _group;
+	Commons _comm;
 	Props _prop;
 	Summary _summ;
 	Canvas _image;

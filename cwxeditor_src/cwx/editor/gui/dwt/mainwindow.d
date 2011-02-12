@@ -231,6 +231,7 @@ private:
 				_prop.msgs.dlgTitWarning, _win);
 			summ.type = _prop.var.etc.defaultSkin;
 		}
+		_comm.skin = findSkin(_prop, summ);
 		_comm.closeAll;
 		if (_dataWin) {
 			_dataWin.load(summ);
@@ -351,7 +352,7 @@ private:
 		return false;
 	}
 	void execEngine() {
-		string engine = summary ? findSkin(_prop, summary).engine : _prop.var.etc.enginePath;
+		string engine = summary ? _comm.skin.engine : _prop.var.etc.enginePath;
 		if (engine.length) {
 			if (!exec(engine, getDirName(nabs(engine)))) {
 				MessageBox.showWarning(_prop.msgs.errorExecEngine(engine),

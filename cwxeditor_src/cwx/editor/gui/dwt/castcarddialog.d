@@ -134,7 +134,7 @@ private:
 		if (_race) {
 			int index = _race.getSelectionIndex;
 			if (index > 0) {
-				return findSkin(_prop, _summ).races[index - 1];
+				return _comm.skin.races[index - 1];
 			}
 		}
 		return null;
@@ -384,7 +384,7 @@ private:
 	void constructBase(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout = new GridLayout(2, false);
-		auto skin = findSkin(_prop, _summ);
+		auto skin = _comm.skin;
 		{
 			auto comp2 = new Composite(comp, SWT.NONE);
 			comp2.setLayoutData = new GridData(GridData.FILL_BOTH);
@@ -515,7 +515,7 @@ private:
 	void constructHistory(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout = new GridLayout(2, false);
-		auto skin = findSkin(_prop, _summ);
+		auto skin = _comm.skin;
 		{
 			auto grp = new Group(comp, SWT.NONE);
 			grp.setText = _prop.msgs.coupons;
@@ -617,7 +617,7 @@ private:
 	void constructMakings(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout = new GridLayout(1, false);
-		auto skin = findSkin(_prop, _summ);
+		auto skin = _comm.skin;
 		{
 			auto comp3 = createButtonGroup(comp, _prop.msgs.coupons, 4, 1, true);
 			auto sl = new MSListener;
@@ -1155,7 +1155,7 @@ protected:
 		gd.heightHint = rect.height;
 		tabf.setLayoutData = gd;
 
-		auto skin = findSkin(_prop, _summ);
+		auto skin = _comm.skin;
 		if (_card) {
 			_imgPath.image = _card.path;
 			if (_race) _race.select = 0;
@@ -1201,7 +1201,7 @@ protected:
 					}
 				}
 				if (_race) {
-					foreach (i, r; findSkin(_prop, _summ).races) {
+					foreach (i, r; _comm.skin.races) {
 						if (c.name == _prop.msgs.raceCoupon(r)) {
 							_race.select = i + 1;
 							raceToolTip;
@@ -1298,7 +1298,7 @@ protected:
 				_card = new CastCard(_summ.newId!(CastCard), _name.getText, _imgPath.image,
 					_desc.getRRText, _level.getSelection, _lifeMax.getSelection);
 			}
-			auto skin = findSkin(_prop, _summ);
+			auto skin = _comm.skin;
 			string legacyName = skin.legacyName;
 			Coupon[] cs;
 			auto sex = createCoupon!(Sex)(_sex, &_prop.sys.sexCoupon, legacyName);

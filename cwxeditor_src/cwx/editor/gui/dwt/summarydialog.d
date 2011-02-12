@@ -72,6 +72,7 @@ private:
 	Text _rCoupons;
 	Combo _type;
 	SplitPane _tab2Sash, _tab3Sash;
+	bool _hasLegacySkin;
 	// TODO Tag
 	// TODO Label
 
@@ -95,7 +96,14 @@ private:
 			scope gc = new GC(buf);
 			scope (exit) gc.dispose;
 
-			auto skin = findSkin(_prop, _summ);
+			Skin skin;
+			if (_summ.legacy && _hasLegacySkin && _type.getSelectionIndex == 0) {
+				skin = Skin.legacySkin(_prop.parent, _prop.var.etc.enginePath,
+					_summ.scenarioPath);
+			} else {
+				skin = Skin.find(_prop.parent, _prop.var.etc.enginePath,
+					_type.getText, _summ.scenarioPath, _summ.legacy);
+			}
 			{
 				scope img = new Image(d, summary(skin));
 				gc.drawImage(img, 0, 0);
@@ -121,16 +129,16 @@ private:
 				scope c = new Color(d, dwtData(_prop.looks.summaryLevelColor, alpha));
 				gc.setForeground = c;
 				gc.setAlpha = alpha;
-				drawCenterText(dwtData(_prop.looks.summaryLevelFont(_summ.legacy)),
+				drawCenterText(dwtData(_prop.looks.summaryLevelFont(skin.legacy)),
 					_prop.msgs.targetLevel(_levMin.getSelection, _levMax.getSelection),
 					_prop.looks.summaryLevelY);
 				c.dispose;
 				gc.setAlpha = 255;
 				gc.setForeground = d.getSystemColor(SWT.COLOR_BLACK);
-				drawCenterText(dwtData(_prop.looks.summaryTitleFont(_summ.legacy)),
+				drawCenterText(dwtData(_prop.looks.summaryTitleFont(skin.legacy)),
 					_sname.getText, _prop.looks.summaryTitleY);
 				{
-					scope font = new Font(d, dwtData(_prop.looks.summaryDescFont(_summ.legacy)));
+					scope font = new Font(d, dwtData(_prop.looks.summaryDescFont(skin.legacy)));
 					gc.setFont = font;
 					int hig = gc.getFontMetrics.getHeight;
 					int x = _prop.looks.summaryDescXY.x;
@@ -139,7 +147,7 @@ private:
 					gc.setFont = null;
 					font.dispose;
 				}
-				drawCenterText(dwtData(_prop.looks.summaryPageFont(_summ.legacy)),
+				drawCenterText(dwtData(_prop.looks.summaryPageFont(skin.legacy)),
 					_prop.msgs.summaryPageDummy, _prop.looks.summaryPageY);
 			}
 			auto rect = _summImage.getClientArea;
@@ -198,7 +206,7 @@ private:
 		{
 			_tab2Sash = new SplitPane(comp, SWT.HORIZONTAL);
 			_tab2Sash.setLayoutData = new GridData(GridData.FILL_BOTH);
-			auto skin = findSkin(_prop, _summ);
+			auto skin = _comm.skin;
 			{
 				_imgPath = new ImageSelect!(MtType.CARD)(_tab2Sash, SWT.NONE, _comm, _prop, _summ,
 					_prop.looks.cardSize.width, _prop.looks.cardSize.height, _summ.legacy);
@@ -261,7 +269,7 @@ private:
 		{
 			_tab3Sash = new SplitPane(comp, SWT.HORIZONTAL);
 			_tab3Sash.setLayoutData = new GridData(GridData.FILL_BOTH);
-			auto skin = findSkin(_prop, _summ);
+			auto skin = _comm.skin;
 			{
 				auto comp2 = new Composite(_tab3Sash, SWT.NONE);
 				comp2.setLayout = zeroMarginGridLayout(1, true);
@@ -272,8 +280,13 @@ private:
 					grp.setLayout = new GridLayout(1, true);
 					_type = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 					_type.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-					if (_summ.legacy && skin.legacyEngine.length) {
-						_type.add(_prop.msgs.legacyEngineSkin(skin.engine));
+					if (_summ.legacy) {
+						string resDir, lEnginePath;
+						_hasLegacySkin = Skin.findLegacy(_summ.scenarioPath, resDir, lEnginePath);
+						if (_hasLegacySkin) {
+							auto lSkin = Skin.legacySkin(_prop.parent, _prop.var.etc.enginePath, _summ.scenarioPath);
+							_type.add(_prop.msgs.legacyEngineSkin(lSkin.engine));
+						}
 					}
 					foreach (type; skinTable(_prop).keys.sort) {
 						_type.add(type);
@@ -433,11 +446,12 @@ protected:
 			_summ.rCouponNum = _rCouponNum.getSelection;
 			_summ.startArea = _startArea.getItemCount > 0 && _startArea.getSelection.length > 0
 				? (cast(Area) _startArea.getSelection[0].getData).id : 0;
-			if (_summ.legacy && _type.getSelectionIndex == 0) {
+			if (_summ.legacy && _hasLegacySkin && _type.getSelectionIndex == 0) {
 				_summ.type = "";
 			} else {
 				_summ.type = _type.getText;
 			}
+			_comm.skin = findSkin(_prop, _summ);
 		}
 		auto ws1 = _tab2Sash.getWeights;
 		_prop.var.etc.summaryParamSashL = ws1[0];

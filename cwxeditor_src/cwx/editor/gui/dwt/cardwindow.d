@@ -164,8 +164,6 @@ private:
 			}
 			_tbl.showSelection;
 		} else {
-			_skinTemp = findSkin(_prop, _summ);
-			scope (exit) _skinTemp = null;
 			_list.refresh(__cards, &__cardImage);
 			int sel = _list.selection;
 			if (sel >= 0) {
@@ -491,7 +489,7 @@ private:
 				c.setUseCounter = uc;
 			}
 			bool copy;
-			auto skin = findSkin(_prop, _summ);
+			auto skin = _comm.skin;
 			bool r = qMaterialCopy(_prop, skin, _list.getShell,
 				uc, _summ.scenarioPath, fromSPath, copy, _summ.legacy);
 			foreach (c; cs) {
@@ -519,9 +517,8 @@ private:
 			return _owner.id;
 		}
 	}
-	private Skin _skinTemp = null;
 	ImageData __cardImage(C c) {
-		Skin skin = _skinTemp ? _skinTemp : .findSkin(_prop, _summ);
+		Skin skin = _comm.skin;
 		static if (is (C == CastCard)) {
 			return castCardImage(_prop, skin, c, ownerScenarioPath, _viewMode == CViewMode.LIFE);
 		} else static if (!is (C == InfoCard) && is (CardOwner == CastCard)) {

@@ -78,7 +78,7 @@ private:
 			if (file.length > 0) {
 				try {
 					uint x, y;
-					dwtImageSize(findSkin(_prop, _summ), file, x, y);
+					dwtImageSize(_comm.skin, file, x, y);
 					_w.setSelection = x;
 					_h.setSelection = y;
 					_selected = true;
@@ -151,7 +151,7 @@ public:
 protected:
 	override void setup(Composite area) {
 		area.setLayout = zeroGridLayout(1);
-		auto skin = findSkin(_prop, _summ);
+		auto skin = _comm.skin;
 		{
 			auto comp = new Composite(area, SWT.NONE);
 			comp.setLayout = new GridLayout(1, false);

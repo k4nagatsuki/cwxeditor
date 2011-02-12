@@ -571,7 +571,7 @@ public:
 	/// 新規エリアが作成され、名前の入力待ちになる。
 	void createArea() {
 		auto area = new Area(_summ.newAreaId, _prop.msgs.areaNew);
-		auto bgImages = BgImageS.createBgImages(findSkin(_prop, _summ), _prop.var.etc.bgImagesDefault);
+		auto bgImages = BgImageS.createBgImages(_comm.skin, _prop.var.etc.bgImagesDefault);
 		foreach (b; bgImages) {
 			area.append(b);
 		}
@@ -588,7 +588,7 @@ public:
 
 	/// 新規バトルが作成され、名前の入力待ちになる。
 	void createBattle() {
-		auto btl = new Battle(_summ.newBattleId, _prop.msgs.battleNew, findSkin(_prop, _summ).defBattle);
+		auto btl = new Battle(_summ.newBattleId, _prop.msgs.battleNew, _comm.skin.defBattle);
 		_summ.add(btl);
 		int index = _summ.battles.length - 1;
 		newBattleItem(index);

@@ -252,7 +252,7 @@ private:
 		}
 		find(sPath);
 		if (!scenarioOnly) {
-			auto skin = findSkin(_prop, _summ);
+			auto skin = _comm.skin;
 			foreach (p; skin.tables) {
 				tbl.add(toPathId(p));
 				paths ~= encodePath(p);
@@ -786,8 +786,6 @@ public:
 		auto uc = _summ.useCounter;
 		auto users = uc.values(from);
 		if (_replMode) uc.change(from, to, true);
-		_skinTemp = findSkin(_prop, _summ);
-		scope (exit) _skinTemp = null;
 		_result.setRedraw = false;
 		scope (exit) _result.setRedraw = true;
 		foreach (user; users) {
@@ -828,8 +826,6 @@ public:
 		auto uc = _summ.useCounter;
 		auto users = uc.values(from);
 		if (_replMode) uc.change(from, to, true);
-		_skinTemp = findSkin(_prop, _summ);
-		scope (exit) _skinTemp = null;
 		_result.setRedraw = false;
 		scope (exit) _result.setRedraw = true;
 		reset;
@@ -850,8 +846,6 @@ public:
 	private void searchUnuseImpl() {
 		_replMode = false;
 		uint count = 0;
-		_skinTemp = findSkin(_prop, _summ);
-		scope (exit) _skinTemp = null;
 		_result.setRedraw = false;
 		scope (exit) _result.setRedraw = true;
 		reset;
@@ -907,7 +901,7 @@ public:
 		uint count = 0;
 		auto froot = _summ.flagDirRoot;
 		auto sPath = _summ.scenarioPath;
-		auto skin = findSkin(_prop, _summ);
+		auto skin = _comm.skin;
 		reset;
 		searchAll(_summ, count, (CWXPath path, ref uint count) {
 			auto summ = cast(Summary) path;
@@ -1009,8 +1003,6 @@ public:
 				}
 			}
 		});
-		_skinTemp = skin;
-		scope (exit) _skinTemp = null;
 		_result.setRedraw = false;
 		scope (exit) _result.setRedraw = true;
 		setResultStatus(count);
@@ -1115,8 +1107,6 @@ public:
 		scope (exit) _wildcard = null;
 
 		size_t count = 0;
-		_skinTemp = findSkin(_prop, _summ);
-		scope (exit) _skinTemp = null;
 		_result.setRedraw = false;
 		scope (exit) _result.setRedraw = true;
 		reset;
@@ -1214,11 +1204,10 @@ public:
 			}
 		}
 	}
-	private Skin _skinTemp = null;
 	Image fimage(string file) {
 		try {
 			if (.exists(file)) {
-				auto skin = _skinTemp ? _skinTemp : findSkin(_prop, _summ);
+				auto skin = _comm.skin;
 				if (.isdir(file)) {
 					return _prop.images.folder;
 				} else if (skin.isCardImage(file)) {

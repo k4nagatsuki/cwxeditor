@@ -1414,11 +1414,10 @@ public:
 				}
 				target.addDropListener(new IPDropTarget);
 			}
-
 			static if (UseBacks) appendBgImages(0, area.backs, false);
 			static if (UseCards) appendCards(0, area.cards, false);
 			foreach (p; _prop.looks.partyCardXY) {
-				auto img = createCastCardBackImage(_prop, findSkin(_prop, _summ), p.x, p.y);
+				auto img = createCastCardBackImage(_prop, _comm.skin, p.x, p.y);
 				img.alpha = _prop.var.etc.partyCardAlpha;
 				img.visible = _viewParty;
 				_imgp.append(img);
@@ -1889,7 +1888,7 @@ public:
 					&setEscape, SWT.CHECK);
 			_escTMenu.setEnabled = false;
 			new ToolItem(bar, SWT.SEPARATOR);
-			auto skin = findSkin(_prop, _summ);
+			auto skin = _comm.skin;
 			_bgm = new MaterialSelect!(MtType.BGM, CCombo, CCombo)
 				(_comm, _prop, _summ, &selectBGM, [_prop.msgs.bgmNone]);
 			auto dirs = _bgm.createDirsCombo(bar);
@@ -1993,7 +1992,7 @@ public:
 					dlg.setText = _prop.msgs.dlgTitDropCard;
 					auto ret = dlg.open();
 					if (SWT.YES == ret) {
-						fname = copyTo(_summ.scenarioPath, fname, findSkin(_prop, _summ).materialPath);
+						fname = copyTo(_summ.scenarioPath, fname, _comm.skin.materialPath);
 					} else if (SWT.CANCEL == ret) {
 						return -1;
 					}
@@ -2024,7 +2023,7 @@ public:
 							} else {
 								auto undo = new UndoInsert(addC);
 							}
-							_comm.refPaths.call(findSkin(_prop, _summ).materialPath);
+							_comm.refPaths.call(_comm.skin.materialPath);
 						}
 						return;
 					} else if (isXMLBytes(e.data)) {
@@ -2040,7 +2039,7 @@ public:
 				}
 				private bool doFile(string path) {
 					assert (_summ);
-					if (findSkin(_prop, _summ).isCardImage(path)) {
+					if (_comm.skin.isCardImage(path)) {
 						int i = cardFromFile(path, 0, 0, false);
 						if (i == -1) {
 							return false;
@@ -2081,7 +2080,7 @@ public:
 			_comm.refUseCount.call;
 		}
 		private FlexImage create(BgImage back) {
-			auto skin = findSkin(_prop, _summ);
+			auto skin = _comm.skin;
 			auto img = createBackgroundImage
 				(skin, skin.findImagePath(back.path, _summ ? _summ.scenarioPath : ""),
 				back.x, back.y, back.width, back.height, back.mask);
@@ -2110,7 +2109,7 @@ public:
 				dlg.setText = _prop.msgs.dlgTitDropBack;
 				auto ret = dlg.open();
 				if (SWT.YES == ret) {
-					fname = copyTo(_summ.scenarioPath, fname, findSkin(_prop, _summ).materialPath);
+					fname = copyTo(_summ.scenarioPath, fname, _comm.skin.materialPath);
 				} else if (SWT.CANCEL == ret) {
 					return -1;
 				}
@@ -2128,7 +2127,7 @@ public:
 			override bool canDrop() {return _summ !is null;}
 			bool doFile(string path, int x, int y) {
 				assert (_summ);
-				auto img = loadBgImage(findSkin(_prop, _summ), path);
+				auto img = loadBgImage(_comm.skin, path);
 				if (img) {
 					int i = backFromFile(path, 0, 0, img.width, img.height, false);
 					if (i >= 0) {
@@ -2147,7 +2146,7 @@ public:
 					} else {
 						_undo ~= new UndoInsert(addB);
 					}
-					_comm.refPaths.call(findSkin(_prop, _summ).materialPath);
+					_comm.refPaths.call(_comm.skin.materialPath);
 				}
 			}
 		}
@@ -2196,7 +2195,7 @@ public:
 					} else static if (UseBacks) {
 						_undo ~= new UndoInsert(addB);
 					} else static assert (0);
-					_comm.refPaths.call(findSkin(_prop, _summ).materialPath);
+					_comm.refPaths.call(_comm.skin.materialPath);
 				}
 				return;
 			}
@@ -2216,7 +2215,7 @@ public:
 		}
 		private bool doFile(string path, int x, int y) {
 			assert (_summ);
-			auto skin = findSkin(_prop, _summ);
+			auto skin = _comm.skin;
 			static if ((UseCards && is (C == MenuCard)) && UseBacks) {
 				if (skin.isCardImage(path)) {
 					int i = cardFromFile(path, x, y, true);
@@ -2262,7 +2261,7 @@ public:
 
 	static if (is (C == EnemyCard)) {
 		private void __refreshCast(CastCard castCard) {
-			auto skin = findSkin(_prop, _summ);
+			auto skin = _comm.skin;
 			foreach (i, c; area.cards) {
 				if (castCard.id == _area.cards[i].id) {
 					auto img = imagePane.images[cardsIndex + i];
@@ -2275,7 +2274,7 @@ public:
 			imagePane.redraw;
 		}
 		private void __deleteCast(CastCard castCard) {
-			auto skin = findSkin(_prop, _summ);
+			auto skin = _comm.skin;
 			foreach (i, c; area.cards) {
 				if (castCard.id == c.id) {
 					auto img = imagePane.images[cardsIndex + i];
@@ -2553,7 +2552,9 @@ public:
 }
 
 class AreaView : AbstractAreaView!(Area, MenuCard, true, true) {
+	private Commons _comm;
 	this(Commons comm, Props prop, Summary summ, Area area, Composite parent, TopLevelPanel tlp, UndoManager undo) {
+		_comm = comm;
 		super(comm, prop, summ, area, parent, tlp, undo);
 	}
 protected override:
@@ -2562,11 +2563,11 @@ protected override:
 	}
 	FlexImage createCardImage(MenuCard card, bool smoothing) {
 		return createMenuCardImage
-			(prop, findSkin(prop, summ), card.name,
+			(prop, _comm.skin, card.name,
 			cardImagePath(card), card.x, card.y, card.scale, smoothing);
 	}
 	string cardImagePath(MenuCard card) {
-		return findSkin(prop, summ).findImagePath(card.path, summary.scenarioPath);
+		return _comm.skin.findImagePath(card.path, summary.scenarioPath);
 	}
 }
 
@@ -2637,7 +2638,7 @@ protected override:
 		return castCard ? castCard.name : "";
 	}
 	FlexImage createCardImage(EnemyCard card, bool smoothing) {
-		auto skin = findSkin(prop, summ);
+		auto skin = _comm.skin;
 		auto castCard = summary.casts(card.id);
 		if (castCard) {
 			return createCastCardImage(prop, skin, castCard, _summ.scenarioPath,
@@ -2650,7 +2651,7 @@ protected override:
 	string cardImagePath(EnemyCard card) {
 		auto castCard = summary.casts(card.id);
 		if (castCard) {
-			return findSkin(prop, summ).findImagePath(castCard.path, summary.scenarioPath);
+			return _comm.skin.findImagePath(castCard.path, summary.scenarioPath);
 		} else {
 			return "";
 		}

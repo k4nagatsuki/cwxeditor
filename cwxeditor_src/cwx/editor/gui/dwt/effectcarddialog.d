@@ -148,7 +148,7 @@ private:
 				checker(_name.widget);
 			}
 			{
-				auto skin = findSkin(_prop, _summ);
+				auto skin = _comm.skin;
 				_imgPath = new ImageSelect!(MtType.CARD)(comp2, SWT.NONE, _comm, _prop, _summ,
 					_prop.looks.cardSize.width, _prop.looks.cardSize.height, _summ.legacy);
 				_imgPath.widget.setLayoutData = new GridData(GridData.FILL_BOTH);
@@ -479,15 +479,15 @@ private:
 	CTabItem constructKeyCode(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout = new GridLayout(2, false);
-		auto skin = findSkin(_prop, _summ);
+		auto skin = _comm.skin;
 		{
 			auto grp = new Group(comp, SWT.NONE);
 			grp.setText = _prop.msgs.se;
 			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
 			grp.setLayout = new GridLayout(1, false);
-			createDefSoundCombo(_prop, skin, grp, _se1, _prop.msgs.se1).setLayoutData
+			createDefSoundCombo(_prop, _summ, skin, grp, _se1, _prop.msgs.se1).setLayoutData
 				= new GridData(GridData.FILL_BOTH);
-			createDefSoundCombo(_prop, skin, grp, _se2, _prop.msgs.se2).setLayoutData
+			createDefSoundCombo(_prop, _summ, skin, grp, _se2, _prop.msgs.se2).setLayoutData
 				= new GridData(GridData.FILL_BOTH);
 		}
 		{
@@ -556,7 +556,7 @@ protected:
 		constructProps(tabf);
 		constructKeyCode(tabf);
 
-		auto skin = findSkin(_prop, _summ);
+		auto skin = _comm.skin;
 		// Windows Vistaだとタブの横幅が凄いことになったので必要最低限にする。
 		scope maxSize = new Point(0, 0);
 		foreach (tab; tabf.getItems) {

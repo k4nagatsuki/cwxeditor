@@ -27,7 +27,7 @@ Skin findSkin(S = Summary)(Props prop, S summ) {
 			return findSkin2(prop, prop.var.etc.defaultSkin);
 		}
 		if (summ.legacy && !summ.type.length) {
-			return Skin.find(prop.parent, prop.var.etc.enginePath, summ);
+			return Skin.find2(prop.parent, prop.var.etc.enginePath, summ);
 		}
 		return findSkin2(prop, summ.type);
 	} else {

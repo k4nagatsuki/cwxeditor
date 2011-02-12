@@ -1126,7 +1126,7 @@ public:
 		_prop = prop;
 
 		BgImage[] bgImages;
-		auto skin = findSkin(_prop, null);
+		auto skin = _comm.skin;
 		_cont = new BgImageContainer(BgImageS.createBgImages(skin, bgImagesDefault));
 	}
 

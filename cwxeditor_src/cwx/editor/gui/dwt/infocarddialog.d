@@ -74,7 +74,7 @@ protected:
 			checker(_name.widget);
 		}
 		{
-			auto skin = findSkin(_prop, _summ);
+			auto skin = _comm.skin;
 			_imgPath = new ImageSelect!(MtType.CARD)(area, SWT.NONE, _comm, _prop, _summ,
 				_prop.looks.cardSize.width, _prop.looks.cardSize.height, _summ.legacy);
 			_imgPath.widget.setLayoutData = new GridData(GridData.FILL_BOTH);

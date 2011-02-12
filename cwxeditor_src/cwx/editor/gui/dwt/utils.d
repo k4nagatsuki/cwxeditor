@@ -1785,19 +1785,24 @@ Image skeletonImage(Image src, bool mask = true) {
 	return new Image(Display.getCurrent, data);
 }
 
-Composite createDefSoundCombo(Props prop, Skin skin, Composite parent, out Combo combo, string title = null) {
+Composite createDefSoundCombo(Props prop, Summary summ, Skin skin, Composite parent, out Combo combo, string title = null) {
 	static class PlaySE : SelectionAdapter {
+		private Summary _summ;
 		private Skin _skin;
 		private Combo _combo;
-		this(Skin skin, Combo combo) {
+		this(Summary summ, Skin skin, Combo combo) {
+			_summ = summ;
 			_skin = skin;
 			_combo = combo;
 		}
 		override void widgetSelected(SelectionEvent e) {
 			if (_combo.getSelectionIndex > 0) {
-				playSE(std.path.join(_skin.seDir, _combo.getText), _skin.legacy);
+				playSE(std.path.join(_skin.seDir, _combo.getText), _summ.legacy);
 			}
 		}
+	}
+	if (summ.legacy) {
+		skin = Skin.legacySkin(prop.parent, prop.var.etc.enginePath, summ.scenarioPath);
 	}
 	auto comp2 = new Composite(parent, SWT.NONE);
 	if (title) {
@@ -1834,7 +1839,7 @@ Composite createDefSoundCombo(Props prop, Skin skin, Composite parent, out Combo
 	}
 	play.setImage = prop.images.playSound;
 	play.setToolTipText = prop.msgs.playSound;
-	play.addSelectionListener(new PlaySE(skin, combo));
+	play.addSelectionListener(new PlaySE(summ, skin, combo));
 	return comp2;
 }
 Composite createSuccessRateScale(Props prop, Composite parent, out Scale sucRate) {

@@ -134,7 +134,7 @@ private:
 			if (this.dir) {
 				this.material = false;
 			} else {
-				auto skin = _skinTemp ? _skinTemp : findSkin(_prop, _summ);
+				auto skin = _comm.skin;
 				this.material = skin.isMaterial(this.basename, false);
 			}
 		}
@@ -317,12 +317,9 @@ private:
 			debugln(e);
 		}
 	}
-	Skin _skinTemp = null;
 	void refreshFiles(string[] sels) {
 		if (!_win || _win.isDisposed) return;
 		try {
-			_skinTemp = findSkin(_prop, _summ);
-			scope (exit) _skinTemp = null;
 			scope (exit) refreshStatusLine;
 			if (!_summ) {
 				_files.removeAll;
@@ -372,7 +369,7 @@ private:
 				int count = 0;
 				int oldC = _files.getItemCount;
 				bool sp = cast(bool) std.path.fnmatch(nabs(path), nabs(_summ.scenarioPath));
-				Skin skin = findSkin(_prop, _summ);
+				Skin skin = _comm.skin;
 				foreach (i, p; list) {
 					if (sp) {
 						if (isDef(p.array, p.dir)) continue;
@@ -509,7 +506,7 @@ private:
 	private int fimageThr() {
 		try {
 			_fimgStop = false;
-			auto skin = findSkin(_prop, _summ);
+			auto skin = _comm.skin;
 			foreach (file; _fimgPs) {
 				if (_fimgStop) break;
 				if (skin.isCardImage(file)) {
@@ -582,11 +579,11 @@ private:
 		if (.isdir(file)) {
 			return _prop.images.folder;
 		} else {
-			return fimage(findSkin(_prop, _summ), file);
+			return fimage(_comm.skin, file);
 		}
 	}
 	Image sfimage(string file) {
-		auto skin = findSkin(_prop, _summ);
+		auto skin = _comm.skin;
 		// isCardImage()は時間がかかるので別スレッドで実行
 		if (.isdir(file)) {
 			return _sImgFolder;
@@ -1600,7 +1597,7 @@ public:
 	void refresh(Summary summ) {
 		_summ = summ;
 		if (_win && !_win.isDisposed) {
-			refreshDirs(std.path.join(_summ.scenarioPath, findSkin(_prop, summ).materialPath));
+			refreshDirs(std.path.join(_summ.scenarioPath, _comm.skin.materialPath));
 			refreshFiles(null);
 			auto root = _dirs.getItem(0);
 			root.setExpanded = true;
