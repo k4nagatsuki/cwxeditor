@@ -2574,8 +2574,8 @@ protected override:
 class BattleView : AbstractAreaView!(Battle, EnemyCard, true, false) {
 	private Commons _comm;
 	this(Commons comm, Props prop, Summary summ, Battle btl, Composite parent, TopLevelPanel tlp, UndoManager undo) {
-		super(comm, prop, summ, btl, parent, tlp, undo);
 		_comm = comm;
+		super(comm, prop, summ, btl, parent, tlp, undo);
 		{
 			auto target = new DropTarget(imagePane, DND.DROP_DEFAULT | DND.DROP_LINK);
 			target.setTransfer([XMLBytesTransfer.getInstance]);
