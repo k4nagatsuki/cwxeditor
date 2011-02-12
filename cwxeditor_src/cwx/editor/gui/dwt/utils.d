@@ -124,8 +124,6 @@ ImageData loadImage(string path, bool mask = true, int maskX = 0, int maskY = 0)
 	return loadImage(null, path, mask, maskX, maskY);
 }
 ImageData loadImage(Skin skin, string path, bool mask = true, int maskX = 0, int maskY = 0) {
-	mixin FileCache!(byte[]);
-
 	if (path !is null && path.length > 0) {
 		string ext = std.path.getExt(path);
 		if (std.path.fnmatch(ext, "jpy1")
@@ -141,13 +139,7 @@ ImageData loadImage(Skin skin, string path, bool mask = true, int maskX = 0, int
 				bytes = strToBImg(path);
 			} else {
 				if (!.exists(path)) return blankImage;
-				auto ca = cache(path);
-				if (ca) {
-					bytes = ca.value;
-				} else {
-					bytes = cast(byte[]) std.file.read(path);
-					putCache(path, bytes);
-				}
+				bytes = cast(byte[]) std.file.read(path);
 			}
 			auto s = new ByteArrayInputStream(bytes);
 			scope (exit) s.close;

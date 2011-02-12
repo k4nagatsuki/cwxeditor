@@ -277,7 +277,8 @@ public:
 			matImgData = this.data;
 		} else {
 			if (isBinImg(path) || (path !is null && .exists(path))) {
-				matImgData = loadImage(path, false).scaledTo(initW, initH);
+				matImgData = loadImage(path, false);
+				matImgData = matImgData.scaledTo(initW, initH);
 			} else {
 				// ファイルが無い場合は単に表示しない。
 				matImgData = blankImage;
@@ -285,8 +286,8 @@ public:
 		}
 		auto matImg = new Image(cur, matImgData);
 		dc.drawImage(matImg, 0, 0);
-		matImg.dispose;
 
+		matImg.dispose;
 		foreach (a; appends) {
 			if (a.path.length || a.data) {
 				try {

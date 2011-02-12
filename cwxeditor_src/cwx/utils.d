@@ -66,6 +66,14 @@ void fdebugln(T ...)(T vals) {
 	foreach (v; vals) {
 		buf ~= to!(char[])(v);
 	}
+	debug {
+		version (Windows) {
+			printf("%s\n\0".ptr, tosjisz(buf));
+			dout.flush;
+		} else {
+			writefln("%s", buf);
+		}
+	}
 	d_time d = getUTCtime;
 	d = UTCtoLocalTime(d);
 	auto year = YearFromTime(d);
@@ -82,16 +90,6 @@ void fdebugln(T ...)(T vals) {
 /// 共にfdebugln()を呼出し、ファイル出力する。
 void debugln(T ...)(T vals) {
 	debug {
-		char[] buf;
-		foreach (v; vals) {
-			buf ~= to!(char[])(v);
-		}
-		version (Windows) {
-			printf("%s\n\0".ptr, tosjisz(buf));
-			dout.flush;
-		} else {
-			writefln("%s", buf);
-		}
 		fdebugln!(T)(vals);
 	}
 }

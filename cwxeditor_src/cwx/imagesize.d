@@ -30,39 +30,20 @@ import cwx.binary;
 /// Throws:
 ///  FileException = ファイル読込失敗時。
 bool imageSize(string path, out uint x, out uint y) {
-	mixin FileCache!(bool, uint, uint);
-	bool size(bool function (string path, out uint x, out uint y) getSize) {
-		if (!.exists(path)) return false;
-		auto ca = cache(path);
-		if (ca) {
-			x = ca.values[1];
-			y = ca.values[2];
-			return ca.values[0];
-		} else {
-			bool ok = getSize(path, x, y);
-			putCache(path, ok, x, y);
-			return ok;
-		}
-	}
+	if (!.exists(path)) return false;
 	switch (tolower(getExt(path))) {
 	case "jpeg", "jpg", "jpe", "jfif", "jfi", "jif":
-		return size(&jpgSize);
+		return .jpgSize(path, x, y);
 	case "gif":
-		return size(&gifSize);
+		return .gifSize(path, x, y);
 	case "tiff", "tif":
-		static bool tifSize(string path, out uint x, out uint y) {
-			return .tifSize(path, x, y);
-		}
-		return size(&tifSize);
+		return .tifSize(path, x, y);
 	case "bmp":
-		return size(&bmpSize);
+		return .bmpSize(path, x, y);
 	case "png":
-		return size(&pngSize);
+		return .pngSize(path, x, y);
 	case "ico":
-		static bool icoSize(string path, out uint x, out uint y) {
-			return .icoSize(path, x, y);
-		}
-		return size(&icoSize);
+		return .icoSize(path, x, y);
 	default:
 		return false;
 	}

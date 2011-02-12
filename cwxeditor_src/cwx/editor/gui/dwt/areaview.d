@@ -2081,9 +2081,9 @@ public:
 		}
 		private FlexImage create(BgImage back) {
 			auto skin = _comm.skin;
+			auto path = skin.findImagePath(back.path, _summ ? _summ.scenarioPath : "");
 			auto img = createBackgroundImage
-				(skin, skin.findImagePath(back.path, _summ ? _summ.scenarioPath : ""),
-				back.x, back.y, back.width, back.height, back.mask);
+				(skin, path, back.x, back.y, back.width, back.height, back.mask);
 			_backTbl[img] = back;
 			img.visible = _viewBacks;
 			img.fixed = isFixed;

@@ -426,6 +426,34 @@ ubyte[] noise(Noise f, int value, ubyte[] data, size_t depth, size_t width, size
 	}
 	return data;
 }
+/// 拡大・縮小した結果を返す。
+/// スムージングは行わない。
+ubyte[] resize(size_t newWidth, size_t newHeight,
+		ubyte[] data, size_t depth, size_t width, size_t height, size_t bytesPerLine,
+		out size_t newBytesPerLine) {
+	if (data.length < 3 || depth < 24 || width < 1 || height < 1) return data;
+	if (width == newWidth && height == newHeight) {
+		newBytesPerLine = bytesPerLine;
+		return data;
+	}
+	real pw = cast(real) newWidth / width;
+	real ph = cast(real) newHeight / height;
+	size_t bpp = bytesPerLine / width;
+	newBytesPerLine = bpp * newWidth;
+	auto result = new ubyte[newHeight * newBytesPerLine];
+	for (size_t y = 0; y < newHeight; y++) {
+		size_t ty = cast(size_t) (y / ph);
+		for (size_t x = 0; x < newWidth; x++) {
+			size_t tx = cast(size_t) (x / pw);
+			size_t ti = ty * width * bpp + tx * bpp;
+			size_t i = y * newWidth * bpp + x * bpp;
+			result[i + 2] = data[ti + 2];
+			result[i + 1] = data[ti + 1];
+			result[i + 0] = data[ti + 0];
+		}
+	}
+	return result;
+}
 /// 滑らかに拡大・縮小した結果を返す。
 ubyte[] smoothResize(size_t newWidth, size_t newHeight,
 		ubyte[] data, size_t depth, size_t width, size_t height, size_t bytesPerLine,
