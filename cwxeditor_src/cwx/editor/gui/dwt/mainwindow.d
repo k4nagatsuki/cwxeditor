@@ -884,6 +884,7 @@ public:
 				_dock.newPaneName = &dockNewPaneName;
 				_dock.canVanish = &dockCanVanish;
 				_dock.selectEvent ~= &dockSelect;
+				_dock.closeCtrlEvent ~= &dockCloseCtrl;
 				_dock.addCreatePaneEvent(&createPaneEvent);
 				_dock.area.setLayoutData = new GridData(GridData.FILL_BOTH);
 			}
@@ -1424,6 +1425,10 @@ public:
 		if (_dock.panes.length == 2) {
 			statusLine = "";
 		}
+		return true;
+	}
+	private bool dockCloseCtrl(string key) {
+		statusLine = "";
 		return true;
 	}
 	private string dockNewPaneName(string ctrlKey, string basePane, Dir dir) {

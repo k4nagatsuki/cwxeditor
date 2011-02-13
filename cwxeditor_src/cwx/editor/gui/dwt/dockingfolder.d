@@ -428,6 +428,9 @@ class DockingFolder(TabF, int Style) {
 
 	/// Controlタブが選択された際、Controlをkeyを引数に呼出される。
 	void delegate(string)[] selectEvent;
+	/// Controlタブが閉じられる際、Controlをkeyを引数に呼出される。
+	/// falseを返すとキャンセルされる。
+	bool delegate(string)[] closeCtrlEvent;
 
 	private TabF newTabf(Composite parent, string key) {
 		if (!key.length) key = newTabfKey;
@@ -472,15 +475,20 @@ class DockingFolder(TabF, int Style) {
 		}
 	}
 	private void close(Tab tab) {
-		auto tabf = tab.getParent;
 		auto ctrlKey = keyFromCtrl(tab.getControl);
+		foreach (evt; closeCtrlEvent) {
+			if (!evt(ctrlKey)) return;
+		}
+		auto tabf = tab.getParent;
 		_ctrls.remove(tab.getControl);
 		_keys.remove(ctrlKey);
 		tab.getControl.dispose;
-		auto key = _tabfs[tabf];
-		if (vanish(key) && tabf.getItemCount == 1 && _area.getChildren[0] !is tabf) {
-			removeTabf(tabf);
-			_area.layout(true);
+		if (tabf.getItemCount == 1 && _area.getChildren[0] !is tabf) {
+			auto key = _tabfs[tabf];
+			if (vanish(key)) {
+				removeTabf(tabf);
+				_area.layout(true);
+			}
 		}
 	}
 	/// Controlツリーの再構築。
