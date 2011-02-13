@@ -415,6 +415,8 @@ public:
 
 	Image menuLockBar() {return imgd!(resourceDir ~ "lock_bar.png");}
 	Image menuResetBar() {return imgd!(resourceDir ~ "reset_bar.png");}
+
+	Image menuSaveIncludeImage() {return imgd!(resourceDir ~ "save_inc_img.png");}
 }
 
 enum MenuID : int {

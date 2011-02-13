@@ -129,6 +129,7 @@ private:
 	CTabItem constructMain(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout = new GridLayout(2, false);
+		bool including = _card && isBinImg(_card.path);
 		{
 			auto comp2 = new Composite(comp, SWT.NONE);
 			comp2.setLayoutData = new GridData(GridData.FILL_BOTH);
@@ -150,7 +151,7 @@ private:
 			{
 				auto skin = _comm.skin;
 				_imgPath = new ImageSelect!(MtType.CARD)(comp2, SWT.NONE, _comm, _prop, _summ,
-					_prop.looks.cardSize.width, _prop.looks.cardSize.height, _summ.legacy);
+					_prop.looks.cardSize.width, _prop.looks.cardSize.height, including);
 				_imgPath.widget.setLayoutData = new GridData(GridData.FILL_BOTH);
 			}
 		}

@@ -203,13 +203,14 @@ private:
 	void constructTab2(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout = new GridLayout(1, true);
+		bool including = isBinImg(_summ.imagePath);
 		{
 			_tab2Sash = new SplitPane(comp, SWT.HORIZONTAL);
 			_tab2Sash.setLayoutData = new GridData(GridData.FILL_BOTH);
 			auto skin = _comm.skin;
 			{
 				_imgPath = new ImageSelect!(MtType.CARD)(_tab2Sash, SWT.NONE, _comm, _prop, _summ,
-					_prop.looks.cardSize.width, _prop.looks.cardSize.height, _summ.legacy);
+					_prop.looks.cardSize.width, _prop.looks.cardSize.height, including);
 				_imgPath.image = _summ.imagePath;
 			}
 			{

@@ -89,6 +89,13 @@ public:
 
 	string newScenarioName() {return "新規シナリオ";}
 
+	string dlgTitSaveBitmapImage() {
+		return "格納イメージの保存";
+	}
+	string filterBitmapImage() {
+		return "ビットマップイメージ (*.bmp)";
+	}
+
 	string dlgMsgDelete(string[] files) {
 		return files.length == 1
 			? getBaseName(files[0]) ~ "を完全に削除しますか？"
@@ -173,6 +180,9 @@ public:
 		return DIR ~ "を開く";
 	}
 	string menuOpenDirectory() {return ttOpenDirectory ~ "(&O)";}
+	string ttSaveIncludeImage() {
+		return "格納イメージをファイルに保存";
+	}
 
 	string ttChangeVH() {return "分割領域の縦横を切替";}
 	string menuChangeVH() {return ttChangeVH ~ "(&V)" ~ "";}

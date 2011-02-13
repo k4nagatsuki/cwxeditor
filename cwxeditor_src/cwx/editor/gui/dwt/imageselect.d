@@ -11,6 +11,9 @@ import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.materialselect;
 
+import std.file;
+import std.path;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
 import org.eclipse.swt.widgets.Composite;
@@ -22,6 +25,7 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.MessageBox;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.graphics.Image;
@@ -101,13 +105,22 @@ public:
 			auto cgd = new GridData(GridData.FILL_BOTH);
 			cgd.verticalSpan = 2;
 			comp.setLayoutData = cgd;
-			comp.setLayout = zeroMarginGridLayout(1, false);
+			comp.setLayout = zeroMarginGridLayout(canIncluding ? 2 : 1, false);
 			{
 				_msel.createDirsCombo(comp).setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+				if (canIncluding) {
+					auto saveIncludeImage = new Button(comp, SWT.PUSH);
+					saveIncludeImage.setImage = _prop.images.menuSaveIncludeImage;
+					saveIncludeImage.setToolTipText = _prop.msgs.ttSaveIncludeImage;
+					saveIncludeImage.addSelectionListener(new SaveIncImg);
+				}
 			}
 			{
 				auto fileList = _msel.createFileList(comp);
 				auto gd = new GridData(GridData.FILL_BOTH);
+				if (canIncluding) {
+					gd.horizontalSpan = 2;
+				}
 				gd.widthHint = _prop.var.etc.filesWidth;
 				gd.heightHint = fileList.computeSize(SWT.DEFAULT, SWT.DEFAULT).y;
 				fileList.setLayoutData = gd;
@@ -146,6 +159,29 @@ public:
 		return _msel.fileList;
 	}
 private:
+	class SaveIncImg : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			auto path = _msel.oldPath;
+			if (!isBinImg(path)) return;
+			byte[] bytes = strToBImg(path);
+			auto dlg = new FileDialog(_image.getShell, SWT.PRIMARY_MODAL | SWT.APPLICATION_MODAL | SWT.SINGLE | SWT.SAVE);
+			dlg.setFilterExtensions = ["*.bmp"];
+			dlg.setFilterNames = [_prop.msgs.filterBitmapImage];
+			dlg.setText = _prop.msgs.dlgTitSaveBitmapImage;
+			auto dir = _msel.filePath;
+			if (isBinImg(dir)) {
+				dir = _summ.scenarioPath;
+			} else {
+				if (!.exists(dir) || !isdir(dir)) dir = getDirName(dir);
+			}
+			dlg.setFilterPath = dir;
+			dlg.setOverwrite = true;
+			string fname = dlg.open;
+			if (fname) {
+				std.file.write(fname, bytes);
+			}
+		}
+	}
 	class PListener : PaintListener {
 		public override void paintControl(PaintEvent e) {
 			auto path = filePath;

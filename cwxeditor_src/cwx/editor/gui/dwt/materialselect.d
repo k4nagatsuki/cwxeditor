@@ -183,6 +183,9 @@ public:
 		_oldPath = _path;
 		refreshPaths;
 	}
+	string oldPath() {
+		return _oldPath;
+	}
 	D dirsCombo() {
 		return _dirs;
 	}

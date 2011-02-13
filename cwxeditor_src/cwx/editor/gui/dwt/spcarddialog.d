@@ -191,8 +191,9 @@ protected:
 					{
 						static if (is (C == MenuCard)) {
 							auto skin = _comm.skin;
+							bool including = _card && isBinImg(_card.path);
 							_imgPath = new ImageSelect!(MtType.CARD)(comp2, SWT.NONE, _comm, _prop, _summ,
-								_prop.looks.cardSize.width, _prop.looks.cardSize.height, _summ ? _summ.legacy : false);
+								_prop.looks.cardSize.width, _prop.looks.cardSize.height, including);
 							_imgPath.widget.setLayoutData = new GridData(GridData.FILL_BOTH);
 						} else static if (is (C == EnemyCard)) {
 							auto grp = new Group(comp2, SWT.NONE);
