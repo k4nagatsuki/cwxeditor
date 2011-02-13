@@ -529,13 +529,16 @@ private:
 	}
 public:
 	/// シナリオ名、スキン、シナリオのパスを指定してインスタンスを生成。
-	this(string sname, string type, string sPath, bool legacy) {
+	this(string sname, string type, string sPath, bool temp, bool legacy) {
 		this(sPath);
 		_type = type;
 		_sname = sname;
 		_legacy = legacy;
-		_useTemp = !legacy;
-		lock;
+		_useTemp = temp;
+		if (_useTemp) {
+			_tempPath = _sPath;
+			lock;
+		}
 	}
 	override string cwxPath() {return "";}
 	override CWXPath findCWXPath(string path) {

@@ -73,7 +73,7 @@ S loadLScenario(S)(string p, string skin, string newName = null) {
 		if (!newName) throw new SummaryException("Not Scenario: " ~ p);
 		d = RData(sPath, skin);
 		static if (is(S == Summary)) {
-			summ = new Summary(newName, d.skin, d.sPath, true);
+			summ = new Summary(newName, d.skin, d.sPath, false, true);
 		} else {
 			summ = new S(d.sPath, newName, true);
 		}
@@ -421,7 +421,7 @@ private S loadSummary(S)(in RData d, ref ByteIO f, out ulong startAreaId) {
 	string img = readImage(d, f);
 	static if (is (S == Summary)) {
 		byte b;
-		auto summ = new Summary(readString(f), d.skin, d.sPath, true);
+		auto summ = new Summary(readString(f), d.skin, d.sPath, false, true);
 		summ.imagePath = img;
 		summ.desc = readString(f, true);
 		summ.author = readString(f);

@@ -152,12 +152,12 @@ private:
 			if (!dlg.open) return;
 			Summary summ;
 			if (dlg.legacy) {
-				summ = new Summary(dlg.name, dlg.skin, dlg.classicFolder, true);
+				summ = new Summary(dlg.name, dlg.skin, dlg.classicFolder, false, true);
 			} else {
 				auto p = Summary.createTempDir(_prop.tempPath, dlg.name);
 				auto mFPath = std.path.join(p, findSkin2(_prop, dlg.skin).materialPath);
 				if (!exists(mFPath) || !isdir(mFPath)) std.file.mkdir(mFPath);
-				summ = new Summary(dlg.name, dlg.skin, p, false);
+				summ = new Summary(dlg.name, dlg.skin, p, true, false);
 				if (summ.expandXMLs) {
 					summ.saveXMLs(summ.scenarioPath);
 				}
