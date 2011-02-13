@@ -59,7 +59,6 @@ public:
 protected:
 	override void setup(Composite area) {
 		area.setLayout = new GridLayout(1, false);
-		bool including = _card && isBinImg(_card.path);
 		{
 			auto grp = new Group(area, SWT.NONE);
 			grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
@@ -76,8 +75,10 @@ protected:
 		}
 		{
 			auto skin = _comm.skin;
+			bool including = _card && isBinImg(_card.path);
+			string saveName = including ? _card.name : "";
 			_imgPath = new ImageSelect!(MtType.CARD)(area, SWT.NONE, _comm, _prop, _summ,
-				_prop.looks.cardSize.width, _prop.looks.cardSize.height, including);
+				_prop.looks.cardSize.width, _prop.looks.cardSize.height, including, saveName);
 			_imgPath.widget.setLayoutData = new GridData(GridData.FILL_BOTH);
 		}
 		{

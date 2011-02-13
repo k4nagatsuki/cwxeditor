@@ -157,7 +157,7 @@ protected:
 			comp.setLayout = new GridLayout(1, false);
 			void imgs(Composite parent) {
 				_imgPath = new ImageSelect!(MtType.BG_IMG)(parent, SWT.NONE, _comm, _prop, _summ,
-					_prop.var.etc.bgImageSampleWidth, _prop.var.etc.bgImageSampleHeight, false, &select);
+					_prop.var.etc.bgImageSampleWidth, _prop.var.etc.bgImageSampleHeight, false, "", &select);
 			}
 			if (_summ) {
 				auto sash = new SplitPane(comp, SWT.HORIZONTAL);

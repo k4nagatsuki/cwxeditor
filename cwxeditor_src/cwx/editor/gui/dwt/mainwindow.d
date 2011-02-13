@@ -324,7 +324,7 @@ private:
 			dlg.setFilterNames = [_prop.msgs.filterScenarioSave];
 			dlg.setText = _prop.msgs.dlgTitSaveScenario;
 			dlg.setFilterPath = scenarioFilterPath(_prop);
-			dlg.setFileName = summary.scenarioName ~ ".wsn";
+			dlg.setFileName = addExt(summary.scenarioName, ".wsn");
 			dlg.setOverwrite = true;
 			string fname = dlg.open;
 			if (fname) {

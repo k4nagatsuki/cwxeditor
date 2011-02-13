@@ -54,9 +54,10 @@ public:
 	/// h = 画像表示欄の高さ。
 	/// targ = ファイルパスを受取り、選択対象であればtrueを返す関数。
 	/// canIncluding = 格納イメージを扱うならtrue。
+	/// saveName = 格納イメージを保存する際のデフォルト名。
 	/// refresh = 選択が変更された際のコールバック関数。
 	this(Composite parent, int style, Commons comm, Props prop, Summary summ,
-			int w, int h, bool canIncluding, void delegate() refresh = null) {
+			int w, int h, bool canIncluding, string saveName, void delegate() refresh = null) {
 		_group = new Group(parent, style);
 		_comm = comm;
 		_prop = prop;
@@ -64,6 +65,7 @@ public:
 		_refresh = refresh;
 		_w = w;
 		_h = h;
+		_saveName = saveName;
 		{
 			auto gl = new GridLayout(2, false);
 			gl.verticalSpacing = 0;
@@ -175,6 +177,7 @@ private:
 				if (!.exists(dir) || !isdir(dir)) dir = getDirName(dir);
 			}
 			dlg.setFilterPath = dir;
+			dlg.setFileName = addExt(_saveName, "bmp");
 			dlg.setOverwrite = true;
 			string fname = dlg.open;
 			if (fname) {
@@ -220,6 +223,7 @@ private:
 	Canvas _image;
 	MaterialSelect!(Type, Combo, List) _msel;
 	int _w, _h;
+	string _saveName;
 	bool _mask = true;
 	void delegate() _refresh;
 }
