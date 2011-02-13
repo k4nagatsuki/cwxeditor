@@ -1244,10 +1244,11 @@ public:
 			auto menu = new Menu(comp.getShell, SWT.POP_UP);
 			createMenuItem(menu, _prop.msgs.menuClosePane, _prop.images.menuClosePane, &close);
 			new MenuItem(menu, SWT.SEPARATOR);
-			createMenuItem(menu, _prop.msgs.menuClosePaneAll, _prop.images.menuClosePaneAll, &closeAll);
 			createMenuItem(menu, _prop.msgs.menuClosePaneEtc, _prop.images.menuClosePaneEtc, &closeEtc);
 			createMenuItem(menu, _prop.msgs.menuClosePaneLeft, _prop.images.menuClosePaneLeft, &closeLeft);
 			createMenuItem(menu, _prop.msgs.menuClosePaneRight, _prop.images.menuClosePaneRight, &closeRight);
+			new MenuItem(menu, SWT.SEPARATOR);
+			createMenuItem(menu, _prop.msgs.menuClosePaneAll, _prop.images.menuClosePaneAll, &closeAll);
 			_dock.setMenu(paneKey, menu);
 		}
 		void close(SelectionEvent se) {
