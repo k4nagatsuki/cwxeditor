@@ -33,6 +33,7 @@ import cwx.editor.gui.dwt.dockingfolder;
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.xmlbytestransfer;
+import cwx.editor.gui.dwt.sbshell;
 
 import cwx.editor.gui.dwt.props;
 import cwx.editor.gui.dwt.properties;
@@ -124,8 +125,8 @@ version (Windows) {
 public:
 class MainWindow : TopLevelPanel {
 private:
+	SBShell _sbshl = null;
 	Shell _win = null;
-	Label _status = null;
 	DockingFolderCTC _dock = null;
 
 	Props _prop;
@@ -824,10 +825,11 @@ public:
 		}
 
 		if (_prop.var.etc.singleWindow) {
-			_win = new Shell;
+			_sbshl = new SBShell(null, SWT.SHELL_TRIM);
 		} else {
-			_win = new Shell(SWT.DIALOG_TRIM | SWT.MIN);
+			_sbshl = new SBShell(null, SWT.DIALOG_TRIM | SWT.MIN);
 		}
+		_win = _sbshl.shell;
 		_win.setData = new TLPData(this);
 		_win.setImage = _prop.images.app;
 
@@ -842,15 +844,15 @@ public:
 		}
 		_win.setText(_prop.msgs.mainWindowName(null, null));
 		if (_prop.var.etc.singleWindow) {
-			_win.setLayout = zeroGridLayout(1, true);
+			_sbshl.contentPane.setLayout = zeroGridLayout(1, true);
 		} else {
-			_win.setLayout = windowGridLayout(1, true);
+			_sbshl.contentPane.setLayout = windowGridLayout(1, true);
 		}
-		auto toolComp = new Composite(_win, SWT.NONE);
+		auto toolComp = new Composite(_sbshl.contentPane, SWT.NONE);
 		toolComp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		toolComp.setLayout = new FillLayout;
 		if (_prop.var.etc.singleWindow) {
-			auto dockComp = new Composite(_win, SWT.NONE);
+			auto dockComp = new Composite(_sbshl.contentPane, SWT.NONE);
 			dockComp.setLayoutData = new GridData(GridData.FILL_BOTH);
 			dockComp.setLayout = windowGridLayout(1, true);
 			_dock = _prop.var.loadDock(dockComp, SWT.NONE, delegate Control(Composite parent, string key) {
@@ -927,14 +929,11 @@ public:
 				_dirWin = new DirectoryWindow(_comm, _prop, data);
 				_dock.add(_dirWin.shell, _dirWin.title, _dirWin.image, "file", false);
 			}
-			_status = new Label(dockComp, SWT.NONE);
 		} else {
 			_dataWin = new DataWindow(_comm, _prop, _win);
 			_cardWin = new MainCardWindow(_comm, _prop, _win);
 			_dirWin = new DirectoryWindow(_comm, _prop, _win);
-			_status = new Label(_win, SWT.NONE);
 		}
-		_status.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		{
 			_mainMenu = new HashSet!(MenuID);
 			auto bar = new Menu(_win, SWT.BAR);
@@ -1450,7 +1449,7 @@ public:
 	string title() {return _win.getText;}
 	Image image() {return _win.getImage;}
 	Composite shell() {return _win;}
-	Label statusText() {return _status;}
+	void delegate(string) statusText() {return &_sbshl.statusLine;}
 	DockingFolderCTC dock() {return _dock;}
 
 	Summary summary() {return _dataWin ? _dataWin.summary : _tableWin.summary;}

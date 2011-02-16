@@ -23,6 +23,7 @@ import cwx.editor.gui.dwt.effectcarddialog;
 import cwx.editor.gui.dwt.infocarddialog;
 import cwx.editor.gui.dwt.xmlbytestransfer;
 import cwx.editor.gui.dwt.commons;
+import cwx.editor.gui.dwt.sbshell;
 
 import std.utf;
 import std.string;
@@ -1198,9 +1199,9 @@ private:
 	CTabItem[Cards.length] _tab;
 
 	Props _prop;
+	SBShell _sbshl;
 	Composite _win;
 	Composite _comp;
-	Label _status = null;
 	CTabFolder _tabf;
 	PCardOwner _summ;
 	CardOwner _owner;
@@ -1393,16 +1394,20 @@ public:
 		_prop = prop;
 		Shell shell = null;
 		auto parShl = cast(Shell) parent;
+		Composite contPane;
 		if (parShl) {
-			shell = new Shell(parShl, SWT.SHELL_TRIM);
+			_sbshl = new SBShell(parShl, SWT.SHELL_TRIM);
+			shell = _sbshl.shell;
 			shell.setImage = prop.images.app;
 			_win = shell;
+			contPane = _sbshl.contentPane;
 		} else {
 			_win = new Composite(parent, SWT.NONE);
+			contPane = _win;
 		}
 		_win.setData = new TLPData(this);
-		_win.setLayout = new FillLayout;
-		_comp = new Composite(_win, SWT.NONE);
+		contPane.setLayout = new FillLayout;
+		_comp = new Composite(contPane, SWT.NONE);
 		_comp.setLayout = windowGridLayout(1, true);
 		if (shell) {
 			{
@@ -1687,10 +1692,6 @@ public:
 			addTable(f.cardTable);
 		}
 		auto shell = cast(Shell) _win;
-		if (shell) {
-			_status = new Label(_comp, SWT.NONE);
-			_status.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-		}
 
 		_tabf.setSelection = 0;
 		bool life = _prop.var.etc.cardLife;
@@ -1781,7 +1782,7 @@ public:
 		}
 		return mixin ("_prop.msgs." ~ Title);
 	}
-	Label statusText() {return _status;}
+	void delegate(string) statusText() {return _sbshl ? &_sbshl.statusLine : null;}
 
 	void refreshTitle() {
 		if (_win && !_win.isDisposed) _comm.setTitle(shell, title);

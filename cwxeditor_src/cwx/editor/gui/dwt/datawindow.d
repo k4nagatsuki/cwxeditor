@@ -16,6 +16,7 @@ import cwx.editor.gui.dwt.areatable;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.flagspane;
 import cwx.editor.gui.dwt.summarydialog;
+import cwx.editor.gui.dwt.sbshell;
 
 import std.file;
 import std.path;
@@ -49,8 +50,8 @@ import org.eclipse.swt.events.ControlEvent;
 class AbstractDataWindow(bool UseArea, bool UseFlag) : TopLevelPanel, TCPD {
 private:
 	Commons _comm;
+	SBShell _sbshl;
 	Composite _win;
-	Label _status = null;
 	static if (UseArea) {
 		AreaTable _areas;
 	}
@@ -97,8 +98,10 @@ public:
 	private void construct(Composite parent) {
 		Shell shell = null;
 		auto parShl = cast(Shell) parent;
+		Composite contPane;
 		if (parShl) {
-			shell = new Shell(parShl, SWT.SHELL_TRIM);
+			_sbshl = new SBShell(parShl, SWT.SHELL_TRIM);
+			shell = _sbshl.shell;
 			shell.setImage = _prop.images.app;
 			shell.addShellListener(new class ShellAdapter {
 				public override void shellClosed(ShellEvent e) {
@@ -110,11 +113,13 @@ public:
 				}
 			});
 			_win = shell;
+			contPane = _sbshl.contentPane;
 		} else {
 			_win = new Composite(parent, SWT.NONE);
+			contPane = _win;
 		}
 		_win.setData = new TLPData(this);
-		_win.setLayout = windowGridLayout(1, true);
+		contPane.setLayout = windowGridLayout(1, true);
 
 		_comm.refScenarioName.add(&__refreshTitle);
 		_comm.refScenarioPath.add(&__refreshTitle);
@@ -202,7 +207,7 @@ public:
 		}
 		{
 			static if (UseArea && UseFlag) {
-				tabf = new CTabFolder(_win, SWT.BORDER);
+				tabf = new CTabFolder(contPane, SWT.BORDER);
 				tabf.setLayoutData = new GridData(GridData.FILL_BOTH);
 				tabf.addSelectionListener(new SListener);
 
@@ -221,20 +226,16 @@ public:
 				_tcpd ~= _flags.flags;
 				_tcpd ~= _flags.dirs;
 			} else static if (UseArea) {
-				_areas = new AreaTable(_comm, _prop, _win, null);
+				_areas = new AreaTable(_comm, _prop, contPane, null);
 				_areas.table.setLayoutData = new GridData(GridData.FILL_BOTH);
 				_tcpd ~= _areas;
 			} else static if (UseFlag) {
-				_flags = new FlagsPane(_comm, _prop, _win);
+				_flags = new FlagsPane(_comm, _prop, contPane);
 				_flags.setupTLP(this);
 				_flags.widget.setLayoutData = new GridData(GridData.FILL_BOTH);
 				_tcpd ~= _flags.flags;
 				_tcpd ~= _flags.dirs;
 			} else static assert (0);
-		}
-		if (shell) {
-			_status = new Label(_win, SWT.NONE);
-			_status.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		}
 		static if (UseArea && UseFlag) {
 			if (shell) {
@@ -386,7 +387,7 @@ public:
 			return _prop.msgs.flagTabName(_summ);
 		} else static assert (0);
 	}
-	Label statusText() {return _status;}
+	void delegate(string) statusText() {return _sbshl ? &_sbshl.statusLine : null;}
 
 	private void __refreshTitle() {
 		_comm.setTitle(_win, title);

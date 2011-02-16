@@ -32,12 +32,13 @@ cwx\race.d
 cwx\imagesize.d
 cwx\cab.d
 cwx\structs.d
-cwx\editor\gui\dwt\mainwindow.d
-cwx\editor\gui\dwt\images.d
 cwx\graphics.d
 cwx\jpy.d
-cwx\editor\gui\dwt\utils.d
 cwx\editor\gui\sound.d
+cwx\editor\gui\dwt\sbshell.d
+cwx\editor\gui\dwt\mainwindow.d
+cwx\editor\gui\dwt\images.d
+cwx\editor\gui\dwt\utils.d
 cwx\editor\gui\dwt\props.d
 cwx\editor\gui\dwt\properties.d
 cwx\editor\gui\dwt\absdialog.d

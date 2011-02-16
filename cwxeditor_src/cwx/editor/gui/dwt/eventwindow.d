@@ -15,6 +15,7 @@ import cwx.editor.gui.dwt.props;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.eventview;
 import cwx.editor.gui.dwt.undo;
+import cwx.editor.gui.dwt.sbshell;
 
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Shell;
@@ -38,8 +39,8 @@ private:
 	Commons _comm;
 	Props _prop;
 
+	SBShell _sbshl;
 	Composite _win;
-	Label _status = null;
 	Shell _parent2 = null;
 
 	EventView!(A, void, false) _eview;
@@ -51,15 +52,19 @@ public:
 	this(Commons comm, Props prop, Summary summ, Composite parent, Shell parent2, A eto) {
 		Shell shell = null;
 		auto parShl = cast(Shell) parent;
+		Composite contPane;
 		if (parShl) {
-			shell = new Shell(parShl, SWT.SHELL_TRIM);
+			_sbshl = new SBShell(parShl, SWT.SHELL_TRIM);
+			shell = _sbshl.shell;
 			shell.setImage = prop.images.app;
 			_win = shell;
+			contPane = _sbshl.contentPane;
 		} else {
 			_win = new Composite(parent, SWT.NONE);
+			contPane = _win;
 		}
 		_win.setData = new TLPData(this);
-		_win.setLayout = windowGridLayout(1, true);
+		contPane.setLayout = windowGridLayout(1, true);
 		_prop = prop;
 		_eto = eto;
 		_comm = comm;
@@ -102,7 +107,7 @@ public:
 			}
 		});
 		{
-			_eview = new EventView!(A, void, false)(comm, prop, summ, eto, _win, new UndoManager(1024));
+			_eview = new EventView!(A, void, false)(comm, prop, summ, eto, contPane, new UndoManager(1024));
 			_eview.setLayoutData = new GridData(GridData.FILL_BOTH);
 		}
 		if (shell) {
@@ -129,10 +134,6 @@ public:
 			putMenuAction(MenuID.Redo, &_eview.redo);
 			putMenuAction(MenuID.Up, &_eview.up);
 			putMenuAction(MenuID.Down, &_eview.down);
-		}
-		if (shell) {
-			_status = new Label(_win, SWT.NONE);
-			_status.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		}
 
 		if (shell) {
@@ -234,7 +235,7 @@ public:
 			static assert (0);
 		}
 	}
-	Label statusText() {return _status;}
+	void delegate(string) statusText() {return _sbshl ? &_sbshl.statusLine : null;}
 	private void __refreshTitle() {
 		_comm.setTitle(_win, title);
 		_eview.refreshTitle;

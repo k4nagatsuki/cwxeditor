@@ -1519,3 +1519,21 @@ class Wildcard {
 	assert (Wildcard("t*s").replace("test", "A") == "At");
 	assert (Wildcard("???t").replace("testtestest", "BB") == "BBBBest");
 }
+
+/// 数値をCount桁でSepによって区切った文字列にして返す。
+string formatNum(N, size_t Count = 3, string Sep = ",")(N num) {
+	string s = to!(string)(num);
+	string buf;
+	while (s.length > Count) {
+		if (buf.length) buf = Sep ~ buf;
+		buf = s[$ - Count .. $] ~ buf;
+		s = s[0 .. $ - Count];
+	}
+	if (buf.length) buf = Sep ~ buf;
+	buf = s ~ buf;
+	return buf;
+} unittest {
+	assert (formatNum(123) == "123");
+	assert (formatNum(123456) == "123,456");
+	assert (formatNum(1234567) == "1,234,567");
+}

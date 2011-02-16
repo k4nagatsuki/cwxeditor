@@ -668,7 +668,13 @@ public:
 			}
 			return buf;
 		} case CType.EFFECT: {
-			string buf = "効果 = ";
+			string buf = target(evt.targetNS.m);
+			buf ~= " レベル" ~ to!(string)(evt.level);
+			buf ~= " " ~ effectType(evt.effectType, evt.resist);
+			buf ~= " 成功率" ~ (evt.successRate >= 0 ? "+" : "") ~ to!(string)(evt.successRate);
+			buf ~= " " ~ (evt.soundPath.length ? "「" ~ evt.soundPath ~ "」を再生" : "音声無し");
+			buf ~= " " ~ cardVisual(evt.cardVisual);
+			buf ~= " 効果 = ";
 			foreach (i, m; evt.motions) {
 				buf ~= "[" ~ motion(m.type) ~ "]";
 				if (i + 1 < evt.motions.length) buf ~= " ";
@@ -1557,18 +1563,24 @@ public:
 			return "麻痺/石化";
 		}
 	}
+	string effectType(EffectType t, Resist r) {
+		return effectType2(t) ~ "/" ~ resist(r);
+	}
 	string effectType(EffectType t) {
+		return effectType2(t) ~ "属性";
+	}
+	private string effectType2(EffectType t) {
 		switch (t) {
 		case EffectType.PHYSIC:
-			return "物理属性";
+			return "物理";
 		case EffectType.MAGIC:
-			return "魔法属性";
+			return "魔法";
 		case EffectType.MAGICAL_PHYSIC:
-			return "魔法的物理属性";
+			return "魔法的物理";
 		case EffectType.PHYSICAL_MAGIC:
-			return "物理的魔法属性";
+			return "物理的魔法";
 		case EffectType.NONE:
-			return "無属性";
+			return "無";
 		}
 	}
 	string resist(Resist r) {
@@ -1958,8 +1970,8 @@ public:
 			return "ファイル";
 		}
 	}
-	string dirStatus(uint fileCount, string[] selFiles) {
-		auto r = to!(string)(fileCount) ~ "個のファイル";
+	string dirStatus(uint fileCount, ulong size, string[] selFiles) {
+		auto r = to!(string)(fileCount) ~ "個のファイル (" ~ formatNum(size / 1024) ~ " KB)";
 		if (selFiles.length) {
 			r ~= " (" ~ to!(string)(selFiles.length) ~ "個を選択中)";
 		}

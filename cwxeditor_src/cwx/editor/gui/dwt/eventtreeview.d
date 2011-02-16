@@ -1454,7 +1454,7 @@ public:
 		_cbarPar = new Composite(_prop.var.etc.contentsFloat ? _toolWin : _comp, SWT.NONE);
 		_cbarPar.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		_cbarPar.setLayout = new FillLayout;
-		_tree = new Tree(_comp, SWT.SINGLE | SWT.BORDER);
+		_tree = new Tree(_comp, SWT.SINGLE | SWT.BORDER | SWT.VIRTUAL);
 		_tree.setLayoutData = new GridData(GridData.FILL_BOTH);
 		new TreeEdit(_tree, &editEnd, &createEditor);
 		_tree.addDisposeListener(new TRDListener);

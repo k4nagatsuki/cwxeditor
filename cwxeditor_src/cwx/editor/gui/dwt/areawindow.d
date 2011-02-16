@@ -15,6 +15,7 @@ import cwx.editor.gui.dwt.utils;
 import cwx.editor.gui.dwt.skin;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.undo;
+import cwx.editor.gui.dwt.sbshell;
 
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.ToolBar;
@@ -43,8 +44,8 @@ private:
 	CTabItem _tabA;
 	CTabItem _tabE;
 
+	SBShell _sbshl;
 	Composite _win;
-	Label _status = null;
 	Shell _areaWin = null;
 
 	A _area;
@@ -115,12 +116,16 @@ public:
 		_undo = new UndoManager(1024);
 		Shell shell = null;
 		auto parShl = cast(Shell) parent;
+		Composite contPane;
 		if (parShl) {
-			shell = new Shell(parShl, SWT.SHELL_TRIM);
+			_sbshl = new SBShell(parShl, SWT.SHELL_TRIM);
+			shell = _sbshl.shell;
 			shell.setImage = prop.images.app;
 			_win = shell;
+			contPane = _sbshl.contentPane;
 		} else {
 			_win = new Composite(parent, SWT.NONE);
+			contPane = _win;
 		}
 		_win.setData = new TLPData(this);
 		static if (is (A == Area)) {
@@ -154,9 +159,9 @@ public:
 				_comm.replText.remove(&__refreshTitle);
 			}
 		});
-		_win.setLayout = windowGridLayout(1, true);
+		contPane.setLayout = windowGridLayout(1, true);
 		_prop = prop;
-		_tabf = new CTabFolder(_win, SWT.BORDER);
+		_tabf = new CTabFolder(contPane, SWT.BORDER);
 		_tabf.setLayoutData = new GridData(GridData.FILL_BOTH);
 		if (cast(Area) area || cast(Battle) area) {
 			_tabA = new CTabItem(_tabf, SWT.NONE);
@@ -208,10 +213,6 @@ public:
 			_aview.setCardFuncs(&_eview.removeCard, &_eview.appendCard, &_eview.renameCard,
 				&_eview.upCard, &_eview.downCard);
 		}
-		if (shell) {
-			_status = new Label(_win, SWT.NONE);
-			_status.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-		}
 		__refreshTitle;
 
 		if (shell) shell.pack;
@@ -261,7 +262,7 @@ public:
 			static assert (0);
 		}
 	}
-	Label statusText() {return _status;}
+	void delegate(string) statusText() {return _sbshl ? &_sbshl.statusLine : null;}
 
 	private void saveWin() {
 		static if (is(V == AreaView)) {

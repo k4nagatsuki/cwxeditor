@@ -15,6 +15,7 @@ import cwx.editor.gui.dwt.props;
 import cwx.editor.gui.dwt.properties;
 import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.absdialog;
+import cwx.editor.gui.dwt.sbshell;
 
 import std.date;
 import std.file;
@@ -137,6 +138,7 @@ private:
 				auto skin = _comm.skin;
 				this.material = skin.isMaterial(this.basename, false);
 			}
+			this.size = getSize(this.array);
 		}
 		this (string fullPath) {
 			this.array = fullPath;
@@ -155,6 +157,7 @@ private:
 		PathId pathId;
 		bool dir;
 		bool material;
+		ulong size;
 	}
 
 	static if (fnmatch("A", "a")) {
@@ -850,8 +853,8 @@ private:
 		return r;
 	}
 
+	SBShell _sbshl;
 	Composite _win;
-	Label _status = null;
 	SplitPane _sash;
 	Tree _dirs;
 	TreeEdit _dirsEdit;
@@ -1344,7 +1347,12 @@ private:
 		return 0;
 	}
 	void refreshStatusLine() {
-		_comm.statusLine(_win, _prop.msgs.dirStatus(_files.getItemCount, selFiles));
+		ulong size;
+		foreach (itm; _files.getItems) {
+			auto d = cast(FileNameObj) itm.getData;
+			size += d.size;
+		}
+		_comm.statusLine(_win, _prop.msgs.dirStatus(_files.getItemCount, size, selFiles));
 	}
 public:
 	this(Commons comm, Props prop, Composite parent) {
@@ -1369,16 +1377,20 @@ public:
 		_cuts = new typeof(_cuts);
 		Shell shell = null;
 		auto parShl = cast(Shell) parent;
+		Composite contPane;
 		if (parShl) {
-			shell = new Shell(parShl, SWT.SHELL_TRIM);
+			_sbshl = new SBShell(parShl, SWT.SHELL_TRIM);
+			shell = _sbshl.shell;
 			shell.setImage = _prop.images.app;
 			shell.addShellListener(new SClose);
 			_win = shell;
+			contPane = _sbshl.contentPane;
 		} else {
 			_win = new Composite(parent, SWT.NONE);
+			contPane = _win;
 		}
 		_win.setData = new TLPData(this);
-		_win.setLayout = windowGridLayout(1, true);
+		contPane.setLayout = windowGridLayout(1, true);
 		_comm.refScenarioName.add(&__refreshTitle);
 		_comm.refScenarioPath.add(&__refreshTitle);
 		_comm.refUseCount.add(&__refreshUseCount);
@@ -1426,7 +1438,7 @@ public:
 			putMenuAction(MenuID.ChangeVH, &changeVHSide);
 		}
 		if (shell) {
-			auto bar = new ToolBar(_win, SWT.FLAT);
+			auto bar = new ToolBar(contPane, SWT.FLAT);
 			bar.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 
 			createToolItem(bar, _prop.msgs.ttOpenDirectory, _prop.images.folder, &openDirectory);
@@ -1444,7 +1456,7 @@ public:
 			new ToolItem(bar, SWT.SEPARATOR);
 			createToolItem(bar, _prop.msgs.ttChangeVH, _prop.images.menuChangeVH, &changeVHSide);
 		}
-		_sash = new SplitPane(_win, _prop.var.etc.directorySashV ? SWT.VERTICAL : SWT.HORIZONTAL);
+		_sash = new SplitPane(contPane, _prop.var.etc.directorySashV ? SWT.VERTICAL : SWT.HORIZONTAL);
 		_sash.setLayoutData = new GridData(GridData.FILL_BOTH);
 		auto dirsComp = new Composite(_sash, SWT.NONE);
 		dirsComp.setLayout = new FillLayout;
@@ -1523,10 +1535,6 @@ public:
 		_sdl = new SDListener;
 		_sash.addDisposeListener(_sdl);
 		if (shell) {
-			_status = new Label(_win, SWT.NONE);
-			_status.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-		}
-		if (shell) {
 			shell.pack;
 			scope wp = shell.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 			int width = _prop.var.dirWin.width == SWT.DEFAULT
@@ -1578,7 +1586,7 @@ public:
 		}
 		return _prop.msgs.dirTabName(_summ);
 	}
-	Label statusText() {return _status;}
+	void delegate(string) statusText() {return _sbshl ? &_sbshl.statusLine : null;}
 
 	void replace() {
 		if (!_summ) return;

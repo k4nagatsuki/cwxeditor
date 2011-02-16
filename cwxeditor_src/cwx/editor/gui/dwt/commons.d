@@ -20,6 +20,7 @@ import cwx.editor.gui.dwt.eventwindow;
 import cwx.editor.gui.dwt.directorywindow;
 import cwx.editor.gui.dwt.datawindow;
 import cwx.editor.gui.dwt.dockingfolder;
+import cwx.editor.gui.dwt.sbshell;
 
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
@@ -88,7 +89,7 @@ abstract class TopLevelPanel {
 	abstract string title();
 	abstract Image image();
 	abstract Composite shell();
-	protected abstract Label statusText();
+	protected abstract void delegate(string) statusText();
 
 	private static class WrapDlg {
 		private void delegate() _dlg;
@@ -130,7 +131,7 @@ abstract class TopLevelPanel {
 	void statusLine(string statusLine) {
 		_status = statusLine;
 		auto t = statusText;
-		if (t) t.setText = std.string.replace(statusLine, "&", "&&");
+		if (t) t(statusLine);
 	}
 }
 class TLPData {
