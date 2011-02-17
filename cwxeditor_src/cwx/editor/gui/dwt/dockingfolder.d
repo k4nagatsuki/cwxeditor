@@ -82,7 +82,7 @@ class DockingFolder(TabF, int Style) {
 		_comp = new Composite(parent, SWT.NONE);
 		_comp.setLayout = new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0);
 
-		_canvas = new Canvas(_comp, SWT.TRANSPARENT);
+		_canvas = new Canvas(_comp, SWT.TRANSPARENT | SWT.NO_BACKGROUND);
 		_canvas.setLayoutData = new CenterLayoutData(true, true);
 		_canvas.setVisible = false;
 		auto drop = new DropTarget(_canvas, DND.DROP_MOVE);

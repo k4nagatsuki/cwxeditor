@@ -48,6 +48,7 @@ class SBShell {
 	version (Windows) {
 		private HWND _hsbar = INVALID_HANDLE_VALUE;
 		private void initStatusBar() {
+			OS.InitCommonControls;
 			_hsbar = CreateStatusWindowW
 				(OS.WS_CHILD | OS.WS_VISIBLE | CCS_BOTTOM | SBARS_SIZEGRIP,
 				toUTF16z(""), cast(HANDLE) _shl.handle, 1);
