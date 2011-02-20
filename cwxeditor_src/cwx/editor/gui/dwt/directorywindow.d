@@ -24,6 +24,7 @@ import std.string;
 import std.process;
 import std.thread;
 import std.utf;
+debug import std.stdio;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
@@ -799,7 +800,7 @@ private:
 									_summ.changed;
 								}
 								_comm.refPath.call(p1, p2, false);
-								rename(from, to);
+								std.file.rename(from, to);
 							}
 							if (std.path.fnmatch(parent, targ)) selfs ~= to;
 						}
@@ -888,7 +889,7 @@ private:
 		}
 		if (.exists(to) && cast(bool) .isdir(to) == cast(bool) .isdir(path)) return null;
 		try {
-			rename(path, to);
+			std.file.rename(path, to);
 		} catch {
 			// 不正な名前
 			return null;
@@ -1344,6 +1345,7 @@ private:
 				}
 			}
 		}
+		debug writefln("Exit Trace Thread");
 		return 0;
 	}
 	void refreshStatusLine() {

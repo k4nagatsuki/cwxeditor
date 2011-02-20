@@ -1961,7 +1961,7 @@ private class CBarListener(string Name) : ControlAdapter, DisposeListener {
 	}
 	override void controlResized(ControlEvent e) {
 		auto cbar = cast(CoolBar) e.widget;
-		cbar.getShell.layout;
+		cbar.getShell.layout(true, true);
 	}
 	void reset() {
 		int[] ixs;

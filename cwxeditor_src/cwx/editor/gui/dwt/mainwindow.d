@@ -9,6 +9,7 @@ import std.process;
 import std.thread;
 import std.metastrings;
 import std.string;
+debug import std.stdio;
 
 import cwx.cwl;
 import cwx.area;
@@ -695,6 +696,7 @@ private:
 			}
 			close(pipe);
 		}
+		debug writefln("Exit Pipe Thread");
 		return 0;
 	}
 public:
@@ -1616,6 +1618,7 @@ public:
 		_prop.images.disposeImages;
 		d.dispose;
 		_prop.var.save(dock);
+		debug writefln("Exit Main Thread");
 	}
 }
 
