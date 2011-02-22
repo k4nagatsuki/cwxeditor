@@ -141,10 +141,15 @@ S loadLScenario(S)(string p, string skin, string newName = null) {
 			}
 		}
 	}
-	auto thr = new Thread(&load2.load);
-	thr.start;
-	load1.load;
-	thr.wait;
+	version (TwinIO) {
+		auto thr = new Thread(&load2.load);
+		thr.start;
+		load1.load;
+		thr.wait;
+	} else {
+		load1.load;
+		load2.load;
+	}
 	static if (AR) Area[] areas = load1.areas ~ load2.areas;
 	static if (BA) Battle[] battles = load1.battles ~ load2.battles;
 	static if (PA) Package[] packages = load1.packages ~ load2.packages;
@@ -1449,10 +1454,15 @@ void saveLScenario(Summary summ, bool saveInnerImagePath = false) {
 	save2.beasts = summ.beasts[$ / 2 .. $];
 	save1.infos = summ.infos[0 .. $ / 2];
 	save2.infos = summ.infos[$ / 2 .. $];
-	auto thr = new Thread(&save2.save);
-	thr.start;
-	save1.save;
-	thr.wait;
+	version (TwinIO) {
+		auto thr = new Thread(&save2.save);
+		thr.start;
+		save1.save;
+		thr.wait;
+	} else {
+		save1.save;
+		save2.save;
+	}
 	scope regex = std.regexp.RegExp("^(Area|Battle|Package|Mate|Skill|Item|Beast|Info)[0-9]+\\.wid$");
 	foreach (file; clistdir(d.sPath)) {
 		if (regex.test(file, 0) || std.path.fnmatch(file, "Summary.wsm")) {

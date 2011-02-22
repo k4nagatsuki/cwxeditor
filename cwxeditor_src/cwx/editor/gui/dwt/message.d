@@ -111,7 +111,7 @@ private:
 		selectChange;
 	}
 	void deleteDialog(int index) {
-		if (index < 0) return;
+		if (index < 0 || _dlgs.length <= 1) return;
 		bool sel = _dlgsL.getSelectionIndex == index;
 		_dlgs = _dlgs[0 .. index] ~ _dlgs[index + 1 .. $];
 		_dlgsL.remove(index);

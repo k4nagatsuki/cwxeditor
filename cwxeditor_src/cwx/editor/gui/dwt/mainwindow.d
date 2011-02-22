@@ -1599,6 +1599,7 @@ public:
 						d.sleep;
 					}
 				} catch (Exception e) {
+					_win.setVisible = true;
 					fdebugln(e.msg ~ ", " ~ e.file ~ ", " ~ to!(string)(e.line));
 					auto dlg = new MessageBox(_win, SWT.ICON_ERROR | SWT.OK);
 					scope (exit) dlg.dispose;
@@ -1606,6 +1607,7 @@ public:
 					dlg.setMessage = _prop.msgs.unknownError ~ "\n---\n" ~ e.msg;
 					dlg.open;
 				} catch (Object o) {
+					_win.setVisible = true;
 					fdebugln(o.toString);
 					auto dlg = new MessageBox(_win, SWT.ICON_ERROR | SWT.OK);
 					scope (exit) dlg.dispose;
