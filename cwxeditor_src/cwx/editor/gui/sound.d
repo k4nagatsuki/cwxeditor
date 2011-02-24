@@ -129,7 +129,7 @@ private void __play(string file, bool loop, bool legacy) {
 				auto ss = getSymbol!(mciSendStringW)(winmm, "mciSendStringW");
 				if (!ss) throw new Exception("mciSendStringW()");
 				// mpegvideoにするとなぜかopenが成功する上repeatが利くようになる
-				enforce(0 == ss(toUTF16z("open " ~ file ~ " alias s type mpegvideo"), null, 0, null),
+				enforce(0 == ss(toUTF16z("open \"" ~ file ~ "\" alias s type mpegvideo"), null, 0, null),
 					new Exception("MCI open: " ~ file));
 				string p = "play s";
 				if (loop) p ~= " repeat";
