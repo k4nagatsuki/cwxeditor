@@ -1065,6 +1065,75 @@ bool contains(string pred = "a == b", T)(T[] arr, T a) {
 	return false;
 }
 
+/// 文字列aとbを比較する。
+/// 同位置に数値が含まれていた場合は、数字列の長さに係わらず
+/// その数値同士を優先的に比較する。
+/// Example:
+/// ---
+/// assert (ncmp("42", "2") > 0);
+/// assert (ncmp("02", "2") < 0);
+/// assert (ncmp("abc42", "abc4") > 0);
+/// assert (ncmp("abc4a", "abc4b") < 0);
+/// assert (ncmp("abc", "def") < 0);
+/// ---
+int ncmp(C1, C2)(in C1[] a, in C2[] b) {
+	for (size_t i = 0, j = 0; i < a.length || j < b.length;) {
+		if (i >= a.length) return -1;
+		if (j >= b.length) return 1;
+		C1[] buf1;
+		for (size_t k = i; k < a.length && isdigit(a[k]); k++) {
+			buf1 ~= a[k];
+		}
+		C2[] buf2;
+		for (size_t k = j; k < b.length && isdigit(b[k]); k++) {
+			buf2 ~= b[k];
+		}
+		if (buf1.length && buf2.length) {
+			int cr;
+			if (buf1.length < buf2.length) {
+				cr = cmp(zfill_(buf1, buf2.length), buf2);
+				if (cr != 0) return cr;
+			} else if (buf1.length > buf2.length) {
+				cr = cmp(buf1, zfill_(buf2, buf1.length));
+				if (cr != 0) return cr;
+			}
+			cr = cmp(buf1, buf2);
+			if (cr != 0) return cr;
+			i += buf1.length;
+			j += buf2.length;
+		} else {
+			if (a[i] < b[j]) return -1;
+			if (a[i] > b[j]) return 1;
+			i++;
+			j++;
+		}
+	}
+	return 0;
+} unittest {
+	assert (ncmp("42", "2") > 0);
+	assert (ncmp("02", "2") < 0);
+	assert (ncmp("abc42", "abc4") > 0);
+	assert (ncmp("abc4a", "abc4b") < 0);
+	assert (ncmp("abc", "def") < 0);
+}
+
+private C[] zfill_(C)(in C[] str, size_t width) {
+	if (str.length >= width) return cast(C[]) str.dup;
+	C[] r;
+	r.length = width;
+	size_t n = width - str.length;
+	r[0 .. n] = '0';
+	r[n .. $] = str;
+	return cast(C[]) r;
+} unittest {
+	assert (zfill_("abc", 2) == "abc");
+	assert (zfill_("abc", 3) == "abc");
+	assert (zfill_("abc", 4) == "0abc");
+	assert (zfill_("abc", 5) == "00abc");
+	assert (zfill_("abc"w, 5) == "00abc"w);
+	assert (zfill_("abc"d, 5) == "00abc"d);
+}
+
 /// arrからaを探して見つかればそのindex。見つからなかった場合は-1。
 int indexOf(string pred = "a == b", T)(T[] arr, T a) {
 	foreach (i, b; arr) {
