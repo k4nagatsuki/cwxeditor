@@ -244,7 +244,7 @@ private:
 					find(c);
 					return true;
 				});
-			} else {
+			} else if (_comm.skin.isMaterial(p)) {
 				auto path = abs2rel(sPath, p);
 				paths ~= encodePath(path);
 				tbl.add(toPathId(path));

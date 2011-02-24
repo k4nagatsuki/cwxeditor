@@ -272,6 +272,11 @@ private:
 	void refreshDirs(string sel) {
 		if (!_win || _win.isDisposed) return;
 		try {
+			scope (exit) refreshStatusLine;
+			if (!_summ) {
+				_dirs.removeAll;
+				return;
+			}
 			bool[string] expands;
 			void exps(TreeItem itm) {
 				if (itm.getExpanded) {
@@ -283,11 +288,6 @@ private:
 			}
 			foreach (itm; _dirs.getItems) {
 				exps(itm);
-			}
-			scope (exit) refreshStatusLine;
-			if (!_summ) {
-				_dirs.removeAll;
-				return;
 			}
 			_dirs.setRedraw = false;
 			scope (exit) _dirs.setRedraw = true;
@@ -1161,6 +1161,7 @@ private:
 	private Runnable _refreshThr;
 	private TraceChkThr _traceChkThr;
 	private std.thread.Thread _traceThr = null;
+	private bool _onTrace = true;
 	private int trace() {
 		Summary summ = null;
 		void sleep() {
@@ -1172,7 +1173,7 @@ private:
 		}
 		bool canDoChk() {
 			if (!summ) return false;
-			synchronized (_display.classinfo) {
+			synchronized (typeof(_display).classinfo) {
 				if (!_display.isDisposed) {
 					_display.syncExec(_traceChkThr);
 				} else {
@@ -1184,24 +1185,24 @@ private:
 		version (Windows) {
 			HANDLE h = INVALID_HANDLE_VALUE;
 			bool setup() {
-				if (h != INVALID_HANDLE_VALUE) FindCloseChangeNotification(h);
+				if (h !is INVALID_HANDLE_VALUE) FindCloseChangeNotification(h);
 				h = INVALID_HANDLE_VALUE;
 				if (summ) {
 					DWORD fs = FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME;
 					h = FindFirstChangeNotificationW(toUTF16z(summ.scenarioPath), TRUE, fs);
-					return h != INVALID_HANDLE_VALUE;
+					return h !is INVALID_HANDLE_VALUE;
 				}
 				return true;
 			}
 			scope (exit) {
-				if (h != INVALID_HANDLE_VALUE) FindCloseChangeNotification(h);
+				if (h !is INVALID_HANDLE_VALUE) FindCloseChangeNotification(h);
 			}
 			void next() {
 				if (!FindNextChangeNotification(h)) {
 					debugln("FindNextChangeNotification failed: ", GetLastError);
 				}
 			}
-			while (!_display.isDisposed) {
+			while (_onTrace && _display && !_display.isDisposed) {
 				try {
 					if (summ !is _summ) {
 						summ = _summ;
@@ -1235,16 +1236,15 @@ private:
 					default: break;
 					}
 				} catch (Exception e) {
-					debugln(e);
-					sleep;
+					throw new Exception("Trace thread: " ~ e.msg);
 				}
 			}
 		} else version (linux) {
 			extern (C) int h = -1;
 			bool setup() {
-				if (h != -1) close(h);
+				if (h !is -1) close(h);
 				h = inotify_init();
-				if (h == -1) return false;
+				if (h is -1) return false;
 				void put(string path) {
 					foreach (file; clistdir(path)) {
 						file = std.path.join(path, file);
@@ -1260,9 +1260,9 @@ private:
 				return true;
 			}
 			scope (exit) {
-				if (h != -1) close(h);
+				if (h !is -1) close(h);
 			}
-			while (!_display.isDisposed) {
+			while (_onTrace && _display && !_display.isDisposed) {
 				try {
 					if (summ !is _summ) {
 						summ = _summ;
@@ -1288,8 +1288,7 @@ private:
 					}
 					_display.syncExec(_refreshThr);
 				} catch (Exception e) {
-					debugln(e);
-					sleep;
+					throw new Exception("Trace thread: " ~ e.msg);
 				}
 			}
 		} else {
@@ -1312,7 +1311,7 @@ private:
 				}
 				dirTimes = times;
 			}
-			while (!_display.isDisposed) {
+			while (_onTrace && _display && !_display.isDisposed) {
 				try {
 					if (summ !is _summ) {
 						summ = _summ;
@@ -1340,8 +1339,7 @@ private:
 						setup;
 					}
 				} catch (Exception e) {
-					debugln(e);
-					sleep;
+					throw new Exception("Trace thread: " ~ e.msg);
 				}
 			}
 		}
@@ -1689,6 +1687,11 @@ public:
 			}
 		} catch {}
 		return false;
+	}
+
+	void quitTrace() {
+		_onTrace = false;
+		_traceThr.wait;
 	}
 
 	override void cut(SelectionEvent se) {

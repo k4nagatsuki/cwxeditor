@@ -1617,6 +1617,7 @@ public:
 				}
 			}
 		}
+		_dirWin.quitTrace;
 		_prop.images.disposeImages;
 		d.dispose;
 		_prop.var.save(dock);
