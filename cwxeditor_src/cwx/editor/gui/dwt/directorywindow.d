@@ -1236,7 +1236,8 @@ private:
 					default: break;
 					}
 				} catch (Exception e) {
-					throw new Exception("Trace thread: " ~ e.msg);
+					debugln("Trace thread: " ~ e.msg);
+					break;
 				}
 			}
 		} else version (linux) {
@@ -1288,7 +1289,8 @@ private:
 					}
 					_display.syncExec(_refreshThr);
 				} catch (Exception e) {
-					throw new Exception("Trace thread: " ~ e.msg);
+					debugln("Trace thread: " ~ e.msg);
+					break;
 				}
 			}
 		} else {
@@ -1339,7 +1341,8 @@ private:
 						setup;
 					}
 				} catch (Exception e) {
-					throw new Exception("Trace thread: " ~ e.msg);
+					debugln("Trace thread: " ~ e.msg);
+					break;
 				}
 			}
 		}
@@ -1690,6 +1693,7 @@ public:
 	}
 
 	void quitTrace() {
+		if (!_traceThr) return;
 		_onTrace = false;
 		_traceThr.wait;
 	}
