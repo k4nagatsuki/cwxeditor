@@ -236,6 +236,11 @@ bool istartsWith(string a, string b) {
 	return a.length >= b.length && icmp(a[0 .. b.length], b) == 0;
 }
 
+/// 大/小文字を区別しないendsWith。
+bool iendsWith(string a, string b) {
+	return a.length >= b.length && icmp(a[$ - b.length .. $], b) == 0;
+}
+
 /// pathがlistに含まれていればtrueを返す。
 bool containsPath(string[] list, string path) {
 	foreach (l; list) {
@@ -253,6 +258,15 @@ bool fnstartsWith(string a, string b) {
 		return istartsWith(a, b);
 	} else {
 		return startsWith(a, b);
+	}
+}
+
+/// ファイルパスに対応したendsWith。
+bool fnendsWith(string a, string b) {
+	static if (fnmatch("A", "a")) {
+		return iendsWith(a, b);
+	} else {
+		return endsWith(a, b);
 	}
 }
 

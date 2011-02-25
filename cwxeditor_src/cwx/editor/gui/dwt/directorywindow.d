@@ -1144,6 +1144,7 @@ private:
 			_prop.var.etc.directorySashL = _sash.getWeights[0];
 			_prop.var.etc.directorySashR = _sash.getWeights[1];
 			_prop.var.etc.directorySashV = (_sash.getStyle & SWT.VERTICAL) != 0;
+			_win = null;
 		}
 	}
 	private class RefreshThr : Runnable {
@@ -1159,7 +1160,6 @@ private:
 		}
 	}
 	private Runnable _refreshThr;
-	private TraceChkThr _traceChkThr;
 	private std.thread.Thread _traceThr = null;
 	private bool _onTrace = true;
 	private int trace() {
@@ -1172,15 +1172,7 @@ private:
 			}
 		}
 		bool canDoChk() {
-			if (!summ) return false;
-			synchronized (typeof(_display).classinfo) {
-				if (!_display.isDisposed) {
-					_display.syncExec(_traceChkThr);
-				} else {
-					_traceChkThr.result = false;
-				}
-			}
-			return _traceChkThr.result;
+			return summ && !_display.isDisposed && _prop.var.etc.traceDirectories && _win;
 		}
 		version (Windows) {
 			HANDLE h = INVALID_HANDLE_VALUE;
@@ -1227,7 +1219,7 @@ private:
 						while (_dirsEdit.isEditing || _filesEdit.isEditing) {
 							sleep;
 						}
-						_display.syncExec(_refreshThr);
+						_display.asyncExec(_refreshThr);
 						next;
 					} break;
 					case WAIT_FAILED: {
@@ -1287,7 +1279,7 @@ private:
 					while (_dirsEdit.isEditing || _filesEdit.isEditing) {
 						sleep;
 					}
-					_display.syncExec(_refreshThr);
+					_display.asyncExec(_refreshThr);
 				} catch (Exception e) {
 					debugln("Trace thread: " ~ e.msg);
 					break;
@@ -1337,7 +1329,7 @@ private:
 						while (_dirsEdit.isEditing || _filesEdit.isEditing) {
 							sleep;
 						}
-						_display.syncExec(_refreshThr);
+						_display.asyncExec(_refreshThr);
 						setup;
 					}
 				} catch (Exception e) {
@@ -1367,7 +1359,6 @@ public:
 		// FXIME: 本当は素材管理ウィンドウ非表示時は止めておきたかったが
 		// シナリオ読込み後のスレッドの開始に失敗する事があるので常時起動
 		_refreshThr = new RefreshThr;
-		_traceChkThr = new TraceChkThr;
 		_traceThr = new std.thread.Thread(&trace);
 		_traceThr.start;
 	}

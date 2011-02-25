@@ -149,11 +149,8 @@ class Skin {
 			return true;
 		} else {
 			foreach (file; clistdir(path)) {
-				if ((file.length > "Wirth.exe".length
-						&& fnmatch(file[$ - "Wirth.exe".length .. $], "Wirth.exe"))
-						|| (fnmatch(getExt(file), "exe")
-						&& file.length > "CardWirth_".length
-						&& fnmatch(file[$ - "CardWirth_".length .. $], "CardWirth_"))) {
+				if (fnendsWith(file, "Wirth.exe")
+						|| (fnmatch(getExt(file), "exe") && fnstartsWith(file, "CardWirth_"))) {
 					enginePath = join(path, file);
 					return true;
 				}
