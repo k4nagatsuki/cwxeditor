@@ -1479,17 +1479,27 @@ public:
 	}
 	private void refreshPanel() {
 		auto sels = _imgp.selectedIndices;
+		size_t partyIndex = 0;
 		static if (UseCards) {
 			foreach (i, c; _area.cards) {
 				_imgp.set(cardsIndex + i, create(c));
 				_cards.setItem(i, cardName(c));
+				partyIndex++;
 			}
 		}
 		static if (UseBacks) {
 			foreach (i, b; _area.backs) {
 				_imgp.set(i, create(b));
 				_backs.setItem(i, getBaseName(b.path));
+				partyIndex++;
 			}
+		}
+		foreach (p; _prop.looks.partyCardXY) {
+			auto img = createCastCardBackImage(_prop, _comm.skin, p.x, p.y);
+			img.alpha = _prop.var.etc.partyCardAlpha;
+			img.visible = _viewParty;
+			_imgp.set(partyIndex, img);
+			partyIndex++;
 		}
 		_imgp.select = sels;
 		_imgp.redraw;
