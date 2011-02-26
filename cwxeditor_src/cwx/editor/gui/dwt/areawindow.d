@@ -94,13 +94,16 @@ private:
 	void __refreshTitle() {
 		_comm.setTitle(_win, title);
 	}
+	void initEvt() {
+		if (!_firstEvtVSel) {
+			_eview.refresh(true);
+			_firstEvtVSel = true;
+		}
+	}
 	class TabSel : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
 			if (_tabf.getSelection is _tabE) {
-				if (!_firstEvtVSel) {
-					_eview.refresh(true);
-					_firstEvtVSel = true;
-				}
+				initEvt;
 				_comm.statusLine(_win, _eview.statusLine);
 				_eview.openToolWindow;
 			} else {
@@ -341,6 +344,7 @@ public:
 				|| cate == "background") {
 			return _aview.openCWXPath(path);
 		} else {
+			initEvt;
 			return _eview.openCWXPath(path);
 		}
 	}
