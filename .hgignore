@@ -8,9 +8,10 @@ cwxeditor_src/dwt-base.a
 cwxeditor_src/org.eclipse.swt.gtk.linux.x86.a
 
 syntax: regexp
-.*.obj
-^cwxeditor_src/cwxeditor.map
-^cwxeditor_src/objs/.*
-^cwxeditor_src/Scenario/.*
-^cwxeditor_src/temp/.*
-^cwxeditor_src/.*\.dll
+.*.obj$
+.*.o$
+^cwxeditor_src/cwxeditor.map$
+^cwxeditor_src/objs/.*$
+^cwxeditor_src/Scenario/.*$
+^cwxeditor_src/temp/.*$
+^cwxeditor_src/.*\.dll$

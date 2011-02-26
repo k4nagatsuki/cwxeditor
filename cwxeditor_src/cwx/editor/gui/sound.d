@@ -115,9 +115,7 @@ static ~this() {
 	}
 }
 
-version (Windows) {
-	private bool onLegacy = false;
-}
+private bool onLegacy = false;
 private Mix_Music *music = null;
 
 private void __play(string file, bool loop, bool legacy) {
@@ -168,12 +166,16 @@ private void __play(string file, bool loop, bool legacy) {
 
 private void __stop() {
 	try {
-		if (onLegacy) {
-			auto ss = getSymbol!(mciSendStringW)(winmm, "mciSendStringW");
-			if (!ss) throw new Exception("mciSendStringW()");
-			ss(toUTF16z("stop s"), null, 0, null);
-			ss(toUTF16z("close s"), null, 0, null);
-		} else if (sdl && music) {
+		version (Windows) {
+			if (onLegacy) {
+				auto ss = getSymbol!(mciSendStringW)(winmm, "mciSendStringW");
+				if (!ss) throw new Exception("mciSendStringW()");
+				ss(toUTF16z("stop s"), null, 0, null);
+				ss(toUTF16z("close s"), null, 0, null);
+				return;
+			}
+		}
+		if (sdl && music) {
 			if (0 == getSymbol!(Mix_HaltMusic)(mixer, "Mix_HaltMusic")()) {
 				getSymbol!(Mix_FreeMusic)(mixer, "Mix_FreeMusic")(music);
 				music = null;

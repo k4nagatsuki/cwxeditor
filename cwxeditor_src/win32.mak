@@ -184,11 +184,11 @@ LIB = /rc:cwxeditor \
 FLAGS = -J. -Jresource -op -c
 
 $(OUT) : $(SRC) $(RES)
-	$(DMD) $(FLAGS) $** -g -debug -unittest
+	$(DMD) $(FLAGS) $(SRC) -g -debug -unittest
 	$(DMD) $(OBJ) -L"$(LIB)" -of"$(OUT)" -L/exet:nt/su:console:4.0
 
 release : $(SRC) $(RES)
-	$(DMD) $(FLAGS) $** -release -O
+	$(DMD) $(FLAGS) $(SRC) -release -O
 	$(DMD) $(OBJ) -L"$(LIB)" -of"$(OUT)" -L/exet:nt/su:windows:4.0 -O
 
 $(RES) : $(RC)

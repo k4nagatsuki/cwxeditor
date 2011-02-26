@@ -87,7 +87,7 @@ SWT.d内の該当箇所を'.'を含まない別の名前に変えましょう。
 
 [ linuxの場合 ]
 
-　ビルドはできますが非常に不安定です。
+　ビルドはできますがまともに動きません。
 
 
 / 事前に必要なパッケージ /
@@ -147,9 +147,14 @@ mv org.eclipse.swt.gtk.linux.x86/src/org/eclipse/swt/browser .
 DFLAGS=-I%@P%/../tangobos -I%@P%/../import -I%@P%/../include -I%@P%/../import/tango/core/vendor -L-L%@P%/../lib -version=Tango -defaultlib=tango-dmd -debuglib=tango-dmd -J%@P%/../dwt2/res -I%@P%/../dwt2/imp -L-L%@P%/../tangobos
 ---
 
-　ここまで準備をすれば、後はレスポンスファイルを指定してdmdを実行するだけ。
+　ここまで準備をすれば、後はmakeするだけ。
+　Makefileはlinux.makです。
 ---
-dmd @linux_d.rsp
+make -f linux.mak
+---
+　リリースビルドなら:
+---
+make -f linux.mak release
 ---
 　成功すると思います。多分すると思う。するんじゃないかな。
 
