@@ -1160,8 +1160,17 @@ private:
 			auto buf = new Image(getShell.getDisplay, getSize.x, getSize.y);
 			auto gc = new GC(buf);
 
-			gc.setBackground(getShell.getDisplay.getSystemColor(SWT.COLOR_DARK_BLUE));
-			gc.fillRectangle(0, 0, getSize.x, getSize.y);
+			auto backImg = getBackgroundImage;
+			auto rect = getClientArea;
+			if (backImg) {
+				drawTileImage(gc, backImg, rect);
+			} else if (_backColor) {
+				gc.setBackground(_backColor);
+				gc.fillRectangle(rect.x, rect.y, rect.width, rect.height);
+			} else {
+				gc.setBackground(getShell.getDisplay.getSystemColor(SWT.COLOR_DARK_BLUE));
+				gc.fillRectangle(rect.x, rect.y, rect.width, rect.height);
+			}
 			foreach (bmp; backs) {
 				bmp.draw(gc);
 			}
@@ -1195,7 +1204,11 @@ private:
 		}
 		return false;
 	}
+
+	private Color _backColor = null;
 public:
+	void setBackgroundColor(Color backColor) {_backColor = backColor;}
+	Color getBackgroundColor() {return _backColor;}
 
 	PileImage[] images() {
 		return backs;

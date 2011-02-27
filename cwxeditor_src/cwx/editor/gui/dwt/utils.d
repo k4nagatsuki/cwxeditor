@@ -92,6 +92,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.dnd.DND;
@@ -2070,4 +2071,17 @@ SplitPane changeVHSide(SplitPane sash) {
 	sp.getParent.layout(true);
 	sp.layout(true);
 	return sp;
+}
+
+void drawTileImage(GC gc, Image img, Rectangle rect) {
+	auto data = img.getBounds;
+	for (int x = 0; x < rect.width; x += data.width) {
+		for (int y = 0; y < rect.height; y += data.height) {
+			int xi = rect.x + x;
+			int yi = rect.y + y;
+			int wi = x + data.width >= rect.width ? rect.width - x : data.width;
+			int hi = y + data.height >= rect.height ? rect.height - y : data.height;
+			gc.drawImage(img, 0, 0, wi, hi, xi, yi, wi, hi);
+		}
+	}
 }

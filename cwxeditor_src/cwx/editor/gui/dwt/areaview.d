@@ -1005,7 +1005,7 @@ private:
 		}
 	}
 	Control createImagePane(Composite parent) {
-		auto sc = new ScrolledComposite(parent, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
+		auto sc = new ScrolledComposite(parent, SWT.H_SCROLL | SWT.V_SCROLL);
 		sc.setExpandHorizontal = false;
 		sc.setExpandVertical = false;
 		auto vs = _prop.looks.viewSize;
@@ -1014,10 +1014,19 @@ private:
 		sc.getHorizontalBar.setPageIncrement = vs.width / 5;
 		sc.getVerticalBar.setPageIncrement = vs.height / 5;
 		sc.setLayoutData = new GridData(GridData.FILL_BOTH);
-		_imgp = new ImagePane(sc, SWT.NO_BACKGROUND);
+		_imgp = new ImagePane(sc, SWT.BORDER | SWT.NO_BACKGROUND);
+		int alpha;
+		auto color = new Color(Display.getCurrent, dwtData(_prop.var.etc.backgroundColor, alpha));
+		_imgp.setBackgroundColor = color;
+		auto biPath = _prop.var.etc.backgroundImage;
+		if (biPath.length && .exists(biPath)) {
+			auto backImg = loadImage(biPath, false);
+			_imgp.setBackgroundImage = new Image(Display.getCurrent, backImg);
+		}
 		sc.setContent(_imgp);
-		sc.setMinSize(vs.width, vs.height);
-		_imgp.setSize(vs.width, vs.height);
+		auto rect = _imgp.computeSize(vs.width, vs.height);
+		sc.setMinSize(rect.x, rect.y);
+		_imgp.setSize(rect.x, rect.y);
 		auto ipe = new IPEditListener;
 		_imgp.addMouseListener(ipe);
 		_imgp.changingImages(&changingImages);
@@ -1044,6 +1053,15 @@ private:
 			_imgp.setMenu(menu);
 			usingPopupMenuAccelerator(_imgp);
 		}
+		_imgp.addDisposeListener(new class DisposeListener {
+			override void widgetDisposed(DisposeEvent e) {
+				auto pane = cast(ImagePane) e.widget;
+				auto img = pane.getBackgroundImage;
+				if (img) img.dispose;
+				auto color = pane.getBackgroundColor;
+				if (color) color.dispose;
+			}
+		});
 		return sc;
 	}
 	void changingImages() {

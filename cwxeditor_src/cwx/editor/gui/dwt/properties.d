@@ -5,6 +5,7 @@ import cwx.utils;
 import cwx.xml;
 import cwx.skin;
 import cwx.background;
+import cwx.structs;
 
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.dockingfolder;
@@ -523,6 +524,9 @@ class FlexEtcProps : Properties {
 	mixin Property!("bgImageSettingsNameHeight", int, 250, true);
 	mixin Property!("outerToolsNameWidth", int, 150, true);
 	mixin Property!("outerToolsNameHeight", int, 250, true);
+
+	mixin Property!("backgroundImage", string, "");
+	mixin Property!("backgroundColor", CRGB, CRGB(0, 0, 128));
 	mixin Property!("bgImagesDefault", BgImageS[], [BgImageS("MapOfWirth", 0, 0, 632, 420, false)]);
 	mixin Property!("bgImageSettingsSashL", int, 1);
 	mixin Property!("bgImageSettingsSashR", int, 1);

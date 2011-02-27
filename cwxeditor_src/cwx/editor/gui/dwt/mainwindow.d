@@ -1243,10 +1243,16 @@ public:
 	}
 	private class TabfPaint : PaintListener {
 		override void paintControl(PaintEvent e) {
+			auto path = _prop.var.etc.backgroundImage;
+			if (!path.length || !.exists(path)) return;
 			auto tabf = cast(CTabFolder) e.widget;
-			if (!tabf) return;
+			if (!tabf || tabf.getItemCount > 0) return;
 			auto rect = tabf.getClientArea;
-			// TODO
+			auto data = loadImage(path, false);
+			auto d = Display.getCurrent;
+			auto img = new Image(d, data);
+			scope (exit) img.dispose;
+			drawTileImage(e.gc, img, rect);
 		}
 	}
 	private class TabMenu {
