@@ -54,6 +54,8 @@ import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.ShellAdapter;
 import org.eclipse.swt.events.ShellEvent;
+import org.eclipse.swt.events.PaintListener;
+import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Combo;
@@ -71,6 +73,7 @@ import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Link;
+import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.layout.FillLayout;
@@ -1238,11 +1241,20 @@ public:
 			if (act) act(se);
 		}
 	}
+	private class TabfPaint : PaintListener {
+		override void paintControl(PaintEvent e) {
+			auto tabf = cast(CTabFolder) e.widget;
+			if (!tabf) return;
+			auto rect = tabf.getClientArea;
+			// TODO
+		}
+	}
 	private class TabMenu {
 		private string _paneKey;
 		this (string paneKey) {
 			_paneKey = paneKey;
 			auto comp = _dock.pane(paneKey);
+			comp.addPaintListener(new TabfPaint);
 			auto menu = new Menu(comp.getShell, SWT.POP_UP);
 			createMenuItem(menu, _prop.msgs.menuClosePane, _prop.images.menuClosePane, &close);
 			new MenuItem(menu, SWT.SEPARATOR);

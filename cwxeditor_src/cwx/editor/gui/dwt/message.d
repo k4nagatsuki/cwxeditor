@@ -660,10 +660,15 @@ private Composite createTalkerPane
 		void redraw() {
 			_canvas.redraw;
 		}
-		Canvas createCanvas(Composite parent,
+		Composite createCanvas(Composite parent,
 				MaterialSelect!(MtType.CARD, Combo, Combo) msel) {
 			auto skin = _comm.skin;
-			_canvas = new Canvas(parent, SWT.BORDER);
+			auto comp = new Composite(parent, SWT.NONE);
+			comp.setLayoutData = new GridData(GridData.FILL_BOTH);
+			comp.setLayout = new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0);
+			_canvas = new Canvas(comp, SWT.BORDER | SWT.DOUBLE_BUFFERED);
+			auto s = _prop.looks.cardSize;
+			_canvas.setLayoutData = _canvas.computeSize(s.width, s.height);
 			_canvas.addPaintListener(new class(_comm, _summ, msel) PaintListener {
 				private Commons _comm;
 				private Summary _summ;
@@ -709,7 +714,7 @@ private Composite createTalkerPane
 					if (dis) image.dispose;
 				}
 			});
-			return _canvas;
+			return comp;
 		}
 	}
 	auto comp = new Composite(parent, SWT.NONE);
@@ -736,7 +741,7 @@ private Composite createTalkerPane
 	{
 		auto canvas = image.createCanvas(comp, msel);
 		auto gd = new GridData(GridData.FILL_BOTH);
-		auto s = canvas.computeSize(prop.looks.cardSize.width, prop.looks.cardSize.height);
+		auto s = canvas.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 		gd.widthHint = s.x;
 		gd.heightHint = s.y;
 		canvas.setLayoutData = gd;

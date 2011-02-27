@@ -177,13 +177,11 @@ private:
 		}
 	}
 	void constructTab1(CTabFolder tabf) {
-		auto comp = new Composite(tabf, SWT.BORDER);
-		comp.setLayout = zeroGridLayout(1);
-		_summImage = new Canvas(comp, SWT.DOUBLE_BUFFERED);
-		auto gd = new GridData(GridData.FILL_BOTH);
-		gd.widthHint = _prop.looks.summarySize.width;
-		gd.heightHint = _prop.looks.summarySize.height;
-		_summImage.setLayoutData = gd;
+		auto comp = new Composite(tabf, SWT.NONE);
+		auto size = _prop.looks.summarySize;
+		comp.setLayout = new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0);
+		_summImage = new Canvas(comp, SWT.BORDER | SWT.DOUBLE_BUFFERED);
+		_summImage.setLayoutData = _summImage.computeSize(size.width, size.height);
 		_summImage.addPaintListener(new PListener);
 		auto tab = new CTabItem(tabf, SWT.NONE);
 		tab.setText = _prop.msgs.summaryImage;

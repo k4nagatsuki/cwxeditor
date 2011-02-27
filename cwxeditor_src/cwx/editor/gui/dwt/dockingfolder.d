@@ -46,8 +46,8 @@ import std.file;
 import std.compat;
 import std.string;
 
-alias DockingFolder!(TabFolder, SWT.NONE) DockingFolderT;
-alias DockingFolder!(CTabFolder, SWT.BORDER | SWT.FLAT) DockingFolderCT;
+debug alias DockingFolder!(TabFolder, SWT.NONE) DockingFolderT;
+debug alias DockingFolder!(CTabFolder, SWT.BORDER | SWT.FLAT) DockingFolderCT;
 alias DockingFolder!(CTabFolder, SWT.BORDER | SWT.FLAT | SWT.CLOSE) DockingFolderCTC;
 
 /// 方角。
