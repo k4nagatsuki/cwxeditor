@@ -1931,8 +1931,9 @@ public:
 
 	void reverseViewParty() {
 		_viewParty = !_viewParty;
-		for (int i = _imgp.images.length - 2;
-				i >= _imgp.images.length - _prop.looks.partyCardXY.length - 1; i--) {
+		int imgLen = _imgp.images.length;
+		int partyLen = _prop.looks.partyCardXY.length;
+		for (int i = imgLen - 2; i >= imgLen - partyLen - 1; i--) {
 			_imgp.images[i].visible = _viewParty;
 		}
 		if (_vpMenu) _vpMenu.setSelection = _viewParty;
