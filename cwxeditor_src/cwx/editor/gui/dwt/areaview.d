@@ -1015,8 +1015,8 @@ private:
 		sc.getVerticalBar.setPageIncrement = vs.height / 5;
 		sc.setLayoutData = new GridData(GridData.FILL_BOTH);
 		_imgp = new ImagePane(sc, SWT.BORDER | SWT.NO_BACKGROUND);
-		int alpha;
-		auto color = new Color(Display.getCurrent, dwtData(_prop.var.etc.backgroundColor, alpha));
+		auto rgb = new RGB(_prop.var.etc.backgroundColorR, _prop.var.etc.backgroundColorG, _prop.var.etc.backgroundColorB);
+		auto color = new Color(Display.getCurrent, rgb);
 		_imgp.setBackgroundColor = color;
 		auto biPath = _prop.var.etc.backgroundImage;
 		if (biPath.length && .exists(biPath)) {

@@ -526,7 +526,9 @@ class FlexEtcProps : Properties {
 	mixin Property!("outerToolsNameHeight", int, 250, true);
 
 	mixin Property!("backgroundImage", string, "");
-	mixin Property!("backgroundColor", CRGB, CRGB(0, 0, 128));
+	mixin Property!("backgroundColorR", int, 0);
+	mixin Property!("backgroundColorG", int, 0);
+	mixin Property!("backgroundColorB", int, 128);
 	mixin Property!("bgImagesDefault", BgImageS[], [BgImageS("MapOfWirth", 0, 0, 632, 420, false)]);
 	mixin Property!("bgImageSettingsSashL", int, 1);
 	mixin Property!("bgImageSettingsSashR", int, 1);
