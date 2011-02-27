@@ -317,6 +317,44 @@ private:
 			tabChanged;
 		}
 	}
+	LCheck[] _checked;
+	class LCheck : SelectionAdapter {
+		Button[] buttons;
+		private Button _all = null;
+		class AllCheck : SelectionAdapter {
+			override void widgetSelected(SelectionEvent e) {
+				foreach (b; buttons) {
+					b.setSelection = _all.getSelection;
+				}
+			}
+		}
+		void check() {
+			bool checked = true;
+			foreach (b; buttons) {
+				checked &= b.getSelection;
+			}
+			_all.setSelection = checked;
+		}
+		override void widgetSelected(SelectionEvent e) {
+			assert (_all);
+			check;
+		}
+		void createAlls(Composite parent) {
+			_all = new Button(parent, SWT.CHECK);
+			_all.setText = _prop.msgs.allCheck;
+			_all.addSelectionListener(new AllCheck);
+			check;
+		}
+	}
+	Composite addButtonLine(Composite grp) {
+		auto comp = new Composite(grp, SWT.NONE);
+		comp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+		auto rl = new RowLayout(SWT.HORIZONTAL);
+		rl.wrap = true;
+		rl.pack = false;
+		comp.setLayout = rl;
+		return comp;
+	}
 	void constructText(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout = new GridLayout(1, true);
@@ -360,27 +398,37 @@ private:
 			gd.widthHint = _prop.var.etc.searchResultTableWidth;
 			grp.setLayoutData = gd;
 			grp.setText = _prop.msgs.replTextTarget;
-			auto rl = new RowLayout(SWT.HORIZONTAL);
-			rl.wrap = true;
-			rl.pack = false;
-			grp.setLayout = rl;
-			Button createB(string text) {
-				auto b = new Button(grp, SWT.CHECK);
-				b.setText = text;
-				return b;
+			grp.setLayout = zeroGridLayout(1, true);
+			auto checked = new LCheck;
+			_checked ~= checked;
+			{
+				auto btns = addButtonLine(grp);
+				Button createB(string text) {
+					auto b = new Button(btns, SWT.CHECK);
+					b.setText = text;
+					checked.buttons ~= b;
+					b.addSelectionListener(checked);
+					return b;
+				}
+				_summary = createB(_prop.msgs.replTextSummary);
+				_msg = createB(_prop.msgs.replTextMessage);
+				_cardName = createB(_prop.msgs.replTextCardName);
+				_cardDesc = createB(_prop.msgs.replTextCardDesc);
+				_event = createB(_prop.msgs.replTextEventText);
+				_start = createB(_prop.msgs.replTextStart);
+				_flag = createB(_prop.msgs.replTextFlagAndStep);
+				_coupon = createB(_prop.msgs.replTextCoupon);
+				_gossip = createB(_prop.msgs.replTextGossip);
+				_end = createB(_prop.msgs.replTextEndScenario);
+				_area = createB(_prop.msgs.replTextAreaName);
+				_keyCode = createB(_prop.msgs.replTextKeyCode);
 			}
-			_summary = createB(_prop.msgs.replTextSummary);
-			_msg = createB(_prop.msgs.replTextMessage);
-			_cardName = createB(_prop.msgs.replTextCardName);
-			_cardDesc = createB(_prop.msgs.replTextCardDesc);
-			_event = createB(_prop.msgs.replTextEventText);
-			_start = createB(_prop.msgs.replTextStart);
-			_flag = createB(_prop.msgs.replTextFlagAndStep);
-			_coupon = createB(_prop.msgs.replTextCoupon);
-			_gossip = createB(_prop.msgs.replTextGossip);
-			_end = createB(_prop.msgs.replTextEndScenario);
-			_area = createB(_prop.msgs.replTextAreaName);
-			_keyCode = createB(_prop.msgs.replTextKeyCode);
+			auto sep = new Label(grp, SWT.SEPARATOR | SWT.HORIZONTAL);
+			sep.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+			{
+				auto btns = addButtonLine(grp);
+				checked.createAlls(btns);
+			}
 		}
 		auto tab = new CTabItem(tabf, SWT.NONE);
 		tab.setText = _prop.msgs.replForText;
@@ -474,27 +522,37 @@ private:
 			auto grp = new Group(comp, SWT.NONE);
 			grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			grp.setText = _prop.msgs.replUnuseTarget;
-			auto rl = new RowLayout(SWT.HORIZONTAL);
-			rl.wrap = true;
-			rl.pack = false;
-			grp.setLayout = rl;
-			Button createB(string text) {
-				auto b = new Button(grp, SWT.CHECK);
-				b.setText = text;
-				return b;
+			grp.setLayout = zeroGridLayout(1, true);
+			auto checked = new LCheck;
+			_checked ~= checked;
+			{
+				auto btns = addButtonLine(grp);
+				Button createB(string text) {
+					auto b = new Button(btns, SWT.CHECK);
+					b.setText = text;
+					checked.buttons ~= b;
+					b.addSelectionListener(checked);
+					return b;
+				}
+				_unuseFlag = createB(_prop.msgs.replUnuseFlag);
+				_unuseStep = createB(_prop.msgs.replUnuseStep);
+				_unuseArea = createB(_prop.msgs.replUnuseArea);
+				_unuseBattle = createB(_prop.msgs.replUnuseBattle);
+				_unusePackage = createB(_prop.msgs.replUnusePackage);
+				_unuseCast = createB(_prop.msgs.replUnuseCast);
+				_unuseSkill = createB(_prop.msgs.replUnuseSkill);
+				_unuseItem = createB(_prop.msgs.replUnuseItem);
+				_unuseBeast = createB(_prop.msgs.replUnuseBeast);
+				_unuseInfo = createB(_prop.msgs.replUnuseInfo);
+				_unuseStart = createB(_prop.msgs.replUnuseStart);
+				_unusePath = createB(_prop.msgs.replUnusePath);
 			}
-			_unuseFlag = createB(_prop.msgs.replUnuseFlag);
-			_unuseStep = createB(_prop.msgs.replUnuseStep);
-			_unuseArea = createB(_prop.msgs.replUnuseArea);
-			_unuseBattle = createB(_prop.msgs.replUnuseBattle);
-			_unusePackage = createB(_prop.msgs.replUnusePackage);
-			_unuseCast = createB(_prop.msgs.replUnuseCast);
-			_unuseSkill = createB(_prop.msgs.replUnuseSkill);
-			_unuseItem = createB(_prop.msgs.replUnuseItem);
-			_unuseBeast = createB(_prop.msgs.replUnuseBeast);
-			_unuseInfo = createB(_prop.msgs.replUnuseInfo);
-			_unuseStart = createB(_prop.msgs.replUnuseStart);
-			_unusePath = createB(_prop.msgs.replUnusePath);
+			auto sep = new Label(grp, SWT.SEPARATOR | SWT.HORIZONTAL);
+			sep.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+			{
+				auto btns = addButtonLine(grp);
+				checked.createAlls(btns);
+			}
 		}
 		auto tab = new CTabItem(tabf, SWT.NONE);
 		tab.setText = _prop.msgs.replForUnuse;
@@ -647,6 +705,9 @@ public:
 		_unuseInfo.setSelection = _prop.var.etc.searchUnusedInfo;
 		_unuseStart.setSelection = _prop.var.etc.searchUnusedStart;
 		_unusePath.setSelection = _prop.var.etc.searchUnusedPath;
+		foreach (l; _checked) {
+			l.check;
+		}
 		_win.addDisposeListener(new DL);
 		auto cs = _win.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 		auto size = _prop.var.replaceDlg;

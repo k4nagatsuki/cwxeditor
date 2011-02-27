@@ -251,6 +251,8 @@ public:
 	string replForUnuse() {return "未使用検索";}
 	string replForError() {return "誤り検索";}
 
+	string allCheck() {return "全てチェック/全てチェックを外す(&L)";}
+
 	string replError() {return "重複する分岐(フラグ分岐が両方ともTRUEになっている等)・条件クーポンに抜けがある台詞コンテント・存在しない素材を参照しているコンテント等を検索します。";}
 
 	string replFrom() {return "検索(置換前)";}
@@ -258,18 +260,18 @@ public:
 
 	string replText() {return "検索/置換するテキスト";}
 	string replTextTarget() {return "検索/置換対象";}
-	string replTextSummary() {return "貼り紙";}
-	string replTextMessage() {return "メッセージ";}
-	string replTextCardName() {return "カード名";}
-	string replTextCardDesc() {return "カード解説";}
-	string replTextEventText() {return "イベントテキスト";}
-	string replTextStart() {return "スタートコンテント";}
-	string replTextFlagAndStep() {return "フラグ/ステップ";}
-	string replTextCoupon() {return "クーポン";}
-	string replTextGossip() {return "ゴシップ";}
-	string replTextEndScenario() {return "終了印";}
-	string replTextAreaName() {return "エリア/バトル/パッケージ名";}
-	string replTextKeyCode() {return "キーコード";}
+	string replTextSummary() {return "貼り紙(&1)";}
+	string replTextMessage() {return "メッセージ(&2)";}
+	string replTextCardName() {return "カード名(&3)";}
+	string replTextCardDesc() {return "カード解説(&4)";}
+	string replTextEventText() {return "イベントテキスト(&5)";}
+	string replTextStart() {return "スタートコンテント(&6)";}
+	string replTextFlagAndStep() {return "フラグ/ステップ(&7)";}
+	string replTextCoupon() {return "クーポン(&8)";}
+	string replTextGossip() {return "ゴシップ(&9)";}
+	string replTextEndScenario() {return "終了印(&A)";}
+	string replTextAreaName() {return "エリア/バトル/パッケージ名(&B)";}
+	string replTextKeyCode() {return "キーコード(&D)";}
 
 	string replID() {return "検索/置換対象";}
 	string replIDKind() {return "対象";}
@@ -286,18 +288,18 @@ public:
 	string replPath() {return "検索/置換する素材";}
 
 	string replUnuseTarget() {return "検索対象";}
-	string replUnuseFlag() {return "フラグ";}
-	string replUnuseStep() {return "ステップ";}
-	string replUnuseArea() {return "エリア";}
-	string replUnuseBattle() {return "バトル";}
-	string replUnusePackage() {return "パッケージ";}
-	string replUnuseCast() {return "キャストカード";}
-	string replUnuseSkill() {return "スキルカード";}
-	string replUnuseItem() {return "アイテムカード";}
-	string replUnuseBeast() {return "召喚獣カード";}
-	string replUnuseInfo() {return "情報カード";}
-	string replUnuseStart() {return "スタートコンテント";}
-	string replUnusePath() {return "素材";}
+	string replUnuseFlag() {return "フラグ(&1)";}
+	string replUnuseStep() {return "ステップ(&2)";}
+	string replUnuseArea() {return "エリア(&3)";}
+	string replUnuseBattle() {return "バトル(&4)";}
+	string replUnusePackage() {return "パッケージ(&5)";}
+	string replUnuseCast() {return "キャストカード(&6)";}
+	string replUnuseSkill() {return "スキルカード(&7)";}
+	string replUnuseItem() {return "アイテムカード(&8)";}
+	string replUnuseBeast() {return "召喚獣カード(&9)";}
+	string replUnuseInfo() {return "情報カード(&A)";}
+	string replUnuseStart() {return "スタートコンテント(&B)";}
+	string replUnusePath() {return "素材(&C)";}
 
 	string replNotIgnoreCase() {return "大文字と小文字を区別する(&C)";}
 	string replRegExp() {return "正規表現(&E) (. = 任意1文字, * = 直前の文字の任意数繰返し, $1 = 1つめの文字列グループ ...)";}

@@ -74,86 +74,87 @@ SRC = cwxeditor.d \
 	cwx\editor\gui\dwt\settingsdialog.d \
 	cwx\editor\gui\dwt\replacedialog.d \
 
-OBJ = cwxeditor.obj \
-	cwx\utils.obj \
-	cwx\sjis.obj \
-	cwx\system.obj \
-	cwx\card.obj \
-	cwx\coupon.obj \
-	cwx\xml.obj \
-	d2std\xml.obj \
-	cwx\event.obj \
-	cwx\types.obj \
-	cwx\motion.obj \
-	cwx\usecounter.obj \
-	cwx\flag.obj \
-	cwx\path.obj \
-	cwx\background.obj \
-	cwx\props.obj \
-	cwx\features.obj \
-	cwx\area.obj \
-	cwx\summary.obj \
-	cwx\cwl.obj \
-	cwx\binary.obj \
-	cwx\archive.obj \
-	cwx\skin.obj \
-	cwx\race.obj \
-	cwx\imagesize.obj \
-	cwx\cab.obj \
-	cwx\structs.obj \
-	cwx\graphics.obj \
-	cwx\jpy.obj \
-	cwx\editor\gui\sound.obj \
-	cwx\editor\gui\dwt\sbshell.obj \
-	cwx\editor\gui\dwt\mainwindow.obj \
-	cwx\editor\gui\dwt\images.obj \
-	cwx\editor\gui\dwt\utils.obj \
-	cwx\editor\gui\dwt\props.obj \
-	cwx\editor\gui\dwt\properties.obj \
-	cwx\editor\gui\dwt\absdialog.obj \
-	cwx\editor\gui\dwt\dockingfolder.obj \
-	cwx\editor\gui\dwt\splitpane.obj \
-	cwx\editor\gui\dwt\centerlayout.obj \
-	cwx\editor\gui\dwt\skin.obj \
-	cwx\editor\gui\dwt\commons.obj \
-	cwx\editor\gui\dwt\areaview.obj \
-	cwx\editor\gui\dwt\spcarddialog.obj \
-	cwx\editor\gui\dwt\materialselect.obj \
-	cwx\editor\gui\dwt\imageselect.obj \
-	cwx\editor\gui\dwt\customtext.obj \
-	cwx\editor\gui\dwt\customtable.obj \
-	cwx\editor\gui\dwt\bgimagedialog.obj \
-	cwx\editor\gui\dwt\xmlbytestransfer.obj \
-	cwx\editor\gui\dwt\undo.obj \
-	cwx\editor\gui\dwt\jpyimage.obj \
-	cwx\editor\gui\dwt\areawindow.obj \
-	cwx\editor\gui\dwt\eventview.obj \
-	cwx\editor\gui\dwt\message.obj \
-	cwx\editor\gui\dwt\eventtreeview.obj \
-	cwx\editor\gui\dwt\eventdialog.obj \
-	cwx\editor\gui\dwt\motionview.obj \
-	cwx\editor\gui\dwt\effectcarddialog.obj \
-	cwx\editor\gui\dwt\radarspinner.obj \
-	cwx\editor\gui\dwt\cardwindow.obj \
-	cwx\editor\gui\dwt\commondialog.obj \
-	cwx\editor\gui\dwt\cardlist.obj \
-	cwx\editor\gui\dwt\eventwindow.obj \
-	cwx\editor\gui\dwt\castcarddialog.obj \
-	cwx\editor\gui\dwt\infocarddialog.obj \
-	cwx\editor\gui\dwt\directorywindow.obj \
-	cwx\editor\gui\dwt\datawindow.obj \
-	cwx\editor\gui\dwt\areatable.obj \
-	cwx\editor\gui\dwt\flagtable.obj \
-	cwx\editor\gui\dwt\summarydialog.obj \
-	cwx\editor\gui\dwt\flagspane.obj \
-	cwx\editor\gui\dwt\flagdirtree.obj \
-	cwx\editor\gui\dwt\settingsdialog.obj \
-	cwx\editor\gui\dwt\replacedialog.obj \
+OBJ = objs\cwxeditor.obj \
+	objs\cwx\utils.obj \
+	objs\cwx\sjis.obj \
+	objs\cwx\system.obj \
+	objs\cwx\card.obj \
+	objs\cwx\coupon.obj \
+	objs\cwx\xml.obj \
+	objs\d2std\xml.obj \
+	objs\cwx\event.obj \
+	objs\cwx\types.obj \
+	objs\cwx\motion.obj \
+	objs\cwx\usecounter.obj \
+	objs\cwx\flag.obj \
+	objs\cwx\path.obj \
+	objs\cwx\background.obj \
+	objs\cwx\props.obj \
+	objs\cwx\features.obj \
+	objs\cwx\area.obj \
+	objs\cwx\summary.obj \
+	objs\cwx\cwl.obj \
+	objs\cwx\binary.obj \
+	objs\cwx\archive.obj \
+	objs\cwx\skin.obj \
+	objs\cwx\race.obj \
+	objs\cwx\imagesize.obj \
+	objs\cwx\cab.obj \
+	objs\cwx\structs.obj \
+	objs\cwx\graphics.obj \
+	objs\cwx\jpy.obj \
+	objs\cwx\editor\gui\sound.obj \
+	objs\cwx\editor\gui\dwt\sbshell.obj \
+	objs\cwx\editor\gui\dwt\mainwindow.obj \
+	objs\cwx\editor\gui\dwt\images.obj \
+	objs\cwx\editor\gui\dwt\utils.obj \
+	objs\cwx\editor\gui\dwt\props.obj \
+	objs\cwx\editor\gui\dwt\properties.obj \
+	objs\cwx\editor\gui\dwt\absdialog.obj \
+	objs\cwx\editor\gui\dwt\dockingfolder.obj \
+	objs\cwx\editor\gui\dwt\splitpane.obj \
+	objs\cwx\editor\gui\dwt\centerlayout.obj \
+	objs\cwx\editor\gui\dwt\skin.obj \
+	objs\cwx\editor\gui\dwt\commons.obj \
+	objs\cwx\editor\gui\dwt\areaview.obj \
+	objs\cwx\editor\gui\dwt\spcarddialog.obj \
+	objs\cwx\editor\gui\dwt\materialselect.obj \
+	objs\cwx\editor\gui\dwt\imageselect.obj \
+	objs\cwx\editor\gui\dwt\customtext.obj \
+	objs\cwx\editor\gui\dwt\customtable.obj \
+	objs\cwx\editor\gui\dwt\bgimagedialog.obj \
+	objs\cwx\editor\gui\dwt\xmlbytestransfer.obj \
+	objs\cwx\editor\gui\dwt\undo.obj \
+	objs\cwx\editor\gui\dwt\jpyimage.obj \
+	objs\cwx\editor\gui\dwt\areawindow.obj \
+	objs\cwx\editor\gui\dwt\eventview.obj \
+	objs\cwx\editor\gui\dwt\message.obj \
+	objs\cwx\editor\gui\dwt\eventtreeview.obj \
+	objs\cwx\editor\gui\dwt\eventdialog.obj \
+	objs\cwx\editor\gui\dwt\motionview.obj \
+	objs\cwx\editor\gui\dwt\effectcarddialog.obj \
+	objs\cwx\editor\gui\dwt\radarspinner.obj \
+	objs\cwx\editor\gui\dwt\cardwindow.obj \
+	objs\cwx\editor\gui\dwt\commondialog.obj \
+	objs\cwx\editor\gui\dwt\cardlist.obj \
+	objs\cwx\editor\gui\dwt\eventwindow.obj \
+	objs\cwx\editor\gui\dwt\castcarddialog.obj \
+	objs\cwx\editor\gui\dwt\infocarddialog.obj \
+	objs\cwx\editor\gui\dwt\directorywindow.obj \
+	objs\cwx\editor\gui\dwt\datawindow.obj \
+	objs\cwx\editor\gui\dwt\areatable.obj \
+	objs\cwx\editor\gui\dwt\flagtable.obj \
+	objs\cwx\editor\gui\dwt\summarydialog.obj \
+	objs\cwx\editor\gui\dwt\flagspane.obj \
+	objs\cwx\editor\gui\dwt\flagdirtree.obj \
+	objs\cwx\editor\gui\dwt\settingsdialog.obj \
+	objs\cwx\editor\gui\dwt\replacedialog.obj \
 
 DMD = dmd
 RCC = rcc
 APP = cwxeditor
 RM = del
+RMDIR = rmdir /S /Q
 RC = $(APP).rc
 OUT = $(APP).exe
 RES = $(APP).res
@@ -184,15 +185,16 @@ LIB = /rc:cwxeditor \
 FLAGS = -J. -Jresource -op -c
 
 $(OUT) : $(SRC) $(RES)
-	$(DMD) $(FLAGS) $(SRC) -g -debug -unittest
+	$(DMD) $(FLAGS) $(SRC) -g -debug -unittest -odobjs
 	$(DMD) $(OBJ) -L"$(LIB)" -of"$(OUT)" -L/exet:nt/su:console:4.0
 
 release : $(SRC) $(RES)
-	$(DMD) $(FLAGS) $(SRC) -release -O
+	$(DMD) $(FLAGS) $(SRC) -release -O -odobjs
 	$(DMD) $(OBJ) -L"$(LIB)" -of"$(OUT)" -L/exet:nt/su:windows:4.0 -O
 
 $(RES) : $(RC)
 	rcc $(RC)
 
 clean :
-	$(RM) $(OUT) $(MAP) $(OBJ) $(RES)
+	$(RM) $(OUT) $(MAP) $(RES)
+	$(RMDIR) objs
