@@ -1400,7 +1400,11 @@ private class LSFFThr(S, bool Array) {
 	}
 	class Failed : Runnable {
 		void run() {
-			status(prop.msgs.loadErrorStatus);
+			static if (Array) {
+				status(prop.msgs.loadErrorStatus(files));
+			} else {
+				status(prop.msgs.loadErrorStatus(fname));
+			}
 		}
 	}
 	uint worked = 0u;
@@ -1440,7 +1444,15 @@ private class LSFFThr(S, bool Array) {
 				} catch (Exception e) {
 					debugln(e);
 					MessageBox.showWarning(e.msg, prop.msgs.dlgTitWarning, w);
-					status(prop.msgs.loadErrorStatus);
+					static if (Array) {
+						string[] names;
+						foreach (s; r) {
+							names ~= s.scenarioName;
+						}
+						status(prop.msgs.loadErrorStatus(names));
+					} else {
+						status(prop.msgs.loadErrorStatus(r.scenarioName));
+					}
 				} catch {
 					clear;
 				}
@@ -1456,7 +1468,11 @@ private class LSFFThr(S, bool Array) {
 			} catch {
 				clear;
 			}
-			status(prop.msgs.loadErrorStatus);
+			static if (Array) {
+				status(prop.msgs.loadErrorStatus(files));
+			} else {
+				status(prop.msgs.loadErrorStatus(fname));
+			}
 		}
 	}
 	Runnable working;

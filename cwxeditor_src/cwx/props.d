@@ -976,7 +976,13 @@ public:
 	string saveError(string name) {return name ~ "の保存に失敗しました。";}
 	string dlgTitUnzip() {return "圧縮ファイルの展開 - CWXEditor";}
 	string unzip(string name) {return name ~ "を展開しています……";}
-	string loadErrorStatus() {return "シナリオの読込みに失敗";}
+	string loadErrorStatus(string name) {return name ~ "の読込みに失敗";}
+	string loadErrorStatus(string[] name) {
+		if (name.length == 1) {
+			return loadErrorStatus(name[0]);
+		}
+		return to!(string)(name.length) ~ "件のシナリオの読込みに失敗";
+	}
 
 	/// データウィンドウ
 	string dataTabName(Summary summ) {
