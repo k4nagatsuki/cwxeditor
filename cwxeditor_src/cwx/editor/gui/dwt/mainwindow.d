@@ -1516,6 +1516,7 @@ public:
 				int y = b.y + (b.height - p.y) / 2;
 				intoDisplay(x, y, p.x, p.y);
 				_replDlg.widget.setLocation = new Point(x, y);
+				_replDlg.replaceText("");
 			} else {
 				_replDlg.widget.setMinimized = false;
 				_replDlg.widget.setActive;

@@ -144,9 +144,15 @@ abstract class AbsDialog {
 		if (_apply) _apply.setEnabled = false;
 		_win.open;
 		if (firstFocusIsOK) _okBtn.setFocus;
+		opened;
 		auto d = _win.getDisplay;
 		while (!_win.isDisposed) {
-			if (!d.readAndDispatch) d.sleep;
+			try {
+				if (!d.readAndDispatch) d.sleep;
+			} catch (Exception e) {
+				_win.close;
+				throw e;
+			}
 		}
 		if (par) {
 			par.setImeInputMode = _imeMode;
@@ -209,4 +215,5 @@ abstract class AbsDialog {
 		return close(ok);
 	}
 	protected bool close(bool ok) {return ok;}
+	protected void opened() {}
 }

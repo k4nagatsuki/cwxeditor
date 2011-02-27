@@ -539,12 +539,21 @@ public:
 		}
 	}
 
+	void replaceText(string from) {
+		reset;
+		_from.setText = from;
+		_to.setText = "";
+		_tabf.setSelection = _tabText;
+		tabChanged;
+		_from.setFocus;
+	}
 	void replacePath(string from) {
 		reset;
 		_fromPath.setText = from;
 		_toPath.setText = "";
 		_tabf.setSelection = _tabPath;
 		tabChanged;
+		_fromPath.setFocus;
 	}
 
 	private void setup() {
