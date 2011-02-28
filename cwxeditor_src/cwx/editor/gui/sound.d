@@ -120,10 +120,10 @@ private Mix_Music *music = null;
 
 private void __play(string file, bool loop, bool legacy) {
 	stopBGM;
-	onLegacy = legacy;
 	try {
 		version (Windows) {
-			if (winmm && legacy) {
+			if (winmm && (legacy || !sdl)) {
+				onLegacy = true;
 				auto ss = getSymbol!(mciSendStringW)(winmm, "mciSendStringW");
 				if (!ss) throw new Exception("mciSendStringW()");
 				// mpegvideoにするとなぜかopenが成功する上repeatが利くようになる

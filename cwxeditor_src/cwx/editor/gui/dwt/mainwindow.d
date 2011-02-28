@@ -473,7 +473,7 @@ private:
 				createFileMenu;
 			}
 		}
-		auto dlg = new SettingsDialog(_comm, _prop, _win);
+		auto dlg = new SettingsDialog(_comm, _prop, _win, summary);
 		if (dlg.open) {
 			_prop.var.save(dock);
 		}
@@ -815,7 +815,7 @@ public:
 		_display = d;
 		d.setAppName = _prop.msgs.application;
 		if (_prop.var.etc.enginePath.length && !.exists(_prop.var.etc.enginePath)) {
-			auto dlg = new SettingsDialog(_comm, _prop, null);
+			auto dlg = new SettingsDialog(_comm, _prop, null, null);
 			if (!dlg.open) return;
 		}
 

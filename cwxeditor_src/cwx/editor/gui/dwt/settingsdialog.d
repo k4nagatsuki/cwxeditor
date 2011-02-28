@@ -4,6 +4,7 @@ module cwx.editor.gui.dwt.settingsdialog;
 import cwx.background;
 import cwx.utils;
 import cwx.xml;
+import cwx.summary;
 
 import cwx.editor.gui.dwt.props;
 import cwx.editor.gui.dwt.properties;
@@ -52,6 +53,7 @@ class SettingsDialog : AbsDialog {
 private:
 	Commons _comm;
 	Props _prop;
+	Summary _summ;
 
 	CTabItem _tabB;
 	Text _enginePath;
@@ -950,10 +952,11 @@ private:
 	}
 	private Mod _mod;
 public:
-	this(Commons comm, Props prop, Shell shell) {
+	this(Commons comm, Props prop, Shell shell, Summary summ) {
 		super(prop, shell, prop.msgs.dlgTitSettings, prop.images.menuSettings, true, prop.var.settingsDlg, true);
 		_comm = comm;
 		_prop = prop;
+		_summ = summ;
 	}
 
 protected:
@@ -1038,11 +1041,16 @@ protected:
 			err(_tabB, _tempDir, _prop.msgs.errorTempPath);
 			return false;
 		}
+		string oldEnginePath = _prop.var.etc.enginePath;
 		string[] oldKeyCodes = _prop.var.etc.standardKeyCodes;
 		auto tools = _prop.var.etc.outerTools;
 		string[] oldIgnorePaths = _prop.var.etc.ignorePaths;
 		bool oldSmoothingCard = _prop.var.etc.smoothingCard;
 		scope (exit) {
+			if (_summ && oldEnginePath != _prop.var.etc.enginePath) {
+				_comm.skin = findSkin(_prop, _summ);
+				_comm.refSkin.call;
+			}
 			if (oldKeyCodes != _prop.var.etc.standardKeyCodes) {
 				_comm.refStandardKeyCodes.call;
 			}
