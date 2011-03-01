@@ -810,6 +810,7 @@ public:
 		}
 
 		_comm = new Commons;
+		_comm.skin = findSkin2(_prop, _prop.var.etc.defaultSkin);
 
 		auto d = new Display;
 		_display = d;

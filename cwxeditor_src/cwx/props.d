@@ -2054,7 +2054,7 @@ public:
 	string delOuterTool() {return "削除";}
 
 	string bgImagesDefault() {return "デフォルト背景";}
-	string setBgImagesDefault() {return "デフォルト背景の設定";}
+	string setBgImagesDefault() {return "デフォルト背景の設定...";}
 	string dlgTitBgImagesDefault() {return "デフォルト背景の設定";}
 }
 

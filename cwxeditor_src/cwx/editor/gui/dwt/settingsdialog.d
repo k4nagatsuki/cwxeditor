@@ -47,7 +47,12 @@ import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.FileTransfer;
+import org.eclipse.swt.dnd.DropTargetAdapter;
+import org.eclipse.swt.dnd.DropTargetEvent;
+import org.eclipse.swt.dnd.DropTarget;
 
 class SettingsDialog : AbsDialog {
 private:
@@ -148,6 +153,57 @@ private:
 		_tools[i] = temp;
 		_toolsL.select = i + 1;
 		applyEnabled;
+	}
+	class DropFiles : DropTargetAdapter {
+		private Text _text;
+		private string delegate(string[] files) _drop;
+		this (Text text, string delegate(string[] files) drop) {
+			_text = text;
+			_drop = drop;
+		}
+		override void dragEnter(DropTargetEvent e){
+			e.detail = DND.DROP_LINK;
+		}
+		override void dragOver(DropTargetEvent e){
+			e.detail = DND.DROP_LINK;
+		}
+		override void drop(DropTargetEvent e){
+			e.detail = DND.DROP_NONE;
+			auto str = _drop((cast(FileNames) e.data).array);
+			if (str.length && str != _text.getText) {
+				_text.setText = str;
+				_text.selectAll;
+				e.detail = DND.DROP_LINK;
+			}
+		}
+	}
+	void setupDropFile(Control c, Text text, string delegate(string[] files) drop) {
+		auto dropt = new DropTarget(c, DND.DROP_DEFAULT | DND.DROP_LINK);
+		dropt.setTransfer([FileTransfer.getInstance]);
+		if (!drop) drop = &dropDefault;
+		dropt.addDropListener(new DropFiles(text, drop));
+	}
+	string dropDefault(string[] files) {
+		return files.length ? files[0] : "";
+	}
+	string dropEngine(string[] files) {
+		if (!files.length) return "";
+		string file = files[0];
+		if (fnmatch(getBaseName(file), _prop.var.etc.engine)) {
+			return file;
+		} else {
+			return "";
+		}
+	}
+	string dropDir(string[] files) {
+		if (!files.length) return "";
+		string file = files[0];
+		if (!.exists(file)) return "";
+		if (.isdir(file)) {
+			return file;
+		} else {
+			return getDirName(file);
+		}
 	}
 	static string selectFile(Text file, string[] name, string[] ext, string fileName, string title, string p) {
 		auto dlg = new FileDialog(file.getShell, SWT.PRIMARY_MODAL | SWT.APPLICATION_MODAL | SWT.SINGLE | SWT.OPEN);
@@ -319,6 +375,7 @@ private:
 			auto gd = new GridData;
 			gd.horizontalSpan = 2;
 			l.setLayoutData = gd;
+			setupDropFile(grp, _enginePath, &dropEngine);
 		}
 		{
 			auto grp = new Group(comp, SWT.NONE);
@@ -331,6 +388,7 @@ private:
 			auto refr = new Button(grp, SWT.PUSH);
 			refr.setText = _prop.msgs.reference;
 			refr.addSelectionListener(new SelTemp);
+			setupDropFile(grp, _tempDir, &dropDir);
 		}
 		{
 			auto comp2 = new Composite(comp, SWT.NONE);
@@ -896,6 +954,7 @@ private:
 					_toolCommandRef.setText = _prop.msgs.reference;
 					_toolCommandRef.addSelectionListener(new PushToolCmdRef);
 					_toolCommand.addModifyListener(new ModToolCmd);
+					setupDropFile(_toolCommand, _toolCommand, &dropDefault);
 				}
 				{
 					auto l = new Label(comp2, SWT.NONE);
@@ -908,6 +967,7 @@ private:
 					_toolWorkDirRef.setText = _prop.msgs.reference;
 					_toolWorkDirRef.addSelectionListener(new PushToolWorkDirRef);
 					_toolWorkDir.addModifyListener(new ModToolWorkDir);
+					setupDropFile(_toolWorkDir, _toolWorkDir, &dropDir);
 				}
 				{
 					auto dummy = new Composite(comp2, SWT.NONE);
