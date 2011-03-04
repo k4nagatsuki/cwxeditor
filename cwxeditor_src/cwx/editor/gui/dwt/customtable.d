@@ -3,8 +3,6 @@ module cwx.editor.gui.dwt.customtable;
 
 import cwx.utils : debugln;
 
-import std.compat;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;

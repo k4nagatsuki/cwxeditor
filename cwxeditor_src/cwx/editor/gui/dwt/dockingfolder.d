@@ -42,8 +42,8 @@ import org.eclipse.swt.dnd.DragSourceEvent;
 import org.eclipse.swt.dnd.TextTransfer;
 import java.lang.all;
 
+import std.algorithm;
 import std.file;
-import std.compat;
 import std.string;
 
 debug alias DockingFolder!(TabFolder, SWT.NONE) DockingFolderT;
@@ -346,7 +346,7 @@ class DockingFolder(TabF, int Style) {
 	string[] findPane(string prefix) {
 		string[] r;
 		foreach (key, pane; _tKeys) {
-			if (cwx.utils.startsWith(key, prefix)) {
+			if (std.string.startsWith(key, prefix)) {
 				r ~= key;
 			}
 		}
@@ -356,7 +356,7 @@ class DockingFolder(TabF, int Style) {
 	string[] findCtrl(string prefix) {
 		string[] r;
 		foreach (key, ctrl; _keys) {
-			if (cwx.utils.startsWith(key, prefix)) {
+			if (std.string.startsWith(key, prefix)) {
 				r ~= key;
 			}
 		}
@@ -463,7 +463,7 @@ class DockingFolder(TabF, int Style) {
 	private TabF _drawTabf = null;
 	private void removeTabf(TabF tabf) {
 		tabf.dispose;
-		_tabfList = .remove!("a is b")(_tabfList, tabf);
+		_tabfList = cwx.utils.remove!("a is b")(_tabfList, tabf);
 		auto key = _tabfs[tabf];
 		_tKeys.remove(key);
 		_tabfs.remove(tabf);
@@ -597,7 +597,7 @@ class DockingFolder(TabF, int Style) {
 	}
 	private static Control[] afters(Control targ) {
 		auto pcs = targ.getParent.getChildren;
-		int pi = cwx.utils.indexOf!("a is b")(pcs, targ);
+		int pi = .cCountUntil!("a is b")(pcs, targ);
 		assert (pi != -1, "dockingfolder#afters");
 		return pcs[pi + 1 .. $];
 	}
@@ -728,9 +728,9 @@ class DockingFolder(TabF, int Style) {
 			int putCenter() {
 				auto dropItm = dropTarg.getItem(dropTarg.toControl(e.x, e.y));
 				if (dropItm is _dragItm) return DND.DROP_NONE;
-				int i1 = dropItm ? cwx.utils.indexOf!("a is b")(dropTarg.getItems, dropItm) : dropTarg.getItemCount;
+				int i1 = dropItm ? .cCountUntil!("a is b")(dropTarg.getItems, dropItm) : dropTarg.getItemCount;
 				if (dropTarg is _dragItm.getParent) {
-					int i2 = cwx.utils.indexOf!("a is b")(dropTarg.getItems, _dragItm);
+					int i2 = .cCountUntil!("a is b")(dropTarg.getItems, _dragItm);
 					if (i2 + 1 == i1) return DND.DROP_NONE;
 				}
 				newTab(dropTarg, dropItm ? i1 : -1);
@@ -966,7 +966,7 @@ class DockingFolder(TabF, int Style) {
 		r.newAttr("key", ta.key);
 		bool sc(string name) {
 			foreach (ex; exclude) {
-				if (cwx.utils.startsWith(name, ex)) return true;
+				if (std.string.startsWith(name, ex)) return true;
 			}
 			return false;
 		}

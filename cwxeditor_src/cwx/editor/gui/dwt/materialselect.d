@@ -11,6 +11,7 @@ import cwx.editor.gui.dwt.skin;
 import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.commons;
 
+import std.array;
 import std.file;
 import std.path;
 import std.string;
@@ -112,7 +113,6 @@ public:
 				}
 				if (r.length > 0) {
 					auto dlg = new MessageBox(control.getShell, SWT.ICON_QUESTION | SWT.YES | SWT.NO);
-					scope (exit) dlg.dispose;
 					dlg.setMessage = _prop.msgs.dlgMsgDropFiles(r);
 					dlg.setText = _prop.msgs.dlgTitDropFiles;
 					if (SWT.YES == dlg.open) {
@@ -445,8 +445,8 @@ private:
 							_dirs.select = _tbl;
 						}
 					} else if (_summ) {
-						auto pt = getDirName(p);
-						pt = pt.length <= cut ? sep : pt[cut .. $];
+						string pt = getDirName(p);
+						pt = pt.length <= cut ? sep.idup : pt[cut .. $];
 						pt = toViewPath(pt);
 						_dirs.select = dirsIndexOf(pt);
 						assert (_dirs.getSelectionIndex >= 1);

@@ -299,7 +299,8 @@ private:
 		this () {
 			static if (UseCards) {
 				foreach (i; _cards.getSelectionIndices) {
-					auto c = C.createFromNode(_area.cards[i].toNode, LATEST_VERSION);
+					auto node = _area.cards[i].toNode;
+					auto c = C.createFromNode(node, LATEST_VERSION);
 					if (_summ) c.setUseCounter(_summ.useCounter.sub);
 					_cs[i] = c;
 				}
@@ -634,7 +635,8 @@ private:
 	void selectListItem(T)(List list, int startIndex, ref int[T] edits, T[] cols) {
 		int count = list.getItemCount;
 		auto imgs = _imgp.images;
-		edits = typeof(edits).init;
+		typeof(edits) editsInit;
+		edits = editsInit;
 		for (int i = 0; i < count; i++) {
 			auto img = cast(FlexImage) imgs[startIndex + i];
 			bool o = img.selected;
@@ -1015,7 +1017,9 @@ private:
 		sc.getVerticalBar.setPageIncrement = vs.height / 5;
 		sc.setLayoutData = new GridData(GridData.FILL_BOTH);
 		_imgp = new ImagePane(sc, SWT.BORDER | SWT.NO_BACKGROUND);
-		auto rgb = new RGB(_prop.var.etc.backgroundColorR, _prop.var.etc.backgroundColorG, _prop.var.etc.backgroundColorB);
+		auto rgb = new RGB(_prop.var.etc.backgroundColorR,
+			_prop.var.etc.backgroundColorG,
+			_prop.var.etc.backgroundColorB);
 		auto color = new Color(Display.getCurrent, rgb);
 		_imgp.setBackgroundColor = color;
 		auto biPath = _prop.var.etc.backgroundImage;
@@ -2016,7 +2020,6 @@ public:
 				if (!_summ) return -1;
 				if (!hasPath(_summ.scenarioPath, fname)) {
 					auto dlg = new MessageBox(getShell, SWT.ICON_QUESTION | SWT.YES | SWT.NO | SWT.CANCEL);
-					scope (exit) dlg.dispose;
 					dlg.setMessage = _prop.msgs.dlgMsgDropCard(fname);
 					dlg.setText = _prop.msgs.dlgTitDropCard;
 					auto ret = dlg.open();
@@ -2133,7 +2136,6 @@ public:
 			if (!_summ) return -1;
 			if (!hasPath(_summ.scenarioPath, fname)) {
 				auto dlg = new MessageBox(getShell, SWT.ICON_QUESTION | SWT.YES | SWT.NO | SWT.CANCEL);
-				scope (exit) dlg.dispose;
 				dlg.setMessage = _prop.msgs.dlgMsgDropBack(fname);
 				dlg.setText = _prop.msgs.dlgTitDropBack;
 				auto ret = dlg.open();

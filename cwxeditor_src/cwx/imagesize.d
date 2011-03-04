@@ -1,7 +1,6 @@
 
 module cwx.imagesize;
 
-import std.compat;
 import std.file;
 import std.path;
 import std.stream;

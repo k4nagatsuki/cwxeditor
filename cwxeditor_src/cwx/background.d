@@ -23,7 +23,8 @@ private:
 	int _w, _h;
 	void delegate() _change;
 public:
-	override int opEquals(Object o) {
+	const
+	bool opEquals(ref const(Object) o) {
 		auto b = cast(BgImage) o;
 		return b && mask == b.mask && path == b.path
 			&& x == b.x && y == b.y && width == b.width && height == b.height;
@@ -49,6 +50,7 @@ public:
 		_mask = mask;
 	}
 	/// コピーを生成する。
+	const
 	BgImage dup() {
 		return new BgImage(path, flag, x, y, width, height, mask);
 	}
@@ -62,6 +64,7 @@ public:
 	}
 
 	/// 透明色を使用するか。
+	const
 	bool mask() {
 		return _mask;
 	}
@@ -71,6 +74,7 @@ public:
 		_mask = mask;
 	}
 	/// X座標。
+	const
 	int x() {
 		return _x;
 	}
@@ -80,6 +84,7 @@ public:
 		_x = x;
 	}
 	/// Y座標。
+	const
 	int y() {
 		return _y;
 	}
@@ -90,6 +95,7 @@ public:
 	}
 
 	/// 幅。
+	const
 	int width() {
 		return _w;
 	}
@@ -99,6 +105,7 @@ public:
 		_w = w;
 	}
 	/// 高さ。
+	const
 	int height() {
 		return _h;
 	}
@@ -108,6 +115,7 @@ public:
 		_h = h;
 	}
 	/// 画像ファイルパス。
+	const
 	string path() {
 		return _user.path;
 	}
@@ -146,7 +154,7 @@ public:
 	}
 
 	/// 指定されたノードに背景イメージ群のデータを追加する。
-	static void toNode(BgImage[] bgImgs, ref XNode e) {
+	static void toNode(in BgImage[] bgImgs, ref XNode e) {
 		auto bge = e.newElement("BgImages");
 		if (bgImgs.length > 0) {
 			// FIXME: このサイズはCPropsに持たせているがコンパイラのバグで参照できない。暫定。
@@ -162,6 +170,7 @@ public:
 	}
 
 	/// XMLノード(BgImages)にインスタンスのデータを追加する。
+	const
 	void toNode(ref XNode node) {
 		assert (node.name == "BgImages", node.name ~ " != BgImages");
 		auto e = node.newElement("BgImage");
@@ -217,7 +226,7 @@ public:
 	private BgImageOwner _owner;
 	package void owner(BgImageOwner owner) {_owner = owner;}
 	override string cwxPath() {
-		return _owner ? cpjoin(_owner, "background", indexOf!("a is b")(_owner.backs, this)) : "";
+		return _owner ? cpjoin(_owner, "background", .cCountUntil!("a is b")(_owner.backs, this)) : "";
 	}
 	override CWXPath findCWXPath(string path) {
 		if (path == "") return this;

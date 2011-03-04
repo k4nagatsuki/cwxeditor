@@ -5,6 +5,8 @@ import cwx.flag;
 import cwx.utils;
 import cwx.path;
 
+import std.array;
+import std.conv;
 import std.ctype;
 import std.path;
 import std.string;
@@ -23,6 +25,7 @@ public:
 	/// Params:
 	/// key = キー。
 	/// Returns: 使用回数。
+	const
 	uint get(K key) {
 		auto p = key in _cont;
 		return p ? p.size : 0;
@@ -30,6 +33,7 @@ public:
 
 	/// キーの一覧を返す。
 	/// Returns: キーの一覧。
+	const
 	K[] keys() {
 		return _cont.keys;
 	}
@@ -38,6 +42,7 @@ public:
 	/// Params:
 	/// key = キー。
 	/// Returns: 使用者の一覧。
+	const
 	U[] values(K key) {
 		auto p = key in _cont;
 		return p ? p.toArray : cast(U[]) [];
@@ -104,6 +109,7 @@ private struct FlagId {
 	string opCast() {
 		return id;
 	}
+	const
 	hash_t toHash() {
 		hash_t hash = 0;
 		foreach (c; toLower(id)) {
@@ -111,15 +117,15 @@ private struct FlagId {
 		}
 		return hash;
 	}
-	int opEquals(FlagId s) {
+	const
+	bool opEquals(ref const(FlagId) s) {
 		return icmp(id, s.id) == 0;
 	}
-	int opEquals(FlagId* s) {
-		return icmp(id, s.id) == 0;
-	}
-	int opCmp(FlagId* s) {
+	const
+	int opCmp(ref const(FlagId) s) {
 		return icmp(this.id, s.id);
 	}
+	const
 	string toString() {
 		return id;
 	}
@@ -156,6 +162,7 @@ public:
 	}
 
 	/// Returns: フラグ。
+	const
 	string flag() {
 		return _flag;
 	}
@@ -195,6 +202,7 @@ private struct StepId {
 	string opCast() {
 		return id;
 	}
+	const
 	hash_t toHash() {
 		hash_t hash = 0;
 		foreach (c; toLower(id)) {
@@ -202,15 +210,15 @@ private struct StepId {
 		}
 		return hash;
 	}
-	int opEquals(StepId s) {
+	const
+	bool opEquals(ref const(StepId) s) {
 		return icmp(id, s.id) == 0;
 	}
-	int opEquals(StepId* s) {
-		return icmp(id, s.id) == 0;
-	}
-	int opCmp(StepId* s) {
+	const
+	int opCmp(ref const(StepId) s) {
 		return icmp(this.id, s.id);
 	}
+	const
 	string toString() {
 		return id;
 	}
@@ -247,6 +255,7 @@ public:
 	}
 
 	/// Returns: ステップ。
+	const
 	string step() {
 		return _step;
 	}
@@ -309,6 +318,7 @@ public:
 	}
 
 	/// Returns: エリアID。
+	const
 	ulong area() {
 		return _id;
 	}
@@ -375,6 +385,7 @@ public:
 	}
 
 	/// Returns: バトルID。
+	const
 	ulong battle() {
 		return _id;
 	}
@@ -441,6 +452,7 @@ public:
 	}
 
 	/// Returns: パッケージID。
+	const
 	ulong packages() {
 		return _id;
 	}
@@ -485,15 +497,20 @@ struct PathId {
 		r.binImg = binImg;
 		return r;
 	}
+	const
 	bool isBinImg() {
 		return binImg.length > 0u;
 	}
+	const
 	bool valid() {
 		return id.length || binImg.length;
 	}
+	const
 	string opCast() {
+		string id = this.id;
 		return isBinImg ? binImg : replace(id, "/", sep);
 	}
+	const
 	hash_t toHash() {
 		hash_t hash = 0;
 		string s;
@@ -511,16 +528,12 @@ struct PathId {
 		}
 		return hash;
 	}
-	int opEquals(PathId s) {
-		return opEquals(&s);
-	}
-	int opEquals(PathId* s) {
+	const
+	bool opEquals(ref const(PathId) s) {
 		return (isBinImg || s.isBinImg) ? binImg == s.binImg : std.path.fnmatch(this.id, s.id);
 	}
-	int opCmp(PathId s) {
-		return opCmp(&s);
-	}
-	int opCmp(PathId* s) {
+	const
+	int opCmp(ref const(PathId) s) {
 		if (isBinImg && !s.isBinImg) return -1;
 		if (!isBinImg && s.isBinImg) return 1;
 		if (isBinImg || s.isBinImg) {
@@ -538,6 +551,7 @@ struct PathId {
 			return std.string.cmp(this.id, s.id);
 		}
 	}
+	const
 	string toString() {
 		string buf = "PathId {";
 		if (isBinImg) {
@@ -594,6 +608,7 @@ public:
 	}
 
 	/// ファイルパス。
+	const
 	string path() {return _path.isBinImg ? _path.binImg : cast(string) _path;}
 
 	/// 使用回数カウンタ。
@@ -655,6 +670,7 @@ public:
 	}
 
 	/// Returns: キャストID。
+	const
 	ulong casts() {
 		return _id;
 	}
@@ -717,6 +733,7 @@ public:
 	}
 
 	/// Returns: スキルID。
+	const
 	ulong skill() {
 		return _id;
 	}
@@ -779,6 +796,7 @@ public:
 	}
 
 	/// Returns: アイテムID。
+	const
 	ulong item() {
 		return _id;
 	}
@@ -841,6 +859,7 @@ public:
 	}
 
 	/// Returns: 召喚獣ID。
+	const
 	ulong beast() {
 		return _id;
 	}
@@ -903,6 +922,7 @@ public:
 	}
 
 	/// Returns: 情報カードID。
+	const
 	ulong info() {
 		return _id;
 	}
@@ -939,8 +959,8 @@ private:
 	UCCont!(FlagId, FlagUser) _flag;
 	UCCont!(StepId, StepUser) _step;
 	UCCont!(AreaId, AreaUser) _area;
-	UCCont!(BattleId, BattleUser) _btl;
-	UCCont!(PackageId, PackageUser) _pkg;
+	UCCont!(BattleId, BattleUser) _battle;
+	UCCont!(PackageId, PackageUser) _package;
 	UCCont!(PathId, PathUser) _path;
 	UCCont!(CastId, CastUser) _cast;
 	UCCont!(SkillId, SkillUser) _skill;
@@ -957,8 +977,8 @@ public:
 		_flag = new UCCont!(FlagId, FlagUser);
 		_step = new UCCont!(StepId, StepUser);
 		_area = new UCCont!(AreaId, AreaUser);
-		_btl = new UCCont!(BattleId, BattleUser);
-		_pkg = new UCCont!(PackageId, PackageUser);
+		_battle = new UCCont!(BattleId, BattleUser);
+		_package = new UCCont!(PackageId, PackageUser);
 		_path = new UCCont!(PathId, PathUser);
 		_cast = new UCCont!(CastId, CastUser);
 		_skill = new  UCCont!(SkillId, SkillUser);
@@ -981,9 +1001,9 @@ public:
 	/// ditto
 	UCCont!(AreaId, AreaUser) area() {return _area;}
 	/// ditto
-	UCCont!(BattleId, BattleUser) battle() {return _btl;}
+	UCCont!(BattleId, BattleUser) battle() {return _battle;}
 	/// ditto
-	UCCont!(PackageId, PackageUser) packages() {return _pkg;}
+	UCCont!(PackageId, PackageUser) packages() {return _package;}
 	/// ditto
 	UCCont!(PathId, PathUser) path() {return _path;}
 	/// ditto
@@ -1026,43 +1046,55 @@ public:
 		if (_child) _child.change(oldId, newId, dup);
 	}
 	/// ID・Tの使用回数を返す。
+	const
 	uint get(T)(T id) {
 		static if (is (T == FlagId)) {
-			return flag.get(id);
+			return _flag.get(id);
 		} else static if (is (T == StepId)) {
-			return step.get(id);
+			return _step.get(id);
 		} else static if (is (T == AreaId)) {
-			return area.get(id);
+			return _area.get(id);
 		} else static if (is (T == BattleId)) {
-			return battle.get(id);
+			return _battle.get(id);
 		} else static if (is (T == PackageId)) {
-			return packages.get(id);
+			return _package.get(id);
 		} else static if (is (T == PathId)) {
-			return path.get(id);
+			return _path.get(id);
 		} else static if (is (T == CastId)) {
-			return casts.get(id);
+			return _cast.get(id);
 		} else static if (is (T == SkillId)) {
-			return skill.get(id);
+			return _skill.get(id);
 		} else static if (is (T == ItemId)) {
-			return item.get(id);
+			return _item.get(id);
 		} else static if (is (T == BeastId)) {
-			return beast.get(id);
+			return _beast.get(id);
 		} else static if (is (T == InfoId)) {
-			return info.get(id);
+			return _info.get(id);
 		} else {
 			static assert (0);
 		}
 	}
 	/// idの使用者一覧を返す。
-	FlagUser[] values(FlagId id) {return flag.values(id);}
-	StepUser[] values(StepId id) {return step.values(id);} /// ditto
-	AreaUser[] values(AreaId id) {return area.values(id);} /// ditto
-	BattleUser[] values(BattleId id) {return battle.values(id);} /// ditto
-	PackageUser[] values(PackageId id) {return packages.values(id);} /// ditto
-	PathUser[] values(PathId id) {return path.values(id);} /// ditto
-	CastUser[] values(CastId id) {return casts.values(id);} /// ditto
-	SkillUser[] values(SkillId id) {return skill.values(id);} /// ditto
-	ItemUser[] values(ItemId id) {return item.values(id);} /// ditto
-	BeastUser[] values(BeastId id) {return beast.values(id);} /// ditto
-	InfoUser[] values(InfoId id) {return info.values(id);} /// ditto
+	const
+	FlagUser[] values(FlagId id) {return _flag.values(id);}
+	const
+	StepUser[] values(StepId id) {return _step.values(id);} /// ditto
+	const
+	AreaUser[] values(AreaId id) {return _area.values(id);} /// ditto
+	const
+	BattleUser[] values(BattleId id) {return _battle.values(id);} /// ditto
+	const
+	PackageUser[] values(PackageId id) {return _package.values(id);} /// ditto
+	const
+	PathUser[] values(PathId id) {return _path.values(id);} /// ditto
+	const
+	CastUser[] values(CastId id) {return _cast.values(id);} /// ditto
+	const
+	SkillUser[] values(SkillId id) {return _skill.values(id);} /// ditto
+	const
+	ItemUser[] values(ItemId id) {return _item.values(id);} /// ditto
+	const
+	BeastUser[] values(BeastId id) {return _beast.values(id);} /// ditto
+	const
+	InfoUser[] values(InfoId id) {return _info.values(id);} /// ditto
 }

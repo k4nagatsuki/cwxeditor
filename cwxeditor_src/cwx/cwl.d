@@ -1,15 +1,19 @@
 
 module cwx.cwl;
 
+import core.thread;
+
 import std.stream;
 import std.c.string;
 
+import std.array;
+import std.conv;
 import std.file;
 import std.path;
 import std.math;
 import std.string;
-import std.thread;
-import std.regexp;
+import std.regex;
+import std.utf;
 
 import cwx.binary;
 import cwx.summary;
@@ -60,14 +64,15 @@ S loadLScenario(S)(string p, string skin, string newName = null) {
 	static const bool BE = is (S : BeastOwner);
 	static const bool IN = is (S : InfoOwner);
 	auto sPath = p;
-	auto summPath = std.path.join(p, "Summary.wsm");
+	string summPath = std.path.join(p, "Summary.wsm");
 	S summ;
 	RData d;
 	ulong startAreaId;
 	if (.exists(summPath)) {
 		d = RData(sPath, skin);
 		{
-			summ = loadSummary!(S)(d, ByteIO(std.file.read(summPath)), startAreaId);
+			auto bytes = ByteIO(std.file.read(summPath));
+			summ = loadSummary!(S)(d, bytes, startAreaId);
 		}
 	} else {
 		if (!newName) throw new SummaryException("Not Scenario: " ~ p);
@@ -191,7 +196,7 @@ TypeInfo getType(string file, out ulong id) {
 				if (file.length < prefix.length + 5) return false;
 				if (!fnmatch(getExt(file), "wid")) return false;
 				string i = file[prefix.length .. $ - 4];
-				if (!RegExp("^[0-9]+$").match(i)) return false;
+				if (.match(toUTF32(i), .regex!(dstring)("^[0-9]+$"d)).empty) return false;
 				id = to!(ulong)(i);
 				return true;
 			}
@@ -400,16 +405,16 @@ private string readImage(in RData d, ref ByteIO f) {
 			if (.exists(std.path.join(d.sPath, s))) {
 				return s;
 			} else {
-				return bImgToStr(cast(byte[]) img[0 .. index - 1]);
+				return bImgToStr(img[0 .. index - 1]);
 			}
 		}
 	}
-	return bImgToStr(cast(byte[]) img);
+	return bImgToStr(img);
 }
 private string readString(ref ByteIO f, bool lns = false, bool cutText = false) {
 	uint len = f.readUIntL;
 	if (!len) return "";
-	char[] str = cast(char[]) f.read(len);
+	string str = cast(string) f.read(len);
 	if (!lns && str[$ - 1] == '\0') str = str[0 .. $ - 1];
 	str = touni(str);
 	if (cutText) {
@@ -1463,9 +1468,9 @@ void saveLScenario(Summary summ, bool saveInnerImagePath = false) {
 		save1.save;
 		save2.save;
 	}
-	scope regex = std.regexp.RegExp("^(Area|Battle|Package|Mate|Skill|Item|Beast|Info)[0-9]+\\.wid$");
 	foreach (file; clistdir(d.sPath)) {
-		if (regex.test(file, 0) || std.path.fnmatch(file, "Summary.wsm")) {
+		if (std.path.fnmatch(file, "Summary.wsm")
+				|| !std.regex.match(toUTF32(file), .regex!(dstring)("^(Area|Battle|Package|Mate|Skill|Item|Beast|Info)[0-9]+\\.wid$"d)).empty) {
 			scope path = std.path.join(d.sPath, file);
 			preRemove(path);
 			std.file.remove(path);

@@ -1,8 +1,6 @@
 
 module cwx.editor.gui.dwt.xmlbytestransfer;
 
-import std.compat;
-
 import cwx.editor.gui.dwt.props;
 
 import org.eclipse.swt.dnd.Clipboard;
@@ -10,14 +8,18 @@ import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.ByteArrayTransfer;
 import java.lang.all;
 
+import std.algorithm;
+import std.string;
+import std.exception;
+
 private static const string XML_HEADER_S = `<?xml `;
-private static const byte[] XML_HEADER = cast(byte[]) XML_HEADER_S;
+private static const(byte)[] XML_HEADER = cast(byte[]) XML_HEADER_S;
 
 bool isXMLBytes(Object o) {
 	if (!o) return false;
 	auto awb = cast(ArrayWrapperByte) o;
 	if (!awb) return false;
-	return cwx.utils.startsWith(awb.array, XML_HEADER);
+	return std.algorithm.startsWith(awb.array, XML_HEADER);
 }
 
 void XMLtoCB(Props prop, Clipboard cb, string xml) {
@@ -36,8 +38,10 @@ string CBtoXML(Clipboard cb) {
 	c = cb.getContents(TextTransfer.getInstance);
 	if (c !is null) {
 		auto aws = cast(ArrayWrapperString) c;
-		if (aws && cwx.utils.startsWith(aws.array, XML_HEADER_S)) {
-			return aws.array;
+		string head = XML_HEADER_S;
+		if (aws && std.algorithm.startsWith(aws.array, head)) {
+			auto r = aws.array;
+			return assumeUnique(r);
 		}
 	}
 	return null;
@@ -54,15 +58,27 @@ string bytesToXML(Object o) {
 
 class XMLBytesTransfer : ByteArrayTransfer {
 	private static const TYPE_NAME = "cwx.editor.XMLBytes";
-	private static const int TYPE_ID;
+	private static int TYPE_ID;
 	private static XMLBytesTransfer INSTANCE;
-	static this () {
+	private static bool static_this_completed = false;
+	private static void static_this () {
+		if (static_this_completed) return;
+		static_this_completed = true;
 		TYPE_ID = registerType(TYPE_NAME);
 		INSTANCE = new XMLBytesTransfer;
 	}
 	private this() {}
-	static XMLBytesTransfer getInstance() {return INSTANCE;}
+	static XMLBytesTransfer getInstance() {
+		static_this;
+		return INSTANCE;
+	}
 
-	int[] getTypeIds() {return [TYPE_ID];}
-	string[] getTypeNames() {return [TYPE_NAME];}
+	int[] getTypeIds() {
+		static_this;
+		return [TYPE_ID];
+	}
+	string[] getTypeNames() {
+		static_this;
+		return [TYPE_NAME];
+	}
 }

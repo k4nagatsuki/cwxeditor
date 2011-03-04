@@ -151,7 +151,7 @@ private:
 		private Vals _vals;
 		this (EventTree tree) {
 			auto owner = tree.owner;
-			_index = indexOf!("a is b")(tree.owner.trees, tree);
+			_index = .cCountUntil!("a is b")(tree.owner.trees, tree);
 			foreach (i, itm; _cards.getItems) {
 				auto eto = cast(EventTreeOwner) itm.getData;
 				if (owner is eto) {
@@ -249,11 +249,12 @@ private:
 				auto eto = cast(EventTreeOwner) itm.getData;
 				if (eto is owner) {
 					_ownerIndex = i;
-					_treeIndex = indexOf!("a is b")(owner.trees, tree);
+					_treeIndex = .cCountUntil!("a is b")(owner.trees, tree);
 					break;
 				}
 			}
-			_tree = EventTree.createFromNode(tree.toNode, LATEST_VERSION);
+			auto node = tree.toNode;
+			_tree = EventTree.createFromNode(node, LATEST_VERSION);
 			_tree.setUseCounter(_summ.useCounter.sub);
 		}
 		override void undo() {
@@ -422,7 +423,7 @@ private:
 			} else if (fire is LOSE) {
 				treeName = _prop.msgs.loseTree;
 			} else if (cast(KeyCodeObj) fire) {
-				treeName = _prop.msgs.keyCodeTree((cast(KeyCodeObj) fire).array);
+				treeName = _prop.msgs.keyCodeTree((cast(KeyCodeObj) fire).array.idup);
 			} else {
 				assert (cast(RoundObj) fire);
 				treeName = _prop.msgs.roundTree((cast(RoundObj) fire).intValue);
@@ -634,15 +635,15 @@ private:
 			} else if (fire is LOSE) {
 				tree.lose = true;
 			} else if (cast(KeyCodeObj) fire) {
-				tree.addKeyCode((cast(KeyCodeObj) fire).array);
+				tree.addKeyCode((cast(KeyCodeObj) fire).array.idup);
 			} else {
 				assert (cast(RoundObj) fire);
 				tree.addRound((cast(RoundObj) fire).intValue);
 			}
 		}
-		static const Object ENTER;
-		static const Object ESCAPE;
-		static const Object LOSE;
+		static Object ENTER;
+		static Object ESCAPE;
+		static Object LOSE;
 		static this() {
 			ENTER = new Object;
 			ESCAPE = new Object;
@@ -1114,7 +1115,7 @@ public:
 					createCombo(true, startDefVals);
 					break;
 				case 1:
-					createCombo(false, _prop.var.etc.standardKeyCodes, true);
+					createCombo(false, _prop.var.etc.standardKeyCodes.dup, true);
 					break;
 				}
 			} else static if (is (A == Battle)) {
@@ -1123,7 +1124,7 @@ public:
 					createCombo(true, startDefVals);
 					break;
 				case 1:
-					createCombo(false, _prop.var.etc.standardKeyCodes, true);
+					createCombo(false, _prop.var.etc.standardKeyCodes.dup, true);
 					break;
 				case 2:
 					auto spn = new Spinner(_toolbar, SWT.BORDER);
@@ -1177,7 +1178,7 @@ public:
 						} else if (LOSE is data) {
 							xml = EventTree.loseToXML;
 						} else if (cast(KeyCodeObj) data) {
-							xml = EventTree.keyCodeToXML((cast(KeyCodeObj) data).array);
+							xml = EventTree.keyCodeToXML((cast(KeyCodeObj) data).array.idup);
 						} else if (cast(RoundObj) data) {
 							xml = EventTree.roundToXML((cast(RoundObj) data).intValue);
 						} else {
@@ -1274,7 +1275,7 @@ public:
 						} else if (LOSE is data) {
 							tree.lose = false;
 						} else if (cast(KeyCodeObj) data) {
-							tree.removeKeyCode((cast(KeyCodeObj) data).array);
+							tree.removeKeyCode((cast(KeyCodeObj) data).array.idup);
 						} else if (cast(RoundObj) data) {
 							tree.removeRound((cast(RoundObj) data).intValue);
 						} else {

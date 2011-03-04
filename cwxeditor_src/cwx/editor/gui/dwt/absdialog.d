@@ -6,8 +6,6 @@ import cwx.utils;
 import cwx.editor.gui.dwt.props;
 import cwx.editor.gui.dwt.utils;
 
-import std.compat;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;

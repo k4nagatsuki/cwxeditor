@@ -1,7 +1,6 @@
 
 module cwx.editor.gui.sound;
 
-import std.compat;
 import std.loader;
 import std.utf;
 
@@ -31,7 +30,7 @@ private extern (C) {
 	alias void function() Mix_CloseAudio;
 	alias int function(int numchans) Mix_AllocateChannels;
 	struct Mix_Music {}
-	alias Mix_Music* function(char* file) Mix_LoadMUS;
+	alias Mix_Music* function(const char* file) Mix_LoadMUS;
 	alias int function(Mix_Music* music, int loops) Mix_PlayMusic;
 	alias void function(Mix_Music* music) Mix_FreeMusic;
 	alias int function() Mix_HaltMusic;

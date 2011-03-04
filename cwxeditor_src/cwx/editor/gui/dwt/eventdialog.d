@@ -28,6 +28,7 @@ import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.splitpane;
 
+import std.conv;
 import std.math;
 import std.path;
 

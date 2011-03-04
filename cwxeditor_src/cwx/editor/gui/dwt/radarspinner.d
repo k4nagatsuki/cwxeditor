@@ -3,6 +3,7 @@ module cwx.editor.gui.dwt.radarspinner;
 
 import cwx.utils;
 
+import std.conv;
 import std.math;
 
 import org.eclipse.swt.SWT;

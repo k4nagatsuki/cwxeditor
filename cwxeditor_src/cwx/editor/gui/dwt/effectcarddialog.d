@@ -502,11 +502,12 @@ private:
 				_keyCodes.length = _prop.looks.keyCodesMax;
 			}
 			grp.setLayout = new GridLayout(_keyCodes.length >= 8 ? 2 : 1, true);
+			auto stdKCs = _prop.var.etc.standardKeyCodes.dup;
 			for (int i = 0; i < _keyCodes.length; i++) {
 				_keyCodes[i] = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN);
 				_keyCodes[i].setVisibleItemCount = 20;
 				_keyCodes[i].setLayoutData = new GridData(GridData.FILL_BOTH);
-				_keyCodes[i].setItems(_prop.var.etc.standardKeyCodes);
+				_keyCodes[i].setItems(stdKCs);
 			}
 		}
 		auto tab = new CTabItem(tabf, SWT.NONE);
@@ -664,7 +665,6 @@ protected:
 			if (_effTyp[EffectType.NONE].getSelection
 					&& (!_card || _card.effectType != EffectType.NONE)) {
 				auto dlg = new MessageBox(getShell, SWT.ICON_QUESTION | SWT.OK | SWT.CANCEL);
-				scope (exit) dlg.dispose;
 				dlg.setMessage = _prop.msgs.warningEffectTypeNone;
 				dlg.setText = _prop.msgs.dlgTitQuestion;
 				if (SWT.CANCEL == dlg.open) {
@@ -683,7 +683,6 @@ protected:
 			auto motions = _motions.motions;
 			if (hasVanishCast(motions) && (!_card || !hasVanishCast(_card.motions))) {
 				auto dlg = new MessageBox(getShell, SWT.ICON_QUESTION | SWT.OK | SWT.CANCEL);
-				scope (exit) dlg.dispose;
 				dlg.setMessage = _prop.msgs.warningVanishCast;
 				dlg.setText = _prop.msgs.dlgTitQuestion;
 				if (SWT.CANCEL == dlg.open) {

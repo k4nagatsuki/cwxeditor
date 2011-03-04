@@ -3,8 +3,6 @@ module cwx.structs;
 
 import cwx.xml;
 
-import std.compat;
-
 /// 座標を表す。
 struct CPoint {
 	int x;

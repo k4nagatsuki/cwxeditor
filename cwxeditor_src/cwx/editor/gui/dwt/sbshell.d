@@ -1,7 +1,7 @@
 
 module cwx.editor.gui.dwt.sbshell;
 
-import std.compat;
+import cwx.sjis;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Shell;
@@ -90,7 +90,7 @@ class SBShell {
 		}
 		void statusLine(string text) {
 			if (_hsbar == INVALID_HANDLE_VALUE) return;
-			OS.SendMessage(_hsbar, SB_SETTEXT, 0, toMBSz(text));
+			OS.SendMessage(_hsbar, SB_SETTEXT, 0, tosjismz(text));
 		}
 	} else {
 		private Label _sbar;

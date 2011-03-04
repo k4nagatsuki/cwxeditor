@@ -22,10 +22,13 @@ import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.skin;
 
+import std.conv;
+import std.array;
 import std.string;
 import std.file;
 import std.path;
-import std.regexp;
+import std.regex;
+import std.utf;
 
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
@@ -56,7 +59,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.graphics.Image;
-import java.lang.all : ArrayWrapperString;
+import java.lang.all;
 
 /// 検索と置換を行うダイアログ。
 class ReplaceDialog {
@@ -676,8 +679,8 @@ public:
 			_replace = createButton(_prop.msgs.replace, &replace);
 			createButton(_prop.msgs.replaceExit, &exit);
 		}
-		_from.setItems(_prop.var.etc.searchHistories);
-		_to.setItems(_prop.var.etc.replaceHistories);
+		_from.setItems(_prop.var.etc.searchHistories.dup);
+		_to.setItems(_prop.var.etc.replaceHistories.dup);
 		_notIgnoreCase.setSelection = _prop.var.etc.replaceTextNotIgnoreCase;
 		_useRegex.setSelection = _prop.var.etc.replaceTextRegExp;
 		_useWildcard.setSelection = _prop.var.etc.replaceTextWildcard;
@@ -1161,8 +1164,10 @@ public:
 		if (!from.length) return;
 		if (_useRegex.getSelection) {
 			try {
-				_regex = RegExp(from, _notIgnoreCase.getSelection ? "gm" : "gim");
-			} catch (RegExpException e) {
+				_regex = .regex!(dstring)(toUTF32(from), _notIgnoreCase.getSelection ? "gm" : "gim");
+				_regexTarg = true;
+				_toTemp = toUTF32(to);
+			} catch (Exception e) {
 				MessageBox.showWarning
 					(_prop.msgs.regexError ~ "\n" ~ e.msg,
 					_prop.msgs.dlgTitWarning, _win);
@@ -1173,7 +1178,11 @@ public:
 		} else {
 			if (from == to) _replMode = false;
 		}
-		scope (exit) _regex = null;
+		scope (exit) {
+			_regex = typeof(_regex).init;
+			_regexTarg = false;
+			_toTemp = ""d;
+		}
 		scope (exit) _wildcard = null;
 
 		size_t count = 0;
@@ -1201,19 +1210,34 @@ public:
 			}
 		}
 		addHist(_from, &_prop.var.etc.searchHistories,
-			&_prop.var.etc.searchHistories, _prop.var.etc.searchHistoryMax, from);
+			{return _prop.var.etc.searchHistories.dup;},
+			_prop.var.etc.searchHistoryMax, from);
 		if (_replMode) {
 			addHist(_to, &_prop.var.etc.replaceHistories,
-				&_prop.var.etc.replaceHistories, _prop.var.etc.searchHistoryMax, to);
+				{return _prop.var.etc.replaceHistories.dup;},
+				_prop.var.etc.searchHistoryMax, to);
 		}
 	}
-	private RegExp _regex = null;
+	private Regex!(dchar) _regex;
+	private bool _regexTarg = false;
 	private Wildcard _wildcard = null;
-	private string fTextRepl(string s) {
-		string to = _to.getText;
-		if (_regex) {
-			return _regex.replace(s, to);
+	private dstring _toTemp = ""d;
+	/// FIXME: std.regex.replace()がdstringでコンパイルエラーになる。
+	private static dstring impReplace(dstring s, Regex!(dchar) regex, dstring to) {
+		dstring r = "";
+		RegexMatch!(dstring) match;
+		foreach (m; .match(s, regex)) {
+			match = m;
+			r ~= m.pre;
+			r ~= to;
 		}
+		return r ~ match.post;
+	}
+	private string fTextRepl(string s) {
+		if (_regexTarg) {
+			return toUTF8(impReplace(toUTF32(s), _regex, _toTemp));
+		}
+		string to = _to.getText;
 		if (_wildcard) {
 			return _wildcard.replace(s, to);
 		}
@@ -1225,9 +1249,9 @@ public:
 		}
 	}
 	private size_t fTextCount(string s) {
-		if (_regex) {
+		if (_regexTarg) {
 			size_t c = 0;
-			foreach (m; _regex.search(s)) {
+			foreach (m; std.regex.match(toUTF32(s), _regex)) {
 				c++;
 			}
 			return c;
@@ -1237,7 +1261,7 @@ public:
 		}
 		string from = _from.getText;
 		if (_notIgnoreCase.getSelection) {
-			return .count(s, from);
+			return std.algorithm.count(s, from);
 		} else {
 			return .icount(s, from);
 		}

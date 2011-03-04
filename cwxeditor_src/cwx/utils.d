@@ -3,8 +3,9 @@ module cwx.utils;
 
 import cwx.sjis;
 
-public import std.compat;
+import std.array;
 import std.conv;
+import std.metastrings;
 import std.string;
 import std.file;
 import std.path;
@@ -15,10 +16,11 @@ import std.stdio;
 import std.ctype;
 import std.cstream;
 import std.traits;
-import std.date;
-import std.perf;
-import std.metastrings;
-import std.regexp;
+import std.datetime;
+import std.regex;
+import std.array;
+import std.exception;
+import std.traits;
 
 private version (Windows) {
 	import std.c.stdio;
@@ -50,7 +52,7 @@ private version (Windows) {
 			DWORD dwProcessId;
 			DWORD dwThreadId;
 		}
-		BOOL SetFileAttributesW(LPWSTR, DWORD);
+		BOOL SetFileAttributesW(LPCWSTR, DWORD);
 		BOOL CreateProcessW(LPCWSTR, LPWSTR, SECURITY_ATTRIBUTES*, SECURITY_ATTRIBUTES*,
 			BOOL, DWORD, LPVOID, LPCWSTR, STARTUPINFO*, PROCESS_INFORMATION*);
 	}
@@ -64,26 +66,25 @@ string debugLog = "cwxeditor_error.log";
 void fdebugln(T ...)(T vals) {
 	char[] buf;
 	foreach (v; vals) {
-		buf ~= to!(char[])(v);
+		buf ~= to!(string)(v);
 	}
 	debug {
 		version (Windows) {
 			printf("%s\n\0".ptr, tosjisz(buf));
 			dout.flush;
 		} else {
-			writefln("%s", buf);
+			writeln(buf);
 		}
 	}
-	d_time d = getUTCtime;
-	d = UTCtoLocalTime(d);
-	auto year = YearFromTime(d);
-	auto month = MonthFromTime(d) + 1;
-	auto day = DateFromTime(d);
-	auto hour = HourFromTime(d);
-	auto min = MinFromTime(d);
-	auto sec = SecFromTime(d);
+	auto d = Clock.currTime;
+	int year = d.year;
+	int month = d.month;
+	int day = d.day;
+	int hour = d.hour;
+	int min = d.minute;
+	int second = d.second;
 	std.file.append(debugLog,
-		format("%04d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, min, sec)
+		format("%04d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, min, second)
 		~ "\t" ~ buf ~ linesep);
 }
 /// debugコンパイルされている際は デバグログに文字列を出力すると
@@ -95,7 +96,7 @@ void debugln(T ...)(T vals) {
 }
 
 debug {
-	PerformanceCounter.interval_type t[1024u];
+	ulong t[1024u];
 	static ~this () {
 		foreach (i, time; t) {
 			if (time > 0u) {
@@ -105,33 +106,34 @@ debug {
 	}
 	template FPerf(int I) {
 		static const FPerf
-			= "scope f_timer = new std.perf.PerformanceCounter;"
-			~ "f_timer.start;"
+			= "scope f_timer = StopWatch(AutoStart.yes);"
 			~ "scope (exit) {"
 			~ "f_timer.stop;"
-			~ ".t[" ~ ToString!(I) ~ "] += f_timer.milliseconds;"
+			~ ".t[" ~ .toStringNow!(I) ~ "] += f_timer.peek.mses;"
 			~ "}";
 	}
-	const BPerfS = "scope b_timer = new std.perf.PerformanceCounter; b_timer.start;";
+	const BPerfS = "scope b_timer = new StopWatch(AutoStart.yes);";
 	template BPerf(int I) {
 		static const BPerf
 			= "b_timer.stop;"
-			~ ".t[" ~ ToString!(I) ~ "] += b_timer.milliseconds;"
+			~ ".t[" ~ .toStringNow!(I) ~ "] += b_timer.peek.mses;"
+			~ "b_timer.reset;"
 			~ "b_timer.start;";
 	}
 	static assert (FPerf!(10));
 	static assert (BPerf!(10));
 }
 
-static B_IMG = "binaryimage://";
+static const B_IMG = "binaryimage://";
 bool isBinImg(string path) {
 	return path.length >= B_IMG.length && path[0u .. B_IMG.length] == B_IMG;
 }
-byte[] strToBImg(string bimg) {
-	return cast(byte[]) std.base64.decode(bimg[B_IMG.length .. $]);
+ubyte[] strToBImg(string bimg) {
+	return Base64.decode(bimg[B_IMG.length .. $]);
 }
-string bImgToStr(byte[] bimg) {
-	return B_IMG ~ std.base64.encode(cast(string) bimg);
+string bImgToStr(in ubyte[] bimg) {
+	auto r = B_IMG ~ Base64.encode(bimg);
+	return assumeUnique(r);
 }
 
 /// 16進数文字列xを整数に変換する。
@@ -158,67 +160,6 @@ int xtoi(string x) {
 	assert (xtoi("10") == 16);
 }
 
-/// D2のstd.conv.toの代替。
-T2 to(T2, T1)(T1 val) {
-	static if (is(T2 : string)) {
-		static if (is(T1 == bool)) {
-			return val ? true.stringof : false.stringof;
-		} else static if (is(T1 : Object)) {
-			return val ? val.toString : "null";
-		} else static if (is(T1 == struct)) {
-			return val.toString;
-		} else static if (is(T1 : string)) {
-			return val;
-		} else static if (isVArray!(T1)) {
-			char[] buf = "[";
-			foreach (i, v; val) {
-				if (i > 0) buf ~= ", ";
-				buf ~= to!(string)(v);
-			}
-			buf ~= "]";
-			return buf;
-		} else static if (isAssociativeArray!(T1)) {
-			char[] buf = "[";
-			bool first = true;
-			foreach (k, v; val) {
-				if (!first) buf ~= ", ";
-				first = false;
-				buf ~= to!(string)(k) ~ ":" ~ to!(string)(v);
-			}
-			buf ~= "]";
-			return buf;
-		} else {
-			return std.string.toString(val);
-		}
-	} else static if (is(T2 == bool)) {
-		return icmp(val, "true") == 0;
-	} else static if (is(T2 == ubyte)) {
-		return toUbyte(val);
-	} else static if (is(T2 == byte)) {
-		return toByte(val);
-	} else static if (is(T2 == ushort)) {
-		return toUshort(val);
-	} else static if (is(T2 == short)) {
-		return toShort(val);
-	} else static if (is(T2 == uint)) {
-		return toUint(val);
-	} else static if (is(T2 == int)) {
-		return toInt(val);
-	} else static if (is(T2 == ulong)) {
-		return toUlong(val);
-	} else static if (is(T2 == long)) {
-		return toLong(val);
-	} else static if (is(T2 == float)) {
-		return toFloat(val);
-	} else static if (is(T2 == double)) {
-		return toDouble(val);
-	} else static if (is(T2 == real)) {
-		return toReal(val);
-	} else {
-		static assert (0);
-	}
-}
-
 /// t1とt2を入替える。
 void swap(T)(ref T t1, ref T t2) {
 	T temp = t1;
@@ -242,7 +183,7 @@ bool iendsWith(string a, string b) {
 }
 
 /// pathがlistに含まれていればtrueを返す。
-bool containsPath(string[] list, string path) {
+bool containsPath(in string[] list, string path) {
 	foreach (l; list) {
 		if (fnmatch(path, l)) return true;
 	}
@@ -277,19 +218,6 @@ bool isabs(string path) {
 	} else {
 		return std.path.isabs(path) != 0;
 	}
-}
-
-/// 絶対パスにする。
-char[] rel2abs(char[] path) {
-	if (isabs(path)) {
-		version (Windows) {
-			if (!startsWith(path, `\\`) && startsWith(path, `\`)) {
-				return std.path.join(getDrive(getcwd), path);
-			}
-		}
-		return path;
-	}
-	return std.path.join(getcwd, path);
 }
 
 /// 正規化を行う。
@@ -343,8 +271,8 @@ string abs2rel(string base, string path) {
 		if (fnstartsWith(path, sep)) path = path[sep.length .. $];
 		return path;
 	}
-	auto basesp = std.string.split(base, sep);
-	auto pathsp = std.string.split(path, sep);
+	auto basesp = std.array.split(base, sep);
+	auto pathsp = std.array.split(path, sep);
 	size_t df = 0;
 	foreach (i, b; basesp) {
 		if (i >= pathsp.length || !fnmatch(b, pathsp[i])) {
@@ -447,10 +375,10 @@ int qsearch(T)(in T[] ds, T c) {
 	T c2 = ds[i];
 	if (c < c2) {
 		if (i == 0) return -1;
-		return qsearch(ds[0 .. i], c);
+		return qsearch!(T)(ds[0 .. i], c);
 	} else if (c > c2) {
 		if (i + 1 == ds.length) return -1;
-		int i2 = qsearch(ds[i + 1 .. $], c);
+		int i2 = qsearch!(T)(ds[i + 1 .. $], c);
 		if (i2 == -1) return -1;
 		return i + i2 + 1;
 	} else {
@@ -485,12 +413,6 @@ void enforce(lazy bool ok, lazy Exception e) {
 	}
 }
 
-private template isAssociativeArray(T) {
-	const bool isAssociativeArray = is(T.init.keys) && is(T.init.values);
-}
-private template isDynamicArray(T) {
-	const bool isDynamicArray = is(typeof(T.init[0])) && !isStaticArray!(T);
-}
 /// 文字列型以外の配列であればtrue。
 template isVArray(T) {
 	const bool isVArray = !is (T : string) && !is (T : wstring) && !is (T : dstring)
@@ -508,7 +430,8 @@ template isVArray(T) {
 /// space = falseの場合は括弧の前のスペースを付けない。
 /// Returns: 新しい名前。
 string createNewName(string base, bool delegate(string) use, bool space = true) {
-	if (std.regexp.find(base, `^-?[1-9][0-9]*$`) >= 0) {
+	auto dbase = toUTF32(base);
+	if (!std.regex.match(dbase, .regex!(dstring)(`^-?[1-9][0-9]*$`d)).empty) {
 		try {
 			long i = to!(long)(base);
 			while (true) {
@@ -520,15 +443,15 @@ string createNewName(string base, bool delegate(string) use, bool space = true) 
 		} catch (Exception e) {
 		}
 	}
-	int i = 2;
-	string rexp = `\([0-9]+\)$`;
-	if (space) rexp = " " ~ rexp;
-	int ni = std.regexp.find(base, rexp);
+	ulong i = 2;
+	dstring rexp = `\([0-9]+\)$`d;
+	if (space) rexp = " "d ~ rexp;
+	auto ni = std.regex.match(dbase, .regex!(dstring)(rexp));
 	auto name = base;
-	if (ni >= 0) {
+	if (!ni.empty) {
 		try {
-			i = to!(ulong)(base[ni + (space ? 2 : 1) .. $ - 1]) + 1;
-			base = base[0 .. ni];
+			i = to!(ulong)(ni.hit[(space ? 2 : 1) .. $ - 1]) + 1;
+			base = toUTF8(ni.pre);
 		} catch (Exception e) {
 		}
 	}
@@ -568,9 +491,9 @@ string encodeLf(string s) {
 }
 /// strsを\nを結合子にして結合する。
 /// lastLfがtrueの場合は全文字列の末尾にも\nを付与する。
-string encodeLf(string[] strs, bool lastLf = true) {
+string encodeLf(in string[] strs, bool lastLf = true) {
 	string r;
-	foreach (i, s; strs) {
+	foreach (i, string s; strs) {
 		r ~= replace(s, "\\", "\\\\");
 		if (lastLf || i < strs.length - 1) {
 			r ~= "\\n";
@@ -653,35 +576,6 @@ bool parseBool(string b) {
 	}
 }
 
-/// D 1.0のstd.stringにはstartsWith()とendsWith()が無いので。
-/// Params:
-/// str = 文字列。
-/// word = 検索する文字列。
-/// Returns: strがwordで始まっていればtrue。
-bool startsWith(T)(T[] str, T[] word) {
-	return str.length >= word.length && str[0 .. word.length] == word;
-} unittest {
-	assert (startsWith("TEXT\r\n", "TEXT\r\n"));
-	assert (startsWith("TEXT\r\n", "TEXT"));
-	assert (!startsWith("TEXT", "TEXT\r\n"));
-}
-
-/// D 1.0のstd.stringにはstartsWith()とendsWith()が無いので。
-/// Params:
-/// str = 文字列。
-/// word = 検索する文字列。
-/// Returns: strがwordで終っていればtrue。
-bool endsWith(T)(T[] str, T[] word) {
-	return str.length >= word.length && str[$ - word.length .. $] == word;
-}
-/// strからcを探す。
-int find(dstring str, dchar c) {
-	foreach (i, sc; str) {
-		if (sc == c) return i;
-	}
-	return -1;
-}
-
 /// テキストの中で使用されているフラグ・ステップ・画像パスを抽出する。
 /// Params:
 /// text = テキスト。
@@ -694,7 +588,7 @@ void textUseItems(in string text,
 	for (size_t i = 0; i + 1 < dtext.length; i++) {
 		dchar c = dtext[i];
 		void flag_step(ref string[] targ, dchar c) {
-			int next = find(dtext[i + 1 .. $], c);
+			int next = .indexOf(dtext[i + 1 .. $], c);
 			if (next >= 0) {
 				next = i + 1 + next;
 				targ ~= toUTF8(dtext[i + 1 .. next]);
@@ -725,7 +619,7 @@ void textUseItems(in string text,
 	assert(fonts == ["font_a.bmp", "font_Z.bmp", "font_1.bmp", "font_2.bmp", "font_3.bmp", "font_;.bmp", "font_表.bmp"]);
 }
 private void __replOn(ref dstring dtext, ref dstring buf, ref size_t i, dstring dold, dstring dnew, dchar targC) {
-	int next = find(dtext[i + 1 .. $], targC);
+	int next = .indexOf(dtext[i + 1 .. $], targC);
 	if (next >= 0) {
 		next = i + 1 + next;
 		if (dtext[i + 1 .. next] == dold) {
@@ -742,7 +636,7 @@ private void __replOn(ref dstring dtext, ref dstring buf, ref size_t i, dstring 
 	}
 }
 private void __replOff(ref dstring dtext, ref dstring buf, ref size_t i, dchar targC) {
-	int next = find(dtext[i + 1 .. $], targC);
+	int next = .indexOf(dtext[i + 1 .. $], targC);
 	if (next >= 0) {
 		next = i + 1 + next;
 		buf ~= [targC] ~ dtext[i + 1 .. next] ~ [targC];
@@ -831,7 +725,7 @@ in {
 		case '#':
 			buf ~= c;
 			if (i + 1 < dtext.length) {
-				if (toLower([dtext[i + 1]]) == toLower([dold])) {
+				if (tolower([dtext[i + 1]]) == tolower([dold])) {
 					buf ~= dnew;
 				} else {
 					buf ~= dtext[i + 1];
@@ -887,7 +781,8 @@ dstring putColor(dstring text, dchar color, size_t start, size_t end) {
 
 /// 連想配列をクリアする。
 void removeAll(Key, Value)(ref Value[Key] table) {
-	table = typeof(table).init;
+	typeof(table) init;
+	table = init;
 }
 
 /// Tがソート済みであればtrueを返す。
@@ -930,7 +825,7 @@ private import std.c.string;
 string getenv(string env) {
 	auto v = std.c.stdlib.getenv((env ~ '\0').ptr);
 	if (!v) return null;
-	string r = v[0u .. strlen(v)].dup;
+	string r = v[0u .. strlen(v)].idup;
 	version (Windows) {
 		r = touni(r);
 	}
@@ -989,7 +884,7 @@ string createFolder(string parent, string name) {
 void preRemove(string delpath) {
 	version (Windows) {
 		// 書込み権限を付けておく
-		wchar* fname = std.utf.toUTF16z(delpath);
+		auto fname = std.utf.toUTF16z(delpath);
 		SetFileAttributesW(fname, FILE_ATTRIBUTE_NORMAL);
 	}
 }
@@ -1063,14 +958,6 @@ void delAll(string delpath, bool force = true) {
 	if (force && e) throw e;
 }
 
-/// 再帰的にディレクトリを作成
-void mkdirRecurse(string path) {
-	path = nabs(path);
-	string dir = getDirName(path);
-	if (!exists(dir)) mkdirRecurse(dir);
-	mkdir(path);
-}
-
 /// arrにaが見つかればtrueを返す。
 bool contains(string pred = "a == b", T)(T[] arr, T a) {
 	foreach (b; arr) {
@@ -1133,7 +1020,7 @@ int ncmp(C1, C2)(in C1[] a, in C2[] b) {
 
 private C[] zfill_(C)(in C[] str, size_t width) {
 	if (str.length >= width) return cast(C[]) str.dup;
-	C[] r;
+	Unqual!(C)[] r;
 	r.length = width;
 	size_t n = width - str.length;
 	r[0 .. n] = '0';
@@ -1146,14 +1033,6 @@ private C[] zfill_(C)(in C[] str, size_t width) {
 	assert (zfill_("abc", 5) == "00abc");
 	assert (zfill_("abc"w, 5) == "00abc"w);
 	assert (zfill_("abc"d, 5) == "00abc"d);
-}
-
-/// arrからaを探して見つかればそのindex。見つからなかった場合は-1。
-int indexOf(string pred = "a == b", T)(T[] arr, T a) {
-	foreach (i, b; arr) {
-		if (mixin(pred)) return i;
-	}
-	return -1;
 }
 
 /// arrからaを除去する。
@@ -1178,12 +1057,15 @@ class HashSet(T) {
 	void clear() {
 		a = (int[T]).init;
 	}
+	const
 	bool contains(T v) {
 		return (v in a) !is null;
 	}
+	const
 	size_t size() {
 		return a.length;
 	}
+	const
 	bool isEmpty() {
 		return a.length == 0u;
 	}
@@ -1195,6 +1077,7 @@ class HashSet(T) {
 		}
 		return r;
 	}
+	const
 	T[] toArray() {
 		return a.keys;
 	}
@@ -1219,7 +1102,10 @@ version (Windows) {
 		}
 
 		int r;
-		r = CreateProcessW(null, toUTF16z(process), null, null, false, flag, null,
+		wchar[] procTemp;
+		procTemp.length = process.length + 1;
+		procTemp[0 .. $] = toUTF16z(process)[process.length];
+		r = CreateProcessW(null, procTemp.ptr, null, null, false, flag, null,
 			workDir.length ? toUTF16z(workDir) : null, &setup, &info);
 		if (r) {
 			if (wait) {
@@ -1259,7 +1145,7 @@ bool hasPath(string sPath, string path) {
 	path = nabs(path);
 	sPath = nabs(sPath);
 	return cwx.utils.fnstartsWith(path, sPath)
-		&& (path.length == sPath.length || cwx.utils.startsWith(path[sPath.length .. $], sep));
+		&& (path.length == sPath.length || startsWith(path[sPath.length .. $], sep));
 } unittest {
 	version (Windows) {
 		assert (hasPath(`c:\test\aaa`, `c:\test\aaa\bbb`));
@@ -1278,14 +1164,16 @@ private struct FCPt {
 		}
 		return r;
 	}
-	int opEquals(FCPt* s) {
-		int r = fnmatch(getBaseName(s.path), getBaseName(path));
+	const
+	bool opEquals(ref const(FCPt) s) {
+		auto r = fnmatch(getBaseName(s.path), getBaseName(path));
 		if (r) {
 			r = fnmatch(getDirName(s.path), getDirName(path));
 		}
 		return r;
 	}
-	int opCmp(FCPt* s) {
+	const
+	int opCmp(ref const(FCPt) s) {
 		static if (fnmatch("A", "a")) {
 			alias std.string.icmp cp;
 		} else {
@@ -1302,7 +1190,7 @@ private struct FCPt {
 /// 一連の変数と関数を定義する。
 template FileCache(T ...) {
 	struct Cache {
-		std.date.d_time ftm;
+		std.datetime.SysTime ftm;
 		static if (T.length == 1) {
 			T[0] value;
 		} else {
@@ -1319,14 +1207,15 @@ template FileCache(T ...) {
 			caches.remove(FCPt(cachePaths[0u]));
 			cachePaths = cachePaths[1u .. $];
 		}
-		caches[FCPt(path)] = Cache(lastModified(path), v);
+		caches[FCPt(path)] = Cache(timeLastModified(path), v);
 		cachePaths ~= path;
 	}
 	Cache* cache(string path) {
 		if (!exists(path)) return null;
 		path = nabs(path);
 		auto cache = FCPt(path) in caches;
-		return cache && cache.ftm == lastModified(path) ? cache : null;
+		auto ftm = timeLastModified(path);
+		return cache && cache.ftm == ftm ? cache : null;
 	}
 }
 
@@ -1334,76 +1223,19 @@ template FileCache(T ...) {
 bool hasParDir(string path) {
 	path = normal(path);
 	if (startsWith(path, pardir ~ sep)) return true;
-	if (std.string.find(path, sep ~ pardir ~ sep) != -1) return true;
+	if (indexOf(path, sep ~ pardir ~ sep) != -1) return true;
 	return false;
 }
 
-version (Windows) {
-	private extern (Windows) {
-		BOOL GetFileTime(HANDLE hFile, LPFILETIME lpCreationTime, LPFILETIME lpLastAccessTime, LPFILETIME lpLastWriteTime);
-	}
-	/// ファイルの最終更新日時を返す。
-	d_time lastModified(string path) {
-		d_time conv(ref FILETIME ft) {
-			SYSTEMTIME st;
-			if (!FileTimeToSystemTime(&ft, &st)) {
-				throw new FileException(path, GetLastError);
-			}
-			auto time = MakeTime(st.wHour, st.wMinute, st.wSecond, st.wMilliseconds);
-			auto day = MakeDay(st.wYear, st.wMonth - 1, st.wDay);
-			return MakeDate(day, time);
-		}
-		WIN32_FIND_DATAW fd;
-		auto h = FindFirstFileW(std.utf.toUTF16z(path), &fd);
-		if (h != INVALID_HANDLE_VALUE) {
-			scope (exit) FindClose(h);
-			return conv(fd.ftLastWriteTime);
-		}
-		throw new FileException(path, GetLastError);
-	}
-	/// listdir()にはパフォーマンス問題がある。
-	string[] clistdir(string path) {
-		string[] r;
-		clistdir(path, (string file) {
-			r ~= file;
-			return true;
-		});
-		return r;
-	}
-	/// ditto
-	void clistdir(string path, bool delegate(string) callback) {
-		if (!.exists(path) || !.isdir(path)) return;
-		path = std.path.join(path, "*");
-		WIN32_FIND_DATAW fd;
-		auto h = FindFirstFileW(std.utf.toUTF16z(path), &fd);
-		if (h != INVALID_HANDLE_VALUE) {
-			scope (exit) FindClose(h);
-			do {
-				string file = toUTF8(fd.cFileName[0 .. wcslen(fd.cFileName.ptr)]);
-				if (file != curdir && file != pardir) {
-					if (!callback(file)) break;
-				}
-			} while (FindNextFileW(h, &fd));
-		} else {
-			throw new FileException(path, GetLastError);
-		}
-	}
-} else {
-	/// ファイルの最終更新日時を返す。
-	d_time lastModified(string path) {
-		d_time ftc, fta, ftm;
-		getTimes(path, ftc, fta, ftm);
-		return ftm;
-	}
-	alias listdir clistdir;
-}
+/// 歴史的理由でaliasを用意。
+alias listdir clistdir;
 
 /// sにsubがいくつ含まれているかを返す。
 /// std.string.count()と違って大文字と小文字を区別しない。
 size_t icount(string s, string sub) {
 	int c = 0;
 	while (true) {
-		auto i = ifind(s, sub);
+		auto i = .indexOf(s, sub, CaseSensitive.no);
 		if (i < 0) return c;
 		c++;
 		s = s[i + sub.length .. $];
@@ -1418,7 +1250,7 @@ size_t icount(string s, string sub) {
 string ireplace(string s, string from, string to) {
 	string r = "";
 	while (true) {
-		auto i = ifind(s, from);
+		auto i = .indexOf(s, from, CaseSensitive.no);
 		if (i < 0) return r ~ s;
 		r ~= s[0 .. i] ~ to;
 		s = s[i + from.length .. $];
@@ -1619,4 +1451,14 @@ string formatNum(N, size_t Count = 3, string Sep = ",")(N num) {
 	assert (formatNum(123) == "123");
 	assert (formatNum(123456) == "123,456");
 	assert (formatNum(1234567) == "1,234,567");
+}
+
+/// std.algorithm.countUntilはconst配列に対する検索が通らない
+sizediff_t cCountUntil(string pred = "a == b", R1, R2)(R1 arr, R2 b) {
+	foreach (i, a; arr) {
+		if (mixin(pred)) {
+			return i;
+		}
+	}
+	return -1;
 }

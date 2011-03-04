@@ -5,9 +5,10 @@ import cwx.utils;
 import cwx.xml;
 import cwx.path;
 
+import std.array;
+import std.datetime;
 import std.string;
-import std.regexp;
-import std.date;
+import std.typecons;
 
 private static const {
 	string XML_ROOT_FLAGS_AND_STEPS = "FlagsAndSteps";
@@ -68,7 +69,8 @@ private void toNode(ref XNode ret, FlagDir dir) {
 		step.toNode(se);
 	}
 	foreach (subdir; dir.subDirs) {
-		toNode(ret.newElement(XML_ROOT_FLAG_DIRECTORY), subdir);
+		auto e = ret.newElement(XML_ROOT_FLAG_DIRECTORY);
+		toNode(e, subdir);
 	}
 }
 
@@ -101,6 +103,11 @@ public:
 		return _parent;
 	}
 	/// ditto
+	const
+	const(FlagDir) parent() {
+		return _parent;
+	}
+	/// ditto
 	private void parent(FlagDir parent) {
 		assert (!parent || !parent.getFlag(name));
 		_parent = parent;
@@ -109,11 +116,17 @@ public:
 	FlagDir root() {
 		return _parent.root;
 	}
+	/// ditto
+	const
+	const(FlagDir) root() {
+		return _parent.root;
+	}
 	/// 変更ハンドラを設定する。
 	void changeHandler(void delegate() change) {
 		_change = change;
 	}
 	/// フラグ名。同一のディレクトリ内では重複しない。
+	const
 	string name() {
 		return _name;
 	}
@@ -128,6 +141,7 @@ public:
 		return false;
 	}
 	/// On時のテキスト。
+	const
 	string on() {
 		return _on;
 	}
@@ -137,6 +151,7 @@ public:
 		_on = on;
 	}
 	/// Off時のテキスト。
+	const
 	string off() {
 		return _off;
 	}
@@ -146,6 +161,7 @@ public:
 		_off = off;
 	}
 	/// On/Off初期状態。
+	const
 	bool onOff() {
 		return _onOff;
 	}
@@ -154,15 +170,18 @@ public:
 		if (_change && _onOff != onOff) _change();
 		_onOff = onOff;
 	}
+	const
 	override int opCmp(Object o) {
 		return icmp(name, (cast(Flag) o).name);
 	}
 	/// このフラグのフルパスを返す。
+	const
 	string path() {
 		return _parent.path ~ _name;
 	}
 
 	/// このフラグをXMLテキストにする。
+	const
 	string toXml() {
 		auto doc = XNode.create(XML_ROOT_FLAG_DIRECTORY);
 		toNode(doc);
@@ -182,6 +201,7 @@ public:
 		return new Flag(name, tv, fv, def);
 	}
 	/// XMLノードへこのフラグのデータを追加する。
+	const
 	void toNode(ref XNode node) {
 		auto e = node.newElement("Flag");
 		e.newAttr("default", fromBool(_onOff));
@@ -190,7 +210,7 @@ public:
 		e.newElement("False", off);
 	}
 	override string cwxPath() {
-		return cpjoin(_parent, "flag", indexOf!("a is b")(_parent.flags, this));
+		return cpjoin(_parent, "flag", .cCountUntil!("a is b")(_parent.flags, this));
 	}
 	override CWXPath findCWXPath(string path) {
 		if (path == "") return this;
@@ -225,6 +245,11 @@ public:
 		return _parent;
 	}
 	/// ditto
+	const
+	const(FlagDir) parent() {
+		return _parent;
+	}
+	/// ditto
 	private void parent(FlagDir parent) {
 		assert (!parent || !parent.getStep(name));
 		_parent = parent;
@@ -233,11 +258,17 @@ public:
 	FlagDir root() {
 		return _parent.root;
 	}
+	/// ditto
+	const
+	const(FlagDir) root() {
+		return _parent.root;
+	}
 	/// 変更ハンドラを設定する。
 	void changeHandler(void delegate() change) {
 		_change = change;
 	}
 	/// ステップ名。
+	const
 	string name() {
 		return _name;
 	}
@@ -258,16 +289,19 @@ public:
 		_vals[index] = value;
 	}
 	/// ステップ値のテキストを返す。
+	const
 	string getValue(uint index) {
 		return _vals[index];
 	}
 
 	/// ステップの段階数を返す。
+	const
 	uint count() {
 		return _vals.length;
 	}
 
 	/// ステップの選択状態を返す。
+	const
 	uint select() {
 		return _select;
 	}
@@ -278,6 +312,7 @@ public:
 	}
 
 	/// 選択中の値のテキストを返す。
+	const
 	string value() {
 		return _vals[_select];
 	}
@@ -293,16 +328,19 @@ public:
 		_select = select;
 	}
 
+	const
 	override int opCmp(Object o) {
 		return icmp(name, (cast(Step) o).name);
 	}
 
 	/// ステップのフルパス。
+	const
 	string path() {
 		return _parent.path ~ _name;
 	}
 
 	/// このステップをXMLテキストにする。
+	const
 	string toXml() {
 		auto doc = XNode.create(XML_ROOT_FLAG_DIRECTORY);
 		toNode(doc);
@@ -333,6 +371,7 @@ public:
 		return new Step(name, vals, def);
 	}
 	/// 指定されたXMLノードにこのステップのデータを追加する。
+	const
 	void toNode(ref XNode node) {
 		auto e = node.newElement("Step");
 		e.newAttr("default", _select);
@@ -342,7 +381,7 @@ public:
 		}
 	}
 	override string cwxPath() {
-		return cpjoin(_parent, "step", indexOf!("a is b")(_parent.steps, this));
+		return cpjoin(_parent, "step", .cCountUntil!("a is b")(_parent.steps, this));
 	}
 	override CWXPath findCWXPath(string path) {
 		if (path == "") return this;
@@ -364,26 +403,24 @@ private:
 	void delegate() _change = null;
 public:
 	/// パス区切り文字。
-	static const string SEPARATOR = "\\";
-	/// ditto
-	static const string SEPARATOR_REGEX = "\\\\";
+	static immutable string SEPARATOR = "\\";
 	/// ルートディレクトリを生成する。
 	package this(CWXPath owner) {
-		_id = format("%08X", &this) ~ "-" ~ to!(string)(getUTCtime);
+		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime);
 		_owner = owner;
 	}
 	/// サブディレクトリを生成する。
 	/// Params:
 	/// name = ディレクトリ名。
 	this(string name) {
-		_id = format("%08X", &this) ~ "-" ~ to!(string)(getUTCtime);
+		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime);
 		_name = validName(name);
 	}
 	override string cwxPath() {
 		if (_owner) {
 			return cpjoin(_owner, "variable");
 		} else if (_parent) {
-			return cpjoin(_parent, "dir", indexOf!("a is b")(_parent.subDirs, this));
+			return cpjoin(_parent, "dir", .cCountUntil!("a is b")(_parent.subDirs, this));
 		}
 		return "";
 	}
@@ -422,6 +459,11 @@ public:
 		return _parent;
 	}
 	/// ditto
+	const
+	const(FlagDir) parent() {
+		return _parent;
+	}
+	/// ditto
 	private void parent(FlagDir parent) {
 		assert (!parent || !parent.getSubDir(name));
 		_parent = parent;
@@ -448,13 +490,23 @@ public:
 		}
 		return dir;
 	}
+	const
+	const(FlagDir) root() {
+		Rebindable!(const(FlagDir)) dir = this;
+		while (dir.parent !is null) {
+			dir = dir.parent;
+		}
+		return dir;
+	}
 
 	/// マシン上で一意なID。ドラッグ&ドロップ等で使用する。
+	const
 	string id() {
 		return _id;
 	}
 
 	/// ディレクトリ名。
+	const
 	string name() {
 		return _name;
 	}
@@ -469,12 +521,15 @@ public:
 		return false;
 	}
 
-	private bool canAppendFlag(Flag f) {
+	const
+	private bool canAppendFlag(in Flag f) {
 		return canAppendFS(f.name);
 	}
-	private bool canAppendStep(Step s) {
+	const
+	private bool canAppendStep(in Step s) {
 		return canAppendFS(s.name);
 	}
+	const
 	private bool canAppendFS(string name) {
 		name = validName(name);
 		if (name.length == 0) {
@@ -494,6 +549,7 @@ public:
 	}
 	/// 指定された名前のフラグ・ステップ・サブディレクトリが
 	/// 追加可能であればtrueを返す。
+	const
 	bool canAppendSub(string name) {
 		name = validName(name);
 		if (name.length == 0) {
@@ -508,22 +564,23 @@ public:
 	}
 	/// 指定されたディレクトリが追加可能であればtrueを返す。
 	/// 自分と自分より上位にあるディレクトリを自分の下に持ってくることはできない。
-	bool canAppendSub2(FlagDir ndir) {
+	const
+	bool canAppendSub2(in FlagDir ndir) {
 		if (this == ndir.parent) {
 			return true;
 		}
-		auto p = this;
+		Rebindable!(const(FlagDir)) p = this;
 		do {
-			if (p == ndir) {
+			if (p.get == ndir) {
 				// 自分と自分より上位にあるディレクトリを自分の下に持ってくることはできない
 				return false;
 			}
 			p = p.parent;
-		} while (p !is null);
+		} while (p.get !is null);
 		return canAppendSub(ndir.name);
 	}
 
-	private bool __add(F)(ref F[] arr, F item, bool delegate(F) canAppend) {
+	private bool __add(F)(ref F[] arr, F item, bool delegate(in F) canAppend) {
 		if (canAppend(item) || item.parent is this) {
 			if (item.parent is this && arr[$ - 1] is item) return true;
 			if (item.parent !is null) {
@@ -539,15 +596,15 @@ public:
 	}
 	/// フラグ・ステップ・サブディレクトリを追加する。
 	bool add(Flag flag) {
-		return __add(_flags, flag, &canAppendFlag);
+		return __add!(Flag)(_flags, flag, &canAppendFlag);
 	}
 	/// ditto
 	bool add(Step step) {
-		return __add(_steps, step, &canAppendStep);
+		return __add!(Step)(_steps, step, &canAppendStep);
 	}
 	/// ditto
 	bool add(FlagDir sub) {
-		return __add(_subdir, sub, &canAppendSub2);
+		return __add!(FlagDir)(_subdir, sub, &canAppendSub2);
 	}
 	private void __remove(T)(ref T[] arr, T e) {
 		for (int i = 0; i < arr.length; i++) {
@@ -586,14 +643,17 @@ public:
 		return _steps;
 	}
 	/// 指定された名前のフラグ・ステップ・サブディレクトリが存在すればtrue。
+	const
 	bool containsFlag(string name) {
 		return getFlag(name) !is null;
 	}
 	/// ditto
+	const
 	bool containsStep(string name) {
 		return getStep(name) !is null;
 	}
 	/// ditto
+	const
 	bool containsSubDir(string name) {
 		return getStep(name) !is null;
 	}
@@ -606,18 +666,42 @@ public:
 		}
 		return null;
 	}
+	const
+	private const(F) __get_const(F)(in F[] arr, string name) {
+		foreach (f; arr) {
+			if (icmp(f.name, name) == 0) {
+				return f;
+			}
+		}
+		return null;
+	}
 	/// フラグ・ステップ・サブディレクトリを名前で検索して取得する。
 	/// 存在しない場合はnullを返す。
 	Flag getFlag(string name) {
-		return __get(_flags, name);
+		return __get!(Flag)(_flags, name);
+	}
+	/// ditto
+	const
+	const(Flag) getFlag(string name) {
+		return __get_const!(Flag)(_flags, name);
 	}
 	/// ditto
 	Step getStep(string name) {
-		return __get(_steps, name);
+		return __get!(Step)(_steps, name);
+	}
+	/// ditto
+	const
+	const(Step) getStep(string name) {
+		return __get_const!(Step)(_steps, name);
 	}
 	/// ditto
 	FlagDir getSubDir(string name) {
-		return __get(_subdir, name);
+		return __get!(FlagDir)(_subdir, name);
+	}
+	/// ditto
+	const
+	const(FlagDir) getSubDir(string name) {
+		return __get_const!(FlagDir)(_subdir, name);
 	}
 
 	/// このディレクトリとサブディレクトリの中にある
@@ -633,8 +717,32 @@ public:
 		return r;
 	}
 	/// ditto
+	const
+	const(Flag)[] allFlags() {
+		const(Flag)[] r;
+		foreach (flg; _flags) {
+			r ~= flg;
+		}
+		foreach (dir; _subdir) {
+			r ~= dir.allFlags;
+		}
+		return r;
+	}
+	/// ditto
 	Step[] allSteps() {
 		Step[] r;
+		foreach (step; _steps) {
+			r ~= step;
+		}
+		foreach (dir; _subdir) {
+			r ~= dir.allSteps;
+		}
+		return r;
+	}
+	/// ditto
+	const
+	const(Step)[] allSteps() {
+		const(Step)[] r;
 		foreach (step; _steps) {
 			r ~= step;
 		}
@@ -670,6 +778,7 @@ public:
 	}
 
 	/// このディレクトリのフルパスを返す。
+	const
 	string path() {
 		if (_parent !is null) {
 			return _parent.path ~ _name ~ SEPARATOR;
@@ -1033,7 +1142,7 @@ public:
 		if (endsWith(path, FlagDir.SEPARATOR)) {
 			path = path[0 .. $ - sepLen];
 		}
-		auto paths = (new RegExp(SEPARATOR_REGEX)).split(path);
+		auto paths = std.string.split(path);
 		auto dir = root;
 
 		loop: for (int lev = 0; lev < paths.length; lev++) {
@@ -1059,7 +1168,8 @@ public:
 		if (!name.length) {
 			name = "_";
 		}
-		return replace(name, SEPARATOR, "");
+		string fsep = SEPARATOR;
+		return replace(name, fsep, "");
 	}
 
 	/// baseをこのディレクトリに追加可能な名前に加工して返す。
@@ -1083,15 +1193,29 @@ public:
 	/// path = パス。
 	/// create = trueの場合、見つからなかったときに生成する。
 	/// Returns: 見つかったパス。見つからず、生成もしない場合はnull。
-	FlagDir findPath(string path, bool create = false) {
+	FlagDir findPath(string path, bool create) {
 		if (path.length == 0) {
 			return root;
 		} else {
-			auto paths = std.string.split(path, SEPARATOR);
+			string fsep = SEPARATOR;
+			auto paths = std.string.split(path, fsep);
 			if (paths.length == 0) {
 				return root;
 			}
 			return root.__findPath(paths[0 .. $ - 1], create);
+		}
+	}
+	const
+	const(FlagDir) findPath(string path) {
+		if (path.length == 0) {
+			return root;
+		} else {
+			string fsep = SEPARATOR;
+			auto paths = std.string.split(path, fsep);
+			if (paths.length == 0) {
+				return root;
+			}
+			return root.__findPath(paths[0 .. $ - 1]);
 		}
 	}
 	private FlagDir __findPath(string[] paths, bool create) {
@@ -1114,6 +1238,18 @@ public:
 			return sub.__findPath(paths[1 .. $], create);
 		}
 	}
+	const
+	private const(FlagDir) __findPath(string[] paths) {
+		auto sub = getSubDir(paths[0]);
+		if (sub is null) {
+			return null;
+		}
+		if (paths.length == 1) {
+			return sub;
+		} else {
+			return sub.__findPath(paths[1 .. $]);
+		}
+	}
 	/// 指定されたパスのフラグを探して返す。
 	/// Params:
 	/// path = パス。
@@ -1121,6 +1257,17 @@ public:
 	Flag findFlag(string path) {
 		if (path.length > 0) {
 			auto dir = findPath(up(path), false);
+			if (dir !is null) {
+				return dir.getFlag(basename(path));
+			}
+		}
+		return null;
+	}
+	/// ditto
+	const
+	const(Flag) findFlag(string path) {
+		if (path.length > 0) {
+			auto dir = findPath(up(path));
 			if (dir !is null) {
 				return dir.getFlag(basename(path));
 			}
@@ -1140,8 +1287,19 @@ public:
 		}
 		return null;
 	}
+	const
+	const(Step) findStep(string path) {
+		if (path.length > 0) {
+			auto dir = findPath(up(path));
+			if (dir !is null) {
+				return dir.getStep(basename(path));
+			}
+		}
+		return null;
+	}
 
 	/// 配下にある全てのフラグとステップのデータをノードに追加する。
+	const
 	void toNodeAll(ref XNode node) {
 		auto fe = node.newElement("Flags");
 		foreach (flag; allFlags) {

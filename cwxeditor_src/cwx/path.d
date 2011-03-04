@@ -3,6 +3,7 @@ module cwx.path;
 
 import cwx.utils;
 
+import std.conv;
 import std.string;
 
 /// シナリオ内パスを取得できるオブジェクトである事を示す。
@@ -35,14 +36,14 @@ string cpjoin(CWXPath owner, string name) {
 
 /// シナリオ内パスの先頭部分を返す。
 string cptop(string path) {
-	int index = std.string.find(path, "/");
+	int index = std.string.indexOf(path, "/");
 	return index >= 0 ? path[0 .. index] : path;
 } unittest {
 	assert (cptop("area:3/event:0/:5/:0/:1") == "area:3");
 }
 /// シナリオ内パスの先頭部分以外を返す。
 string cpbottom(string path) {
-	int index = std.string.find(path, "/");
+	int index = std.string.indexOf(path, "/");
 	return index >= 0 ? path[index + 1 .. $] : "";
 } unittest {
 	assert (cpbottom("area:3/event:0/:5/:0/:1") == "event:0/:5/:0/:1");
@@ -50,7 +51,7 @@ string cpbottom(string path) {
 /// シナリオ内パスの先頭のカテゴリを返す。
 string cpcategory(string path) {
 	string top = cptop(path);
-	int index = std.string.rfind(top, ":");
+	int index = std.string.lastIndexOf(top, ":");
 	return index >= 0 ? top[0 .. index] : top;
 } unittest {
 	assert (cpcategory("area:3/event:0/:5/:0/:1") == "area");
@@ -58,7 +59,7 @@ string cpcategory(string path) {
 /// シナリオ内パスの先頭のindexを返す。
 size_t cpindex(string path) {
 	string top = cptop(path);
-	int index = std.string.rfind(top, ":");
+	int index = std.string.lastIndexOf(top, ":");
 	return index >= 0 ? to!(size_t)(top[index + 1 .. $]) : 0;
 } unittest {
 	assert (cpindex("area:3/event:0/:5/:0/:1") == 3);

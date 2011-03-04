@@ -4,7 +4,6 @@ module cwx.graphics;
 import cwx.jpy;
 import cwx.utils;
 
-import std.compat;
 import std.random;
 
 private struct FC {
@@ -157,9 +156,9 @@ private ubyte[] pixelProc(T)(T f, ubyte[] data, size_t depth, size_t width, size
 			size_t i = y * width * bpp + x * bpp;
 			auto fc = FC(data[i + 2], data[i + 1], data[i + 0]);
 			pixelProcImpl!(T)(f, fc);
-			data[i + 2] = fc.r;
-			data[i + 1] = fc.g;
-			data[i + 0] = fc.b;
+			data[i + 2] = cast(ubyte) fc.r;
+			data[i + 1] = cast(ubyte) fc.g;
+			data[i + 0] = cast(ubyte) fc.b;
 		}
 	}
 	return data;
@@ -181,8 +180,8 @@ private ubyte[] emboss(ubyte[] data, size_t depth, size_t width, size_t height, 
 			int jx = x + 1 < width ? x + 1 : x;
 			int jy = y + 1 < height ? y + 1 : y;
 			int j = jy * width * bpp + jx * bpp;
-			auto val = (data[j + 2] + data[j + 1] + data[j + 0]) / 3
-				- (data[i + 2] + data[i + 1] + data[i + 0]) / 3 + 128;
+			ubyte val = cast(ubyte) ((data[j + 2] + data[j + 1] + data[j + 0]) / 3
+				- (data[i + 2] + data[i + 1] + data[i + 0]) / 3 + 128);
 			if (val < 0 || val > 255) val = 0;
 			data[i + 2] = val;
 			data[i + 1] = val;
@@ -193,21 +192,20 @@ private ubyte[] emboss(ubyte[] data, size_t depth, size_t width, size_t height, 
 }
 private ubyte[] deffusion(ubyte[] data, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
 	if (data.length < 3 || depth < 24 || width < 1 || height < 1) return data;
-	uint nextSeed = rand;
-	rand_seed(1, 0); // 拡散値を固定する
-	scope (exit) rand_seed(nextSeed, 0);
+	Random rnd;
+	rnd.seed = 1; // 拡散値を固定する
 	size_t bpp = bytesPerLine / width;
 	ubyte[] r = new ubyte[data.length];
 	for (size_t y = 0; y < height; y++) {
 		// cwconv.dllの実装では縦方向への拡散が微妙だがそれに合わせる
 		// 真に拡散させたい場合、jyの計算はxのループの内側にあるべき
-		int jy = y + cast(int) rand % 3;
+		int jy = y + uniform(0, 3, rnd);
 		if (jy < 0) jy = 0;
 		if (height <= jy) jy = height - 1;
 		for (size_t x = 0; x < width; x++) {
 			size_t i = y * width * bpp + x * bpp;
 			auto fc = FC(data[i + 2], data[i + 1], data[i + 0]);
-			int jx = x + cast(int) rand % 3;
+			int jx = x + uniform(0, 3, rnd);
 			if (jx < 0) jx = 0;
 			if (width <= jx) jx = width - 1;
 			int j = jy * width * bpp + jx * bpp;
@@ -321,9 +319,9 @@ ubyte[] filter(Filter f, ubyte[] data, size_t depth, size_t width, size_t height
 			auto fc = FC(r, g, b);
 			round(fc);
 			size_t i = y * width * bpp + x * bpp;
-			result[i + 2] = fc.r;
-			result[i + 1] = fc.g;
-			result[i + 0] = fc.b;
+			result[i + 2] = cast(ubyte) fc.r;
+			result[i + 1] = cast(ubyte) fc.g;
+			result[i + 0] = cast(ubyte) fc.b;
 		}
 	}
 	return result;
@@ -345,7 +343,7 @@ ubyte[] mask(Mask f, ubyte[] data, size_t depth, size_t width, size_t height, si
 	}
 	return data;
 }
-void noiseImpl(Noise f, ref FC rgb, int value) {
+void noiseImpl(ref Random rnd, Noise f, ref FC rgb, int value) {
 	switch (f) {
 	case Noise.NONE: return;
 	case Noise.LIGHT: {
@@ -361,12 +359,12 @@ void noiseImpl(Noise f, ref FC rgb, int value) {
 	} break;
 	case Noise.NOISE: {
 		if (value >= 0) {
-			auto val = cast(int) rand % value;
+			auto val = uniform(0, value, rnd);
 			rgb.r += val;
 			rgb.g += val;
 			rgb.b += val;
 		} else {
-			int val = (rand & 1) ? 255 : 0;
+			int val = uniform(0, 2, rnd) ? 255 : 0;
 			rgb.r = val;
 			rgb.g = val;
 			rgb.b = val;
@@ -374,13 +372,13 @@ void noiseImpl(Noise f, ref FC rgb, int value) {
 	} break;
 	case Noise.C_NOISE: {
 		if (value >= 0) {
-			rgb.r += cast(int) rand % value;
-			rgb.g += cast(int) rand % value;
-			rgb.b += cast(int) rand % value;
+			rgb.r += uniform(0, value, rnd);
+			rgb.g += uniform(0, value, rnd);
+			rgb.b += uniform(0, value, rnd);
 		} else {
-			rgb.r = (rand & 1) ? 255 : 0;
-			rgb.g = (rand & 1) ? 255 : 0;
-			rgb.b = (rand & 1) ? 255 : 0;
+			rgb.r = uniform(0, 2, rnd) ? 255 : 0;
+			rgb.g = uniform(0, 2, rnd) ? 255 : 0;
+			rgb.b = uniform(0, 2, rnd) ? 255 : 0;
 		}
 	} break;
 	default: assert (0);
@@ -394,16 +392,8 @@ ubyte[] noise(Noise f, int value, ubyte[] data, size_t depth, size_t width, size
 	}
 	value %= 256;
 	if (f is Noise.MOSAIC && value < 0) return data;
-	uint nextSeed = 0;
-	if (f is Noise.NOISE || f is Noise.C_NOISE) {
-		nextSeed = rand;
-		rand_seed(42, 0); // ノイズを固定する
-	}
-	scope (exit) {
-		if (f is Noise.NOISE || f is Noise.C_NOISE) {
-			rand_seed(nextSeed, 0);
-		}
-	}
+	Random rnd;
+	rnd.seed = 42; // ノイズを固定する
 	size_t bpp = bytesPerLine / width;
 	for (size_t y = 0; y < height; y++) {
 		for (size_t x = 0; x < width; x++) {
@@ -417,10 +407,10 @@ ubyte[] noise(Noise f, int value, ubyte[] data, size_t depth, size_t width, size
 				data[i + 2] = data[j + 2];
 			} else {
 				auto fc = FC(data[i + 2], data[i + 1], data[i + 0]);
-				noiseImpl(f, fc, value);
-				data[i + 2] = fc.r;
-				data[i + 1] = fc.g;
-				data[i + 0] = fc.b;
+				noiseImpl(rnd, f, fc, value);
+				data[i + 2] = cast(ubyte) fc.r;
+				data[i + 1] = cast(ubyte) fc.g;
+				data[i + 0] = cast(ubyte) fc.b;
 			}
 		}
 	}
@@ -503,9 +493,9 @@ ubyte[] smoothResize(size_t newWidth, size_t newHeight,
 			auto fc = FC(r, g, b);
 			round(fc);
 			size_t i = y * newWidth * bpp + x * bpp;
-			result[i + 2] = fc.r;
-			result[i + 1] = fc.g;
-			result[i + 0] = fc.b;
+			result[i + 2] = cast(ubyte) fc.r;
+			result[i + 1] = cast(ubyte) fc.g;
+			result[i + 0] = cast(ubyte) fc.b;
 		}
 	}
 	return result;

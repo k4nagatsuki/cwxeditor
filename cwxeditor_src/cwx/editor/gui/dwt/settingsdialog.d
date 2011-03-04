@@ -244,7 +244,6 @@ private:
 	}
 	string selectDir(Text dir, string title, string msg, string p) {
 		auto dlg = new DirectoryDialog(dir.getShell);
-		scope (exit) dlg.dispose;
 		dlg.setText = title;
 		dlg.setMessage = msg;
 		string path;
@@ -331,7 +330,6 @@ private:
 	class ClearHist : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
 			auto dlg = new MessageBox(_histMax.getShell, SWT.ICON_QUESTION | SWT.OK | SWT.CANCEL);
-			scope (exit) dlg.dispose;
 			dlg.setText = _prop.msgs.dlgTitQuestion;
 			dlg.setMessage = _prop.msgs.dlgMsgHistoryClear;
 			if (SWT.OK == dlg.open) {
@@ -343,7 +341,6 @@ private:
 	class ClearSHist : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
 			auto dlg = new MessageBox(_sHistMax.getShell, SWT.ICON_QUESTION | SWT.OK | SWT.CANCEL);
-			scope (exit) dlg.dispose;
 			dlg.setText = _prop.msgs.dlgTitQuestion;
 			dlg.setMessage = _prop.msgs.dlgMsgSearchHistoryClear;
 			if (SWT.OK == dlg.open) {
@@ -1053,7 +1050,7 @@ protected:
 			_bgStgs[i] = stg.dup;
 		}
 		if (_bgStgs.length > 0) _bgStgsL.select = 0;
-		_bgImagesDefault = _prop.var.etc.bgImagesDefault;
+		_bgImagesDefault = _prop.var.etc.bgImagesDefault.dup;
 		selectBgImageSetting;
 
 		string buf = "";
@@ -1074,7 +1071,6 @@ protected:
 	override bool apply() {
 		void err(CTabItem tab, Text t, string msg) {
 			auto dlg = new MessageBox(t.getShell, SWT.ICON_WARNING | SWT.OK);
-			scope (exit) dlg.dispose;
 			dlg.setText = _prop.msgs.dlgTitWarning;
 			dlg.setMessage = msg;
 			dlg.open;
@@ -1102,9 +1098,9 @@ protected:
 			return false;
 		}
 		string oldEnginePath = _prop.var.etc.enginePath;
-		string[] oldKeyCodes = _prop.var.etc.standardKeyCodes;
+		auto oldKeyCodes = _prop.var.etc.standardKeyCodes;
 		auto tools = _prop.var.etc.outerTools;
-		string[] oldIgnorePaths = _prop.var.etc.ignorePaths;
+		auto oldIgnorePaths = _prop.var.etc.ignorePaths;
 		bool oldSmoothingCard = _prop.var.etc.smoothingCard;
 		scope (exit) {
 			if (_summ && oldEnginePath != _prop.var.etc.enginePath) {
@@ -1148,11 +1144,11 @@ protected:
 		_prop.var.etc.contentsFloat = _contentsFloat.getSelection;
 		if (_prop.var.etc.historyMax < _prop.var.etc.openHistories.length) {
 			_prop.var.etc.openHistories
-				= _prop.var.etc.openHistories[0 .. _prop.var.etc.historyMax];
+				= _prop.var.etc.openHistories[0 .. _prop.var.etc.historyMax].dup;
 		}
 		if (_prop.var.etc.searchHistoryMax < _prop.var.etc.searchHistories.length) {
 			_prop.var.etc.searchHistories
-				= _prop.var.etc.searchHistories[0 .. _prop.var.etc.searchHistoryMax];
+				= _prop.var.etc.searchHistories[0 .. _prop.var.etc.searchHistoryMax].dup;
 		}
 		_prop.var.etc.bgImageSettings = _bgStgs;
 		_prop.var.etc.bgImagesDefault = _bgImagesDefault;

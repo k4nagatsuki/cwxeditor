@@ -1,13 +1,16 @@
 
 module cwx.summary;
 
+import std.array;
 import std.file;
 import std.stream;
 import std.path;
 import std.zip;
-import std.date;
+import std.datetime;
 import std.string;
 import std.utf;
+import std.traits;
+import std.exception;
 
 import cwx.cwl;
 import cwx.flag;
@@ -120,6 +123,11 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 			CastCard casts(ulong id) {
 				return __find(_cast, id);
 			}
+			/// ditto
+			const
+			const(CastCard) casts(ulong id) {
+				return __find(_cast, id);
+			}
 		}
 		static if (UseSkill) {
 			/// スキル。
@@ -128,6 +136,11 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 			}
 			/// ditto
 			SkillCard skill(ulong id) {
+				return __find(_skl, id);
+			}
+			/// ditto
+			const
+			const(SkillCard) skill(ulong id) {
 				return __find(_skl, id);
 			}
 		}
@@ -140,6 +153,11 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 			ItemCard item(ulong id) {
 				return __find(_itm, id);
 			}
+			/// ditto
+			const
+			const(ItemCard) item(ulong id) {
+				return __find(_itm, id);
+			}
 		}
 		static if (UseBeast) {
 			/// 召喚獣。
@@ -150,6 +168,10 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 			BeastCard beast(ulong id) {
 				return __find(_bst, id);
 			}
+			const
+			const(BeastCard) beast(ulong id) {
+				return __find(_bst, id);
+			}
 		}
 		static if (UseInfo) {
 			/// 情報カード。
@@ -158,6 +180,11 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 			}
 			/// ditto
 			InfoCard info(ulong id) {
+				return __find(_info, id);
+			}
+			/// ditto
+			const
+			const(InfoCard) info(ulong id) {
 				return __find(_info, id);
 			}
 		}
@@ -172,14 +199,18 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 	private bool _legacy = false;
 
 	/// XMLファイルを展開しているか。
+	const
 	bool expandXMLs() {return _expandXMLs;}
 	/// 現在のscenarioPathは一時展開先か。
+	const
 	bool useTemp() {return _useTemp;}
 	/// 元の圧縮ファイル名は何か。圧縮されていないシナリオの場合は""。
+	const
 	string zipName() {return _zipName;}
 	/// ditto
 	void zipName(string zipName) {_zipName = zipName;}
 	/// クラシックな形式のシナリオか。
+	const
 	bool legacy() {return _legacy;}
 
 	alias typeof(this) S;
@@ -196,7 +227,7 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 		std.file.write(std.path.join(temp, "cwxeditor.lock"), []);
 	}
 
-	static S loadScenarioFromFile(CProps prop, string fname, bool expand, string tempPath, S old,
+	static S loadScenarioFromFile(in CProps prop, string fname, bool expand, string tempPath, S old,
 			void delegate(uint) setMax, void delegate(uint) worked, string newName = null) {
 		string[string][string] xmls;
 		string sunzip(string fname, ZipArchive arc, out bool cancel = false) {
@@ -518,7 +549,7 @@ private:
 
 	this(string sPath) {
 		_sPath = sPath;
-		_id = format("%08X", &this) ~ "-" ~ to!(string)(getUTCtime);
+		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime);
 		_uc = new UseCounter;
 		_froot = new FlagDir(this);
 		_froot.changeHandler = &changeHandler;
@@ -583,10 +614,12 @@ public:
 		return r;
 	}
 	/// マシン上で一意なID。
+	const
 	string id() {
 		return _id;
 	}
 	/// このシナリオが変更済みであればtrueを返す。
+	const
 	bool isChanged() {
 		return _change;
 	}
@@ -604,9 +637,11 @@ public:
 	}
 
 	/// シナリオのシステムファイルまたはディレクトリであればtrueを返す。
+	const
 	bool isSystemFile(string p) {
 		return isSystemFile(p, cast(bool) .isdir(p));
 	}
+	const
 	bool isSystemFile(string p, bool isdir) {
 		if (!isdir && useTemp && .fnmatch(getBaseName(p), "cwxeditor.lock")) {
 			return true;
@@ -637,6 +672,7 @@ public:
 	}
 
 	/// データバージョン。
+	const
 	string dataVersion() {return _dataVersion;}
 	/// ditto
 	private void dataVersion(string ver) {_dataVersion = ver;}
@@ -647,11 +683,13 @@ public:
 		_author = author;
 	}
 	/// ditto
+	const
 	string author() {
 		return _author;
 	}
 
 	/// シナリオのタイプ。スキンを決定する。
+	const
 	string type() {
 		return _type;
 	}
@@ -667,6 +705,7 @@ public:
 		_imgPath.path = imgPath;
 	}
 	/// ditto
+	const
 	string imagePath() {
 		return _imgPath.path;
 	}
@@ -677,6 +716,7 @@ public:
 		_desc = desc;
 	}
 	/// ditto
+	const
 	string desc() {
 		return _desc;
 	}
@@ -687,6 +727,7 @@ public:
 		_levMin = levMin;
 	}
 	/// ditto
+	const
 	uint levelMin() {
 		return _levMin;
 	}
@@ -697,6 +738,7 @@ public:
 		_levMax = levMax;
 	}
 	/// ditto
+	const
 	uint levelMax() {
 		return _levMax;
 	}
@@ -707,6 +749,7 @@ public:
 		_rCouponNum = rCouponNum;
 	}
 	/// ditto
+	const
 	uint rCouponNum() {
 		return _rCouponNum;
 	}
@@ -727,6 +770,7 @@ public:
 		_startAreaId.area = startAreaId;
 	}
 	/// ditto
+	const
 	ulong startArea() {
 		return _startAreaId.area;
 	}
@@ -754,23 +798,24 @@ public:
 	}
 
 	/// 指定された要素のindexを検索する。
-	int indexOf(T)(T c) {
+	const
+	int indexOf(T)(in T c) {
 		static if (is (T == CastCard)) {
-			return .indexOf!("a is b")(_cast, c);
+			return .cCountUntil("a is b")(_cast, c);
 		} else static if (is (T == SkillCard)) {
-			return .indexOf!("a is b")(_skl, c);
+			return .cCountUntil!("a is b")(_skl, c);
 		} else static if (is (T == ItemCard)) {
-			return .indexOf!("a is b")(_itm, c);
+			return .cCountUntil!("a is b")(_itm, c);
 		} else static if (is (T == BeastCard)) {
-			return .indexOf!("a is b")(_bst, c);
+			return .cCountUntil!("a is b")(_bst, c);
 		} else static if (is (T == InfoCard)) {
-			return .indexOf!("a is b")(_info, c);
+			return .cCountUntil!("a is b")(_info, c);
 		} else static if (is (T == Area)) {
-			return .indexOf!("a is b")(_area, c);
+			return .cCountUntil!("a is b")(_area, c);
 		} else static if (is (T == Battle)) {
-			return .indexOf!("a is b")(_btl, c);
+			return .cCountUntil!("a is b")(_btl, c);
 		} else static if (is (T == Package)) {
-			return .indexOf!("a is b")(_pkg, c);
+			return .cCountUntil!("a is b")(_pkg, c);
 		} else {
 			static assert (0);
 		}
@@ -780,29 +825,45 @@ public:
 	Area area(ulong id) {
 		return __find(_area, id);
 	}
+	const
+	const(Area) area(ulong id) {
+		return __find(_area, id);
+	}
 	/// バトル。
 	Battle battle(ulong id) {
+		return __find(_btl, id);
+	}
+	const
+	const(Battle) battle(ulong id) {
 		return __find(_btl, id);
 	}
 	/// パッケージ。
 	Package packages(ulong id) {
 		return __find(_pkg, id);
 	}
+	const
+	const(Package) packages(ulong id) {
+		return __find(_pkg, id);
+	}
 
 	/// 指定されたIDのエリア・バトル・パッケージがあればtrue。
+	const
 	bool hasAreaId(ulong id) {
 		return hasId(_area, id);
 	}
 	/// ditto
+	const
 	bool hasBattleId(ulong id) {
 		return hasId(_btl, id);
 	}
 	/// ditto
+	const
 	bool hasPackageId(ulong id) {
 		return hasId(_pkg, id);
 	}
 
 	/// 今現在このシナリオに含まれていないTのIDを生成して返す。
+	const
 	ulong newId(T)() {
 		static if (is (T == CastCard)) {
 			return __newId(_cast);
@@ -825,14 +886,17 @@ public:
 		}
 	}
 	/// ditto
+	const
 	ulong newAreaId() {
 		return __newId(_area);
 	}
 	/// ditto
+	const
 	ulong newBattleId() {
 		return __newId(_btl);
 	}
 	/// ditto
+	const
 	ulong newPackageId() {
 		return __newId(_pkg);
 	}
@@ -1032,6 +1096,7 @@ public:
 		}
 	}
 
+	const
 	private string summaryToXML() {
 		auto root = XNode.create("Summary");
 		auto pNode = root.newElement("Property");
@@ -1063,6 +1128,7 @@ public:
 	/// 	"InfoCard/":["01_eee.xml":(情報カードeeeのXML表現) ...]
 	/// ]
 	/// ---
+	const
 	string[string][string] toXMLs() {
 		string e = "";
 		string[string] s = ["Summary.xml":summaryToXML];
@@ -1264,10 +1330,16 @@ public:
 	FlagDir flagDirRoot() {
 		return _froot;
 	}
+	/// ditto
+	const
+	const(FlagDir) flagDirRoot() {
+		return _froot;
+	}
 
 	mixin STemplate!(true, true, true, true, true);
 
 	/// シナリオのディレクトリ。
+	const
 	string scenarioPath() {
 		return _sPath;
 	}
@@ -1276,6 +1348,7 @@ public:
 		_sPath = sPath;
 	}
 	/// シナリオ名。
+	const
 	string scenarioName() {
 		return _sname;
 	}
@@ -1286,11 +1359,14 @@ public:
 	}
 
 	/// カード画像のマップを生成して返す。
-	private string[][byte[]] cardImgTable(string mtdir, Skin skin, UseCounter uc) {
-		string[][byte[]] r;
+	const
+	private string[][immutable(ubyte[])] cardImgTable(string mtdir, Skin skin, UseCounter uc) {
+		string[][immutable(ubyte[])] r;
 		foreach (file; clistdir(mtdir)) {
 			if (skin.isCardImage(std.path.join(mtdir, file))) {
-				r[cast(byte[]) std.file.read(std.path.join(mtdir, file))] ~= std.path.join(skin.materialPath, file);
+				auto mBytes = cast(ubyte[]) std.file.read(std.path.join(mtdir, file));
+				auto bytes = assumeUnique(mBytes);
+				r[bytes] ~= std.path.join(skin.materialPath, file);
 			}
 		}
 		foreach (ref v; r.values) {
@@ -1320,10 +1396,11 @@ public:
 		}
 		return r;
 	}
-	private bool moveBinImg(ref string[][byte[]] cis, PathUser targ, string fname, string mt, Skin toSkin) {
+	const
+	private bool moveBinImg(ref string[][immutable(ubyte[])] cis, PathUser targ, string fname, string mt, Skin toSkin) {
 		string img = targ.path;
 		if (isBinImg(img)) {
-			byte[] bytes = strToBImg(img);
+			auto bytes = strToBImg(img);
 			string[] *files = bytes in cis;
 			if (files) {
 				assert (files.length);
@@ -1332,13 +1409,13 @@ public:
 				auto file = createFileI(mt, fname, "bmp", "");
 				std.file.write(file, bytes);
 				targ.path = std.path.join(toSkin.materialPath, getBaseName(file));
-				cis[bytes] ~= targ.path;
+				cis[assumeUnique(bytes)] ~= targ.path;
 				return true;
 			}
 		}
 		return false;
 	}
-	public string classicToX(CProps prop, string tempPath, Skin toSkin, out string[] copyFail) {
+	public string classicToX(in CProps prop, string tempPath, Skin toSkin, out string[] copyFail) {
 		copyFail = [];
 		auto uc = useCounter;
 		auto temp = Summary.createTempDir(tempPath, scenarioName);
@@ -1384,17 +1461,18 @@ public:
 		return temp;
 	}
 	/// 保存場所が決まっている場合はtrue。
+	const
 	bool isSaved() {
 		return !useTemp || zipName.length;
 	}
 	/// 上書き保存。
-	void saveOverwrite(CProps prop, bool saveInnerImagePath) in {
+	void saveOverwrite(in CProps prop, bool saveInnerImagePath) in {
 		assert (isSaved);
 	} body {
 		saveProc(prop, saveInnerImagePath, false, zipName, scenarioPath, false, expandXMLs);
 	}
 	/// 名前をつけて保存。
-	void saveWithName(CProps prop, bool saveInnerImagePath, string fname, string tempPath,
+	void saveWithName(in CProps prop, bool saveInnerImagePath, string fname, string tempPath,
 			bool defExpandXMLs, Skin defSkin, void delegate(string) showWarn) in {
 		assert (fnmatch(getExt(fname), "wsn"));
 	} body {
@@ -1428,7 +1506,7 @@ public:
 			saveProc(prop, saveInnerImagePath, true, fname, p, false, defExpandXMLs);
 		}
 	}
-	private void saveProc(CProps prop, bool saveInnerImagePath, bool archive,
+	private void saveProc(in CProps prop, bool saveInnerImagePath, bool archive,
 			string zipName, string temp, bool legacyToX, bool defExpandXMLs) {
 		try {
 			bool expand = false;
@@ -1506,7 +1584,7 @@ public:
 
 	/// 唯一のコンストラクタ。
 	this(string sPath, string sname, bool legacy) {
-		_id = format("%08X", &this) ~ "-" ~ to!(string)(getUTCtime);
+		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime);
 		_sPath = sPath;
 		_sname = sname;
 		_legacy = legacy;
@@ -1518,19 +1596,24 @@ public:
 	}
 	override CWXPath[] cwxChilds() {return cwxChildsImpl;}
 	/// マシン上で一意なID。
+	const
 	string id() {
 		return _id;
 	}
 	/// クラシックな形式ならtrue。
+	const
 	bool legacy() {return _legacy;}
 	/// スキン。
+	const
 	string type() {return _type;}
 
 	/// シナリオのディレクトリ。
+	const
 	string scenarioPath() {
 		return _sPath;
 	}
 	/// シナリオ名。
+	const
 	string scenarioName() {
 		return _sname;
 	}
@@ -1547,17 +1630,18 @@ public:
 	static if (UseInfo) void add(InfoCard c) {_info ~= c;}
 
 	/// 指定された要素のindexを検索する。
-	int indexOf(T)(T c) {
+	const
+	int indexOf(T)(in T c) {
 		static if (UseCast && is (T == CastCard)) {
-			return .indexOf!("a is b")(_cast, c);
+			return .cCountUntil!("a is b")(_cast, c);
 		} else static if (UseSkill && is (T == SkillCard)) {
-			return .indexOf!("a is b")(_skl, c);
+			return .cCountUntil!("a is b")(_skl, c);
 		} else static if (UseItem && is (T == ItemCard)) {
-			return .indexOf!("a is b")(_itm, c);
+			return .cCountUntil!("a is b")(_itm, c);
 		} else static if (UseBeast && is (T == BeastCard)) {
-			return .indexOf!("a is b")(_bst, c);
+			return .cCountUntil!("a is b")(_bst, c);
 		} else static if (UseInfo && is (T == InfoCard)) {
-			return .indexOf!("a is b")(_info, c);
+			return .cCountUntil!("a is b")(_info, c);
 		} else {
 			static assert (0);
 		}
@@ -1656,11 +1740,16 @@ public:
 		_e = e;
 	}
 	/// 読み込み対象パス。
+	const
 	string path() {
 		return _path;
 	}
 	/// 例外。
 	Exception e() {
+		return _e;
+	}
+	const
+	const(Exception) e() {
 		return _e;
 	}
 }

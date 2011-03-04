@@ -9,6 +9,7 @@ import cwx.graphics;
 import cwx.editor.gui.dwt.utils;
 import cwx.editor.gui.dwt.props;
 
+import std.algorithm;
 import std.math;
 import std.file;
 import std.path;
@@ -1196,7 +1197,7 @@ private:
 		auto tsels = findSelectedIndices(x, y);
 		auto imgs = findIndices(x, y);
 		if (tsels.length == 1 && selectedIndices.length == 1 && imgs.length > 1) {
-			int i = indexOf(imgs, tsels[0]);
+			int i = countUntil(imgs, tsels[0]);
 			assert (i >= 0);
 			doDeselect(cast(FlexImage) images[tsels[0]]);
 			doSelect(cast(FlexImage) images[i > 0 ? imgs[i - 1] : imgs[$ - 1]]);

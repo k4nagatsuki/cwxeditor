@@ -24,7 +24,7 @@ import cwx.editor.gui.dwt.radarspinner;
 import cwx.editor.gui.dwt.xmlbytestransfer;
 import cwx.editor.gui.dwt.absdialog;
 
-import std.date;
+import std.datetime;
 import std.string;
 
 import org.eclipse.swt.SWT;
@@ -1118,7 +1118,7 @@ private:
 public:
 	this(Commons comm, Props prop, Shell shell, Summary summ, CastCard card) {
 		assert (summ !is null);
-		_id = format("%08X", &this) ~ "-" ~ to!(string)(getUTCtime);
+		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime);
 		_comm = comm;
 		_summ = summ;
 		_card = card;

@@ -65,9 +65,13 @@ public:
 		_y = y;
 		_scale = scale;
 	}
+	const
 	override bool canHasFireLose() {return false;}
+	const
 	override bool canHasFireEscape() {return false;}
+	const
 	override bool canHasFireRound() {return false;}
+	const
 	override bool canHasFireKeyCode() {return true;}
 
 	/// 表示フラグ。
@@ -76,10 +80,12 @@ public:
 		_user.flag = flag;
 	}
 	/// ditto
+	const
 	string flag() {
 		return _user.flag;
 	}
 	/// X座標。
+	const
 	int x() {
 		return _x;
 	}
@@ -89,6 +95,7 @@ public:
 		_x = x;
 	}
 	/// Y座標。
+	const
 	int y() {
 		return _y;
 	}
@@ -98,6 +105,7 @@ public:
 		_y = y;
 	}
 	/// スケール。1.0が標準。0.75～2.0。
+	const
 	real scale() {
 		return _scale;
 	}
@@ -120,6 +128,7 @@ public:
 	}
 
 	/// 指定されたノードにProperty情報を追加する。
+	const
 	protected void appendProp(ref XNode pNode) {
 		assert (pNode.name == "Property", pNode.name ~ " != Property");
 		pNode.newElement("Flag", _user.flag);
@@ -164,17 +173,18 @@ public:
 		_escape = escape;
 	}
 	string cwxPath() {
-		return _owner ? cpjoin(_owner, "enemycard", indexOf!("a is b")(_owner.cards, this)) : "";
+		return _owner ? cpjoin(_owner, "enemycard", .cCountUntil!("a is b")(_owner.cards, this)) : "";
 	}
 	override size_t[] areaPath() {
 		if (_owner) {
-			return [indexOf!("a is b")(_owner.cards, this) + 1];
+			return [.cCountUntil!("a is b")(_owner.cards, this) + 1];
 		} else {
 			return [];
 		}
 	}
 
 	/// 逃走するか否か。
+	const
 	bool escape() {
 		return _escape;
 	}
@@ -184,6 +194,7 @@ public:
 		_escape = escape;
 	}
 	/// キャストID。
+	const
 	ulong id() {
 		return _user.casts;
 	}
@@ -222,18 +233,21 @@ public:
 	}
 
 	/// XMLノードにして返す。
+	const
 	XNode toNode() {
 		auto e = XNode.create("EnemyCard");
 		toNodeImpl(e);
 		return e;
 	}
 	/// XMLノード(EnemyCards)にインスタンスのデータを追加する。
+	const
 	XNode toNode(ref XNode node) {
 		assert (node.name == "EnemyCards", node.name ~ " != EnemyCards");
 		auto e = node.newElement("EnemyCard");
 		toNodeImpl(e);
 		return e;
 	}
+	const
 	private void toNodeImpl(ref XNode e) {
 		e.newAttr("escape", fromBool(escape));
 		auto pe = e.newElement("Property");
@@ -250,7 +264,7 @@ public:
 
 		bool getId = false;
 
-		uint id;
+		long id;
 		bool escape = false;
 		string flag = "";
 		int x = 0, y = 0;
@@ -305,17 +319,18 @@ public:
 		_desc = desc;
 	}
 	string cwxPath() {
-		return _owner ? cpjoin(_owner, "menucard", indexOf!("a is b")(_owner.cards, this)) : "";
+		return _owner ? cpjoin(_owner, "menucard", .cCountUntil!("a is b")(_owner.cards, this)) : "";
 	}
 	override size_t[] areaPath() {
 		if (_owner) {
-			return [indexOf!("a is b")(_owner.cards, this) + 1];
+			return [.cCountUntil!("a is b")(_owner.cards, this) + 1];
 		} else {
 			return [];
 		}
 	}
 
 	/// カード名。
+	const
 	string name() {
 		return _name;
 	}
@@ -325,6 +340,7 @@ public:
 		_name = name;
 	}
 	/// 説明。
+	const
 	string desc() {
 		return _desc;
 	}
@@ -334,6 +350,7 @@ public:
 		_desc = desc;
 	}
 	/// 画像ファイルパス。
+	const
 	string path() {
 		return _user.path;
 	}
@@ -368,18 +385,21 @@ public:
 	}
 
 	/// XMLノードにして返す。
+	const
 	XNode toNode() {
 		auto e = XNode.create("MenuCard");
 		toNodeImpl(e);
 		return e;
 	}
 	/// XMLノード(MenuCards)にインスタンスのデータを追加する。
+	const
 	XNode toNode(ref XNode node) {
 		assert (node.name == "MenuCards", node.name ~ " != MenuCards");
 		auto e = node.newElement("MenuCard");
 		toNodeImpl(e);
 		return e;
 	}
+	const
 	private void toNodeImpl(ref XNode e) {
 		auto pe = e.newElement("Property");
 		pe.newElement("Name", _name);
@@ -433,6 +453,7 @@ public:
 		_name = name;
 	}
 	/// エリアID。
+	const
 	ulong id() {
 		return _id;
 	}
@@ -442,6 +463,7 @@ public:
 		_id = id;
 	}
 	/// エリア名。
+	const
 	string name() {
 		return _name;
 	}
@@ -451,10 +473,12 @@ public:
 		_name = name;
 	}
 
+	const
 	override int opCmp(Object o) {
-		return _id - (cast(AbstractArea) o)._id;
+		return cast(int) _id - cast(int) (cast(const(AbstractArea)) o)._id;
 	}
 
+	const
 	abstract string rootName();
 
 	override size_t[] areaPath() {return [0];}
@@ -462,6 +486,7 @@ public:
 	/// XMLテキスト化して返す。
 	/// Params:
 	/// summId = テキストに付与するID。nullを指定すると付与しない。
+	const
 	string toXML(string summId = null) {
 		scope doc = XNode.create(rootName);
 		toNodeImpl(doc);
@@ -470,19 +495,22 @@ public:
 	}
 
 	/// XMLノード化して返す。
+	const
 	XNode toNode(ref XNode parent) {
 		auto e = parent.newElement(rootName);
 		toNodeImpl(e);
 		return e;
 	}
+	const
 	abstract void toNodeImpl(ref XNode e);
 
 	/// toXML()でsummIdを指定されたノードを渡すと、summIdを読み出して返す。
 	static string summaryId(in XNode node) {
-		return node.attr("summaryId", false, cast(char[]) "");
+		return node.attr("summaryId", false, "");
 	}
 
 	/// 指定されたノードにProperty情報を追加する。
+	const
 	protected void appendProp(ref XNode pNode) {
 		assert (pNode.name == "Property", pNode.name ~ " != Property");
 		pNode.newElement("Id", _id);
@@ -538,9 +566,13 @@ public:
 		super.changeHandler = change;
 	}
 
+	const
 	override bool canHasFireLose() {return false;}
+	const
 	override bool canHasFireEscape() {return false;}
+	const
 	override bool canHasFireRound() {return false;}
+	const
 	override bool canHasFireKeyCode() {return true;}
 	EventTree etFromPath(size_t[] path) {
 		if (path[0] == 0) {
@@ -566,6 +598,7 @@ public:
 	}
 
 	/// オート配置か否か。
+	const
 	bool spAuto() {
 		return _auto;
 	}
@@ -662,10 +695,13 @@ public:
 		super.removeUseCounter;
 	}
 
+	const
 	override string rootName() {return "Area";}
 
+	const
 	override void toNodeImpl(ref XNode e) {
-		appendProp(e.newElement("Property"));
+		auto pNode = e.newElement("Property");
+		appendProp(pNode);
 
 		BgImage.toNode(_bgImgs, e);
 		auto ce = e.newElement("MenuCards");
@@ -790,7 +826,7 @@ public:
 	private AreaOwner _owner = null;
 	package void owner(AreaOwner owner) {_owner = owner;}
 	string cwxPath() {
-		return _owner ? cpjoin(_owner, "area", indexOf!("a is b")(_owner.areas, this)) : "";
+		return _owner ? cpjoin(_owner, "area", .cCountUntil!("a is b")(_owner.areas, this)) : "";
 	}
 	CWXPath findCWXPath(string path) {
 		if (path == "") return this;
@@ -829,10 +865,15 @@ public:
 	this(ulong id, string name) {
 		super(id, name);
 	}
+	const
 	override bool canHasFireEnter() {return false;}
+	const
 	override bool canHasFireLose() {return false;}
+	const
 	override bool canHasFireEscape() {return false;}
+	const
 	override bool canHasFireRound() {return false;}
+	const
 	override bool canHasFireKeyCode() {return false;}
 	EventTree etFromPath(size_t[] path) {
 		if (path[0] == 0) {
@@ -849,9 +890,12 @@ public:
 		super.add(evt);
 	}
 
+	const
 	override string rootName() {return "Package";}
+	const
 	override void toNodeImpl(ref XNode e) {
-		appendProp(e.newElement("Property"));
+		auto pNode = e.newElement("Property");
+		appendProp(pNode);
 		appendEventsToNode(e);
 	}
 
@@ -895,7 +939,7 @@ public:
 	private PackageOwner _owner = null;
 	package void owner(PackageOwner owner) {_owner = owner;}
 	string cwxPath() {
-		return _owner ? cpjoin(_owner, "package", indexOf!("a is b")(_owner.packages, this)) : "";
+		return _owner ? cpjoin(_owner, "package", .cCountUntil!("a is b")(_owner.packages, this)) : "";
 	}
 }
 
@@ -924,9 +968,13 @@ public:
 		}
 		super.changeHandler = change;
 	}
+	const
 	override bool canHasFireLose() {return true;}
+	const
 	override bool canHasFireEscape() {return true;}
+	const
 	override bool canHasFireRound() {return true;}
+	const
 	override bool canHasFireKeyCode() {return true;}
 	EventTree etFromPath(size_t[] path) {
 		if (path[0] == 0) {
@@ -942,6 +990,7 @@ public:
 		_music.path = music;
 	}
 	/// ditto
+	const
 	string music() {
 		return _music.path;
 	}
@@ -988,6 +1037,7 @@ public:
 	}
 
 	/// オート配置か否か。
+	const
 	bool spAuto() {
 		return _auto;
 	}
@@ -1017,7 +1067,9 @@ public:
 		_music.change(id);
 	}
 
+	const
 	override string rootName() {return "Battle";}
+	const
 	override void toNodeImpl(ref XNode e) {
 		auto pe = e.newElement("Property");
 		appendProp(pe);
@@ -1114,7 +1166,7 @@ public:
 	private BattleOwner _owner = null;
 	package void owner(BattleOwner owner) {_owner = owner;}
 	string cwxPath() {
-		return _owner ? cpjoin(_owner, "battle", indexOf!("a is b")(_owner.battles, this)) : "";
+		return _owner ? cpjoin(_owner, "battle", .cCountUntil!("a is b")(_owner.battles, this)) : "";
 	}
 	CWXPath findCWXPath(string path) {
 		if (path == "") return this;

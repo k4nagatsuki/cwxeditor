@@ -17,12 +17,15 @@ import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.sbshell;
 
-import std.date;
+import core.thread;
+
+import std.array;
+import std.conv;
+import std.datetime;
 import std.file;
 import std.path;
 import std.string;
 import std.process;
-import std.thread;
 import std.utf;
 debug import std.stdio;
 
@@ -112,16 +115,20 @@ version (Windows) {
 
 private struct FC {
 	string path;
-	d_time time;
-	int opEquals(FC fc) {
+	SysTime time;
+	const
+	bool opEquals(ref const(FC) fc) {
 		return path == fc.path && time == fc.time;
 	}
-	int opCmp(FC fc) {
-		int r = time - fc.time;
-		return r == 0 ? std.string.cmp(path, fc.path) : r;
+	const
+	int opCmp(ref const(FC) fc) {
+		if (time < fc.time) return -1;
+		if (time > fc.time) return 1;
+		return 0;
 	}
+	const
 	string toString() {
-		return std.date.toUTCString(time) ~ "\t" ~ path;
+		return time.toISOExtendedString ~ "\t" ~ path;
 	}
 }
 
@@ -237,13 +244,13 @@ private:
 					FC fc;
 					fc.path = path;
 					if (.isdir(path)) {
-						fc.time = d_time_nan;
+						fc.time = SysTime.init;
 						fcs ~= fc;
 						foreach (c; clistdir(path)) {
 							list(std.path.join(path, c));
 						}
 					} else {
-						fc.time = lastModified(path);
+						fc.time = timeLastModified(path);
 						fcs ~= fc;
 					}
 				}
@@ -467,7 +474,7 @@ private:
 
 	// isCardImage()は時間がかかるので別スレッドで実行。
 	private Display _display = null;
-	private std.thread.Thread _fimgThr = null;
+	private core.thread.Thread _fimgThr = null;
 	private bool _fimgStop = false;
 	private string[] _fimgPs;
 	private void fimageThrStart() {
@@ -479,13 +486,13 @@ private:
 			}
 		}
 		assert (!_fimgThr);
-		_fimgThr = new std.thread.Thread(&fimageThr);
+		_fimgThr = new core.thread.Thread(&fimageThr);
 		_fimgThr.start;
 	}
 	private void fimageThrStop() {
 		if (_fimgThr) {
 			_fimgStop = true;
-			_fimgThr.wait;
+			_fimgThr.join;
 			_fimgThr = null;
 		}
 	}
@@ -507,7 +514,7 @@ private:
 			} catch {}
 		}
 	}
-	private int fimageThr() {
+	private void fimageThr() {
 		try {
 			_fimgStop = false;
 			auto skin = _comm.skin;
@@ -518,9 +525,8 @@ private:
 				}
 			}
 			_fimgPs.length = 0u;
-			return 0;
-		} catch {
-			return -1;
+		} catch (Exception e) {
+			debugln(e);
 		}
 	}
 	Image fimage(Image img) {
@@ -537,6 +543,7 @@ private:
 		} else if (img is _prop.images.unknown || img is _sImgUnknown) {
 			return _prop.images.unknown;
 		}
+		assert (0);
 	}
 	Image sfimage(Image img) {
 		if (img is _prop.images.folder || img is _sImgFolder) {
@@ -552,6 +559,7 @@ private:
 		} else if (img is _prop.images.unknown || img is _sImgUnknown) {
 			return _sImgUnknown;
 		}
+		assert (0);
 	}
 	Image fimage(Skin skin, string file) {
 		if (skin.isBgImage(file)) {
@@ -753,7 +761,6 @@ private:
 				if (exists.length > 0) {
 					auto dlg = new MessageBox
 						(_win.getShell, SWT.ICON_QUESTION | SWT.YES | SWT.NO | SWT.CANCEL);
-					scope (exit) dlg.dispose;
 					dlg.setText = _prop.msgs.dlgTitQuestion;
 					dlg.setMessage = _prop.msgs.dlgMsgDropOverWriteFiles(exists);
 					int r = dlg.open;
@@ -878,9 +885,9 @@ private:
 		auto path = (cast(FileNameObj) itm.getData).array;
 		string frp = toRelPath(path);
 		string frd = nabs(path);
-		newName = std.string.replace(newName, sep, "");
+		newName = std.array.replace(newName, sep, "");
 		static if (altsep.length) {
-			newName = std.string.replace(newName, altsep, "");
+			newName = std.array.replace(newName, altsep, "");
 		}
 		auto to = std.path.join(getDirName(path), newName);
 		bool isdir = cast(bool) .isdir(path);
@@ -1160,9 +1167,9 @@ private:
 		}
 	}
 	private Runnable _refreshThr;
-	private std.thread.Thread _traceThr = null;
+	private core.thread.Thread _traceThr = null;
 	private bool _onTrace = true;
-	private int trace() {
+	private void trace() {
 		Summary summ = null;
 		void sleep() {
 			version (Windows) {
@@ -1339,7 +1346,6 @@ private:
 			}
 		}
 		debug writefln("Exit Trace Thread");
-		return 0;
 	}
 	void refreshStatusLine() {
 		ulong size;
@@ -1359,7 +1365,7 @@ public:
 		// FXIME: 本当は素材管理ウィンドウ非表示時は止めておきたかったが
 		// シナリオ読込み後のスレッドの開始に失敗する事があるので常時起動
 		_refreshThr = new RefreshThr;
-		_traceThr = new std.thread.Thread(&trace);
+		_traceThr = new core.thread.Thread(&trace);
 		_traceThr.start;
 	}
 	void reconstruct(Composite parent) {
@@ -1686,7 +1692,7 @@ public:
 	void quitTrace() {
 		if (!_traceThr) return;
 		_onTrace = false;
-		_traceThr.wait;
+		_traceThr.join;
 	}
 
 	override void cut(SelectionEvent se) {
@@ -1775,7 +1781,6 @@ public:
 			if (!_dirs.getSelection[0].getParentItem) return;
 		}
 		auto dlg = new MessageBox(_win.getShell, SWT.ICON_QUESTION | SWT.OK | SWT.CANCEL);
-		scope (exit) dlg.dispose;
 		dlg.setText = _prop.msgs.dlgTitQuestion;
 		auto dir = selDirPath;
 		auto file = selFiles;

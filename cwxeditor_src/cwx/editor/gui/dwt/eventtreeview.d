@@ -23,6 +23,8 @@ import cwx.editor.gui.dwt.xmlbytestransfer;
 import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.properties;
 
+import std.algorithm;
+import std.conv;
 import std.string;
 
 import org.eclipse.swt.widgets.Control;
@@ -191,7 +193,8 @@ private:
 		this (Content[] cs) {
 			foreach (c; cs) {
 				_path ~= c.ctPath;
-				_c ~= Content.createFromNode(c.toNode, LATEST_VERSION);
+				auto node = c.toNode;
+				_c ~= Content.createFromNode(node, LATEST_VERSION);
 				_c[$ - 1].setUseCounter(_summ.useCounter.sub);
 			}
 		}
@@ -199,7 +202,8 @@ private:
 			udb;
 			scope (exit) uda;
 			foreach (i, c; _c.dup) {
-				_c[i] = Content.createFromNode(_et.fromPath(_path[i]).toNode, LATEST_VERSION);
+				auto node = _et.fromPath(_path[i]).toNode;
+				_c[i] = Content.createFromNode(node, LATEST_VERSION);
 				_c[i].setUseCounter(_summ.useCounter.sub);
 				auto now = fromPath(_path[i]);
 				_tree.setRedraw = false;
@@ -264,7 +268,8 @@ private:
 			scope (exit) uda;
 			_tree.setRedraw = false;
 			scope (exit) _tree.setRedraw = true;
-			_c = Content.createFromNode(_et.starts[_index].toNode, LATEST_VERSION);
+			auto node = _et.starts[_index].toNode;
+			_c = Content.createFromNode(node, LATEST_VERSION);
 			_c.setUseCounter(_summ.useCounter.sub);
 			delImpl(_tree.getItem(_index), false);
 			refreshStatusLine;
@@ -288,7 +293,8 @@ private:
 		private Content _c;
 		this (int index, Content del) {
 			_index = index;
-			_c = Content.createFromNode(del.toNode, LATEST_VERSION);
+			auto node = del.toNode;
+			_c = Content.createFromNode(node, LATEST_VERSION);
 			_c.setUseCounter(_summ.useCounter.sub);
 		}
 		override void undo() {
@@ -2224,7 +2230,7 @@ public:
 			if (store) this.store(owner);
 			owner.remove(c);
 		} else {
-			if (store) this.store(cwx.utils.indexOf!("a is b")(_et.starts, c), c);
+			if (store) this.store(.cCountUntil!("a is b")(_et.starts, c), c);
 			_et.remove(c);
 		}
 		itm.dispose;
