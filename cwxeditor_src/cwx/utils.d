@@ -1104,7 +1104,7 @@ version (Windows) {
 		int r;
 		wchar[] procTemp;
 		procTemp.length = process.length + 1;
-		procTemp[0 .. $] = toUTF16z(process)[process.length];
+		procTemp[0 .. $] = toUTF16z(process)[0 .. procTemp.length];
 		r = CreateProcessW(null, procTemp.ptr, null, null, false, flag, null,
 			workDir.length ? toUTF16z(workDir) : null, &setup, &info);
 		if (r) {

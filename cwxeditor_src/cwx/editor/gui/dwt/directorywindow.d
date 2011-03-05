@@ -490,28 +490,27 @@ private:
 		_fimgThr.start;
 	}
 	private void fimageThrStop() {
-		if (_fimgThr) {
-			_fimgStop = true;
-			_fimgThr.join;
-			_fimgThr = null;
+		synchronized (FImgUpdThr.classinfo) {
+			if (_fimgThr) {
+				_fimgStop = true;
+				_fimgThr.join;
+				_fimgThr = null;
+			}
 		}
 	}
 	private class FImgUpdThr : Runnable {
 		private string _file;
 		this (string file) {_file = file;}
 		override void run() {
-			try {
-				foreach (itm; _files.getItems) {
-					if (!itm.isDisposed && fnmatch((cast(FileNameObj) itm.getData).array, _file)) {
-						if (isCutted(_file)) {
-							itm.setImage(_sImgCards);
-						} else {
-							itm.setImage(_prop.images.cards);
-						}
+			foreach (itm; _files.getItems) {
+				if (!itm.isDisposed && fnmatch((cast(FileNameObj) itm.getData).array, _file)) {
+					if (isCutted(_file)) {
+						itm.setImage(_sImgCards);
+					} else {
+						itm.setImage(_prop.images.cards);
 					}
 				}
-				_files.redraw;
-			} catch {}
+			}
 		}
 	}
 	private void fimageThr() {
@@ -527,6 +526,9 @@ private:
 			_fimgPs.length = 0u;
 		} catch (Exception e) {
 			debugln(e);
+		}
+		synchronized (FImgUpdThr.classinfo) {
+			_fimgThr = null;
 		}
 	}
 	Image fimage(Image img) {

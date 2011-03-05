@@ -45,6 +45,7 @@ import cwx.editor.gui.dwt.flagspane;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.utils;
 
+import org.eclipse.swt.SWTException;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.KeyListener;
@@ -503,6 +504,7 @@ private:
 		foreach (i, h; hists) {
 			if (std.path.fnmatch(h, hist)) {
 				_prop.var.etc.openHistories = hists[0 .. i] ~ hists[i + 1 .. $];
+				hists = _prop.var.etc.openHistories_const.dup;
 				break;
 			}
 		}
@@ -1620,6 +1622,8 @@ public:
 						d.sleep;
 					}
 				} catch (Throwable e) {
+					auto swte = cast(SWTException) e;
+					if (swte) swte.printStackTrace;
 					_win.setVisible = true;
 					fdebugln(e.msg ~ ", " ~ e.file ~ ", " ~ to!(string)(e.line));
 					auto dlg = new MessageBox(_win, SWT.ICON_ERROR | SWT.OK);

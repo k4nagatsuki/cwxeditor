@@ -1,6 +1,6 @@
 diff -r b6e9904989ed base/src/java/beans/PropertyChangeSupport.d
 --- a/base/src/java/beans/PropertyChangeSupport.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/base/src/java/beans/PropertyChangeSupport.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/base/src/java/beans/PropertyChangeSupport.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -24,7 +24,10 @@
              list = *l;
          }
@@ -27,7 +27,7 @@ diff -r b6e9904989ed base/src/java/beans/PropertyChangeSupport.d
                  listeners.remove( propertyName );
 diff -r b6e9904989ed base/src/java/io/BufferedInputStream.d
 --- a/base/src/java/io/BufferedInputStream.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/base/src/java/io/BufferedInputStream.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/base/src/java/io/BufferedInputStream.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -54,30 +54,34 @@
              istr = null;
          }
@@ -79,7 +79,7 @@ diff -r b6e9904989ed base/src/java/io/BufferedInputStream.d
      public synchronized void mark( int readlimit ){
 diff -r b6e9904989ed base/src/java/io/ByteArrayInputStream.d
 --- a/base/src/java/io/ByteArrayInputStream.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/base/src/java/io/ByteArrayInputStream.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/base/src/java/io/ByteArrayInputStream.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -25,36 +25,42 @@
          this.buf = aBuf[ offset .. offset+length_ESCAPE ];
      }
@@ -141,7 +141,7 @@ diff -r b6e9904989ed base/src/java/io/ByteArrayInputStream.d
      public synchronized void reset(){
 diff -r b6e9904989ed base/src/java/io/ByteArrayOutputStream.d
 --- a/base/src/java/io/ByteArrayOutputStream.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/base/src/java/io/ByteArrayOutputStream.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/base/src/java/io/ByteArrayOutputStream.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -34,46 +34,56 @@
          }
      }
@@ -226,7 +226,7 @@ diff -r b6e9904989ed base/src/java/io/ByteArrayOutputStream.d
  
 diff -r b6e9904989ed base/src/java/io/FileInputStream.d
 --- a/base/src/java/io/FileInputStream.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/base/src/java/io/FileInputStream.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/base/src/java/io/FileInputStream.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -10,6 +10,7 @@
  version(Tango){
      import TangoFile = tango.io.device.File;
@@ -303,7 +303,7 @@ diff -r b6e9904989ed base/src/java/io/FileInputStream.d
  }
 diff -r b6e9904989ed base/src/java/lang/Character.d
 --- a/base/src/java/lang/Character.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/base/src/java/lang/Character.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/base/src/java/lang/Character.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -155,7 +155,7 @@
  
  bool CharacterIsDefined( dchar ch ){
@@ -315,7 +315,7 @@ diff -r b6e9904989ed base/src/java/lang/Character.d
          return false;
 diff -r b6e9904989ed base/src/java/lang/Integer.d
 --- a/base/src/java/lang/Integer.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/base/src/java/lang/Integer.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/base/src/java/lang/Integer.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -4,9 +4,12 @@
  import java.lang.exceptions;
  import java.lang.Number;
@@ -365,7 +365,22 @@ diff -r b6e9904989ed base/src/java/lang/Integer.d
          }
      }
  
-@@ -145,7 +148,7 @@
+@@ -92,8 +95,12 @@
+                 throw new NumberFormatException( e );
+             }
+         } else { // Phobos
+-            implMissing( __FILE__, __LINE__ );
+-            return 0;
++            try{
++            	return std.conv.parse!(int)( s, radix );
++            }
++            catch( std.conv.ConvException e ){
++                throw new NumberFormatException( e );
++            }
+         }
+     }
+ 
+@@ -145,7 +152,7 @@
          version(Tango){
              return tango.text.convert.Integer.toString( value );
          } else { // Phobos
@@ -376,7 +391,7 @@ diff -r b6e9904989ed base/src/java/lang/Integer.d
  
 diff -r b6e9904989ed base/src/java/lang/Math.d
 --- a/base/src/java/lang/Math.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/base/src/java/lang/Math.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/base/src/java/lang/Math.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -28,7 +28,7 @@
      static int    min(uint   a, int    b){ return a < b ? a : b; }
      static int    min(int    a, uint   b){ return a < b ? a : b; }
@@ -397,7 +412,7 @@ diff -r b6e9904989ed base/src/java/lang/Math.d
  
 diff -r b6e9904989ed base/src/java/lang/String.d
 --- a/base/src/java/lang/String.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/base/src/java/lang/String.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/base/src/java/lang/String.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -14,7 +14,10 @@
      static import core.exception;
      static import std.uni;
@@ -422,7 +437,17 @@ diff -r b6e9904989ed base/src/java/lang/String.d
  }
  
  int codepointIndexToIndex( CString str, int cpIndex ){
-@@ -402,8 +405,7 @@
+@@ -153,8 +156,7 @@
+         buf[0] = key;
+         return tango.text.convert.Utf.toString( buf );
+     } else { // Phobos
+-        implMissing( __FILE__, __LINE__ );
+-        return null;
++        return std.conv.to!(string)(key);
+     }
+ }
+ 
+@@ -402,8 +404,7 @@
      version(Tango){
          return tango.text.convert.Integer.toString(v);
      } else { // Phobos
@@ -432,7 +457,7 @@ diff -r b6e9904989ed base/src/java/lang/String.d
      }
  }
  
-@@ -411,8 +413,7 @@
+@@ -411,8 +412,7 @@
      version(Tango){
          return tango.text.convert.Integer.toString(v);
      } else { // Phobos
@@ -442,7 +467,7 @@ diff -r b6e9904989ed base/src/java/lang/String.d
      }
  }
  
-@@ -420,8 +421,7 @@
+@@ -420,8 +420,7 @@
      version(Tango){
          return tango.text.convert.Integer.toString(v);
      } else { // Phobos
@@ -452,7 +477,7 @@ diff -r b6e9904989ed base/src/java/lang/String.d
      }
  }
  
-@@ -429,8 +429,7 @@
+@@ -429,8 +428,7 @@
      version(Tango){
          return tango.text.convert.Float.toString(v);
      } else { // Phobos
@@ -462,7 +487,7 @@ diff -r b6e9904989ed base/src/java/lang/String.d
      }
  }
  
-@@ -438,8 +437,7 @@
+@@ -438,8 +436,7 @@
      version(Tango){
          return tango.text.convert.Float.toString(v);
      } else { // Phobos
@@ -472,7 +497,7 @@ diff -r b6e9904989ed base/src/java/lang/String.d
      }
  }
  
-@@ -471,8 +469,7 @@
+@@ -471,8 +468,7 @@
      version(Tango){
          return tango.text.convert.Utf.toString(wstr);
      } else { // Phobos
@@ -482,7 +507,7 @@ diff -r b6e9904989ed base/src/java/lang/String.d
      }
  }
  
-@@ -503,8 +500,7 @@
+@@ -503,8 +499,7 @@
          if( res is str.length ) res = -1;
          return res;
      } else { // Phobos
@@ -492,7 +517,7 @@ diff -r b6e9904989ed base/src/java/lang/String.d
      }
  }
  
-@@ -515,8 +511,9 @@
+@@ -515,8 +510,9 @@
          if( res is str.length ) res = -1;
          return res;
      } else { // Phobos
@@ -504,7 +529,7 @@ diff -r b6e9904989ed base/src/java/lang/String.d
      }
  }
  
-@@ -582,8 +579,8 @@
+@@ -582,8 +578,8 @@
      version(Tango){
          return tango.text.Util.replace( str.dup, from, to );
      } else { // Phobos
@@ -515,7 +540,7 @@ diff -r b6e9904989ed base/src/java/lang/String.d
      }
  }
  
-@@ -627,8 +624,7 @@
+@@ -627,8 +623,7 @@
      version(Tango){
          return tango.text.convert.Utf.toString16(str);
      } else { // Phobos
@@ -525,9 +550,19 @@ diff -r b6e9904989ed base/src/java/lang/String.d
      }
  }
  
+@@ -704,8 +699,7 @@
+     version(Tango){
+         return tango.text.Util.trim( str ).dup;
+     } else { // Phobos
+-        implMissing( __FILE__, __LINE__ );
+-        return null;
++        return std.string.strip( str.idup );
+     }
+ }
+ 
 diff -r b6e9904989ed base/src/java/lang/System.d
 --- a/base/src/java/lang/System.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/base/src/java/lang/System.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/base/src/java/lang/System.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -15,7 +15,7 @@
      static import tango.stdc.stdlib;
  } else { // Phobos
@@ -616,7 +651,7 @@ diff -r b6e9904989ed base/src/java/lang/System.d
      static void exit( int code ){
 diff -r b6e9904989ed base/src/java/lang/Thread.d
 --- a/base/src/java/lang/Thread.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/base/src/java/lang/Thread.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/base/src/java/lang/Thread.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -56,11 +56,11 @@
      public this(Runnable runnable, String name){
          thread = new TThread(&internalRun);
@@ -642,7 +677,7 @@ diff -r b6e9904989ed base/src/java/lang/Thread.d
          return cast(String)thread.name;
 diff -r b6e9904989ed base/src/java/lang/ThreadLocal.d
 --- a/base/src/java/lang/ThreadLocal.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/base/src/java/lang/ThreadLocal.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/base/src/java/lang/ThreadLocal.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -1,22 +1,39 @@
  module java.lang.ThreadLocal;
  import java.lang.util;
@@ -700,7 +735,7 @@ diff -r b6e9904989ed base/src/java/lang/ThreadLocal.d
 -
 diff -r b6e9904989ed base/src/java/lang/exceptions.d
 --- a/base/src/java/lang/exceptions.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/base/src/java/lang/exceptions.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/base/src/java/lang/exceptions.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -132,7 +132,7 @@
  
  class RuntimeException : Exception {
@@ -778,7 +813,7 @@ diff -r b6e9904989ed base/src/java/lang/exceptions.d
  }
 diff -r b6e9904989ed base/src/java/lang/util.d
 --- a/base/src/java/lang/util.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/base/src/java/lang/util.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/base/src/java/lang/util.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -16,6 +16,9 @@
      static import core.exception;
      static import std.c.stdlib;
@@ -820,7 +855,7 @@ diff -r b6e9904989ed base/src/java/lang/util.d
          return str.dup;
 diff -r b6e9904989ed base/src/java/math/BigDecimal.d
 --- a/base/src/java/math/BigDecimal.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/base/src/java/math/BigDecimal.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/base/src/java/math/BigDecimal.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -45,7 +45,7 @@
           * and bogus scale calculation.
           */
@@ -841,7 +876,7 @@ diff -r b6e9904989ed base/src/java/math/BigDecimal.d
      this(String val){
 diff -r b6e9904989ed base/src/java/math/BigInteger.d
 --- a/base/src/java/math/BigInteger.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/base/src/java/math/BigInteger.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/base/src/java/math/BigInteger.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -5,6 +5,7 @@
  version(Tango){
      import tango.math.BigInt;
@@ -990,9 +1025,99 @@ diff -r b6e9904989ed base/src/java/math/BigInteger.d
          return 1;
      }
      BigInteger subtract(BigInteger val){
+diff -r b6e9904989ed base/src/java/nonstandard/Locale.d
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/base/src/java/nonstandard/Locale.d	Sat Mar 05 16:24:06 2011 +0900
+@@ -0,0 +1,86 @@
++/**
++ * Locale.d
++ * Information of a locale.
++ * License: Public Domain
++ * Author: knt
++ */
++module java.nonstandard.locale;
++
++import java.lang.String;
++import java.lang.util : implMissing;
++
++version(Tango){
++    private import tango.text.locale.Core;
++} else { // Phobos
++    private import std.conv;
++    private import std.exception;
++}
++version (Windows) {
++    private import std.c.string;
++    private import std.c.windows.windows;
++    private extern (Windows) {
++        enum LCID : DWORD {
++            /// The default locale for the user or process.
++            LOCALE_USER_DEFAULT     = 0x0400,
++        }
++        enum LCTYPE : DWORD {
++            /// ISO639 language name.
++            LOCALE_SISO639LANGNAME  = 0x0059,
++            /// ISO3166 country name.
++            LOCALE_SISO3166CTRYNAME = 0x005A
++        }
++        /// Retrieves information about a locale specified by identifier.
++        /// See_Also: GetLocaleInfo Function (Windows)
++        ///           (http://msdn.microsoft.com/en-us/library/dd318101%28VS.85%29.aspx)
++        INT GetLocaleInfoW(
++            LCID Locale,
++            LCTYPE LCType,
++            LPWSTR lpLCData,
++            INT cchData
++        );
++        /// ditto
++        INT GetLocaleInfoA(
++            LCID Locale,
++            LCTYPE LCType,
++            LPCSTR lpLCData,
++            INT cchData
++        );
++    }
++}
++
++/// Get a omitted calture name. for example: "en-US"
++String caltureName() {
++    version(Tango){
++        return Culture.current.name;
++    } else { // Phobos
++        version (Windows) {
++            INT len;
++            wchar[] res;
++            wchar[] buf;
++            len = GetLocaleInfoW(LCID.LOCALE_USER_DEFAULT,
++                LCTYPE.LOCALE_SISO639LANGNAME, null, 0);
++            enforce(len, new Exception("LOCALE_SISO639LANGNAME (len)", __FILE__, __LINE__));
++            buf.length = len;
++            len = GetLocaleInfoW(LCID.LOCALE_USER_DEFAULT,
++                LCTYPE.LOCALE_SISO639LANGNAME, buf.ptr, buf.length);
++            enforce(len, new Exception("LOCALE_SISO639LANGNAME", __FILE__, __LINE__));
++            res ~= buf[0 .. len - 1];
++            res ~= "-";
++            len = GetLocaleInfoW(LCID.LOCALE_USER_DEFAULT,
++                LCTYPE.LOCALE_SISO3166CTRYNAME, null, 0);
++            enforce(len, new Exception("LOCALE_SISO3166CTRYNAME (len)", __FILE__, __LINE__));
++            buf.length = len;
++            len = GetLocaleInfoW(LCID.LOCALE_USER_DEFAULT,
++                LCTYPE.LOCALE_SISO3166CTRYNAME, buf.ptr, buf.length);
++            enforce(len, new Exception("LOCALE_SISO3166CTRYNAME", __FILE__, __LINE__));
++            res ~= buf[0 .. len - 1];
++            return to!(String)(res);
++        } else version (Posix) {
++            implMissing(__FILE__, __LINE__);
++            return "";
++        } else {
++            implMissing(__FILE__, __LINE__);
++            return "";
++        }
++    }
++}
 diff -r b6e9904989ed base/src/java/nonstandard/RuntimeTraits.d
 --- a/base/src/java/nonstandard/RuntimeTraits.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/base/src/java/nonstandard/RuntimeTraits.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/base/src/java/nonstandard/RuntimeTraits.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -267,13 +267,24 @@
  }
  
@@ -1027,7 +1152,7 @@ diff -r b6e9904989ed base/src/java/nonstandard/RuntimeTraits.d
  /// Returns a list of interfaces that this class directly implements.
 diff -r b6e9904989ed base/src/java/nonstandard/SharedLib.d
 --- a/base/src/java/nonstandard/SharedLib.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/base/src/java/nonstandard/SharedLib.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/base/src/java/nonstandard/SharedLib.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -4,6 +4,8 @@
  version(Tango){
      static import tango.sys.SharedLib;
@@ -1109,7 +1234,7 @@ diff -r b6e9904989ed base/src/java/nonstandard/SharedLib.d
      }
 diff -r b6e9904989ed base/src/java/nonstandard/XmlTranscode.d
 --- a/base/src/java/nonstandard/XmlTranscode.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/base/src/java/nonstandard/XmlTranscode.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/base/src/java/nonstandard/XmlTranscode.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -138,8 +138,8 @@
                  case '\r': case '\n': case '\u0009':
                  default:
@@ -1130,7 +1255,7 @@ diff -r b6e9904989ed base/src/java/nonstandard/XmlTranscode.d
  
 diff -r b6e9904989ed base/src/java/text/MessageFormat.d
 --- a/base/src/java/text/MessageFormat.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/base/src/java/text/MessageFormat.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/base/src/java/text/MessageFormat.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -14,6 +14,7 @@
          case 5: return java.lang.util.Format(frmt, args[0], args[1], args[2], args[3], args[4]);
          default:
@@ -1141,7 +1266,7 @@ diff -r b6e9904989ed base/src/java/text/MessageFormat.d
  }
 diff -r b6e9904989ed base/src/java/util/HashMap.d
 --- a/base/src/java/util/HashMap.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/base/src/java/util/HashMap.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/base/src/java/util/HashMap.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -9,27 +9,26 @@
  
  version(Tango){
@@ -1189,7 +1314,7 @@ diff -r b6e9904989ed base/src/java/util/HashMap.d
      version(Tango){
 diff -r b6e9904989ed base/src/java/util/Hashtable.d
 --- a/base/src/java/util/Hashtable.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/base/src/java/util/Hashtable.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/base/src/java/util/Hashtable.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -64,25 +64,29 @@
      Enumeration        keys() {
          return new ObjectEnumeration( map.keys );
@@ -1304,7 +1429,7 @@ diff -r b6e9904989ed base/src/java/util/Hashtable.d
          implMissing( __FILE__, __LINE__ );
 diff -r b6e9904989ed base/src/java/util/LinkedList.d
 --- a/base/src/java/util/LinkedList.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/base/src/java/util/LinkedList.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/base/src/java/util/LinkedList.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -86,7 +86,6 @@
              list.clear();
          } else { // Phobos
@@ -1315,7 +1440,7 @@ diff -r b6e9904989ed base/src/java/util/LinkedList.d
      Object     clone(){
 diff -r b6e9904989ed base/src/java/util/Random.d
 --- a/base/src/java/util/Random.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/base/src/java/util/Random.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/base/src/java/util/Random.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -25,7 +25,8 @@
          version(Tango){
              return kiss.toInt(2) is 0;
@@ -1328,16 +1453,70 @@ diff -r b6e9904989ed base/src/java/util/Random.d
  }
 diff -r b6e9904989ed base/src/java/util/ResourceBundle.d
 --- a/base/src/java/util/ResourceBundle.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/base/src/java/util/ResourceBundle.d	Tue Mar 01 23:59:05 2011 +0900
-@@ -13,6 +13,7 @@
++++ b/base/src/java/util/ResourceBundle.d	Sat Mar 05 16:24:06 2011 +0900
+@@ -8,11 +8,12 @@
+ import java.lang.exceptions;
+ import java.util.MissingResourceException;
+ import java.util.Enumeration;
++import java.nonstandard.locale;
+ version(Tango){
+     //import tango.text.Util;
      import tango.io.device.File;
-     import tango.text.locale.Core;
+-    import tango.text.locale.Core;
  } else { // Phobos
 +    import std.file;
  }
  
  
-@@ -182,7 +183,7 @@
+@@ -24,32 +25,28 @@
+      + First entry is the default entry if no maching locale is found
+      +/
+     public this( ImportData[] data ){
+-        version(Tango){
+-            char[] name = Culture.current().name.dup;
+-            if( name.length is 5 && name[2] is '-' ){
+-                name[2] = '_';
+-                char[] end = "_" ~ name ~ ".properties";
+-                foreach( entry; data ){
+-                    if( entry.name.length > end.length && entry.name[ $-end.length .. $ ] == end ){
+-                        //Trace.formatln( "ResourceBundle {}", entry.name );
+-                        initialize( cast(char[])entry.data );
+-                        return;
+-                    }
+-                }
+-            }
+-            char[] end = "_" ~ name[0..2] ~ ".properties";
++        char[] name = caltureName.dup;
++        if( name.length is 5 && name[2] is '-' ){
++            name[2] = '_';
++            char[] end = "_" ~ name ~ ".properties";
+             foreach( entry; data ){
+                 if( entry.name.length > end.length && entry.name[ $-end.length .. $ ] == end ){
+                     //Trace.formatln( "ResourceBundle {}", entry.name );
+-                    initialize( cast(char[])entry.data );
++                    initialize( cast(String)entry.data );
+                     return;
+                 }
+             }
+-            //Trace.formatln( "ResourceBundle default" );
+-            initialize( cast(char[])data[0].data );
+-        } else { // Phobos
+-            implMissing(__FILE__,__LINE__);
+         }
++        char[] end = "_" ~ name[0..2] ~ ".properties";
++        foreach( entry; data ){
++            if( entry.name.length > end.length && entry.name[ $-end.length .. $ ] == end ){
++                //Trace.formatln( "ResourceBundle {}", entry.name );
++                initialize( cast(String)entry.data );
++                return;
++            }
++        }
++        //Trace.formatln( "ResourceBundle default" );
++        initialize( cast(String)data[0].data );
+     }
+     public this( ImportData data ){
+         initialize( cast(String)data.data );
+@@ -182,7 +179,7 @@
              version(Tango){
                  return new ResourceBundle( cast(String) File.get(name) );
              } else { // Phobos
@@ -1348,7 +1527,7 @@ diff -r b6e9904989ed base/src/java/util/ResourceBundle.d
          catch( IOException e){
 diff -r b6e9904989ed base/src/java/util/zip/InflaterInputStream.d
 --- a/base/src/java/util/zip/InflaterInputStream.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/base/src/java/util/zip/InflaterInputStream.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/base/src/java/util/zip/InflaterInputStream.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -6,7 +6,7 @@
  import java.lang.all;
  import java.io.InputStream;
@@ -1360,7 +1539,7 @@ diff -r b6e9904989ed base/src/java/util/zip/InflaterInputStream.d
          pragma(lib,"zlib.lib");
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet128.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet128.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet128.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet128.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -59,7 +59,7 @@
  
  public static void main(String [] args) {
@@ -1381,7 +1560,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
      data.horizontalSpan = 2;
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet130a.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet130a.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet130a.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet130a.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -33,10 +33,15 @@
  
  import java.lang.all;
@@ -1446,7 +1625,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
  }
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet133.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet133.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet133.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet133.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -52,8 +52,14 @@
  
  // tango
@@ -1488,7 +1667,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
                      }
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet136.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet136.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet136.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet136.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -31,7 +31,11 @@
  
  import java.lang.all;
@@ -1517,7 +1696,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
  		browser.setText(html);
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet14.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet14.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet14.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet14.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -26,7 +26,11 @@
  
  import java.lang.all;
@@ -1572,7 +1751,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
      shell.open ();
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet140.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet140.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet140.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet140.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -33,8 +33,13 @@
  import org.eclipse.swt.events.SelectionAdapter;
  import org.eclipse.swt.layout.GridLayout;
@@ -1599,7 +1778,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
          if (width > minWidth) minWidth = width;
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet142.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet142.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet142.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet142.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -30,8 +30,12 @@
  
  import java.lang.all;
@@ -1630,7 +1809,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
      Thread thread = new Thread({
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet143.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet143.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet143.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet143.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -30,49 +30,83 @@
  import org.eclipse.swt.widgets.TrayItem;
  import org.eclipse.swt.widgets.Listener;
@@ -1728,7 +1907,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
              if (i == 0) menu.setDefaultItem(mi);
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet144.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet144.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet144.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet144.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -31,10 +31,17 @@
  import org.eclipse.swt.widgets.TableItem;
  import org.eclipse.swt.layout.RowLayout;
@@ -1794,7 +1973,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
      });
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet146.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet146.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet146.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet146.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -28,8 +28,14 @@
  
  import java.lang.all;
@@ -1833,7 +2012,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
                  Event event = new Event();
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet147.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet147.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet147.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet147.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -29,7 +29,11 @@
  import org.eclipse.swt.widgets.Shell;
  import java.lang.all;
@@ -1875,7 +2054,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
      shell.setDefaultButton(button);
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet15.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet15.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet15.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet15.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -24,8 +24,13 @@
  import org.eclipse.swt.widgets.Shell;
  import org.eclipse.swt.widgets.Tree;
@@ -1914,7 +2093,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
          }
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet150.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet150.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet150.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet150.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -35,15 +35,20 @@
  import org.eclipse.swt.layout.FormLayout;
  import org.eclipse.swt.layout.FormData;
@@ -1949,7 +2128,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
      createItem(coolBar, 2);
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet152.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet152.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet152.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet152.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -32,6 +32,7 @@
  import org.eclipse.swt.layout.FormLayout;
  import org.eclipse.swt.layout.FormData;
@@ -1978,7 +2157,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
          MenuItem item = new MenuItem(editMenu, SWT.PUSH);
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet153.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet153.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet153.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet153.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -27,8 +27,9 @@
  import org.eclipse.swt.widgets.ToolBar;
  import org.eclipse.swt.widgets.ToolItem;
@@ -2001,7 +2180,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
              }
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet16.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet16.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet16.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet16.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -25,22 +25,34 @@
  
  import java.lang.all;
@@ -2046,7 +2225,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
      display.timerExec (time, timer);
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet162.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet162.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet162.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet162.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -46,15 +46,15 @@
  
  public class Snippet162 {
@@ -2068,7 +2247,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
          TableColumn column3 = new TableColumn (table, SWT.NONE);
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet165.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet165.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet165.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet165.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -33,8 +33,13 @@
  import org.eclipse.swt.widgets.Display;
  import org.eclipse.swt.widgets.Shell;
@@ -2099,7 +2278,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
      }
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet169.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet169.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet169.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet169.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -31,7 +31,11 @@
  import org.eclipse.swt.layout.FillLayout;
  
@@ -2133,7 +2312,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
          }
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet170.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet170.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet170.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet170.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -29,13 +29,17 @@
  import org.eclipse.swt.widgets.TreeColumn;
  import org.eclipse.swt.layout.FillLayout;
@@ -2156,7 +2335,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
      tree.setHeaderVisible(true);
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet174.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet174.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet174.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet174.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -39,7 +39,11 @@
  import derelict.opengl.gl;
  import derelict.opengl.glu;
@@ -2181,7 +2360,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
              resize(canvas);
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet190.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet190.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet190.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet190.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -20,8 +20,13 @@
  import org.eclipse.swt.events.SelectionEvent;
  import org.eclipse.swt.layout.GridLayout;
@@ -2222,7 +2401,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
      shell.setSize(200, 200);
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet193.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet193.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet193.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet193.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -32,8 +32,13 @@
  import org.eclipse.swt.layout.RowLayout;
  import org.eclipse.swt.layout.RowData;
@@ -2263,7 +2442,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
      TreeColumn[] columns = tree.getColumns();
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet195.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet195.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet195.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet195.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -37,7 +37,11 @@
  import derelict.opengl.gl;
  import derelict.opengl.glu;
@@ -2279,7 +2458,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
  {
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet20.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet20.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet20.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet20.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -25,8 +25,13 @@
  import org.eclipse.swt.widgets.CoolBar;
  import org.eclipse.swt.widgets.CoolItem;
@@ -2306,7 +2485,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
          item.setControl (button);
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet207.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet207.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet207.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet207.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -31,7 +31,11 @@
  import org.eclipse.swt.widgets.Shell;
  import org.eclipse.swt.widgets.Canvas;
@@ -2322,7 +2501,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
      Display display = new Display();
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet21.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet21.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet21.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet21.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -28,20 +28,24 @@
  import org.eclipse.swt.widgets.Text;
  import org.eclipse.swt.widgets.Canvas;
@@ -2367,7 +2546,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
              if (c.isFocusControl ()) {
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet212.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet212.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet212.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet212.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -69,7 +69,7 @@
  import org.eclipse.swt.graphics.GlyphMetrics;
  import java.lang.all;
@@ -2379,7 +2558,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
      static StyledText styledText;
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet214.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet214.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet214.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet214.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -37,7 +37,11 @@
  
  import java.lang.all;
@@ -2404,7 +2583,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
         public void handleEvent (Event event) {
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet215.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet215.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet215.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet215.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -34,8 +34,8 @@
  Image image;
  
@@ -2418,7 +2597,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
      button.setText("Capture");
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet217.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet217.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet217.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet217.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -48,7 +48,7 @@
      import jive.stacktrace;
  }
@@ -2430,7 +2609,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
      static String text =
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet218.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet218.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet218.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet218.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -37,7 +37,12 @@
  
  import java.lang.all;
@@ -2447,7 +2626,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
  }
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet220.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet220.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet220.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet220.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -33,8 +33,13 @@
  import org.eclipse.swt.widgets.Event;
  import org.eclipse.swt.widgets.Tree;
@@ -2474,7 +2653,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
          item = newItem;
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet222.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet222.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet222.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet222.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -39,9 +39,11 @@
  import org.eclipse.swt.graphics.Font;
  import org.eclipse.swt.graphics.TextLayout;
@@ -2520,7 +2699,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
          }
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet224.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet224.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet224.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet224.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -31,7 +31,12 @@
  import org.eclipse.swt.layout.RowLayout;
  
@@ -2546,7 +2725,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
          Button button = new Button (shell, SWT.PUSH);
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet226.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet226.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet226.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet226.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -34,17 +34,21 @@
  import org.eclipse.swt.widgets.Listener;
  import org.eclipse.swt.widgets.Event;
@@ -2574,7 +2753,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
  	int columnCount = 4;
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet235.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet235.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet235.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet235.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -43,7 +43,7 @@
      Label label = new Label(shell, SWT.WRAP);
      label.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
@@ -2586,7 +2765,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
      column = new TableColumn(table, SWT.NONE);
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet24.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet24.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet24.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet24.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -28,7 +28,11 @@
  import org.eclipse.swt.layout.RowLayout;
  
@@ -2625,7 +2804,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
      shell.pack ();
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet245.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet245.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet245.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet245.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -27,8 +27,8 @@
  
  void main() 
@@ -2639,7 +2818,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
          this(Shell s) { this.shell = s; }
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet247.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet247.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet247.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet247.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -32,7 +32,11 @@
  
  import java.lang.all;
@@ -2670,7 +2849,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
      shell.setDefaultButton(button);
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet25.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet25.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet25.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet25.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -25,12 +25,20 @@
  import org.eclipse.swt.widgets.Shell;
  import org.eclipse.swt.widgets.Listener;
@@ -2745,7 +2924,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
  	shell.addListener (SWT.KeyDown, listener);
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet250.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet250.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet250.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet250.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -28,7 +28,11 @@
  
  import java.lang.all;
@@ -2790,7 +2969,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
  
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet251.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet251.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet251.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet251.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -33,7 +33,11 @@
  
  import java.lang.all;
@@ -2836,7 +3015,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
              });
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet258.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet258.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet258.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet258.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -35,7 +35,11 @@
  import org.eclipse.swt.widgets.ToolBar;
  import org.eclipse.swt.widgets.ToolItem;
@@ -2888,7 +3067,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
      });
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet26.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet26.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet26.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet26.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -22,8 +22,9 @@
  import org.eclipse.swt.widgets.Display;
  import org.eclipse.swt.widgets.Shell;
@@ -2902,7 +3081,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
      auto display = new Display ();
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet268.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet268.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet268.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet268.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -32,9 +32,14 @@
  import org.eclipse.swt.graphics.Point;
  import org.eclipse.swt.layout.FillLayout;
@@ -2954,7 +3133,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
      thread.start();
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet275.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet275.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet275.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet275.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -31,13 +31,17 @@
  
  import java.lang.all;
@@ -2993,7 +3172,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
      }
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet276.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet276.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet276.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet276.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -29,7 +29,11 @@
  import org.eclipse.swt.widgets.Shell;
  
@@ -3022,7 +3201,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
      label.addListener (SWT.MouseDown, listener);
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet286.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet286.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet286.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet286.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -27,8 +27,13 @@
  import org.eclipse.swt.widgets.Label;
  import org.eclipse.swt.widgets.Menu;
@@ -3049,7 +3228,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
                  statusLine.setText((cast(MenuItem)e.getSource()).getText());
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet288.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet288.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet288.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet288.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -31,12 +31,24 @@
  
  import java.lang.all;
@@ -3146,7 +3325,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
              }
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet29.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet29.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet29.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet29.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -26,7 +26,11 @@
  import org.eclipse.swt.widgets.MenuItem;
  import org.eclipse.swt.widgets.Shell;
@@ -3175,7 +3354,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
      item.setText ("Select &All\tCtrl+A");
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet290.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet290.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet290.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet290.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -24,19 +24,31 @@
  import org.eclipse.swt.events.MouseEvent;
  import org.eclipse.swt.events.MouseAdapter;
@@ -3215,7 +3394,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
  	shell.setBounds(10, 10, 200, 200);
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet294.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet294.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet294.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet294.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -24,7 +24,11 @@
  import org.eclipse.swt.widgets.Shell;
  
@@ -3231,7 +3410,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
      Snippet294.main(args);
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet33.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet33.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet33.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet33.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -22,18 +22,30 @@
  import org.eclipse.swt.widgets.DirectoryDialog;
  import org.eclipse.swt.widgets.Display;
@@ -3270,7 +3449,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
      }
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet38.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet38.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet38.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet38.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -24,8 +24,13 @@
  import org.eclipse.swt.widgets.Table;
  import org.eclipse.swt.widgets.TableColumn;
@@ -3306,7 +3485,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
          table.getColumn (i).pack ();
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet39.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet39.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet39.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet39.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -28,8 +28,13 @@
  import org.eclipse.swt.widgets.Shell;
  
@@ -3345,7 +3524,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
  
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet42.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet42.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet42.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet42.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -22,10 +22,19 @@
  
  import java.lang.all;
@@ -3371,7 +3550,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
  }
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet44.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet44.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet44.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet44.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -33,14 +33,22 @@
  import org.eclipse.core.runtime.IStatus;
  import org.eclipse.core.runtime.Status;
@@ -3412,7 +3591,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
      while (!shell.isDisposed ()) {
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet48.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet48.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet48.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet48.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -57,11 +57,11 @@
  		gc.drawText ("Default Image", 10, 10);
  		gc.dispose ();
@@ -3440,7 +3619,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
          int destY = -vSelection - origin.y;
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet49.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet49.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet49.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet49.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -27,8 +27,13 @@
  import org.eclipse.swt.widgets.ToolItem;
  import org.eclipse.swt.widgets.Event;
@@ -3467,7 +3646,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
  		void handleEvent (Event e) {
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet58.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet58.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet58.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet58.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -24,8 +24,13 @@
  import org.eclipse.swt.widgets.ToolBar;
  import org.eclipse.swt.widgets.ToolItem;
@@ -3506,7 +3685,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
      sep.setWidth (combo.getSize ().x);
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet60.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet60.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet60.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet60.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -23,7 +23,11 @@
  
  import java.lang.all;
@@ -3543,7 +3722,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
          if (!display.readAndDispatch ()) display.sleep ();
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet62.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet62.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet62.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet62.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -25,12 +25,18 @@
  import org.eclipse.swt.widgets.Shell;
  import org.eclipse.swt.widgets.Listener;
@@ -3605,7 +3784,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
      shell.addListener (SWT.MouseDown, listener);
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet66.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet66.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet66.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet66.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -27,7 +27,7 @@
  
  void main () {
@@ -3617,7 +3796,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
          public void handleEvent (Event event) {
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet67.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet67.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet67.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet67.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -29,8 +29,13 @@
  import org.eclipse.swt.widgets.MenuItem;
  import org.eclipse.swt.widgets.Listener;
@@ -3644,7 +3823,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
      item.addListener (SWT.Selection, new class Listener {
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet68.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet68.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet68.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet68.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -34,15 +34,15 @@
  
  void main (String [] args) {
@@ -3667,7 +3846,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
          if (label.isDisposed ()) return;
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet7.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet7.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet7.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet7.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -30,8 +30,13 @@
  
  import java.lang.all;
@@ -3695,7 +3874,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
  
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet72.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet72.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet72.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet72.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -23,7 +23,11 @@
  import org.eclipse.swt.widgets.Shell;
  import org.eclipse.swt.widgets.FileDialog;
@@ -3724,7 +3903,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
      }
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet76.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet76.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet76.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet76.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -24,18 +24,23 @@
  import org.eclipse.swt.widgets.TabFolder;
  import org.eclipse.swt.widgets.TabItem;
@@ -3756,7 +3935,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
  	tabFolder.pack ();
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet8.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet8.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet8.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet8.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -30,8 +30,29 @@
  import org.eclipse.swt.widgets.TreeItem;
  
@@ -3791,7 +3970,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
      auto display = new Display ();
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet81.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet81.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet81.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet81.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -34,9 +34,17 @@
  import org.eclipse.swt.ole.win32.OleFunctionDescription;
  import org.eclipse.swt.ole.win32.OlePropertyDescription;
@@ -3965,7 +4144,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
  
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet82.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet82.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet82.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet82.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -34,7 +34,11 @@
  
  import java.lang.all;
@@ -3981,7 +4160,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
      Display display = new Display();
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet96.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet96.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet96.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet96.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -52,7 +52,11 @@
  
  import java.lang.all;
@@ -4044,7 +4223,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
              text.setText(row.getText(column));
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet97.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet97.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet97.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet97.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -28,8 +28,13 @@
  import org.eclipse.swt.widgets.Shell;
  import org.eclipse.swt.widgets.Tree;
@@ -4071,7 +4250,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
          public void handleEvent (Event event) {
 diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet98.d
 --- a/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet98.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet98.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet98.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -32,14 +32,18 @@
  
  import java.lang.all;
@@ -4104,7 +4283,7 @@ diff -r b6e9904989ed org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snipp
                  (new Button(pageComposite, SWT.RADIO)).setText("radio");
 diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/SWT.d
 --- a/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/SWT.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/SWT.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/SWT.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -37,7 +37,7 @@
      pragma(link, "msimg32");
      pragma(link, "opengl32");
@@ -4125,7 +4304,7 @@ diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/SWT.d
  
 diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/custom/AnimatedProgress.d
 --- a/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/custom/AnimatedProgress.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/custom/AnimatedProgress.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/custom/AnimatedProgress.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -119,11 +119,13 @@
   *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
   * </ul>
@@ -4216,7 +4395,7 @@ diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/custom/
  }
 diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/custom/CTabItem.d
 --- a/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/custom/CTabItem.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/custom/CTabItem.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/custom/CTabItem.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -32,6 +32,14 @@
  import org.eclipse.swt.widgets.Widget;
  import org.eclipse.swt.custom.CTabFolder;
@@ -4261,7 +4440,7 @@ diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/custom/
      } else {
 diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/custom/DefaultContent.d
 --- a/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/custom/DefaultContent.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/custom/DefaultContent.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/custom/DefaultContent.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -900,7 +900,7 @@
          return offset;
      }
@@ -4282,7 +4461,7 @@ diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/custom/
      return offset;
 diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/custom/StyledText.d
 --- a/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/custom/StyledText.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/custom/StyledText.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/custom/StyledText.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -7284,14 +7284,14 @@
      if (Compatibility.isLetter(keyChar)) {
          // make the keybinding case insensitive by adding it
@@ -4302,7 +4481,7 @@ diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/custom/
              keyActionMap.remove(newKey);
 diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/dnd/ByteArrayTransfer.d
 --- a/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/dnd/ByteArrayTransfer.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/dnd/ByteArrayTransfer.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/dnd/ByteArrayTransfer.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -136,7 +136,7 @@
          data[i] = new TransferData();
          data[i].type = types[i];
@@ -4314,7 +4493,7 @@ diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/dnd/Byt
          data[i].formatetc.tymed = COM.TYMED_HGLOBAL;
 diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/dnd/Clipboard.d
 --- a/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/dnd/Clipboard.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/dnd/Clipboard.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/dnd/Clipboard.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -557,7 +557,7 @@
      }
      // include the drop effect format to specify a copy operation
@@ -4326,7 +4505,7 @@ diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/dnd/Cli
      dropeffect.tymed = COM.TYMED_HGLOBAL;
 diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/dnd/TableDragSourceEffect.d
 --- a/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/dnd/TableDragSourceEffect.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/dnd/TableDragSourceEffect.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/dnd/TableDragSourceEffect.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -132,7 +132,7 @@
                      OS.BitBlt (memHdc, 0, 0, srcWidth, srcHeight, srcHdc, 0, 0, OS.SRCCOPY);
                      //byte[] srcData = new byte [sizeInBytes];
@@ -4338,7 +4517,7 @@ diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/dnd/Tab
                      ImageData data = new ImageData(srcWidth, srcHeight, bm.bmBitsPixel, palette, bm.bmWidthBytes, srcData);
 diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/graphics/Device.d
 --- a/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/graphics/Device.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/graphics/Device.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/graphics/Device.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -110,11 +110,13 @@
  /*
  * TEMPORARY CODE.
@@ -4360,7 +4539,7 @@ diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/graphic
  /**
 diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/graphics/TextLayout.d
 --- a/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/graphics/TextLayout.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/graphics/TextLayout.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/graphics/TextLayout.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -535,7 +535,7 @@
      OS.OleUninitialize();
  }
@@ -4381,7 +4560,7 @@ diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/graphic
  int res;
 diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/internal/gdip/native.d
 --- a/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/internal/gdip/native.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/internal/gdip/native.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/internal/gdip/native.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -1198,477 +1198,480 @@
  Status function(Handle format, int hotkeyPrefix) GdipSetStringFormatHotkeyPrefix;
  Status function( Handle format, float firstTabOffset, int count, float* tabStops) GdipSetStringFormatTabStops;
@@ -5336,7 +5515,7 @@ diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/interna
  void loadLib_Gdip(){
 diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/internal/image/GIFFileFormat.d
 --- a/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/internal/image/GIFFileFormat.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/internal/image/GIFFileFormat.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/internal/image/GIFFileFormat.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -127,7 +127,7 @@
                  if (id > 0) {
                      /* We read the terminator earlier. */
@@ -5357,7 +5536,7 @@ diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/interna
                  SWT.error(SWT.ERROR_IO, e);
 diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/internal/image/JPEGDecoder.d
 --- a/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/internal/image/JPEGDecoder.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/internal/image/JPEGDecoder.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/internal/image/JPEGDecoder.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -2348,7 +2348,7 @@
  //      #endif
      } else {
@@ -5369,7 +5548,7 @@ diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/interna
  //      coef.consume_data = dummy_consume_data;
 diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/internal/image/PngChunk.d
 --- a/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/internal/image/PngChunk.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/internal/image/PngChunk.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/internal/image/PngChunk.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -50,17 +50,21 @@
      static /*const*/ byte[] TYPE_IEND = cast(byte[])"IEND";//{(byte) 'I', (byte) 'E', (byte) 'N', (byte) 'D'};
      static /*const*/ byte[] TYPE_tRNS = cast(byte[])"tRNS";//{(byte) 't', (byte) 'R', (byte) 'N', (byte) 'S'};
@@ -5401,7 +5580,7 @@ diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/interna
          }
 diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/internal/ole/win32/COM.d
 --- a/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/internal/ole/win32/COM.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/internal/ole/win32/COM.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/internal/ole/win32/COM.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -861,7 +861,7 @@
   */
  // BSTR is aliased to wchar*
@@ -5413,7 +5592,7 @@ diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/interna
      String result = WCHARzToStr(bstr, size);
 diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/internal/ole/win32/OLEIDL.d
 --- a/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/internal/ole/win32/OLEIDL.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/internal/ole/win32/OLEIDL.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/internal/ole/win32/OLEIDL.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -408,7 +408,7 @@
  
  interface IViewObject : IUnknown
@@ -5425,7 +5604,7 @@ diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/interna
  	HRESULT Unfreeze( DWORD dwFreeze );
 diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/internal/win32/OS.d
 --- a/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/internal/win32/OS.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/internal/win32/OS.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/internal/win32/OS.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -227,7 +227,11 @@
  //     }
  
@@ -5602,7 +5781,7 @@ diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/interna
  }
 diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/internal/win32/WINTYPES.d
 --- a/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/internal/win32/WINTYPES.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/internal/win32/WINTYPES.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/internal/win32/WINTYPES.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -251,56 +251,56 @@
      alias TOKEN_TYPE TAGTOKEN_TYPE;
  
@@ -5763,7 +5942,7 @@ diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/interna
      struct POINTFLOAT
 diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/Canvas.d
 --- a/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/Canvas.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/Canvas.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/Canvas.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -395,7 +395,7 @@
      if (!OS.IsWinCE && OS.WIN32_VERSION is OS.VERSION (5, 1)) {
          if (OS.IsDBLocale) {
@@ -5775,7 +5954,7 @@ diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets
                      POINT ptCurrentPos;
 diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/Combo.d
 --- a/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/Combo.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/Combo.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/Combo.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -1340,7 +1340,7 @@
      }
      if (event.character is 0) return true;
@@ -5787,7 +5966,7 @@ diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets
      /*
 diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/Control.d
 --- a/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/Control.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/Control.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/Control.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -3556,7 +3556,7 @@
          case SWT.TRAVERSE_TAB_PREVIOUS: return traverseGroup (false);
          case SWT.TRAVERSE_ARROW_NEXT:       return traverseItem (true);
@@ -5811,7 +5990,7 @@ diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets
                                      MenuItem item = items [i];
 diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/Display.d
 --- a/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/Display.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/Display.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/Display.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -3356,7 +3356,7 @@
              KEYBDINPUT inputs;
              inputs.wVk = cast(short) untranslateKey (event.keyCode);
@@ -5823,7 +6002,7 @@ diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets
                          case SWT.CR: inputs.wVk = cast(short) OS.VK_RETURN; break;
 diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/FileDialog.d
 --- a/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/FileDialog.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/FileDialog.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/FileDialog.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -244,7 +244,7 @@
      auto hHeap = OS.GetProcessHeap ();
  
@@ -5835,7 +6014,7 @@ diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets
      /*
 diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/IME.d
 --- a/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/IME.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/IME.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/IME.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -410,7 +410,7 @@
                          dchar c = chars[ i .. $ ].firstCodePoint();
                          display.lastAscii = c;
@@ -5847,7 +6026,7 @@ diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets
                  }
 diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/RunnableLock.d
 --- a/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/RunnableLock.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/RunnableLock.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/RunnableLock.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -18,7 +18,8 @@
      import tango.core.sync.Condition;
      import tango.core.sync.Mutex;
@@ -5902,7 +6081,7 @@ diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets
  }
 diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/Spinner.d
 --- a/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/Spinner.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/Spinner.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/Spinner.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -771,7 +771,7 @@
      }
      if (event.character is 0) return true;
@@ -5914,7 +6093,7 @@ diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets
      /*
 diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/Synchronizer.d
 --- a/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/Synchronizer.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/Synchronizer.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/Synchronizer.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -25,6 +25,7 @@
  version(Tango){
      import tango.core.Exception: SyncException;
@@ -5944,7 +6123,7 @@ diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets
          if (interrupted) {
 diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/Table.d
 --- a/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/Table.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/Table.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/Table.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -546,7 +546,7 @@
                      if ((dwExStyle & OS.LVS_EX_FULLROWSELECT) is 0) {
                          if ((nmcd.nmcd.uItemState & OS.CDIS_FOCUS) !is 0) {
@@ -5990,7 +6169,7 @@ diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets
                                  }
 diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/Text.d
 --- a/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/Text.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/Text.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/Text.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -829,7 +829,7 @@
      checkWidget ();
      wchar echo = cast(wchar) OS.SendMessage (handle, OS.EM_GETPASSWORDCHAR, 0, 0);
@@ -6011,7 +6190,7 @@ diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets
      /*
 diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/ToolBar.d
 --- a/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/ToolBar.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/ToolBar.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/ToolBar.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -706,7 +706,7 @@
  }
  
@@ -6032,7 +6211,7 @@ diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets
          return false;
 diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/Tree.d
 --- a/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/Tree.d	Sat Nov 13 14:15:51 2010 +0100
-+++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/Tree.d	Tue Mar 01 23:59:05 2011 +0900
++++ b/org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets/Tree.d	Sat Mar 05 16:24:06 2011 +0900
 @@ -1193,7 +1193,7 @@
              }
              if (explorerTheme) {
@@ -6071,7 +6250,7 @@ diff -r b6e9904989ed org.eclipse.swt.win32.win32.x86/src/org/eclipse/swt/widgets
      }
 diff -r b6e9904989ed rakefile
 --- a/rakefile	Sat Nov 13 14:15:51 2010 +0100
-+++ b/rakefile	Tue Mar 01 23:59:05 2011 +0900
++++ b/rakefile	Sat Mar 05 16:24:06 2011 +0900
 @@ -7,14 +7,11 @@
  ##########################################################################
  # Helpers
