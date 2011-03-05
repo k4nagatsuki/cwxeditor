@@ -144,11 +144,13 @@ abstract class AbsDialog {
 		if (firstFocusIsOK) _okBtn.setFocus;
 		opened;
 		auto d = _win.getDisplay;
+		scope (failure) {
+			if (!_win.isDisposed) _win.close;
+		}
 		while (!_win.isDisposed) {
 			try {
 				if (!d.readAndDispatch) d.sleep;
-			} catch (Exception e) {
-				_win.close;
+			} catch (Throwable e) {
 				throw e;
 			}
 		}

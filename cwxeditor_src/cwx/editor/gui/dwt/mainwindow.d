@@ -1622,8 +1622,6 @@ public:
 						d.sleep;
 					}
 				} catch (Throwable e) {
-					auto swte = cast(SWTException) e;
-					if (swte) swte.printStackTrace;
 					_win.setVisible = true;
 					fdebugln(e.msg ~ ", " ~ e.file ~ ", " ~ to!(string)(e.line));
 					auto dlg = new MessageBox(_win, SWT.ICON_ERROR | SWT.OK);
