@@ -1369,7 +1369,7 @@ public:
 				r[bytes] ~= std.path.join(skin.materialPath, file);
 			}
 		}
-		foreach (ref v; r.values) {
+		foreach (key, v; r.values) {
 			if (v.length > 1u) {
 				string[] nv;
 				foreach (file; v) {
@@ -1378,7 +1378,7 @@ public:
 						nv ~= file;
 					}
 				}
-				v = nv;
+				r.values[key] = nv;
 			}
 			if (v.length > 1u) {
 				string[] nv;

@@ -107,8 +107,8 @@ ArchiveMember archive(string name, ubyte[] data, bool isDir) {
 ZipArchive zip(string targ, bool top, string[] excludePath = [], bool useSysEnc = false) {
 	auto arc = new ZipArchive;
 	scope path = nabs(targ);
-	foreach (ref ex; excludePath) {
-		ex = nabs(ex);
+	foreach (i, ex; excludePath) {
+		excludePath[i] = nabs(ex);
 	}
 	size_t cut;
 	void archive(string file) {

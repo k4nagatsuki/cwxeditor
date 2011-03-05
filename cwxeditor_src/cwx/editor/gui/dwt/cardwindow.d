@@ -370,9 +370,10 @@ private:
 						};
 						node.parse;
 						if (adds.length == 0) return;
-						foreach (ref card; adds) {
+						foreach (i, card; adds) {
 							static if (is(CardOwner == CastCard)) {
-								card = _owner.insert(index, card);
+								_owner.insert(index, card);
+								adds[i] = card;
 							} else {
 								_owner.insert(index, card);
 							}
@@ -392,9 +393,9 @@ private:
 						node.parse;
 						if (adds.length == 0) return;
 						if (__qMaterialCopy(node, adds)) {
-							foreach (ref card; adds) {
+							foreach (i, card; adds) {
 								_owner.insert(index, card);
-								card = cards[index];
+								adds[i] = cards[index];
 								index++;
 							}
 							insert(adds[$ - 1], false);
@@ -1664,8 +1665,8 @@ public:
 		}
 		ColResize[] colR;
 		colR.length = (is (CardOwner == Summary)) ? 4 : 3;
-		foreach (ref c; colR) {
-			c = new ColResize;
+		foreach (i, c; colR) {
+			colR[i] = new ColResize;
 		}
 		void addTable(Table tbl) {
 			foreach (i, col; tbl.getColumns) {

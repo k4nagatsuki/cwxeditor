@@ -105,7 +105,7 @@ private void static_this () {
 		MType.DEAL_SKILL_CARD:MDetail("DealSkillCard"),
 		MType.SUMMON_BEAST:MDetail("SummonBeast", [MArg.BEAST:cast(string) null])
 	];
-	foreach (type, ref detail; _MOTION_DETAILS) {
+	foreach (type, detail; _MOTION_DETAILS) {
 		_MTYPE_MAP[detail.name] = type;
 	}
 }
@@ -212,7 +212,7 @@ public:
 	}
 	/// ditto
 	const
-	const(Motion[]) motions() {
+	const(Motion)[] motions() {
 		return _motions;
 	}
 }
@@ -220,6 +220,8 @@ public:
 /// 効果の所持者である事を示すインタフェース。
 interface MotionOwner : CWXPath {
 	Motion[] motions();
+	const
+	const(Motion)[] motions();
 }
 
 /// 効果クラス。

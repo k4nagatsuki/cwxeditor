@@ -24,14 +24,14 @@ import org.eclipse.swt.graphics.Image;
 Skin findSkin(S = Summary)(in Props prop, in S summ) {
 	static if (is(typeof(summ.type))) {
 		if (!summ) {
-			return findSkin2(prop, prop.var.etc.defaultSkin_const);
+			return findSkin2(prop, prop.var.etc.defaultSkin);
 		}
 		if (summ.legacy && !summ.type.length) {
-			return Skin.find2!(S)(prop.parent, prop.var.etc.enginePath_const, summ);
+			return Skin.find2!(S)(prop.parent, prop.var.etc.enginePath, summ);
 		}
 		return findSkin2(prop, summ.type);
 	} else {
-		return findSkin2(prop, prop.var.etc.defaultSkin_const);
+		return findSkin2(prop, prop.var.etc.defaultSkin);
 	}
 }
 Skin findSkin2(const(Props) prop, string type) {
@@ -40,7 +40,7 @@ Skin findSkin2(const(Props) prop, string type) {
 	static Skin[const(Props)] emptySkins;
 	p = prop in emptySkins;
 	if (p) return *p;
-	auto r = new Skin(prop.parent, prop.var.etc.enginePath_const);
+	auto r = new Skin(prop.parent, prop.var.etc.enginePath);
 	emptySkins[prop] = r;
 	return r;
 }
@@ -48,7 +48,7 @@ bool hasSkin(in Props prop, string type) {
 	return (type in skinTable(prop)) !is null;
 }
 Skin[string] skinTable(const(Props) prop) {
-	return Skin.table(prop.parent, prop.var.etc.enginePath_const);
+	return Skin.table(prop.parent, prop.var.etc.enginePath);
 }
 
 private static ImageData imgd(string path, bool mask, bool rmask) {

@@ -13,6 +13,7 @@ import cwx.props;
 import std.algorithm;
 import std.datetime;
 import std.string;
+import std.traits;
 
 enum CType {
 	START,
@@ -217,7 +218,7 @@ private void static_this () {
 		CType.HIDE_PARTY:CDetail("Hide", "Party", CNextType.NONE, true),
 		CType.REDISPLAY:CDetail("Redisplay", "", CNextType.NONE, true, [CArg.TRANSITION:_("transition"), CArg.TRANSITION_SPEED:"transitionspeed"])
 	];
-	foreach (cType, ref detail; _CONTENT_DETAILS) {
+	foreach (cType, detail; _CONTENT_DETAILS) {
 		_CTYPE_MAP[detail.name][detail.type] = cType;
 	}
 }
@@ -406,7 +407,7 @@ public:
 	const
 	bool opEquals(ref const(Object) o) {
 		auto d = cast(const(SDialog)) o;
-		return d && d.rCoupons_const == _rCoupons && d.text == text;
+		return d && d._rCoupons == _rCoupons && d.text == text;
 	}
 	/// メッセージ。
 	const
@@ -419,12 +420,12 @@ public:
 		_text.text = text;
 	}
 	/// 口調分け条件クーポン群。
-	const
-	const(string[]) rCoupons_const() {
+	string[] rCoupons() {
 		return _rCoupons;
 	}
 	/// ditto
-	string[] rCoupons() {
+	const
+	const(string)[] rCoupons() {
 		return _rCoupons;
 	}
 	/// ditto
@@ -474,7 +475,7 @@ public:
 	const
 	private void toNodeImpl(ref XNode e) {
 		assert (e.name == XML_NAME, e.name ~ " != " ~ XML_NAME);
-		e.newElement("RequiredCoupons", encodeLf(rCoupons_const, true));
+		e.newElement("RequiredCoupons", encodeLf(rCoupons, true));
 		e.newElement("Text", encodeLf(text));
 	}
 	static SDialog createFromNode(ref XNode node, string ver) {
@@ -554,7 +555,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		auto d = CONTENT_DETAILS[type];
 		foreach (n; next) {
 			void setNum() {
-				if (prop.msgs.evtChildDefault != n.name && !isNumeric(n.name) || n.name == "0") {
+				if (prop.msgs.evtChildDefault != n.name && !std.string.isNumeric(n.name) || n.name == "0") {
 					n.name = prop.msgs.evtChildDefault;
 				}
 			}
@@ -567,7 +568,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 				}
 			} break;
 			case CNextType.STEP: {
-				if (prop.msgs.evtChildDefault != n.name && !isNumeric(n.name)) {
+				if (prop.msgs.evtChildDefault != n.name && !std.string.isNumeric(n.name)) {
 					n.name = prop.msgs.evtChildDefault;
 				}
 			} break;
@@ -667,7 +668,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			if (_parent && _parent.detail.nextType == CNextType.ID_AREA) {
 				if (icmp(name, "default") == 0) {
 					area = 0;
-				} else if (isNumeric(name)) {
+				} else if (std.string.isNumeric(name)) {
 					try {
 						area = to!(ulong)(name);
 					} catch {
@@ -678,7 +679,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			if (_parent && _parent.detail.nextType == CNextType.ID_BATTLE) {
 				if (icmp(name, "default") == 0) {
 					battle = 0;
-				} else if (isNumeric(name)) {
+				} else if (std.string.isNumeric(name)) {
 					try {
 						battle = to!(ulong)(name);
 					} catch {
@@ -706,7 +707,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		if (!oldAreaBr && newAreaBr) {
 			if (icmp(name, "default") == 0) {
 				area = 0;
-			} else if (isNumeric(name)) {
+			} else if (std.string.isNumeric(name)) {
 				try {
 					area = to!(ulong)(name);
 				} catch {
@@ -719,7 +720,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		if (!oldBattleBr && newBattleBr) {
 			if (icmp(name, "default") == 0) {
 				battle = 0;
-			} else if (isNumeric(name)) {
+			} else if (std.string.isNumeric(name)) {
 				try {
 					battle = to!(ulong)(name);
 				} catch {
@@ -926,10 +927,10 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		"}");
 		static if (New) {
 			mixin (T2.stringof ~ " " ~ Name ~ "() {return _" ~ Name ~ " ? _" ~ Name ~ Get ~ " : Def;}");
-			mixin ("const const(" ~ T2.stringof ~ ") " ~ Name ~ "_const() {return _" ~ Name ~ " ? _" ~ Name ~ Get ~ " : Def;}");
+			mixin ("const const(T2) " ~ Name ~ "() {return _" ~ Name ~ " ? _" ~ Name ~ Get ~ " : Def;}");
 		} else {
-			mixin (T2.stringof ~ " " ~ Name ~ "() {return _" ~ Name ~ Get ~ ";}");
-			mixin ("const const(" ~ T2.stringof ~ ") " ~ Name ~ "_const() {return _" ~ Name ~ Get ~ ";}");
+			mixin ("T2 " ~ Name ~ "() {return _" ~ Name ~ Get ~ ";}");
+			mixin ("const const(T2) " ~ Name ~ "() {return _" ~ Name ~ Get ~ ";}");
 		}
 	}
 	private template Prop(T, string Name, T Def) {
@@ -948,9 +949,6 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	/// ditto
 	const
 	string start() {return _start;}
-	/// ditto
-	const
-	string start_const() {return _start;}
 
 	/// エリアID。
 	mixin Prop!(AreaUser, ulong, "area", 0UL, ".area", ".area", true);
@@ -1108,9 +1106,10 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			} else {
 				v.removeUseCounter;
 			}
-		} else static if (!is(v : string) && is(typeof(v[0u]))) {
-			foreach (ref vc; v) {
+		} else static if (!isSomeString!(T) && is(typeof(v[0u]))) {
+			foreach (i, vc; v) {
 				setUseCounterImpl(vc, uc);
+				v[i] = vc;
 			}
 		}
 	}
@@ -1165,9 +1164,10 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		static if (is(typeof(v.change(id)))) {
 			static if (is(typeof(v is null))) if (!v) return;
 			v.change(id);
-		} else static if (!is(v : string) && is(typeof(v[0u]))) {
-			foreach (ref vc; v) {
+		} else static if (!isSomeString!(T) && is(typeof(v[0u]))) {
+			foreach (i, vc; v) {
 				idChangeImpl(vc, id);
+				v[i] = vc;
 			}
 		}
 	}
@@ -1205,7 +1205,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	const
 	private void atnPut(CArg ARG, string Name, string From)(ref XNode en, in CDetail d) {
 		if (d.use(ARG)) {
-			mixin ("en.newAttr(d.attr(ARG), " ~ From ~ "(this." ~ Name ~ "_const));");
+			mixin ("en.newAttr(d.attr(ARG), " ~ From ~ "(this." ~ Name ~ "));");
 		}
 	}
 	/// 指定されたXMLノードにインスタンスのデータを追加する。
@@ -1269,15 +1269,15 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		// 多少複雑なもの
 		if (d.use(CArg.MOTIONS)) {
 			auto me = e.newElement("Motions");
-			foreach (m; motions_const) {
+			foreach (m; motions) {
 				m.toNode(me);
 			}
 		}
 
-		if (d.use(CArg.TEXT)) e.newElement("Text", encodeLf(text_const));
+		if (d.use(CArg.TEXT)) e.newElement("Text", encodeLf(text));
 		if (d.use(CArg.DIALOGS)) {
 			auto de = e.newElement("Dialogs");
-			foreach (dlg; dialogs_const) {
+			foreach (dlg; dialogs) {
 				dlg.toNode(de);
 			}
 		}
@@ -1285,21 +1285,21 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		atnPut!(CArg.TARGET_NS, "targetNS", "fromTarget")(e, d);
 		atnPut!(CArg.TARGET_S, "targetS", "fromTarget")(e, d);
 		if (d.use(CArg.TALKER_C)) {
-			switch (talkerC_const) {
+			switch (talkerC) {
 			case Talker.NARRATION:
 				e.newAttr(d.attr(CArg.TALKER_C), "");
 				break;
 			case Talker.SELECTED, Talker.UNSELECTED, Talker.RANDOM, Talker.CARD:
-				e.newAttr(d.attr(CArg.TALKER_C), "Material/??" ~ fromTalker(talkerC_const));
+				e.newAttr(d.attr(CArg.TALKER_C), "Material/??" ~ fromTalker(talkerC));
 				break;
 			case Talker.IMAGE:
-				e.newAttr("path", encodePath(cardPath_const));
+				e.newAttr("path", encodePath(cardPath));
 				break;
 			}
 		}
 		atnPut!(CArg.TALKER_NC, "talkerNC", "fromTalker")(e, d);
 
-		if (d.use(CArg.BG_IMAGES)) BgImage.toNode(backs_const, e);
+		if (d.use(CArg.BG_IMAGES)) BgImage.toNode(backs, e);
 
 		auto ce = e.newElement("Contents");
 		foreach (sub; _next) {

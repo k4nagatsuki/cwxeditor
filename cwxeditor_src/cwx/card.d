@@ -920,6 +920,9 @@ public:
 	/// カードの効果。
 	Motion[] motions() {return _muser.motions;}
 	/// ditto
+	const
+	const(Motion)[] motions() {return _muser.motions;}
+	/// ditto
 	void motions(Motion[] motions) {
 		_muser.motions = motions;
 	}

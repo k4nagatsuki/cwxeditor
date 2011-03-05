@@ -122,7 +122,6 @@ abstract class Properties {
 			~ "\"" ~ Name ~ "\", " ~ VType.stringof ~ ", " ~ Default.stringof ~ ", " ~ ReadOnly.stringof ~ ") "
 			~ "_" ~ Name ~ ";");
 		mixin ("const const(" ~ VType.stringof ~ ") " ~ Name ~ "() {return _" ~ Name ~ "();}");
-		mixin ("const const(" ~ VType.stringof ~ ") " ~ Name ~ "_const() {return _" ~ Name ~ "();}");
 		mixin ("const const(" ~ VType.stringof ~ ") " ~ Name ~ "_init() {return Default;}");
 		static if (!ReadOnly) {
 			mixin ("void " ~ Name ~ "(" ~ VType.stringof ~ " value) {_" ~ Name ~ " = value;}");

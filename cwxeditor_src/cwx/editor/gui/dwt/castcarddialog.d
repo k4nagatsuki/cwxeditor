@@ -801,11 +801,12 @@ private:
 				min[phy] = pmin;
 				max[phy] = pmax;
 			}
-			foreach (phy, ref val; p) {
+			foreach (phy, val; p) {
 				val += calcPhy!(Sex)(phy, _sex, false);
 				val += calcPhy!(Period)(phy, _period, false);
 				val += calcPhy!(Nature)(phy, _nature, false);
 				val += calcPhy!(Makings)(phy, _makings, true);
+				p[phy] = val;
 			}
 			int[] vals;
 			vals.length = p.length;

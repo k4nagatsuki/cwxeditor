@@ -654,33 +654,33 @@ public:
 		case CType.START: {
 			return "スタートコンテント: " ~ evt.name;
 		} case CType.START_BATTLE: {
-			auto b = summ.battle(evt.battle_const);
+			auto b = summ.battle(evt.battle);
 			return b is null ? "指定無し" : "バトルビュー「" ~ b.name ~ "」";
 		} case CType.END: {
-			return evt.complete_const ? "済印をつけて終了" : "済印をつけずに終了";
+			return evt.complete ? "済印をつけて終了" : "済印をつけずに終了";
 		} case CType.END_BAD_END: {
 			return "ゲームオーバーコンテント";
 		} case CType.CHANGE_AREA: {
-			auto a = summ.area(evt.area_const);
+			auto a = summ.area(evt.area);
 			return a is null ? "指定無し" : "エリアビュー「" ~ a.name ~ "」";
 		} case CType.CHANGE_BG_IMAGE: {
 			string buf = "背景ファイル = ";
-			foreach (i, b; evt.backs_const) {
+			foreach (i, b; evt.backs) {
 				buf ~= "[" ~ encodePath(b.path) ~ "]";
-				if (i + 1 < evt.backs_const.length) buf ~= " ";
+				if (i + 1 < evt.backs.length) buf ~= " ";
 			}
 			return buf;
 		} case CType.EFFECT: {
-			string buf = target(evt.targetNS_const.m);
-			buf ~= " レベル" ~ to!(string)(evt.level_const);
-			buf ~= " " ~ effectType(evt.effectType_const, evt.resist_const);
-			buf ~= " 成功率" ~ (evt.successRate_const >= 0 ? "+" : "") ~ to!(string)(evt.successRate_const);
-			buf ~= " " ~ (evt.soundPath_const.length ? "「" ~ evt.soundPath_const ~ "」を再生" : "音声無し");
-			buf ~= " " ~ cardVisual(evt.cardVisual_const);
+			string buf = target(evt.targetNS.m);
+			buf ~= " レベル" ~ to!(string)(evt.level);
+			buf ~= " " ~ effectType(evt.effectType, evt.resist);
+			buf ~= " 成功率" ~ (evt.successRate >= 0 ? "+" : "") ~ to!(string)(evt.successRate);
+			buf ~= " " ~ (evt.soundPath.length ? "「" ~ evt.soundPath ~ "」を再生" : "音声無し");
+			buf ~= " " ~ cardVisual(evt.cardVisual);
 			buf ~= " 効果 = ";
-			foreach (i, m; evt.motions_const) {
+			foreach (i, m; evt.motions) {
 				buf ~= "[" ~ motion(m.type) ~ "]";
-				if (i + 1 < evt.motions_const.length) buf ~= " ";
+				if (i + 1 < evt.motions.length) buf ~= " ";
 			}
 			return buf;
 		} case CType.EFFECT_BREAK: {
@@ -689,11 +689,11 @@ public:
 			return evt.start is null
 				? "指定無し" : "スタートコンテント「" ~ evt.start ~ "」へのリンク";
 		} case CType.LINK_PACKAGE: {
-			auto p = summ.packages(evt.packages_const);
+			auto p = summ.packages(evt.packages);
 			return p is null ? "指定無し" : "パッケージビュー「" ~ p.name ~ "」";
 		} case CType.TALK_MESSAGE: {
-			string text = evt.text_const;
-			switch (evt.talkerC_const) {
+			string text = evt.text;
+			switch (evt.talkerC) {
 			case Talker.NARRATION:
 				return std.array.replace(text, "\n", "");
 			case Talker.SELECTED:
@@ -705,74 +705,74 @@ public:
 			case Talker.CARD:
 				return "[カード]: " ~ std.array.replace(text, "\n", "");
 			case Talker.IMAGE:
-				return "[" ~ encodePath(evt.cardPath_const) ~ "]: " ~ std.array.replace(text, "\n", "");
+				return "[" ~ encodePath(evt.cardPath) ~ "]: " ~ std.array.replace(text, "\n", "");
 			default: assert (0);
 			}
 		} case CType.TALK_DIALOG: {
-			auto rCoupons = evt.dialogs_const[0].rCoupons_const;
+			auto rCoupons = evt.dialogs[0].rCoupons;
 			if (rCoupons.length > 0) {
 				string rBuf = "";
 				foreach (i, rc; rCoupons) {
 					rBuf ~= rc;
 					rBuf ~= i + 1 < rCoupons.length ? " " : ": ";
 				}
-				auto text = evt.dialogs_const[0].text;
+				auto text = evt.dialogs[0].text;
 				return rBuf ~ std.array.replace(text, "\n", "");
 			} else {
-				auto text = evt.dialogs_const[0].text;
+				auto text = evt.dialogs[0].text;
 				return std.array.replace(text, "\n", "");
 			}
 		} case CType.PLAY_BGM: {
-			return evt.bgmPath_const is null || evt.bgmPath_const.length == 0 ? "BGM停止" : "BGMとして「" ~ encodePath(evt.bgmPath_const) ~ "」を演奏";
+			return evt.bgmPath is null || evt.bgmPath.length == 0 ? "BGM停止" : "BGMとして「" ~ encodePath(evt.bgmPath) ~ "」を演奏";
 		} case CType.PLAY_SOUND: {
-			return evt.soundPath_const is null || evt.soundPath_const.length == 0 ? "指定無し" : "効果音「" ~ encodePath(evt.soundPath_const) ~ "」を鳴らす";
+			return evt.soundPath is null || evt.soundPath.length == 0 ? "指定無し" : "効果音「" ~ encodePath(evt.soundPath) ~ "」を鳴らす";
 		} case CType.WAIT: {
-			return "空白時間 = " ~ to!(string)(evt.wait_const) ~ " × 0.1秒";
+			return "空白時間 = " ~ to!(string)(evt.wait) ~ " × 0.1秒";
 		} case CType.ELAPSE_TIME: {
 			return "ターン数経過コンテント";
 		} case CType.CALL_START: {
 			return evt.start is null ? "指定無し" : "スタートコンテント「" ~ evt.start ~ "」のコール";
 		} case CType.CALL_PACKAGE: {
-			auto p = summ.packages(evt.packages_const);
+			auto p = summ.packages(evt.packages);
 			return p is null ? "指定無し" : "パッケージビュー「" ~ p.name ~ "」のコール";
 		} case CType.BRANCH_FLAG: {
-			auto f = summ.flagDirRoot.findFlag(evt.flag_const);
+			auto f = summ.flagDirRoot.findFlag(evt.flag);
 			return f is null ? "指定無し" : "フラグ「" ~ f.path ~ "」の値で分岐";
 		} case CType.BRANCH_MULTI_STEP: {
-			auto s = summ.flagDirRoot.findStep(evt.step_const);
+			auto s = summ.flagDirRoot.findStep(evt.step);
 			return s is null ? "指定無し" : "ステップ多岐分岐コンテント: " ~ s.path;
 		} case CType.BRANCH_STEP: {
-			auto s = summ.flagDirRoot.findStep(evt.step_const);
+			auto s = summ.flagDirRoot.findStep(evt.step);
 			if (s) {
-				string val = s.getValue(evt.stepValue_const);
+				string val = s.getValue(evt.stepValue);
 				return "ステップ「" ~ s.path ~ "」の値が[" ~ val ~ "]以上・未満で分岐";
 			} else {
 				return "指定無し";
 			}
 		} case CType.BRANCH_SELECT: {
-			string buf = evt.targetAll_const ? "パーティ全員" : "動けるメンバ";
+			string buf = evt.targetAll ? "パーティ全員" : "動けるメンバ";
 			buf ~= "から";
-			buf ~= evt.random_const ? "ランダム" : "手動";
+			buf ~= evt.random ? "ランダム" : "手動";
 			buf ~= "でメンバを選択";
 			return buf;
 		} case CType.BRANCH_ABILITY: {
-			string buf = target(evt.targetS_const.m) ~ "の";
-			buf ~= physical(evt.physical_const) ~ "と";
-			buf ~= mental(evt.mental_const) ~ "で能力判定";
-			buf ~= "(レベル" ~ to!(string)(evt.level_const) ~ ")";
+			string buf = target(evt.targetS.m) ~ "の";
+			buf ~= physical(evt.physical) ~ "と";
+			buf ~= mental(evt.mental) ~ "で能力判定";
+			buf ~= "(レベル" ~ to!(string)(evt.level) ~ ")";
 			return buf;
 		} case CType.BRANCH_RANDOM: {
-			return "確率 = " ~ to!(string)(evt.percent_const) ~ "%";
+			return "確率 = " ~ to!(string)(evt.percent) ~ "%";
 		} case CType.BRANCH_LEVEL: {
-			string buf = evt.average_const ? "パーティ全員" : "選択中のメンバ";
-			buf ~= "のレベルが" ~ to!(string)(evt.level_const) ~ "以上・未満で分岐";
+			string buf = evt.average ? "パーティ全員" : "選択中のメンバ";
+			buf ~= "のレベルが" ~ to!(string)(evt.level) ~ "以上・未満で分岐";
 			return buf;
 		} case CType.BRANCH_STATUS: {
-			string buf = target(evt.targetNS_const.m) ~ "が";
-			buf ~= status(evt.status_const) ~ "状態か否かで分岐";
+			string buf = target(evt.targetNS.m) ~ "が";
+			buf ~= status(evt.status) ~ "状態か否かで分岐";
 			return buf;
 		} case CType.BRANCH_PARTY_NUMBER: {
-			return "人数 = " ~ to!(string)(evt.partyNumber_const) ~ "人";
+			return "人数 = " ~ to!(string)(evt.partyNumber) ~ "人";
 		} case CType.BRANCH_AREA: {
 			return "エリア分岐コンテント";
 		} case CType.BRANCH_BATTLE: {
@@ -780,170 +780,170 @@ public:
 		} case CType.BRANCH_IS_BATTLE: {
 			return "戦闘中判定分岐コンテント";
 		} case CType.BRANCH_CAST: {
-			auto c = summ.casts(evt.casts_const);
+			auto c = summ.casts(evt.casts);
 			return c is null ? "指定無し" : "キャスト「" ~ c.name ~ "」の同行有無で分岐";
 		} case CType.BRANCH_ITEM: {
-			auto c = summ.item(evt.item_const);
+			auto c = summ.item(evt.item);
 			if (c) {
 				string buf = "アイテムカード「" ~ c.name ~ "」の有無で分岐(";
-				buf ~= range(evt.range_const) ~ "に";
-				buf ~= to!(string)(evt.cardNumber_const) ~ "枚)";
+				buf ~= range(evt.range) ~ "に";
+				buf ~= to!(string)(evt.cardNumber) ~ "枚)";
 				return buf;
 			} else {
 				return "指定無し";
 			}
 		} case CType.BRANCH_SKILL: {
-			auto c = summ.skill(evt.skill_const);
+			auto c = summ.skill(evt.skill);
 			if (c) {
 				string buf = "特殊技能カード「" ~ c.name ~ "」の有無で分岐(";
-				buf ~= range(evt.range_const) ~ "に";
-				buf ~= to!(string)(evt.cardNumber_const) ~ "枚)";
+				buf ~= range(evt.range) ~ "に";
+				buf ~= to!(string)(evt.cardNumber) ~ "枚)";
 				return buf;
 			} else {
 				return "指定無し";
 			}
 		} case CType.BRANCH_INFO: {
-			auto c = summ.info(evt.info_const);
+			auto c = summ.info(evt.info);
 			return c is null ? "指定無し" : "情報カード「" ~ c.name ~ "」の有無で分岐";
 		} case CType.BRANCH_BEAST: {
-			auto c = summ.beast(evt.beast_const);
+			auto c = summ.beast(evt.beast);
 			if (c) {
 				string buf = "召喚獣カード「" ~ c.name ~ "」の有無で分岐(";
-				buf ~= range(evt.range_const) ~ "に";
-				buf ~= to!(string)(evt.cardNumber_const) ~ "枚)";
+				buf ~= range(evt.range) ~ "に";
+				buf ~= to!(string)(evt.cardNumber) ~ "枚)";
 				return buf;
 			} else {
 				return "指定無し";
 			}
 		} case CType.BRANCH_MONEY: {
-			return "分岐金額 = " ~ to!(string)(evt.money_const) ~ " sp";
+			return "分岐金額 = " ~ to!(string)(evt.money) ~ " sp";
 		} case CType.BRANCH_COUPON: {
-			if (evt.coupon_const is null || evt.coupon_const.length == 0) {
+			if (evt.coupon is null || evt.coupon.length == 0) {
 				return "指定無し";
 			} else {
-				return "称号「" ~ evt.coupon_const ~ "」の有無で分岐(" ~ range(evt.range_const) ~ ")";
+				return "称号「" ~ evt.coupon ~ "」の有無で分岐(" ~ range(evt.range) ~ ")";
 			}
 		} case CType.BRANCH_COMPLETE_STAMP: {
-			return evt.completeStamp_const is null || evt.completeStamp_const.length == 0 ? "指定無し" : "シナリオ「" ~ evt.completeStamp_const ~ "」が終了済みか否かで分岐";
+			return evt.completeStamp is null || evt.completeStamp.length == 0 ? "指定無し" : "シナリオ「" ~ evt.completeStamp ~ "」が終了済みか否かで分岐";
 		} case CType.BRANCH_GOSSIP: {
-			return evt.gossip_const is null || evt.gossip_const.length == 0 ? "指定無し" : "宿屋クーポン「" ~ evt.gossip_const ~ "」の有無で分岐";
+			return evt.gossip is null || evt.gossip.length == 0 ? "指定無し" : "宿屋クーポン「" ~ evt.gossip ~ "」の有無で分岐";
 		} case CType.SET_FLAG: {
-			auto f = summ.flagDirRoot.findFlag(evt.flag_const);
-			return f is null ? "指定無し" : "フラグ「" ~ f.path ~ "」を[" ~ (evt.flagValue_const ? f.on : f.off) ~ "]に変更";
+			auto f = summ.flagDirRoot.findFlag(evt.flag);
+			return f is null ? "指定無し" : "フラグ「" ~ f.path ~ "」を[" ~ (evt.flagValue ? f.on : f.off) ~ "]に変更";
 		} case CType.SET_STEP: {
-			auto s = summ.flagDirRoot.findStep(evt.step_const);
-			return s is null ? "指定無し" : "ステップ「" ~ s.path ~ "」を[" ~ s.getValue(evt.stepValue_const) ~ "]に変更";
+			auto s = summ.flagDirRoot.findStep(evt.step);
+			return s is null ? "指定無し" : "ステップ「" ~ s.path ~ "」を[" ~ s.getValue(evt.stepValue) ~ "]に変更";
 		} case CType.SET_STEP_UP: {
-			auto s = summ.flagDirRoot.findStep(evt.step_const);
+			auto s = summ.flagDirRoot.findStep(evt.step);
 			return s is null ? "指定無し" : "ステップ「" ~ s.path ~ "」の値を1増加";
 		} case CType.SET_STEP_DOWN: {
-			auto s = summ.flagDirRoot.findStep(evt.step_const);
+			auto s = summ.flagDirRoot.findStep(evt.step);
 			return s is null ? "指定無し" : "ステップ「" ~ s.path ~ "」の値を1減少";
 		} case CType.REVERSE_FLAG: {
-			auto f = summ.flagDirRoot.findFlag(evt.flag_const);
+			auto f = summ.flagDirRoot.findFlag(evt.flag);
 			return f is null ? "指定無し" : "フラグ「" ~ f.path ~ "」の値を反転";
 		} case CType.CHECK_FLAG: {
-			auto f = summ.flagDirRoot.findFlag(evt.flag_const);
+			auto f = summ.flagDirRoot.findFlag(evt.flag);
 			return f is null ? "指定無し" : "フラグ「" ~ f.path ~ "」の値が[" ~ f.on ~ "]であれば出現";
 		} case CType.GET_CAST: {
-			auto c = summ.casts(evt.casts_const);
+			auto c = summ.casts(evt.casts);
 			return c is null ? "指定無し" : "キャストカード「" ~ c.name ~ "」を同行させる";
 		} case CType.GET_ITEM: {
-			auto c = summ.item(evt.item_const);
+			auto c = summ.item(evt.item);
 			if (c) {
 				string buf = "アイテムカード「" ~ c.name ~ "」を獲得(";
-				buf ~= range(evt.range_const) ~ "に";
-				buf ~= to!(string)(evt.cardNumber_const) ~ "枚)";
+				buf ~= range(evt.range) ~ "に";
+				buf ~= to!(string)(evt.cardNumber) ~ "枚)";
 				return buf;
 			} else {
 				return "指定無し";
 			}
 		} case CType.GET_SKILL: {
-			auto c = summ.skill(evt.skill_const);
+			auto c = summ.skill(evt.skill);
 			if (c) {
 				string buf = "特殊技能カード「" ~ c.name ~ "」を獲得(";
-				buf ~= range(evt.range_const) ~ "に";
-				buf ~= to!(string)(evt.cardNumber_const) ~ "枚)";
+				buf ~= range(evt.range) ~ "に";
+				buf ~= to!(string)(evt.cardNumber) ~ "枚)";
 				return buf;
 			} else {
 				return "指定無し";
 			}
 		} case CType.GET_INFO: {
-			auto c = summ.info(evt.info_const);
+			auto c = summ.info(evt.info);
 			return c is null ? "指定無し" : "情報カード「" ~ c.name ~ "」を獲得";
 		} case CType.GET_BEAST: {
-			auto c = summ.beast(evt.beast_const);
+			auto c = summ.beast(evt.beast);
 			if (c) {
 				string buf = "召喚獣カード「" ~ c.name ~ "」を獲得(";
-				buf ~= range(evt.range_const) ~ "に";
-				buf ~= to!(string)(evt.cardNumber_const) ~ "枚)";
+				buf ~= range(evt.range) ~ "に";
+				buf ~= to!(string)(evt.cardNumber) ~ "枚)";
 				return buf;
 			} else {
 				return "指定無し";
 			}
 		} case CType.GET_MONEY: {
-			return "獲得金額 = " ~ to!(string)(evt.money_const) ~ " sp";
+			return "獲得金額 = " ~ to!(string)(evt.money) ~ " sp";
 		} case CType.GET_COUPON: {
-			if (evt.coupon_const is null || evt.coupon_const.length == 0) {
+			if (evt.coupon is null || evt.coupon.length == 0) {
 				return "指定無し";
 			} else {
-				return "称号「" ~ evt.coupon_const ~ "」を獲得(" ~ range(evt.range_const) ~ ")";
+				return "称号「" ~ evt.coupon ~ "」を獲得(" ~ range(evt.range) ~ ")";
 			}
 		} case CType.GET_COMPLETE_STAMP: {
-			return evt.completeStamp_const is null || evt.completeStamp_const.length == 0 ? "指定無し" : "シナリオ「" ~ evt.completeStamp_const ~ "」を終了済みにする";
+			return evt.completeStamp is null || evt.completeStamp.length == 0 ? "指定無し" : "シナリオ「" ~ evt.completeStamp ~ "」を終了済みにする";
 		} case CType.GET_GOSSIP: {
-			return evt.gossip_const is null || evt.gossip_const.length == 0 ? "指定無し" : "宿屋クーポン「" ~ evt.gossip_const ~ "」を獲得";
+			return evt.gossip is null || evt.gossip.length == 0 ? "指定無し" : "宿屋クーポン「" ~ evt.gossip ~ "」を獲得";
 		} case CType.LOSE_CAST: {
-			auto c = summ.casts(evt.casts_const);
+			auto c = summ.casts(evt.casts);
 			return c is null ? "指定無し" : "キャスト「" ~ c.name ~ "」の同行を解除";
 		} case CType.LOSE_ITEM: {
-			auto c = summ.item(evt.item_const);
+			auto c = summ.item(evt.item);
 			if (c) {
 				string buf = "アイテムカード「" ~ c.name ~ "」を喪失(";
-				buf ~= range(evt.range_const) ~ "から";
-				buf ~= evt.cardNumber_const == 0 ? "全て" : to!(string)(evt.cardNumber_const) ~ "枚";
+				buf ~= range(evt.range) ~ "から";
+				buf ~= evt.cardNumber == 0 ? "全て" : to!(string)(evt.cardNumber) ~ "枚";
 				buf ~= ")";
 				return buf;
 			} else {
 				return "指定無し";
 			}
 		} case CType.LOSE_SKILL: {
-			auto c = summ.skill(evt.skill_const);
+			auto c = summ.skill(evt.skill);
 			if (c) {
 				string buf = "特殊技能カード「" ~ c.name ~ "」を喪失(";
-				buf ~= range(evt.range_const) ~ "から";
-				buf ~= evt.cardNumber_const == 0 ? "全て" : to!(string)(evt.cardNumber_const) ~ "枚";
+				buf ~= range(evt.range) ~ "から";
+				buf ~= evt.cardNumber == 0 ? "全て" : to!(string)(evt.cardNumber) ~ "枚";
 				buf ~= ")";
 				return buf;
 			} else {
 				return "指定無し";
 			}
 		} case CType.LOSE_INFO: {
-			auto c = summ.info(evt.info_const);
+			auto c = summ.info(evt.info);
 			return c is null ? "指定無し" : "情報カード「" ~ c.name ~ "」を喪失";
 		} case CType.LOSE_BEAST: {
-			auto c = summ.beast(evt.beast_const);
+			auto c = summ.beast(evt.beast);
 			if (c) {
 				string buf = "召喚獣カード「" ~ c.name ~ "」を喪失(";
-				buf ~= range(evt.range_const) ~ "から";
-				buf ~= evt.cardNumber_const == 0 ? "全て" : to!(string)(evt.cardNumber_const) ~ "枚";
+				buf ~= range(evt.range) ~ "から";
+				buf ~= evt.cardNumber == 0 ? "全て" : to!(string)(evt.cardNumber) ~ "枚";
 				buf ~= ")";
 				return buf;
 			} else {
 				return "指定無し";
 			}
 		} case CType.LOSE_MONEY: {
-			return "喪失金額 = " ~ to!(string)(evt.money_const) ~ " sp";
+			return "喪失金額 = " ~ to!(string)(evt.money) ~ " sp";
 		} case CType.LOSE_COUPON: {
-			if (evt.coupon_const is null || evt.coupon_const.length == 0) {
+			if (evt.coupon is null || evt.coupon.length == 0) {
 				return "指定無し";
 			} else {
-				return "称号「" ~ evt.coupon_const ~ "」を喪失(" ~ range(evt.range_const) ~ ")";
+				return "称号「" ~ evt.coupon ~ "」を喪失(" ~ range(evt.range) ~ ")";
 			}
 		} case CType.LOSE_COMPLETE_STAMP: {
-			return evt.completeStamp_const is null || evt.completeStamp_const.length == 0 ? "指定無し" : "シナリオ「" ~ evt.completeStamp_const ~ "」の終了印を削除";
+			return evt.completeStamp is null || evt.completeStamp.length == 0 ? "指定無し" : "シナリオ「" ~ evt.completeStamp ~ "」の終了印を削除";
 		} case CType.LOSE_GOSSIP: {
-			return evt.gossip_const is null || evt.gossip_const.length == 0 ? "指定無し" : "宿屋クーポン「" ~ evt.gossip_const ~ "」を喪失";
+			return evt.gossip is null || evt.gossip.length == 0 ? "指定無し" : "宿屋クーポン「" ~ evt.gossip ~ "」を喪失";
 		} case CType.SHOW_PARTY: {
 			return "パーティ表示コンテント";
 		} case CType.HIDE_PARTY: {

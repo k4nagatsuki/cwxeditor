@@ -612,8 +612,18 @@ public:
 	MenuCard[] cards() {
 		return _cards;
 	}
+	/// ditto
+	const
+	const(MenuCard)[] cards() {
+		return _cards;
+	}
 	/// 背景画像群。
 	BgImage[] backs() {
+		return _bgImgs;
+	}
+	/// ditto
+	const
+	const(BgImage)[] backs() {
 		return _bgImgs;
 	}
 

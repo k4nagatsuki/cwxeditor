@@ -970,7 +970,7 @@ class DockingFolder(TabF, int Style) {
 			}
 			return false;
 		}
-		foreach (ref tab; ta.tabs) {
+		foreach (tab; ta.tabs) {
 			if (sc(tab.key)) continue;
 			auto t = r.newElement("tab");
 			t.newAttr("key", tab.key);

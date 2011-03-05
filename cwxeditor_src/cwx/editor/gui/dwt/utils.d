@@ -1346,7 +1346,7 @@ ImageData cardImage(C)(Props prop, Skin skin, C c, string sPath, CastCard owner 
 
 void addCastCoupons(Combo combo, Props prop, bool talker, string legacyName) {
 	if (!talker) {
-		foreach (c; prop.var.etc.standardCoupons_const) {
+		foreach (c; prop.var.etc.standardCoupons) {
 			combo.add(c);
 		}
 	}
@@ -1518,7 +1518,7 @@ private class LSFFThr(S, bool Array) {
 			display.syncExec(new Start);
 			try {
 				S r = S.loadScenarioFromFile(prop.parent,
-					fname, prop.var.etc.expandXMLs_const,
+					fname, prop.var.etc.expandXMLs,
 					prop.tempPath, old, &setMax, &setWork,
 					isdir(fname) ? getBaseName(fname) : getBaseName(getDirName(fname)));
 				temp = r.useTemp ? r.scenarioPath : "";
@@ -1609,11 +1609,11 @@ S[] loadScenariosFromFile(S)(Props prop, Shell w, void delegate(string) status,
 }
 
 string scenarioFilterPath(Props prop) {
-	if (prop.var.etc.scenarioPath_const.length == 0) {
-		if (prop.var.etc.enginePath_const.length == 0) return "";
-		return nabs(std.path.join(getDirName(prop.var.etc.enginePath_const), "Scenario"));
+	if (prop.var.etc.scenarioPath.length == 0) {
+		if (prop.var.etc.enginePath.length == 0) return "";
+		return nabs(std.path.join(getDirName(prop.var.etc.enginePath), "Scenario"));
 	} else {
-		return nabs(prop.var.etc.scenarioPath_const);
+		return nabs(prop.var.etc.scenarioPath);
 	}
 }
 
@@ -1673,7 +1673,7 @@ private S loadScenarioFromFileImpl(S)(Props prop, Shell w, void delegate(string)
 		}
 		try {
 			return S.loadScenarioFromFile(prop.parent, fname,
-				prop.var.etc.expandXMLs_const,
+				prop.var.etc.expandXMLs,
 				prop.tempPath, old, setMax, worked,
 				isdir(fname) ? getBaseName(fname) : getBaseName(getDirName(fname)));
 		} catch (SummaryException e) {
@@ -1813,7 +1813,7 @@ Composite createDefSoundCombo(Props prop, Summary summ, Skin skin, Composite par
 		}
 	}
 	if (summ.legacy) {
-		skin = Skin.legacySkin(prop.parent, prop.var.etc.enginePath_const, summ.scenarioPath);
+		skin = Skin.legacySkin(prop.parent, prop.var.etc.enginePath, summ.scenarioPath);
 	}
 	auto comp2 = new Composite(parent, SWT.NONE);
 	if (title) {
@@ -2020,15 +2020,15 @@ CoolBar createCoolBar(string Name)(Props prop, Composite parent,
 	foreach (itm; cbar.getItems) {
 		itm.getControl.setMenu = menu;
 	}
-	if (mixin ("prop.var.etc." ~ Name ~ "Order_const.length") == cbar.getItemCount) {
-		cbar.setItemOrder = mixin ("prop.var.etc." ~ Name ~ "Order_const.dup");
+	if (mixin ("prop.var.etc." ~ Name ~ "Order.length") == cbar.getItemCount) {
+		cbar.setItemOrder = mixin ("prop.var.etc." ~ Name ~ "Order.dup");
 	}
 	int[] wi;
-	foreach (i; mixin ("prop.var.etc." ~ Name ~ "WrapIndices_const")) {
+	foreach (i; mixin ("prop.var.etc." ~ Name ~ "WrapIndices")) {
 		if (i > 0 && i < cbar.getItemCount) wi ~= i;
 	}
 	if (wi != cbar.getWrapIndices) cbar.setWrapIndices = wi;
-	cbar.setLocked = mixin ("prop.var.etc." ~ Name ~ "Lock_const");
+	cbar.setLocked = mixin ("prop.var.etc." ~ Name ~ "Lock");
 	ls._lock.setSelection = cbar.getLocked;
 	return cbar;
 }

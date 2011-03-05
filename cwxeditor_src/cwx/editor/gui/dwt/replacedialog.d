@@ -1085,8 +1085,8 @@ public:
 		if (summ) {
 			bool sr = false;
 			if (summary) {
-				sr |= repl(null, &summ.scenarioName, &summ.scenarioName, count);
-				sr |= repl(null, &summ.desc, &summ.desc, count);
+				sr |= repl(null, summ.scenarioName, &summ.scenarioName, count);
+				sr |= repl(null, summ.desc, &summ.desc, count);
 			}
 			if (coupon) {
 				sr |= replRqCoupons!(Summary)(null, _summ, count);
@@ -1098,9 +1098,10 @@ public:
 			bool r = replCard!(CastCard)(null, cc, count);
 			if (coupon) {
 				auto coupons = cc.coupons.dup;
-				foreach (ref cp; coupons) {
-					r |= repl(null, {return cp.name;},
+				foreach (i, cp; coupons) {
+					r |= repl(null, cp.name,
 						(string t) {cp = new Coupon(t, cp.value);}, count);
+					if (_replMode) coupons[i] = cp;
 				}
 				cc.coupons = coupons;
 			}
@@ -1117,7 +1118,7 @@ public:
 		auto a = cast(AbstractArea) c;
 		if (a) {
 			if (area) {
-				repl(a, &a.name, &a.name, count);
+				repl(a, a.name, &a.name, count);
 			}
 		}
 		auto menu = cast(MenuCard) c;
@@ -1134,8 +1135,8 @@ public:
 			replFlagName(f.parent, f, count);
 			_summ.useCounter.change(toFlagId(old), toFlagId(f.name));
 			bool r = false;
-			r |= repl(null, &f.on, &f.on, count);
-			r |= repl(null, &f.off, &f.off, count);
+			r |= repl(null, f.on, &f.on, count);
+			r |= repl(null, f.off, &f.off, count);
 			if (r) addResult(f);
 		}
 		auto s = cast(Step) c;
@@ -1145,7 +1146,7 @@ public:
 			_summ.useCounter.change(toStepId(old), toStepId(s.name));
 			bool r = false;
 			foreach (i, v; s.values) {
-				r |= repl(null, {return v;}, (string t) {s.setValue(i, t);}, count);
+				r |= repl(null, v, (string t) {s.setValue(i, t);}, count);
 			}
 			if (r) addResult(s);
 		}
@@ -1418,8 +1419,7 @@ public:
 		itm.setText = text;
 		itm.setData = cast(Object) path;
 	}
-	private bool repl(CWXPath path, string delegate() get, void delegate(string) set, ref size_t count) {
-		string text = get();
+	private bool repl(CWXPath path, string text, void delegate(string) set, ref size_t count) {
 		auto c = fTextCount(text);
 		count += c;
 		if (c > 0) {
@@ -1443,10 +1443,11 @@ public:
 	}
 
 	private bool replRqCoupons(C)(CWXPath path, C targ, ref size_t count) {
-		auto coupons = targ.rCoupons;
+		string[] coupons = targ.rCoupons;
 		bool r = false;
-		foreach (ref cp; coupons) {
-			r |= repl(null, {return cp;}, (string t) {cp = t;}, count);
+		foreach (i, cp; coupons) {
+			r |= repl(null, cp, (string t) {cp = t;}, count);
+			if (_replMode) coupons[i] = cp;
 		}
 		if (r) {
 			if (_replMode) targ.rCoupons = coupons;
@@ -1460,8 +1461,9 @@ public:
 		if (keyCode) {
 			auto kcs = targ.keyCodes.dup;
 			bool r = false;
-			foreach (ref kc; kcs) {
-				r |= repl(null, {return kc;}, (string t) {kc = t;}, count);
+			foreach (i, kc; kcs) {
+				r |= repl(null, kc, (string t) {kc = t;}, count);
+				if (_replMode) kcs[i] = kc;
 			}
 			if (r) {
 				if (_replMode) targ.keyCodes = kcs;
@@ -1477,7 +1479,7 @@ public:
 		string to = _to.getText;
 		bool r = false;
 		if (flag) {
-			r |= repl(null, &back.flag, &back.flag, count);
+			r |= repl(null, back.flag, &back.flag, count);
 		}
 		if (r && path) {
 			addResult(path);
@@ -1489,14 +1491,14 @@ public:
 		string to = _to.getText;
 		bool r = false;
 		if (cardName) {
-			r |= repl(null, &card.name, &card.name, count);
+			r |= repl(null, card.name, &card.name, count);
 		}
 		if (cardDesc) {
-			r |= repl(null, &card.desc, &card.desc, count);
+			r |= repl(null, card.desc, &card.desc, count);
 		}
 		if (flag) {
 			static if (is (C : IFlagUser)) {
-				r |= repl(null, &card.flag, &card.flag, count);
+				r |= repl(null, card.flag, &card.flag, count);
 			}
 		}
 		static if (is (C : EffectCard)) {
@@ -1514,33 +1516,33 @@ public:
 		string to = _to.getText;
 		bool r = false;
 		if (event && (!eo || eo.detail.nextType == CNextType.TEXT)) {
-			r |= repl(null, &e.name, &e.name, count);
+			r |= repl(null, e.name, &e.name, count);
 		}
 		if (flag) {
-			r |= repl(null, &e.flag, &e.flag, count);
-			r |= repl(null, &e.step, &e.step, count);
+			r |= repl(null, e.flag, &e.flag, count);
+			r |= repl(null, e.step, &e.step, count);
 		}
 		if (start) {
-			r |= repl(null, &e.start, &e.start, count);
+			r |= repl(null, e.start, &e.start, count);
 			if (e.type == CType.START) {
-				r |= repl(null, &e.name, &e.name, count);
+				r |= repl(null, e.name, &e.name, count);
 			}
 		}
 		if (coupon) {
-			r |= repl(null, &e.coupon, &e.coupon, count);
+			r |= repl(null, e.coupon, &e.coupon, count);
 		}
 		if (gossip) {
-			r |= repl(null, &e.gossip, &e.gossip, count);
+			r |= repl(null, e.gossip, &e.gossip, count);
 		}
 		if (end) {
-			r |= repl(null, &e.completeStamp, &e.completeStamp, count);
+			r |= repl(null, e.completeStamp, &e.completeStamp, count);
 		}
 		if (msg) {
-			r |= repl(null, &e.text, &e.text, count);
+			r |= repl(null, e.text, &e.text, count);
 			auto dlgs = e.dialogs;
 			foreach (dlg; dlgs) {
 				if (msg) {
-					r |= repl(null, &dlg.text, &dlg.text, count);
+					r |= repl(null, dlg.text, &dlg.text, count);
 				}
 				if (coupon) {
 					r |= replRqCoupons!(typeof(dlg))(null, dlg, count);

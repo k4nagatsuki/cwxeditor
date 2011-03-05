@@ -515,10 +515,10 @@ public:
 	}
 	const
 	string tempPath() {
-		if (std.path.isabs(var.etc.tempPath_const)) {
-			return var.etc.tempPath_const;
+		if (std.path.isabs(var.etc.tempPath)) {
+			return var.etc.tempPath;
 		} else {
-			return std.path.join(std.path.getDirName(parent.appPath), var.etc.tempPath_const);
+			return std.path.join(std.path.getDirName(parent.appPath), var.etc.tempPath);
 		}
 	}
 	const

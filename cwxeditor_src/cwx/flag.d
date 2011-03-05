@@ -658,16 +658,7 @@ public:
 		return getStep(name) !is null;
 	}
 
-	private F __get(F)(F[] arr, string name) {
-		foreach (f; arr) {
-			if (icmp(f.name, name) == 0) {
-				return f;
-			}
-		}
-		return null;
-	}
-	const
-	private const(F) __get_const(F)(in F[] arr, string name) {
+	private static F __get(F)(F[] arr, string name) {
 		foreach (f; arr) {
 			if (icmp(f.name, name) == 0) {
 				return f;
@@ -683,7 +674,7 @@ public:
 	/// ditto
 	const
 	const(Flag) getFlag(string name) {
-		return __get_const!(Flag)(_flags, name);
+		return __get!(const Flag)(_flags, name);
 	}
 	/// ditto
 	Step getStep(string name) {
@@ -692,7 +683,7 @@ public:
 	/// ditto
 	const
 	const(Step) getStep(string name) {
-		return __get_const!(Step)(_steps, name);
+		return __get!(const Step)(_steps, name);
 	}
 	/// ditto
 	FlagDir getSubDir(string name) {
@@ -701,7 +692,7 @@ public:
 	/// ditto
 	const
 	const(FlagDir) getSubDir(string name) {
-		return __get_const!(FlagDir)(_subdir, name);
+		return __get!(const FlagDir)(_subdir, name);
 	}
 
 	/// このディレクトリとサブディレクトリの中にある

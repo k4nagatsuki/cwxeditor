@@ -170,7 +170,7 @@ private:
 					summ.saveXMLs(summ.scenarioPath);
 				}
 			}
-			summ.author = _prop.var.etc.defaultAuthor_const;
+			summ.author = _prop.var.etc.defaultAuthor;
 			openScenario(summ);
 		}
 	}
@@ -235,10 +235,10 @@ private:
 		assert (summ);
 		auto old = summary;
 		if (summ.type.length && !hasSkin(_prop, summ.type)
-				&& summ.type != _prop.var.etc.defaultSkin_const) {
-			MessageBox.showWarning(_prop.msgs.useDefaultSkin(summ.type, _prop.var.etc.defaultSkin_const),
+				&& summ.type != _prop.var.etc.defaultSkin) {
+			MessageBox.showWarning(_prop.msgs.useDefaultSkin(summ.type, _prop.var.etc.defaultSkin),
 				_prop.msgs.dlgTitWarning, _win);
-			summ.type = _prop.var.etc.defaultSkin_const;
+			summ.type = _prop.var.etc.defaultSkin;
 		}
 		_comm.skin = findSkin(_prop, summ);
 		_comm.closeAll;
@@ -254,9 +254,9 @@ private:
 		_comm.refScenarioName.call;
 		_comm.refScenarioPath.call;
 		if (!dock) {
-			if (_prop.var.dataWin.visible_const) _comm.openDataWin;
-			if (_prop.var.cardWin.visible_const) _comm.openCardWin;
-			if (_prop.var.dirWin.visible_const) _comm.openDirWin;
+			if (_prop.var.dataWin.visible) _comm.openDataWin;
+			if (_prop.var.cardWin.visible) _comm.openCardWin;
+			if (_prop.var.dirWin.visible) _comm.openDirWin;
 		}
 		setupMenu(_menu);
 		setupMenu(_tool);
@@ -284,7 +284,7 @@ private:
 	void openScenario() {
 		auto old = summary;
 		loadScenario!(Summary)(_prop, _win, &setStatusLine,
-			_prop.var.etc.expandXMLs_const, old, _prop.msgs.dlgTitOpenScenario,
+			_prop.var.etc.expandXMLs, old, _prop.msgs.dlgTitOpenScenario,
 			_openPaths, &openScenarioImpl);
 	}
 	void openScenario(string fname) {
@@ -294,7 +294,7 @@ private:
 		decScenarioPath(fname, _openPaths);
 		auto old = summary;
 		loadScenarioFromFile!(Summary)(_prop, _win, &setStatusLine,
-			_prop.var.etc.expandXMLs_const, old, fname, &openScenarioImpl);
+			_prop.var.etc.expandXMLs, old, fname, &openScenarioImpl);
 	}
 	void saveScenario() {
 		save(_win);
@@ -311,7 +311,7 @@ private:
 				shell.setCursor = Display.getCurrent.getSystemCursor(SWT.CURSOR_WAIT);
 				scope (exit) shell.setCursor = null;
 				try {
-					summary.saveOverwrite(_prop.parent, _prop.var.etc.saveInnerImagePath_const);
+					summary.saveOverwrite(_prop.parent, _prop.var.etc.saveInnerImagePath);
 					_comm.saved.call;
 					addHistory;
 					return true;
@@ -341,11 +341,11 @@ private:
 				shell.setCursor = Display.getCurrent.getSystemCursor(SWT.CURSOR_WAIT);
 				scope (exit) shell.setCursor = null;
 				string tempPath = _prop.tempPath;
-				bool expandXMLs = _prop.var.etc.expandXMLs_const;
-				Skin defSkin = .findSkin2(_prop, _prop.var.etc.defaultSkin_const);
+				bool expandXMLs = _prop.var.etc.expandXMLs;
+				Skin defSkin = .findSkin2(_prop, _prop.var.etc.defaultSkin);
 				try {
 					summary.saveWithName(_prop.parent,
-						_prop.var.etc.saveInnerImagePath_const,
+						_prop.var.etc.saveInnerImagePath,
 						fname, tempPath, expandXMLs, defSkin, (string msg) {
 							MessageBox.showWarning(msg, _prop.msgs.dlgTitWarning, shell);
 						});
@@ -363,7 +363,7 @@ private:
 		return false;
 	}
 	void execEngine() {
-		string engine = summary ? _comm.skin.engine : _prop.var.etc.enginePath_const;
+		string engine = summary ? _comm.skin.engine : _prop.var.etc.enginePath;
 		if (engine.length) {
 			if (!exec(engine, getDirName(nabs(engine)))) {
 				MessageBox.showWarning(_prop.msgs.errorExecEngine(engine),
@@ -454,7 +454,7 @@ private:
 			_prop.var.mainWin.y = b.y;
 			if (dock) {
 				_prop.var.mainWin.maximized = _win.getMaximized;
-				if (!_prop.var.mainWin.maximized_const) {
+				if (!_prop.var.mainWin.maximized) {
 					_prop.var.mainWin.width = b.width;
 					_prop.var.mainWin.height = b.height;
 				}
@@ -472,9 +472,9 @@ private:
 		}
 	}
 	void settings() {
-		const(string)[] oldHist = _prop.var.etc.openHistories_const;
+		const(string)[] oldHist = _prop.var.etc.openHistories;
 		scope (exit) {
-			if (oldHist != _prop.var.etc.openHistories_const) {
+			if (oldHist != _prop.var.etc.openHistories) {
 				createFileMenu;
 			}
 		}
@@ -500,16 +500,16 @@ private:
 		}
 		hist = nabs(hist);
 		_prop.var.etc.scenarioPath = summary.useTemp ? getDirName(hist) : getDirName(getDirName(hist));
-		auto hists = _prop.var.etc.openHistories_const.dup;
+		auto hists = _prop.var.etc.openHistories.dup;
 		foreach (i, h; hists) {
 			if (std.path.fnmatch(h, hist)) {
 				_prop.var.etc.openHistories = hists[0 .. i] ~ hists[i + 1 .. $];
-				hists = _prop.var.etc.openHistories_const.dup;
+				hists = _prop.var.etc.openHistories.dup;
 				break;
 			}
 		}
 		_prop.var.etc.openHistories
-			= [hist] ~ (hists.length < _prop.var.etc.historyMax_const ? hists : hists[0 .. $ - 1]);
+			= [hist] ~ (hists.length < _prop.var.etc.historyMax ? hists : hists[0 .. $ - 1]);
 		_prop.var.save(dock);
 		createFileMenu;
 	}
@@ -518,7 +518,7 @@ private:
 		this(Menu menu, int num, string hist) {
 			string text;
 			Image img;
-			auto snipLen = _prop.var.etc.historySnipLength_const;
+			auto snipLen = _prop.var.etc.historySnipLength;
 			if (std.path.fnmatch(getBaseName(hist), "Summary.xml")) {
 				text = cuthist(hist[0u .. $ - "Summary.xml".length - std.path.sep.length], snipLen);
 				img = _prop.images.summaryFile;
@@ -610,7 +610,7 @@ private:
 		new MenuItem(_menuFile, SWT.SEPARATOR);
 		createMenuItem(_menuFile, _prop.msgs.menuReload, _prop.images.menuReload, &reload);
 		new MenuItem(_menuFile, SWT.SEPARATOR);
-		auto hists = _prop.var.etc.openHistories_const;
+		auto hists = _prop.var.etc.openHistories;
 		foreach (i, hist; hists) {
 			new Hist(_menuFile, i + 1, hist);
 		}
@@ -783,19 +783,19 @@ public:
 		_firstScenarioPath = firstScenarioPath;
 		_openPaths = openPaths;
 		_prop = new Props(propFilePath, new CProps(appPath, sys));
-		if (_prop.var.etc.tempPath_const.length == 0) {
+		if (_prop.var.etc.tempPath.length == 0) {
 			string t = cwx.utils.getenv("TEMP");
 			if (t) _prop.var.etc.tempPath = std.path.join(t, "cwxeditor");
 		}
-		if (_prop.var.etc.tempPath_const.length == 0) {
+		if (_prop.var.etc.tempPath.length == 0) {
 			string t = cwx.utils.getenv("TMP");
 			if (t) _prop.var.etc.tempPath = std.path.join(t, "cwxeditor");
 		}
-		if (_prop.var.etc.tempPath_const.length == 0) {
+		if (_prop.var.etc.tempPath.length == 0) {
 			string t = cwx.utils.getenv("TMPDIR");
 			if (t) _prop.var.etc.tempPath = std.path.join(t, "cwxeditor");
 		}
-		if (_prop.var.etc.tempPath_const.length == 0) {
+		if (_prop.var.etc.tempPath.length == 0) {
 			_prop.var.etc.tempPath = "temp";
 		}
 		if (exists(_prop.tempPath)) {
@@ -814,27 +814,27 @@ public:
 		}
 
 		_comm = new Commons;
-		_comm.skin = findSkin2(_prop, _prop.var.etc.defaultSkin_const);
+		_comm.skin = findSkin2(_prop, _prop.var.etc.defaultSkin);
 
 		auto d = new Display;
 		_display = d;
 		d.setAppName = _prop.msgs.application;
-		if (_prop.var.etc.enginePath_const.length && !.exists(_prop.var.etc.enginePath_const)) {
+		if (_prop.var.etc.enginePath.length && !.exists(_prop.var.etc.enginePath)) {
 			auto dlg = new SettingsDialog(_comm, _prop, null, null);
 			if (!dlg.open) return;
 		}
 
 		string engineDir = "";
-		if (_prop.var.etc.enginePath_const.length) {
-			engineDir = getDirName(nabs(_prop.var.etc.enginePath_const));
+		if (_prop.var.etc.enginePath.length) {
+			engineDir = getDirName(nabs(_prop.var.etc.enginePath));
 			auto skinTable = .skinTable(_prop);
-			if (!(_prop.var.etc.defaultSkin_const in skinTable)) {
-				MessageBox.showWarning(_prop.msgs.loadSkinError(_prop.var.etc.defaultSkin_const),
+			if (!(_prop.var.etc.defaultSkin in skinTable)) {
+				MessageBox.showWarning(_prop.msgs.loadSkinError(_prop.var.etc.defaultSkin),
 					_prop.msgs.dlgTitWarning, null);
 			}
 		}
 
-		if (_prop.var.etc.singleWindow_const) {
+		if (_prop.var.etc.singleWindow) {
 			_sbshl = new SBShell(null, SWT.SHELL_TRIM);
 		} else {
 			_sbshl = new SBShell(null, SWT.DIALOG_TRIM | SWT.MIN);
@@ -853,7 +853,7 @@ public:
 			d.loadFont(std.path.join(engineDir, f));
 		}
 		_win.setText(_prop.msgs.mainWindowName(null, null));
-		if (_prop.var.etc.singleWindow_const) {
+		if (_prop.var.etc.singleWindow) {
 			_sbshl.contentPane.setLayout = zeroGridLayout(1, true);
 		} else {
 			_sbshl.contentPane.setLayout = windowGridLayout(1, true);
@@ -861,7 +861,7 @@ public:
 		auto toolComp = new Composite(_sbshl.contentPane, SWT.NONE);
 		toolComp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		toolComp.setLayout = new FillLayout;
-		if (_prop.var.etc.singleWindow_const) {
+		if (_prop.var.etc.singleWindow) {
 			auto dockComp = new Composite(_sbshl.contentPane, SWT.NONE);
 			dockComp.setLayoutData = new GridData(GridData.FILL_BOTH);
 			dockComp.setLayout = windowGridLayout(1, true);
@@ -952,7 +952,7 @@ public:
 			createFileMenu;
 
 			auto me = createMenu(bar, _prop.msgs.menuEdit);
-			if (_prop.var.etc.singleWindow_const) {
+			if (_prop.var.etc.singleWindow) {
 				mixin (MenuAction!("me", "OpenDirectory", SWT.PUSH, "openDirectory"));
 				new MenuItem(me, SWT.SEPARATOR);
 				mixin (MenuAction!("me", "Undo"));
@@ -972,7 +972,7 @@ public:
 			mixin (MenuAction!("me", "ToXML", SWT.PUSH, "clipboardToXML"));
 			new MenuItem(me, SWT.SEPARATOR);
 			mixin (MenuAction!("me", "Reload", SWT.PUSH, "reload"));
-			if (_prop.var.etc.singleWindow_const) {
+			if (_prop.var.etc.singleWindow) {
 				new MenuItem(me, SWT.SEPARATOR);
 				mixin (MenuAction!("me", "NewFolder"));
 			}
@@ -981,14 +981,14 @@ public:
 			mixin (MenuAction!("mv", "DataWin", SWT.PUSH, "openDataWindow"));
 			mixin (MenuAction!("mv", "CardWin", SWT.PUSH, "openCardWindow"));
 			mixin (MenuAction!("mv", "DirWin", SWT.PUSH, "openDirWindow"));
-			if (_prop.var.etc.singleWindow_const) {
+			if (_prop.var.etc.singleWindow) {
 				new MenuItem(mv, SWT.SEPARATOR);
 				mixin (MenuAction!("mv", "Refresh", SWT.PUSH, "refreshAll"));
 				new MenuItem(mv, SWT.SEPARATOR);
 				mixin (MenuAction!("mv", "ChangeVH"));
 			}
 
-			if (_prop.var.etc.singleWindow_const) {
+			if (_prop.var.etc.singleWindow) {
 				auto ma = createMenu(bar, _prop.msgs.menuTable);
 				mixin (MenuAction!("ma", "Summary", SWT.PUSH, "_tableWin.editSummary"));
 				new MenuItem(ma, SWT.SEPARATOR);
@@ -1012,9 +1012,9 @@ public:
 				mixin (MenuAction!("mc", "ShowCardTable", SWT.RADIO, "showCardTable"));
 				auto sct = _menu[MenuID.ShowCardTable];
 				g.append(sct);
-				if (_prop.var.etc.cardLife_const) {
+				if (_prop.var.etc.cardLife) {
 					scf.setSelection = true;
- 				} else if (_prop.var.etc.cardDetails_const) {
+ 				} else if (_prop.var.etc.cardDetails) {
 					sct.setSelection = true;
 				} else {
 					scl.setSelection = true;
@@ -1057,7 +1057,7 @@ public:
 		_noSummMenu.add(MenuID.Settings);
 		_noSummMenu.add(MenuID.Version);
 
-		if (_prop.var.etc.singleWindow_const) {
+		if (_prop.var.etc.singleWindow) {
 			_cbar = createCoolBar!("tools")(_prop, toolComp, (CoolBar cbar) {
 				void createCoolItem(CoolBar cbar, ToolBar tbar) {
 					.createCoolItem(cbar, tbar);
@@ -1145,9 +1145,9 @@ public:
 					mixin (ToolAction!("bar", "ShowCardTable", SWT.RADIO, "showCardTable"));
 					auto sct = _tool[MenuID.ShowCardTable];
 					g.append(sct);
-					if (_prop.var.etc.cardLife_const) {
+					if (_prop.var.etc.cardLife) {
 						scf.setSelection = true;
-					} else if (_prop.var.etc.cardDetails_const) {
+					} else if (_prop.var.etc.cardDetails) {
 						sct.setSelection = true;
 					} else {
 						scl.setSelection = true;
@@ -1214,12 +1214,12 @@ public:
 			_comm.baseShell(this, _dataWin, _cardWin, _dirWin);
 		}
 
-		int tx = _prop.var.mainWin.x_const == SWT.DEFAULT ? _win.getBounds.x : _prop.var.mainWin.x_const;
-		int ty = _prop.var.mainWin.y_const == SWT.DEFAULT ? _win.getBounds.y : _prop.var.mainWin.y_const;
-		if (_prop.var.etc.singleWindow_const) {
-			intoDisplay(tx, ty, _prop.var.mainWin.width_const, _prop.var.mainWin.height_const);
-			_win.setBounds(tx, ty, _prop.var.mainWin.width_const, _prop.var.mainWin.height_const);
-			_win.setMaximized = _prop.var.mainWin.maximized_const;
+		int tx = _prop.var.mainWin.x == SWT.DEFAULT ? _win.getBounds.x : _prop.var.mainWin.x;
+		int ty = _prop.var.mainWin.y == SWT.DEFAULT ? _win.getBounds.y : _prop.var.mainWin.y;
+		if (_prop.var.etc.singleWindow) {
+			intoDisplay(tx, ty, _prop.var.mainWin.width, _prop.var.mainWin.height);
+			_win.setBounds(tx, ty, _prop.var.mainWin.width, _prop.var.mainWin.height);
+			_win.setMaximized = _prop.var.mainWin.maximized;
 			_win.layout(true);
 		} else {
 			_win.pack;
@@ -1248,7 +1248,7 @@ public:
 	}
 	private class TabfPaint : PaintListener {
 		override void paintControl(PaintEvent e) {
-			auto path = _prop.var.etc.backgroundImage_const;
+			auto path = _prop.var.etc.backgroundImage;
 			if (!path.length || !.exists(path)) return;
 			auto tabf = cast(CTabFolder) e.widget;
 			if (!tabf || tabf.getItemCount > 0) return;
@@ -1678,7 +1678,7 @@ protected:
 			l.setText = _prop.msgs.scenarioName;
 			_name = new Text(comp, SWT.BORDER);
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
-			gd.widthHint = _prop.var.etc.nameWidth_const;
+			gd.widthHint = _prop.var.etc.nameWidth;
 			_name.setLayoutData = gd;
 			checker(_name);
 		}
@@ -1692,12 +1692,12 @@ protected:
 			}
 			if (!_skinC.getItemCount) {
 				// スキンが無い
-				_skinC.add(_prop.var.etc.defaultSkin_const);
+				_skinC.add(_prop.var.etc.defaultSkin);
 			}
-			if (_prop.var.etc.canCreateClassic_const) {
+			if (_prop.var.etc.canCreateClassic) {
 				_skinC.add(_prop.msgs.classic);
 			}
-			_skinC.setText = _prop.var.etc.defaultSkin_const;
+			_skinC.setText = _prop.var.etc.defaultSkin;
 			if (_skinC.getSelectionIndex == -1) _skinC.select = 0;
 			checker(_skinC);
 		}
@@ -1706,12 +1706,12 @@ protected:
 	override bool close(bool ok, out bool cancel) {
 		if (ok) {
 			_nameVal = _name.getText;
-			if (_prop.var.etc.canCreateClassic_const && _skinC.getSelectionIndex == _skinC.getItemCount - 1) {
+			if (_prop.var.etc.canCreateClassic && _skinC.getSelectionIndex == _skinC.getItemCount - 1) {
 				_skinVal = "";
 				auto dlg = new DirectoryDialog(getShell);
 				dlg.setText = _prop.msgs.newClassicDir;
 				dlg.setMessage = _prop.msgs.newClassicDirDesc;
-				dlg.setFilterPath = _prop.var.etc.scenarioPath_const;
+				dlg.setFilterPath = _prop.var.etc.scenarioPath;
 				while (true) {
 					auto path = dlg.open;
 					if (path) {

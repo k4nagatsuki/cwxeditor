@@ -238,6 +238,7 @@ public:
 /// BgImage所持者のインタフェース。
 interface BgImageOwner : CWXPath {
 	BgImage[] backs();
+	const const(BgImage)[] backs();
 }
 
 /// BgImageのコンテナ。背景変更イベントで使用。
@@ -270,6 +271,11 @@ public:
 	}
 	/// 背景イメージ群。
 	BgImage[] backs() {
+		return _bgImgs;
+	}
+	/// ditto
+	const
+	const(BgImage)[] backs() {
 		return _bgImgs;
 	}
 	/// ditto
