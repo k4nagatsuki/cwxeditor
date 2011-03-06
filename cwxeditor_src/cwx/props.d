@@ -1225,20 +1225,30 @@ public:
 	string height() {return "高";}
 	string scale() {return "拡大率";}
 
-	string areaViewStatus(AbstractSpCard[] cards, BgImage[] backs, bool useFlag) {
+	string areaViewStatus(Summary summ, AbstractSpCard[] cards, BgImage[] backs, bool useFlag) {
 		if (cards.length == 1 && backs.length == 0 && useFlag) {
-			return cards[0].flag == "" ? "フラグ指定無し" : "フラグ = " ~ cards[0].flag;
+			auto flag = "] - " ~ (cards[0].flag == "" ? "フラグ指定無し" : "フラグ = " ~ cards[0].flag);
+			auto menu = cast(MenuCard) cards[0];
+			if (menu) {
+				auto path = isBinImg(menu.path) ? "イメージ格納" : encodePath(menu.path);
+				return "メニューカード [" ~ menu.name ~ "] - [" ~ path ~ flag;
+			}
+			auto enemy = cast(EnemyCard) cards[0];
+			if (enemy && summ) {
+				auto casts = summ.casts(enemy.id);
+				return "エネミーカード [" ~ (casts ? (to!(string)(enemy.id) ~ "." ~  casts.name) : "対象無し") ~ flag;
+			}
 		} else if (cards.length == 0 && backs.length == 1 && useFlag) {
-			return backs[0].flag == "" ? "フラグ指定無し" : "フラグ = " ~ backs[0].flag;
+			auto flag = "] - " ~ (backs[0].flag == "" ? "フラグ指定無し" : "フラグ = " ~ backs[0].flag);
+			return "背景画像 [" ~ encodePath(backs[0].path) ~ flag;
 		} else if (cards.length > 0 && backs.length == 0) {
 			return to!(string)(cards.length) ~ "枚のカード";
 		} else if (cards.length == 0 && backs.length > 0) {
 			return to!(string)(backs.length) ~ "枚の背景";
 		} else if (cards.length > 0 && backs.length > 0) {
 			return to!(string)(cards.length) ~ "枚のカード " ~ to!(string)(backs.length) ~ "枚の背景";
-		} else {
-			return "";
 		}
+		return "";
 	}
 
 	private string __viewNameTab(ulong id, string name) {
