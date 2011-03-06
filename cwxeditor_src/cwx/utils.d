@@ -418,6 +418,7 @@ string toLower(string s) {
 T[] sort(alias Cmp, T)(T[] arr) {
 	return sort!(T)(arr, (T a, T b) {return Cmp(a, b) < 0;});
 }
+/// ditto
 T[] sort(T)(T[] arr, bool delegate(T, T) lmin) {
 	if (arr.length <= 1u) return arr;
 	auto pv = arr[arr.length / 2u];
