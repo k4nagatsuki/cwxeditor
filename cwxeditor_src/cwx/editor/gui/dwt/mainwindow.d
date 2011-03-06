@@ -231,8 +231,21 @@ private:
 			openScenario;
 		}
 	}
+	int cmp(string a, string b) {
+		return std.string.cmp(a, b);
+	}
+	int ncmp(string a, string b) {
+		return cwx.utils.ncmp(a, b);
+	}
 	void openScenario(Summary summ) {
 		assert (summ);
+		if (_prop.var.etc.logicalSort) {
+			summ.flagDirRoot.sorter = &ncmp;
+		} else {
+			summ.flagDirRoot.sorter = &cmp;
+		}
+		summ.flagDirRoot.sortFlags(true);
+		summ.flagDirRoot.sortSteps(true);
 		auto old = summary;
 		if (summ.type.length && !hasSkin(_prop, summ.type)
 				&& summ.type != _prop.var.etc.defaultSkin) {
@@ -262,6 +275,7 @@ private:
 		setupMenu(_tool);
 		addHistory;
 		if (old) old.delTemp;
+		summ.resetChanged;
 	}
 	string _firstScenarioPath = null;
 	string[] _openPaths;
@@ -1685,7 +1699,13 @@ protected:
 			l.setText = _prop.msgs.type;
 			_skinC = new Combo(comp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 			_skinC.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-			foreach (type; .skinTable(_prop).keys.sort) {
+			auto skins = skinTable(_prop).keys;
+			if (_prop.var.etc.logicalSort) {
+				skins = sort!(ncmp)(skins);
+			} else {
+				skins = sort!(cmp)(skins);
+			}
+			foreach (type; skins) {
 				_skinC.add(type);
 			}
 			if (!_skinC.getItemCount) {

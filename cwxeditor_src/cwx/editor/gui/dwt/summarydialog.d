@@ -289,7 +289,13 @@ private:
 							_type.add(_prop.msgs.legacyEngineSkin(lSkin.engine));
 						}
 					}
-					foreach (type; skinTable(_prop).keys.sort) {
+					auto skins = skinTable(_prop).keys;
+					if (_prop.var.etc.logicalSort) {
+						skins = sort!(ncmp)(skins);
+					} else {
+						skins = sort!(cmp)(skins);
+					}
+					foreach (type; skins) {
 						_type.add(type);
 					}
 					if (!_type.getItemCount) {

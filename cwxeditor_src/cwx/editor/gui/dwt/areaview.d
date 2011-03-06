@@ -828,15 +828,19 @@ private:
 			}
 		}
 		if (targs.length > 1) {
-			bool ficmp(FlexImage fi1, FlexImage fi2) {
+			bool ficmp(in FlexImage fi1, in FlexImage fi2) {
 				int x1, x2;
-				auto a = fi1;
-				x1 = mixin (X);
-				a = fi2;
-				x2 = mixin (X);
+				{
+					auto a = fi1;
+					x1 = mixin (X);
+				}
+				{
+					auto a = fi2;
+					x2 = mixin (X);
+				}
 				return x1 < x2;
 			}
-			targs = .sort(targs, &ficmp);
+			targs = .sortDlg!(FlexImage)(targs, &ficmp);
 			auto a = targs[0];
 			int left = mixin (X);
 			a = targs[$ - 1];

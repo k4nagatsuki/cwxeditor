@@ -155,10 +155,12 @@ public:
 		this(data, 0, 0, baseW, baseH);
 	}
 	/// Returns: ベースとなる幅。
+	const
 	int baseWidth() {
 		return initW;
 	}
 	/// Returns: ベースとなる高さ。
+	const
 	int baseHeight() {
 		return initH;
 	}
@@ -253,6 +255,7 @@ public:
 		assert (titPoint);
 		_title = title;
 	}
+	const
 	string title() {
 		return this._title;
 	}
@@ -382,6 +385,7 @@ public:
 		}
 	}
 	/// Returns: 表示するか。
+	const
 	bool visible() {
 		return _visible;
 	}
@@ -391,6 +395,7 @@ public:
 		_visible = v;
 	}
 	/// Returns: 拡大・縮小時に平滑化するか。
+	const
 	bool smoothing() {
 		return _smoothing;
 	}
@@ -400,6 +405,7 @@ public:
 		_smoothing = smoothing;
 	}
 	/// 透明色を使用するか。
+	const
 	bool transparent() {
 		return t;
 	}
@@ -408,10 +414,12 @@ public:
 		this.t = t;
 	}
 	/// 透明度。0(透明)～255(不透明)。
+	const
 	int alpha() {return _alpha;}
 	/// ditto
 	void alpha(int val) {_alpha = val;}
 	/// Returns: 横位置。
+	const
 	int x() {
 		return rect.x;
 	}
@@ -422,6 +430,7 @@ public:
 		rect.x = x;
 	}
 	/// Returns: 縦位置。
+	const
 	int y() {
 		return rect.y;
 	}
@@ -438,6 +447,7 @@ public:
 		rect.width = w;
 	}
 	/// Returns: 幅。
+	const
 	int width() {
 		return rect.width;
 	}
@@ -449,6 +459,7 @@ public:
 		rect.height = h;
 	}
 	/// Returns: 高さ。
+	const
 	int height() {
 		return rect.height;
 	}
@@ -464,6 +475,7 @@ public:
 	}
 
 	/// Returns: 位置とサイズ。
+	const
 	Rectangle bounds() {
 		return new Rectangle(x, y, width, height);
 	}
@@ -519,6 +531,7 @@ public:
 		newR = new Rectangle(x, y, baseW, baseH);
 	}
 	/// Returns: 最小の幅。初期値は1。
+	const
 	int minimumWidth() {
 		return minW;
 	}
@@ -528,6 +541,7 @@ public:
 		this.minW = minW;
 	}
 	/// Returns: 最小の高さ。初期値は1。
+	const
 	int minimumHeight() {
 		return minH;
 	}
@@ -537,6 +551,7 @@ public:
 		this.minH = minH;
 	}
 	/// Returns: 最大の幅。初期値は65536。
+	const
 	int maximumWidth() {
 		return maxW;
 	}
@@ -546,6 +561,7 @@ public:
 		this.maxW = maxW;
 	}
 	/// Returns: 最大の高さ。初期値は65536。
+	const
 	int maximumHeight() {
 		return maxH;
 	}
@@ -555,6 +571,7 @@ public:
 		this.maxH = maxH;
 	}
 	/// 縦横比固定か。
+	const
 	bool ratioFix() {
 		return whconst;
 	}
@@ -563,6 +580,7 @@ public:
 		this.whconst = whconst;
 	}
 	/// サイズ・位置固定モードか。
+	const
 	bool fixed() {return _fixed;}
 	/// ditto
 	void fixed(bool value) {
@@ -624,6 +642,7 @@ public:
 		drawToggle(gc);
 	}
 	/// Returns: 選択中か。
+	const
 	bool selected() {
 		return s;
 	}
@@ -639,6 +658,7 @@ public:
 		}
 	}
 	/// Returns: 仮の横位置。
+	const
 	int newX() {
 		return newR.x;
 	}
@@ -651,6 +671,7 @@ public:
 		retoggle();
 	}
 	/// Returns: 仮の縦位置。
+	const
 	int newY() {
 		return newR.y;
 	}
@@ -664,6 +685,7 @@ public:
 	}
 	/// 幅を設定可能な値に丸めて返す。
 	/// 縦横比固定の影響を受けない。
+	const
 	int roundMWidth(int w) {
 		w = minW > w ? minW : w;
 		w = maxW < w ? maxW : w;
@@ -673,6 +695,7 @@ public:
 	/// Params:
 	/// w = 幅。
 	/// Returns: 丸めた幅。
+	const
 	int roundWidth(int w) {
 		if (whconst) {
 			// 縦横比固定
@@ -683,6 +706,7 @@ public:
 		}
 	}
 	/// Returns: 仮の幅。
+	const
 	int newWidth() {
 		return newR.width;
 	}
@@ -696,6 +720,7 @@ public:
 	}
 	/// 高さを設定可能な値に丸めて返す。
 	/// 縦横比固定の影響を受けない。
+	const
 	int roundMHeight(int h) {
 		h = minH > h ? minH : h;
 		h = maxH < h ? maxH : h;
@@ -705,6 +730,7 @@ public:
 	/// Params:
 	/// h = 高さ。
 	/// Returns: 丸めた高さ。
+	const
 	int roundHeight(int h) {
 		if (whconst) {
 			// 縦横比固定
@@ -715,6 +741,7 @@ public:
 		}
 	}
 	/// Returns: 仮の高さ。
+	const
 	int newHeight() {
 		return newR.height;
 	}
@@ -750,6 +777,7 @@ public:
 		retoggle();
 	}
 	/// Returns: 仮の位置とサイズ。
+	const
 	Rectangle newBounds() {
 		return new Rectangle(newR.x, newR.y, newR.width, newR.height);
 	}
@@ -760,6 +788,7 @@ public:
 	/// x = 横位置。
 	/// y = 縦位置。
 	/// Returns: トグル。
+	const
 	Toggle inToggle(int x, int y) {
 		foreach (key; tgls.keys) {
 			auto rect = tgls[key];
@@ -803,6 +832,7 @@ public:
 		}
 	}
 
+	const
 	private Rectangle toggleRect(Toggle tgl) {
 		int tglX;
 		int tglY;
@@ -835,6 +865,7 @@ public:
 
 	/// 移動後に描画する領域を返す。
 	/// Returns: 描画する領域。
+	const
 	Rectangle drawNewArea() {
 		if (fixed) {
 			return new Rectangle(newR.x - 1, newR.y - 1, newR.width + 2, newR.height + 2);
@@ -845,6 +876,7 @@ public:
 	}
 	/// 描画する領域を返す。
 	/// Returns: 描画する領域。
+	const
 	Rectangle drawArea() {
 		auto r = bounds;
 		if (fixed) return r;

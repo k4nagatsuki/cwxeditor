@@ -167,12 +167,14 @@ private:
 		bool material;
 		ulong size;
 	}
-
-	static if (fnmatch("A", "a")) {
-		alias icmp comp;
-	} else {
-		alias cmp comp;
+	int comp(string a, string b) {
+		if (_prop.var.etc.logicalSort) {
+			return fnncmp(a, b);
+		} else {
+			return fncmp(a, b);
+		}
 	}
+
 	bool compDirName(string a, string b) {
 		return comp(a, b) < 0;
 	}
@@ -185,10 +187,10 @@ private:
 		if (ad && !bd) return true;
 		return comp(a, b) < 0;
 	}
-	bool compFName(FileNameObj a, FileNameObj b) {
+	bool compFName(in FileNameObj a, in FileNameObj b) {
 		return compFNameS(a.basename, b.basename, a.dir, b.dir);
 	}
-	bool revCompFName(FileNameObj a, FileNameObj b) {
+	bool revCompFName(in FileNameObj a, in FileNameObj b) {
 		auto ad = a.dir;
 		auto bd = b.dir;
 		if (ad && bd) return comp(a.basename, b.basename) < 0;
@@ -196,7 +198,7 @@ private:
 		if (ad && !bd) return true;
 		return comp(a.basename, b.basename) > 0;
 	}
-	bool compFExt(FileNameObj a, FileNameObj b) {
+	bool compFExt(in FileNameObj a, in FileNameObj b) {
 		auto ad = a.dir;
 		auto bd = b.dir;
 		if (ad && bd) return comp(a.basename, b.basename) < 0;
@@ -205,7 +207,7 @@ private:
 		int r = comp(a.ext, b.ext);
 		return r != 0 ? r < 0 : comp(a.basename, b.basename) < 0;
 	}
-	bool revCompFExt(FileNameObj a, FileNameObj b) {
+	bool revCompFExt(in FileNameObj a, in FileNameObj b) {
 		auto ad = a.dir;
 		auto bd = b.dir;
 		if (ad && bd) return comp(a.basename, b.basename) < 0;
@@ -214,7 +216,7 @@ private:
 		int r = comp(a.ext, b.ext);
 		return r != 0 ? r > 0 : comp(a.basename, b.basename) < 0;
 	}
-	bool compFCount(FileNameObj a, FileNameObj b) {
+	bool compFCount(in FileNameObj a, in FileNameObj b) {
 		auto ad = !a.material;
 		auto bd = !b.material;
 		if (ad && bd) return compFExt(a, b);
@@ -225,7 +227,7 @@ private:
 		int r = ac - bc;
 		return r != 0 ? r < 0 : compFName(a, b);
 	}
-	bool revCompFCount(FileNameObj a, FileNameObj b) {
+	bool revCompFCount(in FileNameObj a, in FileNameObj b) {
 		auto ad = !a.material;
 		auto bd = !b.material;
 		if (ad && bd) return compFExt(a, b);
@@ -338,7 +340,6 @@ private:
 			}
 			_files.setRedraw = false;
 			scope (exit) _files.setRedraw = true;
-			scope (exit) fimageThrStart;
 			scope selset = new HashSet!(string);
 			if (sels) {
 				foreach (path; sels) {
@@ -356,25 +357,25 @@ private:
 				}
 				if (_files.getSortColumn is _sortName.column) {
 					if (_files.getSortDirection == SWT.UP) {
-						list = .sort(list, &compFName);
+						list = .sortDlg!(FileNameObj, typeof(&compFName))(list, &compFName);
 					} else {
 						assert (_files.getSortDirection == SWT.DOWN);
-						list = .sort(list, &revCompFName);
+						list = .sortDlg!(FileNameObj, typeof(&revCompFName))(list, &revCompFName);
 					}
 				} else if (_files.getSortColumn is _sortExt.column) {
 					if (_files.getSortDirection == SWT.UP) {
-						list = .sort(list, &compFExt);
+						list = .sortDlg!(FileNameObj, typeof(&compFExt))(list, &compFExt);
 					} else {
 						assert (_files.getSortDirection == SWT.DOWN);
-						list = .sort(list, &revCompFExt);
+						list = .sortDlg!(FileNameObj, typeof(&revCompFExt))(list, &revCompFExt);
 					}
 				} else {
 					assert (_files.getSortColumn is _sortCount.column);
 					if (_files.getSortDirection == SWT.UP) {
-						list = .sort(list, &compFCount);
+						list = .sortDlg!(FileNameObj, typeof(&compFCount))(list, &compFCount);
 					} else {
 						assert (_files.getSortDirection == SWT.DOWN);
-						list = .sort(list, &revCompFCount);
+						list = .sortDlg!(FileNameObj, typeof(&revCompFCount))(list, &revCompFCount);
 					}
 				}
 				int count = 0;
@@ -449,7 +450,7 @@ private:
 			p = std.path.join(path, p);
 			if (isdir(p)) subs ~= p;
 		}
-		subs = .sort(subs, &compDirName);
+		subs = .sortDlg!(string)(subs, &compDirName);
 		bool s = false;
 		foreach (p; subs) {
 			if (sp) {
@@ -472,65 +473,8 @@ private:
 		return s;
 	}
 
-	// isCardImage()は時間がかかるので別スレッドで実行。
 	private Display _display = null;
-	private core.thread.Thread _fimgThr = null;
-	private bool _fimgStop = false;
-	private string[] _fimgPs;
-	private void fimageThrStart() {
-		fimageThrStop;
-		foreach (itm; _files.getItems) {
-			auto img = itm.getImage;
-			if (img is _prop.images.backs || img is _sImgBacks) {
-				_fimgPs ~= (cast(FileNameObj) itm.getData).array;
-			}
-		}
-		assert (!_fimgThr);
-		_fimgThr = new core.thread.Thread(&fimageThr);
-		_fimgThr.start;
-	}
-	private void fimageThrStop() {
-		synchronized (FImgUpdThr.classinfo) {
-			if (_fimgThr) {
-				_fimgStop = true;
-				_fimgThr.join;
-				_fimgThr = null;
-			}
-		}
-	}
-	private class FImgUpdThr : Runnable {
-		private string _file;
-		this (string file) {_file = file;}
-		override void run() {
-			foreach (itm; _files.getItems) {
-				if (!itm.isDisposed && fnmatch((cast(FileNameObj) itm.getData).array, _file)) {
-					if (isCutted(_file)) {
-						itm.setImage(_sImgCards);
-					} else {
-						itm.setImage(_prop.images.cards);
-					}
-				}
-			}
-		}
-	}
-	private void fimageThr() {
-		try {
-			_fimgStop = false;
-			auto skin = _comm.skin;
-			foreach (file; _fimgPs) {
-				if (_fimgStop) break;
-				if (skin.isCardImage(file)) {
-					_display.asyncExec(new FImgUpdThr(file));
-				}
-			}
-			_fimgPs.length = 0u;
-		} catch (Exception e) {
-			debugln(e);
-		}
-		synchronized (FImgUpdThr.classinfo) {
-			_fimgThr = null;
-		}
-	}
+
 	Image fimage(Image img) {
 		if (img is _prop.images.folder || img is _sImgFolder) {
 			return _prop.images.folder;
@@ -564,7 +508,9 @@ private:
 		assert (0);
 	}
 	Image fimage(Skin skin, string file) {
-		if (skin.isBgImage(file)) {
+		if (skin.isCardImage(file)) {
+			return _prop.images.cards;
+		} else if (skin.isBgImage(file)) {
 			return _prop.images.backs;
 		} else if (skin.isBGM(file)) {
 			return _prop.images.bgm;
@@ -601,6 +547,8 @@ private:
 		// isCardImage()は時間がかかるので別スレッドで実行
 		if (.isdir(file)) {
 			return _sImgFolder;
+		} else if (skin.isCardImage(file)) {
+			return _sImgCards;
 		} else if (skin.isBgImage(file)) {
 			return _sImgBacks;
 		} else if (skin.isBGM(file)) {
@@ -772,7 +720,7 @@ private:
 						return false;
 					}
 				}
-				paths = .sort(paths, &compFullPath);
+				paths = .sortDlg(paths, &compFullPath);
 				string dir = null;
 				string[] selfs;
 				foreach (file; paths) {
@@ -1732,7 +1680,6 @@ public:
 	override void copy(SelectionEvent se) {
 		if (!canDoTCPD) return;
 		__copy;
-		fimageThrStart;
 	}
 	private bool __copy() {
 		clearCut;
