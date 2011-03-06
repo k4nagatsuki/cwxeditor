@@ -361,6 +361,7 @@ private:
 	Flag[] _flags;
 	Step[] _steps;
 	string _id;
+	int delegate(string, string) _sorter = null;
 	void delegate() _change = null;
 public:
 	/// パス区切り文字。
@@ -416,6 +417,18 @@ public:
 		r ~= cast(CWXPath[]) steps;
 		r ~= cast(CWXPath[]) subDirs;
 		return r;
+	}
+	/// 子要素をソートする際に使用する比較関数を設定する。
+	/// 親ディレクトリを持つ場合は例外を投げる。
+	void sorter(int delegate(string, string) sorter) {
+		if (parent) throw new Exception("FlagDir sorter");
+		sorterImpl(sorter);
+	}
+	private void sorterImpl(int delegate(string, string) sorter) {
+		_sorter = sorter;
+		foreach (sub; subDirs) {
+			sub.sorterImpl(sorter);
+		}
 	}
 	/// 親ディレクトリ。
 	FlagDir parent() {
@@ -547,18 +560,23 @@ public:
 	}
 	/// ditto
 	bool add(FlagDir sub) {
-		return __add(_subdir, sub, &canAppendSub2);
+		if (__add(_subdir, sub, &canAppendSub2)) {
+			sub.sorterImpl = _sorter;
+			return true;
+		}
+		return false;
 	}
-	private void __remove(T)(ref T[] arr, T e) {
+	private bool __remove(T)(ref T[] arr, T e) {
 		for (int i = 0; i < arr.length; i++) {
 			if (icmp(e.name, arr[i].name) == 0) {
 				e.parent = null;
 				arr[i].changeHandler = null;
 				arr = arr[0 .. i] ~ arr[i + 1 .. $];
 				if (_change) _change();
-				return;
+				return true;
 			}
 		}
+		return false;
 	}
 	/// フラグ・ステップ・サブディレクトリを除去する。
 	void remove(Flag flag) {
@@ -570,7 +588,9 @@ public:
 	}
 	/// ditto
 	void remove(FlagDir dir) {
-		__remove(_subdir, dir);
+		if (__remove(_subdir, dir)) {
+			dir.sorterImpl = null;
+		}
 	}
 
 	/// サブディレクトリ群。
@@ -646,9 +666,16 @@ public:
 
 	/// フラグ・ステップを名前順にソートする。
 	void sortFlags(bool sub = false) {
-		if (!isSorted(_flags)) {
+		bool cmps(in Flag a, in Flag b) {
+			if (_sorter) {
+				return _sorter(a.name, b.name) < 0;
+			} else {
+				return cmp(a.name, b.name) < 0;
+			}
+		}
+		if (!isSorted(_flags, &cmps)) {
 			if (_change) _change();
-			_flags = _flags.sort;
+			_flags = sort(_flags, &cmps);
 		}
 		if (sub) {
 			foreach (d; _subdir) {
@@ -658,9 +685,16 @@ public:
 	}
 	/// ditto
 	void sortSteps(bool sub = false) {
-		if (!isSorted(_steps)) {
+		bool cmps(in Step a, in Step b) {
+			if (_sorter) {
+				return _sorter(a.name, b.name) < 0;
+			} else {
+				return cmp(a.name, b.name) < 0;
+			}
+		}
+		if (!isSorted(_steps, &cmps)) {
 			if (_change) _change();
-			_steps = _steps.sort;
+			_steps = sort(_steps, &cmps);
 		}
 		if (sub) {
 			foreach (d; _subdir) {

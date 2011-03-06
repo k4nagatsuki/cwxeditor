@@ -160,12 +160,14 @@ private:
 		bool material;
 		ulong size;
 	}
-
-	static if (fnmatch("A", "a")) {
-		alias icmp comp;
-	} else {
-		alias cmp comp;
+	int comp(string a, string b) {
+		if (_prop.var.etc.logicalSort) {
+			return fnncmp(a, b);
+		} else {
+			return fncmp(a, b);
+		}
 	}
+
 	bool compDirName(string a, string b) {
 		return comp(a, b) < 0;
 	}
@@ -331,7 +333,6 @@ private:
 			}
 			_files.setRedraw = false;
 			scope (exit) _files.setRedraw = true;
-			scope (exit) fimageThrStart;
 			scope selset = new HashSet!(string);
 			if (sels) {
 				foreach (path; sels) {
@@ -465,64 +466,7 @@ private:
 		return s;
 	}
 
-	// isCardImage()は時間がかかるので別スレッドで実行。
 	private Display _display = null;
-	private std.thread.Thread _fimgThr = null;
-	private bool _fimgStop = false;
-	private string[] _fimgPs;
-	private void fimageThrStart() {
-		fimageThrStop;
-		foreach (itm; _files.getItems) {
-			auto img = itm.getImage;
-			if (img is _prop.images.backs || img is _sImgBacks) {
-				_fimgPs ~= (cast(FileNameObj) itm.getData).array;
-			}
-		}
-		assert (!_fimgThr);
-		_fimgThr = new std.thread.Thread(&fimageThr);
-		_fimgThr.start;
-	}
-	private void fimageThrStop() {
-		if (_fimgThr) {
-			_fimgStop = true;
-			_fimgThr.wait;
-			_fimgThr = null;
-		}
-	}
-	private class FImgUpdThr : Runnable {
-		private string _file;
-		this (string file) {_file = file;}
-		override void run() {
-			try {
-				foreach (itm; _files.getItems) {
-					if (!itm.isDisposed && fnmatch((cast(FileNameObj) itm.getData).array, _file)) {
-						if (isCutted(_file)) {
-							itm.setImage(_sImgCards);
-						} else {
-							itm.setImage(_prop.images.cards);
-						}
-					}
-				}
-				_files.redraw;
-			} catch {}
-		}
-	}
-	private int fimageThr() {
-		try {
-			_fimgStop = false;
-			auto skin = _comm.skin;
-			foreach (file; _fimgPs) {
-				if (_fimgStop) break;
-				if (skin.isCardImage(file)) {
-					_display.asyncExec(new FImgUpdThr(file));
-				}
-			}
-			_fimgPs.length = 0u;
-			return 0;
-		} catch {
-			return -1;
-		}
-	}
 	Image fimage(Image img) {
 		if (img is _prop.images.folder || img is _sImgFolder) {
 			return _prop.images.folder;
@@ -554,7 +498,9 @@ private:
 		}
 	}
 	Image fimage(Skin skin, string file) {
-		if (skin.isBgImage(file)) {
+		if (skin.isCardImage(file)) {
+			return _prop.images.cards;
+		} else if (skin.isBgImage(file)) {
 			return _prop.images.backs;
 		} else if (skin.isBGM(file)) {
 			return _prop.images.bgm;
@@ -591,6 +537,8 @@ private:
 		// isCardImage()は時間がかかるので別スレッドで実行
 		if (.isdir(file)) {
 			return _sImgFolder;
+		} else if (skin.isCardImage(file)) {
+			return _sImgCards;
 		} else if (skin.isBgImage(file)) {
 			return _sImgBacks;
 		} else if (skin.isBGM(file)) {
@@ -1724,7 +1672,6 @@ public:
 	override void copy(SelectionEvent se) {
 		if (!canDoTCPD) return;
 		__copy;
-		fimageThrStart;
 	}
 	private bool __copy() {
 		clearCut;

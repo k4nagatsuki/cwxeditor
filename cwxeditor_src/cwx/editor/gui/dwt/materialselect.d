@@ -321,6 +321,11 @@ private:
 	}
 	void __refreshList(string path, bool forceRefresh) {
 		auto tgs = targs(path, forceRefresh);
+		if (_prop.var.etc.logicalSort) {
+			tgs = sort!(fnncmp)(tgs);
+		} else {
+			tgs = sort!(fncmp)(tgs);
+		}
 		foreach (f; tgs) {
 			_fileList.add(f);
 		}

@@ -415,6 +415,9 @@ string toLower(string s) {
 }
 
 /// arrをin-placeでソートして返す。
+T[] sort(alias Cmp, T)(T[] arr) {
+	return sort!(T)(arr, (T a, T b) {return Cmp(a, b) < 0;});
+}
 T[] sort(T)(T[] arr, bool delegate(T, T) lmin) {
 	if (arr.length <= 1u) return arr;
 	auto pv = arr[arr.length / 2u];
@@ -891,14 +894,21 @@ void removeAll(Key, Value)(ref Value[Key] table) {
 }
 
 /// Tがソート済みであればtrueを返す。
-bool isSorted(T)(T arr) {
+bool isSorted(T)(in T[] arr) {
+	return isSorted!(T)(arr, (in T a, in T b) {return a < b;});
+}
+/// ditto
+bool isSorted(T)(in T[] arr, bool delegate(in T, in T) cmp) {
 	foreach (i, v; arr) {
 		if (arr.length <= i + 1) break;
-		if (v > arr[i + 1]) {
+		if (!cmp(v, arr[i + 1])) {
 			return false;
 		}
 	}
 	return true;
+} unittest {
+	assert (isSorted([1, 2, 3]));
+	assert (!isSorted([1, 3, 2]));
 }
 
 /// 文字列を16進形式に変換する。
@@ -1079,6 +1089,14 @@ bool contains(string pred = "a == b", T)(T[] arr, T a) {
 	return false;
 }
 
+static if (fnmatch("A", "a")) {
+	/// ファイル名を比較する。
+	alias icmp fncmp;
+} else {
+	/// ファイル名を比較する。
+	alias cmp fncmp;
+}
+
 /// 文字列aとbを比較する。
 /// 同位置に数値が含まれていた場合は、数字列の長さに係わらず
 /// その数値同士を優先的に比較する。
@@ -1091,6 +1109,18 @@ bool contains(string pred = "a == b", T)(T[] arr, T a) {
 /// assert (ncmp("abc", "def") < 0);
 /// ---
 int ncmp(C1, C2)(in C1[] a, in C2[] b) {
+	return ncmpImpl!(C1, C2, std.string.cmp)(a, b);
+}
+/// ditto
+int incmp(C1, C2)(in C1[] a, in C2[] b) {
+	return ncmpImpl!(C1, C2, std.string.icmp)(a, b);
+}
+/// ditto
+int fnncmp(C1, C2)(in C1[] a, in C2[] b) {
+	return ncmpImpl!(C1, C2, fncmp)(a, b);
+}
+
+private int ncmpImpl(C1, C2, alias Cmp)(in C1[] a, in C2[] b) {
 	for (size_t i = 0, j = 0; i < a.length || j < b.length;) {
 		if (i >= a.length) return -1;
 		if (j >= b.length) return 1;
@@ -1105,13 +1135,13 @@ int ncmp(C1, C2)(in C1[] a, in C2[] b) {
 		if (buf1.length && buf2.length) {
 			int cr;
 			if (buf1.length < buf2.length) {
-				cr = cmp(zfill_(buf1, buf2.length), buf2);
+				cr = Cmp(zfill_(buf1, buf2.length), buf2);
 				if (cr != 0) return cr;
 			} else if (buf1.length > buf2.length) {
-				cr = cmp(buf1, zfill_(buf2, buf1.length));
+				cr = Cmp(buf1, zfill_(buf2, buf1.length));
 				if (cr != 0) return cr;
 			}
-			cr = cmp(buf1, buf2);
+			cr = Cmp(buf1, buf2);
 			if (cr != 0) return cr;
 			i += buf1.length;
 			j += buf2.length;

@@ -239,11 +239,15 @@ private:
 				return;
 			}
 			if (.isdir(p)) {
-				clistdir(p, (string c) {
-					c = std.path.join(p, c);
-					find(c);
-					return true;
-				});
+				string[] list = clistdir(p);
+				if (_prop.var.etc.logicalSort) {
+					list = sort!(fnncmp)(list);
+				} else {
+					list = sort!(fncmp)(list);
+				}
+				foreach (l; list) {
+					find(std.path.join(p, l));
+				}
 			} else if (_comm.skin.isMaterial(p)) {
 				auto path = abs2rel(sPath, p);
 				paths ~= encodePath(path);

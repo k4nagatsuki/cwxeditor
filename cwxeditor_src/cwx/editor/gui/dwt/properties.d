@@ -559,6 +559,7 @@ class FlexEtcProps : Properties {
 	mixin Property!("xmlCopy", bool, false);
 	mixin Property!("saveInnerImagePath", bool, false);
 	mixin Property!("traceDirectories", bool, true);
+	mixin Property!("logicalSort", bool, false, true);
 
 	mixin Property!("searchHistories", string[], []);
 	mixin Property!("replaceHistories", string[], []);
