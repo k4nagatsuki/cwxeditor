@@ -53,7 +53,6 @@ private:
 
 	UndoManager _undo;
 
-	bool _firstEvtVSel = false;
 	V _aview;
 	EventView!(A, C, true) _eview;
 
@@ -94,16 +93,10 @@ private:
 	void __refreshTitle() {
 		_comm.setTitle(_win, title);
 	}
-	void initEvt() {
-		if (!_firstEvtVSel) {
-			_eview.refresh(true);
-			_firstEvtVSel = true;
-		}
-	}
 	class TabSel : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
 			if (_tabf.getSelection is _tabE) {
-				initEvt;
+				_eview.initial;
 				_comm.statusLine(_win, _eview.statusLine);
 				_eview.openToolWindow;
 			} else {
@@ -344,7 +337,7 @@ public:
 				|| cate == "background") {
 			return _aview.openCWXPath(path);
 		} else {
-			initEvt;
+			_eview.initial;
 			return _eview.openCWXPath(path);
 		}
 	}
