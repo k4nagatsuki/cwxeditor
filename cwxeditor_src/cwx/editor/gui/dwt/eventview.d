@@ -851,6 +851,7 @@ public:
 			}
 		}
 		void appendCard(int index, C c) {
+			initial;
 			Image imgCard;
 			static if (is (C == MenuCard)) {
 				imgCard = _prop.images.cards;
@@ -861,6 +862,7 @@ public:
 			refreshTrees(itm);
 		}
 		void removeCard(int index) {
+			initial;
 			if (_selItm && !_selItm.isDisposed
 					&& _selItm.getParentItem is _cards.getItems[index + 1]) {
 				_etree.refresh(null);
@@ -869,6 +871,7 @@ public:
 			_cards.getItems[index + 1].dispose;
 		}
 		void renameCard(int index) {
+			initial;
 			auto itm = _cards.getItems[index + 1];
 			itm.setText = cardName(cast(C) itm.getData);
 		}
@@ -884,13 +887,22 @@ public:
 			}
 		}
 		void upCard(int[] indices) {
+			initial;
 			__udCard(indices, &treeItemUp, -1);
 		}
 		void downCard(int[] indices) {
+			initial;
 			__udCard(indices, &treeItemDown, 1);
 		}
 	}
+	private bool _initialed = false;
+	void initial() {
+		if (!_initialed) {
+			refresh(true);
+		}
+	}
 	void refresh(bool openToolWin = true) {
+		_initialed = true;
 		_etree.constructTools;
 		_etree.closeToolWindow;
 		_cards.removeAll;
@@ -986,6 +998,7 @@ public:
 		}
 	}
 	void up() {
+		initial;
 		up(selection, true);
 	}
 	private void up(TreeItem itm, bool store) {
@@ -996,6 +1009,7 @@ public:
 		}
 	}
 	void down() {
+		initial;
 		down(selection, true);
 	}
 	private void down(TreeItem itm, bool store) {
@@ -1144,10 +1158,13 @@ public:
 		_etree.closeToolWindow;
 	}
 
-	string statusLine() {return _etree.statusLine;}
+	string statusLine() {
+		return _etree.statusLine;
+	}
 
 	override {
 		void cut(SelectionEvent se) {
+			initial;
 			if (_etree.isFocusControl) {
 				_etree.cut(se);
 			} else {
@@ -1156,6 +1173,7 @@ public:
 			}
 		}
 		void copy(SelectionEvent se) {
+			initial;
 			if (_etree.isFocusControl) {
 				_etree.copy(se);
 			} else {
@@ -1193,6 +1211,7 @@ public:
 			}
 		}
 		void paste(SelectionEvent se) {
+			initial;
 			if (_etree.isFocusControl) {
 				_etree.paste(se);
 			} else {
@@ -1246,6 +1265,7 @@ public:
 			}
 		}
 		void del(SelectionEvent se) {
+			initial;
 			if (_etree.isFocusControl) {
 				_etree.del(se);
 			} else {
@@ -1294,6 +1314,7 @@ public:
 	void redo() {_undo.redo;}
 
 	bool openCWXPath(string path) {
+		initial;
 		auto cate = cpcategory(path);
 		auto index = cpindex(path);
 		bool open(TreeItem itm) {
