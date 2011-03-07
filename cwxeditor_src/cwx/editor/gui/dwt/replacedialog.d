@@ -1363,6 +1363,18 @@ public:
 			img = _prop.images.content(con.type);
 			text = _prop.msgs.contentText(con, _summ);
 		}
+		auto tex = cast(TextHolder) path;
+		if (tex) {
+			Content c = cast(Content) tex.owner;
+			if (!c) {
+				auto dlg = cast(SDialog) tex.owner;
+				if (dlg) c = dlg.parent;
+			}
+			if (c) {
+				img = _prop.images.content(c.type);
+				text = _prop.msgs.contentText(c, _summ);
+			}
+		}
 		auto fla = cast(Flag) path;
 		if (fla) {
 			img = _prop.images.flag;

@@ -708,7 +708,13 @@ void textUseItems(in string text,
 		}
 		switch (c) {
 		case '#':
-			fonts ~= toUTF8("font_"d ~ dtext[i + 1] ~ ".bmp"d);
+			switch (std.ctype.toupper(dtext[i + 1])) {
+			case 'M', 'R', 'U', 'C', 'I', 'T', 'Y':
+				break;
+			default:
+				fonts ~= toUTF8("font_"d ~ dtext[i + 1] ~ ".bmp"d);
+				break;
+			}
 			i++;
 			break;
 		case '%':
@@ -723,7 +729,7 @@ void textUseItems(in string text,
 	}
 } unittest {
 	string[] flags, steps, fonts;
-	textUseItems("aaa$test$$あああ\t2$$#tes%t3$%tes#t%#a#Z#1#2#33d$dd%aaa%%#%#;%vv%#表%#", flags, steps, fonts);
+	textUseItems("#M#R#U#C#I#T#Yaaa$test$$あああ\t2$$#tes%t3$%tes#t%#a#Z#1#2#33d$dd%aaa%%#%#;%vv%#表%#", flags, steps, fonts);
 	assert(flags == ["tes#t", "aaa", "#", "vv"]);
 	assert(steps == ["test", "あああ\t2", "#tes%t3"]);
 	assert(fonts == ["font_a.bmp", "font_Z.bmp", "font_1.bmp", "font_2.bmp", "font_3.bmp", "font_;.bmp", "font_表.bmp"]);
