@@ -373,6 +373,8 @@ public:
 			u.change(id);
 		}
 	}
+	/// このTextHolderの所持者。
+	CWXPath owner() {return _owner;}
 	private CWXPath _owner = null;
 	private void owner(CWXPath owner) {_owner = owner;}
 	string cwxPath() {
@@ -402,6 +404,7 @@ public:
 	this(string text = "", string[] rCoupons = []) {
 		_text = new TextHolder;
 		_text.text = text;
+		_text.owner = this;
 		_rCoupons = rCoupons;
 	}
 	const
