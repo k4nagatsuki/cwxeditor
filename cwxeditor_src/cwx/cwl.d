@@ -1247,7 +1247,7 @@ private Area loadArea(ref RData d, ref ByteIO f, ulong fid) {
 	}
 	return a;
 }
-private Battle loadBattle(in RData d, ref ByteIO f, ulong fid) {
+private Battle loadBattle(ref RData d, ref ByteIO f, ulong fid) {
 	ulong id;
 	string name;
 	readAreaHeader(d, f, id, name);
@@ -1293,7 +1293,7 @@ private Package loadPackage(in RData d, ref ByteIO f, ulong fid) {
 	}
 	return r;
 }
-private CastCard loadCast(in RData d, ref ByteIO f, ulong fid) {
+private CastCard loadCast(ref RData d, ref ByteIO f, ulong fid) {
 	f.readByte;
 	string img = readImage(d, f);
 	string name = readString(f);
@@ -1380,7 +1380,7 @@ private CastCard loadCast(in RData d, ref ByteIO f, ulong fid) {
 	}
 	return r;
 }
-private C readEffCard(C)(in RData d, ref ByteIO f) {
+private C readEffCard(C)(ref RData d, ref ByteIO f) {
 	f.readByte;
 	string img = readImage(d, f);
 	string name = readString(f);
@@ -1438,7 +1438,7 @@ private C readEffCard(C)(in RData d, ref ByteIO f) {
 	}
 	return r;
 }
-private SkillCard loadSkill(in RData d, ref ByteIO f, ulong fid) {
+private SkillCard loadSkill(ref RData d, ref ByteIO f, ulong fid) {
 	auto r = readEffCard!(SkillCard)(d, f);
 	if (d.dataVersion > 0) {
 		r.hold = readBool(f);
@@ -1447,7 +1447,7 @@ private SkillCard loadSkill(in RData d, ref ByteIO f, ulong fid) {
 	r.useLimit = f.readUIntL;
 	return r;
 }
-private ItemCard loadItem(in RData d, ref ByteIO f, ulong fid) {
+private ItemCard loadItem(ref RData d, ref ByteIO f, ulong fid) {
 	auto r = readEffCard!(ItemCard)(d, f);
 	if (d.dataVersion > 0) {
 		r.hold = readBool(f);
@@ -1460,7 +1460,7 @@ private ItemCard loadItem(in RData d, ref ByteIO f, ulong fid) {
 	r.enhanceOwner(Enhance.DEFENSE, f.readUIntL);
 	return r;
 }
-private BeastCard loadBeast(in RData d, ref ByteIO f, ulong fid) {
+private BeastCard loadBeast(ref RData d, ref ByteIO f, ulong fid) {
 	auto r = readEffCard!(BeastCard)(d, f);
 	if (d.dataVersion > 0) {
 		readBool(f); // Hold
@@ -1468,7 +1468,7 @@ private BeastCard loadBeast(in RData d, ref ByteIO f, ulong fid) {
 	r.useLimit = f.readUIntL;
 	return r;
 }
-private InfoCard loadInfo(in RData d, ref ByteIO f, ulong fid) {
+private InfoCard loadInfo(ref RData d, ref ByteIO f, ulong fid) {
 	f.readByte;
 	string img = readImage(d, f);
 	string name = readString(f);
