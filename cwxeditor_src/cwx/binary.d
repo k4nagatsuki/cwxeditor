@@ -6,6 +6,7 @@ private import cwx.utils : enforce;
 private import std.compat;
 private import std.metastrings : ToString;
 private import std.stream : InputStream, OutputStream;
+private import std.string : format;
 
 private string repeat(string s, int count) {
 	string buf;
@@ -51,15 +52,18 @@ struct ByteIO {
 	/// seekする。
 	void seek(int bytes) {
 		if (bytes < 0) {
-			enforce(_pointer >= -bytes, new Exception("read over."));
+			enforce(_pointer >= -bytes,
+				new Exception(format("read over: 0x%X - %d", _pointer, -bytes), __FILE__, __LINE__));
 		} else if (bytes > 0) {
-			enforce(_pointer + bytes < _bytes.length, new Exception("read over."));
+			enforce(_pointer + bytes < _bytes.length,
+				new Exception(format("read over: 0x%X + %d", _pointer, bytes), __FILE__, __LINE__));
 		}
 		_pointer += bytes;
 	}
 	/// Byteを読込む。
 	ubyte readUByte() {
-		enforce(_pointer < _bytes.length, new Exception("read over."));
+		enforce(_pointer < _bytes.length,
+			new Exception(format("read over: 0x%X", _pointer), __FILE__, __LINE__));
 		return _bytes[_pointer++];
 	}
 	/// ditto
@@ -95,7 +99,8 @@ struct ByteIO {
 	void writeL(char val) {write(val);}
 	/// Byte列を読込む。
 	void read(ubyte[] buf) {
-		enforce(_pointer + buf.length <= _bytes.length, new Exception("read over."));
+		enforce(_pointer + buf.length <= _bytes.length,
+			new Exception(format("read over: 0x%X + %d", _pointer, buf.length), __FILE__, __LINE__));
 		buf[] = _bytes[_pointer .. _pointer + buf.length];
 		_pointer += buf.length;
 	}
@@ -103,7 +108,8 @@ struct ByteIO {
 	void read(byte[] buf) {read(cast(ubyte[]) buf);}
 	/// Byte列を読込む。
 	ubyte[] read(size_t len) {
-		enforce(_pointer + len <= _bytes.length, new Exception("read over."));
+		enforce(_pointer + len <= _bytes.length,
+			new Exception(format("read over: 0x%X + %d", _pointer, len), __FILE__, __LINE__));
 		ubyte[] r = _bytes[_pointer .. _pointer + len];
 		_pointer += len;
 		return r;
@@ -116,7 +122,9 @@ struct ByteIO {
 	alias read readB;
 	/// Byte列を書込む。
 	void write(ubyte[] bytes) {
-		if (_pointer + bytes.length >= _bytes.length) _bytes.length = _bytes.length * 2 + bytes.length;
+		if (_pointer + bytes.length >= _bytes.length) {
+			_bytes.length = _bytes.length * 2 + bytes.length;
+		}
 		_bytes[_pointer .. _pointer + bytes.length] = bytes[];
 		_pointer += bytes.length;
 	}
@@ -137,24 +145,30 @@ struct ByteIO {
 	/// ditto
 	void writeL(void[] val) {write(val);}
 	private I readBytesB_(I)() {
-		enforce(_pointer + I.sizeof <= _bytes.length, new Exception("read over."));
+		enforce(_pointer + I.sizeof <= _bytes.length,
+			new Exception(format("read over: 0x%X + %d", _pointer, I.sizeof), __FILE__, __LINE__));
 		I i = _bytes[_pointer++];
 		mixin (ReadBytesB!(I));
 		return i;
 	}
 	private I readBytesL_(I)() {
-		enforce(_pointer + I.sizeof <= _bytes.length, new Exception("read over."));
+		enforce(_pointer + I.sizeof <= _bytes.length,
+			new Exception(format("read over: 0x%X + %d", _pointer, I.sizeof), __FILE__, __LINE__));
 		I i;
 		i = _bytes[_pointer++];
 		mixin (ReadBytesL!(I));
 		return i;
 	}
 	private void writeBytesB_(I)(I val) {
-		if (_pointer + I.sizeof >= _bytes.length) _bytes.length = _bytes.length * 2 + I.sizeof;
+		if (_pointer + I.sizeof >= _bytes.length) {
+			_bytes.length = _bytes.length * 2 + I.sizeof;
+		}
 		mixin (WriteBytesB!(I));
 	}
 	private void writeBytesL_(I)(I val) {
-		if (_pointer + I.sizeof >= _bytes.length) _bytes.length = _bytes.length * 2 + I.sizeof;
+		if (_pointer + I.sizeof >= _bytes.length) {
+			_bytes.length = _bytes.length * 2 + I.sizeof;
+		}
 		mixin (WriteBytesL!(I));
 	}
 	version (BigEndian) {

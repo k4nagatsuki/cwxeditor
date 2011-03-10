@@ -142,9 +142,6 @@ string convTo(CP CP1, CP CP2)(string s) {
 				}
 			}
 			buf.length = len;
-			debug version (Windows) {
-				assert (fromMBSz((s ~ "\0").ptr) == buf, "to utf: " ~ s);
-			}
 			return buf;
 		}
 	}
