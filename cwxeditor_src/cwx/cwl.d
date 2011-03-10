@@ -9,7 +9,6 @@ import std.path;
 import std.math;
 import std.string;
 import std.thread;
-import std.regexp;
 
 import cwx.binary;
 import cwx.summary;
@@ -79,9 +78,7 @@ S loadLScenario(S)(string p, string skin, string newName = null) {
 		if (!newName) throw new SummaryException("Not Scenario: " ~ p);
 		d = RData(sPath, skin);
 		static if (is(S == Summary)) {
-debugln(0);
 			summ = new Summary(newName, d.skin, d.sPath, false, true);
-debugln(1);
 		} else {
 			summ = new S(d.sPath, newName, true);
 		}
@@ -406,7 +403,9 @@ private S loadSummary(S)(ref RData d, ref ByteIO f, out ulong startAreaId) {
 		summ.rCoupons = readStrings(f);
 		summ.rCouponNum = f.readUIntL;
 		auto area = f.readUIntL;
-		if (area < 39999) {
+		if (area < 19999) {
+			d.dataVersion = 0;
+		} else if (area < 39999) {
 			d.dataVersion = 2;
 			startAreaId = area - 20000u;
 		} else {
@@ -456,8 +455,10 @@ private S loadSummary(S)(ref RData d, ref ByteIO f, out ulong startAreaId) {
 		}
 		summ.flagDirRoot.sortFlags(true);
 		f.readUIntL;
-		summ.levelMin = f.readUIntL;
-		summ.levelMax = f.readUIntL;
+		if (d.dataVersion != 0) {
+			summ.levelMin = f.readUIntL;
+			summ.levelMax = f.readUIntL;
+		}
 		return summ;
 	} else {
 		return new S(d.sPath, readString(f), true);
@@ -465,7 +466,7 @@ private S loadSummary(S)(ref RData d, ref ByteIO f, out ulong startAreaId) {
 }
 private Motion readMotion(in RData d, ref ByteIO f) {
 	byte tType = f.readByte;
-	if (d.dataVersion != 2) {
+	if (d.dataVersion > 2) {
 		f.readByte;
 		f.readByte;
 		f.readByte;
@@ -515,10 +516,10 @@ private Motion readMotion(in RData d, ref ByteIO f) {
 	}
 	case 3, 4: {
 		uint rnd;
-		if (d.dataVersion == 2) {
-			rnd = 10;
-		} else {
+		if (d.dataVersion > 2) {
 			rnd = f.readUIntL;
+		} else {
+			rnd = 10;
 		}
 		Motion m;
 		if (tType == 3u) {
@@ -550,10 +551,10 @@ private Motion readMotion(in RData d, ref ByteIO f) {
 	case 5: {
 		uint val = f.readUIntL;
 		uint rnd;
-		if (d.dataVersion == 2) {
-			rnd = 10;
-		} else {
+		if (d.dataVersion > 2) {
 			rnd = f.readUIntL;
+		} else {
+			rnd = 10;
 		}
 		Motion m;
 		switch (type) {
@@ -605,7 +606,7 @@ private Content readContent(in RData d, ref ByteIO f) {
 	byte type = f.readByte;
 	string name = readString(f);
 	uint cNum;
-	if (d.dataVersion == 2) {
+	if (d.dataVersion <= 2) {
 		cNum = f.readUIntL;
 	} else {
 		cNum = f.readUIntL - 40000u;
@@ -760,7 +761,7 @@ private Content readContent(in RData d, ref ByteIO f) {
 		break;
 	case 20: {
 		ulong id = f.readUIntL;
-		if (d.dataVersion == 2) {
+		if (d.dataVersion <= 2) {
 			e = new Content(CType.BRANCH_ITEM, name);
 			e.item = id;
 			e.range = Range.PARTY_AND_BACKPACK;
@@ -777,7 +778,7 @@ private Content readContent(in RData d, ref ByteIO f) {
 	}
 	case 21: {
 		ulong id = f.readUIntL;
-		if (d.dataVersion == 2) {
+		if (d.dataVersion <= 2) {
 			e = new Content(CType.BRANCH_SKILL, name);
 			e.item = id;
 			e.range = Range.PARTY_AND_BACKPACK;
@@ -798,7 +799,7 @@ private Content readContent(in RData d, ref ByteIO f) {
 		break;
 	case 23: {
 		ulong id = f.readUIntL;
-		if (d.dataVersion == 2) {
+		if (d.dataVersion <= 2) {
 			e = new Content(CType.BRANCH_BEAST, name);
 			e.item = id;
 			e.range = Range.PARTY_AND_BACKPACK;
@@ -832,7 +833,7 @@ private Content readContent(in RData d, ref ByteIO f) {
 		break;
 	case 27: {
 		ulong id = f.readUIntL;
-		if (d.dataVersion == 2) {
+		if (d.dataVersion <= 2) {
 			e = new Content(CType.GET_ITEM, name);
 			e.item = id;
 			e.range = Range.PARTY_AND_BACKPACK;
@@ -849,7 +850,7 @@ private Content readContent(in RData d, ref ByteIO f) {
 	}
 	case 28: {
 		ulong id = f.readUIntL;
-		if (d.dataVersion == 2) {
+		if (d.dataVersion <= 2) {
 			e = new Content(CType.GET_SKILL, name);
 			e.item = id;
 			e.range = Range.PARTY_AND_BACKPACK;
@@ -870,7 +871,7 @@ private Content readContent(in RData d, ref ByteIO f) {
 		break;
 	case 30: {
 		ulong id = f.readUIntL;
-		if (d.dataVersion == 2) {
+		if (d.dataVersion <= 2) {
 			e = new Content(CType.GET_BEAST, name);
 			e.item = id;
 			e.range = Range.PARTY_AND_BACKPACK;
@@ -905,7 +906,7 @@ private Content readContent(in RData d, ref ByteIO f) {
 		break;
 	case 34: {
 		ulong id = f.readUIntL;
-		if (d.dataVersion == 2) {
+		if (d.dataVersion <= 2) {
 			e = new Content(CType.LOSE_ITEM, name);
 			e.item = id;
 			e.range = Range.PARTY_AND_BACKPACK;
@@ -922,7 +923,7 @@ private Content readContent(in RData d, ref ByteIO f) {
 	}
 	case 35: {
 		ulong id = f.readUIntL;
-		if (d.dataVersion == 2) {
+		if (d.dataVersion <= 2) {
 			e = new Content(CType.LOSE_SKILL, name);
 			e.item = id;
 			e.range = Range.PARTY_AND_BACKPACK;
@@ -943,7 +944,7 @@ private Content readContent(in RData d, ref ByteIO f) {
 		break;
 	case 37: {
 		ulong id = f.readUIntL;
-		if (d.dataVersion == 2) {
+		if (d.dataVersion <= 2) {
 			e = new Content(CType.LOSE_BEAST, name);
 			e.item = id;
 			e.range = Range.PARTY_AND_BACKPACK;
@@ -1147,7 +1148,7 @@ private BgImage readBgImage(in RData d, ref ByteIO f, bool area, size_t index) {
 	int x = f.readIntL;
 	int y = f.readIntL;
 	int w;
-	if (d.dataVersion == 2) {
+	if (d.dataVersion <= 2) {
 		w = f.readUIntL;
 	} else {
 		w = f.readUIntL - 40000u;
@@ -1155,7 +1156,7 @@ private BgImage readBgImage(in RData d, ref ByteIO f, bool area, size_t index) {
 	int h = f.readUIntL;
 	string imgPath = decodePathLegacy(readString(f));
 	bool mask = readBool(f);
-	if (d.dataVersion == 2) {
+	if (d.dataVersion <= 2) {
 		return new BgImage(imgPath, "", x, y, w, h, mask);
 	}
 	string flag = readString(f);
@@ -1183,10 +1184,16 @@ private void readAreaHeader(ref RData d, ref ByteIO f, out ulong id, out string 
 	f.readByte;
 	byte b = f.readByte;
 	if (b == 'B') {
-		d.dataVersion = 2;
 		f.read(69);
 		name = readString(f);
-		id = f.readUIntL - 20000u;
+		auto idl = f.readUIntL;
+		if (idl < 19999) {
+			d.dataVersion = 0;
+			id = idl;
+		} else {
+			d.dataVersion = 2;
+			id = idl - 20000u;
+		}
 	} else {
 		d.dataVersion = 4;
 		f.readByte;
@@ -1224,7 +1231,7 @@ private Area loadArea(ref RData d, ref ByteIO f, ulong fid) {
 		int x = f.readIntL;
 		int y = f.readIntL;
 		string imgPath;
-		if (d.dataVersion == 2) {
+		if (d.dataVersion <= 2) {
 			imgPath = "";
 		} else {
 			imgPath = decodePathLegacy(readString(f));
@@ -1270,7 +1277,9 @@ private Battle loadBattle(in RData d, ref ByteIO f, ulong fid) {
 		}
 		r.append(c);
 	}
-	r.music = decodePathLegacy(readString(f));
+	if (d.dataVersion > 0) {
+		r.music = decodePathLegacy(readString(f));
+	}
 	return r;
 }
 private Package loadPackage(in RData d, ref ByteIO f, ulong fid) {
@@ -1288,11 +1297,17 @@ private CastCard loadCast(in RData d, ref ByteIO f, ulong fid) {
 	f.readByte;
 	string img = readImage(d, f);
 	string name = readString(f);
+	ulong idl = f.readUIntL;
 	ulong id;
-	if (d.dataVersion == 2) {
-		id = f.readUIntL - 20000;
+	if (idl < 19999) {
+		d.dataVersion = 0;
+		id = idl;
+	} else if (idl < 39999) {
+		d.dataVersion = 2;
+		id = idl - 20000;
 	} else {
-		id = f.readUIntL - 40000;
+		d.dataVersion = 4;
+		id = idl - 40000;
 	}
 	auto r = new CastCard(id, name, img, "", 1u, 1u);
 	r.weaponResist = readBool(f);
@@ -1352,26 +1367,34 @@ private CastCard loadCast(in RData d, ref ByteIO f, ulong fid) {
 	for (uint i = 0u; i < bstNum; i++) {
 		r.add(loadBeast(d, f, i + 1));
 	}
-	uint cpnNum = f.readUIntL;
-	Coupon[] cpns;
-	cpns.length = cpnNum;
-	for (uint i = 0u; i < cpnNum; i++) {
-		string coupon = readString(f);
-		int val = f.readIntL;
-		cpns[i] = new Coupon(coupon, val);
+	if (d.dataVersion > 0) {
+		uint cpnNum = f.readUIntL;
+		Coupon[] cpns;
+		cpns.length = cpnNum;
+		for (uint i = 0u; i < cpnNum; i++) {
+			string coupon = readString(f);
+			int val = f.readIntL;
+			cpns[i] = new Coupon(coupon, val);
+		}
+		r.coupons = cpns;
 	}
-	r.coupons = cpns;
 	return r;
 }
 private C readEffCard(C)(in RData d, ref ByteIO f) {
 	f.readByte;
 	string img = readImage(d, f);
 	string name = readString(f);
+	ulong idl = f.readUIntL;
 	ulong id;
-	if (d.dataVersion == 2) {
-		id = f.readUIntL - 20000;
+	if (idl < 19999) {
+		d.dataVersion = 0;
+		id = idl;
+	} else if (idl < 39999) {
+		d.dataVersion = 2;
+		id = idl - 20000;
 	} else {
-		id = f.readUIntL - 40000;
+		d.dataVersion = 4;
+		id = idl - 40000;
 	}
 	string desc = readString(f);
 	auto r = new C(id, name, img, desc);
@@ -1404,7 +1427,7 @@ private C readEffCard(C)(in RData d, ref ByteIO f) {
 		keyCodes[i] = readString(f);
 	}
 	r.keyCodes = keyCodes;
-	if (d.dataVersion != 2) {
+	if (d.dataVersion > 2) {
 		r.premium = toPremium(f.readByte);
 		r.scenario = readString(f);
 		r.author = readString(f);
@@ -1417,14 +1440,18 @@ private C readEffCard(C)(in RData d, ref ByteIO f) {
 }
 private SkillCard loadSkill(in RData d, ref ByteIO f, ulong fid) {
 	auto r = readEffCard!(SkillCard)(d, f);
-	r.hold = readBool(f);
+	if (d.dataVersion > 0) {
+		r.hold = readBool(f);
+	}
 	r.level = f.readUIntL;
 	r.useLimit = f.readUIntL;
 	return r;
 }
 private ItemCard loadItem(in RData d, ref ByteIO f, ulong fid) {
 	auto r = readEffCard!(ItemCard)(d, f);
-	r.hold = readBool(f);
+	if (d.dataVersion > 0) {
+		r.hold = readBool(f);
+	}
 	r.useLimit = f.readUIntL;
 	r.useLimitMax = f.readUIntL;
 	r.price = f.readUIntL;
@@ -1435,7 +1462,9 @@ private ItemCard loadItem(in RData d, ref ByteIO f, ulong fid) {
 }
 private BeastCard loadBeast(in RData d, ref ByteIO f, ulong fid) {
 	auto r = readEffCard!(BeastCard)(d, f);
-	readBool(f); // Hold
+	if (d.dataVersion > 0) {
+		readBool(f); // Hold
+	}
 	r.useLimit = f.readUIntL;
 	return r;
 }
@@ -1443,11 +1472,17 @@ private InfoCard loadInfo(in RData d, ref ByteIO f, ulong fid) {
 	f.readByte;
 	string img = readImage(d, f);
 	string name = readString(f);
+	ulong idl = f.readUIntL;
 	ulong id;
-	if (d.dataVersion == 2) {
-		id = f.readUIntL - 20000;
+	if (idl < 19999) {
+		d.dataVersion = 0;
+		id = idl;
+	} else if (idl < 39999) {
+		d.dataVersion = 2;
+		id = idl - 20000;
 	} else {
-		id = f.readUIntL - 40000;
+		d.dataVersion = 4;
+		id = idl - 40000;
 	}
 	string desc = readString(f);
 	return new InfoCard(id, name, img, desc);
