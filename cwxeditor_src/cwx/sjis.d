@@ -142,9 +142,6 @@ char[] convTo(CP CP1, CP CP2)(in char[] s) {
 				}
 			}
 			buf.length = len;
-			debug version (Windows) {
-				assert (fromMBSz((s.idup ~ "\0").ptr) == buf, "to utf: " ~ s);
-			}
 			return buf;
 		}
 	}

@@ -35,8 +35,13 @@ unittest {
 	} catch {}
 }
 
-private bool sWith(string f, string s) {
-	return f.length > s.length && fnmatch(f[0u .. s.length], s);
+private bool sWith(string f, string s, out ulong id) {
+	if (!fnstartsWith(f, s)) return false;
+	if (!fnendsWith(f, ".wid")) return false;
+	auto n = f[s.length .. $ - ".wid".length];
+	if (!.isNumeric(n)) return false;
+	id = to!(ulong)(n);
+	return true;
 }
 private string encodePathLegacy(string path) {
 	// エフェクトブースターは'/'区切りのパスを受け付けない
@@ -49,6 +54,7 @@ private string decodePathLegacy(string path) {
 private struct RData {
 	string sPath;
 	string skin;
+	int dataVersion;
 }
 /// 4.0形式のCardWirthシナリオを読込む。
 /// Params:
@@ -99,29 +105,30 @@ S loadLScenario(S)(string p, string skin, string newName = null) {
 				try {
 					auto f = ByteIO(std.file.read(file));
 					auto base = getBaseName(file);
-					static if (AR) if (sWith(base, "Area")) {
-						areas ~= .loadArea(d, f);
+					ulong id;
+					static if (AR) if (sWith(base, "Area", id)) {
+						areas ~= .loadArea(d, f, id);
 					}
-					static if (BA) if (sWith(base, "Battle")) {
-						battles ~= .loadBattle(d, f);
+					static if (BA) if (sWith(base, "Battle", id)) {
+						battles ~= .loadBattle(d, f, id);
 					}
-					static if (PA) if (sWith(base, "Package")) {
-						packages ~= .loadPackage(d, f);
+					static if (PA) if (sWith(base, "Package", id)) {
+						packages ~= .loadPackage(d, f, id);
 					}
-					static if (CA) if (sWith(base, "Mate")) {
-						casts ~= .loadCast(d, f);
+					static if (CA) if (sWith(base, "Mate", id)) {
+						casts ~= .loadCast(d, f, id);
 					}
-					static if (SK) if (sWith(base, "Skill")) {
-						skills ~= .loadSkill(d, f);
+					static if (SK) if (sWith(base, "Skill", id)) {
+						skills ~= .loadSkill(d, f, id);
 					}
-					static if (IT) if (sWith(base, "Item")) {
-						items ~= .loadItem(d, f);
+					static if (IT) if (sWith(base, "Item", id)) {
+						items ~= .loadItem(d, f, id);
 					}
-					static if (BE) if (sWith(base, "Beast")) {
-						beasts ~= .loadBeast(d, f);
+					static if (BE) if (sWith(base, "Beast", id)) {
+						beasts ~= .loadBeast(d, f, id);
 					}
-					static if (IN) if (sWith(base, "Info")) {
-						infos ~= .loadInfo(d, f);
+					static if (IN) if (sWith(base, "Info", id)) {
+						infos ~= .loadInfo(d, f, id);
 					}
 				} catch (Exception e) {
 					debugln(file ~ " - " ~ e.msg);
@@ -189,58 +196,22 @@ S loadLScenario(S)(string p, string skin, string newName = null) {
 
 /// fileのIDと型を返す。
 TypeInfo getType(string file, out ulong id) {
-	try {
-		if (!.exists(file)) {
-			bool chk(string prefix) {
-				if (!sWith(file, prefix)) return false;
-				if (file.length < prefix.length + 5) return false;
-				if (!fnmatch(getExt(file), "wid")) return false;
-				string i = file[prefix.length .. $ - 4];
-				if (.match(toUTF32(i), .regex!(dstring)("^[0-9]+$"d)).empty) return false;
-				id = to!(ulong)(i);
-				return true;
-			}
-			if (chk("Area")) return typeid(Area);
-			if (chk("Battle")) return typeid(Battle);
-			if (chk("Package")) return typeid(Package);
-			if (chk("Mate")) return typeid(CastCard);
-			if (chk("Skill")) return typeid(SkillCard);
-			if (chk("Item")) return typeid(ItemCard);
-			if (chk("Beast")) return typeid(BeastCard);
-			if (chk("Info")) return typeid(InfoCard);
-			return null;
-		}
-		auto f = ByteIO(std.file.read(file));
-		file = getBaseName(file);
-		// 今の所ファイル名しか見分ける手段が無い
-		if (sWith(file, "Package")) {
-			if (f.readUIntL != 0x4) return null;
-			readString(f);
-			id = f.readUIntL;
-			return typeid(Package);
-		} else {
-			TypeInfo type;
-			switch (f.readByte) {
-			case 0x0: type = typeid(Area); break;
-			case 0x1: type = typeid(Battle); break;
-			case 0x2: type = typeid(CastCard); break;
-			case 0x5: type = typeid(SkillCard); break;
-			case 0x3: type = typeid(ItemCard); break;
-			case 0x6: type = typeid(BeastCard); break;
-			case 0x4: type = typeid(InfoCard); break;
-			default: return null;
-			}
-			// readImage
-			uint len = f.readUIntL;
-			if (len) f.read(len);
-
-			readString(f);
-			id = f.readUIntL - 40000L;
-			return type;
-		}
-	} catch (Exception e) {
-		return null;
+	file = getBaseName(file);
+	bool chk(string prefix) {
+		ulong idl;
+		auto r = sWith(file, prefix, idl);
+		id = idl;
+		return r;
 	}
+	if (chk("Area")) return typeid(Area);
+	if (chk("Battle")) return typeid(Battle);
+	if (chk("Package")) return typeid(Package);
+	if (chk("Mate")) return typeid(CastCard);
+	if (chk("Skill")) return typeid(SkillCard);
+	if (chk("Item")) return typeid(ItemCard);
+	if (chk("Beast")) return typeid(BeastCard);
+	if (chk("Info")) return typeid(InfoCard);
+	return null;
 }
 
 private Target toTarget(byte b) {
@@ -427,7 +398,7 @@ private string[] readStrings(ref ByteIO f) {
 	auto str = readString(f, true);
 	return str.length ? splitlines(str) : cast(string[]) [];
 }
-private S loadSummary(S)(in RData d, ref ByteIO f, out ulong startAreaId) {
+private S loadSummary(S)(ref RData d, ref ByteIO f, out ulong startAreaId) {
 	string img = readImage(d, f);
 	static if (is (S == Summary)) {
 		byte b;
@@ -437,7 +408,16 @@ private S loadSummary(S)(in RData d, ref ByteIO f, out ulong startAreaId) {
 		summ.author = readString(f);
 		summ.rCoupons = readStrings(f);
 		summ.rCouponNum = f.readUIntL;
-		startAreaId = f.readUIntL - 40000u;
+		auto area = f.readUIntL;
+		if (area < 19999) {
+			d.dataVersion = 0;
+		} else if (area < 39999) {
+			d.dataVersion = 2;
+			startAreaId = area - 20000u;
+		} else {
+			d.dataVersion = 4;
+			startAreaId = area - 40000u;
+		}
 		FlagDir flagsParent(string path) {
 			FlagDir dir = summ.flagDirRoot;
 			string par = FlagDir.up(path);
@@ -481,8 +461,10 @@ private S loadSummary(S)(in RData d, ref ByteIO f, out ulong startAreaId) {
 		}
 		summ.flagDirRoot.sortFlags(true);
 		f.readUIntL;
-		summ.levelMin = f.readUIntL;
-		summ.levelMax = f.readUIntL;
+		if (d.dataVersion != 0) {
+			summ.levelMin = f.readUIntL;
+			summ.levelMax = f.readUIntL;
+		}
 		return summ;
 	} else {
 		return new S(d.sPath, readString(f), true);
@@ -490,11 +472,13 @@ private S loadSummary(S)(in RData d, ref ByteIO f, out ulong startAreaId) {
 }
 private Motion readMotion(in RData d, ref ByteIO f) {
 	byte tType = f.readByte;
-	f.readByte;
-	f.readByte;
-	f.readByte;
-	f.readByte;
-	f.readByte;
+	if (d.dataVersion > 2) {
+		f.readByte;
+		f.readByte;
+		f.readByte;
+		f.readByte;
+		f.readByte;
+	}
 	byte elb = f.readByte;
 	auto el = toElement(elb);
 	byte type;
@@ -537,7 +521,12 @@ private Motion readMotion(in RData d, ref ByteIO f) {
 		}
 	}
 	case 3, 4: {
-		uint rnd = f.readUIntL;
+		uint rnd;
+		if (d.dataVersion > 2) {
+			rnd = f.readUIntL;
+		} else {
+			rnd = 10;
+		}
 		Motion m;
 		if (tType == 3u) {
 			switch (type) {
@@ -567,7 +556,12 @@ private Motion readMotion(in RData d, ref ByteIO f) {
 	}
 	case 5: {
 		uint val = f.readUIntL;
-		uint rnd = f.readUIntL;
+		uint rnd;
+		if (d.dataVersion > 2) {
+			rnd = f.readUIntL;
+		} else {
+			rnd = 10;
+		}
 		Motion m;
 		switch (type) {
 		case 0: m = new Motion(MType.ENHANCE_ACTION, el); break;
@@ -605,7 +599,7 @@ private Motion readMotion(in RData d, ref ByteIO f) {
 		BeastCard beast = null;
 		uint bNum = f.readUIntL; // 常に0か1のはず
 		for (uint i = 0u; i < bNum ; i++) {
-			beast = loadBeast(d, f);
+			beast = loadBeast(d, f, 1);
 		}
 		auto m = new Motion(MType.SUMMON_BEAST, el);
 		m.beast = beast;
@@ -617,7 +611,12 @@ private Motion readMotion(in RData d, ref ByteIO f) {
 private Content readContent(in RData d, ref ByteIO f) {
 	byte type = f.readByte;
 	string name = readString(f);
-	uint cNum = f.readUIntL - 40000u;
+	uint cNum;
+	if (d.dataVersion <= 2) {
+		cNum = f.readUIntL;
+	} else {
+		cNum = f.readUIntL - 40000u;
+	}
 	Content[] childs;
 	childs.length = cNum;
 	for (uint i = 0u; i < cNum; i++) {
@@ -661,7 +660,8 @@ private Content readContent(in RData d, ref ByteIO f) {
 		default: msgTalker = Talker.IMAGE;
 		}
 		e = new Content(CType.TALK_MESSAGE, name);
-		e.text = readString(f, true);
+		auto s = readString(f, true);
+		e.text = s;
 		e.talkerC = msgTalker;
 		e.cardPath = msgTalker != Talker.IMAGE ? "" : decodePathLegacy(msgPath);
 		break;
@@ -671,7 +671,7 @@ private Content readContent(in RData d, ref ByteIO f) {
 		e.bgmPath = decodePathLegacy(readString(f));
 		break;
 	case 8: {
-		BgImage[] bgImgs = readBgImages(f);
+		BgImage[] bgImgs = readBgImages(d, f, false);
 		e = new Content(CType.CHANGE_BG_IMAGE, name);
 		e.backs = bgImgs;
 		e.transition = Transition.DEFAULT;
@@ -767,6 +767,13 @@ private Content readContent(in RData d, ref ByteIO f) {
 		break;
 	case 20: {
 		ulong id = f.readUIntL;
+		if (d.dataVersion <= 2) {
+			e = new Content(CType.BRANCH_ITEM, name);
+			e.item = id;
+			e.range = Range.PARTY_AND_BACKPACK;
+			e.cardNumber = 1;
+			break;
+		}
 		uint num = f.readUIntL;
 		byte rng = f.readByte;
 		e = new Content(CType.BRANCH_ITEM, name);
@@ -777,6 +784,13 @@ private Content readContent(in RData d, ref ByteIO f) {
 	}
 	case 21: {
 		ulong id = f.readUIntL;
+		if (d.dataVersion <= 2) {
+			e = new Content(CType.BRANCH_SKILL, name);
+			e.item = id;
+			e.range = Range.PARTY_AND_BACKPACK;
+			e.cardNumber = 1;
+			break;
+		}
 		uint num = f.readUIntL;
 		byte rng = f.readByte;
 		e = new Content(CType.BRANCH_SKILL, name);
@@ -791,6 +805,13 @@ private Content readContent(in RData d, ref ByteIO f) {
 		break;
 	case 23: {
 		ulong id = f.readUIntL;
+		if (d.dataVersion <= 2) {
+			e = new Content(CType.BRANCH_BEAST, name);
+			e.item = id;
+			e.range = Range.PARTY_AND_BACKPACK;
+			e.cardNumber = 1;
+			break;
+		}
 		uint num = f.readUIntL;
 		byte rng = f.readByte;
 		e = new Content(CType.BRANCH_BEAST, name);
@@ -818,6 +839,13 @@ private Content readContent(in RData d, ref ByteIO f) {
 		break;
 	case 27: {
 		ulong id = f.readUIntL;
+		if (d.dataVersion <= 2) {
+			e = new Content(CType.GET_ITEM, name);
+			e.item = id;
+			e.range = Range.PARTY_AND_BACKPACK;
+			e.cardNumber = 1;
+			break;
+		}
 		uint num = f.readUIntL;
 		byte rng = f.readByte;
 		e = new Content(CType.GET_ITEM, name);
@@ -828,6 +856,13 @@ private Content readContent(in RData d, ref ByteIO f) {
 	}
 	case 28: {
 		ulong id = f.readUIntL;
+		if (d.dataVersion <= 2) {
+			e = new Content(CType.GET_SKILL, name);
+			e.item = id;
+			e.range = Range.PARTY_AND_BACKPACK;
+			e.cardNumber = 1;
+			break;
+		}
 		uint num = f.readUIntL;
 		byte rng = f.readByte;
 		e = new Content(CType.GET_SKILL, name);
@@ -842,6 +877,13 @@ private Content readContent(in RData d, ref ByteIO f) {
 		break;
 	case 30: {
 		ulong id = f.readUIntL;
+		if (d.dataVersion <= 2) {
+			e = new Content(CType.GET_BEAST, name);
+			e.item = id;
+			e.range = Range.PARTY_AND_BACKPACK;
+			e.cardNumber = 1;
+			break;
+		}
 		uint num = f.readUIntL;
 		byte rng = f.readByte;
 		e = new Content(CType.GET_BEAST, name);
@@ -870,6 +912,13 @@ private Content readContent(in RData d, ref ByteIO f) {
 		break;
 	case 34: {
 		ulong id = f.readUIntL;
+		if (d.dataVersion <= 2) {
+			e = new Content(CType.LOSE_ITEM, name);
+			e.item = id;
+			e.range = Range.PARTY_AND_BACKPACK;
+			e.cardNumber = 1;
+			break;
+		}
 		uint num = f.readUIntL;
 		byte rng = f.readByte;
 		e = new Content(CType.LOSE_ITEM, name);
@@ -880,6 +929,13 @@ private Content readContent(in RData d, ref ByteIO f) {
 	}
 	case 35: {
 		ulong id = f.readUIntL;
+		if (d.dataVersion <= 2) {
+			e = new Content(CType.LOSE_SKILL, name);
+			e.item = id;
+			e.range = Range.PARTY_AND_BACKPACK;
+			e.cardNumber = 1;
+			break;
+		}
 		uint num = f.readUIntL;
 		byte rng = f.readByte;
 		e = new Content(CType.LOSE_SKILL, name);
@@ -894,6 +950,13 @@ private Content readContent(in RData d, ref ByteIO f) {
 		break;
 	case 37: {
 		ulong id = f.readUIntL;
+		if (d.dataVersion <= 2) {
+			e = new Content(CType.LOSE_BEAST, name);
+			e.item = id;
+			e.range = Range.PARTY_AND_BACKPACK;
+			e.cardNumber = 1;
+			break;
+		}
 		uint num = f.readUIntL;
 		byte rng = f.readByte;
 		e = new Content(CType.LOSE_BEAST, name);
@@ -1061,7 +1124,7 @@ private EventTree readCEventTree(in RData d, ref ByteIO f) {
 	tree.remove(dest);
 	return tree;
 }
-private EventTree readEventTree(in RData d, ref ByteIO f) {
+private EventTree readEventTree(in RData d, ref ByteIO f, bool enemyCard) {
 	auto tree = new EventTree("");
 	auto dest = tree.starts[0u];
 	uint cNum = f.readUIntL;
@@ -1086,23 +1149,31 @@ private EventTree readEventTree(in RData d, ref ByteIO f) {
 	tree.keyCodes = readStrings(f);
 	return tree;
 }
-private BgImage readBgImage(ref ByteIO f) {
+private BgImage readBgImage(in RData d, ref ByteIO f, bool area, size_t index) {
 	byte b;
 	int x = f.readIntL;
 	int y = f.readIntL;
-	int w = f.readUIntL - 40000u;
+	int w;
+	if (d.dataVersion <= 2) {
+		w = f.readUIntL;
+	} else {
+		w = f.readUIntL - 40000u;
+	}
 	int h = f.readUIntL;
 	string imgPath = decodePathLegacy(readString(f));
 	bool mask = readBool(f);
+	if (d.dataVersion <= 2) {
+		return new BgImage(imgPath, "", x, y, w, h, mask);
+	}
 	string flag = readString(f);
 	f.readByte;
 	return new BgImage(imgPath, flag, x, y, w, h, mask);
 }
-private BgImage[] readBgImages(ref ByteIO f) {
+private BgImage[] readBgImages(in RData d, ref ByteIO f, bool area) {
 	BgImage[] bgImgs;
 	bgImgs.length = f.readUIntL;
 	for (uint i = 0u; i < bgImgs.length; i++) {
-		bgImgs[i] = readBgImage(f);
+		bgImgs[i] = readBgImage(d, f, area, i);
 	}
 	if (!bgImgs.length) return bgImgs;
 	BgImage b = bgImgs[0u];
@@ -1115,15 +1186,37 @@ private BgImage[] readBgImages(ref ByteIO f) {
 		return bgImgs;
 	}
 }
-private Area loadArea(in RData d, ref ByteIO f) {
+private void readAreaHeader(ref RData d, ref ByteIO f, out ulong id, out string name) {
 	f.readByte;
-	f.readUIntL;
-	string name = readString(f);
-	ulong id = f.readUIntL - 40000u;
+	byte b = f.readByte;
+	if (b == 'B') {
+		f.read(69);
+		name = readString(f);
+		auto idl = f.readUIntL;
+		if (idl < 19999) {
+			d.dataVersion = 0;
+			id = idl;
+		} else {
+			d.dataVersion = 2;
+			id = idl - 20000u;
+		}
+	} else {
+		d.dataVersion = 4;
+		f.readByte;
+		f.readByte;
+		f.readByte;
+		name = readString(f);
+		id = f.readUIntL - 40000u;
+	}
+}
+private Area loadArea(ref RData d, ref ByteIO f, ulong fid) {
+	ulong id;
+	string name;
+	readAreaHeader(d, f, id, name);
 	auto a = new Area(id, name);
 	uint evtNum = f.readUIntL;
 	for (uint i = 0; i < evtNum; i++) {
-		a.add(readEventTree(d, f));
+		a.add(readEventTree(d, f, false));
 	}
 	a.spAuto = !readBool(f);
 	uint cNum = f.readUIntL;
@@ -1137,33 +1230,37 @@ private Area loadArea(in RData d, ref ByteIO f) {
 		EventTree[] trees;
 		trees.length = cEvtNum;
 		for (uint j = 0; j < cEvtNum; j++) {
-			trees[j] = readEventTree(d, f);
+			trees[j] = readEventTree(d, f, false);
 		}
 		string flag = readString(f);
 		real scale = f.readUIntL / 100.0;
 		int x = f.readIntL;
 		int y = f.readIntL;
-		string imgPath = decodePathLegacy(readString(f));
+		string imgPath;
+		if (d.dataVersion <= 2) {
+			imgPath = "";
+		} else {
+			imgPath = decodePathLegacy(readString(f));
+		}
 		auto c = new MenuCard(cName, imgPath.length ? imgPath : img, desc, flag, x, y, scale);
 		foreach (tree; trees) {
 			c.add(tree);
 		}
 		a.append(c);
 	}
-	foreach (bg; readBgImages(f)) {
+	foreach (bg; readBgImages(d, f, true)) {
 		a.append(bg);
 	}
 	return a;
 }
-private Battle loadBattle(in RData d, ref ByteIO f) {
-	f.readByte;
-	f.readUIntL;
-	string name = readString(f);
-	ulong id = f.readUIntL - 40000;
+private Battle loadBattle(in RData d, ref ByteIO f, ulong fid) {
+	ulong id;
+	string name;
+	readAreaHeader(d, f, id, name);
 	auto r = new Battle(id, name, "");
 	uint evtNum = f.readUIntL;
 	for (uint i = 0u; i < evtNum; i++) {
-		r.add(readEventTree(d, f));
+		r.add(readEventTree(d, f, false));
 	}
 	r.spAuto = !readBool(f);
 	uint cNum = f.readUIntL;
@@ -1173,7 +1270,7 @@ private Battle loadBattle(in RData d, ref ByteIO f) {
 		EventTree[] cTrees;
 		cTrees.length = cEvtNum;
 		for (uint j = 0u; j < cEvtNum; j++) {
-			cTrees[j] = readEventTree(d, f);
+			cTrees[j] = readEventTree(d, f, true);
 		}
 		string flag = readString(f);
 		real scale = f.readUIntL / 100.0;
@@ -1186,10 +1283,12 @@ private Battle loadBattle(in RData d, ref ByteIO f) {
 		}
 		r.append(c);
 	}
-	r.music = decodePathLegacy(readString(f));
+	if (d.dataVersion > 0) {
+		r.music = decodePathLegacy(readString(f));
+	}
 	return r;
 }
-private Package loadPackage(in RData d, ref ByteIO f) {
+private Package loadPackage(in RData d, ref ByteIO f, ulong fid) {
 	f.readUIntL;
 	string name = readString(f);
 	ulong id = f.readUIntL;
@@ -1200,11 +1299,22 @@ private Package loadPackage(in RData d, ref ByteIO f) {
 	}
 	return r;
 }
-private CastCard loadCast(in RData d, ref ByteIO f) {
+private CastCard loadCast(ref RData d, ref ByteIO f, ulong fid) {
 	f.readByte;
 	string img = readImage(d, f);
 	string name = readString(f);
-	ulong id = f.readUIntL - 40000;
+	ulong idl = f.readUIntL;
+	ulong id;
+	if (idl < 19999) {
+		d.dataVersion = 0;
+		id = idl;
+	} else if (idl < 39999) {
+		d.dataVersion = 2;
+		id = idl - 20000;
+	} else {
+		d.dataVersion = 4;
+		id = idl - 40000;
+	}
 	auto r = new CastCard(id, name, img, "", 1u, 1u);
 	r.weaponResist = readBool(f);
 	r.magicResist = readBool(f);
@@ -1253,32 +1363,45 @@ private CastCard loadCast(in RData d, ref ByteIO f) {
 	r.enhanceRound(Enhance.DEFENSE, f.readUIntL);
 	uint itmNum = f.readUIntL;
 	for (uint i = 0u; i < itmNum; i++) {
-		r.add(loadItem(d, f));
+		r.add(loadItem(d, f, i + 1));
 	}
 	uint sklNum = f.readUIntL;
 	for (uint i = 0u; i < sklNum; i++) {
-		r.add(loadSkill(d, f));
+		r.add(loadSkill(d, f, i + 1));
 	}
 	uint bstNum = f.readUIntL;
 	for (uint i = 0u; i < bstNum; i++) {
-		r.add(loadBeast(d, f));
+		r.add(loadBeast(d, f, i + 1));
 	}
-	uint cpnNum = f.readUIntL;
-	Coupon[] cpns;
-	cpns.length = cpnNum;
-	for (uint i = 0u; i < cpnNum; i++) {
-		string coupon = readString(f);
-		int val = f.readIntL;
-		cpns[i] = new Coupon(coupon, val);
+	if (d.dataVersion > 0) {
+		uint cpnNum = f.readUIntL;
+		Coupon[] cpns;
+		cpns.length = cpnNum;
+		for (uint i = 0u; i < cpnNum; i++) {
+			string coupon = readString(f);
+			int val = f.readIntL;
+			cpns[i] = new Coupon(coupon, val);
+		}
+		r.coupons = cpns;
 	}
-	r.coupons = cpns;
 	return r;
 }
-private C readEffCard(C)(in RData d, ref ByteIO f) {
+private C readEffCard(C)(ref RData d, ref ByteIO f) {
 	f.readByte;
 	string img = readImage(d, f);
 	string name = readString(f);
-	ulong id = f.readUIntL - 40000;
+	ulong idl = f.readUIntL;
+	ulong id;
+	if (idl < 19999) {
+		d.dataVersion = 0;
+		id = idl;
+	} else if (idl < 39999) {
+		d.dataVersion = 2;
+		id = idl - 20000;
+	} else {
+		d.dataVersion = 4;
+		id = idl - 40000;
+	}
 	string desc = readString(f);
 	auto r = new C(id, name, img, desc);
 	r.physical = toPhysical(f.readUIntL);
@@ -1310,25 +1433,31 @@ private C readEffCard(C)(in RData d, ref ByteIO f) {
 		keyCodes[i] = readString(f);
 	}
 	r.keyCodes = keyCodes;
-	r.premium = toPremium(f.readByte);
-	r.scenario = readString(f);
-	r.author = readString(f);
-	uint evtNum = f.readUIntL;
-	for (uint i = 0u; i < evtNum; i++) {
-		r.add(readCEventTree(d, f));
+	if (d.dataVersion > 2) {
+		r.premium = toPremium(f.readByte);
+		r.scenario = readString(f);
+		r.author = readString(f);
+		uint evtNum = f.readUIntL;
+		for (uint i = 0u; i < evtNum; i++) {
+			r.add(readCEventTree(d, f));
+		}
 	}
 	return r;
 }
-private SkillCard loadSkill(in RData d, ref ByteIO f) {
+private SkillCard loadSkill(ref RData d, ref ByteIO f, ulong fid) {
 	auto r = readEffCard!(SkillCard)(d, f);
-	r.hold = readBool(f);
+	if (d.dataVersion > 0) {
+		r.hold = readBool(f);
+	}
 	r.level = f.readUIntL;
 	r.useLimit = f.readUIntL;
 	return r;
 }
-private ItemCard loadItem(in RData d, ref ByteIO f) {
+private ItemCard loadItem(ref RData d, ref ByteIO f, ulong fid) {
 	auto r = readEffCard!(ItemCard)(d, f);
-	r.hold = readBool(f);
+	if (d.dataVersion > 0) {
+		r.hold = readBool(f);
+	}
 	r.useLimit = f.readUIntL;
 	r.useLimitMax = f.readUIntL;
 	r.price = f.readUIntL;
@@ -1337,17 +1466,30 @@ private ItemCard loadItem(in RData d, ref ByteIO f) {
 	r.enhanceOwner(Enhance.DEFENSE, f.readUIntL);
 	return r;
 }
-private BeastCard loadBeast(in RData d, ref ByteIO f) {
+private BeastCard loadBeast(ref RData d, ref ByteIO f, ulong fid) {
 	auto r = readEffCard!(BeastCard)(d, f);
-	readBool(f); // Hold
+	if (d.dataVersion > 0) {
+		readBool(f); // Hold
+	}
 	r.useLimit = f.readUIntL;
 	return r;
 }
-private InfoCard loadInfo(in RData d, ref ByteIO f) {
+private InfoCard loadInfo(ref RData d, ref ByteIO f, ulong fid) {
 	f.readByte;
 	string img = readImage(d, f);
 	string name = readString(f);
-	ulong id = f.readUIntL - 40000;
+	ulong idl = f.readUIntL;
+	ulong id;
+	if (idl < 19999) {
+		d.dataVersion = 0;
+		id = idl;
+	} else if (idl < 39999) {
+		d.dataVersion = 2;
+		id = idl - 20000;
+	} else {
+		d.dataVersion = 4;
+		id = idl - 40000;
+	}
 	string desc = readString(f);
 	return new InfoCard(id, name, img, desc);
 }
