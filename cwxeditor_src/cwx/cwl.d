@@ -79,7 +79,9 @@ S loadLScenario(S)(string p, string skin, string newName = null) {
 		if (!newName) throw new SummaryException("Not Scenario: " ~ p);
 		d = RData(sPath, skin);
 		static if (is(S == Summary)) {
+debugln(0);
 			summ = new Summary(newName, d.skin, d.sPath, false, true);
+debugln(1);
 		} else {
 			summ = new S(d.sPath, newName, true);
 		}
@@ -512,7 +514,12 @@ private Motion readMotion(in RData d, ref ByteIO f) {
 		}
 	}
 	case 3, 4: {
-		uint rnd = f.readUIntL;
+		uint rnd;
+		if (d.dataVersion == 2) {
+			rnd = 10;
+		} else {
+			rnd = f.readUIntL;
+		}
 		Motion m;
 		if (tType == 3u) {
 			switch (type) {
@@ -542,7 +549,12 @@ private Motion readMotion(in RData d, ref ByteIO f) {
 	}
 	case 5: {
 		uint val = f.readUIntL;
-		uint rnd = f.readUIntL;
+		uint rnd;
+		if (d.dataVersion == 2) {
+			rnd = 10;
+		} else {
+			rnd = f.readUIntL;
+		}
 		Motion m;
 		switch (type) {
 		case 0: m = new Motion(MType.ENHANCE_ACTION, el); break;
@@ -653,9 +665,6 @@ private Content readContent(in RData d, ref ByteIO f) {
 		break;
 	case 8: {
 		BgImage[] bgImgs = readBgImages(d, f, false);
-		if (d.dataVersion == 2) {
-			f.readByte;
-		}
 		e = new Content(CType.CHANGE_BG_IMAGE, name);
 		e.backs = bgImgs;
 		e.transition = Transition.DEFAULT;
@@ -1116,27 +1125,21 @@ private EventTree readEventTree(in RData d, ref ByteIO f, bool enemyCard) {
 		tree.add(readContent(d, f));
 	}
 	tree.remove(dest);
-	if (d.dataVersion == 2 && enemyCard) {
-		uint n = f.readUIntL;
-		if (n > 0) f.seek(-4);
-		tree.keyCodes = readStrings(f);
-	} else {
-		uint igNum = f.readUIntL;
-		for (uint i = 0u; i < igNum; i++) {
-			int ig = f.readIntL;
-			if (ig < 0) {
-				tree.addRound(-ig);
-			} else {
-				switch (ig) {
-				case 1: tree.enter = true; break;
-				case 2: tree.escape = true; break;
-				case 3: tree.lose = true; break;
-				default: throw new SummaryException("Unknown ignition: " ~ to!(string)(ig));
-				}
+	uint igNum = f.readUIntL;
+	for (uint i = 0u; i < igNum; i++) {
+		int ig = f.readIntL;
+		if (ig < 0) {
+			tree.addRound(-ig);
+		} else {
+			switch (ig) {
+			case 1: tree.enter = true; break;
+			case 2: tree.escape = true; break;
+			case 3: tree.lose = true; break;
+			default: throw new SummaryException("Unknown ignition: " ~ to!(string)(ig));
 			}
 		}
-		tree.keyCodes = readStrings(f);
 	}
+	tree.keyCodes = readStrings(f);
 	return tree;
 }
 private BgImage readBgImage(in RData d, ref ByteIO f, bool area, size_t index) {
@@ -1151,12 +1154,10 @@ private BgImage readBgImage(in RData d, ref ByteIO f, bool area, size_t index) {
 	}
 	int h = f.readUIntL;
 	string imgPath = decodePathLegacy(readString(f));
-	bool mask = false;
+	bool mask = readBool(f);
 	if (d.dataVersion == 2) {
-		if (index > 0 || area) mask = readBool(f);
 		return new BgImage(imgPath, "", x, y, w, h, mask);
 	}
-	mask = readBool(f);
 	string flag = readString(f);
 	f.readByte;
 	return new BgImage(imgPath, flag, x, y, w, h, mask);
