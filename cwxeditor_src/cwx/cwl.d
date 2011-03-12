@@ -1253,7 +1253,7 @@ private Area loadArea(ref RData d, ref ByteIO f, ulong fid) {
 	}
 	return a;
 }
-private Battle loadBattle(in RData d, ref ByteIO f, ulong fid) {
+private Battle loadBattle(ref RData d, ref ByteIO f, ulong fid) {
 	ulong id;
 	string name;
 	readAreaHeader(d, f, id, name);
