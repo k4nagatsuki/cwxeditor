@@ -432,7 +432,7 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 				_tempPath = "";
 			} catch (Exception e) {
 				debugln(e);
-				lock;
+				std.file.write(std.path.join(_tempPath, "cwxeditor.lock"), []);
 			}
 		}
 	}

@@ -971,7 +971,7 @@ void delAll(string delpath, bool force = true) {
 			} else {
 				std.file.remove(delpath);
 			}
-		} catch (FileException e) {
+		} catch (Exception e) {
 			if (!force) throw e;
 			if (!ee) ee = new FileException(e.msg);
 		}
