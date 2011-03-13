@@ -1109,6 +1109,27 @@ private:
 	private std.thread.Thread _traceThr = null;
 	private bool _onTrace = true;
 	private bool _stopTrace = false;
+	version (Windows) {
+		private HANDLE _traceHandle = INVALID_HANDLE_VALUE;
+		private void closeTraceHandle() {
+			synchronized (_refreshThr) closeTraceHandleImpl;
+		}
+		private void closeTraceHandleImpl() {
+			if (_traceHandle !is INVALID_HANDLE_VALUE) FindCloseChangeNotification(_traceHandle);
+			_traceHandle = INVALID_HANDLE_VALUE;
+		}
+	} else version (linux) {
+		private int _traceHandle = -1;
+		private void closeTraceHandle() {
+			synchronized (_refreshThr) closeTraceHandleImpl;
+		}
+		private void closeTraceHandleImpl() {
+			if (_traceHandle !is -1) close(_traceHandle);
+			_traceHandle = -1;
+		}
+	} else {
+		private void closeTraceHandle() {}
+	}
 	private int trace() {
 		Summary summ = null;
 		void sleep() {
@@ -1122,23 +1143,29 @@ private:
 			return summ && !_display.isDisposed && _prop.var.etc.traceDirectories && _win;
 		}
 		version (Windows) {
-			HANDLE h = INVALID_HANDLE_VALUE;
 			bool setup() {
-				if (h !is INVALID_HANDLE_VALUE) FindCloseChangeNotification(h);
-				h = INVALID_HANDLE_VALUE;
-				if (summ) {
-					DWORD fs = FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME;
-					h = FindFirstChangeNotificationW(toUTF16z(summ.scenarioPath), TRUE, fs);
-					return h !is INVALID_HANDLE_VALUE;
+				synchronized (_refreshThr) {
+					closeTraceHandleImpl;
+					if (summ) {
+						DWORD fs = FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME;
+						_traceHandle = FindFirstChangeNotificationW(toUTF16z(summ.scenarioPath), TRUE, fs);
+						return _traceHandle !is INVALID_HANDLE_VALUE;
+					}
+					return true;
 				}
-				return true;
 			}
 			scope (exit) {
-				if (h !is INVALID_HANDLE_VALUE) FindCloseChangeNotification(h);
+				synchronized (_refreshThr) {
+					if (_traceHandle !is INVALID_HANDLE_VALUE) FindCloseChangeNotification(_traceHandle);
+				}
 			}
 			void next() {
-				if (!FindNextChangeNotification(h)) {
-					debugln("FindNextChangeNotification failed: ", GetLastError);
+				synchronized (_refreshThr) {
+					if (_traceHandle !is INVALID_HANDLE_VALUE) {
+						if (!FindNextChangeNotification(_traceHandle)) {
+							debugln("FindNextChangeNotification failed: ", GetLastError);
+						}
+					}
 				}
 			}
 			while (_onTrace && _display && !_display.isDisposed) {
@@ -1158,7 +1185,7 @@ private:
 						sleep;
 						continue;
 					}
-					switch (WaitForSingleObject(h, 1000)) {
+					switch (WaitForSingleObject(_traceHandle, 1000)) {
 					case WAIT_TIMEOUT: {
 						next;
 					} break;
@@ -1184,27 +1211,30 @@ private:
 				}
 			}
 		} else version (linux) {
-			extern (C) int h = -1;
 			bool setup() {
-				if (h !is -1) close(h);
-				h = inotify_init();
-				if (h is -1) return false;
-				void put(string path) {
-					foreach (file; clistdir(path)) {
-						file = std.path.join(path, file);
-						if (isdir(file)) {
-							inotify_add_watch(h, std.string.toStringz(file),
-								IN_MODIFY | IN_ATTRIB | IN_MOVED_FROM | IN_MOVED_TO
-								| IN_CREATE | IN_DELETE | IN_DELETE_SELF);
-							put(file);
+				synchronized (_refreshThr) {
+					closeTraceHandleImpl;
+					_traceHandle = inotify_init();
+					if (_traceHandle is -1) return false;
+					void put(string path) {
+						foreach (file; clistdir(path)) {
+							file = std.path.join(path, file);
+							if (isdir(file)) {
+								inotify_add_watch(_traceHandle, std.string.toStringz(file),
+									IN_MODIFY | IN_ATTRIB | IN_MOVED_FROM | IN_MOVED_TO
+									| IN_CREATE | IN_DELETE | IN_DELETE_SELF);
+								put(file);
+							}
 						}
 					}
+					put(summ.scenarioPath);
+					return true;
 				}
-				put(summ.scenarioPath);
-				return true;
 			}
 			scope (exit) {
-				if (h !is -1) close(h);
+				synchronized (_refreshThr) {
+					if (_traceHandle !is -1) close(_traceHandle);
+				}
 			}
 			while (_onTrace && _display && !_display.isDisposed) {
 				try {
@@ -1224,7 +1254,10 @@ private:
 						continue;
 					}
 					byte[inotify_event.sizeof * 1024] buf;
-					auto len = std.c.linux.linux.read(h, buf.ptr, buf.sizeof);
+					int len;
+					synchronized (_refreshThr) {
+						len = std.c.linux.linux.read(_traceHandle, buf.ptr, buf.sizeof);
+					}
 					if (-1 == len) break;
 					if (0 == len) {
 						sleep;
@@ -1555,7 +1588,10 @@ public:
 		_sash.addDisposeListener(_sdl);
 	}
 
-	void stopTrace() {_stopTrace = true;}
+	void stopTrace() {
+		closeTraceHandle;
+		_stopTrace = true;
+	}
 	void resumeTrace() {_stopTrace = false;}
 
 	void refresh(Summary summ) {
