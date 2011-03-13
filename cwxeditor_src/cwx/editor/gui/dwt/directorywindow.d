@@ -1097,19 +1097,18 @@ private:
 	}
 	private class RefreshThr : Runnable {
 		override void run() {
-			__refresh;
-		}
-	}
-	private class TraceChkThr : Runnable {
-		bool result = false;
-		override void run() {
-			result = !_display.isDisposed
-				&& _prop.var.etc.traceDirectories && _win && !_win.isDisposed;
+			if (_stopTrace) return;
+			try {
+				__refresh;
+			} catch (Exception e) {
+				debugln(e);
+			}
 		}
 	}
 	private Runnable _refreshThr;
 	private std.thread.Thread _traceThr = null;
 	private bool _onTrace = true;
+	private bool _stopTrace = false;
 	private int trace() {
 		Summary summ = null;
 		void sleep() {
@@ -1144,6 +1143,10 @@ private:
 			}
 			while (_onTrace && _display && !_display.isDisposed) {
 				try {
+					if (_stopTrace) {
+						sleep;
+						continue;
+					}
 					if (summ !is _summ) {
 						summ = _summ;
 						if (!setup) {
@@ -1205,6 +1208,10 @@ private:
 			}
 			while (_onTrace && _display && !_display.isDisposed) {
 				try {
+					if (_stopTrace) {
+						sleep;
+						continue;
+					}
 					if (summ !is _summ) {
 						summ = _summ;
 						if (!setup) {
@@ -1255,6 +1262,10 @@ private:
 			}
 			while (_onTrace && _display && !_display.isDisposed) {
 				try {
+					if (_stopTrace) {
+						sleep;
+						continue;
+					}
 					if (summ !is _summ) {
 						summ = _summ;
 						setup;
@@ -1544,6 +1555,9 @@ public:
 		_sash.addDisposeListener(_sdl);
 	}
 
+	void stopTrace() {_stopTrace = true;}
+	void resumeTrace() {_stopTrace = false;}
+
 	void refresh(Summary summ) {
 		_summ = summ;
 		if (_win && !_win.isDisposed) {
@@ -1759,7 +1773,7 @@ public:
 					ope.lpszProgressTitle = null;
 					if (0 != SHFileOperationW(&ope)) return;
 				} else {
-						delAll(nabs(dir));
+					delAll(nabs(dir));
 				}
 			} else {
 				return;

@@ -62,29 +62,33 @@ string debugLog = "cwxeditor_error.log";
 
 /// デバグログに文字列を出力する。
 void fdebugln(T ...)(T vals) {
-	char[] buf;
-	foreach (v; vals) {
-		buf ~= to!(char[])(v);
-	}
-	debug {
-		version (Windows) {
-			printf("%s\n\0".ptr, tosjisz(buf));
-			dout.flush;
-		} else {
-			writefln("%s", buf);
+	try {
+		synchronized {
+			char[] buf;
+			foreach (v; vals) {
+				buf ~= to!(char[])(v);
+			}
+			debug {
+				version (Windows) {
+					printf("%s\n\0".ptr, tosjisz(buf));
+					dout.flush;
+				} else {
+					writefln("%s", buf);
+				}
+			}
+			d_time d = getUTCtime;
+			d = UTCtoLocalTime(d);
+			auto year = YearFromTime(d);
+			auto month = MonthFromTime(d) + 1;
+			auto day = DateFromTime(d);
+			auto hour = HourFromTime(d);
+			auto min = MinFromTime(d);
+			auto sec = SecFromTime(d);
+			std.file.append(debugLog,
+				format("%04d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, min, sec)
+				~ "\t" ~ buf ~ linesep);
 		}
-	}
-	d_time d = getUTCtime;
-	d = UTCtoLocalTime(d);
-	auto year = YearFromTime(d);
-	auto month = MonthFromTime(d) + 1;
-	auto day = DateFromTime(d);
-	auto hour = HourFromTime(d);
-	auto min = MinFromTime(d);
-	auto sec = SecFromTime(d);
-	std.file.append(debugLog,
-		format("%04d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, min, sec)
-		~ "\t" ~ buf ~ linesep);
+	} catch {}
 }
 /// debugコンパイルされている際は デバグログに文字列を出力すると
 /// 共にfdebugln()を呼出し、ファイル出力する。

@@ -65,13 +65,18 @@ class Skin {
 			return r;
 		}
 	}
-	private static Skin[string] lSkins;
+	private static struct LSKey {
+		string enginePath;
+		string resDir;
+	}
+	private static Skin[LSKey] lSkins;
 	static Skin legacySkin(CProps prop, string enginePath, string sPath) {
 		string resDir, lEnginePath;
 		findLegacy(sPath, resDir, lEnginePath);
 		resDir = resDir.length ? nabs(resDir) : "";
 		lEnginePath = lEnginePath.length ? nabs(lEnginePath) : "";
-		auto p = resDir in lSkins;
+		auto key = LSKey(enginePath, resDir);
+		auto p = key in lSkins;
 		if (p) {
 			return *p;
 		} else {
@@ -108,7 +113,7 @@ class Skin {
 			if (!('W' in skin._spChars)) skin._spChars['W'] = "";
 			if (!('X' in skin._spChars)) skin._spChars['X'] = "";
 			if (!('Z' in skin._spChars)) skin._spChars['Z'] = "";
-			lSkins[resDir] = skin;
+			lSkins[key] = skin;
 			return skin;
 		}
 	}

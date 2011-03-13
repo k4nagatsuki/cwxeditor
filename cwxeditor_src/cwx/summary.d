@@ -187,6 +187,7 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 	static string createTempDir(string tempPath, string name, bool createLockFile = true) {
 		string base = cwx.utils.toHex(name);
 		base = base.length > 15 ? base[0 .. 15] : base;
+		base = "cwxeditor_temp_" ~ base;
 		auto temp = createNewFileName(std.path.join(tempPath, base), true);
 		mkdirRecurse(temp);
 		if (createLockFile) typeof(this).createLockFile(temp);
@@ -281,12 +282,10 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 			} else {
 				r = S.fromXMLs(p, xmls);
 			}
-			if (old) old.delTemp;
 			return r;
 		}
 		S loadLegacy(string p) {
 			S r = loadLScenario!(S)(p, "", newName);
-			if (old) old.delTemp;
 			return r;
 		}
 		S legacyCommon() {
@@ -401,7 +400,7 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 				_zipName = null;
 				_tempPath = "";
 			} catch (Exception e) {
-				debugln(e.toString);
+				debugln(e);
 				lock;
 			}
 		}
@@ -1407,7 +1406,6 @@ public:
 				showWarn(prop.msgs.fileCopyError(fail));
 			}
 			scope (failure) delAll(temp);
-			delTemp;
 			saveProc(prop, saveInnerImagePath, true, fname, temp, true, defExpandXMLs);
 		} else if (useTemp) {
 			// 新しいアーカイブを作成

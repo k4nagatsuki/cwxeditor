@@ -150,6 +150,7 @@ private:
 		refreshStatusLine;
 	}
 	void __refresh() {
+		if (_skinTemp) _skinTemp = findSkin(_prop, _summ);
 		if (_viewMode == CViewMode.TABLE) {
 			C sel = null;
 			auto sels = _tbl.getSelection;
@@ -518,8 +519,9 @@ private:
 			return _owner.id;
 		}
 	}
+	private Skin _skinTemp = null;
 	ImageData __cardImage(C c) {
-		Skin skin = _comm.skin;
+		Skin skin = _skinTemp ? _skinTemp : _comm.skin;
 		static if (is (C == CastCard)) {
 			return castCardImage(_prop, skin, c, ownerScenarioPath, _viewMode == CViewMode.LIFE);
 		} else static if (!is (C == InfoCard) && is (CardOwner == CastCard)) {
@@ -919,11 +921,13 @@ public:
 			this(Commons comm, Props prop, PCardOwner summ, Composite parent, ToCardOwner toc, void delegate() openHand) {
 				_toc = toc;
 				_openHand = openHand;
+				_skinTemp = findSkin(prop, summ);
 				construct(comm, prop, summ, parent);
 			}
 		} else {
 			this(Commons comm, Props prop, PCardOwner summ, Composite parent, ToCardOwner toc) {
 				_toc = toc;
+				_skinTemp = findSkin(prop, summ);
 				construct(comm, prop, summ, parent);
 			}
 		}
@@ -1973,8 +1977,12 @@ private class DelTemp(CC) : DisposeListener {
 	this(CC cc) {
 		_cc = cc;
 	}
-	override void widgetDisposed(DisposeEvent e) {
-		_cc.delTemp;
+	override void widgetDisposed(DisposeEvent dse) {
+		try {
+			_cc.delTemp;
+		} catch (Exception e) {
+			debugln(e);
+		}
 	}
 }
 private class AddCard(ToCardOwner, Cards ...) {
