@@ -239,6 +239,8 @@ private:
 	}
 	void openScenario(Summary summ) {
 		assert (summ);
+		_dirWin.stopTrace;
+		scope (exit) _dirWin.resumeTrace;
 		if (_prop.var.etc.logicalSort) {
 			summ.flagDirRoot.sorter = &ncmp;
 		} else {
@@ -274,7 +276,11 @@ private:
 		setupMenu(_menu);
 		setupMenu(_tool);
 		addHistory;
-		if (old) old.delTemp;
+		try {
+			if (old) old.delTemp;
+		} catch (Exception e) {
+			debugln(e);
+		}
 		summ.resetChanged;
 	}
 	string _firstScenarioPath = null;
@@ -477,7 +483,12 @@ private:
 			try {
 				_comm.closeAll;
 				if (summary && summary.useTemp) {
-					summary.delTemp;
+					_dirWin.stopTrace;
+					try {
+						summary.delTemp;
+					} catch (Exception e) {
+						debugln(e);
+					}
 				}
 			} catch (Throwable e) {
 				_win.setVisible = true;
@@ -820,6 +831,10 @@ public:
 					if (exists(lock)) {
 						try {
 							std.file.remove(lock);
+							delAll(temp);
+						} catch (Exception e) {}
+					} else if (fnstartsWith(getBaseName(temp), "cwxeditor_temp_")) {
+						try {
 							delAll(temp);
 						} catch (Exception e) {}
 					}

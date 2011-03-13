@@ -37,11 +37,11 @@ Skin findSkin(S = Summary)(in Props prop, in S summ) {
 Skin findSkin2(const(Props) prop, string type) {
 	auto p = type in skinTable(prop);
 	if (p) return *p;
-	static Skin[const(Props)] emptySkins;
-	p = prop in emptySkins;
+	static Skin[string] emptySkins;
+	p = prop.var.etc.enginePath in emptySkins;
 	if (p) return *p;
 	auto r = new Skin(prop.parent, prop.var.etc.enginePath);
-	emptySkins[prop] = r;
+	emptySkins[prop.var.etc.enginePath] = r;
 	return r;
 }
 bool hasSkin(in Props prop, string type) {

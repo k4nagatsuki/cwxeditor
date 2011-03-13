@@ -64,28 +64,32 @@ string debugLog = "cwxeditor_error.log";
 
 /// デバグログに文字列を出力する。
 void fdebugln(T ...)(T vals) {
-	char[] buf;
-	foreach (v; vals) {
-		buf ~= to!(string)(v);
-	}
-	debug {
-		version (Windows) {
-			printf("%s\n\0".ptr, tosjisz(buf));
-			dout.flush;
-		} else {
-			writeln(buf);
+	try {
+		synchronized {
+			char[] buf;
+			foreach (v; vals) {
+				buf ~= to!(string)(v);
+			}
+			debug {
+				version (Windows) {
+					printf("%s\n\0".ptr, tosjisz(buf));
+					dout.flush;
+				} else {
+					writeln(buf);
+				}
+			}
+			auto d = Clock.currTime;
+			int year = d.year;
+			int month = d.month;
+			int day = d.day;
+			int hour = d.hour;
+			int min = d.minute;
+			int second = d.second;
+			std.file.append(debugLog,
+				format("%04d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, min, second)
+				~ "\t" ~ buf ~ linesep);
 		}
-	}
-	auto d = Clock.currTime;
-	int year = d.year;
-	int month = d.month;
-	int day = d.day;
-	int hour = d.hour;
-	int min = d.minute;
-	int second = d.second;
-	std.file.append(debugLog,
-		format("%04d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, min, second)
-		~ "\t" ~ buf ~ linesep);
+	} catch {}
 }
 /// debugコンパイルされている際は デバグログに文字列を出力すると
 /// 共にfdebugln()を呼出し、ファイル出力する。

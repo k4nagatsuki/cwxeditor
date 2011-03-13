@@ -22,14 +22,14 @@ class Skin {
 		if (legacy && !type.length) {
 			return legacySkin(prop, enginePath, sPath);
 		}
-		static Skin[const(CProps)] emptySkins;
+		static Skin[string] emptySkins;
 		auto tbl = table(prop, enginePath);
 		auto p = type in tbl;
 		if (p) return *p;
-		auto pp = prop in emptySkins;
+		auto pp = enginePath in emptySkins;
 		if (pp) return *pp;
 		auto r = new Skin(prop, enginePath);
-		emptySkins[prop] = r;
+		emptySkins[enginePath] = r;
 		return r;
 	}
 	static Skin find2(Summary)(in CProps prop, string enginePath, in Summary summ) {
