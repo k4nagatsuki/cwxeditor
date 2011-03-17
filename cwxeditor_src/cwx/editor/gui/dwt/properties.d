@@ -679,6 +679,8 @@ class FlexEtcProps : Properties {
 	}
 	mixin Property!("ignorePaths", string[], [".*"]);
 
+	mixin Property!("useCWXScript", bool, false);
+
 	mixin XMLFuncs!(FlexEtcProps);
 }
 
@@ -717,6 +719,7 @@ public class FlexProps {
 	const DialogParam!("couponEventDialog") couponEvtDlg;
 	const DialogParam!("inputEventDialog") inputEvtDlg;
 	const DialogParam!("selectEventDialog") selEvtDlg;
+	const DialogParam!("scriptDialog", 400, 300) scriptDlg;
 	const FlexEtcProps etc;
 
 	private string _path;

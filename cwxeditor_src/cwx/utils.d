@@ -1661,3 +1661,38 @@ string formatNum(N, size_t Count = 3, string Sep = ",")(N num) {
 	assert (formatNum(123456) == "123,456");
 	assert (formatNum(1234567) == "1,234,567");
 }
+
+/// arrをコピーして返す。
+T1[T2] dupAssocArray(T1, T2)(in T1[T2] arr) {
+	T1[T2] arr2;
+	foreach (key, val; arr) {
+		arr2[key] = val;
+	}
+	return arr2;
+}
+
+/// textの幅を調べる。
+/// マルチバイト文字は常に2文字分の幅を持つものとして扱われる。
+/// Example:
+/// ---
+/// assert (lengthJ("斉") == 2);
+/// assert (lengthJ("大秦") == 4);
+/// assert (lengthJ("1万") == 3);
+/// assert (lengthJ("1000") == 4);
+/// assert (lengthJ("100万") == 5);
+/// ---
+size_t lengthJ(in char[] text) {
+	size_t len = 0u;
+	foreach (dchar c; text) {
+		char[] s;
+		std.utf.encode(s, c);
+		len += s.length > 1u ? 2u : 1u;
+	}
+	return len;
+} unittest {
+	assert (lengthJ("斉") == 2);
+	assert (lengthJ("大秦") == 4);
+	assert (lengthJ("1万") == 3);
+	assert (lengthJ("1000") == 4);
+	assert (lengthJ("100万") == 5);
+}

@@ -27,6 +27,7 @@ SRC = cwxeditor.d \
 	cwx\structs.d \
 	cwx\graphics.d \
 	cwx\jpy.d \
+	cwx\script.d \
 	cwx\editor\gui\sound.d \
 	cwx\editor\gui\dwt\sbshell.d \
 	cwx\editor\gui\dwt\mainwindow.d \
@@ -103,6 +104,7 @@ OBJ = objs\cwxeditor.obj \
 	objs\cwx\structs.obj \
 	objs\cwx\graphics.obj \
 	objs\cwx\jpy.obj \
+	objs\cwx\script.obj \
 	objs\cwx\editor\gui\sound.obj \
 	objs\cwx\editor\gui\dwt\sbshell.obj \
 	objs\cwx\editor\gui\dwt\mainwindow.obj \

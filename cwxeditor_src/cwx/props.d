@@ -2066,6 +2066,14 @@ public:
 	string bgImagesDefault() {return "デフォルト背景";}
 	string setBgImagesDefault() {return "デフォルト背景の設定...";}
 	string dlgTitBgImagesDefault() {return "デフォルト背景の設定";}
+
+	/// スクリプト関係。
+	string dlgTitScriptError() {
+		return "CWXスクリプトエラー";
+	}
+	string scriptError() {
+		return "CWXスクリプトのコンパイル中にエラーが発生しました。";
+	}
 }
 
 public class Looks {
@@ -2221,9 +2229,9 @@ public:
 		}
 		return "IPA UIゴシック";
 	}
-	CFont castCardNameFont(bool legacy){return CFont(uigothic(legacy), 9, true, false);}
-	CFont castCardLevelFont(bool legacy){return CFont(mincho(legacy), 24, true, true);}
-	CInsets castCardLevelInsets(){return CInsets(2, 8, 0, 0);}
+	CFont castCardNameFont(bool legacy) {return CFont(uigothic(legacy), 9, true, false);}
+	CFont castCardLevelFont(bool legacy) {return CFont(mincho(legacy), 24, true, true);}
+	CInsets castCardLevelInsets() {return CInsets(2, 8, 0, 0);}
 	CRGB castCardLevelColor() {return CRGB(0, 0, 0, 128);}
 	CPoint castLifeBarPoint() {return CPoint(8, 110);}
 	int statusX() {return 7;}
@@ -2251,6 +2259,7 @@ public:
 		}
 		return CFont(gothic(legacy), 16, false, false);
 	}
+	CFont scriptErrorFont() {return CFont(gothic(true), 12, false, false);}
 }
 
 public class CProps {
