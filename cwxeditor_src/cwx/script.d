@@ -36,7 +36,6 @@ class CWXScriptException : Exception {
 
 /// スクリプトを解析し、コンテント群にして返す。
 /// 解析中にエラーがあった場合はCWXScriptExceptionを投げる。
-/// TODO: コンテント群からスクリプトに逆変換
 static Content[] compile(CProps prop, Summary summ, string script) {
 	try {
 		auto compiler = CWXScript(prop, summ);
@@ -436,6 +435,8 @@ struct CWXScript {
 		CWXScript s;
 
 		i = 0;
+		assert (s.calc(s.tokenize("(-42)"), i, varTable) == -42);
+		i = 0;
 		assert (s.calc(s.tokenize("2*2+3"), i, varTable) == 7);
 		i = 0;
 		assert (s.calc(s.tokenize("2*(2+3)"), i, varTable) == 10);
@@ -463,6 +464,7 @@ struct CWXScript {
 
 	private static struct Keywords {
 		CType[string] keywords;
+		string[CType] commands;
 	}
 	private static const Keywords KEYS;
 	static this () {
@@ -534,6 +536,9 @@ struct CWXScript {
 			cast(string) "hideparty":CType.HIDE_PARTY,
 			cast(string) "redraw":CType.REDISPLAY
 		]);
+		foreach (name, type; KEYS.keywords) {
+			KEYS.commands[type] = name;
+		}
 	}
 
 	/// ノードの型。
@@ -670,6 +675,7 @@ struct CWXScript {
 		case Kind.VAR_NAME, Kind.NUMBER, Kind.PLU, Kind.MIN, Kind.O_PAR:
 			size_t i = 0;
 			return to!(string)(calc(node.calc, i, varTable));
+		case Kind.O_BRA: return "";
 		default: throwError(_prop.msgs.scriptErrorInvalidAttr, node.token);
 		}
 		assert (0);
@@ -1007,7 +1013,7 @@ fi`;
 				r.values ~= analyzeSyntaxBrackets(tokens, i, keys);
 				i++;
 				break;
-			case Kind.SYMBOL, Kind.NUMBER, Kind.STRING, Kind.VAR_NAME:
+			case Kind.SYMBOL, Kind.NUMBER, Kind.STRING, Kind.VAR_NAME, Kind.O_PAR, Kind.PLU, Kind.MIN:
 				auto node = Node(NodeType.VALUE, tok);
 				node.var = analyzeSyntaxValue(tokens, i, keys);
 				r.values ~= node;
@@ -1059,14 +1065,19 @@ fi`;
 				if (num) {
 					r ~= tok;
 					i++;
-					goto case Kind.NUMBER;
+					r ~= tokens[i];
+					i++;
+					calcin = true;
+					num = false;
+					break;
 				} else {
 					goto case Kind.MUL;
 				}
 			case Kind.O_PAR:
-				if (!num) throwError(_prop.msgs.scriptErrorInvalidCalc, tok);
+				if (!num && calcin) return r;
 				r ~= tok;
 				i++;
+				calcin = true;
 				break;
 			case Kind.C_PAR:
 				if (num) throwError(_prop.msgs.scriptErrorInvalidCalc, tok);
@@ -1181,30 +1192,34 @@ fi`;
 				i++;
 				static if (!Within) i++;
 				return Target(Target.M.UNSELECTED, sleep);
+			case "t", "team":
+				i++;
+				static if (!Within) i++;
+				return Target(Target.M.PARTY, sleep);
 			default: throwError(_prop.msgs.scriptErrorInvalidTarget, tok);
 			}
 		} else static if (is(T == EffectType)) {
 			switch (value) {
-			case "physic": i++;return EffectType.PHYSIC;
-			case "magic": i++;return EffectType.MAGIC;
-			case "mphysic": i++;return EffectType.MAGICAL_PHYSIC;
-			case "pmagic": i++;return EffectType.PHYSICAL_MAGIC;
-			case "none": i++;return EffectType.NONE;
+			case "physic": i++; return EffectType.PHYSIC;
+			case "magic": i++; return EffectType.MAGIC;
+			case "mphysic": i++; return EffectType.MAGICAL_PHYSIC;
+			case "pmagic": i++; return EffectType.PHYSICAL_MAGIC;
+			case "none": i++; return EffectType.NONE;
 			default: throwError(_prop.msgs.scriptErrorInvalidEffectType, tok);
 			}
 		} else static if (is(T == Resist)) {
 			switch (value) {
-			case "avoid": i++;return Resist.AVOID;
-			case "resist": i++;return Resist.RESIST;
-			case "unfail": i++;return Resist.UNFAIL;
+			case "avoid": i++; return Resist.AVOID;
+			case "resist": i++; return Resist.RESIST;
+			case "unfail": i++; return Resist.UNFAIL;
 			default: throwError(_prop.msgs.scriptErrorInvalidResist, tok);
 			}
 		} else static if (is(T == CardVisual)) {
 			switch (value) {
-			case "none": i++;return CardVisual.NONE;
-			case "reverse": i++;return CardVisual.REVERSE;
-			case "hswing": i++;return CardVisual.HORIZONTAL;
-			case "vswing": i++;return CardVisual.VERTICAL;
+			case "none": i++; return CardVisual.NONE;
+			case "reverse": i++; return CardVisual.REVERSE;
+			case "hswing": i++; return CardVisual.HORIZONTAL;
+			case "vswing": i++; return CardVisual.VERTICAL;
 			default: throwError(_prop.msgs.scriptErrorInvalidCardVisual, tok);
 			}
 		} else static if (is(T == Mental)) {
@@ -1236,63 +1251,63 @@ fi`;
 			return parseTalker!(Within)(attr[i], varTable);
 		} else static if (is(T == MType)) {
 			switch (value) {
-			case "heal": return MType.HEAL;
-			case "damage": return MType.DAMAGE;
-			case "absorb": return MType.ABSORB;
-			case "paralyze": return MType.PARALYZE;
-			case "disparalyze": return MType.DIS_PARALYZE;
-			case "poison": return MType.POISON;
-			case "dispoison": return MType.DIS_POISON;
-			case "getspilit": return MType.GET_SKILL_POWER;
-			case "losespilit": return MType.LOSE_SKILL_POWER;
-			case "sleep": return MType.SLEEP;
-			case "confuse": return MType.CONFUSE;
-			case "overheat": return MType.OVERHEAT;
-			case "brave": return MType.BRAVE;
-			case "panic": return MType.PANIC;
-			case "resetfeel": return MType.NORMAL;
-			case "bind": return MType.BIND;
-			case "disbind": return MType.DIS_BIND;
-			case "silence": return MType.SILENCE;
-			case "dissilence": return MType.DIS_SILENCE;
-			case "faceup": return MType.FACE_UP;
-			case "facedown": return MType.FACE_DOWN;
-			case "antimagic": return MType.ANTI_MAGIC;
-			case "disantimagic": return MType.DIS_ANTI_MAGIC;
-			case "enhaction": return MType.ENHANCE_ACTION;
-			case "enhavoid": return MType.ENHANCE_AVOID;
-			case "enhresist": return MType.ENHANCE_RESIST;
-			case "enhdefense": return MType.ENHANCE_DEFENSE;
-			case "vantarget": return MType.VANISH_TARGET;
-			case "vancard": return MType.VANISH_CARD;
-			case "vanbeast": return MType.VANISH_BEAST;
-			case "dealattack": return MType.DEAL_ATTACK_CARD;
-			case "dealpowerful": return MType.DEAL_POWERFUL_ATTACK_CARD;
-			case "dealcritical": return MType.DEAL_CRITICAL_ATTACK_CARD;
-			case "dealfeint": return MType.DEAL_FEINT_CARD;
-			case "dealdefense": return MType.DEAL_DEFENSE_CARD;
-			case "dealdistance": return MType.DEAL_DISTANCE_CARD;
-			case "dealconfuse": return MType.DEAL_CONFUSE_CARD;
-			case "dealskill": return MType.DEAL_SKILL_CARD;
-			case "summon": return MType.SUMMON_BEAST;
+			case "heal": i++; return MType.HEAL;
+			case "damage": i++; return MType.DAMAGE;
+			case "absorb": i++; return MType.ABSORB;
+			case "paralyze": i++; return MType.PARALYZE;
+			case "disparalyze": i++; return MType.DIS_PARALYZE;
+			case "poison": i++; return MType.POISON;
+			case "dispoison": i++; return MType.DIS_POISON;
+			case "getspilit": i++; return MType.GET_SKILL_POWER;
+			case "losespilit": i++; return MType.LOSE_SKILL_POWER;
+			case "sleep": i++; return MType.SLEEP;
+			case "confuse": i++; return MType.CONFUSE;
+			case "overheat": i++; return MType.OVERHEAT;
+			case "brave": i++; return MType.BRAVE;
+			case "panic": i++; return MType.PANIC;
+			case "resetfeel": i++; return MType.NORMAL;
+			case "bind": i++; return MType.BIND;
+			case "disbind": i++; return MType.DIS_BIND;
+			case "silence": i++; return MType.SILENCE;
+			case "dissilence": i++; return MType.DIS_SILENCE;
+			case "faceup": i++; return MType.FACE_UP;
+			case "facedown": i++; return MType.FACE_DOWN;
+			case "antimagic": i++; return MType.ANTI_MAGIC;
+			case "disantimagic": i++; return MType.DIS_ANTI_MAGIC;
+			case "enhaction": i++; return MType.ENHANCE_ACTION;
+			case "enhavoid": i++; return MType.ENHANCE_AVOID;
+			case "enhresist": i++; return MType.ENHANCE_RESIST;
+			case "enhdefense": i++; return MType.ENHANCE_DEFENSE;
+			case "vantarget": i++; return MType.VANISH_TARGET;
+			case "vancard": i++; return MType.VANISH_CARD;
+			case "vanbeast": i++; return MType.VANISH_BEAST;
+			case "dealattack": i++; return MType.DEAL_ATTACK_CARD;
+			case "dealpowerful": i++; return MType.DEAL_POWERFUL_ATTACK_CARD;
+			case "dealcritical": i++; return MType.DEAL_CRITICAL_ATTACK_CARD;
+			case "dealfeint": i++; return MType.DEAL_FEINT_CARD;
+			case "dealdefense": i++; return MType.DEAL_DEFENSE_CARD;
+			case "dealdistance": i++; return MType.DEAL_DISTANCE_CARD;
+			case "dealconfuse": i++; return MType.DEAL_CONFUSE_CARD;
+			case "dealskill": i++; return MType.DEAL_SKILL_CARD;
+			case "summon": i++; return MType.SUMMON_BEAST;
 			default: throwError(_prop.msgs.scriptErrorInvalidMotionType, tok);
 			}
 		} else static if (is(T == Element)) {
 			switch (value) {
-			case "all": return Element.ALL;
-			case "phy": return Element.HEALTH;
-			case "mind": return Element.MIND;
-			case "holy": return Element.MIRACLE;
-			case "magic": return Element.MAGIC;
-			case "fire": return Element.FIRE;
-			case "ice": return Element.ICE;
+			case "all": i++; return Element.ALL;
+			case "phy": i++; return Element.HEALTH;
+			case "mind": i++; return Element.MIND;
+			case "holy": i++; return Element.MIRACLE;
+			case "magic": i++; return Element.MAGIC;
+			case "fire": i++; return Element.FIRE;
+			case "ice": i++; return Element.ICE;
 			default: throwError(_prop.msgs.scriptErrorInvalidElement, tok);
 			}
 		} else static if (is(T == DamageType)) {
 			switch (value) {
-			case "level": return DamageType.LEVEL_RATIO;
-			case "value": return DamageType.NORMAL;
-			case "max": return DamageType.MAX;
+			case "level": i++; return DamageType.LEVEL_RATIO;
+			case "value": i++; return DamageType.NORMAL;
+			case "max": i++; return DamageType.MAX;
 			default: throwError(_prop.msgs.scriptErrorInvalidDamageType, tok);
 			}
 		} else static if (is(T == BgImage)) {
@@ -1373,6 +1388,7 @@ fi`;
 		if (tok.kind is Kind.STRING) {
 			t = Talker.IMAGE;
 			cardPath = value;
+			i++;
 			return;
 		}
 		cardPath = "";
@@ -1494,6 +1510,9 @@ fi`;
 			if (detail.use(CArg.TARGET_S)) {
 				c.targetS = parseAttr!(Target)(node.attr, i, c.targetS, varTable);
 			}
+			if (detail.use(CArg.RANGE)) {
+				c.range = parseAttr!(Range)(node.attr, i, c.range, varTable);
+			}
 			if (detail.use(CArg.AREA)) {
 				c.area = parseAttr!(ulong)(node.attr, i, c.area, varTable);
 			}
@@ -1550,9 +1569,6 @@ fi`;
 			}
 			if (detail.use(CArg.STEP_VALUE)) {
 				c.stepValue = parseAttr!(int)(node.attr, i, c.stepValue, varTable);
-			}
-			if (detail.use(CArg.RANGE)) {
-				c.range = parseAttr!(Range)(node.attr, i, c.range, varTable);
 			}
 			if (detail.use(CArg.CARD_NUMBER)) {
 				c.cardNumber = parseAttr!(int)(node.attr, i, c.cardNumber, varTable);
@@ -1623,5 +1639,503 @@ fi`;
 			r ~= c;
 		}
 		return r;
+	}
+	string toScript(in Content[] cs, bool legacy, string indent = "\t") {
+		char[] buf;
+		toScriptImpl(buf, cs, indent, "", KEYS, legacy);
+		return buf;
+	}
+	string encodeString(string s) {
+		return std.string.replace(s, "\"", "\\\"");
+	}
+	private void toAttr(bool Within = false, T)(ref char[] attrs, T value, string command, string indentValue, bool space = true) {
+		if (space) attrs ~= " ";
+		static if (is(T == string)) {
+			auto lines = splitlines(value);
+			if (lines.length == 0) {
+				attrs ~= `""`;
+			} else if (lines.length == 1) {
+				attrs ~= `"` ~ encodeString(lines[0]) ~ `"`;
+			} else {
+				size_t lns = 0;
+				foreach (i, line; lines) {
+					if (line.length) {
+						lns = i;
+						break;
+					}
+				}
+				attrs ~= "@";
+				if (lns > 0) {
+					attrs ~= " " ~ to!(string)(lns + 1);
+					lines = lines[lns .. $];
+				}
+				attrs ~= "\n";
+				bool spaceLine = false;
+				foreach (line; lines) {
+					line = std.string.replace(line, "@", "\\@");
+					if (line.length && (line[0] == ' ' || line[0] == '\t')) {
+						line = "\\" ~ line;
+					}
+					attrs ~= indentValue ~ line ~ "\n";
+					spaceLine = line.length == 0;
+				}
+				if (spaceLine) {
+					attrs ~= "@";
+				} else {
+					attrs ~= indentValue ~ "@";
+				}
+			}
+		} else static if (isVArray!(T)) {
+			foreach (i, v; value) {
+				toAttr(attrs, v, command, indentValue, i > 0);
+			}
+		} else static if (is(T == bool)) {
+			attrs ~= value ? "true": "false";
+		} else static if (is(T == Transition)) {
+			switch (value) {
+			case Transition.DEFAULT: attrs ~= "default"; break;
+			case Transition.NONE: attrs ~= "none"; break;
+			case Transition.FADE: attrs ~= "fade"; break;
+			case Transition.PIXEL_DISSOLVE: attrs ~= "dissolve"; break;
+			case Transition.BLINDS: attrs ~= "blinds"; break;
+			default: assert (0);
+			}
+		} else static if (is(T == Range)) {
+			switch (value) {
+			case Range.SELECTED: attrs ~= "M"; break;
+			case Range.RANDOM: attrs ~= "R"; break;
+			case Range.PARTY: attrs ~= "T"; break;
+			case Range.BACKPACK: attrs ~= "backpack"; break;
+			case Range.PARTY_AND_BACKPACK: attrs ~= "party"; break;
+			case Range.FIELD: attrs ~= "field"; break;
+			default: assert (0);
+			}
+		} else static if (is(T == Status)) {
+			switch (value) {
+			case Status.ACTIVE: attrs ~= "active"; break;
+			case Status.INACTIVE: attrs ~= "inactive"; break;
+			case Status.ALIVE: attrs ~= "alive"; break;
+			case Status.DEAD: attrs ~= "dead"; break;
+			case Status.FINE: attrs ~= "fine"; break;
+			case Status.INJURED: attrs ~= "injured"; break;
+			case Status.HEAVY_INJURED: attrs ~= "heavyinjured"; break;
+			case Status.UNCONSCIOUS: attrs ~= "unconscious"; break;
+			case Status.POISON: attrs ~= "poison"; break;
+			case Status.SLEEP: attrs ~= "sleep"; break;
+			case Status.BIND: attrs ~= "bind"; break;
+			case Status.PARALYZE: attrs ~= "paralyze"; break;
+			default: assert (0);
+			}
+		} else static if (is(T == Target)) {
+			switch (value.m) {
+			case Target.M.SELECTED: attrs ~= "M"; break;
+			case Target.M.RANDOM: attrs ~= "R"; break;
+			case Target.M.UNSELECTED: attrs ~= "U"; break;
+			case Target.M.PARTY: attrs ~= "T"; break;
+			default: assert (0);
+			}
+			static if (!Within) {
+				toAttr(attrs, value.sleep, command, indentValue);
+			}
+		} else static if (is(T == EffectType)) {
+			switch (value) {
+			case EffectType.PHYSIC: attrs ~= "physic"; break;
+			case EffectType.MAGIC: attrs ~= "magic"; break;
+			case EffectType.MAGICAL_PHYSIC: attrs ~= "mphysic"; break;
+			case EffectType.PHYSICAL_MAGIC: attrs ~= "pmagic"; break;
+			case EffectType.NONE: attrs ~= "none"; break;
+			default: assert (0);
+			}
+		} else static if (is(T == Resist)) {
+			switch (value) {
+			case Resist.AVOID: attrs ~= "avoid"; break;
+			case Resist.RESIST: attrs ~= "resist"; break;
+			case Resist.UNFAIL: attrs ~= "unfail"; break;
+			default: assert (0);
+			}
+		} else static if (is(T == CardVisual)) {
+			switch (value) {
+			case CardVisual.NONE: attrs ~= "none"; break;
+			case CardVisual.REVERSE: attrs ~= "reverse"; break;
+			case CardVisual.HORIZONTAL: attrs ~= "hswing"; break;
+			case CardVisual.VERTICAL: attrs ~= "vswing"; break;
+			default: assert (0);
+			}
+		} else static if (is(T == Mental)) {
+			switch (value) {
+			case Mental.AGGRESSIVE: attrs ~= "agg"; break;
+			case Mental.UNAGGRESSIVE: attrs ~= "unagg"; break;
+			case Mental.CHEERFUL: attrs ~= "cheerf"; break;
+			case Mental.UNCHEERFUL: attrs ~= "uncheerf"; break;
+			case Mental.BRAVE: attrs ~= "brave"; break;
+			case Mental.UNBRAVE: attrs ~= "unbrave"; break;
+			case Mental.CAUTIOUS: attrs ~= "caut"; break;
+			case Mental.UNCAUTIOUS: attrs ~= "uncaut"; break;
+			case Mental.TRICKISH: attrs ~= "trick"; break;
+			case Mental.UNTRICKISH: attrs ~= "untrick"; break;
+			default: assert (0);
+			}
+		} else static if (is(T == Physical)) {
+			switch (value) {
+			case Physical.DEX: attrs ~= "dex"; break;
+			case Physical.AGL: attrs ~= "agl"; break;
+			case Physical.INT: attrs ~= "int"; break;
+			case Physical.STR: attrs ~= "str"; break;
+			case Physical.VIT: attrs ~= "vit"; break;
+			case Physical.MIN: attrs ~= "min"; break;
+			default: assert (0);
+			}
+		} else static if (is(T == Talker)) {
+			return toAttrTalker(attrs, value, "", false);
+		} else static if (is(T == MType)) {
+			switch (value) {
+			case MType.HEAL: attrs ~= "heal"; break;
+			case MType.DAMAGE: attrs ~= "damage"; break;
+			case MType.ABSORB: attrs ~= "absorb"; break;
+			case MType.PARALYZE: attrs ~= "paralyze"; break;
+			case MType.DIS_PARALYZE: attrs ~= "disparalyze"; break;
+			case MType.POISON: attrs ~= "poison"; break;
+			case MType.DIS_POISON: attrs ~= "dispoison"; break;
+			case MType.GET_SKILL_POWER: attrs ~= "getspilit"; break;
+			case MType.LOSE_SKILL_POWER: attrs ~= "losespilit"; break;
+			case MType.SLEEP: attrs ~= "sleep"; break;
+			case MType.CONFUSE: attrs ~= "confuse"; break;
+			case MType.OVERHEAT: attrs ~= "overheat"; break;
+			case MType.BRAVE: attrs ~= "brave"; break;
+			case MType.PANIC: attrs ~= "panic"; break;
+			case MType.NORMAL: attrs ~= "resetfeel"; break;
+			case MType.BIND: attrs ~= "bind"; break;
+			case MType.DIS_BIND: attrs ~= "disbind"; break;
+			case MType.SILENCE: attrs ~= "silence"; break;
+			case MType.DIS_SILENCE: attrs ~= "dissilence"; break;
+			case MType.FACE_UP: attrs ~= "faceup"; break;
+			case MType.FACE_DOWN: attrs ~= "facedown"; break;
+			case MType.ANTI_MAGIC: attrs ~= "antimagic"; break;
+			case MType.DIS_ANTI_MAGIC: attrs ~= "disantimagic"; break;
+			case MType.ENHANCE_ACTION: attrs ~= "enhaction"; break;
+			case MType.ENHANCE_AVOID: attrs ~= "enhavoid"; break;
+			case MType.ENHANCE_RESIST: attrs ~= "enhresist"; break;
+			case MType.ENHANCE_DEFENSE: attrs ~= "enhdefense"; break;
+			case MType.VANISH_TARGET: attrs ~= "vantarget"; break;
+			case MType.VANISH_CARD: attrs ~= "vancard"; break;
+			case MType.VANISH_BEAST: attrs ~= "vanbeast"; break;
+			case MType.DEAL_ATTACK_CARD: attrs ~= "dealattack"; break;
+			case MType.DEAL_POWERFUL_ATTACK_CARD: attrs ~= "dealpowerful"; break;
+			case MType.DEAL_CRITICAL_ATTACK_CARD: attrs ~= "dealcritical"; break;
+			case MType.DEAL_FEINT_CARD: attrs ~= "dealfeint"; break;
+			case MType.DEAL_DEFENSE_CARD: attrs ~= "dealdefense"; break;
+			case MType.DEAL_DISTANCE_CARD: attrs ~= "dealdistance"; break;
+			case MType.DEAL_CONFUSE_CARD: attrs ~= "dealconfuse"; break;
+			case MType.DEAL_SKILL_CARD: attrs ~= "dealskill"; break;
+			case MType.SUMMON_BEAST: attrs ~= "summon"; break;
+			default: assert (0);
+			}
+		} else static if (is(T == Element)) {
+			switch (value) {
+			case Element.ALL: attrs ~= "all"; break;
+			case Element.HEALTH: attrs ~= "phy"; break;
+			case Element.MIND: attrs ~= "mind"; break;
+			case Element.MIRACLE: attrs ~= "holy"; break;
+			case Element.MAGIC: attrs ~= "magic"; break;
+			case Element.FIRE: attrs ~= "fire"; break;
+			case Element.ICE: attrs ~= "ice"; break;
+			default: assert (0);
+			}
+		} else static if (is(T == DamageType)) {
+			switch (value) {
+			case DamageType.LEVEL_RATIO: attrs ~= "level"; break;
+			case DamageType.NORMAL: attrs ~= "value"; break;
+			case DamageType.MAX: attrs ~= "max"; break;
+			default: assert (0);
+			}
+		} else static if (is(T == BgImage)) {
+			attrs ~= "[";
+			toAttr(attrs, value.path, command, indentValue, false);
+			toAttr(attrs, value.flag, command, indentValue);
+			toAttr(attrs, value.x, command, indentValue);
+			toAttr(attrs, value.y, command, indentValue);
+			toAttr(attrs, value.width, command, indentValue);
+			toAttr(attrs, value.height, command, indentValue);
+			toAttr(attrs, value.mask, command, indentValue);
+			attrs ~= "]";
+		} else static if (is(T == Motion)) {
+			auto detail = value.detail;
+			attrs ~= "[";
+			toAttr(attrs, value.type, command, indentValue, false);
+			if (detail.use(MArg.VALUE_TYPE)) {
+				toAttr(attrs, value.damageType, command, indentValue);
+			}
+			if (detail.use(MArg.U_VALUE)) {
+				toAttr(attrs, value.uValue, command, indentValue);
+			}
+			if (detail.use(MArg.A_VALUE)) {
+				toAttr(attrs, value.aValue, command, indentValue);
+			}
+			if (detail.use(MArg.ROUND)) {
+				toAttr(attrs, value.round, command, indentValue);
+			}
+			if (detail.use(MArg.BEAST)) {
+				ulong id = 0UL;
+				if (value.beast) {
+					auto beast = _summ.findSomeBeast(value.beast);
+					if (beast) id = beast.id;
+				}
+				toAttr(attrs, id, command, indentValue);
+			}
+			toAttr(attrs, value.element, command, indentValue);
+			attrs ~= "]";
+		} else static if (is(T == SDialog)) {
+			attrs ~= "[";
+			bool semic = false;
+			foreach (c; value.rCoupons) {
+				if (std.string.find(c, ";") >= 0) {
+					semic = true;
+					break;
+				}
+			}
+			if (semic) {
+				attrs ~= "[";
+				foreach (i, c; value.rCoupons) {
+					if (i > 0) attrs ~= " ";
+					attrs ~= `"` ~ encodeString(c) ~ `"`;
+				}
+				attrs ~= "]";
+			} else {
+				attrs ~= std.string.join(value.rCoupons, ";");
+			}
+			toAttr(attrs, value.text, command, indentValue);
+			attrs ~= "]";
+		} else static if (is(T == int)) {
+			if (value < 0) attrs ~= "(";
+			attrs ~= to!(string)(value);
+			if (value < 0) attrs ~= ")";
+		} else static if (is(T == uint)) {
+			attrs ~= to!(string)(value);
+		} else static if (is(T == ulong)) {
+			attrs ~= to!(string)(value);
+		} else static assert (0);
+	}
+	private void toAttrTalker(ref char[] attrs, Talker t, string cardPath, bool space) {
+		if (space) attrs ~= " ";
+		switch (t) {
+		case Talker.NARRATION: attrs ~= "none"; break;
+		case Talker.SELECTED: attrs ~= "M"; break;
+		case Talker.UNSELECTED: attrs ~= "U"; break;
+		case Talker.RANDOM: attrs ~= "R"; break;
+		case Talker.CARD: attrs ~= "C"; break;
+		case Talker.IMAGE: attrs ~= `"` ~ encodeString(cardPath) ~ `"`; break;
+		default: assert (0);
+		}
+	}
+	private void toScriptImpl(ref char[] buf, in Content[] cs, string indent, string indentValue, in Keywords keys, bool legacy) {
+		foreach (i, c; cs) {
+			if (i > 0) buf ~= "\n";
+			buf ~= indentValue;
+			auto detail = c.detail;
+			string command = keys.commands[c.type];
+			buf ~= command;
+			char[] attrs;
+			if (c.type is CType.START) {
+				attrs ~= ` "` ~ encodeString(c.name) ~ `"`;
+			}
+			if (detail.use(CArg.TALKER_C)) {
+				toAttrTalker(attrs, c.talkerC, c.cardPath, true);
+			}
+			if (detail.use(CArg.TEXT)) {
+				toAttr(attrs, c.text, command, indentValue);
+			}
+			if (detail.use(CArg.TALKER_NC)) {
+				toAttr!(true)(attrs, c.talkerNC, command, indentValue);
+			}
+			if (detail.use(CArg.DIALOGS)) {
+				toAttr(attrs, c.dialogs, command, indentValue);
+			}
+			if (detail.use(CArg.BG_IMAGES)) {
+				toAttr(attrs, c.backs, command, indentValue);
+			}
+			if (detail.use(CArg.MOTIONS)) {
+				toAttr(attrs, c.motions, command, indentValue);
+			}
+			if (detail.use(CArg.TARGET_NS)) {
+				toAttr!(true)(attrs, c.targetNS, command, indentValue);
+			}
+			if (detail.use(CArg.TARGET_S)) {
+				toAttr(attrs, c.targetS, command, indentValue);
+			}
+			if (detail.use(CArg.RANGE)) {
+				toAttr(attrs, c.range, command, indentValue);
+			}
+			if (detail.use(CArg.AREA)) {
+				toAttr(attrs, c.area, command, indentValue);
+			}
+			if (detail.use(CArg.BATTLE)) {
+				toAttr(attrs, c.battle, command, indentValue);
+			}
+			if (detail.use(CArg.PACKAGE)) {
+				toAttr(attrs, c.packages, command, indentValue);
+			}
+			if (detail.use(CArg.CAST)) {
+				toAttr(attrs, c.casts, command, indentValue);
+			}
+			if (detail.use(CArg.ITEM)) {
+				toAttr(attrs, c.item, command, indentValue);
+			}
+			if (detail.use(CArg.SKILL)) {
+				toAttr(attrs, c.skill, command, indentValue);
+			}
+			if (detail.use(CArg.INFO)) {
+				toAttr(attrs, c.info, command, indentValue);
+			}
+			if (detail.use(CArg.BEAST)) {
+				toAttr(attrs, c.beast, command, indentValue);
+			}
+			if (detail.use(CArg.START)) {
+				toAttr(attrs, c.start, command, indentValue);
+			}
+			if (detail.use(CArg.COMPLETE)) {
+				toAttr(attrs, c.complete, command, indentValue);
+			}
+			if (detail.use(CArg.MONEY)) {
+				toAttr(attrs, c.money, command, indentValue);
+			}
+			if (detail.use(CArg.COUPON)) {
+				toAttr(attrs, c.coupon, command, indentValue);
+			}
+			if (detail.use(CArg.COUPON_VALUE)) {
+				toAttr(attrs, c.couponValue, command, indentValue);
+			}
+			if (detail.use(CArg.COMPLETE_STAMP)) {
+				toAttr(attrs, c.completeStamp, command, indentValue);
+			}
+			if (detail.use(CArg.GOSSIP)) {
+				toAttr(attrs, c.gossip, command, indentValue);
+			}
+			if (detail.use(CArg.FLAG)) {
+				toAttr(attrs, c.flag, command, indentValue);
+			}
+			if (detail.use(CArg.FLAG_VALUE)) {
+				toAttr(attrs, c.flagValue, command, indentValue);
+			}
+			if (detail.use(CArg.STEP)) {
+				toAttr(attrs, c.step, command, indentValue);
+			}
+			if (detail.use(CArg.STEP_VALUE)) {
+				toAttr(attrs, c.stepValue, command, indentValue);
+			}
+			if (detail.use(CArg.CARD_NUMBER)) {
+				toAttr(attrs, c.cardNumber, command, indentValue);
+			}
+			if (detail.use(CArg.CARD_VISUAL)) {
+				toAttr(attrs, c.cardVisual, command, indentValue);
+			}
+			if (detail.use(CArg.UNSIGNED_LEVEL)) {
+				toAttr(attrs, c.unsignedLevel, command, indentValue);
+			}
+			if (detail.use(CArg.SIGNED_LEVEL)) {
+				toAttr(attrs, c.signedLevel, command, indentValue);
+			}
+			if (detail.use(CArg.PHYSICAL)) {
+				toAttr(attrs, c.physical, command, indentValue);
+			}
+			if (detail.use(CArg.MENTAL)) {
+				toAttr(attrs, c.mental, command, indentValue);
+			}
+			if (detail.use(CArg.WAIT)) {
+				toAttr(attrs, c.wait, command, indentValue);
+			}
+			if (detail.use(CArg.PERCENT)) {
+				toAttr(attrs, c.percent, command, indentValue);
+			}
+			if (detail.use(CArg.TARGET_ALL)) {
+				toAttr(attrs, c.targetAll, command, indentValue);
+			}
+			if (detail.use(CArg.RANDOM)) {
+				toAttr(attrs, c.random, command, indentValue);
+			}
+			if (detail.use(CArg.AVERAGE)) {
+				toAttr(attrs, c.average, command, indentValue);
+			}
+			if (detail.use(CArg.PARTY_NUMBER)) {
+				toAttr(attrs, c.partyNumber, command, indentValue);
+			}
+			if (detail.use(CArg.SUCCESS_RATE)) {
+				toAttr(attrs, c.successRate, command, indentValue);
+			}
+			if (detail.use(CArg.EFFECT_TYPE)) {
+				toAttr(attrs, c.effectType, command, indentValue);
+			}
+			if (detail.use(CArg.RESIST)) {
+				toAttr(attrs, c.resist, command, indentValue);
+			}
+			if (detail.use(CArg.STATUS)) {
+				toAttr(attrs, c.status, command, indentValue);
+			}
+			if (detail.use(CArg.BGM_PATH)) {
+				toAttr(attrs, c.bgmPath, command, indentValue);
+			}
+			if (detail.use(CArg.SOUND_PATH)) {
+				toAttr(attrs, c.soundPath, command, indentValue);
+			}
+			if (!legacy) {
+				if (detail.use(CArg.TRANSITION_SPEED)) {
+					toAttr(attrs, c.transitionSpeed, command, indentValue);
+				}
+				if (detail.use(CArg.TRANSITION)) {
+					toAttr(attrs, c.transition, command, indentValue);
+				}
+			}
+			bool useIf = c.next.length > 1;
+			if (!useIf) {
+				foreach (chld; c.next) {
+					if (chld.name.length) {
+						if (detail.nextType is CNextType.TEXT && chld.name == _prop.msgs.evtChildOK) {
+							continue;
+						}
+						useIf = true;
+						break;
+					}
+				}
+			}
+			buf ~= attrs;
+			foreach (idx, chld; c.next) {
+				if (useIf) {
+					buf ~= "\n" ~ indentValue;
+					buf ~= idx == 0 ? "if " : "elif ";
+					switch (detail.nextType) {
+					case CNextType.NONE:
+						buf ~= `""`;
+						break;
+					case CNextType.TEXT:
+						buf ~= `"` ~ encodeString(chld.name) ~ `"`;
+						break;
+					case CNextType.BOOL:
+						buf ~= icmp(chld.name, _prop.msgs.evtChildTrue) == 0 ? "true" : "false";
+						break;
+					case CNextType.STEP:
+					case CNextType.ID_AREA:
+					case CNextType.ID_BATTLE:
+						if (icmp(chld.name, _prop.msgs.evtChildDefault) == 0) {
+							buf ~= "default";
+						} else {
+							buf ~= chld.name;
+						}
+						break;
+					default: assert (0);
+					}
+					buf ~= "\n";
+					toScriptImpl(buf, [chld], indent, indentValue ~ indent, keys, legacy);
+				} else {
+					buf ~= "\n";
+					if (c.type is CType.START) {
+						toScriptImpl(buf, [chld], indent, indentValue ~ indent, keys, legacy);
+					} else {
+						toScriptImpl(buf, [chld], indent, indentValue, keys, legacy);
+					}
+				}
+			}
+			if (useIf) {
+				buf ~= "\n" ~ indentValue ~ "fi";
+			}
+		}
 	}
 }

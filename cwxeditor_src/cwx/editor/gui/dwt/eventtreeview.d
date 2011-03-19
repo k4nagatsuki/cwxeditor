@@ -1451,6 +1451,11 @@ public:
 		createMenuItem(popup, _prop.msgs.menuRedo, _prop.images.menuRedo, &this.redo);
 		new MenuItem(popup, SWT.SEPARATOR);
 		appendMenuTCPD(prop, popup, this, true, true, true, true);
+		if (_prop.var.etc.useCWXScript) {
+			new MenuItem(popup, SWT.SEPARATOR);
+			createMenuItem(popup, _prop.msgs.menuToScript, _prop.images.menuToScript, &this.toScript);
+			createMenuItem(popup, _prop.msgs.menuToScriptAll, _prop.images.menuToScriptAll, &this.toScriptAll);
+		}
 		new MenuItem(popup, SWT.SEPARATOR);
 		createMenuItem(popup, _prop.msgs.menuStartToPackage, _prop.images.menuStartToPackage, &startToPackage);
 		void delegate() dlg = null;
@@ -1701,6 +1706,23 @@ public:
 				cb.setContents([new ArrayWrapperString(c.cwxPath)], [TextTransfer.getInstance]);
 			}
 		}
+	}
+	void toScript() {
+		auto itm = selection;
+		if (!itm) return;
+		auto c = cast(Content) itm.getData;
+		auto script = CWXScript(_prop.parent, _summ);
+		auto text = script.toScript([c], _summ.legacy, "\t");
+		auto cb = new Clipboard(Display.getCurrent);
+		scope (exit) cb.dispose;
+		cb.setContents([new ArrayWrapperString(text ~ "\n")], [TextTransfer.getInstance]);
+	}
+	void toScriptAll() {
+		auto script = CWXScript(_prop.parent, _summ);
+		auto text = script.toScript(_et.starts, _summ.legacy, "\t");
+		auto cb = new Clipboard(Display.getCurrent);
+		scope (exit) cb.dispose;
+		cb.setContents([new ArrayWrapperString(text ~ "\n")], [TextTransfer.getInstance]);
 	}
 
 	private void refreshConvMenu() {

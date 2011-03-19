@@ -419,6 +419,8 @@ public:
 	Image menuSaveIncludeImage() {return imgd!(resourceDir ~ "save_inc_img.png");}
 
 	Image script() {return imgd!(resourceDir ~ "script.png");}
+	Image menuToScript() {return imgd!(resourceDir ~ "script.png");}
+	Image menuToScriptAll() {return imgd!(resourceDir ~ "script_all.png");}
 }
 
 enum MenuID : int {
@@ -502,7 +504,9 @@ enum MenuID : int {
 	Reload,
 	StartToPackage,
 	ConvertContent,
-	Version
+	Version,
+	ToScript,
+	ToScriptAll
 }
 
 public class Props {

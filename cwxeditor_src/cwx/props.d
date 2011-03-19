@@ -1357,6 +1357,7 @@ public:
 	string evtChildTrue() {return "○";}
 	string evtChildFalse() {return "×";}
 	string evtChildDefault() {return "Default";}
+	string evtChildOK() {return "ＯＫ";}
 
 	string evtChildBrFlag(Flag flag, ref string text) {
 		bool val = (text != evtChildFalse);
@@ -2068,6 +2069,10 @@ public:
 	string dlgTitBgImagesDefault() {return "デフォルト背景の設定";}
 
 	/// スクリプト関係。
+	string ttToScript() {return "スクリプトに変換してコピー";}
+	string menuToScript() {return ttToScript ~ "(&S)";}
+	string ttToScriptAll() {return "全てをスクリプトに変換してコピー";}
+	string menuToScriptAll() {return ttToScriptAll ~ "(&A)";}
 	string dlgTitScriptError() {
 		return "CWXスクリプトエラー";
 	}
