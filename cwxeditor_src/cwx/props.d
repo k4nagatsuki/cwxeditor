@@ -2080,7 +2080,9 @@ public:
 		return "CWXスクリプトのコンパイル中にエラーが発生しました。";
 	}
 	string scriptErrorInvalidToken() {return "スクリプトに使用できない文字が含まれています。";}
+	string scriptErrorInvalidString() {return "ここに文字列が必要です。";}
 	string scriptErrorInvalidNumber() {return "数値が正しくありません。";}
+	string scriptErrorCloseBracketNotFound() {return "閉じ括弧が見つかりません。";}
 	string scriptErrorCloseParenNotFound() {return "閉じ括弧が見つかりません。";}
 	string scriptErrorZeroDivision() {return "0で除算を行いました。";}
 	string scriptErrorInvalidAttr() {return "属性が正しくありません。";}

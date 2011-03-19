@@ -109,7 +109,7 @@ struct CWXScript {
 	/// Tokenの値を文字列として解釈して返す。
 	/// 文字列を囲う記号に加え、
 	/// 行頭にあるタブ文字や一定数の空白が取り除かれる。
-	private string stringValue(Token tok) {
+	private string stringValue(in Token tok) {
 		string decode(string s, char esc) {
 			char[] buf = new char[s.length];
 			size_t len = 0;
@@ -129,8 +129,9 @@ struct CWXScript {
 			}
 			return buf[0 .. len];
 		}
-		.enforce(tok.kind is Kind.STRING && tok.value.length >= 2,
-			new Exception("Invalid string: " ~ tok.value, __FILE__, __LINE__));
+		if (tok.kind !is Kind.STRING || tok.value.length < 2) {
+			throwError(_prop.msgs.scriptErrorInvalidString, tok);
+		}
 		if (tok.value[0] == '@') {
 			char[] buf;
 			auto lines = .splitlines(tok.value[0 .. $ - 1]);
@@ -142,7 +143,7 @@ struct CWXScript {
 			if (lines[0].length > 1) {
 				auto lnStr = std.string.tolower(.strip(lines[0][1 .. $]));
 				bool isNum = .isNumeric(lnStr);
-				if (!isNum && lnStr != "center") {
+				if (!isNum && icmp(lnStr, "c") != 0 && icmp(lnStr, "center") != 0) {
 					throwError(_prop.msgs.scriptErrorInvalidStr, tok);
 				}
 				int ln;
@@ -191,7 +192,7 @@ struct CWXScript {
 			`\]`, // close bracket
 			`"([^"]|\\")*"`, // string
 			`'([^']|\\')*'`, // string
-			`@[ \t]*([0-9]*|[Cc][Ee][Nn][Tt][Ee][Rr])[ \t]*\n(([^@]|\\@)*\n)?[ \t]*@`, // string
+			`@[ \t]*([0-9]*|[Cc]|[Cc][Ee][Nn][Tt][Ee][Rr])[ \t]*\n(([^@]|\\@)*\n)?[ \t]*@`, // string
 			`[ \t\r\n]+`, // whitespace
 			`\+`,// plus
 			`-`, // minus
@@ -1024,7 +1025,7 @@ fi`;
 			default: assert (0);
 			}
 		}
-		throwError("Close bracket not forund", o);
+		throwError(_prop.msgs.scriptErrorCloseBracketNotFound, o);
 		return r;
 	}
 	private Node analyzeSyntaxVar(in Token[] tokens, ref size_t i, in Keywords keys) {
