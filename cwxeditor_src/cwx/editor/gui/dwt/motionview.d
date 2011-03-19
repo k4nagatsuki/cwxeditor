@@ -8,6 +8,7 @@ import cwx.summary;
 import cwx.utils;
 import cwx.xml;
 import cwx.skin;
+import cwx.event;
 
 import cwx.editor.gui.dwt.props;
 import cwx.editor.gui.dwt.skin;
@@ -109,8 +110,7 @@ private:
 	}
 	class AbiValListener : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			selection.aValue
-				= _abiVal.getSelection - _prop.looks.motionAbilityValueMax;
+			selection.aValue = _abiVal.getSelection - Motion.aValue_max;
 		}
 	}
 	void roundEnter(int value) {
@@ -267,7 +267,7 @@ private:
 					_editComp.layout;
 				}
 			} else if (d.use(MArg.ROUND) && d.use(MArg.A_VALUE)) {
-				_abiVal.setSelection = m.aValue + _prop.looks.motionAbilityValueMax;
+				_abiVal.setSelection = m.aValue + Motion.aValue_max;
 				_abiRound.setSelection = m.round;
 				if (stack.topControl !is _abilityComp) {
 					stack.topControl = _abilityComp;
@@ -624,8 +624,8 @@ public:
 				return round;
 			}
 			Spinner createRoundC(Composite parent) {
-				return createSpinner(parent, _prop.msgs.motionRound, _prop.looks.motionMaxRound,
-					_prop.msgs.rangeHint(1, _prop.looks.motionMaxRound), &roundEnter, &roundCancel);
+				return createSpinner(parent, _prop.msgs.motionRound, Motion.round_max,
+					_prop.msgs.rangeHint(1, Motion.round_max), &roundEnter, &roundCancel);
 			}
 			_abilityComp = createC;
 			{
@@ -639,15 +639,15 @@ public:
 				gd_av.horizontalSpan = 2;
 				_abiVal.setLayoutData = gd_av;
 				_abiVal.setMinimum = 0;
-				_abiVal.setMaximum = _prop.looks.motionAbilityValueMax * 2;
-				_abiVal.setPageIncrement = _prop.looks.motionAbilityValueMax / 2;
+				_abiVal.setMaximum = Motion.aValue_max - Motion.aValue_min;
+				_abiVal.setPageIncrement = Motion.aValue_max / 2;
 				_abiVal.addSelectionListener(new AbiValListener);
 				auto l_min = new Label(vcomp, SWT.NONE);
 				l_min.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
-				l_min.setText = to!(string)(cast(int) _prop.looks.motionAbilityValueMax * -1);
+				l_min.setText = to!(string)(Motion.aValue_min);
 				auto l_max = new Label(vcomp, SWT.NONE);
 				l_max.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
-				l_max.setText = "+" ~ to!(string)(_prop.looks.motionAbilityValueMax);
+				l_max.setText = "+" ~ to!(string)(Motion.aValue_max);
 				_abiRound = createRoundC(_abilityComp);
 			}
 			_roundComp = createC;
@@ -669,8 +669,8 @@ public:
 					radio.addSelectionListener(dtl);
 					_dmgTyp[typ] = radio;
 				}
-				_valValue = createSpinner(_valueComp, _prop.msgs.motionValue, _prop.looks.motionValueMax,
-					_prop.msgs.rangeHint(1, _prop.looks.motionValueMax), &valEnter, &valCancel);
+				_valValue = createSpinner(_valueComp, _prop.msgs.motionValue, Motion.uValue_max,
+					_prop.msgs.rangeHint(Motion.uValue_min, Motion.uValue_max), &valEnter, &valCancel);
 			}
 			_noneComp = createC;
 			motionStack.topControl = _noneComp;

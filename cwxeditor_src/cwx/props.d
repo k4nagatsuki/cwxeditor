@@ -671,7 +671,7 @@ public:
 			return buf;
 		} case CType.EFFECT: {
 			string buf = target(evt.targetNS.m);
-			buf ~= " レベル" ~ to!(string)(evt.level);
+			buf ~= " レベル" ~ to!(string)(evt.signedLevel);
 			buf ~= " " ~ effectType(evt.effectType, evt.resist);
 			buf ~= " 成功率" ~ (evt.successRate >= 0 ? "+" : "") ~ to!(string)(evt.successRate);
 			buf ~= " " ~ (evt.soundPath.length ? "「" ~ evt.soundPath ~ "」を再生" : "音声無し");
@@ -754,13 +754,13 @@ public:
 			string buf = target(evt.targetS.m) ~ "の";
 			buf ~= physical(evt.physical) ~ "と";
 			buf ~= mental(evt.mental) ~ "で能力判定";
-			buf ~= "(レベル" ~ to!(string)(evt.level) ~ ")";
+			buf ~= "(レベル" ~ to!(string)(evt.signedLevel) ~ ")";
 			return buf;
 		} case CType.BRANCH_RANDOM: {
 			return "確率 = " ~ to!(string)(evt.percent) ~ "%";
 		} case CType.BRANCH_LEVEL: {
 			string buf = evt.average ? "パーティ全員" : "選択中のメンバ";
-			buf ~= "のレベルが" ~ to!(string)(evt.level) ~ "以上・未満で分岐";
+			buf ~= "のレベルが" ~ to!(string)(evt.unsignedLevel) ~ "以上・未満で分岐";
 			return buf;
 		} case CType.BRANCH_STATUS: {
 			string buf = target(evt.targetNS.m) ~ "が";
@@ -2074,6 +2074,47 @@ public:
 	string scriptError() {
 		return "CWXスクリプトのコンパイル中にエラーが発生しました。";
 	}
+	string scriptErrorInvalidToken() {return "スクリプトに使用できない文字が含まれています。";}
+	string scriptErrorInvalidNumber() {return "数値が正しくありません。";}
+	string scriptErrorCloseParenNotFound() {return "閉じ括弧が見つかりません。";}
+	string scriptErrorZeroDivision() {return "0で除算を行いました。";}
+	string scriptErrorInvalidAttr() {return "属性が正しくありません。";}
+	string scriptErrorInvalidVar() {return "変数が正しくありません。";}
+	string scriptErrorInvalidVarVal() {return "変数の値が正しくありません。";}
+	string scriptErrorNoStartText() {return "スタートコンテントの名前がありません。";}
+	string scriptErrorInvalidStatement() {return "文が正しくありません。";}
+	string scriptErrorInvalidBranch() {return "分岐の構成が正しくありません。";}
+	string scriptErrorNoIfText() {return "ifの条件が見つかりません。";}
+	string scriptErrorNoIfContents() {return "分岐先のコンテントが見つかりません。";}
+	string scriptErrorInvalidKeyword() {return "未知のキーワードです。";}
+	string scriptErrorInvalidValuesOpen() {return "引数列ではありません。";}
+	string scriptErrorInvalidValuesClose() {return "閉じ括弧が見つかりません。";}
+	string scriptErrorNoVarSet() {return "変数に値をセットしていません。";}
+	string scriptErrorNoVarVal() {return "変数の値がありません。";}
+	string scriptErrorInvalidCalc() {return "計算式が不正です。";}
+	string scriptErrorInvalidBoolVal() {return "キーワードが正しくありません。";}
+	string scriptErrorInvalidTransition() {return "未知の画面切替方式です。";}
+	string scriptErrorInvalidRange() {return "未知の範囲です。";}
+	string scriptErrorInvalidStatus() {return "未知のステータスです。";}
+	string scriptErrorInvalidTarget() {return "未知のターゲットです。";}
+	string scriptErrorInvalidEffectType() {return "未知の効果属性です。";}
+	string scriptErrorInvalidResist() {return "未知の命中属性です。";}
+	string scriptErrorInvalidCardVisual() {return "未知の視覚効果です。";}
+	string scriptErrorInvalidMental() {return "未知の精神要素です。";}
+	string scriptErrorInvalidPhysical() {return "未知の肉体要素です。";}
+	string scriptErrorInvalidMotionType() {return "未知の効果タイプです。";}
+	string scriptErrorInvalidMotion() {return "効果が正しくありません。";}
+	string scriptErrorInvalidElement() {return "未知の属性です。";}
+	string scriptErrorInvalidDamageType() {return "未知のダメージタイプです。";}
+	string scriptErrorInvalidBgImage() {return "背景画像が正しくありません。";}
+	string scriptErrorInvalidDialog() {return "台詞が正しくありません。";}
+	string scriptErrorInvalidTalker() {return "話者が正しくありません。";}
+	string scriptErrorUndefinedSymbol() {return "未知のシンボルです。";}
+	string scriptErrorStartsMixedContent() {return "スタートコンテントの中に他のコンテントが混入しています。";}
+	string scriptErrorContentsMixedStart() {return "ここにスタートコンテントが現れる事はできません。";}
+	string scriptErrorInvalidCommand() {return "命令が正しくありません。";}
+	string scriptErrorCanNotHaveContent() {return "このコンテントが後続コンテントを持つ事はできません。";}
+	string scriptErrorInvalidStr() {return "文字列が正しくありません。";}
 }
 
 public class Looks {
@@ -2162,13 +2203,11 @@ public:
 
 	uint nameLimit() {return 12;}
 	uint castLevelMax() {return 99;}
-	uint effectLevelMax() {return 99;}
-	uint cardNumberMax() {return 99;}
 	uint lifeMax() {return 999;}
 	uint lifeCalc(uint lev, uint vit, uint spi) {
 		return cast(uint) (((lev + 1.0) * (vit / 2.0 + 4.0)) + (spi / 2.0));
 	}
-	uint couponValueMax() {return 999;}
+	uint couponValueMax() {return Content.couponValue_max;}
 	uint physicalMax() {return 15;}
 	uint physicalCutMin() {return 1;}
 	uint physicalCutMaxBase() {return 6;}
@@ -2182,17 +2221,11 @@ public:
 	int skillPrice(int lev) {return (lev + 2) * 200;}
 	int beastPrice() {return 500;}
 	uint useCountMax() {return 999;}
-	uint priceMax() {return 999999;}
+	uint priceMax() {return Content.money_max;}
 	uint enhanceMax() {return 10;}
-	int successRateMax() {return 5;}
 	int keyCodesMaxLegacy() {return 5;}
 	int keyCodesMax() {return 10;}
 	uint motionRoundDefault() {return 10;}
-	uint motionAbilityValueMax() {return 10;}
-	uint motionMaxRound() {return 999;}
-	uint motionValueMax() {return 999;}
-	uint moneyMax() {return priceMax;}
-	uint waitMax() {return 1000;}
 	uint roundMax() {return 999;}
 	uint paralyzeMax() {return 40;}
 	uint poisonMax() {return 40;}
@@ -2200,8 +2233,10 @@ public:
 
 	uint idMax() {return 99999;}
 
-	uint transitionSpeedMax() {return 10;}
-	uint transitionSpeedDef() {return 5;}
+	uint transitionSpeedDef() {
+		return Content.transitionSpeed_min
+			+ ((Content.transitionSpeed_max - Content.transitionSpeed_min) / 2);
+	}
 
 	CSize viewSize() {return CSize(632, 420);}
 
@@ -2259,7 +2294,9 @@ public:
 		}
 		return CFont(gothic(legacy), 16, false, false);
 	}
-	CFont scriptErrorFont() {return CFont(gothic(true), 12, false, false);}
+	CFont scriptErrorFont(uint defSize) {
+		return CFont(gothic(true), defSize <= 0 ? 12 : defSize, false, false);
+	}
 }
 
 public class CProps {

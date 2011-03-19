@@ -95,6 +95,7 @@ public:
 	}
 	/// ditto
 	void width(int w) {
+		if (w < 0) w = 0;
 		if (_w != w) changed;
 		_w = w;
 	}
@@ -104,6 +105,7 @@ public:
 	}
 	/// ditto
 	void height(int h) {
+		if (h < 0) h = 0;
 		if (_h != h) changed;
 		_h = h;
 	}

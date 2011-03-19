@@ -1,0 +1,1711 @@
+<!DOCTYPE HTML 4.01 PUBLIC "-//W3C//DTD HTML 4.01//EN">
+
+<style type="text/css"><!--
+* {
+	background: transparent;
+	border: thin none;
+	color: inherit;
+	font-size: inherit;
+	font-style: inherit;
+	font-weight: inherit;
+	line-height: inherit;
+	margin: 0;
+	outline: none;
+	padding: 0;
+	text-align: inherit;
+	text-decoration: inherit;
+}
+h1, h2, h3, h4, p, dl, dt, dd, pre, ul {
+	display: block;
+}
+li {
+	display: list-item;
+}
+code, span {
+	display: inline;
+}
+body {
+	padding: 1% 0 2%;
+	border-left: solid #bcf 1.5em;
+}
+h1 {
+	text-align: center;
+	color: #fff;
+	padding: 0.2em 1em 0.2em 0;
+	font-size: 150%;
+	font-weight: bold;
+	background-color: #bcf;
+}
+
+h2 {
+	color: #225;
+	margin: 1em 0 0.5em;
+	padding: 0.2em 0 0.2em 0.8em;
+	font-size: 130%;
+	border-top: solid #bcf 0.2em;
+	border-bottom: solid #bcf 0.2em;
+	background-color: #eef;
+}
+
+h3 {
+	text-indent: -3em;
+	font-family: monospace;
+	color: #225;
+	margin: 1em 0 0;
+	padding: 0 0 0.1em 3.3em;
+	font-size: 120%;
+	font-weight: bold;
+	border-bottom: solid #bcf 0.2em;
+}
+h3 + p.fullname + h3 {
+	margin-top: -1em;
+}
+h4 {
+	color: #338;
+	margin: 1em 0;
+	padding: 0 0 0.1em 0.3em;
+	font-size: 110%;
+	font-weight: bold;
+	border-bottom: dotted #bcf 2px;
+}
+p {
+	margin: 0 1% 0 1em;
+	line-height: 150%;
+}
+dl {
+	margin: 0.5em 1% 0.5em 2em;
+}
+dt {
+	background-color: #cdf;
+	padding: 0.1em 0.1em 0.1em 0.5em;
+}
+dt.keyword {
+	float: left;
+	margin-right: 0.5em;
+	width: 9.5em;
+}
+dd {
+	padding: 0.1em 0;
+	background-color: #eef;
+}
+dd.worddesc {
+	margin: 1px 10% 1px 0;
+	border-bottom: solid #cdf 0.1em;
+}
+dt.msnparam, dd.msnparamdesc {
+	margin-right: 10%;
+}
+dd.msnparamdesc {
+	padding-left: 0.5em;
+}
+pre {
+	margin: 0.5em;
+	padding: 0.2em 0.5em;
+	border : dotted #99d 1px;
+	font-family: monospace;
+}
+#contents {
+	font-family: monospace;
+	font-weight: bold;
+	margin: 1em;
+}
+#contents li {
+	display: block;
+	margin-bottom: 1px;
+	background-color: #ccf;
+	padding-left: 4.5em;
+	text-indent: -4em;
+}
+.keywords {
+	color: #00f;
+}
+.code {
+	color: #507;
+}
+.comment {
+	color: #5a5;
+}
+.str {
+	color: #a20;
+}
+.num {
+	color: #f30;
+}
+.fullname {
+	margin: 0.1em 0 -0.5em;
+	text-align: right;
+	font-size: 95%;
+	font-weight: bold;
+	font-family: monospace;
+	color: #aaa;
+}
+code {
+	font-family: monospace;
+}
+.array {
+	font-size: 80%;
+}
+.arg {
+	font-size: 80%;
+	font-weight: normal;
+}
+.array .arg {
+	font-size: 100%;
+}
+--></style>
+
+<h1>CWXスクリプト リファレンスガイド</h1>
+
+<h2>目次</h2>
+
+<p>TODO</p>
+
+<h2>文法</h2>
+
+<p>TODO</p>
+
+<h2>コンテントリファレンス</h2>
+
+<h3>コンテント一覧</h3>
+
+<ul id="contents">
+	<li class="content"><a href="#start">start <span class="arg">&lt;名前&gt;</span></a></li>
+	<li class="content"><a href="#gobattle">gobattle <span class="arg">&lt;ID&gt;</span></a></li>
+	<li class="content"><a href="#endsc">endsc <span class="arg">&lt;済印有無&gt;</span></a></li>
+	<li class="content"><a href="#gameove">gameover</a></li>
+	<li class="content"><a href="#goarea">goarea <span class="arg">&lt;ID&gt;</span> <span class="arg">&lt;画面切替スピード&gt;</span> <span class="arg">&lt;切替方式&gt;</span></li>
+	<li class="content"><a href="#chgback">chgback <span class="array">[<span class="arg">&lt;画像パス&gt;</span> <span class="arg">&lt;フラグ&gt;</span> <span class="arg">&lt;X位置&gt;</span> <span class="arg">&lt;Y位置&gt;</span> <span class="arg">&lt;横幅&gt;</span> <span class="arg">&lt;縦幅&gt;</span> <span class="arg">&lt;透明化有無&gt;</span>] ...</span> <span class="arg">&lt;画面切替スピード&gt;</span> <span class="arg">&lt;切替方式&gt;</span></a></li>
+	<li class="content"><a href="#effect">effect <span class="array">[<span class="arg">&lt;効果種別&gt;</span> (<span class="arg">&lt;ダメージタイプ&gt;</span> <span class="arg">&lt;値&gt;</span> | <span class="arg">&lt;継続時間&gt;</span> | <span class="arg">&lt;増減値&gt;</span> <span class="arg">&lt;継続時間&gt;</span> | <span class="arg">&lt;召喚獣ID&gt;</span>) <span class="arg">&lt;属性&gt;</span>] ...</span> <span class="arg">&lt;効果対象&gt;</span> <span class="arg">&lt;効果レベル&gt;</span> <span class="arg">&lt;視覚効果&gt;</span> <span class="arg">&lt;成功率&gt;</span> <span class="arg">&lt;効果属性&gt;</span> <span class="arg">&lt;抵抗属性&gt;</span> <span class="arg">&lt;音声パス&gt;</span></a></li>
+	<li class="content"><a href="#brea">break</a></li>
+	<li class="content"><a href="#gostart">gostart <span class="arg">&lt;スタート名&gt;</span></a></li>
+	<li class="content"><a href="#gopack">gopack <span class="arg">&lt;ID&gt;</span></a></li>
+	<li class="content"><a href="#msg">msg <span class="arg">&lt;話者&gt;</span> <span class="arg">&lt;テキスト&gt;</span></a></li>
+	<li class="content"><a href="#dialog">dialog <span class="arg">&lt;話者&gt;</span> <span class="array">[<span class="arg">&lt;クーポン&gt;</span> <span class="arg">&lt;メッセージ&gt;</span>] ...</span></a></li>
+	<li class="content"><a href="#bgm">bgm <span class="arg">&lt;ファイル名&gt;</span></a></li>
+	<li class="content"><a href="#se">se <span class="arg">&lt;ファイル名&gt;</span></a></li>
+	<li class="content"><a href="#wait">wait <span class="arg">&lt;停止時間&gt;</span></a></li>
+	<li class="content"><a href="#elaps">elapse</a></li>
+	<li class="content"><a href="#callstart">callstart <span class="arg">&lt;スタート名&gt;</span></a></li>
+	<li class="content"><a href="#callpack">callpack <span class="arg">&lt;ID&gt;</span></a></li>
+	<li class="content"><a href="#brflag">brflag <span class="arg">&lt;フラグ名&gt;</span></a></li>
+	<li class="content"><a href="#brstepm">brstepm <span class="arg">&lt;ステップ名&gt;</span></a></li>
+	<li class="content"><a href="#brstept">brstept <span class="arg">&lt;ステップ名&gt;</span> <span class="arg">&lt;ステップ値&gt;</span></a></li>
+	<li class="content"><a href="#selmember">selmember <span class="arg">&lt;パーティ全体からの選択か&gt;</span> <span class="arg">&lt;ランダム選択か&gt;</span></a></li>
+	<li class="content"><a href="#brability">brability <span class="arg">&lt;判定対象&gt;</span> <span class="arg">&lt;眠り判定&gt;</span> <span class="arg">&lt;レベル&gt;</span> <span class="arg">&lt;身体的要素&gt;</span> <span class="arg">&lt;精神的要素&gt;</span></a></li>
+	<li class="content"><a href="#brrandom">brrandom <span class="arg">&lt;パーセント値&gt;</span></a></li>
+	<li class="content"><a href="#brlevel">brlevel <span class="arg">&lt;レベル&gt;</span> <span class="arg">&lt;平均か&gt;</span></a></li>
+	<li class="content"><a href="#brstatus">brstatus <span class="arg">&lt;判定対象&gt;</span> <span class="arg">&lt;ステータス&gt;</span></a></li>
+	<li class="content"><a href="#brcount">brcount <span class="arg">&lt;人数&gt;</span></a></li>
+	<li class="content"><a href="#brare">brarea</a></li>
+	<li class="content"><a href="#brbattl">brbattle</a></li>
+	<li class="content"><a href="#bronbattl">bronbattle</a></li>
+	<li class="content"><a href="#brcast">brcast <span class="arg">&lt;ID&gt;</span></a></li>
+	<li class="content"><a href="#britem">britem <span class="arg">&lt;範囲&gt;</span> <span class="arg">&lt;ID&gt;</span> <span class="arg">&lt;枚数&gt;</span></a></li>
+	<li class="content"><a href="#brskill">brskill <span class="arg">&lt;範囲&gt;</span> <span class="arg">&lt;ID&gt;</span> <span class="arg">&lt;枚数&gt;</span></a></li>
+	<li class="content"><a href="#brbeast">brbeast <span class="arg">&lt;範囲&gt;</span> <span class="arg">&lt;ID&gt;</span> <span class="arg">&lt;枚数&gt;</span></a></li>
+	<li class="content"><a href="#brinfo">brinfo <span class="arg">&lt;ID&gt;</span></a></li>
+	<li class="content"><a href="#brmoney">brmoney <span class="arg">&lt;金額&gt;</span></a></li>
+	<li class="content"><a href="#brcoupon">brcoupon <span class="arg">&lt;判定対象&gt;</span> <span class="arg">&lt;クーポン名&gt;</span></a></li>
+	<li class="content"><a href="#brstamp">brstamp <span class="arg">&lt;シナリオ名&gt;</span></a></li>
+	<li class="content"><a href="#brgossip">brgossip <span class="arg">&lt;ゴシップ名&gt;</span></a></li>
+	<li class="content"><a href="#setflag">setflag <span class="arg">&lt;フラグ名&gt;</span> <span class="arg">&lt;値&gt;</span></a></li>
+	<li class="content"><a href="#setstep">setstep <span class="arg">&lt;ステップ名&gt;</span> <span class="arg">&lt;値&gt;</span></a></li>
+	<li class="content"><a href="#stepup">stepup <span class="arg">&lt;ステップ名&gt;</span></a></li>
+	<li class="content"><a href="#stepdown">stepdown <span class="arg">&lt;ステップ名&gt;</span></a></li>
+	<li class="content"><a href="#revflag">revflag <span class="arg">&lt;フラグ名&gt;</span></a></li>
+	<li class="content"><a href="#chkflag">chkflag <span class="arg">&lt;フラグ名&gt;</span></a></li>
+	<li class="content"><a href="#getcast">getcast <span class="arg">&lt;ID&gt;</span></a></li>
+	<li class="content"><a href="#getitem">getitem <span class="arg">&lt;範囲&gt;</span> <span class="arg">&lt;ID&gt;</span> <span class="arg">&lt;枚数&gt;</span></a></li>
+	<li class="content"><a href="#getskill">getskill <span class="arg">&lt;範囲&gt;</span> <span class="arg">&lt;ID&gt;</span> <span class="arg">&lt;枚数&gt;</span></a></li>
+	<li class="content"><a href="#getbeast">getbeast <span class="arg">&lt;範囲&gt;</span> <span class="arg">&lt;ID&gt;</span> <span class="arg">&lt;枚数&gt;</span></a></li>
+	<li class="content"><a href="#getinfo">getinfo <span class="arg">&lt;ID&gt;</span></a></li>
+	<li class="content"><a href="#getmoney">getmoney <span class="arg">&lt;金額&gt;</span></a></li>
+	<li class="content"><a href="#getcoupon">getcoupon <span class="arg">&lt;対象&gt;</span> <span class="arg">&lt;クーポン名&gt;</span> <span class="arg">&lt;得点&gt;</span></a></li>
+	<li class="content"><a href="#getstamp">getstamp <span class="arg">&lt;シナリオ名&gt;</span></a></li>
+	<li class="content"><a href="#getgossip">getgossip <span class="arg">&lt;ゴシップ名&gt;</span></a></li>
+	<li class="content"><a href="#losecast">losecast <span class="arg">&lt;ID&gt;</span></a></li>
+	<li class="content"><a href="#loseitem">loseitem <span class="arg">&lt;範囲&gt;</span> <span class="arg">&lt;ID&gt;</span> <span class="arg">&lt;枚数&gt;</span></a></li>
+	<li class="content"><a href="#loseskill">loseskill <span class="arg">&lt;範囲&gt;</span> <span class="arg">&lt;ID&gt;</span> <span class="arg">&lt;枚数&gt;</span></a></li>
+	<li class="content"><a href="#losebeast">losebeast <span class="arg">&lt;範囲&gt;</span> <span class="arg">&lt;ID&gt;</span> <span class="arg">&lt;枚数&gt;</span></a></li>
+	<li class="content"><a href="#loseinfo">loseinfo <span class="arg">&lt;ID&gt;</span></a></li>
+	<li class="content"><a href="#losemoney">losemoney <span class="arg">&lt;金額&gt;</span></a></li>
+	<li class="content"><a href="#losecoupon">losecoupon <span class="arg">&lt;対象&gt;</span> <span class="arg">&lt;クーポン名&gt;</span></a></li>
+	<li class="content"><a href="#losestamp">losestamp <span class="arg">&lt;シナリオ名&gt;</span></a></li>
+	<li class="content"><a href="#losegossip">losegossip <span class="arg">&lt;ゴシップ名&gt;</span></a></li>
+	<li class="content"><a href="#showpart">showparty</a></li>
+	<li class="content"><a href="#hidepart">hideparty</a></li>
+	<li class="content"><a href="#redraw">redraw <span class="arg">&lt;画面切替スピード&gt;</span> <span class="arg">&lt;切替方式&gt;</span></a></li>
+</ul>
+
+<h3 id="start">start <span class="arg">&lt;名前&gt;</span></h3>
+
+<p class="fullname">(Start)</p>
+<p class="desc">スタートコンテント。</p>
+<p class="desc">イベントツリーの最上位にはこのコンテントしか存在できません。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">文字列で名前を指定してください。スタートコンテントの引数に限り、省略する事はできません。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">start</span> <span class="str">"到着イベント"</span></code></pre>
+
+<h3 id="gobattle">gobattle <span class="arg">&lt;ID&gt;</span></h3>
+
+<p class="fullname">(Go to battle)</p>
+<p class="desc">バトルを開始します。</p>
+<p class="desc">このコンテントは後続コンテントを持てません。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">整数でバトルIDを指定します。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">gobattle</span> <span class="num">15</span> <span class="comment">; バトル15を開始</span></code></pre>
+
+<h3 id="endsc">endsc <span class="arg">&lt;済印有無&gt;</span></h3>
+
+<p class="fullname">(End scenario)</p>
+<p class="desc">シナリオを終了します。</p>
+<p class="desc">このコンテントは後続コンテントを持てません。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc"><code class="code">true/false</code>で済印をつけるかつけないかを選択します。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">endsc</span> <span class="code">true</span> <span class="comment">; 済印をつけて終了</span></code></pre>
+
+<h3 id="gameove">gameover</h3>
+
+<p class="fullname">(Game over)</p>
+<p class="desc">ゲームオーバーにします。</p>
+<p class="desc">このコンテントは後続コンテントを持てません。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">引数はありません。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">gameover</span> <span class="comment">; 敗北したのでシナリオ終了</span></code></pre>
+
+<h3 id="goarea">goarea <span class="arg">&lt;ID&gt;</span> <span class="arg">&lt;画面切替スピード&gt;</span> <span class="arg">&lt;切替方式&gt;</span></h3>
+
+<p class="fullname">(Go to area)</p>
+<p class="desc">エリアを移動します。</p>
+<p class="desc">このコンテントは後続コンテントを持てません。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">移動先のエリアIDを整数で指定します。</p>
+<p class="desc">また、CardWirthPy形式のシナリオに限り、画面切替スピードと切替方式を指定できます。</p>
+<p class="desc">指定しなかった場合はエンジンの設定が採用されます。</p>
+<p class="desc">切替スピードには0～10の値が指定でき、数値が少ないほど素早く切り替わります。</p>
+<p class="desc">0の場合はエフェクト無しで即座に切り替わります。</p>
+<p class="desc">切替方式には以下の値が指定できます。</p>
+<dl>
+	<dt class="keyword"><code>default</code></dt>
+	<dd class="worddesc">エンジンの設定を使用します。</dd>
+	<dt class="keyword"><code>none</code></dt>
+	<dd class="worddesc">切替エフェクト無しで即座に画面を切替えます。切替速度は無視されます。</dd>
+	<dt class="keyword"><code>fade</code></dt>
+	<dd class="worddesc">フェード式。画面の全体の色を徐々に変更し、滑らかに次の画面へ切替えます。</dd>
+	<dt class="keyword"><code>dissolve</code></dt>
+	<dd class="worddesc">ピクセルディゾルブ式。画面を無数の領域に分割し、各領域をランダムな順序で次の画面に置換します。</dd>
+	<dt class="keyword"><code>blinds</code></dt>
+	<dd class="worddesc">ブラインド式。ブラインドを開け閉めするように、画面を縦長の領域に区切り、各区画毎に次の画面へ切替えます。</dd>
+</dl>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">goarea</span> <span class="num">2</span> <span class="num">10</span> <span class="code">fade</span> <span class="comment">; 画面をフェード式でゆっくりと切り替えながらエリア2へ移動</span></code></pre>
+
+<h3 id="chgback">chgback <span class="array">[<span class="arg">&lt;画像パス&gt;</span> <span class="arg">&lt;フラグ&gt;</span> <span class="arg">&lt;X位置&gt;</span> <span class="arg">&lt;Y位置&gt;</span> <span class="arg">&lt;横幅&gt;</span> <span class="arg">&lt;縦幅&gt;</span> <span class="arg">&lt;透明化有無&gt;</span>] ...</span> <span class="arg">&lt;画面切替スピード&gt;</span> <span class="arg">&lt;切替方式&gt;</span></h3>
+
+<p class="fullname">(Change background)</p>
+<p class="desc">背景を切替えます。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc"><code class="code">[]</code>で囲われたパラメータが一枚の画像を表し、いくつでも重ねて指定できます。</p>
+<p class="desc">画像パスには、文字列で画像のファイル名を指定します。</p>
+<p class="desc">フラグには、画像を表示する条件のフラグ名を指定します。フラグを使用しない場合は空文字列<code class="str">""</code>を指定します。</p>
+<p class="desc">X位置・Y位置・横幅・縦幅には、画像の配置とサイズを指定します。指定しなかった場合、0、0、632、420になります。(画面一杯に表示)</p>
+<p class="desc">透明化の有無には、<code class="code">true/false</code>で、左上を透明色として使用するか、透明化を行わないかを指定します。指定しなかった場合、透明化は行われません。</p>
+<p class="desc">背景画像の指定に加え、画像切替スピードと切替速度を指定できます。</p>
+<p class="desc">画像の指定の他、CardWirthPy形式のシナリオに限り、画面切替スピードと切替方式を指定できます。</p>
+<p class="desc">指定しなかった場合はエンジンの設定が採用されます。</p>
+<p class="desc">切替スピードには0～10の値が指定でき、数値が少ないほど素早く切り替わります。</p>
+<p class="desc">0の場合はエフェクト無しで即座に切り替わります。</p>
+<p class="desc">切替方式には以下の値が指定できます。</p>
+<dl>
+	<dt class="keyword"><code>default</code></dt>
+	<dd class="worddesc">エンジンの設定を使用します。</dd>
+	<dt class="keyword"><code>none</code></dt>
+	<dd class="worddesc">切替エフェクト無しで即座に画面を切替えます。切替速度は無視されます。</dd>
+	<dt class="keyword"><code>fade</code></dt>
+	<dd class="worddesc">フェード式。画面の全体の色を徐々に変更し、滑らかに次の画面へ切替えます。</dd>
+	<dt class="keyword"><code>dissolve</code></dt>
+	<dd class="worddesc">ピクセルディゾルブ式。画面を無数の領域に分割し、各領域をランダムな順序で次の画面に置換します。</dd>
+	<dt class="keyword"><code>blinds</code></dt>
+	<dd class="worddesc">ブラインド式。ブラインドを開け閉めするように、画面を縦長の領域に区切り、各区画毎に次の画面へ切替えます。</dd>
+</dl>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="comment">; 宿の背景を遅めの背景切替で表示する</span>
+<span class="keywords">chgback</span> [<span class="str">"MapOfWirth.bmp"</span>] <span class="comment">; MapOfWirth.bmpを画面一杯に表示</span>
+        [<span class="str">"AdventurersInn.bmp"</span> <span class="num">116</span> <span class="num">15</span> <span class="num">400</span> <span class="num">260</span> <span class="code">false</span>] <span class="comment">; 宿の画像を標準の位置に表示。透明化は不要</span>
+        <span class="num">8</span> <span class="comment">; ゆっくり背景を切り替える</span></code></pre>
+
+<h3 id="effect">effect <span class="array">[<span class="arg">&lt;効果種別&gt;</span> (<span class="arg">&lt;ダメージタイプ&gt;</span> <span class="arg">&lt;値&gt;</span> | <span class="arg">&lt;継続時間&gt;</span> | <span class="arg">&lt;増減値&gt;</span> <span class="arg">&lt;継続時間&gt;</span> | <span class="arg">&lt;召喚獣ID&gt;</span>) <span class="arg">&lt;属性&gt;</span>] ...</span> <span class="arg">&lt;効果対象&gt;</span> <span class="arg">&lt;効果レベル&gt;</span> <span class="arg">&lt;視覚効果&gt;</span> <span class="arg">&lt;成功率&gt;</span> <span class="arg">&lt;効果属性&gt;</span> <span class="arg">&lt;抵抗属性&gt;</span> <span class="arg">&lt;音声パス&gt;</span></h3>
+
+<p class="fullname">(Effect)</p>
+<p class="desc">パーティや選択中のメンバに対して回復やダメージ、カード配布等の効果を適用します。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc"><code class="code">[]</code>で囲われたパラメータが一つの効果を表し、いくつでも連続で指定できます。</p>
+<p class="desc">効果種別には次の値が指定できます。</p>
+<dl>
+	<dt class="keyword"><code>heal</code></dt>
+	<dd class="worddesc">回復。</dd>
+	<dt class="keyword"><code>damage</code></dt>
+	<dd class="worddesc">ダメージ。</dd>
+	<dt class="keyword"><code>absorb</code></dt>
+	<dd class="worddesc">吸収。</dd>
+	<dt class="keyword"><code>paralyze</code></dt>
+	<dd class="worddesc">麻痺。</dd>
+	<dt class="keyword"><code>disparalyze</code></dt>
+	<dd class="worddesc">麻痺解除。</dd>
+	<dt class="keyword"><code>poison</code></dt>
+	<dd class="worddesc">中毒。</dd>
+	<dt class="keyword"><code>dispoison</code></dt>
+	<dd class="worddesc">中毒解除。</dd>
+	<dt class="keyword"><code>getspilit</code></dt>
+	<dd class="worddesc">精神力回復。</dd>
+	<dt class="keyword"><code>losespilit</code></dt>
+	<dd class="worddesc">精神力喪失。</dd>
+	<dt class="keyword"><code>sleep</code></dt>
+	<dd class="worddesc">睡眠。</dd>
+	<dt class="keyword"><code>confuse</code></dt>
+	<dd class="worddesc">混乱。</dd>
+	<dt class="keyword"><code>overheat</code></dt>
+	<dd class="worddesc">激昂。</dd>
+	<dt class="keyword"><code>brave</code></dt>
+	<dd class="worddesc">勇敢。</dd>
+	<dt class="keyword"><code>panic</code></dt>
+	<dd class="worddesc">恐慌。</dd>
+	<dt class="keyword"><code>resetfeel</code></dt>
+	<dd class="worddesc">精神正常化。</dd>
+	<dt class="keyword"><code>bind</code></dt>
+	<dd class="worddesc">呪縛。</dd>
+	<dt class="keyword"><code>disbind</code></dt>
+	<dd class="worddesc">呪縛解除。</dd>
+	<dt class="keyword"><code>silence</code></dt>
+	<dd class="worddesc">沈黙。</dd>
+	<dt class="keyword"><code>dissilence</code></dt>
+	<dd class="worddesc">沈黙解除。</dd>
+	<dt class="keyword"><code>faceup</code></dt>
+	<dd class="worddesc">暴露。</dd>
+	<dt class="keyword"><code>facedown</code></dt>
+	<dd class="worddesc">暴露解除。</dd>
+	<dt class="keyword"><code>antimagic</code></dt>
+	<dd class="worddesc">魔法無効状態。</dd>
+	<dt class="keyword"><code>disantimagic</code></dt>
+	<dd class="worddesc">魔法無効状態解除。</dd>
+	<dt class="keyword"><code>enhaction</code></dt>
+	<dd class="worddesc">行動力変化。</dd>
+	<dt class="keyword"><code>enhavoid</code></dt>
+	<dd class="worddesc">回避力変化。</dd>
+	<dt class="keyword"><code>enhresist</code></dt>
+	<dd class="worddesc">抵抗力変化。</dd>
+	<dt class="keyword"><code>enhdefense</code></dt>
+	<dd class="worddesc">防御力変化。</dd>
+	<dt class="keyword"><code>vantarget</code></dt>
+	<dd class="worddesc">対象消去。</dd>
+	<dt class="keyword"><code>vancard</code></dt>
+	<dd class="worddesc">手札カード消去。</dd>
+	<dt class="keyword"><code>vanbeast</code></dt>
+	<dd class="worddesc">召喚獣消去。</dd>
+	<dt class="keyword"><code>dealattack</code></dt>
+	<dd class="worddesc">攻撃カード配付。</dd>
+	<dt class="keyword"><code>dealpowerful</code></dt>
+	<dd class="worddesc">渾身の一撃カード配付。</dd>
+	<dt class="keyword"><code>dealcritical</code></dt>
+	<dd class="worddesc">会心の一撃カード配付。</dd>
+	<dt class="keyword"><code>dealfeint</code></dt>
+	<dd class="worddesc">フェイントカード配付。</dd>
+	<dt class="keyword"><code>dealdefense</code></dt>
+	<dd class="worddesc">防御カード配付。</dd>
+	<dt class="keyword"><code>dealdistance</code></dt>
+	<dd class="worddesc">見切りカード配付。</dd>
+	<dt class="keyword"><code>dealconfuse</code></dt>
+	<dd class="worddesc">混乱カード配付。</dd>
+	<dt class="keyword"><code>dealskill</code></dt>
+	<dd class="worddesc">スキルカード配付。</dd>
+	<dt class="keyword"><code>summon</code></dt>
+	<dd class="worddesc">召喚獣を召喚。</dd>
+</dl>
+<p class="desc">続くパラメータは、効果種別によって変化します。</p>
+<dl>
+	<dt class="msnparam"><code>heal</code> / <code>damage</code> / <code>absorb</code> / <code>paralyze</code> / <code>disparalyze</code> / <code>poison</code> / <code>dispoison</code></dt>
+	<dd class="msnparamdesc">ダメージタイプと値を指定します。</dd>
+	<dt class="msnparam"><code>sleep</code> / <code>confuse</code> / <code>overheat</code> / <code>brave</code> / <code>panic</code> / <code>bind</code> / <code>silence</code> / <code>faceup</code> / <code>antimagic</code></dt>
+	<dd class="msnparamdesc">継続時間を指定します。</dd>
+	<dt class="msnparam"><code>enhaction</code> / <code>enhavoid</code> / <code>enhresist</code> / <code>enhdefense</code></dt>
+	<dd class="msnparamdesc">増減値と継続時間を指定します。</dd>
+	<dt class="msnparam"><code>summon</code></dt>
+	<dd class="msnparamdesc">召喚獣IDを指定します。</dd>
+	<dt class="msnparam">それ以外</dt>
+	<dd class="msnparamdesc">種別に対応するパラメータはありません。</dd>
+</dl>
+<p class="desc">ダメージタイプには、ダメージや回復の値をどのように解釈するかを指定します。次の値が指定できます。</p>
+<dl>
+	<dt class="keyword"><code>level</code></dt>
+	<dd class="worddesc">レベル比。効果レベルによってダメージや回復の値が大きく変動します。</dd>
+	<dt class="keyword"><code>value</code></dt>
+	<dd class="worddesc">直接値。レベルに関係無く同等の効果を発揮します。</dd>
+	<dt class="keyword"><code>max</code></dt>
+	<dd class="worddesc">最大値処理。値は無視されます。</dd>
+</dl>
+<p class="desc">能力変動の増減値には、-10～10の値が指定できます。0で増減は無くなり、初期状態にリセットされます。</p>
+<p class="desc">継続時間はラウンド数で指定し、省略した場合は10になります。</p>
+<p class="desc">召喚獣は、現在のCWXスクリプトで召喚獣カードを記述できない事を踏まえ、召喚獣IDで指定するようになっています。</p>
+<p class="desc">当然ながら、シナリオ内に存在する召喚獣しか指定できません。</p>
+<p class="desc">効果種別固有のパラメータを記述した後は、効果属性を指定します。以下の値が指定できます。</p>
+<dl>
+	<dt class="keyword"><code>all</code></dt>
+	<dd class="worddesc">全属性。あらゆる対象に有効。</dd>
+	<dt class="keyword"><code>phy</code></dt>
+	<dd class="worddesc">肉体属性。肉体を持つ対象にのみ有効。</dd>
+	<dt class="keyword"><code>mind</code></dt>
+	<dd class="worddesc">精神属性。精神を持つ対象にのみ有効。</dd>
+	<dt class="keyword"><code>holy</code></dt>
+	<dd class="worddesc">神聖属性。アンデッドなど、不浄な存在にのみ有効。</dd>
+	<dt class="keyword"><code>magic</code></dt>
+	<dd class="worddesc">魔法属性。ゴーレムなどの魔法生物にのみ有効。</dd>
+	<dt class="keyword"><code>fire</code></dt>
+	<dd class="worddesc">炎属性。弱点となる対象と、無効化する対象がある。</dd>
+	<dt class="keyword"><code>ice</code></dt>
+	<dd class="worddesc">冷気属性。弱点となる対象と、無効化する対象がある。</dd>
+</dl>
+<p class="desc">省略した場合は全属性になります。</p>
+<p class="desc">効果対象は、上記の効果を適用する対象です。以下の値が指定できます。省略した場合は選択中のメンバになります。</p>
+<dl>
+	<dt class="keyword"><code>M</code> または <code>selected</code></dt>
+	<dd class="worddesc">選択中のメンバ。</dd>
+	<dt class="keyword"><code>R</code> または <code>random</code></dt>
+	<dd class="worddesc">ランダムなメンバ。</dd>
+	<dt class="keyword"><code>T</code> または <code>team</code></dt>
+	<dd class="worddesc">パーティ全体。</dd>
+</dl>
+<p class="desc">効果レベルは、効果を発揮する際の判定の基準となるレベルです。整数で、マイナスの値も指定できます。省略した場合は0になります。</p>
+<p class="desc">視覚効果は、効果を受けたカードの動きです。以下の値が指定できます。省略した場合は視覚効果無しになります。</p>
+<dl>
+	<dt class="keyword"><code>none</code></dt>
+	<dd class="worddesc">視覚効果無し。</dd>
+	<dt class="keyword"><code>reverse</code></dt>
+	<dd class="worddesc">カードを反転します。</dd>
+	<dt class="keyword"><code>hswing</code></dt>
+	<dd class="worddesc">振動。カードを横に振動させます。</dd>
+	<dt class="keyword"><code>vswing</code></dt>
+	<dd class="worddesc">地震。カードを縦に振動させます。</dd>
+</dl>
+<p class="desc">成功率には、-5から+5の値を指定できます。値が大きくなるほど当たり易くなり、+5で絶対命中、-5で絶対失敗します。省略した場合は0になります。</p>
+<p class="desc">効果属性には、敵の実体の有無や、魔法が通用するか否かによって効果がどのように発揮されるかを指定します。以下の値を指定できます。省略した場合は無属性になります。以下の値が指定できます。</p>
+<dl>
+	<dt class="keyword"><code>physic</code></dt>
+	<dd class="worddesc">物理属性。幽霊など、実体の無い対象には効果がありません。</dd>
+	<dt class="keyword"><code>magic</code></dt>
+	<dd class="worddesc">魔法属性。魔法を無効化する対象には効果がありません。</dd>
+	<dt class="keyword"><code>mphysic</code></dt>
+	<dd class="worddesc">魔法的物理属性。実体があるか、魔法の通用する対象であれば効果を発揮します。</dd>
+	<dt class="keyword"><code>pmagic</code></dt>
+	<dd class="worddesc">物理的魔法属性。実体が無いか、魔法を無効化する対象には効果がありません。</dd>
+	<dt class="keyword"><code>none</code></dt>
+	<dd class="worddesc">無属性。あらゆる対象に効果を発揮します。</dd>
+</dl>
+<p class="desc">抵抗属性には、効果を回避される可能性があるか、必ず命中するが抵抗される可能性があるかを指定します。省略した場合は必中属性になります。以下の値が指定できます。</p>
+<dl>
+	<dt class="keyword"><code>avoid</code></dt>
+	<dd class="worddesc">回避属性。命中すれば確実に効果を発揮しますが、回避された場合は効果がありません。</dd>
+	<dt class="keyword"><code>resist</code></dt>
+	<dd class="worddesc">抵抗属性。確実に命中しますが、抵抗によってダメージの低下や特殊効果の無効化などが発生します。</dd>
+	<dt class="keyword"><code>unfail</code></dt>
+	<dd class="worddesc">必中属性。確実に命中し、効果属性さえ合えば確実に効果を発揮します。</dd>
+</dl>
+<p class="desc">音声パスには、効果を適用した際に鳴る効果音のファイル名を指定します。省略した場合は効果音無しになります。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">effect</span> [<span class="code">damage</span> <span class="code">level</span> <span class="num">5</span>] <span class="comment">; レベル比5のダメージ</span>
+       [<span class="code">enhaction</span> <span class="num">-5</span> <span class="num">10</span> <span class="code">physic</span>] <span class="comment">; 肉体を持つのであれば、10ラウンドの間、行動力が5低下。</span>
+       <span class="code">T</span> <span class="comment">; パーティ全体が対象</span>
+       <span class="code">hswing</span> <span class="comment">; 横振動</span>
+       <span class="num">3</span> <span class="comment">; 効果レベル3</span>
+       <span class="num">4</span> <span class="comment">; 絶対命中ではないがかなりの命中率は高い</span>
+       <span class="code">physic</span> <span class="comment">; 実体の無い対象には無効</span>
+       <span class="code">resist</span> <span class="comment">; 抵抗可能</span>
+       <span class="str">"効果（攻撃）.wav"</span> <span class="comment">; 標準効果音を鳴らす</span></code></pre>
+
+<h3 id="brea">break</h3>
+
+<p class="fullname">(Break effect)</p>
+<p class="desc">イベントを終了します。</p>
+<p class="desc">このコンテントは後続コンテントを持てません。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">引数はありません。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">break</span> <span class="comment">; 中断</span></code></pre>
+
+<h3 id="gostart">gostart <span class="arg">&lt;スタート名&gt;</span></h3>
+
+<p class="fullname">(Go to start)</p>
+<p class="desc">指定されたスタートコンテントへジャンプします。</p>
+<p class="desc">このコンテントは後続コンテントを持てません。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">スタート名を指定します。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">gostart</span> <span class="str">"その2"</span> <span class="comment">; スタートコンテント「その2」へ移動</span></code></pre>
+
+<h3 id="gopack">gopack <span class="arg">&lt;ID&gt;</span></h3>
+
+<p class="fullname">(Go to package)</p>
+<p class="desc">パッケージ処理に移動します。</p>
+<p class="desc">このコンテントは後続コンテントを持てません。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">整数でパッケージIDを指定します。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">gopack</span> <span class="num">4</span> <span class="comment">; パッケージ4へ処理を移動</span></code></pre>
+
+<h3 id="msg">msg <span class="arg">&lt;話者&gt;</span> <span class="arg">&lt;テキスト&gt;</span></h3>
+
+<p class="fullname">(Message)</p>
+<p class="desc">メッセージを表示します。</p>
+<p class="desc">このコンテントはメッセージ選択分岐を行えます。詳細は例を参照してください。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">話者には、以下のいずれかが指定できます。省略した場合は話者無しになります。</p>
+<dl>
+	<dt class="keyword"><code>none</code></dt>
+	<dd class="worddesc">話者を表示しません。</dd>
+	<dt class="keyword"><code>M</code> または <code>selected</code></dt>
+	<dd class="worddesc">選択中のメンバ。</dd>
+	<dt class="keyword"><code>U</code> または <code>unselected</code></dt>
+	<dd class="worddesc">選択以外のメンバ。</dd>
+	<dt class="keyword"><code>R</code> または <code>random</code></dt>
+	<dd class="worddesc">ランダムなメンバ。</dd>
+	<dt class="keyword"><code>C</code> または <code>card</code></dt>
+	<dd class="worddesc">カードイベント中であれば、使用したカード。</dd>
+	<dt class="keyword">文字列</dt>
+	<dd class="worddesc">カード画像のファイル名と解釈し、そのカードを話者とします。</dd>
+</dl>
+<p class="desc">テキストには、メッセージとして表示する文字列を指定します。</p>
+<p class="desc">通常の<code class="str">""</code>や<code class="str">''</code>で囲った文字列の他、<code class="str">@</code>を使用して複数行の文字列を記述できます。以下の例を参照してください。</p>
+
+<h4 class="example">例</h4>
+ 
+<pre><code class="samplecode"><span class="keywords">msg</span> <span class="str">"gob.bmp"</span> <span class="comment">; gob.bmpに喋らせる</span>
+<span class="comment">; @を使用したテキストの指定
+; @の後に整数を指定する事で、その値の行から表示させる事ができる
+; 行頭のタブ文字は無視される</span>
+<span class="str">@ <span class="num">3</span>
+「グオオオ！」
+@</span>
+<span class="keywords">msg</span> <span class="code">M</span> <span class="comment">; 選択中のメンバに喋らせる</span>
+<span class="comment">; cまたはcenterを指定すると縦軸の中央にテキストを配置できる</span>
+<span class="str">@ <span class="code">center</span>
+　ゴブリンの集団だ！
+@</span>
+<span class="comment">; ifによってメッセージ選択分岐を行う
+; メッセージの表示と共に選択肢が表示され、どれか一つが選ばれる事で処理が分岐する</span>
+<code class="code">if</code> <span class="str">"戦う"</span>
+    <span class="comment">; 選択肢「戦う」を選んだ場合はこちらへ分岐する</span>
+    <span class="comment">; ...</span>
+<code class="code">elif</code> <span class="str">"逃げ出す"</span>
+    <span class="comment">; 選択肢「逃げ出す」を選んだ場合</span>
+    <span class="comment">; ...</span>
+<code class="code">fi</code> <span class="comment">; 分岐終了</span></code></pre>
+
+<h3 id="dialog">dialog <span class="arg">&lt;話者&gt;</span> <span class="array">[<span class="arg">&lt;クーポン&gt;</span> <span class="arg">&lt;メッセージ&gt;</span>] ...</span></h3>
+
+<p class="fullname">(Dialog)</p>
+<p class="desc">口調分けして台詞を表示します。</p>
+<p class="desc">このコンテントはメッセージ選択分岐を行えます。詳細は例を参照してください。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">話者には、以下のいずれかが指定できます。</p>
+<dl>
+	<dt class="keyword"><code>M</code> または <code>selected</code></dt>
+	<dd class="worddesc">選択中のメンバ。</dd>
+	<dt class="keyword"><code>U</code> または <code>unselected</code></dt>
+	<dd class="worddesc">選択以外のメンバ。</dd>
+	<dt class="keyword"><code>R</code> または <code>random</code></dt>
+	<dd class="worddesc">ランダムなメンバ。</dd>
+</dl>
+<p class="desc"><code class="code">[]</code>で囲われたパラメータで、クーポンとメッセージを指定します。話者が持つクーポンによって、表示されるメッセージが切り替わります。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">dialog</span> <span class="code">R</span> <span class="comment">; ランダムなメンバに喋らせる</span>
+<span class="comment">; クーポン群として文字列を一件指定した場合、';'によって分割される</span>
+[<span class="str">"＿♀;＿上品"</span> <span class="str">@
+「ゴブリンの姿が見えます。
+　間違いない、この洞窟ですわ」
+@</span>]
+<span class="comment">; []で囲って複数クーポンを指定する事も可能</span>
+[[<span class="str">"＿♂"</span> <span class="str">"＿上品"</span>] <span class="str">@
+「ゴブリンの姿が見えます。
+　間違いなく、この洞窟でございますな」
+@</span>]
+<span class="comment">; メッセージは先に記述した方から優先的に選択され、話者が指定された
+; クーポンをすべて持っていなければ次のメッセージが選択される</span>
+[<span class="str">"＿♀"</span> <span class="str">@
+「ゴブリンの姿が見えるわ。
+　間違いない、この洞窟よ」
+@</span>]
+<span class="comment">; 文字列が一つだけの場合は指定クーポン無し
+; あらゆる話者がこのメッセージを喋る事ができる</span>
+[<span class="str">@
+「ゴブリンの姿が見える。
+　間違いない、この洞窟だ」
+@</span>]
+<span class="comment">; ifによってメッセージ選択分岐を行う
+; メッセージの表示と共に選択肢が表示され、どれか一つが選ばれる事で処理が分岐する</span>
+<code class="code">if</code> <span class="str">"見張りを誘き出す"</span>
+    <span class="comment">; 選択肢「見張りを誘き出す」を選んだ場合はこちらへ分岐する</span>
+    <span class="comment">; ...</span>
+<code class="code">elif</code> <span class="str">"突撃する"</span>
+    <span class="comment">; 選択肢「突撃する」を選んだ場合</span>
+    <span class="comment">; ...</span>
+<code class="code">elif</code> <span class="str">"撤退"</span>
+    <span class="comment">; 選択肢「撤退」を選んだ場合</span>
+    <span class="comment">; ...</span>
+<code class="code">fi</code> <span class="comment">; 分岐終了</span></code></pre>
+
+<h3 id="bgm">bgm <span class="arg">&lt;ファイル名&gt;</span></h3>
+
+<p class="fullname">(Play BGM)</p>
+<p class="desc">BGMを演奏します。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">音声ファイル名を指定します。クラシックなシナリオでは*.midしか指定できません。</p>
+<p class="desc">省略した場合は、BGMを停止します。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">bgm</span> <span class="str">"DefInn.mid"</span> <span class="comment">; 宿のテーマをBGMにする</span></code></pre>
+
+<h3 id="se">se <span class="arg">&lt;ファイル名&gt;</span></h3>
+
+<p class="fullname">(Play SE)</p>
+<p class="desc">効果音を鳴らします。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">音声ファイル名を指定します。クラシックなシナリオでは*.wavしか指定できません。</p>
+<p class="desc">省略した場合は、何も鳴らしません。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">se</span> <span class="str">"システム・エラー.mid"</span> <span class="comment">; ブザー音を鳴らす</span></code></pre>
+
+<h3 id="wait">wait <span class="arg">&lt;停止時間&gt;</span></h3>
+
+<p class="fullname">(Wait)</p>
+<p class="desc">一定時間ウェイトを入れます。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">整数を指定します。この値に0.1秒をかけた値が、実際の停止時間になります。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">wait</span> <span class="num">10</span> <span class="comment">; 1秒間停止</span></code></pre>
+
+<h3 id="elaps">elapse</h3>
+
+<p class="fullname">(Elapse time)</p>
+<p class="desc">ラウンドを経過させます。</p>
+<p class="desc">それによって、毒のダメージや、効果時間の消費などが発生します。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">引数はありません。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">elapse</span> <span class="comment">; 時間経過</span></code></pre>
+
+<h3 id="callstart">callstart <span class="arg">&lt;スタート名&gt;</span></h3>
+
+<p class="fullname">(Call start)</p>
+<p class="desc">指定されたスタートコンテントに連なるコンテントツリーを呼び出します。</p>
+<p class="desc">呼び出し先のコンテントツリーの処理が終了した後は、元のツリーに処理が復帰します。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">スタート名を指定します。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">elapse</span> <span class="comment">; 時間経過</span></code></pre>
+
+<h3 id="callpack">callpack <span class="arg">&lt;ID&gt;</span></h3>
+
+<p class="fullname">(Call package)</p>
+<p class="desc">指定されたパッケージのイベントを呼び出します。</p>
+<p class="desc">呼び出し先のパッケージの処理が終了した後は、元のツリーに処理が復帰します。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">整数でパッケージIDを指定します。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">callpack</span> <span class="num">4</span> <span class="comment">; パッケージ4の処理を呼び出す</span></code></pre>
+
+<h3 id="brflag">brflag <span class="arg">&lt;フラグ名&gt;</span></h3>
+
+<p class="fullname">(Branch with flag)</p>
+<p class="desc">指定されたフラグによって分岐を行います。</p>
+<p class="desc"><code class="code">if</code>によって後続の処理が切り替えられます。</p>
+<p class="desc">CardWirthのイベントの形式上、分岐した処理が合流する事はありません。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">文字列でフラグ名を指定します。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">brflag</span> <span class="str">"発見された"</span> <span class="comment">; フラグ「発見された」で分岐</span>
+<code class="code">if</code> <span class="code">true</span>
+    <span class="comment">; フラグがOnだったらこっちの処理</span>
+    <span class="keywords">gobattle</span> <span class="num">1</span>
+<code class="code">elif</code> <span class="code">false</span>
+    <span class="comment">; フラグがOffだったらこっち</span>
+    <span class="comment">; ...</span>
+<code class="code">fi</code> <span class="comment">; 分岐終了</span></code></pre>
+
+<h3 id="brstepm">brstepm <span class="arg">&lt;ステップ名&gt;</span></h3>
+
+<p class="fullname">(Branch with step (multi))</p>
+<p class="desc">ステップによる多岐分岐を行います。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">文字列でステップ名を指定します。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">brstepm</span> <span class="str">"見張り兵の気持ち"</span>
+<code class="code">if</code> <span class="num">0</span>
+    <span class="comment">; ステップ値が0であれば</span>
+    <span class="keywords">msg</span> <span class="str">"gob.bmp"</span> <span class="str">"「……」"</span>
+    <span class="comment">; ...</span>
+<code class="code">elif</code> <span class="num">1</span>
+    <span class="comment">; ステップ値が1であれば</span>
+    <span class="keywords">msg</span> <span class="str">"gob.bmp"</span> <span class="str">"「……」"</span>
+    <span class="comment">; ...</span>
+<code class="code">elif</code> <span class="num">2</span>
+    <span class="comment">; ステップ値が2であれば</span>
+    <span class="keywords">msg</span> <span class="str">"gob.bmp"</span> <span class="str">"「……？」"</span>
+    <span class="comment">; ...</span>
+<code class="code">elif</code> <span class="code">default</span>
+    <span class="comment">; それ以外</span>
+    <span class="keywords">msg</span> <span class="code">none</span> <span class="str">"イベントの構成上ここに来たらエラー"</span>
+    <span class="keywords">endsc</span>
+<code class="code">fi</code> <span class="comment">; 分岐終了</span></code></pre>
+
+<h3 id="brstept">brstept <span class="arg">&lt;ステップ名&gt;</span> <span class="arg">&lt;ステップ値&gt;</span></h3>
+
+<p class="fullname">(Branch with step (two))</p>
+<p class="desc">ステップによる上下分岐を行います。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">文字列でステップ名を、整数で分岐のボーダーラインとなる値を指定します。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">brstept</span> <span class="str">"見張り兵の気持ち"</span> <span class="num">3</span>
+<code class="code">if</code> <span class="code">true</span>
+    <span class="comment">; ステップの値が3以上であれば</span>
+    <span class="keywords">gobattle</span> <span class="num">2</span>
+<code class="code">elif</code> <span class="code">false</span>
+    <span class="comment">; ステップの値が3未満であれば</span>
+    <span class="comment">; ...</span>
+<code class="code">fi</code> <span class="comment">; 分岐終了</span></code></pre>
+
+<h3 id="selmember">selmember <span class="arg">&lt;パーティ全体からの選択か&gt;</span> <span class="arg">&lt;ランダム選択か&gt;</span></h3>
+
+<p class="fullname">(Select member)</p>
+<p class="desc">パーティメンバを選択します。また、選択を行ったかキャンセルしたかによって処理を分岐します。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">最初の引数で<code class="code">true</code>を指定すると、パーティ全体からの選択になります。<code class="code">false</code>を指定した場合は、動けるメンバからの選択になります。省略した場合は、パーティ全体になります。</p>
+<p class="desc">次の引数で<code class="code">true</code>を指定すると、メンバはランダムで自動的に選択されます。<code class="code">false</code>を指定した場合は、プレイヤーが手動で選択を行います。キャンセルも可能です。省略した場合は、手動になります。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">selmember</span> <span class="code">true</span> <span class="code">false</span> <span class="comment">; パーティ全体から手動でメンバを選択</span>
+<code class="code">if</code> <span class="code">true</span>
+    <span class="comment">; 選択が行われた</span>
+    <span class="keywords">getcoupon</span> <span class="code">M</span> <span class="str">"：主役"</span>
+<code class="code">elif</code> <span class="code">false</span>
+    <span class="comment">; 選択がキャンセルされた</span>
+    <span class="keywords">gostart</span> <span class="str">"メンバ選択"</span>
+<code class="code">fi</code> <span class="comment">; 分岐終了</span></code></pre>
+
+<h3 id="brability">brability <span class="arg">&lt;判定対象&gt;</span> <span class="arg">&lt;眠り判定&gt;</span> <span class="arg">&lt;レベル&gt;</span> <span class="arg">&lt;身体的要素&gt;</span> <span class="arg">&lt;精神的要素&gt;</span></h3>
+
+<p class="fullname">(Branch with ability)</p>
+<p class="desc">能力分岐を行います。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">判定対象には、以下のいずれかが指定できます。</p>
+<dl>
+	<dt class="keyword"><code>M</code> または <code>selected</code></dt>
+	<dd class="worddesc">選択中のメンバ。</dd>
+	<dt class="keyword"><code>R</code> または <code>random</code></dt>
+	<dd class="worddesc">ランダムなメンバ。</dd>
+	<dt class="keyword"><code>T</code> または <code>team</code></dt>
+	<dd class="worddesc">パーティ全員。</dd>
+</dl>
+<p class="desc">眠り判定には<code class="code">true/false</code>値を指定します。<code class="code">true</code>の場合、睡眠している者も判定を行えます。<code class="code">false</code>の場合は必ず失敗します。</p>
+<p class="desc">レベルには、判定の基準となるレベルを整数で指定します。高いほどマイナスの値は指定できません。</p>
+<p class="desc">判定に使用する身体的要素には以下が指定できます。</p>
+<dl>
+	<dt class="keyword"><code>dex</code></dt>
+	<dd class="worddesc">器用度。</dd>
+	<dt class="keyword"><code>agl</code></dt>
+	<dd class="worddesc">敏捷度。</dd>
+	<dt class="keyword"><code>int</code></dt>
+	<dd class="worddesc">知力。</dd>
+	<dt class="keyword"><code>str</code></dt>
+	<dd class="worddesc">筋力。</dd>
+	<dt class="keyword"><code>vit</code></dt>
+	<dd class="worddesc">生命力。</dd>
+	<dt class="keyword"><code>min</code></dt>
+	<dd class="worddesc">精神力。</dd>
+</dl>
+<p class="desc">精神的要素には以下が指定できます。</p>
+<dl>
+	<dt class="keyword"><code>agg</code></dt>
+	<dd class="worddesc">好戦性。</dd>
+	<dt class="keyword"><code>unagg</code></dt>
+	<dd class="worddesc">平和性。</dd>
+	<dt class="keyword"><code>cheerf</code></dt>
+	<dd class="worddesc">社交性。</dd>
+	<dt class="keyword"><code>uncheerf</code></dt>
+	<dd class="worddesc">内向性。</dd>
+	<dt class="keyword"><code>brave</code></dt>
+	<dd class="worddesc">勇猛性。</dd>
+	<dt class="keyword"><code>unbrave</code></dt>
+	<dd class="worddesc">臆病性。</dd>
+	<dt class="keyword"><code>caut</code></dt>
+	<dd class="worddesc">慎重性。</dd>
+	<dt class="keyword"><code>uncaut</code></dt>
+	<dd class="worddesc">大胆性。</dd>
+	<dt class="keyword"><code>trick</code></dt>
+	<dd class="worddesc">狡猾性。</dd>
+	<dt class="keyword"><code>untrick</code></dt>
+	<dd class="worddesc">正直性。</dd>
+</dl>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="comment">; 選択中のメンバで、レベル5で筋力と好戦性の判定を行う</span>
+<span class="keywords">brability</span> <span class="code">M</span> <span class="code">false</span> <span class="num">5</span> <span class="code">str</code> <span class="code">agg</code>
+<code class="code">if</code> <span class="code">true</span>
+    <span class="comment">; 判定に成功</span>
+    <span class="comment">; ...</span>
+<code class="code">elif</code> <span class="code">false</span>
+    <span class="comment">; 判定に失敗</span>
+    <span class="keywords">msg</span> <span class="code">M</span> <span class="str">"「しまった！」"</span>
+    <span class="comment">; ...</span>
+<code class="code">fi</code> <span class="comment">; 分岐終了</span></code></pre>
+
+<h3 id="brrandom">brrandom <span class="arg">&lt;パーセント値&gt;</span></h3>
+
+<p class="fullname">(Branch with random)</p>
+<p class="desc">指定された確率で分岐します。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">確率を0～100のパーセンテージで記述します。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">brrandom</span> <span class="num">30</span> <span class="comment">; 30%の確率で分岐</span>
+<code class="code">if</code> <span class="code">true</span>
+    <span class="comment">; 30%でこっちに来る</span>
+    <span class="comment">; ...</span>
+<code class="code">elif</code> <span class="code">false</span>
+    <span class="comment">; 70%でこっちに来る</span>
+    <span class="comment">; ...</span>
+<code class="code">fi</code> <span class="comment">; 分岐終了</span></code></pre>
+
+<h3 id="brlevel">brlevel <span class="arg">&lt;レベル&gt;</span> <span class="arg">&lt;平均か&gt;</span></h3>
+
+<p class="fullname">(Branch with level)</p>
+<p class="desc">レベルで判定して処理を分岐します。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">最初の引数には判定するレベルを指定します。</p>
+<p class="desc">二番目の引数に<code class="code">true</code>を指定すると、パーティ全員の平均値で判定を行います。falseを指定するか省略すると、選択中のメンバで判定を行います。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">brrandom</span> <span class="num">5</span> <span class="code">true</span> <span class="comment">; パーティ全員の平均レベルが5以上かどうかで分岐</span>
+<code class="code">if</code> <span class="code">true</span>
+    <span class="comment">; 平均レベルが5以上であればこちらへ分岐する</span>
+    <span class="comment">; ...</span>
+<code class="code">elif</code> <span class="code">false</span>
+    <span class="comment">; 平気レベルが5未満の場合</span>
+    <span class="comment">; ...</span>
+<code class="code">fi</code> <span class="comment">; 分岐終了</span></code></pre>
+
+<h3 id="brstatus">brstatus <span class="arg">&lt;判定対象&gt;</span> <span class="arg">&lt;ステータス&gt;</span></h3>
+
+<p class="fullname">(Branch with status)</p>
+<p class="desc">メンバのステータスによって分岐を行います。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">判定対象には、以下のいずれかが指定できます。</p>
+<dl>
+	<dt class="keyword"><code>M</code> または <code>selected</code></dt>
+	<dd class="worddesc">選択中のメンバ。</dd>
+	<dt class="keyword"><code>R</code> または <code>random</code></dt>
+	<dd class="worddesc">ランダムなメンバ。</dd>
+	<dt class="keyword"><code>T</code> または <code>team</code></dt>
+	<dd class="worddesc">パーティ全員。</dd>
+</dl>
+<p class="desc">ステータスには、以下のいずれかを指定できます。</p>
+<dl>
+	<dt class="keyword"><code>active</code></dt>
+	<dd class="worddesc">行動可能。(健康 | 負傷 | 重傷 | 中毒)</dd>
+	<dt class="keyword"><code>inactive</code></dt>
+	<dd class="worddesc">行動不可。(意識不明 | 麻痺または石化 | 呪縛 | 眠り)</dd>
+	<dt class="keyword"><code>alive</code></dt>
+	<dd class="worddesc">生存。(健康 | 負傷 | 重傷 | 中毒 | 呪縛 | 眠り)</dd>
+	<dt class="keyword"><code>dead</code></dt>
+	<dd class="worddesc">非生存。(意識不明 | 麻痺または石化)</dd>
+	<dt class="keyword"><code>fine</code></dt>
+	<dd class="worddesc">健康。</dd>
+	<dt class="keyword"><code>injured</code></dt>
+	<dd class="worddesc">負傷。</dd>
+	<dt class="keyword"><code>heavyinjured</code></dt>
+	<dd class="worddesc">重傷。</dd>
+	<dt class="keyword"><code>unconscious</code></dt>
+	<dd class="worddesc">意識不明。</dd>
+	<dt class="keyword"><code>poison</code></dt>
+	<dd class="worddesc">中毒。</dd>
+	<dt class="keyword"><code>sleep</code></dt>
+	<dd class="worddesc">眠り。</dd>
+	<dt class="keyword"><code>bind</code></dt>
+	<dd class="worddesc">呪縛。</dd>
+	<dt class="keyword"><code>paralyze</code></dt>
+	<dd class="worddesc">麻痺あるいは石化。</dd>
+</dl>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">brstatus</span> <span class="code">T</span> <span class="code">alive</span> <span class="comment">; パーティ全員が生存状態かどうかで分岐</span>
+<code class="code">if</code> <span class="code">true</span>
+    <span class="comment">; パーティ全員が生存していればこちらへ分岐する</span>
+    <span class="comment">; ...</span>
+<code class="code">elif</code> <span class="code">false</span>
+    <span class="comment">; 誰かが生存していない場合</span>
+    <span class="comment">; ...</span>
+<code class="code">fi</code> <span class="comment">; 分岐終了</span></code></pre>
+
+<h3 id="brcount">brcount <span class="arg">&lt;人数&gt;</span></h3>
+
+<p class="fullname">(Branch with count of member)</p>
+<p class="desc">パーティの人数で分岐します。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">人数を整数で指定します。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">brcount</span> <span class="num">2</span> <span class="comment">; パーティが2人以上いるかどうかで分岐</span>
+<code class="code">if</code> <span class="code">true</span>
+    <span class="comment">; パーティに2人以上いる場合はこちらへ分岐</span>
+    <span class="keywords">msg</span> <span class="code">none</span> <span class="str">"君達は洞窟へ入った。"</span>
+    <span class="comment">; ...</span>
+<code class="code">elif</code> <span class="code">false</span>
+    <span class="comment">; パーティに2人未満しかいない</span>
+    <span class="keywords">msg</span> <span class="code">none</span> <span class="str">"君は洞窟へ入った。"</span>
+    <span class="comment">; ...</span>
+<code class="code">fi</code> <span class="comment">; 分岐終了</span></code></pre>
+
+<h3 id="brare">brarea</h3>
+
+<p class="fullname">(Branch with current area)</p>
+<p class="desc">現在どのエリアにいるかで分岐します。</p>
+<p class="desc"><code class="code">if</code>によってエリアIDを指定します。現在いる場所がエリアでない場合、必ずdefaultに分岐します。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">引数はありません。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">brarea</span>
+<code class="code">if</code> <span class="num">1</span>
+    <span class="comment">; 現在のエリアのIDが1だった場合</span>
+    <span class="comment">; ...</span>
+<code class="code">elif</code> <span class="num">2</span>
+    <span class="comment">; 現在のエリアのIDが2だった場合</span>
+    <span class="comment">; ...</span>
+<code class="code">elif</code> <span class="num">3</span>
+    <span class="comment">; 現在のエリアのIDが3だった場合</span>
+    <span class="comment">; ...</span>
+<code class="code">elif</code> <span class="code">default</span>
+    <span class="comment">; その他のエリアの場合</span>
+    <span class="comment">; ...</span>
+<code class="code">fi</code> <span class="comment">; 分岐終了</span></code></pre>
+
+<h3 id="brbattl">brbattle</h3>
+
+<p class="fullname">(Branch with current battle)</p>
+<p class="desc">現在どのバトルにいるかで分岐します。</p>
+<p class="desc"><code class="code">if</code>によってバトルIDを指定します。現在いる場所がバトルでない場合、必ずdefaultに分岐します。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">引数はありません。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">brarea</span>
+<code class="code">if</code> <span class="num">1</span>
+    <span class="comment">; 現在のバトルのIDが1だった場合</span>
+    <span class="comment">; ...</span>
+<code class="code">elif</code> <span class="num">2</span>
+    <span class="comment">; 現在のバトルのIDが2だった場合</span>
+    <span class="comment">; ...</span>
+<code class="code">elif</code> <span class="num">3</span>
+    <span class="comment">; 現在のバトルのIDが3だった場合</span>
+    <span class="comment">; ...</span>
+<code class="code">elif</code> <span class="code">default</span>
+    <span class="comment">; その他のバトルの場合</span>
+    <span class="comment">; ...</span>
+<code class="code">fi</code> <span class="comment">; 分岐終了</span></code></pre>
+
+<h3 id="bronbattl">bronbattle</h3>
+
+<p class="fullname">(Branch with if on battle)</p>
+<p class="desc">現在バトル中であるかどうかで分岐します。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">引数はありません。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">bronbattle</span>
+<code class="code">if</code> <span class="code">true</span>
+    <span class="comment">; 現在バトル中であればこちらへ分岐</span>
+    <span class="comment">; ...</span>
+<code class="code">elif</code> <span class="code">false</span>
+    <span class="comment">; バトル中ではない場合</span>
+    <span class="comment">; ...</span>
+<code class="code">fi</code> <span class="comment">; 分岐終了</span></code></pre>
+
+<h3 id="brcast">brcast <span class="arg">&lt;ID&gt;</span></h3>
+
+<p class="fullname">(Branch with existence of cast)</p>
+<p class="desc">同行キャストの存在の有無で分岐します。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">キャストカードのIDを整数で指定します。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">brcast</span> <span class="num">2</span>
+<code class="code">if</code> <span class="code">true</span>
+    <span class="comment">; ID2のキャストが同行していればこちらへ分岐</span>
+    <span class="comment">; ...</span>
+<code class="code">elif</code> <span class="code">false</span>
+    <span class="comment">; 同行していない場合</span>
+    <span class="comment">; ...</span>
+<code class="code">fi</code> <span class="comment">; 分岐終了</span></code></pre>
+
+<h3 id="britem">britem <span class="arg">&lt;範囲&gt;</span> <span class="arg">&lt;ID&gt;</span> <span class="arg">&lt;枚数&gt;</span></h3>
+
+<p class="fullname">(Branch with existence of item)</p>
+
+<h3 id="brskill">brskill <span class="arg">&lt;範囲&gt;</span> <span class="arg">&lt;ID&gt;</span> <span class="arg">&lt;枚数&gt;</span></h3>
+
+<p class="fullname">(Branch with existence of skill)</p>
+
+<h3 id="brbeast">brbeast <span class="arg">&lt;範囲&gt;</span> <span class="arg">&lt;ID&gt;</span> <span class="arg">&lt;枚数&gt;</span></h3>
+
+<p class="fullname">(Branch with existence of beast)</p>
+<p class="desc">それぞれ、アイテム、スキル、召喚獣の所持の有無によって分岐を行います。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">判定の範囲には、次のいずれかが指定できます。</p>
+<dl>
+	<dt class="keyword"><code>M</code> または <code>selected</code></dt>
+	<dd class="worddesc">選択中のメンバの所持カード。</dd>
+	<dt class="keyword"><code>R</code> または <code>one</code></dt>
+	<dd class="worddesc">誰か一人の所持カード。これによって判定に成功した場合、所持しているメンバが選択状態になります。</dd>
+	<dt class="keyword"><code>T</code> または <code>team</code></dt>
+	<dd class="worddesc">パーティ全員の所持カード。</dd>
+	<dt class="keyword"><code>backpack</code></dt>
+	<dd class="worddesc">荷物袋。</dd>
+	<dt class="keyword"><code>party</code></dt>
+	<dd class="worddesc">荷物袋も含むパーティ全員の所持カード。</dd>
+	<dt class="keyword"><code>field</code></dt>
+	<dd class="worddesc">パーティ・荷物袋に加えて敵なども含めたフィールド全体。</dd>
+</dl>
+<p class="desc">IDには、カードのIDを整数で指定します。</p>
+<p class="desc">枚数には、カードの枚数を整数で指定します。</p>
+<p class="desc">この枚数以上カードが存在しない場合、判定は失敗します。省略した場合は1になります。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">britem</span> <span class="code">R</span> <span class="num">1</span> <span class="num">2</span> 
+<code class="code">if</code> <span class="code">true</span>
+    <span class="comment">; パーティの誰か一人がID1のアイテムを2枚以上持っていればこちらへ分岐</span>
+    <span class="comment">; ...</span>
+<code class="code">elif</code> <span class="code">false</span>
+    <span class="comment">; 持っていない場合</span>
+    <span class="comment">; ...</span>
+<code class="code">fi</code> <span class="comment">; 分岐終了</span></code></pre>
+
+<h3 id="brinfo">brinfo <span class="arg">&lt;ID&gt;</span></h3>
+
+<p class="fullname">(Branch with existence of information)</p>
+<p class="desc">情報カードの所持の有無で分岐します。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">情報カードのIDを整数で指定します。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">brinfo</span> <span class="num">4</span>
+<code class="code">if</code> <span class="code">true</span>
+    <span class="comment">; ID4の情報カードを所持していればこちらへ分岐</span>
+    <span class="comment">; ...</span>
+<code class="code">elif</code> <span class="code">false</span>
+    <span class="comment">; 所持していない場合</span>
+    <span class="comment">; ...</span>
+<code class="code">fi</code> <span class="comment">; 分岐終了</span></code></pre>
+
+<h3 id="brmoney">brmoney <span class="arg">&lt;金額&gt;</span></h3>
+
+<p class="fullname">(Branch with money)</p>
+<p class="desc">所持金の量によって分岐します。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">分岐のボーダーラインとなる金額を整数で指定します。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">brmoney</span> <span class="num">1000</span>
+<code class="code">if</code> <span class="code">true</span>
+    <span class="comment">; 1000sp以上所持していればこちらへ分岐</span>
+    <span class="comment">; ...</span>
+<code class="code">elif</code> <span class="code">false</span>
+    <span class="comment">; 所持金が1000sp未満の場合</span>
+    <span class="comment">; ...</span>
+<code class="code">fi</code> <span class="comment">; 分岐終了</span></code></pre>
+
+<h3 id="brcoupon">brcoupon <span class="arg">&lt;判定対象&gt;</span> <span class="arg">&lt;クーポン名&gt;</span></h3>
+
+<p class="fullname">(Branch with coupon)</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">クーポン(称号)を所持しているかどうかで分岐を行います。</p>
+<p class="desc">判定対象には、次のいずれかが指定できます。</p>
+<dl>
+	<dt class="keyword"><code>M</code> または <code>selected</code></dt>
+	<dd class="worddesc">選択中のメンバの所持クーポン。</dd>
+	<dt class="keyword"><code>R</code> または <code>one</code></dt>
+	<dd class="worddesc">誰か一人の所持クーポン。これによって判定に成功した場合、所持しているメンバが選択状態になります。</dd>
+	<dt class="keyword"><code>T</code> または <code>team</code></dt>
+	<dd class="worddesc">パーティ全員の所持クーポン。</dd>
+</dl>
+<p class="desc">クーポン名には、文字列でクーポンの名前を指定します。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">brcoupon</span> <span class="code">M</span> <span class="str">"：主人公"</span>
+<code class="code">if</code> <span class="code">true</span>
+    <span class="comment">; 選択中のメンバがクーポン「：主人公」を所持していればこちらへ分岐</span>
+    <span class="comment">; ...</span>
+<code class="code">elif</code> <span class="code">false</span>
+    <span class="comment">; 所持していない場合</span>
+    <span class="comment">; ...</span>
+<code class="code">fi</code> <span class="comment">; 分岐終了</span></code></pre>
+
+<h3 id="brstamp">brstamp <span class="arg">&lt;シナリオ名&gt;</span></h3>
+
+<p class="fullname">(Branch with complete stamp)</p>
+<p class="desc">シナリオの済印の有無で分岐を行います。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">シナリオ名を文字列で指定します。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">brstamp</span> <span class="str">"ゴブリンの洞窟"</span>
+<code class="code">if</code> <span class="code">true</span>
+    <span class="comment">; シナリオ「ゴブリンの洞窟」が終了済みであればこちらへ分岐</span>
+    <span class="comment">; ...</span>
+<code class="code">elif</code> <span class="code">false</span>
+    <span class="comment">; 終了済みでない場合</span>
+    <span class="comment">; ...</span>
+<code class="code">fi</code> <span class="comment">; 分岐終了</span></code></pre>
+
+<h3 id="brgossip">brgossip <span class="arg">&lt;ゴシップ名&gt;</span></h3>
+
+<p class="fullname">(Branch with gossip)</p>
+<p class="desc">ゴシップ(宿クーポン)の有無で分岐を行います。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">ゴシップ名を文字列で指定します。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">brgossip</span> <span class="str">"悪い噂"</span>
+<code class="code">if</code> <span class="code">true</span>
+    <span class="comment">; ゴシップ「悪い噂」があればこちらへ分岐</span>
+    <span class="comment">; ...</span>
+<code class="code">elif</code> <span class="code">false</span>
+    <span class="comment">; ゴシップが無い場合</span>
+    <span class="comment">; ...</span>
+<code class="code">fi</code> <span class="comment">; 分岐終了</span></code></pre>
+
+<h3 id="setflag">setflag <span class="arg">&lt;フラグ名&gt;</span> <span class="arg">&lt;値&gt;</span></h3>
+
+<p class="fullname">(Set flag)</p>
+<p class="desc">フラグの値を設定します。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">フラグ名には、フラグの名前を文字列で指定します。</p>
+<p class="desc">値には、フラグのOn/Offを<code class="code">true/false</code>で指定します。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">setflag</span> <span class="str">"見張り生存"</span> <span class="code">false</span> <span class="comment">; フラグ「見張り生存」をOffにする</span></code></pre>
+
+<h3 id="setstep">setstep <span class="arg">&lt;ステップ名&gt;</span> <span class="arg">&lt;値&gt;</span></h3>
+
+<p class="fullname">(Set step)</p>
+<p class="desc">フラグの値を設定します。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">ステップ名には、ステップの名前を文字列で指定します。</p>
+<p class="desc">値には、ステップの値を0～9の整数で指定します。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">setstep</span> <span class="str">"見張り兵の気持ち"</span> <span class="num">2</span> <span class="comment">; ステップ「見張り兵の気持ち」の値を2にする</span></code></pre>
+
+<h3 id="stepup">stepup <span class="arg">&lt;ステップ名&gt;</span></h3>
+
+<p class="fullname">(Step up)</p>
+<p class="desc">ステップの値を1上げます。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">ステップの名前を文字列で指定します。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">stepup</span> <span class="str">"見張り兵の気持ち"</span> <span class="comment">; ステップ「見張り兵の気持ち」の値を上げる</span></code></pre>
+
+<h3 id="stepdown">stepdown <span class="arg">&lt;ステップ名&gt;</span></h3>
+
+<p class="fullname">(Step down)</p>
+<p class="desc">ステップの値を1下げます。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">ステップの名前を文字列で指定します。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">stepdown</span> <span class="str">"見張り兵の気持ち"</span> <span class="comment">; ステップ「見張り兵の気持ち」の値を下げる</span></code></pre>
+
+<h3 id="revflag">revflag <span class="arg">&lt;フラグ名&gt;</span></h3>
+
+<p class="fullname">(Reverse flag)</p>
+<p class="desc">フラグのOn/Offを入れ替えます。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">フラグの名前を文字列で指定します。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">revflag</span> <span class="str">"見張り生存"</span> <span class="comment">; フラグ「見張り生存」を反転</span></code></pre>
+
+<h3 id="chkflag">chkflag <span class="arg">&lt;フラグ名&gt;</span></h3>
+
+<p class="fullname">(Check flag)</p>
+<p class="desc">フラグがOnになっている場合だけ出現する選択肢を作ります。</p>
+<p class="desc">メッセージ選択分岐の直後に配置する事で有効になります。例を参照してください。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">フラグの名前を文字列で指定します。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">msg</span> <span class="code">none</span> <span class="str">"どうする？"</span>
+<code class="code">if</code> <span class="str">"依頼を受ける"</span> <span class="keywords">chkflag</span> <span class="str">"話を聞いた"</span>
+    <span class="comment">; フラグ「話を聞いた」がOnでなければこの選択肢は出現しない</span>
+    <span class="comment">; ...</span>
+<code class="code">elif</code> <span class="str">"依頼を断る"</span>
+    <span class="comment">; ...</span>
+    <span class="keywords">endsc</span>
+<code class="code">elif</code> <span class="str">"話を聞く"</span>
+    <span class="comment">; ...</span>
+    <span class="keywords">setflag</span> <span class="str">"話を聞いた"</span> <span class="code">true</span>
+<code class="code">fi</code> <span class="comment">; 分岐終了</span></code></pre>
+
+<h3 id="getcast">getcast <span class="arg">&lt;ID&gt;</span></h3>
+
+<p class="fullname">(Get cast)</p>
+<p class="desc">キャストを同行させます。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">キャストカードのIDを整数で指定します。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">getcast</span> <span class="num">1</span> <span class="comment">; ID1のキャストを同行させる</span></code></pre>
+
+<h3 id="getitem">getitem <span class="arg">&lt;範囲&gt;</span> <span class="arg">&lt;ID&gt;</span> <span class="arg">&lt;枚数&gt;</span></h3>
+
+<p class="fullname">(Get item)</p>
+
+<h3 id="getskill">getskill <span class="arg">&lt;範囲&gt;</span> <span class="arg">&lt;ID&gt;</span> <span class="arg">&lt;枚数&gt;</span></h3>
+
+<p class="fullname">(Get skill)</p>
+
+<h3 id="getbeast">getbeast <span class="arg">&lt;範囲&gt;</span> <span class="arg">&lt;ID&gt;</span> <span class="arg">&lt;枚数&gt;</span></h3>
+
+<p class="fullname">(Get beast)</p>
+<p class="desc">それぞれ、アイテム、スキル、召喚獣を入手させます。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">判定の範囲には、次のいずれかが指定できます。</p>
+<dl>
+	<dt class="keyword"><code>M</code> または <code>selected</code></dt>
+	<dd class="worddesc">選択中のメンバ。</dd>
+	<dt class="keyword"><code>R</code> または <code>one</code></dt>
+	<dd class="worddesc">誰か一人。</dd>
+	<dt class="keyword"><code>T</code> または <code>team</code></dt>
+	<dd class="worddesc">パーティ全員。</dd>
+	<dt class="keyword"><code>backpack</code></dt>
+	<dd class="worddesc">荷物袋。</dd>
+	<dt class="keyword"><code>party</code></dt>
+	<dd class="worddesc">荷物袋も含むパーティ全員。</dd>
+	<dt class="keyword"><code>field</code></dt>
+	<dd class="worddesc">パーティ・荷物袋に加えて敵なども含めたフィールド全体。</dd>
+</dl>
+<p class="desc">IDには、カードのIDを整数で指定します。</p>
+<p class="desc">枚数には、カードの枚数を整数で指定します。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">getskill</span> <span class="code">M</span> <span class="num">10</span> <span class="num">2</span> <span class="comment">; 選択中のメンバがID10のスキルを2枚入手</span></code></pre>
+
+<h3 id="getinfo">getinfo <span class="arg">&lt;ID&gt;</span></h3>
+
+<p class="fullname">(Get information)</p>
+<p class="desc">情報カードを入手させます。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">情報カードのIDを整数で指定します。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">getinfo</span> <span class="num">5</span> <span class="comment">; ID5の情報カードを入手</span></code></pre>
+
+<h3 id="getmoney">getmoney <span class="arg">&lt;金額&gt;</span></h3>
+
+<p class="fullname">(Get money)</p>
+<p class="desc">所持金を増加させます。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">金額を整数で指定します。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">getmoney</span> <span class="num">600</span> <span class="comment">; 600sp入手</span></code></pre>
+
+<h3 id="getcoupon">getcoupon <span class="arg">&lt;対象&gt;</span> <span class="arg">&lt;クーポン名&gt;</span> <span class="arg">&lt;得点&gt;</span></h3>
+
+<p class="fullname">(Get coupon)</p>
+<p class="desc">クーポン(称号)を入手させます。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">対象には、次のいずれかが指定できます。</p>
+<dl>
+	<dt class="keyword"><code>M</code> または <code>selected</code></dt>
+	<dd class="worddesc">選択中のメンバ。</dd>
+	<dt class="keyword"><code>R</code> または <code>random</code></dt>
+	<dd class="worddesc">誰か一人。</dd>
+	<dt class="keyword"><code>T</code> または <code>team</code></dt>
+	<dd class="worddesc">パーティ全員。</dd>
+</dl>
+<p class="desc">クーポン名には、クーポンの名前を文字列で指定します。</p>
+<p class="desc">得点には、クーポンの点数を整数で指定します。マイナスの値も指摘でき、省略した場合は0点になります。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">getcoupon</span> <span class="code">T</span> <span class="str">"ゴブリン退治"</span> <span class="num">1</span> <span class="comment">; パーティ全員が1点のクーポン「ゴブリン退治」を入手</span></code></pre>
+
+<h3 id="getstamp">getstamp <span class="arg">&lt;シナリオ名&gt;</span></h3>
+
+<p class="fullname">(Get complete stamp)</p>
+<p class="desc">シナリオに済印をつけます。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">シナリオ名を文字列で指定します。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">getstamp</span> <span class="str">"交易都市リューン"</span> <span class="comment">; シナリオ「交易都市リューン」に済印をつける</span></code></pre>
+
+<h3 id="getgossip">getgossip <span class="arg">&lt;ゴシップ名&gt;</span></h3>
+
+<p class="fullname">(Get gossip)</p>
+<p class="desc">ゴシップ(宿クーポン)を追加します。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">ゴシップ名を文字列で指定します。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">getgossip</span> <span class="str">"悪い噂"</span> <span class="comment">; ゴシップ「悪い噂」を追加</span></code></pre>
+
+<h3 id="losecast">losecast <span class="arg">&lt;ID&gt;</span></h3>
+
+<p class="fullname">(Lose cast)</p>
+<p class="desc">キャストの同行を取りやめます。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">キャストカードのIDを整数で指定します。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">losecast</span> <span class="num">1</span> <span class="comment">; ID1のキャストを仲間から外す</span></code></pre>
+
+<h3 id="loseitem">loseitem <span class="arg">&lt;範囲&gt;</span> <span class="arg">&lt;ID&gt;</span> <span class="arg">&lt;枚数&gt;</span></h3>
+
+<p class="fullname">(Lose item)</p>
+
+<h3 id="loseskill">loseskill <span class="arg">&lt;範囲&gt;</span> <span class="arg">&lt;ID&gt;</span> <span class="arg">&lt;枚数&gt;</span></h3>
+
+<p class="fullname">(Lose skill)</p>
+
+<h3 id="losebeast">losebeast <span class="arg">&lt;範囲&gt;</span> <span class="arg">&lt;ID&gt;</span> <span class="arg">&lt;枚数&gt;</span></h3>
+
+<p class="fullname">(Lose beast)</p>
+<p class="desc">それぞれ、アイテム、スキル、召喚獣を喪失させます。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">判定の範囲には、次のいずれかが指定できます。</p>
+<dl>
+	<dt class="keyword"><code>M</code> または <code>selected</code></dt>
+	<dd class="worddesc">選択中のメンバ。</dd>
+	<dt class="keyword"><code>R</code> または <code>one</code></dt>
+	<dd class="worddesc">誰か一人。</dd>
+	<dt class="keyword"><code>T</code> または <code>team</code></dt>
+	<dd class="worddesc">パーティ全員。</dd>
+	<dt class="keyword"><code>backpack</code></dt>
+	<dd class="worddesc">荷物袋。</dd>
+	<dt class="keyword"><code>party</code></dt>
+	<dd class="worddesc">荷物袋も含むパーティ全員。</dd>
+	<dt class="keyword"><code>field</code></dt>
+	<dd class="worddesc">パーティ・荷物袋に加えて敵なども含めたフィールド全体。</dd>
+</dl>
+<p class="desc">IDには、カードのIDを整数で指定します。</p>
+<p class="desc">枚数には、カードの枚数を整数で指定します。0またはallを指定すると全て喪失します。省略した場合は1になります。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">losebeast</span> <span class="code">backpack</span> <span class="num">10</span> <span class="code">all</span> <span class="comment">; 荷物袋にあるID10の召喚獣を全て削除</span></code></pre>
+
+<h3 id="loseinfo">loseinfo <span class="arg">&lt;ID&gt;</span></h3>
+
+<p class="fullname">(Lose information)</p>
+<p class="desc">情報カードを削除します。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">情報カードのIDを整数で指定します。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">loseinfo</span> <span class="num">15</span> <span class="comment">; ID15の情報カードを削除</span></code></pre>
+
+<h3 id="losemoney">losemoney <span class="arg">&lt;金額&gt;</span></h3>
+
+<p class="fullname">(Lose money)</p>
+<p class="desc">所持金を減らします。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">金額を整数で指定します。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">losemoney</span> <span class="num">1400</span> <span class="comment">; 1400sp支払う</span></code></pre>
+
+<h3 id="losecoupon">losecoupon <span class="arg">&lt;対象&gt;</span> <span class="arg">&lt;クーポン名&gt;</span></h3>
+
+<p class="fullname">(Lose coupon)</p>
+<p class="desc">クーポン(称号)を削除します。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">対象には、次のいずれかが指定できます。</p>
+<dl>
+	<dt class="keyword"><code>M</code> または <code>selected</code></dt>
+	<dd class="worddesc">選択中のメンバ。</dd>
+	<dt class="keyword"><code>R</code> または <code>one</code></dt>
+	<dd class="worddesc">誰か一人。</dd>
+	<dt class="keyword"><code>T</code> または <code>team</code></dt>
+	<dd class="worddesc">パーティ全員。</dd>
+</dl>
+<p class="desc">クーポン名には、クーポンの名前を文字列で指定します。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">losecoupon</span> <span class="code">T</span> <span class="str">"：主人公"</span> <span class="comment">; パーティ全員からクーポン「：主人公」を削除</span></code></pre>
+
+<h3 id="losestamp">losestamp <span class="arg">&lt;シナリオ名&gt;</span></h3>
+
+<p class="fullname">(Lose complete stamp)</p>
+<p class="desc">シナリオの済印を削除します。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">シナリオ名を文字列で指定します。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">losestamp</span> <span class="str">"ゴブリンの洞窟"</span> <span class="comment">; シナリオ「ゴブリンの洞窟」の済印を削除</span></code></pre>
+
+<h3 id="losegossip">losegossip <span class="arg">&lt;ゴシップ名&gt;</span></h3>
+
+<p class="fullname">(Lose gossip)</p>
+<p class="desc">ゴシップ(宿クーポン)を削除します。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">ゴシップ名を文字列で指定します。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">losegossip</span> <span class="str">"悪い噂"</span> <span class="comment">; ゴシップ「悪い噂」を削除</span></code></pre>
+
+<h3 id="showpart">showparty</h3>
+
+<p class="fullname">(Show party)</p>
+<p class="desc">画面下に隠したパーティを再表示します。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">引数はありません。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">showparty</span> <span class="comment">; パーティを表示</span></code></pre>
+
+<h3 id="hidepart">hideparty</h3>
+
+<p class="fullname">(Hide party)</p>
+<p class="desc">パーティを画面下に隠します。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">引数はありません。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">hideparty</span> <span class="comment">; パーティを隠す</span></code></pre>
+
+<h3 id="redraw">redraw <span class="arg">&lt;画面切替スピード&gt;</span> <span class="arg">&lt;切替方式&gt;</span></h3>
+
+<p class="fullname">(Redraw)</p>
+<p class="desc">画面を再描画します。</p>
+<p class="desc">画面を構成する背景画像に表示フラグが設定されている場合、フラグの状態に応じて表示が切り替えられます。</p>
+
+<h4 class="args">引数</h4>
+
+<p class="desc">CardWirthPy形式のシナリオに限り、画面切替スピードと切替方式を指定できます。</p>
+<p class="desc">指定しなかった場合はエンジンの設定が採用されます。</p>
+<p class="desc">切替スピードには0～10の値が指定でき、数値が少ないほど素早く切り替わります。</p>
+<p class="desc">0の場合はエフェクト無しで即座に切り替わります。</p>
+<p class="desc">切替方式には以下の値が指定できます。</p>
+<dl>
+	<dt class="keyword"><code>default</code></dt>
+	<dd class="worddesc">エンジンの設定を使用します。</dd>
+	<dt class="keyword"><code>none</code></dt>
+	<dd class="worddesc">切替エフェクト無しで即座に画面を切替えます。切替速度は無視されます。</dd>
+	<dt class="keyword"><code>fade</code></dt>
+	<dd class="worddesc">フェード式。画面の全体の色を徐々に変更し、滑らかに次の画面へ切替えます。</dd>
+	<dt class="keyword"><code>dissolve</code></dt>
+	<dd class="worddesc">ピクセルディゾルブ式。画面を無数の領域に分割し、各領域をランダムな順序で次の画面に置換します。</dd>
+	<dt class="keyword"><code>blinds</code></dt>
+	<dd class="worddesc">ブラインド式。ブラインドを開け閉めするように、画面を縦長の領域に区切り、各区画毎に次の画面へ切替えます。</dd>
+</dl>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">redraw</span> <span class="num">1</span> <span class="code">blinds</span> <span class="comment">; 画面をブラインド式で素早く再描画</span></code></pre>

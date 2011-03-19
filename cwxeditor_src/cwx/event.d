@@ -118,7 +118,8 @@ enum CArg {
 	RANDOM,
 	AVERAGE,
 	COMPLETE,
-	LEVEL,
+	UNSIGNED_LEVEL,
+	SIGNED_LEVEL,
 	SUCCESS_RATE,
 	TRANSITION_SPEED,
 	PERCENT,
@@ -151,7 +152,7 @@ static this () {
 		CType.END_BAD_END:CDetail("End", "BadEnd", CNextType.NONE, false),
 		CType.CHANGE_AREA:CDetail("Change", "Area", CNextType.NONE, false, [CArg.AREA:_("id"), CArg.TRANSITION:"transition", CArg.TRANSITION_SPEED:"transitionspeed"]),
 		CType.CHANGE_BG_IMAGE:CDetail("Change", "BgImage", CNextType.NONE, true, [CArg.BG_IMAGES:_(null), CArg.TRANSITION:"transition", CArg.TRANSITION_SPEED:"transitionspeed"]),
-		CType.EFFECT:CDetail("Effect", "", CNextType.NONE, true, [CArg.LEVEL:_("level"), CArg.TARGET_NS:"targetm", CArg.EFFECT_TYPE:"effecttype", CArg.RESIST:"resisttype",
+		CType.EFFECT:CDetail("Effect", "", CNextType.NONE, true, [CArg.SIGNED_LEVEL:_("level"), CArg.TARGET_NS:"targetm", CArg.EFFECT_TYPE:"effecttype", CArg.RESIST:"resisttype",
 			CArg.SUCCESS_RATE:"successrate", CArg.SOUND_PATH:_("sound"), CArg.CARD_VISUAL:"visual", CArg.MOTIONS:null]),
 		CType.EFFECT_BREAK:CDetail("Effect", "Break", CNextType.NONE, false),
 		CType.LINK_START:CDetail("Link", "Start", CNextType.NONE, false, [CArg.START:"link"]),
@@ -168,9 +169,9 @@ static this () {
 		CType.BRANCH_MULTI_STEP:CDetail("Branch", "MultiStep", CNextType.STEP, true, [CArg.STEP:"step"]),
 		CType.BRANCH_STEP:CDetail("Branch", "Step", CNextType.NONE, true, [CArg.STEP:_("step"), CArg.STEP_VALUE:"value"]),
 		CType.BRANCH_SELECT:CDetail("Branch", "Select", CNextType.NONE, true, [CArg.TARGET_ALL:_("targetall"), CArg.RANDOM:"random"]),
-		CType.BRANCH_ABILITY:CDetail("Branch", "Ability", CNextType.NONE, true, [CArg.TARGET_S:_("targetm"), CArg.MENTAL:"mental", CArg.PHYSICAL:"physical", CArg.LEVEL:"value"]),
+		CType.BRANCH_ABILITY:CDetail("Branch", "Ability", CNextType.NONE, true, [CArg.TARGET_S:_("targetm"), CArg.MENTAL:"mental", CArg.PHYSICAL:"physical", CArg.SIGNED_LEVEL:"value"]),
 		CType.BRANCH_RANDOM:CDetail("Branch", "Random", CNextType.NONE, true, [CArg.PERCENT:"value"]),
-		CType.BRANCH_LEVEL:CDetail("Branch", "Level", CNextType.NONE, true, [CArg.AVERAGE:_("average"), CArg.LEVEL:"value"]),
+		CType.BRANCH_LEVEL:CDetail("Branch", "Level", CNextType.NONE, true, [CArg.AVERAGE:_("average"), CArg.UNSIGNED_LEVEL:"value"]),
 		CType.BRANCH_STATUS:CDetail("Branch", "Status", CNextType.NONE, true, [CArg.TARGET_NS:_("targetm"), CArg.STATUS:"status"]),
 		CType.BRANCH_PARTY_NUMBER:CDetail("Branch", "PartyNumber", CNextType.NONE, true, [CArg.PARTY_NUMBER:"value"]),
 		CType.BRANCH_AREA:CDetail("Branch", "Area", CNextType.ID_AREA, true),
@@ -605,17 +606,18 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		resetValue!(CArg.AVERAGE, bool, false)(d, &average);
 		resetValue!(CArg.COMPLETE, bool, false)(d, &complete);
 
-		resetValue!(CArg.LEVEL, int, 0)(d, &level);
+		resetValue!(CArg.UNSIGNED_LEVEL, int, 0)(d, &unsignedLevel);
+		resetValue!(CArg.SIGNED_LEVEL, int, 0)(d, &signedLevel);
 		resetValue!(CArg.SUCCESS_RATE, int, 5)(d, &successRate);
-		resetValue!(CArg.TRANSITION_SPEED, uint, 5u)(d, &transitionSpeed);
-		resetValue!(CArg.PERCENT, uint, 50u)(d, &percent);
+		resetValue!(CArg.TRANSITION_SPEED, int, 5u)(d, &transitionSpeed);
+		resetValue!(CArg.PERCENT, int, 50u)(d, &percent);
 		resetValue!(CArg.FLAG_VALUE, bool, true)(d, &flagValue);
-		resetValue!(CArg.STEP_VALUE, uint, 0)(d, &stepValue);
+		resetValue!(CArg.STEP_VALUE, int, 0)(d, &stepValue);
 		resetValue!(CArg.COUPON_VALUE, int, 0)(d, &couponValue);
-		resetValue!(CArg.PARTY_NUMBER, uint, 1)(d, &partyNumber);
-		resetValue!(CArg.CARD_NUMBER, uint, 1)(d, &cardNumber);
-		resetValue!(CArg.MONEY, uint, 0)(d, &money);
-		resetValue!(CArg.WAIT, uint, 0)(d, &wait);
+		resetValue!(CArg.PARTY_NUMBER, int, 1)(d, &partyNumber);
+		resetValue!(CArg.CARD_NUMBER, int, 1)(d, &cardNumber);
+		resetValue!(CArg.MONEY, int, 0)(d, &money);
+		resetValue!(CArg.WAIT, int, 0)(d, &wait);
 
 		resetValue!(CArg.MOTIONS, Motion[], [])(d, &motions);
 
@@ -882,6 +884,12 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			~ "static if (is(typeof(check_" ~ Name ~ "(val)))) {"
 			~ "    if (!check_" ~ Name ~ "(val)) throw new EventException(\"Invalid " ~ Name ~ "\");"
 			~ "}"
+			~ "static if (is(typeof(" ~ Name ~ "_max))) {"
+			~ "    if (" ~ Name ~ "_max < val) val = " ~ Name ~ "_max;"
+			~ "}"
+			~ "static if (is(typeof(" ~ Name ~ "_min))) {"
+			~ "    if (" ~ Name ~ "_min < val) val = " ~ Name ~ "_min;"
+			~ "}"
 			~ (New ? (is(typeof(new T))
 				? "if (!_" ~ Name ~ ") _" ~ Name ~ " = new " ~ T.stringof ~ ";"
 				~ "setValUCs(_" ~ Name ~ ", _uc, this);"
@@ -905,6 +913,10 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	}
 	private template Prop(T, string Name, T Def) {
 		mixin Prop!(T, T, Name, Def);
+	}
+	private template MaxMin(T, string Name, T Max, T Min) {
+		mixin ("static const T " ~ Name ~ "_max = Max;");
+		mixin ("static const T " ~ Name ~ "_min = Min;");
 	}
 
 	private string _start = "";
@@ -1022,27 +1034,40 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	mixin Prop!(bool, "complete", false);
 
 	/// レベル。
-	mixin Prop!(int, "level", 0);
+	mixin Prop!(int, "unsignedLevel", 1);
+	mixin MaxMin!(int, "unsignedLevel", 99, 1);
+	/// マイナスにする事が可能なレベル。
+	mixin Prop!(int, "signedLevel", 0);
+	mixin MaxMin!(int, "signedLevel", 99, -99);
 	/// 命中補正。-5～+5。
 	mixin Prop!(int, "successRate", 5);
+	mixin MaxMin!(int, "successRate", 5, -5);
 	/// 背景切替スピード。0～10で、0はアニメーション無しと等価。
-	mixin Prop!(uint, "transitionSpeed", 5u);
+	mixin Prop!(int, "transitionSpeed", 5u);
+	mixin MaxMin!(int, "transitionSpeed", 10, 0);
 	/// 百分率値。
-	mixin Prop!(uint, "percent", 50u);
+	mixin Prop!(int, "percent", 50u);
+	mixin MaxMin!(int, "percent", 100, 0);
 	/// フラグ値。
 	mixin Prop!(bool, "flagValue", true);
 	/// ステップ値。
-	mixin Prop!(uint, "stepValue", 0u);
+	mixin Prop!(int, "stepValue", 0u);
+	mixin MaxMin!(int, "stepValue", int.max, 0);
 	/// クーポン点。
 	mixin Prop!(int, "couponValue", 0);
+	mixin MaxMin!(int, "couponValue", 999, -999);
 	/// 人数。
-	mixin Prop!(uint, "partyNumber", 1u);
+	mixin Prop!(int, "partyNumber", 1u);
+	mixin MaxMin!(int, "partyNumber", int.max, 1);
 	/// カード枚数。
-	mixin Prop!(uint, "cardNumber", 1u);
+	mixin Prop!(int, "cardNumber", 1u);
+	mixin MaxMin!(int, "cardNumber", 99, 0);
 	/// 金額。
-	mixin Prop!(uint, "money", 0u);
+	mixin Prop!(int, "money", 0u);
+	mixin MaxMin!(int, "money", 999999, 0);
 	/// 停止時間。0.1秒単位。
-	mixin Prop!(uint, "wait", 0u);
+	mixin Prop!(int, "wait", 0u);
+	mixin MaxMin!(int, "wait", 1000, 0);
 
 	/// 背景画像群。
 	mixin Prop!(BgImage[], "backs", []);
@@ -1216,7 +1241,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		atnPut!(CArg.AVERAGE, "average", "fromBool")(e, d);
 		atnPut!(CArg.COMPLETE, "complete", "fromBool")(e, d);
 
-		atnPut!(CArg.LEVEL, "level", "")(e, d);
+		atnPut!(CArg.UNSIGNED_LEVEL, "unsignedLevel", "")(e, d);
+		atnPut!(CArg.SIGNED_LEVEL, "signedLevel", "")(e, d);
 		atnPut!(CArg.SUCCESS_RATE, "successRate", "")(e, d);
 		atnPut!(CArg.TRANSITION_SPEED, "transitionSpeed", "")(e, d);
 		atnPut!(CArg.PERCENT, "percent", "")(e, d);
@@ -1334,16 +1360,17 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		cfnPut!(CArg.AVERAGE, "average", "parseBool")(en, d, r);
 		cfnPut!(CArg.COMPLETE, "complete", "parseBool")(en, d, r);
 
-		cfnPut!(CArg.LEVEL, "level", "to!(int)")(en, d, r);
+		cfnPut!(CArg.UNSIGNED_LEVEL, "unsignedLevel", "to!(int)")(en, d, r);
+		cfnPut!(CArg.SIGNED_LEVEL, "signedLevel", "to!(int)")(en, d, r);
 		cfnPut!(CArg.SUCCESS_RATE, "successRate", "to!(int)")(en, d, r);
-		cfnPut!(CArg.PERCENT, "percent", "to!(uint)")(en, d, r);
+		cfnPut!(CArg.PERCENT, "percent", "to!(int)")(en, d, r);
 		cfnPut!(CArg.FLAG_VALUE, "flagValue", "parseBool")(en, d, r);
-		cfnPut!(CArg.STEP_VALUE, "stepValue", "to!(uint)")(en, d, r);
+		cfnPut!(CArg.STEP_VALUE, "stepValue", "to!(int)")(en, d, r);
 		cfnPut!(CArg.COUPON_VALUE, "couponValue", "to!(int)")(en, d, r);
-		cfnPut!(CArg.PARTY_NUMBER, "partyNumber", "to!(uint)")(en, d, r);
-		cfnPut!(CArg.CARD_NUMBER, "cardNumber", "to!(uint)")(en, d, r);
-		cfnPut!(CArg.MONEY, "money", "to!(uint)")(en, d, r);
-		cfnPut!(CArg.WAIT, "wait", "to!(uint)")(en, d, r);
+		cfnPut!(CArg.PARTY_NUMBER, "partyNumber", "to!(int)")(en, d, r);
+		cfnPut!(CArg.CARD_NUMBER, "cardNumber", "to!(int)")(en, d, r);
+		cfnPut!(CArg.MONEY, "money", "to!(int)")(en, d, r);
+		cfnPut!(CArg.WAIT, "wait", "to!(int)")(en, d, r);
 
 		// 多少複雑なもの
 		if (d.use(CArg.TRANSITION)) {
@@ -1353,7 +1380,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		}
 		if (d.use(CArg.TRANSITION_SPEED)) {
 			auto s = en.attr(d.attr(CArg.TRANSITION_SPEED), false);
-			if (s.length) r.transitionSpeed = to!(uint)(s);
+			if (s.length) r.transitionSpeed = to!(int)(s);
 		}
 		if (d.use(CArg.MOTIONS)) {
 			en.onTag["Motions"] = (ref XNode node) {

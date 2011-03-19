@@ -618,9 +618,7 @@ private:
 				auto dlg = new BrLevelDialog(_prop, _tree.getShell, null);
 				return dlg.open ? dlg.event : null;
 			} else {
-				auto r = new Content(type, name);
-				r.level = 1;
-				return r;
+				return new Content(type, name);
 			}
 		} case CType.BRANCH_STATUS: {
 			if (_autoOpen) {
@@ -1928,11 +1926,11 @@ public:
 		} case CType.BRANCH_SELECT: {
 			return createBoolEditor!("_prop.msgs.evtChildBrMember(evt.targetAll, evt.random, name)")(data, c);
 		} case CType.BRANCH_ABILITY: {
-			return createBoolEditor!("_prop.msgs.evtChildBrPower(evt.targetS, evt.physical, evt.mental, evt.level, name)")(data, c);
+			return createBoolEditor!("_prop.msgs.evtChildBrPower(evt.targetS, evt.physical, evt.mental, evt.signedLevel, name)")(data, c);
 		} case CType.BRANCH_RANDOM: {
 			return createBoolEditor!("_prop.msgs.evtChildBrRandom(evt.percent, name)")(data, c);
 		} case CType.BRANCH_LEVEL: {
-			return createBoolEditor!("_prop.msgs.evtChildBrLevel(evt.level, evt.average, name)")(data, c);
+			return createBoolEditor!("_prop.msgs.evtChildBrLevel(evt.unsignedLevel, evt.average, name)")(data, c);
 		} case CType.BRANCH_STATUS: {
 			return createBoolEditor!("_prop.msgs.evtChildBrState(evt.targetNS, evt.status, name)")(data, c);
 		} case CType.BRANCH_PARTY_NUMBER: {
@@ -1992,13 +1990,13 @@ public:
 			r = _prop.msgs.evtChildBrMember(parent.targetAll, parent.random, name);
 			break;
 		} case CType.BRANCH_ABILITY: {
-			r = _prop.msgs.evtChildBrPower(parent.targetS, parent.physical, parent.mental, parent.level, name);
+			r = _prop.msgs.evtChildBrPower(parent.targetS, parent.physical, parent.mental, parent.signedLevel, name);
 			break;
 		} case CType.BRANCH_RANDOM: {
 			r = _prop.msgs.evtChildBrRandom(parent.percent, name);
 			break;
 		} case CType.BRANCH_LEVEL: {
-			r = _prop.msgs.evtChildBrLevel(parent.level, parent.average, name);
+			r = _prop.msgs.evtChildBrLevel(parent.unsignedLevel, parent.average, name);
 			break;
 		} case CType.BRANCH_STATUS: {
 			r = _prop.msgs.evtChildBrState(parent.targetNS, parent.status, name);
@@ -2393,7 +2391,9 @@ protected:
 		buf ~= rjustify("^", pos);
 		_result = new Text(area, SWT.BORDER | SWT.MULTI | SWT.READ_ONLY | SWT.WRAP | SWT.V_SCROLL);
 		_result.setText = buf;
-		_result.setFont = new Font(Display.getCurrent, dwtData(_prop.looks.scriptErrorFont));
+		auto font = _result.getFont;
+		auto fSize = font ? cast(uint) font.getFontData[0].height : 0;
+		_result.setFont = new Font(Display.getCurrent, dwtData(_prop.looks.scriptErrorFont(fSize)));
 	}
 	override bool close(bool ok) {
 		_result.getFont.dispose;

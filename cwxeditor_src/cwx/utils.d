@@ -1696,3 +1696,18 @@ size_t lengthJ(in char[] text) {
 	assert (lengthJ("1000") == 4);
 	assert (lengthJ("100万") == 5);
 }
+
+/// 前後の空行を無視して行数をカウントする。
+size_t lineCount(in string[] lines) {
+	int from = -1;
+	int to = -1;
+	foreach (i, l; lines) {
+		if (l.length) {
+			if (from == -1) from = i;
+			to = i + 1;
+		}
+	}
+	return to - from;
+} unittest {
+	assert (lineCount(splitlines("\na\nb\n\nc\n\n")) == 4);
+}

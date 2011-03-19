@@ -177,10 +177,12 @@ protected:
 					auto ls = new Label(comp, SWT.NONE);
 					ls.setText = _prop.msgs.transitionSpeed;
 					_tsSpeed = new Spinner(comp, SWT.BORDER);
-					_tsSpeed.setMaximum = _prop.looks.transitionSpeedMax;
-					_tsSpeed.setMinimum = 0;
+					_tsSpeed.setMaximum = Content.transitionSpeed_max;
+					_tsSpeed.setMinimum = Content.transitionSpeed_min;
 					auto hint = new Label(comp, SWT.NONE);
-					hint.setText = _prop.msgs.rangeHint(0, _prop.looks.transitionSpeedMax);
+					hint.setText = _prop.msgs.rangeHint
+						(Content.transitionSpeed_min,
+						Content.transitionSpeed_max);
 				}
 				if (_evt) {
 					_tsSpeed.setSelection = _evt.transitionSpeed;
@@ -414,11 +416,11 @@ protected:
 					ll.setText = _prop.msgs.couponValue;
 					_value = new Spinner(comp, SWT.BORDER);
 					_value.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_CENTER);
-					_value.setMaximum = _prop.looks.couponValueMax;
-					_value.setMinimum = -(cast(int) _prop.looks.couponValueMax);
+					_value.setMaximum = Content.couponValue_max;
+					_value.setMinimum = Content.couponValue_min;
 					auto lr = new Label(comp, SWT.LEFT);
 					lr.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-					lr.setText = _prop.msgs.couponValueRange(_prop.looks.couponValueMax);
+					lr.setText = _prop.msgs.couponValueRange(Content.couponValue_max);
 				}
 			}
 		}
@@ -583,10 +585,12 @@ protected:
 				auto ls = new Label(comp, SWT.NONE);
 				ls.setText = _prop.msgs.transitionSpeed;
 				_tsSpeed = new Spinner(comp, SWT.BORDER);
-				_tsSpeed.setMaximum = _prop.looks.transitionSpeedMax;
-				_tsSpeed.setMinimum = 0;
+				_tsSpeed.setMaximum = Content.transitionSpeed_max;
+				_tsSpeed.setMinimum = Content.transitionSpeed_min;
 				auto hint = new Label(comp, SWT.NONE);
-				hint.setText = _prop.msgs.rangeHint(0, _prop.looks.transitionSpeedMax);
+				hint.setText = _prop.msgs.rangeHint
+					(Content.transitionSpeed_min,
+					Content.transitionSpeed_max);
 			}
 			if (_evt) {
 				_tsSpeed.setSelection = _evt.transitionSpeed;
@@ -901,7 +905,7 @@ protected:
 }
 
 alias NumericEventDialog!(CType.WAIT, "_prop.msgs.dlgTitWait", "_prop.msgs.waitName",
-		"_prop.looks.waitMax", "_evt.wait", "_evt.wait = value;") WaitEventDialog;
+		"Content.wait_max", "_evt.wait", "_evt.wait = value;") WaitEventDialog;
 
 alias NumericEventDialog!(CType.BRANCH_RANDOM, "_prop.msgs.dlgTitBrRandom", "_prop.msgs.randomName",
 		"100", "_evt.percent", "_evt.percent = value;", 0, 50) BrRandomEventDialog;
@@ -911,7 +915,7 @@ alias NumericEventDialog!(CType.BRANCH_PARTY_NUMBER, "_prop.msgs.dlgTitPartyNum"
 
 template MoneyEventDialog(CType Type) {
 	alias NumericEventDialog!(Type, "_prop.msgs.dlgTitMoney", "_prop.msgs.moneyName",
-		"_prop.looks.moneyMax", "_evt.money", "_evt.money = value;") MoneyEventDialog;
+		"Content.money_max", "_evt.money", "_evt.money = value;") MoneyEventDialog;
 }
 
 /// 効果イベントの設定を行うダイアログ。
@@ -977,8 +981,8 @@ protected:
 					grp.setLayout = new GridLayout(2, false);
 					_lev = new Spinner(grp, SWT.BORDER);
 					_lev.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-					_lev.setMinimum = -(cast(int) _prop.looks.effectLevelMax);
-					_lev.setMaximum = _prop.looks.effectLevelMax;
+					_lev.setMinimum = Content.signedLevel_min;
+					_lev.setMaximum = Content.signedLevel_max;
 					auto l = new Label(grp, SWT.NONE);
 					l.setText = _prop.msgs.rangeHint(_lev.getMinimum, _lev.getMaximum);
 				}
@@ -1061,10 +1065,10 @@ protected:
 		tabf.setLayoutData = area.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 		if (_evt) {
 			_mview.motions = _evt.motions;
-			_lev.setSelection = _evt.level;
+			_lev.setSelection = _evt.signedLevel;
 			int sei = _se.indexOf(getBaseName(_evt.soundPath));
 			_se.select = sei >= 0 ? sei : 0;
-			_sucRate.setSelection = _evt.successRate + _prop.looks.successRateMax;
+			_sucRate.setSelection = _evt.successRate + Content.successRate_max;
 			_effTyp[_evt.effectType].setSelection = true;
 			_res[_evt.resist].setSelection = true;
 			_vis[_evt.cardVisual].setSelection = true;
@@ -1073,7 +1077,7 @@ protected:
 			_mview.motions = [];
 			_lev.setSelection = 0;
 			_se.select = 0;
-			_sucRate.setSelection = _prop.looks.successRateMax + _prop.looks.successRateMax;
+			_sucRate.setSelection = Content.successRate_max + Content.successRate_max;
 			_effTyp[EffectType.NONE].setSelection = true;
 			_res[Resist.UNFAIL].setSelection = true;
 			_vis[CardVisual.NONE].setSelection = true;
@@ -1085,9 +1089,9 @@ protected:
 		if (ok) {
 			if (!_evt) _evt = new Content(CType.EFFECT, "");
 			_evt.motions = _mview.motions;
-			_evt.level = _lev.getSelection;
+			_evt.signedLevel = _lev.getSelection;
 			_evt.soundPath = _se.getSelectionIndex > 0 ? _se.getText : "";
-			_evt.successRate = cast(int) _sucRate.getSelection - _prop.looks.successRateMax;
+			_evt.successRate = cast(int) _sucRate.getSelection - Content.successRate_max;
 			_evt.effectType = getRadioValue!(EffectType)(_effTyp);
 			_evt.resist = getRadioValue!(Resist)(_res);
 			_evt.cardVisual = getRadioValue!(CardVisual)(_vis);
@@ -1378,8 +1382,8 @@ protected:
 				grp.setLayout = new GridLayout(2, false);
 				_lev = new Spinner(grp, SWT.BORDER);
 				_lev.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				_lev.setMinimum = -(cast(int) _prop.looks.castLevelMax);
-				_lev.setMaximum = _prop.looks.castLevelMax;
+				_lev.setMinimum = Content.signedLevel_min;
+				_lev.setMaximum = Content.signedLevel_max;
 				auto l = new Label(grp, SWT.NONE);
 				l.setText = _prop.msgs.rangeHint(_lev.getMinimum, _lev.getMaximum);
 			}
@@ -1444,7 +1448,7 @@ protected:
 			}
 		}
 		if (_evt) {
-			_lev.setSelection = _evt.level;
+			_lev.setSelection = _evt.signedLevel;
 			_targ[_evt.targetS.m].setSelection = true;
 			_sleep[_evt.targetS.sleep ? 0 : 1].setSelection = true;
 			_phy[_evt.physical].setSelection = true;
@@ -1462,7 +1466,7 @@ protected:
 		if (ok) {
 			if (!_evt) _evt = new Content(CType.BRANCH_ABILITY, "");
 			auto targ = Target(getRadioValue!(Target.M)(_targ), _sleep[0].getSelection);
-			_evt.level = _lev.getSelection;
+			_evt.signedLevel = _lev.getSelection;
 			_evt.targetS = targ;
 			_evt.physical = getRadioValue!(Physical)(_phy);
 			_evt.mental = getRadioValue!(Mental)(_mtl);
@@ -1517,15 +1521,15 @@ protected:
 			comp.setLayout = zeroMarginGridLayout(2, false);
 			_lev = new Spinner(comp, SWT.BORDER);
 			_lev.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-			_lev.setMinimum = 1;
-			_lev.setMaximum = _prop.looks.castLevelMax;
+			_lev.setMinimum = Content.unsignedLevel_min;
+			_lev.setMaximum = Content.unsignedLevel_max;
 			auto l = new Label(comp, SWT.NONE);
 			l.setText = _prop.msgs.rangeHint(_lev.getMinimum, _lev.getMaximum);
 		}
 
 		if (_evt) {
 			_ave[_evt.average ? 0 : 1].setSelection = true;
-			_lev.setSelection = _evt.level;
+			_lev.setSelection = _evt.unsignedLevel;
 		} else {
 			_ave[1].setSelection = true;
 			_lev.setSelection = 1;
@@ -1536,7 +1540,7 @@ protected:
 		if (ok) {
 			if (!_evt) _evt = new Content(CType.BRANCH_LEVEL, "");
 			_evt.average = _ave[0].getSelection;
-			_evt.level = _lev.getSelection;
+			_evt.unsignedLevel = _lev.getSelection;
 		}
 		return ok;
 	}
@@ -1683,7 +1687,7 @@ protected:
 				_num = new Spinner(comp2, SWT.BORDER);
 				_num.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				_num.setMinimum = 1;
-				_num.setMaximum = _prop.looks.cardNumberMax;
+				_num.setMaximum = Content.cardNumber_max;
 				auto l = new Label(comp2, SWT.NONE);
 				l.setText = _prop.msgs.rangeHint(_num.getMinimum, _num.getMaximum);
 				static if (Delete) {
@@ -1858,10 +1862,12 @@ protected:
 			auto ls = new Label(comp, SWT.NONE);
 			ls.setText = _prop.msgs.transitionSpeed;
 			_tsSpeed = new Spinner(comp, SWT.BORDER);
-			_tsSpeed.setMaximum = _prop.looks.transitionSpeedMax;
-			_tsSpeed.setMinimum = 0;
+			_tsSpeed.setMaximum = Content.transitionSpeed_max;
+			_tsSpeed.setMinimum = Content.transitionSpeed_min;
 			auto hint = new Label(comp, SWT.NONE);
-			hint.setText = _prop.msgs.rangeHint(0, _prop.looks.transitionSpeedMax);
+			hint.setText = _prop.msgs.rangeHint
+				(Content.transitionSpeed_min,
+				Content.transitionSpeed_max);
 		}
 		if (_evt) {
 			_tsSpeed.setSelection = _evt.transitionSpeed;

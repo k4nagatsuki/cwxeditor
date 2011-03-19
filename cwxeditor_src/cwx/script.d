@@ -36,12 +36,12 @@ class CWXScriptException : Exception {
 
 /// スクリプトを解析し、コンテント群にして返す。
 /// 解析中にエラーがあった場合はCWXScriptExceptionを投げる。
-/// TODO: テキストの縦センタリング 日本語コンパイルエラーメッセージ
+/// TODO: コンテント群からスクリプトに逆変換
 static Content[] compile(CProps prop, Summary summ, string script) {
 	try {
-		auto tokens = CWXScript.tokenize(script);
-		auto nodes = CWXScript.analyzeSyntax(tokens);
 		auto compiler = CWXScript(prop, summ);
+		auto tokens = compiler.tokenize(script);
+		auto nodes = compiler.analyzeSyntax(tokens);
 		return compiler.analyzeSemantics(nodes);
 	} catch (CWXScriptException e) {
 		e._text = script;
@@ -106,64 +106,80 @@ struct CWXScript {
 		int opEquals(Token* o) {
 			return line == o.line && pos == o.pos && kind == o.kind && value == o.value;
 		}
-		/// 値を文字列として解釈して返す。
-		/// 文字列を囲う記号に加え、
-		/// 行頭にあるタブ文字や一定数の空白が取り除かれる。
-		string stringValue() {
-			string decode(string s, char esc) {
-				char[] buf = new char[s.length];
-				size_t len = 0;
-				bool escape = false;
-				foreach (char c; s) {
-					if (!escape && c == esc) {
-						escape = true;
-					} else {
-						buf[len] = c;
-						len++;
-						escape = false;
-					}
-				}
-				if (escape) {
-					buf[len] = '\\';
+	}
+	/// Tokenの値を文字列として解釈して返す。
+	/// 文字列を囲う記号に加え、
+	/// 行頭にあるタブ文字や一定数の空白が取り除かれる。
+	private string stringValue(Token tok) {
+		string decode(string s, char esc) {
+			char[] buf = new char[s.length];
+			size_t len = 0;
+			bool escape = false;
+			foreach (char c; s) {
+				if (!escape && c == esc) {
+					escape = true;
+				} else {
+					buf[len] = c;
 					len++;
+					escape = false;
 				}
-				return buf[0 .. len];
 			}
-			.enforce(kind is Kind.STRING && value.length >= 2,
-				new Exception("Invalid string: " ~ value, __FILE__, __LINE__));
-			if (value[0] == '@') {
-				char[] buf;
-				auto lines = .splitlines(value[0 .. $ - 1]);
-				if (lines[0].length > 1) {
-					auto lnStr = .strip(lines[0][1 .. $]);
-					.enforce(.isNumeric(lnStr), 
-						new Exception("Invalid string: " ~ value, __FILE__, __LINE__));
-					auto ln = .to!(int)(lnStr);
-					if (ln > 0) {
-						buf.length = ln - 1;
-					}
-					buf[] = '\n';
-				}
-				lines = lines[1 .. $];
-				foreach (i, line; lines) {
-					if (i > 0) buf ~= '\n';
-					while (line.startsWith("\t")) line = line[1 .. $];
-					while (line.startsWith("    ")) line = line[4 .. $];
-					buf ~= line;
-				}
-				return decode(buf, value[0]);
+			if (escape) {
+				buf[len] = '\\';
+				len++;
 			}
-			return decode(value[1 .. $ - 1], value[0]);
-		} unittest {
-			assert (Token(0, 0, Kind.STRING, `"abc"`).stringValue == "abc");
-			assert (Token(0, 0, Kind.STRING, `'ab''c'`).stringValue == "ab'c");
-			assert (Token(0, 2, Kind.STRING, "@ 3\n\t\tte@@st\n\t\tt\\e\\st@").stringValue
-				 == "\n\nte@st\nt\\e\\st");
+			return buf[0 .. len];
 		}
+		.enforce(tok.kind is Kind.STRING && tok.value.length >= 2,
+			new Exception("Invalid string: " ~ tok.value, __FILE__, __LINE__));
+		if (tok.value[0] == '@') {
+			char[] buf;
+			auto lines = .splitlines(tok.value[0 .. $ - 1]);
+			foreach (i, line; lines[1 .. $]) {
+				while (line.startsWith("\t")) line = line[1 .. $];
+				while (line.startsWith("    ")) line = line[4 .. $];
+				lines[i + 1] = line;
+			}
+			if (lines[0].length > 1) {
+				auto lnStr = std.string.tolower(.strip(lines[0][1 .. $]));
+				bool isNum = .isNumeric(lnStr);
+				if (!isNum && lnStr != "center") {
+					throwError(_prop.msgs.scriptErrorInvalidStr, tok);
+				}
+				int ln;
+				if (isNum) {
+					ln = .to!(int)(lnStr);
+				} else {
+					int lc = cast(int) lineCount(lines[1 .. $]);
+					if (lc > 0 && lc < _prop.looks.messageLine) {
+						int lnt = cast(int) _prop.looks.messageLine - (lc - 1);
+						ln = lnt / 2 + 1;
+					} else {
+						ln = 0;
+					}
+				}
+				if (ln > 0) {
+					buf.length = ln - 1;
+				}
+				buf[] = '\n';
+			}
+			foreach (i, line; lines[1 .. $]) {
+				if (i > 0) buf ~= '\n';;
+				buf ~= line;
+			}
+			return decode(buf, tok.value[0]);
+		}
+		return decode(tok.value[1 .. $ - 1], tok.value[0]);
+	} unittest {
+		CWXScript s;
+		assert (s.stringValue(Token(0, 0, Kind.STRING, `"abc"`)) == "abc");
+		assert (s.stringValue(Token(0, 0, Kind.STRING, `'ab''c'`)) == "ab'c");
+		assert (s.stringValue(Token(0, 2, Kind.STRING, "@ 3\n\t\tte@@st\n\t\tt\\e\\st@"))
+			 == "\n\nte@st\nt\\e\\st");
 	}
 
 	/// textをTokenに分割する。
-	static Token[] tokenize(string text) {
+	Token[] tokenize(string text) {
 		Token[] r;
 		text = .replace(text, "\r\n", "\n");
 		text = .replace(text, "\r", "\n");
@@ -176,7 +192,7 @@ struct CWXScript {
 			`\]`, // close bracket
 			`"([^"]|\\")*"`, // string
 			`'([^']|\\')*'`, // string
-			`@[ \t]*[0-9]*[ \t]*\n([^@]|\\@)*\n[ \t]*@`, // string
+			`@[ \t]*([0-9]*|[Cc][Ee][Nn][Tt][Ee][Rr])[ \t]*\n(([^@]|\\@)*\n)?[ \t]*@`, // string
 			`[ \t\r\n]+`, // whitespace
 			`\+`,// plus
 			`-`, // minus
@@ -193,7 +209,7 @@ struct CWXScript {
 		string post;
 		foreach (token; reg.search(text)) {
 			if (token.pre.length - hits > 0) {
-				throwErrorToken("Invalid token: " ~ token.pre[hits .. $], i, pos, "");
+				throwErrorToken(_prop.msgs.scriptErrorInvalidToken, i, pos, "");
 			}
 			post = token.post;
 			auto str = token.match(0);
@@ -289,10 +305,11 @@ struct CWXScript {
 			}
 			hits += str.length;
 		}
-		if (post.length) throwErrorToken("Invalid token: " ~ post, i, pos, "");
+		if (post.length) throwErrorToken(_prop.msgs.scriptErrorInvalidToken, i, pos, "");
 		return r;
 	} unittest {
-		assert (tokenize("start 12.3 \ntest1 [$void] =\"str\ning;\"\n\r ;comment\nELIF if\n1/2+3*4%(5-6)")
+		CWXScript s;
+		assert (s.tokenize("start 12.3 \ntest1 [$void] =\"str\ning;\"\n\r ;comment\nELIF if\n1/2+3*4%(5-6)")
 			== [
 				Token(0, 0, Kind.START, "start"),
 				Token(0, 6, Kind.NUMBER, "12.3"),
@@ -321,7 +338,7 @@ struct CWXScript {
 	}
 
 	private const OPE_LEVEL_MAX = 1;
-	private static real calcNum(in Token[] tokens, ref size_t i, Token[string] varTable) {
+	private real calcNum(in Token[] tokens, ref size_t i, Token[string] varTable) {
 		assert (i < tokens.length);
 		auto tok = tokens[i];
 		if (tok.kind is Kind.VAR_NAME) {
@@ -335,13 +352,13 @@ struct CWXScript {
 			i++;
 		}
 		if (tokens.length <= i || tokens[i].kind !is Kind.NUMBER) {
-			throwError("Invalid number", tok);
+			throwError(_prop.msgs.scriptErrorInvalidNumber, tok);
 		}
 		real r = to!(real)(tokens[i].value);
 		i++;
 		return min ? -r : r;
 	}
-	private static real calcPar(in Token[] tokens, ref size_t i, Token[string] varTable) {
+	private real calcPar(in Token[] tokens, ref size_t i, Token[string] varTable) {
 		assert (i < tokens.length);
 		auto tok = tokens[i];
 		switch (tok.kind) {
@@ -349,7 +366,7 @@ struct CWXScript {
 			i++;
 			real r = calcImpl(0, tokens, i, varTable);
 			if (tokens[i].kind !is Kind.C_PAR) {
-				throwError("A close paren is not found", tok);
+				throwError(_prop.msgs.scriptErrorCloseParenNotFound, tok);
 			}
 			i++;
 			return r;
@@ -357,7 +374,7 @@ struct CWXScript {
 			return calcNum(tokens, i, varTable);
 		}
 	}
-	private static real calcImpl(size_t opeLevel, in Token[] tokens, ref size_t i, Token[string] varTable) {
+	private real calcImpl(size_t opeLevel, in Token[] tokens, ref size_t i, Token[string] varTable) {
 		assert (i < tokens.length);
 		real r;
 		if (opeLevel >= OPE_LEVEL_MAX) {
@@ -368,7 +385,7 @@ struct CWXScript {
 		while (i < tokens.length) {
 			auto tok = tokens[i];
 			real chkDiv(real val) {
-				if (val == 0.0) throwError("Zero division", tok);
+				if (val == 0.0) throwError(_prop.msgs.scriptErrorZeroDivision, tok);
 				return val;
 			}
 			switch (opeLevel) {
@@ -408,7 +425,7 @@ struct CWXScript {
 		return r;
 	}
 	/// tokensを計算式と看做し、計算結果の値を返す。
-	static real calc(in Token[] tokens, ref size_t i, Token[string] varTable) {
+	real calc(in Token[] tokens, ref size_t i, Token[string] varTable) {
 		assert (i < tokens.length);
 		return calcImpl(0, tokens, i, varTable);
 	} unittest {
@@ -416,30 +433,31 @@ struct CWXScript {
 		Token[] tokens;
 		Token[string] varTable;
 		varTable["$abc"] = Token(0, 0, Kind.NUMBER, "15");
+		CWXScript s;
 
 		i = 0;
-		assert (CWXScript.calc(CWXScript.tokenize("2*2+3"), i, varTable) == 7);
+		assert (s.calc(s.tokenize("2*2+3"), i, varTable) == 7);
 		i = 0;
-		assert (CWXScript.calc(CWXScript.tokenize("2*(2+3)"), i, varTable) == 10);
+		assert (s.calc(s.tokenize("2*(2+3)"), i, varTable) == 10);
 		i = 0;
-		assert (CWXScript.calc(CWXScript.tokenize("1+2*3"), i, varTable) == 7);
+		assert (s.calc(s.tokenize("1+2*3"), i, varTable) == 7);
 		i = 0;
-		assert (CWXScript.calc(CWXScript.tokenize("(1+2)*3"), i, varTable) == 9);
+		assert (s.calc(s.tokenize("(1+2)*3"), i, varTable) == 9);
 		i = 0;
-		assert (CWXScript.calc(CWXScript.tokenize("-3-3"), i, varTable) == -6);
+		assert (s.calc(s.tokenize("-3-3"), i, varTable) == -6);
 		i = 0;
-		assert (CWXScript.calc(CWXScript.tokenize("2 * 3 % 4"), i, varTable) == 2);
+		assert (s.calc(s.tokenize("2 * 3 % 4"), i, varTable) == 2);
 		i = 0;
-		assert (CWXScript.calc(CWXScript.tokenize("3 + -3-3"), i, varTable) == -3);
+		assert (s.calc(s.tokenize("3 + -3-3"), i, varTable) == -3);
 		i = 0;
-		assert (CWXScript.calc(CWXScript.tokenize("1+2 * 3 % 4"), i, varTable) == 3);
+		assert (s.calc(s.tokenize("1+2 * 3 % 4"), i, varTable) == 3);
 		i = 0;
-		tokens = CWXScript.tokenize("1+2 * 3 % 4 + -3-$abc $abc");
-		assert (CWXScript.calc(tokens, i, varTable) == -15);
+		tokens = s.tokenize("1+2 * 3 % 4 + -3-$abc $abc");
+		assert (s.calc(tokens, i, varTable) == -15);
 		assert (tokens[i].value == "$abc");
 		i = 0;
-		tokens = CWXScript.tokenize("(1+2) * 3 % 4 + (-3-3) if");
-		assert (CWXScript.calc(tokens, i, varTable) == -5);
+		tokens = s.tokenize("(1+2) * 3 % 4 + (-3-3) if");
+		assert (s.calc(tokens, i, varTable) == -5);
 		assert (tokens[i].value == "if");
 	}
 
@@ -451,7 +469,7 @@ struct CWXScript {
 		KEYS = Keywords([
 			cast(string) "start":CType.START,
 			cast(string) "gobattle":CType.START_BATTLE,
-			cast(string) "end":CType.END,
+			cast(string) "endsc":CType.END,
 			cast(string) "gameover":CType.END_BAD_END,
 			cast(string) "goarea":CType.CHANGE_AREA,
 			cast(string) "chgback":CType.CHANGE_BG_IMAGE,
@@ -466,7 +484,7 @@ struct CWXScript {
 			cast(string) "wait":CType.WAIT,
 			cast(string) "elapse":CType.ELAPSE_TIME,
 			cast(string) "callstart":CType.CALL_START,
-			cast(string) "callpacke":CType.CALL_PACKAGE,
+			cast(string) "callpack":CType.CALL_PACKAGE,
 			cast(string) "brflag":CType.BRANCH_FLAG,
 			cast(string) "brstepm":CType.BRANCH_MULTI_STEP,
 			cast(string) "brstept":CType.BRANCH_STEP,
@@ -528,7 +546,7 @@ struct CWXScript {
 	}
 
 	/// スクリプトの解析結果として生成されるノード。
-	static struct Node {
+	struct Node {
 		NodeType type; /// 型。
 		Token token; /// 先頭のToken。
 		Token text = Token(0, 0, Kind.STRING, `""`); /// テキスト。
@@ -538,35 +556,6 @@ struct CWXScript {
 		Token[] calc; /// 計算式。
 		alias calc var; /// 変数。
 		Node[] beforeVars; /// ノードの直前に宣言された変数群。
-		/// 属性値を文字列にして返す。
-		string attrValue(Token[string] varTable) {
-			switch (token.kind) {
-			case Kind.SYMBOL: return std.string.tolower(token.value);
-			case Kind.STRING: return token.stringValue;
-			case Kind.VAR_NAME, Kind.NUMBER, Kind.PLU, Kind.MIN, Kind.O_PAR:
-				size_t i = 0;
-				return to!(string)(CWXScript.calc(calc, i, varTable));
-			default: throwError("Invalid attribute", token);
-			}
-			assert (0);
-		}
-		/// 変数値をTokenとして返す。
-		Token varValue(Token[string] varTable) {
-			if (!var.length) {
-				throwError("Invalid variable", token);
-			}
-			switch (var[0].kind) {
-			case Kind.STRING: return var[0];
-			case Kind.VAR_NAME, Kind.NUMBER, Kind.PLU, Kind.MIN, Kind.O_PAR:
-				size_t i = 0;
-				Token tok = var[0];
-				tok.kind = Kind.NUMBER;
-				tok.value = to!(string)(CWXScript.calc(var, i, varTable));
-				return tok;
-			default: throwError("Invalid variable value", var[0]);
-			}
-			assert (0);
-		}
 		/// oと等しいか。
 		int opEquals(Node* o) {
 			return type == o.type && token == &o.token && text == &o.text
@@ -673,6 +662,35 @@ struct CWXScript {
 		}
 	}
 
+	/// 属性値を文字列にして返す。
+	private string attrValue(in Node node, Token[string] varTable) {
+		switch (node.token.kind) {
+		case Kind.SYMBOL: return std.string.tolower(node.token.value);
+		case Kind.STRING: return stringValue(node.token);
+		case Kind.VAR_NAME, Kind.NUMBER, Kind.PLU, Kind.MIN, Kind.O_PAR:
+			size_t i = 0;
+			return to!(string)(calc(node.calc, i, varTable));
+		default: throwError(_prop.msgs.scriptErrorInvalidAttr, node.token);
+		}
+		assert (0);
+	}
+	/// 変数値をTokenとして返す。
+	private Token varValue(in Node node, Token[string] varTable) {
+		if (!node.var.length) {
+			throwError(_prop.msgs.scriptErrorInvalidVar, node.token);
+		}
+		switch (node.var[0].kind) {
+		case Kind.STRING: return node.var[0];
+		case Kind.VAR_NAME, Kind.NUMBER, Kind.PLU, Kind.MIN, Kind.O_PAR:
+			size_t i = 0;
+			Token tok = node.var[0];
+			tok.kind = Kind.NUMBER;
+			tok.value = to!(string)(calc(node.var, i, varTable));
+			return tok;
+		default: throwError(_prop.msgs.scriptErrorInvalidVarVal, node.var[0]);
+		}
+		assert (0);
+	}
 	private static Token var(in Node node, in Token[string] varTable) {
 		return var(node.token, varTable);
 	}
@@ -685,7 +703,7 @@ struct CWXScript {
 	}
 
 	/// tokensを解釈し、Nodeのツリーに再編成する。
-	static Node[] analyzeSyntax(in Token[] tokens) {
+	Node[] analyzeSyntax(in Token[] tokens) {
 		Node[] r;
 		size_t i = 0;
 		Node[] vars;
@@ -703,7 +721,7 @@ struct CWXScript {
 			}
 			i++;
 			if (tokens.length <= i) {
-				throwError("No start text", tok);
+				throwError(_prop.msgs.scriptErrorNoStartText, tok);
 			}
 			Node node;
 			node.type = NodeType.START;
@@ -719,7 +737,7 @@ struct CWXScript {
 					node.childs ~= analyzeSyntaxBranch(tokens, i, KEYS);
 					continue;
 				case Kind.O_BRA, Kind.C_BRA, Kind.NUMBER, Kind.STRING:
-					throwError("Invalid statement", tokens[i]);
+					throwError(_prop.msgs.scriptErrorInvalidStatement, tokens[i]);
 					break;
 				default: assert (0);
 				}
@@ -729,6 +747,7 @@ struct CWXScript {
 		}
 		return r;
 	} unittest {
+		CWXScript s;
 		string statement
 = `
 $var1 = 'oops'
@@ -750,7 +769,7 @@ if 'abc'
     if true
         $var3 = 'what?'
         showparty
-        end true
+        endsc true
         $var_dummy = noshing
     elif false
         gameover    ; comment1
@@ -763,8 +782,8 @@ start "second start"
     showparty
     getskill 1`;
 
-		auto tokens = tokenize(statement);
-		auto starts = analyzeSyntax(tokens);
+		auto tokens = s.tokenize(statement);
+		auto starts = s.analyzeSyntax(tokens);
 		assert (starts[0].code("    ")
 			== "$var1 = 'oops'\n"
 			~ "Start \"First start\"\n"
@@ -784,7 +803,7 @@ start "second start"
 			~ "    if true\n"
 			~ "        $var3 = 'what?'\n"
 			~ "        showparty\n"
-			~ "        end true\n"
+			~ "        endsc true\n"
 			~ "    elif false\n"
 			~ "        gameover\n"
 			~ "    fi\n"
@@ -803,31 +822,31 @@ brflag 'card\mate1'
 if true
     $var3 = 'what?'
     showparty
-    end true
+    endsc true
     $var_dummy = noshing
 elif false
     gameover    ; comment1
 fi`;
-		auto tokens2 = tokenize(statement2);
-		auto contents = analyzeSyntax(tokens2);
+		auto tokens2 = s.tokenize(statement2);
+		auto contents = s.analyzeSyntax(tokens2);
 		assert (contents[0].code("    ")
 			== "brflag 'card\\mate1'\n"
 			~ "if true\n"
 			~ "    $var3 = 'what?'\n"
 			~ "    showparty\n"
-			~ "    end true\n"
+			~ "    endsc true\n"
 			~ "elif false\n"
 			~ "    gameover\n"
 			~ "fi");
 	}
 
-	private static Node[] analyzeSyntaxBranch(in Token[] tokens, ref size_t i, in Keywords keys) {
+	private Node[] analyzeSyntaxBranch(in Token[] tokens, ref size_t i, in Keywords keys) {
 		Node[] r;
 		auto tok = tokens[i];
 		switch (tok.kind) {
 		case Kind.START: return r;
 		case Kind.NUMBER, Kind.STRING, Kind.ELIF, Kind.FI, Kind.O_BRA, Kind.C_BRA:
-			throwError("Invalid branch", tok);
+			throwError(_prop.msgs.scriptErrorInvalidBranch, tok);
 			break;
 		case Kind.IF, Kind.VAR_NAME:
 			while (i < tokens.length) {
@@ -835,12 +854,12 @@ fi`;
 				if (tokens[i].kind !is Kind.VAR_NAME) {
 					i++;
 					if (tokens.length <= i) {
-						throwError("No if text", tok);
+						throwError(_prop.msgs.scriptErrorNoIfText, tok);
 					}
 					text = tokens[i];
 					i++;
 					if (tokens.length <= i) {
-						throwError("No if contents", tok);
+						throwError(_prop.msgs.scriptErrorNoIfContents, tok);
 					}
 				}
 				auto node = analyzeSyntaxStatement(tokens, i, keys);
@@ -853,7 +872,7 @@ fi`;
 				case Kind.ELIF: continue;
 				case Kind.VAR_NAME: continue;
 				case Kind.IF, Kind.O_BRA, Kind.C_BRA, Kind.SYMBOL, Kind.NUMBER, Kind.STRING:
-					throwError("Invalid statement", tokens[i]);
+					throwError(_prop.msgs.scriptErrorInvalidStatement, tokens[i]);
 					break;
 				}
 			}
@@ -865,26 +884,26 @@ fi`;
 		}
 		return r;
 	}
-	private static Node[] eatVarSet(in Token[] tokens, ref size_t i, in Keywords keys) {
+	private Node[] eatVarSet(in Token[] tokens, ref size_t i, in Keywords keys) {
 		Node[] r;
 		while (i < tokens.length && tokens[i].kind is Kind.VAR_NAME) {
 			r ~= analyzeSyntaxVar(tokens, i, keys);
 		}
 		return r;
 	}
-	private static Node analyzeSyntaxStatement(in Token[] tokens, ref size_t i, in Keywords keys) {
+	private Node analyzeSyntaxStatement(in Token[] tokens, ref size_t i, in Keywords keys) {
 		assert (i < tokens.length);
 		auto vars = eatVarSet(tokens, i, keys);
 		auto tok = tokens[i];
 		if (tok.kind !is Kind.SYMBOL) {
-			throwError("Invalid statement: " ~ to!(string)(cast(int) tok.kind), tok);
+			throwError(_prop.msgs.scriptErrorInvalidStatement, tok);
 		}
 		Node node;
 		node.type = NodeType.COMMAND;
 		node.token = tok;
 		auto symbol = std.string.tolower(tok.value);
 		if (!(symbol in keys.keywords)) {
-			throwError("Invalid keyword", tok);
+			throwError(_prop.msgs.scriptErrorInvalidKeyword, tok);
 		}
 		node.beforeVars = vars;
 		i++;
@@ -915,7 +934,7 @@ fi`;
 		}
 		return node;
 	}
-	private static Node[] analyzeSyntaxAttr(in Token[] tokens, ref size_t i, in Keywords keys) {
+	private Node[] analyzeSyntaxAttr(in Token[] tokens, ref size_t i, in Keywords keys) {
 		Node[] r;
 		while (i < tokens.length) {
 			auto tok = tokens[i];
@@ -940,19 +959,20 @@ fi`;
 				}
 				goto case Kind.SYMBOL;
 			case Kind.C_BRA, Kind.C_PAR, Kind.EQ, Kind.MUL, Kind.DIV, Kind.RES:
-				throwError("Invalid attribute", tok);
+				throwError(_prop.msgs.scriptErrorInvalidAttr, tok);
 				break;
 			default: assert (0);
 			}
 		}
 		return r;
 	} unittest {
+		CWXScript s;
 		Token[] tokens;
 		size_t i;
-		tokens = tokenize(`goarea`);
+		tokens = s.tokenize(`goarea`);
 		i = 0;
-		assert (analyzeSyntaxAttr(tokens, i, KEYS).length == 0);
-		tokens = tokenize(`area 1 "="if "next"`);
+		assert (s.analyzeSyntaxAttr(tokens, i, KEYS).length == 0);
+		tokens = s.tokenize(`area 1 "="if "next"`);
 		i = 0;
 		auto arr = [
 			Node(NodeType.VALUE, Token(0, 0, Kind.SYMBOL, "area")),
@@ -962,18 +982,18 @@ fi`;
 		arr[0].var ~= arr[0].token;
 		arr[1].var ~= arr[1].token;
 		arr[2].var ~= arr[2].token;
-		assert (analyzeSyntaxAttr(tokens, i, KEYS) == arr);
+		assert (s.analyzeSyntaxAttr(tokens, i, KEYS) == arr);
 		assert (tokens[i].kind is Kind.IF);
-		tokens = tokenize(`area 1 "="Start`);
+		tokens = s.tokenize(`area 1 "="Start`);
 		i = 0;
-		assert (analyzeSyntaxAttr(tokens, i, KEYS) == arr);
+		assert (s.analyzeSyntaxAttr(tokens, i, KEYS) == arr);
 		assert (tokens[i].value == "Start");
 	}
-	private static Node analyzeSyntaxBrackets(in Token[] tokens, ref size_t i, in Keywords keys) {
+	private Node analyzeSyntaxBrackets(in Token[] tokens, ref size_t i, in Keywords keys) {
 		assert (i < tokens.length);
 		auto o = tokens[i];
 		if (o.kind !is Kind.O_BRA) {
-			throwError("Invalid array", o);
+			throwError(_prop.msgs.scriptErrorInvalidValuesOpen, o);
 		}
 		Node r;
 		r.type = NodeType.VALUES;
@@ -993,7 +1013,7 @@ fi`;
 				r.values ~= node;
 				break;
 			case Kind.START, Kind.IF, Kind.FI, Kind.ELIF, Kind.EQ:
-				throwError("Invalid array value", tok);
+				throwError(_prop.msgs.scriptErrorInvalidValuesClose, tok);
 				break;
 			default: assert (0);
 			}
@@ -1001,27 +1021,27 @@ fi`;
 		throwError("Close bracket not forund", o);
 		return r;
 	}
-	private static Node analyzeSyntaxVar(in Token[] tokens, ref size_t i, in Keywords keys) {
+	private Node analyzeSyntaxVar(in Token[] tokens, ref size_t i, in Keywords keys) {
 		assert (i < tokens.length);
 		auto tok = tokens[i];
 		if (tok.kind !is Kind.VAR_NAME) {
-			throwError("Invalid variable: " ~ to!(string)(cast(int) tok.kind), tok);
+			throwError(_prop.msgs.scriptErrorInvalidVar, tok);
 		}
 		i++;
 		if (tokens.length <= i || tokens[i].kind !is Kind.EQ) {
-			throwError("No variable set: " ~ to!(string)(cast(int) tokens[i].kind), tokens[i]);
+			throwError(_prop.msgs.scriptErrorNoVarSet, tokens[i]);
 		}
 		Node node;
 		node.type = NodeType.VAR_SET;
 		node.token = tok;
 		i++;
 		if (tokens.length <= i) {
-			throwError("No variable value", tok);
+			throwError(_prop.msgs.scriptErrorNoVarVal, tok);
 		}
 		node.var = analyzeSyntaxValue(tokens, i, keys);
 		return node;
 	}
-	private static Token[] analyzeSyntaxValue(in Token[] tokens, ref size_t i, in Keywords keys) {
+	private Token[] analyzeSyntaxValue(in Token[] tokens, ref size_t i, in Keywords keys) {
 		Token[] r;
 		bool calcin = false;
 		bool num = true;
@@ -1044,17 +1064,17 @@ fi`;
 					goto case Kind.MUL;
 				}
 			case Kind.O_PAR:
-				if (!num) throwError("Invalid calculator", tok);
+				if (!num) throwError(_prop.msgs.scriptErrorInvalidCalc, tok);
 				r ~= tok;
 				i++;
 				break;
 			case Kind.C_PAR:
-				if (num) throwError("Invalid calculator", tok);
+				if (num) throwError(_prop.msgs.scriptErrorInvalidCalc, tok);
 				r ~= tok;
 				i++;
 				break;
 			case Kind.MUL, Kind.DIV, Kind.RES:
-				if (num) throwError("Invalid calculator", tok);
+				if (num) throwError(_prop.msgs.scriptErrorInvalidCalc, tok);
 				r ~= tok;
 				num = true;
 				i++;
@@ -1077,7 +1097,7 @@ fi`;
 	private T parseAttr(T, bool Within = false)(in Node[] attr, ref size_t i, lazy T defValue, in Token[string] varTable) {
 		if (attr.length <= i) return defValue;
 		auto tok = var(attr[i], varTable);
-		auto value = attr[i].attrValue(varTable);
+		auto value = attrValue(attr[i], varTable);
 		static if (is(T == string)) {
 			i++;
 			return value;
@@ -1095,7 +1115,7 @@ fi`;
 			case "false", "no", "off", "active", "manual", "max", "nocomplete":
 				i++;
 				return false;
-			default: throwError("Invalid boolean value", tok);
+			default: throwError(_prop.msgs.scriptErrorInvalidBoolVal, tok);
 			}
 		} else static if (is(T == Transition)) {
 			switch (value) {
@@ -1104,26 +1124,26 @@ fi`;
 			case "fade": i++; return Transition.FADE;
 			case "dissolve": i++; return Transition.PIXEL_DISSOLVE;
 			case "blinds": i++; return Transition.BLINDS;
-			default: throwError("Invalid transition", tok);
+			default: throwError(_prop.msgs.scriptErrorInvalidTransition, tok);
 			}
 		} else static if (is(T == Range)) {
 			switch (value) {
 			case "m", "selected": i++; return Range.SELECTED;
-			case "r", "random": i++; return Range.RANDOM;
+			case "r", "random", "one": i++; return Range.RANDOM;
 			case "t", "team": i++; return Range.PARTY;
 			case "backpack":
 				static if (Within) goto default;
 				i++;
 				return Range.BACKPACK;
 			case "party":
-				static if (Within) goto default;
+				static if (Within) goto case "team";
 				i++;
 				return Range.PARTY_AND_BACKPACK;
 			case "field":
 				static if (Within) goto default;
 				i++;
 				return Range.FIELD;
-			default: throwError("Invalid range", tok);
+			default: throwError(_prop.msgs.scriptErrorInvalidRange, tok);
 			}
 		} else static if (is(T == Status)) {
 			switch (value) {
@@ -1139,7 +1159,7 @@ fi`;
 			case "sleep": i++; return Status.SLEEP;
 			case "bind": i++; return Status.BIND;
 			case "paralyze": i++; return Status.PARALYZE;
-			default: throwError("Invalid status", tok);
+			default: throwError(_prop.msgs.scriptErrorInvalidStatus, tok);
 			}
 		} else static if (is(T == Target)) {
 			bool sleep = false;
@@ -1153,7 +1173,7 @@ fi`;
 				i++;
 				static if (!Within) i++;
 				return Target(Target.M.SELECTED, sleep);
-			case "r", "random":
+			case "r", "random", "one":
 				i++;
 				static if (!Within) i++;
 				return Target(Target.M.RANDOM, sleep);
@@ -1161,7 +1181,7 @@ fi`;
 				i++;
 				static if (!Within) i++;
 				return Target(Target.M.UNSELECTED, sleep);
-			default: throwError("Invalid target", tok);
+			default: throwError(_prop.msgs.scriptErrorInvalidTarget, tok);
 			}
 		} else static if (is(T == EffectType)) {
 			switch (value) {
@@ -1170,14 +1190,14 @@ fi`;
 			case "mphysic": i++;return EffectType.MAGICAL_PHYSIC;
 			case "pmagic": i++;return EffectType.PHYSICAL_MAGIC;
 			case "none": i++;return EffectType.NONE;
-			default: throwError("Invalid effect type", tok);
+			default: throwError(_prop.msgs.scriptErrorInvalidEffectType, tok);
 			}
 		} else static if (is(T == Resist)) {
 			switch (value) {
 			case "avoid": i++;return Resist.AVOID;
 			case "resist": i++;return Resist.RESIST;
 			case "unfail": i++;return Resist.UNFAIL;
-			default: throwError("Invalid resist", tok);
+			default: throwError(_prop.msgs.scriptErrorInvalidResist, tok);
 			}
 		} else static if (is(T == CardVisual)) {
 			switch (value) {
@@ -1185,7 +1205,7 @@ fi`;
 			case "reverse": i++;return CardVisual.REVERSE;
 			case "hswing": i++;return CardVisual.HORIZONTAL;
 			case "vswing": i++;return CardVisual.VERTICAL;
-			default: throwError("Invalid card visual", tok);
+			default: throwError(_prop.msgs.scriptErrorInvalidCardVisual, tok);
 			}
 		} else static if (is(T == Mental)) {
 			switch (value) {
@@ -1199,7 +1219,7 @@ fi`;
 			case "uncaut": i++; return Mental.UNCAUTIOUS;
 			case "trick": i++; return Mental.TRICKISH;
 			case "untrick": i++; return Mental.UNTRICKISH;
-			default: throwError("Invalid mental", tok);
+			default: throwError(_prop.msgs.scriptErrorInvalidMental, tok);
 			}
 		} else static if (is(T == Physical)) {
 			switch (value) {
@@ -1209,7 +1229,7 @@ fi`;
 			case "str": i++; return Physical.STR;
 			case "vit": i++; return Physical.VIT;
 			case "min": i++; return Physical.MIN;
-			default: throwError("Invalid physical", tok);
+			default: throwError(_prop.msgs.scriptErrorInvalidPhysical, tok);
 			}
 		} else static if (is(T == Talker)) {
 			i++;
@@ -1255,7 +1275,7 @@ fi`;
 			case "dealconfuse": return MType.DEAL_CONFUSE_CARD;
 			case "dealskill": return MType.DEAL_SKILL_CARD;
 			case "summon": return MType.SUMMON_BEAST;
-			default: throwError("Invalid motion", tok);
+			default: throwError(_prop.msgs.scriptErrorInvalidMotionType, tok);
 			}
 		} else static if (is(T == Element)) {
 			switch (value) {
@@ -1266,18 +1286,18 @@ fi`;
 			case "magic": return Element.MAGIC;
 			case "fire": return Element.FIRE;
 			case "ice": return Element.ICE;
-			default: throwError("Invalid element", tok);
+			default: throwError(_prop.msgs.scriptErrorInvalidElement, tok);
 			}
 		} else static if (is(T == DamageType)) {
 			switch (value) {
 			case "level": return DamageType.LEVEL_RATIO;
 			case "value": return DamageType.NORMAL;
 			case "max": return DamageType.MAX;
-			default: throwError("Invalid damage type", tok);
+			default: throwError(_prop.msgs.scriptErrorInvalidDamageType, tok);
 			}
 		} else static if (is(T == BgImage)) {
 			if (attr[i].type !is NodeType.VALUES) {
-				throwError("Invalid background", tok);
+				throwError(_prop.msgs.scriptErrorInvalidBgImage, tok);
 			}
 			size_t j = 0;
 			auto vals = attr[i].values;
@@ -1286,15 +1306,15 @@ fi`;
 			int x = parseAttr!(int)(vals, j, 0, varTable);
 			int y = parseAttr!(int)(vals, j, 0, varTable);
 			auto size = _prop.looks.viewSize;
-			int w = parseAttr!(uint)(vals, j, size.width, varTable);
-			int h = parseAttr!(uint)(vals, j, size.height, varTable);
+			int w = parseAttr!(int)(vals, j, size.width, varTable);
+			int h = parseAttr!(int)(vals, j, size.height, varTable);
 			bool mask = parseAttr!(bool)(vals, j, false, varTable);
 			auto r = new BgImage(path, flag, x, y, w, h, mask);
 			i++;
 			return r;
 		} else static if (is(T == Motion)) {
 			if (attr[i].type !is NodeType.VALUES) {
-				throwError("Invalid motion", tok);
+				throwError(_prop.msgs.scriptErrorInvalidMotion, tok);
 			}
 			size_t j = 0;
 			auto vals = attr[i].values;
@@ -1305,13 +1325,13 @@ fi`;
 				r.damageType = parseAttr!(DamageType)(vals, j, r.damageType, varTable);
 			}
 			if (detail.use(MArg.U_VALUE)) {
-				r.uValue = parseAttr!(uint)(vals, j, r.uValue, varTable);
+				r.uValue = parseAttr!(int)(vals, j, r.uValue, varTable);
 			}
 			if (detail.use(MArg.A_VALUE)) {
 				r.aValue = parseAttr!(int)(vals, j, r.aValue, varTable);
 			}
 			if (detail.use(MArg.ROUND)) {
-				r.round = parseAttr!(uint)(vals, j, r.round, varTable);
+				r.round = parseAttr!(int)(vals, j, r.round, varTable);
 			}
 			if (detail.use(MArg.BEAST)) {
 				ulong beast = parseAttr!(ulong)(vals, j, 0, varTable);
@@ -1322,7 +1342,7 @@ fi`;
 			return r;
 		} else static if (is(T == SDialog)) {
 			if (attr[i].type !is NodeType.VALUES) {
-				throwError("Invalid dialog", tok);
+				throwError(_prop.msgs.scriptErrorInvalidDialog, tok);
 			}
 			size_t j = 0;
 			auto vals = attr[i].values;
@@ -1337,16 +1357,19 @@ fi`;
 			r.text = parseAttr!(string)(vals, j, r.text, varTable);
 			i++;
 			return r;
-		} else {
+		} else static if (is(T == int)) {
+			if (value == "all") return 0; // カード削除用
 			i++;
-			return to!(T)(value);
-		}
-		assert (0);
+			return to!(int)(value);
+		} else static if (is(T == ulong)) {
+			i++;
+			return to!(ulong)(value);
+		} else static assert (0);
 	}
-	private static void parseAttrTalker(in Node[] attr, ref size_t i, ref Talker t, ref string cardPath, in Token[string] varTable) {
+	private void parseAttrTalker(in Node[] attr, ref size_t i, ref Talker t, ref string cardPath, in Token[string] varTable) {
 		if (attr.length <= i) return;
 		auto tok = var(attr[i], varTable);
-		auto value = attr[i].attrValue(varTable);
+		auto value = attrValue(attr[i], varTable);
 		if (tok.kind is Kind.STRING) {
 			t = Talker.IMAGE;
 			cardPath = value;
@@ -1356,9 +1379,9 @@ fi`;
 		t = parseTalker!(false)(attr[i], varTable);
 		i++;
 	}
-	private static Talker parseTalker(bool Within)(in Node node, in Token[string] varTable) {
+	private Talker parseTalker(bool Within)(in Node node, in Token[string] varTable) {
 		auto tok = var(node, varTable);
-		auto value = node.attrValue(varTable);
+		auto value = attrValue(node, varTable);
 		switch (value) {
 		case "n", "none":
 			static if (Within) goto default;
@@ -1369,7 +1392,7 @@ fi`;
 		case "c", "card":
 			static if (Within) goto default;
 			return Talker.CARD;
-		default: throwError("Invalid talker", tok);
+		default: throwError(_prop.msgs.scriptErrorInvalidTalker, tok);
 		}
 		assert (0);
 	}
@@ -1379,7 +1402,7 @@ fi`;
 		if (value.kind is Kind.SYMBOL) {
 			auto valStr = std.string.tolower(value.value);
 			if (valStr in keys.keywords) {
-				throwError("Undefined symbol", node.text);
+				throwError(_prop.msgs.scriptErrorUndefinedSymbol, node.text);
 			}
 			switch (valStr) {
 			case "default":
@@ -1392,10 +1415,10 @@ fi`;
 				r = _prop.msgs.evtChildFalse;
 				break;
 			default:
-				throwError("Undefined symbol", node.text);
+				throwError(_prop.msgs.scriptErrorUndefinedSymbol, node.text);
 			}
 		} else {
-			r = value.stringValue;
+			r = stringValue(value);
 		}
 		return r;
 	}
@@ -1409,9 +1432,9 @@ fi`;
 			foreach (c; cs[1 .. $]) {
 				if ((c.type is CType.START) !is starts) {
 					if (starts) {
-						throwError("Starts get mixed other content", nodes[0].token);
+						throwError(_prop.msgs.scriptErrorStartsMixedContent, nodes[0].token);
 					} else {
-						throwError("Contents get mixed start", nodes[0].token);
+						throwError(_prop.msgs.scriptErrorContentsMixedStart, nodes[0].token);
 					}
 				}
 			}
@@ -1424,21 +1447,21 @@ fi`;
 		foreach (node; nodes) {
 			foreach (var; node.beforeVars) {
 				if (var.type !is NodeType.VAR_SET) {
-					throwError("Invalid variable", var.token);
+					throwError(_prop.msgs.scriptErrorInvalidVar, var.token);
 				}
-				varTable[std.string.tolower(node.token.value)] = var.varValue(varTable);
+				varTable[std.string.tolower(node.token.value)] = varValue(var, varTable);
 			}
 			if (node.type is NodeType.VAR_SET) {
-				varTable[std.string.tolower(node.token.value)] = node.varValue(varTable);
+				varTable[std.string.tolower(node.token.value)] = varValue(node, varTable);
 				continue;
 			}
 			if (node.type !is NodeType.COMMAND && node.type !is NodeType.START) {
-				throwError("Invalid command", node.token);
+				throwError(_prop.msgs.scriptErrorInvalidCommand, node.token);
 			}
 			string val = std.string.tolower(node.token.value);
 			auto cmdPtr = val in KEYS.keywords;
 			if (!cmdPtr) {
-				throwError("Invalid command", node.token);
+				throwError(_prop.msgs.scriptErrorInvalidCommand, node.token);
 			}
 			auto c = new Content(*cmdPtr, parseNextValue(node, keys, varTable));
 			size_t i = 0;
@@ -1502,7 +1525,7 @@ fi`;
 				c.complete = parseAttr!(bool)(node.attr, i, c.complete, varTable);
 			}
 			if (detail.use(CArg.MONEY)) {
-				c.money = parseAttr!(uint)(node.attr, i, c.money, varTable);
+				c.money = parseAttr!(int)(node.attr, i, c.money, varTable);
 			}
 			if (detail.use(CArg.COUPON)) {
 				c.coupon = parseAttr!(string)(node.attr, i, c.coupon, varTable);
@@ -1526,16 +1549,22 @@ fi`;
 				c.step = parseAttr!(string)(node.attr, i, c.step, varTable);
 			}
 			if (detail.use(CArg.STEP_VALUE)) {
-				c.stepValue = parseAttr!(uint)(node.attr, i, c.stepValue, varTable);
+				c.stepValue = parseAttr!(int)(node.attr, i, c.stepValue, varTable);
 			}
 			if (detail.use(CArg.RANGE)) {
 				c.range = parseAttr!(Range)(node.attr, i, c.range, varTable);
 			}
 			if (detail.use(CArg.CARD_NUMBER)) {
-				c.cardNumber = parseAttr!(uint)(node.attr, i, c.cardNumber, varTable);
+				c.cardNumber = parseAttr!(int)(node.attr, i, c.cardNumber, varTable);
 			}
-			if (detail.use(CArg.LEVEL)) {
-				c.level = parseAttr!(int)(node.attr, i, c.level, varTable);
+			if (detail.use(CArg.CARD_VISUAL)) {
+				c.cardVisual = parseAttr!(CardVisual)(node.attr, i, c.cardVisual, varTable);
+			}
+			if (detail.use(CArg.UNSIGNED_LEVEL)) {
+				c.unsignedLevel = parseAttr!(int)(node.attr, i, c.unsignedLevel, varTable);
+			}
+			if (detail.use(CArg.SIGNED_LEVEL)) {
+				c.signedLevel = parseAttr!(int)(node.attr, i, c.signedLevel, varTable);
 			}
 			if (detail.use(CArg.PHYSICAL)) {
 				c.physical = parseAttr!(Physical)(node.attr, i, c.physical, varTable);
@@ -1544,10 +1573,10 @@ fi`;
 				c.mental = parseAttr!(Mental)(node.attr, i, c.mental, varTable);
 			}
 			if (detail.use(CArg.WAIT)) {
-				c.wait = parseAttr!(uint)(node.attr, i, c.wait, varTable);
+				c.wait = parseAttr!(int)(node.attr, i, c.wait, varTable);
 			}
 			if (detail.use(CArg.PERCENT)) {
-				c.percent = parseAttr!(uint)(node.attr, i, c.percent, varTable);
+				c.percent = parseAttr!(int)(node.attr, i, c.percent, varTable);
 			}
 			if (detail.use(CArg.TARGET_ALL)) {
 				c.targetAll = parseAttr!(bool)(node.attr, i, c.targetAll, varTable);
@@ -1559,10 +1588,7 @@ fi`;
 				c.average = parseAttr!(bool)(node.attr, i, c.average, varTable);
 			}
 			if (detail.use(CArg.PARTY_NUMBER)) {
-				c.partyNumber = parseAttr!(uint)(node.attr, i, c.partyNumber, varTable);
-			}
-			if (detail.use(CArg.CARD_VISUAL)) {
-				c.cardVisual = parseAttr!(CardVisual)(node.attr, i, c.cardVisual, varTable);
+				c.partyNumber = parseAttr!(int)(node.attr, i, c.partyNumber, varTable);
 			}
 			if (detail.use(CArg.SUCCESS_RATE)) {
 				c.successRate = parseAttr!(int)(node.attr, i, c.successRate, varTable);
@@ -1583,14 +1609,14 @@ fi`;
 				c.soundPath = parseAttr!(string)(node.attr, i, c.soundPath, varTable);
 			}
 			if (detail.use(CArg.TRANSITION_SPEED)) {
-				c.transitionSpeed = parseAttr!(uint)(node.attr, i, c.transitionSpeed, varTable);
+				c.transitionSpeed = parseAttr!(int)(node.attr, i, c.transitionSpeed, varTable);
 			}
 			if (detail.use(CArg.TRANSITION)) {
 				c.transition = parseAttr!(Transition)(node.attr, i, c.transition, varTable);
 			}
 			foreach (chld; analyzeSemanticsImpl(node.childs, keys, varTable)) {
 				if (!c.detail.owner) {
-					throwError("Content can't have child content", node.token);
+					throwError(_prop.msgs.scriptErrorCanNotHaveContent, node.token);
 				}
 				c.add(chld);
 			}
