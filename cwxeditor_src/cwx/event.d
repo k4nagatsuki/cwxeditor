@@ -888,7 +888,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			~ "    if (" ~ Name ~ "_max < val) val = " ~ Name ~ "_max;"
 			~ "}"
 			~ "static if (is(typeof(" ~ Name ~ "_min))) {"
-			~ "    if (" ~ Name ~ "_min < val) val = " ~ Name ~ "_min;"
+			~ "    if (" ~ Name ~ "_min > val) val = " ~ Name ~ "_min;"
 			~ "}"
 			~ (New ? (is(typeof(new T))
 				? "if (!_" ~ Name ~ ") _" ~ Name ~ " = new " ~ T.stringof ~ ";"
