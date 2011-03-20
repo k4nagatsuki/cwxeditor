@@ -10,6 +10,7 @@ import cwx.utils;
 import cwx.race;
 import cwx.xml;
 import cwx.skin;
+import cwx.motion;
 
 import cwx.editor.gui.dwt.props;
 import cwx.editor.gui.dwt.skin;
@@ -988,8 +989,8 @@ private:
 				if (_mtly.getSelectionIndex < 0) _mtly.select = 0;
 				_mtly.addSelectionListener(new SelMentality);
 				_mtlyRound = createSpn(comp2);
-				_mtlyRound.setMaximum = _prop.looks.roundMax;
-				_mtlyRound.setMinimum = 1;
+				_mtlyRound.setMaximum = Motion.round_max;
+				_mtlyRound.setMinimum = Motion.round_min;
 				spns ~= _mtlyRound;
 				auto lm2  = new Label(comp2, SWT.NONE);
 				lm2.setText = _prop.msgs.unitRound;
@@ -1008,8 +1009,8 @@ private:
 				spns ~= spn;
 				_liveEnh[enh] = spn;
 				auto rnd = createSpn(comp2);
-				rnd.setMaximum = _prop.looks.roundMax;
-				rnd.setMinimum = 1;
+				rnd.setMaximum = Motion.round_max;
+				rnd.setMinimum = Motion.round_min;
 				spns ~= rnd;
 				_enhRound[enh] = rnd;
 				auto l2  = new Label(comp2, SWT.NONE);
@@ -1035,10 +1036,10 @@ private:
 			auto grp = createGrp(_prop.msgs.status);
 			_paralyze = createStSpn(grp, _prop.msgs.paralyze, _prop.looks.paralyzeMax, _prop.msgs.unitValue);
 			_poison = createStSpn(grp, _prop.msgs.poison, _prop.looks.poisonMax, _prop.msgs.unitValue);
-			_bind = createStSpn(grp, _prop.msgs.bind, _prop.looks.roundMax, _prop.msgs.unitRound);
-			_silence = createStSpn(grp, _prop.msgs.silence, _prop.looks.roundMax, _prop.msgs.unitRound);
-			_faceUp = createStSpn(grp, _prop.msgs.faceUp, _prop.looks.roundMax, _prop.msgs.unitRound);
-			_antiMagic = createStSpn(grp, _prop.msgs.antiMagic, _prop.looks.roundMax, _prop.msgs.unitRound);
+			_bind = createStSpn(grp, _prop.msgs.bind, Motion.round_max, _prop.msgs.unitRound);
+			_silence = createStSpn(grp, _prop.msgs.silence, Motion.round_max, _prop.msgs.unitRound);
+			_faceUp = createStSpn(grp, _prop.msgs.faceUp, Motion.round_max, _prop.msgs.unitRound);
+			_antiMagic = createStSpn(grp, _prop.msgs.antiMagic, Motion.round_max, _prop.msgs.unitRound);
 		}
 		void setlblw(Control[] lbls) {
 			int maxW = 0;

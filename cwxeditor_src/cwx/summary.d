@@ -861,6 +861,17 @@ public:
 		return hasId(_pkg, id);
 	}
 
+	/// 指定された召喚獣カードと同等の性能を持つ召喚獣カードを探して返す。
+	/// 見つからなければnullを返す。
+	const
+	const(BeastCard) findSomeBeast(in BeastCard beast) {
+		string a = beast.toXML(1UL);
+		foreach (b; _bst) {
+			if (a == b.toXML(1UL)) return b;
+		}
+		return null;
+	}
+
 	/// 今現在このシナリオに含まれていないTのIDを生成して返す。
 	const
 	ulong newId(T)() {

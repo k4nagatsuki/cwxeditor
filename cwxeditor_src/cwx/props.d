@@ -672,7 +672,7 @@ public:
 			return buf;
 		} case CType.EFFECT: {
 			string buf = target(evt.targetNS.m);
-			buf ~= " レベル" ~ to!(string)(evt.level);
+			buf ~= " レベル" ~ to!(string)(evt.signedLevel);
 			buf ~= " " ~ effectType(evt.effectType, evt.resist);
 			buf ~= " 成功率" ~ (evt.successRate >= 0 ? "+" : "") ~ to!(string)(evt.successRate);
 			buf ~= " " ~ (evt.soundPath.length ? "「" ~ evt.soundPath ~ "」を再生" : "音声無し");
@@ -759,13 +759,13 @@ public:
 			string buf = target(evt.targetS.m) ~ "の";
 			buf ~= physical(evt.physical) ~ "と";
 			buf ~= mental(evt.mental) ~ "で能力判定";
-			buf ~= "(レベル" ~ to!(string)(evt.level) ~ ")";
+			buf ~= "(レベル" ~ to!(string)(evt.signedLevel) ~ ")";
 			return buf;
 		} case CType.BRANCH_RANDOM: {
 			return "確率 = " ~ to!(string)(evt.percent) ~ "%";
 		} case CType.BRANCH_LEVEL: {
 			string buf = evt.average ? "パーティ全員" : "選択中のメンバ";
-			buf ~= "のレベルが" ~ to!(string)(evt.level) ~ "以上・未満で分岐";
+			buf ~= "のレベルが" ~ to!(string)(evt.unsignedLevel) ~ "以上・未満で分岐";
 			return buf;
 		} case CType.BRANCH_STATUS: {
 			string buf = target(evt.targetNS.m) ~ "が";
@@ -1366,6 +1366,7 @@ public:
 	const string evtChildTrue() {return "○";}
 	const string evtChildFalse() {return "×";}
 	const string evtChildDefault() {return "Default";}
+	const string evtChildOK() {return "ＯＫ";}
 
 	const string evtChildBrFlag(in Flag flag, ref string text) {
 		bool val = (text != evtChildFalse);
@@ -2075,6 +2076,61 @@ public:
 	const string bgImagesDefault() {return "デフォルト背景";}
 	const string setBgImagesDefault() {return "デフォルト背景の設定...";}
 	const string dlgTitBgImagesDefault() {return "デフォルト背景の設定";}
+
+	/// スクリプト関係。
+	const string ttToScript() {return "スクリプトに変換してコピー";}
+	const string menuToScript() {return ttToScript ~ "(&S)";}
+	const string ttToScriptAll() {return "全てをスクリプトに変換してコピー";}
+	const string menuToScriptAll() {return ttToScriptAll ~ "(&A)";}
+	const string dlgTitScriptError() {
+		return "CWXスクリプトエラー";
+	}
+	const string scriptError() {
+		return "CWXスクリプトのコンパイル中にエラーが発生しました。";
+	}
+	const string scriptErrorInvalidToken() {return "スクリプトに使用できない文字が含まれています。";}
+	const string scriptErrorInvalidString() {return "ここに文字列が必要です。";}
+	const string scriptErrorInvalidNumber() {return "数値が正しくありません。";}
+	const string scriptErrorCloseBracketNotFound() {return "閉じ括弧が見つかりません。";}
+	const string scriptErrorCloseParenNotFound() {return "閉じ括弧が見つかりません。";}
+	const string scriptErrorZeroDivision() {return "0で除算を行いました。";}
+	const string scriptErrorInvalidAttr() {return "属性が正しくありません。";}
+	const string scriptErrorInvalidVar() {return "変数が正しくありません。";}
+	const string scriptErrorInvalidVarVal() {return "変数の値が正しくありません。";}
+	const string scriptErrorNoStartText() {return "スタートコンテントの名前がありません。";}
+	const string scriptErrorInvalidStatement() {return "文が正しくありません。";}
+	const string scriptErrorInvalidBranch() {return "分岐の構成が正しくありません。";}
+	const string scriptErrorNoIfText() {return "ifの条件が見つかりません。";}
+	const string scriptErrorNoIfContents() {return "分岐先のコンテントが見つかりません。";}
+	const string scriptErrorInvalidKeyword() {return "未知のキーワードです。";}
+	const string scriptErrorInvalidValuesOpen() {return "引数列ではありません。";}
+	const string scriptErrorInvalidValuesClose() {return "閉じ括弧が見つかりません。";}
+	const string scriptErrorNoVarSet() {return "変数に値をセットしていません。";}
+	const string scriptErrorNoVarVal() {return "変数の値がありません。";}
+	const string scriptErrorInvalidCalc() {return "計算式が不正です。";}
+	const string scriptErrorInvalidBoolVal() {return "キーワードが正しくありません。";}
+	const string scriptErrorInvalidTransition() {return "未知の画面切替方式です。";}
+	const string scriptErrorInvalidRange() {return "未知の範囲です。";}
+	const string scriptErrorInvalidStatus() {return "未知のステータスです。";}
+	const string scriptErrorInvalidTarget() {return "未知のターゲットです。";}
+	const string scriptErrorInvalidEffectType() {return "未知の効果属性です。";}
+	const string scriptErrorInvalidResist() {return "未知の命中属性です。";}
+	const string scriptErrorInvalidCardVisual() {return "未知の視覚効果です。";}
+	const string scriptErrorInvalidMental() {return "未知の精神要素です。";}
+	const string scriptErrorInvalidPhysical() {return "未知の肉体要素です。";}
+	const string scriptErrorInvalidMotionType() {return "未知の効果タイプです。";}
+	const string scriptErrorInvalidMotion() {return "効果が正しくありません。";}
+	const string scriptErrorInvalidElement() {return "未知の属性です。";}
+	const string scriptErrorInvalidDamageType() {return "未知のダメージタイプです。";}
+	const string scriptErrorInvalidBgImage() {return "背景画像が正しくありません。";}
+	const string scriptErrorInvalidDialog() {return "台詞が正しくありません。";}
+	const string scriptErrorInvalidTalker() {return "話者が正しくありません。";}
+	const string scriptErrorUndefinedSymbol() {return "未知のシンボルです。";}
+	const string scriptErrorStartsMixedContent() {return "スタートコンテントの中に他のコンテントが混入しています。";}
+	const string scriptErrorContentsMixedStart() {return "ここにスタートコンテントが現れる事はできません。";}
+	const string scriptErrorInvalidCommand() {return "命令が正しくありません。";}
+	const string scriptErrorCanNotHaveContent() {return "このコンテントが後続コンテントを持つ事はできません。";}
+	const string scriptErrorInvalidStr() {return "文字列が正しくありません。";}
 }
 
 public class Looks {
@@ -2163,13 +2219,11 @@ public:
 
 	const uint nameLimit() {return 12;}
 	const uint castLevelMax() {return 99;}
-	const uint effectLevelMax() {return 99;}
-	const uint cardNumberMax() {return 99;}
 	const uint lifeMax() {return 999;}
 	const uint lifeCalc(uint lev, uint vit, uint spi) {
 		return cast(uint) (((lev + 1.0) * (vit / 2.0 + 4.0)) + (spi / 2.0));
 	}
-	const uint couponValueMax() {return 999;}
+	const uint couponValueMax() {return Content.couponValue_max;}
 	const uint physicalMax() {return 15;}
 	const uint physicalCutMin() {return 1;}
 	const uint physicalCutMaxBase() {return 6;}
@@ -2183,17 +2237,11 @@ public:
 	const int skillPrice(int lev) {return (lev + 2) * 200;}
 	const int beastPrice() {return 500;}
 	const uint useCountMax() {return 999;}
-	const uint priceMax() {return 999999;}
+	const uint priceMax() {return Content.money_max;}
 	const uint enhanceMax() {return 10;}
-	const int successRateMax() {return 5;}
 	const int keyCodesMaxLegacy() {return 5;}
 	const int keyCodesMax() {return 10;}
 	const uint motionRoundDefault() {return 10;}
-	const uint motionAbilityValueMax() {return 10;}
-	const uint motionMaxRound() {return 999;}
-	const uint motionValueMax() {return 999;}
-	const uint moneyMax() {return priceMax;}
-	const uint waitMax() {return 1000;}
 	const uint roundMax() {return 999;}
 	const uint paralyzeMax() {return 40;}
 	const uint poisonMax() {return 40;}
@@ -2201,8 +2249,10 @@ public:
 
 	const uint idMax() {return 99999;}
 
-	const uint transitionSpeedMax() {return 10;}
-	const uint transitionSpeedDef() {return 5;}
+	const uint transitionSpeedDef() {
+		return Content.transitionSpeed_min
+			+ ((Content.transitionSpeed_max - Content.transitionSpeed_min) / 2);
+	}
 
 	const CSize viewSize() {return CSize(632, 420);}
 
@@ -2230,9 +2280,9 @@ public:
 		}
 		return "IPA UIゴシック";
 	}
-	const CFont castCardNameFont(bool legacy){return CFont(uigothic(legacy), 9, true, false);}
-	const CFont castCardLevelFont(bool legacy){return CFont(mincho(legacy), 24, true, true);}
-	const CInsets castCardLevelInsets(){return CInsets(2, 8, 0, 0);}
+	const CFont castCardNameFont(bool legacy) {return CFont(uigothic(legacy), 9, true, false);}
+	const CFont castCardLevelFont(bool legacy) {return CFont(mincho(legacy), 24, true, true);}
+	const CInsets castCardLevelInsets() {return CInsets(2, 8, 0, 0);}
 	const CRGB castCardLevelColor() {return CRGB(0, 0, 0, 128);}
 	const CPoint castLifeBarPoint() {return CPoint(8, 110);}
 	const int statusX() {return 7;}
@@ -2259,6 +2309,9 @@ public:
 			if (legacy) return CFont(mincho(legacy), 16, true, false);
 		}
 		return CFont(gothic(legacy), 16, false, false);
+	}
+	const CFont scriptErrorFont(uint defSize) {
+		return CFont(gothic(true), defSize <= 0 ? 12 : defSize, false, false);
 	}
 }
 

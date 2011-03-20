@@ -12,6 +12,7 @@ import cwx.skin;
 import cwx.usecounter;
 import cwx.background;
 import cwx.path;
+import cwx.script;
 
 import cwx.editor.gui.dwt.utils;
 import cwx.editor.gui.dwt.props;
@@ -22,6 +23,8 @@ import cwx.editor.gui.dwt.message;
 import cwx.editor.gui.dwt.xmlbytestransfer;
 import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.properties;
+import cwx.editor.gui.dwt.absdialog;
+import cwx.editor.gui.dwt.centerlayout;
 
 import std.algorithm;
 import std.conv;
@@ -50,6 +53,7 @@ import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.PaletteData;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Cursor;
+import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.KeyListener;
@@ -254,24 +258,29 @@ private:
 		override void redo() {impl;}
 		override void dispose() {}
 	}
-	void store(int swapIndex1, int swapIndex2) {
+	void storeSwap(int swapIndex1, int swapIndex2) {
 		_undo ~= new UndoSwap(swapIndex1, swapIndex2);
 	}
 	class UndoInsert : ETVUndo {
 		private int _index;
-		private Content _c;
-		this (int index) {
+		private size_t _count;
+		private Content[] _c;
+		this (int index, size_t count) {
 			_index = index;
+			_count = count;
 		}
 		override void undo() {
 			udb;
 			scope (exit) uda;
 			_tree.setRedraw = false;
 			scope (exit) _tree.setRedraw = true;
-			auto node = _et.starts[_index].toNode;
-			_c = Content.createFromNode(node, LATEST_VERSION);
-			_c.setUseCounter(_summ.useCounter.sub);
-			delImpl(_tree.getItem(_index), false);
+			for (size_t i = 0; i < _count; i++) {
+				auto node = _et.starts[_index].toNode;
+				auto c = Content.createFromNode(node, LATEST_VERSION);
+				c.setUseCounter(_summ.useCounter.sub);
+				_c ~= c;
+				delImpl(_tree.getItem(_index), false);
+			}
 			refreshStatusLine;
 			_comm.refUseCount.call;
 			_refreshTopStart();
@@ -279,14 +288,19 @@ private:
 		override void redo() {
 			udb;
 			scope (exit) uda;
-			insertStart(_index, _c);
+			foreach_reverse (c; _c) {
+				insertStart(_index, c);
+			}
+			_c = [];
 		}
 		override void dispose() {
-			if (_c) _c.removeUseCounter;
+			foreach (c; _c) {
+				c.removeUseCounter;
+			}
 		}
 	}
-	void store(int insertIndex) {
-		_undo ~= new UndoInsert(insertIndex);
+	void storeInsert(int insertIndex, size_t count = 1) {
+		_undo ~= new UndoInsert(insertIndex, count);
 	}
 	class UndoDelete : ETVUndo {
 		private int _index;
@@ -316,7 +330,7 @@ private:
 			_c.removeUseCounter;
 		}
 	}
-	void store(int index, Content del) {
+	void storeDelete(int index, Content del) {
 		_undo ~= new UndoDelete(index, del);
 	}
 	private TreeItem fromPath(size_t[] path) {
@@ -382,7 +396,7 @@ private:
 				} else {
 					index = -1;
 				}
-				store(index);
+				storeInsert(index);
 				_et.insert(index, cast(Content) evt);
 				auto sItm = createTreeItem(_tree, evt, evt.name, _prop.images.content(CType.START), index);
 				_tree.select = sItm;
@@ -610,9 +624,7 @@ private:
 				auto dlg = new BrLevelDialog(_prop, _tree.getShell, null);
 				return dlg.open ? dlg.event : null;
 			} else {
-				auto r = new Content(type, name);
-				r.level = 1;
-				return r;
+				return new Content(type, name);
 			}
 		} case CType.BRANCH_STATUS: {
 			if (_autoOpen) {
@@ -1445,6 +1457,11 @@ public:
 		createMenuItem(popup, _prop.msgs.menuRedo, _prop.images.menuRedo, &this.redo);
 		new MenuItem(popup, SWT.SEPARATOR);
 		appendMenuTCPD(prop, popup, this, true, true, true, true);
+		if (_prop.var.etc.useCWXScript) {
+			new MenuItem(popup, SWT.SEPARATOR);
+			createMenuItem(popup, _prop.msgs.menuToScript, _prop.images.menuToScript, &this.toScript);
+			createMenuItem(popup, _prop.msgs.menuToScriptAll, _prop.images.menuToScriptAll, &this.toScriptAll);
+		}
 		new MenuItem(popup, SWT.SEPARATOR);
 		createMenuItem(popup, _prop.msgs.menuStartToPackage, _prop.images.menuStartToPackage, &startToPackage);
 		void delegate() dlg = null;
@@ -1696,6 +1713,23 @@ public:
 			}
 		}
 	}
+	void toScript() {
+		auto itm = selection;
+		if (!itm) return;
+		auto c = cast(Content) itm.getData;
+		auto script = CWXScript(_prop.parent, _summ);
+		auto text = script.toScript([c], _summ.legacy, "\t");
+		auto cb = new Clipboard(Display.getCurrent);
+		scope (exit) cb.dispose;
+		cb.setContents([new ArrayWrapperString(text ~ "\n")], [TextTransfer.getInstance]);
+	}
+	void toScriptAll() {
+		auto script = CWXScript(_prop.parent, _summ);
+		auto text = script.toScript(_et.starts, _summ.legacy, "\t");
+		auto cb = new Clipboard(Display.getCurrent);
+		scope (exit) cb.dispose;
+		cb.setContents([new ArrayWrapperString(text ~ "\n")], [TextTransfer.getInstance]);
+	}
 
 	private void refreshConvMenu() {
 		if (!_et || !selection) {
@@ -1920,11 +1954,11 @@ public:
 		} case CType.BRANCH_SELECT: {
 			return createBoolEditor!("_prop.msgs.evtChildBrMember(evt.targetAll, evt.random, name)")(data, c);
 		} case CType.BRANCH_ABILITY: {
-			return createBoolEditor!("_prop.msgs.evtChildBrPower(evt.targetS, evt.physical, evt.mental, evt.level, name)")(data, c);
+			return createBoolEditor!("_prop.msgs.evtChildBrPower(evt.targetS, evt.physical, evt.mental, evt.signedLevel, name)")(data, c);
 		} case CType.BRANCH_RANDOM: {
 			return createBoolEditor!("_prop.msgs.evtChildBrRandom(evt.percent, name)")(data, c);
 		} case CType.BRANCH_LEVEL: {
-			return createBoolEditor!("_prop.msgs.evtChildBrLevel(evt.level, evt.average, name)")(data, c);
+			return createBoolEditor!("_prop.msgs.evtChildBrLevel(evt.unsignedLevel, evt.average, name)")(data, c);
 		} case CType.BRANCH_STATUS: {
 			return createBoolEditor!("_prop.msgs.evtChildBrState(evt.targetNS, evt.status, name)")(data, c);
 		} case CType.BRANCH_PARTY_NUMBER: {
@@ -1984,13 +2018,13 @@ public:
 			r = _prop.msgs.evtChildBrMember(parent.targetAll, parent.random, name);
 			break;
 		} case CType.BRANCH_ABILITY: {
-			r = _prop.msgs.evtChildBrPower(parent.targetS, parent.physical, parent.mental, parent.level, name);
+			r = _prop.msgs.evtChildBrPower(parent.targetS, parent.physical, parent.mental, parent.signedLevel, name);
 			break;
 		} case CType.BRANCH_RANDOM: {
 			r = _prop.msgs.evtChildBrRandom(parent.percent, name);
 			break;
 		} case CType.BRANCH_LEVEL: {
-			r = _prop.msgs.evtChildBrLevel(parent.level, parent.average, name);
+			r = _prop.msgs.evtChildBrLevel(parent.unsignedLevel, parent.average, name);
 			break;
 		} case CType.BRANCH_STATUS: {
 			r = _prop.msgs.evtChildBrState(parent.targetNS, parent.status, name);
@@ -2080,7 +2114,7 @@ public:
 				int i = treeSwap(itm);
 				int j = mixin(ToIndex);
 				if (i >= 0) {
-					if (store) this.store(i, j);
+					if (store) this.storeSwap(i, j);
 					_et.swapStart(i, j);
 					_tree.showSelection;
 				}
@@ -2134,6 +2168,56 @@ public:
 		refreshStatusLine;
 	}
 
+	private void addContents(Content[] cs ...) {
+		auto itm = selection;
+		if (!itm) return;
+		auto owner = cast(Content) itm.getData;
+		assert (owner);
+		if (!owner.detail.owner) return;
+		_tree.setRedraw = false;
+		scope (exit) _tree.setRedraw = true;
+		store(owner);
+		foreach (ct; cs) {
+			owner.add(ct);
+		}
+		createChilds(itm, owner, true);
+		_comm.refUseCount.call;
+		refreshStatusLine;
+	}
+	private void addStarts(Content[] cs ...) {
+		_tree.setRedraw = false;
+		scope (exit) _tree.setRedraw = true;
+		auto sel = selection;
+		int index;
+		if (sel) {
+			index = _tree.indexOf(topItem(sel)) + 1;
+		} else {
+			index = 1;
+		}
+		auto top = _tree.getTopItem;
+		storeInsert(index, cs.length);
+		TreeItem sItm = null;
+		foreach (i, c; cs) {
+			c.name = createNewName(c.name, (string name) {
+				foreach (s; _et.starts) {
+					if (icmp(s.name, name) == 0) {
+						return false;
+					}
+				}
+				return true;
+			}, true);
+			_et.insert(index + i, c);
+			sItm = createTreeItem(_tree, c, c.name, _prop.images.content(c.type), index + i);
+			createChilds(sItm, c, true);
+			sItm.setExpanded = true;
+		}
+		if (!sItm) return;
+		_tree.select = sItm;
+		_tree.showSelection;
+		_comm.refUseCount.call;
+		refreshStatusLine;
+	}
+
 	override {
 		void cut(SelectionEvent se) {
 			auto itm = selection;
@@ -2167,46 +2251,28 @@ public:
 				auto evt = Content.createFromXML(c, LATEST_VERSION, id);
 				if (!evt) return;
 				if (evt.type == CType.START) {
-					_tree.setRedraw = false;
-					evt.name = createNewName(evt.name, (string name) {
-						foreach (s; _et.starts) {
-							if (icmp(s.name, name) == 0) {
-								return false;
-							}
-						}
-						return true;
-					}, true);
-					auto sel = selection;
-					int index;
-					if (sel) {
-						index = _tree.indexOf(topItem(sel)) + 1;
-					} else {
-						index = -1;
-					}
-					auto top = _tree.getTopItem;
-					store(index);
-					_et.insert(index, evt);
-					auto sItm = createTreeItem(_tree, evt, evt.name, _prop.images.content(evt.type), index);
-					_tree.select = sItm;
-					createChilds(sItm, evt, true);
-					sItm.setExpanded = true;
-					_tree.showSelection;
-					_tree.setRedraw = true;
+					addStarts(evt);
 				} else {
-					auto itm = selection;
-					if (itm && (cast(Content) itm.getData).detail.owner) {
-						_tree.setRedraw = false;
-						auto owner = cast(Content) itm.getData;
-						store(owner);
-						owner.add(evt);
-						createChilds(itm, owner, true);
-						_tree.setRedraw = true;
-					} else {
-						return;
+					addContents(evt);
+				}
+				return;
+			}
+			if (_prop.var.etc.useCWXScript) {
+				auto script = cast(ArrayWrapperString) cb.getContents(TextTransfer.getInstance);
+				if (script) {
+					try {
+						auto cs = cwx.script.compile(_prop.parent, _summ, script.array.idup);
+						if (!cs.length) return;
+						if (cs[0].type is CType.START) {
+							addStarts(cs);
+						} else {
+							addContents(cs);
+						}
+					} catch (CWXScriptException e) {
+						auto dlg = new ScriptErrorDialog(_prop, _tree.getShell, e);
+						dlg.open;
 					}
 				}
-				_comm.refUseCount.call;
-				refreshStatusLine;
 			}
 		}
 		void del(SelectionEvent se) {
@@ -2230,7 +2296,7 @@ public:
 			if (store) this.store(owner);
 			owner.remove(c);
 		} else {
-			if (store) this.store(.cCountUntil!("a is b")(_et.starts, c), c);
+			if (store) this.storeDelete(.cCountUntil!("a is b")(_et.starts, c), c);
 			_et.remove(c);
 		}
 		itm.dispose;
@@ -2317,5 +2383,48 @@ public:
 	}
 	bool openCWXPath(string path) {
 		return openCWXPathImpl(_tree, path);
+	}
+}
+
+class ScriptErrorDialog : AbsDialog {
+private:
+	Props _prop;
+	CWXScriptException _ex;
+	Text _result;
+
+public:
+	this(Props prop, Shell shell, CWXScriptException ex) {
+		_prop = prop;
+		_ex = ex;
+		super(prop, shell, prop.msgs.dlgTitScriptError, prop.images.script, true, prop.var.scriptDlg, false, false);
+		enterClose = true;
+		firstFocusIsOK = true;
+	}
+
+protected:
+	override void setup(Composite area) {
+		auto cl = new CenterLayout;
+		cl.fillHorizontal = true;
+		cl.fillVertical = true;
+		area.setLayout = cl;
+		string buf = _prop.msgs.scriptError ~ "\n";
+		buf ~= _ex.msg ~ "\n";
+		string lStr = .format("Line %d: ", _ex.errLine + 1);
+		buf ~= lStr;
+		auto line = splitlines(_ex.text)[_ex.errLine];
+		buf ~= std.array.replace(line, "\t", "    ");
+		size_t posAdd = .count(line, "\t") * 3;
+		buf ~= "\n";
+		size_t pos = lengthJ(line[0 .. _ex.errPos]) + 1 + lengthJ(lStr) + posAdd;
+		buf ~= rjustify("^", pos);
+		_result = new Text(area, SWT.BORDER | SWT.MULTI | SWT.READ_ONLY | SWT.WRAP | SWT.V_SCROLL);
+		_result.setText = buf;
+		auto font = _result.getFont;
+		auto fSize = font ? cast(uint) font.getFontData[0].height : 0;
+		_result.setFont = new Font(Display.getCurrent, dwtData(_prop.looks.scriptErrorFont(fSize)));
+	}
+	override bool close(bool ok) {
+		_result.getFont.dispose;
+		return ok;
 	}
 }

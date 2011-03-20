@@ -14,6 +14,7 @@ import cwx.imagesize;
 import cwx.skin;
 import cwx.cab;
 import cwx.structs;
+import cwx.event;
 
 import cwx.editor.gui.sound;
 import cwx.editor.gui.dwt.images;
@@ -1867,8 +1868,8 @@ Composite createSuccessRateScale(Props prop, Composite parent, out Scale sucRate
 	sucRate.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 	// 0以上でないといけないらしい
 	sucRate.setMinimum = 0;
-	sucRate.setMaximum = prop.looks.successRateMax * 2;
-	sucRate.setPageIncrement = prop.looks.successRateMax;
+	sucRate.setMaximum = Content.successRate_max - Content.successRate_min;
+	sucRate.setPageIncrement = Content.successRate_max;
 	auto alls = new Label(comp, SWT.CENTER);
 	alls.setText = prop.msgs.allSuccess;
 	return grp;

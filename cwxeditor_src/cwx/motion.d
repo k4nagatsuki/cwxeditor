@@ -313,6 +313,11 @@ public:
 			return !m._beast;
 		}
 	}
+	private static int roundValue(int val, int max, int min) {
+		if (val > max) return max;
+		if (val < min) return min;
+		return val;
+	}
 
 	/// 効果属性。
 	const
@@ -329,23 +334,44 @@ public:
 	const
 	uint uValue() {return _uValue;}
 	/// ditto
-	void uValue(uint val) {_uValue = val;}
+	static const uValue_min = 1;
+	/// ditto
+	static const uValue_max = 999;
+	/// ditto
+	void uValue(int val) {
+		_uValue = roundValue(val, uValue_max, uValue_min);
+	}
 	/// ボーナス・ペナルティ値。
 	const
 	int aValue() {return _aValue;}
 	/// ditto
-	void aValue(int val) {_aValue = val;}
+	static const aValue_min = -10;
+	/// ditto
+	static const aValue_max = 10;
+	/// ditto
+	void aValue(int val) {
+		_aValue = roundValue(val, aValue_max, aValue_min);
+	}
 	/// ラウンド数。
 	const
 	int round() {return _round;}
 	/// ditto
-	void round(uint val) {_round = val;}
+	void round(int val) {
+		_round = roundValue(val, round_max, round_min);
+	}
+	/// ditto
+	static const round_min = 1;
+	/// ditto
+	static const round_max = 999;
 	/// 召喚獣。
 	BeastCard beast() {return _beast;}
 	/// ditto
+	const
+	const(BeastCard) beast() {return _beast;}
+	/// ditto
 	BeastCard[] beasts() {return _beast ? [_beast] : [];}
 	/// ditto
-	void beast(BeastCard beast) {
+	void beast(in BeastCard beast) {
 		if (_beast) {
 			_beast.changeHandler = null;
 			_beast.removeUseCounter;

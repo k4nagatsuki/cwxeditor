@@ -148,9 +148,9 @@ public:
 
 	/// 指定されたXMLノードにProperty情報を追加する。
 	const
-	protected XNode setProp(ref XNode node) {
+	protected XNode setProp(ref XNode node, ulong forceId = 0UL) {
 		auto pNode = node.newElement("Property");
-		pNode.newElement("Id", id);
+		pNode.newElement("Id", forceId == 0UL ? id : forceId);
 		pNode.newElement("Name", name);
 		pNode.newElement("ImagePath", encodePath(path));
 		pNode.newElement("Description", encodeLf(desc));
@@ -550,7 +550,7 @@ public:
 	}
 	const
 	private void toNodeImpl(ref XNode cNode) {
-		auto pNode = setProp(cNode);
+		auto pNode = setProp(cNode, id);
 		pNode.newElement("Level", level);
 		pNode.newElement("Life", life).newAttr("max", lifeMax);
 		setFeature(pNode);
@@ -973,8 +973,8 @@ public:
 
 	/// 指定されたXMLノードに効果カード関連の情報を追加する。
 	const
-	protected XNode setEffProp(ref XNode node) {
-		auto pNode = setProp(node);
+	protected XNode setEffProp(ref XNode node, ulong forceId = 0UL) {
+		auto pNode = setProp(node, forceId);
 		pNode.newElement("Scenario", scenario);
 		pNode.newElement("Author", author);
 		auto a = pNode.newElement("Ability");
@@ -1123,7 +1123,7 @@ public:
 	}
 	const
 	private void toNodeImpl(ref XNode cNode) {
-		auto pNode = setEffProp(cNode);
+		auto pNode = setEffProp(cNode, 0UL);
 		pNode.newElement("Level", level);
 		pNode.newElement("UseLimit", useLimit);
 		pNode.newElement("Hold", fromBool(hold));
@@ -1239,7 +1239,7 @@ public:
 	}
 	const
 	private void toNodeImpl(ref XNode cNode) {
-		auto pNode = setEffProp(cNode);
+		auto pNode = setEffProp(cNode, 0UL);
 		pNode.newElement("UseLimit", useLimit).newAttr("max", useLimitMax);
 		pNode.newElement("Price", price);
 		auto eo = pNode.newElement("EnhanceOwner");
@@ -1320,9 +1320,9 @@ public:
 		return cNode;
 	}
 	const
-	private void toNodeImpl(ref XNode cNode) {
+	private void toNodeImpl(ref XNode cNode, ulong forceId = 0UL) {
 		assert (cNode.name == XML_NAME);
-		auto pNode = setEffProp(cNode);
+		auto pNode = setEffProp(cNode, forceId);
 		pNode.newElement("UseLimit", useLimit);
 	}
 	/// コピーを生成する。
@@ -1334,9 +1334,9 @@ public:
 	}
 	/// XMLテキストに変換する。
 	const
-	string toXML() {
+	string toXML(ulong forceId = 0UL) {
 		auto n = XNode.create(XML_NAME);
-		toNodeImpl(n);
+		toNodeImpl(n, forceId);
 		return n.text;
 	}
 	/// XMLノードからインスタンスを生成する。

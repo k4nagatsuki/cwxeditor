@@ -3,6 +3,7 @@ module cwx.utils;
 
 import cwx.sjis;
 
+import std.algorithm;
 import std.array;
 import std.conv;
 import std.metastrings;
@@ -415,13 +416,6 @@ int qsearch(T)(in T[] ds, T c) {
 	assert (qsearch([1, 2, 4, 8, 16, 32, 64, 128, 256], 257) == -1);
 }
 
-/// D2のenforceの代替。
-void enforce(lazy bool ok, lazy Exception e) {
-	if (!ok) {
-		throw e;
-	}
-}
-
 /// 文字列型以外の配列であればtrue。
 template isVArray(T) {
 	const bool isVArray = !is (T : string) && !is (T : wstring) && !is (T : dstring)
@@ -597,7 +591,7 @@ void textUseItems(in string text,
 	for (size_t i = 0; i + 1 < dtext.length; i++) {
 		dchar c = dtext[i];
 		void flag_step(ref string[] targ, dchar c) {
-			int next = .indexOf(dtext[i + 1 .. $], c);
+			int next = .countUntil(dtext[i + 1 .. $], c);
 			if (next >= 0) {
 				next = i + 1 + next;
 				targ ~= toUTF8(dtext[i + 1 .. next]);
@@ -634,7 +628,7 @@ void textUseItems(in string text,
 	assert(fonts == ["font_a.bmp", "font_Z.bmp", "font_1.bmp", "font_2.bmp", "font_3.bmp", "font_;.bmp", "font_表.bmp"]);
 }
 private void __replOn(ref dstring dtext, ref dstring buf, ref size_t i, dstring dold, dstring dnew, dchar targC) {
-	int next = .indexOf(dtext[i + 1 .. $], targC);
+	int next = .countUntil(dtext[i + 1 .. $], targC);
 	if (next >= 0) {
 		next = i + 1 + next;
 		if (dtext[i + 1 .. next] == dold) {
@@ -651,7 +645,7 @@ private void __replOn(ref dstring dtext, ref dstring buf, ref size_t i, dstring 
 	}
 }
 private void __replOff(ref dstring dtext, ref dstring buf, ref size_t i, dchar targC) {
-	int next = .indexOf(dtext[i + 1 .. $], targC);
+	int next = .countUntil(dtext[i + 1 .. $], targC);
 	if (next >= 0) {
 		next = i + 1 + next;
 		buf ~= [targC] ~ dtext[i + 1 .. next] ~ [targC];
@@ -1078,6 +1072,13 @@ private C[] zfill_(C)(in C[] str, size_t width) {
 	assert (zfill_("abc"d, 5) == "00abc"d);
 }
 
+/// arrからaを探して見つかればそのindex。見つからなかった場合は-1。
+int indexOf(string pred = "a == b", T1, T2)(in T1[] arr, in T2 a) {
+	foreach (i, b; arr) {
+		if (mixin(pred)) return i;
+	}
+	return -1;
+}
 /// arrからaを除去する。
 T[] remove(string pred = "a == b", T)(ref T[] arr, T a) {
 	foreach (i, b; arr) {
@@ -1266,7 +1267,7 @@ template FileCache(T ...) {
 bool hasParDir(string path) {
 	path = normal(path);
 	if (startsWith(path, pardir ~ sep)) return true;
-	if (indexOf(path, sep ~ pardir ~ sep) != -1) return true;
+	if (.countUntil(path, sep ~ pardir ~ sep) != -1) return true;
 	return false;
 }
 
@@ -1278,7 +1279,7 @@ alias listdir clistdir;
 size_t icount(string s, string sub) {
 	int c = 0;
 	while (true) {
-		auto i = .indexOf(s, sub, CaseSensitive.no);
+		auto i = std.string.indexOf(s, sub, CaseSensitive.no);
 		if (i < 0) return c;
 		c++;
 		s = s[i + sub.length .. $];
@@ -1293,7 +1294,7 @@ size_t icount(string s, string sub) {
 string ireplace(string s, string from, string to) {
 	string r = "";
 	while (true) {
-		auto i = .indexOf(s, from, CaseSensitive.no);
+		auto i = std.string.indexOf(s, from, CaseSensitive.no);
 		if (i < 0) return r ~ s;
 		r ~= s[0 .. i] ~ to;
 		s = s[i + from.length .. $];
@@ -1496,6 +1497,56 @@ string formatNum(N, size_t Count = 3, string Sep = ",")(N num) {
 	assert (formatNum(1234567) == "1,234,567");
 }
 
+/// arrをコピーして返す。
+T1[T2] dupAssocArray(T1, T2)(in T1[T2] arr) {
+	T1[T2] arr2;
+	foreach (key, val; arr) {
+		arr2[key] = val;
+	}
+	return arr2;
+}
+
+/// textの幅を調べる。
+/// マルチバイト文字は常に2文字分の幅を持つものとして扱われる。
+/// Example:
+/// ---
+/// assert (lengthJ("斉") == 2);
+/// assert (lengthJ("大秦") == 4);
+/// assert (lengthJ("1万") == 3);
+/// assert (lengthJ("1000") == 4);
+/// assert (lengthJ("100万") == 5);
+/// ---
+size_t lengthJ(in char[] text) {
+	size_t len = 0u;
+	foreach (dchar c; text) {
+		char[] s;
+		std.utf.encode(s, c);
+		len += s.length > 1u ? 2u : 1u;
+	}
+	return len;
+} unittest {
+	assert (lengthJ("斉") == 2);
+	assert (lengthJ("大秦") == 4);
+	assert (lengthJ("1万") == 3);
+	assert (lengthJ("1000") == 4);
+	assert (lengthJ("100万") == 5);
+}
+
+/// 前後の空行を無視して行数をカウントする。
+size_t lineCount(in string[] lines) {
+	int from = -1;
+	int to = -1;
+	foreach (i, l; lines) {
+		if (l.length) {
+			if (from == -1) from = i;
+			to = i + 1;
+		}
+	}
+	return to - from;
+} unittest {
+	assert (lineCount(splitlines("\na\nb\n\nc\n\n")) == 4);
+}
+
 /// std.algorithm.countUntilはconst配列に対する検索が通らない
 sizediff_t cCountUntil(string pred = "a == b", R1, R2)(R1 arr, R2 b) {
 	foreach (i, a; arr) {
@@ -1505,3 +1556,4 @@ sizediff_t cCountUntil(string pred = "a == b", R1, R2)(R1 arr, R2 b) {
 	}
 	return -1;
 }
+

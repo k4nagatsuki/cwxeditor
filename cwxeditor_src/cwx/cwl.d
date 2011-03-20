@@ -703,7 +703,7 @@ private Content readContent(in RData d, ref ByteIO f) {
 			effMotions[i] = readMotion(d, f);
 		}
 		e = new Content(CType.EFFECT, name);
-		e.level = effLev;
+		e.signedLevel = effLev;
 		e.targetNS = toTarget(effTarget);
 		e.effectType = toEffectType(effType);
 		e.resist = toResist(effResist);
@@ -730,7 +730,7 @@ private Content readContent(in RData d, ref ByteIO f) {
 		e.targetS = toTarget(targ);
 		e.mental = toMental(mtl);
 		e.physical = toPhysical(phy);
-		e.level = val;
+		e.signedLevel = val;
 		break;
 	}
 	case 14:
@@ -1027,7 +1027,7 @@ private Content readContent(in RData d, ref ByteIO f) {
 		uint val = f.readUIntL;
 		e = new Content(CType.BRANCH_LEVEL, name);
 		e.average = avg;
-		e.level = val;
+		e.unsignedLevel = val;
 		break;
 	}
 	case 47: {
@@ -2112,7 +2112,7 @@ private void writeContent(in SData d, ref ByteIO f, Content e) {
 		f.writeL(cast(uint) e.wait);
 	} else if (e.type is CType.EFFECT) {
 		wb(11);
-		f.writeL(cast(uint) e.level);
+		f.writeL(cast(int) e.signedLevel);
 		byte targ = fromTarget(e.targetNS);
 		if (targ == 6) targ = 2;
 		f.write(targ);
@@ -2131,7 +2131,7 @@ private void writeContent(in SData d, ref ByteIO f, Content e) {
 		writeBool(f, e.random);
 	} else if (e.type is CType.BRANCH_ABILITY) {
 		wb(13);
-		f.writeL(cast(uint) e.level);
+		f.writeL(cast(int) e.signedLevel);
 		f.write(fromTarget(e.targetS));
 		f.writeL(cast(uint) fromPhysical(e.physical));
 		f.writeL(cast(int) fromMental(e.mental));
@@ -2270,7 +2270,7 @@ private void writeContent(in SData d, ref ByteIO f, Content e) {
 	} else if (e.type is CType.BRANCH_LEVEL) {
 		wb(46);
 		writeBool(f, e.average);
-		f.writeL(cast(uint) e.level);
+		f.writeL(cast(uint) e.unsignedLevel);
 	} else if (e.type is CType.BRANCH_STATUS) {
 		wb(47);
 		f.write(fromStatus(e.status));

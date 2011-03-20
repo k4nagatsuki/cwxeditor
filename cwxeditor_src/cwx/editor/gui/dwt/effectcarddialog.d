@@ -7,6 +7,7 @@ import cwx.types;
 import cwx.motion;
 import cwx.utils;
 import cwx.skin;
+import cwx.event;
 
 import cwx.editor.gui.sound;
 
@@ -608,7 +609,7 @@ protected:
 			__refreshEnblOneAll;
 			_vis[_card.visual].setSelection = true;
 			_prem[_card.premium].setSelection = true;
-			_sucRate.setSelection = _card.successRate + _prop.looks.successRateMax;
+			_sucRate.setSelection = _card.successRate + Content.successRate_max;
 			string findPath(string path) {
 				return getBaseName(skin.findPath(getBaseName(path), skin.extSound, skin.seDir, ""));
 			}
@@ -641,7 +642,7 @@ protected:
 			__refreshEnblOneAll;
 			_vis[CardVisual.NONE].setSelection = true;
 			_prem[Premium.NORMAL].setSelection = true;
-			_sucRate.setSelection = _prop.looks.successRateMax;
+			_sucRate.setSelection = Content.successRate_max;
 			_se1.select = 0;
 			_se2.select = 0;
 		}
@@ -728,7 +729,7 @@ protected:
 			_card.allRange = _oneAllGrp.isEnabled && _all.getSelection;
 			putRadioValue!(CardVisual)(_vis, &_card.visual);
 			putRadioValue!(Premium)(_prem, &_card.premium);
-			_card.successRate = cast(int) _sucRate.getSelection - _prop.looks.successRateMax;
+			_card.successRate = cast(int) _sucRate.getSelection - Content.successRate_max;
 			_card.soundPath1 = _se1.getSelectionIndex > 0 ? _se1.getText : "";
 			_card.soundPath2 = _se2.getSelectionIndex > 0 ? _se2.getText : "";
 			string[] keyCodes;

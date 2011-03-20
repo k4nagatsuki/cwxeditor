@@ -350,6 +350,7 @@ private:
 			}
 			if (_dirs.getSelection.length > 0) {
 				_files.deselectAll;
+				_files.removeAll; // 不要分だけremoveしようとすると Widget is disposed
 				auto path = (cast(FileNameObj) _dirs.getSelection[0].getData).array;
 				FileNameObj[] list;
 				foreach (f; clistdir(path)) {
@@ -418,7 +419,6 @@ private:
 					}
 					count++;
 				}
-				if (count < oldC) _files.remove(count, oldC - 1);
 				if (count > 0 && !sels) {
 					_files.setTopIndex = 0;
 				}
@@ -1107,6 +1107,7 @@ private:
 	private class RefreshThr : Runnable {
 		override void run() {
 			if (_stopTrace) return;
+			if (_dirsEdit.isEditing || _filesEdit.isEditing) return;
 			try {
 				__refresh;
 			} catch (Exception e) {
@@ -1203,9 +1204,6 @@ private:
 					}
 					case WAIT_OBJECT_0: {
 						if (!canDoChk) continue;
-						while (_dirsEdit.isEditing || _filesEdit.isEditing) {
-							sleep;
-						}
 						_display.asyncExec(_refreshThr);
 						next;
 					} break;
@@ -1273,9 +1271,6 @@ private:
 						continue;
 					}
 					if (!canDoChk) continue;
-					while (_dirsEdit.isEditing || _filesEdit.isEditing) {
-						sleep;
-					}
 					_display.asyncExec(_refreshThr);
 				} catch (Exception e) {
 					debugln("Trace thread: " ~ e.msg);
@@ -1327,9 +1322,6 @@ private:
 						return false;
 					}
 					if (chk(nabs(summ.scenarioPath))) {
-						while (_dirsEdit.isEditing || _filesEdit.isEditing) {
-							sleep;
-						}
 						_display.asyncExec(_refreshThr);
 						setup;
 					}
