@@ -270,13 +270,16 @@ private:
 					tbl.getSelection[0].dispose;
 					if (tid == typeid(Area)) {
 						_summ.insert(index, cast(Area) area);
+						index = _summ.indexOf(cast(Area) area);
 						newAreaItem(index);
 					} else if (tid == typeid(Battle)) {
 						_summ.insert(index, cast(Battle) area);
+						index = _summ.indexOf(cast(Battle) area);
 						newBattleItem(index);
 					} else {
 						assert (tid == typeid(Package));
 						_summ.insert(index, cast(Package) area);
+						index = _summ.indexOf(cast(Package) area);
 						newPackageItem(index);
 					}
 					callRefArea(area);
@@ -290,15 +293,18 @@ private:
 					if (tid == typeid(Area)) {
 						area = Area.createFromNode(node, LATEST_VERSION);
 						_summ.insert(index, cast(Area) area);
+						index = _summ.indexOf(cast(Area) area);
 						newAreaItem(index);
 					} else if (tid == typeid(Battle)) {
 						area = Battle.createFromNode(node, LATEST_VERSION);
 						_summ.insert(index, cast(Battle) area);
+						index = _summ.indexOf(cast(Battle) area);
 						newBattleItem(index);
 					} else {
 						assert (tid == typeid(Package));
 						area = Package.createFromNode(node, LATEST_VERSION);
 						_summ.insert(index, cast(Package) area);
+						index = _summ.indexOf(cast(Package) area);
 						newPackageItem(index);
 					}
 					e.detail = DND.DROP_NONE;

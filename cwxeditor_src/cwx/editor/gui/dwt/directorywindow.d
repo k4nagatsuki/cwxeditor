@@ -343,6 +343,7 @@ private:
 			}
 			if (_dirs.getSelection.length > 0) {
 				_files.deselectAll;
+				_files.removeAll; // 不要分だけremoveしようとすると Widget is disposed
 				auto path = (cast(FileNameObj) _dirs.getSelection[0].getData).array;
 				FileNameObj[] list;
 				foreach (f; clistdir(path)) {
@@ -411,7 +412,6 @@ private:
 					}
 					count++;
 				}
-				if (count < oldC) _files.remove(count, oldC - 1);
 				if (count > 0 && !sels) {
 					_files.setTopIndex = 0;
 				}

@@ -756,22 +756,38 @@ public:
 	int indexOf(T)(T c) {
 		static if (is (T == CastCard)) {
 			return .indexOf!("a is b")(_cast, c);
-		} else static if (is (T == SkillCard)) {
+		} else static if (is (T : SkillCard)) {
 			return .indexOf!("a is b")(_skl, c);
-		} else static if (is (T == ItemCard)) {
+		} else static if (is (T : ItemCard)) {
 			return .indexOf!("a is b")(_itm, c);
-		} else static if (is (T == BeastCard)) {
+		} else static if (is (T : BeastCard)) {
 			return .indexOf!("a is b")(_bst, c);
-		} else static if (is (T == InfoCard)) {
+		} else static if (is (T : InfoCard)) {
 			return .indexOf!("a is b")(_info, c);
-		} else static if (is (T == Area)) {
+		} else static if (is (T : Area)) {
 			return .indexOf!("a is b")(_area, c);
-		} else static if (is (T == Battle)) {
+		} else static if (is (T : Battle)) {
 			return .indexOf!("a is b")(_btl, c);
-		} else static if (is (T == Package)) {
+		} else static if (is (T : Package)) {
 			return .indexOf!("a is b")(_pkg, c);
+		} else static if (is (T : CastId)) {
+			return .indexOf!("a == b.id")(_cast, c);
+		} else static if (is (T : SkillId)) {
+			return .indexOf!("a == b.id")(_skl, c);
+		} else static if (is (T : ItemId)) {
+			return .indexOf!("a == b.id")(_itm, c);
+		} else static if (is (T : BeastId)) {
+			return .indexOf!("a == b.id")(_bst, c);
+		} else static if (is (T : InfoId)) {
+			return .indexOf!("a == b.id")(_info, c);
+		} else static if (is (T : AreaId)) {
+			return .indexOf!("a == b.id")(_area, c);
+		} else static if (is (T : BattleId)) {
+			return .indexOf!("a == b.id")(_btl, c);
+		} else static if (is (T : PackageId)) {
+			return .indexOf!("a == b.id")(_pkg, c);
 		} else {
-			static assert (0);
+			static assert (0, T.stringof);
 		}
 	}
 
@@ -1558,14 +1574,24 @@ public:
 	int indexOf(T)(T c) {
 		static if (UseCast && is (T == CastCard)) {
 			return .indexOf!("a is b")(_cast, c);
-		} else static if (UseSkill && is (T == SkillCard)) {
+		} else static if (UseSkill && is (T : SkillCard)) {
 			return .indexOf!("a is b")(_skl, c);
-		} else static if (UseItem && is (T == ItemCard)) {
+		} else static if (UseItem && is (T : ItemCard)) {
 			return .indexOf!("a is b")(_itm, c);
-		} else static if (UseBeast && is (T == BeastCard)) {
+		} else static if (UseBeast && is (T : BeastCard)) {
 			return .indexOf!("a is b")(_bst, c);
-		} else static if (UseInfo && is (T == InfoCard)) {
+		} else static if (UseInfo && is (T : InfoCard)) {
 			return .indexOf!("a is b")(_info, c);
+		} else static if (UseCast && is (T : CastId)) {
+			return .indexOf!("a == b.id")(_cast, c);
+		} else static if (UseSkill && is (T : SkillId)) {
+			return .indexOf!("a == b.id")(_skl, c);
+		} else static if (UseItem && is (T : ItemId)) {
+			return .indexOf!("a == b.id")(_itm, c);
+		} else static if (UseBeast && is (T : BeastId)) {
+			return .indexOf!("a == b.id")(_bst, c);
+		} else static if (UseInfo && is (T : InfoId)) {
+			return .indexOf!("a == b.id")(_info, c);
 		} else {
 			static assert (0);
 		}

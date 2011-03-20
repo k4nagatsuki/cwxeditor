@@ -1190,7 +1190,7 @@ private C[] zfill_(C)(in C[] str, size_t width) {
 }
 
 /// arrからaを探して見つかればそのindex。見つからなかった場合は-1。
-int indexOf(string pred = "a == b", T)(T[] arr, T a) {
+int indexOf(string pred = "a == b", T1, T2)(T1[] arr, T2 a) {
 	foreach (i, b; arr) {
 		if (mixin(pred)) return i;
 	}
