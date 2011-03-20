@@ -1098,6 +1098,7 @@ private:
 	private class RefreshThr : Runnable {
 		override void run() {
 			if (_stopTrace) return;
+			if (_dirsEdit.isEditing || _filesEdit.isEditing) return;
 			try {
 				__refresh;
 			} catch (Exception e) {
@@ -1194,9 +1195,6 @@ private:
 					}
 					case WAIT_OBJECT_0: {
 						if (!canDoChk) continue;
-						while (_dirsEdit.isEditing || _filesEdit.isEditing) {
-							sleep;
-						}
 						_display.asyncExec(_refreshThr);
 						next;
 					} break;
@@ -1264,9 +1262,6 @@ private:
 						continue;
 					}
 					if (!canDoChk) continue;
-					while (_dirsEdit.isEditing || _filesEdit.isEditing) {
-						sleep;
-					}
 					_display.asyncExec(_refreshThr);
 				} catch (Exception e) {
 					debugln("Trace thread: " ~ e.msg);
@@ -1318,9 +1313,6 @@ private:
 						return false;
 					}
 					if (chk(nabs(summ.scenarioPath))) {
-						while (_dirsEdit.isEditing || _filesEdit.isEditing) {
-							sleep;
-						}
 						_display.asyncExec(_refreshThr);
 						setup;
 					}
