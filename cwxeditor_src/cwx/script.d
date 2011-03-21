@@ -174,6 +174,7 @@ struct CWXScript {
 	} unittest {
 		CWXScript s;
 		assert (s.stringValue(Token(0, 0, Kind.STRING, `"abc"`)) == "abc");
+		assert (s.stringValue(Token(0, 0, Kind.STRING, `"a""bc"`)) == "a\"bc");
 		assert (s.stringValue(Token(0, 0, Kind.STRING, `'ab''c'`)) == "ab'c");
 		assert (s.stringValue(Token(0, 2, Kind.STRING, "@ 3\n\t\tte@@st\n   t\\e\\st\n\\   a\n\\\\   a@"))
 			 == "\n\nte@st\nt\\e\\st\n   a\n\\   a");
@@ -185,31 +186,12 @@ struct CWXScript {
 		Token[] r;
 		text = std.array.replace(text, "\r\n", "\n");
 		text = std.array.replace(text, "\r", "\n");
-		auto reg = RegExp("(" ~ std.string.join([
-			`[a-z_][a-z_0-9]*`, // symbol or keyword
-			"\\$[^ \\t\\[\\]\\(\\)@\"'\\+\\-\\*\\/\\%\\n;.,]+", // variable
-			`=`, // equql
-			`[0-9]+(\.[0-9]+)?`, // number
-			`\[`, // open bracket
-			`\]`, // close bracket
-			`"([^"]|\\")*"`, // string
-			`'([^']|\\')*'`, // string
-			`@[ \t]*([0-9]+|c|center)?[ \t]*\n(([^@]|@@|\n)*\n)?[ \t]*@`, // string
-			`[ \t\r\n]+`, // whitespace
-			`\/\*(.|\n)*?\*\/`, // multi line comment
-			`\+`,// plus
-			`-`, // minus
-			`\*`, // multiply
-			`\/`, // divide
-			`%`, // residue
-			`\(`, // open paren
-			`\)`, // close paren
-			`;.*(\n|$)` // line comment
-		], ")|(") ~ ")", "i");
+		auto reg = RegExp("(" ~ std.string.join(TOKENS.dup, ")|(") ~ ")", "i");
 		size_t i = 0;
 		size_t hits = 0;
 		size_t pos = 0;
 		string post;
+		bool spaceAfter = false;
 		foreach (token; reg.search(text)) {
 			if (token.pre.length - hits > 0) {
 				throwErrorToken(_prop.msgs.scriptErrorInvalidToken, i, pos, "");
@@ -227,6 +209,7 @@ struct CWXScript {
 			}
 			auto c = str[0];
 			if (isalpha(c) || c == '_') {
+				spaceAfter = false;
 				// symbol
 				switch (std.string.tolower(str)) {
 				case "start":
@@ -247,65 +230,87 @@ struct CWXScript {
 				}
 				pos += str.length;
 			} else if (c == '$') {
+				spaceAfter = false;
 				r ~= Token(i, pos, Kind.VAR_NAME, str);
 				pos += str.length;
 			} else if (c == '=') {
+				spaceAfter = false;
 				r ~= Token(i, pos, Kind.EQ, str);
 				pos += str.length;
 			} else if (c == '[') {
 				// open bracket
+				spaceAfter = false;
 				r ~= Token(i, pos, Kind.O_BRA, str);
 				pos += str.length;
 			} else if (c == ']') {
 				// close bracket
+				spaceAfter = false;
 				r ~= Token(i, pos, Kind.C_BRA, str);
 				pos += str.length;
 			} else if (isdigit(c)) {
 				// number
+				spaceAfter = false;
 				r ~= Token(i, pos, Kind.NUMBER, str);
 				pos += str.length;
 			} else if (c == '@' || c == '"' || c == '\'') {
 				// string
-				r ~= Token(i, pos, Kind.STRING, str);
+				if (!spaceAfter && r.length && r[$ - 1].kind is Kind.STRING
+						&& r[$ - 1].value[$ - 1] == c) {
+					// 直前のstringに結合
+					r[$ - 1].value ~= str;
+				} else {
+					r ~= Token(i, pos, Kind.STRING, str);
+				}
+				spaceAfter = false;
 				retCount;
 			} else if (isspace(c)) {
 				// whitespace
+				spaceAfter = true;
 				retCount;
 			} else if (c == '+') {
 				// plus
+				spaceAfter = false;
 				r ~= Token(i, pos, Kind.PLU, str);
 				pos += str.length;
 			} else if (c == '-') {
 				// minus
+				spaceAfter = false;
 				r ~= Token(i, pos, Kind.MIN, str);
 				pos += str.length;
 			} else if (c == '*') {
 				// multiply
+				spaceAfter = false;
 				r ~= Token(i, pos, Kind.MUL, str);
 				pos += str.length;
 			} else if (c == '/') {
 				if (str.length >= 2 && str[1] == '*') {
 					// multi line comment
+					spaceAfter = true;
 					retCount;
 				} else {
 					// divide
+					spaceAfter = false;
 					r ~= Token(i, pos, Kind.DIV, str);
 					pos += str.length;
 				}
 			} else if (c == '%') {
 				// residue
+				spaceAfter = false;
 				r ~= Token(i, pos, Kind.RES, str);
 				pos += str.length;
 			} else if (c == '(') {
 				// open paren
+				spaceAfter = false;
 				r ~= Token(i, pos, Kind.O_PAR, str);
 				pos += str.length;
 			} else if (c == ')') {
 				// close paren
+				spaceAfter = false;
 				r ~= Token(i, pos, Kind.C_PAR, str);
 				pos += str.length;
 			} else if (c == ';') {
 				// line comment
+				spaceAfter = true;
 				i++;
 				pos = 0;
 			} else {
@@ -1177,6 +1182,7 @@ fi`;
 		} else static if (isVArray!(T)) {
 			T r;
 			while (i < attr.length) {
+				if (attr[i].type !is NodeType.VALUES) break;
 				r ~= parseAttr!(typeof(T[0]), Within)(attr, i, typeof(T[0]).init, varTable);
 			}
 			return r;
@@ -1425,8 +1431,12 @@ fi`;
 			auto r = new SDialog;
 			if (vals.length > 1) {
 				if (vals[j].type is NodeType.VALUES) {
-					string[] def;
-					r.rCoupons = parseAttr!(string[])(vals, j, def, varTable);
+					string[] cs;
+					foreach (v; vals[j].values) {
+						cs ~= attrValue(v, varTable);
+					}
+					r.rCoupons = cs;
+					j++;
 				} else {
 					r.rCoupons = std.string.split(parseAttr!(string)(vals, j, "", varTable), ";");
 				}
@@ -1514,7 +1524,11 @@ fi`;
 				throwError(_prop.msgs.scriptErrorUndefinedSymbol, node.text);
 			}
 		} else {
-			r = stringValue(value);
+			switch (value.kind) {
+			case Kind.STRING: r = stringValue(value); break;
+			case Kind.NUMBER: r = to!(string)(value.value); break;
+			default: throwError(_prop.msgs.scriptErrorInvalidValue, value);
+			}
 		}
 		return r;
 	}
@@ -1732,7 +1746,7 @@ fi`;
 	}
 	const
 	string encodeString(string s) {
-		return std.array.replace(s, "\"", "\\\"");
+		return std.array.replace(s, "\"", "\"\"");
 	}
 	const
 	private void toAttr(bool Within = false, T)(ref char[] attrs, T value, string command, string indentValue, bool space = true) {
@@ -1759,7 +1773,7 @@ fi`;
 				attrs ~= "\n";
 				bool spaceLine = false;
 				foreach (line; lines) {
-					line = std.array.replace(line, "@", "\\@");
+					line = std.array.replace(line, "@", "@@");
 					if (line.length && (line[0] == ' ' || line[0] == '\t')) {
 						line = "\\" ~ line;
 					}
@@ -2228,3 +2242,25 @@ fi`;
 		}
 	}
 }
+
+private const string[] TOKENS = [
+	`[a-z_][a-z_0-9]*`, // symbol or keyword
+	"\\$[^ \\t\\[\\]\\(\\)@\"'\\+\\-\\*\\/\\%\\n;.,]+", // variable
+	`=`, // equql
+	`[0-9]+(\.[0-9]+)?`, // number
+	`\[`, // open bracket
+	`\]`, // close bracket
+	`"(""|[^"])*?"`, // string
+	`'(''|[^'])*?'`, // string
+	`@[ \t]*([0-9]+|c|center)?[ \t]*\n(([^@]|@@|\n)*\n)?[ \t]*@`, // string
+	`[ \t\r\n]+`, // whitespace
+	`\/\*(.|\n)*?\*\/`, // multi line comment
+	`\+`,// plus
+	`-`, // minus
+	`\*`, // multiply
+	`\/`, // divide
+	`%`, // residue
+	`\(`, // open paren
+	`\)`, // close paren
+	`;.*(\n|$)` // line comment
+];
