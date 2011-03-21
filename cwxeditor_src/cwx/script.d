@@ -123,7 +123,7 @@ struct CWXScript {
 				}
 			}
 			if (escape) {
-				buf[len] = '\\';
+				buf[len] = esc;
 				len++;
 			}
 			buf = buf[0 .. len];
@@ -136,9 +136,10 @@ struct CWXScript {
 			char[] buf;
 			string[] lines = .splitlines(tok.value[0 .. $ - 1].idup);
 			foreach (i, line; lines[1 .. $]) {
-				while (line.startsWith("\t")) line = line[1 .. $];
-				while (line.startsWith("    ")) line = line[4 .. $];
-				lines[i + 1] = line;
+				lines[i + 1] = .stripl(line);
+				if (line.length >= 1 && line[0] == '\\') {
+					lines[i + 1] = line[1 .. $];
+				}
 			}
 			if (lines[0].length > 1) {
 				auto lnStr = std.string.tolower(.strip(lines[0][1 .. $]));
@@ -174,8 +175,8 @@ struct CWXScript {
 		CWXScript s;
 		assert (s.stringValue(Token(0, 0, Kind.STRING, `"abc"`)) == "abc");
 		assert (s.stringValue(Token(0, 0, Kind.STRING, `'ab''c'`)) == "ab'c");
-		assert (s.stringValue(Token(0, 2, Kind.STRING, "@ 3\n\t\tte@@st\n\t\tt\\e\\st@"))
-			 == "\n\nte@st\nt\\e\\st");
+		assert (s.stringValue(Token(0, 2, Kind.STRING, "@ 3\n\t\tte@@st\n   t\\e\\st\n\\   a\n\\\\   a@"))
+			 == "\n\nte@st\nt\\e\\st\n   a\n\\   a");
 	}
 
 	/// textをTokenに分割する。
@@ -185,16 +186,17 @@ struct CWXScript {
 		text = std.array.replace(text, "\r\n", "\n");
 		text = std.array.replace(text, "\r", "\n");
 		auto reg = RegExp("(" ~ std.string.join([
-			`[A-Za-z_][A-Za-z_0-9]*`, // symbol or keyword
-			`\$[A-Za-z_0-9]+`, // variable
+			`[a-z_][a-z_0-9]*`, // symbol or keyword
+			"\\$[^ \\t\\[\\]\\(\\)@\"'\\+\\-\\*\\/\\%\\n;.,]+", // variable
 			`=`, // equql
 			`[0-9]+(\.[0-9]+)?`, // number
 			`\[`, // open bracket
 			`\]`, // close bracket
 			`"([^"]|\\")*"`, // string
 			`'([^']|\\')*'`, // string
-			`@[ \t]*([0-9]*|[Cc]|[Cc][Ee][Nn][Tt][Ee][Rr])[ \t]*\n(([^@]|\\@)*\n)?[ \t]*@`, // string
+			`@[ \t]*([0-9]+|c|center)?[ \t]*\n(([^@]|@@|\n)*\n)?[ \t]*@`, // string
 			`[ \t\r\n]+`, // whitespace
+			`\/\*(.|\n)*?\*\/`, // multi line comment
 			`\+`,// plus
 			`-`, // minus
 			`\*`, // multiply
@@ -202,8 +204,8 @@ struct CWXScript {
 			`%`, // residue
 			`\(`, // open paren
 			`\)`, // close paren
-			`;.*(\n|$)` // comment
-		], ")|(") ~ ")");
+			`;.*(\n|$)` // line comment
+		], ")|(") ~ ")", "i");
 		size_t i = 0;
 		size_t hits = 0;
 		size_t pos = 0;
@@ -282,9 +284,14 @@ struct CWXScript {
 				r ~= Token(i, pos, Kind.MUL, str);
 				pos += str.length;
 			} else if (c == '/') {
-				// divide
-				r ~= Token(i, pos, Kind.DIV, str);
-				pos += str.length;
+				if (str.length >= 2 && str[1] == '*') {
+					// multi line comment
+					retCount;
+				} else {
+					// divide
+					r ~= Token(i, pos, Kind.DIV, str);
+					pos += str.length;
+				}
 			} else if (c == '%') {
 				// residue
 				r ~= Token(i, pos, Kind.RES, str);
@@ -298,7 +305,7 @@ struct CWXScript {
 				r ~= Token(i, pos, Kind.C_PAR, str);
 				pos += str.length;
 			} else if (c == ';') {
-				// comment
+				// line comment
 				i++;
 				pos = 0;
 			} else {
@@ -310,10 +317,11 @@ struct CWXScript {
 		return r;
 	} unittest {
 		CWXScript s;
-		assert (s.tokenize("start 12.3 \ntest1 [$void] =\"str\ning;\"\n\r ;comment\nELIF if\n1/2+3*4%(5-6)")
+		assert (s.tokenize("/*\n*/").length == 0);
+		assert (s.tokenize("/* */start 12.3 \ntest1 [$void] =\"str\ning;\"\n\r ;comment\nELIF if\n1/2+3*4%(5-6)")
 			== [
-				Token(0, 0, Kind.START, "start"),
-				Token(0, 6, Kind.NUMBER, "12.3"),
+				Token(0, 5, Kind.START, "start"),
+				Token(0, 11, Kind.NUMBER, "12.3"),
 				Token(1, 0, Kind.SYMBOL, "test1"),
 				Token(1, 6, Kind.O_BRA, "["),
 				Token(1, 7, Kind.VAR_NAME, "$void"),
@@ -344,7 +352,11 @@ struct CWXScript {
 		assert (i < tokens.length);
 		auto tok = tokens[i];
 		if (tok.kind is Kind.VAR_NAME) {
-			return to!(real)(var(tok, varTable).value);
+			try {
+				return to!(real)(var(tok, varTable).value);
+			} catch (Exception e) {
+				throwError(_prop.msgs.scriptErrorReqNumber, tok);
+			}
 		}
 		bool min = false;
 		if (tok.kind is Kind.PLU) {
@@ -356,9 +368,14 @@ struct CWXScript {
 		if (tokens.length <= i || tokens[i].kind !is Kind.NUMBER) {
 			throwError(_prop.msgs.scriptErrorInvalidNumber, tok);
 		}
-		real r = to!(real)(tokens[i].value);
-		i++;
-		return min ? -r : r;
+		try {
+			real r = to!(real)(tokens[i].value);
+			i++;
+			return min ? -r : r;
+		} catch (Exception e) {
+			throwError(_prop.msgs.scriptErrorReqNumber, tokens[i]);
+		}
+		assert (0);
 	}
 	const
 	private real calcPar(in Token[] tokens, ref size_t i, in Token[string] varTable) {
@@ -480,7 +497,7 @@ struct CWXScript {
 			cast(string) "endsc":CType.END,
 			cast(string) "gameover":CType.END_BAD_END,
 			cast(string) "goarea":CType.CHANGE_AREA,
-			cast(string) "chgback":CType.CHANGE_BG_IMAGE,
+			cast(string) "chback":CType.CHANGE_BG_IMAGE,
 			cast(string) "effect":CType.EFFECT,
 			cast(string) "break":CType.EFFECT_BREAK,
 			cast(string) "gostart":CType.LINK_START,
@@ -685,7 +702,15 @@ struct CWXScript {
 		switch (node.token.kind) {
 		case Kind.SYMBOL: return std.string.tolower(node.token.value);
 		case Kind.STRING: return stringValue(node.token);
-		case Kind.VAR_NAME, Kind.NUMBER, Kind.PLU, Kind.MIN, Kind.O_PAR:
+		case Kind.VAR_NAME:
+			auto tok = var(node.token, varTable);
+			if (tok.kind is Kind.STRING) {
+				return stringValue(tok);
+			} else if (tok.kind is Kind.SYMBOL) {
+				return std.string.tolower(tok.value);
+			}
+			goto case Kind.NUMBER;
+		case Kind.NUMBER, Kind.PLU, Kind.MIN, Kind.O_PAR:
 			size_t i = 0;
 			return to!(string)(calc(node.calc, i, varTable));
 		case Kind.O_BRA: return "";
@@ -701,7 +726,14 @@ struct CWXScript {
 		}
 		switch (node.var[0].kind) {
 		case Kind.STRING: return node.var[0];
-		case Kind.VAR_NAME, Kind.NUMBER, Kind.PLU, Kind.MIN, Kind.O_PAR:
+		case Kind.VAR_NAME:
+			if (node.var.length > 1) goto case Kind.NUMBER;
+			auto tok = var(node.var[0], varTable);
+			if (tok.kind is Kind.STRING || tok.kind is Kind.SYMBOL) {
+				return tok;
+			}
+			goto case Kind.NUMBER;
+		case Kind.NUMBER, Kind.PLU, Kind.MIN, Kind.O_PAR:
 			size_t i = 0;
 			Token tok = node.var[0];
 			tok.kind = Kind.NUMBER;
@@ -711,13 +743,16 @@ struct CWXScript {
 		}
 		assert (0);
 	}
-	private static Token var(in Node node, in Token[string] varTable) {
+	const
+	private Token var(in Node node, in Token[string] varTable) {
 		return var(node.token, varTable);
 	}
-	private static Token var(in Token tok, in Token[string] varTable) {
+	const
+	private Token var(in Token tok, in Token[string] varTable) {
 		if (tok.kind is Kind.VAR_NAME) {
 			auto ptr = std.string.tolower(tok.value) in varTable;
 			if (ptr) return var(*ptr, varTable);
+			throwError(_prop.msgs.scriptErrorUndefinedVar, tok);
 		}
 		return tok;
 	}
@@ -774,9 +809,9 @@ struct CWXScript {
 $var1 = 'oops'
 Start "First start"
 if 'abc'
-    chgback ['mapofwirth.bmp' ''  0 0 632 420]
-            ['definn.bmp' '' 50 50 200*2 260]
-            ['card.bmp' 'card\mate1' 230 50 74 94 mask]
+    chback ['mapofwirth.bmp' ''  0 0 632 420]
+           ['definn.bmp' '' 50 50 200*2 260]
+           ['card.bmp' 'card\mate1' 230 50 74 94 mask]
     hideparty
     $var2 = 3.5
     wait  ($var2 + 1.5)
@@ -809,9 +844,9 @@ start "second start"
 			== "$var1 = 'oops'\n"
 			~ "Start \"First start\"\n"
 			~ "if 'abc'\n"
-			~ "    chgback ['mapofwirth.bmp' '' 0 0 632 420]\n"
-			~ "            ['definn.bmp' '' 50 50 200 * 2 260]\n"
-			~ "            ['card.bmp' 'card\\mate1' 230 50 74 94 mask]\n"
+			~ "    chback ['mapofwirth.bmp' '' 0 0 632 420]\n"
+			~ "           ['definn.bmp' '' 50 50 200 * 2 260]\n"
+			~ "           ['card.bmp' 'card\\mate1' 230 50 74 94 mask]\n"
 			~ "    hideparty\n"
 			~ "    $var2 = 3.5\n"
 			~ "    wait ($var2 + 1.5)\n"
@@ -867,9 +902,6 @@ fi`;
 		auto tok = tokens[i];
 		switch (tok.kind) {
 		case Kind.START: return r;
-		case Kind.NUMBER, Kind.STRING, Kind.ELIF, Kind.FI, Kind.O_BRA, Kind.C_BRA:
-			throwError(_prop.msgs.scriptErrorInvalidBranch, tok);
-			break;
 		case Kind.IF, Kind.VAR_NAME:
 			while (i < tokens.length) {
 				Token text;
@@ -902,7 +934,9 @@ fi`;
 		case Kind.SYMBOL:
 			r ~= analyzeSyntaxStatement(tokens, i, keys);
 			break;
-		default: assert (0);
+		default:
+			throwError(_prop.msgs.scriptErrorInvalidBranch, tok);
+			break;
 		}
 		return r;
 	}
@@ -1133,11 +1167,16 @@ fi`;
 		auto tok = var(attr[i], varTable);
 		auto value = attrValue(attr[i], varTable);
 		static if (is(T == string)) {
+			if (attr[i].token.kind is Kind.SYMBOL && value == "stop") {
+				/// BGM停止用
+				i++;
+				return "";
+			}
 			i++;
 			return value;
 		} else static if (isVArray!(T)) {
 			T r;
-			while (i < attr.length && attr[i].type is NodeType.VALUES) {
+			while (i < attr.length) {
 				r ~= parseAttr!(typeof(T[0]), Within)(attr, i, typeof(T[0]).init, varTable);
 			}
 			return r;
@@ -1270,8 +1309,7 @@ fi`;
 			default: throwError(_prop.msgs.scriptErrorInvalidPhysical, tok);
 			}
 		} else static if (is(T == Talker)) {
-			i++;
-			return parseTalker!(Within)(attr[i], varTable);
+			return parseTalker!(Within)(attr, i, varTable);
 		} else static if (is(T == MType)) {
 			switch (value) {
 			case "heal": i++; return MType.HEAL;
@@ -1397,12 +1435,24 @@ fi`;
 			i++;
 			return r;
 		} else static if (is(T == int)) {
-			if (value == "all") return 0; // カード削除用
-			i++;
-			return to!(int)(value);
+			if (attr[i].token.kind is Kind.SYMBOL && value == "all") {
+				return 0; // カード削除用
+			}
+			try {
+				auto r = to!(int)(value);
+				i++;
+				return r;
+			} catch (Exception e) {
+				throwError(_prop.msgs.scriptErrorReqNumber, tok);
+			}
 		} else static if (is(T == ulong)) {
-			i++;
-			return to!(ulong)(value);
+			try {
+				auto r = to!(ulong)(value);
+				i++;
+				return r;
+			} catch (Exception e) {
+				throwError(_prop.msgs.scriptErrorReqID, tok);
+			}
 		} else static assert (0);
 		assert (0);
 	}
@@ -1418,22 +1468,24 @@ fi`;
 			return;
 		}
 		cardPath = "";
-		t = parseTalker!(false)(attr[i], varTable);
-		i++;
+		t = parseTalker!(false)(attr, i, varTable);
 	}
 	const
-	private Talker parseTalker(bool Within)(in Node node, in Token[string] varTable) {
+	private Talker parseTalker(bool Within)(in Node[] attr, ref size_t i, in Token[string] varTable) {
+		auto node = attr[i];
 		auto tok = var(node, varTable);
 		auto value = attrValue(node, varTable);
 		switch (value) {
 		case "n", "none":
 			static if (Within) goto default;
+			i++;
 			return Talker.NARRATION;
-		case "m", "selected": return Talker.SELECTED;
-		case "u", "unselected": return Talker.UNSELECTED;
-		case "r", "random": return Talker.RANDOM;
+		case "m", "selected": i++; return Talker.SELECTED;
+		case "u", "unselected": i++; return Talker.UNSELECTED;
+		case "r", "random": i++; return Talker.RANDOM;
 		case "c", "card":
 			static if (Within) goto default;
+			i++;
 			return Talker.CARD;
 		default: throwError(_prop.msgs.scriptErrorInvalidTalker, tok);
 		}
@@ -1489,13 +1541,12 @@ fi`;
 	const
 	private Content[] analyzeSemanticsImpl(in Node[] nodes, in Keywords keys, Token[string] varTable) {
 		Content[] r;
-		varTable = dupAssocArray(varTable);
 		foreach (node; nodes) {
 			foreach (var; node.beforeVars) {
 				if (var.type !is NodeType.VAR_SET) {
 					throwError(_prop.msgs.scriptErrorInvalidVar, var.token);
 				}
-				varTable[std.string.tolower(node.token.value)] = varValue(var, varTable);
+				varTable[std.string.tolower(var.token.value)] = varValue(var, varTable);
 			}
 			if (node.type is NodeType.VAR_SET) {
 				varTable[std.string.tolower(node.token.value)] = varValue(node, varTable);
@@ -1527,6 +1578,9 @@ fi`;
 			}
 			if (detail.use(CArg.DIALOGS)) {
 				c.dialogs = parseAttr!(SDialog[])(node.attr, i, c.dialogs, varTable);
+				if (!c.dialogs.length) {
+					c.dialogs = [new SDialog];
+				}
 			}
 			if (detail.use(CArg.BG_IMAGES)) {
 				c.backs = parseAttr!(BgImage[])(node.attr, i, c.backs, varTable);
@@ -1934,7 +1988,7 @@ fi`;
 				}
 				attrs ~= "]";
 			} else {
-				attrs ~= std.string.join(value.rCoupons.dup, ";");
+				attrs ~= `"` ~ encodeString(std.string.join(value.rCoupons.dup, ";")) ~ `"`;
 			}
 			toAttr(attrs, value.text, command, indentValue);
 			attrs ~= "]";
@@ -1964,7 +2018,7 @@ fi`;
 	const
 	private void toScriptImpl(ref char[] buf, in Content[] cs, string indent, string indentValue, in Keywords keys, bool legacy) {
 		foreach (i, c; cs) {
-			if (i > 0) buf ~= "\n";
+			if (i > 0) buf ~= "\n\n";
 			buf ~= indentValue;
 			auto detail = c.detail;
 			string command = keys.commands[c.type];

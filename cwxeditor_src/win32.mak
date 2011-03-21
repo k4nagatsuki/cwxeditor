@@ -73,6 +73,7 @@ SRC = cwxeditor.d \
 	cwx\editor\gui\dwt\flagdirtree.d \
 	cwx\editor\gui\dwt\settingsdialog.d \
 	cwx\editor\gui\dwt\replacedialog.d \
+	cwx\editor\gui\dwt\scripterrordialog.d \
 
 OBJ = objs\cwxeditor.obj \
 	objs\cwx\utils.obj \
@@ -149,6 +150,7 @@ OBJ = objs\cwxeditor.obj \
 	objs\cwx\editor\gui\dwt\flagdirtree.obj \
 	objs\cwx\editor\gui\dwt\settingsdialog.obj \
 	objs\cwx\editor\gui\dwt\replacedialog.obj \
+	objs\cwx\editor\gui\dwt\scripterrordialog.obj \
 
 DMD = dmd
 RCC = rcc

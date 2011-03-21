@@ -9,6 +9,7 @@ import cwx.utils;
 import cwx.skin;
 import cwx.usecounter;
 import cwx.path;
+import cwx.script;
 
 import cwx.editor.gui.dwt.props;
 import cwx.editor.gui.dwt.skin;
@@ -21,6 +22,7 @@ import cwx.editor.gui.dwt.xmlbytestransfer;
 import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.centerlayout;
+import cwx.editor.gui.dwt.scripterrordialog;
 
 import std.string;
 
@@ -60,6 +62,7 @@ import org.eclipse.swt.custom.CLabel;
 import java.lang.all;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.ByteArrayTransfer;
+import org.eclipse.swt.dnd.TextTransfer;
 
 public:
 
@@ -392,6 +395,12 @@ private:
 		}
 	}
 	void createEventTree() {
+		createEventTree([]);
+	}
+	void createEventTree(Content[] starts) {
+		foreach (s; starts) {
+			if (s.type !is CType.START) return;
+		}
 		auto parItm = selectionParent;
 		if (!parItm) return;
 		string treeName;
@@ -437,8 +446,19 @@ private:
 			}
 		}
 		auto owner = cast(EventTreeOwner) parItm.getData;
-		auto tree = new EventTree(treeName);
+		EventTree tree;
+		if (starts.length) {
+			tree = new EventTree(starts[0]);
+			foreach (s; starts[1 .. $]) {
+				tree.add(s);
+			}
+		} else {
+			tree = new EventTree(treeName);
+		}
 		appendTree(parItm, tree, owner.trees.length, fire, true);
+		if (starts.length) {
+			_comm.refUseCount.call;
+		}
 	}
 	void appendTree(TreeItem parItm, EventTree tree, int index, Object defFire, bool store) {
 		auto eto = cast(EventTreeOwner) parItm.getData;
@@ -808,6 +828,10 @@ public:
 			_cards.addSelectionListener(new SListener);
 			auto menu = new Menu(parent.getShell, SWT.POP_UP);
 			appendMenuTCPD(_prop, menu, this, true, true, true, true);
+			if (_prop.var.etc.useCWXScript) {
+				new MenuItem(menu, SWT.SEPARATOR);
+				createMenuItem(menu, _prop.msgs.menuToScript, _prop.images.menuToScript, &this.toScript);
+			}
 			static if (is (A == Battle)) {
 				new MenuItem(menu, SWT.SEPARATOR);
 				createMenuItem(menu, _prop.msgs.menuAddManyRounds, _prop.images.menuAddManyRounds, &addManyRounds);
@@ -1163,6 +1187,10 @@ public:
 		return _etree.statusLine;
 	}
 
+	void toScript() {
+		_etree.toScriptAll;
+	}
+
 	override {
 		void cut(SelectionEvent se) {
 			initial;
@@ -1221,7 +1249,10 @@ public:
 				auto cb = new Clipboard(Display.getCurrent);
 				scope (exit) cb.dispose;
 				auto xml = CBtoXML(cb);
-				if (!xml) return;
+				if (!xml) {
+					pasteScript(cb);
+					return;
+				}
 				auto parItm = selectionParent;
 				if (parItm) {
 					auto par = cast(EventTreeOwner) parItm.getData;
@@ -1263,6 +1294,20 @@ public:
 						}
 					}
 				}
+			}
+		}
+		private void pasteScript(Clipboard cb) {
+			if (!_prop.var.etc.useCWXScript) return;
+			auto script = cast(ArrayWrapperString) cb.getContents(TextTransfer.getInstance);
+			if (!script) return;
+			try {
+				auto cs = cwx.script.compile(_prop.parent, _summ, script.array.idup);
+				if (!cs.length) return;
+				if (cs[0].type !is CType.START) return;
+				createEventTree(cs);
+			} catch (CWXScriptException e) {
+				auto dlg = new ScriptErrorDialog(_prop, _cards.getShell, e);
+				dlg.open;
 			}
 		}
 		void del(SelectionEvent se) {
