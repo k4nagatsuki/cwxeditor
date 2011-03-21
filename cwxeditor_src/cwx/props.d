@@ -2125,6 +2125,7 @@ public:
 	string scriptErrorReqNumber() {return "ここに数値が必要です。";}
 	string scriptErrorReqID() {return "ここにIDが必要です。";}
 	string scriptErrorUndefinedVar() {return "存在しない変数です。";}
+	string scriptErrorInvalidValue() {return "値が正しくありません。";}
 }
 
 public class Looks {

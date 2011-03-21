@@ -520,9 +520,10 @@
 
 <p>このようにして、「<code>=</code>」で値をセットする事ができます。</p>
 <p>値を入れた変数は、パラメータや計算式の値として使う事ができます。</p>
-<p>次の例では、先ほど設定された変数によって、パッケージ呼び出しコンテント<code class="keywords">callpack</code>で、IDが2のパッケージを呼び出しています。</p>
+<p>次の例では、設定された変数によって、パッケージ呼び出しコンテント<code class="keywords">callpack</code>で、IDが2のパッケージを呼び出しています。</p>
 
-<pre><code><span class="keywords">callpack</span> <span class="var">$package_カナン王の怒り</span></code></pre>
+<pre><code><span class="var">$package_カナン王の怒り</span> = <span class="num">2</span>
+<span class="keywords">callpack</span> <span class="var">$package_カナン王の怒り</span></code></pre>
 
 <p>変数に値をセットする文は、<span class="keywords">start</span>の前や、特定コンテントの中など、どこにでも書く事ができます。</p>
 <p>ただし、値をセットした後でしか使う事はできません。</p>
@@ -558,8 +559,8 @@
     <span class="keywords">endsc</span>
 <code class="code">fi</code> <span class="comment">; 分岐終了</span></code></pre>
 
-<p><code class="code">if</code>や<code class="code">elif</code>の後に記述するパラメータの種類は、分岐の直前に置くコンテントによって異なります。</p>
-<p>各コンテント毎の解説を参照してください。</p>
+<p><code class="code">if</code>や<code class="code">elif</code>の後に記述するパラメータの種類は、分岐の直前に置くコンテントによって異なります。各コンテント毎の解説を参照してください。</p>
+<p><code class="code">if</code>と<code class="code">elif</code>は、必ず、分岐条件となる一つのパラメータと、分岐先のイベントコンテントを持たなければなりません。</p>
 
 <h3><a name="NEXT" id="NEXT">後続コンテントについて</a></h3>
 
@@ -954,7 +955,7 @@
 <h4 class="example">例</h4>
 
 <pre><code class="samplecode"><span class="keywords">effect</span> [<span class="code">damage</span> <span class="code">level</span> <span class="num">5</span>] <span class="comment">; レベル比5のダメージ</span>
-       [<span class="code">enhaction</span> <span class="num">-5</span> <span class="num">10</span> <span class="code">physic</span>] <span class="comment">; 肉体を持つのであれば、10ラウンドの間、行動力が5低下。</span>
+       [<span class="code">enhaction</span> <span class="num">-5</span> <span class="num">10</span> <span class="code">phy</span>] <span class="comment">; 肉体を持つのであれば、10ラウンドの間、行動力が5低下。</span>
        <span class="code">T</span> <span class="comment">; パーティ全体が対象</span>
        <span class="code">hswing</span> <span class="comment">; 横振動</span>
        <span class="num">3</span> <span class="comment">; 効果レベル3</span>
@@ -1050,9 +1051,11 @@
 <code class="code">if</code> <span class="str">"戦う"</span>
     <span class="comment">; 選択肢「戦う」を選んだ場合はこちらへ分岐する</span>
     <span class="comment">; ...</span>
+    <span class="keywords">break</span>
 <code class="code">elif</code> <span class="str">"逃げ出す"</span>
     <span class="comment">; 選択肢「逃げ出す」を選んだ場合</span>
     <span class="comment">; ...</span>
+    <span class="keywords">break</span>
 <code class="code">fi</code> <span class="comment">; 分岐終了</span></code></pre>
 
 <h3 class="content"><a id="DIALOG" name="DIALOG">dialog <span class="args"><span class="arg">&lt;話者&gt;</span> <span class="array">[<span class="arg">&lt;クーポン&gt;</span> <span class="arg">&lt;メッセージ&gt;</span>] ...</span></span></a></h3>
@@ -1104,12 +1107,15 @@
 <code class="code">if</code> <span class="str">"見張りを誘き出す"</span>
     <span class="comment">; 選択肢「見張りを誘き出す」を選んだ場合はこちらへ分岐する</span>
     <span class="comment">; ...</span>
+    <span class="keywords">break</span>
 <code class="code">elif</code> <span class="str">"突撃する"</span>
     <span class="comment">; 選択肢「突撃する」を選んだ場合</span>
     <span class="comment">; ...</span>
+    <span class="keywords">break</span>
 <code class="code">elif</code> <span class="str">"撤退"</span>
     <span class="comment">; 選択肢「撤退」を選んだ場合</span>
     <span class="comment">; ...</span>
+    <span class="keywords">break</span>
 <code class="code">fi</code> <span class="comment">; 分岐終了</span></code></pre>
 
 <h3 class="content"><a id="BGM" name="BGM">bgm <span class="args"><span class="arg">&lt;ファイル名&gt;</span></span></a></h3>
@@ -1181,7 +1187,7 @@
 
 <h4 class="example">例</h4>
 
-<pre><code class="samplecode"><span class="keywords">elapse</span> <span class="comment">; 時間経過</span></code></pre>
+<pre><code class="samplecode"><span class="keywords">callstart</span> <span class="str">"隠蔽処理"</span> <span class="comment">; スタートコンテント「隠蔽処理」を呼び出す</span></code></pre>
 
 <h3 class="content"><a id="CALLPACK" name="CALLPACK">callpack <span class="args"><span class="arg">&lt;ID&gt;</span></span></a></h3>
 
@@ -1217,6 +1223,7 @@
 <code class="code">elif</code> <span class="code">false</span>
     <span class="comment">; フラグがOffだったらこっち</span>
     <span class="comment">; ...</span>
+    <span class="keywords">break</span>
 <code class="code">fi</code> <span class="comment">; 分岐終了</span></code></pre>
 
 <h3 class="content"><a id="BRSTEPM" name="BRSTEPM">brstepm <span class="args"><span class="arg">&lt;ステップ名&gt;</span></span></a></h3>
@@ -1267,6 +1274,7 @@
 <code class="code">elif</code> <span class="code">false</span>
     <span class="comment">; ステップの値が3未満であれば</span>
     <span class="comment">; ...</span>
+    <span class="keywords">break</span>
 <code class="code">fi</code> <span class="comment">; 分岐終了</span></code></pre>
 
 <h3 class="content"><a id="SELMEMBER" name="SELMEMBER">selmember <span class="args"><span class="arg">&lt;パーティ全体からの選択か&gt;</span> <span class="arg">&lt;ランダム選択か&gt;</span></span></a></h3>
@@ -1354,6 +1362,7 @@
 <code class="code">if</code> <span class="code">true</span>
     <span class="comment">; 判定に成功</span>
     <span class="comment">; ...</span>
+    <span class="keywords">break</span>
 <code class="code">elif</code> <span class="code">false</span>
     <span class="comment">; 判定に失敗</span>
     <span class="keywords">msg</span> <span class="code">M</span> <span class="str">"「しまった！」"</span>
@@ -1375,9 +1384,11 @@
 <code class="code">if</code> <span class="code">true</span>
     <span class="comment">; 30%でこっちに来る</span>
     <span class="comment">; ...</span>
+    <span class="keywords">break</span>
 <code class="code">elif</code> <span class="code">false</span>
     <span class="comment">; 70%でこっちに来る</span>
     <span class="comment">; ...</span>
+    <span class="keywords">break</span>
 <code class="code">fi</code> <span class="comment">; 分岐終了</span></code></pre>
 
 <h3 class="content"><a id="BRLEVEL" name="BRLEVEL">brlevel <span class="args"><span class="arg">&lt;レベル&gt;</span> <span class="arg">&lt;平均か&gt;</span></span></a></h3>
@@ -1392,13 +1403,15 @@
 
 <h4 class="example">例</h4>
 
-<pre><code class="samplecode"><span class="keywords">brrandom</span> <span class="num">5</span> <span class="code">true</span> <span class="comment">; パーティ全員の平均レベルが5以上かどうかで分岐</span>
+<pre><code class="samplecode"><span class="keywords">brlevel</span> <span class="num">5</span> <span class="code">true</span> <span class="comment">; パーティ全員の平均レベルが5以上かどうかで分岐</span>
 <code class="code">if</code> <span class="code">true</span>
     <span class="comment">; 平均レベルが5以上であればこちらへ分岐する</span>
     <span class="comment">; ...</span>
+    <span class="keywords">break</span>
 <code class="code">elif</code> <span class="code">false</span>
-    <span class="comment">; 平気レベルが5未満の場合</span>
+    <span class="comment">; 平均レベルが5未満の場合</span>
     <span class="comment">; ...</span>
+    <span class="keywords">break</span>
 <code class="code">fi</code> <span class="comment">; 分岐終了</span></code></pre>
 
 <h3 class="content"><a id="BRSTATUS" name="BRSTATUS">brstatus <span class="args"><span class="arg">&lt;判定対象&gt;</span> <span class="arg">&lt;ステータス&gt;</span></span></a></h3>
@@ -1451,9 +1464,11 @@
 <code class="code">if</code> <span class="code">true</span>
     <span class="comment">; パーティ全員が生存していればこちらへ分岐する</span>
     <span class="comment">; ...</span>
+    <span class="keywords">break</span>
 <code class="code">elif</code> <span class="code">false</span>
     <span class="comment">; 誰かが生存していない場合</span>
     <span class="comment">; ...</span>
+    <span class="keywords">break</span>
 <code class="code">fi</code> <span class="comment">; 分岐終了</span></code></pre>
 
 <h3 class="content"><a id="BRCOUNT" name="BRCOUNT">brcount <span class="args"><span class="arg">&lt;人数&gt;</span></span></a></h3>
@@ -1494,15 +1509,19 @@
 <code class="code">if</code> <span class="num">1</span>
     <span class="comment">; 現在のエリアのIDが1だった場合</span>
     <span class="comment">; ...</span>
+    <span class="keywords">break</span>
 <code class="code">elif</code> <span class="num">2</span>
     <span class="comment">; 現在のエリアのIDが2だった場合</span>
     <span class="comment">; ...</span>
+    <span class="keywords">break</span>
 <code class="code">elif</code> <span class="num">3</span>
     <span class="comment">; 現在のエリアのIDが3だった場合</span>
     <span class="comment">; ...</span>
+    <span class="keywords">break</span>
 <code class="code">elif</code> <span class="code">default</span>
     <span class="comment">; その他のエリアの場合</span>
     <span class="comment">; ...</span>
+    <span class="keywords">break</span>
 <code class="code">fi</code> <span class="comment">; 分岐終了</span></code></pre>
 
 <h3 class="content"><a id="BRBATTL" name="BRBATTL">brbattle</a></h3>
@@ -1517,19 +1536,23 @@
 
 <h4 class="example">例</h4>
 
-<pre><code class="samplecode"><span class="keywords">brarea</span>
+<pre><code class="samplecode"><span class="keywords">brbattle</span>
 <code class="code">if</code> <span class="num">1</span>
     <span class="comment">; 現在のバトルのIDが1だった場合</span>
     <span class="comment">; ...</span>
+    <span class="keywords">break</span>
 <code class="code">elif</code> <span class="num">2</span>
     <span class="comment">; 現在のバトルのIDが2だった場合</span>
     <span class="comment">; ...</span>
+    <span class="keywords">break</span>
 <code class="code">elif</code> <span class="num">3</span>
     <span class="comment">; 現在のバトルのIDが3だった場合</span>
     <span class="comment">; ...</span>
+    <span class="keywords">break</span>
 <code class="code">elif</code> <span class="code">default</span>
     <span class="comment">; その他のバトルの場合</span>
     <span class="comment">; ...</span>
+    <span class="keywords">break</span>
 <code class="code">fi</code> <span class="comment">; 分岐終了</span></code></pre>
 
 <h3 class="content"><a id="BRONBATTL" name="BRONBATTL">bronbattle</a></h3>
@@ -1547,9 +1570,11 @@
 <code class="code">if</code> <span class="code">true</span>
     <span class="comment">; 現在バトル中であればこちらへ分岐</span>
     <span class="comment">; ...</span>
+    <span class="keywords">break</span>
 <code class="code">elif</code> <span class="code">false</span>
     <span class="comment">; バトル中ではない場合</span>
     <span class="comment">; ...</span>
+    <span class="keywords">break</span>
 <code class="code">fi</code> <span class="comment">; 分岐終了</span></code></pre>
 
 <h3 class="content"><a id="BRCAST" name="BRCAST">brcast <span class="args"><span class="arg">&lt;ID&gt;</span></span></a></h3>
@@ -1567,9 +1592,11 @@
 <code class="code">if</code> <span class="code">true</span>
     <span class="comment">; ID2のキャストが同行していればこちらへ分岐</span>
     <span class="comment">; ...</span>
+    <span class="keywords">break</span>
 <code class="code">elif</code> <span class="code">false</span>
     <span class="comment">; 同行していない場合</span>
     <span class="comment">; ...</span>
+    <span class="keywords">break</span>
 <code class="code">fi</code> <span class="comment">; 分岐終了</span></code></pre>
 
 <h3 class="content"><a id="BRITEM" name="BRITEM">britem <span class="args"><span class="arg">&lt;範囲&gt;</span> <span class="arg">&lt;ID&gt;</span> <span class="arg">&lt;枚数&gt;</span></span></a></h3>
@@ -1612,9 +1639,11 @@
 <code class="code">if</code> <span class="code">true</span>
     <span class="comment">; パーティの誰か一人がID1のアイテムを2枚以上持っていればこちらへ分岐</span>
     <span class="comment">; ...</span>
+    <span class="keywords">break</span>
 <code class="code">elif</code> <span class="code">false</span>
     <span class="comment">; 持っていない場合</span>
     <span class="comment">; ...</span>
+    <span class="keywords">break</span>
 <code class="code">fi</code> <span class="comment">; 分岐終了</span></code></pre>
 
 <h3 class="content"><a id="BRINFO" name="BRINFO">brinfo <span class="args"><span class="arg">&lt;ID&gt;</span></span></a></h3>
@@ -1632,9 +1661,11 @@
 <code class="code">if</code> <span class="code">true</span>
     <span class="comment">; ID4の情報カードを所持していればこちらへ分岐</span>
     <span class="comment">; ...</span>
+    <span class="keywords">break</span>
 <code class="code">elif</code> <span class="code">false</span>
     <span class="comment">; 所持していない場合</span>
     <span class="comment">; ...</span>
+    <span class="keywords">break</span>
 <code class="code">fi</code> <span class="comment">; 分岐終了</span></code></pre>
 
 <h3 class="content"><a id="BRMONEY" name="BRMONEY">brmoney <span class="args"><span class="arg">&lt;金額&gt;</span></span></a></h3>
@@ -1652,9 +1683,11 @@
 <code class="code">if</code> <span class="code">true</span>
     <span class="comment">; 1000sp以上所持していればこちらへ分岐</span>
     <span class="comment">; ...</span>
+    <span class="keywords">break</span>
 <code class="code">elif</code> <span class="code">false</span>
     <span class="comment">; 所持金が1000sp未満の場合</span>
     <span class="comment">; ...</span>
+    <span class="keywords">break</span>
 <code class="code">fi</code> <span class="comment">; 分岐終了</span></code></pre>
 
 <h3 class="content"><a id="BRCOUPON" name="BRCOUPON">brcoupon <span class="args"><span class="arg">&lt;判定対象&gt;</span> <span class="arg">&lt;クーポン名&gt;</span></span></a></h3>
@@ -1681,9 +1714,11 @@
 <code class="code">if</code> <span class="code">true</span>
     <span class="comment">; 選択中のメンバがクーポン「：主人公」を所持していればこちらへ分岐</span>
     <span class="comment">; ...</span>
+    <span class="keywords">break</span>
 <code class="code">elif</code> <span class="code">false</span>
     <span class="comment">; 所持していない場合</span>
     <span class="comment">; ...</span>
+    <span class="keywords">break</span>
 <code class="code">fi</code> <span class="comment">; 分岐終了</span></code></pre>
 
 <h3 class="content"><a id="BRSTAMP" name="BRSTAMP">brstamp <span class="args"><span class="arg">&lt;シナリオ名&gt;</span></span></a></h3>
@@ -1701,9 +1736,11 @@
 <code class="code">if</code> <span class="code">true</span>
     <span class="comment">; シナリオ「ゴブリンの洞窟」が終了済みであればこちらへ分岐</span>
     <span class="comment">; ...</span>
+    <span class="keywords">break</span>
 <code class="code">elif</code> <span class="code">false</span>
     <span class="comment">; 終了済みでない場合</span>
     <span class="comment">; ...</span>
+    <span class="keywords">break</span>
 <code class="code">fi</code> <span class="comment">; 分岐終了</span></code></pre>
 
 <h3 class="content"><a id="BRGOSSIP" name="BRGOSSIP">brgossip <span class="args"><span class="arg">&lt;ゴシップ名&gt;</span></span></a></h3>
@@ -1721,9 +1758,11 @@
 <code class="code">if</code> <span class="code">true</span>
     <span class="comment">; ゴシップ「悪い噂」があればこちらへ分岐</span>
     <span class="comment">; ...</span>
+    <span class="keywords">break</span>
 <code class="code">elif</code> <span class="code">false</span>
     <span class="comment">; ゴシップが無い場合</span>
     <span class="comment">; ...</span>
+    <span class="keywords">break</span>
 <code class="code">fi</code> <span class="comment">; 分岐終了</span></code></pre>
 
 <h3 class="content"><a id="SETFLAG" name="SETFLAG">setflag <span class="args"><span class="arg">&lt;フラグ名&gt;</span> <span class="arg">&lt;値&gt;</span></span></a></h3>
@@ -1809,6 +1848,7 @@
 <code class="code">if</code> <span class="str">"依頼を受ける"</span> <span class="keywords">chkflag</span> <span class="str">"話を聞いた"</span>
     <span class="comment">; フラグ「話を聞いた」がOnでなければこの選択肢は出現しない</span>
     <span class="comment">; ...</span>
+    <span class="keywords">break</span>
 <code class="code">elif</code> <span class="str">"依頼を断る"</span>
     <span class="comment">; ...</span>
     <span class="keywords">endsc</span>

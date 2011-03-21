@@ -1157,6 +1157,7 @@ fi`;
 		} else static if (isVArray!(T)) {
 			T r;
 			while (i < attr.length) {
+				if (attr[i].type !is NodeType.VALUES) break;
 				r ~= parseAttr!(typeof(T[0]), Within)(attr, i, typeof(T[0]).init, varTable);
 			}
 			return r;
@@ -1405,7 +1406,12 @@ fi`;
 			auto r = new SDialog;
 			if (vals.length > 1) {
 				if (vals[j].type is NodeType.VALUES) {
-					r.rCoupons = parseAttr!(string[])(vals, j, [], varTable);
+					string[] cs;
+					foreach (v; vals[j].values) {
+						cs ~= attrValue(v, varTable);
+					}
+					r.rCoupons = cs;
+					j++;
 				} else {
 					r.rCoupons = std.string.split(parseAttr!(string)(vals, j, "", varTable), ";");
 				}
@@ -1489,7 +1495,11 @@ fi`;
 				throwError(_prop.msgs.scriptErrorUndefinedSymbol, node.text);
 			}
 		} else {
-			r = stringValue(value);
+			switch (value.kind) {
+			case Kind.STRING: r = stringValue(value); break;
+			case Kind.NUMBER: r = to!(string)(value.value); break;
+			default: throwError(_prop.msgs.scriptErrorInvalidValue, value);
+			}
 		}
 		return r;
 	}
@@ -1703,7 +1713,7 @@ fi`;
 		return buf;
 	}
 	string encodeString(string s) {
-		return std.string.replace(s, "\"", "\\\"");
+		return std.string.replace(s, "\"", "\"\"");
 	}
 	private void toAttr(bool Within = false, T)(ref char[] attrs, T value, string command, string indentValue, bool space = true) {
 		if (space) attrs ~= " ";
@@ -1729,7 +1739,7 @@ fi`;
 				attrs ~= "\n";
 				bool spaceLine = false;
 				foreach (line; lines) {
-					line = std.string.replace(line, "@", "\\@");
+					line = std.string.replace(line, "@", "@@");
 					if (line.length && (line[0] == ' ' || line[0] == '\t')) {
 						line = "\\" ~ line;
 					}
@@ -2204,8 +2214,8 @@ private const string[] TOKENS = [
 	`[0-9]+(\.[0-9]+)?`, // number
 	`\[`, // open bracket
 	`\]`, // close bracket
-	`"([^"]|"")*?"`, // string
-	`'([^']|'')*?'`, // string
+	`"(""|[^"])*?"`, // string
+	`'(''|[^'])*?'`, // string
 	`@[ \t]*([0-9]+|c|center)?[ \t]*\n(([^@]|@@|\n)*\n)?[ \t]*@`, // string
 	`[ \t\r\n]+`, // whitespace
 	`\/\*(.|\n)*?\*\/`, // multi line comment
