@@ -25,6 +25,7 @@ import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.properties;
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.centerlayout;
+import cwx.editor.gui.dwt.scripterrordialog;
 
 import std.string;
 
@@ -1713,13 +1714,16 @@ public:
 		auto c = cast(Content) itm.getData;
 		auto script = CWXScript(_prop.parent, _summ);
 		auto text = script.toScript([c], _summ.legacy, "\t");
+		text = std.string.replace(text, "\n", std.path.linesep);
 		auto cb = new Clipboard(Display.getCurrent);
 		scope (exit) cb.dispose;
 		cb.setContents([new ArrayWrapperString(text ~ "\n")], [TextTransfer.getInstance]);
 	}
 	void toScriptAll() {
+		if (!_et) return;
 		auto script = CWXScript(_prop.parent, _summ);
 		auto text = script.toScript(_et.starts, _summ.legacy, "\t");
+		text = std.string.replace(text, "\n", std.path.linesep);
 		auto cb = new Clipboard(Display.getCurrent);
 		scope (exit) cb.dispose;
 		cb.setContents([new ArrayWrapperString(text ~ "\n")], [TextTransfer.getInstance]);
@@ -2377,48 +2381,5 @@ public:
 	}
 	bool openCWXPath(string path) {
 		return openCWXPathImpl(_tree, path);
-	}
-}
-
-class ScriptErrorDialog : AbsDialog {
-private:
-	Props _prop;
-	CWXScriptException _ex;
-	Text _result;
-
-public:
-	this(Props prop, Shell shell, CWXScriptException ex) {
-		_prop = prop;
-		_ex = ex;
-		super(prop, shell, prop.msgs.dlgTitScriptError, prop.images.script, true, prop.var.scriptDlg, false, false);
-		enterClose = true;
-		firstFocusIsOK = true;
-	}
-
-protected:
-	override void setup(Composite area) {
-		auto cl = new CenterLayout;
-		cl.fillHorizontal = true;
-		cl.fillVertical = true;
-		area.setLayout = cl;
-		string buf = _prop.msgs.scriptError ~ "\n";
-		buf ~= _ex.msg ~ "\n";
-		string lStr = .format("Line %d: ", _ex.errLine + 1);
-		buf ~= lStr;
-		auto line = splitlines(_ex.text)[_ex.errLine];
-		buf ~= std.string.replace(line, "\t", "    ");
-		size_t posAdd = .count(line, "\t") * 3;
-		buf ~= "\n";
-		size_t pos = lengthJ(line[0 .. _ex.errPos]) + 1 + lengthJ(lStr) + posAdd;
-		buf ~= rjustify("^", pos);
-		_result = new Text(area, SWT.BORDER | SWT.MULTI | SWT.READ_ONLY | SWT.WRAP | SWT.V_SCROLL);
-		_result.setText = buf;
-		auto font = _result.getFont;
-		auto fSize = font ? cast(uint) font.getFontData[0].height : 0;
-		_result.setFont = new Font(Display.getCurrent, dwtData(_prop.looks.scriptErrorFont(fSize)));
-	}
-	override bool close(bool ok) {
-		_result.getFont.dispose;
-		return ok;
 	}
 }

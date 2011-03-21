@@ -2094,7 +2094,7 @@ public:
 	string scriptErrorNoIfText() {return "ifの条件が見つかりません。";}
 	string scriptErrorNoIfContents() {return "分岐先のコンテントが見つかりません。";}
 	string scriptErrorInvalidKeyword() {return "未知のキーワードです。";}
-	string scriptErrorInvalidValuesOpen() {return "引数列ではありません。";}
+	string scriptErrorInvalidValuesOpen() {return "パラメータ列ではありません。";}
 	string scriptErrorInvalidValuesClose() {return "閉じ括弧が見つかりません。";}
 	string scriptErrorNoVarSet() {return "変数に値をセットしていません。";}
 	string scriptErrorNoVarVal() {return "変数の値がありません。";}
@@ -2122,6 +2122,9 @@ public:
 	string scriptErrorInvalidCommand() {return "命令が正しくありません。";}
 	string scriptErrorCanNotHaveContent() {return "このコンテントが後続コンテントを持つ事はできません。";}
 	string scriptErrorInvalidStr() {return "文字列が正しくありません。";}
+	string scriptErrorReqNumber() {return "ここに数値が必要です。";}
+	string scriptErrorReqID() {return "ここにIDが必要です。";}
+	string scriptErrorUndefinedVar() {return "存在しない変数です。";}
 }
 
 public class Looks {
