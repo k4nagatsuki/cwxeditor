@@ -1646,6 +1646,7 @@ public:
 			auto fno = cast(FileNameObj) itm.getData;
 			if (fnmatch(fno.array, path)) {
 				_dirs.select = itm;
+				refreshFiles(selFiles);
 				return true;
 			}
 			if (selectImpl(itm, path)) {
@@ -1656,6 +1657,7 @@ public:
 	}
 	bool select(string path) {
 		try {
+			debugln(path);
 			if (.exists(path)) {
 				path = nabs(path);
 				auto isdir = .isdir(path);

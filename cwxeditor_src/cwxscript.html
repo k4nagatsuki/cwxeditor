@@ -444,11 +444,12 @@
 @</span></code></pre>
 
 <p>数値の代わりに<code class="code">center</code>というキーワードを使う事で、CardWirthのメッセージ欄に合わせて、縦方向の中央寄せに表示させる事ができます。</p>
-<p>ただし、折り返しは(現在の所)考慮されません。</p>
 
 <pre><code><span class="keywords">msg</span> <span class="code">none</span> <span class="str">@ center
 このメッセージは中央付近の行に表示されます。
 @</span></code></pre>
+
+<p>一行の長さがメッセージ欄の幅をオーバーした際の折り返しも考慮されますが、特殊文字やタブ文字が含まれている場合は、確実に中央寄せされるとは限りません。</p>
 
 <h4><a name="NUM_DESC" id="NUM_DESC">数値(または計算式)</a></h4>
 
