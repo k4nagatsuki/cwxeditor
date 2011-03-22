@@ -109,7 +109,7 @@ struct CWXScript {
 	/// Tokenの値を文字列として解釈して返す。
 	/// 文字列を囲う記号に加え、
 	/// 行頭にあるタブ文字や一定数の空白が取り除かれる。
-	private string stringValue(in Token tok) {
+	private string stringValue(in Token tok, size_t width) {
 		string decode(string s, char esc) {
 			char[] buf = new char[s.length];
 			size_t len = 0;
@@ -134,15 +134,26 @@ struct CWXScript {
 		}
 		if (tok.value[0] == '@') {
 			char[] buf;
-			auto lines = .splitlines(tok.value[0 .. $ - 1]);
-			foreach (i, line; lines[1 .. $]) {
-				lines[i + 1] = .stripl(line);
+			auto linesBase = .splitlines(tok.value[0 .. $ - 1]);
+			string firstLine = linesBase[0];
+			string[] lines;
+			foreach (i, line; linesBase[1 .. $]) {
+				line = .stripl(line);
 				if (line.length >= 1 && line[0] == '\\') {
-					lines[i + 1] = line[1 .. $];
+					line = line[1 .. $];
 				}
+				if (width > 0) {
+					while (lengthJ(line) > width) {
+						auto l = sliceJ(line, 0, width);
+						lines ~= l;
+						line = line[l.length .. $];
+					}
+					// TODO 折り返し
+				}
+				lines ~= line;
 			}
-			if (lines[0].length > 1) {
-				auto lnStr = std.string.tolower(.strip(lines[0][1 .. $]));
+			if (firstLine.length > 1) {
+				auto lnStr = std.string.tolower(.strip(firstLine[1 .. $]));
 				bool isNum = .isNumeric(lnStr);
 				if (!isNum && icmp(lnStr, "c") != 0 && icmp(lnStr, "center") != 0) {
 					throwError(_prop.msgs.scriptErrorInvalidStr, tok);
@@ -151,7 +162,7 @@ struct CWXScript {
 				if (isNum) {
 					ln = .to!(int)(lnStr);
 				} else {
-					int lc = cast(int) lineCount(lines[1 .. $]);
+					int lc = cast(int) lineCount(lines);
 					if (lc > 0 && lc < _prop.looks.messageLine) {
 						int lnt = cast(int) _prop.looks.messageLine - (lc - 1);
 						ln = lnt / 2 + 1;
@@ -164,7 +175,7 @@ struct CWXScript {
 				}
 				buf[] = '\n';
 			}
-			foreach (i, line; lines[1 .. $]) {
+			foreach (i, line; lines) {
 				if (i > 0) buf ~= '\n';;
 				buf ~= line;
 			}
@@ -173,10 +184,10 @@ struct CWXScript {
 		return decode(tok.value[1 .. $ - 1], tok.value[0]);
 	} unittest {
 		CWXScript s;
-		assert (s.stringValue(Token(0, 0, Kind.STRING, `"abc"`)) == "abc");
-		assert (s.stringValue(Token(0, 0, Kind.STRING, `"a""bc"`)) == "a\"bc");
-		assert (s.stringValue(Token(0, 0, Kind.STRING, `'ab''c'`)) == "ab'c");
-		assert (s.stringValue(Token(0, 2, Kind.STRING, "@ 3\n\t\tte@@st\n   t\\e\\st\n\\   a\n\\\\   a@"))
+		assert (s.stringValue(Token(0, 0, Kind.STRING, `"abc"`), 0) == "abc");
+		assert (s.stringValue(Token(0, 0, Kind.STRING, `"a""bc"`), 0) == "a\"bc");
+		assert (s.stringValue(Token(0, 0, Kind.STRING, `'ab''c'`), 0) == "ab'c");
+		assert (s.stringValue(Token(0, 2, Kind.STRING, "@ 3\n\t\tte@@st\n   t\\e\\st\n\\   a\n\\\\   a@"), false)
 			 == "\n\nte@st\nt\\e\\st\n   a\n\\   a");
 	}
 
@@ -690,14 +701,14 @@ struct CWXScript {
 	}
 
 	/// 属性値を文字列にして返す。
-	private string attrValue(in Node node, Token[string] varTable) {
+	private string attrValue(in Node node, Token[string] varTable, size_t strWidth) {
 		switch (node.token.kind) {
 		case Kind.SYMBOL: return std.string.tolower(node.token.value);
-		case Kind.STRING: return stringValue(node.token);
+		case Kind.STRING: return stringValue(node.token, strWidth);
 		case Kind.VAR_NAME:
 			auto tok = var(node.token, varTable);
 			if (tok.kind is Kind.STRING) {
-				return stringValue(tok);
+				return stringValue(tok, strWidth);
 			} else if (tok.kind is Kind.SYMBOL) {
 				return std.string.tolower(tok.value);
 			}
@@ -1142,10 +1153,10 @@ fi`;
 		return r;
 	}
 
-	private T parseAttr(T, bool Within = false)(in Node[] attr, ref size_t i, lazy T defValue, in Token[string] varTable) {
+	private T parseAttr(T, bool Within = false)(in Node[] attr, ref size_t i, lazy T defValue, in Token[string] varTable, size_t msgWidth = 0) {
 		if (attr.length <= i) return defValue;
 		auto tok = var(attr[i], varTable);
-		auto value = attrValue(attr[i], varTable);
+		auto value = attrValue(attr[i], varTable, msgWidth);
 		static if (is(T == string)) {
 			if (attr[i].token.kind is Kind.SYMBOL && value == "stop") {
 				/// BGM停止用
@@ -1408,7 +1419,7 @@ fi`;
 				if (vals[j].type is NodeType.VALUES) {
 					string[] cs;
 					foreach (v; vals[j].values) {
-						cs ~= attrValue(v, varTable);
+						cs ~= attrValue(v, varTable, 0);
 					}
 					r.rCoupons = cs;
 					j++;
@@ -1416,7 +1427,7 @@ fi`;
 					r.rCoupons = std.string.split(parseAttr!(string)(vals, j, "", varTable), ";");
 				}
 			}
-			r.text = parseAttr!(string)(vals, j, r.text, varTable);
+			r.text = parseAttr!(string)(vals, j, r.text, varTable, true);
 			i++;
 			return r;
 		} else static if (is(T == int)) {
@@ -1443,7 +1454,7 @@ fi`;
 	private void parseAttrTalker(in Node[] attr, ref size_t i, ref Talker t, ref string cardPath, in Token[string] varTable) {
 		if (attr.length <= i) return;
 		auto tok = var(attr[i], varTable);
-		auto value = attrValue(attr[i], varTable);
+		auto value = attrValue(attr[i], varTable, 0);
 		if (tok.kind is Kind.STRING) {
 			t = Talker.IMAGE;
 			cardPath = value;
@@ -1456,7 +1467,7 @@ fi`;
 	private Talker parseTalker(bool Within)(in Node[] attr, ref size_t i, in Token[string] varTable) {
 		auto node = attr[i];
 		auto tok = var(node, varTable);
-		auto value = attrValue(node, varTable);
+		auto value = attrValue(node, varTable, 0);
 		switch (value) {
 		case "n", "none":
 			static if (Within) goto default;
@@ -1496,7 +1507,7 @@ fi`;
 			}
 		} else {
 			switch (value.kind) {
-			case Kind.STRING: r = stringValue(value); break;
+			case Kind.STRING: r = stringValue(value, 0); break;
 			case Kind.NUMBER: r = to!(string)(value.value); break;
 			default: throwError(_prop.msgs.scriptErrorInvalidValue, value);
 			}
@@ -1554,7 +1565,8 @@ fi`;
 				c.cardPath = path;
 			}
 			if (detail.use(CArg.TEXT)) {
-				c.text = parseAttr!(string)(node.attr, i, c.text, varTable);
+				c.text = parseAttr!(string)(node.attr, i, c.text, varTable,
+					c.talkerC is Talker.NARRATION ? _prop.looks.messageLen : _prop.looks.messageImageLen);
 			}
 			if (detail.use(CArg.TALKER_NC)) {
 				c.talkerNC = parseAttr!(Talker, true)(node.attr, i, c.talkerNC, varTable);

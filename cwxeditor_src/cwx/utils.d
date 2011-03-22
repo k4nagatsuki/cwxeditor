@@ -1711,3 +1711,58 @@ size_t lineCount(in string[] lines) {
 } unittest {
 	assert (lineCount(splitlines("\na\nb\n\nc\n\n")) == 4);
 }
+
+/// lengthJ()で得られる長さに基づいたスライスを得る。
+/// Example:
+/// ---
+/// assert (sliceJ("あいうえお", 2, 10) == "いうえお");
+/// assert (sliceJ("あいうeお", 2, 9) == "いうeお");
+/// assert (sliceJ("あいうえお", 2, 9) == "いうえ");
+/// assert (sliceJ("あいうえお", 1, 9) == "いうえ");
+/// assert (sliceJ("あいうえお", 0, 9) == "あいうえ");
+/// assert (sliceJ("あいうえお", 3, 4) == "");
+/// assert (sliceJ("あいうえお", 3, 5) == "");
+/// assert (sliceJ("あいうえお", 3, 6) == "う");
+/// ---
+/// See_Also: lengthJ()
+string sliceJ(string text, size_t from, size_t to) {
+	void te() {
+		string msg = "text: " ~ text ~ ", from: " ~ .to!(string)(from) ~ ", to: " ~ .to!(string)(to);
+		throw new Exception(msg, __FILE__, __LINE__);
+	}
+	if (from > to) te;
+	size_t i = 0u, j = 0u;
+	size_t s = size_t.max, e;
+	bool ok = false;
+	size_t len;
+	foreach (dchar c; text) {
+		if (s == size_t.max && from <= j) s = i;
+		char[] cbuf;
+		std.utf.encode(cbuf, c);
+		len = cbuf.length;
+		i += len;
+		j += len > 1 ? 2 : 1;
+		if (to <= j) {
+			e = to < j ? i - len : i;
+			if (s == size_t.max) s = e;
+			ok = true;
+			break;
+		}
+	}
+	if (!ok) te;
+	return text[s .. e];
+} unittest {
+	assert (sliceJ("あいうえお", 2, 10) == "いうえお");
+	assert (sliceJ("あいうeお", 2, 9) == "いうeお");
+	assert (sliceJ("あいうえお", 2, 9) == "いうえ");
+	assert (sliceJ("あいうえお", 1, 9) == "いうえ");
+	assert (sliceJ("あいうえお", 0, 9) == "あいうえ");
+	assert (sliceJ("あいうえお", 3, 4) == "");
+	assert (sliceJ("あいうえお", 3, 5) == "");
+	assert (sliceJ("あいうえお", 3, 6) == "う");
+	assert (sliceJ("1いうえお", 3, 7) == "うえ");
+	assert (sliceJ("1いうえお", 3, 8) == "うえ");
+	assert (sliceJ("1いうえお", 3, 9) == "うえお");
+	assert (sliceJ("1いuえお", 3, 8) == "uえお");
+	assert (sliceJ("あいうえお", 3, 3) == "");
+}
