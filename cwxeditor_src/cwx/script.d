@@ -119,7 +119,8 @@ struct CWXScript {
 		}
 		return [line];
 	}
-	private static size_t stringCenter(string[] linesBase, size_t width) {
+	const
+	private size_t stringCenter(string[] linesBase, size_t width) {
 		string[] lines;
 		if (width > 0) {
 			foreach (line; linesBase) {
@@ -130,8 +131,8 @@ struct CWXScript {
 		}
 		int ln;
 		int lc = cast(int) lineCount(lines);
-		if (lc > 0 && lc < width) {
-			int lnt = cast(int) width - (lc - 1);
+		if (lc > 0 && lc < _prop.looks.messageLine) {
+			int lnt = cast(int) _prop.looks.messageLine - (lc - 1);
 			ln = lnt / 2 + 1;
 		} else {
 			ln = 0;
