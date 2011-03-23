@@ -8,6 +8,8 @@ import cwx.utils;
 import cwx.event;
 import cwx.motion;
 import cwx.background;
+import cwx.area;
+import cwx.card;
 
 import std.ctype;
 import std.stdio;
@@ -106,6 +108,38 @@ struct CWXScript {
 			return line == o.line && pos == o.pos && kind == o.kind && value == o.value;
 		}
 	}
+	private string[] wrap(string line, size_t width) {
+		if (width > 0) {
+			string[] lines;
+			while (lengthJ(line) > width) {
+				auto l = sliceJ(line, 0, width);
+				lines ~= l;
+				line = line[l.length .. $];
+			}
+			lines ~= line;
+			return lines;
+		}
+		return [line];
+	}
+	private size_t stringCenter(string[] linesBase, size_t width) {
+		string[] lines;
+		if (width > 0) {
+			foreach (line; linesBase) {
+				lines ~= wrap(line, width);
+			}
+		} else {
+			lines = linesBase;
+		}
+		int ln;
+		int lc = cast(int) lineCount(lines);
+		if (lc > 0 && lc < _prop.looks.messageLine) {
+			int lnt = cast(int) _prop.looks.messageLine - (lc - 1);
+			ln = lnt / 2 + 1;
+		} else {
+			ln = 0;
+		}
+		return ln > 0 ? ln : 0;
+	}
 	/// Tokenの値を文字列として解釈して返す。
 	/// 文字列を囲う記号に加え、
 	/// 行頭にあるタブ文字や一定数の空白が取り除かれる。
@@ -139,18 +173,11 @@ struct CWXScript {
 			string[] lines;
 			foreach (i, line; linesBase[1 .. $]) {
 				line = .stripl(line);
+				line = decode(line, tok.value[0]);
 				if (line.length >= 1 && line[0] == '\\') {
 					line = line[1 .. $];
 				}
-				if (width > 0) {
-					while (lengthJ(line) > width) {
-						auto l = sliceJ(line, 0, width);
-						lines ~= l;
-						line = line[l.length .. $];
-					}
-					// TODO 折り返し
-				}
-				lines ~= line;
+				lines ~= wrap(line, width);
 			}
 			if (firstLine.length > 1) {
 				auto lnStr = std.string.tolower(.strip(firstLine[1 .. $]));
@@ -162,13 +189,7 @@ struct CWXScript {
 				if (isNum) {
 					ln = .to!(int)(lnStr);
 				} else {
-					int lc = cast(int) lineCount(lines);
-					if (lc > 0 && lc < _prop.looks.messageLine) {
-						int lnt = cast(int) _prop.looks.messageLine - (lc - 1);
-						ln = lnt / 2 + 1;
-					} else {
-						ln = 0;
-					}
+					ln = stringCenter(lines, 0);
 				}
 				if (ln > 0) {
 					buf.length = ln - 1;
@@ -179,7 +200,7 @@ struct CWXScript {
 				if (i > 0) buf ~= '\n';;
 				buf ~= line;
 			}
-			return decode(buf, tok.value[0]);
+			return buf;
 		}
 		return decode(tok.value[1 .. $ - 1], tok.value[0]);
 	} unittest {
@@ -1572,7 +1593,7 @@ fi`;
 				c.talkerNC = parseAttr!(Talker, true)(node.attr, i, c.talkerNC, varTable);
 			}
 			if (detail.use(CArg.DIALOGS)) {
-				c.dialogs = parseAttr!(SDialog[])(node.attr, i, c.dialogs, varTable);
+				c.dialogs = parseAttr!(SDialog[])(node.attr, i, c.dialogs, varTable, _prop.looks.messageImageLen);
 				if (!c.dialogs.length) {
 					c.dialogs = [new SDialog];
 				}
@@ -1721,15 +1742,22 @@ fi`;
 	}
 	string toScript(in Content[] cs, bool legacy, string indent = "\t") {
 		char[] buf;
-		toScriptImpl(buf, cs, indent, "", KEYS, legacy);
+		auto table = new VarTable;
+		toScriptImpl(buf, cs, indent, "", KEYS, table, legacy);
+		auto vars = table.vars;
+		if (vars.length) {
+			buf = std.string.join(table.vars, "\n") ~ "\n\n" ~ buf;
+		}
 		return buf;
 	}
 	string encodeString(string s) {
 		return std.string.replace(s, "\"", "\"\"");
 	}
-	private void toAttr(bool Within = false, T)(ref char[] attrs, T value, string command, string indentValue, bool space = true) {
+	private void toAttr(bool Within = false, T)(ref char[] attrs, T value, string command, string indentValue, VarTable vars, bool space = true, size_t strWidth = 0) {
 		if (space) attrs ~= " ";
-		static if (is(T == string)) {
+		static if (is(T == Symbol)) {
+			attrs ~= value;
+		} else static if (is(T == string)) {
 			auto lines = splitlines(value);
 			if (lines.length == 0) {
 				attrs ~= `""`;
@@ -1745,14 +1773,18 @@ fi`;
 				}
 				attrs ~= "@";
 				if (lns > 0) {
-					attrs ~= " " ~ to!(string)(lns + 1);
+					if (vars.useCenter && lns + 1 == stringCenter(lines, strWidth)) {
+						attrs ~= " center";
+					} else {
+						attrs ~= " " ~ to!(string)(lns + 1);
+					}
 					lines = lines[lns .. $];
 				}
 				attrs ~= "\n";
 				bool spaceLine = false;
 				foreach (line; lines) {
 					line = std.string.replace(line, "@", "@@");
-					if (line.length && (line[0] == ' ' || line[0] == '\t')) {
+					if (line.length && (line[0] == ' ' || line[0] == '\t' || line[0] == '\\')) {
 						line = "\\" ~ line;
 					}
 					attrs ~= indentValue ~ line ~ "\n";
@@ -1766,7 +1798,7 @@ fi`;
 			}
 		} else static if (isVArray!(T)) {
 			foreach (i, v; value) {
-				toAttr(attrs, v, command, indentValue, i > 0);
+				toAttr(attrs, v, command, indentValue, vars, i > 0, strWidth);
 			}
 		} else static if (is(T == bool)) {
 			attrs ~= value ? "true": "false";
@@ -1814,7 +1846,7 @@ fi`;
 			default: assert (0);
 			}
 			static if (!Within) {
-				toAttr(attrs, value.sleep, command, indentValue);
+				toAttr(attrs, value.sleep, command, indentValue, vars);
 			}
 		} else static if (is(T == EffectType)) {
 			switch (value) {
@@ -1929,39 +1961,38 @@ fi`;
 			}
 		} else static if (is(T == BgImage)) {
 			attrs ~= "[";
-			toAttr(attrs, value.path, command, indentValue, false);
-			toAttr(attrs, value.flag, command, indentValue);
-			toAttr(attrs, value.x, command, indentValue);
-			toAttr(attrs, value.y, command, indentValue);
-			toAttr(attrs, value.width, command, indentValue);
-			toAttr(attrs, value.height, command, indentValue);
-			toAttr(attrs, value.mask, command, indentValue);
+			toAttr(attrs, value.path, command, indentValue, vars, false);
+			toAttr(attrs, value.flag, command, indentValue, vars);
+			toAttr(attrs, value.x, command, indentValue, vars);
+			toAttr(attrs, value.y, command, indentValue, vars);
+			toAttr(attrs, value.width, command, indentValue, vars);
+			toAttr(attrs, value.height, command, indentValue, vars);
+			toAttr(attrs, value.mask, command, indentValue, vars);
 			attrs ~= "]";
 		} else static if (is(T == Motion)) {
 			auto detail = value.detail;
 			attrs ~= "[";
-			toAttr(attrs, value.type, command, indentValue, false);
+			toAttr(attrs, value.type, command, indentValue, vars, false);
 			if (detail.use(MArg.VALUE_TYPE)) {
-				toAttr(attrs, value.damageType, command, indentValue);
+				toAttr(attrs, value.damageType, command, indentValue, vars);
 			}
 			if (detail.use(MArg.U_VALUE)) {
-				toAttr(attrs, value.uValue, command, indentValue);
+				toAttr(attrs, value.uValue, command, indentValue, vars);
 			}
 			if (detail.use(MArg.A_VALUE)) {
-				toAttr(attrs, value.aValue, command, indentValue);
+				toAttr(attrs, value.aValue, command, indentValue, vars);
 			}
 			if (detail.use(MArg.ROUND)) {
-				toAttr(attrs, value.round, command, indentValue);
+				toAttr(attrs, value.round, command, indentValue, vars);
 			}
 			if (detail.use(MArg.BEAST)) {
-				ulong id = 0UL;
+				BeastCard b = null;
 				if (value.beast) {
-					auto beast = _summ.findSomeBeast(value.beast);
-					if (beast) id = beast.id;
+					b = _summ.findSomeBeast(value.beast);
 				}
-				toAttr(attrs, id, command, indentValue);
+				toAttr(attrs, vars.id(b, 0UL), command, indentValue, vars);
 			}
-			toAttr(attrs, value.element, command, indentValue);
+			toAttr(attrs, value.element, command, indentValue, vars);
 			attrs ~= "]";
 		} else static if (is(T == SDialog)) {
 			attrs ~= "[";
@@ -1982,7 +2013,7 @@ fi`;
 			} else {
 				attrs ~= `"` ~ encodeString(std.string.join(value.rCoupons, ";")) ~ `"`;
 			}
-			toAttr(attrs, value.text, command, indentValue);
+			toAttr(attrs, value.text, command, indentValue, vars, true, strWidth);
 			attrs ~= "]";
 		} else static if (is(T == int)) {
 			if (value < 0) attrs ~= "(";
@@ -2006,7 +2037,70 @@ fi`;
 		default: assert (0);
 		}
 	}
-	private void toScriptImpl(ref char[] buf, in Content[] cs, string indent, string indentValue, in Keywords keys, bool legacy) {
+	private typedef string Symbol;
+	private static class VarTable {
+		bool useVar = true;
+		bool useCenter = true;
+		private Symbol idVar(string Name, A)(A a, ulong id, ref string[ulong] tbl, ref ulong[string] tblR) {
+			if (!useVar || !a) return cast(Symbol) to!(string)(id);
+			auto p = a.id in tbl;
+			if (p) return cast(Symbol) *p;
+			string base = "$" ~ Name ~ "_" ~ validVarName(a.name);
+			string name = base;
+			size_t i = 1;
+			while (name in tblR) {
+				i++;
+				name = base ~ "_" ~ to!(string)(i);
+			}
+			tbl[a.id] = name;
+			tblR[name] = a.id;
+			return cast(Symbol) name;
+		}
+		private string[ulong] _areas;
+		private ulong[string] _areasR;
+		private string[ulong] _battles;
+		private ulong[string] _battlesR;
+		private string[ulong] _packages;
+		private ulong[string] _packagesR;
+		private string[ulong] _casts;
+		private ulong[string] _castsR;
+		private string[ulong] _skills;
+		private ulong[string] _skillsR;
+		private string[ulong] _items;
+		private ulong[string] _itemsR;
+		private string[ulong] _beasts;
+		private ulong[string] _beastsR;
+		private string[ulong] _infos;
+		private ulong[string] _infosR;
+		Symbol id(Area a, ulong id) {return idVar!("area")(a, id, _areas, _areasR);}
+		Symbol id(Battle a, ulong id) {return idVar!("battle")(a, id, _battles, _battlesR);}
+		Symbol id(Package a, ulong id) {return idVar!("pack")(a, id, _packages, _packagesR);}
+		Symbol id(CastCard a, ulong id) {return idVar!("cast")(a, id, _casts, _castsR);}
+		Symbol id(SkillCard a, ulong id) {return idVar!("skill")(a, id, _skills, _skillsR);}
+		Symbol id(ItemCard a, ulong id) {return idVar!("item")(a, id, _items, _itemsR);}
+		Symbol id(BeastCard a, ulong id) {return idVar!("beast")(a, id, _beasts, _beastsR);}
+		Symbol id(InfoCard a, ulong id) {return idVar!("info")(a, id, _infos, _infosR);}
+		private static string[] vars(string[ulong] arr) {
+			string[] r;
+			foreach (id; arr.keys.sort) {
+				r ~= arr[id] ~ " = " ~ to!(string)(id);
+			}
+			return r;
+		}
+		string[] vars() {
+			string[] r;
+			r ~= vars(_areas);
+			r ~= vars(_battles);
+			r ~= vars(_packages);
+			r ~= vars(_casts);
+			r ~= vars(_skills);
+			r ~= vars(_items);
+			r ~= vars(_beasts);
+			r ~= vars(_infos);
+			return r;
+		}
+	}
+	private void toScriptImpl(ref char[] buf, in Content[] cs, string indent, string indentValue, in Keywords keys, VarTable vars, bool legacy) {
 		foreach (i, c; cs) {
 			if (i > 0) buf ~= "\n\n";
 			buf ~= indentValue;
@@ -2017,150 +2111,173 @@ fi`;
 			if (c.type is CType.START) {
 				attrs ~= ` "` ~ encodeString(c.name) ~ `"`;
 			}
+			size_t msgLen = 0;
 			if (detail.use(CArg.TALKER_C)) {
 				toAttrTalker(attrs, c.talkerC, c.cardPath, true);
+				if (c.talkerC is Talker.NARRATION) {
+					msgLen = _prop.looks.messageLen;
+				} else {
+					msgLen = _prop.looks.messageImageLen;
+				}
 			}
 			if (detail.use(CArg.TEXT)) {
-				toAttr(attrs, c.text, command, indentValue);
+				toAttr(attrs, c.text, command, indentValue, vars, true, msgLen);
 			}
 			if (detail.use(CArg.TALKER_NC)) {
-				toAttr!(true)(attrs, c.talkerNC, command, indentValue);
+				toAttr!(true)(attrs, c.talkerNC, command, indentValue, vars);
+				msgLen = _prop.looks.messageImageLen;
 			}
 			if (detail.use(CArg.DIALOGS)) {
-				toAttr(attrs, c.dialogs, command, indentValue);
+				toAttr(attrs, c.dialogs, command, indentValue, vars, true, msgLen);
 			}
 			if (detail.use(CArg.BG_IMAGES)) {
-				toAttr(attrs, c.backs, command, indentValue);
+				toAttr(attrs, c.backs, command, indentValue, vars);
 			}
 			if (detail.use(CArg.MOTIONS)) {
-				toAttr(attrs, c.motions, command, indentValue);
+				toAttr(attrs, c.motions, command, indentValue, vars);
 			}
 			if (detail.use(CArg.TARGET_NS)) {
-				toAttr!(true)(attrs, c.targetNS, command, indentValue);
+				toAttr!(true)(attrs, c.targetNS, command, indentValue, vars);
 			}
 			if (detail.use(CArg.TARGET_S)) {
-				toAttr(attrs, c.targetS, command, indentValue);
+				toAttr(attrs, c.targetS, command, indentValue, vars);
 			}
 			if (detail.use(CArg.RANGE)) {
-				toAttr(attrs, c.range, command, indentValue);
+				toAttr(attrs, c.range, command, indentValue, vars);
 			}
 			if (detail.use(CArg.AREA)) {
-				toAttr(attrs, c.area, command, indentValue);
+				auto a = _summ.area(c.area);
+				toAttr(attrs, vars.id(a, c.area), command, indentValue, vars);
 			}
 			if (detail.use(CArg.BATTLE)) {
-				toAttr(attrs, c.battle, command, indentValue);
+				auto a = _summ.battle(c.battle);
+				toAttr(attrs, vars.id(a, c.battle), command, indentValue, vars);
 			}
 			if (detail.use(CArg.PACKAGE)) {
-				toAttr(attrs, c.packages, command, indentValue);
+				auto a = _summ.packages(c.packages);
+				toAttr(attrs, vars.id(a, c.packages), command, indentValue, vars);
 			}
 			if (detail.use(CArg.CAST)) {
-				toAttr(attrs, c.casts, command, indentValue);
+				auto a = _summ.casts(c.casts);
+				toAttr(attrs, vars.id(a, c.casts), command, indentValue, vars);
 			}
 			if (detail.use(CArg.ITEM)) {
-				toAttr(attrs, c.item, command, indentValue);
+				auto a = _summ.item(c.item);
+				toAttr(attrs, vars.id(a, c.item), command, indentValue, vars);
 			}
 			if (detail.use(CArg.SKILL)) {
-				toAttr(attrs, c.skill, command, indentValue);
+				auto a = _summ.skill(c.skill);
+				toAttr(attrs, vars.id(a, c.skill), command, indentValue, vars);
 			}
 			if (detail.use(CArg.INFO)) {
-				toAttr(attrs, c.info, command, indentValue);
+				auto a = _summ.info(c.info);
+				toAttr(attrs, vars.id(a, c.info), command, indentValue, vars);
 			}
 			if (detail.use(CArg.BEAST)) {
-				toAttr(attrs, c.beast, command, indentValue);
+				auto a = _summ.beast(c.beast);
+				toAttr(attrs, vars.id(a, c.beast), command, indentValue, vars);
 			}
 			if (detail.use(CArg.START)) {
-				toAttr(attrs, c.start, command, indentValue);
+				toAttr(attrs, c.start, command, indentValue, vars);
 			}
 			if (detail.use(CArg.COMPLETE)) {
-				toAttr(attrs, c.complete, command, indentValue);
+				toAttr(attrs, c.complete, command, indentValue, vars);
 			}
 			if (detail.use(CArg.MONEY)) {
-				toAttr(attrs, c.money, command, indentValue);
+				toAttr(attrs, c.money, command, indentValue, vars);
 			}
 			if (detail.use(CArg.COUPON)) {
-				toAttr(attrs, c.coupon, command, indentValue);
+				toAttr(attrs, c.coupon, command, indentValue, vars);
 			}
 			if (detail.use(CArg.COUPON_VALUE)) {
-				toAttr(attrs, c.couponValue, command, indentValue);
+				toAttr(attrs, c.couponValue, command, indentValue, vars);
 			}
 			if (detail.use(CArg.COMPLETE_STAMP)) {
-				toAttr(attrs, c.completeStamp, command, indentValue);
+				toAttr(attrs, c.completeStamp, command, indentValue, vars);
 			}
 			if (detail.use(CArg.GOSSIP)) {
-				toAttr(attrs, c.gossip, command, indentValue);
+				toAttr(attrs, c.gossip, command, indentValue, vars);
 			}
 			if (detail.use(CArg.FLAG)) {
-				toAttr(attrs, c.flag, command, indentValue);
+				toAttr(attrs, c.flag, command, indentValue, vars);
 			}
 			if (detail.use(CArg.FLAG_VALUE)) {
-				toAttr(attrs, c.flagValue, command, indentValue);
+				toAttr(attrs, c.flagValue, command, indentValue, vars);
 			}
 			if (detail.use(CArg.STEP)) {
-				toAttr(attrs, c.step, command, indentValue);
+				toAttr(attrs, c.step, command, indentValue, vars);
 			}
 			if (detail.use(CArg.STEP_VALUE)) {
-				toAttr(attrs, c.stepValue, command, indentValue);
+				toAttr(attrs, c.stepValue, command, indentValue, vars);
 			}
 			if (detail.use(CArg.CARD_NUMBER)) {
-				toAttr(attrs, c.cardNumber, command, indentValue);
+				if (c.cardNumber != 0) {
+					toAttr(attrs, c.cardNumber, command, indentValue, vars);
+				} else {
+					toAttr(attrs, cast(Symbol) "all", command, indentValue, vars);
+				}
 			}
 			if (detail.use(CArg.CARD_VISUAL)) {
-				toAttr(attrs, c.cardVisual, command, indentValue);
+				toAttr(attrs, c.cardVisual, command, indentValue, vars);
 			}
 			if (detail.use(CArg.UNSIGNED_LEVEL)) {
-				toAttr(attrs, c.unsignedLevel, command, indentValue);
+				toAttr(attrs, c.unsignedLevel, command, indentValue, vars);
 			}
 			if (detail.use(CArg.SIGNED_LEVEL)) {
-				toAttr(attrs, c.signedLevel, command, indentValue);
+				toAttr(attrs, c.signedLevel, command, indentValue, vars);
 			}
 			if (detail.use(CArg.PHYSICAL)) {
-				toAttr(attrs, c.physical, command, indentValue);
+				toAttr(attrs, c.physical, command, indentValue, vars);
 			}
 			if (detail.use(CArg.MENTAL)) {
-				toAttr(attrs, c.mental, command, indentValue);
+				toAttr(attrs, c.mental, command, indentValue, vars);
 			}
 			if (detail.use(CArg.WAIT)) {
-				toAttr(attrs, c.wait, command, indentValue);
+				toAttr(attrs, c.wait, command, indentValue, vars);
 			}
 			if (detail.use(CArg.PERCENT)) {
-				toAttr(attrs, c.percent, command, indentValue);
+				toAttr(attrs, c.percent, command, indentValue, vars);
 			}
 			if (detail.use(CArg.TARGET_ALL)) {
-				toAttr(attrs, c.targetAll, command, indentValue);
+				toAttr(attrs, c.targetAll, command, indentValue, vars);
 			}
 			if (detail.use(CArg.RANDOM)) {
-				toAttr(attrs, c.random, command, indentValue);
+				toAttr(attrs, c.random, command, indentValue, vars);
 			}
 			if (detail.use(CArg.AVERAGE)) {
-				toAttr(attrs, c.average, command, indentValue);
+				toAttr(attrs, c.average, command, indentValue, vars);
 			}
 			if (detail.use(CArg.PARTY_NUMBER)) {
-				toAttr(attrs, c.partyNumber, command, indentValue);
+				toAttr(attrs, c.partyNumber, command, indentValue, vars);
 			}
 			if (detail.use(CArg.SUCCESS_RATE)) {
-				toAttr(attrs, c.successRate, command, indentValue);
+				toAttr(attrs, c.successRate, command, indentValue, vars);
 			}
 			if (detail.use(CArg.EFFECT_TYPE)) {
-				toAttr(attrs, c.effectType, command, indentValue);
+				toAttr(attrs, c.effectType, command, indentValue, vars);
 			}
 			if (detail.use(CArg.RESIST)) {
-				toAttr(attrs, c.resist, command, indentValue);
+				toAttr(attrs, c.resist, command, indentValue, vars);
 			}
 			if (detail.use(CArg.STATUS)) {
-				toAttr(attrs, c.status, command, indentValue);
+				toAttr(attrs, c.status, command, indentValue, vars);
 			}
 			if (detail.use(CArg.BGM_PATH)) {
-				toAttr(attrs, c.bgmPath, command, indentValue);
+				if (c.bgmPath.length) {
+					toAttr(attrs, c.bgmPath, command, indentValue, vars);
+				} else {
+					toAttr(attrs, cast(Symbol) "stop", command, indentValue, vars);
+				}
 			}
 			if (detail.use(CArg.SOUND_PATH)) {
-				toAttr(attrs, c.soundPath, command, indentValue);
+				toAttr(attrs, c.soundPath, command, indentValue, vars);
 			}
 			if (!legacy) {
 				if (detail.use(CArg.TRANSITION_SPEED)) {
-					toAttr(attrs, c.transitionSpeed, command, indentValue);
+					toAttr(attrs, c.transitionSpeed, command, indentValue, vars);
 				}
 				if (detail.use(CArg.TRANSITION)) {
-					toAttr(attrs, c.transition, command, indentValue);
+					toAttr(attrs, c.transition, command, indentValue, vars);
 				}
 			}
 			bool useIf = c.next.length > 1;
@@ -2202,13 +2319,13 @@ fi`;
 					default: assert (0);
 					}
 					buf ~= "\n";
-					toScriptImpl(buf, [chld], indent, indentValue ~ indent, keys, legacy);
+					toScriptImpl(buf, [chld], indent, indentValue ~ indent, keys, vars, legacy);
 				} else {
 					buf ~= "\n";
 					if (c.type is CType.START) {
-						toScriptImpl(buf, [chld], indent, indentValue ~ indent, keys, legacy);
+						toScriptImpl(buf, [chld], indent, indentValue ~ indent, keys, vars, legacy);
 					} else {
-						toScriptImpl(buf, [chld], indent, indentValue, keys, legacy);
+						toScriptImpl(buf, [chld], indent, indentValue, keys, vars, legacy);
 					}
 				}
 			}
@@ -2217,6 +2334,22 @@ fi`;
 			}
 		}
 	}
+}
+
+private string validVarName(string name) {
+	char[] buf;
+	buf.length = name.length;
+	foreach (i, char c; name) {
+		switch (c) {
+			case ' ', '\t', '[', ']', '(', ')', '@', '"', '\'', '+', '-', '*', '/', '%', '\n', ';', '.', ',':
+			buf[i] = '_';
+			break;
+		default:
+			buf[i] = c;
+			break;
+		}
+	}
+	return buf;
 }
 
 private const string[] TOKENS = [
