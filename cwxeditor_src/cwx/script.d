@@ -2356,7 +2356,10 @@ private string validVarName(string name) {
 	buf.length = name.length;
 	foreach (i, char c; name) {
 		switch (c) {
-			case ' ', '\t', '[', ']', '(', ')', '@', '"', '\'', '+', '-', '*', '/', '%', '\n', ';', '.', ',':
+			case '\0', '\b', '\t', '\n', '\v', '\f', '\r', ' ', '!',
+				'"', '#', '$', '%', '&', '\'', '(', ')', '*', '+', ',',
+				'-', '.', '/', ':', ';', '<', '=', '>', '?', '@', '[',
+				'\\', ']', '^', '_', '`', '{', '}', '|', '~':
 			buf[i] = '_';
 			break;
 		default:
@@ -2369,7 +2372,7 @@ private string validVarName(string name) {
 
 private const string[] TOKENS = [
 	`[a-z_][a-z_0-9]*`, // symbol or keyword
-	"\\$[^ \\t\\[\\]\\(\\)@\"'\\+\\-\\*\\/\\%\\n;.,]+", // variable
+	"\\$[^\\b\\s !\"#$%&\'()*+,\\-./:;<=>?@[\\\\\\]^`{}|~]+", // variable
 	`=`, // equql
 	`[0-9]+(\.[0-9]+)?`, // number
 	`\[`, // open bracket
