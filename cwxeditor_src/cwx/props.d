@@ -2126,6 +2126,7 @@ public:
 	string scriptErrorReqID() {return "ここにIDが必要です。";}
 	string scriptErrorUndefinedVar() {return "存在しない変数です。";}
 	string scriptErrorInvalidValue() {return "値が正しくありません。";}
+	string scriptErrorCommaNotFound() {return "パラメータの区切りにカンマがありません。";}
 }
 
 public class Looks {

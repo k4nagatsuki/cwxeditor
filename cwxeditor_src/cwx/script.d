@@ -64,11 +64,11 @@ struct CWXScript {
 	}
 
 	private static void throwError(string File = __FILE__, size_t Line = __LINE__)
-			(string message, in Token tok) {
+			(lazy string message, in Token tok) {
 		throwErrorToken(message, tok.line, tok.pos, tok.value);
 	}
 	private static void throwErrorToken(string File = __FILE__, size_t Line = __LINE__)
-			(string message, size_t line, size_t pos, string value) {
+			(lazy string message, size_t line, size_t pos, string value) {
 		throw new CWXScriptException(message, "", line, pos, File, Line);
 	}
 
@@ -84,6 +84,7 @@ struct CWXScript {
 		NUMBER, /// 数値。
 		VAR_NAME, /// 変数名。
 		EQ, /// =
+		COMMA, /// comma
 		STRING, /// 文字列。
 		PLU, /// +
 		MIN, /// -
@@ -344,6 +345,11 @@ struct CWXScript {
 				spaceAfter = true;
 				i++;
 				pos = 0;
+			} else if (c == ',') {
+				// comma
+				spaceAfter = false;
+				r ~= Token(i, pos, Kind.COMMA, str);
+				pos =+ str.length;
 			} else {
 				assert (0);
 			}
@@ -655,7 +661,7 @@ struct CWXScript {
 			} else if (type is NodeType.VALUES) {
 				string vals = "[";
 				foreach (i, c; values) {
-					if (i > 0) vals ~= " ";
+					if (i > 0) vals ~= ", ";
 					vals ~= c.code(indent);
 				}
 				vals ~= "]";
@@ -812,10 +818,8 @@ struct CWXScript {
 				case Kind.IF, Kind.ELIF, Kind.SYMBOL:
 					node.childs ~= analyzeSyntaxBranch(tokens, i, KEYS);
 					continue;
-				case Kind.O_BRA, Kind.C_BRA, Kind.NUMBER, Kind.STRING:
+				default:
 					throwError(_prop.msgs.scriptErrorInvalidStatement, tokens[i]);
-					break;
-				default: assert (0);
 				}
 			}
 			r ~= node;
@@ -829,9 +833,9 @@ struct CWXScript {
 $var1 = 'oops'
 Start "First start"
 if 'abc'
-    chback ['mapofwirth.bmp' ''  0 0 632 420]
-           ['definn.bmp' '' 50 50 200*2 260]
-           ['card.bmp' 'card\mate1' 230 50 74 94 mask]
+    chback ['mapofwirth.bmp', '',  0, 0, 632, 420],
+           ['definn.bmp', '', 50, 50, 200*2, 260],
+           ['card.bmp', 'card\mate1', 230, 50, 74, 94, mask]
     hideparty
     $var2 = 3.5
     wait  ($var2 + 1.5)
@@ -850,7 +854,7 @@ if 'abc'
     elif false
         gameover    ; comment1
     fi
-elif 'def' effect 1  2 3 + 2
+elif 'def' effect 1,  2, 3 + 2
 fi
 ; comment2
 $var4 = true
@@ -864,9 +868,9 @@ start "second start"
 			== "$var1 = 'oops'\n"
 			~ "Start \"First start\"\n"
 			~ "if 'abc'\n"
-			~ "    chback ['mapofwirth.bmp' '' 0 0 632 420]\n"
-			~ "           ['definn.bmp' '' 50 50 200 * 2 260]\n"
-			~ "           ['card.bmp' 'card\\mate1' 230 50 74 94 mask]\n"
+			~ "    chback ['mapofwirth.bmp', '', 0, 0, 632, 420]\n"
+			~ "           ['definn.bmp', '', 50, 50, 200 * 2, 260]\n"
+			~ "           ['card.bmp', 'card\\mate1', 230, 50, 74, 94, mask]\n"
 			~ "    hideparty\n"
 			~ "    $var2 = 3.5\n"
 			~ "    wait ($var2 + 1.5)\n"
@@ -944,9 +948,8 @@ fi`;
 				case Kind.FI: i++; return r;
 				case Kind.ELIF: continue;
 				case Kind.VAR_NAME: continue;
-				case Kind.IF, Kind.O_BRA, Kind.C_BRA, Kind.SYMBOL, Kind.NUMBER, Kind.STRING:
+				default:
 					throwError(_prop.msgs.scriptErrorInvalidStatement, tokens[i]);
-					break;
 				}
 			}
 			break;
@@ -1003,9 +1006,8 @@ fi`;
 		case Kind.IF, Kind.SYMBOL:
 			node.childs ~= analyzeSyntaxBranch(tokens, i, keys);
 			break;
-		case Kind.O_BRA, Kind.C_BRA, Kind.NUMBER, Kind.STRING:
-			assert (0);
-		default: assert (0);
+		default:
+			throwError(_prop.msgs.scriptErrorInvalidStatement, tok);
 		}
 		return node;
 	}
@@ -1013,6 +1015,10 @@ fi`;
 		Node[] r;
 		while (i < tokens.length) {
 			auto tok = tokens[i];
+			if (r.length > 0 && tok.kind is Kind.COMMA) {
+				i++;
+				tok = tokens[i];
+			}
 			switch (tok.kind) {
 			case Kind.O_BRA:
 				r ~= analyzeSyntaxBrackets(tokens, i, keys);
@@ -1033,10 +1039,8 @@ fi`;
 					return r;
 				}
 				goto case Kind.SYMBOL;
-			case Kind.C_BRA, Kind.C_PAR, Kind.EQ, Kind.MUL, Kind.DIV, Kind.RES:
+			default:
 				throwError(_prop.msgs.scriptErrorInvalidAttr, tok);
-				break;
-			default: assert (0);
 			}
 		}
 		return r;
@@ -1076,8 +1080,17 @@ fi`;
 		i++;
 		while (i < tokens.length) {
 			auto tok = tokens[i];
+			if (tok.kind is Kind.C_BRA) {
+				return r;
+			}
+			if (r.values.length > 0) {
+				if (tok.kind !is Kind.COMMA) {
+					throwError(_prop.msgs.scriptErrorCommaNotFound, tok);
+				}
+				i++;
+				tok = tokens[i];
+			}
 			switch (tok.kind) {
-			case Kind.C_BRA: return r;
 			case Kind.O_BRA:
 				r.values ~= analyzeSyntaxBrackets(tokens, i, keys);
 				i++;
@@ -1087,10 +1100,8 @@ fi`;
 				node.var = analyzeSyntaxValue(tokens, i, keys);
 				r.values ~= node;
 				break;
-			case Kind.START, Kind.IF, Kind.FI, Kind.ELIF, Kind.EQ:
+			default:
 				throwError(_prop.msgs.scriptErrorInvalidValuesClose, tok);
-				break;
-			default: assert (0);
 			}
 		}
 		throwError(_prop.msgs.scriptErrorCloseBracketNotFound, o);
@@ -1123,8 +1134,11 @@ fi`;
 		while (i < tokens.length) {
 			auto tok = tokens[i];
 			switch (tok.kind) {
-			case Kind.VAR_NAME, Kind.NUMBER:
+			case Kind.VAR_NAME:
 				if (!num) return r;
+				goto case Kind.NUMBER;
+			case Kind.NUMBER:
+				if (!num) throwError(_prop.msgs.scriptErrorInvalidCalc, tok);
 				r ~= tok;
 				i++;
 				calcin = true;
@@ -1143,7 +1157,7 @@ fi`;
 					goto case Kind.MUL;
 				}
 			case Kind.O_PAR:
-				if (!num && calcin) return r;
+				if (!num && calcin) throwError(_prop.msgs.scriptErrorInvalidCalc, tok);
 				r ~= tok;
 				i++;
 				calcin = true;
@@ -1159,6 +1173,9 @@ fi`;
 				num = true;
 				i++;
 				break;
+			case Kind.COMMA:
+				if (!r.length) throwError(_prop.msgs.scriptErrorInvalidValue, tok); 
+				return r;
 			case Kind.SYMBOL, Kind.STRING:
 				if (!calcin) {
 					r ~= tok;
@@ -1168,7 +1185,8 @@ fi`;
 			case Kind.O_BRA, Kind.C_BRA:
 			case Kind.START, Kind.IF, Kind.FI, Kind.ELIF, Kind.EQ:
 				return r;
-			default: assert (0);
+			default:
+				throwError(_prop.msgs.scriptErrorInvalidCalc, tok);
 			}
 		}
 		return r;
@@ -1753,16 +1771,17 @@ fi`;
 	string encodeString(string s) {
 		return std.string.replace(s, "\"", "\"\"");
 	}
-	private void toAttr(bool Within = false, T)(ref char[] attrs, T value, string command, string indentValue, VarTable vars, bool space = true, size_t strWidth = 0) {
-		if (space) attrs ~= " ";
+	private string[] toAttr(bool Within = false, T)(T value, string command, string indentValue, VarTable vars, size_t strWidth = 0) {
+		string[] attrs;
 		static if (is(T == Symbol)) {
 			attrs ~= value;
 		} else static if (is(T == string)) {
+			string attr;
 			auto lines = splitlines(value);
 			if (lines.length == 0) {
-				attrs ~= `""`;
+				attr ~= `""`;
 			} else if (lines.length == 1) {
-				attrs ~= `"` ~ encodeString(lines[0]) ~ `"`;
+				attr ~= `"` ~ encodeString(lines[0]) ~ `"`;
 			} else {
 				size_t lns = 0;
 				foreach (i, line; lines) {
@@ -1771,34 +1790,35 @@ fi`;
 						break;
 					}
 				}
-				attrs ~= "@";
+				attr ~= "@";
 				if (lns > 0) {
 					if (vars.useCenter && lns + 1 == stringCenter(lines, strWidth)) {
-						attrs ~= " center";
+						attr ~= " center";
 					} else {
-						attrs ~= " " ~ to!(string)(lns + 1);
+						attr ~= " " ~ to!(string)(lns + 1);
 					}
 					lines = lines[lns .. $];
 				}
-				attrs ~= "\n";
+				attr ~= "\n";
 				bool spaceLine = false;
 				foreach (line; lines) {
 					line = std.string.replace(line, "@", "@@");
 					if (line.length && (line[0] == ' ' || line[0] == '\t' || line[0] == '\\')) {
 						line = "\\" ~ line;
 					}
-					attrs ~= indentValue ~ line ~ "\n";
+					attr ~= indentValue ~ line ~ "\n";
 					spaceLine = line.length == 0;
 				}
 				if (spaceLine) {
-					attrs ~= "@";
+					attr ~= "@";
 				} else {
-					attrs ~= indentValue ~ "@";
+					attr ~= indentValue ~ "@";
 				}
 			}
+			attrs ~= attr;
 		} else static if (isVArray!(T)) {
 			foreach (i, v; value) {
-				toAttr(attrs, v, command, indentValue, vars, i > 0, strWidth);
+				attrs ~= toAttr(v, command, indentValue, vars, strWidth);
 			}
 		} else static if (is(T == bool)) {
 			attrs ~= value ? "true": "false";
@@ -1846,7 +1866,7 @@ fi`;
 			default: assert (0);
 			}
 			static if (!Within) {
-				toAttr(attrs, value.sleep, command, indentValue, vars);
+				attrs ~= toAttr(value.sleep, command, indentValue, vars);
 			}
 		} else static if (is(T == EffectType)) {
 			switch (value) {
@@ -1897,7 +1917,7 @@ fi`;
 			default: assert (0);
 			}
 		} else static if (is(T == Talker)) {
-			return toAttrTalker(attrs, value, "", false);
+			attrs ~= toAttrTalker(value, "");
 		} else static if (is(T == MType)) {
 			switch (value) {
 			case MType.HEAL: attrs ~= "heal"; break;
@@ -1960,42 +1980,42 @@ fi`;
 			default: assert (0);
 			}
 		} else static if (is(T == BgImage)) {
-			attrs ~= "[";
-			toAttr(attrs, value.path, command, indentValue, vars, false);
-			toAttr(attrs, value.flag, command, indentValue, vars);
-			toAttr(attrs, value.x, command, indentValue, vars);
-			toAttr(attrs, value.y, command, indentValue, vars);
-			toAttr(attrs, value.width, command, indentValue, vars);
-			toAttr(attrs, value.height, command, indentValue, vars);
-			toAttr(attrs, value.mask, command, indentValue, vars);
-			attrs ~= "]";
+			string[] attrs2;
+			attrs2 ~= toAttr(value.path, command, indentValue, vars);
+			attrs2 ~= toAttr(value.flag, command, indentValue, vars);
+			attrs2 ~= toAttr(value.x, command, indentValue, vars);
+			attrs2 ~= toAttr(value.y, command, indentValue, vars);
+			attrs2 ~= toAttr(value.width, command, indentValue, vars);
+			attrs2 ~= toAttr(value.height, command, indentValue, vars);
+			attrs2 ~= toAttr(value.mask, command, indentValue, vars);
+			attrs ~= "[" ~ std.string.join(attrs2, ", ") ~ "]";
 		} else static if (is(T == Motion)) {
 			auto detail = value.detail;
-			attrs ~= "[";
-			toAttr(attrs, value.type, command, indentValue, vars, false);
+			string[] attrs2;
+			attrs2 ~= toAttr(value.type, command, indentValue, vars);
 			if (detail.use(MArg.VALUE_TYPE)) {
-				toAttr(attrs, value.damageType, command, indentValue, vars);
+				attrs2 ~= toAttr(value.damageType, command, indentValue, vars);
 			}
 			if (detail.use(MArg.U_VALUE)) {
-				toAttr(attrs, value.uValue, command, indentValue, vars);
+				attrs2 ~= toAttr(value.uValue, command, indentValue, vars);
 			}
 			if (detail.use(MArg.A_VALUE)) {
-				toAttr(attrs, value.aValue, command, indentValue, vars);
+				attrs2 ~= toAttr(value.aValue, command, indentValue, vars);
 			}
 			if (detail.use(MArg.ROUND)) {
-				toAttr(attrs, value.round, command, indentValue, vars);
+				attrs2 ~= toAttr(value.round, command, indentValue, vars);
 			}
 			if (detail.use(MArg.BEAST)) {
 				BeastCard b = null;
 				if (value.beast) {
 					b = _summ.findSomeBeast(value.beast);
 				}
-				toAttr(attrs, vars.id(b, 0UL), command, indentValue, vars);
+				attrs2 ~= toAttr(vars.id(b, 0UL), command, indentValue, vars);
 			}
-			toAttr(attrs, value.element, command, indentValue, vars);
-			attrs ~= "]";
+			attrs2 ~= toAttr(value.element, command, indentValue, vars);
+			attrs ~= "[" ~ std.string.join(attrs2, ", ") ~ "]";
 		} else static if (is(T == SDialog)) {
-			attrs ~= "[";
+			string[] attrs2;
 			bool semic = false;
 			foreach (c; value.rCoupons) {
 				if (std.string.find(c, ";") >= 0) {
@@ -2004,36 +2024,29 @@ fi`;
 				}
 			}
 			if (semic) {
-				attrs ~= "[";
-				foreach (i, c; value.rCoupons) {
-					if (i > 0) attrs ~= " ";
-					attrs ~= `"` ~ encodeString(c) ~ `"`;
-				}
-				attrs ~= "]";
+				attrs2 ~= "[" ~ std.string.join(toAttr(value.rCoupons, command, indentValue, vars), ", ") ~ "]";
 			} else {
-				attrs ~= `"` ~ encodeString(std.string.join(value.rCoupons, ";")) ~ `"`;
+				attrs2 ~= `"` ~ encodeString(std.string.join(value.rCoupons, ";")) ~ `"`;
 			}
-			toAttr(attrs, value.text, command, indentValue, vars, true, strWidth);
-			attrs ~= "]";
+			attrs2 ~= toAttr(value.text, command, indentValue, vars, strWidth);
+			attrs ~= "[" ~ std.string.join(attrs2, ", ") ~ "]";
 		} else static if (is(T == int)) {
-			if (value < 0) attrs ~= "(";
 			attrs ~= to!(string)(value);
-			if (value < 0) attrs ~= ")";
 		} else static if (is(T == uint)) {
 			attrs ~= to!(string)(value);
 		} else static if (is(T == ulong)) {
 			attrs ~= to!(string)(value);
 		} else static assert (0);
+		return attrs;
 	}
-	private void toAttrTalker(ref char[] attrs, Talker t, string cardPath, bool space) {
-		if (space) attrs ~= " ";
+	private string toAttrTalker(Talker t, string cardPath) {
 		switch (t) {
-		case Talker.NARRATION: attrs ~= "none"; break;
-		case Talker.SELECTED: attrs ~= "M"; break;
-		case Talker.UNSELECTED: attrs ~= "U"; break;
-		case Talker.RANDOM: attrs ~= "R"; break;
-		case Talker.CARD: attrs ~= "C"; break;
-		case Talker.IMAGE: attrs ~= `"` ~ encodeString(cardPath) ~ `"`; break;
+		case Talker.NARRATION: return "none";
+		case Talker.SELECTED: return "M";
+		case Talker.UNSELECTED: return "U";
+		case Talker.RANDOM: return "R";
+		case Talker.CARD: return "C";
+		case Talker.IMAGE: return `"` ~ encodeString(cardPath) ~ `"`;
 		default: assert (0);
 		}
 	}
@@ -2107,13 +2120,13 @@ fi`;
 			auto detail = c.detail;
 			string command = keys.commands[c.type];
 			buf ~= command;
-			char[] attrs;
+			string[] attrs;
 			if (c.type is CType.START) {
 				attrs ~= ` "` ~ encodeString(c.name) ~ `"`;
 			}
 			size_t msgLen = 0;
 			if (detail.use(CArg.TALKER_C)) {
-				toAttrTalker(attrs, c.talkerC, c.cardPath, true);
+				attrs ~= toAttrTalker(c.talkerC, c.cardPath);
 				if (c.talkerC is Talker.NARRATION) {
 					msgLen = _prop.looks.messageLen;
 				} else {
@@ -2121,163 +2134,163 @@ fi`;
 				}
 			}
 			if (detail.use(CArg.TEXT)) {
-				toAttr(attrs, c.text, command, indentValue, vars, true, msgLen);
+				attrs ~= toAttr(c.text, command, indentValue, vars, msgLen);
 			}
 			if (detail.use(CArg.TALKER_NC)) {
-				toAttr!(true)(attrs, c.talkerNC, command, indentValue, vars);
+				attrs ~= toAttr!(true)(c.talkerNC, command, indentValue, vars);
 				msgLen = _prop.looks.messageImageLen;
 			}
 			if (detail.use(CArg.DIALOGS)) {
-				toAttr(attrs, c.dialogs, command, indentValue, vars, true, msgLen);
+				attrs ~= toAttr(c.dialogs, command, indentValue, vars, msgLen);
 			}
 			if (detail.use(CArg.BG_IMAGES)) {
-				toAttr(attrs, c.backs, command, indentValue, vars);
+				attrs ~= toAttr(c.backs, command, indentValue, vars);
 			}
 			if (detail.use(CArg.MOTIONS)) {
-				toAttr(attrs, c.motions, command, indentValue, vars);
+				attrs ~= toAttr(c.motions, command, indentValue, vars);
 			}
 			if (detail.use(CArg.TARGET_NS)) {
-				toAttr!(true)(attrs, c.targetNS, command, indentValue, vars);
+				attrs ~= toAttr!(true)(c.targetNS, command, indentValue, vars);
 			}
 			if (detail.use(CArg.TARGET_S)) {
-				toAttr(attrs, c.targetS, command, indentValue, vars);
+				attrs ~= toAttr(c.targetS, command, indentValue, vars);
 			}
 			if (detail.use(CArg.RANGE)) {
-				toAttr(attrs, c.range, command, indentValue, vars);
+				attrs ~= toAttr(c.range, command, indentValue, vars);
 			}
 			if (detail.use(CArg.AREA)) {
 				auto a = _summ.area(c.area);
-				toAttr(attrs, vars.id(a, c.area), command, indentValue, vars);
+				attrs ~= toAttr(vars.id(a, c.area), command, indentValue, vars);
 			}
 			if (detail.use(CArg.BATTLE)) {
 				auto a = _summ.battle(c.battle);
-				toAttr(attrs, vars.id(a, c.battle), command, indentValue, vars);
+				attrs ~= toAttr(vars.id(a, c.battle), command, indentValue, vars);
 			}
 			if (detail.use(CArg.PACKAGE)) {
 				auto a = _summ.packages(c.packages);
-				toAttr(attrs, vars.id(a, c.packages), command, indentValue, vars);
+				attrs ~= toAttr(vars.id(a, c.packages), command, indentValue, vars);
 			}
 			if (detail.use(CArg.CAST)) {
 				auto a = _summ.casts(c.casts);
-				toAttr(attrs, vars.id(a, c.casts), command, indentValue, vars);
+				attrs ~= toAttr(vars.id(a, c.casts), command, indentValue, vars);
 			}
 			if (detail.use(CArg.ITEM)) {
 				auto a = _summ.item(c.item);
-				toAttr(attrs, vars.id(a, c.item), command, indentValue, vars);
+				attrs ~= toAttr(vars.id(a, c.item), command, indentValue, vars);
 			}
 			if (detail.use(CArg.SKILL)) {
 				auto a = _summ.skill(c.skill);
-				toAttr(attrs, vars.id(a, c.skill), command, indentValue, vars);
+				attrs ~= toAttr(vars.id(a, c.skill), command, indentValue, vars);
 			}
 			if (detail.use(CArg.INFO)) {
 				auto a = _summ.info(c.info);
-				toAttr(attrs, vars.id(a, c.info), command, indentValue, vars);
+				attrs ~= toAttr(vars.id(a, c.info), command, indentValue, vars);
 			}
 			if (detail.use(CArg.BEAST)) {
 				auto a = _summ.beast(c.beast);
-				toAttr(attrs, vars.id(a, c.beast), command, indentValue, vars);
+				attrs ~= toAttr(vars.id(a, c.beast), command, indentValue, vars);
 			}
 			if (detail.use(CArg.START)) {
-				toAttr(attrs, c.start, command, indentValue, vars);
+				attrs ~= toAttr(c.start, command, indentValue, vars);
 			}
 			if (detail.use(CArg.COMPLETE)) {
-				toAttr(attrs, c.complete, command, indentValue, vars);
+				attrs ~= toAttr(c.complete, command, indentValue, vars);
 			}
 			if (detail.use(CArg.MONEY)) {
-				toAttr(attrs, c.money, command, indentValue, vars);
+				attrs ~= toAttr(c.money, command, indentValue, vars);
 			}
 			if (detail.use(CArg.COUPON)) {
-				toAttr(attrs, c.coupon, command, indentValue, vars);
+				attrs ~= toAttr(c.coupon, command, indentValue, vars);
 			}
 			if (detail.use(CArg.COUPON_VALUE)) {
-				toAttr(attrs, c.couponValue, command, indentValue, vars);
+				attrs ~= toAttr(c.couponValue, command, indentValue, vars);
 			}
 			if (detail.use(CArg.COMPLETE_STAMP)) {
-				toAttr(attrs, c.completeStamp, command, indentValue, vars);
+				attrs ~= toAttr(c.completeStamp, command, indentValue, vars);
 			}
 			if (detail.use(CArg.GOSSIP)) {
-				toAttr(attrs, c.gossip, command, indentValue, vars);
+				attrs ~= toAttr(c.gossip, command, indentValue, vars);
 			}
 			if (detail.use(CArg.FLAG)) {
-				toAttr(attrs, c.flag, command, indentValue, vars);
+				attrs ~= toAttr(c.flag, command, indentValue, vars);
 			}
 			if (detail.use(CArg.FLAG_VALUE)) {
-				toAttr(attrs, c.flagValue, command, indentValue, vars);
+				attrs ~= toAttr(c.flagValue, command, indentValue, vars);
 			}
 			if (detail.use(CArg.STEP)) {
-				toAttr(attrs, c.step, command, indentValue, vars);
+				attrs ~= toAttr(c.step, command, indentValue, vars);
 			}
 			if (detail.use(CArg.STEP_VALUE)) {
-				toAttr(attrs, c.stepValue, command, indentValue, vars);
+				attrs ~= toAttr(c.stepValue, command, indentValue, vars);
 			}
 			if (detail.use(CArg.CARD_NUMBER)) {
 				if (c.cardNumber != 0) {
-					toAttr(attrs, c.cardNumber, command, indentValue, vars);
+					attrs ~= toAttr(c.cardNumber, command, indentValue, vars);
 				} else {
-					toAttr(attrs, cast(Symbol) "all", command, indentValue, vars);
+					attrs ~= toAttr(cast(Symbol) "all", command, indentValue, vars);
 				}
 			}
 			if (detail.use(CArg.CARD_VISUAL)) {
-				toAttr(attrs, c.cardVisual, command, indentValue, vars);
+				attrs ~= toAttr(c.cardVisual, command, indentValue, vars);
 			}
 			if (detail.use(CArg.UNSIGNED_LEVEL)) {
-				toAttr(attrs, c.unsignedLevel, command, indentValue, vars);
+				attrs ~= toAttr(c.unsignedLevel, command, indentValue, vars);
 			}
 			if (detail.use(CArg.SIGNED_LEVEL)) {
-				toAttr(attrs, c.signedLevel, command, indentValue, vars);
+				attrs ~= toAttr(c.signedLevel, command, indentValue, vars);
 			}
 			if (detail.use(CArg.PHYSICAL)) {
-				toAttr(attrs, c.physical, command, indentValue, vars);
+				attrs ~= toAttr(c.physical, command, indentValue, vars);
 			}
 			if (detail.use(CArg.MENTAL)) {
-				toAttr(attrs, c.mental, command, indentValue, vars);
+				attrs ~= toAttr(c.mental, command, indentValue, vars);
 			}
 			if (detail.use(CArg.WAIT)) {
-				toAttr(attrs, c.wait, command, indentValue, vars);
+				attrs ~= toAttr(c.wait, command, indentValue, vars);
 			}
 			if (detail.use(CArg.PERCENT)) {
-				toAttr(attrs, c.percent, command, indentValue, vars);
+				attrs ~= toAttr(c.percent, command, indentValue, vars);
 			}
 			if (detail.use(CArg.TARGET_ALL)) {
-				toAttr(attrs, c.targetAll, command, indentValue, vars);
+				attrs ~= toAttr(c.targetAll, command, indentValue, vars);
 			}
 			if (detail.use(CArg.RANDOM)) {
-				toAttr(attrs, c.random, command, indentValue, vars);
+				attrs ~= toAttr(c.random, command, indentValue, vars);
 			}
 			if (detail.use(CArg.AVERAGE)) {
-				toAttr(attrs, c.average, command, indentValue, vars);
+				attrs ~= toAttr(c.average, command, indentValue, vars);
 			}
 			if (detail.use(CArg.PARTY_NUMBER)) {
-				toAttr(attrs, c.partyNumber, command, indentValue, vars);
+				attrs ~= toAttr(c.partyNumber, command, indentValue, vars);
 			}
 			if (detail.use(CArg.SUCCESS_RATE)) {
-				toAttr(attrs, c.successRate, command, indentValue, vars);
+				attrs ~= toAttr(c.successRate, command, indentValue, vars);
 			}
 			if (detail.use(CArg.EFFECT_TYPE)) {
-				toAttr(attrs, c.effectType, command, indentValue, vars);
+				attrs ~= toAttr(c.effectType, command, indentValue, vars);
 			}
 			if (detail.use(CArg.RESIST)) {
-				toAttr(attrs, c.resist, command, indentValue, vars);
+				attrs ~= toAttr(c.resist, command, indentValue, vars);
 			}
 			if (detail.use(CArg.STATUS)) {
-				toAttr(attrs, c.status, command, indentValue, vars);
+				attrs ~= toAttr(c.status, command, indentValue, vars);
 			}
 			if (detail.use(CArg.BGM_PATH)) {
 				if (c.bgmPath.length) {
-					toAttr(attrs, c.bgmPath, command, indentValue, vars);
+					attrs ~= toAttr(c.bgmPath, command, indentValue, vars);
 				} else {
-					toAttr(attrs, cast(Symbol) "stop", command, indentValue, vars);
+					attrs ~= toAttr(cast(Symbol) "stop", command, indentValue, vars);
 				}
 			}
 			if (detail.use(CArg.SOUND_PATH)) {
-				toAttr(attrs, c.soundPath, command, indentValue, vars);
+				attrs ~= toAttr(c.soundPath, command, indentValue, vars);
 			}
 			if (!legacy) {
 				if (detail.use(CArg.TRANSITION_SPEED)) {
-					toAttr(attrs, c.transitionSpeed, command, indentValue, vars);
+					attrs ~= toAttr(c.transitionSpeed, command, indentValue, vars);
 				}
 				if (detail.use(CArg.TRANSITION)) {
-					toAttr(attrs, c.transition, command, indentValue, vars);
+					attrs ~= toAttr(c.transition, command, indentValue, vars);
 				}
 			}
 			bool useIf = c.next.length > 1;
@@ -2292,7 +2305,9 @@ fi`;
 					}
 				}
 			}
-			buf ~= attrs;
+			if (attrs.length) {
+				buf ~= " " ~ std.string.join(attrs, ", ");
+			}
 			foreach (idx, chld; c.next) {
 				if (useIf) {
 					buf ~= "\n" ~ indentValue;
@@ -2359,6 +2374,7 @@ private const string[] TOKENS = [
 	`[0-9]+(\.[0-9]+)?`, // number
 	`\[`, // open bracket
 	`\]`, // close bracket
+	`,`, // comma
 	`"(""|[^"])*?"`, // string
 	`'(''|[^'])*?'`, // string
 	`@[ \t]*([0-9]+|c|center)?[ \t]*\n(([^@]|@@|\n)*\n)?[ \t]*@`, // string
