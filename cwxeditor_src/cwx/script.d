@@ -78,6 +78,7 @@ struct CWXScript {
 		IF, /// if
 		FI, /// fi
 		ELIF, /// elif
+		SIF, /// sif
 		O_BRA, /// [
 		C_BRA, /// ]
 		SYMBOL, /// キーワードや命令以外のシンボル。
@@ -256,6 +257,9 @@ struct CWXScript {
 				case "fi":
 					r ~= Token(i, pos, Kind.FI, str);
 					break;
+				case "sif":
+					r ~= Token(i, pos, Kind.SIF, str);
+					break;
 				default:
 					r ~= Token(i, pos, Kind.SYMBOL, str);
 					break;
@@ -319,6 +323,11 @@ struct CWXScript {
 					// multi line comment
 					spaceAfter = true;
 					retCount;
+				} else if (str.length >= 2 && str[1] == '/') {
+					// line comment
+					spaceAfter = true;
+					i++;
+					pos = 0;
 				} else {
 					// divide
 					spaceAfter = false;
@@ -340,11 +349,6 @@ struct CWXScript {
 				spaceAfter = false;
 				r ~= Token(i, pos, Kind.C_PAR, str);
 				pos += str.length;
-			} else if (c == ';') {
-				// line comment
-				spaceAfter = true;
-				i++;
-				pos = 0;
 			} else if (c == ',') {
 				// comma
 				spaceAfter = false;
@@ -360,7 +364,7 @@ struct CWXScript {
 	} unittest {
 		CWXScript s;
 		assert (s.tokenize("/*\n*/").length == 0);
-		assert (s.tokenize("/* */start 12.3 \ntest1 [$void] =\"str\ning;\"\n\r ;comment\nELIF if\n1/2+3*4%(5-6)")
+		assert (s.tokenize("/* */start 12.3 \ntest1 [$void] =\"str\ning//\"\n\r //comment\nELIF if\n1/2+3*4%(5-6)")
 			== [
 				Token(0, 5, Kind.START, "start"),
 				Token(0, 11, Kind.NUMBER, "12.3"),
@@ -369,7 +373,7 @@ struct CWXScript {
 				Token(1, 7, Kind.VAR_NAME, "$void"),
 				Token(1, 12, Kind.C_BRA, "]"),
 				Token(1, 14, Kind.EQ, "="),
-				Token(1, 15, Kind.STRING, "\"str\ning;\""),
+				Token(1, 15, Kind.STRING, "\"str\ning//\""),
 				Token(5, 0, Kind.ELIF, "ELIF"),
 				Token(5, 5, Kind.IF, "if"),
 				Token(6, 0, Kind.NUMBER, "1"),
@@ -690,9 +694,15 @@ struct CWXScript {
 			}
 			buf ~= .format("%s%s%s", indentValue, token.value, attrs);
 			size_t clen = 0;
+			Node first;
+			bool setFirst = false;
 			foreach (c; childs) {
 				if (c.type !is NodeType.VAR_SET) {
 					clen++;
+					if (!setFirst) {
+						first = c;
+						setFirst = true;
+					}
 				}
 			}
 			if (clen > 1) {
@@ -715,6 +725,12 @@ struct CWXScript {
 				}
 				buf ~= "fi";
 			} else if (clen == 1) {
+				if (first.text.value != `""`) {
+					buf ~= "\n";
+					buf ~= indentValue;
+					buf ~= "sif ";
+					buf ~= first.text.value;
+				}
 				if (token.kind is Kind.START) {
 					indentValue ~= indent;
 				}
@@ -815,7 +831,7 @@ struct CWXScript {
 				string cText = "";
 				switch (tokens[i].kind) {
 				case Kind.START, Kind.FI, Kind.VAR_NAME: break c;
-				case Kind.IF, Kind.ELIF, Kind.SYMBOL:
+				case Kind.IF, Kind.ELIF, Kind.SYMBOL, Kind.SIF:
 					node.childs ~= analyzeSyntaxBranch(tokens, i, KEYS);
 					continue;
 				default:
@@ -845,6 +861,7 @@ if 'abc'
     Talk!
     Talk!
     @
+    sif "Single IF"
     brflag 'card\mate1'
     if true
         $var3 = 'what?'
@@ -852,16 +869,15 @@ if 'abc'
         endsc true
         $var_dummy = noshing
     elif false
-        gameover    ; comment1
+        gameover    // comment1
     fi
 elif 'def' effect 1,  2, 3 + 2
 fi
-; comment2
+// comment2
 $var4 = true
 start "second start"
     showparty
     getskill 1`;
-
 		auto tokens = s.tokenize(statement);
 		auto starts = s.analyzeSyntax(tokens);
 		assert (starts[0].code("    ")
@@ -879,6 +895,7 @@ start "second start"
 			~ "    Talk!\n"
 			~ "    Talk!\n"
 			~ "    @\n"
+			~ "    sif \"Single IF\"\n"
 			~ "    brflag 'card\\mate1'\n"
 			~ "    if true\n"
 			~ "        $var3 = 'what?'\n"
@@ -905,7 +922,7 @@ if true
     endsc true
     $var_dummy = noshing
 elif false
-    gameover    ; comment1
+    gameover    // comment1
 fi`;
 		auto tokens2 = s.tokenize(statement2);
 		auto contents = s.analyzeSyntax(tokens2);
@@ -923,8 +940,12 @@ fi`;
 	private Node[] analyzeSyntaxBranch(in Token[] tokens, ref size_t i, in Keywords keys) {
 		Node[] r;
 		auto tok = tokens[i];
+		bool sif = false;
 		switch (tok.kind) {
 		case Kind.START: return r;
+		case Kind.SIF:
+			sif = true;
+			goto case Kind.IF;
 		case Kind.IF, Kind.VAR_NAME:
 			while (i < tokens.length) {
 				Token text;
@@ -942,6 +963,7 @@ fi`;
 				auto node = analyzeSyntaxStatement(tokens, i, keys);
 				node.text = text;
 				r ~= node;
+				if (sif) return r;
 				if (tokens.length <= i) return r;
 				switch (tokens[i].kind) {
 				case Kind.START: return r;
@@ -994,16 +1016,16 @@ fi`;
 		case Kind.VAR_NAME:
 			size_t j = i;
 			auto cVars = eatVarSet(tokens, j, keys);
-			if (tokens.length <= i) return node;
-			if (tokens[i].kind is Kind.START) return node;
+			if (tokens.length <= j) return node;
+			if (tokens[j].kind is Kind.START) return node;
 			i = j;
-			if (tokens[i].kind is Kind.IF || tokens[i].kind is Kind.SYMBOL) {
+			if (tokens[i].kind is Kind.IF || tokens[i].kind is Kind.SIF || tokens[i].kind is Kind.SYMBOL) {
 				node.childs ~= analyzeSyntaxBranch(tokens, i, keys);
 				node.childs[0].beforeVars = cVars;
 				break;
 			}
 			break;
-		case Kind.IF, Kind.SYMBOL:
+		case Kind.IF, Kind.SIF, Kind.SYMBOL:
 			node.childs ~= analyzeSyntaxBranch(tokens, i, keys);
 			break;
 		default:
@@ -1024,7 +1046,7 @@ fi`;
 				r ~= analyzeSyntaxBrackets(tokens, i, keys);
 				i++;
 				break;
-			case Kind.START, Kind.IF, Kind.ELIF, Kind.FI:
+			case Kind.START, Kind.IF, Kind.ELIF, Kind.FI, Kind.SIF:
 				return r;
 			case Kind.SYMBOL, Kind.NUMBER, Kind.STRING, Kind.PLU, Kind.MIN, Kind.O_PAR:
 				if (std.string.tolower(tok.value) in keys.keywords) return r;
@@ -1183,7 +1205,7 @@ fi`;
 				}
 				return r;
 			case Kind.O_BRA, Kind.C_BRA:
-			case Kind.START, Kind.IF, Kind.FI, Kind.ELIF, Kind.EQ:
+			case Kind.START, Kind.IF, Kind.FI, Kind.ELIF, Kind.SIF, Kind.EQ:
 				return r;
 			default:
 				throwError(_prop.msgs.scriptErrorInvalidCalc, tok);
@@ -2359,7 +2381,7 @@ private string validVarName(string name) {
 			case '\0', '\b', '\t', '\n', '\v', '\f', '\r', ' ', '!',
 				'"', '#', '$', '%', '&', '\'', '(', ')', '*', '+', ',',
 				'-', '.', '/', ':', ';', '<', '=', '>', '?', '@', '[',
-				'\\', ']', '^', '_', '`', '{', '}', '|', '~':
+				'\\', ']', '^', '`', '{', '}', '|', '~':
 			buf[i] = '_';
 			break;
 		default:
@@ -2372,7 +2394,7 @@ private string validVarName(string name) {
 
 private const string[] TOKENS = [
 	`[a-z_][a-z_0-9]*`, // symbol or keyword
-	"\\$[^\\b\\s !\"#$%&\'()*+,\\-./:;<=>?@[\\\\\\]^`{}|~]+", // variable
+	"\\$[^\b\t\n\v\f\r !\"#$%&\'\\(\\)*+,\\-./:;<=>?@\\[\\\\\\]^`{}|~]+", // variable
 	`=`, // equql
 	`[0-9]+(\.[0-9]+)?`, // number
 	`\[`, // open bracket
@@ -2382,13 +2404,11 @@ private const string[] TOKENS = [
 	`'(''|[^'])*?'`, // string
 	`@[ \t]*([0-9]+|c|center)?[ \t]*\n(([^@]|@@|\n)*\n)?[ \t]*@`, // string
 	`[ \t\r\n]+`, // whitespace
-	`\/\*(.|\n)*?\*\/`, // multi line comment
 	`\+`,// plus
 	`-`, // minus
 	`\*`, // multiply
-	`\/`, // divide
+	`\/(\*(.|\n)*?\*\/|\/.*(\n|$)|)`, // divide or comment
 	`%`, // residue
 	`\(`, // open paren
-	`\)`, // close paren
-	`;.*(\n|$)` // line comment
+	`\)` // close paren
 ];

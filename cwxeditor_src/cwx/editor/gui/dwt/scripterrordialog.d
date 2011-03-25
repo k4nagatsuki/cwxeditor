@@ -46,11 +46,21 @@ protected:
 		string lStr = .format("Line %d: ", _ex.errLine + 1);
 		buf ~= lStr;
 		auto line = splitlines(_ex.text)[_ex.errLine];
-		buf ~= std.string.replace(line, "\t", "    ");
-		size_t posAdd = .count(line, "\t") * 3;
+		buf ~= line;
+		string btm;
+		foreach (i, dchar c; line) {
+			if (btm.length < _ex.errPos) {
+				if (c == '\t') {
+					btm ~= "\t";
+				} else {
+					char[] str;
+					std.utf.encode(str, c);
+					btm ~= rjustify("", lengthJ(str));
+				}
+			}
+		}
 		buf ~= "\n";
-		size_t pos = lengthJ(line[0 .. _ex.errPos]) + 1 + lengthJ(lStr) + posAdd;
-		buf ~= rjustify("^", pos);
+		buf ~= rjustify("", lStr.length) ~ btm ~ "^";
 		_result = new Text(area, SWT.BORDER | SWT.MULTI | SWT.READ_ONLY | SWT.WRAP | SWT.V_SCROLL);
 		_result.setText = buf;
 		auto font = _result.getFont;
