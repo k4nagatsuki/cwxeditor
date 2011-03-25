@@ -8,7 +8,7 @@
 ライブラリ:
 	・Tango 0.99.9
 	・tangobos (based on Phobos 1.024)
-	・DWT2 rev.111
+	・DWT2 rev.112
 
 　後はSubversionとMercurialのクライアントがあると楽です。
 
@@ -38,15 +38,8 @@ make -f win32.mak
 
 　次にDWT2をMercurialのリポジトリから取ってきます。
 ---
-hg clone -r 111 http://hg.dsource.org/projects/dwt2
+hg clone -r 112 http://hg.dsource.org/projects/dwt2
 ---
-　例によってバグがあるのでパッチを当てます。svnと違ってhgには自力でパッチを
-当てる機能がついてるみたいです。ナイスだね。
----
-cd dwt2
-hg patch dwt2-rev.111_cwx.patch
----
-　こんな感じで。
 　DWT2はビルドにrakeを使います。こいつはRuby言語のスクリプトなのですが、
 RubyInstaller for Windowsを使うとRuby本体諸共入手できるようです。
 　http://rubyinstaller.org/
@@ -116,17 +109,10 @@ svn co http://svn.dsource.org/projects/tangobos/trunk@63
 
 　次にDWT2をMercurialのリポジトリから取ってきます。
 ---
-hg clone -r 111 http://hg.dsource.org/projects/dwt2
+hg clone -r 112 http://hg.dsource.org/projects/dwt2
 ---
-　例によってバグがあるのでパッチを当てます。svnと違ってhgには自力でパッチを
-当てる機能がついてるみたいです。ナイスだね。
----
-cd dwt2
-hg patch dwt2-rev.111_cwx.patch
----
-　こんな感じで。
-　さらに、org.eclipse.swt.browserがあると余計な依存関係が発生するので、
-消すか、どこかへ移動してしまう必要があります。
+　org.eclipse.swt.browserがあると余計な依存関係が発生するので、消すか、
+どこかへ移動してしまう必要があります。
 ---
 mv org.eclipse.swt.gtk.linux.x86/src/org/eclipse/swt/browser .
 ---
