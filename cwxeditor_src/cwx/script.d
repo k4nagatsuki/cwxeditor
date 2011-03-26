@@ -115,6 +115,9 @@ struct CWXScript {
 			string[] lines;
 			while (lengthJ(line) > width) {
 				auto l = sliceJ(line, 0, width);
+				if (!l.length) {
+					l = sliceJ(line, 0, width + 1);
+				}
 				lines ~= l;
 				line = line[l.length .. $];
 			}
@@ -1230,7 +1233,9 @@ fi`;
 			T r;
 			while (i < attr.length) {
 				if (attr[i].type !is NodeType.VALUES) break;
+				size_t i2 = i;
 				r ~= parseAttr!(typeof(T[0]), Within)(attr, i, typeof(T[0]).init, varTable);
+				if (i2 == i) break;
 			}
 			return r;
 		} else static if (is(T == bool)) {
@@ -1488,7 +1493,7 @@ fi`;
 					r.rCoupons = std.string.split(parseAttr!(string)(vals, j, "", varTable), ";");
 				}
 			}
-			r.text = parseAttr!(string)(vals, j, r.text, varTable, true);
+			r.text = parseAttr!(string)(vals, j, r.text, varTable, msgWidth);
 			i++;
 			return r;
 		} else static if (is(T == int)) {

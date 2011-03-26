@@ -295,7 +295,7 @@
 
 <h3><a name="OUTLINE" id="OUTLINE">アウトライン</a></h3>
 
-<p>CardWirthのイベントコンテントのツリーは常に"スタートイベント"から始まります。CWXスクリプトでも同様です。</p>
+<p>CardWirthのイベントコンテントのツリーは常に"スタートコンテント"から始まります。基本的には、CWXスクリプトでも同様です。</p>
 <p>例えば、スタートして、メッセージを一つ表示し、そのまま済印をつけずに終了するイベントは次のように記述できます。</p>
 
 <pre><code><span class="keywords">start</span> <span class="str">"到着イベント"</span>
@@ -348,6 +348,20 @@
 
 <pre><code><span class="keywords">endsc</span> <span class="code">false</span></code></pre>
 <pre><code><span class="keywords">endsc</span></code></pre>
+
+<p>ところで、CardWirthのイベントツリーは必ず"スタートコンテント"から始まりますが、CWXスクリプトは<span class="keywords">start</span>以外から書き始める事もできます。</p>
+
+<pre><code><span class="keywords">msg</span> <span class="code">none</span>, <span class="str">"hello, world!"</span>
+<span class="keywords">endsc</span> <span class="code">false</span></code></pre>
+
+<p>このスクリプトは、任意の既存のイベントツリーの中に貼り付ける事ができます。</p>
+<p>次のように、スタートコンテントを持たない部分と、スタートコンテントが混在している場合は、エラーになります。</p>
+
+<pre><code><span class="keywords">msg</span> <span class="code">none</span>, <span class="str">"hello, world!"</span>
+<span class="keywords">endsc</span> <span class="code">false</span></code>
+
+<span class="keywords">start</span> <span class="str">"次のスタート"</span>
+    <span class="keywords">msg</span> <span class="code">none</span>, <span class="str">"hello, CWXScript!"</span></code></pre>
 
 <h3><a name="COMMENT" id="COMMENT">コメント</a></h3>
 
