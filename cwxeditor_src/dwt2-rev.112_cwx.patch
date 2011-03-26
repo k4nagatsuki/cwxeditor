@@ -1,0 +1,210 @@
+diff -r 9f4c18c268b2 base/src/java/lang/Integer.d
+--- a/base/src/java/lang/Integer.d	Wed Mar 16 21:53:53 2011 +0900
++++ b/base/src/java/lang/Integer.d	Sat Mar 26 13:26:11 2011 +0900
+@@ -95,8 +95,12 @@
+                 throw new NumberFormatException( e );
+             }
+         } else { // Phobos
+-            implMissing( __FILE__, __LINE__ );
+-            return 0;
++            try{
++            	return std.conv.parse!(int)( s, radix );
++            }
++            catch( std.conv.ConvException e ){
++                throw new NumberFormatException( e );
++            }
+         }
+     }
+ 
+diff -r 9f4c18c268b2 base/src/java/lang/String.d
+--- a/base/src/java/lang/String.d	Wed Mar 16 21:53:53 2011 +0900
++++ b/base/src/java/lang/String.d	Sat Mar 26 13:26:11 2011 +0900
+@@ -156,8 +156,7 @@
+         buf[0] = key;
+         return tango.text.convert.Utf.toString( buf );
+     } else { // Phobos
+-        implMissing( __FILE__, __LINE__ );
+-        return null;
++        return std.conv.to!(string)(key);
+     }
+ }
+ 
+@@ -700,8 +699,7 @@
+     version(Tango){
+         return tango.text.Util.trim( str ).dup;
+     } else { // Phobos
+-        implMissing( __FILE__, __LINE__ );
+-        return null;
++        return std.string.strip( str.idup );
+     }
+ }
+ 
+diff -r 9f4c18c268b2 base/src/java/nonstandard/Locale.d
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/base/src/java/nonstandard/Locale.d	Sat Mar 26 13:26:11 2011 +0900
+@@ -0,0 +1,102 @@
++/**
++ * Locale.d
++ * Information of a locale.
++ * License: Public Domain
++ */
++module java.nonstandard.locale;
++
++import java.lang.String;
++import java.lang.util : implMissing;
++
++version(Tango){
++    private import tango.text.locale.Core;
++} else { // Phobos
++    private import std.conv;
++    private import std.exception;
++}
++version (Windows) {
++    private import std.c.string;
++    private import std.c.windows.windows;
++    shared bool W_VERSION;
++    static this() {
++        W_VERSION = GetVersion < 0x80000000;
++    }
++    private extern (Windows) {
++        enum LCID : DWORD {
++            /// The default locale for the user or process.
++            LOCALE_USER_DEFAULT     = 0x0400,
++        }
++        enum LCTYPE : DWORD {
++            /// ISO639 language name.
++            LOCALE_SISO639LANGNAME  = 0x0059,
++            /// ISO3166 country name.
++            LOCALE_SISO3166CTRYNAME = 0x005A
++        }
++        /// Retrieves information about a locale specified by identifier.
++        /// See_Also: GetLocaleInfo Function (Windows)
++        ///           (http://msdn.microsoft.com/en-us/library/dd318101%28VS.85%29.aspx)
++        INT GetLocaleInfoW(
++            LCID Locale,
++            LCTYPE LCType,
++            LPWSTR lpLCData,
++            INT cchData
++        );
++        /// ditto
++        INT GetLocaleInfoA(
++            LCID Locale,
++            LCTYPE LCType,
++            LPCSTR lpLCData,
++            INT cchData
++        );
++    }
++    private String caltureNameImpl(Char, alias GetLocalInfo)() {
++        INT len;
++        Char[] res;
++        Char[] buf;
++        len = GetLocalInfo(LCID.LOCALE_USER_DEFAULT,
++            LCTYPE.LOCALE_SISO639LANGNAME, null, 0);
++        enforce(len, new Exception("LOCALE_SISO639LANGNAME (len)", __FILE__, __LINE__));
++        buf.length = len;
++        len = GetLocalInfo(LCID.LOCALE_USER_DEFAULT,
++            LCTYPE.LOCALE_SISO639LANGNAME, buf.ptr, buf.length);
++        enforce(len, new Exception("LOCALE_SISO639LANGNAME", __FILE__, __LINE__));
++        res ~= buf[0 .. len - 1];
++        res ~= "-";
++        len = GetLocalInfo(LCID.LOCALE_USER_DEFAULT,
++            LCTYPE.LOCALE_SISO3166CTRYNAME, null, 0);
++        enforce(len, new Exception("LOCALE_SISO3166CTRYNAME (len)", __FILE__, __LINE__));
++        buf.length = len;
++        len = GetLocalInfo(LCID.LOCALE_USER_DEFAULT,
++            LCTYPE.LOCALE_SISO3166CTRYNAME, buf.ptr, buf.length);
++        enforce(len, new Exception("LOCALE_SISO3166CTRYNAME", __FILE__, __LINE__));
++        res ~= buf[0 .. len - 1];
++        return to!(String)(res);
++    }
++} else version (Posix) {
++    private import std.process : getenv;
++    private import std.string : indexOf, replace;
++}
++
++/// Get a omitted calture name. for example: "en-US"
++String caltureName() {
++    version(Tango){
++        return Culture.current.name;
++    } else { // Phobos
++        version (Windows) {
++            if (W_VERSION) {
++                return caltureNameImpl!(wchar, GetLocaleInfoW)();
++            } else {
++                return caltureNameImpl!(char, GetLocaleInfoA)();
++            }
++        } else version (Posix) {
++            String res = .getenv("LC_ALL");
++            if (!res || !res.length) res = .getenv("LANG");
++            int dot = .indexOf(res, '.');
++            if (dot != -1) res = res[0 .. dot];
++            return .replace(res, "_", "-");
++        } else {
++            implMissing(__FILE__, __LINE__);
++            return "";
++        }
++    }
++}
+diff -r 9f4c18c268b2 base/src/java/util/ResourceBundle.d
+--- a/base/src/java/util/ResourceBundle.d	Wed Mar 16 21:53:53 2011 +0900
++++ b/base/src/java/util/ResourceBundle.d	Sat Mar 26 13:26:11 2011 +0900
+@@ -8,10 +8,10 @@
+ import java.lang.exceptions;
+ import java.util.MissingResourceException;
+ import java.util.Enumeration;
++import java.nonstandard.locale;
+ version(Tango){
+     //import tango.text.Util;
+     import tango.io.device.File;
+-    import tango.text.locale.Core;
+ } else { // Phobos
+     import std.file;
+ }
+@@ -25,32 +25,28 @@
+      + First entry is the default entry if no maching locale is found
+      +/
+     public this( ImportData[] data ){
+-        version(Tango){
+-            char[] name = Culture.current().name.dup;
+-            if( name.length is 5 && name[2] is '-' ){
+-                name[2] = '_';
+-                char[] end = "_" ~ name ~ ".properties";
+-                foreach( entry; data ){
+-                    if( entry.name.length > end.length && entry.name[ $-end.length .. $ ] == end ){
+-                        //Trace.formatln( "ResourceBundle {}", entry.name );
+-                        initialize( cast(char[])entry.data );
+-                        return;
+-                    }
+-                }
+-            }
+-            char[] end = "_" ~ name[0..2] ~ ".properties";
++        char[] name = caltureName.dup;
++        if( name.length is 5 && name[2] is '-' ){
++            name[2] = '_';
++            char[] end = "_" ~ name ~ ".properties";
+             foreach( entry; data ){
+                 if( entry.name.length > end.length && entry.name[ $-end.length .. $ ] == end ){
+                     //Trace.formatln( "ResourceBundle {}", entry.name );
+-                    initialize( cast(char[])entry.data );
++                    initialize( cast(String)entry.data );
+                     return;
+                 }
+             }
+-            //Trace.formatln( "ResourceBundle default" );
+-            initialize( cast(char[])data[0].data );
+-        } else { // Phobos
+-            implMissing(__FILE__,__LINE__);
+         }
++        char[] end = "_" ~ name[0..2] ~ ".properties";
++        foreach( entry; data ){
++            if( entry.name.length > end.length && entry.name[ $-end.length .. $ ] == end ){
++                //Trace.formatln( "ResourceBundle {}", entry.name );
++                initialize( cast(String)entry.data );
++                return;
++            }
++        }
++        //Trace.formatln( "ResourceBundle default" );
++        initialize( cast(String)data[0].data );
+     }
+     public this( ImportData data ){
+         initialize( cast(String)data.data );
