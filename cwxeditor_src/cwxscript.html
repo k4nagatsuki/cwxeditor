@@ -248,6 +248,7 @@
 						<ol>
 							<li><a href="#SINGLE_STR">一行文字列</a></li>
 							<li><a href="#MULTI_STR">複行文字列</a></li>
+							<li><a href="#CAT_STR">文字列の連結</a></li>
 						</ol>
 					</li>
 					<li><a href="#NUM_DESC">数値(または計算式)</a></li>
@@ -472,6 +473,21 @@
 @</span></code></pre>
 
 <p>一行の長さがメッセージ欄の幅をオーバーした際の折り返しも考慮されますが、特殊文字やタブ文字が含まれている場合は、確実に中央寄せされるとは限りません。</p>
+
+<h5><a name="CAT_STR" id="CAT_STR">文字列の連結</a></h5>
+
+<p>「<code>~</code>」を使う事で、文字列を連結できます。</p>
+
+<pre><code><span class="comment">// start "hello, world" と同じ</span>
+<span class="keywords">start</span> <span class="str">"hello, "</span> ~ <span class="str">"world!"</span></code></pre>
+
+<p>数値とも連結できます。</p>
+
+<pre><code><span class="comment">// 数値を連結しようとすると自動的に文字列に変換される</span>
+<span class="keywords">start</span> <span class="str">"number."</span> ~ <span class="num">1</span> <span class="comment">// start "number.1"</span>
+<span class="comment">// 数値同士を連結すると結果は文字列になる</span>
+<span class="keywords">start</span> <span class="num">42</span> ~ <span class="num">10</span> <span class="comment">// start "4210"</span>
+</code></pre>
 
 <h4><a name="NUM_DESC" id="NUM_DESC">数値(または計算式)</a></h4>
 
