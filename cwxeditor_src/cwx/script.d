@@ -937,7 +937,10 @@ struct CWXScript {
 			default: assert (0);
 			}
 			return tok;
-		default: throwError(_prop.msgs.scriptErrorInvalidVarVal, toks[0]);
+		case Kind.SYMBOL:
+			return toks[0];
+		default:
+			throwError(_prop.msgs.scriptErrorInvalidVarVal, toks[0]);
 		}
 		assert (0);
 	}
@@ -1699,6 +1702,7 @@ fi`;
 		assert (0);
 	}
 	private string parseNextValue(in Node node, in Keywords keys, in Token[string] varTable) {
+		if (!node.texts.length) return "";
 		auto value = varValue(node, node.texts, varTable, 0);
 		string r;
 		if (value.kind is Kind.SYMBOL) {
@@ -2297,7 +2301,7 @@ fi`;
 			buf ~= command;
 			string[] attrs;
 			if (c.type is CType.START) {
-				attrs ~= ` "` ~ encodeString(c.name) ~ `"`;
+				attrs ~= `"` ~ encodeString(c.name) ~ `"`;
 			}
 			size_t msgLen = 0;
 			if (detail.use(CArg.TALKER_C)) {
