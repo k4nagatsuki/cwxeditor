@@ -402,77 +402,88 @@ struct CWXScript {
 			]);
 	}
 
-	private enum CRKind {STR, NUM}
+	private enum CRKind {STR, INT, REAL}
 	private static struct CalcResult {
 		CRKind kind;
 		union {
 			string str;
-			real num;
+			long numInt;
+			real numReal;
 		}
 		void cat(in CProps prop, in Token tok, ref CalcResult rval) {
-			if (kind is CRKind.STR) {
-				if (rval.kind is CRKind.STR) {
-					str ~= rval.str;
-				} else {
-					assert (rval.kind is CRKind.NUM);
-					str ~= to!(string)(rval.num);
+			switch (kind) {
+			case CRKind.STR: break;
+			case CRKind.INT: str = to!(string)(numInt); break;
+			case CRKind.REAL: str = to!(string)(numReal); break;
+			default: assert (0);
+			}
+			switch (rval.kind) {
+			case CRKind.STR:
+				str ~= rval.str;
+				break;
+			case CRKind.INT:
+				str ~= to!(string)(rval.numInt);
+				break;
+			case CRKind.REAL:
+				str ~= to!(string)(rval.numReal);
+				break;
+			default: assert (0);
+			}
+			kind = CRKind.STR;
+		}
+		private void calc(string Calc, bool ChkDiv)(in CProps prop, in Token tok, ref CalcResult rval) {
+			if (kind is CRKind.STR || rval.kind is CRKind.STR) {
+				throwError(prop.msgs.scriptErrorInvalidNumber, tok);
+			}
+			static if (ChkDiv) {
+				if ((rval.kind is CRKind.REAL ? rval.numReal : rval.numInt) == 0) {
+					throwError(prop.msgs.scriptErrorZeroDivision, tok);
 				}
+			}
+			if (kind is CRKind.REAL || rval.kind is CRKind.REAL) {
+				real lvalue = kind is CRKind.REAL ? numReal : numInt;
+				real rvalue = rval.kind is CRKind.REAL ? rval.numReal : rval.numInt;
+				mixin ("numReal = lvalue " ~ Calc ~ " rvalue;");
+				kind = CRKind.REAL;
 			} else {
-				assert (kind is CRKind.NUM);
-				kind = CRKind.STR;
-				if (rval.kind is CRKind.STR) {
-					str = to!(string)(num) ~ rval.str;
-				} else {
-					assert (rval.kind is CRKind.NUM);
-					str = to!(string)(num) ~ to!(string)(rval.num);
-				}
+				assert (kind is CRKind.INT && rval.kind is CRKind.INT);
+				mixin ("numInt " ~ Calc ~ "= rval.numInt;");
 			}
 		}
-		void add(in CProps prop, in Token tok, ref CalcResult rval) {
-			if (kind is CRKind.STR || rval.kind is CRKind.STR) {
-				throwError(prop.msgs.scriptErrorInvalidNumber, tok);
-			}
-			num += rval.num;
+		public alias calc!("+", false) add;
+		public alias calc!("-", false) min;
+		public alias calc!("*", false) mul;
+		public alias calc!("/", true) div;
+		public alias calc!("%", true) res;
+		int opEquals(int val) {
+			return opEquals(cast(long) val);
 		}
-		void min(in CProps prop, in Token tok, ref CalcResult rval) {
-			if (kind is CRKind.STR || rval.kind is CRKind.STR) {
-				throwError(prop.msgs.scriptErrorInvalidNumber, tok);
+		int opEquals(long val) {
+			switch (kind) {
+			case CRKind.STR: return false;
+			case CRKind.INT: return numInt == val;
+			case CRKind.REAL: return numReal == val;
+			default: assert (0);
 			}
-			num -= rval.num;
-		}
-		void mul(in CProps prop, in Token tok, ref CalcResult rval) {
-			if (kind is CRKind.STR || rval.kind is CRKind.STR) {
-				throwError(prop.msgs.scriptErrorInvalidNumber, tok);
-			}
-			num *= rval.num;
-		}
-		private static void chkDiv(in CProps prop, in Token tok, ref CalcResult rval) {
-			if (rval.num == 0.0) {
-				throwError(prop.msgs.scriptErrorZeroDivision, tok);
-			}
-		}
-		void div(in CProps prop, in Token tok, ref CalcResult rval) {
-			if (kind is CRKind.STR || rval.kind is CRKind.STR) {
-				throwError(prop.msgs.scriptErrorInvalidNumber, tok);
-			}
-			chkDiv(prop, tok, rval);
-			num /= rval.num;
-		}
-		void res(in CProps prop, in Token tok, ref CalcResult rval) {
-			if (kind is CRKind.STR || rval.kind is CRKind.STR) {
-				throwError(prop.msgs.scriptErrorInvalidNumber, tok);
-			}
-			chkDiv(prop, tok, rval);
-			num %= rval.num;
 		}
 		int opEquals(real val) {
-			return kind is CRKind.NUM && num == val;
+			switch (kind) {
+			case CRKind.STR: return false;
+			case CRKind.INT: return numInt == val;
+			case CRKind.REAL: return numReal == val;
+			default: assert (0);
+			}
 		}
 		int opEquals(string val) {
 			return kind is CRKind.STR && str == val;
 		}
 		string toString() {
-			return kind is CRKind.NUM ? to!(string)(num) : str;
+			switch (kind) {
+			case CRKind.STR: return str;
+			case CRKind.INT: return to!(string)(numInt);
+			case CRKind.REAL: return to!(string)(numReal);
+			default: assert (0);
+			}
 		}
 	}
 	private const OPE_LEVEL_MAX = 2;
@@ -486,9 +497,12 @@ struct CWXScript {
 				if (vt.kind is Kind.STRING) {
 					r.kind = CRKind.STR;
 					r.str = stringValue(vt, strWidth);
+				} else if (std.string.find(vt.value, '.') != -1) {
+					r.kind = CRKind.REAL;
+					r.numReal = to!(real)(vt.value);
 				} else {
-					r.kind = CRKind.NUM;
-					r.num = to!(real)(vt.value);
+					r.kind = CRKind.INT;
+					r.numInt = to!(long)(vt.value);
 				}
 				return r;
 			} catch (Exception e) {
@@ -514,9 +528,15 @@ struct CWXScript {
 		try {
 			CalcResult r;
 			if (tokens[i].kind is Kind.NUMBER) {
-				r.kind = CRKind.NUM;
-				r.num = to!(real)(tokens[i].value);
-				if (min) r.num = -r.num;
+				if (std.string.find(tokens[i].value, '.') != -1) {
+					r.kind = CRKind.REAL;
+					r.numReal = to!(real)(tokens[i].value);
+					if (min) r.numReal = -r.numReal;
+				} else {
+					r.kind = CRKind.INT;
+					r.numInt = to!(long)(tokens[i].value);
+					if (min) r.numInt = -r.numInt;
+				}
 			} else {
 				assert (tokens[i].kind is Kind.STRING);
 				r.kind = CRKind.STR;
@@ -613,7 +633,6 @@ struct CWXScript {
 		Token[string] varTable;
 		varTable["$abc"] = Token(0, 0, Kind.NUMBER, "15");
 		CWXScript s;
-
 		i = 0;
 		assert (s.calc(s.tokenize("(-42)"), i, varTable, 0) == -42);
 		i = 0;
@@ -876,7 +895,12 @@ struct CWXScript {
 		case Kind.STRING, Kind.NUMBER, Kind.PLU, Kind.MIN, Kind.O_PAR:
 			size_t i = 0;
 			auto r = calc(node.calc, i, varTable, strWidth);
-			return r.kind is CRKind.NUM ? to!(string)(r.num) : r.str;
+			switch (r.kind) {
+			case CRKind.STR: return r.str;
+			case CRKind.INT: return to!(string)(r.numInt);
+			case CRKind.REAL: return to!(string)(r.numReal);
+			default: assert (0);
+			}
 		case Kind.O_BRA: return "";
 		default: throwError(_prop.msgs.scriptErrorInvalidAttr, node.token);
 		}
@@ -899,8 +923,19 @@ struct CWXScript {
 			size_t i = 0;
 			Token tok = toks[0];
 			auto r = calc(toks, i, varTable, strWidth);
-			tok.kind = r.kind is CRKind.NUM ? Kind.NUMBER : Kind.STRING;
-			tok.value = r.kind is CRKind.NUM ? to!(string)(r.num) : `"` ~ encodeString(r.str) ~ `"`;
+			tok.kind = r.kind is CRKind.STR ? Kind.STRING : Kind.NUMBER;
+			switch (r.kind) {
+			case CRKind.STR:
+				tok.value = `"` ~ encodeString(r.str) ~ `"`;
+				break;
+			case CRKind.INT:
+				tok.value = to!(string)(r.numInt);
+				break;
+			case CRKind.REAL:
+				tok.value = to!(string)(r.numReal);
+				break;
+			default: assert (0);
+			}
 			return tok;
 		default: throwError(_prop.msgs.scriptErrorInvalidVarVal, toks[0]);
 		}
