@@ -2316,6 +2316,7 @@ fi`;
 				}
 			}
 			bool useIf = c.next.length > 1;
+			bool useSif = c.next.length == 1 && c.next[0].name.length;
 			if (!useIf) {
 				foreach (chld; c.next) {
 					if (chld.name.length) {
@@ -2333,7 +2334,11 @@ fi`;
 			foreach (idx, chld; c.next) {
 				if (useIf) {
 					buf ~= "\n" ~ indentValue;
-					buf ~= idx == 0 ? "if " : "elif ";
+					if (useSif) {
+						buf ~= "sif ";
+					} else {
+						buf ~= idx == 0 ? "if " : "elif ";
+					}
 					switch (detail.nextType) {
 					case CNextType.NONE:
 						buf ~= `""`;
@@ -2356,7 +2361,8 @@ fi`;
 					default: assert (0);
 					}
 					buf ~= "\n";
-					toScriptImpl(buf, [chld], indent, indentValue ~ indent, keys, vars, legacy);
+					auto nextIndent = useSif ? indentValue : indentValue ~ indent;
+					toScriptImpl(buf, [chld], indent, nextIndent, keys, vars, legacy);
 				} else {
 					buf ~= "\n";
 					if (c.type is CType.START) {
@@ -2366,7 +2372,7 @@ fi`;
 					}
 				}
 			}
-			if (useIf) {
+			if (useIf && !useSif) {
 				buf ~= "\n" ~ indentValue ~ "fi";
 			}
 		}
