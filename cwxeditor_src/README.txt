@@ -6,7 +6,7 @@
 	・rake
 	・Digital Mars rcc
 ライブラリ:
-	・DWT2 rev.111
+	・DWT2 rev.112
 
 　後はSubversionとMercurialのクライアントがあると楽です。
 
@@ -15,13 +15,13 @@
 
 　DWT2をMercurialのリポジトリから取ってきます。
 ---
-hg clone -r 111 http://hg.dsource.org/projects/dwt2
+hg clone -r 112 http://hg.dsource.org/projects/dwt2
 ---
-　このままではD2でコンパイルできないのでパッチを当てます。hgにはパッチ
-を当てる機能がついてるのでそれを使いましょう。
+　このままではちゃんと動かないのでパッチを当てます。hgにはパッチを当てる
+機能がついてるのでそれを使いましょう。
 ---
 cd dwt2
-hg patch dwt2-rev.111_cwx.patch
+hg patch dwt2-rev.112_cwx.patch
 ---
 　こんな感じで。
 　DWT2はビルドにrakeを使います。こいつはRuby言語のスクリプトなのですが、
@@ -80,13 +80,13 @@ SWT.d内の該当箇所を'.'を含まない別の名前に変えるなり。
 
 　DWT2をMercurialのリポジトリから取ってきます。
 ---
-hg clone -r 111 http://hg.dsource.org/projects/dwt2
+hg clone -r 112 http://hg.dsource.org/projects/dwt2
 ---
-　このままではD2でコンパイルできないのでパッチを当てます。hgにはパッチ
-を当てる機能がついてるのでそれを使いましょう。
+　このままではちゃんと動かないのでパッチを当てます。hgにはパッチを当てる
+機能がついてるのでそれを使いましょう。
 ---
 cd dwt2
-hg patch dwt2-rev.111_cwx.patch
+hg patch dwt2-rev.112_cwx.patch
 ---
 　こんな感じで。
 　さらに、org.eclipse.swt.browserがあると余計な依存関係が発生するので、
