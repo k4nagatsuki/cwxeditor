@@ -88,6 +88,7 @@ struct CWXScript {
 		MUL, /// *
 		DIV, /// /
 		RES, /// %
+		CAT, /// ~
 		O_PAR, /// (
 		C_PAR /// )
 	}
@@ -113,6 +114,9 @@ struct CWXScript {
 			string[] lines;
 			while (lengthJ(line) > width) {
 				auto l = sliceJ(line, 0, width);
+				if (!l.length) {
+					l = sliceJ(line, 0, width + 1);
+				}
 				lines ~= l;
 				line = line[l.length .. $];
 			}
@@ -341,6 +345,11 @@ struct CWXScript {
 				spaceAfter = false;
 				r ~= Token(i, pos, Kind.RES, str);
 				pos += str.length;
+			} else if (c == '~') {
+				// cat
+				spaceAfter = false;
+				r ~= Token(i, pos, Kind.CAT, str);
+				pos += str.length;
 			} else if (c == '(') {
 				// open paren
 				spaceAfter = false;
@@ -355,7 +364,7 @@ struct CWXScript {
 				// comma
 				spaceAfter = false;
 				r ~= Token(i, pos, Kind.COMMA, str);
-				pos =+ str.length;
+				pos += str.length;
 			} else {
 				assert (0);
 			}
@@ -366,10 +375,11 @@ struct CWXScript {
 	} unittest {
 		CWXScript s;
 		assert (s.tokenize("/*\n*/").length == 0);
-		assert (s.tokenize("/* */start 12.3 \ntest1 [$void] =\"str\ning//\"\n\r //comment\nELIF if\n1/2+3*4%(5-6)")
+		assert (s.tokenize("/* */start, 12.3 \ntest1 [$void] =\"str\ning//\"\n\r //comment\nELIF if\n1/2+3*4%(5-6)")
 			== [
 				Token(0, 5, Kind.START, "start"),
-				Token(0, 11, Kind.NUMBER, "12.3"),
+				Token(0, 10, Kind.COMMA, ","),
+				Token(0, 12, Kind.NUMBER, "12.3"),
 				Token(1, 0, Kind.SYMBOL, "test1"),
 				Token(1, 6, Kind.O_BRA, "["),
 				Token(1, 7, Kind.VAR_NAME, "$void"),
@@ -394,14 +404,121 @@ struct CWXScript {
 			]);
 	}
 
-	private const OPE_LEVEL_MAX = 1;
+	private enum CRKind {STR, INT, REAL}
+	private static struct CalcResult {
+		CRKind kind;
+		union {
+			string str;
+			long numInt;
+			real numReal;
+		}
+		void cat(in CProps prop, in Token tok, in CalcResult rval) {
+			switch (kind) {
+			case CRKind.STR: break;
+			case CRKind.INT: str = to!(string)(numInt); break;
+			case CRKind.REAL: str = to!(string)(numReal); break;
+			default: assert (0);
+			}
+			switch (rval.kind) {
+			case CRKind.STR:
+				str ~= rval.str;
+				break;
+			case CRKind.INT:
+				str ~= to!(string)(rval.numInt);
+				break;
+			case CRKind.REAL:
+				str ~= to!(string)(rval.numReal);
+				break;
+			default: assert (0);
+			}
+			kind = CRKind.STR;
+		}
+		private void calc(string Calc, bool ChkDiv)(in CProps prop, in Token tok, in CalcResult rval) {
+			if (kind is CRKind.STR || rval.kind is CRKind.STR) {
+				throwError(prop.msgs.scriptErrorInvalidNumber, tok);
+			}
+			static if (ChkDiv) {
+				if ((rval.kind is CRKind.REAL ? rval.numReal : rval.numInt) == 0) {
+					throwError(prop.msgs.scriptErrorZeroDivision, tok);
+				}
+			}
+			if (kind is CRKind.REAL || rval.kind is CRKind.REAL) {
+				real lvalue = kind is CRKind.REAL ? numReal : numInt;
+				real rvalue = rval.kind is CRKind.REAL ? rval.numReal : rval.numInt;
+				mixin ("numReal = lvalue " ~ Calc ~ " rvalue;");
+				kind = CRKind.REAL;
+			} else {
+				assert (kind is CRKind.INT && rval.kind is CRKind.INT);
+				mixin ("numInt " ~ Calc ~ "= rval.numInt;");
+			}
+		}
+		public alias calc!("+", false) add;
+		public alias calc!("-", false) min;
+		public alias calc!("*", false) mul;
+		public alias calc!("/", true) div;
+		public alias calc!("%", true) res;
+		const
+		bool opEquals(ref const(CalcResult) val) {
+			if (kind !is val.kind) return false;
+			final switch (kind) {
+			case CRKind.STR: return str == val.str;
+			case CRKind.INT: return numInt == val.numInt;
+			case CRKind.REAL: return numReal == val.numReal;
+			}
+		}
+		const
+		bool opEquals(int val) {
+			return opEquals(cast(long) val);
+		}
+		const
+		bool opEquals(long val) {
+			final switch (kind) {
+			case CRKind.STR: return false;
+			case CRKind.INT: return numInt == val;
+			case CRKind.REAL: return numReal == val;
+			}
+		}
+		const
+		bool opEquals(real val) {
+			final switch (kind) {
+			case CRKind.STR: return false;
+			case CRKind.INT: return numInt == val;
+			case CRKind.REAL: return numReal == val;
+			}
+		}
+		const
+		bool opEquals(string val) {
+			return kind is CRKind.STR && str == val;
+		}
+		const
+		string toString() {
+			final switch (kind) {
+			case CRKind.STR: return str;
+			case CRKind.INT: return to!(string)(numInt);
+			case CRKind.REAL: return to!(string)(numReal);
+			}
+		}
+	}
+	private const OPE_LEVEL_MAX = 2;
 	const
-	private real calcNum(in Token[] tokens, ref size_t i, in Token[string] varTable) {
+	private CalcResult calcNum(in Token[] tokens, ref size_t i, in Token[string] varTable, size_t strWidth) {
 		assert (i < tokens.length);
 		auto tok = tokens[i];
 		if (tok.kind is Kind.VAR_NAME) {
 			try {
-				return to!(real)(var(tok, varTable).value);
+				auto vt = var(tok, varTable);
+				CalcResult r;
+				if (vt.kind is Kind.STRING) {
+					r.kind = CRKind.STR;
+					r.str = stringValue(vt, strWidth);
+				} else if (std.string.indexOf(vt.value, '.') != -1) {
+					r.kind = CRKind.REAL;
+					r.numReal = to!(real)(vt.value);
+				} else {
+					r.kind = CRKind.INT;
+					r.numInt = to!(long)(vt.value);
+				}
+				return r;
 			} catch (Exception e) {
 				throwError(_prop.msgs.scriptErrorReqNumber, tok);
 			}
@@ -409,83 +526,112 @@ struct CWXScript {
 		bool min = false;
 		if (tok.kind is Kind.PLU) {
 			i++;
+			if (tokens[i].kind !is Kind.NUMBER) {
+				throwError(_prop.msgs.scriptErrorInvalidNumber, tok);
+			}
 		} else if (tok.kind is Kind.MIN) {
-			min = true;
 			i++;
+			if (tokens[i].kind !is Kind.NUMBER) {
+				throwError(_prop.msgs.scriptErrorInvalidNumber, tok);
+			}
+			min = true;
 		}
-		if (tokens.length <= i || tokens[i].kind !is Kind.NUMBER) {
+		if (tokens.length <= i || !(tokens[i].kind is Kind.NUMBER || tokens[i].kind is Kind.STRING)) {
 			throwError(_prop.msgs.scriptErrorInvalidNumber, tok);
 		}
 		try {
-			real r = to!(real)(tokens[i].value);
+			CalcResult r;
+			if (tokens[i].kind is Kind.NUMBER) {
+				if (std.string.indexOf(tokens[i].value, '.') != -1) {
+					r.kind = CRKind.REAL;
+					r.numReal = to!(real)(tokens[i].value);
+					if (min) r.numReal = -r.numReal;
+				} else {
+					r.kind = CRKind.INT;
+					r.numInt = to!(long)(tokens[i].value);
+					if (min) r.numInt = -r.numInt;
+				}
+			} else {
+				assert (tokens[i].kind is Kind.STRING);
+				r.kind = CRKind.STR;
+				r.str = stringValue(tokens[i], 0);
+			}
 			i++;
-			return min ? -r : r;
+			return r;
 		} catch (Exception e) {
 			throwError(_prop.msgs.scriptErrorReqNumber, tokens[i]);
 		}
 		assert (0);
 	}
 	const
-	private real calcPar(in Token[] tokens, ref size_t i, in Token[string] varTable) {
+	private CalcResult calcPar(in Token[] tokens, ref size_t i, in Token[string] varTable, size_t strWidth) {
 		assert (i < tokens.length);
 		auto tok = tokens[i];
 		switch (tok.kind) {
 		case Kind.O_PAR:
 			i++;
-			real r = calcImpl(0, tokens, i, varTable);
+			auto r = calcImpl(0, tokens, i, varTable, strWidth);
 			if (tokens[i].kind !is Kind.C_PAR) {
 				throwError(_prop.msgs.scriptErrorCloseParenNotFound, tok);
 			}
 			i++;
 			return r;
 		default:
-			return calcNum(tokens, i, varTable);
+			return calcNum(tokens, i, varTable, strWidth);
 		}
 	}
 	const
-	private real calcImpl(size_t opeLevel, in Token[] tokens, ref size_t i, in Token[string] varTable) {
+	private CalcResult calcImpl(size_t opeLevel, in Token[] tokens, ref size_t i, in Token[string] varTable, size_t strWidth) {
 		assert (i < tokens.length);
-		real r;
+		CalcResult r;
 		if (opeLevel >= OPE_LEVEL_MAX) {
-			r = calcPar(tokens, i, varTable);
+			r = calcPar(tokens, i, varTable, strWidth);
 		} else {
-			r = calcImpl(opeLevel + 1, tokens, i, varTable);
+			r = calcImpl(opeLevel + 1, tokens, i, varTable, strWidth);
 		}
 		while (i < tokens.length) {
 			auto tok = tokens[i];
-			real chkDiv(real val) {
-				if (val == 0.0) throwError(_prop.msgs.scriptErrorZeroDivision, tok);
-				return val;
-			}
 			switch (opeLevel) {
 			case 0:
 				switch (tok.kind) {
-				case Kind.PLU:
+				case Kind.CAT:
 					i++;
-					r += calcImpl(1, tokens, i, varTable);
+					r.cat(_prop, tok, calcImpl(1, tokens, i, varTable, strWidth));
 					break;
-				case Kind.MIN:
-					i++;
-					r -= calcImpl(1, tokens, i, varTable);
-					break;
-				default: return r;
+				default:
+					return r;
 				}
 				break;
 			case 1:
 				switch (tok.kind) {
+				case Kind.PLU:
+					i++;
+					r.add(_prop, tok, calcImpl(1, tokens, i, varTable, strWidth));
+					break;
+				case Kind.MIN:
+					i++;
+					r.min(_prop, tok, calcImpl(1, tokens, i, varTable, strWidth));
+					break;
+				default:
+					return r;
+				}
+				break;
+			case 2:
+				switch (tok.kind) {
 				case Kind.MUL:
 					i++;
-					r *= calcPar(tokens, i, varTable);
+					r.mul(_prop, tok, calcPar(tokens, i, varTable, strWidth));
 					break;
 				case Kind.DIV:
 					i++;
-					r /= chkDiv(calcPar(tokens, i, varTable));
+					r.div(_prop, tok, calcPar(tokens, i, varTable, strWidth));
 					break;
 				case Kind.RES:
 					i++;
-					r %= chkDiv(calcPar(tokens, i, varTable));
+					r.res(_prop, tok, calcPar(tokens, i, varTable, strWidth));
 					break;
-				default: return r;
+				default:
+					return r;
 				}
 				break;
 			default: assert (0);
@@ -495,41 +641,42 @@ struct CWXScript {
 	}
 	/// tokensを計算式と看做し、計算結果の値を返す。
 	const
-	real calc(in Token[] tokens, ref size_t i, in Token[string] varTable) {
+	CalcResult calc(in Token[] tokens, ref size_t i, in Token[string] varTable, size_t strWidth) {
 		assert (i < tokens.length);
-		return calcImpl(0, tokens, i, varTable);
+		return calcImpl(0, tokens, i, varTable, strWidth);
 	} unittest {
 		size_t i;
 		Token[] tokens;
 		Token[string] varTable;
 		varTable["$abc"] = Token(0, 0, Kind.NUMBER, "15");
 		CWXScript s;
-
 		i = 0;
-		assert (s.calc(s.tokenize("(-42)"), i, varTable) == -42);
+		assert (s.calc(s.tokenize("(-42)"), i, varTable, 0) == -42);
 		i = 0;
-		assert (s.calc(s.tokenize("2*2+3"), i, varTable) == 7);
+		assert (s.calc(s.tokenize("2*2+3"), i, varTable, 0) == 7);
 		i = 0;
-		assert (s.calc(s.tokenize("2*(2+3)"), i, varTable) == 10);
+		assert (s.calc(s.tokenize("2*(2+3)"), i, varTable, 0) == 10);
 		i = 0;
-		assert (s.calc(s.tokenize("1+2*3"), i, varTable) == 7);
+		assert (s.calc(s.tokenize("1+2*3"), i, varTable, 0) == 7);
 		i = 0;
-		assert (s.calc(s.tokenize("(1+2)*3"), i, varTable) == 9);
+		assert (s.calc(s.tokenize("(1+2)*3"), i, varTable, 0) == 9);
 		i = 0;
-		assert (s.calc(s.tokenize("-3-3"), i, varTable) == -6);
+		assert (s.calc(s.tokenize("-3-3"), i, varTable, 0) == -6);
 		i = 0;
-		assert (s.calc(s.tokenize("2 * 3 % 4"), i, varTable) == 2);
+		assert (s.calc(s.tokenize("2 * 3 % 4"), i, varTable, 0) == 2);
 		i = 0;
-		assert (s.calc(s.tokenize("3 + -3-3"), i, varTable) == -3);
+		assert (s.calc(s.tokenize("3 + -3-3"), i, varTable, 0) == -3);
 		i = 0;
-		assert (s.calc(s.tokenize("1+2 * 3 % 4"), i, varTable) == 3);
+		assert (s.calc(s.tokenize("1+2 * 3 % 4"), i, varTable, 0) == 3);
+		i = 0;
+		assert (s.calc(s.tokenize("1+2 ~ 3 % 4"), i, varTable, 0) == "33");
 		i = 0;
 		tokens = s.tokenize("1+2 * 3 % 4 + -3-$abc $abc");
-		assert (s.calc(tokens, i, varTable) == -15);
+		assert (s.calc(tokens, i, varTable, 0) == -15);
 		assert (tokens[i].value == "$abc");
 		i = 0;
 		tokens = s.tokenize("(1+2) * 3 % 4 + (-3-3) if");
-		assert (s.calc(tokens, i, varTable) == -5);
+		assert (s.calc(tokens, i, varTable, 0) == -5);
 		assert (tokens[i].value == "if");
 	}
 
@@ -627,7 +774,7 @@ struct CWXScript {
 	struct Node {
 		NodeType type; /// 型。
 		Token token; /// 先頭のToken。
-		Token text = Token(0, 0, Kind.STRING, `""`); /// テキスト。
+		Token[] texts = []; /// テキスト。
 		Node[] attr; /// 属性。
 		Node[] childs; /// 子ノード。
 		alias childs values; /// ノードがVALUESの場合は格納されたVALUEノードの配列。
@@ -637,7 +784,7 @@ struct CWXScript {
 		/// oと等しいか。
 		const
 		bool opEquals(ref const(Node) o) {
-			return type == o.type && token == o.token && text == o.text
+			return type == o.type && token == o.token && texts == o.texts
 				&& attr == o.attr && childs == o.childs && calc == o.calc
 				&& beforeVars == o.beforeVars;
 		}
@@ -649,7 +796,7 @@ struct CWXScript {
 		string code(string indent) {return code("    ", "");}
 		const
 		private string code(string indent, string indentValue) {
-			string calcCode() {
+			string calcCode(in Token[] calc) {
 				char[] calcBuf;
 				foreach (i, tok; calc) {
 					if ((tok.kind is Kind.C_PAR)
@@ -667,13 +814,13 @@ struct CWXScript {
 				if (var[0].kind is Kind.STRING) {
 					return .format("%s%s = %s", indentValue, token.value, var[0].value);
 				} else {
-					return .format("%s%s = %s", token.value, indentValue, calcCode);
+					return .format("%s%s = %s", token.value, indentValue, calcCode(calc));
 				}
 			} else if (type is NodeType.VALUE) {
 				if (var.length <= 1) {
 					return token.value;
 				} else {
-					return calcCode;
+					return calcCode(calc);
 				}
 			} else if (type is NodeType.VALUES) {
 				string vals = "[";
@@ -690,7 +837,7 @@ struct CWXScript {
 			}
 			string attrs = "";
 			if (token.kind is Kind.START) {
-				attrs = " " ~ text.value;
+				attrs = " " ~ calcCode(texts);
 			} else {
 				foreach (i, a; attr) {
 					auto ac = a.code(indent);
@@ -727,7 +874,7 @@ struct CWXScript {
 					} else {
 						buf ~= "\n";
 						string f = j == 0 ? "if" : "elif";
-						buf ~= .format("%s%s %s\n", indentValue, f, c.text.value);
+						buf ~= .format("%s%s %s\n", indentValue, f, calcCode(c.texts));
 						buf ~= c.code(indent, indentValue ~ indent);
 						j++;
 					}
@@ -738,11 +885,11 @@ struct CWXScript {
 				}
 				buf ~= "fi";
 			} else if (clen == 1) {
-				if (childs[first].text.value != `""`) {
+				if (childs[first].texts.length) {
 					buf ~= "\n";
 					buf ~= indentValue;
 					buf ~= "sif ";
-					buf ~= childs[first].text.value;
+					buf ~= calcCode(childs[first].texts);
 				}
 				if (token.kind is Kind.START) {
 					indentValue ~= indent;
@@ -761,7 +908,6 @@ struct CWXScript {
 	private string attrValue(in Node node, in Token[string] varTable, size_t strWidth) {
 		switch (node.token.kind) {
 		case Kind.SYMBOL: return std.string.tolower(node.token.value);
-		case Kind.STRING: return stringValue(node.token, strWidth);
 		case Kind.VAR_NAME:
 			auto tok = var(node.token, varTable);
 			if (tok.kind is Kind.STRING) {
@@ -770,9 +916,14 @@ struct CWXScript {
 				return std.string.tolower(tok.value);
 			}
 			goto case Kind.NUMBER;
-		case Kind.NUMBER, Kind.PLU, Kind.MIN, Kind.O_PAR:
+		case Kind.STRING, Kind.NUMBER, Kind.PLU, Kind.MIN, Kind.O_PAR:
 			size_t i = 0;
-			return to!(string)(calc(node.calc, i, varTable));
+			auto r = calc(node.calc, i, varTable, strWidth);
+			final switch (r.kind) {
+			case CRKind.STR: return r.str;
+			case CRKind.INT: return to!(string)(r.numInt);
+			case CRKind.REAL: return to!(string)(r.numReal);
+			}
 		case Kind.O_BRA: return "";
 		default: throwError(_prop.msgs.scriptErrorInvalidAttr, node.token);
 		}
@@ -780,26 +931,39 @@ struct CWXScript {
 	}
 	/// 変数値をTokenとして返す。
 	const
-	private Token varValue(in Node node, in Token[string] varTable) {
-		if (!node.var.length) {
+	private Token varValue(in Node node, in Token[] toks, in Token[string] varTable, size_t strWidth) {
+		if (!toks.length) {
 			throwError(_prop.msgs.scriptErrorInvalidVar, node.token);
 		}
-		switch (node.var[0].kind) {
-		case Kind.STRING: return node.var[0];
+		switch (toks[0].kind) {
 		case Kind.VAR_NAME:
-			if (node.var.length > 1) goto case Kind.NUMBER;
-			auto tok = var(node.var[0], varTable);
+			if (toks.length > 1) goto case Kind.NUMBER;
+			auto tok = var(toks[0], varTable);
 			if (tok.kind is Kind.STRING || tok.kind is Kind.SYMBOL) {
 				return tok;
 			}
 			goto case Kind.NUMBER;
-		case Kind.NUMBER, Kind.PLU, Kind.MIN, Kind.O_PAR:
+		case Kind.STRING, Kind.NUMBER, Kind.PLU, Kind.MIN, Kind.O_PAR:
 			size_t i = 0;
-			Token tok = node.var[0];
-			tok.kind = Kind.NUMBER;
-			tok.value = to!(string)(calc(node.var, i, varTable));
+			Token tok = toks[0];
+			auto r = calc(toks, i, varTable, strWidth);
+			tok.kind = r.kind is CRKind.STR ? Kind.STRING : Kind.NUMBER;
+			final switch (r.kind) {
+			case CRKind.STR:
+				tok.value = `"` ~ encodeString(r.str) ~ `"`;
+				break;
+			case CRKind.INT:
+				tok.value = to!(string)(r.numInt);
+				break;
+			case CRKind.REAL:
+				tok.value = to!(string)(r.numReal);
+				break;
+			}
 			return tok;
-		default: throwError(_prop.msgs.scriptErrorInvalidVarVal, node.var[0]);
+		case Kind.SYMBOL:
+			return toks[0];
+		default:
+			throwError(_prop.msgs.scriptErrorInvalidVarVal, toks[0]);
 		}
 		assert (0);
 	}
@@ -836,15 +1000,14 @@ struct CWXScript {
 				continue;
 			}
 			i++;
-			if (tokens.length <= i) {
-				throwError(_prop.msgs.scriptErrorNoStartText, tok);
-			}
 			Node node;
 			node.type = NodeType.START;
 			node.token = tok;
-			node.text = tokens[i];
+			node.texts = analyzeSyntaxValue(tokens, i, KEYS);
+			if (!node.texts.length) {
+				throwError(_prop.msgs.scriptErrorNoStartText, tok);
+			}
 			node.beforeVars = vars;
-			i++;
 			c: while (i < tokens.length) {
 				string cText = "";
 				switch (tokens[i].kind) {
@@ -967,20 +1130,19 @@ fi`;
 			goto case Kind.IF;
 		case Kind.IF, Kind.VAR_NAME:
 			while (i < tokens.length) {
-				Token text;
-				if (tokens[i].kind !is Kind.VAR_NAME) {
+				Token[] texts;
+				if (tokens[i].kind is Kind.IF || tokens[i].kind is Kind.ELIF || tokens[i].kind is Kind.SIF) {
 					i++;
-					if (tokens.length <= i) {
+					texts = analyzeSyntaxValue(tokens, i, keys);
+					if (!texts.length) {
 						throwError(_prop.msgs.scriptErrorNoIfText, tok);
 					}
-					text = tokens[i];
-					i++;
 					if (tokens.length <= i) {
 						throwError(_prop.msgs.scriptErrorNoIfContents, tok);
 					}
 				}
 				auto node = analyzeSyntaxStatement(tokens, i, keys);
-				node.text = text;
+				node.texts = texts;
 				r ~= node;
 				if (sif) return r;
 				if (tokens.length <= i) return r;
@@ -1095,19 +1257,19 @@ fi`;
 		tokens = s.tokenize(`goarea`);
 		i = 0;
 		assert (s.analyzeSyntaxAttr(tokens, i, KEYS).length == 0);
-		tokens = s.tokenize(`area 1 "="if "next"`);
+		tokens = s.tokenize(`area, 1, "="if "next"`);
 		i = 0;
 		auto arr = [
 			Node(NodeType.VALUE, Token(0, 0, Kind.SYMBOL, "area")),
-			Node(NodeType.VALUE, Token(0, 5, Kind.NUMBER, "1")),
-			Node(NodeType.VALUE, Token(0, 7, Kind.STRING, `"="`))
+			Node(NodeType.VALUE, Token(0, 6, Kind.NUMBER, "1")),
+			Node(NodeType.VALUE, Token(0, 9, Kind.STRING, `"="`))
 		];
 		arr[0].var ~= arr[0].token;
 		arr[1].var ~= arr[1].token;
 		arr[2].var ~= arr[2].token;
 		assert (s.analyzeSyntaxAttr(tokens, i, KEYS) == arr);
 		assert (tokens[i].kind is Kind.IF);
-		tokens = s.tokenize(`area 1 "="Start`);
+		tokens = s.tokenize(`area, 1, "="Start`);
 		i = 0;
 		assert (s.analyzeSyntaxAttr(tokens, i, KEYS) == arr);
 		assert (tokens[i].value == "Start");
@@ -1184,7 +1346,7 @@ fi`;
 			case Kind.VAR_NAME:
 				if (!num) return r;
 				goto case Kind.NUMBER;
-			case Kind.NUMBER:
+			case Kind.NUMBER, Kind.STRING:
 				if (!num) throwError(_prop.msgs.scriptErrorInvalidCalc, tok);
 				r ~= tok;
 				i++;
@@ -1214,16 +1376,16 @@ fi`;
 				r ~= tok;
 				i++;
 				break;
-			case Kind.MUL, Kind.DIV, Kind.RES:
+			case Kind.MUL, Kind.DIV, Kind.RES, Kind.CAT:
 				if (num) throwError(_prop.msgs.scriptErrorInvalidCalc, tok);
 				r ~= tok;
 				num = true;
 				i++;
 				break;
 			case Kind.COMMA:
-				if (!r.length) throwError(_prop.msgs.scriptErrorInvalidValue, tok); 
+				if (!r.length) throwError(_prop.msgs.scriptErrorInvalidValue, tok);
 				return r;
-			case Kind.SYMBOL, Kind.STRING:
+			case Kind.SYMBOL:
 				if (!calcin) {
 					r ~= tok;
 					i++;
@@ -1256,7 +1418,9 @@ fi`;
 			T r;
 			while (i < attr.length) {
 				if (attr[i].type !is NodeType.VALUES) break;
+				size_t i2 = i;
 				r ~= parseAttr!(typeof(T[0]), Within)(attr, i, typeof(T[0]).init, varTable);
+				if (i2 == i) break;
 			}
 			return r;
 		} else static if (is(T == bool)) {
@@ -1514,7 +1678,7 @@ fi`;
 					r.rCoupons = std.string.split(parseAttr!(string)(vals, j, "", varTable), ";");
 				}
 			}
-			r.text = parseAttr!(string)(vals, j, r.text, varTable, true);
+			r.text = parseAttr!(string)(vals, j, r.text, varTable, msgWidth);
 			i++;
 			return r;
 		} else static if (is(T == int)) {
@@ -1576,12 +1740,13 @@ fi`;
 	}
 	const
 	private string parseNextValue(in Node node, in Keywords keys, in Token[string] varTable) {
-		auto value = var(node.text, varTable);
+		if (!node.texts.length) return "";
+		auto value = varValue(node, node.texts, varTable, 0);
 		string r;
 		if (value.kind is Kind.SYMBOL) {
 			auto valStr = std.string.tolower(value.value);
 			if (valStr in keys.keywords) {
-				throwError(_prop.msgs.scriptErrorUndefinedSymbol, node.text);
+				throwError(_prop.msgs.scriptErrorUndefinedSymbol, node.token);
 			}
 			switch (valStr) {
 			case "default":
@@ -1594,7 +1759,7 @@ fi`;
 				r = _prop.msgs.evtChildFalse;
 				break;
 			default:
-				throwError(_prop.msgs.scriptErrorUndefinedSymbol, node.text);
+				throwError(_prop.msgs.scriptErrorUndefinedSymbol, node.token);
 			}
 		} else {
 			switch (value.kind) {
@@ -1633,10 +1798,10 @@ fi`;
 				if (var.type !is NodeType.VAR_SET) {
 					throwError(_prop.msgs.scriptErrorInvalidVar, var.token);
 				}
-				varTable[std.string.tolower(var.token.value)] = varValue(var, varTable);
+				varTable[std.string.tolower(var.token.value)] = varValue(var, var.var, varTable, 0);
 			}
 			if (node.type is NodeType.VAR_SET) {
-				varTable[std.string.tolower(node.token.value)] = varValue(node, varTable);
+				varTable[std.string.tolower(node.token.value)] = varValue(node, node.var, varTable, 0);
 				continue;
 			}
 			if (node.type !is NodeType.COMMAND && node.type !is NodeType.START) {
@@ -2181,7 +2346,7 @@ fi`;
 			buf ~= command;
 			string[] attrs;
 			if (c.type is CType.START) {
-				attrs ~= ` "` ~ encodeString(c.name) ~ `"`;
+				attrs ~= `"` ~ encodeString(c.name) ~ `"`;
 			}
 			size_t msgLen = 0;
 			if (detail.use(CArg.TALKER_C)) {
@@ -2353,6 +2518,7 @@ fi`;
 				}
 			}
 			bool useIf = c.next.length > 1;
+			bool useSif = c.next.length == 1 && c.next[0].name.length;
 			if (!useIf) {
 				foreach (chld; c.next) {
 					if (chld.name.length) {
@@ -2370,7 +2536,11 @@ fi`;
 			foreach (idx, chld; c.next) {
 				if (useIf) {
 					buf ~= "\n" ~ indentValue;
-					buf ~= idx == 0 ? "if " : "elif ";
+					if (useSif) {
+						buf ~= "sif ";
+					} else {
+						buf ~= idx == 0 ? "if " : "elif ";
+					}
 					switch (detail.nextType) {
 					case CNextType.NONE:
 						buf ~= `""`;
@@ -2393,7 +2563,8 @@ fi`;
 					default: assert (0);
 					}
 					buf ~= "\n";
-					toScriptImpl(buf, [chld], indent, indentValue ~ indent, keys, vars, legacy);
+					auto nextIndent = useSif ? indentValue : indentValue ~ indent;
+					toScriptImpl(buf, [chld], indent, nextIndent, keys, vars, legacy);
 				} else {
 					buf ~= "\n";
 					if (c.type is CType.START) {
@@ -2403,7 +2574,7 @@ fi`;
 					}
 				}
 			}
-			if (useIf) {
+			if (useIf && !useSif) {
 				buf ~= "\n" ~ indentValue ~ "fi";
 			}
 		}
@@ -2446,6 +2617,7 @@ private const string[] TOKENS = [
 	`\*`, // multiply
 	`\/(\*(.|\n)*?\*\/|\/.*(\n|$)|)`, // divide or comment
 	`%`, // residue
+	`~`, // cat
 	`\(`, // open paren
 	`\)` // close paren
 ];
