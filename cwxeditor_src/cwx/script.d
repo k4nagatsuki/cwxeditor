@@ -1620,7 +1620,7 @@ fi`;
 			}
 			size_t j = 0;
 			auto vals = attr[i].values;
-			string path = parseAttr!(string)(vals, j, "", varTable);
+			string path = decodePath(parseAttr!(string)(vals, j, "", varTable));
 			string flag = parseAttr!(string)(vals, j, "", varTable);
 			int x = parseAttr!(int)(vals, j, 0, varTable);
 			int y = parseAttr!(int)(vals, j, 0, varTable);
@@ -1817,10 +1817,10 @@ fi`;
 			auto detail = c.detail;
 			if (detail.use(CArg.TALKER_C)) {
 				Talker t = c.talkerC;
-				string path = c.cardPath;
+				string path = encodePath(c.cardPath);
 				parseAttrTalker(node.attr, i, t, path, varTable);
 				c.talkerC = t;
-				c.cardPath = path;
+				c.cardPath = decodePath(path);
 			}
 			if (detail.use(CArg.TEXT)) {
 				c.text = parseAttr!(string)(node.attr, i, c.text, varTable,
@@ -1956,10 +1956,10 @@ fi`;
 				c.status = parseAttr!(Status)(node.attr, i, c.status, varTable);
 			}
 			if (detail.use(CArg.BGM_PATH)) {
-				c.bgmPath = parseAttr!(string)(node.attr, i, c.bgmPath, varTable);
+				c.bgmPath = encodePath(parseAttr!(string)(node.attr, i, decodePath(c.bgmPath), varTable));
 			}
 			if (detail.use(CArg.SOUND_PATH)) {
-				c.soundPath = parseAttr!(string)(node.attr, i, c.soundPath, varTable);
+				c.soundPath = encodePath(parseAttr!(string)(node.attr, i, decodePath(c.soundPath), varTable));
 			}
 			if (detail.use(CArg.TRANSITION_SPEED)) {
 				c.transitionSpeed = parseAttr!(int)(node.attr, i, c.transitionSpeed, varTable);
@@ -2202,7 +2202,7 @@ fi`;
 			}
 		} else static if (is(Unqual!(T) : BgImage)) {
 			string[] attrs2;
-			attrs2 ~= toAttr(value.path, command, indentValue, vars);
+			attrs2 ~= toAttr(encodePath(value.path), command, indentValue, vars);
 			attrs2 ~= toAttr(value.flag, command, indentValue, vars);
 			attrs2 ~= toAttr(value.x, command, indentValue, vars);
 			attrs2 ~= toAttr(value.y, command, indentValue, vars);
@@ -2501,13 +2501,13 @@ fi`;
 			}
 			if (detail.use(CArg.BGM_PATH)) {
 				if (c.bgmPath.length) {
-					attrs ~= toAttr(c.bgmPath, command, indentValue, vars);
+					attrs ~= toAttr(encodePath(c.bgmPath), command, indentValue, vars);
 				} else {
 					attrs ~= toAttr(cast(Symbol) "stop", command, indentValue, vars);
 				}
 			}
 			if (detail.use(CArg.SOUND_PATH)) {
-				attrs ~= toAttr(c.soundPath, command, indentValue, vars);
+				attrs ~= toAttr(encodePath(c.soundPath), command, indentValue, vars);
 			}
 			if (!legacy) {
 				if (detail.use(CArg.TRANSITION_SPEED)) {
