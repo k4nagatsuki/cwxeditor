@@ -1838,9 +1838,6 @@ fi`;
 			if (detail.use(CArg.BG_IMAGES)) {
 				c.backs = parseAttr!(BgImage[])(node.attr, i, c.backs, varTable);
 			}
-			if (detail.use(CArg.MOTIONS)) {
-				c.motions = parseAttr!(Motion[])(node.attr, i, c.motions, varTable);
-			}
 			if (detail.use(CArg.TARGET_NS)) {
 				c.targetNS = parseAttr!(Target, true)(node.attr, i, c.targetNS, varTable);
 			}
@@ -1909,6 +1906,9 @@ fi`;
 			}
 			if (detail.use(CArg.CARD_NUMBER)) {
 				c.cardNumber = parseAttr!(int)(node.attr, i, c.cardNumber, varTable);
+			}
+			if (detail.use(CArg.MOTIONS)) {
+				c.motions = parseAttr!(Motion[])(node.attr, i, c.motions, varTable);
 			}
 			if (detail.use(CArg.CARD_VISUAL)) {
 				c.cardVisual = parseAttr!(CardVisual)(node.attr, i, c.cardVisual, varTable);
@@ -2370,9 +2370,6 @@ fi`;
 			if (detail.use(CArg.BG_IMAGES)) {
 				attrs ~= toAttr(c.backs, command, indentValue, vars);
 			}
-			if (detail.use(CArg.MOTIONS)) {
-				attrs ~= toAttr(c.motions, command, indentValue, vars);
-			}
 			if (detail.use(CArg.TARGET_NS)) {
 				attrs ~= toAttr!(true)(c.targetNS, command, indentValue, vars);
 			}
@@ -2453,6 +2450,9 @@ fi`;
 				} else {
 					attrs ~= toAttr(cast(Symbol) "all", command, indentValue, vars);
 				}
+			}
+			if (detail.use(CArg.MOTIONS)) {
+				attrs ~= toAttr(c.motions, command, indentValue, vars);
 			}
 			if (detail.use(CArg.CARD_VISUAL)) {
 				attrs ~= toAttr(c.cardVisual, command, indentValue, vars);

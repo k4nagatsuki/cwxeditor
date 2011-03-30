@@ -232,6 +232,13 @@
 <h1><a name="TITLE" id="TITLE">CWXスクリプト リファレンスマニュアル</a></h1>
 
 <p><em>CWXスクリプト</em>とは、CardWirthのイベントツリーを記述するための専用スクリプト言語です。</p>
+<p>CWXEditor 1.0にはテスト版として搭載されています。使用したい場合は、"cwxeditor.exe"と同じフォルダに生成される設定ファイル"cwxeditor.xml"をテキストエディタで開き、項目<code class="keywords">useCWXScript</code>を探して書き換えてください。</p>
+
+<pre><code><span class="comment">&lt;!-- useCWXScript&gt;false&lt;/useCWXScript --&gt;</span>
+<span class="comment">&lt;!-- ↑この行を下↓のように書き換える --&gt;</span>
+&lt;<span class="keywords">useCWXScript</span>&gt;<span class="code">true</span>&lt;/<span class="keywords">useCWXScript</span>&gt;
+</code></pre>
+<p>使用はバグや仕様変更等が大量にあるであろう事を承知した上でお願いいたします。</p>
 
 <h2><a name="TOC" id="TOC">目次</a></h2>
 
