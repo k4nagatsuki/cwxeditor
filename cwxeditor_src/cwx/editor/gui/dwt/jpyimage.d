@@ -374,11 +374,23 @@ private ImageData loadJPDCImage(string path) {
 	scope (exit) img.dispose;
 	auto gc = new GC(img);
 	scope (exit) gc.dispose;
-	gc.setBackground = d.getSystemColor(SWT.COLOR_BLACK);
-	gc.fillRectangle(0, 0, img.width, img.height);
 	gc.setForeground = d.getSystemColor(SWT.COLOR_WHITE);
-	gc.drawText("JPDC Save to: " ~ (jpdc.saveFileName.length ? jpdc.saveFileName : "(undefined)"), 2, 2, true);
+	gc.fillRectangle(0, 0, jpdc.clip.width, jpdc.clip.height);
+	gc.setForeground = d.getSystemColor(SWT.COLOR_BLACK);
+	int tw = jpdc.clip.width - 4;
+	string text = "JPDC Save to: " ~ (jpdc.saveFileName.length ? jpdc.saveFileName : "(undefined)");
+	int ty = 2;
+	while (text.length) {
+		string t = text[0 .. 1];
+		size_t i;
+		for (i = 1; i < text.length; i++) {
+			if (gc.textExtent(t ~ text[i]).x > tw) break;
+			t ~= text[i];
+		}
+		gc.drawText(t, 2, ty, true);
+		ty += gc.textExtent(t).y;
+		text = text[t.length .. $];
+	}
 	auto data = img.getImageData;
-	data.transparentPixel = data.getPixel(0, 0);
 	return data;
 }
