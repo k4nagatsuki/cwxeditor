@@ -10,6 +10,22 @@ import std.string;
 import cwx.utils;
 import cwx.binary;
 
+/// ファイルがimageSize()でサイズを取得できる
+/// 画像形式の拡張子を持つならtrueを返す。
+bool isImageExt(string path) {
+	switch (tolower(getExt(path))) {
+	case "jpeg", "jpg", "jpe", "jfif", "jfi", "jif":
+	case "gif":
+	case "tiff", "tif":
+	case "bmp":
+	case "png":
+	case "ico":
+		return true;
+	default:
+		return false;
+	}
+}
+
 /// ファイルに含まれる画像データの幅と高さを取得する。
 /// 速度を最優先にするため、ファイル形式のチェックは大まかにしか行われない。
 /// また、ファイル自体が読込める場合は形式が誤っていても例外を投げない。
