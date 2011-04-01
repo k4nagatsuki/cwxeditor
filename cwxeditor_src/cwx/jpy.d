@@ -147,7 +147,7 @@ private {
 
 private string stripValue(string eqAfter) {
 	auto value = strip(eqAfter);
-	if (value.length >= 2 & value[0] == '"' && value[$ - 1] == '"') {
+	if (value.length >= 2 && value[0] == '"' && value[$ - 1] == '"') {
 		value = value[1 .. $ - 1];
 	}
 	return value;
