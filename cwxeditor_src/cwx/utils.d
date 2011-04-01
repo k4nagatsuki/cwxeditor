@@ -878,15 +878,17 @@ dstring putColor(dstring text, dchar color, size_t start, size_t end) {
 		return text[0u .. start] ~ cast(dchar) '&' ~ color ~ text[end .. $];
 	}
 	dchar defColor = 'W';
-	l: foreach_reverse (i, dchar c; text[1u .. start]) {
-		switch (c) {
-		case 'W', 'R', 'B', 'G', 'Y':
-			if (text[i] == '&') {
-				defColor = c;
-				break l;
+	if (start >= 1) {
+		l: foreach_reverse (i, dchar c; text[1u .. start]) {
+			switch (c) {
+			case 'W', 'R', 'B', 'G', 'Y':
+				if (text[i] == '&') {
+					defColor = c;
+					break l;
+				}
+				break;
+			default:
 			}
-			break;
-		default:
 		}
 	}
 	if (defColor == color) return text;
