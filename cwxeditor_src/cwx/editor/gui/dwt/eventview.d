@@ -875,7 +875,7 @@ public:
 			}
 		}
 		void appendCard(int index, C c) {
-			initial;
+			if (initial) return;
 			Image imgCard;
 			static if (is (C == MenuCard)) {
 				imgCard = _prop.images.cards;
@@ -886,7 +886,7 @@ public:
 			refreshTrees(itm);
 		}
 		void removeCard(int index) {
-			initial;
+			if (initial) return;
 			if (_selItm && !_selItm.isDisposed
 					&& _selItm.getParentItem is _cards.getItems[index + 1]) {
 				_etree.refresh(null);
@@ -895,7 +895,7 @@ public:
 			_cards.getItems[index + 1].dispose;
 		}
 		void renameCard(int index) {
-			initial;
+			if (initial) return;
 			auto itm = _cards.getItems[index + 1];
 			itm.setText = cardName(cast(C) itm.getData);
 		}
@@ -911,19 +911,21 @@ public:
 			}
 		}
 		void upCard(int[] indices) {
-			initial;
+			if (initial) return;
 			__udCard(indices, &treeItemUp, -1);
 		}
 		void downCard(int[] indices) {
-			initial;
+			if (initial) return;
 			__udCard(indices, &treeItemDown, 1);
 		}
 	}
 	private bool _initialed = false;
-	void initial() {
+	bool initial() {
 		if (!_initialed) {
 			refresh(true);
+			return true;
 		}
+		return false;
 	}
 	void refresh(bool openToolWin = true) {
 		_initialed = true;
