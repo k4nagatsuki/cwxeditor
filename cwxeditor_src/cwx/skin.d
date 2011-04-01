@@ -440,10 +440,14 @@ class Skin {
 				&& !fnmatch(ext, "jpeg")) {
 			return false;
 		}
-		try {
-			uint x, y;
-			return !check || imageSize(path, x, y);
-		} catch (Exception e) {
+		if (check) {
+			try {
+				uint x, y;
+				return imageSize(path, x, y);
+			} catch (Exception e) {
+			}
+		} else {
+			return isImageExt(path);
 		}
 		return false;
 	}

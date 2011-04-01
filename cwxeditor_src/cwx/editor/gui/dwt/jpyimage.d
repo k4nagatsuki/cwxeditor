@@ -55,16 +55,11 @@ private ImageData loadJPYImageImpl(Skin skin, string path) {
 	scope (exit) img.dispose;
 	auto gc = new GC(img);
 	scope (exit) gc.dispose;
-	int alpha;
-	auto bc = new Color(d, dwtData(init.backcolor, alpha));
-	scope (exit) bc.dispose;
-	gc.setBackground = bc;
-	gc.fillRectangle(0, 0, width, height);
 	path = nabs(path);
 	ImageData[Cache] cache;
 	foreach (i, sec; jpy.sections) {
-		int pw = i == 0 ? width : sec.width;
-		int ph = i == 0 ? height : sec.height;
+		int pw = i == 0 || sec.width <= 0 ? width : sec.width;
+		int ph = i == 0 || sec.height <= 0 ? height : sec.height;
 		ImageData data = null;
 		if (sec.loadcache == Cache.NONE) {
 			auto p = sec.loadcache in cache;
@@ -112,22 +107,26 @@ private ImageData loadJPYImageImpl(Skin skin, string path) {
 			if (!exists(fname)) continue;
 			data = loadImage(skin, fname, false);
 		}
-		if (!data) continue;
-		auto dimg = new Image(d, data.width, data.height);
+		int dtw = data && data.width > 0 ? data.width : pw;
+		int dth = data && data.height > 0 ? data.height : ph;
+		auto dimg = new Image(d, dtw, dth);
 		scope (exit) dimg.dispose;
 		auto dgc = new GC(dimg);
 		scope (exit) dgc.dispose;
-		auto dbc = new Color(d, dwtData(sec.color, alpha));
+		int alpha;
+		auto dbc = new Color(d, dwtData(i == 0 ? sec.backcolor : sec.color, alpha));
 		scope (exit) dbc.dispose;
 		dgc.setBackground = dbc;
-		dgc.drawRectangle(0, 0, data.width, data.height);
-		auto timg = new Image(d, data);
-		scope (exit) timg.dispose;
-		if (sec.clip.width > 0 && sec.clip.height > 0) {
-			dgc.drawImage(timg, sec.clip.x, sec.clip.y, sec.clip.width, sec.clip.height,
-				0, 0, data.width, data.height);
-		} else {
-			dgc.drawImage(timg, 0, 0);
+		dgc.fillRectangle(0, 0, dtw, dth);
+		if (data) {
+			auto timg = new Image(d, data);
+			scope (exit) timg.dispose;
+			if (sec.clip.width > 0 && sec.clip.height > 0) {
+				dgc.drawImage(timg, sec.clip.x, sec.clip.y, sec.clip.width, sec.clip.height,
+					0, 0, data.width, data.height);
+			} else {
+				dgc.drawImage(timg, 0, 0);
+			}
 		}
 		data = dimg.getImageData;
 		if (sec.colorexchange != Colorexchange.NONE) {

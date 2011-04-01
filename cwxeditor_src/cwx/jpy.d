@@ -145,6 +145,15 @@ private {
 	int intVal(string value) {return to!(int)(value);}
 	bool boolVal(string value) {return value == "1";}
 }
+
+private string stripValue(string eqAfter) {
+	auto value = strip(eqAfter);
+	if (value.length >= 2 && value[0] == '"' && value[$ - 1] == '"') {
+		value = value[1 .. $ - 1];
+	}
+	return value;
+}
+
 /// Jpy1の1ファイルの定義。
 struct Jpy1 {
 	/// ファイルに含まれるセクション。
@@ -168,7 +177,7 @@ struct Jpy1 {
 				int eq = .cCountUntil(line, '=');
 				if (eq == -1) throw new Exception("invalid line: " ~ line);
 				auto key = strip(line[0 .. eq]);
-				auto value = strip(line[eq + 1 .. $]);
+				auto value = stripValue(line[eq + 1 .. $]);
 				switch (toLower(key)) {
 				case "backwidth": backwidth = intVal(value); break;
 				case "backheight": backheight = intVal(value); break;
@@ -224,7 +233,8 @@ struct Jpy1Sec {
 	CRGB backcolor = CRGB(0, 0, 0);
 	int width = -1;
 	int height = -1;
-	CRGB color = CRGB(255, 255, 255);
+//	CRGB color = CRGB(255, 255, 255);
+	CRGB color = CRGB(0, 0, 0);
 
 	int dirdepth = 0;
 	string filename = "";
@@ -711,7 +721,7 @@ struct Jptx {
 					int eq = .cCountUntil(sline, '=');
 					if (eq == -1) throw new Exception("invalid line: " ~ line);
 					auto key = strip(sline[0 .. eq]);
-					auto value = strip(sline[eq + 1 .. $]);
+					auto value = stripValue(sline[eq + 1 .. $]);
 					switch (toLower(key)) {
 					case "backcolor": backcolor = rgbVal(value); break;
 					case "backwidth": backwidth = intVal(value); break;
@@ -789,7 +799,7 @@ struct Jpdc {
 					int eq = .cCountUntil(line, '=');
 					if (eq == -1) throw new Exception("invalid line: " ~ line);
 					auto key = strip(line[0 .. eq]);
-					auto value = strip(line[eq + 1 .. $]);
+					auto value = stripValue(line[eq + 1 .. $]);
 					switch (toLower(key)) {
 					case "clip": clip = rectVal(value); break;
 					case "copymode": copymode = enumVal!(Copymode)(value); break;
