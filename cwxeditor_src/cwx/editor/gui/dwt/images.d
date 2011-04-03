@@ -274,102 +274,119 @@ public:
 		if (width == 0 || height == 0 || initW == 0 || initH == 0) return null;
 		auto cur = Display.getCurrent();
 		auto bmp = new Image(cur, initW, initH);
+		scope (exit) bmp.dispose;
 		auto dc = new GC(bmp);
+		scope (exit) dc.dispose;
+		void setAntialias(int a) {
+			try {
+				dc.setTextAntialias = a;
+			} catch (Exception e) {
+				// 一部環境で落ちる事があるらしい
+				// 原因はさっぱり分からないので、とりあえずエラーだけ潰しておく
+				debugln(e);
+				dc.dispose;
+				dc = new GC(bmp);
+			}
+		}
 
-		ImageData matImgData;
-		if (this.data) {
-			matImgData = this.data;
-		} else {
-			if (isBinImg(path) || (path !is null && .exists(path))) {
-				matImgData = loadImage(path, false);
-				matImgData = matImgData.scaledTo(initW, initH);
+		try {
+			ImageData matImgData;
+			if (this.data) {
+				matImgData = this.data;
 			} else {
-				// ファイルが無い場合は単に表示しない。
-				matImgData = blankImage;
-			}
-		}
-		auto matImg = new Image(cur, matImgData);
-		dc.drawImage(matImg, 0, 0);
-
-		matImg.dispose;
-		foreach (a; appends) {
-			if (a.path.length || a.data) {
-				try {
-					ImageData imgData;
-					if (a.data) {
-						imgData = a.data;
-					} else {
-						imgData = loadImage(a.path, a.transparent, a.maskX, a.maskY);
-					}
-					imgData = imgData.scaledTo
-						(initW - a.insets.w - a.insets.e,
-						initH - a.insets.n - a.insets.s);
-					auto img = new Image(cur, imgData);
-					scope (exit) img.dispose;
-					dc.drawImage(img, a.insets.w, a.insets.n);
-				} catch (SWTException e) {
-					// ファイルが無い場合は表示しない。
+				if (isBinImg(path) || (path !is null && .exists(path))) {
+					matImgData = loadImage(path, false);
+					matImgData = matImgData.scaledTo(initW, initH);
+				} else {
+					// ファイルが無い場合は単に表示しない。
+					matImgData = blankImage;
 				}
 			}
-			if (a.text.length) {
-				try {
-					auto font = new Font(cur, dwtData(a.font));
-					scope (exit) font.dispose;
-					dc.setFont = font;
-					scope (exit) dc.setFont = null;
-					int alpha;
-					auto color = new Color(cur, dwtData(a.fontColor, alpha));
-					scope (exit) color.dispose;
-					auto fore = dc.getForeground;
-					dc.setForeground = color;
-					scope (exit) dc.setForeground = fore;
-					dc.setAlpha = alpha;
-					scope (exit) dc.setAlpha = 255;
-					switch (a.textPos) {
-					case TPos.LEFT: {
-						dc.setTextAntialias = SWT.OFF;
-						dc.drawText(a.text, a.insets.w, a.insets.n, true);
-						dc.setTextAntialias = SWT.ON;
-					} break;
-					case TPos.RIGHT: {
-						int tw = dc.textExtent(a.text).x;
-						dc.setTextAntialias = SWT.OFF;
-						dc.drawText(a.text, initW - a.insets.e - tw, a.insets.n, true);
-						dc.setTextAntialias = SWT.ON;
-					} break;
-					default: assert (0);
+			auto matImg = new Image(cur, matImgData);
+			scope (exit) matImg.dispose;
+			dc.drawImage(matImg, 0, 0);
+
+			foreach (a; appends) {
+				if (a.path.length || a.data) {
+					try {
+						ImageData imgData;
+						if (a.data) {
+							imgData = a.data;
+						} else {
+							imgData = loadImage(a.path, a.transparent, a.maskX, a.maskY);
+						}
+						imgData = imgData.scaledTo
+							(initW - a.insets.w - a.insets.e,
+							initH - a.insets.n - a.insets.s);
+						auto img = new Image(cur, imgData);
+						scope (exit) img.dispose;
+						dc.drawImage(img, a.insets.w, a.insets.n);
+					} catch (SWTException e) {
+						// ファイルが無い場合は表示しない。
 					}
-				} catch (SWTException e) {
+				}
+				if (a.text.length) {
+					try {
+						auto font = new Font(cur, dwtData(a.font));
+						scope (exit) font.dispose;
+						dc.setFont = font;
+						scope (exit) dc.setFont = null;
+						int alpha;
+						auto color = new Color(cur, dwtData(a.fontColor, alpha));
+						scope (exit) color.dispose;
+						auto fore = dc.getForeground;
+						dc.setForeground = color;
+						scope (exit) dc.setForeground = fore;
+						dc.setAlpha = alpha;
+						scope (exit) dc.setAlpha = 255;
+						setAntialias(SWT.OFF);
+						switch (a.textPos) {
+						case TPos.LEFT: {
+							dc.drawText(a.text, a.insets.w, a.insets.n, true);
+						} break;
+						case TPos.RIGHT: {
+							int tw = dc.textExtent(a.text).x;
+							dc.drawText(a.text, initW - a.insets.e - tw, a.insets.n, true);
+						} break;
+						default: assert (0);
+						}
+						setAntialias(SWT.DEFAULT);
+					} catch (SWTException e) {
+					}
 				}
 			}
-		}
 
-		if (_title !is null) {
-			auto font = new Font(cur, titFont);
-			dc.setFont = font;
-			dc.setForeground(cur.getSystemColor(SWT.COLOR_BLACK));
-			dc.setTextAntialias = SWT.OFF;
-			dc.drawText(_title, titPoint.x, titPoint.y, true);
-			dc.setTextAntialias = SWT.ON;
-			dc.setFont(null);
-			font.dispose;
+			if (_title !is null) {
+				auto font = new Font(cur, titFont);
+				scope (exit) font.dispose;
+				dc.setFont = font;
+				dc.setForeground(cur.getSystemColor(SWT.COLOR_BLACK));
+				setAntialias(SWT.OFF);
+				dc.drawText(_title, titPoint.x, titPoint.y, true);
+				setAntialias(SWT.DEFAULT);
+				dc.setFont(null);
+			}
+		} catch (Exception e) {
+			debugln(e);
 		}
 		auto bmpData = bmp.getImageData;
-		if (transparent) {
-			bmpData.transparentPixel = bmpData.getPixel(0, 0);
-		}
-		bmp.dispose;
-		dc.dispose;
-		if (smoothing) {
-			auto data = cast(ubyte[]) bmpData.data;
-			size_t bpl;
-			bmpData.data = cast(byte[]) smoothResize(width, height, data,
-				bmpData.depth, bmpData.width, bmpData.height, bmpData.bytesPerLine, bpl);
-			bmpData.width = width;
-			bmpData.height = height;
-			bmpData.bytesPerLine = bpl;
-		} else {
-			bmpData = bmpData.scaledTo(width, height);
+		try {
+			if (transparent) {
+				bmpData.transparentPixel = bmpData.getPixel(0, 0);
+			}
+			if (smoothing) {
+				auto data = cast(ubyte[]) bmpData.data;
+				size_t bpl;
+				bmpData.data = cast(byte[]) smoothResize(width, height, data,
+					bmpData.depth, bmpData.width, bmpData.height, bmpData.bytesPerLine, bpl);
+				bmpData.width = width;
+				bmpData.height = height;
+				bmpData.bytesPerLine = bpl;
+			} else {
+				bmpData = bmpData.scaledTo(width, height);
+			}
+		} catch (Exception e) {
+			debugln(e);
 		}
 		return bmpData;
 	}

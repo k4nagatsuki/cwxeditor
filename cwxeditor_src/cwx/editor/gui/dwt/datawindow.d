@@ -168,7 +168,7 @@ public:
 				shell.setMenuBar = bar;
 			}
 			{
-				auto bar = new ToolBar(shell, SWT.FLAT);
+				auto bar = new ToolBar(contPane, SWT.FLAT);
 				bar.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 
 				static if (UseArea && UseFlag) {

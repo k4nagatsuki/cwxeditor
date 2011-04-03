@@ -69,7 +69,11 @@ void fdebugln(T ...)(T vals) {
 		synchronized {
 			char[] buf;
 			foreach (v; vals) {
-				buf ~= to!(string)(v);
+				static if (is(typeof(v.msg)) && is(typeof(v.file)) && is(typeof(v.line))) {
+					buf ~= format("%s, %s, %d", v.msg, v.file, v.line);
+				} else {
+					buf ~= to!(string)(v);
+				}
 			}
 			debug {
 				version (Windows) {
@@ -767,15 +771,17 @@ dstring putColor(dstring text, dchar color, size_t start, size_t end) {
 		return text[0u .. start] ~ cast(dchar) '&' ~ color ~ text[end .. $];
 	}
 	dchar defColor = 'W';
-	l: foreach_reverse (i, dchar c; text[1u .. start]) {
-		switch (c) {
-		case 'W', 'R', 'B', 'G', 'Y':
-			if (text[i] == '&') {
-				defColor = c;
-				break l;
+	if (start >= 1) {
+		l: foreach_reverse (i, dchar c; text[1u .. start]) {
+			switch (c) {
+			case 'W', 'R', 'B', 'G', 'Y':
+				if (text[i] == '&') {
+					defColor = c;
+					break l;
+				}
+				break;
+			default:
 			}
-			break;
-		default:
 		}
 	}
 	if (defColor == color) return text;

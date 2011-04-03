@@ -120,3 +120,16 @@ make -f linux.mak release
 
 　後はどうかDWTが死なないことを私と一緒に祈ってください。
 
+
+[ dwt2_trace.patch について ]
+
+　Javaと違ってDは例外のスタックトレースを出してくれないため、とりあえずの
+対策として、全てのSWTExceptionとSWTErrorがファイル名と行番号を含むように
+したパッチです。以下のようにして適用できます。
+
+---
+cd dwt2
+hg import dwt2_trace.patch
+---
+
+　これが無いとデバグにどれほど苦労する事やら……あっても苦労するけど。

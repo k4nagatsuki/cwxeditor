@@ -278,8 +278,16 @@ private ImageData loadJPTXImage(string path) {
 	scope (exit) gc.dispose;
 	// FIXME: 現行の実装で必ずantialiasがかかってしまう
 	version (Windows) {} else {
-		gc.setTextAntialias = SWT.ON;
-//		gc.setTextAntialias = jptx.antialias ? SWT.ON : SWT.OFF;
+		try {
+			gc.setTextAntialias = SWT.ON;
+//			gc.setTextAntialias = jptx.antialias ? SWT.ON : SWT.OFF;
+		} catch (Exception e) {
+			// 一部環境で落ちる事があるらしい
+			// 原因はさっぱり分からないので、とりあえずエラーだけ潰しておく
+			debugln(e);
+			gc.dispose;
+			gc = new GC(img);
+		}
 	}
 	int alpha;
 	auto cBack = new Color(d, dwtData(jptx.backcolor, alpha));
