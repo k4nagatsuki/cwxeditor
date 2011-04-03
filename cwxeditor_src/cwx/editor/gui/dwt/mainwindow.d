@@ -169,6 +169,7 @@ private:
 			}
 			summ.author = _prop.var.etc.defaultAuthor;
 			openScenario(summ);
+			statusLine = "";
 		}
 	}
 	class DTListener : DropTargetAdapter {
@@ -278,6 +279,7 @@ private:
 			debugln(e);
 		}
 		summ.resetChanged;
+		statusLine = _prop.msgs.loaded(summ.scenarioName);
 	}
 	string _firstScenarioPath = null;
 	string[] _openPaths;

@@ -66,7 +66,11 @@ void fdebugln(T ...)(T vals) {
 		synchronized {
 			char[] buf;
 			foreach (v; vals) {
-				buf ~= to!(char[])(v);
+				static if (is(typeof(v.msg)) && is(typeof(v.file)) && is(typeof(v.line))) {
+					buf ~= format("%s, %s, %d", v.msg, v.file, v.line);
+				} else {
+					buf ~= to!(char[])(v);
+				}
 			}
 			debug {
 				version (Windows) {
