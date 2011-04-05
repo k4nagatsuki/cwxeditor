@@ -276,18 +276,11 @@ private ImageData loadJPTXImage(string path) {
 	scope (exit) img.dispose;
 	auto gc = new GC(img);
 	scope (exit) gc.dispose;
-	// FIXME: 現行の実装で必ずantialiasがかかってしまう
+	// FIXME: cwconv.dllの実装で必ずantialiasがかかってしまう
 	version (Windows) {} else {
-		try {
-			gc.setTextAntialias = SWT.ON;
-//			gc.setTextAntialias = jptx.antialias ? SWT.ON : SWT.OFF;
-		} catch (Exception e) {
-			// 一部環境で落ちる事があるらしい
-			// 原因はさっぱり分からないので、とりあえずエラーだけ潰しておく
-			debugln(e);
-			gc.dispose;
-			gc = new GC(img);
-		}
+		// FIXME: IPAフォントの使用とアンチエイリアス設定を
+		//        同時に行うと一部環境で問題が出る。
+//		gc.setTextAntialias = jptx.antialias ? SWT.ON : SWT.OFF;
 	}
 	int alpha;
 	auto cBack = new Color(d, dwtData(jptx.backcolor, alpha));

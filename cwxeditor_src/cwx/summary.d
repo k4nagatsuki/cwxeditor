@@ -352,6 +352,7 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 									r._expandXMLs = expand;
 									r._useTemp = true;
 									r._zipName = zipname;
+									r._tempPath = fname;
 									r._legacy = false;
 									r.lock;
 									return r;
@@ -1376,14 +1377,15 @@ public:
 			auto p = std.path.join(scenarioPath, file);
 			try {
 				if (isdir(p)) {
-					copy(p, std.path.join(temp, getBaseName(p)));
+					auto top = std.path.join(mt, getBaseName(p));
+					mkdir(top);
+					copyAll(p, top);
 				} else if (!fnmatch(getExt(p), "wsm") && !fnmatch(getExt(p), "wid")) {
 					if (toSkin.isCardImage(p)
 							|| toSkin.isBgImage(p)
 							|| toSkin.isBGM(p)
 							|| toSkin.isSE(p)) {
 						copy(p, std.path.join(mt, getBaseName(p)));
-						uc.change(toPathId(getBaseName(p)), toPathId(std.path.join(toSkin.materialPath, getBaseName(p))));
 					} else {
 						copy(p, std.path.join(temp, getBaseName(p)));
 					}
@@ -1392,6 +1394,9 @@ public:
 				debugln(ex);
 				copyFail ~= p;
 			}
+		}
+		foreach (key; uc.path.keys) {
+			uc.change(key, toPathId(std.path.join(toSkin.materialPath, cast(string) key)));
 		}
 		scope table = cardImgTable(mt, toSkin, uc);
 		foreach (p; uc.path.keys) {
@@ -1432,6 +1437,7 @@ public:
 				showWarn(prop.msgs.fileCopyError(fail));
 			}
 			scope (failure) delAll(temp);
+			if (!type.length) type = defSkin.type;
 			saveProc(prop, saveInnerImagePath, true, fname, temp, true, defExpandXMLs);
 		} else if (useTemp) {
 			// 新しいアーカイブを作成
