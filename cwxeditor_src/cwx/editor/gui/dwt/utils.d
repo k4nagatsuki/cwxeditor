@@ -1230,15 +1230,6 @@ ImageData castCardImage(Props prop, Skin skin, CastCard c, string sPath, bool db
 		scope (exit) bmp.dispose;
 		auto gc = new GC(bmp);
 		scope (exit) gc.dispose;
-		try {
-			gc.setTextAntialias = SWT.OFF;
-		} catch (Exception e) {
-			// 一部環境で落ちる事があるらしい
-			// 原因はさっぱり分からないので、とりあえずエラーだけ潰しておく
-			debugln(e);
-			gc.dispose;
-			gc = new GC(bmp);
-		}
 		auto bi = new Image(d, bid);
 		scope (exit) bi.dispose;
 		gc.drawImage(bi, 0, 0);
@@ -1333,15 +1324,6 @@ ImageData cardImage(C)(Props prop, Skin skin, C c, string sPath, CastCard owner 
 			scope (exit) img.dispose;
 			auto gc = new GC(img);
 			scope (exit) gc.dispose;
-			try {
-				gc.setTextAntialias = SWT.OFF;
-			} catch (Exception e) {
-				// 一部環境で落ちる事があるらしい
-				// 原因はさっぱり分からないので、とりあえずエラーだけ潰しておく
-				debugln(e);
-				gc.dispose;
-				gc = new GC(img);
-			}
 			auto font = new Font(d, dwtData(prop.looks.useCountFont(skin.legacy)));
 			scope (exit) font.dispose;
 			gc.setFont = font;

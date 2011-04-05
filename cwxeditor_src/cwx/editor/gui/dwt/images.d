@@ -277,17 +277,6 @@ public:
 		scope (exit) bmp.dispose;
 		auto dc = new GC(bmp);
 		scope (exit) dc.dispose;
-		void setAntialias(int a) {
-			try {
-				dc.setTextAntialias = a;
-			} catch (Exception e) {
-				// 一部環境で落ちる事があるらしい
-				// 原因はさっぱり分からないので、とりあえずエラーだけ潰しておく
-				debugln(e);
-				dc.dispose;
-				dc = new GC(bmp);
-			}
-		}
 
 		try {
 			ImageData matImgData;
@@ -339,7 +328,6 @@ public:
 						scope (exit) dc.setForeground = fore;
 						dc.setAlpha = alpha;
 						scope (exit) dc.setAlpha = 255;
-						setAntialias(SWT.OFF);
 						switch (a.textPos) {
 						case TPos.LEFT: {
 							dc.drawText(a.text, a.insets.w, a.insets.n, true);
@@ -350,7 +338,6 @@ public:
 						} break;
 						default: assert (0);
 						}
-						setAntialias(SWT.DEFAULT);
 					} catch (SWTException e) {
 					}
 				}
@@ -361,9 +348,7 @@ public:
 				scope (exit) font.dispose;
 				dc.setFont = font;
 				dc.setForeground(cur.getSystemColor(SWT.COLOR_BLACK));
-				setAntialias(SWT.OFF);
 				dc.drawText(_title, titPoint.x, titPoint.y, true);
-				setAntialias(SWT.DEFAULT);
 				dc.setFont(null);
 			}
 		} catch (Exception e) {
