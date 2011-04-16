@@ -383,7 +383,11 @@ public:
 		return ctrl.isDisposed;
 	}
 	void enter() {
-		end(ctrl);
+		try {
+			end(ctrl);
+		} catch (Exception e) {
+			debugln(e);
+		}
 		ctrl.dispose;
 	}
 }

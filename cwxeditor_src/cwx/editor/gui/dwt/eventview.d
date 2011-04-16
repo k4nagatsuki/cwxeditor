@@ -857,9 +857,11 @@ public:
 
 	/// エリアの名称表示を更新する。
 	void refreshTitle() {
+		if (!initial) return;
 		_cards.getItems[0].setText = _area.name;
 	}
 	private void refreshTitle(A area) {
+		if (!initial) return;
 		if (area is _area) {
 			_cards.getItems[0].setText = _area.name;
 		}
