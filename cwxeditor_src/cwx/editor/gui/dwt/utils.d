@@ -1801,16 +1801,18 @@ Image skeletonImage(Image src, bool mask = true) {
 Composite createDefSoundCombo(Props prop, Summary summ, Skin skin, Composite parent, out Combo combo, string title = null) {
 	static class PlaySE : SelectionAdapter {
 		private Summary _summ;
+		private Props _prop;
 		private Skin _skin;
 		private Combo _combo;
-		this(Summary summ, Skin skin, Combo combo) {
+		this(Summary summ, Props prop, Skin skin, Combo combo) {
 			_summ = summ;
+			_prop = prop;
 			_skin = skin;
 			_combo = combo;
 		}
 		override void widgetSelected(SelectionEvent e) {
 			if (_combo.getSelectionIndex > 0) {
-				playSE(std.path.join(_skin.seDir, _combo.getText), _summ.legacy);
+				playSECW(_prop, std.path.join(_skin.seDir, _combo.getText), _summ.legacy);
 			}
 		}
 	}
@@ -1852,7 +1854,7 @@ Composite createDefSoundCombo(Props prop, Summary summ, Skin skin, Composite par
 	}
 	play.setImage = prop.images.playSound;
 	play.setToolTipText = prop.msgs.playSound;
-	play.addSelectionListener(new PlaySE(summ, skin, combo));
+	play.addSelectionListener(new PlaySE(summ, prop, skin, combo));
 	return comp2;
 }
 Composite createSuccessRateScale(Props prop, Composite parent, out Scale sucRate) {
@@ -2087,5 +2089,21 @@ void drawTileImage(GC gc, Image img, Rectangle rect) {
 			int hi = y + data.height >= rect.height ? rect.height - y : data.height;
 			gc.drawImage(img, 0, 0, wi, hi, xi, yi, wi, hi);
 		}
+	}
+}
+
+void playBGMCW(Props prop, string path, bool legacy) {
+	switch (prop.var.etc.soundPlayType) {
+	case 1: playBGM(path, false); break;
+	case 2: playBGM(path, true); break;
+	default: playBGM(path, legacy); break;
+	}
+}
+
+void playSECW(Props prop, string path, bool legacy) {
+	switch (prop.var.etc.soundPlayType) {
+	case 1: playSE(path, false); break;
+	case 2: playSE(path, true); break;
+	default: playSE(path, legacy); break;
 	}
 }

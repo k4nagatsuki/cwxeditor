@@ -486,7 +486,7 @@ private:
 				if (path.length > 0) {
 					_bgmTMenu.setToolTipText = _prop.msgs.stopBGM(path);
 					_bgmTMenu.setImage = _prop.images.stopBGM;
-					playBGM(path, _summ.legacy);
+					playBGMCW(_prop, path, _summ.legacy);
 				} else {
 					_bgmTMenu.setSelection = false;
 				}

@@ -37,6 +37,7 @@ import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -74,6 +75,9 @@ private:
 	Button _xmlCopy;
 	Button _saveInnerImagePath;
 	Button _traceDirectories;
+	version (Windows) {
+		Combo _soundPlayType;
+	}
 
 	CTabItem _tabS;
 	List _bgStgsL;
@@ -455,28 +459,34 @@ private:
 				auto grp = new Group(comp2, SWT.NONE);
 				grp.setLayoutData = new GridData(GridData.FILL_VERTICAL);
 				grp.setText = _prop.msgs.settingEtc;
-				grp.setLayout = new GridLayout(1, false);
-				_singleWindow = new Button(grp, SWT.CHECK);
-				_singleWindow.setText = _prop.msgs.singleWindow;
-				_singleWindow.addSelectionListener(_mod);
-				_smoothingCard = new Button(grp, SWT.CHECK);
-				_smoothingCard.setText = _prop.msgs.smoothingCard;
-				_smoothingCard.addSelectionListener(_mod);
-				_expandXMLs = new Button(grp, SWT.CHECK);
-				_expandXMLs.setText = _prop.msgs.expandXMLs;
-				_expandXMLs.addSelectionListener(_mod);
-				_contentsFloat = new Button(grp, SWT.CHECK);
-				_contentsFloat.setText = _prop.msgs.contentsFloat;
-				_contentsFloat.addSelectionListener(_mod);
-				_xmlCopy = new Button(grp, SWT.CHECK);
-				_xmlCopy.setText = _prop.msgs.xmlCopy;
-				_xmlCopy.addSelectionListener(_mod);
-				_saveInnerImagePath = new Button(grp, SWT.CHECK);
-				_saveInnerImagePath.setText = _prop.msgs.saveInnerImagePath;
-				_saveInnerImagePath.addSelectionListener(_mod);
-				_traceDirectories = new Button(grp, SWT.CHECK);
-				_traceDirectories.setText = _prop.msgs.traceDirectories;
-				_traceDirectories.addSelectionListener(_mod);
+				grp.setLayout = new GridLayout(2, false);
+				Button createB(string text) {
+					auto btn = new Button(grp, SWT.CHECK);
+					btn.setText = text;
+					btn.addSelectionListener(_mod);
+					auto gd = new GridData;
+					gd.horizontalSpan = 2;
+					btn.setLayoutData = gd;
+					return btn;
+				}
+				_singleWindow = createB(_prop.msgs.singleWindow);
+				_smoothingCard = createB(_prop.msgs.smoothingCard);
+				_expandXMLs = createB(_prop.msgs.expandXMLs);
+				_contentsFloat = createB(_prop.msgs.contentsFloat);
+				_xmlCopy = createB(_prop.msgs.xmlCopy);
+				_saveInnerImagePath = createB(_prop.msgs.saveInnerImagePath);
+				_traceDirectories = createB(_prop.msgs.traceDirectories);
+
+				version (Windows) {
+					auto sl = new Label(grp, SWT.NONE);
+					sl.setText = _prop.msgs.soundPlayType;
+					_soundPlayType = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
+					_soundPlayType.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+					_soundPlayType.setVisibleItemCount = 20;
+					_soundPlayType.add(_prop.msgs.soundPlayTypeDef);
+					_soundPlayType.add(_prop.msgs.soundPlayTypeSDL);
+					_soundPlayType.add(_prop.msgs.soundPlayTypeMCI);
+				}
 			}
 		}
 	}
@@ -1046,6 +1056,9 @@ protected:
 		_xmlCopy.setSelection = _prop.var.etc.xmlCopy;
 		_saveInnerImagePath.setSelection = _prop.var.etc.saveInnerImagePath;
 		_traceDirectories.setSelection = _prop.var.etc.traceDirectories;
+		version (Windows) {
+			_soundPlayType.select = _prop.var.etc.soundPlayType;
+		}
 
 		_bgStgs.length = _prop.var.etc.bgImageSettings.length;
 		foreach (i, stg; _prop.var.etc.bgImageSettings) {
@@ -1146,6 +1159,9 @@ protected:
 		_prop.var.etc.saveInnerImagePath = _saveInnerImagePath.getSelection;
 		_prop.var.etc.traceDirectories = _traceDirectories.getSelection;
 		_prop.var.etc.contentsFloat = _contentsFloat.getSelection;
+		version (Windows) {
+			_prop.var.etc.soundPlayType = _soundPlayType.getSelectionIndex;
+		}
 		if (_prop.var.etc.historyMax < _prop.var.etc.openHistories.length) {
 			_prop.var.etc.openHistories
 				= _prop.var.etc.openHistories[0 .. _prop.var.etc.historyMax];

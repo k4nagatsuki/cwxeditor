@@ -2034,6 +2034,10 @@ public:
 	string traceDirectories() {
 		return "ファイル・" ~ DIR ~ "の変更を自動的に追跡する";
 	}
+	string soundPlayType() {return "音声再生方法";}
+	string soundPlayTypeDef() {return "自動選択";}
+	string soundPlayTypeSDL() {return "SDL(CardWirthPy形式)";}
+	string soundPlayTypeMCI() {return "MCI(CardWirth形式)";}
 
 	string bgImageAndKeyCode() {return "背景とキーコード";}
 	string newBgImageSetting() {return "新規作成";}
