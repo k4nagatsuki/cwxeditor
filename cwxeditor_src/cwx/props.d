@@ -2043,6 +2043,10 @@ public:
 	const string traceDirectories() {
 		return "ファイル・" ~ DIR ~ "の変更を自動的に追跡する";
 	}
+	const string soundPlayType() {return "音声再生方法";}
+	const string soundPlayTypeDef() {return "自動選択";}
+	const string soundPlayTypeSDL() {return "SDL(CardWirthPy形式)";}
+	const string soundPlayTypeMCI() {return "MCI(CardWirth形式)";}
 
 	const string bgImageAndKeyCode() {return "背景とキーコード";}
 	const string newBgImageSetting() {return "新規作成";}
