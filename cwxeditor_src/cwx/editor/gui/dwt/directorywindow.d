@@ -1585,6 +1585,7 @@ public:
 		_stopTrace = true;
 	}
 	void resumeTrace() {_stopTrace = false;}
+	void pauseTrace() {_stopTrace = true;}
 
 	void refresh(Summary summ) {
 		_summ = summ;

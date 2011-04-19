@@ -321,6 +321,8 @@ private:
 	}
 	bool save(Shell shell) {
 		if (summary) {
+			_dirWin.pauseTrace;
+			scope (exit) _dirWin.resumeTrace;
 			if (!summary.isSaved) {
 				// いまだ保存されていない場合は名前をつけて保存
 				return __saveScenarioA(shell);
@@ -357,6 +359,8 @@ private:
 			if (fname) {
 				shell.setCursor = Display.getCurrent.getSystemCursor(SWT.CURSOR_WAIT);
 				scope (exit) shell.setCursor = null;
+				_dirWin.pauseTrace;
+				scope (exit) _dirWin.resumeTrace;
 				string tempPath = _prop.tempPath;
 				bool expandXMLs = _prop.var.etc.expandXMLs;
 				Skin defSkin = .findSkin2(_prop, _prop.var.etc.defaultSkin);
