@@ -76,6 +76,7 @@ CWXPath:
      - CardWirth.exe
      - *Wirth.exe
      - CardWirth_*.exe
+     - CW*.exe
  4. Dataフォルダもしくはエンジンが見つからなかった場合、フォルダ階層の一つ
     上に移動して1.からの手順を繰り返します。
  5. フォルダ階層の最上位まで来ても見つからなかった場合は、CardWirthPyの
