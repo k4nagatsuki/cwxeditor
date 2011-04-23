@@ -1096,7 +1096,12 @@ private:
 		}
 	}
 	private class RefreshThr : Runnable {
+		private bool _onRefresh = false;
 		override void run() {
+			// syncExecを使うとたまに止まるのでここで制御する
+			if (_onRefresh) return;
+			_onRefresh = true;
+			scope (exit) _onRefresh = false;
 			if (_stopTrace) return;
 			if (_dirsEdit.isEditing || _filesEdit.isEditing) return;
 			try {
