@@ -1261,7 +1261,7 @@ public:
 	}
 	private template NewCard(string Name) {
 		static const NewCard = "auto cw = cast(ICardWindow) _tlp;"
-			~ "if (cw) {"
+			~ "if (cw && cw.canCreate" ~ Name ~ ") {"
 			~ "    cw.create" ~ Name ~ ";"
 			~ "} else {"
 			~ "    _comm.openCardWin;"
