@@ -103,6 +103,10 @@ class SplitPane : Composite {
 	}
 	private class ResizeL : Listener {
 		private bool _first = true;
+		// Shell.setMaximized()で最大化を設定した直後には
+		// サイズ変更イベントが発生せず、Shell.open()によって
+		// Shell.isVisible()が有効の状態でイベントが発生してしまう。
+		private bool _maximizedAfter = false;
 		override void handleEvent(Event e) {
 			if (_first) {
 				if (getChildren.length < 2) {
@@ -110,10 +114,21 @@ class SplitPane : Composite {
 				}
 				if (!_sash) initSash;
 				_first = !resize;
+				if (!isVisible && getShell.getMaximized) {
+					_maximizedAfter = true;
+				}
 			} else if (isVisible) {
-				relo;
+				if (_maximizedAfter) {
+					resize;
+					_maximizedAfter = false;
+				} else {
+					relo;
+				}
 			} else {
 				resize;
+				if (!isVisible && getShell.getMaximized) {
+					_maximizedAfter = true;
+				}
 			}
 		}
 	}

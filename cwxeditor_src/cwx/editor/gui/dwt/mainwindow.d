@@ -326,6 +326,8 @@ private:
 	}
 	bool save(Shell shell) {
 		if (summary) {
+			_dirWin.pauseTrace;
+			scope (exit) _dirWin.resumeTrace;
 			if (!summary.isSaved) {
 				// いまだ保存されていない場合は名前をつけて保存
 				return __saveScenarioA(shell);
@@ -362,6 +364,8 @@ private:
 			if (fname) {
 				shell.setCursor = Display.getCurrent.getSystemCursor(SWT.CURSOR_WAIT);
 				scope (exit) shell.setCursor = null;
+				_dirWin.pauseTrace;
+				scope (exit) _dirWin.resumeTrace;
 				string tempPath = _prop.tempPath;
 				bool expandXMLs = _prop.var.etc.expandXMLs;
 				Skin defSkin = .findSkin2(_prop, _prop.var.etc.defaultSkin);
@@ -1248,9 +1252,9 @@ public:
 		int tx = _prop.var.mainWin.x == SWT.DEFAULT ? _win.getBounds.x : _prop.var.mainWin.x;
 		int ty = _prop.var.mainWin.y == SWT.DEFAULT ? _win.getBounds.y : _prop.var.mainWin.y;
 		if (_prop.var.etc.singleWindow) {
+			_win.setMaximized = _prop.var.mainWin.maximized;
 			intoDisplay(tx, ty, _prop.var.mainWin.width, _prop.var.mainWin.height);
 			_win.setBounds(tx, ty, _prop.var.mainWin.width, _prop.var.mainWin.height);
-			_win.setMaximized = _prop.var.mainWin.maximized;
 			_win.layout(true);
 		} else {
 			_win.pack;
@@ -1261,7 +1265,7 @@ public:
 	}
 	private template NewCard(string Name) {
 		static const NewCard = "auto cw = cast(ICardWindow) _tlp;"
-			~ "if (cw) {"
+			~ "if (cw && cw.canCreate" ~ Name ~ ") {"
 			~ "    cw.create" ~ Name ~ ";"
 			~ "} else {"
 			~ "    _comm.openCardWin;"

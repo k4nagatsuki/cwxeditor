@@ -1105,7 +1105,12 @@ private:
 		}
 	}
 	private class RefreshThr : Runnable {
+		private bool _onRefresh = false;
 		override void run() {
+			// syncExecを使うとたまに止まるのでここで制御する
+			if (_onRefresh) return;
+			_onRefresh = true;
+			scope (exit) _onRefresh = false;
 			if (_stopTrace) return;
 			if (_dirsEdit.isEditing || _filesEdit.isEditing) return;
 			try {
@@ -1521,6 +1526,8 @@ public:
 		_sdl = new SDListener;
 		_sash.addDisposeListener(_sdl);
 		if (shell) {
+			shell.setMaximized = _prop.var.dirWin.maximized;
+			shell.setMinimized = _prop.var.dirWin.minimized;
 			shell.pack;
 			scope wp = shell.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 			int width = _prop.var.dirWin.width == SWT.DEFAULT
@@ -1533,8 +1540,6 @@ public:
 				? shell.getBounds.y : _prop.var.dirWin.y + shell.getParent.getBounds.y;
 			intoDisplay(x, y, width, height);
 			shell.setBounds(x, y, width, height);
-			shell.setMaximized = _prop.var.dirWin.maximized;
-			shell.setMinimized = _prop.var.dirWin.minimized;
 			shell.addControlListener(new SCListener);
 		}
 	}
@@ -1593,6 +1598,7 @@ public:
 		_stopTrace = true;
 	}
 	void resumeTrace() {_stopTrace = false;}
+	void pauseTrace() {_stopTrace = true;}
 
 	void refresh(Summary summ) {
 		_summ = summ;

@@ -148,9 +148,21 @@ class Skin {
 			enginePath = cw;
 			return true;
 		} else {
-			foreach (file; clistdir(path)) {
-				if (fnendsWith(file, "Wirth.exe")
-						|| (fnmatch(getExt(file), "exe") && fnstartsWith(file, "CardWirth_"))) {
+			auto list = clistdir(path);
+			foreach (file; list) {
+				if (fnendsWith(file, "Wirth.exe")) {
+					enginePath = join(path, file);
+					return true;
+				}
+			}
+			foreach (file; list) {
+				if (fnmatch(getExt(file), "exe") && fnstartsWith(file, "CardWirth_")) {
+					enginePath = join(path, file);
+					return true;
+				}
+			}
+			foreach (file; list) {
+				if (fnmatch(getExt(file), "exe") && fnstartsWith(file, "CW")) {
 					enginePath = join(path, file);
 					return true;
 				}
