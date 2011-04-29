@@ -1709,12 +1709,12 @@ public:
 			scope wp = shell.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 			int width = _prop.var.cardWin.width == SWT.DEFAULT ? wp.x : _prop.var.cardWin.width;
 			static if (is (CardOwner == Summary)) {
+				shell.setMaximized = _prop.var.cardWin.maximized;
+				shell.setMinimized = _prop.var.cardWin.minimized;
 				int x = _prop.var.cardWin.x == SWT.DEFAULT ? shell.getBounds.x : _prop.var.cardWin.x + shell.getParent.getBounds.x;
 				int y = _prop.var.cardWin.y == SWT.DEFAULT ? shell.getBounds.y : _prop.var.cardWin.y + shell.getParent.getBounds.y;
 				intoDisplay(x, y, width, _prop.var.cardWin.height);
 				shell.setBounds(x, y, width, _prop.var.cardWin.height);
-				shell.setMaximized = _prop.var.cardWin.maximized;
-				shell.setMinimized = _prop.var.cardWin.minimized;
 				shell.addControlListener(new SizeL);
 			} else {
 				shell.setSize(width, _prop.var.cardWin.height);
@@ -1831,6 +1831,7 @@ public:
 		}
 	}
 	private void refreshStatusLine() {
+		if (!_win || _win.isDisposed) return;
 		int i = _tabf.getSelectionIndex;
 		string s = "";
 		static if (UseCast) if (i == CAST) s = _pane[CAST].statusLine;

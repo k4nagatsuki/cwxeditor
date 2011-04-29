@@ -1248,9 +1248,9 @@ public:
 		int tx = _prop.var.mainWin.x == SWT.DEFAULT ? _win.getBounds.x : _prop.var.mainWin.x;
 		int ty = _prop.var.mainWin.y == SWT.DEFAULT ? _win.getBounds.y : _prop.var.mainWin.y;
 		if (_prop.var.etc.singleWindow) {
+			_win.setMaximized = _prop.var.mainWin.maximized;
 			intoDisplay(tx, ty, _prop.var.mainWin.width, _prop.var.mainWin.height);
 			_win.setBounds(tx, ty, _prop.var.mainWin.width, _prop.var.mainWin.height);
-			_win.setMaximized = _prop.var.mainWin.maximized;
 			_win.layout(true);
 		} else {
 			_win.pack;

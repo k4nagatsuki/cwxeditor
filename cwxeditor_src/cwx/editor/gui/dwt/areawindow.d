@@ -221,6 +221,7 @@ public:
 			static assert (0);
 		}
 		if (shell) {
+			shell.setMaximized = winProps.maximized;
 			scope wp = shell.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 			int width = winProps.width == SWT.DEFAULT ? wp.x : winProps.width;
 			int height = winProps.height == SWT.DEFAULT ? wp.y : winProps.height;
@@ -228,7 +229,6 @@ public:
 			int y = winProps.y == SWT.DEFAULT ? shell.getBounds.y : winProps.y + areaWin.getBounds.y;
 			intoDisplay(x, y, width, height);
 			shell.setBounds(x, y, width, height);
-			shell.setMaximized = winProps.maximized;
 			_areaWin = areaWin;
 		}
 	}

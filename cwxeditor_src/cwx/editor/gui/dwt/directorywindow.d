@@ -1518,6 +1518,8 @@ public:
 		_sdl = new SDListener;
 		_sash.addDisposeListener(_sdl);
 		if (shell) {
+			shell.setMaximized = _prop.var.dirWin.maximized;
+			shell.setMinimized = _prop.var.dirWin.minimized;
 			shell.pack;
 			scope wp = shell.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 			int width = _prop.var.dirWin.width == SWT.DEFAULT
@@ -1530,8 +1532,6 @@ public:
 				? shell.getBounds.y : _prop.var.dirWin.y + shell.getParent.getBounds.y;
 			intoDisplay(x, y, width, height);
 			shell.setBounds(x, y, width, height);
-			shell.setMaximized = _prop.var.dirWin.maximized;
-			shell.setMinimized = _prop.var.dirWin.minimized;
 			shell.addControlListener(new SCListener);
 		}
 	}

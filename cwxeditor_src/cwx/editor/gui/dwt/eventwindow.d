@@ -144,13 +144,13 @@ public:
 			} else {
 				static assert (0);
 			}
+			shell.setMaximized = winProps.maximized;
 			int width = winProps.width;
 			int height = winProps.height;
 			int x = winProps.x == SWT.DEFAULT ? shell.getBounds.x : winProps.x + parent2.getBounds.x;
 			int y = winProps.y == SWT.DEFAULT ? shell.getBounds.y : winProps.y + parent2.getBounds.y;
 			intoDisplay(x, y, width, height);
 			shell.setBounds(x, y, width, height);
-			shell.setMaximized = winProps.maximized;
 			_parent2 = parent2;
 		}
 

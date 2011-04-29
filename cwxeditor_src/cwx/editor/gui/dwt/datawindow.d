@@ -239,6 +239,8 @@ public:
 		}
 		static if (UseArea && UseFlag) {
 			if (shell) {
+				shell.setMaximized = _prop.var.dataWin.maximized;
+				shell.setMinimized = _prop.var.dataWin.minimized;
 				scope wp = shell.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 				int width = _prop.var.dataWin.width == SWT.DEFAULT ? wp.x : _prop.var.dataWin.width;
 				int height = _prop.var.dataWin.height == SWT.DEFAULT ? wp.y : _prop.var.dataWin.height;
@@ -246,8 +248,6 @@ public:
 				int y = _prop.var.dataWin.y == SWT.DEFAULT ? shell.getBounds.y : _prop.var.dataWin.y + shell.getParent.getBounds.y;
 				intoDisplay(x, y, width, height);
 				shell.setBounds(x, y, width, height);
-				shell.setMaximized = _prop.var.dataWin.maximized;
-				shell.setMinimized = _prop.var.dataWin.minimized;
 				shell.addControlListener(new class ControlAdapter {
 					override void controlMoved(ControlEvent e) {
 						saveDataWin;
