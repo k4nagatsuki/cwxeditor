@@ -126,8 +126,10 @@ ImageData loadImage(string path, bool mask = true, int maskX = 0, int maskY = 0)
 	return loadImage(null, path, mask, maskX, maskY);
 }
 ImageData loadImage(Skin skin, string path, bool mask = true, int maskX = 0, int maskY = 0, string[] stratum = []) {
-	path = nabs(path);
-	if (contains(stratum, path)) return blankImage;
+	if (!isBinImg(path) && contains(stratum, nabs(path))) {
+		// 無限再帰を回避
+		return blankImage;
+	}
 	if (path !is null && path.length > 0) {
 		string ext = std.path.getExt(path);
 		if (std.path.fnmatch(ext, "jpy1")

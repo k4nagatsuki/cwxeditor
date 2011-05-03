@@ -192,6 +192,10 @@ $(OUT) : $(SRC) $(RES)
 	$(DMD) $(FLAGS) $(SRC) -g -debug -unittest -odobjs
 	$(DMD) $(OBJ) -L"$(LIB)" -of"$(OUT)" -L/exet:nt/su:console:4.0
 
+debug_windows : $(SRC) $(RES)
+	$(DMD) $(FLAGS) $(SRC) -g -debug -unittest -odobjs
+	$(DMD) $(OBJ) -L"$(LIB)" -of"$(OUT)" -L/exet:nt/su:windows:4.0
+
 release : $(SRC) $(RES)
 	$(DMD) $(FLAGS) $(SRC) -release -O -odobjs
 	$(DMD) $(OBJ) -L"$(LIB)" -of"$(OUT)" -L/exet:nt/su:windows:4.0 -O
