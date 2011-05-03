@@ -2700,7 +2700,7 @@ FlexImage createBackgroundImage
 	FlexImage r;
 	auto ext = getExt(path);
 	if (fnmatch(ext, "jpy1") || fnmatch(ext, "jptx") || fnmatch(ext, "jpdc")) {
-		auto data = loadJPYImage(skin, path);
+		auto data = loadJPYImage(skin, path, []);
 		r = new FlexImage(data, x, y, data.width, data.height);
 	} else {
 		uint baseW = w, baseH = h;

@@ -111,7 +111,7 @@ bool dwtImageSize(Skin skin, string path, out uint width, out uint height) {
 	if (std.path.fnmatch(ext, "jpy1")
 			|| std.path.fnmatch(ext, "jptx")
 			|| std.path.fnmatch(ext, "jpdc")) {
-		auto img = loadJPYImage(skin, path);
+		auto img = loadJPYImage(skin, path, []);
 		if (img) {
 			width = img.width;
 			height = img.height;
@@ -125,13 +125,15 @@ bool dwtImageSize(Skin skin, string path, out uint width, out uint height) {
 ImageData loadImage(string path, bool mask = true, int maskX = 0, int maskY = 0) {
 	return loadImage(null, path, mask, maskX, maskY);
 }
-ImageData loadImage(Skin skin, string path, bool mask = true, int maskX = 0, int maskY = 0) {
+ImageData loadImage(Skin skin, string path, bool mask = true, int maskX = 0, int maskY = 0, string[] stratum = []) {
+	path = nabs(path);
+	if (contains(stratum, path)) return blankImage;
 	if (path !is null && path.length > 0) {
 		string ext = std.path.getExt(path);
 		if (std.path.fnmatch(ext, "jpy1")
 				|| std.path.fnmatch(ext, "jptx")
 				|| std.path.fnmatch(ext, "jpdc")) {
-			auto data = loadJPYImage(skin, path);
+			auto data = loadJPYImage(skin, path, stratum);
 			if (mask) data.transparentPixel = data.getPixel(maskX, maskY);
 			return data;
 		}
