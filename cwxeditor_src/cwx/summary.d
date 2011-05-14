@@ -668,6 +668,7 @@ public:
 		_zipName = zipName;
 		_legacy = false;
 		this.scenarioPath = scenarioPath;
+		_tempPath = scenarioPath;
 		lock;
 	}
 
@@ -1431,7 +1432,15 @@ public:
 		auto uc = useCounter;
 		auto temp = Summary.createTempDir(tempPath, scenarioName);
 		auto mt = std.path.join(temp, toSkin.materialPath);
-		mkdir(mt);
+		try {
+			mkdirRecurse(mt);
+		} catch (Exception e) {
+			// 稀な条件でMaterialだけ生成されない場合がある模様
+			debugln(e);
+			if (!.exists(mt)) {
+				mt = temp;
+			}
+		}
 		foreach (file; clistdir(scenarioPath)) {
 			if (fnmatch(file, "cwxeditor.lock")) {
 				continue;

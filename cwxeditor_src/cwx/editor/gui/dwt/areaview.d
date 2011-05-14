@@ -2367,30 +2367,34 @@ public:
 				scope (exit) cb.dispose;
 				auto xml = CBtoXML(cb);
 				if (xml) {
-					C[] cs;
-					BgImage[] bs;
-					A.CBfromXML(xml, cs, bs);
-					if (cs.length || bs.length) {
-						_imgp.deselectAll;
-						int[] addC, addB;
-						auto iib = insertIndex(_backs);
-						foreach (i, b; bs) {
-							int index = iib + i;
-							addB ~= index;
-							_area.insert(index, b);
+					try {
+						C[] cs;
+						BgImage[] bs;
+						A.CBfromXML(xml, cs, bs);
+						if (cs.length || bs.length) {
+							_imgp.deselectAll;
+							int[] addC, addB;
+							auto iib = insertIndex(_backs);
+							foreach (i, b; bs) {
+								int index = iib + i;
+								addB ~= index;
+								_area.insert(index, b);
+							}
+							appendBgImages(iib, bs, true);
+							auto iic = insertIndex(_cards);
+							foreach (i, c; cs) {
+								int index = iic + i;
+								addC ~= index;
+								_area.insert(index, c);
+							}
+							appendCards(iic, cs, true);
+							if (_viewCards || _viewBacks) _imgp.redraw;
+							refreshSelected;
+							_comm.refUseCount.call;
+							_undo ~= new UndoInsert(addC, addB);
 						}
-						appendBgImages(iib, bs, true);
-						auto iic = insertIndex(_cards);
-						foreach (i, c; cs) {
-							int index = iic + i;
-							addC ~= index;
-							_area.insert(index, c);
-						}
-						appendCards(iic, cs, true);
-						if (_viewCards || _viewBacks) _imgp.redraw;
-						refreshSelected;
-						_comm.refUseCount.call;
-						_undo ~= new UndoInsert(addC, addB);
+					} catch (Exception e) {
+						debugln(e);
 					}
 				}
 			}
@@ -2441,25 +2445,29 @@ public:
 					scope (exit) cb.dispose;
 					auto xml = CBtoXML(cb);;
 					if (xml) {
-						C[] cs;
-						A.CfromXML(xml, cs);
-						if (cs.length) {
-							int[] addC;
-							_imgp.deselectAll;
-							foreach (i, c; cs) {
-								int index = insertIndex(_cards) + i;
-								addC ~= index;
-								_area.insert(index, c);
+						try {
+							C[] cs;
+							A.CfromXML(xml, cs);
+							if (cs.length) {
+								int[] addC;
+								_imgp.deselectAll;
+								foreach (i, c; cs) {
+									int index = insertIndex(_cards) + i;
+									addC ~= index;
+									_area.insert(index, c);
+								}
+								appendCards(insertIndex(_cards), cs, true);
+								if (_viewCards) _imgp.redraw;
+								refreshSelected;
+								_comm.refUseCount.call;
+								static if (UseBacks) {
+									_undo ~= new UndoInsert(addC, []);
+								} else {
+									_undo ~= new UndoInsert(addC);
+								}
 							}
-							appendCards(insertIndex(_cards), cs, true);
-							if (_viewCards) _imgp.redraw;
-							refreshSelected;
-							_comm.refUseCount.call;
-							static if (UseBacks) {
-								_undo ~= new UndoInsert(addC, []);
-							} else {
-								_undo ~= new UndoInsert(addC);
-							}
+						} catch (Exception e) {
+							debugln(e);
 						}
 					}
 				}
@@ -2505,25 +2513,29 @@ public:
 					scope (exit) cb.dispose;
 					auto xml = CBtoXML(cb);
 					if (xml) {
-						BgImage[] bs;
-						A.BfromXML(xml, bs);
-						if (bs.length) {
-							int[] addB;
-							_imgp.deselectAll;
-							foreach (i, b; bs) {
-								int index = insertIndex(_backs) + i;
-								addB ~= index;
-								_area.insert(index, b);
+						try {
+							BgImage[] bs;
+							A.BfromXML(xml, bs);
+							if (bs.length) {
+								int[] addB;
+								_imgp.deselectAll;
+								foreach (i, b; bs) {
+									int index = insertIndex(_backs) + i;
+									addB ~= index;
+									_area.insert(index, b);
+								}
+								appendBgImages(insertIndex(_backs), bs, true);
+								if (_viewBacks) _imgp.redraw;
+								refreshSelected;
+								_comm.refUseCount.call;
+								static if (UseCards) {
+									_undo ~= new UndoInsert([], addB);
+								} else {
+									_undo ~= new UndoInsert(addB);
+								}
 							}
-							appendBgImages(insertIndex(_backs), bs, true);
-							if (_viewBacks) _imgp.redraw;
-							refreshSelected;
-							_comm.refUseCount.call;
-							static if (UseCards) {
-								_undo ~= new UndoInsert([], addB);
-							} else {
-								_undo ~= new UndoInsert(addB);
-							}
+						} catch (Exception e) {
+							debugln(e);
 						}
 					}
 				}
@@ -2706,7 +2718,7 @@ FlexImage createBackgroundImage
 	FlexImage r;
 	auto ext = getExt(path);
 	if (fnmatch(ext, "jpy1") || fnmatch(ext, "jptx") || fnmatch(ext, "jpdc")) {
-		auto data = loadJPYImage(skin, path);
+		auto data = loadJPYImage(skin, path, []);
 		r = new FlexImage(data, x, y, data.width, data.height);
 	} else {
 		uint baseW = w, baseH = h;

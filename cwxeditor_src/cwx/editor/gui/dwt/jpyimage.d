@@ -27,11 +27,11 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 
 /// JPYの動作をエミュレートするが、甚だ不完全。
-ImageData loadJPYImage(Skin skin, string path) {
+ImageData loadJPYImage(Skin skin, string path, string[] stratum) {
 	auto ext = getExt(path);
 	try {
 		if (fnmatch(ext, "jpy1")) {
-			return loadJPYImageImpl(skin, path);
+			return loadJPYImageImpl(skin, path, stratum);
 		} else if (fnmatch(ext, "jptx")) {
 			return loadJPTXImage(path);
 		} else if (fnmatch(ext, "jpdc")) {
@@ -43,7 +43,7 @@ ImageData loadJPYImage(Skin skin, string path) {
 	return blankImage;
 }
 
-private ImageData loadJPYImageImpl(Skin skin, string path) {
+private ImageData loadJPYImageImpl(Skin skin, string path, string[] stratum) {
 	auto jpy = Jpy1.load(path);
 	if (!jpy.sections.length) return blankImage;
 	auto init = jpy.sections[0];
@@ -105,7 +105,7 @@ private ImageData loadJPYImageImpl(Skin skin, string path) {
 			}
 			auto fname = std.path.join(dir, sec.filename);
 			if (!exists(fname)) continue;
-			data = loadImage(skin, fname, false);
+			data = loadImage(skin, fname, false, 0, 0, stratum ~ nabs(fname));
 		}
 		int dtw = data && data.width > 0 ? data.width : pw;
 		int dth = data && data.height > 0 ? data.height : ph;

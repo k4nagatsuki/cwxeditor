@@ -500,6 +500,7 @@ private:
 	}
 	void editEnd(TreeItem itm, Control c) {
 		string text = (cast(Text) c).getText;
+		if (!text) text = "";
 		if (text.length == 0) return;
 		itm.setText = text;
 		auto tree = cast(EventTree) itm.getData;
@@ -1259,43 +1260,47 @@ public:
 				}
 				auto parItm = selectionParent;
 				if (parItm) {
-					auto par = cast(EventTreeOwner) parItm.getData;
-					EventTree tree = EventTree.fromXML(xml, LATEST_VERSION);
-					if (tree) {
-						storeI(_cards.indexOf(parItm), par.trees.length);
-						// イベントツリー
-						par.add(tree);
-						auto treeItm = createTreeItem(parItm, tree, tree.name, _prop.images.eventTree);
-						__select(treeItm);
-						static if (UseFire) {
-							refreshFires(treeItm);
-						}
-					} else {
-						static if (UseFire) {
-							if (!(cast(EventTreeOwner) itm.getData)) {
-								// 開始条件
-								auto treeItm = cast(EventTree) itm.getData ? itm : itm.getParentItem;
-								tree = cast(EventTree) treeItm.getData;
-								store(tree);
-								if (tree.enterFromXML(par, xml)) {
-									refreshFires(treeItm, ENTER);
-								} else if (tree.escapeFromXML(par, xml)) {
-									refreshFires(treeItm, ESCAPE);
-								} else if (tree.loseFromXML(par, xml)) {
-									refreshFires(treeItm, LOSE);
-								} else {
-									int round = tree.roundFromXML(par, xml);
-									if (round >= 0) {
-										refreshFires(treeItm, new RoundObj(round));
+					try {
+						auto par = cast(EventTreeOwner) parItm.getData;
+						EventTree tree = EventTree.fromXML(xml, LATEST_VERSION);
+						if (tree) {
+							storeI(_cards.indexOf(parItm), par.trees.length);
+							// イベントツリー
+							par.add(tree);
+							auto treeItm = createTreeItem(parItm, tree, tree.name, _prop.images.eventTree);
+							__select(treeItm);
+							static if (UseFire) {
+								refreshFires(treeItm);
+							}
+						} else {
+							static if (UseFire) {
+								if (!(cast(EventTreeOwner) itm.getData)) {
+									// 開始条件
+									auto treeItm = cast(EventTree) itm.getData ? itm : itm.getParentItem;
+									tree = cast(EventTree) treeItm.getData;
+									store(tree);
+									if (tree.enterFromXML(par, xml)) {
+										refreshFires(treeItm, ENTER);
+									} else if (tree.escapeFromXML(par, xml)) {
+										refreshFires(treeItm, ESCAPE);
+									} else if (tree.loseFromXML(par, xml)) {
+										refreshFires(treeItm, LOSE);
 									} else {
-										string keyCode = tree.keyCodeFromXML(par, xml);
-										if (keyCode) {
-											refreshFires(treeItm, new KeyCodeObj(keyCode));
+										int round = tree.roundFromXML(par, xml);
+										if (round >= 0) {
+											refreshFires(treeItm, new RoundObj(round));
+										} else {
+											string keyCode = tree.keyCodeFromXML(par, xml);
+											if (keyCode) {
+												refreshFires(treeItm, new KeyCodeObj(keyCode));
+											}
 										}
 									}
 								}
 							}
 						}
+					} catch (Exception e) {
+						debugln(e);
 					}
 				}
 			}

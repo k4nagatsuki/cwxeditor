@@ -115,7 +115,7 @@ bool dwtImageSize(Skin skin, string path, out uint width, out uint height) {
 	if (std.path.fnmatch(ext, "jpy1")
 			|| std.path.fnmatch(ext, "jptx")
 			|| std.path.fnmatch(ext, "jpdc")) {
-		auto img = loadJPYImage(skin, path);
+		auto img = loadJPYImage(skin, path, []);
 		if (img) {
 			width = img.width;
 			height = img.height;
@@ -129,13 +129,17 @@ bool dwtImageSize(Skin skin, string path, out uint width, out uint height) {
 ImageData loadImage(string path, bool mask = true, int maskX = 0, int maskY = 0) {
 	return loadImage(null, path, mask, maskX, maskY);
 }
-ImageData loadImage(Skin skin, string path, bool mask = true, int maskX = 0, int maskY = 0) {
+ImageData loadImage(Skin skin, string path, bool mask = true, int maskX = 0, int maskY = 0, string[] stratum = []) {
+	if (!isBinImg(path) && contains(stratum, nabs(path))) {
+		// 無限再帰を回避
+		return blankImage;
+	}
 	if (path !is null && path.length > 0) {
 		string ext = std.path.getExt(path);
 		if (std.path.fnmatch(ext, "jpy1")
 				|| std.path.fnmatch(ext, "jptx")
 				|| std.path.fnmatch(ext, "jpdc")) {
-			auto data = loadJPYImage(skin, path);
+			auto data = loadJPYImage(skin, path, stratum);
 			if (mask) data.transparentPixel = data.getPixel(maskX, maskY);
 			return data;
 		}
@@ -295,10 +299,14 @@ public override:
 	this (void delegate(Item itm) startEdit,
 			Item delegate() selection, Item delegate(int x, int y) selectionM,
 			bool dClick = true) {
-		_startEdit = startEdit;
-		_selection = selection;
-		_selectionM = selectionM;
-		_dClick = dClick;
+		try {
+			_startEdit = startEdit;
+			_selection = selection;
+			_selectionM = selectionM;
+			_dClick = dClick;
+		} catch (Exception e) {
+			throw new Exception(e.msg, __FILE__, __LINE__);
+		}
 	}
 /+	void mouseDoubleClick(MouseEvent e) {
 		if (_dClick) {
@@ -309,29 +317,37 @@ public override:
 		}
 	}
 +/	void widgetSelected(SelectionEvent e) {
-		if (_dClick) {
-			_itm = _selection();
+		try {
+			if (_dClick) {
+				_itm = _selection();
+			}
+		} catch (Exception e) {
+			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
 	void widgetDefaultSelected(SelectionEvent e) {}
 	void mouseDown(MouseEvent e) {
-		auto itm = _selectionM(e.x, e.y);
-		if (_dClick) {
-			if (e.button == 1 && itm !is null && itm == _itm) {
-				_startEdit(itm);
-			}
-		} else {
-			synchronized {
-				if (e.button == 1 && itm !is null) {
-					if (_itm !is null && itm == _itm && _time <= Clock.currTime) {
-						_itm = null;
-						_startEdit(itm);
-					} else {
-						_itm = itm;
-						_time = Clock.currTime + dur!"msecs"(Display.getCurrent.getDoubleClickTime);
+		try {
+			auto itm = _selectionM(e.x, e.y);
+			if (_dClick) {
+				if (e.button == 1 && itm !is null && itm == _itm) {
+					_startEdit(itm);
+				}
+			} else {
+				synchronized {
+					if (e.button == 1 && itm !is null) {
+						if (_itm !is null && itm == _itm && _time <= Clock.currTime) {
+							_itm = null;
+							_startEdit(itm);
+						} else {
+							_itm = itm;
+							_time = Clock.currTime + dur!"msecs"(Display.getCurrent.getDoubleClickTime);
+						}
 					}
 				}
 			}
+		} catch (Exception e) {
+			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
 }
@@ -341,15 +357,23 @@ private:
 	void delegate(Item itm) _startEdit;
 public:
 	this (void delegate(Item itm) startEdit, Item delegate() selection) {
-		_startEdit = startEdit;
-		_selection = selection;
+		try {
+			_startEdit = startEdit;
+			_selection = selection;
+		} catch (Exception e) {
+			throw new Exception(e.msg, __FILE__, __LINE__);
+		}
 	}
 	override void keyPressed(KeyEvent e) {
-		if (e.keyCode == SWT.F2) {
-			auto itm = _selection();
-			if (itm !is null) {
-				_startEdit(itm);
+		try {
+			if (e.keyCode == SWT.F2) {
+				auto itm = _selection();
+				if (itm !is null) {
+					_startEdit(itm);
+				}
 			}
+		} catch (Exception e) {
+			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
 }
@@ -361,56 +385,94 @@ private:
 
 public:
 	this(Composite parent, Control ctrl, void delegate(Control) end) {
-		this.end = end;
-		this.ctrl = ctrl;
-		ctrl.addFocusListener(this);
-		ctrl.addKeyListener(this);
+		try {
+			this.end = end;
+			this.ctrl = ctrl;
+			ctrl.addFocusListener(this);
+			ctrl.addKeyListener(this);
+		} catch (Exception e) {
+			throw new Exception(e.msg, __FILE__, __LINE__);
+		}
 	}
 	void setFocus() {
-		ctrl.setFocus;
+		try {
+			ctrl.setFocus;
+		} catch (Exception e) {
+			throw new Exception(e.msg, __FILE__, __LINE__);
+		}
 	}
 	Control editor() {
-		return ctrl;
+		try {
+			return ctrl;
+		} catch (Exception e) {
+			throw new Exception(e.msg, __FILE__, __LINE__);
+		}
 	}
 	override void focusGained(FocusEvent e) {}
 	override void focusLost(FocusEvent e) {
-		enter();
+		try {
+			enter();
+		} catch (Exception e) {
+			throw new Exception(e.msg, __FILE__, __LINE__);
+		}
 	}
 	override void keyPressed(KeyEvent e) {
-		if (e.character == SWT.CR) {
-			enter();
-		} else if (e.keyCode == SWT.ESC) {
-			ctrl.dispose;
+		try {
+			if (e.character == SWT.CR) {
+				enter();
+			} else if (e.keyCode == SWT.ESC) {
+				ctrl.dispose;
+			}
+		} catch (Exception e) {
+			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
 	bool isExit() {
-		return ctrl.isDisposed;
+		try {
+			return ctrl.isDisposed;
+		} catch (Exception e) {
+			throw new Exception(e.msg, __FILE__, __LINE__);
+		}
 	}
 	void enter() {
 		try {
-			end(ctrl);
+			try {
+				end(ctrl);
+			} catch (Exception e) {
+				debugln(e);
+			}
+			ctrl.dispose;
 		} catch (Exception e) {
-			debugln(e);
+			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
-		ctrl.dispose;
 	}
 }
 
 Text createTextEditor(Composite parent, string str) {
-	auto text = new Text(parent, SWT.BORDER);
-	text.setText(str);
-	text.selectAll();
-	return text;
+	try {
+		auto text = new Text(parent, SWT.BORDER);
+		text.setText(str ? str : "");
+		text.selectAll();
+		return text;
+	} catch (Exception e) {
+		throw new Exception(e.msg, __FILE__, __LINE__);
+	}
 }
 
 CCombo createComboEditor(Composite parent, string[] strs, string str) {
-	auto combo = new CCombo(parent, SWT.BORDER | SWT.READ_ONLY);
-	combo.setVisibleItemCount = 20;
-	foreach (s; strs) {
-		combo.add(s);
+	try {
+		auto combo = new CCombo(parent, SWT.BORDER | SWT.READ_ONLY);
+		combo.setVisibleItemCount = 20;
+		foreach (s; strs) {
+			if (s) {
+				combo.add(s);
+			}
+		}
+		combo.setText(str ? str : "");
+		return combo;
+	} catch (Exception e) {
+		throw new Exception(e.msg, __FILE__, __LINE__);
 	}
-	combo.setText(str);
-	return combo;
 }
 
 
@@ -426,37 +488,54 @@ private:
 	bool delegate(TableItem itm, int column) canEdit = null;
 
 	Item selectionM(int x, int y) {
-		if (table.getSelectionCount == 1) {
-			auto itm = table.getSelection[0];
-			if (itm.getBounds(editC).contains(x, y)) {
-				if (!itm.getImage || !itm.getImageBounds(editC).contains(x, y)) {
-					return itm;
+		try {
+			if (table.getSelectionCount == 1) {
+				auto itm = table.getSelection[0];
+				if (itm.getBounds(editC).contains(x, y)) {
+					if (!itm.getImage || !itm.getImageBounds(editC).contains(x, y)) {
+						return itm;
+					}
 				}
 			}
+			return null;
+		} catch (Exception e) {
+			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
-		return null;
 	}
 	Item selectionK() {
-		if (table.getSelectionCount == 1) {
-			return table.getSelection[0];
+		try {
+			if (table.getSelectionCount == 1) {
+				return table.getSelection[0];
+			}
+			return null;
+		} catch (Exception e) {
+			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
-		return null;
 	}
 
 	void end(Control c) {
-		auto newText = (cast(Text) c).getText;
-		if (editEnd is null) {
-			if (newText.length > 0) {
-				editor.getItem.setText(editC, newText);
+		try {
+			auto newText = (cast(Text) c).getText;
+			if (!newText) newText = "";
+			if (editEnd is null) {
+				if (newText.length > 0) {
+					editor.getItem.setText(editC, newText);
+				}
+			} else {
+				editEnd(editor.getItem, editC, newText);
 			}
-		} else {
-			editEnd(editor.getItem, editC, newText);
+			_tee = null;
+		} catch (Exception e) {
+			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
-		_tee = null;
 	}
 
 	void startEdit(Item itm) {
-		startEdit(cast(TableItem) itm);
+		try {
+			startEdit(cast(TableItem) itm);
+		} catch (Exception e) {
+			throw new Exception(e.msg, __FILE__, __LINE__);
+		}
 	}
 public:
 	/// table = テキスト編集対象のテーブル。
@@ -468,36 +547,52 @@ public:
 	this(Table table, int editC,
 			void delegate(TableItem itm, int column, string text) editEnd = null,
 			bool delegate(TableItem itm, int column) canEdit = null) {
-		this.table = table;
-		this.editC = editC;
-		this.editEnd = editEnd;
-		this.canEdit = canEdit;
-		editor = new TableEditor(table);
-		editor.grabHorizontal = true;
+		try {
+			this.table = table;
+			this.editC = editC;
+			this.editEnd = editEnd;
+			this.canEdit = canEdit;
+			editor = new TableEditor(table);
+			editor.grabHorizontal = true;
 
-		auto mf = new TextEditMFListener(&startEdit, &selectionK, &selectionM);
-		table.addMouseListener(mf);
-		table.addSelectionListener(mf);
-		table.addKeyListener(new TextEditKListener(&startEdit, &selectionK));
+			auto mf = new TextEditMFListener(&startEdit, &selectionK, &selectionM);
+			table.addMouseListener(mf);
+			table.addSelectionListener(mf);
+			table.addKeyListener(new TextEditKListener(&startEdit, &selectionK));
+		} catch (Exception e) {
+			throw new Exception(e.msg, __FILE__, __LINE__);
+		}
 	}
 	/// 選択されているセルの編集を開始する。
 	void startEdit() {
-		auto sels = table.getSelection;
-		if (sels.length == 1) {
-			startEdit(sels[0]);
+		try {
+			auto sels = table.getSelection;
+			if (sels.length == 1) {
+				startEdit(sels[0]);
+			}
+		} catch (Exception e) {
+			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
 	void startEdit(TableItem itm) {
-		if (_tee !is null && !_tee.isExit) _tee.enter;
-		auto sel = itm;
-		if (canEdit is null || canEdit(sel, editC)) {
-			_tee = new EditEnd(table, createTextEditor(table, sel.getText(editC)), &end);
-			editor.setEditor(_tee.editor, sel, editC);
-			_tee.setFocus;
+		try {
+			if (_tee !is null && !_tee.isExit) _tee.enter;
+			auto sel = itm;
+			if (canEdit is null || canEdit(sel, editC)) {
+				_tee = new EditEnd(table, createTextEditor(table, sel.getText(editC)), &end);
+				editor.setEditor(_tee.editor, sel, editC);
+				_tee.setFocus;
+			}
+		} catch (Exception e) {
+			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
 	bool isEditing() {
-		return _tee !is null;
+		try {
+			return _tee !is null;
+		} catch (Exception e) {
+			throw new Exception(e.msg, __FILE__, __LINE__);
+		}
 	}
 }
 
@@ -513,34 +608,50 @@ private:
 	Control delegate(TreeItem itm) createEditor;
 
 	Item selectionM(int x, int y) {
-		if (tree.getSelectionCount == 1) {
-			auto itm = tree.getSelection[0];
-			if (itm.getBounds.contains(x, y)) {
-				return itm;
+		try {
+			if (tree.getSelectionCount == 1) {
+				auto itm = tree.getSelection[0];
+				if (itm.getBounds.contains(x, y)) {
+					return itm;
+				}
 			}
+			return null;
+		} catch (Exception e) {
+			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
-		return null;
 	}
 	Item selectionK() {
-		if (tree.getSelectionCount == 1) {
-			return tree.getSelection[0];
+		try {
+			if (tree.getSelectionCount == 1) {
+				return tree.getSelection[0];
+			}
+			return null;
+		} catch (Exception e) {
+			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
-		return null;
 	}
 
 	void end(Control ctrl) {
-		editEnd(editor.getItem, ctrl);
-		_tee = null;
+		try {
+			editEnd(editor.getItem, ctrl);
+			_tee = null;
+		} catch (Exception e) {
+			throw new Exception(e.msg, __FILE__, __LINE__);
+		}
 	}
 
 	void startEdit(Item itm) {
-		if (_tee !is null && !_tee.isExit) _tee.enter;
-		auto sel = cast(TreeItem) itm;
-		auto c = createEditor(sel);
-		if (c) {
-			_tee = new EditEnd(tree, c, &end);
-			editor.setEditor(_tee.editor, sel);
-			_tee.setFocus;
+		try {
+			if (_tee !is null && !_tee.isExit) _tee.enter;
+			auto sel = cast(TreeItem) itm;
+			auto c = createEditor(sel);
+			if (c) {
+				_tee = new EditEnd(tree, c, &end);
+				editor.setEditor(_tee.editor, sel);
+				_tee.setFocus;
+			}
+		} catch (Exception e) {
+			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
 public:
@@ -550,26 +661,38 @@ public:
 	///                nullを返した場合、編集は開始されない。
 	this(Tree tree, void delegate(TreeItem itm, Control ctrl) editEnd,
 			Control delegate(TreeItem itm) createEditor = null) {
-		this.tree = tree;
-		this.editEnd = editEnd;
-		this.createEditor = createEditor;
-		editor = new TreeEditor(tree);
-		editor.grabHorizontal = true;
+		try {
+			this.tree = tree;
+			this.editEnd = editEnd;
+			this.createEditor = createEditor;
+			editor = new TreeEditor(tree);
+			editor.grabHorizontal = true;
 
-		auto mf = new TextEditMFListener(&startEdit, &selectionK, &selectionM);
-		tree.addMouseListener(mf);
-		tree.addSelectionListener(mf);
-		tree.addKeyListener(new TextEditKListener(&startEdit, &selectionK));
+			auto mf = new TextEditMFListener(&startEdit, &selectionK, &selectionM);
+			tree.addMouseListener(mf);
+			tree.addSelectionListener(mf);
+			tree.addKeyListener(new TextEditKListener(&startEdit, &selectionK));
+		} catch (Exception e) {
+			throw new Exception(e.msg, __FILE__, __LINE__);
+		}
 	}
 	/// 選択されているセルの編集を開始する。
 	void startEdit() {
-		auto sels = tree.getSelection;
-		if (sels.length == 1) {
-			startEdit(sels[0]);
+		try {
+			auto sels = tree.getSelection;
+			if (sels.length == 1) {
+				startEdit(sels[0]);
+			}
+		} catch (Exception e) {
+			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
 	bool isEditing() {
-		return _tee !is null;
+		try {
+			return _tee !is null;
+		} catch (Exception e) {
+			throw new Exception(e.msg, __FILE__, __LINE__);
+		}
 	}
 }
 

@@ -233,14 +233,18 @@ private:
 				auto cb = new Clipboard(Display.getCurrent);
 				scope (exit) cb.dispose;
 				auto c = CBtoXML(cb);
-				if (c) {
-					try {
-						auto node = XNode.parse(c);
-						if (node.name != C.XML_NAME_M) return;
-						addFromNode(node, LATEST_VERSION);
-					} catch {}
+				try {
+					if (c) {
+						try {
+							auto node = XNode.parse(c);
+							if (node.name != C.XML_NAME_M) return;
+							addFromNode(node, LATEST_VERSION);
+						} catch {}
+					}
+					refreshStatusLine;
+				} catch (Exception e) {
+					debugln(e);
 				}
-				refreshStatusLine;
 			}
 		}
 		override bool canDoTCPD() {

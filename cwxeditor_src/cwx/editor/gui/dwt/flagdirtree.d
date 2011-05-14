@@ -165,7 +165,9 @@ private:
 
 	void editEnd(TreeItem itm, Control c) {
 		auto dir = cast(FlagDir) itm.getData;
-		dir.name = (cast(Text) c).getText;
+		auto text = (cast(Text) c).getText;
+		if (!text) text = "";
+		dir.name = text;
 		itm.setText = dir.name;
 	}
 
@@ -364,25 +366,29 @@ public:
 			scope (exit) cb.dispose;
 			auto c = CBtoXML(cb);
 			if (c) {
-				auto cur = current;
-				string newPath;
-				Flag[string] cFlags;
-				Step[string] cSteps;
-				switch (cur.appendFromXML(c, LATEST_VERSION, true, true, cFlags, cSteps, newPath)) {
-				case FlagDir.AppendXmlResult.DIR_SUCCESS:
-					refresh(newPath);
-					auto itm = find(current);
-					if (itm) treeExpandedAll(itm);
-					break;
-				case FlagDir.AppendXmlResult.FLAG_STEP_SUCCESS:
-					flags.refresh;
-					break;
-				case FlagDir.AppendXmlResult.FLAG_STEP_ON_DIR:
-				case FlagDir.AppendXmlResult.ON_DIR:
-					assert (false);
-				default:
+				try {
+					auto cur = current;
+					string newPath;
+					Flag[string] cFlags;
+					Step[string] cSteps;
+					switch (cur.appendFromXML(c, LATEST_VERSION, true, true, cFlags, cSteps, newPath)) {
+					case FlagDir.AppendXmlResult.DIR_SUCCESS:
+						refresh(newPath);
+						auto itm = find(current);
+						if (itm) treeExpandedAll(itm);
+						break;
+					case FlagDir.AppendXmlResult.FLAG_STEP_SUCCESS:
+						flags.refresh;
+						break;
+					case FlagDir.AppendXmlResult.FLAG_STEP_ON_DIR:
+					case FlagDir.AppendXmlResult.ON_DIR:
+						assert (false);
+					default:
+					}
+					_comm.refFlagAndStep.call(cFlags.values, cSteps.values);
+				} catch (Exception e) {
+					debugln(e);
 				}
-				_comm.refFlagAndStep.call(cFlags.values, cSteps.values);
 			}
 		}
 		void del(SelectionEvent se) {

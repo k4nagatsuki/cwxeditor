@@ -627,7 +627,9 @@ private:
 						stg.fromNode(node);
 						addBgImage(stg);
 					}
-				} catch {}
+				} catch (Exception e) {
+					debugln(e);
+				}
 			}
 		}
 		void del(SelectionEvent se) {
@@ -881,7 +883,9 @@ private:
 						tool.fromNode(node);
 						addTool(tool);
 					}
-				} catch {}
+				} catch (Exception e) {
+					debugln(e);
+				}
 			}
 		}
 		void del(SelectionEvent se) {
