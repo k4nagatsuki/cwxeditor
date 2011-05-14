@@ -1822,10 +1822,12 @@ public:
 		auto t = cast(Text) c;
 		auto evt = (cast(Content) itm.getData);
 		if (t) {
-			if (t.getText == evt.name) return;
+			auto text = t.getText;
+			if (!text) text = "";
+			if (text == evt.name) return;
 			store(evt);
 			if (evt.type == CType.START) {
-				evt.name = createNewName(t.getText, (string name) {
+				evt.name = createNewName(text, (string name) {
 					foreach (s; _et.starts) {
 						if (s !is evt && icmp(s.name, name) == 0) {
 							return false;
@@ -1834,7 +1836,7 @@ public:
 					return true;
 				}, true);
 			} else {
-				evt.name = t.getText;
+				evt.name = text;
 			}
 			itm.setText = evt.name;
 			if (evt.type == CType.START && _tree.indexOf(itm) == 0) {
@@ -2245,15 +2247,19 @@ public:
 				return;
 			}
 			if (c) {
-				string id;
-				auto evt = Content.createFromXML(c, LATEST_VERSION, id);
-				if (!evt) return;
-				if (evt.type == CType.START) {
-					addStarts(evt);
-				} else {
-					addContents(evt);
+				try {
+					string id;
+					auto evt = Content.createFromXML(c, LATEST_VERSION, id);
+					if (!evt) return;
+					if (evt.type == CType.START) {
+						addStarts(evt);
+					} else {
+						addContents(evt);
+					}
+					return;
+				} catch (Exception e) {
+					debugln(e);
 				}
-				return;
 			}
 			if (_prop.var.etc.useCWXScript) {
 				auto script = cast(ArrayWrapperString) cb.getContents(TextTransfer.getInstance);

@@ -662,39 +662,43 @@ public:
 			scope (exit) cb.dispose;
 			auto c = CBtoXML(cb);
 			if (c) {
-				bool sameSummary;
-				auto area = createAreaFromXML(c, _summ.id, sameSummary, LATEST_VERSION);
-				if (area !is null) {
-					auto oldId = area.id;
-					if (cast(Area) area) {
-						auto newId = _summ.add(cast(Area) area);
-						int index = _summ.areas.length - 1;
-						newAreaItem(index);
-						selArea(index);
-						if (sameSummary && !_summ.hasAreaId(oldId)) {
-							_summ.useCounter.change(toAreaId(oldId), toAreaId(newId));
+				try {
+					bool sameSummary;
+					auto area = createAreaFromXML(c, _summ.id, sameSummary, LATEST_VERSION);
+					if (area !is null) {
+						auto oldId = area.id;
+						if (cast(Area) area) {
+							auto newId = _summ.add(cast(Area) area);
+							int index = _summ.areas.length - 1;
+							newAreaItem(index);
+							selArea(index);
+							if (sameSummary && !_summ.hasAreaId(oldId)) {
+								_summ.useCounter.change(toAreaId(oldId), toAreaId(newId));
+							}
+						} else if (cast(Package) area) {
+							auto newId = _summ.add(cast(Package) area);
+							int index = _summ.packages.length - 1;
+							newPackageItem(index);
+							selPackage(index);
+							if (sameSummary && !_summ.hasPackageId(oldId)) {
+								_summ.useCounter.change(toPackageId(oldId), toPackageId(newId));
+							}
+						} else {
+							assert (cast(Battle) area);
+							auto newId = _summ.add(cast(Battle) area);
+							int index = _summ.battles.length - 1;
+							newBattleItem(index);
+							selBattle(index);
+							if (sameSummary && !_summ.hasBattleId(oldId)) {
+								_summ.useCounter.change(toBattleId(oldId), toBattleId(newId));
+							}
 						}
-					} else if (cast(Package) area) {
-						auto newId = _summ.add(cast(Package) area);
-						int index = _summ.packages.length - 1;
-						newPackageItem(index);
-						selPackage(index);
-						if (sameSummary && !_summ.hasPackageId(oldId)) {
-							_summ.useCounter.change(toPackageId(oldId), toPackageId(newId));
-						}
-					} else {
-						assert (cast(Battle) area);
-						auto newId = _summ.add(cast(Battle) area);
-						int index = _summ.battles.length - 1;
-						newBattleItem(index);
-						selBattle(index);
-						if (sameSummary && !_summ.hasBattleId(oldId)) {
-							_summ.useCounter.change(toBattleId(oldId), toBattleId(newId));
-						}
+						if (_flags) _flags.refresh;
+						_comm.refUseCount.call;
+						refreshStatusLine;
 					}
-					if (_flags) _flags.refresh;
-					_comm.refUseCount.call;
-					refreshStatusLine;
+				} catch (Exception e) {
+					debugln(e);
 				}
 			}
 		}

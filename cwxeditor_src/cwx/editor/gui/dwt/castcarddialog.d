@@ -363,7 +363,9 @@ private:
 					if (node.name == Coupon.XML_NAME) {
 						appendCoupon(Coupon.fromNode(node, LATEST_VERSION), _coupons.getSelectionIndex);
 					}
-				} catch {}
+				} catch (Exception e) {
+					debugln(e);
+				}
 			}
 		}
 		override void del(SelectionEvent se) {

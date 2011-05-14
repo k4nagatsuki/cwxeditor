@@ -886,6 +886,7 @@ private:
 	}
 	void dirsEditEnd(TreeItem itm, Control c) {
 		string text = (cast(Text) c).getText;
+		if (!text) text = "";
 		if (text.length == 0) return;
 		auto from = (cast(FileNameObj) itm.getData).array;
 		string frd = nabs(from);

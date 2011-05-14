@@ -240,7 +240,9 @@ private:
 					if (node.name == SDialog.XML_NAME) {
 						createDialog(SDialog.createFromNode(node, LATEST_VERSION));
 					}
-				} catch {}
+				} catch (Exception e) {
+					debugln(e);
+				}
 			}
 		}
 		void del(SelectionEvent se) {deleteDialogSel;}

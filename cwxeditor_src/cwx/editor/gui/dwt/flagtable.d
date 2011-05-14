@@ -719,13 +719,17 @@ public:
 			scope (exit) cb.dispose;
 			auto c = CBtoXML(cb);
 			if (c) {
-				string newPath;
-				Flag[string] cFlags;
-				Step[string] cSteps;
-				if (_dir.appendFromXML(c, LATEST_VERSION,
-						true, false, cFlags, cSteps, newPath)) {
-					refresh;
-					_comm.refFlagAndStep.call(cFlags.values, cSteps.values);
+				try {
+					string newPath;
+					Flag[string] cFlags;
+					Step[string] cSteps;
+					if (_dir.appendFromXML(c, LATEST_VERSION,
+							true, false, cFlags, cSteps, newPath)) {
+						refresh;
+						_comm.refFlagAndStep.call(cFlags.values, cSteps.values);
+					}
+				} catch (Exception e) {
+					debugln(e);
 				}
 			}
 		}

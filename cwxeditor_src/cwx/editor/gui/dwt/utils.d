@@ -512,6 +512,7 @@ private:
 	void end(Control c) {
 		try {
 			auto newText = (cast(Text) c).getText;
+			if (!newText) newText = "";
 			if (editEnd is null) {
 				if (newText.length > 0) {
 					editor.getItem.setText(editC, newText);

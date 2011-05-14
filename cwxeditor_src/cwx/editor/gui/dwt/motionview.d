@@ -728,7 +728,9 @@ public:
 					} else {
 						pasteBeast(node);
 					}
-				} catch {}
+				} catch (Exception e) {
+					debugln(e);
+				}
 			}
 		}
 		override void del(SelectionEvent se) {
@@ -776,7 +778,9 @@ public:
 			if (xml) {
 				try {
 					pasteBeast(XNode.parse(xml));
-				} catch {}
+				} catch (Exception e) {
+					debugln(e);
+				}
 			}
 		}
 		override void del(SelectionEvent se) {
