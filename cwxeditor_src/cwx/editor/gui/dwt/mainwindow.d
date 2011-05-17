@@ -1246,6 +1246,8 @@ public:
 			drop.addDropListener(new DTListener);
 
 			_comm.baseShell(this, _dataWin, _cardWin, _dirWin);
+			setupMenu(_menu);
+			setupMenu(_tool);
 		}
 
 		int tx = _prop.var.mainWin.x == SWT.DEFAULT ? _win.getBounds.x : _prop.var.mainWin.x;
