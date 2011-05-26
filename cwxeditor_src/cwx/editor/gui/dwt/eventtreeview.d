@@ -2236,6 +2236,7 @@ public:
 			}
 		}
 		void paste(SelectionEvent se) {
+			if (!_et) return;
 			auto cb = new Clipboard(Display.getCurrent);
 			scope (exit) cb.dispose;
 			string c;
