@@ -1124,6 +1124,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	private SUseCounter _suc = null;
 	/// スタートの使用回数カウンタを設定・除去する。
 	void setSUseCounter(SUseCounter suc) {
+		if (_suc is suc) return;
 		if (suc && _start) {
 			suc.add(toStartId(_start), this);
 		}
