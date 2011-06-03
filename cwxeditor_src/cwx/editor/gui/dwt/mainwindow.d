@@ -189,6 +189,7 @@ private:
 		}
 	}
 	void reload() {
+		if (!summary) return;
 		auto old = summary;
 		if (old.useTemp && !old.zipName.length) {
 			MessageBox.showWarning(_prop.msgs.reloadBeforeSaveError(old.scenarioName),
@@ -634,12 +635,12 @@ private:
 		foreach (itm; _menuFile.getItems) {
 			itm.dispose;
 		}
-		createMenuItem(_menuFile, _prop.msgs.menuNew, _prop.images.menuNew, &createScenario);
-		createMenuItem(_menuFile, _prop.msgs.menuOpen, _prop.images.menuOpen, &openScenarioM);
-		createMenuItem(_menuFile, _prop.msgs.menuSave, _prop.images.menuSave, &saveScenario);
-		createMenuItem(_menuFile, _prop.msgs.menuSaveA, _prop.images.menuSaveA, &saveScenarioA);
+		mixin (MenuAction!("_menuFile", "New", SWT.PUSH, "createScenario"));
+		mixin (MenuAction!("_menuFile", "Open", SWT.PUSH, "openScenarioM"));
+		mixin (MenuAction!("_menuFile", "Save", SWT.PUSH, "saveScenario"));
+		mixin (MenuAction!("_menuFile", "SaveA", SWT.PUSH, "saveScenarioA"));
 		new MenuItem(_menuFile, SWT.SEPARATOR);
-		createMenuItem(_menuFile, _prop.msgs.menuReload, _prop.images.menuReload, &reload);
+		mixin (MenuAction!("_menuFile", "Reload", SWT.PUSH, "reload"));
 		new MenuItem(_menuFile, SWT.SEPARATOR);
 		auto hists = _prop.var.etc.openHistories;
 		foreach (i, hist; hists) {
@@ -647,6 +648,7 @@ private:
 		}
 		if (hists.length > 0) new MenuItem(_menuFile, SWT.SEPARATOR);
 		createMenuItem(_menuFile, _prop.msgs.menuClose, _prop.images.menuClose, &exitAll);
+		setupMenu(_menu);
 	}
 	Display _display = null;
 	static const PIPE_APP_MAX = 256;
@@ -979,6 +981,23 @@ public:
 			_cardWin = new MainCardWindow(_comm, _prop, _win);
 			_dirWin = new DirectoryWindow(_comm, _prop, _win);
 		}
+
+		_noSummMenu = new HashSet!(MenuID);
+		_noSummMenu.add(MenuID.New);
+		_noSummMenu.add(MenuID.Open);
+		_noSummMenu.add(MenuID.ToXML);
+		_noSummMenu.add(MenuID.DataWin);
+		_noSummMenu.add(MenuID.FlagWin);
+		_noSummMenu.add(MenuID.CardWin);
+		_noSummMenu.add(MenuID.DirWin);
+		_noSummMenu.add(MenuID.ChangeVH);
+		_noSummMenu.add(MenuID.ShowCardLife);
+		_noSummMenu.add(MenuID.ShowCardList);
+		_noSummMenu.add(MenuID.ShowCardTable);
+		_noSummMenu.add(MenuID.ExecEngine);
+		_noSummMenu.add(MenuID.Settings);
+		_noSummMenu.add(MenuID.Version);
+
 		{
 			_mainMenu = new HashSet!(MenuID);
 			auto bar = new Menu(_win, SWT.BAR);
@@ -1075,22 +1094,6 @@ public:
 
 			_win.setMenuBar = bar;
 		}
-
-		_noSummMenu = new HashSet!(MenuID);
-		_noSummMenu.add(MenuID.New);
-		_noSummMenu.add(MenuID.Open);
-		_noSummMenu.add(MenuID.ToXML);
-		_noSummMenu.add(MenuID.DataWin);
-		_noSummMenu.add(MenuID.FlagWin);
-		_noSummMenu.add(MenuID.CardWin);
-		_noSummMenu.add(MenuID.DirWin);
-		_noSummMenu.add(MenuID.ChangeVH);
-		_noSummMenu.add(MenuID.ShowCardLife);
-		_noSummMenu.add(MenuID.ShowCardList);
-		_noSummMenu.add(MenuID.ShowCardTable);
-		_noSummMenu.add(MenuID.ExecEngine);
-		_noSummMenu.add(MenuID.Settings);
-		_noSummMenu.add(MenuID.Version);
 
 		if (_prop.var.etc.singleWindow) {
 			_cbar = createCoolBar!("tools")(_prop, toolComp, (CoolBar cbar) {
@@ -1247,6 +1250,8 @@ public:
 			drop.addDropListener(new DTListener);
 
 			_comm.baseShell(this, _dataWin, _cardWin, _dirWin);
+			setupMenu(_menu);
+			setupMenu(_tool);
 		}
 
 		int tx = _prop.var.mainWin.x == SWT.DEFAULT ? _win.getBounds.x : _prop.var.mainWin.x;

@@ -430,9 +430,7 @@ private:
 						oItm.setExpanded = true;
 						_tree.setSelection = [itm];
 						if (insertTo) {
-							auto tcc = cast(Content) insertTo.getData;
-							owner.remove(tcc);
-							evt.add(tcc);
+							evt.add(cast(Content) insertTo.getData);
 							insertTo.dispose;
 							createChilds(itm, evt, false);
 							itm.setExpanded = true;
@@ -2242,6 +2240,7 @@ public:
 			}
 		}
 		void paste(SelectionEvent se) {
+			if (!_et) return;
 			auto cb = new Clipboard(Display.getCurrent);
 			scope (exit) cb.dispose;
 			string c;

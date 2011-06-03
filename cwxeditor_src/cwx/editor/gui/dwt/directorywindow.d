@@ -671,6 +671,8 @@ private:
 	}
 	bool __paste(string targ, FileNames files, bool move, out bool fromOut) {
 		if (files && files.array.length > 0) {
+			pauseTrace;
+			scope (exit) resumeTrace;
 			fromOut = false;
 			scope pfull = nabs(_summ.scenarioPath);
 			bool top = cast(bool) std.path.fnmatch(nabs(targ), pfull);
@@ -1792,6 +1794,8 @@ public:
 		version (Windows) {
 			bool recycle = (se.stateMask & SWT.SHIFT) == 0;
 		}
+		pauseTrace;
+		scope (exit) resumeTrace;
 		if (_dirs.isFocusControl) {
 			if (!dir) return;
 			version (Windows) {

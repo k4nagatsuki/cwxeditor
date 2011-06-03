@@ -133,7 +133,7 @@ private:
 						_etree.refresh(null);
 					}
 				}
-				_selPath = _selPath2;
+				_selPath = getSelPath;
 			} else {
 				_cards.deselectAll;
 			}
