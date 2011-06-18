@@ -454,7 +454,6 @@ private:
 						pt = pt.length <= cut ? sep : pt[cut .. $];
 						pt = toViewPath(pt);
 						_dirs.select = dirsIndexOf(pt);
-						assert (_dirs.getSelectionIndex >= 1);
 					}
 				} else {
 					selectOld;
