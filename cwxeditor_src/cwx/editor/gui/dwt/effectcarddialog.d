@@ -618,6 +618,7 @@ protected:
 			_se2.select = se2i >= 0 ? se2i : 0;
 			foreach (i, kc; _card.keyCodes) {
 				_keyCodes[i].setText = kc;
+				_keyCodes[i].add(kc, 0);
 			}
 		} else {
 			_imgPath.image = "";
