@@ -1777,10 +1777,13 @@ private void writeImage(in SData d, ref ByteIO f, string imgPath) {
 	if (isBinImg(imgPath)) {
 		bytes = cast(ubyte[]) strToBImg(imgPath);
 	} else {
-		bytes = cast(ubyte[]) std.file.read(std.path.join(d.sPath, imgPath));
-		if (d.saveInnerImagePath) {
-			bytes ~= '\0';
-			bytes ~= cast(ubyte[]) (imgPath ~ B_IMG_REF);
+		auto path = std.path.join(d.sPath, imgPath);
+		if (exists(path)) {
+			bytes = cast(ubyte[]) std.file.read(path);
+			if (d.saveInnerImagePath) {
+				bytes ~= '\0';
+				bytes ~= cast(ubyte[]) (imgPath ~ B_IMG_REF);
+			}
 		}
 	}
 	f.writeL(cast(uint) bytes.length);
