@@ -1264,6 +1264,7 @@ private:
 		}
 		public void addScenario() {
 			if (!_summ) return;
+			_comm.openCardWin;
 			AC.openScenario(_comm, _prop, _win, &setStatusLine, _summ, _owner, &__addScenario);
 		}
 		class DropScenario : DropTargetAdapter {
@@ -1824,9 +1825,9 @@ public:
 	}
 	static if (EditMode) {
 		void add(int Index)(ref XNode node, string ver) {
+			_comm.openCardWin;
 			if (_pane[Index].addFromNode(node, ver)) {
 				_tabf.setSelection = _tab[Index];
-				_comm.openCardWin;
 			}
 		}
 	} else {
