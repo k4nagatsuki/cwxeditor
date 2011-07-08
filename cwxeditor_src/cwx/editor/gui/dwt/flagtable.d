@@ -326,7 +326,9 @@ protected:
 		if (_flag !is null) {
 			flagName.setText = _flag.name;
 			flagTrue.setText = _flag.on;
+			flagTrue.add(_flag.on, 0);
 			flagFalse.setText = _flag.off;
+			flagFalse.add(_flag.off, 0);
 			flagInit.setItems([flagTrue.getText, flagFalse.getText]);
 			flagInit.select = _flag.onOff ? 0 : 1;
 		} else {

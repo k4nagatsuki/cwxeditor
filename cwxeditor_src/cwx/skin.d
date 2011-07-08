@@ -410,7 +410,8 @@ class Skin {
 	bool isBGM(string path, bool check = false) {
 		auto ext = getExt(path);
 		if (legacy && !fnmatch(ext, "mid")
-				&& !fnmatch(ext, "midi")) {
+				&& !fnmatch(ext, "midi")
+				&& !fnmatch(ext, "mpg")) {
 			return false;
 		}
 		switch (toLower(ext)) {
@@ -421,6 +422,7 @@ class Skin {
 		case "ogg", "ogv", "oga", "ogx": // Ogg
 		case "voc": // VOC
 		case "wav": // WAV/RIFF
+		case "mpg": // MPEG
 			return true;
 		default:
 			return false;

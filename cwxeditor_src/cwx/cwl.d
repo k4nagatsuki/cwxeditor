@@ -1783,8 +1783,60 @@ private void writeImage(in SData d, ref ByteIO f, string imgPath) {
 	if (isBinImg(imgPath)) {
 		bytes = cast(ubyte[]) strToBImg(imgPath);
 	} else {
-		bytes = cast(ubyte[]) std.file.read(std.path.join(d.sPath, imgPath));
-		if (d.saveInnerImagePath) {
+		auto path = std.path.join(d.sPath, imgPath);
+		if (exists(path)) {
+			bytes = cast(ubyte[]) std.file.read(path);
+			if (d.saveInnerImagePath) {
+				bytes ~= '\0';
+				bytes ~= cast(ubyte[]) (imgPath ~ B_IMG_REF);
+			}
+		} else if (d.saveInnerImagePath) {
+			// 空のイメージを作成し、パスを保存しておく
+			ByteIO f2;
+			struct BITMAPFILEHEADER {
+				ushort bfType = ('B' << 0) | ('M' << 8);
+				uint bfSize = 14 + 40 + 4 * 16 + 1;
+				ushort bfReserved1 = 0;
+				ushort bfReserved2 = 0;
+				uint bfOffBits = 54 + 4 * 16;
+			}
+			struct BITMAPINFOHEADER {
+				uint biSize = 40;
+				int biWidth = 1;
+				int biHeight = 1;
+				ushort biPlanes = 1;
+				ushort biBitCount = 8;
+				uint biCompression = 0;
+				uint biSizeImage = 1;
+				int biXPixPerMeter = 0;
+				int biYPixPerMeter = 0;
+				// CWでは16色パレットが必要。
+				// ダイレクト形式で縦横1ドットのデータはエラーになる。
+				uint biClrUsed = 16;
+				uint biCirImportant = 0;
+			}
+			struct RGBQUAD {
+				ubyte rgbBlue = 0;
+				ubyte rgbGreen = 0;
+				ubyte rgbRed = 0;
+				ubyte rgbReserved = 0;
+			}
+			BITMAPFILEHEADER h1;
+			BITMAPINFOHEADER h2;
+			foreach (val; h1.tupleof) {
+				f2.writeL(val);
+			}
+			foreach (val; h2.tupleof) {
+				f2.writeL(val);
+			}
+			for (size_t i = 0; i < 16; i++) {
+				RGBQUAD rgb;
+				foreach (val; rgb.tupleof) {
+					f2.writeL(val);
+				}
+			}
+			f2.writeL(cast(ubyte) 0); // Image data
+			bytes ~= f2.bytes;
 			bytes ~= '\0';
 			bytes ~= cast(ubyte[]) (imgPath ~ B_IMG_REF);
 		}

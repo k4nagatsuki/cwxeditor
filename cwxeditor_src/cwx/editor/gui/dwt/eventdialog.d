@@ -429,6 +429,7 @@ protected:
 		if (_evt) {
 			_range[_evt.range].setSelection = true;
 			_name.setText = _evt.coupon;
+			_name.add(_evt.coupon, 0);
 			static if (EditValue) {
 				_value.setSelection = _evt.couponValue;
 			}
