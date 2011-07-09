@@ -474,6 +474,7 @@ private:
 		override void widgetDisposed(DisposeEvent e) {
 			_comm.refScenarioName.remove(&__refreshTitle);
 			_comm.refScenarioPath.remove(&__refreshTitle);
+			_comm.refWallpaper.remove(&redrawAll);
 			_comm.replText.remove(&__refreshTitle);
 
 			auto b = _win.getBounds;
@@ -883,9 +884,11 @@ public:
 		_comm.save.add(&savec);
 		_comm.refScenarioName.add(&__refreshTitle);
 		_comm.refScenarioPath.add(&__refreshTitle);
+		_comm.refWallpaper.add(&redrawAll);
 		_comm.replText.add(&__refreshTitle);
 		_win.addDisposeListener(new DListener);
 		_win.addShellListener(new SListener);
+		_comm.refreshWallpaper(_prop);
 		foreach (f; _prop.looks.fontFiles) {
 			d.loadFont(std.path.join(engineDir, f));
 		}
@@ -1268,6 +1271,9 @@ public:
 		}
 		if (_dock) dockSelect("data");
 	}
+	private void redrawAll() {
+		_win.redraw(true);
+	}
 	private template NewCard(string Name) {
 		static const NewCard = "auto cw = cast(ICardWindow) _tlp;"
 			~ "if (cw && cw.canCreate" ~ Name ~ ") {"
@@ -1288,16 +1294,11 @@ public:
 	}
 	private class TabfPaint : PaintListener {
 		override void paintControl(PaintEvent e) {
-			auto path = _prop.var.etc.backgroundImage;
-			if (!path.length || !.exists(path)) return;
+			if (!_comm.wallpaper) return;
 			auto tabf = cast(CTabFolder) e.widget;
 			if (!tabf || tabf.getItemCount > 0) return;
 			auto rect = tabf.getClientArea;
-			auto data = loadImage(path, false);
-			auto d = Display.getCurrent;
-			auto img = new Image(d, data);
-			scope (exit) img.dispose;
-			drawTileImage(e.gc, img, rect);
+			drawTileImage(e.gc, _comm.wallpaper, rect);
 		}
 	}
 	private class TabMenu {
@@ -1671,6 +1672,7 @@ public:
 				}
 			}
 		}
+		_comm.dispose;
 		_dirWin.quitTrace;
 		_prop.images.disposeImages;
 		d.dispose;

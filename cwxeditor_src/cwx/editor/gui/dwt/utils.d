@@ -1657,17 +1657,21 @@ private class LSFFThr(S, bool Array) {
 	}
 }
 string[] scenarioFilter() {
+	string[] r;
 	if (canUncab) {
-		return ["*.wsn;Summary.xml;*.cab;*.zip;Summary.wsm;*.wid"];
+		r ~= "*.wsn;Summary.xml;*.cab;*.zip;Summary.wsm";
+	} else {
+		r ~= "*.wsn;Summary.xml;*.zip;Summary.wsm";
 	}
-	return ["*.wsn;Summary.xml;*.zip;Summary.wsm;*.wid"];
+	r ~= "*.xml;*.wid";
+	return r;
 }
 
 S[] loadScenarios(S)(Props prop, Shell w, void delegate(string) status,
 		bool expandXMLs, string dlgTitle, void delegate (S[]) loaded = null, bool oThr = true) {
 	auto dlg = new FileDialog(w, SWT.PRIMARY_MODAL | SWT.APPLICATION_MODAL | SWT.MULTI | SWT.OPEN);
 	dlg.setFilterExtensions = scenarioFilter;
-	dlg.setFilterNames = [prop.msgs.filterScenario];
+	dlg.setFilterNames = prop.msgs.filterScenario;
 	dlg.setText = dlgTitle;
 	dlg.setFilterPath = scenarioFilterPath(prop);
 	string fname = dlg.open;
@@ -1748,7 +1752,7 @@ S loadScenario(S)(Props prop, Shell w, void delegate(string) status,
 		bool expandXMLs, S old, string dlgTitle, ref string[] openPaths, void delegate (S) loaded = null, bool oThr = true) {
 	auto dlg = new FileDialog(w, SWT.PRIMARY_MODAL | SWT.APPLICATION_MODAL | SWT.SINGLE | SWT.OPEN);
 	dlg.setFilterExtensions = scenarioFilter;
-	dlg.setFilterNames = [prop.msgs.filterScenario];
+	dlg.setFilterNames = prop.msgs.filterScenario;
 	dlg.setText = dlgTitle;
 	dlg.setFilterPath = scenarioFilterPath(prop);
 	string fname = dlg.open;

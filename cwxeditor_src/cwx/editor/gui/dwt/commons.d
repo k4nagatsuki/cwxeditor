@@ -22,6 +22,9 @@ import cwx.editor.gui.dwt.datawindow;
 import cwx.editor.gui.dwt.dockingfolder;
 import cwx.editor.gui.dwt.sbshell;
 
+import std.path;
+import std.file;
+
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Composite;
@@ -171,6 +174,7 @@ class Commons {
 	Dlg!() replID;
 	Dlg!() refIgnorePaths;
 	Dlg!() refCardState;
+	Dlg!() refWallpaper;
 
 	Dlg!(Area) refArea;
 	Dlg!(Area) delArea;
@@ -185,6 +189,9 @@ class Commons {
 	private Object[Composite] _wos;
 	this() {
 		_ws = new HashSet!(Composite);
+	}
+	void dispose() {
+		if (_wallpaper) _wallpaper.dispose();
 	}
 	private MainWindow _main;
 	private DataWindow _dataWin = null;
@@ -435,6 +442,34 @@ class Commons {
 			return _dataWin.createPackage(baseStart);
 		} else {
 			return _tableWin.createPackage(baseStart);
+		}
+	}
+
+	private Image _wallpaper = null;
+	Image wallpaper() {return _wallpaper;}
+	void refreshWallpaper(Props prop) {
+		try {
+			string w = prop.var.etc.wallpaper;
+			if (!w.length) {
+				if (_wallpaper) _wallpaper.dispose();
+				_wallpaper = null;
+				return;
+			}
+			if (!cwx.utils.isabs(w)) {
+				w = std.path.join(prop.parent.appPath.getDirName, w);
+			}
+			if (!w.length || !.exists(w)) {
+				if (_wallpaper) _wallpaper.dispose();
+				_wallpaper = null;
+				return;
+			}
+			auto data = loadImage(w, false);
+			if (_wallpaper) _wallpaper.dispose();
+			_wallpaper = new Image(Display.getCurrent, data);
+		} catch (Exception e) {
+			if (_wallpaper) _wallpaper.dispose();
+			_wallpaper = null;
+			debugln(e);
 		}
 	}
 }

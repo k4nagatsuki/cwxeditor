@@ -982,7 +982,7 @@ void delAll(string delpath, bool force = true) {
 }
 
 /// arrにaが見つかればtrueを返す。
-bool contains(string pred = "a == b", T)(T[] arr, T a) {
+bool contains(string pred = "a == b", T)(in T[] arr, in T a) {
 	foreach (b; arr) {
 		if (mixin(pred)) return true;
 	}
@@ -1105,7 +1105,8 @@ class HashSet(T) {
 		a.remove(v);
 	}
 	void clear() {
-		a = (int[T]).init;
+		int[T] init;
+		a = init;
 	}
 	const
 	bool contains(T v) {

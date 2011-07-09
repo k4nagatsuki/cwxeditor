@@ -942,47 +942,48 @@ private:
 	}
 	class KListener : KeyAdapter {
 		override void keyPressed(KeyEvent ke) {
+			int point = (ke.stateMask & SWT.CTRL) ? 10 : 1;
 			switch (ke.keyCode) {
 			case SWT.ARROW_UP: {
 				redrawProc((FlexImage img) {
 					if (ke.stateMask & SWT.SHIFT) {
-						img.newHeight = img.newHeight - 1;
+						img.newHeight = img.newHeight - point;
 					} else {
-						img.newY = img.newY - 1;
+						img.newY = img.newY - point;
 					}
 				});
 			} break;
 			case SWT.ARROW_RIGHT: {
 				redrawProc((FlexImage img) {
 					if (ke.stateMask & SWT.SHIFT) {
-						img.newWidth = img.newWidth + 1;
+						img.newWidth = img.newWidth + point;
 					} else {
-						img.newX = img.newX + 1;
+						img.newX = img.newX + point;
 					}
 				});
 			} break;
 			case SWT.ARROW_DOWN: {
 				redrawProc((FlexImage img) {
 					if (ke.stateMask & SWT.SHIFT) {
-						img.newHeight = img.newHeight + 1;
+						img.newHeight = img.newHeight + point;
 					} else {
-						img.newY = img.newY + 1;
+						img.newY = img.newY + point;
 					}
 				});
 			} break;
 			case SWT.ARROW_LEFT: {
 				redrawProc((FlexImage img) {
 					if (ke.stateMask & SWT.SHIFT) {
-						img.newWidth = img.newWidth - 1;
+						img.newWidth = img.newWidth - point;
 					} else {
-						img.newX = img.newX - 1;
+						img.newX = img.newX - point;
 					}
 				});
 			} break;
 			case SWT.ESC: {
 				redrawProc((FlexImage img) {img.reset;});
 			} break;
-			case SWT.CR: {
+			case SWT.CR, ' ': {
 				redrawProc((FlexImage img) {img.resize;});
 			} break;
 			default: break;

@@ -1010,6 +1010,9 @@ private:
 			static assert (0);
 		}
 	}
+	void refreshWallpaper() {
+		_imgp.setBackgroundImage = _comm.wallpaper;
+	}
 	Control createImagePane(Composite parent) {
 		auto sc = new ScrolledComposite(parent, SWT.H_SCROLL | SWT.V_SCROLL);
 		sc.setExpandHorizontal = false;
@@ -1021,16 +1024,19 @@ private:
 		sc.getVerticalBar.setPageIncrement = vs.height / 5;
 		sc.setLayoutData = new GridData(GridData.FILL_BOTH);
 		_imgp = new ImagePane(sc, SWT.BORDER | SWT.NO_BACKGROUND);
-		auto rgb = new RGB(_prop.var.etc.backgroundColorR,
-			_prop.var.etc.backgroundColorG,
-			_prop.var.etc.backgroundColorB);
+		auto rgb = new RGB(_prop.var.etc.wallColorR,
+			_prop.var.etc.wallColorG,
+			_prop.var.etc.wallColorB);
 		auto color = new Color(Display.getCurrent, rgb);
 		_imgp.setBackgroundColor = color;
-		auto biPath = _prop.var.etc.backgroundImage;
-		if (biPath.length && .exists(biPath)) {
-			auto backImg = loadImage(biPath, false);
-			_imgp.setBackgroundImage = new Image(Display.getCurrent, backImg);
-		}
+		_comm.refWallpaper.add(&refreshWallpaper);
+		_imgp.addDisposeListener(new class DisposeListener {
+			override void widgetDisposed(DisposeEvent e) {
+				_imgp.setBackgroundImage = cast(Image) null;
+				_comm.refWallpaper.remove(&refreshWallpaper);
+			}
+		});
+		refreshWallpaper();
 		sc.setContent(_imgp);
 		auto rect = _imgp.computeSize(vs.width, vs.height);
 		sc.setMinSize(rect.x, rect.y);

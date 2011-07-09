@@ -524,7 +524,6 @@ private:
 		if (isCutted(file)) {
 			return sfimage(file);
 		}
-		// isCardImage()は時間がかかるので別スレッドで実行
 		if (dir) {
 			return _prop.images.folder;
 		} else {
@@ -535,7 +534,6 @@ private:
 		if (isCutted(file)) {
 			return sfimage(file);
 		}
-		// isCardImage()は時間がかかるので別スレッドで実行
 		if (.isdir(file)) {
 			return _prop.images.folder;
 		} else {
@@ -544,7 +542,6 @@ private:
 	}
 	Image sfimage(string file) {
 		auto skin = _comm.skin;
-		// isCardImage()は時間がかかるので別スレッドで実行
 		if (.isdir(file)) {
 			return _sImgFolder;
 		} else if (skin.isCardImage(file)) {
@@ -560,9 +557,13 @@ private:
 		}
 	}
 	private bool isCutted(string file) {
-		return fnmatch("A", "a")
-			? _cuts.contains(toLower(nabs(file)))
-			: _cuts.contains(nabs(file));
+		static if (fnmatch("A", "a")) {
+			file = file.toLower;
+			file = file.nabs;
+			return _cuts.contains(file);
+		} else {
+			return _cuts.contains(nabs(file));
+		}
 	}
 	string toRelPath(string file) {
 		file = nabs(file);

@@ -62,6 +62,10 @@ public:
 	const string dlgTextApply() {return "適用";}
 	const string dlgTextCancel() {return "キャンセル";}
 
+	const string filterAll() {
+		return "すべてのファイル (*.*)";
+	}
+
 	const string fileCopyError(string path) {return path ~ "のコピー中にエラーが発生しました。";}
 	const string reloadError(string path) {return path ~ "の再読込中にエラーが発生しました。";}
 	const string loadProgress(string fname, uint max, uint worked) {
@@ -968,12 +972,15 @@ public:
 	const string dlgTitNewScenario() {return "新規シナリオの作成";}
 	const string createError(string path) {return path ~ "でシナリオの作成に失敗しました。";}
 	const string dlgTitOpenScenario() {return "シナリオを開く";}
-	const string filterScenario() {
+	const string[] filterScenario() {
+		string[] r;
 		if (canUncab) {
-			return "シナリオファイル (*.wsn;Summary.xml;*.cab;*.zip;Summary.wsm;*.wid)";
+			r ~= "シナリオファイル (*.wsn;Summary.xml;*.cab;*.zip;Summary.wsm)";
 		} else {
-			return "シナリオファイル (*.wsn;Summary.xml;*.zip;Summary.wsm;*.wid)";
+			r ~= "シナリオファイル (*.wsn;Summary.xml;*.zip;Summary.wsm)";
 		}
+		r ~= "エリア・カードファイル (*.xml;*.wid)";
+		return r;
 	}
 	const string dlgTitSaveScenario() {return "名前を付けて保存";}
 	const string filterScenarioSave() {return "XMLシナリオファイル (*.wsn)";}
@@ -2047,6 +2054,14 @@ public:
 	const string soundPlayTypeDef() {return "自動選択";}
 	const string soundPlayTypeSDL() {return "SDL(CardWirthPy形式)";}
 	const string soundPlayTypeMCI() {return "MCI(CardWirth形式)";}
+
+	const string wallpaper() {
+		return "エディタの壁紙";
+	}
+	const string filterWallpaper() {
+		return "画像ファイル (*.bmp;*.jpg;*.jpeg;*.png;*.tif;*.tiff;*.ico;*.icon)";
+	}
+	const string dlgTitWallpaper() {return "壁紙画像の選択";}
 
 	const string bgImageAndKeyCode() {return "背景とキーコード";}
 	const string newBgImageSetting() {return "新規作成";}

@@ -1437,9 +1437,9 @@ public:
 		} catch (Exception e) {
 			// 稀な条件でMaterialだけ生成されない場合がある模様
 			debugln(e);
-			if (!.exists(mt)) {
-				mt = temp;
-			}
+		}
+		if (!.exists(mt)) {
+			mt = temp;
 		}
 		foreach (file; clistdir(scenarioPath)) {
 			if (fnmatch(file, "cwxeditor.lock")) {

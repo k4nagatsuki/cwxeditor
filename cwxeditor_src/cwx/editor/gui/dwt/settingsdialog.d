@@ -65,6 +65,7 @@ private:
 	Text _enginePath;
 	Text _tempDir;
 	Text _author;
+	Text _wallpaper;
 	Spinner _histMax;
 	Spinner _sHistMax;
 	Text _ignorePaths;
@@ -209,6 +210,16 @@ private:
 			return getDirName(file);
 		}
 	}
+	const WALLPAPER_EXT = ["bmp", "ico", "icon", "jpg", "jpeg", "gif", "png", "tif", "tiff"];
+	string dropWallpaper(string[] files) {
+		if (!files.length) return "";
+		foreach (file; files) {
+			if (.contains!("a == b", string)(WALLPAPER_EXT, file.getExt.toLower)) {
+				return file;
+			}
+		}
+		return "";
+	}
 	static string selectFile(Text file, string[] name, string[] ext, string fileName, string title, string p) {
 		auto dlg = new FileDialog(file.getShell, SWT.PRIMARY_MODAL | SWT.APPLICATION_MODAL | SWT.SINGLE | SWT.OPEN);
 		dlg.setFilterExtensions = ext;
@@ -277,6 +288,15 @@ private:
 			_tools[i].workDir = fname;
 		}
 	}
+	void selectWallpaper() {
+		auto filterName = [_prop.msgs.filterWallpaper, _prop.msgs.filterAll];
+		string[] filter = [
+			"*." ~ std.string.join(WALLPAPER_EXT.dup, ";*."),
+			"*"
+		];
+		selectFile(_wallpaper, filterName, filter,
+			_prop.var.etc.wallpaper, _prop.msgs.dlgTitWallpaper, getcwd);
+	}
 	private bool _onProc = false;
 	void selectBgImageSetting() {
 		_onProc = true;
@@ -330,6 +350,9 @@ private:
 	}
 	class SelTemp : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {selectTemp;}
+	}
+	class SelWallpaper : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {selectWallpaper;}
 	}
 	class ClearHist : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
@@ -396,22 +419,40 @@ private:
 			comp2.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			comp2.setLayout = zeroMarginGridLayout(2, false);
 			{
-				auto grp = new Group(comp2, SWT.NONE);
-				grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_BEGINNING);
-				auto cl = new CenterLayout;
-				cl.fillHorizontal = true;
-				grp.setLayout = cl;
-				grp.setText = _prop.msgs.scenarioAuthor;
-				_author = new Text(grp, SWT.BORDER);
-				_author.addModifyListener(_mod);
+				auto comp3 = new Composite(comp2, SWT.NONE);
+				comp3.setLayoutData = new GridData(GridData.FILL_BOTH);
+				comp3.setLayout = zeroMarginGridLayout(1, false);
+				{
+					auto grp = new Group(comp3, SWT.NONE);
+					grp.setLayoutData = new GridData(GridData.FILL_BOTH);
+					auto cl = new CenterLayout;
+					cl.fillHorizontal = true;
+					grp.setLayout = cl;
+					grp.setText = _prop.msgs.scenarioAuthor;
+					_author = new Text(grp, SWT.BORDER);
+					_author.addModifyListener(_mod);
+				}
+				{
+					auto grp = new Group(comp3, SWT.NONE);
+					grp.setLayoutData = new GridData(GridData.FILL_BOTH);
+					grp.setLayout = new GridLayout(2, false);
+					grp.setText = _prop.msgs.wallpaper;
+					_wallpaper = new Text(grp, SWT.BORDER);
+					_wallpaper.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+					_wallpaper.addModifyListener(_mod);
+					auto refr = new Button(grp, SWT.PUSH);
+					refr.setText = _prop.msgs.reference;
+					refr.addSelectionListener(new SelWallpaper);
+					setupDropFile(grp, _wallpaper, &dropWallpaper);
+				}
 			}
 			{
 				auto grp = new Group(comp2, SWT.NONE);
-				grp.setLayoutData = new GridData(GridData.FILL_VERTICAL);
 				grp.setText = _prop.msgs.historiesSettings;
+				grp.setLayoutData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
 				grp.setLayout = new GridLayout(3, false);
 				{
-					auto l = new Label(grp, SWT.NONE);
+					auto l = new Label(grp, SWT.CENTER);
 					l.setText = _prop.msgs.openHistoryMax;
 					_histMax = new Spinner(grp, SWT.BORDER);
 					_histMax.setMinimum = 0;
@@ -423,7 +464,7 @@ private:
 					clear.addSelectionListener(new ClearHist);
 				}
 				{
-					auto l = new Label(grp, SWT.NONE);
+					auto l = new Label(grp, SWT.CENTER);
 					l.setText = _prop.msgs.searchHistoryMax;
 					_sHistMax = new Spinner(grp, SWT.BORDER);
 					_sHistMax.setMinimum = 0;
@@ -1043,6 +1084,7 @@ protected:
 		_enginePath.setText = _prop.var.etc.enginePath;
 		_tempDir.setText = _prop.var.etc.tempPath;
 		_author.setText = _prop.var.etc.defaultAuthor;
+		_wallpaper.setText = _prop.var.etc.wallpaper;
 		_histMax.setSelection = _prop.var.etc.historyMax;
 		_sHistMax.setSelection = _prop.var.etc.searchHistoryMax;
 		string ipbuf = "";
@@ -1115,6 +1157,7 @@ protected:
 			return false;
 		}
 		string oldEnginePath = _prop.var.etc.enginePath;
+		string oldWallpaper = _prop.var.etc.wallpaper;
 		auto oldKeyCodes = _prop.var.etc.standardKeyCodes;
 		auto tools = _prop.var.etc.outerTools;
 		auto oldIgnorePaths = _prop.var.etc.ignorePaths;
@@ -1123,6 +1166,10 @@ protected:
 			if (_summ && oldEnginePath != _prop.var.etc.enginePath) {
 				_comm.skin = findSkin(_prop, _summ);
 				_comm.refSkin.call;
+			}
+			if (oldWallpaper != _prop.var.etc.wallpaper) {
+				_comm.refreshWallpaper(_prop);
+				_comm.refWallpaper.call;
 			}
 			if (oldKeyCodes != _prop.var.etc.standardKeyCodes) {
 				_comm.refStandardKeyCodes.call;
@@ -1140,6 +1187,7 @@ protected:
 		_prop.var.etc.enginePath = engine;
 		_prop.var.etc.tempPath = temp;
 		_prop.var.etc.defaultAuthor = _author.getText;
+		_prop.var.etc.wallpaper = _wallpaper.getText;
 		_prop.var.etc.historyMax = _histMax.getSelection;
 		_prop.var.etc.searchHistoryMax = _sHistMax.getSelection;
 		string[] ipLines = splitlines(_ignorePaths.getText);
