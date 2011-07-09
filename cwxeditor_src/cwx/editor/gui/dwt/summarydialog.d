@@ -21,6 +21,7 @@ import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.splitpane;
 
+import std.conv;
 import std.string;
 
 import org.eclipse.swt.widgets.Display;

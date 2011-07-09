@@ -1,14 +1,18 @@
 
 module cwx.editor.gui.dwt.mainwindow;
 
+import core.thread;
+
+import std.conv;
 import std.file;
 import std.path;
 import std.zip;
 import std.utf;
 import std.process;
-import std.thread;
 import std.metastrings;
 import std.string;
+import std.datetime;
+import std.regex;
 debug import std.stdio;
 
 import cwx.cwl;
@@ -43,6 +47,7 @@ import cwx.editor.gui.dwt.flagspane;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.utils;
 
+import org.eclipse.swt.SWTException;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.KeyListener;
@@ -129,6 +134,10 @@ version (Windows) {
 public:
 class MainWindow : TopLevelPanel {
 private:
+	Display _display = null;
+	bool _quit = false;
+	Object _saveSync = null;
+
 	SBShell _sbshl = null;
 	Shell _win = null;
 	DockingFolderCTC _dock = null;
@@ -148,6 +157,61 @@ private:
 			_win.setText = _prop.msgs.mainWindowName(summary.scenarioName, path);
 		} else {
 			_win.setText = _prop.msgs.mainWindowName(null, null);
+		}
+	}
+
+	private SysTime _lastBackup;
+	void backupThr() {
+		_lastBackup = Clock.currTime;
+		while (!_quit) {
+			if (_lastBackup + dur!"minutes"(_prop.var.etc.backupInterval) <= Clock.currTime) {
+				createBackup();
+				_lastBackup = Clock.currTime;
+			}
+			core.thread.Thread.sleep(dur!"seconds"(1));
+		}
+		debug writefln("Exit Backup Thread");
+	}
+	void createBackup() {
+		try {
+			if (_quit) return;
+			auto summ = summary;
+			if (!summ) return;
+			string parent = _prop.backupPath;
+			auto bc = _prop.var.etc.backupCount;
+			if (0 < bc) {
+				string sPath = summ.scenarioPath;
+				auto d = Clock.currTime;
+				string file = .format("cwxeditor_backup_%04d%02d%02d%02d%02d%02d[%s].zip",
+					d.year, d.month, d.day, d.hour, d.minute, d.second, sPath.basename);
+				string zFile = std.path.join(parent, file);
+				if (!parent.exists) mkdirRecurse(parent);
+				synchronized (_saveSync) {
+					.zip(sPath, zFile, true, [std.path.join(sPath, "cwxeditor.lock")], true);
+				}
+			}
+
+			// 古いバックアップを削除する
+			auto reg = .regex("^cwxeditor_backup_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]\\[.+\\]\\.zip$"d);
+			auto files = clistdir(parent);
+			string[] backup;
+			foreach (f; files) {
+				if (match(to!dstring(f), reg).empty) continue;
+				backup ~= f;
+			}
+			if (backup.length <= bc) return;
+			// 実際の更新日時よりファイル名に記述された日付を優先する
+			backup = backup.sort;
+			foreach (f; backup[0 .. backup.length - bc]) {
+				f = std.path.join(parent, f);
+				try {
+					std.file.remove(f);
+				} catch (Exception e) {
+					debugln(e);
+				}
+			}
+		} catch (Exception e) {
+			debugln(e);
 		}
 	}
 
@@ -238,6 +302,7 @@ private:
 	}
 	void openScenario(Summary summ) {
 		assert (summ);
+		_lastBackup = Clock.currTime;
 		_dirWin.stopTrace;
 		scope (exit) _dirWin.resumeTrace;
 		if (_prop.var.etc.logicalSort) {
@@ -248,7 +313,8 @@ private:
 		summ.flagDirRoot.sortFlags(true);
 		summ.flagDirRoot.sortSteps(true);
 		auto old = summary;
-		if (summ.type.length && !hasSkin(_prop, summ.type) && summ.type != _prop.var.etc.defaultSkin) {
+		if (summ.type.length && !hasSkin(_prop, summ.type)
+				&& summ.type != _prop.var.etc.defaultSkin) {
 			MessageBox.showWarning(_prop.msgs.useDefaultSkin(summ.type, _prop.var.etc.defaultSkin),
 				_prop.msgs.dlgTitWarning, _win);
 			summ.type = _prop.var.etc.defaultSkin;
@@ -275,7 +341,11 @@ private:
 		setupMenu(_tool);
 		addHistory;
 		try {
-			if (old) old.delTemp;
+			if (old) {
+				synchronized (_saveSync) {
+					old.delTemp;
+				}
+			}
 		} catch (Exception e) {
 			debugln(e);
 		}
@@ -312,7 +382,8 @@ private:
 		}
 		decScenarioPath(fname, _openPaths);
 		auto old = summary;
-		loadScenarioFromFile!(Summary)(_prop, _win, &setStatusLine, _prop.var.etc.expandXMLs, old, fname, &openScenarioImpl);
+		loadScenarioFromFile!(Summary)(_prop, _win, &setStatusLine,
+			_prop.var.etc.expandXMLs, old, fname, &openScenarioImpl);
 	}
 	void saveScenario() {
 		save(_win);
@@ -331,7 +402,9 @@ private:
 				shell.setCursor = Display.getCurrent.getSystemCursor(SWT.CURSOR_WAIT);
 				scope (exit) shell.setCursor = null;
 				try {
-					summary.saveOverwrite(_prop.parent, _prop.var.etc.saveInnerImagePath);
+					synchronized (_saveSync) {
+						summary.saveOverwrite(_prop.parent, _prop.var.etc.saveInnerImagePath);
+					}
 					_comm.saved.call;
 					addHistory;
 					return true;
@@ -366,10 +439,13 @@ private:
 				bool expandXMLs = _prop.var.etc.expandXMLs;
 				Skin defSkin = .findSkin2(_prop, _prop.var.etc.defaultSkin);
 				try {
-					summary.saveWithName(_prop.parent, _prop.var.etc.saveInnerImagePath,
-						fname, tempPath, expandXMLs, defSkin, (string msg) {
-							MessageBox.showWarning(msg, _prop.msgs.dlgTitWarning, shell);
-						});
+					synchronized (_saveSync) {
+						summary.saveWithName(_prop.parent,
+							_prop.var.etc.saveInnerImagePath,
+							fname, tempPath, expandXMLs, defSkin, (string msg) {
+								MessageBox.showWarning(msg, _prop.msgs.dlgTitWarning, shell);
+							});
+					}
 					_comm.saved.call;
 					_comm.refScenarioPath.call;
 					_comm.refSkin.call;
@@ -443,7 +519,6 @@ private:
 				dlg = new MessageBox(_win, SWT.YES | SWT.NO | SWT.CANCEL | SWT.ICON_QUESTION);
 				dlg.setMessage = _prop.msgs.dlgMsgIsSaveBeforeExit(summary.scenarioName);
 			}
-			scope (exit) dlg.dispose;
 			dlg.setText = _prop.msgs.dlgTitQuestion;
 			_win.setMinimized = false;
 			switch (dlg.open) {
@@ -467,8 +542,10 @@ private:
 	}
 	class DListener : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
+			_quit = true;
 			_comm.refScenarioName.remove(&__refreshTitle);
 			_comm.refScenarioPath.remove(&__refreshTitle);
+			_comm.refWallpaper.remove(&redrawAll);
 			_comm.replText.remove(&__refreshTitle);
 
 			auto b = _win.getBounds;
@@ -487,19 +564,21 @@ private:
 				if (summary && summary.useTemp) {
 					_dirWin.stopTrace;
 					try {
-						summary.delTemp;
+						synchronized (_saveSync) {
+							summary.delTemp;
+						}
 					} catch (Exception e) {
 						debugln(e);
 					}
 				}
-			} catch (Object e) {
+			} catch (Throwable e) {
 				_win.setVisible = true;
 				throw e;
 			}
 		}
 	}
 	void settings() {
-		string[] oldHist = _prop.var.etc.openHistories;
+		const(string)[] oldHist = _prop.var.etc.openHistories;
 		scope (exit) {
 			if (oldHist != _prop.var.etc.openHistories) {
 				createFileMenu;
@@ -527,16 +606,16 @@ private:
 		}
 		hist = nabs(hist);
 		_prop.var.etc.scenarioPath = summary.useTemp ? getDirName(hist) : getDirName(getDirName(hist));
-		foreach (i, h; _prop.var.etc.openHistories) {
+		auto hists = _prop.var.etc.openHistories.dup;
+		foreach (i, h; hists) {
 			if (std.path.fnmatch(h, hist)) {
-				_prop.var.etc.openHistories
-					= _prop.var.etc.openHistories[0 .. i] ~ _prop.var.etc.openHistories[i + 1 .. $];
+				_prop.var.etc.openHistories = hists[0 .. i] ~ hists[i + 1 .. $];
+				hists = _prop.var.etc.openHistories.dup;
 				break;
 			}
 		}
-		_prop.var.etc.openHistories = [hist]
-			~ (_prop.var.etc.openHistories.length < _prop.var.etc.historyMax
-			? _prop.var.etc.openHistories : _prop.var.etc.openHistories[0 .. $ - 1]);
+		_prop.var.etc.openHistories
+			= [hist] ~ (hists.length < _prop.var.etc.historyMax ? hists : hists[0 .. $ - 1]);
 		_prop.var.save(dock);
 		createFileMenu;
 	}
@@ -545,22 +624,21 @@ private:
 		this(Menu menu, int num, string hist) {
 			string text;
 			Image img;
+			auto snipLen = _prop.var.etc.historySnipLength;
 			if (std.path.fnmatch(getBaseName(hist), "Summary.xml")) {
-				text = cuthist(hist[0u .. $ - "Summary.xml".length - std.path.sep.length],
-					_prop.var.etc.historySnipLength);
+				text = cuthist(hist[0u .. $ - "Summary.xml".length - std.path.sep.length], snipLen);
 				img = _prop.images.summaryFile;
 			} else if (fnmatch(getExt(hist), "wsn")) {
-				text = cuthist(hist, _prop.var.etc.historySnipLength);
+				text = cuthist(hist, snipLen);
 				img = _prop.images.scenarioArchive;
 			} else if (std.path.fnmatch(getBaseName(hist), "Summary.wsm")) {
-				text = cuthist(hist[0u .. $ - "Summary.wsm".length - std.path.sep.length],
-					_prop.var.etc.historySnipLength);
+				text = cuthist(hist[0u .. $ - "Summary.wsm".length - std.path.sep.length], snipLen);
 				img = _prop.images.classic;
 			} else if (fnmatch(getExt(hist), "cab") || fnmatch(getExt(hist), "zip")) {
-				text = cuthist(hist, _prop.var.etc.historySnipLength);
+				text = cuthist(hist, snipLen);
 				img = _prop.images.scenarioArchive;
 			} else {
-				text = cuthist(hist, _prop.var.etc.historySnipLength);
+				text = cuthist(hist, snipLen);
 				img = _prop.images.unknown;
 			}
 			string nstr;
@@ -638,20 +716,20 @@ private:
 		new MenuItem(_menuFile, SWT.SEPARATOR);
 		mixin (MenuAction!("_menuFile", "Reload", SWT.PUSH, "reload"));
 		new MenuItem(_menuFile, SWT.SEPARATOR);
-		foreach (i, hist; _prop.var.etc.openHistories) {
+		auto hists = _prop.var.etc.openHistories;
+		foreach (i, hist; hists) {
 			new Hist(_menuFile, i + 1, hist);
 		}
-		if (_prop.var.etc.openHistories.length > 0) new MenuItem(_menuFile, SWT.SEPARATOR);
+		if (hists.length > 0) new MenuItem(_menuFile, SWT.SEPARATOR);
 		createMenuItem(_menuFile, _prop.msgs.menuClose, _prop.images.menuClose, &exitAll);
 		setupMenu(_menu);
 	}
-	Display _display = null;
 	static const PIPE_APP_MAX = 256;
 	string _pipeName = "";
 	class OpenCWXPath : Runnable {
 		string path;
 		override void run() {
-			auto paths = split(path, ";");
+			auto paths = std.string.split(path, ";");
 			if (!paths.length) paths = [""];
 			foreach (p; paths) {
 				try {
@@ -660,13 +738,13 @@ private:
 			}
 		}
 	}
-	int pipeThr() {
-		if (!_pipeName.length) return -1;
+	void pipeThr() {
+		if (!_pipeName.length) return;
 		version (Windows) {
 			auto pipe = CreateNamedPipeW(toUTF16z(_pipeName), PIPE_ACCESS_DUPLEX,
 				PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT,
 				1, MAX_PATH, MAX_PATH, 1000, null);
-			if (pipe == INVALID_HANDLE_VALUE) return -1;
+			if (pipe == INVALID_HANDLE_VALUE) return;
 			scope (exit) CloseHandle(pipe);
 			char[MAX_PATH] buf;
 			DWORD len;
@@ -674,7 +752,7 @@ private:
 			while (ConnectNamedPipe(pipe, null)) {
 				scope (exit) DisconnectNamedPipe(pipe);
 				if (!ReadFile(pipe, buf.ptr, buf.length, &len, null)) continue;
-				string rstr = buf[0 .. len];
+				char[] rstr = buf[0 .. len];
 				if (rstr == "quit") break;
 				auto summ = summary;
 				if (rstr == "get opened scenario" && summ) {
@@ -688,8 +766,8 @@ private:
 					if (!ReadFile(pipe, buf.ptr, buf.length, &len, null)) continue;
 					rstr = buf[0 .. len];
 				}
-				if (cwx.utils.startsWith(rstr, "open cwxpath ")) {
-					openPath.path = rstr["open cwxpath ".length .. $];
+				if (std.string.startsWith(rstr, "open cwxpath ")) {
+					openPath.path = rstr["open cwxpath ".length .. $].idup;
 					_display.asyncExec(openPath);
 				}
 			}
@@ -700,7 +778,7 @@ private:
 			sockaddr_un laddr;
 			laddr.sun_family = AF_UNIX;
 			strcpy(&(laddr.sun_path[1]), _pipeName.ptr);
-			if (0 != cbind(pipe, cast(sockaddr*) &laddr, laddr.sizeof)) return -1;
+			if (0 != cbind(pipe, cast(sockaddr*) &laddr, laddr.sizeof)) return;
 			if (0 != listen(pipe, 1)) return -1;
 			char[4096] buf;
 			int len;
@@ -725,7 +803,7 @@ private:
 					if (-1 == (len = cread(pipe, buf.ptr, buf.length))) continue;
 					rstr = buf[0 .. len];
 				}
-				if (cwx.utils.startsWith(rstr, "open cwxpath ")) {
+				if (std.string.startsWith(rstr, "open cwxpath ")) {
 					openPath.path = rstr["open cwxpath ".length .. $];
 					_display.asyncExec(openPath);
 				}
@@ -733,7 +811,6 @@ private:
 			close(pipe);
 		}
 		debug writefln("Exit Pipe Thread");
-		return 0;
 	}
 public:
 	this (string appPath, string propFilePath, cwx.system.System sys,
@@ -768,7 +845,7 @@ public:
 				string send = "get opened scenario";
 				if (!WriteFile(p, send.ptr, send.length, &len, null)) continue;
 				if (!ReadFile(p, buf.ptr, buf.length, &len, null)) continue;
-				auto path2 = nabs(buf[0 .. len]);
+				auto path2 = nabs(buf[0 .. len].idup);
 				if (!fnmatch(path1, path2)) continue;
 				send = "open cwxpath ";
 				foreach (j, s; openPaths) {
@@ -811,22 +888,8 @@ public:
 		}
 		_firstScenarioPath = firstScenarioPath;
 		_openPaths = openPaths;
+		_saveSync = new Object;
 		_prop = new Props(propFilePath, new CProps(appPath, sys));
-		if (_prop.var.etc.tempPath.length == 0) {
-			string t = getenv("TEMP");
-			if (t) _prop.var.etc.tempPath = std.path.join(t, "cwxeditor");
-		}
-		if (_prop.var.etc.tempPath.length == 0) {
-			string t = getenv("TMP");
-			if (t) _prop.var.etc.tempPath = std.path.join(t, "cwxeditor");
-		}
-		if (_prop.var.etc.tempPath.length == 0) {
-			string t = getenv("TMPDIR");
-			if (t) _prop.var.etc.tempPath = std.path.join(t, "cwxeditor");
-		}
-		if (_prop.var.etc.tempPath.length == 0) {
-			_prop.var.etc.tempPath = "temp";
-		}
 		if (exists(_prop.tempPath)) {
 			foreach (temp; clistdir(_prop.tempPath)) {
 				temp = std.path.join(_prop.tempPath, temp);
@@ -879,9 +942,11 @@ public:
 		_comm.save.add(&savec);
 		_comm.refScenarioName.add(&__refreshTitle);
 		_comm.refScenarioPath.add(&__refreshTitle);
+		_comm.refWallpaper.add(&redrawAll);
 		_comm.replText.add(&__refreshTitle);
 		_win.addDisposeListener(new DListener);
 		_win.addShellListener(new SListener);
+		_comm.refreshWallpaper(_prop);
 		foreach (f; _prop.looks.fontFiles) {
 			d.loadFont(std.path.join(engineDir, f));
 		}
@@ -1264,6 +1329,9 @@ public:
 		}
 		if (_dock) dockSelect("data");
 	}
+	private void redrawAll() {
+		_win.redraw(true);
+	}
 	private template NewCard(string Name) {
 		static const NewCard = "auto cw = cast(ICardWindow) _tlp;"
 			~ "if (cw && cw.canCreate" ~ Name ~ ") {"
@@ -1284,16 +1352,11 @@ public:
 	}
 	private class TabfPaint : PaintListener {
 		override void paintControl(PaintEvent e) {
-			auto path = _prop.var.etc.backgroundImage;
-			if (!path.length || !.exists(path)) return;
+			if (!_comm.wallpaper) return;
 			auto tabf = cast(CTabFolder) e.widget;
 			if (!tabf || tabf.getItemCount > 0) return;
 			auto rect = tabf.getClientArea;
-			auto data = loadImage(path, false);
-			auto d = Display.getCurrent;
-			auto img = new Image(d, data);
-			scope (exit) img.dispose;
-			drawTileImage(e.gc, img, rect);
+			drawTileImage(e.gc, _comm.wallpaper, rect);
 		}
 	}
 	private class TabMenu {
@@ -1471,15 +1534,15 @@ public:
 	}
 	private bool dockCanMove(string ctrlKey, string dropPaneKey) {
 		if (!dropPaneKey.length) return true;
-		bool iswa = cwx.utils.startsWith(dropPaneKey, "work");
-		if (cwx.utils.startsWith(ctrlKey, "work")) {
+		bool iswa = std.string.startsWith(dropPaneKey, "work");
+		if (std.string.startsWith(ctrlKey, "work")) {
 			return iswa;
 		} else {
 			return !iswa;
 		}
 	}
 	private bool dockCanVanish(string key) {
-		if (cwx.utils.startsWith(key, "work")) {
+		if (std.string.startsWith(key, "work")) {
 			return _dock.findPane("work").length > 1;
 		}
 		if (_dock.panes.length == 2) {
@@ -1492,9 +1555,9 @@ public:
 		return true;
 	}
 	private string dockNewPaneName(string ctrlKey, string basePane, Dir dir) {
-		if (cwx.utils.startsWith(ctrlKey, "work")) {
+		if (std.string.startsWith(ctrlKey, "work")) {
 			return _dock.newPaneKey("work");
-		} else if (cwx.utils.startsWith(basePane, "work")) {
+		} else if (std.string.startsWith(basePane, "work")) {
 			if (dir == Dir.E || dir == Dir.W) {
 				return _dock.newPaneKey("side");
 			} else if (dir == Dir.N || dir == Dir.S) {
@@ -1545,7 +1608,6 @@ public:
 	void reNumberingAll() {
 		if (!summary) return;
 		auto dlg = new MessageBox(_win, SWT.ICON_QUESTION | SWT.OK | SWT.CANCEL);
-		scope (exit) dlg.dispose;
 		dlg.setText = _prop.msgs.dlgTitQuestion;
 		dlg.setMessage = _prop.msgs.reNumberingAll;
 		if (SWT.OK == dlg.open) {
@@ -1624,8 +1686,10 @@ public:
 			openScenario(_firstScenarioPath);
 		}
 
-		auto pipe = new std.thread.Thread(&pipeThr);
+		auto pipe = new core.thread.Thread(&pipeThr);
 		pipe.start;
+		auto backup = new core.thread.Thread(&backupThr);
+		backup.start;
 		version (Windows) {
 			scope (exit) {
 				auto p = CreateFileW(toUTF16z(_pipeName),
@@ -1658,27 +1722,21 @@ public:
 					if (!d.readAndDispatch) {
 						d.sleep;
 					}
-				} catch (Exception e) {
+				} catch (Throwable e) {
 					_win.setVisible = true;
 					fdebugln(e.msg ~ ", " ~ e.file ~ ", " ~ to!(string)(e.line));
 					auto dlg = new MessageBox(_win, SWT.ICON_ERROR | SWT.OK);
-					scope (exit) dlg.dispose;
 					dlg.setText = _prop.msgs.dlgTitError;
 					dlg.setMessage = _prop.msgs.unknownError ~ "\n---\n" ~ e.msg;
-					dlg.open;
-				} catch (Object o) {
-					_win.setVisible = true;
-					fdebugln(o.toString);
-					auto dlg = new MessageBox(_win, SWT.ICON_ERROR | SWT.OK);
-					scope (exit) dlg.dispose;
-					dlg.setText = _prop.msgs.dlgTitError;
-					dlg.setMessage = _prop.msgs.unknownError ~ "\n---\n" ~ o.toString;
 					dlg.open;
 				}
 			}
 		}
+		_comm.dispose;
 		_dirWin.quitTrace;
 		_prop.images.disposeImages;
+		_quit = true;
+		backup.join();
 		d.dispose;
 		_prop.var.save(dock);
 		debug writefln("Exit Main Thread");
@@ -1759,7 +1817,6 @@ protected:
 			if (_prop.var.etc.canCreateClassic && _skinC.getSelectionIndex == _skinC.getItemCount - 1) {
 				_skinVal = "";
 				auto dlg = new DirectoryDialog(getShell);
-				scope (exit) dlg.dispose;
 				dlg.setText = _prop.msgs.newClassicDir;
 				dlg.setMessage = _prop.msgs.newClassicDirDesc;
 				dlg.setFilterPath = _prop.var.etc.scenarioPath;
@@ -1768,7 +1825,6 @@ protected:
 					if (path) {
 						if (clistdir(path).length) {
 							auto q = new MessageBox(getShell, SWT.OK | SWT.CANCEL | SWT.ICON_QUESTION);
-							scope (exit) q.dispose;
 							q.setText = _prop.msgs.dlgTitQuestion;
 							q.setMessage = _prop.msgs.notEmptyDir(path);
 							if (SWT.OK != q.open) continue;

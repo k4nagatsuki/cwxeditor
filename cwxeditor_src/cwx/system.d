@@ -15,6 +15,7 @@ class System {
 	/// バリアントの型名については次のサイトを参照した。
 	/// http://www.geocities.jp/chikuan_shusui/history/variant_engine.htm
 	/// http://dwandnl.web.fc2.com/darkwirth/
+	const
 	string sexName(Sex s, string legacyName) {
 		switch (s) {
 		case Sex.MALE: return "♂";
@@ -23,6 +24,7 @@ class System {
 		}
 	}
 	/// ditto
+	const
 	string periodName(Period p, string legacyName) {
 		switch (p) {
 		case Period.CHILD: return "子供";
@@ -33,6 +35,7 @@ class System {
 		}
 	}
 	/// ditto
+	const
 	string natureName(Nature n, string legacyName) {
 		switch (n) {
 		case Nature.SPI: {
@@ -125,6 +128,7 @@ class System {
 		}
 	}
 	/// ditto
+	const
 	string makingsName(Makings m, string legacyName) {
 		switch (m) {
 		case Makings.LOOKS_B: return "秀麗";
@@ -180,27 +184,33 @@ class System {
 	}
 
 	/// 各特性をクーポンに変換する。
+	const
 	string sexCoupon(Sex p, string legacyName) {
 		return "＿" ~ sexName(p, legacyName);
 	}
 	/// ditto
+	const
 	string periodCoupon(Period p, string legacyName) {
 		return "＿" ~ periodName(p, legacyName);
 	}
 	/// ditto
+	const
 	string natureCoupon(Nature n, string legacyName) {
 		return "＿" ~ natureName(n, legacyName);
 	}
 	/// ditto
+	const
 	string makingsCoupon(Makings m, string legacyName) {
 		return "＿" ~ makingsName(m, legacyName);
 	}
 
 	/// ペナルティカードであればtrue。
+	const
 	bool isPenalty(EffectCard card) {
 		return contains(card.keyCodes, "ペナルティ");
 	}
 	/// リサイクルカードであればtrue。
+	const
 	bool isRecycle(EffectCard card) {
 		return contains(card.keyCodes, "リサイクル");
 	}

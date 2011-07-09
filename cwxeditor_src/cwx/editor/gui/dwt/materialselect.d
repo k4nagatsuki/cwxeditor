@@ -11,6 +11,7 @@ import cwx.editor.gui.dwt.skin;
 import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.commons;
 
+import std.array;
 import std.file;
 import std.path;
 import std.string;
@@ -112,7 +113,6 @@ public:
 				}
 				if (r.length > 0) {
 					auto dlg = new MessageBox(control.getShell, SWT.ICON_QUESTION | SWT.YES | SWT.NO);
-					scope (exit) dlg.dispose;
 					dlg.setMessage = _prop.msgs.dlgMsgDropFiles(r);
 					dlg.setText = _prop.msgs.dlgTitDropFiles;
 					if (SWT.YES == dlg.open) {
@@ -262,7 +262,35 @@ private:
 	class LSListener : SelectionAdapter {
 		public override void widgetSelected(SelectionEvent e) {
 			int index = _fileList.getSelectionIndex;
-			if (index >= 0) {
+			if (index < 0) return;
+			if (_allList) {
+				string s = _fileList.getItem(index);
+				string file;
+				if (s.startsWith("/")) {
+					s = s["/".length .. $];
+					int i = s.lastIndexOf("/");
+					if (i != -1) {
+						file = s[i + "/".length .. $];
+						s = s[0 .. i];
+					} else {
+						file = s;
+						s = "/";
+					}
+					_dirs.setText = s;
+				} else {
+					_dirs.select = _tbl;
+					file = s;
+				}
+				refreshList();
+				_fileList.select = _fileList.indexOf(file);
+				static if (is (C == List)) {
+					_fileList.showSelection();
+				}
+				string p = currentDir;
+				_path = std.path.join(p, file);
+				_selDir = _dirs.getSelectionIndex;
+				if (_refresh) _refresh();
+			} else {
 				string p = currentDir;
 				if (!p) {
 					static if (is(C : Combo) || is(C : CCombo)) {
@@ -320,12 +348,40 @@ private:
 		return indexOf(_dirs, path);
 	}
 	void __refreshList(string path, bool forceRefresh) {
-		auto tgs = targs(path, forceRefresh);
+		string[] s = targs(path, forceRefresh);
 		if (_prop.var.etc.logicalSort) {
-			tgs = sort!(fnncmp)(tgs);
+			s = sort!(fnncmp)(s);
 		} else {
-			tgs = sort!(fncmp)(tgs);
+			s = sort!(fncmp)(s);
 		}
+		__refreshListImpl(s);
+		_allList = false;
+	}
+	void __refreshList(string[] paths, bool forceRefresh) {
+		string[] tgs;
+		foreach (path; paths) {
+			string parent;
+			if (fnmatch(path, defDir)) {
+				parent = "";
+			} else {
+				parent = abs2rel(_summ.scenarioPath, path);
+				parent = sep.idup ~ parent;
+			}
+			string[] s = targs(path, forceRefresh);
+			if (_prop.var.etc.logicalSort) {
+				s = sort!(fnncmp)(s);
+			} else {
+				s = sort!(fncmp)(s);
+			}
+			foreach (ref f; s) {
+				f = encodePath(std.path.join(parent, f));
+			}
+			tgs ~= s;
+		}
+		__refreshListImpl(tgs);
+		_allList = true;
+	}
+	void __refreshListImpl(string[] tgs) {
 		foreach (f; tgs) {
 			_fileList.add(f);
 		}
@@ -345,31 +401,29 @@ private:
 			static assert (false);
 		}
 	}
+	string[] allDirs() {
+		string[] st = [defDir];
+		foreach (i; _defs.length .. _dirs.getItemCount) {
+			string t = _dirs.getItem(i);
+			if (t == "/") {
+				st ~= nabs(_summ.scenarioPath);
+			} else {
+				st ~= nabs(std.path.join(_summ.scenarioPath, fromViewPath(t)));
+			}
+		}
+		return st;
+	}
 	void refreshList(bool forceRefresh = false) {
 		_fileList.removeAll;
 		if (_dirs.getSelectionIndex < _defs.length) {
-			if (_dirs.getItemCount == _defs.length) {
+			auto dirs = allDirs;
+			if (!dirs.length) {
 				_fileList.setEnabled = false;
 			} else {
-				string st = "";
-				if (_tbl > -1) {
-					st = defDir;
-				} else if (_summ) {
-					st = _dirs.getItem(_defs.length);
-					if (st == "/") {
-						st = _summ.scenarioPath;
-					} else {
-						st = std.path.join(_summ.scenarioPath, fromViewPath(st));
-					}
-				}
-				if (st.length) {
-					__refreshList(st, forceRefresh);
-					static if (is(C : Combo) || is(C : CCombo)) {
-						_fileList.add(_prop.msgs.fileNone, 0);
-						_fileList.select = 0;
-					} else {
-						_fileList.select = -1;
-					}
+				__refreshList(dirs, forceRefresh);
+				static if (is(C : Combo) || is(C : CCombo)) {
+					_fileList.add(_prop.msgs.fileNone, 0);
+					_fileList.select = 0;
 				} else {
 					_fileList.select = -1;
 				}
@@ -450,8 +504,8 @@ private:
 							_dirs.select = _tbl;
 						}
 					} else if (_summ) {
-						auto pt = getDirName(p);
-						pt = pt.length <= cut ? sep : pt[cut .. $];
+						string pt = getDirName(p);
+						pt = pt.length <= cut ? sep.idup : pt[cut .. $];
 						pt = toViewPath(pt);
 						_dirs.select = dirsIndexOf(pt);
 					}
@@ -523,5 +577,6 @@ private:
 	int _including = -1;
 	int _tbl = -1;
 	C _fileList;
+	bool _allList = false;
 	void delegate() _refresh;
 }

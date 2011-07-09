@@ -4,7 +4,6 @@ module cwx.graphics;
 import cwx.jpy;
 import cwx.utils;
 
-import std.compat;
 import std.string;
 import std.random;
 
@@ -29,9 +28,9 @@ struct Pixels {
 		case 16:
 			size_t d1 = data[i];
 			size_t d2 = data[i + 1];
-			return FC((d2 << 1) & 0xF8,
-				(d2 << 6) | ((d1 & 0xC0) >> 2),
-				d1 << 3);
+			return FC(cast(ubyte) ((d2 << 1) & 0xF8),
+				cast(ubyte) ((d2 << 6) | ((d1 & 0xC0) >> 2)),
+				cast(ubyte) (d1 << 3));
 		default:
 			throw new Exception(.format("bit depth: %d", depth), __FILE__, __LINE__);
 		}
@@ -46,8 +45,8 @@ struct Pixels {
 			data[i + 0] = b;
 			break;
 		case 16:
-			data[i + 1] = ((r & 0xF8) >> 1) | (g >> 6);
-			data[i + 0] = ((g << 2) & 0xE0) | (b >> 3);
+			data[i + 1] = cast(ubyte) (((r & 0xF8) >> 1) | (g >> 6));
+			data[i + 0] = cast(ubyte) (((g << 2) & 0xE0) | (b >> 3));
 			break;
 		default:
 			throw new Exception(.format("bit depth: %d", depth), __FILE__, __LINE__);
@@ -260,20 +259,19 @@ private ubyte[] emboss(ubyte[] data, size_t depth, size_t width, size_t height, 
 }
 private ubyte[] deffusion(ubyte[] data, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
 	if (width < 1 || height < 1) return data;
-	uint nextSeed = rand;
-	rand_seed(1, 0); // 拡散値を固定する
-	scope (exit) rand_seed(nextSeed, 0);
+	Random rnd;
+	rnd.seed = 1; // 拡散値を固定する
 	size_t bpp = bytesPerLine / width;
 	auto base = Pixels(data, width, height, depth, bpp);
 	auto r = Pixels(new ubyte[data.length], width, height, depth, bpp);
 	for (size_t y = 0; y < height; y++) {
 		// cwconv.dllの実装では縦方向への拡散が微妙だがそれに合わせる
 		// 真に拡散させたい場合、jyの計算はxのループの内側にあるべき
-		int jy = y + cast(int) rand % 3;
+		int jy = y + uniform(0, 3, rnd);
 		if (jy < 0) jy = 0;
 		if (height <= jy) jy = height - 1;
 		for (size_t x = 0; x < width; x++) {
-			int jx = x + cast(int) rand % 3;
+			int jx = x + uniform(0, 3, rnd);
 			if (jx < 0) jx = 0;
 			if (width <= jx) jx = width - 1;
 			r.set(x, y, r.get(jx, jy));
@@ -405,7 +403,7 @@ ubyte[] mask(Mask f, ubyte[] data, size_t depth, size_t width, size_t height, si
 	}
 	return r.data;
 }
-void noiseImpl(Noise f, ref FCu rgb, int value) {
+void noiseImpl(ref Random rnd, Noise f, ref FCu rgb, int value) {
 	switch (f) {
 	case Noise.NONE: return;
 	case Noise.LIGHT: {
@@ -421,12 +419,12 @@ void noiseImpl(Noise f, ref FCu rgb, int value) {
 	} break;
 	case Noise.NOISE: {
 		if (value >= 0) {
-			auto val = cast(int) rand % value;
+			auto val = uniform(0, value, rnd);
 			rgb.r += val;
 			rgb.g += val;
 			rgb.b += val;
 		} else {
-			int val = (rand & 1) ? 255 : 0;
+			int val = uniform(0, 2, rnd) ? 255 : 0;
 			rgb.r = val;
 			rgb.g = val;
 			rgb.b = val;
@@ -434,13 +432,13 @@ void noiseImpl(Noise f, ref FCu rgb, int value) {
 	} break;
 	case Noise.C_NOISE: {
 		if (value >= 0) {
-			rgb.r += cast(int) rand % value;
-			rgb.g += cast(int) rand % value;
-			rgb.b += cast(int) rand % value;
+			rgb.r += uniform(0, value, rnd);
+			rgb.g += uniform(0, value, rnd);
+			rgb.b += uniform(0, value, rnd);
 		} else {
-			rgb.r = (rand & 1) ? 255 : 0;
-			rgb.g = (rand & 1) ? 255 : 0;
-			rgb.b = (rand & 1) ? 255 : 0;
+			rgb.r = uniform(0, 2, rnd) ? 255 : 0;
+			rgb.g = uniform(0, 2, rnd) ? 255 : 0;
+			rgb.b = uniform(0, 2, rnd) ? 255 : 0;
 		}
 	} break;
 	default: assert (0);
@@ -454,16 +452,8 @@ ubyte[] noise(Noise f, int value, ubyte[] data, size_t depth, size_t width, size
 	}
 	value %= 256;
 	if (f is Noise.MOSAIC && value < 0) return data;
-	uint nextSeed = 0;
-	if (f is Noise.NOISE || f is Noise.C_NOISE) {
-		nextSeed = rand;
-		rand_seed(42, 0); // ノイズを固定する
-	}
-	scope (exit) {
-		if (f is Noise.NOISE || f is Noise.C_NOISE) {
-			rand_seed(nextSeed, 0);
-		}
-	}
+	Random rnd;
+	rnd.seed = 42; // ノイズを固定する
 	size_t bpp = bytesPerLine / width;
 	auto r = Pixels(data, width, height, depth, bpp);
 	for (size_t y = 0; y < height; y++) {
@@ -477,7 +467,7 @@ ubyte[] noise(Noise f, int value, ubyte[] data, size_t depth, size_t width, size
 			} else {
 				auto rgb = r.get(x, y);
 				auto fc = FCu(rgb.r, rgb.g, rgb.b);
-				noiseImpl(f, fc, value);
+				noiseImpl(rnd, f, fc, value);
 				r.set(x, y, fc.fc);
 			}
 		}

@@ -20,7 +20,6 @@ import cwx.motion;
 import cwx.props;
 import cwx.structs;
 
-import cwx.editor.gui.dwt.utils;
 import cwx.editor.gui.dwt.properties;
 
 import org.eclipse.swt.widgets.Display;
@@ -520,6 +519,7 @@ public:
 		_images = new Images;
 		_var = new FlexProps(propFilePath);
 	}
+	const
 	string tempPath() {
 		if (std.path.isabs(var.etc.tempPath)) {
 			return var.etc.tempPath;
@@ -527,12 +527,26 @@ public:
 			return std.path.join(std.path.getDirName(parent.appPath), var.etc.tempPath);
 		}
 	}
-	CProps parent() {return _parent;}
-	cwx.system.System sys() {return _parent.sys;}
+	const
+	string backupPath() {
+		if (std.path.isabs(var.etc.backupPath)) {
+			return var.etc.backupPath;
+		} else {
+			return std.path.join(std.path.getDirName(parent.appPath), var.etc.backupPath);
+		}
+	}
+	const
+	const(CProps) parent() {return _parent;}
+	const
+	const(cwx.system.System) sys() {return _parent.sys;}
 	Images images() {return _images;}
-	Msgs msgs() {return _parent.msgs;}
-	Looks looks() {return _parent.looks;}
+	const
+	const(Msgs) msgs() {return _parent.msgs;}
+	const
+	const(Looks) looks() {return _parent.looks;}
 	FlexProps var() {return _var;}
+	const
+	const(FlexProps) var() {return _var;}
 }
 
 /// CPoint等の構造体をSWTのクラスに変換するための関数。

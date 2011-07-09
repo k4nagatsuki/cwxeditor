@@ -3,10 +3,9 @@ module cwx.binary;
 
 private import cwx.utils : enforce;
 
-private import std.compat;
-private import std.metastrings : ToString;
 private import std.stream : InputStream, OutputStream;
 private import std.string : format;
+private import std.metastrings : toStringNow;
 
 private string repeat(string s, int count) {
 	string buf;
@@ -256,7 +255,7 @@ private template ReadBytesL(I, size_t Len = I.sizeof, size_t N = 1) {
 	static if (N < Len) {
 		const string ReadBytesL = "i |= "
 			~ (N > size_t.sizeof ? "cast(" ~ I.stringof ~ ") " : "")
-			~ "_bytes[_pointer++] << 8 * " ~ (ToString!(N)) ~ ";\n" ~ ReadBytesL!(I, Len, N + 1);
+			~ "_bytes[_pointer++] << 8 * " ~ .toStringNow!(N) ~ ";\n" ~ ReadBytesL!(I, Len, N + 1);
 	} else {
 		const string ReadBytesL = "";
 	}
@@ -264,7 +263,7 @@ private template ReadBytesL(I, size_t Len = I.sizeof, size_t N = 1) {
 private template WriteBytesB(I, size_t Len = I.sizeof) {
 	static if (Len > 0) {
 		const string WriteBytesB = "_bytes[_pointer++] = cast(ubyte) ((val & 0xFF"
-			~ repeat("0", (Len - 1) * 2) ~ ") >>> 8 * " ~ ToString!(Len - 1) ~ ");\n" ~ WriteBytesB!(I, Len - 1);
+			~ repeat("0", (Len - 1) * 2) ~ ") >>> 8 * " ~ .toStringNow!(Len - 1) ~ ");\n" ~ WriteBytesB!(I, Len - 1);
 	} else {
 		const string WriteBytesB = "";
 	}
@@ -272,7 +271,7 @@ private template WriteBytesB(I, size_t Len = I.sizeof) {
 private template WriteBytesL(I, size_t Len = I.sizeof, size_t N = 0) {
 	static if (N < Len) {
 		const string WriteBytesL = "_bytes[_pointer++] = cast(ubyte) ((val & 0xFF"
-			~ repeat("0", N * 2) ~ ") >>> 8 * " ~ ToString!(N) ~ ");\n" ~ WriteBytesL!(I, Len, N + 1);
+			~ repeat("0", N * 2) ~ ") >>> 8 * " ~ .toStringNow!(N) ~ ");\n" ~ WriteBytesL!(I, Len, N + 1);
 	} else {
 		const string WriteBytesL = "";
 	}

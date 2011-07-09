@@ -4,11 +4,12 @@ module cwx.archive;
 import cwx.utils;
 import cwx.sjis;
 
+import std.array;
 import std.file;
 import std.path;
 import std.zip;
 import std.utf;
-import std.date;
+import std.datetime;
 import std.string;
 import std.c.string : strlen;
 
@@ -79,12 +80,12 @@ void unzip(ZipArchive arc,
 /// ファイルとしては存在しないデータをアーカイブ化する。
 ArchiveMember archive(string name, ubyte[] data, bool isDir) {
 	if (data.length && isDir) throw new Exception("not directory");
-	name = std.string.replace(name, sep, "/");
+	name = std.array.replace(name, sep, "/");
 	static if (altsep.length) {
-		name = std.string.replace(name, altsep, "/");
+		name = std.array.replace(name, altsep, "/");
 	}
 	auto am = new ArchiveMember;
-	am.time = toDosFileTime(getUTCtime);
+	am.time = SysTimeToDosFileTime(Clock.currTime);
 	am.compressionMethod = 8;
 	// Attributes: Directory = 0x10, File = 0x20, ReadOnly = 0x01
 	am.externalAttributes = isDir ? 0x10 : 0x20;
@@ -106,8 +107,8 @@ ArchiveMember archive(string name, ubyte[] data, bool isDir) {
 ZipArchive zip(string targ, bool top, string[] excludePath = [], bool useSysEnc = false) {
 	auto arc = new ZipArchive;
 	scope path = nabs(targ);
-	foreach (ref ex; excludePath) {
-		ex = nabs(ex);
+	foreach (i, ex; excludePath) {
+		excludePath[i] = nabs(ex);
 	}
 	size_t cut;
 	void archive(string file) {
@@ -124,7 +125,7 @@ ZipArchive zip(string targ, bool top, string[] excludePath = [], bool useSysEnc 
 			}
 		}
 		auto am = new ArchiveMember;
-		am.time = toDosFileTime(lastModified(file));
+		am.time = SysTimeToDosFileTime(timeLastModified(file));
 		am.compressionMethod = 8;
 		auto name = file;
 		if (isdir(file)) {

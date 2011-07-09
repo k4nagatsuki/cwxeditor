@@ -24,6 +24,7 @@ private:
 
 struct PropValue(string PKey, T, T Default, bool ReadOnly) {
 	private T _value = Default;
+	const
 	string key() {
 		return PKey;
 	}
@@ -38,6 +39,7 @@ struct PropValue(string PKey, T, T Default, bool ReadOnly) {
 		}
 	}
 	static T init() {return Default;}
+	const
 	void toNode(ref XNode node) {
 		static if (is (typeof(_value.toNode))) {
 			_value.toNode(node);
@@ -55,6 +57,10 @@ struct PropValue(string PKey, T, T Default, bool ReadOnly) {
 		}
 	}
 	T opCall() {
+		return _value;
+	}
+	const
+	const(T) opCall() {
 		return _value;
 	}
 	void fromNode(ref XNode node) {
@@ -112,11 +118,11 @@ abstract class Properties {
 	/// VType = プロパティの型。
 	/// Default = プロパティのデフォルト値。
 	protected template Property(string Name, VType, VType Default, bool ReadOnly = false) {
-		mixin ("private final PropValue!("
+		mixin ("private PropValue!("
 			~ "\"" ~ Name ~ "\", " ~ VType.stringof ~ ", " ~ Default.stringof ~ ", " ~ ReadOnly.stringof ~ ") "
 			~ "_" ~ Name ~ ";");
-		mixin (VType.stringof ~ " " ~ Name ~ "() {return _" ~ Name ~ "();}");
-		mixin (VType.stringof ~ " " ~ Name ~ "_init() {return Default;}");
+		mixin ("const const(" ~ VType.stringof ~ ") " ~ Name ~ "() {return _" ~ Name ~ "();}");
+		mixin ("const const(" ~ VType.stringof ~ ") " ~ Name ~ "_init() {return Default;}");
 		static if (!ReadOnly) {
 			mixin ("void " ~ Name ~ "(" ~ VType.stringof ~ " value) {_" ~ Name ~ " = value;}");
 		}
@@ -138,7 +144,8 @@ abstract class Properties {
 			}
 			static SubClass fromXML(string xml) {
 				try {
-					return fromNode(XNode.parse(xml));
+					auto node = XNode.parse(xml);
+					return fromNode(node);
 				} catch (Exception) {
 					SubClass r;
 					return r;
@@ -246,6 +253,7 @@ struct BgImageSetting {
 	int width;
 	int height;
 	bool mask;
+	const
 	BgImageSetting dup() {
 		BgImageSetting r;
 		r.name = name;
@@ -266,15 +274,18 @@ struct BgImageSetting {
 		r.mask = mask;
 		return r;
 	}
+	const
 	XNode toNode() {
 		auto e = XNode.create(XML_NAME);
 		toNodeImpl(e);
 		return e;
 	}
+	const
 	void toNode(ref XNode node) {
 		auto e = node.newElement(XML_NAME);
 		toNodeImpl(e);
 	}
+	const
 	private void toNodeImpl(ref XNode e) {
 		e.newElement("name", name);
 		e.newElement("x", x);
@@ -307,6 +318,7 @@ struct OuterTool {
 	string name;
 	string command;
 	string workDir;
+	const
 	OuterTool dup() {
 		OuterTool r;
 		r.name = name;
@@ -321,15 +333,18 @@ struct OuterTool {
 		r.workDir = workDir;
 		return r;
 	}
+	const
 	XNode toNode() {
 		auto e = XNode.create(XML_NAME);
 		toNodeImpl(e);
 		return e;
 	}
+	const
 	void toNode(ref XNode node) {
 		auto e = node.newElement(XML_NAME);
 		toNodeImpl(e);
 	}
+	const
 	private void toNodeImpl(ref XNode e) {
 		e.newElement("name", name);
 		e.newElement("command", command);
@@ -385,6 +400,7 @@ struct BgImageS {
 	uint width;
 	uint height;
 	bool mask;
+	const
 	void toNode(ref XNode e) {
 		auto r = e.newElement("background");
 		r.newAttr("name", name);
@@ -411,7 +427,7 @@ struct BgImageS {
 		}
 		return r;
 	}
-	static BgImage[] createBgImages(Skin skin, BgImageS[] bgs) {
+	static BgImage[] createBgImages(Skin skin, in BgImageS[] bgs) {
 		BgImage[] r;
 		r.length = bgs.length;
 		foreach (i, b; bgs) {
@@ -525,10 +541,10 @@ class FlexEtcProps : Properties {
 	mixin Property!("outerToolsNameWidth", int, 150, true);
 	mixin Property!("outerToolsNameHeight", int, 250, true);
 
-	mixin Property!("backgroundImage", string, "");
-	mixin Property!("backgroundColorR", int, 0);
-	mixin Property!("backgroundColorG", int, 0);
-	mixin Property!("backgroundColorB", int, 128);
+	mixin Property!("wallpaper", string, "");
+	mixin Property!("wallColorR", int, 0);
+	mixin Property!("wallColorG", int, 0);
+	mixin Property!("wallColorB", int, 128);
 	mixin Property!("bgImagesDefault", BgImageS[], [BgImageS("MapOfWirth", 0, 0, 632, 420, false)]);
 	mixin Property!("bgImageSettingsSashL", int, 1);
 	mixin Property!("bgImageSettingsSashR", int, 1);
@@ -539,6 +555,10 @@ class FlexEtcProps : Properties {
 	mixin Property!("keyCodeWidth", int, 100, true);
 	mixin Property!("scenarioPath", string, "");
 	mixin Property!("tempPath", string, "");
+	mixin Property!("backupPath", string, "");
+	mixin Property!("backupInterval", int, 15);
+	mixin Property!("backupCount", int, 10);
+
 	mixin Property!("openHistories", string[], []);
 	mixin Property!("historyMax", int, 9);
 	mixin Property!("historySnipLength", int, 30);
@@ -559,7 +579,7 @@ class FlexEtcProps : Properties {
 	mixin Property!("xmlCopy", bool, false);
 	mixin Property!("saveInnerImagePath", bool, false);
 	mixin Property!("traceDirectories", bool, true);
-	mixin Property!("logicalSort", bool, false, true);
+	mixin Property!("logicalSort", bool, true);
 	mixin Property!("soundPlayType", int, 0);
 
 	mixin Property!("searchHistories", string[], []);
@@ -680,48 +700,46 @@ class FlexEtcProps : Properties {
 	}
 	mixin Property!("ignorePaths", string[], [".*"]);
 
-	mixin Property!("useCWXScript", bool, false);
-
 	mixin XMLFuncs!(FlexEtcProps);
 }
 
 public class FlexProps {
-	const MainWin mainWin;
-	const WindowProps!("dataWindow", SWT.DEFAULT, 400) dataWin;
-	const WindowProps!("cardWindow", SWT.DEFAULT, 400) cardWin;
-	const WindowProps!("directoryWindow", SWT.DEFAULT, 400) dirWin;
-	const AreaWin areaWin;
-	const BattleWin battleWin;
-	const PackageWin packageWin;
-	const CardEventWin cardEventWin;
-	const ContWin contentsWin;
-	const DialogParam!("settingsDialog") settingsDlg;
-	const DialogParam!("replaceDialog", 600) replaceDlg;
-	const DialogParam!("summaryDialog") summaryDlg;
-	const DialogParam!("menuCardDialog") menuCardDlg;
-	const DialogParam!("areaBackgroundDialog") areaBackgroundDlg;
-	const DialogParam!("areaBackgroundNFDialog") areaBackgroundNFDlg;
-	const DialogParam!("enemyCardDialog") enemyCardDlg;
-	const DialogParam!("castCardDialog") castCardDlg;
-	const DialogParam!("skillCardDialog") skillCardDlg;
-	const DialogParam!("itemCardDialog") itemCardDlg;
-	const DialogParam!("beastCardDialog") beastCardDlg;
-	const DialogParam!("infoCardDialog") infoCardDlg;
-	const DialogParam!("bgImagesDialog", 850) bgImagesDlg;
-	const DialogParam!("flagDialog") flagDlg;
-	const DialogParam!("stepDialog") stepDlg;
-	const DialogParam!("newScenarioDialog") newScDlg;
-	const DialogParam!("speakDialog") speakDlg;
-	const DialogParam!("messageDialog") msgDlg;
-	const DialogParam!("cardEventDialog") cardEvtDlg;
-	const DialogParam!("flagEventDialog", 350) flagEvtDlg;
-	const DialogParam!("effectEventDialog") effEvtDlg;
-	const DialogParam!("soundEventDialog") soundEvtDlg;
-	const DialogParam!("couponEventDialog") couponEvtDlg;
-	const DialogParam!("inputEventDialog") inputEvtDlg;
-	const DialogParam!("selectEventDialog") selEvtDlg;
-	const DialogParam!("scriptDialog", 400, 300) scriptDlg;
-	const FlexEtcProps etc;
+	MainWin mainWin;
+	WindowProps!("dataWindow", SWT.DEFAULT, 400) dataWin;
+	WindowProps!("cardWindow", SWT.DEFAULT, 400) cardWin;
+	WindowProps!("directoryWindow", SWT.DEFAULT, 400) dirWin;
+	AreaWin areaWin;
+	BattleWin battleWin;
+	PackageWin packageWin;
+	CardEventWin cardEventWin;
+	ContWin contentsWin;
+	DialogParam!("settingsDialog") settingsDlg;
+	DialogParam!("replaceDialog", 600) replaceDlg;
+	DialogParam!("summaryDialog") summaryDlg;
+	DialogParam!("menuCardDialog") menuCardDlg;
+	DialogParam!("areaBackgroundDialog") areaBackgroundDlg;
+	DialogParam!("areaBackgroundNFDialog") areaBackgroundNFDlg;
+	DialogParam!("enemyCardDialog") enemyCardDlg;
+	DialogParam!("castCardDialog") castCardDlg;
+	DialogParam!("skillCardDialog") skillCardDlg;
+	DialogParam!("itemCardDialog") itemCardDlg;
+	DialogParam!("beastCardDialog") beastCardDlg;
+	DialogParam!("infoCardDialog") infoCardDlg;
+	DialogParam!("bgImagesDialog", 850) bgImagesDlg;
+	DialogParam!("flagDialog") flagDlg;
+	DialogParam!("stepDialog") stepDlg;
+	DialogParam!("newScenarioDialog") newScDlg;
+	DialogParam!("speakDialog") speakDlg;
+	DialogParam!("messageDialog") msgDlg;
+	DialogParam!("cardEventDialog") cardEvtDlg;
+	DialogParam!("flagEventDialog", 350) flagEvtDlg;
+	DialogParam!("effectEventDialog") effEvtDlg;
+	DialogParam!("soundEventDialog") soundEvtDlg;
+	DialogParam!("couponEventDialog") couponEvtDlg;
+	DialogParam!("inputEventDialog") inputEvtDlg;
+	DialogParam!("selectEventDialog") selEvtDlg;
+	DialogParam!("scriptDialog", 400, 300) scriptDlg;
+	FlexEtcProps etc;
 
 	private string _path;
 	this(string xmlFileName) {
@@ -737,9 +755,32 @@ public class FlexProps {
 				}
 			} catch {
 			}
-		}
-		foreach (i, fld; this.tupleof) {
-			this.tupleof[i] = newField(fld);
+			foreach (i, fld; this.tupleof) {
+				this.tupleof[i] = newField(fld);
+			}
+		} else {
+			// 環境変数による初期化
+			foreach (i, fld; this.tupleof) {
+				this.tupleof[i] = newField(fld);
+			}
+			string env() {
+				string r = null;
+				r = cwx.utils.getenv("TEMP");
+				if (!r) {
+					r = cwx.utils.getenv("TMP");
+				}
+				if (!r) {
+					r = cwx.utils.getenv("TMPDIR");
+				}
+				return r;
+			}
+			string t = env;
+			if (t) t = std.path.join(t, "cwxeditor");
+			etc.tempPath = t ? t : "temp";
+
+			string b = env;
+			if (b) b = std.path.join(b, "cwxeditor_backup");
+			etc.backupPath = b ? b : "backup";
 		}
 	}
 	T fromNode(T)(ref XNode node, T t) {

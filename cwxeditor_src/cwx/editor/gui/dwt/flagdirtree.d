@@ -179,7 +179,7 @@ private:
 		}
 		string p = dir.path;
 		size_t plen = p.length;
-		if (!cwx.utils.endsWith(p, FlagDir.SEPARATOR)) {
+		if (!endsWith(p, FlagDir.SEPARATOR)) {
 			plen += FlagDir.SEPARATOR.length;
 		}
 
@@ -332,9 +332,11 @@ public:
 		dt.addDropListener(new FlagsDropListener);
 
 		_comm.replText.add(&refresh);
+		_comm.refSortCondition.add(&refresh);
 		dirs.addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) {
 				_comm.replText.remove(&refresh);
+				_comm.refSortCondition.remove(&refresh);
 			}
 		});
 		return _comp;

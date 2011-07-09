@@ -3,9 +3,9 @@ module cwx.editor.gui.dwt.customtext;
 
 import cwx.utils;
 
-import std.compat;
 import std.utf;
 import std.string;
+import std.exception;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
@@ -77,14 +77,15 @@ class FixedWidthText {
 				dchar[] lBuf;
 				while (t.length > 0) {
 					if (gc.textExtent(toUTF8(lBuf)).x + gc.textExtent(toUTF8(t[0 .. 1])).x > width) {
-						buf ~= lBuf.dup;
-						lBuf.length = 0;
+						buf ~= assumeUnique(lBuf);
+						lBuf = [];
 					}
 					lBuf ~= t[0];
 					t = t[1 .. $];
 				}
 				if (lBuf.length > 0) {
-					buf ~= lBuf;
+					buf ~= assumeUnique(lBuf);
+					lBuf = [];
 				}
 			} else {
 				buf ~= t;

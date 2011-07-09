@@ -41,8 +41,10 @@ public:
 		return r;
 	}
 	/// 種族名。
+	const
 	string name() {return _name;}
 	/// 解説。
+	const
 	string desc() {return _desc;}
 }
 
@@ -63,6 +65,7 @@ template RaceParam(bool Set) {
 
 	public {
 		/// 命を持たないか。
+		const
 		bool undead() {return _undead;}
 		static if (Set) {
 			/// ditto
@@ -72,6 +75,7 @@ template RaceParam(bool Set) {
 			}
 		}
 		/// 心を持たないか。
+		const
 		bool automaton() {return _automaton;}
 		static if (Set) {
 			/// ditto
@@ -81,6 +85,7 @@ template RaceParam(bool Set) {
 			}
 		}
 		/// 不浄な存在か。
+		const
 		bool unholy() {return _unholy;}
 		static if (Set) {
 			/// ditto
@@ -90,6 +95,7 @@ template RaceParam(bool Set) {
 			}
 		}
 		/// 魔法生物か。
+		const
 		bool constructure() {return _constructure;}
 		static if (Set) {
 			/// ditto
@@ -99,6 +105,7 @@ template RaceParam(bool Set) {
 			}
 		}
 		/// 武器が効かないか。
+		const
 		bool weaponResist() {return _weaponRes;}
 		static if (Set) {
 			/// ditto
@@ -108,6 +115,7 @@ template RaceParam(bool Set) {
 			}
 		}
 		/// 魔法が効かないか。
+		const
 		bool magicResist() {return _magicRes;}
 		static if (Set) {
 			/// ditto
@@ -117,6 +125,7 @@ template RaceParam(bool Set) {
 			}
 		}
 		/// 炎/冷気が無効。
+		const
 		bool resist(Element el) {return _res[el];}
 		static if (Set) {
 			/// ditto
@@ -127,6 +136,7 @@ template RaceParam(bool Set) {
 			}
 		}
 		/// 炎/冷気が弱点。
+		const
 		bool weakness(Element el) {return _weak[el];}
 		static if (Set) {
 			/// ditto
@@ -137,6 +147,7 @@ template RaceParam(bool Set) {
 			}
 		}
 		/// 身体能力。
+		const
 		uint physical(Physical phy) {return _phy[phy];}
 		static if (Set) {
 			/// ditto
@@ -146,6 +157,7 @@ template RaceParam(bool Set) {
 			}
 		}
 		/// 精神傾向。
+		const
 		int mental(Mental m) {
 			switch (m) {
 			case Mental.AGGRESSIVE, Mental.CHEERFUL, Mental.BRAVE, Mental.CAUTIOUS, Mental.TRICKISH:
@@ -178,6 +190,7 @@ template RaceParam(bool Set) {
 			}
 		}
 		/// 常に掛かっている能力ボーナス。
+		const
 		int defaultEnhance(Enhance enh) {return _dEnh[enh];}
 		static if (Set) {
 			/// ditto
@@ -207,6 +220,7 @@ template RaceParam(bool Set) {
 		_dEnh[Enhance.RESIST] = 0;
 		_dEnh[Enhance.DEFENSE] = 0;
 	}
+	const
 	private void setFeature(ref XNode parent) {
 		auto fNode = parent.newElement("Feature");
 		auto t = fNode.newElement("Type");
@@ -224,6 +238,7 @@ template RaceParam(bool Set) {
 		w.newAttr("fire", fromBool(_weak[Element.FIRE]));
 		w.newAttr("ice", fromBool(_weak[Element.ICE]));
 	}
+	const
 	private void setAbility(ref XNode parent) {
 		auto aNode = parent.newElement("Ability");
 		auto phy = aNode.newElement("Physical");

@@ -271,12 +271,12 @@ public:
 					select(0);
 					selectChanged;
 				}
-				if (_cur >= 0) redraw(_cur);
+				if (_cur >= 0) redrawCard(_cur);
 			}
 		});
 		addListener(SWT.FocusOut, new class Listener {
 			public override void handleEvent(Event e) {
-				if (_cur >= 0) redraw(_cur);
+				if (_cur >= 0) redrawCard(_cur);
 			}
 		});
 	}
@@ -295,8 +295,8 @@ public:
 	/// select = 選択するか。
 	void setCursor(int index, bool scroll = false) {
 		if (_cur != index) {
-			if (_cur >= 0) redraw(_cur);
-			if (index >= 0) redraw(index);
+			if (_cur >= 0) redrawCard(_cur);
+			if (index >= 0) redrawCard(index);
 			_cur = index;
 		}
 		if ((getStyle & SWT.MULTI) == 0) {
@@ -308,9 +308,9 @@ public:
 	/// 指定されたインデックスの領域を再描画するよう指示する。
 	/// Params:
 	/// index = インデックス。
-	void redraw(int index) {
+	void redrawCard(int index) {
 		auto itm = _items[index];
-		redraw(itm.x, itm.y, itm.width, itm.height, false);
+		super.redraw(itm.x, itm.y, itm.width, itm.height, false);
 	}
 	/// 指定されたカードのインデックスを返す。
 	/// Params:
@@ -343,7 +343,7 @@ public:
 				redraw;
 			} else {
 				_sels[index] = _items[index];
-				redraw(index);
+				redrawCard(index);
 			}
 		}
 	}
@@ -353,14 +353,14 @@ public:
 	void deselect(int index) {
 		if (index in _sels) {
 			_sels.remove(index);
-			redraw(index);
+			redrawCard(index);
 		}
 	}
 	/// すべての選択を解除する。
 	void deselectAll() {
 		foreach (key; _sels.keys) {
 			_sels.remove(key);
-			redraw(key);
+			redrawCard(key);
 		}
 	}
 	/// リストを更新する。
@@ -495,12 +495,6 @@ public:
 		if (isVisible) redraw;
 	}
 	override {
-		void redraw(int x, int y, int width, int height, bool all) {
-			super.redraw(x, y, width, height, all);
-		}
-		void redraw() {
-			super.redraw;
-		}
 		Point computeSize(int wHint, int hHint) {
 			return computeSize(wHint, hHint, true);
 		}

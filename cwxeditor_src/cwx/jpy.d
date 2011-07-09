@@ -5,9 +5,10 @@ import cwx.structs;
 import cwx.utils;
 import cwx.sjis;
 
-import std.compat;
+import std.array;
+import std.conv;
 import std.string;
-import std.regexp;
+import std.regex;
 import std.utf;
 
 enum Animation {
@@ -173,7 +174,7 @@ struct Jpy1 {
 			if (!r.sections.length) throw new Exception("label not found");
 			with (r.sections[$ - 1]) {
 				// contents
-				int eq = std.string.find(line, '=');
+				int eq = .cCountUntil(line, '=');
 				if (eq == -1) throw new Exception("invalid line: " ~ line);
 				auto key = strip(line[0 .. eq]);
 				auto value = stripValue(line[eq + 1 .. $]);
@@ -273,23 +274,24 @@ private struct JptxTag {
 	int tagValue;
 	string[string] attr;
 	static JptxTag parse(string startTag) {
-		auto reg = search(startTag, "^<[A-Z]+", "i");
-		if (!reg) throw new Exception("invalid start tag: " ~ startTag);
+		auto reg = .match(toUTF32(startTag), .regex!(dstring)("^<[A-Z]+"d, "i"));
+		if (reg.empty) throw new Exception("invalid start tag: " ~ startTag);
 		JptxTag tag;
-		tag.name = toLower(reg.match(0)[1 .. $]);
-		auto p = reg.post;
+		tag.name = toLower(toUTF8(reg.hit[1 .. $]));
+		dstring p = reg.post;
 		if (!p.length) throw new Exception("invalid start tag: " ~ startTag);
-		if (startsWith(p, "=\"")) {
-			int ei = std.string.find(p[2 .. $], '"');
+		if (startsWith(p, "=\""d)) {
+			int ei = .cCountUntil(p[2 .. $], '"');
 			if (ei == -1) throw new Exception("invalid start tag: " ~ startTag);
 			tag.tagValue = to!(int)(p[2 .. ei + 2]);
 			p = p[ei + 4 .. $];
 		}
-		static const ATTR = " *([A-Z]+)=\"([^\"]+)\"";
-		auto areg = search(p, ATTR, "i");
-		while (areg) {
-			tag.attr[toLower(areg.match(1))] = areg.match(2);
-			areg = search(areg.post, ATTR, "i");
+		static const ATTR = " *([A-Z]+)=\"([^\"]+)\""d;
+		foreach (areg; .match(p, .regex!(dstring)(ATTR, "i"))) {
+			foreach (m; areg) {
+				auto cap = m.captures;
+				tag.attr[toLower(toUTF8(cap[1]))] = toUTF8(cap[2]);
+			}
 		}
 		return tag;
 	} unittest {
@@ -417,16 +419,16 @@ private struct JptxParser {
 			text = replace(text, "\n", "");
 		}
 		while (text.length) {
-			auto reg = search(text, "</(b|i|u|s|shiftx|shifty|lineheight|font)>|<(br|b|i|u|s|shiftx=\"-?[0-9]+\"|shifty=\"-?[0-9]+\"|lineheight=\"-?[0-9]+\"|font( +(face=\".+\"|color=\"\\$[0-9A-Fa-f]{6}\"|pixels=\"[0-9]+\"))+)>", "i");
-			if (reg) {
-				if (onText && reg.pre.length) onText(reg.pre);
-				auto m = reg.match(0);
-				if (startsWith(m, "</")) {
+			auto reg = .match(toUTF32(text), .regex!(dstring)("</(b|i|u|s|shiftx|shifty|lineheight|font)>|<(br|b|i|u|s|shiftx=\"-?[0-9]+\"|shifty=\"-?[0-9]+\"|lineheight=\"-?[0-9]+\"|font( +(face=\".+\"|color=\"\\$[0-9A-Fa-f]{6}\"|pixels=\"[0-9]+\"))+)>"d, "i"));
+			if (!reg.empty) {
+				if (onText && reg.pre.length) onText(toUTF8(reg.pre));
+				auto m = toUTF8(reg.hit);
+				if (std.algorithm.startsWith(m, "</")) {
 					endTag(m);
 				} else {
 					startTag(m);
 				}
-				text = reg.post;
+				text = toUTF8(reg.post);
 				continue;
 			}
 			if (onText) {
@@ -716,7 +718,7 @@ struct Jptx {
 			if (init) {
 				with (r) {
 					// init
-					int eq = std.string.find(sline, '=');
+					int eq = .cCountUntil(sline, '=');
 					if (eq == -1) throw new Exception("invalid line: " ~ line);
 					auto key = strip(sline[0 .. eq]);
 					auto value = stripValue(sline[eq + 1 .. $]);
@@ -794,7 +796,7 @@ struct Jpdc {
 			if (init) {
 				with (r) {
 					// init
-					int eq = std.string.find(line, '=');
+					int eq = .cCountUntil(line, '=');
 					if (eq == -1) throw new Exception("invalid line: " ~ line);
 					auto key = strip(line[0 .. eq]);
 					auto value = stripValue(line[eq + 1 .. $]);

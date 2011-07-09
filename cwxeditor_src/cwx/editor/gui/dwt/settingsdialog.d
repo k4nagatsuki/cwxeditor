@@ -20,6 +20,7 @@ import cwx.editor.gui.dwt.xmlbytestransfer;
 import std.path;
 import std.file;
 import std.string;
+import std.functional;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
@@ -64,7 +65,11 @@ private:
 	CTabItem _tabB;
 	Text _enginePath;
 	Text _tempDir;
+	Text _backupDir;
+	Spinner _backupInterval;
+	Spinner _backupCount;
 	Text _author;
+	Text _wallpaper;
 	Spinner _histMax;
 	Spinner _sHistMax;
 	Text _ignorePaths;
@@ -75,6 +80,7 @@ private:
 	Button _xmlCopy;
 	Button _saveInnerImagePath;
 	Button _traceDirectories;
+	Button _logicalSort;
 	version (Windows) {
 		Combo _soundPlayType;
 	}
@@ -209,6 +215,16 @@ private:
 			return getDirName(file);
 		}
 	}
+	const WALLPAPER_EXT = ["bmp", "ico", "icon", "jpg", "jpeg", "gif", "png", "tif", "tiff"];
+	string dropWallpaper(string[] files) {
+		if (!files.length) return "";
+		foreach (file; files) {
+			if (.contains!("a == b", string)(WALLPAPER_EXT, file.getExt.toLower)) {
+				return file;
+			}
+		}
+		return "";
+	}
 	static string selectFile(Text file, string[] name, string[] ext, string fileName, string title, string p) {
 		auto dlg = new FileDialog(file.getShell, SWT.PRIMARY_MODAL | SWT.APPLICATION_MODAL | SWT.SINGLE | SWT.OPEN);
 		dlg.setFilterExtensions = ext;
@@ -248,7 +264,6 @@ private:
 	}
 	string selectDir(Text dir, string title, string msg, string p) {
 		auto dlg = new DirectoryDialog(dir.getShell);
-		scope (exit) dlg.dispose;
 		dlg.setText = title;
 		dlg.setMessage = msg;
 		string path;
@@ -271,12 +286,24 @@ private:
 	void selectTemp() {
 		selectDir(_tempDir, _prop.msgs.tempDir, _prop.msgs.tempDirDesc, _prop.tempPath);
 	}
+	void selectBackup() {
+		selectDir(_backupDir, _prop.msgs.backupDir, _prop.msgs.backupDirDesc, _prop.backupPath);
+	}
 	void selectWorkDir(int i) {
 		auto tool = _tools[i];
 		string fname = selectDir(_toolWorkDir, _prop.msgs.toolWorkDir, _prop.msgs.toolWorkDirDesc, tool.workDir);
 		if (fname) {
 			_tools[i].workDir = fname;
 		}
+	}
+	void selectWallpaper() {
+		auto filterName = [_prop.msgs.filterWallpaper, _prop.msgs.filterAll];
+		string[] filter = [
+			"*." ~ std.string.join(WALLPAPER_EXT.dup, ";*."),
+			"*"
+		];
+		selectFile(_wallpaper, filterName, filter,
+			_prop.var.etc.wallpaper, _prop.msgs.dlgTitWallpaper, getcwd);
 	}
 	private bool _onProc = false;
 	void selectBgImageSetting() {
@@ -332,10 +359,15 @@ private:
 	class SelTemp : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {selectTemp;}
 	}
+	class SelBackup : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {selectBackup;}
+	}
+	class SelWallpaper : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {selectWallpaper;}
+	}
 	class ClearHist : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
 			auto dlg = new MessageBox(_histMax.getShell, SWT.ICON_QUESTION | SWT.OK | SWT.CANCEL);
-			scope (exit) dlg.dispose;
 			dlg.setText = _prop.msgs.dlgTitQuestion;
 			dlg.setMessage = _prop.msgs.dlgMsgHistoryClear;
 			if (SWT.OK == dlg.open) {
@@ -347,7 +379,6 @@ private:
 	class ClearSHist : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
 			auto dlg = new MessageBox(_sHistMax.getShell, SWT.ICON_QUESTION | SWT.OK | SWT.CANCEL);
-			scope (exit) dlg.dispose;
 			dlg.setText = _prop.msgs.dlgTitQuestion;
 			dlg.setMessage = _prop.msgs.dlgMsgSearchHistoryClear;
 			if (SWT.OK == dlg.open) {
@@ -395,26 +426,89 @@ private:
 			setupDropFile(grp, _tempDir, &dropDir);
 		}
 		{
+			auto grp = new Group(comp, SWT.NONE);
+			grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+			grp.setText = _prop.msgs.backupDir;
+			auto gl = new GridLayout(3, false);
+			gl.horizontalSpacing = 15;
+			grp.setLayout = gl;
+
+			{
+				auto comp2 = new Composite(grp, SWT.NONE);
+				comp2.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+				comp2.setLayout = zeroMarginGridLayout(2, false);
+				_backupDir = new Text(comp2, SWT.BORDER);
+				_backupDir.setLayoutData = new GridData(GridData.FILL_BOTH);
+				_backupDir.addModifyListener(_mod);
+				auto refr = new Button(comp2, SWT.PUSH);
+				refr.setText = _prop.msgs.reference;
+				refr.addSelectionListener(new SelBackup);
+				setupDropFile(grp, _backupDir, &dropDir);
+			}
+			{
+				auto comp2 = new Composite(grp, SWT.NONE);
+				comp2.setLayoutData = new GridData(GridData.FILL_VERTICAL);
+				comp2.setLayout = zeroMarginGridLayout(3, false);
+				auto l = new Label(comp2, SWT.CENTER);
+				l.setText = _prop.msgs.backupInterval;
+				_backupInterval = new Spinner(comp2, SWT.BORDER);
+				_backupInterval.setMinimum = 1;
+				_backupInterval.setMaximum = 99;
+				_backupInterval.addModifyListener(_mod);
+				auto l2 = new Label(comp2, SWT.CENTER);
+				l2.setText = _prop.msgs.minute;
+			}
+			{
+				auto comp2 = new Composite(grp, SWT.NONE);
+				comp2.setLayoutData = new GridData(GridData.FILL_VERTICAL);
+				comp2.setLayout = zeroMarginGridLayout(2, false);
+				auto l = new Label(comp2, SWT.CENTER);
+				l.setText = _prop.msgs.backupCount;
+				_backupCount = new Spinner(comp2, SWT.BORDER);
+				_backupCount.setMinimum = 0;
+				_backupCount.setMaximum = 99;
+				_backupCount.addModifyListener(_mod);
+			}
+		}
+		{
 			auto comp2 = new Composite(comp, SWT.NONE);
 			comp2.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			comp2.setLayout = zeroMarginGridLayout(2, false);
 			{
-				auto grp = new Group(comp2, SWT.NONE);
-				grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_BEGINNING);
-				auto cl = new CenterLayout;
-				cl.fillHorizontal = true;
-				grp.setLayout = cl;
-				grp.setText = _prop.msgs.scenarioAuthor;
-				_author = new Text(grp, SWT.BORDER);
-				_author.addModifyListener(_mod);
+				auto comp3 = new Composite(comp2, SWT.NONE);
+				comp3.setLayoutData = new GridData(GridData.FILL_BOTH);
+				comp3.setLayout = zeroMarginGridLayout(1, false);
+				{
+					auto grp = new Group(comp3, SWT.NONE);
+					grp.setLayoutData = new GridData(GridData.FILL_BOTH);
+					auto cl = new CenterLayout;
+					cl.fillHorizontal = true;
+					grp.setLayout = cl;
+					grp.setText = _prop.msgs.scenarioAuthor;
+					_author = new Text(grp, SWT.BORDER);
+					_author.addModifyListener(_mod);
+				}
+				{
+					auto grp = new Group(comp3, SWT.NONE);
+					grp.setLayoutData = new GridData(GridData.FILL_BOTH);
+					grp.setLayout = new GridLayout(2, false);
+					grp.setText = _prop.msgs.wallpaper;
+					_wallpaper = new Text(grp, SWT.BORDER);
+					_wallpaper.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+					_wallpaper.addModifyListener(_mod);
+					auto refr = new Button(grp, SWT.PUSH);
+					refr.setText = _prop.msgs.reference;
+					refr.addSelectionListener(new SelWallpaper);
+					setupDropFile(grp, _wallpaper, &dropWallpaper);
+				}
 			}
 			{
 				auto grp = new Group(comp2, SWT.NONE);
-				grp.setLayoutData = new GridData(GridData.FILL_VERTICAL);
 				grp.setText = _prop.msgs.historiesSettings;
+				grp.setLayoutData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
 				grp.setLayout = new GridLayout(3, false);
 				{
-					auto l = new Label(grp, SWT.NONE);
+					auto l = new Label(grp, SWT.CENTER);
 					l.setText = _prop.msgs.openHistoryMax;
 					_histMax = new Spinner(grp, SWT.BORDER);
 					_histMax.setMinimum = 0;
@@ -426,7 +520,7 @@ private:
 					clear.addSelectionListener(new ClearHist);
 				}
 				{
-					auto l = new Label(grp, SWT.NONE);
+					auto l = new Label(grp, SWT.CENTER);
 					l.setText = _prop.msgs.searchHistoryMax;
 					_sHistMax = new Spinner(grp, SWT.BORDER);
 					_sHistMax.setMinimum = 0;
@@ -476,6 +570,7 @@ private:
 				_xmlCopy = createB(_prop.msgs.xmlCopy);
 				_saveInnerImagePath = createB(_prop.msgs.saveInnerImagePath);
 				_traceDirectories = createB(_prop.msgs.traceDirectories);
+				_logicalSort = createB(_prop.msgs.logicalSort);
 
 				version (Windows) {
 					auto sl = new Label(grp, SWT.NONE);
@@ -1045,7 +1140,11 @@ protected:
 
 		_enginePath.setText = _prop.var.etc.enginePath;
 		_tempDir.setText = _prop.var.etc.tempPath;
+		_backupDir.setText = _prop.var.etc.backupPath;
+		_backupInterval.setSelection = _prop.var.etc.backupInterval;
+		_backupCount.setSelection = _prop.var.etc.backupCount;
 		_author.setText = _prop.var.etc.defaultAuthor;
+		_wallpaper.setText = _prop.var.etc.wallpaper;
 		_histMax.setSelection = _prop.var.etc.historyMax;
 		_sHistMax.setSelection = _prop.var.etc.searchHistoryMax;
 		string ipbuf = "";
@@ -1060,6 +1159,7 @@ protected:
 		_xmlCopy.setSelection = _prop.var.etc.xmlCopy;
 		_saveInnerImagePath.setSelection = _prop.var.etc.saveInnerImagePath;
 		_traceDirectories.setSelection = _prop.var.etc.traceDirectories;
+		_logicalSort.setSelection = _prop.var.etc.logicalSort;
 		version (Windows) {
 			_soundPlayType.select = _prop.var.etc.soundPlayType;
 		}
@@ -1070,7 +1170,7 @@ protected:
 			_bgStgs[i] = stg.dup;
 		}
 		if (_bgStgs.length > 0) _bgStgsL.select = 0;
-		_bgImagesDefault = _prop.var.etc.bgImagesDefault;
+		_bgImagesDefault = _prop.var.etc.bgImagesDefault.dup;
 		selectBgImageSetting;
 
 		string buf = "";
@@ -1091,7 +1191,6 @@ protected:
 	override bool apply() {
 		void err(CTabItem tab, Text t, string msg) {
 			auto dlg = new MessageBox(t.getShell, SWT.ICON_WARNING | SWT.OK);
-			scope (exit) dlg.dispose;
 			dlg.setText = _prop.msgs.dlgTitWarning;
 			dlg.setMessage = msg;
 			dlg.open;
@@ -1118,15 +1217,28 @@ protected:
 			err(_tabB, _tempDir, _prop.msgs.errorTempPath);
 			return false;
 		}
+		string backup;
+		try {
+			backup = _backupDir.getText;
+		} catch {
+			err(_tabB, _backupDir, _prop.msgs.errorBackupPath);
+			return false;
+		}
 		string oldEnginePath = _prop.var.etc.enginePath;
-		string[] oldKeyCodes = _prop.var.etc.standardKeyCodes;
+		string oldWallpaper = _prop.var.etc.wallpaper;
+		auto oldKeyCodes = _prop.var.etc.standardKeyCodes;
 		auto tools = _prop.var.etc.outerTools;
-		string[] oldIgnorePaths = _prop.var.etc.ignorePaths;
+		auto oldIgnorePaths = _prop.var.etc.ignorePaths;
 		bool oldSmoothingCard = _prop.var.etc.smoothingCard;
+		bool oldLogicalSort = _prop.var.etc.logicalSort;
 		scope (exit) {
 			if (_summ && oldEnginePath != _prop.var.etc.enginePath) {
 				_comm.skin = findSkin(_prop, _summ);
 				_comm.refSkin.call;
+			}
+			if (oldWallpaper != _prop.var.etc.wallpaper) {
+				_comm.refreshWallpaper(_prop);
+				_comm.refWallpaper.call;
 			}
 			if (oldKeyCodes != _prop.var.etc.standardKeyCodes) {
 				_comm.refStandardKeyCodes.call;
@@ -1140,10 +1252,28 @@ protected:
 			if (oldSmoothingCard != _prop.var.etc.smoothingCard) {
 				_comm.refCardState.call;
 			}
+			if (oldLogicalSort != _prop.var.etc.logicalSort) {
+				if (_summ) {
+					if (_prop.var.etc.logicalSort) {
+						_summ.flagDirRoot.sorter = (string a, string b) {
+							return ncmp(a, b);
+						};
+					} else {
+						_summ.flagDirRoot.sorter = (string a, string b) {
+							return cmp(a, b);
+						};
+					}
+				}
+				_comm.refSortCondition.call;
+			}
 		}
 		_prop.var.etc.enginePath = engine;
 		_prop.var.etc.tempPath = temp;
+		_prop.var.etc.backupPath = backup;
+		_prop.var.etc.backupInterval = _backupInterval.getSelection;
+		_prop.var.etc.backupCount = _backupCount.getSelection;
 		_prop.var.etc.defaultAuthor = _author.getText;
+		_prop.var.etc.wallpaper = _wallpaper.getText;
 		_prop.var.etc.historyMax = _histMax.getSelection;
 		_prop.var.etc.searchHistoryMax = _sHistMax.getSelection;
 		string[] ipLines = splitlines(_ignorePaths.getText);
@@ -1162,17 +1292,18 @@ protected:
 		_prop.var.etc.xmlCopy = _xmlCopy.getSelection;
 		_prop.var.etc.saveInnerImagePath = _saveInnerImagePath.getSelection;
 		_prop.var.etc.traceDirectories = _traceDirectories.getSelection;
+		_prop.var.etc.logicalSort = _logicalSort.getSelection;
 		_prop.var.etc.contentsFloat = _contentsFloat.getSelection;
 		version (Windows) {
 			_prop.var.etc.soundPlayType = _soundPlayType.getSelectionIndex;
 		}
 		if (_prop.var.etc.historyMax < _prop.var.etc.openHistories.length) {
 			_prop.var.etc.openHistories
-				= _prop.var.etc.openHistories[0 .. _prop.var.etc.historyMax];
+				= _prop.var.etc.openHistories[0 .. _prop.var.etc.historyMax].dup;
 		}
 		if (_prop.var.etc.searchHistoryMax < _prop.var.etc.searchHistories.length) {
 			_prop.var.etc.searchHistories
-				= _prop.var.etc.searchHistories[0 .. _prop.var.etc.searchHistoryMax];
+				= _prop.var.etc.searchHistories[0 .. _prop.var.etc.searchHistoryMax].dup;
 		}
 		_prop.var.etc.bgImageSettings = _bgStgs;
 		_prop.var.etc.bgImagesDefault = _bgImagesDefault;

@@ -165,7 +165,7 @@ private:
 		override void widgetSelected(SelectionEvent e) {
 			auto path = _msel.oldPath;
 			if (!isBinImg(path)) return;
-			byte[] bytes = strToBImg(path);
+			ubyte[] bytes = strToBImg(path);
 			auto dlg = new FileDialog(_image.getShell, SWT.PRIMARY_MODAL | SWT.APPLICATION_MODAL | SWT.SINGLE | SWT.SAVE);
 			dlg.setFilterExtensions = ["*.bmp"];
 			dlg.setFilterNames = [_prop.msgs.filterBitmapImage];

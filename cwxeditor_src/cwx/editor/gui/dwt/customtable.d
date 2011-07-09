@@ -3,8 +3,6 @@ module cwx.editor.gui.dwt.customtable;
 
 import cwx.utils : debugln;
 
-import std.compat;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
@@ -16,9 +14,9 @@ import org.eclipse.swt.graphics.Image;
 
 class TableSorter(DataT) {
 	private TableColumn _col;
-	private bool delegate(DataT, DataT) _cmp;
-	private bool delegate(DataT, DataT) _revCmp;
-	this(TableColumn col, bool delegate(DataT, DataT) cmp, bool delegate(DataT, DataT) revCmp = null) {
+	private bool delegate(in DataT, in DataT) _cmp;
+	private bool delegate(in DataT, in DataT) _revCmp;
+	this(TableColumn col, bool delegate(in DataT, in DataT) cmp, bool delegate(in DataT, in DataT) revCmp = null) {
 		_col = col;
 		_cmp = cmp;
 		_revCmp = revCmp;

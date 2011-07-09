@@ -251,7 +251,8 @@ public:
 		r.sleep = sleep;
 		return r;
 	}
-	int opEquals(Target t) {
+	const
+	bool opEquals(ref const(Target) t) {
 		return t.m == m && t.sleep == sleep;
 	}
 private:

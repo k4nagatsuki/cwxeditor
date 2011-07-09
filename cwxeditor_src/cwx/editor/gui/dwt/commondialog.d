@@ -50,7 +50,7 @@ protected:
 			l1.setText = _prop.msgs.reNumbering1(_area, _minId, _prop.looks.idMax);
 			_id = new Spinner(comp, SWT.BORDER);
 			_id.setMaximum = _prop.looks.idMax;
-			_id.setMinimum = _minId;
+			_id.setMinimum = cast(int) _minId;
 			auto l2 = new Label(comp, SWT.NONE);
 			l2.setText = _prop.msgs.reNumbering2(_area, _minId, _prop.looks.idMax);
 		}

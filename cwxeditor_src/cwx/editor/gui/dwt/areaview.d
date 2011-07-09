@@ -299,7 +299,8 @@ private:
 		this () {
 			static if (UseCards) {
 				foreach (i; _cards.getSelectionIndices) {
-					auto c = C.createFromNode(_area.cards[i].toNode, LATEST_VERSION);
+					auto node = _area.cards[i].toNode;
+					auto c = C.createFromNode(node, LATEST_VERSION);
 					if (_summ) c.setUseCounter(_summ.useCounter.sub);
 					_cs[i] = c;
 				}
@@ -634,7 +635,8 @@ private:
 	void selectListItem(T)(List list, int startIndex, ref int[T] edits, T[] cols) {
 		int count = list.getItemCount;
 		auto imgs = _imgp.images;
-		edits = typeof(edits).init;
+		typeof(edits) editsInit;
+		edits = editsInit;
 		for (int i = 0; i < count; i++) {
 			auto img = cast(FlexImage) imgs[startIndex + i];
 			bool o = img.selected;
@@ -826,15 +828,19 @@ private:
 			}
 		}
 		if (targs.length > 1) {
-			bool ficmp(FlexImage fi1, FlexImage fi2) {
+			bool ficmp(in FlexImage fi1, in FlexImage fi2) {
 				int x1, x2;
-				auto a = fi1;
-				x1 = mixin (X);
-				a = fi2;
-				x2 = mixin (X);
+				{
+					auto a = fi1;
+					x1 = mixin (X);
+				}
+				{
+					auto a = fi2;
+					x2 = mixin (X);
+				}
 				return x1 < x2;
 			}
-			targs = .sort(targs, &ficmp);
+			targs = .sortDlg!(FlexImage)(targs, &ficmp);
 			auto a = targs[0];
 			int left = mixin (X);
 			a = targs[$ - 1];
@@ -1004,6 +1010,9 @@ private:
 			static assert (0);
 		}
 	}
+	void refreshWallpaper() {
+		_imgp.setBackgroundImage = _comm.wallpaper;
+	}
 	Control createImagePane(Composite parent) {
 		auto sc = new ScrolledComposite(parent, SWT.H_SCROLL | SWT.V_SCROLL);
 		sc.setExpandHorizontal = false;
@@ -1015,14 +1024,19 @@ private:
 		sc.getVerticalBar.setPageIncrement = vs.height / 5;
 		sc.setLayoutData = new GridData(GridData.FILL_BOTH);
 		_imgp = new ImagePane(sc, SWT.BORDER | SWT.NO_BACKGROUND);
-		auto rgb = new RGB(_prop.var.etc.backgroundColorR, _prop.var.etc.backgroundColorG, _prop.var.etc.backgroundColorB);
+		auto rgb = new RGB(_prop.var.etc.wallColorR,
+			_prop.var.etc.wallColorG,
+			_prop.var.etc.wallColorB);
 		auto color = new Color(Display.getCurrent, rgb);
 		_imgp.setBackgroundColor = color;
-		auto biPath = _prop.var.etc.backgroundImage;
-		if (biPath.length && .exists(biPath)) {
-			auto backImg = loadImage(biPath, false);
-			_imgp.setBackgroundImage = new Image(Display.getCurrent, backImg);
-		}
+		_comm.refWallpaper.add(&refreshWallpaper);
+		_imgp.addDisposeListener(new class DisposeListener {
+			override void widgetDisposed(DisposeEvent e) {
+				_imgp.setBackgroundImage = cast(Image) null;
+				_comm.refWallpaper.remove(&refreshWallpaper);
+			}
+		});
+		refreshWallpaper();
 		sc.setContent(_imgp);
 		auto rect = _imgp.computeSize(vs.width, vs.height);
 		sc.setMinSize(rect.x, rect.y);
@@ -2016,7 +2030,6 @@ public:
 				if (!_summ) return -1;
 				if (!hasPath(_summ.scenarioPath, fname)) {
 					auto dlg = new MessageBox(getShell, SWT.ICON_QUESTION | SWT.YES | SWT.NO | SWT.CANCEL);
-					scope (exit) dlg.dispose;
 					dlg.setMessage = _prop.msgs.dlgMsgDropCard(fname);
 					dlg.setText = _prop.msgs.dlgTitDropCard;
 					auto ret = dlg.open();
@@ -2133,7 +2146,6 @@ public:
 			if (!_summ) return -1;
 			if (!hasPath(_summ.scenarioPath, fname)) {
 				auto dlg = new MessageBox(getShell, SWT.ICON_QUESTION | SWT.YES | SWT.NO | SWT.CANCEL);
-				scope (exit) dlg.dispose;
 				dlg.setMessage = _prop.msgs.dlgMsgDropBack(fname);
 				dlg.setText = _prop.msgs.dlgTitDropBack;
 				auto ret = dlg.open();

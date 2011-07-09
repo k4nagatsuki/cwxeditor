@@ -20,7 +20,7 @@ import cwx.editor.gui.dwt.effectcarddialog;
 import cwx.editor.gui.dwt.xmlbytestransfer;
 
 import std.string;
-import std.date;
+import std.datetime;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Button;
@@ -395,7 +395,7 @@ private:
 public:
 	this(Commons comm, Props prop, Summary summ, Composite parent) {
 		super(parent, SWT.NONE);
-		_id = format("%08X", &this) ~ "-" ~ to!(string)(getUTCtime);
+		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime);
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
@@ -728,9 +728,7 @@ public:
 					} else {
 						pasteBeast(node);
 					}
-				} catch (Exception e) {
-					debugln(e);
-				}
+				} catch {}
 			}
 		}
 		override void del(SelectionEvent se) {
@@ -777,10 +775,9 @@ public:
 			auto xml = CBtoXML(cb);
 			if (xml) {
 				try {
-					pasteBeast(XNode.parse(xml));
-				} catch (Exception e) {
-					debugln(e);
-				}
+					auto node = XNode.parse(xml);
+					pasteBeast(node);
+				} catch {}
 			}
 		}
 		override void del(SelectionEvent se) {

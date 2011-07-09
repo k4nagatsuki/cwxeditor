@@ -3,10 +3,8 @@ module cwx.xml;
 
 import cwx.utils : to, debugln;
 
-import std.compat;
 import std.string;
-
-import d2std.xml;
+import std.xml;
 
 /// XML文書処理用の構造体。
 struct XNode {
@@ -38,14 +36,17 @@ struct XNode {
 	}
 
 	/// 現在処理中の要素の名前。
+	const
 	string name() {return _el.tag.name;}
 	/// 現在処理中の要素のテキスト。
+	const
 	string value() {
 		string r = _el.text;
 		if (r == "\n") r = "";
 		return r;
 	}
 	/// ditto
+	const
 	T valueTo(T)() {return to!(T)(value);}
 
 	/// 子要素を生成する。
@@ -60,6 +61,7 @@ struct XNode {
 	}
 	/// 属性nameの値を返す。
 	/// nothingIsErrorにtrueを指定すると、nameが存在しなかった際に例外を投げる。
+	const
 	T attr(T = string)(string name, bool nothingIsError, T defaultValue = T.init) {
 		auto p = name in _el.tag.attr;
 		if (nothingIsError && !p) throw new Exception(name ~ " not found");
@@ -82,6 +84,7 @@ struct XNode {
 		return XNode(null);
 	}
 	/// 有効なXNodeであればtrue。
+	const
 	bool valid() {return _el !is null;}
 	/// 要素名と、その要素を発見した際に処理を行うハンドラを登録する。
 	/// 要素名にnullを指定する事により、特に指定された要素以外を
@@ -94,14 +97,17 @@ struct XNode {
 			if (!p) p = null in onTag;
 			if (p) (*p)(XNode(el));
 		}
-		onTag = typeof(onTag).init;
+		typeof(onTag) init;
+		onTag = init;
 	}
 
 	/// 処理中の要素が文書ルートであればtrue。
+	const
 	bool isRoot() {return cast(Document) _el !is null;}
 
 	/// 文書全体をテキストにして返す。
 	/// ルート要素以外では使用不可。
+	const
 	string text() {
 		if (!isRoot) throw new Exception("Node is not Root: " ~ name);
 		return (cast(Document) _el).prolog ~ "\n" ~ std.string.join(_el.pretty(0), "\n");

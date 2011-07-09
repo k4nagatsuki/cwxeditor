@@ -19,9 +19,10 @@ import cwx.editor.gui.dwt.materialselect;
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.xmlbytestransfer;
 
+import std.array;
 import std.utf;
 import std.string;
-import std.date;
+import std.datetime;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Button;
@@ -206,7 +207,7 @@ private:
 	}
 	class ModL : ModifyListener {
 		override void modifyText(ModifyEvent e) {
-			string text = std.string.replace(wrapReturnCode(_text.getText), "\n", "").dup;
+			string text = std.array.replace(wrapReturnCode(_text.getText), "\n", "");
 			// FIXME: ""をsetTextするとArgument cannot be null
 			_dlgsL.getItem(_dlgsL.getSelectionIndex).setText(0, text != "" ? text : " ");
 		}
@@ -298,7 +299,7 @@ private:
 	}
 public:
 	this(Commons comm, Props prop, Shell shell, Summary summ, Content evt) {
-		_id = format("%08X", &this) ~ "-" ~ to!(string)(getUTCtime);
+		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime);
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
@@ -388,7 +389,7 @@ protected:
 			foreach (dlg; _evt.dialogs) {
 				auto itm = new TableItem(_dlgsL, SWT.NONE);
 				itm.setImage = _prop.images.content(CType.TALK_DIALOG);
-				string text = std.string.replace(dlg.text, "\n", "");
+				string text = std.array.replace(dlg.text, "\n", "");
 				// FIXME: ""をsetTextするとArgument cannot be null
 				itm.setText = text.length > 0 ? text : " ";
 				_dlgs ~= new SDialog(dlg.text, dlg.rCoupons);

@@ -5,7 +5,6 @@ SRC = cwxeditor.d \
 	cwx\card.d \
 	cwx\coupon.d \
 	cwx\xml.d \
-	d2std\xml.d \
 	cwx\event.d \
 	cwx\types.d \
 	cwx\motion.d \
@@ -83,7 +82,6 @@ OBJ = objs\cwxeditor.obj \
 	objs\cwx\card.obj \
 	objs\cwx\coupon.obj \
 	objs\cwx\xml.obj \
-	objs\d2std\xml.obj \
 	objs\cwx\event.obj \
 	objs\cwx\types.obj \
 	objs\cwx\motion.obj \
@@ -181,16 +179,14 @@ LIB = /rc:cwxeditor \
 	+msimg32.lib \
 	+opengl32.lib \
 	+shlwapi.lib \
-	+zlib.lib \
 	+dwt-base.lib \
 	+org.eclipse.swt.win32.win32.x86.lib \
-	+tangobos.lib \
 
 FLAGS = -J. -Jresource -op -c
 
 $(OUT) : $(SRC) $(RES)
 	$(DMD) $(FLAGS) $(SRC) -g -debug -unittest -odobjs
-	$(DMD) $(OBJ) -L"$(LIB)" -of"$(OUT)" -L/exet:nt/su:console:4.0
+	$(DMD) $(OBJ) -L"$(LIB)" -debug -of"$(OUT)" -L/exet:nt/su:console:4.0
 
 debug_windows : $(SRC) $(RES)
 	$(DMD) $(FLAGS) $(SRC) -g -debug -unittest -odobjs

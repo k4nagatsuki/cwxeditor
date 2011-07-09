@@ -12,6 +12,8 @@ import cwx.editor.gui.dwt.xmlbytestransfer;
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.centerlayout;
 
+import std.conv;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
 import org.eclipse.swt.widgets.Shell;
@@ -55,7 +57,6 @@ import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
-import java.lang.all;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.dnd.TransferData;
@@ -66,6 +67,7 @@ import org.eclipse.swt.dnd.ByteArrayTransfer;
 import org.eclipse.swt.dnd.DropTargetAdapter;
 import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.dnd.DropTarget;
+import java.lang.all;
 
 /// ステップ設定用のダイアログ。
 /// 値は強制的に10件になる。
@@ -304,7 +306,7 @@ protected:
 
 			(new Label(comp, SWT.NULL)).setText = prop.msgs.dlgLblFlagTrue;
 			flagTrue = new Combo(comp, SWT.NULL);
-			flagTrue.setItems(prop.var.etc.flagTrues);
+			flagTrue.setItems(prop.var.etc.flagTrues.dup);
 			flagTrue.setVisibleItemCount = 20;
 			auto tmod = new ModOnOff(0);
 			flagTrue.addModifyListener = tmod;
@@ -313,7 +315,7 @@ protected:
 
 			(new Label(comp, SWT.NULL)).setText = prop.msgs.dlgLblFlagFalse;
 			flagFalse = new Combo(comp, SWT.NULL);
-			flagFalse.setItems(prop.var.etc.flagFalses);
+			flagFalse.setItems(prop.var.etc.flagFalses.dup);
 			flagFalse.setVisibleItemCount = 20;
 			auto fmod = new ModOnOff(1);
 			flagFalse.addModifyListener = fmod;

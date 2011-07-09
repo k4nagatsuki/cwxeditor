@@ -17,12 +17,15 @@ import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.sbshell;
 
-import std.date;
+import core.thread;
+
+import std.array;
+import std.conv;
+import std.datetime;
 import std.file;
 import std.path;
 import std.string;
 import std.process;
-import std.thread;
 import std.utf;
 debug import std.stdio;
 
@@ -112,16 +115,20 @@ version (Windows) {
 
 private struct FC {
 	string path;
-	d_time time;
-	int opEquals(FC fc) {
+	SysTime time;
+	const
+	bool opEquals(ref const(FC) fc) {
 		return path == fc.path && time == fc.time;
 	}
-	int opCmp(FC fc) {
-		int r = time - fc.time;
-		return r == 0 ? std.string.cmp(path, fc.path) : r;
+	const
+	int opCmp(ref const(FC) fc) {
+		if (time < fc.time) return -1;
+		if (time > fc.time) return 1;
+		return 0;
 	}
+	const
 	string toString() {
-		return std.date.toUTCString(time) ~ "\t" ~ path;
+		return time.toISOExtendedString ~ "\t" ~ path;
 	}
 }
 
@@ -180,10 +187,10 @@ private:
 		if (ad && !bd) return true;
 		return comp(a, b) < 0;
 	}
-	bool compFName(FileNameObj a, FileNameObj b) {
+	bool compFName(in FileNameObj a, in FileNameObj b) {
 		return compFNameS(a.basename, b.basename, a.dir, b.dir);
 	}
-	bool revCompFName(FileNameObj a, FileNameObj b) {
+	bool revCompFName(in FileNameObj a, in FileNameObj b) {
 		auto ad = a.dir;
 		auto bd = b.dir;
 		if (ad && bd) return comp(a.basename, b.basename) < 0;
@@ -191,7 +198,7 @@ private:
 		if (ad && !bd) return true;
 		return comp(a.basename, b.basename) > 0;
 	}
-	bool compFExt(FileNameObj a, FileNameObj b) {
+	bool compFExt(in FileNameObj a, in FileNameObj b) {
 		auto ad = a.dir;
 		auto bd = b.dir;
 		if (ad && bd) return comp(a.basename, b.basename) < 0;
@@ -200,7 +207,7 @@ private:
 		int r = comp(a.ext, b.ext);
 		return r != 0 ? r < 0 : comp(a.basename, b.basename) < 0;
 	}
-	bool revCompFExt(FileNameObj a, FileNameObj b) {
+	bool revCompFExt(in FileNameObj a, in FileNameObj b) {
 		auto ad = a.dir;
 		auto bd = b.dir;
 		if (ad && bd) return comp(a.basename, b.basename) < 0;
@@ -209,7 +216,7 @@ private:
 		int r = comp(a.ext, b.ext);
 		return r != 0 ? r > 0 : comp(a.basename, b.basename) < 0;
 	}
-	bool compFCount(FileNameObj a, FileNameObj b) {
+	bool compFCount(in FileNameObj a, in FileNameObj b) {
 		auto ad = !a.material;
 		auto bd = !b.material;
 		if (ad && bd) return compFExt(a, b);
@@ -220,7 +227,7 @@ private:
 		int r = ac - bc;
 		return r != 0 ? r < 0 : compFName(a, b);
 	}
-	bool revCompFCount(FileNameObj a, FileNameObj b) {
+	bool revCompFCount(in FileNameObj a, in FileNameObj b) {
 		auto ad = !a.material;
 		auto bd = !b.material;
 		if (ad && bd) return compFExt(a, b);
@@ -239,13 +246,13 @@ private:
 					FC fc;
 					fc.path = path;
 					if (.isdir(path)) {
-						fc.time = d_time_nan;
+						fc.time = SysTime.init;
 						fcs ~= fc;
 						foreach (c; clistdir(path)) {
 							list(std.path.join(path, c));
 						}
 					} else {
-						fc.time = lastModified(path);
+						fc.time = timeLastModified(path);
 						fcs ~= fc;
 					}
 				}
@@ -351,25 +358,25 @@ private:
 				}
 				if (_files.getSortColumn is _sortName.column) {
 					if (_files.getSortDirection == SWT.UP) {
-						list = .sort(list, &compFName);
+						list = .sortDlg!(FileNameObj, typeof(&compFName))(list, &compFName);
 					} else {
 						assert (_files.getSortDirection == SWT.DOWN);
-						list = .sort(list, &revCompFName);
+						list = .sortDlg!(FileNameObj, typeof(&revCompFName))(list, &revCompFName);
 					}
 				} else if (_files.getSortColumn is _sortExt.column) {
 					if (_files.getSortDirection == SWT.UP) {
-						list = .sort(list, &compFExt);
+						list = .sortDlg!(FileNameObj, typeof(&compFExt))(list, &compFExt);
 					} else {
 						assert (_files.getSortDirection == SWT.DOWN);
-						list = .sort(list, &revCompFExt);
+						list = .sortDlg!(FileNameObj, typeof(&revCompFExt))(list, &revCompFExt);
 					}
 				} else {
 					assert (_files.getSortColumn is _sortCount.column);
 					if (_files.getSortDirection == SWT.UP) {
-						list = .sort(list, &compFCount);
+						list = .sortDlg!(FileNameObj, typeof(&compFCount))(list, &compFCount);
 					} else {
 						assert (_files.getSortDirection == SWT.DOWN);
-						list = .sort(list, &revCompFCount);
+						list = .sortDlg!(FileNameObj, typeof(&revCompFCount))(list, &revCompFCount);
 					}
 				}
 				int count = 0;
@@ -443,7 +450,7 @@ private:
 			p = std.path.join(path, p);
 			if (isdir(p)) subs ~= p;
 		}
-		subs = .sort(subs, &compDirName);
+		subs = .sortDlg!(string)(subs, &compDirName);
 		bool s = false;
 		foreach (p; subs) {
 			if (sp) {
@@ -467,6 +474,7 @@ private:
 	}
 
 	private Display _display = null;
+
 	Image fimage(Image img) {
 		if (img is _prop.images.folder || img is _sImgFolder) {
 			return _prop.images.folder;
@@ -481,6 +489,7 @@ private:
 		} else if (img is _prop.images.unknown || img is _sImgUnknown) {
 			return _prop.images.unknown;
 		}
+		assert (0);
 	}
 	Image sfimage(Image img) {
 		if (img is _prop.images.folder || img is _sImgFolder) {
@@ -496,6 +505,7 @@ private:
 		} else if (img is _prop.images.unknown || img is _sImgUnknown) {
 			return _sImgUnknown;
 		}
+		assert (0);
 	}
 	Image fimage(Skin skin, string file) {
 		if (skin.isCardImage(file)) {
@@ -514,7 +524,6 @@ private:
 		if (isCutted(file)) {
 			return sfimage(file);
 		}
-		// isCardImage()は時間がかかるので別スレッドで実行
 		if (dir) {
 			return _prop.images.folder;
 		} else {
@@ -525,7 +534,6 @@ private:
 		if (isCutted(file)) {
 			return sfimage(file);
 		}
-		// isCardImage()は時間がかかるので別スレッドで実行
 		if (.isdir(file)) {
 			return _prop.images.folder;
 		} else {
@@ -534,7 +542,6 @@ private:
 	}
 	Image sfimage(string file) {
 		auto skin = _comm.skin;
-		// isCardImage()は時間がかかるので別スレッドで実行
 		if (.isdir(file)) {
 			return _sImgFolder;
 		} else if (skin.isCardImage(file)) {
@@ -550,9 +557,13 @@ private:
 		}
 	}
 	private bool isCutted(string file) {
-		return fnmatch("A", "a")
-			? _cuts.contains(toLower(nabs(file)))
-			: _cuts.contains(nabs(file));
+		static if (fnmatch("A", "a")) {
+			file = file.toLower;
+			file = file.nabs;
+			return _cuts.contains(file);
+		} else {
+			return _cuts.contains(nabs(file));
+		}
 	}
 	string toRelPath(string file) {
 		file = nabs(file);
@@ -703,7 +714,6 @@ private:
 				if (exists.length > 0) {
 					auto dlg = new MessageBox
 						(_win.getShell, SWT.ICON_QUESTION | SWT.YES | SWT.NO | SWT.CANCEL);
-					scope (exit) dlg.dispose;
 					dlg.setText = _prop.msgs.dlgTitQuestion;
 					dlg.setMessage = _prop.msgs.dlgMsgDropOverWriteFiles(exists);
 					int r = dlg.open;
@@ -713,7 +723,7 @@ private:
 						return false;
 					}
 				}
-				paths = .sort(paths, &compFullPath);
+				paths = .sortDlg(paths, &compFullPath);
 				string dir = null;
 				string[] selfs;
 				foreach (file; paths) {
@@ -828,9 +838,9 @@ private:
 		auto path = (cast(FileNameObj) itm.getData).array;
 		string frp = toRelPath(path);
 		string frd = nabs(path);
-		newName = std.string.replace(newName, sep, "");
+		newName = std.array.replace(newName, sep, "");
 		static if (altsep.length) {
-			newName = std.string.replace(newName, altsep, "");
+			newName = std.array.replace(newName, altsep, "");
 		}
 		auto to = std.path.join(getDirName(path), newName);
 		bool isdir = cast(bool) .isdir(path);
@@ -1115,7 +1125,7 @@ private:
 		}
 	}
 	private Runnable _refreshThr;
-	private std.thread.Thread _traceThr = null;
+	private core.thread.Thread _traceThr = null;
 	private bool _onTrace = true;
 	private bool _stopTrace = false;
 	version (Windows) {
@@ -1139,7 +1149,7 @@ private:
 	} else {
 		private void closeTraceHandle() {}
 	}
-	private int trace() {
+	private void trace() {
 		Summary summ = null;
 		void sleep() {
 			version (Windows) {
@@ -1331,7 +1341,6 @@ private:
 			}
 		}
 		debug writefln("Exit Trace Thread");
-		return 0;
 	}
 	void refreshStatusLine() {
 		ulong size;
@@ -1351,7 +1360,7 @@ public:
 		// FXIME: 本当は素材管理ウィンドウ非表示時は止めておきたかったが
 		// シナリオ読込み後のスレッドの開始に失敗する事があるので常時起動
 		_refreshThr = new RefreshThr;
-		_traceThr = new std.thread.Thread(&trace);
+		_traceThr = new core.thread.Thread(&trace);
 		_traceThr.start;
 	}
 	void reconstruct(Composite parent) {
@@ -1687,7 +1696,7 @@ public:
 	void quitTrace() {
 		if (!_traceThr) return;
 		_onTrace = false;
-		_traceThr.wait;
+		_traceThr.join;
 	}
 
 	override void cut(SelectionEvent se) {
@@ -1775,7 +1784,6 @@ public:
 			if (!_dirs.getSelection[0].getParentItem) return;
 		}
 		auto dlg = new MessageBox(_win.getShell, SWT.ICON_QUESTION | SWT.OK | SWT.CANCEL);
-		scope (exit) dlg.dispose;
 		dlg.setText = _prop.msgs.dlgTitQuestion;
 		auto dir = selDirPath;
 		auto file = selFiles;

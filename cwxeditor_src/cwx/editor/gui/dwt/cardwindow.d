@@ -25,9 +25,11 @@ import cwx.editor.gui.dwt.xmlbytestransfer;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.sbshell;
 
+import std.algorithm;
+import std.array;
 import std.utf;
 import std.string;
-import std.date;
+import std.datetime;
 import std.typetuple;
 
 import org.eclipse.swt.widgets.Shell;
@@ -199,7 +201,7 @@ private:
 		itm.setText(1, c.name);
 		if (c.desc.length > 0) {
 			// FIXME: セルの値が長すぎると表示されないことがあるので自らカット
-			string desc = std.string.replace(c.desc, "\n", "");
+			string desc = std.array.replace(c.desc, "\n", "");
 			dstring ddesc = toUTF32(desc);
 			if (ddesc.length > 50) {
 				desc = toUTF8(ddesc[0 .. 50] ~ "...");
@@ -373,9 +375,10 @@ private:
 						};
 						node.parse;
 						if (adds.length == 0) return;
-						foreach (ref card; adds) {
+						foreach (i, card; adds) {
 							static if (is(CardOwner == CastCard)) {
-								card = _owner.insert(index, card);
+								_owner.insert(index, card);
+								adds[i] = card;
 							} else {
 								_owner.insert(index, card);
 							}
@@ -395,9 +398,9 @@ private:
 						node.parse;
 						if (adds.length == 0) return;
 						if (__qMaterialCopy(node, adds)) {
-							foreach (ref card; adds) {
+							foreach (i, card; adds) {
 								_owner.insert(index, card);
-								card = cards[index];
+								adds[i] = cards[index];
 								index++;
 							}
 							insert(adds[$ - 1], false);
@@ -816,7 +819,7 @@ private:
 		private void delegate() _openHand;
 	}
 	private void construct(Commons comm, Props prop, PCardOwner summ, Composite parent) {
-		_id = format("%08X", &this) ~ "-" ~ to!(string)(getUTCtime);
+		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime);
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
@@ -1671,8 +1674,8 @@ public:
 		}
 		ColResize[] colR;
 		colR.length = (is (CardOwner == Summary)) ? 4 : 3;
-		foreach (ref c; colR) {
-			c = new ColResize;
+		foreach (i, c; colR) {
+			colR[i] = new ColResize;
 		}
 		void addTable(Table tbl) {
 			foreach (i, col; tbl.getColumns) {
@@ -1890,12 +1893,12 @@ public:
 	private bool openCWXPathEff(int C)(string path) {
 		auto cate = cpcategory(path);
 		auto index = cpindex(path);
-		bool isId = cwx.utils.endsWith(cate, ":id");
+		bool isId = std.string.endsWith(cate, ":id") != 0;
 		typeof(_pane[C].cards[0]) card;
 		if (isId) {
 			card = _pane[C].card(index);
 			if (!card) return false;
-			index = indexOf!("a is b")(_pane[C].cards, card);
+			index = .cCountUntil!("a is b")(_pane[C].cards, card);
 		} else {
 			if (index >= _pane[C].cards.length) return false;
 			card = _pane[C].cards[index];

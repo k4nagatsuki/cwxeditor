@@ -9,6 +9,7 @@ import cwx.editor.gui.dwt.utils;
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.centerlayout;
 
+import std.array;
 import std.string;
 
 import org.eclipse.swt.SWT;

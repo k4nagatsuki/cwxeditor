@@ -27,13 +27,17 @@ import cwx.editor.gui.dwt.xmlbytestransfer;
 import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.jpyimage;
 
+import core.thread;
+
+import std.algorithm : lastIndexOf;
+import std.array;
+import std.conv;
 import std.utf;
 import std.ctype;
 import std.zip;
 import std.file;
-import std.date;
+import std.datetime;
 import std.path;
-import std.thread;
 import std.process;
 
 import org.eclipse.swt.SWTException;
@@ -142,7 +146,7 @@ ImageData loadImage(Skin skin, string path, bool mask = true, int maskX = 0, int
 		try {
 			byte[] bytes;
 			if (isBinImg(path)) {
-				bytes = strToBImg(path);
+				bytes = cast(byte[]) strToBImg(path);
 			} else {
 				if (!.exists(path)) return blankImage;
 				bytes = cast(byte[]) std.file.read(path);
@@ -169,7 +173,7 @@ alias ArrayWrapperString2 FileNames;
 
 string wrapReturnCode(string str) {
 	version (Windows) {
-		return std.string.replace(str, "\r\n", "\n");
+		return std.array.replace(str, "\r\n", "\n");
 	} else {
 		return str;
 	}
@@ -280,7 +284,7 @@ public override:
 private class TextEditMFListener : MouseAdapter, SelectionListener {
 private:
 	Object _itm = null;
-	d_time _time;
+	SysTime _time;
 	Item delegate() _selection;
 	Item delegate(int x, int y) _selectionM;
 	void delegate(Item itm) _startEdit;
@@ -332,12 +336,12 @@ public override:
 			} else {
 				synchronized {
 					if (e.button == 1 && itm !is null) {
-						if (_itm !is null && itm == _itm && _time <= getUTCtime) {
+						if (_itm !is null && itm == _itm && _time <= Clock.currTime) {
 							_itm = null;
 							_startEdit(itm);
 						} else {
 							_itm = itm;
-							_time = getUTCtime + Display.getCurrent.getDoubleClickTime * (TicksPerSecond / 1000);
+							_time = Clock.currTime + dur!"msecs"(Display.getCurrent.getDoubleClickTime);
 						}
 					}
 				}
@@ -813,7 +817,7 @@ void usingPopupMenuAccelerator(Control c) {
 }
 
 int convertAccelerator(string text) {
-	int t_index = lastIndexOf(text, '\t');
+	int t_index = std.string.lastIndexOf(text, '\t');
 	if (t_index >= 0 && t_index < text.length - 1) {
 		string acc_text = text[t_index + 1 .. $];
 		int acc = 0;
@@ -828,7 +832,7 @@ int convertAccelerator(string text) {
 			}
 		}
 		while (true) {
-			int p_index = cwx.utils.indexOf(acc_text, '+');
+			int p_index = .cCountUntil(acc_text, '+');
 			if (p_index >= 0 && p_index < acc_text.length - 1) {
 				acc |= mod(acc_text[0 .. p_index]);
 				acc_text = acc_text[p_index + 1 .. $];
@@ -1612,7 +1616,7 @@ private class LSFFThr(S, bool Array) {
 		worked = workedv;
 		display.asyncExec(working);
 	}
-	int run() {
+	void run() {
 		scope (exit) {
 			if (!current) {
 				display.syncExec(new Exit);
@@ -1640,7 +1644,8 @@ private class LSFFThr(S, bool Array) {
 		} else {
 			display.syncExec(new Start);
 			try {
-				S r = S.loadScenarioFromFile(prop.parent, fname, prop.var.etc.expandXMLs,
+				S r = S.loadScenarioFromFile(prop.parent,
+					fname, prop.var.etc.expandXMLs,
 					prop.tempPath, old, &setMax, &setWork,
 					isdir(fname) ? getBaseName(fname) : getBaseName(getDirName(fname)));
 				temp = r.useTemp ? r.scenarioPath : "";
@@ -1649,22 +1654,24 @@ private class LSFFThr(S, bool Array) {
 				display.syncExec(new Error(e));
 			}
 		}
-		return 0;
 	}
 }
 string[] scenarioFilter() {
+	string[] r;
 	if (canUncab) {
-		return ["*.wsn;Summary.xml;*.cab;*.zip;Summary.wsm;*.wid"];
+		r ~= "*.wsn;Summary.xml;*.cab;*.zip;Summary.wsm";
+	} else {
+		r ~= "*.wsn;Summary.xml;*.zip;Summary.wsm";
 	}
-	return ["*.wsn;Summary.xml;*.zip;Summary.wsm;*.wid"];
+	r ~= "*.xml;*.wid";
+	return r;
 }
 
 S[] loadScenarios(S)(Props prop, Shell w, void delegate(string) status,
 		bool expandXMLs, string dlgTitle, void delegate (S[]) loaded = null, bool oThr = true) {
 	auto dlg = new FileDialog(w, SWT.PRIMARY_MODAL | SWT.APPLICATION_MODAL | SWT.MULTI | SWT.OPEN);
-	scope (exit) dlg.dispose;
 	dlg.setFilterExtensions = scenarioFilter;
-	dlg.setFilterNames = [prop.msgs.filterScenario];
+	dlg.setFilterNames = prop.msgs.filterScenario;
 	dlg.setText = dlgTitle;
 	dlg.setFilterPath = scenarioFilterPath(prop);
 	string fname = dlg.open;
@@ -1713,7 +1720,7 @@ S[] loadScenariosFromFile(S)(Props prop, Shell w, void delegate(string) status,
 		thr.status = status;
 		w.setCursor = display.getSystemCursor(SWT.CURSOR_WAIT);
 		scope (exit) w.setCursor = null;
-		auto t = new std.thread.Thread(&thr.run);
+		auto t = new core.thread.Thread(&thr.run);
 		t.start;
 		return [];
 	} else {
@@ -1744,9 +1751,8 @@ string scenarioFilterPath(Props prop) {
 S loadScenario(S)(Props prop, Shell w, void delegate(string) status,
 		bool expandXMLs, S old, string dlgTitle, ref string[] openPaths, void delegate (S) loaded = null, bool oThr = true) {
 	auto dlg = new FileDialog(w, SWT.PRIMARY_MODAL | SWT.APPLICATION_MODAL | SWT.SINGLE | SWT.OPEN);
-	scope (exit) dlg.dispose;
 	dlg.setFilterExtensions = scenarioFilter;
-	dlg.setFilterNames = [prop.msgs.filterScenario];
+	dlg.setFilterNames = prop.msgs.filterScenario;
 	dlg.setText = dlgTitle;
 	dlg.setFilterPath = scenarioFilterPath(prop);
 	string fname = dlg.open;
@@ -1788,7 +1794,7 @@ private S loadScenarioFromFileImpl(S)(Props prop, Shell w, void delegate(string)
 			w.setCursor = Display.getCurrent.getSystemCursor(SWT.CURSOR_WAIT);
 			w.setEnabled = false;
 		}
-		auto t = new std.thread.Thread(&thr.run);
+		auto t = new core.thread.Thread(&thr.run);
 		t.start;
 		return null;
 	} else {
@@ -1797,7 +1803,8 @@ private S loadScenarioFromFileImpl(S)(Props prop, Shell w, void delegate(string)
 			if (!current) w.setCursor = null;
 		}
 		try {
-			return S.loadScenarioFromFile(prop.parent, fname, prop.var.etc.expandXMLs,
+			return S.loadScenarioFromFile(prop.parent, fname,
+				prop.var.etc.expandXMLs,
 				prop.tempPath, old, setMax, worked,
 				isdir(fname) ? getBaseName(fname) : getBaseName(getDirName(fname)));
 		} catch (SummaryException e) {
@@ -1821,7 +1828,6 @@ bool qMaterialCopy(Props prop, Skin skin, Shell shell,
 	}
 	if (paths.length == 0) return true;
 	auto copyM = new MessageBox(shell, SWT.YES | SWT.NO | SWT.CANCEL | SWT.ICON_QUESTION);
-	scope (exit) copyM.dispose;
 	copyM.setText = prop.msgs.dlgTitQuestion;
 	uint bin = 0u;
 	string[] msgPaths;
@@ -2115,7 +2121,7 @@ private class CBarListener(string Name) : ControlAdapter, DisposeListener {
 			ixs ~= i;
 		}
 		_cbar.setItemOrder = ixs;
-		_cbar.setWrapIndices = mixin ("_prop.var.etc." ~ Name ~ "WrapIndices_init");
+		_cbar.setWrapIndices = mixin ("_prop.var.etc." ~ Name ~ "WrapIndices_init.dup");
 		foreach_reverse (i; _cbar.getItemOrder) {
 			resetCISize(_cbar.getItem(i));
 		}
@@ -2148,7 +2154,7 @@ CoolBar createCoolBar(string Name)(Props prop, Composite parent,
 		itm.getControl.setMenu = menu;
 	}
 	if (mixin ("prop.var.etc." ~ Name ~ "Order.length") == cbar.getItemCount) {
-		cbar.setItemOrder = mixin ("prop.var.etc." ~ Name ~ "Order");
+		cbar.setItemOrder = mixin ("prop.var.etc." ~ Name ~ "Order.dup");
 	}
 	int[] wi;
 	foreach (i; mixin ("prop.var.etc." ~ Name ~ "WrapIndices")) {

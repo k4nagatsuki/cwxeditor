@@ -13,6 +13,8 @@ import cwx.xml;
 import cwx.utils;
 import cwx.path;
 
+import std.algorithm;
+
 public:
 
 /// カードの所持者である事を示すインタフェース。
@@ -97,11 +99,13 @@ public:
 		_id = id;
 	}
 	/// ditto
+	const
 	ulong id() {
 		return _id;
 	}
 
 	/// カード名。
+	const
 	string name() {
 		return _name;
 	}
@@ -112,6 +116,7 @@ public:
 	}
 
 	/// カード画像。
+	const
 	string path() {
 		return _path.path;
 	}
@@ -122,6 +127,7 @@ public:
 	}
 
 	/// 解説。
+	const
 	string desc() {
 		return _desc;
 	}
@@ -141,6 +147,7 @@ public:
 	}
 
 	/// 指定されたXMLノードにProperty情報を追加する。
+	const
 	protected XNode setProp(ref XNode node, ulong forceId = 0UL) {
 		auto pNode = node.newElement("Property");
 		pNode.newElement("Id", forceId == 0UL ? id : forceId);
@@ -163,8 +170,9 @@ public:
 		_id = to!(long)(idStr);
 	}
 
+	const
 	override int opCmp(Object o) {
-		return _id - (cast(Card) o)._id;
+		return cast(int) _id - cast(int) (cast(Card) o)._id;
 	}
 }
 
@@ -265,6 +273,7 @@ public:
 		super.removeUseCounter;
 	}
 	/// レベル。
+	const
 	uint level() {return _lev;}
 	/// ditto
 	void level(uint lev) {
@@ -272,6 +281,7 @@ public:
 		_lev = lev;
 	}
 	/// ヒットポイント。
+	const
 	uint life() {return _life;}
 	/// ditto
 	void life(uint life) {
@@ -279,6 +289,7 @@ public:
 		_life = life;
 	}
 	/// ヒットポイント最大値。
+	const
 	uint lifeMax() {return _lifeMax;}
 	/// ditto
 	void lifeMax(uint lifeMax) {
@@ -286,6 +297,7 @@ public:
 		_lifeMax = lifeMax;
 	}
 	// 適性値を返す。
+	const
 	int aptitude(Physical phy, Mental m) {
 		return physical(phy) + mental(m);
 	}
@@ -339,6 +351,7 @@ public:
 			}
 		}
 	}
+	const
 	private C __find(C)(C[] arr, ulong id) {
 		foreach (c; arr) {
 			if (c.id == id) {
@@ -427,19 +440,21 @@ public:
 	}
 
 	/// 指定された要素のindexを検索する。
-	int indexOf(T)(T c) {
+	const
+	int indexOf(T)(in T c) {
 		static if (is (T == SkillCard)) {
-			return .indexOf!("a is b")(_skills, c);
+			return .cCountUntil!("a is b")(_skills, c);
 		} else static if (is (T == ItemCard)) {
-			return .indexOf!("a is b")(_items, c);
+			return .cCountUntil!("a is b")(_items, c);
 		} else static if (is (T == BeastCard)) {
-			return .indexOf!("a is b")(_beasts, c);
+			return .cCountUntil!("a is b")(_beasts, c);
 		} else {
 			static assert (0);
 		}
 	}
 
 	/// 精神状態。
+	const
 	Mentality mentality() {return _mentali;}
 	/// ditto
 	void mentality(Mentality mentali) {
@@ -447,6 +462,7 @@ public:
 		_mentali = mentali;
 	}
 	/// 精神異常の残り時間。
+	const
 	uint mentalityRound() {return _mentaliRound;}
 	/// ditto
 	void mentalityRound(uint round) {
@@ -454,6 +470,7 @@ public:
 		_mentaliRound = round;
 	}
 	/// 麻痺の値。
+	const
 	uint paralyze() {return _para;}
 	/// ditto
 	void paralyze(uint value) {
@@ -461,6 +478,7 @@ public:
 		_para = value;
 	}
 	/// 毒の値。
+	const
 	uint poison() {return _poi;}
 	/// ditto
 	void poison(uint value) {
@@ -468,6 +486,7 @@ public:
 		_poi = value;
 	}
 	/// 呪縛の残り時間。
+	const
 	uint bindRound() {return _bindRound;}
 	/// ditto
 	void bindRound(uint round) {
@@ -475,6 +494,7 @@ public:
 		_bindRound = round;
 	}
 	/// 沈黙の残り時間。
+	const
 	uint silenceRound() {return _slntRound;}
 	/// ditto
 	void silenceRound(uint round) {
@@ -482,6 +502,7 @@ public:
 		_slntRound = round;
 	}
 	/// 暴露の残り時間。
+	const
 	uint faceUpRound() {return _faceUpRound;}
 	/// ditto
 	void faceUpRound(uint round) {
@@ -489,6 +510,7 @@ public:
 		_faceUpRound = round;
 	}
 	/// 魔法無効状態の残り時間。
+	const
 	uint antiMagicRound() {return _antiMgcRound;}
 	/// ditto
 	void antiMagicRound(uint round) {
@@ -496,6 +518,7 @@ public:
 		_antiMgcRound = round;
 	}
 	/// 能力値ボーナスの値。
+	const
 	int enhance(Enhance enh) {return _rEnh[enh];}
 	/// ditto
 	void enhance(Enhance enh, int value) {
@@ -503,6 +526,7 @@ public:
 		_rEnh[enh] = value;
 	}
 	/// 能力値ボーナスの残り時間。
+	const
 	uint enhanceRound(Enhance enh) {return _rEnhRound[enh];}
 	/// ditto
 	void enhanceRound(Enhance enh, uint round) {
@@ -511,17 +535,20 @@ public:
 	}
 
 	/// XMLテキストに変換する。
+	const
 	string toXML() {
 		auto n = XNode.create(XML_NAME);
 		toNodeImpl(n);
 		return n.text;
 	}
 	/// 自身をXMLノードにして指定されたノードに追加する。
+	const
 	XNode toNode(ref XNode parent) {
 		auto cNode = parent.newElement(XML_NAME);
 		toNodeImpl(cNode);
 		return cNode;
 	}
+	const
 	private void toNodeImpl(ref XNode cNode) {
 		auto pNode = setProp(cNode, id);
 		pNode.newElement("Level", level);
@@ -551,25 +578,25 @@ public:
 		}
 		{
 			auto cpNode = pNode.newElement("Coupons");
-			foreach (c; coupons) {
+			foreach (c; _coupon) {
 				c.toNode(cpNode);
 			}
 		}
 		{
 			auto cardNode = cNode.newElement("ItemCards");
-			foreach (c; items) {
+			foreach (c; _items) {
 				c.toNode(cardNode);
 			}
 		}
 		{
 			auto cardNode = cNode.newElement("SkillCards");
-			foreach (c; skills) {
+			foreach (c; _skills) {
 				c.toNode(cardNode);
 			}
 		}
 		{
 			auto cardNode = cNode.newElement("BeastCards");
-			foreach (c; beasts) {
+			foreach (c; _beasts) {
 				c.toNode(cardNode);
 			}
 		}
@@ -663,7 +690,7 @@ public:
 	private CastOwner _owner = null;
 	package void owner(CastOwner owner) {_owner = owner;}
 	string cwxPath() {
-		return _owner ? cpjoin(_owner, "castcard", .indexOf!("a is b")(_owner.casts, this)) : "";
+		return _owner ? cpjoin(_owner, "castcard", .cCountUntil!("a is b")(_owner.casts, this)) : "";
 	}
 	CWXPath findCWXPath(string path) {
 		if (path == "") return this;
@@ -740,10 +767,15 @@ public:
 	this(ulong id, string name, string imagePath, string desc) {
 		super(id, name, imagePath, desc);
 		_ceto = new class AbstractEventTreeOwner {
+			const
 			override bool canHasFireEnter() {return false;}
+			const
 			override bool canHasFireLose() {return false;}
+			const
 			override bool canHasFireEscape() {return false;}
+			const
 			override bool canHasFireRound() {return false;}
+			const
 			override bool canHasFireKeyCode() {return false;}
 			override size_t[] areaPath() {return [0];}
 			string cwxPath() {return this.outer.cwxPath;}
@@ -757,6 +789,7 @@ public:
 	/// カードが属するシナリオ名、及びカードの製作者。
 	/// 他のシナリオからのインポート等があるため、
 	/// 現在のシナリオと同一になるとは限らない。
+	const
 	string scenario() {return _scenario;}
 	/// ditto
 	void scenario(string scenario) {
@@ -764,6 +797,7 @@ public:
 		_scenario = scenario;
 	}
 	/// ditto
+	const
 	string author() {return _author;}
 	/// ditto
 	void author(string author) {
@@ -772,6 +806,7 @@ public:
 	}
 
 	/// カードの適正。肉体要素。
+	const
 	Physical physical() {return _phy;}
 	/// ditto
 	void physical(Physical phy) {
@@ -779,6 +814,7 @@ public:
 		_phy = phy;
 	}
 	/// カードの適正。精神要素。
+	const
 	Mental mental() {return _mtl;}
 	/// ditto
 	void mental(Mental mtl) {
@@ -787,6 +823,7 @@ public:
 	}
 
 	/// カードの標的。
+	const
 	CardTarget target() {return _targ;}
 	/// ditto
 	void target(CardTarget targ) {
@@ -794,6 +831,7 @@ public:
 		_targ = targ;
 	}
 	/// 全体が標的となるか。
+	const
 	bool allRange() {return _allRange;}
 	/// ditto
 	void allRange(bool allRange) {
@@ -801,6 +839,7 @@ public:
 		_allRange = allRange;
 	}
 	/// 使用時に発声が必要か。
+	const
 	bool spell() {return _spell;}
 	/// ditto
 	void spell(bool spell) {
@@ -808,6 +847,7 @@ public:
 		_spell = spell;
 	}
 	/// 効果のタイプ。物理、魔法、魔法的物理、物理的魔法。
+	const
 	EffectType effectType() {return _effTyp;}
 	/// ditto
 	void effectType(EffectType effTyp) {
@@ -815,6 +855,7 @@ public:
 		_effTyp = effTyp;
 	}
 	/// 回避属性。回避か抵抗か。
+	const
 	Resist resist() {return _res;}
 	/// ditto
 	void resist(Resist res) {
@@ -822,6 +863,7 @@ public:
 		_res = res;
 	}
 	/// 成功率。-5～+5。
+	const
 	int successRate() {return _suc;}
 	/// ditto
 	void successRate(int suc) {
@@ -829,6 +871,7 @@ public:
 		_suc = suc;
 	}
 	/// カードの視覚効果。
+	const
 	CardVisual visual() {return _vis;}
 	/// ditto
 	void visual(CardVisual vis) {
@@ -836,6 +879,7 @@ public:
 		_vis = vis;
 	}
 	/// 使用時の能力値ボーナス。
+	const
 	int enhance(Enhance enh) {return _enh[enh];}
 	/// ditto
 	void enhance(Enhance enh, int val) {
@@ -843,6 +887,7 @@ public:
 		_enh[enh] = val;
 	}
 	/// 使用時サウンド。
+	const
 	string soundPath1() {return _se1.path;}
 	/// ditto
 	void soundPath1(string path) {
@@ -850,6 +895,7 @@ public:
 		_se1.path = path;
 	}
 	/// 命中時サウンド。
+	const
 	string soundPath2() {return _se2.path;}
 	/// ditto
 	void soundPath2(string path) {
@@ -864,6 +910,7 @@ public:
 		_keyCodes = keyCodes;
 	}
 	/// カードの希少価値。
+	const
 	Premium premium() {return _premi;}
 	/// ditto
 	void premium(Premium premi) {
@@ -872,6 +919,9 @@ public:
 	}
 	/// カードの効果。
 	Motion[] motions() {return _muser.motions;}
+	/// ditto
+	const
+	const(Motion)[] motions() {return _muser.motions;}
 	/// ditto
 	void motions(Motion[] motions) {
 		_muser.motions = motions;
@@ -897,10 +947,15 @@ public:
 
 	override EventTree[] trees() {return _ceto.trees;}
 
+	const
 	override bool canHasFireEnter() {return _ceto.canHasFireEnter;}
+	const
 	override bool canHasFireLose() {return _ceto.canHasFireLose;}
+	const
 	override bool canHasFireEscape() {return _ceto.canHasFireEscape;}
+	const
 	override bool canHasFireRound() {return _ceto.canHasFireRound;}
+	const
 	override bool canHasFireKeyCode() {return _ceto.canHasFireKeyCode;}
 	override size_t[] areaPath() {return _ceto.areaPath;}
 	EventTree etFromPath(size_t[] path) {
@@ -917,6 +972,7 @@ public:
 	override void swapEventTree(int index1, int index2) {return _ceto.swapEventTree(index1, index2);}
 
 	/// 指定されたXMLノードに効果カード関連の情報を追加する。
+	const
 	protected XNode setEffProp(ref XNode node, ulong forceId = 0UL) {
 		auto pNode = setProp(node, forceId);
 		pNode.newElement("Scenario", scenario);
@@ -935,10 +991,10 @@ public:
 		enh.newAttr("defense", enhance(Enhance.DEFENSE));
 		pNode.newElement("SoundPath", encodePath(soundPath1));
 		pNode.newElement("SoundPath2", encodePath(soundPath2));
-		pNode.newElement("KeyCodes", encodeLf(keyCodes, false));
+		pNode.newElement("KeyCodes", encodeLf(_keyCodes, false));
 		pNode.newElement("Premium", fromPremium(premium));
 		auto mNode = node.newElement("Motions");
-		foreach (m; motions) {
+		foreach (m; _muser.motions) {
 			m.toNode(mNode);
 		}
 		_ceto.appendEventsToNode(node);
@@ -1025,6 +1081,7 @@ public:
 	}
 
 	/// レベル。
+	const
 	uint level() {return _level;}
 	/// ditto
 	void level(uint level) {
@@ -1033,6 +1090,7 @@ public:
 	}
 
 	/// 残り使用回数。
+	const
 	uint useLimit() {return _useLimit;}
 	/// ditto
 	void useLimit(uint useLimit) {
@@ -1041,6 +1099,7 @@ public:
 	}
 
 	/// ホールド状態か。
+	const
 	bool hold() {return _hold;}
 	/// ditto
 	void hold(bool hold) {
@@ -1049,17 +1108,20 @@ public:
 	}
 
 	/// XMLテキストに変換する。
+	const
 	string toXML() {
 		auto n = XNode.create(XML_NAME);
 		toNodeImpl(n);
 		return n.text;
 	}
 	/// 自身をXMLノードにして指定されたノードに追加する。
+	const
 	XNode toNode(ref XNode parent) {
 		auto cNode = parent.newElement(XML_NAME);
 		toNodeImpl(cNode);
 		return cNode;
 	}
+	const
 	private void toNodeImpl(ref XNode cNode) {
 		auto pNode = setEffProp(cNode, 0UL);
 		pNode.newElement("Level", level);
@@ -1087,7 +1149,7 @@ public:
 	private SkillOwner _owner = null;
 	package void owner(SkillOwner owner) {_owner = owner;}
 	string cwxPath() {
-		return _owner ? cpjoin(_owner, "skillcard", indexOf!("a is b")(_owner.skills, this)) : "";
+		return _owner ? cpjoin(_owner, "skillcard", .cCountUntil!("a is b")(_owner.skills, this)) : "";
 	}
 }
 
@@ -1117,6 +1179,7 @@ public:
 	}
 
 	/// 使用回数。0で無制限。
+	const
 	uint useLimit() {return _useLimit;}
 	/// ditto
 	void useLimit(uint useLimit) {
@@ -1125,6 +1188,7 @@ public:
 	}
 
 	/// 最大使用回数。0で無制限。
+	const
 	uint useLimitMax() {return _useLimitMax;}
 	/// ditto
 	void useLimitMax(uint useLimitMax) {
@@ -1133,6 +1197,7 @@ public:
 	}
 
 	/// 値段。
+	const
 	uint price() {return _price;}
 	/// ditto
 	void price(uint price) {
@@ -1141,6 +1206,7 @@ public:
 	}
 
 	/// 所持者の能力値ボーナス。
+	const
 	int enhanceOwner(Enhance enh) {return _oEnh[enh];}
 	/// ditto
 	void enhanceOwner(Enhance enh, int val) {
@@ -1149,6 +1215,7 @@ public:
 	}
 
 	/// ホールド状態か。
+	const
 	bool hold() {return _hold;}
 	/// ditto
 	void hold(bool hold) {
@@ -1157,17 +1224,20 @@ public:
 	}
 
 	/// XMLテキストに変換する。
+	const
 	string toXML() {
 		auto n = XNode.create(XML_NAME);
 		toNodeImpl(n);
 		return n.text;
 	}
 	/// 自身をXMLノードにして指定されたノードに追加する。
+	const
 	XNode toNode(ref XNode parent) {
 		auto cNode = parent.newElement(XML_NAME);
 		toNodeImpl(cNode);
 		return cNode;
 	}
+	const
 	private void toNodeImpl(ref XNode cNode) {
 		auto pNode = setEffProp(cNode, 0UL);
 		pNode.newElement("UseLimit", useLimit).newAttr("max", useLimitMax);
@@ -1209,7 +1279,7 @@ public:
 	private ItemOwner _owner = null;
 	package void owner(ItemOwner owner) {_owner = owner;}
 	string cwxPath() {
-		return _owner ? cpjoin(_owner, "itemcard", indexOf!("a is b")(_owner.items, this)) : "";
+		return _owner ? cpjoin(_owner, "itemcard", .cCountUntil!("a is b")(_owner.items, this)) : "";
 	}
 }
 
@@ -1234,6 +1304,7 @@ public:
 	}
 
 	/// 使用回数。0で無制限。
+	const
 	uint useLimit() {return _useLimit;}
 	/// ditto
 	void useLimit(uint useLimit) {
@@ -1242,23 +1313,27 @@ public:
 	}
 
 	/// 自身をXMLノードにして指定されたノードに追加する。
+	const
 	XNode toNode(ref XNode parent) {
 		auto cNode = parent.newElement(XML_NAME);
 		toNodeImpl(cNode);
 		return cNode;
 	}
+	const
 	private void toNodeImpl(ref XNode cNode, ulong forceId = 0UL) {
 		assert (cNode.name == XML_NAME);
 		auto pNode = setEffProp(cNode, forceId);
 		pNode.newElement("UseLimit", useLimit);
 	}
 	/// コピーを生成する。
+	const
 	BeastCard dup() {
 		auto node = XNode.create(BeastCard.XML_NAME);
 		toNodeImpl(node);
 		return BeastCard.createFromNode(node, LATEST_VERSION);
 	}
 	/// XMLテキストに変換する。
+	const
 	string toXML(ulong forceId = 0UL) {
 		auto n = XNode.create(XML_NAME);
 		toNodeImpl(n, forceId);
@@ -1284,7 +1359,7 @@ public:
 	private BeastOwner _owner = null;
 	package void owner(BeastOwner owner) {_owner = owner;}
 	string cwxPath() {
-		return _owner ? cpjoin(_owner, "beastcard", indexOf!("a is b")(_owner.beasts, this)) : "";
+		return _owner ? cpjoin(_owner, "beastcard", .cCountUntil!("a is b")(_owner.beasts, this)) : "";
 	}
 }
 
@@ -1307,17 +1382,20 @@ public:
 	}
 
 	/// XMLテキストに変換する。
+	const
 	string toXML() {
 		auto n = XNode.create(XML_NAME);
 		toNodeImpl(n);
 		return n.text;
 	}
 	/// 自身をXMLノードにして指定されたノードに追加する。
+	const
 	XNode toNode(ref XNode parent) {
 		auto cNode = parent.newElement(XML_NAME);
 		toNodeImpl(cNode);
 		return cNode;
 	}
+	const
 	private void toNodeImpl(ref XNode cNode) {
 		setProp(cNode);
 	}
@@ -1340,7 +1418,7 @@ public:
 	private InfoOwner _owner = null;
 	package void owner(InfoOwner owner) {_owner = owner;}
 	string cwxPath() {
-		return _owner ? cpjoin(_owner, "infocard", indexOf!("a is b")(_owner.infos, this)) : "";
+		return _owner ? cpjoin(_owner, "infocard", .cCountUntil!("a is b")(_owner.infos, this)) : "";
 	}
 	CWXPath findCWXPath(string path) {
 		if (path == "") return this;

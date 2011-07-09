@@ -27,6 +27,8 @@ import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.scripterrordialog;
 
+import std.algorithm;
+import std.conv;
 import std.string;
 
 import org.eclipse.swt.widgets.Control;
@@ -196,7 +198,8 @@ private:
 		this (Content[] cs) {
 			foreach (c; cs) {
 				_path ~= c.ctPath;
-				_c ~= Content.createFromNode(c.toNode, LATEST_VERSION);
+				auto node = c.toNode;
+				_c ~= Content.createFromNode(node, LATEST_VERSION);
 				_c[$ - 1].setUseCounter(_summ.useCounter.sub);
 			}
 		}
@@ -204,7 +207,8 @@ private:
 			udb;
 			scope (exit) uda;
 			foreach (i, c; _c.dup) {
-				_c[i] = Content.createFromNode(_et.fromPath(_path[i]).toNode, LATEST_VERSION);
+				auto node = _et.fromPath(_path[i]).toNode;
+				_c[i] = Content.createFromNode(node, LATEST_VERSION);
 				_c[i].setUseCounter(_summ.useCounter.sub);
 				auto now = fromPath(_path[i]);
 				_tree.setRedraw = false;
@@ -272,7 +276,8 @@ private:
 			_tree.setRedraw = false;
 			scope (exit) _tree.setRedraw = true;
 			for (size_t i = 0; i < _count; i++) {
-				auto c = Content.createFromNode(_et.starts[_index].toNode, LATEST_VERSION);
+				auto node = _et.starts[_index].toNode;
+				auto c = Content.createFromNode(node, LATEST_VERSION);
 				c.setUseCounter(_summ.useCounter.sub);
 				_c ~= c;
 				delImpl(_tree.getItem(_index), false);
@@ -303,7 +308,8 @@ private:
 		private Content _c;
 		this (int index, Content del) {
 			_index = index;
-			_c = Content.createFromNode(del.toNode, LATEST_VERSION);
+			auto node = del.toNode;
+			_c = Content.createFromNode(node, LATEST_VERSION);
 			_c.setUseCounter(_summ.useCounter.sub);
 		}
 		override void undo() {
@@ -1423,6 +1429,30 @@ private:
 			}
 		}
 	}
+	void refreshMenu() {
+		auto popup = new Menu(_tree.getShell, SWT.POP_UP);
+		createMenuItem(popup, _prop.msgs.menuCEdit, _prop.images.menuCEdit, &edit);
+		new MenuItem(popup, SWT.SEPARATOR);
+		createMenuItem(popup, _prop.msgs.menuUndo, _prop.images.menuUndo, &this.undo);
+		createMenuItem(popup, _prop.msgs.menuRedo, _prop.images.menuRedo, &this.redo);
+		new MenuItem(popup, SWT.SEPARATOR);
+		appendMenuTCPD(_prop, popup, this, true, true, true, true);
+		new MenuItem(popup, SWT.SEPARATOR);
+		createMenuItem(popup, _prop.msgs.menuToScript, _prop.images.menuToScript, &this.toScript);
+		createMenuItem(popup, _prop.msgs.menuToScriptAll, _prop.images.menuToScriptAll, &this.toScriptAll);
+		new MenuItem(popup, SWT.SEPARATOR);
+		createMenuItem(popup, _prop.msgs.menuStartToPackage, _prop.images.menuStartToPackage, &startToPackage);
+		void delegate() dlg = null;
+		auto convMI = createMenuItem(popup, _prop.msgs.menuConvertContent, _prop.images.menuConvertContent, dlg, SWT.CASCADE);
+		_convM = new Menu(_tree.getShell, SWT.DROP_DOWN);
+		debug {
+			new MenuItem(popup, SWT.SEPARATOR);
+			createMenuItem(popup, "debug: Create CWX &Path", null, &createCWXPath);
+		}
+		convMI.setMenu = _convM;
+
+		_tree.setMenu = popup;
+	}
 public:
 	this(Commons comm, Props prop, Summary summ, Composite parent, UndoManager undo,
 			void delegate(size_t[]) forceSel,
@@ -1443,28 +1473,6 @@ public:
 			_toolWin.addShellListener(new TSListener);
 			_toolWin.addMouseListener(new TMListener);
 		}
-		auto popup = new Menu(parent.getShell, SWT.POP_UP);
-		createMenuItem(popup, prop.msgs.menuCEdit, prop.images.menuCEdit, &edit);
-		new MenuItem(popup, SWT.SEPARATOR);
-		createMenuItem(popup, _prop.msgs.menuUndo, _prop.images.menuUndo, &this.undo);
-		createMenuItem(popup, _prop.msgs.menuRedo, _prop.images.menuRedo, &this.redo);
-		new MenuItem(popup, SWT.SEPARATOR);
-		appendMenuTCPD(prop, popup, this, true, true, true, true);
-		if (_prop.var.etc.useCWXScript) {
-			new MenuItem(popup, SWT.SEPARATOR);
-			createMenuItem(popup, _prop.msgs.menuToScript, _prop.images.menuToScript, &this.toScript);
-			createMenuItem(popup, _prop.msgs.menuToScriptAll, _prop.images.menuToScriptAll, &this.toScriptAll);
-		}
-		new MenuItem(popup, SWT.SEPARATOR);
-		createMenuItem(popup, _prop.msgs.menuStartToPackage, _prop.images.menuStartToPackage, &startToPackage);
-		void delegate() dlg = null;
-		auto convMI = createMenuItem(popup, _prop.msgs.menuConvertContent, _prop.images.menuConvertContent, dlg, SWT.CASCADE);
-		_convM = new Menu(parent.getShell, SWT.DROP_DOWN);
-		convMI.setMenu = _convM;
-		debug {
-			new MenuItem(popup, SWT.SEPARATOR);
-			createMenuItem(popup, "debug: Create CWX &Path", null, &createCWXPath);
-		}
 		_autoOpen = _prop.var.etc.contentsAutoOpen;
 		_conti = _prop.var.etc.contentsContinue;
 		_cbarPar = new Composite(_prop.var.etc.contentsFloat ? _toolWin : _comp, SWT.NONE);
@@ -1478,9 +1486,7 @@ public:
 		auto editl = new EditL;
 		_tree.addKeyListener(editl);
 		_tree.addMouseListener(editl);
-		{
-			_tree.setMenu = popup;
-		}
+		refreshMenu();
 		_tree.addSelectionListener(new SListener);
 
 		_comm.refCast.add(&__refreshCast);
@@ -1712,7 +1718,7 @@ public:
 		auto c = cast(Content) itm.getData;
 		auto script = CWXScript(_prop.parent, _summ);
 		auto text = script.toScript([c], _summ.legacy, "\t");
-		text = std.string.replace(text, "\n", std.path.linesep);
+		text = std.array.replace(text, "\n", std.path.linesep);
 		auto cb = new Clipboard(Display.getCurrent);
 		scope (exit) cb.dispose;
 		cb.setContents([new ArrayWrapperString(text ~ "\n")], [TextTransfer.getInstance]);
@@ -1721,7 +1727,7 @@ public:
 		if (!_et) return;
 		auto script = CWXScript(_prop.parent, _summ);
 		auto text = script.toScript(_et.starts, _summ.legacy, "\t");
-		text = std.string.replace(text, "\n", std.path.linesep);
+		text = std.array.replace(text, "\n", std.path.linesep);
 		auto cb = new Clipboard(Display.getCurrent);
 		scope (exit) cb.dispose;
 		cb.setContents([new ArrayWrapperString(text ~ "\n")], [TextTransfer.getInstance]);
@@ -2260,21 +2266,19 @@ public:
 					debugln(e);
 				}
 			}
-			if (_prop.var.etc.useCWXScript) {
-				auto script = cast(ArrayWrapperString) cb.getContents(TextTransfer.getInstance);
-				if (script) {
-					try {
-						auto cs = cwx.script.compile(_prop.parent, _summ, script.array);
-						if (!cs.length) return;
-						if (cs[0].type is CType.START) {
-							addStarts(cs);
-						} else {
-							addContents(cs);
-						}
-					} catch (CWXScriptException e) {
-						auto dlg = new ScriptErrorDialog(_prop, _tree.getShell, e);
-						dlg.open;
+			auto script = cast(ArrayWrapperString) cb.getContents(TextTransfer.getInstance);
+			if (script) {
+				try {
+					auto cs = cwx.script.compile(_prop.parent, _summ, script.array.idup);
+					if (!cs.length) return;
+					if (cs[0].type is CType.START) {
+						addStarts(cs);
+					} else {
+						addContents(cs);
 					}
+				} catch (CWXScriptException e) {
+					auto dlg = new ScriptErrorDialog(_prop, _tree.getShell, e);
+					dlg.open;
 				}
 			}
 		}
@@ -2299,7 +2303,7 @@ public:
 			if (store) this.store(owner);
 			owner.remove(c);
 		} else {
-			if (store) this.storeDelete(cwx.utils.indexOf!("a is b")(_et.starts, c), c);
+			if (store) this.storeDelete(.cCountUntil!("a is b")(_et.starts, c), c);
 			_et.remove(c);
 		}
 		itm.dispose;

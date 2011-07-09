@@ -60,9 +60,11 @@ enum MArg {
 	BEAST /// 召喚獣カード。
 }
 
-static this () {
+private bool static_this_completed = false;
+private void static_this () {
+	if (static_this_completed) return;
 	string _(string v) {return v;}
-	MOTION_DETAILS = [
+	_MOTION_DETAILS = [
 		MType.HEAL:MDetail("Heal", [MArg.VALUE_TYPE:_("damagetype"), MArg.U_VALUE:"value"]),
 		MType.DAMAGE:MDetail("Damage", [MArg.VALUE_TYPE:_("damagetype"), MArg.U_VALUE:"value"]),
 		MType.ABSORB:MDetail("Absorb", [MArg.VALUE_TYPE:_("damagetype"), MArg.U_VALUE:"value"]),
@@ -103,13 +105,21 @@ static this () {
 		MType.DEAL_SKILL_CARD:MDetail("DealSkillCard"),
 		MType.SUMMON_BEAST:MDetail("SummonBeast", [MArg.BEAST:cast(string) null])
 	];
-	foreach (type, ref detail; MOTION_DETAILS) {
-		MTYPE_MAP[detail.name] = type;
+	foreach (type, detail; _MOTION_DETAILS) {
+		_MTYPE_MAP[detail.name] = type;
 	}
 }
 
-MDetail[MType] MOTION_DETAILS;
-private MType[string] MTYPE_MAP;
+private MDetail[MType] _MOTION_DETAILS;
+private MDetail[MType] MOTION_DETAILS() {
+	static_this;
+	return _MOTION_DETAILS;
+}
+private MType[string] _MTYPE_MAP;
+private MType[string] MTYPE_MAP() {
+	static_this;
+	return _MTYPE_MAP;
+}
 
 struct MDetail {
 	string name;
@@ -117,9 +127,11 @@ struct MDetail {
 	bool rmdur;
 
 	/// argを使用するコンテントであればtrueを返す。
+	const
 	bool use(MArg arg) {return (arg in args) != null;}
 	/// argを使用する際の属性名を返す。
 	/// 子要素を使用する等の理由で属性名が存在しない場合はnullを返す。
+	const
 	string attr(MArg arg) {return args[arg];}
 
 	static MDetail opCall(string name) {
@@ -198,11 +210,18 @@ public:
 	Motion[] motions() {
 		return _motions;
 	}
+	/// ditto
+	const
+	const(Motion)[] motions() {
+		return _motions;
+	}
 }
 
 /// 効果の所持者である事を示すインタフェース。
 interface MotionOwner : CWXPath {
 	Motion[] motions();
+	const
+	const(Motion)[] motions();
 }
 
 /// 効果クラス。
@@ -231,9 +250,14 @@ public:
 		_el = el;
 	}
 	/// 効果の種類。
+	const
 	MType type() {return _type;}
 	/// 効果の概要。
-	MDetail detail() {return MOTION_DETAILS[type];}
+	const
+	MDetail detail() {
+		static_this;
+		return MOTION_DETAILS[type];
+	}
 
 	/// 変更ハンドラを登録する。
 	void changeHandler(void delegate() change) {
@@ -258,19 +282,21 @@ public:
 	}
 
 	/// コピーを作成する。
+	const
 	Motion dup() {
 		auto r = new Motion(type, element);
 		r.damageType = damageType;
 		r.uValue = uValue;
 		r.aValue = aValue;
 		r.round = round;
-		if (beast) {
-			r.beast = beast.dup;
+		if (_beast) {
+			r.beast = _beast.dup;
 		}
 		return r;
 	}
-	override int opEquals(Object o) {
-		auto m = cast(Motion) o;
+	const
+	bool opEquals(ref const(Object) o) {
+		auto m = cast(const(Motion)) o;
 		if (!m) return false;
 		if (m.type != type) return false;
 		if (m.element != element) return false;
@@ -278,13 +304,13 @@ public:
 		if (m.uValue != uValue) return false;
 		if (m.aValue != aValue) return false;
 		if (m.round != round) return false;
-		if (beast) {
-			if (m.beast) {
-				return beast.toXML == m.beast.toXML;
+		if (_beast) {
+			if (m._beast) {
+				return _beast.toXML == m._beast.toXML;
 			}
 			return false;
 		} else {
-			return !m.beast;
+			return !m._beast;
 		}
 	}
 	private static int roundValue(int val, int max, int min) {
@@ -294,15 +320,18 @@ public:
 	}
 
 	/// 効果属性。
+	const
 	Element element() {return _el;}
 	/// ditto
 	void element(Element el) {_el = el;}
 
 	/// 値の形式。
+	const
 	DamageType damageType() {return _dtyp;}
 	/// ditto
 	void damageType(DamageType dtyp) {_dtyp = dtyp;}
 	/// ダメージ・回復値。
+	const
 	uint uValue() {return _uValue;}
 	/// ditto
 	static const uValue_min = 1;
@@ -313,6 +342,7 @@ public:
 		_uValue = roundValue(val, uValue_max, uValue_min);
 	}
 	/// ボーナス・ペナルティ値。
+	const
 	int aValue() {return _aValue;}
 	/// ditto
 	static const aValue_min = -10;
@@ -323,6 +353,7 @@ public:
 		_aValue = roundValue(val, aValue_max, aValue_min);
 	}
 	/// ラウンド数。
+	const
 	int round() {return _round;}
 	/// ditto
 	void round(int val) {
@@ -335,9 +366,12 @@ public:
 	/// 召喚獣。
 	BeastCard beast() {return _beast;}
 	/// ditto
+	const
+	const(BeastCard) beast() {return _beast;}
+	/// ditto
 	BeastCard[] beasts() {return _beast ? [_beast] : [];}
 	/// ditto
-	void beast(BeastCard beast) {
+	void beast(in BeastCard beast) {
 		if (_beast) {
 			_beast.changeHandler = null;
 			_beast.removeUseCounter;
@@ -367,10 +401,12 @@ public:
 	}
 
 	/// XMLテキスト化して返す。
+	const
 	string toXML() {
 		return toNode.text;
 	}
 	/// XMLノード化して返す。
+	const
 	XNode toNode() {
 		auto e = XNode.create(XML_NAME);
 		toNodeImpl(e);
@@ -378,11 +414,13 @@ public:
 	}
 	/// XMLノードに自身のデータをノード化して追加し、
 	/// そのノードを返す。
+	const
 	XNode toNode(ref XNode node) {
 		auto e = node.newElement(XML_NAME);
 		toNodeImpl(e);
 		return e;
 	}
+	const
 	private XNode toNodeImpl(ref XNode e) {
 		auto d = detail;
 		e.newAttr("type", d.name);
@@ -393,8 +431,8 @@ public:
 		if (d.use(MArg.ROUND)) e.newAttr(d.attr(MArg.ROUND), round);
 		if (d.use(MArg.BEAST)) {
 			auto be = e.newElement("Beasts");
-			if (beast) {
-				beast.toNode(be);
+			if (_beast) {
+				_beast.toNode(be);
 			}
 		}
 		return e;
@@ -402,6 +440,7 @@ public:
 
 	/// XMLノードからインスタンスを生成して返す。
 	static Motion createFromNode(ref XNode node, string ver) {
+		static_this;
 		string elStr = null;
 		auto type = MTYPE_MAP[node.attr("type", true)];
 		auto d = MOTION_DETAILS[type];
@@ -423,7 +462,7 @@ public:
 	}
 
 	override string cwxPath() {
-		return _owner ? cpjoin(_owner, indexOf!("a is b")(_owner.motions, this)) : "";
+		return _owner ? cpjoin(_owner, .cCountUntil!("a is b")(_owner.motions, this)) : "";
 	}
 	override CWXPath findCWXPath(string path) {
 		if (path == "") return this;

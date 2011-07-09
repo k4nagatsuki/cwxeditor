@@ -7,6 +7,7 @@ import cwx.utils;
 import std.file;
 import std.loader;
 import std.path;
+import std.exception;
 
 import std.c.string;
 
@@ -26,10 +27,10 @@ version (Windows) {
 		if (!canUncab) return false;
 		if (!.exists(src)) return false;
 		src = nabs(src);
-		auto h = fciCreate(nabs(cab));
+		HFCI h = fciCreate(nabs(cab));
 		if (!h) return false;
-		scope (exit) destroy(h);
-		string cut = getDirName(src) ~ sep;
+		scope (exit) destroyFci(h);
+		string cut = std.path.join(getDirName(src), sep);
 		bool adds(string file) {
 			if (file.length > cut.length && !isdir(file) && (!isArc || isArc(file))) {
 				if (!add(h, file, file[cut.length .. $])) {
@@ -58,15 +59,15 @@ version (Windows) {
 	bool uncab(string file, string dest, string delegate(string) expand = null) {
 		if (!canUncab) return false;
 		if (!.exists(file)) return false;
-		auto h = fdiCreate;
+		HFDI h = fdiCreate;
 		if (!h) return false;
-		scope (exit) destroy(h);
+		scope (exit) destroyFdi(h);
 		return isCab(h, file) && copyFiles(h, file, dest, expand);
 	}
 
 	private extern (Windows) {
-		typedef HANDLE HFCI;
-		typedef HANDLE HFDI;
+		alias HANDLE HFCI;
+		alias HANDLE HFDI;
 		alias size_t SIZE_T;
 		alias USHORT TCOMP;
 
@@ -227,7 +228,7 @@ version (Windows) {
 			}
 			alias FNFCIFREE FNFREE;
 			INT FNFCIOPEN(LPSTR pszFile, INT oflag, INT pmode, INT *err, LPVOID pv) {
-				auto h = CreateFileA(pszFile, GENERIC_READ | GENERIC_WRITE, 0, null, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, null);
+				HANDLE h = CreateFileA(pszFile, GENERIC_READ | GENERIC_WRITE, 0, null, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, null);
 				if (h == INVALID_HANDLE_VALUE && GetLastError == ERROR_FILE_NOT_FOUND) {
 					h = CreateFileA(pszFile, GENERIC_READ | GENERIC_WRITE, 0, null, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, null);
 				}
@@ -298,17 +299,17 @@ version (Windows) {
 						if (cpp[i] == '/') cpp[i] = '\\';
 					}
 					if (len >= 3 && cpp[0] == '.'  && cpp[1] == '.' && cpp[2] == '\\') {
-						return INVALID_HANDLE_VALUE;
+						return cast(INT) INVALID_HANDLE_VALUE;
 					}
 					if (strstr(cpp, ("\\..\\").ptr)) {
-						return INVALID_HANDLE_VALUE;
+						return cast(INT) INVALID_HANDLE_VALUE;
 					}
 					if (prm.expand) {
 						auto pt = touni(cpp[0 .. len]);
 						auto cp = prm.expand(pt);
 						if (!cp.length) {
 							prm.onExpand = null;
-							return INVALID_HANDLE_VALUE;
+							return cast(INT) INVALID_HANDLE_VALUE;
 						}
 						strcat(path.ptr, tosjisz(cp));
 					} else {
@@ -410,13 +411,13 @@ version (Windows) {
 			&FNFCIGETTEMPFILE, &ccab, null);
 	}
 	private bool add(HFCI hfci, string file, string pathOnCab, TCOMP tcomp = tcompTYPE_MSZIP) {
-		return FCIAddFile(hfci, tosjisz(nabs(file)), tosjisz(pathOnCab), FALSE,
+		return FCIAddFile(hfci, tosjismz(nabs(file)), tosjismz(pathOnCab), FALSE,
 			null, &FNFCISTATUS, &FNFCIGETOPENINFO, tcomp) != 0;
 	}
 	private bool flush(HFCI hfci) {
 		return FCIFlushCabinet(hfci, false, null, &FNFCISTATUS) != 0;
 	}
-	private bool destroy(HFCI hfci) {
+	private bool destroyFci(HFCI hfci) {
 		return FCIDestroy(hfci) != 0;
 	}
 
@@ -426,25 +427,27 @@ version (Windows) {
 	}
 	private bool isCab(HFDI hfdi, string cab) {
 		FDICABINETINFO info;
-		auto h = CreateFileA(tosjisz(cab), GENERIC_READ, 0, null, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, null);
+		HANDLE h = CreateFileA(tosjisz(cab), GENERIC_READ, 0, null, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, null);
 		if (h == INVALID_HANDLE_VALUE) return false;
 		scope (exit) CloseHandle(h);
 		return FDIIsCabinet(hfdi, cast(INT*) h, &info) != 0;
 	}
 	private bool copyFiles(HFDI hfdi, string cab, string dir, string delegate(string) expand = null) {
 		cab = nabs(cab);
-		dir = nabs(dir) ~ sep;
+		auto temp = nabs(dir) ~ sep;
+		dir = assumeUnique(temp);
 		Prm prm;
-		prm.dest = tosjisz(dir);
+		prm.dest = tosjismz(dir);
 		prm.expand = expand;
-		return FDICopy(hfdi, tosjisz(cab), "".ptr, 0, &FNFDINOTIFY, null, &prm) != 0;
+		char[] empty;
+		return FDICopy(hfdi, tosjismz(cab), empty.ptr, 0, &FNFDINOTIFY, null, &prm) != 0;
 	}
 	private struct Prm {
 		char* dest = null;
 		string delegate(string) expand = null;
 		char* onExpand = null;
 	}
-	private bool destroy(HFDI hfdi) {
+	private bool destroyFdi(HFDI hfdi) {
 		return FDIDestroy(hfdi) != 0;
 	}
 
