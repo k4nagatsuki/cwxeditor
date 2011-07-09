@@ -372,16 +372,31 @@ public:
 		_user.change(id);
 	}
 
-	static MenuCard createFromCardNode(ref XNode node, string ver) {
+	static MenuCard[] createFromCardNode(ref XNode node, string ver) {
+		MenuCard parse(ref XNode node) {
+			auto pNode = node.child("Property", false);
+			if (!pNode.valid) return null;
+			string name = null;
+			string path = "";
+			pNode.onTag["Name"] = (ref XNode node) {name = node.value;};
+			pNode.onTag["ImagePath"] = (ref XNode node) {path = decodePath(node.value);};
+			pNode.parse;
+			if (!name) return null;
+			return new MenuCard(name, path, "", "", 0, 0, 1.0);
+		}
 		auto pNode = node.child("Property", false);
-		if (!pNode.valid) return null;
-		string name = null;
-		string path = "";
-		pNode.onTag["Name"] = (ref XNode node) {name = node.value;};
-		pNode.onTag["ImagePath"] = (ref XNode node) {path = decodePath(node.value);};
-		pNode.parse;
-		if (!name) return null;
-		return new MenuCard(name, path, "", "", 0, 0, 1.0);
+		if (pNode.valid) {
+			auto card = parse(node);
+			return card ? [card] : [];
+		} else {
+			MenuCard[] r;
+			node.onTag[null] = (ref XNode node) {
+				auto card = parse(node);
+				if (card) r ~= card;
+			};
+			node.parse;
+			return r;
+		}
 	}
 
 	/// XMLノードにして返す。

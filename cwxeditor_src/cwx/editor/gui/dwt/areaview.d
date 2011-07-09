@@ -2069,12 +2069,12 @@ public:
 						}
 						return;
 					} else if (isXMLBytes(e.data)) {
-						int i = appendCardFromXML(bytesToXML(e.data), 0, 0, false);
-						if (i >= 0) {
+						int[] i = appendCardFromXML(bytesToXML(e.data), 0, 0, false);
+						if (i.length > 0) {
 							static if (UseBacks) {
-								_undo ~= new UndoInsert([i], []);
+								_undo ~= new UndoInsert(i, []);
 							} else {
-								_undo ~= new UndoInsert([i]);
+								_undo ~= new UndoInsert(i);
 							}
 						}
 					}
@@ -2194,16 +2194,21 @@ public:
 	}
 
 	static if (UseCards && is (C == MenuCard)) {
-		int appendCardFromXML(string xml, int x, int y, bool fromImgPane) {
+		int[] appendCardFromXML(string xml, int x, int y, bool fromImgPane) {
 			try {
 				auto root = XNode.parse(xml);
-				auto card = MenuCard.createFromCardNode(root, LATEST_VERSION);
-				if (!card) return -1;
-				card.x = x;
-				card.y = y;
-				return appendCard(card, true, true, fromImgPane);
-			} catch {}
-			return -1;
+				auto cards = MenuCard.createFromCardNode(root, LATEST_VERSION);
+				int[] r;
+				foreach (card; cards) {
+					card.x = x;
+					card.y = y;
+					r ~= appendCard(card, true, true, fromImgPane);
+				}
+				return r;
+			} catch (Exception e) {
+				debugln(e);
+			}
+			return [];
 		}
 	}
 	private class IPDropTarget : DropTargetAdapter {
@@ -2243,12 +2248,12 @@ public:
 			static if (UseCards && is (C == MenuCard)) {
 				if (isXMLBytes(e.data)) {
 					scope p = _imgp.toControl(e.x, e.y);
-					int i = appendCardFromXML(bytesToXML(e.data), p.x, p.y, true);
-					if (i >= 0) {
+					int[] i = appendCardFromXML(bytesToXML(e.data), p.x, p.y, true);
+					if (i.length > 0) {
 						static if (UseBacks) {
-							_undo ~= new UndoInsert([i], []);
+							_undo ~= new UndoInsert(i, []);
 						} else {
-							_undo ~= new UndoInsert([i]);
+							_undo ~= new UndoInsert(i);
 						}
 					}
 				}
