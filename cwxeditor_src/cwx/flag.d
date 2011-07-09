@@ -366,6 +366,16 @@ private:
 public:
 	/// パス区切り文字。
 	static const string SEPARATOR = "\\";
+	/// パスを結合する。
+	static string join(string parent, string path) {
+		if (!parent.length) {
+			return path;
+		}
+		if (parent.endsWith(SEPARATOR)) {
+			return parent ~ path;
+		}
+		return parent ~ SEPARATOR ~ path;
+	}
 	/// ditto
 	static const string SEPARATOR_REGEX = "\\\\";
 	/// ルートディレクトリを生成する。
