@@ -555,6 +555,10 @@ class FlexEtcProps : Properties {
 	mixin Property!("keyCodeWidth", int, 100, true);
 	mixin Property!("scenarioPath", string, "");
 	mixin Property!("tempPath", string, "");
+	mixin Property!("backupPath", string, "");
+	mixin Property!("backupInterval", int, 15);
+	mixin Property!("backupCount", int, 10);
+
 	mixin Property!("openHistories", string[], []);
 	mixin Property!("historyMax", int, 9);
 	mixin Property!("historySnipLength", int, 30);
@@ -575,7 +579,7 @@ class FlexEtcProps : Properties {
 	mixin Property!("xmlCopy", bool, false);
 	mixin Property!("saveInnerImagePath", bool, false);
 	mixin Property!("traceDirectories", bool, true);
-	mixin Property!("logicalSort", bool, false, true);
+	mixin Property!("logicalSort", bool, true);
 	mixin Property!("soundPlayType", int, 0);
 
 	mixin Property!("searchHistories", string[], []);
@@ -696,8 +700,6 @@ class FlexEtcProps : Properties {
 	}
 	mixin Property!("ignorePaths", string[], [".*"]);
 
-	mixin Property!("useCWXScript", bool, false);
-
 	mixin XMLFuncs!(FlexEtcProps);
 }
 
@@ -753,9 +755,32 @@ public class FlexProps {
 				}
 			} catch {
 			}
-		}
-		foreach (i, fld; this.tupleof) {
-			this.tupleof[i] = newField(fld);
+			foreach (i, fld; this.tupleof) {
+				this.tupleof[i] = newField(fld);
+			}
+		} else {
+			// 環境変数による初期化
+			foreach (i, fld; this.tupleof) {
+				this.tupleof[i] = newField(fld);
+			}
+			string env() {
+				string r = null;
+				r = cwx.utils.getenv("TEMP");
+				if (!r) {
+					r = cwx.utils.getenv("TMP");
+				}
+				if (!r) {
+					r = cwx.utils.getenv("TMPDIR");
+				}
+				return r;
+			}
+			string t = env;
+			if (t) t = std.path.join(t, "cwxeditor");
+			etc.tempPath = t ? t : "temp";
+
+			string b = env;
+			if (b) b = std.path.join(b, "cwxeditor_backup");
+			etc.backupPath = b ? b : "backup";
 		}
 	}
 	T fromNode(T)(ref XNode node, T t) {

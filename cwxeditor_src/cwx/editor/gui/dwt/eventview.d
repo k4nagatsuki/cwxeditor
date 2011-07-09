@@ -750,6 +750,17 @@ private:
 			}
 		}
 	}
+	void refreshMenu() {
+		auto menu = new Menu(_cards.getShell, SWT.POP_UP);
+		appendMenuTCPD(_prop, menu, this, true, true, true, true);
+		new MenuItem(menu, SWT.SEPARATOR);
+		createMenuItem(menu, _prop.msgs.menuToScript, _prop.images.menuToScript, &this.toScript);
+		static if (is (A == Battle)) {
+			new MenuItem(menu, SWT.SEPARATOR);
+			createMenuItem(menu, _prop.msgs.menuAddManyRounds, _prop.images.menuAddManyRounds, &addManyRounds);
+		}
+		_cards.setMenu = menu;
+	}
 public:
 	this(Commons comm, Props prop, Summary summ, A area, Composite parent, UndoManager undo) {
 		super(parent, SWT.NONE);
@@ -827,17 +838,7 @@ public:
 		{
 			_cards = new Tree(_sash, SWT.SINGLE | SWT.BORDER);
 			_cards.addSelectionListener(new SListener);
-			auto menu = new Menu(parent.getShell, SWT.POP_UP);
-			appendMenuTCPD(_prop, menu, this, true, true, true, true);
-			if (_prop.var.etc.useCWXScript) {
-				new MenuItem(menu, SWT.SEPARATOR);
-				createMenuItem(menu, _prop.msgs.menuToScript, _prop.images.menuToScript, &this.toScript);
-			}
-			static if (is (A == Battle)) {
-				new MenuItem(menu, SWT.SEPARATOR);
-				createMenuItem(menu, _prop.msgs.menuAddManyRounds, _prop.images.menuAddManyRounds, &addManyRounds);
-			}
-			_cards.setMenu = menu;
+			refreshMenu();
 		}
 		{
 			_etree = new EventTreeView(comm, prop, summ, _sash, _undo, &forceSel, &refreshTopStart);
@@ -1306,7 +1307,6 @@ public:
 			}
 		}
 		private void pasteScript(Clipboard cb) {
-			if (!_prop.var.etc.useCWXScript) return;
 			auto script = cast(ArrayWrapperString) cb.getContents(TextTransfer.getInstance);
 			if (!script) return;
 			try {

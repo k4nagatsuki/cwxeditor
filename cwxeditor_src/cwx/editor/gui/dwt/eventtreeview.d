@@ -1429,6 +1429,30 @@ private:
 			}
 		}
 	}
+	void refreshMenu() {
+		auto popup = new Menu(_tree.getShell, SWT.POP_UP);
+		createMenuItem(popup, _prop.msgs.menuCEdit, _prop.images.menuCEdit, &edit);
+		new MenuItem(popup, SWT.SEPARATOR);
+		createMenuItem(popup, _prop.msgs.menuUndo, _prop.images.menuUndo, &this.undo);
+		createMenuItem(popup, _prop.msgs.menuRedo, _prop.images.menuRedo, &this.redo);
+		new MenuItem(popup, SWT.SEPARATOR);
+		appendMenuTCPD(_prop, popup, this, true, true, true, true);
+		new MenuItem(popup, SWT.SEPARATOR);
+		createMenuItem(popup, _prop.msgs.menuToScript, _prop.images.menuToScript, &this.toScript);
+		createMenuItem(popup, _prop.msgs.menuToScriptAll, _prop.images.menuToScriptAll, &this.toScriptAll);
+		new MenuItem(popup, SWT.SEPARATOR);
+		createMenuItem(popup, _prop.msgs.menuStartToPackage, _prop.images.menuStartToPackage, &startToPackage);
+		void delegate() dlg = null;
+		auto convMI = createMenuItem(popup, _prop.msgs.menuConvertContent, _prop.images.menuConvertContent, dlg, SWT.CASCADE);
+		_convM = new Menu(_tree.getShell, SWT.DROP_DOWN);
+		debug {
+			new MenuItem(popup, SWT.SEPARATOR);
+			createMenuItem(popup, "debug: Create CWX &Path", null, &createCWXPath);
+		}
+		convMI.setMenu = _convM;
+
+		_tree.setMenu = popup;
+	}
 public:
 	this(Commons comm, Props prop, Summary summ, Composite parent, UndoManager undo,
 			void delegate(size_t[]) forceSel,
@@ -1449,28 +1473,6 @@ public:
 			_toolWin.addShellListener(new TSListener);
 			_toolWin.addMouseListener(new TMListener);
 		}
-		auto popup = new Menu(parent.getShell, SWT.POP_UP);
-		createMenuItem(popup, prop.msgs.menuCEdit, prop.images.menuCEdit, &edit);
-		new MenuItem(popup, SWT.SEPARATOR);
-		createMenuItem(popup, _prop.msgs.menuUndo, _prop.images.menuUndo, &this.undo);
-		createMenuItem(popup, _prop.msgs.menuRedo, _prop.images.menuRedo, &this.redo);
-		new MenuItem(popup, SWT.SEPARATOR);
-		appendMenuTCPD(prop, popup, this, true, true, true, true);
-		if (_prop.var.etc.useCWXScript) {
-			new MenuItem(popup, SWT.SEPARATOR);
-			createMenuItem(popup, _prop.msgs.menuToScript, _prop.images.menuToScript, &this.toScript);
-			createMenuItem(popup, _prop.msgs.menuToScriptAll, _prop.images.menuToScriptAll, &this.toScriptAll);
-		}
-		new MenuItem(popup, SWT.SEPARATOR);
-		createMenuItem(popup, _prop.msgs.menuStartToPackage, _prop.images.menuStartToPackage, &startToPackage);
-		void delegate() dlg = null;
-		auto convMI = createMenuItem(popup, _prop.msgs.menuConvertContent, _prop.images.menuConvertContent, dlg, SWT.CASCADE);
-		_convM = new Menu(parent.getShell, SWT.DROP_DOWN);
-		convMI.setMenu = _convM;
-		debug {
-			new MenuItem(popup, SWT.SEPARATOR);
-			createMenuItem(popup, "debug: Create CWX &Path", null, &createCWXPath);
-		}
 		_autoOpen = _prop.var.etc.contentsAutoOpen;
 		_conti = _prop.var.etc.contentsContinue;
 		_cbarPar = new Composite(_prop.var.etc.contentsFloat ? _toolWin : _comp, SWT.NONE);
@@ -1484,9 +1486,7 @@ public:
 		auto editl = new EditL;
 		_tree.addKeyListener(editl);
 		_tree.addMouseListener(editl);
-		{
-			_tree.setMenu = popup;
-		}
+		refreshMenu();
 		_tree.addSelectionListener(new SListener);
 
 		_comm.refCast.add(&__refreshCast);
@@ -2266,21 +2266,19 @@ public:
 					debugln(e);
 				}
 			}
-			if (_prop.var.etc.useCWXScript) {
-				auto script = cast(ArrayWrapperString) cb.getContents(TextTransfer.getInstance);
-				if (script) {
-					try {
-						auto cs = cwx.script.compile(_prop.parent, _summ, script.array.idup);
-						if (!cs.length) return;
-						if (cs[0].type is CType.START) {
-							addStarts(cs);
-						} else {
-							addContents(cs);
-						}
-					} catch (CWXScriptException e) {
-						auto dlg = new ScriptErrorDialog(_prop, _tree.getShell, e);
-						dlg.open;
+			auto script = cast(ArrayWrapperString) cb.getContents(TextTransfer.getInstance);
+			if (script) {
+				try {
+					auto cs = cwx.script.compile(_prop.parent, _summ, script.array.idup);
+					if (!cs.length) return;
+					if (cs[0].type is CType.START) {
+						addStarts(cs);
+					} else {
+						addContents(cs);
 					}
+				} catch (CWXScriptException e) {
+					auto dlg = new ScriptErrorDialog(_prop, _tree.getShell, e);
+					dlg.open;
 				}
 			}
 		}

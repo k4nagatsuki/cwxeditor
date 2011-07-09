@@ -11,6 +11,8 @@ import std.utf;
 import std.process;
 import std.metastrings;
 import std.string;
+import std.datetime;
+import std.regex;
 debug import std.stdio;
 
 import cwx.cwl;
@@ -132,6 +134,10 @@ version (Windows) {
 public:
 class MainWindow : TopLevelPanel {
 private:
+	Display _display = null;
+	bool _quit = false;
+	Object _saveSync = null;
+
 	SBShell _sbshl = null;
 	Shell _win = null;
 	DockingFolderCTC _dock = null;
@@ -151,6 +157,61 @@ private:
 			_win.setText = _prop.msgs.mainWindowName(summary.scenarioName, path);
 		} else {
 			_win.setText = _prop.msgs.mainWindowName(null, null);
+		}
+	}
+
+	private SysTime _lastBackup;
+	void backupThr() {
+		_lastBackup = Clock.currTime;
+		while (!_quit) {
+			if (_lastBackup + dur!"minutes"(_prop.var.etc.backupInterval) <= Clock.currTime) {
+				createBackup();
+				_lastBackup = Clock.currTime;
+			}
+			core.thread.Thread.sleep(dur!"seconds"(1));
+		}
+		debug writefln("Exit Backup Thread");
+	}
+	void createBackup() {
+		try {
+			if (_quit) return;
+			auto summ = summary;
+			if (!summ) return;
+			string parent = _prop.backupPath;
+			auto bc = _prop.var.etc.backupCount;
+			if (0 < bc) {
+				string sPath = summ.scenarioPath;
+				auto d = Clock.currTime;
+				string file = .format("cwxeditor_backup_%04d%02d%02d%02d%02d%02d[%s].zip",
+					d.year, d.month, d.day, d.hour, d.minute, d.second, sPath.basename);
+				string zFile = std.path.join(parent, file);
+				if (!parent.exists) mkdirRecurse(parent);
+				synchronized (_saveSync) {
+					.zip(sPath, zFile, true, [std.path.join(sPath, "cwxeditor.lock")], true);
+				}
+			}
+
+			// 古いバックアップを削除する
+			auto reg = .regex("^cwxeditor_backup_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]\\[.+\\]\\.zip$"d);
+			auto files = clistdir(parent);
+			string[] backup;
+			foreach (f; files) {
+				if (match(to!dstring(f), reg).empty) continue;
+				backup ~= f;
+			}
+			if (backup.length <= bc) return;
+			// 実際の更新日時よりファイル名に記述された日付を優先する
+			backup = backup.sort;
+			foreach (f; backup[0 .. backup.length - bc]) {
+				f = std.path.join(parent, f);
+				try {
+					std.file.remove(f);
+				} catch (Exception e) {
+					debugln(e);
+				}
+			}
+		} catch (Exception e) {
+			debugln(e);
 		}
 	}
 
@@ -241,6 +302,7 @@ private:
 	}
 	void openScenario(Summary summ) {
 		assert (summ);
+		_lastBackup = Clock.currTime;
 		_dirWin.stopTrace;
 		scope (exit) _dirWin.resumeTrace;
 		if (_prop.var.etc.logicalSort) {
@@ -279,7 +341,11 @@ private:
 		setupMenu(_tool);
 		addHistory;
 		try {
-			if (old) old.delTemp;
+			if (old) {
+				synchronized (_saveSync) {
+					old.delTemp;
+				}
+			}
 		} catch (Exception e) {
 			debugln(e);
 		}
@@ -336,7 +402,9 @@ private:
 				shell.setCursor = Display.getCurrent.getSystemCursor(SWT.CURSOR_WAIT);
 				scope (exit) shell.setCursor = null;
 				try {
-					summary.saveOverwrite(_prop.parent, _prop.var.etc.saveInnerImagePath);
+					synchronized (_saveSync) {
+						summary.saveOverwrite(_prop.parent, _prop.var.etc.saveInnerImagePath);
+					}
 					_comm.saved.call;
 					addHistory;
 					return true;
@@ -371,11 +439,13 @@ private:
 				bool expandXMLs = _prop.var.etc.expandXMLs;
 				Skin defSkin = .findSkin2(_prop, _prop.var.etc.defaultSkin);
 				try {
-					summary.saveWithName(_prop.parent,
-						_prop.var.etc.saveInnerImagePath,
-						fname, tempPath, expandXMLs, defSkin, (string msg) {
-							MessageBox.showWarning(msg, _prop.msgs.dlgTitWarning, shell);
-						});
+					synchronized (_saveSync) {
+						summary.saveWithName(_prop.parent,
+							_prop.var.etc.saveInnerImagePath,
+							fname, tempPath, expandXMLs, defSkin, (string msg) {
+								MessageBox.showWarning(msg, _prop.msgs.dlgTitWarning, shell);
+							});
+					}
 					_comm.saved.call;
 					_comm.refScenarioPath.call;
 					_comm.refSkin.call;
@@ -472,6 +542,7 @@ private:
 	}
 	class DListener : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
+			_quit = true;
 			_comm.refScenarioName.remove(&__refreshTitle);
 			_comm.refScenarioPath.remove(&__refreshTitle);
 			_comm.refWallpaper.remove(&redrawAll);
@@ -493,7 +564,9 @@ private:
 				if (summary && summary.useTemp) {
 					_dirWin.stopTrace;
 					try {
-						summary.delTemp;
+						synchronized (_saveSync) {
+							summary.delTemp;
+						}
 					} catch (Exception e) {
 						debugln(e);
 					}
@@ -651,13 +724,12 @@ private:
 		createMenuItem(_menuFile, _prop.msgs.menuClose, _prop.images.menuClose, &exitAll);
 		setupMenu(_menu);
 	}
-	Display _display = null;
 	static const PIPE_APP_MAX = 256;
 	string _pipeName = "";
 	class OpenCWXPath : Runnable {
 		string path;
 		override void run() {
-			auto paths = split(path, ";");
+			auto paths = std.string.split(path, ";");
 			if (!paths.length) paths = [""];
 			foreach (p; paths) {
 				try {
@@ -816,22 +888,8 @@ public:
 		}
 		_firstScenarioPath = firstScenarioPath;
 		_openPaths = openPaths;
+		_saveSync = new Object;
 		_prop = new Props(propFilePath, new CProps(appPath, sys));
-		if (_prop.var.etc.tempPath.length == 0) {
-			string t = cwx.utils.getenv("TEMP");
-			if (t) _prop.var.etc.tempPath = std.path.join(t, "cwxeditor");
-		}
-		if (_prop.var.etc.tempPath.length == 0) {
-			string t = cwx.utils.getenv("TMP");
-			if (t) _prop.var.etc.tempPath = std.path.join(t, "cwxeditor");
-		}
-		if (_prop.var.etc.tempPath.length == 0) {
-			string t = cwx.utils.getenv("TMPDIR");
-			if (t) _prop.var.etc.tempPath = std.path.join(t, "cwxeditor");
-		}
-		if (_prop.var.etc.tempPath.length == 0) {
-			_prop.var.etc.tempPath = "temp";
-		}
 		if (exists(_prop.tempPath)) {
 			foreach (temp; clistdir(_prop.tempPath)) {
 				temp = std.path.join(_prop.tempPath, temp);
@@ -1630,6 +1688,8 @@ public:
 
 		auto pipe = new core.thread.Thread(&pipeThr);
 		pipe.start;
+		auto backup = new core.thread.Thread(&backupThr);
+		backup.start;
 		version (Windows) {
 			scope (exit) {
 				auto p = CreateFileW(toUTF16z(_pipeName),
@@ -1675,6 +1735,8 @@ public:
 		_comm.dispose;
 		_dirWin.quitTrace;
 		_prop.images.disposeImages;
+		_quit = true;
+		backup.join();
 		d.dispose;
 		_prop.var.save(dock);
 		debug writefln("Exit Main Thread");

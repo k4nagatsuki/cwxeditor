@@ -2030,6 +2030,11 @@ public:
 	const string dlgTitEnginePath(string appName) {return appName ~ "の場所";}
 	const string tempDir() {return "シナリオの一時展開先";}
 	const string tempDirDesc() {return "wsn圧縮されたシナリオの一時的な展開先を選択してください。";}
+	const string backupDir() {return "自動バックアップ先";}
+	const string backupDirDesc() {return "シナリオを定期的に自動バックアップする" ~ DIR ~ "を選択してください。";}
+	const string backupInterval() {return "保存間隔";}
+	const string minute() {return "分";}
+	const string backupCount() {return "最大保存数";}
 	const string skin() {return "スキン";}
 	const string scenarioAuthor() {return "シナリオ作者(新規作成時に自動設定されます)";}
 	const string historiesSettings() {return "履歴";}
@@ -2050,6 +2055,7 @@ public:
 	const string traceDirectories() {
 		return "ファイル・" ~ DIR ~ "の変更を自動的に追跡する";
 	}
+	const string logicalSort() {return "数値参照型ソートを行う(1, 10, 2, 3, ... → 1, 2, 3, 10, ...)";}
 	const string soundPlayType() {return "音声再生方法";}
 	const string soundPlayTypeDef() {return "自動選択";}
 	const string soundPlayTypeSDL() {return "SDL(CardWirthPy形式)";}
@@ -2071,6 +2077,7 @@ public:
 
 	const string errorEnginePath(string appName) {return appName ~ "の場所が正しくありません。";}
 	const string errorTempPath() {return "一時展開先が正しくありません。";}
+	const string errorBackupPath() {return "自動バックアップ先が正しくありません。";}
 
 	const string outerTools() {return "外部ツール";}
 	const string outerToolsTitle() {return "外部ツールの設定";}

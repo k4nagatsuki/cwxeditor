@@ -528,6 +528,14 @@ public:
 		}
 	}
 	const
+	string backupPath() {
+		if (std.path.isabs(var.etc.backupPath)) {
+			return var.etc.backupPath;
+		} else {
+			return std.path.join(std.path.getDirName(parent.appPath), var.etc.backupPath);
+		}
+	}
+	const
 	const(CProps) parent() {return _parent;}
 	const
 	const(cwx.system.System) sys() {return _parent.sys;}

@@ -175,6 +175,7 @@ class Commons {
 	Dlg!() refIgnorePaths;
 	Dlg!() refCardState;
 	Dlg!() refWallpaper;
+	Dlg!() refSortCondition;
 
 	Dlg!(Area) refArea;
 	Dlg!(Area) delArea;

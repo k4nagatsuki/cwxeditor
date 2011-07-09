@@ -404,7 +404,19 @@ private:
 	void delegate() _change = null;
 public:
 	/// パス区切り文字。
-	static immutable string SEPARATOR = "\\";
+	static const string SEPARATOR = "\\";
+	/// ditto
+	static const string SEPARATOR_REGEX = "\\\\";
+	/// パスを結合する。
+	static string join(string parent, string path) {
+		if (!parent.length) {
+			return path;
+		}
+		if (parent.endsWith(SEPARATOR)) {
+			return parent ~ path;
+		}
+		return parent ~ SEPARATOR ~ path;
+	}
 	/// ルートディレクトリを生成する。
 	package this(CWXPath owner) {
 		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime);

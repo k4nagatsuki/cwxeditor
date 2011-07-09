@@ -16,5 +16,6 @@ syntax: regexp
 ^cwxeditor_src/objs/.*$
 ^cwxeditor_src/Scenario/.*$
 ^cwxeditor_src/temp/.*$
+^cwxeditor_src/backup/.*$
 ^cwxeditor_src/.*\.dll$
 ^cwxeditor_src/.*\.bat$

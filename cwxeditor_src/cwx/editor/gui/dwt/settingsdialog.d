@@ -20,6 +20,7 @@ import cwx.editor.gui.dwt.xmlbytestransfer;
 import std.path;
 import std.file;
 import std.string;
+import std.functional;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
@@ -64,6 +65,9 @@ private:
 	CTabItem _tabB;
 	Text _enginePath;
 	Text _tempDir;
+	Text _backupDir;
+	Spinner _backupInterval;
+	Spinner _backupCount;
 	Text _author;
 	Text _wallpaper;
 	Spinner _histMax;
@@ -76,6 +80,7 @@ private:
 	Button _xmlCopy;
 	Button _saveInnerImagePath;
 	Button _traceDirectories;
+	Button _logicalSort;
 	version (Windows) {
 		Combo _soundPlayType;
 	}
@@ -281,6 +286,9 @@ private:
 	void selectTemp() {
 		selectDir(_tempDir, _prop.msgs.tempDir, _prop.msgs.tempDirDesc, _prop.tempPath);
 	}
+	void selectBackup() {
+		selectDir(_backupDir, _prop.msgs.backupDir, _prop.msgs.backupDirDesc, _prop.backupPath);
+	}
 	void selectWorkDir(int i) {
 		auto tool = _tools[i];
 		string fname = selectDir(_toolWorkDir, _prop.msgs.toolWorkDir, _prop.msgs.toolWorkDirDesc, tool.workDir);
@@ -351,6 +359,9 @@ private:
 	class SelTemp : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {selectTemp;}
 	}
+	class SelBackup : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {selectBackup;}
+	}
 	class SelWallpaper : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {selectWallpaper;}
 	}
@@ -413,6 +424,51 @@ private:
 			refr.setText = _prop.msgs.reference;
 			refr.addSelectionListener(new SelTemp);
 			setupDropFile(grp, _tempDir, &dropDir);
+		}
+		{
+			auto grp = new Group(comp, SWT.NONE);
+			grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+			grp.setText = _prop.msgs.backupDir;
+			auto gl = new GridLayout(3, false);
+			gl.horizontalSpacing = 15;
+			grp.setLayout = gl;
+
+			{
+				auto comp2 = new Composite(grp, SWT.NONE);
+				comp2.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+				comp2.setLayout = zeroMarginGridLayout(2, false);
+				_backupDir = new Text(comp2, SWT.BORDER);
+				_backupDir.setLayoutData = new GridData(GridData.FILL_BOTH);
+				_backupDir.addModifyListener(_mod);
+				auto refr = new Button(comp2, SWT.PUSH);
+				refr.setText = _prop.msgs.reference;
+				refr.addSelectionListener(new SelBackup);
+				setupDropFile(grp, _backupDir, &dropDir);
+			}
+			{
+				auto comp2 = new Composite(grp, SWT.NONE);
+				comp2.setLayoutData = new GridData(GridData.FILL_VERTICAL);
+				comp2.setLayout = zeroMarginGridLayout(3, false);
+				auto l = new Label(comp2, SWT.CENTER);
+				l.setText = _prop.msgs.backupInterval;
+				_backupInterval = new Spinner(comp2, SWT.BORDER);
+				_backupInterval.setMinimum = 1;
+				_backupInterval.setMaximum = 99;
+				_backupInterval.addModifyListener(_mod);
+				auto l2 = new Label(comp2, SWT.CENTER);
+				l2.setText = _prop.msgs.minute;
+			}
+			{
+				auto comp2 = new Composite(grp, SWT.NONE);
+				comp2.setLayoutData = new GridData(GridData.FILL_VERTICAL);
+				comp2.setLayout = zeroMarginGridLayout(2, false);
+				auto l = new Label(comp2, SWT.CENTER);
+				l.setText = _prop.msgs.backupCount;
+				_backupCount = new Spinner(comp2, SWT.BORDER);
+				_backupCount.setMinimum = 0;
+				_backupCount.setMaximum = 99;
+				_backupCount.addModifyListener(_mod);
+			}
 		}
 		{
 			auto comp2 = new Composite(comp, SWT.NONE);
@@ -514,6 +570,7 @@ private:
 				_xmlCopy = createB(_prop.msgs.xmlCopy);
 				_saveInnerImagePath = createB(_prop.msgs.saveInnerImagePath);
 				_traceDirectories = createB(_prop.msgs.traceDirectories);
+				_logicalSort = createB(_prop.msgs.logicalSort);
 
 				version (Windows) {
 					auto sl = new Label(grp, SWT.NONE);
@@ -1083,6 +1140,9 @@ protected:
 
 		_enginePath.setText = _prop.var.etc.enginePath;
 		_tempDir.setText = _prop.var.etc.tempPath;
+		_backupDir.setText = _prop.var.etc.backupPath;
+		_backupInterval.setSelection = _prop.var.etc.backupInterval;
+		_backupCount.setSelection = _prop.var.etc.backupCount;
 		_author.setText = _prop.var.etc.defaultAuthor;
 		_wallpaper.setText = _prop.var.etc.wallpaper;
 		_histMax.setSelection = _prop.var.etc.historyMax;
@@ -1099,6 +1159,7 @@ protected:
 		_xmlCopy.setSelection = _prop.var.etc.xmlCopy;
 		_saveInnerImagePath.setSelection = _prop.var.etc.saveInnerImagePath;
 		_traceDirectories.setSelection = _prop.var.etc.traceDirectories;
+		_logicalSort.setSelection = _prop.var.etc.logicalSort;
 		version (Windows) {
 			_soundPlayType.select = _prop.var.etc.soundPlayType;
 		}
@@ -1156,12 +1217,20 @@ protected:
 			err(_tabB, _tempDir, _prop.msgs.errorTempPath);
 			return false;
 		}
+		string backup;
+		try {
+			backup = _backupDir.getText;
+		} catch {
+			err(_tabB, _backupDir, _prop.msgs.errorBackupPath);
+			return false;
+		}
 		string oldEnginePath = _prop.var.etc.enginePath;
 		string oldWallpaper = _prop.var.etc.wallpaper;
 		auto oldKeyCodes = _prop.var.etc.standardKeyCodes;
 		auto tools = _prop.var.etc.outerTools;
 		auto oldIgnorePaths = _prop.var.etc.ignorePaths;
 		bool oldSmoothingCard = _prop.var.etc.smoothingCard;
+		bool oldLogicalSort = _prop.var.etc.logicalSort;
 		scope (exit) {
 			if (_summ && oldEnginePath != _prop.var.etc.enginePath) {
 				_comm.skin = findSkin(_prop, _summ);
@@ -1183,9 +1252,26 @@ protected:
 			if (oldSmoothingCard != _prop.var.etc.smoothingCard) {
 				_comm.refCardState.call;
 			}
+			if (oldLogicalSort != _prop.var.etc.logicalSort) {
+				if (_summ) {
+					if (_prop.var.etc.logicalSort) {
+						_summ.flagDirRoot.sorter = (string a, string b) {
+							return ncmp(a, b);
+						};
+					} else {
+						_summ.flagDirRoot.sorter = (string a, string b) {
+							return cmp(a, b);
+						};
+					}
+				}
+				_comm.refSortCondition.call;
+			}
 		}
 		_prop.var.etc.enginePath = engine;
 		_prop.var.etc.tempPath = temp;
+		_prop.var.etc.backupPath = backup;
+		_prop.var.etc.backupInterval = _backupInterval.getSelection;
+		_prop.var.etc.backupCount = _backupCount.getSelection;
 		_prop.var.etc.defaultAuthor = _author.getText;
 		_prop.var.etc.wallpaper = _wallpaper.getText;
 		_prop.var.etc.historyMax = _histMax.getSelection;
@@ -1206,6 +1292,7 @@ protected:
 		_prop.var.etc.xmlCopy = _xmlCopy.getSelection;
 		_prop.var.etc.saveInnerImagePath = _saveInnerImagePath.getSelection;
 		_prop.var.etc.traceDirectories = _traceDirectories.getSelection;
+		_prop.var.etc.logicalSort = _logicalSort.getSelection;
 		_prop.var.etc.contentsFloat = _contentsFloat.getSelection;
 		version (Windows) {
 			_prop.var.etc.soundPlayType = _soundPlayType.getSelectionIndex;

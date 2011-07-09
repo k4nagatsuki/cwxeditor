@@ -167,8 +167,33 @@ private:
 		auto dir = cast(FlagDir) itm.getData;
 		auto text = (cast(Text) c).getText;
 		if (!text) text = "";
+		auto flags = dir.allFlags;
+		auto oldFlagPaths = new string[flags.length];
+		foreach (i, flag; flags) {
+			oldFlagPaths[i] = flag.path;
+		}
+		auto steps = dir.allSteps;
+		auto oldStepPaths = new string[steps.length];
+		foreach (i, step; steps) {
+			oldStepPaths[i] = step.path;
+		}
+		string p = dir.path;
+		size_t plen = p.length;
+		if (!endsWith(p, FlagDir.SEPARATOR)) {
+			plen += FlagDir.SEPARATOR.length;
+		}
+
 		dir.name = text;
 		itm.setText = dir.name;
+		p = dir.path;
+		foreach (path; oldFlagPaths) {
+			auto newPath = FlagDir.join(p, path[plen .. $]);
+			uc.change(toFlagId(path), toFlagId(newPath));
+		}
+		foreach (path; oldStepPaths) {
+			auto newPath = FlagDir.join(p, path[plen .. $]);
+			uc.change(toStepId(path), toStepId(newPath));
+		}
 	}
 
 	Control createEditor(TreeItem itm) {
@@ -307,9 +332,11 @@ public:
 		dt.addDropListener(new FlagsDropListener);
 
 		_comm.replText.add(&refresh);
+		_comm.refSortCondition.add(&refresh);
 		dirs.addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) {
 				_comm.replText.remove(&refresh);
+				_comm.refSortCondition.remove(&refresh);
 			}
 		});
 		return _comp;
