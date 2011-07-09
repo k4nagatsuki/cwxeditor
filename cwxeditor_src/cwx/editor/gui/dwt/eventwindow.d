@@ -126,6 +126,9 @@ public:
 			createMenuItem(me, _prop.msgs.menuDown, _prop.images.menuDown, &_eview.down);
 			new MenuItem(me, SWT.SEPARATOR);
 			appendMenuTCPD(_prop, me, this, true, true, true, true);
+			new MenuItem(me, SWT.SEPARATOR);
+			createMenuItem(me, _prop.msgs.menuToScript, _prop.images.menuToScript, &_eview.toScript);
+			createMenuItem(me, _prop.msgs.menuToScriptAll, _prop.images.menuToScriptAll, &_eview.toScriptAll);
 
 			shell.setMenuBar = bar;
 		} else {
@@ -134,6 +137,8 @@ public:
 			putMenuAction(MenuID.Redo, &_eview.redo);
 			putMenuAction(MenuID.Up, &_eview.up);
 			putMenuAction(MenuID.Down, &_eview.down);
+			putMenuAction(MenuID.ToScript, &_eview.toScript);
+			putMenuAction(MenuID.ToScriptAll, &_eview.toScriptAll);
 		}
 
 		if (shell) {
@@ -244,6 +249,7 @@ public:
 	A eventTreeOwner() {
 		return _eto;
 	}
+
 	override {
 		void cut(SelectionEvent se) {
 			_eview.cut(se);

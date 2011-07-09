@@ -2105,9 +2105,9 @@ public:
 
 	/// スクリプト関係。
 	const string ttToScript() {return "スクリプトに変換してコピー";}
-	const string menuToScript() {return ttToScript ~ "(&S)";}
+	const string menuToScript() {return ttToScript ~ "(&S)\tCtrl+G";}
 	const string ttToScriptAll() {return "全てをスクリプトに変換してコピー";}
-	const string menuToScriptAll() {return ttToScriptAll ~ "(&A)";}
+	const string menuToScriptAll() {return ttToScriptAll ~ "(&P)\tCtrl+B";}
 	const string dlgTitScriptError() {
 		return "CWXスクリプトエラー";
 	}

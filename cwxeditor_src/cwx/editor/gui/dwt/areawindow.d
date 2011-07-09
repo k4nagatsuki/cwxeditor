@@ -183,6 +183,9 @@ public:
 			createMenuItem(me, _prop.msgs.menuDown, _prop.images.menuDown, &down);
 			new MenuItem(me, SWT.SEPARATOR);
 			appendMenuTCPD(_prop, me, this, true, true, true, true);
+			new MenuItem(me, SWT.SEPARATOR);
+			createMenuItem(me, _prop.msgs.menuToScript, _prop.images.menuToScript, &toScript);
+			createMenuItem(me, _prop.msgs.menuToScriptAll, _prop.images.menuToScriptAll, &toScriptAll);
 
 			auto mv = createMenu(bar, _prop.msgs.menuView);
 			createMenuItem(mv, _prop.msgs.menuRefresh, _prop.images.menuRefresh, &refresh);
@@ -194,6 +197,8 @@ public:
 			putMenuAction(MenuID.Up, &up);
 			putMenuAction(MenuID.Down, &down);
 			appendMenuTCPD(_prop, this, this, true, true, true, true);
+			putMenuAction(MenuID.ToScript, &toScript);
+			putMenuAction(MenuID.ToScriptAll, &toScriptAll);
 			putMenuAction(MenuID.Refresh, &refresh);
 		}
 		{
@@ -294,6 +299,16 @@ public:
 	}
 	void undo() {_undo.undo;}
 	void redo() {_undo.redo;}
+
+	private void toScript() {
+		_eview.initial;
+		_eview.toScript;
+	}
+	private void toScriptAll() {
+		_eview.initial;
+		_eview.toScriptAll;
+	}
+
 	override {
 		void cut(SelectionEvent se) {
 			foreach (c; _tcpd) {

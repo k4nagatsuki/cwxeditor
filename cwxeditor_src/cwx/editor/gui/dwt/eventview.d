@@ -753,8 +753,6 @@ private:
 	void refreshMenu() {
 		auto menu = new Menu(_cards.getShell, SWT.POP_UP);
 		appendMenuTCPD(_prop, menu, this, true, true, true, true);
-		new MenuItem(menu, SWT.SEPARATOR);
-		createMenuItem(menu, _prop.msgs.menuToScript, _prop.images.menuToScript, &this.toScript);
 		static if (is (A == Battle)) {
 			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(menu, _prop.msgs.menuAddManyRounds, _prop.images.menuAddManyRounds, &addManyRounds);
@@ -1194,6 +1192,9 @@ public:
 	}
 
 	void toScript() {
+		_etree.toScript;
+	}
+	void toScriptAll() {
 		_etree.toScriptAll;
 	}
 

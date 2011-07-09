@@ -1078,6 +1078,9 @@ public:
 				mixin (MenuAction!("me", "Paste"));
 				mixin (MenuAction!("me", "Del"));
 				new MenuItem(me, SWT.SEPARATOR);
+				mixin (MenuAction!("me", "ToScript"));
+				mixin (MenuAction!("me", "ToScriptAll"));
+				new MenuItem(me, SWT.SEPARATOR);
 				mixin (MenuAction!("me", "Up"));
 				mixin (MenuAction!("me", "Down"));
 				new MenuItem(me, SWT.SEPARATOR);
