@@ -3,7 +3,10 @@ module cwxeditor;
 
 import cwx.utils;
 import cwx.system;
+import cwx.props;
 import cwx.editor.gui.dwt.mainwindow;
+import cwx.editor.gui.dwt.textdialog;
+import cwx.editor.gui.dwt.props;
 
 import std.file;
 import std.path;
@@ -17,6 +20,7 @@ void main(string[] args) {
 		string[] openPaths;
 		size_t sc = 1u;
 		for (int i = 1; i < args.length; i++) {
+			bool help = false;
 			try {
 				switch (args[i]) {
 				case "-a": // エリア表示
@@ -36,6 +40,19 @@ void main(string[] args) {
 					sc = i + 2u;
 					break;
 				case "-help", "-h", "/?": // usage
+					help = true;
+					break;
+				default:
+					if (i > sc) {
+						openPaths ~= args[i];
+					}
+					break;
+				}
+			} catch (Exception e) {
+				debugln(e);
+			}
+			if (help) {
+				try {
 					string dir;
 					version (Windows) {
 						dir = "Folder";
@@ -54,14 +71,18 @@ void main(string[] args) {
 					writefln("    -p   <ID>    open package from <ID>");
 					writefln("  OpenPath:");
 					writefln("    <CWXPath>    open resource from <CWXPath>");
-					return;
-				default:
-					if (i > sc) {
-						openPaths ~= args[i];
-					}
-					break;
+				} catch (Exception e) {
+					debugln(e);
 				}
-			} catch {}
+				try {
+					auto prop = new Props(ini, new CProps(args[0], sys));
+					auto dlg = new TextDialog(prop, null, prop.msgs.dlgTitUsage, prop.images.app, prop.msgs.usage);
+					dlg.open;
+				} catch (Exception e) {
+					debugln(e);
+				}
+				return;
+			}
 		}
 		if (sc < args.length) {
 			auto main = new MainWindow(args[0], ini, sys, args[sc], openPaths);

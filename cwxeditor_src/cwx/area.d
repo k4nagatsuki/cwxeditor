@@ -372,17 +372,23 @@ public:
 		_user.change(id);
 	}
 
-	static MenuCard[] createFromCardNode(ref XNode node, string ver) {
+	static MenuCard[] createFromCardNode(ref XNode node, bool copyDesc, string ver) {
 		MenuCard parse(ref XNode node) {
 			auto pNode = node.child("Property", false);
 			if (!pNode.valid) return null;
 			string name = null;
 			string path = "";
+			string desc = "";
 			pNode.onTag["Name"] = (ref XNode node) {name = node.value;};
 			pNode.onTag["ImagePath"] = (ref XNode node) {path = decodePath(node.value);};
+			if (copyDesc) {
+				pNode.onTag["Description"] = (ref XNode node) {
+					desc = decodeLf2(node.value);
+				};
+			}
 			pNode.parse;
 			if (!name) return null;
-			return new MenuCard(name, path, "", "", 0, 0, 1.0);
+			return new MenuCard(name, path, desc, "", 0, 0, 1.0);
 		}
 		auto pNode = node.child("Property", false);
 		if (pNode.valid) {

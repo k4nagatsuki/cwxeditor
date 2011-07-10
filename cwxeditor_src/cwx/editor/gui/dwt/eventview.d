@@ -753,6 +753,9 @@ private:
 	void refreshMenu() {
 		auto menu = new Menu(_cards.getShell, SWT.POP_UP);
 		appendMenuTCPD(_prop, menu, this, true, true, true, true);
+		new MenuItem(menu, SWT.SEPARATOR);
+		createMenuItem(menu, _prop.msgs.menuToScript, _prop.images.menuToScript, &toScript);
+		createMenuItem(menu, _prop.msgs.menuToScriptAll, _prop.images.menuToScriptAll, &toScriptAll);
 		static if (is (A == Battle)) {
 			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(menu, _prop.msgs.menuAddManyRounds, _prop.images.menuAddManyRounds, &addManyRounds);

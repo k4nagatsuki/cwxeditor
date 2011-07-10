@@ -503,12 +503,16 @@ private:
 				_keyCodes.length = _prop.looks.keyCodesMax;
 			}
 			grp.setLayout = new GridLayout(_keyCodes.length >= 8 ? 2 : 1, true);
-			auto stdKCs = _prop.var.etc.standardKeyCodes.dup;
+			string[] stdKCs = _prop.var.etc.standardKeyCodes.dup;
 			for (int i = 0; i < _keyCodes.length; i++) {
 				_keyCodes[i] = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN);
 				_keyCodes[i].setVisibleItemCount = 20;
 				_keyCodes[i].setLayoutData = new GridData(GridData.FILL_BOTH);
-				_keyCodes[i].setItems(stdKCs);
+				//  FIXME: Argument not valid, java\lang\exceptions.d, 28
+/+				_keyCodes[i].setItems(stdKCs);
++/				foreach (kc; stdKCs) {
+					_keyCodes[i].add(kc);
+				}
 			}
 		}
 		auto tab = new CTabItem(tabf, SWT.NONE);

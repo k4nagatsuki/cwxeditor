@@ -2197,11 +2197,17 @@ public:
 		int[] appendCardFromXML(string xml, int x, int y, bool fromImgPane) {
 			try {
 				auto root = XNode.parse(xml);
-				auto cards = MenuCard.createFromCardNode(root, LATEST_VERSION);
+				auto cards = MenuCard.createFromCardNode(root, _prop.var.etc.copyDesc, LATEST_VERSION);
 				int[] r;
+				// x, y座標を中心にして配置
+				auto s = _prop.looks.cardSize;
+				auto ins = _prop.looks.menuCardInsets;
+				int cx = x - cast(int) (s.width + ins.e + ins.w) / 2;
+				int cy = y - cast(int) (s.height + ins.n + ins.s) / 2;
 				foreach (card; cards) {
-					card.x = x;
-					card.y = y;
+					assert (card.scale == 1.0);
+					card.x = cx;
+					card.y = cy;
 					r ~= appendCard(card, true, true, fromImgPane);
 				}
 				return r;

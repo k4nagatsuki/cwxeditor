@@ -580,6 +580,7 @@ class FlexEtcProps : Properties {
 	mixin Property!("saveInnerImagePath", bool, false);
 	mixin Property!("traceDirectories", bool, true);
 	mixin Property!("logicalSort", bool, true);
+	mixin Property!("copyDesc", bool, false);
 	mixin Property!("soundPlayType", int, 0);
 
 	mixin Property!("searchHistories", string[], []);

@@ -1438,6 +1438,9 @@ private:
 		new MenuItem(popup, SWT.SEPARATOR);
 		appendMenuTCPD(_prop, popup, this, true, true, true, true);
 		new MenuItem(popup, SWT.SEPARATOR);
+		createMenuItem(popup, _prop.msgs.menuToScript, _prop.images.menuToScript, &toScript);
+		createMenuItem(popup, _prop.msgs.menuToScriptAll, _prop.images.menuToScriptAll, &toScriptAll);
+		new MenuItem(popup, SWT.SEPARATOR);
 		createMenuItem(popup, _prop.msgs.menuStartToPackage, _prop.images.menuStartToPackage, &startToPackage);
 		void delegate() dlg = null;
 		auto convMI = createMenuItem(popup, _prop.msgs.menuConvertContent, _prop.images.menuConvertContent, dlg, SWT.CASCADE);

@@ -81,6 +81,7 @@ private:
 	Button _saveInnerImagePath;
 	Button _traceDirectories;
 	Button _logicalSort;
+	Button _copyDesc;
 	version (Windows) {
 		Combo _soundPlayType;
 	}
@@ -571,6 +572,7 @@ private:
 				_saveInnerImagePath = createB(_prop.msgs.saveInnerImagePath);
 				_traceDirectories = createB(_prop.msgs.traceDirectories);
 				_logicalSort = createB(_prop.msgs.logicalSort);
+				_copyDesc = createB(_prop.msgs.copyDesc);
 
 				version (Windows) {
 					auto sl = new Label(grp, SWT.NONE);
@@ -1160,6 +1162,7 @@ protected:
 		_saveInnerImagePath.setSelection = _prop.var.etc.saveInnerImagePath;
 		_traceDirectories.setSelection = _prop.var.etc.traceDirectories;
 		_logicalSort.setSelection = _prop.var.etc.logicalSort;
+		_copyDesc.setSelection = _prop.var.etc.copyDesc;
 		version (Windows) {
 			_soundPlayType.select = _prop.var.etc.soundPlayType;
 		}
@@ -1293,6 +1296,7 @@ protected:
 		_prop.var.etc.saveInnerImagePath = _saveInnerImagePath.getSelection;
 		_prop.var.etc.traceDirectories = _traceDirectories.getSelection;
 		_prop.var.etc.logicalSort = _logicalSort.getSelection;
+		_prop.var.etc.copyDesc = _copyDesc.getSelection;
 		_prop.var.etc.contentsFloat = _contentsFloat.getSelection;
 		version (Windows) {
 			_prop.var.etc.soundPlayType = _soundPlayType.getSelectionIndex;

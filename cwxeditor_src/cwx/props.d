@@ -43,6 +43,22 @@ public:
 		}
 		return buf;
 	}
+	const string dlgTitUsage() {return "使い方 - CWXEditor";}
+	const string usage() {
+		return "使い方: cwxeditor [-help | -ini <PATH> | <OpenID ...>] <SCENARIO> [<CWXPath ...>]\n"
+			~ "オプション:\n"
+			~ "  -help        起動オプションの説明を表示して終了します。\n"
+			~ "  -ini <PATH>  指定されたパスの初期化ファイルを使用します。\n"
+			~ "  <SCENARIO>   起動と同時に指定されたシナリオを開きます。\n"
+			~ "               (*.wsn/Summary.xml/Summary.wsm/[フォルダ])\n"
+			~ "OpenID:\n"
+			~ "  -a <ID>      シナリオを開いた後、<ID>で指定したIDのエリアを開きます。\n"
+			~ "  -b <ID>      シナリオを開いた後、<ID>で指定したIDのバトルを開きます。\n"
+			~ "  -p <ID>      シナリオを開いた後、<ID>で指定したIDのパッケージを開きます。\n"
+			~ "CWXPath:\n"
+			~ "  <CWXPath>    シナリオを開いた後、<CWXPath>で指定したリソースを開きます。\n"
+			~ "               詳しくは後述。";
+	}
 
 	const string dlgTitError() {return "エラー - CWXEditor";}
 	const string dlgTitWarning() {return "警告 - CWXEditor";}
@@ -2030,7 +2046,7 @@ public:
 	const string dlgTitEnginePath(string appName) {return appName ~ "の場所";}
 	const string tempDir() {return "シナリオの一時展開先";}
 	const string tempDirDesc() {return "wsn圧縮されたシナリオの一時的な展開先を選択してください。";}
-	const string backupDir() {return "自動バックアップ先";}
+	const string backupDir() {return "自動バックアップ(最大数が0より多い場合のみ有効)";}
 	const string backupDirDesc() {return "シナリオを定期的に自動バックアップする" ~ DIR ~ "を選択してください。";}
 	const string backupInterval() {return "保存間隔";}
 	const string minute() {return "分";}
@@ -2056,6 +2072,7 @@ public:
 		return "ファイル・" ~ DIR ~ "の変更を自動的に追跡する";
 	}
 	const string logicalSort() {return "数値参照型ソートを行う(1, 10, 2, 3, ... → 1, 2, 3, 10, ...)";}
+	const string copyDesc() {return "カードをエリアに貼り付け・ドロップした時、解説もコピーする";}
 	const string soundPlayType() {return "音声再生方法";}
 	const string soundPlayTypeDef() {return "自動選択";}
 	const string soundPlayTypeSDL() {return "SDL(CardWirthPy形式)";}
@@ -2311,6 +2328,9 @@ public:
 		}
 		return "IPA UIゴシック";
 	}
+	const CFont textDlgFont(uint defSize) {
+		return CFont(gothic(true), defSize <= 0 ? 12 : defSize, false, false);
+	}
 	const CFont castCardNameFont(bool legacy) {return CFont(uigothic(legacy), 9, true, false);}
 	const CFont castCardLevelFont(bool legacy) {return CFont(mincho(legacy), 24, true, true);}
 	const CInsets castCardLevelInsets() {return CInsets(2, 8, 0, 0);}
@@ -2342,7 +2362,7 @@ public:
 		return CFont(gothic(legacy), 16, false, false);
 	}
 	const CFont scriptErrorFont(uint defSize) {
-		return CFont(gothic(true), defSize <= 0 ? 12 : defSize, false, false);
+		return textDlgFont(defSize);
 	}
 }
 
