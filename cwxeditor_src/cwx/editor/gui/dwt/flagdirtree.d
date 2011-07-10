@@ -167,8 +167,33 @@ private:
 		auto dir = cast(FlagDir) itm.getData;
 		auto text = (cast(Text) c).getText;
 		if (!text) text = "";
+		auto flags = dir.allFlags;
+		auto oldFlagPaths = new string[flags.length];
+		foreach (i, flag; flags) {
+			oldFlagPaths[i] = flag.path;
+		}
+		auto steps = dir.allSteps;
+		auto oldStepPaths = new string[steps.length];
+		foreach (i, step; steps) {
+			oldStepPaths[i] = step.path;
+		}
+		string p = dir.path;
+		size_t plen = p.length;
+		if (!cwx.utils.endsWith(p, FlagDir.SEPARATOR)) {
+			plen += FlagDir.SEPARATOR.length;
+		}
+
 		dir.name = text;
 		itm.setText = dir.name;
+		p = dir.path;
+		foreach (path; oldFlagPaths) {
+			auto newPath = FlagDir.join(p, path[plen .. $]);
+			uc.change(toFlagId(path), toFlagId(newPath));
+		}
+		foreach (path; oldStepPaths) {
+			auto newPath = FlagDir.join(p, path[plen .. $]);
+			uc.change(toStepId(path), toStepId(newPath));
+		}
 	}
 
 	Control createEditor(TreeItem itm) {
