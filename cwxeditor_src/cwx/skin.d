@@ -65,8 +65,16 @@ class Skin {
 			return r;
 		}
 	}
+	private static string lSkinsKey = null;
 	private static Skin[string] lSkins;
 	static Skin legacySkin(in CProps prop, string enginePath, string sPath) {
+		if (!lSkinsKey) {
+			lSkinsKey = enginePath;
+		} else if (enginePath != lSkinsKey) {
+			typeof(lSkins) init;
+			lSkins = init;
+			lSkinsKey = enginePath;
+		}
 		string resDir, lEnginePath;
 		findLegacy(sPath, resDir, lEnginePath);
 		resDir = resDir.length ? nabs(resDir) : "";
