@@ -983,10 +983,14 @@ private:
 			case SWT.ESC: {
 				redrawProc((FlexImage img) {img.reset;});
 			} break;
-			case SWT.CR, ' ': {
+			case SWT.CR: {
 				redrawProc((FlexImage img) {img.resize;});
 			} break;
-			default: break;
+			default: {
+				if (ke.character == ' ') {
+					redrawProc((FlexImage img) {img.resize;});
+				}
+			} break;
 			}
 		}
 	}
