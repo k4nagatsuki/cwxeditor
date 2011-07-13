@@ -175,6 +175,7 @@ private:
 	void createBackup() {
 		try {
 			if (_quit) return;
+			if (!_prop.var.etc.backupEnabled) return;
 			auto summ = summary;
 			if (!summ) return;
 			string parent = _prop.backupPath;
@@ -329,7 +330,7 @@ private:
 		}
 		_cardWin.refresh(summ);
 		_dirWin.refresh(summ);
-		if (_replDlg && !_replDlg.widget.isDisposed) _replDlg.summary = summ;
+		_comm.refScenario.call(summ);
 		_comm.refScenarioName.call;
 		_comm.refScenarioPath.call;
 		if (!dock) {

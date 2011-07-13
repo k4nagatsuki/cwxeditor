@@ -66,8 +66,10 @@ private:
 	Text _enginePath;
 	Text _tempDir;
 	Text _backupDir;
+	Button _backupEnabled;
 	Spinner _backupInterval;
 	Spinner _backupCount;
+	Button _backupRef;
 	Text _author;
 	Text _wallpaper;
 	Spinner _histMax;
@@ -115,6 +117,14 @@ private:
 		}
 		override void modifyText(ModifyEvent e) {
 			if (!_onProc) applyEnabled;
+		}
+	}
+	class RefE : SelectionAdapter, ModifyListener {
+		override void widgetSelected(SelectionEvent e) {
+			refreshEnabled();
+		}
+		override void modifyText(ModifyEvent e) {
+			refreshEnabled();
 		}
 	}
 	void upBgImage() {
@@ -431,20 +441,14 @@ private:
 			grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			grp.setText = _prop.msgs.backupDir;
 			auto gl = new GridLayout(3, false);
-			gl.horizontalSpacing = 15;
+			gl.horizontalSpacing = 10;
 			grp.setLayout = gl;
 
 			{
-				auto comp2 = new Composite(grp, SWT.NONE);
-				comp2.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				comp2.setLayout = zeroMarginGridLayout(2, false);
-				_backupDir = new Text(comp2, SWT.BORDER);
-				_backupDir.setLayoutData = new GridData(GridData.FILL_BOTH);
-				_backupDir.addModifyListener(_mod);
-				auto refr = new Button(comp2, SWT.PUSH);
-				refr.setText = _prop.msgs.reference;
-				refr.addSelectionListener(new SelBackup);
-				setupDropFile(grp, _backupDir, &dropDir);
+				_backupEnabled = new Button(grp, SWT.CHECK);
+				_backupEnabled.setText = _prop.msgs.backupEnabled;
+				_backupEnabled.addSelectionListener(_mod);
+				_backupEnabled.addSelectionListener(_refe);
 			}
 			{
 				auto comp2 = new Composite(grp, SWT.NONE);
@@ -469,6 +473,22 @@ private:
 				_backupCount.setMinimum = 0;
 				_backupCount.setMaximum = 99;
 				_backupCount.addModifyListener(_mod);
+			}
+			{
+				auto comp2 = new Composite(grp, SWT.NONE);
+				auto gd = new GridData(GridData.FILL_HORIZONTAL);
+				gd.horizontalSpan = 3;
+				comp2.setLayoutData = gd;;
+				comp2.setLayout = zeroMarginGridLayout(3, false);
+				auto l = new Label(comp2, SWT.NONE);
+				l.setText = _prop.msgs.backupPath;
+				_backupDir = new Text(comp2, SWT.BORDER);
+				_backupDir.setLayoutData = new GridData(GridData.FILL_BOTH);
+				_backupDir.addModifyListener(_mod);
+				_backupRef = new Button(comp2, SWT.PUSH);
+				_backupRef.setText = _prop.msgs.reference;
+				_backupRef.addSelectionListener(new SelBackup);
+				setupDropFile(grp, _backupDir, &dropDir);
 			}
 		}
 		{
@@ -1122,6 +1142,16 @@ private:
 		}
 	}
 	private Mod _mod;
+	private RefE _refe;
+	private void refreshScenario(Summary summ) {
+		_summ = summ;
+	}
+	private void refreshEnabled() {
+		_backupDir.setEnabled = _backupEnabled.getSelection;
+		_backupInterval.setEnabled = _backupEnabled.getSelection;
+		_backupCount.setEnabled = _backupEnabled.getSelection;
+		_backupRef.setEnabled = _backupEnabled.getSelection;
+	}
 public:
 	this(Commons comm, Props prop, Shell shell, Summary summ) {
 		super(prop, shell, prop.msgs.dlgTitSettings, prop.images.menuSettings, true, prop.var.settingsDlg, true);
@@ -1133,9 +1163,16 @@ public:
 protected:
 	override void setup(Composite area) {
 		area.setLayout = windowGridLayout(1, true);
+		_comm.refScenario.add(&refreshScenario);
+		area.addDisposeListener(new class DisposeListener {
+			override void widgetDisposed(DisposeEvent e) {
+				_comm.refScenario.remove(&refreshScenario);
+			}
+		});
 		auto tabf = new CTabFolder(area, SWT.BORDER);
 		tabf.setLayoutData = new GridData(GridData.FILL_BOTH);
 		_mod = new Mod;
+		_refe = new RefE;
 		construct1(tabf);
 		construct2(tabf);
 		construct3(tabf);
@@ -1143,6 +1180,7 @@ protected:
 		_enginePath.setText = _prop.var.etc.enginePath;
 		_tempDir.setText = _prop.var.etc.tempPath;
 		_backupDir.setText = _prop.var.etc.backupPath;
+		_backupEnabled.setSelection = _prop.var.etc.backupEnabled;
 		_backupInterval.setSelection = _prop.var.etc.backupInterval;
 		_backupCount.setSelection = _prop.var.etc.backupCount;
 		_author.setText = _prop.var.etc.defaultAuthor;
@@ -1189,6 +1227,7 @@ protected:
 		}
 		if (_tools.length > 0) _toolsL.select = 0;
 		selectOuterTool;
+		refreshEnabled();
 	}
 
 	override bool apply() {
@@ -1273,6 +1312,7 @@ protected:
 		_prop.var.etc.enginePath = engine;
 		_prop.var.etc.tempPath = temp;
 		_prop.var.etc.backupPath = backup;
+		_prop.var.etc.backupEnabled = _backupEnabled.getSelection;
 		_prop.var.etc.backupInterval = _backupInterval.getSelection;
 		_prop.var.etc.backupCount = _backupCount.getSelection;
 		_prop.var.etc.defaultAuthor = _author.getText;

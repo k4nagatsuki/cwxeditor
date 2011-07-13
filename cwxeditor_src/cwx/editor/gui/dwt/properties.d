@@ -554,8 +554,9 @@ class FlexEtcProps : Properties {
 	mixin Property!("outerToolsSashR", int, 2);
 	mixin Property!("keyCodeWidth", int, 100, true);
 	mixin Property!("scenarioPath", string, "");
-	mixin Property!("tempPath", string, "");
-	mixin Property!("backupPath", string, "");
+	mixin Property!("tempPath", string, "temp");
+	mixin Property!("backupPath", string, "backup");
+	mixin Property!("backupEnabled", bool, true);
 	mixin Property!("backupInterval", int, 15);
 	mixin Property!("backupCount", int, 10);
 

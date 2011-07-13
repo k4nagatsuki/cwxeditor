@@ -715,6 +715,7 @@ public:
 		foreach (l; _checked) {
 			l.check;
 		}
+		_comm.refScenario.add(&refreshScenario);
 		_win.addDisposeListener(new DL);
 		auto cs = _win.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 		auto size = _prop.var.replaceDlg;
@@ -724,6 +725,7 @@ public:
 	}
 	private class DL : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
+			_comm.refScenario.remove(&refreshScenario);
 			if (!_win.getMaximized) {
 				auto s = _win.getSize;
 				_prop.var.replaceDlg.width = s.x;
@@ -757,6 +759,9 @@ public:
 			_prop.var.etc.searchUnusedStart = _unuseStart.getSelection;
 			_prop.var.etc.searchUnusedPath = _unusePath.getSelection;
 		}
+	}
+	private void refreshScenario(Summary summ) {
+		_summ = summ;
 	}
 	private void search() {
 		_replMode = false;

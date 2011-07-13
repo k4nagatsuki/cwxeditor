@@ -2046,7 +2046,9 @@ public:
 	const string dlgTitEnginePath(string appName) {return appName ~ "の場所";}
 	const string tempDir() {return "シナリオの一時展開先";}
 	const string tempDirDesc() {return "wsn圧縮されたシナリオの一時的な展開先を選択してください。";}
-	const string backupDir() {return "自動バックアップ(最大数が0より多い場合のみ有効)";}
+	const string backupDir() {return "自動バックアップ";}
+	const string backupEnabled() {return "自動バックアップを行う";}
+	const string backupPath() {return "保存先";}
 	const string backupDirDesc() {return "シナリオを定期的に自動バックアップする" ~ DIR ~ "を選択してください。";}
 	const string backupInterval() {return "保存間隔";}
 	const string minute() {return "分";}

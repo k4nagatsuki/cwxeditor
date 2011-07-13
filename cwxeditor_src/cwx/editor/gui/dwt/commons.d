@@ -148,6 +148,7 @@ class TLPData {
 class Commons {
 	Dlg!(Shell) save;
 	Dlg!() saved;
+	Dlg!(Summary) refScenario;
 	Dlg!() refScenarioName;
 	Dlg!() refScenarioPath;
 	Dlg!() refSkin;
