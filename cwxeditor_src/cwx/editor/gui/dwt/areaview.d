@@ -296,8 +296,14 @@ private:
 		}
 	}
 	class UndoDelete : AUndo {
-		static if (UseCards) C[int] _cs;
-		static if (UseBacks) BgImage[int] _bs;
+		static if (UseCards) {
+			C[int] _cs;
+			bool[int] _cChks;
+		}
+		static if (UseBacks) {
+			BgImage[int] _bs;
+			bool[int] _bChks;
+		}
 		this () {
 			static if (UseCards) {
 				foreach (i; _cards.getSelectionIndices) {
@@ -305,6 +311,7 @@ private:
 					auto c = C.createFromNode(node, LATEST_VERSION);
 					if (_summ) c.setUseCounter(_summ.useCounter.sub);
 					_cs[i] = c;
+					_cChks[i] = _cards.getItem(i).getChecked;
 				}
 			}
 			static if (UseBacks) {
@@ -312,6 +319,7 @@ private:
 					auto b = _area.backs[i].dup;
 					if (_summ) b.setUseCounter(_summ.useCounter.sub);
 					_bs[i] = b;
+					_bChks[i] = _backs.getItem(i).getChecked;
 				}
 			}
 		}
@@ -320,12 +328,12 @@ private:
 			scope (exit) uda;
 			static if (UseCards) {
 				foreach (i; _cs.keys.sort) {
-					appendCard(i, _cs[i], true, false);
+					appendCard(i, _cs[i], true, false, _cChks[i]);
 				}
 			}
 			static if (UseBacks) {
 				foreach (i; _bs.keys.sort) {
-					appendBgImage(i, _bs[i], true, false);
+					appendBgImage(i, _bs[i], true, false, _bChks[i]);
 				}
 			}
 			refreshSelected;
@@ -2023,13 +2031,14 @@ public:
 			return index;
 		}
 		/// ditto
-		private void appendCard(int index, C card, bool select, bool refresh) {
+		private void appendCard(int index, C card, bool select, bool refresh, bool check = true) {
 			auto img = create(card);
 			_imgp.deselectAll;
 			_imgp.insert(cardsIndex + index, img);
+			_imgp.images[cardsIndex + index].visible = check;
 			_area.insert(index, card);
 			auto itm = new TableItem(_cards, SWT.NONE, index);
-			itm.setChecked = true;
+			itm.setChecked = check;
 			itm.setText = cardName(card);
 			if (select && _viewCards) {
 				_imgp.select(img);
@@ -2146,13 +2155,14 @@ public:
 			return index;
 		}
 		/// ditto
-		private void appendBgImage(int index, BgImage back, bool select, bool refresh) {
+		private void appendBgImage(int index, BgImage back, bool select, bool refresh, bool check = true) {
 			_imgp.deselectAll;
 			auto img = create(back);
 			_imgp.insert(index, img);
+			_imgp.images[index].visible = check;
 			_area.insert(index, back);
 			auto itm = new TableItem(_backs, SWT.NONE, index);
-			itm.setChecked = true;
+			itm.setChecked = check;
 			itm.setText = getBaseName(back.path);
 			if (select && _viewBacks) {
 				_imgp.select(img);
