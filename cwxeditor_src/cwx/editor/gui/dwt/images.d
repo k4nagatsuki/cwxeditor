@@ -1005,7 +1005,7 @@ private:
 				int movX = x - dragStartX;
 				int movY = y - dragStartY;
 				foreach (img; dragImgs.keys) {
-					if (img.selected && !img.fixed) {
+					if (img.selected && !img.fixed && img.visible) {
 						auto rect = dragImgs[img];
 						Rectangle newRect = new Rectangle(img.x, img.y, img.width, img.height);
 						switch (dragTgl) {

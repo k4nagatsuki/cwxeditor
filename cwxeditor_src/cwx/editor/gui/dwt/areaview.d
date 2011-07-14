@@ -26,6 +26,7 @@ import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.spcarddialog;
 import cwx.editor.gui.dwt.bgimagedialog;
 import cwx.editor.gui.dwt.materialselect;
+import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.xmlbytestransfer;
 import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.undo;
@@ -40,7 +41,8 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.MessageBox;
-import org.eclipse.swt.widgets.List;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.swt.widgets.Menu;
@@ -509,7 +511,7 @@ private:
 		bool _viewCards = true;
 		C[PileImage] _cardTbl;
 		int[C] _editC;
-		List _cards;
+		Table _cards;
 		MenuItem _vcMenu;
 		ToolItem _vcTMenu;
 		MenuItem _autoMenu;
@@ -524,7 +526,7 @@ private:
 		void delegate(int[]) _upCard;
 		void delegate(int[]) _downCard;
 
-		List cardList() {return _cards;}
+		Table cardList() {return _cards;}
 		void editSpnCard(string T)(int value) {
 			__editSpn!(T, C)(value, _editC, cardsIndex);
 			_imgp.redraw;
@@ -576,13 +578,13 @@ private:
 		bool _viewBacks = true;
 		BgImage[PileImage] _backTbl;
 		int[BgImage] _editB;
-		List _backs;
+		Table _backs;
 		MenuItem _vbMenu;
 		ToolItem _vbTMenu;
 		ToolItem _maskTMenu;
 		Spinner _wSpn, _hSpn;
 
-		List backList() {return _backs;}
+		Table backList() {return _backs;}
 		void editSpnBack(string T)(int value) {
 			__editSpn!(T, BgImage)(value, _editB, 0);
 			_imgp.redraw;
@@ -632,7 +634,7 @@ private:
 		}
 	}
 
-	void selectListItem(T)(List list, int startIndex, ref int[T] edits, T[] cols) {
+	void selectListItem(T)(Table list, int startIndex, ref int[T] edits, T[] cols) {
 		int count = list.getItemCount;
 		auto imgs = _imgp.images;
 		typeof(edits) editsInit;
@@ -712,7 +714,7 @@ private:
 		}
 	}
 
-	void __selectImage(T)(FlexImage img, T[] cols, T[PileImage] tbl, ref int[T] edits, List list) {
+	void __selectImage(T)(FlexImage img, T[] cols, T[PileImage] tbl, ref int[T] edits, Table list) {
 		auto c = tbl[img];
 		foreach (int i, b; cols) {
 			if (b is c) {
@@ -731,7 +733,7 @@ private:
 		assert(0);
 	}
 
-	int[] __refreshSelected(T)(bool view, List list, ref int[T] edits, T[] cols, int startIndex) {
+	int[] __refreshSelected(T)(bool view, Table list, ref int[T] edits, T[] cols, int startIndex) {
 		int[] sels;
 		foreach (key; edits.keys) {
 			edits.remove(key);
@@ -747,48 +749,64 @@ private:
 	}
 	static if (UseCards) {
 		private void refreshCards() {
+			_cards.setRedraw = false;
+			scope (exit) _cards.setRedraw = true;
+			auto idx = _cards.getSelectionIndices;
 			auto cs = _area.cards;
-			string[] itms;
-			itms.length = cs.length;
-			foreach (i, c; cs) itms[i] = cardName(c);
-			_cards.setItems(itms);
+			_cards.removeAll();
+			foreach (i, c; cs) {
+				auto itm = new TableItem(_cards, SWT.NONE);
+				itm.setChecked = true;
+				itm.setText = cardName(c);
+			}
+			_cards.setSelection = idx;
 		}
 	}
 	static if (UseBacks) {
 		private void refreshBacks() {
+			_backs.setRedraw = false;
+			scope (exit) _backs.setRedraw = true;
+			auto idx = _backs.getSelectionIndices;
 			auto cs = _area.backs;
-			string[] itms;
-			itms.length = cs.length;
-			foreach (i, c; cs) itms[i] = getBaseName(c.path);
-			_backs.setItems(itms);
+			_backs.removeAll();
+			foreach (i, c; cs) {
+				auto itm = new TableItem(_backs, SWT.NONE);
+				itm.setChecked = true;
+				itm.setText = getBaseName(c.path);
+			}
+			_backs.setSelection = idx;
 		}
 	}
-	int[] __up(T)(bool view, List list, void delegate(int, int) swap, int startIndex) {
+	int[] __up(T)(bool view, Table list, void delegate(int, int) swap, int startIndex) {
 		int[] indices;
 		if (view && list.getItemCount > 0 && !list.isSelected(0)) {
 			for (int i = 1; i < list.getItemCount; i++) {
 				if (list.isSelected(i)) {
 					_imgp.swap(i + startIndex - 1, i + startIndex);
 					swap(i - 1, i);
-					string temp = list.getItem(i - 1);
-					list.setItem(i - 1, list.getItem(i));
-					list.setItem(i, temp);
+					auto itm1 = list.getItem(i - 1);
+					auto itm2 = list.getItem(i);
+					string temp = itm1.getText;
+					itm1.setText = itm2.getText;
+					itm2.setText = temp;
 					indices ~= i;
 				}
 			}
 		}
 		return indices;
 	}
-	int[] __down(T)(bool view, List list, void delegate(int, int) swap, int startIndex) {
+	int[] __down(T)(bool view, Table list, void delegate(int, int) swap, int startIndex) {
 		int[] indices;
 		if (view && list.getItemCount > 0 && !list.isSelected(list.getItemCount - 1)) {
 			for (int i = list.getItemCount - 2; i >= 0; i--) {
 				if (list.isSelected(i)) {
 					_imgp.swap(i + startIndex + 1, i + startIndex);
 					swap(i + 1, i);
-					string temp = list.getItem(i + 1);
-					list.setItem(i + 1, list.getItem(i));
-					list.setItem(i, temp);
+					auto itm1 = list.getItem(i + 1);
+					auto itm2 = list.getItem(i);
+					string temp = itm1.getText;
+					itm1.setText = itm2.getText;
+					itm2.setText = temp;
 					indices ~= i;
 				}
 			}
@@ -1212,7 +1230,7 @@ private:
 			_items = items;
 		}
 		private void edit(TypedEvent e) {
-			auto l = cast(List) e.widget;
+			auto l = cast(Table) e.widget;
 			int i = l.getFocusIndex;
 			if (i >= 0) {
 				_edit(_items()[i]);
@@ -1224,7 +1242,7 @@ private:
 			}
 		}
 	}
-	List createList(C)(Composite parent, string name, Image image, TCPD tcpd,
+	Table createList(C)(Composite parent, string name, Image image, TCPD tcpd,
 			void delegate(C) edit, C[] delegate() items) {
 		auto comp = new Composite(parent, SWT.NONE);
 		comp.setLayout = zeroGridLayout(1);
@@ -1232,8 +1250,10 @@ private:
 		label.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		label.setText = name;
 		label.setImage = image;
-		auto list = new List(comp, SWT.MULTI | SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
+		auto list = new Table(comp, SWT.MULTI | SWT.CHECK | SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
+		new FullTableColumn(list, SWT.NONE);
 		auto mkl = new MKListener!(C)(edit, items);
+		list.addSelectionListener = new VCheckListener;
 		list.addMouseListener(mkl);
 		auto gd = new GridData(GridData.FILL_BOTH);
 		gd.widthHint = 0;
@@ -1256,6 +1276,20 @@ private:
 			if (_autoTMenu) _autoTMenu.setSelection = value;
 			if (_customMenu) _customMenu.setSelection = !value;
 			if (_customTMenu) _customTMenu.setSelection = !value;
+		}
+	}
+	class VCheckListener : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			static if (UseCards) {
+				foreach (i, itm; _cards.getItems) {
+					_imgp.images[cardsIndex + i].visible = itm.getChecked;
+				}
+			}
+			static if (UseBacks) {
+				foreach (i, itm; _backs.getItems) {
+					_imgp.images[i].visible = itm.getChecked;
+				}
+			}
 		}
 	}
 
@@ -1494,7 +1528,7 @@ public:
 				string name = cardName(c);
 				img.title = name;
 				img.createImage;
-				cardList.setItem(i, name);
+				cardList.getItem(i).setText = name;
 			}
 			_imgp.redraw;
 		}
@@ -1515,14 +1549,14 @@ public:
 		static if (UseCards) {
 			foreach (i, c; _area.cards) {
 				_imgp.set(cardsIndex + i, create(c));
-				_cards.setItem(i, cardName(c));
+				_cards.getItem(i).setText = cardName(c);
 				partyIndex++;
 			}
 		}
 		static if (UseBacks) {
 			foreach (i, b; _area.backs) {
 				_imgp.set(i, create(b));
-				_backs.setItem(i, getBaseName(b.path));
+				_backs.getItem(i).setText = getBaseName(b.path);
 				partyIndex++;
 			}
 		}
@@ -1624,14 +1658,14 @@ public:
 		if (refC.length > 0 || refB.length > 0) _imgp.redraw;
 	}
 	static if (UseCards && UseBacks) {
-		private void reverseView(T)(ref bool view, List list, int[T] edits, T[] delegate() col, int startIndex,
+		private void reverseView(T)(ref bool view, Table list, int[T] edits, T[] delegate() col, int startIndex,
 				MenuItem menu, ToolItem titm) {
 			if (_imgp.isVisible) .forceFocus(this);
 			view = !view;
 			list.setEnabled = view;
 			for (int i = 0; i < col().length; i++) {
 				auto fi = cast(FlexImage) _imgp.images[startIndex + i];
-				fi.visible = view;
+				fi.visible = view && list.getItem(i).getChecked;
 				if (!view && fi.selected) {
 					_imgp.deselect(fi);
 					edits.remove(col()[i]);
@@ -1687,7 +1721,7 @@ public:
 						auto fi = create(card);
 						_imgp.set(cardsIndex + i, fi);
 						if (_cards.isSelected(i) && _viewCards) _imgp.select(fi);
-						_cards.setItem(i, fi.title);
+						_cards.getItem(i).setText = fi.title;
 						if (_renameCard) _renameCard(i);
 						refreshControls;
 						_comm.refUseCount.call;
@@ -1737,7 +1771,7 @@ public:
 						auto fi = create(back);
 						_imgp.set(i, fi);
 						if (_backs.isSelected(i) && _viewBacks) _imgp.select(fi);
-						_backs.setItem(i, getBaseName(back.path));
+						_backs.getItem(i).setText = getBaseName(back.path);
 						refreshControls;
 						_comm.refUseCount.call;
 						_imgp.redraw;
@@ -1973,7 +2007,7 @@ public:
 		if (_vfTMenu) _vfTMenu.setSelection = _fixed;
 		_imgp.redraw;
 	}
-	private int insertIndex(List list) {
+	private int insertIndex(Table list) {
 		int[] indices = list.getSelectionIndices.sort;
 		return indices.length ? indices[$ - 1] + 1 : list.getItemCount;
 	}
@@ -1994,7 +2028,9 @@ public:
 			_imgp.deselectAll;
 			_imgp.insert(cardsIndex + index, img);
 			_area.insert(index, card);
-			_cards.add(cardName(card), index);
+			auto itm = new TableItem(_cards, SWT.NONE, index);
+			itm.setChecked = true;
+			itm.setText = cardName(card);
 			if (select && _viewCards) {
 				_imgp.select(img);
 				if (refresh) {
@@ -2022,7 +2058,11 @@ public:
 				if (_appendCard) _appendCard(index + i, card);
 			}
 			_imgp.insert(cardsIndex + index, imgs);
-			foreach (i, c; cards) _cards.add(cardName(c), index + i);
+			foreach (i, c; cards) {
+				auto itm = new TableItem(_cards, SWT.NONE, index + i);
+				itm.setChecked = true;
+				itm.setText = cardName(c);
+			}
 			if (select && _viewCards) _imgp.select(imgs);
 		}
 		static if (is (C == MenuCard)) {
@@ -2111,7 +2151,9 @@ public:
 			auto img = create(back);
 			_imgp.insert(index, img);
 			_area.insert(index, back);
-			_backs.add(getBaseName(back.path), index);
+			auto itm = new TableItem(_backs, SWT.NONE, index);
+			itm.setChecked = true;
+			itm.setText = getBaseName(back.path);
 			if (select && _viewBacks) {
 				_imgp.select(img);
 				if (refresh) {
@@ -2139,7 +2181,11 @@ public:
 				imgs ~= create(back);
 			}
 			_imgp.insert(index, imgs);
-			foreach (i, b; backs) _backs.add(getBaseName(b.path), index + i);
+			foreach (i, b; backs) {
+				auto itm = new TableItem(_backs, SWT.NONE, index + i);
+				itm.setChecked = true;
+				itm.setText = getBaseName(b.path);
+			}
 			if (select && _viewBacks) _imgp.select(imgs);
 		}
 		private int backFromFile(string fname, int x, int y, int w, int h, bool fromImgPane) {
@@ -2319,7 +2365,7 @@ public:
 					auto img = imagePane.images[cardsIndex + i];
 					img.setImageData(castCardImage(_prop, skin, castCard, _summ ? _summ.scenarioPath : "", _dbgMode));
 					img.createImage;
-					cardList.setItem(i, castCard.name);
+					cardList.getItem(i).setText = castCard.name;
 					if (_renameCard) _renameCard(i);
 				}
 			}
@@ -2332,7 +2378,7 @@ public:
 					auto img = imagePane.images[cardsIndex + i];
 					img.setImageData(.castCard(skin));
 					img.createImage;
-					cardList.setItem(i, "");
+					cardList.getItem(i).setText = "";
 				}
 			}
 			imagePane.redraw;
@@ -2579,7 +2625,7 @@ public:
 	bool openCWXPath(string path) {
 		auto cate = cpcategory(path);
 		auto index = cpindex(path);
-		bool sel(List list) {
+		bool sel(Table list) {
 			if (index >= list.getItemCount) return false;
 			.forceFocus(_imgp);
 			list.deselectAll;
