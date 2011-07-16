@@ -204,6 +204,8 @@ public:
 	const string ttSaveIncludeImage() {
 		return "格納イメージをファイルに保存";
 	}
+	const string ttImageList() {return "画像を一覧表示";}
+	const string menuImageList() {return ttImageList ~ "(&L)";}
 
 	const string ttChangeVH() {return "分割領域の縦横を切替";}
 	const string menuChangeVH() {return ttChangeVH ~ "(&V)" ~ "";}

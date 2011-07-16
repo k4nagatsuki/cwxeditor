@@ -15,6 +15,7 @@ import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.customtext;
 import cwx.editor.gui.dwt.customtable;
+import cwx.editor.gui.dwt.imageselect;
 import cwx.editor.gui.dwt.materialselect;
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.xmlbytestransfer;
@@ -436,7 +437,7 @@ private:
 	Content _evt;
 	CTabFolder _tabf;
 	FixedWidthText _textA, _textB;
-	MaterialSelect!(MtType.CARD, Combo, Combo) _msel;
+	ImageSelect!(MtType.CARD, Combo) _msel;
 
 	class SL : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
@@ -559,7 +560,7 @@ protected:
 					break;
 				default:
 					talker = Talker.IMAGE;
-					path = _msel.path;
+					path = _msel.image;
 				}
 				break;
 			case 1:
@@ -649,117 +650,44 @@ private Composite createTalkerPane2(Composite parent, Commons comm, Props prop, 
 
 private Composite createTalkerPane
 		(Composite parent, Commons comm, Props prop, Summary summ, Talker talker, string path,
-		out MaterialSelect!(MtType.CARD, Combo, Combo) msel) {
-	static class Img {
-		private Canvas _canvas;
-		private Commons _comm;
-		private Props _prop;
-		private Summary _summ;
-		this(Commons comm, Props prop, Summary summ) {
-			_comm = comm;
-			_prop = prop;
-			_summ = summ;
-		}
-		void redraw() {
-			_canvas.redraw;
-		}
-		Composite createCanvas(Composite parent,
-				MaterialSelect!(MtType.CARD, Combo, Combo) msel) {
-			auto skin = _comm.skin;
-			auto comp = new Composite(parent, SWT.NONE);
-			comp.setLayoutData = new GridData(GridData.FILL_BOTH);
-			comp.setLayout = new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0);
-			_canvas = new Canvas(comp, SWT.BORDER | SWT.DOUBLE_BUFFERED);
-			auto s = _prop.looks.cardSize;
-			_canvas.setLayoutData = _canvas.computeSize(s.width, s.height);
-			_canvas.addPaintListener(new class(_comm, _summ, msel) PaintListener {
-				private Commons _comm;
-				private Summary _summ;
-				private MaterialSelect!(MtType.CARD, Combo, Combo) _msel;
-				this(Commons comm, Summary summ, MaterialSelect!(MtType.CARD, Combo, Combo) msel) {
-					_comm = comm;
-					_summ = summ;
-					_msel = msel;
-				}
-				override void paintControl(PaintEvent e) {
-					auto c = cast(Canvas) e.widget;
-					Image image;
-					bool dis = false;
-					switch (_msel.dirsCombo.getSelectionIndex) {
-					case 0:
-						// 選択中
-						image = _prop.images.talker(Talker.SELECTED);
-						break;
-					case 1:
-						// 選択中以外
-						image = _prop.images.talker(Talker.UNSELECTED);
-						break;
-					case 2:
-						// ランダム
-						image = _prop.images.talker(Talker.RANDOM);
-						break;
-					case 3:
-						// カード
-						image = new Image(Display.getCurrent, menuCard(_comm.skin));
-						dis = true;
-						break;
-					default:
-						// カード画像
-						image = new Image(Display.getCurrent, loadImage(_comm.skin, _msel.filePath));
-						dis = true;
-					}
-					auto dw = image.getImageData.width;
-					auto dh = image.getImageData.height;
-					auto s = _prop.looks.cardSize;
-					auto cs = _canvas.getClientArea;
-					e.gc.drawImage(image, 0, 0, dw, dh,
-						(cs.width - s.width) / 2, (cs.height - s.height) / 2, s.width, s.height);
-					if (dis) image.dispose;
-				}
-			});
-			return comp;
-		}
-	}
+		out ImageSelect!(MtType.CARD, Combo) msel) {
 	auto comp = new Composite(parent, SWT.NONE);
 	{
 		comp.setLayout = zeroMarginGridLayout(1, true);
 	}
-	auto image = new Img(comm, prop, summ);
-	string[] ss = [
+	auto selected = prop.images.talker(Talker.SELECTED).getImageData;
+	auto unselected = prop.images.talker(Talker.UNSELECTED).getImageData;
+	auto random = prop.images.talker(Talker.RANDOM).getImageData;
+	ImageData createDefImage(size_t index) {
+		switch (index) {
+		case 0:
+			// 選択中
+			return selected;
+		case 1:
+			// 選択中以外
+			return unselected;
+		case 2:
+			// ランダム
+			return random;
+		case 3:
+			// カード
+			return menuCard(comm.skin);
+		default: assert (0);
+		}
+	}
+	string[] defs = [
 		prop.msgs.talker(Talker.SELECTED),
 		prop.msgs.talker(Talker.UNSELECTED),
 		prop.msgs.talker(Talker.RANDOM),
 		prop.msgs.talker(Talker.CARD)
 	];
-	msel = new MaterialSelect!(MtType.CARD, Combo, Combo)(comm, prop, summ, &image.redraw, ss);
-	{
-		msel.createDirsCombo(comp).setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-	}
-	{
-		auto gd = new GridData(GridData.FILL_HORIZONTAL);
-		gd.widthHint = prop.var.etc.talkersWidth;
-		auto l = msel.createFileList(comp);
-		l.setLayoutData = gd;
-	}
-	{
-		auto canvas = image.createCanvas(comp, msel);
-		auto gd = new GridData(GridData.FILL_BOTH);
-		auto s = canvas.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-		gd.widthHint = s.x;
-		gd.heightHint = s.y;
-		canvas.setLayoutData = gd;
-	}
-	{
-		auto compl = new Composite(comp, SWT.NONE);
-		compl.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-		compl.setLayout = zeroMarginGridLayout(2, false);
-		msel.createRefreshButton(compl, true).setLayoutData
-			= new GridData(GridData.FILL_BOTH);
-		msel.createDirectoryButton(compl, false).setLayoutData
-			= new GridData(GridData.FILL_VERTICAL);
-	}
-	msel.path = path;
-	if (msel.path.length == 0) {
+	auto s = prop.looks.cardSize;
+	msel = new ImageSelect!(MtType.CARD, Combo)(comp, SWT.NONE, comm, prop, summ, s.width, s.height,
+		false, "", null, defs, &createDefImage);
+	auto gd = new GridData(GridData.FILL_BOTH);
+	msel.widget.setLayoutData = gd;
+	msel.image = path;
+	if (msel.image.length == 0) {
 		switch (talker) {
 		case Talker.SELECTED:
 			msel.dirsCombo.select = 0;

@@ -197,6 +197,43 @@ public:
 		if (_refresh) _refresh();
 	}
 
+	string[] showingNames() {
+		if (_fnone) {
+			return _fileList.getItems[1 .. $];
+		} else {
+			return _fileList.getItems;
+		}
+	}
+	string[] showingPaths() {
+		string[] r;
+		string curr = currentDir;
+		string[] paths;
+		if (_fnone) {
+			paths = _fileList.getItems[1 .. $];
+		} else {
+			paths = _fileList.getItems;
+		}
+		foreach (s; paths) {
+			if (curr) {
+				r ~= std.path.join(curr, s);
+			} else if (s.startsWith("/")) {
+				string file;
+				s = s["/".length .. $];
+				int i = s.lastIndexOf("/");
+				if (i != -1) {
+					file = s[i + "/".length .. $];
+					s = s[0 .. i];
+				} else {
+					file = s;
+					s = "/";
+				}
+				r ~= std.path.join(s, file);
+			} else {
+				r ~= s;
+			}
+		}
+		return r;
+	}
 private:
 	static if (Type == MtType.CARD) {
 		string defExt() {return _comm.skin.extImage;}
@@ -256,6 +293,15 @@ private:
 				_selDir = 0;
 				_path = "";
 				if (_refresh) _refresh();
+			} else {
+				static if (is(C : Combo) || is(C : CCombo)) {
+					string p = currentDir;
+					if (!p) return;
+					if (0 == _fileList.getItemCount) return;
+					_fileList.select = 0;
+					_path = std.path.join(p, _fileList.getItem(0));
+					if (_refresh) _refresh();
+				}
 			}
 		}
 	}
@@ -402,7 +448,7 @@ private:
 		}
 	}
 	string[] allDirs() {
-		string[] st = [defDir];
+		string[] st = hasTarg(defDir) ? [defDir] : [];
 		foreach (i; _defs.length .. _dirs.getItemCount) {
 			string t = _dirs.getItem(i);
 			if (t == "/") {
@@ -415,6 +461,7 @@ private:
 	}
 	void refreshList(bool forceRefresh = false) {
 		_fileList.removeAll;
+		_fnone = false;
 		if (_dirs.getSelectionIndex < _defs.length) {
 			auto dirs = allDirs;
 			if (!dirs.length) {
@@ -424,6 +471,7 @@ private:
 				static if (is(C : Combo) || is(C : CCombo)) {
 					_fileList.add(_prop.msgs.fileNone, 0);
 					_fileList.select = 0;
+					_fnone = true;
 				} else {
 					_fileList.select = -1;
 				}
@@ -576,6 +624,7 @@ private:
 	int _selDir;
 	int _including = -1;
 	int _tbl = -1;
+	bool _fnone = false;
 	C _fileList;
 	bool _allList = false;
 	void delegate() _refresh;

@@ -420,6 +420,8 @@ public:
 	Image script() {return imgd!(resourceDir ~ "script.png");}
 	Image menuToScript() {return imgd!(resourceDir ~ "script.png");}
 	Image menuToScriptAll() {return imgd!(resourceDir ~ "script_all.png");}
+
+	Image menuImageList() {return imgd!(resourceDir ~ "img_list.png");}
 }
 
 enum MenuID : int {
