@@ -1429,30 +1429,6 @@ private:
 			}
 		}
 	}
-	void refreshMenu() {
-		auto popup = new Menu(_tree.getShell, SWT.POP_UP);
-		createMenuItem(popup, _prop.msgs.menuCEdit, _prop.images.menuCEdit, &edit);
-		new MenuItem(popup, SWT.SEPARATOR);
-		createMenuItem(popup, _prop.msgs.menuUndo, _prop.images.menuUndo, &this.undo);
-		createMenuItem(popup, _prop.msgs.menuRedo, _prop.images.menuRedo, &this.redo);
-		new MenuItem(popup, SWT.SEPARATOR);
-		appendMenuTCPD(_prop, popup, this, true, true, true, true);
-		new MenuItem(popup, SWT.SEPARATOR);
-		createMenuItem(popup, _prop.msgs.menuToScript, _prop.images.menuToScript, &toScript);
-		createMenuItem(popup, _prop.msgs.menuToScriptAll, _prop.images.menuToScriptAll, &toScriptAll);
-		new MenuItem(popup, SWT.SEPARATOR);
-		createMenuItem(popup, _prop.msgs.menuStartToPackage, _prop.images.menuStartToPackage, &startToPackage);
-		void delegate() dlg = null;
-		auto convMI = createMenuItem(popup, _prop.msgs.menuConvertContent, _prop.images.menuConvertContent, dlg, SWT.CASCADE);
-		_convM = new Menu(_tree.getShell, SWT.DROP_DOWN);
-		debug {
-			new MenuItem(popup, SWT.SEPARATOR);
-			createMenuItem(popup, "debug: Create CWX &Path", null, &createCWXPath);
-		}
-		convMI.setMenu = _convM;
-
-		_tree.setMenu = popup;
-	}
 public:
 	this(Commons comm, Props prop, Summary summ, Composite parent, UndoManager undo,
 			void delegate(size_t[]) forceSel,
@@ -1486,7 +1462,51 @@ public:
 		auto editl = new EditL;
 		_tree.addKeyListener(editl);
 		_tree.addMouseListener(editl);
-		refreshMenu();
+		{
+			uint retry = 0;
+			while (true) {
+				Menu popup = null;
+				try {
+					popup = new Menu(parent.getShell, SWT.POP_UP);
+					createMenuItem(popup, _prop.msgs.menuCEdit, _prop.images.menuCEdit, &edit);
+					new MenuItem(popup, SWT.SEPARATOR);
+					createMenuItem(popup, _prop.msgs.menuUndo, _prop.images.menuUndo, &this.undo);
+					createMenuItem(popup, _prop.msgs.menuRedo, _prop.images.menuRedo, &this.redo);
+					new MenuItem(popup, SWT.SEPARATOR);
+					appendMenuTCPD(_prop, popup, this, true, true, true, true);
+					new MenuItem(popup, SWT.SEPARATOR);
+					createMenuItem(popup, _prop.msgs.menuToScript, _prop.images.menuToScript, &toScript);
+					createMenuItem(popup, _prop.msgs.menuToScriptAll, _prop.images.menuToScriptAll, &toScriptAll);
+					new MenuItem(popup, SWT.SEPARATOR);
+					createMenuItem(popup, _prop.msgs.menuStartToPackage, _prop.images.menuStartToPackage, &startToPackage);
+					void delegate() dlg = null;
+					auto convMI = createMenuItem(popup, _prop.msgs.menuConvertContent, _prop.images.menuConvertContent, dlg, SWT.CASCADE);
+					_convM = new Menu(_tree.getShell, SWT.DROP_DOWN);
+					debug {
+						new MenuItem(popup, SWT.SEPARATOR);
+						createMenuItem(popup, "debug: Create CWX &Path", null, &createCWXPath);
+					}
+					convMI.setMenu = _convM;
+
+					_tree.setMenu = popup;
+					break;
+				} catch (Throwable e) {
+					// ŠÂ‹«‚É‚æ‚Á‚Ä‚ÍMenu‚ªˆÙí‚Èó‘Ô‚É‚È‚èA
+					// MenuItem‚Ì’Ç‰Á‚Å—‚¿‚é‚±‚Æ‚ª‚ ‚é–Í—l
+					debugln(e);
+					try {
+						if (popup) popup.dispose();
+						popup = null;
+					} catch {}
+					retry++;
+					if (retry > 128) {
+						debugln("create menu failed (tree view).");
+						break;
+					}
+					debugln("create menu failed (tree view). retry: ", retry);
+				}
+			}
+		}
 		_tree.addSelectionListener(new SListener);
 
 		_comm.refCast.add(&__refreshCast);

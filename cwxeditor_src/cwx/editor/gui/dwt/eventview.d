@@ -750,18 +750,6 @@ private:
 			}
 		}
 	}
-	void refreshMenu() {
-		auto menu = new Menu(_cards.getShell, SWT.POP_UP);
-		appendMenuTCPD(_prop, menu, this, true, true, true, true);
-		new MenuItem(menu, SWT.SEPARATOR);
-		createMenuItem(menu, _prop.msgs.menuToScript, _prop.images.menuToScript, &toScript);
-		createMenuItem(menu, _prop.msgs.menuToScriptAll, _prop.images.menuToScriptAll, &toScriptAll);
-		static if (is (A == Battle)) {
-			new MenuItem(menu, SWT.SEPARATOR);
-			createMenuItem(menu, _prop.msgs.menuAddManyRounds, _prop.images.menuAddManyRounds, &addManyRounds);
-		}
-		_cards.setMenu = menu;
-	}
 public:
 	this(Commons comm, Props prop, Summary summ, A area, Composite parent, UndoManager undo) {
 		super(parent, SWT.NONE);
@@ -839,7 +827,38 @@ public:
 		{
 			_cards = new Tree(_sash, SWT.SINGLE | SWT.BORDER);
 			_cards.addSelectionListener(new SListener);
-			refreshMenu();
+
+			uint retry = 0;
+			while (true) {
+				Menu menu = null;
+				try {
+					menu = new Menu(parent.getShell, SWT.POP_UP);
+					appendMenuTCPD(_prop, menu, this, true, true, true, true);
+					new MenuItem(menu, SWT.SEPARATOR);
+					createMenuItem(menu, _prop.msgs.menuToScript, _prop.images.menuToScript, &toScript);
+					createMenuItem(menu, _prop.msgs.menuToScriptAll, _prop.images.menuToScriptAll, &toScriptAll);
+					static if (is (A == Battle)) {
+						new MenuItem(menu, SWT.SEPARATOR);
+						createMenuItem(menu, _prop.msgs.menuAddManyRounds, _prop.images.menuAddManyRounds, &addManyRounds);
+					}
+					_cards.setMenu = menu;
+					break;
+				} catch (Throwable e) {
+					// 環境によってはMenuが異常な状態になり、
+					// MenuItemの追加で落ちることがある模様
+					debugln(e);
+					try {
+						if (menu) menu.dispose();
+						menu = null;
+					} catch {}
+					retry++;
+					if (retry > 128) {
+						debugln("create menu failed (event view).");
+						break;
+					}
+					debugln("create menu failed (event view). retry: ", retry);
+				}
+			}
 		}
 		{
 			_etree = new EventTreeView(comm, prop, summ, _sash, _undo, &forceSel, &refreshTopStart);
