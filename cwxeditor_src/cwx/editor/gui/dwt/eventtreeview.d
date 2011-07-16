@@ -1491,8 +1491,8 @@ public:
 					_tree.setMenu = popup;
 					break;
 				} catch (Throwable e) {
-					// ŠÂ‹«‚É‚æ‚Á‚Ä‚ÍMenu‚ªˆÙí‚Èó‘Ô‚É‚È‚èA
-					// MenuItem‚Ì’Ç‰Á‚Å—‚¿‚é‚±‚Æ‚ª‚ ‚é–Í—l
+					// ç’°å¢ƒã«ã‚ˆã£ã¦ã¯MenuãŒç•°å¸¸ãªçŠ¶æ…‹ã«ãªã‚Šã€
+					// MenuItemã®è¿½åŠ ã§è½ã¡ã‚‹ã“ã¨ãŒã‚ã‚‹æ¨¡æ§˜
 					debugln(e);
 					try {
 						if (popup) popup.dispose();
