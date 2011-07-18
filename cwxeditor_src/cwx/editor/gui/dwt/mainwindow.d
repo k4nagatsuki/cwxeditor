@@ -1736,13 +1736,13 @@ public:
 				}
 			}
 		}
-		_comm.dispose;
-		_dirWin.quitTrace;
-		_prop.images.disposeImages;
 		_quit = true;
+		_dirWin.quitTrace;
 		backup.join();
-		d.dispose;
 		_prop.var.save(dock);
+		_prop.images.disposeImages;
+		_comm.dispose;
+		d.dispose;
 		debug writefln("Exit Main Thread");
 	}
 }
