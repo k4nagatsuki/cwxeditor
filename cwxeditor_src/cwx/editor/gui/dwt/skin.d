@@ -149,10 +149,10 @@ ImageData lifeGuage(Skin skin) {return createImg(skin.legacyEngine, "STATUS_LIFE
 ImageData enhanceUp(Skin skin, Enhance enh) {
 	string res;
 	switch (enh) {
-	case Enhance.ACTION: res = "STATUS_UP0";
-	case Enhance.AVOID: res = "STATUS_UP1";
-	case Enhance.RESIST: res = "STATUS_UP2";
-	case Enhance.DEFENSE: res = "STATUS_UP3";
+	case Enhance.ACTION: res = "STATUS_UP0"; break;
+	case Enhance.AVOID: res = "STATUS_UP1"; break;
+	case Enhance.RESIST: res = "STATUS_UP2"; break;
+	case Enhance.DEFENSE: res = "STATUS_UP3"; break;
 	default: assert (0);
 	}
 	return createImg(skin.legacyEngine, res, &skin.resEnhanceUp, enh);
@@ -160,10 +160,10 @@ ImageData enhanceUp(Skin skin, Enhance enh) {
 ImageData enhanceDown(Skin skin, Enhance enh) {
 	string res;
 	switch (enh) {
-	case Enhance.ACTION: res = "STATUS_DOWN0";
-	case Enhance.AVOID: res = "STATUS_DOWN1";
-	case Enhance.RESIST: res = "STATUS_DOWN2";
-	case Enhance.DEFENSE: res = "STATUS_DOWN3";
+	case Enhance.ACTION: res = "STATUS_DOWN0"; break;
+	case Enhance.AVOID: res = "STATUS_DOWN1"; break;
+	case Enhance.RESIST: res = "STATUS_DOWN2"; break;
+	case Enhance.DEFENSE: res = "STATUS_DOWN3"; break;
 	default: assert (0);
 	}
 	return createImg(skin.legacyEngine, res, &skin.resEnhanceDown, enh);
@@ -171,12 +171,12 @@ ImageData enhanceDown(Skin skin, Enhance enh) {
 ImageData mentality(Skin skin, Mentality mtly) {
 	string res;
 	switch (mtly) {
-	case Mentality.NORMAL: res = "STATUS_MIND0";
-	case Mentality.SLEEP: res = "STATUS_MIND1";
-	case Mentality.CONFUSE: res = "STATUS_MIND2";
-	case Mentality.OVERHEAT: res = "STATUS_MIND3";
-	case Mentality.BRAVE: res = "STATUS_MIND4";
-	case Mentality.PANIC: res = "STATUS_MIND5";
+	case Mentality.NORMAL: res = "STATUS_MIND0"; break;
+	case Mentality.SLEEP: res = "STATUS_MIND1"; break;
+	case Mentality.CONFUSE: res = "STATUS_MIND2"; break;
+	case Mentality.OVERHEAT: res = "STATUS_MIND3"; break;
+	case Mentality.BRAVE: res = "STATUS_MIND4"; break;
+	case Mentality.PANIC: res = "STATUS_MIND5"; break;
 	default: assert (0);
 	}
 	return createImg(skin.legacyEngine, res, &skin.resMentality, mtly);
