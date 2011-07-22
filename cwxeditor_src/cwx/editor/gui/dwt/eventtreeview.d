@@ -1750,7 +1750,7 @@ public:
 		auto itm = selection;
 		if (!itm) return;
 		auto c = cast(Content) itm.getData;
-		auto script = CWXScript(_prop.parent, _summ);
+		auto script = new CWXScript(_prop.parent, _summ);
 		auto text = script.toScript([c], _summ.legacy, "\t");
 		text = std.array.replace(text, "\n", std.path.linesep);
 		auto cb = new Clipboard(Display.getCurrent);
@@ -1759,7 +1759,7 @@ public:
 	}
 	void toScriptAll() {
 		if (!_et) return;
-		auto script = CWXScript(_prop.parent, _summ);
+		auto script = new CWXScript(_prop.parent, _summ);
 		auto text = script.toScript(_et.starts, _summ.legacy, "\t");
 		text = std.array.replace(text, "\n", std.path.linesep);
 		auto cb = new Clipboard(Display.getCurrent);

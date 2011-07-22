@@ -43,25 +43,32 @@ protected:
 		cl.fillVertical = true;
 		area.setLayout = cl;
 		string buf = _prop.msgs.scriptError ~ "\n";
-		buf ~= _ex.msg ~ "\n";
-		string lStr = .format("Line %d: ", _ex.errLine + 1);
-		buf ~= lStr;
-		auto line = splitlines(_ex.text)[_ex.errLine];
-		buf ~= line;
-		string btm;
-		foreach (i, dchar c; line) {
-			if (btm.length < _ex.errPos) {
-				if (c == '\t') {
-					btm ~= "\t";
-				} else {
-					char[] str;
-					std.utf.encode(str, c);
-					btm ~= rjustify("", lengthJ(str));
+		auto lines = splitlines(_ex.text);
+		foreach (err; _ex.errors) {
+			buf ~= "\n";
+			buf ~= err.message ~ "\n";
+			debug {
+				buf ~= .format("Debug info: %s, %d\n", err.file, err.line);
+			}
+			string lStr = .format("Line %d: ", err.errLine + 1);
+			buf ~= lStr;
+			auto line = lines[err.errLine];
+			buf ~= line;
+			string btm;
+			foreach (i, dchar c; line) {
+				if (btm.length < err.errPos) {
+					if (c == '\t') {
+						btm ~= "\t";
+					} else {
+						char[] str;
+						std.utf.encode(str, c);
+						btm ~= rjustify("", lengthJ(str));
+					}
 				}
 			}
+			buf ~= "\n";
+			buf ~= rjustify("", lStr.length) ~ btm ~ "^";
 		}
-		buf ~= "\n";
-		buf ~= rjustify("", lStr.length) ~ btm ~ "^";
 		_result = new Text(area, SWT.BORDER | SWT.MULTI | SWT.READ_ONLY | SWT.WRAP | SWT.V_SCROLL);
 		_result.setText = buf;
 		auto font = _result.getFont;

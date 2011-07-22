@@ -15,57 +15,76 @@ import std.array;
 import std.ctype;
 import std.stdio;
 import std.string;
-import std.regexp;
+import std.regex;
 import std.conv;
 import std.exception;
 import std.traits;
 
 /// スクリプトの解析途中に発生したエラー。
+struct CWXSError {
+	/// エラーメッセージ。
+	string message;
+	/// エラー発生行。
+	size_t errLine;
+	/// 行内の位置。
+	size_t errPos;
+	/// エラーチェック箇所の __FILE__
+	string file;
+	/// エラーチェック箇所の __LINE__
+	size_t line;
+}
+/// ditto
 class CWXScriptException : Exception {
-	this (string msg, string text, size_t errLine, size_t errPos, string file, size_t line) {
-		super (msg, file, line);
+	this (string file, size_t line, string text, const CWXSError[] errors) {
+		super ("cwx script error", file, line);
 		_text = text;
-		_errLine = errLine;
-		_errPos = errPos;
+		_errors = errors;
 	}
 	private string _text;
+	private const(CWXSError[]) _errors;
+
 	/// 解析対象のテキスト。
-	/// compile()以外から投げられた場合は""になる。
+	const
 	string text() {return _text;}
-	private size_t _errLine;
-	/// エラー発生行。
-	size_t errLine() {return _errLine;}
-	private size_t _errPos;
-	/// 行内の位置。
-	size_t errPos() {return _errPos;}
+	/// 発生したエラーの配列。
+	const
+	const(CWXSError[]) errors() {return _errors;}
 }
 
 /// スクリプトを解析し、コンテント群にして返す。
 /// 解析中にエラーがあった場合はCWXScriptExceptionを投げる。
 static Content[] compile(const(CProps) prop, const(Summary) summ, string script) {
-	try {
-		auto compiler = CWXScript(prop, summ);
-		auto tokens = compiler.tokenize(script);
-		auto nodes = compiler.analyzeSyntax(tokens);
-		return compiler.analyzeSemantics(nodes);
-	} catch (CWXScriptException e) {
-		e._text = script;
-		throw e;
-	}
+	auto compiler = new CWXScript(prop, summ);
+	auto tokens = compiler.tokenize(script);
+	if (compiler.errors.length) throw new CWXScriptException(__FILE__, __LINE__, script, compiler.errors);
+	auto nodes = compiler.analyzeSyntax(tokens);
+	if (compiler.errors.length) throw new CWXScriptException(__FILE__, __LINE__, script, compiler.errors);
+	auto r = compiler.analyzeSemantics(nodes);
+	if (compiler.errors.length) throw new CWXScriptException(__FILE__, __LINE__, script, compiler.errors);
+	return r;
 }
 
 /// スクリプトからコンテントツリーを生成する。
-struct CWXScript {
+class CWXScript {
 	private const(CProps) _prop;
 	private const(Summary) _summ;
+	/// 唯一のコンストラクタ。
+	this (const(CProps) prop, const(Summary) summ) {
+		_prop = prop;
+		_summ = summ;
+	}
+	private CWXSError[] _errors;
+	/// 各メソッド呼び出しで蓄積されたエラーを返す。
+	const
+	const(CWXSError[]) errors() {return _errors;}
 
-	private static void throwError(string File = __FILE__, size_t Line = __LINE__)
+	private void throwError(string File = __FILE__, size_t Line = __LINE__)
 			(lazy string message, in Token tok) {
 		throwErrorToken(message, tok.line, tok.pos, tok.value);
 	}
-	private static void throwErrorToken(string File = __FILE__, size_t Line = __LINE__)
+	private void throwErrorToken(string File = __FILE__, size_t Line = __LINE__)
 			(lazy string message, size_t line, size_t pos, string value) {
-		throw new CWXScriptException(message, "", line, pos, File, Line);
+		_errors ~= CWXSError(message, line, pos, File, Line);
 	}
 
 	/// Tokenの種別。
@@ -148,7 +167,6 @@ struct CWXScript {
 	/// Tokenの値を文字列として解釈して返す。
 	/// 文字列を囲う記号に加え、
 	/// 行頭にあるタブ文字や一定数の空白が取り除かれる。
-	const
 	private string stringValue(in Token tok, size_t width) {
 		string decode(in char[] s, char esc) {
 			char[] buf = new char[s.length];
@@ -211,7 +229,7 @@ struct CWXScript {
 		}
 		return decode(tok.value[1 .. $ - 1], tok.value[0]);
 	} unittest {
-		CWXScript s;
+		auto s = new CWXScript(null, null);
 		assert (s.stringValue(Token(0, 0, Kind.STRING, `"abc"`), 0) == "abc");
 		assert (s.stringValue(Token(0, 0, Kind.STRING, `"a""bc"`), 0) == "a\"bc");
 		assert (s.stringValue(Token(0, 0, Kind.STRING, `'ab''c'`), 0) == "ab'c");
@@ -220,50 +238,57 @@ struct CWXScript {
 	}
 
 	/// textをTokenに分割する。
-	const
 	Token[] tokenize(string text) {
 		Token[] r;
 		text = std.array.replace(text, "\r\n", "\n");
 		text = std.array.replace(text, "\r", "\n");
-		auto reg = RegExp("(" ~ std.string.join(TOKENS.dup, ")|(") ~ ")", "i");
+		dstring dtext = .to!dstring(text);
+		auto reg = .regex("(" ~ std.string.join(TOKENS.dup, ")|(") ~ ")", "i");
 		size_t i = 0;
 		size_t hits = 0;
 		size_t pos = 0;
-		string post;
+		dstring post;
 		bool spaceAfter = false;
-		foreach (token; reg.search(text)) {
+		foreach (token; .match(dtext, reg)) {
 			if (token.pre.length - hits > 0) {
-				throwErrorToken(_prop.msgs.scriptErrorInvalidToken, i, pos, "");
-			}
-			post = token.post;
-			auto str = token.match(0);
-			void retCount() {
-				size_t count = .count(str, "\n");
-				if (count > 0) {
-					pos = str.length - std.string.lastIndexOf(str, '\n') - 1;
-					i += count;
+				dstring lpre = token.pre;
+				if (lpre.length && (lpre[$ - 1] == '@' || lpre[$ - 1] == '"' || lpre[$ - 1] == '\'')) {
+					throwErrorToken(_prop.msgs.scriptErrorUnCloseString, i, pos, "");
+					return r;
 				} else {
-					pos += str.length;
+					throwErrorToken(_prop.msgs.scriptErrorInvalidToken, i, pos, "");
 				}
 			}
-			auto c = str[0];
+			post = token.post;
+			auto dstr = token.hit;
+			void retCount() {
+				size_t count = .count(dstr, "\n"d);
+				if (count > 0) {
+					pos = dstr.length - std.string.lastIndexOf(dstr, '\n') - 1;
+					i += count;
+				} else {
+					pos += dstr.length;
+				}
+			}
+			auto c = dstr[0];
+			string str = to!string(dstr);
 			if (isalpha(c) || c == '_') {
 				spaceAfter = false;
 				// symbol
-				switch (std.string.tolower(str)) {
-				case "start":
+				switch (std.string.tolower(dstr)) {
+				case "start"d:
 					r ~= Token(i, pos, Kind.START, str);
 					break;
-				case "if":
+				case "if"d:
 					r ~= Token(i, pos, Kind.IF, str);
 					break;
-				case "elif":
+				case "elif"d:
 					r ~= Token(i, pos, Kind.ELIF, str);
 					break;
-				case "fi":
+				case "fi"d:
 					r ~= Token(i, pos, Kind.FI, str);
 					break;
-				case "sif":
+				case "sif"d:
 					r ~= Token(i, pos, Kind.SIF, str);
 					break;
 				default:
@@ -368,12 +393,12 @@ struct CWXScript {
 			} else {
 				assert (0);
 			}
-			hits += str.length;
+			hits += dstr.length;
 		}
 		if (post.length) throwErrorToken(_prop.msgs.scriptErrorInvalidToken, i, pos, "");
 		return r;
 	} unittest {
-		CWXScript s;
+		auto s = new CWXScript(null, null);
 		assert (s.tokenize("/*\n*/").length == 0);
 		assert (s.tokenize("/* */start, 12.3 \ntest1 [$void] =\"str\ning//\"\n\r //comment\nELIF if\n1/2+3*4%(5-6)")
 			== [
@@ -405,7 +430,7 @@ struct CWXScript {
 	}
 
 	private enum CRKind {STR, INT, REAL}
-	private static struct CalcResult {
+	private class CalcResult {
 		CRKind kind;
 		union {
 			string str;
@@ -500,14 +525,13 @@ struct CWXScript {
 		}
 	}
 	private const OPE_LEVEL_MAX = 2;
-	const
 	private CalcResult calcNum(in Token[] tokens, ref size_t i, in Token[string] varTable, size_t strWidth) {
 		assert (i < tokens.length);
 		auto tok = tokens[i];
 		if (tok.kind is Kind.VAR_NAME) {
 			try {
 				auto vt = var(tok, varTable);
-				CalcResult r;
+				auto r = new CalcResult;
 				if (vt.kind is Kind.STRING) {
 					r.kind = CRKind.STR;
 					r.str = stringValue(vt, strWidth);
@@ -540,7 +564,7 @@ struct CWXScript {
 			throwError(_prop.msgs.scriptErrorInvalidNumber, tok);
 		}
 		try {
-			CalcResult r;
+			auto r = new CalcResult;
 			if (tokens[i].kind is Kind.NUMBER) {
 				if (std.string.indexOf(tokens[i].value, '.') != -1) {
 					r.kind = CRKind.REAL;
@@ -563,7 +587,6 @@ struct CWXScript {
 		}
 		assert (0);
 	}
-	const
 	private CalcResult calcPar(in Token[] tokens, ref size_t i, in Token[string] varTable, size_t strWidth) {
 		assert (i < tokens.length);
 		auto tok = tokens[i];
@@ -580,10 +603,9 @@ struct CWXScript {
 			return calcNum(tokens, i, varTable, strWidth);
 		}
 	}
-	const
 	private CalcResult calcImpl(size_t opeLevel, in Token[] tokens, ref size_t i, in Token[string] varTable, size_t strWidth) {
 		assert (i < tokens.length);
-		CalcResult r;
+		auto r = new CalcResult;
 		if (opeLevel >= OPE_LEVEL_MAX) {
 			r = calcPar(tokens, i, varTable, strWidth);
 		} else {
@@ -640,7 +662,6 @@ struct CWXScript {
 		return r;
 	}
 	/// tokensを計算式と看做し、計算結果の値を返す。
-	const
 	CalcResult calc(in Token[] tokens, ref size_t i, in Token[string] varTable, size_t strWidth) {
 		assert (i < tokens.length);
 		return calcImpl(0, tokens, i, varTable, strWidth);
@@ -649,7 +670,7 @@ struct CWXScript {
 		Token[] tokens;
 		Token[string] varTable;
 		varTable["$abc"] = Token(0, 0, Kind.NUMBER, "15");
-		CWXScript s;
+		auto s = new CWXScript(null, null);
 		i = 0;
 		assert (s.calc(s.tokenize("(-42)"), i, varTable, 0) == -42);
 		i = 0;
@@ -904,7 +925,6 @@ struct CWXScript {
 	}
 
 	/// 属性値を文字列にして返す。
-	const
 	private string attrValue(in Node node, in Token[string] varTable, size_t strWidth) {
 		switch (node.token.kind) {
 		case Kind.SYMBOL: return std.string.tolower(node.token.value);
@@ -930,7 +950,6 @@ struct CWXScript {
 		assert (0);
 	}
 	/// 変数値をTokenとして返す。
-	const
 	private Token varValue(in Node node, in Token[] toks, in Token[string] varTable, size_t strWidth) {
 		if (!toks.length) {
 			throwError(_prop.msgs.scriptErrorInvalidVar, node.token);
@@ -967,11 +986,9 @@ struct CWXScript {
 		}
 		assert (0);
 	}
-	const
 	private Token var(in Node node, in Token[string] varTable) {
 		return var(node.token, varTable);
 	}
-	const
 	private Token var(in Token tok, in Token[string] varTable) {
 		if (tok.kind is Kind.VAR_NAME) {
 			auto ptr = std.string.tolower(tok.value) in varTable;
@@ -982,7 +999,6 @@ struct CWXScript {
 	}
 
 	/// tokensを解釈し、Nodeのツリーに再編成する。
-	const
 	Node[] analyzeSyntax(in Token[] tokens) {
 		Node[] r;
 		size_t i = 0;
@@ -1024,7 +1040,7 @@ struct CWXScript {
 		}
 		return r;
 	} unittest {
-		CWXScript s;
+		auto s = new CWXScript(null, null);
 		string statement
 = `
 $var1 = 'oops'
@@ -1118,7 +1134,6 @@ fi`;
 			~ "fi");
 	}
 
-	const
 	private Node[] analyzeSyntaxBranch(in Token[] tokens, ref size_t i, in Keywords keys) {
 		Node[] r;
 		auto tok = tokens[i];
@@ -1165,7 +1180,6 @@ fi`;
 		}
 		return r;
 	}
-	const
 	private Node[] eatVarSet(in Token[] tokens, ref size_t i, in Keywords keys) {
 		Node[] r;
 		while (i < tokens.length && tokens[i].kind is Kind.VAR_NAME) {
@@ -1173,7 +1187,6 @@ fi`;
 		}
 		return r;
 	}
-	const
 	private Node analyzeSyntaxStatement(in Token[] tokens, ref size_t i, in Keywords keys) {
 		assert (i < tokens.length);
 		auto vars = eatVarSet(tokens, i, keys);
@@ -1216,7 +1229,6 @@ fi`;
 		}
 		return node;
 	}
-	const
 	private Node[] analyzeSyntaxAttr(in Token[] tokens, ref size_t i, in Keywords keys) {
 		Node[] r;
 		while (i < tokens.length) {
@@ -1251,7 +1263,7 @@ fi`;
 		}
 		return r;
 	} unittest {
-		CWXScript s;
+		auto s = new CWXScript(null, null);
 		Token[] tokens;
 		size_t i;
 		tokens = s.tokenize(`goarea`);
@@ -1274,7 +1286,6 @@ fi`;
 		assert (s.analyzeSyntaxAttr(tokens, i, KEYS) == arr);
 		assert (tokens[i].value == "Start");
 	}
-	const
 	private Node analyzeSyntaxBrackets(in Token[] tokens, ref size_t i, in Keywords keys) {
 		assert (i < tokens.length);
 		auto o = tokens[i];
@@ -1314,7 +1325,6 @@ fi`;
 		throwError(_prop.msgs.scriptErrorCloseBracketNotFound, o);
 		return r;
 	}
-	const
 	private Node analyzeSyntaxVar(in Token[] tokens, ref size_t i, in Keywords keys) {
 		assert (i < tokens.length);
 		auto tok = tokens[i];
@@ -1335,7 +1345,6 @@ fi`;
 		node.var = analyzeSyntaxValue(tokens, i, keys);
 		return node;
 	}
-	const
 	private Token[] analyzeSyntaxValue(in Token[] tokens, ref size_t i, in Keywords keys) {
 		Token[] r;
 		bool calcin = false;
@@ -1401,7 +1410,6 @@ fi`;
 		return r;
 	}
 
-	const
 	private T parseAttr(T, bool Within = false)(in Node[] attr, ref size_t i, lazy T defValue, in Token[string] varTable, size_t msgWidth = 0) {
 		if (attr.length <= i) return defValue;
 		auto tok = var(attr[i], varTable);
@@ -1701,9 +1709,8 @@ fi`;
 				throwError(_prop.msgs.scriptErrorReqID, tok);
 			}
 		} else static assert (0);
-		assert (0);
+		return T.init;
 	}
-	const
 	private void parseAttrTalker(in Node[] attr, ref size_t i, ref Talker t, ref string cardPath, in Token[string] varTable) {
 		if (attr.length <= i) return;
 		auto tok = var(attr[i], varTable);
@@ -1717,7 +1724,6 @@ fi`;
 		cardPath = "";
 		t = parseTalker!(false)(attr, i, varTable);
 	}
-	const
 	private Talker parseTalker(bool Within)(in Node[] attr, ref size_t i, in Token[string] varTable) {
 		auto node = attr[i];
 		auto tok = var(node, varTable);
@@ -1738,7 +1744,6 @@ fi`;
 		}
 		assert (0);
 	}
-	const
 	private string parseNextValue(in Node node, in Keywords keys, in Token[string] varTable) {
 		if (!node.texts.length) return "";
 		auto value = varValue(node, node.texts, varTable, 0);
@@ -1772,7 +1777,6 @@ fi`;
 	}
 
 	/// Nodeツリーをコンテント群にして返す。
-	const
 	Content[] analyzeSemantics(in Node[] nodes) {
 		Token[string] varTable;
 		auto cs = analyzeSemanticsImpl(nodes, KEYS, varTable);
@@ -1790,7 +1794,6 @@ fi`;
 		}
 		return cs;
 	}
-	const
 	private Content[] analyzeSemanticsImpl(in Node[] nodes, in Keywords keys, Token[string] varTable) {
 		Content[] r;
 		foreach (node; nodes) {
@@ -2600,24 +2603,24 @@ private string validVarName(string name) {
 	return assumeUnique(buf);
 }
 
-private const string[] TOKENS = [
-	`[a-z_][a-z_0-9]*`, // symbol or keyword
-	"\\$[^\b\t\n\v\f\r !\"#$%&\'\\(\\)*+,\\-./:;<=>?@\\[\\\\\\]^`{}|~]+", // variable
-	`=`, // equql
-	`[0-9]+(\.[0-9]+)?`, // number
-	`\[`, // open bracket
-	`\]`, // close bracket
-	`,`, // comma
-	`"(""|[^"])*?"`, // string
-	`'(''|[^'])*?'`, // string
-	`@[ \t]*([0-9]+|c|center)?[ \t]*\n(([^@]|@@|\n)*\n)?[ \t]*@`, // string
-	`[ \t\r\n]+`, // whitespace
-	`\+`,// plus
-	`-`, // minus
-	`\*`, // multiply
-	`\/(\*(.|\n)*?\*\/|\/.*(\n|$)|)`, // divide or comment
-	`%`, // residue
-	`~`, // cat
-	`\(`, // open paren
-	`\)` // close paren
+private const dstring[] TOKENS = [
+	`[a-z_][a-z_0-9]*`d, // symbol or keyword
+	"\\$[^\b\t\n\v\f\r !\"#$%&\'\\(\\)*+,\\-./:;<=>?@\\[\\\\\\]^`{}|~]+"d, // variable
+	`=`d, // equql
+	`[0-9]+(\.[0-9]+)?`d, // number
+	`\[`d, // open bracket
+	`\]`d, // close bracket
+	`,`d, // comma
+	`"(""|[^"])*?"`d, // string
+	`'(''|[^'])*?'`d, // string
+	`@[ \t]*([0-9]+|c|center)?[ \t]*\n(([^@]|@@|\n)*\n)?[ \t]*@`d, // string
+	`[ \t\r\n]+`d, // whitespace
+	`\+`d,// plus
+	`-`d, // minus
+	`\*`d, // multiply
+	`\/(\*(.|\n)*?\*\/|\/.*(\n|$)|)`d, // divide or comment
+	`%`d, // residue
+	`~`d, // cat
+	`\(`d, // open paren
+	`\)`d // close paren
 ];
