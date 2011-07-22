@@ -2078,6 +2078,7 @@ public:
 	}
 	const string logicalSort() {return "数値参照型ソートを行う(1, 10, 2, 3, ... → 1, 2, 3, 10, ...)";}
 	const string copyDesc() {return "カードをエリアに貼り付け・ドロップした時、解説もコピーする";}
+	const string refCardsAtEditBgImage() {return "背景変更コンテントの編集を開始する際、最初からカード配置の参照を行う";}
 	const string soundPlayType() {return "音声再生方法";}
 	const string soundPlayTypeDef() {return "自動選択";}
 	const string soundPlayTypeSDL() {return "SDL(CardWirthPy形式)";}

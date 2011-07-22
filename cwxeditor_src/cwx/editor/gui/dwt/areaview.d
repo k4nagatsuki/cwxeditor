@@ -1598,6 +1598,11 @@ public:
 			}
 		}
 		_imgp.removeRange(partyIndex, _imgp.images.length);
+		appendPartyCards();
+		_imgp.select = sels;
+		_imgp.redraw;
+	}
+	private void appendPartyCards() {
 		static if (RefCards) {
 			if (_refTarget) {
 				auto a = cast(Area) _refTarget;
@@ -1606,11 +1611,6 @@ public:
 				if (b) addRefCards(b.cards);
 			}
 		}
-		appendPartyCards();
-		_imgp.select = sels;
-		_imgp.redraw;
-	}
-	private void appendPartyCards() {
 		foreach (p; _prop.looks.partyCardXY) {
 			auto img = createCastCardBackImage(_prop, _comm.skin, p.x, p.y);
 			img.alpha = _prop.var.etc.partyCardAlpha;
@@ -2877,7 +2877,10 @@ private:
 }
 
 class BgImagesView : AbstractAreaView!(BgImageContainer, void, false, true) {
-	this(Commons comm, Props prop, Summary summ, BgImageContainer bic, Composite parent, UndoManager undo) {
+	this(Commons comm, Props prop, Summary summ, BgImageContainer bic, Composite parent, AbstractArea refTarget, UndoManager undo) {
+		if (prop.var.etc.refCardsAtEditBgImage) {
+			_refTarget = refTarget;
+		}
 		super(comm, prop, summ, bic, parent, null, undo);
 	}
 }
@@ -2980,8 +2983,8 @@ PImg createMenuCardImage(PImg)(Props prop, Skin skin,
 	return r;
 }
 
-BgImagesView createBgImagesViewAndMenu(Commons comm, Props prop, Summary summ, BgImageContainer cont, Composite parent) {
-	auto view = new BgImagesView(comm, prop, summ, cont, parent, new UndoManager(1024));
+BgImagesView createBgImagesViewAndMenu(Commons comm, Props prop, Summary summ, BgImageContainer cont, Composite parent, AbstractArea refTarget) {
+	auto view = new BgImagesView(comm, prop, summ, cont, parent, refTarget, new UndoManager(1024));
 	auto bar = new Menu(parent.getShell, SWT.BAR);
 	parent.getShell.setMenuBar = bar;
 	auto me = createMenu(bar, prop.msgs.menuEdit);

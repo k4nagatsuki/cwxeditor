@@ -530,6 +530,7 @@ private:
 	Commons _comm;
 	Props _prop;
 	Summary _summ;
+	AbstractArea _refTarget;
 	Combo _ts;
 	Spinner _tsSpeed;
 	Transition[int] _tsTbl;
@@ -540,12 +541,13 @@ private:
 	BgImagesView _view;
 
 public:
-	this(Commons comm, Props prop, Shell shell, Summary summ, Content evt) in {
+	this(Commons comm, Props prop, Shell shell, Summary summ, Content evt, AbstractArea refTarget) in {
 		assert (!evt || evt.type == CType.CHANGE_BG_IMAGE);
 	} body {
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
+		_refTarget = refTarget;
 		super(prop, shell, _prop.msgs.dlgTitBgImages,
 			_prop.images.content(CType.CHANGE_BG_IMAGE), true, _prop.var.bgImagesDlg);
 
@@ -567,7 +569,7 @@ protected:
 		area.setLayout = new GridLayout(1, false);
 		auto skin = _comm.skin;
 		{
-			_view = createBgImagesViewAndMenu(_comm, _prop, _summ, _cont, area);
+			_view = createBgImagesViewAndMenu(_comm, _prop, _summ, _cont, area, _refTarget);
 			_view.setLayoutData = new GridData(GridData.FILL_BOTH);
 		}
 		if (!_summ.legacy) {

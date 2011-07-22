@@ -492,7 +492,7 @@ private:
 			auto c = new Content(type, name);
 			c.backs = BgImageS.createBgImages(_comm.skin, _prop.var.etc.bgImagesDefault);
 			if (_autoOpen) {
-				auto dlg = new BgImagesDialog(_comm, _prop, _tree.getShell, _summ, c);
+				auto dlg = new BgImagesDialog(_comm, _prop, _tree.getShell, _summ, c, refTarget);
 				return dlg.open ? dlg.event : null;
 			} else {
 				return c;
@@ -929,7 +929,7 @@ private:
 				(_prop, _tree.getShell, _summ, evt);
 			return dlg.open;
 		} case CType.CHANGE_BG_IMAGE: {
-			auto dlg = new BgImagesDialog(_comm, _prop, _tree.getShell, _summ, evt);
+			auto dlg = new BgImagesDialog(_comm, _prop, _tree.getShell, _summ, evt, refTarget);
 			return dlg.open;
 		} case CType.EFFECT: {
 			auto dlg = new EffectDialog(_comm, _prop, _tree.getShell, _summ, evt);
@@ -1142,6 +1142,20 @@ private:
 			return dlg.open;
 		} default: assert (0);
 		}
+	}
+
+	AbstractArea refTarget() {
+		if (_et && _et.owner) {
+			auto a = cast(Area) _et.owner;
+			if (a) return a;
+			auto b = cast(Battle) _et.owner;
+			if (b) return b;
+			auto m = cast(MenuCard) _et.owner;
+			if (m) return m.owner;
+			auto e = cast(EnemyCard) _et.owner;
+			if (e) return e.owner;
+		}
+		return null;
 	}
 
 	void refreshStatusLine() {

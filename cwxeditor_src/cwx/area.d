@@ -182,6 +182,11 @@ public:
 			return [];
 		}
 	}
+	/// このカードの所属先を返す。
+	const
+	const(Battle) owner() {
+		return _owner;
+	}
 
 	/// 逃走するか否か。
 	const
@@ -327,6 +332,11 @@ public:
 		} else {
 			return [];
 		}
+	}
+	/// このカードの所属先を返す。
+	const
+	const(Area) owner() {
+		return _owner;
 	}
 
 	/// カード名。

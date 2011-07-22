@@ -84,6 +84,7 @@ private:
 	Button _traceDirectories;
 	Button _logicalSort;
 	Button _copyDesc;
+	Button _refCardsAtEditBgImage;
 	version (Windows) {
 		Combo _soundPlayType;
 	}
@@ -593,6 +594,7 @@ private:
 				_traceDirectories = createB(_prop.msgs.traceDirectories);
 				_logicalSort = createB(_prop.msgs.logicalSort);
 				_copyDesc = createB(_prop.msgs.copyDesc);
+				_refCardsAtEditBgImage = createB(_prop.msgs.refCardsAtEditBgImage);
 
 				version (Windows) {
 					auto sl = new Label(grp, SWT.NONE);
@@ -1201,6 +1203,7 @@ protected:
 		_traceDirectories.setSelection = _prop.var.etc.traceDirectories;
 		_logicalSort.setSelection = _prop.var.etc.logicalSort;
 		_copyDesc.setSelection = _prop.var.etc.copyDesc;
+		_refCardsAtEditBgImage.setSelection = _prop.var.etc.refCardsAtEditBgImage;
 		version (Windows) {
 			_soundPlayType.select = _prop.var.etc.soundPlayType;
 		}
@@ -1337,6 +1340,7 @@ protected:
 		_prop.var.etc.traceDirectories = _traceDirectories.getSelection;
 		_prop.var.etc.logicalSort = _logicalSort.getSelection;
 		_prop.var.etc.copyDesc = _copyDesc.getSelection;
+		_prop.var.etc.refCardsAtEditBgImage = _refCardsAtEditBgImage.getSelection;
 		_prop.var.etc.contentsFloat = _contentsFloat.getSelection;
 		version (Windows) {
 			_prop.var.etc.soundPlayType = _soundPlayType.getSelectionIndex;
@@ -1398,7 +1402,7 @@ protected:
 	override void setup(Composite area) {
 		area.setLayout = new GridLayout(1, false);
 		{
-			_view = createBgImagesViewAndMenu(_comm, _prop, null, _cont, area);
+			_view = createBgImagesViewAndMenu(_comm, _prop, null, _cont, area, null);
 			_view.setLayoutData = new GridData(GridData.FILL_BOTH);
 		}
 	}
