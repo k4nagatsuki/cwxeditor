@@ -251,7 +251,11 @@ private:
 			dlg.setText = _prop.msgs.dlgTitSaveBitmapImage;
 			auto dir = _msel.filePath;
 			if (isBinImg(dir)) {
-				dir = _summ.scenarioPath;
+				if (_summ) {
+					dir = _summ.scenarioPath;
+				} else {
+					dir = getcwd;
+				}
 			} else {
 				if (!.exists(dir) || !isdir(dir)) dir = getDirName(dir);
 			}

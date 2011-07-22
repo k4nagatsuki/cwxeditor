@@ -185,6 +185,9 @@ class Commons {
 	Dlg!(Package) refPackage;
 	Dlg!(Package) delPackage;
 
+	Dlg!(string) refMenuCard;
+	Dlg!(string) delMenuCard;
+
 	Dlg!(Importable) closeAdds;
 
 	private HashSet!(Composite) _ws;

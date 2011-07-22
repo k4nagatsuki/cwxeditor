@@ -35,6 +35,7 @@ import cwx.editor.gui.dwt.jpyimage;
 import std.math;
 import std.path;
 import std.file;
+import std.traits;
 
 import org.eclipse.swt.SWTException;
 import org.eclipse.swt.widgets.Display;
@@ -136,6 +137,38 @@ private:
 	A _area;
 	TCPD _tcpd;
 	UndoManager _undo;
+
+	/// 他のエリアのカード配置を参照する。
+	static const RefCards = !UseCards && UseBacks;
+	static if (RefCards) {
+		CCombo _refAreas;
+		AbstractArea[] _refAreasArr;
+		AbstractArea _refTarget = null;
+		void refreshRefAreas() {
+			if (!_summ) return;
+			_refAreasArr.length = 0;
+			_refAreas.removeAll();
+			if (!_area) return;
+			_refAreas.add(_prop.msgs.noRefArea);
+			_refAreas.select = 0;
+			foreach (a; _summ.areas) {
+				_refAreasArr ~= a;
+				_refAreas.add(to!string(a.id) ~ "." ~ a.name);
+				if(_refTarget is a) _refAreas.select = _refAreas.getItemCount - 1;
+			}
+			foreach (a; _summ.battles) {
+				_refAreasArr ~= a;
+				_refAreas.add(to!string(a.id) ~ "." ~ a.name);
+				if(_refTarget is a) _refAreas.select = _refAreas.getItemCount - 1;
+			}
+			if (0 == _refAreas.getSelectionIndex) {
+				_refTarget = null;
+			}
+		}
+		void refreshRefAreas(Area a) {refreshRefAreas();}
+		void refreshRefAreas(Battle a) {refreshRefAreas();}
+		void refreshRefAreas(string a) {refreshRefAreas();}
+	}
 
 	class AUndo : Undo {
 		this () {}
@@ -466,20 +499,22 @@ private:
 	ToolItem _vmTMenu;
 	ToolItem _vpTMenu;
 	ToolItem _vfTMenu;
-	static if (is (C == EnemyCard)) {
-		protected bool debugMode() {return _dbgMode;}
-		bool _dbgMode = false;
+	static if (is (C == EnemyCard) || RefCards) {
 		MenuItem _dbgMenu;
 		ToolItem _dbgTMenu;
-		ToolItem _escTMenu;
-		ToolItem _bgmTMenu;
-		MaterialSelect!(MtType.BGM, CCombo, CCombo) _bgm;
+		protected bool debugMode() {return _dbgMode;}
+		bool _dbgMode = false;
 		void reverseDebugMode() {
 			_dbgMode = !_dbgMode;
 			if (_dbgMenu) _dbgMenu.setSelection = _dbgMode;
 			if (_dbgTMenu) _dbgTMenu.setSelection = _dbgMode;
 			refreshPanel;
 		}
+	}
+	static if (is (C == EnemyCard)) {
+		ToolItem _escTMenu;
+		ToolItem _bgmTMenu;
+		MaterialSelect!(MtType.BGM, CCombo, CCombo) _bgm;
 		void setEscape() {
 			_undo ~= new UndoEdit;
 			foreach (c; _editC.keys) {
@@ -1335,7 +1370,7 @@ public:
 				}
 			}
 		});
-		static if (is (C == EnemyCard)) {
+		static if (is (C == EnemyCard) || RefCards) {
 			_comm.refCast.add(&__refreshCast);
 			_comm.delCast.add(&__deleteCast);
 			addDisposeListener(new class DisposeListener {
@@ -1353,13 +1388,15 @@ public:
 			_viewMsg = _prop.var.etc.viewMessageBattle;
 			_viewParty = _prop.var.etc.viewPartyCardsBattle;
 			_fixed = _prop.var.etc.fixedImagesBattle;
-			_dbgMode = _prop.var.etc.viewEnemyCardDebug;
 		} else static if (is (A == BgImageContainer)) {
 			_viewMsg = _prop.var.etc.viewMessageEvent;
 			_viewParty = _prop.var.etc.viewPartyCardsEvent;
 			_fixed = _prop.var.etc.fixedImagesEvent;
 		} else {
 			static assert (0);
+		}
+		static if (is(C : EnemyCard) || RefCards) {
+			_dbgMode = _prop.var.etc.viewEnemyCardDebug;
 		}
 		addDisposeListener(new class DisposeListener {
 			public override void widgetDisposed(DisposeEvent e) {
@@ -1371,13 +1408,15 @@ public:
 					_prop.var.etc.viewMessageBattle = _viewMsg;
 					_prop.var.etc.viewPartyCardsBattle = _viewParty;
 					_prop.var.etc.fixedImagesBattle = _fixed;
-					_prop.var.etc.viewEnemyCardDebug = _dbgMode;
 				} else static if (is (A == BgImageContainer)) {
 					_prop.var.etc.viewMessageEvent = _viewMsg;
 					_prop.var.etc.viewPartyCardsEvent = _viewParty;
 					_prop.var.etc.fixedImagesEvent = _fixed;
 				} else {
 					static assert (0);
+				}
+				static if (is(C : EnemyCard) || RefCards) {
+					_prop.var.etc.viewEnemyCardDebug = _dbgMode;
 				}
 			}
 		});
@@ -1490,17 +1529,7 @@ public:
 			}
 			static if (UseBacks) appendBgImages(0, area.backs, false);
 			static if (UseCards) appendCards(0, area.cards, false);
-			foreach (p; _prop.looks.partyCardXY) {
-				auto img = createCastCardBackImage(_prop, _comm.skin, p.x, p.y);
-				img.alpha = _prop.var.etc.partyCardAlpha;
-				img.visible = _viewParty;
-				_imgp.append(img);
-			}
-			{
-				auto img = createMessageImage(_prop);
-				img.visible = _viewMsg;
-				_imgp.append(img);
-			}
+			appendPartyCards();
 		}
 		lrSash.setWeights = [_prop.var.etc.areaViewL, _prop.var.etc.areaViewR];
 		lrSash.addDisposeListener(new class DisposeListener {
@@ -1568,15 +1597,38 @@ public:
 				partyIndex++;
 			}
 		}
+		_imgp.removeRange(partyIndex, _imgp.images.length);
+		static if (RefCards) {
+			if (_refTarget) {
+				auto a = cast(Area) _refTarget;
+				if (a) addRefCards(a.cards);
+				auto b = cast(Battle) _refTarget;
+				if (b) addRefCards(b.cards);
+			}
+		}
+		appendPartyCards();
+		_imgp.select = sels;
+		_imgp.redraw;
+	}
+	private void appendPartyCards() {
 		foreach (p; _prop.looks.partyCardXY) {
 			auto img = createCastCardBackImage(_prop, _comm.skin, p.x, p.y);
 			img.alpha = _prop.var.etc.partyCardAlpha;
 			img.visible = _viewParty;
-			_imgp.set(partyIndex, img);
-			partyIndex++;
+			_imgp.append(img);
 		}
-		_imgp.select = sels;
-		_imgp.redraw;
+		auto img = createMessageImage(_prop);
+		img.visible = _viewMsg;
+		_imgp.append(img);
+	}
+	static if (RefCards) {
+		void addRefCards(C2)(in C2[] cs) {
+			foreach (c; cs) {
+				auto img = createCardImage!PileImage(c, _prop.var.etc.smoothingCard);
+				img.alpha = _prop.var.etc.partyCardAlpha;
+				_imgp.append(img);
+			}
+		}
 	}
 	void refresh() {
 		static if (UseCards && is (C == EnemyCard)) {
@@ -1709,6 +1761,7 @@ public:
 					_undo ~= new UndoInsert([index]);
 				}
 				appendCard(index, dlg.card, true, true);
+				_comm.refMenuCard.call(dlg.card.cwxPath);
 			}
 		}
 		void editCard(C card) {
@@ -1732,6 +1785,7 @@ public:
 						_cards.getItem(i).setText = fi.title;
 						if (_renameCard) _renameCard(i);
 						refreshControls;
+						_comm.refMenuCard.call(c.cwxPath);
 						_comm.refUseCount.call;
 						_imgp.redraw;
 						return;
@@ -1743,11 +1797,43 @@ public:
 		bool isViewCards() {
 			return _viewCards;
 		}
-		protected abstract {
-			string cardName(C element);
-			FlexImage createCardImage(C card, bool smoothing);
-			string cardImagePath(C card);
-		}
+	}
+	PImg createCardImage(PImg, C2)(in C2 card, bool smoothing) {
+		static if (is(Unqual!C2 : MenuCard)) {
+			return createMenuCardImage!PImg
+				(prop, _comm.skin, card.name,
+				cardImagePath(card), card.x, card.y, card.scale, smoothing);
+		} else static if (is(Unqual!C2 : EnemyCard)) {
+			auto skin = _comm.skin;
+			auto castCard = summary.casts(card.id);
+			if (castCard) {
+				return createCastCardImage!PImg(prop, skin, castCard, _summ.scenarioPath,
+					card.x, card.y, card.scale, smoothing, debugMode);
+			} else {
+				return createCastCardImage!PImg(prop, skin, null, _summ.scenarioPath,
+					card.x, card.y, card.scale, smoothing, debugMode);
+			}
+		} else static assert (0);
+	}
+	string cardName(C2)(in C2 card) {
+		static if (is(Unqual!C2 : MenuCard)) {
+			return card.name;
+		} else static if (is(Unqual!C2 : EnemyCard)) {
+			auto castCard = summary.casts(card.id);
+			return castCard ? castCard.name : "";
+		} else static assert (0);
+	}
+	string cardImagePath(C2)(in C2 card) {
+		static if (is(Unqual!C2 : MenuCard)) {
+			return _comm.skin.findImagePath(card.path, summary.scenarioPath);
+		} else static if (is(Unqual!C2 : EnemyCard)) {
+			auto castCard = summary.casts(card.id);
+			if (castCard) {
+				return _comm.skin.findImagePath(castCard.path, summary.scenarioPath);
+			} else {
+				return "";
+			}
+		} else static assert (0);
 	}
 	static if (UseBacks) {
 		void createBackground() {
@@ -1833,13 +1919,15 @@ public:
 		_vfMenu = createMenuItem(mv, _prop.msgs.menuFixed, _prop.images.menuFixed,
 			&reverseFixed, SWT.CHECK);
 		_vfMenu.setSelection = _fixed;
-		static if (UseCards && is(C == EnemyCard)) {
-			new MenuItem(mv, SWT.SEPARATOR);
-			_dbgMenu = createMenuItem(mv,
-				_prop.msgs.menuEnemyCardDebugView,
-				_prop.images.menuEnemyCardDebugView,
-				&reverseDebugMode, SWT.CHECK);
-			_dbgMenu.setSelection = _dbgMode;
+		static if (is(C : EnemyCard) || RefCards) {
+			if (_summ) {
+				new MenuItem(mv, SWT.SEPARATOR);
+				_dbgMenu = createMenuItem(mv,
+					_prop.msgs.menuEnemyCardDebugView,
+					_prop.images.menuEnemyCardDebugView,
+					&reverseDebugMode, SWT.CHECK);
+				_dbgMenu.setSelection = _dbgMode;
+			}
 		}
 		static if (UseCards && UseBacks) {
 			new MenuItem(mv, SWT.SEPARATOR);
@@ -1889,13 +1977,15 @@ public:
 			_prop.msgs.ttFixed, _prop.images.menuFixed,
 			&reverseFixed, SWT.CHECK);
 		_vfTMenu.setSelection = _fixed;
-		static if (UseCards && is(C == EnemyCard)) {
-			new ToolItem(bar, SWT.SEPARATOR);
-			_dbgTMenu = createToolItem(bar,
-				_prop.msgs.ttEnemyCardDebugView,
-				_prop.images.menuEnemyCardDebugView,
-				&reverseDebugMode, SWT.CHECK);
-			_dbgTMenu.setSelection = _dbgMode;
+		static if (is(C : EnemyCard) || RefCards) {
+			if (_summ) {
+				new ToolItem(bar, SWT.SEPARATOR);
+				_dbgTMenu = createToolItem(bar,
+					_prop.msgs.ttEnemyCardDebugView,
+					_prop.images.menuEnemyCardDebugView,
+					&reverseDebugMode, SWT.CHECK);
+				_dbgTMenu.setSelection = _dbgMode;
+			}
 		}
 		static if (UseCards && UseBacks) {
 			new ToolItem(bar, SWT.SEPARATOR);
@@ -1907,6 +1997,41 @@ public:
 				_prop.msgs.ttViewBacks, _prop.images.menuViewBacks,
 				&reverseViewBacks, SWT.CHECK);
 			_vbTMenu.setSelection = _viewBacks;
+		}
+		static if (RefCards) {
+			if (_summ) {
+				new ToolItem(bar, SWT.SEPARATOR);
+				auto refAreasItm = new ToolItem(bar, SWT.SEPARATOR);
+				_refAreas = new CCombo(bar, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
+				_refAreas.setVisibleItemCount = 20;
+				_refAreas.add(_prop.msgs.noRefArea);
+				refAreasItm.setControl = _refAreas;
+				refAreasItm.setWidth = _refAreas.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
+				refreshRefAreas();
+				_refAreas.addSelectionListener(new class SelectionAdapter {
+					override void widgetSelected(SelectionEvent e) {
+						int sel = _refAreas.getSelectionIndex;
+						_refTarget = sel <= 0 ? null : _refAreasArr[sel - 1];
+						refreshPanel();
+					}
+				});
+				_comm.refArea.add(&refreshRefAreas);
+				_comm.delArea.add(&refreshRefAreas);
+				_comm.refBattle.add(&refreshRefAreas);
+				_comm.delBattle.add(&refreshRefAreas);
+				_comm.refMenuCard.add(&refreshRefAreas);
+				_comm.delMenuCard.add(&refreshRefAreas);
+				addDisposeListener(new class DisposeListener {
+					override void widgetDisposed(DisposeEvent e) {
+						_comm.refArea.remove(&refreshRefAreas);
+						_comm.delArea.remove(&refreshRefAreas);
+						_comm.refBattle.remove(&refreshRefAreas);
+						_comm.delBattle.remove(&refreshRefAreas);
+						_comm.refMenuCard.remove(&refreshRefAreas);
+						_comm.delMenuCard.remove(&refreshRefAreas);
+					}
+				});
+			}
 		}
 		new ToolItem(bar, SWT.SEPARATOR);
 		if (!_tlp) {
@@ -2051,7 +2176,7 @@ public:
 			_comm.refUseCount.call;
 		}
 		private FlexImage create(C card) {
-			auto img = createCardImage(card, _prop.var.etc.smoothingCard);
+			auto img = createCardImage!FlexImage(card, _prop.var.etc.smoothingCard);
 			_cardTbl[img] = card;
 			img.visible = isViewCards;
 			img.fixed = isFixed;
@@ -2393,6 +2518,13 @@ public:
 			}
 			imagePane.redraw;
 		}
+	} else static if (RefCards) {
+		private void __refreshCast(CastCard castCard) {
+			refreshPanel();
+		}
+		private void __deleteCast(CastCard castCard) {
+			refreshPanel();
+		}
 	}
 	void cut(SelectionEvent se) {
 		_undo ~= new UndoDelete;
@@ -2474,6 +2606,7 @@ public:
 			void del(SelectionEvent se) {
 				int i;
 				while (0 <= (i = _cards.getSelectionIndex)) {
+					_comm.delMenuCard.call(_area.cards[i].cwxPath);
 					_area.removeCard(i);
 					removeCard(i);
 					_cards.remove(i);
@@ -2548,6 +2681,7 @@ public:
 			void del(SelectionEvent se) {
 				int i;
 				while (0 <= (i = _cards.getSelectionIndex)) {
+					_comm.delMenuCard.call(_area.cards[i].cwxPath);
 					_area.removeCard(i);
 					removeCard(i);
 					_cards.remove(i);
@@ -2677,18 +2811,6 @@ class AreaView : AbstractAreaView!(Area, MenuCard, true, true) {
 		_comm = comm;
 		super(comm, prop, summ, area, parent, tlp, undo);
 	}
-protected override:
-	string cardName(MenuCard element) {
-		return element.name;
-	}
-	FlexImage createCardImage(MenuCard card, bool smoothing) {
-		return createMenuCardImage
-			(prop, _comm.skin, card.name,
-			cardImagePath(card), card.x, card.y, card.scale, smoothing);
-	}
-	string cardImagePath(MenuCard card) {
-		return _comm.skin.findImagePath(card.path, summary.scenarioPath);
-	}
 }
 
 class BattleView : AbstractAreaView!(Battle, EnemyCard, true, false) {
@@ -2752,30 +2874,6 @@ private:
 			}
 		}
 	}
-protected override:
-	string cardName(EnemyCard card) {
-		auto castCard = summary.casts(card.id);
-		return castCard ? castCard.name : "";
-	}
-	FlexImage createCardImage(EnemyCard card, bool smoothing) {
-		auto skin = _comm.skin;
-		auto castCard = summary.casts(card.id);
-		if (castCard) {
-			return createCastCardImage(prop, skin, castCard, _summ.scenarioPath,
-				card.x, card.y, card.scale, smoothing, debugMode);
-		} else {
-			return createCastCardImage(prop, skin, null, _summ.scenarioPath,
-				card.x, card.y, card.scale, smoothing, debugMode);
-		}
-	}
-	string cardImagePath(EnemyCard card) {
-		auto castCard = summary.casts(card.id);
-		if (castCard) {
-			return _comm.skin.findImagePath(castCard.path, summary.scenarioPath);
-		} else {
-			return "";
-		}
-	}
 }
 
 class BgImagesView : AbstractAreaView!(BgImageContainer, void, false, true) {
@@ -2822,50 +2920,63 @@ PileImage createCastCardBackImage(Props prop, Skin skin, int x, int y) {
 	return r;
 }
 
-FlexImage createCardImageCommon(Props prop, ImageData card,
+PImg createCardImageCommon(PImg)(Props prop, ImageData card,
 		CInsets matPad, int x, int y, real scale, bool smoothing) {
 	auto cardSize = prop.looks.cardSize;
 	int w = cardSize.width + matPad.e + matPad.w;
 	int h = cardSize.height + matPad.n + matPad.s;
-	auto r = new FlexImage(card, x, y, w, h);
-	r.minimumWidth = cast(int) rndtol(w * prop.looks.cardSizeMin);
-	r.minimumHeight = cast(int) rndtol(h * prop.looks.cardSizeMin);
-	r.maximumWidth = cast(int) rndtol(w * prop.looks.cardSizeMax);
-	r.maximumHeight = cast(int) rndtol(h * prop.looks.cardSizeMax);
-	r.ratioFix = true;
+	auto r = new PImg(card, x, y, w, h);
 	r.transparent = false;
-	r.newWidth = cast(int) rndtol(w * scale);
-	r.newHeight = cast(int) rndtol(h * scale);
 	r.smoothing = smoothing;
+	static if (is(PImg : FlexImage)) {
+		r.minimumWidth = cast(int) rndtol(w * prop.looks.cardSizeMin);
+		r.minimumHeight = cast(int) rndtol(h * prop.looks.cardSizeMin);
+		r.maximumWidth = cast(int) rndtol(w * prop.looks.cardSizeMax);
+		r.maximumHeight = cast(int) rndtol(h * prop.looks.cardSizeMax);
+		r.ratioFix = true;
+		r.newWidth = cast(int) rndtol(w * scale);
+		r.newHeight = cast(int) rndtol(h * scale);
+	} else {
+		r.width = cast(int) rndtol(w * scale);
+		r.height = cast(int) rndtol(h * scale);
+	}
 	return r;
 }
 
 /// キャストカード画像を生成する。
 /// Returns: カード画像。
-FlexImage createCastCardImage(Props prop, Skin skin, CastCard card,
+PImg createCastCardImage(PImg)(Props prop, Skin skin, CastCard card,
 		string sPath, int x, int y, real scale, bool smoothing, bool dbgMode) {
 	auto matPad = prop.looks.castCardInsets;
-	FlexImage r;
+	PImg r;
 	if (card) {
-		r = createCardImageCommon(prop, castCardImage(prop, skin, card, sPath, dbgMode),
+		r = createCardImageCommon!PImg(prop, castCardImage(prop, skin, card, sPath, dbgMode),
 			matPad, x, y, scale, smoothing);
 	} else {
-		r = createCardImageCommon(prop, castCard(skin),
+		r = createCardImageCommon!PImg(prop, castCard(skin),
 			matPad, x, y, scale, smoothing);
 	}
-	r.resize;
+	static if (is(PImg : FlexImage)) {
+		r.resize;
+	} else {
+		r.createImage;
+	}
 	return r;
 }
 
 /// メニューカード画像を生成する。
 /// Returns: カード画像。
-FlexImage createMenuCardImage(Props prop, Skin skin,
+PImg createMenuCardImage(PImg)(Props prop, Skin skin,
 		string title, string path, int x, int y, real scale, bool smoothing) {
 	auto matPad = prop.looks.menuCardInsets;
-	auto r = createCardImageCommon(prop, menuCard(skin), matPad, x, y, scale, smoothing);
+	auto r = createCardImageCommon!PImg(prop, menuCard(skin), matPad, x, y, scale, smoothing);
 	r.append(path, matPad, true);
 	r.setTitle(title, dwtData(prop.looks.menuCardNameFont(skin.legacy)), dwtData(prop.looks.menuCardNamePoint));
-	r.resize;
+	static if (is(PImg : FlexImage)) {
+		r.resize;
+	} else {
+		r.createImage;
+	}
 	return r;
 }
 

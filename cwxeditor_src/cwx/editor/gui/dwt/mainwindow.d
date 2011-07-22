@@ -1739,10 +1739,10 @@ public:
 		_quit = true;
 		_dirWin.quitTrace;
 		backup.join();
-		_prop.var.save(dock);
 		_prop.images.disposeImages;
 		_comm.dispose;
 		d.dispose;
+		_prop.var.save(dock);
 		debug writefln("Exit Main Thread");
 	}
 }

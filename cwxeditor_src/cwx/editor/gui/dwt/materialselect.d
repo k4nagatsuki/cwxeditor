@@ -410,6 +410,7 @@ private:
 			if (fnmatch(path, defDir)) {
 				parent = "";
 			} else {
+				assert (_summ);
 				parent = abs2rel(_summ.scenarioPath, path);
 				parent = sep.idup ~ parent;
 			}
@@ -448,12 +449,16 @@ private:
 		}
 	}
 	string[] allDirs() {
-		string[] st = hasTarg(defDir) ? [defDir] : [];
+		string[] st;
 		foreach (i; _defs.length .. _dirs.getItemCount) {
 			string t = _dirs.getItem(i);
-			if (t == "/") {
+			if (i == _tbl) {
+				st ~= defDir;
+			} else if (t == "/") {
+				assert (_summ);
 				st ~= nabs(_summ.scenarioPath);
 			} else {
+				assert (_summ);
 				st ~= nabs(std.path.join(_summ.scenarioPath, fromViewPath(t)));
 			}
 		}

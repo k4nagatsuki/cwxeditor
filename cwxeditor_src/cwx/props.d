@@ -1237,6 +1237,7 @@ public:
 	const string menuMask() {return ttMask ~ "(&M)";}
 	const string ttDoEscape() {return "逃走の有無";}
 	const string menuDoEscape() {return ttMask ~ "(&E)";}
+	const string noRefArea() {return "[カード配置参照無し]";}
 
 	const string menuPosTop() {return "上に揃える" ~ "(&U)";}
 	const string menuPosBottom() {return "下に揃える" ~ "(&D)";}

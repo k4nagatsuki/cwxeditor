@@ -588,6 +588,7 @@ public:
 		int index = _summ.areas.length - 1;
 		newAreaItem(index);
 		selArea(index);
+		_comm.refArea.call(area);
 		_areasEdit.startEdit;
 		refreshStatusLine;
 	}
@@ -599,6 +600,7 @@ public:
 		int index = _summ.battles.length - 1;
 		newBattleItem(index);
 		selBattle(index);
+		_comm.refBattle.call(btl);
 		_areasEdit.startEdit;
 		refreshStatusLine;
 	}
@@ -617,6 +619,7 @@ public:
 		int index = _summ.packages.length - 1;
 		newPackageItem(index);
 		selPackage(index);
+		_comm.refPackage.call(pkg);
 		_areasEdit.startEdit;
 		refreshStatusLine;
 		return pkg.id;
