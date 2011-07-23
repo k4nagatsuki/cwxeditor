@@ -35,13 +35,15 @@ struct CWXSError {
 }
 /// ditto
 class CWXScriptException : Exception {
-	this (string file, size_t line, string text, const CWXSError[] errors) {
+	this (string file, size_t line, string text, const CWXSError[] errors, bool over100) {
 		super ("cwx script error", file, line);
 		_text = text;
 		_errors = errors;
+		_over100 = over100;
 	}
 	private string _text;
 	private const(CWXSError[]) _errors;
+	private bool _over100;
 
 	/// 解析対象のテキスト。
 	const
@@ -49,18 +51,21 @@ class CWXScriptException : Exception {
 	/// 発生したエラーの配列。
 	const
 	const(CWXSError[]) errors() {return _errors;}
+	/// エラーが100件を超えたか。
+	const
+	bool over100() {return _over100;}
 }
 
 /// スクリプトを解析し、コンテント群にして返す。
 /// 解析中にエラーがあった場合はCWXScriptExceptionを投げる。
 static Content[] compile(const(CProps) prop, const(Summary) summ, string script) {
-	auto compiler = new CWXScript(prop, summ);
+	auto compiler = new CWXScript(prop, summ, script);
 	auto tokens = compiler.tokenize(script);
-	if (compiler.errors.length) throw new CWXScriptException(__FILE__, __LINE__, script, compiler.errors);
+	if (compiler.errors.length) throw new CWXScriptException(__FILE__, __LINE__, script, compiler.errors, false);
 	auto nodes = compiler.analyzeSyntax(tokens);
-	if (compiler.errors.length) throw new CWXScriptException(__FILE__, __LINE__, script, compiler.errors);
+	if (compiler.errors.length) throw new CWXScriptException(__FILE__, __LINE__, script, compiler.errors, false);
 	auto r = compiler.analyzeSemantics(nodes);
-	if (compiler.errors.length) throw new CWXScriptException(__FILE__, __LINE__, script, compiler.errors);
+	if (compiler.errors.length) throw new CWXScriptException(__FILE__, __LINE__, script, compiler.errors, false);
 	return r;
 }
 
@@ -68,10 +73,12 @@ static Content[] compile(const(CProps) prop, const(Summary) summ, string script)
 class CWXScript {
 	private const(CProps) _prop;
 	private const(Summary) _summ;
+	private string _text;
 	/// 唯一のコンストラクタ。
-	this (const(CProps) prop, const(Summary) summ) {
+	this (const(CProps) prop, const(Summary) summ, string text = "") {
 		_prop = prop;
 		_summ = summ;
+		_text = text;
 	}
 	private CWXSError[] _errors;
 	/// 各メソッド呼び出しで蓄積されたエラーを返す。
@@ -87,6 +94,9 @@ class CWXScript {
 		if (_errors.length && _errors[$ - 1].errLine == line && _errors[$ - 1].errPos == pos) {
 			// 同一箇所でのエラーは一つだけにする
 			return;
+		}
+		if (100 <= _errors.length) {
+			throw new CWXScriptException(__FILE__, __LINE__, _text, errors, true);
 		}
 		_errors ~= CWXSError(message, line, pos, File, Line);
 	}

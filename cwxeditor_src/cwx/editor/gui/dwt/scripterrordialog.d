@@ -69,6 +69,10 @@ protected:
 			buf ~= "\n";
 			buf ~= rjustify("", lStr.length) ~ btm ~ "^";
 		}
+		if (_ex.over100) {
+			buf ~= "\n";
+			buf ~= _prop.msgs.scriptErrorOver100Error ~ "\n";
+		}
 		_result = new Text(area, SWT.BORDER | SWT.MULTI | SWT.READ_ONLY | SWT.WRAP | SWT.V_SCROLL);
 		_result.setText = buf;
 		auto font = _result.getFont;

@@ -2137,6 +2137,7 @@ public:
 	const string scriptError() {
 		return "CWXスクリプトのコンパイル中にエラーが発生しました。";
 	}
+	const string scriptErrorOver100Error() {return "エラーが100件を超えたため、スクリプトの解析を終了します。";}
 	const string scriptErrorInvalidToken() {return "スクリプトに使用できない文字が含まれています。";}
 	const string scriptErrorInvalidString() {return "ここに文字列が必要です。";}
 	const string scriptErrorUnCloseString() {return "文字列が閉じられていません。";}
