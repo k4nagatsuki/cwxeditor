@@ -84,6 +84,10 @@ class CWXScript {
 	}
 	private void throwErrorToken(string File = __FILE__, size_t Line = __LINE__)
 			(lazy string message, size_t line, size_t pos, string value) {
+		if (_errors.length && _errors[$ - 1].errLine == line && _errors[$ - 1].errPos == pos) {
+			// 同一箇所でのエラーは一つだけにする
+			return;
+		}
 		_errors ~= CWXSError(message, line, pos, File, Line);
 	}
 
@@ -431,11 +435,14 @@ class CWXScript {
 
 	private enum CRKind {STR, INT, REAL}
 	private class CalcResult {
-		CRKind kind;
+		CRKind kind = CRKind.INT;
 		union {
 			string str;
 			long numInt;
 			real numReal;
+		}
+		this () {
+			numInt = 0;
 		}
 		void cat(in CProps prop, in Token tok, in CalcResult rval) {
 			switch (kind) {
@@ -563,8 +570,8 @@ class CWXScript {
 		if (tokens.length <= i || !(tokens[i].kind is Kind.NUMBER || tokens[i].kind is Kind.STRING)) {
 			throwError(_prop.msgs.scriptErrorInvalidNumber, tok);
 		}
+		auto r = new CalcResult;
 		try {
-			auto r = new CalcResult;
 			if (tokens[i].kind is Kind.NUMBER) {
 				if (std.string.indexOf(tokens[i].value, '.') != -1) {
 					r.kind = CRKind.REAL;
@@ -575,17 +582,19 @@ class CWXScript {
 					r.numInt = to!(long)(tokens[i].value);
 					if (min) r.numInt = -r.numInt;
 				}
-			} else {
-				assert (tokens[i].kind is Kind.STRING);
+			} else if (tokens[i].kind is Kind.STRING) {
 				r.kind = CRKind.STR;
 				r.str = stringValue(tokens[i], 0);
+			} else {
+				assert (tokens[i].kind is Kind.VAR_NAME);
+				throwError(_prop.msgs.scriptErrorReqNumber, tokens[i]);
 			}
 			i++;
 			return r;
 		} catch (Exception e) {
 			throwError(_prop.msgs.scriptErrorReqNumber, tokens[i]);
 		}
-		assert (0);
+		return r;
 	}
 	private CalcResult calcPar(in Token[] tokens, ref size_t i, in Token[string] varTable, size_t strWidth) {
 		assert (i < tokens.length);
@@ -984,7 +993,7 @@ class CWXScript {
 		default:
 			throwError(_prop.msgs.scriptErrorInvalidVarVal, toks[0]);
 		}
-		assert (0);
+		return toks[0];
 	}
 	private Token var(in Node node, in Token[string] varTable) {
 		return var(node.token, varTable);
@@ -1439,7 +1448,7 @@ fi`;
 			case "false", "no", "off", "active", "manual", "max", "nocomplete":
 				i++;
 				return false;
-			default: throwError(_prop.msgs.scriptErrorInvalidBoolVal, tok);
+			default: throwError(_prop.msgs.scriptErrorInvalidBoolVal, attr[i].token);
 			}
 		} else static if (is(T == Transition)) {
 			switch (value) {
@@ -1448,7 +1457,7 @@ fi`;
 			case "fade": i++; return Transition.FADE;
 			case "dissolve": i++; return Transition.PIXEL_DISSOLVE;
 			case "blinds": i++; return Transition.BLINDS;
-			default: throwError(_prop.msgs.scriptErrorInvalidTransition, tok);
+			default: throwError(_prop.msgs.scriptErrorInvalidTransition, attr[i].token);
 			}
 		} else static if (is(T == Range)) {
 			switch (value) {
@@ -1467,7 +1476,7 @@ fi`;
 				static if (Within) goto default;
 				i++;
 				return Range.FIELD;
-			default: throwError(_prop.msgs.scriptErrorInvalidRange, tok);
+			default: throwError(_prop.msgs.scriptErrorInvalidRange, attr[i].token);
 			}
 		} else static if (is(T == Status)) {
 			switch (value) {
@@ -1483,7 +1492,7 @@ fi`;
 			case "sleep": i++; return Status.SLEEP;
 			case "bind": i++; return Status.BIND;
 			case "paralyze": i++; return Status.PARALYZE;
-			default: throwError(_prop.msgs.scriptErrorInvalidStatus, tok);
+			default: throwError(_prop.msgs.scriptErrorInvalidStatus, attr[i].token);
 			}
 		} else static if (is(T == Target)) {
 			bool sleep = false;
@@ -1509,7 +1518,7 @@ fi`;
 				i++;
 				static if (!Within) i++;
 				return Target(Target.M.PARTY, sleep);
-			default: throwError(_prop.msgs.scriptErrorInvalidTarget, tok);
+			default: throwError(_prop.msgs.scriptErrorInvalidTarget, attr[i].token);
 			}
 		} else static if (is(T == EffectType)) {
 			switch (value) {
@@ -1518,14 +1527,14 @@ fi`;
 			case "mphysic": i++; return EffectType.MAGICAL_PHYSIC;
 			case "pmagic": i++; return EffectType.PHYSICAL_MAGIC;
 			case "none": i++; return EffectType.NONE;
-			default: throwError(_prop.msgs.scriptErrorInvalidEffectType, tok);
+			default: throwError(_prop.msgs.scriptErrorInvalidEffectType, attr[i].token);
 			}
 		} else static if (is(T == Resist)) {
 			switch (value) {
 			case "avoid": i++; return Resist.AVOID;
 			case "resist": i++; return Resist.RESIST;
 			case "unfail": i++; return Resist.UNFAIL;
-			default: throwError(_prop.msgs.scriptErrorInvalidResist, tok);
+			default: throwError(_prop.msgs.scriptErrorInvalidResist, attr[i].token);
 			}
 		} else static if (is(T == CardVisual)) {
 			switch (value) {
@@ -1533,7 +1542,7 @@ fi`;
 			case "reverse": i++; return CardVisual.REVERSE;
 			case "hswing": i++; return CardVisual.HORIZONTAL;
 			case "vswing": i++; return CardVisual.VERTICAL;
-			default: throwError(_prop.msgs.scriptErrorInvalidCardVisual, tok);
+			default: throwError(_prop.msgs.scriptErrorInvalidCardVisual, attr[i].token);
 			}
 		} else static if (is(T == Mental)) {
 			switch (value) {
@@ -1547,7 +1556,7 @@ fi`;
 			case "uncaut": i++; return Mental.UNCAUTIOUS;
 			case "trick": i++; return Mental.TRICKISH;
 			case "untrick": i++; return Mental.UNTRICKISH;
-			default: throwError(_prop.msgs.scriptErrorInvalidMental, tok);
+			default: throwError(_prop.msgs.scriptErrorInvalidMental, attr[i].token);
 			}
 		} else static if (is(T == Physical)) {
 			switch (value) {
@@ -1557,7 +1566,7 @@ fi`;
 			case "str": i++; return Physical.STR;
 			case "vit": i++; return Physical.VIT;
 			case "min": i++; return Physical.MIN;
-			default: throwError(_prop.msgs.scriptErrorInvalidPhysical, tok);
+			default: throwError(_prop.msgs.scriptErrorInvalidPhysical, attr[i].token);
 			}
 		} else static if (is(T == Talker)) {
 			return parseTalker!(Within)(attr, i, varTable);
@@ -1602,7 +1611,7 @@ fi`;
 			case "dealconfuse": i++; return MType.DEAL_CONFUSE_CARD;
 			case "dealskill": i++; return MType.DEAL_SKILL_CARD;
 			case "summon": i++; return MType.SUMMON_BEAST;
-			default: throwError(_prop.msgs.scriptErrorInvalidMotionType, tok);
+			default: throwError(_prop.msgs.scriptErrorInvalidMotionType, attr[i].token);
 			}
 		} else static if (is(T == Element)) {
 			switch (value) {
@@ -1613,18 +1622,18 @@ fi`;
 			case "magic": i++; return Element.MAGIC;
 			case "fire": i++; return Element.FIRE;
 			case "ice": i++; return Element.ICE;
-			default: throwError(_prop.msgs.scriptErrorInvalidElement, tok);
+			default: throwError(_prop.msgs.scriptErrorInvalidElement, attr[i].token);
 			}
 		} else static if (is(T == DamageType)) {
 			switch (value) {
 			case "level": i++; return DamageType.LEVEL_RATIO;
 			case "value": i++; return DamageType.NORMAL;
 			case "max": i++; return DamageType.MAX;
-			default: throwError(_prop.msgs.scriptErrorInvalidDamageType, tok);
+			default: throwError(_prop.msgs.scriptErrorInvalidDamageType, attr[i].token);
 			}
 		} else static if (is(T == BgImage)) {
 			if (attr[i].type !is NodeType.VALUES) {
-				throwError(_prop.msgs.scriptErrorInvalidBgImage, tok);
+				throwError(_prop.msgs.scriptErrorInvalidBgImage, attr[i].token);
 			}
 			size_t j = 0;
 			auto vals = attr[i].values;
@@ -1641,7 +1650,7 @@ fi`;
 			return r;
 		} else static if (is(T == Motion)) {
 			if (attr[i].type !is NodeType.VALUES) {
-				throwError(_prop.msgs.scriptErrorInvalidMotion, tok);
+				throwError(_prop.msgs.scriptErrorInvalidMotion, attr[i].token);
 			}
 			size_t j = 0;
 			auto vals = attr[i].values;
@@ -1669,7 +1678,7 @@ fi`;
 			return r;
 		} else static if (is(T == SDialog)) {
 			if (attr[i].type !is NodeType.VALUES) {
-				throwError(_prop.msgs.scriptErrorInvalidDialog, tok);
+				throwError(_prop.msgs.scriptErrorInvalidDialog, attr[i].token);
 			}
 			size_t j = 0;
 			auto vals = attr[i].values;
@@ -1698,7 +1707,7 @@ fi`;
 				i++;
 				return r;
 			} catch (Exception e) {
-				throwError(_prop.msgs.scriptErrorReqNumber, tok);
+				throwError(_prop.msgs.scriptErrorReqNumber, attr[i].token);
 			}
 		} else static if (is(T == ulong)) {
 			try {
@@ -1706,7 +1715,7 @@ fi`;
 				i++;
 				return r;
 			} catch (Exception e) {
-				throwError(_prop.msgs.scriptErrorReqID, tok);
+				throwError(_prop.msgs.scriptErrorReqID, attr[i].token);
 			}
 		} else static assert (0);
 		return T.init;
@@ -1742,7 +1751,7 @@ fi`;
 			return Talker.CARD;
 		default: throwError(_prop.msgs.scriptErrorInvalidTalker, tok);
 		}
-		assert (0);
+		return Talker.NARRATION;
 	}
 	private string parseNextValue(in Node node, in Keywords keys, in Token[string] varTable) {
 		if (!node.texts.length) return "";
