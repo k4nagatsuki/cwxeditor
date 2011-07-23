@@ -398,12 +398,12 @@ private:
 				grp.setLayout = new GridLayout(2, false);
 				grp.setText = _prop.msgs.name;
 				_name = new GBLimitText(_prop.looks.messageFont(_summ.legacy).name,
-					_prop.looks.nameLimit, grp, SWT.BORDER);
+					_prop.looks.castNameLimit, grp, SWT.BORDER);
 				auto gd = new GridData(GridData.FILL_HORIZONTAL);
 				gd.widthHint = _name.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
 				_name.widget.setLayoutData = gd;
 				auto l = new Label(grp, SWT.NONE);
-				l.setText = _prop.msgs.nameLimit(_prop.looks.nameLimit);
+				l.setText = _prop.msgs.nameLimit(_prop.looks.castNameLimit);
 				checker(_name.widget);
 			}
 			{

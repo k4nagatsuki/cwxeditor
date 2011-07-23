@@ -2192,7 +2192,6 @@ public:
 
 public class Looks {
 public:
-	const uint cardNameMax() {return 12;}
 	const string[] fontFiles() {
 		return [
 			"Data" ~ sep ~ "Font" ~ sep ~ "gothic.ttf",
@@ -2274,6 +2273,7 @@ public:
 
 	const int stepMaxCount() {return 10;}
 
+	const uint castNameLimit() {return 14;}
 	const uint nameLimit() {return 12;}
 	const uint castLevelMax() {return 99;}
 	const uint lifeMax() {return 999;}
