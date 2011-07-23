@@ -2140,6 +2140,8 @@ public:
 	const string scriptErrorInvalidToken() {return "スクリプトに使用できない文字が含まれています。";}
 	const string scriptErrorInvalidString() {return "ここに文字列が必要です。";}
 	const string scriptErrorUnCloseString() {return "文字列が閉じられていません。";}
+	const string scriptErrorUnOpenComment() {return "コメントは開始されていません。";}
+	const string scriptErrorUnCloseComment() {return "コメントが閉じられていません。";}
 	const string scriptErrorInvalidNumber() {return "数値が正しくありません。";}
 	const string scriptErrorCloseBracketNotFound() {return "閉じ括弧が見つかりません。";}
 	const string scriptErrorCloseParenNotFound() {return "閉じ括弧が見つかりません。";}

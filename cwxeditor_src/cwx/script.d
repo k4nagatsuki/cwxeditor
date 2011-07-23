@@ -124,7 +124,7 @@ class CWXScript {
 		/// 文字列表現。
 		const
 		string toString() {
-			return .format("Token {line %d : %d, %s, %s}", line, pos, to!(string)(cast(int) kind), value);
+			return .format("Token {line %d : %d, %s, %s}", line, pos, to!(string)(kind), value);
 		}
 		/// oと等しいか。
 		const
@@ -251,21 +251,15 @@ class CWXScript {
 		size_t i = 0;
 		size_t hits = 0;
 		size_t pos = 0;
+		int commentLevel = 0;
+		size_t lastCommentLine = 0;
+		size_t lastCommentPos = 0;
 		dstring post;
 		bool spaceAfter = false;
 		foreach (token; .match(dtext, reg)) {
-			if (token.pre.length - hits > 0) {
-				dstring lpre = token.pre;
-				if (lpre.length && (lpre[$ - 1] == '@' || lpre[$ - 1] == '"' || lpre[$ - 1] == '\'')) {
-					throwErrorToken(_prop.msgs.scriptErrorUnCloseString, i, pos, "");
-					return r;
-				} else {
-					throwErrorToken(_prop.msgs.scriptErrorInvalidToken, i, pos, "");
-				}
-			}
 			post = token.post;
 			auto dstr = token.hit;
-			void retCount() {
+			void retCount2(dstring dstr) {
 				size_t count = .count(dstr, "\n"d);
 				if (count > 0) {
 					pos = dstr.length - std.string.lastIndexOf(dstr, '\n') - 1;
@@ -274,9 +268,48 @@ class CWXScript {
 					pos += dstr.length;
 				}
 			}
+			void retCount() {
+				retCount2(dstr);
+			}
 			auto c = dstr[0];
 			string str = to!string(dstr);
-			if (isalpha(c) || c == '_') {
+
+			if (token.pre.length - hits > 0) {
+				if (0 < commentLevel) {
+					/// in comment
+					retCount2(token.pre[hits .. $]);
+					hits = token.pre.length;
+				} else {
+					dstring lpre = token.pre;
+					if (lpre.length && (lpre[$ - 1] == '@' || lpre[$ - 1] == '"' || lpre[$ - 1] == '\'')) {
+						throwErrorToken(_prop.msgs.scriptErrorUnCloseString, i, pos, "");
+						return r;
+					} else {
+						throwErrorToken(_prop.msgs.scriptErrorInvalidToken, i, pos, "");
+					}
+				}
+			}
+			if (str == "/*") {
+				// multi line comment (open)
+				spaceAfter = true;
+				if (commentLevel == 0) {
+					lastCommentLine = i;
+					lastCommentPos = pos;
+				}
+				pos += dstr.length;
+				commentLevel++;
+			} else if (str == "*/") {
+				// multi line comment (close)
+				spaceAfter = true;
+				pos += dstr.length;
+				if (commentLevel <= 0) {
+					throwErrorToken(_prop.msgs.scriptErrorUnOpenComment, i, pos, str);
+				}
+				commentLevel--;
+			} else if (0 < commentLevel) {
+				spaceAfter = true;
+				retCount;
+ 			} else if (isalpha(c) || c == '_') {
 				spaceAfter = false;
 				// symbol
 				switch (std.string.tolower(dstr)) {
@@ -299,30 +332,30 @@ class CWXScript {
 					r ~= Token(i, pos, Kind.SYMBOL, str);
 					break;
 				}
-				pos += str.length;
+				pos += dstr.length;
 			} else if (c == '$') {
 				spaceAfter = false;
 				r ~= Token(i, pos, Kind.VAR_NAME, str);
-				pos += str.length;
+				pos += dstr.length;
 			} else if (c == '=') {
 				spaceAfter = false;
 				r ~= Token(i, pos, Kind.EQ, str);
-				pos += str.length;
+				pos += dstr.length;
 			} else if (c == '[') {
 				// open bracket
 				spaceAfter = false;
 				r ~= Token(i, pos, Kind.O_BRA, str);
-				pos += str.length;
+				pos += dstr.length;
 			} else if (c == ']') {
 				// close bracket
 				spaceAfter = false;
 				r ~= Token(i, pos, Kind.C_BRA, str);
-				pos += str.length;
+				pos += dstr.length;
 			} else if (isdigit(c)) {
 				// number
 				spaceAfter = false;
 				r ~= Token(i, pos, Kind.NUMBER, str);
-				pos += str.length;
+				pos += dstr.length;
 			} else if (c == '@' || c == '"' || c == '\'') {
 				// string
 				if (!spaceAfter && r.length && r[$ - 1].kind is Kind.STRING
@@ -342,23 +375,19 @@ class CWXScript {
 				// plus
 				spaceAfter = false;
 				r ~= Token(i, pos, Kind.PLU, str);
-				pos += str.length;
+				pos += dstr.length;
 			} else if (c == '-') {
 				// minus
 				spaceAfter = false;
 				r ~= Token(i, pos, Kind.MIN, str);
-				pos += str.length;
+				pos += dstr.length;
 			} else if (c == '*') {
 				// multiply
 				spaceAfter = false;
 				r ~= Token(i, pos, Kind.MUL, str);
-				pos += str.length;
+				pos += dstr.length;
 			} else if (c == '/') {
-				if (str.length >= 2 && str[1] == '*') {
-					// multi line comment
-					spaceAfter = true;
-					retCount;
-				} else if (str.length >= 2 && str[1] == '/') {
+				if (dstr.length >= 2 && str[1] == '/') {
 					// line comment
 					spaceAfter = true;
 					i++;
@@ -367,43 +396,46 @@ class CWXScript {
 					// divide
 					spaceAfter = false;
 					r ~= Token(i, pos, Kind.DIV, str);
-					pos += str.length;
+					pos += dstr.length;
 				}
 			} else if (c == '%') {
 				// residue
 				spaceAfter = false;
 				r ~= Token(i, pos, Kind.RES, str);
-				pos += str.length;
+				pos += dstr.length;
 			} else if (c == '~') {
 				// cat
 				spaceAfter = false;
 				r ~= Token(i, pos, Kind.CAT, str);
-				pos += str.length;
+				pos += dstr.length;
 			} else if (c == '(') {
 				// open paren
 				spaceAfter = false;
 				r ~= Token(i, pos, Kind.O_PAR, str);
-				pos += str.length;
+				pos += dstr.length;
 			} else if (c == ')') {
 				// close paren
 				spaceAfter = false;
 				r ~= Token(i, pos, Kind.C_PAR, str);
-				pos += str.length;
+				pos += dstr.length;
 			} else if (c == ',') {
 				// comma
 				spaceAfter = false;
 				r ~= Token(i, pos, Kind.COMMA, str);
-				pos += str.length;
+				pos += dstr.length;
 			} else {
 				assert (0);
 			}
 			hits += dstr.length;
 		}
+		if (0 < commentLevel) {
+			throwErrorToken(_prop.msgs.scriptErrorUnCloseComment, lastCommentLine, lastCommentPos, "");
+		}
 		if (post.length) throwErrorToken(_prop.msgs.scriptErrorInvalidToken, i, pos, "");
 		return r;
 	} unittest {
 		auto s = new CWXScript(null, null);
-		assert (s.tokenize("/*\n*/").length == 0);
+		assert (s.tokenize("/*/*\n*/*/").length == 0);
 		assert (s.tokenize("/* */start, 12.3 \ntest1 [$void] =\"str\ning//\"\n\r //comment\nELIF if\n1/2+3*4%(5-6)")
 			== [
 				Token(0, 5, Kind.START, "start"),
@@ -2626,8 +2658,8 @@ private const dstring[] TOKENS = [
 	`[ \t\r\n]+`d, // whitespace
 	`\+`d,// plus
 	`-`d, // minus
-	`\*`d, // multiply
-	`\/(\*(.|\n)*?\*\/|\/.*(\n|$)|)`d, // divide or comment
+	`\*\/?`d, // multiply or comment end
+	`\/(\/.*(\n|$)|\*)?`d, // divide or comment start
 	`%`d, // residue
 	`~`d, // cat
 	`\(`d, // open paren
