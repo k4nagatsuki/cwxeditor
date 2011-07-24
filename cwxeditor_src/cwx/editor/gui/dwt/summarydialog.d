@@ -23,6 +23,7 @@ import cwx.editor.gui.dwt.splitpane;
 
 import std.conv;
 import std.string;
+import std.path;
 
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
@@ -63,6 +64,9 @@ private:
 	Summary _summ;
 
 	Canvas _summImage;
+	Image _summImageBuf = null;
+	string _bufImagePath = null;
+
 	Text _sname;
 	ImageSelect!(MtType.CARD) _imgPath;
 	FixedWidthText _desc;
@@ -76,6 +80,12 @@ private:
 	bool _hasLegacySkin;
 	// TODO Tag
 	// TODO Label
+
+	void clearBuf() {
+		if (_summImageBuf) _summImageBuf.dispose();
+		_summImageBuf = null;
+		_bufImagePath = null;
+	}
 
 	void levMaxEnter(int enter) {
 		if (enter > 0 && _levMin.getSelection != 0 && enter < _levMin.getSelection) {
@@ -92,88 +102,99 @@ private:
 		override void paintControl(PaintEvent e) {
 			auto d = Display.getCurrent;
 			auto size = _prop.looks.summarySize;
-			scope buf = new Image(d, size.width, size.height);
-			scope (exit) buf.dispose;
-			scope gc = new GC(buf);
-			scope (exit) gc.dispose;
+			auto rect = _summImage.getClientArea;
 
-			Skin skin;
-			if (_summ.legacy && _hasLegacySkin && _type.getSelectionIndex == 0) {
-				skin = Skin.legacySkin(_prop.parent, _prop.var.etc.enginePath,
-					_summ.scenarioPath);
-			} else {
-				skin = Skin.find(_prop.parent, _prop.var.etc.enginePath,
-					_type.getText, _summ.scenarioPath, _summ.legacy);
-			}
-			{
-				scope img = new Image(d, summary(skin));
-				gc.drawImage(img, 0, 0);
-				img.dispose;
-			}
-			if (_imgPath.image !is null && _imgPath.image.length > 0) {
-				string imgPath = skin.findImagePath(_imgPath.image, _summ.scenarioPath);
-				if (imgPath.length) {
-					scope img = new Image(d, loadImage(skin, imgPath));
-					gc.drawImage(img, _prop.looks.summaryImageXY.x, _prop.looks.summaryImageXY.y);
+			if (!_bufImagePath || !_summImageBuf
+					|| !.fnmatch(nabs(_bufImagePath), nabs(_imgPath.image))) {
+				if (_summImageBuf) _summImageBuf.dispose();
+				_bufImagePath = _imgPath.image;
+				_summImageBuf = new Image(d, size.width, size.height);
+
+				scope gc = new GC(_summImageBuf);
+				scope (exit) gc.dispose;
+
+				Skin skin;
+				if (_summ.legacy && _hasLegacySkin && _type.getSelectionIndex == 0) {
+					skin = Skin.legacySkin(_prop.parent, _prop.var.etc.enginePath,
+						_summ.scenarioPath);
+				} else {
+					skin = Skin.find(_prop.parent, _prop.var.etc.enginePath,
+						_type.getText, _summ.scenarioPath, _summ.legacy);
+				}
+				{
+					scope img = new Image(d, summary(skin));
+					gc.drawImage(img, 0, 0);
 					img.dispose;
 				}
-			}
-			{
-				void drawCenterText(FontData fontData, string text, int y) {
-					scope font = new Font(d, fontData);
-					gc.setFont = font;
-					scope p = gc.stringExtent(text);
-					gc.drawString(text, (size.width - p.x) / 2, y, true);
-					font.dispose;
+				if (_imgPath.image !is null && _imgPath.image.length > 0) {
+					string imgPath = skin.findImagePath(_imgPath.image, _summ.scenarioPath);
+					if (imgPath.length) {
+						scope img = new Image(d, loadImage(skin, imgPath));
+						gc.drawImage(img, _prop.looks.summaryImageXY.x, _prop.looks.summaryImageXY.y);
+						img.dispose;
+					}
 				}
-				int alpha;
-				scope c = new Color(d, dwtData(_prop.looks.summaryLevelColor, alpha));
-				gc.setForeground = c;
-				gc.setAlpha = alpha;
-				drawCenterText(dwtData(_prop.looks.summaryLevelFont(skin.legacy)),
-					_prop.msgs.targetLevel(_levMin.getSelection, _levMax.getSelection),
-					_prop.looks.summaryLevelY);
-				c.dispose;
-				gc.setAlpha = 255;
-				gc.setForeground = d.getSystemColor(SWT.COLOR_BLACK);
-				drawCenterText(dwtData(_prop.looks.summaryTitleFont(skin.legacy)),
-					_sname.getText, _prop.looks.summaryTitleY);
 				{
+					void drawCenterText(FontData fontData, string text, int y) {
+						scope font = new Font(d, fontData);
+						gc.setFont = font;
+						scope p = gc.stringExtent(text);
+						gc.drawString(text, (size.width - p.x) / 2, y, true);
+						font.dispose;
+					}
+					int alpha;
+					scope c = new Color(d, dwtData(_prop.looks.summaryLevelColor, alpha));
+					gc.setForeground = c;
+					gc.setAlpha = alpha;
+					drawCenterText(dwtData(_prop.looks.summaryLevelFont(skin.legacy)),
+						_prop.msgs.targetLevel(_levMin.getSelection, _levMax.getSelection),
+						_prop.looks.summaryLevelY);
+					c.dispose;
+					gc.setAlpha = 255;
+					gc.setForeground = d.getSystemColor(SWT.COLOR_BLACK);
+					drawCenterText(dwtData(_prop.looks.summaryTitleFont(skin.legacy)),
+						_sname.getText, _prop.looks.summaryTitleY);
 					scope font = new Font(d, dwtData(_prop.looks.summaryDescFont(skin.legacy)));
 					gc.setFont = font;
 					int hig = gc.getFontMetrics.getHeight;
 					int x = _prop.looks.summaryDescXY.x;
 					int y = _prop.looks.summaryDescXY.y;
-					gc.drawText(_desc.getRRText, x, y, SWT.DRAW_DELIMITER | SWT.DRAW_TRANSPARENT);
+					if (_comm.skin.legacy) {
+						foreach (line; splitlines(_desc.getRRText)) {
+							gc.drawText(line, x, y, SWT.DRAW_DELIMITER | SWT.DRAW_TRANSPARENT);
+							y += _prop.looks.summaryDescLineHeightClassic;
+						}
+					} else {
+						gc.drawText(_desc.getRRText, x, y, SWT.DRAW_DELIMITER | SWT.DRAW_TRANSPARENT);
+					}
 					gc.setFont = null;
 					font.dispose;
+					drawCenterText(dwtData(_prop.looks.summaryPageFont(skin.legacy)),
+						_prop.msgs.summaryPageDummy, _prop.looks.summaryPageY);
 				}
-				drawCenterText(dwtData(_prop.looks.summaryPageFont(skin.legacy)),
-					_prop.msgs.summaryPageDummy, _prop.looks.summaryPageY);
+				if (rect.width < size.width || rect.height < size.height) {
+					real wp = cast(real) rect.width / size.width;
+					real hp = cast(real) rect.height / size.height;
+					ImageData data;
+					if (wp < hp) {
+						size.width = rect.width;
+						size.height = cast(int) (size.height * wp);
+					} else {
+						size.width = cast(int) (size.width * hp);
+						size.height = rect.height;
+					}
+					data = _summImageBuf.getImageData.scaledTo(size.width, size.height);
+					_summImageBuf.dispose;
+					_summImageBuf = null;
+					if (size.width > 0 && size.height > 0) {
+						_summImageBuf = new Image(d, data);
+					}
+				}
 			}
-			auto rect = _summImage.getClientArea;
-			if (rect.width < size.width || rect.height < size.height) {
-				real wp = cast(real) rect.width / size.width;
-				real hp = cast(real) rect.height / size.height;
-				ImageData data;
-				if (wp < hp) {
-					size.width = rect.width;
-					size.height = cast(int) (size.height * wp);
-				} else {
-					size.width = cast(int) (size.width * hp);
-					size.height = rect.height;
-				}
-				data = buf.getImageData.scaledTo(size.width, size.height);
-				buf.dispose;
-				buf = null;
-				if (size.width > 0 && size.height > 0) {
-					buf = new Image(d, data);
-				}
-			}
-			if (buf) {
+			if (_summImageBuf) {
 				auto bx = (rect.width - size.width) / 2;
 				auto by = (rect.height - size.height) / 2;
-				e.gc.drawImage(buf, bx, by);
+				e.gc.drawImage(_summImageBuf, bx, by);
 			}
 		}
 	}
@@ -210,7 +231,7 @@ private:
 				bool including = isBinImg(_summ.imagePath);
 				string saveName = including ? _summ.scenarioName : "";
 				_imgPath = new ImageSelect!(MtType.CARD)(_tab2Sash, SWT.NONE, _comm, _prop, _summ,
-					_prop.looks.cardSize.width, _prop.looks.cardSize.height, including, saveName);
+					_prop.looks.cardSize.width, _prop.looks.cardSize.height, including, saveName, &clearBuf);
 				_imgPath.image = _summ.imagePath;
 			}
 			{
@@ -372,6 +393,14 @@ private:
 		tab.setText = _prop.msgs.etcData;
 		tab.setControl = comp;
 	}
+	class Dispose : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			_comm.refSkin.remove(&clearBuf);
+			if (_summImageBuf) {
+				_summImageBuf.dispose();
+			}
+		}
+	}
 public:
 	this(Commons comm, Props prop, Shell shell, Summary summ) {
 		assert (summ !is null);
@@ -390,6 +419,8 @@ protected:
 		constructTab1(tabf);
 		constructTab2(tabf);
 		constructTab3(tabf);
+		_comm.refSkin.add(&clearBuf);
+		area.addDisposeListener(new Dispose);
 	}
 
 	private void setNamesOne(C : EffectCard)(ref C card) {

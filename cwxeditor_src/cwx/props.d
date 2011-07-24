@@ -2363,6 +2363,9 @@ public:
 		}
 		return CFont(gothic(legacy), 10, true, false);
 	}
+	const uint summaryDescLineHeightClassic() {
+		return 15;
+	}
 	const CFont summaryPageFont(bool legacy) {return CFont(gothic(legacy), 9, true, false);}
 	const CFont cardDescFont(bool legacy) {return CFont(gothic(legacy), 10, false, false);}
 	const CFont messageFont(bool legacy) {

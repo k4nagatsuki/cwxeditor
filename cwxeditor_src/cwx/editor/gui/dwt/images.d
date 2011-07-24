@@ -1132,9 +1132,9 @@ private:
 	}
 	void redrawProc(void delegate(FlexImage) proc) {
 		foreach (img; dragImgs.keys) {
-			auto newArea = img.drawNewArea;
-			auto oldArea = img.drawArea;
+			auto oldArea = img.drawNewArea;
 			proc(img);
+			auto newArea = img.drawNewArea;
 			redraw(oldArea.x, oldArea.y, oldArea.width, oldArea.height, false);
 			redraw(newArea.x, newArea.y, newArea.width, newArea.height, false);
 		}
