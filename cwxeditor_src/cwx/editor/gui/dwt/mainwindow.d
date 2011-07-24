@@ -370,6 +370,7 @@ private:
 						fname, tempPath, expandXMLs, defSkin, (string msg) {
 							MessageBox.showWarning(msg, _prop.msgs.dlgTitWarning, shell);
 						});
+					_comm.skin = findSkin(_prop, summary);
 					_comm.saved.call;
 					_comm.refScenarioPath.call;
 					_comm.refSkin.call;
