@@ -1844,7 +1844,9 @@ public:
 			} else {
 				closeToolWindow;
 			}
-			_tree.setSelection = [_tree.getItem(0)];
+			if (0 < _tree.getItemCount) {
+				_tree.setSelection = [_tree.getItem(0)];
+			}
 			_tree.setRedraw = true;
 			refreshStatusLine;
 		}
