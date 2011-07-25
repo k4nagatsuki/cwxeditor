@@ -945,7 +945,7 @@ private:
 			int point = (ke.stateMask & SWT.CTRL) ? 10 : 1;
 			switch (ke.keyCode) {
 			case SWT.ARROW_UP: {
-				redrawProc((FlexImage img) {
+				redrawProcMove((FlexImage img) {
 					if (ke.stateMask & SWT.SHIFT) {
 						img.newHeight = img.newHeight - point;
 					} else {
@@ -954,7 +954,7 @@ private:
 				});
 			} break;
 			case SWT.ARROW_RIGHT: {
-				redrawProc((FlexImage img) {
+				redrawProcMove((FlexImage img) {
 					if (ke.stateMask & SWT.SHIFT) {
 						img.newWidth = img.newWidth + point;
 					} else {
@@ -963,7 +963,7 @@ private:
 				});
 			} break;
 			case SWT.ARROW_DOWN: {
-				redrawProc((FlexImage img) {
+				redrawProcMove((FlexImage img) {
 					if (ke.stateMask & SWT.SHIFT) {
 						img.newHeight = img.newHeight + point;
 					} else {
@@ -972,7 +972,7 @@ private:
 				});
 			} break;
 			case SWT.ARROW_LEFT: {
-				redrawProc((FlexImage img) {
+				redrawProcMove((FlexImage img) {
 					if (ke.stateMask & SWT.SHIFT) {
 						img.newWidth = img.newWidth - point;
 					} else {
@@ -981,7 +981,7 @@ private:
 				});
 			} break;
 			case SWT.ESC: {
-				redrawProc((FlexImage img) {img.reset;});
+				redrawProcMove((FlexImage img) {img.reset;});
 			} break;
 			case SWT.CR: {
 				redrawProc((FlexImage img) {img.resize;});
@@ -1130,9 +1130,18 @@ private:
 			}
 		}
 	}
-	void redrawProc(void delegate(FlexImage) proc) {
+	void redrawProcMove(void delegate(FlexImage) proc) {
 		foreach (img; dragImgs.keys) {
 			auto oldArea = img.drawNewArea;
+			proc(img);
+			auto newArea = img.drawNewArea;
+			redraw(oldArea.x, oldArea.y, oldArea.width, oldArea.height, false);
+			redraw(newArea.x, newArea.y, newArea.width, newArea.height, false);
+		}
+	}
+	void redrawProc(void delegate(FlexImage) proc) {
+		foreach (img; dragImgs.keys) {
+			auto oldArea = img.drawArea;
 			proc(img);
 			auto newArea = img.drawNewArea;
 			redraw(oldArea.x, oldArea.y, oldArea.width, oldArea.height, false);

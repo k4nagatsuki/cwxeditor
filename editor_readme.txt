@@ -8,20 +8,30 @@
 おまけなので新規作成はできません。
 
 
-[ インストール/アンインストール ]
+[ インストール ]
 
-　以前のバージョンだとCWPyに寄生していましたが、今は別の場所に置けます。
-初回起動時にCWPyエンジンの場所を指定してあげれば大丈夫。
-　CWPyが無くても一応動きますが、XML形式のシナリオを編集する際にカードの
-背景が出なかったりします。
-　アンインストールの時はcwxeditorのフォルダを丸ごと消してください。
-　まったく　かんたん　だ！
+　アーカイブを展開した場所でそのまま使用できますが、最初に [ツール] >
+[エディタ設定] で CardWirthPy.exeの場所 を指定しておく事をお勧めします。
+ここを設定しないとCardWirthPy付属のスキンが使用できず、カードの背景が
+真っ白になったりします。
+
+
+[ アンインストール ]
+
+　CWXEditorのフォルダを丸ごと消してください。
+
+　通常、CWXEditorは、設定ファイルをユーザ固有のアプリケーションデータ
+フォルダに生成します。Windows Vista以降であれば、普通は以下の場所です。
+　 C:\Users\<ユーザ名>\AppData\Roaming\cwxeditor
+　Windows XPの場合、一般的に以下の場所になります。
+　 C:\Documents and Settings\<ユーザ名>\Application Data\cwxeditor
+　ゴミが残るようで気になる方は、このフォルダも削除してください。
 
 
 [ 使い方 ]
 
 　詳細な使い方はまだ書かれていません。
-　大枠では従来のCardWirthEditorと大体同じです。
+　大枠では従来のCardWirthEditorと同じです。
 
 
 [ 制限事項 ]
@@ -73,19 +83,37 @@
 　クリックだの何だので普通に起動しますが、何気なくコマンドラインオプションを
 付けられるようになってます。
 
-使い方: cwxeditor [-help | -ini <PATH> | <OpenID ...>] <SCENARIO> [<CWXPath ...>]
+使い方: cwxeditor [-help | -conf <PATH> | <OpenID ...>] <SCENARIO> [<CWXPath ...>]
 オプション:
-  -help        起動オプションの説明を表示して終了します。
-  -ini <PATH>  指定されたパスの初期化ファイルを使用します。
-  <SCENARIO>   起動と同時に指定されたシナリオを開きます。
-               (*.wsn/Summary.xml/Summary.wsm/[フォルダ])
+  -help         起動オプションの説明を表示して終了します。
+  -conf <PATH>  指定されたパスの基本設定ファイルを使用します。
+  <SCENARIO>    起動と同時に指定されたシナリオを開きます。
+                (*.wsn/Summary.xml/Summary.wsm/[フォルダ])
 OpenID:
-  -a <ID>      シナリオを開いた後、<ID>で指定したIDのエリアを開きます。
-  -b <ID>      シナリオを開いた後、<ID>で指定したIDのバトルを開きます。
-  -p <ID>      シナリオを開いた後、<ID>で指定したIDのパッケージを開きます。
+  -a <ID>       シナリオを開いた後、<ID>で指定したIDのエリアを開きます。
+  -b <ID>       シナリオを開いた後、<ID>で指定したIDのバトルを開きます。
+  -p <ID>       シナリオを開いた後、<ID>で指定したIDのパッケージを開きます。
 CWXPath:
-  <CWXPath>    シナリオを開いた後、<CWXPath>で指定したリソースを開きます。
-               詳しくは後述。
+  <CWXPath>     シナリオを開いた後、<CWXPath>で指定したリソースを開きます。
+                詳しくは後述。
+
+
+[ 基本設定ファイル "cwxeditor.config" ]
+
+　以下のようなテキストを"cwxeditor.config"という名前でCWXEditorのフォルダに
+保存する事により、設定ファイルをどこから読み込むか指定できます。
+---
+<?xml version="1.0"?>
+<initialize>
+    <location>standard</location>
+    <file>cwxeditor.xml</file>
+</initialize>
+---
+　"<location>standard</location>"となっている部分を"<location>local</location>"
+に書き換える事によって、ver.1.0と同じように、CWXEditor本体と同じフォルダに
+設定ファイルを置く事ができるようになります。
+　なお、ver.1.0との互換性を保つため、CWXEditor本体のフォルダにcwxeditor.xml
+が見つかった場合、デフォルトでlocalを指定したのと同じように動作します。
 
 
 [ CardWirth本体の探し方のルール ]
@@ -184,4 +212,3 @@ area:3/event:0/:5/:1
 仕方ない所。努力はします。
 　三番目はDWTがWindows 2000を切ってるらしくてお手上げになってしまいました。
 Win98系列は試してないけどどう考えても無理だと思った。
-

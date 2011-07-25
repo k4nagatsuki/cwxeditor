@@ -741,81 +741,85 @@ private:
 		}
 	}
 	void pipeThr() {
-		if (!_pipeName.length) return;
-		version (Windows) {
-			auto pipe = CreateNamedPipeW(toUTF16z(_pipeName), PIPE_ACCESS_DUPLEX,
-				PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT,
-				1, MAX_PATH, MAX_PATH, 1000, null);
-			if (pipe == INVALID_HANDLE_VALUE) return;
-			scope (exit) CloseHandle(pipe);
-			char[MAX_PATH] buf;
-			DWORD len;
-			auto openPath = new OpenCWXPath;
-			while (ConnectNamedPipe(pipe, null)) {
-				scope (exit) DisconnectNamedPipe(pipe);
-				if (!ReadFile(pipe, buf.ptr, buf.length, &len, null)) continue;
-				char[] rstr = buf[0 .. len];
-				if (rstr == "quit") break;
-				auto summ = summary;
-				if (rstr == "get opened scenario" && summ) {
-					string send;
-					if (summ.useTemp) {
-						send = summ.zipName;
-					} else {
-						send = summ.scenarioPath;
-					}
-					if (!WriteFile(pipe, send.ptr, send.length, &len, null)) continue;
+		try {
+			if (!_pipeName.length) return;
+			version (Windows) {
+				auto pipe = CreateNamedPipeW(toUTF16z(_pipeName), PIPE_ACCESS_DUPLEX,
+					PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT,
+					1, MAX_PATH, MAX_PATH, 1000, null);
+				if (pipe == INVALID_HANDLE_VALUE) return;
+				scope (exit) CloseHandle(pipe);
+				char[MAX_PATH] buf;
+				DWORD len;
+				auto openPath = new OpenCWXPath;
+				while (ConnectNamedPipe(pipe, null)) {
+					scope (exit) DisconnectNamedPipe(pipe);
 					if (!ReadFile(pipe, buf.ptr, buf.length, &len, null)) continue;
-					rstr = buf[0 .. len];
-				}
-				if (std.string.startsWith(rstr, "open cwxpath ")) {
-					openPath.path = rstr["open cwxpath ".length .. $].idup;
-					_display.asyncExec(openPath);
-				}
-			}
-		} else {
-			auto pipe = socket(PF_UNIX, SOCK_STREAM, 0);
-			if (pipe == -1) return -1;
-			scope (exit) close(pipe);
-			sockaddr_un laddr;
-			laddr.sun_family = AF_UNIX;
-			strcpy(&(laddr.sun_path[1]), _pipeName.ptr);
-			if (0 != cbind(pipe, cast(sockaddr*) &laddr, laddr.sizeof)) return;
-			if (0 != listen(pipe, 1)) return -1;
-			char[4096] buf;
-			int len;
-			auto openPath = new OpenCWXPath;
-			typeof(pipe) rsock;
-			sockaddr_un raddr;
-			socklen_t rsocklen;
-			while (-1 != (rsock = accept(pipe, cast(sockaddr*) &raddr, &rsocklen))) {
-				scope (exit) close(rsock);
-				if (-1 == (len = cread(pipe, buf.ptr, buf.length))) continue;
-				string rstr = buf[0 .. len];
-				if (rstr == "quit") break;
-				auto summ = summary;
-				if (rstr == "get opened scenario" && summ) {
-					string send;
-					if (summ.useTemp) {
-						send = summ.zipName;
-					} else {
-						send = summ.scenarioPath;
+					char[] rstr = buf[0 .. len];
+					if (rstr == "quit") break;
+					auto summ = summary;
+					if (rstr == "get opened scenario" && summ) {
+						string send;
+						if (summ.useTemp) {
+							send = summ.zipName;
+						} else {
+							send = summ.scenarioPath;
+						}
+						if (!WriteFile(pipe, send.ptr, send.length, &len, null)) continue;
+						if (!ReadFile(pipe, buf.ptr, buf.length, &len, null)) continue;
+						rstr = buf[0 .. len];
 					}
-					if (-1 == cwrite(pipe, send.ptr, send.length)) continue;
+					if (std.string.startsWith(rstr, "open cwxpath ")) {
+						openPath.path = rstr["open cwxpath ".length .. $].idup;
+						_display.asyncExec(openPath);
+					}
+				}
+			} else {
+				auto pipe = socket(PF_UNIX, SOCK_STREAM, 0);
+				if (pipe == -1) return -1;
+				scope (exit) close(pipe);
+				sockaddr_un laddr;
+				laddr.sun_family = AF_UNIX;
+				strcpy(&(laddr.sun_path[1]), _pipeName.ptr);
+				if (0 != cbind(pipe, cast(sockaddr*) &laddr, laddr.sizeof)) return;
+				if (0 != listen(pipe, 1)) return -1;
+				char[4096] buf;
+				int len;
+				auto openPath = new OpenCWXPath;
+				typeof(pipe) rsock;
+				sockaddr_un raddr;
+				socklen_t rsocklen;
+				while (-1 != (rsock = accept(pipe, cast(sockaddr*) &raddr, &rsocklen))) {
+					scope (exit) close(rsock);
 					if (-1 == (len = cread(pipe, buf.ptr, buf.length))) continue;
-					rstr = buf[0 .. len];
+					string rstr = buf[0 .. len];
+					if (rstr == "quit") break;
+					auto summ = summary;
+					if (rstr == "get opened scenario" && summ) {
+						string send;
+						if (summ.useTemp) {
+							send = summ.zipName;
+						} else {
+							send = summ.scenarioPath;
+						}
+						if (-1 == cwrite(pipe, send.ptr, send.length)) continue;
+						if (-1 == (len = cread(pipe, buf.ptr, buf.length))) continue;
+						rstr = buf[0 .. len];
+					}
+					if (std.string.startsWith(rstr, "open cwxpath ")) {
+						openPath.path = rstr["open cwxpath ".length .. $];
+						_display.asyncExec(openPath);
+					}
 				}
-				if (std.string.startsWith(rstr, "open cwxpath ")) {
-					openPath.path = rstr["open cwxpath ".length .. $];
-					_display.asyncExec(openPath);
-				}
+				close(pipe);
 			}
-			close(pipe);
+			debug writefln("Exit Pipe Thread");
+		} catch (Throwable e) {
+			debugln(e);
 		}
-		debug writefln("Exit Pipe Thread");
 	}
 public:
-	this (string appPath, string propFilePath, cwx.system.System sys,
+	this (string appPath, string confFilePath, cwx.system.System sys,
 			string firstScenarioPath = null, string[] openPaths = []) {
 		decScenarioPath(firstScenarioPath, openPaths);
 		/// すでにfirstScenarioPathを開いている
@@ -891,7 +895,7 @@ public:
 		_firstScenarioPath = firstScenarioPath;
 		_openPaths = openPaths;
 		_saveSync = new Object;
-		_prop = new Props(propFilePath, new CProps(appPath, sys));
+		_prop = new Props(confFilePath, new CProps(appPath, sys));
 		if (exists(_prop.tempPath)) {
 			foreach (temp; clistdir(_prop.tempPath)) {
 				temp = std.path.join(_prop.tempPath, temp);
@@ -917,13 +921,9 @@ public:
 		auto d = new Display;
 		_display = d;
 		d.setAppName = _prop.msgs.application;
-		if (_prop.var.etc.enginePath.length && !.exists(_prop.var.etc.enginePath)) {
-			auto dlg = new SettingsDialog(_comm, _prop, null, null);
-			if (!dlg.open) return;
-		}
 
 		string engineDir = "";
-		if (_prop.var.etc.enginePath.length) {
+		if (.exists(_prop.var.etc.enginePath)) {
 			engineDir = getDirName(nabs(_prop.var.etc.enginePath));
 			auto skinTable = .skinTable(_prop);
 			if (!(_prop.var.etc.defaultSkin in skinTable)) {
@@ -1737,11 +1737,11 @@ public:
 				}
 			}
 		}
-		_quit = true;
 		_dirWin.quitTrace;
+		_quit = true;
 		backup.join();
-		_prop.images.disposeImages;
 		_comm.dispose;
+		_prop.images.disposeImages;
 		d.dispose;
 		_prop.var.save(dock);
 		debug writefln("Exit Main Thread");

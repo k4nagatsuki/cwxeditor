@@ -463,31 +463,35 @@ version (Windows) {
 	private FDI_O FDICopy = null;
 	private FDI_D FDIDestroy = null;
 
+	private HXModule _cabinet = null;
 	static this () {
-		auto cabinet = ExeModule_Load("cabinet.dll");
-		if (cabinet) {
-			FCICreate = cast(FCI_C) ExeModule_GetSymbol(cabinet, "FCICreate");
+		_cabinet = ExeModule_Load("cabinet.dll");
+		if (_cabinet) {
+			FCICreate = cast(FCI_C) ExeModule_GetSymbol(_cabinet, "FCICreate");
 			if (!FCICreate) debugln("Not found: FCICreate");
-			FCIAddFile = cast(FCI_A) ExeModule_GetSymbol(cabinet, "FCIAddFile");
+			FCIAddFile = cast(FCI_A) ExeModule_GetSymbol(_cabinet, "FCIAddFile");
 			if (!FCIAddFile) debugln("Not found: FCIAddFile");
-			FCIFlushCabinet = cast(FCI_F) ExeModule_GetSymbol(cabinet, "FCIFlushCabinet");
+			FCIFlushCabinet = cast(FCI_F) ExeModule_GetSymbol(_cabinet, "FCIFlushCabinet");
 			if (!FCIFlushCabinet) debugln("Not found: FCIFlushCabinet");
-			FCIDestroy = cast(FCI_D) ExeModule_GetSymbol(cabinet, "FCIDestroy");
+			FCIDestroy = cast(FCI_D) ExeModule_GetSymbol(_cabinet, "FCIDestroy");
 			if (!FCIDestroy) debugln("Not found: FCIDestroy");
 
-			FDICreate = cast(FDI_C) ExeModule_GetSymbol(cabinet, "FDICreate");
+			FDICreate = cast(FDI_C) ExeModule_GetSymbol(_cabinet, "FDICreate");
 			if (!FDICreate) debugln("Not found: FDICreate");
-			FDIIsCabinet = cast(FDI_I) ExeModule_GetSymbol(cabinet, "FDIIsCabinet");
+			FDIIsCabinet = cast(FDI_I) ExeModule_GetSymbol(_cabinet, "FDIIsCabinet");
 			if (!FDIIsCabinet) debugln("Not found: FDIIsCabinet");
-			FDICopy = cast(FDI_O) ExeModule_GetSymbol(cabinet, "FDICopy");
+			FDICopy = cast(FDI_O) ExeModule_GetSymbol(_cabinet, "FDICopy");
 			if (!FDICopy) debugln("Not found: FDICopy");
-			FDIDestroy = cast(FDI_D) ExeModule_GetSymbol(cabinet, "FDIDestroy");
+			FDIDestroy = cast(FDI_D) ExeModule_GetSymbol(_cabinet, "FDIDestroy");
 			if (!FDIDestroy) debugln("Not found: FDIDestroy");
 
 			usable = true;
 		} else {
 			debugln("Not found: cabinet.dll");
 		}
+	}
+	static ~this () {
+		if (_cabinet) ExeModule_Release(_cabinet);
 	}
 } else {
 	/// uncab()が行える状態であればtrueを返す。

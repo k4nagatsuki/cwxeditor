@@ -45,19 +45,18 @@ public:
 	}
 	const string dlgTitUsage() {return "使い方 - CWXEditor";}
 	const string usage() {
-		return "使い方: cwxeditor [-help | -ini <PATH> | <OpenID ...>] <SCENARIO> [<CWXPath ...>]\n"
+		return "使い方: cwxeditor [-help | -conf <PATH> | <OpenID ...>] <SCENARIO> [<CWXPath ...>]\n"
 			~ "オプション:\n"
-			~ "  -help        起動オプションの説明を表示して終了します。\n"
-			~ "  -ini <PATH>  指定されたパスの初期化ファイルを使用します。\n"
-			~ "  <SCENARIO>   起動と同時に指定されたシナリオを開きます。\n"
-			~ "               (*.wsn/Summary.xml/Summary.wsm/[フォルダ])\n"
+			~ "  -help         起動オプションの説明を表示して終了します。\n"
+			~ "  -conf <PATH>  指定されたパスの基本設定ファイルを使用します。\n"
+			~ "  <SCENARIO>    起動と同時に指定されたシナリオを開きます。\n"
+			~ "                (*.wsn/Summary.xml/Summary.wsm/[フォルダ])\n"
 			~ "OpenID:\n"
-			~ "  -a <ID>      シナリオを開いた後、<ID>で指定したIDのエリアを開きます。\n"
-			~ "  -b <ID>      シナリオを開いた後、<ID>で指定したIDのバトルを開きます。\n"
-			~ "  -p <ID>      シナリオを開いた後、<ID>で指定したIDのパッケージを開きます。\n"
+			~ "  -a <ID>       シナリオを開いた後、<ID>で指定したIDのエリアを開きます。\n"
+			~ "  -b <ID>       シナリオを開いた後、<ID>で指定したIDのバトルを開きます。\n"
+			~ "  -p <ID>       シナリオを開いた後、<ID>で指定したIDのパッケージを開きます。\n"
 			~ "CWXPath:\n"
-			~ "  <CWXPath>    シナリオを開いた後、<CWXPath>で指定したリソースを開きます。\n"
-			~ "               詳しくは後述。";
+			~ "  <CWXPath>     シナリオを開いた後、<CWXPath>で指定したリソースを開きます。";
 	}
 
 	const string dlgTitError() {return "エラー - CWXEditor";}
@@ -2044,7 +2043,7 @@ public:
 	/// エディタ設定ダイアログ。
 	const string baseSettings() {return "基本設定";}
 	const string reference() {return "参照...";}
-	const string enginePath(string appName) {return appName ~ "の場所(原則必須)";}
+	const string enginePath(string appName) {return appName ~ "の場所";}
 	const string enginePathAtten() {return "※ クラシックなシナリオのみに使用する場合は空欄にしてください";}
 	const string dlgTitEnginePath(string appName) {return appName ~ "の場所";}
 	const string tempDir() {return "シナリオの一時展開先";}

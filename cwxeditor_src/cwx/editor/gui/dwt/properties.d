@@ -746,9 +746,50 @@ public class FlexProps {
 	DialogParam!("scriptDialog", 400, 300) scriptDlg;
 	FlexEtcProps etc;
 
+	private enum IniLocation {
+		STANDARD, LOCAL
+	}
+
 	private string _path;
-	this(string xmlFileName) {
-		_path = xmlFileName;
+	this(string appPath, string confFileName) {
+		IniLocation loc = IniLocation.STANDARD;
+		string iniFileName = "cwxeditor.xml";
+		if (.exists(std.path.join(appPath.getDirName, iniFileName))) {
+			// 1.0との互換性を維持するため、アプリケーションのディレクトリに
+			// cwxeditor.xmlがあった場合、LOCALをデフォルトにする。
+			loc = IniLocation.LOCAL;
+		}
+		try {
+			if (.exists(confFileName)) {
+				auto node = XNode.parse(cast(string) std.file.read(confFileName));
+				node.onTag["location"] = (ref XNode node) {
+					if (0 == icmp(node.value, "standard")) {
+						loc = IniLocation.STANDARD;
+					} else if (0 == icmp(node.value, "local")) {
+						loc = IniLocation.LOCAL;
+					}
+				};
+				node.onTag["file"] = (ref XNode node) {
+					iniFileName = node.value;
+				};
+				node.parse;
+			}
+		} catch (Exception e) {
+			debugln(e);
+		}
+
+		string dir;
+		final switch (loc) {
+		case IniLocation.STANDARD:
+			dir = appDataDir(appPath);
+			dir = std.path.join(dir, "cwxeditor");
+			break;
+		case IniLocation.LOCAL:
+			dir = appPath.getDirName;
+			break;
+		}
+
+		_path = std.path.join(dir, iniFileName);
 		if (exists(_path)) {
 			try {
 				auto node = XNode.parse(cast(string) read(_path));
@@ -843,6 +884,8 @@ public class FlexProps {
 		if (dock) {
 			dock.toNode(node, ["work"]);
 		}
+		auto dir = xmlFileName.getDirName;
+		if (!.exists(dir)) mkdirRecurse(dir);
 		write(xmlFileName, node.text);
 	}
 	void toNode(T)(ref XNode node, T t) {

@@ -516,10 +516,10 @@ private:
 	Images _images;
 	FlexProps _var;
 public:
-	this(string propFilePath, CProps parent) {
+	this(string confFilePath, CProps parent) {
 		_parent = parent;
 		_images = new Images;
-		_var = new FlexProps(propFilePath);
+		_var = new FlexProps(parent.appPath, confFilePath);
 	}
 	const
 	string tempPath() {

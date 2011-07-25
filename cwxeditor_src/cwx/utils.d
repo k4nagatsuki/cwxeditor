@@ -22,6 +22,7 @@ import std.regex;
 import std.array;
 import std.exception;
 import std.traits;
+import std.stdint;
 
 private version (Windows) {
 	import std.c.stdio;
@@ -56,7 +57,11 @@ private version (Windows) {
 		BOOL SetFileAttributesW(LPCWSTR, DWORD);
 		BOOL CreateProcessW(LPCWSTR, LPWSTR, SECURITY_ATTRIBUTES*, SECURITY_ATTRIBUTES*,
 			BOOL, DWORD, LPVOID, LPCWSTR, STARTUPINFO*, PROCESS_INFORMATION*);
+		alias HRESULT function(HWND, INT, HANDLE, DWORD, LPWSTR) SHGetFolderPathW;
+		const CSIDL_APPDATA = 0x1A;
+		const SHGFP_TYPE_CURRENT = 0;
 	}
+	import std.loader;
 }
 
 string LATEST_VERSION = "";
@@ -101,6 +106,30 @@ void fdebugln(T ...)(T vals) {
 void debugln(T ...)(T vals) {
 	debug {
 		fdebugln!(T)(vals);
+	}
+}
+
+/// アプリケーションデータを格納する環境標準のディレクトリを返す。
+string appDataDir(string appPath) {
+	version (Windows) {
+		auto shl = ExeModule_Load("shell32.dll");
+		if (!shl) {
+			return appPath.getDirName;
+		}
+		scope (exit) ExeModule_Release(shl);
+		auto getFolderPath = cast(SHGetFolderPathW) ExeModule_GetSymbol(shl, "SHGetFolderPathW");
+		if (!getFolderPath) {
+			return appPath.getDirName;
+		}
+		wchar[MAX_PATH] appDataBuf;
+		auto gfr = getFolderPath(null, CSIDL_APPDATA, null, SHGFP_TYPE_CURRENT, appDataBuf.ptr);
+		if (0 != gfr) {
+			return appPath.getDirName;
+		}
+		auto p = to!string(appDataBuf[0 .. appDataBuf.indexOf('\0')]);
+		return assumeUnique(p);
+	} else {
+		return "~";
 	}
 }
 

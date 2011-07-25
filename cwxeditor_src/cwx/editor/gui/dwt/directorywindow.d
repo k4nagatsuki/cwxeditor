@@ -1150,197 +1150,201 @@ private:
 		private void closeTraceHandle() {}
 	}
 	private void trace() {
-		Summary summ = null;
-		void sleep() {
+		try {
+			Summary summ = null;
+			void sleep() {
+				version (Windows) {
+					Sleep(1000); // 1sec
+				} else {
+					.sleep(1); // 1sec
+				}
+			}
+			bool canDoChk() {
+				return summ && !_display.isDisposed && _prop.var.etc.traceDirectories && _win;
+			}
 			version (Windows) {
-				Sleep(1000); // 1sec
-			} else {
-				.sleep(1); // 1sec
-			}
-		}
-		bool canDoChk() {
-			return summ && !_display.isDisposed && _prop.var.etc.traceDirectories && _win;
-		}
-		version (Windows) {
-			bool setup() {
-				synchronized (_refreshThr) {
-					closeTraceHandleImpl;
-					if (summ) {
-						DWORD fs = FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME;
-						_traceHandle = FindFirstChangeNotificationW(toUTF16z(summ.scenarioPath), TRUE, fs);
-						return _traceHandle !is INVALID_HANDLE_VALUE;
-					}
-					return true;
-				}
-			}
-			scope (exit) {
-				synchronized (_refreshThr) {
-					if (_traceHandle !is INVALID_HANDLE_VALUE) FindCloseChangeNotification(_traceHandle);
-				}
-			}
-			void next() {
-				synchronized (_refreshThr) {
-					if (_traceHandle !is INVALID_HANDLE_VALUE) {
-						if (!FindNextChangeNotification(_traceHandle)) {
-							debugln("FindNextChangeNotification failed: ", GetLastError);
+				bool setup() {
+					synchronized (_refreshThr) {
+						closeTraceHandleImpl;
+						if (summ) {
+							DWORD fs = FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME;
+							_traceHandle = FindFirstChangeNotificationW(toUTF16z(summ.scenarioPath), TRUE, fs);
+							return _traceHandle !is INVALID_HANDLE_VALUE;
 						}
+						return true;
 					}
 				}
-			}
-			while (_onTrace && _display && !_display.isDisposed) {
-				try {
-					if (_stopTrace) {
-						sleep;
-						continue;
+				scope (exit) {
+					synchronized (_refreshThr) {
+						if (_traceHandle !is INVALID_HANDLE_VALUE) FindCloseChangeNotification(_traceHandle);
 					}
-					if (summ !is _summ) {
-						summ = _summ;
-						if (!setup) {
-							debugln("FindFirstChangeNotification failed: ", GetLastError);
-							continue;
-						}
-					}
-					if (!canDoChk) {
-						sleep;
-						continue;
-					}
-					switch (WaitForSingleObject(_traceHandle, 1000)) {
-					case WAIT_TIMEOUT: {
-						next;
-					} break;
-					case WAIT_ABANDONED: {
-						break;
-					}
-					case WAIT_OBJECT_0: {
-						if (!canDoChk) continue;
-						_display.asyncExec(_refreshThr);
-						next;
-					} break;
-					case WAIT_FAILED: {
-						debugln("WaitForSingleObject failed: ", GetLastError);
-					} break;
-					default: break;
-					}
-				} catch (Exception e) {
-					debugln("Trace thread: " ~ e.msg);
-					break;
 				}
-			}
-		} else version (linux) {
-			bool setup() {
-				synchronized (_refreshThr) {
-					closeTraceHandleImpl;
-					_traceHandle = inotify_init();
-					if (_traceHandle is -1) return false;
-					void put(string path) {
-						foreach (file; clistdir(path)) {
-							file = std.path.join(path, file);
-							if (isdir(file)) {
-								inotify_add_watch(_traceHandle, std.string.toStringz(file),
-									IN_MODIFY | IN_ATTRIB | IN_MOVED_FROM | IN_MOVED_TO
-									| IN_CREATE | IN_DELETE | IN_DELETE_SELF);
-								put(file);
+				void next() {
+					synchronized (_refreshThr) {
+						if (_traceHandle !is INVALID_HANDLE_VALUE) {
+							if (!FindNextChangeNotification(_traceHandle)) {
+								debugln("FindNextChangeNotification failed: ", GetLastError);
 							}
 						}
 					}
-					put(summ.scenarioPath);
-					return true;
 				}
-			}
-			scope (exit) {
-				synchronized (_refreshThr) {
-					if (_traceHandle !is -1) close(_traceHandle);
-				}
-			}
-			while (_onTrace && _display && !_display.isDisposed) {
-				try {
-					if (_stopTrace) {
-						sleep;
-						continue;
-					}
-					if (summ !is _summ) {
-						summ = _summ;
-						if (!setup) {
-							debugln("inotify_init() failed");
+				while (_onTrace && _display && !_display.isDisposed) {
+					try {
+						if (_stopTrace) {
+							sleep;
 							continue;
 						}
+						if (summ !is _summ) {
+							summ = _summ;
+							if (!setup) {
+								debugln("FindFirstChangeNotification failed: ", GetLastError);
+								continue;
+							}
+						}
+						if (!canDoChk) {
+							sleep;
+							continue;
+						}
+						switch (WaitForSingleObject(_traceHandle, 1000)) {
+						case WAIT_TIMEOUT: {
+							next;
+						} break;
+						case WAIT_ABANDONED: {
+							break;
+						}
+						case WAIT_OBJECT_0: {
+							if (!canDoChk) continue;
+							_display.asyncExec(_refreshThr);
+							next;
+						} break;
+						case WAIT_FAILED: {
+							debugln("WaitForSingleObject failed: ", GetLastError);
+						} break;
+						default: break;
+						}
+					} catch (Exception e) {
+						debugln("Trace thread: " ~ e.msg);
+						break;
 					}
-					if (!canDoChk) {
-						sleep;
-						continue;
-					}
-					byte[inotify_event.sizeof * 1024] buf;
-					int len;
+				}
+			} else version (linux) {
+				bool setup() {
 					synchronized (_refreshThr) {
-						len = std.c.linux.linux.read(_traceHandle, buf.ptr, buf.sizeof);
-					}
-					if (-1 == len) break;
-					if (0 == len) {
-						sleep;
-						continue;
-					}
-					if (!canDoChk) continue;
-					_display.asyncExec(_refreshThr);
-				} catch (Exception e) {
-					debugln("Trace thread: " ~ e.msg);
-					break;
-				}
-			}
-		} else {
-			d_time[string] dirTimes;
-			void setup() {
-				d_time[string] times;
-				if (summ) {
-					void refr(string path) {
-						if (summ.isSystemFile(path)
-								|| containsPath(_prop.var.etc.ignorePaths, getBaseName(path))) {
-							return;
+						closeTraceHandleImpl;
+						_traceHandle = inotify_init();
+						if (_traceHandle is -1) return false;
+						void put(string path) {
+							foreach (file; clistdir(path)) {
+								file = std.path.join(path, file);
+								if (isdir(file)) {
+									inotify_add_watch(_traceHandle, std.string.toStringz(file),
+										IN_MODIFY | IN_ATTRIB | IN_MOVED_FROM | IN_MOVED_TO
+										| IN_CREATE | IN_DELETE | IN_DELETE_SELF);
+									put(file);
+								}
+							}
 						}
-						times[path] = lastModified(path);
-						foreach (sub; clistdir(path)) {
-							sub = std.path.join(path, sub);
-							if (isdir(sub)) refr(sub);
-						}
+						put(summ.scenarioPath);
+						return true;
 					}
-					refr(nabs(summ.scenarioPath));
 				}
-				dirTimes = times;
-			}
-			while (_onTrace && _display && !_display.isDisposed) {
-				try {
-					if (_stopTrace) {
+				scope (exit) {
+					synchronized (_refreshThr) {
+						if (_traceHandle !is -1) close(_traceHandle);
+					}
+				}
+				while (_onTrace && _display && !_display.isDisposed) {
+					try {
+						if (_stopTrace) {
+							sleep;
+							continue;
+						}
+						if (summ !is _summ) {
+							summ = _summ;
+							if (!setup) {
+								debugln("inotify_init() failed");
+								continue;
+							}
+						}
+						if (!canDoChk) {
+							sleep;
+							continue;
+						}
+						byte[inotify_event.sizeof * 1024] buf;
+						int len;
+						synchronized (_refreshThr) {
+							len = std.c.linux.linux.read(_traceHandle, buf.ptr, buf.sizeof);
+						}
+						if (-1 == len) break;
+						if (0 == len) {
+							sleep;
+							continue;
+						}
+						if (!canDoChk) continue;
+						_display.asyncExec(_refreshThr);
+					} catch (Exception e) {
+						debugln("Trace thread: " ~ e.msg);
+						break;
+					}
+				}
+			} else {
+				d_time[string] dirTimes;
+				void setup() {
+					d_time[string] times;
+					if (summ) {
+						void refr(string path) {
+							if (summ.isSystemFile(path)
+									|| containsPath(_prop.var.etc.ignorePaths, getBaseName(path))) {
+								return;
+							}
+							times[path] = lastModified(path);
+							foreach (sub; clistdir(path)) {
+								sub = std.path.join(path, sub);
+								if (isdir(sub)) refr(sub);
+							}
+						}
+						refr(nabs(summ.scenarioPath));
+					}
+					dirTimes = times;
+				}
+				while (_onTrace && _display && !_display.isDisposed) {
+					try {
+						if (_stopTrace) {
+							sleep;
+							continue;
+						}
+						if (summ !is _summ) {
+							summ = _summ;
+							setup;
+						}
 						sleep;
-						continue;
-					}
-					if (summ !is _summ) {
-						summ = _summ;
-						setup;
-					}
-					sleep;
-					if (!canDoChk) continue;
-					bool chk(string path) {
-						if (summ.isSystemFile(path)
-								|| containsPath(_prop.var.etc.ignorePaths, getBaseName(path))) {
+						if (!canDoChk) continue;
+						bool chk(string path) {
+							if (summ.isSystemFile(path)
+									|| containsPath(_prop.var.etc.ignorePaths, getBaseName(path))) {
+								return false;
+							}
+							if (dirTimes[path] != lastModified(path)) return true;
+							foreach (sub; clistdir(path)) {
+								sub = std.path.join(path, sub);
+								if (isdir(sub) && chk(sub)) return true;
+							}
 							return false;
 						}
-						if (dirTimes[path] != lastModified(path)) return true;
-						foreach (sub; clistdir(path)) {
-							sub = std.path.join(path, sub);
-							if (isdir(sub) && chk(sub)) return true;
+						if (chk(nabs(summ.scenarioPath))) {
+							_display.asyncExec(_refreshThr);
+							setup;
 						}
-						return false;
+					} catch (Exception e) {
+						debugln("Trace thread: " ~ e.msg);
+						break;
 					}
-					if (chk(nabs(summ.scenarioPath))) {
-						_display.asyncExec(_refreshThr);
-						setup;
-					}
-				} catch (Exception e) {
-					debugln("Trace thread: " ~ e.msg);
-					break;
 				}
 			}
+			debug writefln("Exit Trace Thread");
+		} catch (Throwable e) {
+			debugln(e);
 		}
-		debug writefln("Exit Trace Thread");
 	}
 	void refreshStatusLine() {
 		ulong size;
@@ -1696,7 +1700,11 @@ public:
 	void quitTrace() {
 		if (!_traceThr) return;
 		_onTrace = false;
-		_traceThr.join;
+		try {
+			_traceThr.join;
+		} catch (Throwable e) {
+			debugln(e);
+		}
 	}
 
 	override void cut(SelectionEvent se) {

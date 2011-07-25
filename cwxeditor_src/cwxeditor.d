@@ -15,7 +15,7 @@ import std.stdio;
 void main(string[] args) {
 	cwx.utils.debugLog = join(getDirName(args[0u]), cwx.utils.debugLog);
 	auto sys = new System;
-	string ini = join(getDirName(args[0u]), "cwxeditor.xml");
+	string conf = join(getDirName(args[0u]), "cwxeditor.config");
 	if (args.length > 1) {
 		string[] openPaths;
 		size_t sc = 1u;
@@ -35,8 +35,8 @@ void main(string[] args) {
 					if (i + 1 < args.length) openPaths ~= "package:id:" ~ args[i + 1];
 					sc = i + 2u;
 					break;
-				case "-ini": // 設定ファイル指定
-					if (i + 1 < args.length) ini = args[i + 1];
+				case "-conf": // 設定ファイル指定
+					if (i + 1 < args.length) conf = args[i + 1];
 					sc = i + 2u;
 					break;
 				case "-help", "-h", "/?": // usage
@@ -59,23 +59,23 @@ void main(string[] args) {
 					} else {
 						dir = "Directory";
 					}
-					writefln("Usage: cwxeditor [-help | -ini <PATH>] <SCENARIO> [<CWXPath ...>]");
+					writefln("Usage: cwxeditor [-help | -conf <PATH>] <SCENARIO> [<CWXPath ...>]");
 					writefln("");
 					writefln("  Options:");
-					writefln("    -help        print help");
-					writefln("    -ini <PATH>  set initialize file path");
-					writefln("    <SCENARIO>   read scenario (*.wsn/Summary.xml/Summary.wsm/[" ~ dir ~ "])");
+					writefln("    -help         print help");
+					writefln("    -conf <PATH>  set config file path");
+					writefln("    <SCENARIO>    read scenario (*.wsn/Summary.xml/Summary.wsm/[" ~ dir ~ "])");
 					writefln("  OpenID:");
-					writefln("    -a   <ID>    open area from <ID>");
-					writefln("    -b   <ID>    open battle from <ID>");
-					writefln("    -p   <ID>    open package from <ID>");
+					writefln("    -a   <ID>     open area from <ID>");
+					writefln("    -b   <ID>     open battle from <ID>");
+					writefln("    -p   <ID>     open package from <ID>");
 					writefln("  OpenPath:");
-					writefln("    <CWXPath>    open resource from <CWXPath>");
+					writefln("    <CWXPath>     open resource from <CWXPath>");
 				} catch (Exception e) {
 					debugln(e);
 				}
 				try {
-					auto prop = new Props(ini, new CProps(args[0], sys));
+					auto prop = new Props(conf, new CProps(args[0], sys));
 					auto dlg = new TextDialog(prop, null, prop.msgs.dlgTitUsage, prop.images.app, prop.msgs.usage);
 					dlg.open;
 				} catch (Exception e) {
@@ -85,11 +85,11 @@ void main(string[] args) {
 			}
 		}
 		if (sc < args.length) {
-			auto main = new MainWindow(args[0], ini, sys, args[sc], openPaths);
+			auto main = new MainWindow(args[0], conf, sys, args[sc], openPaths);
 			main.doCWX;
 			return;
 		}
 	}
-	auto main = new MainWindow(args[0], ini, sys);
+	auto main = new MainWindow(args[0], conf, sys);
 	main.doCWX;
 }
