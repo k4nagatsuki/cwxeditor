@@ -133,6 +133,15 @@ private:
 		}
 		_comm.statusLine(_tbl, _statusLine);
 	}
+	static if (EditMode) {
+		void nameEditEnd(TableItem itm, int column, string newText) {
+			auto c = cast(C) itm.getData;
+			assert (c);
+			c.name = newText;
+			refresh;
+			refCard(c);
+		}
+	}
 	void __refreshR(string from, string to) {
 		__refresh;
 	}
@@ -727,7 +736,7 @@ private:
 	}
 	class LKey : KeyAdapter {
 		override void keyPressed(KeyEvent e) {
-			if ((e.keyCode == SWT.F2 || e.character == SWT.CR) && _list.selection >= 0) {
+			if (((e.keyCode == SWT.F2 && _viewMode != CViewMode.TABLE) || e.character == SWT.CR) && _list.selection >= 0) {
 				static if (EditMode) {
 					edit(_list.selectionCard);
 				} else {
@@ -738,7 +747,7 @@ private:
 	}
 	class TKey : KeyAdapter {
 		override void keyPressed(KeyEvent e) {
-			if ((e.keyCode == SWT.F2 || e.character == SWT.CR) && _tbl.getSelectionIndex >= 0) {
+			if (((e.keyCode == SWT.F2 && _viewMode != CViewMode.TABLE) || e.character == SWT.CR) && _tbl.getSelectionIndex >= 0) {
 				static if (EditMode) {
 					edit(cast(C) _tbl.getSelection[0].getData);
 				} else {
@@ -773,6 +782,9 @@ private:
 			auto ucCol = new TableColumn(_tbl, SWT.NONE);
 			ucCol.setText = _prop.msgs.cardCount;
 			saveColumnWidth!("prop.var.etc.cardCountColumn")(_prop, ucCol);
+		}
+		static if (EditMode) {
+			new TableTextEdit(_tbl, 1, &nameEditEnd, null);
 		}
 
 		static if (is (C == CastCard)) {

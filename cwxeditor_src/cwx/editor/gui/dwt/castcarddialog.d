@@ -404,7 +404,6 @@ private:
 				_name.widget.setLayoutData = gd;
 				auto l = new Label(grp, SWT.NONE);
 				l.setText = _prop.msgs.nameLimit(_prop.looks.castNameLimit);
-				checker(_name.widget);
 			}
 			{
 				bool including = _card && isBinImg(_card.path);

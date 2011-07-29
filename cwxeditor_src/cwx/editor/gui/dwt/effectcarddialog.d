@@ -146,7 +146,6 @@ private:
 				_name.widget.setLayoutData = gd;
 				auto l = new Label(grp, SWT.NONE);
 				l.setText = _prop.msgs.nameLimit(_prop.looks.nameLimit);
-				checker(_name.widget);
 			}
 			{
 				auto skin = _comm.skin;
