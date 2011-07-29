@@ -736,7 +736,12 @@ private:
 	}
 	class LKey : KeyAdapter {
 		override void keyPressed(KeyEvent e) {
-			if (((e.keyCode == SWT.F2 && _viewMode != CViewMode.TABLE) || e.character == SWT.CR) && _list.selection >= 0) {
+			static if (EditMode) {
+				bool keyMatch = (e.keyCode == SWT.F2 && _viewMode != CViewMode.TABLE) || e.character == SWT.CR;
+			} else {
+				bool keyMatch = e.character == SWT.CR;
+			}
+			if (keyMatch && _list.selection >= 0) {
 				static if (EditMode) {
 					edit(_list.selectionCard);
 				} else {
@@ -747,7 +752,12 @@ private:
 	}
 	class TKey : KeyAdapter {
 		override void keyPressed(KeyEvent e) {
-			if (((e.keyCode == SWT.F2 && _viewMode != CViewMode.TABLE) || e.character == SWT.CR) && _tbl.getSelectionIndex >= 0) {
+			static if (EditMode) {
+				bool keyMatch = (e.keyCode == SWT.F2 && _viewMode != CViewMode.TABLE) || e.character == SWT.CR;
+			} else {
+				bool keyMatch = e.character == SWT.CR;
+			}
+			if (keyMatch && _tbl.getSelectionIndex >= 0) {
 				static if (EditMode) {
 					edit(cast(C) _tbl.getSelection[0].getData);
 				} else {
