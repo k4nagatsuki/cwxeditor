@@ -78,6 +78,7 @@ void main(string[] args) {
 					auto prop = new Props(conf, new CProps(args[0], sys));
 					auto dlg = new TextDialog(prop, null, prop.msgs.dlgTitUsage, prop.images.app, prop.msgs.usage);
 					dlg.open;
+					prop.images.disposeImages;
 				} catch (Exception e) {
 					debugln(e);
 				}

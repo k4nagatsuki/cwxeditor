@@ -459,9 +459,9 @@ Text createTextEditor(Composite parent, string str) {
 	}
 }
 
-CCombo createComboEditor(Composite parent, string[] strs, string str) {
+C createComboEditor(C = CCombo)(Composite parent, string[] strs, string str) {
 	try {
-		auto combo = new CCombo(parent, SWT.BORDER | SWT.READ_ONLY);
+		auto combo = new C(parent, SWT.BORDER | SWT.READ_ONLY);
 		combo.setVisibleItemCount = 20;
 		foreach (s; strs) {
 			if (s) {
@@ -475,16 +475,14 @@ CCombo createComboEditor(Composite parent, string[] strs, string str) {
 	}
 }
 
-
 /// テーブルを編集可能にする。
 /// ダブルクリック、またはF2キーの押下で編集開始。
-class TableTextEdit {
+abstract class AbstractTableEdit {
 private:
 	Table table;
 	TableEditor editor;
 	EditEnd _tee = null;
 	int editC;
-	void delegate(TableItem itm, int column, string newText) editEnd = null;
 	bool delegate(TableItem itm, int column) canEdit = null;
 
 	Item selectionM(int x, int y) {
@@ -513,23 +511,6 @@ private:
 		}
 	}
 
-	void end(Control c) {
-		try {
-			auto newText = (cast(Text) c).getText;
-			if (!newText) newText = "";
-			if (editEnd is null) {
-				if (newText.length > 0) {
-					editor.getItem.setText(editC, newText);
-				}
-			} else {
-				editEnd(editor.getItem, editC, newText);
-			}
-			_tee = null;
-		} catch (Exception e) {
-			throw new Exception(e.msg, __FILE__, __LINE__);
-		}
-	}
-
 	void startEdit(Item itm) {
 		try {
 			startEdit(cast(TableItem) itm);
@@ -537,20 +518,25 @@ private:
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
+	void endImpl(Control c) {
+		try {
+			end(c);
+			_tee = null;
+		} catch (Exception e) {
+			throw new Exception(e.msg, __FILE__, __LINE__);
+		}
+	}
 public:
+	/// Params:
 	/// table = テキスト編集対象のテーブル。
 	/// editC = 編集対象の列。
-	/// editEnd = 編集終了時に実行される関数。nullを指定した場合、
-	///           単にテーブルアイテムのテキストを編集後のテキストで置換する。
 	/// canEdit = テーブルアイテムが編集可能か否かを判定する関数。nullを指定した場合、
 	///           すべてのセルが編集可能になる。
 	this(Table table, int editC,
-			void delegate(TableItem itm, int column, string text) editEnd = null,
 			bool delegate(TableItem itm, int column) canEdit = null) {
 		try {
 			this.table = table;
 			this.editC = editC;
-			this.editEnd = editEnd;
 			this.canEdit = canEdit;
 			editor = new TableEditor(table);
 			editor.grabHorizontal = true;
@@ -576,10 +562,11 @@ public:
 	}
 	void startEdit(TableItem itm) {
 		try {
+			if (!itm.getParent.isFocusControl) return;
 			if (_tee !is null && !_tee.isExit) _tee.enter;
 			auto sel = itm;
 			if (canEdit is null || canEdit(sel, editC)) {
-				_tee = new EditEnd(table, createTextEditor(table, sel.getText(editC)), &end);
+				_tee = new EditEnd(table, createEditor(sel, editC), &endImpl);
 				editor.setEditor(_tee.editor, sel, editC);
 				_tee.setFocus;
 			}
@@ -590,6 +577,98 @@ public:
 	bool isEditing() {
 		try {
 			return _tee !is null;
+		} catch (Exception e) {
+			throw new Exception(e.msg, __FILE__, __LINE__);
+		}
+	}
+	protected Control createEditor(TableItem itm, int editC);
+	protected void end(Control c);
+}
+/// ditto
+class TableTextEdit : AbstractTableEdit {
+private:
+	void delegate(TableItem itm, int column, string newText) editEnd = null;
+
+public:
+	/// Params:
+	/// table = テキスト編集対象のテーブル。
+	/// editC = 編集対象の列。
+	/// editEnd = 編集終了時に実行される関数。nullを指定した場合、
+	///           単にテーブルアイテムのテキストを編集後のテキストで置換する。
+	/// canEdit = テーブルアイテムが編集可能か否かを判定する関数。nullを指定した場合、
+	///           すべてのセルが編集可能になる。
+	this(Table table, int editC,
+			void delegate(TableItem itm, int column, string text) editEnd = null,
+			bool delegate(TableItem itm, int column) canEdit = null) {
+		try {
+			super (table, editC, canEdit);
+			this.editEnd = editEnd;
+		} catch (Exception e) {
+			throw new Exception(e.msg, __FILE__, __LINE__);
+		}
+	}
+
+	protected override Control createEditor(TableItem itm, int editC) {
+		return createTextEditor(itm.getParent, itm.getText(editC));
+	}
+	protected override void end(Control c) {
+		try {
+			auto newText = (cast(Text) c).getText;
+			if (!newText) newText = "";
+			if (editEnd is null) {
+				if (newText.length > 0) {
+					editor.getItem.setText(editC, newText);
+				}
+			} else {
+				editEnd(editor.getItem, editC, newText);
+			}
+		} catch (Exception e) {
+			throw new Exception(e.msg, __FILE__, __LINE__);
+		}
+	}
+}
+/// ditto
+class TableComboEdit(C = CCombo) : AbstractTableEdit {
+private:
+	void delegate(TableItem itm, int column, out string[] strs, out string str) createCombo;
+	void delegate(TableItem itm, int column, C combo) editEnd = null;
+
+public:
+	/// Params:
+	/// table = テキスト編集対象のテーブル。
+	/// editC = 編集対象の列。
+	/// createCombo = 編集に使用するコンボボックスの内容を返す。
+	/// editEnd = 編集終了時に実行される関数。nullを指定した場合、
+	///           単にテーブルアイテムのテキストを編集後のテキストで置換する。
+	/// canEdit = テーブルアイテムが編集可能か否かを判定する関数。nullを指定した場合、
+	///           すべてのセルが編集可能になる。
+	this(Table table, int editC,
+			void delegate(TableItem itm, int column, out string[] strs, out string str) createCombo,
+			void delegate(TableItem itm, int column, C combo) editEnd = null,
+			bool delegate(TableItem itm, int column) canEdit = null) {
+		try {
+			super (table, editC, canEdit);
+			this.createCombo = createCombo;
+			this.editEnd = editEnd;
+		} catch (Exception e) {
+			throw new Exception(e.msg, __FILE__, __LINE__);
+		}
+	}
+
+	protected override Control createEditor(TableItem itm, int editC) {
+		string[] strs;
+		string str;
+		createCombo(itm, editC, strs, str);
+		return createComboEditor!C(itm.getParent, strs, str);
+	}
+	protected override void end(Control c) {
+		try {
+			auto combo = cast(C) c;
+			if (editEnd is null) {
+				editor.getItem.setText(editC, combo.getText);
+			} else {
+				editEnd(editor.getItem, editC, combo);
+			}
 		} catch (Exception e) {
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}

@@ -13,6 +13,7 @@ import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.centerlayout;
 
 import std.conv;
+import std.string;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
@@ -29,6 +30,7 @@ import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.custom.TreeEditor;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
@@ -528,6 +530,61 @@ private:
 			_comm.replText.remove(&refresh);
 		}
 	}
+	void nameEditEnd(TableItem itm, int column, string text) {
+		text = FlagDir.validName(text);
+		auto f = cast(Flag) itm.getData;
+		if (f) {
+			if (0 == icmp(f.name, text)) return;
+			auto oldId = toFlagId(f.path);
+			f.name = f.parent.createNewFlagName(text);
+			itm.setText(column, f.name);
+			uc.change(oldId, toFlagId(f.path));
+			return;
+		}
+		auto s = cast(Step) itm.getData;
+		if (s) {
+			if (0 == icmp(s.name, text)) return;
+			auto oldId = toStepId(s.path);
+			s.name = s.parent.createNewStepName(text);
+			itm.setText(column, s.name);
+			uc.change(oldId, toStepId(s.path));
+			return;
+		}
+	}
+	void initCombo(TableItem itm, int column, out string[] strs, out string str) {
+		auto f = cast(Flag) itm.getData;
+		if (f) {
+			strs = [f.on, f.off];
+			str = f.onOff ? f.on : f.off;
+			return;
+		}
+		auto s = cast(Step) itm.getData;
+		if (s) {
+			foreach (i, v; s.values) {
+				strs ~= v;
+				if (i == s.select) {
+					str = v;
+				}
+			}
+			return;
+		}
+	}
+	void initEditEnd(TableItem itm, int column, CCombo combo) {
+		int i = combo.getSelectionIndex;
+		if (-1 == i) return;
+		auto f = cast(Flag) itm.getData;
+		if (f) {
+			f.onOff = 0 == i;
+			itm.setText(column, f.onOff ? f.on : f.off);
+			return;
+		}
+		auto s = cast(Step) itm.getData;
+		if (s) {
+			s.select = i;
+			itm.setText(column, s.value);
+			return;
+		}
+	}
 public:
 	this(Commons comm, Props prop) {
 		_comm = comm;
@@ -569,6 +626,8 @@ public:
 		flags.addSelectionListener(new SListener);
 		flags.addDisposeListener(new DListener);
 
+		new TableTextEdit(flags, 0, &nameEditEnd, null);
+		new TableComboEdit!CCombo(flags, 1, &initCombo, &initEditEnd, null);
 		return _comp;
 	}
 	private Composite _comp = null;
