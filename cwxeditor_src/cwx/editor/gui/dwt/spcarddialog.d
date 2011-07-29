@@ -166,7 +166,6 @@ protected:
 							grp.setText = _prop.msgs.name;
 							_name = new Text(grp, SWT.BORDER);
 							_name.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-							checker(_name);
 						} else static if (is (C == EnemyCard)) {
 							grp.setLayout = new GridLayout(2, false);
 							grp.setText = _prop.msgs.enemyCardBase;

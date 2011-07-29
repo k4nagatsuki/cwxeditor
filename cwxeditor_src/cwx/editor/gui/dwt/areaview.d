@@ -793,6 +793,8 @@ private:
 			_cards.removeAll();
 			foreach (i, c; cs) {
 				auto itm = new TableItem(_cards, SWT.NONE);
+				itm.setImage = _prop.images.cards;
+				itm.setData = c;
 				itm.setChecked = true;
 				itm.setText = cardName(c);
 			}
@@ -808,6 +810,8 @@ private:
 			_backs.removeAll();
 			foreach (i, c; cs) {
 				auto itm = new TableItem(_backs, SWT.NONE);
+				itm.setImage = _prop.images.backs;
+				itm.setData = c;
 				itm.setChecked = true;
 				itm.setText = getBaseName(c.path);
 			}
@@ -826,6 +830,9 @@ private:
 					string temp = itm1.getText;
 					itm1.setText = itm2.getText;
 					itm2.setText = temp;
+					auto dtemp = itm1.getData;
+					itm1.setData = itm2.getData;
+					itm2.setData = dtemp;
 					indices ~= i;
 				}
 			}
@@ -844,6 +851,9 @@ private:
 					string temp = itm1.getText;
 					itm1.setText = itm2.getText;
 					itm2.setText = temp;
+					auto dtemp = itm1.getData;
+					itm1.setData = itm2.getData;
+					itm2.setData = dtemp;
 					indices ~= i;
 				}
 			}
@@ -1459,9 +1469,11 @@ public:
 				static if (is (C == MenuCard)) {
 					_cards = createList(listsP, prop.msgs.menuCards,
 						prop.images.cards, ctcpd, &editCard, &_area.cards);
+					new TableTextEdit(_cards, 0, &nameEditEnd);
 				} else static if (is (C == EnemyCard)) {
 					_cards = createList(listsP, prop.msgs.enemyCards,
 						prop.images.cards, ctcpd, &editCard, &_area.cards);
+					new TableComboEdit!CCombo(_cards, 0, &createEnemyCombo, &enemyEditEnd);
 				}
 				_cards.addSelectionListener(new SCListener);
 				static if (is (C == MenuCard)) {
@@ -1474,6 +1486,7 @@ public:
 				_backs = createList(listsP, prop.msgs.backs,
 					prop.images.backs, btcpd, &editBack, &_area.backs);
 				_backs.addSelectionListener(new SBListener);
+				new TableComboEdit!CCombo(_backs, 0, &createBgImageCombo, &bgImageEditEnd);
 				new BLDropTarget(_backs);
 			}
 			static if (UseCards && UseBacks) {
@@ -1581,6 +1594,7 @@ public:
 			foreach (i, c; _area.cards) {
 				_imgp.set(cardsIndex + i, create(c));
 				_cards.getItem(i).setText = cardName(c);
+				_cards.getItem(i).setData = c;
 				partyIndex++;
 			}
 		}
@@ -1588,6 +1602,7 @@ public:
 			foreach (i, b; _area.backs) {
 				_imgp.set(i, create(b));
 				_backs.getItem(i).setText = getBaseName(b.path);
+				_backs.getItem(i).setData = b;
 				partyIndex++;
 			}
 		}
@@ -1760,6 +1775,7 @@ public:
 						_imgp.set(cardsIndex + i, fi);
 						if (_cards.isSelected(i) && _viewCards) _imgp.select(fi);
 						_cards.getItem(i).setText = fi.title;
+						_cards.getItem(i).setData = c;
 						refreshControls;
 						_comm.refMenuCard.call(c.cwxPath);
 						_comm.refUseCount.call;
@@ -1770,6 +1786,32 @@ public:
 				assert (0);
 			}
 		}
+		static if (is(C : MenuCard)) {
+			void nameEditEnd(TableItem itm, int column, string newText) {
+				auto c = cast(C) itm.getData;
+				c.name = newText;
+				itm.setText(column, c.name);
+				refreshPanel();
+			}
+		} else static if (is(C : EnemyCard)) {
+			void enemyEditEnd(TableItem itm, int column, CCombo combo) {
+				assert (_summ);
+				int i = combo.getSelectionIndex;
+				if (-1 == i) return;
+				auto c = cast(C) itm.getData;
+				c.id = _summ.casts[i].id;
+				itm.setText(column, cardName(c));
+				refreshPanel();
+			}
+			void createEnemyCombo(TableItem itm, int column, out string[] strs, out string str) {
+				assert (_summ);
+				auto c = cast(C) itm.getData;
+				str = cardName(c);
+				foreach (cc; _summ.casts) {
+					strs ~= cc.name;
+				}
+			}
+		} else static assert (0);
 		bool isViewCards() {
 			return _viewCards;
 		}
@@ -1842,6 +1884,7 @@ public:
 						_imgp.set(i, fi);
 						if (_backs.isSelected(i) && _viewBacks) _imgp.select(fi);
 						_backs.getItem(i).setText = getBaseName(back.path);
+						_backs.getItem(i).setData = b;
 						refreshControls;
 						_comm.refUseCount.call;
 						_imgp.redraw;
@@ -1850,6 +1893,56 @@ public:
 				}
 				assert (0);
 			}
+		}
+		void bgImageEditEnd(TableItem itm, int column, CCombo combo) {
+			int i = combo.getSelectionIndex;
+			if (-1 == i) return;
+			auto b = cast(BgImage) itm.getData;
+			if (0 == i) {
+				b.path = "";
+				itm.setText(column, "");
+			} else {
+				string mt = combo.getText;
+				if (mt.startsWith("/")) {
+					mt = mt["/".length .. $];
+				}
+				b.path = mt;
+				itm.setText(column, getBaseName(decodePath(mt)));
+			}
+			refreshPanel();
+		}
+		void createBgImageCombo(TableItem itm, int column, out string[] strs, out string str) {
+			auto b = cast(BgImage) itm.getData;
+			strs ~= _prop.msgs.imageNone;
+			str = _prop.msgs.imageNone;
+			bool def;
+			string p = _comm.skin.findImagePathF(b.path, _summ ? _summ.scenarioPath : null, def);
+			p = nabs(p);
+			foreach (t; _comm.skin.tables) {
+				strs ~= t;
+				if (fnmatch(p, nabs(std.path.join(_comm.skin.tableDir, t)))) {
+					str = t;
+				}
+			}
+			if (!_summ) return;
+			void recurse(string dir, string sDir) {
+				foreach (file; clistdir(dir)) {
+					string full = std.path.join(dir, file);
+					string sFile = sDir ~ file;
+					if (isdir(full)) {
+						recurse(full, sFile ~ std.path.sep);
+					} else {
+						if (!_comm.skin.isBgImage(file)) continue;
+						if (containsPath(_prop.var.etc.ignorePaths, file)) continue;
+						sFile = encodePath(sFile);
+						strs ~= sFile;
+						if (fnmatch(p, nabs(full))) {
+							str = sFile;
+						}
+					}
+				}
+			}
+			recurse(_summ.scenarioPath, std.path.sep);
 		}
 		bool isViewBacks() {
 			return _viewBacks;
@@ -2141,6 +2234,8 @@ public:
 			_imgp.images[cardsIndex + index].visible = check;
 			_area.insert(index, card);
 			auto itm = new TableItem(_cards, SWT.NONE, index);
+			itm.setImage = _prop.images.cards;
+			itm.setData = card;
 			itm.setChecked = check;
 			itm.setText = cardName(card);
 			if (select && _viewCards) {
@@ -2172,6 +2267,8 @@ public:
 			_imgp.insert(cardsIndex + index, imgs);
 			foreach (i, c; cards) {
 				auto itm = new TableItem(_cards, SWT.NONE, index + i);
+				itm.setImage = _prop.images.cards;
+				itm.setData = c;
 				itm.setChecked = true;
 				itm.setText = cardName(c);
 			}
@@ -2265,6 +2362,8 @@ public:
 			_imgp.images[index].visible = check;
 			_area.insert(index, back);
 			auto itm = new TableItem(_backs, SWT.NONE, index);
+			itm.setImage = _prop.images.backs;
+			itm.setData = back;
 			itm.setChecked = check;
 			itm.setText = getBaseName(back.path);
 			if (select && _viewBacks) {
@@ -2296,6 +2395,8 @@ public:
 			_imgp.insert(index, imgs);
 			foreach (i, b; backs) {
 				auto itm = new TableItem(_backs, SWT.NONE, index + i);
+				itm.setImage = _prop.images.backs;
+				itm.setData = b;
 				itm.setChecked = true;
 				itm.setText = getBaseName(b.path);
 			}

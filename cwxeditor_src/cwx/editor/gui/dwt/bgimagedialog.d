@@ -286,7 +286,7 @@ protected:
 	}
 
 	override bool close(bool ok) {
-		if (ok && _imgPath.image.length > 0) {
+		if (ok) {
 			string flag;
 			if (_flag) {
 				int fidx = _flag.getSelectionIndex;
