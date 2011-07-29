@@ -185,14 +185,20 @@ class Commons {
 	Dlg!(Package) refPackage;
 	Dlg!(Package) delPackage;
 
+	Dlg!(string) addMenuCard;
 	Dlg!(string) refMenuCard;
 	Dlg!(string) delMenuCard;
+	Dlg!(string, int[]) upMenuCard;
+	Dlg!(string, int[]) downMenuCard;
 
 	Dlg!(Importable) closeAdds;
+
+	const Object saveSync;
 
 	private HashSet!(Composite) _ws;
 	private Object[Composite] _wos;
 	this() {
+		saveSync = new Object;
 		_ws = new HashSet!(Composite);
 	}
 	void dispose() {

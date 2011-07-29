@@ -772,6 +772,13 @@ public:
 		}
 		_comm.replText.add(&replText);
 		_comm.replID.add(&replText);
+		static if (!is(C == void)) {
+			_comm.addMenuCard.add(&addCard);
+			_comm.refMenuCard.add(&refCard);
+			_comm.delMenuCard.add(&delCard);
+			_comm.upMenuCard.add(&upCard);
+			_comm.downMenuCard.add(&downCard);
+		}
 		static if (is (A == Area)) {
 			_comm.refArea.add(&refreshTitle);
 		} else static if (is (A == Battle)) {
@@ -808,6 +815,13 @@ public:
 				}
 				_comm.replText.remove(&replText);
 				_comm.replID.remove(&replText);
+				static if (!is(C == void)) {
+					_comm.addMenuCard.remove(&addCard);
+					_comm.refMenuCard.remove(&refCard);
+					_comm.delMenuCard.remove(&delCard);
+					_comm.upMenuCard.remove(&upCard);
+					_comm.downMenuCard.remove(&downCard);
+				}
 				static if (is (A == Area)) {
 					_comm.refArea.remove(&refreshTitle);
 				} else static if (is (A == Battle)) {
@@ -898,6 +912,29 @@ public:
 				auto castCard = _summ.casts(c.id);
 				return castCard ? castCard.name : "";
 			}
+		}
+		void addCard(string cwxPath) {
+			if (_area.cwxPath != cpparent(cwxPath)) return;
+			size_t i = cpindex(cpbottom(cwxPath));
+			appendCard(i, _area.cards[i]);
+		}
+		void refCard(string cwxPath) {
+			if (_area.cwxPath != cpparent(cwxPath)) return;
+			size_t i = cpindex(cpbottom(cwxPath));
+			renameCard(i);
+		}
+		void delCard(string cwxPath) {
+			if (_area.cwxPath != cpparent(cwxPath)) return;
+			size_t i = cpindex(cpbottom(cwxPath));
+			removeCard(i);
+		}
+		void upCard(string cwxPath, int[] indices) {
+			if (_area.cwxPath != cwxPath) return;
+			upCard(indices);
+		}
+		void downCard(string cwxPath, int[] indices) {
+			if (_area.cwxPath != cwxPath) return;
+			downCard(indices);
 		}
 		void appendCard(int index, C c) {
 			if (initial) return;

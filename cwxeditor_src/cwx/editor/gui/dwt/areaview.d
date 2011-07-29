@@ -563,12 +563,6 @@ private:
 		ToolItem _customTMenu;
 		Spinner _scaleSpn;
 
-		void delegate(int) _removeCard;
-		void delegate(int) _renameCard;
-		void delegate(int, C) _appendCard;
-		void delegate(int[]) _upCard;
-		void delegate(int[]) _downCard;
-
 		Table cardList() {return _cards;}
 		void editSpnCard(string T)(int value) {
 			__editSpn!(T, C)(value, _editC, cardsIndex);
@@ -1636,41 +1630,25 @@ public:
 		}
 		refreshPanel;
 	}
-	static if (UseCards) {
-		void setCardFuncs(void delegate(int) removeCard,
-				void delegate(int, C) appendCard,
-				void delegate(int) renameCard,
-				void delegate(int[]) up, void delegate(int[]) down) {
-			_removeCard = removeCard;
-			_appendCard = appendCard;
-			_renameCard = renameCard;
-			_upCard = up;
-			_downCard = down;
-		}
-	}
 	private void __remove(T)(int index, ref T[PileImage] tbl, int startIndex) {
 		tbl.remove(_imgp.images[startIndex + index]);
 		_imgp.remove(startIndex + index);
-		_comm.refUseCount.call;
 	}
 	private void __removeRange(T)(int fromIndex, int toIndex, ref T[PileImage] tbl, int startIndex) {
 		for (int i = fromIndex + startIndex; i < toIndex + startIndex; i++) {
 			tbl.remove(_imgp.images[i]);
 		}
 		_imgp.removeRange(startIndex + fromIndex, startIndex + toIndex);
-		_comm.refUseCount.call;
 	}
 	static if (UseCards) {
 		private void removeCard(int index) {
 			__remove(index, _cardTbl, cardsIndex);
-			if (_removeCard !is null) _removeCard(index);
+			_comm.delMenuCard.call(_area.cards[index].cwxPath);
 		}
 		private void removeCardRange(int fromIndex, int toIndex) {
 			__removeRange(fromIndex, toIndex, _cardTbl, cardsIndex);
-			if (_removeCard !is null) {
-				for (int i = toIndex; i >= fromIndex; i--) {
-					_removeCard(i);
-				}
+			for (int i = toIndex; i >= fromIndex; i--) {
+				_comm.delMenuCard.call(_area.cards[i].cwxPath);
 			}
 		}
 	}
@@ -1692,7 +1670,7 @@ public:
 		int[] refB;
 		static if (UseCards) {
 			refC = __up!(C)(_viewCards, _cards, &_area.swapCards, cardsIndex);
-			if (_upCard) _upCard(refC);
+			_comm.upMenuCard.call(_area.cwxPath, refC);
 		}
 		static if (UseBacks) {
 			refB = __up!(BgImage)(_viewBacks, _backs, &_area.swapBacks, 0);
@@ -1709,7 +1687,7 @@ public:
 		int[] refB;
 		static if (UseCards) {
 			refC = __down!(C)(_viewCards, _cards, &_area.swapCards, cardsIndex);
-			if (_downCard) _downCard(refC);
+			_comm.downMenuCard.call(_area.cwxPath, refC);
 		}
 		static if (UseBacks) {
 			refB = __down!(BgImage)(_viewBacks, _backs, &_area.swapBacks, 0);
@@ -1761,7 +1739,6 @@ public:
 					_undo ~= new UndoInsert([index]);
 				}
 				appendCard(index, dlg.card, true, true);
-				_comm.refMenuCard.call(dlg.card.cwxPath);
 			}
 		}
 		void editCard(C card) {
@@ -1783,7 +1760,6 @@ public:
 						_imgp.set(cardsIndex + i, fi);
 						if (_cards.isSelected(i) && _viewCards) _imgp.select(fi);
 						_cards.getItem(i).setText = fi.title;
-						if (_renameCard) _renameCard(i);
 						refreshControls;
 						_comm.refMenuCard.call(c.cwxPath);
 						_comm.refUseCount.call;
@@ -2019,6 +1995,7 @@ public:
 				_comm.delArea.add(&refreshRefAreas);
 				_comm.refBattle.add(&refreshRefAreas);
 				_comm.delBattle.add(&refreshRefAreas);
+				_comm.addMenuCard.add(&refreshRefAreas);
 				_comm.refMenuCard.add(&refreshRefAreas);
 				_comm.delMenuCard.add(&refreshRefAreas);
 				addDisposeListener(new class DisposeListener {
@@ -2027,6 +2004,7 @@ public:
 						_comm.delArea.remove(&refreshRefAreas);
 						_comm.refBattle.remove(&refreshRefAreas);
 						_comm.delBattle.remove(&refreshRefAreas);
+						_comm.addMenuCard.remove(&refreshRefAreas);
 						_comm.refMenuCard.remove(&refreshRefAreas);
 						_comm.delMenuCard.remove(&refreshRefAreas);
 					}
@@ -2171,8 +2149,8 @@ public:
 					refreshSelected;
 				}
 			}
-			if (_appendCard) _appendCard(index, card);
 			_imgp.redraw;
+			_comm.addMenuCard.call(card.cwxPath);
 			_comm.refUseCount.call;
 		}
 		private FlexImage create(C card) {
@@ -2189,7 +2167,7 @@ public:
 			foreach (i, card; cards) {
 				auto img = create(card);
 				imgs ~= img;
-				if (_appendCard) _appendCard(index + i, card);
+				_comm.addMenuCard.call(card.cwxPath);
 			}
 			_imgp.insert(cardsIndex + index, imgs);
 			foreach (i, c; cards) {
@@ -2500,8 +2478,10 @@ public:
 					auto img = imagePane.images[cardsIndex + i];
 					img.setImageData(castCardImage(_prop, skin, castCard, _summ ? _summ.scenarioPath : "", _dbgMode));
 					img.createImage;
-					cardList.getItem(i).setText = castCard.name;
-					if (_renameCard) _renameCard(i);
+					if (cardList.getItem(i).getText != castCard.name) {
+						cardList.getItem(i).setText = castCard.name;
+						_comm.refMenuCard.call(_area.cards[i].cwxPath);
+					}
 				}
 			}
 			imagePane.redraw;
@@ -2606,14 +2586,13 @@ public:
 			void del(SelectionEvent se) {
 				int i;
 				while (0 <= (i = _cards.getSelectionIndex)) {
-					_comm.delMenuCard.call(_area.cards[i].cwxPath);
-					_area.removeCard(i);
 					removeCard(i);
+					_area.removeCard(i);
 					_cards.remove(i);
 				}
 				while (0 <= (i = _backs.getSelectionIndex)) {
-					_area.removeBgImage(i);
 					removeBack(i);
+					_area.removeBgImage(i);
 					_backs.remove(i);
 				}
 				_imgp.redraw;
@@ -2681,9 +2660,8 @@ public:
 			void del(SelectionEvent se) {
 				int i;
 				while (0 <= (i = _cards.getSelectionIndex)) {
-					_comm.delMenuCard.call(_area.cards[i].cwxPath);
-					_area.removeCard(i);
 					removeCard(i);
+					_area.removeCard(i);
 					_cards.remove(i);
 				}
 				_imgp.redraw;

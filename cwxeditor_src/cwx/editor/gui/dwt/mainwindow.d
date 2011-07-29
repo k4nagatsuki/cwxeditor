@@ -162,15 +162,19 @@ private:
 
 	private SysTime _lastBackup;
 	void backupThr() {
-		_lastBackup = Clock.currTime;
-		while (!_quit) {
-			if (_lastBackup + dur!"minutes"(_prop.var.etc.backupInterval) <= Clock.currTime) {
-				createBackup();
-				_lastBackup = Clock.currTime;
+		try {
+			_lastBackup = Clock.currTime;
+			while (!_quit) {
+				if (_lastBackup + dur!"minutes"(_prop.var.etc.backupInterval) <= Clock.currTime) {
+					createBackup();
+					_lastBackup = Clock.currTime;
+				}
+				core.thread.Thread.sleep(dur!"seconds"(1));
 			}
-			core.thread.Thread.sleep(dur!"seconds"(1));
+			debug writefln("Exit Backup Thread");
+		} catch (Throwable e) {
+			debugln(e);
 		}
-		debug writefln("Exit Backup Thread");
 	}
 	void createBackup() {
 		try {
@@ -1737,9 +1741,10 @@ public:
 				}
 			}
 		}
-		_dirWin.quitTrace;
+		// FIXME: quitTrace()をbackup.join()より先に行うと時々アクセス違反
 		_quit = true;
 		backup.join();
+		_dirWin.quitTrace;
 		_comm.dispose;
 		_prop.images.disposeImages;
 		d.dispose;

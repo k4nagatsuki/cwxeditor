@@ -69,10 +69,10 @@ string LATEST_VERSION = "";
 string debugLog = "cwxeditor_error.log";
 
 /// デバグログに文字列を出力する。
-void fdebugln(T ...)(T vals) {
+void fdebugln(string File = __FILE__, size_t Line = __LINE__, T ...)(T vals) {
 	try {
 		synchronized {
-			char[] buf;
+			char[] buf = format("%s:%d ", File, Line).dup;
 			foreach (v; vals) {
 				static if (is(typeof(v.msg)) && is(typeof(v.file)) && is(typeof(v.line))) {
 					buf ~= format("%s, %s, %d", v.msg, v.file, v.line);
@@ -103,9 +103,9 @@ void fdebugln(T ...)(T vals) {
 }
 /// debugコンパイルされている際は デバグログに文字列を出力すると
 /// 共にfdebugln()を呼出し、ファイル出力する。
-void debugln(T ...)(T vals) {
+void debugln(string File = __FILE__, size_t Line = __LINE__, T ...)(T vals) {
 	debug {
-		fdebugln!(T)(vals);
+		fdebugln!(File, Line, T)(vals);
 	}
 }
 

@@ -34,6 +34,14 @@ string cpjoin(CWXPath owner, string name) {
 	return ocp.length ? ocp ~ "/" ~ name : name;
 }
 
+/// シナリオ内パスを一つ上の部分を返す。
+string cpparent(string path) {
+	int index = std.string.lastIndexOf(path, "/");
+	return index >= 0 ? path[0 .. index] : "";
+} unittest {
+	assert (cpparent("area:3/event:0/:5/:0/:1") == "area:3/event:0/:5/:0");
+}
+
 /// シナリオ内パスの先頭部分を返す。
 string cptop(string path) {
 	int index = std.string.indexOf(path, "/");

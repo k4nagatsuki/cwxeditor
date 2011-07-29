@@ -211,8 +211,6 @@ public:
 			_eview = new EventView!(A, C, true)(comm, prop, summ, area, _tabf, _undo);
 			_tabE.setControl(_eview);
 			_tcpd ~= _eview;
-			_aview.setCardFuncs(&_eview.removeCard, &_eview.appendCard, &_eview.renameCard,
-				&_eview.upCard, &_eview.downCard);
 		}
 		__refreshTitle;
 
