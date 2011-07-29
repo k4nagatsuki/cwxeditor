@@ -1806,9 +1806,12 @@ public:
 			void createEnemyCombo(TableItem itm, int column, out string[] strs, out string str) {
 				assert (_summ);
 				auto c = cast(C) itm.getData;
-				str = cardName(c);
 				foreach (cc; _summ.casts) {
-					strs ~= cc.name;
+					string s = to!string(cc.id) ~ "." ~ cc.name;
+					strs ~= s;
+					if (cc.id == c.id) {
+						str = s;
+					}
 				}
 			}
 		} else static assert (0);
