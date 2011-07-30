@@ -244,10 +244,8 @@ private:
 		_motionElm.setEnabled = sels.length > 0;
 		if (sels.length == 0) {
 			_motionElm.deselectAll;
-			if (stack.topControl !is _noneComp && _oldIndex != -1) {
-				stack.topControl = _noneComp;
-				_editComp.layout;
-			}
+			stack.topControl = _noneComp;
+			_editComp.layout;
 			_oldIndex = -1;
 		} else if (_oldIndex != _motions.getSelectionIndex) {
 			_oldIndex = _motions.getSelectionIndex;
