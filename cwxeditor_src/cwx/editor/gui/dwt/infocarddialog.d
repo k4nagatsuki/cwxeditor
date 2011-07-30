@@ -41,6 +41,10 @@ private:
 	FixedWidthText _desc;
 	GBLimitText _name;
 
+	void refreshWarning() {
+		// 情報カード名はメッセージに表示されないため制限無し
+	}
+
 public:
 	this(Commons comm, Props prop, Shell shell, Summary summ, InfoCard card) {
 		assert (summ !is null);
@@ -65,7 +69,8 @@ protected:
 			grp.setLayout = new GridLayout(2, false);
 			grp.setText = _prop.msgs.name;
 			_name = new GBLimitText(_prop.looks.messageFont(_summ.legacy).name,
-				_prop.looks.nameLimit, grp, SWT.BORDER);
+				_prop.looks.nameLimit, false, grp, SWT.BORDER);
+			_name.limitEvent ~= &refreshWarning;
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
 			gd.widthHint = _name.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
 			_name.widget.setLayoutData = gd;

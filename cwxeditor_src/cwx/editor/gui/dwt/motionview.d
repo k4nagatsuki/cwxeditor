@@ -74,6 +74,9 @@ import org.eclipse.swt.dnd.ByteArrayTransfer;
 public:
 
 class MotionView : Composite {
+public:
+	/// 警告の有無が切り替わった時に呼び出される。
+	void delegate()[] warningEvent;
 private:
 	string _id;
 
@@ -208,6 +211,12 @@ private:
 		}
 	}
 	void removeMotion() {
+		bool oldVan = hasVan;
+		scope (exit) {
+			if (oldVan != hasVan) {
+				foreach (we; warningEvent) we();
+			}
+		}
 		int index = _motions.getSelectionIndex;
 		if (index >= 0) {
 			_motions.remove(index);
@@ -220,7 +229,16 @@ private:
 			__refreshSels;
 		}
 	}
-	void appendMotion(Motion motion, int index = -1) {
+	void appendMotion(Motion motion, int index = -1, bool callEvent = true) {
+		bool oldVan;
+		if (callEvent) {
+			oldVan = hasVan;
+		}
+		scope (exit) {
+			if (callEvent && oldVan != hasVan) {
+				foreach (we; warningEvent) we();
+			}
+		}
 		TableItem itm;
 		if (index >= 0) {
 			itm = new TableItem(_motions, SWT.NONE, index);
@@ -379,15 +397,37 @@ private:
 		}
 		override void dragFinished(DragSourceEvent e) {
 			if (e.detail == DND.DROP_MOVE) {
+				bool oldVan = hasVan;
+				scope (exit) {
+					if (oldVan != hasVan) {
+						foreach (we; warningEvent) we();
+					}
+				}
 				_itm.dispose;
 				_motions.redraw;
 			}
 		}
 	}
+	bool hasVan() {
+		foreach (itm; _motions.getItems) {
+			auto m = cast(Motion) itm.getData;
+			assert (m);
+			if ((m.element !is Element.MIRACLE) && (m.type is MType.VANISH_TARGET)) {
+				return true;
+			}
+		}
+		return false;
+	}
 	class SelElement : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
 			auto m = selection;
 			if (m) {
+				bool oldVan = hasVan;
+				scope (exit) {
+					if (oldVan != hasVan) {
+						foreach (we; warningEvent) we();
+					}
+				}
 				m.element = cast(Element) (cast(Integer) _motionElm.getSelection[0].getData).intValue;
 			}
 		}
@@ -684,9 +724,15 @@ public:
 		drop.addDropListener(new MDropListener);
 	}
 	void motions(Motion[] motions) {
+		bool oldVan = hasVan;
+		scope (exit) {
+			if (oldVan != hasVan) {
+				foreach (we; warningEvent) we();
+			}
+		}
 		_motions.setRedraw = false;
 		foreach (m; motions) {
-			appendMotion(m.dup);
+			appendMotion(m.dup, -1, false);
 		}
 		_motions.setRedraw = true;
 	}

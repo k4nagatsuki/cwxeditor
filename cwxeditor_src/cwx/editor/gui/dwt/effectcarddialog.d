@@ -121,9 +121,31 @@ private:
 	Combo _se2;
 	Combo[] _keyCodes;
 
+	void refreshWarning() {
+		string[] ws;
+		if (_name.over) {
+			ws ~= _prop.msgs.warningNameLenOver(_prop.looks.nameLimit);
+		}
+		if (_effTyp[EffectType.NONE].getSelection) {
+			ws ~= _prop.msgs.warningEffectTypeNone;
+		}
+		foreach (m; _motions.motions) {
+			if (m.type == MType.VANISH_TARGET && m.element != cast(int) Element.MIRACLE) {
+				ws ~= _prop.msgs.warningVanishCast;
+				break;
+			}
+		}
+		warning = ws;
+	}
+
 	class OASelect : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
 			__refreshEnblOneAll;
+		}
+	}
+	class SelEffectType : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			refreshWarning();
 		}
 	}
 
@@ -140,7 +162,8 @@ private:
 				grp.setLayout = new GridLayout(2, false);
 				grp.setText = _prop.msgs.name;
 				_name = new GBLimitText(_prop.looks.messageFont(_summ.legacy).name,
-					_prop.looks.nameLimit, grp, SWT.BORDER);
+					_prop.looks.nameLimit, false, grp, SWT.BORDER);
+				_name.limitEvent ~= &refreshWarning;
 				auto gd = new GridData(GridData.FILL_HORIZONTAL);
 				gd.widthHint = _name.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
 				_name.widget.setLayoutData = gd;
@@ -185,6 +208,7 @@ private:
 						radio.setLayoutData = new GridData(GridData.FILL_BOTH);
 					}
 					radio.setText = _prop.msgs.effectType(eff);
+					radio.addSelectionListener(new SelEffectType);
 					_effTyp[eff] = radio;
 				}
 			}
@@ -385,6 +409,7 @@ private:
 		comp.setLayout = new GridLayout(1, false);
 		{
 			_motions = new MotionView(_comm, _prop, _summ, comp);
+			_motions.warningEvent ~= &refreshWarning;
 			_motions.setLayoutData = new GridData(GridData.FILL_BOTH);
 		}
 		auto tab = new CTabItem(tabf, SWT.NONE);
@@ -624,6 +649,7 @@ protected:
 				_keyCodes[i].setText = kc;
 				_keyCodes[i].add(kc, 0);
 			}
+			refreshWarning();
 		} else {
 			_imgPath.image = "";
 			_effTyp[EffectType.PHYSIC].setSelection = true;
@@ -667,34 +693,6 @@ protected:
 
 	override bool close(bool ok, out bool cancel) {
 		if (ok) {
-			if (_effTyp[EffectType.NONE].getSelection
-					&& (!_card || _card.effectType != EffectType.NONE)) {
-				auto dlg = new MessageBox(getShell, SWT.ICON_QUESTION | SWT.OK | SWT.CANCEL);
-				dlg.setMessage = _prop.msgs.warningEffectTypeNone;
-				dlg.setText = _prop.msgs.dlgTitQuestion;
-				if (SWT.CANCEL == dlg.open) {
-					cancel = true;
-					return false;
-				}
-			}
-			bool hasVanishCast(Motion[] ms) {
-				foreach (m; ms) {
-					if (m.type == MType.VANISH_TARGET && m.element != cast(int) Element.MIRACLE) {
-						return true;
-					}
-				}
-				return false;
-			}
-			auto motions = _motions.motions;
-			if (hasVanishCast(motions) && (!_card || !hasVanishCast(_card.motions))) {
-				auto dlg = new MessageBox(getShell, SWT.ICON_QUESTION | SWT.OK | SWT.CANCEL);
-				dlg.setMessage = _prop.msgs.warningVanishCast;
-				dlg.setText = _prop.msgs.dlgTitQuestion;
-				if (SWT.CANCEL == dlg.open) {
-					cancel = true;
-					return false;
-				}
-			}
 			if (_card) {
 				_card.path = _imgPath.image;
 				_card.desc = wrapReturnCode(_desc.getText);
@@ -720,7 +718,7 @@ protected:
 			static if (is (C == ItemCard)) {
 				_card.price = _price.getSelection;
 			}
-			_card.motions = motions;
+			_card.motions = _motions.motions;
 			foreach (e, index; _useModTbl) {
 				_card.enhance(e, _useMod.getValue(index));
 			}

@@ -1989,12 +1989,13 @@ public:
 	const string keyCodes() {return "イベント発火のキーコード";}
 
 	const string warningEffectTypeNone() {
-		return "無属性のカードをシナリオ外に持ち出した場合、予期せぬバグの原因になります。"
-			~ "\nこのまま無属性を設定しますか？";
+		return "無属性のカードをシナリオ外に持ち出した場合、予期せぬバグの原因になります。";
 	}
 	const string warningVanishCast() {
-		return "神聖属性以外の対象消去効果を持つカードをシナリオ外に持ち出した場合、予期せぬバグの原因になります。"
-			~ "\nこのまま設定しますか？";
+		return "神聖属性以外の対象消去効果を持つカードをシナリオ外に持ち出した場合、予期せぬバグの原因になります。";
+	}
+	const string warningNameLenOver(uint limit) {
+		return "名前の長さが" ~ to!string(limit / 2) ~ "文字を超えています。メッセージにカード名が表示された際に不具合が発生する可能性があります。";
 	}
 
 	const string card() {return "カード";}
@@ -2312,6 +2313,13 @@ public:
 	}
 
 	const CSize viewSize() {return CSize(632, 420);}
+
+	const string monospace() {
+		version (Windows) {
+			return "ＭＳ ゴシック";
+		}
+		return "IPAゴシック";
+	}
 
 	private static string gothic(bool legacy) {
 		version (Windows) {

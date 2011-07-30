@@ -116,6 +116,13 @@ class FixedWidthText {
 
 /// 入力された文字列の長さを検証し、制限をかける。
 class GBLimitText {
+	/// 入力された文字列の長さが制限を超えたか、
+	/// または制限内に収まったときに呼び出される。
+	void delegate()[] limitEvent;
+
+	private bool _over = false;
+
+	private bool _cut = true;
 	private Text _widget;
 	private bool _ed = false;
 	private int _width;
@@ -125,21 +132,27 @@ class GBLimitText {
 	/// Params:
 	/// font = 検証に使用するフォント。
 	/// num = 最大文字数。[' 'の幅 * num]が入力可能な文字列幅となる。
-	this(string font, int num, Composite parent, int style) {
+	/// cut = trueの場合、制限を超えた分は無条件にカットする。
+	this(string font, int num, bool cut, Composite parent, int style) {
 		_widget = new Text(parent, style | SWT.NO_BACKGROUND);
+		_cut = cut;
 		_gc = new GC(_widget);
 		_gc.setFont = new Font(Display.getCurrent, new FontData(font, 10, SWT.NORMAL));
 		_width = _gc.textExtent(" ").x * num;
 
 		_widget.addListener(SWT.Verify, new class Listener {
 			override void handleEvent(Event e) {
+				if (!_cut) {
+					e.doit = true;
+					return;
+				}
 				if (_ed) return;
 				scope dstring vText;
 				try {
 					vText = toUTF32(e.text);
 				} catch {
-					// FIXME: たまーに壊れたテキストが来るんだよね
-					//        「情報」と入力したときとか
+					// FIXME: 時々壊れたテキストが来る
+					//        「情報」と入力したときなど
 					return;
 				}
 				if (vText.length < e.end - e.start) {
@@ -168,6 +181,18 @@ class GBLimitText {
 		// FIXME: 全角スペース入力でVerifyEventが入力文字を取れないようなので暫定
 		_widget.addListener(SWT.Modify, new class Listener {
 			override void handleEvent(Event e) {
+				if (!_cut) {
+					bool over = _gc.textExtent(getText).x > _width;
+					if (_over != over) {
+						_over = over;
+						foreach (le; limitEvent) {
+							le();
+						}
+					} else {
+						_over = over;
+					}
+					return;
+				}
 				if (_ed) return;
 				if (_gc.textExtent(getText).x <= _width) {
 					_old = _widget.getText;
@@ -197,6 +222,7 @@ class GBLimitText {
 	Point computeSize(int wHint, int hHint) {
 		return _widget.computeSize(wHint == SWT.DEFAULT ? _width : wHint, hHint);
 	}
+	bool over() {return _over;}
 	void insert(string text) {
 		_widget.insert = text;
 	}

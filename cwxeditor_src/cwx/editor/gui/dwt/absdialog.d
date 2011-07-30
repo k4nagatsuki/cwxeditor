@@ -17,6 +17,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.custom.CCombo;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.graphics.Image;
@@ -35,10 +36,12 @@ interface DSize {
 }
 
 abstract class AbsDialog {
+	private Props _prop;
 	private Shell _win;
 	private DSize _size;
 	private Composite _area;
 	this (Props prop, Shell parent, string text, Image img, bool resizable, DSize size = null, bool apply = false, bool cancel = true) {
+		_prop = prop;
 		_size = size;
 		_win = new Shell(parent, (resizable ? SWT.SHELL_TRIM : SWT.DIALOG_TRIM) | SWT.APPLICATION_MODAL);
 		_win.setText = text;
@@ -58,29 +61,35 @@ abstract class AbsDialog {
 		if (apply) gll++;
 		if (cancel) gll++;
 		buttons.setLayout = new GridLayout(gll, true);
-		Button createButton(string text, void delegate() push) {
-			auto b = new Button(buttons, SWT.PUSH);
-			auto gd = new GridData(GridData.FILL_HORIZONTAL);
-			gd.widthHint = 85;
-			b.setLayoutData = gd;
-			b.setText = text;
-			auto sa = new class SelectionAdapter {
-				private void delegate() push;
-				override void widgetSelected(SelectionEvent e) {
-					push();
-				}
-			};
-			sa.push = push;
-			b.addSelectionListener(sa);
-			return b;
-		}
-		_okBtn = createButton(prop.msgs.dlgTextOK, &this.ok);
+		auto okComp = new Composite(buttons, SWT.NONE);
+		okComp.setLayout = new FillLayout;
+		_okBtn = createButton(okComp, prop.msgs.dlgTextOK, &this.ok);
 		if (apply) {
-			_apply = createButton(prop.msgs.dlgTextApply, &this.applyFunc);
+			_apply = createButton(buttons, prop.msgs.dlgTextApply, &this.applyFunc);
 		}
 		if (cancel) {
-			createButton(prop.msgs.dlgTextCancel, &this.cancel);
+			createButton(buttons, prop.msgs.dlgTextCancel, &this.cancel);
 		}
+	}
+	private Button createButton(Composite parent, string text, void delegate() push) {
+		auto b = new Button(parent, SWT.PUSH);
+		auto gd = new GridData(GridData.FILL_HORIZONTAL);
+		gd.widthHint = 85;
+		if (cast(GridLayout) parent.getLayout) {
+			b.setLayoutData = gd;
+		} else {
+			parent.setLayoutData = gd;
+		}
+		b.setText = text;
+		auto sa = new class SelectionAdapter {
+			private void delegate() push;
+			override void widgetSelected(SelectionEvent e) {
+				push();
+			}
+		};
+		sa.push = push;
+		b.addSelectionListener(sa);
+		return b;
 	}
 	protected Shell getShell() {return _win;}
 	private Button _okBtn;
@@ -187,6 +196,33 @@ abstract class AbsDialog {
 	protected final void applyEnabled() {
 		_apply.setEnabled = true;
 	}
+
+	protected final void warning(string[] ws) {
+		if ((_okBtn.getImage !is null) != (0 != ws.length)) {
+			// FIXME:
+			// 画像の有無を切り替えるとOKボタンの文字が
+			// ずれてしまうため、作り直す
+			auto parent = _okBtn.getParent;
+			bool enbl = _okBtn.getEnabled;
+			bool focus = _okBtn.isFocusControl;
+			_okBtn.dispose();
+			_okBtn = createButton(parent, _prop.msgs.dlgTextOK, &this.ok);
+			if (_enterClose) {
+				_win.setDefaultButton = _okBtn;
+			}
+			_okBtn.setEnabled = enbl;
+			if (focus) _okBtn.setFocus;
+			parent.layout(true);
+		}
+		if (ws.length) {
+			_okBtn.setImage = _prop.images.warning;
+			_okBtn.setToolTipText = std.string.join(ws, "\n");
+		} else {
+			_okBtn.setImage = null;
+			_okBtn.setToolTipText = null;
+		}
+	}
+
 	protected void checkerImpl(T)(T text) {
 		check;
 		text.addModifyListener = new MListener;

@@ -2315,3 +2315,13 @@ void playSECW(Props prop, string path, bool legacy) {
 	default: playSE(path, legacy); break;
 	}
 }
+
+/// 文字列の見た目の長さを測る。
+int textWidth(Props prop, Control c, string text) {
+	auto gc = new GC(c);
+	scope (exit) gc.dispose();
+	auto mono = new Font(Display.getCurrent, new FontData(prop.looks.monospace, 10, SWT.NORMAL));
+	scope (exit) mono.dispose();
+	gc.setFont = mono;
+	return gc.textExtent(text).x / gc.textExtent(" ").x;
+}

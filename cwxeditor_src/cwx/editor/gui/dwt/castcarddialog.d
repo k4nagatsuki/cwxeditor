@@ -131,6 +131,14 @@ private:
 	Combo _mtly;
 	Spinner _mtlyRound;
 
+	void refreshWarning() {
+		string[] ws;
+		if (_name.over) {
+			ws ~= _prop.msgs.warningNameLenOver(_prop.looks.castNameLimit);
+		}
+		warning = ws;
+	}
+
 	Race selectedRace() {
 		if (_race) {
 			int index = _race.getSelectionIndex;
@@ -398,7 +406,8 @@ private:
 				grp.setLayout = new GridLayout(2, false);
 				grp.setText = _prop.msgs.name;
 				_name = new GBLimitText(_prop.looks.messageFont(_summ.legacy).name,
-					_prop.looks.castNameLimit, grp, SWT.BORDER);
+					_prop.looks.castNameLimit, false, grp, SWT.BORDER);
+				_name.limitEvent ~= &refreshWarning;
 				auto gd = new GridData(GridData.FILL_HORIZONTAL);
 				gd.widthHint = _name.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
 				_name.widget.setLayoutData = gd;

@@ -221,6 +221,17 @@ private:
 			itm.setText(3, to!(string)(_summ.useCounter.get(C.toID(c.id))));
 		}
 		itm.setData = c;
+
+		int w = textWidth(_prop, itm.getParent, c.name);
+		static if (is(C : CastCard)) {
+			bool warn = w > _prop.looks.castNameLimit;
+		} else static if (is(C : InfoCard)) {
+			// 情報カード名はメッセージに表示されないため制限無し
+			bool warn = false;
+		} else {
+			bool warn = w > _prop.looks.nameLimit;
+		}
+		itm.setImage(1, warn ? _prop.images.warning : null);
 	}
 	template CopyAndPaste() {
 		override void cut(SelectionEvent se) {

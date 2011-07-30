@@ -59,6 +59,8 @@ public:
 	Image menuVersion() {return imgd!(resourceDir ~ "version.png");}
 	Image icon() {return imgd!("cwxeditor.ico");}
 
+	Image warning() {return imgd!(resourceDir ~ "warning.png");}
+
 	Image summary() {return imgd!(resourceDir ~ "summary.png");}
 
 	Image cards() {return imgd!(resourceDir ~ "cards.png");}
