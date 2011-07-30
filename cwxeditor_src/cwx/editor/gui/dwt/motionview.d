@@ -77,6 +77,8 @@ class MotionView : Composite {
 public:
 	/// 警告の有無が切り替わった時に呼び出される。
 	void delegate()[] warningEvent;
+	/// 効果の変更時に呼び出される。
+	void delegate()[] modEvent;
 private:
 	string _id;
 
@@ -109,15 +111,18 @@ private:
 	class DamageTypeListener : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
 			selection.damageType = getRadioValue!(DamageType)(_dmgTyp);
+			foreach (dlg; modEvent) dlg();
 		}
 	}
 	class AbiValListener : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
 			selection.aValue = _abiVal.getSelection - Motion.aValue_max;
+			foreach (dlg; modEvent) dlg();
 		}
 	}
 	void roundEnter(int value) {
 		selection.round = value;
+		foreach (dlg; modEvent) dlg();
 	}
 	int roundCancel(int oldVal) {
 		selection.round = oldVal;
@@ -125,6 +130,7 @@ private:
 	}
 	void valEnter(int value) {
 		selection.uValue = value;
+		foreach (dlg; modEvent) dlg();
 	}
 	int valCancel(int oldVal) {
 		selection.uValue = oldVal;
@@ -148,6 +154,7 @@ private:
 				v.appendMotion(m);
 				v._motions.select(v._motions.getItemCount - 1);
 				v.__refreshSels;
+				foreach (dlg; v.modEvent) dlg();
 			}
 		}
 		auto mt = new MT;
@@ -162,6 +169,9 @@ private:
 			if (b) {
 				auto dlg = new EffectCardDialog!(BeastCard)(_comm, _prop, getShell, _summ, b);
 				dlg.open;
+				dlg.applyEvent ~= {
+					foreach (dlg; modEvent) dlg();
+				};
 				return true;
 			}
 		}
@@ -195,6 +205,7 @@ private:
 		itm2.setImage = img;
 		itm2.setText = text;
 		itm2.setData = data;
+		foreach (dlg; modEvent) dlg();
 	}
 	void up() {
 		int index = _motions.getSelectionIndex;
@@ -219,6 +230,11 @@ private:
 		}
 		int index = _motions.getSelectionIndex;
 		if (index >= 0) {
+			auto m = cast(Motion) _motions.getItem(index).getData;
+			assert (m);
+			if (m.beast) {
+				_comm.delBeast.call(m.beast);
+			}
 			_motions.remove(index);
 			if (index >= _motions.getItemCount) index--;
 			if (index >= 0) {
@@ -227,6 +243,7 @@ private:
 			_oldIndex = -1;
 			_motions.redraw;
 			__refreshSels;
+			foreach (dlg; modEvent) dlg();
 		}
 	}
 	void appendMotion(Motion motion, int index = -1, bool callEvent = true) {
@@ -262,10 +279,8 @@ private:
 		_motionElm.setEnabled = sels.length > 0;
 		if (sels.length == 0) {
 			_motionElm.deselectAll;
-			if (stack.topControl !is _noneComp && _oldIndex != -1) {
-				stack.topControl = _noneComp;
-				_editComp.layout;
-			}
+			stack.topControl = _noneComp;
+			_editComp.layout;
 			_oldIndex = -1;
 		} else if (_oldIndex != _motions.getSelectionIndex) {
 			_oldIndex = _motions.getSelectionIndex;
@@ -324,8 +339,10 @@ private:
 			int index = _beasts.getSelectionIndex;
 			if (index >= 0) {
 				auto sb = cast(Motion) _motions.getItem(_motions.getSelectionIndex).getData;
+				if (sb.beast) _comm.delBeast.call(sb.beast);
 				sb.beast = _beastTbl[index];
 				_beastImg.redraw;
+				foreach (dlg; modEvent) dlg();
 			}
 		}
 	}
@@ -374,6 +391,7 @@ private:
 					__refreshSels;
 					e.detail = DND.DROP_MOVE;
 				}
+				foreach (dlg; modEvent) dlg();
 			} catch {}
 		}
 	}
@@ -405,6 +423,7 @@ private:
 				}
 				_itm.dispose;
 				_motions.redraw;
+				foreach (dlg; modEvent) dlg();
 			}
 		}
 	}
@@ -429,6 +448,7 @@ private:
 					}
 				}
 				m.element = cast(Element) (cast(Integer) _motionElm.getSelection[0].getData).intValue;
+				foreach (dlg; modEvent) dlg();
 			}
 		}
 	}
@@ -734,6 +754,7 @@ public:
 		foreach (m; motions) {
 			appendMotion(m.dup, -1, false);
 		}
+		foreach (dlg; modEvent) dlg();
 		_motions.setRedraw = true;
 	}
 	Motion[] motions() {
@@ -771,6 +792,7 @@ public:
 						appendMotion(Motion.createFromNode(node, LATEST_VERSION));
 						_motions.select(_motions.getItemCount - 1);
 						__refreshSels;
+						foreach (dlg; modEvent) dlg();
 					} else {
 						pasteBeast(node);
 					}
@@ -788,8 +810,10 @@ public:
 		auto m = selection;
 		if (m && m.detail.use(MArg.BEAST)) {
 			if (node.name == BeastCard.XML_NAME) {
+				if (m.beast) _comm.delBeast.call(m.beast);
 				m.setBeastFromNode(node, LATEST_VERSION);
 				_beastImg.redraw;
+				foreach (dlg; modEvent) dlg();
 			}
 		}
 	}
@@ -831,8 +855,10 @@ public:
 			if (m) {
 				assert (m.detail.use(MArg.BEAST));
 				if (m.beast) {
+					if (m.beast) _comm.delBeast.call(m.beast);
 					m.beast = null;
 					_beastImg.redraw;
+					foreach (dlg; modEvent) dlg();
 				}
 			}
 		}

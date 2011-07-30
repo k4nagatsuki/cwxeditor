@@ -163,6 +163,7 @@ private:
 				grp.setText = _prop.msgs.name;
 				_name = new GBLimitText(_prop.looks.messageFont(_summ.legacy).name,
 					_prop.looks.nameLimit, false, grp, SWT.BORDER);
+				mod(_name.widget);
 				_name.limitEvent ~= &refreshWarning;
 				auto gd = new GridData(GridData.FILL_HORIZONTAL);
 				gd.widthHint = _name.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
@@ -176,6 +177,7 @@ private:
 				string saveName = including ? _card.name : "";
 				_imgPath = new ImageSelect!(MtType.CARD)(comp2, SWT.NONE, _comm, _prop, _summ,
 					_prop.looks.cardSize.width, _prop.looks.cardSize.height, including, saveName);
+				mod(_imgPath);
 				_imgPath.widget.setLayoutData = new GridData(GridData.FILL_BOTH);
 			}
 		}
@@ -189,6 +191,7 @@ private:
 				grp.setLayout = new CenterLayout(SWT.VERTICAL);
 				grp.setText = _prop.msgs.needSpellGroup;
 				_needSpell = new Button(grp, SWT.CHECK);
+				mod(_needSpell);
 				_needSpell.setText = _prop.msgs.needSpell;
 			}
 			{
@@ -200,6 +203,7 @@ private:
 						EffectType.MAGICAL_PHYSIC, EffectType.PHYSICAL_MAGIC,
 						EffectType.NONE]) {
 					auto radio = new Button(grp, SWT.RADIO);
+					mod(radio);
 					if (2 <= i) {
 						auto gd = new GridData(GridData.FILL_BOTH);
 						gd.horizontalSpan = 2;
@@ -219,6 +223,7 @@ private:
 				grp.setLayout = new GridLayout(2, true);
 				foreach (res; [Resist.AVOID, Resist.RESIST, Resist.UNFAIL]) {
 					auto radio = new Button(grp, SWT.RADIO);
+					mod(radio);
 					radio.setLayoutData = new GridData(GridData.FILL_BOTH);
 					radio.setText = _prop.msgs.resist(res);
 					_res[res] = radio;
@@ -242,6 +247,7 @@ private:
 				auto comp2 = new Composite(grp, SWT.NONE);
 				comp2.setLayout = new GridLayout(2, false);
 				_level = new Spinner(comp2, SWT.BORDER);
+				mod(_level);
 				_level.setMaximum = _prop.looks.skillLevelMax;
 				_level.setMinimum = 0;
 				auto l = new Label(comp2, SWT.NONE);
@@ -256,6 +262,7 @@ private:
 				auto comp2 = new Composite(grp, SWT.NONE);
 				comp2.setLayout = new GridLayout(2, false);
 				_useCount = new Spinner(comp2, SWT.BORDER);
+				mod(_useCount);
 				_useCount.setMaximum = _prop.looks.useCountMax;
 				_useCount.setMinimum = 0;
 				auto l = new Label(comp2, SWT.NONE);
@@ -285,6 +292,7 @@ private:
 				l.setText = _prop.msgs.priceAuto;
 			} else static if (is (C == ItemCard)) {
 				_price = new Spinner(comp2, SWT.BORDER);
+				mod(_price);
 				_price.setMaximum = _prop.looks.priceMax;
 				_price.setMinimum = 0;
 				auto l = new Label(comp2, SWT.NONE);
@@ -301,6 +309,7 @@ private:
 			grp.setLayout = new CenterLayout(SWT.HORIZONTAL);
 			grp.setText = _prop.msgs.desc;
 			_desc = new FixedWidthText(dwtData(_prop.looks.cardDescFont(_summ.legacy)), _prop.looks.cardDescLen, grp, SWT.BORDER);
+			mod(_desc.widget);
 			_desc.widget.setLayoutData = _desc.computeTextBaseSize(_prop.looks.cardDescLine);
 		}
 		auto tab = new CTabItem(tabf, SWT.NONE);
@@ -327,6 +336,7 @@ private:
 			foreach (phy; [Physical.DEX, Physical.AGL, Physical.INT,
 					Physical.STR, Physical.VIT, Physical.MIN]) {
 				auto radio = new Button(comp2, SWT.RADIO);
+				mod(radio);
 				radio.setLayoutData = new GridData(GridData.FILL_VERTICAL);
 				radio.setText = _prop.msgs.physical(phy);
 				_phy[phy] = radio;
@@ -349,6 +359,7 @@ private:
 				Mental.TRICKISH, Mental.UNTRICKISH];
 			foreach (i, m; Ms) {
 				auto radio = new Button(comp2, SWT.RADIO);
+				mod(radio);
 				radio.setLayoutData = new GridData(GridData.FILL_BOTH);
 				radio.setText = _prop.msgs.mental(m);
 				_mtl[m] = radio;
@@ -365,6 +376,7 @@ private:
 		grp.setLayoutData = new GridData(GridData.FILL_BOTH);
 		grp.setLayout = new CenterLayout;
 		auto useMod = new RadarSpinner(grp, SWT.NONE);
+		mod(useMod);
 		static const Es = [Enhance.AVOID, Enhance.RESIST, Enhance.DEFENSE];
 		string[] names;
 		names.length = Es.length;
@@ -409,6 +421,7 @@ private:
 		comp.setLayout = new GridLayout(1, false);
 		{
 			_motions = new MotionView(_comm, _prop, _summ, comp);
+			mod(_motions);
 			_motions.warningEvent ~= &refreshWarning;
 			_motions.setLayoutData = new GridData(GridData.FILL_BOTH);
 		}
@@ -442,6 +455,7 @@ private:
 					foreach (t; [CardTarget.NONE, CardTarget.USER,
 							CardTarget.PARTY, CardTarget.ENEMY, CardTarget.BOTH]) {
 						auto radio = new Button(comp3, SWT.RADIO);
+						mod(radio);
 						radio.setLayoutData = new GridData(GridData.FILL_BOTH);
 						radio.setText = _prop.msgs.cardTarget(t);
 						radio.addSelectionListener(new OASelect);
@@ -458,10 +472,12 @@ private:
 					auto comp3 = new Composite(grp, SWT.NONE);
 					comp3.setLayout = new GridLayout(2, false);
 					auto one = new Button(comp3, SWT.RADIO);
+					mod(one);
 					one.setLayoutData = new GridData(GridData.FILL_BOTH);
 					one.setText = _prop.msgs.cardTargetOne;
 					_one = one;
 					auto all = new Button(comp3, SWT.RADIO);
+					mod(all);
 					all.setLayoutData = new GridData(GridData.FILL_BOTH);
 					all.setText = _prop.msgs.cardTargetAll;
 					_all = all;
@@ -476,6 +492,7 @@ private:
 				foreach (v; [CardVisual.NONE, CardVisual.HORIZONTAL,
 						CardVisual.REVERSE, CardVisual.VERTICAL]) {
 					auto radio = new Button(grp, SWT.RADIO);
+					mod(radio);
 					radio.setLayoutData = new GridData(GridData.FILL_BOTH);
 					radio.setText = _prop.msgs.cardVisual(v);
 					_vis[v] = radio;
@@ -488,6 +505,7 @@ private:
 				grp.setLayout = new GridLayout(1, false);
 				foreach (p; [Premium.NORMAL, Premium.RARE, Premium.PREMIUM]) {
 					auto radio = new Button(grp, SWT.RADIO);
+					mod(radio);
 					radio.setLayoutData = new GridData(GridData.FILL_BOTH);
 					radio.setText = _prop.msgs.premium(p);
 					_prem[p] = radio;
@@ -497,6 +515,7 @@ private:
 		{
 			createSuccessRateScale(_prop, comp, _sucRate)
 				.setLayoutData = new GridData(GridData.FILL_BOTH);
+			mod(_sucRate);
 		}
 		auto tab = new CTabItem(tabf, SWT.NONE);
 		tab.setText = _prop.msgs.cardProps;
@@ -514,8 +533,10 @@ private:
 			grp.setLayout = new GridLayout(1, false);
 			createDefSoundCombo(_prop, _summ, skin, grp, _se1, _prop.msgs.se1).setLayoutData
 				= new GridData(GridData.FILL_BOTH);
+			mod(_se1);
 			createDefSoundCombo(_prop, _summ, skin, grp, _se2, _prop.msgs.se2).setLayoutData
 				= new GridData(GridData.FILL_BOTH);
+			mod(_se2);
 		}
 		{
 			auto grp = new Group(comp, SWT.NONE);
@@ -530,6 +551,7 @@ private:
 			string[] stdKCs = _prop.var.etc.standardKeyCodes.dup;
 			for (int i = 0; i < _keyCodes.length; i++) {
 				_keyCodes[i] = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN);
+				mod(_keyCodes[i]);
 				_keyCodes[i].setVisibleItemCount = 20;
 				_keyCodes[i].setLayoutData = new GridData(GridData.FILL_BOTH);
 				//  FIXME: Argument not valid, java\lang\exceptions.d, 28
@@ -543,6 +565,26 @@ private:
 		tab.setText = _prop.msgs.seAndKeyCode;
 		tab.setControl = comp;
 		return tab;
+	}
+	void delCard(C c) {
+		if (_card is c) {
+			forceCancel();
+		}
+	}
+	void refScenario(Summary summ) {
+		forceCancel();
+	}
+	class Dispose : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			static if (is(C : SkillCard)) {
+				_comm.delSkill.remove(&delCard);
+			} else static if (is(C : ItemCard)) {
+				_comm.delItem.remove(&delCard);
+			} else static if (is(C : BeastCard)) {
+				_comm.delBeast.remove(&delCard);
+			} else static assert (0);
+			_comm.refScenario.remove(&refScenario);
+		}
 	}
 public:
 	this(Commons comm, Props prop, Shell shell, Summary summ, C card) {
@@ -566,7 +608,7 @@ public:
 		} else {
 			static assert (0);
 		}
-		super(prop, shell, text, img, true, size);
+		super(prop, shell, false, text, img, true, size, true);
 	}
 
 	C card() {
@@ -588,6 +630,16 @@ protected:
 		constructProps(tabf);
 		constructKeyCode(tabf);
 
+		static if (is(C : SkillCard)) {
+			_comm.delSkill.add(&delCard);
+		} else static if (is(C : ItemCard)) {
+			_comm.delItem.add(&delCard);
+		} else static if (is(C : BeastCard)) {
+			_comm.delBeast.add(&delCard);
+		} else static assert (0);
+		_comm.refScenario.add(&refScenario);
+		area.addDisposeListener(new Dispose);
+
 		auto skin = _comm.skin;
 		// Windows Vistaだとタブの横幅が凄いことになったので必要最低限にする。
 		scope maxSize = new Point(0, 0);
@@ -602,6 +654,8 @@ protected:
 		gd.heightHint = rect.height;
 		tabf.setLayoutData = gd;
 
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
 		if (_card) {
 			_imgPath.image = _card.path;
 			_desc.setText = _card.desc;
@@ -691,60 +745,58 @@ protected:
 		_all.setEnabled = _oneAllGrp.getEnabled;
 	}
 
-	override bool close(bool ok, out bool cancel) {
-		if (ok) {
-			if (_card) {
-				_card.path = _imgPath.image;
-				_card.desc = wrapReturnCode(_desc.getText);
-				_card.name = _name.getText;
-			} else {
-				_card = new C(_summ.newId!(C), _name.getText,
-					_imgPath.image, wrapReturnCode(_desc.getText));
-			}
-			_card.spell = _needSpell.getSelection;
-			putRadioValue!(EffectType)(_effTyp, &_card.effectType);
-			putRadioValue!(Resist)(_res, &_card.resist);
-			putRadioValue!(Physical)(_phy, &_card.physical);
-			putRadioValue!(Mental)(_mtl, &_card.mental);
-			static if (is (C == SkillCard)) {
-				_card.level = _level.getSelection;
-			}
-			static if (is (C == ItemCard)) {
-				_card.useLimitMax = _useCount.getSelection;
-				_card.useLimit = _useCount.getSelection;
-			} else static if (is (C == BeastCard)) {
-				_card.useLimit = _useCount.getSelection;
-			}
-			static if (is (C == ItemCard)) {
-				_card.price = _price.getSelection;
-			}
-			_card.motions = _motions.motions;
-			foreach (e, index; _useModTbl) {
-				_card.enhance(e, _useMod.getValue(index));
-			}
-			static if (is (C == ItemCard)) {
-				foreach (e, index; _hasModTbl) {
-					_card.enhanceOwner(e, _hasMod.getValue(index));
-				}
-			}
-			putRadioValue!(CardTarget)(_targ, &_card.target);
-			_card.allRange = _oneAllGrp.isEnabled && _all.getSelection;
-			putRadioValue!(CardVisual)(_vis, &_card.visual);
-			putRadioValue!(Premium)(_prem, &_card.premium);
-			_card.successRate = cast(int) _sucRate.getSelection - Content.successRate_max;
-			_card.soundPath1 = _se1.getSelectionIndex > 0 ? _se1.getText : "";
-			_card.soundPath2 = _se2.getSelectionIndex > 0 ? _se2.getText : "";
-			string[] keyCodes;
-			int last = 0;
-			foreach (i, c; _keyCodes) {
-				keyCodes ~= c.getText;
-				if (c.getText.length > 0) last = i + 1;
-			}
-			keyCodes.length = last;
-			_card.scenario = _summ.scenarioName;
-			_card.author = _summ.author;
-			_card.keyCodes = keyCodes;
+	override bool apply() {
+		if (_card) {
+			_card.path = _imgPath.image;
+			_card.desc = wrapReturnCode(_desc.getText);
+			_card.name = _name.getText;
+		} else {
+			_card = new C(_summ.newId!(C), _name.getText,
+				_imgPath.image, wrapReturnCode(_desc.getText));
 		}
-		return ok;
+		_card.spell = _needSpell.getSelection;
+		putRadioValue!(EffectType)(_effTyp, &_card.effectType);
+		putRadioValue!(Resist)(_res, &_card.resist);
+		putRadioValue!(Physical)(_phy, &_card.physical);
+		putRadioValue!(Mental)(_mtl, &_card.mental);
+		static if (is (C == SkillCard)) {
+			_card.level = _level.getSelection;
+		}
+		static if (is (C == ItemCard)) {
+			_card.useLimitMax = _useCount.getSelection;
+			_card.useLimit = _useCount.getSelection;
+		} else static if (is (C == BeastCard)) {
+			_card.useLimit = _useCount.getSelection;
+		}
+		static if (is (C == ItemCard)) {
+			_card.price = _price.getSelection;
+		}
+		_card.motions = _motions.motions;
+		foreach (e, index; _useModTbl) {
+			_card.enhance(e, _useMod.getValue(index));
+		}
+		static if (is (C == ItemCard)) {
+			foreach (e, index; _hasModTbl) {
+				_card.enhanceOwner(e, _hasMod.getValue(index));
+			}
+		}
+		putRadioValue!(CardTarget)(_targ, &_card.target);
+		_card.allRange = _oneAllGrp.isEnabled && _all.getSelection;
+		putRadioValue!(CardVisual)(_vis, &_card.visual);
+		putRadioValue!(Premium)(_prem, &_card.premium);
+		_card.successRate = cast(int) _sucRate.getSelection - Content.successRate_max;
+		_card.soundPath1 = _se1.getSelectionIndex > 0 ? _se1.getText : "";
+		_card.soundPath2 = _se2.getSelectionIndex > 0 ? _se2.getText : "";
+		string[] keyCodes;
+		int last = 0;
+		foreach (i, c; _keyCodes) {
+			keyCodes ~= c.getText;
+			if (c.getText.length > 0) last = i + 1;
+		}
+		keyCodes.length = last;
+		_card.scenario = _summ.scenarioName;
+		_card.author = _summ.author;
+		_card.keyCodes = keyCodes;
+		return true;
 	}
 }

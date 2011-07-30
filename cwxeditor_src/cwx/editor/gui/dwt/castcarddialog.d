@@ -1155,7 +1155,7 @@ private:
 		changeMentality;
 		changeLifeUseMax;
 	}
-	void delCast(CastCard c) {
+	void delCard(CastCard c) {
 		if (_card is c) {
 			forceCancel();
 		}
@@ -1165,7 +1165,7 @@ private:
 	}
 	class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
-			_comm.delCast.remove(&delCast);
+			_comm.delCast.remove(&delCard);
 			_comm.refScenario.remove(&refScenario);
 		}
 	}
@@ -1198,7 +1198,7 @@ protected:
 		constructEnhance(tabf);
 		constructStatus(tabf);
 
-		_comm.delCast.add(&delCast);
+		_comm.delCast.add(&delCard);
 		_comm.refScenario.add(&refScenario);
 		area.addDisposeListener(new Dispose);
 
