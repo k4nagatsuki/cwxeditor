@@ -162,16 +162,27 @@ private:
 		mt.type = type;
 		createToolItem(tbar, tt, _prop.images.motion(type), &mt.create);
 	}
+	private EffectCardDialog!(BeastCard) _beastDlg = null;
+	void editBeastM() {
+		editBeast();
+	}
 	bool editBeast() {
 		auto m = selection;
 		if (m && m.detail.use(MArg.BEAST)) {
 			auto b = m.beast;
 			if (b) {
-				auto dlg = new EffectCardDialog!(BeastCard)(_comm, _prop, getShell, _summ, b);
-				dlg.open;
-				dlg.applyEvent ~= {
-					foreach (dlg; modEvent) dlg();
-				};
+				if (_beastDlg) {
+					_beastDlg.active();
+				} else {
+					_beastDlg = new EffectCardDialog!(BeastCard)(_comm, _prop, getShell, _summ, b);
+					_beastDlg.open;
+					_beastDlg.applyEvent ~= {
+						foreach (dlg; modEvent) dlg();
+					};
+					_beastDlg.closeEvent ~= {
+						_beastDlg = null;
+					};
+				}
 				return true;
 			}
 		}
@@ -183,6 +194,10 @@ private:
 			if (e.button == 1) {
 				editBeast;
 			}
+		}
+		void mouseDown(MouseEvent e) {
+			auto ctrl = cast(Control) e.widget;
+			ctrl.setFocus;
 		}
 		void keyReleased(KeyEvent e) {}
 		void keyPressed(KeyEvent e) {
@@ -653,6 +668,8 @@ public:
 				_beastImg.addMouseListener(eb);
 				_beastImg.addKeyListener(eb);
 				auto menu = new Menu(_beastImg);
+				createMenuItem(menu, prop.msgs.menuCEdit, prop.images.menuCEdit, &editBeastM);
+				new MenuItem(menu, SWT.SEPARATOR);
 				appendMenuTCPD(_prop, menu, new BeastTCPD);
 				_beastImg.setMenu = menu;
 				usingPopupMenuAccelerator(_beastImg);

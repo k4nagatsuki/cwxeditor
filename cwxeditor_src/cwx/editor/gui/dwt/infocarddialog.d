@@ -27,6 +27,8 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.DisposeEvent;
 
 public:
 
@@ -45,6 +47,20 @@ private:
 		// 情報カード名はメッセージに表示されないため制限無し
 	}
 
+	void delCard(InfoCard c) {
+		if (_card is c) {
+			forceCancel();
+		}
+	}
+	void refScenario(Summary summ) {
+		forceCancel();
+	}
+	class Dispose : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			_comm.delInfo.remove(&delCard);
+			_comm.refScenario.remove(&refScenario);
+		}
+	}
 public:
 	this(Commons comm, Props prop, Shell shell, Summary summ, InfoCard card) {
 		assert (summ !is null);
@@ -52,8 +68,8 @@ public:
 		_summ = summ;
 		_card = card;
 		_prop = prop;
-		super(prop, shell, _card ? _prop.msgs.dlgTitInfo(_card.name) : _prop.msgs.dlgTitNewInfo,
-			_prop.images.info, true, _prop.var.infoCardDlg);
+		super(prop, shell, false, _card ? _prop.msgs.dlgTitInfo(_card.name) : _prop.msgs.dlgTitNewInfo,
+			_prop.images.info, true, _prop.var.infoCardDlg, true);
 		enterClose = true;
 	}
 
@@ -66,16 +82,15 @@ protected:
 		{
 			auto grp = new Group(area, SWT.NONE);
 			grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-			grp.setLayout = new GridLayout(2, false);
+			grp.setLayout = new GridLayout(1, false);
 			grp.setText = _prop.msgs.name;
 			_name = new GBLimitText(_prop.looks.messageFont(_summ.legacy).name,
 				_prop.looks.nameLimit, false, grp, SWT.BORDER);
+			mod(_name.widget);
 			_name.limitEvent ~= &refreshWarning;
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
 			gd.widthHint = _name.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
 			_name.widget.setLayoutData = gd;
-			auto l = new Label(grp, SWT.NONE);
-			l.setText = _prop.msgs.nameLimit(_prop.looks.nameLimit);
 		}
 		{
 			auto skin = _comm.skin;
@@ -83,6 +98,7 @@ protected:
 			string saveName = including ? _card.name : "";
 			_imgPath = new ImageSelect!(MtType.CARD)(area, SWT.NONE, _comm, _prop, _summ,
 				_prop.looks.cardSize.width, _prop.looks.cardSize.height, including, saveName);
+			mod(_imgPath);
 			_imgPath.widget.setLayoutData = new GridData(GridData.FILL_BOTH);
 		}
 		{
@@ -91,8 +107,15 @@ protected:
 			grp.setLayout = new CenterLayout(SWT.HORIZONTAL);
 			grp.setText = _prop.msgs.desc;
 			_desc = new FixedWidthText(dwtData(_prop.looks.cardDescFont(_summ.legacy)), _prop.looks.cardDescLen, grp, SWT.BORDER);
+			mod(_desc.widget);
 			_desc.widget.setLayoutData = _desc.computeTextBaseSize(_prop.looks.cardDescLine);
 		}
+		_comm.delInfo.add(&delCard);
+		_comm.refScenario.add(&refScenario);
+		area.addDisposeListener(new Dispose);
+
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
 		if (_card) {
 			_imgPath.image = _card.path;
 			_name.setText = _card.name;
@@ -102,17 +125,15 @@ protected:
 		}
 	}
 
-	override bool close(bool ok) {
-		if (ok) {
-			if (_card) {
-				_card.name = _name.getText;
-				_card.path = _imgPath.image;
-				_card.desc = wrapReturnCode(_desc.getText);
-			} else {
-				_card = new InfoCard(_summ.newId!(InfoCard), _name.getText,
-					_imgPath.image, wrapReturnCode(_desc.getText));
-			}
+	override bool apply() {
+		if (_card) {
+			_card.name = _name.getText;
+			_card.path = _imgPath.image;
+			_card.desc = wrapReturnCode(_desc.getText);
+		} else {
+			_card = new InfoCard(_summ.newId!(InfoCard), _name.getText,
+				_imgPath.image, wrapReturnCode(_desc.getText));
 		}
-		return ok;
+		return true;
 	}
 }

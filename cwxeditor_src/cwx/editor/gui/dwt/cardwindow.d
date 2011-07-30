@@ -559,20 +559,34 @@ private:
 	}
 
 	static if (EditMode) {
+		static if (is (C == CastCard)) {
+			CastCardDialog[C] _editDlgs;
+		} else static if (is (C : EffectCard)) {
+			EffectCardDialog!(C)[C] _editDlgs;
+		} else static if (is (C == InfoCard)) {
+			InfoCardDialog[C] _editDlgs;
+		} else static assert (0, typeof(C));
 		void edit(C c) {
+			auto p = c in _editDlgs;
+			if (p) {
+				p.active();
+				return;
+			}
 			static if (is (C == CastCard)) {
 				auto dlg = new CastCardDialog(_comm, _prop, _list.getShell, _summ, c);
 			} else static if (is (C : EffectCard)) {
 				auto dlg = new EffectCardDialog!(C)(_comm, _prop, _list.getShell, _summ, c);
 			} else static if (is (C == InfoCard)) {
 				auto dlg = new InfoCardDialog(_comm, _prop, _list.getShell, _summ, c);
-			} else {
-				static assert (0, typeof(C));
-			}
+			} else static assert (0, typeof(C));
 			dlg.applyEvent ~= {
 				refresh;
 				refCard(c);
 			};
+			dlg.closeEvent ~= {
+				_editDlgs.remove(c);
+			};
+			_editDlgs[c] = dlg;
 			dlg.open();
 		}
 	}
@@ -1034,12 +1048,17 @@ public:
 				static assert (0);
 			}
 			dlg.applyEvent ~= {
-				_owner.add(dlg.card);
+				auto c = dlg.card;
+				_owner.add(c);
 				refresh;
 				select(__cards.length - 1);
 				static if (is (CardOwner : CastCard) && is (C : BeastCard)) {
 					_comm.refCast.call(_owner);
 				}
+				_editDlgs[c] = dlg;
+				dlg.closeEvent ~= {
+					_editDlgs.remove(c);
+				};
 			};
 			dlg.open();
 		}

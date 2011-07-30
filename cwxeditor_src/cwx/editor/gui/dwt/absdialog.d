@@ -144,6 +144,9 @@ abstract class AbsDialog {
 		override void shellClosed(ShellEvent e) {
 			if (_forceCancel) {
 				e.doit = true;
+				foreach (dlg; closeEvent) {
+					dlg();
+				}
 				return;
 			}
 			bool cancel;
@@ -156,8 +159,10 @@ abstract class AbsDialog {
 				_size.height = s.y;
 			}
 			if (e.doit) {
-				foreach (dlg; applyEvent) {
-					dlg();
+				if (_ret) {
+					foreach (dlg; applyEvent) {
+						dlg();
+					}
 				}
 				foreach (dlg; closeEvent) {
 					dlg();
