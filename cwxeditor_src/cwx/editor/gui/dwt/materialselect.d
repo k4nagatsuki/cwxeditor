@@ -46,6 +46,8 @@ enum MtType {
 }
 
 class MaterialSelect(MtType Type, D, C) {
+	/// パスの変更時に呼び出される。
+	void delegate()[] modEvent;
 public:
 	this(Commons comm, Props prop, Summary summ, void delegate() refresh, string[] defs, int including = -1) {
 		_comm = comm;
@@ -179,6 +181,12 @@ public:
 		return "";
 	}
 	void path(string path) {
+		auto old = _path;
+		scope (exit) {
+			if (old != _path) {
+				foreach (dlg; modEvent) dlg();
+			}
+		}
 		_path = path;
 		_oldPath = _path;
 		refreshPaths;
@@ -290,11 +298,20 @@ private:
 		public override void widgetSelected(SelectionEvent e) {
 			refreshList;
 			if (_dirs.getSelectionIndex < _defs.length) {
-				_selDir = 0;
 				_path = "";
+				if (_selDir != _dirs.getSelectionIndex) {
+					foreach (dlg; modEvent) dlg();
+				}
+				_selDir = _dirs.getSelectionIndex;
 				if (_refresh) _refresh();
 			} else {
 				static if (is(C : Combo) || is(C : CCombo)) {
+					auto old = _path;
+					scope (exit) {
+						if (old != _path) {
+							foreach (dlg; modEvent) dlg();
+						}
+					}
 					string p = currentDir;
 					if (!p) return;
 					if (0 == _fileList.getItemCount) return;
@@ -309,6 +326,12 @@ private:
 		public override void widgetSelected(SelectionEvent e) {
 			int index = _fileList.getSelectionIndex;
 			if (index < 0) return;
+			auto old = _path;
+			scope (exit) {
+				if (old != _path) {
+					foreach (dlg; modEvent) dlg();
+				}
+			}
 			if (_allList) {
 				string s = _fileList.getItem(index);
 				string file;
@@ -580,6 +603,12 @@ private:
 		}
 	}
 	void __refPath(string o, string n, bool isDir) {
+		auto old = _path;
+		scope (exit) {
+			if (old != _path) {
+				foreach (dlg; modEvent) dlg();
+			}
+		}
 		if (isDir) {
 			int i = _defs.length;
 			if (_tbl >= 0) i++;

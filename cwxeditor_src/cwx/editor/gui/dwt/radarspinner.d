@@ -35,6 +35,9 @@ import java.lang.all;
 public:
 
 class RadarSpinner : Composite {
+	/// 値の変更時に呼び出される。
+	void delegate()[] modEvent;
+
 	/// トグルのスタイル。
 	static enum Toggle {
 		SQUARE, /// 四画。
@@ -88,6 +91,7 @@ class RadarSpinner : Composite {
 		if (!_readOnly) {
 			_mod_redraw = new class Listener {
 				override void handleEvent(Event e) {
+					foreach (dlg; modEvent) dlg();
 					redraw;
 				}
 			};
@@ -108,6 +112,7 @@ class RadarSpinner : Composite {
 							}
 						}
 						setValue(i, minIdx + _min);
+						foreach (dlg; modEvent) dlg();
 						redraw;
 					} else {
 						__cursor_check(e.x, e.y);

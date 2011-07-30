@@ -569,10 +569,11 @@ private:
 			} else {
 				static assert (0, typeof(C));
 			}
-			if (dlg.open) {
+			dlg.applyEvent ~= {
 				refresh;
 				refCard(c);
-			}
+			};
+			dlg.open();
 		}
 	}
 	static if (EditMode) {
@@ -1032,14 +1033,15 @@ public:
 			} else {
 				static assert (0);
 			}
-			if (dlg.open) {
+			dlg.applyEvent ~= {
 				_owner.add(dlg.card);
 				refresh;
 				select(__cards.length - 1);
 				static if (is (CardOwner : CastCard) && is (C : BeastCard)) {
 					_comm.refCast.call(_owner);
 				}
-			}
+			};
+			dlg.open();
 		}
 		static if (is (CardOwner == Summary)) {
 			private void __refreshUseCount() {

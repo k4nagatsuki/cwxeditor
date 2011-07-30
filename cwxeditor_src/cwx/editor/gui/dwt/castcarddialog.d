@@ -223,6 +223,7 @@ private:
 			}
 			appendCoupon(new Coupon(_newCoupon.getText, _couponVal.getSelection), _coupons.getSelectionIndex);
 		}
+		applyEnabled();
 	}
 	void altCoupon() {
 		int index = _coupons.getSelectionIndex;
@@ -239,6 +240,7 @@ private:
 			itm.setText(0, coupon.name);
 			itm.setText(1, to!(string)(coupon.value));
 			itm.setData = coupon;
+			applyEnabled();
 		}
 	}
 	void delCoupon() {
@@ -250,6 +252,7 @@ private:
 				_coupons.select = i;
 				selCoupon;
 			}
+			applyEnabled();
 		}
 	}
 	void selCoupon() {
@@ -260,7 +263,7 @@ private:
 			_couponVal.setSelection = c.value;
 		}
 	}
-	void swap(int index1, int index2) {
+	void swapCoupon(int index1, int index2) {
 		auto itm1 = _coupons.getItem(index1);
 		auto itm2 = _coupons.getItem(index2);
 		auto img = itm1.getImage;
@@ -275,18 +278,19 @@ private:
 		itm2.setText(0, text1);
 		itm2.setText(1, text2);
 		itm2.setData = data;
+		applyEnabled();
 	}
 	void upCoupon() {
 		int index = _coupons.getSelectionIndex;
 		if (index > 0) {
-			swap(index, index - 1);
+			swapCoupon(index, index - 1);
 			_coupons.select(index - 1);
 		}
 	}
 	void downCoupon() {
 		int index = _coupons.getSelectionIndex;
 		if (index >= 0 && index + 1 < _coupons.getItemCount) {
-			swap(index, index + 1);
+			swapCoupon(index, index + 1);
 			_coupons.select(index + 1);
 		}
 	}
@@ -313,6 +317,7 @@ private:
 					_coupons.select(index);
 					e.detail = DND.DROP_MOVE;
 				}
+				applyEnabled();
 			} catch {}
 		}
 	}
@@ -371,6 +376,7 @@ private:
 					if (node.name == Coupon.XML_NAME) {
 						appendCoupon(Coupon.fromNode(node, LATEST_VERSION), _coupons.getSelectionIndex);
 					}
+					applyEnabled();
 				} catch (Exception e) {
 					debugln(e);
 				}
@@ -408,6 +414,7 @@ private:
 				_name = new GBLimitText(_prop.looks.messageFont(_summ.legacy).name,
 					_prop.looks.castNameLimit, false, grp, SWT.BORDER);
 				_name.limitEvent ~= &refreshWarning;
+				mod(_name.widget);
 				auto gd = new GridData(GridData.FILL_HORIZONTAL);
 				gd.widthHint = _name.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
 				_name.widget.setLayoutData = gd;
@@ -420,6 +427,7 @@ private:
 				_imgPath = new ImageSelect!(MtType.CARD)(comp2, SWT.NONE, _comm, _prop, _summ,
 					_prop.looks.cardSize.width, _prop.looks.cardSize.height, including, saveName);
 				_imgPath.widget.setLayoutData = new GridData(GridData.FILL_BOTH);
+				mod(_imgPath);
 			}
 		}
 		{
@@ -434,6 +442,7 @@ private:
 				auto comp2 = new Composite(grp, SWT.NONE);
 				comp2.setLayout = zeroMarginGridLayout(2, false);
 				_level = new Spinner(comp2, SWT.BORDER);
+				mod(_level);
 				_level.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				_level.setMinimum = 1;
 				_level.setMaximum = _prop.looks.castLevelMax;
@@ -448,6 +457,7 @@ private:
 				auto comp2 = new Composite(grp, SWT.NONE);
 				comp2.setLayout = zeroMarginGridLayout(2, false);
 				_lifeMax = new Spinner(comp2, SWT.BORDER);
+				mod(_lifeMax);
 				_lifeMax.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				_lifeMax.setMinimum = 1;
 				_lifeMax.setMaximum = _prop.looks.lifeMax;
@@ -455,6 +465,7 @@ private:
 				auto hint = new Label(comp2, SWT.RIGHT);
 				hint.setText = _prop.msgs.rangeHint(1, _prop.looks.lifeMax);
 				auto lifec = new Button(comp2, SWT.PUSH);
+				mod(lifec);
 				auto lgd = new GridData(GridData.FILL_HORIZONTAL);
 				lgd.horizontalSpan = 2;
 				lifec.setLayoutData = lgd;
@@ -469,6 +480,7 @@ private:
 				cl.fillHorizontal = true;
 				grp.setLayout = cl;
 				_race = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
+				mod(_race);
 				_race.setVisibleItemCount = 20;
 				_race.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				_race.add(_prop.msgs.noRace);
@@ -506,6 +518,7 @@ private:
 			grp.setLayout = cl;
 			grp.setText = _prop.msgs.desc;
 			_desc = new FixedWidthText(dwtData(_prop.looks.cardDescFont(_summ.legacy)), _prop.looks.cardDescLen, grp, SWT.BORDER);
+			mod(_desc.widget);
 			auto p = _desc.computeTextBaseSize(1);
 			p.y = SWT.DEFAULT;
 			_desc.widget.setLayoutData = p;
@@ -587,6 +600,7 @@ private:
 			comp2.setLayout = zeroMarginGridLayout(2, false);
 			Button createR(Composite parent, string name) {
 				auto radio = new Button(parent, SWT.RADIO);
+				mod(radio);
 				radio.setLayoutData = new GridData(GridData.FILL_BOTH);
 				radio.setText = name;
 				return radio;
@@ -637,6 +651,7 @@ private:
 			foreach (m; MAKINGS_LEFT) {
 				void createR(Makings m) {
 					auto radio = new Button(comp3, SWT.CHECK);
+					mod(radio);
 					radio.setLayoutData = new GridData(GridData.FILL_BOTH);
 					radio.setText = _prop.sys.makingsName(m, skin.legacyName);
 					radio.setData = new Integer(m);
@@ -687,6 +702,7 @@ private:
 			comp.setLayoutData = new GridData(GridData.FILL_BOTH);
 			comp.setLayout = zeroGridLayout(2, false);
 			auto c = new Button(comp, SWT.CHECK);
+			mod(c);
 			auto cgd = new GridData(GridData.FILL_HORIZONTAL);
 			cgd.horizontalSpan = 2;
 			c.setLayoutData = cgd;
@@ -737,6 +753,7 @@ private:
 		}
 		{
 			auto basic = new Button(comp, SWT.PUSH);
+			mod(basic);
 			basic.setText = _prop.msgs.basicResist;
 			basic.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
 			basic.addSelectionListener(new BasicResist);
@@ -755,6 +772,7 @@ private:
 			auto cl = new CenterLayout;
 			grp.setLayout = cl;
 			_phy = new RadarSpinner(grp, SWT.NONE);
+			mod(_phy);
 			static const Ps = [Physical.DEX, Physical.AGL, Physical.INT,
 				Physical.STR, Physical.VIT, Physical.MIN];
 			string[] names;
@@ -771,6 +789,7 @@ private:
 		}
 		{
 			auto basic = new Button(comp, SWT.PUSH);
+			mod(basic);
 			basic.setText = _prop.msgs.physicalCalc;
 			basic.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
 			basic.addSelectionListener(new CalcPhysical);
@@ -846,6 +865,7 @@ private:
 				auto minl = new Label(grp, SWT.NONE);
 				minl.setText = _prop.msgs.mental(reverseMental(m));
 				auto scale = new Scale(grp, SWT.NONE);
+				mod(scale);
 				scale.setLayoutData = new GridData(GridData.FILL_BOTH);
 				scale.setMaximum = _prop.looks.mentalMax * 2;
 				scale.setMinimum = 0;
@@ -858,6 +878,7 @@ private:
 		}
 		{
 			auto basic = new Button(comp, SWT.PUSH);
+			mod(basic);
 			basic.setText = _prop.msgs.mentalCalc;
 			basic.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
 			basic.addSelectionListener(new CalcMental);
@@ -911,6 +932,7 @@ private:
 			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
 			grp.setLayout = new CenterLayout;
 			_enh = new RadarSpinner(grp, SWT.NONE);
+			mod(_enh);
 			static const Es = [Enhance.AVOID, Enhance.RESIST, Enhance.DEFENSE];
 			string[] names;
 			names.length = Es.length;
@@ -927,6 +949,7 @@ private:
 		}
 		{
 			auto basic = new Button(comp, SWT.PUSH);
+			mod(basic);
 			basic.setText = _prop.msgs.basicEnhance;
 			basic.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
 			basic.addSelectionListener(new BasicEnhance);
@@ -945,6 +968,7 @@ private:
 			Composite comp2 = new Composite(comp, SWT.NONE);
 			comp2.setLayout = new FillLayout;
 			auto spn = new Spinner(comp2, SWT.BORDER);
+			mod(spn);
 			spns ~= comp2;
 			return spn;
 		}
@@ -977,7 +1001,9 @@ private:
 				l.setText = _prop.msgs.life;
 				lbls1 ~= l;
 				_life = new Spinner(comp2, SWT.BORDER);
+				mod(_life);
 				_lifeUseMax = new Button(comp2, SWT.CHECK);
+				mod(_lifeUseMax);
 				_lifeUseMax.setText = _prop.msgs.useMax;
 				_lifeUseMax.addSelectionListener(new LifeUseMax);
 			}
@@ -987,6 +1013,7 @@ private:
 				lm.setText = _prop.msgs.mentality;
 				lbls1 ~= lm;
 				_mtly = new Combo(comp2, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
+				mod(_mtly);
 				_mtly.setVisibleItemCount = 20;
 				foreach (i, mtly; [Mentality.NORMAL, Mentality.SLEEP, Mentality.CONFUSE,
 						Mentality.OVERHEAT, Mentality.BRAVE, Mentality.PANIC]) {
@@ -1067,6 +1094,7 @@ private:
 		setlblw(cast(Control[]) spns);
 		{
 			auto reset = new Button(comp, SWT.PUSH);
+			mod(reset);
 			reset.setText = _prop.msgs.resetLiveStatus;
 			reset.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
 			reset.addSelectionListener(new ResetLiveStatus);
@@ -1127,6 +1155,20 @@ private:
 		changeMentality;
 		changeLifeUseMax;
 	}
+	void delCast(CastCard c) {
+		if (_card is c) {
+			forceCancel();
+		}
+	}
+	void refScenario(Summary summ) {
+		forceCancel();
+	}
+	class Dispose : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			_comm.delCast.remove(&delCast);
+			_comm.refScenario.remove(&refScenario);
+		}
+	}
 public:
 	this(Commons comm, Props prop, Shell shell, Summary summ, CastCard card) {
 		assert (summ !is null);
@@ -1135,8 +1177,8 @@ public:
 		_summ = summ;
 		_card = card;
 		_prop = prop;
-		super(prop, shell, _card ? _prop.msgs.dlgTitCast(_card.name) : _prop.msgs.dlgTitNewCast,
-			_prop.images.casts, true, _prop.var.castCardDlg);
+		super(prop, shell, false, _card ? _prop.msgs.dlgTitCast(_card.name) : _prop.msgs.dlgTitNewCast,
+			_prop.images.casts, true, _prop.var.castCardDlg, true);
 	}
 
 	CastCard card() {
@@ -1156,6 +1198,10 @@ protected:
 		constructEnhance(tabf);
 		constructStatus(tabf);
 
+		_comm.delCast.add(&delCast);
+		_comm.refScenario.add(&refScenario);
+		area.addDisposeListener(new Dispose);
+
 		// Windows Vistaだとタブの横幅が凄いことになったので必要最低限にする。
 		scope maxSize = new Point(0, 0);
 		foreach (tab; tabf.getItems) {
@@ -1169,6 +1215,8 @@ protected:
 		gd.heightHint = rect.height;
 		tabf.setLayoutData = gd;
 
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
 		auto skin = _comm.skin;
 		if (_card) {
 			_imgPath.image = _card.path;
@@ -1299,85 +1347,83 @@ protected:
 		}
 		return null;
 	}
-	override bool close(bool ok) {
-		if (ok) {
-			if (_card) {
-				_card.path = _imgPath.image;
-				_card.desc = _desc.getRRText;
-				_card.name = _name.getText;
-				_card.level = _level.getSelection;
-				_card.lifeMax = _lifeMax.getSelection;
-				_card.life = _lifeMax.getSelection;
-			} else {
-				_card = new CastCard(_summ.newId!(CastCard), _name.getText, _imgPath.image,
-					_desc.getRRText, _level.getSelection, _lifeMax.getSelection);
-			}
-			auto skin = _comm.skin;
-			string legacyName = skin.legacyName;
-			Coupon[] cs;
-			auto sex = createCoupon!(Sex)(_sex, &_prop.sys.sexCoupon, legacyName);
-			if (sex) cs ~= sex;
-			auto race = selectedRace;
-			if (race) {
-				cs ~= new Coupon(_prop.msgs.raceCoupon(race), 0);
-			}
-			auto period = createCoupon!(Period)(_period, &_prop.sys.periodCoupon, legacyName);
-			if (period) cs ~= period;
-			auto nature = createCoupon!(Nature)(_nature, &_prop.sys.natureCoupon, legacyName);
-			if (nature) cs ~= nature;
-			foreach (m, radio; _makings) {
-				if (radio.getSelection) {
-					cs ~= new Coupon(_prop.sys.makingsCoupon(m, legacyName), 0);
-				}
-			}
-			cs ~= coupons;
-			_card.coupons = cs;
-			_card.weaponResist = _resW.getSelection;
-			_card.magicResist = _resM.getSelection;
-			_card.undead = _undead.getSelection;
-			_card.automaton = _automaton.getSelection;
-			_card.unholy = _unholy.getSelection;
-			_card.constructure = _constructure.getSelection;
-			foreach (e, radio; _res) {
-				_card.resist(e, radio.getSelection);
-			}
-			foreach (e, radio; _weak) {
-				_card.weakness(e, radio.getSelection);
-			}
-			foreach (phy, i; _phyTbl) {
-				_card.physical(phy, _phy.getValue(i));
-			}
-			foreach (mtl, scale; _mtl) {
-				_card.mental(mtl, cast(int) scale.getSelection - _prop.looks.mentalMax);
-			}
-			foreach (enh, i; _enhTbl) {
-				_card.defaultEnhance(enh, _enh.getValue(i));
-			}
-
-			_card.life = _lifeUseMax.getSelection ? _card.lifeMax : _life.getSelection;
-			foreach (enh, spn; _liveEnh) {
-				if (_enhRound[enh].getSelection > 0) {
-					_card.enhance(enh, spn.getSelection);
-				} else {
-					_card.enhance(enh, 0);
-				}
-			}
-			foreach (enh, spn; _enhRound) {
-				if (_card.enhance(enh) != 0) {
-					_card.enhanceRound(enh, spn.getSelection);
-				}
-			}
-			_card.paralyze = _paralyze.getSelection;
-			_card.poison = _poison.getSelection;
-			_card.bindRound = _bind.getSelection;
-			_card.silenceRound = _silence.getSelection;
-			_card.faceUpRound = _faceUp.getSelection;
-			_card.antiMagicRound = _antiMagic.getSelection;
-			_card.mentality = _mtlyRound.getSelection == 0
-				? Mentality.NORMAL : _mtlyTbl[_mtly.getSelectionIndex];
-			_card.mentalityRound = _card.mentality == Mentality.NORMAL
-				? 0 : _mtlyRound.getSelection;
+	override bool apply() {
+		if (_card) {
+			_card.path = _imgPath.image;
+			_card.desc = _desc.getRRText;
+			_card.name = _name.getText;
+			_card.level = _level.getSelection;
+			_card.lifeMax = _lifeMax.getSelection;
+			_card.life = _lifeMax.getSelection;
+		} else {
+			_card = new CastCard(_summ.newId!(CastCard), _name.getText, _imgPath.image,
+				_desc.getRRText, _level.getSelection, _lifeMax.getSelection);
 		}
-		return ok;
+		auto skin = _comm.skin;
+		string legacyName = skin.legacyName;
+		Coupon[] cs;
+		auto sex = createCoupon!(Sex)(_sex, &_prop.sys.sexCoupon, legacyName);
+		if (sex) cs ~= sex;
+		auto race = selectedRace;
+		if (race) {
+			cs ~= new Coupon(_prop.msgs.raceCoupon(race), 0);
+		}
+		auto period = createCoupon!(Period)(_period, &_prop.sys.periodCoupon, legacyName);
+		if (period) cs ~= period;
+		auto nature = createCoupon!(Nature)(_nature, &_prop.sys.natureCoupon, legacyName);
+		if (nature) cs ~= nature;
+		foreach (m, radio; _makings) {
+			if (radio.getSelection) {
+				cs ~= new Coupon(_prop.sys.makingsCoupon(m, legacyName), 0);
+			}
+		}
+		cs ~= coupons;
+		_card.coupons = cs;
+		_card.weaponResist = _resW.getSelection;
+		_card.magicResist = _resM.getSelection;
+		_card.undead = _undead.getSelection;
+		_card.automaton = _automaton.getSelection;
+		_card.unholy = _unholy.getSelection;
+		_card.constructure = _constructure.getSelection;
+		foreach (e, radio; _res) {
+			_card.resist(e, radio.getSelection);
+		}
+		foreach (e, radio; _weak) {
+			_card.weakness(e, radio.getSelection);
+		}
+		foreach (phy, i; _phyTbl) {
+			_card.physical(phy, _phy.getValue(i));
+		}
+		foreach (mtl, scale; _mtl) {
+			_card.mental(mtl, cast(int) scale.getSelection - _prop.looks.mentalMax);
+		}
+		foreach (enh, i; _enhTbl) {
+			_card.defaultEnhance(enh, _enh.getValue(i));
+		}
+
+		_card.life = _lifeUseMax.getSelection ? _card.lifeMax : _life.getSelection;
+		foreach (enh, spn; _liveEnh) {
+			if (_enhRound[enh].getSelection > 0) {
+				_card.enhance(enh, spn.getSelection);
+			} else {
+				_card.enhance(enh, 0);
+			}
+		}
+		foreach (enh, spn; _enhRound) {
+			if (_card.enhance(enh) != 0) {
+				_card.enhanceRound(enh, spn.getSelection);
+			}
+		}
+		_card.paralyze = _paralyze.getSelection;
+		_card.poison = _poison.getSelection;
+		_card.bindRound = _bind.getSelection;
+		_card.silenceRound = _silence.getSelection;
+		_card.faceUpRound = _faceUp.getSelection;
+		_card.antiMagicRound = _antiMagic.getSelection;
+		_card.mentality = _mtlyRound.getSelection == 0
+			? Mentality.NORMAL : _mtlyTbl[_mtly.getSelectionIndex];
+		_card.mentalityRound = _card.mentality == Mentality.NORMAL
+			? 0 : _mtlyRound.getSelection;
+		return true;
 	}
 }

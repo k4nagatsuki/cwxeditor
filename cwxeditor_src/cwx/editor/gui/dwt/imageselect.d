@@ -43,6 +43,8 @@ public:
 
 /// 画像の選択を行うペイン。
 class ImageSelect(MtType Type, C : Control = List) {
+	/// パスの変更時に呼び出される。
+	void delegate()[] modEvent;
 public:
 	/// Params:
 	/// parent = 親。
@@ -122,6 +124,9 @@ public:
 				_msel = new MaterialSelect!(Type, Combo, C)
 					(comm, prop, summ, &__refresh, _defs);
 			}
+			_msel.modEvent ~= {
+				foreach (dlg; modEvent) dlg();
+			};
 			{
 				auto comp = new Composite(compl, SWT.NONE);
 				comp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);

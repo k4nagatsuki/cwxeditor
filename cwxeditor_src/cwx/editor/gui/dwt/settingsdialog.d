@@ -114,14 +114,6 @@ private:
 	Button _toolWorkDirRef;
 	Button _toolDel;
 
-	class Mod : SelectionAdapter, ModifyListener {
-		override void widgetSelected(SelectionEvent e) {
-			if (!_onProc) applyEnabled;
-		}
-		override void modifyText(ModifyEvent e) {
-			if (!_onProc) applyEnabled;
-		}
-	}
 	class RefE : SelectionAdapter, ModifyListener {
 		override void widgetSelected(SelectionEvent e) {
 			refreshEnabled();
@@ -319,10 +311,9 @@ private:
 		selectFile(_wallpaper, filterName, filter,
 			_prop.var.etc.wallpaper, _prop.msgs.dlgTitWallpaper, getcwd);
 	}
-	private bool _onProc = false;
 	void selectBgImageSetting() {
-		_onProc = true;
-		scope (exit) _onProc = false;
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
 		int i = _bgStgsL.getSelectionIndex;
 		_bgImgName.setEnabled = i >= 0;
 		_bgImgX.setEnabled = i >= 0;
@@ -348,8 +339,8 @@ private:
 		}
 	}
 	void selectOuterTool() {
-		_onProc = true;
-		scope (exit) _onProc = false;
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
 		int i = _toolsL.getSelectionIndex;
 		_toolName.setEnabled = i >= 0;
 		_toolCommand.setEnabled = i >= 0;
@@ -415,7 +406,7 @@ private:
 			grp.setText = _prop.msgs.enginePath(_prop.var.etc.engine);
 			_enginePath = new Text(grp, SWT.BORDER);
 			_enginePath.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-			_enginePath.addModifyListener(_mod);
+			mod(_enginePath);
 			auto refr = new Button(grp, SWT.PUSH);
 			refr.setText = _prop.msgs.reference;
 			refr.addSelectionListener(new SelEngine);
@@ -433,7 +424,7 @@ private:
 			grp.setText = _prop.msgs.tempDir;
 			_tempDir = new Text(grp, SWT.BORDER);
 			_tempDir.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-			_tempDir.addModifyListener(_mod);
+			mod(_tempDir);
 			auto refr = new Button(grp, SWT.PUSH);
 			refr.setText = _prop.msgs.reference;
 			refr.addSelectionListener(new SelTemp);
@@ -450,7 +441,7 @@ private:
 			{
 				_backupEnabled = new Button(grp, SWT.CHECK);
 				_backupEnabled.setText = _prop.msgs.backupEnabled;
-				_backupEnabled.addSelectionListener(_mod);
+				mod(_backupEnabled);
 				_backupEnabled.addSelectionListener(_refe);
 			}
 			{
@@ -462,7 +453,7 @@ private:
 				_backupInterval = new Spinner(comp2, SWT.BORDER);
 				_backupInterval.setMinimum = 1;
 				_backupInterval.setMaximum = 99;
-				_backupInterval.addModifyListener(_mod);
+				mod(_backupInterval);
 				auto l2 = new Label(comp2, SWT.CENTER);
 				l2.setText = _prop.msgs.minute;
 			}
@@ -475,7 +466,7 @@ private:
 				_backupCount = new Spinner(comp2, SWT.BORDER);
 				_backupCount.setMinimum = 0;
 				_backupCount.setMaximum = 99;
-				_backupCount.addModifyListener(_mod);
+				mod(_backupCount);
 			}
 			{
 				auto comp2 = new Composite(grp, SWT.NONE);
@@ -487,7 +478,7 @@ private:
 				l.setText = _prop.msgs.backupPath;
 				_backupDir = new Text(comp2, SWT.BORDER);
 				_backupDir.setLayoutData = new GridData(GridData.FILL_BOTH);
-				_backupDir.addModifyListener(_mod);
+				mod(_backupDir);
 				_backupRef = new Button(comp2, SWT.PUSH);
 				_backupRef.setText = _prop.msgs.reference;
 				_backupRef.addSelectionListener(new SelBackup);
@@ -510,7 +501,7 @@ private:
 					grp.setLayout = cl;
 					grp.setText = _prop.msgs.scenarioAuthor;
 					_author = new Text(grp, SWT.BORDER);
-					_author.addModifyListener(_mod);
+					mod(_author);
 				}
 				{
 					auto grp = new Group(comp3, SWT.NONE);
@@ -519,7 +510,7 @@ private:
 					grp.setText = _prop.msgs.wallpaper;
 					_wallpaper = new Text(grp, SWT.BORDER);
 					_wallpaper.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-					_wallpaper.addModifyListener(_mod);
+					mod(_wallpaper);
 					auto refr = new Button(grp, SWT.PUSH);
 					refr.setText = _prop.msgs.reference;
 					refr.addSelectionListener(new SelWallpaper);
@@ -537,7 +528,7 @@ private:
 					_histMax = new Spinner(grp, SWT.BORDER);
 					_histMax.setMinimum = 0;
 					_histMax.setMaximum = 99;
-					_histMax.addModifyListener(_mod);
+					mod(_histMax);
 					auto clear = new Button(grp, SWT.PUSH);
 					clear.setEnabled = _prop.var.etc.openHistories.length > 0;
 					clear.setText = _prop.msgs.openHistoryClear;
@@ -549,7 +540,7 @@ private:
 					_sHistMax = new Spinner(grp, SWT.BORDER);
 					_sHistMax.setMinimum = 0;
 					_sHistMax.setMaximum = 99;
-					_sHistMax.addModifyListener(_mod);
+					mod(_sHistMax);
 					auto clear = new Button(grp, SWT.PUSH);
 					clear.setEnabled = _prop.var.etc.searchHistories.length > 0;
 					clear.setText = _prop.msgs.searchHistoryClear;
@@ -567,7 +558,7 @@ private:
 				grp.setText = _prop.msgs.ignorePaths;
 				grp.setLayout = new GridLayout(1, false);
 				_ignorePaths = new Text(grp, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
-				_ignorePaths.addModifyListener(_mod);
+				mod(_ignorePaths);
 				auto gd = new GridData(GridData.FILL_BOTH);
 				gd.widthHint = _prop.var.etc.ignorePathsWidth;
 				gd.heightHint = 0;
@@ -581,7 +572,7 @@ private:
 				Button createB(string text) {
 					auto btn = new Button(grp, SWT.CHECK);
 					btn.setText = text;
-					btn.addSelectionListener(_mod);
+					mod(btn);
 					auto gd = new GridData;
 					gd.horizontalSpan = 2;
 					btn.setLayoutData = gd;
@@ -618,7 +609,7 @@ private:
 			_v = v;
 		}
 		override void modifyText(ModifyEvent e) {
-			if (_onProc) return;
+			if (ignoreMod) return;
 			int i = _v._bgStgsL.getSelectionIndex;
 			if (i < 0) return;
 			auto spn = cast(Spinner) e.widget;
@@ -668,7 +659,7 @@ private:
 	}
 	class ModBgImgName : ModifyListener {
 		override void modifyText(ModifyEvent e) {
-			if (_onProc) return;
+			if (ignoreMod) return;
 			int i = _bgStgsL.getSelectionIndex;
 			if (i < 0 || _bgStgsL.getItem(i) == _bgImgName.getText) return;
 			_bgStgsL.setItem(i, _bgImgName.getText);
@@ -874,7 +865,7 @@ private:
 			grp.setLayout = new GridLayout(1, false);
 			grp.setText = _prop.msgs.standardKeyCode;
 			_keyCodes = new Text(grp, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
-			_keyCodes.addModifyListener(_mod);
+			mod(_keyCodes);
 			auto gd = new GridData(GridData.FILL_BOTH);
 			gd.widthHint = _prop.var.etc.keyCodeWidth;
 			gd.heightHint = 0;
@@ -898,7 +889,7 @@ private:
 	}
 	class ModOutToolName : ModifyListener {
 		override void modifyText(ModifyEvent e) {
-			if (_onProc) return;
+			if (ignoreMod) return;
 			int i = _toolsL.getSelectionIndex;
 			if (i < 0 || _toolsL.getItem(i) == _toolName.getText) return;
 			_toolsL.setItem(i, _toolName.getText);
@@ -916,7 +907,7 @@ private:
 	}
 	class ModToolCmd : ModifyListener {
 		override void modifyText(ModifyEvent e) {
-			if (_onProc) return;
+			if (ignoreMod) return;
 			int i = _toolsL.getSelectionIndex;
 			if (i < 0) return;
 			_tools[i].command = _toolCommand.getText;
@@ -933,7 +924,7 @@ private:
 	}
 	class ModToolWorkDir : ModifyListener {
 		override void modifyText(ModifyEvent e) {
-			if (_onProc) return;
+			if (ignoreMod) return;
 			int i = _toolsL.getSelectionIndex;
 			if (i < 0) return;
 			_tools[i].workDir = _toolWorkDir.getText;
@@ -1145,7 +1136,6 @@ private:
 			sash.addDisposeListener(new DOutToolsSash);
 		}
 	}
-	private Mod _mod;
 	private RefE _refe;
 	private void refreshScenario(Summary summ) {
 		_summ = summ;
@@ -1176,7 +1166,6 @@ protected:
 		});
 		auto tabf = new CTabFolder(area, SWT.BORDER);
 		tabf.setLayoutData = new GridData(GridData.FILL_BOTH);
-		_mod = new Mod;
 		_refe = new RefE;
 		construct1(tabf);
 		construct2(tabf);
@@ -1371,13 +1360,6 @@ protected:
 		_prop.var.etc.outerTools = _tools;
 		_prop.var.save(_dock);
 		return true;
-	}
-	override bool close(bool ok, out bool cancel) {
-		if (ok) {
-			ok = apply;
-			if (!ok) cancel = true;
-		}
-		return ok;
 	}
 }
 

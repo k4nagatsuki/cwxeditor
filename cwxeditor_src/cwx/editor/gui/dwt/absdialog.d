@@ -38,12 +38,15 @@ interface DSize {
 abstract class AbsDialog {
 	/// ダイアログが閉じられた際に呼び出される。
 	void delegate()[] closeEvent;
+	/// OKまたは適用ボタンが押され、その処理がキャンセルされなかった際に呼び出される。
+	void delegate()[] applyEvent;
 
 	private Props _prop;
 	private Shell _win;
 	private DSize _size;
 	private Composite _area;
 	private bool _modal;
+	private bool _hasApply;
 	this (Props prop, Shell parent, string text, Image img, bool resizable, DSize size = null, bool apply = false, bool cancel = true) {
 		this (prop, parent, true, text, img, resizable, size, apply, cancel);
 	}
@@ -51,6 +54,7 @@ abstract class AbsDialog {
 		_prop = prop;
 		_size = size;
 		_modal = modal;
+		_hasApply = apply;
 		int style = resizable ? SWT.SHELL_TRIM : SWT.DIALOG_TRIM;
 		if (modal) {
 			style |= SWT.APPLICATION_MODAL;
@@ -103,6 +107,34 @@ abstract class AbsDialog {
 		b.addSelectionListener(sa);
 		return b;
 	}
+	private class Mod : SelectionAdapter, ModifyListener {
+		override void widgetSelected(SelectionEvent e) {
+			mod();
+		}
+		override void modifyText(ModifyEvent e) {
+			mod();
+		}
+		void mod() {
+			if (!ignoreMod) applyEnabled;
+		}
+	}
+	private Mod _mod = null;
+	/// ctrlの押下時・テキスト変更時に適用ボタンを有効化する。
+	void mod(C)(C ctrl) {
+		if (!_mod) {
+			_mod = new Mod;
+		}
+		static if (is(typeof(ctrl.modEvent))) {
+			ctrl.modEvent ~= &_mod.mod;
+		} else static if (is(typeof(ctrl.addModifyListener(_mod)))) {
+			ctrl.addModifyListener(_mod);
+		} else static if (is(typeof(ctrl.addSelectionListener(_mod)))) {
+			ctrl.addSelectionListener(_mod);
+		} else static assert (0);
+	}
+	/// trueの時は適用ボタンの有効化を行わない。
+	protected bool ignoreMod = false;
+
 	protected Shell getShell() {return _win;}
 	private Button _okBtn;
 	private bool _applied = false;
@@ -110,6 +142,10 @@ abstract class AbsDialog {
 	private int _imeMode = SWT.NONE;
 	private class SListener : ShellAdapter {
 		override void shellClosed(ShellEvent e) {
+			if (_forceCancel) {
+				e.doit = true;
+				return;
+			}
 			bool cancel;
 			_imeMode = _win.getImeInputMode;
 			_ret = close(_ret, cancel);
@@ -120,6 +156,9 @@ abstract class AbsDialog {
 				_size.height = s.y;
 			}
 			if (e.doit) {
+				foreach (dlg; applyEvent) {
+					dlg();
+				}
 				foreach (dlg; closeEvent) {
 					dlg();
 				}
@@ -138,6 +177,11 @@ abstract class AbsDialog {
 	void firstFocusIsOK(bool ffio) {_ffio = true;}
 	bool firstFocusIsOK() {return _ffio;}
 	private void cancel() {_win.close;}
+	private bool _forceCancel = false;
+	void forceCancel() {
+		_forceCancel = true;
+		_win.close();
+	}
 
 	bool open() {
 		setup(_area);
@@ -201,6 +245,9 @@ abstract class AbsDialog {
 		if (apply) {
 			_apply.setEnabled = false;
 			_applied = true;
+			foreach (dlg; applyEvent) {
+				dlg();
+			}
 		}
 	}
 	private void check() {
@@ -276,8 +323,16 @@ abstract class AbsDialog {
 		return true;
 	}
 	protected bool close(bool ok, out bool cancel) {
-		cancel = false;
-		return close(ok);
+		if (_hasApply) {
+			if (ok) {
+				ok = apply;
+				if (!ok) cancel = true;
+			}
+			return ok;
+		} else {
+			cancel = false;
+			return close(ok);
+		}
 	}
 	protected bool close(bool ok) {return ok;}
 	protected void opened() {}
