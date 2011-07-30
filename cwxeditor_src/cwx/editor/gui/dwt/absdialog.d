@@ -36,14 +36,26 @@ interface DSize {
 }
 
 abstract class AbsDialog {
+	/// ダイアログが閉じられた際に呼び出される。
+	void delegate()[] closeEvent;
+
 	private Props _prop;
 	private Shell _win;
 	private DSize _size;
 	private Composite _area;
+	private bool _modal;
 	this (Props prop, Shell parent, string text, Image img, bool resizable, DSize size = null, bool apply = false, bool cancel = true) {
+		this (prop, parent, true, text, img, resizable, size, apply, cancel);
+	}
+	this (Props prop, Shell parent, bool modal, string text, Image img, bool resizable, DSize size = null, bool apply = false, bool cancel = true) {
 		_prop = prop;
 		_size = size;
-		_win = new Shell(parent, (resizable ? SWT.SHELL_TRIM : SWT.DIALOG_TRIM) | SWT.APPLICATION_MODAL);
+		_modal = modal;
+		int style = resizable ? SWT.SHELL_TRIM : SWT.DIALOG_TRIM;
+		if (modal) {
+			style |= SWT.APPLICATION_MODAL;
+		}
+		_win = new Shell(parent, style);
 		_win.setText = text;
 		_win.setImage = img;
 		_win.setLayout = zeroGridLayout(1, true);
@@ -107,6 +119,11 @@ abstract class AbsDialog {
 				_size.width = s.x;
 				_size.height = s.y;
 			}
+			if (e.doit) {
+				foreach (dlg; closeEvent) {
+					dlg();
+				}
+			}
 		}
 	}
 	private bool _ret = false;
@@ -121,6 +138,7 @@ abstract class AbsDialog {
 	void firstFocusIsOK(bool ffio) {_ffio = true;}
 	bool firstFocusIsOK() {return _ffio;}
 	private void cancel() {_win.close;}
+
 	bool open() {
 		setup(_area);
 		if (_enterClose) {
@@ -152,6 +170,7 @@ abstract class AbsDialog {
 		_win.open;
 		if (firstFocusIsOK) _okBtn.setFocus;
 		opened;
+		if (!_modal) return false;
 		auto d = _win.getDisplay;
 		scope (failure) {
 			if (!_win.isDisposed) _win.close;
@@ -168,6 +187,16 @@ abstract class AbsDialog {
 		}
 		return _ret || _applied;
 	}
+	void active() {
+		if (!_win.isDisposed) {
+			_win.setActive();
+		}
+	}
+	bool close() {
+		_win.close();
+		return _win.isDisposed;
+	}
+
 	private void applyFunc() {
 		if (apply) {
 			_apply.setEnabled = false;

@@ -583,6 +583,7 @@ private:
 			}
 		}
 	}
+	private SettingsDialog _stgDlg = null;
 	void settings() {
 		const(string)[] oldHist = _prop.var.etc.openHistories;
 		scope (exit) {
@@ -590,9 +591,14 @@ private:
 				createFileMenu;
 			}
 		}
-		auto dlg = new SettingsDialog(_comm, _prop, _win, summary);
-		if (dlg.open) {
-			_prop.var.save(dock);
+		if (_stgDlg) {
+			_stgDlg.active();
+		} else {
+			_stgDlg = new SettingsDialog(_comm, _prop, _win, _dock, summary);
+			_stgDlg.closeEvent ~= {
+				_stgDlg = null;
+			};
+			_stgDlg.open();
 		}
 	}
 

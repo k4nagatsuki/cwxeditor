@@ -16,6 +16,7 @@ import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.areaview;
 import cwx.editor.gui.dwt.xmlbytestransfer;
+import cwx.editor.gui.dwt.dockingfolder;
 
 import std.path;
 import std.file;
@@ -61,6 +62,7 @@ private:
 	Commons _comm;
 	Props _prop;
 	Summary _summ;
+	DockingFolderCTC _dock;
 
 	CTabItem _tabB;
 	Text _enginePath;
@@ -1155,10 +1157,11 @@ private:
 		_backupRef.setEnabled = _backupEnabled.getSelection;
 	}
 public:
-	this(Commons comm, Props prop, Shell shell, Summary summ) {
-		super(prop, shell, prop.msgs.dlgTitSettings, prop.images.menuSettings, true, prop.var.settingsDlg, true);
+	this(Commons comm, Props prop, Shell shell, DockingFolderCTC dock, Summary summ) {
+		super(prop, shell, false, prop.msgs.dlgTitSettings, prop.images.menuSettings, true, prop.var.settingsDlg, true);
 		_comm = comm;
 		_prop = prop;
+		_dock = dock;
 		_summ = summ;
 	}
 
@@ -1366,6 +1369,7 @@ protected:
 			_prop.var.etc.standardKeyCodes = [];
 		}
 		_prop.var.etc.outerTools = _tools;
+		_prop.var.save(_dock);
 		return true;
 	}
 	override bool close(bool ok, out bool cancel) {
