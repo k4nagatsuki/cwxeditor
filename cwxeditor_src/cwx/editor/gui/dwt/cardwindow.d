@@ -116,6 +116,7 @@ private:
 	string statusLine() {return _statusLine;}
 	void refreshStatusLine() {
 		if (!_tbl || !_list || !_comm) return;
+		if (_tbl.isDisposed) return;
 		if (_owner) {
 			auto c = cards.length;
 			auto s = __selections;
@@ -146,6 +147,7 @@ private:
 		__refresh;
 	}
 	void refresh(C c) {
+		if (!_tbl || _tbl.isDisposed) return;
 		int i;
 		for (i = 0; i < cards.length; i++) {
 			if (cards[i] is c) {
@@ -186,6 +188,7 @@ private:
 		refreshStatusLine;
 	}
 	void select(int index) {
+		if (!_tbl || _tbl.isDisposed) return;
 		if (_viewMode == CViewMode.TABLE) {
 			_tbl.select(index);
 			_tbl.showSelection;
@@ -866,7 +869,7 @@ private:
 	static if (is (C == CastCard) && !EditMode) {
 		private void delegate() _openHand;
 	}
-	private void construct(Commons comm, Props prop, PCardOwner summ, Composite parent) {
+	private void construct1(Commons comm, Props prop, PCardOwner summ) {
 		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime);
 		_comm = comm;
 		_prop = prop;
@@ -882,6 +885,8 @@ private:
 		} else static if (is (C == InfoCard)) {
 			_cimg = prop.images.info;
 		}
+	}
+	private void reconstruct(Composite parent) {
 		createCardList(parent);
 		static if (is (PCardOwner == Summary)) {
 			_comm.refSkin.add(&__refresh);
@@ -934,21 +939,21 @@ private:
 			});
 			static if (is (C == CastCard)) {
 				auto pop = new Menu(parent.getShell, SWT.POP_UP);
-				createMenuItem(pop, prop.msgs.menuCEdit, prop.images.menuCEdit, &edit);
+				createMenuItem(pop, _prop.msgs.menuCEdit, _prop.images.menuCEdit, &edit);
 				new MenuItem(pop, SWT.SEPARATOR);
 				createMenuItem(pop, _prop.msgs.menuEditHand, _prop.images.menuEditHand, &editHand);
 				new MenuItem(pop, SWT.SEPARATOR);
 				appendMenuTCPD(_prop, pop, this);
 			} else static if (is (C == SkillCard) || is (C == ItemCard) || is (C == BeastCard)) {
 				auto pop = new Menu(parent.getShell, SWT.POP_UP);
-				createMenuItem(pop, prop.msgs.menuCEdit, prop.images.menuCEdit, &edit);
+				createMenuItem(pop, _prop.msgs.menuCEdit, _prop.images.menuCEdit, &edit);
 				new MenuItem(pop, SWT.SEPARATOR);
 				createMenuItem(pop, _prop.msgs.menuEditUseEvent, _prop.images.menuEditUseEvent, &editUseEvent);
 				new MenuItem(pop, SWT.SEPARATOR);
 				appendMenuTCPD(_prop, pop, this);
 			} else static if (is (C == InfoCard)) {
 				auto pop = new Menu(parent.getShell, SWT.POP_UP);
-				createMenuItem(pop, prop.msgs.menuCEdit, prop.images.menuCEdit, &edit);
+				createMenuItem(pop, _prop.msgs.menuCEdit, _prop.images.menuCEdit, &edit);
 				new MenuItem(pop, SWT.SEPARATOR);
 				appendMenuTCPD(_prop, pop, this);
 			} else {
@@ -977,18 +982,21 @@ public:
 				_toc = toc;
 				_openHand = openHand;
 				_skinTemp = findSkin(prop, summ);
-				construct(comm, prop, summ, parent);
+				construct1(comm, prop, summ);
+				reconstruct(parent);
 			}
 		} else {
 			this(Commons comm, Props prop, PCardOwner summ, Composite parent, ToCardOwner toc) {
 				_toc = toc;
 				_skinTemp = findSkin(prop, summ);
-				construct(comm, prop, summ, parent);
+				construct1(comm, prop, summ);
+				reconstruct(parent);
 			}
 		}
 	} else static if (is (C : Card)) {
 		this(Commons comm, Props prop, PCardOwner summ, Composite parent) {
-			construct(comm, prop, summ, parent);
+			construct1(comm, prop, summ);
+			reconstruct(parent);
 		}
 	} else {
 		static assert (0);
@@ -1007,6 +1015,7 @@ public:
 		}
 	}
 	void refresh() {
+		if (!_tbl || _tbl.isDisposed) return;
 		if (_owner) {
 			__refresh;
 		}
@@ -1415,17 +1424,25 @@ public:
 			});
 		}
 		void newPane(int Index)() {
-			_pane[Index] = new typeof(_pane[Index])(_comm, _prop, _summ, _tabf);
+			if (_pane[Index]) {
+				_pane[Index].reconstruct(_tabf);
+			} else {
+				_pane[Index] = new typeof(_pane[Index])(_comm, _prop, _summ, _tabf);
+			}
 			static if (Index + 1 < Cards.length) {
 				newPane!(Index + 1);
 			}
 		}
 	} else {
 		void newPane(int Index)() {
-			static if (UseCast && Index == CAST) {
-				_pane[Index] = new typeof(_pane[Index])(_comm, _prop, _summ, _tabf, _toc, &openHand);
+			if (_pane[Index]) {
+				_pane[Index].reconstruct(_tabf);
 			} else {
-				_pane[Index] = new typeof(_pane[Index])(_comm, _prop, _summ, _tabf, _toc);
+				static if (UseCast && Index == CAST) {
+					_pane[Index] = new typeof(_pane[Index])(_comm, _prop, _summ, _tabf, _toc, &openHand);
+				} else {
+					_pane[Index] = new typeof(_pane[Index])(_comm, _prop, _summ, _tabf, _toc);
+				}
 			}
 			static if (Index + 1 < Cards.length) {
 				newPane!(Index + 1);
