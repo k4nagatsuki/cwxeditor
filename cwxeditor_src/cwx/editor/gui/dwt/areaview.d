@@ -394,6 +394,10 @@ private:
 			static if (UseCards) _cs = saveC(_cards.getSelectionIndices);
 			static if (UseBacks) _bs = saveB(_backs.getSelectionIndices);
 		}
+		this (int[] ckeys, int[] bkeys) {
+			static if (UseCards) _cs = saveC(ckeys);
+			static if (UseBacks) _bs = saveB(bkeys);
+		}
 		static if (UseCards) {
 			private C[int] saveC(int[] indices) {
 				C[int] cs;
@@ -1371,6 +1375,14 @@ public:
 				_comm.replID.remove(&replText);
 				static if (UseCards) {
 					_comm.refCardState.remove(&refreshCardState);
+					foreach (dlg; _editDlgsC.values) {
+						dlg.forceCancel();
+					}
+				}
+				static if (UseBacks) {
+					foreach (dlg; _editDlgsB.values) {
+						dlg.forceCancel();
+					}
 				}
 			}
 		});
@@ -1670,9 +1682,13 @@ public:
 	static if (UseBacks) {
 		private void removeBack(int index) {
 			__remove(index, _backTbl, 0);
+			_comm.delBgImage.call(_area.backs[index].cwxPath);
 		}
 		private void removeBackRange(int fromIndex, int toIndex) {
 			__removeRange(fromIndex, toIndex, _backTbl, 0);
+			for (int i = toIndex; i >= fromIndex; i--) {
+				_comm.delBgImage.call(_area.backs[i].cwxPath);
+			}
 		}
 	}
 
@@ -1689,6 +1705,7 @@ public:
 		}
 		static if (UseBacks) {
 			refB = __up!(BgImage)(_viewBacks, _backs, &_area.swapBacks, 0);
+			_comm.upBgImage.call(_area.cwxPath, refB);
 		}
 		refreshSelected;
 		if (refC.length > 0 || refB.length > 0) _imgp.redraw;
@@ -1706,6 +1723,7 @@ public:
 		}
 		static if (UseBacks) {
 			refB = __down!(BgImage)(_viewBacks, _backs, &_area.swapBacks, 0);
+			_comm.downBgImage.call(_area.cwxPath, refB);
 		}
 		refreshSelected;
 		if (refC.length > 0 || refB.length > 0) _imgp.redraw;
@@ -1740,23 +1758,63 @@ public:
 		}
 	}
 	static if (UseCards) {
+		SpCardDialog!(C)[C] _editDlgsC;
+		void editCardApply(UndoEdit undo, C card) {
+			assert (undo);
+			_undo ~= undo;
+			int index;
+			foreach (i, c; _area.cards) {
+				if (c is card) {
+					auto fi = create(card);
+					_imgp.set(cardsIndex + i, fi);
+					if (_cards.isSelected(i) && _viewCards) _imgp.select(fi);
+					_cards.getItem(i).setText = fi.title;
+					_cards.getItem(i).setData = c;
+					refreshControls;
+					_comm.refMenuCard.call(c.cwxPath);
+					_comm.refUseCount.call;
+					_imgp.redraw;
+					return;
+				}
+			}
+			assert (0);
+		}
 		void createCard() {
 			static if (is (C == EnemyCard)) {
 				if (!_summ) return;
 				if (_summ.casts.length == 0) return;
 			}
 			auto dlg = new SpCardDialog!(C)(_comm, _prop, getShell, _summ, null);
-			if (dlg.open) {
+			dlg.appliedEvent ~= {
+				auto c = dlg.card;
 				int index = insertIndex(_cards);
 				static if (UseBacks) {
 					_undo ~= new UndoInsert([index], []);
 				} else {
 					_undo ~= new UndoInsert([index]);
 				}
-				appendCard(index, dlg.card, true, true);
-			}
+				appendCard(index, c, true, true);
+				UndoEdit undo = null;
+				dlg.applyEvent ~= {
+					undo = new UndoEdit([cCountUntil!("a is b")(_area.cards, c)], []);
+				};
+				dlg.appliedEvent.length = 0;
+				dlg.appliedEvent ~= {
+					editCardApply(undo, c);
+				};
+				_editDlgsC[c] = dlg;
+				dlg.closeEvent ~= {
+					_editDlgsC.remove(c);
+				};
+			};
+			dlg.open();
 		}
 		void editCard(C card) {
+			auto p = card in _editDlgsC;
+			if (p) {
+				p.active();
+				return;
+			}
 			foreach (i, c; _area.cards) {
 				if (c is card) {
 					_imgp.select([i + cardsIndex]);
@@ -1764,27 +1822,19 @@ public:
 					break;
 				}
 			}
-			auto undo = new UndoEdit;
+			UndoEdit undo = null;
 			auto dlg = new SpCardDialog!(C)(_comm, _prop, getShell, _summ, card);
-			if (dlg.open) {
-				_undo ~= undo;
-				int index;
-				foreach (i, c; _area.cards) {
-					if (c is card) {
-						auto fi = create(card);
-						_imgp.set(cardsIndex + i, fi);
-						if (_cards.isSelected(i) && _viewCards) _imgp.select(fi);
-						_cards.getItem(i).setText = fi.title;
-						_cards.getItem(i).setData = c;
-						refreshControls;
-						_comm.refMenuCard.call(c.cwxPath);
-						_comm.refUseCount.call;
-						_imgp.redraw;
-						return;
-					}
-				}
-				assert (0);
-			}
+			dlg.applyEvent ~= {
+				undo = new UndoEdit([cCountUntil!("a is b")(_area.cards, card)], []);
+			};
+			dlg.appliedEvent ~= {
+				editCardApply(undo, card);
+			};
+			_editDlgsC[card] = dlg;
+			dlg.closeEvent ~= {
+				_editDlgsC.remove(card);
+			};
+			dlg.open();
 		}
 		static if (is(C : MenuCard)) {
 			void nameEditEnd(TableItem itm, int column, string newText) {
@@ -1857,19 +1907,58 @@ public:
 		} else static assert (0);
 	}
 	static if (UseBacks) {
+		BgImageDialog[BgImage] _editDlgsB;
+		void editBackApply(UndoEdit undo, BgImage back) {
+			assert (undo);
+			_undo ~= undo;
+			foreach (i, b; _area.backs) {
+				if (b is back) {
+					auto fi = create(back);
+					_imgp.set(i, fi);
+					if (_backs.isSelected(i) && _viewBacks) _imgp.select(fi);
+					_backs.getItem(i).setText = getBaseName(back.path);
+					_backs.getItem(i).setData = b;
+					refreshControls;
+					_comm.refBgImage.call(b.cwxPath);
+					_comm.refUseCount.call;
+					_imgp.redraw;
+					return;
+				}
+			}
+			assert (0);
+		}
 		void createBackground() {
 			auto dlg = new BgImageDialog(_comm, _prop, getShell, _summ, null);
-			if (dlg.open) {
+			dlg.appliedEvent ~= {
+				auto b = dlg.back;
 				int index = insertIndex(_backs);
 				static if (UseCards) {
 					_undo ~= new UndoInsert([], [index]);
 				} else {
 					_undo ~= new UndoInsert([index]);
 				}
-				appendBgImage(index, dlg.back, true, true);
-			}
+				appendBgImage(index, b, true, true);
+				UndoEdit undo = null;
+				dlg.applyEvent ~= {
+					undo = new UndoEdit([], [cCountUntil!("a is b")(_area.backs, b)]);
+				};
+				dlg.appliedEvent.length = 0;
+				dlg.appliedEvent ~= {
+					editBackApply(undo, b);
+				};
+				_editDlgsB[b] = dlg;
+				dlg.closeEvent ~= {
+					_editDlgsB.remove(b);
+				};
+			};
+			dlg.open();
 		}
 		void editBack(BgImage back) {
+			auto p = back in _editDlgsB;
+			if (p) {
+				p.active();
+				return;
+			}
 			foreach (i, b; _area.backs) {
 				if (b is back) {
 					_imgp.select([i]);
@@ -1877,25 +1966,19 @@ public:
 					break;
 				}
 			}
-			auto undo = new UndoEdit;
+			UndoEdit undo = null;
 			auto dlg = new BgImageDialog(_comm, _prop, getShell, _summ, back);
-			if (dlg.open) {
-				_undo ~= undo;
-				foreach (i, b; _area.backs) {
-					if (b is back) {
-						auto fi = create(back);
-						_imgp.set(i, fi);
-						if (_backs.isSelected(i) && _viewBacks) _imgp.select(fi);
-						_backs.getItem(i).setText = getBaseName(back.path);
-						_backs.getItem(i).setData = b;
-						refreshControls;
-						_comm.refUseCount.call;
-						_imgp.redraw;
-						return;
-					}
-				}
-				assert (0);
-			}
+			dlg.applyEvent ~= {
+				undo = new UndoEdit([], [cCountUntil!("a is b")(_area.backs, back)]);
+			};
+			dlg.appliedEvent ~= {
+				editBackApply(undo, back);
+			};
+			_editDlgsB[back] = dlg;
+			dlg.closeEvent ~= {
+				_editDlgsB.remove(back);
+			};
+			dlg.open();
 		}
 		void bgImageEditEnd(TableItem itm, int column, CCombo combo) {
 			int i = combo.getSelectionIndex;
@@ -2376,6 +2459,7 @@ public:
 				}
 			}
 			_imgp.redraw;
+			_comm.addBgImage.call(back.cwxPath);
 			_comm.refUseCount.call;
 		}
 		private FlexImage create(BgImage back) {
@@ -2402,6 +2486,7 @@ public:
 				itm.setData = b;
 				itm.setChecked = true;
 				itm.setText = getBaseName(b.path);
+				_comm.addBgImage.call(b.cwxPath);
 			}
 			if (select && _viewBacks) _imgp.select(imgs);
 		}

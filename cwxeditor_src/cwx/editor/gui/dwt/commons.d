@@ -190,6 +190,11 @@ class Commons {
 	Dlg!(string) delMenuCard;
 	Dlg!(string, int[]) upMenuCard;
 	Dlg!(string, int[]) downMenuCard;
+	Dlg!(string) addBgImage;
+	Dlg!(string) refBgImage;
+	Dlg!(string) delBgImage;
+	Dlg!(string, int[]) upBgImage;
+	Dlg!(string, int[]) downBgImage;
 
 	Dlg!(Importable) closeAdds;
 

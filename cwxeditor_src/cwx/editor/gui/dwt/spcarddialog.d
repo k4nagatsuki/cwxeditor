@@ -5,6 +5,7 @@ import cwx.area;
 import cwx.flag;
 import cwx.utils;
 import cwx.summary;
+import cwx.card;
 
 import cwx.editor.gui.sound;
 
@@ -20,6 +21,7 @@ import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.splitpane;
 
+import std.conv;
 import std.math;
 
 import org.eclipse.swt.SWT;
@@ -112,6 +114,40 @@ private:
 				_prop.var.etc.enemyCardSashL = ws[0];
 				_prop.var.etc.enemyCardSashR = ws[1];
 			} else static assert (0);
+			_comm.delMenuCard.remove(&delMenuCard);
+			static if (is (C == EnemyCard)) {
+				_comm.refCast.remove(&refCast);
+				_comm.delCast.remove(&refCast);
+			}
+		}
+	}
+	static if (is (C == EnemyCard)) {
+		void refCast(CastCard c) {
+			refreshCasts();
+		}
+		void refreshCasts() {
+			ignoreMod = true;
+			scope (exit) ignoreMod = false;
+			if (_summ) {
+				ulong old = 0;
+				if (_card) {
+					auto c = _summ.casts(_card.id);
+					if (c) old = c.id;
+				}
+				_casts.removeAll();
+				foreach (i, c; _summ.casts) {
+					_casts.add(to!string(c.id) ~ "." ~ c.name);
+					if (old == c.id) _casts.select = i;
+				}
+			} else {
+				_casts.removeAll();
+			}
+			_image.redraw();
+		}
+	}
+	void delMenuCard(string cwxPath) {
+		if (_card && _card.cwxPath == cwxPath) {
+			forceCancel();
 		}
 	}
 public:
@@ -135,7 +171,7 @@ public:
 		} else {
 			static assert (0);
 		}
-		super(prop, shell, text, _prop.images.cards, true, size);
+		super(prop, shell, false, text, _prop.images.cards, true, size, true);
 		enterClose = true;
 	}
 
@@ -143,7 +179,6 @@ public:
 		return _card;
 	}
 protected:
-
 	override void setup(Composite area) {
 		auto cl = new CenterLayout(SWT.NONE, 0);
 		cl.fillHorizontal = true;
@@ -165,21 +200,19 @@ protected:
 							grp.setLayout = new GridLayout(1, false);
 							grp.setText = _prop.msgs.name;
 							_name = new Text(grp, SWT.BORDER);
+							mod(_name);
 							_name.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 						} else static if (is (C == EnemyCard)) {
 							grp.setLayout = new GridLayout(2, false);
 							grp.setText = _prop.msgs.enemyCardBase;
 							_casts = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
-							if (_summ) {
-								foreach (c; _summ.casts) {
-									_casts.add(c.name);
-								}
-							}
+							mod(_casts);
 							auto gd = new GridData(GridData.FILL_HORIZONTAL);
 							gd.widthHint = _prop.var.etc.nameWidth;
 							_casts.setLayoutData = gd;
 							_casts.addSelectionListener(new Repaint);
 							_escape = new Button(grp, SWT.TOGGLE);
+							mod(_escape);
 							_escape.setImage = _prop.images.menuDoEscape;
 
 							_escape.setToolTipText = _prop.msgs.ttDoEscape;
@@ -194,6 +227,7 @@ protected:
 							string saveName = including ? _card.name : "";
 							_imgPath = new ImageSelect!(MtType.CARD)(comp2, SWT.NONE, _comm, _prop, _summ,
 								_prop.looks.cardSize.width, _prop.looks.cardSize.height, including, saveName);
+							mod(_imgPath);
 							_imgPath.widget.setLayoutData = new GridData(GridData.FILL_BOTH);
 						} else static if (is (C == EnemyCard)) {
 							auto grp = new Group(comp2, SWT.NONE);
@@ -215,6 +249,7 @@ protected:
 					grp.setLayout = new GridLayout(2, false);
 					grp.setText = _prop.msgs.refFlag;
 					_flag = new Table(grp, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER);
+					mod(_flag);
 					auto gd = new GridData(GridData.FILL_BOTH);
 					gd.widthHint = _prop.var.etc.flagsWidth;
 					gd.heightHint = _prop.var.etc.flagsHeight;
@@ -243,6 +278,7 @@ protected:
 					auto l = new Label(comp3, SWT.NONE);
 					l.setText = name;
 					auto spn = new Spinner(comp3, SWT.BORDER);
+					mod(spn);
 					spn.setMaximum = max;
 					spn.setMinimum = min;
 					if (percent) {
@@ -264,6 +300,7 @@ protected:
 					grp.setLayout = new CenterLayout(SWT.HORIZONTAL);
 					grp.setText = _prop.msgs.desc;
 					_desc = new FixedWidthText(dwtData(_prop.looks.cardDescFont(_summ ? _summ.legacy : false)), _prop.looks.cardDescLen, grp, SWT.BORDER);
+					mod(_desc.widget);
 					_desc.widget.setLayoutData = _desc.computeTextBaseSize(_prop.looks.cardDescLine);
 				}
 			}
@@ -280,6 +317,17 @@ protected:
 				itm.setData = flag;
 			}
 		}
+		static if (is(C : EnemyCard)) {
+			refreshCasts();
+		}
+
+		_comm.delMenuCard.add(&delMenuCard);
+		static if (is (C == EnemyCard)) {
+			_comm.refCast.add(&refCast);
+			_comm.delCast.add(&refCast);
+		}
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
 		if (_card) {
 			static if (is (C == MenuCard)) {
 				_imgPath.image = _card.path;
@@ -330,46 +378,44 @@ protected:
 		_flag.showSelection;
 	}
 
-	override bool close(bool ok) {
-		if (ok) {
-			int fidx = _flag.getSelectionIndex;
-			string flag = fidx > 0 ? _flag.getItem(fidx).getText : "";
-			if (_card) {
-				static if (is (C == MenuCard)) {
-					_card.path = _imgPath.image;
-					_card.desc = wrapReturnCode(_desc.getText);
-					_card.name = _name.getText;
-				} else static if (is (C == EnemyCard)) {
-					if (_summ && _casts.getSelectionIndex >= 0) {
-						_card.id = _summ.casts[_casts.getSelectionIndex].id;
-					} else {
-						_card.id = 0;
-					}
-					_card.escape = _escape.getSelection;
+	override bool apply() {
+		int fidx = _flag.getSelectionIndex;
+		string flag = fidx > 0 ? _flag.getItem(fidx).getText : "";
+		if (_card) {
+			static if (is (C == MenuCard)) {
+				_card.path = _imgPath.image;
+				_card.desc = wrapReturnCode(_desc.getText);
+				_card.name = _name.getText;
+			} else static if (is (C == EnemyCard)) {
+				if (_summ && _casts.getSelectionIndex >= 0) {
+					_card.id = _summ.casts[_casts.getSelectionIndex].id;
 				} else {
-					static assert (0);
+					_card.id = 0;
 				}
-				_card.flag = flag;
-				_card.x = _x.getSelection;
-				_card.y = _y.getSelection;
-				_card.scale = _scale.getSelection / 100.0;
+				_card.escape = _escape.getSelection;
 			} else {
-				static if (is (C == MenuCard)) {
-					_card = new C(_name.getText, _imgPath.image,
-						wrapReturnCode(_desc.getText), flag,
-						_x.getSelection, _y.getSelection, _scale.getSelection / 100.0);
-				} else static if (is (C == EnemyCard)) {
-					ulong id;
-					if (_summ && _casts.getSelectionIndex >= 0) {
-						id = _summ.casts[_casts.getSelectionIndex].id;
-					}
-					_card = new C(id, _escape.getSelection,
-						flag, _x.getSelection, _y.getSelection, _scale.getSelection / 100.0);
-				} else {
-					static assert (0);
+				static assert (0);
+			}
+			_card.flag = flag;
+			_card.x = _x.getSelection;
+			_card.y = _y.getSelection;
+			_card.scale = _scale.getSelection / 100.0;
+		} else {
+			static if (is (C == MenuCard)) {
+				_card = new C(_name.getText, _imgPath.image,
+					wrapReturnCode(_desc.getText), flag,
+					_x.getSelection, _y.getSelection, _scale.getSelection / 100.0);
+			} else static if (is (C == EnemyCard)) {
+				ulong id;
+				if (_summ && _casts.getSelectionIndex >= 0) {
+					id = _summ.casts[_casts.getSelectionIndex].id;
 				}
+				_card = new C(id, _escape.getSelection,
+					flag, _x.getSelection, _y.getSelection, _scale.getSelection / 100.0);
+			} else {
+				static assert (0);
 			}
 		}
-		return ok;
+		return true;
 	}
 }

@@ -176,7 +176,7 @@ private:
 				} else {
 					_beastDlg = new EffectCardDialog!(BeastCard)(_comm, _prop, getShell, _summ, b);
 					_beastDlg.open;
-					_beastDlg.applyEvent ~= {
+					_beastDlg.appliedEvent ~= {
 						foreach (dlg; modEvent) dlg();
 					};
 					_beastDlg.closeEvent ~= {

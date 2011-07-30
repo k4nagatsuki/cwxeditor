@@ -582,7 +582,7 @@ private:
 			} else static if (is (C == InfoCard)) {
 				auto dlg = new InfoCardDialog(_comm, _prop, _list.getShell, _summ, c);
 			} else static assert (0, typeof(C));
-			dlg.applyEvent ~= {
+			dlg.appliedEvent ~= {
 				refresh;
 				refCard(c);
 			};
@@ -1056,7 +1056,7 @@ public:
 			} else {
 				static assert (0);
 			}
-			dlg.applyEvent ~= {
+			dlg.appliedEvent ~= {
 				auto c = dlg.card;
 				_owner.add(c);
 				refresh;
@@ -1064,6 +1064,11 @@ public:
 				static if (is (CardOwner : CastCard) && is (C : BeastCard)) {
 					_comm.refCast.call(_owner);
 				}
+				dlg.appliedEvent.length = 0;
+				dlg.appliedEvent ~= {
+					refresh;
+					refCard(c);
+				};
 				_editDlgs[c] = dlg;
 				dlg.closeEvent ~= {
 					_editDlgs.remove(c);

@@ -114,6 +114,10 @@ protected:
 		_comm.refScenario.add(&refScenario);
 		area.addDisposeListener(new Dispose);
 
+		refCard(_card);
+	}
+	private void refCard(InfoCard card) {
+		if (_card && _card !is card) return;
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		if (_card) {

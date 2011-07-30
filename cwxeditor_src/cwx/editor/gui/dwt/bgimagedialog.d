@@ -105,6 +105,7 @@ private:
 				break;
 			case 1:
 				select;
+				applyEnabled();
 				break;
 			default:
 				_selected = true;
@@ -115,6 +116,7 @@ private:
 				_h.setSelection = s.height;
 				_mask.setSelection = s.mask;
 				_imgPath.mask = s.mask;
+				applyEnabled();
 			}
 		}
 	}
@@ -124,6 +126,12 @@ private:
 			auto ws = sash.getWeights;
 			_prop.var.etc.backSashL = ws[0];
 			_prop.var.etc.backSashR = ws[1];
+			_comm.delBgImage.remove(&delBgImage);
+		}
+	}
+	void delBgImage(string cwxPath) {
+		if (_back && _back.cwxPath == cwxPath) {
+			forceCancel();
 		}
 	}
 public:
@@ -139,9 +147,9 @@ public:
 		} else {
 			size = _prop.var.areaBackgroundNFDlg;
 		}
-		super(prop, shell,
+		super(prop, shell, false,
 			_back ? _prop.msgs.dlgTitBgImage : _prop.msgs.dlgTitNewBgImage,
-			_prop.images.backs, true, size);
+			_prop.images.backs, true, size, true);
 		enterClose = true;
 	}
 
@@ -158,6 +166,7 @@ protected:
 			void imgs(Composite parent) {
 				_imgPath = new ImageSelect!(MtType.BG_IMG)(parent, SWT.NONE, _comm, _prop, _summ,
 					_prop.var.etc.bgImageSampleWidth, _prop.var.etc.bgImageSampleHeight, false, "", &select);
+				mod(_imgPath);
 			}
 			if (_summ) {
 				auto sash = new SplitPane(comp, SWT.HORIZONTAL);
@@ -170,6 +179,7 @@ protected:
 					grp.setLayout = new GridLayout(2, false);
 					grp.setText = _prop.msgs.refFlag;
 					_flag = new Table(grp, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER);
+					mod(_flag);
 					auto gd = new GridData(GridData.FILL_BOTH);
 					gd.widthHint = _prop.var.etc.flagsWidth;
 					gd.heightHint = _prop.var.etc.flagsHeight;
@@ -198,6 +208,7 @@ protected:
 					auto l = new Label(comp3, SWT.NONE);
 					l.setText = name;
 					auto spn = new Spinner(comp3, SWT.BORDER);
+					mod(spn);
 					spn.setMaximum = max;
 					spn.setMinimum = min;
 					spn.setSelection = 0;
@@ -208,6 +219,7 @@ protected:
 				_w = createS(_prop.msgs.width, _prop.looks.backWidthMax, _prop.looks.backWidthMin);
 				_h = createS(_prop.msgs.height, _prop.looks.backHeightMax, _prop.looks.backHeightMin);
 				_mask = new Button(comp2, SWT.TOGGLE);
+				mod(_mask);
 				_mask.setImage = _prop.images.menuMask;
 				_mask.setToolTipText = _prop.msgs.ttMask;
 				_mask.addSelectionListener(new MaskListener);
@@ -249,6 +261,9 @@ protected:
 				itm.setData = flag;
 			}
 		}
+		_comm.delBgImage.add(&delBgImage);
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
 		if (_back) {
 			_imgPath.image = _back.path;
 			_imgPath.mask = _back.mask;
@@ -285,30 +300,27 @@ protected:
 		_h.addModifyListener(spnl);
 	}
 
-	override bool close(bool ok) {
-		if (ok) {
-			string flag;
-			if (_flag) {
-				int fidx = _flag.getSelectionIndex;
-				flag = fidx > 0 ? _flag.getItem(fidx).getText : "";
-			} else {
-				flag = "";
-			}
-			if (_back) {
-				_back.path = _imgPath.image;
-				_back.flag = flag;
-				_back.x = _x.getSelection;
-				_back.y = _y.getSelection;
-				_back.width = _w.getSelection;
-				_back.height = _h.getSelection;
-				_back.mask = _mask.getSelection;
-			} else {
-				_back = new BgImage(_imgPath.image, flag,
-					_x.getSelection, _y.getSelection, _w.getSelection, _h.getSelection,
-					_mask.getSelection);
-			}
-			return true;
+	override bool apply() {
+		string flag;
+		if (_flag) {
+			int fidx = _flag.getSelectionIndex;
+			flag = fidx > 0 ? _flag.getItem(fidx).getText : "";
+		} else {
+			flag = "";
 		}
-		return false;
+		if (_back) {
+			_back.path = _imgPath.image;
+			_back.flag = flag;
+			_back.x = _x.getSelection;
+			_back.y = _y.getSelection;
+			_back.width = _w.getSelection;
+			_back.height = _h.getSelection;
+			_back.mask = _mask.getSelection;
+		} else {
+			_back = new BgImage(_imgPath.image, flag,
+				_x.getSelection, _y.getSelection, _w.getSelection, _h.getSelection,
+				_mask.getSelection);
+		}
+		return true;
 	}
 }

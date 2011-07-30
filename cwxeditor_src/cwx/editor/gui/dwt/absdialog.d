@@ -38,8 +38,10 @@ interface DSize {
 abstract class AbsDialog {
 	/// ダイアログが閉じられた際に呼び出される。
 	void delegate()[] closeEvent;
-	/// OKまたは適用ボタンが押され、その処理がキャンセルされなかった際に呼び出される。
+	/// OKまたは適用ボタンの処理が行われる直前に呼び出される。
 	void delegate()[] applyEvent;
+	/// OKまたは適用ボタンが押され、その処理がキャンセルされなかった際に呼び出される。
+	void delegate()[] appliedEvent;
 
 	private Props _prop;
 	private Shell _win;
@@ -149,8 +151,11 @@ abstract class AbsDialog {
 				}
 				return;
 			}
-			bool cancel;
 			_imeMode = _win.getImeInputMode;
+			foreach (dlg; applyEvent) {
+				dlg();
+			}
+			bool cancel;
 			_ret = close(_ret, cancel);
 			e.doit = !cancel;
 			if (e.doit && _size) {
@@ -160,7 +165,7 @@ abstract class AbsDialog {
 			}
 			if (e.doit) {
 				if (_ret) {
-					foreach (dlg; applyEvent) {
+					foreach (dlg; appliedEvent) {
 						dlg();
 					}
 				}
@@ -247,10 +252,13 @@ abstract class AbsDialog {
 	}
 
 	private void applyFunc() {
+		foreach (dlg; applyEvent) {
+			dlg();
+		}
 		if (apply) {
 			_apply.setEnabled = false;
 			_applied = true;
-			foreach (dlg; applyEvent) {
+			foreach (dlg; appliedEvent) {
 				dlg();
 			}
 		}

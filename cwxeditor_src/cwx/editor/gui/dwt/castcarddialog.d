@@ -1215,6 +1215,10 @@ protected:
 		gd.heightHint = rect.height;
 		tabf.setLayoutData = gd;
 
+		refCard(_card);
+	}
+	private void refCard(CastCard card) {
+		if (_card && _card !is card) return;
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		auto skin = _comm.skin;

@@ -640,7 +640,6 @@ protected:
 		_comm.refScenario.add(&refScenario);
 		area.addDisposeListener(new Dispose);
 
-		auto skin = _comm.skin;
 		// Windows Vistaだとタブの横幅が凄いことになったので必要最低限にする。
 		scope maxSize = new Point(0, 0);
 		foreach (tab; tabf.getItems) {
@@ -654,8 +653,13 @@ protected:
 		gd.heightHint = rect.height;
 		tabf.setLayoutData = gd;
 
+		refCard(_card);
+	}
+	private void refCard(C card) {
+		if (_card && _card !is card) return;
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
+		auto skin = _comm.skin;
 		if (_card) {
 			_imgPath.image = _card.path;
 			_desc.setText = _card.desc;

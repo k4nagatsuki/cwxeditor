@@ -19,6 +19,7 @@ class UndoManager {
 	void opCatAssign(Undo undo) {
 		add(undo);
 	}
+	size_t pointer() {return _pointer;}
 	void add(Undo undo) {
 		if (_max == 0) return;
 		if (_undos.length && _pointer < _undos.length) {
