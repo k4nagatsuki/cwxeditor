@@ -285,6 +285,7 @@ public:
 	static if (UseArea) {
 		void editSummary() {
 			if (!_summ) return;
+			_comm.openDataWin();
 			_areas.editSummary;
 		}
 

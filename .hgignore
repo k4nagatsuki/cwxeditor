@@ -4,6 +4,7 @@ cwxeditor_src/cwxeditor.exe
 cwxeditor_src/cwxeditor.map
 cwxeditor_src/cwxeditor.res
 cwxeditor_src/cwxeditor.xml
+cwxeditor_src/cwxeditor.config
 cwxeditor_src/cwxeditor_error.log
 cwxeditor_src/dwt-base.a
 cwxeditor_src/org.eclipse.swt.gtk.linux.x86.a

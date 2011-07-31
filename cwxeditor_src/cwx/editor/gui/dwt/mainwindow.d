@@ -1263,7 +1263,11 @@ public:
 			intoDisplay(tx, ty, _win.getSize.x, _win.getSize.y);
 			_win.setBounds(tx, ty, _win.getSize.x, _win.getSize.y);
 		}
-		if (_dock) dockSelect("data");
+		if (_dock) {
+			dockSelect("data");
+			setupMenu(_menu);
+			setupMenu(_tool);
+		}
 	}
 	private template NewCard(string Name) {
 		static const NewCard = "auto cw = cast(ICardWindow) _tlp;"
