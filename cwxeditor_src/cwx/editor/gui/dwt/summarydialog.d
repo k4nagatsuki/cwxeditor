@@ -232,6 +232,7 @@ private:
 				string saveName = including ? _summ.scenarioName : "";
 				_imgPath = new ImageSelect!(MtType.CARD)(_tab2Sash, SWT.NONE, _comm, _prop, _summ,
 					_prop.looks.cardSize.width, _prop.looks.cardSize.height, including, saveName, &clearBuf);
+				mod(_imgPath);
 				_imgPath.image = _summ.imagePath;
 			}
 			{
@@ -241,6 +242,7 @@ private:
 					auto grp = centerGroup(comp2, _prop.msgs.title, true, false, new GridData(GridData.FILL_BOTH));
 					grp.setLayout = new GridLayout(1, true);
 					_sname = new Text(grp, SWT.BORDER);
+					mod(_sname);
 					setCDataX(_sname, new GridData(GridData.FILL_HORIZONTAL));
 					_sname.setText = _summ.scenarioName;
 					checker(_sname);
@@ -249,6 +251,7 @@ private:
 					auto grp = centerGroup(comp2, _prop.msgs.author, true, false, new GridData(GridData.FILL_BOTH));
 					grp.setLayout = new GridLayout(1, true);
 					_author = new Text(grp, SWT.BORDER);
+					mod(_author);
 					setCDataX(_author, new GridData(GridData.FILL_HORIZONTAL));
 					_author.setText = _summ.author;
 				}
@@ -256,6 +259,7 @@ private:
 					auto grp = centerGroup(comp2, _prop.msgs.targetLevel, false, false, new GridData(GridData.FILL_BOTH));
 					grp.setLayout = new GridLayout(3, false);
 					_levMin = new Spinner(grp, SWT.BORDER);
+					mod(_levMin);
 					_levMin.setSelection = _summ.levelMin;
 					_levMin.setMinimum = 0;
 					_levMin.setMaximum = _prop.looks.levelMax;
@@ -264,6 +268,7 @@ private:
 					lbl.setText = _prop.msgs.levSep;
 					lbl.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
 					_levMax = new Spinner(grp, SWT.BORDER);
+					mod(_levMax);
 					_levMax.setSelection = _summ.levelMax;
 					_levMax.setMinimum = 0;
 					_levMax.setMaximum = _prop.looks.levelMax;
@@ -278,6 +283,7 @@ private:
 			grp.setLayout = new CenterLayout(SWT.HORIZONTAL);
 			grp.setText = _prop.msgs.desc;
 			_desc = new FixedWidthText(dwtData(_prop.looks.summaryDescFont(_summ.legacy)), _prop.looks.summaryDescLen, grp, SWT.BORDER);
+			mod(_desc.widget);
 			_desc.widget.setLayoutData = _desc.computeTextBaseSize(_prop.looks.summaryDescLine);
 			_desc.setText = _summ.desc;
 		}
@@ -301,6 +307,7 @@ private:
 					grp.setText = _prop.msgs.scenarioType;
 					grp.setLayout = new GridLayout(1, true);
 					_type = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
+					mod(_type);
 					_type.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 					if (_summ.legacy) {
 						string resDir, lEnginePath;
@@ -339,6 +346,7 @@ private:
 						auto lblN = new Label(grp, SWT.NONE);
 						lblN.setText = _prop.msgs.rCouponNum;
 						_rCouponNum = new Spinner(grp, SWT.BORDER);
+						mod(_rCouponNum);
 						_rCouponNum.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 						_rCouponNum.setSelection = _summ.rCouponNum;
 						_rCouponNum.setMaximum = 999;
@@ -353,6 +361,7 @@ private:
 					}
 					{
 						_rCoupons = new Text(grp, SWT.BORDER | SWT.MULTI | SWT.WRAP);
+						mod(_rCoupons);
 						auto gd = new GridData(GridData.FILL_BOTH);
 						gd.horizontalSpan = 2;
 						setCDataXY(_rCoupons, gd);
@@ -371,21 +380,12 @@ private:
 				grp.setText = _prop.msgs.startArea;
 				grp.setLayout = new GridLayout(1, false);
 				_startArea = new Table(grp, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.V_SCROLL);
+				mod(_startArea);
 				auto idCol = new TableColumn(_startArea, SWT.NONE);
 				saveColumnWidth!("prop.var.etc.idColumn")(_prop, idCol);
 				auto nameCol = new FullTableColumn(_startArea, SWT.NONE);
 				setCDataXY(_startArea, new GridData(GridData.FILL_BOTH));
-				foreach (i, area; _summ.areas) {
-					auto itm = new TableItem(_startArea, SWT.NONE);
-					itm.setData = area;
-					itm.setImage(0, _prop.images.area);
-					itm.setText(0, to!(string)(area.id));
-					itm.setText(1, area.name);
-					if (area.id == _summ.startArea) {
-						_startArea.setSelection(i);
-					}
-				}
-				_startArea.showSelection;
+				refreshAreas();
 			}
 			_tab3Sash.setWeights = [_prop.var.etc.rCouponsStartAreaSashL, _prop.var.etc.rCouponsStartAreaSashR];
 		}
@@ -399,7 +399,53 @@ private:
 			if (_summImageBuf) {
 				_summImageBuf.dispose();
 			}
+			auto ws1 = _tab2Sash.getWeights;
+			_prop.var.etc.summaryParamSashL = ws1[0];
+			_prop.var.etc.summaryParamSashR = ws1[1];
+			auto ws2 = _tab3Sash.getWeights;
+			_prop.var.etc.rCouponsStartAreaSashL = ws2[0];
+			_prop.var.etc.rCouponsStartAreaSashR = ws2[1];
+			_comm.refArea.remove(&refArea);
+			_comm.delArea.remove(&refArea);
+			_comm.refScenario.remove(&refScenario);
 		}
+	}
+	void refreshAreas() {
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
+
+		auto sels = _startArea.getSelection;
+		ulong id;
+		if (sels.length) {
+			id = (cast(Area) sels[0].getData).id;
+		} else {
+			id = _summ.startArea;
+		}
+		_startArea.removeAll();
+		foreach (i, area; _summ.areas) {
+			auto itm = new TableItem(_startArea, SWT.NONE);
+			itm.setData = area;
+			itm.setImage(0, _prop.images.area);
+			itm.setText(0, to!(string)(area.id));
+			itm.setText(1, area.name);
+			if (area.id == id) {
+				_startArea.setSelection(i);
+			}
+		}
+		if (!_startArea.getSelection.length) {
+			foreach (i, area; _summ.areas) {
+				if (area.id == _summ.startArea) {
+					_startArea.setSelection(i);
+				}
+			}
+		}
+		_startArea.showSelection;
+	}
+	void refArea(Area area) {
+		refreshAreas();
+	}
+	void refScenario(Summary summ) {
+		forceCancel();
 	}
 public:
 	this(Commons comm, Props prop, Shell shell, Summary summ) {
@@ -407,8 +453,8 @@ public:
 		_comm = comm;
 		_summ = summ;
 		_prop = prop;
-		super(prop, shell, _prop.msgs.dlgTitSummary(_summ.scenarioName),
-			_prop.images.summary, true, _prop.var.summaryDlg);
+		super(prop, shell, false, _prop.msgs.dlgTitSummary(_summ.scenarioName),
+			_prop.images.summary, true, _prop.var.summaryDlg, true);
 	}
 
 protected:
@@ -419,7 +465,11 @@ protected:
 		constructTab1(tabf);
 		constructTab2(tabf);
 		constructTab3(tabf);
+
 		_comm.refSkin.add(&clearBuf);
+		_comm.refArea.add(&refArea);
+		_comm.delArea.add(&refArea);
+		_comm.refScenario.add(&refScenario);
 		area.addDisposeListener(new Dispose);
 	}
 
@@ -453,50 +503,49 @@ protected:
 			}
 		}
 	}
-	override bool close(bool ok) {
-		if (ok) {
-			setNames(_summ.skills);
-			setNames(_summ.items);
-			setNames(_summ.beasts);
-			foreach (card; _summ.casts) {
-				setNames(card.skills);
-				setNames(card.items);
-				setNames(card.beasts);
-			}
-			setContentNames(_summ.areas);
-			foreach (area; _summ.areas) setContentNames(area.cards);
-			setContentNames(_summ.battles);
-			foreach (area; _summ.battles) setContentNames(area.cards);
-			setContentNames(_summ.packages);
-			_summ.scenarioName = _sname.getText;
-			_summ.author = _author.getText;
-			_summ.desc = _desc.getRRText;
-			_summ.imagePath = _imgPath.image;
-			_summ.levelMin = _levMin.getSelection;
-			_summ.levelMax = _levMax.getSelection;
-			string[] rcs;
-			foreach (s; splitlines(_rCoupons.getText)) {
-				if (s.length > 0) {
-					rcs ~= s;
-				}
-			}
-			_summ.rCoupons = rcs;
-			_summ.rCouponNum = _rCouponNum.getSelection;
-			_summ.startArea = _startArea.getItemCount > 0 && _startArea.getSelection.length > 0
-				? (cast(Area) _startArea.getSelection[0].getData).id : 0;
-			if (_summ.legacy && _hasLegacySkin && _type.getSelectionIndex == 0) {
-				_summ.type = "";
-			} else {
-				_summ.type = _type.getText;
-			}
-			_comm.skin = findSkin(_prop, _summ);
+	override bool apply() {
+		string oldName = _summ.scenarioName;
+		string oldType = _summ.type;
+		scope (exit) {
+			if (oldName != _summ.scenarioName) _comm.refScenarioName.call;
+			if (oldType != _summ.type) _comm.refSkin.call;
+			_comm.refUseCount.call;
 		}
-		auto ws1 = _tab2Sash.getWeights;
-		_prop.var.etc.summaryParamSashL = ws1[0];
-		_prop.var.etc.summaryParamSashR = ws1[1];
-		auto ws2 = _tab3Sash.getWeights;
-		_prop.var.etc.rCouponsStartAreaSashL = ws2[0];
-		_prop.var.etc.rCouponsStartAreaSashR = ws2[1];
-		return ok;
+		setNames(_summ.skills);
+		setNames(_summ.items);
+		setNames(_summ.beasts);
+		foreach (card; _summ.casts) {
+			setNames(card.skills);
+			setNames(card.items);
+			setNames(card.beasts);
+		}
+		setContentNames(_summ.areas);
+		foreach (area; _summ.areas) setContentNames(area.cards);
+		setContentNames(_summ.battles);
+		foreach (area; _summ.battles) setContentNames(area.cards);
+		setContentNames(_summ.packages);
+		_summ.scenarioName = _sname.getText;
+		_summ.author = _author.getText;
+		_summ.desc = _desc.getRRText;
+		_summ.imagePath = _imgPath.image;
+		_summ.levelMin = _levMin.getSelection;
+		_summ.levelMax = _levMax.getSelection;
+		string[] rcs;
+		foreach (s; splitlines(_rCoupons.getText)) {
+			if (s.length > 0) {
+				rcs ~= s;
+			}
+		}
+		_summ.rCoupons = rcs;
+		_summ.rCouponNum = _rCouponNum.getSelection;
+		_summ.startArea = _startArea.getItemCount > 0 && _startArea.getSelection.length > 0
+			? (cast(Area) _startArea.getSelection[0].getData).id : 0;
+		if (_summ.legacy && _hasLegacySkin && _type.getSelectionIndex == 0) {
+			_summ.type = "";
+		} else {
+			_summ.type = _type.getText;
+		}
+		_comm.skin = findSkin(_prop, _summ);
+		return true;
 	}
 }

@@ -353,6 +353,7 @@ private:
 		}
 	}
 	private void refreshAreas() {
+		if (!_areas || _areas.isDisposed) return;
 		_areas.removeAll;
 		if (_summ) {
 			foreach (i, a; _summ.areas) {
@@ -546,17 +547,21 @@ public:
 		}
 	}
 
+	private SummaryDialog _summDlg = null;
 	void editSummary() {
 		if (!_summ) return;
-		string oldName = _summ.scenarioName;
-		string oldType = _summ.type;
-		auto dlg = new SummaryDialog(_comm, _prop, _areas.getShell, _summ);
-		if (dlg.open) {
-			refresh;
-			_comm.refUseCount.call;
-			if (oldName != _summ.scenarioName) _comm.refScenarioName.call;
-			if (oldType != _summ.type) {_comm.refSkin.call;}
+		if (_summDlg) {
+			_summDlg.active();
+			return;
 		}
+		_summDlg = new SummaryDialog(_comm, _prop, _areas.getShell, _summ);
+		_summDlg.appliedEvent ~= {
+			refresh;
+		};
+		_summDlg.closeEvent ~= {
+			_summDlg = null;
+		};
+		_summDlg.open();
 	}
 
 	Control table() {
