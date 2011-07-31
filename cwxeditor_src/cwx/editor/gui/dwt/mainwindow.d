@@ -978,11 +978,11 @@ public:
 			_dock = _prop.var.loadDock(dockComp, SWT.NONE, delegate Control(Composite parent, string key) {
 				switch (key) {
 				case "data": {
-					_tableWin = new TableWindow(_comm, _prop, parent);
+					_tableWin = new TableWindow(_comm, _prop, _win, parent);
 					return _tableWin.shell;
 				}
 				case "flag": {
-					_flagWin = new FlagWindow(_comm, _prop, parent);
+					_flagWin = new FlagWindow(_comm, _prop, _win, parent);
 					return _flagWin.shell;
 				}
 				case "card": {
@@ -1016,13 +1016,13 @@ public:
 					_dock.tabImage("data", _tableWin.image);
 					_dock.tabText("data", _tableWin.title);
 				} else {
-					_tableWin = new TableWindow(_comm, _prop, null);
+					_tableWin = new TableWindow(_comm, _prop, _win, null);
 				}
 				if (_flagWin) {
 					_dock.tabImage("flag", _flagWin.image);
 					_dock.tabText("flag", _flagWin.title);
 				} else {
-					_flagWin = new FlagWindow(_comm, _prop, null);
+					_flagWin = new FlagWindow(_comm, _prop, _win, null);
 				}
 				if (_cardWin) {
 					_dock.tabImage("card", _cardWin.image);
@@ -1040,9 +1040,9 @@ public:
 				_dock = new DockingFolderCTC(dockComp, SWT.NONE, "work");
 				initDock;
 				auto data = _dock.addPane(_dock.first, Dir.N, 1, 3, "data");
-				_tableWin = new TableWindow(_comm, _prop, data);
+				_tableWin = new TableWindow(_comm, _prop, _win, data);
 				_dock.add(_tableWin.shell, _tableWin.title, _tableWin.image, "data", true);
-				_flagWin = new FlagWindow(_comm, _prop, data);
+				_flagWin = new FlagWindow(_comm, _prop, _win, data);
 				_dock.add(_flagWin.shell, _flagWin.title, _flagWin.image, "flag", false);
 				_cardWin = new MainCardWindow(_comm, _prop, data);
 				_dock.add(_cardWin.shell, _cardWin.title, _cardWin.image, "card", false);
@@ -1050,7 +1050,7 @@ public:
 				_dock.add(_dirWin.shell, _dirWin.title, _dirWin.image, "file", false);
 			}
 		} else {
-			_dataWin = new DataWindow(_comm, _prop, _win);
+			_dataWin = new DataWindow(_comm, _prop, _win, _win);
 			_cardWin = new MainCardWindow(_comm, _prop, _win);
 			_dirWin = new DirectoryWindow(_comm, _prop, _win);
 		}
@@ -1342,7 +1342,19 @@ public:
 			intoDisplay(tx, ty, _win.getSize.x, _win.getSize.y);
 			_win.setBounds(tx, ty, _win.getSize.x, _win.getSize.y);
 		}
-		if (_dock) dockSelect("data");
+		if (_dock) {
+			if (_dock.pane("data")) {
+				dockSelect("data");
+			} else if (_dock.pane("card")) {
+				dockSelect("card");
+			} else if (_dock.pane("flag")) {
+				dockSelect("flag");
+			} else if (_dock.pane("file")) {
+				dockSelect("file");
+			}
+			setupMenu(_menu);
+			setupMenu(_tool);
+		}
 	}
 	private void redrawAll() {
 		_win.redraw(true);

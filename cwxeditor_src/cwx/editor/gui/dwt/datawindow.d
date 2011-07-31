@@ -49,6 +49,7 @@ import org.eclipse.swt.events.ControlEvent;
 
 class AbstractDataWindow(bool UseArea, bool UseFlag) : TopLevelPanel, TCPD {
 private:
+	Shell _parentShell;
 	Commons _comm;
 	SBShell _sbshl;
 	Composite _win;
@@ -85,9 +86,13 @@ private:
 		}
 	}
 public:
-	this(Commons comm, Props prop, Composite parent) {
+	this(Commons comm, Props prop, Shell parentShell, Composite parent) {
+		_parentShell = parentShell;
 		_prop = prop;
 		_comm = comm;
+		static if (UseArea) {
+			_areas = new AreaTable(_comm, _prop);
+		}
 		if (parent) construct(parent);
 	}
 	void reconstruct(Composite parent) {
@@ -213,7 +218,7 @@ public:
 
 				_flags = new FlagsPane(_comm, _prop, tabf);
 				_flags.setupTLP(this);
-				_areas = new AreaTable(_comm, _prop, tabf, _flags.flags);
+				_areas.construct(tabf, _flags.flags);
 
 				tabA = new CTabItem(tabf, SWT.NONE);
 				tabA.setText = _prop.msgs.scenarioView;
@@ -226,7 +231,7 @@ public:
 				_tcpd ~= _flags.flags;
 				_tcpd ~= _flags.dirs;
 			} else static if (UseArea) {
-				_areas = new AreaTable(_comm, _prop, contPane, null);
+				_areas.construct(contPane, null);
 				_areas.table.setLayoutData = new GridData(GridData.FILL_BOTH);
 				_tcpd ~= _areas;
 			} else static if (UseFlag) {
@@ -285,7 +290,11 @@ public:
 	static if (UseArea) {
 		void editSummary() {
 			if (!_summ) return;
-			_areas.editSummary;
+			if (_win && !_win.isDisposed) {
+				_areas.editSummary(_win.getShell);
+			} else {
+				_areas.editSummary(_parentShell);
+			}
 		}
 
 		/// エリアビューを開く。
@@ -390,17 +399,22 @@ public:
 	void delegate(string) statusText() {return _sbshl ? &_sbshl.statusLine : null;}
 
 	private void __refreshTitle() {
+		if (!_win || _win.isDisposed) return;
 		_comm.setTitle(_win, title);
 	}
 	private void refresh() {
 		__refreshTitle;
-		static if (UseFlag) {
-			_flags.setFlagDirTree(_summ.flagDirRoot, _summ.useCounter);
-		}
 		static if (UseArea) {
 			_areas.summary = _summ;
 			static if (UseFlag) {
-				tabf.setSelection = tabA;
+				if (_win && !_win.isDisposed) {
+					tabf.setSelection = tabA;
+				}
+			}
+		}
+		static if (UseFlag) {
+			if (_win && !_win.isDisposed) {
+				_flags.setFlagDirTree(_summ.flagDirRoot, _summ.useCounter);
 			}
 		}
 	}
@@ -414,7 +428,7 @@ public:
 	/// FileLoadException = Summary.xml以外での読込例外発生時。
 	void load(Summary summ) {
 		_summ = summ;
-		if (_win && !_win.isDisposed) refresh;
+		refresh();
 	}
 
 	/// Returns: 貼り紙。

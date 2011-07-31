@@ -407,11 +407,13 @@ private:
 		}
 	}
 public:
-	this(Commons comm, Props prop, Composite parent, FlagTable flags) {
+	this(Commons comm, Props prop) {
 		_comm = comm;
 		_prop = prop;
-		_flags = flags;
+	}
 
+	void construct(Composite parent, FlagTable flags) {
+		_flags = flags;
 		_comm.refArea.add(&refArea);
 		_comm.refBattle.add(&refBattle);
 		_comm.refPackage.add(&refPackage);
@@ -422,23 +424,23 @@ public:
 		_areas.addSelectionListener(new SListener);
 		_areas.setHeaderVisible = true;
 		auto idCol = new TableColumn(_areas, SWT.NULL);
-		idCol.setText = prop.msgs.areaId;
-		saveColumnWidth!("prop.var.etc.areaIdColumn")(prop, idCol);
+		idCol.setText = _prop.msgs.areaId;
+		saveColumnWidth!("prop.var.etc.areaIdColumn")(_prop, idCol);
 		auto nameCol = new TableColumn(_areas, SWT.NULL);
-		nameCol.setText = prop.msgs.areaName;
-		saveColumnWidth!("prop.var.etc.areaNameColumn")(prop, nameCol);
+		nameCol.setText = _prop.msgs.areaName;
+		saveColumnWidth!("prop.var.etc.areaNameColumn")(_prop, nameCol);
 		auto countCol = new TableColumn(_areas, SWT.NULL);
-		countCol.setText = prop.msgs.areaCount;
-		saveColumnWidth!("prop.var.etc.areaCountColumn")(prop, countCol);
+		countCol.setText = _prop.msgs.areaCount;
+		saveColumnWidth!("prop.var.etc.areaCountColumn")(_prop, countCol);
 
 		_areasEdit = new TableTextEdit(_areas, 1, &editEnd);
 
 		auto menu = new Menu(parent.getShell, SWT.POP_UP);
-		createMenuItem(menu, prop.msgs.menuCEdit, prop.images.menuCEdit, &openArea);
+		createMenuItem(menu, _prop.msgs.menuCEdit, _prop.images.menuCEdit, &openArea);
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(menu, _prop.msgs.menuSummary, _prop.images.menuSummary, &editSummary);
 		new MenuItem(menu, SWT.SEPARATOR);
-		appendMenuTCPD(prop, menu, this);
+		appendMenuTCPD(_prop, menu, this);
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(menu, _prop.msgs.menuReNumbering, _prop.images.menuReNumbering, &reNumbering);
 		_areas.setMenu = menu;
@@ -547,14 +549,17 @@ public:
 		}
 	}
 
+	private void editSummary() {
+		editSummary(_areas);
+	}
 	private SummaryDialog _summDlg = null;
-	void editSummary() {
+	void editSummary(Composite parent) {
 		if (!_summ) return;
 		if (_summDlg) {
 			_summDlg.active();
 			return;
 		}
-		_summDlg = new SummaryDialog(_comm, _prop, _areas.getShell, _summ);
+		_summDlg = new SummaryDialog(_comm, _prop, parent.getShell, _summ);
 		_summDlg.appliedEvent ~= {
 			refresh;
 		};
