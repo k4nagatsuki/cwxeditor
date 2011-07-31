@@ -387,30 +387,88 @@ public:
 	const string ttConvertContent() {return "変換";}
 	const string menuConvertContent() {return ttConvertContent ~ "(&R)";}
 
-	const string dlgTitAreaSelect() {return "エリアの選択";}
-	const string dlgTitBattleSelect() {return "バトルの選択";}
-	const string dlgTitPackageSelect() {return "パッケージの選択";}
-	const string dlgTitCastSelect() {return "キャストカードの選択";}
-	const string dlgTitInfoSelect() {return "情報カードの選択";}
+	const string dlgTitContent(CType type) {
+		final switch (type) {
+		case CType.START: assert (0);
+		case CType.START_BATTLE: return "バトルの選択";
+		case CType.END: return "クリアイベントの設定";
+		case CType.END_BAD_END: assert (0);
+		case CType.CHANGE_AREA: return "エリアの選択";
+		case CType.CHANGE_BG_IMAGE: return "背景変更イベントの設定";
+		case CType.EFFECT: return "効果イベントの設定";
+		case CType.EFFECT_BREAK: assert (0);
+		case CType.LINK_START: return "リンクイベントの設定";
+		case CType.LINK_PACKAGE: return "パッケージの選択";
+		case CType.TALK_MESSAGE: return "メッセージイベントの設定";
+		case CType.TALK_DIALOG: return "台詞イベントの設定";
+		case CType.PLAY_BGM: return "効果音再生イベントの設定";
+		case CType.PLAY_SOUND: return "BGM再生イベントの設定";
+		case CType.WAIT: return "空白時間イベントの設定";
+		case CType.ELAPSE_TIME: assert (0);
+		case CType.CALL_START: return "リンクイベントの設定";
+		case CType.CALL_PACKAGE: return "パッケージの選択";
+		case CType.BRANCH_FLAG: return "フラグ分岐イベントの設定";
+		case CType.BRANCH_MULTI_STEP: return "ステップ多岐分岐イベントの設定";
+		case CType.BRANCH_STEP: return "ステップ上下分岐イベントの設定";
+		case CType.BRANCH_SELECT: return "メンバ選択分岐イベントの設定";
+		case CType.BRANCH_ABILITY: return "能力判定分岐イベントの設定";
+		case CType.BRANCH_RANDOM: return "ランダム分岐イベントの設定";
+		case CType.BRANCH_LEVEL: return "レベル分岐イベントの設定";
+		case CType.BRANCH_STATUS: return "状態分岐イベントの設定";
+		case CType.BRANCH_PARTY_NUMBER: return "パーティ人数分岐イベントの設定";
+		case CType.BRANCH_AREA: assert (0);
+		case CType.BRANCH_BATTLE: assert (0);
+		case CType.BRANCH_IS_BATTLE: assert (0);
+		case CType.BRANCH_CAST: return "キャストカードの選択";
+		case CType.BRANCH_ITEM: return "アイテム所持分岐イベントの設定";
+		case CType.BRANCH_SKILL: return "スキル所持分岐イベントの設定";
+		case CType.BRANCH_INFO: return "情報カードの選択";
+		case CType.BRANCH_BEAST: return "召喚獣存在分岐イベントの設定";
+		case CType.BRANCH_MONEY: return "所持金イベントの設定";
+		case CType.BRANCH_COUPON: return "クーポンイベントの設定";
+		case CType.BRANCH_COMPLETE_STAMP: return "終了済みシナリオイベントの設定";
+		case CType.BRANCH_GOSSIP: return "ゴシップイベントの設定";
+		case CType.SET_FLAG: return "フラグ変更イベントの設定";
+		case CType.SET_STEP: return "ステップ変更イベントの設定";
+		case CType.SET_STEP_UP: return "ステップ増加イベントの設定";
+		case CType.SET_STEP_DOWN: return "ステップ減少イベントの設定";
+		case CType.REVERSE_FLAG: return "フラグ反転イベントの設定";
+		case CType.CHECK_FLAG: return "フラグ判定イベントの設定";
+		case CType.GET_CAST: return "キャストカードの選択";
+		case CType.GET_ITEM: return "アイテム入手イベントの設定";
+		case CType.GET_SKILL: return "スキル取得イベントの設定";
+		case CType.GET_INFO: return "情報カードの選択";
+		case CType.GET_BEAST: return "召喚獣獲得イベントの設定";
+		case CType.GET_MONEY: return "所持金イベントの設定";
+		case CType.GET_COUPON: return "クーポンイベントの設定";
+		case CType.GET_COMPLETE_STAMP: return "終了済みシナリオイベントの設定";
+		case CType.GET_GOSSIP: return "ゴシップイベントの設定";
+		case CType.LOSE_CAST: return "キャストカードの選択";
+		case CType.LOSE_ITEM: return "アイテム喪失イベントの設定";
+		case CType.LOSE_SKILL: return "スキル喪失イベントの設定";
+		case CType.LOSE_INFO: return "情報カードの選択";
+		case CType.LOSE_BEAST: return "召喚獣消去イベントの設定";
+		case CType.LOSE_MONEY: return "所持金イベントの設定";
+		case CType.LOSE_COUPON: return "クーポンイベントの設定";
+		case CType.LOSE_COMPLETE_STAMP: return "終了済みシナリオイベントの設定";
+		case CType.LOSE_GOSSIP: return "ゴシップイベントの設定";
+		case CType.SHOW_PARTY: assert (0);
+		case CType.HIDE_PARTY: assert (0);
+		case CType.REDISPLAY: return "画面再構築イベントの設定";
+		}
+	}
 
-	const string dlgTitClear() {return "クリアイベントの設定";}
 	const string afterClear() {return "シナリオ終了後";}
 	const string afterClearEndMark() {return "シナリオに済印を付ける";}
 	const string afterClearNoEndMark() {return "何もしない";}
 
-	const string dlgTitCoupon() {return "クーポンイベントの設定";}
 	const string couponName() {return "クーポン名";}
 	const string couponValue() {return "得点";}
 	const string couponValueRange(uint r) {return "(" ~ to!(string)(-(cast(int) r)) ~ "～" ~ to!(string)(r) ~ ")";}
 	const string range() {return "適用範囲";}
-	const string dlgTitGossip() {return "ゴシップイベントの設定";}
 	const string gossipName() {return "ゴシップ名";}
-	const string dlgTitEnd() {return "終了済みシナリオイベントの設定";}
 	const string endName() {return "シナリオ名";}
-	const string dlgTitStartSelect() {return "リンクイベントの設定";}
 
-	const string dlgTitSpeak() {return "台詞イベントの設定";}
-	const string dlgTitMessage() {return "メッセージイベントの設定";}
 	const string imageMessage() {return "イメージ付きメッセージ";}
 	const string noImageMessage() {return "イメージ無しメッセージ";}
 	const string spCharsTitle() {return "特殊文字";}
@@ -441,7 +499,6 @@ public:
 	const string copyToLower() {return "台詞を下方にコピー";}
 	const string setTalkerCoupon() {return "追加";}
 
-	const string dlgTitBgImages() {return "背景変更イベントの設定";}
 	const string transition() {return "背景切替方式";}
 	const string transition(Transition t) {
 		switch (t) {
@@ -458,62 +515,32 @@ public:
 		}
 	}
 	const string transitionSpeed() {return "背景切替ウェイト";}
-	const string dlgTitSE() {return "効果音再生イベントの設定";}
-	const string dlgTitBGM() {return "BGM再生イベントの設定";}
-	const string dlgTitWait() {return "空白時間イベントの設定";}
 	const string waitName() {return "空白時間(0.1秒単位)";}
-	const string dlgTitMoney() {return "所持金イベントの設定";}
 	const string moneyName() {return "金額";}
-	const string dlgTitBrRandom() {return "ランダム分岐イベントの設定";}
 	const string randomName() {return "確率(%)";}
-	const string dlgTitPartyNum() {return "パーティ人数分岐イベントの設定";}
 	const string partyNumName() {return "パーティの人数";}
-	const string dlgTitEffect() {return "効果イベントの設定";}
 	const string judgeTarget() {return "判定対象";}
-	const string dlgTitBrFlag() {return "フラグ分岐イベントの設定";}
-	const string dlgTitBrStepN() {return "ステップ多岐分岐イベントの設定";}
-	const string dlgTitBrStepUL() {return "ステップ上下分岐イベントの設定";}
 	const string flag() {return "フラグ";}
 	const string step() {return "ステップ";}
 	const string flagValue() {return "値";}
 	const string stepValue() {return "段階";}
-	const string dlgTitFlagSet() {return "フラグ変更イベントの設定";}
-	const string dlgTitStepSet() {return "ステップ変更イベントの設定";}
-	const string dlgTitStepPlus() {return "ステップ増加イベントの設定";}
-	const string dlgTitStepMinus() {return "ステップ減少イベントの設定";}
-	const string dlgTitFlagR() {return "フラグ反転イベントの設定";}
-	const string dlgTitFlagJudge() {return "フラグ判定イベントの設定";}
-	const string dlgTitBrMember() {return "メンバ選択分岐イベントの設定";}
 	const string selectMember() {return "選択対象";}
 	const string activeMember() {return "動けるメンバから選択";}
 	const string allMember() {return "パーティ全員から選択";}
 	const string selectMethod() {return "選択方法";}
 	const string manualMethod() {return "手動で選択";}
 	const string randomMethod() {return "ランダムで選択";}
-	const string dlgTitBrPower() {return "能力判定分岐イベントの設定";}
 	const string judgeSleep() {return "眠り判定";}
 	const string sleepDisabled() {return "睡眠者無効";}
 	const string sleepEnabled() {return "睡眠者有効";}
-	const string dlgTitBrLevel() {return "レベル分岐イベントの設定";}
 	const string selectedLevel() {return "現在選択中のメンバ";}
 	const string allMemberLevel() {return "パーティ全員の平均値";}
 	const string judgeLevel() {return "判定レベル";}
-	const string dlgTitBrState() {return "状態分岐イベントの設定";}
 	const string judgeState() {return "判定状態";}
 	const string stateHint() {return "ヒント";}
 	const string cardNumber() {return "枚数";}
 	const string cardAllDelete() {return "全て削除する";}
 	const string cardEventRange() {return "適用範囲";}
-	const string dlgTitBrSkill() {return "スキル所持分岐イベントの設定";}
-	const string dlgTitBrItem() {return "アイテム所持分岐イベントの設定";}
-	const string dlgTitBrBeast() {return "召喚獣存在分岐イベントの設定";}
-	const string dlgTitGetSkill() {return "スキル取得イベントの設定";}
-	const string dlgTitGetItem() {return "アイテム入手イベントの設定";}
-	const string dlgTitGetBeast() {return "召喚獣獲得イベントの設定";}
-	const string dlgTitLostSkill() {return "スキル喪失イベントの設定";}
-	const string dlgTitLostItem() {return "アイテム喪失イベントの設定";}
-	const string dlgTitLostBeast() {return "召喚獣消去イベントの設定";}
-	const string dlgTitRefresh() {return "画面再構築イベントの設定";}
 	const string transitionType() {return "背景切替方式";}
 
 	/// イベント。

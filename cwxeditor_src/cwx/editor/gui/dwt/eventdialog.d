@@ -67,13 +67,36 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.GridData;
 
-/// エリア・バトル・パッケージ・キャスト・情報の選択を行うダイアログ。
-class AreaSelectDialog(CType Type, A, string Areas) : AbsDialog {
-private:
-	Props _prop;
-	Summary _summ;
-	Content _evt;
+abstract class EventDialog : AbsDialog {
+	private Commons _comm;
+	private Props _prop;
+	private Summary _summ;
+	private Content _evt;
+	this (Commons comm, Props prop, Shell shell, Summary summ, CType type, Content evt, bool resizable, DSize size, bool eClose) in {
+		assert (!evt || evt.type is type);
+		assert (summ);
+	} body {
+		super (prop, shell, prop.msgs.dlgTitContent(type), prop.images.content(type), resizable, size);
+		enterClose = eClose;
+		_comm = comm;
+		_prop = prop;
+		_summ = summ;
+		_evt = evt;
+	}
 
+	Content event() {
+		return _evt;
+	}
+	protected Commons comm() {return _comm;}
+	protected Props prop() {return _prop;}
+	protected Summary summ() {return _summ;}
+	protected Content evt() {return _evt;}
+	protected void evt(Content evt) {_evt = evt;}
+}
+
+/// エリア・バトル・パッケージ・キャスト・情報の選択を行うダイアログ。
+class AreaSelectDialog(CType Type, A, string Areas) : EventDialog {
+private:
 	Table _list;
 
 	static if (Type == CType.CHANGE_AREA) {
@@ -82,32 +105,8 @@ private:
 		Transition[int] _tsTbl;
 	}
 public:
-	this(Props prop, Shell shell, Summary summ, Content evt) in {
-		assert (!evt || evt.type is Type);
-		assert (summ);
-	} body {
-		_summ = summ;
-		_prop = prop;
-		_evt = evt;
-		static if (Type == CType.CHANGE_AREA) {
-			string text = _prop.msgs.dlgTitAreaSelect;
-		} else static if (Type == CType.START_BATTLE) {
-			string text = _prop.msgs.dlgTitBattleSelect;
-		} else static if (Type == CType.CALL_PACKAGE || Type == CType.LINK_PACKAGE) {
-			string text = _prop.msgs.dlgTitPackageSelect;
-		} else static if (Type == CType.BRANCH_CAST || Type == CType.GET_CAST || Type == CType.LOSE_CAST) {
-			string text = _prop.msgs.dlgTitCastSelect;
-		} else static if (Type == CType.BRANCH_INFO || Type == CType.GET_INFO || Type == CType.LOSE_INFO) {
-			string text = _prop.msgs.dlgTitInfoSelect;
-		} else {
-			static assert (0);
-		}
-		super(prop, shell, text, prop.images.content(Type), true, prop.var.selEvtDlg);
-		enterClose = true;
-	}
-
-	Content event() {
-		return _evt;
+	this (Commons comm, Props prop, Shell shell, Summary summ, Content evt) {
+		super (comm, prop, shell, summ, Type, evt, true, prop.var.selEvtDlg, true);
 	}
 protected:
 	override void setup(Composite area) {
@@ -231,31 +230,22 @@ protected:
 }
 
 /// スタートコンテントの選択を行うダイアログ。
-class StartSelectDialog(CType Type) : AbsDialog {
+class StartSelectDialog(CType Type) : EventDialog {
 private:
-	Props _prop;
 	Content[] _starts;
-	Content _evt;
 
 	Table _list;
 
 public:
-	this(Props prop, Shell shell, Content[] starts, Content evt) in {
+	this (Commons comm, Props prop, Shell shell, Summary summ, Content evt, Content[] starts) in {
 		foreach (s; starts) {
 			assert (s.type == CType.START);
 		}
-		assert (!evt || evt.type == Type);
 	} body {
-		_prop = prop;
 		_starts = starts;
-		_evt = evt;
-		super(prop, shell, prop.msgs.dlgTitStartSelect, prop.images.content(Type), true, prop.var.selEvtDlg);
-		enterClose = true;
+		super (comm, prop, shell, summ, Type, evt, true, prop.var.selEvtDlg, true);
 	}
 
-	Content event() {
-		return _evt;
-	}
 protected:
 	override void setup(Composite area) {
 		area.setLayout = new GridLayout(1, false);
@@ -289,26 +279,14 @@ protected:
 }
 
 /// クリアイベントの設定を行うダイアログ。
-class ClearEventDialog : AbsDialog {
+class ClearEventDialog : EventDialog {
 private:
-	Props _prop;
-	Content _evt;
-
 	Button _mark;
 	Button _unmark;
 
 public:
-	this(Props prop, Shell shell, Content evt) in {
-		assert (!evt || evt.type is CType.END);
-	} body {
-		_prop = prop;
-		_evt = evt;
-		super(prop, shell, prop.msgs.dlgTitClear, prop.images.content(CType.END), false);
-		enterClose = true;
-	}
-
-	Content event() {
-		return _evt;
+	this (Commons comm, Props prop, Shell shell, Summary summ, Content evt) {
+		super (comm, prop, shell, summ, CType.END, evt, false, null, enterClose);
 	}
 protected:
 	override void setup(Composite area) {
@@ -348,13 +326,8 @@ protected:
 }
 
 /// 取得を除くクーポン関連イベントの設定を行うダイアログ。
-class CouponEventDialog(CType Type, bool EditValue) : AbsDialog {
+class CouponEventDialog(CType Type, bool EditValue) : EventDialog {
 private:
-	Commons _comm;
-	Props _prop;
-	Content _evt;
-	Summary _summ;
-
 	Button[Range] _range;
 	Combo _name;
 	static if (EditValue) {
@@ -362,19 +335,8 @@ private:
 	}
 
 public:
-	this(Commons comm, Props prop, Shell shell, Summary summ, Content evt) in {
-		assert (!evt || evt.type == Type);
-	} body {
-		_comm = comm;
-		_prop = prop;
-		_evt = evt;
-		_summ = summ;
-		super(prop, shell, prop.msgs.dlgTitCoupon, prop.images.content(Type), true, prop.var.couponEvtDlg);
-		enterClose = true;
-	}
-
-	Content event() {
-		return _evt;
+	this (Commons comm, Props prop, Shell shell, Summary summ, Content evt) {
+		super (comm, prop, shell, summ, Type, evt, true, prop.var.couponEvtDlg, true);
 	}
 protected:
 	override void setup(Composite area) {
@@ -460,25 +422,13 @@ protected:
 }
 
 /// 終了印とゴシップの設定を行うダイアログ。
-private class OneTextEventDialog(CType Type, string Title, string Name, string Get, string Set) : AbsDialog {
+private class OneTextEventDialog(CType Type, string Name, string Get, string Set) : EventDialog {
 private:
-	Props _prop;
-	Content _evt;
-
 	Text _text;
 
 public:
-	this(Props prop, Shell shell, Content evt) in {
-		assert (!evt || evt.type == Type);
-	} body {
-		_prop = prop;
-		_evt = evt;
-		super(prop, shell, mixin (Title), prop.images.content(Type), true, prop.var.inputEvtDlg);
-		enterClose = true;
-	}
-
-	Content event() {
-		return _evt;
+	this (Commons comm, Props prop, Shell shell, Summary summ, Content evt) {
+		super (comm, prop, shell, summ, Type, evt, true, prop.var.inputEvtDlg, true);
 	}
 protected:
 	override void setup(Composite area) {
@@ -515,54 +465,39 @@ protected:
 }
 
 template GossipEventDialog(CType Type) {
-	alias OneTextEventDialog!(Type, "_prop.msgs.dlgTitGossip", "_prop.msgs.gossipName",
+	alias OneTextEventDialog!(Type, "_prop.msgs.gossipName",
 		"_evt.gossip", "_evt.gossip = text;") GossipEventDialog;
 }
 
 template EndEventDialog(CType Type) {
-	alias OneTextEventDialog!(Type, "_prop.msgs.dlgTitEnd", "_prop.msgs.endName",
+	alias OneTextEventDialog!(Type, "_prop.msgs.endName",
 		"_evt.completeStamp", "_evt.completeStamp = text;") EndEventDialog;
 }
 
 /// 背景変更イベントの設定を行うダイアログ。
-class BgImagesDialog : AbsDialog {
+class BgImagesDialog : EventDialog {
 private:
-	Commons _comm;
-	Props _prop;
-	Summary _summ;
 	AbstractArea _refTarget;
 	Combo _ts;
 	Spinner _tsSpeed;
 	Transition[int] _tsTbl;
 
-	Content _evt = null;
 	BgImageContainer _cont;
 
 	BgImagesView _view;
 
 public:
-	this(Commons comm, Props prop, Shell shell, Summary summ, Content evt, AbstractArea refTarget) in {
-		assert (!evt || evt.type == CType.CHANGE_BG_IMAGE);
-	} body {
-		_comm = comm;
-		_prop = prop;
-		_summ = summ;
+	this (Commons comm, Props prop, Shell shell, Summary summ, Content evt, AbstractArea refTarget) {
 		_refTarget = refTarget;
-		super(prop, shell, _prop.msgs.dlgTitBgImages,
-			_prop.images.content(CType.CHANGE_BG_IMAGE), true, _prop.var.bgImagesDlg);
+		super (comm, prop, shell, summ, CType.CHANGE_BG_IMAGE, evt, true, prop.var.bgImagesDlg, false);
 
 		BgImage[] bgImages;
 		if (evt) {
-			_evt = evt;
 			foreach (b; evt.backs) {
 				bgImages ~= b.dup;
 			}
 		}
 		_cont = new BgImageContainer(bgImages);
-	}
-
-	Content event() {
-		return _evt;
 	}
 protected:
 	override void setup(Composite area) {
@@ -621,16 +556,11 @@ protected:
 }
 
 /// BGMイベントの設定を行うダイアログ。
-class BgmDialog : AbsDialog {
+class BgmDialog : EventDialog {
 private:
-	Commons _comm;
-	Props _prop;
-	Summary _summ;
 	MaterialSelect!(MtType.BGM, Combo, List) _msel;
 	Button _play;
 	string _playing;
-
-	Content _evt;
 
 	class PlayBGM : SelectionAdapter, KeyListener, MouseListener {
 		private void play() {
@@ -673,19 +603,8 @@ private:
 		}
 	}
 public:
-	this(Commons comm, Props prop, Shell shell, Summary summ, Content evt) in {
-		assert (!evt || evt.type == CType.PLAY_BGM);
-	} body {
-		_comm = comm;
-		_prop = prop;
-		_summ = summ;
-		_evt = evt;
-		super(prop, shell, prop.msgs.dlgTitBGM, prop.images.content(CType.PLAY_BGM), true, prop.var.soundEvtDlg);
-		enterClose = true;
-	}
-
-	Content event() {
-		return _evt;
+	this (Commons comm, Props prop, Shell shell, Summary summ, Content evt) {
+		super (comm, prop, shell, summ, CType.PLAY_BGM, evt, true, prop.var.soundEvtDlg, true);
 	}
 protected:
 	override void setup(Composite area) {
@@ -728,14 +647,9 @@ protected:
 }
 
 /// 効果音イベントの設定を行うダイアログ。
-class SeDialog : AbsDialog {
+class SeDialog : EventDialog {
 private:
-	Commons _comm;
-	Props _prop;
-	Summary _summ;
 	MaterialSelect!(MtType.SE, Combo, List) _msel;
-
-	Content _evt;
 
 	class PlaySE : SelectionAdapter, KeyListener, MouseListener {
 		private void play() {
@@ -762,19 +676,8 @@ private:
 		}
 	}
 public:
-	this(Commons comm, Props prop, Shell shell, Summary summ, Content evt) in {
-		assert (!evt || evt.type == CType.PLAY_SOUND);
-	} body {
-		_comm = comm;
-		_prop = prop;
-		_summ = summ;
-		_evt = evt;
-		super(prop, shell, prop.msgs.dlgTitSE, prop.images.content(CType.PLAY_SOUND), true, prop.var.soundEvtDlg);
-		enterClose = true;
-	}
-
-	Content event() {
-		return _evt;
+	this (Commons comm, Props prop, Shell shell, Summary summ, Content evt) {
+		super (comm, prop, shell, summ, CType.PLAY_SOUND, evt, true, prop.var.soundEvtDlg, true);
 	}
 protected:
 	override void setup(Composite area) {
@@ -822,30 +725,18 @@ protected:
 }
 
 /// 数値の設定を行うダイアログ。
-private class NumericEventDialog(CType Type, string Title, string Name, string Max, string Get, string Set, uint Min = 0, uint Def = 0) : AbsDialog {
+private class NumericEventDialog(CType Type, string Name, string Max, string Get, string Set, uint Min = 0, uint Def = 0) : EventDialog {
 private:
-	Props _prop;
-	Content _evt;
-
 	Spinner _value;
 
 public:
-	this(Props prop, Shell shell, Content evt) in {
-		assert (!evt || evt.type == Type);
-	} body {
-		_prop = prop;
-		_evt = evt;
-		super(prop, shell, mixin (Title), prop.images.content(Type), false);
-		enterClose = true;
-	}
-
-	Content event() {
-		return _evt;
+	this (Commons comm, Props prop, Shell shell, Summary summ, Content evt) {
+		super (comm, prop, shell, summ, Type, evt, false, null, true);
 	}
 protected:
 	private class PM : SelectionAdapter {
 		private int _v;
-		this(int v) {_v = v;}
+		this (int v) {_v = v;}
 		override void widgetSelected(SelectionEvent e) {
 			_value.setSelection = _value.getSelection + _v;
 		}
@@ -908,27 +799,23 @@ protected:
 	}
 }
 
-alias NumericEventDialog!(CType.WAIT, "_prop.msgs.dlgTitWait", "_prop.msgs.waitName",
+alias NumericEventDialog!(CType.WAIT, "_prop.msgs.waitName",
 		"Content.wait_max", "_evt.wait", "_evt.wait = value;") WaitEventDialog;
 
-alias NumericEventDialog!(CType.BRANCH_RANDOM, "_prop.msgs.dlgTitBrRandom", "_prop.msgs.randomName",
+alias NumericEventDialog!(CType.BRANCH_RANDOM, "_prop.msgs.randomName",
 		"100", "_evt.percent", "_evt.percent = value;", 0, 50) BrRandomEventDialog;
 
-alias NumericEventDialog!(CType.BRANCH_PARTY_NUMBER, "_prop.msgs.dlgTitPartyNum", "_prop.msgs.partyNumName",
+alias NumericEventDialog!(CType.BRANCH_PARTY_NUMBER, "_prop.msgs.partyNumName",
 		"_prop.looks.partyMax", "_evt.partyNumber", "_evt.partyNumber = value;", 1, 1) BrNumEventDialog;
 
 template MoneyEventDialog(CType Type) {
-	alias NumericEventDialog!(Type, "_prop.msgs.dlgTitMoney", "_prop.msgs.moneyName",
+	alias NumericEventDialog!(Type, "_prop.msgs.moneyName",
 		"Content.money_max", "_evt.money", "_evt.money = value;") MoneyEventDialog;
 }
 
 /// 効果イベントの設定を行うダイアログ。
-class EffectDialog : AbsDialog {
+class EffectDialog : EventDialog {
 private:
-	Commons _comm;
-	Props _prop;
-	Summary _summ;
-
 	MotionView _mview;
 	Spinner _lev;
 	Combo _se;
@@ -938,22 +825,9 @@ private:
 	Button[CardVisual] _vis;
 	Button[Target.M] _targ;
 
-	Content _evt;
-
 public:
-	this(Commons comm, Props prop, Shell shell, Summary summ, Content evt) in {
-		assert (!evt || evt.type == CType.EFFECT);
-	} body {
-		_comm = comm;
-		_prop = prop;
-		_summ = summ;
-		_evt = evt;
-		super(prop, shell, prop.msgs.dlgTitEffect, prop.images.content(CType.EFFECT), true, prop.var.effEvtDlg);
-		enterClose = true;
-	}
-
-	Content event() {
-		return _evt;
+	this (Commons comm, Props prop, Shell shell, Summary summ, Content evt) {
+		super (comm, prop, shell, summ, CType.EFFECT, evt, true, prop.var.effEvtDlg, true);
 	}
 protected:
 	override void setup(Composite area) {
@@ -1106,11 +980,9 @@ protected:
 }
 
 /// フラグ・ステップの選択・設定を行うダイアログ。
-private class FlagStepDialog(CType Type, F, bool SelValue, string Title) : AbsDialog {
+private class FlagStepDialog(CType Type, F, bool SelValue) : EventDialog {
 private:
-	Props _prop;
 	FlagDir _root;
-	Content _evt;
 	F[] _data;
 
 	SplitPane _sash;
@@ -1158,18 +1030,9 @@ private:
 		}
 	}
 public:
-	this(Props prop, Shell shell, FlagDir root, Content evt) in {
-		assert (!evt || evt.type == Type);
-	} body {
-		_prop = prop;
+	this (Commons comm, Props prop, Shell shell, Summary summ, Content evt, FlagDir root) {
 		_root = root;
-		_evt = evt;
-		super(prop, shell, mixin (Title), prop.images.content(Type), true, prop.var.flagEvtDlg);
-		enterClose = true;
-	}
-
-	Content event() {
-		return _evt;
+		super (comm, prop, shell, summ, Type, evt, true, prop.var.flagEvtDlg, true);
 	}
 protected:
 	override void setup(Composite area) {
@@ -1274,38 +1137,26 @@ protected:
 	}
 }
 
-alias FlagStepDialog!(CType.BRANCH_FLAG, Flag, false, "_prop.msgs.dlgTitBrFlag") BrFlagDialog;
-alias FlagStepDialog!(CType.BRANCH_MULTI_STEP, Step, false, "_prop.msgs.dlgTitBrStepN") BrStepNDialog;
-alias FlagStepDialog!(CType.BRANCH_STEP, Step, true, "_prop.msgs.dlgTitBrStepUL") BrStepULDialog;
-alias FlagStepDialog!(CType.SET_FLAG, Flag, true, "_prop.msgs.dlgTitFlagSet") FlagSetDialog;
-alias FlagStepDialog!(CType.SET_STEP, Step, true, "_prop.msgs.dlgTitStepSet") StepSetDialog;
-alias FlagStepDialog!(CType.SET_STEP_UP, Step, false, "_prop.msgs.dlgTitStepPlus") StepPlusDialog;
-alias FlagStepDialog!(CType.SET_STEP_DOWN, Step, false, "_prop.msgs.dlgTitStepMinus") StepMinusDialog;
-alias FlagStepDialog!(CType.REVERSE_FLAG, Flag, false, "_prop.msgs.dlgTitFlagR") FlagRDialog;
-alias FlagStepDialog!(CType.CHECK_FLAG, Flag, false, "_prop.msgs.dlgTitFlagJudge") FlagJudgeDialog;
+alias FlagStepDialog!(CType.BRANCH_FLAG, Flag, false) BrFlagDialog;
+alias FlagStepDialog!(CType.BRANCH_MULTI_STEP, Step, false) BrStepNDialog;
+alias FlagStepDialog!(CType.BRANCH_STEP, Step, true) BrStepULDialog;
+alias FlagStepDialog!(CType.SET_FLAG, Flag, true) FlagSetDialog;
+alias FlagStepDialog!(CType.SET_STEP, Step, true) StepSetDialog;
+alias FlagStepDialog!(CType.SET_STEP_UP, Step, false) StepPlusDialog;
+alias FlagStepDialog!(CType.SET_STEP_DOWN, Step, false) StepMinusDialog;
+alias FlagStepDialog!(CType.REVERSE_FLAG, Flag, false) FlagRDialog;
+alias FlagStepDialog!(CType.CHECK_FLAG, Flag, false) FlagJudgeDialog;
 
 /// メンバ選択分岐の設定を行うダイアログ。
-class BrMemberDialog : AbsDialog {
+class BrMemberDialog : EventDialog {
 private:
-	Props _prop;
-	Content _evt;
-
 	// FIXME: KeyTypeにboolを使えない？
 	Button[] _all;
 	Button[] _random;
 
 public:
-	this(Props prop, Shell shell, Content evt) in {
-		assert (!evt || evt.type == CType.BRANCH_SELECT);
-	} body {
-		_prop = prop;
-		_evt = evt;
-		super(prop, shell, prop.msgs.dlgTitBrMember, prop.images.content(CType.BRANCH_SELECT), false);
-		enterClose = true;
-	}
-
-	Content event() {
-		return _evt;
+	this (Commons comm, Props prop, Shell shell, Summary summ, Content evt) {
+		super (comm, prop, shell, summ, CType.BRANCH_ABILITY, evt, false, null, true);
 	}
 protected:
 	override void setup(Composite area) {
@@ -1348,11 +1199,8 @@ protected:
 }
 
 /// 能力判定分岐の設定を行うダイアログ。
-class BrPowerDialog : AbsDialog {
+class BrPowerDialog : EventDialog {
 private:
-	Props _prop;
-	Content _evt;
-
 	Spinner _lev;
 	Button[Target.M] _targ;
 	// FIXME: KeyTypeにboolを使えない？
@@ -1361,17 +1209,8 @@ private:
 	Button[Mental] _mtl;
 
 public:
-	this(Props prop, Shell shell, Content evt) in {
-		assert (!evt || evt.type == CType.BRANCH_ABILITY);
-	} body {
-		_prop = prop;
-		_evt = evt;
-		super(prop, shell, prop.msgs.dlgTitBrPower, prop.images.content(CType.BRANCH_ABILITY), false);
-		enterClose = true;
-	}
-
-	Content event() {
-		return _evt;
+	this (Commons comm, Props prop, Shell shell, Summary summ, Content evt) {
+		super (comm, prop, shell, summ, CType.BRANCH_ABILITY, evt, false, null, true);
 	}
 protected:
 	override void setup(Composite area) {
@@ -1480,26 +1319,14 @@ protected:
 }
 
 /// レベル判定分岐の設定を行うダイアログ。
-class BrLevelDialog : AbsDialog {
+class BrLevelDialog : EventDialog {
 private:
-	Props _prop;
-	Content _evt;
-
 	Spinner _lev;
 	Button[2] _ave;
 
 public:
-	this(Props prop, Shell shell, Content evt) in {
-		assert (!evt || evt.type == CType.BRANCH_LEVEL);
-	} body {
-		_prop = prop;
-		_evt = evt;
-		super(prop, shell, prop.msgs.dlgTitBrLevel, prop.images.content(CType.BRANCH_LEVEL), false);
-		enterClose = true;
-	}
-
-	Content event() {
-		return _evt;
+	this (Commons comm, Props prop, Shell shell, Summary summ, Content evt) {
+		super (comm, prop, shell, summ, CType.BRANCH_LEVEL, evt, false, null, true);
 	}
 protected:
 	override void setup(Composite area) {
@@ -1551,26 +1378,14 @@ protected:
 }
 
 /// 状態分岐の設定を行うダイアログ。
-class BrStateDialog : AbsDialog {
+class BrStateDialog : EventDialog {
 private:
-	Props _prop;
-	Content _evt;
-
 	Button[Target.M] _targ;
 	Button[Status] _stat;
 
 public:
-	this(Props prop, Shell shell, Content evt) in {
-		assert (!evt || evt.type == CType.BRANCH_STATUS);
-	} body {
-		_prop = prop;
-		_evt = evt;
-		super(prop, shell, prop.msgs.dlgTitBrState, prop.images.content(CType.BRANCH_STATUS), false);
-		enterClose = true;
-	}
-
-	Content event() {
-		return _evt;
+	this (Commons comm, Props prop, Shell shell, Summary summ, Content evt) {
+		super (comm, prop, shell, summ, CType.BRANCH_STATUS, evt, false, null, true);
 	}
 protected:
 	override void setup(Composite area) {
@@ -1639,12 +1454,8 @@ protected:
 }
 
 /// カード取得・喪失・所持判定の設定を行うダイアログ。
-private class CardEventDialog(CType Type, C : EffectCard, string Cards, string Title, bool Delete, Range RangeDef) : AbsDialog {
+private class CardEventDialog(CType Type, C : EffectCard, string Cards, bool Delete, Range RangeDef) : EventDialog {
 private:
-	Props _prop;
-	Summary _summ;
-	Content _evt;
-
 	Spinner _num;
 	static if (Delete) {
 		Button _allDel;
@@ -1658,19 +1469,8 @@ private:
 	Table _list;
 
 public:
-	this(Props prop, Shell shell, Summary summ, Content evt) in {
-		assert (!evt || evt.type == Type);
-	} body {
-		assert (summ);
-		_summ = summ;
-		_prop = prop;
-		_evt = evt;
-		super(prop, shell, mixin (Title), _prop.images.content(Type), true, _prop.var.cardEvtDlg);
-		enterClose = true;
-	}
-
-	Content event() {
-		return _evt;
+	this (Commons comm, Props prop, Shell shell, Summary summ, Content evt) {
+		super (comm, prop, shell, summ, Type, evt, true, prop.var.cardEvtDlg, true);
 	}
 protected:
 	override void setup(Composite area) {
@@ -1808,38 +1608,26 @@ protected:
 	}
 }
 
-alias CardEventDialog!(CType.BRANCH_SKILL, SkillCard, "_summ.skills", "_prop.msgs.dlgTitBrSkill", false, Range.FIELD) BrSkillDialog;
-alias CardEventDialog!(CType.BRANCH_ITEM, ItemCard, "_summ.items", "_prop.msgs.dlgTitBrItem", false, Range.FIELD) BrItemDialog;
-alias CardEventDialog!(CType.BRANCH_BEAST, BeastCard, "_summ.beasts", "_prop.msgs.dlgTitBrBeast", false, Range.FIELD) BrBeastDialog;
-alias CardEventDialog!(CType.GET_SKILL, SkillCard, "_summ.skills", "_prop.msgs.dlgTitGetSkill", false, Range.SELECTED) GetSkillDialog;
-alias CardEventDialog!(CType.GET_ITEM, ItemCard, "_summ.items", "_prop.msgs.dlgTitGetItem", false, Range.SELECTED) GetItemDialog;
-alias CardEventDialog!(CType.GET_BEAST, BeastCard, "_summ.beasts", "_prop.msgs.dlgTitGetBeast", false, Range.SELECTED) GetBeastDialog;
-alias CardEventDialog!(CType.LOSE_SKILL, SkillCard, "_summ.skills", "_prop.msgs.dlgTitLostSkill", true, Range.FIELD) LostSkillDialog;
-alias CardEventDialog!(CType.LOSE_ITEM, ItemCard, "_summ.items", "_prop.msgs.dlgTitLostItem", true, Range.FIELD) LostItemDialog;
-alias CardEventDialog!(CType.LOSE_BEAST, BeastCard, "_summ.beasts", "_prop.msgs.dlgTitLostBeast", true, Range.FIELD) LostBeastDialog;
+alias CardEventDialog!(CType.BRANCH_SKILL, SkillCard, "_summ.skills", false, Range.FIELD) BrSkillDialog;
+alias CardEventDialog!(CType.BRANCH_ITEM, ItemCard, "_summ.items", false, Range.FIELD) BrItemDialog;
+alias CardEventDialog!(CType.BRANCH_BEAST, BeastCard, "_summ.beasts", false, Range.FIELD) BrBeastDialog;
+alias CardEventDialog!(CType.GET_SKILL, SkillCard, "_summ.skills", false, Range.SELECTED) GetSkillDialog;
+alias CardEventDialog!(CType.GET_ITEM, ItemCard, "_summ.items", false, Range.SELECTED) GetItemDialog;
+alias CardEventDialog!(CType.GET_BEAST, BeastCard, "_summ.beasts", false, Range.SELECTED) GetBeastDialog;
+alias CardEventDialog!(CType.LOSE_SKILL, SkillCard, "_summ.skills", true, Range.FIELD) LostSkillDialog;
+alias CardEventDialog!(CType.LOSE_ITEM, ItemCard, "_summ.items", true, Range.FIELD) LostItemDialog;
+alias CardEventDialog!(CType.LOSE_BEAST, BeastCard, "_summ.beasts", true, Range.FIELD) LostBeastDialog;
 
 /// 画面再構築イベントの設定を行うダイアログ。
-class RefreshDialog : AbsDialog {
+class RefreshDialog : EventDialog {
 private:
-	Props _prop;
 	Combo _ts;
 	Spinner _tsSpeed;
 	Transition[int] _tsTbl;
 
-	Content _evt = null;
-
 public:
-	this(Props prop, Shell shell, Content evt) in {
-		assert (!evt || evt.type == CType.REDISPLAY);
-	} body {
-		super(prop, shell, prop.msgs.dlgTitRefresh, prop.images.content(CType.REDISPLAY), false);
-		_prop = prop;
-		_evt = evt;
-		enterClose = true;
-	}
-
-	Content event() {
-		return _evt;
+	this (Commons comm, Props prop, Shell shell, Summary summ, Content evt) {
+		super (comm, prop, shell, summ, CType.REDISPLAY, evt, false, null, true);
 	}
 protected:
 	override void setup(Composite area) {

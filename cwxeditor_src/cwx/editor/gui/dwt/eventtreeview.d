@@ -454,694 +454,455 @@ private:
 		_radioGroup.select = _arrowTI;
 	}
 
-	Content create(CType type, string name) {
+	bool hasDialog(CType type) {
 		switch (type) {
-		case CType.START: {
-			return new Content(type, createNewName(_prop.msgs.defaultStartName, (string name) {
-				foreach (start; _et.starts) {
-					if (icmp(start.name, name) == 0) return false;
-				}
-				return true;
-			}));
-		} case CType.START_BATTLE: {
-			if (_autoOpen && _summ.battles.length > 0) {
-				auto dlg = new AreaSelectDialog!(CType.START_BATTLE, Battle, "summary.battles")
-					(_prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.END: {
-			if (_autoOpen) {
-				auto dlg = new ClearEventDialog(_prop, _tree.getShell, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.END_BAD_END: {
-			return new Content(type, name);
+		case CType.START:
+		case CType.END_BAD_END:
+		case CType.EFFECT_BREAK:
+		case CType.ELAPSE_TIME:
+		case CType.BRANCH_AREA:
+		case CType.BRANCH_BATTLE:
+		case CType.BRANCH_IS_BATTLE:
+		case CType.SHOW_PARTY:
+		case CType.HIDE_PARTY:
+			return false;
+		default:
+			return true;
+		}
+	}
+	bool checkOpenDialog(CType type) {
+		switch (type) {
+		case CType.START_BATTLE: {
+			return _summ.battles.length > 0;
 		} case CType.CHANGE_AREA: {
-			if (_autoOpen && _summ.areas.length > 0) {
-				auto dlg = new AreaSelectDialog!(CType.CHANGE_AREA, Area, "summary.areas")
-					(_prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.CHANGE_BG_IMAGE: {
-			auto c = new Content(type, name);
-			c.backs = BgImageS.createBgImages(_comm.skin, _prop.var.etc.bgImagesDefault);
-			if (_autoOpen) {
-				auto dlg = new BgImagesDialog(_comm, _prop, _tree.getShell, _summ, c, refTarget);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return c;
-			}
-		} case CType.EFFECT: {
-			if (_autoOpen) {
-				auto dlg = new EffectDialog(_comm, _prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.EFFECT_BREAK: {
-			return new Content(type, name);
-		} case CType.LINK_START: {
-			if (_autoOpen) {
-				auto dlg = new StartSelectDialog!(CType.LINK_START)(_prop, _tree.getShell, _et.starts, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.LINK_PACKAGE: {
-			if (_autoOpen && _summ.packages.length > 0) {
-				auto dlg = new AreaSelectDialog!(CType.LINK_PACKAGE, Package, "summary.packages")
-					(_prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.TALK_MESSAGE: {
-			if (_autoOpen) {
-				auto dlg = new MessageDialog
-					(_comm, _prop, _summ, _tree.getShell, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.TALK_DIALOG: {
-			if (_autoOpen) {
-				auto dlg = new SpeakDialog(_comm, _prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				auto r = new Content(type, name);
-				r.dialogs = [new SDialog];
-				return r;
-			}
-		} case CType.PLAY_BGM: {
-			if (_autoOpen) {
-				auto dlg = new BgmDialog(_comm, _prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.PLAY_SOUND: {
-			if (_autoOpen) {
-				auto dlg = new SeDialog(_comm, _prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.WAIT: {
-			if (_autoOpen) {
-				auto dlg = new WaitEventDialog(_prop, _tree.getShell, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.ELAPSE_TIME: {
-			return new Content(type, name);
-		} case CType.CALL_START: {
-			if (_autoOpen) {
-				auto dlg = new StartSelectDialog!(CType.CALL_START)(_prop, _tree.getShell, _et.starts, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.CALL_PACKAGE: {
-			if (_autoOpen && _summ.packages.length > 0) {
-				auto dlg = new AreaSelectDialog!(CType.CALL_PACKAGE, Package, "summary.packages")
-					(_prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.BRANCH_FLAG: {
-			if (_autoOpen && _summ.flagDirRoot.allFlags.length > 0) {
-				auto dlg = new BrFlagDialog(_prop, _tree.getShell, _summ.flagDirRoot, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.BRANCH_MULTI_STEP: {
-			if (_autoOpen && _summ.flagDirRoot.allSteps.length > 0) {
-				auto dlg = new BrStepNDialog(_prop, _tree.getShell, _summ.flagDirRoot, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.BRANCH_STEP: {
-			if (_autoOpen && _summ.flagDirRoot.allSteps.length > 0) {
-				auto dlg = new BrStepULDialog(_prop, _tree.getShell, _summ.flagDirRoot, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.BRANCH_SELECT: {
-			if (_autoOpen) {
-				auto dlg = new BrMemberDialog(_prop, _tree.getShell, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.BRANCH_ABILITY: {
-			if (_autoOpen) {
-				auto dlg = new BrPowerDialog(_prop, _tree.getShell, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.BRANCH_RANDOM: {
-			if (_autoOpen) {
-				auto dlg = new BrRandomEventDialog(_prop, _tree.getShell, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.BRANCH_LEVEL: {
-			if (_autoOpen) {
-				auto dlg = new BrLevelDialog(_prop, _tree.getShell, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.BRANCH_STATUS: {
-			if (_autoOpen) {
-				auto dlg = new BrStateDialog(_prop, _tree.getShell, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.BRANCH_PARTY_NUMBER: {
-			if (_autoOpen) {
-				auto dlg = new BrNumEventDialog(_prop, _tree.getShell, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.BRANCH_AREA: {
-			return new Content(type, name);
-		} case CType.BRANCH_BATTLE: {
-			return new Content(type, name);
-		} case CType.BRANCH_IS_BATTLE: {
-			return new Content(type, name);
-		} case CType.BRANCH_CAST: {
-			if (_autoOpen && _summ.casts.length > 0) {
-				auto dlg = new AreaSelectDialog!(CType.BRANCH_CAST, CastCard, "summary.casts")
-					(_prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.BRANCH_ITEM: {
-			if (_autoOpen && _summ.items.length > 0) {
-				auto dlg = new BrItemDialog(_prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				auto r = new Content(type, name);
-				r.range = Range.FIELD;
-				return r;
-			}
-		} case CType.BRANCH_SKILL: {
-			if (_autoOpen && _summ.skills.length > 0) {
-				auto dlg = new BrSkillDialog(_prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				auto r = new Content(type, name);
-				r.range = Range.FIELD;
-				return r;
-			}
-		} case CType.BRANCH_INFO: {
-			if (_autoOpen && _summ.infos.length > 0) {
-				auto dlg = new AreaSelectDialog!(CType.BRANCH_INFO, InfoCard, "summary.infos")
-					(_prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.BRANCH_BEAST: {
-			if (_autoOpen && _summ.beasts.length > 0) {
-				auto dlg = new BrBeastDialog(_prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				auto r = new Content(type, name);
-				r.range = Range.FIELD;
-				return r;
-			}
-		} case CType.BRANCH_MONEY: {
-			if (_autoOpen) {
-				auto dlg = new MoneyEventDialog!(CType.BRANCH_MONEY)(_prop, _tree.getShell, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.BRANCH_COUPON: {
-			if (_autoOpen) {
-				auto dlg = new CouponEventDialog!(CType.BRANCH_COUPON, false)(_comm, _prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.BRANCH_COMPLETE_STAMP: {
-			if (_autoOpen) {
-				auto dlg = new EndEventDialog!(CType.BRANCH_COMPLETE_STAMP)(_prop, _tree.getShell, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.BRANCH_GOSSIP: {
-			if (_autoOpen) {
-				auto dlg = new GossipEventDialog!(CType.BRANCH_GOSSIP)(_prop, _tree.getShell, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.SET_FLAG: {
-			if (_autoOpen && _summ.flagDirRoot.allFlags.length > 0) {
-				auto dlg = new FlagSetDialog(_prop, _tree.getShell, _summ.flagDirRoot, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.SET_STEP: {
-			if (_autoOpen && _summ.flagDirRoot.allSteps.length > 0) {
-				auto dlg = new StepSetDialog(_prop, _tree.getShell, _summ.flagDirRoot, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.SET_STEP_UP: {
-			if (_autoOpen && _summ.flagDirRoot.allSteps.length > 0) {
-				auto dlg = new StepPlusDialog(_prop, _tree.getShell, _summ.flagDirRoot, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.SET_STEP_DOWN: {
-			if (_autoOpen && _summ.flagDirRoot.allSteps.length > 0) {
-				auto dlg = new StepMinusDialog(_prop, _tree.getShell, _summ.flagDirRoot, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.REVERSE_FLAG: {
-			if (_autoOpen && _summ.flagDirRoot.allFlags.length > 0) {
-				auto dlg = new FlagRDialog(_prop, _tree.getShell, _summ.flagDirRoot, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.CHECK_FLAG: {
-			if (_autoOpen && _summ.flagDirRoot.allFlags.length > 0) {
-				auto dlg = new FlagJudgeDialog(_prop, _tree.getShell, _summ.flagDirRoot, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.GET_CAST: {
-			if (_autoOpen && _summ.casts.length > 0) {
-				auto dlg = new AreaSelectDialog!(CType.GET_CAST, CastCard, "summary.casts")
-					(_prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.GET_ITEM: {
-			if (_autoOpen && _summ.items.length > 0) {
-				auto dlg = new GetItemDialog(_prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.GET_SKILL: {
-			if (_autoOpen && _summ.skills.length > 0) {
-				auto dlg = new GetSkillDialog(_prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.GET_INFO: {
-			if (_autoOpen && _summ.infos.length > 0) {
-				auto dlg = new AreaSelectDialog!(CType.GET_INFO, InfoCard, "summary.infos")
-					(_prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.GET_BEAST: {
-			if (_autoOpen && _summ.beasts.length > 0) {
-				auto dlg = new GetBeastDialog(_prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.GET_MONEY: {
-			if (_autoOpen) {
-				auto dlg = new MoneyEventDialog!(CType.GET_MONEY)(_prop, _tree.getShell, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.GET_COUPON: {
-			if (_autoOpen) {
-				auto dlg = new CouponEventDialog!(CType.GET_COUPON, true)(_comm, _prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.GET_COMPLETE_STAMP: {
-			if (_autoOpen) {
-				auto dlg = new EndEventDialog!(CType.GET_COMPLETE_STAMP)(_prop, _tree.getShell, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.GET_GOSSIP: {
-			if (_autoOpen) {
-				auto dlg = new GossipEventDialog!(CType.GET_GOSSIP)(_prop, _tree.getShell, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.LOSE_CAST: {
-			if (_autoOpen && _summ.casts.length > 0) {
-				auto dlg = new AreaSelectDialog!(CType.LOSE_CAST, CastCard, "summary.casts")
-					(_prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.LOSE_ITEM: {
-			if (_autoOpen && _summ.items.length > 0) {
-				auto dlg = new LostItemDialog(_prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				auto r = new Content(type, name);
-				r.range = Range.FIELD;
-				return r;
-			}
-		} case CType.LOSE_SKILL: {
-			if (_autoOpen && _summ.skills.length > 0) {
-				auto dlg = new LostSkillDialog(_prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				auto r = new Content(type, name);
-				r.range = Range.FIELD;
-				return r;
-			}
-		} case CType.LOSE_INFO: {
-			if (_autoOpen && _summ.infos.length > 0) {
-				auto dlg = new AreaSelectDialog!(CType.LOSE_INFO, InfoCard, "summary.infos")
-					(_prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.LOSE_BEAST: {
-			if (_autoOpen && _summ.beasts.length > 0) {
-				auto dlg = new LostBeastDialog(_prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				auto r = new Content(type, name);
-				r.range = Range.FIELD;
-				return r;
-			}
-		} case CType.LOSE_MONEY: {
-			if (_autoOpen) {
-				auto dlg = new MoneyEventDialog!(CType.LOSE_MONEY)(_prop, _tree.getShell, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.LOSE_COUPON: {
-			if (_autoOpen) {
-				auto dlg = new CouponEventDialog!(CType.LOSE_COUPON, false)(_comm, _prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.LOSE_COMPLETE_STAMP: {
-			if (_autoOpen) {
-				auto dlg = new EndEventDialog!(CType.LOSE_COMPLETE_STAMP)(_prop, _tree.getShell, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.LOSE_GOSSIP: {
-			if (_autoOpen) {
-				auto dlg = new GossipEventDialog!(CType.LOSE_GOSSIP)(_prop, _tree.getShell, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.SHOW_PARTY: {
-			return new Content(type, name);
-		} case CType.HIDE_PARTY: {
-			return new Content(type, name);
+			return _summ.areas.length > 0;
+		} case CType.LINK_PACKAGE, CType.CALL_PACKAGE: {
+			return _summ.packages.length > 0;
+		} case CType.BRANCH_FLAG, CType.SET_FLAG, CType.REVERSE_FLAG, CType.CHECK_FLAG: {
+			return _summ.flagDirRoot.allFlags.length > 0;
+		} case CType.BRANCH_MULTI_STEP, CType.BRANCH_STEP, CType.SET_STEP, CType.SET_STEP_UP, CType.SET_STEP_DOWN: {
+			return _summ.flagDirRoot.allSteps.length > 0;
+		} case CType.BRANCH_CAST, CType.GET_CAST, CType.LOSE_CAST: {
+			return _summ.casts.length > 0;
+		} case CType.BRANCH_ITEM, CType.GET_ITEM, CType.LOSE_ITEM: {
+			return _summ.items.length > 0;
+		} case CType.BRANCH_SKILL, CType.GET_SKILL, CType.LOSE_SKILL: {
+			return _summ.skills.length > 0;
+		} case CType.BRANCH_INFO, CType.GET_INFO, CType.LOSE_INFO: {
+			return _summ.infos.length > 0;
+		} case CType.BRANCH_BEAST, CType.GET_BEAST, CType.LOSE_BEAST: {
+			return _summ.beasts.length > 0;
 		} case CType.REDISPLAY: {
-			if (_autoOpen && !_summ.legacy) {
-				auto dlg = new RefreshDialog(_prop, _tree.getShell, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} default: assert (0);
+			return !_summ.legacy;
+		} default: {
+			return true;
+		}
 		}
 	}
 
-	bool edit(Content evt) {
-		switch (evt.type) {
-		case CType.START: {
-			return false;
-		} case CType.START_BATTLE: {
-			if (_summ.battles.length == 0) return false;
-			auto dlg = new AreaSelectDialog!(CType.START_BATTLE, Battle, "summary.battles")
-				(_prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+	Content create(CType type, string name) {
+		if (hasDialog(type)) {
+			if (!_autoOpen || !checkOpenDialog(type)) {
+				auto c = new Content(type, name);
+				if (type is CType.CHANGE_BG_IMAGE) {
+					c.backs = BgImageS.createBgImages(_comm.skin, _prop.var.etc.bgImagesDefault);
+				} else if (type is CType.TALK_DIALOG) {
+					c.dialogs = [new SDialog];
+				} else if (type is CType.BRANCH_SKILL || type is CType.BRANCH_ITEM || type is CType.BRANCH_BEAST) {
+					c.range = Range.FIELD;
+				} else if (type is CType.LOSE_SKILL || type is CType.LOSE_ITEM || type is CType.LOSE_BEAST) {
+					c.range = Range.FIELD;
+				}
+				return c;
+			}
+		} else {
+			if (type is CType.START) {
+				name = createNewName(_prop.msgs.defaultStartName, (string name) {
+					foreach (start; _et.starts) {
+						if (icmp(start.name, name) == 0) return false;
+					}
+					return true;
+				});
+			}
+			return new Content(type, name);
+		}
+		EventDialog dlg;
+		switch (type) {
+		case CType.START_BATTLE: {
+			dlg = new AreaSelectDialog!(CType.START_BATTLE, Battle, "summary.battles")
+				(_comm, _prop, _tree.getShell, _summ, null);
+			break;
 		} case CType.END: {
-			auto dlg = new ClearEventDialog(_prop, _tree.getShell, evt);
-			return dlg.open;
-		} case CType.END_BAD_END: {
-			return false;
+			dlg = new ClearEventDialog(_comm, _prop, _tree.getShell, _summ, null);
+			break;
 		} case CType.CHANGE_AREA: {
-			if (_summ.areas.length == 0) return false;
-			auto dlg = new AreaSelectDialog!(CType.CHANGE_AREA, Area, "summary.areas")
-				(_prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+			dlg = new AreaSelectDialog!(CType.CHANGE_AREA, Area, "summary.areas")
+				(_comm, _prop, _tree.getShell, _summ, null);
+			break;
 		} case CType.CHANGE_BG_IMAGE: {
-			auto dlg = new BgImagesDialog(_comm, _prop, _tree.getShell, _summ, evt, refTarget);
-			return dlg.open;
+			auto c = new Content(type, name);
+			c.backs = BgImageS.createBgImages(_comm.skin, _prop.var.etc.bgImagesDefault);
+			dlg = new BgImagesDialog(_comm, _prop, _tree.getShell, _summ, c, refTarget);
+			break;
 		} case CType.EFFECT: {
-			auto dlg = new EffectDialog(_comm, _prop, _tree.getShell, _summ, evt);
-			return dlg.open;
-		} case CType.EFFECT_BREAK: {
-			return false;
+			dlg = new EffectDialog(_comm, _prop, _tree.getShell, _summ, null);
+			break;
 		} case CType.LINK_START: {
-			auto dlg = new StartSelectDialog!(CType.LINK_START)(_prop, _tree.getShell, _et.starts, evt);
-			return dlg.open;
+			dlg = new StartSelectDialog!(CType.LINK_START)(_comm, _prop, _tree.getShell, _summ, null, _et.starts);
+			break;
 		} case CType.LINK_PACKAGE: {
-			if (_summ.packages.length == 0) return false;
-			auto dlg = new AreaSelectDialog!(CType.LINK_PACKAGE, Package, "summary.packages")
-				(_prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+			dlg = new AreaSelectDialog!(CType.LINK_PACKAGE, Package, "summary.packages")(_comm, _prop, _tree.getShell, _summ, null);
+			break;
 		} case CType.TALK_MESSAGE: {
-			auto dlg = new MessageDialog
-				(_comm, _prop, _summ, _tree.getShell, evt);
-			return dlg.open;
+			dlg = new MessageDialog(_comm, _prop, _tree.getShell, _summ, null);
+			break;
 		} case CType.TALK_DIALOG: {
-			auto dlg = new SpeakDialog(_comm, _prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+			dlg = new SpeakDialog(_comm, _prop, _tree.getShell, _summ, null);
+			break;
 		} case CType.PLAY_BGM: {
-			auto dlg = new BgmDialog(_comm, _prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+			dlg = new BgmDialog(_comm, _prop, _tree.getShell, _summ, null);
+			break;
 		} case CType.PLAY_SOUND: {
-			auto dlg = new SeDialog(_comm, _prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+			dlg = new SeDialog(_comm, _prop, _tree.getShell, _summ, null);
+			break;
 		} case CType.WAIT: {
-			auto dlg = new WaitEventDialog(_prop, _tree.getShell, evt);
-			return dlg.open;
-		} case CType.ELAPSE_TIME: {
-			return false;
+			dlg = new WaitEventDialog(_comm, _prop, _tree.getShell, _summ, null);
+			break;
 		} case CType.CALL_START: {
-			auto dlg = new StartSelectDialog!(CType.CALL_START)(_prop, _tree.getShell, _et.starts, evt);
-			return dlg.open;
+			dlg = new StartSelectDialog!(CType.CALL_START)(_comm, _prop, _tree.getShell, _summ, null, _et.starts);
+			break;
 		} case CType.CALL_PACKAGE: {
-			if (_summ.packages.length == 0) return false;
-			auto dlg = new AreaSelectDialog!(CType.CALL_PACKAGE, Package, "summary.packages")
-				(_prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+			dlg = new AreaSelectDialog!(CType.CALL_PACKAGE, Package, "summary.packages")
+				(_comm, _prop, _tree.getShell, _summ, null);
+			break;
 		} case CType.BRANCH_FLAG: {
-			if (_summ.flagDirRoot.allFlags.length == 0) return false;
-			auto dlg = new BrFlagDialog(_prop, _tree.getShell, _summ.flagDirRoot, evt);
-			return dlg.open;
+			dlg = new BrFlagDialog(_comm, _prop, _tree.getShell, _summ, null, _summ.flagDirRoot);
+			break;
 		} case CType.BRANCH_MULTI_STEP: {
-			if (_summ.flagDirRoot.allSteps.length == 0) return false;
-			auto dlg = new BrStepNDialog(_prop, _tree.getShell, _summ.flagDirRoot, evt);
-			return dlg.open;
+			dlg = new BrStepNDialog(_comm, _prop, _tree.getShell, _summ, null, _summ.flagDirRoot);
+			break;
 		} case CType.BRANCH_STEP: {
-			if (_summ.flagDirRoot.allSteps.length == 0) return false;
-			auto dlg = new BrStepULDialog(_prop, _tree.getShell, _summ.flagDirRoot, evt);
-			return dlg.open;
+			dlg = new BrStepULDialog(_comm, _prop, _tree.getShell, _summ, null, _summ.flagDirRoot);
+			break;
 		} case CType.BRANCH_SELECT: {
-			auto dlg = new BrMemberDialog(_prop, _tree.getShell, evt);
-			return dlg.open;
+			dlg = new BrMemberDialog(_comm, _prop, _tree.getShell, _summ, null);
+			break;
 		} case CType.BRANCH_ABILITY: {
-			auto dlg = new BrPowerDialog(_prop, _tree.getShell, evt);
-			return dlg.open;
+			dlg = new BrPowerDialog(_comm, _prop, _tree.getShell, _summ, null);
+			break;
 		} case CType.BRANCH_RANDOM: {
-			auto dlg = new BrRandomEventDialog(_prop, _tree.getShell, evt);
-			return dlg.open;
+			dlg = new BrRandomEventDialog(_comm, _prop, _tree.getShell, _summ, null);
+			break;
 		} case CType.BRANCH_LEVEL: {
-			auto dlg = new BrLevelDialog(_prop, _tree.getShell, evt);
-			return dlg.open;
+			dlg = new BrLevelDialog(_comm, _prop, _tree.getShell, _summ, null);
+			break;
 		} case CType.BRANCH_STATUS: {
-			auto dlg = new BrStateDialog(_prop, _tree.getShell, evt);
-			return dlg.open;
+			dlg = new BrStateDialog(_comm, _prop, _tree.getShell, _summ, null);
+			break;
 		} case CType.BRANCH_PARTY_NUMBER: {
-			auto dlg = new BrNumEventDialog(_prop, _tree.getShell, evt);
-			return dlg.open;
-		} case CType.BRANCH_AREA: {
-			return false;
-		} case CType.BRANCH_BATTLE: {
-			return false;
-		} case CType.BRANCH_IS_BATTLE: {
-			return false;
+			dlg = new BrNumEventDialog(_comm, _prop, _tree.getShell, _summ, null);
+			break;
 		} case CType.BRANCH_CAST: {
-			if (_summ.casts.length == 0) return false;
-			auto dlg = new AreaSelectDialog!(CType.BRANCH_CAST, CastCard, "summary.casts")
-				(_prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+			dlg = new AreaSelectDialog!(CType.BRANCH_CAST, CastCard, "summary.casts")
+				(_comm, _prop, _tree.getShell, _summ, null);
+			break;
 		} case CType.BRANCH_ITEM: {
-			if (_summ.items.length == 0) return false;
-			auto dlg = new BrItemDialog(_prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+			dlg = new BrItemDialog(_comm, _prop, _tree.getShell, _summ, null);
+			break;
 		} case CType.BRANCH_SKILL: {
-			if (_summ.skills.length == 0) return false;
-			auto dlg = new BrSkillDialog(_prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+			dlg = new BrSkillDialog(_comm, _prop, _tree.getShell, _summ, null);
+			break;
 		} case CType.BRANCH_INFO: {
-			if (_summ.infos.length == 0) return false;
-			auto dlg = new AreaSelectDialog!(CType.BRANCH_INFO, InfoCard, "summary.infos")
-				(_prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+			dlg = new AreaSelectDialog!(CType.BRANCH_INFO, InfoCard, "summary.infos")
+				(_comm, _prop, _tree.getShell, _summ, null);
+			break;
 		} case CType.BRANCH_BEAST: {
-			if (_summ.beasts.length == 0) return false;
-			auto dlg = new BrBeastDialog(_prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+			dlg = new BrBeastDialog(_comm, _prop, _tree.getShell, _summ, null);
+			break;
 		} case CType.BRANCH_MONEY: {
-			auto dlg = new MoneyEventDialog!(CType.BRANCH_MONEY)(_prop, _tree.getShell, evt);
-			return dlg.open;
+			dlg = new MoneyEventDialog!(CType.BRANCH_MONEY)(_comm, _prop, _tree.getShell, _summ, null);
+			break;
 		} case CType.BRANCH_COUPON: {
-			auto dlg = new CouponEventDialog!(CType.BRANCH_COUPON, false)(_comm, _prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+			dlg = new CouponEventDialog!(CType.BRANCH_COUPON, false)(_comm, _prop, _tree.getShell, _summ, null);
+			break;
 		} case CType.BRANCH_COMPLETE_STAMP: {
-			auto dlg = new EndEventDialog!(CType.BRANCH_COMPLETE_STAMP)(_prop, _tree.getShell, evt);
-			return dlg.open;
+			dlg = new EndEventDialog!(CType.BRANCH_COMPLETE_STAMP)(_comm, _prop, _tree.getShell, _summ, null);
+			break;
 		} case CType.BRANCH_GOSSIP: {
-			auto dlg = new GossipEventDialog!(CType.BRANCH_GOSSIP)(_prop, _tree.getShell, evt);
-			return dlg.open;
+			dlg = new GossipEventDialog!(CType.BRANCH_GOSSIP)(_comm, _prop, _tree.getShell, _summ, null);
+			break;
 		} case CType.SET_FLAG: {
-			if (_summ.flagDirRoot.allFlags.length == 0) return false;
-			auto dlg = new FlagSetDialog(_prop, _tree.getShell, _summ.flagDirRoot, evt);
-			return dlg.open;
+			dlg = new FlagSetDialog(_comm, _prop, _tree.getShell, _summ, null, _summ.flagDirRoot);
+			break;
 		} case CType.SET_STEP: {
-			if (_summ.flagDirRoot.allSteps.length == 0) return false;
-			auto dlg = new StepSetDialog(_prop, _tree.getShell, _summ.flagDirRoot, evt);
-			return dlg.open;
+			dlg = new StepSetDialog(_comm, _prop, _tree.getShell, _summ, null, _summ.flagDirRoot);
+			break;
 		} case CType.SET_STEP_UP: {
-			if (_summ.flagDirRoot.allSteps.length == 0) return false;
-			auto dlg = new StepPlusDialog(_prop, _tree.getShell, _summ.flagDirRoot, evt);
-			return dlg.open;
+			dlg = new StepPlusDialog(_comm, _prop, _tree.getShell, _summ, null, _summ.flagDirRoot);
+			break;
 		} case CType.SET_STEP_DOWN: {
-			if (_summ.flagDirRoot.allSteps.length == 0) return false;
-			auto dlg = new StepMinusDialog(_prop, _tree.getShell, _summ.flagDirRoot, evt);
-			return dlg.open;
+			dlg = new StepMinusDialog(_comm, _prop, _tree.getShell, _summ, null, _summ.flagDirRoot);
+			break;
 		} case CType.REVERSE_FLAG: {
-			if (_summ.flagDirRoot.allFlags.length == 0) return false;
-			auto dlg = new FlagRDialog(_prop, _tree.getShell, _summ.flagDirRoot, evt);
-			return dlg.open;
+			dlg = new FlagRDialog(_comm, _prop, _tree.getShell, _summ, null, _summ.flagDirRoot);
+			break;
 		} case CType.CHECK_FLAG: {
-			if (_summ.flagDirRoot.allFlags.length == 0) return false;
-			auto dlg = new FlagJudgeDialog(_prop, _tree.getShell, _summ.flagDirRoot, evt);
-			return dlg.open;
+			dlg = new FlagJudgeDialog(_comm, _prop, _tree.getShell, _summ, null, _summ.flagDirRoot);
+			break;
 		} case CType.GET_CAST: {
-			if (_summ.casts.length == 0) return false;
-			auto dlg = new AreaSelectDialog!(CType.GET_CAST, CastCard, "summary.casts")
-				(_prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+			dlg = new AreaSelectDialog!(CType.GET_CAST, CastCard, "summary.casts")
+				(_comm, _prop, _tree.getShell, _summ, null);
+			break;
 		} case CType.GET_ITEM: {
-			if (_summ.items.length == 0) return false;
-			auto dlg = new GetItemDialog(_prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+			dlg = new GetItemDialog(_comm, _prop, _tree.getShell, _summ, null);
+			break;
 		} case CType.GET_SKILL: {
-			if (_summ.skills.length == 0) return false;
-			auto dlg = new GetSkillDialog(_prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+			dlg = new GetSkillDialog(_comm, _prop, _tree.getShell, _summ, null);
+			break;
 		} case CType.GET_INFO: {
-			if (_summ.infos.length == 0) return false;
-			auto dlg = new AreaSelectDialog!(CType.GET_INFO, InfoCard, "summary.infos")
-				(_prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+			dlg = new AreaSelectDialog!(CType.GET_INFO, InfoCard, "summary.infos")
+				(_comm, _prop, _tree.getShell, _summ, null);
+			break;
 		} case CType.GET_BEAST: {
-			if (_summ.beasts.length == 0) return false;
-			auto dlg = new GetBeastDialog(_prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+			dlg = new GetBeastDialog(_comm, _prop, _tree.getShell, _summ, null);
+			break;
 		} case CType.GET_MONEY: {
-			auto dlg = new MoneyEventDialog!(CType.GET_MONEY)(_prop, _tree.getShell, evt);
-			return dlg.open;
+			dlg = new MoneyEventDialog!(CType.GET_MONEY)(_comm, _prop, _tree.getShell, _summ, null);
+			break;
 		} case CType.GET_COUPON: {
-			auto dlg = new CouponEventDialog!(CType.GET_COUPON, true)(_comm, _prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+			dlg = new CouponEventDialog!(CType.GET_COUPON, true)(_comm, _prop, _tree.getShell, _summ, null);
+			break;
 		} case CType.GET_COMPLETE_STAMP: {
-			auto dlg = new EndEventDialog!(CType.GET_COMPLETE_STAMP)(_prop, _tree.getShell, evt);
-			return dlg.open;
+			dlg = new EndEventDialog!(CType.GET_COMPLETE_STAMP)(_comm, _prop, _tree.getShell, _summ, null);
+			break;
 		} case CType.GET_GOSSIP: {
-			auto dlg = new GossipEventDialog!(CType.GET_GOSSIP)(_prop, _tree.getShell, evt);
-			return dlg.open;
+			dlg = new GossipEventDialog!(CType.GET_GOSSIP)(_comm, _prop, _tree.getShell, _summ, null);
+			break;
 		} case CType.LOSE_CAST: {
-			if (_summ.casts.length == 0) return false;
-			auto dlg = new AreaSelectDialog!(CType.LOSE_CAST, CastCard, "summary.casts")
-				(_prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+			dlg = new AreaSelectDialog!(CType.LOSE_CAST, CastCard, "summary.casts")
+				(_comm, _prop, _tree.getShell, _summ, null);
+			break;
 		} case CType.LOSE_ITEM: {
-			if (_summ.items.length == 0) return false;
-			auto dlg = new LostItemDialog(_prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+			dlg = new LostItemDialog(_comm, _prop, _tree.getShell, _summ, null);
+			break;
 		} case CType.LOSE_SKILL: {
-			if (_summ.skills.length == 0) return false;
-			auto dlg = new LostSkillDialog(_prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+			dlg = new LostSkillDialog(_comm, _prop, _tree.getShell, _summ, null);
+			break;
 		} case CType.LOSE_INFO: {
-			if (_summ.infos.length == 0) return false;
-			auto dlg = new AreaSelectDialog!(CType.LOSE_INFO, InfoCard, "summary.infos")
-				(_prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+			dlg = new AreaSelectDialog!(CType.LOSE_INFO, InfoCard, "summary.infos")
+				(_comm, _prop, _tree.getShell, _summ, null);
+			break;
 		} case CType.LOSE_BEAST: {
-			if (_summ.beasts.length == 0) return false;
-			auto dlg = new LostBeastDialog(_prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+			dlg = new LostBeastDialog(_comm, _prop, _tree.getShell, _summ, null);
+			break;
 		} case CType.LOSE_MONEY: {
-			auto dlg = new MoneyEventDialog!(CType.LOSE_MONEY)(_prop, _tree.getShell, evt);
-			return dlg.open;
+			dlg = new MoneyEventDialog!(CType.LOSE_MONEY)(_comm, _prop, _tree.getShell, _summ, null);
+			break;
 		} case CType.LOSE_COUPON: {
-			auto dlg = new CouponEventDialog!(CType.LOSE_COUPON, false)(_comm, _prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+			dlg = new CouponEventDialog!(CType.LOSE_COUPON, false)(_comm, _prop, _tree.getShell, _summ, null);
+			break;
 		} case CType.LOSE_COMPLETE_STAMP: {
-			auto dlg = new EndEventDialog!(CType.LOSE_COMPLETE_STAMP)(_prop, _tree.getShell, evt);
-			return dlg.open;
+			dlg = new EndEventDialog!(CType.LOSE_COMPLETE_STAMP)(_comm, _prop, _tree.getShell, _summ, null);
+			break;
 		} case CType.LOSE_GOSSIP: {
-			auto dlg = new GossipEventDialog!(CType.LOSE_GOSSIP)(_prop, _tree.getShell, evt);
-			return dlg.open;
-		} case CType.SHOW_PARTY: {
-			return false;
-		} case CType.HIDE_PARTY: {
-			return false;
+			dlg = new GossipEventDialog!(CType.LOSE_GOSSIP)(_comm, _prop, _tree.getShell, _summ, null);
+			break;
 		} case CType.REDISPLAY: {
-			if (_summ.legacy) return false;
-			auto dlg = new RefreshDialog(_prop, _tree.getShell, evt);
-			return dlg.open;
+			dlg = new RefreshDialog(_comm, _prop, _tree.getShell, _summ, null);
+			break;
+		} default: assert (0, to!string(type));
+		}
+		return dlg.open() ? dlg.event : null;
+	}
+
+	bool edit(Content evt) {
+		if (!hasDialog(evt.type) || !checkOpenDialog(evt.type)) return false;
+		EventDialog dlg;
+		switch (evt.type) {
+		case CType.START_BATTLE: {
+			dlg = new AreaSelectDialog!(CType.START_BATTLE, Battle, "summary.battles")
+				(_comm, _prop, _tree.getShell, _summ, evt);
+			break;
+		} case CType.END: {
+			dlg = new ClearEventDialog(_comm, _prop, _tree.getShell, _summ, evt);
+			break;
+		} case CType.CHANGE_AREA: {
+			dlg = new AreaSelectDialog!(CType.CHANGE_AREA, Area, "summary.areas")
+				(_comm, _prop, _tree.getShell, _summ, evt);
+			break;
+		} case CType.CHANGE_BG_IMAGE: {
+			dlg = new BgImagesDialog(_comm, _prop, _tree.getShell, _summ, evt, refTarget);
+			break;
+		} case CType.EFFECT: {
+			dlg = new EffectDialog(_comm, _prop, _tree.getShell, _summ, evt);
+			break;
+		} case CType.LINK_START: {
+			dlg = new StartSelectDialog!(CType.LINK_START)(_comm, _prop, _tree.getShell, _summ, evt, _et.starts);
+			break;
+		} case CType.LINK_PACKAGE: {
+			dlg = new AreaSelectDialog!(CType.LINK_PACKAGE, Package, "summary.packages")
+				(_comm, _prop, _tree.getShell, _summ, evt);
+			break;
+		} case CType.TALK_MESSAGE: {
+			dlg = new MessageDialog(_comm, _prop, _tree.getShell, _summ, evt);
+			break;
+		} case CType.TALK_DIALOG: {
+			dlg = new SpeakDialog(_comm, _prop, _tree.getShell, _summ, evt);
+			break;
+		} case CType.PLAY_BGM: {
+			dlg = new BgmDialog(_comm, _prop, _tree.getShell, _summ, evt);
+			break;
+		} case CType.PLAY_SOUND: {
+			dlg = new SeDialog(_comm, _prop, _tree.getShell, _summ, evt);
+			break;
+		} case CType.WAIT: {
+			dlg = new WaitEventDialog(_comm, _prop, _tree.getShell, _summ, evt);
+			break;
+		} case CType.CALL_START: {
+			dlg = new StartSelectDialog!(CType.CALL_START)(_comm, _prop, _tree.getShell, _summ, evt, _et.starts);
+			break;
+		} case CType.CALL_PACKAGE: {
+			dlg = new AreaSelectDialog!(CType.CALL_PACKAGE, Package, "summary.packages")
+				(_comm, _prop, _tree.getShell, _summ, evt);
+			break;
+		} case CType.BRANCH_FLAG: {
+			dlg = new BrFlagDialog(_comm, _prop, _tree.getShell, _summ, evt, _summ.flagDirRoot);
+			break;
+		} case CType.BRANCH_MULTI_STEP: {
+			dlg = new BrStepNDialog(_comm, _prop, _tree.getShell, _summ, evt, _summ.flagDirRoot);
+			break;
+		} case CType.BRANCH_STEP: {
+			dlg = new BrStepULDialog(_comm, _prop, _tree.getShell, _summ, evt, _summ.flagDirRoot);
+			break;
+		} case CType.BRANCH_SELECT: {
+			dlg = new BrMemberDialog(_comm, _prop, _tree.getShell, _summ, evt);
+			break;
+		} case CType.BRANCH_ABILITY: {
+			dlg = new BrPowerDialog(_comm, _prop, _tree.getShell, _summ, evt);
+			break;
+		} case CType.BRANCH_RANDOM: {
+			dlg = new BrRandomEventDialog(_comm, _prop, _tree.getShell, _summ, evt);
+			break;
+		} case CType.BRANCH_LEVEL: {
+			dlg = new BrLevelDialog(_comm, _prop, _tree.getShell, _summ, evt);
+			break;
+		} case CType.BRANCH_STATUS: {
+			dlg = new BrStateDialog(_comm, _prop, _tree.getShell, _summ, evt);
+			break;
+		} case CType.BRANCH_PARTY_NUMBER: {
+			dlg = new BrNumEventDialog(_comm, _prop, _tree.getShell, _summ, evt);
+			break;
+		} case CType.BRANCH_CAST: {
+			dlg = new AreaSelectDialog!(CType.BRANCH_CAST, CastCard, "summary.casts")
+				(_comm, _prop, _tree.getShell, _summ, evt);
+			break;
+		} case CType.BRANCH_ITEM: {
+			dlg = new BrItemDialog(_comm, _prop, _tree.getShell, _summ, evt);
+			break;
+		} case CType.BRANCH_SKILL: {
+			dlg = new BrSkillDialog(_comm, _prop, _tree.getShell, _summ, evt);
+			break;
+		} case CType.BRANCH_INFO: {
+			dlg = new AreaSelectDialog!(CType.BRANCH_INFO, InfoCard, "summary.infos")
+				(_comm, _prop, _tree.getShell, _summ, evt);
+			break;
+		} case CType.BRANCH_BEAST: {
+			dlg = new BrBeastDialog(_comm, _prop, _tree.getShell, _summ, evt);
+			break;
+		} case CType.BRANCH_MONEY: {
+			dlg = new MoneyEventDialog!(CType.BRANCH_MONEY)(_comm, _prop, _tree.getShell, _summ, evt);
+			break;
+		} case CType.BRANCH_COUPON: {
+			dlg = new CouponEventDialog!(CType.BRANCH_COUPON, false)(_comm, _prop, _tree.getShell, _summ, evt);
+			break;
+		} case CType.BRANCH_COMPLETE_STAMP: {
+			dlg = new EndEventDialog!(CType.BRANCH_COMPLETE_STAMP)(_comm, _prop, _tree.getShell, _summ, evt);
+			break;
+		} case CType.BRANCH_GOSSIP: {
+			dlg = new GossipEventDialog!(CType.BRANCH_GOSSIP)(_comm, _prop, _tree.getShell, _summ, evt);
+			break;
+		} case CType.SET_FLAG: {
+			dlg = new FlagSetDialog(_comm, _prop, _tree.getShell, _summ, evt, _summ.flagDirRoot);
+			break;
+		} case CType.SET_STEP: {
+			dlg = new StepSetDialog(_comm, _prop, _tree.getShell, _summ, evt, _summ.flagDirRoot);
+			break;
+		} case CType.SET_STEP_UP: {
+			dlg = new StepPlusDialog(_comm, _prop, _tree.getShell, _summ, evt, _summ.flagDirRoot);
+			break;
+		} case CType.SET_STEP_DOWN: {
+			dlg = new StepMinusDialog(_comm, _prop, _tree.getShell, _summ, evt, _summ.flagDirRoot);
+			break;
+		} case CType.REVERSE_FLAG: {
+			dlg = new FlagRDialog(_comm, _prop, _tree.getShell, _summ, evt, _summ.flagDirRoot);
+			break;
+		} case CType.CHECK_FLAG: {
+			dlg = new FlagJudgeDialog(_comm, _prop, _tree.getShell, _summ, evt, _summ.flagDirRoot);
+			break;
+		} case CType.GET_CAST: {
+			dlg = new AreaSelectDialog!(CType.GET_CAST, CastCard, "summary.casts")
+				(_comm, _prop, _tree.getShell, _summ, evt);
+			break;
+		} case CType.GET_ITEM: {
+			dlg = new GetItemDialog(_comm, _prop, _tree.getShell, _summ, evt);
+			break;
+		} case CType.GET_SKILL: {
+			dlg = new GetSkillDialog(_comm, _prop, _tree.getShell, _summ, evt);
+			break;
+		} case CType.GET_INFO: {
+			dlg = new AreaSelectDialog!(CType.GET_INFO, InfoCard, "summary.infos")
+				(_comm, _prop, _tree.getShell, _summ, evt);
+			break;
+		} case CType.GET_BEAST: {
+			dlg = new GetBeastDialog(_comm, _prop, _tree.getShell, _summ, evt);
+			break;
+		} case CType.GET_MONEY: {
+			dlg = new MoneyEventDialog!(CType.GET_MONEY)(_comm, _prop, _tree.getShell, _summ, evt);
+			break;
+		} case CType.GET_COUPON: {
+			dlg = new CouponEventDialog!(CType.GET_COUPON, true)(_comm, _prop, _tree.getShell, _summ, evt);
+			break;
+		} case CType.GET_COMPLETE_STAMP: {
+			dlg = new EndEventDialog!(CType.GET_COMPLETE_STAMP)(_comm, _prop, _tree.getShell, _summ, evt);
+			break;
+		} case CType.GET_GOSSIP: {
+			dlg = new GossipEventDialog!(CType.GET_GOSSIP)(_comm, _prop, _tree.getShell, _summ, evt);
+			break;
+		} case CType.LOSE_CAST: {
+			dlg = new AreaSelectDialog!(CType.LOSE_CAST, CastCard, "summary.casts")
+				(_comm, _prop, _tree.getShell, _summ, evt);
+			break;
+		} case CType.LOSE_ITEM: {
+			dlg = new LostItemDialog(_comm, _prop, _tree.getShell, _summ, evt);
+			break;
+		} case CType.LOSE_SKILL: {
+			dlg = new LostSkillDialog(_comm, _prop, _tree.getShell, _summ, evt);
+			break;
+		} case CType.LOSE_INFO: {
+			dlg = new AreaSelectDialog!(CType.LOSE_INFO, InfoCard, "summary.infos")
+				(_comm, _prop, _tree.getShell, _summ, evt);
+			break;
+		} case CType.LOSE_BEAST: {
+			dlg = new LostBeastDialog(_comm, _prop, _tree.getShell, _summ, evt);
+			break;
+		} case CType.LOSE_MONEY: {
+			dlg = new MoneyEventDialog!(CType.LOSE_MONEY)(_comm, _prop, _tree.getShell, _summ, evt);
+			break;
+		} case CType.LOSE_COUPON: {
+			dlg = new CouponEventDialog!(CType.LOSE_COUPON, false)(_comm, _prop, _tree.getShell, _summ, evt);
+			break;
+		} case CType.LOSE_COMPLETE_STAMP: {
+			dlg = new EndEventDialog!(CType.LOSE_COMPLETE_STAMP)(_comm, _prop, _tree.getShell, _summ, evt);
+			break;
+		} case CType.LOSE_GOSSIP: {
+			dlg = new GossipEventDialog!(CType.LOSE_GOSSIP)(_comm, _prop, _tree.getShell, _summ, evt);
+			break;
+		} case CType.REDISPLAY: {
+			dlg = new RefreshDialog(_comm, _prop, _tree.getShell, _summ, evt);
+			break;
 		} default: assert (0);
 		}
+		return dlg.open();
 	}
 
 	AbstractArea refTarget() {
