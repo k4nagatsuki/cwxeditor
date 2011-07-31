@@ -810,6 +810,13 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		if (path.length == 1) return next[path[0]];
 		return next[path[0]].fromPath(path[1 .. $]);
 	}
+	/// このコンテントが指定されたコンテントそのもの、
+	/// もしくは子孫であればtrueを返す。
+	bool isDescendant(in Content c) {
+		if (this is c) return true;
+		if (!parent) return false;
+		return parent.isDescendant(c);
+	}
 
 	private Content[] _next = [];
 	/// 後続イベント群。

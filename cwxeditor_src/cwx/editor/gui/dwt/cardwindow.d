@@ -1048,10 +1048,13 @@ public:
 	static if (EditMode) {
 		void create() {
 			static if (is (C == CastCard)) {
+				auto c = new CastCard(0, "", "", "", 1, 1);
 				auto dlg = new CastCardDialog(_comm, _prop, _list.getShell, _summ, null);
 			} else static if (is (C : EffectCard)) {
+				auto c = new C(0, "", "", "");
 				auto dlg = new EffectCardDialog!(C)(_comm, _prop, _list.getShell, _summ, null);
 			} else static if (is (C == InfoCard)) {
+				auto c = new InfoCard(0, "", "", "");
 				auto dlg = new InfoCardDialog(_comm, _prop, _list.getShell, _summ, null);
 			} else {
 				static assert (0);
@@ -1069,10 +1072,10 @@ public:
 					refresh;
 					refCard(c);
 				};
-				_editDlgs[c] = dlg;
-				dlg.closeEvent ~= {
-					_editDlgs.remove(c);
-				};
+			};
+			_editDlgs[c] = dlg;
+			dlg.closeEvent ~= {
+				_editDlgs.remove(c);
 			};
 			dlg.open();
 		}

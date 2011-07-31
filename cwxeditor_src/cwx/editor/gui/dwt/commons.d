@@ -196,6 +196,8 @@ class Commons {
 	Dlg!(string, int[]) upBgImage;
 	Dlg!(string, int[]) downBgImage;
 
+	Dlg!(Content) delContent;
+
 	Dlg!(Importable) closeAdds;
 
 	const Object saveSync;
@@ -435,8 +437,7 @@ class Commons {
 			data.tlp.statusLine = status;
 		}
 		if (singleWindowMode) {
-			auto data2 = tlp(Display.getCurrent.getFocusControl);
-			if (data is data2) _main.statusLine = status;
+			_main.statusLine = status;
 		}
 	}
 

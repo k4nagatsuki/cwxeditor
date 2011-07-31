@@ -131,6 +131,11 @@ private void createToolItemC(ToolBar bar, Control c) {
 }
 
 class AbstractAreaView(A, C, bool UseCards, bool UseBacks) : Composite, TCPD {
+	/// 変更があった際に呼び出される。
+	void delegate()[] modEvent;
+	private void callModEvent() {
+		foreach (dlg; modEvent) dlg();
+	}
 private:
 	Commons _comm;
 	Props _prop;
@@ -206,6 +211,7 @@ private:
 				if (_autoTMenu) _autoTMenu.setSelection = _area.spAuto;
 				if (_customMenu) _customMenu.setSelection = !_area.spAuto;
 				if (_customTMenu) _customTMenu.setSelection = !_area.spAuto;
+				callModEvent();
 			}
 			override void undo() {impl;}
 			override void redo() {impl;}
@@ -231,6 +237,7 @@ private:
 				_path.path = _area.music;
 				_area.music = path;
 				_bgm.path = path;
+				callModEvent();
 			}
 			override void undo() {impl;}
 			override void redo() {impl;}
@@ -470,6 +477,7 @@ private:
 			}
 			refreshPanel;
 			_comm.refUseCount.call;
+			callModEvent();
 		}
 		override void undo() {
 			impl;
@@ -524,11 +532,13 @@ private:
 			foreach (c; _editC.keys) {
 				c.escape = _escTMenu.getSelection;
 			}
+			callModEvent();
 		}
 		void selectBGM() {
 			_undo ~= new UndoMusic;
 			_area.music = _bgm.path;
 			_comm.refUseCount.call;
+			callModEvent();
 		}
 		void __playBGM() {
 			if (_bgmTMenu.getSelection) {
@@ -601,6 +611,7 @@ private:
 			card.y = y;
 			card.scale = scale;
 			refreshControls;
+			callModEvent();
 		}
 		void selectImageC(FlexImage img) {
 			__selectImage!(C)(img, _area.cards, _cardTbl, _editC, _cards);
@@ -660,6 +671,7 @@ private:
 			back.width = w;
 			back.height = h;
 			refreshControls;
+			callModEvent();
 		}
 		void selectImageB(FlexImage img) {
 			__selectImage!(BgImage)(img, _area.backs, _backTbl, _editB, _backs);
@@ -672,6 +684,7 @@ private:
 				_imgp.images[i].createImage;
 			}
 			_imgp.redraw;
+			callModEvent();
 		}
 	}
 
@@ -718,6 +731,7 @@ private:
 				a.resize(false);
 			}
 		}
+		callModEvent();
 	}
 	int __cancelSpn(string T, B)(int[B] edits) {
 		auto a = edits.keys[0];
@@ -841,6 +855,7 @@ private:
 				}
 			}
 		}
+		callModEvent();
 		return indices;
 	}
 	int[] __down(T)(bool view, Table list, void delegate(int, int) swap, int startIndex) {
@@ -862,6 +877,7 @@ private:
 				}
 			}
 		}
+		callModEvent();
 		return indices;
 	}
 
@@ -882,6 +898,7 @@ private:
 				mixin (CSet ~ ";");
 			}
 		}
+		callModEvent();
 	}
 	void __posEven(string X, string Wid, string SetX, string XC, T)(int startIndex, T[] cs) {
 		FlexImage[] targs;
@@ -923,6 +940,7 @@ private:
 				mixin (XC ~ ";");
 			}
 		}
+		callModEvent();
 	}
 	static if (UseCards) {
 		private void __scaleC(real s) {
@@ -937,6 +955,7 @@ private:
 			}
 			refreshControls;
 			_imgp.redraw;
+			callModEvent();
 		}
 		private void __scaleCMax() {
 			__scaleC(_prop.looks.cardSizeMax);
@@ -973,6 +992,7 @@ private:
 				mixin (CSet);
 			}
 		}
+		callModEvent();
 	}
 	void __posTop(T)(int startIndex, T[] cs) {
 		__pos!(int.max, "a.y < b", "a.y", "a.newY = b", "c.y = a.y", T)(startIndex, cs);
@@ -1327,6 +1347,7 @@ private:
 			if (_autoTMenu) _autoTMenu.setSelection = value;
 			if (_customMenu) _customMenu.setSelection = !value;
 			if (_customTMenu) _customTMenu.setSelection = !value;
+			callModEvent();
 		}
 	}
 	class VCheckListener : SelectionAdapter {
@@ -1660,12 +1681,14 @@ public:
 	private void __remove(T)(int index, ref T[PileImage] tbl, int startIndex) {
 		tbl.remove(_imgp.images[startIndex + index]);
 		_imgp.remove(startIndex + index);
+		callModEvent();
 	}
 	private void __removeRange(T)(int fromIndex, int toIndex, ref T[PileImage] tbl, int startIndex) {
 		for (int i = fromIndex + startIndex; i < toIndex + startIndex; i++) {
 			tbl.remove(_imgp.images[i]);
 		}
 		_imgp.removeRange(startIndex + fromIndex, startIndex + toIndex);
+		callModEvent();
 	}
 	static if (UseCards) {
 		private void removeCard(int index) {
@@ -1774,17 +1797,21 @@ public:
 					_comm.refMenuCard.call(c.cwxPath);
 					_comm.refUseCount.call;
 					_imgp.redraw;
+					callModEvent();
 					return;
 				}
 			}
 			assert (0);
 		}
 		void createCard() {
-			static if (is (C == EnemyCard)) {
+			static if (is(C : MenuCard)) {
+				auto c = new MenuCard("", "", "", "", 0, 0, 1.0);
+			} else static if (is(C : EnemyCard)) {
 				if (!_summ) return;
 				if (_summ.casts.length == 0) return;
-			}
-			auto dlg = new SpCardDialog!(C)(_comm, _prop, getShell, _summ, null);
+				auto c = new EnemyCard(0, false, "", 0, 0, 1.0);
+			} else static assert (0);
+			auto dlg = new SpCardDialog!(C)(_comm, _prop, getShell, _summ, c);
 			dlg.appliedEvent ~= {
 				auto c = dlg.card;
 				int index = insertIndex(_cards);
@@ -1802,10 +1829,10 @@ public:
 				dlg.appliedEvent ~= {
 					editCardApply(undo, c);
 				};
-				_editDlgsC[c] = dlg;
-				dlg.closeEvent ~= {
-					_editDlgsC.remove(c);
-				};
+			};
+			_editDlgsC[c] = dlg;
+			dlg.closeEvent ~= {
+				_editDlgsC.remove(c);
 			};
 			dlg.open();
 		}
@@ -1842,6 +1869,7 @@ public:
 				c.name = newText;
 				itm.setText(column, c.name);
 				refreshPanel();
+				callModEvent();
 			}
 		} else static if (is(C : EnemyCard)) {
 			void enemyEditEnd(TableItem itm, int column, CCombo combo) {
@@ -1852,6 +1880,7 @@ public:
 				c.id = _summ.casts[i].id;
 				itm.setText(column, cardName(c));
 				refreshPanel();
+				callModEvent();
 			}
 			void createEnemyCombo(TableItem itm, int column, out string[] strs, out string str) {
 				assert (_summ);
@@ -1922,13 +1951,15 @@ public:
 					_comm.refBgImage.call(b.cwxPath);
 					_comm.refUseCount.call;
 					_imgp.redraw;
+					callModEvent();
 					return;
 				}
 			}
 			assert (0);
 		}
 		void createBackground() {
-			auto dlg = new BgImageDialog(_comm, _prop, getShell, _summ, null);
+			auto b = new BgImage("", "", 0, 0, 0, 0, false);
+			auto dlg = new BgImageDialog(_comm, _prop, getShell, _summ, b);
 			dlg.appliedEvent ~= {
 				auto b = dlg.back;
 				int index = insertIndex(_backs);
@@ -1946,10 +1977,10 @@ public:
 				dlg.appliedEvent ~= {
 					editBackApply(undo, b);
 				};
-				_editDlgsB[b] = dlg;
-				dlg.closeEvent ~= {
-					_editDlgsB.remove(b);
-				};
+			};
+			_editDlgsB[b] = dlg;
+			dlg.closeEvent ~= {
+				_editDlgsB.remove(b);
 			};
 			dlg.open();
 		}
@@ -1996,6 +2027,7 @@ public:
 				itm.setText(column, getBaseName(decodePath(mt)));
 			}
 			refreshPanel();
+			callModEvent();
 		}
 		void createBgImageCombo(TableItem itm, int column, out string[] strs, out string str) {
 			auto b = cast(BgImage) itm.getData;
@@ -2333,6 +2365,7 @@ public:
 			_imgp.redraw;
 			_comm.addMenuCard.call(card.cwxPath);
 			_comm.refUseCount.call;
+			callModEvent();
 		}
 		private FlexImage create(C card) {
 			auto img = createCardImage!FlexImage(card, _prop.var.etc.smoothingCard);
@@ -2359,6 +2392,7 @@ public:
 				itm.setText = cardName(c);
 			}
 			if (select && _viewCards) _imgp.select(imgs);
+			callModEvent();
 		}
 		static if (is (C == MenuCard)) {
 			private int cardFromFile(string fname, int x, int y, bool fromImgPane) {
@@ -2461,6 +2495,7 @@ public:
 			_imgp.redraw;
 			_comm.addBgImage.call(back.cwxPath);
 			_comm.refUseCount.call;
+			callModEvent();
 		}
 		private FlexImage create(BgImage back) {
 			auto skin = _comm.skin;
@@ -2489,6 +2524,7 @@ public:
 				_comm.addBgImage.call(b.cwxPath);
 			}
 			if (select && _viewBacks) _imgp.select(imgs);
+			callModEvent();
 		}
 		private int backFromFile(string fname, int x, int y, int w, int h, bool fromImgPane) {
 			if (!_summ) return -1;

@@ -72,3 +72,8 @@ size_t cpindex(string path) {
 } unittest {
 	assert (cpindex("area:3/event:0/:5/:0/:1") == 3);
 }
+/// path1がpath2そのもの、
+/// もしくはpath2がpath1の子孫であればtrueを返す。
+bool cpdescendant(string path1, string path2) {
+	return path2.startsWith(path1);
+}

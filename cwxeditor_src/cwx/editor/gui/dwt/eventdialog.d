@@ -71,17 +71,33 @@ abstract class EventDialog : AbsDialog {
 	private Commons _comm;
 	private Props _prop;
 	private Summary _summ;
+	private Content _parent;
 	private Content _evt;
-	this (Commons comm, Props prop, Shell shell, Summary summ, CType type, Content evt, bool resizable, DSize size, bool eClose) in {
+
+	private class Dispose : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			_comm.delContent.remove(&delContent);
+		}
+	}
+	private void delContent(Content c) {
+		if ((_evt && _evt.isDescendant(c)) || (_parent && _parent.isDescendant(c))) {
+			forceCancel;
+		}
+	}
+
+	this (Commons comm, Props prop, Shell shell, Summary summ, CType type, Content parent, Content evt, bool resizable, DSize size, bool eClose) in {
 		assert (!evt || evt.type is type);
 		assert (summ);
 	} body {
-		super (prop, shell, prop.msgs.dlgTitContent(type), prop.images.content(type), resizable, size);
+		super (prop, shell, false, prop.msgs.dlgTitContent(type), prop.images.content(type), resizable, size, true);
 		enterClose = eClose;
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
+		_parent = parent;
 		_evt = evt;
+		_comm.delContent.add(&delContent);
+		getShell.addDisposeListener(new Dispose);
 	}
 
 	Content event() {
@@ -105,8 +121,8 @@ private:
 		Transition[int] _tsTbl;
 	}
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, Content evt) {
-		super (comm, prop, shell, summ, Type, evt, true, prop.var.selEvtDlg, true);
+	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
+		super (comm, prop, shell, summ, Type, parent, evt, true, prop.var.selEvtDlg, true);
 	}
 protected:
 	override void setup(Composite area) {
@@ -195,37 +211,35 @@ protected:
 		_list.showSelection;
 	}
 
-	override bool close(bool ok) {
-		if (ok) {
-			auto id = (cast(A) _list.getSelection[0].getData).id;
-			if (!_evt) {
-				_evt = new Content(Type, "");
-			}
-			static if (Type == CType.CHANGE_AREA) {
-				if (_summ.legacy) {
-					_evt.area = id;
-					_evt.transition = Transition.DEFAULT;
-					_evt.transitionSpeed = _prop.looks.transitionSpeedDef;
-				} else {
-					auto ts = _tsTbl[_ts.getSelectionIndex];
-					uint tsSpeed = _tsSpeed.getSelection;
-					_evt.area = id;
-					_evt.transition = ts;
-					_evt.transitionSpeed = tsSpeed;
-				}
-			} else static if (Type == CType.START_BATTLE) {
-				_evt.battle = id;
-			} else static if (Type == CType.CALL_PACKAGE || Type == CType.LINK_PACKAGE) {
-				_evt.packages = id;
-			} else static if (Type == CType.BRANCH_CAST || Type == CType.GET_CAST || Type == CType.LOSE_CAST) {
-				_evt.casts = id;
-			} else static if (Type == CType.BRANCH_INFO || Type == CType.GET_INFO || Type == CType.LOSE_INFO) {
-				_evt.info = id;
-			} else {
-				static assert (0);
-			}
+	override bool apply() {
+		auto id = (cast(A) _list.getSelection[0].getData).id;
+		if (!_evt) {
+			_evt = new Content(Type, "");
 		}
-		return ok;
+		static if (Type == CType.CHANGE_AREA) {
+			if (_summ.legacy) {
+				_evt.area = id;
+				_evt.transition = Transition.DEFAULT;
+				_evt.transitionSpeed = _prop.looks.transitionSpeedDef;
+			} else {
+				auto ts = _tsTbl[_ts.getSelectionIndex];
+				uint tsSpeed = _tsSpeed.getSelection;
+				_evt.area = id;
+				_evt.transition = ts;
+				_evt.transitionSpeed = tsSpeed;
+			}
+		} else static if (Type == CType.START_BATTLE) {
+			_evt.battle = id;
+		} else static if (Type == CType.CALL_PACKAGE || Type == CType.LINK_PACKAGE) {
+			_evt.packages = id;
+		} else static if (Type == CType.BRANCH_CAST || Type == CType.GET_CAST || Type == CType.LOSE_CAST) {
+			_evt.casts = id;
+		} else static if (Type == CType.BRANCH_INFO || Type == CType.GET_INFO || Type == CType.LOSE_INFO) {
+			_evt.info = id;
+		} else {
+			static assert (0);
+		}
+		return true;
 	}
 }
 
@@ -237,13 +251,13 @@ private:
 	Table _list;
 
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, Content evt, Content[] starts) in {
+	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt, Content[] starts) in {
 		foreach (s; starts) {
 			assert (s.type == CType.START);
 		}
 	} body {
 		_starts = starts;
-		super (comm, prop, shell, summ, Type, evt, true, prop.var.selEvtDlg, true);
+		super (comm, prop, shell, summ, Type, parent, evt, true, prop.var.selEvtDlg, true);
 	}
 
 protected:
@@ -268,13 +282,11 @@ protected:
 		_list.showSelection;
 	}
 
-	override bool close(bool ok) {
-		if (ok) {
-			auto name = (cast(Content) _list.getSelection[0].getData).name;
-			if (!_evt) _evt = new Content(Type, "");
-			_evt.start = name;
-		}
-		return ok;
+	override bool apply() {
+		auto name = (cast(Content) _list.getSelection[0].getData).name;
+		if (!_evt) _evt = new Content(Type, "");
+		_evt.start = name;
+		return true;
 	}
 }
 
@@ -285,8 +297,8 @@ private:
 	Button _unmark;
 
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, Content evt) {
-		super (comm, prop, shell, summ, CType.END, evt, false, null, enterClose);
+	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
+		super (comm, prop, shell, summ, CType.END, parent, evt, false, null, enterClose);
 	}
 protected:
 	override void setup(Composite area) {
@@ -314,14 +326,12 @@ protected:
 		}
 	}
 
-	override bool close(bool ok) {
-		if (ok) {
-			if (!_evt) {
-				_evt = new Content(CType.END, "");
-			}
-			_evt.complete = _mark.getSelection;
+	override bool apply() {
+		if (!_evt) {
+			_evt = new Content(CType.END, "");
 		}
-		return ok;
+		_evt.complete = _mark.getSelection;
+		return true;
 	}
 }
 
@@ -335,8 +345,8 @@ private:
 	}
 
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, Content evt) {
-		super (comm, prop, shell, summ, Type, evt, true, prop.var.couponEvtDlg, true);
+	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
+		super (comm, prop, shell, summ, Type, parent, evt, true, prop.var.couponEvtDlg, true);
 	}
 protected:
 	override void setup(Composite area) {
@@ -403,21 +413,19 @@ protected:
 		}
 	}
 
-	override bool close(bool ok) {
-		if (ok) {
-			if (!_evt) _evt = new Content(Type, "");
-			foreach (range, radio; _range) {
-				if (radio.getSelection) {
-					_evt.range = range;
-					_evt.coupon = _name.getText;
-					static if (EditValue) {
-						_evt.couponValue = _value.getSelection;
-					}
-					break;
+	override bool apply() {
+		if (!_evt) _evt = new Content(Type, "");
+		foreach (range, radio; _range) {
+			if (radio.getSelection) {
+				_evt.range = range;
+				_evt.coupon = _name.getText;
+				static if (EditValue) {
+					_evt.couponValue = _value.getSelection;
 				}
+				break;
 			}
 		}
-		return ok;
+		return true;
 	}
 }
 
@@ -427,8 +435,8 @@ private:
 	Text _text;
 
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, Content evt) {
-		super (comm, prop, shell, summ, Type, evt, true, prop.var.inputEvtDlg, true);
+	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
+		super (comm, prop, shell, summ, Type, parent, evt, true, prop.var.inputEvtDlg, true);
 	}
 protected:
 	override void setup(Composite area) {
@@ -454,13 +462,11 @@ protected:
 		}
 	}
 
-	override bool close(bool ok) {
-		if (ok) {
-			if (!_evt) _evt = new Content(Type, "");
-			string text = _text.getText;
-			mixin (Set);
-		}
-		return ok;
+	override bool apply() {
+		if (!_evt) _evt = new Content(Type, "");
+		string text = _text.getText;
+		mixin (Set);
+		return true;
 	}
 }
 
@@ -487,9 +493,9 @@ private:
 	BgImagesView _view;
 
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, Content evt, AbstractArea refTarget) {
+	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt, AbstractArea refTarget) {
 		_refTarget = refTarget;
-		super (comm, prop, shell, summ, CType.CHANGE_BG_IMAGE, evt, true, prop.var.bgImagesDlg, false);
+		super (comm, prop, shell, summ, CType.CHANGE_BG_IMAGE, parent, evt, true, prop.var.bgImagesDlg, false);
 
 		BgImage[] bgImages;
 		if (evt) {
@@ -505,6 +511,7 @@ protected:
 		auto skin = _comm.skin;
 		{
 			_view = createBgImagesViewAndMenu(_comm, _prop, _summ, _cont, area, _refTarget);
+			mod(_view);
 			_view.setLayoutData = new GridData(GridData.FILL_BOTH);
 		}
 		if (!_summ.legacy) {
@@ -515,6 +522,7 @@ protected:
 				auto lt = new Label(comp, SWT.NONE);
 				lt.setText = _prop.msgs.transition;
 				_ts = new Combo(comp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
+				mod(_ts);
 				_ts.setVisibleItemCount = 20;
 				foreach (i, t; ALL_TRANSITION) {
 					_ts.add(_prop.msgs.transition(t));
@@ -524,6 +532,7 @@ protected:
 				auto ls = new Label(comp, SWT.NONE);
 				ls.setText = _prop.msgs.transitionSpeed;
 				_tsSpeed = new Spinner(comp, SWT.BORDER);
+				mod(_tsSpeed);
 				_tsSpeed.setMaximum = Content.transitionSpeed_max;
 				_tsSpeed.setMinimum = Content.transitionSpeed_min;
 				auto hint = new Label(comp, SWT.NONE);
@@ -531,6 +540,8 @@ protected:
 					(Content.transitionSpeed_min,
 					Content.transitionSpeed_max);
 			}
+			ignoreMod = true;
+			scope (exit) ignoreMod = false;
 			if (_evt) {
 				_tsSpeed.setSelection = _evt.transitionSpeed;
 			} else {
@@ -540,18 +551,16 @@ protected:
 		}
 	}
 
-	override bool close(bool ok) {
-		if (ok) {
-			if (!_evt) _evt = new Content(CType.CHANGE_BG_IMAGE, "");
-			_evt.backs = _cont.backs;
-			if (!_summ.legacy) {
-				auto ts = _tsTbl[_ts.getSelectionIndex];
-				uint tsSpeed = _tsSpeed.getSelection;
-				_evt.transition = ts;
-				_evt.transitionSpeed = tsSpeed;
-			}
+	override bool apply() {
+		if (!_evt) _evt = new Content(CType.CHANGE_BG_IMAGE, "");
+		_evt.backs = _cont.backs;
+		if (!_summ.legacy) {
+			auto ts = _tsTbl[_ts.getSelectionIndex];
+			uint tsSpeed = _tsSpeed.getSelection;
+			_evt.transition = ts;
+			_evt.transitionSpeed = tsSpeed;
 		}
-		return ok;
+		return true;
 	}
 }
 
@@ -603,8 +612,8 @@ private:
 		}
 	}
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, Content evt) {
-		super (comm, prop, shell, summ, CType.PLAY_BGM, evt, true, prop.var.soundEvtDlg, true);
+	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
+		super (comm, prop, shell, summ, CType.PLAY_BGM, parent, evt, true, prop.var.soundEvtDlg, true);
 	}
 protected:
 	override void setup(Composite area) {
@@ -614,6 +623,7 @@ protected:
 			_msel = new MaterialSelect!(MtType.BGM, Combo, List)
 				(_comm, _prop, _summ, null, [_prop.msgs.bgmStop]);
 			_msel.createDirsCombo(area).setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+			mod(_msel);
 
 			_play = new Button(area, SWT.TOGGLE);
 			_play.setLayoutData = new GridData;
@@ -634,15 +644,15 @@ protected:
 			list.addMouseListener(pbgm);
 			list.addKeyListener(pbgm);
 		}
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
 		_msel.path = _evt ? _evt.bgmPath : "";
 	}
 
-	override bool close(bool ok) {
-		if (ok) {
-			if (!_evt) _evt = new Content(CType.PLAY_BGM, "");
-			_evt.bgmPath = _msel.path;
-		}
-		return ok;
+	override bool apply() {
+		if (!_evt) _evt = new Content(CType.PLAY_BGM, "");
+		_evt.bgmPath = _msel.path;
+		return true;
 	}
 }
 
@@ -676,8 +686,8 @@ private:
 		}
 	}
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, Content evt) {
-		super (comm, prop, shell, summ, CType.PLAY_SOUND, evt, true, prop.var.soundEvtDlg, true);
+	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
+		super (comm, prop, shell, summ, CType.PLAY_SOUND, parent, evt, true, prop.var.soundEvtDlg, true);
 	}
 protected:
 	override void setup(Composite area) {
@@ -687,6 +697,7 @@ protected:
 			_msel = new MaterialSelect!(MtType.SE, Combo, List)
 				(_comm, _prop, _summ, null, []);
 			_msel.createDirsCombo(area).setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+			mod(_msel);
 
 			auto stop = new Button(area, SWT.PUSH);
 			stop.setLayoutData = new GridData;
@@ -712,15 +723,15 @@ protected:
 			list.addKeyListener(pse);
 			list.addMouseListener(pse);
 		}
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
 		_msel.path = _evt ? _evt.soundPath : "";
 	}
 
-	override bool close(bool ok) {
-		if (ok) {
-			if (!_evt) _evt = new Content(CType.PLAY_SOUND, "");
-			_evt.soundPath = _msel.path;
-		}
-		return ok;
+	override bool apply() {
+		if (!_evt) _evt = new Content(CType.PLAY_SOUND, "");
+		_evt.soundPath = _msel.path;
+		return true;
 	}
 }
 
@@ -730,8 +741,8 @@ private:
 	Spinner _value;
 
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, Content evt) {
-		super (comm, prop, shell, summ, Type, evt, false, null, true);
+	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
+		super (comm, prop, shell, summ, Type, parent, evt, false, null, true);
 	}
 protected:
 	private class PM : SelectionAdapter {
@@ -750,6 +761,7 @@ protected:
 			grp.setLayout = new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0);
 			auto comp = new Composite(grp, SWT.NONE);
 			_value = new Spinner(comp, SWT.BORDER);
+			mod(_value);
 			_value.setMinimum = Min;
 			_value.setMaximum = mixin (Max);
 			comp.setLayout = new GridLayout(10 <= _value.getMaximum ? 3 : 2, false);
@@ -782,6 +794,8 @@ protected:
 			l.setText = _prop.msgs.rangeHint(Min, _value.getMaximum);
 		}
 
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
 		if (_evt) {
 			_value.setSelection = mixin (Get);
 		} else {
@@ -789,13 +803,11 @@ protected:
 		}
 	}
 
-	override bool close(bool ok) {
-		if (ok) {
-			if (!_evt) _evt = new Content(Type, "");
-			int value = _value.getSelection;
-			mixin (Set);
-		}
-		return ok;
+	override bool apply() {
+		if (!_evt) _evt = new Content(Type, "");
+		int value = _value.getSelection;
+		mixin (Set);
+		return true;
 	}
 }
 
@@ -826,8 +838,8 @@ private:
 	Button[Target.M] _targ;
 
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, Content evt) {
-		super (comm, prop, shell, summ, CType.EFFECT, evt, true, prop.var.effEvtDlg, true);
+	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
+		super (comm, prop, shell, summ, CType.EFFECT, parent, evt, true, prop.var.effEvtDlg, true);
 	}
 protected:
 	override void setup(Composite area) {
@@ -840,6 +852,7 @@ protected:
 		tabM.setText = _prop.msgs.motion;
 		{
 			_mview = new MotionView(_comm, _prop, _summ, tabf);
+			mod(_mview);
 			tabM.setControl = _mview;
 		}
 		auto tabS = new CTabItem(tabf, SWT.NONE);
@@ -858,6 +871,7 @@ protected:
 					grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 					grp.setLayout = new GridLayout(2, false);
 					_lev = new Spinner(grp, SWT.BORDER);
+					mod(_lev);
 					_lev.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 					_lev.setMinimum = Content.signedLevel_min;
 					_lev.setMaximum = Content.signedLevel_max;
@@ -873,6 +887,7 @@ protected:
 							EffectType.MAGICAL_PHYSIC, EffectType.PHYSICAL_MAGIC,
 							EffectType.NONE]) {
 						auto radio = new Button(grp, SWT.RADIO);
+						mod(radio);
 						auto gd = new GridData(GridData.FILL_BOTH);
 						if (2 <= i) {
 							gd.horizontalSpan = 2;
@@ -889,6 +904,7 @@ protected:
 					grp.setLayout = new GridLayout(2, true);
 					foreach (res; [Resist.AVOID, Resist.RESIST, Resist.UNFAIL]) {
 						auto radio = new Button(grp, SWT.RADIO);
+						mod(radio);
 						radio.setText = _prop.msgs.resist(res);
 						radio.setLayoutData = new GridData(GridData.FILL_BOTH);
 						_res[res] = radio;
@@ -906,6 +922,7 @@ protected:
 					grp.setLayout = new GridLayout(1, false);
 					foreach (v; [CardVisual.NONE, CardVisual.REVERSE, CardVisual.HORIZONTAL, CardVisual.VERTICAL]) {
 						auto radio = new Button(grp, SWT.RADIO);
+						mod(radio);
 						radio.setLayoutData = new GridData(GridData.FILL_BOTH);
 						radio.setText = _prop.msgs.cardVisual(v);
 						_vis[v] = radio;
@@ -918,6 +935,7 @@ protected:
 					grp.setLayout = new GridLayout(1, true);
 					foreach (m; [Target.M.SELECTED, Target.M.RANDOM, Target.M.PARTY]) {
 						auto radio = new Button(grp, SWT.RADIO);
+						mod(radio);
 						radio.setText = _prop.msgs.target(m);
 						radio.setLayoutData = new GridData(GridData.FILL_BOTH);
 						_targ[m] = radio;
@@ -932,15 +950,19 @@ protected:
 					grp.setLayout = new GridLayout(1, true);
 					createDefSoundCombo(_prop, _summ, _comm.skin, grp, _se)
 						.setLayoutData = new GridData(GridData.FILL_BOTH);
+					mod(_se);
 				}
 				{
 					auto gd = new GridData(GridData.FILL_BOTH);
 					gd.horizontalSpan = 2;
 					createSuccessRateScale(_prop, comp2, _sucRate).setLayoutData = gd;
+					mod(_sucRate);
 				}
 			}
 		}
 		tabf.setLayoutData = area.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
 		if (_evt) {
 			_mview.motions = _evt.motions;
 			_lev.setSelection = _evt.signedLevel;
@@ -963,19 +985,17 @@ protected:
 		}
 	}
 
-	override bool close(bool ok) {
-		if (ok) {
-			if (!_evt) _evt = new Content(CType.EFFECT, "");
-			_evt.motions = _mview.motions;
-			_evt.signedLevel = _lev.getSelection;
-			_evt.soundPath = _se.getSelectionIndex > 0 ? _se.getText : "";
-			_evt.successRate = cast(int) _sucRate.getSelection - Content.successRate_max;
-			_evt.effectType = getRadioValue!(EffectType)(_effTyp);
-			_evt.resist = getRadioValue!(Resist)(_res);
-			_evt.cardVisual = getRadioValue!(CardVisual)(_vis);
-			_evt.targetNS = Target(getRadioValue!(Target.M)(_targ), false);
-		}
-		return ok;
+	override bool apply() {
+		if (!_evt) _evt = new Content(CType.EFFECT, "");
+		_evt.motions = _mview.motions;
+		_evt.signedLevel = _lev.getSelection;
+		_evt.soundPath = _se.getSelectionIndex > 0 ? _se.getText : "";
+		_evt.successRate = cast(int) _sucRate.getSelection - Content.successRate_max;
+		_evt.effectType = getRadioValue!(EffectType)(_effTyp);
+		_evt.resist = getRadioValue!(Resist)(_res);
+		_evt.cardVisual = getRadioValue!(CardVisual)(_vis);
+		_evt.targetNS = Target(getRadioValue!(Target.M)(_targ), false);
+		return true;
 	}
 }
 
@@ -1030,9 +1050,14 @@ private:
 		}
 	}
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, Content evt, FlagDir root) {
+	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt, FlagDir root) {
 		_root = root;
-		super (comm, prop, shell, summ, Type, evt, true, prop.var.flagEvtDlg, true);
+		super (comm, prop, shell, summ, Type, parent, evt, true, prop.var.flagEvtDlg, true);
+		closeEvent ~= {
+			auto ws = _sash.getWeights;
+			_prop.var.etc.flagEventSashL = ws[0];
+			_prop.var.etc.flagEventSashR = ws[1];
+		};
 	}
 protected:
 	override void setup(Composite area) {
@@ -1060,6 +1085,7 @@ protected:
 		}
 		{
 			_flags = new List(left, SWT.SINGLE | SWT.BORDER | SWT.V_SCROLL);
+			mod(_flags);
 			auto gd = new GridData(GridData.FILL_BOTH);
 			gd.heightHint = _prop.var.etc.nameTableHeight;
 			_flags.setLayoutData = gd;
@@ -1079,11 +1105,14 @@ protected:
 		}
 		{
 			_values = new List(right, SWT.SINGLE | SWT.BORDER | SWT.V_SCROLL);
+			mod(_values);
 			auto gd = new GridData(GridData.FILL_BOTH);
 			gd.heightHint = _prop.var.etc.nameTableHeight;
 			_values.setLayoutData = gd;
 			_values.setEnabled = SelValue;
 		}
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
 		if (_evt) {
 			static if (is (F == Flag)) {
 				int index = _flags.indexOf(_evt.flag);
@@ -1113,27 +1142,22 @@ protected:
 		_sash.setWeights([_prop.var.etc.flagEventSashL, _prop.var.etc.flagEventSashR]);
 	}
 
-	override bool close(bool ok) {
-		if (ok) {
-			if (!_evt) _evt = new Content(Type, "");
-			static if (is (F == Flag)) {
-				_evt.flag = _flags.getSelection[0];
-				static if (SelValue) {
-					_evt.flagValue = _values.getSelectionIndex == 0;
-				}
-			} else static if (is (F == Step)) {
-				_evt.step = _flags.getSelection[0];
-				static if (SelValue) {
-					_evt.stepValue = _values.getSelectionIndex;
-				}
-			} else {
-				static assert (0);
+	override bool apply() {
+		if (!_evt) _evt = new Content(Type, "");
+		static if (is (F == Flag)) {
+			_evt.flag = _flags.getSelection[0];
+			static if (SelValue) {
+				_evt.flagValue = _values.getSelectionIndex == 0;
 			}
+		} else static if (is (F == Step)) {
+			_evt.step = _flags.getSelection[0];
+			static if (SelValue) {
+				_evt.stepValue = _values.getSelectionIndex;
+			}
+		} else {
+			static assert (0);
 		}
-		auto ws = _sash.getWeights;
-		_prop.var.etc.flagEventSashL = ws[0];
-		_prop.var.etc.flagEventSashR = ws[1];
-		return ok;
+		return true;
 	}
 }
 
@@ -1155,8 +1179,8 @@ private:
 	Button[] _random;
 
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, Content evt) {
-		super (comm, prop, shell, summ, CType.BRANCH_ABILITY, evt, false, null, true);
+	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
+		super (comm, prop, shell, summ, CType.BRANCH_ABILITY, parent, evt, false, null, true);
 	}
 protected:
 	override void setup(Composite area) {
@@ -1169,8 +1193,10 @@ protected:
 			auto comp = new Composite(grp, SWT.NONE);
 			comp.setLayout = zeroMarginGridLayout(1, true);
 			auto btnT = new Button(comp, SWT.RADIO);
+			mod(btnT);
 			btnT.setText = trueText;
 			auto btnF = new Button(comp, SWT.RADIO);
+			mod(btnF);
 			btnF.setText = falseText;
 			btns.length = 2;
 			btns[0] = btnT;
@@ -1179,6 +1205,8 @@ protected:
 		createR(_prop.msgs.selectMember, _prop.msgs.activeMember, _prop.msgs.allMember, _all);
 		createR(_prop.msgs.selectMethod, _prop.msgs.manualMethod, _prop.msgs.randomMethod, _random);
 
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
 		if (_evt) {
 			_all[_evt.targetAll ? 1 : 0].setSelection = true;
 			_random[_evt.random ? 1 : 0].setSelection = true;
@@ -1188,13 +1216,11 @@ protected:
 		}
 	}
 
-	override bool close(bool ok) {
-		if (ok) {
-			if (!_evt) _evt = new Content(CType.BRANCH_SELECT, "");
-			_evt.targetAll = _all[1].getSelection;
-			_evt.random = _random[1].getSelection;
-		}
-		return ok;
+	override bool apply() {
+		if (!_evt) _evt = new Content(CType.BRANCH_SELECT, "");
+		_evt.targetAll = _all[1].getSelection;
+		_evt.random = _random[1].getSelection;
+		return true;
 	}
 }
 
@@ -1209,8 +1235,8 @@ private:
 	Button[Mental] _mtl;
 
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, Content evt) {
-		super (comm, prop, shell, summ, CType.BRANCH_ABILITY, evt, false, null, true);
+	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
+		super (comm, prop, shell, summ, CType.BRANCH_ABILITY, parent, evt, false, null, true);
 	}
 protected:
 	override void setup(Composite area) {
@@ -1224,6 +1250,7 @@ protected:
 				grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				grp.setLayout = new GridLayout(2, false);
 				_lev = new Spinner(grp, SWT.BORDER);
+				mod(_lev);
 				_lev.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				_lev.setMinimum = Content.signedLevel_min;
 				_lev.setMaximum = Content.signedLevel_max;
@@ -1237,6 +1264,7 @@ protected:
 				grp.setLayout = new GridLayout(1, true);
 				foreach (m; [Target.M.SELECTED, Target.M.RANDOM, Target.M.PARTY]) {
 					auto radio = new Button(grp, SWT.RADIO);
+					mod(radio);
 					radio.setText = _prop.msgs.target(m);
 					radio.setLayoutData = new GridData(GridData.FILL_BOTH);
 					_targ[m] = radio;
@@ -1248,8 +1276,10 @@ protected:
 				grp.setLayoutData = new GridData(GridData.FILL_BOTH);
 				grp.setLayout = new GridLayout(1, true);
 				_sleep[1] = new Button(grp, SWT.RADIO);
+				mod(_sleep[1]);
 				_sleep[1].setText = _prop.msgs.sleepDisabled;
 				_sleep[0] = new Button(grp, SWT.RADIO);
+				mod(_sleep[0]);
 				_sleep[0].setText = _prop.msgs.sleepEnabled;
 			}
 		}
@@ -1265,6 +1295,7 @@ protected:
 			foreach (phy; [Physical.DEX, Physical.AGL, Physical.INT,
 					Physical.STR, Physical.VIT, Physical.MIN]) {
 				auto radio = new Button(comp2, SWT.RADIO);
+				mod(radio);
 				radio.setLayoutData = new GridData(GridData.FILL_VERTICAL);
 				radio.setText = _prop.msgs.physical(phy);
 				_phy[phy] = radio;
@@ -1285,11 +1316,14 @@ protected:
 				Mental.TRICKISH, Mental.UNTRICKISH];
 			foreach (i, m; Ms) {
 				auto radio = new Button(comp2, SWT.RADIO);
+				mod(radio);
 				radio.setLayoutData = new GridData(GridData.FILL_BOTH);
 				radio.setText = _prop.msgs.mental(m);
 				_mtl[m] = radio;
 			}
 		}
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
 		if (_evt) {
 			_lev.setSelection = _evt.signedLevel;
 			_targ[_evt.targetS.m].setSelection = true;
@@ -1305,16 +1339,14 @@ protected:
 		}
 	}
 
-	override bool close(bool ok) {
-		if (ok) {
-			if (!_evt) _evt = new Content(CType.BRANCH_ABILITY, "");
-			auto targ = Target(getRadioValue!(Target.M)(_targ), _sleep[0].getSelection);
-			_evt.signedLevel = _lev.getSelection;
-			_evt.targetS = targ;
-			_evt.physical = getRadioValue!(Physical)(_phy);
-			_evt.mental = getRadioValue!(Mental)(_mtl);
-		}
-		return ok;
+	override bool apply() {
+		if (!_evt) _evt = new Content(CType.BRANCH_ABILITY, "");
+		auto targ = Target(getRadioValue!(Target.M)(_targ), _sleep[0].getSelection);
+		_evt.signedLevel = _lev.getSelection;
+		_evt.targetS = targ;
+		_evt.physical = getRadioValue!(Physical)(_phy);
+		_evt.mental = getRadioValue!(Mental)(_mtl);
+		return true;
 	}
 }
 
@@ -1325,8 +1357,8 @@ private:
 	Button[2] _ave;
 
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, Content evt) {
-		super (comm, prop, shell, summ, CType.BRANCH_LEVEL, evt, false, null, true);
+	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
+		super (comm, prop, shell, summ, CType.BRANCH_LEVEL, parent, evt, false, null, true);
 	}
 protected:
 	override void setup(Composite area) {
@@ -1339,8 +1371,10 @@ protected:
 			auto comp = new Composite(grp, SWT.NONE);
 			comp.setLayout = zeroMarginGridLayout(1, true);
 			_ave[1] = new Button(comp, SWT.RADIO);
+			mod(_ave[1]);
 			_ave[1].setText = _prop.msgs.selectedLevel;
 			_ave[0] = new Button(comp, SWT.RADIO);
+			mod(_ave[0]);
 			_ave[0].setText = _prop.msgs.allMemberLevel;
 		}
 		{
@@ -1351,6 +1385,7 @@ protected:
 			auto comp = new Composite(grp, SWT.NONE);
 			comp.setLayout = zeroMarginGridLayout(2, false);
 			_lev = new Spinner(comp, SWT.BORDER);
+			mod(_lev);
 			_lev.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			_lev.setMinimum = Content.unsignedLevel_min;
 			_lev.setMaximum = Content.unsignedLevel_max;
@@ -1358,6 +1393,8 @@ protected:
 			l.setText = _prop.msgs.rangeHint(_lev.getMinimum, _lev.getMaximum);
 		}
 
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
 		if (_evt) {
 			_ave[_evt.average ? 0 : 1].setSelection = true;
 			_lev.setSelection = _evt.unsignedLevel;
@@ -1367,13 +1404,11 @@ protected:
 		}
 	}
 
-	override bool close(bool ok) {
-		if (ok) {
-			if (!_evt) _evt = new Content(CType.BRANCH_LEVEL, "");
-			_evt.average = _ave[0].getSelection;
-			_evt.unsignedLevel = _lev.getSelection;
-		}
-		return ok;
+	override bool apply() {
+		if (!_evt) _evt = new Content(CType.BRANCH_LEVEL, "");
+		_evt.average = _ave[0].getSelection;
+		_evt.unsignedLevel = _lev.getSelection;
+		return true;
 	}
 }
 
@@ -1384,8 +1419,8 @@ private:
 	Button[Status] _stat;
 
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, Content evt) {
-		super (comm, prop, shell, summ, CType.BRANCH_STATUS, evt, false, null, true);
+	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
+		super (comm, prop, shell, summ, CType.BRANCH_STATUS, parent, evt, false, null, true);
 	}
 protected:
 	override void setup(Composite area) {
@@ -1397,6 +1432,7 @@ protected:
 			grp.setLayout = new GridLayout(3, true);
 			foreach (m; [Target.M.SELECTED, Target.M.RANDOM, Target.M.PARTY]) {
 				auto radio = new Button(grp, SWT.RADIO);
+				mod(radio);
 				radio.setText = _prop.msgs.target(m);
 				radio.setLayoutData = new GridData(GridData.FILL_BOTH);
 				_targ[m] = radio;
@@ -1411,6 +1447,7 @@ protected:
 					Status.FINE, Status.INJURED, Status.HEAVY_INJURED, Status.UNCONSCIOUS,
 					Status.POISON, Status.SLEEP, Status.BIND, Status.PARALYZE]) {
 				auto radio = new Button(grp, SWT.RADIO);
+				mod(radio);
 				radio.setText = _prop.msgs.status(s);
 				radio.setLayoutData = new GridData(GridData.FILL_BOTH);
 				_stat[s] = radio;
@@ -1433,6 +1470,8 @@ protected:
 			hint4.setText = _prop.msgs.statusDead;
 		}
 
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
 		if (_evt) {
 			_targ[_evt.targetNS.m].setSelection = true;
 			_stat[_evt.status].setSelection = true;
@@ -1442,14 +1481,12 @@ protected:
 		}
 	}
 
-	override bool close(bool ok) {
-		if (ok) {
-			if (!_evt) _evt = new Content(CType.BRANCH_STATUS, "");
-			auto targ = Target(getRadioValue!(Target.M)(_targ), false);
-			_evt.targetNS = targ;
-			_evt.status = getRadioValue!(Status)(_stat);
-		}
-		return ok;
+	override bool apply() {
+		if (!_evt) _evt = new Content(CType.BRANCH_STATUS, "");
+		auto targ = Target(getRadioValue!(Target.M)(_targ), false);
+		_evt.targetNS = targ;
+		_evt.status = getRadioValue!(Status)(_stat);
+		return true;
 	}
 }
 
@@ -1469,8 +1506,8 @@ private:
 	Table _list;
 
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, Content evt) {
-		super (comm, prop, shell, summ, Type, evt, true, prop.var.cardEvtDlg, true);
+	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
+		super (comm, prop, shell, summ, Type, parent, evt, true, prop.var.cardEvtDlg, true);
 	}
 protected:
 	override void setup(Composite area) {
@@ -1489,6 +1526,7 @@ protected:
 				auto comp2 = new Composite(grp, SWT.NONE);
 				comp2.setLayout = new GridLayout(2, false);
 				_num = new Spinner(comp2, SWT.BORDER);
+				mod(_num);
 				_num.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				_num.setMinimum = 1;
 				_num.setMaximum = Content.cardNumber_max;
@@ -1496,6 +1534,7 @@ protected:
 				l.setText = _prop.msgs.rangeHint(_num.getMinimum, _num.getMaximum);
 				static if (Delete) {
 					_allDel = new Button(comp2, SWT.CHECK);
+					mod(_allDel);
 					_allDel.setText = _prop.msgs.cardAllDelete;
 					auto gd = new GridData;
 					gd.horizontalSpan = 2;
@@ -1511,6 +1550,7 @@ protected:
 				foreach (r; [Range.SELECTED, Range.RANDOM, Range.PARTY,
 						Range.BACKPACK, Range.PARTY_AND_BACKPACK, Range.FIELD]) {
 					auto radio = new Button(grp, SWT.RADIO);
+					mod(radio);
 					radio.setText = _prop.msgs.range(r);
 					radio.setLayoutData = new GridData(GridData.FILL_BOTH);
 					_range[r] = radio;
@@ -1519,6 +1559,7 @@ protected:
 		}
 		{
 			_list = new Table(area, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.V_SCROLL);
+			mod(_list);
 			auto idCol = new TableColumn(_list, SWT.NONE);
 			saveColumnWidth!("prop.var.etc.idColumn")(_prop, idCol);
 			auto nameCol = new FullTableColumn(_list, SWT.NONE);
@@ -1557,6 +1598,8 @@ protected:
 		}
 		_list.showSelection;
 
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
 		if (_evt) {
 			static if (Delete) {
 				if (_evt.cardNumber == 0u) {
@@ -1580,31 +1623,29 @@ protected:
 		}
 	}
 
-	override bool close(bool ok) {
-		if (ok) {
-			if (!_evt) _evt = new Content(Type, "");
-			auto id = (cast(C) _list.getSelection[0].getData).id;
-			static if (is (C == SkillCard)) {
-				_evt.skill = id;
-			} else static if (is (C == ItemCard)) {
-				_evt.item = id;
-			} else static if (is (C == BeastCard)) {
-				_evt.beast = id;
-			} else {
-				static assert (0);
-			}
-			_evt.range = getRadioValue!(Range)(_range);
-			static if (Delete) {
-				if (_allDel.getSelection) {
-					_evt.cardNumber = 0u;
-				} else {
-					_evt.cardNumber = _num.getSelection;
-				}
+	override bool apply() {
+		if (!_evt) _evt = new Content(Type, "");
+		auto id = (cast(C) _list.getSelection[0].getData).id;
+		static if (is (C == SkillCard)) {
+			_evt.skill = id;
+		} else static if (is (C == ItemCard)) {
+			_evt.item = id;
+		} else static if (is (C == BeastCard)) {
+			_evt.beast = id;
+		} else {
+			static assert (0);
+		}
+		_evt.range = getRadioValue!(Range)(_range);
+		static if (Delete) {
+			if (_allDel.getSelection) {
+				_evt.cardNumber = 0u;
 			} else {
 				_evt.cardNumber = _num.getSelection;
 			}
+		} else {
+			_evt.cardNumber = _num.getSelection;
 		}
-		return ok;
+		return true;
 	}
 }
 
@@ -1626,8 +1667,8 @@ private:
 	Transition[int] _tsTbl;
 
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, Content evt) {
-		super (comm, prop, shell, summ, CType.REDISPLAY, evt, false, null, true);
+	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
+		super (comm, prop, shell, summ, CType.REDISPLAY, parent, evt, false, null, true);
 	}
 protected:
 	override void setup(Composite area) {
@@ -1642,6 +1683,7 @@ protected:
 			auto lt = new Label(comp, SWT.NONE);
 			lt.setText = _prop.msgs.transition;
 			_ts = new Combo(comp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
+			mod(_ts);
 			auto gd = new GridData;
 			gd.horizontalSpan = 2;
 			_ts.setLayoutData = gd;
@@ -1654,6 +1696,7 @@ protected:
 			auto ls = new Label(comp, SWT.NONE);
 			ls.setText = _prop.msgs.transitionSpeed;
 			_tsSpeed = new Spinner(comp, SWT.BORDER);
+			mod(_tsSpeed);
 			_tsSpeed.setMaximum = Content.transitionSpeed_max;
 			_tsSpeed.setMinimum = Content.transitionSpeed_min;
 			auto hint = new Label(comp, SWT.NONE);
@@ -1661,6 +1704,8 @@ protected:
 				(Content.transitionSpeed_min,
 				Content.transitionSpeed_max);
 		}
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
 		if (_evt) {
 			_tsSpeed.setSelection = _evt.transitionSpeed;
 		} else {
@@ -1669,14 +1714,12 @@ protected:
 		}
 	}
 
-	override bool close(bool ok) {
-		if (ok) {
-			if (!_evt) _evt = new Content(CType.REDISPLAY, "");
-			auto ts = _tsTbl[_ts.getSelectionIndex];
-			uint tsSpeed = _tsSpeed.getSelection;
-			_evt.transition = ts;
-			_evt.transitionSpeed = tsSpeed;
-		}
-		return ok;
+	override bool apply() {
+		if (!_evt) _evt = new Content(CType.REDISPLAY, "");
+		auto ts = _tsTbl[_ts.getSelectionIndex];
+		uint tsSpeed = _tsSpeed.getSelection;
+		_evt.transition = ts;
+		_evt.transitionSpeed = tsSpeed;
+		return true;
 	}
 }

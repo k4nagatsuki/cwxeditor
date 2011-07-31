@@ -85,6 +85,8 @@ private:
 	FixedWidthText _text;
 
 	void selectChanged() {
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
 		auto dlg = _dlgs[_dlgsL.getSelectionIndex];
 		string rcs;
 		foreach (rc; dlg.rCoupons) {
@@ -108,6 +110,7 @@ private:
 		_dlgsL.setSelection = [itm];
 		_dlgsL.showSelection;
 		selectChange;
+		applyEnabled();
 	}
 	void deleteDialog(int index) {
 		if (index < 0 || _dlgs.length <= 1) return;
@@ -119,6 +122,7 @@ private:
 			_oldSel = _dlgs[_dlgsL.getSelectionIndex];
 			selectChanged;
 		}
+		applyEnabled();
 	}
 	void deleteDialogSel() {
 		deleteDialog(_dlgsL.getSelectionIndex);
@@ -133,6 +137,7 @@ private:
 			_dlgsL.getItem(index - 1).setText(_dlgsL.getItem(index).getText);
 			_dlgsL.getItem(index).setText(tempL);
 			_dlgsL.select = index - 1;
+			applyEnabled();
 		}
 	}
 	void down() {
@@ -145,6 +150,7 @@ private:
 			_dlgsL.getItem(index + 1).setText(_dlgsL.getItem(index).getText);
 			_dlgsL.getItem(index).setText(tempL);
 			_dlgsL.select = index + 1;
+			applyEnabled();
 		}
 	}
 	void copyToUpper() {
@@ -155,6 +161,7 @@ private:
 			_dlgsL.getItem(i).setText(textL);
 			_dlgs[i].text = text;
 		}
+		applyEnabled();
 	}
 	void copyToLower() {
 		int index = _dlgsL.getSelectionIndex;
@@ -164,6 +171,7 @@ private:
 			_dlgsL.getItem(i).setText(textL);
 			_dlgs[i].text = text;
 		}
+		applyEnabled();
 	}
 	void copyToDialogs() {
 		int index = _dlgsL.getSelectionIndex;
@@ -175,6 +183,7 @@ private:
 				dlg.text = text;
 			}
 		}
+		applyEnabled();
 	}
 	void put(dchar put) {
 		putColor(_text, put);
@@ -184,6 +193,8 @@ private:
 	}
 	SDialog _oldSel;
 	void sets() {
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
 		_oldSel.text = lastRet(wrapReturnCode(_text.getText));
 		string[] rcs;
 		foreach (rc; splitlines(_rCoupons.getText)) {
@@ -296,9 +307,9 @@ private:
 		}
 	}
 public:
-	this(Commons comm, Props prop, Shell shell, Summary summ, Content evt) {
+	this(Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
 		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime);
-		super(comm, prop, shell, summ, CType.TALK_DIALOG, evt, true, prop.var.speakDlg, false);
+		super(comm, prop, shell, summ, CType.TALK_DIALOG, parent, evt, true, prop.var.speakDlg, false);
 	}
 protected:
 	override void setup(Composite area) {
@@ -359,11 +370,14 @@ protected:
 			} else {
 				tp = createTalkerPane2(comp, comm, prop, summ, Talker.SELECTED, [], _talkers, _rCoupons);
 			}
+			mod(_talkers);
+			mod(_rCoupons);
 			tp.setLayoutData = new GridData(GridData.FILL_BOTH);
 			auto msgComp = new Composite(comp, SWT.NONE);
 			msgComp.setLayoutData = new GridData(GridData.FILL_VERTICAL);
 			msgComp.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0));
 			_text = createMessagePane(prop, true, msgComp, summ);
+			mod(_text.widget);
 			_text.widget.setLayoutData = _text.computeTextBaseSize(prop.looks.messageLine);
 			_text.widget.addModifyListener(new ModL);
 		}
@@ -375,6 +389,8 @@ protected:
 			auto bar = createSkinSCharBar(area, &insert, prop, skin);
 			bar.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		}
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
 		if (evt) {
 			foreach (dlg; evt.dialogs) {
 				auto itm = new TableItem(_dlgsL, SWT.NONE);
@@ -395,26 +411,24 @@ protected:
 			_dlgsL.select = 0;
 		}
 	}
-	override bool close(bool ok) {
-		if (ok) {
-			sets;
-			Talker talker;
-			switch (_talkers.getSelectionIndex) {
-			case 0:
-				talker = Talker.SELECTED;
-				break;
-			case 1:
-				talker = Talker.UNSELECTED;
-				break;
-			case 2:
-				talker = Talker.RANDOM;
-				break;
-			}
-			if (!evt) evt = new Content(CType.TALK_DIALOG, "");
-			evt.dialogs = _dlgs;
-			evt.talkerNC = talker;
+	override bool apply() {
+		sets;
+		Talker talker;
+		switch (_talkers.getSelectionIndex) {
+		case 0:
+			talker = Talker.SELECTED;
+			break;
+		case 1:
+			talker = Talker.UNSELECTED;
+			break;
+		case 2:
+			talker = Talker.RANDOM;
+			break;
 		}
-		return ok;
+		if (!evt) evt = new Content(CType.TALK_DIALOG, "");
+		evt.dialogs = _dlgs;
+		evt.talkerNC = talker;
+		return true;
 	}
 }
 
@@ -458,13 +472,14 @@ private:
 		}
 	}
 public:
-	this(Commons comm, Props prop, Shell shell, Summary summ, Content evt) {
-		super(comm, prop, shell, summ, CType.TALK_MESSAGE, evt, true, prop.var.msgDlg, false);
+	this(Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
+		super(comm, prop, shell, summ, CType.TALK_MESSAGE, parent, evt, true, prop.var.msgDlg, false);
 	}
 protected:
 	override void setup(Composite area) {
 		area.setLayout = windowGridLayout(1, true);
 		_tabf = new CTabFolder(area, SWT.BORDER);
+		mod(_tabf);
 		_tabf.setLayoutData = new GridData(GridData.FILL_BOTH);
 		auto skin = comm.skin;
 		{
@@ -476,12 +491,14 @@ protected:
 			} else {
 				tp = createTalkerPane(comp, comm, prop, summ, Talker.SELECTED, "", _msel);
 			}
+			mod(_msel);
 			tp.setLayoutData = new GridData(GridData.FILL_BOTH);
 			auto msgComp = new Composite(comp, SWT.NONE);
 			msgComp.setLayoutData = new GridData(GridData.FILL_VERTICAL);
 			msgComp.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0));
 			_textA = createMessagePane(prop, true, msgComp, summ);
 			_textA.widget.setLayoutData = _textA.computeTextBaseSize(prop.looks.messageLine);
+			mod(_textA.widget);
 			auto tab = new CTabItem(_tabf, SWT.NONE);
 			tab.setText = prop.msgs.imageMessage;
 			tab.setControl = comp;
@@ -490,6 +507,7 @@ protected:
 			auto comp = new Composite(_tabf, SWT.NONE);
 			comp.setLayout = new CenterLayout;
 			_textB = createMessagePane(prop, false, comp, summ);
+			mod(_textB.widget);
 			_textB.widget.setLayoutData = _textB.computeTextBaseSize(prop.looks.messageLine);
 			auto tab = new CTabItem(_tabf, SWT.NONE);
 			tab.setText = prop.msgs.noImageMessage;
@@ -504,6 +522,8 @@ protected:
 			bar.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		}
 		_tabf.addSelectionListener(new SL);
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
 		if (evt) {
 			_textA.setText = evt.text;
 			_textB.setText = evt.text;
@@ -514,43 +534,41 @@ protected:
 			_tabf.setSelection = 1;
 		}
 	}
-	override bool close(bool ok) {
-		if (ok) {
-			string text;
-			string path = "";
-			Talker talker;
-			switch (_tabf.getSelectionIndex) {
+	override bool apply() {
+		string text;
+		string path = "";
+		Talker talker;
+		switch (_tabf.getSelectionIndex) {
+		case 0:
+			text = lastRet(wrapReturnCode(_textA.getText));
+			switch (_msel.dirsCombo.getSelectionIndex) {
 			case 0:
-				text = lastRet(wrapReturnCode(_textA.getText));
-				switch (_msel.dirsCombo.getSelectionIndex) {
-				case 0:
-					talker = Talker.SELECTED;
-					break;
-				case 1:
-					talker = Talker.UNSELECTED;
-					break;
-				case 2:
-					talker = Talker.RANDOM;
-					break;
-				case 3:
-					talker = Talker.CARD;
-					break;
-				default:
-					talker = Talker.IMAGE;
-					path = _msel.image;
-				}
+				talker = Talker.SELECTED;
 				break;
 			case 1:
-				text = lastRet(wrapReturnCode(_textB.getText));
-				talker = Talker.NARRATION;
+				talker = Talker.UNSELECTED;
 				break;
+			case 2:
+				talker = Talker.RANDOM;
+				break;
+			case 3:
+				talker = Talker.CARD;
+				break;
+			default:
+				talker = Talker.IMAGE;
+				path = _msel.image;
 			}
-			if (!evt) evt = new Content(CType.TALK_MESSAGE, "");
-			evt.text = text;
-			evt.talkerC = talker;
-			evt.cardPath = path;
+			break;
+		case 1:
+			text = lastRet(wrapReturnCode(_textB.getText));
+			talker = Talker.NARRATION;
+			break;
 		}
-		return ok;
+		if (!evt) evt = new Content(CType.TALK_MESSAGE, "");
+		evt.text = text;
+		evt.talkerC = talker;
+		evt.cardPath = path;
+		return true;
 	}
 }
 
