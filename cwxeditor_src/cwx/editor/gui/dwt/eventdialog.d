@@ -120,22 +120,28 @@ private:
 		Spinner _tsSpeed;
 		Transition[int] _tsTbl;
 	}
-public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
-		super (comm, prop, shell, summ, Type, parent, evt, true, prop.var.selEvtDlg, true);
-	}
-protected:
-	override void setup(Composite area) {
-		area.setLayout = new GridLayout(1, false);
-		_list = new Table(area, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.V_SCROLL);
-		auto idCol = new TableColumn(_list, SWT.NONE);
-		saveColumnWidth!("prop.var.etc.idColumn")(_prop, idCol);
-		auto nameCol = new FullTableColumn(_list, SWT.NONE);
-		auto gd = new GridData(GridData.FILL_BOTH);
-		gd.widthHint = _prop.var.etc.nameTableWidth;
-		gd.heightHint = _prop.var.etc.nameTableHeight;
-		_list.setLayoutData = gd;
+	void refreshList() {
 		auto summary = _summ;
+		auto sels = _list.getSelection;
+		ulong id = 0;
+		if (sels.length) {
+			id = (cast(A) sels[0].getData).id;
+		} else if (_evt) {
+			static if (Type == CType.CHANGE_AREA) {
+				id = _evt.area;
+			} else static if (Type == CType.START_BATTLE) {
+				id = _evt.battle;
+			} else static if (Type == CType.CALL_PACKAGE || Type == CType.LINK_PACKAGE) {
+				id = _evt.packages;
+			} else static if (Type == CType.BRANCH_CAST || Type == CType.GET_CAST || Type == CType.LOSE_CAST) {
+				id = _evt.casts;
+			} else static if (Type == CType.BRANCH_INFO || Type == CType.GET_INFO || Type == CType.LOSE_INFO) {
+				id = _evt.info;
+			} else {
+				static assert (0);
+			}
+		}
+		_list.removeAll();
 		foreach (i, a; mixin (Areas)) {
 			auto itm = new TableItem(_list, SWT.NONE);
 			itm.setData = a;
@@ -155,23 +161,55 @@ protected:
 			itm.setText(0, to!(string)(a.id));
 			itm.setText(1, a.name);
 			if (i == 0) _list.select = i;
-			if (_evt) {
-				static if (Type == CType.CHANGE_AREA) {
-					auto id = _evt.area;
-				} else static if (Type == CType.START_BATTLE) {
-					auto id = _evt.battle;
-				} else static if (Type == CType.CALL_PACKAGE || Type == CType.LINK_PACKAGE) {
-					auto id = _evt.packages;
-				} else static if (Type == CType.BRANCH_CAST || Type == CType.GET_CAST || Type == CType.LOSE_CAST) {
-					auto id = _evt.casts;
-				} else static if (Type == CType.BRANCH_INFO || Type == CType.GET_INFO || Type == CType.LOSE_INFO) {
-					auto id = _evt.info;
-				} else {
-					static assert (0);
-				}
-				if (id == a.id) _list.select = i;
-			}
+			if (id == a.id) _list.select = i;
 		}
+	}
+	void refA(A a) {refreshList();}
+	void delA(A a) {
+		auto summary = _summ;
+		auto areas = mixin (Areas);
+		if (areas.length) {
+			refreshList();
+		} else {
+			forceCancel();
+		}
+	}
+	class Dispose : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			static if (is(A : Area)) {
+				_comm.refArea.remove(&refA);
+				_comm.delArea.remove(&delA);
+			} else static if (is(A : Battle)) {
+				_comm.refBattle.remove(&refA);
+				_comm.delBattle.remove(&delA);
+			} else static if (is(A : Package)) {
+				_comm.refPackage.remove(&refA);
+				_comm.delPackage.remove(&delA);
+			} else static if (is(A : CastCard)) {
+				_comm.refCast.remove(&refA);
+				_comm.delCast.remove(&delA);
+			} else static if (is(A : InfoCard)) {
+				_comm.refInfo.remove(&refA);
+				_comm.delInfo.remove(&delA);
+			} else static assert (0);
+		}
+	}
+public:
+	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
+		super (comm, prop, shell, summ, Type, parent, evt, true, prop.var.selEvtDlg, true);
+	}
+protected:
+	override void setup(Composite area) {
+		area.setLayout = new GridLayout(1, false);
+		_list = new Table(area, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.V_SCROLL);
+		auto idCol = new TableColumn(_list, SWT.NONE);
+		saveColumnWidth!("prop.var.etc.idColumn")(_prop, idCol);
+		auto nameCol = new FullTableColumn(_list, SWT.NONE);
+		auto gd = new GridData(GridData.FILL_BOTH);
+		gd.widthHint = _prop.var.etc.nameTableWidth;
+		gd.heightHint = _prop.var.etc.nameTableHeight;
+		_list.setLayoutData = gd;
+		refreshList();
 		static if (Type == CType.CHANGE_AREA) {
 			if (!_summ.legacy) {
 				{
@@ -209,6 +247,23 @@ protected:
 			}
 		}
 		_list.showSelection;
+		static if (is(A : Area)) {
+			_comm.refArea.add(&refA);
+			_comm.delArea.add(&delA);
+		} else static if (is(A : Battle)) {
+			_comm.refBattle.add(&refA);
+			_comm.delBattle.add(&delA);
+		} else static if (is(A : Package)) {
+			_comm.refPackage.add(&refA);
+			_comm.delPackage.add(&delA);
+		} else static if (is(A : CastCard)) {
+			_comm.refCast.add(&refA);
+			_comm.delCast.add(&delA);
+		} else static if (is(A : InfoCard)) {
+			_comm.refInfo.add(&refA);
+			_comm.delInfo.add(&delA);
+		} else static assert (0);
+		_list.addDisposeListener(new Dispose);
 	}
 
 	override bool apply() {
@@ -1013,9 +1068,9 @@ private:
 		int _sel;
 	}
 
-	void refreshValues() {
+	void refreshValues(bool manual) {
 		static if (SelValue) {
-			if (_values.getItemCount && _sel == _flags.getSelectionIndex) {
+			if (manual && _values.getItemCount && _sel == _flags.getSelectionIndex) {
 				_values.select = 0;
 				return;
 			}
@@ -1046,8 +1101,67 @@ private:
 	}
 	class SListener : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			refreshValues;
+			refreshValues(true);
 		}
+	}
+	void refreshList() {
+		string sel = "";
+		auto ix = _flags.getSelectionIndex;
+		if (-1 != ix) {
+			sel = _data[ix].path;
+		}
+		static if (is (F == Flag)) {
+			if (!sel && _evt) {
+				sel = _evt.flag;
+			}
+			auto flags = _root.allFlags;
+		} else static if (is (F == Step)) {
+			if (!sel && _evt) {
+				sel = _evt.step;
+			}
+			auto flags = _root.allSteps;
+		} else {
+			static assert (0);
+		}
+		_flags.removeAll();
+		_data.length = flags.length;
+		foreach (i, flag; flags) {
+			auto path = flag.path;
+			_flags.add(path);
+			_data[i] = flag;
+			if (0 == i) _flags.select = i;
+			if (path == sel) _flags.select = i;
+		}
+	}
+	class Dispose : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			static if (is(F : Flag)) {
+				_comm.refFlag.remove(&refFS);
+				_comm.delFlag.remove(&delFS);
+			} else static if (is(F : Step)) {
+				_comm.refStep.remove(&refFS);
+				_comm.delStep.remove(&delFS);
+			} else static assert (0);
+		}
+	}
+	void refFS(F f) {
+		int sel = _values.getSelectionIndex;
+		refreshValues(false);
+		_values.select = sel;
+	}
+	void delFS(F f) {
+		static if (is(F : Flag)) {
+			if (!_root.allFlags.length) {
+				forceCancel();
+				return;
+			}
+		} else static if (is(F : Step)) {
+			if (!_root.allSteps.length) {
+				forceCancel();
+				return;
+			}
+		} else static assert (0);
+		refreshList();
 	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt, FlagDir root) {
@@ -1089,18 +1203,7 @@ protected:
 			auto gd = new GridData(GridData.FILL_BOTH);
 			gd.heightHint = _prop.var.etc.nameTableHeight;
 			_flags.setLayoutData = gd;
-			static if (is (F == Flag)) {
-				auto flags = _root.allFlags;
-			} else static if (is (F == Step)) {
-				auto flags = _root.allSteps;
-			} else {
-				static assert (0);
-			}
-			_data.length = flags.length;
-			foreach (i, flag; flags) {
-				_flags.add(flag.path);
-				_data[i] = flag;
-			}
+			refreshList();
 			_flags.addSelectionListener(new SListener);
 		}
 		{
@@ -1111,6 +1214,15 @@ protected:
 			_values.setLayoutData = gd;
 			_values.setEnabled = SelValue;
 		}
+		static if (is(F : Flag)) {
+			_comm.refFlag.add(&refFS);
+			_comm.delFlag.add(&delFS);
+		} else static if (is(F : Step)) {
+			_comm.refStep.add(&refFS);
+			_comm.delStep.add(&delFS);
+		} else static assert (0);
+		_flags.addDisposeListener(new Dispose);
+
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		if (_evt) {
@@ -1123,7 +1235,7 @@ protected:
 			}
 			_flags.select = index >= 0 ? index : 0;
 			_flags.showSelection;
-			refreshValues;
+			refreshValues(false);
 			static if (SelValue) {
 				static if (is (F == Flag)) {
 					_values.select = _evt.flagValue ? 0 : 1;
@@ -1136,7 +1248,7 @@ protected:
 			}
 		} else {
 			_flags.select = 0;
-			refreshValues;
+			refreshValues(false);
 			static if (SelValue) _sel = 0;
 		}
 		_sash.setWeights([_prop.var.etc.flagEventSashL, _prop.var.etc.flagEventSashR]);
@@ -1505,6 +1617,68 @@ private:
 	Button[Range] _range;
 	Table _list;
 
+	void refreshList() {
+		auto sels = _list.getSelection;
+		ulong id = 0;
+		if (sels.length) {
+			id = (cast(C) sels[0].getData).id;
+		} else if (_evt) {
+			static if (is (C == SkillCard)) {
+				id = _evt.skill;
+			} else static if (is (C == ItemCard)) {
+				id = _evt.item;
+			} else static if (is (C == BeastCard)) {
+				id = _evt.beast;
+			} else {
+				static assert (0);
+			}
+		}
+		_list.removeAll();
+		foreach (i, c; mixin (Cards)) {
+			auto itm = new TableItem(_list, SWT.NONE);
+			itm.setData = c;
+			static if (is (C == SkillCard)) {
+				itm.setImage(0, _prop.images.skill);
+			} else static if (is (C == ItemCard)) {
+				itm.setImage(0, _prop.images.item);
+			} else static if (is (C == BeastCard)) {
+				itm.setImage(0, _prop.images.beast);
+			} else {
+				static assert (0);
+			}
+			itm.setText(0, to!(string)(c.id));
+			itm.setText(1, c.name);
+			if (i == 0) _list.select = i;
+			if (id == c.id) _list.select = i;
+		}
+		_list.showSelection;
+	}
+	class Dispose : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			static if (is (C == SkillCard)) {
+				_comm.refSkill.remove(&refCard);
+				_comm.delSkill.remove(&delCard);
+			} else static if (is (C == ItemCard)) {
+				_comm.refItem.remove(&refCard);
+				_comm.delItem.remove(&delCard);
+			} else static if (is (C == BeastCard)) {
+				_comm.refBeast.remove(&refCard);
+				_comm.delBeast.remove(&delCard);
+			} else static assert (0);
+		}
+	}
+
+	void refCard(C c) {
+		refreshList();
+	}
+	void delCard(C c) {
+		auto cards = mixin (Cards);
+		if (cards.length) {
+			refreshList();
+		} else {
+			forceCancel();
+		}
+	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
 		super (comm, prop, shell, summ, Type, parent, evt, true, prop.var.cardEvtDlg, true);
@@ -1567,36 +1741,19 @@ protected:
 			gd.widthHint = _prop.var.etc.nameTableWidth;
 			gd.heightHint = _prop.var.etc.nameTableHeight;
 			_list.setLayoutData = gd;
-			foreach (i, c; mixin (Cards)) {
-				auto itm = new TableItem(_list, SWT.NONE);
-				itm.setData = c;
-				static if (is (C == SkillCard)) {
-					itm.setImage(0, _prop.images.skill);
-				} else static if (is (C == ItemCard)) {
-					itm.setImage(0, _prop.images.item);
-				} else static if (is (C == BeastCard)) {
-					itm.setImage(0, _prop.images.beast);
-				} else {
-					static assert (0);
-				}
-				itm.setText(0, to!(string)(c.id));
-				itm.setText(1, c.name);
-				if (i == 0) _list.select = i;
-				if (_evt) {
-					static if (is (C == SkillCard)) {
-						auto id = _evt.skill;
-					} else static if (is (C == ItemCard)) {
-						auto id = _evt.item;
-					} else static if (is (C == BeastCard)) {
-						auto id = _evt.beast;
-					} else {
-						static assert (0);
-					}
-					if (id == c.id) _list.select = i;
-				}
-			}
+			refreshList();
 		}
-		_list.showSelection;
+		static if (is (C == SkillCard)) {
+			_comm.refSkill.add(&refCard);
+			_comm.delSkill.add(&delCard);
+		} else static if (is (C == ItemCard)) {
+			_comm.refItem.add(&refCard);
+			_comm.delItem.add(&delCard);
+		} else static if (is (C == BeastCard)) {
+			_comm.refBeast.add(&refCard);
+			_comm.delBeast.add(&delCard);
+		} else static assert (0);
+		_list.addDisposeListener(new Dispose);
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;

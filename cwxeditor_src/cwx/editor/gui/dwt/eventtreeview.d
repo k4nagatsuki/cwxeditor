@@ -763,6 +763,11 @@ private:
 
 	void edit(Content evt) {
 		if (!hasDialog(evt.type) || !checkOpenDialog(evt.type)) return;
+		auto p = evt in _editDlgs;
+		if (p) {
+			p.active();
+			return;
+		}
 		EventDialog dlg;
 		auto parent = evt.parent;
 		switch (evt.type) {

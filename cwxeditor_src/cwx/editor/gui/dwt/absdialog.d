@@ -275,6 +275,7 @@ abstract class AbsDialog {
 			enbl &= _chk3[i].getText && _chk3[i].getText.length > 0;
 		}
 		_okBtn.setEnabled = enbl;
+		_apply.setEnabled = _apply.getEnabled && enbl;
 	}
 	private class MListener : ModifyListener {
 		override void modifyText(ModifyEvent e) {
@@ -283,7 +284,8 @@ abstract class AbsDialog {
 		}
 	}
 	protected final void applyEnabled() {
-		_apply.setEnabled = true;
+		check();
+		_apply.setEnabled = _okBtn.getEnabled;
 	}
 
 	protected final void warning(string[] ws) {

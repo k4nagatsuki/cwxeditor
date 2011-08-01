@@ -18,6 +18,8 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.graphics.Font;
 import java.lang.all;
 
@@ -27,11 +29,16 @@ private:
 	CWXScriptException _ex;
 	Text _result;
 
+	class Dispose : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			_result.getFont.dispose;
+		}
+	}
 public:
 	this(Props prop, Shell shell, CWXScriptException ex) {
 		_prop = prop;
 		_ex = ex;
-		super(prop, shell, prop.msgs.dlgTitScriptError, prop.images.script, true, prop.var.scriptDlg, false, false);
+		super(prop, shell, false, prop.msgs.dlgTitScriptError, prop.images.script, true, prop.var.scriptDlg, false, false);
 		enterClose = true;
 		firstFocusIsOK = true;
 	}
@@ -78,9 +85,6 @@ protected:
 		auto font = _result.getFont;
 		auto fSize = font ? cast(uint) font.getFontData[0].height : 0;
 		_result.setFont = new Font(Display.getCurrent, dwtData(_prop.looks.scriptErrorFont(fSize)));
-	}
-	override bool close(bool ok) {
-		_result.getFont.dispose;
-		return ok;
+		_result.addDisposeListener(new Dispose);
 	}
 }

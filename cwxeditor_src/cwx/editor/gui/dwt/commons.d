@@ -171,6 +171,10 @@ class Commons {
 	Dlg!(InfoCard) delInfo;
 	Dlg!(Flag[], Step[]) refFlagAndStep;
 	Dlg!(Flag[], Step[]) delFlagAndStep;
+	Dlg!(Flag) refFlag;
+	Dlg!(Step) refStep;
+	Dlg!(Flag) delFlag;
+	Dlg!(Step) delStep;
 	Dlg!() replText;
 	Dlg!() replID;
 	Dlg!() refIgnorePaths;

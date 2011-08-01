@@ -1,6 +1,7 @@
 
 module cwx.editor.gui.dwt.flagtable;
 
+import cwx.summary;
 import cwx.flag;
 import cwx.utils;
 import cwx.usecounter;
@@ -75,6 +76,7 @@ import java.lang.all;
 /// 値は強制的に10件になる。
 public class StepEditDialog : AbsDialog {
 private:
+	Commons _comm;
 	Props prop;
 	Step _step;
 	FlagDir dir;
@@ -96,15 +98,29 @@ private:
 			}
 		}
 	}
+	class Dispose : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			_comm.delStep.remove(&delStep);
+			_comm.refScenario.remove(&refScenario);
+		}
+	}
+	void delStep(Step step) {
+		if (step is _step) {
+			forceCancel();
+		}
+	}
+	void refScenario(Summary summ) {
+		forceCancel();
+	}
 public:
 	/// Params:
 	/// prop = 設定情報。
 	/// shell = 親ウィンドウ。
 	/// dir = 設定するステップの親ディレクトリ。
 	/// step = 設定するステップ。新規の場合はnull。
-	this(Props prop, Shell shell, FlagDir dir, Step step = null) {
-		assert (step is null || step.parent == dir);
-		super(prop, shell, prop.msgs.dlgTitStep, prop.images.step, true, prop.var.stepDlg);
+	this(Commons comm, Props prop, Shell shell, FlagDir dir, Step step = null) {
+		super(prop, shell, false, prop.msgs.dlgTitStep, prop.images.step, true, prop.var.stepDlg, true);
+		_comm = comm;
 		this.prop = prop;
 		this.dir = dir;
 		this._step = step;
@@ -125,6 +141,7 @@ protected:
 
 			(new Label(comp, SWT.NULL)).setText = prop.msgs.dlgLblStepName;
 			stepName = new Text(comp, SWT.BORDER);
+			mod(stepName);
 			setGridMinW(stepName, prop.var.etc.flagNameWidth, GridData.FILL_HORIZONTAL);
 			checker(stepName);
 
@@ -134,6 +151,7 @@ protected:
 
 			(new Label(comp, SWT.NULL)).setText = prop.msgs.dlgLblStepInit;
 			stepInit = new Combo(comp, SWT.READ_ONLY);
+			mod(stepInit);
 			stepInit.setVisibleItemCount = 20;
 			setGridMinW(stepInit, prop.var.etc.flagInitWidth);
 		}
@@ -161,7 +179,9 @@ protected:
 					gdc++;
 				}
 				(new Label(valsComp, SWT.NULL)).setText = prop.msgs.dlgLblStep(i);
-				stepVals ~= new Text(valsComp, SWT.BORDER);
+				auto t = new Text(valsComp, SWT.BORDER);;
+				stepVals ~= t;
+				mod(t);
 				stepVals[i].addModifyListener(new ModValue(i));
 				stepVals[i].addFocusListener(new class FocusAdapter {
 					override void focusGained(FocusEvent e) {
@@ -173,7 +193,12 @@ protected:
 			}
 			comp.setLayout = new GridLayout(gdc, false);
 		}
+		_comm.delStep.add(&delStep);
+		_comm.refScenario.add(&refScenario);
+		getShell.addDisposeListener(new Dispose);
 
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
 		string[] vals;
 		if (_step !is null) {
 			stepName.setText = _step.name;
@@ -192,34 +217,39 @@ protected:
 				vals ~= stepVal.getText;
 			}
 		}
+		if (!_step.parent) {
+			// 新規作成時
+			stepName.setText = "";
+		}
 		stepName.selectAll;
 		stepInit.setItems(vals);
 		stepInit.select(_step is null ? 0 : _step.select);
 	}
 
-	override bool close(bool ok) {
-		if (ok) {
-			string[] vals;
-			foreach (stepVal; stepVals) {
-				vals ~= stepVal.getText;
-			}
-			if (_step !is null) {
-				_step.name = stepName.getText;
-				_step.setValues(vals, stepInit.getSelectionIndex);
-			} else {
-				auto name = FlagDir.validName(stepName.getText);
-				name = dir.createNewStepName(name);
-				_step = new Step(name, vals, stepInit.getSelectionIndex);
-				dir.add(_step);
-			}
+	override bool apply() {
+		string[] vals;
+		foreach (stepVal; stepVals) {
+			vals ~= stepVal.getText;
 		}
-		return ok;
+		if (_step.parent) {
+			_step.name = stepName.getText;
+			_step.setValues(vals, stepInit.getSelectionIndex);
+		} else {
+			auto name = FlagDir.validName(stepName.getText);
+			name = dir.createNewStepName(name);
+			_step = new Step(name, vals, stepInit.getSelectionIndex);
+			dir.add(_step);
+		}
+		_comm.refStep.call(_step);
+		_comm.refFlagAndStep.call([], [_step]);
+		return true;
 	}
 }
 
 /// フラグ設定用のダイアログ。
 public class FlagEditDialog : AbsDialog {
 private:
+	Commons _comm;
 	Props prop;
 	Flag _flag;
 	FlagDir dir;
@@ -248,15 +278,29 @@ private:
 			change(e);
 		}
 	}
+	class Dispose : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			_comm.delFlag.remove(&delFlag);
+			_comm.refScenario.remove(&refScenario);
+		}
+	}
+	void delFlag(Flag flag) {
+		if (flag is _flag) {
+			forceCancel();
+		}
+	}
+	void refScenario(Summary summ) {
+		forceCancel();
+	}
 public:
 	/// Params:
 	/// prop = 設定情報。
 	/// shell = 親ウィンドウ。
 	/// dir = 設定するフラグの親ディレクトリ。
 	/// flag = 設定するフラグ。新規の場合はnull。
-	this(Props prop, Shell shell, FlagDir dir, Flag flag = null) {
-		assert (flag is null || flag.parent == dir);
-		super(prop, shell, prop.msgs.dlgTitFlag, prop.images.flag, true, prop.var.flagDlg);
+	this(Commons comm, Props prop, Shell shell, FlagDir dir, Flag flag = null) {
+		super(prop, shell, false, prop.msgs.dlgTitFlag, prop.images.flag, true, prop.var.flagDlg, true);
+		_comm = comm;
 		this.prop = prop;
 		this._flag = flag;
 		this.dir = dir;
@@ -284,6 +328,7 @@ protected:
 
 			(new Label(comp, SWT.NULL)).setText = prop.msgs.dlgLblFlagName;
 			flagName = new Text(comp, SWT.BORDER);
+			mod(flagName);
 			setGridMinW(flagName, prop.var.etc.flagNameWidth, GridData.FILL_HORIZONTAL);
 			checker(flagName);
 
@@ -293,6 +338,7 @@ protected:
 
 			(new Label(comp, SWT.NULL)).setText = prop.msgs.dlgLblFlagInit;
 			flagInit = new Combo(comp, SWT.READ_ONLY);
+			mod(flagInit);
 			setGridMinW(flagInit, prop.var.etc.flagInitWidth);
 		}
 		(new Label(area, SWT.SEPARATOR | SWT.HORIZONTAL))
@@ -308,6 +354,7 @@ protected:
 
 			(new Label(comp, SWT.NULL)).setText = prop.msgs.dlgLblFlagTrue;
 			flagTrue = new Combo(comp, SWT.NULL);
+			mod(flagTrue);
 			flagTrue.setItems(prop.var.etc.flagTrues.dup);
 			flagTrue.setVisibleItemCount = 20;
 			auto tmod = new ModOnOff(0);
@@ -317,6 +364,7 @@ protected:
 
 			(new Label(comp, SWT.NULL)).setText = prop.msgs.dlgLblFlagFalse;
 			flagFalse = new Combo(comp, SWT.NULL);
+			mod(flagFalse);
 			flagFalse.setItems(prop.var.etc.flagFalses.dup);
 			flagFalse.setVisibleItemCount = 20;
 			auto fmod = new ModOnOff(1);
@@ -324,7 +372,12 @@ protected:
 			flagFalse.addSelectionListener = fmod;
 			setGridMinW(flagFalse, prop.var.etc.flagValueWidth, GridData.FILL_HORIZONTAL);
 		}
+		_comm.delFlag.add(&delFlag);
+		_comm.refScenario.add(&refScenario);
+		getShell.addDisposeListener(new Dispose);
 
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
 		if (_flag !is null) {
 			flagName.setText = _flag.name;
 			flagTrue.setText = _flag.on;
@@ -340,25 +393,29 @@ protected:
 			flagInit.setItems([flagTrue.getText, flagFalse.getText]);
 			flagInit.select = 0;
 		}
+		if (!_flag.parent) {
+			// 新規作成時
+			flagName.setText = "";
+		}
 		flagName.selectAll;
 	}
 
-	override bool close(bool ok) {
-		if (ok) {
-			if (_flag !is null) {
-				_flag.name = flagName.getText;
-				_flag.onOff = flagInit.getSelectionIndex == 0;
-				_flag.on = flagTrue.getText;
-				_flag.off = flagFalse.getText;
-			} else {
-				auto name = FlagDir.validName(flagName.getText);
-				name = dir.createNewFlagName(name);
-				_flag = new Flag(name, flagTrue.getText, flagFalse.getText,
-					flagInit.getSelectionIndex == 0);
-				dir.add(_flag);
-			}
+	override bool apply() {
+		if (_flag.parent) {
+			_flag.name = flagName.getText;
+			_flag.onOff = flagInit.getSelectionIndex == 0;
+			_flag.on = flagTrue.getText;
+			_flag.off = flagFalse.getText;
+		} else {
+			auto name = FlagDir.validName(flagName.getText);
+			name = dir.createNewFlagName(name);
+			_flag = new Flag(name, flagTrue.getText, flagFalse.getText,
+				flagInit.getSelectionIndex == 0);
+			dir.add(_flag);
 		}
-		return ok;
+		_comm.refFlag.call(_flag);
+		_comm.refFlagAndStep.call([_flag], []);
+		return true;
 	}
 }
 
@@ -415,23 +472,58 @@ private:
 	FlagDir _dir = null;
 	string _statusLine = "";
 
+	FlagEditDialog[Flag] _editDlgsF;
+	StepEditDialog[Step] _editDlgsS;
+
 	void editFlag(FlagDir parent, Flag flag) {
 		string old = flag ? flag.path : null;
-		auto dlg = new FlagEditDialog(prop, flags.getShell, parent, flag);
-		if (dlg.open) {
+		if (!flag) {
+			string on = prop.var.etc.flagTrues.length > 0 ? prop.var.etc.flagTrues[0] : "";
+			string off = prop.var.etc.flagFalses.length > 0 ? prop.var.etc.flagFalses[0] : "";
+			flag = new Flag("", on, off, true);
+		}
+		auto p = flag in _editDlgsF;
+		if (p) {
+			p.active();
+			return;
+		}
+		auto dlg = new FlagEditDialog(_comm, prop, flags.getShell, parent, flag);
+		dlg.appliedEvent ~= {
 			if (old && old != flag.path) uc.change(toFlagId(old), toFlagId(flag.path));
 			refresh(dlg.flag.name);
 			_comm.refFlagAndStep.call([dlg.flag], []);
-		}
+		};
+		_editDlgsF[flag] = dlg;
+		dlg.closeEvent ~= {
+			_editDlgsF.remove(flag);
+		};
+		dlg.open();
 	}
 	void editStep(FlagDir parent, Step step) {
 		string old = step ? step.path : null;
-		auto dlg = new StepEditDialog(prop, flags.getShell, parent, step);
-		if (dlg.open) {
+		if (!step) {
+			string[] vals;
+			foreach (i; 0 .. prop.looks.stepMaxCount) {
+				vals ~= prop.msgs.dlgTxtStep(i);
+			}
+			step = new Step("", vals, 0);
+		}
+		auto p = step in _editDlgsS;
+		if (p) {
+			p.active();
+			return;
+		}
+		auto dlg = new StepEditDialog(_comm, prop, flags.getShell, parent, step);
+		dlg.appliedEvent ~= {
 			if (old && old != step.path) uc.change(toStepId(old), toStepId(step.path));
 			refresh(dlg.step.name);
 			_comm.refFlagAndStep.call([], [dlg.step]);
-		}
+		};
+		_editDlgsS[step] = dlg;
+		dlg.closeEvent ~= {
+			_editDlgsS.remove(step);
+		};
+		dlg.open();
 	}
 
 	void startEdit() {
@@ -508,10 +600,12 @@ private:
 			if (e.detail == DND.DROP_MOVE) {
 				foreach (flag; fs) {
 					flag.parent.remove(flag);
+					_comm.delFlag.call(flag);
 				}
 				fs.length = 0;
 				foreach (step; ss) {
 					step.parent.remove(step);
+					_comm.delStep.call(step);
 				}
 				ss.length = 0;
 				refresh;
@@ -585,6 +679,16 @@ private:
 			return;
 		}
 	}
+	class Dispose : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			foreach (dlg; _editDlgsF.values) {
+				dlg.forceCancel();
+			}
+			foreach (dlg; _editDlgsS.values) {
+				dlg.forceCancel();
+			}
+		}
+	}
 public:
 	this(Commons comm, Props prop) {
 		_comm = comm;
@@ -628,6 +732,9 @@ public:
 
 		new TableTextEdit(flags, 0, &nameEditEnd, null);
 		new TableComboEdit!CCombo(flags, 1, &initCombo, &initEditEnd, null);
+
+		_comp.addDisposeListener(new Dispose);
+
 		return _comp;
 	}
 	private Composite _comp = null;
@@ -703,6 +810,13 @@ public:
 	/// Params:
 	/// dir = ディレクトリ。
 	void dir(FlagDir dir) {
+		if (_dir is dir) return;
+		foreach (dlg; _editDlgsF.values) {
+			dlg.forceCancel();
+		}
+		foreach (dlg; _editDlgsS.values) {
+			dlg.forceCancel();
+		}
 		_dir = dir;
 		refresh;
 	}
@@ -802,12 +916,17 @@ public:
 			Step[] ss;
 			foreach (itm; flags.getSelection) {
 				auto data = itm.getData;
-				if (cast(Flag) data) {
-					fs ~= cast(Flag) data;
-					_dir.remove(cast(Flag) data);
-				} else {
-					ss ~= cast(Step) data;
-					_dir.remove(cast(Step) data);
+				auto flag = cast(Flag) data;
+				if (flag) {
+					fs ~= flag;
+					_dir.remove(flag);
+					_comm.delFlag.call(flag);
+				}
+				auto step = cast(Step) data;
+				if (step) {
+					ss ~= step;
+					_dir.remove(step);
+					_comm.delStep.call(step);
 				}
 			}
 			_comm.delFlagAndStep.call(fs, ss);

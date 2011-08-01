@@ -629,12 +629,21 @@ private:
 		return spn;
 	}
 	class DefBgSetting : SelectionAdapter {
+		private DefBgImgDialog _dlg = null;
 		override void widgetSelected(SelectionEvent e) {
-			auto dlg = new DefBgImgDialog(_comm, _prop, getShell, _bgImagesDefault);
-			if (dlg.open) {
-				_bgImagesDefault = dlg.backs;
-				applyEnabled;
+			if (_dlg) {
+				_dlg.active();
+				return;
 			}
+			_dlg = new DefBgImgDialog(_comm, _prop, getShell, _bgImagesDefault);
+			_dlg.appliedEvent ~= {
+				_bgImagesDefault = _dlg.backs;
+				applyEnabled;
+			};
+			_dlg.closeEvent ~= {
+				_dlg = null;
+			};
+			_dlg.open();
 		}
 	}
 	class SelBgImgStg : SelectionAdapter {
@@ -1373,8 +1382,8 @@ private:
 
 public:
 	this(Commons comm, Props prop, Shell shell, BgImageS[] bgImagesDefault) {
-		super(prop, shell, prop.msgs.dlgTitBgImagesDefault,
-			prop.images.menuSettings, true, prop.var.bgImagesDlg);
+		super(prop, shell, false, prop.msgs.dlgTitBgImagesDefault,
+			prop.images.menuSettings, true, prop.var.bgImagesDlg, true);
 		_comm = comm;
 		_prop = prop;
 
@@ -1389,11 +1398,12 @@ protected:
 		area.setLayout = new GridLayout(1, false);
 		{
 			_view = createBgImagesViewAndMenu(_comm, _prop, null, _cont, area, null);
+			mod(_view);
 			_view.setLayoutData = new GridData(GridData.FILL_BOTH);
 		}
 	}
 
-	override bool close(bool ok) {
-		return ok;
+	override bool apply() {
+		return true;
 	}
 }

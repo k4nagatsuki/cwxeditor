@@ -70,6 +70,7 @@ public:
 		}
 		_dirs.addSelectionListener(new CSListener);
 
+		_comm.refSkin.add(&refresh);
 		_comm.refPaths.add(&__refPaths);
 		_comm.refPath.add(&__refPath);
 		_comm.delPaths.add(&__delPaths);
@@ -77,6 +78,7 @@ public:
 		_comm.refIgnorePaths.add(&refresh);
 		_dirs.addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) {
+				_comm.refSkin.remove(&refresh);
 				_comm.refPaths.remove(&__refPaths);
 				_comm.refPath.remove(&__refPath);
 				_comm.delPaths.remove(&__delPaths);

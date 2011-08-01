@@ -933,7 +933,7 @@ public:
 		d.setAppName = _prop.msgs.application;
 
 		string engineDir = "";
-		if (.exists(_prop.var.etc.enginePath)) {
+		if (_prop.var.etc.enginePath.length && .exists(_prop.var.etc.enginePath)) {
 			engineDir = getDirName(nabs(_prop.var.etc.enginePath));
 			auto skinTable = .skinTable(_prop);
 			if (!(_prop.var.etc.defaultSkin in skinTable)) {

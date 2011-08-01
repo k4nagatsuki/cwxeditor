@@ -566,6 +566,21 @@ private:
 		tab.setControl = comp;
 		return tab;
 	}
+	void refStandardKeyCodes() {
+		string[] stdKCs = _prop.var.etc.standardKeyCodes.dup;
+		foreach (i, combo; _keyCodes) {
+			string text = combo.getText;
+			combo.removeAll();
+			foreach (kc; stdKCs) {
+				combo.add(kc);
+			}
+			combo.setText = text;
+			auto kc = _card.keyCodes[i];
+			if (_card && !contains(combo.getItems, kc)) {
+				combo.add(kc, 0);
+			}
+		}
+	}
 	void delCard(C c) {
 		if (_card is c) {
 			forceCancel();
@@ -584,6 +599,7 @@ private:
 				_comm.delBeast.remove(&delCard);
 			} else static assert (0);
 			_comm.refScenario.remove(&refScenario);
+			_comm.refStandardKeyCodes.remove(&refStandardKeyCodes);
 		}
 	}
 public:
@@ -638,6 +654,7 @@ protected:
 			_comm.delBeast.add(&delCard);
 		} else static assert (0);
 		_comm.refScenario.add(&refScenario);
+		_comm.refStandardKeyCodes.add(&refStandardKeyCodes);
 		area.addDisposeListener(new Dispose);
 
 		// Windows Vistaだとタブの横幅が凄いことになったので必要最低限にする。
@@ -705,7 +722,9 @@ protected:
 			_se2.select = se2i >= 0 ? se2i : 0;
 			foreach (i, kc; _card.keyCodes) {
 				_keyCodes[i].setText = kc;
-				_keyCodes[i].add(kc, 0);
+				if (!contains(_keyCodes[i].getItems, kc)) {
+					_keyCodes[i].add(kc, 0);
+				}
 			}
 			refreshWarning();
 		} else {
