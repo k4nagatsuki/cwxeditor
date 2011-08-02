@@ -747,7 +747,7 @@ public class FlexProps {
 	FlexEtcProps etc;
 
 	private enum IniLocation {
-		STANDARD, LOCAL
+		STANDARD, LOCAL, COPY
 	}
 
 	private string _path;
@@ -767,6 +767,8 @@ public class FlexProps {
 						loc = IniLocation.STANDARD;
 					} else if (0 == icmp(node.value, "local")) {
 						loc = IniLocation.LOCAL;
+					} else if (0 == icmp(node.value, "copy")) {
+						loc = IniLocation.COPY;
 					}
 				};
 				node.onTag["file"] = (ref XNode node) {
@@ -786,6 +788,20 @@ public class FlexProps {
 			break;
 		case IniLocation.LOCAL:
 			dir = appPath.getDirName;
+			break;
+		case IniLocation.COPY:
+			string base = std.path.join(appPath.getDirName, iniFileName);
+			dir = appDataDir(appPath);
+			dir = std.path.join(dir, "cwxeditor");
+			string dest = std.path.join(dir, iniFileName);
+			if (.exists(base) && !.exists(dest)) {
+				try {
+					if (!.exists(dir)) mkdirRecurse(dir);
+					std.file.copy(base, dest);
+				} catch (Exception e) {
+					debugln(e);
+				}
+			}
 			break;
 		}
 
