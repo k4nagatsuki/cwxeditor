@@ -309,33 +309,7 @@ private:
 					_type = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 					mod(_type);
 					_type.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-					if (_summ.legacy) {
-						string resDir, lEnginePath;
-						_hasLegacySkin = Skin.findLegacy(_summ.scenarioPath, resDir, lEnginePath);
-						if (_hasLegacySkin) {
-							auto lSkin = Skin.legacySkin(_prop.parent, _prop.var.etc.enginePath, _summ.scenarioPath);
-							_type.add(_prop.msgs.legacyEngineSkin(lSkin.engine));
-						}
-					}
-					auto skins = skinTable(_prop).keys;
-					if (_prop.var.etc.logicalSort) {
-						skins = sort!(ncmp)(skins);
-					} else {
-						skins = sort!(cmp)(skins);
-					}
-					foreach (type; skins) {
-						_type.add(type);
-					}
-					if (!_type.getItemCount) {
-						// スキンが無い
-						_type.add(_prop.var.etc.defaultSkin);
-					}
-					if (!_summ.type.length) {
-						_type.select = 0;
-					} else {
-						int index = _type.indexOf(_summ.type);
-						_type.setText = index >= 0 ? _summ.type : _prop.var.etc.defaultSkin;
-					}
+					refreshTypes();
 				}
 				{
 					auto grp = new Group(comp2, SWT.NONE);
@@ -408,6 +382,7 @@ private:
 			_comm.refArea.remove(&refArea);
 			_comm.delArea.remove(&refArea);
 			_comm.refScenario.remove(&refScenario);
+			_comm.refSkin.remove(&refSkin);
 		}
 	}
 	void refreshAreas() {
@@ -447,6 +422,47 @@ private:
 	void refScenario(Summary summ) {
 		forceCancel();
 	}
+	void refSkin(Object sender) {
+		_summImage.redraw();
+		_desc.font = dwtData(_prop.looks.summaryDescFont(_summ.legacy));
+		if (sender is this) return;
+		refreshTypes();
+	}
+	void refreshTypes() {
+		auto text = _type.getText;
+		scope (exit) {
+			if (-1 != _type.indexOf(text)) {
+				_type.setText = text;
+			} else if (!_summ.type.length) {
+				_type.select = 0;
+			} else {
+				int index = _type.indexOf(_summ.type);
+				_type.setText = index >= 0 ? _summ.type : _prop.var.etc.defaultSkin;
+			}
+		}
+		_type.removeAll();
+		if (_summ.legacy) {
+			string resDir, lEnginePath;
+			_hasLegacySkin = Skin.findLegacy(_summ.scenarioPath, resDir, lEnginePath);
+			if (_hasLegacySkin) {
+				auto lSkin = Skin.legacySkin(_prop.parent, _prop.var.etc.enginePath, _summ.scenarioPath);
+				_type.add(_prop.msgs.legacyEngineSkin(lSkin.engine));
+			}
+		}
+		auto skins = skinTable(_prop).keys;
+		if (_prop.var.etc.logicalSort) {
+			skins = sort!(ncmp)(skins);
+		} else {
+			skins = sort!(cmp)(skins);
+		}
+		foreach (type; skins) {
+			_type.add(type);
+		}
+		if (!_type.getItemCount) {
+			// スキンが無い
+			_type.add(_prop.var.etc.defaultSkin);
+		}
+	}
 public:
 	this(Commons comm, Props prop, Shell shell, Summary summ) {
 		assert (summ !is null);
@@ -470,6 +486,7 @@ protected:
 		_comm.refArea.add(&refArea);
 		_comm.delArea.add(&refArea);
 		_comm.refScenario.add(&refScenario);
+		_comm.refSkin.add(&refSkin);
 		area.addDisposeListener(new Dispose);
 	}
 
@@ -508,7 +525,7 @@ protected:
 		string oldType = _summ.type;
 		scope (exit) {
 			if (oldName != _summ.scenarioName) _comm.refScenarioName.call;
-			if (oldType != _summ.type) _comm.refSkin.call;
+			if (oldType != _summ.type) _comm.refSkin.call(this);
 			_comm.refUseCount.call;
 		}
 		setNames(_summ.skills);

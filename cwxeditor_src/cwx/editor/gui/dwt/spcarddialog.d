@@ -119,6 +119,7 @@ private:
 				_comm.refCast.remove(&refCast);
 				_comm.delCast.remove(&refCast);
 			}
+			_comm.refSkin.remove(&refSkin);
 		}
 	}
 	static if (is (C == EnemyCard)) {
@@ -148,6 +149,11 @@ private:
 	void delMenuCard(string cwxPath) {
 		if (_card && _card.cwxPath == cwxPath) {
 			forceCancel();
+		}
+	}
+	void refSkin() {
+		static if (is (C == MenuCard)) {
+			_desc.font = dwtData(_prop.looks.cardDescFont(_summ.legacy));
 		}
 	}
 public:
@@ -326,6 +332,7 @@ protected:
 			_comm.refCast.add(&refCast);
 			_comm.delCast.add(&refCast);
 		}
+		_comm.refSkin.add(&refSkin);
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		if (_card) {

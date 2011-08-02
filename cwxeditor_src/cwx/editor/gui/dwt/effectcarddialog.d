@@ -24,6 +24,7 @@ import cwx.editor.gui.dwt.motionview;
 import cwx.editor.gui.dwt.radarspinner;
 import cwx.editor.gui.dwt.absdialog;
 
+import std.algorithm : max;
 import std.path;
 
 import org.eclipse.swt.SWT;
@@ -161,7 +162,7 @@ private:
 				grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				grp.setLayout = new GridLayout(2, false);
 				grp.setText = _prop.msgs.name;
-				_name = new GBLimitText(_prop.looks.messageFont(_summ.legacy).name,
+				_name = new GBLimitText(_prop.looks.monospace,
 					_prop.looks.nameLimit, false, grp, SWT.BORDER);
 				mod(_name.widget);
 				_name.limitEvent ~= &refreshWarning;
@@ -542,11 +543,7 @@ private:
 			auto grp = new Group(comp, SWT.NONE);
 			grp.setText = _prop.msgs.keyCodes;
 			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-			if (_summ.legacy) {
-				_keyCodes.length = _prop.looks.keyCodesMaxLegacy;
-			} else {
-				_keyCodes.length = _prop.looks.keyCodesMax;
-			}
+			_keyCodes.length = _prop.looks.keyCodesMax;
 			grp.setLayout = new GridLayout(_keyCodes.length >= 8 ? 2 : 1, true);
 			string[] stdKCs = _prop.var.etc.standardKeyCodes.dup;
 			for (int i = 0; i < _keyCodes.length; i++) {
@@ -560,6 +557,7 @@ private:
 					_keyCodes[i].add(kc);
 				}
 			}
+			setKeyCodesEnabled();
 		}
 		auto tab = new CTabItem(tabf, SWT.NONE);
 		tab.setText = _prop.msgs.seAndKeyCode;
@@ -589,6 +587,10 @@ private:
 	void refScenario(Summary summ) {
 		forceCancel();
 	}
+	void refSkin() {
+		_desc.font = dwtData(_prop.looks.cardDescFont(_summ.legacy));
+		setKeyCodesEnabled();
+	}
 	class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
 			static if (is(C : SkillCard)) {
@@ -598,8 +600,19 @@ private:
 			} else static if (is(C : BeastCard)) {
 				_comm.delBeast.remove(&delCard);
 			} else static assert (0);
+			_comm.refSkin.remove(&refSkin);
 			_comm.refScenario.remove(&refScenario);
 			_comm.refStandardKeyCodes.remove(&refStandardKeyCodes);
+		}
+	}
+	void setKeyCodesEnabled() {
+		int big = max(_prop.looks.keyCodesMaxLegacy, _prop.looks.keyCodesMax);
+		foreach (i, kc; _keyCodes) {
+			if (_summ.legacy) {
+				kc.setEnabled = i < _prop.looks.keyCodesMaxLegacy;
+			} else {
+				kc.setEnabled = i < _prop.looks.keyCodesMax;
+			}
 		}
 	}
 public:
@@ -653,6 +666,7 @@ protected:
 		} else static if (is(C : BeastCard)) {
 			_comm.delBeast.add(&delCard);
 		} else static assert (0);
+		_comm.refSkin.add(&refSkin);
 		_comm.refScenario.add(&refScenario);
 		_comm.refStandardKeyCodes.add(&refStandardKeyCodes);
 		area.addDisposeListener(new Dispose);

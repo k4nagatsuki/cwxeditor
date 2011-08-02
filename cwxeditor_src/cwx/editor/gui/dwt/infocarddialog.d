@@ -55,10 +55,14 @@ private:
 	void refScenario(Summary summ) {
 		forceCancel();
 	}
+	void refSkin() {
+		_desc.font = dwtData(_prop.looks.cardDescFont(_summ.legacy));
+	}
 	class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
 			_comm.delInfo.remove(&delCard);
 			_comm.refScenario.remove(&refScenario);
+			_comm.refSkin.remove(&refSkin);
 		}
 	}
 public:
@@ -84,7 +88,7 @@ protected:
 			grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			grp.setLayout = new GridLayout(1, false);
 			grp.setText = _prop.msgs.name;
-			_name = new GBLimitText(_prop.looks.messageFont(_summ.legacy).name,
+			_name = new GBLimitText(_prop.looks.monospace,
 				_prop.looks.nameLimit, false, grp, SWT.BORDER);
 			mod(_name.widget);
 			_name.limitEvent ~= &refreshWarning;
@@ -112,6 +116,7 @@ protected:
 		}
 		_comm.delInfo.add(&delCard);
 		_comm.refScenario.add(&refScenario);
+		_comm.refSkin.add(&refSkin);
 		area.addDisposeListener(new Dispose);
 
 		refCard(_card);

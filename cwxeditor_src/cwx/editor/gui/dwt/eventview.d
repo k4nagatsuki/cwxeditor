@@ -1375,7 +1375,7 @@ public:
 				if (cs[0].type !is CType.START) return;
 				createEventTree(cs);
 			} catch (CWXScriptException e) {
-				auto dlg = new ScriptErrorDialog(_prop, _cards.getShell, e);
+				auto dlg = new ScriptErrorDialog(_prop, _cards, e);
 				dlg.open;
 			}
 		}

@@ -2151,8 +2151,8 @@ public:
 						addContents(cs);
 					}
 				} catch (CWXScriptException e) {
-					auto dlg = new ScriptErrorDialog(_prop, _tree.getShell, e);
-					dlg.open;
+					auto dlg = new ScriptErrorDialog(_prop, _tree, e);
+					dlg.open();
 				}
 			}
 		}

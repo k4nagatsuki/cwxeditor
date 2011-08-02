@@ -120,8 +120,8 @@ class System {
 		}
 		case Nature.DIV: {
 			switch (toLower(legacyName)) {
-			case "darkwirth": return "闇の者";
-			default: return "神竜族";
+			case "darkwirth": return "神竜族";
+			default: return "神仙型";
 			}
 		}
 		default: assert (0);

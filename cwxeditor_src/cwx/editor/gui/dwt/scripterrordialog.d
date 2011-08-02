@@ -26,21 +26,33 @@ import java.lang.all;
 class ScriptErrorDialog : AbsDialog {
 private:
 	Props _prop;
+	Control _parent;
 	CWXScriptException _ex;
 	Text _result;
+	DisposeListener _parentClose;
+
+	class ParentClose : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			forceCancel();
+		}
+	}
 
 	class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
 			_result.getFont.dispose;
+			_parent.removeDisposeListener(_parentClose);
 		}
 	}
 public:
-	this(Props prop, Shell shell, CWXScriptException ex) {
+	this(Props prop, Control parent, CWXScriptException ex) {
 		_prop = prop;
+		_parent = parent;
 		_ex = ex;
-		super(prop, shell, false, prop.msgs.dlgTitScriptError, prop.images.script, true, prop.var.scriptDlg, false, false);
+		super(prop, parent.getShell, false, prop.msgs.dlgTitScriptError, prop.images.script, true, prop.var.scriptDlg, false, false);
 		enterClose = true;
 		firstFocusIsOK = true;
+		_parentClose = new ParentClose;
+		parent.addDisposeListener(_parentClose);
 	}
 
 protected:

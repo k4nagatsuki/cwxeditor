@@ -82,6 +82,7 @@ private:
 	SDialog[] _dlgs;
 	Table _dlgsL;
 	Text _rCoupons;
+	Combo _rCouponsList;
 	FixedWidthText _text;
 
 	void selectChanged() {
@@ -306,6 +307,20 @@ private:
 			}
 		}
 	}
+	void refreshCoupons() {
+		auto c = _rCouponsList.getText;
+		_rCouponsList.removeAll();
+		addCastCoupons(_rCouponsList, prop, true, comm.skin.legacyName);
+		_rCouponsList.select = 0;
+		if (c.length && -1 == _rCouponsList.indexOf(c)) {
+			_rCouponsList.add(c, 0);
+		}
+		_rCouponsList.setText = c;
+	}
+	protected override void refSkin() {
+		_text.font = dwtData(prop.looks.messageFont(summ.legacy));
+		refreshCoupons();
+	}
 public:
 	this(Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
 		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime);
@@ -366,17 +381,18 @@ protected:
 			comp.setLayout = new GridLayout(2, false);
 			Control tp;
 			if (evt) {
-				tp = createTalkerPane2(comp, comm, prop, summ, evt.talkerNC, evt.dialogs[0].rCoupons, _talkers, _rCoupons);
+				tp = createTalkerPane2(comp, comm, prop, summ, evt.talkerNC, evt.dialogs[0].rCoupons, _talkers, _rCoupons, _rCouponsList);
 			} else {
-				tp = createTalkerPane2(comp, comm, prop, summ, Talker.SELECTED, [], _talkers, _rCoupons);
+				tp = createTalkerPane2(comp, comm, prop, summ, Talker.SELECTED, [], _talkers, _rCoupons, _rCouponsList);
 			}
 			mod(_talkers);
 			mod(_rCoupons);
+			refreshCoupons();
 			tp.setLayoutData = new GridData(GridData.FILL_BOTH);
 			auto msgComp = new Composite(comp, SWT.NONE);
 			msgComp.setLayoutData = new GridData(GridData.FILL_VERTICAL);
 			msgComp.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0));
-			_text = createMessagePane(prop, true, msgComp, summ);
+			_text = createMessagePane(comm, prop, true, msgComp, summ);
 			mod(_text.widget);
 			_text.widget.setLayoutData = _text.computeTextBaseSize(prop.looks.messageLine);
 			_text.widget.addModifyListener(new ModL);
@@ -471,6 +487,10 @@ private:
 			break;
 		}
 	}
+	protected override void refSkin() {
+		_textA.font = dwtData(prop.looks.messageFont(summ.legacy));
+		_textB.font = dwtData(prop.looks.messageFont(summ.legacy));
+	}
 public:
 	this(Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
 		super(comm, prop, shell, summ, CType.TALK_MESSAGE, parent, evt, true, prop.var.msgDlg, false);
@@ -496,7 +516,7 @@ protected:
 			auto msgComp = new Composite(comp, SWT.NONE);
 			msgComp.setLayoutData = new GridData(GridData.FILL_VERTICAL);
 			msgComp.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0));
-			_textA = createMessagePane(prop, true, msgComp, summ);
+			_textA = createMessagePane(comm, prop, true, msgComp, summ);
 			_textA.widget.setLayoutData = _textA.computeTextBaseSize(prop.looks.messageLine);
 			mod(_textA.widget);
 			auto tab = new CTabItem(_tabf, SWT.NONE);
@@ -506,7 +526,7 @@ protected:
 		{
 			auto comp = new Composite(_tabf, SWT.NONE);
 			comp.setLayout = new CenterLayout;
-			_textB = createMessagePane(prop, false, comp, summ);
+			_textB = createMessagePane(comm, prop, false, comp, summ);
 			mod(_textB.widget);
 			_textB.widget.setLayoutData = _textB.computeTextBaseSize(prop.looks.messageLine);
 			auto tab = new CTabItem(_tabf, SWT.NONE);
@@ -573,7 +593,7 @@ protected:
 }
 
 private Composite createTalkerPane2(Composite parent, Commons comm, Props prop, Summary summ, Talker talker,
-		string[] coupons, out Combo talkerCombo, out Text couponList) {
+		string[] coupons, out Combo talkerCombo, out Text couponList, out Combo couponCombo) {
 	auto comp = new Composite(parent, SWT.NONE);
 	comp.setLayout = new GridLayout(2, false);
 	{
@@ -598,7 +618,7 @@ private Composite createTalkerPane2(Composite parent, Commons comm, Props prop, 
 			talkerCombo.select = 0;
 		}
 	}
-	auto couponCombo = new Combo(comp, SWT.DROP_DOWN | SWT.BORDER);
+	couponCombo = new Combo(comp, SWT.DROP_DOWN | SWT.BORDER);
 	couponCombo.setVisibleItemCount = 20;
 	auto push = new Button(comp, SWT.PUSH);
 	auto skin = comm.skin;
@@ -606,8 +626,6 @@ private Composite createTalkerPane2(Composite parent, Commons comm, Props prop, 
 		auto gd = new GridData(GridData.FILL_HORIZONTAL);
 		gd.widthHint = prop.var.etc.talkersWidth;
 		couponCombo.setLayoutData = gd;
-		addCastCoupons(couponCombo, prop, true, skin.legacyName);
-		couponCombo.select = 0;
 		push.setToolTipText = prop.msgs.setTalkerCoupon;
 		push.setImage = prop.images.setTalkerCoupon;
 	}
@@ -700,7 +718,7 @@ private Composite createTalkerPane
 	return comp;
 }
 
-private FixedWidthText createMessagePane(Props prop, bool image, Composite parent, Summary summ) {
+private FixedWidthText createMessagePane(Commons comm, Props prop, bool image, Composite parent, Summary summ) {
 	int len = image ? prop.looks.messageImageLen : prop.looks.messageLen;
 	auto r = new FixedWidthText(dwtData(prop.looks.messageFont(summ.legacy)), len, parent, SWT.BORDER);
 	r.widget.setBackground = Display.getCurrent.getSystemColor(SWT.COLOR_DARK_BLUE);

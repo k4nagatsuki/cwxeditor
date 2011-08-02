@@ -27,17 +27,13 @@ import java.lang.all;
 /// 折り返しを反映したテキストを取得可能なText。
 class FixedWidthText {
 	private Text _widget;
-	private GC _gc;
+	private GC _gc = null;
 	private int _width;
+	private int _num;
 	this(FontData fontData, int num, Composite parent, int style) {
 		_widget = new Text(parent, style | SWT.MULTI | SWT.WRAP);
-		_widget.setFont = new Font(Display.getCurrent, fontData);
-		_gc = new GC(_widget);
-		_gc.setFont = _widget.getFont;
-		// FIXME: Windows環境で太字にするとサイズが合わなくなる
-/+		_width = _gc.getAdvanceWidth(' ') * num;
-+/		_width = _gc.textExtent("　").x * (num / 2) + 1;
-		if (num & 1) _width += _gc.textExtent(" ").x;
+		_num = num;
+		font = fontData;
 
 		_widget.addListener(SWT.Dispose, new class Listener {
 			override void handleEvent(Event e) {
@@ -45,6 +41,19 @@ class FixedWidthText {
 				_gc.dispose;
 			}
 		});
+	}
+	void font(FontData fontData) {
+		if (_gc) {
+			_widget.getFont.dispose;
+			_gc.dispose;
+		}
+		_widget.setFont = new Font(Display.getCurrent, fontData);
+		_gc = new GC(_widget);
+		_gc.setFont = _widget.getFont;
+		// FIXME: Windows環境で太字にするとサイズが合わなくなる
+/+		_width = _gc.getAdvanceWidth(' ') * _num;
++/		_width = _gc.textExtent("　").x * (_num / 2) + 1;
+		if (_num & 1) _width += _gc.textExtent(" ").x;
 	}
 	Text widget() {
 		return _widget;

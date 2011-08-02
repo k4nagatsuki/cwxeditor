@@ -411,7 +411,7 @@ private:
 				grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				grp.setLayout = new GridLayout(2, false);
 				grp.setText = _prop.msgs.name;
-				_name = new GBLimitText(_prop.looks.messageFont(_summ.legacy).name,
+				_name = new GBLimitText(_prop.looks.monospace,
 					_prop.looks.castNameLimit, false, grp, SWT.BORDER);
 				_name.limitEvent ~= &refreshWarning;
 				mod(_name.widget);
@@ -472,23 +472,22 @@ private:
 				lifec.setText = _prop.msgs.lifeCalc;
 				lifec.addSelectionListener(new SelLifeC);
 			}
-			if (!_summ.legacy) {
-				auto grp = new Group(compr, SWT.NONE);
-				grp.setText = _prop.msgs.race;
-				grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-				auto cl = new CenterLayout;
-				cl.fillHorizontal = true;
-				grp.setLayout = cl;
-				_race = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
-				mod(_race);
-				_race.setVisibleItemCount = 20;
-				_race.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				_race.add(_prop.msgs.noRace);
-				foreach (race; skin.races) {
-					_race.add(race.name);
-				}
-				_race.addSelectionListener(new SelectRace);
+			auto grp = new Group(compr, SWT.NONE);
+			grp.setText = _prop.msgs.race;
+			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
+			auto cl = new CenterLayout;
+			cl.fillHorizontal = true;
+			grp.setLayout = cl;
+			_race = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
+			mod(_race);
+			_race.setVisibleItemCount = 20;
+			_race.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+			_race.add(_prop.msgs.noRace);
+			foreach (race; skin.races) {
+				_race.add(race.name);
 			}
+			_race.addSelectionListener(new SelectRace);
+			refreshRace();
 		}
 		auto tab = new CTabItem(tabf, SWT.NONE);
 		tab.setText = _prop.msgs.card;
@@ -1167,8 +1166,45 @@ private:
 		override void widgetDisposed(DisposeEvent e) {
 			_comm.delCast.remove(&delCard);
 			_comm.refScenario.remove(&refScenario);
+			_comm.refSkin.remove(&refSkin);
 		}
 	}
+	void refSkin() {
+		_desc.font = dwtData(_prop.looks.cardDescFont(_summ.legacy));
+		refreshRace();
+		refreshSex();
+		refreshPeriod();
+		refreshNature();
+		refreshMakings();
+	}
+	void refreshRace() {
+		_race.setEnabled = !_summ.legacy;
+	}
+	void refreshSex() {
+		foreach (s; SEX_ALL) {
+			_sex[s].setText = _prop.sys.sexName(s, _comm.skin.legacyName);
+		}
+	}
+	void refreshPeriod() {
+		foreach (p; PERIOD_ALL) {
+			_period[p].setText = _prop.sys.periodName(p, _comm.skin.legacyName);
+		}
+	}
+	void refreshNature() {
+		foreach (n; NATURE_DEF) {
+			_nature[n].setText = _prop.sys.natureName(n, _comm.skin.legacyName);
+		}
+	}
+	void refreshMakings() {
+		foreach (m; MAKINGS_LEFT) {
+			void refresh(Makings m) {
+				_makings[m].setText = _prop.sys.makingsName(m, _comm.skin.legacyName);
+			}
+			refresh(m);
+			refresh(reverseMakings(m));
+		}
+	}
+
 public:
 	this(Commons comm, Props prop, Shell shell, Summary summ, CastCard card) {
 		assert (summ !is null);
@@ -1200,6 +1236,7 @@ protected:
 
 		_comm.delCast.add(&delCard);
 		_comm.refScenario.add(&refScenario);
+		_comm.refSkin.add(&refSkin);
 		area.addDisposeListener(new Dispose);
 
 		// Windows Vistaだとタブの横幅が凄いことになったので必要最低限にする。

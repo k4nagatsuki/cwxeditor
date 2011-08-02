@@ -77,6 +77,7 @@ abstract class EventDialog : AbsDialog {
 	private class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
 			_comm.delContent.remove(&delContent);
+			_comm.refSkin.remove(&refSkin);
 		}
 	}
 	private void delContent(Content c) {
@@ -97,6 +98,7 @@ abstract class EventDialog : AbsDialog {
 		_parent = parent;
 		_evt = evt;
 		_comm.delContent.add(&delContent);
+		_comm.refSkin.add(&refSkin);
 		getShell.addDisposeListener(new Dispose);
 	}
 
@@ -108,6 +110,8 @@ abstract class EventDialog : AbsDialog {
 	protected Summary summ() {return _summ;}
 	protected Content evt() {return _evt;}
 	protected void evt(Content evt) {_evt = evt;}
+
+	protected void refSkin() {}
 }
 
 /// エリア・バトル・パッケージ・キャスト・情報の選択を行うダイアログ。
@@ -194,6 +198,15 @@ private:
 			} else static assert (0);
 		}
 	}
+	protected override void refSkin() {
+		refreshTS();
+	}
+	void refreshTS() {
+		static if (Type == CType.CHANGE_AREA) {
+			_ts.setEnabled = !_summ.legacy;
+			_tsSpeed.setEnabled = !_summ.legacy;
+		}
+	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
 		super (comm, prop, shell, summ, Type, parent, evt, true, prop.var.selEvtDlg, true);
@@ -211,40 +224,39 @@ protected:
 		_list.setLayoutData = gd;
 		refreshList();
 		static if (Type == CType.CHANGE_AREA) {
-			if (!_summ.legacy) {
-				{
-					auto comp = new Composite(area, SWT.NONE);
-					comp.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
-					comp.setLayout = zeroMarginGridLayout(3, false);
-					auto lt = new Label(comp, SWT.NONE);
-					lt.setText = _prop.msgs.transition;
-					_ts = new Combo(comp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
-					auto tgd = new GridData;
-					tgd.horizontalSpan = 2;
-					_ts.setLayoutData(tgd);
-					_ts.setVisibleItemCount = 20;
-					foreach (i, t; ALL_TRANSITION) {
-						_ts.add(_prop.msgs.transition(t));
-						_tsTbl[i] = t;
-						if (_evt && t == _evt.transition) _ts.select(i);
-					}
-					auto ls = new Label(comp, SWT.NONE);
-					ls.setText = _prop.msgs.transitionSpeed;
-					_tsSpeed = new Spinner(comp, SWT.BORDER);
-					_tsSpeed.setMaximum = Content.transitionSpeed_max;
-					_tsSpeed.setMinimum = Content.transitionSpeed_min;
-					auto hint = new Label(comp, SWT.NONE);
-					hint.setText = _prop.msgs.rangeHint
-						(Content.transitionSpeed_min,
-						Content.transitionSpeed_max);
+			{
+				auto comp = new Composite(area, SWT.NONE);
+				comp.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
+				comp.setLayout = zeroMarginGridLayout(3, false);
+				auto lt = new Label(comp, SWT.NONE);
+				lt.setText = _prop.msgs.transition;
+				_ts = new Combo(comp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
+				auto tgd = new GridData;
+				tgd.horizontalSpan = 2;
+				_ts.setLayoutData(tgd);
+				_ts.setVisibleItemCount = 20;
+				foreach (i, t; ALL_TRANSITION) {
+					_ts.add(_prop.msgs.transition(t));
+					_tsTbl[i] = t;
+					if (_evt && t == _evt.transition) _ts.select(i);
 				}
-				if (_evt) {
-					_tsSpeed.setSelection = _evt.transitionSpeed;
-				} else {
-					_ts.select = 0;
-					_tsSpeed.setSelection = _prop.looks.transitionSpeedDef;
-				}
+				auto ls = new Label(comp, SWT.NONE);
+				ls.setText = _prop.msgs.transitionSpeed;
+				_tsSpeed = new Spinner(comp, SWT.BORDER);
+				_tsSpeed.setMaximum = Content.transitionSpeed_max;
+				_tsSpeed.setMinimum = Content.transitionSpeed_min;
+				auto hint = new Label(comp, SWT.NONE);
+				hint.setText = _prop.msgs.rangeHint
+					(Content.transitionSpeed_min,
+					Content.transitionSpeed_max);
 			}
+			if (_evt) {
+				_tsSpeed.setSelection = _evt.transitionSpeed;
+			} else {
+				_ts.select = 0;
+				_tsSpeed.setSelection = _prop.looks.transitionSpeedDef;
+			}
+			refreshTS();
 		}
 		_list.showSelection;
 		static if (is(A : Area)) {
@@ -272,17 +284,11 @@ protected:
 			_evt = new Content(Type, "");
 		}
 		static if (Type == CType.CHANGE_AREA) {
-			if (_summ.legacy) {
-				_evt.area = id;
-				_evt.transition = Transition.DEFAULT;
-				_evt.transitionSpeed = _prop.looks.transitionSpeedDef;
-			} else {
-				auto ts = _tsTbl[_ts.getSelectionIndex];
-				uint tsSpeed = _tsSpeed.getSelection;
-				_evt.area = id;
-				_evt.transition = ts;
-				_evt.transitionSpeed = tsSpeed;
-			}
+			auto ts = _tsTbl[_ts.getSelectionIndex];
+			uint tsSpeed = _tsSpeed.getSelection;
+			_evt.area = id;
+			_evt.transition = ts;
+			_evt.transitionSpeed = tsSpeed;
 		} else static if (Type == CType.START_BATTLE) {
 			_evt.battle = id;
 		} else static if (Type == CType.CALL_PACKAGE || Type == CType.LINK_PACKAGE) {
@@ -399,6 +405,19 @@ private:
 		Spinner _value;
 	}
 
+	protected override void refSkin() {
+		refreshCoupons();
+	}
+	void refreshCoupons() {
+		auto c = _name.getText;
+		_name.removeAll();
+		addCastCoupons(_name, prop, true, comm.skin.legacyName);
+		_name.select = 0;
+		if (c.length && -1 == _name.indexOf(c)) {
+			_name.add(c, 0);
+		}
+		_name.setText = c;
+	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
 		super (comm, prop, shell, summ, Type, parent, evt, true, prop.var.couponEvtDlg, true);
@@ -436,7 +455,7 @@ protected:
 					gd.horizontalSpan = 3;
 					gd.widthHint = _prop.var.etc.nameWidth;
 					_name.setLayoutData = gd;
-					addCastCoupons(_name, _prop, false, skin.legacyName);
+					refreshCoupons();
 				}
 				static if (EditValue) {
 					auto ll = new Label(comp, SWT.RIGHT);
@@ -547,6 +566,13 @@ private:
 
 	BgImagesView _view;
 
+	protected override void refSkin() {
+		refreshTS();
+	}
+	void refreshTS() {
+		_ts.setEnabled = !_summ.legacy;
+		_tsSpeed.setEnabled = !_summ.legacy;
+	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt, AbstractArea refTarget) {
 		_refTarget = refTarget;
@@ -569,52 +595,50 @@ protected:
 			mod(_view);
 			_view.setLayoutData = new GridData(GridData.FILL_BOTH);
 		}
-		if (!_summ.legacy) {
-			{
-				auto comp = new Composite(area, SWT.NONE);
-				comp.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
-				comp.setLayout = zeroMarginGridLayout(5, false);
-				auto lt = new Label(comp, SWT.NONE);
-				lt.setText = _prop.msgs.transition;
-				_ts = new Combo(comp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
-				mod(_ts);
-				_ts.setVisibleItemCount = 20;
-				foreach (i, t; ALL_TRANSITION) {
-					_ts.add(_prop.msgs.transition(t));
-					_tsTbl[i] = t;
-					if (_evt && t == _evt.transition) _ts.select(i);
-				}
-				auto ls = new Label(comp, SWT.NONE);
-				ls.setText = _prop.msgs.transitionSpeed;
-				_tsSpeed = new Spinner(comp, SWT.BORDER);
-				mod(_tsSpeed);
-				_tsSpeed.setMaximum = Content.transitionSpeed_max;
-				_tsSpeed.setMinimum = Content.transitionSpeed_min;
-				auto hint = new Label(comp, SWT.NONE);
-				hint.setText = _prop.msgs.rangeHint
-					(Content.transitionSpeed_min,
-					Content.transitionSpeed_max);
+		{
+			auto comp = new Composite(area, SWT.NONE);
+			comp.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
+			comp.setLayout = zeroMarginGridLayout(5, false);
+			auto lt = new Label(comp, SWT.NONE);
+			lt.setText = _prop.msgs.transition;
+			_ts = new Combo(comp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
+			mod(_ts);
+			_ts.setVisibleItemCount = 20;
+			foreach (i, t; ALL_TRANSITION) {
+				_ts.add(_prop.msgs.transition(t));
+				_tsTbl[i] = t;
+				if (_evt && t == _evt.transition) _ts.select(i);
 			}
-			ignoreMod = true;
-			scope (exit) ignoreMod = false;
-			if (_evt) {
-				_tsSpeed.setSelection = _evt.transitionSpeed;
-			} else {
-				_ts.select = 0;
-				_tsSpeed.setSelection = _prop.looks.transitionSpeedDef;
-			}
+			auto ls = new Label(comp, SWT.NONE);
+			ls.setText = _prop.msgs.transitionSpeed;
+			_tsSpeed = new Spinner(comp, SWT.BORDER);
+			mod(_tsSpeed);
+			_tsSpeed.setMaximum = Content.transitionSpeed_max;
+			_tsSpeed.setMinimum = Content.transitionSpeed_min;
+			auto hint = new Label(comp, SWT.NONE);
+			hint.setText = _prop.msgs.rangeHint
+				(Content.transitionSpeed_min,
+				Content.transitionSpeed_max);
+		}
+		refreshTS();
+
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
+		if (_evt) {
+			_tsSpeed.setSelection = _evt.transitionSpeed;
+		} else {
+			_ts.select = 0;
+			_tsSpeed.setSelection = _prop.looks.transitionSpeedDef;
 		}
 	}
 
 	override bool apply() {
 		if (!_evt) _evt = new Content(CType.CHANGE_BG_IMAGE, "");
 		_evt.backs = _cont.backs;
-		if (!_summ.legacy) {
-			auto ts = _tsTbl[_ts.getSelectionIndex];
-			uint tsSpeed = _tsSpeed.getSelection;
-			_evt.transition = ts;
-			_evt.transitionSpeed = tsSpeed;
-		}
+		auto ts = _tsTbl[_ts.getSelectionIndex];
+		uint tsSpeed = _tsSpeed.getSelection;
+		_evt.transition = ts;
+		_evt.transitionSpeed = tsSpeed;
 		return true;
 	}
 }
