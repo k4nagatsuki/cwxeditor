@@ -82,11 +82,11 @@ abstract class AbsDialog {
 		auto okComp = new Composite(buttons, SWT.NONE);
 		okComp.setLayout = new FillLayout;
 		_okBtn = createButton(okComp, prop.msgs.dlgTextOK, &this.ok);
-		if (apply) {
-			_apply = createButton(buttons, prop.msgs.dlgTextApply, &this.applyFunc);
-		}
 		if (cancel) {
 			createButton(buttons, prop.msgs.dlgTextCancel, &this.cancel);
+		}
+		if (apply) {
+			_apply = createButton(buttons, prop.msgs.dlgTextApply, &this.applyFunc);
 		}
 	}
 	private Button createButton(Composite parent, string text, void delegate() push) {
