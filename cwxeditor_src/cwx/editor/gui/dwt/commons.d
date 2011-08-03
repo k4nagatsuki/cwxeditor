@@ -35,23 +35,50 @@ import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.graphics.Image;
 
-private struct Dlg(Arg ...) {
+private class Dlg(Arg ...) {
+	private static const ID = "cwx.editor.gui.dwt.commons.Dlg";
+	debug {
+		private string[] _fileDlg;
+		private size_t[] _lineDlg;
+		~this () {
+			foreach (i, f; _fileDlg) {
+				debugln("Common event sender remained: ", f, ", ", _lineDlg[i]);
+			}
+		}
+	}
 	private void delegate(Object, Arg)[] _dlg;
 	private NoS[] _noss;
+
 	private class NoS {
 		void delegate(Arg) dlg;
 		void call(Object sender, Arg arg) {
 			dlg(arg);
 		}
 	}
-	void add(void delegate(Arg) dlg) {
+	private void addImpl(void delegate(Arg) dlg) {
 		auto nos = new NoS;
 		nos.dlg = dlg;
 		_dlg ~= &nos.call;
 		_noss ~= nos;
 	}
-	void add(void delegate(Object, Arg) dlg) {
+	private void addImpl(void delegate(Object, Arg) dlg) {
 		_dlg ~= dlg;
+	}
+	debug {
+		void add(string File = __FILE__, size_t Line = __LINE__, T)(T dlg) {
+			addImpl(dlg);
+			_fileDlg ~= File;
+			_lineDlg ~= Line;
+			assert (_dlg.length == _fileDlg.length);
+			assert (_dlg.length == _lineDlg.length);
+		}
+	} else {
+		void add(void delegate(Arg) dlg) {
+			addImpl(dlg);
+		}
+		void add(void delegate(Object, Arg) dlg) {
+			addImpl(dlg);
+		}
 	}
 	void remove(void delegate(Arg) dlg) {
 		foreach (i, nos; _noss) {
@@ -67,6 +94,11 @@ private struct Dlg(Arg ...) {
 		foreach (i, c; _dlg) {
 			if (c is dlg) {
 				_dlg = _dlg[0 .. i] ~ _dlg[i + 1 .. $];
+				debug {
+					assert (_dlg.length + 1 == _fileDlg.length);
+					_fileDlg = _fileDlg[0 .. i] ~ _fileDlg[i + 1 .. $];
+					_lineDlg = _lineDlg[0 .. i] ~ _lineDlg[i + 1 .. $];
+				}
 				return;
 			}
 		}
@@ -211,6 +243,11 @@ class Commons {
 	this() {
 		saveSync = new Object;
 		_ws = new HashSet!(Composite);
+		foreach (i, fld; this.tupleof) {
+			static if (is(typeof(typeof(fld).ID)) && typeof(fld).ID == "cwx.editor.gui.dwt.commons.Dlg") {
+				this.tupleof[i] = new typeof(fld);
+			}
+		}
 	}
 	void dispose() {
 		if (_wallpaper) _wallpaper.dispose();

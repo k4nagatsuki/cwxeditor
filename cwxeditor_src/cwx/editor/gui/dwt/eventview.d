@@ -780,17 +780,17 @@ public:
 			_comm.downMenuCard.add(&downCard);
 		}
 		static if (is (A == Area)) {
-			_comm.refArea.add(&refreshTitle);
+			_comm.refArea.add(&refreshTitleA);
 		} else static if (is (A == Battle)) {
-			_comm.refBattle.add(&refreshTitle);
+			_comm.refBattle.add(&refreshTitleA);
 		} else static if (is (A == Package)) {
-			_comm.refPackage.add(&refreshTitle);
+			_comm.refPackage.add(&refreshTitleA);
 		} else static if (is (A == SkillCard)) {
-			_comm.refSkill.add(&refreshTitle);
+			_comm.refSkill.add(&refreshTitleA);
 		} else static if (is (A == ItemCard)) {
-			_comm.refItem.add(&refreshTitle);
+			_comm.refItem.add(&refreshTitleA);
 		} else static if (is (A == BeastCard)) {
-			_comm.refBeast.add(&refreshTitle);
+			_comm.refBeast.add(&refreshTitleA);
 		} else static assert (0);
 		_sash.addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) {
@@ -823,17 +823,17 @@ public:
 					_comm.downMenuCard.remove(&downCard);
 				}
 				static if (is (A == Area)) {
-					_comm.refArea.remove(&refreshTitle);
+					_comm.refArea.remove(&refreshTitleA);
 				} else static if (is (A == Battle)) {
-					_comm.refBattle.remove(&refreshTitle);
+					_comm.refBattle.remove(&refreshTitleA);
 				} else static if (is (A == Package)) {
-					_comm.refPackage.remove(&refreshTitle);
+					_comm.refPackage.remove(&refreshTitleA);
 				} else static if (is (A == SkillCard)) {
-					_comm.refSkill.remove(&refreshTitle);
+					_comm.refSkill.remove(&refreshTitleA);
 				} else static if (is (A == ItemCard)) {
-					_comm.refItem.remove(&refreshTitle);
+					_comm.refItem.remove(&refreshTitleA);
 				} else static if (is (A == BeastCard)) {
-					_comm.refBeast.remove(&refreshTitle);
+					_comm.refBeast.remove(&refreshTitleA);
 				} else static assert (0);
 			}
 		});
@@ -897,7 +897,7 @@ public:
 		if (!initial) return;
 		_cards.getItems[0].setText = _area.name;
 	}
-	private void refreshTitle(A area) {
+	private void refreshTitleA(A area) {
 		if (!initial) return;
 		if (area is _area) {
 			_cards.getItems[0].setText = _area.name;

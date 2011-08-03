@@ -761,7 +761,11 @@ public:
 		}
 	}
 	private void refreshScenario(Summary summ) {
-		_summ = summ;
+		if (!summ) {
+			_win.close();
+		} else {
+			_summ = summ;
+		}
 	}
 	private void search() {
 		_replMode = false;
@@ -1010,6 +1014,11 @@ public:
 					count++;
 					return;
 				}
+				if (bi.flag != "" && !froot.findFlag(bi.flag)) {
+					addResult(path);
+					count++;
+					return;
+				}
 			}
 			auto mc = cast(MenuCard) path;
 			if (mc) {
@@ -1018,10 +1027,20 @@ public:
 					count++;
 					return;
 				}
+				if (mc.flag != "" && !froot.findFlag(mc.flag)) {
+					addResult(path);
+					count++;
+					return;
+				}
 			}
 			auto ec = cast(EnemyCard) path;
 			if (ec) {
 				if (ec.id == 0 || !_summ.casts(ec.id)) {
+					addResult(path);
+					count++;
+					return;
+				}
+				if (ec.flag != "" && !froot.findFlag(ec.flag)) {
 					addResult(path);
 					count++;
 					return;
@@ -1041,16 +1060,45 @@ public:
 					set.add(cld.name);
 				}
 			}
+			bool checkTextRes(string[] fonts, string[] flags, string[] steps) {
+				foreach (font; fonts) {
+					if (!skin.findPath(font, skin.extImage, skin.tableDir, sPath).length) {
+						return false;
+					}
+				}
+				foreach (flag; flags) {
+					if (!froot.findFlag(flag)) {
+						return false;
+					}
+				}
+				foreach (step; steps) {
+					if (!froot.findStep(step)) {
+						return false;
+					}
+				}
+				return true;
+			}
 			if (c.type == CType.TALK_DIALOG) {
 				if (c.dialogs.length) {
-					foreach (dlg; c.dialogs[0 .. $ - 1]) {
-						if (!dlg.rCoupons.length) {
+					foreach (i, dlg; c.dialogs) {
+						if (i + 1 < c.dialogs.length && !dlg.rCoupons.length) {
+							// 最後以外にクーポンが設定されていない場合
+							addResult(path);
+							count++;
+							return;
+						}
+						if (!checkTextRes(dlg.fontsInText, dlg.flagsInText, dlg.stepsInText)) {
 							addResult(path);
 							count++;
 							return;
 						}
 					}
 				}
+			}
+			if (!checkTextRes(c.fontsInText, c.flagsInText, c.stepsInText)) {
+				addResult(path);
+				count++;
+				return;
 			}
 			bool hasStart() {
 				foreach (s; c.tree.starts) {

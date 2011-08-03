@@ -1147,7 +1147,11 @@ private:
 	}
 	private RefE _refe;
 	private void refreshScenario(Summary summ) {
-		_summ = summ;
+		if (!summ) {
+			forceCancel();
+		} else {
+			_summ = summ;
+		}
 	}
 	private void refreshEnabled() {
 		_backupDir.setEnabled = _backupEnabled.getSelection;

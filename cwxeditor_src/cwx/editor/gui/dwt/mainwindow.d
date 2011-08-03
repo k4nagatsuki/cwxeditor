@@ -192,7 +192,7 @@ private:
 				string zFile = std.path.join(parent, file);
 				if (!parent.exists) mkdirRecurse(parent);
 				synchronized (_saveSync) {
-					.zip(sPath, zFile, true, [std.path.join(sPath, "cwxeditor.lock")], true);
+					summ.createZip(zFile);
 				}
 			}
 
@@ -549,11 +549,11 @@ private:
 	class DListener : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
 			_quit = true;
+			_comm.save.remove(&savec);
 			_comm.refScenarioName.remove(&__refreshTitle);
 			_comm.refScenarioPath.remove(&__refreshTitle);
 			_comm.refWallpaper.remove(&redrawAll);
 			_comm.replText.remove(&__refreshTitle);
-
 			auto b = _win.getBounds;
 			_prop.var.mainWin.x = b.x;
 			_prop.var.mainWin.y = b.y;
@@ -565,21 +565,18 @@ private:
 				}
 			}
 			_win.setVisible = false;
-			try {
-				_comm.closeAll;
-				if (summary && summary.useTemp) {
-					_dirWin.stopTrace;
-					try {
-						synchronized (_saveSync) {
-							summary.delTemp;
-						}
-					} catch (Exception e) {
-						debugln(e);
+			scope (failure) _win.setVisible = true;
+			_comm.refScenario.call(null);
+			_comm.closeAll;
+			if (summary && summary.useTemp) {
+				_dirWin.stopTrace;
+				try {
+					synchronized (_saveSync) {
+						summary.delTemp;
 					}
+				} catch (Exception e) {
+					debugln(e);
 				}
-			} catch (Throwable e) {
-				_win.setVisible = true;
-				throw e;
 			}
 		}
 	}

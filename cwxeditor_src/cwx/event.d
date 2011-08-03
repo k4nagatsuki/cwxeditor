@@ -464,6 +464,33 @@ public:
 	void change(StepId id) {
 		_text.change(id);
 	}
+	// テキスト内で使用されているfont_X.png等のパス。
+	const
+	string[] fontsInText() {
+		string[] r;
+		foreach (u; _text._fontusers) {
+			r ~= u.path;
+		}
+		return r;
+	}
+	// テキスト内で使用されているフラグのパス。
+	const
+	string[] flagsInText() {
+		string[] r;
+		foreach (u; _text._flagusers) {
+			r ~= u.flag;
+		}
+		return r;
+	}
+	// テキスト内で使用されているステップのパス。
+	const
+	string[] stepsInText() {
+		string[] r;
+		foreach (u; _text._stepusers) {
+			r ~= u.step;
+		}
+		return r;
+	}
 	const
 	XNode toNode() {
 		auto e = XNode.create(XML_NAME);
@@ -1226,6 +1253,37 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	override void change(SkillId id) {idChange(id);}
 	override void change(BeastId id) {idChange(id);}
 	override void change(InfoId id) {idChange(id);}
+
+	// テキスト内で使用されているfont_X.png等のパス。
+	const
+	string[] fontsInText() {
+		if (!_text) return [];
+		string[] r;
+		foreach (u; _text._fontusers) {
+			r ~= u.path;
+		}
+		return r;
+	}
+	// テキスト内で使用されているフラグのパス。
+	const
+	string[] flagsInText() {
+		if (!_text) return [];
+		string[] r;
+		foreach (u; _text._flagusers) {
+			r ~= u.flag;
+		}
+		return r;
+	}
+	// テキスト内で使用されているステップのパス。
+	const
+	string[] stepsInText() {
+		if (!_text) return [];
+		string[] r;
+		foreach (u; _text._stepusers) {
+			r ~= u.step;
+		}
+		return r;
+	}
 
 	/// コンテントをXMLテキストにして返す。
 	const

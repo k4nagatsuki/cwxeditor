@@ -2183,12 +2183,12 @@ public:
 		}
 		itm.dispose;
 	}
-	private void __refreshCard(TreeItem evt) {
+	private void __refreshCardImpl(TreeItem evt) {
 		foreach (childItm; evt.getItems) {
 			auto child = cast(Content) childItm.getData;
 			childItm.setText = eventText(cast(Content) evt.getData, child);
 			if (child.detail.owner) {
-				__refreshCard(childItm);
+				__refreshCardImpl(childItm);
 			}
 		}
 	}
@@ -2196,7 +2196,7 @@ public:
 		if (_tree.isDisposed) return;
 		if (_et) {
 			foreach (itm; _tree.getItems) {
-				__refreshCard(itm);
+				__refreshCardImpl(itm);
 			}
 			refreshStatusLine;
 		}

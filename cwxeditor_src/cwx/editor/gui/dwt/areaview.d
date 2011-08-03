@@ -170,9 +170,9 @@ private:
 				_refTarget = null;
 			}
 		}
-		void refreshRefAreas(Area a) {refreshRefAreas();}
-		void refreshRefAreas(Battle a) {refreshRefAreas();}
-		void refreshRefAreas(string a) {refreshRefAreas();}
+		void refreshRefAreasA(Area a) {refreshRefAreas();}
+		void refreshRefAreasB(Battle a) {refreshRefAreas();}
+		void refreshRefAreasS(string a) {refreshRefAreas();}
 	}
 
 	class AUndo : Undo {
@@ -2202,22 +2202,22 @@ public:
 						refreshPanel();
 					}
 				});
-				_comm.refArea.add(&refreshRefAreas);
-				_comm.delArea.add(&refreshRefAreas);
-				_comm.refBattle.add(&refreshRefAreas);
-				_comm.delBattle.add(&refreshRefAreas);
-				_comm.addMenuCard.add(&refreshRefAreas);
-				_comm.refMenuCard.add(&refreshRefAreas);
-				_comm.delMenuCard.add(&refreshRefAreas);
+				_comm.refArea.add(&refreshRefAreasA);
+				_comm.delArea.add(&refreshRefAreasA);
+				_comm.refBattle.add(&refreshRefAreasB);
+				_comm.delBattle.add(&refreshRefAreasB);
+				_comm.addMenuCard.add(&refreshRefAreasS);
+				_comm.refMenuCard.add(&refreshRefAreasS);
+				_comm.delMenuCard.add(&refreshRefAreasS);
 				addDisposeListener(new class DisposeListener {
 					override void widgetDisposed(DisposeEvent e) {
-						_comm.refArea.remove(&refreshRefAreas);
-						_comm.delArea.remove(&refreshRefAreas);
-						_comm.refBattle.remove(&refreshRefAreas);
-						_comm.delBattle.remove(&refreshRefAreas);
-						_comm.addMenuCard.remove(&refreshRefAreas);
-						_comm.refMenuCard.remove(&refreshRefAreas);
-						_comm.delMenuCard.remove(&refreshRefAreas);
+						_comm.refArea.remove(&refreshRefAreasA);
+						_comm.delArea.remove(&refreshRefAreasA);
+						_comm.refBattle.remove(&refreshRefAreasB);
+						_comm.delBattle.remove(&refreshRefAreasB);
+						_comm.addMenuCard.remove(&refreshRefAreasS);
+						_comm.refMenuCard.remove(&refreshRefAreasS);
+						_comm.delMenuCard.remove(&refreshRefAreasS);
 					}
 				});
 			}

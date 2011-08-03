@@ -312,6 +312,9 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 				r = S.fromXMLs(std.path.join(p, "Summary.xml"));
 			} else {
 				r = S.fromXMLs(p, xmls);
+				static if (is(S : Summary)) {
+					r._oldXMLs = xmls;
+				}
 			}
 			return r;
 		}
@@ -1560,12 +1563,14 @@ public:
 				auto lock = std.path.join(scenarioPath, "cwxeditor.lock");
 				scope arc = .zip(scenarioPath, false, [lock]);
 				if (!expand) {
-					foreach (path, files; toXMLs) {
+					auto xmls = toXMLs;
+					foreach (path, files; xmls) {
 						foreach (name, xml; files) {
 							auto p = std.path.join(path, name);
 							arc.addMember(.archive(p, cast(ubyte[]) xml, false));
 						}
 					}
+					_oldXMLs = xmls;
 				}
 				std.file.write(zipName, arc.build);
 			} else {
@@ -1582,6 +1587,55 @@ public:
 			throw new SummaryException(prop.msgs.saveError(scenarioName));
 		}
 	}
+	/// データを保存せずにシナリオのフォルダのアーカイブを作成する。
+	void createZip(string zipName) {
+		auto lock = std.path.join(scenarioPath, "cwxeditor.lock");
+		scope arc = .zip(scenarioPath, false, [lock]);
+		if (useTemp && !expandXMLs) {
+			foreach (path, files; _oldXMLs) {
+				foreach (name, xml; files) {
+					auto p = std.path.join(path, name);
+					arc.addMember(.archive(p, cast(ubyte[]) xml, false));
+				}
+			}
+		}
+		std.file.write(zipName, arc.build);
+	}
+	/// データを保存せずにシナリオのフォルダのアーカイブを作成する。
+	/// 非展開のXMLファイルは一時的に展開される。
+	void createCab(string cabName) {
+		string[] tempDirs;
+		string[] tempFiles;
+		if (useTemp && !expandXMLs) {
+			foreach (path, files; _oldXMLs) {
+				foreach (name, xml; files) {
+					auto dir = std.path.join(scenarioPath, path);
+					auto p = std.path.join(dir, name);
+					if (!.exists(dir)) {
+						mkdir(dir);
+						tempDirs ~= p;
+					}
+					std.file.write(p, xml);
+					tempFiles ~= p;
+				}
+			}
+		}
+		scope (exit) {
+			foreach (p; tempDirs) {
+				delAll(p);
+			}
+			foreach (p; tempFiles) {
+				delAll(p);
+			}
+		}
+
+		.cab(scenarioPath, cabName, (string file) {
+			return !fnmatch(getBaseName(file), "cwxeditor.lock");
+		});
+	}
+
+	/// ファイルシステム上に展開されなかったXMLデータ。
+	private string[string][string] _oldXMLs;
 }
 
 /// カードのみのシナリオデータ。
