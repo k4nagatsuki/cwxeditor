@@ -6,6 +6,7 @@ import cwx.usecounter;
 import cwx.utils;
 import cwx.skin;
 import cwx.sjis;
+import cwx.cab;
 
 import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.commons;
@@ -48,6 +49,7 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.ControlAdapter;
@@ -1004,6 +1006,8 @@ private:
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(menu, _prop.msgs.menuNewFolder, _prop.images.menuNewFolder, &createDirFiles);
 		new MenuItem(menu, SWT.SEPARATOR);
+		createMenuItem(menu, _prop.msgs.menuCreateArchive, _prop.images.menuCreateArchive, &createArchive);
+		new MenuItem(menu, SWT.SEPARATOR);
 		foreach (tool; _prop.var.etc.outerTools) {
 			new Exec(menu, tool);
 		}
@@ -1354,6 +1358,10 @@ private:
 		}
 		_comm.statusLine(_win, _prop.msgs.dirStatus(_files.getItemCount, size, selFiles));
 	}
+	Shell dlgParShl() {
+		if (_win && !_win.isDisposed) return _win.getShell;
+		return _comm.mainWin.shell.getShell;
+	}
 public:
 	this(Commons comm, Props prop, Composite parent) {
 		_prop = prop;
@@ -1420,6 +1428,8 @@ public:
 			new MenuItem(me, SWT.SEPARATOR);
 			createMenuItem(me, _prop.msgs.menuNewFolder, _prop.images.menuNewFolder, &__createDir);
 			new MenuItem(me, SWT.SEPARATOR);
+			createMenuItem(me, _prop.msgs.menuCreateArchive, _prop.images.menuCreateArchive, &createArchive);
+			new MenuItem(me, SWT.SEPARATOR);
 			appendMenuTCPD(_prop, me, this, true, true, true, true);
 
 			auto mv = createMenu(bar, _prop.msgs.menuView);
@@ -1434,6 +1444,7 @@ public:
 			putMenuAction(MenuID.Refresh, &__refresh);
 			putMenuAction(MenuID.OpenDirectory, &openDirectory);
 			putMenuAction(MenuID.NewFolder, &__createDir);
+			putMenuAction(MenuID.CreateArchive, &createArchive);
 			putMenuAction(MenuID.ChangeVH, &changeVHSide);
 		}
 		if (shell) {
@@ -1447,6 +1458,8 @@ public:
 			createToolItem(bar, _prop.msgs.ttReplacePath, _prop.images.menuReplacePath, &replace);
 			new ToolItem(bar, SWT.SEPARATOR);
 			createToolItem(bar, _prop.msgs.ttNewFolder, _prop.images.menuNewFolder, &__createDir);
+			new ToolItem(bar, SWT.SEPARATOR);
+			createToolItem(bar, _prop.msgs.ttCreateArchive, _prop.images.menuCreateArchive, &createArchive);
 			new ToolItem(bar, SWT.SEPARATOR);
 			createToolItem(bar, _prop.msgs.ttCut, _prop.images.menuCut, &cut);
 			createToolItem(bar, _prop.msgs.ttCopy, _prop.images.menuCopy, &copy);
@@ -1475,6 +1488,8 @@ public:
 
 			auto menu = new Menu(_win.getShell, SWT.POP_UP);
 			createMenuItem(menu, _prop.msgs.menuNewFolder, _prop.images.menuNewFolder, &createDirDirs);
+			new MenuItem(menu, SWT.SEPARATOR);
+			createMenuItem(menu, _prop.msgs.menuCreateArchive, _prop.images.menuCreateArchive, &createArchive);
 			new MenuItem(menu, SWT.SEPARATOR);
 			appendMenuTCPD(_prop, menu, this, true, true, true, true);
 			_dirs.setMenu(menu);
@@ -1704,6 +1719,66 @@ public:
 			_traceThr.join;
 		} catch (Throwable e) {
 			debugln(e);
+		}
+	}
+
+	void createArchive() {
+		if (!_summ) return;
+		auto dlg = new FileDialog(dlgParShl, SWT.APPLICATION_MODAL | SWT.SINGLE | SWT.SAVE);
+		int zip, cab, wsn;
+		if (canUncab) {
+			dlg.setFilterExtensions = ["*.zip", "*.cab", "*.wsn"];
+			zip = 0;
+			cab = 1;
+			wsn = 2;
+		} else {
+			dlg.setFilterExtensions = ["*.zip", "*.wsn"];
+			zip = 0;
+			cab = -1;
+			wsn = 1;
+		}
+		dlg.setFilterNames = _prop.msgs.filterArchive;
+		dlg.setText = _prop.msgs.dlgTitCreateArchive;
+		dlg.setFilterPath = _prop.var.etc.scenarioPath;
+		switch (_prop.var.etc.selectedArchiveFilter) {
+		case "cab":
+			if (!canUncab) {
+				goto default;
+			}
+			dlg.setFilterIndex = cab;
+			dlg.setFileName = addExt(_summ.scenarioName, "cab");
+			break;
+		case "wsn":
+			dlg.setFilterIndex = wsn;
+			dlg.setFileName = addExt(_summ.scenarioName, "wsn");
+			break;
+		default:
+			dlg.setFilterIndex = zip;
+			dlg.setFileName = addExt(_summ.scenarioName, "zip");
+			break;
+		}
+		dlg.setOverwrite = true;
+		string fname = dlg.open;
+		if (!fname) return;
+
+		try {
+			switch (dlg.getFilterIndex) {
+			case cab:
+				_summ.createCab(fname, _prop.var.etc.ignorePaths);
+				_prop.var.etc.selectedArchiveFilter = "cab";
+				break;
+			case wsn:
+				_summ.createZip(fname, _prop.var.etc.ignorePaths, false);
+				_prop.var.etc.selectedArchiveFilter = "wsn";
+				break;
+			default:
+				_summ.createZip(fname, _prop.var.etc.ignorePaths, true);
+				_prop.var.etc.selectedArchiveFilter = "zip";;
+				break;
+			}
+		} catch (Exception e) {
+			debugln(e);
+			_comm.statusLine(_win, _prop.msgs.failedCreateArchive);
 		}
 	}
 

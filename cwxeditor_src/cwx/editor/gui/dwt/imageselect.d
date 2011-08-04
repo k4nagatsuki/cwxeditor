@@ -250,7 +250,7 @@ private:
 			auto path = _msel.oldPath;
 			if (!isBinImg(path)) return;
 			ubyte[] bytes = strToBImg(path);
-			auto dlg = new FileDialog(_image.getShell, SWT.PRIMARY_MODAL | SWT.APPLICATION_MODAL | SWT.SINGLE | SWT.SAVE);
+			auto dlg = new FileDialog(_image.getShell, SWT.APPLICATION_MODAL | SWT.SINGLE | SWT.SAVE);
 			dlg.setFilterExtensions = ["*.bmp"];
 			dlg.setFilterNames = [_prop.msgs.filterBitmapImage];
 			dlg.setText = _prop.msgs.dlgTitSaveBitmapImage;

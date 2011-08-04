@@ -272,6 +272,7 @@ class Commons {
 		_cardWin = cardWin;
 		_dirWin = dirWin;
 	}
+	MainWindow mainWin() {return _main;}
 
 	void closeAll() {
 		foreach (w; _ws.toArray) {

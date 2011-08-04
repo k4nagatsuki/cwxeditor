@@ -78,7 +78,7 @@ void unzip(ZipArchive arc,
 }
 
 /// ファイルとしては存在しないデータをアーカイブ化する。
-ArchiveMember archive(string name, ubyte[] data, bool isDir) {
+ArchiveMember archive(string name, ubyte[] data, bool isDir, bool useSysEnc = false) {
 	if (data.length && isDir) throw new Exception("not directory");
 	name = std.array.replace(name, sep, "/");
 	static if (altsep.length) {
@@ -90,9 +90,17 @@ ArchiveMember archive(string name, ubyte[] data, bool isDir) {
 	// Attributes: Directory = 0x10, File = 0x20, ReadOnly = 0x01
 	am.externalAttributes = isDir ? 0x10 : 0x20;
 	am.internalAttributes = 1;
-	// ファイル名はUTF-8
-	am.name = name;
-	am.flags |= 0x800;
+	if (useSysEnc) {
+		version (Windows) {
+			am.name = tosjis(name);
+		} else {
+			am.name = name;
+		}
+	} else {
+		// ファイル名はUTF-8
+		am.flags |= 0x800;
+		am.name = name;
+	}
 	if (!isDir) am.expandedData = data;
 	return am;
 }
@@ -101,19 +109,16 @@ ArchiveMember archive(string name, ubyte[] data, bool isDir) {
 /// targがディレクトリの場合、topにtrueを指定すると
 /// targ自体もアーカイブに含める。
 /// Params:
-/// excludePath = 圧縮から除外するパスのリスト。
+/// ignorePath = このdelegeteがtrueを返したパスは除外される。
 /// useSysEnc = trueにするとファイル名にシステムの文字コードをそのまま使用する。
 ///             falseの場合はUTF-8を使用する。
-ZipArchive zip(string targ, bool top, string[] excludePath = [], bool useSysEnc = false) {
+ZipArchive zip(string targ, bool top, bool delegate(string path) ignorePath = null, bool useSysEnc = false) {
 	auto arc = new ZipArchive;
 	scope path = nabs(targ);
-	foreach (i, ex; excludePath) {
-		excludePath[i] = nabs(ex);
-	}
 	size_t cut;
 	void archive(string file) {
-		foreach (ex; excludePath) {
-			if (fnmatch(file, ex)) return;
+		if (ignorePath && ignorePath(file)) {
+			return;
 		}
 		if (isdir(file)) {
 			string[] list = clistdir(file);
@@ -164,9 +169,25 @@ ZipArchive zip(string targ, bool top, string[] excludePath = [], bool useSysEnc 
 	}
 	return arc;
 }
+ZipArchive zip(string targ, bool top, string[] excludePath = [], bool useSysEnc = false) {
+	foreach (i, ex; excludePath) {
+		excludePath[i] = nabs(ex);
+	}
+	return .zip(targ, top, (string path) {
+		return containsPath(excludePath, path);
+	}, useSysEnc);
+}
 
 /// targをzip圧縮し、パスzipに保存する。
-void zip(string targ, string zip, bool top, string[] excludePath = [], bool useSysEnc = false) {
-	scope arc = .zip(targ, top, excludePath);
+void zip(string targ, string zip, bool top, bool delegate(string path) ignorePath = null, bool useSysEnc = false) {
+	scope arc = .zip(targ, top, ignorePath);
 	std.file.write(zip, arc.build);
+}
+void zip(string targ, string zip, bool top, string[] excludePath = [], bool useSysEnc = false) {
+	foreach (i, ex; excludePath) {
+		excludePath[i] = nabs(ex);
+	}
+	.zip(targ, zip, top, (string path) {
+		return containsPath(excludePath, path);
+	}, useSysEnc);
 }

@@ -1588,14 +1588,17 @@ public:
 		}
 	}
 	/// データを保存せずにシナリオのフォルダのアーカイブを作成する。
-	void createZip(string zipName) {
+	void createZip(string zipName, in string[] ignorePaths, bool useSysEnc) {
 		auto lock = std.path.join(scenarioPath, "cwxeditor.lock");
-		scope arc = .zip(scenarioPath, false, [lock]);
+		auto arc = .zip(scenarioPath, true, (string file) {
+			return fnmatch(file, lock)
+				|| containsPath(ignorePaths, file.basename);
+		}, useSysEnc);
 		if (useTemp && !expandXMLs) {
 			foreach (path, files; _oldXMLs) {
 				foreach (name, xml; files) {
 					auto p = std.path.join(path, name);
-					arc.addMember(.archive(p, cast(ubyte[]) xml, false));
+					arc.addMember(.archive(p, cast(ubyte[]) xml, false, useSysEnc));
 				}
 			}
 		}
@@ -1603,7 +1606,7 @@ public:
 	}
 	/// データを保存せずにシナリオのフォルダのアーカイブを作成する。
 	/// 非展開のXMLファイルは一時的に展開される。
-	void createCab(string cabName) {
+	void createCab(string cabName, in string[] ignorePaths) {
 		string[] tempDirs;
 		string[] tempFiles;
 		if (useTemp && !expandXMLs) {
@@ -1630,7 +1633,8 @@ public:
 		}
 
 		.cab(scenarioPath, cabName, (string file) {
-			return !fnmatch(getBaseName(file), "cwxeditor.lock");
+			return fnmatch(getBaseName(file), "cwxeditor.lock")
+				|| containsPath(ignorePaths, file.basename);
 		});
 	}
 

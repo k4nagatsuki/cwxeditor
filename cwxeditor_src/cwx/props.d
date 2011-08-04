@@ -200,6 +200,10 @@ public:
 		return DIR ~ "を開く";
 	}
 	const string menuOpenDirectory() {return ttOpenDirectory ~ "(&O)";}
+	const string ttOpenFilePlace() {
+		return "ファイルの場所を開く";
+	}
+	const string menuOpenFilePlace() {return ttOpenFilePlace ~ "(&O)";}
 	const string ttSaveIncludeImage() {
 		return "格納イメージをファイルに保存";
 	}
@@ -2067,6 +2071,19 @@ public:
 	const string newFolder() {return ttNewFolder;}
 	const string ttReplacePath() {return "素材の差替え";}
 	const string menuReplacePath() {return ttReplacePath ~ "(&R)...";}
+	const string ttCreateArchive() {return "シナリオを圧縮";}
+	const string menuCreateArchive() {return ttCreateArchive ~ "(&A)...";}
+	const string[] filterArchive() {
+		string[] r;
+		r ~= "ZIP アーカイブ (*.zip)";
+		if (canUncab) {
+			r ~= "CAB アーカイブ (*.cab)";
+		}
+		r ~= "シナリオファイル (*.wsn)";
+		return r;
+	}
+	const string dlgTitCreateArchive() {return "シナリオの圧縮";}
+	const string failedCreateArchive() {return "シナリオの圧縮に失敗";}
 
 	/// エディタ設定ダイアログ。
 	const string baseSettings() {return "基本設定";}

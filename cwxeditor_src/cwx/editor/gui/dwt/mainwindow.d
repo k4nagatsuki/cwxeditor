@@ -192,7 +192,7 @@ private:
 				string zFile = std.path.join(parent, file);
 				if (!parent.exists) mkdirRecurse(parent);
 				synchronized (_saveSync) {
-					summ.createZip(zFile);
+					summ.createZip(zFile, [], true);
 				}
 			}
 
@@ -723,6 +723,8 @@ private:
 		mixin (MenuAction!("_menuFile", "Save", SWT.PUSH, "saveScenario"));
 		mixin (MenuAction!("_menuFile", "SaveA", SWT.PUSH, "saveScenarioA"));
 		new MenuItem(_menuFile, SWT.SEPARATOR);
+		mixin (MenuAction!("_menuFile", "CreateArchive", SWT.PUSH, "_dirWin.createArchive"));
+		new MenuItem(_menuFile, SWT.SEPARATOR);
 		mixin (MenuAction!("_menuFile", "Reload", SWT.PUSH, "reload"));
 		new MenuItem(_menuFile, SWT.SEPARATOR);
 		auto hists = _prop.var.etc.openHistories;
@@ -1180,6 +1182,8 @@ public:
 					mixin (ToolAction!("bar", "Open", SWT.PUSH, "openScenarioM"));
 					mixin (ToolAction!("bar", "Save", SWT.PUSH, "saveScenario"));
 					mixin (ToolAction!("bar", "SaveA", SWT.PUSH, "saveScenarioA"));
+					new ToolItem(bar, SWT.SEPARATOR);
+					mixin (ToolAction!("bar", "CreateArchive", SWT.PUSH, "_dirWin.createArchive"));
 					new ToolItem(bar, SWT.SEPARATOR);
 					mixin (ToolAction!("bar", "Reload", SWT.PUSH, "reload"));
 					createCoolItem(cbar, bar);

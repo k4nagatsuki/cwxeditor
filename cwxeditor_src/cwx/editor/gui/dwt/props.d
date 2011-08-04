@@ -424,6 +424,8 @@ public:
 	Image menuToScriptAll() {return imgd!(resourceDir ~ "script_all.png");}
 
 	Image menuImageList() {return imgd!(resourceDir ~ "img_list.png");}
+
+	Image menuCreateArchive() {return imgd!(resourceDir ~ "create_archive.png");}
 }
 
 enum MenuID : int {
@@ -509,7 +511,8 @@ enum MenuID : int {
 	ConvertContent,
 	Version,
 	ToScript,
-	ToScriptAll
+	ToScriptAll,
+	CreateArchive
 }
 
 public class Props {

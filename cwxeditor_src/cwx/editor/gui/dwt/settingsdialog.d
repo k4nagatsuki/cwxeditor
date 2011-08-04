@@ -393,6 +393,27 @@ private:
 			}
 		}
 	}
+	class OpenDir : SelectionAdapter {
+		private Text _text;
+		this (Text text) {_text = text;}
+		override void widgetSelected(SelectionEvent e) {
+			string file = _text.getText;
+			if (!cwx.utils.isabs(file)) {
+				file = std.path.join(_prop.parent.appPath.getDirName, file);
+			}
+			if (!.exists(file) || !isdir(file)) {
+				file = file.getDirName;
+			}
+			if (!.exists(file)) return;
+			openFolder(file);
+		}
+	}
+	void createOpenButton(Composite parent, Text path, bool dir) {
+		auto open = new Button(parent, SWT.PUSH);
+		open.setToolTipText = dir ? _prop.msgs.ttOpenDirectory : _prop.msgs.ttOpenFilePlace;
+		open.setImage = _prop.images.menuOpenDirectory;
+		open.addSelectionListener(new OpenDir(path));
+	}
 	void construct1(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout = new GridLayout(1, false);
@@ -402,7 +423,7 @@ private:
 		{
 			auto grp = new Group(comp, SWT.NONE);
 			grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-			grp.setLayout = new GridLayout(2, false);
+			grp.setLayout = new GridLayout(3, false);
 			grp.setText = _prop.msgs.enginePath(_prop.var.etc.engine);
 			_enginePath = new Text(grp, SWT.BORDER);
 			_enginePath.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
@@ -410,17 +431,18 @@ private:
 			auto refr = new Button(grp, SWT.PUSH);
 			refr.setText = _prop.msgs.reference;
 			refr.addSelectionListener(new SelEngine);
+			createOpenButton(grp, _enginePath, false);
 			auto l = new Label(grp, SWT.NONE);
 			l.setText = _prop.msgs.enginePathAtten;
 			auto gd = new GridData;
-			gd.horizontalSpan = 2;
+			gd.horizontalSpan = 3;
 			l.setLayoutData = gd;
 			setupDropFile(grp, _enginePath, &dropEngine);
 		}
 		{
 			auto grp = new Group(comp, SWT.NONE);
 			grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-			grp.setLayout = new GridLayout(2, false);
+			grp.setLayout = new GridLayout(3, false);
 			grp.setText = _prop.msgs.tempDir;
 			_tempDir = new Text(grp, SWT.BORDER);
 			_tempDir.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
@@ -428,6 +450,7 @@ private:
 			auto refr = new Button(grp, SWT.PUSH);
 			refr.setText = _prop.msgs.reference;
 			refr.addSelectionListener(new SelTemp);
+			createOpenButton(grp, _tempDir, true);
 			setupDropFile(grp, _tempDir, &dropDir);
 		}
 		{
@@ -473,7 +496,7 @@ private:
 				auto gd = new GridData(GridData.FILL_HORIZONTAL);
 				gd.horizontalSpan = 3;
 				comp2.setLayoutData = gd;;
-				comp2.setLayout = zeroMarginGridLayout(3, false);
+				comp2.setLayout = zeroMarginGridLayout(4, false);
 				auto l = new Label(comp2, SWT.NONE);
 				l.setText = _prop.msgs.backupPath;
 				_backupDir = new Text(comp2, SWT.BORDER);
@@ -482,6 +505,7 @@ private:
 				_backupRef = new Button(comp2, SWT.PUSH);
 				_backupRef.setText = _prop.msgs.reference;
 				_backupRef.addSelectionListener(new SelBackup);
+				createOpenButton(comp2, _backupDir, true);
 				setupDropFile(grp, _backupDir, &dropDir);
 			}
 		}
@@ -506,7 +530,7 @@ private:
 				{
 					auto grp = new Group(comp3, SWT.NONE);
 					grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-					grp.setLayout = new GridLayout(2, false);
+					grp.setLayout = new GridLayout(3, false);
 					grp.setText = _prop.msgs.wallpaper;
 					_wallpaper = new Text(grp, SWT.BORDER);
 					_wallpaper.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
@@ -514,6 +538,7 @@ private:
 					auto refr = new Button(grp, SWT.PUSH);
 					refr.setText = _prop.msgs.reference;
 					refr.addSelectionListener(new SelWallpaper);
+					createOpenButton(grp, _wallpaper, false);
 					setupDropFile(grp, _wallpaper, &dropWallpaper);
 				}
 			}
@@ -1067,13 +1092,13 @@ private:
 			{
 				auto comp2 = new Composite(right, SWT.NONE);
 				comp2.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				comp2.setLayout = zeroMarginGridLayout(3, false);
+				comp2.setLayout = zeroMarginGridLayout(4, false);
 				{
 					auto l = new Label(comp2, SWT.NONE);
 					l.setText = _prop.msgs.outerToolName;
 					_toolName = new Text(comp2, SWT.BORDER);
 					auto gd = new GridData(GridData.FILL_HORIZONTAL);
-					gd.horizontalSpan = 2;
+					gd.horizontalSpan = 3;
 					gd.widthHint = _prop.var.etc.outerToolsNameWidth;
 					_toolName.setLayoutData = gd;
 					_toolName.addModifyListener(new ModOutToolName);
@@ -1089,6 +1114,7 @@ private:
 					_toolCommandRef.setText = _prop.msgs.reference;
 					_toolCommandRef.addSelectionListener(new PushToolCmdRef);
 					_toolCommand.addModifyListener(new ModToolCmd);
+					createOpenButton(comp2, _toolCommand, false);
 					setupDropFile(_toolCommand, _toolCommand, &dropDefault);
 				}
 				{
@@ -1102,6 +1128,7 @@ private:
 					_toolWorkDirRef.setText = _prop.msgs.reference;
 					_toolWorkDirRef.addSelectionListener(new PushToolWorkDirRef);
 					_toolWorkDir.addModifyListener(new ModToolWorkDir);
+					createOpenButton(comp2, _toolWorkDir, true);
 					setupDropFile(_toolWorkDir, _toolWorkDir, &dropDir);
 				}
 				{
@@ -1114,17 +1141,17 @@ private:
 					auto hint1 = new Label(comp2, SWT.NONE);
 					hint1.setText = _prop.msgs.toolsHint1;
 					auto gd1 = new GridData;
-					gd1.horizontalSpan = 2;
+					gd1.horizontalSpan = 3;
 					hint1.setLayoutData = gd1;
 					auto hint2 = new Label(comp2, SWT.NONE);
 					hint2.setText = _prop.msgs.toolsHint2;
 					auto gd2 = new GridData;
-					gd2.horizontalSpan = 2;
+					gd2.horizontalSpan = 3;
 					hint2.setLayoutData = gd2;
 					auto hint3 = new Label(comp2, SWT.NONE);
 					hint3.setText = _prop.msgs.toolsHint3;
 					auto gd3 = new GridData;
-					gd3.horizontalSpan = 2;
+					gd3.horizontalSpan = 3;
 					hint3.setLayoutData = gd3;
 				}
 			}

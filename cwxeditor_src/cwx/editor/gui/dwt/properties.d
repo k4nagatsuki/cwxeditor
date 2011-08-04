@@ -705,6 +705,8 @@ class FlexEtcProps : Properties {
 	}
 	mixin Property!("ignorePaths", string[], [".*"]);
 
+	mixin Property!("selectedArchiveFilter", string, "zip");
+
 	mixin XMLFuncs!(FlexEtcProps);
 }
 
@@ -821,28 +823,23 @@ public class FlexProps {
 				this.tupleof[i] = newField(fld);
 			}
 		} else {
-			// 環境変数による初期化
 			foreach (i, fld; this.tupleof) {
 				this.tupleof[i] = newField(fld);
 			}
-			string env() {
-				string r = null;
-				r = cwx.utils.getenv("TEMP");
-				if (!r) {
-					r = cwx.utils.getenv("TMP");
-				}
-				if (!r) {
-					r = cwx.utils.getenv("TMPDIR");
-				}
-				return r;
-			}
-			string t = env;
-			if (t) t = std.path.join(t, "cwxeditor");
-			etc.tempPath = t ? t : "temp";
 
-			string b = env;
-			if (b) b = std.path.join(b, "cwxeditor_backup");
-			etc.backupPath = b ? b : "backup";
+			// この二つの設定だけは環境によって初期値が変わる
+			final switch (loc) {
+			case IniLocation.STANDARD, IniLocation.COPY:
+				dir = appDataDir(appPath);
+				dir = std.path.join(dir, "cwxeditor");
+				etc.tempPath = std.path.join(dir, "temp");
+				etc.backupPath = std.path.join(dir, "backup");
+				break;
+			case IniLocation.LOCAL:
+				etc.tempPath = "temp";
+				etc.backupPath = "backup";
+				break;
+			}
 		}
 	}
 	T fromNode(T)(ref XNode node, T t) {
