@@ -1633,8 +1633,8 @@ public:
 		}
 
 		.cab(scenarioPath, cabName, (string file) {
-			return fnmatch(getBaseName(file), "cwxeditor.lock")
-				|| containsPath(ignorePaths, file.basename);
+			return !fnmatch(getBaseName(file), "cwxeditor.lock")
+				&& !containsPath(ignorePaths, file.basename);
 		});
 	}
 

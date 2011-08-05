@@ -170,9 +170,9 @@ alias convTo!(CP.UNI, CP.SJIS) tounim;
 
 /// UTF-8文字列を0終端のShift JIS文字列に変換。
 const(char)* tosjisz(in char[] s) {
-	return (tosjis(s) ~ '\0').ptr;
+	return (tosjis(s.dup) ~ '\0').ptr;
 }
 /// ditto
 char* tosjismz(in char[] s) {
-	return (tosjism(s) ~ '\0').ptr;
+	return (tosjism(s.dup) ~ '\0').ptr;
 }

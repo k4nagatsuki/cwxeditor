@@ -1739,7 +1739,7 @@ public:
 		}
 		dlg.setFilterNames = _prop.msgs.filterArchive;
 		dlg.setText = _prop.msgs.dlgTitCreateArchive;
-		dlg.setFilterPath = _prop.var.etc.scenarioPath;
+		dlg.setFilterPath = getcwd;
 		switch (_prop.var.etc.selectedArchiveFilter) {
 		case "cab":
 			if (!canUncab) {
