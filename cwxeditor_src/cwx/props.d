@@ -1058,13 +1058,13 @@ public:
 		}
 	}
 	const string areasTabName(in Summary summ) {
-		return "エリア";
+		return "テーブル";
 	}
 	const string areasWindowName(in Summary summ) {
 		if (summ) {
-			return "エリア - [ " ~ summ.scenarioName ~ " ] - " ~ summ.scenarioPath;
+			return "テーブル - [ " ~ summ.scenarioName ~ " ] - " ~ summ.scenarioPath;
 		} else {
-			return "エリア";
+			return "テーブル";
 		}
 	}
 	const string areaStatus(in Area[] as, in Battle[] bs, in Package[] ps, in AbstractArea sel) {
