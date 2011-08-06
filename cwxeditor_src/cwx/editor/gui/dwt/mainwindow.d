@@ -1030,6 +1030,9 @@ public:
 
 			auto mv = createMenu(bar, _prop.msgs.menuView);
 			mixin (MenuAction!("mv", "DataWin", SWT.PUSH, "openDataWindow"));
+			if (_prop.var.etc.singleWindow) {
+				mixin (MenuAction!("mv", "FlagWin", SWT.PUSH, "openFlagWindow"));
+			}
 			mixin (MenuAction!("mv", "CardWin", SWT.PUSH, "openCardWindow"));
 			mixin (MenuAction!("mv", "DirWin", SWT.PUSH, "openDirWindow"));
 			if (_prop.var.etc.singleWindow) {
