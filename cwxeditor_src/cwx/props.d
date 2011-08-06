@@ -148,9 +148,9 @@ public:
 	const string seNone() {return "[サウンド無し]";}
 	const string bgmStop() {return "[BGM停止]";}
 	const string bgmNone() {return "[BGM無し]";}
-	const string dlgMsgIsSaveBeforeReload(string name) {return name ~ "は変更されています。再読込しますか？";}
-	const string reloadBeforeSaveError(string name) {return name ~ "は保存されていないため、再読込できません。";}
-	const string dlgMsgIsSaveBeforeExit(string name) {return name ~ "は変更されています。保存しますか？";}
+	const string dlgMsgIsSaveBeforeReload(string name) {return "「" ~ name ~ "」は変更されています。再読込しますか？";}
+	const string reloadBeforeSaveError(string name) {return "「" ~ name ~ "」は保存されていないため、再読込できません。";}
+	const string dlgMsgIsSaveBeforeExit(string name) {return "「" ~ name ~ "」は変更されています。保存しますか？";}
 	const string dlgMsgDropFiles(string[] paths) {
 		return (paths.length == 1 ? paths[0] : (to!(string)(paths.length) ~ "個のファイル"))
 			~ "をシナリオ" ~ DIR ~ "にコピーしますか？";
@@ -238,13 +238,13 @@ public:
 	const string menuToXML() {return ttToXML ~ "(&X)" ~ "";}
 
 	const string menuView() {return "表示(&V)";}
-	const string ttDataWin() {return "データウィンドウ";}
+	const string ttDataWin() {return "テーブルビュー";}
 	const string menuDataWin() {return ttDataWin ~ "(&D)";}
-	const string ttFlagWin() {return "状態変数ウィンドウ";}
+	const string ttFlagWin() {return "状態変数ビュー";}
 	const string menuFlagWin() {return ttFlagWin ~ "(&V)";}
-	const string ttCardWin() {return "カードウィンドウ";}
+	const string ttCardWin() {return "カードビュー";}
 	const string menuCardWin() {return ttCardWin ~ "(&W)";}
-	const string ttDirWin() {return "素材管理ウィンドウ";}
+	const string ttDirWin() {return "ファイルビュー";}
 	const string menuDirWin() {return ttDirWin ~ "(&F)";}
 
 	const string menuTools() {return "ツール(&T)";}
@@ -2084,7 +2084,7 @@ public:
 	}
 	const string dlgTitCreateArchive() {return "シナリオの圧縮";}
 	const string failedCreateArchive() {return "シナリオの圧縮に失敗";}
-	const string dlgMsgIsSaveBeforeCreateArchive(string name) {return name ~ "は変更されています。保存しますか？";}
+	const string dlgMsgIsSaveBeforeCreateArchive(string name) {return "「" ~ name ~ "」は変更されています。保存しますか？";}
 
 	/// エディタ設定ダイアログ。
 	const string baseSettings() {return "基本設定";}
