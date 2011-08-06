@@ -966,7 +966,7 @@ private:
 		}
 	}
 	void saveScenario() {
-		_comm.save.call(_win.getShell);
+		_comm.save.call(dlgParShl.getShell);
 	}
 	class Exec {
 		private OuterTool _tool;
@@ -1724,7 +1724,24 @@ public:
 
 	void createArchive() {
 		if (!_summ) return;
-		auto dlg = new FileDialog(dlgParShl, SWT.APPLICATION_MODAL | SWT.SINGLE | SWT.SAVE);
+		auto shl = dlgParShl.getShell;
+		if (_comm.isChanged) {
+			auto dlg = new MessageBox(shl, SWT.YES | SWT.NO | SWT.CANCEL | SWT.ICON_QUESTION);
+			dlg.setText = _prop.msgs.dlgTitQuestion;
+			dlg.setMessage = _prop.msgs.dlgMsgIsSaveBeforeCreateArchive(_summ.scenarioName);
+			shl.setMinimized = false;
+			switch (dlg.open) {
+			case SWT.YES, SWT.OK:
+				saveScenario();
+				break;
+			case SWT.NO:
+				break;
+			case SWT.CANCEL:
+				return;
+			default: assert (0);
+			}
+		}
+		auto dlg = new FileDialog(shl, SWT.APPLICATION_MODAL | SWT.SINGLE | SWT.SAVE);
 		int zip, cab, wsn;
 		if (canUncab) {
 			dlg.setFilterExtensions = ["*.zip", "*.cab", "*.wsn"];
@@ -1764,15 +1781,21 @@ public:
 		try {
 			switch (dlg.getFilterIndex) {
 			case cab:
-				_summ.createCab(fname, _prop.var.etc.ignorePaths);
+				synchronized (_comm.saveSync) {
+					_summ.createCab(fname, _prop.var.etc.ignorePaths);
+				}
 				_prop.var.etc.selectedArchiveFilter = "cab";
 				break;
 			case wsn:
-				_summ.createZip(fname, _prop.var.etc.ignorePaths, false);
+				synchronized (_comm.saveSync) {
+					_summ.createZip(fname, _prop.var.etc.ignorePaths, false);
+				}
 				_prop.var.etc.selectedArchiveFilter = "wsn";
 				break;
 			default:
-				_summ.createZip(fname, _prop.var.etc.ignorePaths, true);
+				synchronized (_comm.saveSync) {
+					_summ.createZip(fname, _prop.var.etc.ignorePaths, true);
+				}
 				_prop.var.etc.selectedArchiveFilter = "zip";;
 				break;
 			}

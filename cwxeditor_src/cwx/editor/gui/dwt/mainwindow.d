@@ -516,7 +516,7 @@ private:
 	}
 
 	bool qSave(bool reload = false) {
-		if (summary && (summary.isChanged || _dirWin.isChanged)) {
+		if (_comm.isChanged) {
 			MessageBox dlg;
 			if (reload) {
 				dlg = new MessageBox(_win, SWT.OK | SWT.CANCEL | SWT.ICON_QUESTION);

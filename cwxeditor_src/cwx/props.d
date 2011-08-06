@@ -1237,9 +1237,9 @@ public:
 
 	/// エリア・戦闘・パッケージウィンドウ。
 	const string ttUp() {return "上へ";}
-	const string menuUp() {return ttUp ~ "(&U)" ~ "\tCtrl+Arrow_Up";}
+	const string menuUp() {return ttUp ~ "(&U)" ~ "\tCtrl+U";}
 	const string ttDown() {return "下へ";}
-	const string menuDown() {return ttDown ~ "(&D)" ~ "\tCtrl+Arrow_Down";}
+	const string menuDown() {return ttDown ~ "(&D)" ~ "\tCtrl+D";}
 	const string menuCardsAndBacks() {return "カードと背景" ~ "(&A)";}
 	const string ttViewParty() {return "パーティカードの表示";}
 	const string menuViewParty() {return ttViewParty ~ "(&P)";}
@@ -2084,6 +2084,7 @@ public:
 	}
 	const string dlgTitCreateArchive() {return "シナリオの圧縮";}
 	const string failedCreateArchive() {return "シナリオの圧縮に失敗";}
+	const string dlgMsgIsSaveBeforeCreateArchive(string name) {return name ~ "は変更されています。保存しますか？";}
 
 	/// エディタ設定ダイアログ。
 	const string baseSettings() {return "基本設定";}

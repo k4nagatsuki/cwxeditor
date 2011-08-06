@@ -273,6 +273,17 @@ class Commons {
 		_dirWin = dirWin;
 	}
 	MainWindow mainWin() {return _main;}
+	
+
+	bool isChanged() {
+		Summary summ;
+		if (_dataWin) {
+			summ = _dataWin.summary;
+		} else {
+			summ = _tableWin.summary;
+		}
+		return summ && (summ.isChanged || _dirWin.isChanged);
+	}
 
 	void closeAll() {
 		foreach (w; _ws.toArray) {
