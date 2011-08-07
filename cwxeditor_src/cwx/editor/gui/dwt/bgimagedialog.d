@@ -126,12 +126,16 @@ private:
 			auto ws = sash.getWeights;
 			_prop.var.etc.backSashL = ws[0];
 			_prop.var.etc.backSashR = ws[1];
-			_comm.delBgImage.remove(&delBgImage);
 		}
 	}
 	void delBgImage(string cwxPath) {
 		if (_back && _back.cwxPath == cwxPath) {
 			forceCancel();
+		}
+	}
+	class Dispose : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			_comm.delBgImage.remove(&delBgImage);
 		}
 	}
 public:
@@ -261,7 +265,9 @@ protected:
 				itm.setData = flag;
 			}
 		}
+		area.addDisposeListener(new Dispose);
 		_comm.delBgImage.add(&delBgImage);
+
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		if (_back) {

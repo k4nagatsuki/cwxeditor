@@ -4,6 +4,7 @@ module cwx.editor.gui.dwt.areaview;
 import cwx.utils;
 import cwx.area;
 import cwx.card;
+import cwx.flag;
 import cwx.summary;
 import cwx.background;
 import cwx.props;
@@ -32,6 +33,7 @@ import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.jpyimage;
 
+import std.algorithm;
 import std.math;
 import std.path;
 import std.file;
@@ -124,10 +126,11 @@ private Spinner createSpinner(ToolBar bar, string label, int max, int min, int s
 	return spn;
 }
 
-private void createToolItemC(ToolBar bar, Control c) {
+private ToolItem createToolItemC(ToolBar bar, Control c) {
 	auto ti = new ToolItem(bar, SWT.SEPARATOR);
 	ti.setControl(c);
 	ti.setWidth(c.computeSize(SWT.DEFAULT, SWT.DEFAULT).x);
+	return ti;
 }
 
 class AbstractAreaView(A, C, bool UseCards, bool UseBacks) : Composite, TCPD {
@@ -547,6 +550,8 @@ private:
 
 	ImagePane imagePane() {return _imgp;}
 	Spinner _xSpn, _ySpn;
+	CCombo _flag = null;
+	ToolItem _flagItm = null;
 	static if (UseCards) {
 		bool _viewCards = true;
 		C[PileImage] _cardTbl;
@@ -1162,8 +1167,32 @@ private:
 	}
 
 	void refreshControls() {
+		string f = null;
+		if (_flag) _flag.setText = _flag.getItem(0);
+		void flag(string f2) {
+			if (!_flag) return;
+			if (!f) {
+				f = f2;
+				if ("" != f2) {
+					_flag.setText = f2;
+				}
+			} else if (f != f2) {
+				_flag.setText = "";
+			}
+		}
+		static if (UseCards) {
+			foreach (c; _editC.keys) {
+				flag(c.flag);
+			}
+		}
+		static if (UseBacks) {
+			foreach (b; _editB.keys) {
+				flag(b.flag);
+			}
+		}
 		static if (UseCards && UseBacks) {
-			_xSpn.setEnabled = _editC.length > 0 || _editB.length > 0;
+			if (_flag) _flag.setEnabled = _editC.length || _editB.length;
+			_xSpn.setEnabled = _editC.length || _editB.length;
 			_ySpn.setEnabled = _xSpn.getEnabled;
 			_wSpn.setEnabled = _editB.length > 0;
 			_hSpn.setEnabled = _wSpn.getEnabled;
@@ -1210,6 +1239,7 @@ private:
 			}
 			statusLine = _prop.msgs.areaViewStatus(_summ, cast(AbstractSpCard[]) _editC.keys, _editB.keys, _summ !is null);
 		} else static if (UseCards) {
+			if (_flag) _flag.setEnabled = _editC.length > 0;
 			bool enbl = _editC.length > 0;
 			_xSpn.setEnabled = enbl;
 			_ySpn.setEnabled = enbl;
@@ -1236,6 +1266,7 @@ private:
 			}
 			statusLine = _prop.msgs.areaViewStatus(_summ, cast(AbstractSpCard[]) _editC.keys, cast(BgImage[]) [], _summ !is null);
 		} else static if (UseBacks) {
+			if (_flag) _flag.setEnabled = _editB.length > 0;
 			bool enbl = _editB.length > 0;
 			_xSpn.setEnabled = enbl;
 			_ySpn.setEnabled = enbl;
@@ -2019,7 +2050,7 @@ public:
 				itm.setText(column, "");
 			} else {
 				string mt = combo.getText;
-				if (mt.startsWith("/")) {
+				if (std.string.startsWith(mt, "/")) {
 					mt = mt["/".length .. $];
 				}
 				b.path = mt;
@@ -2294,6 +2325,55 @@ public:
 			createToolItemC(bar, files);
 			_bgm.createPlayToolItem(bar);
 			_bgm.path = _area.music;
+		}
+		if (_summ) {
+			_flag = new CCombo(bar, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
+			_flag.setVisibleItemCount = 20;
+			_flag.add(_prop.msgs.noFlag);
+			_flagItm = createToolItemC(bar, _flag);
+			_flagItm.setWidth = max(_flagItm.getWidth, _prop.var.etc.flagsWidth);
+			refreshFlag();
+			_flag.addSelectionListener(new SelFlag);
+			_comm.refFlag.add(&refFlag);
+			_comm.delFlag.add(&refFlag);
+			_flag.addDisposeListener(new FlagsDispose);
+		}
+	}
+	private class FlagsDispose : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			_comm.refFlag.remove(&refFlag);
+			_comm.delFlag.remove(&refFlag);
+		}
+	}
+	private class SelFlag : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			int index = _flag.getSelectionIndex;
+			string flag = index <= 0 ? "" : _flag.getText;
+			static if (UseCards) {
+				foreach (c; _editC.keys) {
+					c.flag = flag;
+				}
+			}
+			static if (UseBacks) {
+				foreach (b; _editB.keys) {
+					b.flag = flag;
+				}
+			}
+		}
+	}
+	private void refFlag(Flag flag) {
+		refreshFlag();
+	}
+	private void refreshFlag() {
+		if (!_flag) return;
+		string f = _flag.getText;
+		_flag.removeAll();
+		_flag.add(_prop.msgs.noFlag);
+		_flag.select = 0;
+		foreach (i, fl; _summ.flagDirRoot.allFlags) {
+			auto path = fl.path;
+			_flag.add(path);
+			if (path == f) _flag.setText = path;
 		}
 	}
 
