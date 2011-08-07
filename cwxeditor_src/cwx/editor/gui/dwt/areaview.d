@@ -421,6 +421,7 @@ private:
 				_bs = bs;
 			}
 			refreshPanel;
+			refreshControls;
 			_comm.refUseCount.call;
 		}
 		override void undo() {

@@ -1,2 +1,2 @@
-Version.1.00.4
+Version.1.00.5
 http://bitbucket.org/k4nagatsuki/cwxeditor/
