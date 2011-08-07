@@ -488,6 +488,8 @@ private:
 			return _prop.images.bgm;
 		} else if (img is _prop.images.se || img is _sImgSe) {
 			return _prop.images.se;
+		} else if (img is _prop.images.text || img is _sImgText) {
+			return _prop.images.text;
 		} else if (img is _prop.images.unknown || img is _sImgUnknown) {
 			return _prop.images.unknown;
 		}
@@ -504,6 +506,8 @@ private:
 			return _sImgBgm;
 		} else if (img is _prop.images.se || img is _sImgSe) {
 			return _sImgSe;
+		} else if (img is _prop.images.text || img is _sImgText) {
+			return _sImgText;
 		} else if (img is _prop.images.unknown || img is _sImgUnknown) {
 			return _sImgUnknown;
 		}
@@ -518,6 +522,8 @@ private:
 			return _prop.images.bgm;
 		} else if (skin.isSE(file)) {
 			return _prop.images.se;
+		} else if (fnmatch(file.getExt, "txt")) {
+			return _prop.images.text;
 		} else {
 			return _prop.images.unknown;
 		}
@@ -554,6 +560,8 @@ private:
 			return _sImgBgm;
 		} else if (skin.isSE(file)) {
 			return _sImgSe;
+		} else if (fnmatch(file.getExt, "txt")) {
+			return _sImgText;
 		} else {
 			return _sImgUnknown;
 		}
@@ -597,6 +605,8 @@ private:
 						}
 					}
 					assert (0);
+				} else {
+					Program.launch(path);
 				}
 			}
 		}
@@ -828,7 +838,7 @@ private:
 	TableSorter!(FileNameObj) _sortCount;
 
 	HashSet!(string) _cuts;
-	Image _sImgFolder, _sImgCards, _sImgBacks, _sImgBgm, _sImgSe, _sImgUnknown;
+	Image _sImgFolder, _sImgCards, _sImgBacks, _sImgBgm, _sImgSe, _sImgText, _sImgUnknown;
 
 	Props _prop;
 	Summary _summ = null;
@@ -1100,6 +1110,7 @@ private:
 			_sImgBacks.dispose;
 			_sImgBgm.dispose;
 			_sImgSe.dispose;
+			_sImgText.dispose;
 			_sImgUnknown.dispose;
 		}
 	}
@@ -1411,6 +1422,7 @@ public:
 		_sImgBacks = skeletonImage(_prop.images.backs);
 		_sImgBgm = skeletonImage(_prop.images.bgm);
 		_sImgSe = skeletonImage(_prop.images.se);
+		_sImgText = skeletonImage(_prop.images.text);
 		_sImgUnknown = skeletonImage(_prop.images.unknown);
 		_win.addDisposeListener(new DListener);
 		if (shell) {
@@ -1686,7 +1698,6 @@ public:
 	}
 	bool select(string path) {
 		try {
-			debugln(path);
 			if (.exists(path)) {
 				path = nabs(path);
 				auto isdir = .isdir(path);
@@ -1708,7 +1719,9 @@ public:
 					return true;
 				}
 			}
-		} catch {}
+		} catch (Exception e) {
+			debugln(e);
+		}
 		return false;
 	}
 

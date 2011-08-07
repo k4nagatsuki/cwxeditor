@@ -1472,7 +1472,7 @@ public:
 	private void newInfo() {mixin (NewCard!("Info"));}
 	private void newBeast() {mixin (NewCard!("Beast"));}
 	private void versionInfo() {
-		(new VersionDialog(_prop, _win)).open;
+		(new VersionDialog(_prop, _win)).open();
 	}
 
 	private HashSet!(MenuID) _noSummMenu;
@@ -1889,7 +1889,7 @@ private:
 	}
 public:
 	this(Props prop, Shell shell) {
-		super(prop, shell, prop.msgs.dlgTitVersion, prop.images.menuVersion, false, null, false, false);
+		super(prop, shell, true, prop.msgs.dlgTitVersion, prop.images.menuVersion, false, null, false, false);
 		_prop = prop;
 		enterClose = true;
 		firstFocusIsOK = true;
@@ -1913,8 +1913,10 @@ protected:
 		ln.setText = _prop.msgs.application ~ " / " ~ _prop.msgs.appVersion ~ "\n"
 			~ "<a>" ~ _prop.msgs.appWebSiteURI ~ "</a>\n"
 			~ _prop.msgs.appDesc;
+		ln.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		ln.addSelectionListener(new OpenLink);
-		auto lb = new Label(area, SWT.NONE);
-		lb.setText = _prop.msgs.appBuild;
+		auto build = new Text(area, SWT.READ_ONLY | SWT.BORDER);
+		build.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+		build.setText = _prop.msgs.appBuild;
 	}
 }

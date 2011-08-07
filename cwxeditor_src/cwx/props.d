@@ -1382,6 +1382,8 @@ public:
 	const string dlgTitNewEnemyCard() {return "エネミーカードの作成";}
 	const string stopBGM(string playingFile) {return getBaseName(playingFile) ~ "の再生を停止";}
 	const string playBGM() {return "再生";}
+	const string menuStopBGM(string playingFile) {return stopBGM(playingFile) ~ "(&P)";}
+	const string menuPlayBGM() {return playBGM ~ "(&P)";}
 
 	/// イベントビュー。
 	const string tools() {return "イベントコンテント";}
@@ -2017,6 +2019,8 @@ public:
 	const string soundNone() {return "[効果音無し]";}
 	const string stopSound() {return "停止";}
 	const string playSound() {return "再生";}
+	const string menuStopSound() {return stopSound ~ "(&S)";}
+	const string menuPlaySound() {return playSound ~ "(&P)";}
 	const string keyCodes() {return "イベント発火のキーコード";}
 
 	const string warningEffectTypeNone() {
@@ -2170,6 +2174,9 @@ public:
 	const string bgImagesDefault() {return "デフォルト背景";}
 	const string setBgImagesDefault() {return "デフォルト背景の設定...";}
 	const string dlgTitBgImagesDefault() {return "デフォルト背景の設定";}
+
+	const string ttOpenFileView() {return "ファイルビューで開く";}
+	const string menuOpenFileView() {return ttOpenFileView ~ "(&F)";}
 
 	/// スクリプト関係。
 	const string ttToScript() {return "スクリプトに変換してコピー";}

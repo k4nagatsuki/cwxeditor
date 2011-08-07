@@ -23,6 +23,7 @@ import std.array;
 import std.exception;
 import std.traits;
 import std.stdint;
+import std.stream;
 
 private version (Windows) {
 	import std.c.stdio;
@@ -64,15 +65,16 @@ private version (Windows) {
 	import std.loader;
 }
 
-string LATEST_VERSION = "";
+shared string LATEST_VERSION = "";
 
-string debugLog = "cwxeditor_error.log";
+shared string debugLog = "cwxeditor_error.log";
+private __gshared BufferedFile debugLogFile = null;
 
 /// デバグログに文字列を出力する。
-void fdebugln(string File = __FILE__, size_t Line = __LINE__, T ...)(T vals) {
+shared void fdebugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) {
 	try {
 		synchronized {
-			char[] buf = format("%s:%d ", File, Line).dup;
+			char[] buf = format("%s:%d ", F, L).dup;
 			foreach (v; vals) {
 				static if (is(typeof(v.msg)) && is(typeof(v.file)) && is(typeof(v.line))) {
 					buf ~= format("%s, %s, %d", v.msg, v.file, v.line);
@@ -95,17 +97,27 @@ void fdebugln(string File = __FILE__, size_t Line = __LINE__, T ...)(T vals) {
 			int hour = d.hour;
 			int min = d.minute;
 			int second = d.second;
-			std.file.append(debugLog,
-				format("%04d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, min, second)
-				~ "\t" ~ buf ~ linesep);
+			buf = format("%04d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, min, second)
+				~ "\t" ~ buf;
+			string log = assumeUnique(buf);
+			if (!debugLogFile) {
+				debugLogFile = new typeof(debugLogFile)(debugLog, FileMode.Append);
+			}
+			debugLogFile.writeLine(log);
+			debugLogFile.flush();
 		}
 	} catch {}
 }
+shared static ~this () {
+	synchronized {
+		if (debugLogFile) debugLogFile.close();
+	}
+}
 /// debugコンパイルされている際は デバグログに文字列を出力すると
 /// 共にfdebugln()を呼出し、ファイル出力する。
-void debugln(string File = __FILE__, size_t Line = __LINE__, T ...)(T vals) {
+void debugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) {
 	debug {
-		fdebugln!(File, Line, T)(vals);
+		fdebugln!(F, L, T)(vals);
 	}
 }
 
@@ -1054,11 +1066,11 @@ private int ncmpImpl(C1, C2, alias Cmp)(in C1[] a, in C2[] b) {
 		if (i >= a.length) return -1;
 		if (j >= b.length) return 1;
 		C1[] buf1;
-		for (size_t k = i; k < a.length && isdigit(a[k]); k++) {
+		for (size_t k = i; k < a.length && std.ctype.isdigit(a[k]); k++) {
 			buf1 ~= a[k];
 		}
 		C2[] buf2;
-		for (size_t k = j; k < b.length && isdigit(b[k]); k++) {
+		for (size_t k = j; k < b.length && std.ctype.isdigit(b[k]); k++) {
 			buf2 ~= b[k];
 		}
 		if (buf1.length && buf2.length) {

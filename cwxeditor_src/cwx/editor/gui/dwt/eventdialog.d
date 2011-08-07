@@ -646,50 +646,8 @@ protected:
 /// BGMイベントの設定を行うダイアログ。
 class BgmDialog : EventDialog {
 private:
-	MaterialSelect!(MtType.BGM, Combo, List) _msel;
-	Button _play;
-	string _playing;
+	MaterialSelect!(MtType.BGM, Combo, Table) _msel;
 
-	class PlayBGM : SelectionAdapter, KeyListener, MouseListener {
-		private void play() {
-			if (_play.getSelection) {
-				auto path = _msel.filePath;
-				if (path.length > 0) {
-					_play.setToolTipText = _prop.msgs.stopBGM(getBaseName(path));
-					_play.setImage = _prop.images.stopBGM;
-					_playing = path;
-					playBGMCW(_prop, path, _summ.legacy);
-				} else {
-					_play.setSelection = false;
-					_playing = null;
-				}
-			} else {
-				stopBGM;
-				_play.setToolTipText = _prop.msgs.playBGM;
-				_play.setImage = _prop.images.playBGM;
-			}
-		}
-		override void mouseUp(MouseEvent e) {}
-		override void mouseDown(MouseEvent e) {}
-		override void mouseDoubleClick(MouseEvent e) {
-			if (e.button == 1) {
-				auto path = _msel.filePath;
-				_play.setSelection = path != _playing;
-				play;
-			}
-		}
-		override void keyReleased(KeyEvent e) {}
-		override void keyPressed(KeyEvent e) {
-			if (e.character == SWT.CR) {
-				auto path = _msel.filePath;
-				_play.setSelection = path != _playing;
-				play;
-			}
-		}
-		override void widgetSelected(SelectionEvent e) {
-			play;
-		}
-	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
 		super (comm, prop, shell, summ, CType.PLAY_BGM, parent, evt, true, prop.var.soundEvtDlg, true);
@@ -699,18 +657,12 @@ protected:
 		area.setLayout = new GridLayout(4, false);
 		{
 			auto skin = _comm.skin;
-			_msel = new MaterialSelect!(MtType.BGM, Combo, List)
+			_msel = new MaterialSelect!(MtType.BGM, Combo, Table)
 				(_comm, _prop, _summ, null, [_prop.msgs.bgmStop]);
 			_msel.createDirsCombo(area).setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			mod(_msel);
 
-			_play = new Button(area, SWT.TOGGLE);
-			_play.setLayoutData = new GridData;
-			_play.setToolTipText = _prop.msgs.playBGM;
-			_play.setImage = _prop.images.playBGM;
-			auto pbgm = new PlayBGM;
-			_play.addSelectionListener(pbgm);
-			_play.addDisposeListener(new StopBGM);
+			_msel.createPlayButton(area).setLayoutData = new GridData;
 			_msel.createRefreshButton(area, false).setLayoutData = new GridData;
 			_msel.createDirectoryButton(area, false).setLayoutData = new GridData;
 
@@ -720,8 +672,6 @@ protected:
 			gd.heightHint = _prop.var.etc.nameTableHeight;
 			auto list = _msel.createFileList(area);
 			list.setLayoutData = gd;
-			list.addMouseListener(pbgm);
-			list.addKeyListener(pbgm);
 		}
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
@@ -738,32 +688,8 @@ protected:
 /// 効果音イベントの設定を行うダイアログ。
 class SeDialog : EventDialog {
 private:
-	MaterialSelect!(MtType.SE, Combo, List) _msel;
+	MaterialSelect!(MtType.SE, Combo, Table) _msel;
 
-	class PlaySE : SelectionAdapter, KeyListener, MouseListener {
-		private void play() {
-			auto path = _msel.filePath;
-			if (path.length > 0) {
-				playSECW(_prop, path, _summ.legacy);
-			}
-		}
-		override void mouseUp(MouseEvent e) {}
-		override void mouseDown(MouseEvent e) {}
-		override void mouseDoubleClick(MouseEvent e) {
-			if (e.button == 1) {
-				play;
-			}
-		}
-		override void keyReleased(KeyEvent e) {}
-		override void keyPressed(KeyEvent e) {
-			if (e.character == SWT.CR) {
-				play;
-			}
-		}
-		override void widgetSelected(SelectionEvent e) {
-			play;
-		}
-	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
 		super (comm, prop, shell, summ, CType.PLAY_SOUND, parent, evt, true, prop.var.soundEvtDlg, true);
@@ -773,23 +699,13 @@ protected:
 		area.setLayout = new GridLayout(5, false);
 		{
 			auto skin = _comm.skin;
-			_msel = new MaterialSelect!(MtType.SE, Combo, List)
+			_msel = new MaterialSelect!(MtType.SE, Combo, Table)
 				(_comm, _prop, _summ, null, []);
 			_msel.createDirsCombo(area).setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			mod(_msel);
 
-			auto stop = new Button(area, SWT.PUSH);
-			stop.setLayoutData = new GridData;
-			stop.setToolTipText = _prop.msgs.stopSound;
-			stop.setImage = _prop.images.stopSound;
-			auto sse = new StopSE;
-			stop.addSelectionListener(sse);
-			stop.addDisposeListener(sse);
-			auto play = new Button(area, SWT.PUSH);
-			play.setToolTipText = _prop.msgs.playSound;
-			play.setImage = _prop.images.playSound;
-			auto pse = new PlaySE;
-			play.addSelectionListener(pse);
+			_msel.createStopButton(area).setLayoutData = new GridData;
+			_msel.createPlayButton(area).setLayoutData = new GridData;
 			_msel.createRefreshButton(area, false).setLayoutData = new GridData;
 			_msel.createDirectoryButton(area, false).setLayoutData = new GridData;
 
@@ -799,8 +715,6 @@ protected:
 			gd.heightHint = _prop.var.etc.nameTableHeight;
 			auto list = _msel.createFileList(area);
 			list.setLayoutData = gd;
-			list.addKeyListener(pse);
-			list.addMouseListener(pse);
 		}
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;

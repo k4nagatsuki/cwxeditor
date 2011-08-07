@@ -21,7 +21,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.List;
+import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Button;
@@ -42,7 +42,7 @@ import org.eclipse.swt.dnd.DropTargetAdapter;
 public:
 
 /// 画像の選択を行うペイン。
-class ImageSelect(MtType Type, C : Control = List) {
+class ImageSelect(MtType Type, C : Control = Table) {
 	/// パスの変更時に呼び出される。
 	void delegate()[] modEvent;
 public:
@@ -73,7 +73,7 @@ public:
 		_w = w;
 		_h = h;
 		_saveName = saveName;
-		static if (is(C == List)) {
+		static if (is(C == Table)) {
 			// 背景イメージ選択等
 			auto group = new Group(parent, style);
 			group.setText = prop.msgs.image;

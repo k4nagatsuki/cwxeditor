@@ -59,6 +59,8 @@ public:
 	Image menuVersion() {return imgd!(resourceDir ~ "version.png");}
 	Image icon() {return imgd!("cwxeditor.ico");}
 
+	Image text() {return imgd!(resourceDir ~ "text.png");}
+
 	Image warning() {return imgd!(resourceDir ~ "warning.png");}
 
 	Image summary() {return imgd!(resourceDir ~ "summary.png");}
@@ -426,6 +428,8 @@ public:
 	Image menuImageList() {return imgd!(resourceDir ~ "img_list.png");}
 
 	Image menuCreateArchive() {return imgd!(resourceDir ~ "create_archive.png");}
+
+	Image menuOpenFileView() {return imgd!(resourceDir ~ "open_fileview.png");}
 }
 
 enum MenuID : int {
@@ -512,7 +516,8 @@ enum MenuID : int {
 	Version,
 	ToScript,
 	ToScriptAll,
-	CreateArchive
+	CreateArchive,
+	OpenFileView
 }
 
 public class Props {

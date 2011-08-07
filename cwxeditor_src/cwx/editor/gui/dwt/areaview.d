@@ -525,7 +525,6 @@ private:
 	}
 	static if (is (C == EnemyCard)) {
 		ToolItem _escTMenu;
-		ToolItem _bgmTMenu;
 		MaterialSelect!(MtType.BGM, CCombo, CCombo) _bgm;
 		void setEscape() {
 			_undo ~= new UndoEdit;
@@ -539,22 +538,6 @@ private:
 			_area.music = _bgm.path;
 			_comm.refUseCount.call;
 			callModEvent();
-		}
-		void __playBGM() {
-			if (_bgmTMenu.getSelection) {
-				string path = _bgm.filePath;
-				if (path.length > 0) {
-					_bgmTMenu.setToolTipText = _prop.msgs.stopBGM(path);
-					_bgmTMenu.setImage = _prop.images.stopBGM;
-					playBGMCW(_prop, path, _summ.legacy);
-				} else {
-					_bgmTMenu.setSelection = false;
-				}
-			} else {
-				_bgmTMenu.setToolTipText = _prop.msgs.playBGM;
-				_bgmTMenu.setImage = _prop.images.playBGM;
-				stopBGM;
-			}
 		}
 	}
 
@@ -2293,8 +2276,7 @@ public:
 			createToolItemC(bar, dirs);
 			auto files = _bgm.createFileList(bar);
 			createToolItemC(bar, files);
-			_bgmTMenu = createToolItem(bar, _prop.msgs.playBGM, _prop.images.playBGM, &__playBGM, SWT.CHECK);
-			_bgmTMenu.addDisposeListener(new StopBGM);
+			_bgm.createPlayToolItem(bar);
 			_bgm.path = _area.music;
 		}
 	}

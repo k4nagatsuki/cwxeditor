@@ -5,11 +5,13 @@ import cwx.cwl;
 import cwx.utils;
 import cwx.summary;
 import cwx.skin;
+import cwx.editor.gui.sound;
 import cwx.editor.gui.dwt.props;
 import cwx.editor.gui.dwt.utils;
 import cwx.editor.gui.dwt.skin;
 import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.commons;
+import cwx.editor.gui.dwt.customtable;
 
 import std.array;
 import std.file;
@@ -23,13 +25,23 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Combo;
-import org.eclipse.swt.widgets.List;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.MessageBox;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.events.MouseListener;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.KeyListener;
+import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.DisposeListener;
@@ -89,8 +101,9 @@ public:
 		return _dirs;
 	}
 	C createFileList(Composite parent) {
-		static if (is (C == List)) {
-			_fileList = new C(parent, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
+		static if (is (C == Table)) {
+			_fileList = new C(parent, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL | SWT.SINGLE | SWT.FULL_SELECTION);
+			new FullTableColumn(_fileList, SWT.NONE);
 		} else static if (is (C == Combo)) {
 			_fileList = new C(parent, SWT.BORDER | SWT.READ_ONLY | SWT.DROP_DOWN);
 			_fileList.setVisibleItemCount = 20;
@@ -101,6 +114,33 @@ public:
 			static assert (0);
 		}
 		_fileList.addSelectionListener(new LSListener);
+		static if (is (C == Table)) {
+			static if (Type == MtType.BGM || Type == MtType.SE) {
+				auto play = new Play;
+				_fileList.addMouseListener(play);
+				_fileList.addKeyListener(play);
+				static if (Type == MtType.BGM) {
+					_fileList.addDisposeListener(new StopBGM);
+				} else static if (Type == MtType.SE) {
+					_fileList.addDisposeListener(new StopSE);
+				} else static assert (0);
+			} else {
+				auto open = new OpenMaterial;
+				_fileList.addMouseListener(open);
+				_fileList.addKeyListener(open);
+			}
+		}
+		auto menu = new Menu(_fileList.getShell, SWT.POP_UP);
+		createMenuItem(menu, _prop.msgs.menuOpenFileView, _prop.images.menuOpenFileView, &openFilePath);
+		static if (Type == MtType.BGM) {
+			new MenuItem(menu, SWT.SEPARATOR);
+			_bgmMenu = createMenuItem(menu, _prop.msgs.menuPlayBGM, _prop.images.playBGM, &playBGM);
+		} else static if (Type == MtType.SE) {
+			new MenuItem(menu, SWT.SEPARATOR);
+			createMenuItem(menu, _prop.msgs.menuPlaySound, _prop.images.playSound, &playSE);
+			createMenuItem(menu, _prop.msgs.menuStopSound, _prop.images.stopSound, &stopSE);
+		}
+		_fileList.setMenu = menu;
 		new class(_fileList) FileDropTarget {
 			this(Control c) {
 				super(c);
@@ -138,6 +178,132 @@ public:
 		};
 		return _fileList;
 	}
+	static if (Type == MtType.BGM) {
+		private MenuItem _bgmMenu;
+		private ToolItem _bgmTMenu;
+		private Button _bgmBtn;
+		string _playing;
+		void createPlayToolItem(ToolBar bar) {
+			_bgmTMenu = createToolItem(bar, _prop.msgs.playBGM, _prop.images.playBGM, &playBGM, SWT.CHECK);
+		}
+		Button createPlayButton(Composite parent) {
+			_bgmBtn = new Button(parent, SWT.TOGGLE);
+			_bgmBtn.setLayoutData = new GridData;
+			_bgmBtn.setToolTipText = _prop.msgs.playBGM;
+			_bgmBtn.setImage = _prop.images.playBGM;
+			auto pbgm = new Play;
+			_bgmBtn.addSelectionListener(pbgm);
+			return _bgmBtn;
+		}
+		void playBGM() {
+			if (!_playing) {
+				string p = filePath;
+				if (p.length > 0 && !fnmatch(nabs(p), nabs(_playing))) {
+					_playing = p;
+					if (_bgmMenu) {
+						_bgmMenu.setText = _prop.msgs.menuStopBGM(p);
+						_bgmMenu.setImage = _prop.images.stopBGM;
+						_bgmMenu.setSelection = true;
+					}
+					if (_bgmTMenu) {
+						_bgmTMenu.setToolTipText = _prop.msgs.stopBGM(p);
+						_bgmTMenu.setImage = _prop.images.stopBGM;
+						_bgmTMenu.setSelection = true;
+					}
+					if (_bgmBtn) {
+						_bgmBtn.setToolTipText = _prop.msgs.stopBGM(getBaseName(path));
+						_bgmBtn.setImage = _prop.images.stopBGM;
+						_bgmBtn.setSelection = true;
+					}
+					playBGMCW(_prop, p, _summ.legacy);
+					return;
+				}
+			}
+			if (_bgmMenu) {
+				_bgmMenu.setText = _prop.msgs.menuPlayBGM;
+				_bgmMenu.setImage = _prop.images.playBGM;
+				_bgmMenu.setSelection = false;
+			}
+			if (_bgmTMenu) {
+				_bgmTMenu.setToolTipText = _prop.msgs.playBGM;
+				_bgmTMenu.setImage = _prop.images.playBGM;
+				_bgmTMenu.setSelection = false;
+			}
+			if (_bgmBtn) {
+				_bgmBtn.setToolTipText = _prop.msgs.playBGM;
+				_bgmBtn.setImage = _prop.images.playBGM;
+				_bgmBtn.setSelection = false;
+			}
+			stopBGM();
+			_playing = null;
+		}
+		private class Play : SelectionAdapter, KeyListener, MouseListener {
+			override void mouseUp(MouseEvent e) {}
+			override void mouseDown(MouseEvent e) {}
+			override void mouseDoubleClick(MouseEvent e) {
+				if (e.button == 1) {
+					playBGM();
+				}
+			}
+			override void keyReleased(KeyEvent e) {}
+			override void keyPressed(KeyEvent e) {
+				if (e.character == SWT.CR) {
+					playBGM();
+				}
+			}
+			override void widgetSelected(SelectionEvent e) {
+				playBGM();
+			}
+		}
+	} else static if (Type == MtType.SE) {
+		void createPlayToolItem(ToolBar bar) {
+			createToolItem(bar, _prop.msgs.playSound, _prop.images.playSound, &playSE, SWT.PUSH);
+		}
+		Button createPlayButton(Composite parent) {
+			auto seBtn = new Button(parent, SWT.PUSH);
+			seBtn.setToolTipText = _prop.msgs.playSound;
+			seBtn.setImage = _prop.images.playSound;
+			auto play = new Play;
+			seBtn.addSelectionListener(play);
+			return seBtn;
+		}
+		Button createStopButton(Composite parent) {
+			auto stop = new Button(parent, SWT.PUSH);
+			stop.setToolTipText = _prop.msgs.stopSound;
+			stop.setImage = _prop.images.stopSound;
+			auto sse = new StopSE;
+			stop.addSelectionListener(sse);
+			stop.addDisposeListener(sse);
+			return stop;
+		}
+		void playSE() {
+			string p = filePath;
+			if (p.length > 0) {
+				playSECW(_prop, p, _summ.legacy);
+			}
+		}
+		void stopSE() {
+			.stopSE();
+		}
+		private class Play : SelectionAdapter, KeyListener, MouseListener {
+			override void mouseUp(MouseEvent e) {}
+			override void mouseDown(MouseEvent e) {}
+			override void mouseDoubleClick(MouseEvent e) {
+				if (e.button == 1) {
+					playSE();
+				}
+			}
+			override void keyReleased(KeyEvent e) {}
+			override void keyPressed(KeyEvent e) {
+				if (e.character == SWT.CR) {
+					playSE();
+				}
+			}
+			override void widgetSelected(SelectionEvent e) {
+				playSE();
+			}
+		}
+	}
 	Button createRefreshButton(Composite parent, bool text) {
 		auto refBtn = new Button(parent, SWT.PUSH);
 		refBtn.setImage = _prop.images.menuRefresh;
@@ -173,7 +339,7 @@ public:
 		}
 		auto p = currentDir;
 		if (p && _fileList.getSelectionIndex >= 0) {
-			string f = _fileList.getItem(_fileList.getSelectionIndex);
+			string f = fileText(_fileList.getItem(_fileList.getSelectionIndex));
 			if (_dirs.getSelectionIndex == _tbl) {
 				return std.path.join(defDir, f);
 			} else {
@@ -208,21 +374,30 @@ public:
 	}
 
 	string[] showingNames() {
-		if (_fnone) {
-			return _fileList.getItems[1 .. $];
-		} else {
-			return _fileList.getItems;
+		static if (is(C : Table)) {
+			TableItem[] itms;
+			if (_fnone) {
+				itms = _fileList.getItems[1 .. $];
+			} else {
+				itms = _fileList.getItems;
+			}
+			auto r = new string[itms.length];
+			foreach (i, ref s; r) {
+				s = itms[i].getText;
+			}
+			return r;
+		} else static if (is(C : Combo) || is(C : CCombo)) {
+			if (_fnone) {
+				return _fileList.getItems[1 .. $];
+			} else {
+				return _fileList.getItems;
+			}
 		}
 	}
 	string[] showingPaths() {
 		string[] r;
 		string curr = currentDir;
-		string[] paths;
-		if (_fnone) {
-			paths = _fileList.getItems[1 .. $];
-		} else {
-			paths = _fileList.getItems;
-		}
+		string[] paths = showingNames;
 		foreach (s; paths) {
 			if (curr) {
 				r ~= std.path.join(curr, s);
@@ -335,7 +510,7 @@ private:
 				}
 			}
 			if (_allList) {
-				string s = _fileList.getItem(index);
+				string s = fileText(_fileList.getItem(index));
 				string file;
 				if (s.startsWith("/")) {
 					s = s["/".length .. $];
@@ -353,8 +528,15 @@ private:
 					file = s;
 				}
 				refreshList();
-				_fileList.select = _fileList.indexOf(file);
-				static if (is (C == List)) {
+				int selIndex = -1;
+				foreach (i, itm; _fileList.getItems) {
+					if (fnmatch(fileText(itm), file)) {
+						selIndex = i;
+						break;
+					}
+				}
+				_fileList.select = selIndex;
+				static if (is (C == Table)) {
 					_fileList.showSelection();
 				}
 				string p = currentDir;
@@ -372,11 +554,31 @@ private:
 					p = currentDir;
 				}
 				if (p) {
-					_path = std.path.join(p, _fileList.getItem(_fileList.getSelectionIndex));
+					_path = std.path.join(p, fileText(_fileList.getItem(_fileList.getSelectionIndex)));
 					_selDir = _dirs.getSelectionIndex;
 					if (_refresh) _refresh();
 				}
 			}
+		}
+	}
+	private class OpenMaterial : MouseAdapter, KeyListener {
+		override void mouseDoubleClick(MouseEvent e) {
+			if (1 == e.button) {
+				openFilePath();
+			}
+		}
+		override void keyReleased(KeyEvent e) {}
+		override void keyPressed(KeyEvent e) {
+			if (SWT.CR == e.character) openFilePath();
+		}
+	}
+	private void openFilePath() {
+		auto dir = _dirs.getSelectionIndex;
+		if (dir < _defs.length) return;
+		if (dir == _tbl) return;
+		auto p = filePath;
+		if (p.length) {
+			_comm.openFilePath(p);
 		}
 	}
 	private static string fromViewPath(string s) {
@@ -404,9 +606,16 @@ private:
 		}
 		return null;
 	}
+	private string fileText(T)(T itm) {
+		static if (is(T : TableItem)) {
+			return itm.getText;
+		} else static if (is(T : string)) {
+			return itm;
+		} else static assert (0);
+	}
 	int indexOf(T)(T list, string path) {
 		foreach (i, s; list.getItems) {
-			if (fnmatch(s, path)) {
+			if (fnmatch(fileText(s), path)) {
 				return i;
 			}
 		}
@@ -455,7 +664,12 @@ private:
 	}
 	void __refreshListImpl(string[] tgs) {
 		foreach (f; tgs) {
-			_fileList.add(f);
+			static if (is(C : Table)) {
+				auto itm = new TableItem(_fileList, SWT.NONE);
+				itm.setText = f;
+			} else static if (is(C : Combo) || is(C : CCombo)) {
+				_fileList.add(f);
+			} else static assert (0);
 		}
 		string sel = _path.length > 0 ? getBaseName(_path) : "";
 		if (sel.length > 0 && _dirs.getSelectionIndex == _selDir) {
@@ -467,7 +681,7 @@ private:
 				if (index >= 0) _fileList.select = index;
 			}
 		}
-		static if (is (C == List)) {
+		static if (is (C == Table)) {
 			_fileList.showSelection;
 		} else static if (!is (C == Combo) && !is (C == CCombo)) {
 			static assert (false);
@@ -633,10 +847,12 @@ private:
 				int index = flIndexOf(getBaseName(o));
 				if (index >= 0) {
 					string nName = getBaseName(n);
-					_fileList.setItem(index, nName);
-					static if (is (C == Combo) || is (C == CCombo)) {
+					static if (is(C : Table)) {
+						_fileList.getItem(index).setText = nName;
+					} else static if (is (C : Combo) || is (C : CCombo)) {
+						_fileList.setItem(index, nName);
 						_fileList.setText = nName;
-					}
+					} else static assert (0);
 				}
 			}
 		}
