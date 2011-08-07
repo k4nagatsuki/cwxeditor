@@ -169,6 +169,7 @@ ImageData blankImage() {
 	return data;
 }
 
+alias ArrayWrapperString PathString;
 alias ArrayWrapperString2 FileNames;
 
 string wrapReturnCode(string str) {

@@ -69,6 +69,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.dnd.FileTransfer;
+import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.DragSource;
 import org.eclipse.swt.dnd.DragSourceAdapter;
 import org.eclipse.swt.dnd.DragSourceEvent;
@@ -1023,6 +1024,8 @@ private:
 		}
 		if (_prop.var.etc.outerTools.length > 0) new MenuItem(menu, SWT.SEPARATOR);
 		appendMenuTCPD(_prop, menu, this, true, true, true, true);
+		new MenuItem(menu, SWT.SEPARATOR);
+		createMenuItem(menu, _prop.msgs.menuCopyFilePath, _prop.images.menuCopyFilePath, &copyFilePath);
 		_files.setMenu(menu);
 	}
 	string createDir() {
@@ -1614,6 +1617,16 @@ public:
 	}
 	void delegate(string) statusText() {return _sbshl ? &_sbshl.statusLine : null;}
 
+	void copyFilePath() {
+		if (!_summ) return;
+		int sel = _files.getSelectionIndex;
+		if (-1 == sel) return;
+		auto fno = cast(FileNameObj) _files.getItem(sel).getData;
+		auto cb = new Clipboard(Display.getCurrent);
+		scope (exit) cb.dispose;
+		cb.setContents([new PathString(encodePath(fno.relPath))],
+			[TextTransfer.getInstance]);
+	}
 	void replace() {
 		if (!_summ) return;
 		if (_files.getSelectionIndex >= 0) {

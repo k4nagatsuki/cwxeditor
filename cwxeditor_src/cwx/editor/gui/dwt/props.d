@@ -430,6 +430,7 @@ public:
 	Image menuCreateArchive() {return imgd!(resourceDir ~ "create_archive.png");}
 
 	Image menuOpenFileView() {return imgd!(resourceDir ~ "open_fileview.png");}
+	Image menuCopyFilePath() {return imgd!(resourceDir ~ "copy_path.png");}
 }
 
 enum MenuID : int {
@@ -517,7 +518,8 @@ enum MenuID : int {
 	ToScript,
 	ToScriptAll,
 	CreateArchive,
-	OpenFileView
+	OpenFileView,
+	CopyFilePath,
 }
 
 public class Props {

@@ -2048,7 +2048,7 @@ public:
 		return "(" ~ to!(string)(min) ~ "～" ~ to!(string)(max) ~ ")";
 	}
 
-	/// 素材管理ウィンドウ。
+	/// ファイルビュー。
 	const string dirTabName(in Summary summ) {
 		return "ファイル";
 	}
@@ -2073,6 +2073,8 @@ public:
 	const string ttNewFolder() {return "新規" ~ DIR;}
 	const string menuNewFolder() {return ttNewFolder ~ "(&I)";}
 	const string newFolder() {return ttNewFolder;}
+	const string ttCopyFilePath() {return "素材のパスをコピー";}
+	const string menuCopyFilePath() {return ttCopyFilePath ~ "(&M)";}
 	const string ttReplacePath() {return "素材の差替え";}
 	const string menuReplacePath() {return ttReplacePath ~ "(&R)...";}
 	const string ttCreateArchive() {return "シナリオを圧縮";}

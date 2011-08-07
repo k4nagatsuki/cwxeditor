@@ -1375,7 +1375,6 @@ public:
 		} catch {}
 		return _prop.images.unknown;
 	}
-	private alias ArrayWrapperString PathString;
 	private void addResult(string path) {
 		auto itm = new TableItem(_result, SWT.NONE);
 		itm.setImage = fimage(std.path.join(_summ.scenarioPath, path));

@@ -426,24 +426,28 @@ private:
 		bool isTarg(string p) {return _comm.skin.isCardImage(p);}
 		bool hasTarg(string p) {return _comm.skin.hasCardImage(p);}
 		string[] targs(string dir, bool re) {return _comm.skin.cards(dir, re);}
+		Image image() {return _prop.images.cards;}
 	} else static if (Type == MtType.BG_IMG) {
 		string defExt() {return _comm.skin.extImage;}
 		string defDir() {return _comm.skin.tableDir;}
 		bool isTarg(string p) {return _comm.skin.isBgImage(p);}
 		bool hasTarg(string p) {return _comm.skin.hasBgImage(p);}
 		string[] targs(string dir, bool re) {return _comm.skin.tables(dir, re);}
+		Image image() {return _prop.images.backs;}
 	} else static if (Type == MtType.BGM) {
 		string defExt() {return _comm.skin.extBgm;}
 		string defDir() {return _comm.skin.bgmDir;}
 		bool isTarg(string p) {return _comm.skin.isBGM(p);}
 		bool hasTarg(string p) {return _comm.skin.hasBGM(p);}
 		string[] targs(string dir, bool re) {return _comm.skin.musics(dir, re);}
+		Image image() {return _prop.images.bgm;}
 	} else static if (Type == MtType.SE) {
 		string defExt() {return _comm.skin.extSound;}
 		string defDir() {return _comm.skin.seDir;}
 		bool isTarg(string p) {return _comm.skin.isSE(p);}
 		bool hasTarg(string p) {return _comm.skin.hasSE(p);}
 		string[] targs(string dir, bool re) {return _comm.skin.sounds(dir, re);}
+		Image image() {return _prop.images.se;}
 	} else static assert (0);
 
 	class RSListener : SelectionAdapter {
@@ -667,6 +671,7 @@ private:
 			static if (is(C : Table)) {
 				auto itm = new TableItem(_fileList, SWT.NONE);
 				itm.setText = f;
+				itm.setImage = image;
 			} else static if (is(C : Combo) || is(C : CCombo)) {
 				_fileList.add(f);
 			} else static assert (0);
