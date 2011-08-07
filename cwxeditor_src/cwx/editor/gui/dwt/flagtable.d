@@ -528,8 +528,7 @@ private:
 
 	void startEdit() {
 		if (_dir !is null) {
-			int index = flags.getSelectionIndex;
-			if (0 <= index) {
+			foreach (index; flags.getSelectionIndices) {
 				if (index < _dir.steps.length) {
 					auto step = _dir.steps[index];
 					editStep(step.parent, step);

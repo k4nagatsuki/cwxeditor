@@ -1056,30 +1056,37 @@ private:
 			if (e.button == 1) {
 				int i = _imgp.findSelectedIndex(e.x, e.y);
 				if (i >= 0) {
-					editImagePane(i);
+					editImagePane([i]);
 				}
 			}
 		}
 	}
 	void edit() {
-		int i = _imgp.selectedIndex;
-		if (i >= 0) {
-			editImagePane(i);
-		}
+		editImagePane(_imgp.selectedIndices);
 	}
-	void editImagePane(int i) {
-		static if (UseCards && UseBacks) {
-			if (i >= cardsIndex) {
-				editCard(_area.cards[i - cardsIndex]);
+	void editImagePane(int[] indices) {
+		int[] cs;
+		int[] bs;
+		foreach (i; indices) {
+			static if (UseCards && UseBacks) {
+				if (i >= cardsIndex) {
+					cs ~= i - cardsIndex;
+				} else {
+					bs ~= i;
+				}
+			} else static if (UseCards) {
+				cs ~= i - cardsIndex;
+			} else static if (UseBacks) {
+				bs ~= i;
 			} else {
-				editBack(_area.backs[i]);
+				static assert (0);
 			}
-		} else static if (UseCards) {
-			editCard(_area.cards[i - cardsIndex]);
-		} else static if (UseBacks) {
-			editBack(_area.backs[i]);
-		} else {
-			static assert (0);
+		}
+		static if (UseCards) {
+			editCard(cs);
+		}
+		static if (UseBacks) {
+			editBack(bs);
 		}
 	}
 	void refreshWallpaper() {
@@ -1277,18 +1284,15 @@ private:
 	}
 
 	class MKListener(C) : MouseAdapter {
-		private void delegate(C) _edit;
+		private void delegate(int[]) _edit;
 		private C[] delegate() _items;
-		this(void delegate(C) edit, C[] delegate() items) {
+		this(void delegate(int[]) edit, C[] delegate() items) {
 			_edit = edit;
 			_items = items;
 		}
 		private void edit(TypedEvent e) {
 			auto l = cast(Table) e.widget;
-			int i = l.getFocusIndex;
-			if (i >= 0) {
-				_edit(_items()[i]);
-			}
+			_edit(l.getSelectionIndices);
 		}
 		override void mouseDoubleClick(MouseEvent e) {
 			if (e.button == 1) {
@@ -1297,7 +1301,7 @@ private:
 		}
 	}
 	Table createList(C)(Composite parent, string name, Image image, TCPD tcpd,
-			void delegate(C) edit, C[] delegate() items) {
+			void delegate(int[]) edit, C[] delegate() items) {
 		auto comp = new Composite(parent, SWT.NONE);
 		comp.setLayout = zeroGridLayout(1);
 		auto label = new CLabel(comp, SWT.NONE);
@@ -1315,7 +1319,9 @@ private:
 		list.setLayoutData = gd;
 		{
 			auto menu = new Menu(parent.getShell, SWT.POP_UP);
-			createMenuItem(menu, _prop.msgs.menuCEdit, _prop.images.menuCEdit, &this.edit);
+			createMenuItem(menu, _prop.msgs.menuCEdit, _prop.images.menuCEdit, {
+				edit(list.getSelectionIndices);
+			});
 			new MenuItem(menu, SWT.SEPARATOR);
 			appendMenuTCPD(_prop, menu, tcpd, true, true, true, true);
 			list.setMenu(menu);
@@ -1819,6 +1825,11 @@ public:
 			};
 			dlg.open();
 		}
+		void editCard(int[] indices) {
+			foreach (i; indices) {
+				editCard(_area.cards[i]);
+			}
+		}
 		void editCard(C card) {
 			auto p = card in _editDlgsC;
 			if (p) {
@@ -1966,6 +1977,11 @@ public:
 				_editDlgsB.remove(b);
 			};
 			dlg.open();
+		}
+		void editBack(int[] indices) {
+			foreach (i; indices) {
+				editBack(_area.backs[i]);
+			}
 		}
 		void editBack(BgImage back) {
 			auto p = back in _editDlgsB;
