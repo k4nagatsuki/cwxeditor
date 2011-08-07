@@ -479,6 +479,7 @@ private:
 				_bs = bs;
 			}
 			refreshPanel;
+			refreshControls;
 			_comm.refUseCount.call;
 			callModEvent();
 		}
@@ -1891,6 +1892,8 @@ public:
 		static if (is(C : MenuCard)) {
 			void nameEditEnd(TableItem itm, int column, string newText) {
 				auto c = cast(C) itm.getData;
+				if (c.name == newText) return;
+				_undo ~= new UndoEdit([itm.getParent.indexOf(itm)], []);
 				c.name = newText;
 				itm.setText(column, c.name);
 				refreshPanel();
@@ -1902,6 +1905,8 @@ public:
 				int i = combo.getSelectionIndex;
 				if (-1 == i) return;
 				auto c = cast(C) itm.getData;
+				if (c.id == _summ.casts[i].id) return;
+				_undo ~= new UndoEdit([itm.getParent.indexOf(itm)], []);
 				c.id = _summ.casts[i].id;
 				itm.setText(column, cardName(c));
 				refreshPanel();
@@ -2046,6 +2051,8 @@ public:
 			if (-1 == i) return;
 			auto b = cast(BgImage) itm.getData;
 			if (0 == i) {
+				if (b.path == "") return;
+				_undo ~= new UndoEdit([], [itm.getParent.indexOf(itm)]);
 				b.path = "";
 				itm.setText(column, "");
 			} else {
@@ -2053,6 +2060,8 @@ public:
 				if (std.string.startsWith(mt, "/")) {
 					mt = mt["/".length .. $];
 				}
+				if (b.path == mt) return;
+				_undo ~= new UndoEdit([], [itm.getParent.indexOf(itm)]);
 				b.path = mt;
 				itm.setText(column, getBaseName(decodePath(mt)));
 			}
@@ -2349,16 +2358,25 @@ public:
 		override void widgetSelected(SelectionEvent e) {
 			int index = _flag.getSelectionIndex;
 			string flag = index <= 0 ? "" : _flag.getText;
+			auto undo = new UndoEdit;
+			bool chg = false;
 			static if (UseCards) {
 				foreach (c; _editC.keys) {
-					c.flag = flag;
+					if (c.flag != flag) {
+						c.flag = flag;
+						chg = true;
+					}
 				}
 			}
 			static if (UseBacks) {
 				foreach (b; _editB.keys) {
-					b.flag = flag;
+					if (b.flag != flag) {
+						b.flag = flag;
+						chg = true;
+					}
 				}
 			}
+			_undo ~= undo;
 		}
 	}
 	private void refFlag(Flag flag) {
