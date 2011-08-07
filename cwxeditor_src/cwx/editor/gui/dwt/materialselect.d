@@ -47,6 +47,8 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.dnd.DropTargetAdapter;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.TextTransfer;
 
 public:
 
@@ -132,6 +134,7 @@ public:
 		}
 		auto menu = new Menu(_fileList.getShell, SWT.POP_UP);
 		createMenuItem(menu, _prop.msgs.menuOpenFileView, _prop.images.menuOpenFileView, &openFilePath);
+		createMenuItem(menu, _prop.msgs.menuCopyFilePath, _prop.images.menuCopyFilePath, &copyFilePath);
 		static if (Type == MtType.BGM) {
 			new MenuItem(menu, SWT.SEPARATOR);
 			_bgmMenu = createMenuItem(menu, _prop.msgs.menuPlayBGM, _prop.images.playBGM, &playBGM);
@@ -418,6 +421,15 @@ public:
 			}
 		}
 		return r;
+	}
+
+	void copyFilePath() {
+		auto p = path;
+		if (!p.length) return;
+		auto cb = new Clipboard(Display.getCurrent);
+		scope (exit) cb.dispose;
+		cb.setContents([new PathString(encodePath(p))],
+			[TextTransfer.getInstance]);
 	}
 private:
 	static if (Type == MtType.CARD) {
