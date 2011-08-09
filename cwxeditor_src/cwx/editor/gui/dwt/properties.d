@@ -443,6 +443,29 @@ struct BgImageS {
 	}
 }
 
+/// クラシックなエンジンの情報。
+struct ClassicEngine {
+	string name;
+	string enginePath;
+	string dataDirName;
+	string execute;
+	const
+	void toNode(ref XNode e) {
+		auto r = e.newElement("classicEngine");
+		r.newAttr("name", name);
+		r.newAttr("enginePath", enginePath);
+		r.newAttr("dataDirName", dataDirName);
+		r.newAttr("execute", execute);
+	}
+	void fromNode(ref XNode node) {
+		if (node.name != "classicEngine") throw new Exception("Node is not classicEngine");
+		name = node.attr!(string)("name", true);
+		enginePath = node.attr!(string)("enginePath", true);
+		dataDirName = node.attr!(string)("dataDirName", true);
+		execute = node.attr!(string)("execute", true);
+	}
+}
+
 class FlexEtcProps : Properties {
 	mixin Property!("singleWindow", bool, true);
 	mixin Property!("toolsLock", bool, false);

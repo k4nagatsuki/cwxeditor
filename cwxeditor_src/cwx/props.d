@@ -1237,9 +1237,9 @@ public:
 
 	/// エリア・戦闘・パッケージウィンドウ。
 	const string ttUp() {return "上へ";}
-	const string menuUp() {return ttUp ~ "(&U)" ~ "\tCtrl+U";}
+	const string menuUp() {return ttUp ~ "(&U)" ~ "\tCtrl+Arrow_Up";}
 	const string ttDown() {return "下へ";}
-	const string menuDown() {return ttDown ~ "(&D)" ~ "\tCtrl+D";}
+	const string menuDown() {return ttDown ~ "(&D)" ~ "\tCtrl+Arrow_Down";}
 	const string menuCardsAndBacks() {return "カードと背景" ~ "(&A)";}
 	const string ttViewParty() {return "パーティカードの表示";}
 	const string menuViewParty() {return ttViewParty ~ "(&P)";}

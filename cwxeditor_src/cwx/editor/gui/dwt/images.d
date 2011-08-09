@@ -942,7 +942,7 @@ private:
 	}
 	class KListener : KeyAdapter {
 		override void keyPressed(KeyEvent ke) {
-			int point = (ke.stateMask & SWT.CTRL) ? 10 : 1;
+			int point = (ke.stateMask & SWT.CTRL) && (ke.stateMask & SWT.ALT) ? 10 : 1;
 			switch (ke.keyCode) {
 			case SWT.ARROW_UP: {
 				redrawProcMove((FlexImage img) {
