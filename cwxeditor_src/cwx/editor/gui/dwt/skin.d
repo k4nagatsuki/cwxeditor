@@ -240,7 +240,7 @@ ImageData spChar(Skin skin, dchar c) {
 	case 'Z', 'z': res = "FONT_ZAP"; break;
 	default: res = "";
 	}
-	return createImg(skin.legacyEngine, res, (out bool mask, out bool rMask) {
+	return createImg(skin.legacyEngine, res, delegate string (out bool mask, out bool rMask) {
 		mask = true;
 		rMask = false;
 		return skin.spChars[c];

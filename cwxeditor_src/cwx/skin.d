@@ -212,38 +212,54 @@ class Skin {
 			loadFromXML(skinFile);
 		}
 	}
+	const
 	string name() {return _name;}
+	const
 	string type() {return _type;}
+	const
 	string skinFile() {return _skinFile;}
 
 	/// リソース画像のパス。
+	const
 	string resSummary(out bool mask, out bool rMask) {
 		return join(tableDir, addExt("Bill", _legacyPath.length ? extImage : resExtImage));
 	}
 	/// ditto
+	const
 	string resMenuCard(out bool mask, out bool rMask) {return join(resourceDir, addExt(join("CardBg", "NORMAL"), resExtImage));}
 
 	/// ditto
+	const
 	string resCastCard(out bool mask, out bool rMask) {return join(resourceDir, addExt(join("CardBg", "LARGE"), resExtImage));}
 	/// ditto
+	const
 	string resCastCardInjury(out bool mask, out bool rMask) {return join(resourceDir, addExt(join("CardBg", "INJURY"), resExtImage));}
 	/// ditto
+	const
 	string resCastCardDanger(out bool mask, out bool rMask) {return join(resourceDir, addExt(join("CardBg", "DANGER"), resExtImage));}
 	/// ditto
+	const
 	string resCastCardFaint(out bool mask, out bool rMask) {return join(resourceDir, addExt(join("CardBg", "FAINT"), resExtImage));}
 	/// ditto
+	const
 	string resCastCardBind(out bool mask, out bool rMask) {return join(resourceDir, addExt(join("CardBg", "BIND"), resExtImage));}
 	/// ditto
+	const
 	string resCastCardParaly(out bool mask, out bool rMask) {return join(resourceDir, addExt(join("CardBg", "PARALY"), resExtImage));}
 	/// ditto
+	const
 	string resCastCardPetrif(out bool mask, out bool rMask) {return join(resourceDir, addExt(join("CardBg", "PETRIF"), resExtImage));}
 	/// ditto
+	const
 	string resCastCardSleep(out bool mask, out bool rMask) {return join(resourceDir, addExt(join("CardBg", "SLEEP"), resExtImage));}
 	/// ditto
+	const
 	string resLifeBar(out bool mask, out bool rMask) {return join(resourceDir, addExt(join("Status", "LIFEBAR"), resExtImage));}
 	/// ditto
+	const
 	string resLifeGuage(out bool mask, out bool rMask) {return join(resourceDir, addExt(join("Status", "LIFEGUAGE"), resExtImage));}
 	/// ditto
+	const
 	string resEnhanceUp(out bool mask, out bool rMask, Enhance enh) {
 		switch (enh) {
 		case Enhance.ACTION: return join(resourceDir, addExt(join("Status", "UP0"), resExtImage));
@@ -254,6 +270,7 @@ class Skin {
 		}
 	}
 	/// ditto
+	const
 	string resEnhanceDown(out bool mask, out bool rMask, Enhance enh) {
 		switch (enh) {
 		case Enhance.ACTION: return join(resourceDir, addExt(join("Status", "DOWN0"), resExtImage));
@@ -264,6 +281,7 @@ class Skin {
 		}
 	}
 	/// ditto
+	const
 	string resMentality(out bool mask, out bool rMask, Mentality mtly) {
 		switch (mtly) {
 		case Mentality.NORMAL: return join(resourceDir, addExt(join("Status", "MIND0"), resExtImage));
@@ -276,85 +294,109 @@ class Skin {
 		}
 	}
 	/// ditto
+	const
 	string resBind(out bool mask, out bool rMask) {return join(resourceDir, addExt(join("Status", "MAGIC0"), resExtImage));}
 	/// ditto
+	const
 	string resSilence(out bool mask, out bool rMask) {return join(resourceDir, addExt(join("Status", "MAGIC1"), resExtImage));}
 	/// ditto
+	const
 	string resFaceUp(out bool mask, out bool rMask) {return join(resourceDir, addExt(join("Status", "MAGIC2"), resExtImage));}
 	/// ditto
+	const
 	string resAntiMagic(out bool mask, out bool rMask) {return join(resourceDir, addExt(join("Status", "MAGIC3"), resExtImage));}
 	/// ditto
+	const
 	string resParalyze(out bool mask, out bool rMask) {return join(resourceDir, addExt(join("Status", "BODY1"), resExtImage));}
 	/// ditto
+	const
 	string resPoison(out bool mask, out bool rMask) {return join(resourceDir, addExt(join("Status", "BODY0"), resExtImage));}
 	/// ditto
+	const
 	string resSummon(out bool mask, out bool rMask) {return join(resourceDir, addExt(join("Status", "SUMMON"), resExtImage));}
 
 	/// ditto
+	const
 	string resItemCard(out bool mask, out bool rMask) {return join(resourceDir, addExt(join("CardBg", "ITEM"), resExtImage));}
 	/// ditto
+	const
 	string resSkillCard(out bool mask, out bool rMask) {return join(resourceDir, addExt(join("CardBg", "SKILL"), resExtImage));}
 	/// ditto
+	const
 	string resBeastCard(out bool mask, out bool rMask) {return join(resourceDir, addExt(join("CardBg", "BEAST"), resExtImage));}
 	/// ditto
+	const
 	string resInfoCard(out bool mask, out bool rMask) {return join(resourceDir, addExt(join("CardBg", "INFO"), resExtImage));}
 	/// ditto
+	const
 	string resCardHold(out bool mask, out bool rMask) {return join(resourceDir, addExt(join("CardBg", "HOLD"), resExtImage));}
 	/// ditto
+	const
 	string resCardPenalty(out bool mask, out bool rMask) {return join(resourceDir, addExt(join("CardBg", "PENALTY"), resExtImage));}
 	/// ditto
+	const
 	string resRare(out bool mask, out bool rMask) {
 		mask = true;
 		rMask = true;
 		return join(resourceDir, addExt(join("CardBg", "RARE"), resExtImage));
 	}
 	/// ditto
+	const
 	string resPremier(out bool mask, out bool rMask) {
 		mask = true;
 		rMask = true;
 		return join(resourceDir, addExt(join("CardBg", "PREMIER"), resExtImage));
 	}
 	/// ditto
+	const
 	string resAptVeryHigh(out bool mask, out bool rMask) {
 		mask = true;
 		return join(resourceDir, addExt(join("Stone", "HAND3"), resExtImage));
 	}
 	/// ditto
+	const
 	string resAptHigh(out bool mask, out bool rMask) {
 		mask = true;
 		return join(resourceDir, addExt(join("Stone", "HAND2"), resExtImage));
 	}
 	/// ditto
+	const
 	string resAptNormal(out bool mask, out bool rMask) {
 		mask = true;
 		return join(resourceDir, addExt(join("Stone", "HAND1"), resExtImage));
 	}
 	/// ditto
+	const
 	string resAptLow(out bool mask, out bool rMask) {
 		mask = true;
 		return join(resourceDir, addExt(join("Stone", "HAND0"), resExtImage));
 	}
 	/// ditto
+	const
 	string resUse0(out bool mask, out bool rMask) {
 		mask = true;
 		return join(resourceDir, addExt(join("Stone", "HAND5"), resExtImage));
 	}
 	/// ditto
+	const
 	string resUse1(out bool mask, out bool rMask) {
 		mask = true;
 		return join(resourceDir, addExt(join("Stone", "HAND6"), resExtImage));
 	}
 	/// ditto
+	const
 	string resUse2(out bool mask, out bool rMask) {
 		mask = true;
 		return join(resourceDir, addExt(join("Stone", "HAND7"), resExtImage));
 	}
 	/// ditto
+	const
 	string resUse3(out bool mask, out bool rMask) {
 		mask = true;
 		return join(resourceDir, addExt(join("Stone", "HAND8"), resExtImage));
 	}
 	/// ditto
+	const
 	string resUse4(out bool mask, out bool rMask) {
 		mask = true;
 		return join(resourceDir, addExt(join("Stone", "HAND9"), resExtImage));
@@ -363,20 +405,29 @@ class Skin {
 	/// CardWirth本体のパス。
 	/// クラシックなシナリオの編集中は、そのシナリオが
 	/// 属すと思われるパスを返す。
+	const
 	string engine() {return _legacyEngine.length ? _legacyEngine : _enginePath;}
 
 	/// クラシックなCardWirth本体のパス。
 	/// 所属エンジンが無いか、クラシックでないシナリオの編集中であれば""を返す。
+	const
 	string legacyEngine() {return _legacyEngine.length ? _legacyEngine : "";}
 
 	/// クラシックなシナリオの編集中は、拡張子を除く所属エンジンのパスを返す。
 	/// 所属エンジンが無いか、クラシックでないシナリオの編集中であれば""を返す。
+	const
 	string legacyName() {return _legacyEngine.length ? getName(getBaseName(_legacyEngine)) : "";}
 
+	/// クラシックなCardWirthのDataディレクトリのパス。
+	const
+	string legacyDataPath() {return _legacyPath;}
+
 	/// クラシックなCardWirthEditorで作成されたシナリオのスキンならtrue。
+	const
 	bool legacy() {return _legacy;}
 
 	/// エンジン内のリソースを使用している場合はtrue。
+	const
 	bool useLegacyRes() {
 		version (Windows) {
 			return legacyEngine.length > 0;
@@ -385,6 +436,7 @@ class Skin {
 	}
 
 	/// シナリオの素材を置くディレクトリの標準。シナリオのルートからの相対パス。
+	const
 	string materialPath() {
 		return legacy ? "" : "Material";
 	}
@@ -393,11 +445,13 @@ class Skin {
 	/// checkがfalseの場合、拡張子による判断のみを行う。
 	/// checkをtrueにすると、ファイルの存在と内容をチェックする。
 	/// (現行バージョンでは内容チェックは背景イメージのみ)
+	const
 	bool isMaterial(string path, bool check = false) {
 		return isSE(path, check) || isBGM(path, check) || isBgImage(path, check);
 	}
 
 	/// pathが効果音として使用可能か。
+	const
 	bool isSE(string path, bool check = false) {
 		auto ext = getExt(path);
 		if (legacy && !fnmatch(ext, "wav")) return false;
@@ -415,6 +469,7 @@ class Skin {
 		}
 	}
 	/// pathがBGMとして使用可能か。
+	const
 	bool isBGM(string path, bool check = false) {
 		auto ext = getExt(path);
 		if (legacy && !fnmatch(ext, "mid")
@@ -437,6 +492,7 @@ class Skin {
 		}
 	}
 	/// pathがカード画像として使用可能か。
+	const
 	bool isCardImage(string path) {
 		if (isBinImg(path)) return true;
 		if (legacy && !fnmatch(getExt(path), "bmp")) return false;
@@ -450,6 +506,7 @@ class Skin {
 	}
 
 	/// pathが背景画像として使用可能か。
+	const
 	bool isBgImage(string path, bool check = false) {
 		auto ext = getExt(path);
 		if (fnmatch(ext, "jpy1")
@@ -475,8 +532,10 @@ class Skin {
 	}
 
 	/// 特殊文字の情報。
-	string[dchar] spChars() {return _spChars;}
+	const
+	const(string[dchar]) spChars() {return _spChars;}
 
+	const
 	private bool has(alias isT)(string dir) {
 		foreach (file; clistdir(dir)) {
 			if (isT(std.path.join(dir, file))) return true;
@@ -485,14 +544,19 @@ class Skin {
 	}
 
 	/// 各種の素材がdirに含まれていればtrueを返す。
+	const
 	bool hasCardImage(string dir) {return has!(isCardImage)(dir);}
 	/// ditto
+	const
 	bool hasBgImage(string dir) {return has!(isBgImage)(dir);}
 	/// ditto
+	const
 	bool hasBGM(string dir) {return has!(isBGM)(dir);}
 	/// ditto
+	const
 	bool hasSE(string dir) {return has!(isSE)(dir);}
 
+	const
 	private string[] list(alias isT)(string dir, bool forceRefresh) {
 		mixin FileCache!(string[]);
 		if (!forceRefresh) {
@@ -514,27 +578,35 @@ class Skin {
 	}
 
 	/// dirに含まれるカード画像の一覧。
+	const
 	string[] cards(string dir, bool forceRefresh) {return list!(isCardImage)(dir, forceRefresh);}
 
 	/// 標準の背景画像。
+	const
 	string[] tables(bool forceRefresh = false) {return list!(isBgImage)(tableDir, forceRefresh);}
 
 	/// dirに含まれる背景画像の一覧。
+	const
 	string[] tables(string dir, bool forceRefresh) {return list!(isBgImage)(dir, forceRefresh);}
 
 	/// 標準のBGM。
+	const
 	string[] musics(bool forceRefresh = false) {return list!(isBGM)(bgmDir, forceRefresh);}
 
 	/// dirに含まれるBGMの一覧。
+	const
 	string[] musics(string dir, bool forceRefresh) {return list!(isBGM)(dir, forceRefresh);}
 
 	/// 標準のSE。
+	const
 	string[] sounds(bool forceRefresh = false) {return list!(isSE)(seDir, forceRefresh);}
 
 	/// dirに含まれるSEの一覧。
+	const
 	string[] sounds(string dir, bool forceRefresh) {return list!(isSE)(dir, forceRefresh);}
 
 	/// 標準の背景画像のディレクトリ。
+	const
 	string tableDir() {
 		if (_legacyPath.length) {
 			return std.path.join(_legacyPath, "Table");
@@ -542,6 +614,7 @@ class Skin {
 		return std.path.join(_path, "Table");
 	}
 	/// 標準のBGMのディレクトリ。
+	const
 	string bgmDir() {
 		if (_legacyPath.length) {
 			return std.path.join(_legacyPath, "Midi");
@@ -549,6 +622,7 @@ class Skin {
 		return std.path.join(_path, "Bgm");
 	}
 	/// 標準のSEのディレクトリ。
+	const
 	string seDir() {
 		if (_legacyPath.length) {
 			return std.path.join(_legacyPath, "Wave");
@@ -556,25 +630,31 @@ class Skin {
 		return std.path.join(_path, "Sound");
 	}
 	/// その他リソースのディレクトリ。
+	const
 	string resourceDir() {
 		return std.path.join(_path, join("Resource", "Image"));
 	}
 
 	/// 標準画像の拡張子。
+	const
 	string extImage() {return _extImg;}
 	/// 標準BGMの拡張子。
+	const
 	string extBgm() {return _extBgm;}
 	/// 標準SEの拡張子。
+	const
 	string extSound() {return _extSound;}
 	/// 標準リソース画像の拡張子。
+	const
 	string resExtImage() {return _resExtImg;}
 
 	/// 種族。
 	Race[] races() {
-		return _races;
+		return _races.dup;
 	}
 
 	/// バトルを作成した際、最初に設定されているBGMの名前。
+	const
 	string defBattle() {return addExt("DefBattle", extBgm);}
 
 	/// 指定されたパスを元に、まずシナリオのディレクトリを、
@@ -588,15 +668,18 @@ class Skin {
 	/// def = 結果がシナリオのフォルダ内であればfalseが、
 	///       本体の付属ディレクトリ内であればtrueが入る。
 	/// Returns: ファイルパス。見つからなかった場合は""。
+	const
 	string findImagePathF(string path, string sPath, out bool def = false) {
 		return findPathF(path, extImage, tableDir, sPath, def);
 	}
 	/// ditto
+	const
 	string findImagePath(string path, string sPath) {
 		bool dummy;
 		return findImagePathF(path, sPath, dummy);
 	}
 	/// ditto
+	const
 	string findPathF(string path, string ext, string defDir, string sPath, out bool def = false) {
 		if (path.length == 0) return "";
 		if (isBinImg(path)) return path;
@@ -628,6 +711,7 @@ class Skin {
 		return "";
 	}
 	/// ditto
+	const
 	string findPath(string path, string ext, string defDir, string sPath) {
 		bool dummy;
 		return findPathF(path, ext, defDir, sPath, dummy);
