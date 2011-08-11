@@ -1825,8 +1825,8 @@ S[] loadScenariosFromFile(S)(Props prop, Shell w, void delegate(string) status,
 
 string scenarioFilterPath(Props prop) {
 	if (prop.var.etc.scenarioPath.length == 0) {
-		if (prop.var.etc.enginePath.length == 0) return "";
-		return nabs(std.path.join(getDirName(prop.var.etc.enginePath), "Scenario"));
+		if (prop.enginePath.length == 0) return "";
+		return nabs(std.path.join(getDirName(prop.enginePath), "Scenario"));
 	} else {
 		return nabs(prop.var.etc.scenarioPath);
 	}
@@ -2011,26 +2011,23 @@ Image skeletonImage(Image src, bool mask = true) {
 	return new Image(Display.getCurrent, data);
 }
 
-Composite createDefSoundCombo(Props prop, Summary summ, Skin skin, Composite parent, out Combo combo, string title = null) {
+Composite createDefSoundCombo(Commons comm, Props prop, Summary summ, Composite parent, out Combo combo, string title = null) {
 	static class PlaySE : SelectionAdapter {
+		private Commons _comm;
 		private Summary _summ;
 		private Props _prop;
-		private Skin _skin;
 		private Combo _combo;
-		this(Summary summ, Props prop, Skin skin, Combo combo) {
+		this(Commons comm, Summary summ, Props prop, Combo combo) {
+			_comm = comm;
 			_summ = summ;
 			_prop = prop;
-			_skin = skin;
 			_combo = combo;
 		}
 		override void widgetSelected(SelectionEvent e) {
 			if (_combo.getSelectionIndex > 0) {
-				playSECW(_prop, std.path.join(_skin.seDir, _combo.getText), _summ.legacy);
+				playSECW(_prop, std.path.join(_comm.skin.seDir, _combo.getText), _summ.legacy);
 			}
 		}
-	}
-	if (summ.legacy) {
-		skin = Skin.legacySkin(prop.parent, prop.var.etc.enginePath, summ.scenarioPath);
 	}
 	auto comp2 = new Composite(parent, SWT.NONE);
 	if (title) {
@@ -2051,7 +2048,22 @@ Composite createDefSoundCombo(Props prop, Summary summ, Skin skin, Composite par
 		gdc.horizontalSpan = 2;
 	}
 	combo.setLayoutData = gdc;
-	combo.setItems = prop.msgs.soundNone ~ skin.sounds;
+	void refSkin() {
+		string se = combo.getText;
+		combo.setItems = prop.msgs.soundNone ~ comm.skin.sounds;
+		se = comm.skin.findPath(se, comm.skin.extSound, comm.skin.seDir, null);
+		se = abs2rel(comm.skin.seDir, se);
+		int i = combo.indexOf(se);
+		combo.select = -1 == i ? 0 : i;
+	}
+	refSkin();
+	comm.refSkin.add(&refSkin);
+	class Dispose : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			comm.refSkin.remove(&refSkin);
+		}
+	}
+	combo.addDisposeListener(new Dispose);
 	auto stop = new Button(comp2, SWT.PUSH);
 	if (title) {
 		stop.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
@@ -2067,7 +2079,7 @@ Composite createDefSoundCombo(Props prop, Summary summ, Skin skin, Composite par
 	}
 	play.setImage = prop.images.playSound;
 	play.setToolTipText = prop.msgs.playSound;
-	play.addSelectionListener(new PlaySE(summ, prop, skin, combo));
+	play.addSelectionListener(new PlaySE(comm, summ, prop, combo));
 	return comp2;
 }
 Composite createSuccessRateScale(Props prop, Composite parent, out Scale sucRate) {

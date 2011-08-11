@@ -445,17 +445,28 @@ struct BgImageS {
 
 /// クラシックなエンジンの情報。
 struct ClassicEngine {
+	static const XML_NAME = "classicEngine";
 	string name;
-	string enginePath;
-	string dataDirName;
-	string execute;
+	string enginePath = "";
+	string dataDirName = "";
+	string execute = "";
 	const
-	void toNode(ref XNode e) {
-		auto r = e.newElement("classicEngine");
-		r.newAttr("name", name);
-		r.newAttr("enginePath", enginePath);
-		r.newAttr("dataDirName", dataDirName);
-		r.newAttr("execute", execute);
+	XNode toNode() {
+		auto e = XNode.create(XML_NAME);
+		toNodeImpl(e);
+		return e;
+	}
+	const
+	void toNode(ref XNode node) {
+		auto e = node.newElement(XML_NAME);
+		toNodeImpl(e);
+	}
+	const
+	private void toNodeImpl(ref XNode e) {
+		e.newAttr("name", name);
+		e.newAttr("enginePath", enginePath);
+		e.newAttr("dataDirName", dataDirName);
+		e.newAttr("execute", execute);
 	}
 	void fromNode(ref XNode node) {
 		if (node.name != "classicEngine") throw new Exception("Node is not classicEngine");
@@ -564,7 +575,9 @@ class FlexEtcProps : Properties {
 	mixin Property!("bgImageSettingsNameWidth", int, 150, true);
 	mixin Property!("bgImageSettingsNameHeight", int, 250, true);
 	mixin Property!("outerToolsNameWidth", int, 150, true);
-	mixin Property!("outerToolsNameHeight", int, 250, true);
+	mixin Property!("outerToolsNameHeight", int, 150, true);
+	mixin Property!("classicEnginesNameWidth", int, 150, true);
+	mixin Property!("classicEnginesNameHeight", int, 250, true);
 
 	mixin Property!("wallpaper", string, "");
 	mixin Property!("wallColorR", int, 0);
@@ -577,6 +590,10 @@ class FlexEtcProps : Properties {
 	mixin Property!("bgImageKeyCodeSashR", int, 1);
 	mixin Property!("outerToolsSashL", int, 1);
 	mixin Property!("outerToolsSashR", int, 2);
+	mixin Property!("classicEnginesSashL", int, 1);
+	mixin Property!("classicEnginesSashR", int, 2);
+	mixin Property!("outerToolsAndClassicEnginesSashL", int, 1);
+	mixin Property!("outerToolsAndClassicEnginesSashR", int, 1);
 	mixin Property!("keyCodeWidth", int, 100, true);
 	mixin Property!("scenarioPath", string, "");
 	mixin Property!("tempPath", string, "temp");
@@ -729,6 +746,9 @@ class FlexEtcProps : Properties {
 	mixin Property!("ignorePaths", string[], [".*"]);
 
 	mixin Property!("selectedArchiveFilter", string, "zip");
+
+	mixin Property!("classicEngines", ClassicEngine[], []);
+	mixin Property!("addNewClassicEngine", bool, true);
 
 	mixin XMLFuncs!(FlexEtcProps);
 }

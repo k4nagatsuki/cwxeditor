@@ -534,6 +534,14 @@ public:
 		_var = new FlexProps(parent.appPath, confFilePath);
 	}
 	const
+	string enginePath() {
+		if (std.path.isabs(var.etc.enginePath)) {
+			return var.etc.enginePath;
+		} else {
+			return std.path.join(std.path.getDirName(parent.appPath), var.etc.enginePath);
+		}
+	}
+	const
 	string tempPath() {
 		if (std.path.isabs(var.etc.tempPath)) {
 			return var.etc.tempPath;

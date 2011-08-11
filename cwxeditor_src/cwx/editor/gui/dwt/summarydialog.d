@@ -115,10 +115,10 @@ private:
 
 				Skin skin;
 				if (_summ.legacy && _hasLegacySkin && _type.getSelectionIndex == 0) {
-					skin = Skin.legacySkin(_prop.parent, _prop.var.etc.enginePath,
+					skin = Skin.findLegacySkin(_prop.parent, _prop.enginePath,
 						_summ.scenarioPath);
 				} else {
-					skin = Skin.find(_prop.parent, _prop.var.etc.enginePath,
+					skin = Skin.find(_prop.parent, _prop.enginePath,
 						_type.getText, _summ.scenarioPath, _summ.legacy);
 				}
 				{
@@ -445,7 +445,7 @@ private:
 			string resDir, lEnginePath;
 			_hasLegacySkin = Skin.findLegacy(_summ.scenarioPath, resDir, lEnginePath);
 			if (_hasLegacySkin) {
-				auto lSkin = Skin.legacySkin(_prop.parent, _prop.var.etc.enginePath, _summ.scenarioPath);
+				auto lSkin = Skin.findLegacySkin(_prop.parent, _prop.enginePath, _summ.scenarioPath);
 				_type.add(_prop.msgs.legacyEngineSkin(lSkin.engine));
 			}
 		}

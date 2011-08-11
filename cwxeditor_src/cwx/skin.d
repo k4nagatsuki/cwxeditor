@@ -20,7 +20,7 @@ public:
 class Skin {
 	static Skin find(in CProps prop, string enginePath, string type, string sPath, bool legacy) {
 		if (legacy && !type.length) {
-			return legacySkin(prop, enginePath, sPath);
+			return findLegacySkin(prop, enginePath, sPath);
 		}
 		static Skin[string] emptySkins;
 		auto tbl = table(prop, enginePath);
@@ -67,7 +67,21 @@ class Skin {
 	}
 	private static string lSkinsKey = null;
 	private static Skin[string] lSkins;
-	static Skin legacySkin(in CProps prop, string enginePath, string sPath) {
+	static Skin createLegacySkin(in CProps prop, string enginePath, string lEnginePath, string dataDirName, string execute) {
+		// 標準のスキンをベースにする
+		auto tbl = table(prop, enginePath);
+		auto sp = "MedievalFantasy" in tbl;
+		Skin skin;
+		if (sp) {
+			skin = new Skin(prop, sp.skinFile, enginePath);
+		} else {
+			skin = new Skin(prop, enginePath);
+		}
+		skin.setupLegacy(lEnginePath, lEnginePath.getDirName.join(dataDirName));
+		skin._execute = execute;
+		return skin;
+	}
+	static Skin findLegacySkin(in CProps prop, string enginePath, string sPath) {
 		if (!lSkinsKey) {
 			lSkinsKey = enginePath;
 		} else if (enginePath != lSkinsKey) {
@@ -83,66 +97,68 @@ class Skin {
 		if (p) {
 			return *p;
 		} else {
-			auto tbl = table(prop, enginePath);
-			// 標準のスキンをベースにする
-			auto sp = "MedievalFantasy" in tbl;
-			Skin skin;
-			if (sp) {
-				skin = new Skin(prop, sp.skinFile, enginePath);
-			} else {
-				skin = new Skin(prop, enginePath);
-			}
-			skin._extImg = "bmp";
-			skin._extBgm = "mid";
-			skin._extSound = "wav";
-			skin._legacy = true;
-			skin._legacyPath = resDir;
-			skin._legacyEngine = lEnginePath;
-			if (!('A' in skin._spChars)) skin._spChars['A'] = "";
-			if (!('C' in skin._spChars)) skin._spChars['C'] = "";
-			if (!('D' in skin._spChars)) skin._spChars['D'] = "";
-			if (!('E' in skin._spChars)) skin._spChars['E'] = "";
-			if (!('F' in skin._spChars)) skin._spChars['F'] = "";
-			if (!('G' in skin._spChars)) skin._spChars['G'] = "";
-			if (!('H' in skin._spChars)) skin._spChars['H'] = "";
-			if (!('J' in skin._spChars)) skin._spChars['J'] = "";
-			if (!('K' in skin._spChars)) skin._spChars['K'] = "";
-			if (!('L' in skin._spChars)) skin._spChars['L'] = "";
-			if (!('N' in skin._spChars)) skin._spChars['N'] = "";
-			if (!('O' in skin._spChars)) skin._spChars['O'] = "";
-			if (!('P' in skin._spChars)) skin._spChars['P'] = "";
-			if (!('Q' in skin._spChars)) skin._spChars['Q'] = "";
-			if (!('S' in skin._spChars)) skin._spChars['S'] = "";
-			if (!('W' in skin._spChars)) skin._spChars['W'] = "";
-			if (!('X' in skin._spChars)) skin._spChars['X'] = "";
-			if (!('Z' in skin._spChars)) skin._spChars['Z'] = "";
+			string dataDirName = resDir.length ? abs2rel(lEnginePath.getDirName, resDir) : "";
+			auto skin = createLegacySkin(prop, enginePath, lEnginePath, dataDirName, "");
 			lSkins[resDir] = skin;
 			return skin;
 		}
+	}
+	private void setupLegacy(string lEnginePath, string resDir) {
+		_extImg = "bmp";
+		_extBgm = "mid";
+		_extSound = "wav";
+		_legacy = true;
+		_legacyPath = resDir;
+		_legacyEngine = lEnginePath;
+		if (!('A' in _spChars)) _spChars['A'] = "";
+		if (!('C' in _spChars)) _spChars['C'] = "";
+		if (!('D' in _spChars)) _spChars['D'] = "";
+		if (!('E' in _spChars)) _spChars['E'] = "";
+		if (!('F' in _spChars)) _spChars['F'] = "";
+		if (!('G' in _spChars)) _spChars['G'] = "";
+		if (!('H' in _spChars)) _spChars['H'] = "";
+		if (!('J' in _spChars)) _spChars['J'] = "";
+		if (!('K' in _spChars)) _spChars['K'] = "";
+		if (!('L' in _spChars)) _spChars['L'] = "";
+		if (!('N' in _spChars)) _spChars['N'] = "";
+		if (!('O' in _spChars)) _spChars['O'] = "";
+		if (!('P' in _spChars)) _spChars['P'] = "";
+		if (!('Q' in _spChars)) _spChars['Q'] = "";
+		if (!('S' in _spChars)) _spChars['S'] = "";
+		if (!('W' in _spChars)) _spChars['W'] = "";
+		if (!('X' in _spChars)) _spChars['X'] = "";
+		if (!('Z' in _spChars)) _spChars['Z'] = "";
+	}
+	/// 指定されたディレクトリにリソースディレクトリが
+	/// 含まれていればディレクトリ名を返す。
+	static string findResDir(string path) {
+		auto p = path;
+		if (std.file.exists(join(p, join("Data", "Table") ~ sep ~ "MapOfWirth.BMP"))) {
+			return "Data";
+		}
+		for (char c = 'A'; c < 'Z'; c++) {
+			if (std.file.exists(join(p, join("D_" ~ c ~ "1", "Table") ~ sep ~ "MapOfWirth.BMP"))) {
+				return "D_" ~ c ~ "1";
+			}
+			if (std.file.exists(join(p, [c] ~ join("_dt", "Table") ~ sep ~ "MapOfWirth.BMP"))) {
+				return [c].idup ~ "_dt";
+			}
+		}
+		return "";
 	}
 	/// 指定されたシナリオが属すCardWirthを検索し、
 	/// そのリソースディレクトリとエンジンのパスを返す。
 	static bool findLegacy(string scPath, out string resDir, out string enginePath) {
 		auto path = getDirName(scPath);
 		bool chk() {
-			auto p = path;
-			if (std.file.exists(join(p, join("Data", "Table") ~ sep ~ "MapOfWirth.BMP"))) {
-				resDir = join(p, "Data");
+			auto r = findResDir(path);
+			if (r.length) {
+				resDir = join(path, r);
 				return true;
-			}
-			for (char c = 'A'; c < 'Z'; c++) {
-				if (std.file.exists(join(p, join("D_" ~ c ~ "1", "Table") ~ sep ~ "MapOfWirth.BMP"))) {
-					resDir = join(p, "D_" ~ c ~ "1");
-					return true;
-				}
-				if (std.file.exists(join(p, [c] ~ join("_dt", "Table") ~ sep ~ "MapOfWirth.BMP"))) {
-					resDir = join(p, [c] ~ "_dt");
-					return true;
-				}
 			}
 			return false;
 		}
-		while (!chk) {
+		while (!chk()) {
 			auto old = path;
 			path = getDirName(path);
 			if (old == path) {
@@ -182,6 +198,7 @@ class Skin {
 	private bool _legacy = false;
 	private string _legacyPath = "";
 	private string _legacyEngine = "";
+	private string _execute = "";
 
 	private const(CProps) _prop;
 	private string _enginePath;
@@ -406,12 +423,34 @@ class Skin {
 	/// クラシックなシナリオの編集中は、そのシナリオが
 	/// 属すと思われるパスを返す。
 	const
-	string engine() {return _legacyEngine.length ? _legacyEngine : _enginePath;}
+	string engine() {
+		if (_legacyEngine.length) {
+			return legacyEngine();
+		} else {
+			return _enginePath;
+		}
+	}
 
 	/// クラシックなCardWirth本体のパス。
 	/// 所属エンジンが無いか、クラシックでないシナリオの編集中であれば""を返す。
 	const
-	string legacyEngine() {return _legacyEngine.length ? _legacyEngine : "";}
+	string legacyEngine() {
+		if (!_legacyEngine.length) return "";
+		return _legacyEngine;
+	}
+
+	/// エンジンを実行する際のパス。
+	const
+	string executeEngine() {
+		if (_legacyEngine.length) {
+			if (_execute.length) {
+				return _legacyEngine.getDirName.join(_execute);
+			}
+			return legacyEngine();
+		} else {
+			return _enginePath;
+		}
+	}
 
 	/// クラシックなシナリオの編集中は、拡張子を除く所属エンジンのパスを返す。
 	/// 所属エンジンが無いか、クラシックでないシナリオの編集中であれば""を返す。

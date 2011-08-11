@@ -311,6 +311,7 @@ string abs2rel(string path) {
 }
 /// ditto
 string abs2rel(string base, string path) {
+	if (!path.length) return base;
 	base = nabs(base);
 	path = nabs(path);
 	if (getDrive(base) != getDrive(path)) {
@@ -338,6 +339,7 @@ string abs2rel(string base, string path) {
 	return std.string.join(r, sep);
 } unittest {
 	version (Windows) {
+		assert (abs2rel(`c:\windows\system`, `c:\windows\system\test`) == `test`);
 		assert (abs2rel(`c:\windows\system`, `c:\windows\system\test\test.txt`) == `test\test.txt`);
 		assert (abs2rel(`c:\windows\system`, `c:\`) == `..\..`);
 		assert (abs2rel(`c:\windows\system`, `c:\windows`) == `..`);

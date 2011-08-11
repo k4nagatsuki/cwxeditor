@@ -466,7 +466,7 @@ private:
 		return false;
 	}
 	void execEngine() {
-		string engine = summary ? _comm.skin.engine : _prop.var.etc.enginePath;
+		string engine = summary ? _comm.skin.executeEngine : _prop.enginePath;
 		if (engine.length) {
 			if (!exec(engine, getDirName(nabs(engine)))) {
 				MessageBox.showWarning(_prop.msgs.errorExecEngine(engine),
@@ -932,8 +932,8 @@ public:
 		d.setAppName = _prop.msgs.application;
 
 		string engineDir = "";
-		if (_prop.var.etc.enginePath.length && .exists(_prop.var.etc.enginePath)) {
-			engineDir = getDirName(nabs(_prop.var.etc.enginePath));
+		if (_prop.enginePath.length && .exists(_prop.enginePath)) {
+			engineDir = getDirName(nabs(_prop.enginePath));
 			auto skinTable = .skinTable(_prop);
 			if (!(_prop.var.etc.defaultSkin in skinTable)) {
 				MessageBox.showWarning(_prop.msgs.loadSkinError(_prop.var.etc.defaultSkin),

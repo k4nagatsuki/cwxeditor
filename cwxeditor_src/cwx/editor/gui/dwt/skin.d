@@ -10,24 +10,49 @@ import cwx.imagesize;
 import cwx.types;
 
 import cwx.editor.gui.dwt.props;
+import cwx.editor.gui.dwt.properties;
 import cwx.editor.gui.dwt.utils;
 
 import std.string;
 import std.utf;
 import std.ctype;
 import std.file;
+import std.path;
 
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.Image;
 
-Skin findSkin(S = Summary)(in Props prop, in S summ) {
+Skin findSkin(S = Summary)(Props prop, in S summ) {
 	static if (is(typeof(summ.type))) {
 		if (!summ) {
 			return findSkin2(prop, prop.var.etc.defaultSkin);
 		}
 		if (summ.legacy && !summ.type.length) {
-			return Skin.find2!(S)(prop.parent, prop.var.etc.enginePath, summ);
+			auto skin = Skin.find2!(S)(prop.parent, prop.enginePath, summ);
+			void find() {
+				if (!skin.legacyEngine.length) return;
+				if (!prop.var.etc.addNewClassicEngine) return;
+				auto lEngine = nabs(skin.legacyEngine);
+				foreach (ce; prop.var.etc.classicEngines) {
+					if (fnmatch(nabs(ce.enginePath), lEngine)) {
+						skin = Skin.createLegacySkin(prop.parent, prop.enginePath, ce.enginePath, ce.dataDirName, ce.execute);
+						return;
+					}
+				}
+				string dataDirName = abs2rel(lEngine.getDirName, skin.legacyDataPath);
+				auto ce = ClassicEngine(lEngine.basename.getName, lEngine, dataDirName, "");
+				prop.var.etc.classicEngines = prop.var.etc.classicEngines.dup ~ ce;
+			}
+			if (skin.legacyEngine.length) {
+				find();
+			} else {
+				if (prop.var.etc.classicEngines.length) {
+					auto ce = prop.var.etc.classicEngines[0];
+					skin = Skin.createLegacySkin(prop.parent, prop.enginePath, ce.enginePath, ce.dataDirName, ce.execute);
+				}
+			}
+			return skin;
 		}
 		return findSkin2(prop, summ.type);
 	} else {
@@ -38,17 +63,17 @@ Skin findSkin2(const(Props) prop, string type) {
 	auto p = type in skinTable(prop);
 	if (p) return *p;
 	static Skin[string] emptySkins;
-	p = prop.var.etc.enginePath in emptySkins;
+	p = prop.enginePath in emptySkins;
 	if (p) return *p;
-	auto r = new Skin(prop.parent, prop.var.etc.enginePath);
-	emptySkins[prop.var.etc.enginePath] = r;
+	auto r = new Skin(prop.parent, prop.enginePath);
+	emptySkins[prop.enginePath] = r;
 	return r;
 }
 bool hasSkin(in Props prop, string type) {
 	return (type in skinTable(prop)) !is null;
 }
 Skin[string] skinTable(const(Props) prop) {
-	return Skin.table(prop.parent, prop.var.etc.enginePath);
+	return Skin.table(prop.parent, prop.enginePath);
 }
 
 private static ImageData imgd(string path, bool mask, bool rmask) {

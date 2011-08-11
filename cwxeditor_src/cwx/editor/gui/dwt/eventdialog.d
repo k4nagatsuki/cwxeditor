@@ -941,7 +941,7 @@ protected:
 					gd.horizontalSpan = 2;
 					grp.setLayoutData = gd;
 					grp.setLayout = new GridLayout(1, true);
-					createDefSoundCombo(_prop, _summ, _comm.skin, grp, _se)
+					createDefSoundCombo(_comm, _prop, _summ, grp, _se)
 						.setLayoutData = new GridData(GridData.FILL_BOTH);
 					mod(_se);
 				}

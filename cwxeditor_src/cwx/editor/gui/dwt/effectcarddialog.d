@@ -532,10 +532,10 @@ private:
 			grp.setText = _prop.msgs.se;
 			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
 			grp.setLayout = new GridLayout(1, false);
-			createDefSoundCombo(_prop, _summ, skin, grp, _se1, _prop.msgs.se1).setLayoutData
+			createDefSoundCombo(_comm, _prop, _summ, grp, _se1, _prop.msgs.se1).setLayoutData
 				= new GridData(GridData.FILL_BOTH);
 			mod(_se1);
-			createDefSoundCombo(_prop, _summ, skin, grp, _se2, _prop.msgs.se2).setLayoutData
+			createDefSoundCombo(_comm, _prop, _summ, grp, _se2, _prop.msgs.se2).setLayoutData
 				= new GridData(GridData.FILL_BOTH);
 			mod(_se2);
 		}
