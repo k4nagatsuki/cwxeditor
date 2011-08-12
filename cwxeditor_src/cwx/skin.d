@@ -146,27 +146,13 @@ class Skin {
 		}
 		return "";
 	}
-	/// 指定されたシナリオが属すCardWirthを検索し、
-	/// そのリソースディレクトリとエンジンのパスを返す。
-	static bool findLegacy(string scPath, out string resDir, out string enginePath) {
-		auto path = getDirName(scPath);
-		bool chk() {
-			auto r = findResDir(path);
-			if (r.length) {
-				resDir = join(path, r);
-				return true;
-			}
-			return false;
-		}
-		while (!chk()) {
-			auto old = path;
-			path = getDirName(path);
-			if (old == path) {
-				resDir ="";
-				enginePath = "";
-				return false;
-			}
-		}
+	/// 指定されたディレクトリにクラシックエンジンとリソースディレクトリが
+	/// 含まれていればtrueを返す。
+	static bool hasClassicEngine(string path, out string resDir, out string enginePath) {
+		auto r = findResDir(path);
+		if (!r.length) return false;
+		resDir = join(path, r);
+
 		auto cw = join(path, "CardWirth.exe");
 		if (std.file.exists(cw)) {
 			enginePath = cw;
@@ -192,8 +178,25 @@ class Skin {
 				}
 			}
 			enginePath = "";
+			resDir = "";
+			return false;
 		}
-		return false;
+	}
+
+	/// 指定されたシナリオが属すCardWirthを検索し、
+	/// そのリソースディレクトリとエンジンのパスを返す。
+	static bool findLegacy(string scPath, out string resDir, out string enginePath) {
+		auto path = getDirName(scPath);
+		while (!hasClassicEngine(path, resDir, enginePath)) {
+			auto old = path;
+			path = getDirName(path);
+			if (old == path) {
+				resDir ="";
+				enginePath = "";
+				return false;
+			}
+		}
+		return true;
 	}
 	private bool _legacy = false;
 	private string _legacyPath = "";
@@ -644,6 +647,14 @@ class Skin {
 	const
 	string[] sounds(string dir, bool forceRefresh) {return list!(isSE)(dir, forceRefresh);}
 
+	/// 標準素材ディレクトリのルート。
+	const
+	string resDir() {
+		if (_legacyPath.length) {
+			return _legacyPath;
+		}
+		return _path;
+	}
 	/// 標準の背景画像のディレクトリ。
 	const
 	string tableDir() {

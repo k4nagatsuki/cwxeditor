@@ -232,6 +232,18 @@ private:
 			return getDirName(file);
 		}
 	}
+	string dropCEnginePath(string[] files) {
+		if (!files.length) return "";
+		string file = files[0];
+		if (.exists(file) && .isdir(file)) {
+			string resDir, lEnginePath;
+			if (Skin.hasClassicEngine(file, resDir, lEnginePath)) {
+				return lEnginePath;
+			}
+			return file;
+		}
+		return file;
+	}
 	const WALLPAPER_EXT = ["bmp", "ico", "icon", "jpg", "jpeg", "gif", "png", "tif", "tiff"];
 	string dropWallpaper(string[] files) {
 		if (!files.length) return "";
@@ -1442,7 +1454,7 @@ private:
 					_cEnginePathRef.addSelectionListener(new PushCEnginePathRef);
 					_cEnginePath.addModifyListener(new ModCEnginePath);
 					_cEnginePathDirOpen = createOpenButton(comp2, _cEnginePath, false);
-					setupDropFile(_cEnginePath, _cEnginePath, &dropDefault, &dropCEnginePath);
+					setupDropFile(_cEnginePath, _cEnginePath, &dropCEnginePath, &dropCEnginePath);
 				}
 				{
 					auto l = new Label(comp2, SWT.NONE);

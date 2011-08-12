@@ -20,6 +20,7 @@ import cwx.editor.gui.dwt.customtext;
 import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.splitpane;
+import cwx.editor.gui.dwt.properties;
 
 import std.conv;
 import std.string;
@@ -35,6 +36,7 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
@@ -46,6 +48,8 @@ import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.DisposeListener;
@@ -75,9 +79,12 @@ private:
 	Table _startArea;
 	Spinner _rCouponNum;
 	Text _rCoupons;
+	Button _typeSkin;
+	Button _typeClassic;
 	Combo _type;
-	SplitPane _tab2Sash, _tab3Sash;
 	bool _hasLegacySkin;
+	ClassicEngine[] _classicEngines;
+	SplitPane _tab2Sash, _tab3Sash;
 	// TODO Tag
 	// TODO Label
 
@@ -98,6 +105,24 @@ private:
 		}
 	}
 
+	Skin selectedSkin() {
+		if (_typeSkin.getSelection) {
+			auto p = _type.getText in skinTable(_prop);
+			if (p) {
+				return *p;
+			}
+		} else if (_typeClassic.getSelection) {
+			int i = _type.getSelectionIndex;
+			if (_hasLegacySkin) {
+				if (i == 0) {
+					return .findSkin(_prop, _summ);
+				}
+				i--;
+			}
+			return .createClassicSkin(_prop, _prop.var.etc.classicEngines[i]);
+		}
+		return .findSkin2(_prop, _prop.var.etc.defaultSkin);
+	}
 	class PListener : PaintListener {
 		override void paintControl(PaintEvent e) {
 			auto d = Display.getCurrent;
@@ -113,14 +138,7 @@ private:
 				scope gc = new GC(_summImageBuf);
 				scope (exit) gc.dispose;
 
-				Skin skin;
-				if (_summ.legacy && _hasLegacySkin && _type.getSelectionIndex == 0) {
-					skin = Skin.findLegacySkin(_prop.parent, _prop.enginePath,
-						_summ.scenarioPath);
-				} else {
-					skin = Skin.find(_prop.parent, _prop.enginePath,
-						_type.getText, _summ.scenarioPath, _summ.legacy);
-				}
+				auto skin = selectedSkin;
 				{
 					scope img = new Image(d, summary(skin));
 					gc.drawImage(img, 0, 0);
@@ -306,8 +324,16 @@ private:
 					grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 					grp.setText = _prop.msgs.scenarioType;
 					grp.setLayout = new GridLayout(1, true);
+					auto refTypes = new RefreshTypes;
+					_typeSkin = new Button(grp, SWT.RADIO);
+					_typeSkin.setText = _prop.msgs.sTypeXML;
+					_typeSkin.addSelectionListener(refTypes);
+					_typeClassic = new Button(grp, SWT.RADIO);
+					_typeClassic.setText = _prop.msgs.sTypeClassic;
+					_typeClassic.addSelectionListener(refTypes);
 					_type = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 					mod(_type);
+					_type.setVisibleItemCount = 20;
 					_type.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 					refreshTypes();
 				}
@@ -366,6 +392,11 @@ private:
 		auto tab = new CTabItem(tabf, SWT.NONE);
 		tab.setText = _prop.msgs.etcData;
 		tab.setControl = comp;
+	}
+	class RefreshTypes : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			refreshTypes();
+		}
 	}
 	class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
@@ -429,38 +460,92 @@ private:
 		refreshTypes();
 	}
 	void refreshTypes() {
-		auto text = _type.getText;
-		scope (exit) {
-			if (-1 != _type.indexOf(text)) {
-				_type.setText = text;
-			} else if (!_summ.type.length) {
-				_type.select = 0;
+		string selType = _summ.type;
+		string selClassic = null;
+
+		if (!_typeSkin.getSelection && !_typeClassic.getSelection) {
+			if (_comm.skin.legacy) {
+				_typeClassic.setSelection = true;
 			} else {
-				int index = _type.indexOf(_summ.type);
-				_type.setText = index >= 0 ? _summ.type : _prop.var.etc.defaultSkin;
+				_typeSkin.setSelection = true;
 			}
-		}
-		_type.removeAll();
-		if (_summ.legacy) {
-			string resDir, lEnginePath;
-			_hasLegacySkin = Skin.findLegacy(_summ.scenarioPath, resDir, lEnginePath);
-			if (_hasLegacySkin) {
-				auto lSkin = Skin.findLegacySkin(_prop.parent, _prop.enginePath, _summ.scenarioPath);
-				_type.add(_prop.msgs.legacyEngineSkin(lSkin.engine));
-			}
-		}
-		auto skins = skinTable(_prop).keys;
-		if (_prop.var.etc.logicalSort) {
-			skins = sort!(ncmp)(skins);
+			selType = _summ.type;
+			selClassic = _comm.skin.legacyEngine.length ? _comm.skin.legacyEngine : null;
 		} else {
-			skins = sort!(cmp)(skins);
+			if (_typeSkin.getSelection) {
+				selType = _type.getText;
+			} else if (_typeClassic.getSelection) {
+				int i = _type.getSelectionIndex;
+				if (-1 != i) {
+					if (_hasLegacySkin) {
+						if (0 < i) {
+							selClassic = _classicEngines[i - 1].enginePath;
+						}
+					} else {
+						selClassic = _classicEngines[i].enginePath;
+					}
+				}
+				if (selClassic) selClassic = nabs(selClassic);
+			}
 		}
-		foreach (type; skins) {
-			_type.add(type);
+		_classicEngines = _prop.var.etc.classicEngines.dup;
+
+		_type.removeAll();
+		void initSkin() {
+			// XML形式のスキン
+			auto skins = skinTable(_prop).keys;
+			if (_prop.var.etc.logicalSort) {
+				skins = sort!(ncmp)(skins);
+			} else {
+				skins = sort!(cmp)(skins);
+			}
+			foreach (i, type; skins) {
+				_type.add(type);
+				if (type == selType) {
+					_type.select = i;
+				}
+			}
+			if (!_type.getItemCount) {
+				// スキンが無い
+				_type.add(_prop.var.etc.defaultSkin);
+			}
 		}
-		if (!_type.getItemCount) {
-			// スキンが無い
-			_type.add(_prop.var.etc.defaultSkin);
+		_hasLegacySkin = false;
+		_typeClassic.setEnabled = true;
+		if (_typeSkin.getSelection) {
+			initSkin();
+		} else {
+			assert (_typeClassic.getSelection);
+			// クラシックエンジンのリソース
+			string resDir, lEnginePath;
+			auto curSkin = Skin.findLegacy(_summ.scenarioPath, resDir, lEnginePath);
+			lEnginePath = nabs(lEnginePath);
+			bool cur = 0 != lEnginePath.length;
+			foreach (i, ce; _prop.var.etc.classicEngines) {
+				_type.add(ce.name);
+				if (selClassic && fnmatch(selClassic, nabs(ce.enginePath))) {
+					_type.select = i;
+				}
+				if (cur && fnmatch(lEnginePath, nabs(ce.enginePath))) {
+					cur = false;
+					if (-1 == _type.getSelectionIndex) _type.select = i;
+				}
+			}
+			if (cur) {
+				_type.add(_prop.msgs.currentEngineSkin(lEnginePath), 0);
+				_hasLegacySkin = true;
+			}
+			if (!_type.getItemCount) {
+				// クラシックエンジンが無い
+				_typeClassic.setEnabled = false;
+				_typeClassic.setSelection = false;
+				_typeSkin.setSelection = true;
+				initSkin();
+			}
+		}
+		assert (_type.getItemCount);
+		if (-1 == _type.getSelectionIndex) {
+			_type.select = 0;
 		}
 	}
 public:
@@ -522,10 +607,10 @@ protected:
 	}
 	override bool apply() {
 		string oldName = _summ.scenarioName;
-		string oldType = _summ.type;
+		string oldResDir = nabs(_comm.skin.resDir);
 		scope (exit) {
 			if (oldName != _summ.scenarioName) _comm.refScenarioName.call;
-			if (oldType != _summ.type) _comm.refSkin.call(this);
+			if (!fnmatch(oldResDir, nabs(_comm.skin.resDir))) _comm.refSkin.call(this);
 			_comm.refUseCount.call;
 		}
 		setNames(_summ.skills);
@@ -557,12 +642,12 @@ protected:
 		_summ.rCouponNum = _rCouponNum.getSelection;
 		_summ.startArea = _startArea.getItemCount > 0 && _startArea.getSelection.length > 0
 			? (cast(Area) _startArea.getSelection[0].getData).id : 0;
-		if (_summ.legacy && _hasLegacySkin && _type.getSelectionIndex == 0) {
-			_summ.type = "";
-		} else {
+		if (_typeSkin.getSelection) {
 			_summ.type = _type.getText;
+		} else {
+			_summ.type = "";
 		}
-		_comm.skin = findSkin(_prop, _summ);
+		_comm.skin = selectedSkin;
 		return true;
 	}
 }

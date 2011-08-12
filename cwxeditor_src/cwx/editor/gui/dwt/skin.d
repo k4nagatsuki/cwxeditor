@@ -23,6 +23,10 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.Image;
 
+Skin createClassicSkin(in Props prop, in ClassicEngine ce) {
+	return Skin.createLegacySkin(prop.parent, prop.enginePath, ce.enginePath, ce.dataDirName, ce.execute);;
+}
+
 Skin findSkin(S = Summary)(Props prop, in S summ) {
 	static if (is(typeof(summ.type))) {
 		if (!summ) {
@@ -36,7 +40,7 @@ Skin findSkin(S = Summary)(Props prop, in S summ) {
 				auto lEngine = nabs(skin.legacyEngine);
 				foreach (ce; prop.var.etc.classicEngines) {
 					if (fnmatch(nabs(ce.enginePath), lEngine)) {
-						skin = Skin.createLegacySkin(prop.parent, prop.enginePath, ce.enginePath, ce.dataDirName, ce.execute);
+						skin = createClassicSkin(prop, ce);
 						return;
 					}
 				}
@@ -49,7 +53,7 @@ Skin findSkin(S = Summary)(Props prop, in S summ) {
 			} else {
 				if (prop.var.etc.classicEngines.length) {
 					auto ce = prop.var.etc.classicEngines[0];
-					skin = Skin.createLegacySkin(prop.parent, prop.enginePath, ce.enginePath, ce.dataDirName, ce.execute);
+					skin = createClassicSkin(prop, ce);
 				}
 			}
 			return skin;

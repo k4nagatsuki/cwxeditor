@@ -1226,13 +1226,20 @@ public:
 	const string targetLevel() {return "対象レベル";}
 	const string desc() {return "解説";}
 	const string levSep() {return "～";}
-	const string scenarioType() {return "シナリオタイプ";}
 	const string qualification() {return "シナリオ出現条件";}
 	const string rCouponNum() {return "必要数";}
 	const string rCoupons() {return "必要とする称号";}
 	const string startArea() {return "シナリオ開始エリア";}
-	const string legacyEngineSkin(string lEnginePath) {
-		return "[" ~ getBaseName(lEnginePath) ~ "のリソースを使用]";
+
+	const string scenarioType() {return "シナリオタイプ";}
+	const string sTypeXML() {
+		return "スキンを指定";
+	}
+	const string sTypeClassic() {
+		return "クラシックエンジンを使用";
+	}
+	const string currentEngineSkin(string lEnginePath) {
+		return "[" ~ getBaseName(lEnginePath) ~ "]";
 	}
 
 	/// エリア・戦闘・パッケージウィンドウ。
