@@ -7,7 +7,7 @@ import cwx.path;
 
 import std.array;
 import std.conv;
-import std.ctype;
+import std.ascii;
 import std.path;
 import std.string;
 
@@ -112,7 +112,7 @@ private struct FlagId {
 	const
 	hash_t toHash() {
 		hash_t hash = 0;
-		foreach (c; toLower(id)) {
+		foreach (c; cwx.utils.toLower(id)) {
 			hash = (hash * 9) + c;
 		}
 		return hash;
@@ -205,7 +205,7 @@ private struct StepId {
 	const
 	hash_t toHash() {
 		hash_t hash = 0;
-		foreach (c; toLower(id)) {
+		foreach (c; cwx.utils.toLower(id)) {
 			hash = (hash * 9) + c;
 		}
 		return hash;
@@ -518,7 +518,7 @@ struct PathId {
 			s = binImg;
 		} else {
 			static if (fnmatch("a", "A")) {
-				s = toLower(id);
+				s = cwx.utils.toLower(id);
 			} else {
 				s = id;
 			}

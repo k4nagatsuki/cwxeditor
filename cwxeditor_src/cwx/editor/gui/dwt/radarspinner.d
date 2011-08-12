@@ -222,7 +222,7 @@ class RadarSpinner : Composite {
 						// indexが小さい方を前に出すため、逆順に描画する。
 						foreach_reverse (i, spn; _spns) {
 							auto tgl = _tgls[i][getValue(i) - _min];
-							switch (_tstyle) {
+							final switch (_tstyle) {
 							case Toggle.SQUARE:
 								int x = tgl.x - TOGGLE_SIZE / 2;
 								int y = tgl.y - TOGGLE_SIZE / 2;

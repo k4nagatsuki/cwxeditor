@@ -396,7 +396,7 @@ private string readString(ref ByteIO f, bool lns = false, bool cutText = false) 
 }
 private string[] readStrings(ref ByteIO f) {
 	auto str = readString(f, true);
-	return str.length ? splitlines(str) : cast(string[]) [];
+	return str.length ? splitLines(str) : cast(string[]) [];
 }
 private S loadSummary(S)(ref RData d, ref ByteIO f, out ulong startAreaId) {
 	string img = readImage(d, f);

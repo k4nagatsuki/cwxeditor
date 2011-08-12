@@ -590,7 +590,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 					n.name = prop.msgs.evtChildDefault;
 				}
 			}
-			switch (d.nextType) {
+			final switch (d.nextType) {
 			case CNextType.NONE: n.name = ""; break;
 			case CNextType.TEXT: break;
 			case CNextType.BOOL: {
@@ -1383,7 +1383,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		atnPut!(CArg.TARGET_NS, "targetNS", "fromTarget")(e, d);
 		atnPut!(CArg.TARGET_S, "targetS", "fromTarget")(e, d);
 		if (d.use(CArg.TALKER_C)) {
-			switch (talkerC) {
+			final switch (talkerC) {
 			case Talker.NARRATION:
 				e.newAttr(d.attr(CArg.TALKER_C), "");
 				break;
@@ -1598,7 +1598,7 @@ private void loadTalker(in XNode node, out Talker talker, out string path = null
 }
 /// Talkerを文字列に変換する。
 private string fromTalker(Talker talker) {
-	switch (talker) {
+	final switch (talker) {
 	case Talker.SELECTED:
 		return "Selected";
 	case Talker.UNSELECTED:
@@ -1607,6 +1607,8 @@ private string fromTalker(Talker talker) {
 		return "Random";
 	case Talker.CARD:
 		return "Card";
+	case Talker.NARRATION, Talker.IMAGE:
+		return "";
 	}
 }
 

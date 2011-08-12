@@ -533,7 +533,7 @@ class DockingFolder(TabF, int Style) {
 		gc.setBackground = d.getSystemColor(SWT.COLOR_BLACK);
 		gc.setAlpha = 0xff / 2;
 		gc.setLineWidth = 5;
-		switch (_drawPos) {
+		final switch (_drawPos) {
 		case DPos.C: gc.fillRectangle(x, y, w, h); break;
 		case DPos.N: gc.fillRectangle(x, y, w, h / 2); break;
 		case DPos.E: gc.fillRectangle(x + w / 2, y, w / 2, h); break;

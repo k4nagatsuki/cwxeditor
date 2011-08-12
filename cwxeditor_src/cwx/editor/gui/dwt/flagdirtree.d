@@ -125,7 +125,7 @@ private:
 				Flag[string] cFlags;
 				Step[string] cSteps;
 				auto ret = dir.appendFromXML(data, LATEST_VERSION, false, true, cFlags, cSteps, newPath);
-				switch (ret) {
+				final switch (ret) {
 				case FlagDir.AppendXmlResult.DIR_SUCCESS:
 					e.detail = DND.DROP_MOVE;
 					refresh(newPath);

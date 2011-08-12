@@ -12,7 +12,7 @@ import cwx.area;
 import cwx.card;
 
 import std.array;
-import std.ctype;
+import std.ascii;
 import std.stdio;
 import std.string;
 import std.regex;
@@ -207,11 +207,11 @@ class CWXScript {
 		}
 		if (tok.value[0] == '@') {
 			char[] buf;
-			auto linesBase = .splitlines(tok.value[0 .. $ - 1].idup);
+			auto linesBase = .splitLines(tok.value[0 .. $ - 1].idup);
 			string firstLine = linesBase[0];
 			string[] lines;
 			foreach (i, line; linesBase[1 .. $]) {
-				line = .stripl(line);
+				line = .stripLeft(line);
 				line = decode(line, tok.value[0]);
 				if (line.length >= 1 && line[0] == '\\') {
 					line = line[1 .. $];
@@ -219,7 +219,7 @@ class CWXScript {
 				lines ~= wrap(line, width);
 			}
 			if (firstLine.length > 1) {
-				auto lnStr = std.string.tolower(.strip(firstLine[1 .. $]));
+				auto lnStr = std.string.toLower(.strip(firstLine[1 .. $]));
 				bool isNum = std.string.isNumeric(lnStr);
 				if (!isNum && icmp(lnStr, "c") != 0 && icmp(lnStr, "center") != 0) {
 					throwError(_prop.msgs.scriptErrorInvalidStr, tok);
@@ -319,10 +319,10 @@ class CWXScript {
 			} else if (0 < commentLevel) {
 				spaceAfter = true;
 				retCount;
- 			} else if (isalpha(c) || c == '_') {
+ 			} else if (isAlpha(c) || c == '_') {
 				spaceAfter = false;
 				// symbol
-				switch (std.string.tolower(dstr)) {
+				switch (std.string.toLower(dstr)) {
 				case "start"d:
 					r ~= Token(i, pos, Kind.START, str);
 					break;
@@ -361,7 +361,7 @@ class CWXScript {
 				spaceAfter = false;
 				r ~= Token(i, pos, Kind.C_BRA, str);
 				pos += dstr.length;
-			} else if (isdigit(c)) {
+			} else if (isDigit(c)) {
 				// number
 				spaceAfter = false;
 				r ~= Token(i, pos, Kind.NUMBER, str);
@@ -377,7 +377,7 @@ class CWXScript {
 				}
 				spaceAfter = false;
 				retCount;
-			} else if (isspace(c)) {
+			} else if (isWhite(c)) {
 				// whitespace
 				spaceAfter = true;
 				retCount;
@@ -916,7 +916,7 @@ class CWXScript {
 					if (a.type is NodeType.VALUES && i > 0) {
 						attrs ~= "\n";
 						attrs ~= indentValue;
-						attrs ~= .rjustify("", token.value.length + 1);
+						attrs ~= .rightJustify("", token.value.length + 1);
 						attrs ~= ac;
 					} else {
 						attrs ~= " ";
@@ -978,13 +978,13 @@ class CWXScript {
 	/// 属性値を文字列にして返す。
 	private string attrValue(in Node node, in Token[string] varTable, size_t strWidth) {
 		switch (node.token.kind) {
-		case Kind.SYMBOL: return std.string.tolower(node.token.value);
+		case Kind.SYMBOL: return std.string.toLower(node.token.value);
 		case Kind.VAR_NAME:
 			auto tok = var(node.token, varTable);
 			if (tok.kind is Kind.STRING) {
 				return stringValue(tok, strWidth);
 			} else if (tok.kind is Kind.SYMBOL) {
-				return std.string.tolower(tok.value);
+				return std.string.toLower(tok.value);
 			}
 			goto case Kind.NUMBER;
 		case Kind.STRING, Kind.NUMBER, Kind.PLU, Kind.MIN, Kind.O_PAR:
@@ -1042,7 +1042,7 @@ class CWXScript {
 	}
 	private Token var(in Token tok, in Token[string] varTable) {
 		if (tok.kind is Kind.VAR_NAME) {
-			auto ptr = std.string.tolower(tok.value) in varTable;
+			auto ptr = std.string.toLower(tok.value) in varTable;
 			if (ptr) return var(*ptr, varTable);
 			throwError(_prop.msgs.scriptErrorUndefinedVar, tok);
 		}
@@ -1248,7 +1248,7 @@ fi`;
 		Node node;
 		node.type = NodeType.COMMAND;
 		node.token = tok;
-		auto symbol = std.string.tolower(tok.value);
+		auto symbol = std.string.toLower(tok.value);
 		if (!(symbol in keys.keywords)) {
 			throwError(_prop.msgs.scriptErrorInvalidKeyword, tok);
 		}
@@ -1296,7 +1296,7 @@ fi`;
 			case Kind.START, Kind.IF, Kind.ELIF, Kind.FI, Kind.SIF:
 				return r;
 			case Kind.SYMBOL, Kind.NUMBER, Kind.STRING, Kind.PLU, Kind.MIN, Kind.O_PAR:
-				if (std.string.tolower(tok.value) in keys.keywords) return r;
+				if (std.string.toLower(tok.value) in keys.keywords) return r;
 				Node node;
 				node.type = NodeType.VALUE;
 				node.token = tok;
@@ -1800,7 +1800,7 @@ fi`;
 		auto value = varValue(node, node.texts, varTable, 0);
 		string r;
 		if (value.kind is Kind.SYMBOL) {
-			auto valStr = std.string.tolower(value.value);
+			auto valStr = std.string.toLower(value.value);
 			if (valStr in keys.keywords) {
 				throwError(_prop.msgs.scriptErrorUndefinedSymbol, node.token);
 			}
@@ -1852,16 +1852,16 @@ fi`;
 				if (var.type !is NodeType.VAR_SET) {
 					throwError(_prop.msgs.scriptErrorInvalidVar, var.token);
 				}
-				varTable[std.string.tolower(var.token.value)] = varValue(var, var.var, varTable, 0);
+				varTable[std.string.toLower(var.token.value)] = varValue(var, var.var, varTable, 0);
 			}
 			if (node.type is NodeType.VAR_SET) {
-				varTable[std.string.tolower(node.token.value)] = varValue(node, node.var, varTable, 0);
+				varTable[std.string.toLower(node.token.value)] = varValue(node, node.var, varTable, 0);
 				continue;
 			}
 			if (node.type !is NodeType.COMMAND && node.type !is NodeType.START) {
 				throwError(_prop.msgs.scriptErrorInvalidCommand, node.token);
 			}
-			string val = std.string.tolower(node.token.value);
+			string val = std.string.toLower(node.token.value);
 			auto cmdPtr = val in KEYS.keywords;
 			if (!cmdPtr) {
 				throwError(_prop.msgs.scriptErrorInvalidCommand, node.token);
@@ -2052,7 +2052,7 @@ fi`;
 			attrs ~= value;
 		} else static if (is(Unqual!(T) == string)) {
 			string attr;
-			auto lines = splitlines(value.idup);
+			auto lines = splitLines(value.idup);
 			if (lines.length == 0) {
 				attr ~= `""`;
 			} else if (lines.length == 1) {

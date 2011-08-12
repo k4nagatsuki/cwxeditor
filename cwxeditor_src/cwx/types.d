@@ -36,7 +36,7 @@ Mentality toMentality(string s) {
 }
 /// ditto
 string fromMentality(Mentality m) {
-	switch (m) {
+	final switch (m) {
 	case Mentality.NORMAL: return "Normal";
 	case Mentality.PANIC: return "Panic";
 	case Mentality.BRAVE: return "Brave";
@@ -73,7 +73,7 @@ EffectType toEffectType(string name) {
 }
 /// 効果属性を文字列に変換。
 string fromEffectType(EffectType etyp) {
-	switch (etyp) {
+	final switch (etyp) {
 	case EffectType.PHYSIC:
 		return "Physic";
 	case EffectType.MAGIC:
@@ -107,7 +107,7 @@ Resist toResist(string name) {
 }
 /// 抵抗属性から文字列へ変換。
 string fromResist(Resist resist) {
-	switch (resist) {
+	final switch (resist) {
 	case Resist.AVOID:
 		return "Avoid";
 	case Resist.RESIST:
@@ -140,7 +140,7 @@ CardVisual toCardVisual(string name) {
 }
 /// 視覚効果から文字列へ変換。
 string fromCardVisual(CardVisual vis) {
-	switch (vis) {
+	final switch (vis) {
 	case CardVisual.NONE:
 		return "None";
 	case CardVisual.REVERSE:
@@ -184,7 +184,7 @@ Element toElement(string name) {
 }
 /// 効果属性から文字列へ変換。
 string fromElement(Element el) {
-	switch (el) {
+	final switch (el) {
 	case Element.ALL:
 		return "All";
 	case Element.HEALTH:
@@ -222,7 +222,7 @@ DamageType toDamageType(string name) {
 }
 /// 効果計算方式を文字列へ変換。
 string fromDamageType(DamageType dtyp) {
-	switch (dtyp) {
+	final switch (dtyp) {
 	case DamageType.LEVEL_RATIO:
 		return "LevelRatio";
 	case DamageType.NORMAL:
@@ -285,7 +285,7 @@ string fromTarget(Target targ) {
 	string targetText(string text, bool sleep) {
 		return sleep ? text ~ "Sleep" : text;
 	}
-	switch (targ.m) {
+	final switch (targ.m) {
 	case Target.M.SELECTED:
 		return targetText("Selected", targ.sleep);
 	case Target.M.UNSELECTED:
@@ -339,7 +339,7 @@ Mental toMental(string name) {
 }
 ///精神要素を文字列へ変換。
 string fromMental(Mental m) {
-	switch (m) {
+	final switch (m) {
 	case Mental.AGGRESSIVE:
 		return "Aggressive";
 	case Mental.UNAGGRESSIVE:
@@ -364,7 +364,7 @@ string fromMental(Mental m) {
 }
 /// 精神要素の対立側を返す。
 Mental reverseMental(Mental m) {
-	switch (m) {
+	final switch (m) {
 	case Mental.AGGRESSIVE:
 		return Mental.UNAGGRESSIVE;
 	case Mental.UNAGGRESSIVE:
@@ -417,7 +417,7 @@ Physical toPhysical(string name) {
 }
 /// 肉体要素を文字列へ変換。
 string fromPhysical(Physical p) {
-	switch (p) {
+	final switch (p) {
 	case Physical.DEX:
 		return "Dex";
 	case Physical.AGL:
@@ -480,7 +480,7 @@ Status toStatus(string name) {
 }
 /// 状態を文字列へ変換。
 string fromStatus(Status stat) {
-	switch (stat) {
+	final switch (stat) {
 	case Status.ACTIVE:
 		return "Active";
 	case Status.INACTIVE:
@@ -537,7 +537,7 @@ Range toRange(string name) {
 }
 /// 適用範囲を文字列へ変換。
 string fromRange(Range r) {
-	switch (r) {
+	final switch (r) {
 	case Range.SELECTED:
 		return "Selected";
 	case Range.RANDOM:
@@ -573,11 +573,13 @@ Enhance toEnhance(string name) {
 		return Enhance.RESIST;
 	case "Defense":
 		return Enhance.DEFENSE;
+	default:
+		throw new Exception("Unknown enhance: " ~ name);
 	}
 }
 /// 能力修正種別を文字列へ変換。
 string fromEnhance(Enhance r) {
-	switch (r) {
+	final switch (r) {
 	case Enhance.ACTION:
 		return "Action";
 	case Enhance.AVOID:
@@ -603,11 +605,13 @@ Premium toPremium(string name) {
 		return Premium.RARE;
 	case "Premium":
 		return Premium.PREMIUM;
+	default:
+		throw new Exception("Unknown premium: " ~ name);
 	}
 }
 /// 希少度を文字列へ変換。
 string fromPremium(Premium r) {
-	switch (r) {
+	final switch (r) {
 	case Premium.NORMAL:
 		return "Normal";
 	case Premium.RARE:
@@ -637,11 +641,13 @@ CardTarget toCardTarget(string name) {
 		return CardTarget.ENEMY;
 	case "Both":
 		return CardTarget.BOTH;
+	default:
+		throw new Exception("Unknown card target: " ~ name);
 	}
 }
 /// カード効果標的を文字列へ変換。
 string fromCardTarget(CardTarget r) {
-	switch (r) {
+	final switch (r) {
 	case CardTarget.NONE:
 		return "None";
 	case CardTarget.USER:
@@ -694,11 +700,13 @@ Transition toTransition(string name) {
 		return Transition.PIXEL_DISSOLVE;
 	case "Blinds":
 		return Transition.BLINDS;
+	default:
+		throw new Exception("Unknown transition: " ~ name);
 	}
 }
 /// 背景遷移エフェクトを文字列へ変換。
 string fromTransition(Transition t) {
-	switch (t) {
+	final switch (t) {
 	case Transition.DEFAULT:
 		return "Default";
 	case Transition.NONE:

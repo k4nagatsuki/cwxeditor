@@ -840,7 +840,7 @@ public:
 		int tglY;
 		int tglWidth = tglSize;
 		int tglHeight = tglSize;
-		switch (tgl) {
+		final switch (tgl) {
 		case Toggle.LEFT_TOP, Toggle.LEFT_MIDDLE, Toggle.LEFT_BOTTOM:
 			tglX = newX - tglSize + (tglSize / 2);
 			break;
@@ -850,8 +850,10 @@ public:
 		case Toggle.RIGHT_TOP, Toggle.RIGHT_MIDDLE, Toggle.RIGHT_BOTTOM:
 			tglX = newX + newWidth - (tglSize / 2) - 1;
 			break;
+		case Toggle.MOVE, Toggle.NONE:
+			break;
 		}
-		switch (tgl) {
+		final switch (tgl) {
 		case Toggle.LEFT_TOP, Toggle.MIDDLE_TOP, Toggle.RIGHT_TOP:
 			tglY = newY - tglSize + (tglSize / 2);
 			break;
@@ -860,6 +862,8 @@ public:
 			break;
 		case Toggle.LEFT_BOTTOM, Toggle.RIGHT_BOTTOM, Toggle.MIDDLE_BOTTOM:
 			tglY = newY + newHeight - (tglSize / 2) - 1;
+			break;
+		case Toggle.MOVE, Toggle.NONE:
 			break;
 		}
 		return new Rectangle(tglX, tglY, tglWidth, tglHeight);

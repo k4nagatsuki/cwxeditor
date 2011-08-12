@@ -404,15 +404,15 @@ private:
 	void delegate() _change = null;
 public:
 	/// パス区切り文字。
-	static const string SEPARATOR = "\\";
+	static immutable string SEPARATOR = "\\";
 	/// ditto
-	static const string SEPARATOR_REGEX = "\\\\";
+	static immutable string SEPARATOR_REGEX = "\\\\";
 	/// パスを結合する。
 	static string join(string parent, string path) {
 		if (!parent.length) {
 			return path;
 		}
-		if (parent.endsWith(SEPARATOR)) {
+		if (parent.endsWith(SEPARATOR.dup)) {
 			return parent ~ path;
 		}
 		return parent ~ SEPARATOR ~ path;
@@ -854,7 +854,7 @@ public:
 		if (path.length < sepLen) {
 			return path;
 		}
-		if (endsWith(path, SEPARATOR)) {
+		if (endsWith(path, SEPARATOR.dup)) {
 			path = path[0 .. $ - sepLen];
 		}
 		for (int i = path.length - sepLen; i >= 0; i--) {
@@ -875,8 +875,8 @@ public:
 	/// 指定されたパスのディレクトリが含まれていればtrueを返す。
 	/// 同一のディレクトリツリーかどうかは考慮されない。
 	bool has(string path) {
-		path = toLower(path);
-		auto tpath = toLower(this.path);
+		path = cwx.utils.toLower(path);
+		auto tpath = cwx.utils.toLower(this.path);
 		int len = path.length;
 		int tlen = tpath.length;
 		int sepLen = SEPARATOR.length;
@@ -1176,7 +1176,7 @@ public:
 	static FlagDir searchPath(FlagDir root, string path) {
 		assert (root.parent is null);
 		int sepLen = SEPARATOR.length;
-		if (endsWith(path, FlagDir.SEPARATOR)) {
+		if (endsWith(path, FlagDir.SEPARATOR.dup)) {
 			path = path[0 .. $ - sepLen];
 		}
 		auto paths = std.string.split(path);

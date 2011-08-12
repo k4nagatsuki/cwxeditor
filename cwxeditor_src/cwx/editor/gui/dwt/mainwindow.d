@@ -1681,7 +1681,7 @@ public:
 	bool openCWXPath(string path) {
 		if (!summary) return false;
 		bool open() {
-			path = toLower(path);
+			path = cwx.utils.toLower(path);
 			if (path == "") {
 				return true;
 			}

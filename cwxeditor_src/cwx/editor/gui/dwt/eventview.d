@@ -619,12 +619,14 @@ private:
 							return ESCAPE;
 						case 2:
 							return LOSE;
+						default: assert (0);
 						}
 					case 1:
 						return addKeyCodes;
 					case 2:
 						int round = (cast(Spinner) _fireItm.getControl).getSelection;
 						return new RoundObj(round);
+					default: assert (0);
 					}
 				} else {
 					return ENTER;
@@ -1218,6 +1220,7 @@ public:
 				case 1:
 					createCombo(false, _prop.var.etc.standardKeyCodes.dup, true);
 					break;
+				default: assert (0);
 				}
 			} else static if (is (A == Battle)) {
 				switch (_treeKind.getSelectionIndex) {
@@ -1234,6 +1237,7 @@ public:
 					spn.setSelection = 1;
 					setFireControl = spn;
 					break;
+				default: assert (0);
 				}
 			}
 		}

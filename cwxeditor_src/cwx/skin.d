@@ -9,7 +9,7 @@ import cwx.imagesize;
 import cwx.xml;
 import cwx.types;
 
-import std.ctype;
+import std.ascii;
 import std.file;
 import std.path;
 import std.utf;

@@ -248,7 +248,7 @@ private:
 	string dropWallpaper(string[] files) {
 		if (!files.length) return "";
 		foreach (file; files) {
-			if (.contains!("a == b", string)(WALLPAPER_EXT, file.getExt.toLower)) {
+			if (.contains!("a == b", string)(WALLPAPER_EXT, cwx.utils.toLower(file.getExt))) {
 				return file;
 			}
 		}
@@ -1709,7 +1709,7 @@ protected:
 		_prop.var.etc.wallpaper = _wallpaper.getText;
 		_prop.var.etc.historyMax = _histMax.getSelection;
 		_prop.var.etc.searchHistoryMax = _sHistMax.getSelection;
-		string[] ipLines = splitlines(_ignorePaths.getText);
+		string[] ipLines = splitLines(_ignorePaths.getText);
 		if (ipLines.length > 0) {
 			int i;
 			for (i = ipLines.length - 1; i >= 0 && ipLines[i].length == 0; i--) {
@@ -1743,7 +1743,7 @@ protected:
 		}
 		_prop.var.etc.bgImageSettings = _bgStgs.dup;
 		_prop.var.etc.bgImagesDefault = _bgImagesDefault;
-		string[] lines = splitlines(_keyCodes.getText);
+		string[] lines = splitLines(_keyCodes.getText);
 		if (lines.length > 0) {
 			int i;
 			for (i = lines.length - 1; i >= 0 && lines[i].length == 0; i--) {

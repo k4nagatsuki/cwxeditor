@@ -159,7 +159,7 @@ template RaceParam(bool Set) {
 		/// 精神傾向。
 		const
 		int mental(Mental m) {
-			switch (m) {
+			final switch (m) {
 			case Mental.AGGRESSIVE, Mental.CHEERFUL, Mental.BRAVE, Mental.CAUTIOUS, Mental.TRICKISH:
 				return _mtl[m];
 			case Mental.UNAGGRESSIVE:
@@ -177,7 +177,7 @@ template RaceParam(bool Set) {
 		static if (Set) {
 			/// ditto
 			void mental(Mental m, int val) {
-				switch (m) {
+				final switch (m) {
 				case Mental.AGGRESSIVE, Mental.CHEERFUL, Mental.BRAVE, Mental.CAUTIOUS, Mental.TRICKISH:
 					if (_mtl[m] != val) changed;
 					_mtl[m] = val;

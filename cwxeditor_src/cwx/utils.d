@@ -14,7 +14,7 @@ import std.uni;
 import std.utf;
 import std.base64;
 import std.stdio;
-import std.ctype;
+import std.ascii;
 import std.cstream;
 import std.traits;
 import std.datetime;
@@ -592,13 +592,13 @@ string[] decodeLf(string str, bool useEmpty = false) {
 	string[] r;
 	if (useEmpty) {
 		int last = 0;
-		foreach (i, s; splitlines(decodeLf2(str))) {
+		foreach (i, s; splitLines(decodeLf2(str))) {
 			r ~= s;
 			if (s.length > 0) last = i + 1;
 		}
 		r.length = last;
 	} else {
-		foreach (s; splitlines(decodeLf2(str))) {
+		foreach (s; splitLines(decodeLf2(str))) {
 			if (s.length > 0) {
 				r ~= s;
 			}
@@ -648,7 +648,7 @@ void textUseItems(in string text,
 		}
 		switch (c) {
 		case '#':
-			switch (std.ctype.toupper(dtext[i + 1])) {
+			switch (std.ascii.toUpper(dtext[i + 1])) {
 			case 'M', 'R', 'U', 'C', 'I', 'T', 'Y':
 				break;
 			default:
@@ -781,7 +781,7 @@ in {
 		case '#':
 			buf ~= c;
 			if (i + 1 < dtext.length) {
-				if (tolower([dtext[i + 1]]) == tolower([dold])) {
+				if (std.string.toLower([dtext[i + 1]]) == std.string.toLower([dold])) {
 					buf ~= dnew;
 				} else {
 					buf ~= dtext[i + 1];
@@ -998,6 +998,15 @@ void copyAll(string a, string b) in {
 	}
 }
 
+/// listDirの代替。指定されたディレクトリに含まれるファイル名の一覧を返す。
+string[] clistdir(string dir) {
+	string[] r;
+	foreach (string file; dirEntries(dir, SpanMode.shallow)) {
+		r ~= file.basename;
+	}
+	return r;
+}
+
 /// delpath以降の全てのファイル・ディレクトリを削除する。
 /// Params:
 /// force = trueを指定した場合、途中でエラーが発生しても中断しない。
@@ -1068,11 +1077,11 @@ private int ncmpImpl(C1, C2, alias Cmp)(in C1[] a, in C2[] b) {
 		if (i >= a.length) return -1;
 		if (j >= b.length) return 1;
 		C1[] buf1;
-		for (size_t k = i; k < a.length && std.ctype.isdigit(a[k]); k++) {
+		for (size_t k = i; k < a.length && std.ascii.isDigit(a[k]); k++) {
 			buf1 ~= a[k];
 		}
 		C2[] buf2;
-		for (size_t k = j; k < b.length && std.ctype.isdigit(b[k]); k++) {
+		for (size_t k = j; k < b.length && std.ascii.isDigit(b[k]); k++) {
 			buf2 ~= b[k];
 		}
 		if (buf1.length && buf2.length) {
@@ -1321,9 +1330,6 @@ bool hasParDir(string path) {
 	return false;
 }
 
-/// 歴史的理由でaliasを用意。
-alias listdir clistdir;
-
 /// sにsubがいくつ含まれているかを返す。
 /// std.string.count()と違って大文字と小文字を区別しない。
 size_t icount(string s, string sub) {
@@ -1416,7 +1422,7 @@ class Wildcard {
 			switch (pattern) {
 			case Pattern.CHAR: {
 				if (ignoreCase) {
-					return std.ctype.tolower(chr) == std.ctype.tolower(c);
+					return std.ascii.toLower(chr) == std.ascii.toLower(c);
 				} else {
 					return chr == c;
 				}
@@ -1594,7 +1600,7 @@ size_t lineCount(in string[] lines) {
 	}
 	return to - from;
 } unittest {
-	assert (lineCount(splitlines("\na\nb\n\nc\n\n")) == 4);
+	assert (lineCount(splitLines("\na\nb\n\nc\n\n")) == 4);
 }
 /// std.algorithm.countUntilはconst配列に対する検索が通らない
 sizediff_t cCountUntil(string pred = "a == b", R1, R2)(R1 arr, R2 b) {

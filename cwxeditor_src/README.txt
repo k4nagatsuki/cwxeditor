@@ -2,11 +2,11 @@
 [[[ CWXEditor ビルドガイド ]]]
 
 ビルドツール:
-	・dmd 2.052
+	・dmd 2.054
 	・rake
 	・Digital Mars rcc
 ライブラリ:
-	・DWT2 rev.112
+	・DWT2 rev.125
 
 　後はSubversionとMercurialのクライアントがあると楽です。
 
@@ -15,15 +15,8 @@
 
 　DWT2をMercurialのリポジトリから取ってきます。
 ---
-hg clone -r 112 http://hg.dsource.org/projects/dwt2
+hg clone -r 125 http://hg.dsource.org/projects/dwt2
 ---
-　このままではちゃんと動かないのでパッチを当てます。hgにはパッチを当てる
-機能がついてるのでそれを使いましょう。
----
-cd dwt2
-hg patch dwt2-rev.112_cwx.patch
----
-　こんな感じで。
 　DWT2はビルドにrakeを使います。こいつはRuby言語のスクリプトなのですが、
 RubyInstaller for Windowsを使うとRuby本体諸共入手できるようです。
 　http://rubyinstaller.org/
@@ -32,8 +25,8 @@ RubyInstaller for Windowsを使うとRuby本体諸共入手できるようです。
 rake base swt
 ---
 
-　後はdmd2/windows/bin/sc.iniを弄くってtangobosやDWT2のインポートフォ
-ルダやらリソースフォルダやらを探しに行くようにしておきましょう。
+　後は、dmd2/windows/bin/sc.iniを弄くってDWT2のインポートフォルダやら
+リソースフォルダやらを探しに行くようにしておきましょう。
 ---
 LIB="%@P%\..\lib";\dm\lib;"%@P%\..\..\dwt2\lib"
 DFLAGS="-I%@P%\..\..\src\phobos" "-I%@P%\..\..\src\druntime\import" "-I%@P%\..\..\import" "-I%@P%\..\..\dwt2\imp" "-J%@P%\..\..\dwt2\res"
@@ -53,10 +46,6 @@ make -f win32.mak
 ---
 make -f win32.mak release
 ---
-
-　最後にリンカが"org.eclipse.swt.win32.win32.x86"が見つからないとか文句を
-言ってきますが、実は何の問題も無いようです。気になる人はディレクトリ名と
-SWT.d内の該当箇所を'.'を含まない別の名前に変えるなり。
 
 　後はどうかDWTが死なないことを私と一緒に祈ってください。
 
@@ -80,15 +69,8 @@ SWT.d内の該当箇所を'.'を含まない別の名前に変えるなり。
 
 　DWT2をMercurialのリポジトリから取ってきます。
 ---
-hg clone -r 112 http://hg.dsource.org/projects/dwt2
+hg clone -r 125 http://hg.dsource.org/projects/dwt2
 ---
-　このままではちゃんと動かないのでパッチを当てます。hgにはパッチを当てる
-機能がついてるのでそれを使いましょう。
----
-cd dwt2
-hg patch dwt2-rev.112_cwx.patch
----
-　こんな感じで。
 　さらに、org.eclipse.swt.browserがあると余計な依存関係が発生するので、
 消すか、どこかへ移動してしまう必要があります。
 ---

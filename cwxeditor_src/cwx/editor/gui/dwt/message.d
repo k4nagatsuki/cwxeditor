@@ -198,7 +198,7 @@ private:
 		scope (exit) ignoreMod = false;
 		_oldSel.text = lastRet(wrapReturnCode(_text.getText));
 		string[] rcs;
-		foreach (rc; splitlines(_rCoupons.getText)) {
+		foreach (rc; splitLines(_rCoupons.getText)) {
 			if (rc.length > 0) {
 				rcs ~= rc;
 			}
@@ -440,6 +440,7 @@ protected:
 		case 2:
 			talker = Talker.RANDOM;
 			break;
+		default: assert (0);
 		}
 		if (!evt) evt = new Content(CType.TALK_DIALOG, "");
 		evt.dialogs = _dlgs;
@@ -463,6 +464,7 @@ private:
 			case 1:
 				_textB.setText = _textA.getText;
 				break;
+			default: assert (0);
 			}
 		}
 	}
@@ -485,6 +487,7 @@ private:
 		case 1:
 			_textB.insert(put);
 			break;
+		default: assert (0);
 		}
 	}
 	protected override void refSkin() {
@@ -583,6 +586,7 @@ protected:
 			text = lastRet(wrapReturnCode(_textB.getText));
 			talker = Talker.NARRATION;
 			break;
+		default: assert (0);
 		}
 		if (!evt) evt = new Content(CType.TALK_MESSAGE, "");
 		evt.text = text;
@@ -649,7 +653,7 @@ private Composite createTalkerPane2(Composite parent, Commons comm, Props prop, 
 			override void widgetSelected(SelectionEvent e) {
 				if (_combo.getText.length > 0) {
 					_list.setSelection(_list.getText.length, _list.getText.length);
-					string[] lines = splitlines(_list.getText);
+					string[] lines = splitLines(_list.getText);
 					if (lines.length > 0 && lines[$ - 1].length > 0) {
 						_list.insert("\n");
 					}

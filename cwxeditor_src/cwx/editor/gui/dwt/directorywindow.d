@@ -436,7 +436,7 @@ private:
 	bool addp(T)(T parItm, string path, string sel, string top, ref TreeItem topItm) {
 		auto itm = new TreeItem(parItm, SWT.NONE);
 		auto full = nabs(path);
-		if (fnmatch("A", "a") ? _cuts.contains(toLower(full)) : _cuts.contains(full)) {
+		if (fnmatch("A", "a") ? _cuts.contains(cwx.utils.toLower(full)) : _cuts.contains(full)) {
 			itm.setImage = _sImgFolder;
 		} else {
 			itm.setImage = _prop.images.folder;
@@ -569,7 +569,7 @@ private:
 	}
 	private bool isCutted(string file) {
 		static if (fnmatch("A", "a")) {
-			file = file.toLower;
+			file = cwx.utils.toLower(file);
 			file = file.nabs;
 			return _cuts.contains(file);
 		} else {
@@ -712,7 +712,7 @@ private:
 							auto par = getDirName(file);
 							if (std.path.fnmatch(par, targ)) {
 								if (!move && !(fnmatch("A", "a")
-										? _cuts.contains(toLower(file)) : _cuts.contains(file))) {
+										? _cuts.contains(cwx.utils.toLower(file)) : _cuts.contains(file))) {
 									copys ~= file;
 								}
 								continue;
@@ -741,7 +741,7 @@ private:
 				string[] selfs;
 				foreach (file; paths) {
 					bool fout = !(fnmatch("A", "a")
-						? _cuts.contains(toLower(file))
+						? _cuts.contains(cwx.utils.toLower(file))
 						: _cuts.contains(file))
 						&& (!move || !hasPath(pfull, file));
 					fromOut |= fout;
@@ -1842,7 +1842,7 @@ public:
 				auto dir = selDirPath;
 				_dirs.getSelection[0].setImage = sfimage(dir);
 				static if (fnmatch("A", "a")) {
-					_cuts.add(toLower(nabs(dir)));
+					_cuts.add(cwx.utils.toLower(nabs(dir)));
 				} else {
 					_cuts.add(nabs(dir));
 				}
@@ -1853,7 +1853,7 @@ public:
 					auto p = (cast(FileNameObj) itm.getData).array;
 					itm.setImage = sfimage(itm.getImage);
 					static if (fnmatch("A", "a")) {
-						_cuts.add(toLower(nabs(p)));
+						_cuts.add(cwx.utils.toLower(nabs(p)));
 					} else {
 						_cuts.add(nabs(p));
 					}

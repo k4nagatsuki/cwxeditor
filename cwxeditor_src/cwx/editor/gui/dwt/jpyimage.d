@@ -133,7 +133,7 @@ private ImageData loadJPYImageImpl(Skin skin, string path, string[] stratum) {
 			data.data = cast(byte[]) colorexchange(sec.colorexchange, cast(ubyte[]) data.data, data.depth, data.width, data.height, data.bytesPerLine);
 		}
 		if (sec.filter != Filter.NONE) {
-			data.data = cast(byte[]) filter(sec.filter, cast(ubyte[]) data.data, data.depth, data.width, data.height, data.bytesPerLine);
+			data.data = cast(byte[]) cwx.graphics.filter(sec.filter, cast(ubyte[]) data.data, data.depth, data.width, data.height, data.bytesPerLine);
 		}
 		if (sec.colormap != Colormap.NONE) {
 			data.data = cast(byte[]) colormap(sec.colormap, cast(ubyte[]) data.data, data.depth, data.width, data.height, data.bytesPerLine);

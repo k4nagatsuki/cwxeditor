@@ -96,7 +96,7 @@ bool isSorted(T)(T arr) {
 
 abstract class Properties {
 	private static string toFirstUpper(string val) {
-		return std.string.toupper(val[0 .. 1]) ~ val[1 .. $];
+		return std.string.toUpper(val[0 .. 1]) ~ val[1 .. $];
 	}
 	/// mixinによってプロパティの値と値を設定/取得する関数を生成する。
 	/// 例えば:

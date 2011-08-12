@@ -1929,11 +1929,11 @@ public:
 		}
 	}
 	PImg createCardImage(PImg, C2)(in C2 card, bool smoothing) {
-		static if (is(Unqual!C2 : MenuCard)) {
+		static if (is(C2 : MenuCard) || is(C2 : const MenuCard)) {
 			return createMenuCardImage!PImg
 				(prop, _comm.skin, card.name,
 				cardImagePath(card), card.x, card.y, card.scale, smoothing);
-		} else static if (is(Unqual!C2 : EnemyCard)) {
+		} else static if (is(C2 : EnemyCard) || is(C2 : const EnemyCard)) {
 			auto skin = _comm.skin;
 			auto castCard = summary.casts(card.id);
 			if (castCard) {
@@ -1943,27 +1943,27 @@ public:
 				return createCastCardImage!PImg(prop, skin, null, _summ.scenarioPath,
 					card.x, card.y, card.scale, smoothing, debugMode);
 			}
-		} else static assert (0);
+		} else static assert (0, C2);
 	}
 	string cardName(C2)(in C2 card) {
-		static if (is(Unqual!C2 : MenuCard)) {
+		static if (is(C2 : MenuCard)) {
 			return card.name;
-		} else static if (is(Unqual!C2 : EnemyCard)) {
+		} else static if (is(C2 : EnemyCard)) {
 			auto castCard = summary.casts(card.id);
 			return castCard ? castCard.name : "";
-		} else static assert (0);
+		} else static assert (0, C2);
 	}
 	string cardImagePath(C2)(in C2 card) {
-		static if (is(Unqual!C2 : MenuCard)) {
+		static if (is(typeof(card.path))) {
 			return _comm.skin.findImagePath(card.path, summary.scenarioPath);
-		} else static if (is(Unqual!C2 : EnemyCard)) {
+		} else static if (is(typeof(summary.casts(card.id)))) {
 			auto castCard = summary.casts(card.id);
 			if (castCard) {
 				return _comm.skin.findImagePath(castCard.path, summary.scenarioPath);
 			} else {
 				return "";
 			}
-		} else static assert (0);
+		} else static assert (0, C2);
 	}
 	static if (UseBacks) {
 		BgImageDialog[BgImage] _editDlgsB;

@@ -1682,9 +1682,6 @@ public:
 	string id() {
 		return _id;
 	}
-	/// クラシックな形式ならtrue。
-	const
-	bool legacy() {return _legacy;}
 	/// スキン。
 	const
 	string type() {return _type;}

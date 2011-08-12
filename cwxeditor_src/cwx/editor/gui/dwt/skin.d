@@ -15,7 +15,7 @@ import cwx.editor.gui.dwt.utils;
 
 import std.string;
 import std.utf;
-import std.ctype;
+import std.ascii;
 import std.file;
 import std.path;
 

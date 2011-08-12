@@ -511,7 +511,7 @@ static const MAKINGS_LEFT = [
 ];
 /// 左辺に対応する右辺の特徴を返す。
 Makings reverseMakings(Makings m) {
-	switch (m) {
+	final switch (m) {
 	case Makings.LOOKS_B: return Makings.LOOKS_U;
 	case Makings.LOOKS_U: return Makings.LOOKS_B;
 	case Makings.CLASS_H: return Makings.CLASS_L;

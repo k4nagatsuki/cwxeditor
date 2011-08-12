@@ -62,7 +62,7 @@ protected:
 		cl.fillVertical = true;
 		area.setLayout = cl;
 		string buf = _prop.msgs.scriptError ~ "\n";
-		auto lines = splitlines(_ex.text);
+		auto lines = splitLines(_ex.text);
 		foreach (err; _ex.errors) {
 			buf ~= "\n";
 			buf ~= err.message ~ "\n";
@@ -81,12 +81,12 @@ protected:
 					} else {
 						char[] str;
 						std.utf.encode(str, c);
-						btm ~= rjustify("", lengthJ(str));
+						btm ~= rightJustify("", lengthJ(str));
 					}
 				}
 			}
 			buf ~= "\n";
-			buf ~= rjustify("", lStr.length) ~ btm ~ "^";
+			buf ~= rightJustify("", lStr.length) ~ btm ~ "^";
 		}
 		if (_ex.over100) {
 			buf ~= "\n";

@@ -79,7 +79,7 @@ class FixedWidthText {
 	private static string toRRText(string targ, int width, GC gc, bool lastRet) {
 		if (targ == "") return "";
 		dstring[] buf;
-		string[] text = splitlines(targ);
+		string[] text = splitLines(targ);
 		foreach (t8; text) {
 			dstring t = toUTF32(t8);
 			if (gc.textExtent(t8).x > width) {

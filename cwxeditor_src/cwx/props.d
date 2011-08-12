@@ -32,8 +32,8 @@ public:
 	const string application() {return "CWXEditor";}
 	const string dlgTitVersion() {return "バージョン情報";}
 	const string appDesc() {return "Scenario editor for CardWirthPy.";}
-	const string appVersion() {return splitlines(import("@version.txt"))[0];}
-	const string appWebSiteURI() {return splitlines(import("@version.txt"))[1];}
+	const string appVersion() {return splitLines(import("@version.txt"))[0];}
+	const string appWebSiteURI() {return splitLines(import("@version.txt"))[1];}
 	const string appBuild() {
 		string buf = "Build: " ~ __TIMESTAMP__ ~ " ";
 		debug {
@@ -482,7 +482,7 @@ public:
 	const string green() {return "緑(&G)";}
 	const string yellow() {return "黄(&Y)";}
 	const string scTalker(Talker talker) {
-		switch (talker) {
+		final switch (talker) {
 		case Talker.SELECTED:
 			return "選択メンバ名(#M)";
 		case Talker.UNSELECTED:
@@ -491,6 +491,10 @@ public:
 			return "ランダムメンバ名(#R)";
 		case Talker.CARD:
 			return "選択カード名(#C)";
+		case Talker.NARRATION:
+			return "話者無し";
+		case Talker.IMAGE:
+			return "画像";
 		}
 	}
 	const string scRef() {return "参照文字列(#I)";}
@@ -505,7 +509,7 @@ public:
 
 	const string transition() {return "背景切替方式";}
 	const string transition(Transition t) {
-		switch (t) {
+		final switch (t) {
 		case Transition.DEFAULT:
 			return "[プレイヤーの設定を使用]";
 		case Transition.NONE:
@@ -1589,7 +1593,7 @@ public:
 		return "クーポン「" ~ gossip ~ "」が宿屋に" ~ (val ? "ある" : "無い");
 	}
 	const string physical(Physical p) {
-		switch (p) {
+		final switch (p) {
 		case Physical.DEX:
 			return "器用度";
 		case Physical.AGL:
@@ -1605,7 +1609,7 @@ public:
 		}
 	}
 	const string mental(Mental m) {
-		switch (m) {
+		final switch (m) {
 		case Mental.AGGRESSIVE:
 			return "好戦性";
 		case Mental.UNAGGRESSIVE:
@@ -1629,7 +1633,7 @@ public:
 		}
 	}
 	const string status(Status stat) {
-		switch (stat) {
+		final switch (stat) {
 		case Status.ACTIVE:
 			return "行動可能";
 		case Status.INACTIVE:
@@ -1663,7 +1667,7 @@ public:
 		return effectType2(t) ~ "属性";
 	}
 	const private string effectType2(EffectType t) {
-		switch (t) {
+		final switch (t) {
 		case EffectType.PHYSIC:
 			return "物理";
 		case EffectType.MAGIC:
@@ -1677,7 +1681,7 @@ public:
 		}
 	}
 	const string resist(Resist r) {
-		switch (r) {
+		final switch (r) {
 		case Resist.AVOID:
 			return "回避属性";
 		case Resist.RESIST:
@@ -1687,7 +1691,7 @@ public:
 		}
 	}
 	const string cardTarget(CardTarget r) {
-		switch (r) {
+		final switch (r) {
 		case CardTarget.NONE:
 			return "対象無し";
 		case CardTarget.USER:
@@ -1703,7 +1707,7 @@ public:
 	const string cardTargetOne() {return "一体";}
 	const string cardTargetAll() {return "全体";}
 	const string cardVisual(CardVisual vis) {
-		switch (vis) {
+		final switch (vis) {
 		case CardVisual.NONE:
 			return "視覚効果無し";
 		case CardVisual.REVERSE:
@@ -1715,7 +1719,7 @@ public:
 		}
 	}
 	const string premium(Premium r) {
-		switch (r) {
+		final switch (r) {
 		case Premium.NORMAL:
 			return "日用品 (買戻し不可/破棄可)";
 		case Premium.RARE:
@@ -1725,7 +1729,7 @@ public:
 		}
 	}
 	const string enhance(Enhance r) {
-		switch (r) {
+		final switch (r) {
 		case Enhance.ACTION:
 			return "行動";
 		case Enhance.AVOID:
@@ -1740,14 +1744,13 @@ public:
 		return "精神状態";
 	}
 	const string mentality(Mentality m) {
-		switch (m) {
+		final switch (m) {
 		case Mentality.NORMAL: return "正常";
 		case Mentality.SLEEP: return "睡眠";
 		case Mentality.CONFUSE: return "混乱";
 		case Mentality.OVERHEAT: return "激昂";
 		case Mentality.BRAVE: return "勇敢";
 		case Mentality.PANIC: return "恐慌";
-		default: assert (0);
 		}
 	}
 
@@ -1770,7 +1773,7 @@ public:
 		return target(targ.m);
 	}
 	const string target(Target.M m) {
-		switch (m) {
+		final switch (m) {
 		case Target.M.SELECTED:
 			return "選択中のメンバ";
 		case Target.M.UNSELECTED:
@@ -1782,7 +1785,7 @@ public:
 		}
 	}
 	const string talker(Talker talker) {
-		switch (talker) {
+		final switch (talker) {
 		case Talker.SELECTED:
 			return "[選択中]";
 		case Talker.UNSELECTED:
@@ -1791,10 +1794,14 @@ public:
 			return "[ランダム]";
 		case Talker.CARD:
 			return "[カード]";
+		case Talker.NARRATION:
+			return "[話者無し]";
+		case Talker.IMAGE:
+			return "[画像]";
 		}
 	}
 	const string range(Range r) {
-		switch (r) {
+		final switch (r) {
 		case Range.SELECTED:
 			return "現在選択中のメンバ";
 		case Range.RANDOM:
@@ -1810,7 +1817,7 @@ public:
 		}
 	}
 	const string damageType(DamageType dtyp) {
-		switch (dtyp) {
+		final switch (dtyp) {
 		case DamageType.LEVEL_RATIO:
 			return "レベルに対応する値";
 		case DamageType.NORMAL:
@@ -1820,7 +1827,7 @@ public:
 		}
 	}
 	const string element(Element el) {
-		switch (el) {
+		final switch (el) {
 		case Element.ALL:
 			return "全";
 		case Element.HEALTH:
@@ -1839,7 +1846,7 @@ public:
 	}
 
 	const string sexName(Sex s) {
-		switch (s) {
+		final switch (s) {
 		case Sex.MALE: return "男/♂";
 		case Sex.FEMALE: return "女/♀";
 		}

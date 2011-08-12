@@ -33,7 +33,7 @@ import std.algorithm : lastIndexOf;
 import std.array;
 import std.conv;
 import std.utf;
-import std.ctype;
+import std.ascii;
 import std.zip;
 import std.file;
 import std.datetime;
@@ -868,16 +868,16 @@ void usingPopupMenuAccelerator(Control c) {
 					bool eqAcc() {
 						if ((acc & SWT.MODIFIER_MASK) == acc) {
 							return (e.keyCode | e.stateMask) == acc;
-						} else if (toupper(e.keyCode) == toupper(e.character)) {
-							return (toupper(e.keyCode) | e.stateMask) == acc
-								|| (tolower(e.keyCode) | e.stateMask) == acc;
+						} else if (toUpper(e.keyCode) == toUpper(e.character)) {
+							return (toUpper(e.keyCode) | e.stateMask) == acc
+								|| (toLower(e.keyCode) | e.stateMask) == acc;
 						} else {
-							return (toupper(e.keyCode) | e.stateMask) == acc
-								|| (tolower(e.keyCode) | e.stateMask) == acc
-								|| (toupper(e.character) | (e.stateMask ^ SWT.SHIFT)) == acc
-								|| (tolower(e.character) | (e.stateMask ^ SWT.SHIFT)) == acc
-								|| (toupper(e.character) | e.stateMask) == acc
-								|| (tolower(e.character) | e.stateMask) == acc;
+							return (toUpper(e.keyCode) | e.stateMask) == acc
+								|| (toLower(e.keyCode) | e.stateMask) == acc
+								|| (toUpper(e.character) | (e.stateMask ^ SWT.SHIFT)) == acc
+								|| (toLower(e.character) | (e.stateMask ^ SWT.SHIFT)) == acc
+								|| (toUpper(e.character) | e.stateMask) == acc
+								|| (toLower(e.character) | e.stateMask) == acc;
 						}
 					}
 					if (eqAcc) {
@@ -1476,14 +1476,16 @@ ImageData cardImage(C)(Props prop, Skin skin, C c, string sPath, CastCard owner 
 	int h = cardSize.height + matPad.n + matPad.s;
 	scope r = new PileImage(card, w, h);
 	static if (!is (C == InfoCard)) {
-		switch (c.premium) {
+		final switch (c.premium) {
 		case Premium.PREMIUM, Premium.RARE:
 			scope pp = prop.looks.premiumXY;
 			auto img = c.premium == Premium.PREMIUM
 			? premier(skin) : rare(skin);
 			r.append(img, CInsets(pp.y, pp.x, h - pp.y - img.height, w - pp.x - img.width));
 			r.append(img, CInsets(h - pp.y - img.height, w - pp.x - img.width, pp.y, pp.x));
+			break;
 		case Premium.NORMAL:
+			break;
 		}
 	}
 	r.append(skin.findImagePath(c.path, sPath), matPad, true);
@@ -1952,6 +1954,7 @@ bool qMaterialCopy(Props prop, Skin skin, Shell shell,
 		return true;
 	case SWT.CANCEL:
 		return false;
+	default: assert (0);
 	}
 }
 

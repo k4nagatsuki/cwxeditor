@@ -178,7 +178,7 @@ private:
 					int x = _prop.looks.summaryDescXY.x;
 					int y = _prop.looks.summaryDescXY.y;
 					if (_comm.skin.legacy) {
-						foreach (line; splitlines(_desc.getRRText)) {
+						foreach (line; splitLines(_desc.getRRText)) {
 							gc.drawText(line, x, y, SWT.DRAW_DELIMITER | SWT.DRAW_TRANSPARENT);
 							y += _prop.looks.summaryDescLineHeightClassic;
 						}
@@ -633,7 +633,7 @@ protected:
 		_summ.levelMin = _levMin.getSelection;
 		_summ.levelMax = _levMax.getSelection;
 		string[] rcs;
-		foreach (s; splitlines(_rCoupons.getText)) {
+		foreach (s; splitLines(_rCoupons.getText)) {
 			if (s.length > 0) {
 				rcs ~= s;
 			}

@@ -161,7 +161,7 @@ struct Jpy1 {
 	/// pathからJpy1を読込む。
 	static Jpy1 load(string path) {
 		Jpy1 r;
-		foreach (line; splitlines(cast(string) std.file.read(path))) {
+		foreach (line; splitLines(cast(string) std.file.read(path))) {
 			line = strip(line);
 			if (!line.length || line[0] == ';') continue;
 			if (line[0] == '[' && line[$ - 1] == ']') {
@@ -178,7 +178,7 @@ struct Jpy1 {
 				if (eq == -1) throw new Exception("invalid line: " ~ line);
 				auto key = strip(line[0 .. eq]);
 				auto value = stripValue(line[eq + 1 .. $]);
-				switch (toLower(key)) {
+				switch (cwx.utils.toLower(key)) {
 				case "backwidth": backwidth = intVal(value); break;
 				case "backheight": backheight = intVal(value); break;
 				case "backcolor": backcolor = rgbVal(value); break;
@@ -277,7 +277,7 @@ private struct JptxTag {
 		auto reg = .match(toUTF32(startTag), .regex!(dstring)("^<[A-Z]+"d, "i"));
 		if (reg.empty) throw new Exception("invalid start tag: " ~ startTag);
 		JptxTag tag;
-		tag.name = toLower(toUTF8(reg.hit[1 .. $]));
+		tag.name = cwx.utils.toLower(toUTF8(reg.hit[1 .. $]));
 		dstring p = reg.post;
 		if (!p.length) throw new Exception("invalid start tag: " ~ startTag);
 		if (startsWith(p, "=\""d)) {
@@ -290,7 +290,7 @@ private struct JptxTag {
 		foreach (areg; .match(p, .regex!(dstring)(ATTR, "i"))) {
 			foreach (m; areg) {
 				auto cap = m.captures;
-				tag.attr[toLower(toUTF8(cap[1]))] = toUTF8(cap[2]);
+				tag.attr[cwx.utils.toLower(toUTF8(cap[1]))] = toUTF8(cap[2]);
 			}
 		}
 		return tag;
@@ -377,7 +377,7 @@ private struct JptxParser {
 	}
 	private void endTag(string tagText) {
 		auto tag = tagText[2 .. $ - 1];
-		switch (toLower(tag)) {
+		switch (cwx.utils.toLower(tag)) {
 		case "b": {
 			if (onEndB) onEndB();
 		} break;
@@ -407,7 +407,7 @@ private struct JptxParser {
 	}
 	void parse(string text) {
 		if (autoline) {
-			auto lines = splitlines(text);
+			auto lines = splitLines(text);
 			text = "";
 			foreach (i, line; lines) {
 				text ~= line;
@@ -418,8 +418,15 @@ private struct JptxParser {
 			text = replace(text, "\r", "");
 			text = replace(text, "\n", "");
 		}
+		auto r = .regex!(dstring)("</(b|i|u|s|shiftx|shifty|lineheight|font)>"d
+			~ "|<"d
+			~ "(br|b|i|u|s|shiftx=\"-?[0-9]+\"|shifty=\"-?[0-9]+\""d
+			~ "|lineheight=\"-?[0-9]+\""d
+			~ "|font( +(face=\"[^\"]+\"|color=\"\\$[0-9A-Fa-f]{6}\""d
+			~ "|pixels=\"[0-9]+\"))+)"d
+			~ ">"d, "i");
 		while (text.length) {
-			auto reg = .match(toUTF32(text), .regex!(dstring)("</(b|i|u|s|shiftx|shifty|lineheight|font)>|<(br|b|i|u|s|shiftx=\"-?[0-9]+\"|shifty=\"-?[0-9]+\"|lineheight=\"-?[0-9]+\"|font( +(face=\".+\"|color=\"\\$[0-9A-Fa-f]{6}\"|pixels=\"[0-9]+\"))+)>"d, "i"));
+			auto reg = .match(toUTF32(text), r);
 			if (!reg.empty) {
 				if (onText && reg.pre.length) onText(toUTF8(reg.pre));
 				auto m = toUTF8(reg.hit);
@@ -687,7 +694,7 @@ struct Jptx {
 		bool textFirst = true;
 		bool init = false;
 		bool text = false;
-		foreach (line; splitlines(cast(string) std.file.read(path))) {
+		foreach (line; splitLines(cast(string) std.file.read(path))) {
 			auto sline = strip(line);
 			if (!text && sline.length && sline[0] == ';') continue;
 			if (sline.length && sline[0] == '[' && sline[$ - 1] == ']') {
@@ -722,7 +729,7 @@ struct Jptx {
 					if (eq == -1) throw new Exception("invalid line: " ~ line);
 					auto key = strip(sline[0 .. eq]);
 					auto value = stripValue(sline[eq + 1 .. $]);
-					switch (toLower(key)) {
+					switch (cwx.utils.toLower(key)) {
 					case "backcolor": backcolor = rgbVal(value); break;
 					case "backwidth": backwidth = intVal(value); break;
 					case "backheight": backheight = intVal(value); break;
@@ -780,7 +787,7 @@ struct Jpdc {
 	static Jpdc load(string path) {
 		Jpdc r;
 		bool init = false;
-		foreach (line; splitlines(cast(string) std.file.read(path))) {
+		foreach (line; splitLines(cast(string) std.file.read(path))) {
 			line = strip(line);
 			if (!line.length || line[0] == ';') continue;
 			if (line[0] == '[' && line[$ - 1] == ']') {
@@ -800,7 +807,7 @@ struct Jpdc {
 					if (eq == -1) throw new Exception("invalid line: " ~ line);
 					auto key = strip(line[0 .. eq]);
 					auto value = stripValue(line[eq + 1 .. $]);
-					switch (toLower(key)) {
+					switch (cwx.utils.toLower(key)) {
 					case "clip": clip = rectVal(value); break;
 					case "copymode": copymode = enumVal!(Copymode)(value); break;
 					case "savefilename": saveFileName = strVal(value); break;

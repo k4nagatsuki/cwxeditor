@@ -232,7 +232,7 @@ public:
 	}
 
 	Image element(Element el) {
-		switch (el) {
+		final switch (el) {
 		case Element.ALL:
 			return imgd!(resourceDir ~ "elm_all.png");
 		case Element.HEALTH:
@@ -251,13 +251,15 @@ public:
 	}
 
 	Image talker(Talker t) {
-		switch (t) {
+		final switch (t) {
 		case Talker.SELECTED:
 			return imgd!(resourceDir ~ "talker_sel.png");
 		case Talker.UNSELECTED:
 			return imgd!(resourceDir ~ "talker_unsel.png");
 		case Talker.RANDOM:
 			return imgd!(resourceDir ~ "talker_random.png");
+		case Talker.NARRATION, Talker.IMAGE, Talker.CARD:
+			throw new Exception("Narration, image and card haven't image.");
 		}
 	}
 
@@ -285,7 +287,7 @@ public:
 	Image green() {return imgd!(resourceDir ~ "cc_g.png");}
 	Image yellow() {return imgd!(resourceDir ~ "cc_y.png");}
 	Image scTalker(Talker talker) {
-		switch (talker) {
+		final switch (talker) {
 		case Talker.SELECTED:
 			return imgd!(resourceDir ~ "sc_m.png");
 		case Talker.UNSELECTED:
@@ -294,6 +296,8 @@ public:
 			return imgd!(resourceDir ~ "sc_r.png");
 		case Talker.CARD:
 			return imgd!(resourceDir ~ "sc_c.png");
+		case Talker.NARRATION, Talker.IMAGE:
+			throw new Exception("Narration and image haven't image.");
 		}
 	}
 	Image scRef() {return imgd!(resourceDir ~ "sc_i.png");}
