@@ -10,9 +10,9 @@ import cwx.cab;
 
 import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.commons;
-import cwx.editor.gui.dwt.utils;
-import cwx.editor.gui.dwt.skin;
-import cwx.editor.gui.dwt.props;
+import cwx.editor.gui.dwt.dutils;
+import cwx.editor.gui.dwt.dskin;
+import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.properties;
 import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.absdialog;

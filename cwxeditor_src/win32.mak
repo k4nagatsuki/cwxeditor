@@ -31,14 +31,14 @@ SRC = cwxeditor.d \
 	cwx\editor\gui\dwt\sbshell.d \
 	cwx\editor\gui\dwt\mainwindow.d \
 	cwx\editor\gui\dwt\images.d \
-	cwx\editor\gui\dwt\utils.d \
-	cwx\editor\gui\dwt\props.d \
+	cwx\editor\gui\dwt\dutils.d \
+	cwx\editor\gui\dwt\dprops.d \
 	cwx\editor\gui\dwt\properties.d \
 	cwx\editor\gui\dwt\absdialog.d \
 	cwx\editor\gui\dwt\dockingfolder.d \
 	cwx\editor\gui\dwt\splitpane.d \
 	cwx\editor\gui\dwt\centerlayout.d \
-	cwx\editor\gui\dwt\skin.d \
+	cwx\editor\gui\dwt\dskin.d \
 	cwx\editor\gui\dwt\commons.d \
 	cwx\editor\gui\dwt\areaview.d \
 	cwx\editor\gui\dwt\spcarddialog.d \
@@ -110,14 +110,14 @@ OBJ = objs\cwxeditor.obj \
 	objs\cwx\editor\gui\dwt\sbshell.obj \
 	objs\cwx\editor\gui\dwt\mainwindow.obj \
 	objs\cwx\editor\gui\dwt\images.obj \
-	objs\cwx\editor\gui\dwt\utils.obj \
-	objs\cwx\editor\gui\dwt\props.obj \
+	objs\cwx\editor\gui\dwt\dutils.obj \
+	objs\cwx\editor\gui\dwt\dprops.obj \
 	objs\cwx\editor\gui\dwt\properties.obj \
 	objs\cwx\editor\gui\dwt\absdialog.obj \
 	objs\cwx\editor\gui\dwt\dockingfolder.obj \
 	objs\cwx\editor\gui\dwt\splitpane.obj \
 	objs\cwx\editor\gui\dwt\centerlayout.obj \
-	objs\cwx\editor\gui\dwt\skin.obj \
+	objs\cwx\editor\gui\dwt\dskin.obj \
 	objs\cwx\editor\gui\dwt\commons.obj \
 	objs\cwx\editor\gui\dwt\areaview.obj \
 	objs\cwx\editor\gui\dwt\spcarddialog.obj \
@@ -190,11 +190,11 @@ FLAGS = -J. -Jresource -op -c
 
 $(OUT) : $(SRC) $(RES)
 	$(DMD) $(FLAGS) $(SRC) -g -debug -unittest -odobjs
-	$(DMD) $(OBJ) -L"$(LIB)" -g -debug -of"$(OUT)" -L/exet:nt/su:console:4.0
+	$(DMD) $(OBJ) -L"$(LIB)" -debug -of"$(OUT)" -L/exet:nt/su:console:4.0
 
 debug_windows : $(SRC) $(RES)
 	$(DMD) $(FLAGS) $(SRC) -g -debug -unittest -odobjs
-	$(DMD) $(OBJ) -L"$(LIB)" -g -of"$(OUT)" -L/exet:nt/su:windows:4.0
+	$(DMD) $(OBJ) -L"$(LIB)" -of"$(OUT)" -L/exet:nt/su:windows:4.0
 
 release : $(SRC) $(RES)
 	$(DMD) $(FLAGS) $(SRC) -release -odobjs

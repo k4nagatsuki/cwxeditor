@@ -6,8 +6,8 @@ import cwx.props;
 import cwx.structs;
 import cwx.graphics;
 
-import cwx.editor.gui.dwt.utils;
-import cwx.editor.gui.dwt.props;
+import cwx.editor.gui.dwt.dutils;
+import cwx.editor.gui.dwt.dprops;
 
 import std.algorithm;
 import std.math;

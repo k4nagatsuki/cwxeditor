@@ -1,7 +1,7 @@
 
 module cwx.editor.gui.dwt.xmlbytestransfer;
 
-import cwx.editor.gui.dwt.props;
+import cwx.editor.gui.dwt.dprops;
 
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;

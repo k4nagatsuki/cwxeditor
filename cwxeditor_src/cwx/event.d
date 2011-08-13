@@ -726,6 +726,19 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	const
 	string name() {return _name;}
 
+	/// 専らシナリオ作者が参考のために記すコンテントのコメント。
+	private string _comment = "";
+	/// ditto
+	const
+	string comment() {return _comment;}
+	/// ditto
+	void comment(string v) {
+		if (_comment == comment) return;
+		changed();
+		_comment = comment;
+	}
+
+
 	private Content _parent = null;
 	/// 親イベント。
 	private void parent(Content parent) in {
@@ -1317,6 +1330,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	private void toNodeImpl(ref XNode e, in CDetail d) {
 		if (d.type.length) e.newAttr("type", d.type);
 		if (name.length) e.newAttr("name", name);
+		if (comment.length) e.newAttr("comment", comment);
 
 		// 単純データ
 		atnPut!(CArg.AREA, "area", "")(e, d);
@@ -1437,6 +1451,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		auto d = CONTENT_DETAILS[cType];
 		string name = en.attr("name", false);
 		auto r = new Content(cType, name);
+		r.comment = en.attr("comment", false);
 
 		// 単純データ
 		cfnPut!(CArg.AREA, "area", "to!(ulong)")(en, d, r);

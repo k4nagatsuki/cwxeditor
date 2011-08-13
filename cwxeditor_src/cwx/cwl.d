@@ -394,6 +394,23 @@ private string readString(ref ByteIO f, bool lns = false, bool cutText = false) 
 	str = replace(str, "\r\n", "\n");
 	return str;
 }
+private string readStringC(ref ByteIO f, out string comment, bool lns = false, bool cutText = false) {
+	uint len = f.readUIntL;
+	if (!len) return "";
+	string str = cast(string) f.read(len);
+	if (!lns && str[$ - 1] == '\0') str = str[0 .. $ - 1];
+	int zi = indexOf(str, '\0');
+	if (-1 != zi) {
+		comment = str[zi + 1 .. $];
+		str = str[0 .. zi];
+	}
+	str = touni(str);
+	if (cutText) {
+		str = str.length > "TEXT\r\n".length ? str["TEXT\r\n".length .. $] : "";
+	}
+	str = replace(str, "\r\n", "\n");
+	return str;
+}
 private string[] readStrings(ref ByteIO f) {
 	auto str = readString(f, true);
 	return str.length ? splitLines(str) : cast(string[]) [];
@@ -610,7 +627,8 @@ private Motion readMotion(in RData d, ref ByteIO f) {
 }
 private Content readContent(in RData d, ref ByteIO f) {
 	byte type = f.readByte;
-	string name = readString(f);
+	string comment;
+	string name = readStringC(f, comment, false, false);
 	uint cNum;
 	if (d.dataVersion <= 2) {
 		cNum = f.readUIntL;
@@ -1112,6 +1130,7 @@ private Content readContent(in RData d, ref ByteIO f) {
 			e.add(c);
 		}
 	}
+	e.comment = comment;
 	return e;
 }
 private EventTree readCEventTree(in RData d, ref ByteIO f) {
@@ -2110,7 +2129,9 @@ private void writeContent(in SData d, ref ByteIO f, Content e) {
 	auto dt = e.detail;
 	void wb(byte type) {
 		f.write(type);
-		writeString(f, e.name);
+		string name = e.name;
+		if (e.comment.length) name ~= "\0" ~ e.comment;
+		writeString(f, name);
 		if (dt.owner) {
 			f.writeL(cast(uint) 40000 + e.next.length);
 			foreach (child; e.next) {

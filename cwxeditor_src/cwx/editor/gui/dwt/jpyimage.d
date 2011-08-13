@@ -8,8 +8,8 @@ import cwx.jpy;
 import cwx.graphics;
 import cwx.sjis;
 
-import cwx.editor.gui.dwt.props;
-import cwx.editor.gui.dwt.utils;
+import cwx.editor.gui.dwt.dprops;
+import cwx.editor.gui.dwt.dutils;
 
 import std.file;
 import std.path;

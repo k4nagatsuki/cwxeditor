@@ -1130,13 +1130,6 @@ private C[] zfill_(C)(in C[] str, size_t width) {
 	assert (zfill_("abc"d, 5) == "00abc"d);
 }
 
-/// arrからaを探して見つかればそのindex。見つからなかった場合は-1。
-int indexOf(string pred = "a == b", T1, T2)(in T1[] arr, in T2 a) {
-	foreach (i, b; arr) {
-		if (mixin(pred)) return i;
-	}
-	return -1;
-}
 /// arrからaを除去する。
 T[] remove(string pred = "a == b", T)(ref T[] arr, T a) {
 	foreach (i, b; arr) {

@@ -38,7 +38,7 @@ class Skin {
 
 	private static Skin[string][string] skinTable;
 	static Skin[string] table(const(CProps) prop, string enginePath) {
-		if (!enginePath.length) {
+		if (!enginePath.length || !.exists(enginePath)) {
 			Skin[string] tbl;
 			return tbl;
 		}

@@ -1,5 +1,5 @@
 
-module cwx.editor.gui.dwt.props;
+module cwx.editor.gui.dwt.dprops;
 
 public import org.eclipse.swt.SWT;
 public import org.eclipse.swt.graphics.Point;

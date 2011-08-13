@@ -12,10 +12,10 @@ import cwx.path;
 
 import cwx.editor.gui.dwt.commondialog;
 import cwx.editor.gui.dwt.images;
-import cwx.editor.gui.dwt.skin;
+import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.cardlist;
-import cwx.editor.gui.dwt.utils;
-import cwx.editor.gui.dwt.props;
+import cwx.editor.gui.dwt.dutils;
+import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.eventwindow;
 import cwx.editor.gui.dwt.customtext;
 import cwx.editor.gui.dwt.castcarddialog;

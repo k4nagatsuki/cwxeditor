@@ -14,9 +14,9 @@ import cwx.background;
 import cwx.path;
 import cwx.script;
 
-import cwx.editor.gui.dwt.utils;
-import cwx.editor.gui.dwt.props;
-import cwx.editor.gui.dwt.skin;
+import cwx.editor.gui.dwt.dutils;
+import cwx.editor.gui.dwt.dprops;
+import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.eventdialog;
 import cwx.editor.gui.dwt.message;
@@ -67,7 +67,8 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.DisposeEvent;
-import java.lang.all;
+import org.eclipse.swt.events.PaintListener;
+import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.ByteArrayTransfer;
 import org.eclipse.swt.dnd.TextTransfer;
@@ -80,6 +81,8 @@ import org.eclipse.swt.dnd.DropTargetAdapter;
 import org.eclipse.swt.dnd.DropTargetListener;
 import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.dnd.DropTarget;
+
+import java.lang.all;
 
 public:
 
@@ -1272,6 +1275,30 @@ private:
 			}
 		}
 	}
+	class PaintTree : PaintListener {
+		override void paintControl(PaintEvent e) {
+			if (!_et) return;
+			auto d = _tree.getDisplay;
+			auto ca = _tree.getClientArea;
+			auto suc = _et.startUseCounter;
+			e.gc.setLineStyle = SWT.LINE_DOT;
+			foreach (i, itm; _tree.getItems) {
+				auto b = itm.getBounds;
+				if (b.y + b.height <= ca.y) continue;
+				if (ca.y + ca.height < b.y) break;
+				auto c = cast(Content) itm.getData;
+				assert (c);
+				int count = suc.get(toStartId(c.name));
+				if (0 == i) count++;
+				string t = .text(count);
+				auto extent = e.gc.textExtent(t);
+				int tw = extent.x;
+				int th = extent.y;
+				if (0 < i) e.gc.drawLine(0, b.y, ca.width, b.y);
+				e.gc.drawString(t, ca.width - tw - 5, b.y + (b.height - th) / 2);
+			}
+		}
+	}
 public:
 	this(Commons comm, Props prop, Summary summ, Composite parent, UndoManager undo,
 			void delegate(size_t[]) forceSel,
@@ -1299,6 +1326,7 @@ public:
 		_cbarPar.setLayout = new FillLayout;
 		_tree = new Tree(_comp, SWT.SINGLE | SWT.BORDER | SWT.VIRTUAL);
 		_tree.setLayoutData = new GridData(GridData.FILL_BOTH);
+		_tree.addPaintListener(new PaintTree);
 		new TreeEdit(_tree, &editEnd, &createEditor);
 		_tree.addDisposeListener(new TRDListener);
 		_tree.addMouseListener(new CreateL);

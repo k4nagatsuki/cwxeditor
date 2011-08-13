@@ -9,10 +9,10 @@ import cwx.path;
 
 import cwx.editor.gui.dwt.areaview;
 import cwx.editor.gui.dwt.eventview;
-import cwx.editor.gui.dwt.props;
+import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.images;
-import cwx.editor.gui.dwt.utils;
-import cwx.editor.gui.dwt.skin;
+import cwx.editor.gui.dwt.dutils;
+import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.sbshell;

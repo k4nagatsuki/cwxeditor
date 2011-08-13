@@ -3,7 +3,7 @@ module cwx.editor.gui.dwt.commondialog;
 
 import cwx.area;
 
-import cwx.editor.gui.dwt.props;
+import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.centerlayout;
 

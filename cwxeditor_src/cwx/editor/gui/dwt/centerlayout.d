@@ -5,7 +5,7 @@ import cwx.utils;
 import cwx.props;
 import cwx.structs;
 
-import cwx.editor.gui.dwt.utils;
+import cwx.editor.gui.dwt.dutils;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Control;

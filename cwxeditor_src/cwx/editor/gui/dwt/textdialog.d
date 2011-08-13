@@ -4,8 +4,8 @@ module cwx.editor.gui.dwt.textdialog;
 import cwx.utils;
 import cwx.script;
 
-import cwx.editor.gui.dwt.props;
-import cwx.editor.gui.dwt.utils;
+import cwx.editor.gui.dwt.dprops;
+import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.centerlayout;
 

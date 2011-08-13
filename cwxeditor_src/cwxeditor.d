@@ -6,7 +6,7 @@ import cwx.system;
 import cwx.props;
 import cwx.editor.gui.dwt.mainwindow;
 import cwx.editor.gui.dwt.textdialog;
-import cwx.editor.gui.dwt.props;
+import cwx.editor.gui.dwt.dprops;
 
 import std.file;
 import std.path;

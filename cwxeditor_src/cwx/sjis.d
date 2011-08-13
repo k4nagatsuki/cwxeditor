@@ -35,11 +35,6 @@ import std.string;
 import std.stdio;
 import std.utf;
 
-debug version (Windows) {
-	import std.windows.charset;
-	import std.c.string;
-}
-
 /// コードページ。
 enum CP {
 	SJIS, /// Shift JIS

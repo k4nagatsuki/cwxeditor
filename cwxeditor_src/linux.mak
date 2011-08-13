@@ -5,7 +5,6 @@ SRC = cwxeditor.d \
 	cwx/card.d \
 	cwx/coupon.d \
 	cwx/xml.d \
-	d2std/xml.d \
 	cwx/event.d \
 	cwx/types.d \
 	cwx/motion.d \
@@ -32,14 +31,14 @@ SRC = cwxeditor.d \
 	cwx/editor/gui/dwt/sbshell.d \
 	cwx/editor/gui/dwt/mainwindow.d \
 	cwx/editor/gui/dwt/images.d \
-	cwx/editor/gui/dwt/utils.d \
-	cwx/editor/gui/dwt/props.d \
+	cwx/editor/gui/dwt/dutils.d \
+	cwx/editor/gui/dwt/dprops.d \
 	cwx/editor/gui/dwt/properties.d \
 	cwx/editor/gui/dwt/absdialog.d \
 	cwx/editor/gui/dwt/dockingfolder.d \
 	cwx/editor/gui/dwt/splitpane.d \
 	cwx/editor/gui/dwt/centerlayout.d \
-	cwx/editor/gui/dwt/skin.d \
+	cwx/editor/gui/dwt/dskin.d \
 	cwx/editor/gui/dwt/commons.d \
 	cwx/editor/gui/dwt/areaview.d \
 	cwx/editor/gui/dwt/spcarddialog.d \

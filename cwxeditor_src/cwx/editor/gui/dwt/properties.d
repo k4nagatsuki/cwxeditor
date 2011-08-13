@@ -95,9 +95,6 @@ bool isSorted(T)(T arr) {
 }
 
 abstract class Properties {
-	private static string toFirstUpper(string val) {
-		return std.string.toUpper(val[0 .. 1]) ~ val[1 .. $];
-	}
 	/// mixinによってプロパティの値と値を設定/取得する関数を生成する。
 	/// 例えば:
 	/// ---
@@ -170,12 +167,10 @@ abstract class Properties {
 				auto e = node;
 			} else {
 				auto e = node.child(Root, false);
-				if (!e.valid) e = node.child(toFirstUpper(Root), false);
 			}
 			if (e.valid) {
 				foreach (i, fld; r.tupleof) {
 					auto n = e.child(fld.key, false);
-					if (!n.valid) n = e.child(toFirstUpper(fld.key), false);
 					if (n.valid) {
 						try {
 							// FIXME: fld.fromNode()だと上手く行かない？
@@ -295,21 +290,12 @@ struct BgImageSetting {
 		e.newElement("mask", mask);
 	}
 	void fromNode(ref XNode node) {
-		name = node.childText("Name", false);
-		if (!name) {
-			name = node.childText("name", true);
-			x = to!(int)(node.childText("x", true));
-			y = to!(int)(node.childText("y", true));
-			width = to!(int)(node.childText("width", true));
-			height = to!(int)(node.childText("height", true));
-			mask = to!(bool)(node.childText("mask", true));
-		} else {
-			x = to!(int)(node.childText("X", true));
-			y = to!(int)(node.childText("Y", true));
-			width = to!(int)(node.childText("Width", true));
-			height = to!(int)(node.childText("Height", true));
-			mask = to!(bool)(node.childText("Mask", true));
-		}
+		name = node.childText("name", true);
+		x = to!(int)(node.childText("x", true));
+		y = to!(int)(node.childText("y", true));
+		width = to!(int)(node.childText("width", true));
+		height = to!(int)(node.childText("height", true));
+		mask = to!(bool)(node.childText("mask", true));
 	}
 }
 
@@ -351,15 +337,9 @@ struct OuterTool {
 		e.newElement("workDir", workDir);
 	}
 	void fromNode(ref XNode node) {
-		name = node.childText("Name", false);
-		if (!name) {
-			name = node.childText("name", true);
-			command = node.childText("command", true);
-			workDir = node.childText("workDir", true);
-		} else {
-			command = node.childText("Command", true);
-			workDir = node.childText("WorkDir", true);
-		}
+		name = node.childText("name", true);
+		command = node.childText("command", true);
+		workDir = node.childText("workDir", true);
 	}
 	static string parse(string str, string file, string sPath) {
 		dstring buf;

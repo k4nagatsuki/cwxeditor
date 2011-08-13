@@ -1,5 +1,5 @@
 
-module cwx.editor.gui.dwt.skin;
+module cwx.editor.gui.dwt.dskin;
 
 import cwx.cwl;
 import cwx.race;
@@ -9,9 +9,9 @@ import cwx.summary;
 import cwx.imagesize;
 import cwx.types;
 
-import cwx.editor.gui.dwt.props;
+import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.properties;
-import cwx.editor.gui.dwt.utils;
+import cwx.editor.gui.dwt.dutils;
 
 import std.string;
 import std.utf;

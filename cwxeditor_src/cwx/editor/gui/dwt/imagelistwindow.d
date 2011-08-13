@@ -4,9 +4,9 @@ module cwx.editor.gui.dwt.imagelistwindow;
 import cwx.summary;
 import cwx.utils;
 import cwx.structs;
-import cwx.editor.gui.dwt.props;
+import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.commons;
-import cwx.editor.gui.dwt.utils;
+import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.materialselect;
 
 import std.algorithm;

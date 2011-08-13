@@ -3,8 +3,8 @@ module cwx.editor.gui.dwt.absdialog;
 
 import cwx.utils;
 
-import cwx.editor.gui.dwt.props;
-import cwx.editor.gui.dwt.utils;
+import cwx.editor.gui.dwt.dprops;
+import cwx.editor.gui.dwt.dutils;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
