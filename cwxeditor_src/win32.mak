@@ -197,7 +197,7 @@ debug_windows : $(SRC) $(RES)
 	$(DMD) $(OBJ) -L"$(LIB)" -g -of"$(OUT)" -L/exet:nt/su:windows:4.0
 
 release : $(SRC) $(RES)
-	$(DMD) $(FLAGS) $(SRC) -release -O -odobjs
+	$(DMD) $(FLAGS) $(SRC) -release -odobjs
 	$(DMD) $(OBJ) -L"$(LIB)" -of"$(OUT)" -L/exet:nt/su:windows:4.0 -O
 
 $(RES) : $(RC)

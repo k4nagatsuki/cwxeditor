@@ -573,6 +573,9 @@ public:
 	FlexProps var() {return _var;}
 	const
 	const(FlexProps) var() {return _var;}
+
+	const
+	string toAppAbs(string path) {return parent.toAppAbs(path);}
 }
 
 /// CPoint等の構造体をSWTのクラスに変換するための関数。

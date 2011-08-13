@@ -69,6 +69,8 @@ class Skin {
 	private static Skin[string] lSkins;
 	static Skin createLegacySkin(in CProps prop, string enginePath, string lEnginePath, string dataDirName, string execute) {
 		// 標準のスキンをベースにする
+		if (enginePath.length) enginePath = prop.toAppAbs(enginePath);
+		if (lEnginePath.length) lEnginePath = prop.toAppAbs(lEnginePath);
 		auto tbl = table(prop, enginePath);
 		auto sp = "MedievalFantasy" in tbl;
 		Skin skin;

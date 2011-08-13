@@ -479,10 +479,10 @@ private:
 				if (-1 != i) {
 					if (_hasLegacySkin) {
 						if (0 < i) {
-							selClassic = _classicEngines[i - 1].enginePath;
+							selClassic = _prop.toAppAbs(_classicEngines[i - 1].enginePath);
 						}
 					} else {
-						selClassic = _classicEngines[i].enginePath;
+						selClassic = _prop.toAppAbs(_classicEngines[i].enginePath);
 					}
 				}
 				if (selClassic) selClassic = nabs(selClassic);
@@ -523,10 +523,10 @@ private:
 			bool cur = 0 != lEnginePath.length;
 			foreach (i, ce; _prop.var.etc.classicEngines) {
 				_type.add(ce.name);
-				if (selClassic && fnmatch(selClassic, nabs(ce.enginePath))) {
+				if (selClassic && fnmatch(selClassic, _prop.toAppAbs(ce.enginePath))) {
 					_type.select = i;
 				}
-				if (cur && fnmatch(lEnginePath, nabs(ce.enginePath))) {
+				if (cur && fnmatch(lEnginePath, _prop.toAppAbs(ce.enginePath))) {
 					cur = false;
 					if (-1 == _type.getSelectionIndex) _type.select = i;
 				}

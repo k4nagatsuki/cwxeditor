@@ -2489,4 +2489,8 @@ public:
 	const const(cwx.system.System) sys() {return _sys;}
 	const const(Msgs) msgs() {return _msgs;}
 	const const(Looks) looks() {return _looks;}
+	const string toAppAbs(string path) {
+		if (cwx.utils.isabs(path)) return nabs(path);
+		return nabs(std.path.join(_appPath, path));
+	}
 }
