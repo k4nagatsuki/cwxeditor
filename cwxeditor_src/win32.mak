@@ -190,11 +190,11 @@ FLAGS = -J. -Jresource -op -c
 
 $(OUT) : $(SRC) $(RES)
 	$(DMD) $(FLAGS) $(SRC) -g -debug -unittest -odobjs
-	$(DMD) $(OBJ) -L"$(LIB)" -debug -of"$(OUT)" -L/exet:nt/su:console:4.0
+	$(DMD) $(OBJ) -L"$(LIB)" -g -debug -of"$(OUT)" -L/exet:nt/su:console:4.0
 
 debug_windows : $(SRC) $(RES)
 	$(DMD) $(FLAGS) $(SRC) -g -debug -unittest -odobjs
-	$(DMD) $(OBJ) -L"$(LIB)" -of"$(OUT)" -L/exet:nt/su:windows:4.0
+	$(DMD) $(OBJ) -L"$(LIB)" -g -of"$(OUT)" -L/exet:nt/su:windows:4.0
 
 release : $(SRC) $(RES)
 	$(DMD) $(FLAGS) $(SRC) -release -odobjs
