@@ -1375,12 +1375,12 @@ private:
 		override void widgetSelected(SelectionEvent e) {
 			static if (UseCards) {
 				foreach (i, itm; _cards.getItems) {
-					_imgp.images[cardsIndex + i].visible = itm.getChecked;
+					_imgp.images[cardsIndex + i].visible = _viewCards && itm.getChecked;
 				}
 			}
 			static if (UseBacks) {
 				foreach (i, itm; _backs.getItems) {
-					_imgp.images[i].visible = itm.getChecked;
+					_imgp.images[i].visible = _viewBacks && itm.getChecked;
 				}
 			}
 		}
