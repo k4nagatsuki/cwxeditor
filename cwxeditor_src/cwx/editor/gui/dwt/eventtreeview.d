@@ -69,6 +69,8 @@ import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.ByteArrayTransfer;
 import org.eclipse.swt.dnd.TextTransfer;
@@ -1275,28 +1277,59 @@ private:
 			}
 		}
 	}
-	class PaintTree : PaintListener {
-		override void paintControl(PaintEvent e) {
-			if (!_et) return;
-			auto d = _tree.getDisplay;
-			auto ca = _tree.getClientArea;
-			auto suc = _et.startUseCounter;
-			e.gc.setLineStyle = SWT.LINE_DOT;
+	void drawStartInfo(PaintEvent e) {
+		if (!_et) return;
+		if (!_prop.var.etc.drawCountOfUseOfStart && !_prop.var.etc.drawContentTreeLine) return;
+		auto d = _tree.getDisplay;
+		auto ca = _tree.getClientArea;
+		auto suc = _et.startUseCounter;
+		auto fore = e.gc.getForeground;
+		auto back = e.gc.getBackground;
+		auto counts = new string[_tree.getItemCount];
+		auto ucExtent = e.gc.textExtent(_prop.msgs.startUseCount);
+		int maxW = 0;
+		int h = e.gc.getFontMetrics.getHeight;
+		if (_prop.var.etc.drawCountOfUseOfStart) {
 			foreach (i, itm; _tree.getItems) {
-				auto b = itm.getBounds;
-				if (b.y + b.height <= ca.y) continue;
-				if (ca.y + ca.height < b.y) break;
 				auto c = cast(Content) itm.getData;
 				assert (c);
 				int count = suc.get(toStartId(c.name));
 				if (0 == i) count++;
-				string t = .text(count);
-				auto extent = e.gc.textExtent(t);
-				int tw = extent.x;
-				int th = extent.y;
-				if (0 < i) e.gc.drawLine(0, b.y, ca.width, b.y);
-				e.gc.drawString(t, ca.width - tw - 5, b.y + (b.height - th) / 2);
+				counts[i] = .text(count);
+				auto extent = e.gc.textExtent(counts[i]);
+				maxW = max(maxW, extent.x);
 			}
+		}
+		foreach (i, itm; _tree.getItems) {
+			auto b = itm.getBounds;
+			if (b.y + b.height <= ca.y) continue;
+			if (ca.y + ca.height < b.y) break;
+			if (_prop.var.etc.drawContentTreeLine && 0 < i) {
+				e.gc.setAlpha = 64;
+				e.gc.setBackground = fore;
+				scope (exit) {
+					e.gc.setAlpha = 255;
+					e.gc.setBackground = back;
+				}
+				e.gc.fillRectangle(0, b.y, ca.width, 1);
+			}
+			if (_prop.var.etc.drawCountOfUseOfStart) {
+				string t = counts[i];
+				int tx = ca.width - maxW - 5;
+				int ty = b.y + (b.height - h) / 2;
+				e.gc.drawString(t, tx, ty);
+				e.gc.setAlpha = 128;
+				e.gc.drawString(_prop.msgs.startUseCount, tx - ucExtent.x - 5, ty);
+				e.gc.setAlpha = 255;
+			}
+		}
+	}
+	void drawComment(PaintEvent e) {
+	}
+	class PaintTree : PaintListener {
+		override void paintControl(PaintEvent e) {
+			drawStartInfo(e);
+			drawComment(e);
 		}
 	}
 public:

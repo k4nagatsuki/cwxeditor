@@ -730,6 +730,9 @@ class FlexEtcProps : Properties {
 	mixin Property!("classicEngines", ClassicEngine[], []);
 	mixin Property!("addNewClassicEngine", bool, true);
 
+	mixin Property!("drawCountOfUseOfStart", bool, true);
+	mixin Property!("drawContentTreeLine", bool, true);
+
 	mixin XMLFuncs!(FlexEtcProps);
 }
 

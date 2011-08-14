@@ -1432,6 +1432,8 @@ public:
 	const string eventTreeKindKeyCode() {return "キーコード";}
 	const string eventTreeKindRound() {return "ラウンド";}
 
+	const string startUseCount() {return "利用数";}
+
 	const string evtChildTrue() {return "○";}
 	const string evtChildFalse() {return "×";}
 	const string evtChildDefault() {return "Default";}
