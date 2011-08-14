@@ -470,12 +470,16 @@ public:
 		}
 	}
 
-	private bool openCWXPathAf(Window)(Window w, string path) {
-		if (w) {
+	private bool openCWXPathAf(Window, A)(lazy Window w, A a, string path) {
+		auto cpb = cpbottom(path);
+		if (!cpb.length) {
+			.forceFocus(_areas.table);
+			_areas.select = a;
+		} else if (w) {
 			static if (UseArea && UseFlag) {
 				tabf.setSelection = tabA;
 			}
-			return w.openCWXPath(cpbottom(path));
+			return w.openCWXPath(cpb);
 		}
 		return false;
 	}
@@ -494,34 +498,40 @@ public:
 		case "area": {
 			static if (UseArea) {
 				if (index >= _summ.areas.length) return false;
-				return openCWXPathAf(_comm.openArea(_prop, _summ, _summ.areas[index]), path);
+				auto a = _summ.areas[index];
+				return openCWXPathAf(_comm.openArea(_prop, _summ, a), a, path);
 			}
 		} break;
 		case "area:id": {
 			static if (UseArea) {
-				return openCWXPathAf(_comm.openArea(_prop, _summ, _summ.area(index)), path);
+				auto a = _summ.area(index);
+				return openCWXPathAf(_comm.openArea(_prop, _summ, a), a, path);
 			}
 		} break;
 		case "battle": {
 			static if (UseArea) {
 				if (index >= _summ.battles.length) return false;
-				return openCWXPathAf(_comm.openArea(_prop, _summ, _summ.battles[index]), path);
+				auto a = _summ.battles[index];
+				return openCWXPathAf(_comm.openArea(_prop, _summ, a), a, path);
 			}
 		} break;
 		case "battle:id": {
 			static if (UseArea) {
-				return openCWXPathAf(_comm.openArea(_prop, _summ, _summ.battle(index)), path);
+				auto a = _summ.battle(index);
+				return openCWXPathAf(_comm.openArea(_prop, _summ, a), a, path);
 			}
 		} break;
 		case "package": {
 			static if (UseArea) {
 				if (index >= _summ.packages.length) return false;
-				return openCWXPathAf(_comm.openArea(_prop, _summ, _summ.packages[index]), path);
+				auto a = _summ.packages[index];
+				return openCWXPathAf(_comm.openArea(_prop, _summ, a), a, path);
 			}
 		} break;
 		case "package:id": {
 			static if (UseArea) {
-				return openCWXPathAf(_comm.openArea(_prop, _summ, _summ.packages(index)), path);
+				auto a = _summ.packages(index);
+				return openCWXPathAf(_comm.openArea(_prop, _summ, a), a, path);
 			}
 		} break;
 		case "variable": {

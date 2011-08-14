@@ -433,8 +433,12 @@ public:
 
 	Image menuCreateArchive() {return imgd!(resourceDir ~ "create_archive.png");}
 
+	Image menuOpenTableView() {return imgd!(resourceDir ~ "open_tableview.png");}
+	Image menuOpenFlagView() {return imgd!(resourceDir ~ "open_flagview.png");}
+	Image menuOpenCardView() {return imgd!(resourceDir ~ "open_cardview.png");}
 	Image menuOpenFileView() {return imgd!(resourceDir ~ "open_fileview.png");}
 	Image menuCopyFilePath() {return imgd!(resourceDir ~ "copy_path.png");}
+	Image menuOpenEventTreeView() {return imgd!(resourceDir ~ "open_eventtreeview.png");}
 }
 
 enum MenuID : int {
@@ -522,8 +526,12 @@ enum MenuID : int {
 	ToScript,
 	ToScriptAll,
 	CreateArchive,
+	OpenTableView,
+	OpenFlagView,
+	OpenCardView,
 	OpenFileView,
 	CopyFilePath,
+	OpenEventTreeView,
 }
 
 public class Props {

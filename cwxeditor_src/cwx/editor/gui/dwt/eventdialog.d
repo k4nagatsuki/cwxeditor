@@ -58,6 +58,7 @@ import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.MouseListener;
+import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.KeyEvent;
@@ -207,6 +208,22 @@ private:
 			_tsSpeed.setEnabled = !_summ.legacy;
 		}
 	}
+	void openView() {
+		auto i = _list.getSelectionIndex;
+		if (-1 == i) return;
+		auto a = cast(A) _list.getItem(i).getData;
+		try {
+			_comm.openCWXPath(a.cwxPath);
+		} catch (Exception e) {
+			debugln(e);
+		}
+	}
+	class OpenView : MouseAdapter {
+		override void mouseDoubleClick(MouseEvent e) {
+			if (1 != e.button) return;
+			openView();
+		}
+	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
 		super (comm, prop, shell, summ, Type, parent, evt, true, prop.var.selEvtDlg, true);
@@ -222,6 +239,14 @@ protected:
 		gd.widthHint = _prop.var.etc.nameTableWidth;
 		gd.heightHint = _prop.var.etc.nameTableHeight;
 		_list.setLayoutData = gd;
+		_list.addMouseListener(new OpenView);
+		auto menu = new Menu(_list.getShell, SWT.POP_UP);
+		static if (is(A : Area) || is(A : Battle) || is(A : Package)) {
+			createMenuItem(menu, _prop.msgs.menuOpenTableView, _prop.images.menuOpenTableView, &openView);
+		} else static if (is(A : CastCard) || is(A : InfoCard)) {
+			createMenuItem(menu, _prop.msgs.menuOpenCardView, _prop.images.menuOpenCardView, &openView);
+		} else static assert (0);
+		_list.setMenu = menu;
 		refreshList();
 		static if (Type == CType.CHANGE_AREA) {
 			{
@@ -307,17 +332,65 @@ protected:
 /// スタートコンテントの選択を行うダイアログ。
 class StartSelectDialog(CType Type) : EventDialog {
 private:
-	Content[] _starts;
+	EventTree _et;
 
 	Table _list;
 
-public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt, Content[] starts) in {
-		foreach (s; starts) {
-			assert (s.type == CType.START);
+	class Dispose : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			_comm.refContent.remove(&refContent);
+			_comm.delContent.remove(&delContent);
 		}
-	} body {
-		_starts = starts;
+	}
+	void refContent(Content c) {
+		refreshStarts(null);
+	}
+	void delContent(Content c) {
+		refreshStarts(c);
+	}
+	void refreshStarts(Content c = null) {
+		string sel;
+		if (_evt) {
+			sel = _evt.start;
+		}
+		int selIndex = _list.getSelectionIndex;
+		if (-1 != selIndex) {
+			sel = (cast(Content) _list.getItem(selIndex).getData).name;
+		}
+		
+		_list.removeAll();
+		int i = 0;
+		foreach (s; _et.starts) {
+			if (s is c) continue;
+			auto itm = new TableItem(_list, SWT.NONE);
+			itm.setData = s;
+			itm.setImage(0, _prop.images.content(CType.START));
+			itm.setText(0, s.name);
+			if (i == 0) _list.select = i;
+			if (sel == s.name) _list.select = i;
+			i++;
+		}
+		_list.showSelection;
+	}
+	void openView() {
+		auto i = _list.getSelectionIndex;
+		if (-1 == i) return;
+		auto a = cast(Content) _list.getItem(i).getData;
+		try {
+			_comm.openCWXPath(a.cwxPath);
+		} catch (Exception e) {
+			debugln(e);
+		}
+	}
+	class OpenView : MouseAdapter {
+		override void mouseDoubleClick(MouseEvent e) {
+			if (1 != e.button) return;
+			openView();
+		}
+	}
+public:
+	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
+		_et = parent.tree;
 		super (comm, prop, shell, summ, Type, parent, evt, true, prop.var.selEvtDlg, true);
 	}
 
@@ -330,17 +403,15 @@ protected:
 		gd.widthHint = _prop.var.etc.nameTableWidth;
 		gd.heightHint = _prop.var.etc.nameTableHeight;
 		_list.setLayoutData = gd;
-		foreach (i, s; _starts) {
-			auto itm = new TableItem(_list, SWT.NONE);
-			itm.setData = s;
-			itm.setImage(0, _prop.images.content(CType.START));
-			itm.setText(0, s.name);
-			if (i == 0) _list.select = i;
-			if (_evt) {
-				if (_evt.start == s.name) _list.select = i;
-			}
-		}
-		_list.showSelection;
+		_list.addMouseListener(new OpenView);
+		auto menu = new Menu(_list.getShell, SWT.POP_UP);
+		createMenuItem(menu, _prop.msgs.menuOpenEventTreeView, _prop.images.menuOpenEventTreeView, &openView);
+		_list.setMenu = menu;
+
+		refreshStarts();
+		_comm.refContent.add(&refContent);
+		_comm.delContent.add(&delContent);
+		_list.addDisposeListener(new Dispose);
 	}
 
 	override bool apply() {
@@ -996,11 +1067,10 @@ protected:
 private class FlagStepDialog(CType Type, F, bool SelValue) : EventDialog {
 private:
 	FlagDir _root;
-	F[] _data;
 
 	SplitPane _sash;
-	List _flags;
-	List _values;
+	Table _flags;
+	Table _values;
 
 	static if (SelValue) {
 		int _sel;
@@ -1014,17 +1084,20 @@ private:
 			}
 			_sel = _flags.getSelectionIndex;
 		}
-		F flag = _data[_flags.getSelectionIndex];
+		F flag = cast(F) _flags.getItem(_flags.getSelectionIndex).getData;
 		static if (SelValue) {
 			int sel = _values.getSelectionIndex;
 		}
 		_values.removeAll;
 		static if (is (F == Flag)) {
-			_values.add(flag.on);
-			_values.add(flag.off);
+			auto itm1 = new TableItem(_values, SWT.NONE);
+			itm1.setText = flag.on;
+			auto itm2 = new TableItem(_values, SWT.NONE);
+			itm2.setText = flag.off;
 		} else static if (is (F == Step)) {
 			foreach (val; flag.values) {
-				_values.add(val);
+				auto itm = new TableItem(_values, SWT.NONE);
+				itm.setText = val;
 			}
 		} else {
 			static assert (0);
@@ -1046,7 +1119,7 @@ private:
 		string sel = "";
 		auto ix = _flags.getSelectionIndex;
 		if (-1 != ix) {
-			sel = _data[ix].path;
+			sel = (cast(F) _flags.getItem(ix).getData).path;
 		}
 		static if (is (F == Flag)) {
 			if (!sel && _evt) {
@@ -1062,11 +1135,16 @@ private:
 			static assert (0);
 		}
 		_flags.removeAll();
-		_data.length = flags.length;
 		foreach (i, flag; flags) {
 			auto path = flag.path;
-			_flags.add(path);
-			_data[i] = flag;
+			auto itm = new TableItem(_flags, SWT.NONE);
+			itm.setData = flag;
+			itm.setText = path;
+			static if (is(F : Flag)) {
+				itm.setImage = _prop.images.flag;
+			} else static if (is(F : Step)) {
+				itm.setImage = _prop.images.step;
+			} else static assert (0);
 			if (0 == i) _flags.select = i;
 			if (path == sel) _flags.select = i;
 		}
@@ -1100,6 +1178,23 @@ private:
 			}
 		} else static assert (0);
 		refreshList();
+	}
+
+	void openView() {
+		auto i = _flags.getSelectionIndex;
+		if (-1 == i) return;
+		auto a = cast(F) _flags.getItem(i).getData;
+		try {
+			_comm.openCWXPath(a.cwxPath);
+		} catch (Exception e) {
+			debugln(e);
+		}
+	}
+	class OpenView : MouseAdapter {
+		override void mouseDoubleClick(MouseEvent e) {
+			if (1 != e.button) return;
+			openView();
+		}
 	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt, FlagDir root) {
@@ -1136,16 +1231,23 @@ protected:
 			}
 		}
 		{
-			_flags = new List(left, SWT.SINGLE | SWT.BORDER | SWT.V_SCROLL);
+			_flags = new Table(left, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.V_SCROLL);
 			mod(_flags);
+			new FullTableColumn(_flags, SWT.NONE);
 			auto gd = new GridData(GridData.FILL_BOTH);
 			gd.heightHint = _prop.var.etc.nameTableHeight;
 			_flags.setLayoutData = gd;
 			refreshList();
 			_flags.addSelectionListener(new SListener);
+
+			_flags.addMouseListener(new OpenView);
+			auto menu = new Menu(_flags.getShell, SWT.POP_UP);
+			createMenuItem(menu, _prop.msgs.menuOpenFlagView, _prop.images.menuOpenFlagView, &openView);
+			_flags.setMenu = menu;
 		}
 		{
-			_values = new List(right, SWT.SINGLE | SWT.BORDER | SWT.V_SCROLL);
+			_values = new Table(right, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.V_SCROLL);
+			new FullTableColumn(_values, SWT.NONE);
 			mod(_values);
 			auto gd = new GridData(GridData.FILL_BOTH);
 			gd.heightHint = _prop.var.etc.nameTableHeight;
@@ -1165,14 +1267,21 @@ protected:
 		scope (exit) ignoreMod = false;
 		if (_evt) {
 			static if (is (F == Flag)) {
-				int index = _flags.indexOf(_evt.flag);
+				string sel = _evt.flag;
 			} else static if (is (F == Step)) {
-				int index = _flags.indexOf(_evt.step);
+				string sel = _evt.step;
 			} else {
 				static assert (0);
 			}
+			int index = -1;
+			foreach (i, itm; _flags.getItems) {
+				if (itm.getText == sel) {
+					index = i;
+					break;
+				}
+			}
 			_flags.select = index >= 0 ? index : 0;
-			_flags.showSelection;
+			_flags.showSelection();
 			refreshValues(false);
 			static if (SelValue) {
 				static if (is (F == Flag)) {
@@ -1195,12 +1304,12 @@ protected:
 	override bool apply() {
 		if (!_evt) _evt = new Content(Type, "");
 		static if (is (F == Flag)) {
-			_evt.flag = _flags.getSelection[0];
+			_evt.flag = (cast(F) _flags.getSelection[0].getData).path;
 			static if (SelValue) {
 				_evt.flagValue = _values.getSelectionIndex == 0;
 			}
 		} else static if (is (F == Step)) {
-			_evt.step = _flags.getSelection[0];
+			_evt.step = (cast(F) _flags.getSelection[0].getData).path;
 			static if (SelValue) {
 				_evt.stepValue = _values.getSelectionIndex;
 			}
@@ -1617,6 +1726,23 @@ private:
 			forceCancel();
 		}
 	}
+
+	void openView() {
+		auto i = _list.getSelectionIndex;
+		if (-1 == i) return;
+		auto a = cast(C) _list.getItem(i).getData;
+		try {
+			_comm.openCWXPath(a.cwxPath);
+		} catch (Exception e) {
+			debugln(e);
+		}
+	}
+	class OpenView : MouseAdapter {
+		override void mouseDoubleClick(MouseEvent e) {
+			if (1 != e.button) return;
+			openView();
+		}
+	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
 		super (comm, prop, shell, summ, Type, parent, evt, true, prop.var.cardEvtDlg, true);
@@ -1679,6 +1805,12 @@ protected:
 			gd.widthHint = _prop.var.etc.nameTableWidth;
 			gd.heightHint = _prop.var.etc.nameTableHeight;
 			_list.setLayoutData = gd;
+
+			_list.addMouseListener(new OpenView);
+			auto menu = new Menu(_list.getShell, SWT.POP_UP);
+			createMenuItem(menu, _prop.msgs.menuOpenCardView, _prop.images.menuOpenCardView, &openView);
+			_list.setMenu = menu;
+
 			refreshList();
 		}
 		static if (is (C == SkillCard)) {

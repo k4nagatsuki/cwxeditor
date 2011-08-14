@@ -194,6 +194,7 @@ private:
 		createChilds(itm, c, false);
 		itm.setExpanded = true;
 		refreshStatusLine;
+		_comm.refContent.call(c);
 		_comm.refUseCount.call;
 		_refreshTopStart();
 	}
@@ -395,6 +396,7 @@ private:
 			assert (par.detail.owner);
 			childItm.setText = eventText(par, cast(Content) childItm.getData);
 		}
+		_comm.refContent.call(c);
 		_comm.refUseCount.call;
 		refreshStatusLine;
 	}
@@ -426,6 +428,7 @@ private:
 					auto sItm = createTreeItem(_tree, evt, evt.name, _prop.images.content(CType.START), index);
 					_tree.select = sItm;
 					_tree.showSelection;
+					_comm.refContent.call(evt);
 					refreshConvMenu;
 					refreshStatusLine;
 					if (!_conti) arrow;
@@ -457,6 +460,7 @@ private:
 							itm.setExpanded = true;
 						}
 						_tree.showSelection;
+						_comm.refContent.call(evt);
 						_comm.refUseCount.call;
 						refreshConvMenu;
 						refreshStatusLine;
@@ -583,7 +587,7 @@ private:
 			dlg = new EffectDialog(_comm, _prop, _tree.getShell, _summ, parent, evt);
 			break;
 		} case CType.LINK_START: {
-			dlg = new StartSelectDialog!(CType.LINK_START)(_comm, _prop, _tree.getShell, _summ, parent, evt, _et.starts);
+			dlg = new StartSelectDialog!(CType.LINK_START)(_comm, _prop, _tree.getShell, _summ, parent, evt);
 			break;
 		} case CType.LINK_PACKAGE: {
 			dlg = new AreaSelectDialog!(CType.LINK_PACKAGE, Package, "summary.packages")(_comm, _prop, _tree.getShell, _summ, parent, evt);
@@ -604,7 +608,7 @@ private:
 			dlg = new WaitEventDialog(_comm, _prop, _tree.getShell, _summ, parent, evt);
 			break;
 		} case CType.CALL_START: {
-			dlg = new StartSelectDialog!(CType.CALL_START)(_comm, _prop, _tree.getShell, _summ, parent, evt, _et.starts);
+			dlg = new StartSelectDialog!(CType.CALL_START)(_comm, _prop, _tree.getShell, _summ, parent, evt);
 			break;
 		} case CType.CALL_PACKAGE: {
 			dlg = new AreaSelectDialog!(CType.CALL_PACKAGE, Package, "summary.packages")
@@ -794,7 +798,7 @@ private:
 			dlg = new EffectDialog(_comm, _prop, _tree.getShell, _summ, parent, evt);
 			break;
 		} case CType.LINK_START: {
-			dlg = new StartSelectDialog!(CType.LINK_START)(_comm, _prop, _tree.getShell, _summ, parent, evt, _et.starts);
+			dlg = new StartSelectDialog!(CType.LINK_START)(_comm, _prop, _tree.getShell, _summ, parent, evt);
 			break;
 		} case CType.LINK_PACKAGE: {
 			dlg = new AreaSelectDialog!(CType.LINK_PACKAGE, Package, "summary.packages")
@@ -816,7 +820,7 @@ private:
 			dlg = new WaitEventDialog(_comm, _prop, _tree.getShell, _summ, parent, evt);
 			break;
 		} case CType.CALL_START: {
-			dlg = new StartSelectDialog!(CType.CALL_START)(_comm, _prop, _tree.getShell, _summ, parent, evt, _et.starts);
+			dlg = new StartSelectDialog!(CType.CALL_START)(_comm, _prop, _tree.getShell, _summ, parent, evt);
 			break;
 		} case CType.CALL_PACKAGE: {
 			dlg = new AreaSelectDialog!(CType.CALL_PACKAGE, Package, "summary.packages")
@@ -1083,6 +1087,7 @@ private:
 						}
 						// 転送先が自分の子コンテントではないなら転送成功
 						owner.add(evt);
+						_comm.refContent.call(evt);
 						_tree.setRedraw = false;
 						auto itm = createTreeItem(ti, evt, eventText(owner, evt), _prop.images.content(evt.type));
 						_tree.setSelection = [itm];
@@ -1325,6 +1330,7 @@ private:
 		}
 	}
 	void drawComment(PaintEvent e) {
+		// TODO
 	}
 	class PaintTree : PaintListener {
 		override void paintControl(PaintEvent e) {
@@ -1816,6 +1822,7 @@ public:
 			itm.setText = combo.getText;
 			_comm.refUseCount.call;
 		}
+		_comm.refContent.call(evt);
 		refreshStatusLine;
 	}
 	private CCombo createBoolEditor(string Create)(Content evt, Content child) {
@@ -2007,6 +2014,7 @@ public:
 			r = "";
 		}
 		e.name = name;
+		_comm.refContent.call(e);
 		return r;
 	}
 	private void createChilds(TreeItem parent, Content evt, bool select = false) {
@@ -2118,6 +2126,7 @@ public:
 		store(owner);
 		foreach (ct; cs) {
 			owner.add(ct);
+			_comm.refContent.call(ct);
 		}
 		createChilds(itm, owner, true);
 		_comm.refUseCount.call;
@@ -2149,6 +2158,7 @@ public:
 			sItm = createTreeItem(_tree, c, c.name, _prop.images.content(c.type), index + i);
 			createChilds(sItm, c, true);
 			sItm.setExpanded = true;
+			_comm.refContent.call(c);
 		}
 		if (!sItm) return;
 		_tree.select = sItm;

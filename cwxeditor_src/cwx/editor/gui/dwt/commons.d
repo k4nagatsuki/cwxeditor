@@ -232,6 +232,7 @@ class Commons {
 	Dlg!(string, int[]) upBgImage;
 	Dlg!(string, int[]) downBgImage;
 
+	Dlg!(Content) refContent;
 	Dlg!(Content) delContent;
 
 	Dlg!(Importable) closeAdds;

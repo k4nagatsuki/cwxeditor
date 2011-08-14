@@ -849,6 +849,7 @@ public:
 				break;
 			}
 		}
+		flags.showSelection();
 	}
 	/// フラグを選択する。
 	void select(Flag flag) {

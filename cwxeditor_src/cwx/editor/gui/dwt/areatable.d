@@ -646,6 +646,13 @@ public:
 		_areas.setSelection = _summ.areas.length + _summ.battles.length + index;
 		_areas.showSelection;
 	}
+	void select(AbstractArea a) {
+		int i = cCountUntil!("a.getData is b")(_areas.getItems, a);
+		if (0 <= i) {
+			_areas.select = i;
+			_areas.showSelection();
+		}
+	}
 
 	void openArea(ulong id) {
 		_comm.openArea(_prop, _summ, _summ.area(id));

@@ -1857,6 +1857,17 @@ public:
 	const string periodUnknown() {return "不明";}
 	const string natureUnknown() {return "その他";}
 
+	const string ttOpenTableView() {return "テーブルビューで開く";}
+	const string menuOpenTableView() {return ttOpenTableView ~ "(&V)";}
+	const string ttOpenFlagView() {return "フラグビューで開く";}
+	const string menuOpenFlagView() {return ttOpenFlagView ~ "(&V)";}
+	const string ttOpenCardView() {return "カードビューで開く";}
+	const string menuOpenCardView() {return ttOpenCardView ~ "(&V)";}
+	const string ttOpenFileView() {return "ファイルビューで開く";}
+	const string menuOpenFileView() {return ttOpenFileView ~ "(&V)";}
+	const string ttOpenEventTreeView() {return "イベントビューで開く";}
+	const string menuOpenEventTreeView() {return ttOpenEventTreeView ~ "(&V)";}
+
 	/// カードウィンドウ。
 	const string cardTabName(in Summary summ) {
 		return "カード";
@@ -2210,9 +2221,6 @@ public:
 	const string bgImagesDefault() {return "デフォルト背景";}
 	const string setBgImagesDefault() {return "デフォルト背景の設定...";}
 	const string dlgTitBgImagesDefault() {return "デフォルト背景の設定";}
-
-	const string ttOpenFileView() {return "ファイルビューで開く";}
-	const string menuOpenFileView() {return ttOpenFileView ~ "(&F)";}
 
 	/// スクリプト関係。
 	const string ttToScript() {return "スクリプトに変換してコピー";}
