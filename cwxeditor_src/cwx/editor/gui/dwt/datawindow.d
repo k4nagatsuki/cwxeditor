@@ -475,6 +475,7 @@ public:
 		if (!cpb.length) {
 			.forceFocus(_areas.table);
 			_areas.select = a;
+			return true;
 		} else if (w) {
 			static if (UseArea && UseFlag) {
 				tabf.setSelection = tabA;

@@ -772,6 +772,7 @@ public class FlexProps {
 	DialogParam!("inputEventDialog") inputEvtDlg;
 	DialogParam!("selectEventDialog") selEvtDlg;
 	DialogParam!("scriptDialog", 400, 300) scriptDlg;
+	DialogParam!("commentDialog", 300, 200) commentDlg;
 	FlexEtcProps etc;
 
 	private enum IniLocation {

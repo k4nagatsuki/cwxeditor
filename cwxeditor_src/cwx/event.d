@@ -733,9 +733,9 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	string comment() {return _comment;}
 	/// ditto
 	void comment(string v) {
-		if (_comment == comment) return;
+		if (_comment == v) return;
 		changed();
-		_comment = comment;
+		_comment = v;
 	}
 
 

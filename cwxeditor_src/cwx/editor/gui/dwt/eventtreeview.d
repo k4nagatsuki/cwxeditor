@@ -26,6 +26,7 @@ import cwx.editor.gui.dwt.properties;
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.scripterrordialog;
+import cwx.editor.gui.dwt.textdialog;
 
 import std.algorithm;
 import std.conv;
@@ -1282,6 +1283,8 @@ private:
 			}
 		}
 	}
+
+	/// 使用数とツリー毎の区切り線の描画。
 	void drawStartInfo(PaintEvent e) {
 		if (!_et) return;
 		if (!_prop.var.etc.drawCountOfUseOfStart && !_prop.var.etc.drawContentTreeLine) return;
@@ -1329,14 +1332,80 @@ private:
 			}
 		}
 	}
+	/// コメントの描画。
 	void drawComment(PaintEvent e) {
-		// TODO
+		auto fore = e.gc.getForeground;
+		auto back = e.gc.getBackground;
+		auto font = e.gc.getFont;
+		auto fSize = font ? cast(uint) font.getFontData[0].height : 0;
+		e.gc.setFont = new Font(_tree.getDisplay, dwtData(_prop.looks.textDlgFont(fSize)));
+		scope (exit) e.gc.getFont.dispose();
+		TreeItem[] itms;
+		void recurse(TreeItem itm) {
+			itms ~= itm;
+			foreach (chld; itm.getItems) {
+				recurse(chld);
+			}
+		}
+		foreach (itm; _tree.getItems) {
+			recurse(itm);
+		}
+		if (!itms.length) return;
+		int mny = itms[0].getBounds.y;
+		auto bb = itms[$ - 1].getBounds;
+		int mxy = bb.y + bb.height;
+		foreach (i, itm; itms) {
+			auto c = cast(Content) itm.getData;
+			string cm = c.comment;
+			if (cm.length) {
+				auto ib = itm.getBounds;
+				auto te = e.gc.textExtent(cm);
+				int tx = ib.x + ib.width + 50;
+				int ty = ib.y + (ib.height - te.y) / 2;
+				int bx = tx - 5;
+				int by = ty - 2;
+				int bw = te.x + 10;
+				int bh = te.y + 4;
+				if (by < mny) {
+					ty += mny - by;
+					by = ty - 2;
+				}
+				if (mxy < by + bh) {
+					ty -= by + bh - mxy;
+					by = ty - 2;
+				}
+				e.gc.setAlpha = 128;
+				e.gc.fillRectangle(bx, by, bw, bh);
+				e.gc.setAlpha = 255;
+				e.gc.drawString(cm, tx, ty, true);
+				e.gc.setBackground = fore;
+				scope (exit) e.gc.setBackground = back;
+				e.gc.setAlpha = 64;
+				e.gc.fillRectangle(bx, by, bw, 1);
+				e.gc.fillRectangle(bx, by + bh - 1, bw, 1);
+				e.gc.fillRectangle(bx, by + 1, 1, bh - 2);
+				e.gc.fillRectangle(bx + bw - 1, by + 1, 1, bh - 2);
+				e.gc.fillRectangle(ib.x + ib.width + 2, ib.y + ib.height / 2 - 1, 50 - 5 - 2, 1);
+				e.gc.setAlpha = 255;
+			}
+		}
 	}
 	class PaintTree : PaintListener {
 		override void paintControl(PaintEvent e) {
 			drawStartInfo(e);
 			drawComment(e);
 		}
+	}
+	void writeComment() {
+		auto itm = selection;
+		if (!itm) return;
+		auto c = cast(Content) itm.getData;
+		auto dlg = new TextDialog(_prop, _tree.getShell, _prop.msgs.dlgTitComment, _prop.images.menuWriteComment, c.comment, false, _prop.var.commentDlg);
+		dlg.appliedEvent ~= () {
+			c.comment = dlg.text;
+			_tree.redraw();
+		};
+		dlg.open();
 	}
 public:
 	this(Commons comm, Props prop, Summary summ, Composite parent, UndoManager undo,
@@ -1379,6 +1448,8 @@ public:
 				try {
 					popup = new Menu(parent.getShell, SWT.POP_UP);
 					createMenuItem(popup, _prop.msgs.menuCEdit, _prop.images.menuCEdit, &edit);
+					new MenuItem(popup, SWT.SEPARATOR);
+					createMenuItem(popup, _prop.msgs.menuWriteComment, _prop.images.menuWriteComment, &writeComment);
 					new MenuItem(popup, SWT.SEPARATOR);
 					createMenuItem(popup, _prop.msgs.menuUndo, _prop.images.menuUndo, &this.undo);
 					createMenuItem(popup, _prop.msgs.menuRedo, _prop.images.menuRedo, &this.redo);

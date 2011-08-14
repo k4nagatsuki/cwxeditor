@@ -25,32 +25,41 @@ import java.lang.all;
 class TextDialog : AbsDialog {
 private:
 	Props _prop;
+	bool _readOnly;
 	string _text;
 	Text _viewer;
 
 public:
-	this(Props prop, Shell shell, string title, Image icon, string text, DSize size = null) {
+	this(Props prop, Shell shell, string title, Image icon, string text, bool readOnly = true, DSize size = null) {
 		_prop = prop;
+		_readOnly = readOnly;
 		_text = text;
-		super(prop, shell, title, icon, true, size, false, false);
-		enterClose = true;
-		firstFocusIsOK = true;
+		super(prop, shell, title, icon, true, size, false, !readOnly);
+		if (readOnly) {
+			enterClose = true;
+			firstFocusIsOK = true;
+		}
 	}
 
+	string text() {
+		return _viewer.getText;
+	}
 protected:
 	override void setup(Composite area) {
 		auto cl = new CenterLayout;
 		cl.fillHorizontal = true;
 		cl.fillVertical = true;
 		area.setLayout = cl;
-		_viewer = new Text(area, SWT.BORDER | SWT.MULTI | SWT.READ_ONLY | SWT.WRAP | SWT.V_SCROLL);
+		int style = SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL;
+		if (_readOnly) style |= SWT.READ_ONLY;
+		_viewer = new Text(area, style);
 		_viewer.setText = _text;
+		if (!_readOnly) _viewer.setSelection = _text.length - 1;
 		auto font = _viewer.getFont;
 		auto fSize = font ? cast(uint) font.getFontData[0].height : 0;
 		_viewer.setFont = new Font(Display.getCurrent, dwtData(_prop.looks.textDlgFont(fSize)));
-	}
-	override bool close(bool ok) {
-		_viewer.getFont.dispose;
-		return ok;
+		closeEvent ~= () {
+			_viewer.getFont.dispose;
+		};
 	}
 }
