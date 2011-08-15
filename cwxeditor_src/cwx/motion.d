@@ -465,7 +465,7 @@ public:
 		return _owner ? cpjoin(_owner, .cCountUntil!("a is b")(_owner.motions, this)) : "";
 	}
 	override CWXPath findCWXPath(string path) {
-		if (path == "") return this;
+		if (cpempty(path)) return this;
 		auto cate = cpcategory(path);
 		switch (cate) {
 		case "beastcard": {

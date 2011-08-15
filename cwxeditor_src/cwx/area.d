@@ -870,7 +870,7 @@ public:
 		return _owner ? cpjoin(_owner, "area", .cCountUntil!("a is b")(_owner.areas, this)) : "";
 	}
 	CWXPath findCWXPath(string path) {
-		if (path == "") return this;
+		if (cpempty(path)) return this;
 		auto cate = cpcategory(path);
 		switch (cate) {
 		case "menucard": {
@@ -1210,7 +1210,7 @@ public:
 		return _owner ? cpjoin(_owner, "battle", .cCountUntil!("a is b")(_owner.battles, this)) : "";
 	}
 	CWXPath findCWXPath(string path) {
-		if (path == "") return this;
+		if (cpempty(path)) return this;
 		auto cate = cpcategory(path);
 		switch (cate) {
 		case "enemycard": {

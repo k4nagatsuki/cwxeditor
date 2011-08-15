@@ -342,11 +342,11 @@ public:
 	}
 	bool openCWXPath(string path) {
 		auto cate = cpcategory(path);
-		if (path == "") {
+		if (cpempty(path)) {
 			_tabf.setSelection = _tabA;
 			return true;
 		} else if (((cate == "menucard" || cate == "enemycard")
-				&& cpbottom(path) == "")
+				&& cpempty(cpbottom(path)))
 				|| cate == "background") {
 			return _aview.openCWXPath(path);
 		} else {

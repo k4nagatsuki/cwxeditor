@@ -472,7 +472,7 @@ public:
 
 	private bool openCWXPathAf(Window, A)(lazy Window w, A a, string path) {
 		auto cpb = cpbottom(path);
-		if (!cpb.length) {
+		if (cpattr(cpb).contains("shallow") && cpempty(cpb)) {
 			.forceFocus(_areas.table);
 			_areas.select = a;
 			return true;
@@ -485,7 +485,7 @@ public:
 		return false;
 	}
 	bool openCWXPath(string path) {
-		if (path == "") {
+		if (cpempty(path)) {
 			static if (UseArea) {
 				_comm.openDataWin;
 			} else {

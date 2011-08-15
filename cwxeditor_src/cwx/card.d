@@ -693,7 +693,7 @@ public:
 		return _owner ? cpjoin(_owner, "castcard", .cCountUntil!("a is b")(_owner.casts, this)) : "";
 	}
 	CWXPath findCWXPath(string path) {
-		if (path == "") return this;
+		if (cpempty(path)) return this;
 		auto cate = cpcategory(path);
 		switch (cate) {
 		case "skillcard": {
@@ -1047,7 +1047,7 @@ public:
 		node.parse;
 	}
 	CWXPath findCWXPath(string path) {
-		if (path == "") return this;
+		if (cpempty(path)) return this;
 		return _ceto.findCWXPath(path);
 	}
 	CWXPath[] cwxChilds() {
@@ -1421,7 +1421,7 @@ public:
 		return _owner ? cpjoin(_owner, "infocard", .cCountUntil!("a is b")(_owner.infos, this)) : "";
 	}
 	CWXPath findCWXPath(string path) {
-		if (path == "") return this;
+		if (cpempty(path)) return this;
 		return null;
 	}
 	CWXPath[] cwxChilds() {return [];}

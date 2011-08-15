@@ -1682,7 +1682,7 @@ public:
 		if (!summary) return false;
 		bool open() {
 			path = cwx.utils.toLower(path);
-			if (path == "") {
+			if (cpempty(path)) {
 				return true;
 			}
 			auto cate = cpcategory(path);

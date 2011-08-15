@@ -12,6 +12,7 @@ import cwx.flag;
 import cwx.features;
 import cwx.usecounter;
 import cwx.skin;
+import cwx.path;
 
 import cwx.editor.gui.sound;
 
@@ -213,7 +214,7 @@ private:
 		if (-1 == i) return;
 		auto a = cast(A) _list.getItem(i).getData;
 		try {
-			_comm.openCWXPath(a.cwxPath);
+			_comm.openCWXPath(cpaddattr(a.cwxPath, "shallow"));
 		} catch (Exception e) {
 			debugln(e);
 		}
@@ -377,7 +378,7 @@ private:
 		if (-1 == i) return;
 		auto a = cast(Content) _list.getItem(i).getData;
 		try {
-			_comm.openCWXPath(a.cwxPath);
+			_comm.openCWXPath(cpaddattr(a.cwxPath, "shallow"));
 		} catch (Exception e) {
 			debugln(e);
 		}
@@ -1185,7 +1186,7 @@ private:
 		if (-1 == i) return;
 		auto a = cast(F) _flags.getItem(i).getData;
 		try {
-			_comm.openCWXPath(a.cwxPath);
+			_comm.openCWXPath(cpaddattr(a.cwxPath, "shallow"));
 		} catch (Exception e) {
 			debugln(e);
 		}
@@ -1339,7 +1340,7 @@ private:
 
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
-		super (comm, prop, shell, summ, CType.BRANCH_ABILITY, parent, evt, false, null, true);
+		super (comm, prop, shell, summ, CType.BRANCH_SELECT, parent, evt, false, null, true);
 	}
 protected:
 	override void setup(Composite area) {
@@ -1732,7 +1733,7 @@ private:
 		if (-1 == i) return;
 		auto a = cast(C) _list.getItem(i).getData;
 		try {
-			_comm.openCWXPath(a.cwxPath);
+			_comm.openCWXPath(cpaddattr(a.cwxPath, "shallow"));
 		} catch (Exception e) {
 			debugln(e);
 		}

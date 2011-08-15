@@ -576,7 +576,7 @@ public:
 	}
 	override string cwxPath() {return "";}
 	override CWXPath findCWXPath(string path) {
-		if (path == "") return this;
+		if (cpempty(path)) return this;
 		auto cate = cpcategory(path);
 		switch (cate) {
 		case "area": {
@@ -1673,7 +1673,7 @@ public:
 	}
 	override string cwxPath() {return "";}
 	override CWXPath findCWXPath(string path) {
-		if (path == "") return this;
+		if (cpempty(path)) return this;
 		return findCWXPathImpl(path, cpcategory(path));
 	}
 	override CWXPath[] cwxChilds() {return cwxChildsImpl;}

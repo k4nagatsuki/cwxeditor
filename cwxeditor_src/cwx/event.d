@@ -385,7 +385,7 @@ public:
 		return "";
 	}
 	CWXPath findCWXPath(string path) {
-		if (path == "") return this;
+		if (cpempty(path)) return this;
 		return null;
 	}
 	CWXPath[] cwxChilds() {return [];}
@@ -526,7 +526,7 @@ public:
 		return _parent ? cpjoin(_parent, "dialog", .cCountUntil!("a is b")(_parent.dialogs, this)) : "";
 	}
 	override CWXPath findCWXPath(string path) {
-		if (path == "") return this;
+		if (cpempty(path)) return this;
 		auto cate = cpcategory(path);
 		if (cate == "text") {
 			auto index = cpindex(path);
@@ -788,7 +788,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		return "";
 	}
 	override CWXPath findCWXPath(string path) {
-		if (path == "") return this;
+		if (cpempty(path)) return this;
 		auto cate = cpcategory(path);
 		switch (cate) {
 		case "": {
@@ -1683,7 +1683,7 @@ public:
 		return _owner ? cpjoin(_owner, "event", .cCountUntil!("a is b")(_owner.trees, this)) : "";
 	}
 	CWXPath findCWXPath(string path) {
-		if (path == "") return this;
+		if (cpempty(path)) return this;
 		auto cate = cpcategory(path);
 		if (cate == "") {
 			auto index = cpindex(path);
@@ -2180,7 +2180,7 @@ public:
 	override abstract size_t[] areaPath();
 
 	CWXPath findCWXPath(string path) {
-		if (path == "") return this;
+		if (cpempty(path)) return this;
 		auto cate = cpcategory(path);
 		if (cate == "event") {
 			auto index = cpindex(path);

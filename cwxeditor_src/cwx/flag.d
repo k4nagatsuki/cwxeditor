@@ -213,7 +213,7 @@ public:
 		return cpjoin(_parent, "flag", .cCountUntil!("a is b")(_parent.flags, this));
 	}
 	override CWXPath findCWXPath(string path) {
-		if (path == "") return this;
+		if (cpempty(path)) return this;
 		return null;
 	}
 	override CWXPath[] cwxChilds() {return [];}
@@ -384,7 +384,7 @@ public:
 		return cpjoin(_parent, "step", .cCountUntil!("a is b")(_parent.steps, this));
 	}
 	override CWXPath findCWXPath(string path) {
-		if (path == "") return this;
+		if (cpempty(path)) return this;
 		return null;
 	}
 	override CWXPath[] cwxChilds() {return [];}
@@ -438,7 +438,7 @@ public:
 		return "";
 	}
 	override CWXPath findCWXPath(string path) {
-		if (path == "") return this;
+		if (cpempty(path)) return this;
 		auto cate = cpcategory(path);
 		switch (cate) {
 		case "flag": {

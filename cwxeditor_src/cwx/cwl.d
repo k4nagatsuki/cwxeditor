@@ -394,7 +394,7 @@ private string readString(ref ByteIO f, bool lns = false, bool cutText = false) 
 	str = replace(str, "\r\n", "\n");
 	return str;
 }
-private string readString(ref ByteIO f, string[string] addInfo, bool lns = false, bool cutText = false) {
+private string readString(ref ByteIO f, ref string[string] addInfo, bool lns = false, bool cutText = false) {
 	uint len = f.readUIntL;
 	if (!len) return "";
 	string str = cast(string) f.read(len);
@@ -403,7 +403,7 @@ private string readString(ref ByteIO f, string[string] addInfo, bool lns = false
 		int zi = indexOf(str, '\0');
 		if (-1 == zi) break;
 		string info = touni(str[zi + 1 .. $]);
-		info = replace(str, "\r\n", "\n");
+		info = replace(info, "\r\n", "\n");
 		str = str[0 .. zi];
 
 		zi = indexOf(info, ':');

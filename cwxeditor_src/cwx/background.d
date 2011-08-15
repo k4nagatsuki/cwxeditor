@@ -231,7 +231,7 @@ public:
 		return _owner ? cpjoin(_owner, "background", .cCountUntil!("a is b")(_owner.backs, this)) : "";
 	}
 	override CWXPath findCWXPath(string path) {
-		if (path == "") return this;
+		if (cpempty(path)) return this;
 		return null;
 	}
 	CWXPath[] cwxChilds() {return [];}
@@ -254,7 +254,7 @@ public:
 	}
 	override string cwxPath() {return "";}
 	override CWXPath findCWXPath(string path) {
-		if (path == "") return this;
+		if (cpempty(path)) return this;
 		auto cate = cpcategory(path);
 		switch (cate) {
 		case "background": {

@@ -345,16 +345,16 @@ private:
 		return fromPathImpl(_tree, cwxPath);
 	}
 	private TreeItem fromPathImpl(T)(T tree, string cwxPath) {
-		if ("" == cwxPath) return null;
+		if (cpempty(cwxPath)) return null;
 		string cate = cpcategory(cwxPath);
 		while ("" != cate) {
 			cwxPath = cpbottom(cwxPath);
-			if ("" == cwxPath) return null;
+			if (cpempty(cwxPath)) return null;
 			cate = cpcategory(cwxPath);
 		}
 		auto itm = tree.getItem(cpindex(cwxPath));
 		cwxPath = cpbottom(cwxPath);
-		if ("" == cwxPath) return itm;
+		if (cpempty(cwxPath)) return itm;
 		return fromPathImpl(itm, cwxPath);
 	}
 	private TreeItem fromPath(size_t[] path) {
@@ -532,7 +532,7 @@ private:
 	}
 
 	void create(Content parent, CType type, string name, void delegate(Content) applied) {
-		assert (parent.detail.owner);
+		assert (parent is null || parent.detail.owner);
 		if (!_conti) arrow;
 		void initial(Content c) {
 			if (type is CType.CHANGE_BG_IMAGE) {
@@ -1358,21 +1358,24 @@ private:
 			auto c = cast(Content) itm.getData;
 			string cm = c.comment;
 			if (cm.length) {
+				static const MARGIN_L = 5;
+				static const MARGIN_T = 4;
+				int dis = _prop.var.etc.commentBoxDistance;
 				auto ib = itm.getBounds;
 				auto te = e.gc.textExtent(cm);
-				int tx = ib.x + ib.width + 50;
+				int tx = ib.x + ib.width + dis;
 				int ty = ib.y + (ib.height - te.y) / 2;
-				int bx = tx - 5;
-				int by = ty - 2;
-				int bw = te.x + 10;
-				int bh = te.y + 4;
+				int bx = tx - MARGIN_L;
+				int by = ty - MARGIN_T;
+				int bw = te.x + MARGIN_L * 2;
+				int bh = te.y + MARGIN_T * 2;
 				if (by < mny) {
 					ty += mny - by;
-					by = ty - 2;
+					by = ty - MARGIN_T;
 				}
 				if (mxy < by + bh) {
 					ty -= by + bh - mxy;
-					by = ty - 2;
+					by = ty - MARGIN_T;
 				}
 				e.gc.setAlpha = 128;
 				e.gc.fillRectangle(bx, by, bw, bh);
@@ -1385,7 +1388,7 @@ private:
 				e.gc.fillRectangle(bx, by + bh - 1, bw, 1);
 				e.gc.fillRectangle(bx, by + 1, 1, bh - 2);
 				e.gc.fillRectangle(bx + bw - 1, by + 1, 1, bh - 2);
-				e.gc.fillRectangle(ib.x + ib.width + 2, ib.y + ib.height / 2 - 1, 50 - 5 - 2, 1);
+				e.gc.fillRectangle(ib.x + ib.width + 2, ib.y + ib.height / 2 - 1, dis - MARGIN_L - 2, 1);
 				e.gc.setAlpha = 255;
 			}
 		}
@@ -2394,7 +2397,7 @@ public:
 			if (index >= itm.getItemCount) return false;
 			auto child = itm.getItem(index);
 			path = cpbottom(path);
-			if (path == "" || cpcategory(path) != "") {
+			if (cpempty(path) || cpcategory(path) != "") {
 				forceFocus(_tree);
 				_tree.select = child;
 				refreshStatusLine;

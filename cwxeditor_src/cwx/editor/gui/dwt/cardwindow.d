@@ -1983,7 +1983,7 @@ public:
 			card = _pane[C].cards[index];
 		}
 		path = cpbottom(path);
-		if (path == "") {
+		if (cpempty(path)) {
 			forceFocus(_pane[C].widget);
 			_pane[C].select(index);
 			return true;

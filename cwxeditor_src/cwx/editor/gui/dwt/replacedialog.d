@@ -133,6 +133,8 @@ private:
 	Button _area;
 	/// キーコード
 	Button _keyCode;
+	/// コメント
+	Button _comment;
 
 	Button _unuseFlag;
 	Button _unuseStep;
@@ -162,6 +164,7 @@ private:
 	bool end() {return _end.getSelection;}
 	bool area() {return _area.getSelection;}
 	bool keyCode() {return _keyCode.getSelection;}
+	bool comment() {return _comment.getSelection;}
 
 	bool unuseFlag() {return _unuseFlag.getSelection;}
 	bool unuseStep() {return _unuseStep.getSelection;}
@@ -429,6 +432,7 @@ private:
 				_end = createB(_prop.msgs.replTextEndScenario);
 				_area = createB(_prop.msgs.replTextAreaName);
 				_keyCode = createB(_prop.msgs.replTextKeyCode);
+				_comment = createB(_prop.msgs.replTextComment);
 			}
 			auto sep = new Label(grp, SWT.SEPARATOR | SWT.HORIZONTAL);
 			sep.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
@@ -700,6 +704,7 @@ public:
 		_end.setSelection = _prop.var.etc.replaceTextEndScenario;
 		_area.setSelection = _prop.var.etc.replaceTextAreaName;
 		_keyCode.setSelection = _prop.var.etc.replaceTextKeyCode;
+		_comment.setSelection = _prop.var.etc.replaceTextComment;
 		_unuseFlag.setSelection = _prop.var.etc.searchUnusedFlag;
 		_unuseStep.setSelection = _prop.var.etc.searchUnusedStep;
 		_unuseArea.setSelection = _prop.var.etc.searchUnusedArea;
@@ -746,6 +751,7 @@ public:
 			_prop.var.etc.replaceTextEndScenario = _end.getSelection;
 			_prop.var.etc.replaceTextAreaName = _area.getSelection;
 			_prop.var.etc.replaceTextKeyCode = _keyCode.getSelection;
+			_prop.var.etc.replaceTextComment = _comment.getSelection;
 			_prop.var.etc.searchUnusedFlag = _unuseFlag.getSelection;
 			_prop.var.etc.searchUnusedStep = _unuseStep.getSelection;
 			_prop.var.etc.searchUnusedArea = _unuseArea.getSelection;
@@ -1060,6 +1066,7 @@ public:
 					set.add(cld.name);
 				}
 			}
+			// TODO comment
 			bool checkTextRes(string[] fonts, string[] flags, string[] steps) {
 				foreach (font; fonts) {
 					if (!skin.findPath(font, skin.extImage, skin.tableDir, sPath).length) {
@@ -1616,6 +1623,9 @@ public:
 					r |= replRqCoupons!(typeof(dlg))(null, dlg, count);
 				}
 			}
+		}
+		if (comment) {
+			r |= repl(null, e.comment, &e.comment, count);
 		}
 		if (r) {
 			addResult(e);

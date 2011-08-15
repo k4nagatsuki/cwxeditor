@@ -625,6 +625,7 @@ class FlexEtcProps : Properties {
 	mixin Property!("replaceTextEndScenario", bool, true);
 	mixin Property!("replaceTextAreaName", bool, true);
 	mixin Property!("replaceTextKeyCode", bool, true);
+	mixin Property!("replaceTextComment", bool, true);
 	mixin Property!("searchUnusedFlag", bool, true);
 	mixin Property!("searchUnusedStep", bool, true);
 	mixin Property!("searchUnusedArea", bool, true);
@@ -732,6 +733,7 @@ class FlexEtcProps : Properties {
 
 	mixin Property!("drawCountOfUseOfStart", bool, true);
 	mixin Property!("drawContentTreeLine", bool, true);
+	mixin Property!("commentBoxDistance", int, 50, true);
 
 	mixin XMLFuncs!(FlexEtcProps);
 }
