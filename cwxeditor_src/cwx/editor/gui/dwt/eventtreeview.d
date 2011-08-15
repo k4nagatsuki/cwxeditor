@@ -1363,6 +1363,12 @@ private:
 				int dis = _prop.var.etc.commentBoxDistance;
 				auto ib = itm.getBounds;
 				auto te = e.gc.textExtent(cm);
+				// 改行文字があると横幅がおかしくなるため
+				// 測り直す
+				te.x = 0;
+				foreach (line; splitLines(cm)) {
+					te.x = max(e.gc.textExtent(line).x, te.x);
+				}
 				int tx = ib.x + ib.width + dis;
 				int ty = ib.y + (ib.height - te.y) / 2;
 				int bx = tx - MARGIN_L;
