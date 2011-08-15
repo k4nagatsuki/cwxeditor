@@ -1405,7 +1405,7 @@ private:
 		auto c = cast(Content) itm.getData;
 		auto dlg = new TextDialog(_prop, _tree.getShell, _prop.msgs.dlgTitComment, _prop.images.menuWriteComment, c.comment, false, _prop.var.commentDlg);
 		dlg.appliedEvent ~= () {
-			c.comment = dlg.text;
+			c.comment = lastRet(dlg.text);
 			_tree.redraw();
 		};
 		dlg.open();

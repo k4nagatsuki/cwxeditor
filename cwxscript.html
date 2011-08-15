@@ -373,8 +373,7 @@
 
 <h3><a name="COMMENT" id="COMMENT">コメント</a></h3>
 
-<p>スクリプトを読む人間に対してヒントを与えるために、コメントを書き入れる事ができます。</p>
-<p>コメントは実際の処理では無視されます。</p>
+<p>スクリプトやコンテントツリーを読む人間に対してヒントを与えるために、コメントを書き入れる事ができます。</p>
 <p>二種類の書き方があり、文字列の中以外であれば、どこにでもコメントを入れる事ができます。</p>
 
 <pre><code><span class="comment">// &lt;- この記号の後は、改行が来るまで全てコメント扱いになります</span>
@@ -398,6 +397,16 @@
         ここまでコメント
     */</span>
     <span class="keywords">endsc</span> <span class="code">false</span>
+</code></pre>
+
+<p>コンテント定義の直前に記述されたコメントは、生成されたコンテントのコメントとして反映されます。</p>
+
+<pre><code><span class="keywords">start</span> <span class="str">"到着イベント"</span>
+<span class="comment">    // シナリオを終了する</span>
+    <span class="keywords">endsc</span> <span class="code">false</span>
+<span class="comment">    // 上の行のコメントはシナリオ終了コンテントのコメントとして
+    // コンテントツリーに貼り付けられます。
+    // このコメントは直後にコンテント定義が無いため、無視されます。</span>
 </code></pre>
 
 <h3><a name="PARAMS" id="PARAMS">パラメータの種類</a></h3>
