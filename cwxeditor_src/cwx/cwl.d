@@ -30,8 +30,8 @@ import cwx.sjis;
 
 unittest {
 	try {
-		loadLScenario!(Summary)("", "");
-		loadLScenario!(Importable)("", "");
+		loadLScenario!(Summary)("", "", true, null);
+		loadLScenario!(Importable)("", "", true, null);
 	} catch {}
 }
 
@@ -60,7 +60,7 @@ private struct RData {
 /// Params:
 /// newName = シナリオ名。null以外が指定された場合、
 ///           Summary.wsmが存在しない際はこの名前で新規に作成する。
-S loadLScenario(S)(string p, string skin, string newName = null) {
+S loadLScenario(S)(string p, string skin, bool doubleIO, string newName = null) {
 	static const bool AR = is (S : AreaOwner);
 	static const bool BA = is (S : BattleOwner);
 	static const bool PA = is (S : PackageOwner);
@@ -100,7 +100,7 @@ S loadLScenario(S)(string p, string skin, string newName = null) {
 		static if (IN) InfoCard[] infos;
 		string[] files;
 		ulong wait = 0L;
-		int load() {
+		void load() {
 			foreach (file; this.files) {
 				try {
 					auto f = ByteIO(std.file.read(file));
@@ -135,7 +135,6 @@ S loadLScenario(S)(string p, string skin, string newName = null) {
 					throw e;
 				}
 			}
-			return 0;
 		}
 	}
 	auto load1 = new Load;
@@ -153,14 +152,14 @@ S loadLScenario(S)(string p, string skin, string newName = null) {
 			}
 		}
 	}
-	version (TwinIO) {
-		auto thr = new Thread(&load2.load);
-		thr.start;
-		load1.load;
-		thr.wait;
+	if (doubleIO) {
+		auto thr = new core.thread.Thread(&load2.load);
+		thr.start();
+		load1.load();
+		thr.join();
 	} else {
-		load1.load;
-		load2.load;
+		load1.load();
+		load2.load();
 	}
 	static if (AR) Area[] areas = load1.areas ~ load2.areas;
 	static if (BA) Battle[] battles = load1.battles ~ load2.battles;
@@ -1534,7 +1533,7 @@ struct SData {
 	bool saveInnerImagePath;
 }
 /// 4.0形式のCardWirthシナリオを保存する。
-void saveLScenario(Summary summ, bool saveInnerImagePath = false) {
+void saveLScenario(Summary summ, bool doubleIO, bool saveInnerImagePath = false) {
 	auto d = SData(summ.scenarioPath, saveInnerImagePath);
 	class Save {
 		Area[] areas;
@@ -1546,7 +1545,7 @@ void saveLScenario(Summary summ, bool saveInnerImagePath = false) {
 		BeastCard[] beasts;
 		InfoCard[] infos;
 		string[] wids;
-		int save() {
+		void save() {
 			foreach (a; areas) {
 				auto file = "~Area" ~ to!(string)(a.id) ~ ".wid";
 				ByteIO f;
@@ -1603,7 +1602,6 @@ void saveLScenario(Summary summ, bool saveInnerImagePath = false) {
 				std.file.write(std.path.join(d.sPath, file), f.bytes);
 				wids ~= file;
 			}
-			return 0;
 		}
 		void rename() {
 			foreach (file; wids) {
@@ -1636,14 +1634,14 @@ void saveLScenario(Summary summ, bool saveInnerImagePath = false) {
 	save2.beasts = summ.beasts[$ / 2 .. $];
 	save1.infos = summ.infos[0 .. $ / 2];
 	save2.infos = summ.infos[$ / 2 .. $];
-	version (TwinIO) {
-		auto thr = new Thread(&save2.save);
-		thr.start;
-		save1.save;
-		thr.wait;
+	if (doubleIO) {
+		auto thr = new core.thread.Thread(&save2.save);
+		thr.start();
+		save1.save();
+		thr.join();
 	} else {
-		save1.save;
-		save2.save;
+		save1.save();
+		save2.save();
 	}
 	foreach (file; clistdir(d.sPath)) {
 		if (std.path.fnmatch(file, "Summary.wsm")

@@ -2149,7 +2149,8 @@ public:
 	const string searchHistoryClear() {return "クリア";}
 	const string dlgMsgSearchHistoryClear() {return "検索/置換履歴を削除してよろしいですか？";}
 	const string ignorePaths() {return "無視ファイル(改行区切り)";}
-	const string settingEtc() {return "その他";}
+	const string etcSettings() {return "その他";}
+	const string etcSettingsTitle() {return "詳細";}
 	const string singleWindow() {return "シングルウィンドウモード(再起動後に反映されます)";}
 	const string smoothingCard() {return "カードのサイズ変更時にスムージングを行う";}
 	const string expandXMLs() {return "圧縮されたシナリオの読込み時にXMLファイルを展開する";}
@@ -2163,6 +2164,7 @@ public:
 	const string copyDesc() {return "カードをエリアに貼り付け・ドロップした時、解説もコピーする";}
 	const string refCardsAtEditBgImage() {return "背景変更コンテントの編集を開始する際、最初からカード配置の参照を行う";}
 	const string addNewClassicEngine() {return "未知のクラシックエンジンを見つけたら記憶する";}
+	const string doubleIO() {return "シナリオのセーブ・ロードに複数のスレッドを使う(デュアルコア以上の環境で高速化)";}
 	const string soundPlayType() {return "音声再生方法";}
 	const string soundPlayTypeDef() {return "自動選択";}
 	const string soundPlayTypeSDL() {return "SDL(CardWirthPy形式)";}

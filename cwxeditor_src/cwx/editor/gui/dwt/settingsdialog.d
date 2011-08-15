@@ -78,21 +78,6 @@ private:
 	Text _wallpaper;
 	Spinner _histMax;
 	Spinner _sHistMax;
-	Text _ignorePaths;
-	Button _singleWindow;
-	Button _smoothingCard;
-	Button _expandXMLs;
-	Button _contentsFloat;
-	Button _xmlCopy;
-	Button _saveInnerImagePath;
-	Button _traceDirectories;
-	Button _logicalSort;
-	Button _copyDesc;
-	Button _refCardsAtEditBgImage;
-	Button _addNewClassicEngine;
-	version (Windows) {
-		Combo _soundPlayType;
-	}
 
 	CTabItem _tabS;
 	List _bgStgsL;
@@ -127,6 +112,24 @@ private:
 	Text _cEngineDataDir;
 	Text _cEngineExecute;
 	Button _cEngineDel;
+
+	CTabItem _tabE;
+	Text _ignorePaths;
+	Button _singleWindow;
+	Button _smoothingCard;
+	Button _expandXMLs;
+	Button _contentsFloat;
+	Button _xmlCopy;
+	Button _saveInnerImagePath;
+	Button _traceDirectories;
+	Button _logicalSort;
+	Button _copyDesc;
+	Button _refCardsAtEditBgImage;
+	Button _addNewClassicEngine;
+	Button _doubleIO;
+	version (Windows) {
+		Combo _soundPlayType;
+	}
 
 	class RefE : SelectionAdapter, ModifyListener {
 		override void widgetSelected(SelectionEvent e) {
@@ -617,10 +620,15 @@ private:
 			{
 				auto grp = new Group(comp2, SWT.NONE);
 				grp.setText = _prop.msgs.historiesSettings;
-				grp.setLayoutData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
+				grp.setLayoutData = new GridData(GridData.FILL_VERTICAL);
 				grp.setLayout = new GridLayout(3, false);
 				{
-					auto l = new Label(grp, SWT.CENTER);
+					auto lComp = new Composite(grp, SWT.NONE);
+					auto cl = new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0);
+					cl.fillHorizontal = true;
+					lComp.setLayout = cl;
+					lComp.setLayoutData = new GridData(GridData.FILL_VERTICAL);
+					auto l = new Label(lComp, SWT.NONE);
 					l.setText = _prop.msgs.openHistoryMax;
 					_histMax = new Spinner(grp, SWT.BORDER);
 					_histMax.setMinimum = 0;
@@ -632,7 +640,12 @@ private:
 					clear.addSelectionListener(new ClearHist);
 				}
 				{
-					auto l = new Label(grp, SWT.CENTER);
+					auto lComp = new Composite(grp, SWT.NONE);
+					auto cl = new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0);
+					cl.fillHorizontal = true;
+					lComp.setLayout = cl;
+					lComp.setLayoutData = new GridData(GridData.FILL_VERTICAL);
+					auto l = new Label(lComp, SWT.NONE);
 					l.setText = _prop.msgs.searchHistoryMax;
 					_sHistMax = new Spinner(grp, SWT.BORDER);
 					_sHistMax.setMinimum = 0;
@@ -642,60 +655,6 @@ private:
 					clear.setEnabled = _prop.var.etc.searchHistories.length > 0;
 					clear.setText = _prop.msgs.searchHistoryClear;
 					clear.addSelectionListener(new ClearSHist);
-				}
-			}
-		}
-		{
-			auto comp2 = new Composite(comp, SWT.NONE);
-			comp2.setLayoutData = new GridData(GridData.FILL_BOTH);
-			comp2.setLayout = zeroMarginGridLayout(2, false);
-			{
-				auto grp = new Group(comp2, SWT.NONE);
-				grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-				grp.setText = _prop.msgs.ignorePaths;
-				grp.setLayout = new GridLayout(1, false);
-				_ignorePaths = new Text(grp, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
-				mod(_ignorePaths);
-				auto gd = new GridData(GridData.FILL_BOTH);
-				gd.widthHint = _prop.var.etc.ignorePathsWidth;
-				gd.heightHint = 0;
-				_ignorePaths.setLayoutData = gd;
-			}
-			{
-				auto grp = new Group(comp2, SWT.NONE);
-				grp.setLayoutData = new GridData(GridData.FILL_VERTICAL);
-				grp.setText = _prop.msgs.settingEtc;
-				grp.setLayout = new GridLayout(2, false);
-				Button createB(string text) {
-					auto btn = new Button(grp, SWT.CHECK);
-					btn.setText = text;
-					mod(btn);
-					auto gd = new GridData;
-					gd.horizontalSpan = 2;
-					btn.setLayoutData = gd;
-					return btn;
-				}
-				_singleWindow = createB(_prop.msgs.singleWindow);
-				_smoothingCard = createB(_prop.msgs.smoothingCard);
-				_expandXMLs = createB(_prop.msgs.expandXMLs);
-				_contentsFloat = createB(_prop.msgs.contentsFloat);
-				_xmlCopy = createB(_prop.msgs.xmlCopy);
-				_saveInnerImagePath = createB(_prop.msgs.saveInnerImagePath);
-				_traceDirectories = createB(_prop.msgs.traceDirectories);
-				_logicalSort = createB(_prop.msgs.logicalSort);
-				_copyDesc = createB(_prop.msgs.copyDesc);
-				_refCardsAtEditBgImage = createB(_prop.msgs.refCardsAtEditBgImage);
-				_addNewClassicEngine = createB(_prop.msgs.addNewClassicEngine);
-
-				version (Windows) {
-					auto sl = new Label(grp, SWT.NONE);
-					sl.setText = _prop.msgs.soundPlayType;
-					_soundPlayType = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
-					_soundPlayType.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-					_soundPlayType.setVisibleItemCount = 20;
-					_soundPlayType.add(_prop.msgs.soundPlayTypeDef);
-					_soundPlayType.add(_prop.msgs.soundPlayTypeSDL);
-					_soundPlayType.add(_prop.msgs.soundPlayTypeMCI);
 				}
 			}
 		}
@@ -1508,6 +1467,75 @@ private:
 		}
 		mainSash.addDisposeListener(new Dispose);
 	}
+	void construct4(CTabFolder tabf) {
+		auto comp = new Composite(tabf, SWT.NONE);
+		_tabE = new CTabItem(tabf, SWT.NONE);
+		_tabE.setText = _prop.msgs.etcSettings;
+		_tabE.setControl = comp;
+		comp.setLayout = new GridLayout(2, false);
+		{
+			auto comp2 = new Composite(comp, SWT.NONE);
+			comp2.setLayoutData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
+			comp2.setLayout = zeroMarginGridLayout(1, false);
+			{
+				auto grp = new Group(comp2, SWT.NONE);
+				grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+				grp.setText = _prop.msgs.etcSettingsTitle;
+				grp.setLayout = new GridLayout(2, false);
+				Button createB(string text) {
+					auto btn = new Button(grp, SWT.CHECK);
+					btn.setText = text;
+					mod(btn);
+					auto gd = new GridData;
+					gd.horizontalSpan = 2;
+					btn.setLayoutData = gd;
+					return btn;
+				}
+				_singleWindow = createB(_prop.msgs.singleWindow);
+				_smoothingCard = createB(_prop.msgs.smoothingCard);
+				_expandXMLs = createB(_prop.msgs.expandXMLs);
+				_contentsFloat = createB(_prop.msgs.contentsFloat);
+				_xmlCopy = createB(_prop.msgs.xmlCopy);
+				_saveInnerImagePath = createB(_prop.msgs.saveInnerImagePath);
+				_traceDirectories = createB(_prop.msgs.traceDirectories);
+				_logicalSort = createB(_prop.msgs.logicalSort);
+				_copyDesc = createB(_prop.msgs.copyDesc);
+				_refCardsAtEditBgImage = createB(_prop.msgs.refCardsAtEditBgImage);
+				_addNewClassicEngine = createB(_prop.msgs.addNewClassicEngine);
+				_doubleIO = createB(_prop.msgs.doubleIO);
+			}
+			{
+				version (Windows) {
+					auto grp = new Group(comp2, SWT.NONE);
+					grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+					grp.setText = _prop.msgs.soundPlayType;
+					grp.setLayout = new GridLayout(1, false);
+					_soundPlayType = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
+					_soundPlayType.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+					_soundPlayType.setVisibleItemCount = 20;
+					_soundPlayType.add(_prop.msgs.soundPlayTypeDef);
+					_soundPlayType.add(_prop.msgs.soundPlayTypeSDL);
+					_soundPlayType.add(_prop.msgs.soundPlayTypeMCI);
+				}
+			}
+		}
+		{
+			auto grp = new Group(comp, SWT.NONE);
+			auto gd = new GridData(GridData.FILL_BOTH);
+			version (Windows) {
+				gd.verticalSpan = 2;
+			}
+			grp.setLayoutData = gd;
+			grp.setText = _prop.msgs.ignorePaths;
+			grp.setLayout = new GridLayout(1, false);
+			_ignorePaths = new Text(grp, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
+			mod(_ignorePaths);
+			auto gdp = new GridData(GridData.FILL_BOTH);
+			gdp.widthHint = _prop.var.etc.ignorePathsWidth;
+			gdp.heightHint = 0;
+			_ignorePaths.setLayoutData = gdp;
+		}
+	}
 	private RefE _refe;
 	private void refreshScenario(Summary summ) {
 		if (!summ) {
@@ -1547,6 +1575,7 @@ protected:
 		construct1(tabf);
 		construct2(tabf);
 		construct3(tabf);
+		construct4(tabf);
 
 		_enginePath.setText = _prop.var.etc.enginePath;
 		_tempDir.setText = _prop.var.etc.tempPath;
@@ -1574,6 +1603,7 @@ protected:
 		_copyDesc.setSelection = _prop.var.etc.copyDesc;
 		_refCardsAtEditBgImage.setSelection = _prop.var.etc.refCardsAtEditBgImage;
 		_addNewClassicEngine.setSelection = _prop.var.etc.addNewClassicEngine;
+		_doubleIO.setSelection = _prop.var.etc.doubleIO;
 		version (Windows) {
 			_soundPlayType.select = _prop.var.etc.soundPlayType;
 		}
@@ -1729,6 +1759,7 @@ protected:
 		_prop.var.etc.copyDesc = _copyDesc.getSelection;
 		_prop.var.etc.refCardsAtEditBgImage = _refCardsAtEditBgImage.getSelection;
 		_prop.var.etc.addNewClassicEngine = _addNewClassicEngine.getSelection;
+		_prop.var.etc.doubleIO = _doubleIO.getSelection;
 		_prop.var.etc.contentsFloat = _contentsFloat.getSelection;
 		version (Windows) {
 			_prop.var.etc.soundPlayType = _soundPlayType.getSelectionIndex;

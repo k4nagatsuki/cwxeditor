@@ -228,7 +228,7 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 		std.file.write(std.path.join(temp, "cwxeditor.lock"), []);
 	}
 
-	static S loadScenarioFromFile(in CProps prop, string fname, bool expand, string tempPath, S old,
+	static S loadScenarioFromFile(in CProps prop, bool doubleIO, string fname, bool expand, string tempPath, S old,
 			void delegate(uint) setMax, void delegate(uint) worked, string newName = null) {
 		string[string][string] xmls;
 		string sunzip(string fname, ZipArchive arc, out bool cancel = false) {
@@ -319,7 +319,7 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 			return r;
 		}
 		S loadLegacy(string p) {
-			S r = loadLScenario!(S)(p, "", newName);
+			S r = loadLScenario!(S)(p, "", doubleIO, newName);
 			return r;
 		}
 		S legacyCommon() {
@@ -1322,10 +1322,10 @@ public:
 	}
 
 	/// XMLファイルまたはクラシックなシナリオを再読込し、新しいSummaryを生成して返す。
-	Summary reloadXMLs() {
+	Summary reloadXMLs(bool doubleIO) {
 		Summary summ;
 		if (legacy) {
-			summ = loadLScenario!(S)(scenarioPath, "", scenarioName);
+			summ = loadLScenario!(S)(scenarioPath, "", doubleIO, scenarioName);
 		} else {
 			summ = summaryFromXML(scenarioPath,
 				cast(string) std.file.read(std.path.join(scenarioPath, "Summary.xml")));
@@ -1493,13 +1493,13 @@ public:
 		return !useTemp || zipName.length;
 	}
 	/// 上書き保存。
-	void saveOverwrite(in CProps prop, bool saveInnerImagePath) in {
+	void saveOverwrite(in CProps prop, bool doubleIO, bool saveInnerImagePath) in {
 		assert (isSaved);
 	} body {
-		saveProc(prop, saveInnerImagePath, false, zipName, scenarioPath, false, expandXMLs);
+		saveProc(prop, doubleIO, saveInnerImagePath, false, zipName, scenarioPath, false, expandXMLs);
 	}
 	/// 名前をつけて保存。
-	void saveWithName(in CProps prop, bool saveInnerImagePath, string fname, string tempPath,
+	void saveWithName(in CProps prop, bool doubleIO, bool saveInnerImagePath, string fname, string tempPath,
 			bool defExpandXMLs, Skin defSkin, void delegate(string) showWarn) in {
 		assert (fnmatch(getExt(fname), "wsn"));
 	} body {
@@ -1513,13 +1513,13 @@ public:
 			}
 			scope (failure) delAll(temp);
 			if (!type.length) type = defSkin.type;
-			saveProc(prop, saveInnerImagePath, true, fname, temp, true, defExpandXMLs);
+			saveProc(prop, doubleIO, saveInnerImagePath, true, fname, temp, true, defExpandXMLs);
 		} else if (useTemp) {
 			// 新しいアーカイブを作成
 			string oldZip = _zipName;
 			_zipName = fname;
 			scope (failure) _zipName = oldZip;
-			saveProc(prop, saveInnerImagePath, false, zipName, scenarioPath, false, defExpandXMLs);
+			saveProc(prop, doubleIO, saveInnerImagePath, false, zipName, scenarioPath, false, defExpandXMLs);
 		} else {
 			// 展開済みシナリオからアーカイブに変換
 			auto oldPath = scenarioPath;
@@ -1530,15 +1530,15 @@ public:
 				scenarioPath = oldPath;
 				delAll(p);
 			}
-			saveProc(prop, saveInnerImagePath, true, fname, p, false, defExpandXMLs);
+			saveProc(prop, doubleIO, saveInnerImagePath, true, fname, p, false, defExpandXMLs);
 		}
 	}
-	private void saveProc(in CProps prop, bool saveInnerImagePath, bool archive,
+	private void saveProc(in CProps prop, bool doubleIO, bool saveInnerImagePath, bool archive,
 			string zipName, string temp, bool legacyToX, bool defExpandXMLs) {
 		try {
 			bool expand = false;
 			if (legacy && !legacyToX) {
-				saveLScenario(this, saveInnerImagePath);
+				saveLScenario(this, doubleIO, saveInnerImagePath);
 				if (useTemp) {
 					if (fnmatch(getExt(zipName), "cab")) {
 						.cab(temp, zipName, (string file) {

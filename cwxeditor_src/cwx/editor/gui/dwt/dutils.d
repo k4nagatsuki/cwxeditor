@@ -1730,7 +1730,7 @@ private class LSFFThr(S, bool Array) {
 		} else {
 			display.syncExec(new Start);
 			try {
-				S r = S.loadScenarioFromFile(prop.parent,
+				S r = S.loadScenarioFromFile(prop.parent, prop.var.etc.doubleIO,
 					fname, prop.var.etc.expandXMLs,
 					prop.tempPath, old, &setMax, &setWork,
 					isdir(fname) ? getBaseName(fname) : getBaseName(getDirName(fname)));
@@ -1889,8 +1889,8 @@ private S loadScenarioFromFileImpl(S)(Props prop, Shell w, void delegate(string)
 			if (!current) w.setCursor = null;
 		}
 		try {
-			return S.loadScenarioFromFile(prop.parent, fname,
-				prop.var.etc.expandXMLs,
+			return S.loadScenarioFromFile(prop.parent, prop.var.etc.doubleIO,
+				fname, prop.var.etc.expandXMLs,
 				prop.tempPath, old, setMax, worked,
 				isdir(fname) ? getBaseName(fname) : getBaseName(getDirName(fname)));
 		} catch (SummaryException e) {

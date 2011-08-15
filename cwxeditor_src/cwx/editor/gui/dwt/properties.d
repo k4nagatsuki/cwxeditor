@@ -735,6 +735,8 @@ class FlexEtcProps : Properties {
 	mixin Property!("drawContentTreeLine", bool, true);
 	mixin Property!("commentBoxDistance", int, 50, true);
 
+	mixin Property!("doubleIO", bool, true);
+
 	mixin XMLFuncs!(FlexEtcProps);
 }
 

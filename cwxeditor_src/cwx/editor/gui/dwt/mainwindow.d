@@ -268,7 +268,7 @@ private:
 				auto wsm = std.path.join(old.scenarioPath, "Summary.wsm");
 				if (old.useTemp) {
 					try {
-						openScenario(old.reloadXMLs);
+						openScenario(old.reloadXMLs(_prop.var.etc.doubleIO));
 					} catch (Exception e) {
 						debugln(e);
 						MessageBox.showWarning(_prop.msgs.reloadError
@@ -281,7 +281,7 @@ private:
 				}
 			} else if (expand) {
 				try {
-					openScenario(old.reloadXMLs);
+					openScenario(old.reloadXMLs(_prop.var.etc.doubleIO));
 				} catch (Exception e) {
 					debugln(e);
 					MessageBox.showWarning(_prop.msgs.reloadError
@@ -408,7 +408,7 @@ private:
 				scope (exit) shell.setCursor = null;
 				try {
 					synchronized (_saveSync) {
-						summary.saveOverwrite(_prop.parent, _prop.var.etc.saveInnerImagePath);
+						summary.saveOverwrite(_prop.parent, _prop.var.etc.doubleIO, _prop.var.etc.saveInnerImagePath);
 					}
 					_comm.saved.call;
 					addHistory;
@@ -445,7 +445,7 @@ private:
 				Skin defSkin = .findSkin2(_prop, _prop.var.etc.defaultSkin);
 				try {
 					synchronized (_saveSync) {
-						summary.saveWithName(_prop.parent,
+						summary.saveWithName(_prop.parent, _prop.var.etc.doubleIO,
 							_prop.var.etc.saveInnerImagePath,
 							fname, tempPath, expandXMLs, defSkin, (string msg) {
 								MessageBox.showWarning(msg, _prop.msgs.dlgTitWarning, shell);
