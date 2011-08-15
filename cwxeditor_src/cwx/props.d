@@ -336,11 +336,13 @@ public:
 	const string search() {return "検索(&F)";}
 	const string replace() {return "全て置換(&R)";}
 	const string replaceExit() {return "閉じる";}
-	const string searchResult(size_t count) {
-		return to!(string)(count) ~ "件の検索結果";
+	const string searchResult(size_t count, string kind) {
+		string r = to!(string)(count) ~ "件の検索結果";
+		return kind.length ? r ~ "(" ~ kind ~ ")" : r;
 	}
-	const string replResult(size_t count) {
-		return to!(string)(count) ~ "箇所の置換";
+	const string replResult(size_t count, string kind) {
+		string r = to!(string)(count) ~ "箇所の置換";
+		return kind.length ? r ~ "(" ~ kind ~ ")" : r;
 	}
 	const string searchResultBgImage(in BgImage back) {
 		return "背景画像 - " ~ encodePath(back.path);

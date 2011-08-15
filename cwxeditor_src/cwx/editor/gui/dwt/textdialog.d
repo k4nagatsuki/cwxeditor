@@ -42,7 +42,7 @@ public:
 	}
 
 	string text() {
-		return _viewer.getText;
+		return wrapReturnCode(_viewer.getText);
 	}
 protected:
 	override void setup(Composite area) {

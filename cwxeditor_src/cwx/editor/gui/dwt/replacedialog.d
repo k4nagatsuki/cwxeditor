@@ -661,7 +661,7 @@ public:
 			bArea.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			bArea.setLayout = new GridLayout(2, false);
 			_status = new Label(bArea, SWT.NONE);
-			_status.setText = _prop.msgs.searchResult(0);
+			_status.setText = _prop.msgs.searchResult(0, "");
 			_status.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			auto comp = new Composite(bArea, SWT.NONE);
 			comp.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
@@ -784,9 +784,9 @@ public:
 	private void reset() {
 		_result.removeAll;
 		if (_replMode) {
-			_status.setText = _prop.msgs.replResult(0);
+			_status.setText = _prop.msgs.replResult(0, "");
 		} else {
-			_status.setText = _prop.msgs.searchResult(0);
+			_status.setText = _prop.msgs.searchResult(0, "");
 		}
 	}
 	private void replaceImpl() {
@@ -868,10 +868,11 @@ public:
 			if (_replMode) _summ.changed;
 			_comm.refUseCount.call;
 		}
+		string kind = _tabf.getSelection.getText;
 		if (_replMode) {
-			_status.setText = _prop.msgs.replResult(count);
+			_status.setText = _prop.msgs.replResult(count, kind);
 		} else {
-			_status.setText = _prop.msgs.searchResult(count);
+			_status.setText = _prop.msgs.searchResult(count, kind);
 		}
 	}
 	private void replaceIDImpl2(ID)(ID from, ID to) {
