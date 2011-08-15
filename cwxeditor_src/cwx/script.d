@@ -2437,6 +2437,13 @@ fi`;
 			if (i > 0) buf ~= "\n\n";
 			buf ~= indentValue;
 			auto detail = c.detail;
+			if (c.comment.length) {
+				foreach (line; splitLines(lastRet(c.comment))) {
+					buf ~= "// " ~ line;
+					buf ~= "\n";
+					buf ~= indentValue;
+				}
+			}
 			string command = keys.commands[c.type];
 			buf ~= command;
 			string[] attrs;
