@@ -572,8 +572,6 @@ class FlexEtcProps : Properties {
 	mixin Property!("outerToolsSashR", int, 2);
 	mixin Property!("classicEnginesSashL", int, 1);
 	mixin Property!("classicEnginesSashR", int, 2);
-	mixin Property!("outerToolsAndClassicEnginesSashL", int, 1);
-	mixin Property!("outerToolsAndClassicEnginesSashR", int, 1);
 	mixin Property!("keyCodeWidth", int, 100, true);
 	mixin Property!("scenarioPath", string, "");
 	mixin Property!("tempPath", string, "temp");

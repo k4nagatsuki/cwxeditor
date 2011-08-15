@@ -2164,7 +2164,7 @@ public:
 	const string copyDesc() {return "カードをエリアに貼り付け・ドロップした時、解説もコピーする";}
 	const string refCardsAtEditBgImage() {return "背景変更コンテントの編集を開始する際、最初からカード配置の参照を行う";}
 	const string addNewClassicEngine() {return "未知のクラシックエンジンを見つけたら記憶する";}
-	const string doubleIO() {return "シナリオのセーブ・ロードに複数のスレッドを使う(デュアルコア以上の環境で高速化)";}
+	const string doubleIO() {return "分割読込・保存を行う(デュアルコア以上の環境で高速化)";}
 	const string soundPlayType() {return "音声再生方法";}
 	const string soundPlayTypeDef() {return "自動選択";}
 	const string soundPlayTypeSDL() {return "SDL(CardWirthPy形式)";}
@@ -2188,7 +2188,7 @@ public:
 	const string errorTempPath() {return "一時展開先が正しくありません。";}
 	const string errorBackupPath() {return "自動バックアップ先が正しくありません。";}
 
-	const string outerToolsAndClassicEngines() {return "外部ツールとエンジン";}
+	const string outerTools() {return "外部ツール";}
 	const string outerToolsTitle() {return "外部ツールの設定";}
 	const string outerToolName() {return "外部ツール名";}
 	const string outerToolCommand() {return "コマンド";}
@@ -2214,7 +2214,7 @@ public:
 	const string classicEnginePath() {return "実行ファイルパス";}
 	const string classicEngineDataDirName() {return "データフォルダ";}
 	const string classicEngineExecute() {return "代替実行ファイル";}
-	const string classicEngineHint1() {return "※ 代替実行ファイルを指定すると、実行ファイルの代わりにそのファイルを実行できます";}
+	const string classicEngineHint1() {return "※ 代替実行ファイルを指定すると、エンジン本体の代わりに実行されます";}
 	version (Windows) {
 		const string[] classicEnginePathTName() {return ["実行ファイル (*.exe)", "すべてのファイル (*.*)"];}
 	} else {

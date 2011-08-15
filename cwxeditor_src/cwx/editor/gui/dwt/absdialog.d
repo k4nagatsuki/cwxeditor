@@ -190,7 +190,7 @@ abstract class AbsDialog {
 	private bool _forceCancel = false;
 	void forceCancel() {
 		_forceCancel = true;
-		_win.close();
+		if (!_win.isDisposed) _win.close();
 	}
 
 	bool open() {

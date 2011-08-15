@@ -103,6 +103,8 @@ private:
 	Button _toolWorkDirRef;
 	Button _toolWorkDirOpen;
 	Button _toolDel;
+
+	CTabItem _tabC;
 	List _cEnginesL;
 	ClassicEngine[] _cEngines;
 	Text _cEngineName;
@@ -1222,14 +1224,129 @@ private:
 	void construct3(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout = new GridLayout(1, false);
+		_tabC = new CTabItem(tabf, SWT.NONE);
+		_tabC.setText = _prop.msgs.classicEngines;
+		_tabC.setControl = comp;
+		{
+			auto grp = new Group(comp, SWT.NONE);
+			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
+			grp.setLayout = new GridLayout(1, true);
+			grp.setText = _prop.msgs.classicEnginesTitle;
+			auto sash = new SplitPane(grp, SWT.HORIZONTAL);
+			sash.setLayoutData = new GridData(GridData.FILL_BOTH);
+			{
+				auto left = new Composite(sash, SWT.NONE);
+				left.setLayout = zeroMarginGridLayout(2, true);
+				_cEnginesL = new List(left, SWT.BORDER | SWT.SINGLE | SWT.V_SCROLL);
+				auto gd = new GridData(GridData.FILL_BOTH);
+				gd.widthHint = _prop.var.etc.classicEnginesNameWidth;
+				gd.heightHint = _prop.var.etc.classicEnginesNameHeight;
+				gd.horizontalSpan = 2;
+				_cEnginesL.setLayoutData = gd;
+				_cEnginesL.addSelectionListener(new SelCEngine);
+
+				auto menu = new Menu(_cEnginesL);
+				createMenuItem(menu, _prop.msgs.menuUp, _prop.images.menuUp, &upCEngine);
+				createMenuItem(menu, _prop.msgs.menuDown, _prop.images.menuDown, &downCEngine);
+				new MenuItem(menu, SWT.SEPARATOR);
+				appendMenuTCPD(_prop, menu, new CEnginesTCPD);
+				_cEnginesL.setMenu = menu;
+				usingPopupMenuAccelerator(_cEnginesL);
+
+				auto up = new Button(left, SWT.PUSH);
+				up.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+				up.setText = _prop.msgs.ttUp;
+				up.setImage = _prop.images.menuUp;
+				up.addSelectionListener(new UpCEngines);
+				auto down = new Button(left, SWT.PUSH);
+				down.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+				down.setText = _prop.msgs.ttDown;
+				down.setImage = _prop.images.menuDown;
+				down.addSelectionListener(new DownCEngines);
+			}
+			auto right = new Composite(sash, SWT.NONE);
+			right.setLayout = zeroMarginGridLayout(1, true);
+			{
+				auto comp2 = new Composite(right, SWT.NONE);
+				comp2.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+				comp2.setLayout = zeroMarginGridLayout(4, false);
+				{
+					auto l = new Label(comp2, SWT.NONE);
+					l.setText = _prop.msgs.classicEngineName;
+					_cEngineName = new Text(comp2, SWT.BORDER);
+					auto gd = new GridData(GridData.FILL_HORIZONTAL);
+					gd.horizontalSpan = 3;
+					gd.widthHint = _prop.var.etc.classicEnginesNameWidth;
+					_cEngineName.setLayoutData = gd;
+					_cEngineName.addModifyListener(new ModCEngineName);
+				}
+				{
+					auto l = new Label(comp2, SWT.NONE);
+					l.setText = _prop.msgs.classicEnginePath;
+					_cEnginePath = new Text(comp2, SWT.BORDER);
+					auto gd = new GridData(GridData.FILL_HORIZONTAL);
+					gd.widthHint = 0;
+					_cEnginePath.setLayoutData = gd;
+					_cEnginePathRef = new Button(comp2, SWT.PUSH);
+					_cEnginePathRef.setText = _prop.msgs.reference;
+					_cEnginePathRef.addSelectionListener(new PushCEnginePathRef);
+					_cEnginePath.addModifyListener(new ModCEnginePath);
+					_cEnginePathDirOpen = createOpenButton(comp2, _cEnginePath, false);
+					setupDropFile(_cEnginePath, _cEnginePath, &dropCEnginePath, &dropCEnginePath);
+				}
+				{
+					auto l = new Label(comp2, SWT.NONE);
+					l.setText = _prop.msgs.classicEngineDataDirName;
+					_cEngineDataDir = new Text(comp2, SWT.BORDER);
+					auto gd = new GridData(GridData.FILL_HORIZONTAL);
+					gd.horizontalSpan = 3;
+					_cEngineDataDir.setLayoutData = gd;
+					_cEngineDataDir.addModifyListener(new ModCEngineDataDir);
+				}
+				{
+					auto l = new Label(comp2, SWT.NONE);
+					l.setText = _prop.msgs.classicEngineExecute;
+					_cEngineExecute = new Text(comp2, SWT.BORDER);
+					auto gd = new GridData(GridData.FILL_HORIZONTAL);
+					gd.horizontalSpan = 3;
+					_cEngineExecute.setLayoutData = gd;
+					_cEngineExecute.addModifyListener(new ModCEngineExecute);
+				}
+				{
+					auto hint1 = new Label(comp2, SWT.NONE);
+					hint1.setText = _prop.msgs.classicEngineHint1;
+					auto gd1 = new GridData;
+					gd1.horizontalSpan = 4;
+					hint1.setLayoutData = gd1;
+				}
+			}
+			{
+				auto buttons = new Composite(right, SWT.NONE);
+				buttons.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
+				buttons.setLayout = zeroMarginGridLayout(2, true);
+				auto newCEngine = new Button(buttons, SWT.PUSH);
+				newCEngine.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+				newCEngine.setText = _prop.msgs.newClassicEngine;
+				newCEngine.addSelectionListener(new NewCEngine);
+				_cEngineDel = new Button(buttons, SWT.PUSH);
+				_cEngineDel.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+				_cEngineDel.setText = _prop.msgs.delClassicEngine;
+				_cEngineDel.addSelectionListener(new DelCEngine);
+			}
+			sash.setWeights = [_prop.var.etc.classicEnginesSashL, _prop.var.etc.classicEnginesSashR];
+			sash.addDisposeListener(new DCEnginesSash);
+		}
+	}
+
+	void construct4(CTabFolder tabf) {
+		auto comp = new Composite(tabf, SWT.NONE);
+		comp.setLayout = new GridLayout(1, false);
 		_tabT = new CTabItem(tabf, SWT.NONE);
-		_tabT.setText = _prop.msgs.outerToolsAndClassicEngines;
+		_tabT.setText = _prop.msgs.outerTools;
 		_tabT.setControl = comp;
 
-		auto mainSash = new SplitPane(comp, SWT.VERTICAL);
-		mainSash.setLayoutData = new GridData(GridData.FILL_BOTH);
 		{
-			auto grp = new Group(mainSash, SWT.NONE);
+			auto grp = new Group(comp, SWT.NONE);
 			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
 			grp.setLayout = new GridLayout(1, true);
 			grp.setText = _prop.msgs.outerToolsTitle;
@@ -1348,126 +1465,9 @@ private:
 			sash.setWeights = [_prop.var.etc.outerToolsSashL, _prop.var.etc.outerToolsSashR];
 			sash.addDisposeListener(new DOutToolsSash);
 		}
-		{
-			auto grp = new Group(mainSash, SWT.NONE);
-			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-			grp.setLayout = new GridLayout(1, true);
-			grp.setText = _prop.msgs.classicEnginesTitle;
-			auto sash = new SplitPane(grp, SWT.HORIZONTAL);
-			sash.setLayoutData = new GridData(GridData.FILL_BOTH);
-			{
-				auto left = new Composite(sash, SWT.NONE);
-				left.setLayout = zeroMarginGridLayout(2, true);
-				_cEnginesL = new List(left, SWT.BORDER | SWT.SINGLE | SWT.V_SCROLL);
-				auto gd = new GridData(GridData.FILL_BOTH);
-				gd.widthHint = _prop.var.etc.classicEnginesNameWidth;
-				gd.heightHint = _prop.var.etc.classicEnginesNameHeight;
-				gd.horizontalSpan = 2;
-				_cEnginesL.setLayoutData = gd;
-				_cEnginesL.addSelectionListener(new SelCEngine);
-
-				auto menu = new Menu(_cEnginesL);
-				createMenuItem(menu, _prop.msgs.menuUp, _prop.images.menuUp, &upCEngine);
-				createMenuItem(menu, _prop.msgs.menuDown, _prop.images.menuDown, &downCEngine);
-				new MenuItem(menu, SWT.SEPARATOR);
-				appendMenuTCPD(_prop, menu, new CEnginesTCPD);
-				_cEnginesL.setMenu = menu;
-				usingPopupMenuAccelerator(_cEnginesL);
-
-				auto up = new Button(left, SWT.PUSH);
-				up.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				up.setText = _prop.msgs.ttUp;
-				up.setImage = _prop.images.menuUp;
-				up.addSelectionListener(new UpCEngines);
-				auto down = new Button(left, SWT.PUSH);
-				down.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				down.setText = _prop.msgs.ttDown;
-				down.setImage = _prop.images.menuDown;
-				down.addSelectionListener(new DownCEngines);
-			}
-			auto right = new Composite(sash, SWT.NONE);
-			right.setLayout = zeroMarginGridLayout(1, true);
-			{
-				auto comp2 = new Composite(right, SWT.NONE);
-				comp2.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				comp2.setLayout = zeroMarginGridLayout(4, false);
-				{
-					auto l = new Label(comp2, SWT.NONE);
-					l.setText = _prop.msgs.classicEngineName;
-					_cEngineName = new Text(comp2, SWT.BORDER);
-					auto gd = new GridData(GridData.FILL_HORIZONTAL);
-					gd.horizontalSpan = 3;
-					gd.widthHint = _prop.var.etc.classicEnginesNameWidth;
-					_cEngineName.setLayoutData = gd;
-					_cEngineName.addModifyListener(new ModCEngineName);
-				}
-				{
-					auto l = new Label(comp2, SWT.NONE);
-					l.setText = _prop.msgs.classicEnginePath;
-					_cEnginePath = new Text(comp2, SWT.BORDER);
-					auto gd = new GridData(GridData.FILL_HORIZONTAL);
-					gd.widthHint = 0;
-					_cEnginePath.setLayoutData = gd;
-					_cEnginePathRef = new Button(comp2, SWT.PUSH);
-					_cEnginePathRef.setText = _prop.msgs.reference;
-					_cEnginePathRef.addSelectionListener(new PushCEnginePathRef);
-					_cEnginePath.addModifyListener(new ModCEnginePath);
-					_cEnginePathDirOpen = createOpenButton(comp2, _cEnginePath, false);
-					setupDropFile(_cEnginePath, _cEnginePath, &dropCEnginePath, &dropCEnginePath);
-				}
-				{
-					auto l = new Label(comp2, SWT.NONE);
-					l.setText = _prop.msgs.classicEngineDataDirName;
-					_cEngineDataDir = new Text(comp2, SWT.BORDER);
-					auto gd = new GridData(GridData.FILL_HORIZONTAL);
-					gd.horizontalSpan = 3;
-					_cEngineDataDir.setLayoutData = gd;
-					_cEngineDataDir.addModifyListener(new ModCEngineDataDir);
-				}
-				{
-					auto l = new Label(comp2, SWT.NONE);
-					l.setText = _prop.msgs.classicEngineExecute;
-					_cEngineExecute = new Text(comp2, SWT.BORDER);
-					auto gd = new GridData(GridData.FILL_HORIZONTAL);
-					gd.horizontalSpan = 3;
-					_cEngineExecute.setLayoutData = gd;
-					_cEngineExecute.addModifyListener(new ModCEngineExecute);
-				}
-				{
-					auto hint1 = new Label(comp2, SWT.NONE);
-					hint1.setText = _prop.msgs.classicEngineHint1;
-					auto gd1 = new GridData;
-					gd1.horizontalSpan = 4;
-					hint1.setLayoutData = gd1;
-				}
-			}
-			{
-				auto buttons = new Composite(right, SWT.NONE);
-				buttons.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
-				buttons.setLayout = zeroMarginGridLayout(2, true);
-				auto newCEngine = new Button(buttons, SWT.PUSH);
-				newCEngine.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				newCEngine.setText = _prop.msgs.newClassicEngine;
-				newCEngine.addSelectionListener(new NewCEngine);
-				_cEngineDel = new Button(buttons, SWT.PUSH);
-				_cEngineDel.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				_cEngineDel.setText = _prop.msgs.delClassicEngine;
-				_cEngineDel.addSelectionListener(new DelCEngine);
-			}
-			sash.setWeights = [_prop.var.etc.classicEnginesSashL, _prop.var.etc.classicEnginesSashR];
-			sash.addDisposeListener(new DCEnginesSash);
-		}
-		mainSash.setWeights = [_prop.var.etc.outerToolsAndClassicEnginesSashL, _prop.var.etc.outerToolsAndClassicEnginesSashR];
-		class Dispose : DisposeListener {
-			override void widgetDisposed(DisposeEvent e) {
-				auto ws = mainSash.getWeights;
-				_prop.var.etc.outerToolsAndClassicEnginesSashL = ws[0];
-				_prop.var.etc.outerToolsAndClassicEnginesSashR = ws[1];
-			}
-		}
-		mainSash.addDisposeListener(new Dispose);
 	}
-	void construct4(CTabFolder tabf) {
+
+	void construct5(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
 		_tabE = new CTabItem(tabf, SWT.NONE);
 		_tabE.setText = _prop.msgs.etcSettings;
@@ -1576,6 +1576,7 @@ protected:
 		construct2(tabf);
 		construct3(tabf);
 		construct4(tabf);
+		construct5(tabf);
 
 		_enginePath.setText = _prop.var.etc.enginePath;
 		_tempDir.setText = _prop.var.etc.tempPath;
