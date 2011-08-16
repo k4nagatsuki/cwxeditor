@@ -376,11 +376,15 @@ private string readImage(in RData d, ref ByteIO f) {
 	}
 	return bImgToStr(cast(byte[]) img);
 }
-private string readString(ref ByteIO f, bool lns = false, bool cutText = false) {
+private string readString(ref ByteIO f, bool lns = false, bool cutText = false, bool cutZero = false) {
 	uint len = f.readUIntL;
 	if (!len) return "";
 	char[] str = cast(char[]) f.read(len);
 	if (!lns && str[$ - 1] == '\0') str = str[0 .. $ - 1];
+	if (cutZero) {
+		int zi = cwx.utils.indexOf(str, '\0');
+		if (-1 != zi) str = str[0 .. zi];
+	}
 	str = touni(str);
 	if (cutText) {
 		str = str.length > "TEXT\r\n".length ? str["TEXT\r\n".length .. $] : "";
@@ -604,7 +608,7 @@ private Motion readMotion(in RData d, ref ByteIO f) {
 }
 private Content readContent(in RData d, ref ByteIO f) {
 	byte type = f.readByte;
-	string name = readString(f);
+	string name = readString(f, false, false, true);
 	uint cNum;
 	if (d.dataVersion <= 2) {
 		cNum = f.readUIntL;
