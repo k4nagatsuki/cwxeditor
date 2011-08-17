@@ -1,8 +1,7 @@
 
 module cwx.binary;
 
-private import cwx.utils : enforce;
-
+private import std.exception : enforce;
 private import std.stream : InputStream, OutputStream;
 private import std.string : format;
 private import std.metastrings : toStringNow;
