@@ -477,7 +477,7 @@ class Commons {
 	}
 	bool singleWindowMode() {return _main.dock !is null;}
 
-	void statusLine(Control base, string status) {
+	void statusLine(Control base, string status, bool refMain = true) {
 		if (!_main) return;
 		TLPData tlp(Control base) {
 			TLPData data = null;
@@ -490,7 +490,7 @@ class Commons {
 		if (data) {
 			data.tlp.statusLine = status;
 		}
-		if (singleWindowMode) {
+		if (refMain && singleWindowMode) {
 			_main.statusLine = status;
 		}
 	}

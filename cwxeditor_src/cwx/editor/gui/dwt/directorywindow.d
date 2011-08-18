@@ -1365,12 +1365,14 @@ private:
 		}
 	}
 	void refreshStatusLine() {
+		if (!_win || _win.isDisposed) return;
 		ulong size;
 		foreach (itm; _files.getItems) {
 			auto d = cast(FileNameObj) itm.getData;
 			size += d.size;
 		}
-		_comm.statusLine(_win, _prop.msgs.dirStatus(_files.getItemCount, size, selFiles));
+		_comm.statusLine(_win, _prop.msgs.dirStatus(_files.getItemCount, size, selFiles),
+			_dirs.isFocusControl || _files.isFocusControl);
 	}
 	Shell dlgParShl() {
 		if (_win && !_win.isDisposed) return _win.getShell;
