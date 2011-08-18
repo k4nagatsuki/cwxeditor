@@ -129,91 +129,87 @@ private:
 			auto size = _prop.looks.summarySize;
 			auto rect = _summImage.getClientArea;
 
-			if (!_bufImagePath || !_summImageBuf
-					|| !.fnmatch(nabs(_bufImagePath), nabs(_imgPath.image))) {
+			scope buf = new Image(d, size.width, size.height);
+			scope (exit) buf.dispose();
+			scope gc = new GC(buf);
+			scope (exit) gc.dispose();
+
+			auto skin = selectedSkin;
+			auto path = nabs(skin.findImagePath(_imgPath.image, _summ.scenarioPath));
+			if (!_bufImagePath || !_summImageBuf || !.fnmatch(_bufImagePath, path)) {
 				if (_summImageBuf) _summImageBuf.dispose();
-				_bufImagePath = _imgPath.image;
-				_summImageBuf = new Image(d, size.width, size.height);
+				_bufImagePath = path;
+				_summImageBuf = new Image(d, summary(skin));
+			}
+			gc.drawImage(_summImageBuf, 0, 0);
 
-				scope gc = new GC(_summImageBuf);
-				scope (exit) gc.dispose;
-
-				auto skin = selectedSkin;
-				{
-					scope img = new Image(d, summary(skin));
-					gc.drawImage(img, 0, 0);
+			if (_imgPath.image !is null && _imgPath.image.length > 0) {
+				string imgPath = skin.findImagePath(_imgPath.image, _summ.scenarioPath);
+				if (imgPath.length) {
+					scope img = new Image(d, loadImage(skin, imgPath));
+					gc.drawImage(img, _prop.looks.summaryImageXY.x, _prop.looks.summaryImageXY.y);
 					img.dispose;
 				}
-				if (_imgPath.image !is null && _imgPath.image.length > 0) {
-					string imgPath = skin.findImagePath(_imgPath.image, _summ.scenarioPath);
-					if (imgPath.length) {
-						scope img = new Image(d, loadImage(skin, imgPath));
-						gc.drawImage(img, _prop.looks.summaryImageXY.x, _prop.looks.summaryImageXY.y);
-						img.dispose;
-					}
-				}
-				{
-					void drawCenterText(FontData fontData, string text, int y) {
-						scope font = new Font(d, fontData);
-						gc.setFont = font;
-						scope p = gc.stringExtent(text);
-						gc.drawString(text, (size.width - p.x) / 2, y, true);
-						font.dispose;
-					}
-					int alpha;
-					scope c = new Color(d, dwtData(_prop.looks.summaryLevelColor, alpha));
-					gc.setForeground = c;
-					gc.setAlpha = alpha;
-					drawCenterText(dwtData(_prop.looks.summaryLevelFont(skin.legacy)),
-						_prop.msgs.targetLevel(_levMin.getSelection, _levMax.getSelection),
-						_prop.looks.summaryLevelY);
-					c.dispose;
-					gc.setAlpha = 255;
-					gc.setForeground = d.getSystemColor(SWT.COLOR_BLACK);
-					drawCenterText(dwtData(_prop.looks.summaryTitleFont(skin.legacy)),
-						_sname.getText, _prop.looks.summaryTitleY);
-					scope font = new Font(d, dwtData(_prop.looks.summaryDescFont(skin.legacy)));
+			}
+			{
+				void drawCenterText(FontData fontData, string text, int y) {
+					scope font = new Font(d, fontData);
 					gc.setFont = font;
-					int hig = gc.getFontMetrics.getHeight;
-					int x = _prop.looks.summaryDescXY.x;
-					int y = _prop.looks.summaryDescXY.y;
-					if (_comm.skin.legacy) {
-						foreach (line; splitLines(_desc.getRRText)) {
-							gc.drawText(line, x, y, SWT.DRAW_DELIMITER | SWT.DRAW_TRANSPARENT);
-							y += _prop.looks.summaryDescLineHeightClassic;
-						}
-					} else {
-						gc.drawText(_desc.getRRText, x, y, SWT.DRAW_DELIMITER | SWT.DRAW_TRANSPARENT);
-					}
-					gc.setFont = null;
+					scope p = gc.stringExtent(text);
+					gc.drawString(text, (size.width - p.x) / 2, y, true);
 					font.dispose;
-					drawCenterText(dwtData(_prop.looks.summaryPageFont(skin.legacy)),
-						_prop.msgs.summaryPageDummy, _prop.looks.summaryPageY);
 				}
-				if (rect.width < size.width || rect.height < size.height) {
-					real wp = cast(real) rect.width / size.width;
-					real hp = cast(real) rect.height / size.height;
-					ImageData data;
-					if (wp < hp) {
-						size.width = rect.width;
-						size.height = cast(int) (size.height * wp);
-					} else {
-						size.width = cast(int) (size.width * hp);
-						size.height = rect.height;
+				int alpha;
+				scope c = new Color(d, dwtData(_prop.looks.summaryLevelColor, alpha));
+				gc.setForeground = c;
+				gc.setAlpha = alpha;
+				drawCenterText(dwtData(_prop.looks.summaryLevelFont(skin.legacy)),
+					_prop.msgs.targetLevel(_levMin.getSelection, _levMax.getSelection),
+					_prop.looks.summaryLevelY);
+				c.dispose;
+				gc.setAlpha = 255;
+				gc.setForeground = d.getSystemColor(SWT.COLOR_BLACK);
+				drawCenterText(dwtData(_prop.looks.summaryTitleFont(skin.legacy)),
+					_sname.getText, _prop.looks.summaryTitleY);
+				scope font = new Font(d, dwtData(_prop.looks.summaryDescFont(skin.legacy)));
+				gc.setFont = font;
+				int hig = gc.getFontMetrics.getHeight;
+				int x = _prop.looks.summaryDescXY.x;
+				int y = _prop.looks.summaryDescXY.y;
+				if (_comm.skin.legacy) {
+					foreach (line; splitLines(_desc.getRRText)) {
+						gc.drawText(line, x, y, SWT.DRAW_DELIMITER | SWT.DRAW_TRANSPARENT);
+						y += _prop.looks.summaryDescLineHeightClassic;
 					}
-					data = _summImageBuf.getImageData.scaledTo(size.width, size.height);
-					_summImageBuf.dispose;
-					_summImageBuf = null;
-					if (size.width > 0 && size.height > 0) {
-						_summImageBuf = new Image(d, data);
-					}
+				} else {
+					gc.drawText(_desc.getRRText, x, y, SWT.DRAW_DELIMITER | SWT.DRAW_TRANSPARENT);
+				}
+				gc.setFont = null;
+				font.dispose;
+				drawCenterText(dwtData(_prop.looks.summaryPageFont(skin.legacy)),
+					_prop.msgs.summaryPageDummy, _prop.looks.summaryPageY);
+			}
+			if (rect.width < size.width || rect.height < size.height) {
+				real wp = cast(real) rect.width / size.width;
+				real hp = cast(real) rect.height / size.height;
+				ImageData data;
+				if (wp < hp) {
+					size.width = rect.width;
+					size.height = cast(int) (size.height * wp);
+				} else {
+					size.width = cast(int) (size.width * hp);
+					size.height = rect.height;
+				}
+				data = _summImageBuf.getImageData.scaledTo(size.width, size.height);
+				_summImageBuf.dispose;
+				_summImageBuf = null;
+				if (size.width > 0 && size.height > 0) {
+					_summImageBuf = new Image(d, data);
 				}
 			}
-			if (_summImageBuf) {
-				auto bx = (rect.width - size.width) / 2;
-				auto by = (rect.height - size.height) / 2;
-				e.gc.drawImage(_summImageBuf, bx, by);
-			}
+			auto bx = (rect.width - size.width) / 2;
+			auto by = (rect.height - size.height) / 2;
+			e.gc.drawImage(buf, bx, by);
 		}
 	}
 	void constructTab1(CTabFolder tabf) {
