@@ -112,7 +112,11 @@ private:
 	Button _cEnginePathRef;
 	Button _cEnginePathDirOpen;
 	Text _cEngineDataDir;
+	Button _cEngineDataDirRef;
+	Button _cEngineDataDirOpen;
 	Text _cEngineExecute;
+	Button _cEngineExecuteRef;
+	Button _cEngineExecuteDirOpen;
 	Button _cEngineDel;
 
 	CTabItem _tabE;
@@ -249,6 +253,24 @@ private:
 		}
 		return file;
 	}
+	string curCEnginePath() {
+		string path = _cEnginePath.getText;
+		if (!path.length) return path;
+		if (cwx.utils.isabs(path)) return path;
+		return std.path.join(nabs(_prop.parent.appPath).getDirName, path);
+	}
+	string dropCEngineSub(string file) {
+		string engine = curCEnginePath;
+		if (!engine.length) return file;
+		return abs2rel(engine.getDirName, file);
+	}
+	string dropCEngineDataDir(string[] files) {
+		return dropCEngineSub(dropDir(files));
+	}
+	string dropCEngineExecute(string[] files) {
+		return dropCEngineSub(dropDefault(files));
+	}
+
 	const WALLPAPER_EXT = ["bmp", "ico", "icon", "jpg", "jpeg", "gif", "png", "tif", "tiff"];
 	string dropWallpaper(string[] files) {
 		if (!files.length) return "";
@@ -264,13 +286,7 @@ private:
 		dlg.setFilterExtensions = ext;
 		dlg.setFilterNames = name;
 		dlg.setText = title;
-		string path;
-		try {
-			path = file.getText;
-		} catch {
-			path = p;
-		}
-		dlg.setFilterPath = getDirName(nabs(path));
+		dlg.setFilterPath = getDirName(nabs(p));
 		dlg.setFileName = fileName;
 		string fname = dlg.open;
 		if (fname) {
@@ -296,19 +312,17 @@ private:
 			_tools[i].command = fname;
 		}
 	}
-	string selectDir(Text dir, string title, string msg, string p) {
+	string selectDir(Text dir, string title, string msg, string p, bool appPath = true) {
 		auto dlg = new DirectoryDialog(dir.getShell);
 		dlg.setText = title;
 		dlg.setMessage = msg;
-		string path;
-		try {
+		string path = p;
+		if (appPath) {
 			auto d = dir.getText;
 			if (!std.path.isabs(d)) {
 				d = std.path.join(std.path.getDirName(_prop.parent.appPath), d);
 			}
 			path = d;
-		} catch {
-			path = p;
 		}
 		dlg.setFilterPath = nabs(path);
 		string fname = dlg.open;
@@ -338,6 +352,46 @@ private:
 		if (resDir.length) {
 			_cEngines[i].dataDirName = resDir;
 			_cEngineDataDir.setText = resDir;
+		}
+	}
+	void selectCEngineDataDir(int i) {
+		auto cEngine = _cEngines[i];
+		string path = cEngine.dataDirName;
+		if (cEngine.enginePath.length && !cwx.utils.isabs(path)) {
+			path = std.path.join(cEngine.enginePath.getDirName, path);
+		}
+		path = nabs(path);
+		string fname = selectDir(_cEngineDataDir, _prop.msgs.classicEngineDataDirName, _prop.msgs.classicEngineDataDirNameDesc, path, false);
+		if (fname) {
+			fname = dropCEngineSub(fname);
+			_cEngineDataDir.setText = fname;
+			_cEngines[i].dataDirName = fname;
+		}
+	}
+	void selectCEngineExecute(int i) {
+		auto cEngine = _cEngines[i];
+		string[] ext;
+		version (Windows) {
+			ext = ["*.exe", "*.*"];
+		} else {
+			ext = ["*.*"];
+		}
+		string path = cEngine.execute;
+		string fileName = "";
+		if (path.length) {
+			fileName = path.basename;
+			if (cEngine.enginePath.length && !cwx.utils.isabs(path)) {
+				path = std.path.join(cEngine.enginePath.getDirName, path);
+			}
+		} else {
+			path = std.path.join(cEngine.enginePath.getDirName, "*.exe");
+		}
+		path = nabs(path);
+		string fname = selectFile(_cEngineExecute, _prop.msgs.classicEngineExecuteTName, ext, fileName, _prop.msgs.dlgTitClassicEngineExecute, path);
+		if (fname) {
+			fname = dropCEngineSub(fname);
+			_cEngineExecute.setText = fname;
+			_cEngines[i].execute = fname;
 		}
 	}
 	void selectTemp() {
@@ -420,7 +474,11 @@ private:
 		_cEnginePathRef.setEnabled = i >= 0;
 		_cEnginePathDirOpen.setEnabled = i >= 0;
 		_cEngineDataDir.setEnabled = i >= 0;
+		_cEngineDataDirRef.setEnabled = i >= 0;
+		_cEngineDataDirOpen.setEnabled = i >= 0;
 		_cEngineExecute.setEnabled = i >= 0;
+		_cEngineExecuteRef.setEnabled = i >= 0;
+		_cEngineExecuteDirOpen.setEnabled = i >= 0;
 		_cEngineDel.setEnabled = i >= 0;
 		if (i >= 0) {
 			_cEngineName.setText = _cEngines[i].name;
@@ -470,12 +528,23 @@ private:
 		}
 	}
 	class OpenDir : SelectionAdapter {
+		private bool _cEngineSub;
 		private Text _text;
-		this (Text text) {_text = text;}
+		this (Text text, bool cEngineSub) {
+			_text = text;
+			_cEngineSub = cEngineSub;
+		}
 		override void widgetSelected(SelectionEvent e) {
 			string file = _text.getText;
 			if (!cwx.utils.isabs(file)) {
-				file = std.path.join(_prop.parent.appPath.getDirName, file);
+				if (_cEngineSub) {
+					auto engine = curCEnginePath;
+					if (engine.length) {
+						file = std.path.join(engine.getDirName, file);
+					}
+				} else {
+					file = std.path.join(_prop.parent.appPath.getDirName, file);
+				}
 			}
 			if (!.exists(file) || !isdir(file)) {
 				file = file.getDirName;
@@ -488,7 +557,14 @@ private:
 		auto open = new Button(parent, SWT.PUSH);
 		open.setToolTipText = dir ? _prop.msgs.ttOpenDirectory : _prop.msgs.ttOpenFilePlace;
 		open.setImage = _prop.images.menuOpenDirectory;
-		open.addSelectionListener(new OpenDir(path));
+		open.addSelectionListener(new OpenDir(path, false));
+		return open;
+	}
+	Button createCEngineSubOpenButton(Composite parent, Text path, bool dir) {
+		auto open = new Button(parent, SWT.PUSH);
+		open.setToolTipText = dir ? _prop.msgs.ttOpenDirectory : _prop.msgs.ttOpenFilePlace;
+		open.setImage = _prop.images.menuOpenDirectory;
+		open.addSelectionListener(new OpenDir(path, true));
 		return open;
 	}
 	void construct1(CTabFolder tabf) {
@@ -1220,6 +1296,22 @@ private:
 			return _cEnginesL.isFocusControl;
 		}
 	}
+	class PushCEngineDataDirRef : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			int i = _cEnginesL.getSelectionIndex;
+			if (i < 0) return;
+			selectCEngineDataDir(i);
+			applyEnabled;
+		}
+	}
+	class PushCEngineExecuteRef : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			int i = _cEnginesL.getSelectionIndex;
+			if (i < 0) return;
+			selectCEngineExecute(i);
+			applyEnabled;
+		}
+	}
 
 	void construct3(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
@@ -1298,19 +1390,27 @@ private:
 					auto l = new Label(comp2, SWT.NONE);
 					l.setText = _prop.msgs.classicEngineDataDirName;
 					_cEngineDataDir = new Text(comp2, SWT.BORDER);
-					auto gd = new GridData(GridData.FILL_HORIZONTAL);
-					gd.horizontalSpan = 3;
-					_cEngineDataDir.setLayoutData = gd;
+					_cEngineDataDir.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 					_cEngineDataDir.addModifyListener(new ModCEngineDataDir);
+
+					_cEngineDataDirRef = new Button(comp2, SWT.PUSH);
+					_cEngineDataDirRef.setText = _prop.msgs.reference;
+					_cEngineDataDirRef.addSelectionListener(new PushCEngineDataDirRef);
+					_cEngineDataDirOpen = createCEngineSubOpenButton(comp2, _cEngineDataDir, true);
+					setupDropFile(_cEngineDataDir, _cEngineDataDir, &dropCEngineDataDir);
 				}
 				{
 					auto l = new Label(comp2, SWT.NONE);
 					l.setText = _prop.msgs.classicEngineExecute;
 					_cEngineExecute = new Text(comp2, SWT.BORDER);
-					auto gd = new GridData(GridData.FILL_HORIZONTAL);
-					gd.horizontalSpan = 3;
-					_cEngineExecute.setLayoutData = gd;
+					_cEngineExecute.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 					_cEngineExecute.addModifyListener(new ModCEngineExecute);
+
+					_cEngineExecuteRef = new Button(comp2, SWT.PUSH);
+					_cEngineExecuteRef.setText = _prop.msgs.reference;
+					_cEngineExecuteRef.addSelectionListener(new PushCEngineExecuteRef);
+					_cEngineExecuteDirOpen = createCEngineSubOpenButton(comp2, _cEngineExecute, true);
+					setupDropFile(_cEngineExecute, _cEngineExecute, &dropCEngineExecute);
 				}
 				{
 					auto hint1 = new Label(comp2, SWT.NONE);

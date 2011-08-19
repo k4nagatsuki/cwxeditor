@@ -2128,7 +2128,7 @@ public:
 
 	/// エディタ設定ダイアログ。
 	const string baseSettings() {return "基本設定";}
-	const string reference() {return "参照...";}
+	const string reference() {return "...";}
 	const string enginePath(string appName) {return appName ~ "の場所";}
 	const string enginePathAtten() {return "※ クラシックなシナリオのみに使用する場合は空欄にしてください";}
 	const string dlgTitEnginePath(string appName) {return appName ~ "の場所";}
@@ -2215,6 +2215,7 @@ public:
 	const string classicEngineName() {return "エンジン名";}
 	const string classicEnginePath() {return "実行ファイルパス";}
 	const string classicEngineDataDirName() {return "データフォルダ";}
+	const string classicEngineDataDirNameDesc() {return "クラシックエンジンのデータフォルダを選択してください。";}
 	const string classicEngineExecute() {return "代替実行ファイル";}
 	const string classicEngineHint1() {return "※ 代替実行ファイルを指定すると、エンジン本体の代わりに実行されます";}
 	version (Windows) {
@@ -2223,6 +2224,12 @@ public:
 		const string[] classicEnginePathTName() {return ["すべてのファイル (*.*)"];}
 	}
 	const string dlgTitClassicEnginePath() {return "クラシックエンジンの選択";}
+	version (Windows) {
+		const string[] classicEngineExecuteTName() {return ["実行ファイル (*.exe)", "すべてのファイル (*.*)"];}
+	} else {
+		const string[] classicEngineExecuteTName() {return ["すべてのファイル (*.*)"];}
+	}
+	const string dlgTitClassicEngineExecute() {return "代替実行ファイルの選択";}
 	const string newClassicEngineName() {return "新規クラシックエンジン";}
 	const string newClassicEngine() {return "新規作成";}
 	const string delClassicEngine() {return "削除";}
