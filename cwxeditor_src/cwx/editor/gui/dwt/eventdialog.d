@@ -233,6 +233,7 @@ protected:
 	override void setup(Composite area) {
 		area.setLayout = new GridLayout(1, false);
 		_list = new Table(area, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.V_SCROLL);
+		mod(_list);
 		auto idCol = new TableColumn(_list, SWT.NONE);
 		saveColumnWidth!("prop.var.etc.idColumn")(_prop, idCol);
 		auto nameCol = new FullTableColumn(_list, SWT.NONE);
