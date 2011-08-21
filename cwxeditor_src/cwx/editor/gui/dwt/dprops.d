@@ -61,6 +61,8 @@ public:
 
 	Image text() {return imgd!(resourceDir ~ "text.png");}
 
+	Image classicEngine() {return imgd!(resourceDir ~ "classic_engine.png");}
+
 	Image warning() {return imgd!(resourceDir ~ "warning.png");}
 
 	Image summary() {return imgd!(resourceDir ~ "summary.png");}
@@ -550,6 +552,7 @@ public:
 	}
 	const
 	string enginePath() {
+		if (!var.etc.enginePath.length) return "";
 		if (std.path.isabs(var.etc.enginePath)) {
 			return var.etc.enginePath;
 		} else {
@@ -558,6 +561,7 @@ public:
 	}
 	const
 	string tempPath() {
+		if (!var.etc.tempPath.length) return "";
 		if (std.path.isabs(var.etc.tempPath)) {
 			return var.etc.tempPath;
 		} else {
@@ -566,6 +570,7 @@ public:
 	}
 	const
 	string backupPath() {
+		if (!var.etc.backupPath.length) return "";
 		if (std.path.isabs(var.etc.backupPath)) {
 			return var.etc.backupPath;
 		} else {

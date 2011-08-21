@@ -48,12 +48,14 @@ import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.dutils;
 
 import org.eclipse.swt.SWTException;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.MouseMoveListener;
+import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.DisposeEvent;
@@ -150,6 +152,53 @@ private:
 	FlagWindow _flagWin = null;
 	MainCardWindow _cardWin;
 	DirectoryWindow _dirWin;
+
+	Menu _mExecEngine;
+	Menu _tmExecEngine;
+	class PushExecEngine : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			if (SWT.ARROW == e.detail && 0 < _tmExecEngine.getItemCount) {
+				auto ti = cast(ToolItem) e.widget;
+				assert (ti);
+				auto b = ti.getBounds;
+				auto pt = ti.getParent.toDisplay(b.x, b.y + b.height);
+				_tmExecEngine.setLocation = pt;
+				_tmExecEngine.setVisible = true;
+			} else {
+				execEngine();
+			}
+		}
+	}
+	void refreshExecEngine() {
+		refreshExecEngineImpl(_mExecEngine);
+		refreshExecEngineImpl(_tmExecEngine);
+	}
+	void refreshExecEngineImpl(Menu menu) {
+		foreach (itm; menu.getItems) {
+			itm.dispose();
+		}
+		void putMenu(string path, string name, Image img) {
+			createMenuItem(menu, name, img, {
+				if (path.length) {
+					execEngineP(path);
+				}
+			}, SWT.PUSH);
+		}
+		if (_prop.var.etc.enginePath.length) {
+			putMenu(_prop.enginePath, _prop.msgs.menuExecEngine(_prop.enginePath.basename.getName), _prop.images.menuExecEngine);
+		}
+		if (!_prop.var.etc.classicEngines.length) return;
+		if (0 < menu.getItemCount) {
+			new MenuItem(menu, SWT.SEPARATOR);
+		}
+		foreach (i, ce; _prop.var.etc.classicEngines) {
+			string name = .text(i + 1) ~ " " ~ ce.name;
+			if (i + 1 <= 9) {
+				name = "&" ~ name;
+			}
+			putMenu(ce.executePath(_prop.parent.appPath), name, _prop.images.classicEngine);
+		}
+	}
 
 	void __refreshTitle() {
 		if (summary) {
@@ -325,6 +374,7 @@ private:
 			summ.type = _prop.var.etc.defaultSkin;
 		}
 		_comm.skin = findSkin(_prop, summ);
+		refreshExecEngine();
 		_comm.closeAll;
 		if (_dataWin) {
 			_dataWin.load(summ);
@@ -452,6 +502,7 @@ private:
 							});
 					}
 					_comm.skin = findSkin(_prop, summary);
+					refreshExecEngine();
 					_comm.saved.call;
 					_comm.refScenarioPath.call;
 					_comm.refSkin.call;
@@ -465,13 +516,16 @@ private:
 		}
 		return false;
 	}
+	void execEngineP(string path) {
+		if (!exec(path, getDirName(nabs(path)))) {
+			MessageBox.showWarning(_prop.msgs.errorExecEngine(path),
+				_prop.msgs.dlgTitWarning, _win);
+		}
+	}
 	void execEngine() {
 		string engine = summary ? _comm.skin.executeEngine : _prop.enginePath;
 		if (engine.length) {
-			if (!exec(engine, getDirName(nabs(engine)))) {
-				MessageBox.showWarning(_prop.msgs.errorExecEngine(engine),
-					_prop.msgs.dlgTitWarning, _win);
-			}
+			execEngineP(engine);
 		}
 	}
 	void openDataWindow() {
@@ -592,6 +646,11 @@ private:
 			_stgDlg.active();
 		} else {
 			_stgDlg = new SettingsDialog(_comm, _prop, _win, _dock, summary);
+			_stgDlg.appliedEvent ~= {
+				refreshExecEngine();
+				setupMenu(_menu);
+				setupMenu(_tool);
+			};
 			_stgDlg.closeEvent ~= {
 				_stgDlg = null;
 			};
@@ -1163,7 +1222,10 @@ public:
 			}
 
 			auto mt = createMenu(bar, _prop.msgs.menuTools);
-			mixin (MenuAction!("mt", "ExecEngine", SWT.PUSH, "execEngine"));
+			mixin (MenuAction!("mt", "ExecEngine", SWT.CASCADE, "execEngine"));
+			auto eemi = _menu[MenuID.ExecEngine];
+			_mExecEngine = new Menu(eemi);
+			eemi.setMenu = _mExecEngine;
 			new MenuItem(mt, SWT.SEPARATOR);
 			mixin (MenuAction!("mt", "Settings", SWT.PUSH, "settings"));
 
@@ -1171,6 +1233,15 @@ public:
 			mixin (MenuAction!("mh", "Version", SWT.PUSH, "versionInfo"));
 
 			_win.setMenuBar = bar;
+		}
+
+		void createExecEngineTI(ToolBar bar) {
+			_mainMenu.add(MenuID.ExecEngine);
+			void delegate(SelectionEvent) dummy = null;
+			auto tExecEngine = createToolItem(bar, _prop.msgs.ttExecEngine, _prop.images.menuExecEngine, dummy, SWT.DROP_DOWN);
+			_tool[MenuID.ExecEngine] = tExecEngine;
+			tExecEngine.addSelectionListener(new PushExecEngine);
+			_tmExecEngine = new Menu(tExecEngine.getParent.getShell);
 		}
 
 		if (_prop.var.etc.singleWindow) {
@@ -1289,7 +1360,7 @@ public:
 				}
 				{
 					auto bar = new ToolBar(cbar, SWT.FLAT);
-					mixin (ToolAction!("bar", "ExecEngine", SWT.PUSH, "execEngine"));
+					createExecEngineTI(bar);
 					new ToolItem(bar, SWT.SEPARATOR);
 					mixin (ToolAction!("bar", "Settings", SWT.PUSH, "settings"));
 					createCoolItem(cbar, bar);
@@ -1318,7 +1389,7 @@ public:
 			mixin (ToolAction!("bar", "CardWin", SWT.PUSH, "openCardWindow"));
 			mixin (ToolAction!("bar", "DirWin", SWT.PUSH, "openDirWindow"));
 			new ToolItem(bar, SWT.SEPARATOR);
-			mixin (ToolAction!("bar", "ExecEngine", SWT.PUSH, "execEngine"));
+			createExecEngineTI(bar);
 			new ToolItem(bar, SWT.SEPARATOR);
 			mixin (ToolAction!("bar", "Settings", SWT.PUSH, "settings"));
 			new ToolItem(bar, SWT.SEPARATOR);
@@ -1333,6 +1404,7 @@ public:
 			setupMenu(_menu);
 			setupMenu(_tool);
 		}
+		refreshExecEngine();
 
 		int tx = _prop.var.mainWin.x == SWT.DEFAULT ? _win.getBounds.x : _prop.var.mainWin.x;
 		int ty = _prop.var.mainWin.y == SWT.DEFAULT ? _win.getBounds.y : _prop.var.mainWin.y;
@@ -1535,6 +1607,10 @@ public:
 
 	private void setupMenu(M)(M[MenuID] menus) {
 		foreach (id, itm; menus) {
+			if (id is MenuID.ExecEngine) {
+				itm.setEnabled = _prop.var.etc.enginePath.length || _prop.var.etc.classicEngines.length;
+				continue;
+			}
 			if (_tlp) {
 				auto s = itm.getStyle;
 				if ((s & SWT.RADIO) || (s & SWT.CHECK)) {

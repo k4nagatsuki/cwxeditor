@@ -431,6 +431,23 @@ struct ClassicEngine {
 	string dataDirName = "";
 	string execute = "";
 	const
+	string executePath(string appPath) {
+		if (!enginePath.length) return "";
+		string path = enginePath;
+		if (!cwx.utils.isabs(path)) {
+			auto dir = appPath.getDirName;
+			path = std.path.join(dir, path);
+		}
+		if (execute.length) {
+			if (cwx.utils.isabs(execute)) {
+				path = execute;
+			} else {
+				path = std.path.join(path.getDirName, execute);
+			}
+		}
+		return path;
+	}
+	const
 	XNode toNode() {
 		auto e = XNode.create(XML_NAME);
 		toNodeImpl(e);

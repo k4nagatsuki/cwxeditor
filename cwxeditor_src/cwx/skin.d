@@ -49,14 +49,20 @@ class Skin {
 		} else {
 			auto skinsDir = std.path.join(getDirName(enginePath), join("Data", "Skin") ~ sep);
 			Skin[string] r;
-			foreach (skinDir; clistdir(skinsDir)) {
-				skinDir = std.path.join(skinsDir, skinDir);
-				if (!isdir(skinDir)) continue;
-				auto file = std.path.join(skinDir, "Skin.xml");
-				if (!exists(file)) continue;
+			if (.exists(skinsDir) && .isdir(skinsDir)) {
 				try {
-					auto skin = new Skin(prop, file, enginePath);
-					r[skin.type] = skin;
+					foreach (skinDir; clistdir(skinsDir)) {
+						skinDir = std.path.join(skinsDir, skinDir);
+						if (!isdir(skinDir)) continue;
+						auto file = std.path.join(skinDir, "Skin.xml");
+						if (!exists(file)) continue;
+						try {
+							auto skin = new Skin(prop, file, enginePath);
+							r[skin.type] = skin;
+						} catch (Exception e) {
+							debugln(e);
+						}
+					}
 				} catch (Exception e) {
 					debugln(e);
 				}
