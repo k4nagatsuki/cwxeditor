@@ -999,9 +999,13 @@ public:
 		searchAll(_summ, count, (CWXPath path, ref uint count) {
 			auto summ = cast(Summary) path;
 			if (summ) {
-				if ((summ.imagePath != "" && !isBinImg(summ.imagePath) && !skin.findPath(summ.imagePath, skin.extImage, skin.tableDir, sPath).length)
-						|| !summ.area(summ.startArea)) {
-					addResult(path);
+				if (summ.imagePath != "" && !isBinImg(summ.imagePath) && !skin.findPath(summ.imagePath, skin.extImage, skin.tableDir, sPath).length) {
+					addResult(path, _prop.msgs.searchErrorImageNotFound);
+					count++;
+					return;
+				}
+				if (!summ.area(summ.startArea)) {
+					addResult(path, _prop.msgs.searchErrorStartAreaNotFound);
 					count++;
 					return;
 				}
@@ -1009,20 +1013,25 @@ public:
 			auto card = cast(Card) path;
 			if (card) {
 				if (card.path != "" && !isBinImg(card.path) && !skin.findPath(card.path, skin.extImage, skin.tableDir, sPath).length) {
-					addResult(path);
+					addResult(path, _prop.msgs.searchErrorImageNotFound);
 					count++;
 					return;
 				}
 			}
 			auto bi = cast(BgImage) path;
 			if (bi) {
+				if (!bi.path.length) {
+					addResult(path, _prop.msgs.searchErrorNoImage);
+					count++;
+					return;
+				}
 				if (!skin.findPath(bi.path, skin.extImage, skin.tableDir, sPath).length) {
-					addResult(path);
+					addResult(path, _prop.msgs.searchErrorImageNotFound);
 					count++;
 					return;
 				}
 				if (bi.flag != "" && !froot.findFlag(bi.flag)) {
-					addResult(path);
+					addResult(path, _prop.msgs.searchErrorFlagNotFound);
 					count++;
 					return;
 				}
@@ -1030,25 +1039,30 @@ public:
 			auto mc = cast(MenuCard) path;
 			if (mc) {
 				if (mc.path != "" && !isBinImg(mc.path) && !skin.findPath(mc.path, skin.extImage, skin.tableDir, sPath).length) {
-					addResult(path);
+					addResult(path, _prop.msgs.searchErrorImageNotFound);
 					count++;
 					return;
 				}
 				if (mc.flag != "" && !froot.findFlag(mc.flag)) {
-					addResult(path);
+					addResult(path, _prop.msgs.searchErrorFlagNotFound);
 					count++;
 					return;
 				}
 			}
 			auto ec = cast(EnemyCard) path;
 			if (ec) {
-				if (ec.id == 0 || !_summ.casts(ec.id)) {
-					addResult(path);
+				if (ec.id == 0) {
+					addResult(path, _prop.msgs.searchErrorNoCast);
+					count++;
+					return;
+				}
+				if (!_summ.casts(ec.id)) {
+					addResult(path, _prop.msgs.searchErrorCastNotFound);
 					count++;
 					return;
 				}
 				if (ec.flag != "" && !froot.findFlag(ec.flag)) {
-					addResult(path);
+					addResult(path, _prop.msgs.searchErrorFlagNotFound);
 					count++;
 					return;
 				}
@@ -1060,51 +1074,55 @@ public:
 				foreach (cld; c.next) {
 					if (cld.name == "") continue;
 					if (set.contains(cld.name)) {
-						addResult(path);
+						addResult(path, _prop.msgs.searchErrorDupNextContent);
 						count++;
 						return;
 					}
 					set.add(cld.name);
 				}
 			}
-			// TODO comment
-			bool checkTextRes(string[] fonts, string[] flags, string[] steps) {
+			auto spChars = _comm.skin.spChars;
+			string checkTextRes(string[] fonts, string[] flags, string[] steps) {
 				foreach (font; fonts) {
+					dchar c = decodeFontPath(font);
+					if (c in spChars) continue;
 					if (!skin.findPath(font, skin.extImage, skin.tableDir, sPath).length) {
-						return false;
+						return _prop.msgs.searchErrorSPFontNotFound;
 					}
 				}
 				foreach (flag; flags) {
 					if (!froot.findFlag(flag)) {
-						return false;
+						return _prop.msgs.searchErrorFlagNotFound;
 					}
 				}
 				foreach (step; steps) {
 					if (!froot.findStep(step)) {
-						return false;
+						return _prop.msgs.searchErrorStepNotFound;
 					}
 				}
-				return true;
+				return null;
 			}
 			if (c.type == CType.TALK_DIALOG) {
 				if (c.dialogs.length) {
 					foreach (i, dlg; c.dialogs) {
 						if (i + 1 < c.dialogs.length && !dlg.rCoupons.length) {
 							// 最後以外にクーポンが設定されていない場合
-							addResult(path);
+							addResult(path, _prop.msgs.searchErrorNoRCouponsDialog);
 							count++;
 							return;
 						}
-						if (!checkTextRes(dlg.fontsInText, dlg.flagsInText, dlg.stepsInText)) {
-							addResult(path);
+						string err = checkTextRes(dlg.fontsInText, dlg.flagsInText, dlg.stepsInText);
+						if (err) {
+							addResult(path, err);
 							count++;
 							return;
 						}
 					}
 				}
 			}
-			if (!checkTextRes(c.fontsInText, c.flagsInText, c.stepsInText)) {
-				addResult(path);
+			string textErr = checkTextRes(c.fontsInText, c.flagsInText, c.stepsInText);
+			if (textErr) {
+				addResult(path, textErr);
 				count++;
 				return;
 			}
@@ -1114,28 +1132,80 @@ public:
 				}
 				return false;
 			}
-			if ((c.flag != "" && !froot.findFlag(c.flag))
-					|| (c.step != "" && !froot.findStep(c.step))
-					|| (c.type == CType.TALK_MESSAGE && c.talkerC == Talker.IMAGE
-						&& c.cardPath != "" && !skin.findPath(c.cardPath, skin.extImage, skin.tableDir, sPath).length)
-					|| (c.bgmPath != "" && !skin.findPath(c.bgmPath, skin.extBgm, skin.bgmDir, sPath).length)
-					|| (c.soundPath != "" && !skin.findPath(c.soundPath, skin.extSound, skin.seDir, sPath).length)
-					|| (c.area != 0 && !_summ.area(c.area))
-					|| (c.battle != 0 && !_summ.battle(c.battle))
-					|| (c.packages != 0 && !_summ.packages(c.packages))
-					|| (c.casts != 0 && !_summ.casts(c.casts))
-					|| (c.item != 0 && !_summ.item(c.item))
-					|| (c.skill != 0 && !_summ.skill(c.skill))
-					|| (c.beast != 0 && !_summ.beast(c.beast))
-					|| (c.info != 0 && !_summ.info(c.info))
-					|| (c.start != "" && !hasStart)) {
-				addResult(path);
+			if (c.flag != "" && !froot.findFlag(c.flag)) {
+				addResult(path, _prop.msgs.searchErrorFlagNotFound);
+				count++;
+				return;
+			}
+			if (c.step != "" && !froot.findStep(c.step)) {
+				addResult(path, _prop.msgs.searchErrorStepNotFound);
+				count++;
+				return;
+			}
+			if (c.type == CType.TALK_MESSAGE && c.talkerC == Talker.IMAGE
+					&& c.cardPath != "" && !skin.findPath(c.cardPath, skin.extImage, skin.tableDir, sPath).length) {
+				addResult(path, _prop.msgs.searchErrorImageNotFound);
+				count++;
+				return;
+			}
+			if (c.bgmPath != "" && !skin.findPath(c.bgmPath, skin.extBgm, skin.bgmDir, sPath).length) {
+				addResult(path, _prop.msgs.searchErrorBGMNotFound);
+				count++;
+				return;
+			}
+			if (c.soundPath != "" && !skin.findPath(c.soundPath, skin.extSound, skin.seDir, sPath).length) {
+				addResult(path, _prop.msgs.searchErrorSENotFound);
+				count++;
+				return;
+			}
+			if (c.area != 0 && !_summ.area(c.area)) {
+				addResult(path, _prop.msgs.searchErrorAreaNotFound);
+				count++;
+				return;
+			}
+			if (c.battle != 0 && !_summ.battle(c.battle)) {
+				addResult(path, _prop.msgs.searchErrorBattleNotFound);
+				count++;
+				return;
+			}
+			if (c.packages != 0 && !_summ.packages(c.packages)) {
+				addResult(path, _prop.msgs.searchErrorPackageNotFound);
+				count++;
+				return;
+			}
+			if (c.casts != 0 && !_summ.casts(c.casts)) {
+				addResult(path, _prop.msgs.searchErrorCastNotFound);
+				count++;
+				return;
+			}
+			if (c.item != 0 && !_summ.item(c.item)) {
+				addResult(path, _prop.msgs.searchErrorItemNotFound);
+				count++;
+				return;
+			}
+			if (c.skill != 0 && !_summ.skill(c.skill)) {
+				addResult(path, _prop.msgs.searchErrorSkillNotFound);
+				count++;
+				return;
+			}
+			if (c.beast != 0 && !_summ.beast(c.beast)) {
+				addResult(path, _prop.msgs.searchErrorBeastNotFound);
+				count++;
+				return;
+			}
+			if (c.info != 0 && !_summ.info(c.info)) {
+				addResult(path, _prop.msgs.searchErrorInfoNotFound);
+				count++;
+				return;
+			}
+			if (c.start != "" && !hasStart()) {
+				addResult(path, _prop.msgs.searchErrorStartNotFound);
 				count++;
 				return;
 			}
 			foreach (m; c.motions) {
 				if (m.type == MType.SUMMON_BEAST && !m.beast) {
-					addResult(path);
+					addResult(path, _prop.msgs.searchErrorNoBeast);
 					count++;
 					return;
 				}
@@ -1389,7 +1459,7 @@ public:
 		itm.setText = encodePath(path);
 		itm.setData = new PathString(path);
 	}
-	private void addResult(CWXPath path) {
+	private void addResult(CWXPath path, string desc = "") {
 		auto itm = new TableItem(_result, SWT.NONE);
 		Image img = null;
 		string text = "*Error*";
@@ -1492,6 +1562,7 @@ public:
 		}
 		assert (img);
 		itm.setImage = img;
+		if (desc.length) text = desc ~ " - " ~ text;
 		itm.setText = text;
 		itm.setData = cast(Object) path;
 	}

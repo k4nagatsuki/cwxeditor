@@ -626,6 +626,14 @@ bool parseBool(string b) {
 	}
 }
 
+/// "font_X.bmp"から"X"の部分を抽出する。
+dchar decodeFontPath(string path) {
+	enforce(istartsWith(path, "font_"));
+	auto dpath = to!dstring(path["font_".length .. $].getName);
+	enforce(1 == dpath.length);
+	return toUniUpper(dpath[0]);
+}
+
 /// テキストの中で使用されているフラグ・ステップ・画像パスを抽出する。
 /// Params:
 /// text = テキスト。
