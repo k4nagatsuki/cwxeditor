@@ -249,8 +249,8 @@ public:
 
 	const string menuTools() {return "ツール(&T)";}
 	const string ttExecEngine() {return "エンジン起動";}
-	const string menuExecEngine() {return ttExecEngine ~ "(&G)" ~ "\tF9";}
-	const string menuExecEngine(string name) {return name ~ "(&G)";}
+	const string menuExecEngine() {return ttExecEngine ~ "(&G)";}
+	const string menuExecEngineAuto() {return "自動選択(&G)\tF9";}
 	const string ttSettings() {return "エディタ設定";}
 	const string menuSettings() {return ttSettings ~ "(&O)...";}
 

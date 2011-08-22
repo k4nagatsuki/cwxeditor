@@ -170,22 +170,28 @@ private:
 		}
 	}
 	void refreshExecEngine() {
-		refreshExecEngineImpl(_mExecEngine);
-		refreshExecEngineImpl(_tmExecEngine);
+		refreshExecEngineImpl(_mExecEngine, true);
+		refreshExecEngineImpl(_tmExecEngine, false);
 	}
-	void refreshExecEngineImpl(Menu menu) {
+	void refreshExecEngineImpl(Menu menu, bool autoSelect) {
 		foreach (itm; menu.getItems) {
 			itm.dispose();
+		}
+		if (autoSelect) {
+			_menu[MenuID.ExecEngine] = createMenuItem(menu, _prop.msgs.menuExecEngineAuto, _prop.images.menuExecEngine, &execEngine);
 		}
 		void putMenu(string path, string name, Image img) {
 			createMenuItem(menu, name, img, {
 				if (path.length) {
 					execEngineP(path);
 				}
-			}, SWT.PUSH);
+			});
 		}
 		if (_prop.var.etc.enginePath.length) {
-			putMenu(_prop.enginePath, _prop.msgs.menuExecEngine(_prop.enginePath.basename.getName), _prop.images.menuExecEngine);
+			if (0 < menu.getItemCount) {
+				new MenuItem(menu, SWT.SEPARATOR);
+			}
+			putMenu(_prop.enginePath, "&0 " ~ _prop.enginePath.basename.getName, _prop.images.menuExecEngine);
 		}
 		if (!_prop.var.etc.classicEngines.length) return;
 		if (0 < menu.getItemCount) {
@@ -1222,8 +1228,8 @@ public:
 			}
 
 			auto mt = createMenu(bar, _prop.msgs.menuTools);
-			mixin (MenuAction!("mt", "ExecEngine", SWT.CASCADE, "execEngine"));
-			auto eemi = _menu[MenuID.ExecEngine];
+			void delegate(SelectionEvent) dummy = null;
+			auto eemi = createMenuItem(mt, _prop.msgs.menuExecEngine, _prop.images.menuExecEngine, dummy, SWT.CASCADE);
 			_mExecEngine = new Menu(eemi);
 			eemi.setMenu = _mExecEngine;
 			new MenuItem(mt, SWT.SEPARATOR);
