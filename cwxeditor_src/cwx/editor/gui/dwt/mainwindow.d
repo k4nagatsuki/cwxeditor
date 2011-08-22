@@ -155,20 +155,6 @@ private:
 
 	Menu _mExecEngine;
 	Menu _tmExecEngine;
-	class PushExecEngine : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
-			if (SWT.ARROW == e.detail && 0 < _tmExecEngine.getItemCount) {
-				auto ti = cast(ToolItem) e.widget;
-				assert (ti);
-				auto b = ti.getBounds;
-				auto pt = ti.getParent.toDisplay(b.x, b.y + b.height);
-				_tmExecEngine.setLocation = pt;
-				_tmExecEngine.setVisible = true;
-			} else {
-				execEngine();
-			}
-		}
-	}
 	void refreshExecEngine() {
 		refreshExecEngineImpl(_mExecEngine, true);
 		refreshExecEngineImpl(_tmExecEngine, false);
@@ -1243,11 +1229,8 @@ public:
 
 		void createExecEngineTI(ToolBar bar) {
 			_mainMenu.add(MenuID.ExecEngine);
-			void delegate(SelectionEvent) dummy = null;
-			auto tExecEngine = createToolItem(bar, _prop.msgs.ttExecEngine, _prop.images.menuExecEngine, dummy, SWT.DROP_DOWN);
+			auto tExecEngine = createDropDownItem(bar, _prop.msgs.ttExecEngine, _prop.images.menuExecEngine, &execEngine, _tmExecEngine);
 			_tool[MenuID.ExecEngine] = tExecEngine;
-			tExecEngine.addSelectionListener(new PushExecEngine);
-			_tmExecEngine = new Menu(tExecEngine.getParent.getShell);
 		}
 
 		if (_prop.var.etc.singleWindow) {

@@ -1018,6 +1018,26 @@ Menu createMenu(Menu bar, string text) {
 	return menu;
 }
 
+ToolItem createDropDownItem(ToolBar bar, string text, Image img, void delegate() func, out Menu menu) {
+	auto ti = new ToolItem(bar, SWT.DROP_DOWN);
+	ti.setToolTipText = text;
+	ti.setImage = img;
+	menu = new Menu(bar.getShell);
+	class Push : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			if (SWT.ARROW == e.detail && 0 < menu.getItemCount) {
+				auto b = ti.getBounds;
+				auto pt = bar.toDisplay(b.x, b.y + b.height);
+				menu.setLocation = pt;
+				menu.setVisible = true;
+			} else {
+				func();
+			}
+		}
+	}
+	ti.addSelectionListener(new Push);
+	return ti;
+}
 ToolItem createToolItemImpl(Dlg)(ToolBar bar, string tip, string text, Image img,
 		Dlg func, int style = SWT.PUSH) {
 	auto itm = new ToolItem(bar, style);
