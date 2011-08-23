@@ -116,13 +116,13 @@ private {
 	CPoint pointVal(string value) {
 		auto sp = std.string.split(value, ",");
 		if (sp.length < 2) throw new Exception("invalid point: " ~ value);
-		return CPoint(to!(int)(strip(sp[0])), to!(int)(strip(sp[1])));
+		return CPoint(to!(int)(astrip(sp[0])), to!(int)(astrip(sp[1])));
 	}
 	CRect rectVal(string value) {
 		auto sp = std.string.split(value, ",");
 		if (sp.length < 4) throw new Exception("invalid rect: " ~ value);
-		return CRect(to!(int)(strip(sp[0])), to!(int)(strip(sp[1])),
-			to!(int)(strip(sp[2])), to!(int)(strip(sp[3])));
+		return CRect(to!(int)(astrip(sp[0])), to!(int)(astrip(sp[1])),
+			to!(int)(astrip(sp[2])), to!(int)(astrip(sp[3])));
 	}
 	CRGB rgbVal(string value) {
 		if (value.length < 7 && value[0] != '$') throw new Exception("invalid rgb: " ~ value);
@@ -147,7 +147,7 @@ private {
 }
 
 private string stripValue(string eqAfter) {
-	auto value = strip(eqAfter);
+	auto value = astrip(eqAfter);
 	if (value.length >= 2 && value[0] == '"' && value[$ - 1] == '"') {
 		value = value[1 .. $ - 1];
 	}
@@ -162,12 +162,12 @@ struct Jpy1 {
 	static Jpy1 load(string path) {
 		Jpy1 r;
 		foreach (line; splitLines(cast(string) std.file.read(path))) {
-			line = strip(line);
+			line = astrip(line);
 			if (!line.length || line[0] == ';') continue;
 			if (line[0] == '[' && line[$ - 1] == ']') {
 				// label
 				Jpy1Sec sec;
-				sec.label = strip(line[1 .. $ - 1]);
+				sec.label = astrip(line[1 .. $ - 1]);
 				r.sections ~= sec;
 				continue;
 			}
@@ -176,7 +176,7 @@ struct Jpy1 {
 				// contents
 				int eq = .cCountUntil(line, '=');
 				if (eq == -1) throw new Exception("invalid line: " ~ line);
-				auto key = strip(line[0 .. eq]);
+				auto key = astrip(line[0 .. eq]);
 				auto value = stripValue(line[eq + 1 .. $]);
 				switch (cwx.utils.toLower(key)) {
 				case "backwidth": backwidth = intVal(value); break;
@@ -695,11 +695,11 @@ struct Jptx {
 		bool init = false;
 		bool text = false;
 		foreach (line; splitLines(cast(string) std.file.read(path))) {
-			auto sline = strip(line);
+			auto sline = astrip(line);
 			if (!text && sline.length && sline[0] == ';') continue;
 			if (sline.length && sline[0] == '[' && sline[$ - 1] == ']') {
 				// label
-				switch (strip(sline[1 .. $ - 1])) {
+				switch (astrip(sline[1 .. $ - 1])) {
 				case "jptx:init": {
 					if (!text) {
 						init = true;
@@ -727,7 +727,7 @@ struct Jptx {
 					// init
 					int eq = .cCountUntil(sline, '=');
 					if (eq == -1) throw new Exception("invalid line: " ~ line);
-					auto key = strip(sline[0 .. eq]);
+					auto key = astrip(sline[0 .. eq]);
 					auto value = stripValue(sline[eq + 1 .. $]);
 					switch (cwx.utils.toLower(key)) {
 					case "backcolor": backcolor = rgbVal(value); break;
@@ -788,11 +788,11 @@ struct Jpdc {
 		Jpdc r;
 		bool init = false;
 		foreach (line; splitLines(cast(string) std.file.read(path))) {
-			line = strip(line);
+			line = astrip(line);
 			if (!line.length || line[0] == ';') continue;
 			if (line[0] == '[' && line[$ - 1] == ']') {
 				// label
-				switch (strip(line[1 .. $ - 1])) {
+				switch (astrip(line[1 .. $ - 1])) {
 				case "jpdc:init": {
 					init = true;
 					continue;
@@ -805,7 +805,7 @@ struct Jpdc {
 					// init
 					int eq = .cCountUntil(line, '=');
 					if (eq == -1) throw new Exception("invalid line: " ~ line);
-					auto key = strip(line[0 .. eq]);
+					auto key = astrip(line[0 .. eq]);
 					auto value = stripValue(line[eq + 1 .. $]);
 					switch (cwx.utils.toLower(key)) {
 					case "clip": clip = rectVal(value); break;

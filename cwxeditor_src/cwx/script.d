@@ -212,7 +212,7 @@ class CWXScript {
 			string firstLine = linesBase[0];
 			string[] lines;
 			foreach (i, line; linesBase[1 .. $]) {
-				line = .stripLeft(line);
+				line = .astripl(line);
 				line = decode(line, tok.value[0]);
 				if (line.length >= 1 && line[0] == '\\') {
 					line = line[1 .. $];
@@ -220,7 +220,7 @@ class CWXScript {
 				lines ~= wrap(line, width);
 			}
 			if (firstLine.length > 1) {
-				auto lnStr = std.string.toLower(.strip(firstLine[1 .. $]));
+				auto lnStr = std.string.toLower(.astrip(firstLine[1 .. $]));
 				bool isNum = std.string.isNumeric(lnStr);
 				if (!isNum && icmp(lnStr, "c") != 0 && icmp(lnStr, "center") != 0) {
 					throwError(_prop.msgs.scriptErrorInvalidStr, tok);
@@ -237,7 +237,7 @@ class CWXScript {
 				buf[] = '\n';
 			}
 			foreach (i, line; lines) {
-				if (i > 0) buf ~= '\n';;
+				if (i > 0) buf ~= '\n';
 				buf ~= line;
 			}
 			return assumeUnique(buf);

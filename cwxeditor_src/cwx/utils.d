@@ -1667,3 +1667,26 @@ string sliceJ(string text, size_t from, size_t to) {
 	assert (sliceJ("1いuえお", 3, 8) == "uえお");
 	assert (sliceJ("あいうえお", 3, 3) == "");
 }
+
+/// strip()と同様に動作するが、全角空白を空白文字として扱わない。
+string astrip(string s) {
+	return s.astripl.astripr;
+}
+/// ditto
+string astripl(string s) {
+	foreach (i, c; s) {
+		if (!std.ascii.isWhite(c)) {
+			return s[i .. $];
+		}
+	}
+	return "";
+}
+/// ditto
+string astripr(string s) {
+	foreach_reverse (i, c; s) {
+		if (!std.ascii.isWhite(c)) {
+			return s[0 .. i + 1];
+		}
+	}
+	return "";
+}
