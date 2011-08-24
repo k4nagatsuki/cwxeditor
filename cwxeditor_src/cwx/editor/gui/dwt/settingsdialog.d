@@ -1826,9 +1826,10 @@ protected:
 				_comm.refSortCondition.call;
 			}
 			if (refSkin) {
-				_comm.skin = findSkin(_prop, _summ);
+				_comm.skin = findSkin(_comm, _prop, _summ, false);
 				_comm.refSkin.call;
 			}
+			_comm.refClassicSkin.call();
 		}
 		_prop.var.etc.enginePath = engine;
 		_prop.var.etc.tempPath = temp;

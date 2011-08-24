@@ -8,7 +8,7 @@ import cwx.skin;
 import cwx.summary;
 import cwx.imagesize;
 import cwx.types;
-
+import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.properties;
 import cwx.editor.gui.dwt.dutils;
@@ -27,7 +27,7 @@ Skin createClassicSkin(in Props prop, in ClassicEngine ce) {
 	return Skin.createLegacySkin(prop.parent, prop.enginePath, ce.enginePath, ce.dataDirName, ce.execute);;
 }
 
-Skin findSkin(S = Summary)(Props prop, in S summ) {
+Skin findSkin(S = Summary)(Commons comm, Props prop, in S summ, bool appendClassicSkin = true) {
 	static if (is(typeof(summ.type))) {
 		if (!summ) {
 			return findSkin2(prop, prop.var.etc.defaultSkin);
@@ -35,8 +35,9 @@ Skin findSkin(S = Summary)(Props prop, in S summ) {
 		if (summ.legacy && !summ.type.length) {
 			auto skin = Skin.find2!(S)(prop.parent, prop.enginePath, summ);
 			void find() {
-				if (!skin.legacyEngine.length) return;
+				if (!appendClassicSkin) return;
 				if (!prop.var.etc.addNewClassicEngine) return;
+				if (!skin.legacyEngine.length) return;
 				auto lEngine = nabs(skin.legacyEngine);
 				foreach (ce; prop.var.etc.classicEngines) {
 					if (fnmatch(nabs(ce.enginePath), lEngine)) {
@@ -47,6 +48,7 @@ Skin findSkin(S = Summary)(Props prop, in S summ) {
 				string dataDirName = abs2rel(lEngine.getDirName, skin.legacyDataPath);
 				auto ce = ClassicEngine(lEngine.basename.getName, lEngine, dataDirName, "");
 				prop.var.etc.classicEngines = prop.var.etc.classicEngines.dup ~ ce;
+				comm.refClassicSkin.call();
 			}
 			if (skin.legacyEngine.length) {
 				find();

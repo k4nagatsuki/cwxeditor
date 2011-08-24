@@ -184,6 +184,7 @@ class Commons {
 	Dlg!() refScenarioName;
 	Dlg!() refScenarioPath;
 	Dlg!() refSkin;
+	Dlg!() refClassicSkin;
 	Dlg!() refStandardKeyCodes;
 	Dlg!() refOuterTools;
 	Dlg!(string, string, bool) refPath;

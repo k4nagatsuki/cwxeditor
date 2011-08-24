@@ -115,7 +115,7 @@ private:
 			int i = _type.getSelectionIndex;
 			if (_hasLegacySkin) {
 				if (i == 0) {
-					return .findSkin(_prop, _summ);
+					return .findSkin(_comm, _prop, _summ, false);
 				}
 				i--;
 			}
@@ -410,6 +410,7 @@ private:
 			_comm.delArea.remove(&refArea);
 			_comm.refScenario.remove(&refScenario);
 			_comm.refSkin.remove(&refSkin);
+			_comm.refClassicSkin.remove(&refreshTypes);
 		}
 	}
 	void refreshAreas() {
@@ -568,6 +569,7 @@ protected:
 		_comm.delArea.add(&refArea);
 		_comm.refScenario.add(&refScenario);
 		_comm.refSkin.add(&refSkin);
+		_comm.refClassicSkin.add(&refreshTypes);
 		area.addDisposeListener(new Dispose);
 	}
 

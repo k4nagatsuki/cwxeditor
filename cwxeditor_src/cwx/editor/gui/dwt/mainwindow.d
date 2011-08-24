@@ -158,6 +158,8 @@ private:
 	void refreshExecEngine() {
 		refreshExecEngineImpl(_mExecEngine, true);
 		refreshExecEngineImpl(_tmExecEngine, false);
+		setupMenu(_menu);
+		setupMenu(_tool);
 	}
 	void refreshExecEngineImpl(Menu menu, bool autoSelect) {
 		foreach (itm; menu.getItems) {
@@ -365,8 +367,7 @@ private:
 				_prop.msgs.dlgTitWarning, _win);
 			summ.type = _prop.var.etc.defaultSkin;
 		}
-		_comm.skin = findSkin(_prop, summ);
-		refreshExecEngine();
+		_comm.skin = findSkin(_comm, _prop, summ);
 		_comm.closeAll;
 		if (_dataWin) {
 			_dataWin.load(summ);
@@ -493,8 +494,7 @@ private:
 								MessageBox.showWarning(msg, _prop.msgs.dlgTitWarning, shell);
 							});
 					}
-					_comm.skin = findSkin(_prop, summary);
-					refreshExecEngine();
+					_comm.skin = findSkin(_comm, _prop, summary);
 					_comm.saved.call;
 					_comm.refScenarioPath.call;
 					_comm.refSkin.call;
@@ -600,6 +600,7 @@ private:
 			_comm.refScenarioPath.remove(&__refreshTitle);
 			_comm.refWallpaper.remove(&redrawAll);
 			_comm.replText.remove(&__refreshTitle);
+			_comm.refClassicSkin.remove(&refreshExecEngine);
 			auto b = _win.getBounds;
 			_prop.var.mainWin.x = b.x;
 			_prop.var.mainWin.y = b.y;
@@ -638,11 +639,6 @@ private:
 			_stgDlg.active();
 		} else {
 			_stgDlg = new SettingsDialog(_comm, _prop, _win, _dock, summary);
-			_stgDlg.appliedEvent ~= {
-				refreshExecEngine();
-				setupMenu(_menu);
-				setupMenu(_tool);
-			};
 			_stgDlg.closeEvent ~= {
 				_stgDlg = null;
 			};
@@ -1006,6 +1002,7 @@ public:
 		_comm.refScenarioPath.add(&__refreshTitle);
 		_comm.refWallpaper.add(&redrawAll);
 		_comm.replText.add(&__refreshTitle);
+		_comm.refClassicSkin.add(&refreshExecEngine);
 		_win.addDisposeListener(new DListener);
 		_win.addShellListener(new SListener);
 		_comm.refreshWallpaper(_prop);

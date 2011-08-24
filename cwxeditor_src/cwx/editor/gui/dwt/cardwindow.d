@@ -163,7 +163,6 @@ private:
 		refreshStatusLine;
 	}
 	void __refresh() {
-		if (_skinTemp) _skinTemp = findSkin(_prop, _summ);
 		if (_viewMode == CViewMode.TABLE) {
 			C sel = null;
 			auto sels = _tbl.getSelection;
@@ -981,14 +980,14 @@ public:
 			this(Commons comm, Props prop, PCardOwner summ, Composite parent, ToCardOwner toc, void delegate() openHand) {
 				_toc = toc;
 				_openHand = openHand;
-				_skinTemp = findSkin(prop, summ);
+				_skinTemp = findSkin(comm, prop, summ);
 				construct1(comm, prop, summ);
 				reconstruct(parent);
 			}
 		} else {
 			this(Commons comm, Props prop, PCardOwner summ, Composite parent, ToCardOwner toc) {
 				_toc = toc;
-				_skinTemp = findSkin(prop, summ);
+				_skinTemp = findSkin(comm, prop, summ);
 				construct1(comm, prop, summ);
 				reconstruct(parent);
 			}

@@ -1660,7 +1660,6 @@ private:
 	string _sname;
 	string _id;
 	string _type = "";
-	bool _legacy;
 public:
 	mixin STemplate!(UseCast, UseSkill, UseItem, UseBeast, UseInfo);
 
