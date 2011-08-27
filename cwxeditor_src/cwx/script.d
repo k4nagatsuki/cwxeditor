@@ -602,6 +602,7 @@ class CWXScript {
 		assert (i < tokens.length);
 		auto tok = tokens[i];
 		if (tok.kind is Kind.VAR_NAME) {
+			i++;
 			try {
 				auto vt = var(tok, varTable);
 				auto r = new CalcResult;
@@ -618,6 +619,10 @@ class CWXScript {
 				return r;
 			} catch (Exception e) {
 				throwError(_prop.msgs.scriptErrorReqNumber, tok);
+				auto r = new CalcResult;
+				r.kind = CRKind.INT;
+				r.numInt = 0;
+				return r;
 			}
 		}
 		bool min = false;
@@ -680,7 +685,7 @@ class CWXScript {
 	}
 	private CalcResult calcImpl(size_t opeLevel, in Token[] tokens, ref size_t i, in Token[string] varTable, size_t strWidth) {
 		assert (i < tokens.length);
-		auto r = new CalcResult;
+		CalcResult r;
 		if (opeLevel >= OPE_LEVEL_MAX) {
 			r = calcPar(tokens, i, varTable, strWidth);
 		} else {
@@ -745,6 +750,7 @@ class CWXScript {
 		Token[] tokens;
 		Token[string] varTable;
 		varTable["$abc"] = Token(0, 0, Kind.NUMBER, "15");
+		varTable["$s"] = Token(0, 0, Kind.NUMBER, "0");
 		auto s = new CWXScript(null, null);
 		i = 0;
 		assert (s.calc(s.tokenize("(-42)"), i, varTable, 0) == -42);
@@ -766,6 +772,12 @@ class CWXScript {
 		assert (s.calc(s.tokenize("1+2 * 3 % 4"), i, varTable, 0) == 3);
 		i = 0;
 		assert (s.calc(s.tokenize("1+2 ~ 3 % 4"), i, varTable, 0) == "33");
+		i = 0;
+		tokens = s.tokenize("1 + $s");
+		assert (s.calc(tokens, i, varTable, 0) == 1);
+		i = 0;
+		tokens = s.tokenize("$s + 1");
+		assert (s.calc(tokens, i, varTable, 0) == 1);
 		i = 0;
 		tokens = s.tokenize("1+2 * 3 % 4 + -3-$abc $abc");
 		assert (s.calc(tokens, i, varTable, 0) == -15);
