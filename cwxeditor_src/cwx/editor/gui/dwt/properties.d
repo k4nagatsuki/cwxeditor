@@ -561,6 +561,9 @@ class FlexEtcProps : Properties {
 	mixin Property!("cardsMarginY", int, 5, true);
 	mixin Property!("cardsSpaceY", int, 8, true);
 	mixin Property!("cardsDefaultWrap", int, 4, true);
+	mixin Property!("seKeyCodeSashL", int, 4);
+	mixin Property!("seKeyCodeSashR", int, 7);
+
 	mixin Property!("contentsOrder", int[], []);
 	mixin Property!("contentsLock", bool, false);
 	mixin Property!("contentsWrapIndices", int[], [4, 6, 8]);

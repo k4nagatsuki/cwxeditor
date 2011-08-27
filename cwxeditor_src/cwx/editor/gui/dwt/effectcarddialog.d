@@ -23,6 +23,7 @@ import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.motionview;
 import cwx.editor.gui.dwt.radarspinner;
 import cwx.editor.gui.dwt.absdialog;
+import cwx.editor.gui.dwt.splitpane;
 
 import std.algorithm : max;
 import std.path;
@@ -525,10 +526,12 @@ private:
 	}
 	CTabItem constructKeyCode(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
-		comp.setLayout = new GridLayout(2, false);
+		comp.setLayout = new GridLayout(1, true);
+		auto sash = new SplitPane(comp, SWT.HORIZONTAL);
+		sash.setLayoutData = new GridData(GridData.FILL_BOTH);
 		auto skin = _comm.skin;
 		{
-			auto grp = new Group(comp, SWT.NONE);
+			auto grp = new Group(sash, SWT.NONE);
 			grp.setText = _prop.msgs.se;
 			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
 			grp.setLayout = new GridLayout(1, false);
@@ -540,7 +543,7 @@ private:
 			mod(_se2);
 		}
 		{
-			auto grp = new Group(comp, SWT.NONE);
+			auto grp = new Group(sash, SWT.NONE);
 			grp.setText = _prop.msgs.keyCodes;
 			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
 			_keyCodes.length = _prop.looks.keyCodesMax;
@@ -559,6 +562,16 @@ private:
 			}
 			setKeyCodesEnabled();
 		}
+		sash.setWeights = [_prop.var.etc.seKeyCodeSashL, _prop.var.etc.seKeyCodeSashR];
+		class Dispose : DisposeListener {
+			override void widgetDisposed(DisposeEvent e) {
+				auto ws = sash.getWeights;
+				_prop.var.etc.seKeyCodeSashL = ws[0];
+				_prop.var.etc.seKeyCodeSashR = ws[1];
+			}
+		}
+		sash.addDisposeListener(new Dispose);
+
 		auto tab = new CTabItem(tabf, SWT.NONE);
 		tab.setText = _prop.msgs.seAndKeyCode;
 		tab.setControl = comp;
