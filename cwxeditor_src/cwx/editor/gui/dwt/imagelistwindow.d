@@ -91,8 +91,6 @@ class ImageListWindow(MtType Type) {
 	}
 
 	void images(string dir, string[] path) {
-		enforce(path);
-
 		_shl.setRedraw = false;
 		scope (exit) _shl.setRedraw = true;
 
