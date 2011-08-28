@@ -1641,7 +1641,6 @@ private class LSFFThr(S, bool Array) {
 		void run() {
 			try {
 				resetCursors(cursors);
-				w.setEnabled = true;
 			} catch {
 				clear;
 			}
@@ -1908,7 +1907,6 @@ private S loadScenarioFromFileImpl(S)(Props prop, Shell w, void delegate(string)
 		thr.status = status;
 		if (!current) {
 			thr.cursors = setWaitCursors(w);
-			w.setEnabled = false;
 		}
 		auto t = new core.thread.Thread(&thr.run);
 		t.start;

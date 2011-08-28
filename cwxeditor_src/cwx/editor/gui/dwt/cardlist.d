@@ -524,6 +524,7 @@ public:
 	/// Params:
 	/// index = インデックス。
 	void scroll(int index) {
+		if (index < 0 || _items.length <= index) return;
 		auto itm = _items[index];
 		void __scroll(ScrollBar bar, int left, int width, void delegate(int) scr,
 				bool delegate(int) isFirst, bool delegate(int) isLast, int margin, int space) {
