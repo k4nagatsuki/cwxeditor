@@ -1713,26 +1713,27 @@ public:
 	}
 	static if (UseCards) {
 		private void removeCard(int index) {
-			__remove(index, _cardTbl, cardsIndex);
 			_comm.delMenuCard.call(_area.cards[index].cwxPath);
+			__remove(index, _cardTbl, cardsIndex);
 		}
 		private void removeCardRange(int fromIndex, int toIndex) {
-			__removeRange(fromIndex, toIndex, _cardTbl, cardsIndex);
+			string[] paths;
 			for (int i = toIndex; i >= fromIndex; i--) {
 				_comm.delMenuCard.call(_area.cards[i].cwxPath);
 			}
+			__removeRange(fromIndex, toIndex, _cardTbl, cardsIndex);
 		}
 	}
 	static if (UseBacks) {
 		private void removeBack(int index) {
-			__remove(index, _backTbl, 0);
 			_comm.delBgImage.call(_area.backs[index].cwxPath);
+			__remove(index, _backTbl, 0);
 		}
 		private void removeBackRange(int fromIndex, int toIndex) {
-			__removeRange(fromIndex, toIndex, _backTbl, 0);
 			for (int i = toIndex; i >= fromIndex; i--) {
 				_comm.delBgImage.call(_area.backs[i].cwxPath);
 			}
+			__removeRange(fromIndex, toIndex, _backTbl, 0);
 		}
 	}
 
