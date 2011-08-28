@@ -45,9 +45,6 @@ private:
 
 	EventView!(A, void, false) _eview;
 
-	void saveScenario() {
-		_comm.save.call(_win.getShell);
-	}
 public:
 	this(Commons comm, Props prop, Summary summ, Composite parent, Shell parent2, A eto) {
 		Shell shell = null;
@@ -114,8 +111,6 @@ public:
 			auto bar = new Menu(shell, SWT.BAR);
 
 			auto mf = createMenu(bar, _prop.msgs.menuFile);
-			createMenuItem(mf, _prop.msgs.menuSave, _prop.images.menuSave, &saveScenario);
-			new MenuItem(mf, SWT.SEPARATOR);
 			createMenuItem(mf, _prop.msgs.menuCloseWin, _prop.images.menuCloseWin, &shell.close);
 
 			auto me = createMenu(bar, _prop.msgs.menuEdit);

@@ -77,9 +77,6 @@ private:
 			_eview.down;
 		}
 	}
-	void saveScenario() {
-		_comm.save.call(_win.getShell);
-	}
 	void __deleteArea(A area) {
 		if (_area is area) {
 			_comm.close(_win);
@@ -171,8 +168,6 @@ public:
 			auto bar = new Menu(shell, SWT.BAR);
 
 			auto mf = createMenu(bar, _prop.msgs.menuFile);
-			createMenuItem(mf, _prop.msgs.menuSave, _prop.images.menuSave, &saveScenario);
-			new MenuItem(mf, SWT.SEPARATOR);
 			createMenuItem(mf, _prop.msgs.menuCloseWin, _prop.images.menuCloseWin, &shell.close);
 
 			auto me = createMenu(bar, _prop.msgs.menuEdit);

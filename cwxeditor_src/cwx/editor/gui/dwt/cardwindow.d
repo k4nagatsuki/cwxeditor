@@ -1314,9 +1314,6 @@ private:
 		}
 		refreshTitle;
 	}
-	void saveScenario() {
-		_comm.save.call(_win.getShell);
-	}
 	static if (EditMode && is (CardOwner == Summary)) {
 		alias AddCard!(CardOwner, Cards) AC;
 		HashSet!(Composite) _aws;
@@ -1504,10 +1501,6 @@ public:
 				auto bar = new Menu(shell, SWT.BAR);
 
 				auto mf = createMenu(bar, prop.msgs.menuFile);
-				static if (EditMode) {
-					createMenuItem(mf, prop.msgs.menuSave, prop.images.menuSave, &saveScenario);
-					new MenuItem(mf, SWT.SEPARATOR);
-				}
 				createMenuItem(mf, prop.msgs.menuCloseWin, prop.images.menuCloseWin, &shell.close);
 
 				auto me = createMenu(bar, prop.msgs.menuEdit);
@@ -2124,12 +2117,12 @@ public:
 			Summary summ, ToCardOwner toc, void delegate(Object[]) addScenario) {
 		parent = pane(parent);
 		auto addS = new AddS(comm, prop, parent, toc, addScenario);
-		loadScenarios!(CC)(prop, parent.getShell, status, false, prop.msgs.dlgTitAddScenario, &addS.addS);
+		loadScenarios!(CC)(prop, comm.mainShell, status, false, prop.msgs.dlgTitAddScenario, &addS.addS);
 	}
 	static void openScenario(Commons comm, Props prop, Composite parent, void delegate(string) status,
 			Summary summ, ToCardOwner toc, string[] files, void delegate(Object[]) addScenario) {
 		parent = pane(parent);
 		auto addS = new AddS(comm, prop, parent, toc, addScenario);
-		loadScenariosFromFile!(CC)(prop, parent.getShell, status, false, files, &addS.addS);
+		loadScenariosFromFile!(CC)(prop, comm.mainShell, status, false, files, &addS.addS);
 	}
 }

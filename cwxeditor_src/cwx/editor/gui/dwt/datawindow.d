@@ -70,9 +70,6 @@ private:
 
 	TCPD[] _tcpd;
 
-	void saveScenario() {
-		_comm.save.call(_win.getShell);
-	}
 	static if (UseArea && UseFlag) {
 		class SListener : SelectionAdapter {
 			override void widgetSelected(SelectionEvent e) {
@@ -141,8 +138,6 @@ public:
 				auto bar = new Menu(shell, SWT.BAR);
 
 				auto mf = createMenu(bar, _prop.msgs.menuFile);
-				createMenuItem(mf, _prop.msgs.menuSave, _prop.images.menuSave, &saveScenario);
-				new MenuItem(mf, SWT.SEPARATOR);
 				createMenuItem(mf, _prop.msgs.menuCloseWin, _prop.images.menuCloseWin, &shell.close);
 
 				auto me = createMenu(bar, _prop.msgs.menuEdit);

@@ -80,8 +80,11 @@ import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Link;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.RowLayout;
@@ -320,7 +323,7 @@ private:
 					}
 				} else {
 					if (!.exists(wsm)) wsm = old.scenarioPath;
-					loadScenarioFromFile!(Summary)(_prop, _win, &setStatusLine, expand, old, wsm, &openScenario);
+					loadScenarioFromFile!(Summary)(_prop, _comm.mainShell, &setStatusLine, expand, old, wsm, &openScenario);
 				}
 			} else if (expand) {
 				try {
@@ -333,7 +336,7 @@ private:
 				}
 			} else {
 				assert (old.zipName.length);
-				loadScenarioFromFile!(Summary)(_prop, _win, &setStatusLine, expand, old, old.zipName, &openScenario);
+				loadScenarioFromFile!(Summary)(_prop, _comm.mainShell, &setStatusLine, expand, old, old.zipName, &openScenario);
 			}
 		}
 	}
@@ -420,7 +423,7 @@ private:
 	}
 	void openScenario() {
 		auto old = summary;
-		loadScenario!(Summary)(_prop, _win, &setStatusLine,
+		loadScenario!(Summary)(_prop, _comm.mainShell, &setStatusLine,
 			_prop.var.etc.expandXMLs, old, _prop.msgs.dlgTitOpenScenario,
 			_openPaths, &openScenarioImpl);
 	}
@@ -430,11 +433,12 @@ private:
 		}
 		decScenarioPath(fname, _openPaths);
 		auto old = summary;
-		loadScenarioFromFile!(Summary)(_prop, _win, &setStatusLine,
+		loadScenarioFromFile!(Summary)(_prop, _comm.mainShell, &setStatusLine,
 			_prop.var.etc.expandXMLs, old, fname, &openScenarioImpl);
 	}
 	void saveScenario() {
-		save(_win);
+		auto fc = _win.getDisplay.getFocusControl;
+		save(fc.getShell);
 	}
 	void savec(Shell shell) {
 		save(shell);
@@ -447,8 +451,8 @@ private:
 				// いまだ保存されていない場合は名前をつけて保存
 				return __saveScenarioA(shell);
 			} else {
-				shell.setCursor = Display.getCurrent.getSystemCursor(SWT.CURSOR_WAIT);
-				scope (exit) shell.setCursor = null;
+				auto cursors = setWaitCursors(shell);
+				scope (exit) resetCursors(cursors);
 				try {
 					synchronized (_saveSync) {
 						summary.saveOverwrite(_prop.parent, _prop.var.etc.doubleIO, _prop.var.etc.saveInnerImagePath);
@@ -479,8 +483,8 @@ private:
 			dlg.setOverwrite = true;
 			string fname = dlg.open;
 			if (fname) {
-				shell.setCursor = Display.getCurrent.getSystemCursor(SWT.CURSOR_WAIT);
-				scope (exit) shell.setCursor = null;
+				auto cursors = setWaitCursors(shell);
+				scope (exit) resetCursors(cursors);
 				_dirWin.pauseTrace;
 				scope (exit) _dirWin.resumeTrace;
 				string tempPath = _prop.tempPath;
@@ -768,6 +772,7 @@ private:
 		mixin (MenuAction!("_menuFile", "New", SWT.PUSH, "createScenario"));
 		mixin (MenuAction!("_menuFile", "Open", SWT.PUSH, "openScenarioM"));
 		mixin (MenuAction!("_menuFile", "Save", SWT.PUSH, "saveScenario"));
+		_menu[MenuID.Save].setAccelerator = 0;
 		mixin (MenuAction!("_menuFile", "SaveA", SWT.PUSH, "saveScenarioA"));
 		new MenuItem(_menuFile, SWT.SEPARATOR);
 		mixin (MenuAction!("_menuFile", "CreateArchive", SWT.PUSH, "_dirWin.createArchive"));
@@ -1151,7 +1156,7 @@ public:
 			mixin (MenuAction!("me", "Reload", SWT.PUSH, "reload"));
 			if (_prop.var.etc.singleWindow) {
 				new MenuItem(me, SWT.SEPARATOR);
-				mixin (MenuAction!("me", "NewFolder"));
+				mixin (MenuAction!("me", "NewFolder", SWT.PUSH, "_dirWin.createNewFolder"));
 			}
 
 			auto mv = createMenu(bar, _prop.msgs.menuView);
@@ -1341,7 +1346,7 @@ public:
 				{
 					auto bar = new ToolBar(cbar, SWT.FLAT);
 					mixin (ToolAction!("bar", "OpenDirectory", SWT.PUSH, "openDirectory"));
-					mixin (ToolAction!("bar", "NewFolder"));
+					mixin (ToolAction!("bar", "NewFolder", SWT.PUSH, "_dirWin.createNewFolder"));
 					createCoolItem(cbar, bar);
 				}
 				{
@@ -1390,6 +1395,18 @@ public:
 			setupMenu(_menu);
 			setupMenu(_tool);
 		}
+		class KeyDownFilter : Listener {
+			override void handleEvent(Event e) {
+				auto fc = d.getFocusControl();
+				if (!fc) return;
+				if (!.isDescendant(_win, fc.getShell)) return;
+				int acc = convertAccelerator(_prop.msgs.menuSave);
+				if (eqAcc(acc, e.keyCode, e.character, e.stateMask)) {
+					saveScenario();
+				}
+			}
+		}
+		d.addFilter(SWT.KeyDown, new KeyDownFilter);
 		refreshExecEngine();
 
 		int tx = _prop.var.mainWin.x == SWT.DEFAULT ? _win.getBounds.x : _prop.var.mainWin.x;

@@ -1046,29 +1046,31 @@ private:
 		}, false);
 		return fp;
 	}
-	void __createDir() {
-		if (_files.isFocusControl) {
-			createDirFiles;
-		} else {
-			createDirDirs;
-		}
-	}
 	void createDirDirs() {
-		auto fp = createDir;
+		if (!_win || _win.isDisposed) {
+			_comm.openDirWin();
+		}
+		auto fp = createDir();
 		if (!fp) return;
 		refreshDirs(fp);
 		refreshFiles(null);
+		.forceFocus(_dirs);
 		_dirsEdit.startEdit;
 	}
 	void createDirFiles() {
-		auto fp = createDir;
+		if (!_win || _win.isDisposed) {
+			_comm.openDirWin();
+		}
+		auto fp = createDir();
 		if (!fp) return;
 		auto files = selFiles ~ fp;
 		refreshDirs(selDirPath);
 		refreshFiles(files);
 		foreach (itm; _files.getItems) {
 			if (std.path.fnmatch((cast(FileNameObj) itm.getData).array, fp)) {
+				.forceFocus(_files);
 				_filesEdit.startEdit(itm);
+				break;
 			}
 		}
 	}
@@ -1436,14 +1438,12 @@ public:
 			auto mf = createMenu(bar, _prop.msgs.menuFile);
 			createMenuItem(mf, _prop.msgs.menuOpenDirectory, _prop.images.folder, &openDirectory);
 			new MenuItem(mf, SWT.SEPARATOR);
-			createMenuItem(mf, _prop.msgs.menuSave, _prop.images.menuSave, &saveScenario);
-			new MenuItem(mf, SWT.SEPARATOR);
 			createMenuItem(mf, _prop.msgs.menuCloseWin, _prop.images.menuCloseWin, &shell.close);
 
 			auto me = createMenu(bar, _prop.msgs.menuEdit);
 			createMenuItem(me, _prop.msgs.menuReplacePath, _prop.images.menuReplacePath, &replace);
 			new MenuItem(me, SWT.SEPARATOR);
-			createMenuItem(me, _prop.msgs.menuNewFolder, _prop.images.menuNewFolder, &__createDir);
+			createMenuItem(me, _prop.msgs.menuNewFolder, _prop.images.menuNewFolder, &createNewFolder);
 			new MenuItem(me, SWT.SEPARATOR);
 			createMenuItem(me, _prop.msgs.menuCreateArchive, _prop.images.menuCreateArchive, &createArchive);
 			new MenuItem(me, SWT.SEPARATOR);
@@ -1460,7 +1460,7 @@ public:
 			putMenuAction(MenuID.ReplacePath, &replace);
 			putMenuAction(MenuID.Refresh, &__refresh);
 			putMenuAction(MenuID.OpenDirectory, &openDirectory);
-			putMenuAction(MenuID.NewFolder, &__createDir);
+			putMenuAction(MenuID.NewFolder, &createNewFolder);
 			putMenuAction(MenuID.CreateArchive, &createArchive);
 			putMenuAction(MenuID.ChangeVH, &changeVHSide);
 		}
@@ -1474,7 +1474,7 @@ public:
 			new ToolItem(bar, SWT.SEPARATOR);
 			createToolItem(bar, _prop.msgs.ttReplacePath, _prop.images.menuReplacePath, &replace);
 			new ToolItem(bar, SWT.SEPARATOR);
-			createToolItem(bar, _prop.msgs.ttNewFolder, _prop.images.menuNewFolder, &__createDir);
+			createToolItem(bar, _prop.msgs.ttNewFolder, _prop.images.menuNewFolder, &createNewFolder);
 			new ToolItem(bar, SWT.SEPARATOR);
 			createToolItem(bar, _prop.msgs.ttCreateArchive, _prop.images.menuCreateArchive, &createArchive);
 			new ToolItem(bar, SWT.SEPARATOR);
@@ -1695,6 +1695,16 @@ public:
 	void openDirectory() {
 		auto dir = selDirPath;
 		if (dir) openFolder(dir);
+	}
+	void createNewFolder() {
+		if (!_win || _win.isDisposed) {
+			_comm.openDirWin();
+		}
+		if (_files.isFocusControl) {
+			createDirFiles();
+		} else {
+			createDirDirs();
+		}
 	}
 
 	private bool selectImpl(T)(T tree, string path) {

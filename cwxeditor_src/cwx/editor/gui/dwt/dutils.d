@@ -98,6 +98,7 @@ import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.dnd.DND;
@@ -851,6 +852,22 @@ void appendMenuTCPD(Props prop, Menu me, TCPD tcpd,
 	if (d) createMenuItem(me, prop.msgs.menuDel, prop.images.menuDel, &itcpd.del);
 }
 
+bool eqAcc(int acc, int keyCode, wchar character, int stateMask) {
+	if ((acc & SWT.MODIFIER_MASK) == acc) {
+		return (keyCode | stateMask) == acc;
+	} else if (toUpper(keyCode) == toUpper(character)) {
+		return (toUpper(keyCode) | stateMask) == acc
+			|| (toLower(keyCode) | stateMask) == acc;
+	} else {
+		return (toUpper(keyCode) | stateMask) == acc
+			|| (toLower(keyCode) | stateMask) == acc
+			|| (toUpper(character) | (stateMask ^ SWT.SHIFT)) == acc
+			|| (toLower(character) | (stateMask ^ SWT.SHIFT)) == acc
+			|| (toUpper(character) | stateMask) == acc
+			|| (toLower(character) | stateMask) == acc;
+	}
+}
+
 void usingPopupMenuAccelerator(Control c) {
 	static int toAccelerator(MenuItem mi) {
 		if (mi.getAccelerator != 0) {
@@ -865,22 +882,7 @@ void usingPopupMenuAccelerator(Control c) {
 			if (menu) {
 				foreach (mi; menu.getItems) {
 					int acc = toAccelerator(mi);
-					bool eqAcc() {
-						if ((acc & SWT.MODIFIER_MASK) == acc) {
-							return (e.keyCode | e.stateMask) == acc;
-						} else if (toUpper(e.keyCode) == toUpper(e.character)) {
-							return (toUpper(e.keyCode) | e.stateMask) == acc
-								|| (toLower(e.keyCode) | e.stateMask) == acc;
-						} else {
-							return (toUpper(e.keyCode) | e.stateMask) == acc
-								|| (toLower(e.keyCode) | e.stateMask) == acc
-								|| (toUpper(e.character) | (e.stateMask ^ SWT.SHIFT)) == acc
-								|| (toLower(e.character) | (e.stateMask ^ SWT.SHIFT)) == acc
-								|| (toUpper(e.character) | e.stateMask) == acc
-								|| (toLower(e.character) | e.stateMask) == acc;
-						}
-					}
-					if (eqAcc) {
+					if (eqAcc(acc, e.keyCode, e.character, e.stateMask)) {
 						scope evt = new Event;
 						evt.widget = e.widget;
 						mi.notifyListeners(SWT.Selection, evt);
@@ -1099,10 +1101,18 @@ bool hasFocus(Control c) {
 }
 Shell topShell(Shell shell) {
 	auto parent = cast(Shell) shell.getParent;
+	if (!parent) return shell;
 	while (parent.getParent) {
 		parent = cast(Shell) parent.getParent;
 	}
 	return parent;
+}
+bool isDescendant(Shell shell1, Shell shell2) {
+	while (shell1 !is shell2) {
+		if (!shell2) return false;
+		shell2 = cast(Shell) shell2.getParent;
+	}
+	return true;
 }
 class CloseRemover(Window) : DisposeListener {
 	private HashSet!(Window) _ws;
@@ -1603,6 +1613,7 @@ private class LSFFThr(S, bool Array) {
 	Display current;
 	Props prop;
 	Shell w;
+	Cursor[Shell] cursors;
 	bool expandXMLs;
 	string fname;
 	static if (Array) {
@@ -1629,7 +1640,7 @@ private class LSFFThr(S, bool Array) {
 	class Exit : Runnable {
 		void run() {
 			try {
-				w.setCursor = null;
+				resetCursors(cursors);
 				w.setEnabled = true;
 			} catch {
 				clear;
@@ -1824,14 +1835,13 @@ S[] loadScenariosFromFile(S)(Props prop, Shell w, void delegate(string) status,
 		thr.files = files;
 		thr.loaded = loaded;
 		thr.status = status;
-		w.setCursor = display.getSystemCursor(SWT.CURSOR_WAIT);
-		scope (exit) w.setCursor = null;
+		thr.cursors = setWaitCursors(w);
 		auto t = new core.thread.Thread(&thr.run);
 		t.start;
 		return [];
 	} else {
-		w.setCursor = Display.getCurrent.getSystemCursor(SWT.CURSOR_WAIT);
-		scope (exit) w.setCursor = null;
+		auto cursors = setWaitCursors(w);
+		scope (exit) resetCursors(cursors);
 		S[] r;
 		foreach (i, path; files) {
 			S s = loadScenarioFromFileImpl!(S)(prop, w, status, expandXMLs, null, path, null, false, display);
@@ -1897,16 +1907,19 @@ private S loadScenarioFromFileImpl(S)(Props prop, Shell w, void delegate(string)
 		thr.loaded = loaded;
 		thr.status = status;
 		if (!current) {
-			w.setCursor = Display.getCurrent.getSystemCursor(SWT.CURSOR_WAIT);
+			thr.cursors = setWaitCursors(w);
 			w.setEnabled = false;
 		}
 		auto t = new core.thread.Thread(&thr.run);
 		t.start;
 		return null;
 	} else {
-		if (!current) w.setCursor = Display.getCurrent.getSystemCursor(SWT.CURSOR_WAIT);
+		Cursor[Shell] cursors;
+		if (!current) {
+			cursors = setWaitCursors(w);
+		}
 		scope (exit) {
-			if (!current) w.setCursor = null;
+			if (!current) resetCursors(cursors);
 		}
 		try {
 			return S.loadScenarioFromFile(prop.parent, prop.var.etc.doubleIO,
@@ -2364,4 +2377,23 @@ int textWidth(Props prop, Control c, string text) {
 	scope (exit) mono.dispose();
 	gc.setFont = mono;
 	return gc.textExtent(text).x / gc.textExtent(" ").x;
+}
+
+Cursor[Shell] setWaitCursors(Shell shell) {
+	auto cWait = shell.getDisplay.getSystemCursor(SWT.CURSOR_WAIT);
+	Cursor[Shell] cursors;
+	void put(Shell cShl) {
+		cursors[cShl] = cShl.getCursor;
+		cShl.setCursor = cWait;
+	}
+	put(shell);
+	foreach (chld; shell.getShells) {
+		put(chld);
+	}
+	return cursors;
+}
+void resetCursors(Cursor[Shell] cursors) {
+	foreach (shl, cur; cursors) {
+		shl.setCursor = cur;
+	}
 }

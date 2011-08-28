@@ -275,7 +275,7 @@ class Commons {
 		_dirWin = dirWin;
 	}
 	MainWindow mainWin() {return _main;}
-	
+	Shell mainShell() {return _main.shell.getShell;}
 
 	bool isChanged() {
 		Summary summ;
