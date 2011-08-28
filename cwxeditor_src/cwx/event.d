@@ -1142,7 +1142,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			_suc.remove(toStartId(_start), this);
 		}
 		foreach (c; next) {
-			c.removeUseCounter;
+			c.removeSUseCounter;
 		}
 		_suc = null;
 	}
