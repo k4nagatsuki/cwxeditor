@@ -901,7 +901,9 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	/// 後続コンテントを除外する。
 	void remove(int index) {
 		if (_uc !is null) _next[index].removeUseCounter;
+cdebugln(0);
 		if (_suc !is null) _next[index].removeSUseCounter;
+cdebugln(1);
 		_next[index].changeHandler = null;
 		_next[index].parent = null;
 		_next = _next[0 .. index] ~ _next[index + 1 .. $];
@@ -1227,7 +1229,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			_suc.remove(toStartId(_start), this);
 		}
 		foreach (c; next) {
-			c.removeUseCounter;
+			c.removeSUseCounter;
 		}
 		_suc = null;
 	}

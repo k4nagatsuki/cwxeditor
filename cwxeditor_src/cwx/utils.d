@@ -70,36 +70,40 @@ shared string LATEST_VERSION = "";
 shared string debugLog = "cwxeditor_error.log";
 private __gshared BufferedFile debugLogFile = null;
 
+/// デバグログを生成する。
+string createDebugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) {
+	char[] buf = format("%s:%d ", F, L).dup;
+	foreach (v; vals) {
+		static if (is(typeof(v.msg)) && is(typeof(v.file)) && is(typeof(v.line))) {
+			buf ~= format("%s, %s, %d", v.msg, v.file, v.line);
+		} else {
+			buf ~= to!(string)(v);
+		}
+	}
+	auto d = Clock.currTime;
+	int year = d.year;
+	int month = d.month;
+	int day = d.day;
+	int hour = d.hour;
+	int min = d.minute;
+	int second = d.second;
+	buf = format("%04d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, min, second) ~ "\t" ~ buf;
+	return assumeUnique(buf);
+}
+
 /// デバグログに文字列を出力する。
 shared void fdebugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) {
 	try {
 		synchronized {
-			char[] buf = format("%s:%d ", F, L).dup;
-			foreach (v; vals) {
-				static if (is(typeof(v.msg)) && is(typeof(v.file)) && is(typeof(v.line))) {
-					buf ~= format("%s, %s, %d", v.msg, v.file, v.line);
-				} else {
-					buf ~= to!(string)(v);
-				}
-			}
+			string log = createDebugln!(F, L)(vals);
 			debug {
 				version (Windows) {
-					printf("%s\n\0".ptr, tosjisz(buf));
+					printf("%s\n\0".ptr, tosjisz(log));
 					dout.flush;
 				} else {
-					writeln(buf);
+					writeln(log);
 				}
 			}
-			auto d = Clock.currTime;
-			int year = d.year;
-			int month = d.month;
-			int day = d.day;
-			int hour = d.hour;
-			int min = d.minute;
-			int second = d.second;
-			buf = format("%04d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, min, second)
-				~ "\t" ~ buf;
-			string log = assumeUnique(buf);
 			if (!debugLogFile) {
 				debugLogFile = new typeof(debugLogFile)(debugLog, FileMode.Append);
 			}
@@ -118,6 +122,20 @@ shared static ~this () {
 void debugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) {
 	debug {
 		fdebugln!(F, L, T)(vals);
+	}
+}
+/// コンソール上にデバグログを出力する。
+void cdebugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) {
+	debug {
+		synchronized {
+			string log = createDebugln!(F, L)(vals);
+			version (Windows) {
+				printf("%s\n\0".ptr, tosjisz(log));
+				dout.flush;
+			} else {
+				writeln(log);
+			}
+		}
 	}
 }
 

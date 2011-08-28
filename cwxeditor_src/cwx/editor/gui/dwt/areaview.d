@@ -1713,27 +1713,26 @@ public:
 	}
 	static if (UseCards) {
 		private void removeCard(int index) {
-			_comm.delMenuCard.call(_area.cards[index].cwxPath);
 			__remove(index, _cardTbl, cardsIndex);
+			_comm.delMenuCard.call(_area.cards[index].cwxPath);
 		}
 		private void removeCardRange(int fromIndex, int toIndex) {
-			string[] paths;
+			__removeRange(fromIndex, toIndex, _cardTbl, cardsIndex);
 			for (int i = toIndex; i >= fromIndex; i--) {
 				_comm.delMenuCard.call(_area.cards[i].cwxPath);
 			}
-			__removeRange(fromIndex, toIndex, _cardTbl, cardsIndex);
 		}
 	}
 	static if (UseBacks) {
 		private void removeBack(int index) {
-			_comm.delBgImage.call(_area.backs[index].cwxPath);
 			__remove(index, _backTbl, 0);
+			_comm.delBgImage.call(_area.backs[index].cwxPath);
 		}
 		private void removeBackRange(int fromIndex, int toIndex) {
+			__removeRange(fromIndex, toIndex, _backTbl, 0);
 			for (int i = toIndex; i >= fromIndex; i--) {
 				_comm.delBgImage.call(_area.backs[i].cwxPath);
 			}
-			__removeRange(fromIndex, toIndex, _backTbl, 0);
 		}
 	}
 
@@ -2337,6 +2336,7 @@ public:
 			_bgm.path = _area.music;
 		}
 		if (_summ) {
+			new ToolItem(bar, SWT.SEPARATOR);
 			_flag = new CCombo(bar, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
 			_flag.setVisibleItemCount = 20;
 			_flag.add(_prop.msgs.noFlag);
@@ -3050,8 +3050,8 @@ public:
 			void del(SelectionEvent se) {
 				int i;
 				while (0 <= (i = _backs.getSelectionIndex)) {
-					_area.removeBgImage(i);
 					removeBack(i);
+					_area.removeBgImage(i);
 					_backs.remove(i);
 				}
 				_imgp.redraw;
