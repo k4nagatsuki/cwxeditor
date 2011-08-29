@@ -779,6 +779,9 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	}
 	/// ditto
 	Content parent() {return _parent;}
+	/// ditto
+	const
+	const(Content) parent() {return _parent;}
 	override string cwxPath() {
 		if (_parent) {
 			return cpjoin(_parent, .cCountUntil!("a is b")(_parent.next, this));
@@ -838,8 +841,22 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		if (ps) return ps._tree;
 		return null;
 	}
+	/// ditto
+	const
+	const(EventTree) tree() {
+		auto ps = parentStart;
+		if (ps) return ps._tree;
+		return null;
+	}
 	/// このコンテントが属すスタートコンテントを返す。
 	Content parentStart() {
+		if (type is CType.START) return this;
+		if (!parent) return null;
+		return parent.parentStart;
+	}
+	/// ditto
+	const
+	const(Content) parentStart() {
 		if (type is CType.START) return this;
 		if (!parent) return null;
 		return parent.parentStart;
@@ -901,9 +918,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	/// 後続コンテントを除外する。
 	void remove(int index) {
 		if (_uc !is null) _next[index].removeUseCounter;
-cdebugln(0);
 		if (_suc !is null) _next[index].removeSUseCounter;
-cdebugln(1);
 		_next[index].changeHandler = null;
 		_next[index].parent = null;
 		_next = _next[0 .. index] ~ _next[index + 1 .. $];
@@ -1799,6 +1814,14 @@ public:
 		}
 	} body {
 		return _starts;
+	}
+	/// 指定された名前のスタートコンテントがあるか。
+	const
+	bool hasStart(string name) {
+		foreach (s; _starts) {
+			if (0 == icmp(s.name, name)) return true;
+		}
+		return false;
 	}
 	/// 属するエリア等からの相対パスを返す。
 	size_t[] areaPath() {

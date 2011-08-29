@@ -736,6 +736,7 @@ public:
 		case CType.START: {
 			return "スタートコンテント: " ~ evt.name;
 		} case CType.START_BATTLE: {
+			if (0 == evt.battle) return "バトル指定無し";
 			auto b = summ.battle(evt.battle);
 			return b is null ? .format("存在しないバトル(ID:%d)", evt.battle) : "バトルビュー「" ~ b.name ~ "」";
 		} case CType.END: {
@@ -743,6 +744,7 @@ public:
 		} case CType.END_BAD_END: {
 			return "ゲームオーバーコンテント";
 		} case CType.CHANGE_AREA: {
+			if (0 == evt.area) return "エリア指定無し";
 			auto a = summ.area(evt.area);
 			return a is null ? .format("存在しないエリア(ID:%d)", evt.area) : "エリアビュー「" ~ a.name ~ "」";
 		} case CType.CHANGE_BG_IMAGE: {
@@ -768,9 +770,11 @@ public:
 		} case CType.EFFECT_BREAK: {
 			return "効果中断コンテント";
 		} case CType.LINK_START: {
-			return evt.start is null
+			if (evt.start is null || !evt.start.length) return "スタートコンテント指定無し";
+			return evt.tree.hasStart(evt.start)
 				? .format("存在しないスタートコンテント(名称:%s)", evt.start) : "スタートコンテント「" ~ evt.start ~ "」へのリンク";
 		} case CType.LINK_PACKAGE: {
+			if (0 == evt.packages) return "パッケージ指定無し";
 			auto p = summ.packages(evt.packages);
 			return p is null ? .format("存在しないパッケージ(ID:%d)", evt.packages) : "パッケージビュー「" ~ p.name ~ "」";
 		} case CType.TALK_MESSAGE: {
@@ -807,20 +811,25 @@ public:
 		} case CType.PLAY_BGM: {
 			return evt.bgmPath is null || evt.bgmPath.length == 0 ? "BGM停止" : "BGMとして「" ~ encodePath(evt.bgmPath) ~ "」を演奏";
 		} case CType.PLAY_SOUND: {
+			if (evt.soundPath is null || !evt.soundPath.length) return "効果音指定無し";
 			return evt.soundPath is null || evt.soundPath.length == 0 ? .format("存在しない効果音(ファイル:%s)", evt.soundPath) : "効果音「" ~ encodePath(evt.soundPath) ~ "」を鳴らす";
 		} case CType.WAIT: {
 			return "空白時間 = " ~ to!(string)(evt.wait) ~ " × 0.1秒";
 		} case CType.ELAPSE_TIME: {
 			return "ターン数経過コンテント";
 		} case CType.CALL_START: {
-			return evt.start is null ? .format("存在しないスタートコンテント(名称:%s)", evt.start) : "スタートコンテント「" ~ evt.start ~ "」のコール";
+			if (evt.start is null || !evt.start.length) return "スタートコンテント指定無し";
+			return evt.tree.hasStart(evt.start) ? .format("存在しないスタートコンテント(名称:%s)", evt.start) : "スタートコンテント「" ~ evt.start ~ "」のコール";
 		} case CType.CALL_PACKAGE: {
+			if (0 == evt.packages) return "パッケージ指定無し";
 			auto p = summ.packages(evt.packages);
 			return p is null ? .format("存在しないパッケージ(ID:%d)", evt.packages) : "パッケージビュー「" ~ p.name ~ "」のコール";
 		} case CType.BRANCH_FLAG: {
+			if (evt.flag is null || !evt.flag.length) return "フラグ指定無し";
 			auto f = summ.flagDirRoot.findFlag(evt.flag);
 			return f is null ? .format("存在しないフラグ(パス:%s)", evt.flag) : "フラグ「" ~ f.path ~ "」の値で分岐";
 		} case CType.BRANCH_MULTI_STEP: {
+			if (evt.step is null || !evt.step.length) return "ステップ指定無し";
 			auto s = summ.flagDirRoot.findStep(evt.step);
 			return s is null ? .format("存在しないステップ(パス:%s)", evt.step) : "ステップ多岐分岐コンテント: " ~ s.path;
 		} case CType.BRANCH_STEP: {
@@ -863,9 +872,11 @@ public:
 		} case CType.BRANCH_IS_BATTLE: {
 			return "戦闘中判定分岐コンテント";
 		} case CType.BRANCH_CAST: {
+			if (0 == evt.casts) return "キャストカード指定無し";
 			auto c = summ.casts(evt.casts);
 			return c is null ? .format("存在しないキャストカード(ID:%d)", evt.casts) : "キャストカード「" ~ c.name ~ "」の同行有無で分岐";
 		} case CType.BRANCH_ITEM: {
+			if (0 == evt.item) return "アイテムカード指定無し";
 			auto c = summ.item(evt.item);
 			string buf = c is null ? .format("存在しないアイテムカード(ID:%d)", evt.item) : "アイテムカード「" ~ c.name ~ "」";
 			buf ~= "の有無で分岐(";
@@ -873,6 +884,7 @@ public:
 			buf ~= to!(string)(evt.cardNumber) ~ "枚)";
 			return buf;
 		} case CType.BRANCH_SKILL: {
+			if (0 == evt.skill) return "特殊技能カード指定無し";
 			auto c = summ.skill(evt.skill);
 			string buf = c is null ? .format("存在しない特殊技能カード(ID:%d)", evt.skill) : "特殊技能カード「" ~ c.name ~ "」";
 			buf ~= "の有無で分岐(";
@@ -880,9 +892,11 @@ public:
 			buf ~= to!(string)(evt.cardNumber) ~ "枚)";
 			return buf;
 		} case CType.BRANCH_INFO: {
+			if (0 == evt.info) return "情報カード指定無し";
 			auto c = summ.info(evt.info);
-			return c is null ? .format("存在しない情報カード(ID:%d)", evt.skill) : "情報カード「" ~ c.name ~ "」の有無で分岐";
+			return c is null ? .format("存在しない情報カード(ID:%d)", evt.info) : "情報カード「" ~ c.name ~ "」の有無で分岐";
 		} case CType.BRANCH_BEAST: {
+			if (0 == evt.beast) return "召喚獣カード指定無し";
 			auto c = summ.beast(evt.beast);
 			string buf = c is null ? .format("存在しない召喚獣カード(ID:%d)", evt.beast) : "召喚獣カード「" ~ c.name ~ "」";
 			buf ~= "の有無で分岐(";
@@ -902,27 +916,35 @@ public:
 		} case CType.BRANCH_GOSSIP: {
 			return evt.gossip is null || evt.gossip.length == 0 ? "指定無し" : "宿屋クーポン「" ~ evt.gossip ~ "」の有無で分岐";
 		} case CType.SET_FLAG: {
+			if (evt.flag is null || !evt.flag.length) return "フラグ指定無し";
 			auto f = summ.flagDirRoot.findFlag(evt.flag);
 			return f is null ? .format("存在しないフラグ(パス:%s)", evt.flag) : "フラグ「" ~ f.path ~ "」を[" ~ (evt.flagValue ? f.on : f.off) ~ "]に変更";
 		} case CType.SET_STEP: {
+			if (evt.step is null || !evt.step.length) return "ステップ指定無し";
 			auto s = summ.flagDirRoot.findStep(evt.step);
 			return s is null ? .format("存在しないステップ(パス:%s)", evt.step) : "ステップ「" ~ s.path ~ "」を[" ~ s.getValue(evt.stepValue) ~ "]に変更";
 		} case CType.SET_STEP_UP: {
+			if (evt.step is null || !evt.step.length) return "ステップ指定無し";
 			auto s = summ.flagDirRoot.findStep(evt.step);
 			return s is null ? .format("存在しないステップ(パス:%s)", evt.step) : "ステップ「" ~ s.path ~ "」の値を1増加";
 		} case CType.SET_STEP_DOWN: {
+			if (evt.step is null || !evt.step.length) return "ステップ指定無し";
 			auto s = summ.flagDirRoot.findStep(evt.step);
 			return s is null ? .format("存在しないステップ(パス:%s)", evt.step) : "ステップ「" ~ s.path ~ "」の値を1減少";
 		} case CType.REVERSE_FLAG: {
+			if (evt.flag is null || !evt.flag.length) return "フラグ指定無し";
 			auto f = summ.flagDirRoot.findFlag(evt.flag);
 			return f is null ? .format("存在しないフラグ(パス:%s)", evt.flag) : "フラグ「" ~ f.path ~ "」の値を反転";
 		} case CType.CHECK_FLAG: {
+			if (evt.flag is null || !evt.flag.length) return "フラグ指定無し";
 			auto f = summ.flagDirRoot.findFlag(evt.flag);
 			return f is null ? .format("存在しないフラグ(パス:%s)", evt.flag) : "フラグ「" ~ f.path ~ "」の値が[" ~ f.on ~ "]であれば出現";
 		} case CType.GET_CAST: {
+			if (0 == evt.casts) return "キャストカード指定無し";
 			auto c = summ.casts(evt.casts);
 			return c is null ? .format("存在しないキャストカード(ID:%d)", evt.casts) : "キャストカード「" ~ c.name ~ "」を同行させる";
 		} case CType.GET_ITEM: {
+			if (0 == evt.item) return "アイテムカード指定無し";
 			auto c = summ.item(evt.item);
 			string buf = c is null ? .format("存在しないアイテムカード(ID:%d)", evt.item) : "アイテムカード「" ~ c.name ~ "」";
 			buf ~= "を獲得(";
@@ -930,6 +952,7 @@ public:
 			buf ~= to!(string)(evt.cardNumber) ~ "枚)";
 			return buf;
 		} case CType.GET_SKILL: {
+			if (0 == evt.skill) return "特殊技能カード指定無し";
 			auto c = summ.skill(evt.skill);
 			string buf = c is null ? .format("存在しない特殊技能カード(ID:%d)", evt.skill) : "特殊技能カード「" ~ c.name ~ "」";
 			buf ~= "を獲得(";
@@ -937,9 +960,11 @@ public:
 			buf ~= to!(string)(evt.cardNumber) ~ "枚)";
 			return buf;
 		} case CType.GET_INFO: {
+			if (0 == evt.info) return "情報カード指定無し";
 			auto c = summ.info(evt.info);
 			return c is null ? .format("存在しない情報カード(ID:%d)", evt.info) : "情報カード「" ~ c.name ~ "」を獲得";
 		} case CType.GET_BEAST: {
+			if (0 == evt.beast) return "召喚獣カード指定無し";
 			auto c = summ.beast(evt.beast);
 			string buf = c is null ? .format("存在しない召喚獣カード(ID:%d)", evt.beast) : "召喚獣カード「" ~ c.name ~ "」";
 			buf ~= "を獲得(";
@@ -959,9 +984,11 @@ public:
 		} case CType.GET_GOSSIP: {
 			return evt.gossip is null || evt.gossip.length == 0 ? "指定無し" : "宿屋クーポン「" ~ evt.gossip ~ "」を獲得";
 		} case CType.LOSE_CAST: {
+			if (0 == evt.casts) return "キャストカード指定無し";
 			auto c = summ.casts(evt.casts);
 			return c is null ? .format("存在しないキャストカード(ID:%d)", evt.casts) : "キャストカード「" ~ c.name ~ "」の同行を解除";
 		} case CType.LOSE_ITEM: {
+			if (0 == evt.item) return "アイテムカード指定無し";
 			auto c = summ.item(evt.item);
 			string buf = c is null ? .format("存在しないアイテムカード(ID:%d)", evt.item) : "アイテムカード「" ~ c.name ~ "」";
 			buf ~= "を喪失(";
@@ -970,6 +997,7 @@ public:
 			buf ~= ")";
 			return buf;
 		} case CType.LOSE_SKILL: {
+			if (0 == evt.skill) return "特殊技能カード指定無し";
 			auto c = summ.skill(evt.skill);
 			string buf = c is null ? .format("存在しない特殊技能カード(ID:%d)", evt.skill) : "特殊技能カード「" ~ c.name ~ "」";
 			buf ~= "を喪失(";
@@ -978,9 +1006,11 @@ public:
 			buf ~= ")";
 			return buf;
 		} case CType.LOSE_INFO: {
+			if (0 == evt.info) return "情報カード指定無し";
 			auto c = summ.info(evt.info);
 			return c is null ? .format("存在しない情報カード(ID:%d)", evt.info) : "情報カード「" ~ c.name ~ "」を喪失";
 		} case CType.LOSE_BEAST: {
+			if (0 == evt.beast) return "召喚獣カード指定無し";
 			auto c = summ.beast(evt.beast);
 			string buf = c is null ? .format("存在しない召喚獣カード(ID:%d)", evt.beast) : "召喚獣カード「" ~ c.name ~ "」";
 			buf ~= "を喪失(";
