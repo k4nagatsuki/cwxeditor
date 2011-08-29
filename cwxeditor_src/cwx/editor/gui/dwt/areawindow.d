@@ -164,6 +164,14 @@ public:
 		_tabE.setText = _prop.msgs.eventView;
 		_tabf.addSelectionListener(new TabSel);
 
+		if (cast(Area) area) {
+			_tabA.setImage = _prop.images.areaSceneView;
+			_tabE.setImage = _prop.images.areaEventTreeView;
+		} else if (cast(Battle) area) {
+			_tabA.setImage = _prop.images.battleSceneView;
+			_tabE.setImage = _prop.images.battleEventTreeView;
+		} else assert (0);
+
 		if (shell) {
 			auto bar = new Menu(shell, SWT.BAR);
 

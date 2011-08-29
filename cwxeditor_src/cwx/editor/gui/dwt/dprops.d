@@ -81,6 +81,11 @@ public:
 	Image battle() {return imgd!(resourceDir ~ "battle.png");}
 	Image packages() {return imgd!(resourceDir ~ "package.png");}
 
+	Image areaSceneView() {return imgd!(resourceDir ~ "area_cards.png");}
+	Image areaEventTreeView() {return imgd!(resourceDir ~ "area_event.png");}
+	Image battleSceneView() {return imgd!(resourceDir ~ "battle_cards.png");}
+	Image battleEventTreeView() {return imgd!(resourceDir ~ "battle_event.png");}
+
 	Image casts() {return imgd!(resourceDir ~ "cast.png");}
 	Image skill() {return imgd!(resourceDir ~ "skill.png");}
 	Image item() {return imgd!(resourceDir ~ "item.png");}

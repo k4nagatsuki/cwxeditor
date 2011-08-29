@@ -1801,19 +1801,34 @@ public:
 		foreach (i, f; _pane) {
 			_tab[i] = new CTabItem(_tabf, SWT.NONE);
 			static if (UseCast) {
-				if (i == CAST) _tab[i].setText = _prop.msgs.casts;
+				if (i == CAST) {
+					_tab[i].setText = _prop.msgs.casts;
+					_tab[i].setImage = _prop.images.casts;
+				}
 			}
 			static if (UseSkill) {
-				if (i == SKILL) _tab[i].setText = _prop.msgs.skill;
+				if (i == SKILL) {
+					_tab[i].setText = _prop.msgs.skill;
+					_tab[i].setImage = _prop.images.skill;
+				}
 			}
 			static if (UseItem) {
-				if (i == ITEM) _tab[i].setText = _prop.msgs.item;
+				if (i == ITEM) {
+					_tab[i].setText = _prop.msgs.item;
+					_tab[i].setImage = _prop.images.item;
+				}
 			}
 			static if (UseBeast) {
-				if (i == BEAST) _tab[i].setText = _prop.msgs.beast;
+				if (i == BEAST) {
+					_tab[i].setText = _prop.msgs.beast;
+					_tab[i].setImage = _prop.images.beast;
+				}
 			}
 			static if (UseInfo) {
-				if (i == INFO) _tab[i].setText = _prop.msgs.info;
+				if (i == INFO) {
+					_tab[i].setText = _prop.msgs.info;
+					_tab[i].setImage = _prop.images.info;
+				}
 			}
 			_tcpd ~= f;
 			addTable(f.cardTable);
