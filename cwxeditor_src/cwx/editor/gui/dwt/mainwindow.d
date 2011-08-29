@@ -1229,10 +1229,21 @@ public:
 			_win.setMenuBar = bar;
 		}
 
+		Menu tmOpenCardWin;
+		void createCardWinTI(ToolBar bar) {
+			_mainMenu.add(MenuID.CardWin);
+			auto ti = createDropDownItem(bar, _prop.msgs.ttCardWin, _prop.images.menuCardWin, &openCardWindow, tmOpenCardWin);
+			_tool[MenuID.CardWin] = ti;
+			createMenuItem(tmOpenCardWin, _prop.msgs.casts, _prop.images.casts, &_cardWin.openCast);
+			createMenuItem(tmOpenCardWin, _prop.msgs.skill, _prop.images.skill, &_cardWin.openSkill);
+			createMenuItem(tmOpenCardWin, _prop.msgs.item, _prop.images.item, &_cardWin.openItem);
+			createMenuItem(tmOpenCardWin, _prop.msgs.beast, _prop.images.beast, &_cardWin.openBeast);
+			createMenuItem(tmOpenCardWin, _prop.msgs.info, _prop.images.info, &_cardWin.openInfo);
+		}
 		void createExecEngineTI(ToolBar bar) {
 			_mainMenu.add(MenuID.ExecEngine);
-			auto tExecEngine = createDropDownItem(bar, _prop.msgs.ttExecEngine, _prop.images.menuExecEngine, &execEngine, _tmExecEngine);
-			_tool[MenuID.ExecEngine] = tExecEngine;
+			auto ti = createDropDownItem(bar, _prop.msgs.ttExecEngine, _prop.images.menuExecEngine, &execEngine, _tmExecEngine);
+			_tool[MenuID.ExecEngine] = ti;
 		}
 
 		if (_prop.var.etc.singleWindow) {
@@ -1291,7 +1302,7 @@ public:
 					auto bar = new ToolBar(cbar, SWT.FLAT);
 					mixin (ToolAction!("bar", "DataWin", SWT.PUSH, "openDataWindow"));
 					mixin (ToolAction!("bar", "FlagWin", SWT.PUSH, "openFlagWindow"));
-					mixin (ToolAction!("bar", "CardWin", SWT.PUSH, "openCardWindow"));
+					createCardWinTI(bar);
 					mixin (ToolAction!("bar", "DirWin", SWT.PUSH, "openDirWindow"));
 					createCoolItem(cbar, bar);
 				}
@@ -1377,7 +1388,7 @@ public:
 			mixin (ToolAction!("bar", "Reload", SWT.PUSH, "reload"));
 			new ToolItem(bar, SWT.SEPARATOR);
 			mixin (ToolAction!("bar", "DataWin", SWT.PUSH, "openDataWindow"));
-			mixin (ToolAction!("bar", "CardWin", SWT.PUSH, "openCardWindow"));
+			createCardWinTI(bar);
 			mixin (ToolAction!("bar", "DirWin", SWT.PUSH, "openDirWindow"));
 			new ToolItem(bar, SWT.SEPARATOR);
 			createExecEngineTI(bar);

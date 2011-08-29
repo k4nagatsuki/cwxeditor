@@ -1307,6 +1307,12 @@ private:
 			_pane[Index].create;
 		}
 	}
+	static if (is(CardOwner : Summary)) {
+		void open(int Index)() {
+			_comm.openCardWin();
+			_tabf.setSelection = _tab[Index];
+		}
+	}
 
 	void __refresh() {
 		foreach (f; _pane) {
@@ -1670,6 +1676,44 @@ public:
 				_prop.var.etc.cardDetails = true;
 			}
 			refreshStatusLine;
+		}
+	}
+
+	static if (is(CardOwner : Summary)) {
+		void openCast() {
+			static if (UseCast) {
+				open!(CAST);
+			} else {
+				throw new Exception("can not open cast");
+			}
+		}
+		void openSkill() {
+			static if (UseSkill) {
+				open!(SKILL);
+			} else {
+				throw new Exception("can not open skill");
+			}
+		}
+		void openItem() {
+			static if (UseItem) {
+				open!(ITEM);
+			} else {
+				throw new Exception("can not open item");
+			}
+		}
+		void openBeast() {
+			static if (UseBeast) {
+				open!(BEAST);
+			} else {
+				throw new Exception("can not open beast");
+			}
+		}
+		void openInfo() {
+			static if (UseInfo) {
+				open!(INFO);
+			} else {
+				throw new Exception("can not open info");
+			}
 		}
 	}
 	void createCast() {
