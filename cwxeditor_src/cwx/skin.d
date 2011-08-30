@@ -174,13 +174,13 @@ class Skin {
 				}
 			}
 			foreach (file; list) {
-				if (fnmatch(getExt(file), "exe") && fnstartsWith(file, "CardWirth_")) {
+				if (cfnmatch(getExt(file), "exe") && fnstartsWith(file, "CardWirth_")) {
 					enginePath = join(path, file);
 					return true;
 				}
 			}
 			foreach (file; list) {
-				if (fnmatch(getExt(file), "exe") && fnstartsWith(file, "CW")) {
+				if (cfnmatch(getExt(file), "exe") && fnstartsWith(file, "CW")) {
 					enginePath = join(path, file);
 					return true;
 				}
@@ -504,7 +504,7 @@ class Skin {
 	const
 	bool isSE(string path, bool check = false) {
 		auto ext = getExt(path);
-		if (legacy && !fnmatch(ext, "wav")) return false;
+		if (legacy && !cfnmatch(ext, "wav")) return false;
 		// pygameの仕様で効果音にMP3は使えない
 		switch (toLower(ext)) {
 		case "aiff": // AIFF
@@ -522,9 +522,9 @@ class Skin {
 	const
 	bool isBGM(string path, bool check = false) {
 		auto ext = getExt(path);
-		if (legacy && !fnmatch(ext, "mid")
-				&& !fnmatch(ext, "midi")
-				&& !fnmatch(ext, "mpg")) {
+		if (legacy && !cfnmatch(ext, "mid")
+				&& !cfnmatch(ext, "midi")
+				&& !cfnmatch(ext, "mpg")) {
 			return false;
 		}
 		switch (toLower(ext)) {
@@ -545,7 +545,7 @@ class Skin {
 	const
 	bool isCardImage(string path) {
 		if (isBinImg(path)) return true;
-		if (legacy && !fnmatch(getExt(path), "bmp")) return false;
+		if (legacy && !cfnmatch(getExt(path), "bmp")) return false;
 		try {
 			uint x, y;
 			return imageSize(path, x, y)
@@ -559,14 +559,14 @@ class Skin {
 	const
 	bool isBgImage(string path, bool check = false) {
 		auto ext = getExt(path);
-		if (fnmatch(ext, "jpy1")
-				|| fnmatch(ext, "jptx")
-				|| fnmatch(ext, "jpdc")) {
+		if (cfnmatch(ext, "jpy1")
+				|| cfnmatch(ext, "jptx")
+				|| cfnmatch(ext, "jpdc")) {
 			return true;
 		}
-		if (legacy && !fnmatch(ext, "bmp")
-				&& !fnmatch(ext, "jpg")
-				&& !fnmatch(ext, "jpeg")) {
+		if (legacy && !cfnmatch(ext, "bmp")
+				&& !cfnmatch(ext, "jpg")
+				&& !cfnmatch(ext, "jpeg")) {
 			return false;
 		}
 		if (check) {
@@ -813,7 +813,7 @@ class Skin {
 			auto fd = std.path.join(resourceDir, "Font");
 			foreach (path; clistdir(fd)) {
 				path = std.path.join(fd, path);
-				if (!isdir(path) && fnmatch(getExt(path), _resExtImg)) {
+				if (!isdir(path) && cfnmatch(getExt(path), _resExtImg)) {
 					_spChars[toUniUpper(toUTF32(getBaseName(path))[0])] = path;
 				}
 			}

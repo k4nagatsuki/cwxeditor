@@ -384,7 +384,7 @@ private:
 				}
 				int count = 0;
 				int oldC = _files.getItemCount;
-				bool sp = cast(bool) std.path.fnmatch(nabs(path), nabs(_summ.scenarioPath));
+				bool sp = cast(bool) cfnmatch(nabs(path), nabs(_summ.scenarioPath));
 				Skin skin = _comm.skin;
 				foreach (i, p; list) {
 					if (sp) {
@@ -436,12 +436,12 @@ private:
 	bool addp(T)(T parItm, string path, string sel, string top, ref TreeItem topItm) {
 		auto itm = new TreeItem(parItm, SWT.NONE);
 		auto full = nabs(path);
-		if (fnmatch("A", "a") ? _cuts.contains(cwx.utils.toLower(full)) : _cuts.contains(full)) {
+		if (cfnmatch("A", "a") ? _cuts.contains(cwx.utils.toLower(full)) : _cuts.contains(full)) {
 			itm.setImage = _sImgFolder;
 		} else {
 			itm.setImage = _prop.images.folder;
 		}
-		bool sp = cast(bool) std.path.fnmatch(full, nabs(_summ.scenarioPath));
+		bool sp = cast(bool) cfnmatch(full, nabs(_summ.scenarioPath));
 		if (sp) {
 			itm.setText = "Scenario";
 		} else {
@@ -465,11 +465,11 @@ private:
 		}
 		if (sel) {
 			auto absp = nabs(path);
-			if (std.path.fnmatch(sel, absp)) {
+			if (cfnmatch(sel, absp)) {
 				itm.getParent.setSelection(itm);
 				s = true;
 			}
-			if (top && !topItm && std.path.fnmatch(nabs(top), absp)) {
+			if (top && !topItm && cfnmatch(nabs(top), absp)) {
 				topItm = itm;
 			}
 		}
@@ -523,7 +523,7 @@ private:
 			return _prop.images.bgm;
 		} else if (skin.isSE(file)) {
 			return _prop.images.se;
-		} else if (fnmatch(file.getExt, "txt")) {
+		} else if (cfnmatch(file.getExt, "txt")) {
 			return _prop.images.text;
 		} else {
 			return _prop.images.unknown;
@@ -561,14 +561,14 @@ private:
 			return _sImgBgm;
 		} else if (skin.isSE(file)) {
 			return _sImgSe;
-		} else if (fnmatch(file.getExt, "txt")) {
+		} else if (cfnmatch(file.getExt, "txt")) {
 			return _sImgText;
 		} else {
 			return _sImgUnknown;
 		}
 	}
 	private bool isCutted(string file) {
-		static if (fnmatch("A", "a")) {
+		static if (cfnmatch("A", "a")) {
 			file = cwx.utils.toLower(file);
 			file = file.nabs;
 			return _cuts.contains(file);
@@ -599,7 +599,7 @@ private:
 				auto path = (cast(FileNameObj) _files.getItem(index).getData).array;
 				if (.isdir(path)) {
 					foreach (itm; _dirs.getSelection[0].getItems) {
-						if (std.path.fnmatch((cast(FileNameObj) itm.getData).array, path)) {
+						if (cfnmatch((cast(FileNameObj) itm.getData).array, path)) {
 							_dirs.setSelection = itm;
 							refreshFiles([]);
 							return;
@@ -689,7 +689,7 @@ private:
 			scope (exit) resumeTrace;
 			fromOut = false;
 			scope pfull = nabs(_summ.scenarioPath);
-			bool top = cast(bool) std.path.fnmatch(nabs(targ), pfull);
+			bool top = cast(bool) cfnmatch(nabs(targ), pfull);
 			try {
 				string[] paths;
 				string[] exists;
@@ -710,8 +710,8 @@ private:
 						bool tisdir = cast(bool) isdir(to);
 						if (tisdir ==  cast(bool) isdir(file)) {
 							auto par = getDirName(file);
-							if (std.path.fnmatch(par, targ)) {
-								if (!move && !(fnmatch("A", "a")
+							if (cfnmatch(par, targ)) {
+								if (!move && !(cfnmatch("A", "a")
 										? _cuts.contains(cwx.utils.toLower(file)) : _cuts.contains(file))) {
 									copys ~= file;
 								}
@@ -740,7 +740,7 @@ private:
 				string dir = null;
 				string[] selfs;
 				foreach (file; paths) {
-					bool fout = !(fnmatch("A", "a")
+					bool fout = !(cfnmatch("A", "a")
 						? _cuts.contains(cwx.utils.toLower(file))
 						: _cuts.contains(file))
 						&& (!move || !hasPath(pfull, file));
@@ -775,7 +775,7 @@ private:
 								_comm.refPath.call(p1, p2, false);
 								std.file.rename(from, to);
 							}
-							if (std.path.fnmatch(parent, targ)) selfs ~= to;
+							if (cfnmatch(parent, targ)) selfs ~= to;
 						}
 					}
 					copy(targ, file);
@@ -945,7 +945,7 @@ private:
 	void __refPaths(Object sender, string parent) {
 		if (sender !is this) {
 			refreshDirs(selDirPath);
-			if (selDirPath && std.path.fnmatch(toRelPath(selDirPath), parent)) {
+			if (selDirPath && cfnmatch(toRelPath(selDirPath), parent)) {
 				refreshFiles(selFiles);
 			}
 		}
@@ -1067,7 +1067,7 @@ private:
 		refreshDirs(selDirPath);
 		refreshFiles(files);
 		foreach (itm; _files.getItems) {
-			if (std.path.fnmatch((cast(FileNameObj) itm.getData).array, fp)) {
+			if (cfnmatch((cast(FileNameObj) itm.getData).array, fp)) {
 				.forceFocus(_files);
 				_filesEdit.startEdit(itm);
 				break;
@@ -1710,7 +1710,7 @@ public:
 	private bool selectImpl(T)(T tree, string path) {
 		foreach (itm; tree.getItems) {
 			auto fno = cast(FileNameObj) itm.getData;
-			if (fnmatch(fno.array, path)) {
+			if (cfnmatch(fno.array, path)) {
 				_dirs.select = itm;
 				refreshFiles(selFiles);
 				return true;
@@ -1733,7 +1733,7 @@ public:
 					if (!isdir) {
 						foreach (i, itm; _files.getItems) {
 							auto fno = cast(FileNameObj) itm.getData;
-							if (fnmatch(fno.array, path)) {
+							if (cfnmatch(fno.array, path)) {
 								_files.select = i;
 								_files.showSelection;
 								return true;
@@ -1853,7 +1853,7 @@ public:
 			if (_dirs.isFocusControl) {
 				auto dir = selDirPath;
 				_dirs.getSelection[0].setImage = sfimage(dir);
-				static if (fnmatch("A", "a")) {
+				static if (cfnmatch("A", "a")) {
 					_cuts.add(cwx.utils.toLower(nabs(dir)));
 				} else {
 					_cuts.add(nabs(dir));
@@ -1864,7 +1864,7 @@ public:
 				foreach (itm; _files.getSelection) {
 					auto p = (cast(FileNameObj) itm.getData).array;
 					itm.setImage = sfimage(itm.getImage);
-					static if (fnmatch("A", "a")) {
+					static if (cfnmatch("A", "a")) {
 						_cuts.add(cwx.utils.toLower(nabs(p)));
 					} else {
 						_cuts.add(nabs(p));

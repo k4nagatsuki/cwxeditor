@@ -253,7 +253,7 @@ bool iendsWith(string a, string b) {
 /// pathがlistに含まれていればtrueを返す。
 bool containsPath(in string[] list, string path) {
 	foreach (l; list) {
-		if (fnmatch(path, l)) return true;
+		if (cfnmatch(path, l)) return true;
 	}
 	return false;
 } unittest {
@@ -263,7 +263,7 @@ bool containsPath(in string[] list, string path) {
 
 /// ファイルパスに対応したstartsWith。
 bool fnstartsWith(string a, string b) {
-	static if (fnmatch("A", "a")) {
+	static if (cfnmatch("A", "a")) {
 		return istartsWith(a, b);
 	} else {
 		return startsWith(a, b);
@@ -272,7 +272,7 @@ bool fnstartsWith(string a, string b) {
 
 /// ファイルパスに対応したendsWith。
 bool fnendsWith(string a, string b) {
-	static if (fnmatch("A", "a")) {
+	static if (cfnmatch("A", "a")) {
 		return iendsWith(a, b);
 	} else {
 		return endsWith(a, b);
@@ -344,7 +344,7 @@ string abs2rel(string base, string path) {
 	auto pathsp = std.array.split(path, sep);
 	size_t df = 0;
 	foreach (i, b; basesp) {
-		if (i >= pathsp.length || !fnmatch(b, pathsp[i])) {
+		if (i >= pathsp.length || !cfnmatch(b, pathsp[i])) {
 			df = i;
 			break;
 		}
@@ -1067,7 +1067,7 @@ bool contains(string pred = "a == b", T)(in T[] arr, in T a) {
 	return false;
 }
 
-static if (fnmatch("A", "a")) {
+static if (cfnmatch("A", "a")) {
 	/// ファイル名を比較する。
 	alias icmp fncmp;
 } else {
@@ -1288,15 +1288,15 @@ private struct FCPt {
 	}
 	const
 	bool opEquals(ref const(FCPt) s) {
-		auto r = fnmatch(getBaseName(s.path), getBaseName(path));
+		auto r = cfnmatch(getBaseName(s.path), getBaseName(path));
 		if (r) {
-			r = fnmatch(getDirName(s.path), getDirName(path));
+			r = cfnmatch(getDirName(s.path), getDirName(path));
 		}
 		return r;
 	}
 	const
 	int opCmp(ref const(FCPt) s) {
-		static if (fnmatch("A", "a")) {
+		static if (cfnmatch("A", "a")) {
 			alias std.string.icmp cp;
 		} else {
 			alias std.string.cmp cp;
@@ -1707,4 +1707,9 @@ string astripr(string s) {
 		}
 	}
 	return "";
+}
+
+/// '[' ']'を含むファイル名が存在するため、fnmatchの代替を用意する必要がある。
+bool cfnmatch(string a, string b) {
+	return a.fnmatch(b.replace("[", "[[]"));
 }

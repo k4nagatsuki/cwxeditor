@@ -2077,7 +2077,7 @@ public:
 			p = nabs(p);
 			foreach (t; _comm.skin.tables) {
 				strs ~= t;
-				if (fnmatch(p, nabs(std.path.join(_comm.skin.tableDir, t)))) {
+				if (cfnmatch(p, nabs(std.path.join(_comm.skin.tableDir, t)))) {
 					str = t;
 				}
 			}
@@ -2093,7 +2093,7 @@ public:
 						if (containsPath(_prop.var.etc.ignorePaths, file)) continue;
 						sFile = encodePath(sFile);
 						strs ~= sFile;
-						if (fnmatch(p, nabs(full))) {
+						if (cfnmatch(p, nabs(full))) {
 							str = sFile;
 						}
 					}
@@ -3191,7 +3191,7 @@ FlexImage createBackgroundImage
 		(Skin skin, string path, int x, int y, int w, int h, bool transparent) {
 	FlexImage r;
 	auto ext = getExt(path);
-	if (fnmatch(ext, "jpy1") || fnmatch(ext, "jptx") || fnmatch(ext, "jpdc")) {
+	if (cfnmatch(ext, "jpy1") || cfnmatch(ext, "jptx") || cfnmatch(ext, "jpdc")) {
 		auto data = loadJPYImage(skin, path, []);
 		r = new FlexImage(data, x, y, data.width, data.height);
 	} else {

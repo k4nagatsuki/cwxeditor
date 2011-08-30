@@ -201,7 +201,7 @@ public:
 		void playBGM() {
 			if (!_playing) {
 				string p = filePath;
-				if (p.length > 0 && !fnmatch(nabs(p), nabs(_playing))) {
+				if (p.length > 0 && !cfnmatch(nabs(p), nabs(_playing))) {
 					_playing = p;
 					if (_bgmMenu) {
 						_bgmMenu.setText = _prop.msgs.menuStopBGM(p);
@@ -546,7 +546,7 @@ private:
 				refreshList();
 				int selIndex = -1;
 				foreach (i, itm; _fileList.getItems) {
-					if (fnmatch(fileText(itm), file)) {
+					if (cfnmatch(fileText(itm), file)) {
 						selIndex = i;
 						break;
 					}
@@ -631,7 +631,7 @@ private:
 	}
 	int indexOf(T)(T list, string path) {
 		foreach (i, s; list.getItems) {
-			if (fnmatch(fileText(s), path)) {
+			if (cfnmatch(fileText(s), path)) {
 				return i;
 			}
 		}
@@ -657,7 +657,7 @@ private:
 		string[] tgs;
 		foreach (path; paths) {
 			string parent;
-			if (fnmatch(path, defDir)) {
+			if (cfnmatch(path, defDir)) {
 				parent = "";
 			} else {
 				assert (_summ);
@@ -860,7 +860,7 @@ private:
 			if (o == _path) _path = n;
 			int di = _dirs.getSelectionIndex;
 			auto op = o;
-			if (di >= 0 && fnmatch(fromViewPath(_dirs.getItems[di]), getDirName(o))) {
+			if (di >= 0 && cfnmatch(fromViewPath(_dirs.getItems[di]), getDirName(o))) {
 				int index = flIndexOf(getBaseName(o));
 				if (index >= 0) {
 					string nName = getBaseName(n);

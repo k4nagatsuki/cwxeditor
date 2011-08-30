@@ -40,7 +40,7 @@ Skin findSkin(S = Summary)(Commons comm, Props prop, in S summ, bool appendClass
 				if (!skin.legacyEngine.length) return;
 				auto lEngine = nabs(skin.legacyEngine);
 				foreach (ce; prop.var.etc.classicEngines) {
-					if (fnmatch(nabs(ce.enginePath), lEngine)) {
+					if (cfnmatch(nabs(ce.enginePath), lEngine)) {
 						skin = createClassicSkin(prop, ce);
 						return;
 					}

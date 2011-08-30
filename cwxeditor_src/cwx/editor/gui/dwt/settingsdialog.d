@@ -225,7 +225,7 @@ private:
 	string dropEngine(string[] files) {
 		if (!files.length) return "";
 		string file = files[0];
-		if (fnmatch(getBaseName(file), _prop.var.etc.engine)) {
+		if (cfnmatch(getBaseName(file), _prop.var.etc.engine)) {
 			return file;
 		} else {
 			return "";

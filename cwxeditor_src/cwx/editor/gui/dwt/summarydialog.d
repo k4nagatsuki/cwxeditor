@@ -136,7 +136,7 @@ private:
 
 			auto skin = selectedSkin;
 			auto path = nabs(skin.findImagePath(_imgPath.image, _summ.scenarioPath));
-			if (!_bufImagePath || !_summImageBuf || !.fnmatch(_bufImagePath, path)) {
+			if (!_bufImagePath || !_summImageBuf || !.cfnmatch(_bufImagePath, path)) {
 				if (_summImageBuf) _summImageBuf.dispose();
 				_bufImagePath = path;
 				_summImageBuf = new Image(d, summary(skin));
@@ -520,10 +520,10 @@ private:
 			bool cur = 0 != lEnginePath.length;
 			foreach (i, ce; _prop.var.etc.classicEngines) {
 				_type.add(ce.name);
-				if (selClassic && fnmatch(selClassic, _prop.toAppAbs(ce.enginePath))) {
+				if (selClassic && cfnmatch(selClassic, _prop.toAppAbs(ce.enginePath))) {
 					_type.select = i;
 				}
-				if (cur && fnmatch(lEnginePath, _prop.toAppAbs(ce.enginePath))) {
+				if (cur && cfnmatch(lEnginePath, _prop.toAppAbs(ce.enginePath))) {
 					cur = false;
 					if (-1 == _type.getSelectionIndex) _type.select = i;
 				}
@@ -608,7 +608,7 @@ protected:
 		string oldResDir = nabs(_comm.skin.resDir);
 		scope (exit) {
 			if (oldName != _summ.scenarioName) _comm.refScenarioName.call;
-			if (!fnmatch(oldResDir, nabs(_comm.skin.resDir))) _comm.refSkin.call(this);
+			if (!cfnmatch(oldResDir, nabs(_comm.skin.resDir))) _comm.refSkin.call(this);
 			_comm.refUseCount.call;
 		}
 		setNames(_summ.skills);
