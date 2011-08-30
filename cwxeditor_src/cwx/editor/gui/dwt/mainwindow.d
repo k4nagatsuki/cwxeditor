@@ -307,7 +307,7 @@ private:
 			_openPaths, &openScenarioImpl);
 	}
 	void openScenario(string fname) {
-		if (fnmatch(getExt(fname), "wsm") && !.exists(fname)) {
+		if (cfnmatch(getExt(fname), "wsm") && !.exists(fname)) {
 			fname = getDirName(fname);
 		}
 		decScenarioPath(fname, _openPaths);
@@ -529,7 +529,7 @@ private:
 		hist = nabs(hist);
 		_prop.var.etc.scenarioPath = summary.useTemp ? getDirName(hist) : getDirName(getDirName(hist));
 		foreach (i, h; _prop.var.etc.openHistories) {
-			if (std.path.fnmatch(h, hist)) {
+			if (cfnmatch(h, hist)) {
 				_prop.var.etc.openHistories
 					= _prop.var.etc.openHistories[0 .. i] ~ _prop.var.etc.openHistories[i + 1 .. $];
 				break;
@@ -546,18 +546,18 @@ private:
 		this(Menu menu, int num, string hist) {
 			string text;
 			Image img;
-			if (std.path.fnmatch(getBaseName(hist), "Summary.xml")) {
+			if (cfnmatch(getBaseName(hist), "Summary.xml")) {
 				text = cuthist(hist[0u .. $ - "Summary.xml".length - std.path.sep.length],
 					_prop.var.etc.historySnipLength);
 				img = _prop.images.summaryFile;
-			} else if (fnmatch(getExt(hist), "wsn")) {
+			} else if (cfnmatch(getExt(hist), "wsn")) {
 				text = cuthist(hist, _prop.var.etc.historySnipLength);
 				img = _prop.images.scenarioArchive;
-			} else if (std.path.fnmatch(getBaseName(hist), "Summary.wsm")) {
+			} else if (cfnmatch(getBaseName(hist), "Summary.wsm")) {
 				text = cuthist(hist[0u .. $ - "Summary.wsm".length - std.path.sep.length],
 					_prop.var.etc.historySnipLength);
 				img = _prop.images.classic;
-			} else if (fnmatch(getExt(hist), "cab") || fnmatch(getExt(hist), "zip")) {
+			} else if (cfnmatch(getExt(hist), "cab") || cfnmatch(getExt(hist), "zip")) {
 				text = cuthist(hist, _prop.var.etc.historySnipLength);
 				img = _prop.images.scenarioArchive;
 			} else {
@@ -748,7 +748,7 @@ public:
 			path1 = nabs(firstScenarioPath);
 			auto ext = getExt(path1);
 			if (!.isdir(path1)
-					&& (fnmatch(ext, "xml") || fnmatch(ext, "wsm") || fnmatch(ext, "wid"))) {
+					&& (cfnmatch(ext, "xml") || cfnmatch(ext, "wsm") || cfnmatch(ext, "wid"))) {
 				path1 = nabs(getDirName(path1));
 			}
 		}
@@ -770,7 +770,7 @@ public:
 				if (!WriteFile(p, send.ptr, send.length, &len, null)) continue;
 				if (!ReadFile(p, buf.ptr, buf.length, &len, null)) continue;
 				auto path2 = nabs(buf[0 .. len]);
-				if (!fnmatch(path1, path2)) continue;
+				if (!cfnmatch(path1, path2)) continue;
 				send = "open cwxpath ";
 				foreach (j, s; openPaths) {
 					if (j > 0) send ~= ";";
@@ -800,7 +800,7 @@ public:
 				int len = cread(p, buf.ptr, buf.length);
 				if (-1 == len) continue;
 				auto path2 = nabs(buf[0 .. len]);
-				if (!fnmatch(path1, path2)) continue;
+				if (!cfnmatch(path1, path2)) continue;
 				send = "open cwxpath ";
 				foreach (j, s; openPaths) {
 					if (j > 0) send ~= ";";

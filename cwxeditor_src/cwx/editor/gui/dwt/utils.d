@@ -108,9 +108,9 @@ public:
 
 bool dwtImageSize(Skin skin, string path, out uint width, out uint height) {
 	auto ext = getExt(path);
-	if (std.path.fnmatch(ext, "jpy1")
-			|| std.path.fnmatch(ext, "jptx")
-			|| std.path.fnmatch(ext, "jpdc")) {
+	if (cfnmatch(ext, "jpy1")
+			|| cfnmatch(ext, "jptx")
+			|| cfnmatch(ext, "jpdc")) {
 		auto img = loadJPYImage(skin, path, []);
 		if (img) {
 			width = img.width;
@@ -132,9 +132,9 @@ ImageData loadImage(Skin skin, string path, bool mask = true, int maskX = 0, int
 	}
 	if (path !is null && path.length > 0) {
 		string ext = std.path.getExt(path);
-		if (std.path.fnmatch(ext, "jpy1")
-				|| std.path.fnmatch(ext, "jptx")
-				|| std.path.fnmatch(ext, "jpdc")) {
+		if (cfnmatch(ext, "jpy1")
+				|| cfnmatch(ext, "jptx")
+				|| cfnmatch(ext, "jpdc")) {
 			auto data = loadJPYImage(skin, path, stratum);
 			if (mask) data.transparentPixel = data.getPixel(maskX, maskY);
 			return data;
@@ -1686,7 +1686,7 @@ S[] loadScenarios(S)(Props prop, Shell w, void delegate(string) status,
 		put.loaded = loaded;
 		auto files = new HashSet!(string);
 		foreach (file; dlg.getFileNames) {
-			if (fnmatch(getExt(file), "wid")) {
+			if (cfnmatch(getExt(file), "wid")) {
 				file = getDirName(file);
 			}
 			files.add(nabs(std.path.join(dlg.getFilterPath, file)));

@@ -30,11 +30,11 @@ import org.eclipse.swt.graphics.Font;
 ImageData loadJPYImage(Skin skin, string path, string[] stratum) {
 	auto ext = getExt(path);
 	try {
-		if (fnmatch(ext, "jpy1")) {
+		if (cfnmatch(ext, "jpy1")) {
 			return loadJPYImageImpl(skin, path, stratum);
-		} else if (fnmatch(ext, "jptx")) {
+		} else if (cfnmatch(ext, "jptx")) {
 			return loadJPTXImage(path);
-		} else if (fnmatch(ext, "jpdc")) {
+		} else if (cfnmatch(ext, "jpdc")) {
 			return loadJPDCImage(path);
 		}
 	} catch (Exception e) {
@@ -65,7 +65,7 @@ private ImageData loadJPYImageImpl(Skin skin, string path, string[] stratum) {
 			auto p = sec.loadcache in cache;
 			data = p ? *p : null;
 		}
-		if (!data && sec.filename.length && !fnmatch(getExt(sec.filename), "wav")) {
+		if (!data && sec.filename.length && !cfnmatch(getExt(sec.filename), "wav")) {
 			string dir;
 			switch (sec.dirtype) {
 			case Dirtype.CURRENT: {

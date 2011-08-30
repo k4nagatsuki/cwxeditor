@@ -2718,7 +2718,7 @@ FlexImage createBackgroundImage
 		(Skin skin, string path, int x, int y, int w, int h, bool transparent) {
 	FlexImage r;
 	auto ext = getExt(path);
-	if (fnmatch(ext, "jpy1") || fnmatch(ext, "jptx") || fnmatch(ext, "jpdc")) {
+	if (cfnmatch(ext, "jpy1") || cfnmatch(ext, "jptx") || cfnmatch(ext, "jpdc")) {
 		auto data = loadJPYImage(skin, path, []);
 		r = new FlexImage(data, x, y, data.width, data.height);
 	} else {

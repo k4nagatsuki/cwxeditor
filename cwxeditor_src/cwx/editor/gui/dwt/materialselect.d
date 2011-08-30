@@ -307,7 +307,7 @@ private:
 	}
 	int indexOf(T)(T list, string path) {
 		foreach (i, s; list.getItems) {
-			if (fnmatch(s, path)) {
+			if (cfnmatch(s, path)) {
 				return i;
 			}
 		}
@@ -491,7 +491,7 @@ private:
 			if (o == _path) _path = n;
 			int di = _dirs.getSelectionIndex;
 			auto op = o;
-			if (di >= 0 && fnmatch(fromViewPath(_dirs.getItems[di]), getDirName(o))) {
+			if (di >= 0 && cfnmatch(fromViewPath(_dirs.getItems[di]), getDirName(o))) {
 				int index = flIndexOf(getBaseName(o));
 				if (index >= 0) {
 					string nName = getBaseName(n);

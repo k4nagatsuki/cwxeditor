@@ -112,7 +112,7 @@ ZipArchive zip(string targ, bool top, string[] excludePath = [], bool useSysEnc 
 	size_t cut;
 	void archive(string file) {
 		foreach (ex; excludePath) {
-			if (fnmatch(file, ex)) return;
+			if (cfnmatch(file, ex)) return;
 		}
 		if (isdir(file)) {
 			string[] list = clistdir(file);

@@ -135,7 +135,7 @@ S loadLScenario(S)(string p, string skin, string newName = null) {
 	auto load1 = new Load;
 	auto load2 = new Load;
 	foreach (file; clistdir(sPath)) {
-		if (fnmatch(getExt(file), "wid")) {
+		if (cfnmatch(getExt(file), "wid")) {
 			file = std.path.join(sPath, file);
 			auto size = std.file.getSize(file);
 			if (load1.wait < load2.wait) {
@@ -1608,7 +1608,7 @@ void saveLScenario(Summary summ, bool saveInnerImagePath = false) {
 	}
 	scope regex = std.regexp.RegExp("^(Area|Battle|Package|Mate|Skill|Item|Beast|Info)[0-9]+\\.wid$");
 	foreach (file; clistdir(d.sPath)) {
-		if (regex.test(file, 0) || std.path.fnmatch(file, "Summary.wsm")) {
+		if (regex.test(file, 0) || cfnmatch(file, "Summary.wsm")) {
 			scope path = std.path.join(d.sPath, file);
 			preRemove(path);
 			std.file.remove(path);

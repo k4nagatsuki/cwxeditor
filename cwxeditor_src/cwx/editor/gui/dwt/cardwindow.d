@@ -489,7 +489,7 @@ private:
 	}
 	bool __qMaterialCopy(in XNode node, C[] cs) {
 		string fromSPath = node.attr("scenarioPath", false);
-		if (fromSPath.length > 0 && !std.path.fnmatch(fromSPath, nabs(ownerScenarioPath))) {
+		if (fromSPath.length > 0 && !cfnmatch(fromSPath, nabs(ownerScenarioPath))) {
 			scope uc = new UseCounter;
 			foreach (c; cs) {
 				c.setUseCounter = uc;

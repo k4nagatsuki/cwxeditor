@@ -142,6 +142,11 @@ string bImgToStr(byte[] bimg) {
 	return B_IMG ~ std.base64.encode(cast(string) bimg);
 }
 
+/// '[' ']'を含むファイル名が存在するため、fnmatchの代替を用意する必要がある。
+int cfnmatch(string a, string b) {
+	return fnmatch(a, replace(b, "[", "[[]"));
+}
+
 /// 16進数文字列xを整数に変換する。
 int xtoi(string x) {
 	int i = 0;
@@ -252,7 +257,7 @@ bool iendsWith(string a, string b) {
 /// pathがlistに含まれていればtrueを返す。
 bool containsPath(string[] list, string path) {
 	foreach (l; list) {
-		if (fnmatch(path, l)) return true;
+		if (cfnmatch(path, l)) return true;
 	}
 	return false;
 } unittest {
@@ -355,7 +360,7 @@ string abs2rel(string base, string path) {
 	auto pathsp = std.string.split(path, sep);
 	size_t df = 0;
 	foreach (i, b; basesp) {
-		if (i >= pathsp.length || !fnmatch(b, pathsp[i])) {
+		if (i >= pathsp.length || !cfnmatch(b, pathsp[i])) {
 			df = i;
 			break;
 		}
@@ -1326,9 +1331,9 @@ private struct FCPt {
 		return r;
 	}
 	int opEquals(FCPt* s) {
-		int r = fnmatch(getBaseName(s.path), getBaseName(path));
+		int r = cfnmatch(getBaseName(s.path), getBaseName(path));
 		if (r) {
-			r = fnmatch(getDirName(s.path), getDirName(path));
+			r = cfnmatch(getDirName(s.path), getDirName(path));
 		}
 		return r;
 	}

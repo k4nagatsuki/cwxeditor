@@ -500,7 +500,7 @@ struct PathId {
 		if (isBinImg) {
 			s = binImg;
 		} else {
-			static if (fnmatch("a", "A")) {
+			static if (fnmatch("A", "a")) {
 				s = toLower(id);
 			} else {
 				s = id;
@@ -515,7 +515,7 @@ struct PathId {
 		return opEquals(&s);
 	}
 	int opEquals(PathId* s) {
-		return (isBinImg || s.isBinImg) ? binImg == s.binImg : std.path.fnmatch(this.id, s.id);
+		return (isBinImg || s.isBinImg) ? binImg == s.binImg : cfnmatch(this.id, s.id);
 	}
 	int opCmp(PathId s) {
 		return opCmp(&s);
@@ -532,7 +532,7 @@ struct PathId {
 			if (binImg.length > s.binImg.length) return 1;
 			return 0;
 		}
-		static if (fnmatch("a", "A")) {
+		static if (fnmatch("A", "a")) {
 			return std.string.icmp(this.id, s.id);
 		} else {
 			return std.string.cmp(this.id, s.id);
