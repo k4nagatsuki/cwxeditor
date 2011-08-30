@@ -771,7 +771,7 @@ public:
 			return "効果中断コンテント";
 		} case CType.LINK_START: {
 			if (evt.start is null || !evt.start.length) return "スタートコンテント指定無し";
-			return evt.tree.hasStart(evt.start)
+			return !evt.tree.hasStart(evt.start)
 				? .format("存在しないスタートコンテント(名称:%s)", evt.start) : "スタートコンテント「" ~ evt.start ~ "」へのリンク";
 		} case CType.LINK_PACKAGE: {
 			if (0 == evt.packages) return "パッケージ指定無し";
@@ -819,7 +819,7 @@ public:
 			return "ターン数経過コンテント";
 		} case CType.CALL_START: {
 			if (evt.start is null || !evt.start.length) return "スタートコンテント指定無し";
-			return evt.tree.hasStart(evt.start) ? .format("存在しないスタートコンテント(名称:%s)", evt.start) : "スタートコンテント「" ~ evt.start ~ "」のコール";
+			return !evt.tree.hasStart(evt.start) ? .format("存在しないスタートコンテント(名称:%s)", evt.start) : "スタートコンテント「" ~ evt.start ~ "」のコール";
 		} case CType.CALL_PACKAGE: {
 			if (0 == evt.packages) return "パッケージ指定無し";
 			auto p = summ.packages(evt.packages);
