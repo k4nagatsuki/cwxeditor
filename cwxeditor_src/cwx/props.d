@@ -1899,7 +1899,7 @@ public:
 	const string menuOpenEventTreeView() {return ttOpenEventTreeView ~ "(&V)";}
 
 	const string ttWriteComment() {return "コメントを記述";}
-	const string menuWriteComment() {return ttWriteComment ~ "(&M)";}
+	const string menuWriteComment() {return ttWriteComment ~ "(&M)\tCtrl+M";}
 	const string dlgTitComment() {return "コメントの記述";}
 
 	/// カードウィンドウ。

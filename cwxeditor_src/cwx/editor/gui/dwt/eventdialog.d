@@ -116,6 +116,59 @@ abstract class EventDialog : AbsDialog {
 	protected void refSkin() {}
 }
 
+class ContentCommentDialog : AbsDialog {
+	private Commons _comm;
+	private Props _prop;
+	private Content _parent;
+	private Content _evt;
+	private Text _comment;
+
+	private class Dispose : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			_comm.delContent.remove(&delContent);
+		}
+	}
+	private void delContent(Content c) {
+		if ((_evt && _evt.isDescendant(c)) || (_parent && _parent.isDescendant(c))) {
+			forceCancel();
+		}
+	}
+
+	this (Commons comm, Props prop, Shell shell, Content parent, Content evt) in {
+		assert (evt);
+	} body {
+		super (prop, shell, false, prop.msgs.dlgTitComment, prop.images.menuWriteComment, true, prop.var.commentDlg, true);
+		_comm = comm;
+		_prop = prop;
+		_parent = parent;
+		_evt = evt;
+		_comm.delContent.add(&delContent);
+		getShell.addDisposeListener(new Dispose);
+	}
+
+	override void setup(Composite area) {
+		auto cl = new CenterLayout;
+		cl.fillHorizontal = true;
+		cl.fillVertical = true;
+		area.setLayout = cl;
+		_comment = new Text(area, SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
+		mod(_comment);
+		_comment.setText = _evt.comment;
+		auto font = _comment.getFont;
+		auto fSize = font ? cast(uint) font.getFontData[0].height : 0;
+		_comment.setFont = new Font(Display.getCurrent, dwtData(_prop.looks.textDlgFont(fSize)));
+		_comment.setSelection = _comment.getText.length;
+		closeEvent ~= () {
+			_comment.getFont.dispose;
+		};
+	}
+
+	override bool apply() {
+		_evt.comment = lastRet(wrapReturnCode(_comment.getText));
+		return true;
+	}
+}
+
 /// エリア・バトル・パッケージ・キャスト・情報の選択を行うダイアログ。
 class AreaSelectDialog(CType Type, A, string Areas) : EventDialog {
 private:

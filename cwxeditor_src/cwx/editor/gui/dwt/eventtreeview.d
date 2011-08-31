@@ -1266,6 +1266,9 @@ private:
 			foreach (dlg; _editDlgs.values) {
 				dlg.forceCancel();
 			}
+			foreach (dlg; _commentDlgs.values) {
+				dlg.forceCancel();
+			}
 		}
 	}
 	class TSListener : ShellAdapter {
@@ -1404,17 +1407,6 @@ private:
 			drawStartInfo(e);
 			drawComment(e);
 		}
-	}
-	void writeComment() {
-		auto itm = selection;
-		if (!itm) return;
-		auto c = cast(Content) itm.getData;
-		auto dlg = new TextDialog(_prop, _tree.getShell, _prop.msgs.dlgTitComment, _prop.images.menuWriteComment, c.comment, false, _prop.var.commentDlg);
-		dlg.appliedEvent ~= () {
-			c.comment = lastRet(dlg.text);
-			_tree.redraw();
-		};
-		dlg.open();
 	}
 public:
 	this(Commons comm, Props prop, Summary summ, Composite parent, UndoManager undo,
@@ -1742,6 +1734,30 @@ public:
 		scope (exit) cb.dispose;
 		cb.setContents([new ArrayWrapperString(text ~ "\n")], [TextTransfer.getInstance]);
 	}
+	private ContentCommentDialog[Content] _commentDlgs;
+	void writeComment() {
+		auto itm = selection;
+		if (!itm) return;
+		.forceFocus(_tree);
+		auto c = cast(Content) itm.getData;
+		auto p = c in _commentDlgs;
+		if (p) {
+			p.active();
+			return;
+		}
+		auto dlg = new ContentCommentDialog(_comm, _prop, _tree.getShell, c.parent, c);
+		dlg.appliedEvent ~= &_tree.redraw;
+		auto undo = new UndoContent([c]);
+		dlg.appliedEvent ~= {
+			_undo ~= undo;
+			undo = new UndoContent([c]);
+		};
+		_commentDlgs[c] = dlg;
+		dlg.closeEvent ~= {
+			_commentDlgs.remove(c);
+		};
+		dlg.open();
+	}
 
 	private void refreshConvMenu() {
 		if (!_et || !selection) {
@@ -1809,6 +1825,9 @@ public:
 		_statusLine = "";
 		if (_et !is et) {
 			foreach (dlg; _editDlgs.values) {
+				dlg.forceCancel();
+			}
+			foreach (dlg; _commentDlgs.values) {
 				dlg.forceCancel();
 			}
 			_et = et;

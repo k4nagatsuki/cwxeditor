@@ -122,6 +122,8 @@ public:
 			new MenuItem(me, SWT.SEPARATOR);
 			appendMenuTCPD(_prop, me, this, true, true, true, true);
 			new MenuItem(me, SWT.SEPARATOR);
+			createMenuItem(me, _prop.msgs.menuWriteComment, _prop.images.menuWriteComment, &_eview.writeComment);
+			new MenuItem(me, SWT.SEPARATOR);
 			createMenuItem(me, _prop.msgs.menuToScript, _prop.images.menuToScript, &_eview.toScript);
 			createMenuItem(me, _prop.msgs.menuToScriptAll, _prop.images.menuToScriptAll, &_eview.toScriptAll);
 
@@ -132,6 +134,7 @@ public:
 			putMenuAction(MenuID.Redo, &_eview.redo);
 			putMenuAction(MenuID.Up, &_eview.up);
 			putMenuAction(MenuID.Down, &_eview.down);
+			putMenuAction(MenuID.WriteComment, &_eview.writeComment);
 			putMenuAction(MenuID.ToScript, &_eview.toScript);
 			putMenuAction(MenuID.ToScriptAll, &_eview.toScriptAll);
 		}

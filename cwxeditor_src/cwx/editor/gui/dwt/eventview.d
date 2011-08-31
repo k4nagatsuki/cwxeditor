@@ -1260,6 +1260,9 @@ public:
 	void toScriptAll() {
 		_etree.toScriptAll;
 	}
+	void writeComment() {
+		_etree.writeComment;
+	}
 
 	override {
 		void cut(SelectionEvent se) {

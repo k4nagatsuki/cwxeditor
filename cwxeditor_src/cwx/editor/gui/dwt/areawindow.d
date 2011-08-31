@@ -187,6 +187,8 @@ public:
 			new MenuItem(me, SWT.SEPARATOR);
 			appendMenuTCPD(_prop, me, this, true, true, true, true);
 			new MenuItem(me, SWT.SEPARATOR);
+			createMenuItem(me, _prop.msgs.menuWriteComment, _prop.images.menuWriteComment, &writeComment);
+			new MenuItem(me, SWT.SEPARATOR);
 			createMenuItem(me, _prop.msgs.menuToScript, _prop.images.menuToScript, &toScript);
 			createMenuItem(me, _prop.msgs.menuToScriptAll, _prop.images.menuToScriptAll, &toScriptAll);
 
@@ -200,6 +202,7 @@ public:
 			putMenuAction(MenuID.Up, &up);
 			putMenuAction(MenuID.Down, &down);
 			appendMenuTCPD(_prop, this, this, true, true, true, true);
+			putMenuAction(MenuID.WriteComment, &writeComment);
 			putMenuAction(MenuID.ToScript, &toScript);
 			putMenuAction(MenuID.ToScriptAll, &toScriptAll);
 			putMenuAction(MenuID.Refresh, &refresh);
@@ -303,11 +306,15 @@ public:
 
 	private void toScript() {
 		_eview.initial;
-		_eview.toScript;
+		_eview.toScript();
 	}
 	private void toScriptAll() {
 		_eview.initial;
-		_eview.toScriptAll;
+		_eview.toScriptAll();
+	}
+	private void writeComment() {
+		_eview.initial;
+		_eview.writeComment();
 	}
 
 	override {

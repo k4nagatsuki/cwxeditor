@@ -757,6 +757,20 @@ private:
 	Premium _premi = Premium.NORMAL;
 	MotionUser _muser;
 	AbstractEventTreeOwner _ceto;
+	class CETO : AbstractEventTreeOwner {
+		const
+		override bool canHasFireEnter() {return false;}
+		const
+		override bool canHasFireLose() {return false;}
+		const
+		override bool canHasFireEscape() {return false;}
+		const
+		override bool canHasFireRound() {return false;}
+		const
+		override bool canHasFireKeyCode() {return false;}
+		override size_t[] areaPath() {return [0];}
+		string cwxPath() {return this.outer.cwxPath;}
+	}
 public:
 	/// 唯一のコンストラクタ。
 	/// Params:
@@ -766,20 +780,7 @@ public:
 	/// desc = 解説。
 	this(ulong id, string name, string imagePath, string desc) {
 		super(id, name, imagePath, desc);
-		_ceto = new class AbstractEventTreeOwner {
-			const
-			override bool canHasFireEnter() {return false;}
-			const
-			override bool canHasFireLose() {return false;}
-			const
-			override bool canHasFireEscape() {return false;}
-			const
-			override bool canHasFireRound() {return false;}
-			const
-			override bool canHasFireKeyCode() {return false;}
-			override size_t[] areaPath() {return [0];}
-			string cwxPath() {return this.outer.cwxPath;}
-		};
+		_ceto = new CETO;
 		_muser = new MotionUser(this);
 		_se1 = new PathUser(this);
 		_se2 = new PathUser(this);

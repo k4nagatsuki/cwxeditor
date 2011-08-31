@@ -222,14 +222,15 @@ private:
 		}
 	}
 	static if (is(A == Battle)) {
+		class MCWXPath : CWXPath {
+			override string cwxPath() {return "";}
+			override CWXPath findCWXPath(string path) {return null;}
+			override CWXPath[] cwxChilds() {return [];}
+		}
 		class UndoMusic : AUndo {
 			private PathUser _path;
 			this () {
-				_path = new PathUser(new class CWXPath {
-					override string cwxPath() {return "";}
-					override CWXPath findCWXPath(string path) {return null;}
-					override CWXPath[] cwxChilds() {return [];}
-				});
+				_path = new PathUser(new MCWXPath);
 				if (_summ) _path.setUseCounter(_summ.useCounter.sub);
 				_path.path = _area.music;
 			}

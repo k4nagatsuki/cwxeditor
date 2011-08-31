@@ -99,15 +99,16 @@ abstract class AbsDialog {
 			parent.setLayoutData = gd;
 		}
 		b.setText = text;
-		auto sa = new class SelectionAdapter {
-			private void delegate() push;
-			override void widgetSelected(SelectionEvent e) {
-				push();
-			}
-		};
+		auto sa = new Push;
 		sa.push = push;
 		b.addSelectionListener(sa);
 		return b;
+	}
+	private class Push : SelectionAdapter {
+		private void delegate() push;
+		override void widgetSelected(SelectionEvent e) {
+			push();
+		}
 	}
 	private class Mod : SelectionAdapter, ModifyListener {
 		override void widgetSelected(SelectionEvent e) {
