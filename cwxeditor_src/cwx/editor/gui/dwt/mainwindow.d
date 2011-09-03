@@ -772,7 +772,6 @@ private:
 		mixin (MenuAction!("_menuFile", "New", SWT.PUSH, "createScenario"));
 		mixin (MenuAction!("_menuFile", "Open", SWT.PUSH, "openScenarioM"));
 		mixin (MenuAction!("_menuFile", "Save", SWT.PUSH, "saveScenario"));
-		_menu[MenuID.Save].setAccelerator = 0;
 		mixin (MenuAction!("_menuFile", "SaveA", SWT.PUSH, "saveScenarioA"));
 		new MenuItem(_menuFile, SWT.SEPARATOR);
 		mixin (MenuAction!("_menuFile", "CreateArchive", SWT.PUSH, "_dirWin.createArchive"));
@@ -875,7 +874,7 @@ private:
 				close(pipe);
 			}
 			debug writefln("Exit Pipe Thread");
-		} catch (Throwable e) {
+		} catch (Exception e) {
 			debugln(e);
 		}
 	}
@@ -1412,6 +1411,7 @@ public:
 			override void handleEvent(Event e) {
 				auto fc = d.getFocusControl();
 				if (!fc) return;
+				if (_win is fc.getShell) return;
 				if (!.isDescendant(_win, fc.getShell)) return;
 				int acc = convertAccelerator(_prop.msgs.menuSave);
 				if (eqAcc(acc, e.keyCode, e.character, e.stateMask)) {

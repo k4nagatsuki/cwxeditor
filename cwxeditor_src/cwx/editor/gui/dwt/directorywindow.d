@@ -1362,7 +1362,7 @@ private:
 				}
 			}
 			debug writefln("Exit Trace Thread");
-		} catch (Throwable e) {
+		} catch (Exception e) {
 			debugln(e);
 		}
 	}
