@@ -175,7 +175,68 @@ private:
 		}
 		void refreshRefAreasA(Area a) {refreshRefAreas();}
 		void refreshRefAreasB(Battle a) {refreshRefAreas();}
-		void refreshRefAreasS(string a) {refreshRefAreas();}
+		int refCardIndex() {
+			int partyIndex = 0;
+			static if (UseCards) partyIndex += _area.cards.length;
+			static if (UseBacks) partyIndex += _area.backs.length;
+			return partyIndex;
+		}
+		PileImage createRefCardFromIndex(int i) {
+			auto area = cast(Area) _refTarget;
+			if (area) {
+				return createRefCard(area.cards[i]);
+			}
+			auto battle = cast(Battle) _refTarget;
+			if (battle) {
+				return createRefCard(battle.cards[i]);
+			}
+			assert (0);
+		}
+		void refRefMenuCard(string a) {
+			if (!_refTarget) return;
+			if (!cpeq(_refTarget.cwxPath, cpparent(a))) return;
+			int i = cpindex(cpbottom(a));
+			_imgp.set(refCardIndex + i, createRefCardFromIndex(i));
+			_imgp.redraw();
+		}
+		void addRefMenuCard(string a) {
+			if (!_refTarget) return;
+			if (!cpeq(_refTarget.cwxPath, cpparent(a))) return;
+			int i = cpindex(cpbottom(a));
+			_imgp.insert(refCardIndex + i, createRefCardFromIndex(i));
+			_imgp.redraw();
+		}
+		void delRefMenuCard(string a) {
+			if (!_refTarget) return;
+			if (!cpeq(_refTarget.cwxPath, cpparent(a))) return;
+			int i = cpindex(cpbottom(a));
+			_imgp.remove(refCardIndex + i);
+			_imgp.redraw();
+		}
+		void upRefMenuCards(string a, int[] indices) {
+			if (!_refTarget) return;
+			if (!cpeq(_refTarget.cwxPath, a)) return;
+			auto i2 = indices.dup;
+			i2[] -= 1;
+			indices ~= i2;
+			indices = indices.sort;
+			foreach (i; indices.uniq) {
+				_imgp.set(refCardIndex + i, createRefCardFromIndex(i));
+			}
+			_imgp.redraw();
+		}
+		void downRefMenuCards(string a, int[] indices) {
+			if (!_refTarget) return;
+			if (!cpeq(_refTarget.cwxPath, a)) return;
+			auto i2 = indices.dup;
+			i2[] += 1;
+			indices ~= i2;
+			indices = indices.sort;
+			foreach (i; indices.uniq) {
+				_imgp.set(refCardIndex + i, createRefCardFromIndex(i));
+			}
+			_imgp.redraw();
+		}
 	}
 
 	class AUndo : Undo {
@@ -461,6 +522,7 @@ private:
 						ac.y = c.y;
 						ac.scale = c.scale;
 					} else static assert (0);
+					_comm.refMenuCard.call(ac.cwxPath);
 				}
 				_cs = cs;
 			}
@@ -476,6 +538,7 @@ private:
 					ab.width = b.width;
 					ab.height = b.height;
 					ab.mask = b.mask;
+					_comm.refBgImage.call(ab.cwxPath);
 				}
 				_bs = bs;
 			}
@@ -601,6 +664,7 @@ private:
 			card.y = y;
 			card.scale = scale;
 			refreshControls;
+			_comm.refMenuCard.call(card.cwxPath);
 			callModEvent();
 		}
 		void selectImageC(FlexImage img) {
@@ -661,6 +725,7 @@ private:
 			back.width = w;
 			back.height = h;
 			refreshControls;
+			_comm.refBgImage.call(back.cwxPath);
 			callModEvent();
 		}
 		void selectImageB(FlexImage img) {
@@ -672,6 +737,7 @@ private:
 				back.mask = _maskTMenu.getSelection;
 				_imgp.images[i].transparent = back.mask;
 				_imgp.images[i].createImage;
+				_comm.refBgImage.call(back.cwxPath);
 			}
 			_imgp.redraw;
 			callModEvent();
@@ -719,6 +785,11 @@ private:
 				auto a = cast(FlexImage) _imgp.images[startIndex + i];
 				mixin (N);
 				a.resize(false);
+				static if (is(B : AbstractSpCard)) {
+					_comm.refMenuCard.call(c.cwxPath);
+				} else static if (is(B : BgImage)) {
+					_comm.refBgImage.call(c.cwxPath);
+				} else static assert (0);
 			}
 		}
 		callModEvent();
@@ -886,6 +957,11 @@ private:
 				a.resize;
 				auto c = cs[i - startIndex];
 				mixin (CSet ~ ";");
+				static if (is(T : AbstractSpCard)) {
+					_comm.refMenuCard.call(c.cwxPath);
+				} else static if (is(T : BgImage)) {
+					_comm.refBgImage.call(c.cwxPath);
+				} else static assert (0);
 			}
 		}
 		callModEvent();
@@ -928,6 +1004,11 @@ private:
 				a.resize;
 				auto c = cs[indices[a]];
 				mixin (XC ~ ";");
+				static if (is(T : AbstractSpCard)) {
+					_comm.refMenuCard.call(c.cwxPath);
+				} else static if (is(T : BgImage)) {
+					_comm.refBgImage.call(c.cwxPath);
+				} else static assert (0);
 			}
 		}
 		callModEvent();
@@ -942,6 +1023,7 @@ private:
 					fi.scale = s;
 					fi.resize;
 				}
+				_comm.refMenuCard.call(c.cwxPath);
 			}
 			refreshControls;
 			_imgp.redraw;
@@ -980,6 +1062,7 @@ private:
 				fi.resize;
 				auto a = cs[i];
 				mixin (CSet);
+				_comm.refMenuCard.call(a.cwxPath);
 			}
 		}
 		callModEvent();
@@ -1688,10 +1771,13 @@ public:
 	static if (RefCards) {
 		void addRefCards(C2)(in C2[] cs) {
 			foreach (c; cs) {
-				auto img = createCardImage!PileImage(c, _prop.var.etc.smoothingCard);
-				img.alpha = _prop.var.etc.partyCardAlpha;
-				_imgp.append(img);
+				_imgp.append(createRefCard(c));
 			}
+		}
+		PileImage createRefCard(C2)(in C2 c) {
+			auto img = createCardImage!PileImage(c, _prop.var.etc.smoothingCard);
+			img.alpha = _prop.var.etc.partyCardAlpha;
+			return img;
 		}
 	}
 	void refresh() {
@@ -1898,6 +1984,7 @@ public:
 				c.name = newText;
 				itm.setText(column, c.name);
 				refreshPanel();
+				_comm.refMenuCard.call(c.cwxPath);
 				callModEvent();
 			}
 		} else static if (is(C : EnemyCard)) {
@@ -1911,6 +1998,7 @@ public:
 				c.id = _summ.casts[i].id;
 				itm.setText(column, cardName(c));
 				refreshPanel();
+				_comm.refMenuCard.call(c.cwxPath);
 				callModEvent();
 			}
 			void createEnemyCombo(TableItem itm, int column, out string[] strs, out string str) {
@@ -2067,6 +2155,7 @@ public:
 				itm.setText(column, getBaseName(decodePath(mt)));
 			}
 			refreshPanel();
+			_comm.refBgImage.call(b.cwxPath);
 			callModEvent();
 		}
 		void createBgImageCombo(TableItem itm, int column, out string[] strs, out string str) {
@@ -2246,18 +2335,22 @@ public:
 				_comm.delArea.add(&refreshRefAreasA);
 				_comm.refBattle.add(&refreshRefAreasB);
 				_comm.delBattle.add(&refreshRefAreasB);
-				_comm.addMenuCard.add(&refreshRefAreasS);
-				_comm.refMenuCard.add(&refreshRefAreasS);
-				_comm.delMenuCard.add(&refreshRefAreasS);
+				_comm.refMenuCard.add(&refRefMenuCard);
+				_comm.addMenuCard.add(&addRefMenuCard);
+				_comm.delMenuCard.add(&delRefMenuCard);
+				_comm.upMenuCard.add(&upRefMenuCards);
+				_comm.downMenuCard.add(&downRefMenuCards);
 				addDisposeListener(new class DisposeListener {
 					override void widgetDisposed(DisposeEvent e) {
 						_comm.refArea.remove(&refreshRefAreasA);
 						_comm.delArea.remove(&refreshRefAreasA);
 						_comm.refBattle.remove(&refreshRefAreasB);
 						_comm.delBattle.remove(&refreshRefAreasB);
-						_comm.addMenuCard.remove(&refreshRefAreasS);
-						_comm.refMenuCard.remove(&refreshRefAreasS);
-						_comm.delMenuCard.remove(&refreshRefAreasS);
+						_comm.refMenuCard.remove(&refRefMenuCard);
+						_comm.addMenuCard.remove(&addRefMenuCard);
+						_comm.delMenuCard.remove(&delRefMenuCard);
+						_comm.upMenuCard.remove(&upRefMenuCards);
+						_comm.downMenuCard.remove(&downRefMenuCards);
 					}
 				});
 			}

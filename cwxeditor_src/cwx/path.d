@@ -88,6 +88,11 @@ string cpaddattr(string path, string attr) {
 	return path ~ ";" ~ attr;
 }
 
+/// シナリオ内パスを属性を除いて比較する。
+bool cpeq(string path1, string path2) {
+	return cpbody(path1) == cpbody(path2);
+}
+
 /// シナリオ内パスの属性以外が空であればtrueを返す。
 bool cpempty(string path) {
 	if ("" == path) return true;

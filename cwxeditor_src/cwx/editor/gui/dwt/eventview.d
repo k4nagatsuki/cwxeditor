@@ -916,26 +916,26 @@ public:
 			}
 		}
 		void addCard(string cwxPath) {
-			if (_area.cwxPath != cpparent(cwxPath)) return;
+			if (!cpeq(_area.cwxPath, cpparent(cwxPath))) return;
 			size_t i = cpindex(cpbottom(cwxPath));
 			appendCard(i, _area.cards[i]);
 		}
 		void refCard(string cwxPath) {
-			if (_area.cwxPath != cpparent(cwxPath)) return;
+			if (!cpeq(_area.cwxPath, cpparent(cwxPath))) return;
 			size_t i = cpindex(cpbottom(cwxPath));
 			renameCard(i);
 		}
 		void delCard(string cwxPath) {
-			if (_area.cwxPath != cpparent(cwxPath)) return;
+			if (!cpeq(_area.cwxPath, cpparent(cwxPath))) return;
 			size_t i = cpindex(cpbottom(cwxPath));
 			removeCard(i);
 		}
 		void upCard(string cwxPath, int[] indices) {
-			if (_area.cwxPath != cwxPath) return;
+			if (!cpeq(_area.cwxPath, cwxPath)) return;
 			upCard(indices);
 		}
 		void downCard(string cwxPath, int[] indices) {
-			if (_area.cwxPath != cwxPath) return;
+			if (!cpeq(_area.cwxPath, cwxPath)) return;
 			downCard(indices);
 		}
 		void appendCard(int index, C c) {
