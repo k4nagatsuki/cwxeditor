@@ -386,7 +386,7 @@ private:
 				int oldC = _files.getItemCount;
 				bool sp = cast(bool) cfnmatch(nabs(path), nabs(_summ.scenarioPath));
 				Skin skin = _comm.skin;
-				foreach (i, p; list) {
+				foreach (p; list) {
 					if (sp) {
 						if (isDef(p.array, p.dir)) continue;
 					} else {
@@ -417,7 +417,7 @@ private:
 					itm.setData = p;
 					if (selset.size > 0) {
 						if (selset.contains(p.array)) {
-							_files.select = i;
+							_files.select = count;
 						}
 					}
 					count++;
