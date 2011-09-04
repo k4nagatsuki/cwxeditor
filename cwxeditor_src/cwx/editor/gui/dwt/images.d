@@ -1046,6 +1046,9 @@ private:
 			int x = me.x;
 			int y = me.y;
 			if (me.button == 1) {
+				foreach (img, rect; dragImgs) {
+					dragImgs[img] = new Rectangle(img.x, img.y, img.width, img.height);
+				}
 				dragStartX = x;
 				dragStartY = y;
 				auto tgl = Toggle.NONE;
