@@ -17,6 +17,7 @@ import cwx.editor.gui.dwt.mainwindow;
 import cwx.editor.gui.dwt.areawindow;
 import cwx.editor.gui.dwt.cardwindow;
 import cwx.editor.gui.dwt.eventwindow;
+import cwx.editor.gui.dwt.eventtreeview;
 import cwx.editor.gui.dwt.directorywindow;
 import cwx.editor.gui.dwt.datawindow;
 import cwx.editor.gui.dwt.dockingfolder;
@@ -458,6 +459,61 @@ class Commons {
 		} else {
 			_main.dock.add(tlp.shell, tlp.title, tlp.image, _main.dock.newCtrlKey(pane), true);
 		}
+	}
+
+	AbstractAreaView!(A, C, UseCards, UseBacks) areaViewFrom(A, C, bool UseCards, bool UseBacks)(string cwxPath) {
+		if (!mainWin.summary) return null;
+		auto a = mainWin.summary.findCWXPath(cwxPath);
+		if (!a) return null;
+		foreach (w; _ws) {
+			if ((cast(TLPData) w.getData).main is a) {
+				auto aw = cast(AreaWindow) w;
+				if (aw) return aw.areaView;
+				auto bw = cast(BattleWindow) w;
+				if (bw) return aw.areaView;
+				assert (0);
+			}
+		}
+		return null;
+	}
+	EventView!(A, C, UseFire) eventViewFrom(A, C, bool UseFire)(string cwxPath) {
+		if (!mainWin.summary) return null;
+		auto a = mainWin.summary.findCWXPath(cwxPath);
+		if (!a) return null;
+		foreach (w; _ws) {
+			if ((cast(TLPData) w.getData).main is a) {
+				auto aw = cast(AreaWindow) w;
+				if (aw) return aw.eventView;
+				auto bw = cast(BattleWindow) w;
+				if (bw) return aw.eventView;
+				auto ew = cast(EventWindow!A) w;
+				if (ew) return ew.eventView;
+				assert (0);
+			}
+		}
+		return null;
+	}
+	EventTreeView eventTreeViewFrom(string cwxPath) {
+		if (!mainWin.summary) return null;
+		auto a = mainWin.summary.findCWXPath(cwxPath);
+		if (!a) return null;
+		auto et = cast(EventTree) a;
+		if (!et) return null;
+		auto eto = et.owner;
+		auto spc = cast(AbstractSpCard) eto;
+		if (spc) eto = spc.abstractOwner;
+		foreach (w; _ws) {
+			if ((cast(TLPData) w.getData).main is cast(Object) eto) {
+				auto aw = cast(AreaWindow) w;
+				if (aw) return aw.eventView.eventTreeView;
+				auto bw = cast(BattleWindow) w;
+				if (bw) return aw.eventView.eventTreeView;
+				auto ew = cast(IEventWindow) w;
+				if (ew) return ew.eventTreeView;
+				assert (0);
+			}
+		}
+		return null;
 	}
 
 	void setTitle(Composite comp, string text) {

@@ -65,6 +65,10 @@ public:
 		_y = y;
 		_scale = scale;
 	}
+	/// このカードの所属先を返す。
+	const
+	const(AbstractArea) abstractOwner();
+
 	const
 	override bool canHasFireLose() {return false;}
 	const
@@ -181,6 +185,10 @@ public:
 		} else {
 			return [];
 		}
+	}
+	const
+	override const(AbstractArea) abstractOwner() {
+		return _owner;
 	}
 	/// このカードの所属先を返す。
 	const
@@ -332,6 +340,10 @@ public:
 		} else {
 			return [];
 		}
+	}
+	const
+	override const(AbstractArea) abstractOwner() {
+		return _owner;
 	}
 	/// このカードの所属先を返す。
 	const

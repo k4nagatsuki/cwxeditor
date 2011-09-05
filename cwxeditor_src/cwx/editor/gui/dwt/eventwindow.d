@@ -14,6 +14,7 @@ import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.eventview;
+import cwx.editor.gui.dwt.eventtreeview;
 import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.sbshell;
 
@@ -33,7 +34,11 @@ import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.SelectionEvent;
 
-class EventWindow(A : EventTreeOwner) : TopLevelPanel, TCPD {
+interface IEventWindow {
+	EventTreeView eventTreeView();
+}
+
+class EventWindow(A : EventTreeOwner) : TopLevelPanel, IEventWindow, TCPD {
 private:
 	A _eto;
 	Commons _comm;
@@ -246,6 +251,9 @@ public:
 	/// Returns: 編集中のイベントツリー所持者。
 	A eventTreeOwner() {
 		return _eto;
+	}
+	override EventTreeView eventTreeView() {
+		return _eview.eventTreeView;
 	}
 
 	override {

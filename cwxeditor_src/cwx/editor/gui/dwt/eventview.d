@@ -893,6 +893,9 @@ public:
 			static assert (0);
 		}
 	}
+	EventTreeView eventTreeView() {
+		return _etree;
+	}
 
 	/// エリアの名称表示を更新する。
 	void refreshTitle() {

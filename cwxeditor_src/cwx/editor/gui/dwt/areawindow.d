@@ -16,6 +16,8 @@ import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.sbshell;
+import cwx.editor.gui.dwt.eventwindow;
+import cwx.editor.gui.dwt.eventtreeview;
 
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.ToolBar;
@@ -36,7 +38,7 @@ import org.eclipse.swt.events.SelectionAdapter;
 
 public:
 
-class TAreaWindow(V, A, C) : TopLevelPanel, TCPD {
+class TAreaWindow(V, A, C) : TopLevelPanel, IEventWindow, TCPD {
 private:
 	Commons _comm;
 
@@ -295,6 +297,17 @@ public:
 	}
 	Composite shell() {
 		return _win;
+	}
+	V areaView() {
+		return _aview;
+	}
+	EventView!(A, C, true) eventView() {
+		_eview.initial;
+		return _eview;
+	}
+	override EventTreeView eventTreeView() {
+		_eview.initial;
+		return _eview.eventTreeView;
 	}
 
 	/// Returns: 編集中のエリア。
