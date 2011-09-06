@@ -239,35 +239,57 @@ private:
 		}
 	}
 
-	class AUndo : Undo {
-		this () {}
+	static class AUndo : Undo {
+		protected AbstractAreaView _v = null;
+		protected Commons comm;
+		protected A area;
+		protected Summary summ;
+		this (AbstractAreaView v, Commons comm, A area, Summary summ) {
+			static if (!is(A : Area) && !is(A : Battle)) {
+				_v = v;
+			}
+			this.comm = comm;
+			this.area = area;
+			this.summ = summ;
+		}
 		abstract override void undo();
 		abstract override void redo();
 		abstract override void dispose();
-		protected void udb() {
+		protected void udb(AbstractAreaView v) {
+			if (!v) return;
 			auto ct = Display.getCurrent.getFocusControl;
 			while (ct.getParent) {
-				if (ct is this) {
+				if (ct is v) {
 					return;
 				}
 				ct = ct.getParent;
 			}
-			.forceFocus(_imgp);
+			.forceFocus(v._imgp);
 		}
-		protected void uda() {
-			static if (UseCards) if (!_viewCards) _cards.deselectAll;
-			static if (UseBacks) if (!_viewBacks) _backs.deselectAll;
+		protected void uda(AbstractAreaView v) {
+			if (!v) return;
+			static if (UseCards) if (!v._viewCards) v._cards.deselectAll;
+			static if (UseBacks) if (!v._viewBacks) v._backs.deselectAll;
+		}
+		protected AbstractAreaView view() {
+			static if (is(A : Area) || is(A : Battle)) {
+				return comm.areaViewFrom!(A, C, UseCards, UseBacks)(area.cwxPath);
+			} else {
+				return _v;
+			}
 		}
 	}
 	static if (UseCards) {
 		class UndoSPAuto : AUndo {
 			private bool _spAuto;
-			this () {
+			this (AbstractAreaView v, Commons comm, A area, Summary summ) {
+				super (v, comm, area, summ);
 				_spAuto = _area.spAuto;
 			}
 			private void impl() {
-				udb;
-				scope (exit) uda;
+				auto v = view();
+				udb(v);
+				scope (exit) uda(v);
 				auto spAuto = _area.spAuto;
 				_area.spAuto = _spAuto;
 				_spAuto = spAuto;
@@ -283,21 +305,23 @@ private:
 		}
 	}
 	static if (is(A == Battle)) {
-		class MCWXPath : CWXPath {
+		static class MCWXPath : CWXPath {
 			override string cwxPath() {return "";}
 			override CWXPath findCWXPath(string path) {return null;}
 			override CWXPath[] cwxChilds() {return [];}
 		}
 		class UndoMusic : AUndo {
 			private PathUser _path;
-			this () {
+			this (AbstractAreaView v, Commons comm, A area, Summary summ) {
+				super (v, comm, area, summ);
 				_path = new PathUser(new MCWXPath);
 				if (_summ) _path.setUseCounter(_summ.useCounter.sub);
 				_path.path = _area.music;
 			}
 			private void impl() {
-				udb;
-				scope (exit) uda;
+				auto v = view();
+				udb(v);
+				scope (exit) uda(v);
 				auto path = _path.path;
 				_path.path = _area.music;
 				_area.music = path;
@@ -312,53 +336,28 @@ private:
 		}
 	}
 	template Reselect() {
-		static if (UseCards && UseBacks) {
-			private int[] _cIdcs;
-			private int[] _bIdcs;
-			this () {
-				this (_cards.getSelectionIndices, _backs.getSelectionIndices);
-			}
-			this (int[] cIdcs, int[] bIdcs) {
-				_cIdcs = cIdcs;
-				_bIdcs = bIdcs;
-			}
-		} else {
-			private int[] _idcs;
-			this () {
-				static if (UseCards) {
-					this (_cards.getSelectionIndices);
-				} else static if (UseBacks) {
-					this (_backs.getSelectionIndices);
-				} else static assert (0);
-			}
-			this (int[] indices) {
-				_idcs = indices;
-			}
+		private int[] _cIdcs;
+		private int[] _bIdcs;
+		this (AbstractAreaView v, Commons comm, A area, Summary summ, int[] cIdcs, int[] bIdcs) {
+			super (v, comm, area, summ);
+			_cIdcs = cIdcs;
+			_bIdcs = bIdcs;
 		}
 		private void reselect() {
-			static if (UseCards && UseBacks) {
-				_cards.select(_cIdcs);
-				_backs.select(_bIdcs);
-			} else static if (UseCards) {
-				_cards.select(_idcs);
-			} else static if (UseBacks) {
-				_backs.select(_idcs);
-			} else static assert (0);
+			static if (UseCards) _cards.select(_cIdcs);
+			static if (UseBacks) _backs.select(_bIdcs);
 		}
 		private void add(int i) {
-			static if (UseCards && UseBacks) {
-				_cIdcs[] += i;
-				_bIdcs[] += i;
-			} else {
-				_idcs[] += i;
-			}
+			_cIdcs[] += i;
+			_bIdcs[] += i;
 		}
 	}
 	class UndoUD(int I) : AUndo {
 		mixin Reselect;
 		override void undo() {
-			udb;
-			scope (exit) uda;
+			auto v = view();
+			udb(v);
+			scope (exit) uda(v);
 			add(I);
 			reselect;
 			add(-I);
@@ -369,8 +368,9 @@ private:
 			}
 		}
 		override void redo() {
-			udb;
-			scope (exit) uda;
+			auto v = view();
+			udb(v);
+			scope (exit) uda(v);
 			reselect;
 			static if (I < 0) {
 				upImpl;
@@ -386,10 +386,11 @@ private:
 		mixin Reselect;
 		private UndoDelete _delUndo = null;
 		override void undo() {
-			udb;
-			scope (exit) uda;
+			auto v = view();
+			udb(v);
+			scope (exit) uda(v);
 			reselect;
-			_delUndo = new UndoDelete;
+			_delUndo = new UndoDelete(_v, comm, area, summ);
 			delImpl;
 		}
 		override void redo() {
@@ -409,7 +410,8 @@ private:
 			BgImage[int] _bs;
 			bool[int] _bChks;
 		}
-		this () {
+		this (AbstractAreaView v, Commons comm, A area, Summary summ) {
+			super (v, comm, area, summ);
 			static if (UseCards) {
 				foreach (i; _cards.getSelectionIndices) {
 					auto node = _area.cards[i].toNode;
@@ -429,8 +431,9 @@ private:
 			}
 		}
 		override void undo() {
-			udb;
-			scope (exit) uda;
+			auto v = view();
+			udb(v);
+			scope (exit) uda(v);
 			static if (UseCards) {
 				foreach (i; _cs.keys.sort) {
 					appendCard(i, _cs[i], true, false, _cChks[i]);
@@ -444,8 +447,9 @@ private:
 			refreshSelected;
 		}
 		override void redo() {
-			udb;
-			scope (exit) uda;
+			auto v = view();
+			udb(v);
+			scope (exit) uda(v);
 			static if (UseCards) _cards.select(_cs.keys);
 			static if (UseBacks) _backs.select(_bs.keys);
 			delImpl;
@@ -462,11 +466,8 @@ private:
 	class UndoEdit : AUndo {
 		static if (UseCards) C[int] _cs;
 		static if (UseBacks) BgImage[int] _bs;
-		this () {
-			static if (UseCards) _cs = saveC(_cards.getSelectionIndices);
-			static if (UseBacks) _bs = saveB(_backs.getSelectionIndices);
-		}
-		this (int[] ckeys, int[] bkeys) {
+		this (AbstractAreaView v, Commons comm, A area, Summary summ, int[] ckeys, int[] bkeys) {
+			super (v, comm, area, summ);
 			static if (UseCards) _cs = saveC(ckeys);
 			static if (UseBacks) _bs = saveB(bkeys);
 		}
@@ -499,8 +500,9 @@ private:
 			}
 		}
 		private void impl() {
-			udb;
-			scope (exit) uda;
+			auto v = view();
+			udb(v);
+			scope (exit) uda(v);
 			static if (UseCards) {
 				auto cs = saveC(_cs.keys);
 				foreach (i, c; _cs) {
@@ -562,6 +564,13 @@ private:
 			}
 		}
 	}
+	UndoEdit createUndoEdit() {
+		int[] cs;
+		int[] bs;
+		static if (UseCards) cs = _cards.getSelectionIndices;
+		static if (UseBacks) bs = _backs.getSelectionIndices;
+		return new UndoEdit(this, _comm, _area, _summ, cs, bs);
+	}
 
 	protected Props prop() {return _prop;}
 	protected Summary summ() {return _summ;}
@@ -595,14 +604,14 @@ private:
 		ToolItem _escTMenu;
 		MaterialSelect!(MtType.BGM, CCombo, CCombo) _bgm;
 		void setEscape() {
-			_undo ~= new UndoEdit;
+			_undo ~= createUndoEdit();
 			foreach (c; _editC.keys) {
 				c.escape = _escTMenu.getSelection;
 			}
 			callModEvent();
 		}
 		void selectBGM() {
-			_undo ~= new UndoMusic;
+			_undo ~= new UndoMusic(this, _comm, _area, _summ);
 			_area.music = _bgm.path;
 			_comm.refUseCount.call;
 			callModEvent();
@@ -636,7 +645,7 @@ private:
 			_imgp.redraw;
 		}
 		void enterSpnCard(string T, string N)(int value) {
-			_undo ~= new UndoEdit;
+			_undo ~= createUndoEdit();
 			__enterSpn!(T, N, C)(value, _editC, cardsIndex);
 			_imgp.redraw;
 		}
@@ -671,11 +680,11 @@ private:
 			__selectImage!(C)(img, _area.cards, _cardTbl, _editC, _cards);
 		}
 		void setAuto() {
-			_undo ~= new UndoSPAuto;
+			_undo ~= new UndoSPAuto(this, _comm, _area, _summ);
 			__setAuto(true);
 		}
 		void setCustom() {
-			_undo ~= new UndoSPAuto;
+			_undo ~= new UndoSPAuto(this, _comm, _area, _summ);
 			__setAuto(false);
 		}
 	}
@@ -696,7 +705,7 @@ private:
 			_imgp.redraw;
 		}
 		void enterSpnBack(string T, string N)(int value) {
-			_undo ~= new UndoEdit;
+			_undo ~= createUndoEdit();
 			__enterSpn!(T, N, BgImage)(value, _editB, 0);
 			_imgp.redraw;
 		}
@@ -732,7 +741,7 @@ private:
 			__selectImage!(BgImage)(img, _area.backs, _backTbl, _editB, _backs);
 		}
 		void setMask() {
-			_undo ~= new UndoEdit;
+			_undo ~= createUndoEdit();
 			foreach (back, i; _editB) {
 				back.mask = _maskTMenu.getSelection;
 				_imgp.images[i].transparent = back.mask;
@@ -805,7 +814,7 @@ private:
 		_imgp.redraw;
 	}
 	void enterSpn(string T, string N)(int value) {
-		_undo ~= new UndoEdit;
+		_undo ~= createUndoEdit();
 		static if (UseCards) __enterSpn!(T, N, C)(value, _editC, cardsIndex);
 		static if (UseBacks) __enterSpn!(T, N, BgImage)(value, _editB, 0);
 		_imgp.redraw;
@@ -1083,35 +1092,35 @@ private:
 		__posEven!("a.x", "a.width", "a.newX = b", "c.x = b", T)(startIndex, cs);
 	}
 	void posTop() {
-		_undo ~= new UndoEdit;
+		_undo ~= createUndoEdit();
 		static if (UseCards) __posTop!(C)(cardsIndex, _area.cards);
 		static if (UseBacks) __posTop!(BgImage)(0, _area.backs);
 		refreshControls;
 		_imgp.redraw;
 	}
 	void posBottom() {
-		_undo ~= new UndoEdit;
+		_undo ~= createUndoEdit();
 		static if (UseCards) __posBottom!(C)(cardsIndex, _area.cards);
 		static if (UseBacks) __posBottom!(BgImage)(0, _area.backs);
 		refreshControls;
 		_imgp.redraw;
 	}
 	void posLeft() {
-		_undo ~= new UndoEdit;
+		_undo ~= createUndoEdit();
 		static if (UseCards) __posLeft!(C)(cardsIndex, _area.cards);
 		static if (UseBacks) __posLeft!(BgImage)(0, _area.backs);
 		refreshControls;
 		_imgp.redraw;
 	}
 	void posRight() {
-		_undo ~= new UndoEdit;
+		_undo ~= createUndoEdit();
 		static if (UseCards) __posRight!(C)(cardsIndex, _area.cards);
 		static if (UseBacks) __posRight!(BgImage)(0, _area.backs);
 		refreshControls;
 		_imgp.redraw;
 	}
 	void posEven() {
-		_undo ~= new UndoEdit;
+		_undo ~= createUndoEdit();
 		static if (UseCards) __posEven!(C)(cardsIndex, _area.cards);
 		static if (UseBacks) __posEven!(BgImage)(0, _area.backs);
 		refreshControls;
@@ -1128,14 +1137,14 @@ private:
 		}
 	}
 	void scaleEvenBig() {
-		_undo ~= new UndoEdit;
+		_undo ~= createUndoEdit();
 		static if (UseCards) __scaleEvenC!(int.min, "a > b");
 		static if (UseBacks) __scaleEvenB!(int.min, "a > b");
 		refreshControls;
 		_imgp.redraw;
 	}
 	void scaleEvenSmall() {
-		_undo ~= new UndoEdit;
+		_undo ~= createUndoEdit();
 		static if (UseCards) __scaleEvenC!(int.max, "a < b");
 		static if (UseBacks) __scaleEvenB!(int.max, "a < b");
 		refreshControls;
@@ -1248,7 +1257,7 @@ private:
 		return sc;
 	}
 	void changingImages() {
-		_undo ~= new UndoEdit;
+		_undo ~= createUndoEdit();
 	}
 
 	void refreshControls() {
@@ -1661,6 +1670,18 @@ public:
 				});
 			}
 		}
+		static if (is(A : Battle) && is(C : EnemyCard)) {
+			{
+				auto target = new DropTarget(imagePane, DND.DROP_DEFAULT | DND.DROP_LINK);
+				target.setTransfer([XMLBytesTransfer.getInstance]);
+				target.addDropListener(new DTListener(true));
+			}
+			{
+				auto target = new DropTarget(cardList, DND.DROP_DEFAULT | DND.DROP_LINK);
+				target.setTransfer([XMLBytesTransfer.getInstance]);
+				target.addDropListener(new DTListener(false));
+			}
+		}
 		{
 			createImagePane(lrSash);
 			static if (is (C == MenuCard) || UseBacks) {
@@ -1824,7 +1845,11 @@ public:
 	}
 
 	void up() {
-		_undo ~= new UndoUp;
+		int[] cIdcs;
+		int[] bIdcs;
+		static if (UseCards) cIdcs = _cards.getSelectionIndices;
+		static if (UseBacks) bIdcs = _backs.getSelectionIndices;
+		_undo ~= new UndoUp(this, _comm, _area, _summ, cIdcs, bIdcs);
 		upImpl;
 	}
 	private void upImpl() {
@@ -1842,7 +1867,11 @@ public:
 		if (refC.length > 0 || refB.length > 0) _imgp.redraw;
 	}
 	void down() {
-		_undo ~= new UndoDown;
+		int[] cIdcs;
+		int[] bIdcs;
+		static if (UseCards) cIdcs = _cards.getSelectionIndices;
+		static if (UseBacks) bIdcs = _backs.getSelectionIndices;
+		_undo ~= new UndoDown(this, _comm, _area, _summ, cIdcs, bIdcs);
 		downImpl;
 	}
 	private void downImpl() {
@@ -1923,15 +1952,11 @@ public:
 			dlg.appliedEvent ~= {
 				auto c = dlg.card;
 				int index = insertIndex(_cards);
-				static if (UseBacks) {
-					_undo ~= new UndoInsert([index], []);
-				} else {
-					_undo ~= new UndoInsert([index]);
-				}
+				_undo ~= new UndoInsert(this, _comm, _area, _summ, [index], []);
 				appendCard(index, c, true, true);
 				UndoEdit undo = null;
 				dlg.applyEvent ~= {
-					undo = new UndoEdit([cCountUntil!("a is b")(_area.cards, c)], []);
+					undo = new UndoEdit(this, _comm, _area, _summ, [cCountUntil!("a is b")(_area.cards, c)], []);
 				};
 				dlg.appliedEvent.length = 0;
 				dlg.appliedEvent ~= {
@@ -1965,7 +1990,7 @@ public:
 			UndoEdit undo = null;
 			auto dlg = new SpCardDialog!(C)(_comm, _prop, getShell, _summ, card);
 			dlg.applyEvent ~= {
-				undo = new UndoEdit([cCountUntil!("a is b")(_area.cards, card)], []);
+				undo = new UndoEdit(this, _comm, _area, _summ, [cCountUntil!("a is b")(_area.cards, card)], []);
 			};
 			dlg.appliedEvent ~= {
 				editCardApply(undo, card);
@@ -1980,7 +2005,7 @@ public:
 			void nameEditEnd(TableItem itm, int column, string newText) {
 				auto c = cast(C) itm.getData;
 				if (c.name == newText) return;
-				_undo ~= new UndoEdit([itm.getParent.indexOf(itm)], []);
+				_undo ~= new UndoEdit(this, _comm, _area, _summ, [itm.getParent.indexOf(itm)], []);
 				c.name = newText;
 				itm.setText(column, c.name);
 				refreshPanel();
@@ -1994,7 +2019,7 @@ public:
 				if (-1 == i) return;
 				auto c = cast(C) itm.getData;
 				if (c.id == _summ.casts[i].id) return;
-				_undo ~= new UndoEdit([itm.getParent.indexOf(itm)], []);
+				_undo ~= new UndoEdit(this, _comm, _area, _summ, [itm.getParent.indexOf(itm)], []);
 				c.id = _summ.casts[i].id;
 				itm.setText(column, cardName(c));
 				refreshPanel();
@@ -2082,15 +2107,11 @@ public:
 			dlg.appliedEvent ~= {
 				auto b = dlg.back;
 				int index = insertIndex(_backs);
-				static if (UseCards) {
-					_undo ~= new UndoInsert([], [index]);
-				} else {
-					_undo ~= new UndoInsert([index]);
-				}
+				_undo ~= new UndoInsert(this, _comm, _area, _summ, [], [index]);
 				appendBgImage(index, b, true, true);
 				UndoEdit undo = null;
 				dlg.applyEvent ~= {
-					undo = new UndoEdit([], [cCountUntil!("a is b")(_area.backs, b)]);
+					undo = new UndoEdit(this, _comm, _area, _summ, [], [cCountUntil!("a is b")(_area.backs, b)]);
 				};
 				dlg.appliedEvent.length = 0;
 				dlg.appliedEvent ~= {
@@ -2124,7 +2145,7 @@ public:
 			UndoEdit undo = null;
 			auto dlg = new BgImageDialog(_comm, _prop, getShell, _summ, back);
 			dlg.applyEvent ~= {
-				undo = new UndoEdit([], [cCountUntil!("a is b")(_area.backs, back)]);
+				undo = new UndoEdit(this, _comm, _area, _summ, [], [cCountUntil!("a is b")(_area.backs, back)]);
 			};
 			dlg.appliedEvent ~= {
 				editBackApply(undo, back);
@@ -2141,7 +2162,7 @@ public:
 			auto b = cast(BgImage) itm.getData;
 			if (0 == i) {
 				if (b.path == "") return;
-				_undo ~= new UndoEdit([], [itm.getParent.indexOf(itm)]);
+				_undo ~= new UndoEdit(this, _comm, _area, _summ, [], [itm.getParent.indexOf(itm)]);
 				b.path = "";
 				itm.setText(column, "");
 			} else {
@@ -2150,7 +2171,7 @@ public:
 					mt = mt["/".length .. $];
 				}
 				if (b.path == mt) return;
-				_undo ~= new UndoEdit([], [itm.getParent.indexOf(itm)]);
+				_undo ~= new UndoEdit(this, _comm, _area, _summ, [], [itm.getParent.indexOf(itm)]);
 				b.path = mt;
 				itm.setText(column, getBaseName(decodePath(mt)));
 			}
@@ -2453,7 +2474,7 @@ public:
 		override void widgetSelected(SelectionEvent e) {
 			int index = _flag.getSelectionIndex;
 			string flag = index <= 0 ? "" : _flag.getText;
-			auto undo = new UndoEdit;
+			auto undo = createUndoEdit();
 			bool chg = false;
 			static if (UseCards) {
 				foreach (c; _editC.keys) {
@@ -2620,22 +2641,14 @@ public:
 							} catch (SWTException e) {}
 						}
 						if (addC.length) {
-							static if (UseBacks) {
-								auto undo = new UndoInsert(addC, []);
-							} else {
-								auto undo = new UndoInsert(addC);
-							}
+							auto undo = new UndoInsert(this.outer, _comm, _area, _summ, addC, []);
 							_comm.refPaths.call(_comm.skin.materialPath);
 						}
 						return;
 					} else if (isXMLBytes(e.data)) {
 						int[] i = appendCardFromXML(bytesToXML(e.data), 0, 0, false);
 						if (i.length > 0) {
-							static if (UseBacks) {
-								_undo ~= new UndoInsert(i, []);
-							} else {
-								_undo ~= new UndoInsert(i);
-							}
+							_undo ~= new UndoInsert(this.outer, _comm, _area, _summ, i, []);
 						}
 					}
 				}
@@ -2757,11 +2770,7 @@ public:
 				assert (_summ);
 				scope (exit) addB = [];
 				if (copy.length > 0) {
-					static if (UseCards) {
-						_undo ~= new UndoInsert([], addB);
-					} else {
-						_undo ~= new UndoInsert(addB);
-					}
+					_undo ~= new UndoInsert(this.outer, _comm, _area, _summ, [], addB);
 					_comm.refPaths.call(_comm.skin.materialPath);
 				}
 			}
@@ -2796,12 +2805,12 @@ public:
 		override void dragEnter(DropTargetEvent e){
 			e.detail = _summ ? DND.DROP_COPY : DND.DROP_NONE;
 		}
-		static if (UseCards) private int[] addC;
-		static if (UseBacks) private int[] addB;
+		private int[] addC;
+		private int[] addB;
 		override void drop(DropTargetEvent e) {
 			assert (_summ);
-			static if (UseCards) scope (exit) addC = [];
-			static if (UseBacks) scope (exit) addB = [];
+			scope (exit) addC = [];
+			scope (exit) addB = [];
 			auto arr = cast(FileNames) e.data;
 			if (arr) {
 				int append = 0;
@@ -2815,13 +2824,7 @@ public:
 					} catch (SWTException e) {}
 				}
 				if (append > 0) {
-					static if (UseCards && UseBacks) {
-						_undo ~= new UndoInsert(addC, addB);
-					} else static if (UseCards) {
-						_undo ~= new UndoInsert(addC);
-					} else static if (UseBacks) {
-						_undo ~= new UndoInsert(addB);
-					} else static assert (0);
+					_undo ~= new UndoInsert(this.outer, _comm, _area, _summ, addC, addB);
 					_comm.refPaths.call(_comm.skin.materialPath);
 				}
 				return;
@@ -2831,11 +2834,7 @@ public:
 					scope p = _imgp.toControl(e.x, e.y);
 					int[] i = appendCardFromXML(bytesToXML(e.data), p.x, p.y, true);
 					if (i.length > 0) {
-						static if (UseBacks) {
-							_undo ~= new UndoInsert(i, []);
-						} else {
-							_undo ~= new UndoInsert(i);
-						}
+						_undo ~= new UndoInsert(this.outer, _comm, _area, _summ, i, []);
 					}
 				}
 			}
@@ -2922,8 +2921,54 @@ public:
 			refreshPanel();
 		}
 	}
+	static if (is(A : Battle) && is(C : EnemyCard)) {
+		int[] appendEnemyFromXML(string xml, int x, int y, bool fromImgPane) {
+			int[] r;
+			try {
+				auto node = XNode.parse(xml);
+				if (node.name != CastCard.XML_NAME_M) return [];
+				if (summary.id != node.attr("summId", false)) return [];
+				bool refr = false;
+				auto cards = EnemyCard.createCardsFromNode(node, LATEST_VERSION);
+				if (cards.length) {
+					foreach (i, c; cards) {
+						c.x = x;
+						c.y = y;
+						r ~= appendCard(c, true, true, fromImgPane);
+					}
+					_comm.refUseCount.call;
+				}
+			} catch (Exception e) {
+				debugln(e);
+			}
+			return r;
+		}
+		class DTListener : DropTargetAdapter {
+			private bool _isImgPane;
+			this (bool isImgPane) {_isImgPane = isImgPane;}
+			override void dragEnter(DropTargetEvent e){
+				e.detail = DND.DROP_LINK;
+			}
+			override void drop(DropTargetEvent e) {
+				if (isXMLBytes(e.data)) {
+					auto arr = bytesToXML(e.data);
+					auto imgp = cast(ImagePane) (cast(DropTarget) e.getSource).getControl;
+					int[] indices;
+					if (imgp) {
+						auto p = imgp.toControl(e.x, e.y);
+						indices = appendEnemyFromXML(arr, p.x, p.y, _isImgPane);
+					} else {
+						indices = appendEnemyFromXML(arr, 0, 0, _isImgPane);
+					}
+					if (indices.length) {
+						_undo ~= new UndoInsert(this.outer, _comm, _area, _summ, indices, []);
+					}
+				}
+			}
+		}
+	}
 	void cut(SelectionEvent se) {
-		_undo ~= new UndoDelete;
+		_undo ~= new UndoDelete(this, _comm, _area, _summ);
 		_tcpd.cut(se);
 	}
 	void copy(SelectionEvent se) {
@@ -2933,7 +2978,7 @@ public:
 		_tcpd.paste(se);
 	}
 	void del(SelectionEvent se) {
-		_undo ~= new UndoDelete;
+		_undo ~= new UndoDelete(this, _comm, _area, _summ);
 		delImpl;
 	}
 	private void delImpl() {
@@ -2992,7 +3037,7 @@ public:
 							if (_viewCards || _viewBacks) _imgp.redraw;
 							refreshSelected;
 							_comm.refUseCount.call;
-							_undo ~= new UndoInsert(addC, addB);
+							_undo ~= new UndoInsert(this.outer, _comm, _area, _summ, addC, addB);
 						}
 					} catch (Exception e) {
 						debugln(e);
@@ -3061,11 +3106,7 @@ public:
 								if (_viewCards) _imgp.redraw;
 								refreshSelected;
 								_comm.refUseCount.call;
-								static if (UseBacks) {
-									_undo ~= new UndoInsert(addC, []);
-								} else {
-									_undo ~= new UndoInsert(addC);
-								}
+								_undo ~= new UndoInsert(this.outer, _comm, _area, _summ, addC, []);
 							}
 						} catch (Exception e) {
 							debugln(e);
@@ -3129,11 +3170,7 @@ public:
 								if (_viewBacks) _imgp.redraw;
 								refreshSelected;
 								_comm.refUseCount.call;
-								static if (UseCards) {
-									_undo ~= new UndoInsert([], addB);
-								} else {
-									_undo ~= new UndoInsert(addB);
-								}
+								_undo ~= new UndoInsert(this.outer, _comm, _area, _summ, [], addB);
 							}
 						} catch (Exception e) {
 							debugln(e);
@@ -3200,73 +3237,14 @@ public:
 }
 
 class AreaView : AbstractAreaView!(Area, MenuCard, true, true) {
-	private Commons _comm;
 	this(Commons comm, Props prop, Summary summ, Area area, Composite parent, TopLevelPanel tlp, UndoManager undo) {
-		_comm = comm;
 		super(comm, prop, summ, area, parent, tlp, undo);
 	}
 }
 
 class BattleView : AbstractAreaView!(Battle, EnemyCard, true, false) {
-	private Commons _comm;
 	this(Commons comm, Props prop, Summary summ, Battle btl, Composite parent, TopLevelPanel tlp, UndoManager undo) {
-		_comm = comm;
 		super(comm, prop, summ, btl, parent, tlp, undo);
-		{
-			auto target = new DropTarget(imagePane, DND.DROP_DEFAULT | DND.DROP_LINK);
-			target.setTransfer([XMLBytesTransfer.getInstance]);
-			target.addDropListener(new DTListener(true));
-		}
-		{
-			auto target = new DropTarget(cardList, DND.DROP_DEFAULT | DND.DROP_LINK);
-			target.setTransfer([XMLBytesTransfer.getInstance]);
-			target.addDropListener(new DTListener(false));
-		}
-	}
-private:
-	int[] appendEnemyFromXML(string xml, int x, int y, bool fromImgPane) {
-		int[] r;
-		try {
-			auto node = XNode.parse(xml);
-			if (node.name != CastCard.XML_NAME_M) return [];
-			if (summary.id != node.attr("summId", false)) return [];
-			bool refr = false;
-			auto cards = EnemyCard.createCardsFromNode(node, LATEST_VERSION);
-			if (cards.length) {
-				foreach (i, c; cards) {
-					c.x = x;
-					c.y = y;
-					r ~= appendCard(c, true, true, fromImgPane);
-				}
-				_comm.refUseCount.call;
-			}
-		} catch (Exception e) {
-			debugln(e);
-		}
-		return r;
-	}
-	class DTListener : DropTargetAdapter {
-		private bool _isImgPane;
-		this (bool isImgPane) {_isImgPane = isImgPane;}
-		override void dragEnter(DropTargetEvent e){
-			e.detail = DND.DROP_LINK;
-		}
-		override void drop(DropTargetEvent e) {
-			if (isXMLBytes(e.data)) {
-				auto arr = bytesToXML(e.data);
-				auto imgp = cast(ImagePane) (cast(DropTarget) e.getSource).getControl;
-				int[] indices;
-				if (imgp) {
-					auto p = imgp.toControl(e.x, e.y);
-					indices = appendEnemyFromXML(arr, p.x, p.y, _isImgPane);
-				} else {
-					indices = appendEnemyFromXML(arr, 0, 0, _isImgPane);
-				}
-				if (indices.length) {
-					_undo ~= new UndoInsert(indices);
-				}
-			}
-		}
 	}
 }
 

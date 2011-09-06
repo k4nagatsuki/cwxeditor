@@ -466,11 +466,15 @@ class Commons {
 		auto a = mainWin.summary.findCWXPath(cwxPath);
 		if (!a) return null;
 		foreach (w; _ws) {
-			if ((cast(TLPData) w.getData).main is a) {
-				auto aw = cast(AreaWindow) w;
-				if (aw) return aw.areaView;
-				auto bw = cast(BattleWindow) w;
-				if (bw) return aw.areaView;
+			auto tlpData = (cast(TLPData) w.getData);
+			if (tlpData.main is cast(Object) a) {
+				static if (is(A : Area)) {
+					auto aw = cast(AreaWindow) tlpData.tlp;
+					if (aw) return aw.areaView;
+				} else static if (is(A : Battle)) {
+					auto bw = cast(BattleWindow) tlpData.tlp;
+					if (bw) return bw.areaView;
+				} else static assert (0);
 				assert (0);
 			}
 		}
@@ -481,12 +485,13 @@ class Commons {
 		auto a = mainWin.summary.findCWXPath(cwxPath);
 		if (!a) return null;
 		foreach (w; _ws) {
-			if ((cast(TLPData) w.getData).main is a) {
-				auto aw = cast(AreaWindow) w;
+			auto tlpData = (cast(TLPData) w.getData);
+			if (tlpData.main is cast(Object) a) {
+				auto aw = cast(AreaWindow) tlpData.tlp;
 				if (aw) return aw.eventView;
-				auto bw = cast(BattleWindow) w;
+				auto bw = cast(BattleWindow) tlpData.tlp;
 				if (bw) return aw.eventView;
-				auto ew = cast(EventWindow!A) w;
+				auto ew = cast(EventWindow!A) tlpData.tlp;
 				if (ew) return ew.eventView;
 				assert (0);
 			}
@@ -503,12 +508,13 @@ class Commons {
 		auto spc = cast(AbstractSpCard) eto;
 		if (spc) eto = spc.abstractOwner;
 		foreach (w; _ws) {
-			if ((cast(TLPData) w.getData).main is cast(Object) eto) {
-				auto aw = cast(AreaWindow) w;
+			auto tlpData = (cast(TLPData) w.getData);
+			if (tlpData.main is cast(Object) eto) {
+				auto aw = cast(AreaWindow) tlpData.tlp;
 				if (aw) return aw.eventView.eventTreeView;
-				auto bw = cast(BattleWindow) w;
+				auto bw = cast(BattleWindow) tlpData.tlp;
 				if (bw) return aw.eventView.eventTreeView;
-				auto ew = cast(IEventWindow) w;
+				auto ew = cast(IEventWindow) tlpData.tlp;
 				if (ew) return ew.eventTreeView;
 				assert (0);
 			}
