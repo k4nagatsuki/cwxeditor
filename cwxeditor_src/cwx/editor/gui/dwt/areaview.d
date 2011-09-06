@@ -280,27 +280,29 @@ private:
 		}
 	}
 	static if (UseCards) {
-		class UndoSPAuto : AUndo {
+		static class UndoSPAuto : AUndo {
 			private bool _spAuto;
 			this (AbstractAreaView v, Commons comm, A area, Summary summ) {
 				super (v, comm, area, summ);
-				_spAuto = _area.spAuto;
+				_spAuto = area.spAuto;
 			}
 			private void impl() {
 				auto v = view();
 				udb(v);
 				scope (exit) uda(v);
-				auto spAuto = _area.spAuto;
-				_area.spAuto = _spAuto;
+				auto spAuto = area.spAuto;
+				area.spAuto = _spAuto;
 				_spAuto = spAuto;
-				if (_autoMenu) _autoMenu.setSelection = _area.spAuto;
-				if (_autoTMenu) _autoTMenu.setSelection = _area.spAuto;
-				if (_customMenu) _customMenu.setSelection = !_area.spAuto;
-				if (_customTMenu) _customTMenu.setSelection = !_area.spAuto;
-				callModEvent();
+				if (v) {
+					if (v._autoMenu) v._autoMenu.setSelection = area.spAuto;
+					if (v._autoTMenu) v._autoTMenu.setSelection = area.spAuto;
+					if (v._customMenu) v._customMenu.setSelection = !area.spAuto;
+					if (v._customTMenu) v._customTMenu.setSelection = !area.spAuto;
+					v.callModEvent();
+				}
 			}
-			override void undo() {impl;}
-			override void redo() {impl;}
+			override void undo() {impl();}
+			override void redo() {impl();}
 			override void dispose() {}
 		}
 	}
@@ -310,26 +312,28 @@ private:
 			override CWXPath findCWXPath(string path) {return null;}
 			override CWXPath[] cwxChilds() {return [];}
 		}
-		class UndoMusic : AUndo {
+		static class UndoMusic : AUndo {
 			private PathUser _path;
 			this (AbstractAreaView v, Commons comm, A area, Summary summ) {
 				super (v, comm, area, summ);
 				_path = new PathUser(new MCWXPath);
-				if (_summ) _path.setUseCounter(_summ.useCounter.sub);
-				_path.path = _area.music;
+				if (summ) _path.setUseCounter(summ.useCounter.sub);
+				_path.path = area.music;
 			}
 			private void impl() {
 				auto v = view();
 				udb(v);
 				scope (exit) uda(v);
 				auto path = _path.path;
-				_path.path = _area.music;
-				_area.music = path;
-				_bgm.path = path;
-				callModEvent();
+				_path.path = area.music;
+				area.music = path;
+				if (v) {
+					v._bgm.path = path;
+					v.callModEvent();
+				}
 			}
-			override void undo() {impl;}
-			override void redo() {impl;}
+			override void undo() {impl();}
+			override void redo() {impl();}
 			override void dispose() {
 				_path.removeUseCounter;
 			}
@@ -1670,18 +1674,6 @@ public:
 				});
 			}
 		}
-		static if (is(A : Battle) && is(C : EnemyCard)) {
-			{
-				auto target = new DropTarget(imagePane, DND.DROP_DEFAULT | DND.DROP_LINK);
-				target.setTransfer([XMLBytesTransfer.getInstance]);
-				target.addDropListener(new DTListener(true));
-			}
-			{
-				auto target = new DropTarget(cardList, DND.DROP_DEFAULT | DND.DROP_LINK);
-				target.setTransfer([XMLBytesTransfer.getInstance]);
-				target.addDropListener(new DTListener(false));
-			}
-		}
 		{
 			createImagePane(lrSash);
 			static if (is (C == MenuCard) || UseBacks) {
@@ -1696,6 +1688,18 @@ public:
 			static if (UseBacks) appendBgImages(0, area.backs, false);
 			static if (UseCards) appendCards(0, area.cards, false);
 			appendPartyCards();
+		}
+		static if (is(A : Battle) && is(C : EnemyCard)) {
+			{
+				auto target = new DropTarget(imagePane, DND.DROP_DEFAULT | DND.DROP_LINK);
+				target.setTransfer([XMLBytesTransfer.getInstance]);
+				target.addDropListener(new DTListener(true));
+			}
+			{
+				auto target = new DropTarget(cardList, DND.DROP_DEFAULT | DND.DROP_LINK);
+				target.setTransfer([XMLBytesTransfer.getInstance]);
+				target.addDropListener(new DTListener(false));
+			}
 		}
 		lrSash.setWeights = [_prop.var.etc.areaViewL, _prop.var.etc.areaViewR];
 		lrSash.addDisposeListener(new class DisposeListener {
@@ -3236,17 +3240,8 @@ public:
 	}
 }
 
-class AreaView : AbstractAreaView!(Area, MenuCard, true, true) {
-	this(Commons comm, Props prop, Summary summ, Area area, Composite parent, TopLevelPanel tlp, UndoManager undo) {
-		super(comm, prop, summ, area, parent, tlp, undo);
-	}
-}
-
-class BattleView : AbstractAreaView!(Battle, EnemyCard, true, false) {
-	this(Commons comm, Props prop, Summary summ, Battle btl, Composite parent, TopLevelPanel tlp, UndoManager undo) {
-		super(comm, prop, summ, btl, parent, tlp, undo);
-	}
-}
+alias AbstractAreaView!(Area, MenuCard, true, true) AreaView;
+alias AbstractAreaView!(Battle, EnemyCard, true, false) BattleView;
 
 class BgImagesView : AbstractAreaView!(BgImageContainer, void, false, true) {
 	this(Commons comm, Props prop, Summary summ, BgImageContainer bic, Composite parent, AbstractArea refTarget, UndoManager undo) {
