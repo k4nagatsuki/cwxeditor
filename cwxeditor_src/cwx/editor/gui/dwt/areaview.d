@@ -347,39 +347,40 @@ private:
 			_cIdcs = cIdcs;
 			_bIdcs = bIdcs;
 		}
-		private void reselect() {
-			static if (UseCards) _cards.select(_cIdcs);
-			static if (UseBacks) _backs.select(_bIdcs);
+		private void reselect(AbstractAreaView v) {
+			if (!v) return;
+			static if (UseCards) v._cards.select(_cIdcs);
+			static if (UseBacks) v._backs.select(_bIdcs);
 		}
 		private void add(int i) {
 			_cIdcs[] += i;
 			_bIdcs[] += i;
 		}
 	}
-	class UndoUD(int I) : AUndo {
+	static class UndoUD(int I) : AUndo {
 		mixin Reselect;
 		override void undo() {
 			auto v = view();
 			udb(v);
 			scope (exit) uda(v);
 			add(I);
-			reselect;
-			add(-I);
+			reselect(v);
 			static if (I < 0) {
-				downImpl;
+				downImpl(v, comm, area, _cIdcs, _bIdcs);
 			} else {
-				upImpl;
+				upImpl(v, comm, area, _cIdcs, _bIdcs);
 			}
+			add(-I);
 		}
 		override void redo() {
 			auto v = view();
 			udb(v);
 			scope (exit) uda(v);
-			reselect;
+			reselect(v);
 			static if (I < 0) {
-				upImpl;
+				upImpl(v, comm, area, _cIdcs, _bIdcs);
 			} else {
-				downImpl;
+				downImpl(v, comm, area, _cIdcs, _bIdcs);
 			}
 		}
 		override void dispose() {}
@@ -393,7 +394,7 @@ private:
 			auto v = view();
 			udb(v);
 			scope (exit) uda(v);
-			reselect;
+			reselect(v);
 			_delUndo = new UndoDelete(_v, comm, area, summ);
 			delImpl;
 		}
@@ -910,13 +911,14 @@ private:
 			_backs.setSelection = idx;
 		}
 	}
-	int[] __up(T)(bool view, Table list, void delegate(int, int) swap, int startIndex) {
-		int[] indices;
-		if (view && list.getItemCount > 0 && !list.isSelected(0)) {
-			for (int i = 1; i < list.getItemCount; i++) {
-				if (list.isSelected(i)) {
-					_imgp.swap(i + startIndex - 1, i + startIndex);
-					swap(i - 1, i);
+	static void upImpl2(T)(AbstractAreaView v, Table list, void delegate(int, int) swap, int startIndex, int[] indices) {
+		indices = indices.sort;
+		if (!indices.length) return;
+		if (indices[0] != 0) {
+			foreach (i; indices) {
+				if (v) v._imgp.swap(i + startIndex - 1, i + startIndex);
+				swap(i - 1, i);
+				if (list) {
 					auto itm1 = list.getItem(i - 1);
 					auto itm2 = list.getItem(i);
 					string temp = itm1.getText;
@@ -925,20 +927,19 @@ private:
 					auto dtemp = itm1.getData;
 					itm1.setData = itm2.getData;
 					itm2.setData = dtemp;
-					indices ~= i;
 				}
 			}
 		}
-		callModEvent();
-		return indices;
+		if (v) v.callModEvent();
 	}
-	int[] __down(T)(bool view, Table list, void delegate(int, int) swap, int startIndex) {
-		int[] indices;
-		if (view && list.getItemCount > 0 && !list.isSelected(list.getItemCount - 1)) {
-			for (int i = list.getItemCount - 2; i >= 0; i--) {
-				if (list.isSelected(i)) {
-					_imgp.swap(i + startIndex + 1, i + startIndex);
-					swap(i + 1, i);
+	static void downImpl2(T)(AbstractAreaView v, Table list, void delegate(int, int) swap, int startIndex, int[] indices, int count) {
+		indices = indices.sort;
+		if (!indices.length) return;
+		if (indices[$ - 1] + 1 < count) {
+			foreach_reverse (i; indices) {
+				if (v) v._imgp.swap(i + startIndex + 1, i + startIndex);
+				swap(i + 1, i);
+				if (list) {
 					auto itm1 = list.getItem(i + 1);
 					auto itm2 = list.getItem(i);
 					string temp = itm1.getText;
@@ -947,12 +948,10 @@ private:
 					auto dtemp = itm1.getData;
 					itm1.setData = itm2.getData;
 					itm2.setData = dtemp;
-					indices ~= i;
 				}
 			}
 		}
-		callModEvent();
-		return indices;
+		if (v) v.callModEvent();
 	}
 
 	void __pos(int First, string Cmp, string Get, string Set, string CSet, T)(int startIndex, T[] cs) {
@@ -1391,12 +1390,15 @@ private:
 		}
 	}
 	static if (UseCards) {
-		int cardsIndex() {
+		static int staticCardsIndex(A area) {
 			static if (UseBacks) {
-				return _area.backs.length;
+				return area.backs.length;
 			} else {
 				return 0;
 			}
+		}
+		int cardsIndex() {
+			return staticCardsIndex(_area);
 		}
 	}
 
@@ -1851,46 +1853,54 @@ public:
 	void up() {
 		int[] cIdcs;
 		int[] bIdcs;
-		static if (UseCards) cIdcs = _cards.getSelectionIndices;
-		static if (UseBacks) bIdcs = _backs.getSelectionIndices;
-		_undo ~= new UndoUp(this, _comm, _area, _summ, cIdcs, bIdcs);
-		upImpl;
-	}
-	private void upImpl() {
-		int[] refC;
-		int[] refB;
 		static if (UseCards) {
-			refC = __up!(C)(_viewCards, _cards, &_area.swapCards, cardsIndex);
-			_comm.upMenuCard.call(_area.cwxPath, refC);
+			if (_viewCards) cIdcs = _cards.getSelectionIndices;
 		}
 		static if (UseBacks) {
-			refB = __up!(BgImage)(_viewBacks, _backs, &_area.swapBacks, 0);
-			_comm.upBgImage.call(_area.cwxPath, refB);
+			if (_viewBacks) bIdcs = _backs.getSelectionIndices;
 		}
-		refreshSelected;
-		if (refC.length > 0 || refB.length > 0) _imgp.redraw;
+		_undo ~= new UndoUp(this, _comm, _area, _summ, cIdcs, bIdcs);
+		upImpl(this, _comm, _area, cIdcs, bIdcs);
+	}
+	private static void upImpl(AbstractAreaView v, Commons comm, A area, int[] cIdcs, int[] bIdcs) {
+		static if (UseCards) {
+			upImpl2!(C)(v, v ? v._cards : null, &area.swapCards, staticCardsIndex(area), cIdcs);
+			comm.upMenuCard.call(area.cwxPath, cIdcs);
+		}
+		static if (UseBacks) {
+			upImpl2!(BgImage)(v, v ? v._backs : null, &area.swapBacks, 0, bIdcs);
+			comm.upBgImage.call(area.cwxPath, bIdcs);
+		}
+		if (v) {
+			v.refreshSelected;
+			if (cIdcs.length > 0 || bIdcs.length > 0) v._imgp.redraw;
+		}
 	}
 	void down() {
 		int[] cIdcs;
 		int[] bIdcs;
-		static if (UseCards) cIdcs = _cards.getSelectionIndices;
-		static if (UseBacks) bIdcs = _backs.getSelectionIndices;
-		_undo ~= new UndoDown(this, _comm, _area, _summ, cIdcs, bIdcs);
-		downImpl;
-	}
-	private void downImpl() {
-		int[] refC;
-		int[] refB;
 		static if (UseCards) {
-			refC = __down!(C)(_viewCards, _cards, &_area.swapCards, cardsIndex);
-			_comm.downMenuCard.call(_area.cwxPath, refC);
+			if (_viewCards) cIdcs = _cards.getSelectionIndices;
 		}
 		static if (UseBacks) {
-			refB = __down!(BgImage)(_viewBacks, _backs, &_area.swapBacks, 0);
-			_comm.downBgImage.call(_area.cwxPath, refB);
+			if (_viewBacks) bIdcs = _backs.getSelectionIndices;
 		}
-		refreshSelected;
-		if (refC.length > 0 || refB.length > 0) _imgp.redraw;
+		_undo ~= new UndoDown(this, _comm, _area, _summ, cIdcs, bIdcs);
+		downImpl(this, _comm, _area, cIdcs, bIdcs);
+	}
+	private static void downImpl(AbstractAreaView v, Commons comm, A area, int[] cIdcs, int[] bIdcs) {
+		static if (UseCards) {
+			downImpl2!(C)(v, v ? v._cards : null, &area.swapCards, staticCardsIndex(area), cIdcs, area.cards.length);
+			comm.downMenuCard.call(area.cwxPath, cIdcs);
+		}
+		static if (UseBacks) {
+			downImpl2!(BgImage)(v, v ? v._backs : null, &area.swapBacks, 0, bIdcs, area.backs.length);
+			comm.downBgImage.call(area.cwxPath, bIdcs);
+		}
+		if (v) {
+			v.refreshSelected;
+			if (cIdcs.length > 0 || bIdcs.length > 0) v._imgp.redraw;
+		}
 	}
 	static if (UseCards && UseBacks) {
 		private void reverseView(T)(ref bool view, Table list, int[T] edits, T[] delegate() col, int startIndex,
