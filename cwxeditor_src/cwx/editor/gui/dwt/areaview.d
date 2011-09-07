@@ -387,7 +387,7 @@ private:
 	}
 	alias UndoUD!(-1) UndoUp;
 	alias UndoUD!(1) UndoDown;
-	class UndoInsert : AUndo {
+	static class UndoInsert : AUndo {
 		mixin Reselect;
 		private UndoDelete _delUndo = null;
 		override void undo() {
@@ -395,8 +395,8 @@ private:
 			udb(v);
 			scope (exit) uda(v);
 			reselect(v);
-			_delUndo = new UndoDelete(_v, comm, area, summ);
-			delImpl;
+			_delUndo = new UndoDelete(v, comm, area, summ, _cIdcs, _bIdcs);
+			delImpl2(v, comm, area, _cIdcs, _bIdcs);
 		}
 		override void redo() {
 			_delUndo.undo;
@@ -406,7 +406,7 @@ private:
 			if (_delUndo) _delUndo.dispose;
 		}
 	}
-	class UndoDelete : AUndo {
+	static class UndoDelete : AUndo {
 		static if (UseCards) {
 			C[int] _cs;
 			bool[int] _cChks;
@@ -415,23 +415,23 @@ private:
 			BgImage[int] _bs;
 			bool[int] _bChks;
 		}
-		this (AbstractAreaView v, Commons comm, A area, Summary summ) {
+		this (AbstractAreaView v, Commons comm, A area, Summary summ, int[] cIdcs, int[] bIdcs) {
 			super (v, comm, area, summ);
 			static if (UseCards) {
-				foreach (i; _cards.getSelectionIndices) {
-					auto node = _area.cards[i].toNode;
+				foreach (i; cIdcs) {
+					auto node = area.cards[i].toNode;
 					auto c = C.createFromNode(node, LATEST_VERSION);
-					if (_summ) c.setUseCounter(_summ.useCounter.sub);
+					if (summ) c.setUseCounter(summ.useCounter.sub);
 					_cs[i] = c;
-					_cChks[i] = _cards.getItem(i).getChecked;
+					_cChks[i] = v ? v._cards.getItem(i).getChecked : true;
 				}
 			}
 			static if (UseBacks) {
-				foreach (i; _backs.getSelectionIndices) {
-					auto b = _area.backs[i].dup;
-					if (_summ) b.setUseCounter(_summ.useCounter.sub);
+				foreach (i; bIdcs) {
+					auto b = area.backs[i].dup;
+					if (summ) b.setUseCounter(summ.useCounter.sub);
 					_bs[i] = b;
-					_bChks[i] = _backs.getItem(i).getChecked;
+					_bChks[i] = v ? v._backs.getItem(i).getChecked : true;
 				}
 			}
 		}
@@ -441,23 +441,25 @@ private:
 			scope (exit) uda(v);
 			static if (UseCards) {
 				foreach (i; _cs.keys.sort) {
-					appendCard(i, _cs[i], true, false, _cChks[i]);
+					appendCardImpl(v, comm, area, i, _cs[i], true, false, _cChks[i]);
 				}
 			}
 			static if (UseBacks) {
 				foreach (i; _bs.keys.sort) {
-					appendBgImage(i, _bs[i], true, false, _bChks[i]);
+					appendBgImageImpl(v, comm, area, i, _bs[i], true, false, _bChks[i]);
 				}
 			}
-			refreshSelected;
+			if (v) v.refreshSelected;
 		}
 		override void redo() {
 			auto v = view();
 			udb(v);
 			scope (exit) uda(v);
-			static if (UseCards) _cards.select(_cs.keys);
-			static if (UseBacks) _backs.select(_bs.keys);
-			delImpl;
+			int[] cs;
+			int[] bs;
+			static if (UseCards) cs = _cs.keys;
+			static if (UseBacks) bs = _bs.keys;
+			delImpl2(v, comm, area, cs, bs);
 		}
 		override void dispose() {
 			static if (UseCards) {
@@ -468,7 +470,7 @@ private:
 			}
 		}
 	}
-	class UndoEdit : AUndo {
+	static class UndoEdit : AUndo {
 		static if (UseCards) C[int] _cs;
 		static if (UseBacks) BgImage[int] _bs;
 		this (AbstractAreaView v, Commons comm, A area, Summary summ, int[] ckeys, int[] bkeys) {
@@ -480,13 +482,13 @@ private:
 			private C[int] saveC(int[] indices) {
 				C[int] cs;
 				foreach (i; indices) {
-					auto c = _area.cards[i];
+					auto c = area.cards[i];
 					static if (is(C == MenuCard)) {
 						c = new C(c.name, c.path, c.desc, c.flag, c.x, c.y, c.scale);
 					} else static if (is(C == EnemyCard)) {
 						c = new C(c.id, c.escape, c.flag, c.x, c.y, c.scale);
 					} else static assert (0);
-					if (_summ) c.setUseCounter(_summ.useCounter.sub);
+					if (summ) c.setUseCounter(summ.useCounter.sub);
 					cs[i] = c;
 				}
 				return cs;
@@ -496,9 +498,9 @@ private:
 			private BgImage[int] saveB(int[] indices) {
 				BgImage[int] bs;
 				foreach (i; indices) {
-					auto b = _area.backs[i];
+					auto b = area.backs[i];
 					b = b.dup;
-					if (_summ) b.setUseCounter(_summ.useCounter.sub);
+					if (summ) b.setUseCounter(summ.useCounter.sub);
 					bs[i] = b;
 				}
 				return bs;
@@ -512,7 +514,7 @@ private:
 				auto cs = saveC(_cs.keys);
 				foreach (i, c; _cs) {
 					c.removeUseCounter;
-					auto ac = _area.cards[i];
+					auto ac = area.cards[i];
 					static if (is(C == MenuCard)) {
 						ac.name = c.name;
 						ac.path = c.path;
@@ -529,7 +531,7 @@ private:
 						ac.y = c.y;
 						ac.scale = c.scale;
 					} else static assert (0);
-					_comm.refMenuCard.call(ac.cwxPath);
+					comm.refMenuCard.call(ac.cwxPath);
 				}
 				_cs = cs;
 			}
@@ -537,7 +539,7 @@ private:
 				auto bs = saveB(_bs.keys);
 				foreach (i, b; _bs) {
 					b.removeUseCounter;
-					auto ab = _area.backs[i];
+					auto ab = area.backs[i];
 					ab.path = b.path;
 					ab.flag = b.flag;
 					ab.x = b.x;
@@ -545,20 +547,22 @@ private:
 					ab.width = b.width;
 					ab.height = b.height;
 					ab.mask = b.mask;
-					_comm.refBgImage.call(ab.cwxPath);
+					comm.refBgImage.call(ab.cwxPath);
 				}
 				_bs = bs;
 			}
-			refreshPanel;
-			refreshControls;
-			_comm.refUseCount.call;
-			callModEvent();
+			if (v) {
+				v.refreshPanel;
+				v.refreshControls;
+				v.callModEvent();
+			}
+			comm.refUseCount.call;
 		}
 		override void undo() {
-			impl;
+			impl();
 		}
 		override void redo() {
-			impl;
+			impl();
 		}
 		override void dispose() {
 			static if (UseCards) {
@@ -1813,12 +1817,12 @@ public:
 		}
 		refreshPanel;
 	}
-	private void __remove(T)(int index, ref T[PileImage] tbl, int startIndex) {
+	private void removeImpl(T)(int index, ref T[PileImage] tbl, int startIndex) {
 		tbl.remove(_imgp.images[startIndex + index]);
 		_imgp.remove(startIndex + index);
 		callModEvent();
 	}
-	private void __removeRange(T)(int fromIndex, int toIndex, ref T[PileImage] tbl, int startIndex) {
+	private void removeRangeImpl(T)(int fromIndex, int toIndex, ref T[PileImage] tbl, int startIndex) {
 		for (int i = fromIndex + startIndex; i < toIndex + startIndex; i++) {
 			tbl.remove(_imgp.images[i]);
 		}
@@ -1826,24 +1830,24 @@ public:
 		callModEvent();
 	}
 	static if (UseCards) {
-		private void removeCard(int index) {
-			__remove(index, _cardTbl, cardsIndex);
-			_comm.delMenuCard.call(_area.cards[index].cwxPath);
+		private static void removeCard(AbstractAreaView v, Commons comm, A area, ref C[PileImage] tbl, int index) {
+			if (v) v.removeImpl(index, tbl, staticCardsIndex(area));
+			comm.delMenuCard.call(area.cards[index].cwxPath);
 		}
 		private void removeCardRange(int fromIndex, int toIndex) {
-			__removeRange(fromIndex, toIndex, _cardTbl, cardsIndex);
+			removeRangeImpl(fromIndex, toIndex, _cardTbl, cardsIndex);
 			for (int i = toIndex; i >= fromIndex; i--) {
 				_comm.delMenuCard.call(_area.cards[i].cwxPath);
 			}
 		}
 	}
 	static if (UseBacks) {
-		private void removeBack(int index) {
-			__remove(index, _backTbl, 0);
-			_comm.delBgImage.call(_area.backs[index].cwxPath);
+		private static void removeBack(AbstractAreaView v, Commons comm, A area, ref BgImage[PileImage] tbl, int index) {
+			if (v) v.removeImpl(index, tbl, 0);
+			comm.delBgImage.call(area.backs[index].cwxPath);
 		}
 		private void removeBackRange(int fromIndex, int toIndex) {
-			__removeRange(fromIndex, toIndex, _backTbl, 0);
+			removeRangeImpl(fromIndex, toIndex, _backTbl, 0);
 			for (int i = toIndex; i >= fromIndex; i--) {
 				_comm.delBgImage.call(_area.backs[i].cwxPath);
 			}
@@ -2572,26 +2576,32 @@ public:
 		}
 		/// ditto
 		private void appendCard(int index, C card, bool select, bool refresh, bool check = true) {
-			auto img = create(card);
-			_imgp.deselectAll;
-			_imgp.insert(cardsIndex + index, img);
-			_imgp.images[cardsIndex + index].visible = check;
-			_area.insert(index, card);
-			auto itm = new TableItem(_cards, SWT.NONE, index);
-			itm.setImage = _prop.images.cards;
-			itm.setData = card;
-			itm.setChecked = check;
-			itm.setText = cardName(card);
-			if (select && _viewCards) {
-				_imgp.select(img);
-				if (refresh) {
-					refreshSelected;
+			appendCardImpl(this, _comm, _area, index, card, select, refresh, check);
+		}
+		/// ditto
+		private static void appendCardImpl(AbstractAreaView v, Commons comm, A area, int index, C card, bool select, bool refresh, bool check = true) {
+			area.insert(index, card);
+			if (v) {
+				auto img = v.create(card);
+				v._imgp.deselectAll;
+				v._imgp.insert(v.cardsIndex + index, img);
+				v._imgp.images[v.cardsIndex + index].visible = check;
+				auto itm = new TableItem(v._cards, SWT.NONE, index);
+				itm.setImage = v._prop.images.cards;
+				itm.setData = card;
+				itm.setChecked = check;
+				itm.setText = v.cardName(card);
+				if (select && v._viewCards) {
+					v._imgp.select(img);
+					if (refresh) {
+						v.refreshSelected;
+					}
 				}
+				v._imgp.redraw;
 			}
-			_imgp.redraw;
-			_comm.addMenuCard.call(card.cwxPath);
-			_comm.refUseCount.call;
-			callModEvent();
+			comm.addMenuCard.call(card.cwxPath);
+			comm.refUseCount.call;
+			if (v) v.callModEvent();
 		}
 		private FlexImage create(C card) {
 			auto img = createCardImage!FlexImage(card, _prop.var.etc.smoothingCard);
@@ -2694,26 +2704,32 @@ public:
 		}
 		/// ditto
 		private void appendBgImage(int index, BgImage back, bool select, bool refresh, bool check = true) {
-			_imgp.deselectAll;
-			auto img = create(back);
-			_imgp.insert(index, img);
-			_imgp.images[index].visible = check;
-			_area.insert(index, back);
-			auto itm = new TableItem(_backs, SWT.NONE, index);
-			itm.setImage = _prop.images.backs;
-			itm.setData = back;
-			itm.setChecked = check;
-			itm.setText = getBaseName(back.path);
-			if (select && _viewBacks) {
-				_imgp.select(img);
-				if (refresh) {
-					refreshSelected;
+			appendBgImageImpl(this, _comm, _area, index, back, select, refresh, check);
+		}
+		/// ditto
+		private static void appendBgImageImpl(AbstractAreaView v, Commons comm, A area, int index, BgImage back, bool select, bool refresh, bool check = true) {
+			area.insert(index, back);
+			if (v) {
+				v._imgp.deselectAll;
+				auto img = v.create(back);
+				v._imgp.insert(index, img);
+				v._imgp.images[index].visible = check;
+				auto itm = new TableItem(v._backs, SWT.NONE, index);
+				itm.setImage = v._prop.images.backs;
+				itm.setData = back;
+				itm.setChecked = check;
+				itm.setText = getBaseName(back.path);
+				if (select && v._viewBacks) {
+					v._imgp.select(img);
+					if (refresh) {
+						v.refreshSelected;
+					}
 				}
+				v._imgp.redraw;
 			}
-			_imgp.redraw;
-			_comm.addBgImage.call(back.cwxPath);
-			_comm.refUseCount.call;
-			callModEvent();
+			comm.addBgImage.call(back.cwxPath);
+			comm.refUseCount.call;
+			if (v) v.callModEvent();
 		}
 		private FlexImage create(BgImage back) {
 			auto skin = _comm.skin;
@@ -2982,7 +2998,11 @@ public:
 		}
 	}
 	void cut(SelectionEvent se) {
-		_undo ~= new UndoDelete(this, _comm, _area, _summ);
+		int[] cs;
+		int[] bs;
+		static if (UseCards) cs = _cards.getSelectionIndices;
+		static if (UseBacks) bs = _backs.getSelectionIndices;
+		_undo ~= new UndoDelete(this, _comm, _area, _summ, cs, bs);
 		_tcpd.cut(se);
 	}
 	void copy(SelectionEvent se) {
@@ -2992,11 +3012,46 @@ public:
 		_tcpd.paste(se);
 	}
 	void del(SelectionEvent se) {
-		_undo ~= new UndoDelete(this, _comm, _area, _summ);
+		int[] cs;
+		int[] bs;
+		static if (UseCards) cs = _cards.getSelectionIndices;
+		static if (UseBacks) bs = _backs.getSelectionIndices;
+		_undo ~= new UndoDelete(this, _comm, _area, _summ, cs, bs);
 		delImpl;
 	}
 	private void delImpl() {
 		_tcpd.del(null);
+	}
+	private static void delImpl2(AbstractAreaView v, Commons comm, A area, int[] cIdcs, int[] bIdcs) {
+		static if (UseCards) {
+			foreach_reverse (i; cIdcs.sort) {
+				if (v) {
+					removeCard(v, comm, area, v._cardTbl, i);
+				} else {
+					C[PileImage] empty;
+					removeCard(v, comm, area, empty, i);
+				}
+				area.removeCard(i);
+				if (v) v._cards.remove(i);
+			}
+		}
+		static if (UseBacks) {
+			foreach_reverse (i; bIdcs.sort) {
+				if (v) {
+					removeBack(v, comm, area, v._backTbl, i);
+				} else {
+					BgImage[PileImage] empty;
+					removeBack(v, comm, area, empty, i);
+				}
+				area.removeBgImage(i);
+				if (v) v._backs.remove(i);
+			}
+		}
+		if (v) {
+			v._imgp.redraw;
+			v.refreshSelected;
+		}
+		comm.refUseCount.call;
 	}
 	bool canDoTCPD() {
 		return _imgp.isVisible;
@@ -3059,20 +3114,7 @@ public:
 				}
 			}
 			void del(SelectionEvent se) {
-				int i;
-				while (0 <= (i = _cards.getSelectionIndex)) {
-					removeCard(i);
-					_area.removeCard(i);
-					_cards.remove(i);
-				}
-				while (0 <= (i = _backs.getSelectionIndex)) {
-					removeBack(i);
-					_area.removeBgImage(i);
-					_backs.remove(i);
-				}
-				_imgp.redraw;
-				refreshSelected;
-				_comm.refUseCount.call;
+				delImpl2(this.outer, _comm, _area, _cards.getSelectionIndices, _backs.getSelectionIndices);
 			}
 			bool canDoTCPD() {
 				return _imgp.isVisible;
@@ -3129,15 +3171,7 @@ public:
 				}
 			}
 			void del(SelectionEvent se) {
-				int i;
-				while (0 <= (i = _cards.getSelectionIndex)) {
-					removeCard(i);
-					_area.removeCard(i);
-					_cards.remove(i);
-				}
-				_imgp.redraw;
-				refreshSelected;
-				_comm.refUseCount.call;
+				delImpl2(this.outer, _comm, _area, _cards.getSelectionIndices, []);
 			}
 			bool canDoTCPD() {
 				return _cards.isVisible && _cards.isEnabled;
@@ -3193,15 +3227,7 @@ public:
 				}
 			}
 			void del(SelectionEvent se) {
-				int i;
-				while (0 <= (i = _backs.getSelectionIndex)) {
-					removeBack(i);
-					_area.removeBgImage(i);
-					_backs.remove(i);
-				}
-				_imgp.redraw;
-				refreshSelected;
-				_comm.refUseCount.call;
+				delImpl2(this.outer, _comm, _area, [], _backs.getSelectionIndices);
 			}
 			bool canDoTCPD() {
 				return _backs.isVisible && _backs.isEnabled;
