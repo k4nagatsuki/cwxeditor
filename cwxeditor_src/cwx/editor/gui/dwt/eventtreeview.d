@@ -165,23 +165,34 @@ private:
 	}
 
 	UndoManager _undo;
-	abstract class ETVUndo : Undo {
+	abstract static class ETVUndo : Undo {
 		private size_t[] _etPath;
-		private size_t[] _selPath, _selPath2;
-		this () {
-			_etPath = _et.areaPath;
-			auto sel = selection;
-			_selPath = sel ? (cast(Content) sel.getData).ctPath : null;
+		private size_t[] _selPath = null, _selPath2 = null;
+		protected EventTree et;
+		protected Commons comm;
+		this (EventTreeView v, Commons comm, EventTree et) {
+			this.et = et;
+			this.comm = comm;
+			_etPath = et.areaPath;
+			if (v) {
+				auto sel = v.selection;
+				_selPath = sel ? (cast(Content) sel.getData).ctPath : null;
+			}
 		}
-		void udb() {
-			.forceFocus(_tree);
-			_forceSel(_etPath);
-			auto sel = selection;
+		void udb(EventTreeView v) {
+			if (!v) return;
+			.forceFocus(v._tree);
+			v._forceSel(_etPath);
+			auto sel = v.selection;
 			_selPath2 = sel ? (cast(Content) sel.getData).ctPath : null;
 		}
-		void uda() {
-			if (_selPath) _tree.select = fromPath(_selPath);
+		void uda(EventTreeView v) {
+			if (!v) return;
+			if (_selPath) v._tree.select = v.fromPath(_selPath);
 			_selPath = _selPath2;
+		}
+		EventTreeView view() {
+			return comm.eventTreeViewFrom(et.cwxPath);
 		}
 		abstract override void undo();
 		abstract override void redo();
@@ -203,6 +214,7 @@ private:
 		private size_t[][] _path;
 		private Content[] _c;
 		this (Content[] cs) {
+			super (this.outer, _comm, _et);
 			foreach (c; cs) {
 				_path ~= c.ctPath;
 				auto node = c.toNode;
@@ -211,8 +223,9 @@ private:
 			}
 		}
 		private void impl() {
-			udb;
-			scope (exit) uda;
+			auto v = view();
+			udb(v);
+			scope (exit) uda(v);
 			foreach (i, c; _c.dup) {
 				auto node = _et.fromPath(_path[i]).toNode;
 				_c[i] = Content.createFromNode(node, LATEST_VERSION);
@@ -255,11 +268,13 @@ private:
 	class UndoSwap : ETVUndo {
 		private int _upIndex;
 		this (int swapIndex1, int swapIndex2) {
+			super (this.outer, _comm, _et);
 			_upIndex = swapIndex1 > swapIndex2 ? swapIndex1 : swapIndex2;
 		}
 		private void impl() {
-			udb;
-			scope (exit) uda;
+			auto v = view();
+			udb(v);
+			scope (exit) uda(v);
 			up(_tree.getItem(_upIndex), false);
 		}
 		override void undo() {impl;}
@@ -274,12 +289,14 @@ private:
 		private size_t _count;
 		private Content[] _c;
 		this (int index, size_t count) {
+			super (this.outer, _comm, _et);
 			_index = index;
 			_count = count;
 		}
 		override void undo() {
-			udb;
-			scope (exit) uda;
+			auto v = view();
+			udb(v);
+			scope (exit) uda(v);
 			_tree.setRedraw = false;
 			scope (exit) _tree.setRedraw = true;
 			for (size_t i = 0; i < _count; i++) {
@@ -294,8 +311,9 @@ private:
 			_refreshTopStart();
 		}
 		override void redo() {
-			udb;
-			scope (exit) uda;
+			auto v = view();
+			udb(v);
+			scope (exit) uda(v);
 			foreach_reverse (c; _c) {
 				insertStart(_index, c);
 			}
@@ -314,19 +332,22 @@ private:
 		private int _index;
 		private Content _c;
 		this (int index, Content del) {
+			super (this.outer, _comm, _et);
 			_index = index;
 			auto node = del.toNode;
 			_c = Content.createFromNode(node, LATEST_VERSION);
 			_c.setUseCounter(_summ.useCounter.sub);
 		}
 		override void undo() {
-			udb;
-			scope (exit) uda;
+			auto v = view();
+			udb(v);
+			scope (exit) uda(v);
 			insertStart(_index, _c);
 		}
 		override void redo() {
-			udb;
-			scope (exit) uda;
+			auto v = view();
+			udb(v);
+			scope (exit) uda(v);
 			_tree.setRedraw = false;
 			scope (exit) _tree.setRedraw = true;
 			delImpl(_tree.getItem(_index), false);
