@@ -171,8 +171,8 @@ private:
 			_vals.enter = tree.fireEnter;
 			_vals.escape = tree.fireEscape;
 			_vals.lose = tree.fireLose;
-			_vals.keyCodes = tree.keyCodes;
-			_vals.rounds = tree.rounds;
+			_vals.keyCodes = tree.keyCodes.dup;
+			_vals.rounds = tree.rounds.dup;
 		}
 		private TreeItem getItem() {
 			return _cards.getItem(_ownerIndex).getItem(_index);
