@@ -129,11 +129,11 @@ private:
 				if (eti !is eti2) {
 					if (eti2) {
 						__select(eti2);
-					} else {
+					} else if (!eti) {
 						_etree.refresh(null);
 					}
 				}
-				_selPath = getSelPath;
+				swap(_selPath, _selPath2);
 			} else {
 				_cards.deselectAll;
 			}
