@@ -152,7 +152,7 @@ private:
 						v._etree.refresh(null);
 					}
 				}
-				swap(_selPath, _selPath2);
+				_selPath = _selPath2;
 			} else {
 				v._cards.deselectAll;
 			}
@@ -226,34 +226,44 @@ private:
 	void store(EventTree tree) {
 		_undo ~= new UndoTreeData(this, _comm, _area, tree);
 	}
-	class UndoInsert : EVUndo {
+	static class UndoInsert : EVUndo {
 		private int _ownerIndex;
 		private int _insertIndex;
 		private UndoDelete _delUndo = null;
-		this (int ownerIndex, int insertIndex) {
-			super (this.outer, _comm, _area);
+		private Summary _summ;
+		this (EventView v, Commons comm, A area, Summary summ, int ownerIndex, int insertIndex) {
+			super (v, comm, area);
 			_ownerIndex = ownerIndex;
 			_insertIndex = insertIndex;
+			_summ = summ;
 		}
 		override void undo() {
 			auto v = view();
 			udb(v);
 			scope (exit) uda(v);
-			auto ownItm = _cards.getItem(_ownerIndex);
-			auto owner = cast(EventTreeOwner) ownItm.getData;
+			undoImpl(v);
+		}
+		void undoImpl(EventView v) {
+			auto owner = etos(area)[_ownerIndex];
 			auto tree = owner.trees[_insertIndex];
-			if (_etree.eventTree && _etree.eventTree.areaPath == tree.areaPath) {
-				_etree.refresh(null);
-			}
-			_delUndo = new UndoDelete(tree);
+			_delUndo = new UndoDelete(v, comm, area, _summ, tree);
 			owner.removeEvent(_insertIndex);
-			auto itm = ownItm.getItem(_insertIndex);
-			if (_selItm is itm) _selItm = null;
-			itm.dispose;
-			_comm.refUseCount.call;
+			if (v) {
+				if (v._etree.eventTree && v._etree.eventTree.areaPath == tree.areaPath) {
+					v._etree.refresh(null);
+				}
+				auto ownItm = v._cards.getItem(_ownerIndex);
+				auto itm = ownItm.getItem(_insertIndex);
+				if (v._selItm is itm) v._selItm = null;
+				itm.dispose;
+			}
+			comm.refUseCount.call;
 		}
 		override void redo() {
-			_delUndo.undo;
+			auto v = view();
+			udb(v);
+			scope (exit) uda(v);
+			_delUndo.undoImpl(v);
 			_delUndo = null;
 		}
 		override void dispose() {
@@ -261,38 +271,45 @@ private:
 		}
 	}
 	void storeI(int ownerIndex, int insertIndex) {
-		_undo ~= new UndoInsert(ownerIndex, insertIndex);
+		_undo ~= new UndoInsert(this, _comm, _area, _summ, ownerIndex, insertIndex);
 	}
-	class UndoDelete : EVUndo {
+	static class UndoDelete : EVUndo {
 		private int _ownerIndex;
 		private int _treeIndex;
 		private EventTree _tree;
 		private UndoInsert _istUndo = null;
-		this (EventTree tree) {
-			super (this.outer, _comm, _area);
+		private Summary _summ;
+		this (EventView v, Commons comm, A area, Summary summ, EventTree tree) {
+			super (v, comm, area);
+			_summ = summ;
 			auto owner = tree.owner;
-			foreach (i, itm; _cards.getItems) {
-				auto eto = cast(EventTreeOwner) itm.getData;
-				if (eto is owner) {
-					_ownerIndex = i;
-					_treeIndex = .cCountUntil!("a is b")(owner.trees, tree);
-					break;
-				}
-			}
+			_ownerIndex = .cCountUntil!("a is b")(etos(area), owner);
+			_treeIndex = .cCountUntil!("a is b")(owner.trees, tree);
 			auto node = tree.toNode;
 			_tree = EventTree.createFromNode(node, LATEST_VERSION);
-			_tree.setUseCounter(_summ.useCounter.sub);
+			_tree.setUseCounter(summ.useCounter.sub);
 		}
 		override void undo() {
 			auto v = view();
 			udb(v);
 			scope (exit) uda(v);
-			_istUndo = new UndoInsert(_ownerIndex, _treeIndex);
-			auto parItm = _cards.getItem(_ownerIndex);
-			appendTree(parItm, _tree, _treeIndex, null, false);
+			undoImpl(v);
+		}
+		void undoImpl(EventView v) {
+			_istUndo = new UndoInsert(v, comm, area, _summ, _ownerIndex, _treeIndex);
+			if (v) {
+				auto parItm = v._cards.getItem(_ownerIndex);
+				v.appendTree(parItm, _tree, _treeIndex, null, false);
+			} else {
+				auto eto = etos(area)[_ownerIndex];
+				appendTreeImpl(comm, eto, _tree, _treeIndex);
+			}
 		}
 		override void redo() {
-			_istUndo.undo;
+			auto v = view();
+			udb(v);
+			scope (exit) uda(v);
+			_istUndo.undoImpl(v);
 			_istUndo = null;
 		}
 		override void dispose() {
@@ -301,7 +318,7 @@ private:
 		}
 	}
 	void storeD(EventTree tree) {
-		_undo ~= new UndoDelete(tree);
+		_undo ~= new UndoDelete(this, _comm, _area, _summ, tree);
 	}
 	class UndoSwap : EVUndo {
 		private int _ownerIndex;
@@ -486,13 +503,16 @@ private:
 			_comm.refUseCount.call;
 		}
 	}
+	private static void appendTreeImpl(Commons comm, EventTreeOwner eto, EventTree tree, int index) {
+		eto.insert(index, tree);
+		comm.refUseCount.call;
+	}
 	void appendTree(TreeItem parItm, EventTree tree, int index, Object defFire, bool store) {
 		auto eto = cast(EventTreeOwner) parItm.getData;
 		if (store) storeI(_cards.indexOf(parItm), eto.trees.length);
-		eto.insert(index, tree);
+		appendTreeImpl(_comm, eto, tree, index);
 		auto treeItm = appendTreeItem(parItm, index, defFire);
 		__select(treeItm);
-		_comm.refUseCount.call;
 	}
 	void refreshTrees(TreeItem parItm) {
 		auto par = cast(EventTreeOwner) parItm.getData;
