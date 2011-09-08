@@ -24,6 +24,7 @@ import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.scripterrordialog;
 
+import std.algorithm : max;
 import std.string;
 import std.exception;
 
@@ -187,8 +188,8 @@ private:
 			_vals.enter = tree.fireEnter;
 			_vals.escape = tree.fireEscape;
 			_vals.lose = tree.fireLose;
-			_vals.keyCodes = tree.keyCodes;
-			_vals.rounds = tree.rounds;
+			_vals.keyCodes = tree.keyCodes.dup;
+			_vals.rounds = tree.rounds.dup;
 		}
 		private TreeItem getItem(EventView v) {
 			enforce(v);
@@ -320,26 +321,32 @@ private:
 	void storeD(EventTree tree) {
 		_undo ~= new UndoDelete(this, _comm, _area, _summ, tree);
 	}
-	class UndoSwap : EVUndo {
+	static class UndoSwap : EVUndo {
 		private int _ownerIndex;
-		private int _upIndex;
-		this (int ownerIndex, int swapIndex1, int swapIndex2) {
-			super (this.outer, _comm, _area);
+		private int _swapIndex1;
+		private int _swapIndex2;
+		this (EventView v, Commons comm, A area, int ownerIndex, int swapIndex1, int swapIndex2) {
+			super (v, comm, area);
 			_ownerIndex = ownerIndex;
-			_upIndex = swapIndex1 > swapIndex2 ? swapIndex1 : swapIndex2;
+			_swapIndex1 = swapIndex1;
+			_swapIndex2 = swapIndex2;
 		}
 		private void impl() {
 			auto v = view();
 			udb(v);
 			scope (exit) uda(v);
-			up(_cards.getItem(_ownerIndex).getItem(_upIndex), false);
+			if (v) {
+				v.up(v._cards.getItem(_ownerIndex).getItem(max(_swapIndex1, _swapIndex2)), false);
+			} else {
+				staticUDImpl(etos(area)[_ownerIndex], _swapIndex1, _swapIndex2);
+			}
 		}
-		override void undo() {impl;}
-		override void redo() {impl;}
+		override void undo() {impl();}
+		override void redo() {impl();}
 		override void dispose() {}
 	}
 	void store(int ownerIndex, int swapIndex1, int swapIndex2) {
-		_undo ~= new UndoSwap(ownerIndex, swapIndex1, swapIndex2);
+		_undo ~= new UndoSwap(this, _comm, _area, ownerIndex, swapIndex1, swapIndex2);
 	}
 
 	void forceSel(size_t[] etAreaPath) {
@@ -1097,7 +1104,7 @@ public:
 		}
 		if (openToolWin) openToolWindow;
 	}
-	private void __ud(string BeforeAfter, string CanSwapKeyCode)
+	private void udImpl(string BeforeAfter, string CanSwapKeyCode)
 			(TreeItem itm, int function(TreeItem) treeSwap, bool store) {
 		if (itm && itm.getParentItem) {
 			auto data = itm.getData;
@@ -1136,6 +1143,9 @@ public:
 			}
 		}
 	}
+	private static void staticUDImpl(EventTreeOwner eto, int from, int to) {
+		eto.swapEventTree(from, to);
+	}
 	void up() {
 		initial;
 		up(selection, true);
@@ -1144,7 +1154,7 @@ public:
 		if (_etree.isFocusControl) {
 			_etree.up;
 		} else if (_cards.isFocusControl) {
-			__ud!("before(parent, from)", "to >= 0")(itm, &treeItemUp, store);
+			udImpl!("before(parent, from)", "to >= 0")(itm, &treeItemUp, store);
 		}
 	}
 	void down() {
@@ -1155,7 +1165,7 @@ public:
 		if (_etree.isFocusControl) {
 			_etree.down;
 		} else if (_cards.isFocusControl) {
-			__ud!("after(parent, from)", "to < keyCodeLen")(itm, &treeItemDown, store);
+			udImpl!("after(parent, from)", "to < keyCodeLen")(itm, &treeItemDown, store);
 		}
 	}
 
