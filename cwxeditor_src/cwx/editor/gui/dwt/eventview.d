@@ -133,7 +133,7 @@ private:
 						_etree.refresh(null);
 					}
 				}
-				swap(_selPath, _selPath2);
+				_selPath = _selPath2;
 			} else {
 				_cards.deselectAll;
 			}
@@ -217,6 +217,9 @@ private:
 		override void undo() {
 			udb;
 			scope (exit) uda;
+			undoImpl();
+		}
+		void undoImpl() {
 			auto ownItm = _cards.getItem(_ownerIndex);
 			auto owner = cast(EventTreeOwner) ownItm.getData;
 			auto tree = owner.trees[_insertIndex];
@@ -231,7 +234,9 @@ private:
 			_comm.refUseCount.call;
 		}
 		override void redo() {
-			_delUndo.undo;
+			udb;
+			scope (exit) uda;
+			_delUndo.undoImpl();
 			_delUndo = null;
 		}
 		override void dispose() {
@@ -262,12 +267,17 @@ private:
 		override void undo() {
 			udb;
 			scope (exit) uda;
+			undoImpl();
+		}
+		void undoImpl() {
+			udb;
+			scope (exit) uda;
 			_istUndo = new UndoInsert(_ownerIndex, _treeIndex);
 			auto parItm = _cards.getItem(_ownerIndex);
 			appendTree(parItm, _tree, _treeIndex, null, false);
 		}
 		override void redo() {
-			_istUndo.undo;
+			_istUndo.undoImpl();
 			_istUndo = null;
 		}
 		override void dispose() {
