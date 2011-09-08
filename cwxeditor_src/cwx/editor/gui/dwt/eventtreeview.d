@@ -170,9 +170,13 @@ private:
 		private size_t[] _selPath = null, _selPath2 = null;
 		protected EventTree et;
 		protected Commons comm;
-		this (EventTreeView v, Commons comm, EventTree et) {
+		protected Props prop;
+		protected Summary summ;
+		this (EventTreeView v, Commons comm, Props prop, Summary summ, EventTree et) {
 			this.et = et;
 			this.comm = comm;
+			this.prop = prop;
+			this.summ = summ;
 			_etPath = et.areaPath;
 			if (v) {
 				auto sel = v.selection;
@@ -198,28 +202,30 @@ private:
 		abstract override void redo();
 		abstract override void dispose();
 	}
-	private void insertStart(int index, Content c) {
-		_tree.setRedraw = false;
-		scope (exit) _tree.setRedraw = true;
-		_et.insert(index, c);
-		auto itm = createTreeItem(_tree, c, c.name, _prop.images.content(c.type), index);
-		createChilds(itm, c, false);
-		itm.setExpanded = true;
-		refreshStatusLine;
-		_comm.refContent.call(c);
-		_comm.refUseCount.call;
-		_refreshTopStart();
+	private static void insertStart(EventTreeView v, Commons comm, EventTree et, int index, Content c) {
+		if (v) v._tree.setRedraw = false;
+		scope (exit) if (v) v._tree.setRedraw = true;
+		et.insert(index, c);
+		if (v) {
+			auto itm = createTreeItem(v._tree, c, c.name, v._prop.images.content(c.type), index);
+			v.createChilds(itm, c, false);
+			itm.setExpanded = true;
+			v.refreshStatusLine;
+			v._refreshTopStart();
+		}
+		comm.refContent.call(c);
+		comm.refUseCount.call;
 	}
-	class UndoContent : ETVUndo {
+	static class UndoContent : ETVUndo {
 		private size_t[][] _path;
 		private Content[] _c;
-		this (Content[] cs) {
-			super (this.outer, _comm, _et);
+		this (EventTreeView v, Commons comm, Props prop, Summary summ, EventTree et, Content[] cs) {
+			super (v, comm, prop, summ, et);
 			foreach (c; cs) {
 				_path ~= c.ctPath;
 				auto node = c.toNode;
 				_c ~= Content.createFromNode(node, LATEST_VERSION);
-				_c[$ - 1].setUseCounter(_summ.useCounter.sub);
+				_c[$ - 1].setUseCounter(summ.useCounter.sub);
 			}
 		}
 		private void impl() {
@@ -227,35 +233,44 @@ private:
 			udb(v);
 			scope (exit) uda(v);
 			foreach (i, c; _c.dup) {
-				auto node = _et.fromPath(_path[i]).toNode;
-				_c[i] = Content.createFromNode(node, LATEST_VERSION);
-				_c[i].setUseCounter(_summ.useCounter.sub);
-				auto now = fromPath(_path[i]);
-				_tree.setRedraw = false;
-				scope (exit) _tree.setRedraw = true;
-				auto par = now.getParentItem;
-				TreeItem itm;
 				int index = _path[i][$ - 1];
-				if (par) {
-					auto pc = cast(Content) par.getData;
+				auto tc = et.fromPath(_path[i]);
+				auto node = tc.toNode;
+				_c[i] = Content.createFromNode(node, LATEST_VERSION);
+				_c[i].setUseCounter(summ.useCounter.sub);
+				auto pc = tc.parent;
+				string text;
+				if (pc) {
 					pc.insert(index, c);
-					itm = createTreeItem(par, c, eventText(pc, c), _prop.images.content(c.type), index);
+					text = eventTextImpl(comm, prop, summ, pc, c);
 				} else {
-					_et.insert(index, c);
-					itm = createTreeItem(_tree, c, c.name, _prop.images.content(c.type), index);
+					et.insert(index, c);
+					text = c.name;
 				}
-				createChilds(itm, c, false);
-				itm.setExpanded = true;
-				delImpl(now, false);
-				if (!par) {
-					_refreshTopStart();
+				if (v) v._tree.setRedraw = false;
+				scope (exit) if (v) v._tree.setRedraw = true;
+				if (v) {
+					auto now = v.fromPath(_path[i]);
+					auto par = now.getParentItem;
+					TreeItem itm;
+					if (par) {
+						itm = createTreeItem(par, c, text, prop.images.content(c.type), index);
+					} else {
+						itm = createTreeItem(v._tree, c, text, prop.images.content(c.type), index);
+					}
+					v.createChilds(itm, c, false);
+					itm.setExpanded = true;
+				}
+				delImpl(v, comm, et, tc);
+				if (v && !pc) {
+					v._refreshTopStart();
 				}
 			}
-			refreshStatusLine;
-			_comm.refUseCount.call;
+			if (v) v.refreshStatusLine;
+			comm.refUseCount.call;
 		}
-		override void undo() {impl;}
-		override void redo() {impl;}
+		override void undo() {impl();}
+		override void redo() {impl();}
 		override void dispose() {
 			foreach (c; _c) {
 				c.removeUseCounter;
@@ -263,33 +278,33 @@ private:
 		}
 	}
 	void store(Content[] evt ...) {
-		_undo ~= new UndoContent(evt);
+		_undo ~= new UndoContent(this, _comm, _prop, _summ, _et, evt);
 	}
-	class UndoSwap : ETVUndo {
+	static class UndoSwap : ETVUndo {
 		private int _upIndex;
-		this (int swapIndex1, int swapIndex2) {
-			super (this.outer, _comm, _et);
+		this (EventTreeView v, Commons comm, Props prop, Summary summ, EventTree et, int swapIndex1, int swapIndex2) {
+			super (v, comm, prop, summ, et);
 			_upIndex = swapIndex1 > swapIndex2 ? swapIndex1 : swapIndex2;
 		}
 		private void impl() {
 			auto v = view();
 			udb(v);
 			scope (exit) uda(v);
-			up(_tree.getItem(_upIndex), false);
+			udImpl!(-1)(v, comm, et, et.starts[_upIndex], false);
 		}
-		override void undo() {impl;}
-		override void redo() {impl;}
+		override void undo() {impl();}
+		override void redo() {impl();}
 		override void dispose() {}
 	}
 	void storeSwap(int swapIndex1, int swapIndex2) {
-		_undo ~= new UndoSwap(swapIndex1, swapIndex2);
+		_undo ~= new UndoSwap(this, _comm, _prop, _summ, _et, swapIndex1, swapIndex2);
 	}
-	class UndoInsert : ETVUndo {
+	static class UndoInsert : ETVUndo {
 		private int _index;
 		private size_t _count;
 		private Content[] _c;
-		this (int index, size_t count) {
-			super (this.outer, _comm, _et);
+		this (EventTreeView v, Commons comm, Props prop, Summary summ, EventTree et, int index, size_t count) {
+			super (v, comm, prop, summ, et);
 			_index = index;
 			_count = count;
 		}
@@ -297,25 +312,27 @@ private:
 			auto v = view();
 			udb(v);
 			scope (exit) uda(v);
-			_tree.setRedraw = false;
-			scope (exit) _tree.setRedraw = true;
+			if (v) v._tree.setRedraw = false;
+			scope (exit) if (v) v._tree.setRedraw = true;
 			for (size_t i = 0; i < _count; i++) {
-				auto node = _et.starts[_index].toNode;
+				auto node = et.starts[_index].toNode;
 				auto c = Content.createFromNode(node, LATEST_VERSION);
-				c.setUseCounter(_summ.useCounter.sub);
+				c.setUseCounter(summ.useCounter.sub);
 				_c ~= c;
-				delImpl(_tree.getItem(_index), false);
+				delImpl(v, comm, et, et.starts[_index]);
 			}
-			refreshStatusLine;
-			_comm.refUseCount.call;
-			_refreshTopStart();
+			comm.refUseCount.call;
+			if (v) {
+				v.refreshStatusLine;
+				v._refreshTopStart();
+			}
 		}
 		override void redo() {
 			auto v = view();
 			udb(v);
 			scope (exit) uda(v);
 			foreach_reverse (c; _c) {
-				insertStart(_index, c);
+				insertStart(v, comm, et, _index, c);
 			}
 			_c = [];
 		}
@@ -326,41 +343,43 @@ private:
 		}
 	}
 	void storeInsert(int insertIndex, size_t count = 1) {
-		_undo ~= new UndoInsert(insertIndex, count);
+		_undo ~= new UndoInsert(this, _comm, _prop, _summ, _et, insertIndex, count);
 	}
-	class UndoDelete : ETVUndo {
+	static class UndoDelete : ETVUndo {
 		private int _index;
 		private Content _c;
-		this (int index, Content del) {
-			super (this.outer, _comm, _et);
+		this (EventTreeView v, Commons comm, Props prop, Summary summ, EventTree et, int index, Content del) {
+			super (v, comm, prop, summ, et);
 			_index = index;
 			auto node = del.toNode;
 			_c = Content.createFromNode(node, LATEST_VERSION);
-			_c.setUseCounter(_summ.useCounter.sub);
+			_c.setUseCounter(summ.useCounter.sub);
 		}
 		override void undo() {
 			auto v = view();
 			udb(v);
 			scope (exit) uda(v);
-			insertStart(_index, _c);
+			insertStart(v, comm, et, _index, _c);
 		}
 		override void redo() {
 			auto v = view();
 			udb(v);
 			scope (exit) uda(v);
-			_tree.setRedraw = false;
-			scope (exit) _tree.setRedraw = true;
-			delImpl(_tree.getItem(_index), false);
-			refreshStatusLine;
-			_comm.refUseCount.call;
-			_refreshTopStart();
+			if (v) v._tree.setRedraw = false;
+			scope (exit) if (v) v._tree.setRedraw = true;
+			delImpl(v, comm, et, et.starts[_index]);
+			comm.refUseCount.call;
+			if (v) {
+				v.refreshStatusLine;
+				v._refreshTopStart();
+			}
 		}
 		override void dispose() {
 			_c.removeUseCounter;
 		}
 	}
 	void storeDelete(int index, Content del) {
-		_undo ~= new UndoDelete(index, del);
+		_undo ~= new UndoDelete(this, _comm, _prop, _summ, _et, index, del);
 	}
 	private TreeItem fromPath(string cwxPath) {
 		return fromPathImpl(_tree, cwxPath);
@@ -387,12 +406,12 @@ private:
 		if (path.length == 1) return itm;
 		return fromPathImpl(itm, path[1 .. $]);
 	}
-	class UndoCP : Undo {
+	static class UndoCP : Undo {
 		private UndoContent _undoC;
 		private UndoDelete _undoD;
-		this (Content[] conts, int index, Content start) {
-			_undoC = new UndoContent(conts);
-			_undoD = new UndoDelete(index, start);
+		this (EventTreeView v, Commons comm, Props prop, Summary summ, EventTree et, Content[] conts, int index, Content start) {
+			_undoC = new UndoContent(v, comm, prop, summ, et, conts);
+			_undoD = new UndoDelete(v, comm, prop, summ, et, index, start);
 		}
 		override void undo() {
 			_undoD.undo;
@@ -778,11 +797,11 @@ private:
 			auto evt = dlg.event;
 			applied(evt);
 
-			auto undo = new UndoContent([evt]);
+			auto undo = new UndoContent(this, _comm, _prop, _summ, _et, [evt]);
 			dlg.appliedEvent.length = 0;
 			dlg.appliedEvent ~= {
 				appliedEdit(undo, evt);
-				undo = new UndoContent([evt]);
+				undo = new UndoContent(this, _comm, _prop, _summ, _et, [evt]);
 			};
 		};
 		_editDlgs[evt] = dlg;
@@ -985,10 +1004,10 @@ private:
 			break;
 		} default: assert (0);
 		}
-		auto undo = new UndoContent([evt]);
+		auto undo = new UndoContent(this, _comm, _prop, _summ, _et, [evt]);
 		dlg.appliedEvent ~= {
 			appliedEdit(undo, evt);
-			undo = new UndoContent([evt]);
+			undo = new UndoContent(this, _comm, _prop, _summ, _et, [evt]);
 		};
 		_editDlgs[evt] = dlg;
 		dlg.closeEvent ~= {
@@ -1768,10 +1787,10 @@ public:
 		}
 		auto dlg = new ContentCommentDialog(_comm, _prop, _tree.getShell, c.parent, c);
 		dlg.appliedEvent ~= &_tree.redraw;
-		auto undo = new UndoContent([c]);
+		auto undo = new UndoContent(this, _comm, _prop, _summ, _et, [c]);
 		dlg.appliedEvent ~= {
 			_undo ~= undo;
-			undo = new UndoContent([c]);
+			undo = new UndoContent(this, _comm, _prop, _summ, _et, [c]);
 		};
 		_commentDlgs[c] = dlg;
 		dlg.closeEvent ~= {
@@ -1814,7 +1833,7 @@ public:
 			foreach (cld; itm.getItems) find(cld);
 		}
 		foreach (itm; _tree.getItems) find(itm);
-		auto ucp = new UndoCP(conts, index, start);
+		auto ucp = new UndoCP(this, _comm, _prop, _summ, _et, conts, index, start);
 		auto id = _comm.createPackage(start);
 		if (id == 0) {
 			ucp.dispose;
@@ -2056,7 +2075,10 @@ public:
 	/// parent = 親イベント。
 	/// e = イベント。名称が書き換えられる。
 	/// Returns: テキスト。
-	private string eventText(Content parent, Content e) in {
+	private string eventText(Content parent, Content e) {
+		return eventTextImpl(_comm, _prop, _summ, parent, e);
+	}
+	private static string eventTextImpl(Commons comm, Props prop, Summary summ, Content parent, Content e) in {
 		assert (parent.detail.owner);
 	} body {
 		if (!parent) return e.name;
@@ -2067,74 +2089,74 @@ public:
 		string r;
 		switch (parent.type) {
 		case CType.BRANCH_FLAG: {
-			r = _prop.msgs.evtChildBrFlag(_summ.flagDirRoot.findFlag(parent.flag), name);
+			r = prop.msgs.evtChildBrFlag(summ.flagDirRoot.findFlag(parent.flag), name);
 			break;
 		} case CType.BRANCH_MULTI_STEP: {
-			r = _prop.msgs.evtChildBrStepN(_summ.flagDirRoot.findStep(parent.step), name);
+			r = prop.msgs.evtChildBrStepN(summ.flagDirRoot.findStep(parent.step), name);
 			break;
 		} case CType.BRANCH_STEP: {
-			r = _prop.msgs.evtChildBrStepUL(_summ.flagDirRoot.findStep(parent.step), parent.stepValue, name);
+			r = prop.msgs.evtChildBrStepUL(summ.flagDirRoot.findStep(parent.step), parent.stepValue, name);
 			break;
 		} case CType.BRANCH_SELECT: {
-			r = _prop.msgs.evtChildBrMember(parent.targetAll, parent.random, name);
+			r = prop.msgs.evtChildBrMember(parent.targetAll, parent.random, name);
 			break;
 		} case CType.BRANCH_ABILITY: {
-			r = _prop.msgs.evtChildBrPower(parent.targetS, parent.physical, parent.mental, parent.signedLevel, name);
+			r = prop.msgs.evtChildBrPower(parent.targetS, parent.physical, parent.mental, parent.signedLevel, name);
 			break;
 		} case CType.BRANCH_RANDOM: {
-			r = _prop.msgs.evtChildBrRandom(parent.percent, name);
+			r = prop.msgs.evtChildBrRandom(parent.percent, name);
 			break;
 		} case CType.BRANCH_LEVEL: {
-			r = _prop.msgs.evtChildBrLevel(parent.unsignedLevel, parent.average, name);
+			r = prop.msgs.evtChildBrLevel(parent.unsignedLevel, parent.average, name);
 			break;
 		} case CType.BRANCH_STATUS: {
-			r = _prop.msgs.evtChildBrState(parent.targetNS, parent.status, name);
+			r = prop.msgs.evtChildBrState(parent.targetNS, parent.status, name);
 			break;
 		} case CType.BRANCH_PARTY_NUMBER: {
-			r = _prop.msgs.evtChildBrNum(parent.partyNumber, name);
+			r = prop.msgs.evtChildBrNum(parent.partyNumber, name);
 			break;
 		} case CType.BRANCH_AREA: {
-			r = _prop.msgs.evtChildBrArea(_summ.areas, name);
+			r = prop.msgs.evtChildBrArea(summ.areas, name);
 			break;
 		} case CType.BRANCH_BATTLE: {
-			r = _prop.msgs.evtChildBrBattle(_summ.battles, name);
+			r = prop.msgs.evtChildBrBattle(summ.battles, name);
 			break;
 		} case CType.BRANCH_IS_BATTLE: {
-			r = _prop.msgs.evtChildBrOnBattle(name);
+			r = prop.msgs.evtChildBrOnBattle(name);
 			break;
 		} case CType.BRANCH_CAST: {
-			r = _prop.msgs.evtChildBrCast(_summ.casts(parent.casts), name);
+			r = prop.msgs.evtChildBrCast(summ.casts(parent.casts), name);
 			break;
 		} case CType.BRANCH_ITEM: {
-			r = _prop.msgs.evtChildBrItem(_summ.item(parent.item), parent.range, parent.cardNumber, name);
+			r = prop.msgs.evtChildBrItem(summ.item(parent.item), parent.range, parent.cardNumber, name);
 			break;
 		} case CType.BRANCH_SKILL: {
-			r = _prop.msgs.evtChildBrSkill(_summ.skill(parent.skill), parent.range, parent.cardNumber, name);
+			r = prop.msgs.evtChildBrSkill(summ.skill(parent.skill), parent.range, parent.cardNumber, name);
 			break;
 		} case CType.BRANCH_BEAST: {
-			r = _prop.msgs.evtChildBrBeast(_summ.beast(parent.beast), parent.range, parent.cardNumber, name);
+			r = prop.msgs.evtChildBrBeast(summ.beast(parent.beast), parent.range, parent.cardNumber, name);
 			break;
 		} case CType.BRANCH_INFO: {
-			r = _prop.msgs.evtChildBrInfo(_summ.info(parent.info), name);
+			r = prop.msgs.evtChildBrInfo(summ.info(parent.info), name);
 			break;
 		} case CType.BRANCH_MONEY: {
-			r = _prop.msgs.evtChildBrMoney(parent.money, name);
+			r = prop.msgs.evtChildBrMoney(parent.money, name);
 			break;
 		} case CType.BRANCH_COUPON: {
-			r = _prop.msgs.evtChildBrCoupon(parent.range, parent.coupon, name);
+			r = prop.msgs.evtChildBrCoupon(parent.range, parent.coupon, name);
 			break;
 		} case CType.BRANCH_COMPLETE_STAMP: {
-			r = _prop.msgs.evtChildBrEnd(parent.completeStamp, name);
+			r = prop.msgs.evtChildBrEnd(parent.completeStamp, name);
 			break;
 		} case CType.BRANCH_GOSSIP: {
-			r = _prop.msgs.evtChildBrGossip(parent.gossip, name);
+			r = prop.msgs.evtChildBrGossip(parent.gossip, name);
 			break;
 		} default:
 			name = "";
 			r = "";
 		}
 		e.name = name;
-		_comm.refContent.call(e);
+		comm.refContent.call(e);
 		return r;
 	}
 	private void createChilds(TreeItem parent, Content evt, bool select = false) {
@@ -2159,51 +2181,61 @@ public:
 		return _tree.isFocusControl;
 	}
 
-	private void __ud(string ToIndex)(TreeItem itm, int function(TreeItem) treeSwap, bool store) {
-		if (!_et) return;
-		if (itm) {
-			_tree.setRedraw = false;
-			scope (exit) _tree.setRedraw = true;
-			if (itm.getParentItem) {
-				auto p = cast(Content) itm.getParentItem.getData;
-				int i = treeSwap(itm);
-				if (i >= 0) {
-					if (store) this.store(p);
-					int j = mixin(ToIndex);
-					_comm.delContent.call(p.next[i]);
-					_comm.delContent.call(p.next[j]);
-					p.swapContent(i, j);
-					_tree.showSelection;
-				}
-			} else {
-				int i = treeSwap(itm);
-				int j = mixin(ToIndex);
-				if (i >= 0) {
-					if (store) this.storeSwap(i, j);
-					_comm.delContent.call(_et.starts[i]);
-					_comm.delContent.call(_et.starts[j]);
-					_et.swapStart(i, j);
-					_tree.showSelection;
-				}
-				if (i == 0 || j == 0) {
-					_refreshTopStart();
-				}
+	private static void udImpl(int To)(EventTreeView v, Commons comm, EventTree et, Content c, bool store) {
+		if (!et) return;
+		if (v) v._tree.setRedraw = false;
+		scope (exit) if (v) v._tree.setRedraw = true;
+		auto pc = c.parent;
+		int i, j;
+		auto path = c.ctPath;
+		if (pc) {
+			i = cCountUntil!("a is b")(pc.next, c);
+			j = i + To;
+			if (j < 0 || pc.next.length <= j) return;
+			if (v && store) {
+				v.store(pc);
+			}
+			comm.delContent.call(pc.next[i]);
+			comm.delContent.call(pc.next[j]);
+			pc.swapContent(i, j);
+		} else {
+			i = cCountUntil!("a is b")(et.starts, c);
+			j = i + To;
+			if (j < 0 || et.starts.length <= j) return;
+			if (v && store) {
+				v.storeSwap(i, j);
+			}
+			comm.delContent.call(et.starts[i]);
+			comm.delContent.call(et.starts[j]);
+			et.swapStart(i, j);
+		}
+		if (v) {
+			static if (To == -1) {
+				int r = treeItemUp(v.fromPath(path));
+			} else static if (To == 1) {
+				int r = treeItemDown(v.fromPath(path));
+			} else static assert (0);
+			v._tree.showSelection;
+			if (!pc && (i == 0 || j == 0)) {
+				v._refreshTopStart();
 			}
 		}
 	}
 	private void up(TreeItem itm, bool store) {
 		if (!itm) return;
-		__ud!("i - 1")(itm, &treeItemUp, store);
+		udImpl!(-1)(this, _comm, _et, cast(Content) itm.getData, store);
 	}
 	void up() {
-		up(selection, true);
+		auto itm = selection;
+		if (itm) up(itm, true);
 	}
 	private void down(TreeItem itm, bool store) {
 		if (!itm) return;
-		__ud!("i + 1")(itm, &treeItemDown, store);
+		udImpl!(1)(this, _comm, _et, cast(Content) itm.getData, store);
 	}
 	void down() {
-		down(selection, true);
+		auto itm = selection;
+		if (itm) down(itm, true);
 	}
 
 	void openToolWindow() {
@@ -2373,6 +2405,18 @@ public:
 			_et.remove(c);
 		}
 		itm.dispose;
+	}
+	private static void delImpl(EventTreeView v, Commons comm, EventTree et, Content c) {
+		if (v) {
+			v.delImpl(v.fromPath(c.ctPath), false);
+		} else {
+			comm.delContent.call(c);
+			if (c.parent) {
+				c.parent.remove(c);
+			} else {
+				et.remove(c);
+			}
+		}
 	}
 	private void __refreshCardImpl(TreeItem evt) {
 		foreach (childItm; evt.getItems) {
