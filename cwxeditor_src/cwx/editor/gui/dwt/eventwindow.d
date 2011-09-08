@@ -252,6 +252,9 @@ public:
 	A eventTreeOwner() {
 		return _eto;
 	}
+	EventView!(A, void, false) eventView() {
+		return _eview;
+	}
 	override EventTreeView eventTreeView() {
 		return _eview.eventTreeView;
 	}

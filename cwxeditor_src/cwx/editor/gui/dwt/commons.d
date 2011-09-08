@@ -17,6 +17,7 @@ import cwx.editor.gui.dwt.mainwindow;
 import cwx.editor.gui.dwt.areawindow;
 import cwx.editor.gui.dwt.cardwindow;
 import cwx.editor.gui.dwt.eventwindow;
+import cwx.editor.gui.dwt.eventview;
 import cwx.editor.gui.dwt.eventtreeview;
 import cwx.editor.gui.dwt.directorywindow;
 import cwx.editor.gui.dwt.datawindow;
@@ -487,12 +488,16 @@ class Commons {
 		foreach (w; _ws) {
 			auto tlpData = (cast(TLPData) w.getData);
 			if (tlpData.main is cast(Object) a) {
-				auto aw = cast(AreaWindow) tlpData.tlp;
-				if (aw) return aw.eventView;
-				auto bw = cast(BattleWindow) tlpData.tlp;
-				if (bw) return aw.eventView;
-				auto ew = cast(EventWindow!A) tlpData.tlp;
-				if (ew) return ew.eventView;
+				static if (is(A : Area)) {
+					auto aw = cast(AreaWindow) tlpData.tlp;
+					if (aw) return aw.eventView;
+				} else static if (is(A : Battle)) {
+					auto bw = cast(BattleWindow) tlpData.tlp;
+					if (bw) return bw.eventView;
+				} else {
+					auto ew = cast(EventWindow!A) tlpData.tlp;
+					if (ew) return ew.eventView;
+				}
 				assert (0);
 			}
 		}
