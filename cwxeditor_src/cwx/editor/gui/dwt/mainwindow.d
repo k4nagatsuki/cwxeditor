@@ -1416,6 +1416,7 @@ public:
 				int acc = convertAccelerator(_prop.msgs.menuSave);
 				if (eqAcc(acc, e.keyCode, e.character, e.stateMask)) {
 					saveScenario();
+					e.doit = false;
 				}
 			}
 		}
