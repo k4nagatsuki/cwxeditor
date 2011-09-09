@@ -1374,11 +1374,11 @@ public:
 	const string itemViewNameTab(ulong id, string name) {return __viewNameTab(id, name);}
 	const string beastViewNameTab(ulong id, string name) {return __viewNameTab(id, name);}
 	const string areaViewName(ulong id, string name) {return __viewName("エリア", id, name);}
-	const string areaSceneViewName(ulong id, string name) {return __viewName("エリア シーンビュー", id, name);}
-	const string areaEventViewName(ulong id, string name) {return __viewName("エリア イベントビュー", id, name);}
+	const string areaSceneViewName(ulong id, string name) {return __viewName("エリア カードと背景", id, name);}
+	const string areaEventViewName(ulong id, string name) {return __viewName("エリア イベント", id, name);}
 	const string battleViewName(ulong id, string name) {return __viewName("バトル", id, name);}
-	const string battleSceneViewName(ulong id, string name) {return __viewName("バトル シーンビュー", id, name);}
-	const string battleEventViewName(ulong id, string name) {return __viewName("バトル イベントビュー", id, name);}
+	const string battleSceneViewName(ulong id, string name) {return __viewName("バトル カードと背景", id, name);}
+	const string battleEventViewName(ulong id, string name) {return __viewName("バトル イベント", id, name);}
 	const string packageViewName(ulong id, string name) {return __viewName("パッケージ", id, name);}
 	const string skillViewName(ulong id, string name) {return __viewName("スキル", id, name);}
 	const string itemViewName(ulong id, string name) {return __viewName("アイテム", id, name);}

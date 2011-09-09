@@ -43,6 +43,7 @@ private:
 	A _eto;
 	Commons _comm;
 	Props _prop;
+	UndoManager _undo;
 
 	SBShell _sbshl;
 	Composite _win;
@@ -57,7 +58,7 @@ private:
 	}
 
 public:
-	this(Commons comm, Props prop, Summary summ, Composite parent, Shell parent2, A eto) {
+	this(Commons comm, Props prop, Summary summ, Composite parent, Shell parent2, A eto, UndoManager undo) {
 		Shell shell = null;
 		auto parShl = cast(Shell) parent;
 		Composite contPane;
@@ -76,6 +77,7 @@ public:
 		_prop = prop;
 		_eto = eto;
 		_comm = comm;
+		_undo = undo ? undo : new UndoManager(1024);
 
 		static if (is (A == Area)) {
 			_comm.delArea.add(&__deleteOwner);
@@ -127,7 +129,7 @@ public:
 			}
 		});
 		{
-			_eview = new typeof(_eview)(comm, prop, summ, eto, contPane, new UndoManager(1024));
+			_eview = new typeof(_eview)(comm, prop, summ, eto, contPane, _undo);
 			_eview.setLayoutData = new GridData(GridData.FILL_BOTH);
 		}
 		if (shell) {
@@ -221,6 +223,9 @@ public:
 	}
 	Composite shell() {
 		return _win;
+	}
+	UndoManager undoManager() {
+		return _undo;
 	}
 	private void __deleteOwner(A a) {
 		if (_eto is a) {
@@ -323,6 +328,8 @@ public:
 	}
 }
 
+alias EventWindow!(Area) AreaEventWindow;
+alias EventWindow!(Battle) BattleEventWindow;
 alias EventWindow!(Package) PackageWindow;
 alias EventWindow!(SkillCard) SkillEventWindow;
 alias EventWindow!(ItemCard) ItemEventWindow;

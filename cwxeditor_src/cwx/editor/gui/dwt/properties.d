@@ -759,6 +759,8 @@ class FlexEtcProps : Properties {
 
 	mixin Property!("doubleIO", bool, true);
 
+	mixin Property!("bindSceneWithEvent", bool, false);
+
 	mixin XMLFuncs!(FlexEtcProps);
 }
 

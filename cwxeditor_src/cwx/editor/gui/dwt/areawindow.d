@@ -38,13 +38,9 @@ import org.eclipse.swt.events.SelectionAdapter;
 
 public:
 
-class TAreaWindow(V, A, C) : TopLevelPanel, IEventWindow, TCPD {
+class TAreaWindow(V, A, C, bool WithEventView) : TopLevelPanel, TCPD {
 private:
 	Commons _comm;
-
-	CTabFolder _tabf;
-	CTabItem _tabA;
-	CTabItem _tabE;
 
 	SBShell _sbshl;
 	Composite _win;
@@ -56,7 +52,13 @@ private:
 	UndoManager _undo;
 
 	V _aview;
-	EventView!(A, C, true) _eview;
+
+	static if (WithEventView) {
+		CTabFolder _tabf;
+		CTabItem _tabA;
+		CTabItem _tabE;
+		EventView!(A, C, true) _eview;
+	}
 
 	TCPD[] _tcpd;
 
@@ -64,19 +66,27 @@ private:
 		_aview.refresh;
 	}
 	void up() {
-		if (_tabA !is null && _tabf.getSelectionIndex == 0) {
-			_aview.setFocus;
-			_aview.up;
+		static if (WithEventView) {
+			if (_tabA !is null && _tabf.getSelectionIndex == 0) {
+				_aview.setFocus;
+				_aview.up;
+			} else {
+				_eview.up;
+			}
 		} else {
-			_eview.up;
+			_aview.up;
 		}
 	}
 	void down() {
-		if (_tabA !is null && _tabf.getSelectionIndex == 0) {
-			_aview.setFocus;
-			_aview.down;
+		static if (WithEventView) {
+			if (_tabA !is null && _tabf.getSelectionIndex == 0) {
+				_aview.setFocus;
+				_aview.down;
+			} else {
+				_eview.down;
+			}
 		} else {
-			_eview.down;
+			_aview.down;
 		}
 	}
 	void __deleteArea(A area) {
@@ -92,23 +102,25 @@ private:
 	void __refreshTitle() {
 		_comm.setTitle(_win, title);
 	}
-	class TabSel : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
-			if (_tabf.getSelection is _tabE) {
-				_eview.initial;
-				_comm.statusLine(_win, _eview.statusLine);
-				_eview.openToolWindow;
-			} else {
-				_comm.statusLine(_win, _aview.statusLine);
-				_eview.closeToolWindow;
+	static if (WithEventView) {
+		class TabSel : SelectionAdapter {
+			override void widgetSelected(SelectionEvent e) {
+				if (_tabf.getSelection is _tabE) {
+					_eview.initial;
+					_comm.statusLine(_win, _eview.statusLine);
+					_eview.openToolWindow;
+				} else {
+					_comm.statusLine(_win, _aview.statusLine);
+					_eview.closeToolWindow;
+				}
 			}
 		}
 	}
 public:
-	this(Commons comm, Props prop, Summary summ, Composite parent, Shell areaWin, A area) {
+	this(Commons comm, Props prop, Summary summ, Composite parent, Shell areaWin, A area, UndoManager undo = null) {
 		_comm = comm;
 		_area = area;
-		_undo = new UndoManager(1024);
+		_undo = undo ? undo : new UndoManager(1024);
 		Shell shell = null;
 		auto parShl = cast(Shell) parent;
 		Composite contPane;
@@ -156,23 +168,25 @@ public:
 		});
 		contPane.setLayout = windowGridLayout(1, true);
 		_prop = prop;
-		_tabf = new CTabFolder(contPane, SWT.BORDER);
-		_tabf.setLayoutData = new GridData(GridData.FILL_BOTH);
-		if (cast(Area) area || cast(Battle) area) {
-			_tabA = new CTabItem(_tabf, SWT.NONE);
-			_tabA.setText = _prop.msgs.cardAndBackView;
-		}
-		_tabE = new CTabItem(_tabf, SWT.NONE);
-		_tabE.setText = _prop.msgs.eventView;
-		_tabf.addSelectionListener(new TabSel);
+		static if (WithEventView) {
+			_tabf = new CTabFolder(contPane, SWT.BORDER);
+			_tabf.setLayoutData = new GridData(GridData.FILL_BOTH);
+			if (cast(Area) area || cast(Battle) area) {
+				_tabA = new CTabItem(_tabf, SWT.NONE);
+				_tabA.setText = _prop.msgs.cardAndBackView;
+			}
+			_tabE = new CTabItem(_tabf, SWT.NONE);
+			_tabE.setText = _prop.msgs.eventView;
+			_tabf.addSelectionListener(new TabSel);
 
-		if (cast(Area) area) {
-			_tabA.setImage = _prop.images.areaSceneView;
-			_tabE.setImage = _prop.images.areaEventTreeView;
-		} else if (cast(Battle) area) {
-			_tabA.setImage = _prop.images.battleSceneView;
-			_tabE.setImage = _prop.images.battleEventTreeView;
-		} else assert (0);
+			if (cast(Area) area) {
+				_tabA.setImage = _prop.images.areaSceneView;
+				_tabE.setImage = _prop.images.areaEventTreeView;
+			} else if (cast(Battle) area) {
+				_tabA.setImage = _prop.images.battleSceneView;
+				_tabE.setImage = _prop.images.battleEventTreeView;
+			} else assert (0);
+		}
 
 		if (shell) {
 			auto bar = new Menu(shell, SWT.BAR);
@@ -181,41 +195,51 @@ public:
 			createMenuItem(mf, _prop.msgs.menuCloseWin, _prop.images.menuCloseWin, &shell.close);
 
 			auto me = createMenu(bar, _prop.msgs.menuEdit);
-			createMenuItem(me, _prop.msgs.menuUndo, _prop.images.menuUndo, &undo);
-			createMenuItem(me, _prop.msgs.menuRedo, _prop.images.menuRedo, &redo);
+			createMenuItem(me, _prop.msgs.menuUndo, _prop.images.menuUndo, &this.undo);
+			createMenuItem(me, _prop.msgs.menuRedo, _prop.images.menuRedo, &this.redo);
 			new MenuItem(me, SWT.SEPARATOR);
 			createMenuItem(me, _prop.msgs.menuUp, _prop.images.menuUp, &up);
 			createMenuItem(me, _prop.msgs.menuDown, _prop.images.menuDown, &down);
 			new MenuItem(me, SWT.SEPARATOR);
 			appendMenuTCPD(_prop, me, this, true, true, true, true);
-			new MenuItem(me, SWT.SEPARATOR);
-			createMenuItem(me, _prop.msgs.menuWriteComment, _prop.images.menuWriteComment, &writeComment);
-			new MenuItem(me, SWT.SEPARATOR);
-			createMenuItem(me, _prop.msgs.menuToScript, _prop.images.menuToScript, &toScript);
-			createMenuItem(me, _prop.msgs.menuToScriptAll, _prop.images.menuToScriptAll, &toScriptAll);
-
+			static if (WithEventView) {
+				new MenuItem(me, SWT.SEPARATOR);
+				createMenuItem(me, _prop.msgs.menuWriteComment, _prop.images.menuWriteComment, &writeComment);
+				new MenuItem(me, SWT.SEPARATOR);
+				createMenuItem(me, _prop.msgs.menuToScript, _prop.images.menuToScript, &toScript);
+				createMenuItem(me, _prop.msgs.menuToScriptAll, _prop.images.menuToScriptAll, &toScriptAll);
+			}
 			auto mv = createMenu(bar, _prop.msgs.menuView);
 			createMenuItem(mv, _prop.msgs.menuRefresh, _prop.images.menuRefresh, &refresh);
 
 			shell.setMenuBar = bar;
 		} else {
-			putMenuAction(MenuID.Undo, &undo);
-			putMenuAction(MenuID.Redo, &redo);
+			putMenuAction(MenuID.Undo, &this.undo);
+			putMenuAction(MenuID.Redo, &this.redo);
 			putMenuAction(MenuID.Up, &up);
 			putMenuAction(MenuID.Down, &down);
 			appendMenuTCPD(_prop, this, this, true, true, true, true);
-			putMenuAction(MenuID.WriteComment, &writeComment);
-			putMenuAction(MenuID.ToScript, &toScript);
-			putMenuAction(MenuID.ToScriptAll, &toScriptAll);
+			static if (WithEventView) {
+				putMenuAction(MenuID.WriteComment, &writeComment);
+				putMenuAction(MenuID.ToScript, &toScript);
+				putMenuAction(MenuID.ToScriptAll, &toScriptAll);
+			}
 			putMenuAction(MenuID.Refresh, &refresh);
 		}
 		{
-			_aview = new V(comm, prop, summ, area, _tabf, shell ? null : this, _undo);
-			_tabA.setControl(_aview);
+			static if (WithEventView) {
+				auto pane = _tabf;
+			} else {
+				auto pane = contPane;
+			}
+			_aview = new V(comm, prop, summ, area, pane, shell ? null : this, _undo);
+			static if (WithEventView) {
+				_tabA.setControl(_aview);
+			}
 			_tcpd ~= _aview;
 			if (shell) _aview.setupMenu(shell.getMenuBar);
 		}
-		{
+		static if (WithEventView) {
 			_eview = new EventView!(A, C, true)(comm, prop, summ, area, _tabf, _undo);
 			_tabE.setControl(_eview);
 			_tcpd ~= _eview;
@@ -225,9 +249,17 @@ public:
 		if (shell) shell.pack;
 
 		static if (is(V == AreaView)) {
-			auto winProps = _prop.var.areaWin;
+			static if (WithEventView) {
+				auto winProps = _prop.var.areaWin;
+			} else {
+				auto winProps = _prop.var.areaSceneWin;
+			}
 		} else static if (is(V == BattleView)) {
-			auto winProps = _prop.var.battleWin;
+			static if (WithEventView) {
+				auto winProps = _prop.var.battleWin;
+			} else {
+				auto winProps = _prop.var.battleSceneWin;
+			}
 		} else {
 			static assert (0);
 		}
@@ -246,9 +278,17 @@ public:
 
 	Image image() {
 		static if (is (A == Area)) {
-			return _prop.images.area;
+			static if (WithEventView) {
+				return _prop.images.area;
+			} else {
+				return _prop.images.areaSceneView;
+			}
 		} else static if (is (A == Battle)) {
-			return _prop.images.battle;
+			static if (WithEventView) {
+				return _prop.images.battle;
+			} else {
+				return _prop.images.battleSceneView;
+			}
 		} else {
 			static assert (0);
 		}
@@ -256,15 +296,29 @@ public:
 	string title() {
 		auto shl = cast(Shell) _win;
 		static if (is (A == Area)) {
-			if (shl) {
-				return _prop.msgs.areaViewName(_area.id, _area.name);
+			static if (WithEventView) {
+				if (shl) {
+					return _prop.msgs.areaViewName(_area.id, _area.name);
+				}
+				return _prop.msgs.areaViewNameTab(_area.id, _area.name);
+			} else {
+				if (shl) {
+					return _prop.msgs.areaSceneViewName(_area.id, _area.name);
+				}
+				return _prop.msgs.areaSceneViewNameTab(_area.id, _area.name);
 			}
-			return _prop.msgs.areaViewNameTab(_area.id, _area.name);
 		} else static if (is (A == Battle)) {
-			if (shl) {
-				return _prop.msgs.battleViewName(_area.id, _area.name);
+			static if (WithEventView) {
+				if (shl) {
+					return _prop.msgs.battleViewName(_area.id, _area.name);
+				}
+				return _prop.msgs.battleViewNameTab(_area.id, _area.name);
+			} else {
+				if (shl) {
+					return _prop.msgs.battleSceneViewName(_area.id, _area.name);
+				}
+				return _prop.msgs.battleSceneViewNameTab(_area.id, _area.name);
 			}
-			return _prop.msgs.battleViewNameTab(_area.id, _area.name);
 		} else {
 			static assert (0);
 		}
@@ -273,9 +327,17 @@ public:
 
 	private void saveWin() {
 		static if (is(V == AreaView)) {
-			auto winProps = _prop.var.areaWin;
+			static if (WithEventView) {
+				auto winProps = _prop.var.areaWin;
+			} else {
+				auto winProps = _prop.var.areaSceneWin;
+			}
 		} else static if (is(V == BattleView)) {
-			auto winProps = _prop.var.battleWin;
+			static if (WithEventView) {
+				auto winProps = _prop.var.battleWin;
+			} else {
+				auto winProps = _prop.var.battleSceneWin;
+			}
 		} else {
 			static assert (0);
 		}
@@ -298,16 +360,11 @@ public:
 	Composite shell() {
 		return _win;
 	}
+	UndoManager undoManager() {
+		return _undo;
+	}
 	V areaView() {
 		return _aview;
-	}
-	EventView!(A, C, true) eventView() {
-		_eview.initial;
-		return _eview;
-	}
-	override EventTreeView eventTreeView() {
-		_eview.initial;
-		return _eview.eventTreeView;
 	}
 
 	/// Returns: 編集中のエリア。
@@ -317,17 +374,28 @@ public:
 	void undo() {_undo.undo;}
 	void redo() {_undo.redo;}
 
-	private void toScript() {
-		_eview.initial;
-		_eview.toScript();
-	}
-	private void toScriptAll() {
-		_eview.initial;
-		_eview.toScriptAll();
-	}
-	private void writeComment() {
-		_eview.initial;
-		_eview.writeComment();
+	static if (WithEventView) {
+		EventView!(A, C, true) eventView() {
+			_eview.initial;
+			return _eview;
+		}
+		EventTreeView eventTreeView() {
+			_eview.initial;
+			return _eview.eventTreeView;
+		}
+
+		private void toScript() {
+			_eview.initial;
+			_eview.toScript();
+		}
+		private void toScriptAll() {
+			_eview.initial;
+			_eview.toScriptAll();
+		}
+		private void writeComment() {
+			_eview.initial;
+			_eview.writeComment();
+		}
 	}
 
 	override {
@@ -366,18 +434,25 @@ public:
 	bool openCWXPath(string path) {
 		auto cate = cpcategory(path);
 		if (cpempty(path)) {
-			_tabf.setSelection = _tabA;
+			static if (WithEventView) {
+				_tabf.setSelection = _tabA;
+			}
 			return true;
 		} else if (((cate == "menucard" || cate == "enemycard")
 				&& cpempty(cpbottom(path)))
 				|| cate == "background") {
 			return _aview.openCWXPath(path);
 		} else {
-			_eview.initial;
-			return _eview.openCWXPath(path);
+			static if (WithEventView) {
+				_eview.initial;
+				return _eview.openCWXPath(path);
+			}
 		}
+		return false;
 	}
 }
 
-alias TAreaWindow!(AreaView, Area, MenuCard) AreaWindow;
-alias TAreaWindow!(BattleView, Battle, EnemyCard) BattleWindow;
+alias TAreaWindow!(AreaView, Area, MenuCard, true) AreaWindow;
+alias TAreaWindow!(AreaView, Area, MenuCard, false) AreaSceneWindow;
+alias TAreaWindow!(BattleView, Battle, EnemyCard, true) BattleWindow;
+alias TAreaWindow!(BattleView, Battle, EnemyCard, false) BattleSceneWindow;

@@ -23,6 +23,7 @@ import cwx.editor.gui.dwt.directorywindow;
 import cwx.editor.gui.dwt.datawindow;
 import cwx.editor.gui.dwt.dockingfolder;
 import cwx.editor.gui.dwt.sbshell;
+import cwx.editor.gui.dwt.undo;
 
 import std.path;
 import std.file;
@@ -307,20 +308,32 @@ class Commons {
 	Shell actToolWin() {return _actToolWin;}
 	private Shell _actToolWin = null;
 
+	private void activate(Composite w) {
+		auto shl = cast(Shell) w;
+		if (shl) {
+			shl.setMinimized = false;
+			shl.setActive;
+		} else {
+			.forceFocus(w);
+		}
+	}
 	private Window rOpen(Window, Main)(Main m) {
 		foreach (w; _ws) {
 			if ((cast(TLPData) w.getData).main is m) {
-				auto shl = cast(Shell) w;
-				if (shl) {
-					shl.setMinimized = false;
-					shl.setActive;
-				} else {
-					.forceFocus(w);
-				}
+				activate(w);
 				return cast(Window) _wos[w];
 			}
 		}
 		return null;
+	}
+	private Composite[] opened(Main)(Main m) {
+		Composite[] ws;
+		foreach (w; _ws) {
+			if ((cast(TLPData) w.getData).main is m) {
+				ws ~= w;
+			}
+		}
+		return ws;
 	}
 	private Window __open(string Pane, Window, Main, string Etc, Args ...)(Main m, Args args) {
 		auto w = rOpen!(Window)(m);
@@ -355,20 +368,69 @@ class Commons {
 		if (s.length) return _main.dock.pane(s[0]);
 		return _main.dock.addPane(workPane, Dir.E, 3, 1, _main.dock.newCtrlKey("side"));
 	}
-	private Window __openArea(A, Window)(Props prop, Summary summ, A area) {
+	private Window __openArea(A, Window)(Props prop, Summary summ, A area, UndoManager undo) {
 		if (!area) return null;
-		return __open!("work", Window, A, "", Commons, Props, Summary, Composite, Shell, A)
+		return __open!("work", Window, A, "", Commons, Props, Summary, Composite, Shell, A, UndoManager)
 			(area, this, prop, summ, workPane,
-			cast(Shell) (_dataWin ? _dataWin.shell : _tableWin.shell), area);
+			cast(Shell) (_dataWin ? _dataWin.shell : _tableWin.shell), area, undo);
+	}
+	private BindWindow openAreaB(A, BindWindow, SceneWindow, EventWindow)(Props prop, Summary summ, A area) {
+		auto ws = opened(area);
+		UndoManager undo = null;
+		foreach (w; ws) {
+			auto tlpData = (cast(TLPData) w.getData);
+			auto sw = cast(SceneWindow) tlpData.tlp;
+			if (sw) {
+				undo = sw.undoManager;
+			}
+			auto ew = cast(EventWindow) tlpData.tlp;
+			if (ew) {
+				undo = ew.undoManager;
+			}
+			close(w);
+		}
+		return __openArea!(A, BindWindow)(prop, summ, area, undo);
+	}
+	private Window1 openAreaSE(A, BindWindow, Window1, Window2)(Props prop, Summary summ, A area) {
+		auto ws = opened(area);
+		UndoManager undo = null;
+		foreach (w; ws) {
+			auto tlpData = (cast(TLPData) w.getData);
+			auto aw = cast(BindWindow) tlpData.tlp;
+			if (aw) {
+				activate(w);
+				return null;
+			}
+			auto asw = cast(Window1) tlpData.tlp;
+			if (asw) {
+				activate(w);
+				return asw;
+			}
+			auto aew = cast(Window2) tlpData.tlp;
+			if (aew) undo = aew.undoManager;
+		}
+		return __openArea!(A, Window1)(prop, summ, area, undo);
 	}
 	AreaWindow openArea(Props prop, Summary summ, Area area) {
-		return __openArea!(Area, AreaWindow)(prop, summ, area);
+		return openAreaB!(Area, AreaWindow, AreaSceneWindow, AreaEventWindow)(prop, summ, area);
+	}
+	void openAreaScene(Props prop, Summary summ, Area area) {
+		openAreaSE!(Area, AreaWindow, AreaSceneWindow, AreaEventWindow)(prop, summ, area);
+	}
+	void openAreaEvent(Props prop, Summary summ, Area area) {
+		openAreaSE!(Area, AreaWindow, AreaEventWindow, AreaSceneWindow)(prop, summ, area);
 	}
 	BattleWindow openArea(Props prop, Summary summ, Battle area) {
-		return __openArea!(Battle, BattleWindow)(prop, summ, area);
+		return openAreaB!(Battle, BattleWindow, BattleSceneWindow, BattleEventWindow)(prop, summ, area);
+	}
+	void openAreaScene(Props prop, Summary summ, Battle area) {
+		openAreaSE!(Battle, BattleWindow, BattleSceneWindow, BattleEventWindow)(prop, summ, area);
+	}
+	void openAreaEvent(Props prop, Summary summ, Battle area) {
+		openAreaSE!(Battle, BattleWindow, BattleEventWindow, BattleSceneWindow)(prop, summ, area);
 	}
 	PackageWindow openArea(Props prop, Summary summ, Package area) {
-		return __openArea!(Package, PackageWindow)(prop, summ, area);
+		return __openArea!(Package, PackageWindow)(prop, summ, area, null);
 	}
 
 	HandCardWindow openHands(Props prop, Summary summ, CastCard c) {
@@ -384,18 +446,18 @@ class Commons {
 			(c, this, prop, sidePane, summ, c, toc);
 	}
 
-	Window __openUseEvent(C, Window)(Props prop, Summary summ, C c) {
-		return __open!("work", Window, C, "", Commons, Props, Summary, Composite, Shell, C)
-			(c, this, prop, summ, workPane, cast(Shell) _cardWin.shell, c);
+	private Window __openUseEvent(C, Window)(Props prop, Summary summ, C c, UndoManager undo) {
+		return __open!("work", Window, C, "", Commons, Props, Summary, Composite, Shell, C, UndoManager)
+			(c, this, prop, summ, workPane, cast(Shell) _cardWin.shell, c, undo);
 	}
 	SkillEventWindow openUseEvents(Props prop, Summary summ, SkillCard c) {
-		return __openUseEvent!(SkillCard, SkillEventWindow)(prop, summ, c);
+		return __openUseEvent!(SkillCard, SkillEventWindow)(prop, summ, c, null);
 	}
 	ItemEventWindow openUseEvents(Props prop, Summary summ, ItemCard c) {
-		return __openUseEvent!(ItemCard, ItemEventWindow)(prop, summ, c);
+		return __openUseEvent!(ItemCard, ItemEventWindow)(prop, summ, c, null);
 	}
 	BeastEventWindow openUseEvents(Props prop, Summary summ, BeastCard c) {
-		return __openUseEvent!(BeastCard, BeastEventWindow)(prop, summ, c);
+		return __openUseEvent!(BeastCard, BeastEventWindow)(prop, summ, c, null);
 	}
 	private void show(Composite c, string pane, Dir dir, string key,
 			TopLevelPanel delegate(Composite) create, string text) {
