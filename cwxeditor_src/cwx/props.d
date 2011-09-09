@@ -1364,13 +1364,21 @@ public:
 		return "[" ~ kind ~ "] - " ~ to!(string)(id) ~ " - " ~ name;
 	}
 	const string areaViewNameTab(ulong id, string name) {return __viewNameTab(id, name);}
+	const string areaSceneViewNameTab(ulong id, string name) {return __viewNameTab(id, name);}
+	const string areaEventViewNameTab(ulong id, string name) {return __viewNameTab(id, name);}
 	const string battleViewNameTab(ulong id, string name) {return __viewNameTab(id, name);}
+	const string battleSceneViewNameTab(ulong id, string name) {return __viewNameTab(id, name);}
+	const string battleEventViewNameTab(ulong id, string name) {return __viewNameTab(id, name);}
 	const string packageViewNameTab(ulong id, string name) {return __viewNameTab(id, name);}
 	const string skillViewNameTab(ulong id, string name) {return __viewNameTab(id, name);}
 	const string itemViewNameTab(ulong id, string name) {return __viewNameTab(id, name);}
 	const string beastViewNameTab(ulong id, string name) {return __viewNameTab(id, name);}
 	const string areaViewName(ulong id, string name) {return __viewName("エリア", id, name);}
+	const string areaSceneViewName(ulong id, string name) {return __viewName("エリア シーンビュー", id, name);}
+	const string areaEventViewName(ulong id, string name) {return __viewName("エリア イベントビュー", id, name);}
 	const string battleViewName(ulong id, string name) {return __viewName("バトル", id, name);}
+	const string battleSceneViewName(ulong id, string name) {return __viewName("バトル シーンビュー", id, name);}
+	const string battleEventViewName(ulong id, string name) {return __viewName("バトル イベントビュー", id, name);}
 	const string packageViewName(ulong id, string name) {return __viewName("パッケージ", id, name);}
 	const string skillViewName(ulong id, string name) {return __viewName("スキル", id, name);}
 	const string itemViewName(ulong id, string name) {return __viewName("アイテム", id, name);}

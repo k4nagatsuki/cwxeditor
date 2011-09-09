@@ -236,7 +236,11 @@ class EventWin(string Name, int Width, int Height) : Properties, DSize {
 	mixin XMLFuncs!(EventWin, Name);
 }
 alias EventWin!("areaWindow", SWT.DEFAULT, SWT.DEFAULT) AreaWin;
+alias EventWin!("areaSceneWindow", SWT.DEFAULT, SWT.DEFAULT) AreaSceneWin;
+alias EventWin!("areaEventWindow", SWT.DEFAULT, SWT.DEFAULT) AreaEventWin;
 alias EventWin!("battleWindow", SWT.DEFAULT, SWT.DEFAULT) BattleWin;
+alias EventWin!("battleSceneWindow", SWT.DEFAULT, SWT.DEFAULT) BattleSceneWin;
+alias EventWin!("battleEventWindow", SWT.DEFAULT, SWT.DEFAULT) BattleEventWin;
 alias EventWin!("packageWindow", 800, 520) PackageWin;
 alias EventWin!("cardEventWindow", 800, 520) CardEventWin;
 
@@ -764,7 +768,11 @@ public class FlexProps {
 	WindowProps!("cardWindow", SWT.DEFAULT, 400) cardWin;
 	WindowProps!("directoryWindow", SWT.DEFAULT, 400) dirWin;
 	AreaWin areaWin;
+	AreaSceneWin areaSceneWin;
+	AreaEventWin areaEventWin;
 	BattleWin battleWin;
+	BattleSceneWin battleSceneWin;
+	BattleEventWin battleEventWin;
 	PackageWin packageWin;
 	CardEventWin cardEventWin;
 	ContWin contentsWin;

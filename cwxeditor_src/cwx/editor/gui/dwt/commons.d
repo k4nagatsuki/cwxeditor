@@ -488,16 +488,15 @@ class Commons {
 		foreach (w; _ws) {
 			auto tlpData = (cast(TLPData) w.getData);
 			if (tlpData.main is cast(Object) a) {
-				static if (is(A : Area)) {
+				static if (is(A : Area) && is(C : MenuCard) && UseFire) {
 					auto aw = cast(AreaWindow) tlpData.tlp;
 					if (aw) return aw.eventView;
-				} else static if (is(A : Battle)) {
+				} else static if (is(A : Battle) && is(C : EnemyCard) && UseFire) {
 					auto bw = cast(BattleWindow) tlpData.tlp;
 					if (bw) return bw.eventView;
-				} else {
-					auto ew = cast(EventWindow!A) tlpData.tlp;
-					if (ew) return ew.eventView;
 				}
+				auto ew = cast(EventWindow!A) tlpData.tlp;
+				if (ew) return ew.eventView;
 				assert (0);
 			}
 		}

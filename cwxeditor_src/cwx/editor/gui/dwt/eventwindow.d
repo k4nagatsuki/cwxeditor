@@ -48,7 +48,13 @@ private:
 	Composite _win;
 	Shell _parent2 = null;
 
-	EventView!(A, void, false) _eview;
+	static if (is(A : Area)) {
+		EventView!(A, MenuCard, true) _eview;
+	} else static if (is(A : Battle)) {
+		EventView!(A, EnemyCard, true) _eview;
+	} else {
+		EventView!(A, void, false) _eview;
+	}
 
 public:
 	this(Commons comm, Props prop, Summary summ, Composite parent, Shell parent2, A eto) {
@@ -71,7 +77,13 @@ public:
 		_eto = eto;
 		_comm = comm;
 
-		static if (is (A == Package)) {
+		static if (is (A == Area)) {
+			_comm.delArea.add(&__deleteOwner);
+			_comm.refArea.add(&__refOwner);
+		} else static if (is (A == Battle)) {
+			_comm.delBattle.add(&__deleteOwner);
+			_comm.refBattle.add(&__refOwner);
+		} else static if (is (A == Package)) {
 			_comm.delPackage.add(&__deleteOwner);
 			_comm.refPackage.add(&__refOwner);
 		} else static if (is (A == SkillCard)) {
@@ -90,7 +102,13 @@ public:
 		_win.addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) {
 				saveWin;
-				static if (is (A == Package)) {
+						static if (is (A == Area)) {
+					_comm.delArea.remove(&__deleteOwner);
+					_comm.refArea.remove(&__refOwner);
+				} else static if (is (A == Battle)) {
+					_comm.delBattle.remove(&__deleteOwner);
+					_comm.refBattle.remove(&__refOwner);
+				} else static if (is (A == Package)) {
 					_comm.delPackage.remove(&__deleteOwner);
 					_comm.refPackage.remove(&__refOwner);
 				} else static if (is (A == SkillCard)) {
@@ -109,7 +127,7 @@ public:
 			}
 		});
 		{
-			_eview = new EventView!(A, void, false)(comm, prop, summ, eto, contPane, new UndoManager(1024));
+			_eview = new typeof(_eview)(comm, prop, summ, eto, contPane, new UndoManager(1024));
 			_eview.setLayoutData = new GridData(GridData.FILL_BOTH);
 		}
 		if (shell) {
@@ -145,7 +163,11 @@ public:
 		}
 
 		if (shell) {
-			static if (is(A == Package)) {
+			static if (is(A == Area)) {
+				auto winProps = _prop.var.areaEventWin;
+			} else static if (is(A == Battle)) {
+				auto winProps = _prop.var.battleEventWin;
+			} else static if (is(A == Package)) {
 				auto winProps = _prop.var.packageWin;
 			} else static if (is(A : EffectCard)) {
 				auto winProps = _prop.var.cardEventWin;
@@ -166,7 +188,13 @@ public:
 		__refreshTitle;
 	}
 	private void saveWin() {
-		static if (is(A == Package)) {
+		static if (is(A == Area)) {
+			auto winProps = _prop.var.areaEventWin;
+			auto parentProps = _prop.var.dataWin;
+		} else static if (is(A == Battle)) {
+			auto winProps = _prop.var.battleEventWin;
+			auto parentProps = _prop.var.dataWin;
+		} else static if (is(A == Package)) {
 			auto winProps = _prop.var.packageWin;
 			auto parentProps = _prop.var.dataWin;
 		} else static if (is(A : EffectCard)) {
@@ -205,7 +233,11 @@ public:
 		}
 	}
 	Image image() {
-		static if (is (A == Package)) {
+		static if (is (A == Area)) {
+			return _prop.images.areaEventTreeView;
+		} else static if (is (A == Battle)) {
+			return _prop.images.battleEventTreeView;
+		} else static if (is (A == Package)) {
 			return _prop.images.packages;
 		} else static if (is (A == SkillCard)) {
 			return _prop.images.skill;
@@ -219,7 +251,17 @@ public:
 	}
 	string title() {
 		auto shl = cast(Shell) _win;
-		static if (is (A == Package)) {
+		static if (is (A == Area)) {
+			if (shl) {
+				return _prop.msgs.areaEventViewName(_eto.id, _eto.name);
+			}
+			return _prop.msgs.areaEventViewNameTab(_eto.id, _eto.name);
+		} else static if (is (A == Battle)) {
+			if (shl) {
+				return _prop.msgs.battleEventViewName(_eto.id, _eto.name);
+			}
+			return _prop.msgs.packageViewNameTab(_eto.id, _eto.name);
+		} else static if (is (A == Package)) {
 			if (shl) {
 				return _prop.msgs.packageViewName(_eto.id, _eto.name);
 			}
@@ -252,7 +294,7 @@ public:
 	A eventTreeOwner() {
 		return _eto;
 	}
-	EventView!(A, void, false) eventView() {
+	typeof(_eview) eventView() {
 		return _eview;
 	}
 	override EventTreeView eventTreeView() {
