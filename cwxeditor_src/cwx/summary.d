@@ -240,11 +240,11 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 					if (!isDir) {
 						if (cfnmatch(path, "Summary.xml")) {
 							xmls[""][path] = cast(string) data;
-						} else if (cfnmatch(getExt(path), "xml") && isScenarioSystemDir(getDirName(path))) {
-							xmls[getDirName(path)][getBaseName(path)] = cast(string) data;
+						} else if (cfnmatch(getExt(path), "xml") && isScenarioSystemDir(dirName(path))) {
+							xmls[dirName(path)][getBaseName(path)] = cast(string) data;
 						} else {
 							path = std.path.join(temp, path);
-							string parent = getDirName(path);
+							string parent = dirName(path);
 							if (!exists(parent)) mkdirRecurse(parent);
 							std.file.write(path, data);
 						}
@@ -361,12 +361,12 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 						return r;
 					}
 					if (cfnmatch(getBaseName(fname), "Summary.wsm")) {
-						return ll(getDirName(fname));
+						return ll(dirName(fname));
  					} else if (canUncab && cfnmatch(getExt(fname), "cab")) {
  						return legacyCommon;
 					} else if (cfnmatch(getBaseName(fname), "Summary.xml")) {
 						expand = true;
-						auto r = load(getDirName(fname));
+						auto r = load(dirName(fname));
 						r._expandXMLs = true;
 						r._useTemp = false;
 						r._legacy = false;
@@ -395,7 +395,7 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 									throw e;
 								}
 							} else if (cancel) {
-								delAll(getDirName(fname));
+								delAll(dirName(fname));
 								return null;
 							}
 						} else {
@@ -1316,7 +1316,7 @@ public:
 	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
 	/// FileLoadException = Summary.xml以外での読込例外発生時。
 	private static Summary fromXMLs(string path) {
-		auto summ = summaryFromXML(getDirName(path), cast(string) std.file.read(path));
+		auto summ = summaryFromXML(dirName(path), cast(string) std.file.read(path));
 		fromXMLs(summ);
 		return summ;
 	}
@@ -1783,7 +1783,7 @@ public:
 	static CardContainer fromXMLs(string path) {
 		scope summNode = XNode.parse(cast(string) std.file.read(path));
 		if (summNode.name == "Summary") {
-			string par = getDirName(path);
+			string par = dirName(path);
 			string ver;
 			auto cc = fromNode(summNode, par, ver);
 
@@ -1874,6 +1874,6 @@ void decScenarioPath(ref string scenarioPath, ref string[] openPaths) {
 			ts ~= ":id:" ~ to!(string)(id);
 			openPaths ~= ts;
 		}
-		scenarioPath = getDirName(scenarioPath);
+		scenarioPath = dirName(scenarioPath);
 	}
 }

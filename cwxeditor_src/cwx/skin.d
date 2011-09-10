@@ -47,7 +47,7 @@ class Skin {
 		if (p) {
 			return *p;
 		} else {
-			auto skinsDir = std.path.join(getDirName(enginePath), join("Data", "Skin") ~ sep);
+			auto skinsDir = std.path.join(dirName(enginePath), join("Data", "Skin") ~ sep);
 			Skin[string] r;
 			if (.exists(skinsDir) && .isDir(skinsDir)) {
 				try {
@@ -85,7 +85,7 @@ class Skin {
 		} else {
 			skin = new Skin(prop, enginePath);
 		}
-		skin.setupLegacy(lEnginePath, lEnginePath.getDirName.join(dataDirName));
+		skin.setupLegacy(lEnginePath, lEnginePath.dirName.join(dataDirName));
 		skin._execute = execute;
 		return skin;
 	}
@@ -105,7 +105,7 @@ class Skin {
 		if (p) {
 			return *p;
 		} else {
-			string dataDirName = resDir.length ? abs2rel(lEnginePath.getDirName, resDir) : "";
+			string dataDirName = resDir.length ? abs2rel(lEnginePath.dirName, resDir) : "";
 			auto skin = createLegacySkin(prop, enginePath, lEnginePath, dataDirName, "");
 			lSkins[resDir] = skin;
 			return skin;
@@ -194,10 +194,10 @@ class Skin {
 	/// 指定されたシナリオが属すCardWirthを検索し、
 	/// そのリソースディレクトリとエンジンのパスを返す。
 	static bool findLegacy(string scPath, out string resDir, out string enginePath) {
-		auto path = getDirName(scPath);
+		auto path = dirName(scPath);
 		while (!hasClassicEngine(path, resDir, enginePath)) {
 			auto old = path;
-			path = getDirName(path);
+			path = dirName(path);
 			if (old == path) {
 				resDir ="";
 				enginePath = "";
@@ -455,7 +455,7 @@ class Skin {
 	string executeEngine() {
 		if (_legacyEngine.length) {
 			if (_execute.length) {
-				return _legacyEngine.getDirName.join(_execute);
+				return _legacyEngine.dirName.join(_execute);
 			}
 			return legacyEngine();
 		} else {
@@ -778,7 +778,7 @@ class Skin {
 	/// XMLファイルからスキンデータをロードする。
 	void loadFromXML(string fname) {
 		try {
-			_path = getDirName(fname);
+			_path = dirName(fname);
 			_skinFile = fname;
 			scope sNode = XNode.parse(cast(string) std.file.read(fname));
 			_races.length = 0;

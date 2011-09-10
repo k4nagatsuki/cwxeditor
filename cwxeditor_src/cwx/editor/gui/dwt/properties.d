@@ -439,14 +439,14 @@ struct ClassicEngine {
 		if (!enginePath.length) return "";
 		string path = enginePath;
 		if (!cwx.utils.isabs(path)) {
-			auto dir = appPath.getDirName;
+			auto dir = appPath.dirName;
 			path = std.path.join(dir, path);
 		}
 		if (execute.length) {
 			if (cwx.utils.isabs(execute)) {
 				path = execute;
 			} else {
-				path = std.path.join(path.getDirName, execute);
+				path = std.path.join(path.dirName, execute);
 			}
 		}
 		return path;
@@ -815,7 +815,7 @@ public class FlexProps {
 	this(string appPath, string confFileName) {
 		IniLocation loc = IniLocation.STANDARD;
 		string iniFileName = "cwxeditor.xml";
-		if (.exists(std.path.join(appPath.getDirName, iniFileName))) {
+		if (.exists(std.path.join(appPath.dirName, iniFileName))) {
 			// 1.0との互換性を維持するため、アプリケーションのディレクトリに
 			// cwxeditor.xmlがあった場合、LOCALをデフォルトにする。
 			loc = IniLocation.LOCAL;
@@ -848,10 +848,10 @@ public class FlexProps {
 			dir = std.path.join(dir, "cwxeditor");
 			break;
 		case IniLocation.LOCAL:
-			dir = appPath.getDirName;
+			dir = appPath.dirName;
 			break;
 		case IniLocation.COPY:
-			string base = std.path.join(appPath.getDirName, iniFileName);
+			string base = std.path.join(appPath.dirName, iniFileName);
 			dir = appDataDir(appPath);
 			dir = std.path.join(dir, "cwxeditor");
 			string dest = std.path.join(dir, iniFileName);
@@ -956,7 +956,7 @@ public class FlexProps {
 		if (dock) {
 			dock.toNode(node, ["work"]);
 		}
-		auto dir = xmlFileName.getDirName;
+		auto dir = xmlFileName.dirName;
 		if (!.exists(dir)) mkdirRecurse(dir);
 		write(xmlFileName, node.text);
 	}

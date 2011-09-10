@@ -51,7 +51,7 @@ class SBShell {
 			OS.InitCommonControls;
 			_hsbar = CreateStatusWindowW
 				(OS.WS_CHILD | OS.WS_VISIBLE | CCS_BOTTOM | SBARS_SIZEGRIP,
-				toUTF16z(""), cast(HANDLE) _shl.handle, 1);
+				toUTFz!(wchar*)(""), cast(HANDLE) _shl.handle, 1);
 			if (_hsbar == INVALID_HANDLE_VALUE) {
 				throw new Exception("CreateStatusWindowW()");
 			}

@@ -429,7 +429,7 @@ private:
 	}
 	void openScenario(string fname) {
 		if (cfnmatch(getExt(fname), "wsm") && !.exists(fname)) {
-			fname = getDirName(fname);
+			fname = dirName(fname);
 		}
 		decScenarioPath(fname, _openPaths);
 		auto old = summary;
@@ -513,7 +513,7 @@ private:
 		return false;
 	}
 	void execEngineP(string path) {
-		if (!exec(path, getDirName(nabs(path)))) {
+		if (!exec(path, dirName(nabs(path)))) {
 			MessageBox.showWarning(_prop.msgs.errorExecEngine(path),
 				_prop.msgs.dlgTitWarning, _win);
 		}
@@ -665,7 +665,7 @@ private:
 			hist = std.path.join(summary.scenarioPath, "Summary.xml");
 		}
 		hist = nabs(hist);
-		_prop.var.etc.scenarioPath = summary.useTemp ? getDirName(hist) : getDirName(getDirName(hist));
+		_prop.var.etc.scenarioPath = summary.useTemp ? dirName(hist) : dirName(dirName(hist));
 		auto hists = _prop.var.etc.openHistories.dup;
 		foreach (i, h; hists) {
 			if (cfnmatch(h, hist)) {
@@ -804,7 +804,7 @@ private:
 		try {
 			if (!_pipeName.length) return;
 			version (Windows) {
-				auto pipe = CreateNamedPipeW(toUTF16z(_pipeName), PIPE_ACCESS_DUPLEX,
+				auto pipe = CreateNamedPipeW(toUTFz!(wchar*)(_pipeName), PIPE_ACCESS_DUPLEX,
 					PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT,
 					1, MAX_PATH, MAX_PATH, 1000, null);
 				if (pipe == INVALID_HANDLE_VALUE) return;
@@ -891,7 +891,7 @@ public:
 			auto ext = getExt(path1);
 			if (!.isDir(path1)
 					&& (cfnmatch(ext, "xml") || cfnmatch(ext, "wsm") || cfnmatch(ext, "wid"))) {
-				path1 = nabs(getDirName(path1));
+				path1 = nabs(dirName(path1));
 			}
 		}
 		version (Windows) {
@@ -899,7 +899,7 @@ public:
 			DWORD len;
 			for (size_t i = 0; i < PIPE_APP_MAX; i++) {
 				string pipeName = r"\\.\pipe\cwxeditor_" ~ to!(string)(i);
-				auto p = CreateFileW(toUTF16z(pipeName),
+				auto p = CreateFileW(toUTFz!(wchar*)(pipeName),
 					GENERIC_READ | GENERIC_WRITE, 0, null, OPEN_EXISTING, 0, null);
 				if (p == INVALID_HANDLE_VALUE) {
 					if (!_pipeName.length) _pipeName = pipeName;
@@ -984,7 +984,7 @@ public:
 
 		string engineDir = "";
 		if (_prop.enginePath.length && .exists(_prop.enginePath)) {
-			engineDir = getDirName(nabs(_prop.enginePath));
+			engineDir = dirName(nabs(_prop.enginePath));
 			auto skinTable = .skinTable(_prop);
 			if (!(_prop.var.etc.defaultSkin in skinTable)) {
 				MessageBox.showWarning(_prop.msgs.loadSkinError(_prop.var.etc.defaultSkin),
@@ -1821,7 +1821,7 @@ public:
 		backup.start;
 		version (Windows) {
 			scope (exit) {
-				auto p = CreateFileW(toUTF16z(_pipeName),
+				auto p = CreateFileW(toUTFz!(wchar*)(_pipeName),
 					GENERIC_READ | GENERIC_WRITE, 0, null, OPEN_EXISTING, 0, null);
 				if (p != INVALID_HANDLE_VALUE) {
 					scope (exit) CloseHandle(p);

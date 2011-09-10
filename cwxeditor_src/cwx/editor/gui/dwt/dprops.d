@@ -563,28 +563,28 @@ public:
 	const
 	string enginePath() {
 		if (!var.etc.enginePath.length) return "";
-		if (std.path.isabs(var.etc.enginePath)) {
+		if (isabs(var.etc.enginePath)) {
 			return var.etc.enginePath;
 		} else {
-			return std.path.join(std.path.getDirName(parent.appPath), var.etc.enginePath);
+			return std.path.join(std.path.dirName(parent.appPath), var.etc.enginePath);
 		}
 	}
 	const
 	string tempPath() {
 		if (!var.etc.tempPath.length) return "";
-		if (std.path.isabs(var.etc.tempPath)) {
+		if (isabs(var.etc.tempPath)) {
 			return var.etc.tempPath;
 		} else {
-			return std.path.join(std.path.getDirName(parent.appPath), var.etc.tempPath);
+			return std.path.join(std.path.dirName(parent.appPath), var.etc.tempPath);
 		}
 	}
 	const
 	string backupPath() {
 		if (!var.etc.backupPath.length) return "";
-		if (std.path.isabs(var.etc.backupPath)) {
+		if (isabs(var.etc.backupPath)) {
 			return var.etc.backupPath;
 		} else {
-			return std.path.join(std.path.getDirName(parent.appPath), var.etc.backupPath);
+			return std.path.join(std.path.dirName(parent.appPath), var.etc.backupPath);
 		}
 	}
 	const

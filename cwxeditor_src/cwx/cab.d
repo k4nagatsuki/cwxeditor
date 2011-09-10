@@ -34,7 +34,7 @@ version (Windows) {
 		auto h = fciCreate(nabs(cab));
 		if (!h) return false;
 		scope (exit) destroy(h);
-		string cut = getDirName(src) ~ sep.idup;
+		string cut = dirName(src) ~ sep.idup;
 		bool adds(string file) {
 			if (isArc && !isArc(file)) return true;
 			if (file.length > cut.length && !isDir(file)) {
@@ -320,7 +320,7 @@ version (Windows) {
 					} else {
 						strcat(path.ptr, cast(char*) pNotify.psz1);
 					}
-					auto dir = getDirName(touni(path[0 .. strlen(path.ptr)]));
+					auto dir = dirName(touni(path[0 .. strlen(path.ptr)]));
 					if (!exists(dir)) mkdirRecurse(dir);
 					prm.onExpand = path.ptr;
 					return cast(INT) CreateFileA(path.ptr, GENERIC_WRITE, 0, null, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, null);

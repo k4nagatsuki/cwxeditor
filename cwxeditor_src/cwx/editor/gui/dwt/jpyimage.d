@@ -69,7 +69,7 @@ private ImageData loadJPYImageImpl(Skin skin, string path, string[] stratum) {
 			string dir;
 			switch (sec.dirtype) {
 			case Dirtype.CURRENT: {
-				dir = getDirName(path);
+				dir = dirName(path);
 			} break;
 			case Dirtype.TABLE: {
 				if (!skin) continue;
@@ -77,14 +77,14 @@ private ImageData loadJPYImageImpl(Skin skin, string path, string[] stratum) {
 			} break;
 			case Dirtype.SCHEME: {
 				if (!skin) continue;
-				auto edir = getDirName(skin.engine);
+				auto edir = dirName(skin.engine);
 				if (!exists(edir)) continue;
 				dir = std.path.join(edir, "scheme");
 			} break;
 			case Dirtype.SCENARIO: {
-				dir = getDirName(path);
+				dir = dirName(path);
 				for (int dp = 0; dp < sec.dirdepth; dp++) {
-					dir = getDirName(dir);
+					dir = dirName(dir);
 				}
 			} break;
 			case Dirtype.WAV: {
@@ -92,14 +92,14 @@ private ImageData loadJPYImageImpl(Skin skin, string path, string[] stratum) {
 				dir = skin.seDir;
 			} break;
 			case Dirtype.PARENT: {
-				dir = getDirName(getDirName(path));
+				dir = dirName(dirName(path));
 				for (int dp = 0; dp < sec.dirdepth; dp++) {
-					dir = getDirName(dir);
+					dir = dirName(dir);
 				}
 			} break;
 			case Dirtype.PROGRAM: {
 				if (!skin) continue;
-				dir = getDirName(skin.engine);
+				dir = dirName(skin.engine);
 			} break;
 			default: continue;
 			}
@@ -313,7 +313,7 @@ private ImageData loadJPTXImage(string path) {
 			DWORD fp = DEFAULT_PITCH | FF_DONTCARE;
 			HFONT hf;
 			hf = CreateFontW(fh, 0, 0, 0, fwg, fi, fu, fs, fc, fop, fclp, fq,
-				fp, toUTF16z(param.face));
+				fp, toUTFz!(wchar*)(param.face));
 			auto font = Font.win32_new(d, hf);
 		} else {
 			int fStyle = SWT.NORMAL;

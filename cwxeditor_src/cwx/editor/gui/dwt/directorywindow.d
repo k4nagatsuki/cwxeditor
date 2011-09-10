@@ -436,7 +436,7 @@ private:
 	bool addp(T)(T parItm, string path, string sel, string top, ref TreeItem topItm) {
 		auto itm = new TreeItem(parItm, SWT.NONE);
 		auto full = nabs(path);
-		if (fncharmatch('A', 'a') ? _cuts.contains(cwx.utils.toLower(full)) : _cuts.contains(full)) {
+		if (0 == filenameCharCmp('A', 'a') ? _cuts.contains(cwx.utils.toLower(full)) : _cuts.contains(full)) {
 			itm.setImage = _sImgFolder;
 		} else {
 			itm.setImage = _prop.images.folder;
@@ -569,7 +569,7 @@ private:
 		}
 	}
 	private bool isCutted(string file) {
-		static if (fncharmatch('A', 'a')) {
+		static if (0 == filenameCharCmp('A', 'a')) {
 			file = cwx.utils.toLower(file);
 			file = file.nabs;
 			return _cuts.contains(file);
@@ -677,7 +677,7 @@ private:
 				static assert (0);
 			}
 			if (!toparP) return;
-			string topar = .isDir(toparP) ? toparP : getDirName(toparP);
+			string topar = .isDir(toparP) ? toparP : dirName(toparP);
 			if (__paste(topar, files, true, fromOut)) {
 				e.detail = fromOut ? DND.DROP_COPY : DND.DROP_NONE;
 				clearCut;
@@ -710,9 +710,9 @@ private:
 					if (.exists(to)) {
 						bool tisdir = cast(bool) isDir(to);
 						if (tisdir ==  cast(bool) isDir(file)) {
-							auto par = getDirName(file);
+							auto par = dirName(file);
 							if (cfnmatch(par, targ)) {
-								if (!move && !(fncharmatch('A', 'a')
+								if (!move && !(0 == filenameCharCmp('A', 'a')
 										? _cuts.contains(cwx.utils.toLower(file)) : _cuts.contains(file))) {
 									copys ~= file;
 								}
@@ -741,7 +741,7 @@ private:
 				string dir = null;
 				string[] selfs;
 				foreach (file; paths) {
-					bool fout = !(fncharmatch('A', 'a')
+					bool fout = !(0 == filenameCharCmp('A', 'a')
 						? _cuts.contains(cwx.utils.toLower(file))
 						: _cuts.contains(file))
 						&& (!move || !hasPath(pfull, file));
@@ -856,7 +856,7 @@ private:
 		static if (altsep.length) {
 			newName = std.array.replace(newName, altsep, "");
 		}
-		auto to = std.path.join(getDirName(path), newName);
+		auto to = std.path.join(dirName(path), newName);
 		bool isdir = cast(bool) .isDir(path);
 		if (!isdir && getExt(path).length > 0) {
 			to = addExt(to, getExt(path));
@@ -993,11 +993,11 @@ private:
 			auto cwd = std.file.getcwd;
 			string wd = OuterTool.parse(_tool.workDir, file, sp);
 			if (wd.length > 0) {
-				if (!std.path.isabs(wd)) {
-					wd = std.path.join(std.path.getDirName(_prop.parent.appPath), wd);
+				if (!cwx.utils.isabs(wd)) {
+					wd = std.path.join(std.path.dirName(_prop.parent.appPath), wd);
 				}
 			} else {
-				wd = getDirName(_prop.parent.appPath);
+				wd = dirName(_prop.parent.appPath);
 			}
 			auto cmd = OuterTool.parse(_tool.command, file, sp);
 			if (!exec(cmd, wd)) {
@@ -1189,7 +1189,7 @@ private:
 						closeTraceHandleImpl;
 						if (summ) {
 							DWORD fs = FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME;
-							_traceHandle = FindFirstChangeNotificationW(toUTF16z(summ.scenarioPath), TRUE, fs);
+							_traceHandle = FindFirstChangeNotificationW(toUTFz!(wchar*)(summ.scenarioPath), TRUE, fs);
 							return _traceHandle !is INVALID_HANDLE_VALUE;
 						}
 						return true;
@@ -1727,7 +1727,7 @@ public:
 			if (.exists(path)) {
 				path = nabs(path);
 				auto isdir = .isDir(path);
-				string dir = isdir ? path : getDirName(path);
+				string dir = isdir ? path : dirName(path);
 				bool r = selectImpl(_dirs, dir);
 				if (r) {
 					_dirs.showSelection;
@@ -1854,7 +1854,7 @@ public:
 			if (_dirs.isFocusControl) {
 				auto dir = selDirPath;
 				_dirs.getSelection[0].setImage = sfimage(dir);
-				static if (fncharmatch('A', 'a')) {
+				static if (0 == filenameCharCmp('A', 'a')) {
 					_cuts.add(cwx.utils.toLower(nabs(dir)));
 				} else {
 					_cuts.add(nabs(dir));
@@ -1865,7 +1865,7 @@ public:
 				foreach (itm; _files.getSelection) {
 					auto p = (cast(FileNameObj) itm.getData).array;
 					itm.setImage = sfimage(itm.getImage);
-					static if (fncharmatch('A', 'a')) {
+					static if (0 == filenameCharCmp('A', 'a')) {
 						_cuts.add(cwx.utils.toLower(nabs(p)));
 					} else {
 						_cuts.add(nabs(p));
@@ -1958,7 +1958,7 @@ public:
 					SHFILEOPSTRUCT ope;
 					ope.hwnd = cast(HANDLE) shell.handle;
 					ope.wFunc = FO_DELETE;
-					ope.pFrom = toUTF16z(dir ~ '\0' ~ '\0');
+					ope.pFrom = toUTFz!(wchar*)(dir ~ '\0' ~ '\0');
 					ope.pTo = null;
 					ope.fFlags = FOF_MULTIDESTFILES | FOF_NOCONFIRMATION;
 					if (recycle) ope.fFlags |= FOF_ALLOWUNDO;

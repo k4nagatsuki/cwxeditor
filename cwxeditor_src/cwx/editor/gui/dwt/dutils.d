@@ -1763,7 +1763,7 @@ private class LSFFThr(S, bool Array) {
 				S r = S.loadScenarioFromFile(prop.parent, prop.var.etc.doubleIO,
 					fname, prop.var.etc.expandXMLs,
 					prop.tempPath, old, &setMax, &setWork,
-					isDir(fname) ? getBaseName(fname) : getBaseName(getDirName(fname)));
+					isDir(fname) ? getBaseName(fname) : getBaseName(dirName(fname)));
 				temp = r.useTemp ? r.scenarioPath : "";
 				display.syncExec(new Load(r));
 			} catch (SummaryException e) {
@@ -1799,7 +1799,7 @@ S[] loadScenarios(S)(Props prop, Shell w, void delegate(string) status,
 			void put(S[] r) {
 				if (r.length) {
 					filterPath = nabs(filterPath);
-					prop.var.etc.scenarioPath = r[0u].useTemp ? filterPath : getDirName(filterPath);
+					prop.var.etc.scenarioPath = r[0u].useTemp ? filterPath : dirName(filterPath);
 				}
 				if (loaded) loaded(r);
 			}
@@ -1810,7 +1810,7 @@ S[] loadScenarios(S)(Props prop, Shell w, void delegate(string) status,
 		auto files = new HashSet!(string);
 		foreach (file; dlg.getFileNames) {
 			if (cfnmatch(getExt(file), "wid")) {
-				file = getDirName(file);
+				file = dirName(file);
 			}
 			files.add(nabs(std.path.join(dlg.getFilterPath, file)));
 		}
@@ -1857,7 +1857,7 @@ S[] loadScenariosFromFile(S)(Props prop, Shell w, void delegate(string) status,
 string scenarioFilterPath(Props prop) {
 	if (prop.var.etc.scenarioPath.length == 0) {
 		if (prop.enginePath.length == 0) return "";
-		return nabs(std.path.join(getDirName(prop.enginePath), "Scenario"));
+		return nabs(std.path.join(dirName(prop.enginePath), "Scenario"));
 	} else {
 		return nabs(prop.var.etc.scenarioPath);
 	}
@@ -1923,7 +1923,7 @@ private S loadScenarioFromFileImpl(S)(Props prop, Shell w, void delegate(string)
 			return S.loadScenarioFromFile(prop.parent, prop.var.etc.doubleIO,
 				fname, prop.var.etc.expandXMLs,
 				prop.tempPath, old, setMax, worked,
-				isDir(fname) ? getBaseName(fname) : getBaseName(getDirName(fname)));
+				isDir(fname) ? getBaseName(fname) : getBaseName(dirName(fname)));
 		} catch (SummaryException e) {
 			MessageBox.showWarning(e.msg, prop.msgs.dlgTitWarning, w);
 		}

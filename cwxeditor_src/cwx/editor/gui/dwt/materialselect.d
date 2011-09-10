@@ -811,7 +811,7 @@ private:
 							_dirs.select = _tbl;
 						}
 					} else if (_summ) {
-						string pt = getDirName(p);
+						string pt = dirName(p);
 						pt = pt.length <= cut ? sep.idup : pt[cut .. $];
 						pt = toViewPath(pt);
 						_dirs.select = dirsIndexOf(pt);
@@ -858,7 +858,7 @@ private:
 			if (o == _path) _path = n;
 			int di = _dirs.getSelectionIndex;
 			auto op = o;
-			if (di >= 0 && cfnmatch(fromViewPath(_dirs.getItems[di]), getDirName(o))) {
+			if (di >= 0 && cfnmatch(fromViewPath(_dirs.getItems[di]), dirName(o))) {
 				int index = flIndexOf(getBaseName(o));
 				if (index >= 0) {
 					string nName = getBaseName(n);

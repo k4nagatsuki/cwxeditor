@@ -40,7 +40,7 @@ void unzip(string parent, ZipArchive arc,
 			assert (!data.length);
 			if (!exists(path)) mkdirRecurse(path);
 		} else {
-			scope p = getDirName(path);
+			scope p = dirName(path);
 			if (!exists(p)) mkdirRecurse(p);
 			write(path, data);
 		}
@@ -157,7 +157,7 @@ ZipArchive zip(string targ, bool top, bool delegate(string path) ignorePath = nu
 		arc.addMember(am);
 	}
 	if (top || !isDir(path)) {
-		auto par = getDirName(path);
+		auto par = dirName(path);
 		if (par.length && !endsWith(par, sep)) par ~= sep;
 		cut = par.length;
 		archive(path);

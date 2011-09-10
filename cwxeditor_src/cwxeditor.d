@@ -13,9 +13,9 @@ import std.path;
 import std.stdio;
 
 void main(string[] args) {
-	cwx.utils.debugLog = join(getDirName(args[0u]), cwx.utils.debugLog);
+	cwx.utils.debugLog = buildPath(dirName(args[0u]), cwx.utils.debugLog);
 	auto sys = new System;
-	string conf = join(getDirName(args[0u]), "cwxeditor.config");
+	string conf = buildPath(dirName(args[0u]), "cwxeditor.config");
 	if (args.length > 1) {
 		string[] openPaths;
 		size_t sc = 1u;

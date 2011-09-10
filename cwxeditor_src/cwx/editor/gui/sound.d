@@ -126,11 +126,11 @@ private void __play(string file, bool loop, bool legacy) {
 				auto ss = getSymbol!(mciSendStringW)(winmm, "mciSendStringW");
 				if (!ss) throw new Exception("mciSendStringW()");
 				// mpegvideoにするとなぜかopenが成功する上repeatが利くようになる
-				enforce(0 == ss(toUTF16z("open \"" ~ file ~ "\" alias cwxeditor_sound type mpegvideo"), null, 0, null),
+				enforce(0 == ss(toUTFz!(wchar*)("open \"" ~ file ~ "\" alias cwxeditor_sound type mpegvideo"), null, 0, null),
 					new Exception("MCI open: " ~ file));
 				string p = "play cwxeditor_sound";
 				if (loop) p ~= " repeat";
-				enforce(0 == ss(toUTF16z(p), null, 0, null),
+				enforce(0 == ss(toUTFz!(wchar*)(p), null, 0, null),
 					new Exception("MCI open: " ~ file));
 				return;
 			}
@@ -169,8 +169,8 @@ private void __stop() {
 			if (onLegacy) {
 				auto ss = getSymbol!(mciSendStringW)(winmm, "mciSendStringW");
 				if (!ss) throw new Exception("mciSendStringW()");
-				ss(toUTF16z("stop cwxeditor_sound"), null, 0, null);
-				ss(toUTF16z("close cwxeditor_sound"), null, 0, null);
+				ss(toUTFz!(wchar*)("stop cwxeditor_sound"), null, 0, null);
+				ss(toUTFz!(wchar*)("close cwxeditor_sound"), null, 0, null);
 				return;
 			}
 		}

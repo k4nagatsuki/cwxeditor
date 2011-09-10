@@ -144,17 +144,17 @@ string appDataDir(string appPath) {
 	version (Windows) {
 		auto shl = ExeModule_Load("shell32.dll");
 		if (!shl) {
-			return appPath.getDirName;
+			return appPath.dirName;
 		}
 		scope (exit) ExeModule_Release(shl);
 		auto getFolderPath = cast(SHGetFolderPathW) ExeModule_GetSymbol(shl, "SHGetFolderPathW");
 		if (!getFolderPath) {
-			return appPath.getDirName;
+			return appPath.dirName;
 		}
 		wchar[MAX_PATH] appDataBuf;
 		auto gfr = getFolderPath(null, CSIDL_APPDATA, null, SHGFP_TYPE_CURRENT, appDataBuf.ptr);
 		if (0 != gfr) {
-			return appPath.getDirName;
+			return appPath.dirName;
 		}
 		auto p = to!string(appDataBuf[0 .. appDataBuf.indexOf('\0')]);
 		return assumeUnique(p);
@@ -439,7 +439,7 @@ class Wildcard {
 
 /// 絶対パス化と正規化を行う。
 string nabs(string path) {
-	return normal(rel2abs(path));
+	return normal(absolutePath(path));
 }
 
 /// 大/小文字を区別しないstartsWith。
@@ -465,7 +465,7 @@ bool containsPath(in string[] list, string path) {
 
 /// ファイルパスに対応したstartsWith。
 bool fnstartsWith(in char[] a, in char[] b) {
-	static if (fncharmatch('A', 'a')) {
+	static if (0 == filenameCharCmp('A', 'a')) {
 		return istartsWith(a, b);
 	} else {
 		return startsWith(a, b);
@@ -474,7 +474,7 @@ bool fnstartsWith(in char[] a, in char[] b) {
 
 /// ファイルパスに対応したendsWith。
 bool fnendsWith(string a, string b) {
-	static if (fncharmatch('A', 'a')) {
+	static if (0 == filenameCharCmp('A', 'a')) {
 		return iendsWith(a, b);
 	} else {
 		return endsWith(a, b);
@@ -484,9 +484,9 @@ bool fnendsWith(string a, string b) {
 /// 絶対パスであればtrueを返す。
 bool isabs(string path) {
 	version (Windows) {
-		return startsWith(path, `\`) || std.path.isabs(path);
+		return startsWith(path, `\`) || std.path.isAbsolute(path);
 	} else {
-		return std.path.isabs(path) != 0;
+		return std.path.isAbsolute(path) != 0;
 	}
 }
 
@@ -737,7 +737,7 @@ string createNewName(string base, bool delegate(string) use, bool space = true) 
 }
 /// ditto
 string createNewFileName(string path, bool isdir) {
-	string parent = getDirName(path);
+	string parent = dirName(path);
 	string name = getBaseName(path);
 	string ext = isdir ? "" : getExt(name);
 	if (!isdir) name = getName(name);
@@ -1178,7 +1178,7 @@ string createFolder(string parent, string name) {
 void preRemove(string delpath) {
 	version (Windows) {
 		// 書込み権限を付けておく
-		auto fname = std.utf.toUTF16z(delpath);
+		auto fname = std.utf.toUTFz!(wchar*)(delpath);
 		SetFileAttributesW(fname, FILE_ATTRIBUTE_NORMAL);
 	}
 }
@@ -1269,7 +1269,7 @@ bool contains(string pred = "a == b", T)(in T[] arr, in T a) {
 	return false;
 }
 
-static if (fncharmatch('A', 'a')) {
+static if (0 == filenameCharCmp('A', 'a')) {
 	/// ファイル名を比較する。
 	alias icmp fncmp;
 } else {
@@ -1428,9 +1428,9 @@ version (Windows) {
 		int r;
 		wchar[] procTemp;
 		procTemp.length = process.length + 1;
-		procTemp[0 .. $] = toUTF16z(process)[0 .. procTemp.length];
+		procTemp[0 .. $] = toUTFz!(wchar*)(process)[0 .. procTemp.length];
 		r = CreateProcessW(null, procTemp.ptr, null, null, false, flag, null,
-			workDir.length ? toUTF16z(workDir) : null, &setup, &info);
+			workDir.length ? toUTFz!(wchar*)(workDir) : null, &setup, &info);
 		if (r) {
 			if (wait) {
 				WaitForSingleObject(info.hProcess, INFINITE);
@@ -1492,20 +1492,20 @@ private struct FCPt {
 	bool opEquals(ref const(FCPt) s) {
 		auto r = cfnmatch(getBaseName(s.path), getBaseName(path));
 		if (r) {
-			r = cfnmatch(getDirName(s.path), getDirName(path));
+			r = cfnmatch(dirName(s.path), dirName(path));
 		}
 		return r;
 	}
 	const
 	int opCmp(ref const(FCPt) s) {
-		static if (fncharmatch('A', 'a')) {
+		static if (0 == filenameCharCmp('A', 'a')) {
 			alias std.string.icmp cp;
 		} else {
 			alias std.string.cmp cp;
 		}
 		int r = cp(getBaseName(s.path), getBaseName(path));
 		if (r == 0) {
-			r = cp(getDirName(s.path), getDirName(path));
+			r = cp(dirName(s.path), dirName(path));
 		}
 		return r;
 	}
@@ -1739,7 +1739,7 @@ string astripr(string s) {
 /// '[' ']'を含むファイル名が存在するため、globMatch()の代替を用意する必要がある。
 bool cfnmatch(string a, string b) {
 	b = b.replace("\\", "\\\\");
-	return Wildcard(b, fncharmatch('A', 'a')).match(a);
+	return Wildcard(b, 0 == filenameCharCmp('A', 'a')).match(a);
 } unittest {
 	assert (cfnmatch(r"C:\path", r"C:\path"));
 }

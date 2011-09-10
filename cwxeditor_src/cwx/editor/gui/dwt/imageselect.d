@@ -262,7 +262,7 @@ private:
 					dir = getcwd;
 				}
 			} else {
-				if (!.exists(dir) || !isDir(dir)) dir = getDirName(dir);
+				if (!.exists(dir) || !isDir(dir)) dir = dirName(dir);
 			}
 			dlg.setFilterPath = dir;
 			dlg.setFileName = addExt(_saveName, "bmp");

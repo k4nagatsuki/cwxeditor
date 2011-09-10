@@ -45,7 +45,7 @@ Skin findSkin(S = Summary)(Commons comm, Props prop, in S summ, bool appendClass
 						return;
 					}
 				}
-				string dataDirName = abs2rel(lEngine.getDirName, skin.legacyDataPath);
+				string dataDirName = abs2rel(lEngine.dirName, skin.legacyDataPath);
 				auto ce = ClassicEngine(lEngine.basename.getName, lEngine, dataDirName, "");
 				prop.var.etc.classicEngines = prop.var.etc.classicEngines.dup ~ ce;
 				comm.refClassicSkin.call();
@@ -113,11 +113,11 @@ version (Windows) {
 			if (!.exists(legacyEngine)) return null;
 			// TODO lEnginePathからリソース読込み
 			HINSTANCE handle;
-			handle = LoadLibraryExW(toUTF16z(legacyEngine), null, LOAD_LIBRARY_AS_DATAFILE | LOAD_WITH_ALTERED_SEARCH_PATH);
+			handle = LoadLibraryExW(toUTFz!(wchar*)(legacyEngine), null, LOAD_LIBRARY_AS_DATAFILE | LOAD_WITH_ALTERED_SEARCH_PATH);
 			if (!handle) return null;
 			scope (exit) FreeLibrary(handle);
 			HBITMAP hbmp;
-			hbmp = LoadBitmapW(handle, toUTF16z(resName));
+			hbmp = LoadBitmapW(handle, toUTFz!(wchar*)(resName));
 			if (!hbmp) return null;
 			scope (exit) DeleteObject(hbmp);
 			auto img = Image.win32_new(Display.getCurrent, SWT.BITMAP, hbmp);
