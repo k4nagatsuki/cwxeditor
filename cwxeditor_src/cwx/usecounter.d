@@ -517,7 +517,7 @@ struct PathId {
 		if (isBinImg) {
 			s = binImg;
 		} else {
-			static if (cfnmatch("a", "A")) {
+			static if (fncharmatch('A', 'a')) {
 				s = cwx.utils.toLower(id);
 			} else {
 				s = id;
@@ -545,7 +545,7 @@ struct PathId {
 			if (binImg.length > s.binImg.length) return 1;
 			return 0;
 		}
-		static if (cfnmatch("a", "A")) {
+		static if (fncharmatch('A', 'a')) {
 			return std.string.icmp(this.id, s.id);
 		} else {
 			return std.string.cmp(this.id, s.id);

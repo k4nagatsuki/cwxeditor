@@ -235,6 +235,208 @@ void swap(T)(ref T t1, ref T t2) {
 	t2 = temp;
 }
 
+/// ワイルドカードを用いてパターンマッチングを行う。
+/// *は任意の文字列に、?は任意の文字にそれぞれ一致し、
+/// \をエスケープ文字として使用する。
+class Wildcard {
+	/// sからマッチを探し、indexを返す。
+	/// 見つからなければ-1を返す。
+	int find(string s) {
+		if (!s.length) return -1;
+		size_t len;
+		auto ds = toUTF32(s);
+		int i = find(ds, false, len);
+		if (i == -1) return -1;
+		return toUTF8(ds[0 .. i]).length;
+	}
+	/// sに完全一致した場合にtrueを返す。
+	bool match(string s) {
+		if (!s.length) {
+			return 0 == _left.length;
+		}
+		size_t len;
+		auto ds = toUTF32(s);
+		int i = find(ds, false, len);
+		if (i == -1) return false;
+		return 0 == i && ds.length == len;
+	}
+	/// s中のマッチする部分をtoに置換して返す。
+	string replace(string s, string to) {
+		if (!s.length) return s;
+		auto ds = toUTF32(s);
+		auto dto = toUTF32(to);
+		dchar[] r;
+		size_t len;
+		while (true) {
+			if (!ds.length) break;
+			int i = find(ds, false, len);
+			if (i == -1) {
+				r ~= ds;
+				break;
+			}
+			r ~= ds[0 .. i] ~ dto;
+			ds = ds[i + len .. $];
+		}
+		return toUTF8(r);
+	}
+	/// s中のマッチする部分をカウントして返す。
+	size_t count(string s) {
+		if (!s.length) return 0;
+		auto ds = toUTF32(s);
+		size_t r = 0;
+		size_t len;
+		while (true) {
+			if (!ds.length) break;
+			int i = find(ds, false, len);
+			if (i == -1) {
+				break;
+			}
+			r++;
+			ds = ds[i + len .. $];
+		}
+		return r;
+	}
+
+	private enum Pattern {
+		CHAR, QUESTION
+	}
+	private static struct WChar {
+		Pattern pattern;
+		dchar chr;
+		bool ignoreCase;
+		bool match(dchar c) {
+			switch (pattern) {
+			case Pattern.CHAR: {
+				if (ignoreCase) {
+					return std.ascii.toLower(chr) == std.ascii.toLower(c);
+				} else {
+					return chr == c;
+				}
+			}
+			case Pattern.QUESTION: {
+				return true;
+			}
+			default: assert (0);
+			}
+		}
+	}
+	private WChar[] _left;
+	private Wildcard _right;
+	private bool _ignoreCase;
+	private int findw(dstring s) {
+		if (s.length < _left.length) return -1;
+		for (int i = 0; i <= s.length - _left.length; i++) {
+			int j;
+			for (j = 0; j < _left.length && _left[j].match(s[i + j]); j++) {}
+			if (j == _left.length) return i;
+		}
+		return -1;
+	}
+	private int rfindw(dstring s) {
+		if (s.length < _left.length) return -1;
+		for (int i = s.length - _left.length; i >= 0; i--) {
+			int j;
+			for (j = 0; j < _left.length && _left[j].match(s[i + j]); j++) {}
+			if (j == _left.length) return i;
+		}
+		return -1;
+	}
+	private int find(ref dstring s, bool next, out size_t len) {
+		auto sbase = s;
+		while (true) {
+			int i = next ? rfindw(s) : findw(s);
+			if (i == -1) return -1;
+			if (_right) {
+				int j = _right.find(sbase[i + _left.length .. $], true, len);
+				if (j == -1) {
+					if (next) {
+						s = s[0 .. $ - 1];
+						continue;
+					}
+					return -1;
+				}
+				len += _left.length + j;
+				return i;
+			} else {
+				len = _left.length;
+				return i;
+			}
+		}
+	}
+	public static Wildcard opCall(string sub, bool ignoreCase = false) {
+		auto wild = new Wildcard;
+		wild._ignoreCase = ignoreCase;
+		bool onbs = false;
+		foreach (i, dchar c; sub) {
+			switch (c) {
+			case '?': {
+				if (!onbs) {
+					wild._left ~= WChar(Pattern.QUESTION, '\0', ignoreCase);
+					onbs = false;
+					break;
+				}
+			} goto default;
+			case '*': {
+				if (!onbs) {
+					while (i < sub.length && sub[i] == '*')
+						i++;
+					wild._right = Wildcard(sub[i .. $], ignoreCase);
+					return wild;
+				}
+			} goto default;
+			case '\\': {
+				if (onbs) wild._left ~= WChar(Pattern.CHAR, c, ignoreCase);
+				onbs = !onbs;
+			} break;
+			default: {
+				wild._left ~= WChar(Pattern.CHAR, c, ignoreCase);
+				onbs = false;
+			}
+			}
+		}
+		if (onbs) wild._left ~= WChar(Pattern.CHAR, '\\', ignoreCase);
+		return wild;
+	}
+} unittest {
+	assert (Wildcard("test").find("test") == 0);
+	assert (Wildcard("test").find("atest") == 1);
+	assert (Wildcard("te?t").find("test") == 0);
+	assert (Wildcard("t*t").find("abctest") == 3);
+	assert (Wildcard("test*").find("test") == 0);
+	assert (Wildcard("test\\*").find("atest*") == 1);
+	assert (Wildcard("*test").find("abcdtest") == 0);
+	assert (Wildcard("te\\?st").find("abcdte?st") == 4);
+	assert (Wildcard("te\\\\st").find("abcdte\\st") == 4);
+	assert (Wildcard("t*st").find("testst") == 0);
+	assert (Wildcard("te\\st").find("te\\st") == -1);
+
+	assert (Wildcard("te?t", true).find("tEst") == 0);
+	assert (Wildcard("t*t", true).find("abcTEST") == 3);
+	assert (Wildcard("test*", true).find("teST") == 0);
+
+	assert (Wildcard("test").match("test"));
+	assert (!Wildcard("test").match("atest"));
+	assert (Wildcard("te?t").match("test"));
+	assert (!Wildcard("t*t").match("abctest"));
+	assert (Wildcard("test*").match("test"));
+	assert (!Wildcard("test\\*").match("atest*"));
+	assert (Wildcard("*test").match("abcdtest"));
+	assert (!Wildcard("te\\?st").match("abcdte?st"));
+	assert (!Wildcard("te\\\\st").match("abcdte\\st"));
+	assert (Wildcard("t*st").match("testst"));
+	assert (!Wildcard("te\\st").match("te\\st"));
+
+	assert (Wildcard("te?t", true).match("tEst"));
+	assert (!Wildcard("t*t", true).match("abcTEST"));
+	assert (Wildcard("test*", true).match("teST"));
+
+	assert (Wildcard("*").count("test") == 1);
+	assert (Wildcard("te?t").count("testtestest") == 2);
+
+	assert (Wildcard("t*s").replace("test", "A") == "At");
+	assert (Wildcard("???t").replace("testtestest", "BB") == "BBBBest");
+}
+
 /// 絶対パス化と正規化を行う。
 string nabs(string path) {
 	return normal(rel2abs(path));
@@ -263,7 +465,7 @@ bool containsPath(in string[] list, string path) {
 
 /// ファイルパスに対応したstartsWith。
 bool fnstartsWith(in char[] a, in char[] b) {
-	static if (cfnmatch("A", "a")) {
+	static if (fncharmatch('A', 'a')) {
 		return istartsWith(a, b);
 	} else {
 		return startsWith(a, b);
@@ -272,7 +474,7 @@ bool fnstartsWith(in char[] a, in char[] b) {
 
 /// ファイルパスに対応したendsWith。
 bool fnendsWith(string a, string b) {
-	static if (cfnmatch("A", "a")) {
+	static if (fncharmatch('A', 'a')) {
 		return iendsWith(a, b);
 	} else {
 		return endsWith(a, b);
@@ -1067,7 +1269,7 @@ bool contains(string pred = "a == b", T)(in T[] arr, in T a) {
 	return false;
 }
 
-static if (cfnmatch("A", "a")) {
+static if (fncharmatch('A', 'a')) {
 	/// ファイル名を比較する。
 	alias icmp fncmp;
 } else {
@@ -1296,7 +1498,7 @@ private struct FCPt {
 	}
 	const
 	int opCmp(ref const(FCPt) s) {
-		static if (cfnmatch("A", "a")) {
+		static if (fncharmatch('A', 'a')) {
 			alias std.string.icmp cp;
 		} else {
 			alias std.string.cmp cp;
@@ -1377,181 +1579,6 @@ string ireplace(string s, string from, string to) {
 } unittest {
 	assert (ireplace("test", "Es", "TT") == "tTTt");
 	assert (ireplace("aaaaaaa", "AA", "BB") == "BBBBBBa");
-}
-
-/// ワイルドカードを用いてパターンマッチングを行う。
-/// *は任意の文字列に、?は任意の文字にそれぞれ一致し、
-/// \をエスケープ文字として使用する。
-class Wildcard {
-	/// sからマッチを探し、indexを返す。
-	/// 見つからなければ-1を返す。
-	int find(string s) {
-		if (!s.length) return -1;
-		size_t len;
-		auto ds = toUTF32(s);
-		int i = find(ds, false, len);
-		if (i == -1) return -1;
-		return toUTF8(ds[0 .. i]).length;
-	}
-	/// s中のマッチする部分をtoに置換して返す。
-	string replace(string s, string to) {
-		if (!s.length) return s;
-		auto ds = toUTF32(s);
-		auto dto = toUTF32(to);
-		dchar[] r;
-		size_t len;
-		while (true) {
-			if (!ds.length) break;
-			int i = find(ds, false, len);
-			if (i == -1) {
-				r ~= ds;
-				break;
-			}
-			r ~= ds[0 .. i] ~ dto;
-			ds = ds[i + len .. $];
-		}
-		return toUTF8(r);
-	}
-	/// s中のマッチする部分をカウントして返す。
-	size_t count(string s) {
-		if (!s.length) return 0;
-		auto ds = toUTF32(s);
-		size_t r = 0;
-		size_t len;
-		while (true) {
-			if (!ds.length) break;
-			int i = find(ds, false, len);
-			if (i == -1) {
-				break;
-			}
-			r++;
-			ds = ds[i + len .. $];
-		}
-		return r;
-	}
-
-	private enum Pattern {
-		CHAR, QUESTION
-	}
-	private static struct WChar {
-		Pattern pattern;
-		dchar chr;
-		bool ignoreCase;
-		bool match(dchar c) {
-			switch (pattern) {
-			case Pattern.CHAR: {
-				if (ignoreCase) {
-					return std.ascii.toLower(chr) == std.ascii.toLower(c);
-				} else {
-					return chr == c;
-				}
-			}
-			case Pattern.QUESTION: {
-				return true;
-			}
-			default: assert (0);
-			}
-		}
-	}
-	private WChar[] _left;
-	private Wildcard _right;
-	private bool _ignoreCase;
-	private int findw(dstring s) {
-		if (s.length < _left.length) return -1;
-		for (int i = 0; i <= s.length - _left.length; i++) {
-			int j;
-			for (j = 0; j < _left.length && _left[j].match(s[i + j]); j++) {}
-			if (j == _left.length) return i;
-		}
-		return -1;
-	}
-	private int rfindw(dstring s) {
-		if (s.length < _left.length) return -1;
-		for (int i = s.length - _left.length; i >= 0; i--) {
-			int j;
-			for (j = 0; j < _left.length && _left[j].match(s[i + j]); j++) {}
-			if (j == _left.length) return i;
-		}
-		return -1;
-	}
-	private int find(dstring s, bool next, out size_t len) {
-		auto sbase = s;
-		while (true) {
-			int i = next ? rfindw(s) : findw(s);
-			if (i == -1) return -1;
-			if (_right) {
-				int j = _right.find(sbase[i + _left.length .. $], true, len);
-				if (j == -1) {
-					if (next) {
-						s = s[0 .. $ - 1];
-						continue;
-					}
-					return -1;
-				}
-				len += _left.length + j;
-				return i;
-			} else {
-				len = _left.length;
-				return i;
-			}
-		}
-	}
-	public static Wildcard opCall(string sub, bool ignoreCase = false) {
-		auto wild = new Wildcard;
-		wild._ignoreCase = ignoreCase;
-		bool onbs = false;
-		foreach (i, dchar c; sub) {
-			switch (c) {
-			case '?': {
-				if (!onbs) {
-					wild._left ~= WChar(Pattern.QUESTION, '\0', ignoreCase);
-					onbs = false;
-					break;
-				}
-			} goto default;
-			case '*': {
-				if (!onbs) {
-					while (i < sub.length && sub[i] == '*')
-						i++;
-					wild._right = Wildcard(sub[i .. $], ignoreCase);
-					return wild;
-				}
-			} goto default;
-			case '\\': {
-				if (onbs) wild._left ~= WChar(Pattern.CHAR, c, ignoreCase);
-				onbs = !onbs;
-			} break;
-			default: {
-				wild._left ~= WChar(Pattern.CHAR, c, ignoreCase);
-				onbs = false;
-			}
-			}
-		}
-		if (onbs) wild._left ~= WChar(Pattern.CHAR, '\\', ignoreCase);
-		return wild;
-	}
-} unittest {
-	assert (Wildcard("test").find("test") == 0);
-	assert (Wildcard("test").find("atest") == 1);
-	assert (Wildcard("te?t").find("test") == 0);
-	assert (Wildcard("t*t").find("abctest") == 3);
-	assert (Wildcard("test*").find("test") == 0);
-	assert (Wildcard("test\\*").find("atest*") == 1);
-	assert (Wildcard("*test").find("abcdtest") == 0);
-	assert (Wildcard("te\\?st").find("abcdte?st") == 4);
-	assert (Wildcard("te\\\\st").find("abcdte\\st") == 4);
-	assert (Wildcard("t*st").find("testst") == 0);
-	assert (Wildcard("te\\st").find("te\\st") == -1);
-
-	assert (Wildcard("te?t", true).find("tEst") == 0);
-	assert (Wildcard("t*t", true).find("abcTEST") == 3);
-	assert (Wildcard("test*", true).find("teST") == 0);
-
-	assert (Wildcard("*").count("test") == 1);
-	assert (Wildcard("te?t").count("testtestest") == 2);
-
-	assert (Wildcard("t*s").replace("test", "A") == "At");
-	assert (Wildcard("???t").replace("testtestest", "BB") == "BBBBest");
 }
 
 /// 数値をCount桁でSepによって区切った文字列にして返す。
@@ -1711,5 +1738,8 @@ string astripr(string s) {
 
 /// '[' ']'を含むファイル名が存在するため、globMatch()の代替を用意する必要がある。
 bool cfnmatch(string a, string b) {
-	return a.globMatch(b.replace("[", "[[]"));
+	b = b.replace("\\", "\\\\");
+	return Wildcard(b, fncharmatch('A', 'a')).match(a);
+} unittest {
+	assert (cfnmatch(r"C:\path", r"C:\path"));
 }

@@ -436,12 +436,13 @@ private:
 	bool addp(T)(T parItm, string path, string sel, string top, ref TreeItem topItm) {
 		auto itm = new TreeItem(parItm, SWT.NONE);
 		auto full = nabs(path);
-		if (cfnmatch("A", "a") ? _cuts.contains(cwx.utils.toLower(full)) : _cuts.contains(full)) {
+		if (fncharmatch('A', 'a') ? _cuts.contains(cwx.utils.toLower(full)) : _cuts.contains(full)) {
 			itm.setImage = _sImgFolder;
 		} else {
 			itm.setImage = _prop.images.folder;
 		}
-		bool sp = cast(bool) cfnmatch(full, nabs(_summ.scenarioPath));
+		string abs = nabs(_summ.scenarioPath);
+		bool sp = cast(bool) cfnmatch(full, abs);
 		if (sp) {
 			itm.setText = "Scenario";
 		} else {
@@ -568,7 +569,7 @@ private:
 		}
 	}
 	private bool isCutted(string file) {
-		static if (cfnmatch("A", "a")) {
+		static if (fncharmatch('A', 'a')) {
 			file = cwx.utils.toLower(file);
 			file = file.nabs;
 			return _cuts.contains(file);
@@ -711,7 +712,7 @@ private:
 						if (tisdir ==  cast(bool) isDir(file)) {
 							auto par = getDirName(file);
 							if (cfnmatch(par, targ)) {
-								if (!move && !(cfnmatch("A", "a")
+								if (!move && !(fncharmatch('A', 'a')
 										? _cuts.contains(cwx.utils.toLower(file)) : _cuts.contains(file))) {
 									copys ~= file;
 								}
@@ -740,7 +741,7 @@ private:
 				string dir = null;
 				string[] selfs;
 				foreach (file; paths) {
-					bool fout = !(cfnmatch("A", "a")
+					bool fout = !(fncharmatch('A', 'a')
 						? _cuts.contains(cwx.utils.toLower(file))
 						: _cuts.contains(file))
 						&& (!move || !hasPath(pfull, file));
@@ -1853,7 +1854,7 @@ public:
 			if (_dirs.isFocusControl) {
 				auto dir = selDirPath;
 				_dirs.getSelection[0].setImage = sfimage(dir);
-				static if (cfnmatch("A", "a")) {
+				static if (fncharmatch('A', 'a')) {
 					_cuts.add(cwx.utils.toLower(nabs(dir)));
 				} else {
 					_cuts.add(nabs(dir));
@@ -1864,7 +1865,7 @@ public:
 				foreach (itm; _files.getSelection) {
 					auto p = (cast(FileNameObj) itm.getData).array;
 					itm.setImage = sfimage(itm.getImage);
-					static if (cfnmatch("A", "a")) {
+					static if (fncharmatch('A', 'a')) {
 						_cuts.add(cwx.utils.toLower(nabs(p)));
 					} else {
 						_cuts.add(nabs(p));
