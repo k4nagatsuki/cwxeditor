@@ -1342,6 +1342,19 @@ public:
 		_etree.writeComment;
 	}
 
+	private void pasteScript(Clipboard cb) {
+		auto script = cast(ArrayWrapperString) cb.getContents(TextTransfer.getInstance);
+		if (!script) return;
+		try {
+			auto cs = cwx.script.compile(_prop.parent, _summ, script.array.idup);
+			if (!cs.length) return;
+			if (cs[0].type !is CType.START) return;
+			createEventTree(cs);
+		} catch (CWXScriptException e) {
+			auto dlg = new ScriptErrorDialog(_prop, _cards, e);
+			dlg.open;
+		}
+	}
 	override {
 		void cut(SelectionEvent se) {
 			initial;
@@ -1449,19 +1462,6 @@ public:
 						debugln(e);
 					}
 				}
-			}
-		}
-		private void pasteScript(Clipboard cb) {
-			auto script = cast(ArrayWrapperString) cb.getContents(TextTransfer.getInstance);
-			if (!script) return;
-			try {
-				auto cs = cwx.script.compile(_prop.parent, _summ, script.array.idup);
-				if (!cs.length) return;
-				if (cs[0].type !is CType.START) return;
-				createEventTree(cs);
-			} catch (CWXScriptException e) {
-				auto dlg = new ScriptErrorDialog(_prop, _cards, e);
-				dlg.open;
 			}
 		}
 		void del(SelectionEvent se) {

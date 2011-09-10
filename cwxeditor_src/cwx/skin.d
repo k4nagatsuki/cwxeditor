@@ -49,11 +49,11 @@ class Skin {
 		} else {
 			auto skinsDir = std.path.join(getDirName(enginePath), join("Data", "Skin") ~ sep);
 			Skin[string] r;
-			if (.exists(skinsDir) && .isdir(skinsDir)) {
+			if (.exists(skinsDir) && .isDir(skinsDir)) {
 				try {
 					foreach (skinDir; clistdir(skinsDir)) {
 						skinDir = std.path.join(skinsDir, skinDir);
-						if (!isdir(skinDir)) continue;
+						if (!isDir(skinDir)) continue;
 						auto file = std.path.join(skinDir, "Skin.xml");
 						if (!exists(file)) continue;
 						try {
@@ -813,7 +813,7 @@ class Skin {
 			auto fd = std.path.join(resourceDir, "Font");
 			foreach (path; clistdir(fd)) {
 				path = std.path.join(fd, path);
-				if (!isdir(path) && cfnmatch(getExt(path), _resExtImg)) {
+				if (!isDir(path) && cfnmatch(getExt(path), _resExtImg)) {
 					_spChars[toUniUpper(toUTF32(getBaseName(path))[0])] = path;
 				}
 			}

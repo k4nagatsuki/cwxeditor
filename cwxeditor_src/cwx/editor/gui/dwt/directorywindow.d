@@ -142,7 +142,7 @@ private:
 			this.relPath = toRelPath(this.array);
 			this.ext = getExt(this.basename);
 			this.pathId = toPathId(this.relPath);
-			this.dir = isdir(this.array) != 0;
+			this.dir = isDir(this.array) != 0;
 			if (this.dir) {
 				this.material = false;
 			} else {
@@ -182,7 +182,7 @@ private:
 		return comp(a, b) < 0;
 	}
 	bool compFullPath(string a, string b) {
-		return compFNameS(getBaseName(a), getBaseName(b), isdir(a) != 0, isdir(b) != 0);
+		return compFNameS(getBaseName(a), getBaseName(b), isDir(a) != 0, isDir(b) != 0);
 	}
 	bool compFNameS(string a, string b, bool ad, bool bd) {
 		if (ad && bd) return comp(a, b) < 0;
@@ -248,7 +248,7 @@ private:
 				void list(string path) {
 					FC fc;
 					fc.path = path;
-					if (.isdir(path)) {
+					if (.isDir(path)) {
 						fc.time = SysTime.init;
 						fcs ~= fc;
 						foreach (c; clistdir(path)) {
@@ -451,13 +451,13 @@ private:
 		string[] subs;
 		foreach (p; clistdir(path)) {
 			p = std.path.join(path, p);
-			if (isdir(p)) subs ~= p;
+			if (isDir(p)) subs ~= p;
 		}
 		subs = .sortDlg!(string)(subs, &compDirName);
 		bool s = false;
 		foreach (p; subs) {
 			if (sp) {
-				if (isDef(p, cast(bool) isdir(p))) continue;
+				if (isDef(p, cast(bool) isDir(p))) continue;
 			} else {
 				if (isIgnore(p)) continue;
 			}
@@ -543,7 +543,7 @@ private:
 		if (isCutted(file)) {
 			return sfimage(file);
 		}
-		if (.isdir(file)) {
+		if (.isDir(file)) {
 			return _prop.images.folder;
 		} else {
 			return fimage(_comm.skin, file);
@@ -551,7 +551,7 @@ private:
 	}
 	Image sfimage(string file) {
 		auto skin = _comm.skin;
-		if (.isdir(file)) {
+		if (.isDir(file)) {
 			return _sImgFolder;
 		} else if (skin.isCardImage(file)) {
 			return _sImgCards;
@@ -597,7 +597,7 @@ private:
 			int index = _files.getSelectionIndex;
 			if (index >= 0) {
 				auto path = (cast(FileNameObj) _files.getItem(index).getData).array;
-				if (.isdir(path)) {
+				if (.isDir(path)) {
 					foreach (itm; _dirs.getSelection[0].getItems) {
 						if (cfnmatch((cast(FileNameObj) itm.getData).array, path)) {
 							_dirs.setSelection = itm;
@@ -676,7 +676,7 @@ private:
 				static assert (0);
 			}
 			if (!toparP) return;
-			string topar = .isdir(toparP) ? toparP : getDirName(toparP);
+			string topar = .isDir(toparP) ? toparP : getDirName(toparP);
 			if (__paste(topar, files, true, fromOut)) {
 				e.detail = fromOut ? DND.DROP_COPY : DND.DROP_NONE;
 				clearCut;
@@ -702,13 +702,13 @@ private:
 					}
 					auto to = std.path.join(targ, getBaseName(file));
 					if (top) {
-						if (isDef(to, cast(bool) isdir(file))) continue;
+						if (isDef(to, cast(bool) isDir(file))) continue;
 					} else {
 						if (isIgnore(to)) continue;
 					}
 					if (.exists(to)) {
-						bool tisdir = cast(bool) isdir(to);
-						if (tisdir ==  cast(bool) isdir(file)) {
+						bool tisdir = cast(bool) isDir(to);
+						if (tisdir ==  cast(bool) isDir(file)) {
 							auto par = getDirName(file);
 							if (cfnmatch(par, targ)) {
 								if (!move && !(cfnmatch("A", "a")
@@ -747,10 +747,10 @@ private:
 					fromOut |= fout;
 					void copy(string parent, string from) {
 						auto to = std.path.join(parent, getBaseName(from));
-						if (.exists(to) && cast(bool) isdir(to) == cast(bool) isdir(from) && !over) {
+						if (.exists(to) && cast(bool) isDir(to) == cast(bool) isDir(from) && !over) {
 							return;
 						}
-						if (isdir(from)) {
+						if (isDir(from)) {
 							if (!.exists(to)) std.file.mkdir(to);
 							foreach (child; clistdir(from)) {
 								copy(to, std.path.join(from, child));
@@ -782,7 +782,7 @@ private:
 				}
 				foreach (file; copys) {
 					void renameCopy(string parent, string from) {
-						bool isdir = cast(bool) isdir(from);
+						bool isdir = cast(bool) isDir(from);
 						string to = std.path.join(parent, getBaseName(from));
 						to = createNewFileName(to, isdir);
 						if (isdir) {
@@ -856,11 +856,11 @@ private:
 			newName = std.array.replace(newName, altsep, "");
 		}
 		auto to = std.path.join(getDirName(path), newName);
-		bool isdir = cast(bool) .isdir(path);
+		bool isdir = cast(bool) .isDir(path);
 		if (!isdir && getExt(path).length > 0) {
 			to = addExt(to, getExt(path));
 		}
-		if (.exists(to) && cast(bool) .isdir(to) == cast(bool) .isdir(path)) return null;
+		if (.exists(to) && cast(bool) .isDir(to) == cast(bool) .isDir(path)) return null;
 		try {
 			std.file.rename(path, to);
 		} catch {
@@ -872,7 +872,7 @@ private:
 			string tod = nabs(to);
 			void pchange(string file) {
 				auto oldP = frd ~ nabs(file)[tod.length .. $];
-				if (.exists(file) && .isdir(file)) {
+				if (.exists(file) && .isDir(file)) {
 					foreach (c; clistdir(file)) {
 						pchange(std.path.join(file, c));
 					}
@@ -901,7 +901,7 @@ private:
 		static if (is (T == TreeItem)) {
 			itm.setText = getBaseName(getName(to));
 		} else static if (is (T == TableItem)) {
-			itm.setText(0, .isdir(to) ? getBaseName(to) : getBaseName(getName(to)));
+			itm.setText(0, .isDir(to) ? getBaseName(to) : getBaseName(getName(to)));
 		} else {
 			static assert (0);
 		}
@@ -1256,7 +1256,7 @@ private:
 						void put(string path) {
 							foreach (file; clistdir(path)) {
 								file = std.path.join(path, file);
-								if (isdir(file)) {
+								if (isDir(file)) {
 									inotify_add_watch(_traceHandle, std.string.toStringz(file),
 										IN_MODIFY | IN_ATTRIB | IN_MOVED_FROM | IN_MOVED_TO
 										| IN_CREATE | IN_DELETE | IN_DELETE_SELF);
@@ -1320,7 +1320,7 @@ private:
 							times[path] = lastModified(path);
 							foreach (sub; clistdir(path)) {
 								sub = std.path.join(path, sub);
-								if (isdir(sub)) refr(sub);
+								if (isDir(sub)) refr(sub);
 							}
 						}
 						refr(nabs(summ.scenarioPath));
@@ -1347,7 +1347,7 @@ private:
 							if (dirTimes[path] != lastModified(path)) return true;
 							foreach (sub; clistdir(path)) {
 								sub = std.path.join(path, sub);
-								if (isdir(sub) && chk(sub)) return true;
+								if (isDir(sub) && chk(sub)) return true;
 							}
 							return false;
 						}
@@ -1725,7 +1725,7 @@ public:
 		try {
 			if (.exists(path)) {
 				path = nabs(path);
-				auto isdir = .isdir(path);
+				auto isdir = .isDir(path);
 				string dir = isdir ? path : getDirName(path);
 				bool r = selectImpl(_dirs, dir);
 				if (r) {
@@ -1869,7 +1869,7 @@ public:
 					} else {
 						_cuts.add(nabs(p));
 					}
-					if (!isdir && .isdir(p)) isdir = true;
+					if (!isdir && .isDir(p)) isdir = true;
 				}
 				if (isdir) refreshDirs(selDirPath);
 			}

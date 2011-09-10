@@ -247,6 +247,8 @@ public:
 			_aview = new V(comm, prop, summ, area, pane, shell ? null : this, _undo);
 			static if (WithEventView) {
 				_tabA.setControl(_aview);
+			} else {
+				_aview.setLayoutData = new GridData(GridData.FILL_BOTH);
 			}
 			_tcpd ~= _aview;
 			if (shell) _aview.setupMenu(shell.getMenuBar);

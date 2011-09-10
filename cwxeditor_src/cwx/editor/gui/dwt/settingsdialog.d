@@ -235,7 +235,7 @@ private:
 		if (!files.length) return "";
 		string file = files[0];
 		if (!.exists(file)) return "";
-		if (.isdir(file)) {
+		if (.isDir(file)) {
 			return file;
 		} else {
 			return getDirName(file);
@@ -244,7 +244,7 @@ private:
 	string dropCEnginePath(string[] files) {
 		if (!files.length) return "";
 		string file = files[0];
-		if (.exists(file) && .isdir(file)) {
+		if (.exists(file) && .isDir(file)) {
 			string resDir, lEnginePath;
 			if (Skin.hasClassicEngine(file, resDir, lEnginePath)) {
 				return lEnginePath;
@@ -546,7 +546,7 @@ private:
 					file = std.path.join(_prop.parent.appPath.getDirName, file);
 				}
 			}
-			if (!.exists(file) || !isdir(file)) {
+			if (!.exists(file) || !isDir(file)) {
 				file = file.getDirName;
 			}
 			if (!.exists(file)) return;
@@ -1760,7 +1760,7 @@ protected:
 			return false;
 		}
 		if (engine.length) {
-			if (!.exists(engine) || .isdir(engine)) {
+			if (!.exists(engine) || .isDir(engine)) {
 				err(_tabB, _enginePath, _prop.msgs.errorEnginePath(_prop.var.etc.engine));
 				return false;
 			}

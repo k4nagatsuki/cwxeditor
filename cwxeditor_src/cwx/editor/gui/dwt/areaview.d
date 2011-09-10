@@ -2217,7 +2217,7 @@ public:
 				foreach (file; clistdir(dir)) {
 					string full = std.path.join(dir, file);
 					string sFile = sDir ~ file;
-					if (isdir(full)) {
+					if (isDir(full)) {
 						recurse(full, sFile ~ std.path.sep);
 					} else {
 						if (!_comm.skin.isBgImage(file)) continue;

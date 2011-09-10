@@ -244,7 +244,7 @@ private:
 					|| containsPath(_prop.var.etc.ignorePaths, getBaseName(p))) {
 				return;
 			}
-			if (.isdir(p)) {
+			if (.isDir(p)) {
 				string[] list = clistdir(p);
 				if (_prop.var.etc.logicalSort) {
 					list = sort!(fnncmp)(list);
@@ -1438,7 +1438,7 @@ public:
 		try {
 			if (.exists(file)) {
 				auto skin = _comm.skin;
-				if (.isdir(file)) {
+				if (.isDir(file)) {
 					return _prop.images.folder;
 				} else if (skin.isCardImage(file)) {
 					return _prop.images.cards;

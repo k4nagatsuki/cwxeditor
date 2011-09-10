@@ -241,12 +241,12 @@ string nabs(string path) {
 }
 
 /// 大/小文字を区別しないstartsWith。
-bool istartsWith(string a, string b) {
+bool istartsWith(in char[] a, in char[] b) {
 	return a.length >= b.length && icmp(a[0 .. b.length], b) == 0;
 }
 
 /// 大/小文字を区別しないendsWith。
-bool iendsWith(string a, string b) {
+bool iendsWith(in char[] a, in char[] b) {
 	return a.length >= b.length && icmp(a[$ - b.length .. $], b) == 0;
 }
 
@@ -262,7 +262,7 @@ bool containsPath(in string[] list, string path) {
 }
 
 /// ファイルパスに対応したstartsWith。
-bool fnstartsWith(string a, string b) {
+bool fnstartsWith(in char[] a, in char[] b) {
 	static if (cfnmatch("A", "a")) {
 		return istartsWith(a, b);
 	} else {
@@ -1009,13 +1009,13 @@ string copyTo(string sPath, string path, string added) {
 
 /// aからbへすべてのファイル・ディレクトリをコピーする。
 void copyAll(string a, string b) in {
-	assert (isdir(a));
-	assert (isdir(b));
+	assert (isDir(a));
+	assert (isDir(b));
 } body {
 	foreach (file; clistdir(a)) {
 		string fPath = std.path.join(a, file);
 		string tPath = std.path.join(b, file);
-		if (isdir(fPath)) {
+		if (isDir(fPath)) {
 			mkdir(tPath);
 			copyAll(fPath, tPath);
 		} else {
@@ -1041,7 +1041,7 @@ void delAll(string delpath, bool force = true) {
 	void __delAll(string delpath, ref Exception ee) {
 		try {
 			preRemove(delpath);
-			if (isdir(delpath)) {
+			if (isDir(delpath)) {
 				foreach (file; clistdir(delpath)) {
 					__delAll(std.path.join(delpath, file), ee);
 				}
@@ -1354,7 +1354,7 @@ bool hasParDir(string path) {
 size_t icount(string s, string sub) {
 	int c = 0;
 	while (true) {
-		auto i = std.string.indexOf(s, sub, CaseSensitive.no);
+		auto i = std.string.indexOf(s, sub, std.string.CaseSensitive.no);
 		if (i < 0) return c;
 		c++;
 		s = s[i + sub.length .. $];
@@ -1369,7 +1369,7 @@ size_t icount(string s, string sub) {
 string ireplace(string s, string from, string to) {
 	string r = "";
 	while (true) {
-		auto i = std.string.indexOf(s, from, CaseSensitive.no);
+		auto i = std.string.indexOf(s, from, std.string.CaseSensitive.no);
 		if (i < 0) return r ~ s;
 		r ~= s[0 .. i] ~ to;
 		s = s[i + from.length .. $];
@@ -1709,7 +1709,7 @@ string astripr(string s) {
 	return "";
 }
 
-/// '[' ']'を含むファイル名が存在するため、fnmatchの代替を用意する必要がある。
+/// '[' ']'を含むファイル名が存在するため、globMatch()の代替を用意する必要がある。
 bool cfnmatch(string a, string b) {
-	return a.fnmatch(b.replace("[", "[[]"));
+	return a.globMatch(b.replace("[", "[[]"));
 }

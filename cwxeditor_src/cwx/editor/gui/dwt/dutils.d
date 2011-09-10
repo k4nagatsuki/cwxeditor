@@ -270,7 +270,7 @@ private:
 			}
 		}
 	}
-public override:
+public:
 	this(Spinner spn, void delegate(int value) enter,
 			void delegate(int value) edit = null, int delegate(int oldVal) cancel = null) {
 		_spn = spn;
@@ -291,7 +291,7 @@ private:
 	Item delegate(int x, int y) _selectionM;
 	void delegate(Item itm) _startEdit;
 	bool _dClick;
-public override:
+public:
 	/// Params:
 	/// startEdit = 編集開始時に呼出される。
 	/// selection = 編集対象を返す。
@@ -318,7 +318,7 @@ public override:
 			}
 		}
 	}
-+/	void widgetSelected(SelectionEvent e) {
++/	override void widgetSelected(SelectionEvent e) {
 		try {
 			if (_dClick) {
 				_itm = _selection();
@@ -327,8 +327,8 @@ public override:
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
-	void widgetDefaultSelected(SelectionEvent e) {}
-	void mouseDown(MouseEvent e) {
+	override void widgetDefaultSelected(SelectionEvent e) {}
+	override void mouseDown(MouseEvent e) {
 		try {
 			auto itm = _selectionM(e.x, e.y);
 			if (_dClick) {
@@ -1763,7 +1763,7 @@ private class LSFFThr(S, bool Array) {
 				S r = S.loadScenarioFromFile(prop.parent, prop.var.etc.doubleIO,
 					fname, prop.var.etc.expandXMLs,
 					prop.tempPath, old, &setMax, &setWork,
-					isdir(fname) ? getBaseName(fname) : getBaseName(getDirName(fname)));
+					isDir(fname) ? getBaseName(fname) : getBaseName(getDirName(fname)));
 				temp = r.useTemp ? r.scenarioPath : "";
 				display.syncExec(new Load(r));
 			} catch (SummaryException e) {
@@ -1923,7 +1923,7 @@ private S loadScenarioFromFileImpl(S)(Props prop, Shell w, void delegate(string)
 			return S.loadScenarioFromFile(prop.parent, prop.var.etc.doubleIO,
 				fname, prop.var.etc.expandXMLs,
 				prop.tempPath, old, setMax, worked,
-				isdir(fname) ? getBaseName(fname) : getBaseName(getDirName(fname)));
+				isDir(fname) ? getBaseName(fname) : getBaseName(getDirName(fname)));
 		} catch (SummaryException e) {
 			MessageBox.showWarning(e.msg, prop.msgs.dlgTitWarning, w);
 		}

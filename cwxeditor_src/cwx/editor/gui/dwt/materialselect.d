@@ -754,7 +754,7 @@ private:
 		foreach (f; clistdir(dir)) {
 			if (containsPath(_prop.var.etc.ignorePaths, f)) continue;
 			f = std.path.join(dir, f);
-			if (isdir(f)) {
+			if (isDir(f)) {
 				searchTarg(f, cut);
 			}
 		}

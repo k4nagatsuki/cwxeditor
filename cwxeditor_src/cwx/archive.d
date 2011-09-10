@@ -120,7 +120,7 @@ ZipArchive zip(string targ, bool top, bool delegate(string path) ignorePath = nu
 		if (ignorePath && ignorePath(file)) {
 			return;
 		}
-		if (isdir(file)) {
+		if (isDir(file)) {
 			string[] list = clistdir(file);
 			if (list.length > 0) {
 				foreach (c; list) {
@@ -133,7 +133,7 @@ ZipArchive zip(string targ, bool top, bool delegate(string path) ignorePath = nu
 		am.time = SysTimeToDosFileTime(timeLastModified(file));
 		am.compressionMethod = 8;
 		auto name = file;
-		if (isdir(file)) {
+		if (isDir(file)) {
 			name ~= sep;
 		}
 		// Attributes: Directory = 0x10, File = 0x20, ReadOnly = 0x01
@@ -151,12 +151,12 @@ ZipArchive zip(string targ, bool top, bool delegate(string path) ignorePath = nu
 			am.flags |= 0x800;
 			am.name = name;
 		}
-		if (!isdir(file)) {
+		if (!isDir(file)) {
 			am.expandedData = cast(ubyte[]) std.file.read(file);
 		}
 		arc.addMember(am);
 	}
-	if (top || !isdir(path)) {
+	if (top || !isDir(path)) {
 		auto par = getDirName(path);
 		if (par.length && !endsWith(par, sep)) par ~= sep;
 		cut = par.length;

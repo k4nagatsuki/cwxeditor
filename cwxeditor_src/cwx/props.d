@@ -2346,9 +2346,9 @@ public class Looks {
 public:
 	const string[] fontFiles() {
 		return [
-			"Data" ~ sep ~ "Font" ~ sep ~ "gothic.ttf",
-			"Data" ~ sep ~ "Font" ~ sep ~ "mincho.ttf",
-			"Data" ~ sep ~ "Font" ~ sep ~ "uigothic.ttf"
+			"Data" ~ sep.idup ~ "Font" ~ sep.idup ~ "gothic.ttf",
+			"Data" ~ sep.idup ~ "Font" ~ sep.idup ~ "mincho.ttf",
+			"Data" ~ sep.idup ~ "Font" ~ sep.idup ~ "uigothic.ttf"
 		];
 	}
 	const CPoint castCardNamePoint(){return CPoint(5, 5);}

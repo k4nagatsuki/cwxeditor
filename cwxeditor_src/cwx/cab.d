@@ -37,12 +37,12 @@ version (Windows) {
 		string cut = getDirName(src) ~ sep.idup;
 		bool adds(string file) {
 			if (isArc && !isArc(file)) return true;
-			if (file.length > cut.length && !isdir(file)) {
+			if (file.length > cut.length && !isDir(file)) {
 				if (!add(h, file, file[cut.length .. $])) {
 					return false;
 				}
 			}
-			if (isdir(file)) {
+			if (isDir(file)) {
 				foreach (cf; clistdir(file)) {
 					if (!adds(std.path.join(file, cf))) {
 						return false;

@@ -77,7 +77,7 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 			if (exists(targPath)) {
 				foreach (p; clistdir(targPath)) {
 					p = std.path.join(targPath, p);
-					if (!isdir(p) && cfnmatch(getExt(p), "xml")) {
+					if (!isDir(p) && cfnmatch(getExt(p), "xml")) {
 						try {
 							__loadXMLCommon(cast(string) std.file.read(p), name, areas, uc, change, ver);
 						} catch (Exception e) {
@@ -295,7 +295,7 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 			}
 			summPath = temp;
 			auto ld = clistdir(temp);
-			if (ld.length == 1 && isdir(std.path.join(temp, ld[0]))) {
+			if (ld.length == 1 && isDir(std.path.join(temp, ld[0]))) {
 				// ディレクトリを一つ挟んでいる
 				summPath = std.path.join(temp, ld[0]);
 			}
@@ -345,7 +345,7 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 		if (fname) {
 			if (newName || exists(fname)) {
 				try {
-					if (isdir(fname)) {
+					if (isDir(fname)) {
 						if (exists(std.path.join(fname, "Summary.xml"))) {
 							fname = std.path.join(fname, "Summary.xml");
 						} else if (exists(std.path.join(fname, "Summary.wsm"))) {
@@ -372,7 +372,7 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 						r._legacy = false;
 						r._zipName = "";
 						return r;
-					} else if (isdir(fname)) {
+					} else if (isDir(fname)) {
 						return ll(fname);
 					} else {
 						auto arc = scArc(fname, "xml");
@@ -642,7 +642,7 @@ public:
 	/// シナリオのシステムファイルまたはディレクトリであればtrueを返す。
 	const
 	bool isSystemFile(string p) {
-		return isSystemFile(p, cast(bool) .isdir(p));
+		return isSystemFile(p, cast(bool) .isDir(p));
 	}
 	const
 	bool isSystemFile(string p, bool isdir) {
@@ -1201,21 +1201,21 @@ public:
 	private static void delAllXML(string p) {
 		foreach (t; clistdir(p)) {
 			t = std.path.join(p, t);
-			if (!isdir(t) && cfnmatch(getExt(t), "xml")) {
+			if (!isDir(t) && cfnmatch(getExt(t), "xml")) {
 				std.file.remove(t);
 			}
 		}
 	}
 	private static void __saveXML(A)(string path, A[] targs) {
 		if (targs.length == 0) {
-			if (exists(path) && isdir(path)) {
+			if (exists(path) && isDir(path)) {
 				delAllXML(path);
 				if (clistdir(path).length == 0) {
 					rmdir(path);
 				}
 			}
 		} else {
-			if (exists(path) && isdir(path)) {
+			if (exists(path) && isDir(path)) {
 				delAllXML(path);
 			} else {
 				mkdir(path);
@@ -1450,7 +1450,7 @@ public:
 			}
 			auto p = std.path.join(scenarioPath, file);
 			try {
-				if (isdir(p)) {
+				if (isDir(p)) {
 					auto top = std.path.join(mt, getBaseName(p));
 					mkdir(top);
 					copyAll(p, top);

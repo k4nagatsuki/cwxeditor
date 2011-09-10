@@ -276,7 +276,7 @@ private:
 			} else {
 				auto p = Summary.createTempDir(_prop.tempPath, dlg.name);
 				auto mFPath = std.path.join(p, findSkin2(_prop, dlg.skin).materialPath);
-				if (!exists(mFPath) || !isdir(mFPath)) std.file.mkdir(mFPath);
+				if (!exists(mFPath) || !isDir(mFPath)) std.file.mkdir(mFPath);
 				summ = new Summary(dlg.name, dlg.skin, p, true, false);
 				if (summ.expandXMLs) {
 					summ.saveXMLs(summ.scenarioPath);
@@ -889,7 +889,7 @@ public:
 		if (firstScenarioPath && .exists(firstScenarioPath)) {
 			path1 = nabs(firstScenarioPath);
 			auto ext = getExt(path1);
-			if (!.isdir(path1)
+			if (!.isDir(path1)
 					&& (cfnmatch(ext, "xml") || cfnmatch(ext, "wsm") || cfnmatch(ext, "wid"))) {
 				path1 = nabs(getDirName(path1));
 			}
@@ -959,7 +959,7 @@ public:
 		if (exists(_prop.tempPath)) {
 			foreach (temp; clistdir(_prop.tempPath)) {
 				temp = std.path.join(_prop.tempPath, temp);
-				if (exists(temp) && isdir(temp)) {
+				if (exists(temp) && isDir(temp)) {
 					auto lock = std.path.join(temp, "cwxeditor.lock");
 					if (exists(lock)) {
 						try {
