@@ -424,7 +424,7 @@ public:
 		_areasEdit = new TableTextEdit(_areas, 1, &editEnd);
 
 		auto menu = new Menu(parent.getShell, SWT.POP_UP);
-		if (_comm.singleWindowMode(_prop) && _prop.var.etc.bindSceneWithEvent) {
+		if (!_comm.singleWindowMode(_prop) || _prop.var.etc.bindSceneWithEvent) {
 			createMenuItem(menu, _prop.msgs.menuCEdit, _prop.images.menuCEdit, &openAreaScene);
 		} else {
 			createMenuItem(menu, _prop.msgs.menuEditScene, _prop.images.menuEditScene, &openAreaScene);
@@ -689,14 +689,14 @@ public:
 	}
 
 	void openAreaSceneImpl(A)(A a) {
-		if (_comm.singleWindowMode(_prop) && _prop.var.etc.bindSceneWithEvent) {
+		if (!_comm.singleWindowMode(_prop) || _prop.var.etc.bindSceneWithEvent) {
 			_comm.openArea(_prop, _summ, a);
 		} else {
 			_comm.openAreaScene(_prop, _summ, a);
 		}
 	}
 	void openAreaEventImpl(A)(A a) {
-		if (_comm.singleWindowMode(_prop) && _prop.var.etc.bindSceneWithEvent) {
+		if (!_comm.singleWindowMode(_prop) || _prop.var.etc.bindSceneWithEvent) {
 			auto w = _comm.openArea(_prop, _summ, a);
 			w.selectEventView();
 		} else {

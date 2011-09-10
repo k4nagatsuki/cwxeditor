@@ -512,7 +512,7 @@ public:
 			if (sw2) {
 				return sw2.openCWXPath(path);
 			}
-			if (_comm.singleWindowMode(_prop) && _prop.var.etc.bindSceneWithEvent) {
+			if (!_comm.singleWindowMode(_prop) || _prop.var.etc.bindSceneWithEvent) {
 				return bw.openCWXPath(path);
 			} else {
 				return sw.openCWXPath(path);
@@ -522,7 +522,7 @@ public:
 			if (ew2) {
 				return ew2.openCWXPath(path);
 			}
-			if (_comm.singleWindowMode(_prop) && _prop.var.etc.bindSceneWithEvent) {
+			if (!_comm.singleWindowMode(_prop) || _prop.var.etc.bindSceneWithEvent) {
 				return bw.openCWXPath(path);
 			} else {
 				return ew.openCWXPath(path);
