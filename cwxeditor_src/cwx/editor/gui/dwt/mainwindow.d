@@ -1111,10 +1111,12 @@ public:
 		_noSummMenu.add(MenuID.Open);
 		_noSummMenu.add(MenuID.Close);
 		_noSummMenu.add(MenuID.ToXML);
-		_noSummMenu.add(MenuID.DataWin);
-		_noSummMenu.add(MenuID.FlagWin);
-		_noSummMenu.add(MenuID.CardWin);
-		_noSummMenu.add(MenuID.DirWin);
+		if (_prop.var.etc.singleWindow) {
+			_noSummMenu.add(MenuID.DataWin);
+			_noSummMenu.add(MenuID.FlagWin);
+			_noSummMenu.add(MenuID.CardWin);
+			_noSummMenu.add(MenuID.DirWin);
+		}
 		_noSummMenu.add(MenuID.ChangeVH);
 		_noSummMenu.add(MenuID.ShowCardLife);
 		_noSummMenu.add(MenuID.ShowCardList);
