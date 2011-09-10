@@ -1241,11 +1241,11 @@ public:
 			_mainMenu.add(MenuID.CardWin);
 			auto ti = createDropDownItem(bar, _prop.msgs.ttCardWin, _prop.images.menuCardWin, &openCardWindow, tmOpenCardWin);
 			_tool[MenuID.CardWin] = ti;
-			createMenuItem(tmOpenCardWin, _prop.msgs.casts, _prop.images.casts, &_cardWin.openCast);
-			createMenuItem(tmOpenCardWin, _prop.msgs.skill, _prop.images.skill, &_cardWin.openSkill);
-			createMenuItem(tmOpenCardWin, _prop.msgs.item, _prop.images.item, &_cardWin.openItem);
-			createMenuItem(tmOpenCardWin, _prop.msgs.beast, _prop.images.beast, &_cardWin.openBeast);
-			createMenuItem(tmOpenCardWin, _prop.msgs.info, _prop.images.info, &_cardWin.openInfo);
+			createMenuItem(tmOpenCardWin, _prop.msgs.casts, _prop.images.casts, &openCast);
+			createMenuItem(tmOpenCardWin, _prop.msgs.skill, _prop.images.skill, &openSkill);
+			createMenuItem(tmOpenCardWin, _prop.msgs.item, _prop.images.item, &openItem);
+			createMenuItem(tmOpenCardWin, _prop.msgs.beast, _prop.images.beast, &openBeast);
+			createMenuItem(tmOpenCardWin, _prop.msgs.info, _prop.images.info, &openInfo);
 		}
 		void createExecEngineTI(ToolBar bar) {
 			_mainMenu.add(MenuID.ExecEngine);
@@ -1466,6 +1466,26 @@ public:
 			~ "    _comm.openCardWin;"
 			~ "    _cardWin.create" ~ Name ~ ";"
 			~ "}";
+	}
+	private void openCast() {
+		if (!summary && !_comm.singleWindowMode(_prop)) return;
+		_cardWin.openCast();
+	}
+	private void openSkill() {
+		if (!summary && !_comm.singleWindowMode(_prop)) return;
+		_cardWin.openSkill();
+	}
+	private void openItem() {
+		if (!summary && !_comm.singleWindowMode(_prop)) return;
+		_cardWin.openItem();
+	}
+	private void openBeast() {
+		if (!summary && !_comm.singleWindowMode(_prop)) return;
+		_cardWin.openBeast();
+	}
+	private void openInfo() {
+		if (!summary && !_comm.singleWindowMode(_prop)) return;
+		_cardWin.openInfo();
 	}
 	private void refreshAll(SelectionEvent se) {
 		if (!_dock) return;
