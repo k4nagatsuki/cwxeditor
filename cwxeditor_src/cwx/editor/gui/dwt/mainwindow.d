@@ -1109,6 +1109,7 @@ public:
 		_noSummMenu = new HashSet!(MenuID);
 		_noSummMenu.add(MenuID.New);
 		_noSummMenu.add(MenuID.Open);
+		_noSummMenu.add(MenuID.Close);
 		_noSummMenu.add(MenuID.ToXML);
 		_noSummMenu.add(MenuID.DataWin);
 		_noSummMenu.add(MenuID.FlagWin);
