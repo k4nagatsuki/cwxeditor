@@ -265,7 +265,7 @@ private:
 				if (!.exists(dir) || !isDir(dir)) dir = dirName(dir);
 			}
 			dlg.setFilterPath = dir;
-			dlg.setFileName = addExt(_saveName, "bmp");
+			dlg.setFileName = setExtension(_saveName, "bmp");
 			dlg.setOverwrite = true;
 			string fname = dlg.open;
 			if (fname) {

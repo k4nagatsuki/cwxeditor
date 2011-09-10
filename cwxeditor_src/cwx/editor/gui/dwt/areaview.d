@@ -912,7 +912,7 @@ private:
 				itm.setImage = _prop.images.backs;
 				itm.setData = c;
 				itm.setChecked = true;
-				itm.setText = getBaseName(c.path);
+				itm.setText = baseName(c.path);
 			}
 			_backs.setSelection = idx;
 		}
@@ -1772,7 +1772,7 @@ public:
 		static if (UseBacks) {
 			foreach (i, b; _area.backs) {
 				_imgp.set(i, create(b));
-				_backs.getItem(i).setText = getBaseName(b.path);
+				_backs.getItem(i).setText = baseName(b.path);
 				_backs.getItem(i).setData = b;
 				partyIndex++;
 			}
@@ -2109,7 +2109,7 @@ public:
 					auto fi = create(back);
 					_imgp.set(i, fi);
 					if (_backs.isSelected(i) && _viewBacks) _imgp.select(fi);
-					_backs.getItem(i).setText = getBaseName(back.path);
+					_backs.getItem(i).setText = baseName(back.path);
 					_backs.getItem(i).setData = b;
 					refreshControls;
 					_comm.refBgImage.call(b.cwxPath);
@@ -2193,7 +2193,7 @@ public:
 				if (b.path == mt) return;
 				_undo ~= new UndoEdit(this, _comm, _area, _summ, [], [itm.getParent.indexOf(itm)]);
 				b.path = mt;
-				itm.setText(column, getBaseName(decodePath(mt)));
+				itm.setText(column, baseName(decodePath(mt)));
 			}
 			refreshPanel();
 			_comm.refBgImage.call(b.cwxPath);
@@ -2208,14 +2208,14 @@ public:
 			p = nabs(p);
 			foreach (t; _comm.skin.tables) {
 				strs ~= t;
-				if (cfnmatch(p, nabs(std.path.join(_comm.skin.tableDir, t)))) {
+				if (cfnmatch(p, nabs(std.path.buildPath(_comm.skin.tableDir, t)))) {
 					str = t;
 				}
 			}
 			if (!_summ) return;
 			void recurse(string dir, string sDir) {
 				foreach (file; clistdir(dir)) {
-					string full = std.path.join(dir, file);
+					string full = std.path.buildPath(dir, file);
 					string sFile = sDir ~ file;
 					if (isDir(full)) {
 						recurse(full, sFile ~ std.path.sep);
@@ -2663,7 +2663,7 @@ public:
 						return -1;
 					}
 				}
-				auto card = new MenuCard(getBaseName(.getName(fname)), fname, "", "", x, y, 1.0);
+				auto card = new MenuCard(baseName(.stripExtension(fname)), fname, "", "", x, y, 1.0);
 				return appendCard(card, true, true, fromImgPane);
 			}
 			private class CLDropTarget : DropTargetAdapter {
@@ -2737,7 +2737,7 @@ public:
 				itm.setImage = v._prop.images.backs;
 				itm.setData = back;
 				itm.setChecked = check;
-				itm.setText = getBaseName(back.path);
+				itm.setText = baseName(back.path);
 				if (select && v._viewBacks) {
 					v._imgp.select(img);
 					if (refresh) {
@@ -2773,7 +2773,7 @@ public:
 				itm.setImage = _prop.images.backs;
 				itm.setData = b;
 				itm.setChecked = true;
-				itm.setText = getBaseName(b.path);
+				itm.setText = baseName(b.path);
 				_comm.addBgImage.call(b.cwxPath);
 			}
 			if (select && _viewBacks) _imgp.select(imgs);
@@ -3312,7 +3312,7 @@ class BgImagesView : AbstractAreaView!(BgImageContainer, void, false, true) {
 FlexImage createBackgroundImage
 		(Skin skin, string path, int x, int y, int w, int h, bool transparent) {
 	FlexImage r;
-	auto ext = getExt(path);
+	auto ext = cwx.utils.getExt(path);
 	if (cfnmatch(ext, "jpy1") || cfnmatch(ext, "jptx") || cfnmatch(ext, "jpdc")) {
 		auto data = loadJPYImage(skin, path, []);
 		r = new FlexImage(data, x, y, data.width, data.height);

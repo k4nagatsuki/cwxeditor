@@ -225,7 +225,7 @@ private:
 	string dropEngine(string[] files) {
 		if (!files.length) return "";
 		string file = files[0];
-		if (cfnmatch(getBaseName(file), _prop.var.etc.engine)) {
+		if (cfnmatch(baseName(file), _prop.var.etc.engine)) {
 			return file;
 		} else {
 			return "";
@@ -257,7 +257,7 @@ private:
 		string path = _cEnginePath.getText;
 		if (!path.length) return path;
 		if (cwx.utils.isabs(path)) return path;
-		return std.path.join(nabs(_prop.parent.appPath).dirName, path);
+		return std.path.buildPath(nabs(_prop.parent.appPath).dirName, path);
 	}
 	string dropCEngineSub(string file) {
 		string engine = curCEnginePath;
@@ -275,7 +275,7 @@ private:
 	string dropWallpaper(string[] files) {
 		if (!files.length) return "";
 		foreach (file; files) {
-			if (.contains!("a == b", string)(WALLPAPER_EXT, cwx.utils.toLower(file.getExt))) {
+			if (.contains!("a == b", string)(WALLPAPER_EXT, cwx.utils.toLower(cwx.utils.getExt(file)))) {
 				return file;
 			}
 		}
@@ -320,7 +320,7 @@ private:
 		if (appPath) {
 			auto d = dir.getText;
 			if (!cwx.utils.isabs(d)) {
-				d = std.path.join(std.path.dirName(_prop.parent.appPath), d);
+				d = std.path.buildPath(std.path.dirName(_prop.parent.appPath), d);
 			}
 			path = d;
 		}
@@ -358,7 +358,7 @@ private:
 		auto cEngine = _cEngines[i];
 		string path = cEngine.dataDirName;
 		if (cEngine.enginePath.length && !cwx.utils.isabs(path)) {
-			path = std.path.join(cEngine.enginePath.dirName, path);
+			path = std.path.buildPath(cEngine.enginePath.dirName, path);
 		}
 		path = nabs(path);
 		string fname = selectDir(_cEngineDataDir, _prop.msgs.classicEngineDataDirName, _prop.msgs.classicEngineDataDirNameDesc, path, false);
@@ -379,12 +379,12 @@ private:
 		string path = cEngine.execute;
 		string fileName = "";
 		if (path.length) {
-			fileName = path.basename;
+			fileName = path.baseName;
 			if (cEngine.enginePath.length && !cwx.utils.isabs(path)) {
-				path = std.path.join(cEngine.enginePath.dirName, path);
+				path = std.path.buildPath(cEngine.enginePath.dirName, path);
 			}
 		} else {
-			path = std.path.join(cEngine.enginePath.dirName, "*.exe");
+			path = std.path.buildPath(cEngine.enginePath.dirName, "*.exe");
 		}
 		path = nabs(path);
 		string fname = selectFile(_cEngineExecute, _prop.msgs.classicEngineExecuteTName, ext, fileName, _prop.msgs.dlgTitClassicEngineExecute, path);
@@ -540,10 +540,10 @@ private:
 				if (_cEngineSub) {
 					auto engine = curCEnginePath;
 					if (engine.length) {
-						file = std.path.join(engine.dirName, file);
+						file = std.path.buildPath(engine.dirName, file);
 					}
 				} else {
-					file = std.path.join(_prop.parent.appPath.dirName, file);
+					file = std.path.buildPath(_prop.parent.appPath.dirName, file);
 				}
 			}
 			if (!.exists(file) || !isDir(file)) {

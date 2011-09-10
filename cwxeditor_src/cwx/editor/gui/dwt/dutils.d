@@ -112,7 +112,7 @@ import java.io.ByteArrayInputStream;
 public:
 
 bool dwtImageSize(Skin skin, string path, out uint width, out uint height) {
-	auto ext = getExt(path);
+	auto ext = cwx.utils.getExt(path);
 	if (cfnmatch(ext, "jpy1")
 			|| cfnmatch(ext, "jptx")
 			|| cfnmatch(ext, "jpdc")) {
@@ -136,7 +136,7 @@ ImageData loadImage(Skin skin, string path, bool mask = true, int maskX = 0, int
 		return blankImage;
 	}
 	if (path !is null && path.length > 0) {
-		string ext = std.path.getExt(path);
+		string ext = cwx.utils.getExt(path);
 		if (cfnmatch(ext, "jpy1")
 				|| cfnmatch(ext, "jptx")
 				|| cfnmatch(ext, "jpdc")) {
@@ -1763,7 +1763,7 @@ private class LSFFThr(S, bool Array) {
 				S r = S.loadScenarioFromFile(prop.parent, prop.var.etc.doubleIO,
 					fname, prop.var.etc.expandXMLs,
 					prop.tempPath, old, &setMax, &setWork,
-					isDir(fname) ? getBaseName(fname) : getBaseName(dirName(fname)));
+					isDir(fname) ? baseName(fname) : baseName(dirName(fname)));
 				temp = r.useTemp ? r.scenarioPath : "";
 				display.syncExec(new Load(r));
 			} catch (SummaryException e) {
@@ -1809,10 +1809,10 @@ S[] loadScenarios(S)(Props prop, Shell w, void delegate(string) status,
 		put.loaded = loaded;
 		auto files = new HashSet!(string);
 		foreach (file; dlg.getFileNames) {
-			if (cfnmatch(getExt(file), "wid")) {
+			if (cfnmatch(cwx.utils.getExt(file), "wid")) {
 				file = dirName(file);
 			}
-			files.add(nabs(std.path.join(dlg.getFilterPath, file)));
+			files.add(nabs(std.path.buildPath(dlg.getFilterPath, file)));
 		}
 		S[] r = loadScenariosFromFile!(S)(prop, w, status, expandXMLs,
 			files.toArray, &put.put, oThr);
@@ -1857,7 +1857,7 @@ S[] loadScenariosFromFile(S)(Props prop, Shell w, void delegate(string) status,
 string scenarioFilterPath(Props prop) {
 	if (prop.var.etc.scenarioPath.length == 0) {
 		if (prop.enginePath.length == 0) return "";
-		return nabs(std.path.join(dirName(prop.enginePath), "Scenario"));
+		return nabs(std.path.buildPath(dirName(prop.enginePath), "Scenario"));
 	} else {
 		return nabs(prop.var.etc.scenarioPath);
 	}
@@ -1923,7 +1923,7 @@ private S loadScenarioFromFileImpl(S)(Props prop, Shell w, void delegate(string)
 			return S.loadScenarioFromFile(prop.parent, prop.var.etc.doubleIO,
 				fname, prop.var.etc.expandXMLs,
 				prop.tempPath, old, setMax, worked,
-				isDir(fname) ? getBaseName(fname) : getBaseName(dirName(fname)));
+				isDir(fname) ? baseName(fname) : baseName(dirName(fname)));
 		} catch (SummaryException e) {
 			MessageBox.showWarning(e.msg, prop.msgs.dlgTitWarning, w);
 		}
@@ -1939,7 +1939,7 @@ bool qMaterialCopy(Props prop, Skin skin, Shell shell,
 		string path = cast(string) key;
 		if (key.isBinImg) {
 			paths ~= path;
-		} else if (exists(std.path.join(fromSPath, path))) {
+		} else if (exists(std.path.buildPath(fromSPath, path))) {
 			paths ~= path;
 		}
 	}
@@ -1952,7 +1952,7 @@ bool qMaterialCopy(Props prop, Skin skin, Shell shell,
 		if (isBinImg(p)) {
 			bin++;
 		} else {
-			msgPaths ~= std.path.join(fromSPath, p);
+			msgPaths ~= std.path.buildPath(fromSPath, p);
 		}
 	}
 	copyM.setMessage = prop.msgs.dlgMsgCopyMaterial(msgPaths, bin);
@@ -1960,7 +1960,7 @@ bool qMaterialCopy(Props prop, Skin skin, Shell shell,
 	case SWT.YES:
 		bool err = false;
 		foreach (i, key; paths) {
-			string path = isBinImg(key) ? key : std.path.join(fromSPath, key);
+			string path = isBinImg(key) ? key : std.path.buildPath(fromSPath, key);
 			try {
 				auto newp = copyTo(toSPath, path, skin.materialPath);
 				uc.change(toPathId(key), toPathId(newp));
@@ -2059,7 +2059,7 @@ Composite createDefSoundCombo(Commons comm, Props prop, Summary summ, Composite 
 		}
 		override void widgetSelected(SelectionEvent e) {
 			if (_combo.getSelectionIndex > 0) {
-				playSECW(_prop, std.path.join(_comm.skin.seDir, _combo.getText), _summ.legacy);
+				playSECW(_prop, std.path.buildPath(_comm.skin.seDir, _combo.getText), _summ.legacy);
 			}
 		}
 	}

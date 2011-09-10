@@ -534,7 +534,7 @@ string abs2rel(string base, string path) {
 	if (!path.length) return base;
 	base = nabs(base);
 	path = nabs(path);
-	if (getDrive(base) != getDrive(path)) {
+	if (driveName(base) != driveName(path)) {
 		return path;
 	}
 	if (fnstartsWith(path, base)) {
@@ -738,16 +738,16 @@ string createNewName(string base, bool delegate(string) use, bool space = true) 
 /// ditto
 string createNewFileName(string path, bool isdir) {
 	string parent = dirName(path);
-	string name = getBaseName(path);
-	string ext = isdir ? "" : getExt(name);
-	if (!isdir) name = getName(name);
+	string name = baseName(path);
+	string ext = isdir ? "" : cwx.utils.getExt(name);
+	if (!isdir) name = stripExtension(name);
 	name = createNewName(name, (string name) {
-		name = std.path.join(parent, name);
-		if (!isdir && ext.length) name = addExt(name, ext);
+		name = std.path.buildPath(parent, name);
+		if (!isdir && ext.length) name = setExtension(name, ext);
 		return !.exists(name);
 	}, false);
-	name = std.path.join(parent, name);
-	if (!isdir && ext.length) name = addExt(name, ext);
+	name = std.path.buildPath(parent, name);
+	if (!isdir && ext.length) name = setExtension(name, ext);
 	return name;
 }
 
@@ -849,7 +849,7 @@ bool parseBool(string b) {
 /// "font_X.bmp"から"X"の部分を抽出する。
 dchar decodeFontPath(string path) {
 	enforce(istartsWith(path, "font_"));
-	auto dpath = to!dstring(path["font_".length .. $].getName);
+	auto dpath = to!dstring(path["font_".length .. $].stripExtension);
 	enforce(1 == dpath.length);
 	return toUniUpper(dpath[0]);
 }
@@ -1142,8 +1142,8 @@ private string __createF(bool Dir)(string parent, string name, string ext, strin
 	string r;
 	void create() {
 		r = prefix ~ name;
-		if (ext.length) r = addExt(r, ext);
-		r = std.path.join(parent, r);
+		if (ext.length) r = setExtension(r, ext);
+		r = std.path.buildPath(parent, r);
 		r = createNewFileName(r, Dir);
 		static if (Dir) {
 			mkdir(r);
@@ -1192,13 +1192,13 @@ void preRemove(string delpath) {
 /// Returns: コピー後のファイルパス。
 string copyTo(string sPath, string path, string added) {
 	bool binImg = isBinImg(path);
-	auto mtDir = std.path.join(sPath, added);
+	auto mtDir = std.path.buildPath(sPath, added);
 	if (!exists(mtDir)) mkdirRecurse(mtDir);
 	string to;
 	if (binImg) {
-		to = std.path.join(mtDir, "@simage(1).bmp");
+		to = std.path.buildPath(mtDir, "@simage(1).bmp");
 	} else {
-		to = std.path.join(mtDir, getBaseName(path));
+		to = std.path.buildPath(mtDir, baseName(path));
 	}
 	to = createNewFileName(to, false);
 	if (binImg) {
@@ -1206,7 +1206,7 @@ string copyTo(string sPath, string path, string added) {
 	} else {
 		copy(path, to);
 	}
-	return std.path.join(added, getBaseName(to));
+	return std.path.buildPath(added, baseName(to));
 }
 
 /// aからbへすべてのファイル・ディレクトリをコピーする。
@@ -1215,8 +1215,8 @@ void copyAll(string a, string b) in {
 	assert (isDir(b));
 } body {
 	foreach (file; clistdir(a)) {
-		string fPath = std.path.join(a, file);
-		string tPath = std.path.join(b, file);
+		string fPath = std.path.buildPath(a, file);
+		string tPath = std.path.buildPath(b, file);
 		if (isDir(fPath)) {
 			mkdir(tPath);
 			copyAll(fPath, tPath);
@@ -1230,7 +1230,7 @@ void copyAll(string a, string b) in {
 string[] clistdir(string dir) {
 	string[] r;
 	foreach (string file; dirEntries(dir, SpanMode.shallow)) {
-		r ~= file.basename;
+		r ~= file.baseName;
 	}
 	return r;
 }
@@ -1245,7 +1245,7 @@ void delAll(string delpath, bool force = true) {
 			preRemove(delpath);
 			if (isDir(delpath)) {
 				foreach (file; clistdir(delpath)) {
-					__delAll(std.path.join(delpath, file), ee);
+					__delAll(std.path.buildPath(delpath, file), ee);
 				}
 				rmdir(delpath);
 			} else {
@@ -1482,7 +1482,7 @@ private struct FCPt {
 	string path;
 	hash_t toHash() {
 		hash_t r = 0;
-		foreach (char c; std.path.getBaseName(path)) {
+		foreach (char c; std.path.baseName(path)) {
 			r *= 31;
 			r += c;
 		}
@@ -1490,7 +1490,7 @@ private struct FCPt {
 	}
 	const
 	bool opEquals(ref const(FCPt) s) {
-		auto r = cfnmatch(getBaseName(s.path), getBaseName(path));
+		auto r = cfnmatch(baseName(s.path), baseName(path));
 		if (r) {
 			r = cfnmatch(dirName(s.path), dirName(path));
 		}
@@ -1503,7 +1503,7 @@ private struct FCPt {
 		} else {
 			alias std.string.cmp cp;
 		}
-		int r = cp(getBaseName(s.path), getBaseName(path));
+		int r = cp(baseName(s.path), baseName(path));
 		if (r == 0) {
 			r = cp(dirName(s.path), dirName(path));
 		}
@@ -1742,4 +1742,11 @@ bool cfnmatch(string a, string b) {
 	return Wildcard(b, 0 == filenameCharCmp('A', 'a')).match(a);
 } unittest {
 	assert (cfnmatch(r"C:\path", r"C:\path"));
+}
+
+/// pathの拡張子部分を返す。'.'は含めない。
+string getExt(string path) {
+	int i = lastIndexOf(path, '.');
+	if (i == -1) return "";
+	return path[i + 1 .. $];
 }

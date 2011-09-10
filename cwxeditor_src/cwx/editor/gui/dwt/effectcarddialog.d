@@ -741,7 +741,7 @@ protected:
 			_prem[_card.premium].setSelection = true;
 			_sucRate.setSelection = _card.successRate + Content.successRate_max;
 			string findPath(string path) {
-				return getBaseName(skin.findPath(getBaseName(path), skin.extSound, skin.seDir, ""));
+				return baseName(skin.findPath(baseName(path), skin.extSound, skin.seDir, ""));
 			}
 			int se1i = _se1.indexOf(findPath(_card.soundPath1));
 			_se1.select = se1i >= 0 ? se1i : 0;

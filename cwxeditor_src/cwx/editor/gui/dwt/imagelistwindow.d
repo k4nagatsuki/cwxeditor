@@ -222,7 +222,7 @@ class ImageList : Composite {
 				}
 				auto img = new Image(getDisplay, imgData);
 				scope (exit) img.dispose();
-				string name = _path[i].basename;
+				string name = _path[i].baseName;
 				int tw = e.gc.textExtent(name).x;
 				if (tw > _imgW) {
 					dstring dname = to!dstring(name);

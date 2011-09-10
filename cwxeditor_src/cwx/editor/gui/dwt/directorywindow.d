@@ -140,7 +140,7 @@ private:
 	class FileNameObj {
 		private this () {
 			this.relPath = toRelPath(this.array);
-			this.ext = getExt(this.basename);
+			this.ext = cwx.utils.getExt(this.basename);
 			this.pathId = toPathId(this.relPath);
 			this.dir = isDir(this.array) != 0;
 			if (this.dir) {
@@ -153,11 +153,11 @@ private:
 		}
 		this (string fullPath) {
 			this.array = fullPath;
-			this.basename = getBaseName(this.array);
+			this.basename = baseName(this.array);
 			this ();
 		}
 		this (string parent, string basename) {
-			this.array = std.path.join(parent, basename);
+			this.array = std.path.buildPath(parent, basename);
 			this.basename = basename;
 			this ();
 		}
@@ -182,7 +182,7 @@ private:
 		return comp(a, b) < 0;
 	}
 	bool compFullPath(string a, string b) {
-		return compFNameS(getBaseName(a), getBaseName(b), isDir(a) != 0, isDir(b) != 0);
+		return compFNameS(baseName(a), baseName(b), isDir(a) != 0, isDir(b) != 0);
 	}
 	bool compFNameS(string a, string b, bool ad, bool bd) {
 		if (ad && bd) return comp(a, b) < 0;
@@ -252,7 +252,7 @@ private:
 						fc.time = SysTime.init;
 						fcs ~= fc;
 						foreach (c; clistdir(path)) {
-							list(std.path.join(path, c));
+							list(std.path.buildPath(path, c));
 						}
 					} else {
 						fc.time = timeLastModified(path);
@@ -278,7 +278,7 @@ private:
 	}
 
 	bool isIgnore(string p) {
-		return containsPath(_prop.var.etc.ignorePaths, getBaseName(p));
+		return containsPath(_prop.var.etc.ignorePaths, baseName(p));
 	}
 
 	void refreshDirs(string sel) {
@@ -405,11 +405,11 @@ private:
 						itm.setText(1, "");
 						itm.setText(2, "");
 					} else if (p.material) {
-						itm.setText(0, getName(p.basename));
+						itm.setText(0, stripExtension(p.basename));
 						itm.setText(1, p.ext);
 						itm.setText(2, to!(string)(_summ.useCounter.path.get(p.pathId)));
 					} else {
-						itm.setText(0, getName(p.basename));
+						itm.setText(0, stripExtension(p.basename));
 						itm.setText(1, p.ext);
 						itm.setText(2, "");
 					}
@@ -446,12 +446,12 @@ private:
 		if (sp) {
 			itm.setText = "Scenario";
 		} else {
-			itm.setText = getBaseName(path);
+			itm.setText = baseName(path);
 		}
 		itm.setData = new FileNameObj(full);
 		string[] subs;
 		foreach (p; clistdir(path)) {
-			p = std.path.join(path, p);
+			p = std.path.buildPath(path, p);
 			if (isDir(p)) subs ~= p;
 		}
 		subs = .sortDlg!(string)(subs, &compDirName);
@@ -524,7 +524,7 @@ private:
 			return _prop.images.bgm;
 		} else if (skin.isSE(file)) {
 			return _prop.images.se;
-		} else if (cfnmatch(file.getExt, "txt")) {
+		} else if (cfnmatch(cwx.utils.getExt(file), "txt")) {
 			return _prop.images.text;
 		} else {
 			return _prop.images.unknown;
@@ -562,7 +562,7 @@ private:
 			return _sImgBgm;
 		} else if (skin.isSE(file)) {
 			return _sImgSe;
-		} else if (cfnmatch(file.getExt, "txt")) {
+		} else if (cfnmatch(cwx.utils.getExt(file), "txt")) {
 			return _sImgText;
 		} else {
 			return _sImgUnknown;
@@ -701,7 +701,7 @@ private:
 						// 自分の上位のディレクトリを持ってこようとした
 						continue;
 					}
-					auto to = std.path.join(targ, getBaseName(file));
+					auto to = std.path.buildPath(targ, baseName(file));
 					if (top) {
 						if (isDef(to, cast(bool) isDir(file))) continue;
 					} else {
@@ -747,14 +747,14 @@ private:
 						&& (!move || !hasPath(pfull, file));
 					fromOut |= fout;
 					void copy(string parent, string from) {
-						auto to = std.path.join(parent, getBaseName(from));
+						auto to = std.path.buildPath(parent, baseName(from));
 						if (.exists(to) && cast(bool) isDir(to) == cast(bool) isDir(from) && !over) {
 							return;
 						}
 						if (isDir(from)) {
 							if (!.exists(to)) std.file.mkdir(to);
 							foreach (child; clistdir(from)) {
-								copy(to, std.path.join(from, child));
+								copy(to, std.path.buildPath(from, child));
 							}
 							if (!dir) dir = to;
 							if (!fout) {
@@ -784,12 +784,12 @@ private:
 				foreach (file; copys) {
 					void renameCopy(string parent, string from) {
 						bool isdir = cast(bool) isDir(from);
-						string to = std.path.join(parent, getBaseName(from));
+						string to = std.path.buildPath(parent, baseName(from));
 						to = createNewFileName(to, isdir);
 						if (isdir) {
 							std.file.mkdir(to);
 							foreach (child; clistdir(from)) {
-								renameCopy(to, std.path.join(from, child));
+								renameCopy(to, std.path.buildPath(from, child));
 							}
 							if (!dir) dir = to;
 						} else {
@@ -856,10 +856,10 @@ private:
 		static if (altsep.length) {
 			newName = std.array.replace(newName, altsep, "");
 		}
-		auto to = std.path.join(dirName(path), newName);
+		auto to = std.path.buildPath(dirName(path), newName);
 		bool isdir = cast(bool) .isDir(path);
-		if (!isdir && getExt(path).length > 0) {
-			to = addExt(to, getExt(path));
+		if (!isdir && cwx.utils.getExt(path).length > 0) {
+			to = setExtension(to, cwx.utils.getExt(path));
 		}
 		if (.exists(to) && cast(bool) .isDir(to) == cast(bool) .isDir(path)) return null;
 		try {
@@ -875,7 +875,7 @@ private:
 				auto oldP = frd ~ nabs(file)[tod.length .. $];
 				if (.exists(file) && .isDir(file)) {
 					foreach (c; clistdir(file)) {
-						pchange(std.path.join(file, c));
+						pchange(std.path.buildPath(file, c));
 					}
 				} else {
 					string p1 = toRelPath(oldP);
@@ -887,7 +887,7 @@ private:
 				}
 			}
 			foreach (c; clistdir(to)) {
-				pchange(std.path.join(to, c));
+				pchange(std.path.buildPath(to, c));
 			}
 		} else {
 			string p1 = frp;
@@ -900,9 +900,9 @@ private:
 		}
 		itm.setData = new FileNameObj(to);
 		static if (is (T == TreeItem)) {
-			itm.setText = getBaseName(getName(to));
+			itm.setText = baseName(stripExtension(to));
 		} else static if (is (T == TableItem)) {
-			itm.setText(0, .isDir(to) ? getBaseName(to) : getBaseName(getName(to)));
+			itm.setText(0, .isDir(to) ? baseName(to) : baseName(stripExtension(to)));
 		} else {
 			static assert (0);
 		}
@@ -929,7 +929,7 @@ private:
 				drename(cc);
 			}
 			foreach (t; _files.getItems) {
-				t.setData = new FileNameObj(std.path.join(tod, (cast(FileNameObj) t.getData).basename));
+				t.setData = new FileNameObj(std.path.buildPath(tod, (cast(FileNameObj) t.getData).basename));
 			}
 		}
 	}
@@ -994,7 +994,7 @@ private:
 			string wd = OuterTool.parse(_tool.workDir, file, sp);
 			if (wd.length > 0) {
 				if (!cwx.utils.isabs(wd)) {
-					wd = std.path.join(std.path.dirName(_prop.parent.appPath), wd);
+					wd = std.path.buildPath(std.path.dirName(_prop.parent.appPath), wd);
 				}
 			} else {
 				wd = dirName(_prop.parent.appPath);
@@ -1034,7 +1034,7 @@ private:
 		if (!dir) return null;
 		string fp;
 		createNewName(_prop.msgs.newFolder, (string name) {
-			string p = std.path.join(dir, name);
+			string p = std.path.buildPath(dir, name);
 			fp = p;
 			if (!.exists(fp)) {
 				std.file.mkdir(fp);
@@ -1256,7 +1256,7 @@ private:
 						if (_traceHandle is -1) return false;
 						void put(string path) {
 							foreach (file; clistdir(path)) {
-								file = std.path.join(path, file);
+								file = std.path.buildPath(path, file);
 								if (isDir(file)) {
 									inotify_add_watch(_traceHandle, std.string.toStringz(file),
 										IN_MODIFY | IN_ATTRIB | IN_MOVED_FROM | IN_MOVED_TO
@@ -1315,12 +1315,12 @@ private:
 					if (summ) {
 						void refr(string path) {
 							if (summ.isSystemFile(path)
-									|| containsPath(_prop.var.etc.ignorePaths, getBaseName(path))) {
+									|| containsPath(_prop.var.etc.ignorePaths, baseName(path))) {
 								return;
 							}
 							times[path] = lastModified(path);
 							foreach (sub; clistdir(path)) {
-								sub = std.path.join(path, sub);
+								sub = std.path.buildPath(path, sub);
 								if (isDir(sub)) refr(sub);
 							}
 						}
@@ -1342,12 +1342,12 @@ private:
 						if (!canDoChk) continue;
 						bool chk(string path) {
 							if (summ.isSystemFile(path)
-									|| containsPath(_prop.var.etc.ignorePaths, getBaseName(path))) {
+									|| containsPath(_prop.var.etc.ignorePaths, baseName(path))) {
 								return false;
 							}
 							if (dirTimes[path] != lastModified(path)) return true;
 							foreach (sub; clistdir(path)) {
-								sub = std.path.join(path, sub);
+								sub = std.path.buildPath(path, sub);
 								if (isDir(sub) && chk(sub)) return true;
 							}
 							return false;
@@ -1654,7 +1654,7 @@ public:
 	void refresh(Summary summ) {
 		_summ = summ;
 		if (_win && !_win.isDisposed) {
-			refreshDirs(std.path.join(_summ.scenarioPath, _comm.skin.materialPath));
+			refreshDirs(std.path.buildPath(_summ.scenarioPath, _comm.skin.materialPath));
 			refreshFiles(null);
 			auto root = _dirs.getItem(0);
 			root.setExpanded = true;
@@ -1802,15 +1802,15 @@ public:
 				goto default;
 			}
 			dlg.setFilterIndex = cab;
-			dlg.setFileName = addExt(_summ.scenarioName, "cab");
+			dlg.setFileName = setExtension(_summ.scenarioName, "cab");
 			break;
 		case "wsn":
 			dlg.setFilterIndex = wsn;
-			dlg.setFileName = addExt(_summ.scenarioName, "wsn");
+			dlg.setFileName = setExtension(_summ.scenarioName, "wsn");
 			break;
 		default:
 			dlg.setFilterIndex = zip;
-			dlg.setFileName = addExt(_summ.scenarioName, "zip");
+			dlg.setFileName = setExtension(_summ.scenarioName, "zip");
 			break;
 		}
 		dlg.setOverwrite = true;

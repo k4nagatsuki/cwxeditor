@@ -566,7 +566,7 @@ public:
 		if (isabs(var.etc.enginePath)) {
 			return var.etc.enginePath;
 		} else {
-			return std.path.join(std.path.dirName(parent.appPath), var.etc.enginePath);
+			return std.path.buildPath(std.path.dirName(parent.appPath), var.etc.enginePath);
 		}
 	}
 	const
@@ -575,7 +575,7 @@ public:
 		if (isabs(var.etc.tempPath)) {
 			return var.etc.tempPath;
 		} else {
-			return std.path.join(std.path.dirName(parent.appPath), var.etc.tempPath);
+			return std.path.buildPath(std.path.dirName(parent.appPath), var.etc.tempPath);
 		}
 	}
 	const
@@ -584,7 +584,7 @@ public:
 		if (isabs(var.etc.backupPath)) {
 			return var.etc.backupPath;
 		} else {
-			return std.path.join(std.path.dirName(parent.appPath), var.etc.backupPath);
+			return std.path.buildPath(std.path.dirName(parent.appPath), var.etc.backupPath);
 		}
 	}
 	const

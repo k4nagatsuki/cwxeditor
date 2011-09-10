@@ -407,7 +407,7 @@ struct BgImageS {
 		BgImageS[] r;
 		r.length = bgs.length;
 		foreach (i, b; bgs) {
-			r[i] = BgImageS(getName(b.path), b.x, b.y, b.width, b.height, b.mask);
+			r[i] = BgImageS(stripExtension(b.path), b.x, b.y, b.width, b.height, b.mask);
 		}
 		return r;
 	}
@@ -415,11 +415,11 @@ struct BgImageS {
 		BgImage[] r;
 		r.length = bgs.length;
 		foreach (i, b; bgs) {
-			auto path = skin.findImagePath(addExt(b.name, skin.extImage), "");
+			auto path = skin.findImagePath(setExtension(b.name, skin.extImage), "");
 			if (path.length) {
 				path = abs2rel(skin.tableDir, nabs(path));
 			} else {
-				path = addExt(b.name, skin.extImage);
+				path = setExtension(b.name, skin.extImage);
 			}
 			r[i] = new BgImage(path, "", b.x, b.y, b.width, b.height, b.mask);
 		}
@@ -440,13 +440,13 @@ struct ClassicEngine {
 		string path = enginePath;
 		if (!cwx.utils.isabs(path)) {
 			auto dir = appPath.dirName;
-			path = std.path.join(dir, path);
+			path = std.path.buildPath(dir, path);
 		}
 		if (execute.length) {
 			if (cwx.utils.isabs(execute)) {
 				path = execute;
 			} else {
-				path = std.path.join(path.dirName, execute);
+				path = std.path.buildPath(path.dirName, execute);
 			}
 		}
 		return path;
@@ -815,7 +815,7 @@ public class FlexProps {
 	this(string appPath, string confFileName) {
 		IniLocation loc = IniLocation.STANDARD;
 		string iniFileName = "cwxeditor.xml";
-		if (.exists(std.path.join(appPath.dirName, iniFileName))) {
+		if (.exists(std.path.buildPath(appPath.dirName, iniFileName))) {
 			// 1.0との互換性を維持するため、アプリケーションのディレクトリに
 			// cwxeditor.xmlがあった場合、LOCALをデフォルトにする。
 			loc = IniLocation.LOCAL;
@@ -845,16 +845,16 @@ public class FlexProps {
 		final switch (loc) {
 		case IniLocation.STANDARD:
 			dir = appDataDir(appPath);
-			dir = std.path.join(dir, "cwxeditor");
+			dir = std.path.buildPath(dir, "cwxeditor");
 			break;
 		case IniLocation.LOCAL:
 			dir = appPath.dirName;
 			break;
 		case IniLocation.COPY:
-			string base = std.path.join(appPath.dirName, iniFileName);
+			string base = std.path.buildPath(appPath.dirName, iniFileName);
 			dir = appDataDir(appPath);
-			dir = std.path.join(dir, "cwxeditor");
-			string dest = std.path.join(dir, iniFileName);
+			dir = std.path.buildPath(dir, "cwxeditor");
+			string dest = std.path.buildPath(dir, iniFileName);
 			if (.exists(base) && !.exists(dest)) {
 				try {
 					if (!.exists(dir)) mkdirRecurse(dir);
@@ -866,7 +866,7 @@ public class FlexProps {
 			break;
 		}
 
-		_path = std.path.join(dir, iniFileName);
+		_path = std.path.buildPath(dir, iniFileName);
 		if (exists(_path)) {
 			try {
 				auto node = XNode.parse(cast(string) read(_path));
@@ -890,9 +890,9 @@ public class FlexProps {
 			final switch (loc) {
 			case IniLocation.STANDARD, IniLocation.COPY:
 				dir = appDataDir(appPath);
-				dir = std.path.join(dir, "cwxeditor");
-				etc.tempPath = std.path.join(dir, "temp");
-				etc.backupPath = std.path.join(dir, "backup");
+				dir = std.path.buildPath(dir, "cwxeditor");
+				etc.tempPath = std.path.buildPath(dir, "temp");
+				etc.backupPath = std.path.buildPath(dir, "backup");
 				break;
 			case IniLocation.LOCAL:
 				etc.tempPath = "temp";

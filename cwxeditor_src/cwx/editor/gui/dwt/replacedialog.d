@@ -241,7 +241,7 @@ private:
 		string[] paths;
 		void find(string p) {
 			if (_summ.isSystemFile(p)
-					|| containsPath(_prop.var.etc.ignorePaths, getBaseName(p))) {
+					|| containsPath(_prop.var.etc.ignorePaths, baseName(p))) {
 				return;
 			}
 			if (.isDir(p)) {
@@ -252,7 +252,7 @@ private:
 					list = sort!(fncmp)(list);
 				}
 				foreach (l; list) {
-					find(std.path.join(p, l));
+					find(std.path.buildPath(p, l));
 				}
 			} else if (_comm.skin.isMaterial(p)) {
 				auto path = abs2rel(sPath, p);
@@ -1425,7 +1425,7 @@ public:
 			} else {
 				auto p = cast(PathString) itms[0].getData;
 				assert (p);
-				auto path = nabs(std.path.join(_summ.scenarioPath, p.array));
+				auto path = nabs(std.path.buildPath(_summ.scenarioPath, p.array));
 				if (_comm.openFilePath(path)) {
 					_win.setActive;
 					return;
@@ -1455,7 +1455,7 @@ public:
 	}
 	private void addResult(string path) {
 		auto itm = new TableItem(_result, SWT.NONE);
-		itm.setImage = fimage(std.path.join(_summ.scenarioPath, path));
+		itm.setImage = fimage(std.path.buildPath(_summ.scenarioPath, path));
 		itm.setText = encodePath(path);
 		itm.setData = new PathString(path);
 	}

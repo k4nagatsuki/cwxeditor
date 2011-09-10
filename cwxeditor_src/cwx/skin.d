@@ -47,14 +47,14 @@ class Skin {
 		if (p) {
 			return *p;
 		} else {
-			auto skinsDir = std.path.join(dirName(enginePath), join("Data", "Skin") ~ sep);
+			auto skinsDir = std.path.buildPath(dirName(enginePath), buildPath("Data", "Skin") ~ sep);
 			Skin[string] r;
 			if (.exists(skinsDir) && .isDir(skinsDir)) {
 				try {
 					foreach (skinDir; clistdir(skinsDir)) {
-						skinDir = std.path.join(skinsDir, skinDir);
+						skinDir = std.path.buildPath(skinsDir, skinDir);
 						if (!isDir(skinDir)) continue;
-						auto file = std.path.join(skinDir, "Skin.xml");
+						auto file = std.path.buildPath(skinDir, "Skin.xml");
 						if (!exists(file)) continue;
 						try {
 							auto skin = new Skin(prop, file, enginePath);
@@ -85,7 +85,7 @@ class Skin {
 		} else {
 			skin = new Skin(prop, enginePath);
 		}
-		skin.setupLegacy(lEnginePath, lEnginePath.dirName.join(dataDirName));
+		skin.setupLegacy(lEnginePath, lEnginePath.dirName.buildPath(dataDirName));
 		skin._execute = execute;
 		return skin;
 	}
@@ -141,14 +141,14 @@ class Skin {
 	/// 含まれていればディレクトリ名を返す。
 	static string findResDir(string path) {
 		auto p = path;
-		if (std.file.exists(join(p, join("Data", "Table") ~ sep ~ "MapOfWirth.BMP"))) {
+		if (std.file.exists(buildPath(p, buildPath("Data", "Table") ~ sep ~ "MapOfWirth.BMP"))) {
 			return "Data";
 		}
 		for (char c = 'A'; c < 'Z'; c++) {
-			if (std.file.exists(join(p, join("D_" ~ c ~ "1", "Table") ~ sep ~ "MapOfWirth.BMP"))) {
+			if (std.file.exists(buildPath(p, buildPath("D_" ~ c ~ "1", "Table") ~ sep ~ "MapOfWirth.BMP"))) {
 				return "D_" ~ c ~ "1";
 			}
-			if (std.file.exists(join(p, [c] ~ join("_dt", "Table") ~ sep ~ "MapOfWirth.BMP"))) {
+			if (std.file.exists(buildPath(p, [c] ~ buildPath("_dt", "Table") ~ sep ~ "MapOfWirth.BMP"))) {
 				return [c].idup ~ "_dt";
 			}
 		}
@@ -159,9 +159,9 @@ class Skin {
 	static bool hasClassicEngine(string path, out string resDir, out string enginePath) {
 		auto r = findResDir(path);
 		if (!r.length) return false;
-		resDir = join(path, r);
+		resDir = buildPath(path, r);
 
-		auto cw = join(path, "CardWirth.exe");
+		auto cw = buildPath(path, "CardWirth.exe");
 		if (std.file.exists(cw)) {
 			enginePath = cw;
 			return true;
@@ -169,19 +169,19 @@ class Skin {
 			auto list = clistdir(path);
 			foreach (file; list) {
 				if (fnendsWith(file, "Wirth.exe")) {
-					enginePath = join(path, file);
+					enginePath = buildPath(path, file);
 					return true;
 				}
 			}
 			foreach (file; list) {
-				if (cfnmatch(getExt(file), "exe") && fnstartsWith(file, "CardWirth_")) {
-					enginePath = join(path, file);
+				if (cfnmatch(cwx.utils.getExt(file), "exe") && fnstartsWith(file, "CardWirth_")) {
+					enginePath = buildPath(path, file);
 					return true;
 				}
 			}
 			foreach (file; list) {
-				if (cfnmatch(getExt(file), "exe") && fnstartsWith(file, "CW")) {
-					enginePath = join(path, file);
+				if (cfnmatch(cwx.utils.getExt(file), "exe") && fnstartsWith(file, "CW")) {
+					enginePath = buildPath(path, file);
 					return true;
 				}
 			}
@@ -250,50 +250,50 @@ class Skin {
 	/// リソース画像のパス。
 	const
 	string resSummary(out bool mask, out bool rMask) {
-		return join(tableDir, addExt("Bill", _legacyPath.length ? extImage : resExtImage));
+		return buildPath(tableDir, setExtension("Bill", _legacyPath.length ? extImage : resExtImage));
 	}
 	/// ditto
 	const
-	string resMenuCard(out bool mask, out bool rMask) {return join(resourceDir, addExt(join("CardBg", "NORMAL"), resExtImage));}
+	string resMenuCard(out bool mask, out bool rMask) {return buildPath(resourceDir, setExtension(buildPath("CardBg", "NORMAL"), resExtImage));}
 
 	/// ditto
 	const
-	string resCastCard(out bool mask, out bool rMask) {return join(resourceDir, addExt(join("CardBg", "LARGE"), resExtImage));}
+	string resCastCard(out bool mask, out bool rMask) {return buildPath(resourceDir, setExtension(buildPath("CardBg", "LARGE"), resExtImage));}
 	/// ditto
 	const
-	string resCastCardInjury(out bool mask, out bool rMask) {return join(resourceDir, addExt(join("CardBg", "INJURY"), resExtImage));}
+	string resCastCardInjury(out bool mask, out bool rMask) {return buildPath(resourceDir, setExtension(buildPath("CardBg", "INJURY"), resExtImage));}
 	/// ditto
 	const
-	string resCastCardDanger(out bool mask, out bool rMask) {return join(resourceDir, addExt(join("CardBg", "DANGER"), resExtImage));}
+	string resCastCardDanger(out bool mask, out bool rMask) {return buildPath(resourceDir, setExtension(buildPath("CardBg", "DANGER"), resExtImage));}
 	/// ditto
 	const
-	string resCastCardFaint(out bool mask, out bool rMask) {return join(resourceDir, addExt(join("CardBg", "FAINT"), resExtImage));}
+	string resCastCardFaint(out bool mask, out bool rMask) {return buildPath(resourceDir, setExtension(buildPath("CardBg", "FAINT"), resExtImage));}
 	/// ditto
 	const
-	string resCastCardBind(out bool mask, out bool rMask) {return join(resourceDir, addExt(join("CardBg", "BIND"), resExtImage));}
+	string resCastCardBind(out bool mask, out bool rMask) {return buildPath(resourceDir, setExtension(buildPath("CardBg", "BIND"), resExtImage));}
 	/// ditto
 	const
-	string resCastCardParaly(out bool mask, out bool rMask) {return join(resourceDir, addExt(join("CardBg", "PARALY"), resExtImage));}
+	string resCastCardParaly(out bool mask, out bool rMask) {return buildPath(resourceDir, setExtension(buildPath("CardBg", "PARALY"), resExtImage));}
 	/// ditto
 	const
-	string resCastCardPetrif(out bool mask, out bool rMask) {return join(resourceDir, addExt(join("CardBg", "PETRIF"), resExtImage));}
+	string resCastCardPetrif(out bool mask, out bool rMask) {return buildPath(resourceDir, setExtension(buildPath("CardBg", "PETRIF"), resExtImage));}
 	/// ditto
 	const
-	string resCastCardSleep(out bool mask, out bool rMask) {return join(resourceDir, addExt(join("CardBg", "SLEEP"), resExtImage));}
+	string resCastCardSleep(out bool mask, out bool rMask) {return buildPath(resourceDir, setExtension(buildPath("CardBg", "SLEEP"), resExtImage));}
 	/// ditto
 	const
-	string resLifeBar(out bool mask, out bool rMask) {return join(resourceDir, addExt(join("Status", "LIFEBAR"), resExtImage));}
+	string resLifeBar(out bool mask, out bool rMask) {return buildPath(resourceDir, setExtension(buildPath("Status", "LIFEBAR"), resExtImage));}
 	/// ditto
 	const
-	string resLifeGuage(out bool mask, out bool rMask) {return join(resourceDir, addExt(join("Status", "LIFEGUAGE"), resExtImage));}
+	string resLifeGuage(out bool mask, out bool rMask) {return buildPath(resourceDir, setExtension(buildPath("Status", "LIFEGUAGE"), resExtImage));}
 	/// ditto
 	const
 	string resEnhanceUp(out bool mask, out bool rMask, Enhance enh) {
 		switch (enh) {
-		case Enhance.ACTION: return join(resourceDir, addExt(join("Status", "UP0"), resExtImage));
-		case Enhance.AVOID: return join(resourceDir, addExt(join("Status", "UP1"), resExtImage));
-		case Enhance.RESIST: return join(resourceDir, addExt(join("Status", "UP2"), resExtImage));
-		case Enhance.DEFENSE: return join(resourceDir, addExt(join("Status", "UP3"), resExtImage));
+		case Enhance.ACTION: return buildPath(resourceDir, setExtension(buildPath("Status", "UP0"), resExtImage));
+		case Enhance.AVOID: return buildPath(resourceDir, setExtension(buildPath("Status", "UP1"), resExtImage));
+		case Enhance.RESIST: return buildPath(resourceDir, setExtension(buildPath("Status", "UP2"), resExtImage));
+		case Enhance.DEFENSE: return buildPath(resourceDir, setExtension(buildPath("Status", "UP3"), resExtImage));
 		default: assert (0);
 		}
 	}
@@ -301,10 +301,10 @@ class Skin {
 	const
 	string resEnhanceDown(out bool mask, out bool rMask, Enhance enh) {
 		switch (enh) {
-		case Enhance.ACTION: return join(resourceDir, addExt(join("Status", "DOWN0"), resExtImage));
-		case Enhance.AVOID: return join(resourceDir, addExt(join("Status", "DOWN1"), resExtImage));
-		case Enhance.RESIST: return join(resourceDir, addExt(join("Status", "DOWN2"), resExtImage));
-		case Enhance.DEFENSE: return join(resourceDir, addExt(join("Status", "DOWN3"), resExtImage));
+		case Enhance.ACTION: return buildPath(resourceDir, setExtension(buildPath("Status", "DOWN0"), resExtImage));
+		case Enhance.AVOID: return buildPath(resourceDir, setExtension(buildPath("Status", "DOWN1"), resExtImage));
+		case Enhance.RESIST: return buildPath(resourceDir, setExtension(buildPath("Status", "DOWN2"), resExtImage));
+		case Enhance.DEFENSE: return buildPath(resourceDir, setExtension(buildPath("Status", "DOWN3"), resExtImage));
 		default: assert (0);
 		}
 	}
@@ -312,122 +312,122 @@ class Skin {
 	const
 	string resMentality(out bool mask, out bool rMask, Mentality mtly) {
 		switch (mtly) {
-		case Mentality.NORMAL: return join(resourceDir, addExt(join("Status", "MIND0"), resExtImage));
-		case Mentality.SLEEP: return join(resourceDir, addExt(join("Status", "MIND1"), resExtImage));
-		case Mentality.CONFUSE: return join(resourceDir, addExt(join("Status", "MIND2"), resExtImage));
-		case Mentality.OVERHEAT: return join(resourceDir, addExt(join("Status", "MIND3"), resExtImage));
-		case Mentality.BRAVE: return join(resourceDir, addExt(join("Status", "MIND4"), resExtImage));
-		case Mentality.PANIC: return join(resourceDir, addExt(join("Status", "MIND5"), resExtImage));
+		case Mentality.NORMAL: return buildPath(resourceDir, setExtension(buildPath("Status", "MIND0"), resExtImage));
+		case Mentality.SLEEP: return buildPath(resourceDir, setExtension(buildPath("Status", "MIND1"), resExtImage));
+		case Mentality.CONFUSE: return buildPath(resourceDir, setExtension(buildPath("Status", "MIND2"), resExtImage));
+		case Mentality.OVERHEAT: return buildPath(resourceDir, setExtension(buildPath("Status", "MIND3"), resExtImage));
+		case Mentality.BRAVE: return buildPath(resourceDir, setExtension(buildPath("Status", "MIND4"), resExtImage));
+		case Mentality.PANIC: return buildPath(resourceDir, setExtension(buildPath("Status", "MIND5"), resExtImage));
 		default: assert (0);
 		}
 	}
 	/// ditto
 	const
-	string resBind(out bool mask, out bool rMask) {return join(resourceDir, addExt(join("Status", "MAGIC0"), resExtImage));}
+	string resBind(out bool mask, out bool rMask) {return buildPath(resourceDir, setExtension(buildPath("Status", "MAGIC0"), resExtImage));}
 	/// ditto
 	const
-	string resSilence(out bool mask, out bool rMask) {return join(resourceDir, addExt(join("Status", "MAGIC1"), resExtImage));}
+	string resSilence(out bool mask, out bool rMask) {return buildPath(resourceDir, setExtension(buildPath("Status", "MAGIC1"), resExtImage));}
 	/// ditto
 	const
-	string resFaceUp(out bool mask, out bool rMask) {return join(resourceDir, addExt(join("Status", "MAGIC2"), resExtImage));}
+	string resFaceUp(out bool mask, out bool rMask) {return buildPath(resourceDir, setExtension(buildPath("Status", "MAGIC2"), resExtImage));}
 	/// ditto
 	const
-	string resAntiMagic(out bool mask, out bool rMask) {return join(resourceDir, addExt(join("Status", "MAGIC3"), resExtImage));}
+	string resAntiMagic(out bool mask, out bool rMask) {return buildPath(resourceDir, setExtension(buildPath("Status", "MAGIC3"), resExtImage));}
 	/// ditto
 	const
-	string resParalyze(out bool mask, out bool rMask) {return join(resourceDir, addExt(join("Status", "BODY1"), resExtImage));}
+	string resParalyze(out bool mask, out bool rMask) {return buildPath(resourceDir, setExtension(buildPath("Status", "BODY1"), resExtImage));}
 	/// ditto
 	const
-	string resPoison(out bool mask, out bool rMask) {return join(resourceDir, addExt(join("Status", "BODY0"), resExtImage));}
+	string resPoison(out bool mask, out bool rMask) {return buildPath(resourceDir, setExtension(buildPath("Status", "BODY0"), resExtImage));}
 	/// ditto
 	const
-	string resSummon(out bool mask, out bool rMask) {return join(resourceDir, addExt(join("Status", "SUMMON"), resExtImage));}
+	string resSummon(out bool mask, out bool rMask) {return buildPath(resourceDir, setExtension(buildPath("Status", "SUMMON"), resExtImage));}
 
 	/// ditto
 	const
-	string resItemCard(out bool mask, out bool rMask) {return join(resourceDir, addExt(join("CardBg", "ITEM"), resExtImage));}
+	string resItemCard(out bool mask, out bool rMask) {return buildPath(resourceDir, setExtension(buildPath("CardBg", "ITEM"), resExtImage));}
 	/// ditto
 	const
-	string resSkillCard(out bool mask, out bool rMask) {return join(resourceDir, addExt(join("CardBg", "SKILL"), resExtImage));}
+	string resSkillCard(out bool mask, out bool rMask) {return buildPath(resourceDir, setExtension(buildPath("CardBg", "SKILL"), resExtImage));}
 	/// ditto
 	const
-	string resBeastCard(out bool mask, out bool rMask) {return join(resourceDir, addExt(join("CardBg", "BEAST"), resExtImage));}
+	string resBeastCard(out bool mask, out bool rMask) {return buildPath(resourceDir, setExtension(buildPath("CardBg", "BEAST"), resExtImage));}
 	/// ditto
 	const
-	string resInfoCard(out bool mask, out bool rMask) {return join(resourceDir, addExt(join("CardBg", "INFO"), resExtImage));}
+	string resInfoCard(out bool mask, out bool rMask) {return buildPath(resourceDir, setExtension(buildPath("CardBg", "INFO"), resExtImage));}
 	/// ditto
 	const
-	string resCardHold(out bool mask, out bool rMask) {return join(resourceDir, addExt(join("CardBg", "HOLD"), resExtImage));}
+	string resCardHold(out bool mask, out bool rMask) {return buildPath(resourceDir, setExtension(buildPath("CardBg", "HOLD"), resExtImage));}
 	/// ditto
 	const
-	string resCardPenalty(out bool mask, out bool rMask) {return join(resourceDir, addExt(join("CardBg", "PENALTY"), resExtImage));}
+	string resCardPenalty(out bool mask, out bool rMask) {return buildPath(resourceDir, setExtension(buildPath("CardBg", "PENALTY"), resExtImage));}
 	/// ditto
 	const
 	string resRare(out bool mask, out bool rMask) {
 		mask = true;
 		rMask = true;
-		return join(resourceDir, addExt(join("CardBg", "RARE"), resExtImage));
+		return buildPath(resourceDir, setExtension(buildPath("CardBg", "RARE"), resExtImage));
 	}
 	/// ditto
 	const
 	string resPremier(out bool mask, out bool rMask) {
 		mask = true;
 		rMask = true;
-		return join(resourceDir, addExt(join("CardBg", "PREMIER"), resExtImage));
+		return buildPath(resourceDir, setExtension(buildPath("CardBg", "PREMIER"), resExtImage));
 	}
 	/// ditto
 	const
 	string resAptVeryHigh(out bool mask, out bool rMask) {
 		mask = true;
-		return join(resourceDir, addExt(join("Stone", "HAND3"), resExtImage));
+		return buildPath(resourceDir, setExtension(buildPath("Stone", "HAND3"), resExtImage));
 	}
 	/// ditto
 	const
 	string resAptHigh(out bool mask, out bool rMask) {
 		mask = true;
-		return join(resourceDir, addExt(join("Stone", "HAND2"), resExtImage));
+		return buildPath(resourceDir, setExtension(buildPath("Stone", "HAND2"), resExtImage));
 	}
 	/// ditto
 	const
 	string resAptNormal(out bool mask, out bool rMask) {
 		mask = true;
-		return join(resourceDir, addExt(join("Stone", "HAND1"), resExtImage));
+		return buildPath(resourceDir, setExtension(buildPath("Stone", "HAND1"), resExtImage));
 	}
 	/// ditto
 	const
 	string resAptLow(out bool mask, out bool rMask) {
 		mask = true;
-		return join(resourceDir, addExt(join("Stone", "HAND0"), resExtImage));
+		return buildPath(resourceDir, setExtension(buildPath("Stone", "HAND0"), resExtImage));
 	}
 	/// ditto
 	const
 	string resUse0(out bool mask, out bool rMask) {
 		mask = true;
-		return join(resourceDir, addExt(join("Stone", "HAND5"), resExtImage));
+		return buildPath(resourceDir, setExtension(buildPath("Stone", "HAND5"), resExtImage));
 	}
 	/// ditto
 	const
 	string resUse1(out bool mask, out bool rMask) {
 		mask = true;
-		return join(resourceDir, addExt(join("Stone", "HAND6"), resExtImage));
+		return buildPath(resourceDir, setExtension(buildPath("Stone", "HAND6"), resExtImage));
 	}
 	/// ditto
 	const
 	string resUse2(out bool mask, out bool rMask) {
 		mask = true;
-		return join(resourceDir, addExt(join("Stone", "HAND7"), resExtImage));
+		return buildPath(resourceDir, setExtension(buildPath("Stone", "HAND7"), resExtImage));
 	}
 	/// ditto
 	const
 	string resUse3(out bool mask, out bool rMask) {
 		mask = true;
-		return join(resourceDir, addExt(join("Stone", "HAND8"), resExtImage));
+		return buildPath(resourceDir, setExtension(buildPath("Stone", "HAND8"), resExtImage));
 	}
 	/// ditto
 	const
 	string resUse4(out bool mask, out bool rMask) {
 		mask = true;
-		return join(resourceDir, addExt(join("Stone", "HAND9"), resExtImage));
+		return buildPath(resourceDir, setExtension(buildPath("Stone", "HAND9"), resExtImage));
 	}
 
 	/// CardWirth本体のパス。
@@ -455,7 +455,7 @@ class Skin {
 	string executeEngine() {
 		if (_legacyEngine.length) {
 			if (_execute.length) {
-				return _legacyEngine.dirName.join(_execute);
+				return _legacyEngine.dirName.buildPath(_execute);
 			}
 			return legacyEngine();
 		} else {
@@ -466,7 +466,7 @@ class Skin {
 	/// クラシックなシナリオの編集中は、拡張子を除く所属エンジンのパスを返す。
 	/// 所属エンジンが無いか、クラシックでないシナリオの編集中であれば""を返す。
 	const
-	string legacyName() {return _legacyEngine.length ? getName(getBaseName(_legacyEngine)) : "";}
+	string legacyName() {return _legacyEngine.length ? stripExtension(baseName(_legacyEngine)) : "";}
 
 	/// クラシックなCardWirthのDataディレクトリのパス。
 	const
@@ -503,7 +503,7 @@ class Skin {
 	/// pathが効果音として使用可能か。
 	const
 	bool isSE(string path, bool check = false) {
-		auto ext = getExt(path);
+		auto ext = cwx.utils.getExt(path);
 		if (legacy && !cfnmatch(ext, "wav")) return false;
 		// pygameの仕様で効果音にMP3は使えない
 		switch (toLower(ext)) {
@@ -521,7 +521,7 @@ class Skin {
 	/// pathがBGMとして使用可能か。
 	const
 	bool isBGM(string path, bool check = false) {
-		auto ext = getExt(path);
+		auto ext = cwx.utils.getExt(path);
 		if (legacy && !cfnmatch(ext, "mid")
 				&& !cfnmatch(ext, "midi")
 				&& !cfnmatch(ext, "mpg")) {
@@ -545,7 +545,7 @@ class Skin {
 	const
 	bool isCardImage(string path) {
 		if (isBinImg(path)) return true;
-		if (legacy && !cfnmatch(getExt(path), "bmp")) return false;
+		if (legacy && !cfnmatch(cwx.utils.getExt(path), "bmp")) return false;
 		try {
 			uint x, y;
 			return imageSize(path, x, y)
@@ -558,7 +558,7 @@ class Skin {
 	/// pathが背景画像として使用可能か。
 	const
 	bool isBgImage(string path, bool check = false) {
-		auto ext = getExt(path);
+		auto ext = cwx.utils.getExt(path);
 		if (cfnmatch(ext, "jpy1")
 				|| cfnmatch(ext, "jptx")
 				|| cfnmatch(ext, "jpdc")) {
@@ -588,7 +588,7 @@ class Skin {
 	const
 	private bool has(alias isT)(string dir) {
 		foreach (file; clistdir(dir)) {
-			if (isT(std.path.join(dir, file))) return true;
+			if (isT(std.path.buildPath(dir, file))) return true;
 		}
 		return false;
 	}
@@ -617,9 +617,9 @@ class Skin {
 		}
 		string[] r;
 		foreach (fp; clistdir(dir)) {
-			fp = std.path.join(dir, fp);
+			fp = std.path.buildPath(dir, fp);
 			if (isT(fp)) {
-				r ~= getBaseName(fp);
+				r ~= baseName(fp);
 			}
 		}
 		r = r.sort;
@@ -667,30 +667,30 @@ class Skin {
 	const
 	string tableDir() {
 		if (_legacyPath.length) {
-			return std.path.join(_legacyPath, "Table");
+			return std.path.buildPath(_legacyPath, "Table");
 		}
-		return std.path.join(_path, "Table");
+		return std.path.buildPath(_path, "Table");
 	}
 	/// 標準のBGMのディレクトリ。
 	const
 	string bgmDir() {
 		if (_legacyPath.length) {
-			return std.path.join(_legacyPath, "Midi");
+			return std.path.buildPath(_legacyPath, "Midi");
 		}
-		return std.path.join(_path, "Bgm");
+		return std.path.buildPath(_path, "Bgm");
 	}
 	/// 標準のSEのディレクトリ。
 	const
 	string seDir() {
 		if (_legacyPath.length) {
-			return std.path.join(_legacyPath, "Wave");
+			return std.path.buildPath(_legacyPath, "Wave");
 		}
-		return std.path.join(_path, "Sound");
+		return std.path.buildPath(_path, "Sound");
 	}
 	/// その他リソースのディレクトリ。
 	const
 	string resourceDir() {
-		return std.path.join(_path, join("Resource", "Image"));
+		return std.path.buildPath(_path, buildPath("Resource", "Image"));
 	}
 
 	/// 標準画像の拡張子。
@@ -713,7 +713,7 @@ class Skin {
 
 	/// バトルを作成した際、最初に設定されているBGMの名前。
 	const
-	string defBattle() {return addExt("DefBattle", extBgm);}
+	string defBattle() {return setExtension("DefBattle", extBgm);}
 
 	/// 指定されたパスを元に、まずシナリオのディレクトリを、
 	/// 無ければ本体付属のディレクトリを検索し、見つかったパスを返す。
@@ -743,18 +743,18 @@ class Skin {
 		if (isBinImg(path)) return path;
 		string p;
 		if (sPath && sPath.length) {
-			p = std.path.join(sPath, path);
+			p = std.path.buildPath(sPath, path);
 			if (exists(p)) {
 				return p;
 			}
 		}
 		def = true;
-		p = std.path.join(defDir, getBaseName(path));
+		p = std.path.buildPath(defDir, baseName(path));
 		if (exists(p)) {
 			return p;
 		}
 		string f(string ext) {
-			p = addExt(p, ext);
+			p = setExtension(p, ext);
 			return exists(p) ? p : "";
 		}
 		string r = f(ext);
@@ -810,11 +810,11 @@ class Skin {
 			sNode.parse;
 			typeof(_spChars) spCharsInit;
 			_spChars = spCharsInit;
-			auto fd = std.path.join(resourceDir, "Font");
+			auto fd = std.path.buildPath(resourceDir, "Font");
 			foreach (path; clistdir(fd)) {
-				path = std.path.join(fd, path);
-				if (!isDir(path) && cfnmatch(getExt(path), _resExtImg)) {
-					_spChars[toUniUpper(toUTF32(getBaseName(path))[0])] = path;
+				path = std.path.buildPath(fd, path);
+				if (!isDir(path) && cfnmatch(cwx.utils.getExt(path), _resExtImg)) {
+					_spChars[toUniUpper(toUTF32(baseName(path))[0])] = path;
 				}
 			}
 		} catch (Exception e) {

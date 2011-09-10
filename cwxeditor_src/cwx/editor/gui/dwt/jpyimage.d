@@ -28,7 +28,7 @@ import org.eclipse.swt.graphics.Font;
 
 /// JPYの動作をエミュレートするが、甚だ不完全。
 ImageData loadJPYImage(Skin skin, string path, string[] stratum) {
-	auto ext = getExt(path);
+	auto ext = cwx.utils.getExt(path);
 	try {
 		if (cfnmatch(ext, "jpy1")) {
 			return loadJPYImageImpl(skin, path, stratum);
@@ -65,7 +65,7 @@ private ImageData loadJPYImageImpl(Skin skin, string path, string[] stratum) {
 			auto p = sec.loadcache in cache;
 			data = p ? *p : null;
 		}
-		if (!data && sec.filename.length && !cfnmatch(getExt(sec.filename), "wav")) {
+		if (!data && sec.filename.length && !cfnmatch(cwx.utils.getExt(sec.filename), "wav")) {
 			string dir;
 			switch (sec.dirtype) {
 			case Dirtype.CURRENT: {
@@ -79,7 +79,7 @@ private ImageData loadJPYImageImpl(Skin skin, string path, string[] stratum) {
 				if (!skin) continue;
 				auto edir = dirName(skin.engine);
 				if (!exists(edir)) continue;
-				dir = std.path.join(edir, "scheme");
+				dir = std.path.buildPath(edir, "scheme");
 			} break;
 			case Dirtype.SCENARIO: {
 				dir = dirName(path);
@@ -103,7 +103,7 @@ private ImageData loadJPYImageImpl(Skin skin, string path, string[] stratum) {
 			} break;
 			default: continue;
 			}
-			auto fname = std.path.join(dir, sec.filename);
+			auto fname = std.path.buildPath(dir, sec.filename);
 			if (!exists(fname)) continue;
 			data = loadImage(skin, fname, false, 0, 0, stratum ~ nabs(fname));
 		}

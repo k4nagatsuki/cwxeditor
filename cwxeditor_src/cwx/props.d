@@ -84,7 +84,7 @@ public:
 	const string fileCopyError(string path) {return path ~ "のコピー中にエラーが発生しました。";}
 	const string reloadError(string path) {return path ~ "の再読込中にエラーが発生しました。";}
 	const string loadProgress(string fname, uint max, uint worked) {
-		return to!(string)(rndtol(cast(real) worked / max * 100.0)) ~ "% 完了 - " ~ getBaseName(fname) ~ "を展開中";
+		return to!(string)(rndtol(cast(real) worked / max * 100.0)) ~ "% 完了 - " ~ baseName(fname) ~ "を展開中";
 	}
 	const string loading(string fname) {return fname ~ "の読込みを開始";}
 	const string loaded(string sName) {return sName ~ "の読込みを完了";}
@@ -118,13 +118,13 @@ public:
 
 	const string dlgMsgDelete(string[] files) {
 		return files.length == 1
-			? getBaseName(files[0]) ~ "を完全に削除しますか？"
+			? baseName(files[0]) ~ "を完全に削除しますか？"
 			: to!(string)(files.length) ~ "個の項目を完全に削除しますか？";
 	}
 	version (Windows) {
 		const string dlgMsgDeleteRecycle(string[] files) {
 			return files.length == 1
-				? getBaseName(files[0]) ~ "をごみ箱に移動しますか？"
+				? baseName(files[0]) ~ "をごみ箱に移動しますか？"
 				: to!(string)(files.length) ~ "個の項目をごみ箱に移動しますか？";
 		}
 	}
@@ -1047,7 +1047,7 @@ public:
 		return name !is null ? "" ~ name ~ " [ " ~ path ~ " ] - CWXEditor" : "CWXEditor";
 	}
 	const string errorExecEngine(string enginePath) {
-		return getBaseName(enginePath) ~ "の起動に失敗しました。";
+		return baseName(enginePath) ~ "の起動に失敗しました。";
 	}
 
 	/// シナリオ選択ダイアログ
@@ -1277,7 +1277,7 @@ public:
 		return "クラシックエンジンを使用";
 	}
 	const string currentEngineSkin(string lEnginePath) {
-		return "[" ~ getBaseName(lEnginePath) ~ "]";
+		return "[" ~ baseName(lEnginePath) ~ "]";
 	}
 
 	/// エリア・戦闘・パッケージウィンドウ。
@@ -1433,7 +1433,7 @@ public:
 	const string dlgTitNewBgImage() {return "背景画像の作成";}
 	const string dlgTitEnemyCard(string name) {return "エネミーカードの設定 [ " ~ name ~ " ]";}
 	const string dlgTitNewEnemyCard() {return "エネミーカードの作成";}
-	const string stopBGM(string playingFile) {return getBaseName(playingFile) ~ "の再生を停止";}
+	const string stopBGM(string playingFile) {return baseName(playingFile) ~ "の再生を停止";}
 	const string playBGM() {return "再生";}
 	const string menuStopBGM(string playingFile) {return stopBGM(playingFile) ~ "(&P)";}
 	const string menuPlayBGM() {return playBGM ~ "(&P)";}
@@ -2556,6 +2556,6 @@ public:
 	const const(Looks) looks() {return _looks;}
 	const string toAppAbs(string path) {
 		if (cwx.utils.isabs(path)) return nabs(path);
-		return nabs(std.path.join(_appPath, path));
+		return nabs(std.path.buildPath(_appPath, path));
 	}
 }

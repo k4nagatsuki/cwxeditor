@@ -44,7 +44,7 @@ version (Windows) {
 			}
 			if (isDir(file)) {
 				foreach (cf; clistdir(file)) {
-					if (!adds(std.path.join(file, cf))) {
+					if (!adds(std.path.buildPath(file, cf))) {
 						return false;
 					}
 				}

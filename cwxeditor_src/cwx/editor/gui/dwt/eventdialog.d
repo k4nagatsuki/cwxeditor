@@ -1085,7 +1085,7 @@ protected:
 		if (_evt) {
 			_mview.motions = _evt.motions;
 			_lev.setSelection = _evt.signedLevel;
-			int sei = _se.indexOf(getBaseName(_evt.soundPath));
+			int sei = _se.indexOf(baseName(_evt.soundPath));
 			_se.select = sei >= 0 ? sei : 0;
 			_sucRate.setSelection = _evt.successRate + Content.successRate_max;
 			_effTyp[_evt.effectType].setSelection = true;

@@ -70,7 +70,7 @@ S loadLScenario(S)(string p, string skin, bool doubleIO, string newName = null) 
 	static const bool BE = is (S : BeastOwner);
 	static const bool IN = is (S : InfoOwner);
 	auto sPath = p;
-	string summPath = std.path.join(p, "Summary.wsm");
+	string summPath = std.path.buildPath(p, "Summary.wsm");
 	S summ;
 	RData d;
 	ulong startAreaId;
@@ -104,7 +104,7 @@ S loadLScenario(S)(string p, string skin, bool doubleIO, string newName = null) 
 			foreach (file; this.files) {
 				try {
 					auto f = ByteIO(std.file.read(file));
-					auto base = getBaseName(file);
+					auto base = baseName(file);
 					ulong id;
 					static if (AR) if (sWith(base, "Area", id)) {
 						areas ~= .loadArea(d, f, id);
@@ -140,8 +140,8 @@ S loadLScenario(S)(string p, string skin, bool doubleIO, string newName = null) 
 	auto load1 = new Load;
 	auto load2 = new Load;
 	foreach (file; clistdir(sPath)) {
-		if (cfnmatch(getExt(file), "wid")) {
-			file = std.path.join(sPath, file);
+		if (cfnmatch(cwx.utils.getExt(file), "wid")) {
+			file = std.path.buildPath(sPath, file);
 			auto size = std.file.getSize(file);
 			if (load1.wait < load2.wait) {
 				load1.files ~= file;
@@ -195,7 +195,7 @@ S loadLScenario(S)(string p, string skin, bool doubleIO, string newName = null) 
 
 /// fileのIDと型を返す。
 TypeInfo getType(string file, out ulong id) {
-	file = getBaseName(file);
+	file = baseName(file);
 	bool chk(string prefix) {
 		ulong idl;
 		auto r = sWith(file, prefix, idl);
@@ -372,7 +372,7 @@ private string readImage(in RData d, ref ByteIO f) {
 		}
 		if (index != size_t.max) {
 			auto s = cast(string) img[index .. $ - B_IMG_REF.length];
-			if (.exists(std.path.join(d.sPath, s))) {
+			if (.exists(std.path.buildPath(d.sPath, s))) {
 				return s;
 			} else {
 				return bImgToStr(img[0 .. index - 1]);
@@ -1552,62 +1552,62 @@ void saveLScenario(Summary summ, bool doubleIO, bool saveInnerImagePath = false)
 				auto file = "~Area" ~ to!(string)(a.id) ~ ".wid";
 				ByteIO f;
 				writeArea(d, f, a);
-				std.file.write(std.path.join(d.sPath, file), f.bytes);
+				std.file.write(std.path.buildPath(d.sPath, file), f.bytes);
 				wids ~= file;
 			}
 			foreach (a; battles) {
 				auto file = "~Battle" ~ to!(string)(a.id) ~ ".wid";
 				ByteIO f;
 				writeBattle(d, f, a);
-				std.file.write(std.path.join(d.sPath, file), f.bytes);
+				std.file.write(std.path.buildPath(d.sPath, file), f.bytes);
 				wids ~= file;
 			}
 			foreach (a; packages) {
 				auto file = "~Package" ~ to!(string)(a.id) ~ ".wid";
 				ByteIO f;
 				writePackage(d, f, a);
-				std.file.write(std.path.join(d.sPath, file), f.bytes);
+				std.file.write(std.path.buildPath(d.sPath, file), f.bytes);
 				wids ~= file;
 			}
 			foreach (c; casts) {
 				auto file = "~Mate" ~ to!(string)(c.id) ~ ".wid";
 				ByteIO f;
 				writeCast(d, f, c);
-				std.file.write(std.path.join(d.sPath, file), f.bytes);
+				std.file.write(std.path.buildPath(d.sPath, file), f.bytes);
 				wids ~= file;
 			}
 			foreach (c; skills) {
 				auto file = "~Skill" ~ to!(string)(c.id) ~ ".wid";
 				ByteIO f;
 				writeSkill(d, f, c);
-				std.file.write(std.path.join(d.sPath, file), f.bytes);
+				std.file.write(std.path.buildPath(d.sPath, file), f.bytes);
 				wids ~= file;
 			}
 			foreach (c; items) {
 				auto file = "~Item" ~ to!(string)(c.id) ~ ".wid";
 				ByteIO f;
 				writeItem(d, f, c);
-				std.file.write(std.path.join(d.sPath, file), f.bytes);
+				std.file.write(std.path.buildPath(d.sPath, file), f.bytes);
 				wids ~= file;
 			}
 			foreach (c; beasts) {
 				auto file = "~Beast" ~ to!(string)(c.id) ~ ".wid";
 				ByteIO f;
 				writeBeast(d, f, c);
-				std.file.write(std.path.join(d.sPath, file), f.bytes);
+				std.file.write(std.path.buildPath(d.sPath, file), f.bytes);
 				wids ~= file;
 			}
 			foreach (c; infos) {
 				auto file = "~Info" ~ to!(string)(c.id) ~ ".wid";
 				ByteIO f;
 				writeInfo(d, f, c);
-				std.file.write(std.path.join(d.sPath, file), f.bytes);
+				std.file.write(std.path.buildPath(d.sPath, file), f.bytes);
 				wids ~= file;
 			}
 		}
 		void rename() {
 			foreach (file; wids) {
-				std.file.rename(std.path.join(d.sPath, file), std.path.join(d.sPath, file[1u .. $]));
+				std.file.rename(std.path.buildPath(d.sPath, file), std.path.buildPath(d.sPath, file[1u .. $]));
 			}
 		}
 	}
@@ -1617,7 +1617,7 @@ void saveLScenario(Summary summ, bool doubleIO, bool saveInnerImagePath = false)
 		auto file = "~Summary.wsm";
 		ByteIO f;
 		writeSummary(d, f, summ);
-		std.file.write(std.path.join(d.sPath, file), f.bytes);
+		std.file.write(std.path.buildPath(d.sPath, file), f.bytes);
 		save1.wids ~= file;
 	}
 	save1.areas = summ.areas[0 .. $ / 2];
@@ -1648,7 +1648,7 @@ void saveLScenario(Summary summ, bool doubleIO, bool saveInnerImagePath = false)
 	foreach (file; clistdir(d.sPath)) {
 		if (cfnmatch(file, "Summary.wsm")
 				|| !std.regex.match(toUTF32(file), .regex!(dstring)("^(Area|Battle|Package|Mate|Skill|Item|Beast|Info)[0-9]+\\.wid$"d)).empty) {
-			scope path = std.path.join(d.sPath, file);
+			scope path = std.path.buildPath(d.sPath, file);
 			preRemove(path);
 			std.file.remove(path);
 		}
@@ -1818,7 +1818,7 @@ private void writeImage(in SData d, ref ByteIO f, string imgPath) {
 	if (isBinImg(imgPath)) {
 		bytes = cast(ubyte[]) strToBImg(imgPath);
 	} else {
-		auto path = std.path.join(d.sPath, imgPath);
+		auto path = std.path.buildPath(d.sPath, imgPath);
 		if (exists(path)) {
 			bytes = cast(ubyte[]) std.file.read(path);
 			if (d.saveInnerImagePath) {

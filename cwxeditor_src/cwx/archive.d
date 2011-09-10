@@ -35,7 +35,7 @@ void unzip(string parent, ZipArchive arc,
 		void delegate(uint) setProgressNum = null,
 		void delegate(uint) progress = null) {
 	unzip(arc, (string path, ubyte[] data, bool isDir) {
-		path = std.path.join(parent, path);
+		path = std.path.buildPath(parent, path);
 		if (isDir) {
 			assert (!data.length);
 			if (!exists(path)) mkdirRecurse(path);
@@ -124,7 +124,7 @@ ZipArchive zip(string targ, bool top, bool delegate(string path) ignorePath = nu
 			string[] list = clistdir(file);
 			if (list.length > 0) {
 				foreach (c; list) {
-					archive(std.path.join(file, c));
+					archive(std.path.buildPath(file, c));
 				}
 				return;
 			}
@@ -164,7 +164,7 @@ ZipArchive zip(string targ, bool top, bool delegate(string path) ignorePath = nu
 	} else {
 		cut = path.length + sep.length;
 		foreach (c; clistdir(path)) {
-			archive(std.path.join(path, c));
+			archive(std.path.buildPath(path, c));
 		}
 	}
 	return arc;

@@ -46,7 +46,7 @@ Skin findSkin(S = Summary)(Commons comm, Props prop, in S summ, bool appendClass
 					}
 				}
 				string dataDirName = abs2rel(lEngine.dirName, skin.legacyDataPath);
-				auto ce = ClassicEngine(lEngine.basename.getName, lEngine, dataDirName, "");
+				auto ce = ClassicEngine(lEngine.baseName.stripExtension, lEngine, dataDirName, "");
 				prop.var.etc.classicEngines = prop.var.etc.classicEngines.dup ~ ce;
 				comm.refClassicSkin.call();
 			}
@@ -105,7 +105,7 @@ version (Windows) {
 	}
 	private static ImageData imgr(string legacyEngine, string resName, bool mask, bool rmask) {
 		mixin FileCache!(ImageData);
-		string path = std.path.join(legacyEngine, resName);
+		string path = std.path.buildPath(legacyEngine, resName);
 		auto ca = cache(path);
 		if (ca) {
 			return ca.value;

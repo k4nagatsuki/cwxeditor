@@ -182,7 +182,7 @@ private:
 			if (0 < menu.getItemCount) {
 				new MenuItem(menu, SWT.SEPARATOR);
 			}
-			putMenu(_prop.enginePath, "&0 " ~ _prop.enginePath.basename.getName, _prop.images.menuExecEngine);
+			putMenu(_prop.enginePath, "&0 " ~ _prop.enginePath.baseName.stripExtension, _prop.images.menuExecEngine);
 		}
 		if (!_prop.var.etc.classicEngines.length) return;
 		if (0 < menu.getItemCount) {
@@ -234,8 +234,8 @@ private:
 				string sPath = summ.scenarioPath;
 				auto d = Clock.currTime;
 				string file = .format("cwxeditor_backup_%04d%02d%02d%02d%02d%02d[%s].zip",
-					d.year, d.month, d.day, d.hour, d.minute, d.second, sPath.basename);
-				string zFile = std.path.join(parent, file);
+					d.year, d.month, d.day, d.hour, d.minute, d.second, sPath.baseName);
+				string zFile = std.path.buildPath(parent, file);
 				if (!parent.exists) mkdirRecurse(parent);
 				synchronized (_saveSync) {
 					summ.createZip(zFile, [], true);
@@ -254,7 +254,7 @@ private:
 			// 実際の更新日時よりファイル名に記述された日付を優先する
 			backup = backup.sort;
 			foreach (f; backup[0 .. backup.length - bc]) {
-				f = std.path.join(parent, f);
+				f = std.path.buildPath(parent, f);
 				try {
 					std.file.remove(f);
 				} catch (Exception e) {
@@ -275,7 +275,7 @@ private:
 				summ = new Summary(dlg.name, dlg.skin, dlg.classicFolder, false, true);
 			} else {
 				auto p = Summary.createTempDir(_prop.tempPath, dlg.name);
-				auto mFPath = std.path.join(p, findSkin2(_prop, dlg.skin).materialPath);
+				auto mFPath = std.path.buildPath(p, findSkin2(_prop, dlg.skin).materialPath);
 				if (!exists(mFPath) || !isDir(mFPath)) std.file.mkdir(mFPath);
 				summ = new Summary(dlg.name, dlg.skin, p, true, false);
 				if (summ.expandXMLs) {
@@ -311,7 +311,7 @@ private:
 		if (old && qSave(true)) {
 			bool expand = old.expandXMLs;
 			if (old.legacy) {
-				auto wsm = std.path.join(old.scenarioPath, "Summary.wsm");
+				auto wsm = std.path.buildPath(old.scenarioPath, "Summary.wsm");
 				if (old.useTemp) {
 					try {
 						openScenario(old.reloadXMLs(_prop.var.etc.doubleIO));
@@ -428,7 +428,7 @@ private:
 			_openPaths, &openScenarioImpl);
 	}
 	void openScenario(string fname) {
-		if (cfnmatch(getExt(fname), "wsm") && !.exists(fname)) {
+		if (cfnmatch(cwx.utils.getExt(fname), "wsm") && !.exists(fname)) {
 			fname = dirName(fname);
 		}
 		decScenarioPath(fname, _openPaths);
@@ -479,7 +479,7 @@ private:
 			dlg.setFilterNames = [_prop.msgs.filterScenarioSave];
 			dlg.setText = _prop.msgs.dlgTitSaveScenario;
 			dlg.setFilterPath = scenarioFilterPath(_prop);
-			dlg.setFileName = addExt(summary.scenarioName, "wsn");
+			dlg.setFileName = setExtension(summary.scenarioName, "wsn");
 			dlg.setOverwrite = true;
 			string fname = dlg.open;
 			if (fname) {
@@ -656,13 +656,13 @@ private:
 			if (summary.useTemp) {
 				hist = summary.zipName;
 			} else {
-				hist = std.path.join(summary.scenarioPath, "Summary.wsm");
+				hist = std.path.buildPath(summary.scenarioPath, "Summary.wsm");
 			}
 		} else if (summary.useTemp) {
 			hist = summary.zipName;
 			if (!hist.length) return;
 		} else {
-			hist = std.path.join(summary.scenarioPath, "Summary.xml");
+			hist = std.path.buildPath(summary.scenarioPath, "Summary.xml");
 		}
 		hist = nabs(hist);
 		_prop.var.etc.scenarioPath = summary.useTemp ? dirName(hist) : dirName(dirName(hist));
@@ -685,16 +685,16 @@ private:
 			string text;
 			Image img;
 			auto snipLen = _prop.var.etc.historySnipLength;
-			if (cfnmatch(getBaseName(hist), "Summary.xml")) {
+			if (cfnmatch(baseName(hist), "Summary.xml")) {
 				text = cuthist(hist[0u .. $ - "Summary.xml".length - std.path.sep.length], snipLen);
 				img = _prop.images.summaryFile;
-			} else if (cfnmatch(getExt(hist), "wsn")) {
+			} else if (cfnmatch(cwx.utils.getExt(hist), "wsn")) {
 				text = cuthist(hist, snipLen);
 				img = _prop.images.scenarioArchive;
-			} else if (cfnmatch(getBaseName(hist), "Summary.wsm")) {
+			} else if (cfnmatch(baseName(hist), "Summary.wsm")) {
 				text = cuthist(hist[0u .. $ - "Summary.wsm".length - std.path.sep.length], snipLen);
 				img = _prop.images.classic;
-			} else if (cfnmatch(getExt(hist), "cab") || cfnmatch(getExt(hist), "zip")) {
+			} else if (cfnmatch(cwx.utils.getExt(hist), "cab") || cfnmatch(cwx.utils.getExt(hist), "zip")) {
 				text = cuthist(hist, snipLen);
 				img = _prop.images.scenarioArchive;
 			} else {
@@ -719,9 +719,9 @@ private:
 			hist = nabs(hist);
 			scope dhist = toUTF32(hist);
 			if (dhist.length > cut + "..."d.length) {
-				auto drive = getDrive(hist);
+				auto drive = driveName(hist);
 				int rlen = drive ? toUTF32(drive).length + 1 : 1;
-				int flen = toUTF32(getBaseName(hist)).length + 1;
+				int flen = toUTF32(baseName(hist)).length + 1;
 				int plen = cut - flen;
 				if (plen < rlen) plen = rlen;
 				return toUTF8(dhist[0 .. plen] ~ "..." ~ dhist[$ - flen .. $]);
@@ -888,7 +888,7 @@ public:
 		string path1 = "";
 		if (firstScenarioPath && .exists(firstScenarioPath)) {
 			path1 = nabs(firstScenarioPath);
-			auto ext = getExt(path1);
+			auto ext = cwx.utils.getExt(path1);
 			if (!.isDir(path1)
 					&& (cfnmatch(ext, "xml") || cfnmatch(ext, "wsm") || cfnmatch(ext, "wid"))) {
 				path1 = nabs(dirName(path1));
@@ -958,15 +958,15 @@ public:
 		_prop = new Props(confFilePath, new CProps(appPath, sys));
 		if (exists(_prop.tempPath)) {
 			foreach (temp; clistdir(_prop.tempPath)) {
-				temp = std.path.join(_prop.tempPath, temp);
+				temp = std.path.buildPath(_prop.tempPath, temp);
 				if (exists(temp) && isDir(temp)) {
-					auto lock = std.path.join(temp, "cwxeditor.lock");
+					auto lock = std.path.buildPath(temp, "cwxeditor.lock");
 					if (exists(lock)) {
 						try {
 							std.file.remove(lock);
 							delAll(temp);
 						} catch (Exception e) {}
-					} else if (fnstartsWith(getBaseName(temp), "cwxeditor_temp_")) {
+					} else if (fnstartsWith(baseName(temp), "cwxeditor_temp_")) {
 						try {
 							delAll(temp);
 						} catch (Exception e) {}
@@ -1011,7 +1011,7 @@ public:
 		_win.addShellListener(new SListener);
 		_comm.refreshWallpaper(_prop);
 		foreach (f; _prop.looks.fontFiles) {
-			d.loadFont(std.path.join(engineDir, f));
+			d.loadFont(std.path.buildPath(engineDir, f));
 		}
 		_win.setText(_prop.msgs.mainWindowName(null, null));
 		if (_prop.var.etc.singleWindow) {

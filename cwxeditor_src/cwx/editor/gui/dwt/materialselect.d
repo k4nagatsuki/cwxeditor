@@ -213,7 +213,7 @@ public:
 					_bgmTMenu.setSelection = true;
 				}
 				if (_bgmBtn) {
-					_bgmBtn.setToolTipText = _prop.msgs.stopBGM(getBaseName(path));
+					_bgmBtn.setToolTipText = _prop.msgs.stopBGM(baseName(path));
 					_bgmBtn.setImage = _prop.images.stopBGM;
 					_bgmBtn.setSelection = true;
 				}
@@ -342,9 +342,9 @@ public:
 		if (p && _fileList.getSelectionIndex >= 0) {
 			string f = fileText(_fileList.getItem(_fileList.getSelectionIndex));
 			if (_dirs.getSelectionIndex == _tbl) {
-				return std.path.join(defDir, f);
+				return std.path.buildPath(defDir, f);
 			} else {
-				return std.path.join(std.path.join(_summ ? _summ.scenarioPath : "", p), f);
+				return std.path.buildPath(std.path.buildPath(_summ ? _summ.scenarioPath : "", p), f);
 			}
 		}
 		return "";
@@ -401,7 +401,7 @@ public:
 		string[] paths = showingNames;
 		foreach (s; paths) {
 			if (curr) {
-				r ~= std.path.join(curr, s);
+				r ~= std.path.buildPath(curr, s);
 			} else if (s.startsWith("/")) {
 				string file;
 				s = s["/".length .. $];
@@ -413,7 +413,7 @@ public:
 					file = s;
 					s = "/";
 				}
-				r ~= std.path.join(s, file);
+				r ~= std.path.buildPath(s, file);
 			} else {
 				r ~= s;
 			}
@@ -473,9 +473,9 @@ private:
 			} else if (_summ) {
 				string cur = currentDir;
 				if (cur) {
-					openFolder(std.path.join(_summ.scenarioPath, cur));
+					openFolder(std.path.buildPath(_summ.scenarioPath, cur));
 				} else {
-					scope p = std.path.join(_summ.scenarioPath, _comm.skin.materialPath);
+					scope p = std.path.buildPath(_summ.scenarioPath, _comm.skin.materialPath);
 					if (exists(p)) {
 						openFolder(p);
 					} else {
@@ -507,7 +507,7 @@ private:
 					if (!p) return;
 					if (0 == _fileList.getItemCount) return;
 					_fileList.select = 0;
-					_path = std.path.join(p, _fileList.getItem(0));
+					_path = std.path.buildPath(p, _fileList.getItem(0));
 					if (_refresh) _refresh();
 				}
 			}
@@ -554,7 +554,7 @@ private:
 					_fileList.showSelection();
 				}
 				string p = currentDir;
-				_path = std.path.join(p, file);
+				_path = std.path.buildPath(p, file);
 				_selDir = _dirs.getSelectionIndex;
 				if (_refresh) _refresh();
 			} else {
@@ -568,7 +568,7 @@ private:
 					p = currentDir;
 				}
 				if (p) {
-					_path = std.path.join(p, fileText(_fileList.getItem(_fileList.getSelectionIndex)));
+					_path = std.path.buildPath(p, fileText(_fileList.getItem(_fileList.getSelectionIndex)));
 					_selDir = _dirs.getSelectionIndex;
 					if (_refresh) _refresh();
 				}
@@ -669,7 +669,7 @@ private:
 				s = sort!(fncmp)(s);
 			}
 			foreach (ref f; s) {
-				f = encodePath(std.path.join(parent, f));
+				f = encodePath(std.path.buildPath(parent, f));
 			}
 			tgs ~= s;
 		}
@@ -686,13 +686,13 @@ private:
 				_fileList.add(f);
 			} else static assert (0);
 		}
-		string sel = _path.length > 0 ? getBaseName(_path) : "";
+		string sel = _path.length > 0 ? baseName(_path) : "";
 		if (sel.length > 0 && _dirs.getSelectionIndex == _selDir) {
 			int index = flIndexOf(sel);
 			if (index >= 0) {
 				_fileList.select = index;
 			} else if (_dirs.getSelectionIndex == _tbl) {
-				index = flIndexOf(addExt(sel, defExt));
+				index = flIndexOf(setExtension(sel, defExt));
 				if (index >= 0) _fileList.select = index;
 			}
 		}
@@ -713,7 +713,7 @@ private:
 				st ~= nabs(_summ.scenarioPath);
 			} else {
 				assert (_summ);
-				st ~= nabs(std.path.join(_summ.scenarioPath, fromViewPath(t)));
+				st ~= nabs(std.path.buildPath(_summ.scenarioPath, fromViewPath(t)));
 			}
 		}
 		return st;
@@ -742,7 +742,7 @@ private:
 			if (_dirs.getText == "/") {
 				st = _summ.scenarioPath;
 			} else {
-				st = std.path.join(_summ.scenarioPath, fromViewPath(_dirs.getText));
+				st = std.path.buildPath(_summ.scenarioPath, fromViewPath(_dirs.getText));
 			}
 			__refreshList(st, forceRefresh);
 		}
@@ -753,7 +753,7 @@ private:
 		}
 		foreach (f; clistdir(dir)) {
 			if (containsPath(_prop.var.etc.ignorePaths, f)) continue;
-			f = std.path.join(dir, f);
+			f = std.path.buildPath(dir, f);
 			if (isDir(f)) {
 				searchTarg(f, cut);
 			}
@@ -846,7 +846,7 @@ private:
 			for (; i < _dirs.getItemCount; i++) {
 				string name = fromViewPath(_dirs.getItem(i));
 				if (startsWith(name, o)) {
-					string nName = std.path.join(n, name[o.length .. $]);
+					string nName = std.path.buildPath(n, name[o.length .. $]);
 					nName = toViewPath(nName);
 					_dirs.setItem(i, nName);
 					if (i == _dirs.getSelectionIndex) {
@@ -859,9 +859,9 @@ private:
 			int di = _dirs.getSelectionIndex;
 			auto op = o;
 			if (di >= 0 && cfnmatch(fromViewPath(_dirs.getItems[di]), dirName(o))) {
-				int index = flIndexOf(getBaseName(o));
+				int index = flIndexOf(baseName(o));
 				if (index >= 0) {
-					string nName = getBaseName(n);
+					string nName = baseName(n);
 					static if (is(C : Table)) {
 						_fileList.getItem(index).setText = nName;
 					} else static if (is (C : Combo) || is (C : CCombo)) {
