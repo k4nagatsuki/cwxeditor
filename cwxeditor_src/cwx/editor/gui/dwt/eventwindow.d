@@ -40,6 +40,7 @@ interface IEventWindow {
 
 class EventWindow(A : EventTreeOwner) : TopLevelPanel, IEventWindow, TCPD {
 private:
+	Summary _summ;
 	A _eto;
 	Commons _comm;
 	Props _prop;
@@ -75,6 +76,7 @@ public:
 		_win.setData = new TLPData(this);
 		contPane.setLayout = windowGridLayout(1, true);
 		_prop = prop;
+		_summ = summ;
 		_eto = eto;
 		_comm = comm;
 		_undo = undo ? undo : new UndoManager(1024);
@@ -136,6 +138,13 @@ public:
 			auto bar = new Menu(shell, SWT.BAR);
 
 			auto mf = createMenu(bar, _prop.msgs.menuFile);
+			static if (is(A : Area)) {
+				createMenuItem(mf, _prop.msgs.menuEditScene, _prop.images.areaSceneView, &openScene);
+				new MenuItem(mf, SWT.SEPARATOR);
+			} else static if (is(A : Battle)) {
+				createMenuItem(mf, _prop.msgs.menuEditScene, _prop.images.battleSceneView, &openScene);
+				new MenuItem(mf, SWT.SEPARATOR);
+			}
 			createMenuItem(mf, _prop.msgs.menuCloseWin, _prop.images.menuCloseWin, &shell.close);
 
 			auto me = createMenu(bar, _prop.msgs.menuEdit);
@@ -226,6 +235,11 @@ public:
 	}
 	UndoManager undoManager() {
 		return _undo;
+	}
+	static if (is(A : Area) || is(A : Battle)) {
+		void openScene() {
+			_comm.openAreaScene(_prop, _summ, _eto);
+		}
 	}
 	private void __deleteOwner(A a) {
 		if (_eto is a) {

@@ -32,6 +32,7 @@ import cwx.editor.gui.dwt.xmlbytestransfer;
 import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.jpyimage;
+import cwx.editor.gui.dwt.areawindow;
 
 import std.algorithm;
 import std.math;
@@ -54,6 +55,7 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.custom.ScrolledComposite;
@@ -2311,10 +2313,27 @@ public:
 		}
 	}
 
+	static if (is(A : Area) || is(A : Battle)) {
+		void openEvent() {
+			_comm.openAreaEvent(_prop, _summ, _area);
+		}
+	}
+
 	/// ツールバーにAreaViewで使用するアイテムを設定する。
 	/// Params:
 	/// bar = ツールバー。
 	private void setupToolBar(ToolBar bar) {
+		static if (is(A : Area)) {
+			if (cast(AreaSceneWindow) tlpData(this).tlp) {
+				createToolItem(bar, _prop.msgs.ttEditEvent, _prop.images.areaEventTreeView, &openEvent);
+				new ToolItem(bar, SWT.SEPARATOR);
+			}
+		} else static if (is(A : Battle)) {
+			if (cast(BattleSceneWindow) tlpData(this).tlp) {
+				createToolItem(bar, _prop.msgs.ttEditEvent, _prop.images.battleEventTreeView, &openEvent);
+				new ToolItem(bar, SWT.SEPARATOR);
+			}
+		}
 		if (!_tlp) {
 			createToolItem(bar, _prop.msgs.ttRefresh, _prop.images.menuRefresh, &refresh);
 			new ToolItem(bar, SWT.SEPARATOR);

@@ -2020,6 +2020,10 @@ public:
 	override bool canDoTCPD() {
 		return _dirs.isFocusControl || _files.isFocusControl;
 	}
+
+	override bool openCWXPath(string path) {
+		return false;
+	}
 }
 
 version (Windows) {

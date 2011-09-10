@@ -1203,6 +1203,10 @@ public:
 	const string areaNew() {return "新規エリア";}
 	const string battleNew() {return "新規バトル";}
 	const string packageNew() {return "新規パッケージ";}
+	const string ttEditScene() {return "シーンビューを開く";}
+	const string menuEditScene() {return ttEditScene ~ "(&S)\tF3";}
+	const string ttEditEvent() {return "イベントビューを開く";}
+	const string menuEditEvent() {return ttEditEvent ~ "(&E)\tF4";}
 
 	/// フラグのディレクトリ。
 	const string flagDirRoot() {return "Data";}

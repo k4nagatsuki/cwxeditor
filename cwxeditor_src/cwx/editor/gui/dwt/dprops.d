@@ -448,6 +448,9 @@ public:
 	Image menuOpenEventTreeView() {return imgd!(resourceDir ~ "open_eventtreeview.png");}
 
 	Image menuWriteComment() {return imgd!(resourceDir ~ "comment.png");}
+
+	Image menuEditScene() {return imgd!(resourceDir ~ "area_cards.png");}
+	Image menuEditEvent() {return imgd!(resourceDir ~ "area_event.png");}
 }
 
 enum MenuID : int {
@@ -542,6 +545,8 @@ enum MenuID : int {
 	CopyFilePath,
 	OpenEventTreeView,
 	WriteComment,
+	EditScene,
+	EditEvent,
 }
 
 public class Props {

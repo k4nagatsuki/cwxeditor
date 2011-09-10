@@ -1141,6 +1141,11 @@ public:
 				mixin (MenuAction!("me", "Paste"));
 				mixin (MenuAction!("me", "Del"));
 				new MenuItem(me, SWT.SEPARATOR);
+				if (!_prop.var.etc.bindSceneWithEvent) {
+					mixin (MenuAction!("me", "EditScene"));
+					mixin (MenuAction!("me", "EditEvent"));
+					new MenuItem(me, SWT.SEPARATOR);
+				}
 				mixin (MenuAction!("me", "WriteComment"));
 				new MenuItem(me, SWT.SEPARATOR);
 				mixin (MenuAction!("me", "ToScript"));

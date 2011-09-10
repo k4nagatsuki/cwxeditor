@@ -25,6 +25,7 @@ import cwx.editor.gui.dwt.dockingfolder;
 import cwx.editor.gui.dwt.sbshell;
 import cwx.editor.gui.dwt.undo;
 
+import std.exception;
 import std.path;
 import std.file;
 
@@ -171,6 +172,7 @@ abstract class TopLevelPanel {
 		auto t = statusText;
 		if (t) t(statusLine);
 	}
+	abstract bool openCWXPath(string cwxPath);
 }
 class TLPData {
 	TopLevelPanel tlp;
@@ -178,6 +180,17 @@ class TLPData {
 	this (TopLevelPanel tlp) {
 		this.tlp = tlp;
 	}
+}
+
+TLPData tlpData(Control c) {
+	while (c) {
+		auto tlpData = cast(TLPData) c.getData;
+		if (tlpData) {
+			return tlpData;
+		}
+		c = c.getParent;
+	}
+	throw new Exception("Not TLP child.", __FILE__, __LINE__);
 }
 
 class Commons {
@@ -414,20 +427,20 @@ class Commons {
 	AreaWindow openArea(Props prop, Summary summ, Area area) {
 		return openAreaB!(Area, AreaWindow, AreaSceneWindow, AreaEventWindow)(prop, summ, area);
 	}
-	void openAreaScene(Props prop, Summary summ, Area area) {
-		openAreaSE!(Area, AreaWindow, AreaSceneWindow, AreaEventWindow)(prop, summ, area);
+	TopLevelPanel openAreaScene(Props prop, Summary summ, Area area) {
+		return openAreaSE!(Area, AreaWindow, AreaSceneWindow, AreaEventWindow)(prop, summ, area);
 	}
-	void openAreaEvent(Props prop, Summary summ, Area area) {
-		openAreaSE!(Area, AreaWindow, AreaEventWindow, AreaSceneWindow)(prop, summ, area);
+	TopLevelPanel openAreaEvent(Props prop, Summary summ, Area area) {
+		return openAreaSE!(Area, AreaWindow, AreaEventWindow, AreaSceneWindow)(prop, summ, area);
 	}
 	BattleWindow openArea(Props prop, Summary summ, Battle area) {
 		return openAreaB!(Battle, BattleWindow, BattleSceneWindow, BattleEventWindow)(prop, summ, area);
 	}
-	void openAreaScene(Props prop, Summary summ, Battle area) {
-		openAreaSE!(Battle, BattleWindow, BattleSceneWindow, BattleEventWindow)(prop, summ, area);
+	TopLevelPanel openAreaScene(Props prop, Summary summ, Battle area) {
+		return openAreaSE!(Battle, BattleWindow, BattleSceneWindow, BattleEventWindow)(prop, summ, area);
 	}
-	void openAreaEvent(Props prop, Summary summ, Battle area) {
-		openAreaSE!(Battle, BattleWindow, BattleEventWindow, BattleSceneWindow)(prop, summ, area);
+	TopLevelPanel openAreaEvent(Props prop, Summary summ, Battle area) {
+		return openAreaSE!(Battle, BattleWindow, BattleEventWindow, BattleSceneWindow)(prop, summ, area);
 	}
 	PackageWindow openArea(Props prop, Summary summ, Package area) {
 		return __openArea!(Package, PackageWindow)(prop, summ, area, null);
@@ -524,6 +537,42 @@ class Commons {
 		}
 	}
 
+	TopLevelPanel areaWindowFrom(string cwxPath) {
+		if (!mainWin.summary) return null;
+		auto a = mainWin.summary.findCWXPath(cwxPath);
+		if (!a) return null;
+		foreach (w; _ws) {
+			auto tlpData = (cast(TLPData) w.getData);
+			if (tlpData.main is cast(Object) a) {
+				auto aw = cast(AreaWindow) tlpData.tlp;
+				if (aw) return tlpData.tlp;
+				auto asw = cast(AreaSceneWindow) tlpData.tlp;
+				if (asw) return tlpData.tlp;
+				auto bw = cast(BattleWindow) tlpData.tlp;
+				if (bw) return tlpData.tlp;
+				auto bsw = cast(BattleSceneWindow) tlpData.tlp;
+				if (bsw) return tlpData.tlp;
+			}
+		}
+		return null;
+	}
+	TopLevelPanel eventWindowFrom(string cwxPath) {
+		if (!mainWin.summary) return null;
+		auto a = mainWin.summary.findCWXPath(cwxPath);
+		if (!a) return null;
+		foreach (w; _ws) {
+			auto tlpData = (cast(TLPData) w.getData);
+			if (tlpData.main is cast(Object) a) {
+				auto aw = cast(AreaWindow) tlpData.tlp;
+				if (aw) return tlpData.tlp;
+				auto bw = cast(BattleWindow) tlpData.tlp;
+				if (bw) return tlpData.tlp;
+				auto ew = cast(IEventWindow) tlpData.tlp;
+				if (ew) return tlpData.tlp;
+			}
+		}
+		return null;
+	}
 	AbstractAreaView!(A, C, UseCards, UseBacks) areaViewFrom(A, C, bool UseCards, bool UseBacks)(string cwxPath) {
 		if (!mainWin.summary) return null;
 		auto a = mainWin.summary.findCWXPath(cwxPath);
@@ -534,11 +583,14 @@ class Commons {
 				static if (is(A : Area)) {
 					auto aw = cast(AreaWindow) tlpData.tlp;
 					if (aw) return aw.areaView;
+					auto asw = cast(AreaSceneWindow) tlpData.tlp;
+					if (asw) return asw.areaView;
 				} else static if (is(A : Battle)) {
 					auto bw = cast(BattleWindow) tlpData.tlp;
 					if (bw) return bw.areaView;
+					auto bsw = cast(BattleSceneWindow) tlpData.tlp;
+					if (bsw) return bsw.areaView;
 				} else static assert (0);
-				assert (0);
 			}
 		}
 		return null;
@@ -559,7 +611,6 @@ class Commons {
 				}
 				auto ew = cast(EventWindow!A) tlpData.tlp;
 				if (ew) return ew.eventView;
-				assert (0);
 			}
 		}
 		return null;
@@ -582,7 +633,6 @@ class Commons {
 				if (bw) return aw.eventView.eventTreeView;
 				auto ew = cast(IEventWindow) tlpData.tlp;
 				if (ew) return ew.eventTreeView;
-				assert (0);
 			}
 		}
 		return null;
@@ -604,7 +654,12 @@ class Commons {
 			_main.dock.close(_main.dock.keyFromCtrl(comp));
 		}
 	}
-	bool singleWindowMode() {return _main.dock !is null;}
+	bool singleWindowMode(Props prop) {
+		if (_main) {
+			return _main.dock !is null;
+		}
+		return prop.var.etc.singleWindow;
+	}
 
 	void statusLine(Control base, string status, bool refMain = true) {
 		if (!_main) return;
@@ -619,7 +674,7 @@ class Commons {
 		if (data) {
 			data.tlp.statusLine = status;
 		}
-		if (refMain && singleWindowMode) {
+		if (refMain && _main.dock) {
 			_main.statusLine = status;
 		}
 	}

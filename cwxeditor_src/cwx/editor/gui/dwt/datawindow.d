@@ -141,6 +141,11 @@ public:
 				createMenuItem(mf, _prop.msgs.menuCloseWin, _prop.images.menuCloseWin, &shell.close);
 
 				auto me = createMenu(bar, _prop.msgs.menuEdit);
+				static if (UseArea) {
+					createMenuItem(me, _prop.msgs.menuEditScene, _prop.images.menuEditScene, &openAreaScene);
+					createMenuItem(me, _prop.msgs.menuEditEvent, _prop.images.menuEditEvent, &openAreaEvent);
+					new MenuItem(me, SWT.SEPARATOR);
+				}
 				appendMenuTCPD(_prop, me, this);
 
 				static if (UseFlag) {
@@ -195,6 +200,8 @@ public:
 				putMenuAction(MenuID.Summary, &editSummary);
 			}
 			static if (UseArea) {
+				putMenuAction(MenuID.EditScene, &openAreaScene);
+				putMenuAction(MenuID.EditEvent, &openAreaEvent);
 				putMenuAction(MenuID.NewArea, &createArea);
 				putMenuAction(MenuID.NewBattle, &createBattle);
 				putMenuAction(MenuID.NewPackage, &createPackage);
@@ -292,13 +299,28 @@ public:
 			}
 		}
 
+		void openAreaScene() {
+			_areas.openAreaScene();
+		}
+		void openAreaEvent() {
+			_areas.openAreaEvent();
+		}
+
 		/// エリアビューを開く。
-		void openArea(ulong id) {
-			_areas.openArea(id);
+		void openAreaScene(ulong id) {
+			_areas.openAreaScene(id);
 		}
 		/// ditto
-		void openBattle(ulong id) {
-			_areas.openBattle(id);
+		void openAreaEvent(ulong id) {
+			_areas.openAreaEvent(id);
+		}
+		/// ditto
+		void openBattleScene(ulong id) {
+			_areas.openBattleScene(id);
+		}
+		/// ditto
+		void openBattleEvent(ulong id) {
+			_areas.openBattleEvent(id);
 		}
 		/// ditto
 		void openPackage(ulong id) {
@@ -465,17 +487,57 @@ public:
 		}
 	}
 
-	private bool openCWXPathAf(Window, A)(lazy Window w, A a, string path) {
-		auto cpb = cpbottom(path);
-		if (cpattr(cpb).contains("shallow") && cpempty(cpb)) {
+	private bool openCWXPathAfCommon(A)(A a, ref string path) {
+		path = cpbottom(path);
+		if (cpattr(path).contains("shallow") && cpempty(path)) {
 			.forceFocus(_areas.table);
 			_areas.select = a;
 			return true;
-		} else if (w) {
+		}
+		return false;
+	}
+	private bool openCWXPathAf(BindWindow, SceneWindow, EventWindow, A)(lazy BindWindow bw, lazy SceneWindow sw, lazy EventWindow ew, A a, string path) {
+		if (openCWXPathAfCommon(a, path)) {
+			return true;
+		}
+		string cate = cpcategory(path);
+		bool isScene = ((cate == "menucard" || cate == "enemycard") && cpempty(cpbottom(path)))
+			|| cate == "background";
+		string aPath = a.cwxPath;
+		static if (UseArea && UseFlag) {
+			tabf.setSelection = tabA;
+		}
+		if (isScene) {
+			auto sw2 = _comm.areaWindowFrom(aPath);
+			if (sw2) {
+				return sw2.openCWXPath(path);
+			}
+			if (_comm.singleWindowMode(_prop) && _prop.var.etc.bindSceneWithEvent) {
+				return bw.openCWXPath(path);
+			} else {
+				return sw.openCWXPath(path);
+			}
+		} else {
+			auto ew2 = _comm.eventWindowFrom(aPath);
+			if (ew2) {
+				return ew2.openCWXPath(path);
+			}
+			if (_comm.singleWindowMode(_prop) && _prop.var.etc.bindSceneWithEvent) {
+				return bw.openCWXPath(path);
+			} else {
+				return ew.openCWXPath(path);
+			}
+		}
+	}
+	private bool openCWXPathAf(Window, A)(lazy Window w, A a, string path) {
+		if (openCWXPathAfCommon(a, path)) {
+			return true;
+		}
+		if (w) {
 			static if (UseArea && UseFlag) {
 				tabf.setSelection = tabA;
 			}
-			return w.openCWXPath(cpb);
+			return w.openCWXPath(path);
 		}
 		return false;
 	}
@@ -495,26 +557,26 @@ public:
 			static if (UseArea) {
 				if (index >= _summ.areas.length) return false;
 				auto a = _summ.areas[index];
-				return openCWXPathAf(_comm.openArea(_prop, _summ, a), a, path);
+				return openCWXPathAf(_comm.openArea(_prop, _summ, a), _comm.openAreaScene(_prop, _summ, a), _comm.openAreaEvent(_prop, _summ, a), a, path);
 			}
 		} break;
 		case "area:id": {
 			static if (UseArea) {
 				auto a = _summ.area(index);
-				return openCWXPathAf(_comm.openArea(_prop, _summ, a), a, path);
+				return openCWXPathAf(_comm.openArea(_prop, _summ, a), _comm.openAreaScene(_prop, _summ, a), _comm.openAreaEvent(_prop, _summ, a), a, path);
 			}
 		} break;
 		case "battle": {
 			static if (UseArea) {
 				if (index >= _summ.battles.length) return false;
 				auto a = _summ.battles[index];
-				return openCWXPathAf(_comm.openArea(_prop, _summ, a), a, path);
+				return openCWXPathAf(_comm.openArea(_prop, _summ, a), _comm.openAreaScene(_prop, _summ, a), _comm.openAreaEvent(_prop, _summ, a), a, path);
 			}
 		} break;
 		case "battle:id": {
 			static if (UseArea) {
 				auto a = _summ.battle(index);
-				return openCWXPathAf(_comm.openArea(_prop, _summ, a), a, path);
+				return openCWXPathAf(_comm.openArea(_prop, _summ, a), _comm.openAreaScene(_prop, _summ, a), _comm.openAreaEvent(_prop, _summ, a), a, path);
 			}
 		} break;
 		case "package": {

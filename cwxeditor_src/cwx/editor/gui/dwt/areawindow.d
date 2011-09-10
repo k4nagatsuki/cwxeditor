@@ -46,6 +46,7 @@ private:
 	Composite _win;
 	Shell _areaWin = null;
 
+	Summary _summ;
 	A _area;
 	Props _prop;
 
@@ -103,22 +104,26 @@ private:
 		_comm.setTitle(_win, title);
 	}
 	static if (WithEventView) {
+		void selectedTabImpl() {
+			if (_tabf.getSelection is _tabE) {
+				_eview.initial;
+				_comm.statusLine(_win, _eview.statusLine);
+				_eview.openToolWindow;
+			} else {
+				_comm.statusLine(_win, _aview.statusLine);
+				_eview.closeToolWindow;
+			}
+		}
 		class TabSel : SelectionAdapter {
 			override void widgetSelected(SelectionEvent e) {
-				if (_tabf.getSelection is _tabE) {
-					_eview.initial;
-					_comm.statusLine(_win, _eview.statusLine);
-					_eview.openToolWindow;
-				} else {
-					_comm.statusLine(_win, _aview.statusLine);
-					_eview.closeToolWindow;
-				}
+				selectedTabImpl();
 			}
 		}
 	}
 public:
 	this(Commons comm, Props prop, Summary summ, Composite parent, Shell areaWin, A area, UndoManager undo = null) {
 		_comm = comm;
+		_summ = summ;
 		_area = area;
 		_undo = undo ? undo : new UndoManager(1024);
 		Shell shell = null;
@@ -192,6 +197,13 @@ public:
 			auto bar = new Menu(shell, SWT.BAR);
 
 			auto mf = createMenu(bar, _prop.msgs.menuFile);
+			static if (is(A : Area) && !WithEventView) {
+				createMenuItem(mf, _prop.msgs.menuEditEvent, _prop.images.areaEventTreeView, &openEvent);
+				new MenuItem(mf, SWT.SEPARATOR);
+			} else static if (is(A : Battle) && !WithEventView) {
+				createMenuItem(mf, _prop.msgs.menuEditEvent, _prop.images.battleEventTreeView, &openEvent);
+				new MenuItem(mf, SWT.SEPARATOR);
+			}
 			createMenuItem(mf, _prop.msgs.menuCloseWin, _prop.images.menuCloseWin, &shell.close);
 
 			auto me = createMenu(bar, _prop.msgs.menuEdit);
@@ -374,6 +386,11 @@ public:
 	void undo() {_undo.undo;}
 	void redo() {_undo.redo;}
 
+
+	void openEvent() {
+		_comm.openAreaEvent(_prop, _summ, _area);
+	}
+
 	static if (WithEventView) {
 		EventView!(A, C, true) eventView() {
 			_eview.initial;
@@ -382,6 +399,15 @@ public:
 		EventTreeView eventTreeView() {
 			_eview.initial;
 			return _eview.eventTreeView;
+		}
+
+		void selectSceneView() {
+			_tabf.setSelection = _tabA;
+			selectedTabImpl();
+		}
+		void selectEventView() {
+			_tabf.setSelection = _tabE;
+			selectedTabImpl();
 		}
 
 		private void toScript() {

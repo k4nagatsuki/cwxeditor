@@ -23,6 +23,7 @@ import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.scripterrordialog;
+import cwx.editor.gui.dwt.eventwindow;
 
 import std.algorithm : max;
 import std.string;
@@ -46,6 +47,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.events.ShellEvent;
@@ -1169,9 +1171,26 @@ public:
 		}
 	}
 
+	static if (is(A : Area) || is(A : Battle)) {
+		void openScene() {
+			_comm.openAreaScene(_prop, _summ, _area);
+		}
+	}
+
 	private void setupToolBar(ToolBar bar) {
 		_toolbar = bar;
-		if (!_comm.singleWindowMode) {
+		static if (is(A : Area)) {
+			if (cast(AreaEventWindow) tlpData(this).tlp) {
+				createToolItem(bar, _prop.msgs.ttEditScene, _prop.images.areaSceneView, &openScene);
+				new ToolItem(bar, SWT.SEPARATOR);
+			}
+		} else static if (is(A : Battle)) {
+			if (cast(BattleEventWindow) tlpData(this).tlp) {
+				createToolItem(bar, _prop.msgs.ttEditScene, _prop.images.battleSceneView, &openScene);
+				new ToolItem(bar, SWT.SEPARATOR);
+			}
+		}
+		if (!_comm.singleWindowMode(_prop)) {
 			createToolItem(bar, _prop.msgs.ttUndo, _prop.images.menuUndo, &undo);
 			createToolItem(bar, _prop.msgs.ttRedo, _prop.images.menuRedo, &redo);
 			new ToolItem(bar, SWT.SEPARATOR);
