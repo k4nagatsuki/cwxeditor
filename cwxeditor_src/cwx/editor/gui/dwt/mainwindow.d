@@ -1465,7 +1465,6 @@ public:
 			~ "if (cw && cw.canCreate" ~ Name ~ ") {"
 			~ "    cw.create" ~ Name ~ ";"
 			~ "} else {"
-			~ "    _comm.openCardWin;"
 			~ "    _cardWin.create" ~ Name ~ ";"
 			~ "}";
 	}

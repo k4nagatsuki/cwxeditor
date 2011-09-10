@@ -99,6 +99,7 @@ private:
 	}
 private:
 	string _id;
+	Composite _parent;
 	Commons _comm;
 	Props _prop;
 	CardOwner _owner = null;
@@ -420,7 +421,7 @@ private:
 						};
 						node.parse;
 						if (adds.length == 0) return;
-						if (__qMaterialCopy(node, adds)) {
+						if (qCardMaterialCopy(node, adds)) {
 							foreach (i, card; adds) {
 								_owner.insert(index, card);
 								adds[i] = cards[index];
@@ -513,7 +514,7 @@ private:
 			}
 		}
 	}
-	bool __qMaterialCopy(in XNode node, C[] cs) {
+	bool qCardMaterialCopy(in XNode node, C[] cs) {
 		string fromSPath = node.attr("scenarioPath", false);
 		if (fromSPath.length > 0 && !cfnmatch(fromSPath, nabs(ownerScenarioPath))) {
 			scope uc = new UseCounter;
@@ -522,7 +523,7 @@ private:
 			}
 			bool copy;
 			auto skin = _comm.skin;
-			bool r = qMaterialCopy(_prop, skin, _list.getShell,
+			bool r = qMaterialCopy(_prop, skin, dlgParShl,
 				uc, _summ.scenarioPath, fromSPath, copy, _summ.legacy);
 			foreach (c; cs) {
 				c.removeUseCounter;
@@ -533,6 +534,11 @@ private:
 			return r;
 		}
 		return true;
+	}
+
+	Shell dlgParShl() {
+		if (_list && !_list.isDisposed) return _list.getShell;
+		return _comm.mainWin.shell.getShell;
 	}
 
 	string ownerScenarioPath() {
@@ -576,11 +582,11 @@ private:
 				return;
 			}
 			static if (is (C == CastCard)) {
-				auto dlg = new CastCardDialog(_comm, _prop, _list.getShell, _summ, c);
+				auto dlg = new CastCardDialog(_comm, _prop, dlgParShl, _summ, c);
 			} else static if (is (C : EffectCard)) {
-				auto dlg = new EffectCardDialog!(C)(_comm, _prop, _list.getShell, _summ, c);
+				auto dlg = new EffectCardDialog!(C)(_comm, _prop, dlgParShl, _summ, c);
 			} else static if (is (C == InfoCard)) {
-				auto dlg = new InfoCardDialog(_comm, _prop, _list.getShell, _summ, c);
+				auto dlg = new InfoCardDialog(_comm, _prop, dlgParShl, _summ, c);
 			} else static assert (0, typeof(C));
 			dlg.appliedEvent ~= {
 				refresh;
@@ -619,7 +625,7 @@ private:
 		}
 		void reNumbering() {
 			auto index = selectionIndex;
-			auto dlg = new ReNumDialog!(C)(_prop, _list.getShell, cards[index],
+			auto dlg = new ReNumDialog!(C)(_prop, dlgParShl, cards[index],
 				index == 0 ? 1 : cards[index - 1].id + 1);
 			if (dlg.open) {
 				reNumbering(index, dlg.newId);
@@ -737,7 +743,7 @@ private:
 					static if (EditMode) {
 						edit(_list.card(index));
 					} else {
-						addCard;
+						addCard();
 					}
 				}
 			}
@@ -755,7 +761,7 @@ private:
 						static if (EditMode) {
 							edit(cast(C) _tbl.getSelection[0].getData);
 						} else {
-							addCard;
+							addCard();
 						}
 						break;
 					}
@@ -774,7 +780,7 @@ private:
 				static if (EditMode) {
 					edit(_list.selectionCard);
 				} else {
-					addCard;
+					addCard();
 				}
 			}
 		}
@@ -790,7 +796,7 @@ private:
 				static if (EditMode) {
 					edit(cast(C) _tbl.getSelection[0].getData);
 				} else {
-					addCard;
+					addCard();
 				}
 			}
 		}
@@ -887,6 +893,7 @@ private:
 		}
 	}
 	private void reconstruct(Composite parent) {
+		_parent = parent;
 		createCardList(parent);
 		static if (is (PCardOwner == Summary)) {
 			_comm.refSkin.add(&__refresh);
@@ -979,24 +986,30 @@ public:
 	static if (!EditMode) {
 		static if (is (C == CastCard)) {
 			this(Commons comm, Props prop, PCardOwner summ, Composite parent, ToCardOwner toc, void delegate() openHand) {
+				_parent = parent;
 				_toc = toc;
 				_openHand = openHand;
 				_skinTemp = findSkin(comm, prop, summ);
 				construct1(comm, prop, summ);
-				reconstruct(parent);
 			}
 		} else {
 			this(Commons comm, Props prop, PCardOwner summ, Composite parent, ToCardOwner toc) {
+				_parent = parent;
 				_toc = toc;
 				_skinTemp = findSkin(comm, prop, summ);
 				construct1(comm, prop, summ);
-				reconstruct(parent);
 			}
+		}
+		void construct() {
+			reconstruct(_parent);
 		}
 	} else static if (is (C : Card)) {
 		this(Commons comm, Props prop, PCardOwner summ, Composite parent) {
+			_parent = parent;
 			construct1(comm, prop, summ);
-			reconstruct(parent);
+		}
+		void construct() {
+			reconstruct(_parent);
 		}
 	} else {
 		static assert (0);
@@ -1049,17 +1062,18 @@ public:
 		void create() {
 			static if (is (C == CastCard)) {
 				auto c = new CastCard(0, "", "", "", 1, 1);
-				auto dlg = new CastCardDialog(_comm, _prop, _list.getShell, _summ, null);
+				auto dlg = new CastCardDialog(_comm, _prop, dlgParShl, _summ, null);
 			} else static if (is (C : EffectCard)) {
 				auto c = new C(0, "", "", "");
-				auto dlg = new EffectCardDialog!(C)(_comm, _prop, _list.getShell, _summ, null);
+				auto dlg = new EffectCardDialog!(C)(_comm, _prop, dlgParShl, _summ, null);
 			} else static if (is (C == InfoCard)) {
 				auto c = new InfoCard(0, "", "", "");
-				auto dlg = new InfoCardDialog(_comm, _prop, _list.getShell, _summ, null);
+				auto dlg = new InfoCardDialog(_comm, _prop, dlgParShl, _summ, null);
 			} else {
 				static assert (0);
 			}
 			dlg.appliedEvent ~= {
+				_comm.openCardWin();
 				auto c = dlg.card;
 				_owner.add(c);
 				refresh;
@@ -1097,7 +1111,7 @@ public:
 					adds ~= C.createFromNode(cNode, ver);
 				};
 				node.parse;
-				if (!__qMaterialCopy(node, adds)) return false;
+				if (!qCardMaterialCopy(node, adds)) return false;
 			} else {
 				node.onTag[C.XML_NAME] = (ref XNode cNode) {
 					auto card = C.createFromNode(cNode, ver);
@@ -1111,6 +1125,7 @@ public:
 				node.parse;
 			}
 			if (adds.length == 0) return false;
+			_comm.openCardWin;
 			foreach (card; adds) {
 				static if (is (CardOwner == Summary)) {
 					ulong oldId = _owner.add(card);
@@ -1160,7 +1175,7 @@ public:
 	void refreshAll(PCardOwner summ, CardOwner owner) {
 		_owner = owner;
 		_summ = summ;
-		refresh;
+		refresh();
 	}
 
 	Table cardTable() {
@@ -1304,7 +1319,9 @@ private:
 	}
 	static if (EditMode) {
 		void create(int Index)() {
-			_tabf.setSelection = _tab[Index];
+			if (_tabf && !_tabf.isDisposed) {
+				_tabf.setSelection = _tab[Index];
+			}
 			_pane[Index].create;
 		}
 	}
@@ -1330,7 +1347,7 @@ private:
 				sac!(Index + 1)(w);
 			}
 		}
-		void __addScenario(Object[] ws) {
+		void addScenarioImpl(Object[] ws) {
 			foreach (wo; ws) {
 				auto w = cast(AC.ACW) wo;
 				sac!(0)(w);
@@ -1341,8 +1358,11 @@ private:
 		}
 		public void addScenario() {
 			if (!_summ) return;
-			_comm.openCardWin;
-			AC.openScenario(_comm, _prop, _win, &setStatusLine, _summ, _owner, &__addScenario);
+			auto parent = _win;
+			if (_comm.singleWindowMode(_prop) || !_win || _win.isDisposed) {
+				parent = _comm.mainWin.shell;
+			}
+			AC.openScenario(_comm, _prop, parent, &setStatusLine, _summ, _owner, &addScenarioImpl);
 		}
 		class DropScenario : DropTargetAdapter {
 			override void dragEnter(DropTargetEvent e){
@@ -1351,16 +1371,24 @@ private:
 			override void drop(DropTargetEvent e) {
 				auto arr = cast(FileNames) e.data;
 				if (arr && arr.array.length > 0) {
-					AC.openScenario(_comm, _prop, _win, &setStatusLine, _summ, _owner, arr.array, &__addScenario);
+					auto parent = _win;
+					if (!_win || _win.isDisposed) {
+						parent = _comm.mainWin.shell;
+					}
+					AC.openScenario(_comm, _prop, parent, &setStatusLine, _summ, _owner, arr.array, &addScenarioImpl);
 				}
 			}
 		}
+	}
+	Shell dlgParShl() {
+		if (_win && !_win.isDisposed) return _win.getShell;
+		return _comm.mainWin.shell.getShell;
 	}
 	static if (!EditMode) {
 		void addCard() {
 			foreach (i, f; _pane) {
 				if (_tabf.getSelection is _tab[i]) {
-					f.addCard;
+					f.addCard();
 					return;
 				}
 			}
@@ -1378,7 +1406,11 @@ private:
 		}
 	}
 	void setStatusLine(string status) {
-		_comm.statusLine(_win, status);
+		auto w = _win;
+		if (w.isDisposed) {
+			w = null;
+		}
+		_comm.statusLine(w, status);
 	}
 public:
 	static if (EditMode) {
@@ -1387,7 +1419,11 @@ public:
 				_aws = new HashSet!(Composite);
 				_comm = comm;
 				_prop = prop;
-				if (parent) construct(comm, prop, null, parent);
+				if (parent) {
+					construct(comm, prop, null, parent);
+				} else {
+					initPane!(0);
+				}
 			}
 			void reconstruct(Composite parent) {
 				if (_win && !_win.isDisposed) return;
@@ -1424,7 +1460,7 @@ public:
 					}
 				});
 			}
-			construct2;
+			construct2();
 			_comm.refScenarioName.add(&refreshTitle);
 			_comm.refScenarioPath.add(&refreshTitle);
 			_win.addDisposeListener(new class DisposeListener {
@@ -1434,11 +1470,19 @@ public:
 				}
 			});
 		}
+		void initPane(int Index)() {
+			assert (!_pane[Index]);
+			_pane[Index] = new typeof(_pane[Index])(_comm, _prop, _summ, _tabf);
+			static if (Index + 1 < Cards.length) {
+				initPane!(Index + 1);
+			}
+		}
 		void newPane(int Index)() {
 			if (_pane[Index]) {
 				_pane[Index].reconstruct(_tabf);
 			} else {
 				_pane[Index] = new typeof(_pane[Index])(_comm, _prop, _summ, _tabf);
+				_pane[Index].construct();
 			}
 			static if (Index + 1 < Cards.length) {
 				newPane!(Index + 1);
@@ -1454,6 +1498,7 @@ public:
 				} else {
 					_pane[Index] = new typeof(_pane[Index])(_comm, _prop, _summ, _tabf, _toc);
 				}
+				_pane[Index].construct();
 			}
 			static if (Index + 1 < Cards.length) {
 				newPane!(Index + 1);
@@ -1479,7 +1524,7 @@ public:
 				});
 			}
 			_summ = summ;
-			construct2;
+			construct2();
 			__refreshAll(summ, owner);
 		}
 	}
@@ -1950,16 +1995,15 @@ public:
 		}
 		_owner = owner;
 		_summ = summ;
+		foreach (f; _pane) {
+			f.refreshAll(summ, owner);
+		}
 		if (_win && !_win.isDisposed) {
-			foreach (f; _pane) {
-				f.refreshAll(summ, owner);
-			}
 			refreshTitle;
 		}
 	}
 	static if (EditMode) {
 		void add(int Index)(ref XNode node, string ver) {
-			_comm.openCardWin;
 			if (_pane[Index].addFromNode(node, ver)) {
 				_tabf.setSelection = _tab[Index];
 			}
@@ -2155,7 +2199,8 @@ private:
 			foreach (i, cc; ccs) {
 				if (cc) {
 					auto shl = cast(Shell) parent;
-					auto acw = new ACW(comm, prop, shl ? parent : comm.sidePane, cc, cc, toc);
+					auto pane = shl && !comm.singleWindowMode(prop) ? parent : comm.sidePane;
+					auto acw = new ACW(comm, prop, pane, cc, cc, toc);
 					acw.shell.addDisposeListener(new DelTemp!(CC)(cc));
 					r ~= acw;
 				}
