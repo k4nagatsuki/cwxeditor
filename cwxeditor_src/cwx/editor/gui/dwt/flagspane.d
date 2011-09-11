@@ -75,18 +75,21 @@ private:
 	FlagTable _flags;
 
 public:
-	this(Commons comm, Props prop, Composite parent) {
+	this(Commons comm, Props prop) {
 		_prop = prop;
 
+		_flags = new FlagTable(comm, prop);
+		_dirs = new FlagDirTree(comm, prop, _flags);
+	}
+
+	void construct(Composite parent) {
 		_comp = new Composite(parent, SWT.NONE);
 		_comp.setLayout = new FillLayout;
 		_sash = new SplitPane(_comp, _prop.var.etc.flagSashV ? SWT.VERTICAL : SWT.HORIZONTAL);
 
-		_flags = new FlagTable(comm, prop);
-		_dirs = new FlagDirTree(comm, prop, _flags);
-
 		_dirs.createControl(_sash);
 		_flags.createControl(_sash);
+		_flags.dir(_dirs.current, true);
 
 		_sash.setWeights([_prop.var.etc.flagSashL, _prop.var.etc.flagSashR]);
 		_sdl = new DListener;

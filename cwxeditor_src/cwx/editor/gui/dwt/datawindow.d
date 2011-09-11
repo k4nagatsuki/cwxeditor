@@ -71,14 +71,17 @@ private:
 	TCPD[] _tcpd;
 
 	static if (UseArea && UseFlag) {
+		void selectedImpl() {
+			if (tabf.getSelection is tabA) {
+				_comm.statusLine(tabf, _areas.statusLine);
+			} else {
+				assert (tabf.getSelection is tabF);
+				_comm.statusLine(tabf, _flags.statusLine);
+			}
+		}
 		class SListener : SelectionAdapter {
 			override void widgetSelected(SelectionEvent e) {
-				if (tabf.getSelection is tabA) {
-					_comm.statusLine(tabf, _areas.statusLine);
-				} else {
-					assert (tabf.getSelection is tabF);
-					_comm.statusLine(tabf, _flags.statusLine);
-				}
+				selectedImpl();
 			}
 		}
 	}
@@ -90,12 +93,16 @@ public:
 		static if (UseArea) {
 			_areas = new AreaTable(_comm, _prop);
 		}
+		static if (UseFlag) {
+			_flags = new FlagsPane(_comm, _prop);
+			_flags.setupTLP(this);
+		}
 		if (parent) construct(parent);
 	}
 	void reconstruct(Composite parent) {
 		if (_win && !_win.isDisposed) return;
 		construct(parent);
-		if (_summ) refresh;
+		if (_summ) refresh();
 	}
 	private void construct(Composite parent) {
 		Shell shell = null;
@@ -218,8 +225,7 @@ public:
 				tabf.setLayoutData = new GridData(GridData.FILL_BOTH);
 				tabf.addSelectionListener(new SListener);
 
-				_flags = new FlagsPane(_comm, _prop, tabf);
-				_flags.setupTLP(this);
+				_flags.construct(tabf);
 				_areas.construct(tabf, _flags.flags);
 
 				tabA = new CTabItem(tabf, SWT.NONE);
@@ -237,8 +243,7 @@ public:
 				_areas.table.setLayoutData = new GridData(GridData.FILL_BOTH);
 				_tcpd ~= _areas;
 			} else static if (UseFlag) {
-				_flags = new FlagsPane(_comm, _prop, contPane);
-				_flags.setupTLP(this);
+				_flags.construct(contPane);
 				_flags.widget.setLayoutData = new GridData(GridData.FILL_BOTH);
 				_tcpd ~= _flags.flags;
 				_tcpd ~= _flags.dirs;
@@ -351,37 +356,29 @@ public:
 	static if (UseFlag) {
 		void createFlagDir() {
 			if (!_summ) return;
-			static if (UseArea) {
-				_comm.openDataWin;
-			} else {
-				_comm.openFlagWin;
-			}
-			.forceFocus(_flags.dirs.widget);
 			_flags.dirs.createDir;
 		}
 		void createFlag() {
 			if (!_summ) return;
-			static if (UseArea) {
-				_comm.openDataWin;
-			} else {
-				_comm.openFlagWin;
-			}
-			.forceFocus(_flags.flags.widget);
 			_flags.flags.createFlag;
 		}
 		void createStep() {
 			if (!_summ) return;
-			static if (UseArea) {
-				_comm.openDataWin;
-			} else {
-				_comm.openFlagWin;
-			}
-			.forceFocus(_flags.flags.widget);
 			_flags.flags.createStep;
 		}
 		private void changeVHSide() {
 			.forceFocus(_flags.widget);
 			_flags.changeVHSide;
+		}
+	}
+	static if (UseArea && UseFlag) {
+		void selectData() {
+			tabf.setSelection = tabA;
+			selectedImpl();
+		}
+		void selectFlags() {
+			tabf.setSelection = tabF;
+			selectedImpl();
 		}
 	}
 
@@ -430,9 +427,7 @@ public:
 			}
 		}
 		static if (UseFlag) {
-			if (_win && !_win.isDisposed) {
-				_flags.setFlagDirTree(_summ.flagDirRoot, _summ.useCounter);
-			}
+			_flags.setFlagDirTree(_summ.flagDirRoot, _summ.useCounter);
 		}
 	}
 

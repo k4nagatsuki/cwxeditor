@@ -201,6 +201,7 @@ private:
 	}
 
 	private void refreshDirs() {
+		if (!dirs || dirs.isDisposed) return;
 		dirs.setRedraw = false;
 		scope (exit) dirs.setRedraw = true;
 		auto exAll = expandAll;
@@ -265,6 +266,7 @@ private:
 	}
 	private TreeItem find(FlagDir dir) {
 		if (!root) return null;
+		if (!dirs || dirs.isDisposed) return null;
 		return findImpl(dirs.getItem(0), dir);
 	}
 	private void select(FlagDir dir) {
@@ -347,6 +349,8 @@ public:
 	/// すでに同名のディレクトリが存在する場合は"(2)"～をつける。
 	void createDir() {
 		auto cur = current;
+		if (!cur) return;
+		_comm.openCWXPath(cur.cwxPath);
 		auto dir = new FlagDir(cur.createNewDirName(prop.msgs.flagDirNew));
 		cur.add(dir);
 		refreshDirs(cur);
@@ -359,14 +363,16 @@ public:
 		if (itm) {
 			dirs.select = itm;
 			dirs.showSelection;
-			flags.dir = dir;
 		}
+		flags.dir = dir;
 	}
 
-	private FlagDir current() {
-		auto sels = dirs.getSelection;
-		if (sels.length) {
-			return cast(FlagDir) sels[0].getData;
+	FlagDir current() {
+		if (dirs && !dirs.isDisposed) {
+			auto sels = dirs.getSelection;
+			if (sels.length) {
+				return cast(FlagDir) sels[0].getData;
+			}
 		}
 		return root;
 	}
@@ -448,7 +454,9 @@ public:
 		this.root = root;
 		refreshDirs;
 		current = root;
-		treeExpandedAll(dirs);
+		if (dirs && !dirs.isDisposed) {
+			treeExpandedAll(dirs);
+		}
 	}
 
 	private bool openCWXPathImpl(FlagDir dir, string path) {
@@ -457,6 +465,7 @@ public:
 		switch (cate) {
 		case "flag": {
 			if (index >= dir.flags.length) return false;
+			_comm.openFlagWin();
 			forceFocus(flags.widget);
 			current = dir;
 			flags.select(dir.flags[index]);
@@ -464,6 +473,7 @@ public:
 		} break;
 		case "step": {
 			if (index >= dir.steps.length) return false;
+			_comm.openFlagWin();
 			forceFocus(flags.widget);
 			current = dir;
 			flags.select(dir.steps[index]);
@@ -471,9 +481,11 @@ public:
 		} break;
 		case "dir": {
 			if (index >= dir.subDirs.length) return false;
+			_comm.openFlagWin();
 			return openCWXPathImpl(dir.subDirs[index], cpbottom(path));
 		} break;
 		case "": {
+			_comm.openFlagWin();
 			forceFocus(dirs);
 			current = dir;
 			return true;

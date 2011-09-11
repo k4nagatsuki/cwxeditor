@@ -487,9 +487,10 @@ private:
 			p.active();
 			return;
 		}
-		auto dlg = new FlagEditDialog(_comm, prop, flags.getShell, parent, flag);
+		auto dlg = new FlagEditDialog(_comm, prop, dlgParShl, parent, flag);
 		dlg.appliedEvent ~= {
 			if (old && old != flag.path) uc.change(toFlagId(old), toFlagId(flag.path));
+			_comm.openCWXPath(dlg.flag.cwxPath);
 			refresh(dlg.flag.name);
 			_comm.refFlagAndStep.call([dlg.flag], []);
 		};
@@ -513,9 +514,10 @@ private:
 			p.active();
 			return;
 		}
-		auto dlg = new StepEditDialog(_comm, prop, flags.getShell, parent, step);
+		auto dlg = new StepEditDialog(_comm, prop, dlgParShl, parent, step);
 		dlg.appliedEvent ~= {
 			if (old && old != step.path) uc.change(toStepId(old), toStepId(step.path));
+			_comm.openCWXPath(dlg.step.cwxPath);
 			refresh(dlg.step.name);
 			_comm.refFlagAndStep.call([], [dlg.step]);
 		};
@@ -688,6 +690,10 @@ private:
 			}
 		}
 	}
+	Shell dlgParShl() {
+		if (flags && !flags.isDisposed) return flags.getShell;
+		return _comm.mainWin.shell.getShell;
+	}
 public:
 	this(Commons comm, Props prop) {
 		_comm = comm;
@@ -768,6 +774,7 @@ public:
 		refresh(null);
 	}
 	void refresh(string selName) {
+		if (!flags || flags.isDisposed) return;
 		if (_dir) {
 			string[] sels;
 			if (selName) {
@@ -808,8 +815,8 @@ public:
 	/// 編集対象のディレクトリを設定する。
 	/// Params:
 	/// dir = ディレクトリ。
-	void dir(FlagDir dir) {
-		if (_dir is dir) return;
+	void dir(FlagDir dir, bool forceRefresh = false) {
+		if (!forceRefresh && _dir is dir) return;
 		foreach (dlg; _editDlgsF.values) {
 			dlg.forceCancel();
 		}
@@ -817,7 +824,7 @@ public:
 			dlg.forceCancel();
 		}
 		_dir = dir;
-		refresh;
+		refresh();
 	}
 
 	/// Returns: 編集対象のディレクトリ。
