@@ -359,7 +359,11 @@ class Commons {
 		}
 	}
 	void openFlagWin() {
-		openMain!("flag", "data", Dir.N)(_flagWin);
+		if (_flagWin) {
+			openMain!("flag", "data", Dir.N)(_flagWin);
+		} else {
+			openMain!("data", "data", Dir.N)(_dataWin);
+		}
 	}
 	void openCardWin() {
 		openMain!("card", "data", Dir.N)(_cardWin);

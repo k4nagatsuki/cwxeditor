@@ -513,6 +513,7 @@ public:
 		} break;
 		case "variable": {
 			static if (UseFlag) {
+				_comm.openFlagWin();
 				return _flags.openCWXPath(cpbottom(path));
 			}
 		} break;
