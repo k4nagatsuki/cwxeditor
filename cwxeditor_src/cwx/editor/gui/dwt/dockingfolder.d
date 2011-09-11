@@ -1007,7 +1007,11 @@ class DockingFolder(TabF, int Style) {
 			};
 			node.parse;
 			auto i = node.attr!(int)("select", false, -1);
-			if (i < tabf.getItemCount) tabf.setSelection = i;
+			if (0 < tabf.getItemCount) {
+				i = std.algorithm.max(i, 0);
+				i = std.algorithm.min(i, tabf.getItemCount - 1);
+				tabf.setSelection = i;
+			}
 		}
 	}
 	/// XMLノードから生成して返す。

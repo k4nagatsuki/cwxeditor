@@ -345,6 +345,11 @@ public:
 	Image menuDataWin() {return imgd!(resourceDir ~ "data_win.png");}
 	Image menuFlagWin() {return imgd!(resourceDir ~ "flag_win.png");}
 	Image menuCardWin() {return imgd!(resourceDir ~ "card_win.png");}
+	Image menuCastWin() {return imgd!(resourceDir ~ "cast_win.png");}
+	Image menuSkillWin() {return imgd!(resourceDir ~ "skill_win.png");}
+	Image menuItemWin() {return imgd!(resourceDir ~ "item_win.png");}
+	Image menuBeastWin() {return imgd!(resourceDir ~ "beast_win.png");}
+	Image menuInfoWin() {return imgd!(resourceDir ~ "info_win.png");}
 	Image menuDirWin() {return imgd!(resourceDir ~ "dir_win.png");}
 
 	Image menuChangeVH() {return imgd!(resourceDir ~ "chg_vh.png");}
@@ -472,6 +477,11 @@ enum MenuID : int {
 	DataWin,
 	FlagWin,
 	CardWin,
+	CastWin,
+	SkillWin,
+	ItemWin,
+	BeastWin,
+	InfoWin,
 	DirWin,
 	ChangeVH,
 	ExecEngine,

@@ -62,9 +62,9 @@ import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
+import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
-import java.lang.all;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.ByteArrayTransfer;
 import org.eclipse.swt.dnd.FileTransfer;
@@ -75,6 +75,8 @@ import org.eclipse.swt.dnd.DropTarget;
 import org.eclipse.swt.dnd.DropTargetAdapter;
 import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.dnd.Clipboard;
+
+import java.lang.all;
 
 public:
 
@@ -806,6 +808,33 @@ private:
 			refreshStatusLine;
 		}
 	}
+	static if (is(CardOwner : Summary)) {
+		private bool _procRefColW = false;
+		void refColumnWidth(TableColumn c, int width) {
+			if (_procRefColW) return;
+			if (!_tbl || _tbl.isDisposed) return;
+			if (_tbl is c.getParent) return;
+			int i = c.getParent.indexOf(c);
+			auto col = _tbl.getColumn(i);
+			col.setWidth = width;
+		}
+		class DisposeTable : DisposeListener {
+			override void widgetDisposed(DisposeEvent e) {
+				_comm.refCardTableColumnWidth.remove(&refColumnWidth);
+			}
+		}
+		class ColResize(string WidthPropName) : ControlAdapter {
+			override void controlResized(ControlEvent e) {
+				if (_procRefColW) return;
+				_procRefColW = true;
+				scope (exit) _procRefColW = false;
+				auto col = cast(TableColumn) e.widget;
+				int width = col.getWidth;
+				_comm.refCardTableColumnWidth.call(col, width);
+				mixin("_prop.var.etc." ~ WidthPropName ~ " = width;");
+			}
+		}
+	}
 	void createCardList(Composite parent) {
 		_list = new CardList!(C)(parent, SWT.VIRTUAL | SWT.V_SCROLL | (EditMode ? SWT.SINGLE : SWT.MULTI) | SWT.BORDER);
 		_list.setLayoutValues(_prop.var.etc.cardsMarginX, _prop.var.etc.cardsSpaceX,
@@ -816,17 +845,33 @@ private:
 		_tbl.setHeaderVisible = true;
 		auto idCol = new TableColumn(_tbl, SWT.NONE);
 		idCol.setText = _prop.msgs.cardId;
-		saveColumnWidth!("prop.var.etc.cardIdColumn")(_prop, idCol);
+		idCol.setWidth = _prop.var.etc.cardIdColumn;
+		static if (is(CardOwner : Summary)) {
+			idCol.addControlListener(new ColResize!("cardIdColumn"));
+		}
 		auto nameCol = new TableColumn(_tbl, SWT.NONE);
 		nameCol.setText = _prop.msgs.cardName;
-		saveColumnWidth!("prop.var.etc.cardNameColumn")(_prop, nameCol);
+		nameCol.setWidth = _prop.var.etc.cardNameColumn;
+		static if (is(CardOwner : Summary)) {
+			nameCol.addControlListener(new ColResize!("cardNameColumn"));
+		}
 		auto descCol = new TableColumn(_tbl, SWT.NONE);
 		descCol.setText = _prop.msgs.cardDesc;
-		saveColumnWidth!("prop.var.etc.cardDescriptionColumn")(_prop, descCol);
+		descCol.setWidth = _prop.var.etc.cardDescriptionColumn;
+		static if (is(CardOwner : Summary)) {
+			descCol.addControlListener(new ColResize!("cardDescriptionColumn"));
+		}
 		static if (is (CardOwner == Summary)) {
 			auto ucCol = new TableColumn(_tbl, SWT.NONE);
 			ucCol.setText = _prop.msgs.cardCount;
-			saveColumnWidth!("prop.var.etc.cardCountColumn")(_prop, ucCol);
+			ucCol.setWidth = _prop.var.etc.cardCountColumn;
+			static if (is(CardOwner : Summary)) {
+				ucCol.addControlListener(new ColResize!("cardCountColumn"));
+			}
+		}
+		static if (is(CardOwner : Summary)) {
+			_comm.refCardTableColumnWidth.add(&refColumnWidth);
+			_tbl.addDisposeListener(new DisposeTable);
 		}
 		static if (EditMode) {
 			new TableTextEdit(_tbl, 1, &nameEditEnd, null);
@@ -1073,7 +1118,17 @@ public:
 				static assert (0);
 			}
 			dlg.appliedEvent ~= {
-				_comm.openCardWin();
+				static if (is(C : CastCard)) {
+					_comm.openCastWin();
+				} else static if(is(C : SkillCard)) {
+					_comm.openSkillWin();
+				} else static if(is(C : ItemCard)) {
+					_comm.openItemWin();
+				} else static if(is(C : BeastCard)) {
+					_comm.openBeastWin();
+				} else static if(is(C : InfoCard)) {
+					_comm.openInfoWin();
+				} else static assert (0);
 				auto c = dlg.card;
 				_owner.add(c);
 				refresh;
@@ -1125,7 +1180,17 @@ public:
 				node.parse;
 			}
 			if (adds.length == 0) return false;
-			_comm.openCardWin;
+			static if (is(C : CastCard)) {
+				_comm.openCastWin();
+			} else static if(is(C : SkillCard)) {
+				_comm.openSkillWin();
+			} else static if(is(C : ItemCard)) {
+				_comm.openItemWin();
+			} else static if(is(C : BeastCard)) {
+				_comm.openBeastWin();
+			} else static if(is(C : InfoCard)) {
+				_comm.openInfoWin();
+			} else static assert (0);
 			foreach (card; adds) {
 				static if (is (CardOwner == Summary)) {
 					ulong oldId = _owner.add(card);
@@ -1293,13 +1358,18 @@ private:
 		}
 	}
 	PTypes!(Cards) _pane;
-	CTabItem[Cards.length] _tab;
+	static if (1 < Cards.length) {
+		CTabFolder _tabf;
+		CTabItem[Cards.length] _tab;
+	} else {
+		Composite _tabf;
+		StackLayout _stackL;
+	}
 
 	Props _prop;
 	SBShell _sbshl;
 	Composite _win;
 	Composite _comp;
-	CTabFolder _tabf;
 	PCardOwner _summ;
 	CardOwner _owner;
 	Commons _comm;
@@ -1319,16 +1389,32 @@ private:
 	}
 	static if (EditMode) {
 		void create(int Index)() {
-			if (_tabf && !_tabf.isDisposed) {
-				_tabf.setSelection = _tab[Index];
+			static if (1 < Cards.length) {
+				if (_tabf && !_tabf.isDisposed) {
+					_tabf.setSelection = _tab[Index];
+				}
 			}
 			_pane[Index].create;
 		}
 	}
 	static if (is(CardOwner : Summary)) {
 		void open(int Index)() {
-			_comm.openCardWin();
-			_tabf.setSelection = _tab[Index];
+			static if (1 < Cards.length) {
+				_comm.openBindCardWin();
+				_tabf.setSelection = _tab[Index];
+			} else {
+				static if (UseCast && CAST == Index) {
+					_comm.openCastWin();
+				} else static if(UseSkill && SKILL == Index) {
+					_comm.openSkillWin();
+				} else static if(UseItem && ITEM == Index) {
+					_comm.openItemWin();
+				} else static if(UseBeast && BEAST == Index) {
+					_comm.openBeastWin();
+				} else static if(UseInfo && INFO == Index) {
+					_comm.openInfoWin();
+				} else static assert (0);
+			}
 		}
 	}
 
@@ -1339,30 +1425,8 @@ private:
 		refreshTitle;
 	}
 	static if (EditMode && is (CardOwner == Summary)) {
-		alias AddCard!(CardOwner, Cards) AC;
-		HashSet!(Composite) _aws;
-		void sac(int Index)(AC.ACW w) {
-			w.setAdd!(Index)(&add!(Index));
-			static if (Index + 1 < Cards.length) {
-				sac!(Index + 1)(w);
-			}
-		}
-		void addScenarioImpl(Object[] ws) {
-			foreach (wo; ws) {
-				auto w = cast(AC.ACW) wo;
-				sac!(0)(w);
-				w.shell.addDisposeListener(new CloseRemover!(Composite)(_aws, w.shell));
-				_aws.add(w.shell);
-				_comm.open(w, "side");
-			}
-		}
-		public void addScenario() {
-			if (!_summ) return;
-			auto parent = _win;
-			if (_comm.singleWindowMode(_prop) || !_win || _win.isDisposed) {
-				parent = _comm.mainWin.shell;
-			}
-			AC.openScenario(_comm, _prop, parent, &setStatusLine, _summ, _owner, &addScenarioImpl);
+		void addScenario() {
+			_comm.addScenario(_prop);
 		}
 		class DropScenario : DropTargetAdapter {
 			override void dragEnter(DropTargetEvent e){
@@ -1371,11 +1435,7 @@ private:
 			override void drop(DropTargetEvent e) {
 				auto arr = cast(FileNames) e.data;
 				if (arr && arr.array.length > 0) {
-					auto parent = _win;
-					if (!_win || _win.isDisposed) {
-						parent = _comm.mainWin.shell;
-					}
-					AC.openScenario(_comm, _prop, parent, &setStatusLine, _summ, _owner, arr.array, &addScenarioImpl);
+					_comm.addScenario(_prop, arr.array);
 				}
 			}
 		}
@@ -1386,11 +1446,15 @@ private:
 	}
 	static if (!EditMode) {
 		void addCard() {
-			foreach (i, f; _pane) {
-				if (_tabf.getSelection is _tab[i]) {
-					f.addCard();
-					return;
+			static if (1 < Cards.length) {
+				foreach (i, f; _pane) {
+					if (_tabf.getSelection is _tab[i]) {
+						f.addCard();
+						return;
+					}
 				}
+			} else {
+				_pane[0].addCard();
 			}
 		}
 	}
@@ -1399,24 +1463,16 @@ private:
 			auto sels = _pane[CAST].__selections;
 			foreach (sel; sels) {
 				auto ahcw = _comm.openAddHands(_prop, _summ, sel, _toc);
-				ahcw.setAdd!(ahcw.SKILL)(_pane[SKILL].getAddCard);
-				ahcw.setAdd!(ahcw.ITEM)(_pane[ITEM].getAddCard);
-				ahcw.setAdd!(ahcw.BEAST)(_pane[BEAST].getAddCard);
+				ahcw.setAddSkill(_pane[SKILL].getAddCard);
+				ahcw.setAddItem(_pane[ITEM].getAddCard);
+				ahcw.setAddBeast(_pane[BEAST].getAddCard);
 			}
 		}
-	}
-	void setStatusLine(string status) {
-		auto w = _win;
-		if (w.isDisposed) {
-			w = null;
-		}
-		_comm.statusLine(w, status);
 	}
 public:
 	static if (EditMode) {
 		static if (is (CardOwner == Summary)) {
 			this(Commons comm, Props prop, Composite parent) {
-				_aws = new HashSet!(Composite);
 				_comm = comm;
 				_prop = prop;
 				if (parent) {
@@ -1630,9 +1686,15 @@ public:
 			putMenuChecked(MenuID.ShowCardList, &showCardList, &isViewList);
 			putMenuChecked(MenuID.ShowCardTable, &showCardTable, &isViewTable);
 		}
-		_tabf = new CTabFolder(_comp, SWT.BORDER);
+		static if (1 < Cards.length) {
+			_tabf = new CTabFolder(_comp, SWT.BORDER);
+			_tabf.addSelectionListener(new SelChanged);
+		} else {
+			_tabf = new Composite(_comp, SWT.BORDER);
+			_stackL = new StackLayout;
+			_tabf.setLayout = _stackL;
+		}
 		_tabf.setLayoutData = new GridData(GridData.FILL_BOTH);
-		_tabf.addSelectionListener(new SelChanged);
 
 		static if (EditMode && is (CardOwner == Summary)) {
 			auto drop = new DropTarget(_comp, DND.DROP_DEFAULT | DND.DROP_LINK);
@@ -1640,9 +1702,11 @@ public:
 			drop.addDropListener(new DropScenario);
 		}
 	}
-	private class SelChanged : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
-			refreshStatusLine;
+	static if (1 < Cards.length) {
+		private class SelChanged : SelectionAdapter {
+			override void widgetSelected(SelectionEvent e) {
+				refreshStatusLine;
+			}
 		}
 	}
 	static if (EditMode) {
@@ -1666,7 +1730,12 @@ public:
 				}
 				foreach (i, f; _pane) {
 					f.showCardLife;
-					_tab[i].setControl = f.widget;
+					static if (1 < Cards.length) {
+						_tab[i].setControl = f.widget;
+					} else {
+						_stackL.topControl = f.widget;
+						_tabf.layout();
+					}
 				}
 			}
 			static if (is (CardOwner == Summary)) {
@@ -1690,7 +1759,12 @@ public:
 				}
 				foreach (i, f; _pane) {
 					f.showCardList;
-					_tab[i].setControl = f.widget;
+					static if (1 < Cards.length) {
+						_tab[i].setControl = f.widget;
+					} else {
+						_stackL.topControl = f.widget;
+						_tabf.layout();
+					}
 				}
 			}
 			static if (is (CardOwner == Summary)) {
@@ -1714,7 +1788,12 @@ public:
 				}
 				foreach (i, f; _pane) {
 					f.showCardTable;
-					_tab[i].setControl = f.widget;
+					static if (1 < Cards.length) {
+						_tab[i].setControl = f.widget;
+					} else {
+						_stackL.topControl = f.widget;
+						_tabf.layout();
+					}
 				}
 			}
 			static if (is (CardOwner == Summary)) {
@@ -1723,6 +1802,14 @@ public:
 			}
 			refreshStatusLine;
 		}
+	}
+
+	void setStatusLine(string status) {
+		auto w = _win;
+		if (w.isDisposed) {
+			w = null;
+		}
+		_comm.statusLine(w, status);
 	}
 
 	static if (is(CardOwner : Summary)) {
@@ -1816,72 +1903,85 @@ public:
 	private bool isViewTable() {
 		return _viewMode == CViewMode.TABLE;
 	}
-	private void construct2() {
-		newPane!(0);
-		static class ColResize : ControlAdapter {
+	static if (!is(CardOwner : Summary)) {
+		private static class ColResize : ControlAdapter {
+			bool procRefColWidth = false;
+			Commons comm;
 			TableColumn[] cols;
-			private bool proc = false;
 			override void controlResized(ControlEvent e) {
-				if (proc) return;
-				proc = true;
-				scope (exit) proc = false;
+				if (procRefColWidth) return;
+				procRefColWidth = true;
+				scope (exit) procRefColWidth = false;
 				auto c = cast(TableColumn) e.widget;
+				int width = c.getWidth;
 				foreach (col; cols) {
 					if (c !is col) {
-						col.setWidth = c.getWidth;
+						col.setWidth = width;
 					}
 				}
 			}
 		}
-		ColResize[] colR;
-		colR.length = (is (CardOwner == Summary)) ? 4 : 3;
-		foreach (i, c; colR) {
-			colR[i] = new ColResize;
-		}
-		void addTable(Table tbl) {
-			foreach (i, col; tbl.getColumns) {
-				colR[i].cols ~= col;
-				col.addControlListener(colR[i]);
+	}
+	private void construct2() {
+		newPane!(0);
+		static if (!is(CardOwner : Summary)) {
+			ColResize[] colR;
+			colR.length = (is (CardOwner == Summary)) ? 4 : 3;
+			foreach (i, c; colR) {
+				colR[i] = new ColResize;
+				colR[i].comm = _comm;
+			}
+			void addTable(Table tbl) {
+				foreach (i, col; tbl.getColumns) {
+					colR[i].cols ~= col;
+					col.addControlListener(colR[i]);
+				}
 			}
 		}
 		foreach (i, f; _pane) {
-			_tab[i] = new CTabItem(_tabf, SWT.NONE);
-			static if (UseCast) {
-				if (i == CAST) {
-					_tab[i].setText = _prop.msgs.casts;
-					_tab[i].setImage = _prop.images.casts;
+			static if (1 < Cards.length) {
+				_tab[i] = new CTabItem(_tabf, SWT.NONE);
+				static if (UseCast) {
+					if (i == CAST) {
+						_tab[i].setText = _prop.msgs.casts;
+						_tab[i].setImage = _prop.images.casts;
+					}
 				}
-			}
-			static if (UseSkill) {
-				if (i == SKILL) {
-					_tab[i].setText = _prop.msgs.skill;
-					_tab[i].setImage = _prop.images.skill;
+				static if (UseSkill) {
+					if (i == SKILL) {
+						_tab[i].setText = _prop.msgs.skill;
+						_tab[i].setImage = _prop.images.skill;
+					}
 				}
-			}
-			static if (UseItem) {
-				if (i == ITEM) {
-					_tab[i].setText = _prop.msgs.item;
-					_tab[i].setImage = _prop.images.item;
+				static if (UseItem) {
+					if (i == ITEM) {
+						_tab[i].setText = _prop.msgs.item;
+						_tab[i].setImage = _prop.images.item;
+					}
 				}
-			}
-			static if (UseBeast) {
-				if (i == BEAST) {
-					_tab[i].setText = _prop.msgs.beast;
-					_tab[i].setImage = _prop.images.beast;
+				static if (UseBeast) {
+					if (i == BEAST) {
+						_tab[i].setText = _prop.msgs.beast;
+						_tab[i].setImage = _prop.images.beast;
+					}
 				}
-			}
-			static if (UseInfo) {
-				if (i == INFO) {
-					_tab[i].setText = _prop.msgs.info;
-					_tab[i].setImage = _prop.images.info;
+				static if (UseInfo) {
+					if (i == INFO) {
+						_tab[i].setText = _prop.msgs.info;
+						_tab[i].setImage = _prop.images.info;
+					}
 				}
 			}
 			_tcpd ~= f;
-			addTable(f.cardTable);
+			static if (!is(CardOwner : Summary)) {
+				addTable(f.cardTable);
+			}
 		}
 		auto shell = cast(Shell) _win;
 
-		_tabf.setSelection = 0;
+		static if (1 < Cards.length) {
+			_tabf.setSelection = 0;
+		}
 		bool life = _prop.var.etc.cardLife;
 		bool detail = _prop.var.etc.cardDetails;
 		if (life) {
@@ -1988,11 +2088,6 @@ public:
 		}
 	}
 	private void __refreshAll(PCardOwner summ, CardOwner owner) {
-		static if (EditMode && is (CardOwner == Summary)) {
-			foreach (w; _aws.toArray) {
-				_comm.close(w);
-			}
-		}
 		_owner = owner;
 		_summ = summ;
 		foreach (f; _pane) {
@@ -2005,24 +2100,77 @@ public:
 	static if (EditMode) {
 		void add(int Index)(ref XNode node, string ver) {
 			if (_pane[Index].addFromNode(node, ver)) {
-				_tabf.setSelection = _tab[Index];
+				static if (1 < Cards.length) {
+					_tabf.setSelection = _tab[Index];
+				}
+			}
+		}
+		static if (UseCast) {
+			void addCast(ref XNode node, string ver) {
+				_pane[CAST].addFromNode(node, ver);
+			}
+		}
+		static if (UseSkill) {
+			void addSkill(ref XNode node, string ver) {
+				_pane[SKILL].addFromNode(node, ver);
+			}
+		}
+		static if (UseItem) {
+			void addItem(ref XNode node, string ver) {
+				_pane[ITEM].addFromNode(node, ver);
+			}
+		}
+		static if (UseBeast) {
+			void addBeast(ref XNode node, string ver) {
+				_pane[BEAST].addFromNode(node, ver);
+			}
+		}
+		static if (UseInfo) {
+			void addInfo(ref XNode node, string ver) {
+				_pane[INFO].addFromNode(node, ver);
 			}
 		}
 	} else {
-		void setAdd(int Index)(void delegate(ref XNode node, string) addc) {
-			_pane[Index].setAddCard = addc;
+		static if (UseCast) {
+			void setAddCast(void delegate(ref XNode node, string) addc) {
+				_pane[CAST].setAddCard = addc;
+			}
+		}
+		static if (UseSkill) {
+			void setAddSkill(void delegate(ref XNode node, string) addc) {
+				_pane[SKILL].setAddCard = addc;
+			}
+		}
+		static if (UseItem) {
+			void setAddItem(void delegate(ref XNode node, string) addc) {
+				_pane[ITEM].setAddCard = addc;
+			}
+		}
+		static if (UseBeast) {
+			void setAddBeast(void delegate(ref XNode node, string) addc) {
+				_pane[BEAST].setAddCard = addc;
+			}
+		}
+		static if (UseInfo) {
+			void setAddInfo(void delegate(ref XNode node, string) addc) {
+				_pane[INFO].setAddCard = addc;
+			}
 		}
 	}
 	private void refreshStatusLine() {
 		if (!_win || _win.isDisposed) return;
-		int i = _tabf.getSelectionIndex;
-		string s = "";
-		static if (UseCast) if (i == CAST) s = _pane[CAST].statusLine;
-		static if (UseSkill) if (i == SKILL) s = _pane[SKILL].statusLine;
-		static if (UseItem) if (i == ITEM) s = _pane[ITEM].statusLine;
-		static if (UseBeast) if (i == BEAST) s = _pane[BEAST].statusLine;
-		static if (UseInfo) if (i == INFO) s = _pane[INFO].statusLine;
-		_comm.statusLine(_tabf, s);
+		static if (1 < Cards.length) {
+			int i = _tabf.getSelectionIndex;
+			string s = "";
+			static if (UseCast) if (i == CAST) s = _pane[CAST].statusLine;
+			static if (UseSkill) if (i == SKILL) s = _pane[SKILL].statusLine;
+			static if (UseItem) if (i == ITEM) s = _pane[ITEM].statusLine;
+			static if (UseBeast) if (i == BEAST) s = _pane[BEAST].statusLine;
+			static if (UseInfo) if (i == INFO) s = _pane[INFO].statusLine;
+			_comm.statusLine(_tabf, s);
+		} else {
+			_comm.statusLine(_comp, _pane[0].statusLine);
+		}
 	}
 
 	override {
@@ -2155,6 +2303,11 @@ class MainCardWindow : CardWindow!("cardWindowName(owner)", "cardTabName(owner)"
 		super (comm, prop, parent);
 	}
 }
+alias CardWindow!("castWindowName(owner)", "castTabName(owner)", "menuCastWin", Summary, Summary, void, CastCard) CastCardWindow;
+alias CardWindow!("skillWindowName(owner)", "skillTabName(owner)", "menuSkillWin", Summary, Summary, void, SkillCard) SkillCardWindow;
+alias CardWindow!("itemWindowName(owner)", "itemTabName(owner)", "menuItemWin", Summary, Summary, void, ItemCard) ItemCardWindow;
+alias CardWindow!("beastWindowName(owner)", "beastTabName(owner)", "menuBeastWin", Summary, Summary, void, BeastCard) BeastCardWindow;
+alias CardWindow!("infoWindowName(owner)", "infoTabName(owner)", "menuInfoWin", Summary, Summary, void, InfoCard) InfoCardWindow;
 
 private class DelTemp(CC) : DisposeListener {
 	private CC _cc;
@@ -2169,25 +2322,20 @@ private class DelTemp(CC) : DisposeListener {
 		}
 	}
 }
-private class AddCard(ToCardOwner, Cards ...) {
+private class AddCard {
 private:
-	static const bool UseCast = IndexOf!(CastCard, Cards) >= 0;
-	static const bool UseSkill = IndexOf!(SkillCard, Cards) >= 0;
-	static const bool UseItem = IndexOf!(ItemCard, Cards) >= 0;
-	static const bool UseBeast = IndexOf!(BeastCard, Cards) >= 0;
-	static const bool UseInfo = IndexOf!(InfoCard, Cards) >= 0;
-	alias CardContainer!(UseCast, UseSkill, UseItem, UseBeast, UseInfo) CC;
+	alias CardContainer!(true, true, true, true, true) CC;
 	alias CardWindow!("addCardWindow(owner.scenarioName, owner.scenarioPath)",
 		"addCardTab(owner.scenarioName, owner.scenarioPath)", "menuAddScenario",
-		CC, CC, ToCardOwner, Cards) ACW;
+		CC, CC, Summary, CastCard, SkillCard, ItemCard, BeastCard, InfoCard) ACW;
 	static class AddS {
 		Commons comm;
 		Props prop;
 		Composite parent;
-		ToCardOwner toc;
+		Summary toc;
 		void delegate(Object[]) addScenario;
 		this (Commons comm, Props prop,
-				Composite parent, ToCardOwner toc, void delegate(Object[]) addScenario) {
+				Composite parent, Summary toc, void delegate(Object[]) addScenario) {
 			this.comm = comm;
 			this.prop = prop;
 			this.parent = parent;
@@ -2219,13 +2367,13 @@ private:
 	}
 public:
 	static void openScenario(Commons comm, Props prop, Composite parent, void delegate(string) status,
-			Summary summ, ToCardOwner toc, void delegate(Object[]) addScenario) {
+			Summary summ, Summary toc, void delegate(Object[]) addScenario) {
 		parent = pane(parent);
 		auto addS = new AddS(comm, prop, parent, toc, addScenario);
 		loadScenarios!(CC)(prop, comm.mainShell, status, false, prop.msgs.dlgTitAddScenario, &addS.addS);
 	}
 	static void openScenario(Commons comm, Props prop, Composite parent, void delegate(string) status,
-			Summary summ, ToCardOwner toc, string[] files, void delegate(Object[]) addScenario) {
+			Summary summ, Summary toc, string[] files, void delegate(Object[]) addScenario) {
 		parent = pane(parent);
 		auto addS = new AddS(comm, prop, parent, toc, addScenario);
 		loadScenariosFromFile!(CC)(prop, comm.mainShell, status, false, files, &addS.addS);

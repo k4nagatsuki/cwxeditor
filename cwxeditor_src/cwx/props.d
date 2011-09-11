@@ -244,6 +244,16 @@ public:
 	const string menuFlagWin() {return ttFlagWin ~ "(&V)";}
 	const string ttCardWin() {return "カードビュー";}
 	const string menuCardWin() {return ttCardWin ~ "(&W)";}
+	const string ttCastWin() {return "キャストカードビュー";}
+	const string menuCastWin() {return ttCastWin ~ "(&C)";}
+	const string ttSkillWin() {return "特殊技能カードビュー";}
+	const string menuSkillWin() {return ttSkillWin ~ "(&S)";}
+	const string ttItemWin() {return "アイテムカードビュー";}
+	const string menuItemWin() {return ttItemWin ~ "(&I)";}
+	const string ttBeastWin() {return "召喚獣カードビュー";}
+	const string menuBeastWin() {return ttBeastWin ~ "(&B)";}
+	const string ttInfoWin() {return "情報カードビュー";}
+	const string menuInfoWin() {return ttInfoWin ~ "(&N)";}
 	const string ttDirWin() {return "ファイルビュー";}
 	const string menuDirWin() {return ttDirWin ~ "(&F)";}
 
@@ -1918,11 +1928,61 @@ public:
 	const string cardTabName(in Summary summ) {
 		return "カード";
 	}
+	const string castTabName(in Summary summ) {
+		return "キャスト";
+	}
+	const string skillTabName(in Summary summ) {
+		return "特殊技能";
+	}
+	const string itemTabName(in Summary summ) {
+		return "アイテム";
+	}
+	const string beastTabName(in Summary summ) {
+		return "召喚獣";
+	}
+	const string infoTabName(in Summary summ) {
+		return "情報";
+	}
 	const string cardWindowName(in Summary summ) {
 		if (summ) {
 			return "カード - [ " ~ summ.scenarioName ~ " ] - " ~ summ.scenarioPath;
 		} else {
 			return "カード";
+		}
+	}
+	const string castWindowName(in Summary summ) {
+		if (summ) {
+			return "キャスト - [ " ~ summ.scenarioName ~ " ] - " ~ summ.scenarioPath;
+		} else {
+			return "キャスト";
+		}
+	}
+	const string skillWindowName(in Summary summ) {
+		if (summ) {
+			return "特殊技能 - [ " ~ summ.scenarioName ~ " ] - " ~ summ.scenarioPath;
+		} else {
+			return "特殊技能";
+		}
+	}
+	const string itemWindowName(in Summary summ) {
+		if (summ) {
+			return "アイテム - [ " ~ summ.scenarioName ~ " ] - " ~ summ.scenarioPath;
+		} else {
+			return "アイテム";
+		}
+	}
+	const string beastWindowName(in Summary summ) {
+		if (summ) {
+			return "召喚獣 - [ " ~ summ.scenarioName ~ " ] - " ~ summ.scenarioPath;
+		} else {
+			return "召喚獣";
+		}
+	}
+	const string infoWindowName(in Summary summ) {
+		if (summ) {
+			return "情報 - [ " ~ summ.scenarioName ~ " ] - " ~ summ.scenarioPath;
+		} else {
+			return "情報";
 		}
 	}
 	const string dlgTitAddScenario() {return "インポート元の選択";}

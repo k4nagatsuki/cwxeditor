@@ -8,6 +8,7 @@ import cwx.summary;
 import cwx.utils;
 import cwx.event;
 import cwx.skin;
+import cwx.xml;
 
 import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.dprops;
@@ -34,6 +35,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.DisposeEvent;
@@ -230,6 +232,7 @@ class Commons {
 	Dlg!() refCardState;
 	Dlg!() refWallpaper;
 	Dlg!() refSortCondition;
+	Dlg!(TableColumn, int) refCardTableColumnWidth;
 
 	Dlg!(Area) refArea;
 	Dlg!(Area) delArea;
@@ -261,6 +264,7 @@ class Commons {
 	this() {
 		saveSync = new Object;
 		_ws = new HashSet!(Composite);
+		_aws = new HashSet!(Composite);
 		foreach (i, fld; this.tupleof) {
 			static if (is(typeof(typeof(fld).ID)) && typeof(fld).ID == "cwx.editor.gui.dwt.commons.Dlg") {
 				this.tupleof[i] = new typeof(fld);
@@ -274,7 +278,12 @@ class Commons {
 	private DataWindow _dataWin = null;
 	private TableWindow _tableWin = null;
 	private FlagWindow _flagWin = null;
-	private MainCardWindow _cardWin;
+	private MainCardWindow _cardWin = null;
+	private CastCardWindow _castWin = null;
+	private SkillCardWindow _skillWin = null;
+	private ItemCardWindow _itemWin = null;
+	private BeastCardWindow _beastWin = null;
+	private InfoCardWindow _infoWin = null;
 	private DirectoryWindow _dirWin;
 	void baseShell(MainWindow main, DataWindow dataWin, MainCardWindow cardWin, DirectoryWindow dirWin) {
 		_main = main;
@@ -283,11 +292,16 @@ class Commons {
 		_dirWin = dirWin;
 	}
 	void baseShell(MainWindow main, TableWindow tableWin, FlagWindow flagWin,
-			MainCardWindow cardWin, DirectoryWindow dirWin) {
+			CastCardWindow castWin, SkillCardWindow skillWin, ItemCardWindow itemWin, BeastCardWindow beastWin, InfoCardWindow infoWin,
+			DirectoryWindow dirWin) {
 		_main = main;
 		_tableWin = tableWin;
 		_flagWin = flagWin;
-		_cardWin = cardWin;
+		_castWin = castWin;
+		_skillWin = skillWin;
+		_itemWin = itemWin;
+		_beastWin = beastWin;
+		_infoWin = infoWin;
 		_dirWin = dirWin;
 	}
 	MainWindow mainWin() {return _main;}
@@ -308,6 +322,10 @@ class Commons {
 			close(w);
 		}
 		assert (_ws.size == 0);
+		foreach (w; _aws.toArray) {
+			close(w);
+		}
+		assert (_aws.size == 0);
 	}
 
 	private Skin _skin;
@@ -460,8 +478,24 @@ class Commons {
 	}
 
 	private Window __openUseEvent(C, Window)(Props prop, Summary summ, C c, UndoManager undo) {
+		Shell parent;
+		if (_cardWin) {
+			parent = cast(Shell) _cardWin.shell;
+		} else {
+			static if (is(C : CastCard)) {
+				parent = cast(Shell) _castWin.shell;
+			} else static if (is(C : SkillCard)) {
+				parent = cast(Shell) _skillWin.shell;
+			} else static if (is(C : ItemCard)) {
+				parent = cast(Shell) _itemWin.shell;
+			} else static if (is(C : BeastCard)) {
+				parent = cast(Shell) _beastWin.shell;
+			} else static if (is(C : InfoCard)) {
+				parent = cast(Shell) _infoWin.shell;
+			} else static assert (0);
+		}
 		return __open!("work", Window, C, "", Commons, Props, Summary, Composite, Shell, C, UndoManager)
-			(c, this, prop, summ, workPane, cast(Shell) _cardWin.shell, c, undo);
+			(c, this, prop, summ, workPane, parent, c, undo);
 	}
 	SkillEventWindow openUseEvents(Props prop, Summary summ, SkillCard c) {
 		return __openUseEvent!(SkillCard, SkillEventWindow)(prop, summ, c, null);
@@ -518,8 +552,48 @@ class Commons {
 	void openFlagWin() {
 		openMain!("flag", "data", Dir.N)(_flagWin);
 	}
-	void openCardWin() {
+	void openBindCardWin() {
 		openMain!("card", "data", Dir.N)(_cardWin);
+	}
+	void openCastWin() {
+		if (_cardWin) {
+			openBindCardWin();
+			_cardWin.openCast();
+		} else {
+			openMain!("castCard", "data", Dir.N)(_castWin);
+		}
+	}
+	void openSkillWin() {
+		if (_cardWin) {
+			openBindCardWin();
+			_cardWin.openSkill();
+		} else {
+			openMain!("skillCard", "data", Dir.N)(_skillWin);
+		}
+	}
+	void openItemWin() {
+		if (_cardWin) {
+			openBindCardWin();
+			_cardWin.openItem();
+		} else {
+			openMain!("itemCard", "data", Dir.N)(_itemWin);
+		}
+	}
+	void openBeastWin() {
+		if (_cardWin) {
+			openBindCardWin();
+			_cardWin.openBeast();
+		} else {
+			openMain!("beastCard", "data", Dir.N)(_beastWin);
+		}
+	}
+	void openInfoWin() {
+		if (_cardWin) {
+			openBindCardWin();
+			_cardWin.openInfo();
+		} else {
+			openMain!("infoCard", "data", Dir.N)(_infoWin);
+		}
 	}
 	void openDirWin() {
 		openMain!("file", "data", Dir.N)(_dirWin);
@@ -636,6 +710,63 @@ class Commons {
 			}
 		}
 		return null;
+	}
+
+	private HashSet!(Composite) _aws;
+	private void addScenarioImpl(Object[] ws) {
+		void delegate(ref XNode, string) addCast;
+		void delegate(ref XNode, string) addSkill;
+		void delegate(ref XNode, string) addItem;
+		void delegate(ref XNode, string) addBeast;
+		void delegate(ref XNode, string) addInfo;
+		if (_cardWin) {
+			addCast = &_cardWin.addCast;
+			addSkill = &_cardWin.addSkill;
+			addItem = &_cardWin.addItem;
+			addBeast = &_cardWin.addBeast;
+			addInfo = &_cardWin.addInfo;
+		} else {
+			addCast = &_castWin.addCast;
+			addSkill = &_skillWin.addSkill;
+			addItem = &_itemWin.addItem;
+			addBeast = &_beastWin.addBeast;
+			addInfo = &_infoWin.addInfo;
+		}
+		foreach (wo; ws) {
+			auto w = cast(AddCard.ACW) wo;
+			w.setAddCast(addCast);
+			w.setAddSkill(addSkill);
+			w.setAddItem(addItem);
+			w.setAddBeast(addBeast);
+			w.setAddInfo(addInfo);
+			w.shell.addDisposeListener(new CloseRemover!(Composite)(_aws, w.shell));
+			_aws.add(w.shell);
+			this.open(w, "side");
+		}
+	}
+	// 他のシナリオからのカードのインポート。
+	void addScenario(Props prop) {
+		auto summ = mainWin.summary;
+		if (!summ) return;
+		void delegate(string) setStatusLine = &mainWin.setStatusLine;
+		auto parent = mainWin.shell;
+		if (!singleWindowMode(prop)) {
+			parent = _cardWin.shell;
+			setStatusLine = &_cardWin.setStatusLine;
+		}
+		AddCard.openScenario(this, prop, parent, setStatusLine, summ, summ, &addScenarioImpl);
+	}
+	/// ditto
+	void addScenario(Props prop, string[] paths) {
+		auto summ = mainWin.summary;
+		if (!summ) return;
+		void delegate(string) setStatusLine = &mainWin.setStatusLine;
+		auto parent = mainWin.shell;
+		if (!singleWindowMode(prop)) {
+			parent = _cardWin.shell;
+			setStatusLine = &_cardWin.setStatusLine;
+		}
+		AddCard.openScenario(this, prop, parent, setStatusLine, summ, summ, paths, &addScenarioImpl);
 	}
 
 	void setTitle(Composite comp, string text) {

@@ -153,8 +153,13 @@ private:
 	DataWindow _dataWin = null;
 	TableWindow _tableWin = null;
 	FlagWindow _flagWin = null;
-	MainCardWindow _cardWin;
-	DirectoryWindow _dirWin;
+	MainCardWindow _cardWin = null;
+	CastCardWindow _castWin = null;
+	SkillCardWindow _skillWin = null;
+	ItemCardWindow _itemWin = null;
+	BeastCardWindow _beastWin = null;
+	InfoCardWindow _infoWin = null;
+	DirectoryWindow _dirWin = null;
 
 	Menu _mExecEngine;
 	Menu _tmExecEngine;
@@ -378,14 +383,19 @@ private:
 			_tableWin.load(summ);
 			_flagWin.load(summ);
 		}
-		_cardWin.refresh(summ);
+		if (_cardWin) _cardWin.refresh(summ);
+		if (_castWin) _castWin.refresh(summ);
+		if (_skillWin) _skillWin.refresh(summ);
+		if (_itemWin) _itemWin.refresh(summ);
+		if (_beastWin) _beastWin.refresh(summ);
+		if (_infoWin) _infoWin.refresh(summ);
 		_dirWin.refresh(summ);
 		_comm.refScenario.call(summ);
 		_comm.refScenarioName.call;
 		_comm.refScenarioPath.call;
 		if (!dock) {
 			if (_prop.var.dataWin.visible) _comm.openDataWin;
-			if (_prop.var.cardWin.visible) _comm.openCardWin;
+			if (_prop.var.cardWin.visible) _comm.openBindCardWin;
 			if (_prop.var.dirWin.visible) _comm.openDirWin;
 		}
 		setupMenu(_menu);
@@ -536,9 +546,10 @@ private:
 		}
 	}
 	void openCardWindow() {
+		assert (_cardWin);
 		if (summary || dock) {
 			_prop.var.cardWin.visible = true;
-			_comm.openCardWin;
+			_comm.openBindCardWin;
 		}
 	}
 	void openDirWindow() {
@@ -1037,8 +1048,46 @@ public:
 					return _flagWin.shell;
 				}
 				case "card": {
-					_cardWin = new MainCardWindow(_comm, _prop, parent);
-					return _cardWin.shell;
+					if (_prop.var.etc.bindCardViews) {
+						_cardWin = new MainCardWindow(_comm, _prop, parent);
+						return _cardWin.shell;
+					}
+					return null;
+				}
+				case "castCard": {
+					if (!_prop.var.etc.bindCardViews) {
+						_castWin = new CastCardWindow(_comm, _prop, parent);
+						return _castWin.shell;
+					}
+					return null;
+				}
+				case "skillCard": {
+					if (!_prop.var.etc.bindCardViews) {
+						_skillWin = new SkillCardWindow(_comm, _prop, parent);
+						return _skillWin.shell;
+					}
+					return null;
+				}
+				case "itemCard": {
+					if (!_prop.var.etc.bindCardViews) {
+						_itemWin = new ItemCardWindow(_comm, _prop, parent);
+						return _itemWin.shell;
+					}
+					return null;
+				}
+				case "beastCard": {
+					if (!_prop.var.etc.bindCardViews) {
+						_beastWin = new BeastCardWindow(_comm, _prop, parent);
+						return _beastWin.shell;
+					}
+					return null;
+				}
+				case "infoCard": {
+					if (!_prop.var.etc.bindCardViews) {
+						_infoWin = new InfoCardWindow(_comm, _prop, parent);
+						return _infoWin.shell;
+					}
+					return null;
 				}
 				case "file": {
 					_dirWin = new DirectoryWindow(_comm, _prop, parent);
@@ -1075,11 +1124,44 @@ public:
 				} else {
 					_flagWin = new FlagWindow(_comm, _prop, _win, null);
 				}
-				if (_cardWin) {
-					_dock.tabImage("card", _cardWin.image);
-					_dock.tabText("card", _cardWin.title);
+				if (_prop.var.etc.bindCardViews) {
+					if (_cardWin) {
+						_dock.tabImage("card", _cardWin.image);
+						_dock.tabText("card", _cardWin.title);
+					} else {
+						_cardWin = new MainCardWindow(_comm, _prop, null);
+					}
 				} else {
-					_cardWin = new MainCardWindow(_comm, _prop, null);
+					if (_castWin) {
+						_dock.tabImage("castCard", _castWin.image);
+						_dock.tabText("castCard", _castWin.title);
+					} else {
+						_castWin = new CastCardWindow(_comm, _prop, null);
+					}
+					if (_skillWin) {
+						_dock.tabImage("skillCard", _skillWin.image);
+						_dock.tabText("skillCard", _skillWin.title);
+					} else {
+						_skillWin = new SkillCardWindow(_comm, _prop, null);
+					}
+					if (_itemWin) {
+						_dock.tabImage("itemCard", _itemWin.image);
+						_dock.tabText("itemCard", _itemWin.title);
+					} else {
+						_itemWin = new ItemCardWindow(_comm, _prop, null);
+					}
+					if (_beastWin) {
+						_dock.tabImage("beastCard", _beastWin.image);
+						_dock.tabText("beastCard", _beastWin.title);
+					} else {
+						_beastWin = new BeastCardWindow(_comm, _prop, null);
+					}
+					if (_infoWin) {
+						_dock.tabImage("infoCard", _infoWin.image);
+						_dock.tabText("infoCard", _infoWin.title);
+					} else {
+						_infoWin = new InfoCardWindow(_comm, _prop, null);
+					}
 				}
 				if (_dirWin) {
 					_dock.tabImage("file", _dirWin.image);
@@ -1095,8 +1177,21 @@ public:
 				_dock.add(_tableWin.shell, _tableWin.title, _tableWin.image, "data", true);
 				_flagWin = new FlagWindow(_comm, _prop, _win, data);
 				_dock.add(_flagWin.shell, _flagWin.title, _flagWin.image, "flag", false);
-				_cardWin = new MainCardWindow(_comm, _prop, data);
-				_dock.add(_cardWin.shell, _cardWin.title, _cardWin.image, "card", false);
+				if (_prop.var.etc.bindCardViews) {
+					_cardWin = new MainCardWindow(_comm, _prop, data);
+					_dock.add(_cardWin.shell, _cardWin.title, _cardWin.image, "card", false);
+				} else {
+					_castWin = new CastCardWindow(_comm, _prop, data);
+					_dock.add(_castWin.shell, _castWin.title, _castWin.image, "castCard", false);
+					_skillWin = new SkillCardWindow(_comm, _prop, data);
+					_dock.add(_skillWin.shell, _skillWin.title, _skillWin.image, "skillCard", false);
+					_itemWin = new ItemCardWindow(_comm, _prop, data);
+					_dock.add(_itemWin.shell, _itemWin.title, _itemWin.image, "itemCard", false);
+					_beastWin = new BeastCardWindow(_comm, _prop, data);
+					_dock.add(_beastWin.shell, _beastWin.title, _beastWin.image, "beastCard", false);
+					_infoWin = new InfoCardWindow(_comm, _prop, data);
+					_dock.add(_infoWin.shell, _infoWin.title, _infoWin.image, "infoCard", false);
+				}
 				_dirWin = new DirectoryWindow(_comm, _prop, data);
 				_dock.add(_dirWin.shell, _dirWin.title, _dirWin.image, "file", false);
 			}
@@ -1115,6 +1210,11 @@ public:
 			_noSummMenu.add(MenuID.DataWin);
 			_noSummMenu.add(MenuID.FlagWin);
 			_noSummMenu.add(MenuID.CardWin);
+			_noSummMenu.add(MenuID.CastWin);
+			_noSummMenu.add(MenuID.SkillWin);
+			_noSummMenu.add(MenuID.ItemWin);
+			_noSummMenu.add(MenuID.BeastWin);
+			_noSummMenu.add(MenuID.InfoWin);
 			_noSummMenu.add(MenuID.DirWin);
 		}
 		_noSummMenu.add(MenuID.ChangeVH);
@@ -1173,7 +1273,17 @@ public:
 			if (_prop.var.etc.singleWindow) {
 				mixin (MenuAction!("mv", "FlagWin", SWT.PUSH, "openFlagWindow"));
 			}
-			mixin (MenuAction!("mv", "CardWin", SWT.PUSH, "openCardWindow"));
+			if (!_prop.var.etc.singleWindow || _prop.var.etc.bindCardViews) {
+				mixin (MenuAction!("mv", "CardWin", SWT.PUSH, "openCardWindow"));
+			} else {
+				new MenuItem(mv, SWT.SEPARATOR);
+				mixin (MenuAction!("mv", "CastWin", SWT.PUSH, "openCast"));
+				mixin (MenuAction!("mv", "SkillWin", SWT.PUSH, "openSkill"));
+				mixin (MenuAction!("mv", "ItemWin", SWT.PUSH, "openItem"));
+				mixin (MenuAction!("mv", "BeastWin", SWT.PUSH, "openBeast"));
+				mixin (MenuAction!("mv", "InfoWin", SWT.PUSH, "openInfo"));
+				new MenuItem(mv, SWT.SEPARATOR);
+			}
 			mixin (MenuAction!("mv", "DirWin", SWT.PUSH, "openDirWindow"));
 			if (_prop.var.etc.singleWindow) {
 				new MenuItem(mv, SWT.SEPARATOR);
@@ -1221,7 +1331,7 @@ public:
 				mixin (MenuAction!("mc", "NewBeast", SWT.PUSH, "newBeast"));
 				mixin (MenuAction!("mc", "NewInfo", SWT.PUSH, "newInfo"));
 				new MenuItem(mc, SWT.SEPARATOR);
-				mixin (MenuAction!("mc", "AddScenario", SWT.PUSH, "_cardWin.addScenario"));
+				mixin (MenuAction!("mc", "AddScenario", SWT.PUSH, "addScenario"));
 			}
 
 			auto mt = createMenu(bar, _prop.msgs.menuTools);
@@ -1311,7 +1421,17 @@ public:
 					auto bar = new ToolBar(cbar, SWT.FLAT);
 					mixin (ToolAction!("bar", "DataWin", SWT.PUSH, "openDataWindow"));
 					mixin (ToolAction!("bar", "FlagWin", SWT.PUSH, "openFlagWindow"));
-					createCardWinTI(bar);
+					if (_prop.var.etc.bindCardViews) {
+						createCardWinTI(bar);
+					} else {
+						new ToolItem(bar, SWT.SEPARATOR);
+						mixin (ToolAction!("bar", "CastWin", SWT.PUSH, "openCast"));
+						mixin (ToolAction!("bar", "SkillWin", SWT.PUSH, "openSkill"));
+						mixin (ToolAction!("bar", "ItemWin", SWT.PUSH, "openItem"));
+						mixin (ToolAction!("bar", "BeastWin", SWT.PUSH, "openBeast"));
+						mixin (ToolAction!("bar", "InfoWin", SWT.PUSH, "openInfo"));
+						new ToolItem(bar, SWT.SEPARATOR);
+					}
 					mixin (ToolAction!("bar", "DirWin", SWT.PUSH, "openDirWindow"));
 					createCoolItem(cbar, bar);
 				}
@@ -1360,7 +1480,7 @@ public:
 					mixin (ToolAction!("bar", "NewBeast", SWT.PUSH, "newBeast"));
 					mixin (ToolAction!("bar", "NewInfo", SWT.PUSH, "newInfo"));
 					new ToolItem(bar, SWT.SEPARATOR);
-					mixin (ToolAction!("bar", "AddScenario", SWT.PUSH, "_cardWin.addScenario"));
+					mixin (ToolAction!("bar", "AddScenario", SWT.PUSH, "addScenario"));
 					createCoolItem(cbar, bar);
 				}
 				{
@@ -1382,7 +1502,7 @@ public:
 			drop.setTransfer([FileTransfer.getInstance]);
 			drop.addDropListener(new DTListener);
 
-			_comm.baseShell(this, _tableWin, _flagWin, _cardWin, _dirWin);
+			_comm.baseShell(this, _tableWin, _flagWin, _castWin, _skillWin, _itemWin, _beastWin, _infoWin, _dirWin);
 		} else {
 			auto bar = new ToolBar(toolComp, SWT.FLAT);
 			mixin (ToolAction!("bar", "New", SWT.PUSH, "createScenario"));
@@ -1450,6 +1570,16 @@ public:
 				dockSelect("card");
 			} else if (_dock.pane("flag")) {
 				dockSelect("flag");
+			} else if (_dock.pane("castCard")) {
+				dockSelect("castCard");
+			} else if (_dock.pane("skillCard")) {
+				dockSelect("skillCard");
+			} else if (_dock.pane("itemCard")) {
+				dockSelect("itemCard");
+			} else if (_dock.pane("beastCard")) {
+				dockSelect("beastCard");
+			} else if (_dock.pane("infoCard")) {
+				dockSelect("infoCard");
 			} else if (_dock.pane("file")) {
 				dockSelect("file");
 			}
@@ -1460,33 +1590,38 @@ public:
 	private void redrawAll() {
 		_win.redraw(true);
 	}
+	private void addScenario() {
+		_comm.addScenario(_prop);
+	}
 	private template NewCard(string Name) {
 		static const NewCard = "auto cw = cast(ICardWindow) _tlp;"
 			~ "if (cw && cw.canCreate" ~ Name ~ ") {"
-			~ "    cw.create" ~ Name ~ ";"
+			~ "    cw.create" ~ Name ~ "();"
+			~ "} else if (_cardWin) {"
+			~ "    _cardWin.create" ~ Name ~ "();"
 			~ "} else {"
-			~ "    _cardWin.create" ~ Name ~ ";"
+			~ "    _" ~ std.string.toLower(Name) ~ "Win.create" ~ Name ~ "();"
 			~ "}";
 	}
 	private void openCast() {
 		if (!summary && !_comm.singleWindowMode(_prop)) return;
-		_cardWin.openCast();
+		_comm.openCastWin();
 	}
 	private void openSkill() {
 		if (!summary && !_comm.singleWindowMode(_prop)) return;
-		_cardWin.openSkill();
+		_comm.openSkillWin();
 	}
 	private void openItem() {
 		if (!summary && !_comm.singleWindowMode(_prop)) return;
-		_cardWin.openItem();
+		_comm.openItemWin();
 	}
 	private void openBeast() {
 		if (!summary && !_comm.singleWindowMode(_prop)) return;
-		_cardWin.openBeast();
+		_comm.openBeastWin();
 	}
 	private void openInfo() {
 		if (!summary && !_comm.singleWindowMode(_prop)) return;
-		_cardWin.openInfo();
+		_comm.openInfoWin();
 	}
 	private void refreshAll(SelectionEvent se) {
 		if (!_dock) return;
@@ -1555,30 +1690,48 @@ public:
 			openFolder(summary.scenarioPath);
 		}
 	}
+	private bool isMainCardWin(ICardWindow cw) {
+		return cast(MainCardWindow) cw || cast(CastCardWindow) cw || cast(SkillCardWindow) cw || cast(ItemCardWindow) cw || cast(BeastCardWindow) cw || cast(InfoCardWindow) cw;
+	}
 	private void showCardLife(SelectionEvent se) {
 		auto cw = cast(ICardWindow) _tlp;
-		if (cw) {
+		if (cw && !isMainCardWin(cw)) {
 			menuAction!(MenuID.ShowCardLife)(se);
 		} else {
-			_cardWin.showCardLife;
+			if (_cardWin) _cardWin.showCardLife;
+			if (_castWin) _castWin.showCardLife;
+			if (_skillWin) _skillWin.showCardLife;
+			if (_itemWin) _itemWin.showCardLife;
+			if (_beastWin) _beastWin.showCardLife;
+			if (_infoWin) _infoWin.showCardLife;
 			menuActionAfter!(MenuID.ShowCardLife);
 		}
 	}
 	private void showCardList(SelectionEvent se) {
 		auto cw = cast(ICardWindow) _tlp;
-		if (cw) {
+		if (cw && !isMainCardWin(cw)) {
 			menuAction!(MenuID.ShowCardList)(se);
 		} else {
-			_cardWin.showCardList;
+			if (_cardWin) _cardWin.showCardList;
+			if (_castWin) _castWin.showCardList;
+			if (_skillWin) _skillWin.showCardList;
+			if (_itemWin) _itemWin.showCardList;
+			if (_beastWin) _beastWin.showCardList;
+			if (_infoWin) _infoWin.showCardList;
 			menuActionAfter!(MenuID.ShowCardList);
 		}
 	}
 	private void showCardTable(SelectionEvent se) {
 		auto cw = cast(ICardWindow) _tlp;
-		if (cw) {
+		if (cw && !isMainCardWin(cw)) {
 			menuAction!(MenuID.ShowCardTable)(se);
 		} else {
-			_cardWin.showCardTable;
+			if (_cardWin) _cardWin.showCardTable;
+			if (_castWin) _castWin.showCardTable;
+			if (_skillWin) _skillWin.showCardTable;
+			if (_itemWin) _itemWin.showCardTable;
+			if (_beastWin) _beastWin.showCardTable;
+			if (_infoWin) _infoWin.showCardTable;
 			menuActionAfter!(MenuID.ShowCardTable);
 		}
 	}
@@ -1640,7 +1793,7 @@ public:
 	private void menuAction(MenuID ID)(SelectionEvent se) {
 		if (!_tlp) return;
 		auto act = _tlp.menuAction(ID);
-		assert (act);
+		assert (act, .text(ID) ~ " " ~ .text(_tlp));
 		act(se);
 		menuActionAfter!(ID);
 	}
@@ -1717,7 +1870,7 @@ public:
 		}
 		return "";
 	}
-	private void setStatusLine(string status) {
+	void setStatusLine(string status) {
 		_comm.statusLine(_win, status);
 	}
 
@@ -1817,7 +1970,29 @@ public:
 				}
 			} case "castcard", "skillcard", "itemcard", "beastcard", "infocard",
 					"castcard:id", "skillcard:id", "itemcard:id", "beastcard:id", "infocard:id": {
-				return _cardWin.openCWXPath(path);
+				if (_cardWin) {
+					return _cardWin.openCWXPath(path);
+				} else {
+					assert (_castWin);
+					assert (_skillWin);
+					assert (_itemWin);
+					assert (_beastWin);
+					assert (_infoWin);
+					switch (cate) {
+					case "castcard", "castcard:id":
+						return _castWin.openCWXPath(path);
+					case "skillcard", "skillcard:id":
+						return _skillWin.openCWXPath(path);
+					case "itemcard", "itemcard:id":
+						return _itemWin.openCWXPath(path);
+					case "beastcard", "beastcard:id":
+						return _beastWin.openCWXPath(path);
+					case "infocard", "infocard:id":
+						return _infoWin.openCWXPath(path);
+					default:
+						return false;
+					}
+				}
 			} default: return false;
 			}
 		}

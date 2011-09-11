@@ -759,6 +759,7 @@ class FlexEtcProps : Properties {
 
 	mixin Property!("doubleIO", bool, true);
 
+	mixin Property!("bindCardViews", bool, false);
 	mixin Property!("bindSceneWithEvent", bool, false);
 
 	mixin XMLFuncs!(FlexEtcProps);
