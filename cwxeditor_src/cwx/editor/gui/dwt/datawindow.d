@@ -501,7 +501,8 @@ public:
 			return true;
 		}
 		string cate = cpcategory(path);
-		bool isScene = ((cate == "menucard" || cate == "enemycard") && cpempty(cpbottom(path)))
+		bool isScene = cpempty(path)
+			|| ((cate == "menucard" || cate == "enemycard") && cpempty(cpbottom(path)))
 			|| cate == "background";
 		string aPath = a.cwxPath;
 		static if (UseArea && UseFlag) {
