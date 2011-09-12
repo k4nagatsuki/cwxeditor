@@ -55,6 +55,7 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Spinner;
+import org.eclipse.swt.widgets.ScrollBar;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CLabel;
@@ -156,6 +157,33 @@ private:
 	UndoManager _undo;
 	Preview _preview;
 
+	void previewTrigger(Table list, int x, int y) {
+		auto itm = list.getItem(new Point(x, y));
+		if (!itm) {
+			_preview.close();
+			return;
+		}
+		int i = list.indexOf(itm);
+		PileImage image = null;
+		static if (UseCards) {
+			if (_cards is list) {
+				image = _imgp.images[cardsIndex + i];
+			}
+		}
+		static if (UseBacks) {
+			if (_backs is list) {
+				image = _imgp.images[i];
+			}
+		}
+		if (!image) {
+			_preview.close();
+			return;
+		}
+		auto b = itm.getBounds;
+		auto p = list.toDisplay(b.x, b.y + b.height);
+		_preview.image(image, p.x, p.y, b.height);
+		_preview.show();
+	}
 	class ClosePreview : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
 			_preview.close();
@@ -167,31 +195,7 @@ private:
 		}
 		override void mouseMove(MouseEvent e) {
 			auto list = cast(Table) e.widget;
-			auto itm = list.getItem(new Point(e.x, e.y));
-			if (!itm) {
-				_preview.close();
-				return;
-			}
-			int i = list.indexOf(itm);
-			PileImage image = null;
-			static if (UseCards) {
-				if (_cards is list) {
-					image = _imgp.images[cardsIndex + i];
-				}
-			}
-			static if (UseBacks) {
-				if (_backs is list) {
-					image = _imgp.images[i];
-				}
-			}
-			if (!image) {
-				_preview.close();
-				return;
-			}
-			auto b = itm.getBounds;
-			auto p = list.toDisplay(b.x, b.y + b.height);
-			_preview.image(image, p.x, p.y, b.height);
-			_preview.show();
+			previewTrigger(list, e.x, e.y);
 		}
 	}
 
