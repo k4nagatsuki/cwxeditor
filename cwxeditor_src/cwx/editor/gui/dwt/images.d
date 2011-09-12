@@ -98,7 +98,8 @@ private:
 	bool t = false;
 	bool s = false;
 	int _alpha = 255;
-	Image _img;
+	Image _img = null;
+	ImageData _baseSizeData = null;
 	string path = "";
 	ImageData data = null;
 
@@ -355,9 +356,11 @@ public:
 			debugln(e);
 		}
 		auto bmpData = bmp.getImageData;
+		_baseSizeData = bmp.getImageData;
 		try {
 			if (transparent) {
 				bmpData.transparentPixel = bmpData.getPixel(0, 0);
+				_baseSizeData.transparentPixel = _baseSizeData.getPixel(0, 0);
 			}
 			if (smoothing) {
 				auto data = cast(ubyte[]) bmpData.data;
@@ -385,6 +388,14 @@ public:
 			scope (exit) gc.setAlpha = olda;
 			gc.drawImage(_img, x, y);
 		}
+	}
+	/// 画像。
+	Image image() {
+		return _img;
+	}
+	/// リサイズ前の画像。
+	ImageData baseSizeData() {
+		return _baseSizeData;
 	}
 	/// Returns: 表示するか。
 	const

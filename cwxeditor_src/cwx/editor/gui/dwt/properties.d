@@ -627,6 +627,7 @@ class FlexEtcProps : Properties {
 	mixin Property!("logicalSort", bool, true);
 	mixin Property!("copyDesc", bool, false);
 	mixin Property!("refCardsAtEditBgImage", bool, true);
+	mixin Property!("showImagePreview", bool, true);
 	mixin Property!("soundPlayType", int, 0);
 
 	mixin Property!("searchHistories", string[], []);
@@ -761,6 +762,10 @@ class FlexEtcProps : Properties {
 
 	mixin Property!("bindCardViews", bool, false);
 	mixin Property!("bindSceneWithEvent", bool, false);
+
+	mixin Property!("previewAlpha", int, 255, true);
+	mixin Property!("previewMaxWidth", int, 150, true);
+	mixin Property!("previewMaxHeight", int, 150, true);
 
 	mixin XMLFuncs!(FlexEtcProps);
 }

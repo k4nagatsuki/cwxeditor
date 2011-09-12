@@ -123,6 +123,7 @@ private:
 	Text _ignorePaths;
 	Button _singleWindow;
 	Button _smoothingCard;
+	Button _showImagePreview;
 	Button _expandXMLs;
 	Button _contentsFloat;
 	Button _xmlCopy;
@@ -1593,6 +1594,7 @@ private:
 				}
 				_singleWindow = createB(_prop.msgs.singleWindow);
 				_smoothingCard = createB(_prop.msgs.smoothingCard);
+				_showImagePreview = createB(_prop.msgs.showImagePreview);
 				_expandXMLs = createB(_prop.msgs.expandXMLs);
 				_contentsFloat = createB(_prop.msgs.contentsFloat);
 				_xmlCopy = createB(_prop.msgs.xmlCopy);
@@ -1695,6 +1697,7 @@ protected:
 		_ignorePaths.setText = ipbuf;
 		_expandXMLs.setSelection = _prop.var.etc.expandXMLs;
 		_smoothingCard.setSelection = _prop.var.etc.smoothingCard;
+		_showImagePreview.setSelection = _prop.var.etc.showImagePreview;
 		_singleWindow.setSelection = _prop.var.etc.singleWindow;
 		_contentsFloat.setSelection = _prop.var.etc.contentsFloat;
 		_xmlCopy.setSelection = _prop.var.etc.xmlCopy;
@@ -1853,6 +1856,7 @@ protected:
 		}
 		_prop.var.etc.singleWindow = _singleWindow.getSelection;
 		_prop.var.etc.smoothingCard = _smoothingCard.getSelection;
+		_prop.var.etc.showImagePreview = _showImagePreview.getSelection;
 		_prop.var.etc.expandXMLs = _expandXMLs.getSelection;
 		_prop.var.etc.xmlCopy = _xmlCopy.getSelection;
 		_prop.var.etc.saveInnerImagePath = _saveInnerImagePath.getSelection;

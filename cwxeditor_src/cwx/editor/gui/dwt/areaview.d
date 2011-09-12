@@ -42,6 +42,7 @@ import std.traits;
 
 import org.eclipse.swt.SWTException;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.MessageBox;
@@ -67,12 +68,16 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseTrackAdapter;
+import org.eclipse.swt.events.MouseMoveListener;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.FocusEvent;
@@ -147,6 +152,41 @@ private:
 	A _area;
 	TCPD _tcpd;
 	UndoManager _undo;
+	Preview _preview;
+
+	class PreviewTrigger : MouseTrackAdapter, MouseMoveListener {
+		override void mouseExit(MouseEvent e) {
+			_preview.close();
+		}
+		override void mouseMove(MouseEvent e) {
+			auto list = cast(Table) e.widget;
+			auto itm = list.getItem(new Point(e.x, e.y));
+			if (!itm) {
+				_preview.image(null, 0, 0);
+				return;
+			}
+			int i = list.indexOf(itm);
+			PileImage image = null;
+			static if (UseCards) {
+				if (_cards is list) {
+					image = _imgp.images[cardsIndex + i];
+				}
+			}
+			static if (UseBacks) {
+				if (_backs is list) {
+					image = _imgp.images[i];
+				}
+			}
+			if (!image) {
+				_preview.image(null, 0, 0);
+				return;
+			}
+			auto b = itm.getBounds;
+			auto p = list.toDisplay(b.x, b.y + b.height);
+			_preview.image(image, p.x, p.y);
+			_preview.show();
+		}
+	}
 
 	/// 他のエリアのカード配置を参照する。
 	static const RefCards = !UseCards && UseBacks;
@@ -1513,8 +1553,10 @@ public:
 		static if (UseCards) {
 			_comm.refCardState.add(&refreshCardState);
 		}
+		_preview = new Preview(_prop, parent.getShell);
 		addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) {
+				_preview.dispose();
 				_comm.refSkin.remove(&refresh);
 				_comm.delPaths.remove(&refresh);
 				_comm.replPath.remove(&refreshR);
@@ -1624,6 +1666,7 @@ public:
 				listsP = new Composite(lrSash, SWT.NONE);
 				listsP.setLayout = new FillLayout;
 			}
+			auto prevTrig = new PreviewTrigger;
 			static if (UseCards) {
 				static if (is (C == MenuCard)) {
 					_cards = createList(listsP, prop.msgs.menuCards,
@@ -1640,6 +1683,8 @@ public:
 					target.setTransfer([cast(Transfer) FileTransfer.getInstance, XMLBytesTransfer.getInstance]);
 					target.addDropListener(new CLDropTarget);
 				}
+				_cards.addMouseTrackListener(prevTrig);
+				_cards.addMouseMoveListener(prevTrig);
 			}
 			static if (UseBacks) {
 				_backs = createList(listsP, prop.msgs.backs,
@@ -1647,6 +1692,8 @@ public:
 				_backs.addSelectionListener(new SBListener);
 				new TableComboEdit!CCombo(_backs, 0, &createBgImageCombo, &bgImageEditEnd);
 				new BLDropTarget(_backs);
+				_backs.addMouseTrackListener(prevTrig);
+				_backs.addMouseMoveListener(prevTrig);
 			}
 			static if (UseCards && UseBacks) {
 				_cards.addMouseListener(new class MouseAdapter {
@@ -3453,4 +3500,66 @@ PileImage createMessageImage(Props prop) {
 	img.alpha = prop.var.etc.messageAlpha;
 	img.createImage;
 	return img;
+}
+
+class Preview {
+	private Props _prop;
+	private Shell _shell;
+	private PileImage _image = null;
+	private int _w = 0, _h = 0;
+
+	this (Props prop, Shell parentShell) {
+		_prop = prop;
+
+		_shell = new Shell(parentShell, SWT.NO_TRIM);
+		_shell.setAlpha = _prop.var.etc.previewAlpha;
+		_shell.addPaintListener(new Paint);
+	}
+
+	class Paint : PaintListener {
+		override void paintControl(PaintEvent e) {
+			onPaint(e);
+		}
+	}
+	private void onPaint(PaintEvent e) {
+		if (_image && _image.baseSizeData) {
+			auto d = _shell.getDisplay;
+			auto data = _image.baseSizeData;
+			data = data.scaledTo(_w, _h);
+			auto image = new Image(d, data);
+			scope (exit) image.dispose();
+			e.gc.drawImage(image, 0, 0);
+		}
+	}
+
+	void image(PileImage image, int x, int y) {
+		if (_image !is image) _shell.redraw();
+		_image = image;
+		if (_image) {
+			_w = _image.baseWidth;
+			_h = _image.baseHeight;
+			if (_prop.var.etc.previewMaxWidth < _w || _prop.var.etc.previewMaxHeight < _h) {
+				real ws = cast(real) _prop.var.etc.previewMaxWidth / _w;
+				real hs = cast(real) _prop.var.etc.previewMaxHeight / _h;
+				real s = std.algorithm.min(ws, hs);
+				_w *= s;
+				_h *= s;
+			}
+			auto rect = _shell.computeTrim(SWT.DEFAULT, SWT.DEFAULT, _w, _h);
+			_shell.setBounds(x, y, rect.width, rect.height);
+		} else {
+			_shell.setVisible = false;
+		}
+	}
+	void dispose() {
+		_shell.dispose();
+	}
+	void show() {
+		if (_prop.var.etc.showImagePreview && _image) {
+			_shell.setVisible = true;
+		}
+	}
+	void close() {
+		_shell.setVisible = false;
+	}
 }

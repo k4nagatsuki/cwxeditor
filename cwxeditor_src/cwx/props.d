@@ -2254,6 +2254,7 @@ public:
 	const string etcSettingsTitle() {return "詳細";}
 	const string singleWindow() {return "シングルウィンドウモード(再起動後に反映されます)";}
 	const string smoothingCard() {return "カードのサイズ変更時にスムージングを行う";}
+	const string showImagePreview() {return "カードや背景のプレビュー表示を行う";}
 	const string expandXMLs() {return "圧縮されたシナリオの読込み時にXMLファイルを展開する";}
 	const string contentsFloat() {return "コンテンツボックスを別ウィンドウで表示する";}
 	const string xmlCopy() {return "コピーや切り取りを常にXML形式で行う";}
