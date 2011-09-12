@@ -65,6 +65,8 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Region;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.FillLayout;
@@ -154,6 +156,11 @@ private:
 	UndoManager _undo;
 	Preview _preview;
 
+	class ClosePreview : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			_preview.close();
+		}
+	}
 	class PreviewTrigger : MouseTrackAdapter, MouseMoveListener {
 		override void mouseExit(MouseEvent e) {
 			_preview.close();
@@ -162,7 +169,7 @@ private:
 			auto list = cast(Table) e.widget;
 			auto itm = list.getItem(new Point(e.x, e.y));
 			if (!itm) {
-				_preview.image(null, 0, 0);
+				_preview.close();
 				return;
 			}
 			int i = list.indexOf(itm);
@@ -178,12 +185,12 @@ private:
 				}
 			}
 			if (!image) {
-				_preview.image(null, 0, 0);
+				_preview.close();
 				return;
 			}
 			auto b = itm.getBounds;
 			auto p = list.toDisplay(b.x, b.y + b.height);
-			_preview.image(image, p.x, p.y);
+			_preview.image(image, p.x, p.y, b.height);
 			_preview.show();
 		}
 	}
@@ -1488,6 +1495,9 @@ private:
 		auto list = new Table(comp, SWT.MULTI | SWT.CHECK | SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
 		new FullTableColumn(list, SWT.NONE);
 		auto mkl = new MKListener!(C)(edit, items);
+		auto closePreview = new ClosePreview;
+		list.getVerticalBar.addSelectionListener(closePreview);
+		list.getHorizontalBar.addSelectionListener(closePreview);
 		list.addSelectionListener = new VCheckListener;
 		list.addMouseListener(mkl);
 		auto gd = new GridData(GridData.FILL_BOTH);
@@ -3506,12 +3516,17 @@ class Preview {
 	private Props _prop;
 	private Shell _shell;
 	private PileImage _image = null;
+	private PileImage _showingImage = null;
+	private int _x = 0, _y = 0;
+	private int _showingX = int.min, _showingY = int.min;
 	private int _w = 0, _h = 0;
+	private int _itmH = 0;
+	private Image _paintImage = null;
 
 	this (Props prop, Shell parentShell) {
 		_prop = prop;
 
-		_shell = new Shell(parentShell, SWT.NO_TRIM);
+		_shell = new Shell(parentShell, SWT.NO_TRIM | SWT.NO_BACKGROUND);
 		_shell.setAlpha = _prop.var.etc.previewAlpha;
 		_shell.addPaintListener(new Paint);
 	}
@@ -3522,20 +3537,42 @@ class Preview {
 		}
 	}
 	private void onPaint(PaintEvent e) {
-		if (_image && _image.baseSizeData) {
+		if (_image && _paintImage) {
 			auto d = _shell.getDisplay;
-			auto data = _image.baseSizeData;
-			data = data.scaledTo(_w, _h);
-			auto image = new Image(d, data);
-			scope (exit) image.dispose();
-			e.gc.drawImage(image, 0, 0);
+			e.gc.drawImage(_paintImage, 0, 0);
 		}
 	}
 
-	void image(PileImage image, int x, int y) {
-		if (_image !is image) _shell.redraw();
+	void image(PileImage image, int x, int y, int itmH) {
 		_image = image;
 		if (_image) {
+			_x = x;
+			_y = y;
+			_itmH = itmH;
+		} else {
+			_shell.setVisible = false;
+			if (_paintImage) {
+				_paintImage.dispose();
+				_paintImage = null;
+			}
+			auto region = _shell.getRegion;
+			if (region) region.dispose();
+		}
+	}
+	void dispose() {
+		close();
+		_shell.dispose();
+	}
+	void show() {
+		if (_prop.var.etc.showImagePreview && _image) {
+			if (_image is _showingImage && _x == _showingX && _y == _showingY && _shell.getVisible) {
+				return;
+			}
+			_showingImage = _image;
+			_showingX = _x;
+			_showingY = _y;
+			_shell.setVisible = false;
+			// 大きすぎる画像はリサイズ
 			_w = _image.baseWidth;
 			_h = _image.baseHeight;
 			if (_prop.var.etc.previewMaxWidth < _w || _prop.var.etc.previewMaxHeight < _h) {
@@ -3545,21 +3582,67 @@ class Preview {
 				_w *= s;
 				_h *= s;
 			}
-			auto rect = _shell.computeTrim(SWT.DEFAULT, SWT.DEFAULT, _w, _h);
-			_shell.setBounds(x, y, rect.width, rect.height);
-		} else {
-			_shell.setVisible = false;
-		}
-	}
-	void dispose() {
-		_shell.dispose();
-	}
-	void show() {
-		if (_prop.var.etc.showImagePreview && _image) {
+
+			// 画面に収まるよう位置合わせ
+			auto d = _shell.getDisplay;
+			auto dc = d.getClientArea;
+			if (_y + _h > dc.height) {
+				_y -= _itmH + _h;
+			}
+			if (_x < 0) {
+				_x = 0;
+			}
+			if (_x + _w > dc.width) {
+				_x -= _x + _w - dc.width;
+			}
+			_shell.setBounds(_x, _y, _w, _h);
+			auto data = _image.baseSizeData;
+			data = data.scaledTo(_w, _h);
+			if (_paintImage) {
+				_paintImage.dispose();
+			}
+			_paintImage = new Image(d, data);
+
+			// 透明色を使う場合は透明部分を除いたRegionを作る
+			auto oldReg = _shell.getRegion;
+			if (oldReg) oldReg.dispose();
+			if (_image.transparent) {
+				auto region = new Region;
+				auto rect = new Rectangle(0, 0, 0, 1);
+				auto pixels = new int[_w];
+				foreach (y; 0 .. _h) {
+					rect.y = y;
+					data.getPixels(0, y, _w, pixels, 0);
+					int tStart = 0;
+					bool t = true;
+					foreach (x; 0 .. _w) {
+						bool pt = data.transparentPixel == pixels[x];
+						if (pt) tStart = x;
+						if (t == pt) {
+							continue;
+						}
+						pt = t;
+						if (pt) {
+							rect.x = tStart + 1;
+							rect.width = x - tStart;
+							region.add(rect);
+						}
+					}
+					if (!t) {
+						rect.x = tStart + 1;
+						rect.width = _w - tStart;
+						region.add(rect);
+					}
+				}
+				_shell.setRegion = region;
+			} else {
+				_shell.setRegion = null;
+			}
+
 			_shell.setVisible = true;
 		}
 	}
 	void close() {
-		_shell.setVisible = false;
+		image(null, 0, 0, 0);
 	}
 }
