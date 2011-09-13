@@ -80,6 +80,7 @@ import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Link;
+import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.custom.CTabFolder;
@@ -1535,20 +1536,8 @@ public:
 			setupMenu(_menu);
 			setupMenu(_tool);
 		}
-		class KeyDownFilter : Listener {
-			override void handleEvent(Event e) {
-				auto fc = d.getFocusControl();
-				if (!fc) return;
-				if (_win is fc.getShell) return;
-				if (!.isDescendant(_win, fc.getShell)) return;
-				int acc = convertAccelerator(_prop.msgs.menuSave);
-				if (eqAcc(acc, e.keyCode, e.character, e.stateMask)) {
-					saveScenario();
-					e.doit = false;
-				}
-			}
-		}
 		d.addFilter(SWT.KeyDown, new KeyDownFilter);
+		d.addFilter(SWT.MouseWheel, new SwitchTab);
 		refreshExecEngine();
 
 		int tx = _prop.var.mainWin.x == SWT.DEFAULT ? _win.getBounds.x : _prop.var.mainWin.x;
@@ -1587,6 +1576,69 @@ public:
 			setupMenu(_tool);
 		}
 	}
+	private class KeyDownFilter : Listener {
+		override void handleEvent(Event e) {
+			auto d = Display.getCurrent;
+			auto fc = d.getFocusControl();
+			if (!fc) return;
+			if (_win is fc.getShell) return;
+			if (!.isDescendant(_win, fc.getShell)) return;
+			int acc = convertAccelerator(_prop.msgs.menuSave);
+			if (eqAcc(acc, e.keyCode, e.character, e.stateMask)) {
+				saveScenario();
+				e.doit = false;
+			}
+		}
+	}
+	private class SwitchTab : Listener {
+		private Control _oldFocus = null;
+
+		private bool switchTab(TabF, Tab)(TabF tabf, Tab tab, int count, Point p) {
+			if (!tab || 0 == count) return false;
+			if (tabf.getItemCount <= 1) return false;
+			auto ca = tabf.getClientArea;
+			if (ca.y <= tabf.toControl(p).y) return false;
+			int index = tabf.indexOf(tab);
+			assert (-1 != index);
+			if (count < 0) {
+				index++;
+				if (tabf.getItemCount <= index) index = 0;
+			} else if (0 < count) {
+				index--;
+				if (index < 0) index = tabf.getItemCount - 1;
+			}
+			tabf.setSelection = index;
+			return true;
+		}
+
+		override void handleEvent(Event e) {
+			if (!_prop.var.etc.switchTabWheel) return;
+			if (e.type != SWT.MouseWheel) return;
+			auto w = cast(Control) e.widget;
+			if (!w) return;
+
+			auto d = Display.getCurrent;
+			auto c = d.getCursorControl;
+			if (!c) return;
+			if (!.isDescendant(_win, c.getShell)) return;
+
+			auto ctabf = cast(CTabFolder) c;
+			if (ctabf) {
+				auto p = w.toDisplay(e.x, e.y);
+				if (switchTab(ctabf, ctabf.getSelection, e.count, p)) {
+					e.doit = false;
+				}
+			}
+			auto tabf = cast(TabFolder) c;
+			if (tabf && 0 < tabf.getSelection.length) {
+				auto p = w.toDisplay(e.x, e.y);
+				if (switchTab(tabf, tabf.getSelection[0], e.count, p)) {
+					e.doit = false;
+				}
+			}
+		}
+	}
+
 	private void redrawAll() {
 		_win.redraw(true);
 	}

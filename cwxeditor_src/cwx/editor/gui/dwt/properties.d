@@ -628,6 +628,8 @@ class FlexEtcProps : Properties {
 	mixin Property!("copyDesc", bool, false);
 	mixin Property!("refCardsAtEditBgImage", bool, true);
 	mixin Property!("showImagePreview", bool, true);
+	mixin Property!("switchTabWheel", bool, true);
+
 	mixin Property!("soundPlayType", int, 0);
 
 	mixin Property!("searchHistories", string[], []);
