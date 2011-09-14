@@ -1593,30 +1593,38 @@ public:
 	private class SwitchTab : Listener {
 		private Control _oldFocus = null;
 
-		private bool switchTab(TabF, Tab)(TabF tabf, Tab tab, int count, Point p) {
-			if (!tab || 0 == count) return false;
+		private bool switchTab(TabF, Tab)(TabF tabf, Tab tab, Event e) {
+			if (!tab || 0 == e.count) return false;
+			auto w = cast(Control) e.widget;
+			if (!w) return false;
 			if (tabf.getItemCount <= 1) return false;
+			auto p = w.toDisplay(e.x, e.y);
 			auto ca = tabf.getClientArea;
 			if (ca.y <= tabf.toControl(p).y) return false;
 			int index = tabf.indexOf(tab);
 			assert (-1 != index);
-			if (count < 0) {
+			if (e.count < 0) {
 				index++;
 				if (tabf.getItemCount <= index) index = 0;
-			} else if (0 < count) {
+			} else if (0 < e.count) {
 				index--;
 				if (index < 0) index = tabf.getItemCount - 1;
 			}
 			tabf.setSelection = index;
+
+			scope se = new Event;
+			se.type = SWT.Selection;
+			se.time = e.time;
+			se.stateMask = e.stateMask;
+			se.doit = e.doit;
+			tabf.notifyListeners(SWT.Selection, se);
+			e.doit = se.doit;
 			return true;
 		}
 
 		override void handleEvent(Event e) {
 			if (!_prop.var.etc.switchTabWheel) return;
 			if (e.type != SWT.MouseWheel) return;
-			auto w = cast(Control) e.widget;
-			if (!w) return;
-
 			auto d = Display.getCurrent;
 			auto c = d.getCursorControl;
 			if (!c) return;
@@ -1624,15 +1632,13 @@ public:
 
 			auto ctabf = cast(CTabFolder) c;
 			if (ctabf) {
-				auto p = w.toDisplay(e.x, e.y);
-				if (switchTab(ctabf, ctabf.getSelection, e.count, p)) {
+				if (switchTab(ctabf, ctabf.getSelection, e)) {
 					e.doit = false;
 				}
 			}
 			auto tabf = cast(TabFolder) c;
 			if (tabf && 0 < tabf.getSelection.length) {
-				auto p = w.toDisplay(e.x, e.y);
-				if (switchTab(tabf, tabf.getSelection[0], e.count, p)) {
+				if (switchTab(tabf, tabf.getSelection[0], e)) {
 					e.doit = false;
 				}
 			}
