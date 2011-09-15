@@ -310,6 +310,11 @@ private:
 		}
 	}
 	class MListener : MouseAdapter {
+		public override void mouseDown(MouseEvent e) {
+			if (e.button == 2) {
+				openAreaEvent();
+			}
+		}
 		public override void mouseDoubleClick(MouseEvent e) {
 			if (_areas.isFocusControl && e.button == 1) {
 				if (e.stateMask & SWT.SHIFT) {

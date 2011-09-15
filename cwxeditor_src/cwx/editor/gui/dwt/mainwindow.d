@@ -1614,6 +1614,7 @@ public:
 
 			scope se = new Event;
 			se.type = SWT.Selection;
+			se.widget = tabf;
 			se.time = e.time;
 			se.stateMask = e.stateMask;
 			se.doit = e.doit;
