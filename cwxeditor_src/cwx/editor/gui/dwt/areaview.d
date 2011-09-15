@@ -3548,6 +3548,7 @@ class Preview {
 	}
 
 	void image(PileImage image, int x, int y, int itmH) {
+		if (!_shell || _shell.isDisposed) return;
 		_image = image;
 		if (_image) {
 			_x = x;
@@ -3564,10 +3565,12 @@ class Preview {
 		}
 	}
 	void dispose() {
+		if (!_shell || _shell.isDisposed) return;
 		close();
 		_shell.dispose();
 	}
 	void show() {
+		if (!_shell || _shell.isDisposed) return;
 		if (_prop.var.etc.showImagePreview && _image) {
 			if (_image is _showingImage && _x == _showingX && _y == _showingY && _shell.getVisible) {
 				return;
