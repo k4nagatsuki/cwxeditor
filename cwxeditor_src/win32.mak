@@ -189,7 +189,7 @@ LIB = /rc:cwxeditor \
 FLAGS = -J. -Jresource -op -c
 
 $(OUT) : $(SRC) $(RES)
-	$(DMD) $(FLAGS) $(SRC) -g -debug -unittest -odobjs
+	$(DMD) $(FLAGS) $(SRC) -g -debug -unittest -version="Console" -odobjs
 	$(DMD) $(OBJ) -L"$(LIB)" -g -debug -of"$(OUT)" -L/exet:nt/su:console:4.0
 
 debug_windows : $(SRC) $(RES)

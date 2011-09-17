@@ -1362,7 +1362,9 @@ private:
 					}
 				}
 			}
-			debug writefln("Exit Trace Thread");
+			version (Console) {
+				debug writeln("Exit Trace Thread");
+			}
 		} catch (Exception e) {
 			debugln(e);
 		}

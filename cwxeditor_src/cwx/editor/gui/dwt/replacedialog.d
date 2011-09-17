@@ -133,6 +133,8 @@ private:
 	Button _area;
 	/// キーコード
 	Button _keyCode;
+	/// ファイル
+	Button _file;
 	/// コメント
 	Button _comment;
 
@@ -164,6 +166,7 @@ private:
 	bool end() {return _end.getSelection;}
 	bool area() {return _area.getSelection;}
 	bool keyCode() {return _keyCode.getSelection;}
+	bool file() {return _file.getSelection;}
 	bool comment() {return _comment.getSelection;}
 
 	bool unuseFlag() {return _unuseFlag.getSelection;}
@@ -432,6 +435,7 @@ private:
 				_end = createB(_prop.msgs.replTextEndScenario);
 				_area = createB(_prop.msgs.replTextAreaName);
 				_keyCode = createB(_prop.msgs.replTextKeyCode);
+				_file = createB(_prop.msgs.replTextFile);
 				_comment = createB(_prop.msgs.replTextComment);
 			}
 			auto sep = new Label(grp, SWT.SEPARATOR | SWT.HORIZONTAL);
@@ -704,6 +708,7 @@ public:
 		_end.setSelection = _prop.var.etc.replaceTextEndScenario;
 		_area.setSelection = _prop.var.etc.replaceTextAreaName;
 		_keyCode.setSelection = _prop.var.etc.replaceTextKeyCode;
+		_file.setSelection = _prop.var.etc.replaceTextFile;
 		_comment.setSelection = _prop.var.etc.replaceTextComment;
 		_unuseFlag.setSelection = _prop.var.etc.searchUnusedFlag;
 		_unuseStep.setSelection = _prop.var.etc.searchUnusedStep;
@@ -751,6 +756,7 @@ public:
 			_prop.var.etc.replaceTextEndScenario = _end.getSelection;
 			_prop.var.etc.replaceTextAreaName = _area.getSelection;
 			_prop.var.etc.replaceTextKeyCode = _keyCode.getSelection;
+			_prop.var.etc.replaceTextFile = _file.getSelection;
 			_prop.var.etc.replaceTextComment = _comment.getSelection;
 			_prop.var.etc.searchUnusedFlag = _unuseFlag.getSelection;
 			_prop.var.etc.searchUnusedStep = _unuseStep.getSelection;
@@ -1576,6 +1582,15 @@ public:
 		}
 		return false;
 	}
+	private bool replFilePath(string text, void delegate(string) set, ref size_t count) {
+		auto c = fTextCount(encodePath(text));
+		count += c;
+		if (c > 0) {
+			if (_replMode) set(fTextRepl(decodePath(text)));
+			return true;
+		}
+		return false;
+	}
 
 	private bool replFlagName(F)(FlagDir parent, F flag, ref size_t count) {
 		string text = flag.name;
@@ -1628,6 +1643,9 @@ public:
 		if (flag) {
 			r |= repl(null, back.flag, &back.flag, count);
 		}
+		if (file) {
+			r |= replFilePath(back.path, &back.path, count);
+		}
 		if (r && path) {
 			addResult(path);
 		}
@@ -1647,6 +1665,9 @@ public:
 			static if (is (C : IFlagUser)) {
 				r |= repl(null, card.flag, &card.flag, count);
 			}
+		}
+		if (file) {
+			r |= replFilePath(card.path, &card.path, count);
 		}
 		static if (is (C : EffectCard)) {
 			r |= replKeyCode!(C)(null, card, count);
@@ -1695,6 +1716,11 @@ public:
 					r |= replRqCoupons!(typeof(dlg))(null, dlg, count);
 				}
 			}
+		}
+		if (file) {
+			r |= replFilePath(e.cardPath, &e.cardPath, count);
+			r |= replFilePath(e.bgmPath, &e.bgmPath, count);
+			r |= replFilePath(e.soundPath, &e.soundPath, count);
 		}
 		if (comment) {
 			r |= repl(null, e.comment, &e.comment, count);

@@ -309,7 +309,8 @@ public:
 	const string replTextEndScenario() {return "終了印(&A)";}
 	const string replTextAreaName() {return "エリア/バトル/パッケージ名(&B)";}
 	const string replTextKeyCode() {return "キーコード(&D)";}
-	const string replTextComment() {return "コメント(&E)";}
+	const string replTextFile() {return "ファイル(&E)";}
+	const string replTextComment() {return "コメント(&G)";}
 
 	const string replID() {return "検索/置換対象";}
 	const string replIDKind() {return "対象";}

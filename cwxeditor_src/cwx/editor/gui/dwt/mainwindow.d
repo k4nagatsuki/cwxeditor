@@ -223,7 +223,9 @@ private:
 				}
 				core.thread.Thread.sleep(dur!"seconds"(1));
 			}
-			debug writefln("Exit Backup Thread");
+			version (Console) {
+				debug writeln("Exit Backup Thread");
+			}
 		} catch (Throwable e) {
 			debugln(e);
 		}
@@ -885,7 +887,9 @@ private:
 				}
 				close(pipe);
 			}
-			debug writefln("Exit Pipe Thread");
+			version (Console) {
+				debug writeln("Exit Pipe Thread");
+			}
 		} catch (Exception e) {
 			debugln(e);
 		}
@@ -2140,7 +2144,9 @@ public:
 		_prop.images.disposeImages;
 		d.dispose;
 		_prop.var.save(dock);
-		debug writefln("Exit Main Thread");
+		version (Console) {
+			debug writeln("Exit Main Thread");
+		}
 	}
 }
 

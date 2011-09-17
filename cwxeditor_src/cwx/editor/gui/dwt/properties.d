@@ -650,6 +650,7 @@ class FlexEtcProps : Properties {
 	mixin Property!("replaceTextEndScenario", bool, true);
 	mixin Property!("replaceTextAreaName", bool, true);
 	mixin Property!("replaceTextKeyCode", bool, true);
+	mixin Property!("replaceTextFile", bool, false);
 	mixin Property!("replaceTextComment", bool, true);
 	mixin Property!("searchUnusedFlag", bool, true);
 	mixin Property!("searchUnusedStep", bool, true);

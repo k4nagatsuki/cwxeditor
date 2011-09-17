@@ -52,27 +52,29 @@ void main(string[] args) {
 				debugln(e);
 			}
 			if (help) {
-				try {
-					string dir;
-					version (Windows) {
-						dir = "Folder";
-					} else {
-						dir = "Directory";
+				version (Console) {
+					try {
+						string dir;
+						version (Windows) {
+							dir = "Folder";
+						} else {
+							dir = "Directory";
+						}
+						writefln("Usage: cwxeditor [-help | -conf <PATH>] <SCENARIO> [<CWXPath ...>]");
+						writefln("");
+						writefln("  Options:");
+						writefln("    -help         print help");
+						writefln("    -conf <PATH>  set config file path");
+						writefln("    <SCENARIO>    read scenario (*.wsn/Summary.xml/Summary.wsm/[" ~ dir ~ "])");
+						writefln("  OpenID:");
+						writefln("    -a   <ID>     open area from <ID>");
+						writefln("    -b   <ID>     open battle from <ID>");
+						writefln("    -p   <ID>     open package from <ID>");
+						writefln("  OpenPath:");
+						writefln("    <CWXPath>     open resource from <CWXPath>");
+					} catch (Exception e) {
+						debugln(e);
 					}
-					writefln("Usage: cwxeditor [-help | -conf <PATH>] <SCENARIO> [<CWXPath ...>]");
-					writefln("");
-					writefln("  Options:");
-					writefln("    -help         print help");
-					writefln("    -conf <PATH>  set config file path");
-					writefln("    <SCENARIO>    read scenario (*.wsn/Summary.xml/Summary.wsm/[" ~ dir ~ "])");
-					writefln("  OpenID:");
-					writefln("    -a   <ID>     open area from <ID>");
-					writefln("    -b   <ID>     open battle from <ID>");
-					writefln("    -p   <ID>     open package from <ID>");
-					writefln("  OpenPath:");
-					writefln("    <CWXPath>     open resource from <CWXPath>");
-				} catch (Exception e) {
-					debugln(e);
 				}
 				try {
 					auto prop = new Props(conf, new CProps(args[0], sys));

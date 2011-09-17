@@ -2375,7 +2375,7 @@ fi`;
 		case Talker.UNSELECTED: return "U";
 		case Talker.RANDOM: return "R";
 		case Talker.CARD: return "C";
-		case Talker.IMAGE: return `"` ~ encodeString(cardPath) ~ `"`;
+		case Talker.IMAGE: return `"` ~ encodeString(encodePath(cardPath)) ~ `"`;
 		default: assert (0);
 		}
 	}

@@ -96,7 +96,7 @@ shared void fdebugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) {
 	try {
 		synchronized {
 			string log = createDebugln!(F, L)(vals);
-			debug {
+			version (Console) {
 				version (Windows) {
 					printf("%s\n\0".ptr, tosjisz(log));
 					dout.flush;
