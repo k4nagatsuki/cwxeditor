@@ -534,7 +534,7 @@ public:
 			return "画像";
 		}
 	}
-	const string scRef() {return "参照文字列(#I)";}
+	const string scRef() {return "話者(#I)";}
 	const string scTeam() {return "チーム名(#T)";}
 	const string scYado() {return "宿屋名(#Y)";}
 	const string createDialog() {return "台詞の作成";}

@@ -767,6 +767,7 @@ private ToolBar createSCharBar(Composite parent,
 	createToolItem(bar, prop.msgs.green, prop.images.green, &(new PutColor(putColor, 'G')).put);
 	createToolItem(bar, prop.msgs.yellow, prop.images.yellow, &(new PutColor(putColor, 'Y')).put);
 	new ToolItem(bar, SWT.SEPARATOR);
+	createToolItem(bar, prop.msgs.scRef, prop.images.scRef, &(new PutC(insert, "#I")).put);
 	createToolItem(bar, prop.msgs.scTalker(Talker.SELECTED), prop.images.scTalker(Talker.SELECTED),
 		&(new PutC(insert, "#M")).put);
 	createToolItem(bar, prop.msgs.scTalker(Talker.UNSELECTED), prop.images.scTalker(Talker.UNSELECTED),
@@ -775,7 +776,6 @@ private ToolBar createSCharBar(Composite parent,
 		&(new PutC(insert, "#R")).put);
 	createToolItem(bar, prop.msgs.scTalker(Talker.CARD), prop.images.scTalker(Talker.CARD),
 		&(new PutC(insert, "#C")).put);
-	createToolItem(bar, prop.msgs.scRef, prop.images.scRef, &(new PutC(insert, "#I")).put);
 	createToolItem(bar, prop.msgs.scTeam, prop.images.scTeam, &(new PutC(insert, "#T")).put);
 	createToolItem(bar, prop.msgs.scYado, prop.images.scYado, &(new PutC(insert, "#Y")).put);
 	return bar;
