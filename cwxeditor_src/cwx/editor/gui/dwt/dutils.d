@@ -199,12 +199,14 @@ GridLayout zeroMarginGridLayout(int col, bool eqWid) {
 	return gl;
 }
 
+const WGL_SPACING = 2;
+
 GridLayout windowGridLayout(int col, bool eqWid = false) {
 	auto gl = new GridLayout(col, eqWid);
-	gl.horizontalSpacing = 2;
-	gl.verticalSpacing = 2;
-	gl.marginWidth = 2;
-	gl.marginHeight = 2;
+	gl.horizontalSpacing = WGL_SPACING;
+	gl.verticalSpacing = WGL_SPACING;
+	gl.marginWidth = WGL_SPACING;
+	gl.marginHeight = WGL_SPACING;
 	return gl;
 }
 

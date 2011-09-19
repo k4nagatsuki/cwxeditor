@@ -56,6 +56,7 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.ScrollBar;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CLabel;
@@ -202,7 +203,7 @@ private:
 	/// 他のエリアのカード配置を参照する。
 	static const RefCards = !UseCards && UseBacks;
 	static if (RefCards) {
-		CCombo _refAreas;
+		Combo _refAreas;
 		AbstractArea[] _refAreasArr;
 		AbstractArea _refTarget = null;
 		void refreshRefAreas() {
@@ -686,8 +687,7 @@ private:
 
 	ImagePane imagePane() {return _imgp;}
 	Spinner _xSpn, _ySpn;
-	CCombo _flag = null;
-	ToolItem _flagItm = null;
+	Combo _flag = null;
 	static if (UseCards) {
 		bool _viewCards = true;
 		C[PileImage] _cardTbl;
@@ -1678,15 +1678,24 @@ public:
 		}
 		auto lrSash = new SplitPane(this, SWT.HORIZONTAL);
 		lrSash.setLayoutData = new GridData(GridData.FILL_BOTH);
+		auto left = new Composite(lrSash, SWT.NONE);
+		{
+			auto lgl = zeroMarginGridLayout(2, false);
+			lgl.verticalSpacing = WGL_SPACING;
+			left.setLayout = lgl;
+		}
 		{
 			Composite listsP;
 			static if (UseCards && UseBacks) {
-				_sash = new SplitPane(lrSash, SWT.VERTICAL);
+				_sash = new SplitPane(left, SWT.VERTICAL);
 				listsP = _sash;
 			} else {
-				listsP = new Composite(lrSash, SWT.NONE);
+				listsP = new Composite(left, SWT.NONE);
 				listsP.setLayout = new FillLayout;
 			}
+			auto lpgd = new GridData(GridData.FILL_BOTH);
+			lpgd.horizontalSpan = 2;
+			listsP.setLayoutData = lpgd;
 			auto prevTrig = new PreviewTrigger;
 			static if (UseCards) {
 				static if (is (C == MenuCard)) {
@@ -1746,6 +1755,57 @@ public:
 					override void widgetDisposed(DisposeEvent e) {
 						_prop.var.etc.areaSashT = _sash.getWeights[0];
 						_prop.var.etc.areaSashB = _sash.getWeights[1];
+					}
+				});
+			}
+		}
+		if (_summ) {
+			auto lFlag = new Label(left, SWT.NONE);
+			lFlag.setText = _prop.msgs.areaViewFlagDesc;
+			_flag = new Combo(left, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
+			_flag.setVisibleItemCount = 20;
+			_flag.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+			_flag.add(_prop.msgs.noFlag);
+			refreshFlag();
+			_flag.addSelectionListener(new SelFlag);
+			_comm.refFlag.add(&refFlag);
+			_comm.delFlag.add(&refFlag);
+			_flag.addDisposeListener(new FlagsDispose);
+			static if (RefCards) {
+				auto lRef = new Label(left, SWT.NONE);
+				lRef.setText = _prop.msgs.areaViewRefAreaDesc;
+				_refAreas = new Combo(left, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
+				_refAreas.setVisibleItemCount = 20;
+				_refAreas.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+				_refAreas.add(_prop.msgs.noRefArea);
+				refreshRefAreas();
+				_refAreas.addSelectionListener(new class SelectionAdapter {
+					override void widgetSelected(SelectionEvent e) {
+						int sel = _refAreas.getSelectionIndex;
+						_refTarget = sel <= 0 ? null : _refAreasArr[sel - 1];
+						refreshPanel();
+					}
+				});
+				_comm.refArea.add(&refreshRefAreasA);
+				_comm.delArea.add(&refreshRefAreasA);
+				_comm.refBattle.add(&refreshRefAreasB);
+				_comm.delBattle.add(&refreshRefAreasB);
+				_comm.refMenuCard.add(&refRefMenuCard);
+				_comm.addMenuCard.add(&addRefMenuCard);
+				_comm.delMenuCard.add(&delRefMenuCard);
+				_comm.upMenuCard.add(&upRefMenuCards);
+				_comm.downMenuCard.add(&downRefMenuCards);
+				_refAreas.addDisposeListener(new class DisposeListener {
+					override void widgetDisposed(DisposeEvent e) {
+						_comm.refArea.remove(&refreshRefAreasA);
+						_comm.delArea.remove(&refreshRefAreasA);
+						_comm.refBattle.remove(&refreshRefAreasB);
+						_comm.delBattle.remove(&refreshRefAreasB);
+						_comm.refMenuCard.remove(&refRefMenuCard);
+						_comm.addMenuCard.remove(&addRefMenuCard);
+						_comm.delMenuCard.remove(&delRefMenuCard);
+						_comm.upMenuCard.remove(&upRefMenuCards);
+						_comm.downMenuCard.remove(&downRefMenuCards);
 					}
 				});
 			}
@@ -2440,47 +2500,6 @@ public:
 				&reverseViewBacks, SWT.CHECK);
 			_vbTMenu.setSelection = _viewBacks;
 		}
-		static if (RefCards) {
-			if (_summ) {
-				new ToolItem(bar, SWT.SEPARATOR);
-				auto refAreasItm = new ToolItem(bar, SWT.SEPARATOR);
-				_refAreas = new CCombo(bar, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
-				_refAreas.setVisibleItemCount = 20;
-				_refAreas.add(_prop.msgs.noRefArea);
-				refAreasItm.setControl = _refAreas;
-				refAreasItm.setWidth = _refAreas.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
-				refreshRefAreas();
-				_refAreas.addSelectionListener(new class SelectionAdapter {
-					override void widgetSelected(SelectionEvent e) {
-						int sel = _refAreas.getSelectionIndex;
-						_refTarget = sel <= 0 ? null : _refAreasArr[sel - 1];
-						refreshPanel();
-					}
-				});
-				_comm.refArea.add(&refreshRefAreasA);
-				_comm.delArea.add(&refreshRefAreasA);
-				_comm.refBattle.add(&refreshRefAreasB);
-				_comm.delBattle.add(&refreshRefAreasB);
-				_comm.refMenuCard.add(&refRefMenuCard);
-				_comm.addMenuCard.add(&addRefMenuCard);
-				_comm.delMenuCard.add(&delRefMenuCard);
-				_comm.upMenuCard.add(&upRefMenuCards);
-				_comm.downMenuCard.add(&downRefMenuCards);
-				addDisposeListener(new class DisposeListener {
-					override void widgetDisposed(DisposeEvent e) {
-						_comm.refArea.remove(&refreshRefAreasA);
-						_comm.delArea.remove(&refreshRefAreasA);
-						_comm.refBattle.remove(&refreshRefAreasB);
-						_comm.delBattle.remove(&refreshRefAreasB);
-						_comm.refMenuCard.remove(&refRefMenuCard);
-						_comm.addMenuCard.remove(&addRefMenuCard);
-						_comm.delMenuCard.remove(&delRefMenuCard);
-						_comm.upMenuCard.remove(&upRefMenuCards);
-						_comm.downMenuCard.remove(&downRefMenuCards);
-					}
-				});
-			}
-		}
 		new ToolItem(bar, SWT.SEPARATOR);
 		if (!_tlp) {
 			createToolItem(bar, _prop.msgs.ttUndo, _prop.images.menuUndo, &undo);
@@ -2554,19 +2573,6 @@ public:
 			createToolItemC(bar, files);
 			_bgm.createPlayToolItem(bar);
 			_bgm.path = _area.music;
-		}
-		if (_summ) {
-			new ToolItem(bar, SWT.SEPARATOR);
-			_flag = new CCombo(bar, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
-			_flag.setVisibleItemCount = 20;
-			_flag.add(_prop.msgs.noFlag);
-			_flagItm = createToolItemC(bar, _flag);
-			_flagItm.setWidth = max(_flagItm.getWidth, _prop.var.etc.flagsWidth);
-			refreshFlag();
-			_flag.addSelectionListener(new SelFlag);
-			_comm.refFlag.add(&refFlag);
-			_comm.delFlag.add(&refFlag);
-			_flag.addDisposeListener(new FlagsDispose);
 		}
 	}
 	private class FlagsDispose : DisposeListener {
