@@ -3619,6 +3619,7 @@ class Preview {
 			}
 			_shell.setBounds(_x, _y, _w, _h);
 			auto data = _image.baseSizeData;
+			if (!data) return;
 			data = data.scaledTo(_w, _h);
 			if (_paintImage) {
 				_paintImage.dispose();

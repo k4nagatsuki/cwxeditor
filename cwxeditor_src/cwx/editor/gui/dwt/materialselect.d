@@ -411,7 +411,7 @@ public:
 					s = s[0 .. i];
 				} else {
 					file = s;
-					s = "/";
+					s = "";
 				}
 				r ~= std.path.buildPath(s, file);
 			} else {

@@ -608,6 +608,9 @@ private:
 	class SListener : ShellAdapter {
 		override void shellClosed(ShellEvent e) {
 			e.doit = qSave;
+			if (e.doit) {
+				_comm.closeAll();
+			}
 		}
 	}
 	class DListener : DisposeListener {
