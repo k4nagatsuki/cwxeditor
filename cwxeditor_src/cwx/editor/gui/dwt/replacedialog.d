@@ -42,6 +42,7 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.custom.CTabFolder;
@@ -638,6 +639,144 @@ private:
 		comp2.setLayoutData = gd;
 		_comps[tab] = comp2;
 	}
+
+	void refFunc(bool Del, A : CWXPath)(A a) {
+		bool recurse(TreeItem itm) {
+			if (a is itm.getData) {
+				static if (Del) {
+					itm.dispose();
+				} else {
+					itm.setText = a.name;
+				}
+				return true;
+			} else {
+				foreach (child; itm.getItems) {
+					if (recurse(child)) {
+						return true;
+					}
+				}
+				return false;
+			}
+		}
+		foreach (child; _range.getItems) {
+			if (recurse(child)) {
+				return;
+			}
+		}
+		static if (!Del) {
+			// 追加
+			refreshRangeTree();
+		}
+	}
+	void delArea(Area a) {
+		refFunc!true(a);
+	}
+	void delBattle(Battle a) {
+		refFunc!true(a);
+	}
+	void delPackage(Package a) {
+		refFunc!true(a);
+	}
+	void delCast(CastCard a) {
+		refFunc!true(a);
+	}
+	void delSkill(SkillCard a) {
+		refFunc!true(a);
+	}
+	void delItem(ItemCard a) {
+		refFunc!true(a);
+	}
+	void delBeast(BeastCard a) {
+		refFunc!true(a);
+	}
+	void delInfo(InfoCard a) {
+		refFunc!true(a);
+	}
+	void refArea(Area a) {
+		refFunc!false(a);
+	}
+	void refBattle(Battle a) {
+		refFunc!false(a);
+	}
+	void refPackage(Package a) {
+		refFunc!false(a);
+	}
+	void refCast(CastCard a) {
+		refFunc!false(a);
+	}
+	void refSkill(SkillCard a) {
+		refFunc!false(a);
+	}
+	void refItem(ItemCard a) {
+		refFunc!false(a);
+	}
+	void refBeast(BeastCard a) {
+		refFunc!false(a);
+	}
+	void refInfo(InfoCard a) {
+		refFunc!false(a);
+	}
+	void refreshRangeTree() {
+		CWXPath sel = null;
+		auto selItm = _range.getSelection;
+		if (selItm.length) {
+			sel = cast(CWXPath) selItm[0].getData;
+		}
+		_range.removeAll();
+		TreeItem add(TreeItem par, string name, CWXPath path) {
+			TreeItem itm;
+			if (par) {
+				itm = new TreeItem(par, SWT.NONE);
+			} else {
+				itm = new TreeItem(_range, SWT.NONE);
+			}
+			string text;
+			Image img;
+			getPathParams(path, text, img);
+			itm.setText = name;
+			itm.setImage = img;
+			itm.setData = cast(Object) path;
+			itm.setChecked = true;
+			if (sel is path) {
+				_range.setSelection = [itm];
+			}
+			return itm;
+		}
+		foreach (a; _summ.areas) {
+			add(null, a.name, a);
+		}
+		foreach (a; _summ.battles) {
+			add(null, a.name, a);
+		}
+		foreach (a; _summ.packages) {
+			add(null, a.name, a);
+		}
+		foreach (a; _summ.casts) {
+			auto par = add(null, a.name, a);
+			foreach (c; a.skills) {
+				add(par, c.name, c);
+			}
+			foreach (c; a.items) {
+				add(par, c.name, c);
+			}
+			foreach (c; a.beasts) {
+				add(par, c.name, c);
+			}
+		}
+		foreach (a; _summ.skills) {
+			add(null, a.name, a);
+		}
+		foreach (a; _summ.items) {
+			add(null, a.name, a);
+		}
+		foreach (a; _summ.beasts) {
+			add(null, a.name, a);
+		}
+		foreach (a; _summ.infos) {
+			add(null, a.name, a);
+		}
+		_range.showSelection;
+	}
 public:
 	this(Commons comm, Props prop, Shell shell, Summary summ) {
 		_comm = comm;
@@ -724,7 +863,8 @@ public:
 			cl.fillHorizontal = true;
 			cl.fillVertical = true;
 			grp.setLayout = cl;
-			_range = new Tree(grp, SWT.SINGLE | SWT.BORDER | SWT.VIRTUAL);
+			_range = new Tree(grp, SWT.SINGLE | SWT.BORDER | SWT.VIRTUAL | SWT.CHECK);
+			refreshRangeTree();
 		}
 		{
 			auto sep = new Label(_win, SWT.SEPARATOR | SWT.HORIZONTAL);
@@ -799,6 +939,23 @@ public:
 		sash.addDisposeListener(new SashDispose);
 		sash.setWeights = [_prop.var.etc.replaceRangeSashL, _prop.var.etc.replaceRangeSashR];
 
+		_comm.refArea.add(&refArea);
+		_comm.refBattle.add(&refBattle);
+		_comm.refPackage.add(&refPackage);
+		_comm.refCast.add(&refCast);
+		_comm.refSkill.add(&refSkill);
+		_comm.refItem.add(&refItem);
+		_comm.refBeast.add(&refBeast);
+		_comm.refInfo.add(&refInfo);
+		_comm.delArea.add(&delArea);
+		_comm.delBattle.add(&delBattle);
+		_comm.delPackage.add(&delPackage);
+		_comm.delCast.add(&delCast);
+		_comm.delSkill.add(&delSkill);
+		_comm.delItem.add(&delItem);
+		_comm.delBeast.add(&delBeast);
+		_comm.delInfo.add(&delInfo);
+
 		_comm.refScenario.add(&refreshScenario);
 		_win.addDisposeListener(new DL);
 		auto cs = _win.computeSize(SWT.DEFAULT, SWT.DEFAULT);
@@ -852,6 +1009,23 @@ public:
 			_prop.var.etc.searchUnusedInfo = _unuseInfo.getSelection;
 			_prop.var.etc.searchUnusedStart = _unuseStart.getSelection;
 			_prop.var.etc.searchUnusedPath = _unusePath.getSelection;
+
+			_comm.refArea.remove(&refArea);
+			_comm.refBattle.remove(&refBattle);
+			_comm.refPackage.remove(&refPackage);
+			_comm.refCast.remove(&refCast);
+			_comm.refSkill.remove(&refSkill);
+			_comm.refItem.remove(&refItem);
+			_comm.refBeast.remove(&refBeast);
+			_comm.refInfo.remove(&refInfo);
+			_comm.delArea.remove(&delArea);
+			_comm.delBattle.remove(&delBattle);
+			_comm.delPackage.remove(&delPackage);
+			_comm.delCast.remove(&delCast);
+			_comm.delSkill.remove(&delSkill);
+			_comm.delItem.remove(&delItem);
+			_comm.delBeast.remove(&delBeast);
+			_comm.delInfo.remove(&delInfo);
 		}
 	}
 	private void refreshScenario(Summary summ) {
@@ -1547,10 +1721,9 @@ public:
 		itm.setText = encodePath(path);
 		itm.setData = new PathString(path);
 	}
-	private void addResult(CWXPath path, string desc = "") {
-		auto itm = new TableItem(_result, SWT.NONE);
-		Image img = null;
-		string text = "*Error*";
+	private void getPathParams(CWXPath path, out string text, out Image img) {
+		img = null;
+		text = "*Error*";
 		auto sum = cast(Summary) path;
 		if (sum) {
 			img = _prop.images.summary;
@@ -1649,6 +1822,12 @@ public:
 			text = _prop.msgs.searchResultEnemyCard(ene, _summ);
 		}
 		assert (img);
+	}
+	private void addResult(CWXPath path, string desc = "") {
+		auto itm = new TableItem(_result, SWT.NONE);
+		string text;
+		Image img;
+		getPathParams(path, text, img);
 		itm.setImage = img;
 		if (desc.length) text = desc ~ " - " ~ text;
 		itm.setText = text;

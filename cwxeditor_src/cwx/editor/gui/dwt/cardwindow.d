@@ -1133,6 +1133,17 @@ public:
 				_owner.add(c);
 				refresh;
 				select(__cards.length - 1);
+				static if (is(C : CastCard)) {
+					_comm.refCast.call(this, c);
+				} else static if(is(C : SkillCard)) {
+					_comm.refSkill.call(this, c);
+				} else static if(is(C : ItemCard)) {
+					_comm.refItem.call(this, c);
+				} else static if(is(C : BeastCard)) {
+					_comm.refBeast.call(this, c);
+				} else static if(is(C : InfoCard)) {
+					_comm.refInfo.call(this, c);
+				} else static assert (0);
 				static if (is (CardOwner : CastCard) && is (C : BeastCard)) {
 					_comm.refCast.call(_owner);
 				}
@@ -1200,6 +1211,17 @@ public:
 				} else {
 					_owner.add(card);
 				}
+				static if (is(C : CastCard)) {
+					_comm.refCast.call(this, card);
+				} else static if(is(C : SkillCard)) {
+					_comm.refSkill.call(this, card);
+				} else static if(is(C : ItemCard)) {
+					_comm.refItem.call(this, card);
+				} else static if(is(C : BeastCard)) {
+					_comm.refBeast.call(this, card);
+				} else static if(is(C : InfoCard)) {
+					_comm.refInfo.call(this, card);
+				} else static assert (0);
 			}
 			pasteRefresh(adds);
 			_comm.refUseCount.call;

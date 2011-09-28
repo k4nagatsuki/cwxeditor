@@ -752,6 +752,7 @@ public:
 							int index = _summ.areas.length - 1;
 							newAreaItem(index);
 							selArea(index);
+							_comm.refArea.call(cast(Area) area);
 							if (sameSummary && !_summ.hasAreaId(oldId)) {
 								_summ.useCounter.change(toAreaId(oldId), toAreaId(newId));
 							}
@@ -760,6 +761,7 @@ public:
 							int index = _summ.packages.length - 1;
 							newPackageItem(index);
 							selPackage(index);
+							_comm.refPackage.call(cast(Package) area);
 							if (sameSummary && !_summ.hasPackageId(oldId)) {
 								_summ.useCounter.change(toPackageId(oldId), toPackageId(newId));
 							}
@@ -769,6 +771,7 @@ public:
 							int index = _summ.battles.length - 1;
 							newBattleItem(index);
 							selBattle(index);
+							_comm.refBattle.call(cast(Battle) area);
 							if (sameSummary && !_summ.hasBattleId(oldId)) {
 								_summ.useCounter.change(toBattleId(oldId), toBattleId(newId));
 							}
