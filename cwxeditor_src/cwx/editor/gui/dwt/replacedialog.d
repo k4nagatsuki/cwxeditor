@@ -716,7 +716,7 @@ public:
 		auto cs = _win.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 		auto size = _prop.var.replaceDlg;
 		if (size.width != SWT.DEFAULT) cs.x = size.width;
-		if (size.height != SWT.DEFAULT) cs.x = size.height;
+		if (size.height != SWT.DEFAULT) cs.y = size.height;
 		_win.setSize = cs;
 	}
 	private class DL : DisposeListener {
