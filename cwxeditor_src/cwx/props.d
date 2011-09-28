@@ -288,6 +288,8 @@ public:
 	const string replForUnuse() {return "未使用検索";}
 	const string replForError() {return "誤り検索";}
 
+	const string searchRange() {return "検索対象";}
+
 	const string allCheck() {return "全てチェック/全てチェックを外す(&L)";}
 
 	const string replError() {return "重複する分岐(フラグ分岐が両方ともTRUEになっている等)・条件クーポンに抜けがある台詞コンテント・存在しない素材を参照しているコンテント等を検索します。";}

@@ -635,6 +635,8 @@ class FlexEtcProps : Properties {
 	mixin Property!("searchHistories", string[], []);
 	mixin Property!("replaceHistories", string[], []);
 	mixin Property!("searchHistoryMax", int, 50);
+	mixin Property!("replaceRangeSashL", int, 3);
+	mixin Property!("replaceRangeSashR", int, 1);
 	mixin Property!("replaceTextNotIgnoreCase", bool, false);
 	mixin Property!("replaceTextRegExp", bool, false);
 	mixin Property!("replaceTextWildcard", bool, false);
