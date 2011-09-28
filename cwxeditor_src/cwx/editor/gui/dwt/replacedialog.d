@@ -64,6 +64,8 @@ import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.graphics.Image;
 import java.lang.all;
 
+typedef ArrayWrapperString CWXPathString;
+
 /// 検索と置換を行うダイアログ。
 class ReplaceDialog {
 private:
@@ -80,6 +82,7 @@ private:
 	CTabItem _tabUnuse;
 	CTabItem _tabError;
 	Button _replace;
+	Button _rangeAllCheck;
 
 	Combo _from;
 	Combo _to;
@@ -337,6 +340,7 @@ private:
 		}
 		_parent.layout(true);
 		_replace.setEnabled = sel !is _tabUnuse && sel !is _tabError;
+		_range.setEnabled = sel !is _tabUnuse;
 	}
 	class TSListener : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
@@ -742,6 +746,8 @@ private:
 			}
 			return itm;
 		}
+		add(null, _prop.msgs.summary, _summ);
+		add(null, _prop.msgs.flagsAndSteps, _summ.flagDirRoot);
 		foreach (a; _summ.areas) {
 			add(null, a.name, a);
 		}
@@ -776,6 +782,46 @@ private:
 			add(null, a.name, a);
 		}
 		_range.showSelection;
+	}
+	void refreshRangeAllCheck() {
+		bool recurse(TreeItem itm) {
+			if (!itm.getChecked) {
+				return true;
+			} else {
+				foreach (child; itm.getItems) {
+					if (recurse(child)) {
+						return true;
+					}
+				}
+				return false;
+			}
+		}
+		foreach (child; _range.getItems) {
+			if (recurse(child)) {
+				_rangeAllCheck.setSelection = false;
+				return;
+			}
+		}
+		_rangeAllCheck.setSelection = true;
+	}
+	class RefRangeAllCheck : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			if (SWT.CHECK != e.detail) return;
+			refreshRangeAllCheck();
+		}
+	}
+	class RangeAllCheck : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			void recurse(TreeItem itm) {
+				itm.setChecked = _rangeAllCheck.getSelection;
+				foreach (child; itm.getItems) {
+					recurse(child);
+				}
+			}
+			foreach (child; _range.getItems) {
+				recurse(child);
+			}
+		}
 	}
 public:
 	this(Commons comm, Props prop, Shell shell, Summary summ) {
@@ -859,12 +905,15 @@ public:
 			auto grp = new Group(right, SWT.NONE);
 			grp.setText = _prop.msgs.searchRange;
 			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-			auto cl = new CenterLayout;
-			cl.fillHorizontal = true;
-			cl.fillVertical = true;
-			grp.setLayout = cl;
+			grp.setLayout = new GridLayout(1, true);
 			_range = new Tree(grp, SWT.SINGLE | SWT.BORDER | SWT.VIRTUAL | SWT.CHECK);
+			_range.addSelectionListener(new RefRangeAllCheck);
+			_range.setLayoutData = new GridData(GridData.FILL_BOTH);
 			refreshRangeTree();
+			_rangeAllCheck = new Button(grp, SWT.CHECK);
+			_rangeAllCheck.setText = _prop.msgs.allCheckRange;
+			refreshRangeAllCheck();
+			_rangeAllCheck.addSelectionListener(new RangeAllCheck);
 		}
 		{
 			auto sep = new Label(_win, SWT.SEPARATOR | SWT.HORIZONTAL);
@@ -1064,23 +1113,27 @@ public:
 			searchErrorImpl;
 		} else assert (0);
 	}
-	/// FIXME: おそらくinterfaceに関するdmdのバグで
-	///        cwxChildsがまったく機能しない。
+	private void searchRange(ref uint count,
+			void delegate(CWXPath path, ref uint count) dlg) {
+		void recurse(TreeItem itm) {
+			auto path = cast(CWXPath) itm.getData;
+			searchAll(path, count, dlg);
+			foreach (child; itm.getItems) {
+				if (child.getChecked) {
+					recurse(child);
+				}
+			}
+		}
+		foreach (itm; _range.getItems) {
+			if (itm.getChecked) {
+				recurse(itm);
+			}
+		}
+	}
 	private void searchAll(CWXPath path, ref uint count,
 			void delegate(CWXPath path, ref uint count) dlg) {
 		dlg(path, count);
-		auto summ = cast(Summary) path;
-		if (summ) {
-			foreach (o; summ.areas) searchAll(o, count, dlg);
-			foreach (o; summ.battles) searchAll(o, count, dlg);
-			foreach (o; summ.packages) searchAll(o, count, dlg);
-			foreach (o; summ.casts) searchAll(o, count, dlg);
-			foreach (o; summ.skills) searchAll(o, count, dlg);
-			foreach (o; summ.items) searchAll(o, count, dlg);
-			foreach (o; summ.beasts) searchAll(o, count, dlg);
-			foreach (o; summ.infos) searchAll(o, count, dlg);
-			searchAll(summ.flagDirRoot, count, dlg);
-		}
+		// _rangeに含まれる要素は再帰的検索から除外する
 		auto fdir = cast(FlagDir) path;
 		if (fdir) {
 			foreach (o; fdir.flags) searchAll(o, count, dlg);
@@ -1108,12 +1161,6 @@ public:
 		auto battle = cast(Battle) path;
 		if (battle) {
 			foreach (o; battle.cards) searchAll(o, count, dlg);
-		}
-		auto casts = cast(CastCard) path;
-		if (casts) {
-			foreach (o; casts.skills) searchAll(o, count, dlg);
-			foreach (o; casts.items) searchAll(o, count, dlg);
-			foreach (o; casts.beasts) searchAll(o, count, dlg);
 		}
 		auto mo = cast(MotionOwner) path;
 		if (mo) {
@@ -1235,7 +1282,7 @@ public:
 			searchUnuseImpl2!("toInfoId(o.id)")(_summ.infos, count);
 		}
 		if (unuseStart) {
-			searchAll(_summ, count, (CWXPath path, ref uint count) {
+			searchRange(count, (CWXPath path, ref uint count) {
 				auto et = cast(EventTree) path;
 				if (et) {
 					foreach (s; et.starts[1 .. $]) {
@@ -1258,7 +1305,7 @@ public:
 		auto sPath = _summ.scenarioPath;
 		auto skin = _comm.skin;
 		reset;
-		searchAll(_summ, count, (CWXPath path, ref uint count) {
+		searchRange(count, (CWXPath path, ref uint count) {
 			auto summ = cast(Summary) path;
 			if (summ) {
 				if (summ.imagePath != "" && !isBinImg(summ.imagePath) && !skin.findPath(summ.imagePath, skin.extImage, skin.tableDir, sPath).length) {
@@ -1587,7 +1634,7 @@ public:
 		_result.setRedraw = false;
 		scope (exit) _result.setRedraw = true;
 		reset;
-		searchAll(_summ, count, &replaceTextImpl);
+		searchRange(count, &replaceTextImpl);
 		setResultStatus(count);
 		if (count > 0) _comm.replText.call;
 
@@ -1672,9 +1719,9 @@ public:
 	private void openPath() {
 		auto itms = _result.getSelection;
 		if (itms.length) {
-			auto rp = cast(CWXPath) itms[0].getData;
+			auto rp = cast(CWXPathString) itms[0].getData;
 			if (rp) {
-				auto path = rp.cwxPath;
+				auto path = rp.array.idup;
 				try {
 					if (_comm.openCWXPath(path)) {
 						_win.setActive;
@@ -1831,7 +1878,7 @@ public:
 		itm.setImage = img;
 		if (desc.length) text = desc ~ " - " ~ text;
 		itm.setText = text;
-		itm.setData = cast(Object) path;
+		itm.setData = new CWXPathString(path.cwxPath);
 	}
 	private bool repl(CWXPath path, string text, void delegate(string) set, ref size_t count) {
 		auto c = fTextCount(text);

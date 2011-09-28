@@ -289,6 +289,8 @@ public:
 	const string replForError() {return "誤り検索";}
 
 	const string searchRange() {return "検索対象";}
+	const string flagsAndSteps() {return "フラグとステップ";}
+	const string allCheckRange() {return "全てチェック/全てチェックを外す";}
 
 	const string allCheck() {return "全てチェック/全てチェックを外す(&L)";}
 
