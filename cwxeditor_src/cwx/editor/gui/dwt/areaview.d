@@ -1876,7 +1876,11 @@ public:
 			auto sels = _cards.getSelection;
 			if (sels.length) {
 				auto card = cast(C) sels[0].getData;
-				path = card.cwxPath;
+				if (card.trees.length) {
+					path = card.trees[0].cwxPath;
+				} else {
+					path = card.cwxPath;
+				}
 			} else {
 				path = area.cwxPath;
 			}
