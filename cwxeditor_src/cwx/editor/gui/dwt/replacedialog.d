@@ -64,7 +64,12 @@ import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.graphics.Image;
 import java.lang.all;
 
-typedef ArrayWrapperString CWXPathString;
+private class CWXPathString {
+	string array;
+	this (string array) {
+		this.array = array;
+	}
+}
 
 /// 検索と置換を行うダイアログ。
 class ReplaceDialog {
@@ -341,6 +346,7 @@ private:
 		_parent.layout(true);
 		_replace.setEnabled = sel !is _tabUnuse && sel !is _tabError;
 		_range.setEnabled = sel !is _tabUnuse;
+		_rangeAllCheck.setEnabled = _range.getEnabled;
 	}
 	class TSListener : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
@@ -1721,7 +1727,7 @@ public:
 		if (itms.length) {
 			auto rp = cast(CWXPathString) itms[0].getData;
 			if (rp) {
-				auto path = rp.array.idup;
+				auto path = rp.array;
 				try {
 					if (_comm.openCWXPath(path)) {
 						_win.setActive;
