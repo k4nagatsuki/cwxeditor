@@ -752,7 +752,11 @@ class FlexEtcProps : Properties {
 	} else {
 		mixin Property!("outerTools", OuterTool[], []);
 	}
-	mixin Property!("ignorePaths", string[], [".*"]);
+	version (Windows) {
+		mixin Property!("ignorePaths", string[], [".*", "Thumbs.db"]);
+	} else {
+		mixin Property!("ignorePaths", string[], [".*"]);
+	}
 
 	mixin Property!("selectedArchiveFilter", string, "zip");
 
