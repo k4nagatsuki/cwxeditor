@@ -1188,14 +1188,14 @@ public:
 		setResultStatus(count);
 		if (count > 0) _comm.replText.call;
 
-		void addHist(Combo combo, void delegate(string[]) set,
+		static void addHist(Combo combo, void delegate(string[]) set,
 				string[] delegate() get, int max, string text) {
 			if (text.length) {
 				string[] list = get();
 				if (.contains(list, text)) {
 					list = cwx.utils.remove(list, text);
 				}
-				list = [from] ~ list;
+				list = [text] ~ list;
 				if (list.length > max) {
 					list = list[0 .. $ - 1];
 				}
