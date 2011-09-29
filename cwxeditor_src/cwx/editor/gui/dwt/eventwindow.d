@@ -164,6 +164,9 @@ public:
 			shell.setMenuBar = bar;
 		} else {
 			appendMenuTCPD(_prop, this, this, true, true, true, true);
+			static if (is(A : Area) || is(A : Battle)) {
+				putMenuAction(MenuID.EditScene, &openScene);
+			}
 			putMenuAction(MenuID.Undo, &_eview.undo);
 			putMenuAction(MenuID.Redo, &_eview.redo);
 			putMenuAction(MenuID.Up, &_eview.up);

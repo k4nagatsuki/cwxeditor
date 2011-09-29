@@ -1531,9 +1531,15 @@ public:
 				}
 				auto itm = _cards.getItem(index + 1);
 				path = cpbottom(path);
-				cate = cpcategory(path);
-				index = cpindex(path);
-				return open(itm);
+				if (cpempty(path)) {
+					.forceFocus(_cards);
+					__select(itm);
+					return true;
+				} else {
+					cate = cpcategory(path);
+					index = cpindex(path);
+					return open(itm);
+				}
 			}
 		}
 		switch (cate) {
@@ -1542,12 +1548,12 @@ public:
 		} break;
 		case "menucard": {
 			static if (is(C : MenuCard)) {
-				return card;
+				return card();
 			}
 		} break;
 		case "enemycard": {
 			static if (is(C : EnemyCard)) {
-				return card;
+				return card();
 			}
 		} break;
 		case "": {

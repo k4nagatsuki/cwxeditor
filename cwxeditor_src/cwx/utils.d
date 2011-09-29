@@ -71,14 +71,40 @@ shared string debugLog = "cwxeditor_error.log";
 private __gshared BufferedFile debugLogFile = null;
 
 /// デバグログを生成する。
+string debugString(T)(ref T v) {
+	static if (is(T : Throwable)) {
+		char[] trace;
+		if (v.info) {
+			foreach (file; v.info) {
+				if (trace.length) {
+					trace ~= " - ".dup;
+				}
+				try {
+					for (size_t i = 0; i < file.length; i++) {
+						char c = file[i];
+						// FIXME: これだけでリンクに失敗する！！
+//						.validate([c]);
+						.format("%s", [c]); // validateの代替
+						trace ~= c;
+					}
+				} catch (Exception e) {
+					/// infoには妥当でない文字列が含まれている
+					/// 可能性があるので、単に無視する
+				}
+			}
+		}
+		return .format("%s, %s, %d: %s", v.msg, v.file, v.line, trace);
+	} else static if (is(typeof(v.msg)) && is(typeof(v.file)) && is(typeof(v.line))) {
+		return .format("%s, %s, %d", v.msg, v.file, v.line);
+	} else {
+		return .to!string(v);
+	}
+}
+/// ditto
 string createDebugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) {
 	char[] buf = format("%s:%d ", F, L).dup;
 	foreach (v; vals) {
-		static if (is(typeof(v.msg)) && is(typeof(v.file)) && is(typeof(v.line))) {
-			buf ~= format("%s, %s, %d", v.msg, v.file, v.line);
-		} else {
-			buf ~= to!(string)(v);
-		}
+		buf ~= debugString(v);
 	}
 	auto d = Clock.currTime;
 	int year = d.year;

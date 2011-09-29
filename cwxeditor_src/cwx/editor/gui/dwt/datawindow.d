@@ -499,10 +499,10 @@ public:
 		bool isScene = cpempty(path)
 			|| ((cate == "menucard" || cate == "enemycard") && cpempty(cpbottom(path)))
 			|| cate == "background";
-		string aPath = a.cwxPath;
-		static if (UseArea && UseFlag) {
-			tabf.setSelection = tabA;
+		if (isScene && cpattr(path).contains("eventview")) {
+			isScene = false;
 		}
+		string aPath = a.cwxPath;
 		if (isScene) {
 			auto sw2 = _comm.areaWindowFrom(aPath);
 			if (sw2) {

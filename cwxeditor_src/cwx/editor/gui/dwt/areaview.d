@@ -1287,6 +1287,10 @@ private:
 			createMenuItem(menu, _prop.msgs.menuCEdit, _prop.images.menuCEdit, &edit);
 			new MenuItem(menu, SWT.SEPARATOR);
 			appendMenuTCPD(_prop, menu, _tcpd, true, true, true, true);
+			static if (is(A : Area) || is(A : Battle)) {
+				new MenuItem(menu, SWT.SEPARATOR);
+				createMenuItem(menu, _prop.msgs.menuEditEvent, _prop.images.menuEditEvent, &openEvent);
+			}
 			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(menu, _prop.msgs.menuPosTop, _prop.images.menuPosTop, &posTop);
 			createMenuItem(menu, _prop.msgs.menuPosBottom, _prop.images.menuPosBottom, &posBottom);
@@ -1522,6 +1526,10 @@ private:
 			});
 			new MenuItem(menu, SWT.SEPARATOR);
 			appendMenuTCPD(_prop, menu, tcpd, true, true, true, true);
+			static if ((is(A : Area) || is(A : Battle)) && is(C : AbstractSpCard)) {
+				new MenuItem(menu, SWT.SEPARATOR);
+				createMenuItem(menu, _prop.msgs.menuEditEvent, _prop.images.menuEditEvent, &openEvent);
+			}
 			list.setMenu(menu);
 			usingPopupMenuAccelerator(list);
 		}
@@ -1860,6 +1868,21 @@ public:
 	}
 	Summary summary() {
 		return _summ;
+	}
+	static if (is(A : Area) || is(A : Battle)) {
+		void openEvent() {
+			if (!_summ) return;
+			string path;
+			auto sels = _cards.getSelection;
+			if (sels.length) {
+				auto card = cast(C) sels[0].getData;
+				path = card.cwxPath;
+			} else {
+				path = area.cwxPath;
+			}
+			path = cpaddattr(path, "eventview");
+			_comm.openCWXPath(path);
+		}
 	}
 	void refreshR(string from, string to) {
 		refresh;
@@ -2438,12 +2461,6 @@ public:
 		}
 		static if (UseBacks) {
 			createMenuItem(mv, _prop.msgs.menuNewBack, _prop.images.menuNewBack, &createBackground);
-		}
-	}
-
-	static if (is(A : Area) || is(A : Battle)) {
-		void openEvent() {
-			_comm.openAreaEvent(_prop, _summ, _area);
 		}
 	}
 

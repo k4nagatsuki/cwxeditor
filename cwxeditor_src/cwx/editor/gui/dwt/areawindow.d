@@ -235,6 +235,8 @@ public:
 				putMenuAction(MenuID.WriteComment, &writeComment);
 				putMenuAction(MenuID.ToScript, &toScript);
 				putMenuAction(MenuID.ToScriptAll, &toScriptAll);
+			} else {
+				putMenuAction(MenuID.EditEvent, &openEvent);
 			}
 			putMenuAction(MenuID.Refresh, &refresh);
 		}
@@ -388,9 +390,8 @@ public:
 	void undo() {_undo.undo;}
 	void redo() {_undo.redo;}
 
-
 	void openEvent() {
-		_comm.openAreaEvent(_prop, _summ, _area);
+		_aview.openEvent();
 	}
 
 	static if (WithEventView) {
@@ -466,6 +467,11 @@ public:
 				_tabf.setSelection = _tabA;
 			}
 			return true;
+		} else if (cpattr(path).contains("eventview")) {
+			static if (WithEventView) {
+				_eview.initial;
+				return _eview.openCWXPath(path);
+			}
 		} else if (((cate == "menucard" || cate == "enemycard")
 				&& cpempty(cpbottom(path)))
 				|| cate == "background") {

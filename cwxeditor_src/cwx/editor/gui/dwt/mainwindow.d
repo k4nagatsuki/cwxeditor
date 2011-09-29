@@ -2116,22 +2116,7 @@ public:
 					}
 				} catch (Throwable e) {
 					_win.setVisible = true;
-					char[] trace;
-					if (e.info) {
-						foreach (file; e.info) {
-							if (trace.length) {
-								trace ~= " - ".dup;
-							}
-							try {
-								for (size_t i = 0; i < file.length; i++) {
-									std.utf.validate([file[i]]);
-									trace ~= file[i];
-								}
-							} catch (Exception e) {
-							}
-						}
-					}
-					fdebugln(.format("%s, %s, %d: %s", e.msg, e.file, e.line, trace));
+					fdebugln(e);
 					auto dlg = new MessageBox(_win, SWT.ICON_ERROR | SWT.OK);
 					dlg.setText = _prop.msgs.dlgTitError;
 					dlg.setMessage = _prop.msgs.unknownError ~ "\n---\n" ~ e.msg;
