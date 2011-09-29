@@ -312,7 +312,7 @@ private:
 	class MListener : MouseAdapter {
 		public override void mouseDown(MouseEvent e) {
 			if (e.button == 2) {
-				openAreaEvent();
+				openAreaEvent(e.x, e.y);
 			}
 		}
 		public override void mouseDoubleClick(MouseEvent e) {
@@ -672,24 +672,35 @@ public:
 			}
 		}
 	}
+	void openAreaEvent(int x, int y) {
+		auto itm = _areas.getItem(new Point(x, y));
+		if (itm) {
+			openAreaEvent(cast(AbstractArea) itm.getData);
+		} else {
+			openAreaEvent();
+		}
+	}
 	void openAreaEvent() {
 		auto area = getSelectionArea;
 		if (area) {
-			auto a = cast(Area) area;
-			if (a) {
-				openAreaEventImpl(a);
-				return;
-			}
-			auto b = cast(Battle) area;
-			if (b) {
-				openAreaEventImpl(b);
-				return;
-			}
-			auto p = cast(Package) area;
-			if (p) {
-				_comm.openArea(_prop, _summ, p);
-				return;
-			}
+			openAreaEvent(area);
+		}
+	}
+	void openAreaEvent(AbstractArea area) {
+		auto a = cast(Area) area;
+		if (a) {
+			openAreaEventImpl(a);
+			return;
+		}
+		auto b = cast(Battle) area;
+		if (b) {
+			openAreaEventImpl(b);
+			return;
+		}
+		auto p = cast(Package) area;
+		if (p) {
+			_comm.openArea(_prop, _summ, p);
+			return;
 		}
 	}
 
