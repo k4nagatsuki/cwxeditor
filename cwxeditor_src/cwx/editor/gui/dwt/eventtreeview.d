@@ -1328,7 +1328,7 @@ private:
 	}
 
 	/// 使用数とツリー毎の区切り線の描画。
-	void drawStartInfo(PaintEvent e) {
+	void drawStartInfo(PaintEvent e, Color lineColor, Color fontColor) {
 		if (!_et) return;
 		if (!_prop.var.etc.drawCountOfUseOfStart && !_prop.var.etc.drawContentTreeLine) return;
 		auto d = _tree.getDisplay;
@@ -1356,27 +1356,23 @@ private:
 			if (b.y + b.height <= ca.y) continue;
 			if (ca.y + ca.height < b.y) break;
 			if (_prop.var.etc.drawContentTreeLine && 0 < i) {
-				e.gc.setAlpha = 64;
-				e.gc.setBackground = fore;
-				scope (exit) {
-					e.gc.setAlpha = 255;
-					e.gc.setBackground = back;
-				}
-				e.gc.fillRectangle(0, b.y, ca.width, 1);
+				e.gc.setForeground = lineColor;
+				scope (exit) e.gc.setForeground = fore;
+				e.gc.drawLine(0, b.y, ca.width, b.y);
 			}
 			if (_prop.var.etc.drawCountOfUseOfStart) {
 				string t = counts[i];
 				int tx = ca.width - maxW - 5;
 				int ty = b.y + (b.height - h) / 2;
 				e.gc.drawString(t, tx, ty);
-				e.gc.setAlpha = 128;
+				e.gc.setForeground = fontColor;
+				scope (exit) e.gc.setForeground = fore;
 				e.gc.drawString(_prop.msgs.startUseCount, tx - ucExtent.x - 5, ty);
-				e.gc.setAlpha = 255;
 			}
 		}
 	}
 	/// コメントの描画。
-	void drawComment(PaintEvent e) {
+	void drawComment(PaintEvent e, Color lineColor) {
 		auto fore = e.gc.getForeground;
 		auto back = e.gc.getBackground;
 		auto font = e.gc.getFont;
@@ -1397,6 +1393,8 @@ private:
 		int mny = itms[0].getBounds.y;
 		auto bb = itms[$ - 1].getBounds;
 		int mxy = bb.y + bb.height;
+		int alpha = e.gc.getAlpha;
+		auto lineHeight = e.gc.getFontMetrics.getHeight;
 		foreach (i, itm; itms) {
 			auto c = cast(Content) itm.getData;
 			string cm = c.comment;
@@ -1405,11 +1403,13 @@ private:
 				static const MARGIN_T = 4;
 				int dis = _prop.var.etc.commentBoxDistance;
 				auto ib = itm.getBounds;
+				cm = std.string.chomp(cm);
 				auto te = e.gc.textExtent(cm);
 				// 改行文字があると横幅がおかしくなるため
 				// 測り直す
 				te.x = 0;
-				foreach (line; splitLines(cm)) {
+				auto lines = splitLines(cm);
+				foreach (line; lines) {
 					te.x = max(e.gc.textExtent(line).x, te.x);
 				}
 				int tx = ib.x + ib.width + dis;
@@ -1426,26 +1426,44 @@ private:
 					ty -= by + bh - mxy;
 					by = ty - MARGIN_T;
 				}
+
 				e.gc.setAlpha = 128;
 				e.gc.fillRectangle(bx, by, bw, bh);
-				e.gc.setAlpha = 255;
-				e.gc.drawString(cm, tx, ty, true);
-				e.gc.setBackground = fore;
+				e.gc.setAlpha = alpha;
+
+				// FIXME: 場合によって改行が反映されない
+//				e.gc.drawString(cm, tx, ty, true);
+				foreach (line; lines) {
+					e.gc.drawString(line, tx, ty, true);
+					ty += lineHeight;
+				}
+				int px = ib.x + ib.width + 2;
+				int py = ib.y + ib.height / 2 - 1;
+				// FIXME: 一度でもsetAlpha()を呼び出すと描画されなくなる
+//				e.gc.drawRectangle(bx, by, bw, bh);
+//				e.gc.drawLine(px, py, px + dis - MARGIN_L - 2, py);
+				e.gc.setBackground = lineColor;
 				scope (exit) e.gc.setBackground = back;
-				e.gc.setAlpha = 64;
+				e.gc.fillRectangle(px, py, dis - MARGIN_L - 2, 1);
 				e.gc.fillRectangle(bx, by, bw, 1);
 				e.gc.fillRectangle(bx, by + bh - 1, bw, 1);
 				e.gc.fillRectangle(bx, by + 1, 1, bh - 2);
 				e.gc.fillRectangle(bx + bw - 1, by + 1, 1, bh - 2);
-				e.gc.fillRectangle(ib.x + ib.width + 2, ib.y + ib.height / 2 - 1, dis - MARGIN_L - 2, 1);
-				e.gc.setAlpha = 255;
 			}
 		}
 	}
 	class PaintTree : PaintListener {
 		override void paintControl(PaintEvent e) {
-			drawStartInfo(e);
-			drawComment(e);
+			auto d = _tree.getDisplay;
+			auto fore = e.gc.getForeground;
+			auto back = e.gc.getBackground;
+			auto lineColor = new Color(d, alphaColor(fore.getRGB, back.getRGB, 64));
+			scope (exit) lineColor.dispose();
+			auto fontColor = new Color(d, alphaColor(fore.getRGB, back.getRGB, 128));
+			scope (exit) fontColor.dispose();
+
+			drawStartInfo(e, lineColor, fontColor);
+			drawComment(e, lineColor);
 		}
 	}
 public:

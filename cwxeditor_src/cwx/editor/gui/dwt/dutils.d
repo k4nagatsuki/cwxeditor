@@ -2399,3 +2399,16 @@ void resetCursors(Cursor[Shell] cursors) {
 		shl.setCursor = cur;
 	}
 }
+
+/// 前景色cを背景色bに対して透明度aで描画した時の色を返す。
+RGB alphaColor(in RGB c, in RGB b, int a) {
+	if (a < 0) a = 0;
+	if (255 < a) a = 255;
+	int oc(int c, int b) {
+		if (c == b) return c;
+		int mx = std.algorithm.max(c, b);
+		int mn = std.algorithm.min(c, b);
+		return mn + (mx - mn) - cast(int) ((mx - mn) * (a / 255.0));
+	}
+	return new RGB(oc(c.red, b.red), oc(c.green, b.green), oc(c.blue, b.blue));
+}

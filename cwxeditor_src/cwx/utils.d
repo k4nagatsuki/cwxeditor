@@ -94,8 +94,6 @@ string debugString(T)(ref T v) {
 			}
 		}
 		return .format("%s, %s, %d: %s", v.msg, v.file, v.line, trace);
-	} else static if (is(typeof(v.msg)) && is(typeof(v.file)) && is(typeof(v.line))) {
-		return .format("%s, %s, %d", v.msg, v.file, v.line);
 	} else {
 		return .to!string(v);
 	}
@@ -104,7 +102,11 @@ string debugString(T)(ref T v) {
 string createDebugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) {
 	char[] buf = format("%s:%d ", F, L).dup;
 	foreach (v; vals) {
-		buf ~= debugString(v);
+		static if (is(typeof(v) : Throwable)) {
+			buf ~= debugString(v);
+		} else {
+			buf ~= .to!string(v);
+		}
 	}
 	auto d = Clock.currTime;
 	int year = d.year;
