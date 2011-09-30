@@ -675,6 +675,7 @@ public:
 	void openAreaEvent(int x, int y) {
 		auto itm = _areas.getItem(new Point(x, y));
 		if (itm) {
+			_areas.setSelection = [itm];
 			openAreaEvent(cast(AbstractArea) itm.getData);
 		} else {
 			openAreaEvent();
