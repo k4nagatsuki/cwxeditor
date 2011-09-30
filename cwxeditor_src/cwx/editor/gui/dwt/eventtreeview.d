@@ -157,7 +157,13 @@ private:
 				create(null);
 			} else if (e.button == 2 && !_arrowMode) {
 				auto itm = _tree.getItem(new Point(e.x, e.y));
-				if (itm) create(itm);
+				if (itm && CDetail.fromType(_cType).owner) {
+					auto c = cast(Content) itm.getData;
+					if (c.parent) {
+						_tree.setSelection = [itm];
+						create(itm);
+					}
+				}
 			} else if (e.button == 3) {
 				arrow;
 			}
