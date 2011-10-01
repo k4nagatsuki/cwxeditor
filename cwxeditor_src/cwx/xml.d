@@ -25,6 +25,10 @@ struct XNode {
 	}
 	/// xmlの処理を開始する。
 	static XNode parse(string xml) {
+		if (3 <= xml.length && (xml[0] == 0xef && xml[1] == 0xbb && xml[2] == 0xbf)) {
+			// BOMがあった場合は取り除く
+			xml = xml[3 .. $];
+		}
 		XNode node;
 		node._el = ps!(Document)(new DocumentParser(xml));
 		return node;
