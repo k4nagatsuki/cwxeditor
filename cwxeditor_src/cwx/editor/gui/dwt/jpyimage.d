@@ -105,7 +105,8 @@ private ImageData loadJPYImageImpl(Skin skin, string path, string[] stratum) {
 			}
 			auto fname = std.path.buildPath(dir, sec.filename);
 			if (!exists(fname)) continue;
-			data = loadImage(skin, fname, false, 0, 0, stratum ~ nabs(fname));
+			data = loadImage(skin, fname, false, 0, 0, stratum);
+			stratum ~= nabs(fname);
 		}
 		int dtw = data && data.width > 0 ? data.width : pw;
 		int dth = data && data.height > 0 ? data.height : ph;

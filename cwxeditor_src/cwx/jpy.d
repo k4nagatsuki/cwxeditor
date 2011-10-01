@@ -7,6 +7,7 @@ import cwx.sjis;
 
 import std.array;
 import std.conv;
+import std.exception;
 import std.string;
 import std.regex;
 import std.utf;
@@ -146,6 +147,16 @@ private {
 	bool boolVal(string value) {return value == "1";}
 }
 
+private string readJPYFile(string path) {
+	auto value = cast(char[]) std.file.read(path);
+	try {
+		validate(value);
+		return assumeUnique(value);
+	} catch {
+		return touni(value);
+	}
+}
+
 private string stripValue(string eqAfter) {
 	auto value = astrip(eqAfter);
 	if (value.length >= 2 && value[0] == '"' && value[$ - 1] == '"') {
@@ -161,7 +172,7 @@ struct Jpy1 {
 	/// pathからJpy1を読込む。
 	static Jpy1 load(string path) {
 		Jpy1 r;
-		foreach (line; splitLines(cast(string) std.file.read(path))) {
+		foreach (line; splitLines(readJPYFile(path))) {
 			line = astrip(line);
 			if (!line.length || line[0] == ';') continue;
 			if (line[0] == '[' && line[$ - 1] == ']') {
@@ -694,7 +705,7 @@ struct Jptx {
 		bool textFirst = true;
 		bool init = false;
 		bool text = false;
-		foreach (line; splitLines(cast(string) std.file.read(path))) {
+		foreach (line; splitLines(readJPYFile(path))) {
 			auto sline = astrip(line);
 			if (!text && sline.length && sline[0] == ';') continue;
 			if (sline.length && sline[0] == '[' && sline[$ - 1] == ']') {
@@ -787,7 +798,7 @@ struct Jpdc {
 	static Jpdc load(string path) {
 		Jpdc r;
 		bool init = false;
-		foreach (line; splitLines(cast(string) std.file.read(path))) {
+		foreach (line; splitLines(readJPYFile(path))) {
 			line = astrip(line);
 			if (!line.length || line[0] == ';') continue;
 			if (line[0] == '[' && line[$ - 1] == ']') {
