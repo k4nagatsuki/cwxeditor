@@ -780,7 +780,7 @@ class Skin {
 		try {
 			_path = dirName(fname);
 			_skinFile = fname;
-			scope sNode = XNode.parse(cast(string) std.file.read(fname));
+			scope sNode = XNode.parse(std.file.readText(fname));
 			_races.length = 0;
 			sNode.onTag["Property"] = (ref XNode pNode) {
 				pNode.onTag["Name"] = (ref XNode n) {_name = n.value;};

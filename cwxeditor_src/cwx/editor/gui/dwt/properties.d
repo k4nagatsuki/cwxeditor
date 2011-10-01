@@ -837,7 +837,7 @@ public class FlexProps {
 		}
 		try {
 			if (.exists(confFileName)) {
-				auto node = XNode.parse(cast(string) std.file.read(confFileName));
+				auto node = XNode.parse(std.file.readText(confFileName));
 				node.onTag["location"] = (ref XNode node) {
 					if (0 == icmp(node.value, "standard")) {
 						loc = IniLocation.STANDARD;
@@ -884,7 +884,7 @@ public class FlexProps {
 		_path = std.path.buildPath(dir, iniFileName);
 		if (exists(_path)) {
 			try {
-				auto node = XNode.parse(cast(string) read(_path));
+				auto node = XNode.parse(std.file.readText(_path));
 				if (node.name == "cwxeditor" || node.name == "CWXEditor") {
 					foreach (i, fld; this.tupleof) {
 						this.tupleof[i] = fromNode(node, fld);
@@ -938,7 +938,7 @@ public class FlexProps {
 			int retryCount = 0;
 			while (!r) {
 				try {
-					auto text = cast(string) read(_path);
+					auto text = std.file.readText(_path);
 					auto node = XNode.parse(text);
 					void df(ref XNode node) {
 						r = DockingFolderCTC.fromNode(node, parent, style, create);

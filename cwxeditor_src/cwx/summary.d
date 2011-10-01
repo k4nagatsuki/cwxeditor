@@ -79,7 +79,7 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 					p = std.path.buildPath(targPath, p);
 					if (!isDir(p) && cfnmatch(cwx.utils.getExt(p), "xml")) {
 						try {
-							__loadXMLCommon(cast(string) std.file.read(p), name, areas, uc, change, ver);
+							__loadXMLCommon(std.file.readText(p), name, areas, uc, change, ver);
 						} catch (Exception e) {
 							throw new FileLoadException(p, e);
 						}
@@ -1316,7 +1316,7 @@ public:
 	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
 	/// FileLoadException = Summary.xml以外での読込例外発生時。
 	private static Summary fromXMLs(string path) {
-		auto summ = summaryFromXML(dirName(path), cast(string) std.file.read(path));
+		auto summ = summaryFromXML(dirName(path), std.file.readText(path));
 		fromXMLs(summ);
 		return summ;
 	}
@@ -1328,7 +1328,7 @@ public:
 			summ = loadLScenario!(S)(scenarioPath, "", doubleIO, scenarioName);
 		} else {
 			summ = summaryFromXML(scenarioPath,
-				cast(string) std.file.read(std.path.buildPath(scenarioPath, "Summary.xml")));
+				std.file.readText(std.path.buildPath(scenarioPath, "Summary.xml")));
 			fromXMLs(summ);
 		}
 		summ._expandXMLs = expandXMLs;
@@ -1781,7 +1781,7 @@ public:
 	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
 	/// FileLoadException = Summary.xml以外での読込例外発生時。
 	static CardContainer fromXMLs(string path) {
-		scope summNode = XNode.parse(cast(string) std.file.read(path));
+		scope summNode = XNode.parse(std.file.readText(path));
 		if (summNode.name == "Summary") {
 			string par = dirName(path);
 			string ver;

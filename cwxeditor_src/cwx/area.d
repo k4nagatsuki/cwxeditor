@@ -774,7 +774,7 @@ public:
 	/// XmlException = XMLパースエラー発生時。
 	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
 	static Area loadFromXML(string path, string ver) {
-		scope doc = XNode.parse(cast(string) std.file.read(path));
+		scope doc = XNode.parse(std.file.readText(path));
 		if (doc.name == "Area") {
 			return createFromNode(doc, ver);
 		}
@@ -961,7 +961,7 @@ public:
 	/// XmlException = XMLパースエラー発生時。
 	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
 	static Package loadFromXML(string path, string ver) {
-		scope doc = XNode.parse(cast(string) std.file.read(path));
+		scope doc = XNode.parse(std.file.readText(path));
 		if (doc.name == "Package") {
 			return createFromNode(doc, ver);
 		}
@@ -1146,7 +1146,7 @@ public:
 	/// XmlException = XMLパースエラー発生時。
 	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
 	static Battle loadFromXML(string path, string ver) {
-		scope doc = XNode.parse(cast(string) std.file.read(path));
+		scope doc = XNode.parse(std.file.readText(path));
 		if (doc.name == "Battle") {
 			return createFromNode(doc, ver);
 		}
