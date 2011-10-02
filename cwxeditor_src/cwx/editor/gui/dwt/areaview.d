@@ -1829,8 +1829,8 @@ public:
 				}
 				target.addDropListener(new IPDropTarget);
 			}
-			static if (UseBacks) appendBgImages(0, area.backs, false);
-			static if (UseCards) appendCards(0, area.cards, false);
+			static if (UseBacks) appendBgImages(0, area.backs, false, false);
+			static if (UseCards) appendCards(0, area.cards, false, false);
 			appendPartyCards();
 		}
 		static if (is(A : Battle) && is(C : EnemyCard)) {
@@ -2728,12 +2728,12 @@ public:
 			img.addResizeListener(&resizeImageC);
 			return img;
 		}
-		private void appendCards(int index, C[] cards, bool select = false) {
+		private void appendCards(int index, C[] cards, bool select, bool raiseEvent) {
 			FlexImage[] imgs;
 			foreach (i, card; cards) {
 				auto img = create(card);
 				imgs ~= img;
-				_comm.addMenuCard.call(card.cwxPath);
+				if (raiseEvent) _comm.addMenuCard.call(card.cwxPath);
 			}
 			_imgp.insert(cardsIndex + index, imgs);
 			foreach (i, c; cards) {
@@ -2859,7 +2859,7 @@ public:
 			img.addResizeListener(&resizeImageB);
 			return img;
 		}
-		private void appendBgImages(int index, BgImage[] backs, bool select = false) {
+		private void appendBgImages(int index, BgImage[] backs, bool select, bool raiseEvent) {
 			FlexImage[] imgs;
 			foreach (back; backs) {
 				imgs ~= create(back);
@@ -2871,7 +2871,7 @@ public:
 				itm.setData = b;
 				itm.setChecked = true;
 				itm.setText = baseName(b.path);
-				_comm.addBgImage.call(b.cwxPath);
+				if (raiseEvent) _comm.addBgImage.call(b.cwxPath);
 			}
 			if (select && _viewBacks) _imgp.select(imgs);
 			callModEvent();
@@ -3211,14 +3211,14 @@ public:
 								addB ~= index;
 								_area.insert(index, b);
 							}
-							appendBgImages(iib, bs, true);
+							appendBgImages(iib, bs, true, true);
 							auto iic = insertIndex(_cards);
 							foreach (i, c; cs) {
 								int index = iic + i;
 								addC ~= index;
 								_area.insert(index, c);
 							}
-							appendCards(iic, cs, true);
+							appendCards(iic, cs, true, true);
 							if (_viewCards || _viewBacks) _imgp.redraw;
 							refreshSelected;
 							_comm.refUseCount.call;
@@ -3274,7 +3274,7 @@ public:
 									addC ~= index;
 									_area.insert(index, c);
 								}
-								appendCards(insertIndex(_cards), cs, true);
+								appendCards(insertIndex(_cards), cs, true, true);
 								if (_viewCards) _imgp.redraw;
 								refreshSelected;
 								_comm.refUseCount.call;
@@ -3330,7 +3330,7 @@ public:
 									addB ~= index;
 									_area.insert(index, b);
 								}
-								appendBgImages(insertIndex(_backs), bs, true);
+								appendBgImages(insertIndex(_backs), bs, true, true);
 								if (_viewBacks) _imgp.redraw;
 								refreshSelected;
 								_comm.refUseCount.call;

@@ -82,7 +82,7 @@ string debugString(T)(ref T v) {
 				try {
 					for (size_t i = 0; i < file.length; i++) {
 						char c = file[i];
-						// FIXME: これだけでリンクに失敗する！！
+						// FIXME: これだけでOPTLINKがエラーを吐く！
 //						.validate([c]);
 						.format("%s", [c]); // validateの代替
 						trace ~= c;
@@ -93,7 +93,7 @@ string debugString(T)(ref T v) {
 				}
 			}
 		}
-		return .format("%s, %s, %d: %s", v.msg, v.file, v.line, trace);
+		return .format("[%s] %s, %d: %s", v.toString, v.file, v.line, trace);
 	} else {
 		return .to!string(v);
 	}
