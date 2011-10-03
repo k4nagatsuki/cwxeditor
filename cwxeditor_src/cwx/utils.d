@@ -104,8 +104,10 @@ string createDebugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) {
 	foreach (v; vals) {
 		static if (is(typeof(v) : Throwable)) {
 			buf ~= debugString(v);
+		} else static if (is(typeof(v) : string)) {
+			buf ~= v;
 		} else {
-			buf ~= .to!string(v);
+			buf ~= debugString(v);
 		}
 	}
 	auto d = Clock.currTime;

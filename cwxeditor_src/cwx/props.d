@@ -2429,7 +2429,7 @@ public:
 	const int summaryLevelY() {return 15;}
 	const int summaryTitleY() {return 35;}
 	const CPoint summaryDescXY() {return CPoint(65, 175);}
-	const int summaryDescLen() {return 38;}
+	const int summaryDescLen() {return 40;}
 	const int summaryDescLine() {return 11;}
 	const int summaryPageY() {return 340;}
 	const CRGB summaryLevelColor() {return CRGB(32, 128, 128);}
