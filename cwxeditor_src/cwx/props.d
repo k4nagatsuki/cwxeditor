@@ -2152,7 +2152,7 @@ public:
 	int summaryLevelY() {return 15;}
 	int summaryTitleY() {return 35;}
 	CPoint summaryDescXY() {return CPoint(65, 175);}
-	int summaryDescLen() {return 38;}
+	int summaryDescLen() {return 39;}
 	int summaryDescLine() {return 11;}
 	int summaryPageY() {return 340;}
 	CRGB summaryLevelColor() {return CRGB(32, 128, 128);}
