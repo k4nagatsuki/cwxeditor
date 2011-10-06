@@ -716,6 +716,15 @@ class Commons {
 		}
 		return null;
 	}
+	HandCardWindow handCardWindowFrom(Props prop, Summary summ, CastCard c) {
+		foreach (w; _ws) {
+			auto tlpData = (cast(TLPData) w.getData);
+			if (tlpData.main is c) {
+				return cast(HandCardWindow) tlpData.tlp;
+			}
+		}
+		return openHands(prop, summ, c);
+	}
 
 	private HashSet!(Composite) _aws;
 	private void addScenarioImpl(Object[] ws) {

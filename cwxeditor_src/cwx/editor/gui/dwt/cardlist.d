@@ -525,6 +525,7 @@ public:
 	/// index = インデックス。
 	void scroll(int index) {
 		if (index < 0 || _items.length <= index) return;
+		calcBounds();
 		auto itm = _items[index];
 		void __scroll(ScrollBar bar, int left, int width, void delegate(int) scr,
 				bool delegate(int) isFirst, bool delegate(int) isLast, int margin, int space) {
@@ -601,6 +602,26 @@ private:
 			bar.setSelection = y;
 			_origin.y = bar.getSelection;
 			redraw;
+		}
+	}
+	void calcBounds() {
+		if (_items.length == 0) return;
+		auto rect = getClientArea;
+		int w = rect.width;
+		int index, iy, ix;
+		int x;
+		int y = _marginY - _origin.y;
+		for (iy = 0; iy < _line; iy++) {
+			x = _marginX - _origin.x;
+			for (ix = 0; ix < _wrap && (index = iy * _wrap + ix) < _items.length; ix++) {
+				auto itm = _items[index];
+				itm.x = x;
+				itm.y = y;
+				x += _itmW;
+				x += _spaceX;
+			}
+			y += _itmH;
+			y += _spaceY;
 		}
 	}
 	void __repaint(GC gc) {

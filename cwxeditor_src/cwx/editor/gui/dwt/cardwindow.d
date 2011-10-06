@@ -987,6 +987,9 @@ private:
 					} else static if (is (C == InfoCard)) {
 						_comm.refInfo.remove(&refCardCallback);
 					}
+					foreach (w; _editDlgs.values) {
+						w.forceCancel();
+					}
 				}
 			});
 			static if (is (C == CastCard)) {
@@ -1104,6 +1107,30 @@ public:
 		}
 	}
 	static if (EditMode) {
+		void open() {
+			static if (is(CardOwner : Summary)) {
+				static if (is(C : CastCard)) {
+					_comm.openCastWin();
+				} else static if(is(C : SkillCard)) {
+					_comm.openSkillWin();
+				} else static if(is(C : ItemCard)) {
+					_comm.openItemWin();
+				} else static if(is(C : BeastCard)) {
+					_comm.openBeastWin();
+				} else static if(is(C : InfoCard)) {
+					_comm.openInfoWin();
+				} else static assert (0);
+			} else static if (is(CardOwner : CastCard)) {
+				auto cWin = _comm.handCardWindowFrom(_prop, _summ, _owner);
+				static if(is(C : SkillCard)) {
+					cWin.open!(cWin.SKILL)();
+				} else static if (is(C : ItemCard)) {
+					cWin.open!(cWin.ITEM)();
+				} else static if (is(C : BeastCard)) {
+					cWin.open!(cWin.BEAST)();
+				}
+			} else static assert (0);
+		}
 		void create() {
 			static if (is (C == CastCard)) {
 				auto c = new CastCard(0, "", "", "", 1, 1);
@@ -1118,17 +1145,7 @@ public:
 				static assert (0);
 			}
 			dlg.appliedEvent ~= {
-				static if (is(C : CastCard)) {
-					_comm.openCastWin();
-				} else static if(is(C : SkillCard)) {
-					_comm.openSkillWin();
-				} else static if(is(C : ItemCard)) {
-					_comm.openItemWin();
-				} else static if(is(C : BeastCard)) {
-					_comm.openBeastWin();
-				} else static if(is(C : InfoCard)) {
-					_comm.openInfoWin();
-				} else static assert (0);
+				open();
 				auto c = dlg.card;
 				_owner.add(c);
 				refresh;
@@ -1191,17 +1208,7 @@ public:
 				node.parse;
 			}
 			if (adds.length == 0) return false;
-			static if (is(C : CastCard)) {
-				_comm.openCastWin();
-			} else static if(is(C : SkillCard)) {
-				_comm.openSkillWin();
-			} else static if(is(C : ItemCard)) {
-				_comm.openItemWin();
-			} else static if(is(C : BeastCard)) {
-				_comm.openBeastWin();
-			} else static if(is(C : InfoCard)) {
-				_comm.openInfoWin();
-			} else static assert (0);
+			open();
 			foreach (card; adds) {
 				static if (is (CardOwner == Summary)) {
 					ulong oldId = _owner.add(card);
@@ -1419,23 +1426,27 @@ private:
 			_pane[Index].create;
 		}
 	}
-	static if (is(CardOwner : Summary)) {
+	static if (EditMode) {
 		void open(int Index)() {
-			static if (1 < Cards.length) {
-				_comm.openBindCardWin();
-				_tabf.setSelection = _tab[Index];
+			static if (is(CardOwner : Summary)) {
+				static if (1 < Cards.length) {
+					_comm.openBindCardWin();
+					_tabf.setSelection = _tab[Index];
+				} else {
+					static if (UseCast && CAST == Index) {
+						_comm.openCastWin();
+					} else static if(UseSkill && SKILL == Index) {
+						_comm.openSkillWin();
+					} else static if(UseItem && ITEM == Index) {
+						_comm.openItemWin();
+					} else static if(UseBeast && BEAST == Index) {
+						_comm.openBeastWin();
+					} else static if(UseInfo && INFO == Index) {
+						_comm.openInfoWin();
+					} else static assert (0);
+				}
 			} else {
-				static if (UseCast && CAST == Index) {
-					_comm.openCastWin();
-				} else static if(UseSkill && SKILL == Index) {
-					_comm.openSkillWin();
-				} else static if(UseItem && ITEM == Index) {
-					_comm.openItemWin();
-				} else static if(UseBeast && BEAST == Index) {
-					_comm.openBeastWin();
-				} else static if(UseInfo && INFO == Index) {
-					_comm.openInfoWin();
-				} else static assert (0);
+				_tabf.setSelection = _tab[Index];
 			}
 		}
 	}
