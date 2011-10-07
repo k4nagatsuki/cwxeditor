@@ -286,7 +286,7 @@ private ImageData loadJPTXImage(string path) {
 	int alpha;
 	auto cBack = new Color(d, dwtData(jptx.backcolor, alpha));
 	scope (exit) cBack.dispose;
-	gc.setBackground = d.getSystemColor(SWT.COLOR_BLACK);
+	gc.setBackground = cBack;
 	gc.fillRectangle(0, 0, width, height);
 	if (jptx.fonttransparent) {
 		auto cFore = new Color(d, dwtData(jptx.fontcolor, alpha));
@@ -298,6 +298,7 @@ private ImageData loadJPTXImage(string path) {
 	int y = 0;
 	int autoW = 1;
 	int autoH = 1;
+	int lineCount = 0;
 	jptx.parse((string text, in JptxParam param) {
 		version (Windows) {
 			int fh = jptx.fontpixels;
@@ -352,8 +353,15 @@ private ImageData loadJPTXImage(string path) {
 		}
 		x += w;
 		if (x > autoW) autoW = x;
-		if (y + height > autoH) autoH = y + height; 
+		if (y + height > autoH) {
+			autoH = y + height; 
+			lineCount++;
+		}
 	});
+	if (lineCount & 0x1) {
+		// 奇数行数だと1ピクセル膨れる。cwconv.dllのバグか？
+		autoH++;
+	}
 	int rw = jptx.backwidth == -1 ? autoW : jptx.backwidth;
 	int rh = jptx.backheight == -1 ? autoH : jptx.backheight;
 	auto r = new Image(d, rw, rh);
