@@ -285,7 +285,7 @@ private ImageData loadJPTXImage(string path) {
 	int alpha;
 	auto cBack = new Color(d, dwtData(jptx.backcolor, alpha));
 	scope (exit) cBack.dispose;
-	gc.setBackground = d.getSystemColor(SWT.COLOR_BLACK);
+	gc.setBackground = cBack;
 	gc.fillRectangle(0, 0, width, height);
 	if (jptx.fonttransparent) {
 		auto cFore = new Color(d, dwtData(jptx.fontcolor, alpha));
