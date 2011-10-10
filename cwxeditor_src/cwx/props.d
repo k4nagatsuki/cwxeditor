@@ -38,11 +38,11 @@ public:
 		string buf = "Build: " ~ __TIMESTAMP__ ~ " ";
 		debug {
 			buf ~= "Debug";
+			version (Console) {
+				buf ~= " / Console";
+			}
 		} else {
 			buf ~= "Release";
-		}
-		version (Console) {
-			buf ~= " / Console";
 		}
 		return buf;
 	}

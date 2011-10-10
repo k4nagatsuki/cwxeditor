@@ -95,7 +95,7 @@ string debugString(T)(ref T v) {
 		}
 		return .format("[%s] %s, %d: %s", v.toString, v.file, v.line, trace);
 	} else {
-		return .to!string(v);
+		return .format("%s", v);
 	}
 }
 /// ditto
