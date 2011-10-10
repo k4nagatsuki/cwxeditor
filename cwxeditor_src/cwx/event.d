@@ -263,7 +263,7 @@ alias User!(StartId) IStartUser;
 alias UCCont!(StartId, IStartUser) SUseCounter;
 
 /// メッセージやダイアログが持つテキスト。
-private class TextHolder : CWXPath, IPathUser, IFlagUser, IStepUser {
+private class TextHolder : CWXPath, IPathUser, IFlagUser, IStepUser, ChgPathCallback, ChgFlagCallback, ChgStepCallback {
 private:
 	string _text;
 	PathUser[] _fontusers;
@@ -342,21 +342,27 @@ public:
 	}
 	void change(PathId id) {
 		foreach (u; _fontusers) {
-			replTextUseFont(_text, cast(string) u.path, cast(string) id);
 			u.change(id);
 		}
 	}
 	void change(FlagId id) {
 		foreach (u; _flagusers) {
-			replTextUseFlag(_text, cast(string) u.flag, cast(string) id);
 			u.change(id);
 		}
 	}
 	void change(StepId id) {
 		foreach (u; _stepusers) {
-			replTextUseStep(_text, cast(string) u.step, cast(string) id);
 			u.change(id);
 		}
+	}
+	override void changeCallback(PathId oldVal, PathId newVal) {
+		_text = replTextUseFont(_text, cast(string) oldVal, cast(string) newVal);
+	}
+	override void changeCallback(FlagId oldVal, FlagId newVal) {
+		_text = replTextUseFlag(_text, cast(string) oldVal, cast(string) newVal);
+	}
+	override void changeCallback(StepId oldVal, StepId newVal) {
+		_text = replTextUseStep(_text, cast(string) oldVal, cast(string) newVal);
 	}
 	/// このTextHolderの所持者。
 	CWXPath owner() {return _owner;}
