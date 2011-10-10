@@ -489,7 +489,7 @@ private:
 		}
 		auto dlg = new FlagEditDialog(_comm, prop, dlgParShl, parent, flag);
 		dlg.appliedEvent ~= {
-			if (old && old != flag.path) uc.change(toFlagId(old), toFlagId(flag.path));
+			if (old && old != flag.path) uc.change(toFlagId(old), toFlagId(flag.path), true);
 			_comm.openCWXPath(dlg.flag.cwxPath);
 			refresh(dlg.flag.name);
 			_comm.refFlagAndStep.call([dlg.flag], []);
@@ -516,7 +516,7 @@ private:
 		}
 		auto dlg = new StepEditDialog(_comm, prop, dlgParShl, parent, step);
 		dlg.appliedEvent ~= {
-			if (old && old != step.path) uc.change(toStepId(old), toStepId(step.path));
+			if (old && old != step.path) uc.change(toStepId(old), toStepId(step.path), true);
 			_comm.openCWXPath(dlg.step.cwxPath);
 			refresh(dlg.step.name);
 			_comm.refFlagAndStep.call([], [dlg.step]);
@@ -633,7 +633,7 @@ private:
 			auto oldId = toFlagId(f.path);
 			f.name = f.parent.createNewFlagName(text);
 			itm.setText(column, f.name);
-			uc.change(oldId, toFlagId(f.path));
+			uc.change(oldId, toFlagId(f.path), true);
 			return;
 		}
 		auto s = cast(Step) itm.getData;
@@ -642,7 +642,7 @@ private:
 			auto oldId = toStepId(s.path);
 			s.name = s.parent.createNewStepName(text);
 			itm.setText(column, s.name);
-			uc.change(oldId, toStepId(s.path));
+			uc.change(oldId, toStepId(s.path), true);
 			return;
 		}
 	}

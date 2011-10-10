@@ -82,7 +82,7 @@ public:
 	void change(K oldKey, K newKey, bool dup = false) {
 		if (oldKey != newKey && (oldKey in _cont)) {
 			if (newKey in _cont) {
-				if (!dup) debugln(format(oldKey, " to ", newKey, " : ", _cont[newKey].toArray));
+				if (!dup) debugln(oldKey, " to ", newKey, " : ", _cont[newKey].size);
 				foreach (val; _cont[oldKey]) {
 					val.change(newKey);
 					_cont[newKey].add(val);

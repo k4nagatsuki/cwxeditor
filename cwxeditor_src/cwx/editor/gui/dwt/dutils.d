@@ -2160,6 +2160,7 @@ void forceFocus(Widget widget) {
 }
 
 private void forceFocusImpl(Widget widget, Widget child) {
+	if (!widget || widget.isDisposed) return;
 	auto ti = cast(TableItem) widget;
 	if (ti) {
 		auto tbl = ti.getParent;

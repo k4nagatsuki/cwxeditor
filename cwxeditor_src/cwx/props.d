@@ -41,6 +41,9 @@ public:
 		} else {
 			buf ~= "Release";
 		}
+		version (Console) {
+			buf ~= " / Console";
+		}
 		return buf;
 	}
 	const string dlgTitUsage() {return "使い方 - CWXEditor";}
