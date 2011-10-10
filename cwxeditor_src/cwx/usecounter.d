@@ -102,7 +102,7 @@ public:
 /// Chg*Callbackを実装する場合、change()が呼び出された
 /// 際にコールバックを受ける事ができる。
 interface TChgCallback(T) {
-	void change(T, T);
+	void changeCallback(T, T);
 }
 /// ditto
 alias TChgCallback!(FlagId) ChgFlagCallback;
@@ -201,7 +201,7 @@ public:
 	}
 	override void change(FlagId newVal) {
 		if (cast(ChgFlagCallback) _cwxPath) {
-			(cast(ChgFlagCallback) _cwxPath).change(toFlagId(_flag), newVal);
+			(cast(ChgFlagCallback) _cwxPath).changeCallback(toFlagId(_flag), newVal);
 		}
 		_flag = cast(string) newVal;
 	}
@@ -297,7 +297,7 @@ public:
 	}
 	override void change(StepId newVal) {
 		if (cast(ChgStepCallback) _cwxPath) {
-			(cast(ChgStepCallback) _cwxPath).change(toStepId(_step), newVal);
+			(cast(ChgStepCallback) _cwxPath).changeCallback(toStepId(_step), newVal);
 		}
 		_step = cast(string) newVal;
 	}
@@ -652,7 +652,7 @@ public:
 
 	override void change(PathId newVal) {
 		if (cast(ChgPathCallback) _cwxPath) {
-			(cast(ChgPathCallback) _cwxPath).change(_path, newVal);
+			(cast(ChgPathCallback) _cwxPath).changeCallback(_path, newVal);
 		}
 		_path = newVal;
 	}
