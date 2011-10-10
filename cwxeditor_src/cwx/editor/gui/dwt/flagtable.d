@@ -415,7 +415,7 @@ private:
 		string old = flag ? flag.path : null;
 		auto dlg = new FlagEditDialog(prop, flags.getShell, parent, flag);
 		if (dlg.open) {
-			if (old && old != flag.path) uc.change(toFlagId(old), toFlagId(flag.path));
+			if (old && old != flag.path) uc.change(toFlagId(old), toFlagId(flag.path), true);
 			refresh(dlg.flag.name);
 			_comm.refFlagAndStep.call([dlg.flag], []);
 		}
@@ -424,7 +424,7 @@ private:
 		string old = step ? step.path : null;
 		auto dlg = new StepEditDialog(prop, flags.getShell, parent, step);
 		if (dlg.open) {
-			if (old && old != step.path) uc.change(toStepId(old), toStepId(step.path));
+			if (old && old != step.path) uc.change(toStepId(old), toStepId(step.path), true);
 			refresh(dlg.step.name);
 			_comm.refFlagAndStep.call([], [dlg.step]);
 		}
