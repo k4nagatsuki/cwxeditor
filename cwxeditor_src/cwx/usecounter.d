@@ -98,6 +98,19 @@ public:
 	}
 }
 
+/// *Userのコンストラクタで指定したCWXPathが同時に
+/// Chg*Callbackを実装する場合、change()が呼び出された
+/// 際にコールバックを受ける事ができる。
+interface TChgCallback(T) {
+	void change(T, T);
+}
+/// ditto
+alias TChgCallback!(FlagId) ChgFlagCallback;
+/// ditto
+alias TChgCallback!(StepId) ChgStepCallback;
+/// ditto
+alias TChgCallback!(PathId) ChgPathCallback;
+
 /// フラグのID。
 private struct FlagId {
 	private string id;
@@ -187,6 +200,9 @@ public:
 		_uc = null;
 	}
 	override void change(FlagId newVal) {
+		if (cast(ChgFlagCallback) _cwxPath) {
+			(cast(ChgFlagCallback) _cwxPath).change(toFlagId(_flag), newVal);
+		}
 		_flag = cast(string) newVal;
 	}
 }
@@ -280,6 +296,9 @@ public:
 		_uc = null;
 	}
 	override void change(StepId newVal) {
+		if (cast(ChgStepCallback) _cwxPath) {
+			(cast(ChgStepCallback) _cwxPath).change(toStepId(_step), newVal);
+		}
 		_step = cast(string) newVal;
 	}
 }
@@ -632,6 +651,9 @@ public:
 	}
 
 	override void change(PathId newVal) {
+		if (cast(ChgPathCallback) _cwxPath) {
+			(cast(ChgPathCallback) _cwxPath).change(_path, newVal);
+		}
 		_path = newVal;
 	}
 }

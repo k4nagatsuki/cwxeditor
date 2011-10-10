@@ -999,6 +999,7 @@ private string __replTextFlagStep(char Ch1, char Ch2)
 string replTextUseFlag(string text, string oldFlag, string newFlag) {
 	return __replTextFlagStep!('%', '$')(text, oldFlag, newFlag);
 } unittest {
+	assert(replTextUseFlag("「%置 換 前%」", "置 換 前", "置 換 後") == "「%置 換 後%」");
 	assert(replTextUseFlag("aaa%aaa%$%置換前%$%置換前%a#%置換前%%aa$%置換前%", "置換前", "置換no後")
 		== "aaa%aaa%$%置換前%$%置換no後%a#%置換前%%aa$%置換no後%");
 }
@@ -1010,6 +1011,7 @@ string replTextUseFlag(string text, string oldFlag, string newFlag) {
 string replTextUseStep(string text, string oldStep, string newStep) {
 	return __replTextFlagStep!('$', '%')(text, oldStep, newStep);
 } unittest {
+	assert(replTextUseStep("「$置 換 前$」", "置 換 前", "置 換 後") == "「$置 換 後$」");
 	assert(replTextUseStep("aaa$aaa$%$置換前$%$置換前$a#$置換前$$aa%$置換前$", "置換前", "置換no後")
 		== "aaa$aaa$%$置換前$%$置換no後$a#$置換前$$aa%$置換no後$");
 }

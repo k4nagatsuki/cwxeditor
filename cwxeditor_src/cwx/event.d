@@ -278,7 +278,7 @@ alias User!(StartId) IStartUser;
 alias UCCont!(StartId, IStartUser) SUseCounter;
 
 /// メッセージやダイアログが持つテキスト。
-private class TextHolder : CWXPath, IPathUser, IFlagUser, IStepUser {
+private class TextHolder : CWXPath, ChgPathCallback, ChgFlagCallback, ChgStepCallback {
 private:
 	string _text;
 	PathUser[] _fontusers;
@@ -356,23 +356,14 @@ public:
 		removeTextUseCounter;
 		_uc = null;
 	}
-	void change(PathId id) {
-		foreach (u; _fontusers) {
-			replTextUseFont(_text, cast(string) u.path, cast(string) id);
-			u.change(id);
-		}
+	override void change(PathId oldVal, PathId newVal) {
+		_text = replTextUseFont(_text, cast(string) oldVal, cast(string) newVal);
 	}
-	void change(FlagId id) {
-		foreach (u; _flagusers) {
-			replTextUseFlag(_text, cast(string) u.flag, cast(string) id);
-			u.change(id);
-		}
+	override void change(FlagId oldVal, FlagId newVal) {
+		_text = replTextUseFlag(_text, cast(string) oldVal, cast(string) newVal);
 	}
-	void change(StepId id) {
-		foreach (u; _stepusers) {
-			replTextUseStep(_text, cast(string) u.step, cast(string) id);
-			u.change(id);
-		}
+	override void change(StepId oldVal, StepId newVal) {
+		_text = replTextUseStep(_text, cast(string) oldVal, cast(string) newVal);
 	}
 	/// このTextHolderの所持者。
 	CWXPath owner() {return _owner;}
@@ -392,7 +383,7 @@ public:
 }
 
 /// 口調分け条件とメッセージ内容を持つクラス。
-static class SDialog : CWXPath, IPathUser, IFlagUser, IStepUser {
+static class SDialog : CWXPath {
 private:
 	string[] _rCoupons;
 	TextHolder _text;
@@ -454,15 +445,6 @@ public:
 	/// ditto
 	void removeUseCounter() {
 		_text.removeTextUseCounter;
-	}
-	void change(PathId id) {
-		_text.change(id);
-	}
-	void change(FlagId id) {
-		_text.change(id);
-	}
-	void change(StepId id) {
-		_text.change(id);
 	}
 	// テキスト内で使用されているfont_X.png等のパス。
 	const
