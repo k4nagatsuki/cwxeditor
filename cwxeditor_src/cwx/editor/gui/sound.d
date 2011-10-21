@@ -77,8 +77,8 @@ private void initSdl() {
 				}
 				getSymbol!(SDL_Quit)(sdl, "SDL_Quit")();
 			}
-		} catch (Exception e) {
-			debugln(e.msg);
+		} catch (Throwable e) {
+			debugln(e);
 		}
 	} else {
 		if (!sdl) debugln("not found: " ~ SDL);
@@ -95,22 +95,30 @@ private void initSdl() {
 	debugln("error: SDL_mixer initialize");
 }
 static this() {
-	version (Windows) {
-		initWinmm;
+	try {
+		version (Windows) {
+			initWinmm();
+		}
+		initSdl();
+	} catch (Throwable e) {
+		debugln(e);
 	}
-	initSdl;
 }
 
 static ~this() {
-	if (sdl) {
-		try {
-			getSymbol!(Mix_CloseAudio)(mixer, "Mix_CloseAudio")();
-			getSymbol!(SDL_Quit)(sdl, "SDL_Quit")();
-		} catch (Exception e) {
-			debugln(e.msg);
+	try {
+		if (sdl) {
+			try {
+				getSymbol!(Mix_CloseAudio)(mixer, "Mix_CloseAudio")();
+				getSymbol!(SDL_Quit)(sdl, "SDL_Quit")();
+			} catch (Exception e) {
+				debugln(e.msg);
+			}
+			ExeModule_Release(mixer);
+			ExeModule_Release(sdl);
 		}
-		ExeModule_Release(mixer);
-		ExeModule_Release(sdl);
+	} catch (Throwable e) {
+		debugln(e);
 	}
 }
 
@@ -183,26 +191,42 @@ private void __stop() {
 			}
 		}
 	} catch (Exception e) {
-		debugln(e);
+		debugln(e.msgs);
 	}
 }
 
 /// BGMを再生する。
 void playBGM(string path, bool legacy) {
-	__play(path, true, legacy);
+	try {
+		__play(path, true, legacy);
+	} catch (Throwable e) {
+		debugln(e);
+	}
 }
 
 /// BGMを停止する。
 void stopBGM() {
-	__stop;
+	try {
+		__stop;
+	} catch (Throwable e) {
+		debugln(e);
+	}
 }
 
 /// 効果音を再生する。
 void playSE(string path, bool legacy) {
-	__play(path, false, legacy);
+	try {
+		__play(path, false, legacy);
+	} catch (Throwable e) {
+		debugln(e);
+	}
 }
 
 /// 効果音を停止する。
 void stopSE() {
-	__stop;
+	try {
+		__stop;
+	} catch (Throwable e) {
+		debugln(e);
+	}
 }
