@@ -35,7 +35,7 @@ public:
 	const string appVersion() {return splitLines(import("@version.txt"))[0];}
 	const string appWebSiteURI() {return splitLines(import("@version.txt"))[1];}
 	const string appBuild() {
-		string buf = "Build: " ~ __TIMESTAMP__ ~ " ";
+		string buf = "Build: 2.0 " ~ __TIMESTAMP__ ~ " ";
 		debug {
 			buf ~= "Debug";
 			version (Console) {
@@ -449,8 +449,8 @@ public:
 		case CType.LINK_PACKAGE: return "パッケージの選択";
 		case CType.TALK_MESSAGE: return "メッセージイベントの設定";
 		case CType.TALK_DIALOG: return "台詞イベントの設定";
-		case CType.PLAY_BGM: return "効果音再生イベントの設定";
-		case CType.PLAY_SOUND: return "BGM再生イベントの設定";
+		case CType.PLAY_SOUND: return "効果音再生イベントの設定";
+		case CType.PLAY_BGM: return "BGM再生イベントの設定";
 		case CType.WAIT: return "空白時間イベントの設定";
 		case CType.ELAPSE_TIME: assert (0);
 		case CType.CALL_START: return "リンクイベントの設定";

@@ -3,9 +3,10 @@ module cwx.editor.gui.sound;
 
 import std.loader;
 import std.utf;
+import std.stdint;
 
 import cwx.sjis;
-import cwx.utils : debugln, enforce;
+import cwx.utils : cdebugln, debugln, enforce;
 
 version (Windows) {
 	import std.c.windows.windows;
@@ -16,40 +17,50 @@ version (Windows) {
 }
 private extern (C) {
 	const uint SDL_INIT_AUDIO = 0x10;
+	const ushort AUDIO_S16LSB = 0x8010;
+	const ushort AUDIO_S16MSB = 0x9010;
 	version (LittleEndian) {
 		const ushort MIX_DEFAULT_FORMAT = AUDIO_S16LSB;
  	} else {
 		const ushort MIX_DEFAULT_FORMAT = AUDIO_S16MSB;
 	}
-	const ushort AUDIO_S16LSB = 0x8010;
-	const ushort AUDIO_S16MSB = 0x9010;
+	alias uint Uint32;
+	alias ushort Uint16;
+	alias ubyte Uint8;
+	alias void Mix_Music;
+	alias void Mix_Chunk;
 
-	alias int function(uint) SDL_Init;
+	alias intptr_t function(Uint32) SDL_Init;
 	alias void function() SDL_Quit;
-	alias int function(int, ushort, int, int) Mix_OpenAudio;
+	alias intptr_t function(intptr_t, Uint16, intptr_t, intptr_t) Mix_OpenAudio;
 	alias void function() Mix_CloseAudio;
-	alias int function(int numchans) Mix_AllocateChannels;
-	struct Mix_Music {}
+	alias intptr_t function(intptr_t numchans) Mix_AllocateChannels;
 	alias Mix_Music* function(const char* file) Mix_LoadMUS;
-	alias int function(Mix_Music* music, int loops) Mix_PlayMusic;
+	alias Mix_Chunk* function(Uint8* mem) Mix_QuickLoad_WAV;
+	alias intptr_t function(Mix_Music* music, intptr_t loops) Mix_PlayMusic;
+	alias intptr_t function(intptr_t channel, Mix_Chunk *chunk, intptr_t loops, intptr_t ticks) Mix_PlayChannelTimed;
+	alias intptr_t function(Mix_Chunk *chunk, intptr_t volume) Mix_VolumeChunk;
 	alias void function(Mix_Music* music) Mix_FreeMusic;
-	alias int function() Mix_HaltMusic;
+	alias intptr_t function() Mix_HaltMusic;
+	alias intptr_t function(intptr_t channel) Mix_HaltChannel;
+	alias void function(Mix_Chunk *chunk) Mix_FreeChunk;
 }
 
-private HXModule sdl = null;
-private HXModule mixer = null;
+private __gshared HXModule sdl = null;
+private __gshared HXModule mixer = null;
 
 private T getSymbol(T)(HXModule mod, string name) {
 	void* symbol = ExeModule_GetSymbol(mod, name);
 	if (!symbol) throw new Exception("Symbol " ~ name ~ " is not found.");
 	T r = cast(T) symbol;
-	if (!r) throw new Exception("Symbol " ~ name ~ " is not found.");
+	if (!r) throw new Exception("Symbol " ~ name ~ " is invalid function.");
 	return r;
 }
 
 version (Windows) {
 	private HXModule winmm = null;
 	private void initWinmm() {
+		if (winmm) return;
 		winmm = ExeModule_Load("winmm.dll");
 		if (!winmm) {
 			debugln("error: winmm.dll initialize");
@@ -57,6 +68,7 @@ version (Windows) {
 	}
 }
 private void initSdl() {
+	if (sdl && mixer) return;
 	version (Windows) {
 		static const SDL = "SDL.dll";
 		static const MIXER = "SDL_mixer.dll";
@@ -124,6 +136,8 @@ static ~this() {
 
 private bool onLegacy = false;
 private Mix_Music *music = null;
+private Mix_Chunk *chunk = null;
+private intptr_t channel = -1;
 
 private void __play(string file, bool loop, bool legacy) {
 	stopBGM;
@@ -152,15 +166,16 @@ private void __play(string file, bool loop, bool legacy) {
 			if (file.length > 0 && !music) {
 				version (Windows) {
 					// Unicodeで日本語パスを渡すと失敗するので変換しておく
-					music = getSymbol!(Mix_LoadMUS)(mixer, "Mix_LoadMUS")(tosjisz(file));
+					const char* filez = tosjisz(file);
 				} else {
-					music = getSymbol!(Mix_LoadMUS)(mixer, "Mix_LoadMUS")((file ~ "\0").ptr);
+					const char* filez = (file ~ "\0").ptr;
 				}
+				music = getSymbol!(Mix_LoadMUS)(mixer, "Mix_LoadMUS")(filez);
 				if (!music) {
 					debugln("error: Mix_LoadMUS, " ~ file);
 					return;
 				}
-				if (0 != getSymbol!(Mix_PlayMusic)(mixer, "Mix_PlayMusic")(music, loop ? -1 : 0)) {
+				if (0 != getSymbol!(Mix_PlayMusic)(mixer, "Mix_PlayMusic")(music, loop ? -1 : 1)) {
 					debugln("error: Mix_PlayMusic, " ~ file);
 					return;
 				}
@@ -182,12 +197,22 @@ private void __stop() {
 				return;
 			}
 		}
-		if (sdl && music) {
-			if (0 == getSymbol!(Mix_HaltMusic)(mixer, "Mix_HaltMusic")()) {
-				getSymbol!(Mix_FreeMusic)(mixer, "Mix_FreeMusic")(music);
-				music = null;
-			} else {
-				debugln("error: Mix_HaltMusic");
+		if (sdl) {
+			if (music) {
+				if (0 == getSymbol!(Mix_HaltMusic)(mixer, "Mix_HaltMusic")()) {
+					getSymbol!(Mix_FreeMusic)(mixer, "Mix_FreeMusic")(music);
+					music = null;
+				} else {
+					debugln("error: Mix_HaltMusic");
+				}
+			}
+			if (-1 == channel) {
+				getSymbol!(Mix_HaltChannel)(mixer, "Mix_HaltChannel")(channel);
+				channel = -1;
+			}
+			if (chunk) {
+				getSymbol!(Mix_FreeChunk)(mixer, "Mix_FreeChunk")(chunk);
+				chunk = null;
 			}
 		}
 	} catch (Exception e) {
