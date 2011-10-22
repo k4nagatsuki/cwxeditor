@@ -1615,6 +1615,7 @@ private:
 					grp.setText = _prop.msgs.soundPlayType;
 					grp.setLayout = new GridLayout(1, false);
 					_soundPlayType = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
+					mod(_soundPlayType);
 					_soundPlayType.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 					_soundPlayType.setVisibleItemCount = 20;
 					_soundPlayType.add(_prop.msgs.soundPlayTypeDef);
