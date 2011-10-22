@@ -974,7 +974,6 @@ public:
 			}
 		}
 		void addCard(string cwxPath) {
-cdebugln(cwxPath);
 			if (!cpeq(_area.cwxPath, cpparent(cwxPath))) return;
 			size_t i = cpindex(cpbottom(cwxPath));
 			appendCard(i, _area.cards[i]);
