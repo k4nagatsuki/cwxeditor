@@ -256,7 +256,7 @@ version (Windows) {
 		const FF_DONTCARE = (0x0 << 4);
 		const FF_ROMAN = (0x1 << 4);
 		const FF_MODERN = (0x3 << 4);
-		HFONT CreateFontW(int, int, int, int, int, DWORD, DWORD, DWORD, DWORD, DWORD, DWORD, DWORD, DWORD, LPCWSTR);
+		HFONT CreateFontW(INT, INT, INT, INT, INT, DWORD, DWORD, DWORD, DWORD, DWORD, DWORD, DWORD, DWORD, LPCWSTR);
 	}
 }
 /// この実装は実質Windows専用である。
