@@ -106,21 +106,25 @@ private void initSdl() {
 	}
 	debugln("error: SDL_mixer initialize");
 }
-static this() {
+private bool init = false;
+static this () {
 	synchronized {
+		if (init) return;
 		try {
 			version (Windows) {
 				initWinmm();
 			}
 			initSdl();
+			init = true;
 		} catch (Throwable e) {
 			debugln(e);
 		}
 	}
 }
 
-static ~this() {
+static ~this () {
 	synchronized {
+		if (!init) return;
 		try {
 			if (sdl) {
 				try {

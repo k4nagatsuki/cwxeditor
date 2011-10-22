@@ -93,9 +93,9 @@ version (Windows) {
 } else version (linux) {
 	import std.c.linux.linux;
 	private extern (C) {
-		uint sleep(uint);
-		int inotify_init();
-		int inotify_add_watch(int, char*, uint);
+		uintptr_t sleep(uintptr_t);
+		intptr_t inotify_init();
+		intptr_t inotify_add_watch(intptr_t, char*, uintptr_t);
 		const IN_NONBLOCK = 0x4000;
 		const IN_MODIFY = 0x0002;
 		const IN_ATTRIB = 0x0004;
@@ -105,10 +105,10 @@ version (Windows) {
 		const IN_DELETE = 0x0200;
 		const IN_DELETE_SELF = 0x0400;
 		struct inotify_event {
-			int wd;
-			uint mask;
-			uint cookie;
-			uint len;
+			intptr_t wd;
+			uintptr_t mask;
+			uintptr_t cookie;
+			uintptr_t len;
 			char* name;
 		};
 	}

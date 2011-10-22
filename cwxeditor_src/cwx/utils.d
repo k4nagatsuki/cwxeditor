@@ -1474,7 +1474,7 @@ version (Windows) {
 	}
 } else {
 	private extern (C) {
-		int fork();
+		intptr_t fork();
 	}
 	import std.c.stdlib;
 	import std.process;
