@@ -107,30 +107,34 @@ private void initSdl() {
 	debugln("error: SDL_mixer initialize");
 }
 static this() {
-	try {
-		version (Windows) {
-			initWinmm();
+	synchronized {
+		try {
+			version (Windows) {
+				initWinmm();
+			}
+			initSdl();
+		} catch (Throwable e) {
+			debugln(e);
 		}
-		initSdl();
-	} catch (Throwable e) {
-		debugln(e);
 	}
 }
 
 static ~this() {
-	try {
-		if (sdl) {
-			try {
-				getSymbol!(Mix_CloseAudio)(mixer, "Mix_CloseAudio")();
-				getSymbol!(SDL_Quit)(sdl, "SDL_Quit")();
-			} catch (Exception e) {
-				debugln(e.msg);
+	synchronized {
+		try {
+			if (sdl) {
+				try {
+					getSymbol!(Mix_CloseAudio)(mixer, "Mix_CloseAudio")();
+					getSymbol!(SDL_Quit)(sdl, "SDL_Quit")();
+				} catch (Exception e) {
+					debugln(e.msg);
+				}
+				ExeModule_Release(mixer);
+				ExeModule_Release(sdl);
 			}
-			ExeModule_Release(mixer);
-			ExeModule_Release(sdl);
+		} catch (Throwable e) {
+			debugln(e);
 		}
-	} catch (Throwable e) {
-		debugln(e);
 	}
 }
 
