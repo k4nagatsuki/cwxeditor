@@ -106,7 +106,7 @@ private void initSdl() {
 	}
 	debugln("error: SDL_mixer initialize");
 }
-private bool init = false;
+private __gshared bool init = false;
 static this () {
 	synchronized {
 		if (init) return;

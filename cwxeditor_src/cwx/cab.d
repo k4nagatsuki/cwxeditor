@@ -1,9 +1,10 @@
 
 module cwx.cab;
 
-import cwx.utils : nabs, debugln, clistdir;
+import cwx.utils : nabs, cdebugln, debugln, clistdir;
 import cwx.sjis;
 
+import std.conv;
 import std.stdio;
 import std.array;
 
@@ -37,12 +38,35 @@ version (Windows) {
 		string cut = dirName(src) ~ sep.idup;
 		bool adds(string file) {
 			if (isArc && !isArc(file)) return true;
-			if (file.length > cut.length && !isDir(file)) {
-				if (!add(h, file, file[cut.length .. $])) {
+			bool isdir = isDir(file);
+			if (file.length > cut.length && !isdir) {
+				string name = file[cut.length .. $];
+				version (Windows) {
+					string nFile = null;
+					scope (exit) {
+						if (nFile) remove(nFile);
+					}
+					if (!isdir) {
+						auto hf = CreateFileW(std.utf.toUTFz!(wchar*)(file), GENERIC_WRITE, FILE_SHARE_READ, null, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, null);
+						if (INVALID_HANDLE_VALUE == hf) {
+							// cabinet.dllが書込権限を要求するため、一時領域にコピー
+							wchar[MAX_PATH] path;
+							wchar[MAX_PATH] tempFile;
+							if (!GetTempPathW(path.length, path.ptr)) return false;
+							if (!GetTempFileNameW(path.ptr, "fci"w.ptr, 0, tempFile.ptr)) return false;
+							nFile = to!string(tempFile[0 .. std.string.indexOf(tempFile, '\0')]);
+							copy(file, nFile);
+							file = nFile;
+						} else {
+							CloseHandle(hf);
+						}
+					}
+				}
+				if (!add(h, file, name)) {
 					return false;
 				}
 			}
-			if (isDir(file)) {
+			if (isdir) {
 				foreach (cf; clistdir(file)) {
 					if (!adds(std.path.buildPath(file, cf))) {
 						return false;
@@ -75,6 +99,10 @@ version (Windows) {
 		typedef HANDLE HFDI;
 		alias size_t SIZE_T;
 		alias USHORT TCOMP;
+
+		const _O_WRONLY = 0x0001;
+		const _O_RDWR = 0x0002;
+		const _O_CREAT = 0x0100;
 
 		const CB_MAX_DISK_NAME = 256;
 		const CB_MAX_CABINET_NAME = 256;
@@ -209,13 +237,14 @@ version (Windows) {
 				D decrypt;
 			}
 		}
-
 		LPVOID HeapAlloc(HANDLE hHeap, DWORD dwFlags, SIZE_T dwBytes);
 		HANDLE GetProcessHeap();
 		BOOL HeapFree(HANDLE hHeap, DWORD dwFlags, LPVOID lpMem);
 		DWORD GetTempPathA(DWORD nBufferLength, LPSTR lpBuffer);
-		DWORD SetFilePointer(HANDLE hFile, LONG lDistanceToMove, LONG* lpDistanceToMoveHigh, DWORD dwMoveMethod);
 		UINT GetTempFileNameA(LPCSTR lpPathName, LPCSTR lpPrefixString, UINT uUnique, LPSTR lpTempFileName);
+		DWORD GetTempPathW(DWORD nBufferLength, LPWSTR lpBuffer);
+		UINT GetTempFileNameW(LPCWSTR lpPathName, LPCWSTR lpPrefixString, UINT uUnique, LPWSTR lpTempFileName);
+		DWORD SetFilePointer(HANDLE hFile, LONG lDistanceToMove, LONG* lpDistanceToMoveHigh, DWORD dwMoveMethod);
 		BOOL GetFileTime(HANDLE hFile, LPFILETIME lpCreationTime, LPFILETIME lpLastAccessTime, LPFILETIME lpLastWriteTime);
 		BOOL SetFileTime(HANDLE hFile, FILETIME* lpCreationTime, FILETIME* lpLastAccessTime, FILETIME* lpLastWriteTime);
 		BOOL SetFileAttributesA(LPCSTR lpFileName, DWORD dwFileAttributes);
@@ -233,10 +262,21 @@ version (Windows) {
 			}
 			alias FNFCIFREE FNFREE;
 			INT FNFCIOPEN(LPSTR pszFile, INT oflag, INT pmode, INT *err, LPVOID pv) {
-				auto h = CreateFileA(pszFile, GENERIC_READ | GENERIC_WRITE, 0, null, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, null);
-				if (h == INVALID_HANDLE_VALUE && GetLastError == ERROR_FILE_NOT_FOUND) {
-					h = CreateFileA(pszFile, GENERIC_READ | GENERIC_WRITE, 0, null, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, null);
+				DWORD access = 0;
+				if (oflag & _O_RDWR) {
+					access = GENERIC_READ | GENERIC_WRITE;
+				} else if (oflag & _O_WRONLY) {
+					access = GENERIC_WRITE;
+				} else {
+					access = GENERIC_READ;
 				}
+				DWORD create = 0;
+				if (oflag & _O_CREAT) {
+					create = CREATE_ALWAYS;
+				} else {
+					create = OPEN_EXISTING;
+				}
+				auto h = CreateFileA(pszFile, access, FILE_SHARE_READ, null, create, FILE_ATTRIBUTE_NORMAL, null);
 				return cast(INT) h;
 			}
 			INT FNOPEN(LPSTR pszFile, INT oflag, INT pmode, INT *err, LPVOID pv) {
@@ -454,20 +494,23 @@ version (Windows) {
 		return FDIDestroy(hfdi) != 0;
 	}
 
-	private bool usable = false;
+	private __gshared bool usable = false;
 
-	private FCI_C FCICreate = null;
-	private FCI_A FCIAddFile = null;
-	private FCI_F FCIFlushCabinet = null;
-	private FCI_D FCIDestroy = null;
+	private __gshared FCI_C FCICreate = null;
+	private __gshared FCI_A FCIAddFile = null;
+	private __gshared FCI_F FCIFlushCabinet = null;
+	private __gshared FCI_D FCIDestroy = null;
 
-	private FDI_C FDICreate = null;
-	private FDI_I FDIIsCabinet = null;
-	private FDI_O FDICopy = null;
-	private FDI_D FDIDestroy = null;
+	private __gshared FDI_C FDICreate = null;
+	private __gshared FDI_I FDIIsCabinet = null;
+	private __gshared FDI_O FDICopy = null;
+	private __gshared FDI_D FDIDestroy = null;
 
-	private HXModule _cabinet = null;
-	static this () {
+	private __gshared bool init = false;
+	private __gshared HXModule _cabinet = null;
+	shared static this () {
+		if (init) return;
+		if (_cabinet) return;
 		_cabinet = ExeModule_Load("cabinet.dll");
 		if (_cabinet) {
 			FCICreate = cast(FCI_C) ExeModule_GetSymbol(_cabinet, "FCICreate");
@@ -489,11 +532,12 @@ version (Windows) {
 			if (!FDIDestroy) debugln("Not found: FDIDestroy");
 
 			usable = true;
+			init = true;
 		} else {
 			debugln("Not found: cabinet.dll");
 		}
 	}
-	static ~this () {
+	shared static ~this () {
 		if (_cabinet) {
 			ExeModule_Release(_cabinet);
 		}

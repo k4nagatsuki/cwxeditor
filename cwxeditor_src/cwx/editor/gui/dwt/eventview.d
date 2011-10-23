@@ -722,7 +722,7 @@ private:
 		static Object ENTER;
 		static Object ESCAPE;
 		static Object LOSE;
-		static this() {
+		static this () {
 			ENTER = new Object;
 			ESCAPE = new Object;
 			LOSE = new Object;
