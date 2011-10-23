@@ -31,12 +31,33 @@ version (Windows) {
 		scope (exit) destroy(h);
 		string cut = getDirName(src) ~ sep;
 		bool adds(string file) {
-			if (file.length > cut.length && !isdir(file) && (!isArc || isArc(file))) {
-				if (!add(h, file, file[cut.length .. $])) {
+			auto isdir = .isdir(file);
+			if (file.length > cut.length && !isdir && (!isArc || isArc(file))) {
+				string name = file[cut.length .. $];
+				version (Windows) {
+					string nFile = null;
+					scope (exit) {
+						if (nFile) std.file.remove(nFile);
+					}
+					auto hf = CreateFileW(std.utf.toUTF16z(file), GENERIC_WRITE, FILE_SHARE_READ, null, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, null);
+					if (INVALID_HANDLE_VALUE == hf) {
+						// cabinet.dllが書込権限を要求するため、一時領域にコピー
+						wchar[MAX_PATH] path;
+						wchar[MAX_PATH] tempFile;
+						if (!GetTempPathW(path.length, path.ptr)) return false;
+						if (!GetTempFileNameW(path.ptr, "fci"w.ptr, 0, tempFile.ptr)) return false;
+						nFile = std.utf.toUTF8(tempFile[0 .. .indexOf(tempFile, '\0')]);
+						copy(file, nFile);
+						file = nFile;
+					} else {
+						CloseHandle(hf);
+					}
+				}
+				if (!add(h, file, name)) {
 					return false;
 				}
 			}
-			if (isdir(file)) {
+			if (isdir) {
 				foreach (cf; clistdir(file)) {
 					if (!adds(std.path.join(file, cf))) {
 						return false;
@@ -69,6 +90,10 @@ version (Windows) {
 		typedef HANDLE HFDI;
 		alias size_t SIZE_T;
 		alias USHORT TCOMP;
+
+		const _O_WRONLY = 0x0001;
+		const _O_RDWR = 0x0002;
+		const _O_CREAT = 0x0100;
 
 		const CB_MAX_DISK_NAME = 256;
 		const CB_MAX_CABINET_NAME = 256;
@@ -208,8 +233,10 @@ version (Windows) {
 		HANDLE GetProcessHeap();
 		BOOL HeapFree(HANDLE hHeap, DWORD dwFlags, LPVOID lpMem);
 		DWORD GetTempPathA(DWORD nBufferLength, LPSTR lpBuffer);
-		DWORD SetFilePointer(HANDLE hFile, LONG lDistanceToMove, LONG* lpDistanceToMoveHigh, DWORD dwMoveMethod);
 		UINT GetTempFileNameA(LPCSTR lpPathName, LPCSTR lpPrefixString, UINT uUnique, LPSTR lpTempFileName);
+		DWORD GetTempPathW(DWORD nBufferLength, LPWSTR lpBuffer);
+		UINT GetTempFileNameW(LPCWSTR lpPathName, LPCWSTR lpPrefixString, UINT uUnique, LPWSTR lpTempFileName);
+		DWORD SetFilePointer(HANDLE hFile, LONG lDistanceToMove, LONG* lpDistanceToMoveHigh, DWORD dwMoveMethod);
 		BOOL GetFileTime(HANDLE hFile, LPFILETIME lpCreationTime, LPFILETIME lpLastAccessTime, LPFILETIME lpLastWriteTime);
 		BOOL SetFileTime(HANDLE hFile, FILETIME* lpCreationTime, FILETIME* lpLastAccessTime, FILETIME* lpLastWriteTime);
 		BOOL SetFileAttributesA(LPCSTR lpFileName, DWORD dwFileAttributes);
@@ -227,10 +254,21 @@ version (Windows) {
 			}
 			alias FNFCIFREE FNFREE;
 			INT FNFCIOPEN(LPSTR pszFile, INT oflag, INT pmode, INT *err, LPVOID pv) {
-				auto h = CreateFileA(pszFile, GENERIC_READ | GENERIC_WRITE, 0, null, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, null);
-				if (h == INVALID_HANDLE_VALUE && GetLastError == ERROR_FILE_NOT_FOUND) {
-					h = CreateFileA(pszFile, GENERIC_READ | GENERIC_WRITE, 0, null, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, null);
+				DWORD access = 0;
+				if (oflag & _O_RDWR) {
+					access = GENERIC_READ | GENERIC_WRITE;
+				} else if (oflag & _O_WRONLY) {
+					access = GENERIC_WRITE;
+				} else {
+					access = GENERIC_READ;
 				}
+				DWORD create = 0;
+				if (oflag & _O_CREAT) {
+					create = CREATE_ALWAYS;
+				} else {
+					create = OPEN_EXISTING;
+				}
+				auto h = CreateFileA(pszFile, access, FILE_SHARE_READ, null, create, FILE_ATTRIBUTE_NORMAL, null);
 				return cast(INT) h;
 			}
 			INT FNOPEN(LPSTR pszFile, INT oflag, INT pmode, INT *err, LPVOID pv) {
@@ -337,19 +375,19 @@ version (Windows) {
 				return 0;
 			}
 			alias HFCI function (
-			    ERF* perf,
-			    typeof(&FNFCIFILEPLACED) pfnfiledest,
-			    typeof(&FNFCIALLOC) pfnalloc,
-			    typeof(&FNFCIFREE) pfnfree,
-			    typeof(&FNFCIOPEN) pfnopen,
-			    typeof(&FNFCIREAD) pfnread,
-			    typeof(&FNFCIWRITE) pfnwrite,
-			    typeof(&FNFCICLOSE) pfnclose,
-			    typeof(&FNFCISEEK) pfnseek,
-			    typeof(&FNFCIDELETE) pfndelete,
-			    typeof(&FNFCIGETTEMPFILE) pfnfcigtf,
-			    CCAB* pccab,
-			    LPVOID pv
+				ERF* perf,
+				typeof(&FNFCIFILEPLACED) pfnfiledest,
+				typeof(&FNFCIALLOC) pfnalloc,
+				typeof(&FNFCIFREE) pfnfree,
+				typeof(&FNFCIOPEN) pfnopen,
+				typeof(&FNFCIREAD) pfnread,
+				typeof(&FNFCIWRITE) pfnwrite,
+				typeof(&FNFCICLOSE) pfnclose,
+				typeof(&FNFCISEEK) pfnseek,
+				typeof(&FNFCIDELETE) pfndelete,
+				typeof(&FNFCIGETTEMPFILE) pfnfcigtf,
+				CCAB* pccab,
+				LPVOID pv
 			) FCI_C;
 			alias BOOL function (
 				HFCI hfci,
