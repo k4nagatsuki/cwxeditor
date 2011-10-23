@@ -1621,6 +1621,7 @@ private:
 					_soundPlayType.add(_prop.msgs.soundPlayTypeDef);
 					_soundPlayType.add(_prop.msgs.soundPlayTypeSDL);
 					_soundPlayType.add(_prop.msgs.soundPlayTypeMCI);
+					_soundPlayType.add(_prop.msgs.soundPlayTypeApp);
 				}
 			}
 		}

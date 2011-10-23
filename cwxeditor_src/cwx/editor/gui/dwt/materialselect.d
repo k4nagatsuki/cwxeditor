@@ -201,24 +201,26 @@ public:
 		void playBGM() {
 			string p = filePath;
 			if (p.length > 0 && (!_playing || !cfnmatch(nabs(p), nabs(_playing)))) {
-				_playing = p;
-				if (_bgmMenu) {
-					_bgmMenu.setText = _prop.msgs.menuStopBGM(p);
-					_bgmMenu.setImage = _prop.images.stopBGM;
-					_bgmMenu.setSelection = true;
+				bool inPlay = playBGMCW(_prop, p, _summ.legacy);
+				if (inPlay) {
+					_playing = p;
+					if (_bgmMenu) {
+						_bgmMenu.setText = _prop.msgs.menuStopBGM(p);
+						_bgmMenu.setImage = _prop.images.stopBGM;
+						_bgmMenu.setSelection = true;
+					}
+					if (_bgmTMenu) {
+						_bgmTMenu.setToolTipText = _prop.msgs.stopBGM(p);
+						_bgmTMenu.setImage = _prop.images.stopBGM;
+						_bgmTMenu.setSelection = true;
+					}
+					if (_bgmBtn) {
+						_bgmBtn.setToolTipText = _prop.msgs.stopBGM(baseName(path));
+						_bgmBtn.setImage = _prop.images.stopBGM;
+						_bgmBtn.setSelection = true;
+					}
+					return;
 				}
-				if (_bgmTMenu) {
-					_bgmTMenu.setToolTipText = _prop.msgs.stopBGM(p);
-					_bgmTMenu.setImage = _prop.images.stopBGM;
-					_bgmTMenu.setSelection = true;
-				}
-				if (_bgmBtn) {
-					_bgmBtn.setToolTipText = _prop.msgs.stopBGM(baseName(path));
-					_bgmBtn.setImage = _prop.images.stopBGM;
-					_bgmBtn.setSelection = true;
-				}
-				playBGMCW(_prop, p, _summ.legacy);
-				return;
 			}
 			if (_bgmMenu) {
 				_bgmMenu.setText = _prop.msgs.menuPlayBGM;

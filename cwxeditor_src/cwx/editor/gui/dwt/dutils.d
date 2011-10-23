@@ -103,6 +103,7 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.program.Program;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.DropTargetAdapter;
 import org.eclipse.swt.dnd.DropTargetEvent;
@@ -2356,11 +2357,12 @@ void drawTileImage(GC gc, Image img, Rectangle rect) {
 	}
 }
 
-void playBGMCW(Props prop, string path, bool legacy) {
+bool playBGMCW(Props prop, string path, bool legacy) {
 	switch (prop.var.etc.soundPlayType) {
-	case 1: playBGM(path, false); break;
-	case 2: playBGM(path, true); break;
-	default: playBGM(path, legacy); break;
+	case 1: playBGM(path, false); return true;
+	case 2: playBGM(path, true); return true;
+	case 3: Program.launch(path); return false;
+	default: playBGM(path, legacy); return true;
 	}
 }
 
@@ -2368,6 +2370,7 @@ void playSECW(Props prop, string path, bool legacy) {
 	switch (prop.var.etc.soundPlayType) {
 	case 1: playSE(path, false); break;
 	case 2: playSE(path, true); break;
+	case 3: Program.launch(path); break;
 	default: playSE(path, legacy); break;
 	}
 }

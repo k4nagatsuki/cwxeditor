@@ -46,20 +46,18 @@ version (Windows) {
 					scope (exit) {
 						if (nFile) remove(nFile);
 					}
-					if (!isdir) {
-						auto hf = CreateFileW(std.utf.toUTFz!(wchar*)(file), GENERIC_WRITE, FILE_SHARE_READ, null, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, null);
-						if (INVALID_HANDLE_VALUE == hf) {
-							// cabinet.dllが書込権限を要求するため、一時領域にコピー
-							wchar[MAX_PATH] path;
-							wchar[MAX_PATH] tempFile;
-							if (!GetTempPathW(path.length, path.ptr)) return false;
-							if (!GetTempFileNameW(path.ptr, "fci"w.ptr, 0, tempFile.ptr)) return false;
-							nFile = to!string(tempFile[0 .. std.string.indexOf(tempFile, '\0')]);
-							copy(file, nFile);
-							file = nFile;
-						} else {
-							CloseHandle(hf);
-						}
+					auto hf = CreateFileW(std.utf.toUTFz!(wchar*)(file), GENERIC_WRITE, FILE_SHARE_READ, null, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, null);
+					if (INVALID_HANDLE_VALUE == hf) {
+						// cabinet.dllが書込権限を要求するため、一時領域にコピー
+						wchar[MAX_PATH] path;
+						wchar[MAX_PATH] tempFile;
+						if (!GetTempPathW(path.length, path.ptr)) return false;
+						if (!GetTempFileNameW(path.ptr, "fci"w.ptr, 0, tempFile.ptr)) return false;
+						nFile = to!string(tempFile[0 .. std.string.indexOf(tempFile, '\0')]);
+						copy(file, nFile);
+						file = nFile;
+					} else {
+						CloseHandle(hf);
 					}
 				}
 				if (!add(h, file, name)) {
