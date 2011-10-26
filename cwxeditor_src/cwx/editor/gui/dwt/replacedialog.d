@@ -1830,7 +1830,7 @@ public:
 		auto con = cast(Content) path;
 		if (con) {
 			img = _prop.images.content(con.type);
-			text = _prop.msgs.contentText(con, _summ);
+			text = _prop.msgs.contentText(_comm.skin, con, _summ);
 		}
 		auto tex = cast(TextHolder) path;
 		if (tex) {
@@ -1841,7 +1841,7 @@ public:
 			}
 			if (c) {
 				img = _prop.images.content(c.type);
-				text = _prop.msgs.contentText(c, _summ);
+				text = _prop.msgs.contentText(_comm.skin, c, _summ);
 			}
 		}
 		auto fla = cast(Flag) path;

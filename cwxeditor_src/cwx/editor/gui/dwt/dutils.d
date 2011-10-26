@@ -2155,17 +2155,19 @@ E getRadioValue(E)(Button[E] radios) {
 	assert (0);
 }
 
-void forceFocus(Widget widget) {
-	if (widget is Display.getCurrent.getFocusControl) return;
-	forceFocusImpl(widget, null);
+void forceFocus(Widget widget, bool shellActivate = true) {
+	auto d = Display.getCurrent;
+	if (widget is d.getFocusControl) return;
+	forceFocusImpl(widget, null, shellActivate);
 }
 
-private void forceFocusImpl(Widget widget, Widget child) {
+private void forceFocusImpl(Widget widget, Widget child, bool shellActivate) {
 	if (!widget || widget.isDisposed) return;
+	auto d = Display.getCurrent;
 	auto ti = cast(TableItem) widget;
 	if (ti) {
 		auto tbl = ti.getParent;
-		forceFocusImpl(tbl, null);
+		forceFocusImpl(tbl, null, shellActivate);
 		tbl.setSelection = ti;
 		tbl.showSelection;
 		return;
@@ -2173,21 +2175,23 @@ private void forceFocusImpl(Widget widget, Widget child) {
 	auto tri = cast(TreeItem) widget;
 	if (tri) {
 		auto tree = tri.getParent;
-		forceFocusImpl(tree, null);
+		forceFocusImpl(tree, null, shellActivate);
 		tree.select = tri;
 		tree.showSelection;
 		return;
 	}
 	auto sh = cast(Shell) widget;
 	if (sh) {
-		sh.setActive;
+		if (shellActivate) {
+			sh.setActive();
+		}
 		return;
 	}
 	auto tf = cast(TabFolder) widget;
 	if (tf) {
 		foreach (i; tf.getItems) {
 			if (i.getControl is child) {
-				forceFocusImpl(tf.getParent, tf);
+				forceFocusImpl(tf.getParent, tf, shellActivate);
 				tf.setSelection = i;
 				return;
 			}
@@ -2198,7 +2202,7 @@ private void forceFocusImpl(Widget widget, Widget child) {
 	if (ctf) {
 		foreach (i; ctf.getItems) {
 			if (i.getControl is child) {
-				forceFocusImpl(ctf.getParent, ctf);
+				forceFocusImpl(ctf.getParent, ctf, shellActivate);
 				ctf.setSelection = i;
 				return;
 			}
@@ -2207,8 +2211,14 @@ private void forceFocusImpl(Widget widget, Widget child) {
 	}
 	auto ctl = cast(Control) widget;
 	if (ctl) {
-		forceFocusImpl(ctl.getParent, ctl);
-		ctl.setFocus;
+		forceFocusImpl(ctl.getParent, ctl, shellActivate);
+		if (!shellActivate) {
+			if (ctl.getShell is d.getActiveShell) {
+				ctl.setFocus;
+			}
+		} else {
+			ctl.setFocus;
+		}
 		return;
 	}
 	assert (0);

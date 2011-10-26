@@ -173,6 +173,8 @@ abstract class AbsDialog {
 				foreach (dlg; closeEvent) {
 					dlg();
 				}
+				auto parShl = cast(Shell) _win.getParent;
+				if (parShl) parShl.setImeInputMode = _imeMode;
 			}
 		}
 	}

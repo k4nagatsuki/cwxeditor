@@ -453,6 +453,7 @@ protected:
 	override void setup(Composite area) {
 		area.setLayout = new GridLayout(1, false);
 		_list = new Table(area, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.V_SCROLL);
+		mod(_list);
 		auto nameCol = new FullTableColumn(_list, SWT.NONE);
 		auto gd = new GridData(GridData.FILL_BOTH);
 		gd.widthHint = _prop.var.etc.nameTableWidth;
@@ -498,8 +499,10 @@ protected:
 		auto comp = new Composite(grp, SWT.NONE);
 		comp.setLayout = new GridLayout(1, true);
 		_mark = new Button(comp, SWT.RADIO);
+		mod(_mark);
 		_mark.setText = _prop.msgs.afterClearEndMark;
 		_unmark = new Button(comp, SWT.RADIO);
+		mod(_unmark);
 		_unmark.setText = _prop.msgs.afterClearNoEndMark;
 
 		if (_evt) {
@@ -559,6 +562,7 @@ protected:
 			grp.setLayout = new GridLayout(1, true);
 			foreach (r; RANGE_MEMBER) {
 				auto radio = new Button(grp, SWT.RADIO);
+				mod(radio);
 				radio.setLayoutData = new GridData(GridData.FILL_BOTH);
 				radio.setText = _prop.msgs.range(r);
 				_range[r] = radio;
@@ -576,6 +580,7 @@ protected:
 				comp.setLayout = new GridLayout(3, false);
 				{
 					_name = new Combo(comp, SWT.BORDER | SWT.DROP_DOWN);
+					mod(_name);
 					_name.setVisibleItemCount = 20;
 					auto gd = new GridData(GridData.FILL_HORIZONTAL);
 					gd.horizontalSpan = 3;
@@ -588,6 +593,7 @@ protected:
 					ll.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 					ll.setText = _prop.msgs.couponValue;
 					_value = new Spinner(comp, SWT.BORDER);
+					mod(_value);
 					_value.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_CENTER);
 					_value.setMaximum = Content.couponValue_max;
 					_value.setMinimum = Content.couponValue_min;
@@ -652,6 +658,7 @@ protected:
 			comp.setLayout = new GridLayout(1, true);
 
 			_text = new Text(comp, SWT.BORDER);
+			mod(_text);
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
 			gd.widthHint = _prop.var.etc.nameWidth;
 			_text.setLayoutData = gd;

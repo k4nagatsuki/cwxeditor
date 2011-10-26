@@ -444,7 +444,7 @@ private:
 			childItm.setText = eventText(par, cast(Content) childItm.getData);
 		}
 		_tree.select = itm;
-		.forceFocus(_tree);
+		.forceFocus(_tree, false);
 		_comm.refContent.call(c);
 		_comm.refUseCount.call;
 		refreshStatusLine;
@@ -477,7 +477,7 @@ private:
 					auto sItm = createTreeItem(_tree, evt, evt.name, _prop.images.content(CType.START), index);
 					_tree.select = sItm;
 					_tree.showSelection;
-					.forceFocus(_tree);
+					.forceFocus(_tree, false);
 					_comm.refContent.call(evt);
 					refreshConvMenu;
 					refreshStatusLine;
@@ -510,7 +510,7 @@ private:
 							itm.setExpanded = true;
 						}
 						_tree.showSelection;
-						.forceFocus(_tree);
+						.forceFocus(_tree, false);
 						_comm.refContent.call(evt);
 						_comm.refUseCount.call;
 						refreshConvMenu;
@@ -1043,7 +1043,7 @@ private:
 	void refreshStatusLine() {
 		auto itm = selection;
 		if (itm) {
-			_statusLine = _prop.msgs.contentText(cast(Content) itm.getData, _summ);
+			_statusLine = _prop.msgs.contentText(_comm.skin, cast(Content) itm.getData, _summ);
 		} else {
 			_statusLine = "";
 		}

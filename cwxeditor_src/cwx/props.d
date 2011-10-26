@@ -15,6 +15,7 @@ import cwx.motion;
 import cwx.background;
 import cwx.cab;
 import cwx.structs;
+import cwx.skin;
 
 import std.conv;
 import std.path;
@@ -95,7 +96,14 @@ public:
 	const string cwxPathOpenError(string path) {return "パス [" ~ path ~ "] を開けません。";}
 	const string filePathOpenError(string path) {return "パス [" ~ path ~ "] を開けません。";}
 
-	const string loadSkinError(string name) {return "デフォルトのスキン「" ~ name ~ "」が見つかりません。\n一部リソース画像が非表示になります。";}
+	const string loadSkinError(string name) {
+		version (Windows) {
+			string cwp = "CardWirthPy.exe";
+		} else {
+			string cwp = "CardWirthPy";
+		}
+		return "デフォルトのスキン「" ~ name ~ "」が見つかりません。\n" ~ cwp ~ "の場所が正しくないか、Data" ~ DIR ~ "が正しく配置されていない可能性があります。\nこのまま開始すると、一部リソース画像が非表示になります。";
+	}
 	const string useDefaultSkin(string name, string defSkin) {return "スキン「" ~ name ~ "」が見つかりません。\nデフォルトのスキン「" ~ defSkin ~ "」を使用します。";}
 	const string scenarioName() {return "シナリオ名";}
 	const string type() {return "タイプ";}
@@ -749,7 +757,7 @@ public:
 		}
 	}
 
-	const string contentText(in Content evt, in Summary summ) {
+	const string contentText(in Skin skin, in Content evt, in Summary summ) {
 		switch (evt.type) {
 		case CType.START: {
 			return "スタートコンテント: " ~ evt.name;
@@ -809,7 +817,15 @@ public:
 			case Talker.CARD:
 				return "[カード]: " ~ std.array.replace(text, "\n", "");
 			case Talker.IMAGE:
-				return "[" ~ encodePath(evt.cardPath) ~ "]: " ~ std.array.replace(text, "\n", "");
+				if (evt.cardPath is null || !evt.cardPath.length) return "カード指定無し";
+				auto path = skin.findPath(evt.cardPath, skin.extImage, skin.tableDir, summ.scenarioPath);
+				string image;
+				if (path.length) {
+					image = encodePath(evt.cardPath);
+				} else {
+					image = "存在しないイメージ(ファイル:" ~ encodePath(evt.cardPath) ~ ")";
+				}
+				return "[" ~ image ~ "]: " ~ std.array.replace(text, "\n", "");
 			default: assert (0);
 			}
 		} case CType.TALK_DIALOG: {
@@ -827,10 +843,19 @@ public:
 				return std.array.replace(text, "\n", "");
 			}
 		} case CType.PLAY_BGM: {
-			return evt.bgmPath is null || evt.bgmPath.length == 0 ? "BGM停止" : "BGMとして「" ~ encodePath(evt.bgmPath) ~ "」を演奏";
+			if (evt.bgmPath is null || !evt.bgmPath.length) return "BGM停止";
+			auto path = skin.findPath(evt.bgmPath, skin.extBgm, skin.bgmDir, summ.scenarioPath);
+			if (!path.length) {
+				return "存在しないBGM(ファイル:" ~ encodePath(evt.bgmPath) ~ ")";
+			}
+			return "BGMとして「" ~ encodePath(evt.bgmPath) ~ "」を演奏";
 		} case CType.PLAY_SOUND: {
 			if (evt.soundPath is null || !evt.soundPath.length) return "効果音指定無し";
-			return evt.soundPath is null || evt.soundPath.length == 0 ? .format("存在しない効果音(ファイル:%s)", evt.soundPath) : "効果音「" ~ encodePath(evt.soundPath) ~ "」を鳴らす";
+			auto path = skin.findPath(evt.soundPath, skin.extSound, skin.seDir, summ.scenarioPath);
+			if (!path.length) {
+				return "存在しない効果音(ファイル:" ~ encodePath(evt.soundPath) ~ ")";
+			}
+			return "効果音「" ~ encodePath(evt.soundPath) ~ "」を鳴らす";
 		} case CType.WAIT: {
 			return "空白時間 = " ~ to!(string)(evt.wait) ~ " × 0.1秒";
 		} case CType.ELAPSE_TIME: {

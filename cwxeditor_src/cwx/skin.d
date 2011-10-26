@@ -753,18 +753,20 @@ class Skin {
 		if (exists(p)) {
 			return p;
 		}
-		string f(string ext) {
-			p = setExtension(p, ext);
-			return exists(p) ? p : "";
-		}
-		string r = f(ext);
-		if (r.length) return r;
-		if (ext == _extImg) {
-			return f(_resExtImg);
-		} else if (ext == _extBgm) {
-			return f(_resExtBgm);
-		} else if (ext == _extSound) {
-			return f(_resExtSound);
+		if (!legacy) {
+			string f(string ext) {
+				p = setExtension(p, ext);
+				return exists(p) ? p : "";
+			}
+			string r = f(ext);
+			if (r.length) return r;
+			if (ext == _extImg) {
+				return f(_resExtImg);
+			} else if (ext == _extBgm) {
+				return f(_resExtBgm);
+			} else if (ext == _extSound) {
+				return f(_resExtSound);
+			}
 		}
 		return "";
 	}
