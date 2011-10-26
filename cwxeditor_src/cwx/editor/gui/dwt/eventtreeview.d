@@ -443,6 +443,8 @@ private:
 			assert (par.detail.owner);
 			childItm.setText = eventText(par, cast(Content) childItm.getData);
 		}
+		_tree.select = itm;
+		.forceFocus(_tree);
 		_comm.refContent.call(c);
 		_comm.refUseCount.call;
 		refreshStatusLine;
@@ -475,6 +477,7 @@ private:
 					auto sItm = createTreeItem(_tree, evt, evt.name, _prop.images.content(CType.START), index);
 					_tree.select = sItm;
 					_tree.showSelection;
+					.forceFocus(_tree);
 					_comm.refContent.call(evt);
 					refreshConvMenu;
 					refreshStatusLine;
@@ -507,6 +510,7 @@ private:
 							itm.setExpanded = true;
 						}
 						_tree.showSelection;
+						.forceFocus(_tree);
 						_comm.refContent.call(evt);
 						_comm.refUseCount.call;
 						refreshConvMenu;
