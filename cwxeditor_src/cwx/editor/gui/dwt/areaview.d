@@ -1918,7 +1918,10 @@ public:
 		size_t partyIndex = 0;
 		static if (UseCards) {
 			foreach (i, c; _area.cards) {
-				_imgp.set(cardsIndex + i, create(c));
+				auto v = _imgp.images[cardsIndex + i].visible;
+				auto fi = create(c);
+				fi.visible = v;
+				_imgp.set(cardsIndex + i, fi);
 				_cards.getItem(i).setText = cardName(c);
 				_cards.getItem(i).setData = c;
 				partyIndex++;
@@ -1926,7 +1929,10 @@ public:
 		}
 		static if (UseBacks) {
 			foreach (i, b; _area.backs) {
-				_imgp.set(i, create(b));
+				auto v = _imgp.images[i].visible;
+				auto fi = create(b);
+				fi.visible = v;
+				_imgp.set(i, fi);
 				_backs.getItem(i).setText = baseName(b.path);
 				_backs.getItem(i).setData = b;
 				partyIndex++;
