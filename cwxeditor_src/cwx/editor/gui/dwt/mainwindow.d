@@ -1590,12 +1590,15 @@ public:
 			if (!fc) return;
 			if (_win is fc.getShell) return;
 			if (!.isDescendant(_win, fc.getShell)) return;
-			// フォーカスのあるコントロールのShellのメニューを探す
-			auto menu = findMenu(fc.getShell, e.keyCode, e.character, e.stateMask);
-			if (!menu) {
-				// フォーカスを持つShellのメニューに
-				// 該当項目が無い場合はメインメニューを探す
-				menu = findMenu(_win, e.keyCode, e.character, e.stateMask);
+			// フォーカスのあるコントロールのShellのメニューを探し、
+			// 該当するメニューが無かった場合は
+			// 順に上位のShellを探索する
+			auto shl = fc.getShell;
+			MenuItem menu = null;
+			while (!menu && shl) {
+				menu = findMenu(shl, e.keyCode, e.character, e.stateMask);
+				if (shl is _win) break;
+				shl = cast(Shell) shl.getParent;
 			}
 			if (menu) {
 				scope se = new Event;
@@ -1607,11 +1610,6 @@ public:
 				menu.notifyListeners(SWT.Selection, se);
 				e.doit = false;
 				return;
-			}
-			int acc = convertAccelerator(_prop.msgs.menuSave);
-			if (eqAcc(acc, e.keyCode, e.character, e.stateMask)) {
-				saveScenario();
-				e.doit = false;
 			}
 		}
 	}
