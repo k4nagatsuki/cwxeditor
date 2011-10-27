@@ -135,6 +135,7 @@ private:
 	Button _addNewClassicEngine;
 	Button _doubleIO;
 	Button _switchTabWheel;
+	Button _openTabAtRightOfCurrentTab;
 	version (Windows) {
 		Combo _soundPlayType;
 	}
@@ -1607,6 +1608,7 @@ private:
 				_addNewClassicEngine = createB(_prop.msgs.addNewClassicEngine);
 				_doubleIO = createB(_prop.msgs.doubleIO);
 				_switchTabWheel = createB(_prop.msgs.switchTabWheel);
+				_openTabAtRightOfCurrentTab = createB(_prop.msgs.openTabAtRightOfCurrentTab);
 			}
 			{
 				version (Windows) {
@@ -1713,6 +1715,7 @@ protected:
 		_addNewClassicEngine.setSelection = _prop.var.etc.addNewClassicEngine;
 		_doubleIO.setSelection = _prop.var.etc.doubleIO;
 		_switchTabWheel.setSelection = _prop.var.etc.switchTabWheel;
+		_openTabAtRightOfCurrentTab.setSelection = _prop.var.etc.openTabAtRightOfCurrentTab;
 		version (Windows) {
 			_soundPlayType.select = _prop.var.etc.soundPlayType;
 		}
@@ -1872,6 +1875,7 @@ protected:
 		_prop.var.etc.addNewClassicEngine = _addNewClassicEngine.getSelection;
 		_prop.var.etc.doubleIO = _doubleIO.getSelection;
 		_prop.var.etc.switchTabWheel = _switchTabWheel.getSelection;
+		_prop.var.etc.openTabAtRightOfCurrentTab = _openTabAtRightOfCurrentTab.getSelection;
 		_prop.var.etc.contentsFloat = _contentsFloat.getSelection;
 		version (Windows) {
 			_prop.var.etc.soundPlayType = _soundPlayType.getSelectionIndex;

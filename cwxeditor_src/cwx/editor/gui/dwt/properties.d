@@ -629,6 +629,7 @@ class FlexEtcProps : Properties {
 	mixin Property!("refCardsAtEditBgImage", bool, true);
 	mixin Property!("showImagePreview", bool, true);
 	mixin Property!("switchTabWheel", bool, true);
+	mixin Property!("openTabAtRightOfCurrentTab", bool, true);
 
 	mixin Property!("soundPlayType", int, 0);
 

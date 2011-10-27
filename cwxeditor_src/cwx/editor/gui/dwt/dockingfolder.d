@@ -58,6 +58,12 @@ enum Dir {
 	W /// 西。
 }
 
+/// Controlを新規追加した際、新たに生成されるタブの位置。
+enum NewCtrlLocation {
+	Right, /// 現在選択中のタブの一つ右。
+	Last /// タブリストの末尾。
+}
+
 class DockingFolder(TabF, int Style) {
 	static if (is(TabF == TabFolder)) {
 		alias TabItem Tab;
@@ -318,15 +324,25 @@ class DockingFolder(TabF, int Style) {
 	}
 	/// Controlを追加する。
 	/// ctrlの親は必ずこのインスタンスに含まれるペインでなくてはならない。
-	void add(Control ctrl, string tabText, string key, bool select = false) {
+	void add(Control ctrl, string tabText, string key, bool select = false, NewCtrlLocation loc = NewCtrlLocation.Last) {
 		add(ctrl, tabText, null, key, select);
 	}
 	/// ditto
-	void add(Control ctrl, string tabText, Image tabImage, string key, bool select = false) {
+	void add(Control ctrl, string tabText, Image tabImage, string key, bool select = false, NewCtrlLocation loc = NewCtrlLocation.Last) {
 		if (!key.length || (key in _keys)) throw new Exception("invalid key: " ~ key);
 		auto tabf = cast(TabF) ctrl.getParent;
 		if (!tabf) throw new Exception("no tabfolder");
-		auto tab = new Tab(tabf, SWT.NONE);
+		Tab tab;
+		final switch (loc) {
+		case NewCtrlLocation.Right:
+			auto sel = selected(tabf);
+			if (!sel) goto case NewCtrlLocation.Last;
+			tab = new Tab(tabf, SWT.NONE, tabf.indexOf(sel) + 1);
+			break;
+		case NewCtrlLocation.Last:
+			tab = new Tab(tabf, SWT.NONE);
+			break;
+		}
 		tab.setText = tabText;
 		tab.setImage = tabImage;
 		tab.setControl = ctrl;

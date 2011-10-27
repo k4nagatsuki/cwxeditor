@@ -1140,6 +1140,7 @@ private:
 			if (_dirsEdit.isEditing || _filesEdit.isEditing) return;
 			try {
 				__refresh;
+				_comm.refPaths.call(this.outer, _summ.scenarioPath);
 			} catch (Exception e) {
 				debugln(e);
 			}

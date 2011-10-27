@@ -2426,3 +2426,23 @@ RGB alphaColor(in RGB c, in RGB b, int a) {
 	}
 	return new RGB(oc(c.red, b.red), oc(c.green, b.green), oc(c.blue, b.blue));
 }
+
+/// 押されたキーに該当するアクセラレータを持つメニューを探す。
+MenuItem findMenu(Shell shell, int keyCode, wchar character, int stateMask) {
+	auto menu = shell.getMenuBar;
+	if (!menu) return null;
+	return findMenu(menu, keyCode, character, stateMask);
+}
+/// ditto
+MenuItem findMenu(Menu menu, int keyCode, wchar character, int stateMask) {
+	foreach (itm; menu.getItems) {
+		if (eqAcc(convertAccelerator(itm.getText), keyCode, character, stateMask)) {
+			return itm;
+		}
+		if (itm.getStyle & SWT.CASCADE) {
+			auto r = findMenu(itm.getMenu, keyCode, character, stateMask);
+			if (r) return r;
+		}
+	}
+	return null;
+}

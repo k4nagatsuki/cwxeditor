@@ -259,10 +259,13 @@ class Commons {
 
 	const Object saveSync;
 
+	private Props _prop = null;
+
 	private HashSet!(Composite) _ws;
 	private Object[Composite] _wos;
-	this() {
+	this(Props prop) {
 		saveSync = new Object;
+		_prop = prop;
 		_ws = new HashSet!(Composite);
 		_aws = new HashSet!(Composite);
 		foreach (i, fld; this.tupleof) {
@@ -533,8 +536,14 @@ class Commons {
 				p = _main.dock.addPane(workPane, dir, l, r, _main.dock.newPaneKey(pane));
 			}
 			auto tlp = create(p);
-			_main.dock.add(tlp.shell, text, tlp.image, key, true);
+			_main.dock.add(tlp.shell, text, tlp.image, key, true, loc);
 		}
+	}
+	private NewCtrlLocation loc() {
+		if (_prop.var.etc.openTabAtRightOfCurrentTab) {
+			return NewCtrlLocation.Right;
+		}
+		return NewCtrlLocation.Last;
 	}
 	private void openMain(string Key, string Pane, Dir D, Win)(Win win) {
 		show(win.shell, Pane, D, Key, delegate TopLevelPanel(Composite p) {
@@ -612,7 +621,7 @@ class Commons {
 		if (shl) {
 			shl.open;
 		} else {
-			_main.dock.add(tlp.shell, tlp.title, tlp.image, _main.dock.newCtrlKey(pane), true);
+			_main.dock.add(tlp.shell, tlp.title, tlp.image, _main.dock.newCtrlKey(pane), true, loc);
 		}
 	}
 

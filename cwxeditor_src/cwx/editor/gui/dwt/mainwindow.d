@@ -994,7 +994,7 @@ public:
 			}
 		}
 
-		_comm = new Commons;
+		_comm = new Commons(_prop);
 		_comm.skin = findSkin2(_prop, _prop.var.etc.defaultSkin);
 
 		auto d = new Display;
@@ -1590,6 +1590,24 @@ public:
 			if (!fc) return;
 			if (_win is fc.getShell) return;
 			if (!.isDescendant(_win, fc.getShell)) return;
+			// フォーカスのあるコントロールのShellのメニューを探す
+			auto menu = findMenu(fc.getShell, e.keyCode, e.character, e.stateMask);
+			if (!menu) {
+				// フォーカスを持つShellのメニューに
+				// 該当項目が無い場合はメインメニューを探す
+				menu = findMenu(_win, e.keyCode, e.character, e.stateMask);
+			}
+			if (menu) {
+				scope se = new Event;
+				se.type = SWT.Selection;
+				se.widget = menu;
+				se.time = e.time;
+				se.stateMask = e.stateMask;
+				se.doit = e.doit;
+				menu.notifyListeners(SWT.Selection, se);
+				e.doit = false;
+				return;
+			}
 			int acc = convertAccelerator(_prop.msgs.menuSave);
 			if (eqAcc(acc, e.keyCode, e.character, e.stateMask)) {
 				saveScenario();
