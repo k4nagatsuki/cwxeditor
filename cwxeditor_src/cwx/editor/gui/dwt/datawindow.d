@@ -218,6 +218,11 @@ public:
 				putMenuAction(MenuID.NewFlag, &createFlag);
 				putMenuAction(MenuID.NewStep, &createStep);
 			}
+			// TODO フラグ側も元に戻せるようにする
+			// TODO シングルウィンドウでのメニュー
+			// TODO 右クリックメニュー
+//			putMenuAction(MenuID.Undo, &undo);
+//			putMenuAction(MenuID.Redo, &redo);
 		}
 		{
 			static if (UseArea && UseFlag) {
@@ -351,6 +356,9 @@ public:
 			_comm.openDataWin;
 			.forceFocus(_areas.table);
 			return _areas.createPackage(baseStart);
+		}
+		void reNumberingAll() {
+			_areas.reNumberingAll();
 		}
 	}
 	static if (UseFlag) {

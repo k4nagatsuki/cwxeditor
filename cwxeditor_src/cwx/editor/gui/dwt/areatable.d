@@ -24,6 +24,7 @@ import cwx.editor.gui.dwt.summarydialog;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.properties;
 import cwx.editor.gui.dwt.xmlbytestransfer;
+import cwx.editor.gui.dwt.undo;
 
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
@@ -62,10 +63,316 @@ import org.eclipse.swt.dnd.Clipboard;
 /// エリア・バトル・パッケージの一覧を表示する。
 class AreaTable : TCPD {
 private:
+	static class ATUndo : Undo {
+		protected AreaTable _v = null;
+		protected Commons comm;
+		protected Summary summ;
+
+		private ulong[] _areaIDs;
+		private ulong[] _areaIDsB;
+		private ulong[] _battleIDsB;
+		private ulong[] _battleIDs;
+		private ulong[] _packageIDs;
+		private ulong[] _packageIDsB;
+		private int _sel;
+
+		this (AreaTable v, Commons comm, Summary summ) {
+			_v = v;
+			this.comm = comm;
+			this.summ = summ;
+
+			saveIDs(v);
+		}
+		private void saveIDs(AreaTable v) {
+			_areaIDs.length = 0;
+			foreach (a; summ.areas) _areaIDs ~= a.id;
+			_battleIDs.length = 0;
+			foreach (a; summ.battles) _battleIDs ~= a.id;
+			_packageIDs.length = 0;
+			foreach (a; summ.packages) _packageIDs ~= a.id;
+			if (v && v._areas && !v._areas.isDisposed) _sel = v._areas.getSelectionIndex;
+		}
+		abstract override void undo();
+		abstract override void redo();
+		abstract override void dispose();
+		protected void udb(AreaTable v) {
+			_areaIDsB = _areaIDs.dup;
+			_battleIDsB = _battleIDs.dup;
+			_packageIDsB = _packageIDs.dup;
+			saveIDs(v);
+			if (v && v._areas && !v._areas.isDisposed) {
+				.forceFocus(v._areas);
+			}
+		}
+		private void resetID(alias ToID, A)(AreaTable v, A[] arr, ulong[] ids) {
+			ulong[] oldIDs;
+			foreach (i, a; arr) {
+				auto oID = a.id;
+				a.id = ulong.max - arr.length + i;
+				summ.useCounter.change(ToID(oID), ToID(a.id));
+				oldIDs ~= oID;
+			}
+			foreach (i, a; arr) {
+				auto oID = a.id;
+				a.id = ids[i];
+				summ.useCounter.change(ToID(oID), ToID(a.id));
+			}
+			foreach (i, a; arr) {
+				if (a.id != oldIDs[i]) {
+					static if (is(A : Area)) {
+						comm.refArea.call(v, a);
+					} else static if (is(A : Battle)) {
+						comm.refBattle.call(v, a);
+					} else static if (is(A : Package)) {
+						comm.refPackage.call(v, a);
+					} else static assert (0);
+				}
+			}
+		}
+		protected void uda(AreaTable v) {
+			resetID!toAreaId(v, summ.areas, _areaIDsB);
+			resetID!toBattleId(v, summ.battles, _battleIDsB);
+			resetID!toPackageId(v, summ.packages, _packageIDsB);
+			if (v && v._areas && !v._areas.isDisposed) {
+				int i = 0;
+				foreach (a; summ.areas) {
+					v.refData(a, v._areas.getItem(i));
+					i++;
+				}
+				foreach (a; summ.battles) {
+					v.refData(a, v._areas.getItem(i));
+					i++;
+				}
+				foreach (a; summ.packages) {
+					v.refData(a, v._areas.getItem(i));
+					i++;
+				}
+				v._areas.select = _sel;
+				v._areas.showSelection();
+			}
+			comm.refUseCount.call;
+		}
+		protected AreaTable view() {
+			return _v;
+		}
+	}
+	static class UndoIDs : ATUndo {
+		this (AreaTable v, Commons comm, Summary summ) {
+			super (v, comm, summ);
+		}
+		override void undo() {
+			auto v = view();
+			udb(v);
+			scope (exit) uda(v);
+		}
+		override void redo() {
+			auto v = view();
+			udb(v);
+			scope (exit) uda(v);
+		}
+		override void dispose() {}
+	}
+	static class UndoEdit : ATUndo {
+		private string _name;
+		private int _index;
+		this (AreaTable v, Commons comm, Summary summ, int index) {
+			super (v, comm, summ);
+			_name = areaFromIndex(summ, index).name;
+			_index = index;
+		}
+		private void impl() {
+			auto v = view();
+			udb(v);
+			scope (exit) uda(v);
+			auto area = areaFromIndex(summ, _index);
+			string oldName = area.name;
+			area.name = _name;
+			_name = oldName;
+			if (v && v._areas && !v._areas.isDisposed) {
+				v._areas.getItem(_index).setText(NAME, area.name);
+			}
+			auto a = cast(Area) area;
+			if (a) {
+				comm.refArea.call(v, a);
+			}
+			auto b = cast(Battle) area;
+			if (b) {
+				comm.refBattle.call(v, b);
+			}
+			auto p = cast(Package) area;
+			if (p) {
+				comm.refPackage.call(v, p);
+			}
+			comm.refUseCount.call;
+		}
+		override void undo() {
+			impl();
+		}
+		override void redo() {
+			impl();
+		}
+		override void dispose() {}
+	}
+	void storeEdit(int index) {
+		_undo ~= new UndoEdit(this, _comm, _summ, index);
+	}
+	static class UndoMove : ATUndo {
+		private int _from, _to;
+		this (AreaTable v, Commons comm, Summary summ, int from, int to) {
+			super (v, comm, summ);
+			_from = from;
+			_to = to;
+		}
+		private void impl() {
+			auto v = view();
+			udb(v);
+			scope (exit) uda(v);
+			auto area = areaFromIndex(summ, _to);
+			int from = _from;
+			if (_to <= from) from++;
+			auto a = cast(Area) area;
+			if (a) summ.insert(toAreaIndex(summ, from), a);
+			auto b = cast(Battle) area;
+			if (b) summ.insert(toBattleIndex(summ, from), b);
+			auto p = cast(Package) area;
+			if (p) summ.insert(toPackageIndex(summ, from), p);
+			swap(_from, _to);
+		}
+		override void undo() {
+			impl();
+		}
+		override void redo() {
+			impl();
+		}
+		override void dispose() {}
+	}
+	void storeMove(int from, int to) {
+		_undo ~= new UndoMove(this, _comm, _summ, from, to);
+	}
+	static class UndoInsertDelete : ATUndo {
+		private bool _insert;
+
+		private int _index;
+
+		private AbstractArea _area = null;
+		private bool _isStartArea = false;
+
+		this (AreaTable v, Commons comm, Summary summ, int index, bool insert) {
+			super (v, comm, summ);
+			_insert = insert;
+			_index = index;
+
+			if (insert) {
+				_sel = index;
+			} else {
+				initUndoDelete();
+			}
+		}
+		private void initUndoDelete() {
+			auto area = areaFromIndex(summ, _index);
+			_isStartArea = summ.startArea == area.id;
+			auto node = area.toNode;
+			auto a = cast(Area) area;
+			if (a) {
+				_area = Area.createFromNode(node, LATEST_VERSION);
+			}
+			auto b = cast(Battle) area;
+			if (b) {
+				_area = Battle.createFromNode(node, LATEST_VERSION);
+			}
+			auto p = cast(Package) area;
+			if (p) {
+				_area = Package.createFromNode(node, LATEST_VERSION);
+			}
+			assert (_area);
+			_area.setUseCounter(summ.useCounter.sub);
+		}
+		private void undoInsert() {
+			auto v = view();
+			udb(v);
+			scope (exit) uda(v);
+			_insert = false;
+			initUndoDelete();
+			auto area = areaFromIndex(summ, _index);
+			summ.remove(area);
+			if (v && v._areas && !v._areas.isDisposed) {
+				v._areas.remove(_index);
+			}
+			auto a = cast(Area) area;
+			if (a) {
+				comm.delArea.call(v, a);
+			}
+			auto b = cast(Battle) area;
+			if (b) {
+				comm.delBattle.call(v, b);
+			}
+			auto p = cast(Package) area;
+			if (p) {
+				comm.delPackage.call(v, p);
+			}
+			comm.refUseCount.call;
+		}
+		void undoDelete() {
+			auto v = view();
+			udb(v);
+			scope (exit) uda(v);
+			_insert = true;
+			auto a = cast(Area) _area;
+			if (a) {
+				int i = toAreaIndex(summ, _index);
+				summ.insert(i, a);
+				if (v && v._areas && !v._areas.isDisposed) v.newAreaItem(i);
+				if (_isStartArea) {
+					summ.startArea = a.id;
+					_isStartArea = false;
+				}
+				comm.refArea.call(v, a);
+				return;
+			}
+			auto b = cast(Battle) _area;
+			if (b) {
+				int i = toBattleIndex(summ, _index);
+				summ.insert(i, b);
+				if (v && v._areas && !v._areas.isDisposed) v.newBattleItem(i);
+				comm.refBattle.call(v, b);
+				return;
+			}
+			auto p = cast(Package) _area;
+			if (p) {
+				int i = toPackageIndex(summ, _index);
+				summ.insert(i, p);
+				if (v && v._areas && !v._areas.isDisposed) v.newPackageItem(i);
+				comm.refPackage.call(v, p);
+				return;
+			}
+			assert (0);
+		}
+		override void undo() {
+			if (_insert) {
+				undoInsert();
+			} else {
+				undoDelete();
+			}
+		}
+		override void redo() {
+			undo();
+		}
+		override void dispose() {
+		}
+	}
+	void storeInsert(int index) {
+		_undo ~= new UndoInsertDelete(this, _comm, _summ, index, true);
+	}
+	void storeDelete(int index) {
+		_undo ~= new UndoInsertDelete(this, _comm, _summ, index, false);
+	}
+
 	void editEnd(TableItem itm, int column, string newText) {
 		assert (column == 1);
 		if (newText.length > 0) {
 			auto area = cast(AbstractArea) itm.getData;
+			if (area.name == newText) return;
+			storeEdit(_areas.indexOf(itm));
 			area.name = newText;
 			itm.setText(NAME, newText);
 			if (cast(Area) area) {
@@ -90,6 +397,8 @@ private:
 	Table _areas;
 	TableTextEdit _areasEdit;
 
+	UndoManager _undo;
+
 	string _statusLine = "";
 	void refreshStatusLine() {
 		Area[] areas;
@@ -104,6 +413,24 @@ private:
 		_comm.statusLine(_areas, _statusLine);
 	}
 
+	static int toAreaIndex(Summary summ, int index) {
+		return index;
+	}
+	static int toBattleIndex(Summary summ, int index) {
+		return index - summ.areas.length;
+	}
+	static int toPackageIndex(Summary summ, int index) {
+		return index - (summ.areas.length + summ.battles.length);
+	}
+	static AbstractArea areaFromIndex(Summary summ, int index) {
+		if (summ.areas.length + summ.battles.length <= index) {
+			return summ.packages[toPackageIndex(summ, index)];
+		}
+		if (summ.areas.length <= index) {
+			return summ.battles[toBattleIndex(summ, index)];
+		}
+		return summ.areas[toAreaIndex(summ, index)];
+	}
 	AbstractArea getSelectionArea() {
 		auto itm = _areas.getSelection;
 		if (itm.length > 0) {
@@ -149,11 +476,12 @@ private:
 			return;
 		}
 	}
-	void refreshIDs() {
+	void refreshIDs(bool callRef) {
+		if (!_areas || _areas.isDisposed) return;
 		foreach (itm; _areas.getItems) {
 			auto area = cast(AbstractArea) itm.getData;
 			auto str = to!(string)(area.id);
-			if (str != itm.getText(ID)) callRefArea(area);
+			if (callRef && str != itm.getText(ID)) callRefArea(area);
 			itm.setText(ID, str);
 		}
 	}
@@ -247,49 +575,58 @@ private:
 					}
 					index = revId(index);
 					auto area = cast(AbstractArea) tbl.getSelection[0].getData;
+					int fromIndex = tbl.getSelectionIndex;
 					tbl.getSelection[0].dispose;
+					int toIndex;
 					if (tid == typeid(Area)) {
 						_summ.insert(index, cast(Area) area);
 						index = _summ.indexOf(cast(Area) area);
-						newAreaItem(index);
+						toIndex = newAreaItem(index);
 					} else if (tid == typeid(Battle)) {
 						_summ.insert(index, cast(Battle) area);
 						index = _summ.indexOf(cast(Battle) area);
-						newBattleItem(index);
+						toIndex = newBattleItem(index);
 					} else {
 						assert (tid == typeid(Package));
 						_summ.insert(index, cast(Package) area);
 						index = _summ.indexOf(cast(Package) area);
-						newPackageItem(index);
+						toIndex = newPackageItem(index);
 					}
+					// TODO
+					storeMove(fromIndex, toIndex);
 					callRefArea(area);
-					refreshIDs;
+					refreshIDs(true);
 					refreshStatusLine;
 					e.detail = DND.DROP_NONE;
 				} else {
 					// 他のリストからのコピー
 					index = revId(index);
 					AbstractArea area;
+					int tblIndex;
 					if (tid == typeid(Area)) {
+						storeInsert(index);
 						area = Area.createFromNode(node, LATEST_VERSION);
 						_summ.insert(index, cast(Area) area);
 						index = _summ.indexOf(cast(Area) area);
 						newAreaItem(index);
 					} else if (tid == typeid(Battle)) {
+						storeInsert(_summ.areas.length + index);
 						area = Battle.createFromNode(node, LATEST_VERSION);
 						_summ.insert(index, cast(Battle) area);
 						index = _summ.indexOf(cast(Battle) area);
 						newBattleItem(index);
 					} else {
 						assert (tid == typeid(Package));
+						storeInsert(_summ.areas.length + _summ.battles.length + index);
 						area = Package.createFromNode(node, LATEST_VERSION);
 						_summ.insert(index, cast(Package) area);
 						index = _summ.indexOf(cast(Package) area);
 						newPackageItem(index);
 					}
 					e.detail = DND.DROP_NONE;
-					_comm.refUseCount.call;
-					refreshStatusLine;
+					refreshIDs(true);
+					_comm.refUseCount.call();
+					refreshStatusLine();
 				}
 			} catch (Exception e) {
 				debugln(e);
@@ -380,19 +717,22 @@ private:
 		itm.setText(UC, to!(string)(_summ.useCounter.get(A.toID(a.id))));
 		itm.setData = a;
 	}
-	private void newAreaItem(int index) {
+	private int newAreaItem(int index) {
 		auto a = _summ.areas[index];
 		item(a, _prop.images.area, _summ.useCounter.get(toAreaId(a.id)), index);
+		return index;
 	}
-	private void newBattleItem(int index) {
+	private int newBattleItem(int index) {
 		auto a = _summ.battles[index];
 		index += _summ.areas.length;
 		item(a, _prop.images.battle, _summ.useCounter.get(toBattleId(a.id)), index);
+		return index;
 	}
-	private void newPackageItem(int index) {
+	private int newPackageItem(int index) {
 		auto a = _summ.packages[index];
 		index += _summ.areas.length + _summ.battles.length;
 		item(a, _prop.images.packages, _summ.useCounter.get(toPackageId(a.id)), index);
+		return index;
 	}
 	private class SListener : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
@@ -403,6 +743,7 @@ public:
 	this(Commons comm, Props prop) {
 		_comm = comm;
 		_prop = prop;
+		_undo = new UndoManager(1024);
 	}
 
 	void construct(Composite parent, FlagTable flags) {
@@ -467,52 +808,64 @@ public:
 	}
 
 	void reNumberingAll() {
-		reNumberingArea(0, 1);
-		reNumberingBattle(0, 1);
-		reNumberingPackage(0, 1);
+		auto undo = new UndoIDs(this, _comm, _summ);
+		bool reNum = false;
+		reNum |= reNumberingAreaImpl(0, 1);
+		reNum |= reNumberingBattleImpl(0, 1);
+		reNum |= reNumberingPackageImpl(0, 1);
+		if (reNum) _undo ~= undo;
 	}
-	void reNumBef(A)(A[] arr, int index) {
+	void reNumberingArea(int index, ulong newId) {
+		auto undo = new UndoIDs(this, _comm, _summ);
+		bool reNum = reNumberingAreaImpl(index, newId);
+		if (reNum) _undo ~= undo;
+	}
+	void reNumberingBattle(int index, ulong newId) {
+		auto undo = new UndoIDs(this, _comm, _summ);
+		bool reNum = reNumberingBattleImpl(index, newId);
+		if (reNum) _undo ~= undo;
+	}
+	void reNumberingPackage(int index, ulong newId) {
+		auto undo = new UndoIDs(this, _comm, _summ);
+		bool reNum = reNumberingPackageImpl(index, newId);
+		if (reNum) _undo ~= undo;
+	}
+	private ulong[] reNumBef(A)(A[] arr, int index) {
+		ulong[] oldIDs;
 		for (size_t i = index; i < arr.length; i++) {
+			oldIDs ~= arr[i].id;
 			ulong ni = ulong.max - arr.length + i;
 			_summ.useCounter.change(A.toID(arr[i].id), A.toID(ni));
 			arr[i].id = ni;
 		}
+		return oldIDs;
 	}
-	void reNumberingArea(int index, ulong newId) {
-		if (index < 0 || _summ.areas.length <= index) return;
-		if (newId == 0) return;
-		if (index > 0 && _summ.areas[index - 1].id >= newId) return;
-		reNumBef(_summ.areas, index);
-		for (size_t i = index; i < _summ.areas.length; i++) {
-			_summ.useCounter.change(toAreaId(_summ.areas[i].id), toAreaId(newId));
-			_summ.areas[i].id = newId;
+	private bool reNumberingImpl(A)(int index, ulong newId, A[] arr) {
+		if (index < 0 || arr.length <= index) return false;
+		if (newId == 0) return false;
+		if (index > 0 && arr[index - 1].id >= newId) return false;
+		auto oldIDs = reNumBef(arr, index);
+		bool reNum = false;
+		for (size_t i = index; i < arr.length; i++) {
+			_summ.useCounter.change(A.toID(arr[i].id), A.toID(newId));
+			arr[i].id = newId;
+			if (oldIDs[i - index] != newId) {
+				callRefArea(arr[i]);
+				reNum = true;
+			}
 			newId++;
 		}
-		refreshIDs;
+		refreshIDs(false);
+		return reNum;
 	}
-	void reNumberingBattle(int index, ulong newId) {
-		if (index < 0 || _summ.battles.length <= index) return;
-		if (newId == 0) return;
-		if (index > 0 && _summ.battles[index - 1].id >= newId) return;
-		reNumBef(_summ.battles, index);
-		for (size_t i = index; i < _summ.battles.length; i++) {
-			_summ.useCounter.change(toBattleId(_summ.battles[i].id), toBattleId(newId));
-			_summ.battles[i].id = newId;
-			newId++;
-		}
-		refreshIDs;
+	private bool reNumberingAreaImpl(int index, ulong newId) {
+		return reNumberingImpl(index, newId, _summ.areas);
 	}
-	void reNumberingPackage(int index, ulong newId) {
-		if (index < 0 || _summ.packages.length <= index) return;
-		if (newId == 0) return;
-		if (index > 0 && _summ.packages[index - 1].id >= newId) return;
-		reNumBef(_summ.packages, index);
-		for (size_t i = index; i < _summ.packages.length; i++) {
-			_summ.useCounter.change(toPackageId(_summ.packages[i].id), toPackageId(newId));
-			_summ.packages[i].id = newId;
-			newId++;
-		}
-		refreshIDs;
+	private bool reNumberingBattleImpl(int index, ulong newId) {
+		return reNumberingImpl(index, newId, _summ.battles);
+	}
+	private bool reNumberingPackageImpl(int index, ulong newId) {
+		return reNumberingImpl(index, newId, _summ.packages);
 	}
 	void reNumbering() {
 		if (!_summ) return;
@@ -594,6 +947,7 @@ public:
 		area.add(tree);
 		_summ.add(area);
 		int index = _summ.areas.length - 1;
+		storeInsert(index);
 		newAreaItem(index);
 		selArea(index);
 		_comm.refArea.call(area);
@@ -606,6 +960,7 @@ public:
 		auto btl = new Battle(_summ.newBattleId, _prop.msgs.battleNew, _comm.skin.defBattle);
 		_summ.add(btl);
 		int index = _summ.battles.length - 1;
+		storeInsert(index);
 		newBattleItem(index);
 		selBattle(index);
 		_comm.refBattle.call(btl);
@@ -625,6 +980,7 @@ public:
 		pkg.add(et);
 		_summ.add(pkg);
 		int index = _summ.packages.length - 1;
+		storeInsert(index);
 		newPackageItem(index);
 		selPackage(index);
 		_comm.refPackage.call(pkg);
@@ -762,6 +1118,7 @@ public:
 						if (cast(Area) area) {
 							auto newId = _summ.add(cast(Area) area);
 							int index = _summ.areas.length - 1;
+							storeInsert(index);
 							newAreaItem(index);
 							selArea(index);
 							_comm.refArea.call(cast(Area) area);
@@ -771,6 +1128,7 @@ public:
 						} else if (cast(Package) area) {
 							auto newId = _summ.add(cast(Package) area);
 							int index = _summ.packages.length - 1;
+							storeInsert(index);
 							newPackageItem(index);
 							selPackage(index);
 							_comm.refPackage.call(cast(Package) area);
@@ -781,6 +1139,7 @@ public:
 							assert (cast(Battle) area);
 							auto newId = _summ.add(cast(Battle) area);
 							int index = _summ.battles.length - 1;
+							storeInsert(index);
 							newBattleItem(index);
 							selBattle(index);
 							_comm.refBattle.call(cast(Battle) area);
@@ -800,6 +1159,7 @@ public:
 		void del(SelectionEvent se) {
 			auto area = getSelectionArea;
 			if (area) {
+				storeDelete(_areas.getSelectionIndex);
 				_summ.remove(area);
 				delItem(area);
 				if (cast(Area) area) {
@@ -826,5 +1186,11 @@ public:
 				break;
 			}
 		}
+	}
+	void undo() {
+		_undo.undo();
+	}
+	void redo() {
+		_undo.redo();
 	}
 }

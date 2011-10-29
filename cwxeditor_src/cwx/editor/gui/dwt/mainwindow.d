@@ -1997,9 +1997,11 @@ public:
 		dlg.setText = _prop.msgs.dlgTitQuestion;
 		dlg.setMessage = _prop.msgs.reNumberingAll;
 		if (SWT.OK == dlg.open) {
-			reNumbering(summary.areas);
-			reNumbering(summary.battles);
-			reNumbering(summary.packages);
+			if (_dataWin) {
+				_dataWin.reNumberingAll();
+			} else if (_tableWin) {
+				_tableWin.reNumberingAll();
+			} else assert (0);
 			reNumbering(summary.casts);
 			foreach (c; summary.casts) {
 				reNumbering(c.skills);
@@ -2294,7 +2296,7 @@ protected:
 			~ _prop.msgs.appDesc;
 		ln.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		ln.addSelectionListener(new OpenLink);
-		auto build = new Text(area, SWT.READ_ONLY | SWT.BORDER);
+		auto build = new Text(area, SWT.READ_ONLY | SWT.BORDER | SWT.MULTI);
 		build.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		build.setText = _prop.msgs.appBuild;
 	}

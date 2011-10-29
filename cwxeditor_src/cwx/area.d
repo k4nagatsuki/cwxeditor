@@ -539,6 +539,12 @@ public:
 
 	/// XMLノード化して返す。
 	const
+	XNode toNode() {
+		auto e = XNode.create(rootName);
+		toNodeImpl(e);
+		return e;
+	}
+	const
 	XNode toNode(ref XNode parent) {
 		auto e = parent.newElement(rootName);
 		toNodeImpl(e);

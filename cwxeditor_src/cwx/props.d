@@ -36,7 +36,24 @@ public:
 	const string appVersion() {return splitLines(import("@version.txt"))[0];}
 	const string appWebSiteURI() {return splitLines(import("@version.txt"))[1];}
 	const string appBuild() {
-		string buf = "Build: 2.0 " ~ __TIMESTAMP__ ~ " ";
+		string buf = "Build: 2.0 "
+			~ split(__DATE__, " ")[2]
+			~ "-" ~ [
+				"Jan":"01",
+				"Feb":"02",
+				"Mar":"03",
+				"Apr":"04",
+				"May":"05",
+				"Jun":"06",
+				"Jul":"07",
+				"Aug":"08",
+				"Sep":"09",
+				"Oct":"10",
+				"Nov":"11",
+				"Dec":"12"
+			][split(__DATE__, " ")[0]]
+			~ "-" ~ split(__DATE__, " ")[1]
+			~ " " ~ __TIME__ ~ " ";
 		debug {
 			buf ~= "Debug";
 			version (Console) {
@@ -45,7 +62,7 @@ public:
 		} else {
 			buf ~= "Release";
 		}
-		return buf;
+		return buf ~ linesep ~ "Compiled by " ~ __VENDOR__ ~ " " ~ .text(__VERSION__);
 	}
 	const string dlgTitUsage() {return "使い方 - CWXEditor";}
 	const string usage() {
@@ -1598,7 +1615,6 @@ public:
 		return "パーティに" ~ to!(string)(num) ~ "人" ~  (val ? "以上いる" : "いない");
 	}
 	const string evtChildBrArea(in Area[] areas, ref string text) {
-		assert (areas == areas.sort);
 		if (text.length > 0) {
 			try {
 				long val = text == evtChildDefault ? -1 : (isNumeric(text) ? to!(long)(text) : -1);
@@ -1615,7 +1631,6 @@ public:
 		return "エリア = その他";
 	}
 	const string evtChildBrBattle(in Battle[] btls, ref string text) {
-		assert (btls == btls.sort);
 		if (text.length > 0) {
 			try {
 				long val = text == evtChildDefault ? -1 : (isNumeric(text) ? to!(long)(text) : -1);
