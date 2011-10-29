@@ -98,6 +98,13 @@ public:
 		_onOff = onOff;
 		_name = FlagDir.validName(name);
 	}
+	/// flagのパラメータをコピーする。
+	void copyFrom(Flag flag) {
+		name = flag.name;
+		on = flag.on;
+		off = flag.off;
+		onOff = flag.onOff;
+	}
 	/// このフラグの親ディレクトリ。
 	FlagDir parent() {
 		return _parent;
@@ -239,6 +246,11 @@ public:
 		_vals = vals;
 		_select = select;
 		_name = FlagDir.validName(name);
+	}
+	/// stepのパラメータをコピーする。
+	void copyFrom(Step step) {
+		name = step.name;
+		setValues(step.values, step.select);
 	}
 	/// このステップの親ディレクトリ。
 	FlagDir parent() {

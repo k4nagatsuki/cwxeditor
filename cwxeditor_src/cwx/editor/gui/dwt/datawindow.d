@@ -605,6 +605,34 @@ public:
 		}
 		return false;
 	}
+	void undo() {
+		static if (UseArea && UseFlag) {
+			if (tabf.getSelection is tabA) {
+				_areas.undo();
+			} else {
+				assert (tabf.getSelection is tabF);
+				_flags.undo();
+			}
+		} else static if (UseArea) {
+			_areas.undo();
+		} else static if (UseFlag) {
+			_flags.undo();
+		} else static assert (0);
+	}
+	void redo() {
+		static if (UseArea && UseFlag) {
+			if (tabf.getSelection is tabA) {
+				_areas.redo();
+			} else {
+				assert (tabf.getSelection is tabF);
+				_flags.redo();
+			}
+		} else static if (UseArea) {
+			_areas.redo();
+		} else static if (UseFlag) {
+			_flags.redo();
+		} else static assert (0);
+	}
 }
 
 alias AbstractDataWindow!(true, true) DataWindow;

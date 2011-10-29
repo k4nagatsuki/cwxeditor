@@ -5,6 +5,7 @@ import cwx.summary;
 import cwx.flag;
 import cwx.utils;
 import cwx.usecounter;
+import cwx.path;
 
 import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.dprops;
@@ -12,6 +13,7 @@ import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.xmlbytestransfer;
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.centerlayout;
+import cwx.editor.gui.dwt.undo;
 
 import std.conv;
 import std.string;
@@ -421,6 +423,152 @@ protected:
 
 public class FlagTable : TCPD {
 private:
+	abstract static class FTVUndo : Undo {
+		protected FlagTable _v;
+		protected Commons comm;
+		protected Props prop;
+		protected string _dir;
+		private string _selectedDir;
+		private int[] _selected;
+		private int[] _selectedB;
+		this (FlagTable v, Commons comm, FlagDir dir) {
+			_v = v;
+			_dir = dir.cwxPath;
+			this.comm = comm;
+			saveSelected(v);
+		}
+		protected FlagDir dir() {
+			return cast(FlagDir) comm.summary.findCWXPath(_dir);
+		}
+		private void saveSelected(FlagTable v) {
+			auto dir = this.dir();
+			if (!dir) return;
+			_selectedDir = dir.cwxPath;
+			if (v && v.flags && !v.flags.isDisposed) {
+				_selected = v.flags.getSelectionIndices;
+			} else {
+				_selected.length = 0;
+			}
+		}
+		void udb(FlagTable v) {
+			_selectedB = _selected.dup;
+			saveSelected(v);
+			if (v && v.flags && !v.flags.isDisposed) {
+				.forceFocus(v.flags);
+			}
+		}
+		void uda(FlagTable v) {
+			if (v && v.flags && !v.flags.isDisposed) {
+				if (comm.openCWXPath(_selectedDir)) {
+					v.flags.deselectAll();
+					v.flags.select = _selectedB;
+				}
+			}
+		}
+		FlagTable view() {
+			return _v;
+		}
+		abstract override void undo();
+		abstract override void redo();
+		abstract override void dispose();
+	}
+	static class UndoEdit : FTVUndo {
+		private CWXPath[int] _fs;
+		private int[] _indices;
+		this (FlagTable v, Commons comm, FlagDir dir, int[] indices) {
+			super (v, comm, dir);
+			_indices = indices.dup;
+			save(dir);
+		}
+		private void save(FlagDir dir) {
+			CWXPath[int] fs;
+			foreach (i; _indices) {
+				auto p = fromIndex(dir, i);
+				auto f = cast(Flag) p;
+				if (f) fs[i] = new Flag(f);
+				auto s = cast(Step) p;
+				if (s) fs[i] = new Step(s);
+			}
+			_fs = fs;
+		}
+		private void impl() {
+			auto v = view();
+			udb(v);
+			scope (exit) uda(v);
+			auto fsB = _fs;
+			auto dir = this.dir();
+			assert (dir);
+			save(dir);
+			foreach (i; _indices) {
+				assert (i in fsB);
+				auto old = fsB[i];
+				auto p = fromIndex(dir, i);
+				auto f = cast(Flag) p;
+				if (f) {
+					auto o = cast(Flag) old;
+					assert (o);
+					bool refVal = o.on != f.on || o.off != f.off;
+					auto oPath = f.path;
+					f.copyFrom(o);
+					auto nPath = f.path;
+					refVal |= oPath != nPath;
+					if (oPath != nPath) {
+						comm.summary.useCounter.change(toFlagId(oPath), toFlagId(nPath));
+					}
+					if (refVal) {
+						comm.refFlag.call(f);
+					}
+				}
+				auto s = cast(Step) p;
+				if (s) {
+					auto o = cast(Step) old;
+					assert (o);
+					bool refVal = o.values != s.values;
+					auto oPath = s.path;
+					s.copyFrom(o);
+					auto nPath = s.path;
+					refVal |= oPath != nPath;
+					if (oPath != nPath) {
+						comm.summary.useCounter.change(toStepId(oPath), toStepId(nPath));
+					}
+					if (refVal) {
+						comm.refStep.call(s);
+					}
+				}
+			}
+			if (v && v.flags && !v.flags.isDisposed) {
+				v.refreshFlags();
+			}
+		}
+		override void undo() {impl();}
+		override void redo() {impl();}
+		override void dispose() {}
+	}
+	void storeEdit(int[] indices ...) {
+		_undo ~= new UndoEdit(this, _comm, _dir, indices);
+	}
+
+	int indexOf(CWXPath p) {
+		foreach (i, itm; flags.getItems) {
+			if (itm.getData is cast(Object) p) {
+				return i;
+			}
+		}
+		return -1;
+	}
+	static CWXPath fromIndex(FlagDir dir, int index) {
+		if (dir.steps.length <= index) {
+			return dir.flags[index - dir.steps.length];
+		}
+		return dir.steps[index];
+	}
+	static int toFlagIndex(FlagDir dir, int index) {
+		return index - dir.steps.length;
+	}
+	static int toStepIndex(FlagDir dir, int index) {
+		return index;
+	}
+
 	static const NAME = 0;
 	static const VALUE = 1;
 	static const UC = 2;
@@ -475,6 +623,8 @@ private:
 	FlagEditDialog[Flag] _editDlgsF;
 	StepEditDialog[Step] _editDlgsS;
 
+	UndoManager _undo;
+
 	void editFlag(FlagDir parent, Flag flag) {
 		string old = flag ? flag.path : null;
 		if (!flag) {
@@ -488,6 +638,9 @@ private:
 			return;
 		}
 		auto dlg = new FlagEditDialog(_comm, prop, dlgParShl, parent, flag);
+		dlg.applyEvent ~= {
+			storeEdit(indexOf(dlg.flag));
+		};
 		dlg.appliedEvent ~= {
 			if (old && old != flag.path) uc.change(toFlagId(old), toFlagId(flag.path), true);
 			_comm.openCWXPath(dlg.flag.cwxPath);
@@ -515,6 +668,9 @@ private:
 			return;
 		}
 		auto dlg = new StepEditDialog(_comm, prop, dlgParShl, parent, step);
+		dlg.applyEvent ~= {
+			storeEdit(indexOf(dlg.step));
+		};
 		dlg.appliedEvent ~= {
 			if (old && old != step.path) uc.change(toStepId(old), toStepId(step.path), true);
 			_comm.openCWXPath(dlg.step.cwxPath);
@@ -630,6 +786,7 @@ private:
 		auto f = cast(Flag) itm.getData;
 		if (f) {
 			if (0 == icmp(f.name, text)) return;
+			storeEdit(itm.getParent.indexOf(itm));
 			auto oldId = toFlagId(f.path);
 			f.name = f.parent.createNewFlagName(text);
 			itm.setText(column, f.name);
@@ -639,6 +796,7 @@ private:
 		auto s = cast(Step) itm.getData;
 		if (s) {
 			if (0 == icmp(s.name, text)) return;
+			storeEdit(itm.getParent.indexOf(itm));
 			auto oldId = toStepId(s.path);
 			s.name = s.parent.createNewStepName(text);
 			itm.setText(column, s.name);
@@ -669,12 +827,16 @@ private:
 		if (-1 == i) return;
 		auto f = cast(Flag) itm.getData;
 		if (f) {
+			if (f.onOff == (0 == i)) return;
+			storeEdit(flags.indexOf(itm));
 			f.onOff = 0 == i;
 			itm.setText(column, f.onOff ? f.on : f.off);
 			return;
 		}
 		auto s = cast(Step) itm.getData;
 		if (s) {
+			if (s.select == i) return; 
+			storeEdit(flags.indexOf(itm));
 			s.select = i;
 			itm.setText(column, s.value);
 			return;
@@ -695,9 +857,10 @@ private:
 		return _comm.mainWin.shell.getShell;
 	}
 public:
-	this(Commons comm, Props prop) {
+	this(Commons comm, Props prop, UndoManager undo) {
 		_comm = comm;
 		this.prop = prop;
+		_undo = undo;
 	}
 
 	/// コントロールを生成する。

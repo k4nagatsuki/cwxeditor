@@ -603,6 +603,9 @@ public:
 			auto area = packages(cpindex(path));
 			return area ? area.findCWXPath(cpbottom(path)) : null;
 		}
+		case "variable": {
+			return flagDirRoot.findCWXPath(cpbottom(path));
+		}
 		default: break;
 		}
 		return findCWXPathImpl(path, cate);

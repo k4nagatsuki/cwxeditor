@@ -11,6 +11,7 @@ import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.flagtable;
 import cwx.editor.gui.dwt.xmlbytestransfer;
+import cwx.editor.gui.dwt.undo;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
@@ -69,6 +70,8 @@ private:
 
 	Tree dirs;
 	FlagTable flags;
+
+	UndoManager _undo;
 
 	FlagDir root = null;
 	TreeEdit edit;
@@ -276,10 +279,11 @@ private:
 		}
 	}
 public:
-	this(Commons comm, Props prop, FlagTable flags) {
+	this(Commons comm, Props prop, FlagTable flags, UndoManager undo) {
 		_comm = comm;
 		this.prop = prop;
 		this.flags = flags;
+		_undo = undo;
 	}
 	private Composite _comp = null;
 	Control widget() {return _comp;}

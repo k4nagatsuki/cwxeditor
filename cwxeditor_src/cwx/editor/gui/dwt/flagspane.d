@@ -13,6 +13,7 @@ import cwx.editor.gui.dwt.flagtable;
 import cwx.editor.gui.dwt.flagdirtree;
 import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.xmlbytestransfer;
+import cwx.editor.gui.dwt.undo;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
@@ -74,12 +75,15 @@ private:
 	FlagDirTree _dirs;
 	FlagTable _flags;
 
+	UndoManager _undo;
+
 public:
 	this(Commons comm, Props prop) {
 		_prop = prop;
+		_undo = new UndoManager(1024);
 
-		_flags = new FlagTable(comm, prop);
-		_dirs = new FlagDirTree(comm, prop, _flags);
+		_flags = new FlagTable(comm, prop, _undo);
+		_dirs = new FlagDirTree(comm, prop, _flags, _undo);
 	}
 
 	void construct(Composite parent) {
@@ -140,5 +144,12 @@ public:
 
 	FlagTable flags() {
 		return _flags;
+	}
+
+	void undo() {
+		_undo.undo();
+	}
+	void redo() {
+		_undo.redo();
 	}
 }

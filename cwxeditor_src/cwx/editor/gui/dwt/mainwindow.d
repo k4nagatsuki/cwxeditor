@@ -1585,6 +1585,15 @@ public:
 	}
 	private class KeyDownFilter : Listener {
 		override void handleEvent(Event e) {
+			static const F = [
+				SWT.F1, SWT.F2, SWT.F3, SWT.F4, SWT.F5,
+				SWT.F6, SWT.F7, SWT.F8, SWT.F9, SWT.F10,
+				SWT.F11, SWT.F12, SWT.F13, SWT.F14, SWT.F15,
+			];
+			e.doit = true;
+			if (!(e.stateMask & SWT.CTRL) && !.contains!("a == b", int)(F, e.keyCode)) {
+				return;
+			}
 			auto d = Display.getCurrent;
 			auto fc = d.getFocusControl();
 			if (!fc) return;
@@ -1600,7 +1609,7 @@ public:
 				if (shl is _win) break;
 				shl = cast(Shell) shl.getParent;
 			}
-			if (menu) {
+			if (menu && menu.getEnabled) {
 				scope se = new Event;
 				se.type = SWT.Selection;
 				se.widget = menu;

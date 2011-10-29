@@ -310,6 +310,14 @@ class Commons {
 	MainWindow mainWin() {return _main;}
 	Shell mainShell() {return _main.shell.getShell;}
 
+	Summary summary() {
+		if (_dataWin) {
+			return _dataWin.summary;
+		} else if (_tableWin) {
+			return _tableWin.summary;
+		} else assert (0);
+	}
+
 	bool isChanged() {
 		Summary summ;
 		if (_dataWin) {

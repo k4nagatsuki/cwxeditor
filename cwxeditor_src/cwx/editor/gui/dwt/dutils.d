@@ -798,41 +798,45 @@ public:
 private class InTCPD {
 	TCPD tcpd;
 	void cut(SelectionEvent se) {
-		if (cast(Text) Display.getCurrent.getFocusControl) {
-			(cast(Text) Display.getCurrent.getFocusControl).cut;
-		} else if (cast(Combo) Display.getCurrent.getFocusControl) {
-			(cast(Combo) Display.getCurrent.getFocusControl).cut;
-		} else if (cast(CCombo) Display.getCurrent.getFocusControl) {
-			(cast(CCombo) Display.getCurrent.getFocusControl).cut;
+		auto fc = Display.getCurrent.getFocusControl;
+		if (cast(Text) fc) {
+			(cast(Text) fc).cut;
+		} else if (cast(Combo) fc) {
+			(cast(Combo) fc).cut;
+		} else if (cast(CCombo) fc) {
+			(cast(CCombo) fc).cut;
 		} else {
 			tcpd.cut(se);
 		}
 	}
 	void copy(SelectionEvent se) {
-		if (cast(Text) Display.getCurrent.getFocusControl) {
-			(cast(Text) Display.getCurrent.getFocusControl).copy;
-		} else if (cast(Combo) Display.getCurrent.getFocusControl) {
-			(cast(Combo) Display.getCurrent.getFocusControl).copy;
+		auto fc = Display.getCurrent.getFocusControl;
+		if (cast(Text) fc) {
+			(cast(Text) fc).copy;
+		} else if (cast(Combo) fc) {
+			(cast(Combo) fc).copy;
 		} else if (cast(CCombo) Display.getCurrent.getFocusControl) {
-			(cast(CCombo) Display.getCurrent.getFocusControl).copy;
+			(cast(CCombo) fc).copy;
 		} else {
 			tcpd.copy(se);
 		}
 	}
 	void paste(SelectionEvent se) {
-		if (cast(Text) Display.getCurrent.getFocusControl) {
-			(cast(Text) Display.getCurrent.getFocusControl).paste;
-		} else if (cast(Combo) Display.getCurrent.getFocusControl) {
-			(cast(Combo) Display.getCurrent.getFocusControl).paste;
-		} else if (cast(CCombo) Display.getCurrent.getFocusControl) {
-			(cast(CCombo) Display.getCurrent.getFocusControl).paste;
+		auto fc = Display.getCurrent.getFocusControl;
+		if (cast(Text) fc) {
+			(cast(Text) fc).paste;
+		} else if (cast(Combo) fc) {
+			(cast(Combo) fc).paste;
+		} else if (cast(CCombo) fc) {
+			(cast(CCombo) fc).paste;
 		} else {
 			tcpd.paste(se);
 		}
 	}
 	void del(SelectionEvent se) {
-		if (cast(Text) Display.getCurrent.getFocusControl) {
-			(cast(Text) Display.getCurrent.getFocusControl).insert("");
+		auto fc = Display.getCurrent.getFocusControl;
+		if (cast(Text) fc) {
+			(cast(Text) fc).insert("");
 		} else {
 			tcpd.del(se);
 		}
