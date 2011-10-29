@@ -308,6 +308,7 @@ private:
 						newPackageItem(index);
 					}
 					e.detail = DND.DROP_NONE;
+					refreshIDs();
 					_comm.refUseCount.call;
 					refreshStatusLine;
 				}
