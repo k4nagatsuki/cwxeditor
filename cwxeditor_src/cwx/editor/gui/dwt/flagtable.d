@@ -723,10 +723,11 @@ public:
 			if (c) {
 				try {
 					string newPath;
+					string rootId;
 					Flag[string] cFlags;
 					Step[string] cSteps;
 					if (_dir.appendFromXML(c, LATEST_VERSION,
-							true, false, cFlags, cSteps, newPath)) {
+							true, false, cFlags, cSteps, newPath, rootId)) {
 						refresh;
 						_comm.refFlagAndStep.call(cFlags.values, cSteps.values);
 					}

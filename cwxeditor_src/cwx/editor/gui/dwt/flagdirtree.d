@@ -122,16 +122,26 @@ private:
 				auto data = bytesToXML(e.data);
 				auto dir = cast(FlagDir) e.item.getData;
 				string newPath;
+				string rootId;
 				Flag[string] cFlags;
 				Step[string] cSteps;
-				auto ret = dir.appendFromXML(data, LATEST_VERSION, false, true, cFlags, cSteps, newPath);
+				auto ret = dir.appendFromXML(data, LATEST_VERSION, false, true, cFlags, cSteps, newPath, rootId);
+				bool samePane = dir.root.id == rootId;
 				switch (ret) {
 				case FlagDir.AppendXmlResult.DIR_SUCCESS:
-					e.detail = DND.DROP_MOVE;
+					if (samePane) {
+						e.detail = DND.DROP_MOVE;
+					} else {
+						e.detail = DND.DROP_COPY;
+					}
 					refresh(newPath);
 					break;
 				case FlagDir.AppendXmlResult.FLAG_STEP_SUCCESS:
-					e.detail = DND.DROP_MOVE;
+					if (samePane) {
+						e.detail = DND.DROP_MOVE;
+					} else {
+						e.detail = DND.DROP_COPY;
+					}
 					if (cFlags.length > 0) dir.sortFlags;
 					if (cSteps.length > 0) dir.sortSteps;
 					flags.refresh;
@@ -147,8 +157,9 @@ private:
 					e.detail = DND.DROP_NONE;
 					break;
 				}
-				if (ret == FlagDir.AppendXmlResult.DIR_SUCCESS
-						|| ret == FlagDir.AppendXmlResult.FLAG_STEP_SUCCESS) {
+				if ((ret == FlagDir.AppendXmlResult.DIR_SUCCESS
+						|| ret == FlagDir.AppendXmlResult.FLAG_STEP_SUCCESS)
+						&& samePane) {
 					foreach (oldPath; cFlags.keys) {
 						uc.change(toFlagId(oldPath), toFlagId(cFlags[oldPath].path));
 					}
@@ -394,9 +405,10 @@ public:
 				try {
 					auto cur = current;
 					string newPath;
+					string rootId;
 					Flag[string] cFlags;
 					Step[string] cSteps;
-					switch (cur.appendFromXML(c, LATEST_VERSION, true, true, cFlags, cSteps, newPath)) {
+					switch (cur.appendFromXML(c, LATEST_VERSION, true, true, cFlags, cSteps, newPath, rootId)) {
 					case FlagDir.AppendXmlResult.DIR_SUCCESS:
 						refresh(newPath);
 						auto itm = find(current);

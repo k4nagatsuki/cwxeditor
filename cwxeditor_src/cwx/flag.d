@@ -991,12 +991,14 @@ public:
 	/// Returns: XMLからの追加を試みた結果。
 	/// See_Also: getXml(FlagDir, Flag[], Step[]), getXml(FlagDir)
 	AppendXmlResult appendFromXML(string xml, string ver, bool copy, bool dirMode,
-			out Flag[string] cFlags, out Step[string] cSteps, out string newPath = null) {
+			out Flag[string] cFlags, out Step[string] cSteps, out string newPath, out string rootId) {
 		try {
+			newPath = null;
+			rootId = "";
 			scope doc = XNode.parse(xml);
+			rootId = doc.attr!(string)(XML_ATT_ROOT_ID, false, "");
 
 			if (doc.name == XML_ROOT_FLAGS_AND_STEPS) {
-				string rootId;
 				string path;
 				bool sameTree;
 				if (readAtt(doc, rootId, path, sameTree)) {
