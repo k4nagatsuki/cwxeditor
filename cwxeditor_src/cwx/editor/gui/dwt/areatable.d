@@ -779,6 +779,9 @@ public:
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(menu, _prop.msgs.menuSummary, _prop.images.menuSummary, &editSummary);
 		new MenuItem(menu, SWT.SEPARATOR);
+		createMenuItem(menu, _prop.msgs.menuUndo, _prop.images.menuUndo, &undo);
+		createMenuItem(menu, _prop.msgs.menuRedo, _prop.images.menuRedo, &redo);
+		new MenuItem(menu, SWT.SEPARATOR);
 		appendMenuTCPD(_prop, menu, this);
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(menu, _prop.msgs.menuReNumbering, _prop.images.menuReNumbering, &reNumbering);

@@ -4,6 +4,7 @@ module cwx.flag;
 import cwx.utils;
 import cwx.xml;
 import cwx.path;
+import cwx.usecounter;
 
 import std.array;
 import std.datetime;
@@ -49,6 +50,10 @@ public string getXML(FlagDir parent, Flag[] flags, Step[] steps) {
 
 /// フラグのディレクトリとその配下の内容をXMLにして返す。
 public string getXML(string rootName, FlagDir dir) {
+	return toNode(rootName, dir).text;
+}
+/// ditto
+XNode toNode(string rootName, FlagDir dir) {
 	auto ret = XNode.create(XML_ROOT_FLAG_DIRECTORY);
 	toNode(ret, dir);
 	auto _root = dir.root;
@@ -56,7 +61,7 @@ public string getXML(string rootName, FlagDir dir) {
 	if (_root == dir) {
 		ret.newAttr(XML_ATT_ROOT_NAME, rootName);
 	}
-	return ret.text;
+	return ret;
 }
 private void toNode(ref XNode ret, FlagDir dir) {
 	ret.newAttr(XML_ATT_PATH, dir.path);
@@ -440,6 +445,20 @@ public:
 	this(string name) {
 		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime);
 		_name = validName(name);
+	}
+	/// コピーコンストラクタ。
+	/// サブディレクトリ等も全てコピーされる。
+	this(FlagDir copyBase) {
+		_name = copyBase.name;
+		foreach (d; copyBase.subDirs) {
+			add(new FlagDir(d));
+		}
+		foreach (f; copyBase.flags) {
+			add(new Flag(f));
+		}
+		foreach (s; copyBase.steps) {
+			add(new Step(s));
+		}
 	}
 	override string cwxPath() {
 		if (_owner) {
@@ -1105,12 +1124,12 @@ public:
 	/// Returns: XMLからの追加を試みた結果。
 	/// See_Also: getXml(FlagDir, Flag[], Step[]), getXml(FlagDir)
 	AppendXmlResult appendFromXML(string xml, string ver, bool copy, bool dirMode,
-			out Flag[string] cFlags, out Step[string] cSteps, out string newPath = null) {
+			out Flag[string] cFlags, out Step[string] cSteps, out string newPath = null, out string rootId = "") {
 		try {
 			scope doc = XNode.parse(xml);
+			rootId = doc.attr(XML_ATT_ROOT_ID, false, "");
 
 			if (doc.name == XML_ROOT_FLAGS_AND_STEPS) {
-				string rootId;
 				string path;
 				bool sameTree;
 				if (readAtt(doc, rootId, path, sameTree)) {
@@ -1396,5 +1415,40 @@ public:
 		node.parse;
 		root.sortFlags(true);
 		root.sortSteps(true);
+	}
+
+	/// ディレクトリの名前を変更する。
+	/// 配下のすべてのフラグとステップのパス変更が
+	/// ucによって通知される。
+	bool rename(string name, UseCounter uc) {
+		auto flags = allFlags;
+		auto oldFlagPaths = new string[flags.length];
+		foreach (i, flag; flags) {
+			oldFlagPaths[i] = flag.path;
+		}
+		auto steps = allSteps;
+		auto oldStepPaths = new string[steps.length];
+		foreach (i, step; steps) {
+			oldStepPaths[i] = step.path;
+		}
+		string p = this.path;
+		size_t plen = p.length;
+		if (!.endsWith(p, FlagDir.SEPARATOR.idup)) {
+			plen += FlagDir.SEPARATOR.length;
+		}
+
+		if (!this.name(name)) {
+			return false;
+		}
+		p = this.path;
+		foreach (path; oldFlagPaths) {
+			auto newPath = FlagDir.join(p, path[plen .. $]);
+			uc.change(toFlagId(path), toFlagId(newPath));
+		}
+		foreach (path; oldStepPaths) {
+			auto newPath = FlagDir.join(p, path[plen .. $]);
+			uc.change(toStepId(path), toStepId(newPath));
+		}
+		return true;
 	}
 }

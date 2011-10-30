@@ -133,6 +133,11 @@ public:
 	Step step() {
 		return _step;
 	}
+	/// 入力中の名前を妥当な形にして返す。
+	string name() {
+		auto name = FlagDir.validName(stepName.getText);
+		return dir.createNewStepName(name);
+	}
 protected:
 	override void setup(Composite area) {
 		area.setLayout = zeroGridLayout(1);
@@ -237,9 +242,7 @@ protected:
 			_step.name = stepName.getText;
 			_step.setValues(vals, stepInit.getSelectionIndex);
 		} else {
-			auto name = FlagDir.validName(stepName.getText);
-			name = dir.createNewStepName(name);
-			_step = new Step(name, vals, stepInit.getSelectionIndex);
+			_step = new Step(this.name, vals, stepInit.getSelectionIndex);
 			dir.add(_step);
 		}
 		_comm.refStep.call(_step);
@@ -312,6 +315,11 @@ public:
 	/// Returns: 編集対象となったフラグ。
 	Flag flag() {
 		return _flag;
+	}
+	/// 入力中の名前を妥当な形にして返す。
+	string name() {
+		auto name = FlagDir.validName(flagName.getText);
+		return dir.createNewStepName(name);
 	}
 protected:
 	private static void setMinW(Control c, int minW, int gridStyle = SWT.NULL) {
@@ -409,9 +417,7 @@ protected:
 			_flag.on = flagTrue.getText;
 			_flag.off = flagFalse.getText;
 		} else {
-			auto name = FlagDir.validName(flagName.getText);
-			name = dir.createNewFlagName(name);
-			_flag = new Flag(name, flagTrue.getText, flagFalse.getText,
+			_flag = new Flag(this.name, flagTrue.getText, flagFalse.getText,
 				flagInit.getSelectionIndex == 0);
 			dir.add(_flag);
 		}
@@ -421,131 +427,342 @@ protected:
 	}
 }
 
-public class FlagTable : TCPD {
-private:
-	abstract static class FTVUndo : Undo {
-		protected FlagTable _v;
-		protected Commons comm;
-		protected Props prop;
-		protected string _dir;
-		private string _selectedDir;
-		private int[] _selected;
-		private int[] _selectedB;
-		this (FlagTable v, Commons comm, FlagDir dir) {
-			_v = v;
-			_dir = dir.cwxPath;
-			this.comm = comm;
-			saveSelected(v);
+private abstract class FTVUndo : Undo {
+	protected FlagTable _v;
+	protected Commons comm;
+	protected string _dir;
+	private string _selectedDir;
+	private int[] _selected;
+	private int[] _selectedB;
+	protected FlagDir selDir = null;
+	this (FlagTable v, Commons comm, FlagDir dir) {
+		_v = v;
+		_dir = dir.cwxPath;
+		this.comm = comm;
+		saveSelected(v);
+	}
+	protected FlagDir dir() {
+		return cast(FlagDir) comm.summary.findCWXPath(_dir);
+	}
+	private void saveSelected(FlagTable v) {
+		auto dir = this.dir();
+		if (!dir) return;
+		_selectedDir = dir.cwxPath;
+		if (v && v.flags && !v.flags.isDisposed) {
+			_selected = v.flags.getSelectionIndices;
+		} else {
+			_selected.length = 0;
 		}
-		protected FlagDir dir() {
-			return cast(FlagDir) comm.summary.findCWXPath(_dir);
+	}
+	void udb(FlagTable v) {
+		_selectedB = _selected.dup;
+		saveSelected(v);
+		if (v && v.flags && !v.flags.isDisposed) {
+			.forceFocus(v.flags);
 		}
-		private void saveSelected(FlagTable v) {
-			auto dir = this.dir();
-			if (!dir) return;
-			_selectedDir = dir.cwxPath;
-			if (v && v.flags && !v.flags.isDisposed) {
-				_selected = v.flags.getSelectionIndices;
+	}
+	void uda(FlagTable v) {
+		if (v && v.flags && !v.flags.isDisposed) {
+			if (selDir) {
+				if (comm.openCWXPath(selDir.cwxPath)) {
+					v.flags.deselectAll();
+				}
 			} else {
-				_selected.length = 0;
-			}
-		}
-		void udb(FlagTable v) {
-			_selectedB = _selected.dup;
-			saveSelected(v);
-			if (v && v.flags && !v.flags.isDisposed) {
-				.forceFocus(v.flags);
-			}
-		}
-		void uda(FlagTable v) {
-			if (v && v.flags && !v.flags.isDisposed) {
 				if (comm.openCWXPath(_selectedDir)) {
 					v.flags.deselectAll();
 					v.flags.select = _selectedB;
 				}
 			}
 		}
-		FlagTable view() {
-			return _v;
-		}
-		abstract override void undo();
-		abstract override void redo();
-		abstract override void dispose();
+		selDir = null;
 	}
-	static class UndoEdit : FTVUndo {
-		private CWXPath[int] _fs;
-		private int[] _indices;
-		this (FlagTable v, Commons comm, FlagDir dir, int[] indices) {
-			super (v, comm, dir);
-			_indices = indices.dup;
-			save(dir);
-		}
-		private void save(FlagDir dir) {
-			CWXPath[int] fs;
-			foreach (i; _indices) {
-				auto p = fromIndex(dir, i);
-				auto f = cast(Flag) p;
-				if (f) fs[i] = new Flag(f);
-				auto s = cast(Step) p;
-				if (s) fs[i] = new Step(s);
-			}
-			_fs = fs;
-		}
-		private void impl() {
-			auto v = view();
-			udb(v);
-			scope (exit) uda(v);
-			auto fsB = _fs;
-			auto dir = this.dir();
-			assert (dir);
-			save(dir);
-			foreach (i; _indices) {
-				assert (i in fsB);
-				auto old = fsB[i];
-				auto p = fromIndex(dir, i);
-				auto f = cast(Flag) p;
-				if (f) {
-					auto o = cast(Flag) old;
-					assert (o);
-					bool refVal = o.on != f.on || o.off != f.off;
-					auto oPath = f.path;
-					f.copyFrom(o);
-					auto nPath = f.path;
-					refVal |= oPath != nPath;
-					if (oPath != nPath) {
-						comm.summary.useCounter.change(toFlagId(oPath), toFlagId(nPath));
-					}
-					if (refVal) {
-						comm.refFlag.call(f);
-					}
-				}
-				auto s = cast(Step) p;
-				if (s) {
-					auto o = cast(Step) old;
-					assert (o);
-					bool refVal = o.values != s.values;
-					auto oPath = s.path;
-					s.copyFrom(o);
-					auto nPath = s.path;
-					refVal |= oPath != nPath;
-					if (oPath != nPath) {
-						comm.summary.useCounter.change(toStepId(oPath), toStepId(nPath));
-					}
-					if (refVal) {
-						comm.refStep.call(s);
-					}
-				}
-			}
-			if (v && v.flags && !v.flags.isDisposed) {
-				v.refreshFlags();
-			}
-		}
-		override void undo() {impl();}
-		override void redo() {impl();}
-		override void dispose() {}
+	FlagTable view() {
+		return _v;
 	}
-	void storeEdit(int[] indices ...) {
-		_undo ~= new UndoEdit(this, _comm, _dir, indices);
+	abstract override void undo();
+	abstract override void redo();
+	abstract override void dispose();
+}
+package class UndoEdit : FTVUndo {
+	private CWXPath _f;
+	private int _index;
+	this (FlagTable v, Commons comm, FlagDir dir, int index) {
+		super (v, comm, dir);
+		_index = index;
+		save(dir);
+	}
+	private void save(FlagDir dir) {
+		auto p = FlagTable.fromIndex(dir, _index);
+		auto f = cast(Flag) p;
+		if (f) _f = new Flag(f);
+		auto s = cast(Step) p;
+		if (s) _f = new Step(s);
+	}
+	private void impl() {
+		auto v = view();
+		udb(v);
+		scope (exit) uda(v);
+		auto fB = _f;
+		auto dir = this.dir();
+		assert (dir);
+		save(dir);
+		auto p = FlagTable.fromIndex(dir, _index);
+		auto f = cast(Flag) p;
+		if (f) {
+			auto o = cast(Flag) fB;
+			assert (o);
+			bool refVal = o.on != f.on || o.off != f.off;
+			auto oPath = f.path;
+			f.copyFrom(o);
+			auto nPath = f.path;
+			refVal |= oPath != nPath;
+			if (oPath != nPath) {
+				comm.summary.useCounter.change(toFlagId(oPath), toFlagId(nPath));
+			}
+			if (refVal) {
+				comm.refFlag.call(f);
+			}
+		}
+		auto s = cast(Step) p;
+		if (s) {
+			auto o = cast(Step) fB;
+			assert (o);
+			bool refVal = o.values != s.values;
+			auto oPath = s.path;
+			s.copyFrom(o);
+			auto nPath = s.path;
+			refVal |= oPath != nPath;
+			if (oPath != nPath) {
+				comm.summary.useCounter.change(toStepId(oPath), toStepId(nPath));
+			}
+			if (refVal) {
+				comm.refStep.call(s);
+			}
+		}
+		if (v && v.flags && !v.flags.isDisposed) {
+			v.refresh();
+		}
+	}
+	override void undo() {impl();}
+	override void redo() {impl();}
+	override void dispose() {}
+}
+package class UndoInsertDelete : FTVUndo {
+	private bool _insert;
+
+	/// insert
+	private string[] _name;
+	/// delete
+	private FlagDir[] _ds;
+	private Flag[] _fs;
+	private Step[] _ss;
+
+	/// 追加を元に戻す。
+	this (FlagTable v, Commons comm, FlagDir dir, int[] selected, string[] name) {
+		super (v, comm, dir);
+		_selected = selected.dup;
+		_name = name.dup;
+		_insert = true;
+	}
+	/// 削除を元に戻す。
+	this (FlagTable v, Commons comm, FlagDir dir, int[] selected, FlagDir[] ds, Flag[] fs, Step[] ss) {
+		super (v, comm, dir);
+		_selected = selected.dup;
+		save(ds, fs, ss);
+		_insert = false;
+	}
+	private void save(FlagDir[] ds, Flag[] fs, Step[] ss) {
+		_fs.length = 0;
+		foreach (d; ds) {
+			_ds ~= new FlagDir(d);
+		}
+		foreach (f; fs) {
+			_fs ~= new Flag(f);
+		}
+		foreach (s; ss) {
+			_ss ~= new Step(s);
+		}
+	}
+	private void undoInsert(FlagTable v) {
+		_insert = false;
+		FlagDir[] ds;
+		Flag[] fs;
+		Step[] ss;
+		auto dir = this.dir();
+		foreach (n; _name) {
+			auto d = dir.getSubDir(n);
+			if (d) {
+				ds ~= d;
+				continue;
+			}
+			auto f = dir.getFlag(n);
+			if (f) {
+				fs ~= f;
+				continue;
+			}
+			auto s = dir.getStep(n);
+			if (s) {
+				ss ~= s;
+				continue;
+			}
+		}
+		save(ds, fs, ss);
+		foreach (f; fs) {
+			dir.remove(f);
+		}
+		foreach (s; ss) {
+			dir.remove(s);
+		}
+		foreach (d; ds) {
+			dir.remove(d);
+			fs ~= d.allFlags;
+			ss ~= d.allSteps;
+		}
+		if (v && v.flags && !v.flags.isDisposed) {
+			v.refresh();
+		}
+		if (ds.length) comm.delFlagDir.call(ds);
+		if (fs.length || ss.length) comm.delFlagAndStep.call(fs, ss);
+	}
+	private void undoDelete(FlagTable v) {
+		_insert = true;
+		auto dir = this.dir();
+		_name.length = 0;
+		selDir = _ds.length == 1 && !_fs.length && !_ss.length ? _ds[0] : null;
+		foreach (f; _fs) {
+			_name ~= f.name;
+			dir.add(f);
+		}
+		foreach (s; _ss) {
+			_name ~= s.name;
+			dir.add(s);
+		}
+		foreach (d; _ds) {
+			_name ~= d.name;
+			dir.add(d);
+			_fs ~= d.allFlags;
+			_ss ~= d.allSteps;
+		}
+		if (v && v.flags && !v.flags.isDisposed) {
+			v.refresh();
+		}
+		if (_ds.length) comm.refFlagDir.call(_ds);
+		if (_fs.length || _ss.length) comm.refFlagAndStep.call(_fs, _ss);
+	}
+	override void undo() {
+		auto v = view();
+		udb(v);
+		scope (exit) uda(v);
+		undoImpl(v);
+	}
+	private void undoImpl(FlagTable v) {
+		if (_insert) {
+			undoInsert(v);
+		} else {
+			undoDelete(v);
+		}
+	}
+	override void redo() {
+		auto v = view();
+		udb(v);
+		scope (exit) uda(v);
+		redoImpl(v);
+	}
+	private void redoImpl(FlagTable v) {
+		undoImpl(v);
+	}
+	override void dispose() {}
+}
+package class UndoMove : FTVUndo {
+	private UndoInsertDelete _dir1;
+	private UndoInsertDelete _dir2;
+	private string[string] _cFlags;
+	private string[string] _cSteps;
+
+	this (FlagTable v, Commons comm, int[] selected, FlagDir to, string[] name, FlagDir from, FlagDir[] ds, Flag[] fs, Step[] ss, Flag[string] cFlags, Step[string] cSteps) {
+		super (v, comm, from);
+		_selected = selected.dup;
+		assert (name.length == ds.length + fs.length + ss.length);
+		_dir1 = new UndoInsertDelete(v, comm, to, selected, name);
+		_dir2 = new UndoInsertDelete(v, comm, from, selected, ds, fs, ss);
+		foreach (oPath, flag; cFlags) {
+			_cFlags[oPath] = flag.path;
+		}
+		foreach (oPath, step; cSteps) {
+			_cSteps[oPath] = step.path;
+		}
+	}
+	private void change(FlagTable v) {
+		string[string] cFlags;
+		string[string] cSteps;
+		foreach (nPath, oPath; _cFlags) {
+			cFlags[oPath] = nPath;
+			comm.summary.useCounter.change(toFlagId(oPath), toFlagId(nPath));
+		}
+		foreach (nPath, oPath; _cSteps) {
+			cSteps[oPath] = nPath;
+			comm.summary.useCounter.change(toStepId(oPath), toStepId(nPath));
+		}
+		_cFlags = cFlags;
+		_cSteps = cSteps;
+		if (v && v.flags && !v.flags.isDisposed) {
+			v.__refreshUseCount;
+		}
+	}
+	override void undo() {
+		auto v = view();
+		udb(v);
+		scope (exit) uda(v);
+		_dir1.undoImpl(v);
+		_dir2.undoImpl(v);
+		change(v);
+	}
+	override void redo() {
+		auto v = view();
+		udb(v);
+		scope (exit) uda(v);
+		_dir2.redoImpl(v);
+		_dir1.redoImpl(v);
+		change(v);
+	}
+	override void dispose() {
+		_dir1.dispose();
+		_dir2.dispose();
+	}
+}
+package class UndoEditDir : FTVUndo {
+	private string _oldName;
+	this (FlagTable v, Commons comm, FlagDir dir, string oldName) {
+		super (v, comm, dir);
+		_oldName = oldName;
+	}
+	private void impl() {
+		auto v = view();
+		udb(v);
+		scope (exit) uda(v);
+		auto dir = this.dir();
+
+		string oldName = dir.name;
+		dir.rename(_oldName, comm.summary.useCounter);
+		_oldName = oldName;
+
+		comm.refFlagDir.call([dir]);
+	}
+	override void undo() {impl();}
+	override void redo() {impl();}
+	override void dispose() {}
+}
+
+public class FlagTable : TCPD {
+private:
+	void storeEdit(int index) {
+		_undo ~= new UndoEdit(this, _comm, _dir, index);
+	}
+	void storeInsert(int[] selected, string[] name) {
+		_undo ~= new UndoInsertDelete(this, _comm, _dir, selected, name);
+	}
+	void storeDelete(int[] selected, FlagDir[] ds, Flag[] fs, Step[] ss) {
+		_undo ~= new UndoInsertDelete(this, _comm, _dir, selected, ds, fs, ss);
 	}
 
 	int indexOf(CWXPath p) {
@@ -639,7 +856,12 @@ private:
 		}
 		auto dlg = new FlagEditDialog(_comm, prop, dlgParShl, parent, flag);
 		dlg.applyEvent ~= {
-			storeEdit(indexOf(dlg.flag));
+			int i = indexOf(dlg.flag);
+			if (-1 != i) {
+				storeEdit(i);
+			} else {
+				storeInsert(flags.getSelectionIndices, [dlg.name]);
+			}
 		};
 		dlg.appliedEvent ~= {
 			if (old && old != flag.path) uc.change(toFlagId(old), toFlagId(flag.path), true);
@@ -669,7 +891,12 @@ private:
 		}
 		auto dlg = new StepEditDialog(_comm, prop, dlgParShl, parent, step);
 		dlg.applyEvent ~= {
-			storeEdit(indexOf(dlg.step));
+			int i = indexOf(dlg.step);
+			if (-1 != i) {
+				storeEdit(i);
+			} else {
+				storeInsert(flags.getSelectionIndices, [dlg.name]);
+			}
 		};
 		dlg.appliedEvent ~= {
 			if (old && old != step.path) uc.change(toStepId(old), toStepId(step.path), true);
@@ -736,38 +963,37 @@ private:
 		}
 	}
 
+	Flag[] _dragFlags;
+	Step[] _dragSteps;
 	class FlagDragListener : DragSourceListener {
 	private:
 		int[] dragIndices;
-		Flag[] fs;
-		Step[] ss;
 	public:
 		override void dragStart(DragSourceEvent e) {
 			e.doit = flags.getSelectionCount > 0;
 		}
 		override void dragSetData(DragSourceEvent e) {
 			if (XMLBytesTransfer.getInstance.isSupportedType(e.dataType)) {
-
 				// XML化して転送する。
-				getSelectionFlagAndStep(fs, ss);
-				e.data = bytesFromXML(getXML(_dir, fs, ss));
+				getSelectionFlagAndStep(_dragFlags, _dragSteps);
+				e.data = bytesFromXML(getXML(_dir, _dragFlags, _dragSteps));
 			}
 		}
 		override void dragFinished(DragSourceEvent e) {
 			if (e.detail == DND.DROP_MOVE) {
-				foreach (flag; fs) {
+				foreach (flag; _dragFlags) {
 					flag.parent.remove(flag);
 					_comm.delFlag.call(flag);
 				}
-				fs.length = 0;
-				foreach (step; ss) {
+				foreach (step; _dragSteps) {
 					step.parent.remove(step);
 					_comm.delStep.call(step);
 				}
-				ss.length = 0;
 				refresh;
-				_comm.delFlagAndStep.call(fs, ss);
+				_comm.delFlagAndStep.call(_dragFlags, _dragSteps);
 			}
+			_dragFlags.length = 0;
+			_dragSteps.length = 0;
 		}
 	}
 	class SListener : SelectionAdapter {
@@ -886,6 +1112,9 @@ public:
 		auto menu = new Menu(flags.getShell, SWT.POP_UP);
 		createMenuItem(menu, prop.msgs.menuCEdit, prop.images.menuCEdit, &startEdit);
 		new MenuItem(menu, SWT.SEPARATOR);
+		createMenuItem(menu, prop.msgs.menuUndo, prop.images.menuUndo, &undo);
+		createMenuItem(menu, prop.msgs.menuRedo, prop.images.menuRedo, &redo);
+		new MenuItem(menu, SWT.SEPARATOR);
 		appendMenuTCPD(prop, menu, this);
 		flags.setMenu(menu);
 
@@ -907,6 +1136,9 @@ public:
 	}
 	private Composite _comp = null;
 	Control widget() {return _comp;}
+
+	package Flag[] dragFlags() {return _dragFlags;}
+	package Step[] dragSteps() {return _dragSteps;}
 
 	private void refreshStatusLine() {
 		Flag[] fs;
@@ -962,6 +1194,28 @@ public:
 		}
 		refreshStatusLine;
 	}
+	/// 表示上で選択されているindex。
+	int[] selected() {
+		if (flags && !flags.isDisposed) {
+			return flags.getSelectionIndices;
+		}
+		return [];
+	}
+	/// 表示上で選択されているフラグまたはステップ。
+	int[] selected(out Flag[] fs, out Step[] ss) {
+		if (flags && !flags.isDisposed) {
+			auto indices = flags.getSelectionIndices;
+			foreach (i; indices) {
+				auto o = flags.getItem(i).getData;
+				auto f = cast(Flag) o;
+				if (f) fs ~= f;
+				auto s = cast(Step) o;
+				if (s) ss ~= s;
+			}
+			return indices;
+		}
+		return [];
+	}
 
 	/// フラグ生成のダイアログボックスを開く。
 	/// 適切に設定された場合、新規フラグを生成する。
@@ -993,22 +1247,6 @@ public:
 	/// Returns: 編集対象のディレクトリ。
 	FlagDir dir() {
 		return _dir;
-	}
-
-	/// フラグを追加する。
-	/// Params:
-	/// flag = フラグ。
-	void add(Flag flag) {
-		_dir.add(flag);
-		refresh;
-	}
-
-	/// ステップを追加する。
-	/// Params:
-	/// step = ステップ。
-	void add(Step step) {
-		_dir.add(step);
-		refresh;
 	}
 
 	private void selectImpl(Object flag) {
@@ -1068,10 +1306,20 @@ public:
 			if (c) {
 				try {
 					string newPath;
+					string rootId;
 					Flag[string] cFlags;
 					Step[string] cSteps;
+					auto sels = flags.getSelectionIndices;
 					if (_dir.appendFromXML(c, LATEST_VERSION,
-							true, false, cFlags, cSteps, newPath)) {
+							true, false, cFlags, cSteps, newPath, rootId)) {
+						string[] name;
+						foreach (f; cFlags) {
+							name ~= f.name;
+						}
+						foreach (s; cSteps) {
+							name ~= s.name;
+						}
+						storeInsert(sels, name);
 						refresh;
 						_comm.refFlagAndStep.call(cFlags.values, cSteps.values);
 					}
@@ -1082,6 +1330,7 @@ public:
 		}
 		void del(SelectionEvent se) {
 			if (!_dir) return;
+			auto sels = flags.getSelectionIndices;
 			Flag[] fs;
 			Step[] ss;
 			foreach (itm; flags.getSelection) {
@@ -1099,11 +1348,18 @@ public:
 					_comm.delStep.call(step);
 				}
 			}
+			storeDelete(sels, [], fs, ss);
 			_comm.delFlagAndStep.call(fs, ss);
 			refresh;
 		}
 		bool canDoTCPD() {
 			return flags.isFocusControl;
 		}
+	}
+	void undo() {
+		_undo.undo();
+	}
+	void redo() {
+		_undo.redo();
 	}
 }

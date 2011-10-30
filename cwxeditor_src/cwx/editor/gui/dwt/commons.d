@@ -220,6 +220,8 @@ class Commons {
 	Dlg!(BeastCard) delBeast;
 	Dlg!(InfoCard) refInfo;
 	Dlg!(InfoCard) delInfo;
+	Dlg!(FlagDir[]) refFlagDir;
+	Dlg!(FlagDir[]) delFlagDir;
 	Dlg!(Flag[], Step[]) refFlagAndStep;
 	Dlg!(Flag[], Step[]) delFlagAndStep;
 	Dlg!(Flag) refFlag;

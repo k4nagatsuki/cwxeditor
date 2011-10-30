@@ -153,6 +153,9 @@ public:
 					createMenuItem(me, _prop.msgs.menuEditEvent, _prop.images.menuEditEvent, &openAreaEvent);
 					new MenuItem(me, SWT.SEPARATOR);
 				}
+				createMenuItem(me, _prop.msgs.menuUndo, _prop.images.menuUndo, &undo);
+				createMenuItem(me, _prop.msgs.menuRedo, _prop.images.menuRedo, &redo);
+				new MenuItem(me, SWT.SEPARATOR);
 				appendMenuTCPD(_prop, me, this);
 
 				static if (UseFlag) {
@@ -218,11 +221,8 @@ public:
 				putMenuAction(MenuID.NewFlag, &createFlag);
 				putMenuAction(MenuID.NewStep, &createStep);
 			}
-			// TODO フラグ側も元に戻せるようにする
-			// TODO シングルウィンドウでのメニュー
-			// TODO 右クリックメニュー
-//			putMenuAction(MenuID.Undo, &undo);
-//			putMenuAction(MenuID.Redo, &redo);
+			putMenuAction(MenuID.Undo, &undo);
+			putMenuAction(MenuID.Redo, &redo);
 		}
 		{
 			static if (UseArea && UseFlag) {

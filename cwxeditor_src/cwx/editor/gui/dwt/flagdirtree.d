@@ -33,6 +33,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.FocusEvent;
@@ -64,6 +65,19 @@ import org.eclipse.swt.dnd.Clipboard;
 
 public class FlagDirTree : TCPD {
 private:
+	void storeInsert(FlagDir dir, int[] selected, string[] name) {
+		_undo ~= new UndoInsertDelete(flags, _comm, dir, selected, name);
+	}
+	void storeDelete(FlagDir dir, int[] selected, FlagDir[] ds, Flag[] fs, Step[] ss) {
+		_undo ~= new UndoInsertDelete(flags, _comm, dir, selected, ds, fs, ss);
+	}
+	void storeMove(int[] selected, FlagDir to, string[] name, FlagDir from, FlagDir[] ds, Flag[] fs, Step[] ss, Flag[string] cFlags, Step[string] cSteps) {
+		_undo ~= new UndoMove(flags, _comm, selected, to, name, from, ds, fs, ss, cFlags, cSteps);
+	}
+	void storeEditDir(FlagDir dir, string oldName) {
+		_undo ~= new UndoEditDir(flags, _comm, dir, oldName);
+	}
+
 	Props prop;
 	UseCounter uc;
 	Commons _comm;
@@ -82,27 +96,27 @@ private:
 		}
 	}
 
+	FlagDir _moveDir = null;
 	class FlagDirDragListener : DragSourceListener {
-	private:
-		FlagDir moveDir;
 	public:
 		override void dragStart(DragSourceEvent e) {
 			e.doit = current != root && (cast(DragSource) e.getSource).getControl.isFocusControl;
 		}
 		override void dragSetData(DragSourceEvent e) {
 			if (XMLBytesTransfer.getInstance.isSupportedType(e.dataType)) {
-				moveDir = current;
+				_moveDir = current;
 
 				// XML化して転送する。
-				e.data = bytesFromXML(getXML(prop.msgs.flagDirRoot, moveDir));
+				e.data = bytesFromXML(getXML(prop.msgs.flagDirRoot, _moveDir));
 			}
 		}
 		override void dragFinished(DragSourceEvent e) {
 			if (e.detail == DND.DROP_MOVE) {
-				moveDir.parent.remove(moveDir);
+				_moveDir.parent.remove(_moveDir);
 				refresh;
-				_comm.delFlagAndStep.call(moveDir.allFlags, moveDir.allSteps);
+				_comm.delFlagAndStep.call(_moveDir.allFlags, _moveDir.allSteps);
 			}
+			_moveDir = null;
 		}
 	}
 	class FlagsDropListener : DropTargetAdapter {
@@ -125,16 +139,56 @@ private:
 				auto data = bytesToXML(e.data);
 				auto dir = cast(FlagDir) e.item.getData;
 				string newPath;
+				string rootId;
+				Flag[] fs = flags.dragFlags;
+				Step[] ss = flags.dragSteps;
 				Flag[string] cFlags;
 				Step[string] cSteps;
-				auto ret = dir.appendFromXML(data, LATEST_VERSION, false, true, cFlags, cSteps, newPath);
+				int[] tblSels;
+				FlagDir moveDirParent = null;
+				if (current is dir) {
+					tblSels = flags.selected();
+				}
+				if (_moveDir) {
+					moveDirParent = _moveDir.parent;
+				}
+				string[] allName() {
+					string[] name;
+					foreach (f; cFlags) {
+						name ~= f.name;
+					}
+					foreach (s; cSteps) {
+						name ~= s.name;
+					}
+					return name;
+				}
+				auto ret = dir.appendFromXML(data, LATEST_VERSION, false, true, cFlags, cSteps, newPath, rootId);
+				bool samePane = dir.root.id == rootId;
 				final switch (ret) {
 				case FlagDir.AppendXmlResult.DIR_SUCCESS:
-					e.detail = DND.DROP_MOVE;
+					string dirName = FlagDir.basename(newPath);
+					if (samePane) {
+						e.detail = DND.DROP_MOVE;
+						assert (moveDirParent);
+						storeMove(tblSels, dir, [dirName], moveDirParent, [_moveDir], [], [], cFlags, cSteps);
+						_comm.delFlagDir.call(this.outer, [_moveDir]);
+						_comm.refFlagDir.call(this.outer, [_moveDir]);
+					} else {
+						e.detail = DND.DROP_COPY;
+						storeInsert(dir, tblSels, [dirName]);
+						cdebugln(root.findPath(newPath, false).name);
+						_comm.refFlagDir.call(this.outer, [root.findPath(newPath, false)]);
+					}
 					refresh(newPath);
 					break;
 				case FlagDir.AppendXmlResult.FLAG_STEP_SUCCESS:
-					e.detail = DND.DROP_MOVE;
+					if (samePane) {
+						e.detail = DND.DROP_MOVE;
+						storeMove(tblSels, dir, allName, current, [], fs, ss, cFlags, cSteps);
+					} else {
+						e.detail = DND.DROP_COPY;
+						storeInsert(dir, tblSels, allName);
+					}
 					if (cFlags.length > 0) dir.sortFlags;
 					if (cSteps.length > 0) dir.sortSteps;
 					flags.refresh;
@@ -150,8 +204,9 @@ private:
 					e.detail = DND.DROP_NONE;
 					break;
 				}
-				if (ret == FlagDir.AppendXmlResult.DIR_SUCCESS
-						|| ret == FlagDir.AppendXmlResult.FLAG_STEP_SUCCESS) {
+				if ((ret == FlagDir.AppendXmlResult.DIR_SUCCESS
+						|| ret == FlagDir.AppendXmlResult.FLAG_STEP_SUCCESS)
+						&& samePane) {
 					foreach (oldPath; cFlags.keys) {
 						uc.change(toFlagId(oldPath), toFlagId(cFlags[oldPath].path));
 					}
@@ -170,32 +225,12 @@ private:
 		auto dir = cast(FlagDir) itm.getData;
 		auto text = (cast(Text) c).getText;
 		if (!text) text = "";
-		auto flags = dir.allFlags;
-		auto oldFlagPaths = new string[flags.length];
-		foreach (i, flag; flags) {
-			oldFlagPaths[i] = flag.path;
-		}
-		auto steps = dir.allSteps;
-		auto oldStepPaths = new string[steps.length];
-		foreach (i, step; steps) {
-			oldStepPaths[i] = step.path;
-		}
-		string p = dir.path;
-		size_t plen = p.length;
-		if (!endsWith(p, FlagDir.SEPARATOR)) {
-			plen += FlagDir.SEPARATOR.length;
-		}
-
-		dir.name = text;
-		itm.setText = dir.name;
-		p = dir.path;
-		foreach (path; oldFlagPaths) {
-			auto newPath = FlagDir.join(p, path[plen .. $]);
-			uc.change(toFlagId(path), toFlagId(newPath));
-		}
-		foreach (path; oldStepPaths) {
-			auto newPath = FlagDir.join(p, path[plen .. $]);
-			uc.change(toStepId(path), toStepId(newPath));
+		string oldName = dir.name;
+		if (oldName == text) return;
+		if (dir.rename(text, uc)) {
+			storeEditDir(dir, oldName);
+			itm.setText = dir.name;
+			_comm.refFlagDir.call(this, [dir]);
 		}
 	}
 
@@ -278,6 +313,10 @@ private:
 			dirs.select = itm;
 		}
 	}
+	void refreshD(Object sender, FlagDir[] dirs) {
+		if (sender is this) return;
+		refresh(null);
+	}
 public:
 	this(Commons comm, Props prop, FlagTable flags, UndoManager undo) {
 		_comm = comm;
@@ -327,6 +366,9 @@ public:
 
 		dirs.addSelectionListener(new DirSelection);
 		auto menu = new Menu(dirs.getShell, SWT.POP_UP);
+		createMenuItem(menu, prop.msgs.menuUndo, prop.images.menuUndo, &undo);
+		createMenuItem(menu, prop.msgs.menuRedo, prop.images.menuRedo, &redo);
+		new MenuItem(menu, SWT.SEPARATOR);
 		appendMenuTCPD(prop, menu, this);
 		dirs.setMenu(menu);
 
@@ -339,10 +381,14 @@ public:
 
 		_comm.replText.add(&refresh);
 		_comm.refSortCondition.add(&refresh);
+		_comm.refFlagDir.add(&refreshD);
+		_comm.delFlagDir.add(&refreshD);
 		dirs.addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) {
 				_comm.replText.remove(&refresh);
 				_comm.refSortCondition.remove(&refresh);
+				_comm.refFlagDir.remove(&refreshD);
+				_comm.delFlagDir.remove(&refreshD);
 			}
 		});
 		return _comp;
@@ -355,7 +401,9 @@ public:
 		auto cur = current;
 		if (!cur) return;
 		_comm.openCWXPath(cur.cwxPath);
-		auto dir = new FlagDir(cur.createNewDirName(prop.msgs.flagDirNew));
+		string name = cur.createNewDirName(prop.msgs.flagDirNew);
+		storeInsert(cur, flags.selected, [name]);
+		auto dir = new FlagDir(name);
 		cur.add(dir);
 		refreshDirs(cur);
 		current = dir;
@@ -408,6 +456,7 @@ public:
 					string newPath;
 					Flag[string] cFlags;
 					Step[string] cSteps;
+					auto tblSels = flags.selected;
 					switch (cur.appendFromXML(c, LATEST_VERSION, true, true, cFlags, cSteps, newPath)) {
 					case FlagDir.AppendXmlResult.DIR_SUCCESS:
 						refresh(newPath);
@@ -422,7 +471,10 @@ public:
 						assert (false);
 					default:
 					}
+					auto dir = root.findPath(newPath, false);
+					storeInsert(dir.parent, tblSels, [dir.name]);
 					_comm.refFlagAndStep.call(cFlags.values, cSteps.values);
+					_comm.refFlagDir.call([dir]);
 				} catch (Exception e) {
 					debugln(e);
 				}
@@ -432,6 +484,8 @@ public:
 			if (!root) return;
 			auto cur = current;
 			if (cur != root) {
+				auto tblSels = flags.selected;
+				storeDelete(cur.parent, tblSels, [cur], [], []);
 				Flag[] cFlags = cur.allFlags;
 				Step[] cSteps = cur.allSteps;
 				auto p = cur.parent;
@@ -439,6 +493,7 @@ public:
 				current = p;
 				refreshDirs(p);
 				_comm.delFlagAndStep.call(cFlags, cSteps);
+				_comm.delFlagDir.call([cur]);
 			}
 		}
 		bool canDoTCPD() {
@@ -500,5 +555,11 @@ public:
 	}
 	bool openCWXPath(string path) {
 		return openCWXPathImpl(root, path);
+	}
+	void undo() {
+		_undo.undo();
+	}
+	void redo() {
+		_undo.redo();
 	}
 }
