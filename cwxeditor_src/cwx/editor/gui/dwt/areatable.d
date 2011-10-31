@@ -75,6 +75,7 @@ private:
 		private ulong[] _packageIDs;
 		private ulong[] _packageIDsB;
 		private int _sel;
+		private int _selB;
 
 		this (AreaTable v, Commons comm, Summary summ) {
 			_v = v;
@@ -90,7 +91,9 @@ private:
 			foreach (a; summ.battles) _battleIDs ~= a.id;
 			_packageIDs.length = 0;
 			foreach (a; summ.packages) _packageIDs ~= a.id;
-			if (v && v._areas && !v._areas.isDisposed) _sel = v._areas.getSelectionIndex;
+			if (v && v._areas && !v._areas.isDisposed) {
+				_sel = v._areas.getSelectionIndex;
+			}
 		}
 		abstract override void undo();
 		abstract override void redo();
@@ -99,6 +102,7 @@ private:
 			_areaIDsB = _areaIDs.dup;
 			_battleIDsB = _battleIDs.dup;
 			_packageIDsB = _packageIDs.dup;
+			_selB = _sel;
 			saveIDs(v);
 			if (v && v._areas && !v._areas.isDisposed) {
 				.forceFocus(v._areas);
@@ -147,7 +151,7 @@ private:
 					v.refData(a, v._areas.getItem(i));
 					i++;
 				}
-				v._areas.select = _sel;
+				v._areas.select = _selB;
 				v._areas.showSelection();
 			}
 			comm.refUseCount.call;
@@ -262,15 +266,13 @@ private:
 			_insert = insert;
 			_index = index;
 
-			if (insert) {
-				_sel = index;
-			} else {
+			if (!insert) {
 				initUndoDelete();
 			}
 		}
 		private void initUndoDelete() {
 			auto area = areaFromIndex(summ, _index);
-			_isStartArea = summ.startArea == area.id;
+			_isStartArea = cast(Area) area && summ.startArea == area.id;
 			auto node = area.toNode;
 			auto a = cast(Area) area;
 			if (a) {
@@ -316,6 +318,10 @@ private:
 			auto v = view();
 			udb(v);
 			scope (exit) uda(v);
+			scope (exit) {
+				_area.removeUseCounter();
+				_area = null;
+			}
 			_insert = true;
 			auto a = cast(Area) _area;
 			if (a) {
@@ -358,6 +364,9 @@ private:
 			undo();
 		}
 		override void dispose() {
+			if (_area) {
+				_area.removeUseCounter();
+			}
 		}
 	}
 	void storeInsert(int index) {
@@ -939,6 +948,7 @@ public:
 
 	/// 新規エリアが作成され、名前の入力待ちになる。
 	void createArea() {
+		storeInsert(_summ.areas.length);
 		auto area = new Area(_summ.newAreaId, _prop.msgs.areaNew);
 		auto bgImages = BgImageS.createBgImages(_comm.skin, _prop.var.etc.bgImagesDefault);
 		foreach (b; bgImages) {
@@ -949,7 +959,6 @@ public:
 		area.add(tree);
 		_summ.add(area);
 		int index = _summ.areas.length - 1;
-		storeInsert(index);
 		newAreaItem(index);
 		selArea(index);
 		_comm.refArea.call(area);
@@ -959,10 +968,10 @@ public:
 
 	/// 新規バトルが作成され、名前の入力待ちになる。
 	void createBattle() {
+		storeInsert(_summ.areas.length + _summ.battles.length);
 		auto btl = new Battle(_summ.newBattleId, _prop.msgs.battleNew, _comm.skin.defBattle);
 		_summ.add(btl);
 		int index = _summ.battles.length - 1;
-		storeInsert(index);
 		newBattleItem(index);
 		selBattle(index);
 		_comm.refBattle.call(btl);
@@ -972,6 +981,7 @@ public:
 
 	/// 新規パッケージが作成され、名前の入力待ちになる。
 	ulong createPackage(Content baseStart = null) {
+		storeInsert(_summ.areas.length + _summ.battles.length + _summ.packages.length);
 		auto pkg = new Package(_summ.newPackageId, baseStart ? baseStart.name : _prop.msgs.packageNew);
 		EventTree et;
 		if (baseStart) {
@@ -982,7 +992,6 @@ public:
 		pkg.add(et);
 		_summ.add(pkg);
 		int index = _summ.packages.length - 1;
-		storeInsert(index);
 		newPackageItem(index);
 		selPackage(index);
 		_comm.refPackage.call(pkg);
@@ -1118,37 +1127,36 @@ public:
 					if (area !is null) {
 						auto oldId = area.id;
 						if (cast(Area) area) {
+							storeInsert(_summ.areas.length);
 							auto newId = _summ.add(cast(Area) area);
 							int index = _summ.areas.length - 1;
-							storeInsert(index);
 							newAreaItem(index);
 							selArea(index);
 							_comm.refArea.call(cast(Area) area);
 							if (sameSummary && !_summ.hasAreaId(oldId)) {
 								_summ.useCounter.change(toAreaId(oldId), toAreaId(newId));
 							}
-						} else if (cast(Package) area) {
-							auto newId = _summ.add(cast(Package) area);
-							int index = _summ.packages.length - 1;
-							storeInsert(index);
-							newPackageItem(index);
-							selPackage(index);
-							_comm.refPackage.call(cast(Package) area);
-							if (sameSummary && !_summ.hasPackageId(oldId)) {
-								_summ.useCounter.change(toPackageId(oldId), toPackageId(newId));
-							}
-						} else {
-							assert (cast(Battle) area);
+						} else if (cast(Battle) area) {
+							storeInsert(_summ.areas.length + _summ.battles.length);
 							auto newId = _summ.add(cast(Battle) area);
 							int index = _summ.battles.length - 1;
-							storeInsert(index);
 							newBattleItem(index);
 							selBattle(index);
 							_comm.refBattle.call(cast(Battle) area);
 							if (sameSummary && !_summ.hasBattleId(oldId)) {
 								_summ.useCounter.change(toBattleId(oldId), toBattleId(newId));
 							}
-						}
+						} else if (cast(Package) area) {
+							storeInsert(_summ.areas.length + _summ.battles.length + _summ.packages.length);
+							auto newId = _summ.add(cast(Package) area);
+							int index = _summ.packages.length - 1;
+							newPackageItem(index);
+							selPackage(index);
+							_comm.refPackage.call(cast(Package) area);
+							if (sameSummary && !_summ.hasPackageId(oldId)) {
+								_summ.useCounter.change(toPackageId(oldId), toPackageId(newId));
+							}
+						} else assert (0);
 						if (_flags) _flags.refresh;
 						_comm.refUseCount.call;
 						refreshStatusLine;

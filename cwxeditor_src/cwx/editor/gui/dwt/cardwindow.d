@@ -186,9 +186,6 @@ private:
 			}
 			override void dispose() {}
 		}
-		void storeIDs() {
-			_undo ~= new UndoIDs(this, _comm, _owner);
-		}
 		static class UndoEdit : CPUndo {
 			private C _card;
 			private int _index;
