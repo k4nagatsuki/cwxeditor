@@ -1524,11 +1524,11 @@ public:
 
 	Summary summary() {return _dataWin ? _dataWin.summary : _tableWin.summary;}
 
-	void reNumbering(A)(A[] arr) {
+	void reNumbering(A)(A[] arr, bool hand = false) {
 		ulong newId = 1;
 		foreach (a; arr) {
 			if (a.id != newId) {
-				summary.useCounter.change(A.toID(a.id), A.toID(newId));
+				if (!hand) summary.useCounter.change(A.toID(a.id), A.toID(newId));
 				a.id = newId;
 				static if (is (A : Area)) {
 					_comm.refArea.call(a);
@@ -1563,9 +1563,9 @@ public:
 			reNumbering(summary.packages);
 			reNumbering(summary.casts);
 			foreach (c; summary.casts) {
-				reNumbering(c.skills);
-				reNumbering(c.items);
-				reNumbering(c.beasts);
+				reNumbering(c.skills, true);
+				reNumbering(c.items, true);
+				reNumbering(c.beasts, true);
 			}
 			reNumbering(summary.skills);
 			reNumbering(summary.items);
