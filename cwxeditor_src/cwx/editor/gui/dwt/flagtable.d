@@ -1115,7 +1115,7 @@ public:
 		createMenuItem(menu, prop.msgs.menuUndo, prop.images.menuUndo, &undo);
 		createMenuItem(menu, prop.msgs.menuRedo, prop.images.menuRedo, &redo);
 		new MenuItem(menu, SWT.SEPARATOR);
-		appendMenuTCPD(prop, menu, this);
+		appendMenuTCPD(prop, menu, this, true, true, true, true);
 		flags.setMenu(menu);
 
 		auto ds = new DragSource(flags, DND.DROP_MOVE | DND.DROP_COPY);

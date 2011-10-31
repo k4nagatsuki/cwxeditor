@@ -449,7 +449,7 @@ public:
 	/// コピーコンストラクタ。
 	/// サブディレクトリ等も全てコピーされる。
 	this(FlagDir copyBase) {
-		_name = copyBase.name;
+		name = copyBase.name;
 		foreach (d; copyBase.subDirs) {
 			add(new FlagDir(d));
 		}

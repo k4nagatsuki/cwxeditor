@@ -808,7 +808,7 @@ public:
 	const
 	int indexOf(T)(in T c) {
 		static if (is (T == CastCard)) {
-			return .cCountUntil("a is b")(_cast, c);
+			return .cCountUntil!("a is b")(_cast, c);
 		} else static if (is (T == SkillCard)) {
 			return .cCountUntil!("a is b")(_skl, c);
 		} else static if (is (T == ItemCard)) {

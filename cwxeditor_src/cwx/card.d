@@ -64,6 +64,13 @@ public:
 		_path = new PathUser(this);
 		_path.path = imagePath;
 	}
+	/// cからパラメータをコピーする。
+	protected void shallowCopyCard(Card c) {
+		id = c.id;
+		name = c.name;
+		desc = c.desc;
+		path = c.path;
+	}
 	/// 変更ハンドラを登録する。
 	void changeHandler(void delegate() change) {
 		_change = change;
@@ -218,7 +225,7 @@ public:
 		}
 		super.changeHandler = change;
 	}
-	/// 唯一のコンストラクタ。
+	/// インスタンスを生成する。
 	/// Params:
 	/// id = カードID。
 	/// name = 名前。
@@ -241,6 +248,38 @@ public:
 		_rEnhRound[Enhance.AVOID] = 0;
 		_rEnhRound[Enhance.RESIST] = 0;
 		_rEnhRound[Enhance.DEFENSE] = 0;
+	}
+	this(ulong id, string name, string imagePath, string desc) {
+		this (id, name, imagePath, desc, 1, 1);
+	}
+	/// cからパラメータをコピーする。
+	void shallowCopy(CastCard c) {
+		shallowCopyCard(c);
+		copyRaceParam(c);
+		level = c.level;
+		life = c.life;
+		lifeMax = c.lifeMax;
+		mentality = c.mentality;
+		mentalityRound = c.mentalityRound;
+		paralyze = c.paralyze;
+		poison = c.poison;
+		bindRound = c.bindRound;
+		silenceRound = c.silenceRound;
+		faceUpRound = c.faceUpRound;
+		antiMagicRound = c.antiMagicRound;
+		enhance(Enhance.ACTION,  c.enhance(Enhance.ACTION));
+		enhanceRound(Enhance.ACTION,  c.enhanceRound(Enhance.ACTION));
+		enhance(Enhance.AVOID,  c.enhance(Enhance.AVOID));
+		enhanceRound(Enhance.AVOID,  c.enhanceRound(Enhance.AVOID));
+		enhance(Enhance.RESIST,  c.enhance(Enhance.RESIST));
+		enhanceRound(Enhance.RESIST,  c.enhanceRound(Enhance.RESIST));
+		enhance(Enhance.DEFENSE,  c.enhance(Enhance.DEFENSE));
+		enhanceRound(Enhance.DEFENSE,  c.enhanceRound(Enhance.DEFENSE));
+		Coupon[] cps;
+		foreach (cp; c.coupons) {
+			cps ~= new Coupon(cp);
+		}
+		coupons = cps;
 	}
 	/// 使用回数カウンタ。
 	void setUseCounter(UseCounter uc) {
@@ -786,6 +825,33 @@ public:
 		_se2 = new PathUser(this);
 		_enh = [Enhance.AVOID:0, Enhance.RESIST:0, Enhance.DEFENSE:0];
 	}
+	/// cからパラメータをコピーする。
+	protected void shallowCopyEffectCard(EffectCard c) {
+		shallowCopyCard(c);
+		scenario = c.scenario;
+		author = c.author;
+		physical = c.physical;
+		mental = c.mental;
+		target = c.target;
+		allRange = c.allRange;
+		spell = c.spell;
+		effectType = c.effectType;
+		resist = c.resist;
+		successRate = c.successRate;
+		visual = c.visual;
+		enhance(Enhance.AVOID, c.enhance(Enhance.AVOID));
+		enhance(Enhance.RESIST, c.enhance(Enhance.RESIST));
+		enhance(Enhance.DEFENSE, c.enhance(Enhance.DEFENSE));
+		soundPath1 = c.soundPath1;
+		soundPath2 = c.soundPath2;
+		keyCodes = c.keyCodes.dup;
+		premium = c.premium;
+		Motion[] ms;
+		foreach (m; c.motions) {
+			ms ~= m.dup;
+		}
+		motions = ms;
+	}
 
 	/// カードが属するシナリオ名、及びカードの製作者。
 	/// 他のシナリオからのインポート等があるため、
@@ -1080,6 +1146,13 @@ public:
 	this(ulong id, string name, string imagePath, string desc) {
 		super(id, name, imagePath, desc);
 	}
+	/// cからパラメータをコピーする。
+	void shallowCopy(SkillCard c) {
+		shallowCopyEffectCard(c);
+		level = c.level;
+		hold = c.hold;
+		useLimit = c.useLimit;
+	}
 
 	/// レベル。
 	const
@@ -1177,6 +1250,17 @@ public:
 	this(ulong id, string name, string imagePath, string desc) {
 		super(id, name, imagePath, desc);
 		_oEnh = [Enhance.AVOID:0, Enhance.RESIST:0, Enhance.DEFENSE:0];
+	}
+	/// cからパラメータをコピーする。
+	void shallowCopy(ItemCard c) {
+		shallowCopyEffectCard(c);
+		enhanceOwner(Enhance.AVOID, c.enhanceOwner(Enhance.AVOID));
+		enhanceOwner(Enhance.RESIST, c.enhanceOwner(Enhance.RESIST));
+		enhanceOwner(Enhance.DEFENSE, c.enhanceOwner(Enhance.DEFENSE));
+		price = c.price;
+		useLimit = c.useLimit;
+		useLimitMax = c.useLimitMax;
+		hold = c.hold;
 	}
 
 	/// 使用回数。0で無制限。
@@ -1303,6 +1387,11 @@ public:
 	this(ulong id, string name, string imagePath, string desc) {
 		super(id, name, imagePath, desc);
 	}
+	/// cからパラメータをコピーする。
+	void shallowCopy(BeastCard c) {
+		shallowCopyEffectCard(c);
+		useLimit = c.useLimit;
+	}
 
 	/// 使用回数。0で無制限。
 	const
@@ -1380,6 +1469,10 @@ public:
 	/// desc = 解説。
 	this(ulong id, string name, string imagePath, string desc) {
 		super(id, name, imagePath, desc);
+	}
+	/// cからパラメータをコピーする。
+	void shallowCopy(InfoCard c) {
+		shallowCopyCard(c);
 	}
 
 	/// XMLテキストに変換する。

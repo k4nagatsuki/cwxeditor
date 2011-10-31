@@ -369,7 +369,7 @@ public:
 		createMenuItem(menu, prop.msgs.menuUndo, prop.images.menuUndo, &undo);
 		createMenuItem(menu, prop.msgs.menuRedo, prop.images.menuRedo, &redo);
 		new MenuItem(menu, SWT.SEPARATOR);
-		appendMenuTCPD(prop, menu, this);
+		appendMenuTCPD(prop, menu, this, true, true, true, true);
 		dirs.setMenu(menu);
 
 		auto ds = new DragSource(dirs, DND.DROP_MOVE);

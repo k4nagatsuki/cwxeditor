@@ -24,6 +24,7 @@ import cwx.editor.gui.dwt.infocarddialog;
 import cwx.editor.gui.dwt.xmlbytestransfer;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.sbshell;
+import cwx.editor.gui.dwt.undo;
 
 import std.algorithm;
 import std.array;
@@ -85,7 +86,8 @@ private enum CViewMode {INIT, LIFE, CARD, TABLE}
 private class CardPane(PCardOwner, CardOwner, C : Card, ToCardOwner, string GetAll, string GetFromId) : TCPD {
 private:
 	static const bool EditMode = is (ToCardOwner == void);
-	private C[] cards() {mixin ("return owner." ~ GetAll ~ ";");}
+	private static C[] cards(CardOwner owner) {mixin ("return owner." ~ GetAll ~ ";");}
+	private C[] cards() {return cards(owner);}
 	private C[] __cards() {
 		if (_owner) {
 			return cards;
@@ -100,10 +102,262 @@ private:
 		return null;
 	}
 private:
+	static if (EditMode) {
+		static class CPUndo : Undo {
+			protected CardPane _v = null;
+			protected Commons comm;
+			protected CardOwner owner;
+
+			private ulong[] _ids;
+			private ulong[] _idsB;
+			private int _sel;
+			private int _selB;
+
+			this (CardPane v, Commons comm, CardOwner owner) {
+				_v = v;
+				this.comm = comm;
+				this.owner = owner;
+
+				saveIDs(v);
+			}
+			private void saveIDs(CardPane v) {
+				_ids.length = 0;
+				foreach (c; cards(owner)) _ids ~= c.id;
+				if (v && v.widget && !v.widget.isDisposed) {
+					_sel = v.selectionIndex;
+				}
+			}
+			abstract override void undo();
+			abstract override void redo();
+			abstract override void dispose();
+			protected void udb(CardPane v) {
+				_idsB = _ids.dup;
+				_selB = _sel;
+				saveIDs(v);
+				if (v && v.widget && !v.widget.isDisposed) {
+					.forceFocus(v.widget);
+				}
+			}
+			private void resetID(CardPane v) {
+				ulong[] oldIDs;
+				auto arr = cards(owner);
+				foreach (i, c; arr) {
+					auto oID = c.id;
+					c.id = ulong.max - arr.length + i;
+					comm.summary.useCounter.change(C.toID(oID), C.toID(c.id));
+					oldIDs ~= oID;
+				}
+				foreach (i, c; arr) {
+					auto oID = c.id;
+					c.id = _idsB[i];
+					comm.summary.useCounter.change(C.toID(oID), C.toID(c.id));
+				}
+				foreach (i, c; arr) {
+					if (c.id != oldIDs[i]) {
+						v.refCard(v, comm, c);
+					}
+				}
+			}
+			protected void uda(CardPane v) {
+				resetID(v);
+				if (v && v.widget && !v.widget.isDisposed) {
+					v.refresh();
+					v.select = _selB;
+				}
+				comm.refUseCount.call;
+			}
+			protected CardPane view() {
+				return _v;
+			}
+		}
+		static class UndoIDs : CPUndo {
+			this (CardPane v, Commons comm, CardOwner owner) {
+				super (v, comm, owner);
+			}
+			override void undo() {
+				auto v = view();
+				udb(v);
+				scope (exit) uda(v);
+			}
+			override void redo() {
+				auto v = view();
+				udb(v);
+				scope (exit) uda(v);
+			}
+			override void dispose() {}
+		}
+		void storeIDs() {
+			_undo ~= new UndoIDs(this, _comm, _owner);
+		}
+		static class UndoEdit : CPUndo {
+			private C _card;
+			private int _index;
+			this (CardPane v, Commons comm, CardOwner owner, int index) {
+				super (v, comm, owner);
+				auto c = cards(owner)[index];
+				_card = new C(c.id, c.name, c.path, c.desc);
+				_card.shallowCopy(c);
+				_card.setUseCounter(comm.summary.useCounter.sub);
+				_index = index;
+			}
+			private void impl() {
+				auto v = view();
+				udb(v);
+				scope (exit) uda(v);
+				auto card = _card;
+				card.removeUseCounter;
+				auto c = cards(owner)[_index];
+				_card = new C(c.id, c.name, c.path, c.desc);
+				_card.shallowCopy(c);
+				_card.setUseCounter(comm.summary.useCounter.sub);
+				c.shallowCopy(card);
+
+				if (v && v.widget && !v.widget.isDisposed) {
+					v.refresh();
+				}
+				refCard(v, comm, c);
+				comm.refUseCount.call;
+			}
+			override void undo() {
+				impl();
+			}
+			override void redo() {
+				impl();
+			}
+			override void dispose() {
+				_card.removeUseCounter();
+			}
+		}
+		void storeEdit(int index) {
+			_undo ~= new UndoEdit(this, _comm, _owner, index);
+		}
+		static class UndoMove : CPUndo {
+			private int _from, _to;
+			this (CardPane v, Commons comm, CardOwner owner, int from, int to) {
+				super (v, comm, owner);
+				_from = from;
+				_to = to;
+			}
+			private void impl() {
+				auto v = view();
+				udb(v);
+				scope (exit) uda(v);
+				auto card = cards(owner)[_to];
+				int from = _from;
+				if (_to <= from) from++;
+				owner.insert(from, card);
+				_sel = _from;
+				std.algorithm.swap(_from, _to);
+			}
+			override void undo() {
+				impl();
+			}
+			override void redo() {
+				impl();
+			}
+			override void dispose() {}
+		}
+		void storeMove(int from, int to) {
+			_undo ~= new UndoMove(this, _comm, _owner, from, to);
+		}
+		static class UndoInsertDelete : CPUndo {
+			private bool _insert;
+
+			private int[] _indices;
+
+			private C[] _cards = [];
+
+			this (CardPane v, Commons comm, CardOwner owner, int[] indices, bool insert) {
+				super (v, comm, owner);
+				_insert = insert;
+				_indices = indices.dup.sort;
+
+				if (!insert) {
+					initUndoDelete();
+				}
+			}
+			private void initUndoDelete() {
+				foreach (c; _cards) {
+					c.removeUseCounter();
+				}
+				_cards.length = 0;
+				foreach (index; _indices) {
+					auto c = cards(owner)[index];
+					auto card = new C(c.id, c.name, c.path, c.desc);
+					card.shallowCopy(c);
+					card.setUseCounter(comm.summary.useCounter.sub);
+					_cards ~= card;
+				}
+			}
+			private void undoInsert() {
+				auto v = view();
+				udb(v);
+				scope (exit) uda(v);
+				_insert = false;
+				initUndoDelete();
+				foreach_reverse (i, index; _indices) {
+					auto card = cards(owner)[index];
+					delImpl(v, comm, owner, card);
+				}
+				comm.refUseCount.call;
+			}
+			void undoDelete() {
+				auto v = view();
+				udb(v);
+				scope (exit) uda(v);
+				_insert = true;
+				foreach (i, index; _indices) {
+					auto c = _cards[i];
+					c.removeUseCounter();
+					owner.insert(index, c);
+					refCard(v, comm, c);
+				}
+				if (v && v.widget && !v.widget.isDisposed) {
+					if (v._viewMode == CViewMode.TABLE) {
+						foreach (i, c; _cards) {
+							v.createTableItem(c, _indices[i]);
+						}
+						v._tbl.setSelection = [_indices[$ - 1]];
+						v._tbl.showSelection;
+					} else {
+						v.refresh;
+						v._list.select(_indices[$ - 1]);
+						v._list.scroll(_indices[$ - 1]);
+					}
+					v.refreshStatusLine;
+				}
+				_cards.length = 0;
+				comm.refUseCount.call;
+			}
+			override void undo() {
+				if (_insert) {
+					undoInsert();
+				} else {
+					undoDelete();
+				}
+			}
+			override void redo() {
+				undo();
+			}
+			override void dispose() {
+				foreach (c; _cards) {
+					c.removeUseCounter();
+				}
+			}
+		}
+		void storeInsert(int[] indices) {
+			_undo ~= new UndoInsertDelete(this, _comm, _owner, indices, true);
+		}
+		void storeDelete(int[] indices) {
+			_undo ~= new UndoInsertDelete(this, _comm, _owner, indices, false);
+		}
+	}
+
 	string _id;
 	Composite _parent;
 	Commons _comm;
 	Props _prop;
+	UndoManager _undo;
 	CardOwner _owner = null;
 	PCardOwner _summ = null;
 	void delegate(Shell) _save;
@@ -142,6 +396,7 @@ private:
 		void nameEditEnd(TableItem itm, int column, string newText) {
 			auto c = cast(C) itm.getData;
 			assert (c);
+			storeEdit(itm.getParent.indexOf(itm));
 			c.name = newText;
 			refresh;
 			refCard(c);
@@ -193,11 +448,19 @@ private:
 	void select(int index) {
 		if (!_tbl || _tbl.isDisposed) return;
 		if (_viewMode == CViewMode.TABLE) {
-			_tbl.select(index);
-			_tbl.showSelection;
+			if (-1 == index) {
+				_tbl.deselectAll();
+			} else {
+				_tbl.select(index);
+				_tbl.showSelection;
+			}
 		} else {
-			_list.select(index);
-			_list.scroll(index);
+			if (-1 == index) {
+				_list.deselectAll();
+			} else {
+				_list.select(index);
+				_list.scroll(index);
+			}
 		}
 		refreshStatusLine;
 	}
@@ -277,6 +540,22 @@ private:
 			return widget.isFocusControl;
 		}
 	}
+	static if (EditMode) {
+		static void delImpl(CardPane v, Commons comm, CardOwner owner, C card) {
+			if (!card) return;
+			int index = cCountUntil!("a is b")(cards(owner), card);
+			owner.remove(card);
+			if (v && v.widget && !v.widget.isDisposed) {
+				if (v._viewMode == CViewMode.TABLE) {
+					v._tbl.remove(index);
+					v._tbl.redraw;
+				} else {
+					v.refresh;
+				}
+			}
+			delCard(v, comm, owner, card);
+		}
+	}
 	class CL : TCPD {
 		CardList!(C) widget() {
 			return _list;
@@ -289,6 +568,7 @@ private:
 			static if (EditMode) {
 				auto c = selectionCard;
 				if (c) {
+					storeDelete([_list.selection]);
 					_owner.remove(c);
 					refresh;
 					delCard(c);
@@ -297,49 +577,59 @@ private:
 		}
 	}
 	void refCard(C c) {
+		refCard(this, _comm, c);
+	}
+	static void refCard(CardPane v, Commons comm, C c) {
 		static if (is (C == CastCard)) {
-			_comm.refCast.call(this, c);
+			comm.refCast.call(v, c);
 		} else static if (is (C == SkillCard)) {
-			_comm.refSkill.call(this, c);
+			comm.refSkill.call(v, c);
 		} else static if (is (C == ItemCard)) {
-			_comm.refItem.call(this, c);
+			comm.refItem.call(v, c);
 		} else static if (is (C == BeastCard)) {
-			_comm.refBeast.call(this, c);
+			comm.refBeast.call(v, c);
 		} else static if (is (C == InfoCard)) {
-			_comm.refInfo.call(this, c);
+			comm.refInfo.call(v, c);
 		} else {
 			static assert (0);
 		}
-		refreshStatusLine;
+		if (v && v.widget && !v.widget.isDisposed) {
+			v.refreshStatusLine;
+		}
 	}
 	void delCard(C c) {
+		delCard(this, _comm, _owner, c);
+	}
+	static void delCard(CardPane v, Commons comm, CardOwner owner, C c) {
 		static if (is (C == CastCard)) {
 			foreach (hc; c.skills) {
-				_comm.delSkill.call(hc);
+				comm.delSkill.call(hc);
 			}
 			foreach (hc; c.items) {
-				_comm.delItem.call(hc);
+				comm.delItem.call(hc);
 			}
 			foreach (hc; c.beasts) {
-				_comm.delBeast.call(hc);
+				comm.delBeast.call(hc);
 			}
-			_comm.delCast.call(c);
+			comm.delCast.call(c);
 		} else static if (is (C == SkillCard)) {
-			_comm.delSkill.call(c);
+			comm.delSkill.call(c);
 		} else static if (is (C == ItemCard)) {
-			_comm.delItem.call(c);
+			comm.delItem.call(c);
 		} else static if (is (C == BeastCard)) {
-			_comm.delBeast.call(c);
+			comm.delBeast.call(c);
 		} else static if (is (C == InfoCard)) {
-			_comm.delInfo.call(c);
+			comm.delInfo.call(c);
 		} else {
 			static assert (0);
 		}
-		_comm.refUseCount.call;
+		comm.refUseCount.call;
 		static if (is (CardOwner : CastCard) && is (C : BeastCard)) {
-			_comm.refCast.call(_owner);
+			comm.refCast.call(owner);
 		}
-		refreshStatusLine;
+		if (v && v.widget && !v.widget.isDisposed) {
+			v.refreshStatusLine;
+		}
 	}
 	class CT : TCPD {
 		Table widget() {
@@ -354,6 +644,7 @@ private:
 			static if (EditMode) {
 				auto c = selectionCard;
 				if (c) {
+					storeDelete([_tbl.getSelectionIndex]);
 					_owner.remove(c);
 					_tbl.getSelection[0].dispose;
 					_tbl.redraw;
@@ -401,16 +692,11 @@ private:
 						};
 						node.parse;
 						if (adds.length == 0) return;
-						foreach (i, card; adds) {
-							static if (is(CardOwner == CastCard)) {
-								_owner.insert(index, card);
-								adds[i] = card;
-							} else {
-								_owner.insert(index, card);
-							}
-							index++;
-						}
-						insert(adds[$ - 1], true);
+						assert (adds.length == 1);
+						auto card = adds[0];
+						storeMove(_owner.indexOf!C(card), index);
+						_owner.insert(index, card);
+						insert(card, true);
 						refreshStatusLine;
 					} else {
 						e.detail = DND.DROP_NONE;
@@ -424,11 +710,14 @@ private:
 						node.parse;
 						if (adds.length == 0) return;
 						if (qCardMaterialCopy(node, adds)) {
+							int[] indices;
 							foreach (i, card; adds) {
 								_owner.insert(index, card);
 								adds[i] = cards[index];
+								indices ~= index;
 								index++;
 							}
+							storeInsert(indices);
 							insert(adds[$ - 1], false);
 							_comm.refUseCount.call;
 							refreshStatusLine;
@@ -590,6 +879,9 @@ private:
 			} else static if (is (C == InfoCard)) {
 				auto dlg = new InfoCardDialog(_comm, _prop, dlgParShl, _summ, c);
 			} else static assert (0, typeof(C));
+			dlg.applyEvent ~= {
+				storeEdit(_owner.indexOf(c));
+			};
 			dlg.appliedEvent ~= {
 				refresh;
 				refCard(c);
@@ -637,14 +929,21 @@ private:
 			if (index < 0 || cards.length <= index) return;
 			if (newId == 0) return;
 			if (index > 0 && cards[index - 1].id >= newId) return;
-			static if (is (CardOwner : Summary)) {
-				for (size_t i = index; i < cards.length; i++) {
+			auto undo = new UndoIDs(this, _comm, _owner);
+			ulong[] oldIDs;
+			for (size_t i = index; i < cards.length; i++) {
+				oldIDs ~= cards[i].id;
+				static if (is (CardOwner : Summary)) {
 					ulong ni = ulong.max - cards.length + i;
 					owner.useCounter.change(C.toID(cards[i].id), C.toID(ni));
 					cards[i].id = ni;
 				}
 			}
+			bool refIDs = false;
 			for (size_t i = index; i < cards.length; i++) {
+				if (oldIDs[i - index] != newId) {
+					refIDs = true;
+				}
 				static if (is (CardOwner : Summary)) {
 					owner.useCounter.change(C.toID(cards[i].id), C.toID(newId));
 				}
@@ -653,6 +952,7 @@ private:
 				newId++;
 			}
 			refreshIDs;
+			if (refIDs) _undo ~= undo;
 		}
 	}
 
@@ -925,6 +1225,7 @@ private:
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
+		_undo = new UndoManager(1024);
 		static if (is (C == CastCard)) {
 			_cimg = prop.images.casts;
 		} else static if (is (C == SkillCard)) {
@@ -992,28 +1293,25 @@ private:
 					}
 				}
 			});
+			auto pop = new Menu(parent.getShell, SWT.POP_UP);
 			static if (is (C == CastCard)) {
-				auto pop = new Menu(parent.getShell, SWT.POP_UP);
 				createMenuItem(pop, _prop.msgs.menuCEdit, _prop.images.menuCEdit, &edit);
 				new MenuItem(pop, SWT.SEPARATOR);
 				createMenuItem(pop, _prop.msgs.menuEditHand, _prop.images.menuEditHand, &editHand);
-				new MenuItem(pop, SWT.SEPARATOR);
-				appendMenuTCPD(_prop, pop, this);
 			} else static if (is (C == SkillCard) || is (C == ItemCard) || is (C == BeastCard)) {
-				auto pop = new Menu(parent.getShell, SWT.POP_UP);
 				createMenuItem(pop, _prop.msgs.menuCEdit, _prop.images.menuCEdit, &edit);
 				new MenuItem(pop, SWT.SEPARATOR);
 				createMenuItem(pop, _prop.msgs.menuEditUseEvent, _prop.images.menuEditUseEvent, &editUseEvent);
-				new MenuItem(pop, SWT.SEPARATOR);
-				appendMenuTCPD(_prop, pop, this);
 			} else static if (is (C == InfoCard)) {
-				auto pop = new Menu(parent.getShell, SWT.POP_UP);
 				createMenuItem(pop, _prop.msgs.menuCEdit, _prop.images.menuCEdit, &edit);
-				new MenuItem(pop, SWT.SEPARATOR);
-				appendMenuTCPD(_prop, pop, this);
 			} else {
 				static assert (0);
 			}
+			new MenuItem(pop, SWT.SEPARATOR);
+			createMenuItem(pop, _prop.msgs.menuUndo, _prop.images.menuUndo, &undo);
+			createMenuItem(pop, _prop.msgs.menuRedo, _prop.images.menuRedo, &redo);
+			new MenuItem(pop, SWT.SEPARATOR);
+			appendMenuTCPD(_prop, pop, this, true, true, true, true);
 			new MenuItem(pop, SWT.SEPARATOR);
 			createMenuItem(pop, _prop.msgs.menuReNumbering, _prop.images.menuReNumbering, &reNumbering);
 		} else {
@@ -1121,7 +1419,7 @@ public:
 					_comm.openInfoWin();
 				} else static assert (0);
 			} else static if (is(CardOwner : CastCard)) {
-				auto cWin = _comm.handCardWindowFrom(_prop, _summ, _owner);
+				auto cWin = _comm.handCardWindowFrom(_prop, _summ, _owner, true);
 				static if(is(C : SkillCard)) {
 					cWin.open!(cWin.SKILL)();
 				} else static if (is(C : ItemCard)) {
@@ -1147,6 +1445,7 @@ public:
 			dlg.appliedEvent ~= {
 				open();
 				auto c = dlg.card;
+				storeInsert([cards.length]);
 				_owner.add(c);
 				refresh;
 				select(__cards.length - 1);
@@ -1165,6 +1464,9 @@ public:
 					_comm.refCast.call(_owner);
 				}
 				dlg.appliedEvent.length = 0;
+				dlg.applyEvent ~= {
+					storeEdit(_owner.indexOf(c));
+				};
 				dlg.appliedEvent ~= {
 					refresh;
 					refCard(c);
@@ -1209,10 +1511,13 @@ public:
 			}
 			if (adds.length == 0) return false;
 			open();
+			int[] indices;
 			foreach (card; adds) {
+				indices ~= cards.length;
 				static if (is (CardOwner == Summary)) {
 					ulong oldId = _owner.add(card);
 					if (ids) {
+						// 同じペイン内でコピー&ペースト
 						_owner.useCounter.change(C.toID(oldId), C.toID(card.id));
 					}
 				} else {
@@ -1230,6 +1535,7 @@ public:
 					_comm.refInfo.call(this, card);
 				} else static assert (0);
 			}
+			storeInsert(indices);
 			pasteRefresh(adds);
 			_comm.refUseCount.call;
 			static if (is (CardOwner : CastCard) && is (C : BeastCard)) {
@@ -1314,6 +1620,12 @@ public:
 		bool canDoTCPD() {
 			return _list.isVisible || _tbl.isVisible;
 		}
+	}
+	void undo() {
+		_undo.undo;
+	}
+	void redo() {
+		_undo.redo;
 	}
 }
 
@@ -1646,7 +1958,10 @@ public:
 
 				auto me = createMenu(bar, prop.msgs.menuEdit);
 				static if (EditMode) {
-					appendMenuTCPD(prop, me, this);
+					createMenuItem(me, prop.msgs.menuUndo, prop.images.menuUndo, &undo);
+					createMenuItem(me, prop.msgs.menuRedo, prop.images.menuRedo, &redo);
+					new MenuItem(me, SWT.SEPARATOR);
+					appendMenuTCPD(prop, me, this, true, true, true, true);
 				} else {
 					createMenuItem(me, prop.msgs.menuAdd, prop.images.menuAdd, &addCard);
 					new MenuItem(me, SWT.SEPARATOR);
@@ -1702,11 +2017,13 @@ public:
 			}
 		} else {
 			static if (EditMode) {
-				appendMenuTCPD(prop, this, this);
+				appendMenuTCPD(prop, this, this, true, true, true, true);
 				putMenuAction(MenuID.Refresh, &__refresh);
 				static if (is (CardOwner == Summary)) {
 					putMenuAction(MenuID.AddScenario, &addScenario);
 				}
+				putMenuAction(MenuID.Undo, &undo);
+				putMenuAction(MenuID.Redo, &redo);
 				static if (UseCast) putMenuAction(MenuID.NewCast, &create!(CAST));
 				static if (UseSkill) putMenuAction(MenuID.NewSkill, &create!(SKILL));
 				static if (UseItem) putMenuAction(MenuID.NewItem, &create!(ITEM));
@@ -2243,6 +2560,50 @@ public:
 		}
 		bool canDoTCPD() {
 			return EditMode;
+		}
+	}
+	void undo() {
+		static if (1 < Cards.length) {
+			int i = _tabf.getSelectionIndex;
+			static if (UseCast) {
+				if (i == CAST) _pane[CAST].undo;
+			}
+			static if (UseSkill) {
+				if (i == SKILL) _pane[SKILL].undo;
+			}
+			static if (UseItem) {
+				if (i == ITEM) _pane[ITEM].undo;
+			}
+			static if (UseBeast) {
+				if (i == BEAST) _pane[BEAST].undo;
+			}
+			static if (UseInfo) {
+				if (i == INFO) _pane[INFO].undo;
+			}
+		} else {
+			_pane[0].undo;
+		}
+	}
+	void redo() {
+		static if (1 < Cards.length) {
+			int i = _tabf.getSelectionIndex;
+			static if (UseCast) {
+				if (i == CAST) _pane[CAST].redo;
+			}
+			static if (UseSkill) {
+				if (i == SKILL) _pane[SKILL].redo;
+			}
+			static if (UseItem) {
+				if (i == ITEM) _pane[ITEM].redo;
+			}
+			static if (UseBeast) {
+				if (i == BEAST) _pane[BEAST].redo;
+			}
+			static if (UseInfo) {
+				if (i == INFO) _pane[INFO].redo;
+			}
+		} else {
+			_pane[0].redo;
 		}
 	}
 

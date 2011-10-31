@@ -156,7 +156,7 @@ public:
 				createMenuItem(me, _prop.msgs.menuUndo, _prop.images.menuUndo, &undo);
 				createMenuItem(me, _prop.msgs.menuRedo, _prop.images.menuRedo, &redo);
 				new MenuItem(me, SWT.SEPARATOR);
-				appendMenuTCPD(_prop, me, this);
+				appendMenuTCPD(_prop, me, this, true, true, true, true);
 
 				static if (UseFlag) {
 					auto mi = createMenu(bar, _prop.msgs.menuView);
@@ -205,7 +205,7 @@ public:
 				}
 			}
 		} else {
-			appendMenuTCPD(_prop, this, this);
+			appendMenuTCPD(_prop, this, this, true, true, true, true);
 			static if (UseArea && UseFlag) {
 				putMenuAction(MenuID.Summary, &editSummary);
 			}

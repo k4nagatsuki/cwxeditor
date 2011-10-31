@@ -735,14 +735,17 @@ class Commons {
 		}
 		return null;
 	}
-	HandCardWindow handCardWindowFrom(Props prop, Summary summ, CastCard c) {
+	HandCardWindow handCardWindowFrom(Props prop, Summary summ, CastCard c, bool open) {
 		foreach (w; _ws) {
 			auto tlpData = (cast(TLPData) w.getData);
 			if (tlpData.main is c) {
 				return cast(HandCardWindow) tlpData.tlp;
 			}
 		}
-		return openHands(prop, summ, c);
+		if (open) {
+			return openHands(prop, summ, c);
+		}
+		return null;
 	}
 
 	private HashSet!(Composite) _aws;

@@ -17,6 +17,11 @@ public:
 		_name = name;
 		_val = val;
 	}
+	/// コピーコンストラクタ。
+	this(Coupon c) {
+		_name = c.name;
+		_val = c.value;
+	}
 	/// クーポン名。
 	const
 	string name() {

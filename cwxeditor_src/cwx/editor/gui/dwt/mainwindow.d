@@ -1973,11 +1973,10 @@ public:
 
 	Summary summary() {return _dataWin ? _dataWin.summary : _tableWin.summary;}
 
-	void reNumbering(A)(A[] arr) {
+	void reNumberingHands(A)(A[] arr) {
 		ulong newId = 1;
 		foreach (a; arr) {
 			if (a.id != newId) {
-				summary.useCounter.change(A.toID(a.id), A.toID(newId));
 				a.id = newId;
 				static if (is (A : Area)) {
 					_comm.refArea.call(a);
@@ -2011,16 +2010,25 @@ public:
 			} else if (_tableWin) {
 				_tableWin.reNumberingAll();
 			} else assert (0);
-			reNumbering(summary.casts);
-			foreach (c; summary.casts) {
-				reNumbering(c.skills);
-				reNumbering(c.items);
-				reNumbering(c.beasts);
+			if (_cardWin) {
+				_cardWin.reNumberingAll();
+			} else {
+				_castWin.reNumberingAll();
+				_skillWin.reNumberingAll();
+				_itemWin.reNumberingAll();
+				_beastWin.reNumberingAll();
+				_infoWin.reNumberingAll();
 			}
-			reNumbering(summary.skills);
-			reNumbering(summary.items);
-			reNumbering(summary.beasts);
-			reNumbering(summary.infos);
+			foreach (c; summary.casts) {
+				auto w = _comm.handCardWindowFrom(_prop, summary, c, false);
+				if (w) {
+					w.reNumberingAll();
+				} else {
+					reNumberingHands(c.skills);
+					reNumberingHands(c.items);
+					reNumberingHands(c.beasts);
+				}
+			}
 		}
 	}
 

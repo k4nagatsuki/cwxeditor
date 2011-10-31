@@ -592,7 +592,6 @@ private:
 						index = _summ.indexOf(cast(Package) area);
 						toIndex = newPackageItem(index);
 					}
-					// TODO
 					storeMove(fromIndex, toIndex);
 					callRefArea(area);
 					refreshIDs(true);
@@ -782,7 +781,7 @@ public:
 		createMenuItem(menu, _prop.msgs.menuUndo, _prop.images.menuUndo, &undo);
 		createMenuItem(menu, _prop.msgs.menuRedo, _prop.images.menuRedo, &redo);
 		new MenuItem(menu, SWT.SEPARATOR);
-		appendMenuTCPD(_prop, menu, this);
+		appendMenuTCPD(_prop, menu, this, true, true, true, true);
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(menu, _prop.msgs.menuReNumbering, _prop.images.menuReNumbering, &reNumbering);
 		_areas.setMenu = menu;
