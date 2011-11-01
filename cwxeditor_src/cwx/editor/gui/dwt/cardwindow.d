@@ -280,8 +280,8 @@ private:
 				_cards.length = 0;
 				foreach (index; _indices) {
 					auto c = cards(owner)[index];
-					auto card = new C(c.id, c.name, c.path, c.desc);
-					card.shallowCopy(c);
+					auto node = c.toNode;
+					auto card = C.createFromNode(node, LATEST_VERSION);
 					card.setUseCounter(comm.summary.useCounter.sub);
 					_cards ~= card;
 				}

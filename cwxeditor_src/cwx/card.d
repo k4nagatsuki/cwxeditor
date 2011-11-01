@@ -576,9 +576,14 @@ public:
 	/// XMLテキストに変換する。
 	const
 	string toXML() {
+		return toNode.text;
+	}
+	/// XMLノードに変換する。
+	const
+	XNode toNode() {
 		auto n = XNode.create(XML_NAME);
 		toNodeImpl(n);
-		return n.text;
+		return n;
 	}
 	/// 自身をXMLノードにして指定されたノードに追加する。
 	const
@@ -1184,9 +1189,14 @@ public:
 	/// XMLテキストに変換する。
 	const
 	string toXML() {
+		return toNode.text;
+	}
+	/// XMLノードに変換する。
+	const
+	XNode toNode() {
 		auto n = XNode.create(XML_NAME);
 		toNodeImpl(n);
-		return n.text;
+		return n;
 	}
 	/// 自身をXMLノードにして指定されたノードに追加する。
 	const
@@ -1311,9 +1321,14 @@ public:
 	/// XMLテキストに変換する。
 	const
 	string toXML() {
+		return toNode.text;
+	}
+	/// XMLノードに変換する。
+	const
+	XNode toNode() {
 		auto n = XNode.create(XML_NAME);
 		toNodeImpl(n);
-		return n.text;
+		return n;
 	}
 	/// 自身をXMLノードにして指定されたノードに追加する。
 	const
@@ -1402,6 +1417,18 @@ public:
 		_useLimit = useLimit;
 	}
 
+	/// XMLテキストに変換する。
+	const
+	string toXML() {
+		return toNode.text;
+	}
+	/// XMLノードに変換する。
+	const
+	XNode toNode() {
+		auto n = XNode.create(XML_NAME);
+		toNodeImpl(n);
+		return n;
+	}
 	/// 自身をXMLノードにして指定されたノードに追加する。
 	const
 	XNode toNode(ref XNode parent) {
@@ -1478,9 +1505,14 @@ public:
 	/// XMLテキストに変換する。
 	const
 	string toXML() {
+		return toNode.text;
+	}
+	/// XMLノードに変換する。
+	const
+	XNode toNode() {
 		auto n = XNode.create(XML_NAME);
 		toNodeImpl(n);
-		return n.text;
+		return n;
 	}
 	/// 自身をXMLノードにして指定されたノードに追加する。
 	const
