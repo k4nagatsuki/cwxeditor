@@ -437,12 +437,12 @@ private abstract class FTVUndo : Undo {
 	protected FlagDir selDir = null;
 	this (FlagTable v, Commons comm, FlagDir dir) {
 		_v = v;
-		_dir = dir.cwxPath;
+		_dir = dir.path;
 		this.comm = comm;
 		saveSelected(v);
 	}
 	protected FlagDir dir() {
-		return cast(FlagDir) comm.summary.findCWXPath(_dir);
+		return cast(FlagDir) comm.summary.flagDirRoot.findPath(_dir, false);
 	}
 	private void saveSelected(FlagTable v) {
 		auto dir = this.dir();
