@@ -551,60 +551,61 @@ package class UndoInsertDelete : FTVUndo {
 	private bool _insert;
 
 	/// insert
-	private string[] _name;
+	private int[] _dirIndices;
+	private string[] _flagName;
+	private string[] _stepName;
 	/// delete
-	private FlagDir[] _ds;
+	private FlagDir[int] _ds;
 	private Flag[] _fs;
 	private Step[] _ss;
 
 	/// 追加を元に戻す。
-	this (FlagTable v, Commons comm, FlagDir dir, int[] selected, string[] name) {
+	this (FlagTable v, Commons comm, FlagDir dir, int[] selected, int[] dirIndices, string[] flagName, string[] stepName) {
 		super (v, comm, dir);
 		_selected = selected.dup;
-		_name = name.dup;
+		_dirIndices = dirIndices.dup;
+		_flagName = flagName.dup;
+		_stepName = stepName.dup;
 		_insert = true;
 	}
 	/// 削除を元に戻す。
-	this (FlagTable v, Commons comm, FlagDir dir, int[] selected, FlagDir[] ds, Flag[] fs, Step[] ss) {
+	this (FlagTable v, Commons comm, FlagDir dir, int[] selected, FlagDir[int] ds, Flag[] fs, Step[] ss) {
 		super (v, comm, dir);
 		_selected = selected.dup;
 		save(ds, fs, ss);
 		_insert = false;
 	}
-	private void save(FlagDir[] ds, Flag[] fs, Step[] ss) {
-		_fs.length = 0;
-		foreach (d; ds) {
-			_ds ~= new FlagDir(d);
+	private void save(FlagDir[int] ds, Flag[] fs, Step[] ss) {
+		_ds = ds;
+		foreach (index, d; _ds) {
+			_ds[index] = new FlagDir(d);
 		}
+		_fs.length = 0;
 		foreach (f; fs) {
 			_fs ~= new Flag(f);
 		}
+		_ss.length = 0;
 		foreach (s; ss) {
 			_ss ~= new Step(s);
 		}
 	}
 	private void undoInsert(FlagTable v) {
 		_insert = false;
-		FlagDir[] ds;
+		FlagDir[int] ds;
 		Flag[] fs;
 		Step[] ss;
 		auto dir = this.dir();
-		foreach (n; _name) {
-			auto d = dir.getSubDir(n);
-			if (d) {
-				ds ~= d;
-				continue;
-			}
+		foreach (i; _dirIndices) {
+			auto d = dir.subDirs[i];
+			if (d) ds[i] = d;
+		}
+		foreach (n; _flagName) {
 			auto f = dir.getFlag(n);
-			if (f) {
-				fs ~= f;
-				continue;
-			}
+			if (f) fs ~= f;
+		}
+		foreach (n; _stepName) {
 			auto s = dir.getStep(n);
-			if (s) {
-				ss ~= s;
-				continue;
-			}
+			if (s) ss ~= s;
 		}
 		save(ds, fs, ss);
 		foreach (f; fs) {
@@ -621,32 +622,35 @@ package class UndoInsertDelete : FTVUndo {
 		if (v && v.flags && !v.flags.isDisposed) {
 			v.refresh();
 		}
-		if (ds.length) comm.delFlagDir.call(ds);
+		if (ds.length) comm.delFlagDir.call(ds.values);
 		if (fs.length || ss.length) comm.delFlagAndStep.call(fs, ss);
 	}
 	private void undoDelete(FlagTable v) {
 		_insert = true;
 		auto dir = this.dir();
-		_name.length = 0;
+		_dirIndices.length = 0;
+		_flagName.length = 0;
+		_stepName.length = 0;
 		selDir = _ds.length == 1 && !_fs.length && !_ss.length ? _ds[0] : null;
 		foreach (f; _fs) {
-			_name ~= f.name;
+			_flagName ~= f.name;
 			dir.add(f);
 		}
 		foreach (s; _ss) {
-			_name ~= s.name;
+			_stepName ~= s.name;
 			dir.add(s);
 		}
-		foreach (d; _ds) {
-			_name ~= d.name;
-			dir.add(d);
+		foreach (index; _ds.keys.sort) {
+			auto d = _ds[index];
+			_dirIndices ~= index;
+			dir.insert(index, d);
 			_fs ~= d.allFlags;
 			_ss ~= d.allSteps;
 		}
 		if (v && v.flags && !v.flags.isDisposed) {
 			v.refresh();
 		}
-		if (_ds.length) comm.refFlagDir.call(_ds);
+		if (_ds.length) comm.refFlagDir.call(_ds.values);
 		if (_fs.length || _ss.length) comm.refFlagAndStep.call(_fs, _ss);
 	}
 	override void undo() {
@@ -679,11 +683,13 @@ package class UndoMove : FTVUndo {
 	private string[string] _cFlags;
 	private string[string] _cSteps;
 
-	this (FlagTable v, Commons comm, int[] selected, FlagDir to, string[] name, FlagDir from, FlagDir[] ds, Flag[] fs, Step[] ss, Flag[string] cFlags, Step[string] cSteps) {
+	this (FlagTable v, Commons comm, int[] selected, FlagDir to, int[] dirIndices, string[] flagName, string[] stepName, FlagDir from, FlagDir[int] ds, Flag[] fs, Step[] ss, Flag[string] cFlags, Step[string] cSteps) {
 		super (v, comm, from);
 		_selected = selected.dup;
-		assert (name.length == ds.length + fs.length + ss.length);
-		_dir1 = new UndoInsertDelete(v, comm, to, selected, name);
+		assert (dirIndices.length == ds.length);
+		assert (flagName.length == fs.length);
+		assert (stepName.length == ss.length);
+		_dir1 = new UndoInsertDelete(v, comm, to, selected, dirIndices, flagName, stepName);
 		_dir2 = new UndoInsertDelete(v, comm, from, selected, ds, fs, ss);
 		foreach (oPath, flag; cFlags) {
 			_cFlags[oPath] = flag.path;
@@ -758,10 +764,11 @@ private:
 	void storeEdit(int index) {
 		_undo ~= new UndoEdit(this, _comm, _dir, index);
 	}
-	void storeInsert(int[] selected, string[] name) {
-		_undo ~= new UndoInsertDelete(this, _comm, _dir, selected, name);
+	void storeInsert(int[] selected, string[] flagName, string[] stepName) {
+		_undo ~= new UndoInsertDelete(this, _comm, _dir, selected, [], flagName, stepName);
 	}
-	void storeDelete(int[] selected, FlagDir[] ds, Flag[] fs, Step[] ss) {
+	void storeDelete(int[] selected, Flag[] fs, Step[] ss) {
+		FlagDir[int] ds;
 		_undo ~= new UndoInsertDelete(this, _comm, _dir, selected, ds, fs, ss);
 	}
 
@@ -860,7 +867,7 @@ private:
 			if (-1 != i) {
 				storeEdit(i);
 			} else {
-				storeInsert(flags.getSelectionIndices, [dlg.name]);
+				storeInsert(flags.getSelectionIndices, [dlg.name], []);
 			}
 		};
 		dlg.appliedEvent ~= {
@@ -895,7 +902,7 @@ private:
 			if (-1 != i) {
 				storeEdit(i);
 			} else {
-				storeInsert(flags.getSelectionIndices, [dlg.name]);
+				storeInsert(flags.getSelectionIndices, [], [dlg.name]);
 			}
 		};
 		dlg.appliedEvent ~= {
@@ -1312,14 +1319,15 @@ public:
 					auto sels = flags.getSelectionIndices;
 					if (_dir.appendFromXML(c, LATEST_VERSION,
 							true, false, cFlags, cSteps, newPath, rootId)) {
-						string[] name;
+						string[] flagName;
+						string[] stepName;
 						foreach (f; cFlags) {
-							name ~= f.name;
+							flagName ~= f.name;
 						}
 						foreach (s; cSteps) {
-							name ~= s.name;
+							stepName ~= s.name;
 						}
-						storeInsert(sels, name);
+						storeInsert(sels, flagName, stepName);
 						refresh;
 						_comm.refFlagAndStep.call(cFlags.values, cSteps.values);
 					}
@@ -1348,7 +1356,7 @@ public:
 					_comm.delStep.call(step);
 				}
 			}
-			storeDelete(sels, [], fs, ss);
+			storeDelete(sels, fs, ss);
 			_comm.delFlagAndStep.call(fs, ss);
 			refresh;
 		}

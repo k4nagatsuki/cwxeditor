@@ -65,14 +65,14 @@ import org.eclipse.swt.dnd.Clipboard;
 
 public class FlagDirTree : TCPD {
 private:
-	void storeInsert(FlagDir dir, int[] selected, string[] name) {
-		_undo ~= new UndoInsertDelete(flags, _comm, dir, selected, name);
+	void storeInsert(FlagDir dir, int[] selected, int[] dirIndices, string[] flagName, string[] stepName) {
+		_undo ~= new UndoInsertDelete(flags, _comm, dir, selected, dirIndices, flagName, stepName);
 	}
-	void storeDelete(FlagDir dir, int[] selected, FlagDir[] ds, Flag[] fs, Step[] ss) {
+	void storeDelete(FlagDir dir, int[] selected, FlagDir[int] ds, Flag[] fs, Step[] ss) {
 		_undo ~= new UndoInsertDelete(flags, _comm, dir, selected, ds, fs, ss);
 	}
-	void storeMove(int[] selected, FlagDir to, string[] name, FlagDir from, FlagDir[] ds, Flag[] fs, Step[] ss, Flag[string] cFlags, Step[string] cSteps) {
-		_undo ~= new UndoMove(flags, _comm, selected, to, name, from, ds, fs, ss, cFlags, cSteps);
+	void storeMove(int[] selected, FlagDir to, int[] dirIndices, string[] flagName, string[] stepName, FlagDir from, FlagDir[int] ds, Flag[] fs, Step[] ss, Flag[string] cFlags, Step[string] cSteps) {
+		_undo ~= new UndoMove(flags, _comm, selected, to, dirIndices, flagName, stepName, from, ds, fs, ss, cFlags, cSteps);
 	}
 	void storeEditDir(FlagDir dir, string oldName) {
 		_undo ~= new UndoEditDir(flags, _comm, dir, oldName);
@@ -149,14 +149,20 @@ private:
 				if (current is dir) {
 					tblSels = flags.selected();
 				}
+				int dirIndex = -1;
 				if (_moveDir) {
 					moveDirParent = _moveDir.parent;
+					dirIndex = moveDirParent.indexOf(_moveDir.name);
 				}
-				string[] allName() {
+				string[] flagName() {
 					string[] name;
 					foreach (f; cFlags) {
 						name ~= f.name;
 					}
+					return name;
+				}
+				string[] stepName() {
+					string[] name;
 					foreach (s; cSteps) {
 						name ~= s.name;
 					}
@@ -170,12 +176,12 @@ private:
 					if (samePane) {
 						e.detail = DND.DROP_MOVE;
 						assert (moveDirParent);
-						storeMove(tblSels, dir, [dirName], moveDirParent, [_moveDir], [], [], cFlags, cSteps);
+						storeMove(tblSels, dir, [dir.indexOf(dirName)], [], [], moveDirParent, [dirIndex:_moveDir], [], [], cFlags, cSteps);
 						_comm.delFlagDir.call(this.outer, [_moveDir]);
 						_comm.refFlagDir.call(this.outer, [_moveDir]);
 					} else {
 						e.detail = DND.DROP_COPY;
-						storeInsert(dir, tblSels, [dirName]);
+						storeInsert(dir, tblSels, [dir.indexOf(dirName)], [], []);
 						cdebugln(root.findPath(newPath, false).name);
 						_comm.refFlagDir.call(this.outer, [root.findPath(newPath, false)]);
 					}
@@ -184,10 +190,11 @@ private:
 				case FlagDir.AppendXmlResult.FLAG_STEP_SUCCESS:
 					if (samePane) {
 						e.detail = DND.DROP_MOVE;
-						storeMove(tblSels, dir, allName, current, [], fs, ss, cFlags, cSteps);
+						FlagDir[int] ds;
+						storeMove(tblSels, dir, [], flagName, stepName, current, ds, fs, ss, cFlags, cSteps);
 					} else {
 						e.detail = DND.DROP_COPY;
-						storeInsert(dir, tblSels, allName);
+						storeInsert(dir, tblSels, [], flagName, stepName);
 					}
 					if (cFlags.length > 0) dir.sortFlags;
 					if (cSteps.length > 0) dir.sortSteps;
@@ -252,19 +259,21 @@ private:
 			}
 		}
 	}
-	private FlagDir[] expandAll() {
-		FlagDir[] all(TreeItem itm) {
-			FlagDir[] r;
+	private bool[string] expandAll() {
+		bool[string]  r;
+		void all(TreeItem itm) {
 			auto dir = cast(FlagDir) itm.getData;
-			if (itm.getExpanded) r ~= dir;
+			r[dir.path.toLower] = itm.getExpanded;
 			foreach (sub; itm.getItems) {
-				r ~= all(sub);
+				all(sub);
 			}
-			return r;
 		}
-		return dirs.getItemCount ? all(dirs.getItem(0)) : cast(FlagDir[]) [];
+		foreach (itm; dirs.getItems) {
+			all(itm);
+		}
+		return r;
 	}
-	private void newItem(T)(FlagDir dir, T parent, FlagDir[] exAll) {
+	private void newItem(T)(FlagDir dir, T parent, bool[string] exAll) {
 		auto sItm = new TreeItem(parent, SWT.NONE);
 		sItm.setImage = prop.images.flagDir;
 		static if (is(T : Tree)) {
@@ -276,7 +285,8 @@ private:
 		foreach (sub; dir.subDirs) {
 			newItem(sub, sItm, exAll);
 		}
-		if (contains!("a is b")(exAll, dir)) {
+		auto ep = toLower(dir.path) in exAll;
+		if (!ep || *ep) {
 			sItm.setExpanded = true;
 		}
 	}
@@ -402,7 +412,7 @@ public:
 		if (!cur) return;
 		_comm.openCWXPath(cur.cwxPath);
 		string name = cur.createNewDirName(prop.msgs.flagDirNew);
-		storeInsert(cur, flags.selected, [name]);
+		storeInsert(cur, flags.selected, [cast(int) cur.subDirs.length], [], []);
 		auto dir = new FlagDir(name);
 		cur.add(dir);
 		refreshDirs(cur);
@@ -460,10 +470,22 @@ public:
 					switch (cur.appendFromXML(c, LATEST_VERSION, true, true, cFlags, cSteps, newPath)) {
 					case FlagDir.AppendXmlResult.DIR_SUCCESS:
 						refresh(newPath);
+						auto dir = root.findPath(newPath, false);
+						storeInsert(dir.parent, tblSels, [dir.parent.indexOf(dir.name)], [], []);
+						_comm.refFlagDir.call(this, [dir]);
 						auto itm = find(current);
 						if (itm) treeExpandedAll(itm);
 						break;
 					case FlagDir.AppendXmlResult.FLAG_STEP_SUCCESS:
+						string[] flagName;
+						string[] stepName;
+						foreach (f; cFlags) {
+							flagName ~= f.name;
+						}
+						foreach (s; cSteps) {
+							stepName ~= s.name;
+						}
+						storeInsert(cur, tblSels, [], flagName, stepName);
 						flags.refresh;
 						break;
 					case FlagDir.AppendXmlResult.FLAG_STEP_ON_DIR:
@@ -471,10 +493,7 @@ public:
 						assert (false);
 					default:
 					}
-					auto dir = root.findPath(newPath, false);
-					storeInsert(dir.parent, tblSels, [dir.name]);
 					_comm.refFlagAndStep.call(cFlags.values, cSteps.values);
-					_comm.refFlagDir.call([dir]);
 				} catch (Exception e) {
 					debugln(e);
 				}
@@ -485,7 +504,8 @@ public:
 			auto cur = current;
 			if (cur != root) {
 				auto tblSels = flags.selected;
-				storeDelete(cur.parent, tblSels, [cur], [], []);
+				int index = cur.parent.indexOf(cur.name);
+				storeDelete(cur.parent, tblSels, [index:cur], [], []);
 				Flag[] cFlags = cur.allFlags;
 				Step[] cSteps = cur.allSteps;
 				auto p = cur.parent;

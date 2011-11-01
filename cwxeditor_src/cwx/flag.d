@@ -666,6 +666,22 @@ public:
 		}
 		return false;
 	}
+	/// ditto
+	bool insert(int index, FlagDir sub) {
+		if (_subdir.length == index) return add(sub);
+		if (canAppendSub2(sub) || sub.parent is this) {
+			if (sub.parent is this && _subdir[index] is sub) return true;
+			if (sub.parent !is null) {
+				sub.parent.remove(sub);
+			}
+			sub.parent = this;
+			_subdir = _subdir[0 .. index] ~ sub ~ _subdir[index .. $];
+			sub.changeHandler = _change;
+			if (_change) _change();
+			return true;
+		}
+		return false;
+	}
 	private bool __remove(T)(ref T[] arr, T e) {
 		for (int i = 0; i < arr.length; i++) {
 			if (icmp(e.name, arr[i].name) == 0) {
@@ -719,6 +735,12 @@ public:
 	const
 	bool containsSubDir(string name) {
 		return getStep(name) !is null;
+	}
+	/// 指定された名前のサブディレクトリのindexを返す。
+	/// 存在しない場合は-1を返す。
+	const
+	int indexOf(string name) {
+		return .cCountUntil!("0 == icmp(a.name, b)")(_subdir, name);
 	}
 
 	private static F __get(F)(F[] arr, string name) {
@@ -1210,7 +1232,7 @@ public:
 		if (endsWith(path, FlagDir.SEPARATOR.dup)) {
 			path = path[0 .. $ - sepLen];
 		}
-		auto paths = std.string.split(path);
+		auto paths = std.string.split(path, SEPARATOR.dup);
 		auto dir = root;
 
 		loop: for (int lev = 0; lev < paths.length; lev++) {
