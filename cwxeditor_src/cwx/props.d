@@ -36,8 +36,8 @@ public:
 	const string appVersion() {return splitLines(import("@version.txt"))[0];}
 	const string appWebSiteURI() {return splitLines(import("@version.txt"))[1];}
 	const string appBuild() {
-		string buf = "Build: 2.0 "
-			~ split(__DATE__, " ")[2]
+		string buf = "Build: "
+			~ __DATE__[7 .. $]
 			~ "-" ~ [
 				"Jan":"01",
 				"Feb":"02",
@@ -51,8 +51,8 @@ public:
 				"Oct":"10",
 				"Nov":"11",
 				"Dec":"12"
-			][split(__DATE__, " ")[0]]
-			~ "-" ~ split(__DATE__, " ")[1]
+			][__DATE__[0 .. 3]]
+			~ "-" ~ .format("%02d", .to!int(strip(__DATE__[4 .. 6])))
 			~ " " ~ __TIME__ ~ " ";
 		debug {
 			buf ~= "Debug";
