@@ -688,6 +688,7 @@ private:
 			_comm.refPackage.remove(&refPackage);
 			_comm.refUseCount.remove(&__refreshUseCount);
 			_comm.replText.remove(&refresh);
+			_comm.refScenario.remove(&refScenario);
 		}
 	}
 	private void refreshAreas() {
@@ -747,6 +748,9 @@ private:
 			refreshStatusLine;
 		}
 	}
+	void refScenario(Summary summ) {
+		_undo.reset();
+	}
 public:
 	this(Commons comm, Props prop) {
 		_comm = comm;
@@ -761,6 +765,7 @@ public:
 		_comm.refPackage.add(&refPackage);
 		_comm.refUseCount.add(&__refreshUseCount);
 		_comm.replText.add(&refresh);
+		_comm.refScenario.add(&refScenario);
 		_areas = new Table(parent, SWT.BORDER | SWT.FULL_SELECTION);
 		_areas.addDisposeListener(new ADListener);
 		_areas.addSelectionListener(new SListener);

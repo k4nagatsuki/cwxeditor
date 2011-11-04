@@ -53,8 +53,12 @@ class UndoManager {
 		_pointer++;
 		return true;
 	}
+	void reset() {
+		dispose();
+	}
 	void dispose() {
 		foreach (u; _undos) u.dispose;
 		_undos.length = 0;
+		_pointer = 0;
 	}
 }

@@ -1,6 +1,7 @@
 
 module cwx.editor.gui.dwt.flagspane;
 
+import cwx.summary;
 import cwx.flag;
 import cwx.utils;
 import cwx.usecounter;
@@ -70,6 +71,7 @@ public class FlagsPane {
 private:
 	Composite _comp;
 	SplitPane _sash;
+	Commons _comm;
 	Props _prop;
 
 	FlagDirTree _dirs;
@@ -77,16 +79,22 @@ private:
 
 	UndoManager _undo;
 
+	void refScenario(Summary summ) {
+		_undo.reset();
+	}
 public:
 	this(Commons comm, Props prop) {
+		_comm = comm;
 		_prop = prop;
-		_undo = new UndoManager(1024);
 
 		_flags = new FlagTable(comm, prop, _undo);
 		_dirs = new FlagDirTree(comm, prop, _flags, _undo);
 	}
 
 	void construct(Composite parent) {
+		_undo = new UndoManager(1024);
+		_comm.refScenario.add(&refScenario);
+
 		_comp = new Composite(parent, SWT.NONE);
 		_comp.setLayout = new FillLayout;
 		_sash = new SplitPane(_comp, _prop.var.etc.flagSashV ? SWT.VERTICAL : SWT.HORIZONTAL);
@@ -102,6 +110,7 @@ public:
 	private DListener _sdl;
 	private class DListener : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
+			_comm.refScenario.remove(&refScenario);
 			_prop.var.etc.flagSashL = _sash.getWeights[0];
 			_prop.var.etc.flagSashR = _sash.getWeights[1];
 			_prop.var.etc.flagSashV = (_sash.getStyle & SWT.VERTICAL) != 0;

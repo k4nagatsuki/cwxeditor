@@ -1214,6 +1214,11 @@ private:
 		}
 		__refList;
 	}
+	static if (EditMode) {
+		void refScenario(Summary summ) {
+			_undo.reset();
+		}
+	}
 	static if (is (C == CastCard) && !EditMode) {
 		private void delegate() _openHand;
 	}
@@ -1261,6 +1266,7 @@ private:
 			});
 		}
 		static if (EditMode) {
+			_comm.refScenario.add(&refScenario);
 			static if (is (C == CastCard)) {
 				_comm.refCast.add(&refCardCallback);
 			} else static if (is (C == SkillCard)) {
@@ -1274,6 +1280,7 @@ private:
 			}
 			_list.addDisposeListener(new class DisposeListener {
 				override void widgetDisposed(DisposeEvent e) {
+					_comm.refScenario.remove(&refScenario);
 					static if (is (C == CastCard)) {
 						_comm.refCast.remove(&refCardCallback);
 					} else static if (is (C == SkillCard)) {
