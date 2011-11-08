@@ -11,18 +11,18 @@ import cwx.utils : cdebugln, debugln, enforce;
 version (Windows) {
 	import std.c.windows.windows;
 	private extern (Windows) {
-		alias DWORD MCIERROR;
-		alias MCIERROR function(LPCWSTR, LPWSTR, UINT, HANDLE) mciSendStringW;
+		alias __gshared DWORD MCIERROR;
+		alias __gshared MCIERROR function(LPCWSTR, LPWSTR, UINT, HANDLE) mciSendStringW;
 	}
 }
 private extern (C) {
-	const uint SDL_INIT_AUDIO = 0x10;
-	const ushort AUDIO_S16LSB = 0x8010;
-	const ushort AUDIO_S16MSB = 0x9010;
+	const __gshared uint SDL_INIT_AUDIO = 0x10;
+	const __gshared ushort AUDIO_S16LSB = 0x8010;
+	const __gshared ushort AUDIO_S16MSB = 0x9010;
 	version (LittleEndian) {
-		const ushort MIX_DEFAULT_FORMAT = AUDIO_S16LSB;
+		const __gshared ushort MIX_DEFAULT_FORMAT = AUDIO_S16LSB;
  	} else {
-		const ushort MIX_DEFAULT_FORMAT = AUDIO_S16MSB;
+		const __gshared ushort MIX_DEFAULT_FORMAT = AUDIO_S16MSB;
 	}
 	alias uint Uint32;
 	alias ushort Uint16;
@@ -58,7 +58,7 @@ private T getSymbol(T)(HXModule mod, string name) {
 }
 
 version (Windows) {
-	private HXModule winmm = null;
+	private __gshared HXModule winmm = null;
 	private void initWinmm() {
 		if (winmm) return;
 		winmm = ExeModule_Load("winmm.dll");
@@ -70,11 +70,11 @@ version (Windows) {
 private void initSdl() {
 	if (sdl && mixer) return;
 	version (Windows) {
-		static const SDL = "SDL.dll";
-		static const MIXER = "SDL_mixer.dll";
+		static __gshared const SDL = "SDL.dll";
+		static __gshared const MIXER = "SDL_mixer.dll";
 	} else {
-		static const SDL = "SDL.so";
-		static const MIXER = "SDL_mixer.so";
+		static __gshared const SDL = "SDL.so";
+		static __gshared const MIXER = "SDL_mixer.so";
 	}
 	sdl = ExeModule_Load(SDL);
 	mixer = ExeModule_Load(MIXER);
@@ -134,10 +134,10 @@ shared static ~this () {
 	}
 }
 
-private bool onLegacy = false;
-private Mix_Music *music = null;
-private Mix_Chunk *chunk = null;
-private intptr_t channel = -1;
+private __gshared bool onLegacy = false;
+private __gshared Mix_Music *music = null;
+private __gshared Mix_Chunk *chunk = null;
+private __gshared intptr_t channel = -1;
 
 private void __play(string file, bool loop, bool legacy) {
 	stopBGM;
@@ -148,12 +148,17 @@ private void __play(string file, bool loop, bool legacy) {
 				auto ss = getSymbol!(mciSendStringW)(winmm, "mciSendStringW");
 				if (!ss) throw new Exception("mciSendStringW()");
 				// mpegvideoにするとなぜかopenが成功する上repeatが利くようになる
-				enforce(0 == ss(toUTFz!(wchar*)("open \"" ~ file ~ "\" alias cwxeditor_sound type mpegvideo"), null, 0, null),
-					new Exception("MCI open: " ~ file));
-				string p = "play cwxeditor_sound";
+				if (loop) {
+					enforce(0 == ss(toUTFz!(wchar*)("open \"" ~ file ~ "\" alias cws type mpegvideo"), null, 0, null),
+						new Exception("MCI open: " ~ file));
+				} else {
+					enforce(0 == ss(toUTFz!(wchar*)("open \"" ~ file ~ "\" alias cws"), null, 0, null),
+						new Exception("MCI open: " ~ file));
+				}
+				string p = "play cws";
 				if (loop) p ~= " repeat";
 				enforce(0 == ss(toUTFz!(wchar*)(p), null, 0, null),
-					new Exception("MCI open: " ~ file));
+					new Exception("MCI play: " ~ file));
 				return;
 			}
 		}
@@ -192,8 +197,8 @@ private void __stop() {
 			if (onLegacy) {
 				auto ss = getSymbol!(mciSendStringW)(winmm, "mciSendStringW");
 				if (!ss) throw new Exception("mciSendStringW()");
-				ss(toUTFz!(wchar*)("stop cwxeditor_sound"), null, 0, null);
-				ss(toUTFz!(wchar*)("close cwxeditor_sound"), null, 0, null);
+				ss(toUTFz!(wchar*)("stop cws"), null, 0, null);
+				ss(toUTFz!(wchar*)("close cws"), null, 0, null);
 				return;
 			}
 		}
