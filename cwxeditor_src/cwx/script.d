@@ -792,8 +792,8 @@ class CWXScript {
 		CType[string] keywords;
 		string[CType] commands;
 	}
-	private static const Keywords KEYS;
-	static this () {
+	private static __gshared const Keywords KEYS;
+	shared static this () {
 		auto keywords = [
 			cast(string) "start":CType.START,
 			cast(string) "gobattle":CType.START_BATTLE,

@@ -719,10 +719,10 @@ private:
 				tree.addRound((cast(RoundObj) fire).intValue);
 			}
 		}
-		static Object ENTER;
-		static Object ESCAPE;
-		static Object LOSE;
-		static this () {
+		static __gshared Object ENTER;
+		static __gshared Object ESCAPE;
+		static __gshared Object LOSE;
+		shared static this () {
 			ENTER = new Object;
 			ESCAPE = new Object;
 			LOSE = new Object;

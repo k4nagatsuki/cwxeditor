@@ -194,8 +194,8 @@ string appDataDir(string appPath) {
 }
 
 debug {
-	ulong t[1024u];
-	static ~this () {
+	__gshared ulong t[1024u];
+	shared static ~this () {
 		foreach (i, time; t) {
 			if (time > 0u) {
 				debugln(format("%04d = ", i), time);
