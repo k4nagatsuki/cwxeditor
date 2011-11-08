@@ -328,11 +328,10 @@ private:
 		refresh(null);
 	}
 public:
-	this(Commons comm, Props prop, FlagTable flags, UndoManager undo) {
+	this(Commons comm, Props prop, FlagTable flags) {
 		_comm = comm;
 		this.prop = prop;
 		this.flags = flags;
-		_undo = undo;
 	}
 	private Composite _comp = null;
 	Control widget() {return _comp;}
@@ -367,7 +366,8 @@ public:
 	/// コントロールを生成する。
 	/// Params:
 	/// parent = 親コントロール。
-	Control createControl(Composite parent) {
+	Control createControl(Composite parent, UndoManager undo) {
+		_undo = undo;
 		_comp = new Composite(parent, SWT.NONE);
 		_comp.setLayout = new FillLayout;
 		dirs = new Tree(_comp, SWT.SINGLE | SWT.BORDER);
@@ -376,8 +376,8 @@ public:
 
 		dirs.addSelectionListener(new DirSelection);
 		auto menu = new Menu(dirs.getShell, SWT.POP_UP);
-		createMenuItem(menu, prop.msgs.menuUndo, prop.images.menuUndo, &undo);
-		createMenuItem(menu, prop.msgs.menuRedo, prop.images.menuRedo, &redo);
+		createMenuItem(menu, prop.msgs.menuUndo, prop.images.menuUndo, &this.undo);
+		createMenuItem(menu, prop.msgs.menuRedo, prop.images.menuRedo, &this.redo);
 		new MenuItem(menu, SWT.SEPARATOR);
 		appendMenuTCPD(prop, menu, this, true, true, true, true);
 		dirs.setMenu(menu);

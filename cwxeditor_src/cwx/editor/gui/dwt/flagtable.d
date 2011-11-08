@@ -850,7 +850,8 @@ private:
 	UndoManager _undo;
 
 	void editFlag(FlagDir parent, Flag flag) {
-		string old = flag ? flag.path : null;
+		bool createMode = flag is null;
+		string old = createMode ? null : flag.path;
 		if (!flag) {
 			string on = prop.var.etc.flagTrues.length > 0 ? prop.var.etc.flagTrues[0] : "";
 			string off = prop.var.etc.flagFalses.length > 0 ? prop.var.etc.flagFalses[0] : "";
@@ -865,13 +866,16 @@ private:
 		dlg.applyEvent ~= {
 			int i = indexOf(dlg.flag);
 			if (-1 != i) {
+				assert (!createMode);
 				storeEdit(i);
-			} else {
-				storeInsert(flags.getSelectionIndices, [dlg.name], []);
 			}
 		};
 		dlg.appliedEvent ~= {
 			if (old && old != flag.path) uc.change(toFlagId(old), toFlagId(flag.path), true);
+			if (createMode) {
+				storeInsert(flags.getSelectionIndices, [dlg.flag.name], []);
+				createMode = false;
+			}
 			_comm.openCWXPath(dlg.flag.cwxPath);
 			refresh(dlg.flag.name);
 			_comm.refFlagAndStep.call([dlg.flag], []);
@@ -883,7 +887,8 @@ private:
 		dlg.open();
 	}
 	void editStep(FlagDir parent, Step step) {
-		string old = step ? step.path : null;
+		bool createMode = step is null;
+		string old = createMode ? null : step.path;
 		if (!step) {
 			string[] vals;
 			foreach (i; 0 .. prop.looks.stepMaxCount) {
@@ -900,13 +905,16 @@ private:
 		dlg.applyEvent ~= {
 			int i = indexOf(dlg.step);
 			if (-1 != i) {
+				assert (!createMode);
 				storeEdit(i);
-			} else {
-				storeInsert(flags.getSelectionIndices, [], [dlg.name]);
 			}
 		};
 		dlg.appliedEvent ~= {
 			if (old && old != step.path) uc.change(toStepId(old), toStepId(step.path), true);
+			if (createMode) {
+				storeInsert(flags.getSelectionIndices, [dlg.step.name], []);
+				createMode = false;
+			}
 			_comm.openCWXPath(dlg.step.cwxPath);
 			refresh(dlg.step.name);
 			_comm.refFlagAndStep.call([], [dlg.step]);
@@ -1090,16 +1098,16 @@ private:
 		return _comm.mainWin.shell.getShell;
 	}
 public:
-	this(Commons comm, Props prop, UndoManager undo) {
+	this(Commons comm, Props prop) {
 		_comm = comm;
 		this.prop = prop;
-		_undo = undo;
 	}
 
 	/// コントロールを生成する。
 	/// Params:
 	/// parent = 親コントロール。
-	Control createControl(Composite parent) {
+	Control createControl(Composite parent, UndoManager undo) {
+		_undo = undo;
 		_comp = new Composite(parent, SWT.NONE);
 		_comp.setLayout = new FillLayout;
 		flags = new Table(_comp, SWT.MULTI | SWT.BORDER | SWT.FULL_SELECTION);
@@ -1119,8 +1127,8 @@ public:
 		auto menu = new Menu(flags.getShell, SWT.POP_UP);
 		createMenuItem(menu, prop.msgs.menuCEdit, prop.images.menuCEdit, &startEdit);
 		new MenuItem(menu, SWT.SEPARATOR);
-		createMenuItem(menu, prop.msgs.menuUndo, prop.images.menuUndo, &undo);
-		createMenuItem(menu, prop.msgs.menuRedo, prop.images.menuRedo, &redo);
+		createMenuItem(menu, prop.msgs.menuUndo, prop.images.menuUndo, &this.undo);
+		createMenuItem(menu, prop.msgs.menuRedo, prop.images.menuRedo, &this.redo);
 		new MenuItem(menu, SWT.SEPARATOR);
 		appendMenuTCPD(prop, menu, this, true, true, true, true);
 		flags.setMenu(menu);
