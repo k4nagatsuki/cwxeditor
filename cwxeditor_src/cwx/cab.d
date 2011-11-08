@@ -11,7 +11,7 @@ import std.array;
 import std.exception;
 
 import std.file;
-import d2std.loader;
+import std.loader;
 import std.path;
 
 import std.c.string;

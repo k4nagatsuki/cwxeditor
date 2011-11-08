@@ -1,7 +1,7 @@
 
 module cwx.editor.gui.sound;
 
-import d2std.loader;
+import std.loader;
 import std.utf;
 import std.stdint;
 

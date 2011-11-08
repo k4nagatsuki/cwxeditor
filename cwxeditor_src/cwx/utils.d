@@ -62,7 +62,7 @@ private version (Windows) {
 		const CSIDL_APPDATA = 0x1A;
 		const SHGFP_TYPE_CURRENT = 0;
 	}
-	import d2std.loader;
+	import std.loader;
 }
 
 shared string LATEST_VERSION = "";

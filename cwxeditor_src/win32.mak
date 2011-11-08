@@ -76,7 +76,6 @@ SRC = cwxeditor.d \
 	cwx\editor\gui\dwt\scripterrordialog.d \
 	cwx\editor\gui\dwt\textdialog.d \
 	cwx\editor\gui\dwt\imagelistwindow.d \
-	d2std\loader.d \
 
 OBJ = objs\cwxeditor.obj \
 	objs\cwx\utils.obj \
@@ -156,7 +155,6 @@ OBJ = objs\cwxeditor.obj \
 	objs\cwx\editor\gui\dwt\scripterrordialog.obj \
 	objs\cwx\editor\gui\dwt\textdialog.obj \
 	objs\cwx\editor\gui\dwt\imagelistwindow.obj \
-	objs\d2std\loader.obj \
 
 DMD = dmd
 RCC = rcc
@@ -192,11 +190,11 @@ FLAGS = -J. -Jresource -op -c
 
 $(OUT) : $(SRC) $(RES)
 	$(DMD) $(FLAGS) $(SRC) -g -debug -unittest -version="Console" -odobjs
-	$(DMD) $(OBJ) -L"$(LIB)" -g -debug -of"$(OUT)" -L/exet:nt/su:console:4.0
+	$(DMD) $(OBJ) -L"$(LIB)" -debug -of"$(OUT)" -L/exet:nt/su:console:4.0
 
 debug_windows : $(SRC) $(RES)
 	$(DMD) $(FLAGS) $(SRC) -g -debug -unittest -odobjs
-	$(DMD) $(OBJ) -L"$(LIB)" -g -of"$(OUT)" -L/exet:nt/su:windows:4.0
+	$(DMD) $(OBJ) -L"$(LIB)" -of"$(OUT)" -L/exet:nt/su:windows:4.0
 
 release : $(SRC) $(RES)
 	$(DMD) $(FLAGS) $(SRC) -release -odobjs
