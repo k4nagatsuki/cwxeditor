@@ -27,13 +27,12 @@ version (Windows) {
 		if (INVALID_HANDLE_VALUE == mciNotifyHandle) return;
 		if (!winmm || !_mciSendString) return;
 		if (!_playingMCI) return;
+		if (MM_MCINOTIFY != msg || MCI_NOTIFY_SUCCESSFUL != wParam) return;
 		synchronized (winmmSync) {
 			static const __gshared SEEK = "seek cws to 0\0"w.ptr;
 			static const __gshared PLAY = "play cws notify\0"w.ptr;
-			if (MM_MCINOTIFY == msg && MCI_NOTIFY_SUCCESSFUL == wParam) {
-				_mciSendString(SEEK, null, 0, null);
-				_mciSendString(PLAY, null, 0, mciNotifyHandle);
-			}
+			_mciSendString(SEEK, null, 0, null);
+			_mciSendString(PLAY, null, 0, mciNotifyHandle);
 		}
 	}
 }

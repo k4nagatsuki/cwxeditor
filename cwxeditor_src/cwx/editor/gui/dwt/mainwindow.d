@@ -2328,7 +2328,7 @@ version (Windows) {
 			super (parent, style);
 			mciNotifyHandle = this.handle;
 		}
-		override int windowProc(HWND hwnd, int msg, int wParam, int lParam) {
+		protected override int windowProc(HWND hwnd, int msg, int wParam, int lParam) {
 			handleSoundMessage(msg, wParam);
 			return super.windowProc(hwnd, msg, wParam, lParam);
 		}
