@@ -9,10 +9,32 @@ import cwx.sjis;
 import cwx.utils : cdebugln, debugln, enforce;
 
 version (Windows) {
+	import std.windows.charset;
 	import std.c.windows.windows;
 	private extern (Windows) {
 		alias __gshared DWORD MCIERROR;
 		alias __gshared MCIERROR function(LPCWSTR, LPWSTR, UINT, HANDLE) mciSendStringW;
+	}
+	private const __gshared MCI_NOTIFY_SUCCESSFUL = 0x0001;
+	private const __gshared MM_MCINOTIFY = 0x03B9;
+	/// playBGM()はmciNotifyHandleに設定されたウィンドウに対して
+	/// 再生イベントを通知する。
+	/// 通知先が直ちにhandleSoundMessage()を呼び出す事により、
+	/// MCIでループ再生を行なう事ができる。
+	public HWND mciNotifyHandle = INVALID_HANDLE_VALUE;
+	/// ditto
+	void handleSoundMessage(int msg, int wParam) {
+		if (INVALID_HANDLE_VALUE == mciNotifyHandle) return;
+		if (!winmm || !_mciSendString) return;
+		if (!_playingMCI) return;
+		synchronized (winmmSync) {
+			static const __gshared SEEK = "seek cws to 0\0"w.ptr;
+			static const __gshared PLAY = "play cws notify\0"w.ptr;
+			if (MM_MCINOTIFY == msg && MCI_NOTIFY_SUCCESSFUL == wParam) {
+				_mciSendString(SEEK, null, 0, null);
+				_mciSendString(PLAY, null, 0, mciNotifyHandle);
+			}
+		}
 	}
 }
 private extern (C) {
@@ -58,12 +80,22 @@ private T getSymbol(T)(HXModule mod, string name) {
 }
 
 version (Windows) {
+	private __gshared Object winmmSync = null;
 	private __gshared HXModule winmm = null;
+	private __gshared mciSendStringW _mciSendString = null;
+	private __gshared bool _playingMCI = false;
 	private void initWinmm() {
 		if (winmm) return;
+		winmmSync = new Object;
 		winmm = ExeModule_Load("winmm.dll");
 		if (!winmm) {
 			debugln("error: winmm.dll initialize");
+		}
+		_mciSendString = getSymbol!(mciSendStringW)(winmm, "mciSendStringW");
+		if (!_mciSendString) {
+			debugln("mciSendStringW() not found");
+			ExeModule_Release(winmm);
+			winmm = null;
 		}
 	}
 }
@@ -144,22 +176,24 @@ private void __play(string file, bool loop, bool legacy) {
 	try {
 		version (Windows) {
 			if (winmm && (legacy || !sdl)) {
-				onLegacy = true;
-				auto ss = getSymbol!(mciSendStringW)(winmm, "mciSendStringW");
-				if (!ss) throw new Exception("mciSendStringW()");
-				// mpegvideoにするとなぜかopenが成功する上repeatが利くようになる
-				if (loop) {
-					enforce(0 == ss(toUTFz!(wchar*)("open \"" ~ file ~ "\" alias cws type mpegvideo"), null, 0, null),
+				synchronized (winmmSync) {
+					onLegacy = true;
+					// typeにmpegvideoを指定するとリピート再生する事もできるが、
+					// 一部環境でアプリケーションが丸ごと落ちる
+					enforce(0 == _mciSendString(toUTFz!(wchar*)("open \"" ~ file ~ "\" alias cws"), null, 0, null),
 						new Exception("MCI open: " ~ file));
-				} else {
-					enforce(0 == ss(toUTFz!(wchar*)("open \"" ~ file ~ "\" alias cws"), null, 0, null),
-						new Exception("MCI open: " ~ file));
+					string p = "play cws";
+					if (loop && INVALID_HANDLE_VALUE != mciNotifyHandle) {
+						p ~= " notify";
+						enforce(0 == _mciSendString(toUTFz!(wchar*)(p), null, 0, mciNotifyHandle),
+							new Exception("MCI play: " ~ file));
+					} else {
+						enforce(0 == _mciSendString(toUTFz!(wchar*)(p), null, 0, null),
+							new Exception("MCI play: " ~ file));
+					}
+					_playingMCI = true;
+					return;
 				}
-				string p = "play cws";
-				if (loop) p ~= " repeat";
-				enforce(0 == ss(toUTFz!(wchar*)(p), null, 0, null),
-					new Exception("MCI play: " ~ file));
-				return;
 			}
 		}
 	} catch (Exception e) {
@@ -171,7 +205,7 @@ private void __play(string file, bool loop, bool legacy) {
 			if (file.length > 0 && !music) {
 				version (Windows) {
 					// Unicodeで日本語パスを渡すと失敗するので変換しておく
-					const char* filez = tosjisz(file);
+					const char* filez = toMBSz(file);
 				} else {
 					const char* filez = (file ~ "\0").ptr;
 				}
@@ -195,11 +229,12 @@ private void __stop() {
 	try {
 		version (Windows) {
 			if (onLegacy) {
-				auto ss = getSymbol!(mciSendStringW)(winmm, "mciSendStringW");
-				if (!ss) throw new Exception("mciSendStringW()");
-				ss(toUTFz!(wchar*)("stop cws"), null, 0, null);
-				ss(toUTFz!(wchar*)("close cws"), null, 0, null);
-				return;
+				synchronized (winmmSync) {
+					_playingMCI = false;
+					_mciSendString(toUTFz!(wchar*)("stop cws"), null, 0, null);
+					_mciSendString(toUTFz!(wchar*)("close cws"), null, 0, null);
+					return;
+				}
 			}
 		}
 		if (sdl) {

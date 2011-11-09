@@ -28,6 +28,8 @@ import cwx.props;
 import cwx.skin;
 import cwx.path;
 
+import cwx.editor.gui.sound;
+
 import cwx.editor.gui.dwt.images;
 import cwx.editor.gui.dwt.datawindow;
 import cwx.editor.gui.dwt.cardwindow;
@@ -39,7 +41,6 @@ import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.xmlbytestransfer;
 import cwx.editor.gui.dwt.sbshell;
-
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.properties;
 import cwx.editor.gui.dwt.dskin;
@@ -632,6 +633,8 @@ private:
 					_prop.var.mainWin.height = b.height;
 				}
 			}
+			stopSE();
+			stopBGM();
 			_win.setVisible = false;
 			scope (failure) _win.setVisible = true;
 			_comm.refScenario.call(null);
@@ -1038,7 +1041,7 @@ public:
 		} else {
 			_sbshl.contentPane.setLayout = windowGridLayout(1, true);
 		}
-		auto toolComp = new Composite(_sbshl.contentPane, SWT.NONE);
+		auto toolComp = new SoundComp(_sbshl.contentPane, SWT.NONE);
 		toolComp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		toolComp.setLayout = new FillLayout;
 		if (_prop.var.etc.singleWindow) {
@@ -2317,4 +2320,19 @@ protected:
 		build.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		build.setText = _prop.msgs.appBuild;
 	}
+}
+
+version (Windows) {
+	class SoundComp : Composite {
+		this (Composite parent, int style) {
+			super (parent, style);
+			mciNotifyHandle = this.handle;
+		}
+		override int windowProc(HWND hwnd, int msg, int wParam, int lParam) {
+			handleSoundMessage(msg, wParam);
+			return super.windowProc(hwnd, msg, wParam, lParam);
+		}
+	}
+} else {
+	alias Composite SoundComp;
 }

@@ -128,7 +128,7 @@ shared void fdebugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) {
 			string log = createDebugln!(F, L)(vals);
 			version (Console) {
 				version (Windows) {
-					printf("%s\n\0".ptr, tosjisz(log));
+					printf("%s\n\0".ptr, toMBSz(log));
 					dout.flush;
 				} else {
 					writeln(log);
@@ -160,7 +160,7 @@ void cdebugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) {
 		synchronized {
 			string log = createDebugln!(F, L)(vals);
 			version (Windows) {
-				printf("%s\n\0".ptr, tosjisz(log));
+				printf("%s\n\0".ptr, toMBSz(log));
 				dout.flush;
 			} else {
 				writeln(log);

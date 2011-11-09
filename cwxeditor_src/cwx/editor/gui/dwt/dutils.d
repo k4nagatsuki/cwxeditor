@@ -2403,8 +2403,10 @@ Cursor[Shell] setWaitCursors(Shell shell) {
 	auto cWait = shell.getDisplay.getSystemCursor(SWT.CURSOR_WAIT);
 	Cursor[Shell] cursors;
 	void put(Shell cShl) {
-		cursors[cShl] = cShl.getCursor;
-		cShl.setCursor = cWait;
+		if (cShl.getCursor !is cWait) {
+			cursors[cShl] = cShl.getCursor;
+			cShl.setCursor = cWait;
+		}
 	}
 	put(shell);
 	foreach (chld; shell.getShells) {
