@@ -9,10 +9,31 @@ import cwx.sjis;
 import cwx.utils : debugln, enforce;
 
 version (Windows) {
+	import std.windows.charset;
 	import std.c.windows.windows;
 	private extern (Windows) {
 		alias DWORD MCIERROR;
 		alias MCIERROR function(LPCWSTR, LPWSTR, UINT, HANDLE) mciSendStringW;
+	}
+	private const MCI_NOTIFY_SUCCESSFUL = 0x0001;
+	private const MM_MCINOTIFY = 0x03B9;
+	/// playBGM()はmciNotifyHandleに設定されたウィンドウに対して
+	/// 再生イベントを通知する。
+	/// 通知先が直ちにhandleSoundMessage()を呼び出す事により、
+	/// MCIでループ再生を行なう事ができる。
+	public HWND mciNotifyHandle = INVALID_HANDLE_VALUE;
+	/// ditto
+	void handleSoundMessage(int msg, int wParam) {
+		if (INVALID_HANDLE_VALUE == mciNotifyHandle) return;
+		if (!winmm || !_mciSendString) return;
+		if (!_playingMCI) return;
+		if (MM_MCINOTIFY != msg || MCI_NOTIFY_SUCCESSFUL != wParam) return;
+		synchronized (winmmSync) {
+			static const SEEK = "seek cws to 0\0"w.ptr;
+			static const PLAY = "play cws notify\0"w.ptr;
+			_mciSendString(SEEK, null, 0, null);
+			_mciSendString(PLAY, null, 0, mciNotifyHandle);
+		}
 	}
 }
 private extern (C) {
@@ -49,11 +70,21 @@ private T getSymbol(T)(HXModule mod, string name) {
 }
 
 version (Windows) {
+	private Object winmmSync = null;
 	private HXModule winmm = null;
+	private mciSendStringW _mciSendString = null;
+	private bool _playingMCI = false;
 	private void initWinmm() {
+		winmmSync = new Object;
 		winmm = ExeModule_Load("winmm.dll");
 		if (!winmm) {
 			debugln("error: winmm.dll initialize");
+		}
+		_mciSendString = getSymbol!(mciSendStringW)(winmm, "mciSendStringW");
+		if (!_mciSendString) {
+			debugln("mciSendStringW() not found");
+			ExeModule_Release(winmm);
+			winmm = null;
 		}
 	}
 }
@@ -123,17 +154,24 @@ private void __play(string file, bool loop, bool legacy) {
 	try {
 		version (Windows) {
 			if (winmm && (legacy || !sdl)) {
-				onLegacy = true;
-				auto ss = getSymbol!(mciSendStringW)(winmm, "mciSendStringW");
-				if (!ss) throw new Exception("mciSendStringW()");
-				// mpegvideoにするとなぜかopenが成功する上repeatが利くようになる
-				enforce(0 == ss(toUTF16z("open \"" ~ file ~ "\" alias cwxeditor_sound type mpegvideo"), null, 0, null),
-					new Exception("MCI open: " ~ file));
-				string p = "play cwxeditor_sound";
-				if (loop) p ~= " repeat";
-				enforce(0 == ss(toUTF16z(p), null, 0, null),
-					new Exception("MCI open: " ~ file));
-				return;
+				synchronized (winmmSync) {
+					onLegacy = true;
+					// typeにmpegvideoを指定するとリピート再生する事もできるが、
+					// 一部環境でアプリケーションが丸ごと落ちる
+					enforce(0 == _mciSendString(toUTF16z("open \"" ~ file ~ "\" alias cws"), null, 0, null),
+						new Exception("MCI open: " ~ file));
+					string p = "play cws";
+					if (loop && INVALID_HANDLE_VALUE != mciNotifyHandle) {
+						p ~= " notify";
+						enforce(0 == _mciSendString(toUTF16z(p), null, 0, mciNotifyHandle),
+							new Exception("MCI play: " ~ file));
+					} else {
+						enforce(0 == _mciSendString(toUTF16z(p), null, 0, null),
+							new Exception("MCI play: " ~ file));
+					}
+					_playingMCI = true;
+					return;
+				}
 			}
 		}
 	} catch (Exception e) {
@@ -145,7 +183,7 @@ private void __play(string file, bool loop, bool legacy) {
 			if (file.length > 0 && !music) {
 				version (Windows) {
 					// Unicodeで日本語パスを渡すと失敗するので変換しておく
-					music = getSymbol!(Mix_LoadMUS)(mixer, "Mix_LoadMUS")(tosjisz(file));
+					music = getSymbol!(Mix_LoadMUS)(mixer, "Mix_LoadMUS")(toMBSz(file));
 				} else {
 					music = getSymbol!(Mix_LoadMUS)(mixer, "Mix_LoadMUS")((file ~ "\0").ptr);
 				}
@@ -168,11 +206,12 @@ private void __stop() {
 	try {
 		version (Windows) {
 			if (onLegacy) {
-				auto ss = getSymbol!(mciSendStringW)(winmm, "mciSendStringW");
-				if (!ss) throw new Exception("mciSendStringW()");
-				ss(toUTF16z("stop cwxeditor_sound"), null, 0, null);
-				ss(toUTF16z("close cwxeditor_sound"), null, 0, null);
-				return;
+				synchronized (winmmSync) {
+					_playingMCI = false;
+					_mciSendString(toUTF16z("stop cws"), null, 0, null);
+					_mciSendString(toUTF16z("close cws"), null, 0, null);
+					return;
+				}
 			}
 		}
 		if (sdl && music) {

@@ -74,7 +74,7 @@ void fdebugln(T ...)(T vals) {
 			}
 			debug {
 				version (Windows) {
-					printf("%s\n\0".ptr, tosjisz(buf));
+					printf("%s\n\0".ptr, toMBSz(buf));
 					dout.flush;
 				} else {
 					writefln("%s", buf);
