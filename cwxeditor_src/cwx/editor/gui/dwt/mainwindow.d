@@ -1041,7 +1041,7 @@ public:
 		} else {
 			_sbshl.contentPane.setLayout = windowGridLayout(1, true);
 		}
-		auto toolComp = new SoundComp(_sbshl.contentPane, SWT.NONE);
+		auto toolComp = new Composite(_sbshl.contentPane, SWT.NONE);
 		toolComp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		toolComp.setLayout = new FillLayout;
 		if (_prop.var.etc.singleWindow) {
@@ -2320,19 +2320,4 @@ protected:
 		build.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		build.setText = _prop.msgs.appBuild;
 	}
-}
-
-version (Windows) {
-	class SoundComp : Composite {
-		this (Composite parent, int style) {
-			super (parent, style);
-			mciNotifyHandle = this.handle;
-		}
-		protected override int windowProc(HWND hwnd, int msg, int wParam, int lParam) {
-			handleSoundMessage(msg, wParam);
-			return super.windowProc(hwnd, msg, wParam, lParam);
-		}
-	}
-} else {
-	alias Composite SoundComp;
 }

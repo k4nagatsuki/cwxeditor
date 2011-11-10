@@ -17,23 +17,21 @@ version (Windows) {
 	}
 	private const __gshared MCI_NOTIFY_SUCCESSFUL = 0x0001;
 	private const __gshared MM_MCINOTIFY = 0x03B9;
-	/// playBGM()はmciNotifyHandleに設定されたウィンドウに対して
+	/// playBGM()は_mciNotifyHandleに設定されたウィンドウに対して
 	/// 再生イベントを通知する。
-	/// 通知先が直ちにhandleSoundMessage()を呼び出す事により、
-	/// MCIでループ再生を行なう事ができる。
-	public HWND mciNotifyHandle = INVALID_HANDLE_VALUE;
+	private HWND _mciNotifyHandle = null;
 	/// ditto
-	void handleSoundMessage(int msg, int wParam) {
-		if (INVALID_HANDLE_VALUE == mciNotifyHandle) return;
-		if (!winmm || !_mciSendString) return;
-		if (!_playingMCI) return;
-		if (MM_MCINOTIFY != msg || MCI_NOTIFY_SUCCESSFUL != wParam) return;
+	private extern (Windows) LRESULT mciNotifyWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
+		if (!_mciNotifyHandle || !winmm || !_mciSendString || !_playingMCI || MM_MCINOTIFY != message || MCI_NOTIFY_SUCCESSFUL != wParam) {
+			return DefWindowProcW(hWnd, message, wParam, lParam);
+		}
 		synchronized (winmmSync) {
 			static const __gshared SEEK = "seek cws to 0\0"w.ptr;
 			static const __gshared PLAY = "play cws notify\0"w.ptr;
 			_mciSendString(SEEK, null, 0, null);
-			_mciSendString(PLAY, null, 0, mciNotifyHandle);
+			_mciSendString(PLAY, null, 0, _mciNotifyHandle);
 		}
+		return DefWindowProcW(hWnd, message, wParam, lParam);
 	}
 }
 private extern (C) {
@@ -95,6 +93,18 @@ version (Windows) {
 			debugln("mciSendStringW() not found");
 			ExeModule_Release(winmm);
 			winmm = null;
+			return;
+		}
+		WNDCLASS wc;
+		wc.lpszClassName = "MCIHandler\0".ptr;
+		wc.lpfnWndProc = &mciNotifyWndProc;
+		if (!RegisterClassA(&wc)) {
+			debugln("RegisterClass() failure");
+			return;
+		}
+		_mciNotifyHandle = CreateWindowA(wc.lpszClassName, null, 0, 0, 0, 0, 0, null, null, null, null);
+		if (!_mciNotifyHandle) {
+			debugln("CreateWindow() failure");
 		}
 	}
 }
@@ -182,9 +192,9 @@ private void __play(string file, bool loop, bool legacy) {
 					enforce(0 == _mciSendString(toUTFz!(wchar*)("open \"" ~ file ~ "\" alias cws"), null, 0, null),
 						new Exception("MCI open: " ~ file));
 					string p = "play cws";
-					if (loop && INVALID_HANDLE_VALUE != mciNotifyHandle) {
+					if (loop && _mciNotifyHandle) {
 						p ~= " notify";
-						enforce(0 == _mciSendString(toUTFz!(wchar*)(p), null, 0, mciNotifyHandle),
+						enforce(0 == _mciSendString(toUTFz!(wchar*)(p), null, 0, _mciNotifyHandle),
 							new Exception("MCI play: " ~ file));
 					} else {
 						enforce(0 == _mciSendString(toUTFz!(wchar*)(p), null, 0, null),
