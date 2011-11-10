@@ -1,6 +1,7 @@
 
 module cwx.editor.gui.dwt.mainwindow;
 
+import core.memory;
 import core.thread;
 
 import std.conv;
@@ -416,6 +417,7 @@ private:
 		}
 		summ.resetChanged;
 		statusLine = _prop.msgs.loaded(summ.scenarioName);
+		GC.collect();
 	}
 	string _firstScenarioPath = null;
 	string[] _openPaths;
@@ -473,6 +475,7 @@ private:
 					}
 					_comm.saved.call;
 					addHistory;
+					GC.collect();
 					return true;
 				} catch (SummaryException e) {
 					debugln(e);
@@ -518,6 +521,7 @@ private:
 					_comm.refSkin.call;
 					_comm.refPaths.call("");
 					addHistory;
+					GC.collect();
 				} catch (SummaryException e) {
 					debugln(e);
 					MessageBox.showWarning(e.msg, _prop.msgs.dlgTitWarning, shell);

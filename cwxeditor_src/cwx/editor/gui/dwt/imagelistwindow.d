@@ -175,8 +175,10 @@ class ImageList : Composite {
 			int i = indexOf(e.x, e.y);
 			if (-1 == i) {
 				setCursor = null;
+				setToolTipText = "";
 			} else {
 				setCursor = getDisplay.getSystemCursor(SWT.CURSOR_HAND);
+				setToolTipText = _path[i];
 			}
 		}
 	}
