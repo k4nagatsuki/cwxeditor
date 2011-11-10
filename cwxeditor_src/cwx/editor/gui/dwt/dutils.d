@@ -799,11 +799,12 @@ private class InTCPD {
 	TCPD tcpd;
 	void cut(SelectionEvent se) {
 		auto fc = Display.getCurrent.getFocusControl;
-		if (cast(Text) fc) {
+		bool ro = !(fc.getStyle & SWT.READ_ONLY);
+		if (ro && cast(Text) fc) {
 			(cast(Text) fc).cut;
-		} else if (cast(Combo) fc) {
+		} else if (ro && cast(Combo) fc) {
 			(cast(Combo) fc).cut;
-		} else if (cast(CCombo) fc) {
+		} else if (ro && cast(CCombo) fc) {
 			(cast(CCombo) fc).cut;
 		} else {
 			tcpd.cut(se);
@@ -811,11 +812,12 @@ private class InTCPD {
 	}
 	void copy(SelectionEvent se) {
 		auto fc = Display.getCurrent.getFocusControl;
-		if (cast(Text) fc) {
+		bool ro = !(fc.getStyle & SWT.READ_ONLY);
+		if (ro && cast(Text) fc) {
 			(cast(Text) fc).copy;
-		} else if (cast(Combo) fc) {
+		} else if (ro && cast(Combo) fc) {
 			(cast(Combo) fc).copy;
-		} else if (cast(CCombo) Display.getCurrent.getFocusControl) {
+		} else if (ro && cast(CCombo) fc) {
 			(cast(CCombo) fc).copy;
 		} else {
 			tcpd.copy(se);
@@ -823,11 +825,12 @@ private class InTCPD {
 	}
 	void paste(SelectionEvent se) {
 		auto fc = Display.getCurrent.getFocusControl;
-		if (cast(Text) fc) {
+		bool ro = !(fc.getStyle & SWT.READ_ONLY);
+		if (ro && cast(Text) fc) {
 			(cast(Text) fc).paste;
-		} else if (cast(Combo) fc) {
+		} else if (ro && cast(Combo) fc) {
 			(cast(Combo) fc).paste;
-		} else if (cast(CCombo) fc) {
+		} else if (ro && cast(CCombo) fc) {
 			(cast(CCombo) fc).paste;
 		} else {
 			tcpd.paste(se);
@@ -835,7 +838,8 @@ private class InTCPD {
 	}
 	void del(SelectionEvent se) {
 		auto fc = Display.getCurrent.getFocusControl;
-		if (cast(Text) fc) {
+		bool ro = !(fc.getStyle & SWT.READ_ONLY);
+		if (ro && cast(Text) fc) {
 			(cast(Text) fc).insert("");
 		} else {
 			tcpd.del(se);

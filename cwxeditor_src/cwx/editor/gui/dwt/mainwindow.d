@@ -86,6 +86,7 @@ import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.program.Program;
@@ -1604,6 +1605,10 @@ public:
 			auto d = Display.getCurrent;
 			auto fc = d.getFocusControl();
 			if (!fc) return;
+			bool ro = !(fc.getStyle & SWT.READ_ONLY);
+			if (ro && (cast(Text) fc || cast(Combo) fc || cast(CCombo) fc)) {
+				return;
+			}
 			if (_win is fc.getShell) return;
 			if (!.isDescendant(_win, fc.getShell)) return;
 			// フォーカスのあるコントロールのShellのメニューを探し、
