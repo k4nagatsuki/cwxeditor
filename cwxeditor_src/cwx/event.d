@@ -286,6 +286,12 @@ private:
 	StepUser[] _stepusers;
 	UseCounter _uc;
 public:
+	/// コンストラクタ。
+	this () {}
+	/// コピーコンストラクタ。
+	this (in TextHolder base) {
+		this.text = base.text;
+	}
 	/// テキスト。
 	const
 	string text() {
@@ -407,12 +413,16 @@ public:
 	/// XML名。
 	static const XML_NAME = "Dialog";
 
-	/// 唯一のコンストラクタ。
-	this(string text = "", string[] rCoupons = []) {
+	/// コンストラクタ。
+	this (string text = "", string[] rCoupons = []) {
 		_text = new TextHolder;
 		_text.text = text;
 		_text.owner = this;
 		_rCoupons = rCoupons;
+	}
+	/// コピーコンストラクタ。
+	this (in SDialog base) {
+		this (base.text, base.rCoupons.dup);
 	}
 	const
 	bool opEquals(ref const(Object) o) {
@@ -555,6 +565,87 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime);
 		_type = type;
 		_name = name;
+	}
+	/// ディープコピーを生成する。
+	const
+	Content dup() {
+		auto copy = new Content(type, name);
+		copy.comment = comment;
+
+		copy.area = area;
+		copy.battle = battle;
+		copy.packages = packages;
+		copy.flag = flag;
+		copy.step = step;
+		copy.bgmPath = bgmPath;
+		copy.soundPath = soundPath;
+		copy.casts = casts;
+		copy.item = item;
+		copy.skill = skill;
+		copy.beast = beast;
+		copy.info = info;
+
+		copy.start = start;
+		copy.coupon = coupon;
+		copy.gossip = gossip;
+		copy.completeStamp = completeStamp;
+
+		copy.mental = mental;
+		copy.physical = physical;
+		copy.status = status;
+		copy.range = range;
+		copy.cardVisual = cardVisual;
+		copy.effectType = effectType;
+		copy.resist = resist;
+		copy.transition = transition;
+
+		copy.targetAll = targetAll;
+		copy.random = random;
+		copy.average = average;
+		copy.complete = complete;
+
+		copy.unsignedLevel = unsignedLevel;
+		copy.signedLevel = signedLevel;
+		copy.successRate = successRate;
+		copy.transitionSpeed = transitionSpeed;
+		copy.percent = percent;
+		copy.flagValue = flagValue;
+		copy.stepValue = stepValue;
+		copy.couponValue = couponValue;
+		copy.partyNumber = partyNumber;
+		copy.cardNumber = cardNumber;
+		copy.money = money;
+		copy.wait = wait;
+
+		Motion[] motions;
+		foreach (m; this.motions) {
+			motions ~= m.dup;
+		}
+		copy.motions = motions;
+
+		copy.text = text;
+		SDialog[] dialogs;
+		foreach (d; this.dialogs) {
+			dialogs ~= new SDialog(d);
+		}
+		copy.dialogs = dialogs;
+
+		copy.targetS = targetS;
+		copy.targetNS = targetNS;
+		copy.talkerC = talkerC;
+		copy.talkerNC = talkerNC;
+
+		BgImage[] backs;
+		foreach (b; this.backs) {
+			backs ~= b.dup;
+		}
+		copy.backs = backs;
+
+		foreach (c; next) {
+			copy.add(c.dup);
+		}
+
+		return copy;
 	}
 	private string _id;
 	/// イベントID。ドラッグ&ドロップ等でイベントを移動するとき、
