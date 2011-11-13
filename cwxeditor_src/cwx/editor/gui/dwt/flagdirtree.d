@@ -328,7 +328,8 @@ private:
 		refresh(null);
 	}
 public:
-	this(Commons comm, Props prop, FlagTable flags) {
+	this(Commons comm, Props prop, FlagTable flags, UndoManager undo) {
+		_undo = undo;
 		_comm = comm;
 		this.prop = prop;
 		this.flags = flags;
@@ -366,8 +367,7 @@ public:
 	/// コントロールを生成する。
 	/// Params:
 	/// parent = 親コントロール。
-	Control createControl(Composite parent, UndoManager undo) {
-		_undo = undo;
+	Control createControl(Composite parent) {
 		_comp = new Composite(parent, SWT.NONE);
 		_comp.setLayout = new FillLayout;
 		dirs = new Tree(_comp, SWT.SINGLE | SWT.BORDER);

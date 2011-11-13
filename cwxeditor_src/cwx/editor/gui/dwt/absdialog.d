@@ -143,8 +143,12 @@ abstract class AbsDialog {
 	private bool _applied = false;
 	private Button _apply = null;
 	private int _imeMode = SWT.NONE;
+	private bool _inCloseEvent = false;
 	private class SListener : ShellAdapter {
 		override void shellClosed(ShellEvent e) {
+			if (_inCloseEvent) return;
+			_inCloseEvent = true;
+			scope (exit) _inCloseEvent = false;
 			if (_forceCancel) {
 				e.doit = true;
 				foreach (dlg; closeEvent) {
@@ -153,8 +157,10 @@ abstract class AbsDialog {
 				return;
 			}
 			_imeMode = _win.getImeInputMode;
-			foreach (dlg; applyEvent) {
-				dlg();
+			if (_ret) {
+				foreach (dlg; applyEvent) {
+					dlg();
+				}
 			}
 			bool cancel;
 			_ret = close(_ret, cancel);
@@ -180,6 +186,7 @@ abstract class AbsDialog {
 	}
 	private bool _ret = false;
 	private void ok() {
+		if (_inCloseEvent) return;
 		_ret = true;
 		_win.close;
 	}
@@ -189,9 +196,13 @@ abstract class AbsDialog {
 	private bool _ffio = false;
 	void firstFocusIsOK(bool ffio) {_ffio = true;}
 	bool firstFocusIsOK() {return _ffio;}
-	private void cancel() {_win.close;}
+	private void cancel() {
+		if (_inCloseEvent) return;
+		_win.close;
+	}
 	private bool _forceCancel = false;
 	void forceCancel() {
+		if (_inCloseEvent) return;
 		_forceCancel = true;
 		if (!_win.isDisposed) _win.close();
 	}
@@ -250,6 +261,7 @@ abstract class AbsDialog {
 		}
 	}
 	bool close() {
+		if (_inCloseEvent) return false;
 		_win.close();
 		return _win.isDisposed;
 	}

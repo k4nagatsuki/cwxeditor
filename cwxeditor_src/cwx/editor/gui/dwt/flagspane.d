@@ -87,20 +87,20 @@ public:
 		_comm = comm;
 		_prop = prop;
 
-		_flags = new FlagTable(comm, prop);
-		_dirs = new FlagDirTree(comm, prop, _flags);
+		_undo = new UndoManager(1024);
+		_flags = new FlagTable(comm, prop, _undo);
+		_dirs = new FlagDirTree(comm, prop, _flags, _undo);
 	}
 
 	void construct(Composite parent) {
-		_undo = new UndoManager(1024);
 		_comm.refScenario.add(&refScenario);
 
 		_comp = new Composite(parent, SWT.NONE);
 		_comp.setLayout = new FillLayout;
 		_sash = new SplitPane(_comp, _prop.var.etc.flagSashV ? SWT.VERTICAL : SWT.HORIZONTAL);
 
-		_dirs.createControl(_sash, _undo);
-		_flags.createControl(_sash, _undo);
+		_dirs.createControl(_sash);
+		_flags.createControl(_sash);
 		_flags.dir(_dirs.current, true);
 
 		_sash.setWeights([_prop.var.etc.flagSashL, _prop.var.etc.flagSashR]);

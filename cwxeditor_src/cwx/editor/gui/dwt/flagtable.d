@@ -772,11 +772,19 @@ private:
 		_undo ~= new UndoInsertDelete(this, _comm, _dir, selected, ds, fs, ss);
 	}
 
-	int indexOf(CWXPath p) {
-		foreach (i, itm; flags.getItems) {
-			if (itm.getData is cast(Object) p) {
+	static int indexOf(FlagDir dir, CWXPath p) {
+		int i = 0;
+		foreach (s; dir.steps) {
+			if (s is p) {
 				return i;
 			}
+			i++;
+		}
+		foreach (f; dir.flags) {
+			if (f is p) {
+				return i;
+			}
+			i++;
 		}
 		return -1;
 	}
@@ -864,21 +872,26 @@ private:
 		}
 		auto dlg = new FlagEditDialog(_comm, prop, dlgParShl, parent, flag);
 		dlg.applyEvent ~= {
-			int i = indexOf(dlg.flag);
+			int i = indexOf(parent, flag);
 			if (-1 != i) {
 				assert (!createMode);
 				storeEdit(i);
 			}
 		};
 		dlg.appliedEvent ~= {
+			auto flag = dlg.flag;
 			if (old && old != flag.path) uc.change(toFlagId(old), toFlagId(flag.path), true);
 			if (createMode) {
-				storeInsert(flags.getSelectionIndices, [dlg.flag.name], []);
+				int[] indices;
+				if (flags && !flags.isDisposed) {
+					indices = flags.getSelectionIndices;
+				}
+				storeInsert(indices, [flag.name], []);
 				createMode = false;
 			}
-			_comm.openCWXPath(dlg.flag.cwxPath);
-			refresh(dlg.flag.name);
-			_comm.refFlagAndStep.call([dlg.flag], []);
+			_comm.openCWXPath(flag.cwxPath);
+			refresh(flag.name);
+			_comm.refFlagAndStep.call([flag], []);
 		};
 		_editDlgsF[flag] = dlg;
 		dlg.closeEvent ~= {
@@ -903,21 +916,26 @@ private:
 		}
 		auto dlg = new StepEditDialog(_comm, prop, dlgParShl, parent, step);
 		dlg.applyEvent ~= {
-			int i = indexOf(dlg.step);
+			int i = indexOf(parent, step);
 			if (-1 != i) {
 				assert (!createMode);
 				storeEdit(i);
 			}
 		};
 		dlg.appliedEvent ~= {
+			auto step = dlg.step;
 			if (old && old != step.path) uc.change(toStepId(old), toStepId(step.path), true);
 			if (createMode) {
-				storeInsert(flags.getSelectionIndices, [dlg.step.name], []);
+				int[] indices;
+				if (flags && !flags.isDisposed) {
+					indices = flags.getSelectionIndices;
+				}
+				storeInsert(indices, [step.name], []);
 				createMode = false;
 			}
-			_comm.openCWXPath(dlg.step.cwxPath);
-			refresh(dlg.step.name);
-			_comm.refFlagAndStep.call([], [dlg.step]);
+			_comm.openCWXPath(step.cwxPath);
+			refresh(step.name);
+			_comm.refFlagAndStep.call([], [step]);
 		};
 		_editDlgsS[step] = dlg;
 		dlg.closeEvent ~= {
@@ -1098,7 +1116,8 @@ private:
 		return _comm.mainWin.shell.getShell;
 	}
 public:
-	this(Commons comm, Props prop) {
+	this(Commons comm, Props prop, UndoManager undo) {
+		_undo = undo;
 		_comm = comm;
 		this.prop = prop;
 	}
@@ -1106,8 +1125,7 @@ public:
 	/// コントロールを生成する。
 	/// Params:
 	/// parent = 親コントロール。
-	Control createControl(Composite parent, UndoManager undo) {
-		_undo = undo;
+	Control createControl(Composite parent) {
 		_comp = new Composite(parent, SWT.NONE);
 		_comp.setLayout = new FillLayout;
 		flags = new Table(_comp, SWT.MULTI | SWT.BORDER | SWT.FULL_SELECTION);
