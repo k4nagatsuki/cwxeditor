@@ -2097,7 +2097,7 @@ Composite createDefSoundCombo(Commons comm, Props prop, Summary summ, Composite 
 	combo.setLayoutData = gdc;
 	void refSkin() {
 		string se = combo.getText;
-		combo.setItems = prop.msgs.soundNone ~ comm.skin.sounds;
+		setComboItems(combo, prop.msgs.soundNone ~ comm.skin.sounds);
 		se = comm.skin.findPath(se, comm.skin.extSound, comm.skin.seDir, null);
 		se = abs2rel(comm.skin.seDir, se);
 		int i = combo.indexOf(se);
@@ -2455,4 +2455,13 @@ MenuItem findMenu(Menu menu, int keyCode, wchar character, int stateMask) {
 		}
 	}
 	return null;
+}
+
+/// FIXME: Combo#setItems()がエラーになることがあるため
+void setComboItems(C)(C combo, string[] items) {
+	combo.removeAll();
+	foreach (item; items) {
+		if (item is null) item = "";
+		combo.add(item);
+	}
 }

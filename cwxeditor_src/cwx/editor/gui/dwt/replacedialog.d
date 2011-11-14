@@ -307,7 +307,7 @@ private:
 		string[] paths = [""] ~ allMaterials(false);
 		void setPaths(Combo combo) {
 			auto old = combo.getText;
-			combo.setItems(paths);
+			setComboItems(combo, paths);
 			combo.setText = old;
 		}
 		setPaths(_fromPath);
@@ -956,8 +956,8 @@ public:
 			_replace = createButton(_prop.msgs.replace, &replace);
 			createButton(_prop.msgs.replaceExit, &exit);
 		}
-		_from.setItems(_prop.var.etc.searchHistories.dup);
-		_to.setItems(_prop.var.etc.replaceHistories.dup);
+		setComboItems(_from, _prop.var.etc.searchHistories.dup);
+		setComboItems(_to, _prop.var.etc.replaceHistories.dup);
 		_notIgnoreCase.setSelection = _prop.var.etc.replaceTextNotIgnoreCase;
 		_useRegex.setSelection = _prop.var.etc.replaceTextRegExp;
 		_useWildcard.setSelection = _prop.var.etc.replaceTextWildcard;
@@ -1656,7 +1656,7 @@ public:
 					list = list[0 .. $ - 1];
 				}
 				set(list);
-				combo.setItems(list);
+				setComboItems(combo, list);
 				combo.select = 0;
 			}
 		}

@@ -229,7 +229,7 @@ protected:
 			stepName.setText = "";
 		}
 		stepName.selectAll;
-		stepInit.setItems(vals);
+		setComboItems(stepInit, vals);
 		stepInit.select(_step is null ? 0 : _step.select);
 	}
 
@@ -365,7 +365,7 @@ protected:
 			(new Label(comp, SWT.NULL)).setText = prop.msgs.dlgLblFlagTrue;
 			flagTrue = new Combo(comp, SWT.NULL);
 			mod(flagTrue);
-			flagTrue.setItems(prop.var.etc.flagTrues.dup);
+			setComboItems(flagTrue, prop.var.etc.flagTrues.dup);
 			flagTrue.setVisibleItemCount = 20;
 			auto tmod = new ModOnOff(0);
 			flagTrue.addModifyListener = tmod;
@@ -375,7 +375,7 @@ protected:
 			(new Label(comp, SWT.NULL)).setText = prop.msgs.dlgLblFlagFalse;
 			flagFalse = new Combo(comp, SWT.NULL);
 			mod(flagFalse);
-			flagFalse.setItems(prop.var.etc.flagFalses.dup);
+			setComboItems(flagFalse, prop.var.etc.flagFalses.dup);
 			flagFalse.setVisibleItemCount = 20;
 			auto fmod = new ModOnOff(1);
 			flagFalse.addModifyListener = fmod;
@@ -394,13 +394,13 @@ protected:
 			if (-1 == flagTrue.indexOf(_flag.on)) flagTrue.add(_flag.on, 0);
 			flagFalse.setText = _flag.off;
 			if (-1 == flagFalse.indexOf(_flag.off)) flagFalse.add(_flag.off, 0);
-			flagInit.setItems([flagTrue.getText, flagFalse.getText]);
+			setComboItems(flagInit, [flagTrue.getText, flagFalse.getText]);
 			flagInit.select = _flag.onOff ? 0 : 1;
 		} else {
 			flagName.setText = "";
 			flagTrue.setText = prop.var.etc.flagTrues.length > 0 ? prop.var.etc.flagTrues[0] : "";
 			flagFalse.setText = prop.var.etc.flagFalses.length > 0 ? prop.var.etc.flagFalses[0] : "";
-			flagInit.setItems([flagTrue.getText, flagFalse.getText]);
+			setComboItems(flagInit, [flagTrue.getText, flagFalse.getText]);
 			flagInit.select = 0;
 		}
 		if (!_flag.parent) {

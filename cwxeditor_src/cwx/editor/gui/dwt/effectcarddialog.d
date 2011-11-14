@@ -555,10 +555,7 @@ private:
 				_keyCodes[i].setVisibleItemCount = 20;
 				_keyCodes[i].setLayoutData = new GridData(GridData.FILL_BOTH);
 				//  FIXME: Argument not valid, java\lang\exceptions.d, 28
-/+				_keyCodes[i].setItems(stdKCs);
-+/				foreach (kc; stdKCs) {
-					_keyCodes[i].add(kc);
-				}
+				setComboItems(_keyCodes[i], stdKCs);
 			}
 			setKeyCodesEnabled();
 		}
