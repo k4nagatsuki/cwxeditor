@@ -769,6 +769,9 @@ private Composite createTalkerPane
 		case Talker.RANDOM:
 			msel.dirsCombo.select = 2;
 			break;
+		case Talker.CARD:
+			msel.dirsCombo.select = 3;
+			break;
 		default:
 			msel.dirsCombo.select = 0;
 		}
