@@ -510,14 +510,16 @@ private:
 			auto cs = __selections;
 			if (cs.length > 0) {
 				auto cb = new Clipboard(Display.getCurrent);
-				scope (exit) cb.dispose;
+				// FIXME: 環境によってハングアップする
+//				scope (exit) cb.dispose;
 				XMLtoCB(_prop, cb, toXML(cs));
 			}
 		}
 		override void paste(SelectionEvent se) {
 			static if (EditMode) {
 				auto cb = new Clipboard(Display.getCurrent);
-				scope (exit) cb.dispose;
+				// FIXME: 環境によってハングアップする
+//				scope (exit) cb.dispose;
 				auto c = CBtoXML(cb);
 				try {
 					if (c) {

@@ -3195,13 +3195,15 @@ public:
 				}
 				if (cards.length > 0 || backs.length > 0) {
 					auto cb = new Clipboard(Display.getCurrent);
-					scope (exit) cb.dispose;
+					// FIXME: 環境によってハングアップする
+//					scope (exit) cb.dispose;
 					XMLtoCB(_prop, cb, Area.CBtoXML(cards, backs));
 				}
 			}
 			void paste(SelectionEvent se) {
 				auto cb = new Clipboard(Display.getCurrent);
-				scope (exit) cb.dispose;
+				// FIXME: 環境によってハングアップする
+//				scope (exit) cb.dispose;
 				auto xml = CBtoXML(cb);
 				if (xml) {
 					try {
@@ -3257,7 +3259,8 @@ public:
 				}
 				if (cards.length > 0) {
 					auto cb = new Clipboard(Display.getCurrent);
-					scope (exit) cb.dispose;
+					// FIXME: 環境によってハングアップする
+//					scope (exit) cb.dispose;
 					XMLtoCB(_prop, cb, A.CtoXML(cards));
 				}
 			}
@@ -3266,7 +3269,8 @@ public:
 					this.outer.paste(se);
 				} else {
 					auto cb = new Clipboard(Display.getCurrent);
-					scope (exit) cb.dispose;
+					// FIXME: 環境によってハングアップする
+//					scope (exit) cb.dispose;
 					auto xml = CBtoXML(cb);;
 					if (xml) {
 						try {
@@ -3313,7 +3317,8 @@ public:
 				}
 				if (backs.length > 0) {
 					auto cb = new Clipboard(Display.getCurrent);
-					scope (exit) cb.dispose;
+					// FIXME: 環境によってハングアップする
+//					scope (exit) cb.dispose;
 					XMLtoCB(_prop, cb, A.BtoXML(backs));
 				}
 			}
@@ -3322,7 +3327,8 @@ public:
 					this.outer.paste(se);
 				} else {
 					auto cb = new Clipboard(Display.getCurrent);
-					scope (exit) cb.dispose;
+					// FIXME: 環境によってハングアップする
+//					scope (exit) cb.dispose;
 					auto xml = CBtoXML(cb);
 					if (xml) {
 						try {

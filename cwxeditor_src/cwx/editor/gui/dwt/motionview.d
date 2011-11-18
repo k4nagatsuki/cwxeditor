@@ -794,13 +794,15 @@ public:
 			auto m = selection;
 			if (m) {
 				auto cb = new Clipboard(Display.getCurrent);
-				scope (exit) cb.dispose;
+				// FIXME: 環境によってハングアップする
+//				scope (exit) cb.dispose;
 				XMLtoCB(_prop, cb, m.toXML);
 			}
 		}
 		override void paste(SelectionEvent se) {
 			auto cb = new Clipboard(Display.getCurrent);
-			scope (exit) cb.dispose;
+			// FIXME: 環境によってハングアップする
+//			scope (exit) cb.dispose;
 			auto xml = CBtoXML(cb);
 			if (xml) {
 				try {
@@ -840,7 +842,8 @@ public:
 			if (m) {
 				assert (m.detail.use(MArg.BEAST));
 				auto cb = new Clipboard(Display.getCurrent);
-				scope (exit) cb.dispose;
+				// FIXME: 環境によってハングアップする
+//				scope (exit) cb.dispose;
 				if (m.beast) {
 					XMLtoCB(_prop, cb, m.beast.toXML);
 					return true;
@@ -858,7 +861,8 @@ public:
 		}
 		override void paste(SelectionEvent se) {
 			auto cb = new Clipboard(Display.getCurrent);
-			scope (exit) cb.dispose;
+			// FIXME: 環境によってハングアップする
+//			scope (exit) cb.dispose;
 			auto xml = CBtoXML(cb);
 			if (xml) {
 				try {

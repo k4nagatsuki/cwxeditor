@@ -1776,7 +1776,8 @@ public:
 			auto itm = selection;
 			if (itm) {
 				auto cb = new Clipboard(Display.getCurrent);
-				scope (exit) cb.dispose;
+				// FIXME: 環境によってハングアップする
+//				scope (exit) cb.dispose;
 				auto c = cast(Content) itm.getData;
 				cb.setContents([new ArrayWrapperString(c.cwxPath)], [TextTransfer.getInstance]);
 			}
@@ -1790,7 +1791,8 @@ public:
 		auto text = script.toScript([c], _summ.legacy, "\t");
 		text = std.array.replace(text, "\n", std.path.linesep);
 		auto cb = new Clipboard(Display.getCurrent);
-		scope (exit) cb.dispose;
+		// FIXME: 環境によってハングアップする
+//		scope (exit) cb.dispose;
 		cb.setContents([new ArrayWrapperString(text ~ "\n")], [TextTransfer.getInstance]);
 	}
 	void toScriptAll() {
@@ -1799,7 +1801,8 @@ public:
 		auto text = script.toScript(_et.starts, _summ.legacy, "\t");
 		text = std.array.replace(text, "\n", std.path.linesep);
 		auto cb = new Clipboard(Display.getCurrent);
-		scope (exit) cb.dispose;
+		// FIXME: 環境によってハングアップする
+//		scope (exit) cb.dispose;
 		cb.setContents([new ArrayWrapperString(text ~ "\n")], [TextTransfer.getInstance]);
 	}
 	private ContentCommentDialog[Content] _commentDlgs;
@@ -2360,14 +2363,16 @@ public:
 			if (itm) {
 				string xml = (cast(Content) itm.getData).toXML;
 				auto cb = new Clipboard(Display.getCurrent);
-				scope (exit) cb.dispose;
+				// FIXME: 環境によってハングアップする
+//				scope (exit) cb.dispose;
 				XMLtoCB(_prop, cb, xml);
 			}
 		}
 		void paste(SelectionEvent se) {
 			if (!_et) return;
 			auto cb = new Clipboard(Display.getCurrent);
-			scope (exit) cb.dispose;
+			// FIXME: 環境によってハングアップする
+//			scope (exit) cb.dispose;
 			string c;
 			try {
 				c = CBtoXML(cb);

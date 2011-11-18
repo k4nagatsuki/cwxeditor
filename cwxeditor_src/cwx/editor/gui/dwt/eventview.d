@@ -1400,7 +1400,8 @@ public:
 					}
 				}
 				auto cb = new Clipboard(Display.getCurrent);
-				scope (exit) cb.dispose;
+				// FIXME: 環境によってハングアップする
+//				scope (exit) cb.dispose;
 				XMLtoCB(_prop, cb, xml);
 			}
 		}
@@ -1412,7 +1413,8 @@ public:
 				auto itm = selection;
 				if (!itm) return;
 				auto cb = new Clipboard(Display.getCurrent);
-				scope (exit) cb.dispose;
+				// FIXME: 環境によってハングアップする
+//				scope (exit) cb.dispose;
 				auto xml = CBtoXML(cb);
 				if (!xml) {
 					pasteScript(cb);

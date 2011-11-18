@@ -892,12 +892,14 @@ private:
 			int i = _bgStgsL.getSelectionIndex;
 			if (i < 0) return;
 			auto cb = new Clipboard(Display.getCurrent);
-			scope (exit) cb.dispose;
+			// FIXME: 環境によってハングアップする
+//			scope (exit) cb.dispose;
 			XMLtoCB(_prop, cb, _bgStgs[i].toNode.text);
 		}
 		void paste(SelectionEvent se) {
 			auto cb = new Clipboard(Display.getCurrent);
-			scope (exit) cb.dispose;
+			// FIXME: 環境によってハングアップする
+//			scope (exit) cb.dispose;
 			auto xml = CBtoXML(cb);
 			if (xml) {
 				try {
@@ -1150,12 +1152,14 @@ private:
 			int i = _toolsL.getSelectionIndex;
 			if (i < 0) return;
 			auto cb = new Clipboard(Display.getCurrent);
-			scope (exit) cb.dispose;
+			// FIXME: 環境によってハングアップする
+//			scope (exit) cb.dispose;
 			XMLtoCB(_prop, cb, _tools[i].toNode.text);
 		}
 		void paste(SelectionEvent se) {
 			auto cb = new Clipboard(Display.getCurrent);
-			scope (exit) cb.dispose;
+			// FIXME: 環境によってハングアップする
+//			scope (exit) cb.dispose;
 			auto xml = CBtoXML(cb);
 			if (xml) {
 				try {
@@ -1292,12 +1296,14 @@ private:
 			int i = _cEnginesL.getSelectionIndex;
 			if (i < 0) return;
 			auto cb = new Clipboard(Display.getCurrent);
-			scope (exit) cb.dispose;
+			// FIXME: 環境によってハングアップする
+//			scope (exit) cb.dispose;
 			XMLtoCB(_prop, cb, _cEngines[i].toNode.text);
 		}
 		void paste(SelectionEvent se) {
 			auto cb = new Clipboard(Display.getCurrent);
-			scope (exit) cb.dispose;
+			// FIXME: 環境によってハングアップする
+//			scope (exit) cb.dispose;
 			auto xml = CBtoXML(cb);
 			if (xml) {
 				try {
