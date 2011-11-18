@@ -1261,6 +1261,7 @@ void copyAll(string a, string b) in {
 /// listDirの代替。指定されたディレクトリに含まれるファイル名の一覧を返す。
 string[] clistdir(string dir) {
 	string[] r;
+	if (!.exists(dir)) return r;
 	foreach (string file; dirEntries(dir, SpanMode.shallow)) {
 		r ~= file.baseName;
 	}

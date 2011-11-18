@@ -934,7 +934,7 @@ private:
 		}
 	}
 	Control dirsCreateEditor(TreeItem itm) {
-		return itm.getParentItem ? createTextEditor(_dirs, itm.getText) : null;
+		return itm.getParentItem ? createTextEditor(_prop, _dirs, itm.getText) : null;
 	}
 	void filesEditEnd(TableItem itm, int column, string newText) {
 		if (newText.length == 0) return;
@@ -1530,7 +1530,7 @@ public:
 			auto cc = new TableColumn(_files, SWT.NONE);
 			cc.setText = _prop.msgs.fileCount;
 			saveColumnWidth!("prop.var.etc.fileCountColumn")(_prop, cc);
-			_filesEdit = new TableTextEdit(_files, 0, &filesEditEnd);
+			_filesEdit = new TableTextEdit(_prop, _files, 0, &filesEditEnd);
 
 			auto fs = new FileSelect;
 			_files.addKeyListener(fs);

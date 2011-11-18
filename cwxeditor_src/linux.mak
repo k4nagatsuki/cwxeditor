@@ -76,6 +76,7 @@ SRC = cwxeditor.d \
 	cwx/editor/gui/dwt/scripterrordialog.d \
 	cwx/editor/gui/dwt/textdialog.d \
 	cwx/editor/gui/dwt/imagelistwindow.d \
+	cwx/editor/gui/dwt/smalldialogs.d \
 
 OBJ = $(SRC:%.d=%.o)
 DMD = dmd

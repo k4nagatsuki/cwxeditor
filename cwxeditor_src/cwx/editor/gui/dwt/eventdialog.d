@@ -154,6 +154,7 @@ class ContentCommentDialog : AbsDialog {
 		_comment = new Text(area, SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
 		mod(_comment);
 		_comment.setText = _evt.comment;
+		createTextMenu!Text(_prop, _comment, &catchMod);
 		auto font = _comment.getFont;
 		auto fSize = font ? cast(uint) font.getFontData[0].height : 0;
 		_comment.setFont = new Font(Display.getCurrent, dwtData(_prop.looks.textDlgFont(fSize)));
@@ -582,6 +583,7 @@ protected:
 					_name = new Combo(comp, SWT.BORDER | SWT.DROP_DOWN);
 					mod(_name);
 					_name.setVisibleItemCount = 20;
+					createTextMenu!Combo(_prop, _name, &catchMod);
 					auto gd = new GridData(GridData.FILL_HORIZONTAL);
 					gd.horizontalSpan = 3;
 					gd.widthHint = _prop.var.etc.nameWidth;
@@ -659,6 +661,7 @@ protected:
 
 			_text = new Text(comp, SWT.BORDER);
 			mod(_text);
+			createTextMenu!Text(_prop, _text, &catchMod);
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
 			gd.widthHint = _prop.var.etc.nameWidth;
 			_text.setLayoutData = gd;

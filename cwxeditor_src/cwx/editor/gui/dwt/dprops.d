@@ -354,6 +354,7 @@ public:
 	Image menuCopy() {return imgd!("copy.png");}
 	Image menuPaste() {return imgd!("paste.png");}
 	Image menuDel() {return imgd!("del.png");}
+	Image menuSelectAll() {return imgd!("select_all.png");}
 
 	Image menuToXML() {return imgd!("toxml.png");}
 

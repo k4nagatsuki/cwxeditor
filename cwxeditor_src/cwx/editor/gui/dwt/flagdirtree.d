@@ -242,7 +242,7 @@ private:
 	}
 
 	Control createEditor(TreeItem itm) {
-		return itm.getData != root ? createTextEditor(dirs, itm.getText) : null;
+		return itm.getData != root ? createTextEditor(prop, dirs, itm.getText) : null;
 	}
 
 	private void refreshDirs() {

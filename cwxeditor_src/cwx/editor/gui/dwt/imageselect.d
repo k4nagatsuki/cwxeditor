@@ -203,18 +203,23 @@ public:
 	C fileList() {
 		return _msel.fileList;
 	}
+	void selectDir(int sel) {
+		_msel.selectDir(sel);
+		selectDirImpl(sel);
+	}
 private:
+	void selectDirImpl(int sel) {
+		auto dirs = dirsCombo;
+		if (-1 == sel && _oldDirSel == sel) return;
+		_oldDirSel = sel;
+		if (_imgList && !_imgList.shell.isDisposed) {
+			_imgList.images(dirs.getText, _msel.showingPaths);
+			_imgList.select(_msel.path);
+		}
+	}
 	class DirSelect : SelectionAdapter {
-		private int _oldSel = -1;
 		override void widgetSelected(SelectionEvent e) {
-			auto dirs = cast(Combo) e.widget;
-			int sel = dirs.getSelectionIndex;
-			if (-1 == sel && _oldSel == sel) return;
-			_oldSel = sel;
-			if (_imgList && !_imgList.shell.isDisposed) {
-				_imgList.images(dirs.getText, _msel.showingPaths);
-				_imgList.select(_msel.path);
-			}
+			selectDirImpl(dirsCombo.getSelectionIndex);
 		}
 	}
 	class FileSelect : SelectionAdapter {
@@ -336,4 +341,5 @@ private:
 	string _saveName;
 	bool _mask = true;
 	void delegate() _refresh;
+	int _oldDirSel = -1;
 }

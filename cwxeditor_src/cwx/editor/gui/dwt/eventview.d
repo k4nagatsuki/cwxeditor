@@ -544,11 +544,11 @@ private:
 	Control createEditor(TreeItem itm) {
 		static if (UseFire) {
 			if (cast(EventTree) itm.getData || cast(KeyCodeObj) itm.getData) {
-				return createTextEditor(_cards, itm.getText);
+				return createTextEditor(_prop, _cards, itm.getText);
 			}
 		} else {
 			if (cast(EventTree) itm.getData) {
-				return createTextEditor(_cards, itm.getText);
+				return createTextEditor(_prop, _cards, itm.getText);
 			}
 		}
 		return null;
@@ -1273,6 +1273,7 @@ public:
 			c.add(v);
 			if (i == 0) c.setText = v;
 		}
+		if (!readOnly) createTextMenu!CCombo(_prop, c, null);
 		setFireControl(c);
 	}
 	static if (is (A == Area) || is (A == Battle)) {

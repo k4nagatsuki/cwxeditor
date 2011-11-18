@@ -26,6 +26,8 @@ import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.xmlbytestransfer;
 import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.jpyimage;
+import cwx.editor.gui.dwt.undo;
+import cwx.editor.gui.dwt.customtext;
 
 import core.thread;
 
@@ -459,11 +461,12 @@ public:
 	}
 }
 
-Text createTextEditor(Composite parent, string str) {
+Text createTextEditor(Props prop, Composite parent, string str) {
 	try {
 		auto text = new Text(parent, SWT.BORDER);
 		text.setText(str ? str : "");
 		text.selectAll();
+		createTextMenu!Text(prop, text, null);
 		return text;
 	} catch (Exception e) {
 		throw new Exception(e.msg, __FILE__, __LINE__);
@@ -598,6 +601,7 @@ public:
 /// ditto
 class TableTextEdit : AbstractTableEdit {
 private:
+	Props _prop;
 	void delegate(TableItem itm, int column, string newText) editEnd = null;
 
 public:
@@ -608,11 +612,12 @@ public:
 	///           単にテーブルアイテムのテキストを編集後のテキストで置換する。
 	/// canEdit = テーブルアイテムが編集可能か否かを判定する関数。nullを指定した場合、
 	///           すべてのセルが編集可能になる。
-	this(Table table, int editC,
+	this(Props prop, Table table, int editC,
 			void delegate(TableItem itm, int column, string text) editEnd = null,
 			bool delegate(TableItem itm, int column) canEdit = null) {
 		try {
 			super (table, editC, canEdit);
+			_prop = prop;
 			this.editEnd = editEnd;
 		} catch (Exception e) {
 			throw new Exception(e.msg, __FILE__, __LINE__);
@@ -620,7 +625,7 @@ public:
 	}
 
 	protected override Control createEditor(TableItem itm, int editC) {
-		return createTextEditor(itm.getParent, itm.getText(editC));
+		return createTextEditor(_prop, itm.getParent, itm.getText(editC));
 	}
 	protected override void end(Control c) {
 		try {
@@ -882,35 +887,19 @@ bool eqAcc(int acc, int keyCode, wchar character, int stateMask) {
 }
 
 void usingPopupMenuAccelerator(Control c) {
-	static int toAccelerator(MenuItem mi) {
-		if (mi.getAccelerator != 0) {
-			return mi.getAccelerator;
-		}
-		int acc = convertAccelerator(mi.getText);
-		mi.setAccelerator = acc;
-		return acc;
-	}
 	c.addKeyListener(new class KeyAdapter {
-		private static bool doMenu(KeyEvent e, Menu menu) {
-			if (menu) {
-				foreach (mi; menu.getItems) {
-					int acc = toAccelerator(mi);
-					if (eqAcc(acc, e.keyCode, e.character, e.stateMask)) {
-						scope evt = new Event;
-						evt.widget = e.widget;
-						mi.notifyListeners(SWT.Selection, evt);
-						e.doit = false;
-						return true;
-					}
-				}
-				foreach (mi; menu.getItems) {
-					if (doMenu(e, mi.getMenu)) return true;
-				}
-			}
-			return false;
-		}
 		override void keyPressed(KeyEvent e) {
-			doMenu(e, (cast(Control) e.widget).getMenu);
+			auto menu = findMenu(c.getMenu, e.keyCode, e.character, e.stateMask);
+			if (menu && menu.getEnabled) {
+				scope se = new Event;
+				se.type = SWT.Selection;
+				se.widget = menu;
+				se.time = e.time;
+				se.stateMask = e.stateMask;
+				se.doit = e.doit;
+				menu.notifyListeners(SWT.Selection, se);
+				e.doit = false;
+			}
 		}
 	});
 }
@@ -1007,10 +996,6 @@ private MenuItem createMenuItemImpl(Dlg)(Menu sub, string text, Image img,
 		Dlg func, int style = SWT.PUSH) {
 	auto itm = new MenuItem(sub, style);
 	itm.setText = text;
-	int accr = convertAccelerator(text);
-	if (accr > -1) {
-		itm.setAccelerator = accr;
-	}
 	if (func) {
 		itm.addSelectionListener(new MenuSel!(Dlg)(func));
 	}
@@ -2464,4 +2449,35 @@ void setComboItems(C)(C combo, string[] items) {
 		if (item is null) item = "";
 		combo.add(item);
 	}
+}
+
+/// Text/Combo/CComboに、アンドゥ・リドゥ及び
+/// 切り取り・コピー・貼り付け・削除のメニューをつける。
+TextMenuModify createTextMenu(T = Text)(Props prop, T text, bool delegate() canSaveHistory, UndoManager undo = null, TMAppendData apd = TMAppendData()) {
+	if (!undo) {
+		undo = new UndoManager(1024);
+	}
+	auto ml = new TextMenuModify(TMM(text), canSaveHistory, undo, apd);
+	text.addModifyListener(ml);
+
+	auto menu = new Menu(text.getShell, SWT.POP_UP);
+	createMenuItem(menu, prop.msgs.menuUndo, prop.images.menuUndo, {undo.undo();});
+	createMenuItem(menu, prop.msgs.menuRedo, prop.images.menuRedo, {undo.redo();});
+	new MenuItem(menu, SWT.SEPARATOR);
+	createMenuItem(menu, prop.msgs.menuCut, prop.images.menuCut, &text.cut);
+	createMenuItem(menu, prop.msgs.menuCopy, prop.images.menuCopy, &text.copy);
+	createMenuItem(menu, prop.msgs.menuPaste, prop.images.menuPaste, &text.paste);
+	createMenuItem(menu, prop.msgs.menuDel, prop.images.menuDel, {
+		auto p = text.getSelection;
+		auto t = text.getText;
+		text.setText(t[0 .. p.x] ~ t[p.y .. $]);
+		text.setSelection(new Point(p.x, p.x));
+	});
+	new MenuItem(menu, SWT.SEPARATOR);
+	createMenuItem(menu, prop.msgs.menuSelectAll, prop.images.menuSelectAll, {
+		text.setSelection(new Point(0, text.getText.length));
+	});
+	text.setMenu = menu;
+
+	return ml;
 }

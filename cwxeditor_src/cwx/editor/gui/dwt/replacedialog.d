@@ -89,6 +89,8 @@ private:
 	Button _replace;
 	Button _rangeAllCheck;
 
+	bool ignoreMod = false;
+
 	Combo _from;
 	Combo _to;
 	Combo _idKind;
@@ -118,6 +120,8 @@ private:
 			}
 		}
 	}
+	const
+	bool catchMod() {return !ignoreMod;}
 
 	/// 貼り紙
 	Button _summary;
@@ -304,6 +308,10 @@ private:
 		return paths;
 	}
 	private void setupPaths() {
+		bool oldIgnoreMod = ignoreMod;
+		ignoreMod = true;
+		scope (exit) ignoreMod = oldIgnoreMod;
+
 		string[] paths = [""] ~ allMaterials(false);
 		void setPaths(Combo combo) {
 			auto old = combo.getText;
@@ -405,6 +413,7 @@ private:
 			lf.setText = _prop.msgs.replFrom;
 			_from = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN);
 			_from.setVisibleItemCount = 20;
+			createTextMenu!Combo(_prop, _from, &catchMod);
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
 			gd.widthHint = _prop.var.etc.nameWidth;
 			_from.setLayoutData = gd;
@@ -412,6 +421,7 @@ private:
 			lt.setText = _prop.msgs.replTo;
 			_to = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN);
 			_to.setVisibleItemCount = 20;
+			createTextMenu!Combo(_prop, _to, &catchMod);
 			_to.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		}
 		{
@@ -557,6 +567,7 @@ private:
 				l.setText = text;
 				auto combo = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN);
 				combo.setVisibleItemCount = 20;
+				createTextMenu!Combo(_prop, combo, &catchMod);
 				auto gd = new GridData(GridData.FILL_HORIZONTAL);
 				gd.widthHint = _prop.var.etc.nameWidth;
 				combo.setLayoutData = gd;
@@ -1531,6 +1542,10 @@ public:
 		setResultStatus(count);
 	}
 	private void replaceTextImpl(CWXPath c, ref size_t count) {
+		bool oldIgnoreMod = ignoreMod;
+		ignoreMod = true;
+		scope (exit) ignoreMod = oldIgnoreMod;
+
 		auto summ = cast(Summary) c;
 		if (summ) {
 			bool sr = false;

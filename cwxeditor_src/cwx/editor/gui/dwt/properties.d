@@ -156,8 +156,10 @@ abstract class Properties {
 				auto e = node.newElement(Root);
 			}
 			foreach (fld; this.tupleof) {
-				if (!fld.READ_ONLY || fld() != fld.init) {
-					fld.toNode(e);
+				static if (is(typeof(fld.READ_ONLY))) {
+					if (!fld.READ_ONLY || fld() != fld.init) {
+						fld.toNode(e);
+					}
 				}
 			}
 		}
@@ -170,12 +172,14 @@ abstract class Properties {
 			}
 			if (e.valid) {
 				foreach (i, fld; r.tupleof) {
-					auto n = e.child(fld.key, false);
-					if (n.valid) {
-						try {
-							// FIXME: fld.fromNode()だと上手く行かない？
-							r.tupleof[i].fromNode(n);
-						} catch {
+					static if (is(typeof(fld.READ_ONLY))) {
+						auto n = e.child(fld.key, false);
+						if (n.valid) {
+							try {
+								// FIXME: fld.fromNode()だと上手く行かない？
+								r.tupleof[i].fromNode(n);
+							} catch {
+							}
 						}
 					}
 				}
@@ -552,8 +556,11 @@ class FlexEtcProps : Properties {
 	mixin Property!("flagNameColumn", int, 190);
 	mixin Property!("flagInitColumn", int, 90);
 	mixin Property!("flagCountColumn", int, 60);
-	mixin Property!("filesWidth", int, 150, true);
-	mixin Property!("filesHeight", int, 150, true);
+	// FIXME: リンクエラー！
+//	mixin Property!("filesWidth", int, 150, true);
+//	mixin Property!("filesHeight", int, 150, true);
+	int filesWidth = 150;
+	int filesHeight = 150;
 	mixin Property!("talkersWidth", int, 100, true);
 	mixin Property!("motionsWidth", int, 150, true);
 	mixin Property!("imageListWidth", int, 380);
@@ -567,6 +574,21 @@ class FlexEtcProps : Properties {
 	mixin Property!("cardsDefaultWrap", int, 4, true);
 	mixin Property!("seKeyCodeSashL", int, 4);
 	mixin Property!("seKeyCodeSashR", int, 7);
+	mixin Property!("talkSashL", int, 1);
+	mixin Property!("talkSashR", int, 1);
+	// FIXME: リンクエラー！
+//	mixin Property!("msgBackR", int, 0, true);
+//	mixin Property!("msgBackG", int, 0, true);
+//	mixin Property!("msgBackB", int, 128, true);
+//	mixin Property!("msgForeR", int, 255, true);
+//	mixin Property!("msgForeG", int, 255, true);
+//	mixin Property!("msgForeB", int, 255, true);
+	int msgBackR = 0;
+	int msgBackG = 0;
+	int msgBackB = 128;
+	int msgForeR = 255;
+	int msgForeG = 255;
+	int msgForeB = 255;
 
 	mixin Property!("contentsOrder", int[], []);
 	mixin Property!("contentsLock", bool, false);

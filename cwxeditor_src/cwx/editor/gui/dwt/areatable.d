@@ -780,7 +780,7 @@ public:
 		countCol.setText = _prop.msgs.areaCount;
 		saveColumnWidth!("prop.var.etc.areaCountColumn")(_prop, countCol);
 
-		_areasEdit = new TableTextEdit(_areas, 1, &editEnd);
+		_areasEdit = new TableTextEdit(_prop, _areas, 1, &editEnd);
 
 		auto menu = new Menu(parent.getShell, SWT.POP_UP);
 		if (!_comm.singleWindowMode(_prop) || _prop.var.etc.bindSceneWithEvent) {

@@ -1709,7 +1709,7 @@ public:
 				static if (is (C == MenuCard)) {
 					_cards = createList(listsP, prop.msgs.menuCards,
 						prop.images.cards, ctcpd, &editCard, &_area.cards);
-					new TableTextEdit(_cards, 0, &nameEditEnd);
+					new TableTextEdit(_prop, _cards, 0, &nameEditEnd);
 				} else static if (is (C == EnemyCard)) {
 					_cards = createList(listsP, prop.msgs.enemyCards,
 						prop.images.cards, ctcpd, &editCard, &_area.cards);

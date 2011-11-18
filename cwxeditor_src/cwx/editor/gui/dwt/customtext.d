@@ -3,6 +3,8 @@ module cwx.editor.gui.dwt.customtext;
 
 import cwx.utils;
 
+import cwx.editor.gui.dwt.undo;
+
 import std.utf;
 import std.string;
 import std.exception;
@@ -17,6 +19,12 @@ import org.eclipse.swt.widgets.Item;
 import org.eclipse.swt.widgets.Widget;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.custom.CCombo;
+import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
@@ -42,12 +50,21 @@ class FixedWidthText {
 			}
 		});
 	}
+	void num(int num) {
+		_num = num;
+		calcWidth();
+	}
 	void font(FontData fontData) {
 		if (_gc) {
 			_widget.getFont.dispose;
-			_gc.dispose;
 		}
 		_widget.setFont = new Font(Display.getCurrent, fontData);
+		calcWidth();
+	}
+	private void calcWidth() {
+		if (_gc) {
+			_gc.dispose;
+		}
 		_gc = new GC(_widget);
 		_gc.setFont = _widget.getFont;
 		// FIXME: Windows環境で太字にするとサイズが合わなくなる
@@ -241,5 +258,166 @@ class GBLimitText {
 	}
 	string getText() {
 		return _widget.getText;
+	}
+}
+
+// FIXME: TextMenuModifyをテンプレート化できない
+immutable TMM_T = 0;
+immutable TMM_C = 1;
+immutable TMM_CC = 2;
+struct TMM {
+	union {
+		Text text;
+		Combo combo;
+		CCombo ccombo;
+	}
+	int kind;
+	static TMM opCall(Text text) {
+		TMM r;
+		r.text = text;
+		r.kind = TMM_T;
+		return r;
+	}
+	static TMM opCall(Combo combo) {
+		TMM r;
+		r.combo = combo;
+		r.kind = TMM_C;
+		return r;
+	}
+	static TMM opCall(CCombo ccombo) {
+		TMM r;
+		r.ccombo = ccombo;
+		r.kind = TMM_CC;
+		return r;
+	}
+	string getText() {
+		final switch (kind) {
+		case TMM_T:
+			return text.getText;
+		case TMM_C:
+			return combo.getText;
+		case TMM_CC:
+			return ccombo.getText;
+		}
+	}
+	void setText(string v) {
+		final switch (kind) {
+		case TMM_T:
+			text.setText = v;
+			break;
+		case TMM_C:
+			combo.setText = v;
+			break;
+		case TMM_CC:
+			ccombo.setText = v;
+			break;
+		}
+	}
+	Point getSelection() {
+		final switch (kind) {
+		case TMM_T:
+			return text.getSelection;
+		case TMM_C:
+			return combo.getSelection;
+		case TMM_CC:
+			return ccombo.getSelection;
+		}
+	}
+	void setSelection(Point v) {
+		final switch (kind) {
+		case TMM_T:
+			text.setSelection = v;
+			break;
+		case TMM_C:
+			combo.setSelection = v;
+			break;
+		case TMM_CC:
+			ccombo.setSelection = v;
+			break;
+		}
+	}
+}
+struct TMAppendData {
+	Object delegate(Object old) read = null;
+	void delegate(Object) write = null;
+}
+// FIXME: これをテンプレート化しただけでリンクに失敗する
+class TextMenuModify : ModifyListener {
+	private class TextMenuUndo : Undo {
+		private Object _apData = null;
+		private Point _sel;
+		private string _oldText;
+		this () {
+			if (_apd.read) _apData = _oldApData;
+			_oldText = _oldTextBase;
+			_sel = _oldSel;
+		}
+		private void impl() {
+			_inProc = true;
+			scope (exit) _inProc = false;
+
+			auto oapd = _apData;
+			string o = _oldText;
+			auto os = _sel;
+
+			if (_apd.read) _apData = _apd.read(oapd);
+			_oldText = _text.getText;
+			_sel = _text.getSelection;
+
+			if (_apd.write) _apd.write(oapd);
+			_text.setText = o;
+			_text.setSelection = os;
+
+			_oldApData = oapd;
+			_oldSel = os;
+			_oldTextBase = o;
+		}
+		override void undo() {impl();}
+		override void redo() {impl();}
+		override void dispose() {
+			// Nothing
+		}
+	}
+
+	private bool _inProc = false;
+	private TMM _text;
+	private TMAppendData _apd;
+	private Object _oldApData = null;
+	private Point _oldSel;
+	private string _oldTextBase;
+	private bool delegate() _canSaveHistory;
+	private UndoManager _undo;
+
+	this (TMM text, bool delegate() canSaveHistory, UndoManager undo, TMAppendData apd) {
+		_text = text;
+		_canSaveHistory = canSaveHistory;
+		_undo = undo;
+		_apd = apd;
+
+		save();
+	}
+	private void save() {
+		if (_apd.read) _oldApData = _apd.read(_oldApData);
+		_oldSel = _text.getSelection;
+		_oldTextBase = _text.getText;
+	}
+
+	const
+	bool inProc() {return _inProc;}
+
+	void reset() {
+		_undo.reset();
+		save();
+	}
+
+	override void modifyText(ModifyEvent e) {
+		if (_inProc) return;
+		if (_oldTextBase == _text.getText) return;
+		if (!_canSaveHistory) {
+			_undo ~= new TextMenuUndo;
+		} else if (_canSaveHistory()) {
+			_undo ~= new TextMenuUndo;
+		}
+		save();
 	}
 }

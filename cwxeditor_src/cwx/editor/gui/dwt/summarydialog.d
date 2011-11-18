@@ -256,6 +256,7 @@ private:
 					auto grp = centerGroup(comp2, _prop.msgs.title, true, false, new GridData(GridData.FILL_BOTH));
 					grp.setLayout = new GridLayout(1, true);
 					_sname = new Text(grp, SWT.BORDER);
+					createTextMenu!Text(_prop, _sname, &catchMod);
 					mod(_sname);
 					setCDataX(_sname, new GridData(GridData.FILL_HORIZONTAL));
 					_sname.setText = _summ.scenarioName;
@@ -265,6 +266,7 @@ private:
 					auto grp = centerGroup(comp2, _prop.msgs.author, true, false, new GridData(GridData.FILL_BOTH));
 					grp.setLayout = new GridLayout(1, true);
 					_author = new Text(grp, SWT.BORDER);
+					createTextMenu!Text(_prop, _author, &catchMod);
 					mod(_author);
 					setCDataX(_author, new GridData(GridData.FILL_HORIZONTAL));
 					_author.setText = _summ.author;
@@ -297,6 +299,7 @@ private:
 			grp.setLayout = new CenterLayout(SWT.HORIZONTAL);
 			grp.setText = _prop.msgs.desc;
 			_desc = new FixedWidthText(dwtData(_prop.looks.summaryDescFont(_summ.legacy)), _prop.looks.summaryDescLen, grp, SWT.BORDER);
+			createTextMenu!Text(_prop, _desc.widget, &catchMod);
 			mod(_desc.widget);
 			_desc.widget.setLayoutData = _desc.computeTextBaseSize(_prop.looks.summaryDescLine);
 			_desc.setText = _summ.desc;
@@ -357,6 +360,7 @@ private:
 					}
 					{
 						_rCoupons = new Text(grp, SWT.BORDER | SWT.MULTI | SWT.WRAP);
+						createTextMenu!Text(_prop, _rCoupons, &catchMod);
 						mod(_rCoupons);
 						auto gd = new GridData(GridData.FILL_BOTH);
 						gd.horizontalSpan = 2;

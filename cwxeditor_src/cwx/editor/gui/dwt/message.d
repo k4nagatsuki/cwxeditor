@@ -20,6 +20,8 @@ import cwx.editor.gui.dwt.materialselect;
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.eventdialog;
 import cwx.editor.gui.dwt.xmlbytestransfer;
+import cwx.editor.gui.dwt.undo;
+import cwx.editor.gui.dwt.splitpane;
 
 import std.array;
 import std.utf;
@@ -51,6 +53,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.PaletteData;
 import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.events.PaintListener;
@@ -76,6 +79,73 @@ import org.eclipse.swt.dnd.Transfer;
 
 class SpeakDialog : EventDialog {
 private:
+	class APData {
+		string text;
+		string[] rCoupons;
+		int targDlg;
+		int selDlg;
+	}
+	Object readAPD(Object old) {
+		auto o = new APData;
+		o.selDlg = _dlgsL.getSelectionIndex;
+		auto apd = cast(APData) old;
+		if (apd) {
+			o.targDlg = apd.targDlg;
+		} else {
+			o.targDlg = o.selDlg;
+		}
+		o.text = _dlgs[o.targDlg].text;
+		o.rCoupons = _dlgs[o.targDlg].rCoupons.dup;
+		return o;
+	}
+	void writeAPD(Object o) {
+		bool oldIgnoreMod = ignoreMod;
+		ignoreMod = true;
+		scope (exit) ignoreMod = oldIgnoreMod;
+		auto apd = cast(APData) o;
+		assert (apd);
+		_dlgsL.select = apd.selDlg;
+		_dlgs[apd.targDlg].text = apd.text;
+		_dlgs[apd.targDlg].rCoupons = apd.rCoupons.dup;
+		refreshDlgList(apd.targDlg);
+		selectChanged();
+	}
+	class SUndo : Undo {
+		private SDialog[] _dlgs;
+		private int _selDlg;
+		this () {
+			save();
+		}
+		private void save() {
+			_dlgs = [];
+			foreach (d; this.outer._dlgs) {
+				_dlgs ~= new SDialog(d);
+			}
+			_selDlg = _dlgsL.getSelectionIndex;
+		}
+		private void impl() {
+			auto dlgs = _dlgs;
+			int selDlg = _selDlg;
+			save();
+
+			this.outer._dlgs = [];
+			foreach (dlg; dlgs) {
+				this.outer._dlgs ~= new SDialog(dlg);
+			}
+			refreshDlgList();
+			_dlgsL.select = selDlg;
+			selectChanged();
+		}
+		override void undo() {impl();}
+		override void redo() {impl();}
+		override void dispose() {
+			// Nothing
+		}
+	}
+	void storeEdit() {
+		_undo ~= new SUndo;
+	}
+
 	string _id;
 
 	Combo _talkers;
@@ -84,10 +154,14 @@ private:
 	Text _rCoupons;
 	Combo _rCouponsList;
 	FixedWidthText _text;
+	UndoManager _undo;
+	Listener _kdFilter;
+	TextMenuModify _textTM, _rCouponsTM;
 
 	void selectChanged() {
+		bool oldIgnoreMod = ignoreMod;
 		ignoreMod = true;
-		scope (exit) ignoreMod = false;
+		scope (exit) ignoreMod = oldIgnoreMod;
 		auto dlg = _dlgs[_dlgsL.getSelectionIndex];
 		string rcs;
 		foreach (rc; dlg.rCoupons) {
@@ -103,25 +177,26 @@ private:
 	void createDialog() {
 		createDialog(new SDialog);
 	}
-	void insertDialog(SDialog dlg, int index) {
+	void insertDialog(SDialog dlg, int index, bool store = true) {
+		if (store) storeEdit();
 		if (index < 0) index = _dlgs.length;
 		_dlgs = _dlgs[0 .. index] ~ dlg ~ _dlgs[index .. $];
 		auto itm = new TableItem(_dlgsL, SWT.NONE, index);
 		itm.setImage = prop.images.content(CType.TALK_DIALOG);
 		_dlgsL.setSelection = [itm];
 		_dlgsL.showSelection;
-		selectChange;
+		selectChanged();
 		applyEnabled();
 	}
-	void deleteDialog(int index) {
+	void deleteDialog(int index, bool store = true) {
 		if (index < 0 || _dlgs.length <= 1) return;
+		if (store) storeEdit();
 		bool sel = _dlgsL.getSelectionIndex == index;
 		_dlgs = _dlgs[0 .. index] ~ _dlgs[index + 1 .. $];
 		_dlgsL.remove(index);
 		if (sel) {
 			_dlgsL.select = index < _dlgs.length ? index : _dlgs.length - 1;
-			_oldSel = _dlgs[_dlgsL.getSelectionIndex];
-			selectChanged;
+			selectChanged();
 		}
 		applyEnabled();
 	}
@@ -131,6 +206,7 @@ private:
 	void up() {
 		int index = _dlgsL.getSelectionIndex;
 		if (index > 0) {
+			storeEdit();
 			auto temp = _dlgs[index - 1];
 			_dlgs[index - 1] = _dlgs[index];
 			_dlgs[index] = temp;
@@ -144,6 +220,7 @@ private:
 	void down() {
 		int index = _dlgsL.getSelectionIndex;
 		if (index + 1 < _dlgs.length) {
+			storeEdit();
 			auto temp = _dlgs[index + 1];
 			_dlgs[index + 1] = _dlgs[index];
 			_dlgs[index] = temp;
@@ -155,6 +232,7 @@ private:
 		}
 	}
 	void copyToUpper() {
+		storeEdit();
 		int index = _dlgsL.getSelectionIndex;
 		string textL = _dlgsL.getItem(index).getText;
 		string text = lastRet(wrapReturnCode(_text.getText));
@@ -165,6 +243,7 @@ private:
 		applyEnabled();
 	}
 	void copyToLower() {
+		storeEdit();
 		int index = _dlgsL.getSelectionIndex;
 		string textL = _dlgsL.getItem(index).getText;
 		string text = lastRet(wrapReturnCode(_text.getText));
@@ -175,6 +254,7 @@ private:
 		applyEnabled();
 	}
 	void copyToDialogs() {
+		storeEdit();
 		int index = _dlgsL.getSelectionIndex;
 		string textL = _dlgsL.getItem(index).getText;
 		string text = lastRet(wrapReturnCode(_text.getText));
@@ -192,34 +272,42 @@ private:
 	void insert(string put) {
 		_text.insert(put);
 	}
-	SDialog _oldSel;
-	void sets() {
-		ignoreMod = true;
-		scope (exit) ignoreMod = false;
-		_oldSel.text = lastRet(wrapReturnCode(_text.getText));
+	void putText(SDialog dlg) {
+		dlg.text = lastRet(wrapReturnCode(_text.getText));
+	}
+	void putRCoupons(SDialog dlg) {
 		string[] rcs;
 		foreach (rc; splitLines(_rCoupons.getText)) {
 			if (rc.length > 0) {
 				rcs ~= rc;
 			}
 		}
-		_oldSel.rCoupons = rcs;
-		_oldSel = _dlgs[_dlgsL.getSelectionIndex];
-	}
-	void selectChange() {
-		sets;
-		selectChanged;
+		dlg.rCoupons = rcs;
 	}
 	class SelL : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			selectChange;
+			selectChanged();
 		}
+	}
+	private void refreshDlgList(int index) {
+		string text = std.array.replace(wrapReturnCode(_dlgs[index].text), "\n", "");
+		// FIXME: ""をsetTextするとArgument cannot be null
+		if (text == "") text = " ";
+		_dlgsL.getItem(index).setText(0, text);
 	}
 	class ModL : ModifyListener {
 		override void modifyText(ModifyEvent e) {
-			string text = std.array.replace(wrapReturnCode(_text.getText), "\n", "");
-			// FIXME: ""をsetTextするとArgument cannot be null
-			_dlgsL.getItem(_dlgsL.getSelectionIndex).setText(0, text != "" ? text : " ");
+			if (_textTM && _rCouponsTM && !_textTM.inProc && !_rCouponsTM.inProc) {
+				putText(_dlgs[_dlgsL.getSelectionIndex]);
+			}
+			refreshDlgList(_dlgsL.getSelectionIndex);
+		}
+	}
+	class ModRC : ModifyListener {
+		override void modifyText(ModifyEvent e) {
+			if (_textTM && _rCouponsTM && !_textTM.inProc && !_rCouponsTM.inProc) {
+				putRCoupons(_dlgs[_dlgsL.getSelectionIndex]);
+			}
 		}
 	}
 	SDialog selection() {
@@ -273,10 +361,11 @@ private:
 			try {
 				auto node = XNode.parse(xml);
 				if (node.name != SDialog.XML_NAME) return;
+				storeEdit();
 				scope p = (cast(DropTarget) e.getSource).getControl.toControl(e.x, e.y);
 				auto t = _dlgsL.getItem(p);
 				int index = t ? _dlgsL.indexOf(t) : _dlgsL.getItemCount;
-				insertDialog(SDialog.createFromNode(node, LATEST_VERSION), index);
+				insertDialog(SDialog.createFromNode(node, LATEST_VERSION), index, false);
 				if (_id == node.attr("paneId", false)) {
 					e.detail = DND.DROP_MOVE;
 				}
@@ -303,7 +392,7 @@ private:
 		}
 		override void dragFinished(DragSourceEvent e) {
 			if (e.detail == DND.DROP_MOVE) {
-				deleteDialog(_dlgsL.indexOf(_itm));
+				deleteDialog(_dlgsL.indexOf(_itm), false);
 			}
 		}
 	}
@@ -321,17 +410,73 @@ private:
 		_text.font = dwtData(prop.looks.messageFont(summ.legacy));
 		refreshCoupons();
 	}
+	void refreshDlgList() {
+		bool oldIgnoreMod = ignoreMod;
+		ignoreMod = true;
+		scope (exit) ignoreMod = oldIgnoreMod;
+		int selIndex = _dlgsL.getSelectionIndex;
+		int topIndex = _dlgsL.getTopIndex;
+
+		_dlgsL.removeAll();
+		foreach (dlg; _dlgs) {
+			auto itm = new TableItem(_dlgsL, SWT.NONE);
+			itm.setImage = prop.images.content(CType.TALK_DIALOG);
+			string text = std.array.replace(dlg.text, "\n", "");
+			// FIXME: ""をsetTextするとArgument cannot be null
+			itm.setText = text.length > 0 ? text : " ";
+		}
+
+		if (selIndex < 0 || _dlgs.length <= selIndex) {
+			_dlgsL.select = 0;
+		} else {
+			_dlgsL.select = selIndex;
+			_dlgsL.setTopIndex = topIndex;
+		}
+		if (selIndex != _dlgsL.getSelectionIndex) {
+			selectChanged();
+		}
+	}
+	class Dispose : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			auto sash = cast(SplitPane) e.widget;
+			auto ws = sash.getWeights;
+			prop.var.etc.talkSashL = ws[0];
+			prop.var.etc.talkSashR = ws[1];
+			sash.getDisplay.removeFilter(SWT.KeyDown, _kdFilter);
+		}
+	}
+	private class KeyDownFilter : Listener {
+		private int _undoAcc;
+		private int _redoAcc;
+		this () {
+			_undoAcc = convertAccelerator(prop.msgs.menuUndo);
+			_redoAcc = convertAccelerator(prop.msgs.menuRedo);
+		}
+		override void handleEvent(Event e) {
+			auto c = cast(Control) e.widget;
+			if (!c || c.getShell !is getShell) return;
+			if (eqAcc(_undoAcc, e.keyCode, e.character, e.stateMask)) {
+				_undo.undo();
+				e.doit = false;
+			} else if (eqAcc(_redoAcc, e.keyCode, e.character, e.stateMask)) {
+				_undo.redo();
+				e.doit = false;
+			}
+		}
+	}
 public:
 	this(Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
 		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime);
 		super(comm, prop, shell, summ, CType.TALK_DIALOG, parent, evt, true, prop.var.speakDlg, false);
+		_undo = new UndoManager(1024);
 	}
 protected:
 	override void setup(Composite area) {
 		area.setLayout = windowGridLayout(1, true);
+		auto sash = new SplitPane(area, SWT.VERTICAL);
+		sash.setLayoutData = new GridData(GridData.FILL_BOTH);
 		{
-			auto comp = new Composite(area, SWT.NONE);
-			comp.setLayoutData = new GridData(GridData.FILL_BOTH);
+			auto comp = new Composite(sash, SWT.NONE);
 			comp.setLayout = new GridLayout(2, false);
 			_dlgsL = new Table(comp, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.V_SCROLL);
 			new FullTableColumn(_dlgsL, SWT.NONE);
@@ -349,10 +494,13 @@ protected:
 			drop.addDropListener(new DDropListener);
 
 			auto menu = new Menu(_dlgsL);
+			createMenuItem(menu, prop.msgs.menuUndo, prop.images.menuUndo, {_undo.undo();});
+			createMenuItem(menu, prop.msgs.menuRedo, prop.images.menuRedo, {_undo.redo();});
+			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(menu, prop.msgs.menuUp, prop.images.menuUp, &up);
 			createMenuItem(menu, prop.msgs.menuDown, prop.images.menuDown, &down);
 			new MenuItem(menu, SWT.SEPARATOR);
-			appendMenuTCPD(prop, menu, new DialogsTCPD);
+			appendMenuTCPD(prop, menu, new DialogsTCPD, true, true, true, true);
 			_dlgsL.setMenu = menu;
 			usingPopupMenuAccelerator(_dlgsL);
 
@@ -376,8 +524,7 @@ protected:
 		}
 		auto skin = comm.skin;
 		{
-			auto comp = new Composite(area, SWT.NONE);
-			comp.setLayoutData = new GridData(GridData.FILL_BOTH);
+			auto comp = new Composite(sash, SWT.NONE);
 			comp.setLayout = new GridLayout(2, false);
 			Control tp;
 			if (evt) {
@@ -387,6 +534,7 @@ protected:
 			}
 			mod(_talkers);
 			mod(_rCoupons);
+			_rCoupons.addModifyListener(new ModRC);
 			refreshCoupons();
 			tp.setLayoutData = new GridData(GridData.FILL_BOTH);
 			auto msgComp = new Composite(comp, SWT.NONE);
@@ -405,30 +553,26 @@ protected:
 			auto bar = createSkinSCharBar(area, &insert, prop, skin);
 			bar.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		}
+		sash.addDisposeListener(new Dispose);
+		sash.setWeights = [prop.var.etc.talkSashL, prop.var.etc.talkSashR];
+		_kdFilter = new KeyDownFilter;
+		sash.getDisplay.addFilter(SWT.KeyDown, _kdFilter);
+
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		if (evt) {
 			foreach (dlg; evt.dialogs) {
-				auto itm = new TableItem(_dlgsL, SWT.NONE);
-				itm.setImage = prop.images.content(CType.TALK_DIALOG);
-				string text = std.array.replace(dlg.text, "\n", "");
-				// FIXME: ""をsetTextするとArgument cannot be null
-				itm.setText = text.length > 0 ? text : " ";
 				_dlgs ~= new SDialog(dlg.text, dlg.rCoupons);
 			}
-			_oldSel = _dlgs[0];
-			_dlgsL.select = 0;
-			selectChanged;
 		} else {
-			auto itm = new TableItem(_dlgsL, SWT.NONE);
-			itm.setImage = prop.images.content(CType.TALK_DIALOG);
 			_dlgs = [new SDialog];
-			_oldSel = _dlgs[0];
-			_dlgsL.select = 0;
 		}
+		refreshDlgList();
+
+		_textTM = createTextMenu!Text(prop, _rCoupons, &catchMod, _undo, TMAppendData(&readAPD, &writeAPD));
+		_rCouponsTM = createTextMenu!Text(prop, _text.widget, &catchMod, _undo, TMAppendData(&readAPD, &writeAPD));
 	}
 	override bool apply() {
-		sets;
 		Talker talker;
 		switch (_talkers.getSelectionIndex) {
 		case 0:
@@ -452,51 +596,74 @@ protected:
 class MessageDialog : EventDialog {
 private:
 	CTabFolder _tabf;
-	FixedWidthText _textA, _textB;
+	Composite _msgCompA, _msgCompB;
+	FixedWidthText _text;
 	ImageSelect!(MtType.CARD, Combo) _msel;
+	UndoManager _undo;
+	KeyDownFilter _kdFilter;
 
+	void tabChanged() {
+		switch (_tabf.getSelectionIndex) {
+		case 0:
+			_text.num = prop.looks.messageImageLen;
+			_text.widget.setParent = _msgCompA;
+			break;
+		case 1:
+			_text.num = prop.looks.messageLen;
+			_text.widget.setParent = _msgCompB;
+			break;
+		default: assert (0);
+		}
+		_text.widget.setLayoutData = _text.computeTextBaseSize(prop.looks.messageLine);
+		_text.widget.getParent.layout();
+		if (0 == _tabf.getSelectionIndex) {
+			_text.widget.getParent.getParent.layout();
+		}
+	}
 	class SL : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			switch (_tabf.getSelectionIndex) {
-			case 0:
-				_textA.setText = _textB.getText;
-				break;
-			case 1:
-				_textB.setText = _textA.getText;
-				break;
-			default: assert (0);
-			}
+			tabChanged();
 		}
 	}
 	void put(dchar put) {
-		switch (_tabf.getSelectionIndex) {
-		case 0:
-			putColor(_textA, put);
-			break;
-		case 1:
-			putColor(_textB, put);
-			break;
-		default: assert (0);
-		}
+		putColor(_text, put);
 	}
 	void insert(string put) {
-		switch (_tabf.getSelectionIndex) {
-		case 0:
-			_textA.insert(put);
-			break;
-		case 1:
-			_textB.insert(put);
-			break;
-		default: assert (0);
-		}
+		_text.insert(put);
 	}
 	protected override void refSkin() {
-		_textA.font = dwtData(prop.looks.messageFont(summ.legacy));
-		_textB.font = dwtData(prop.looks.messageFont(summ.legacy));
+		_text.font = dwtData(prop.looks.messageFont(summ.legacy));
+	}
+	class Dispose : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			auto c = cast(Control) e.widget;
+			assert (c);
+			c.getDisplay.removeFilter(SWT.KeyDown, _kdFilter);
+		}
+	}
+	private class KeyDownFilter : Listener {
+		private int _undoAcc;
+		private int _redoAcc;
+		this () {
+			_undoAcc = convertAccelerator(prop.msgs.menuUndo);
+			_redoAcc = convertAccelerator(prop.msgs.menuRedo);
+		}
+		override void handleEvent(Event e) {
+			auto c = cast(Control) e.widget;
+			if (!c || c.getShell !is getShell) return;
+			if (eqAcc(_undoAcc, e.keyCode, e.character, e.stateMask)) {
+				_undo.undo();
+				e.doit = false;
+			} else if (eqAcc(_redoAcc, e.keyCode, e.character, e.stateMask)) {
+				_undo.redo();
+				e.doit = false;
+			}
+		}
 	}
 public:
 	this(Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
 		super(comm, prop, shell, summ, CType.TALK_MESSAGE, parent, evt, true, prop.var.msgDlg, false);
+		_undo = new UndoManager(1024);
 	}
 protected:
 	override void setup(Composite area) {
@@ -516,25 +683,22 @@ protected:
 			}
 			mod(_msel);
 			tp.setLayoutData = new GridData(GridData.FILL_BOTH);
-			auto msgComp = new Composite(comp, SWT.NONE);
-			msgComp.setLayoutData = new GridData(GridData.FILL_VERTICAL);
-			msgComp.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0));
-			_textA = createMessagePane(comm, prop, true, msgComp, summ);
-			_textA.widget.setLayoutData = _textA.computeTextBaseSize(prop.looks.messageLine);
-			mod(_textA.widget);
+			_msgCompA = new Composite(comp, SWT.NONE);
+			_msgCompA.setLayoutData = new GridData(GridData.FILL_VERTICAL);
+			_msgCompA.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0));
+			_text = createMessagePane(comm, prop, true, _msgCompA, summ);
+			mod(_text.widget);
+			createTextMenu!Text(prop, _text.widget, &catchMod, _undo);
 			auto tab = new CTabItem(_tabf, SWT.NONE);
 			tab.setText = prop.msgs.imageMessage;
 			tab.setControl = comp;
 		}
 		{
-			auto comp = new Composite(_tabf, SWT.NONE);
-			comp.setLayout = new CenterLayout;
-			_textB = createMessagePane(comm, prop, false, comp, summ);
-			mod(_textB.widget);
-			_textB.widget.setLayoutData = _textB.computeTextBaseSize(prop.looks.messageLine);
+			_msgCompB = new Composite(_tabf, SWT.NONE);
+			_msgCompB.setLayout = new CenterLayout;
 			auto tab = new CTabItem(_tabf, SWT.NONE);
 			tab.setText = prop.msgs.noImageMessage;
-			tab.setControl = comp;
+			tab.setControl = _msgCompB;
 		}
 		{
 			auto bar = createSCharBar(area, &insert, &put, prop, skin);
@@ -545,25 +709,29 @@ protected:
 			bar.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		}
 		_tabf.addSelectionListener(new SL);
+		_tabf.addDisposeListener(new Dispose);
+		_kdFilter = new KeyDownFilter;
+		_tabf.getDisplay.addFilter(SWT.KeyDown, _kdFilter);
+
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		if (evt) {
-			_textA.setText = evt.text;
-			_textB.setText = evt.text;
+			_text.setText = evt.text;
 			if (evt.talkerC == Talker.NARRATION) {
 				_tabf.setSelection = 1;
 			}
 		} else {
 			_tabf.setSelection = 1;
 		}
+		tabChanged();
 	}
 	override bool apply() {
 		string text;
 		string path = "";
 		Talker talker;
+		text = lastRet(wrapReturnCode(_text.getText));
 		switch (_tabf.getSelectionIndex) {
 		case 0:
-			text = lastRet(wrapReturnCode(_textA.getText));
 			switch (_msel.dirsCombo.getSelectionIndex) {
 			case 0:
 				talker = Talker.SELECTED;
@@ -583,7 +751,6 @@ protected:
 			}
 			break;
 		case 1:
-			text = lastRet(wrapReturnCode(_textB.getText));
 			talker = Talker.NARRATION;
 			break;
 		default: assert (0);
@@ -624,6 +791,7 @@ private Composite createTalkerPane2(Composite parent, Commons comm, Props prop, 
 	}
 	couponCombo = new Combo(comp, SWT.DROP_DOWN | SWT.BORDER);
 	couponCombo.setVisibleItemCount = 20;
+	createTextMenu!Combo(prop, couponCombo, null);
 	auto push = new Button(comp, SWT.PUSH);
 	auto skin = comm.skin;
 	{
@@ -715,6 +883,9 @@ private Composite createTalkerPane
 		case Talker.RANDOM:
 			msel.dirsCombo.select = 2;
 			break;
+		case Talker.CARD:
+			msel.dirsCombo.select = 3;
+			break;
 		default:
 			msel.dirsCombo.select = 0;
 		}
@@ -722,11 +893,26 @@ private Composite createTalkerPane
 	return comp;
 }
 
+class DisposeText : DisposeListener {
+	private Color _back, _fore;
+	this (Color back, Color fore) {
+		_back = back;
+		_fore = fore;
+	}
+	override void widgetDisposed(DisposeEvent e) {
+		_back.dispose();
+		_fore.dispose();
+	}
+}
 private FixedWidthText createMessagePane(Commons comm, Props prop, bool image, Composite parent, Summary summ) {
 	int len = image ? prop.looks.messageImageLen : prop.looks.messageLen;
 	auto r = new FixedWidthText(dwtData(prop.looks.messageFont(summ.legacy)), len, parent, SWT.BORDER);
-	r.widget.setBackground = Display.getCurrent.getSystemColor(SWT.COLOR_DARK_BLUE);
-	r.widget.setForeground = Display.getCurrent.getSystemColor(SWT.COLOR_WHITE);
+	auto d = r.widget.getDisplay;
+	auto back = new Color(d, new RGB(prop.var.etc.msgBackR, prop.var.etc.msgBackG, prop.var.etc.msgBackB));
+	auto fore = new Color(d, new RGB(prop.var.etc.msgForeR, prop.var.etc.msgForeG, prop.var.etc.msgForeB));
+	r.widget.setBackground = back;
+	r.widget.setForeground = fore;
+	r.widget.addDisposeListener(new DisposeText(back, fore));
 	return r;
 }
 

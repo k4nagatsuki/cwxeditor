@@ -1171,7 +1171,7 @@ private:
 			_tbl.addDisposeListener(new DisposeTable);
 		}
 		static if (EditMode) {
-			new TableTextEdit(_tbl, 1, &nameEditEnd, null);
+			new TableTextEdit(_prop, _tbl, 1, &nameEditEnd, null);
 		}
 
 		static if (is (C == CastCard)) {

@@ -25,6 +25,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.events.DisposeListener;
@@ -91,6 +92,7 @@ protected:
 			_name = new GBLimitText(_prop.looks.monospace,
 				_prop.looks.nameLimit, false, grp, SWT.BORDER);
 			mod(_name.widget);
+			createTextMenu!Text(_prop, _name.widget, &catchMod);
 			_name.limitEvent ~= &refreshWarning;
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
 			gd.widthHint = _name.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
@@ -111,6 +113,7 @@ protected:
 			grp.setLayout = new CenterLayout(SWT.HORIZONTAL);
 			grp.setText = _prop.msgs.desc;
 			_desc = new FixedWidthText(dwtData(_prop.looks.cardDescFont(_summ.legacy)), _prop.looks.cardDescLen, grp, SWT.BORDER);
+			createTextMenu!Text(_prop, _desc.widget, &catchMod);
 			mod(_desc.widget);
 			_desc.widget.setLayoutData = _desc.computeTextBaseSize(_prop.looks.cardDescLine);
 		}

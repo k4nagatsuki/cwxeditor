@@ -431,6 +431,34 @@ public:
 		cb.setContents([new PathString(encodePath(p))],
 			[TextTransfer.getInstance]);
 	}
+
+	void selectDir(int sel) {
+		_dirs.select = sel;
+		refreshList();
+		if (sel < _defs.length) {
+			_path = "";
+			if (_selDir != sel) {
+				foreach (dlg; modEvent) dlg();
+			}
+			_selDir = sel;
+			if (_refresh) _refresh();
+		} else {
+			static if (is(C : Combo) || is(C : CCombo)) {
+				auto old = _path;
+				scope (exit) {
+					if (old != _path) {
+						foreach (dlg; modEvent) dlg();
+					}
+				}
+				string p = currentDir;
+				if (!p) return;
+				if (0 == _fileList.getItemCount) return;
+				_fileList.select = 0;
+				_path = std.path.buildPath(p, _fileList.getItem(0));
+				if (_refresh) _refresh();
+			}
+		}
+	}
 private:
 	static if (Type == MtType.CARD) {
 		string defExt() {return _comm.skin.extImage;}
@@ -489,30 +517,7 @@ private:
 	}
 	class CSListener : SelectionAdapter {
 		public override void widgetSelected(SelectionEvent e) {
-			refreshList;
-			if (_dirs.getSelectionIndex < _defs.length) {
-				_path = "";
-				if (_selDir != _dirs.getSelectionIndex) {
-					foreach (dlg; modEvent) dlg();
-				}
-				_selDir = _dirs.getSelectionIndex;
-				if (_refresh) _refresh();
-			} else {
-				static if (is(C : Combo) || is(C : CCombo)) {
-					auto old = _path;
-					scope (exit) {
-						if (old != _path) {
-							foreach (dlg; modEvent) dlg();
-						}
-					}
-					string p = currentDir;
-					if (!p) return;
-					if (0 == _fileList.getItemCount) return;
-					_fileList.select = 0;
-					_path = std.path.buildPath(p, _fileList.getItem(0));
-					if (_refresh) _refresh();
-				}
-			}
+			selectDir(_dirs.getSelectionIndex);
 		}
 	}
 	class LSListener : SelectionAdapter {

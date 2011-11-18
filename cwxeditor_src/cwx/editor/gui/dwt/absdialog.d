@@ -137,6 +137,9 @@ abstract class AbsDialog {
 	}
 	/// trueの時は適用ボタンの有効化を行わない。
 	protected bool ignoreMod = false;
+	/// ignoreModを反転して返す。
+	const
+	bool catchMod() {return !ignoreMod;}
 
 	protected Shell getShell() {return _win;}
 	private Button _okBtn;

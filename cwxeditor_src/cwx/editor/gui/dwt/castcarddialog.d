@@ -93,6 +93,7 @@ private:
 	Spinner _level;
 	Spinner _lifeMax;
 	Text _newCoupon;
+	TextMenuModify _newCouponTM;
 	Spinner _couponVal;
 	Table _coupons;
 	Combo _race;
@@ -260,6 +261,7 @@ private:
 		if (sels.length > 0) {
 			auto c = cast(Coupon) sels[0].getData;
 			_newCoupon.setText = c.name;
+			_newCouponTM.reset();
 			_couponVal.setSelection = c.value;
 		}
 	}
@@ -415,6 +417,7 @@ private:
 					_prop.looks.castNameLimit, false, grp, SWT.BORDER);
 				_name.limitEvent ~= &refreshWarning;
 				mod(_name.widget);
+				createTextMenu!Text(_prop, _name.widget, &catchMod);
 				auto gd = new GridData(GridData.FILL_HORIZONTAL);
 				gd.widthHint = _name.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
 				_name.widget.setLayoutData = gd;
@@ -518,6 +521,7 @@ private:
 			grp.setText = _prop.msgs.desc;
 			_desc = new FixedWidthText(dwtData(_prop.looks.cardDescFont(_summ.legacy)), _prop.looks.cardDescLen, grp, SWT.BORDER);
 			mod(_desc.widget);
+			createTextMenu!Text(_prop, _desc.widget, &catchMod);
 			auto p = _desc.computeTextBaseSize(1);
 			p.y = SWT.DEFAULT;
 			_desc.widget.setLayoutData = p;
@@ -562,6 +566,7 @@ private:
 			}
 			{
 				_newCoupon = new Text(grp, SWT.BORDER);
+				_newCouponTM = createTextMenu!Text(_prop, _newCoupon, &catchMod);
 				_newCoupon.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				_couponVal = new Spinner(grp, SWT.BORDER);
 				_couponVal.setMinimum = cast(int) _prop.looks.couponValueMax * -1;

@@ -261,6 +261,10 @@ public:
 	const string menuPaste() {return ttPaste ~ "(&P)" ~ "\tCtrl+V";}
 	const string ttDel() {return "削除";}
 	const string menuDel() {return ttDel ~ "(&D)" ~ "\tDelete";}
+	// FIXME: リンクエラー！
+//	const string ttSelectAll() {return "すべて選択";}
+//	const string menuSelectAll() {return ttSelectAll ~ "(&A)" ~ "\tCtrl+A";}
+	string menuSelectAll = "すべて選択(&A)\tCtrl+A";
 
 	const string ttToXML() {return "コピーしたデータをXMLに変換";}
 	const string menuToXML() {return ttToXML ~ "(&X)" ~ "";}

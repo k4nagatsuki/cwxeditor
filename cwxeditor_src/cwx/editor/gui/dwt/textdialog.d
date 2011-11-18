@@ -54,7 +54,10 @@ protected:
 		if (_readOnly) style |= SWT.READ_ONLY;
 		_viewer = new Text(area, style);
 		_viewer.setText = _text;
-		if (!_readOnly) _viewer.setSelection = _text.length;
+		if (!_readOnly) {
+			_viewer.setSelection = _text.length;
+			createTextMenu!Text(_prop, _viewer, &catchMod);
+		}
 		auto font = _viewer.getFont;
 		auto fSize = font ? cast(uint) font.getFontData[0].height : 0;
 		_viewer.setFont = new Font(Display.getCurrent, dwtData(_prop.looks.textDlgFont(fSize)));

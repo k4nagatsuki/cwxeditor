@@ -41,6 +41,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Scale;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
@@ -166,6 +167,7 @@ private:
 				_name = new GBLimitText(_prop.looks.monospace,
 					_prop.looks.nameLimit, false, grp, SWT.BORDER);
 				mod(_name.widget);
+				createTextMenu!Text(_prop, _name.widget, &catchMod);
 				_name.limitEvent ~= &refreshWarning;
 				auto gd = new GridData(GridData.FILL_HORIZONTAL);
 				gd.widthHint = _name.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
@@ -312,6 +314,7 @@ private:
 			grp.setText = _prop.msgs.desc;
 			_desc = new FixedWidthText(dwtData(_prop.looks.cardDescFont(_summ.legacy)), _prop.looks.cardDescLen, grp, SWT.BORDER);
 			mod(_desc.widget);
+			createTextMenu!Text(_prop, _desc.widget, &catchMod);
 			_desc.widget.setLayoutData = _desc.computeTextBaseSize(_prop.looks.cardDescLine);
 		}
 		auto tab = new CTabItem(tabf, SWT.NONE);
@@ -553,6 +556,7 @@ private:
 				_keyCodes[i] = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN);
 				mod(_keyCodes[i]);
 				_keyCodes[i].setVisibleItemCount = 20;
+				createTextMenu!Combo(_prop, _keyCodes[i], &catchMod);
 				_keyCodes[i].setLayoutData = new GridData(GridData.FILL_BOTH);
 				//  FIXME: Argument not valid, java\lang\exceptions.d, 28
 				setComboItems(_keyCodes[i], stdKCs);

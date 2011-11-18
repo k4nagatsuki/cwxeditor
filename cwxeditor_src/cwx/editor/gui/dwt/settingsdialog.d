@@ -18,6 +18,7 @@ import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.areaview;
 import cwx.editor.gui.dwt.xmlbytestransfer;
 import cwx.editor.gui.dwt.dockingfolder;
+import cwx.editor.gui.dwt.customtext;
 
 import std.path;
 import std.file;
@@ -90,6 +91,7 @@ private:
 	Spinner _bgImgH;
 	Button _bgImgMask;
 	Button _bgImgDel;
+	TextMenuModify[] _bgImgTMs;
 	Text _keyCodes;
 
 	CTabItem _tabT;
@@ -103,6 +105,7 @@ private:
 	Button _toolWorkDirRef;
 	Button _toolWorkDirOpen;
 	Button _toolDel;
+	TextMenuModify[] _toolTMs;
 
 	CTabItem _tabC;
 	List _cEnginesL;
@@ -118,6 +121,7 @@ private:
 	Button _cEngineExecuteRef;
 	Button _cEngineExecuteDirOpen;
 	Button _cEngineDel;
+	TextMenuModify[] _cEngineTMs;
 
 	CTabItem _tabE;
 	Text _ignorePaths;
@@ -445,6 +449,9 @@ private:
 			_bgImgH.setSelection = 0;
 			_bgImgMask.setSelection = false;
 		}
+		foreach (tm; _bgImgTMs) {
+			tm.reset();
+		}
 	}
 	void selectOuterTool() {
 		ignoreMod = true;
@@ -466,6 +473,9 @@ private:
 			_toolName.setText = "";
 			_toolCommand.setText = "";
 			_toolWorkDir.setText = "";
+		}
+		foreach (tm; _toolTMs) {
+			tm.reset();
 		}
 	}
 	void selectCEngine() {
@@ -493,6 +503,9 @@ private:
 			_cEnginePath.setText = "";
 			_cEngineDataDir.setText = "";
 			_cEngineExecute.setText = "";
+		}
+		foreach (tm; _cEngineTMs) {
+			tm.reset();
 		}
 	}
 	class SelEngine : SelectionAdapter {
@@ -582,6 +595,7 @@ private:
 			grp.setLayout = new GridLayout(3, false);
 			grp.setText = _prop.msgs.enginePath(_prop.var.etc.engine);
 			_enginePath = new Text(grp, SWT.BORDER);
+			createTextMenu!Text(_prop, _enginePath, &catchMod);
 			_enginePath.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			mod(_enginePath);
 			auto refr = new Button(grp, SWT.PUSH);
@@ -601,6 +615,7 @@ private:
 			grp.setLayout = new GridLayout(3, false);
 			grp.setText = _prop.msgs.tempDir;
 			_tempDir = new Text(grp, SWT.BORDER);
+			createTextMenu!Text(_prop, _tempDir, &catchMod);
 			_tempDir.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			mod(_tempDir);
 			auto refr = new Button(grp, SWT.PUSH);
@@ -656,6 +671,7 @@ private:
 				auto l = new Label(comp2, SWT.NONE);
 				l.setText = _prop.msgs.backupPath;
 				_backupDir = new Text(comp2, SWT.BORDER);
+				createTextMenu!Text(_prop, _backupDir, &catchMod);
 				_backupDir.setLayoutData = new GridData(GridData.FILL_BOTH);
 				mod(_backupDir);
 				_backupRef = new Button(comp2, SWT.PUSH);
@@ -681,6 +697,7 @@ private:
 					grp.setLayout = cl;
 					grp.setText = _prop.msgs.scenarioAuthor;
 					_author = new Text(grp, SWT.BORDER);
+					createTextMenu!Text(_prop, _author, &catchMod);
 					mod(_author);
 				}
 				{
@@ -689,6 +706,7 @@ private:
 					grp.setLayout = new GridLayout(3, false);
 					grp.setText = _prop.msgs.wallpaper;
 					_wallpaper = new Text(grp, SWT.BORDER);
+					createTextMenu!Text(_prop, _wallpaper, &catchMod);
 					_wallpaper.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 					mod(_wallpaper);
 					auto refr = new Button(grp, SWT.PUSH);
@@ -974,6 +992,7 @@ private:
 					comp3.setLayoutData = gd;
 					comp3.setLayout = zeroMarginGridLayout(2, false);
 					_bgImgName = new Text(comp3, SWT.BORDER);
+					_bgImgTMs ~= createTextMenu!Text(_prop, _bgImgName, &catchMod);
 					auto ngd = new GridData(GridData.FILL_HORIZONTAL);
 					ngd.widthHint = _prop.var.etc.bgImageSettingsNameWidth;
 					_bgImgName.setLayoutData = ngd;
@@ -1012,6 +1031,7 @@ private:
 			grp.setLayout = new GridLayout(1, false);
 			grp.setText = _prop.msgs.standardKeyCode;
 			_keyCodes = new Text(grp, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
+			createTextMenu!Text(_prop, _keyCodes, &catchMod);
 			mod(_keyCodes);
 			auto gd = new GridData(GridData.FILL_BOTH);
 			gd.widthHint = _prop.var.etc.keyCodeWidth;
@@ -1369,6 +1389,7 @@ private:
 					auto l = new Label(comp2, SWT.NONE);
 					l.setText = _prop.msgs.classicEngineName;
 					_cEngineName = new Text(comp2, SWT.BORDER);
+					_cEngineTMs ~= createTextMenu!Text(_prop, _cEngineName, &catchMod);
 					auto gd = new GridData(GridData.FILL_HORIZONTAL);
 					gd.horizontalSpan = 3;
 					gd.widthHint = _prop.var.etc.classicEnginesNameWidth;
@@ -1379,6 +1400,7 @@ private:
 					auto l = new Label(comp2, SWT.NONE);
 					l.setText = _prop.msgs.classicEnginePath;
 					_cEnginePath = new Text(comp2, SWT.BORDER);
+					_cEngineTMs ~= createTextMenu!Text(_prop, _cEnginePath, &catchMod);
 					auto gd = new GridData(GridData.FILL_HORIZONTAL);
 					gd.widthHint = 0;
 					_cEnginePath.setLayoutData = gd;
@@ -1393,6 +1415,7 @@ private:
 					auto l = new Label(comp2, SWT.NONE);
 					l.setText = _prop.msgs.classicEngineDataDirName;
 					_cEngineDataDir = new Text(comp2, SWT.BORDER);
+					_cEngineTMs ~= createTextMenu!Text(_prop, _cEngineDataDir, &catchMod);
 					_cEngineDataDir.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 					_cEngineDataDir.addModifyListener(new ModCEngineDataDir);
 
@@ -1406,6 +1429,7 @@ private:
 					auto l = new Label(comp2, SWT.NONE);
 					l.setText = _prop.msgs.classicEngineExecute;
 					_cEngineExecute = new Text(comp2, SWT.BORDER);
+					_cEngineTMs ~= createTextMenu!Text(_prop, _cEngineExecute, &catchMod);
 					_cEngineExecute.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 					_cEngineExecute.addModifyListener(new ModCEngineExecute);
 
@@ -1495,6 +1519,7 @@ private:
 					auto l = new Label(comp2, SWT.NONE);
 					l.setText = _prop.msgs.outerToolName;
 					_toolName = new Text(comp2, SWT.BORDER);
+					_toolTMs ~= createTextMenu!Text(_prop, _toolName, &catchMod);
 					auto gd = new GridData(GridData.FILL_HORIZONTAL);
 					gd.horizontalSpan = 3;
 					_toolName.setLayoutData = gd;
@@ -1504,6 +1529,7 @@ private:
 					auto l = new Label(comp2, SWT.NONE);
 					l.setText = _prop.msgs.outerToolCommand;
 					_toolCommand = new Text(comp2, SWT.BORDER);
+					_toolTMs ~= createTextMenu!Text(_prop, _toolCommand, &catchMod);
 					auto gd = new GridData(GridData.FILL_HORIZONTAL);
 					gd.widthHint = 0;
 					_toolCommand.setLayoutData = gd;
@@ -1518,6 +1544,7 @@ private:
 					auto l = new Label(comp2, SWT.NONE);
 					l.setText = _prop.msgs.outerToolWorkDir;
 					_toolWorkDir = new Text(comp2, SWT.BORDER);
+					_toolTMs ~= createTextMenu!Text(_prop, _toolWorkDir, &catchMod);
 					auto gd = new GridData(GridData.FILL_HORIZONTAL);
 					gd.widthHint = 0;
 					_toolWorkDir.setLayoutData = gd;
@@ -1637,6 +1664,7 @@ private:
 			grp.setText = _prop.msgs.ignorePaths;
 			grp.setLayout = new GridLayout(1, false);
 			_ignorePaths = new Text(grp, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
+			createTextMenu!Text(_prop, _ignorePaths, &catchMod);
 			mod(_ignorePaths);
 			auto gdp = new GridData(GridData.FILL_BOTH);
 			gdp.widthHint = _prop.var.etc.ignorePathsWidth;

@@ -2037,12 +2037,12 @@ public:
 		auto parent = itm.getParentItem;
 		if (parent) {
 			if ((cast(Content) parent.getData).detail.nextType == CNextType.TEXT) {
-				return createTextEditor(_tree, (cast(Content) itm.getData).name);
+				return createTextEditor(_prop, _tree, (cast(Content) itm.getData).name);
 			}
 		} else if (_tree.getItem(0) is itm) {
 			return null;
 		} else {
-			return createTextEditor(_tree, (cast(Content) itm.getData).name);
+			return createTextEditor(_prop, _tree, (cast(Content) itm.getData).name);
 		}
 		auto data = cast(Content) parent.getData;
 		auto c = cast(Content) itm.getData;

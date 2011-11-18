@@ -76,6 +76,7 @@ SRC = cwxeditor.d \
 	cwx\editor\gui\dwt\scripterrordialog.d \
 	cwx\editor\gui\dwt\textdialog.d \
 	cwx\editor\gui\dwt\imagelistwindow.d \
+	cwx\editor\gui\dwt\smalldialogs.d \
 
 OBJ = objs\cwxeditor.obj \
 	objs\cwx\utils.obj \
@@ -155,6 +156,7 @@ OBJ = objs\cwxeditor.obj \
 	objs\cwx\editor\gui\dwt\scripterrordialog.obj \
 	objs\cwx\editor\gui\dwt\textdialog.obj \
 	objs\cwx\editor\gui\dwt\imagelistwindow.obj \
+	objs\cwx\editor\gui\dwt\smalldialogs.obj \
 
 DMD = dmd
 RCC = rcc
