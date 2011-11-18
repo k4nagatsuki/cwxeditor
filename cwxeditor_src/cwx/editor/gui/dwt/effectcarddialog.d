@@ -657,6 +657,9 @@ public:
 	C card() {
 		return _card;
 	}
+	void card(C v) {
+		_card = v;
+	}
 protected:
 	override void setup(Composite area) {
 		area.setLayout = windowGridLayout(1);

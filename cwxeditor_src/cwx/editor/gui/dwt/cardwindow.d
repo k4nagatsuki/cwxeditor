@@ -1452,7 +1452,13 @@ public:
 				open();
 				auto c = dlg.card;
 				storeInsert([cards.length]);
-				_owner.add(c);
+				static if (is(CardOwner : CastCard)) {
+					// CastCardは手札追加時にコピーを生成する
+					c = _owner.add(c);
+					dlg.card = c;
+				} else {
+					_owner.add(c);
+				}
 				refresh;
 				select(__cards.length - 1);
 				static if (is(C : CastCard)) {

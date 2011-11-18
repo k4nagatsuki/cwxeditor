@@ -614,7 +614,7 @@ private:
 			_text.num = prop.looks.messageLen;
 			_text.widget.setParent = _msgCompB;
 			break;
-		default: assert (0);
+		default: return;
 		}
 		_text.widget.setLayoutData = _text.computeTextBaseSize(prop.looks.messageLine);
 		_text.widget.getParent.layout();
