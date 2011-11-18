@@ -429,7 +429,8 @@ private:
 	}
 	void clipboardToXML() {
 		auto cb = new Clipboard(Display.getCurrent);
-		scope (exit) cb.dispose;
+		// FIXME: 環境によってハングアップする
+//		scope (exit) cb.dispose;
 		auto c = cb.getContents(XMLBytesTransfer.getInstance);
 		if (c !is null && isXMLBytes(c)) {
 			cb.setContents([new ArrayWrapperString(bytesToXML(c))], [TextTransfer.getInstance]);

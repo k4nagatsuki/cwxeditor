@@ -1732,7 +1732,8 @@ public:
 			auto dir = selDirPath;
 			if (dir) {
 				auto cb = new Clipboard(Display.getCurrent);
-				scope (exit) cb.dispose;
+				// FIXME: 環境によってハングアップする
+//				scope (exit) cb.dispose;
 				cb.setContents([new FileNames([nabs(dir)])],
 					[FileTransfer.getInstance]);
 				return true;
@@ -1747,7 +1748,8 @@ public:
 					arr[i] = nabs(f);
 				}
 				auto cb = new Clipboard(Display.getCurrent);
-				scope (exit) cb.dispose;
+				// FIXME: 環境によってハングアップする
+//				scope (exit) cb.dispose;
 				cb.setContents([new FileNames(arr)],
 					[FileTransfer.getInstance]);
 				return true;
@@ -1758,7 +1760,8 @@ public:
 	override void paste(SelectionEvent se) {
 		if (!canDoTCPD) return;
 		auto cb = new Clipboard(Display.getCurrent);
-		scope (exit) cb.dispose;
+		// FIXME: 環境によってハングアップする
+//		scope (exit) cb.dispose;
 		auto c = cb.getContents(FileTransfer.getInstance);
 		if (c && cast(FileNames) c) {
 			bool fromOut;

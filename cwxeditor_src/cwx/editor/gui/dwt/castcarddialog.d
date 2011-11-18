@@ -349,13 +349,15 @@ private:
 			auto c = selection;
 			if (c) {
 				auto cb = new Clipboard(Display.getCurrent);
-				scope (exit) cb.dispose;
+				// FIXME: 環境によってハングアップする
+//				scope (exit) cb.dispose;
 				XMLtoCB(_prop, cb, c.toNode.text);
 			}
 		}
 		override void paste(SelectionEvent se) {
 			auto cb = new Clipboard(Display.getCurrent);
-			scope (exit) cb.dispose;
+			// FIXME: 環境によってハングアップする
+//			scope (exit) cb.dispose;
 			auto xml = CBtoXML(cb);;
 			if (xml) {
 				try {

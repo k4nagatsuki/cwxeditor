@@ -711,14 +711,16 @@ public:
 			Step[] ss;
 			if (getSelectionFlagAndStep(fs, ss)) {
 				auto cb = new Clipboard(Display.getCurrent);
-				scope (exit) cb.dispose;
+				// FIXME: 環境によってハングアップする
+//				scope (exit) cb.dispose;
 				XMLtoCB(prop, cb, getXML(_dir, fs, ss));
 			}
 		}
 		void paste(SelectionEvent se) {
 			if (!_dir) return;
 			auto cb = new Clipboard(Display.getCurrent);
-			scope (exit) cb.dispose;
+			// FIXME: 環境によってハングアップする
+//			scope (exit) cb.dispose;
 			auto c = CBtoXML(cb);
 			if (c) {
 				try {

@@ -392,14 +392,16 @@ public:
 			if (!root) return;
 			if (dirs.getSelection.length > 0) {
 				auto cb = new Clipboard(Display.getCurrent);
-				scope (exit) cb.dispose;
+				// FIXME: 環境によってハングアップする
+//				scope (exit) cb.dispose;
 				XMLtoCB(prop, cb, getXML(prop.msgs.flagDirRoot, current));
 			}
 		}
 		void paste(SelectionEvent se) {
 			if (!root) return;
 			auto cb = new Clipboard(Display.getCurrent);
-			scope (exit) cb.dispose;
+			// FIXME: 環境によってハングアップする
+//			scope (exit) cb.dispose;
 			auto c = CBtoXML(cb);
 			if (c) {
 				try {
