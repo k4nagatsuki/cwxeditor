@@ -60,7 +60,6 @@ import org.eclipse.swt.events.ShellAdapter;
 import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.DragSourceAdapter;
 import org.eclipse.swt.dnd.DragSourceEvent;
@@ -225,17 +224,11 @@ private:
 		void copy(SelectionEvent se) {
 			auto d = selection;
 			if (d) {
-				auto cb = new Clipboard(Display.getCurrent);
-				// FIXME: 環境によってハングアップする
-//				scope (exit) cb.dispose;
-				XMLtoCB(_prop, cb, d.toNode.text);
+				XMLtoCB(_prop, _comm.clipboard, d.toNode.text);
 			}
 		}
 		void paste(SelectionEvent se) {
-			auto cb = new Clipboard(Display.getCurrent);
-			// FIXME: 環境によってハングアップする
-//			scope (exit) cb.dispose;
-			auto xml = CBtoXML(cb);
+			auto xml = CBtoXML(_comm.clipboard);
 			if (xml) {
 				try {
 					auto node = XNode.parse(xml);

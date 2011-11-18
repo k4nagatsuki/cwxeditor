@@ -710,18 +710,12 @@ public:
 			Flag[] fs;
 			Step[] ss;
 			if (getSelectionFlagAndStep(fs, ss)) {
-				auto cb = new Clipboard(Display.getCurrent);
-				// FIXME: 環境によってハングアップする
-//				scope (exit) cb.dispose;
-				XMLtoCB(prop, cb, getXML(_dir, fs, ss));
+				XMLtoCB(prop, _comm.clipboard, getXML(_dir, fs, ss));
 			}
 		}
 		void paste(SelectionEvent se) {
 			if (!_dir) return;
-			auto cb = new Clipboard(Display.getCurrent);
-			// FIXME: 環境によってハングアップする
-//			scope (exit) cb.dispose;
-			auto c = CBtoXML(cb);
+			auto c = CBtoXML(_comm.clipboard);
 			if (c) {
 				try {
 					string newPath;

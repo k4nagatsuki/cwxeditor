@@ -1699,11 +1699,8 @@ public:
 		void createCWXPath() {
 			auto itm = selection;
 			if (itm) {
-				auto cb = new Clipboard(Display.getCurrent);
-				// FIXME: 環境によってハングアップする
-//				scope (exit) cb.dispose;
 				auto c = cast(Content) itm.getData;
-				cb.setContents([new ArrayWrapperString(c.cwxPath)], [TextTransfer.getInstance]);
+				_comm.clipboard.setContents([new ArrayWrapperString(c.cwxPath)], [TextTransfer.getInstance]);
 			}
 		}
 	}
@@ -1714,20 +1711,14 @@ public:
 		auto script = CWXScript(_prop.parent, _summ);
 		auto text = script.toScript([c], _summ.legacy, "\t");
 		text = std.string.replace(text, "\n", std.path.linesep);
-		auto cb = new Clipboard(Display.getCurrent);
-		// FIXME: 環境によってハングアップする
-//		scope (exit) cb.dispose;
-		cb.setContents([new ArrayWrapperString(text ~ "\n")], [TextTransfer.getInstance]);
+		_comm.clipboard.setContents([new ArrayWrapperString(text ~ "\n")], [TextTransfer.getInstance]);
 	}
 	void toScriptAll() {
 		if (!_et) return;
 		auto script = CWXScript(_prop.parent, _summ);
 		auto text = script.toScript(_et.starts, _summ.legacy, "\t");
 		text = std.string.replace(text, "\n", std.path.linesep);
-		auto cb = new Clipboard(Display.getCurrent);
-		// FIXME: 環境によってハングアップする
-//		scope (exit) cb.dispose;
-		cb.setContents([new ArrayWrapperString(text ~ "\n")], [TextTransfer.getInstance]);
+		_comm.clipboard.setContents([new ArrayWrapperString(text ~ "\n")], [TextTransfer.getInstance]);
 	}
 
 	private void refreshConvMenu() {
@@ -2231,20 +2222,14 @@ public:
 			auto itm = selection;
 			if (itm) {
 				string xml = (cast(Content) itm.getData).toXML;
-				auto cb = new Clipboard(Display.getCurrent);
-				// FIXME: 環境によってハングアップする
-//				scope (exit) cb.dispose;
-				XMLtoCB(_prop, cb, xml);
+				XMLtoCB(_prop, _comm.clipboard, xml);
 			}
 		}
 		void paste(SelectionEvent se) {
 			if (!_et) return;
-			auto cb = new Clipboard(Display.getCurrent);
-			// FIXME: 環境によってハングアップする
-//			scope (exit) cb.dispose;
 			string c;
 			try {
-				c = CBtoXML(cb);
+				c = CBtoXML(_comm.clipboard);
 			} catch (Exception e) {
 				// たまにアクセス違反が起こる
 				debugln(e);
@@ -2266,7 +2251,7 @@ public:
 				}
 			}
 			if (_prop.var.etc.useCWXScript) {
-				auto script = cast(ArrayWrapperString) cb.getContents(TextTransfer.getInstance);
+				auto script = cast(ArrayWrapperString) _comm.clipboard.getContents(TextTransfer.getInstance);
 				if (script) {
 					try {
 						auto cs = cwx.script.compile(_prop.parent, _summ, script.array);

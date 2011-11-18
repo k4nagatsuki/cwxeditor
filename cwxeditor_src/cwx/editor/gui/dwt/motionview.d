@@ -707,17 +707,11 @@ public:
 		override void copy(SelectionEvent se) {
 			auto m = selection;
 			if (m) {
-				auto cb = new Clipboard(Display.getCurrent);
-				// FIXME: 環境によってハングアップする
-//				scope (exit) cb.dispose;
-				XMLtoCB(_prop, cb, m.toXML);
+				XMLtoCB(_prop, _comm.clipboard, m.toXML);
 			}
 		}
 		override void paste(SelectionEvent se) {
-			auto cb = new Clipboard(Display.getCurrent);
-			// FIXME: 環境によってハングアップする
-//			scope (exit) cb.dispose;
-			auto xml = CBtoXML(cb);
+			auto xml = CBtoXML(_comm.clipboard);
 			if (xml) {
 				try {
 					auto node = XNode.parse(xml);
@@ -757,16 +751,13 @@ public:
 			auto m = selection;
 			if (m) {
 				assert (m.detail.use(MArg.BEAST));
-				auto cb = new Clipboard(Display.getCurrent);
-				// FIXME: 環境によってハングアップする
-//				scope (exit) cb.dispose;
 				if (m.beast) {
 					auto node = XNode.create(BeastCard.XML_NAME_M);
 					node.newAttr("summId", _summ.id);
 					node.newAttr("paneId", "");
 					node.newAttr("scenarioPath", nabs(_summ.scenarioPath));
 					m.beast.toNode(node);
-					XMLtoCB(_prop, cb, node.text);
+					XMLtoCB(_prop, _comm.clipboard, node.text);
 					return true;
 				}
 			}
@@ -781,10 +772,7 @@ public:
 			__copy;
 		}
 		override void paste(SelectionEvent se) {
-			auto cb = new Clipboard(Display.getCurrent);
-			// FIXME: 環境によってハングアップする
-//			scope (exit) cb.dispose;
-			auto xml = CBtoXML(cb);
+			auto xml = CBtoXML(_comm.clipboard);
 			if (xml) {
 				try {
 					pasteBeast(XNode.parse(xml));

@@ -31,6 +31,7 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.dnd.Clipboard;
 
 private struct Dlg(Arg ...) {
 	private void delegate(Object, Arg)[] _dlg;
@@ -192,11 +193,15 @@ class Commons {
 	private FlagWindow _flagWin = null;
 	private MainCardWindow _cardWin;
 	private DirectoryWindow _dirWin;
+
+	private Clipboard _clipboard = null;
+
 	void baseShell(MainWindow main, DataWindow dataWin, MainCardWindow cardWin, DirectoryWindow dirWin) {
 		_main = main;
 		_dataWin = dataWin;
 		_cardWin = cardWin;
 		_dirWin = dirWin;
+		_clipboard = new Clipboard(_main.shell.getDisplay);
 	}
 	void baseShell(MainWindow main, TableWindow tableWin, FlagWindow flagWin,
 			MainCardWindow cardWin, DirectoryWindow dirWin) {
@@ -205,7 +210,12 @@ class Commons {
 		_flagWin = flagWin;
 		_cardWin = cardWin;
 		_dirWin = dirWin;
+		_clipboard = new Clipboard(_main.shell.getDisplay);
 	}
+
+	/// Clipboard#dispose()で異常が発生するため、
+	/// 新規生成は避け、常にこの唯一のインスタンスを使用する。
+	Clipboard clipboard() {return _clipboard;}
 
 	void closeAll() {
 		foreach (w; _ws.toArray) {

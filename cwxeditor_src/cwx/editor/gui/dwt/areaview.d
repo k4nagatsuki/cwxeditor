@@ -2358,17 +2358,11 @@ public:
 					backs ~= _area.backs[i];
 				}
 				if (cards.length > 0 || backs.length > 0) {
-					auto cb = new Clipboard(Display.getCurrent);
-					// FIXME: 環境によってハングアップする
-//					scope (exit) cb.dispose;
-					XMLtoCB(_prop, cb, Area.CBtoXML(cards, backs));
+					XMLtoCB(_prop, _comm.clipboard, Area.CBtoXML(cards, backs));
 				}
 			}
 			void paste(SelectionEvent se) {
-				auto cb = new Clipboard(Display.getCurrent);
-				// FIXME: 環境によってハングアップする
-//				scope (exit) cb.dispose;
-				auto xml = CBtoXML(cb);
+				auto xml = CBtoXML(_comm.clipboard);
 				if (xml) {
 					try {
 						C[] cs;
@@ -2435,20 +2429,14 @@ public:
 					cards ~= _area.cards[i];
 				}
 				if (cards.length > 0) {
-					auto cb = new Clipboard(Display.getCurrent);
-					// FIXME: 環境によってハングアップする
-//					scope (exit) cb.dispose;
-					XMLtoCB(_prop, cb, A.CtoXML(cards));
+					XMLtoCB(_prop, _comm.clipboard, A.CtoXML(cards));
 				}
 			}
 			void paste(SelectionEvent se) {
 				static if (UseBacks) {
 					this.outer.paste(se);
 				} else {
-					auto cb = new Clipboard(Display.getCurrent);
-					// FIXME: 環境によってハングアップする
-//					scope (exit) cb.dispose;
-					auto xml = CBtoXML(cb);;
+					auto xml = CBtoXML(_comm.clipboard);
 					if (xml) {
 						try {
 							C[] cs;
@@ -2505,20 +2493,14 @@ public:
 					backs ~= _area.backs[i];
 				}
 				if (backs.length > 0) {
-					auto cb = new Clipboard(Display.getCurrent);
-					// FIXME: 環境によってハングアップする
-//					scope (exit) cb.dispose;
-					XMLtoCB(_prop, cb, A.BtoXML(backs));
+					XMLtoCB(_prop, _comm.clipboard, A.BtoXML(backs));
 				}
 			}
 			void paste(SelectionEvent se) {
 				static if (UseCards) {
 					this.outer.paste(se);
 				} else {
-					auto cb = new Clipboard(Display.getCurrent);
-					// FIXME: 環境によってハングアップする
-//					scope (exit) cb.dispose;
-					auto xml = CBtoXML(cb);
+					auto xml = CBtoXML(_comm.clipboard);
 					if (xml) {
 						try {
 							BgImage[] bs;

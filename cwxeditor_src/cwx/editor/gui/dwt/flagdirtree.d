@@ -391,18 +391,12 @@ public:
 		void copy(SelectionEvent se) {
 			if (!root) return;
 			if (dirs.getSelection.length > 0) {
-				auto cb = new Clipboard(Display.getCurrent);
-				// FIXME: 環境によってハングアップする
-//				scope (exit) cb.dispose;
-				XMLtoCB(prop, cb, getXML(prop.msgs.flagDirRoot, current));
+				XMLtoCB(prop, _comm.clipboard, getXML(prop.msgs.flagDirRoot, current));
 			}
 		}
 		void paste(SelectionEvent se) {
 			if (!root) return;
-			auto cb = new Clipboard(Display.getCurrent);
-			// FIXME: 環境によってハングアップする
-//			scope (exit) cb.dispose;
-			auto c = CBtoXML(cb);
+			auto c = CBtoXML(_comm.clipboard);
 			if (c) {
 				try {
 					auto cur = current;
