@@ -828,9 +828,11 @@ public:
 	private void pasteBeast(ref XNode node) {
 		auto m = selection;
 		if (m && m.detail.use(MArg.BEAST)) {
-			if (node.name == BeastCard.XML_NAME) {
+			if (node.name == BeastCard.XML_NAME_M) {
+				auto bNode = node.child(BeastCard.XML_NAME, false);
+				if (!bNode.valid) return;
 				if (m.beast) _comm.delBeast.call(m.beast);
-				m.setBeastFromNode(node, LATEST_VERSION);
+				m.setBeastFromNode(bNode, LATEST_VERSION);
 				_beastImg.redraw;
 				foreach (dlg; modEvent) dlg();
 			}
@@ -845,7 +847,12 @@ public:
 				// FIXME: 環境によってハングアップする
 //				scope (exit) cb.dispose;
 				if (m.beast) {
-					XMLtoCB(_prop, cb, m.beast.toXML);
+					auto node = XNode.create(BeastCard.XML_NAME_M);
+					node.newAttr("summId", _summ.id);
+					node.newAttr("paneId", "");
+					node.newAttr("scenarioPath", nabs(_summ.scenarioPath));
+					m.beast.toNode(node);
+					XMLtoCB(_prop, cb, node.text);
 					return true;
 				}
 			}
