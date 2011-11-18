@@ -1399,10 +1399,7 @@ public:
 						assert (0);
 					}
 				}
-				auto cb = new Clipboard(Display.getCurrent);
-				// FIXME: 環境によってハングアップする
-//				scope (exit) cb.dispose;
-				XMLtoCB(_prop, cb, xml);
+				XMLtoCB(_prop, _comm.clipboard, xml);
 			}
 		}
 		void paste(SelectionEvent se) {
@@ -1412,12 +1409,9 @@ public:
 			} else {
 				auto itm = selection;
 				if (!itm) return;
-				auto cb = new Clipboard(Display.getCurrent);
-				// FIXME: 環境によってハングアップする
-//				scope (exit) cb.dispose;
-				auto xml = CBtoXML(cb);
+				auto xml = CBtoXML(_comm.clipboard);
 				if (!xml) {
-					pasteScript(cb);
+					pasteScript(_comm.clipboard);
 					return;
 				}
 				auto parItm = selectionParent;

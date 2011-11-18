@@ -891,16 +891,10 @@ private:
 		void copy(SelectionEvent se) {
 			int i = _bgStgsL.getSelectionIndex;
 			if (i < 0) return;
-			auto cb = new Clipboard(Display.getCurrent);
-			// FIXME: 環境によってハングアップする
-//			scope (exit) cb.dispose;
-			XMLtoCB(_prop, cb, _bgStgs[i].toNode.text);
+			XMLtoCB(_prop, _comm.clipboard, _bgStgs[i].toNode.text);
 		}
 		void paste(SelectionEvent se) {
-			auto cb = new Clipboard(Display.getCurrent);
-			// FIXME: 環境によってハングアップする
-//			scope (exit) cb.dispose;
-			auto xml = CBtoXML(cb);
+			auto xml = CBtoXML(_comm.clipboard);
 			if (xml) {
 				try {
 					auto node = XNode.parse(xml);
@@ -1151,16 +1145,10 @@ private:
 		void copy(SelectionEvent se) {
 			int i = _toolsL.getSelectionIndex;
 			if (i < 0) return;
-			auto cb = new Clipboard(Display.getCurrent);
-			// FIXME: 環境によってハングアップする
-//			scope (exit) cb.dispose;
-			XMLtoCB(_prop, cb, _tools[i].toNode.text);
+			XMLtoCB(_prop, _comm.clipboard, _tools[i].toNode.text);
 		}
 		void paste(SelectionEvent se) {
-			auto cb = new Clipboard(Display.getCurrent);
-			// FIXME: 環境によってハングアップする
-//			scope (exit) cb.dispose;
-			auto xml = CBtoXML(cb);
+			auto xml = CBtoXML(_comm.clipboard);
 			if (xml) {
 				try {
 					auto node = XNode.parse(xml);
@@ -1295,16 +1283,10 @@ private:
 		void copy(SelectionEvent se) {
 			int i = _cEnginesL.getSelectionIndex;
 			if (i < 0) return;
-			auto cb = new Clipboard(Display.getCurrent);
-			// FIXME: 環境によってハングアップする
-//			scope (exit) cb.dispose;
-			XMLtoCB(_prop, cb, _cEngines[i].toNode.text);
+			XMLtoCB(_prop, _comm.clipboard, _cEngines[i].toNode.text);
 		}
 		void paste(SelectionEvent se) {
-			auto cb = new Clipboard(Display.getCurrent);
-			// FIXME: 環境によってハングアップする
-//			scope (exit) cb.dispose;
-			auto xml = CBtoXML(cb);
+			auto xml = CBtoXML(_comm.clipboard);
 			if (xml) {
 				try {
 					auto node = XNode.parse(xml);

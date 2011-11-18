@@ -426,10 +426,7 @@ public:
 	void copyFilePath() {
 		auto p = path;
 		if (!p.length) return;
-		auto cb = new Clipboard(Display.getCurrent);
-		// FIXME: 環境によってハングアップする
-//		scope (exit) cb.dispose;
-		cb.setContents([new PathString(encodePath(p))],
+		_comm.clipboard.setContents([new PathString(encodePath(p))],
 			[TextTransfer.getInstance]);
 	}
 

@@ -1628,10 +1628,7 @@ public:
 		int sel = _files.getSelectionIndex;
 		if (-1 == sel) return;
 		auto fno = cast(FileNameObj) _files.getItem(sel).getData;
-		auto cb = new Clipboard(Display.getCurrent);
-		// FIXME: 環境によってハングアップする
-//		scope (exit) cb.dispose;
-		cb.setContents([new PathString(encodePath(fno.relPath))],
+		_comm.clipboard.setContents([new PathString(encodePath(fno.relPath))],
 			[TextTransfer.getInstance]);
 	}
 	void replace() {
@@ -1889,10 +1886,7 @@ public:
 		if (_dirs.isFocusControl) {
 			auto dir = selDirPath;
 			if (dir) {
-				auto cb = new Clipboard(Display.getCurrent);
-				// FIXME: 環境によってハングアップする
-//				scope (exit) cb.dispose;
-				cb.setContents([new FileNames([nabs(dir)])],
+				_comm.clipboard.setContents([new FileNames([nabs(dir)])],
 					[FileTransfer.getInstance]);
 				return true;
 			}
@@ -1905,10 +1899,7 @@ public:
 				foreach (i, f; files) {
 					arr[i] = nabs(f);
 				}
-				auto cb = new Clipboard(Display.getCurrent);
-				// FIXME: 環境によってハングアップする
-//				scope (exit) cb.dispose;
-				cb.setContents([new FileNames(arr)],
+				_comm.clipboard.setContents([new FileNames(arr)],
 					[FileTransfer.getInstance]);
 				return true;
 			}
@@ -1917,10 +1908,7 @@ public:
 	}
 	override void paste(SelectionEvent se) {
 		if (!canDoTCPD) return;
-		auto cb = new Clipboard(Display.getCurrent);
-		// FIXME: 環境によってハングアップする
-//		scope (exit) cb.dispose;
-		auto c = cb.getContents(FileTransfer.getInstance);
+		auto c = _comm.clipboard.getContents(FileTransfer.getInstance);
 		if (c && cast(FileNames) c) {
 			bool fromOut;
 			if (__paste(selDirPath, cast(FileNames) c, false, fromOut)) {

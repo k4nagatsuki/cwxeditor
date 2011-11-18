@@ -509,18 +509,12 @@ private:
 		override void copy(SelectionEvent se) {
 			auto cs = __selections;
 			if (cs.length > 0) {
-				auto cb = new Clipboard(Display.getCurrent);
-				// FIXME: 環境によってハングアップする
-//				scope (exit) cb.dispose;
-				XMLtoCB(_prop, cb, toXML(cs));
+				XMLtoCB(_prop, _comm.clipboard, toXML(cs));
 			}
 		}
 		override void paste(SelectionEvent se) {
 			static if (EditMode) {
-				auto cb = new Clipboard(Display.getCurrent);
-				// FIXME: 環境によってハングアップする
-//				scope (exit) cb.dispose;
-				auto c = CBtoXML(cb);
+				auto c = CBtoXML(_comm.clipboard);
 				try {
 					if (c) {
 						try {

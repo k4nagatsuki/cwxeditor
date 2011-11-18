@@ -1116,17 +1116,11 @@ public:
 		void copy(SelectionEvent se) {
 			auto area = getSelectionArea;
 			if (area !is null) {
-				auto cb = new Clipboard(Display.getCurrent);
-				// FIXME: 環境によってハングアップする
-//				scope (exit) cb.dispose;
-				XMLtoCB(_prop, cb, area.toXML(_summ.id));
+				XMLtoCB(_prop, _comm.clipboard, area.toXML(_summ.id));
 			}
 		}
 		void paste(SelectionEvent se) {
-			auto cb = new Clipboard(Display.getCurrent);
-			// FIXME: 環境によってハングアップする
-//			scope (exit) cb.dispose;
-			auto c = CBtoXML(cb);
+			auto c = CBtoXML(_comm.clipboard);
 			if (c) {
 				try {
 					bool sameSummary;

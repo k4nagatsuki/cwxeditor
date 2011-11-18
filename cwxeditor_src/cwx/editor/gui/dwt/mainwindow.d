@@ -578,12 +578,9 @@ private:
 		openReplWin;
 	}
 	void clipboardToXML() {
-		auto cb = new Clipboard(Display.getCurrent);
-		// FIXME: 環境によってハングアップする
-//		scope (exit) cb.dispose;
-		auto c = cb.getContents(XMLBytesTransfer.getInstance);
+		auto c = _comm.clipboard.getContents(XMLBytesTransfer.getInstance);
 		if (c !is null && isXMLBytes(c)) {
-			cb.setContents([new ArrayWrapperString(bytesToXML(c))], [TextTransfer.getInstance]);
+			_comm.clipboard.setContents([new ArrayWrapperString(bytesToXML(c))], [TextTransfer.getInstance]);
 		}
 	}
 

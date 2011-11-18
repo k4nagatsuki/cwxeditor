@@ -40,6 +40,7 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.dnd.Clipboard;
 
 private class Dlg(Arg ...) {
 	private static const ID = "cwx.editor.gui.dwt.commons.Dlg";
@@ -279,7 +280,7 @@ class Commons {
 	void dispose() {
 		if (_wallpaper) _wallpaper.dispose();
 	}
-	private MainWindow _main;
+	private MainWindow _main = null;
 	private DataWindow _dataWin = null;
 	private TableWindow _tableWin = null;
 	private FlagWindow _flagWin = null;
@@ -289,12 +290,16 @@ class Commons {
 	private ItemCardWindow _itemWin = null;
 	private BeastCardWindow _beastWin = null;
 	private InfoCardWindow _infoWin = null;
-	private DirectoryWindow _dirWin;
+	private DirectoryWindow _dirWin = null;
+
+	private Clipboard _clipboard = null;
+
 	void baseShell(MainWindow main, DataWindow dataWin, MainCardWindow cardWin, DirectoryWindow dirWin) {
 		_main = main;
 		_dataWin = dataWin;
 		_cardWin = cardWin;
 		_dirWin = dirWin;
+		_clipboard = new Clipboard(_main.shell.getDisplay);
 	}
 	void baseShell(MainWindow main, TableWindow tableWin, FlagWindow flagWin,
 			CastCardWindow castWin, SkillCardWindow skillWin, ItemCardWindow itemWin, BeastCardWindow beastWin, InfoCardWindow infoWin,
@@ -308,9 +313,13 @@ class Commons {
 		_beastWin = beastWin;
 		_infoWin = infoWin;
 		_dirWin = dirWin;
+		_clipboard = new Clipboard(_main.shell.getDisplay);
 	}
 	MainWindow mainWin() {return _main;}
 	Shell mainShell() {return _main.shell.getShell;}
+	/// Clipboard#dispose()で異常が発生するため、
+	/// 新規生成は避け、常にこの唯一のインスタンスを使用する。
+	Clipboard clipboard() {return _clipboard;}
 
 	Summary summary() {
 		if (_dataWin) {
