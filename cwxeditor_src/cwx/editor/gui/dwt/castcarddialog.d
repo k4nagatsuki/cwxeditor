@@ -87,6 +87,7 @@ private:
 	Props _prop;
 	Summary _summ;
 	CastCard _card;
+	KeyDownFilter _kdFilter;
 
 	UndoManager _undoCoupons;
 
@@ -98,6 +99,7 @@ private:
 	Text _newCoupon;
 	TextMenuModify _newCouponTM;
 	Spinner _couponVal;
+	Composite _couponView;
 	Table _coupons;
 	Combo _race;
 	Button[Sex] _sex;
@@ -591,6 +593,7 @@ private:
 		auto skin = _comm.skin;
 		{
 			auto grp = new Group(comp, SWT.NONE);
+			_couponView = grp;
 			grp.setText = _prop.msgs.coupons;
 			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
 			grp.setLayout = new GridLayout(2, false);
@@ -1218,6 +1221,29 @@ private:
 			_comm.delCast.remove(&delCard);
 			_comm.refScenario.remove(&refScenario);
 			_comm.refSkin.remove(&refSkin);
+			e.widget.getDisplay.removeFilter(SWT.KeyDown, _kdFilter);
+		}
+	}
+	class KeyDownFilter : Listener {
+		private int _undoAcc;
+		private int _redoAcc;
+		this () {
+			_undoAcc = convertAccelerator(_prop.msgs.menuUndo);
+			_redoAcc = convertAccelerator(_prop.msgs.menuRedo);
+		}
+		override void handleEvent(Event e) {
+			auto c = cast(Control) e.widget;
+			if (!c || c.getShell !is getShell) return;
+			if (isDescendant(_couponView, c)) {
+				if (c.getMenu && findMenu(c.getMenu, e.keyCode, e.character, e.stateMask)) return;
+				if (eqAcc(_undoAcc, e.keyCode, e.character, e.stateMask)) {
+					_undoCoupons.undo();
+					e.doit = false;
+				} else if (eqAcc(_redoAcc, e.keyCode, e.character, e.stateMask)) {
+					_undoCoupons.redo();
+					e.doit = false;
+				}
+			}
 		}
 	}
 	void refSkin() {
@@ -1290,6 +1316,8 @@ protected:
 		_comm.refScenario.add(&refScenario);
 		_comm.refSkin.add(&refSkin);
 		area.addDisposeListener(new Dispose);
+		_kdFilter = new KeyDownFilter();
+		area.getDisplay.addFilter(SWT.KeyDown, _kdFilter);
 
 		// Windows Vistaだとタブの横幅が凄いことになったので必要最低限にする。
 		scope maxSize = new Point(0, 0);

@@ -43,6 +43,8 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -193,6 +195,7 @@ private:
 	UndoManager _undoBgStgs;
 	UndoManager _undoTools;
 	UndoManager _undoCEngines;
+	KeyDownFilter _kdFilter;
 
 	CTabItem _tabB;
 	Text _enginePath;
@@ -210,6 +213,7 @@ private:
 
 	CTabItem _tabS;
 	List _bgStgsL;
+	Composite _bgStgsView;
 	BgImageSetting[] _bgStgs;
 	BgImageS[] _bgImagesDefault;
 	Text _bgImgName;
@@ -224,6 +228,7 @@ private:
 	Text _keyCodes;
 
 	CTabItem _tabT;
+	Composite _toolsView;
 	List _toolsL;
 	OuterTool[] _tools;
 	Text _toolName;
@@ -238,6 +243,7 @@ private:
 	TextMenuModify[] _toolTMs;
 
 	CTabItem _tabC;
+	Composite _cEnginesView;
 	List _cEnginesL;
 	ClassicEngine[] _cEngines;
 	Text _cEngineName;
@@ -1062,6 +1068,7 @@ private:
 		}
 		{
 			auto grp = new Group(back, SWT.NONE);
+			_bgStgsView = grp;
 			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
 			grp.setLayout = new GridLayout(1, true);
 			grp.setText = _prop.msgs.bgImageSettings;
@@ -1431,6 +1438,7 @@ private:
 		_tabC.setControl = comp;
 		{
 			auto grp = new Group(comp, SWT.NONE);
+			_cEnginesView = grp;
 			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
 			grp.setLayout = new GridLayout(1, true);
 			grp.setText = _prop.msgs.classicEnginesTitle;
@@ -1567,6 +1575,7 @@ private:
 
 		{
 			auto grp = new Group(comp, SWT.NONE);
+			_toolsView = grp;
 			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
 			grp.setLayout = new GridLayout(1, true);
 			grp.setText = _prop.msgs.outerToolsTitle;
@@ -1786,6 +1795,36 @@ private:
 		_backupRef.setEnabled = _backupEnabled.getSelection;
 		_backupDirOpen.setEnabled = _backupEnabled.getSelection;
 	}
+	class KeyDownFilter : Listener {
+		private int _undoAcc;
+		private int _redoAcc;
+		this () {
+			_undoAcc = convertAccelerator(_prop.msgs.menuUndo);
+			_redoAcc = convertAccelerator(_prop.msgs.menuRedo);
+		}
+		override void handleEvent(Event e) {
+			auto c = cast(Control) e.widget;
+			if (!c || c.getShell !is getShell) return;
+			bool chk(Composite view, UndoManager undo) {
+				if (isDescendant(view, c)) {
+					if (c.getMenu && findMenu(c.getMenu, e.keyCode, e.character, e.stateMask)) return false;
+					if (eqAcc(_undoAcc, e.keyCode, e.character, e.stateMask)) {
+						undo.undo();
+						e.doit = false;
+						return true;
+					} else if (eqAcc(_redoAcc, e.keyCode, e.character, e.stateMask)) {
+						undo.redo();
+						e.doit = false;
+						return true;
+					}
+				}
+				return false;
+			}
+			if (chk(_bgStgsView, _undoBgStgs)) return;
+			if (chk(_toolsView, _undoTools)) return;
+			if (chk(_cEnginesView, _undoCEngines)) return;
+		}
+	}
 public:
 	this(Commons comm, Props prop, Shell shell, DockingFolderCTC dock, Summary summ) {
 		super(prop, shell, false, prop.msgs.dlgTitSettings, prop.images.menuSettings, true, prop.var.settingsDlg, true);
@@ -1805,8 +1844,11 @@ protected:
 		area.addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) {
 				_comm.refScenario.remove(&refreshScenario);
+				e.widget.getDisplay.removeFilter(SWT.KeyDown, _kdFilter);
 			}
 		});
+		_kdFilter = new KeyDownFilter();
+		area.getDisplay.addFilter(SWT.KeyDown, _kdFilter);
 		auto tabf = new CTabFolder(area, SWT.BORDER);
 		tabf.setLayoutData = new GridData(GridData.FILL_BOTH);
 		_refe = new RefE;
