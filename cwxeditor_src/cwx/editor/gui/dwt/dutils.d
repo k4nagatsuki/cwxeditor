@@ -2458,8 +2458,13 @@ TextMenuModify createTextMenu(T = Text)(Props prop, T text, bool delegate() canS
 	createMenuItem(menu, prop.msgs.menuPaste, prop.images.menuPaste, &text.paste);
 	createMenuItem(menu, prop.msgs.menuDel, prop.images.menuDel, {
 		auto p = text.getSelection;
-		auto t = text.getText;
-		text.setText(t[0 .. p.x] ~ t[p.y .. $]);
+		auto t = to!dstring(text.getText);
+		if (t.length <= p.x) return;
+		if (p.x != p.y) {
+			text.setText = to!string(t[0 .. p.x] ~ t[p.y .. $]);
+		} else {
+			text.setText = to!string(t[0 .. p.x] ~ t[p.y + 1 .. $]);
+		}
 		text.setSelection(new Point(p.x, p.x));
 	});
 	new MenuItem(menu, SWT.SEPARATOR);

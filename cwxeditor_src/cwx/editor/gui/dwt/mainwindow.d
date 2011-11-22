@@ -84,6 +84,7 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.TabFolder;
+import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.custom.CTabFolder;
@@ -1598,12 +1599,15 @@ public:
 				SWT.F11, SWT.F12, SWT.F13, SWT.F14, SWT.F15,
 			];
 			e.doit = true;
-			if (!(e.stateMask & SWT.CTRL) && !.contains!("a == b", int)(F, e.keyCode)) {
-				return;
-			}
 			auto d = Display.getCurrent;
 			auto fc = d.getFocusControl();
 			if (!fc) return;
+			bool ro = !(fc.getStyle & SWT.READ_ONLY);
+			if (ro && (cast(Spinner) fc || cast(Text) fc || cast(Combo) fc || cast(CCombo) fc)) {
+				if (!(e.stateMask & SWT.CTRL) && !.contains!("a == b", int)(F, e.keyCode)) {
+					return;
+				}
+			}
 			void raiseEvent(MenuItem menu) {
 				scope se = new Event;
 				se.type = SWT.Selection;
