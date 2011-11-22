@@ -1127,7 +1127,7 @@ class CWXScript {
 		}
 		return r;
 	} unittest {
-		auto s = new CWXScript(null, null);
+		auto s = new CWXScript(new CProps("", null), null);
 		string statement
 = `
 $var1 = 'oops'
@@ -1219,6 +1219,9 @@ fi`;
 			~ "elif false\n"
 			~ "    gameover\n"
 			~ "fi");
+
+		// 無限ループに陥るバグの修正テスト
+		s.analyzeSyntax(s.tokenize("dialog M, @c\n...\n@]"));
 	}
 
 	private Node[] analyzeSyntaxBranch(in Token[] tokens, ref size_t i, in Keywords keys) {
@@ -1263,6 +1266,7 @@ fi`;
 			break;
 		default:
 			throwError(_prop.msgs.scriptErrorInvalidBranch, tok);
+			i++;
 			break;
 		}
 		return r;
@@ -1313,6 +1317,7 @@ fi`;
 			break;
 		default:
 			throwError(_prop.msgs.scriptErrorInvalidStatement, tok);
+			i++;
 		}
 		return node;
 	}
@@ -1346,6 +1351,7 @@ fi`;
 				goto case Kind.SYMBOL;
 			default:
 				throwError(_prop.msgs.scriptErrorInvalidAttr, tok);
+				i++;
 			}
 		}
 		return r;
@@ -1407,6 +1413,7 @@ fi`;
 				break;
 			default:
 				throwError(_prop.msgs.scriptErrorInvalidValuesClose, tok);
+				i++;
 			}
 		}
 		throwError(_prop.msgs.scriptErrorCloseBracketNotFound, o);
@@ -1492,6 +1499,7 @@ fi`;
 				return r;
 			default:
 				throwError(_prop.msgs.scriptErrorInvalidCalc, tok);
+				i++;
 			}
 		}
 		return r;
