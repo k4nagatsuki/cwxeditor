@@ -336,6 +336,19 @@ struct TMM {
 			break;
 		}
 	}
+	void addListener(int type, Listener l) {
+		final switch (kind) {
+		case TMM_T:
+			text.addListener(type, l);
+			break;
+		case TMM_C:
+			combo.addListener(type, l);
+			break;
+		case TMM_CC:
+			ccombo.addListener(type, l);
+			break;
+		}
+	}
 }
 struct TMAppendData {
 	Object delegate(Object old) read = null;
@@ -387,12 +400,23 @@ class TextMenuModify : ModifyListener {
 	private string _oldTextBase;
 	private bool delegate() _canSaveHistory;
 	private UndoManager _undo;
+	private class SelectChanged : Listener {
+		override void handleEvent(Event e) {
+			_oldSel = _text.getSelection;
+		}
+	}
 
 	this (TMM text, bool delegate() canSaveHistory, UndoManager undo, TMAppendData apd) {
 		_text = text;
 		_canSaveHistory = canSaveHistory;
 		_undo = undo;
 		_apd = apd;
+		auto sc = new SelectChanged;
+		text.addListener(SWT.KeyDown, sc);
+		text.addListener(SWT.KeyUp, sc);
+		text.addListener(SWT.MouseDown, sc);
+		text.addListener(SWT.MouseUp, sc);
+		text.addListener(SWT.MouseMove, sc);
 
 		save();
 	}

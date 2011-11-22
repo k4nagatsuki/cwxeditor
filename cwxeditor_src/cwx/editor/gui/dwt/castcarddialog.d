@@ -24,6 +24,7 @@ import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.radarspinner;
 import cwx.editor.gui.dwt.xmlbytestransfer;
 import cwx.editor.gui.dwt.absdialog;
+import cwx.editor.gui.dwt.undo;
 
 import std.datetime;
 import std.string;
@@ -86,6 +87,8 @@ private:
 	Props _prop;
 	Summary _summ;
 	CastCard _card;
+
+	UndoManager _undoCoupons;
 
 	ImageSelect!(MtType.CARD) _imgPath;
 	FixedWidthText _desc;
@@ -187,6 +190,44 @@ private:
 			}
 		}
 	}
+	class UndoCoupons : Undo {
+		private Coupon[] _coupons;
+		private int _selected;
+		this () {
+			save();
+		}
+		private void save() {
+			_coupons = this.outer.coupons;
+			_selected = this.outer._coupons.getSelectionIndex;
+		}
+		private void impl() {
+			auto coupons = _coupons;
+			auto selected = _selected;
+			save();
+			this.outer._coupons.setRedraw = false;
+			scope (exit) this.outer._coupons.setRedraw = true;
+			this.outer._coupons.removeAll();
+			foreach (c; coupons) {
+				appendCoupon(c);
+			}
+			this.outer._coupons.select = selected;
+			this.outer._coupons.showSelection();
+		}
+		override void undo() {impl();}
+		override void redo() {impl();}
+		override void dispose() {
+			// Nothing
+		}
+	}
+	void storeCoupons() {
+		_undoCoupons ~= new UndoCoupons;
+	}
+	void undoCoupons() {
+		_undoCoupons.undo();
+	}
+	void redoCoupons() {
+		_undoCoupons.redo();
+	}
 	Coupon[] coupons() {
 		Coupon[] r;
 		r.length = _coupons.getItemCount;
@@ -222,6 +263,7 @@ private:
 					return;
 				}
 			}
+			storeCoupons();
 			appendCoupon(new Coupon(_newCoupon.getText, _couponVal.getSelection), _coupons.getSelectionIndex);
 		}
 		applyEnabled();
@@ -235,6 +277,7 @@ private:
 					return;
 				}
 			}
+			storeCoupons();
 			auto itm = _coupons.getItem(index);
 			auto coupon = new Coupon(_newCoupon.getText, _couponVal.getSelection);
 			itm.setImage(0, couponImage(coupon.value));
@@ -247,6 +290,7 @@ private:
 	void delCoupon() {
 		int i = _coupons.getSelectionIndex;
 		if (i >= 0) {
+			storeCoupons();
 			_coupons.remove(i);
 			if (i >= _coupons.getItemCount) i--;
 			if (i >= 0) {
@@ -285,6 +329,7 @@ private:
 	void upCoupon() {
 		int index = _coupons.getSelectionIndex;
 		if (index > 0) {
+			storeCoupons();
 			swapCoupon(index, index - 1);
 			_coupons.select(index - 1);
 		}
@@ -292,6 +337,7 @@ private:
 	void downCoupon() {
 		int index = _coupons.getSelectionIndex;
 		if (index >= 0 && index + 1 < _coupons.getItemCount) {
+			storeCoupons();
 			swapCoupon(index, index + 1);
 			_coupons.select(index + 1);
 		}
@@ -312,6 +358,7 @@ private:
 				auto node = XNode.parse(xml);
 				if (node.name != Coupon.XML_NAME) return;
 				scope p = (cast(DropTarget) e.getSource).getControl.toControl(e.x, e.y);
+				storeCoupons();
 				auto t = _coupons.getItem(p);
 				int index = t ? _coupons.indexOf(t) : _coupons.getItemCount;
 				appendCoupon(Coupon.fromNode(node, LATEST_VERSION), index);
@@ -372,6 +419,7 @@ private:
 				try {
 					auto node = XNode.parse(xml);
 					if (node.name == Coupon.XML_NAME) {
+						storeCoupons();
 						appendCoupon(Coupon.fromNode(node, LATEST_VERSION), _coupons.getSelectionIndex);
 					}
 					applyEnabled();
@@ -579,12 +627,14 @@ private:
 				cv.setWidth = 40;
 				saveColumnWidth!("prop.var.etc.couponValueColumn")(_prop, cv);
 				auto menu = new Menu(_coupons);
+				createMenuItem(menu, _prop.msgs.menuUndo, _prop.images.menuUndo, &undoCoupons);
+				createMenuItem(menu, _prop.msgs.menuRedo, _prop.images.menuRedo, &redoCoupons);
+				new MenuItem(menu, SWT.SEPARATOR);
 				createMenuItem(menu, _prop.msgs.menuUp, _prop.images.menuUp, &upCoupon);
 				createMenuItem(menu, _prop.msgs.menuDown, _prop.images.menuDown, &downCoupon);
 				new MenuItem(menu, SWT.SEPARATOR);
-				appendMenuTCPD(_prop, menu, new CouponTCPD);
+				appendMenuTCPD(_prop, menu, new CouponTCPD, true, true, true, true);
 				_coupons.setMenu = menu;
-				usingPopupMenuAccelerator(_coupons);
 			}
 			_coupons.addSelectionListener(new SelCoupon);
 			auto drag = new DragSource(_coupons, DND.DROP_MOVE | DND.DROP_COPY);
@@ -1214,6 +1264,7 @@ public:
 		_summ = summ;
 		_card = card;
 		_prop = prop;
+		_undoCoupons = new UndoManager(1024);
 		super(prop, shell, false, _card ? _prop.msgs.dlgTitCast(_card.name) : _prop.msgs.dlgTitNewCast,
 			_prop.images.casts, true, _prop.var.castCardDlg, true);
 	}
@@ -1259,6 +1310,7 @@ protected:
 		if (_card && _card !is card) return;
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
+		_undoCoupons.reset();
 		auto skin = _comm.skin;
 		if (_card) {
 			_imgPath.image = _card.path;

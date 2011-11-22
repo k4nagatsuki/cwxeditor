@@ -1307,7 +1307,6 @@ private:
 			createMenuItem(menu, _prop.msgs.menuScaleEvenBig, _prop.images.menuScaleEvenBig, &scaleEvenBig);
 			createMenuItem(menu, _prop.msgs.menuScaleEvenSmall, _prop.images.menuScaleEvenSmall, &scaleEvenSmall);
 			_imgp.setMenu(menu);
-			usingPopupMenuAccelerator(_imgp);
 		}
 		_imgp.addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) {
@@ -1531,7 +1530,6 @@ private:
 				createMenuItem(menu, _prop.msgs.menuEditEvent, _prop.images.menuEditEvent, &openEvent);
 			}
 			list.setMenu(menu);
-			usingPopupMenuAccelerator(list);
 		}
 		return list;
 	}

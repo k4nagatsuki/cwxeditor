@@ -261,10 +261,8 @@ public:
 	const string menuPaste() {return ttPaste ~ "(&P)" ~ "\tCtrl+V";}
 	const string ttDel() {return "削除";}
 	const string menuDel() {return ttDel ~ "(&D)" ~ "\tDelete";}
-	// FIXME: リンクエラー！
-//	const string ttSelectAll() {return "すべて選択";}
-//	const string menuSelectAll() {return ttSelectAll ~ "(&A)" ~ "\tCtrl+A";}
-	string menuSelectAll = "すべて選択(&A)\tCtrl+A";
+	const string ttSelectAll() {return "すべて選択";}
+	const string menuSelectAll() {return ttSelectAll ~ "(&A)" ~ "\tCtrl+A";}
 
 	const string ttToXML() {return "コピーしたデータをXMLに変換";}
 	const string menuToXML() {return ttToXML ~ "(&X)" ~ "";}
@@ -2339,8 +2337,8 @@ public:
 
 	const string bgImageAndKeyCode() {return "背景とキーコード";}
 	const string newBgImageSetting() {return "新規作成";}
+	const string altBgImageSetting() {return "上書き";}
 	const string delBgImageSetting() {return "削除";}
-	const string newBgImageSettingName() {return "新規設定";}
 	const string standardKeyCode() {return "標準のキーコード";}
 
 	const string errorEnginePath(string appName) {return appName ~ "の場所が正しくありません。";}
@@ -2352,7 +2350,6 @@ public:
 	const string outerToolName() {return "外部ツール名";}
 	const string outerToolCommand() {return "コマンド";}
 	const string dlgTitOuterTool() {return "外部ツールの選択";}
-	const string newOuterToolName() {return "新規外部ツール";}
 	const string toolsHint1() {return "$F = ファイル名";}
 	const string toolsHint3() {return "$$ = $";}
 	const string outerToolWorkDir() {return "作業" ~ DIR;}
@@ -2365,6 +2362,7 @@ public:
 		const string[] toolTName() {return ["すべてのファイル (*.*)"];}
 	}
 	const string newOuterTool() {return "新規作成";}
+	const string altOuterTool() {return "上書き";}
 	const string delOuterTool() {return "削除";}
 
 	const string classicEngines() {return "クラシックエンジン";}
@@ -2387,8 +2385,8 @@ public:
 		const string[] classicEngineExecuteTName() {return ["すべてのファイル (*.*)"];}
 	}
 	const string dlgTitClassicEngineExecute() {return "代替実行ファイルの選択";}
-	const string newClassicEngineName() {return "新規クラシックエンジン";}
 	const string newClassicEngine() {return "新規作成";}
+	const string altClassicEngine() {return "上書き";}
 	const string delClassicEngine() {return "削除";}
 
 	const string bgImagesDefault() {return "デフォルト背景";}

@@ -7,9 +7,7 @@ import std.conv;
 import std.string;
 
 /// 複数のCWXパスを列挙する際のセパレータ。
-// FIXME: リンクエラー！
-/+immutable CWXPATH_SEP = "&";
-+/
+immutable CWXPATH_SEP = "&";
 
 /// シナリオ内パスを取得できるオブジェクトである事を示す。
 interface CWXPath {

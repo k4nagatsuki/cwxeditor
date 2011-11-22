@@ -886,24 +886,6 @@ bool eqAcc(int acc, int keyCode, wchar character, int stateMask) {
 	}
 }
 
-void usingPopupMenuAccelerator(Control c) {
-	c.addKeyListener(new class KeyAdapter {
-		override void keyPressed(KeyEvent e) {
-			auto menu = findMenu(c.getMenu, e.keyCode, e.character, e.stateMask);
-			if (menu && menu.getEnabled) {
-				scope se = new Event;
-				se.type = SWT.Selection;
-				se.widget = menu;
-				se.time = e.time;
-				se.stateMask = e.stateMask;
-				se.doit = e.doit;
-				menu.notifyListeners(SWT.Selection, se);
-				e.doit = false;
-			}
-		}
-	});
-}
-
 int convertAccelerator(string text) {
 	int t_index = std.string.lastIndexOf(text, '\t');
 	if (t_index >= 0 && t_index < text.length - 1) {
@@ -1109,6 +1091,13 @@ bool isDescendant(Shell shell1, Shell shell2) {
 	while (shell1 !is shell2) {
 		if (!shell2) return false;
 		shell2 = cast(Shell) shell2.getParent;
+	}
+	return true;
+}
+bool isDescendant(Composite comp, Control ctrl) {
+	while (comp !is ctrl) {
+		if (!ctrl) return false;
+		ctrl = ctrl.getParent;
 	}
 	return true;
 }

@@ -815,9 +815,7 @@ private:
 	class OpenCWXPath : Runnable {
 		string path;
 		override void run() {
-			// FIXME: リンクエラー！
-/+			auto paths = std.string.split(path, CWXPATH_SEP.idup);
-+/			auto paths = std.string.split(path, "&".idup);
+			auto paths = std.string.split(path, CWXPATH_SEP.idup);
 			if (!paths.length) paths = [""];
 			foreach (p; paths) {
 				try {
@@ -943,9 +941,7 @@ public:
 				if (!cfnmatch(path1, path2)) continue;
 				send = "open cwxpath ";
 				foreach (j, s; openPaths) {
-					// FIXME: リンクエラー！
-/+					if (j > 0) send ~= CWXPATH_SEP;
-+/					if (j > 0) send ~= "&";
+					if (j > 0) send ~= CWXPATH_SEP;
 					send ~= s;
 				}
 				if (!WriteFile(p, send.ptr, send.length, &len, null)) continue;
@@ -975,9 +971,7 @@ public:
 				if (!cfnmatch(path1, path2)) continue;
 				send = "open cwxpath ";
 				foreach (j, s; openPaths) {
-					// FIXME: リンクエラー！
-/+					if (j > 0) send ~= CWXPATH_SEP;
-+/					if (j > 0) send ~= "&";
+					if (j > 0) send ~= CWXPATH_SEP;
 					send ~= s;
 				}
 				if (-1 == cwrite(p, send.ptr, send.length)) continue;

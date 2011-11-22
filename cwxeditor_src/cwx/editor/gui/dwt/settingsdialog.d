@@ -19,6 +19,7 @@ import cwx.editor.gui.dwt.areaview;
 import cwx.editor.gui.dwt.xmlbytestransfer;
 import cwx.editor.gui.dwt.dockingfolder;
 import cwx.editor.gui.dwt.customtext;
+import cwx.editor.gui.dwt.undo;
 
 import std.path;
 import std.file;
@@ -61,10 +62,137 @@ import org.eclipse.swt.dnd.DropTarget;
 
 class SettingsDialog : AbsDialog {
 private:
+	class UndoBgStgs : Undo {
+		private BgImageSetting[] _old;
+		private int _selected;
+		this () {
+			save();
+		}
+		private void save() {
+			_old = _bgStgs.dup;
+			_selected = _bgStgsL.getSelectionIndex;
+		}
+		private void impl() {
+			auto old = _old;
+			auto selected = _selected;
+			save();
+			_bgStgsL.setRedraw = false;
+			scope (exit) _bgStgsL.setRedraw = true;
+			_bgStgs = old;
+			_bgStgsL.removeAll();
+			foreach (o; old) {
+				_bgStgsL.add(o.name);
+			}
+			_bgStgsL.select = selected;
+			_bgStgsL.showSelection();
+			selectBgImageSetting();
+			applyEnabled();
+		}
+		override void undo() {impl();}
+		override void redo() {impl();}
+		override void dispose() {
+			// Nothing
+		}
+	}
+	void storeBgStgs() {
+		_undoBgStgs ~= new UndoBgStgs;
+	}
+	void undoBgStgs() {
+		_undoBgStgs.undo();
+	}
+	void redoBgStgs() {
+		_undoBgStgs.redo();
+	}
+	class UndoTools : Undo {
+		private OuterTool[] _old;
+		private int _selected;
+		this () {
+			save();
+		}
+		private void save() {
+			_old = _tools.dup;
+			_selected = _toolsL.getSelectionIndex;
+		}
+		private void impl() {
+			auto old = _old;
+			auto selected = _selected;
+			save();
+			_toolsL.setRedraw = false;
+			scope (exit) _toolsL.setRedraw = true;
+			_tools = old;
+			_toolsL.removeAll();
+			foreach (o; old) {
+				_toolsL.add(o.name);
+			}
+			_toolsL.select = selected;
+			_toolsL.showSelection();
+			selectOuterTool();
+			applyEnabled();
+		}
+		override void undo() {impl();}
+		override void redo() {impl();}
+		override void dispose() {
+			// Nothing
+		}
+	}
+	void storeTools() {
+		_undoTools ~= new UndoTools;
+	}
+	void undoTools() {
+		_undoTools.undo();
+	}
+	void redoTools() {
+		_undoTools.redo();
+	}
+	class UndoCEngines : Undo {
+		private ClassicEngine[] _old;
+		private int _selected;
+		this () {
+			save();
+		}
+		private void save() {
+			_old = _cEngines.dup;
+			_selected = _cEnginesL.getSelectionIndex;
+		}
+		private void impl() {
+			auto old = _old;
+			auto selected = _selected;
+			save();
+			_cEnginesL.setRedraw = false;
+			scope (exit) _cEnginesL.setRedraw = true;
+			_cEngines = old;
+			_cEnginesL.removeAll();
+			foreach (o; old) {
+				_cEnginesL.add(o.name);
+			}
+			_cEnginesL.select = selected;
+			_cEnginesL.showSelection();
+			selectCEngine();
+			applyEnabled();
+		}
+		override void undo() {impl();}
+		override void redo() {impl();}
+		override void dispose() {
+			// Nothing
+		}
+	}
+	void storeCEngines() {
+		_undoCEngines ~= new UndoCEngines;
+	}
+	void undoCEngines() {
+		_undoCEngines.undo();
+	}
+	void redoCEngines() {
+		_undoCEngines.redo();
+	}
+
 	Commons _comm;
 	Props _prop;
 	Summary _summ;
 	DockingFolderCTC _dock;
+	UndoManager _undoBgStgs;
+	UndoManager _undoTools;
+	UndoManager _undoCEngines;
 
 	CTabItem _tabB;
 	Text _enginePath;
@@ -90,6 +218,7 @@ private:
 	Spinner _bgImgW;
 	Spinner _bgImgH;
 	Button _bgImgMask;
+	Button _bgImgAlt;
 	Button _bgImgDel;
 	TextMenuModify[] _bgImgTMs;
 	Text _keyCodes;
@@ -104,6 +233,7 @@ private:
 	Text _toolWorkDir;
 	Button _toolWorkDirRef;
 	Button _toolWorkDirOpen;
+	Button _toolAlt;
 	Button _toolDel;
 	TextMenuModify[] _toolTMs;
 
@@ -120,6 +250,7 @@ private:
 	Text _cEngineExecute;
 	Button _cEngineExecuteRef;
 	Button _cEngineExecuteDirOpen;
+	Button _cEngineAlt;
 	Button _cEngineDel;
 	TextMenuModify[] _cEngineTMs;
 
@@ -177,21 +308,27 @@ private:
 		applyEnabled;
 	}
 	void upBgImage() {
+		storeBgStgs();
 		up(_bgStgsL, _bgStgs);
 	}
 	void downBgImage() {
+		storeBgStgs();
 		down(_bgStgsL, _bgStgs);
 	}
 	void upTool() {
+		storeTools();
 		up(_toolsL, _tools);
 	}
 	void downTool() {
+		storeTools();
 		down(_toolsL, _tools);
 	}
 	void upCEngine() {
+		storeCEngines();
 		up(_cEnginesL, _cEngines);
 	}
 	void downCEngine() {
+		storeCEngines();
 		down(_cEnginesL, _cEngines);
 	}
 	class DropFiles : DropTargetAdapter {
@@ -427,12 +564,6 @@ private:
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		int i = _bgStgsL.getSelectionIndex;
-		_bgImgName.setEnabled = i >= 0;
-		_bgImgX.setEnabled = i >= 0;
-		_bgImgY.setEnabled = i >= 0;
-		_bgImgW.setEnabled = i >= 0;
-		_bgImgH.setEnabled = i >= 0;
-		_bgImgMask.setEnabled = i >= 0;
 		_bgImgDel.setEnabled = i >= 0;
 		if (i >= 0) {
 			_bgImgName.setText = _bgStgs[i].name;
@@ -449,6 +580,7 @@ private:
 			_bgImgH.setSelection = 0;
 			_bgImgMask.setSelection = false;
 		}
+		_bgImgAlt.setEnabled = false;
 		foreach (tm; _bgImgTMs) {
 			tm.reset();
 		}
@@ -457,13 +589,6 @@ private:
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		int i = _toolsL.getSelectionIndex;
-		_toolName.setEnabled = i >= 0;
-		_toolCommand.setEnabled = i >= 0;
-		_toolCommandRef.setEnabled = i >= 0;
-		_toolCommandDirOpen.setEnabled = i >= 0;
-		_toolWorkDir.setEnabled = i >= 0;
-		_toolWorkDirRef.setEnabled = i >= 0;
-		_toolWorkDirOpen.setEnabled = i >= 0;
 		_toolDel.setEnabled = i >= 0;
 		if (i >= 0) {
 			_toolName.setText = _tools[i].name;
@@ -474,6 +599,7 @@ private:
 			_toolCommand.setText = "";
 			_toolWorkDir.setText = "";
 		}
+		_toolAlt.setEnabled = false;
 		foreach (tm; _toolTMs) {
 			tm.reset();
 		}
@@ -482,16 +608,6 @@ private:
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		int i = _cEnginesL.getSelectionIndex;
-		_cEngineName.setEnabled = i >= 0;
-		_cEnginePath.setEnabled = i >= 0;
-		_cEnginePathRef.setEnabled = i >= 0;
-		_cEnginePathDirOpen.setEnabled = i >= 0;
-		_cEngineDataDir.setEnabled = i >= 0;
-		_cEngineDataDirRef.setEnabled = i >= 0;
-		_cEngineDataDirOpen.setEnabled = i >= 0;
-		_cEngineExecute.setEnabled = i >= 0;
-		_cEngineExecuteRef.setEnabled = i >= 0;
-		_cEngineExecuteDirOpen.setEnabled = i >= 0;
 		_cEngineDel.setEnabled = i >= 0;
 		if (i >= 0) {
 			_cEngineName.setText = _cEngines[i].name;
@@ -504,6 +620,7 @@ private:
 			_cEngineDataDir.setText = "";
 			_cEngineExecute.setText = "";
 		}
+		_cEngineAlt.setEnabled = false;
 		foreach (tm; _cEngineTMs) {
 			tm.reset();
 		}
@@ -758,22 +875,7 @@ private:
 			}
 		}
 	}
-	class ModSpin(string Set) : ModifyListener {
-		// FIXME: テンプレート外へのアクセスでアクセス違反
-		private SettingsDialog _v;
-		this(SettingsDialog v) {
-			_v = v;
-		}
-		override void modifyText(ModifyEvent e) {
-			if (ignoreMod) return;
-			int i = _v._bgStgsL.getSelectionIndex;
-			if (i < 0) return;
-			auto spn = cast(Spinner) e.widget;
-			mixin ("_v." ~ Set);
-			applyEnabled;
-		}
-	}
-	Spinner createS(string Set)(SettingsDialog v, Composite parent, string name, int max, int min) {
+	Spinner createS(Composite parent, string name, int max, int min) {
 		auto l = new Label(parent, SWT.NONE);
 		l.setText = name;
 		auto spn = new Spinner(parent, SWT.BORDER);
@@ -781,7 +883,6 @@ private:
 		spn.setMaximum = max;
 		spn.setMinimum = min;
 		spn.setSelection = 0;
-		spn.addModifyListener(new ModSpin!(Set)(v));
 		return spn;
 	}
 	class DefBgSetting : SelectionAdapter {
@@ -822,56 +923,60 @@ private:
 			_prop.var.etc.bgImageSettingsSashR = ws[1];
 		}
 	}
-	class ModBgImgName : ModifyListener {
-		override void modifyText(ModifyEvent e) {
-			if (ignoreMod) return;
-			int i = _bgStgsL.getSelectionIndex;
-			if (i < 0 || _bgStgsL.getItem(i) == _bgImgName.getText) return;
-			_bgStgsL.setItem(i, _bgImgName.getText);
-			_bgStgs[i].name = _bgImgName.getText;
-			applyEnabled;
-		}
-	}
-	class PushBgImgStg : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
-			int i = _bgStgsL.getSelectionIndex;
-			if (i < 0) return;
-			_bgStgs[i].mask = _bgImgMask.getSelection;
-			applyEnabled;
-		}
-	}
 	void addBgImage(BgImageSetting bgStg) {
-		int index = _bgStgsL.getSelectionIndex;
-		if (index < 0) {
-			index = _bgStgs.length;
-			_bgStgs ~= bgStg;
-		} else {
-			_bgStgs = _bgStgs[0 .. index] ~ bgStg ~ _bgStgs[index .. $];
-		}
-		_bgStgsL.add(bgStg.name, index);
+		storeBgStgs();
+		int index = _bgStgsL.getItemCount;
+		_bgStgs ~= bgStg;
+		_bgStgsL.add(bgStg.name);
 		_bgStgsL.select = index;
-		selectBgImageSetting;
-		applyEnabled;
+		selectBgImageSetting();
+		applyEnabled();
 	}
 	class NewBgImgStg : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			addBgImage(BgImageSetting(_prop.msgs.newBgImageSettingName, 0, 0, 0, 0, false));
+			string name = _bgImgName.getText;
+			bool mask = _bgImgMask.getSelection;
+			int x = _bgImgX.getSelection;
+			int y = _bgImgY.getSelection;
+			int w = _bgImgW.getSelection;
+			int h = _bgImgH.getSelection;
+			addBgImage(BgImageSetting(name, x, y, w, h, mask));
 		}
+	}
+	void altBgImage() {
+		int i = _bgStgsL.getSelectionIndex;
+		if (-1 == i) return;
+		storeBgStgs();
+		_bgStgs[i].name = _bgImgName.getText;
+		_bgStgsL.setItem(i, _bgStgs[i].name);
+		_bgStgs[i].mask = _bgImgMask.getSelection;
+		_bgStgs[i].x = _bgImgX.getSelection;
+		_bgStgs[i].y = _bgImgY.getSelection;
+		_bgStgs[i].width = _bgImgW.getSelection;
+		_bgStgs[i].height = _bgImgH.getSelection;
+		_bgImgAlt.setEnabled = false;
+		applyEnabled();
 	}
 	void delBgImage() {
 		int i = _bgStgsL.getSelectionIndex;
 		if (i < 0) return;
+		storeBgStgs();
 		_bgStgsL.remove(i);
 		_bgStgs = _bgStgs[0 .. i] ~ _bgStgs[i + 1 .. $];
 		if (_bgStgs.length > 0) {
 			_bgStgsL.select = i < _bgStgs.length ? i : _bgStgs.length - 1;
 		}
-		selectBgImageSetting;
-		applyEnabled;
+		selectBgImageSetting();
+		applyEnabled();
+	}
+	class AltBgImgStg : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			altBgImage();
+		}
 	}
 	class DelBgImgStg : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			delBgImage;
+			delBgImage();
 		}
 	}
 	class DBgImgKeyCodeSash : DisposeListener {
@@ -915,6 +1020,25 @@ private:
 			return _bgStgsL.isFocusControl;
 		}
 	}
+	void modB(C)(Button button, List list, C ctrl) {
+		static if (is(C : Button)) {
+			ctrl.addSelectionListener(new class SelectionAdapter {
+				override void widgetSelected(SelectionEvent e) {
+					if (0 < list.getItemCount) {
+						button.setEnabled = true;
+					}
+				}
+			});
+		} else {
+			ctrl.addModifyListener(new class ModifyListener {
+				override void modifyText(ModifyEvent e) {
+					if (0 < list.getItemCount) {
+						button.setEnabled = true;
+					}
+				}
+			});
+		}
+	}
 	void construct2(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
 		_tabS = new CTabItem(tabf, SWT.NONE);
@@ -955,12 +1079,14 @@ private:
 				_bgStgsL.addSelectionListener(new SelBgImgStg);
 
 				auto menu = new Menu(_bgStgsL);
+				createMenuItem(menu, _prop.msgs.menuUndo, _prop.images.menuUndo, &undoBgStgs);
+				createMenuItem(menu, _prop.msgs.menuRedo, _prop.images.menuRedo, &redoBgStgs);
+				new MenuItem(menu, SWT.SEPARATOR);
 				createMenuItem(menu, _prop.msgs.menuUp, _prop.images.menuUp, &upBgImage);
 				createMenuItem(menu, _prop.msgs.menuDown, _prop.images.menuDown, &downBgImage);
 				new MenuItem(menu, SWT.SEPARATOR);
-				appendMenuTCPD(_prop, menu, new BgImagesTCPD);
+				appendMenuTCPD(_prop, menu, new BgImagesTCPD, true, true, true, true);
 				_bgStgsL.setMenu = menu;
-				usingPopupMenuAccelerator(_bgStgsL);
 
 				auto up = new Button(left, SWT.PUSH);
 				up.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
@@ -995,31 +1121,35 @@ private:
 					_bgImgMask = new Button(comp3, SWT.TOGGLE);
 					_bgImgMask.setImage = _prop.images.menuMask;
 					_bgImgMask.setToolTipText = _prop.msgs.ttMask;
-					_bgImgName.addModifyListener(new ModBgImgName);
-					_bgImgMask.addSelectionListener(new PushBgImgStg);
 				}
-				_bgImgX = createS!("_bgStgs[i].x = spn.getSelection;")
-					(this, comp2, _prop.msgs.left, _prop.looks.posLeftMax, _prop.looks.posLeftMin);
-				_bgImgY = createS!("_bgStgs[i].y = spn.getSelection;")
-					(this, comp2, _prop.msgs.top, _prop.looks.posTopMax, _prop.looks.posTopMin);
-				_bgImgW = createS!("_bgStgs[i].width = spn.getSelection;")
-					(this, comp2, _prop.msgs.width, _prop.looks.backWidthMax, _prop.looks.backWidthMin);
-				_bgImgH = createS!("_bgStgs[i].height = spn.getSelection;")
-					(this, comp2, _prop.msgs.height, _prop.looks.backHeightMax, _prop.looks.backHeightMin);
+				_bgImgX = createS(comp2, _prop.msgs.left, _prop.looks.posLeftMax, _prop.looks.posLeftMin);
+				_bgImgY = createS(comp2, _prop.msgs.top, _prop.looks.posTopMax, _prop.looks.posTopMin);
+				_bgImgW = createS(comp2, _prop.msgs.width, _prop.looks.backWidthMax, _prop.looks.backWidthMin);
+				_bgImgH = createS(comp2, _prop.msgs.height, _prop.looks.backHeightMax, _prop.looks.backHeightMin);
 			}
 			{
 				auto buttons = new Composite(right, SWT.NONE);
 				buttons.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
-				buttons.setLayout = zeroMarginGridLayout(2, true);
+				buttons.setLayout = zeroMarginGridLayout(3, true);
 				auto newBstg = new Button(buttons, SWT.PUSH);
 				newBstg.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				newBstg.setText = _prop.msgs.newBgImageSetting;
 				newBstg.addSelectionListener(new NewBgImgStg);
+				_bgImgAlt = new Button(buttons, SWT.PUSH);
+				_bgImgAlt.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+				_bgImgAlt.setText = _prop.msgs.altBgImageSetting;
+				_bgImgAlt.addSelectionListener(new AltBgImgStg);
 				_bgImgDel = new Button(buttons, SWT.PUSH);
 				_bgImgDel.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				_bgImgDel.setText = _prop.msgs.delBgImageSetting;
 				_bgImgDel.addSelectionListener(new DelBgImgStg);
 			}
+			modB(_bgImgAlt, _bgStgsL, _bgImgName);
+			modB(_bgImgAlt, _bgStgsL, _bgImgMask);
+			modB(_bgImgAlt, _bgStgsL, _bgImgX);
+			modB(_bgImgAlt, _bgStgsL, _bgImgY);
+			modB(_bgImgAlt, _bgStgsL, _bgImgW);
+			modB(_bgImgAlt, _bgStgsL, _bgImgH);
 		}
 		{
 			auto grp = new Group(sash, SWT.NONE);
@@ -1050,30 +1180,11 @@ private:
 			downTool;
 		}
 	}
-	class ModOutToolName : ModifyListener {
-		override void modifyText(ModifyEvent e) {
-			if (ignoreMod) return;
-			int i = _toolsL.getSelectionIndex;
-			if (i < 0 || _toolsL.getItem(i) == _toolName.getText) return;
-			_toolsL.setItem(i, _toolName.getText);
-			_tools[i].name = _toolName.getText;
-			applyEnabled;
-		}
-	}
 	class PushToolCmdRef : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
 			int i = _toolsL.getSelectionIndex;
 			if (i < 0) return;
 			selectProgram(i);
-			applyEnabled;
-		}
-	}
-	class ModToolCmd : ModifyListener {
-		override void modifyText(ModifyEvent e) {
-			if (ignoreMod) return;
-			int i = _toolsL.getSelectionIndex;
-			if (i < 0) return;
-			_tools[i].command = _toolCommand.getText;
 			applyEnabled;
 		}
 	}
@@ -1085,47 +1196,54 @@ private:
 			applyEnabled;
 		}
 	}
-	class ModToolWorkDir : ModifyListener {
-		override void modifyText(ModifyEvent e) {
-			if (ignoreMod) return;
-			int i = _toolsL.getSelectionIndex;
-			if (i < 0) return;
-			_tools[i].workDir = _toolWorkDir.getText;
-			applyEnabled;
-		}
-	}
 	void addTool(OuterTool tool) {
-		int index = _toolsL.getSelectionIndex;
-		if (index < 0) {
-			index = _tools.length;
-			_tools ~= tool;
-		} else {
-			_tools = _tools[0 .. index] ~ tool ~ _tools[index .. $];
-		}
-		_toolsL.add(tool.name, index);
+		storeTools();
+		int index = _toolsL.getItemCount;
+		_tools ~= tool;
+		_toolsL.add(tool.name);
 		_toolsL.select = index;
-		selectOuterTool;
-		applyEnabled;
+		selectOuterTool();
+		applyEnabled();
 	}
 	class NewOutTool : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			addTool(OuterTool(_prop.msgs.newOuterToolName, "", ""));
+			string name = _toolName.getText;
+			string commnad = _toolCommand.getText;
+			string workDir = _toolWorkDir.getText;
+			addTool(OuterTool(name, commnad, workDir));
 		}
+	}
+	void altTool() {
+		int i = _toolsL.getSelectionIndex;
+		if (-1 == i) return;
+		storeTools();
+		_tools[i].name = _toolName.getText;
+		_toolsL.setItem(i, _tools[i].name);
+		_tools[i].command = _toolCommand.getText;
+		_tools[i].workDir = _toolWorkDir.getText;
+		_toolAlt.setEnabled = false;
+		applyEnabled();
 	}
 	void delTool() {
 		int i = _toolsL.getSelectionIndex;
 		if (i < 0) return;
+		storeTools();
 		_toolsL.remove(i);
 		_tools = _tools[0 .. i] ~ _tools[i + 1 .. $];
 		if (_tools.length > 0) {
 			_toolsL.select = i < _tools.length ? i : _tools.length - 1;
 		}
-		selectOuterTool;
-		applyEnabled;
+		selectOuterTool();
+		applyEnabled();
+	}
+	class AltOutTool : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			altTool();
+		}
 	}
 	class DelOutTool : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			delTool;
+			delTool();
 		}
 	}
 	class DOutToolsSash : DisposeListener {
@@ -1170,30 +1288,11 @@ private:
 		}
 	}
 
-	class ModCEngineName : ModifyListener {
-		override void modifyText(ModifyEvent e) {
-			if (ignoreMod) return;
-			int i = _cEnginesL.getSelectionIndex;
-			if (i < 0 || _cEnginesL.getItem(i) == _cEngineName.getText) return;
-			_cEnginesL.setItem(i, _cEngineName.getText);
-			_cEngines[i].name = _cEngineName.getText;
-			applyEnabled;
-		}
-	}
 	class PushCEngineRef : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
 			int i = _cEnginesL.getSelectionIndex;
 			if (i < 0) return;
 			selectCEnginePath(i);
-			applyEnabled;
-		}
-	}
-	class ModCEnginePath : ModifyListener {
-		override void modifyText(ModifyEvent e) {
-			if (ignoreMod) return;
-			int i = _cEnginesL.getSelectionIndex;
-			if (i < 0) return;
-			_cEngines[i].enginePath = _cEnginePath.getText;
 			applyEnabled;
 		}
 	}
@@ -1205,56 +1304,56 @@ private:
 			applyEnabled;
 		}
 	}
-	class ModCEngineDataDir : ModifyListener {
-		override void modifyText(ModifyEvent e) {
-			if (ignoreMod) return;
-			int i = _cEnginesL.getSelectionIndex;
-			if (i < 0) return;
-			_cEngines[i].dataDirName = _cEngineDataDir.getText;
-			applyEnabled;
-		}
-	}
-	class ModCEngineExecute : ModifyListener {
-		override void modifyText(ModifyEvent e) {
-			if (ignoreMod) return;
-			int i = _cEnginesL.getSelectionIndex;
-			if (i < 0) return;
-			_cEngines[i].execute = _cEngineExecute.getText;
-			applyEnabled;
-		}
-	}
 	void addCEngine(ClassicEngine cEngine) {
-		int index = _cEnginesL.getSelectionIndex;
-		if (index < 0) {
-			index = _cEngines.length;
-			_cEngines ~= cEngine;
-		} else {
-			_cEngines = _cEngines[0 .. index] ~ cEngine ~ _cEngines[index .. $];
-		}
-		_cEnginesL.add(cEngine.name, index);
+		storeCEngines();
+		int index = _cEnginesL.getItemCount;
+		_cEngines ~= cEngine;
+		_cEnginesL.add(cEngine.name);
 		_cEnginesL.select = index;
 		selectCEngine();
-		applyEnabled;
+		applyEnabled();
 	}
 	class NewCEngine : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			addCEngine(ClassicEngine(_prop.msgs.newClassicEngineName));
+			string name = _cEngineName.getText;
+			string path = _cEnginePath.getText;
+			string dataDir = _cEngineDataDir.getText;
+			string execute = _cEngineExecute.getText;
+			addCEngine(ClassicEngine(name, path, dataDir, execute));
 		}
+	}
+	void altCEngine() {
+		int i = _cEnginesL.getSelectionIndex;
+		if (-1 == i) return;
+		storeCEngines();
+		_cEngines[i].name = _cEngineName.getText;
+		_cEnginesL.setItem(i, _cEngines[i].name);
+		_cEngines[i].enginePath = _cEnginePath.getText;
+		_cEngines[i].dataDirName = _cEngineDataDir.getText;
+		_cEngines[i].execute = _cEngineExecute.getText;
+		_cEngineAlt.setEnabled = false;
+		applyEnabled();
 	}
 	void delCEngine() {
 		int i = _cEnginesL.getSelectionIndex;
 		if (i < 0) return;
+		storeCEngines();
 		_cEnginesL.remove(i);
 		_cEngines = _cEngines[0 .. i] ~ _cEngines[i + 1 .. $];
 		if (_cEngines.length > 0) {
 			_cEnginesL.select = i < _cEngines.length ? i : _cEngines.length - 1;
 		}
 		selectCEngine();
-		applyEnabled;
+		applyEnabled();
+	}
+	class AltCEngine : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			altCEngine();
+		}
 	}
 	class DelCEngine : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			delCEngine;
+			delCEngine();
 		}
 	}
 	class SelCEngine : SelectionAdapter {
@@ -1349,12 +1448,14 @@ private:
 				_cEnginesL.addSelectionListener(new SelCEngine);
 
 				auto menu = new Menu(_cEnginesL);
+				createMenuItem(menu, _prop.msgs.menuUndo, _prop.images.menuUndo, &undoCEngines);
+				createMenuItem(menu, _prop.msgs.menuRedo, _prop.images.menuRedo, &undoCEngines);
+				new MenuItem(menu, SWT.SEPARATOR);
 				createMenuItem(menu, _prop.msgs.menuUp, _prop.images.menuUp, &upCEngine);
 				createMenuItem(menu, _prop.msgs.menuDown, _prop.images.menuDown, &downCEngine);
 				new MenuItem(menu, SWT.SEPARATOR);
-				appendMenuTCPD(_prop, menu, new CEnginesTCPD);
+				appendMenuTCPD(_prop, menu, new CEnginesTCPD, true, true, true, true);
 				_cEnginesL.setMenu = menu;
-				usingPopupMenuAccelerator(_cEnginesL);
 
 				auto up = new Button(left, SWT.PUSH);
 				up.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
@@ -1382,7 +1483,6 @@ private:
 					gd.horizontalSpan = 3;
 					gd.widthHint = _prop.var.etc.classicEnginesNameWidth;
 					_cEngineName.setLayoutData = gd;
-					_cEngineName.addModifyListener(new ModCEngineName);
 				}
 				{
 					auto l = new Label(comp2, SWT.NONE);
@@ -1395,7 +1495,6 @@ private:
 					_cEnginePathRef = new Button(comp2, SWT.PUSH);
 					_cEnginePathRef.setText = _prop.msgs.reference;
 					_cEnginePathRef.addSelectionListener(new PushCEnginePathRef);
-					_cEnginePath.addModifyListener(new ModCEnginePath);
 					_cEnginePathDirOpen = createOpenButton(comp2, _cEnginePath, false);
 					setupDropFile(_cEnginePath, _cEnginePath, &dropCEnginePath, &dropCEnginePath);
 				}
@@ -1405,7 +1504,6 @@ private:
 					_cEngineDataDir = new Text(comp2, SWT.BORDER);
 					_cEngineTMs ~= createTextMenu!Text(_prop, _cEngineDataDir, &catchMod);
 					_cEngineDataDir.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-					_cEngineDataDir.addModifyListener(new ModCEngineDataDir);
 
 					_cEngineDataDirRef = new Button(comp2, SWT.PUSH);
 					_cEngineDataDirRef.setText = _prop.msgs.reference;
@@ -1419,7 +1517,6 @@ private:
 					_cEngineExecute = new Text(comp2, SWT.BORDER);
 					_cEngineTMs ~= createTextMenu!Text(_prop, _cEngineExecute, &catchMod);
 					_cEngineExecute.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-					_cEngineExecute.addModifyListener(new ModCEngineExecute);
 
 					_cEngineExecuteRef = new Button(comp2, SWT.PUSH);
 					_cEngineExecuteRef.setText = _prop.msgs.reference;
@@ -1438,16 +1535,24 @@ private:
 			{
 				auto buttons = new Composite(right, SWT.NONE);
 				buttons.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
-				buttons.setLayout = zeroMarginGridLayout(2, true);
+				buttons.setLayout = zeroMarginGridLayout(3, true);
 				auto newCEngine = new Button(buttons, SWT.PUSH);
 				newCEngine.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				newCEngine.setText = _prop.msgs.newClassicEngine;
 				newCEngine.addSelectionListener(new NewCEngine);
+				_cEngineAlt = new Button(buttons, SWT.PUSH);
+				_cEngineAlt.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+				_cEngineAlt.setText = _prop.msgs.altClassicEngine;
+				_cEngineAlt.addSelectionListener(new AltCEngine);
 				_cEngineDel = new Button(buttons, SWT.PUSH);
 				_cEngineDel.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				_cEngineDel.setText = _prop.msgs.delClassicEngine;
 				_cEngineDel.addSelectionListener(new DelCEngine);
 			}
+			modB(_cEngineAlt, _cEnginesL, _cEngineName);
+			modB(_cEngineAlt, _cEnginesL, _cEnginePath);
+			modB(_cEngineAlt, _cEnginesL, _cEngineDataDir);
+			modB(_cEngineAlt, _cEnginesL, _cEngineExecute);
 			sash.setWeights = [_prop.var.etc.classicEnginesSashL, _prop.var.etc.classicEnginesSashR];
 			sash.addDisposeListener(new DCEnginesSash);
 		}
@@ -1479,12 +1584,14 @@ private:
 				_toolsL.addSelectionListener(new SelOutTools);
 
 				auto menu = new Menu(_toolsL);
+				createMenuItem(menu, _prop.msgs.menuUndo, _prop.images.menuUndo, &undoTools);
+				createMenuItem(menu, _prop.msgs.menuRedo, _prop.images.menuRedo, &redoTools);
+				new MenuItem(menu, SWT.SEPARATOR);
 				createMenuItem(menu, _prop.msgs.menuUp, _prop.images.menuUp, &upTool);
 				createMenuItem(menu, _prop.msgs.menuDown, _prop.images.menuDown, &downTool);
 				new MenuItem(menu, SWT.SEPARATOR);
-				appendMenuTCPD(_prop, menu, new ToolsTCPD);
+				appendMenuTCPD(_prop, menu, new ToolsTCPD, true, true, true, true);
 				_toolsL.setMenu = menu;
-				usingPopupMenuAccelerator(_toolsL);
 
 				auto up = new Button(left, SWT.PUSH);
 				up.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
@@ -1511,7 +1618,6 @@ private:
 					auto gd = new GridData(GridData.FILL_HORIZONTAL);
 					gd.horizontalSpan = 3;
 					_toolName.setLayoutData = gd;
-					_toolName.addModifyListener(new ModOutToolName);
 				}
 				{
 					auto l = new Label(comp2, SWT.NONE);
@@ -1524,7 +1630,6 @@ private:
 					_toolCommandRef = new Button(comp2, SWT.PUSH);
 					_toolCommandRef.setText = _prop.msgs.reference;
 					_toolCommandRef.addSelectionListener(new PushToolCmdRef);
-					_toolCommand.addModifyListener(new ModToolCmd);
 					_toolCommandDirOpen = createOpenButton(comp2, _toolCommand, false);
 					setupDropFile(_toolCommand, _toolCommand, &dropDefault);
 				}
@@ -1539,7 +1644,6 @@ private:
 					_toolWorkDirRef = new Button(comp2, SWT.PUSH);
 					_toolWorkDirRef.setText = _prop.msgs.reference;
 					_toolWorkDirRef.addSelectionListener(new PushToolWorkDirRef);
-					_toolWorkDir.addModifyListener(new ModToolWorkDir);
 					_toolWorkDirOpen = createOpenButton(comp2, _toolWorkDir, true);
 					setupDropFile(_toolWorkDir, _toolWorkDir, &dropDir);
 				}
@@ -1570,16 +1674,23 @@ private:
 			{
 				auto buttons = new Composite(right, SWT.NONE);
 				buttons.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
-				buttons.setLayout = zeroMarginGridLayout(2, true);
+				buttons.setLayout = zeroMarginGridLayout(3, true);
 				auto newTool = new Button(buttons, SWT.PUSH);
 				newTool.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				newTool.setText = _prop.msgs.newOuterTool;
 				newTool.addSelectionListener(new NewOutTool);
+				_toolAlt = new Button(buttons, SWT.PUSH);
+				_toolAlt.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+				_toolAlt.setText = _prop.msgs.altOuterTool;
+				_toolAlt.addSelectionListener(new AltOutTool);
 				_toolDel = new Button(buttons, SWT.PUSH);
 				_toolDel.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				_toolDel.setText = _prop.msgs.delOuterTool;
 				_toolDel.addSelectionListener(new DelOutTool);
 			}
+			modB(_toolAlt, _toolsL, _toolName);
+			modB(_toolAlt, _toolsL, _toolCommand);
+			modB(_toolAlt, _toolsL, _toolWorkDir);
 			sash.setWeights = [_prop.var.etc.outerToolsSashL, _prop.var.etc.outerToolsSashR];
 			sash.addDisposeListener(new DOutToolsSash);
 		}
@@ -1682,6 +1793,9 @@ public:
 		_prop = prop;
 		_dock = dock;
 		_summ = summ;
+		_undoBgStgs = new UndoManager(1024);
+		_undoTools = new UndoManager(1024);
+		_undoCEngines = new UndoManager(1024);
 	}
 
 protected:
@@ -1743,7 +1857,7 @@ protected:
 		}
 		if (_bgStgs.length > 0) _bgStgsL.select = 0;
 		_bgImagesDefault = _prop.var.etc.bgImagesDefault.dup;
-		selectBgImageSetting;
+		selectBgImageSetting();
 
 		string buf = "";
 		foreach (kc; _prop.var.etc.standardKeyCodes) {

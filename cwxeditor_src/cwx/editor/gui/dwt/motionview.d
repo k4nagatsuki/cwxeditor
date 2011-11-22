@@ -18,6 +18,7 @@ import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.effectcarddialog;
 import cwx.editor.gui.dwt.xmlbytestransfer;
+import cwx.editor.gui.dwt.undo;
 
 import std.string;
 import std.datetime;
@@ -80,11 +81,187 @@ public:
 	/// 効果の変更時に呼び出される。
 	void delegate()[] modEvent;
 private:
+	static class MVUndo : Undo {
+		protected MotionView _v = null;
+		protected Commons comm;
+
+		private int _selected = -1, _selectedB = -1;
+
+		this (MotionView v, Commons comm) {
+			_v = v;
+			this.comm = comm;
+
+			save(v);
+		}
+		private void save(MotionView v) {
+			if (!v || v.isDisposed) return;
+			_selected = v._motions.getSelectionIndex;
+		}
+		abstract override void undo();
+		abstract override void redo();
+		abstract override void dispose();
+		protected void udb(MotionView v) {
+			_selectedB = _selected;
+			save(v);
+		}
+		protected void uda(MotionView v) {
+			if (!v || v.isDisposed) return;
+			v._motions.select = _selectedB;
+			v._motions.showSelection();
+			v.refreshSels(true);
+		}
+		protected MotionView view() {
+			return _v;
+		}
+	}
+	static class UndoEdit : MVUndo {
+		private Motion _old;
+		private int _index;
+		this (MotionView v, Commons comm, int index) {
+			super (v, comm);
+			_old = v.motion(index).dup;
+			_old.setUseCounter(comm.summary.useCounter.sub);
+			_index = index;
+		}
+		private void impl() {
+			auto v = view();
+			udb(v);
+			scope (exit) uda(v);
+			if (!v || v.isDisposed) return;
+			auto old = _old;
+			_old.removeUseCounter();
+			_old = v.motion(_index).dup;
+			_old.setUseCounter(comm.summary.useCounter.sub);
+			v.motion(_index, old);
+		}
+		override void undo() {impl();}
+		override void redo() {impl();}
+		override void dispose() {
+			_old.removeUseCounter();
+		}
+	}
+	void storeEdit(int index) {
+		_undo ~= new UndoEdit(this, _comm, index);
+	}
+	static class UndoSwap : MVUndo {
+		private int _index1, _index2;
+		this (MotionView v, Commons comm, int index1, int index2) {
+			super (v, comm);
+			_index1 = index1;
+			_index2 = index2;
+		}
+		private void impl() {
+			auto v = view();
+			udb(v);
+			scope (exit) uda(v);
+			if (!v || v.isDisposed) return;
+			v.swap(_index1, _index2, false);
+		}
+		override void undo() {impl();}
+		override void redo() {impl();}
+		override void dispose() {}
+	}
+	void storeSwap(int index1, int index2) {
+		_undo ~= new UndoSwap(this, _comm, index1, index2);
+	}
+	static class UndoMove : MVUndo {
+		private int _from, _to;
+		this (MotionView v, Commons comm, int from, int to) {
+			super (v, comm);
+			_from = from;
+			_to = to;
+			if (_from < _to) _to--;
+		}
+		private void impl() {
+			auto v = view();
+			udb(v);
+			scope (exit) uda(v);
+			if (!v || v.isDisposed) return;
+			int from = _from;
+			int to = _to;
+			auto m = v.motion(to);
+			v.removeMotion(to, false, false, false);
+			v.appendMotion(m, from, true, true, false);
+			std.algorithm.swap(_from, _to);
+		}
+		override void undo() {impl();}
+		override void redo() {impl();}
+		override void dispose() {}
+	}
+	void storeMove(int from, int to) {
+		_undo ~= new UndoMove(this, _comm, from, to);
+	}
+	static class UndoInsertDelete : MVUndo {
+		private bool _insert;
+
+		private int _index;
+
+		private Motion _m = null;
+
+		this (MotionView v, Commons comm, int index, bool insert) {
+			super (v, comm);
+			_insert = insert;
+			_index = index;
+
+			if (!insert) {
+				initUndoDelete(v);
+			}
+		}
+		private void initUndoDelete(MotionView v) {
+			if (!v || v.isDisposed) return;
+			_m = v.motion(_index).dup;
+			_m.setUseCounter(comm.summary.useCounter.sub);
+		}
+		private void undoInsert() {
+			auto v = view();
+			udb(v);
+			scope (exit) uda(v);
+			_insert = false;
+			initUndoDelete(v);
+			if (!v || v.isDisposed) return;
+			v.removeMotion(_index, true, true, false);
+		}
+		void undoDelete() {
+			auto v = view();
+			udb(v);
+			scope (exit) uda(v);
+			if (!v || v.isDisposed) return;
+			auto m = _m;
+			_m.removeUseCounter();
+			_m = null;
+			_insert = true;
+			v.appendMotion(m, _index, true, true, false);
+		}
+		override void undo() {
+			if (_insert) {
+				undoInsert();
+			} else {
+				undoDelete();
+			}
+		}
+		override void redo() {
+			undo();
+		}
+		override void dispose() {
+			if (_m) {
+				_m.removeUseCounter();
+			}
+		}
+	}
+	void storeInsert(int index) {
+		_undo ~= new UndoInsertDelete(this, _comm, index, true);
+	}
+	void storeDelete(int index) {
+		_undo ~= new UndoInsertDelete(this, _comm, index, false);
+	}
+
 	string _id;
 
 	Commons _comm;
 	Props _prop;
 	Summary _summ;
+	UndoManager _undo;
+	KeyDownFilter _kdFilter;
 
 	Table _motions;
 	Combo _beasts;
@@ -102,38 +279,70 @@ private:
 	Image[TypeInfo] _imgMsns;
 	Image[Element] _imgElm;
 
+	Motion motion(int index) {
+		return cast(Motion) _motions.getItem(index).getData;
+	}
+	void motion(int index, Motion m) {
+		_motions.getItem(index).setData = m;
+		if (index == _motions.getSelectionIndex) {
+			refreshSels();
+		}
+	}
 	Motion selection() {
-		if (_motions.getSelectionIndex >= 0) {
-			return cast(Motion) _motions.getItem(_motions.getSelectionIndex).getData;
+		int i = _motions.getSelectionIndex;
+		if (i >= 0) {
+			return motion(i);
 		}
 		return null;
 	}
 	class DamageTypeListener : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			selection.damageType = getRadioValue!(DamageType)(_dmgTyp);
-			foreach (dlg; modEvent) dlg();
+			auto m = selection;
+			if (!m) return;
+			auto val = getRadioValue!(DamageType)(_dmgTyp);
+			if (m.damageType != val) {
+				storeEdit(_motions.getSelectionIndex);
+				m.damageType = val;
+				foreach (dlg; modEvent) dlg();
+			}
 		}
 	}
 	class AbiValListener : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			selection.aValue = _abiVal.getSelection - Motion.aValue_max;
-			foreach (dlg; modEvent) dlg();
+			auto m = selection;
+			if (!m) return;
+			auto val = _abiVal.getSelection - Motion.aValue_max;
+			if (m.aValue != val) {
+				storeEdit(_motions.getSelectionIndex);
+				m.aValue = val;
+				foreach (dlg; modEvent) dlg();
+			}
 		}
 	}
 	void roundEnter(int value) {
-		selection.round = value;
-		foreach (dlg; modEvent) dlg();
+		auto m = selection;
+		if (!m) return;
+		if (m.round != value) {
+			storeEdit(_motions.getSelectionIndex);
+			m.round = value;
+			foreach (dlg; modEvent) dlg();
+		}
 	}
 	int roundCancel(int oldVal) {
-		selection.round = oldVal;
+		roundEnter(oldVal);
 		return oldVal;
 	}
 	void valEnter(int value) {
-		selection.uValue = value;
-		foreach (dlg; modEvent) dlg();
+		auto m = selection;
+		if (!m) return;
+		if (m.uValue != value) {
+			storeEdit(_motions.getSelectionIndex);
+			m.uValue = value;
+			foreach (dlg; modEvent) dlg();
+		}
 	}
 	int valCancel(int oldVal) {
-		selection.uValue = oldVal;
+		valEnter(oldVal);
 		return oldVal;
 	}
 
@@ -153,7 +362,7 @@ private:
 				m.beast = null;
 				v.appendMotion(m);
 				v._motions.select(v._motions.getItemCount - 1);
-				v.__refreshSels;
+				v.refreshSels();
 				foreach (dlg; v.modEvent) dlg();
 			}
 		}
@@ -161,6 +370,12 @@ private:
 		mt.v = v;
 		mt.type = type;
 		createToolItem(tbar, tt, _prop.images.motion(type), &mt.create);
+	}
+	int indexOf(Motion m) {
+		foreach (i, itm; _motions.getItems) {
+			if (m is itm.getData) return i;
+		}
+		return -1;
 	}
 	private EffectCardDialog!(BeastCard) _beastDlg = null;
 	void editBeastM() {
@@ -176,6 +391,9 @@ private:
 				} else {
 					_beastDlg = new EffectCardDialog!(BeastCard)(_comm, _prop, getShell, _summ, b);
 					_beastDlg.open;
+					_beastDlg.applyEvent ~= {
+						storeEdit(indexOf(m));
+					};
 					_beastDlg.appliedEvent ~= {
 						foreach (dlg; modEvent) dlg();
 					};
@@ -192,12 +410,12 @@ private:
 	override:
 		void mouseDoubleClick(MouseEvent e) {
 			if (e.button == 1) {
-				editBeast;
+				editBeast();
 			}
 		}
 		void mouseDown(MouseEvent e) {
 			auto ctrl = cast(Control) e.widget;
-			ctrl.setFocus;
+			ctrl.setFocus();
 		}
 		void keyReleased(KeyEvent e) {}
 		void keyPressed(KeyEvent e) {
@@ -208,7 +426,8 @@ private:
 			}
 		}
 	}
-	void swap(int index1, int index2) {
+	void swap(int index1, int index2, bool store) {
+		if (store) storeSwap(index1, index2);
 		auto itm1 = _motions.getItem(index1);
 		auto itm2 = _motions.getItem(index2);
 		auto img = itm1.getImage;
@@ -225,26 +444,32 @@ private:
 	void up() {
 		int index = _motions.getSelectionIndex;
 		if (index > 0) {
-			swap(index, index - 1);
+			swap(index, index - 1, true);
 			_motions.select(index - 1);
 		}
 	}
 	void down() {
 		int index = _motions.getSelectionIndex;
 		if (index >= 0 && index + 1 < _motions.getItemCount) {
-			swap(index, index + 1);
+			swap(index, index + 1, true);
 			_motions.select(index + 1);
 		}
 	}
 	void removeMotion() {
+		removeMotion(-1, true, true, true);
+	}
+	void removeMotion(int index, bool callEvent, bool callMod, bool store) {
 		bool oldVan = hasVan;
 		scope (exit) {
-			if (oldVan != hasVan) {
+			if (callEvent && oldVan != hasVan) {
 				foreach (we; warningEvent) we();
 			}
 		}
-		int index = _motions.getSelectionIndex;
+		if (-1 == index) {
+			index = _motions.getSelectionIndex;
+		}
 		if (index >= 0) {
+			if (store) storeDelete(index);
 			auto m = cast(Motion) _motions.getItem(index).getData;
 			assert (m);
 			if (m.beast) {
@@ -256,12 +481,14 @@ private:
 				_motions.select = index;
 			}
 			_oldIndex = -1;
-			_motions.redraw;
-			__refreshSels;
-			foreach (dlg; modEvent) dlg();
+			_motions.redraw();
+			refreshSels();
+			if (callMod) {
+				foreach (dlg; modEvent) dlg();
+			}
 		}
 	}
-	void appendMotion(Motion motion, int index = -1, bool callEvent = true) {
+	void appendMotion(Motion motion, int index = -1, bool callEvent = true, bool callMod = false, bool store = true) {
 		bool oldVan;
 		if (callEvent) {
 			oldVan = hasVan;
@@ -272,7 +499,10 @@ private:
 			}
 		}
 		TableItem itm;
-		if (index >= 0) {
+		if (store) {
+			storeInsert(0 <= index ? index : _motions.getItemCount);
+		}
+		if (0 <= index) {
 			itm = new TableItem(_motions, SWT.NONE, index);
 		} else {
 			itm = new TableItem(_motions, SWT.NONE);
@@ -280,6 +510,9 @@ private:
 		itm.setImage = _prop.images.motion(motion.type);
 		itm.setText = _descs[motion.type];
 		itm.setData = motion;
+		if (callMod) {
+			foreach (dlg; modEvent) dlg();
+		}
 	}
 	Composite _editComp;
 	Composite _noneComp;
@@ -288,7 +521,7 @@ private:
 	Composite _abilityComp;
 	Composite _summonComp;
 	int _oldIndex = -1;
-	void __refreshSels() {
+	void refreshSels(bool force = false) {
 		auto sels = _motions.getSelection;
 		auto stack = cast(StackLayout) _editComp.getLayout;
 		_motionElm.setEnabled = sels.length > 0;
@@ -297,7 +530,7 @@ private:
 			stack.topControl = _noneComp;
 			_editComp.layout;
 			_oldIndex = -1;
-		} else if (_oldIndex != _motions.getSelectionIndex) {
+		} else if (force || _oldIndex != _motions.getSelectionIndex) {
 			_oldIndex = _motions.getSelectionIndex;
 			auto m = cast(Motion) sels[0].getData;
 			foreach (i, itm; _motionElm.getItems) {
@@ -346,16 +579,20 @@ private:
 	}
 	class ParamPaneChange : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			__refreshSels;
+			refreshSels();
 		}
 	}
 	class SetBeast : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
 			int index = _beasts.getSelectionIndex;
 			if (index >= 0) {
-				auto sb = cast(Motion) _motions.getItem(_motions.getSelectionIndex).getData;
+				int mi = _motions.getSelectionIndex;
+				auto sb = cast(Motion) _motions.getItem(mi).getData;
+				auto b = _beastTbl[index];
+				if (!sb.beast && !b) return;
+				storeEdit(mi);
 				if (sb.beast) _comm.delBeast.call(sb.beast);
-				sb.beast = _beastTbl[index];
+				sb.beast = b;
 				_beastImg.redraw;
 				foreach (dlg; modEvent) dlg();
 			}
@@ -400,16 +637,25 @@ private:
 				scope p = (cast(DropTarget) e.getSource).getControl.toControl(e.x, e.y);
 				auto t = _motions.getItem(p);
 				int index = t ? _motions.indexOf(t) : _motions.getItemCount;
-				appendMotion(Motion.createFromNode(node, LATEST_VERSION), index);
+				auto m = Motion.createFromNode(node, LATEST_VERSION);
 				if (_id == node.attr("paneId", false)) {
+					if (-1 != _dragIndex) {
+						storeMove(_dragIndex, index);
+						appendMotion(m, index, true, false, false);
+					} else {
+						appendMotion(m, index, true, false, true);
+					}
 					_motions.select(index);
-					__refreshSels;
+					refreshSels();
 					e.detail = DND.DROP_MOVE;
+				} else {
+					appendMotion(m, index, true, false, true);
 				}
 				foreach (dlg; modEvent) dlg();
 			} catch {}
 		}
 	}
+	private int _dragIndex = -1;
 	class MDragListener : DragSourceAdapter {
 		private TableItem _itm;
 		override void dragStart(DragSourceEvent e) {
@@ -421,6 +667,7 @@ private:
 				int index = c.getSelectionIndex;
 				if (index >= 0) {
 					auto m = cast(Motion) c.getItem(index).getData;
+					_dragIndex = index;
 					auto node = m.toNode;
 					node.newAttr("paneId", _id);
 					e.data = bytesFromXML(node.text);
@@ -429,6 +676,7 @@ private:
 			}
 		}
 		override void dragFinished(DragSourceEvent e) {
+			_dragIndex = -1;
 			if (e.detail == DND.DROP_MOVE) {
 				bool oldVan = hasVan;
 				scope (exit) {
@@ -456,6 +704,7 @@ private:
 		override void widgetSelected(SelectionEvent e) {
 			auto m = selection;
 			if (m) {
+				storeEdit(_motions.getSelectionIndex);
 				bool oldVan = hasVan;
 				scope (exit) {
 					if (oldVan != hasVan) {
@@ -467,13 +716,56 @@ private:
 			}
 		}
 	}
+	class Dispose : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			_comm.refBeast.remove(&refBeast);
+			_comm.delBeast.remove(&refBeast);
+			getDisplay.removeFilter(SWT.KeyDown, _kdFilter);
+		}
+	}
+	class KeyDownFilter : Listener {
+		private int _undoAcc;
+		private int _redoAcc;
+		this () {
+			_undoAcc = convertAccelerator(_prop.msgs.menuUndo);
+			_redoAcc = convertAccelerator(_prop.msgs.menuRedo);
+		}
+		override void handleEvent(Event e) {
+			auto c = cast(Control) e.widget;
+			if (!c || c.getShell !is getShell) return;
+			if (!isDescendant(this.outer, c)) return;
+			if (eqAcc(_undoAcc, e.keyCode, e.character, e.stateMask)) {
+				_undo.undo();
+				e.doit = false;
+			} else if (eqAcc(_redoAcc, e.keyCode, e.character, e.stateMask)) {
+				_undo.redo();
+				e.doit = false;
+			}
+		}
+	}
+	void refBeast(BeastCard beast) {
+		refBeasts();
+	}
+	void refBeasts() {
+		_beasts.removeAll();
+		typeof(_beastTbl) b;
+		_beastTbl = b;
+		_beasts.add(_prop.msgs.beastNone);
+		_beastTbl[0] = null;
+		_beasts.select = 0;
+		foreach (i, c; _summ.beasts) {
+			_beastTbl[i + 1] = c;
+			_beasts.add(c.name);
+		}
+	}
 public:
-	this(Commons comm, Props prop, Summary summ, Composite parent) {
+	this (Commons comm, Props prop, Summary summ, Composite parent, UndoManager undo = null) {
 		super(parent, SWT.NONE);
 		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime);
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
+		_undo = undo ? undo : new UndoManager(1024);
 
 		setLayout = zeroMarginGridLayout(3, false);
 		{
@@ -584,12 +876,14 @@ public:
 			_motions.setLayoutData = gd;
 			_motions.setHeaderVisible = true;
 			auto menu = new Menu(_motions);
+			createMenuItem(menu, _prop.msgs.menuUndo, _prop.images.menuUndo, &this.undo);
+			createMenuItem(menu, _prop.msgs.menuRedo, _prop.images.menuRedo, &this.redo);
+			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(menu, _prop.msgs.menuUp, _prop.images.menuUp, &up);
 			createMenuItem(menu, _prop.msgs.menuDown, _prop.images.menuDown, &down);
 			new MenuItem(menu, SWT.SEPARATOR);
-			appendMenuTCPD(_prop, menu, new MotionTCPD);
+			appendMenuTCPD(_prop, menu, new MotionTCPD, true, true, true, true);
 			_motions.setMenu = menu;
-			usingPopupMenuAccelerator(_motions);
 			auto col = new FullTableColumn(_motions, SWT.NONE);
 			col.column.setText = _prop.msgs.motionKind;
 		}
@@ -608,6 +902,10 @@ public:
 				itm.setText = _prop.msgs.element(elm);
 				itm.setData = new Integer(elm);
 			}
+			auto menu = new Menu(_motionElm);
+			createMenuItem(menu, _prop.msgs.menuUndo, _prop.images.menuUndo, &this.undo);
+			createMenuItem(menu, _prop.msgs.menuRedo, _prop.images.menuRedo, &this.redo);
+			_motionElm.setMenu = menu;
 		}
 		{
 			_editComp = new Composite(this, SWT.NONE);
@@ -627,12 +925,7 @@ public:
 				grp.setText = _prop.msgs.motionBeast;
 				_beasts = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 				_beasts.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				_beasts.add(_prop.msgs.beastNone);
-				_beastTbl[0] = null;
-				foreach (i, c; _summ.beasts) {
-					_beastTbl[i + 1] = c;
-					_beasts.add(c.name);
-				}
+				refBeasts();
 				auto setBeast = new Button(grp, SWT.PUSH);
 				setBeast.setImage = _prop.images.setBeast;
 				setBeast.setToolTipText = _prop.msgs.setBeast;
@@ -670,9 +963,11 @@ public:
 				auto menu = new Menu(_beastImg);
 				createMenuItem(menu, prop.msgs.menuCEdit, prop.images.menuCEdit, &editBeastM);
 				new MenuItem(menu, SWT.SEPARATOR);
-				appendMenuTCPD(_prop, menu, new BeastTCPD);
+				createMenuItem(menu, _prop.msgs.menuUndo, _prop.images.menuUndo, &this.undo);
+				createMenuItem(menu, _prop.msgs.menuRedo, _prop.images.menuRedo, &this.redo);
+				new MenuItem(menu, SWT.SEPARATOR);
+				appendMenuTCPD(_prop, menu, new BeastTCPD, true, true, true, true);
 				_beastImg.setMenu = menu;
-				usingPopupMenuAccelerator(_beastImg);
 				auto gd = new GridData(GridData.FILL_BOTH);
 				gd.horizontalSpan = 2;
 				auto csize = _prop.looks.cardSize;
@@ -759,6 +1054,12 @@ public:
 		auto drop = new DropTarget(_motions, DND.DROP_DEFAULT | DND.DROP_MOVE | DND.DROP_COPY);
 		drop.setTransfer([XMLBytesTransfer.getInstance]);
 		drop.addDropListener(new MDropListener);
+
+		addDisposeListener(new Dispose);
+		_kdFilter = new KeyDownFilter();
+		_comm.refBeast.add(&refBeast);
+		_comm.delBeast.add(&refBeast);
+		getDisplay.addFilter(SWT.KeyDown, _kdFilter);
 	}
 	void motions(Motion[] motions) {
 		bool oldVan = hasVan;
@@ -768,8 +1069,9 @@ public:
 			}
 		}
 		_motions.setRedraw = false;
+		_undo.reset();
 		foreach (m; motions) {
-			appendMotion(m.dup, -1, false);
+			appendMotion(m.dup, -1, false, false, false);
 		}
 		foreach (dlg; modEvent) dlg();
 		_motions.setRedraw = true;
@@ -804,7 +1106,7 @@ public:
 					if (node.name == Motion.XML_NAME) {
 						appendMotion(Motion.createFromNode(node, LATEST_VERSION));
 						_motions.select(_motions.getItemCount - 1);
-						__refreshSels;
+						refreshSels();
 						foreach (dlg; modEvent) dlg();
 					} else {
 						pasteBeast(node);
@@ -813,7 +1115,7 @@ public:
 			}
 		}
 		override void del(SelectionEvent se) {
-			removeMotion;
+			removeMotion();
 		}
 		override bool canDoTCPD() {
 			return _motions.isFocusControl;
@@ -825,6 +1127,7 @@ public:
 			if (node.name == BeastCard.XML_NAME_M) {
 				auto bNode = node.child(BeastCard.XML_NAME, false);
 				if (!bNode.valid) return;
+				storeEdit(_motions.getSelectionIndex);
 				if (m.beast) _comm.delBeast.call(m.beast);
 				m.setBeastFromNode(bNode, LATEST_VERSION);
 				_beastImg.redraw;
@@ -871,6 +1174,7 @@ public:
 			if (m) {
 				assert (m.detail.use(MArg.BEAST));
 				if (m.beast) {
+					storeEdit(_motions.getSelectionIndex);
 					if (m.beast) _comm.delBeast.call(m.beast);
 					m.beast = null;
 					_beastImg.redraw;
@@ -881,5 +1185,11 @@ public:
 		override bool canDoTCPD() {
 			return _beastImg.isFocusControl;
 		}
+	}
+	void undo() {
+		_undo.undo();
+	}
+	void redo() {
+		_undo.redo();
 	}
 }

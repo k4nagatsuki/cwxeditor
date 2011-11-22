@@ -497,7 +497,6 @@ protected:
 			new MenuItem(menu, SWT.SEPARATOR);
 			appendMenuTCPD(prop, menu, new DialogsTCPD, true, true, true, true);
 			_dlgsL.setMenu = menu;
-			usingPopupMenuAccelerator(_dlgsL);
 
 			auto bar = new ToolBar(comp, SWT.FLAT | SWT.VERTICAL);
 			bar.setLayoutData = new GridData(GridData.FILL_VERTICAL);
