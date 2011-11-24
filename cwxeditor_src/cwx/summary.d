@@ -59,17 +59,18 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 		static if (UseItem) ItemCard[] _itm; /// アイテム
 		static if (UseBeast) BeastCard[] _bst; /// 召喚獣
 		static if (UseInfo) InfoCard[] _info; /// 情報
-		static void __loadXMLCommon(A)(string xml, string name, ref A[] areas,
+		void __loadXMLCommon(A)(string xml, string name, ref A[] areas,
 				UseCounter uc, void delegate() change, string ver) {
 			auto doc = XNode.parse(xml);
 			if (doc.name == name) {
 				auto area = A.createFromNode(doc, ver);
 				if (uc) area.setUseCounter = uc;
 				if (change) area.changeHandler = change;
+				area.owner = this;
 				areas ~= area;
 			}
 		}
-		static void __loadXML1(A)(string targPath, string name, ref A[] areas,
+		void __loadXML1(A)(string targPath, string name, ref A[] areas,
 				UseCounter uc, void delegate() change, string ver) {
 			if (exists(targPath)) {
 				foreach (p; clistdir(targPath)) {
@@ -86,7 +87,7 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 				areas.sort;
 			}
 		}
-		static void __loadXML2(A)(string[string][string] xmls,
+		void __loadXML2(A)(string[string][string] xmls,
 				string dirName, string name, ref A[] areas,
 				UseCounter uc, void delegate() change, string ver) {
 			auto dir = dirName in xmls;
@@ -1228,31 +1229,31 @@ public:
 		if (!summXML) throw new SummaryException("invalid parent of xmls");
 		Summary summ = summaryFromXML(sPath, *summXML);
 
-		__loadXML2(xmls, PATH_AREA, "Area", summ._area, summ.useCounter, &summ.changeHandler, summ.dataVersion);
+		summ.__loadXML2(xmls, PATH_AREA, "Area", summ._area, summ.useCounter, &summ.changeHandler, summ.dataVersion);
 		summ.checkStartArea;
-		__loadXML2(xmls, PATH_BATTLE, "Battle", summ._btl, summ.useCounter, &summ.changeHandler, summ.dataVersion);
-		__loadXML2(xmls, PATH_PACKAGE, "Package", summ._pkg, summ.useCounter, &summ.changeHandler, summ.dataVersion);
+		summ.__loadXML2(xmls, PATH_BATTLE, "Battle", summ._btl, summ.useCounter, &summ.changeHandler, summ.dataVersion);
+		summ.__loadXML2(xmls, PATH_PACKAGE, "Package", summ._pkg, summ.useCounter, &summ.changeHandler, summ.dataVersion);
 
-		__loadXML2(xmls, PATH_CAST, "CastCard", summ._cast, summ.useCounter, &summ.changeHandler, summ.dataVersion);
-		__loadXML2(xmls, PATH_SKILL, "SkillCard", summ._skl, summ.useCounter, &summ.changeHandler, summ.dataVersion);
-		__loadXML2(xmls, PATH_ITEM, "ItemCard", summ._itm, summ.useCounter, &summ.changeHandler, summ.dataVersion);
-		__loadXML2(xmls, PATH_BEAST, "BeastCard", summ._bst, summ.useCounter, &summ.changeHandler, summ.dataVersion);
-		__loadXML2(xmls, PATH_INFO, "InfoCard", summ._info, summ.useCounter, &summ.changeHandler, summ.dataVersion);
+		summ.__loadXML2(xmls, PATH_CAST, "CastCard", summ._cast, summ.useCounter, &summ.changeHandler, summ.dataVersion);
+		summ.__loadXML2(xmls, PATH_SKILL, "SkillCard", summ._skl, summ.useCounter, &summ.changeHandler, summ.dataVersion);
+		summ.__loadXML2(xmls, PATH_ITEM, "ItemCard", summ._itm, summ.useCounter, &summ.changeHandler, summ.dataVersion);
+		summ.__loadXML2(xmls, PATH_BEAST, "BeastCard", summ._bst, summ.useCounter, &summ.changeHandler, summ.dataVersion);
+		summ.__loadXML2(xmls, PATH_INFO, "InfoCard", summ._info, summ.useCounter, &summ.changeHandler, summ.dataVersion);
 
 		return summ;
 	}
 	private static void fromXMLs(Summary summ) {
 		auto path = summ.scenarioPath;
-		__loadXML1(std.path.join(path, PATH_AREA), "Area", summ._area, summ.useCounter, &summ.changeHandler, summ.dataVersion);
+		summ.__loadXML1(std.path.join(path, PATH_AREA), "Area", summ._area, summ.useCounter, &summ.changeHandler, summ.dataVersion);
 		summ.checkStartArea;
-		__loadXML1(std.path.join(path, PATH_BATTLE), "Battle", summ._btl, summ.useCounter, &summ.changeHandler, summ.dataVersion);
-		__loadXML1(std.path.join(path, PATH_PACKAGE), "Package", summ._pkg, summ.useCounter, &summ.changeHandler, summ.dataVersion);
+		summ.__loadXML1(std.path.join(path, PATH_BATTLE), "Battle", summ._btl, summ.useCounter, &summ.changeHandler, summ.dataVersion);
+		summ.__loadXML1(std.path.join(path, PATH_PACKAGE), "Package", summ._pkg, summ.useCounter, &summ.changeHandler, summ.dataVersion);
 
-		__loadXML1(std.path.join(path, PATH_CAST), "CastCard", summ._cast, summ.useCounter, &summ.changeHandler, summ.dataVersion);
-		__loadXML1(std.path.join(path, PATH_SKILL), "SkillCard", summ._skl, summ.useCounter, &summ.changeHandler, summ.dataVersion);
-		__loadXML1(std.path.join(path, PATH_ITEM), "ItemCard", summ._itm, summ.useCounter, &summ.changeHandler, summ.dataVersion);
-		__loadXML1(std.path.join(path, PATH_BEAST), "BeastCard", summ._bst, summ.useCounter, &summ.changeHandler, summ.dataVersion);
-		__loadXML1(std.path.join(path, PATH_INFO), "InfoCard", summ._info, summ.useCounter, &summ.changeHandler, summ.dataVersion);
+		summ.__loadXML1(std.path.join(path, PATH_CAST), "CastCard", summ._cast, summ.useCounter, &summ.changeHandler, summ.dataVersion);
+		summ.__loadXML1(std.path.join(path, PATH_SKILL), "SkillCard", summ._skl, summ.useCounter, &summ.changeHandler, summ.dataVersion);
+		summ.__loadXML1(std.path.join(path, PATH_ITEM), "ItemCard", summ._itm, summ.useCounter, &summ.changeHandler, summ.dataVersion);
+		summ.__loadXML1(std.path.join(path, PATH_BEAST), "BeastCard", summ._bst, summ.useCounter, &summ.changeHandler, summ.dataVersion);
+		summ.__loadXML1(std.path.join(path, PATH_INFO), "InfoCard", summ._info, summ.useCounter, &summ.changeHandler, summ.dataVersion);
 	}
 
 	/// XMLを元にしたインスタンスを返す。
@@ -1528,10 +1529,10 @@ public:
 template CardContainer(bool UseCast, bool UseSkill, bool UseItem, bool UseBeast, bool UseInfo) {
 	mixin ("class CardContainer : CWXPath"
 		~ (UseCast ? ", CastOwner" : "")
-		~ (UseCast ? ", SkillOwner" : "")
-		~ (UseCast ? ", ItemOwner" : "")
-		~ (UseCast ? ", BeastOwner" : "")
-		~ (UseCast ? ", InfoOwner" : "")
+		~ (UseSkill ? ", SkillOwner" : "")
+		~ (UseItem ? ", ItemOwner" : "")
+		~ (UseBeast ? ", BeastOwner" : "")
+		~ (UseInfo ? ", InfoOwner" : "")
 		~ "{"
 		~ "    mixin CardContainerImpl!(UseCast, UseSkill, UseItem, UseBeast, UseInfo);"
 		~ "}");
@@ -1650,11 +1651,11 @@ public:
 			string ver;
 			auto cc = fromNode(summNode, sPath, ver);
 
-			static if (UseCast) __loadXML2!(CastCard)(xmls, PATH_CAST, CastCard.XML_NAME, cc._cast, null, null, ver);
-			static if (UseSkill) __loadXML2!(SkillCard)(xmls, PATH_SKILL, SkillCard.XML_NAME, cc._skl, null, null, ver);
-			static if (UseItem) __loadXML2!(ItemCard)(xmls, PATH_ITEM, ItemCard.XML_NAME, cc._itm, null, null, ver);
-			static if (UseBeast) __loadXML2!(BeastCard)(xmls, PATH_BEAST, BeastCard.XML_NAME, cc._bst, null,null, ver);
-			static if (UseInfo) __loadXML2!(InfoCard)(xmls, PATH_INFO, InfoCard.XML_NAME, cc._info, null, null, ver);
+			static if (UseCast) cc.__loadXML2!(CastCard)(xmls, PATH_CAST, CastCard.XML_NAME, cc._cast, null, null, ver);
+			static if (UseSkill) cc.__loadXML2!(SkillCard)(xmls, PATH_SKILL, SkillCard.XML_NAME, cc._skl, null, null, ver);
+			static if (UseItem) cc.__loadXML2!(ItemCard)(xmls, PATH_ITEM, ItemCard.XML_NAME, cc._itm, null, null, ver);
+			static if (UseBeast) cc.__loadXML2!(BeastCard)(xmls, PATH_BEAST, BeastCard.XML_NAME, cc._bst, null,null, ver);
+			static if (UseInfo) cc.__loadXML2!(InfoCard)(xmls, PATH_INFO, InfoCard.XML_NAME, cc._info, null, null, ver);
 
 			return cc;
 		}
@@ -1677,11 +1678,11 @@ public:
 			string ver;
 			auto cc = fromNode(summNode, par, ver);
 
-			static if (UseCast) __loadXML1!(CastCard)(std.path.join(par, PATH_CAST), CastCard.XML_NAME, cc._cast, null, null, ver);
-			static if (UseSkill) __loadXML1!(SkillCard)(std.path.join(par, PATH_SKILL), SkillCard.XML_NAME, cc._skl, null, null, ver);
-			static if (UseItem) __loadXML1!(ItemCard)(std.path.join(par, PATH_ITEM), ItemCard.XML_NAME, cc._itm, null, null, ver);
-			static if (UseBeast) __loadXML1!(BeastCard)(std.path.join(par, PATH_BEAST), BeastCard.XML_NAME, cc._bst, null,null, ver);
-			static if (UseInfo) __loadXML1!(InfoCard)(std.path.join(par, PATH_INFO), InfoCard.XML_NAME, cc._info, null, null, ver);
+			static if (UseCast) cc.__loadXML1!(CastCard)(std.path.join(par, PATH_CAST), CastCard.XML_NAME, cc._cast, null, null, ver);
+			static if (UseSkill) cc.__loadXML1!(SkillCard)(std.path.join(par, PATH_SKILL), SkillCard.XML_NAME, cc._skl, null, null, ver);
+			static if (UseItem) cc.__loadXML1!(ItemCard)(std.path.join(par, PATH_ITEM), ItemCard.XML_NAME, cc._itm, null, null, ver);
+			static if (UseBeast) cc.__loadXML1!(BeastCard)(std.path.join(par, PATH_BEAST), BeastCard.XML_NAME, cc._bst, null,null, ver);
+			static if (UseInfo) cc.__loadXML1!(InfoCard)(std.path.join(par, PATH_INFO), InfoCard.XML_NAME, cc._info, null, null, ver);
 
 			return cc;
 		}
