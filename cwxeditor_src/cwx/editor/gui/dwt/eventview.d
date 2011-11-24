@@ -161,7 +161,7 @@ private:
 			}
 		}
 		protected EventView view() {
-			return comm.eventViewFrom!(A, C, UseFire)(area.cwxPath);
+			return comm.eventViewFrom!(A, C, UseFire)(area.cwxPath, false);
 		}
 	}
 	static class UndoTreeData : EVUndo {
@@ -1172,8 +1172,8 @@ public:
 	}
 
 	static if (is(A : Area) || is(A : Battle)) {
-		void openScene() {
-			_comm.openAreaScene(_prop, _summ, _area);
+		private void openScene() {
+			_comm.openAreaScene(_prop, _summ, _area, true);
 		}
 	}
 
@@ -1510,7 +1510,7 @@ public:
 	void undo() {_undo.undo;}
 	void redo() {_undo.redo;}
 
-	bool openCWXPath(string path) {
+	bool openCWXPath(string path, bool shellActivate = true) {
 		initial;
 		auto cate = cpcategory(path);
 		auto index = cpindex(path);
@@ -1519,7 +1519,7 @@ public:
 				return false;
 			}
 			__select(itm.getItem(index));
-			return _etree.openCWXPath(cpbottom(path));
+			return _etree.openCWXPath(cpbottom(path), shellActivate);
 		}
 		static if (is(C : MenuCard) || is(C : EnemyCard)) {
 			bool card() {
@@ -1529,7 +1529,7 @@ public:
 				auto itm = _cards.getItem(index + 1);
 				path = cpbottom(path);
 				if (cpempty(path)) {
-					.forceFocus(_cards);
+					.forceFocus(_cards, shellActivate);
 					__select(itm);
 					return true;
 				} else {
@@ -1554,7 +1554,7 @@ public:
 			}
 		} break;
 		case "": {
-			.forceFocus(_cards);
+			.forceFocus(_cards, shellActivate);
 			return true;
 		} break;
 		default: break;

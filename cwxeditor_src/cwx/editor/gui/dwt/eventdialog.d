@@ -268,7 +268,7 @@ private:
 		if (-1 == i) return;
 		auto a = cast(A) _list.getItem(i).getData;
 		try {
-			_comm.openCWXPath(cpaddattr(a.cwxPath, "shallow"));
+			_comm.openCWXPath(cpaddattr(a.cwxPath, "shallow"), false);
 		} catch (Exception e) {
 			debugln(e);
 		}
@@ -433,7 +433,7 @@ private:
 		if (-1 == i) return;
 		auto a = cast(Content) _list.getItem(i).getData;
 		try {
-			_comm.openCWXPath(cpaddattr(a.cwxPath, "shallow"));
+			_comm.openCWXPath(cpaddattr(a.cwxPath, "shallow"), false);
 		} catch (Exception e) {
 			debugln(e);
 		}
@@ -1250,7 +1250,7 @@ private:
 		if (-1 == i) return;
 		auto a = cast(F) _flags.getItem(i).getData;
 		try {
-			_comm.openCWXPath(cpaddattr(a.cwxPath, "shallow"));
+			_comm.openCWXPath(cpaddattr(a.cwxPath, "shallow"), false);
 		} catch (Exception e) {
 			debugln(e);
 		}
@@ -1797,7 +1797,7 @@ private:
 		if (-1 == i) return;
 		auto a = cast(C) _list.getItem(i).getData;
 		try {
-			_comm.openCWXPath(cpaddattr(a.cwxPath, "shallow"));
+			_comm.openCWXPath(cpaddattr(a.cwxPath, "shallow"), false);
 		} catch (Exception e) {
 			debugln(e);
 		}

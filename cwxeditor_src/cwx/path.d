@@ -91,6 +91,11 @@ string cpaddattr(string path, string attr) {
 	return path ~ ";" ~ attr;
 }
 
+/// シナリオ内パスに指定された属性が含まれているか。
+bool cphasattr(string path, string attr) {
+	return cpattr(path).contains(attr);
+}
+
 /// シナリオ内パスを属性を除いて比較する。
 bool cpeq(string path1, string path2) {
 	return cpbody(path1) == cpbody(path2);

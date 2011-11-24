@@ -919,6 +919,17 @@ public:
 			new FullTableColumn(_result, SWT.NONE);
 		}
 		{
+			auto openDlg = new Button(left, SWT.CHECK);
+			openDlg.setText = _prop.msgs.searchOpenDialog;
+			openDlg.setSelection = _prop.var.etc.searchOpenDialog;
+			openDlg.addSelectionListener(new class SelectionAdapter {
+				override void widgetSelected(SelectionEvent e) {
+					_prop.var.etc.searchOpenDialog = openDlg.getSelection;
+				}
+			});
+			openDlg.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
+		}
+		{
 			auto grp = new Group(right, SWT.NONE);
 			grp.setText = _prop.msgs.searchRange;
 			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
@@ -1743,8 +1754,11 @@ public:
 			auto rp = cast(CWXPathString) itms[0].getData;
 			if (rp) {
 				auto path = rp.array;
+				if (_prop.var.etc.searchOpenDialog) {
+					path = cpaddattr(path, "opendialog");
+				}
 				try {
-					if (_comm.openCWXPath(path)) {
+					if (_comm.openCWXPath(path, false)) {
 						_win.setActive;
 						return;
 					}
@@ -1756,7 +1770,7 @@ public:
 				auto p = cast(PathString) itms[0].getData;
 				assert (p);
 				auto path = nabs(std.path.buildPath(_summ.scenarioPath, p.array));
-				if (_comm.openFilePath(path)) {
+				if (_comm.openFilePath(path, false)) {
 					_win.setActive;
 					return;
 				}

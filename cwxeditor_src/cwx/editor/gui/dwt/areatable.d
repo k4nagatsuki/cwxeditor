@@ -153,6 +153,7 @@ private:
 				}
 				v._areas.select = _selB;
 				v._areas.showSelection();
+				v.refreshStatusLine();
 			}
 			comm.refUseCount.call;
 		}
@@ -657,15 +658,15 @@ private:
 	class MListener : MouseAdapter {
 		public override void mouseDown(MouseEvent e) {
 			if (e.button == 2) {
-				openAreaEvent(e.x, e.y);
+				openAreaEvent(e.x, e.y, true);
 			}
 		}
 		public override void mouseDoubleClick(MouseEvent e) {
 			if (_areas.isFocusControl && e.button == 1) {
 				if (e.stateMask & SWT.SHIFT) {
-					openAreaEvent();
+					openAreaEvent(true);
 				} else {
-					openAreaScene();
+					openAreaScene(true);
 				}
 			}
 		}
@@ -674,9 +675,9 @@ private:
 		public override void keyPressed(KeyEvent e) {
 			if (_areas.isFocusControl && e.character == SWT.CR) {
 				if (e.stateMask & SWT.SHIFT) {
-					openAreaEvent();
+					openAreaEvent(true);
 				} else {
-					openAreaScene();
+					openAreaScene(true);
 				}
 			}
 		}
@@ -784,10 +785,10 @@ public:
 
 		auto menu = new Menu(parent.getShell, SWT.POP_UP);
 		if (!_comm.singleWindowMode(_prop) || _prop.var.etc.bindSceneWithEvent) {
-			createMenuItem(menu, _prop.msgs.menuCEdit, _prop.images.menuCEdit, &openAreaScene);
+			createMenuItem(menu, _prop.msgs.menuCEdit, _prop.images.menuCEdit, {openAreaScene(true);});
 		} else {
-			createMenuItem(menu, _prop.msgs.menuEditScene, _prop.images.menuEditScene, &openAreaScene);
-			createMenuItem(menu, _prop.msgs.menuEditEvent, _prop.images.menuEditEvent, &openAreaEvent);
+			createMenuItem(menu, _prop.msgs.menuEditScene, _prop.images.menuEditScene, {openAreaScene(true);});
+			createMenuItem(menu, _prop.msgs.menuEditEvent, _prop.images.menuEditEvent, {openAreaEvent(true);});
 		}
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(menu, _prop.msgs.menuSummary, _prop.images.menuSummary, &editSummary);
@@ -1024,88 +1025,88 @@ public:
 		}
 	}
 
-	void openAreaScene() {
+	void openAreaScene(bool shellActivate) {
 		auto area = getSelectionArea;
 		if (area) {
 			auto a = cast(Area) area;
 			if (a) {
-				openAreaSceneImpl(a);
+				openAreaSceneImpl(a, shellActivate);
 				return;
 			}
 			auto b = cast(Battle) area;
 			if (b) {
-				openAreaSceneImpl(b);
+				openAreaSceneImpl(b, shellActivate);
 				return;
 			}
 			auto p = cast(Package) area;
 			if (p) {
-				_comm.openArea(_prop, _summ, p);
+				_comm.openArea(_prop, _summ, p, shellActivate);
 				return;
 			}
 		}
 	}
-	void openAreaEvent(int x, int y) {
+	void openAreaEvent(int x, int y, bool shellActivate) {
 		auto itm = _areas.getItem(new Point(x, y));
 		if (itm) {
 			_areas.setSelection = [itm];
-			openAreaEvent(cast(AbstractArea) itm.getData);
+			openAreaEvent(cast(AbstractArea) itm.getData, shellActivate);
 		} else {
-			openAreaEvent();
+			openAreaEvent(shellActivate);
 		}
 	}
-	void openAreaEvent() {
+	void openAreaEvent(bool shellActivate) {
 		auto area = getSelectionArea;
 		if (area) {
-			openAreaEvent(area);
+			openAreaEvent(area, shellActivate);
 		}
 	}
-	void openAreaEvent(AbstractArea area) {
+	void openAreaEvent(AbstractArea area, bool shellActivate) {
 		auto a = cast(Area) area;
 		if (a) {
-			openAreaEventImpl(a);
+			openAreaEventImpl(a, shellActivate);
 			return;
 		}
 		auto b = cast(Battle) area;
 		if (b) {
-			openAreaEventImpl(b);
+			openAreaEventImpl(b, shellActivate);
 			return;
 		}
 		auto p = cast(Package) area;
 		if (p) {
-			_comm.openArea(_prop, _summ, p);
+			_comm.openArea(_prop, _summ, p, shellActivate);
 			return;
 		}
 	}
 
-	void openAreaSceneImpl(A)(A a) {
+	void openAreaSceneImpl(A)(A a, bool shellActivate) {
 		if (!_comm.singleWindowMode(_prop) || _prop.var.etc.bindSceneWithEvent) {
-			_comm.openArea(_prop, _summ, a);
+			_comm.openArea(_prop, _summ, a, shellActivate);
 		} else {
-			_comm.openAreaScene(_prop, _summ, a);
+			_comm.openAreaScene(_prop, _summ, a, shellActivate);
 		}
 	}
-	void openAreaEventImpl(A)(A a) {
+	void openAreaEventImpl(A)(A a, bool shellActivate) {
 		if (!_comm.singleWindowMode(_prop) || _prop.var.etc.bindSceneWithEvent) {
-			auto w = _comm.openArea(_prop, _summ, a);
+			auto w = _comm.openArea(_prop, _summ, a, shellActivate);
 			w.selectEventView();
 		} else {
-			_comm.openAreaEvent(_prop, _summ, a);
+			_comm.openAreaEvent(_prop, _summ, a, shellActivate);
 		}
 	}
-	void openAreaScene(ulong id) {
-		openAreaSceneImpl(_summ.area(id));
+	void openAreaScene(ulong id, bool shellActivate) {
+		openAreaSceneImpl(_summ.area(id), shellActivate);
 	}
-	void openAreaEvent(ulong id) {
-		openAreaEventImpl(_summ.area(id));
+	void openAreaEvent(ulong id, bool shellActivate) {
+		openAreaEventImpl(_summ.area(id), shellActivate);
 	}
-	void openBattleScene(ulong id) {
-		openAreaSceneImpl(_summ.battle(id));
+	void openBattleScene(ulong id, bool shellActivate) {
+		openAreaSceneImpl(_summ.battle(id), shellActivate);
 	}
-	void openBattleEvent(ulong id) {
-		openAreaEventImpl(_summ.area(id));
+	void openBattleEvent(ulong id, bool shellActivate) {
+		openAreaEventImpl(_summ.area(id), shellActivate);
 	}
-	void openPackage(ulong id) {
-		_comm.openArea(_prop, _summ, _summ.packages(id));
+	void openPackage(ulong id, bool shellActivate) {
+		_comm.openArea(_prop, _summ, _summ.packages(id), shellActivate);
 	}
 
 	override {

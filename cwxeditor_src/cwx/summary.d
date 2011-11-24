@@ -62,24 +62,25 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 		static if (UseItem) ItemCard[] _itm; /// アイテム
 		static if (UseBeast) BeastCard[] _bst; /// 召喚獣
 		static if (UseInfo) InfoCard[] _info; /// 情報
-		static void __loadXMLCommon(A)(string xml, string name, ref A[] areas,
+		void loadXMLCommon(A)(string xml, string name, ref A[] areas,
 				UseCounter uc, void delegate() change, string ver) {
 			auto doc = XNode.parse(xml);
 			if (doc.name == name) {
 				auto area = A.createFromNode(doc, ver);
 				if (uc) area.setUseCounter = uc;
 				if (change) area.changeHandler = change;
+				area.owner = this;
 				areas ~= area;
 			}
 		}
-		static void __loadXML1(A)(string targPath, string name, ref A[] areas,
+		void loadXML1(A)(string targPath, string name, ref A[] areas,
 				UseCounter uc, void delegate() change, string ver) {
 			if (exists(targPath)) {
 				foreach (p; clistdir(targPath)) {
 					p = std.path.buildPath(targPath, p);
 					if (!isDir(p) && cfnmatch(cwx.utils.getExt(p), "xml")) {
 						try {
-							__loadXMLCommon(std.file.readText(p), name, areas, uc, change, ver);
+							loadXMLCommon(std.file.readText(p), name, areas, uc, change, ver);
 						} catch (Exception e) {
 							throw new FileLoadException(p, e);
 						}
@@ -89,14 +90,14 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 				areas.sort;
 			}
 		}
-		static void __loadXML2(A)(string[string][string] xmls,
+		void loadXML2(A)(string[string][string] xmls,
 				string dirName, string name, ref A[] areas,
 				UseCounter uc, void delegate() change, string ver) {
 			auto dir = dirName in xmls;
 			if (!dir) return;
 			foreach (file, xml; *dir) {
 				try {
-					__loadXMLCommon(xml, name, areas, uc, change, ver);
+					loadXMLCommon(xml, name, areas, uc, change, ver);
 				} catch (Exception e) {
 					throw new Exception(std.path.buildPath(dirName, file));
 				}
@@ -104,7 +105,7 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 			// ID順でソート。
 			areas.sort;
 		}
-		static C __find(C)(C[] arr, ulong id) {
+		static C find(C)(C[] arr, ulong id) {
 			foreach (c; arr) {
 				if (c.id == id) {
 					return c;
@@ -121,12 +122,12 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 			}
 			/// ditto
 			CastCard casts(ulong id) {
-				return __find(_cast, id);
+				return find(_cast, id);
 			}
 			/// ditto
 			const
 			const(CastCard) casts(ulong id) {
-				return __find(_cast, id);
+				return find(_cast, id);
 			}
 		}
 		static if (UseSkill) {
@@ -136,12 +137,12 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 			}
 			/// ditto
 			SkillCard skill(ulong id) {
-				return __find(_skl, id);
+				return find(_skl, id);
 			}
 			/// ditto
 			const
 			const(SkillCard) skill(ulong id) {
-				return __find(_skl, id);
+				return find(_skl, id);
 			}
 		}
 		static if (UseItem) {
@@ -151,12 +152,12 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 			}
 			/// ditto
 			ItemCard item(ulong id) {
-				return __find(_itm, id);
+				return find(_itm, id);
 			}
 			/// ditto
 			const
 			const(ItemCard) item(ulong id) {
-				return __find(_itm, id);
+				return find(_itm, id);
 			}
 		}
 		static if (UseBeast) {
@@ -166,11 +167,11 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 			}
 			/// ditto
 			BeastCard beast(ulong id) {
-				return __find(_bst, id);
+				return find(_bst, id);
 			}
 			const
 			const(BeastCard) beast(ulong id) {
-				return __find(_bst, id);
+				return find(_bst, id);
 			}
 		}
 		static if (UseInfo) {
@@ -180,12 +181,12 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 			}
 			/// ditto
 			InfoCard info(ulong id) {
-				return __find(_info, id);
+				return find(_info, id);
 			}
 			/// ditto
 			const
 			const(InfoCard) info(ulong id) {
-				return __find(_info, id);
+				return find(_info, id);
 			}
 		}
 	}
@@ -830,27 +831,27 @@ public:
 
 	/// エリア。
 	Area area(ulong id) {
-		return __find(_area, id);
+		return find(_area, id);
 	}
 	const
 	const(Area) area(ulong id) {
-		return __find(_area, id);
+		return find(_area, id);
 	}
 	/// バトル。
 	Battle battle(ulong id) {
-		return __find(_btl, id);
+		return find(_btl, id);
 	}
 	const
 	const(Battle) battle(ulong id) {
-		return __find(_btl, id);
+		return find(_btl, id);
 	}
 	/// パッケージ。
 	Package packages(ulong id) {
-		return __find(_pkg, id);
+		return find(_pkg, id);
 	}
 	const
 	const(Package) packages(ulong id) {
-		return __find(_pkg, id);
+		return find(_pkg, id);
 	}
 
 	/// 指定されたIDのエリア・バトル・パッケージがあればtrue。
@@ -884,21 +885,21 @@ public:
 	const
 	ulong newId(T)() {
 		static if (is (T == CastCard)) {
-			return __newId(_cast);
+			return newIdImpl(_cast);
 		} else static if (is (T == SkillCard)) {
-			return __newId(_skl);
+			return newIdImpl(_skl);
 		} else static if (is (T == ItemCard)) {
-			return __newId(_itm);
+			return newIdImpl(_itm);
 		} else static if (is (T == BeastCard)) {
-			return __newId(_bst);
+			return newIdImpl(_bst);
 		} else static if (is (T == InfoCard)) {
-			return __newId(_info);
+			return newIdImpl(_info);
 		} else static if (is (T == Area)) {
-			return __newId(_area);
+			return newIdImpl(_area);
 		} else static if (is (T == Battle)) {
-			return __newId(_btl);
+			return newIdImpl(_btl);
 		} else static if (is (T == Package)) {
-			return __newId(_pkg);
+			return newIdImpl(_pkg);
 		} else {
 			static assert (0);
 		}
@@ -906,25 +907,25 @@ public:
 	/// ditto
 	const
 	ulong newAreaId() {
-		return __newId(_area);
+		return newIdImpl(_area);
 	}
 	/// ditto
 	const
 	ulong newBattleId() {
-		return __newId(_btl);
+		return newIdImpl(_btl);
 	}
 	/// ditto
 	const
 	ulong newPackageId() {
-		return __newId(_pkg);
+		return newIdImpl(_pkg);
 	}
-	private static ulong __newId(T)(T[] arr) {
+	private static ulong newIdImpl(T)(T[] arr) {
 		return arr.length > 0 ? arr[$ - 1].id + 1 : 1;
 	}
 
-	private ulong __insert(T, alias ToID)(ref T[] arr, int index, T c) {
+	private ulong insertImpl(T, alias ToID)(ref T[] arr, int index, T c) {
 		if (arr.length == index) {
-			return __add!(T, ToID)(arr, c, true);
+			return addImpl!(T, ToID)(arr, c, true);
 		} else {
 			ulong tempId = 0;
 			bool remv = false;
@@ -934,7 +935,7 @@ public:
 					remv = true;
 					tempId = arr[$ - 1].id + 2L;
 					_uc.change(ToID(c.id), ToID(tempId));
-					__remove(arr, c);
+					removeImpl(arr, c);
 					if (i <= index) index--;
 					break;
 				}
@@ -965,46 +966,46 @@ public:
 	}
 	/// このシナリオにカード・エリア等を挿入する。
 	ulong insert(int index, CastCard c) {
-		return __insert!(CastCard, toCastId)(_cast, index, c);
+		return insertImpl!(CastCard, toCastId)(_cast, index, c);
 	}
 	/// ditto
 	ulong insert(int index, SkillCard c) {
-		return __insert!(SkillCard, toSkillId)(_skl, index, c);
+		return insertImpl!(SkillCard, toSkillId)(_skl, index, c);
 	}
 	/// ditto
 	ulong insert(int index, ItemCard c) {
-		return __insert!(ItemCard, toItemId)(_itm, index, c);
+		return insertImpl!(ItemCard, toItemId)(_itm, index, c);
 	}
 	/// ditto
 	ulong insert(int index, BeastCard c) {
-		return __insert!(BeastCard, toBeastId)(_bst, index, c);
+		return insertImpl!(BeastCard, toBeastId)(_bst, index, c);
 	}
 	/// ditto
 	ulong insert(int index, InfoCard c) {
-		return __insert!(InfoCard, toInfoId)(_info, index, c);
+		return insertImpl!(InfoCard, toInfoId)(_info, index, c);
 	}
 	/// ditto
 	ulong insert(int index, Area c) {
-		return __insert!(Area, toAreaId)(_area, index, c);
+		return insertImpl!(Area, toAreaId)(_area, index, c);
 	}
 	/// ditto
 	ulong insert(int index, Battle c) {
-		return __insert!(Battle, toBattleId)(_btl, index, c);
+		return insertImpl!(Battle, toBattleId)(_btl, index, c);
 	}
 	/// ditto
 	ulong insert(int index, Package c) {
-		return __insert!(Package, toPackageId)(_pkg, index, c);
+		return insertImpl!(Package, toPackageId)(_pkg, index, c);
 	}
 
-	private ulong __add(T, alias ToID)(ref T[] arr, T area, bool forceNewId) {
+	private ulong addImpl(T, alias ToID)(ref T[] arr, T area, bool forceNewId) {
 		if (arr.length > 0 && arr[$ - 1] is area) return area.id;
 		auto oldId = area.id;
 		if (forceNewId || (arr.length > 0 && arr[$ - 1].id >= area.id) ) {
-			area.id = __newId(arr);
+			area.id = newIdImpl(arr);
 		}
 		foreach (i, c_; arr) {
 			if (c_ is area) {
-				__remove(arr, area);
+				removeImpl(arr, area);
 				_uc.change(ToID(oldId), ToID(area.id));
 				break;
 			}
@@ -1019,7 +1020,7 @@ public:
 
 	/// このシナリオにカード・エリア等を追加する。
 	ulong add(Area area, bool forceNewId = true) {
-		auto id = __add!(Area, toAreaId)(_area, area, forceNewId);
+		auto id = addImpl!(Area, toAreaId)(_area, area, forceNewId);
 		if (areas.length == 1) {
 			startArea = id;
 		}
@@ -1027,34 +1028,34 @@ public:
 	}
 	/// ditto
 	ulong add(Battle btl, bool forceNewId = true) {
-		return __add!(Battle, toBattleId)(_btl, btl, forceNewId);
+		return addImpl!(Battle, toBattleId)(_btl, btl, forceNewId);
 	}
 	/// ditto
 	ulong add(Package pkg, bool forceNewId = true) {
-		return __add!(Package, toPackageId)(_pkg, pkg, forceNewId);
+		return addImpl!(Package, toPackageId)(_pkg, pkg, forceNewId);
 	}
 	/// ditto
 	ulong add(CastCard c, bool forceNewId = true) {
-		return __add!(CastCard, toCastId)(_cast, c, forceNewId);
+		return addImpl!(CastCard, toCastId)(_cast, c, forceNewId);
 	}
 	/// ditto
 	ulong add(SkillCard c, bool forceNewId = true) {
-		return __add!(SkillCard, toSkillId)(_skl, c, forceNewId);
+		return addImpl!(SkillCard, toSkillId)(_skl, c, forceNewId);
 	}
 	/// ditto
 	ulong add(ItemCard c, bool forceNewId = true) {
-		return __add!(ItemCard, toItemId)(_itm, c, forceNewId);
+		return addImpl!(ItemCard, toItemId)(_itm, c, forceNewId);
 	}
 	/// ditto
 	ulong add(BeastCard c, bool forceNewId = true) {
-		return __add!(BeastCard, toBeastId)(_bst, c, forceNewId);
+		return addImpl!(BeastCard, toBeastId)(_bst, c, forceNewId);
 	}
 	/// ditto
 	ulong add(InfoCard c, bool forceNewId = true) {
-		return __add!(InfoCard, toInfoId)(_info, c, forceNewId);
+		return addImpl!(InfoCard, toInfoId)(_info, c, forceNewId);
 	}
 
-	private void __remove(T)(ref T[] arr, T area) {
+	private void removeImpl(T)(ref T[] arr, T area) {
 		foreach (i, a; arr) {
 			if (a.id == area.id) {
 				arr = arr[0 .. i] ~ arr[i + 1 .. $];
@@ -1069,38 +1070,38 @@ public:
 
 	/// カード・エリア等を除去する。
 	void remove(CastCard c) {
-		__remove(_cast, c);
+		removeImpl(_cast, c);
 	}
 	/// ditto
 	void remove(SkillCard c) {
-		__remove(_skl, c);
+		removeImpl(_skl, c);
 	}
 	/// ditto
 	void remove(ItemCard c) {
-		__remove(_itm, c);
+		removeImpl(_itm, c);
 	}
 	/// ditto
 	void remove(BeastCard c) {
-		__remove(_bst, c);
+		removeImpl(_bst, c);
 	}
 	/// ditto
 	void remove(InfoCard c) {
-		__remove(_info, c);
+		removeImpl(_info, c);
 	}
 	/// ditto
 	void remove(Area a) {
-		__remove(_area, a);
+		removeImpl(_area, a);
 		if (a.id == startArea) {
 			startArea = areas.length > 0 ? areas[0].id : 0;
 		}
 	}
 	/// ditto
 	void remove(Battle a) {
-		__remove(_btl, a);
+		removeImpl(_btl, a);
 	}
 	/// ditto
 	void remove(Package a) {
-		__remove(_pkg, a);
+		removeImpl(_pkg, a);
 	}
 	/// ditto
 	void remove(AbstractArea area) {
@@ -1157,19 +1158,19 @@ public:
 				r[parent] = p;
 			}
 		}
-		put(PATH_AREA, __toXMLs(_area));
-		put(PATH_BATTLE, __toXMLs(_btl));
-		put(PATH_PACKAGE, __toXMLs(_pkg));
+		put(PATH_AREA, toXMLsImpl(_area));
+		put(PATH_BATTLE, toXMLsImpl(_btl));
+		put(PATH_PACKAGE, toXMLsImpl(_pkg));
 
-		put(PATH_CAST, __toXMLs(_cast));
-		put(PATH_SKILL, __toXMLs(_skl));
-		put(PATH_ITEM, __toXMLs(_itm));
-		put(PATH_BEAST, __toXMLs(_bst));
-		put(PATH_INFO, __toXMLs(_info));
+		put(PATH_CAST, toXMLsImpl(_cast));
+		put(PATH_SKILL, toXMLsImpl(_skl));
+		put(PATH_ITEM, toXMLsImpl(_itm));
+		put(PATH_BEAST, toXMLsImpl(_bst));
+		put(PATH_INFO, toXMLsImpl(_info));
 
 		return r;
 	}
-	private static string[string] __toXMLs(A)(A[] targs) {
+	private static string[string] toXMLsImpl(A)(A[] targs) {
 		string[string] r;
 		foreach (targ; targs) {
 			auto fname = format("%02d", targ.id) ~ ".xml";
@@ -1187,15 +1188,15 @@ public:
 	void saveXMLs(string path) {
 		std.file.write(std.path.buildPath(path, "Summary.xml"), summaryToXML);
 
-		__saveXML(std.path.buildPath(path, PATH_AREA), _area);
-		__saveXML(std.path.buildPath(path, PATH_BATTLE), _btl);
-		__saveXML(std.path.buildPath(path, PATH_PACKAGE), _pkg);
+		saveXML(std.path.buildPath(path, PATH_AREA), _area);
+		saveXML(std.path.buildPath(path, PATH_BATTLE), _btl);
+		saveXML(std.path.buildPath(path, PATH_PACKAGE), _pkg);
 
-		__saveXML(std.path.buildPath(path, PATH_CAST), _cast);
-		__saveXML(std.path.buildPath(path, PATH_SKILL), _skl);
-		__saveXML(std.path.buildPath(path, PATH_ITEM), _itm);
-		__saveXML(std.path.buildPath(path, PATH_BEAST), _bst);
-		__saveXML(std.path.buildPath(path, PATH_INFO), _info);
+		saveXML(std.path.buildPath(path, PATH_CAST), _cast);
+		saveXML(std.path.buildPath(path, PATH_SKILL), _skl);
+		saveXML(std.path.buildPath(path, PATH_ITEM), _itm);
+		saveXML(std.path.buildPath(path, PATH_BEAST), _bst);
+		saveXML(std.path.buildPath(path, PATH_INFO), _info);
 	}
 	/// ditto
 	void saveXMLs() {
@@ -1209,7 +1210,7 @@ public:
 			}
 		}
 	}
-	private static void __saveXML(A)(string path, A[] targs) {
+	private static void saveXML(A)(string path, A[] targs) {
 		if (targs.length == 0) {
 			if (exists(path) && isDir(path)) {
 				delAllXML(path);
@@ -1282,31 +1283,31 @@ public:
 		if (!summXML) throw new SummaryException("invalid parent of xmls");
 		Summary summ = summaryFromXML(sPath, *summXML);
 
-		__loadXML2(xmls, PATH_AREA, "Area", summ._area, summ.useCounter, &summ.changeHandler, summ.dataVersion);
+		summ.loadXML2(xmls, PATH_AREA, "Area", summ._area, summ.useCounter, &summ.changeHandler, summ.dataVersion);
 		summ.checkStartArea;
-		__loadXML2(xmls, PATH_BATTLE, "Battle", summ._btl, summ.useCounter, &summ.changeHandler, summ.dataVersion);
-		__loadXML2(xmls, PATH_PACKAGE, "Package", summ._pkg, summ.useCounter, &summ.changeHandler, summ.dataVersion);
+		summ.loadXML2(xmls, PATH_BATTLE, "Battle", summ._btl, summ.useCounter, &summ.changeHandler, summ.dataVersion);
+		summ.loadXML2(xmls, PATH_PACKAGE, "Package", summ._pkg, summ.useCounter, &summ.changeHandler, summ.dataVersion);
 
-		__loadXML2(xmls, PATH_CAST, "CastCard", summ._cast, summ.useCounter, &summ.changeHandler, summ.dataVersion);
-		__loadXML2(xmls, PATH_SKILL, "SkillCard", summ._skl, summ.useCounter, &summ.changeHandler, summ.dataVersion);
-		__loadXML2(xmls, PATH_ITEM, "ItemCard", summ._itm, summ.useCounter, &summ.changeHandler, summ.dataVersion);
-		__loadXML2(xmls, PATH_BEAST, "BeastCard", summ._bst, summ.useCounter, &summ.changeHandler, summ.dataVersion);
-		__loadXML2(xmls, PATH_INFO, "InfoCard", summ._info, summ.useCounter, &summ.changeHandler, summ.dataVersion);
+		summ.loadXML2(xmls, PATH_CAST, "CastCard", summ._cast, summ.useCounter, &summ.changeHandler, summ.dataVersion);
+		summ.loadXML2(xmls, PATH_SKILL, "SkillCard", summ._skl, summ.useCounter, &summ.changeHandler, summ.dataVersion);
+		summ.loadXML2(xmls, PATH_ITEM, "ItemCard", summ._itm, summ.useCounter, &summ.changeHandler, summ.dataVersion);
+		summ.loadXML2(xmls, PATH_BEAST, "BeastCard", summ._bst, summ.useCounter, &summ.changeHandler, summ.dataVersion);
+		summ.loadXML2(xmls, PATH_INFO, "InfoCard", summ._info, summ.useCounter, &summ.changeHandler, summ.dataVersion);
 
 		return summ;
 	}
 	private static void fromXMLs(Summary summ) {
 		auto path = summ.scenarioPath;
-		__loadXML1(std.path.buildPath(path, PATH_AREA), "Area", summ._area, summ.useCounter, &summ.changeHandler, summ.dataVersion);
+		summ.loadXML1(std.path.buildPath(path, PATH_AREA), "Area", summ._area, summ.useCounter, &summ.changeHandler, summ.dataVersion);
 		summ.checkStartArea;
-		__loadXML1(std.path.buildPath(path, PATH_BATTLE), "Battle", summ._btl, summ.useCounter, &summ.changeHandler, summ.dataVersion);
-		__loadXML1(std.path.buildPath(path, PATH_PACKAGE), "Package", summ._pkg, summ.useCounter, &summ.changeHandler, summ.dataVersion);
+		summ.loadXML1(std.path.buildPath(path, PATH_BATTLE), "Battle", summ._btl, summ.useCounter, &summ.changeHandler, summ.dataVersion);
+		summ.loadXML1(std.path.buildPath(path, PATH_PACKAGE), "Package", summ._pkg, summ.useCounter, &summ.changeHandler, summ.dataVersion);
 
-		__loadXML1(std.path.buildPath(path, PATH_CAST), "CastCard", summ._cast, summ.useCounter, &summ.changeHandler, summ.dataVersion);
-		__loadXML1(std.path.buildPath(path, PATH_SKILL), "SkillCard", summ._skl, summ.useCounter, &summ.changeHandler, summ.dataVersion);
-		__loadXML1(std.path.buildPath(path, PATH_ITEM), "ItemCard", summ._itm, summ.useCounter, &summ.changeHandler, summ.dataVersion);
-		__loadXML1(std.path.buildPath(path, PATH_BEAST), "BeastCard", summ._bst, summ.useCounter, &summ.changeHandler, summ.dataVersion);
-		__loadXML1(std.path.buildPath(path, PATH_INFO), "InfoCard", summ._info, summ.useCounter, &summ.changeHandler, summ.dataVersion);
+		summ.loadXML1(std.path.buildPath(path, PATH_CAST), "CastCard", summ._cast, summ.useCounter, &summ.changeHandler, summ.dataVersion);
+		summ.loadXML1(std.path.buildPath(path, PATH_SKILL), "SkillCard", summ._skl, summ.useCounter, &summ.changeHandler, summ.dataVersion);
+		summ.loadXML1(std.path.buildPath(path, PATH_ITEM), "ItemCard", summ._itm, summ.useCounter, &summ.changeHandler, summ.dataVersion);
+		summ.loadXML1(std.path.buildPath(path, PATH_BEAST), "BeastCard", summ._bst, summ.useCounter, &summ.changeHandler, summ.dataVersion);
+		summ.loadXML1(std.path.buildPath(path, PATH_INFO), "InfoCard", summ._info, summ.useCounter, &summ.changeHandler, summ.dataVersion);
 	}
 
 	/// XMLを元にしたインスタンスを返す。
@@ -1649,10 +1650,10 @@ public:
 template CardContainer(bool UseCast, bool UseSkill, bool UseItem, bool UseBeast, bool UseInfo) {
 	mixin ("class CardContainer : CWXPath"
 		~ (UseCast ? ", CastOwner" : "")
-		~ (UseCast ? ", SkillOwner" : "")
-		~ (UseCast ? ", ItemOwner" : "")
-		~ (UseCast ? ", BeastOwner" : "")
-		~ (UseCast ? ", InfoOwner" : "")
+		~ (UseSkill ? ", SkillOwner" : "")
+		~ (UseItem ? ", ItemOwner" : "")
+		~ (UseBeast ? ", BeastOwner" : "")
+		~ (UseInfo ? ", InfoOwner" : "")
 		~ "{"
 		~ "    mixin CardContainerImpl!(UseCast, UseSkill, UseItem, UseBeast, UseInfo);"
 		~ "}");
@@ -1763,11 +1764,11 @@ public:
 			string ver;
 			auto cc = fromNode(summNode, sPath, ver);
 
-			static if (UseCast) __loadXML2!(CastCard)(xmls, PATH_CAST, CastCard.XML_NAME, cc._cast, null, null, ver);
-			static if (UseSkill) __loadXML2!(SkillCard)(xmls, PATH_SKILL, SkillCard.XML_NAME, cc._skl, null, null, ver);
-			static if (UseItem) __loadXML2!(ItemCard)(xmls, PATH_ITEM, ItemCard.XML_NAME, cc._itm, null, null, ver);
-			static if (UseBeast) __loadXML2!(BeastCard)(xmls, PATH_BEAST, BeastCard.XML_NAME, cc._bst, null,null, ver);
-			static if (UseInfo) __loadXML2!(InfoCard)(xmls, PATH_INFO, InfoCard.XML_NAME, cc._info, null, null, ver);
+			static if (UseCast) cc.loadXML2!(CastCard)(xmls, PATH_CAST, CastCard.XML_NAME, cc._cast, null, null, ver);
+			static if (UseSkill) cc.loadXML2!(SkillCard)(xmls, PATH_SKILL, SkillCard.XML_NAME, cc._skl, null, null, ver);
+			static if (UseItem) cc.loadXML2!(ItemCard)(xmls, PATH_ITEM, ItemCard.XML_NAME, cc._itm, null, null, ver);
+			static if (UseBeast) cc.loadXML2!(BeastCard)(xmls, PATH_BEAST, BeastCard.XML_NAME, cc._bst, null,null, ver);
+			static if (UseInfo) cc.loadXML2!(InfoCard)(xmls, PATH_INFO, InfoCard.XML_NAME, cc._info, null, null, ver);
 
 			return cc;
 		}
@@ -1790,11 +1791,11 @@ public:
 			string ver;
 			auto cc = fromNode(summNode, par, ver);
 
-			static if (UseCast) __loadXML1!(CastCard)(std.path.buildPath(par, PATH_CAST), CastCard.XML_NAME, cc._cast, null, null, ver);
-			static if (UseSkill) __loadXML1!(SkillCard)(std.path.buildPath(par, PATH_SKILL), SkillCard.XML_NAME, cc._skl, null, null, ver);
-			static if (UseItem) __loadXML1!(ItemCard)(std.path.buildPath(par, PATH_ITEM), ItemCard.XML_NAME, cc._itm, null, null, ver);
-			static if (UseBeast) __loadXML1!(BeastCard)(std.path.buildPath(par, PATH_BEAST), BeastCard.XML_NAME, cc._bst, null,null, ver);
-			static if (UseInfo) __loadXML1!(InfoCard)(std.path.buildPath(par, PATH_INFO), InfoCard.XML_NAME, cc._info, null, null, ver);
+			static if (UseCast) cc.loadXML1!(CastCard)(std.path.buildPath(par, PATH_CAST), CastCard.XML_NAME, cc._cast, null, null, ver);
+			static if (UseSkill) cc.loadXML1!(SkillCard)(std.path.buildPath(par, PATH_SKILL), SkillCard.XML_NAME, cc._skl, null, null, ver);
+			static if (UseItem) cc.loadXML1!(ItemCard)(std.path.buildPath(par, PATH_ITEM), ItemCard.XML_NAME, cc._itm, null, null, ver);
+			static if (UseBeast) cc.loadXML1!(BeastCard)(std.path.buildPath(par, PATH_BEAST), BeastCard.XML_NAME, cc._bst, null,null, ver);
+			static if (UseInfo) cc.loadXML1!(InfoCard)(std.path.buildPath(par, PATH_INFO), InfoCard.XML_NAME, cc._info, null, null, ver);
 
 			return cc;
 		}

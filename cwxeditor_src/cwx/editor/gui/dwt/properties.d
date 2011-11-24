@@ -629,8 +629,11 @@ class FlexEtcProps : Properties {
 	mixin Property!("openHistories", string[], []);
 	mixin Property!("historyMax", int, 9);
 	mixin Property!("historySnipLength", int, 30);
-	mixin Property!("searchResultTableWidth", int, 400, true);
-	mixin Property!("searchResultTableHeight", int, 200, true);
+	// FIXME: リンクエラー！
+//	mixin Property!("searchResultTableWidth", int, 400, true);
+//	mixin Property!("searchResultTableHeight", int, 200, true);
+	int searchResultTableWidth = 400;
+	int searchResultTableHeight = 200;
 	version (Windows) {
 		mixin Property!("engine", string, "CardWirthPy.exe", true);
 		mixin Property!("enginePath", string, "CardWirthPy.exe");
@@ -689,6 +692,7 @@ class FlexEtcProps : Properties {
 	mixin Property!("searchUnusedInfo", bool, true);
 	mixin Property!("searchUnusedStart", bool, true);
 	mixin Property!("searchUnusedPath", bool, true);
+	mixin Property!("searchOpenDialog", bool, false);
 
 	mixin Property!("flagTrues", string[], ["TRUE", "表示", "ON", "有", "可", "済み"], true);
 	mixin Property!("flagFalses", string[], ["FALSE", "非表示", "OFF", "無", "不可", "まだ"], true);
@@ -791,6 +795,8 @@ class FlexEtcProps : Properties {
 	mixin Property!("commentBoxDistance", int, 50, true);
 
 	mixin Property!("doubleIO", bool, true);
+
+	mixin Property!("savedSound", string, "");
 
 	mixin Property!("bindCardViews", bool, false);
 	mixin Property!("bindSceneWithEvent", bool, false);

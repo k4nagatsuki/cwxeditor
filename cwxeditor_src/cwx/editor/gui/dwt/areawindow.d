@@ -460,26 +460,26 @@ public:
 			return .hasFocus(_win);
 		}
 	}
-	bool openCWXPath(string path) {
+	bool openCWXPath(string path, bool shellActivate = true) {
 		auto cate = cpcategory(path);
 		if (cpempty(path)) {
 			static if (WithEventView) {
 				_tabf.setSelection = _tabA;
 			}
 			return true;
-		} else if (cpattr(path).contains("eventview")) {
+		} else if (cphasattr(path, "eventview")) {
 			static if (WithEventView) {
-				_eview.initial;
-				return _eview.openCWXPath(path);
+				_eview.initial();
+				return _eview.openCWXPath(path, shellActivate);
 			}
 		} else if (((cate == "menucard" || cate == "enemycard")
 				&& cpempty(cpbottom(path)))
 				|| cate == "background") {
-			return _aview.openCWXPath(path);
+			return _aview.openCWXPath(path, shellActivate);
 		} else {
 			static if (WithEventView) {
-				_eview.initial;
-				return _eview.openCWXPath(path);
+				_eview.initial();
+				return _eview.openCWXPath(path, shellActivate);
 			}
 		}
 		return false;

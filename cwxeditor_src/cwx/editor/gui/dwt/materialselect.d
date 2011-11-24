@@ -597,7 +597,7 @@ private:
 		if (dir == _tbl) return;
 		auto p = filePath;
 		if (p.length) {
-			_comm.openFilePath(p);
+			_comm.openFilePath(p, false);
 		}
 	}
 	private static string fromViewPath(string s) {

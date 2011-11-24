@@ -240,8 +240,8 @@ public:
 		return _undo;
 	}
 	static if (is(A : Area) || is(A : Battle)) {
-		void openScene() {
-			_comm.openAreaScene(_prop, _summ, _eto);
+		private void openScene() {
+			_comm.openAreaScene(_prop, _summ, _eto, true);
 		}
 	}
 	private void __deleteOwner(A a) {
@@ -340,8 +340,8 @@ public:
 			return _eview.canDoTCPD;
 		}
 	}
-	bool openCWXPath(string path) {
-		return _eview.openCWXPath(path);
+	bool openCWXPath(string path, bool shellActivate = true) {
+		return _eview.openCWXPath(path, shellActivate);
 	}
 }
 

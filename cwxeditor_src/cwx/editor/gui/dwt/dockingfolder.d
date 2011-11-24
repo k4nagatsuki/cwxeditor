@@ -350,7 +350,9 @@ class DockingFolder(TabF, int Style) {
 		_keys[key] = ctrl;
 		if (select) {
 			tabf.setSelection = tab;
-			tabf.setFocus;
+			if (tabf.getShell is tabf.getDisplay.getActiveShell) {
+				tabf.setFocus;
+			}
 		}
 	}
 	/// keyに該当するペインにmenuを登録する。
@@ -739,7 +741,9 @@ class DockingFolder(TabF, int Style) {
 				tab.setText = _dragItm.getText;
 				tab.setImage = _dragItm.getImage;
 				tabf.setSelection = tab;
-				tabf.setFocus;
+				if (tabf.getShell is tabf.getDisplay.getActiveShell) {
+					tabf.setFocus;
+				}
 			}
 			int putCenter() {
 				auto dropItm = dropTarg.getItem(dropTarg.toControl(e.x, e.y));
@@ -772,7 +776,9 @@ class DockingFolder(TabF, int Style) {
 				if (!newKey.length) newKey = newTabfKey;
 				auto tabf = newSash(dropTarg, style, before, 1, 1, newKey);
 				newTab(tabf, -1);
-				tabf.setFocus;
+				if (tabf.getShell is tabf.getDisplay.getActiveShell) {
+					tabf.setFocus;
+				}
 				return DND.DROP_MOVE;
 			}
 			switch (_dropPos) {
@@ -805,7 +811,9 @@ class DockingFolder(TabF, int Style) {
 	private class ClickTab : MouseAdapter {
 		override void mouseDown(MouseEvent e) {
 			auto tabf = cast(TabF) e.widget;
-			tabf.setFocus;
+			if (tabf.getShell is tabf.getDisplay.getActiveShell) {
+				tabf.setFocus;
+			}
 		}
 	}
 	private class FocusL : Listener {

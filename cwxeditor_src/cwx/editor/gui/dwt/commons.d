@@ -175,7 +175,7 @@ abstract class TopLevelPanel {
 		auto t = statusText;
 		if (t) t(statusLine);
 	}
-	abstract bool openCWXPath(string cwxPath);
+	abstract bool openCWXPath(string cwxPath, bool shellActivate = true);
 }
 class TLPData {
 	TopLevelPanel tlp;
@@ -361,19 +361,19 @@ class Commons {
 	Shell actToolWin() {return _actToolWin;}
 	private Shell _actToolWin = null;
 
-	private void activate(Composite w) {
+	private void activate(Composite w, bool shellActivate) {
 		auto shl = cast(Shell) w;
 		if (shl) {
 			shl.setMinimized = false;
-			shl.setActive;
+			if (shellActivate) shl.setActive;
 		} else {
-			.forceFocus(w);
+			.forceFocus(w, shellActivate);
 		}
 	}
-	private Window rOpen(Window, Main)(Main m) {
+	private Window rOpen(Window, Main)(Main m, bool shellActivate) {
 		foreach (w; _ws) {
 			if ((cast(TLPData) w.getData).main is m) {
-				activate(w);
+				activate(w, shellActivate);
 				return cast(Window) _wos[w];
 			}
 		}
@@ -388,14 +388,14 @@ class Commons {
 		}
 		return ws;
 	}
-	private Window __open(string Pane, Window, Main, string Etc, Args ...)(Main m, Args args) {
-		auto w = rOpen!(Window)(m);
+	private Window __open(string Pane, Window, Main, string Etc, Args ...)(Main m, bool shellActivate, Args args) {
+		auto w = rOpen!(Window)(m, shellActivate);
 		if (!w) {
-			w = __open2!(Pane, Window, Main, Etc, Args)(m, args);
+			w = __open2!(Pane, Window, Main, Etc, Args)(m, shellActivate, args);
 		}
 		return w;
 	}
-	private Window __open2(string Pane, Window, Main, string Etc, Args ...)(Main m, Args args) {
+	private Window __open2(string Pane, Window, Main, string Etc, Args ...)(Main m, bool shellActivate, Args args) {
 		auto w = new Window(args);
 		(cast(TLPData) w.shell.getData).main = m;
 		static if (Etc.length) mixin (Etc);
@@ -421,13 +421,13 @@ class Commons {
 		if (s.length) return _main.dock.pane(s[0]);
 		return _main.dock.addPane(workPane, Dir.E, 3, 1, _main.dock.newCtrlKey("side"));
 	}
-	private Window __openArea(A, Window)(Props prop, Summary summ, A area, UndoManager undo) {
+	private Window __openArea(A, Window)(Props prop, Summary summ, A area, UndoManager undo, bool shellActivate) {
 		if (!area) return null;
 		return __open!("work", Window, A, "", Commons, Props, Summary, Composite, Shell, A, UndoManager)
-			(area, this, prop, summ, workPane,
+			(area, shellActivate, this, prop, summ, workPane,
 			cast(Shell) (_dataWin ? _dataWin.shell : _tableWin.shell), area, undo);
 	}
-	private BindWindow openAreaB(A, BindWindow, SceneWindow, EventWindow)(Props prop, Summary summ, A area) {
+	private BindWindow openAreaB(A, BindWindow, SceneWindow, EventWindow)(Props prop, Summary summ, A area, bool shellActivate) {
 		auto ws = opened(area);
 		UndoManager undo = null;
 		foreach (w; ws) {
@@ -442,64 +442,64 @@ class Commons {
 			}
 			close(w);
 		}
-		return __openArea!(A, BindWindow)(prop, summ, area, undo);
+		return __openArea!(A, BindWindow)(prop, summ, area, undo, shellActivate);
 	}
-	private Window1 openAreaSE(A, BindWindow, Window1, Window2)(Props prop, Summary summ, A area) {
+	private Window1 openAreaSE(A, BindWindow, Window1, Window2)(Props prop, Summary summ, A area, bool shellActivate) {
 		auto ws = opened(area);
 		UndoManager undo = null;
 		foreach (w; ws) {
 			auto tlpData = (cast(TLPData) w.getData);
 			auto aw = cast(BindWindow) tlpData.tlp;
 			if (aw) {
-				activate(w);
+				activate(w, shellActivate);
 				return null;
 			}
 			auto asw = cast(Window1) tlpData.tlp;
 			if (asw) {
-				activate(w);
+				activate(w, shellActivate);
 				return asw;
 			}
 			auto aew = cast(Window2) tlpData.tlp;
 			if (aew) undo = aew.undoManager;
 		}
-		return __openArea!(A, Window1)(prop, summ, area, undo);
+		return __openArea!(A, Window1)(prop, summ, area, undo, shellActivate);
 	}
-	AreaWindow openArea(Props prop, Summary summ, Area area) {
-		return openAreaB!(Area, AreaWindow, AreaSceneWindow, AreaEventWindow)(prop, summ, area);
+	AreaWindow openArea(Props prop, Summary summ, Area area, bool shellActivate) {
+		return openAreaB!(Area, AreaWindow, AreaSceneWindow, AreaEventWindow)(prop, summ, area, shellActivate);
 	}
-	TopLevelPanel openAreaScene(Props prop, Summary summ, Area area) {
-		return openAreaSE!(Area, AreaWindow, AreaSceneWindow, AreaEventWindow)(prop, summ, area);
+	TopLevelPanel openAreaScene(Props prop, Summary summ, Area area, bool shellActivate) {
+		return openAreaSE!(Area, AreaWindow, AreaSceneWindow, AreaEventWindow)(prop, summ, area, shellActivate);
 	}
-	TopLevelPanel openAreaEvent(Props prop, Summary summ, Area area) {
-		return openAreaSE!(Area, AreaWindow, AreaEventWindow, AreaSceneWindow)(prop, summ, area);
+	TopLevelPanel openAreaEvent(Props prop, Summary summ, Area area, bool shellActivate) {
+		return openAreaSE!(Area, AreaWindow, AreaEventWindow, AreaSceneWindow)(prop, summ, area, shellActivate);
 	}
-	BattleWindow openArea(Props prop, Summary summ, Battle area) {
-		return openAreaB!(Battle, BattleWindow, BattleSceneWindow, BattleEventWindow)(prop, summ, area);
+	BattleWindow openArea(Props prop, Summary summ, Battle area, bool shellActivate) {
+		return openAreaB!(Battle, BattleWindow, BattleSceneWindow, BattleEventWindow)(prop, summ, area, shellActivate);
 	}
-	TopLevelPanel openAreaScene(Props prop, Summary summ, Battle area) {
-		return openAreaSE!(Battle, BattleWindow, BattleSceneWindow, BattleEventWindow)(prop, summ, area);
+	TopLevelPanel openAreaScene(Props prop, Summary summ, Battle area, bool shellActivate) {
+		return openAreaSE!(Battle, BattleWindow, BattleSceneWindow, BattleEventWindow)(prop, summ, area, shellActivate);
 	}
-	TopLevelPanel openAreaEvent(Props prop, Summary summ, Battle area) {
-		return openAreaSE!(Battle, BattleWindow, BattleEventWindow, BattleSceneWindow)(prop, summ, area);
+	TopLevelPanel openAreaEvent(Props prop, Summary summ, Battle area, bool shellActivate) {
+		return openAreaSE!(Battle, BattleWindow, BattleEventWindow, BattleSceneWindow)(prop, summ, area, shellActivate);
 	}
-	PackageWindow openArea(Props prop, Summary summ, Package area) {
-		return __openArea!(Package, PackageWindow)(prop, summ, area, null);
+	PackageWindow openArea(Props prop, Summary summ, Package area, bool shellActivate) {
+		return __openArea!(Package, PackageWindow)(prop, summ, area, null, shellActivate);
 	}
 
-	HandCardWindow openHands(Props prop, Summary summ, CastCard c) {
-		auto w = rOpen!(HandCardWindow)(c);
+	HandCardWindow openHands(Props prop, Summary summ, CastCard c, bool shellActivate) {
+		auto w = rOpen!(HandCardWindow)(c, shellActivate);
 		if (w) return w;
 		return __open2!("side", HandCardWindow, CastCard, "w.refresh(args[2], m);", Commons, Props, Summary, Composite)
-			(c, this, prop, summ, sidePane);
+			(c, shellActivate, this, prop, summ, sidePane);
 	}
-	AddHandCardWindow openAddHands(Props prop, Importable summ, CastCard c, Summary toc) {
-		auto w = rOpen!(AddHandCardWindow)(c);
+	AddHandCardWindow openAddHands(Props prop, Importable summ, CastCard c, Summary toc, bool shellActivate) {
+		auto w = rOpen!(AddHandCardWindow)(c, shellActivate);
 		if (w) return w;
 		return __open2!("side", AddHandCardWindow, CastCard, "", Commons, Props, Composite, Importable, CastCard, Summary)
-			(c, this, prop, sidePane, summ, c, toc);
+			(c, shellActivate, this, prop, sidePane, summ, c, toc);
 	}
 
-	private Window __openUseEvent(C, Window)(Props prop, Summary summ, C c, UndoManager undo) {
+	private Window __openUseEvent(C, Window)(Props prop, Summary summ, C c, UndoManager undo, bool shellActivate) {
 		Shell parent;
 		if (_cardWin) {
 			parent = cast(Shell) _cardWin.shell;
@@ -517,26 +517,26 @@ class Commons {
 			} else static assert (0);
 		}
 		return __open!("work", Window, C, "", Commons, Props, Summary, Composite, Shell, C, UndoManager)
-			(c, this, prop, summ, workPane, parent, c, undo);
+			(c, shellActivate, this, prop, summ, workPane, parent, c, undo);
 	}
-	SkillEventWindow openUseEvents(Props prop, Summary summ, SkillCard c) {
-		return __openUseEvent!(SkillCard, SkillEventWindow)(prop, summ, c, null);
+	SkillEventWindow openUseEvents(Props prop, Summary summ, SkillCard c, bool shellActivate) {
+		return __openUseEvent!(SkillCard, SkillEventWindow)(prop, summ, c, null, shellActivate);
 	}
-	ItemEventWindow openUseEvents(Props prop, Summary summ, ItemCard c) {
-		return __openUseEvent!(ItemCard, ItemEventWindow)(prop, summ, c, null);
+	ItemEventWindow openUseEvents(Props prop, Summary summ, ItemCard c, bool shellActivate) {
+		return __openUseEvent!(ItemCard, ItemEventWindow)(prop, summ, c, null, shellActivate);
 	}
-	BeastEventWindow openUseEvents(Props prop, Summary summ, BeastCard c) {
-		return __openUseEvent!(BeastCard, BeastEventWindow)(prop, summ, c, null);
+	BeastEventWindow openUseEvents(Props prop, Summary summ, BeastCard c, bool shellActivate) {
+		return __openUseEvent!(BeastCard, BeastEventWindow)(prop, summ, c, null, shellActivate);
 	}
 	private void show(Composite c, string pane, Dir dir, string key,
-			TopLevelPanel delegate(Composite) create, string text) {
+			TopLevelPanel delegate(Composite) create, string text, bool shellActivate) {
 		auto shl = cast(Shell) c;
 		if (shl) {
 			shl.setMinimized = false;
-			shl.open;
+			shl.open();
 		} else {
 			if (_main.dock.control(key)) {
-				.forceFocus(c);
+				.forceFocus(c, shellActivate);
 				return;
 			}
 			Composite p;
@@ -564,74 +564,74 @@ class Commons {
 		}
 		return NewCtrlLocation.Last;
 	}
-	private void openMain(string Key, string Pane, Dir D, Win)(Win win) {
+	private void openMain(string Key, string Pane, Dir D, Win)(Win win, bool shellActivate) {
 		show(win.shell, Pane, D, Key, delegate TopLevelPanel(Composite p) {
 			win.reconstruct(p);
 			return win;
-		}, win.title);
+		}, win.title, shellActivate);
 	}
-	void openDataWin() {
+	void openDataWin(bool shellActivate) {
 		if (_dataWin) {
-			openMain!("data", "data", Dir.N)(_dataWin);
+			openMain!("data", "data", Dir.N)(_dataWin, shellActivate);
 		} else {
-			openMain!("data", "data", Dir.N)(_tableWin);
+			openMain!("data", "data", Dir.N)(_tableWin, shellActivate);
 		}
 	}
-	void openFlagWin() {
+	void openFlagWin(bool shellActivate) {
 		if (_flagWin) {
-			openMain!("flag", "data", Dir.N)(_flagWin);
+			openMain!("flag", "data", Dir.N)(_flagWin, shellActivate);
 		} else {
-			openMain!("data", "data", Dir.N)(_dataWin);
+			openMain!("data", "data", Dir.N)(_dataWin, shellActivate);
 			_dataWin.selectFlags;
 		}
 	}
-	void openBindCardWin() {
-		openMain!("card", "data", Dir.N)(_cardWin);
+	void openBindCardWin(bool shellActivate) {
+		openMain!("card", "data", Dir.N)(_cardWin, shellActivate);
 	}
-	void openCastWin() {
+	void openCastWin(bool shellActivate) {
 		if (_cardWin) {
-			openBindCardWin();
-			_cardWin.openCast();
+			openBindCardWin(shellActivate);
+			_cardWin.openCast(shellActivate);
 		} else {
-			openMain!("castCard", "data", Dir.N)(_castWin);
+			openMain!("castCard", "data", Dir.N)(_castWin, shellActivate);
 		}
 	}
-	void openSkillWin() {
+	void openSkillWin(bool shellActivate) {
 		if (_cardWin) {
-			openBindCardWin();
-			_cardWin.openSkill();
+			openBindCardWin(shellActivate);
+			_cardWin.openSkill(shellActivate);
 		} else {
-			openMain!("skillCard", "data", Dir.N)(_skillWin);
+			openMain!("skillCard", "data", Dir.N)(_skillWin, shellActivate);
 		}
 	}
-	void openItemWin() {
+	void openItemWin(bool shellActivate) {
 		if (_cardWin) {
-			openBindCardWin();
-			_cardWin.openItem();
+			openBindCardWin(shellActivate);
+			_cardWin.openItem(shellActivate);
 		} else {
-			openMain!("itemCard", "data", Dir.N)(_itemWin);
+			openMain!("itemCard", "data", Dir.N)(_itemWin, shellActivate);
 		}
 	}
-	void openBeastWin() {
+	void openBeastWin(bool shellActivate) {
 		if (_cardWin) {
-			openBindCardWin();
-			_cardWin.openBeast();
+			openBindCardWin(shellActivate);
+			_cardWin.openBeast(shellActivate);
 		} else {
-			openMain!("beastCard", "data", Dir.N)(_beastWin);
+			openMain!("beastCard", "data", Dir.N)(_beastWin, shellActivate);
 		}
 	}
-	void openInfoWin() {
+	void openInfoWin(bool shellActivate) {
 		if (_cardWin) {
-			openBindCardWin();
-			_cardWin.openInfo();
+			openBindCardWin(shellActivate);
+			_cardWin.openInfo(shellActivate);
 		} else {
-			openMain!("infoCard", "data", Dir.N)(_infoWin);
+			openMain!("infoCard", "data", Dir.N)(_infoWin, shellActivate);
 		}
 	}
-	void openDirWin() {
-		openMain!("file", "data", Dir.N)(_dirWin);
+	void openDirWin(bool shellActivate) {
+		openMain!("file", "data", Dir.N)(_dirWin, shellActivate);
 	}
-	void open(TopLevelPanel tlp, string pane) {
+	private void open(TopLevelPanel tlp, string pane) {
 		_ws.add(tlp.shell);
 		_wos[tlp.shell] = tlp;
 		tlp.shell.addDisposeListener(new CloseRemover!(Composite)(_ws, tlp.shell));
@@ -644,7 +644,7 @@ class Commons {
 		}
 	}
 
-	TopLevelPanel areaWindowFrom(string cwxPath) {
+	TopLevelPanel areaWindowFrom(string cwxPath, bool shellActivate) {
 		if (!mainWin.summary) return null;
 		auto a = mainWin.summary.findCWXPath(cwxPath);
 		if (!a) return null;
@@ -663,7 +663,7 @@ class Commons {
 		}
 		return null;
 	}
-	TopLevelPanel eventWindowFrom(string cwxPath) {
+	TopLevelPanel eventWindowFrom(string cwxPath, bool shellActivate) {
 		if (!mainWin.summary) return null;
 		auto a = mainWin.summary.findCWXPath(cwxPath);
 		if (!a) return null;
@@ -680,7 +680,7 @@ class Commons {
 		}
 		return null;
 	}
-	AbstractAreaView!(A, C, UseCards, UseBacks) areaViewFrom(A, C, bool UseCards, bool UseBacks)(string cwxPath) {
+	AbstractAreaView!(A, C, UseCards, UseBacks) areaViewFrom(A, C, bool UseCards, bool UseBacks)(string cwxPath, bool shellActivate) {
 		if (!mainWin.summary) return null;
 		auto a = mainWin.summary.findCWXPath(cwxPath);
 		if (!a) return null;
@@ -702,7 +702,7 @@ class Commons {
 		}
 		return null;
 	}
-	EventView!(A, C, UseFire) eventViewFrom(A, C, bool UseFire)(string cwxPath) {
+	EventView!(A, C, UseFire) eventViewFrom(A, C, bool UseFire)(string cwxPath, bool shellActivate) {
 		if (!mainWin.summary) return null;
 		auto a = mainWin.summary.findCWXPath(cwxPath);
 		if (!a) return null;
@@ -722,7 +722,7 @@ class Commons {
 		}
 		return null;
 	}
-	EventTreeView eventTreeViewFrom(string cwxPath) {
+	EventTreeView eventTreeViewFrom(string cwxPath, bool shellActivate) {
 		if (!mainWin.summary) return null;
 		auto a = mainWin.summary.findCWXPath(cwxPath);
 		if (!a) return null;
@@ -744,7 +744,7 @@ class Commons {
 		}
 		return null;
 	}
-	HandCardWindow handCardWindowFrom(Props prop, Summary summ, CastCard c, bool open) {
+	HandCardWindow handCardWindowFrom(Props prop, Summary summ, CastCard c, bool open, bool shellActivate) {
 		foreach (w; _ws) {
 			auto tlpData = (cast(TLPData) w.getData);
 			if (tlpData.main is c) {
@@ -752,7 +752,7 @@ class Commons {
 			}
 		}
 		if (open) {
-			return openHands(prop, summ, c);
+			return openHands(prop, summ, c, shellActivate);
 		}
 		return null;
 	}
@@ -855,11 +855,11 @@ class Commons {
 		}
 	}
 
-	bool openCWXPath(string path) {
-		return _main.openCWXPath(path);
+	bool openCWXPath(string path, bool shellActivate = true) {
+		return _main.openCWXPath(path, shellActivate);
 	}
-	bool openFilePath(string path) {
-		openDirWin;
+	bool openFilePath(string path, bool shellActivate) {
+		openDirWin(shellActivate);
 		return _dirWin.select(path);
 	}
 	void replacePath(string from) {
@@ -867,8 +867,8 @@ class Commons {
 		if (replWin) replWin.replacePath(from);
 	}
 
-	ulong createPackage(Content baseStart) {
-		openDataWin;
+	ulong createPackage(Content baseStart, bool shellActivate) {
+		openDataWin(shellActivate);
 		if (_dataWin) {
 			return _dataWin.createPackage(baseStart);
 		} else {

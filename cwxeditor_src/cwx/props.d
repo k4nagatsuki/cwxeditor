@@ -456,6 +456,8 @@ public:
 	const string searchErrorInfoNotFound() {return "情報カードが見つからない";}
 	const string searchErrorStartNotFound() {return "スタートコンテントが見つからない";}
 
+	const string searchOpenDialog() {return "検索結果へジャンプする時、ダイアログを開く";}
+
 	/// イベント設定。
 	const string ttStartToPackage() {return "このツリーをパッケージ化する";}
 	const string menuStartToPackage() {return ttStartToPackage ~ "(&P)";}
@@ -2392,6 +2394,11 @@ public:
 	const string bgImagesDefault() {return "デフォルト背景";}
 	const string setBgImagesDefault() {return "デフォルト背景の設定...";}
 	const string dlgTitBgImagesDefault() {return "デフォルト背景の設定";}
+
+	const string systemSounds() {return "システム音声";}
+	const string soundSaved() {return "シナリオ保存完了";}
+	const string playableSounds(string exts) {return "サウンドファイル (" ~ exts ~ ")";}
+	const string dlgTitSystemSound() {return "システム音声の選択";}
 
 	/// スクリプト関係。
 	const string ttToScript() {return "スクリプトに変換してコピー";}

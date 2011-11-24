@@ -324,10 +324,11 @@ private:
 			if (!v) return;
 			static if (UseCards) if (!v._viewCards) v._cards.deselectAll;
 			static if (UseBacks) if (!v._viewBacks) v._backs.deselectAll;
+			v.refreshStatusLine();
 		}
 		protected AbstractAreaView view() {
 			static if (is(A : Area) || is(A : Battle)) {
-				return comm.areaViewFrom!(A, C, UseCards, UseBacks)(area.cwxPath);
+				return comm.areaViewFrom!(A, C, UseCards, UseBacks)(area.cwxPath, false);
 			} else {
 				return _v;
 			}
@@ -1883,7 +1884,7 @@ public:
 				path = area.cwxPath;
 			}
 			path = cpaddattr(path, "eventview");
-			_comm.openCWXPath(path);
+			_comm.openCWXPath(path, true);
 		}
 	}
 	void refreshR(string from, string to) {
@@ -3345,12 +3346,12 @@ public:
 	void undo() {_undo.undo;}
 	void redo() {_undo.redo;}
 
-	bool openCWXPath(string path) {
+	bool openCWXPath(string path, bool shellActivate = true) {
 		auto cate = cpcategory(path);
 		auto index = cpindex(path);
 		bool sel(Table list) {
 			if (index >= list.getItemCount) return false;
-			.forceFocus(_imgp);
+			.forceFocus(_imgp, shellActivate);
 			list.deselectAll;
 			list.select = index;
 			list.showSelection;
@@ -3360,6 +3361,9 @@ public:
 			if (cate == "menucard") {
 				if (sel(_cards)) {
 					listSelectC;
+					if (cphasattr(path, "opendialog")) {
+						editCard(_cards.getSelectionIndices);
+					}
 					return true;
 				}
 			}
@@ -3368,6 +3372,9 @@ public:
 			if (cate == "enemycard") {
 				if (sel(_cards)) {
 					listSelectC;
+					if (cphasattr(path, "opendialog")) {
+						editCard(_cards.getSelectionIndices);
+					}
 					return true;
 				}
 			}
@@ -3376,6 +3383,9 @@ public:
 			if (cate == "background") {
 				if (sel(_backs)) {
 					listSelectB;
+					if (cphasattr(path, "opendialog")) {
+						editBack(_backs.getSelectionIndices);
+					}
 					return true;
 				}
 			}

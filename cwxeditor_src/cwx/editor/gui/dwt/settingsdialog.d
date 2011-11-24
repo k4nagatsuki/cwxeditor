@@ -280,6 +280,7 @@ private:
 	version (Windows) {
 		Combo _soundPlayType;
 	}
+	Text _savedSound;
 
 	class RefE : SelectionAdapter, ModifyListener {
 		override void widgetSelected(SelectionEvent e) {
@@ -381,6 +382,24 @@ private:
 			return "";
 		}
 	}
+	const SYSTEM_SOUND_EXT = [
+		"aiff", // AIFF
+		"mid", "midi", // MIDI
+		"mod", "s3m", "xm", "it", "mt2", "669", "med", // MOD
+		"ogg", "ogv", "oga", "ogx", // Ogg
+		"voc", // VOC
+		"wav" // WAV/RIFF
+	];
+	string dropSysSound(string[] files) {
+		if (!files.length) return "";
+		foreach (file; files) {
+			string ext = cwx.utils.toLower(cwx.utils.getExt(file));
+			if (.contains!("a == b", string)(SYSTEM_SOUND_EXT, ext)) {
+				return file;
+			}
+		}
+		return "";
+	}
 	string dropDir(string[] files) {
 		if (!files.length) return "";
 		string file = files[0];
@@ -448,6 +467,16 @@ private:
 		selectFile(_enginePath, [_prop.var.etc.engine], [_prop.var.etc.engine],
 			_prop.var.etc.engine, _prop.msgs.dlgTitEnginePath(_prop.var.etc.engine),
 			_prop.var.etc.enginePath);
+	}
+	void selectSysSound(Text widget) {
+		string[] extArr;
+		foreach (sse; SYSTEM_SOUND_EXT) {
+			extArr ~= "*." ~ sse;
+		}
+		string exts = std.string.join(extArr, ";");
+		selectFile(widget, [_prop.msgs.playableSounds(exts)], [exts],
+			baseName(widget.getText), _prop.msgs.dlgTitSystemSound,
+			widget.getText);
 	}
 	void selectProgram(int i) {
 		auto tool = _tools[i];
@@ -642,6 +671,15 @@ private:
 	}
 	class SelWallpaper : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {selectWallpaper;}
+	}
+	class SelSysSound : SelectionAdapter {
+		private Text _text;
+		this (Text text) {
+			_text = text;
+		}
+		override void widgetSelected(SelectionEvent e) {
+			selectSysSound(_text);
+		}
 	}
 	class ClearHist : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
@@ -1761,12 +1799,30 @@ private:
 					_soundPlayType.add(_prop.msgs.soundPlayTypeApp);
 				}
 			}
+			{
+				auto grp = new Group(comp2, SWT.NONE);
+				grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+				grp.setText = _prop.msgs.systemSounds;
+				grp.setLayout = new GridLayout(4, false);
+				auto l = new Label(grp, SWT.NONE);
+				l.setText = _prop.msgs.soundSaved;
+				_savedSound = new Text(grp, SWT.BORDER);
+				createTextMenu!Text(_prop, _savedSound, &catchMod);
+				_savedSound.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+				mod(_savedSound);
+				auto refr = new Button(grp, SWT.PUSH);
+				refr.setText = _prop.msgs.reference;
+				refr.addSelectionListener(new SelSysSound(_savedSound));
+				createOpenButton(grp, _savedSound, false);
+				setupDropFile(grp, _savedSound, &dropSysSound);	
+			}
 		}
 		{
 			auto grp = new Group(comp, SWT.NONE);
 			auto gd = new GridData(GridData.FILL_BOTH);
+			gd.verticalSpan = 2;
 			version (Windows) {
-				gd.verticalSpan = 2;
+				gd.verticalSpan++;
 			}
 			grp.setLayoutData = gd;
 			grp.setText = _prop.msgs.ignorePaths;
@@ -1891,6 +1947,7 @@ protected:
 		version (Windows) {
 			_soundPlayType.select = _prop.var.etc.soundPlayType;
 		}
+		_savedSound.setText = _prop.var.etc.savedSound;
 
 		_bgStgs.length = _prop.var.etc.bgImageSettings.length;
 		foreach (i, stg; _prop.var.etc.bgImageSettings) {
@@ -2052,6 +2109,7 @@ protected:
 		version (Windows) {
 			_prop.var.etc.soundPlayType = _soundPlayType.getSelectionIndex;
 		}
+		_prop.var.etc.savedSound = _savedSound.getText;
 		if (_prop.var.etc.historyMax < _prop.var.etc.openHistories.length) {
 			_prop.var.etc.openHistories
 				= _prop.var.etc.openHistories[0 .. _prop.var.etc.historyMax].dup;

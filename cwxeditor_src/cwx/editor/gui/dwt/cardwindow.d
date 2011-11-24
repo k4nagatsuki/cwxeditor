@@ -163,6 +163,7 @@ private:
 				if (v && v.widget && !v.widget.isDisposed) {
 					v.refresh();
 					v.select = _selB;
+					v.refreshStatusLine();
 				}
 				comm.refUseCount.call;
 			}
@@ -891,7 +892,7 @@ private:
 			void editHand() {
 				auto sel = __selection;
 				if (sel) {
-					_comm.openHands(_prop, _summ, sel);
+					_comm.openHands(_prop, _summ, sel, true);
 				}
 			}
 		}
@@ -899,7 +900,7 @@ private:
 			void editUseEvent() {
 				auto sel = __selection;
 				if (sel) {
-					_comm.openUseEvents(_prop, _summ, sel);
+					_comm.openUseEvents(_prop, _summ, sel, true);
 				}
 			}
 		}
@@ -1405,27 +1406,27 @@ public:
 		}
 	}
 	static if (EditMode) {
-		void open() {
+		void open(bool shellActivate) {
 			static if (is(CardOwner : Summary)) {
 				static if (is(C : CastCard)) {
-					_comm.openCastWin();
+					_comm.openCastWin(shellActivate);
 				} else static if(is(C : SkillCard)) {
-					_comm.openSkillWin();
+					_comm.openSkillWin(shellActivate);
 				} else static if(is(C : ItemCard)) {
-					_comm.openItemWin();
+					_comm.openItemWin(shellActivate);
 				} else static if(is(C : BeastCard)) {
-					_comm.openBeastWin();
+					_comm.openBeastWin(shellActivate);
 				} else static if(is(C : InfoCard)) {
-					_comm.openInfoWin();
+					_comm.openInfoWin(shellActivate);
 				} else static assert (0);
 			} else static if (is(CardOwner : CastCard)) {
-				auto cWin = _comm.handCardWindowFrom(_prop, _summ, _owner, true);
+				auto cWin = _comm.handCardWindowFrom(_prop, _summ, _owner, true, shellActivate);
 				static if(is(C : SkillCard)) {
-					cWin.open!(cWin.SKILL)();
+					cWin.open!(cWin.SKILL)(shellActivate);
 				} else static if (is(C : ItemCard)) {
-					cWin.open!(cWin.ITEM)();
+					cWin.open!(cWin.ITEM)(shellActivate);
 				} else static if (is(C : BeastCard)) {
-					cWin.open!(cWin.BEAST)();
+					cWin.open!(cWin.BEAST)(shellActivate);
 				}
 			} else static assert (0);
 		}
@@ -1443,7 +1444,7 @@ public:
 				static assert (0);
 			}
 			dlg.appliedEvent ~= {
-				open();
+				open(false);
 				auto c = dlg.card;
 				storeInsert([cards.length]);
 				static if (is(CardOwner : CastCard)) {
@@ -1516,7 +1517,7 @@ public:
 				node.parse;
 			}
 			if (adds.length == 0) return false;
-			open();
+			open(false);
 			int[] indices;
 			foreach (card; adds) {
 				indices ~= cards.length;
@@ -1745,22 +1746,22 @@ private:
 		}
 	}
 	static if (EditMode) {
-		void open(int Index)() {
+		void open(int Index)(bool shellActivate) {
 			static if (is(CardOwner : Summary)) {
 				static if (1 < Cards.length) {
-					_comm.openBindCardWin();
+					_comm.openBindCardWin(shellActivate);
 					_tabf.setSelection = _tab[Index];
 				} else {
 					static if (UseCast && CAST == Index) {
-						_comm.openCastWin();
+						_comm.openCastWin(shellActivate);
 					} else static if(UseSkill && SKILL == Index) {
-						_comm.openSkillWin();
+						_comm.openSkillWin(shellActivate);
 					} else static if(UseItem && ITEM == Index) {
-						_comm.openItemWin();
+						_comm.openItemWin(shellActivate);
 					} else static if(UseBeast && BEAST == Index) {
-						_comm.openBeastWin();
+						_comm.openBeastWin(shellActivate);
 					} else static if(UseInfo && INFO == Index) {
-						_comm.openInfoWin();
+						_comm.openInfoWin(shellActivate);
 					} else static assert (0);
 				}
 			} else {
@@ -1813,7 +1814,7 @@ private:
 		void openHand() {
 			auto sels = _pane[CAST].__selections;
 			foreach (sel; sels) {
-				auto ahcw = _comm.openAddHands(_prop, _summ, sel, _toc);
+				auto ahcw = _comm.openAddHands(_prop, _summ, sel, _toc, true);
 				ahcw.setAddSkill(_pane[SKILL].getAddCard);
 				ahcw.setAddItem(_pane[ITEM].getAddCard);
 				ahcw.setAddBeast(_pane[BEAST].getAddCard);
@@ -2169,37 +2170,37 @@ public:
 	}
 
 	static if (is(CardOwner : Summary)) {
-		void openCast() {
+		void openCast(bool shellActivate) {
 			static if (UseCast) {
-				open!(CAST);
+				open!(CAST)(shellActivate);
 			} else {
 				throw new Exception("can not open cast");
 			}
 		}
-		void openSkill() {
+		void openSkill(bool shellActivate) {
 			static if (UseSkill) {
-				open!(SKILL);
+				open!(SKILL)(shellActivate);
 			} else {
 				throw new Exception("can not open skill");
 			}
 		}
-		void openItem() {
+		void openItem(bool shellActivate) {
 			static if (UseItem) {
-				open!(ITEM);
+				open!(ITEM)(shellActivate);
 			} else {
 				throw new Exception("can not open item");
 			}
 		}
-		void openBeast() {
+		void openBeast(bool shellActivate) {
 			static if (UseBeast) {
-				open!(BEAST);
+				open!(BEAST)(shellActivate);
 			} else {
 				throw new Exception("can not open beast");
 			}
 		}
-		void openInfo() {
+		void openInfo(bool shellActivate) {
 			static if (UseInfo) {
-				open!(INFO);
+				open!(INFO)(shellActivate);
 			} else {
 				throw new Exception("can not open info");
 			}
@@ -2613,7 +2614,7 @@ public:
 		}
 	}
 
-	private bool openCWXPathEff(int C)(string path) {
+	private bool openCWXPathEff(int C)(string path, bool shellActivate) {
 		auto cate = cpcategory(path);
 		auto index = cpindex(path);
 		bool isId = std.string.endsWith(cate, ":id") != 0;
@@ -2628,8 +2629,13 @@ public:
 		}
 		path = cpbottom(path);
 		if (cpempty(path)) {
-			forceFocus(_pane[C].widget);
+			forceFocus(_pane[C].widget, shellActivate);
 			_pane[C].select(index);
+			static if (EditMode) {
+				if (cphasattr(path, "opendialog")) {
+					_pane[C].edit();
+				}
+			}
 			return true;
 		}
 		static if (is(PCardOwner : Summary)) {
@@ -2638,46 +2644,46 @@ public:
 				switch (cate) {
 				case "skillcard", "itemcard", "beastcard",
 						"skillcard:id", "itemcard:id", "beastcard:id": {
-					forceFocus(_pane[C].widget);
-					return _comm.openHands(_prop, _summ, card).openCWXPath(path);
+					forceFocus(_pane[C].widget, shellActivate);
+					return _comm.openHands(_prop, _summ, card, shellActivate).openCWXPath(path, shellActivate);
 				} break;
 				default: break;
 				}
 			} else static if (!UseInfo || C != INFO) {
 				if (cpcategory(path) == "event") {
-					forceFocus(_pane[C].widget);
-					return _comm.openUseEvents(_prop, _summ, card).openCWXPath(path);
+					forceFocus(_pane[C].widget, shellActivate);
+					return _comm.openUseEvents(_prop, _summ, card, shellActivate).openCWXPath(path, shellActivate);
 				}
 			}
 		}
 		return false;
 	}
-	bool openCWXPath(string path) {
+	bool openCWXPath(string path, bool shellActivate = true) {
 		auto cate = cpcategory(path);
 		switch (cate) {
 		case "castcard", "castcard:id": {
 			static if (UseCast) {
-				return openCWXPathEff!(CAST)(path);
+				return openCWXPathEff!(CAST)(path, shellActivate);
 			}
 		} break;
 		case "skillcard", "skillcard:id": {
 			static if (UseSkill) {
-				return openCWXPathEff!(SKILL)(path);
+				return openCWXPathEff!(SKILL)(path, shellActivate);
 			}
 		} break;
 		case "itemcard", "itemcard:id": {
 			static if (UseItem) {
-				return openCWXPathEff!(ITEM)(path);
+				return openCWXPathEff!(ITEM)(path, shellActivate);
 			}
 		} break;
 		case "beastcard", "beastcard:id": {
 			static if (UseBeast) {
-				return openCWXPathEff!(BEAST)(path);
+				return openCWXPathEff!(BEAST)(path, shellActivate);
 			}
 		} break;
 		case "infocard", "infocard:id": {
 			static if (UseInfo) {
-				return openCWXPathEff!(INFO)(path);
+				return openCWXPathEff!(INFO)(path, shellActivate);
 			}
 		} break;
 		default: break;

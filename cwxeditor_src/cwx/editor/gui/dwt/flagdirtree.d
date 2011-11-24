@@ -410,7 +410,7 @@ public:
 	void createDir() {
 		auto cur = current;
 		if (!cur) return;
-		_comm.openCWXPath(cur.cwxPath);
+		_comm.openCWXPath(cur.cwxPath, true);
 		string name = cur.createNewDirName(prop.msgs.flagDirNew);
 		storeInsert(cur, flags.selected, [cast(int) cur.subDirs.length], [], []);
 		auto dir = new FlagDir(name);
@@ -534,34 +534,40 @@ public:
 		}
 	}
 
-	private bool openCWXPathImpl(FlagDir dir, string path) {
+	private bool openCWXPathImpl(FlagDir dir, string path, bool shellActivate) {
 		auto cate = cpcategory(path);
 		auto index = cpindex(path);
 		switch (cate) {
 		case "flag": {
 			if (index >= dir.flags.length) return false;
-			_comm.openFlagWin();
-			forceFocus(flags.widget);
+			_comm.openFlagWin(shellActivate);
+			forceFocus(flags.widget, shellActivate);
 			current = dir;
 			flags.select(dir.flags[index]);
+			if (cphasattr(path, "opendialog")) {
+				flags.edit();
+			}
 			return true;
 		} break;
 		case "step": {
 			if (index >= dir.steps.length) return false;
-			_comm.openFlagWin();
-			forceFocus(flags.widget);
+			_comm.openFlagWin(shellActivate);
+			forceFocus(flags.widget, shellActivate);
 			current = dir;
 			flags.select(dir.steps[index]);
+			if (cphasattr(path, "opendialog")) {
+				flags.edit();
+			}
 			return true;
 		} break;
 		case "dir": {
 			if (index >= dir.subDirs.length) return false;
-			_comm.openFlagWin();
-			return openCWXPathImpl(dir.subDirs[index], cpbottom(path));
+			_comm.openFlagWin(shellActivate);
+			return openCWXPathImpl(dir.subDirs[index], cpbottom(path), shellActivate);
 		} break;
 		case "": {
-			_comm.openFlagWin();
-			forceFocus(dirs);
+			_comm.openFlagWin(shellActivate);
+			forceFocus(dirs, shellActivate);
 			current = dir;
 			return true;
 		}
@@ -569,8 +575,8 @@ public:
 		}
 		return false;
 	}
-	bool openCWXPath(string path) {
-		return openCWXPathImpl(root, path);
+	bool openCWXPath(string path, bool shellActivate = true) {
+		return openCWXPathImpl(root, path, shellActivate);
 	}
 	void undo() {
 		_undo.undo();

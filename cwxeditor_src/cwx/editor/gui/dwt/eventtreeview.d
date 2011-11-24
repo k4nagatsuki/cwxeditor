@@ -200,9 +200,10 @@ private:
 			if (!v) return;
 			if (_selPath) v._tree.select = v.fromPath(_selPath);
 			_selPath = _selPath2;
+			v.refreshStatusLine();
 		}
 		EventTreeView view() {
-			return comm.eventTreeViewFrom(et.cwxPath);
+			return comm.eventTreeViewFrom(et.cwxPath, false);
 		}
 		abstract override void undo();
 		abstract override void redo();
@@ -1856,7 +1857,7 @@ public:
 		}
 		foreach (itm; _tree.getItems) find(itm);
 		auto ucp = new UndoCP(this, _comm, _prop, _summ, _et, conts, index, start);
-		auto id = _comm.createPackage(start);
+		auto id = _comm.createPackage(start, false);
 		if (id == 0) {
 			ucp.dispose;
 			return;
@@ -2498,7 +2499,7 @@ public:
 	private void __deletePaths() {refreshStatusLine;}
 	private void __replacePaths(string from, string to) {refreshStatusLine;}
 
-	private bool openCWXPathImpl(T)(T itm, string path) {
+	private bool openCWXPathImpl(T)(T itm, string path, bool shellActivate) {
 		auto cate = cpcategory(path);
 		if (cate == "") {
 			auto index = cpindex(path);
@@ -2506,17 +2507,20 @@ public:
 			auto child = itm.getItem(index);
 			path = cpbottom(path);
 			if (cpempty(path) || cpcategory(path) != "") {
-				forceFocus(_tree);
+				forceFocus(_tree, shellActivate);
 				_tree.select = child;
-				refreshStatusLine;
+				refreshStatusLine();
+				if (cphasattr(path, "opendialog")) {
+					edit();
+				}
 				return true;
 			} else {
-				return openCWXPathImpl(child, path);
+				return openCWXPathImpl(child, path, shellActivate);
 			}
 		}
 		return false;
 	}
-	bool openCWXPath(string path) {
-		return openCWXPathImpl(_tree, path);
+	bool openCWXPath(string path, bool shellActivate = true) {
+		return openCWXPathImpl(_tree, path, shellActivate);
 	}
 }

@@ -469,15 +469,16 @@ private abstract class FTVUndo : Undo {
 	void uda(FlagTable v) {
 		if (v && v.flags && !v.flags.isDisposed) {
 			if (selDir) {
-				if (comm.openCWXPath(selDir.cwxPath)) {
+				if (comm.openCWXPath(selDir.cwxPath, true)) {
 					v.flags.deselectAll();
 				}
 			} else {
-				if (comm.openCWXPath(_selectedDir)) {
+				if (comm.openCWXPath(_selectedDir, true)) {
 					v.flags.deselectAll();
 					v.flags.select = _selectedB;
 				}
 			}
+			v.refreshStatusLine();
 		}
 		selDir = null;
 	}
@@ -894,7 +895,7 @@ private:
 				storeInsert(indices, [flag.name], []);
 				createMode = false;
 			}
-			_comm.openCWXPath(flag.cwxPath);
+			_comm.openCWXPath(flag.cwxPath, false);
 			refresh(flag.name);
 			_comm.refFlagAndStep.call([flag], []);
 		};
@@ -938,7 +939,7 @@ private:
 				storeInsert(indices, [step.name], []);
 				createMode = false;
 			}
-			_comm.openCWXPath(step.cwxPath);
+			_comm.openCWXPath(step.cwxPath, false);
 			refresh(step.name);
 			_comm.refFlagAndStep.call([], [step]);
 		};
@@ -949,25 +950,11 @@ private:
 		dlg.open();
 	}
 
-	void startEdit() {
-		if (_dir !is null) {
-			foreach (index; flags.getSelectionIndices) {
-				if (index < _dir.steps.length) {
-					auto step = _dir.steps[index];
-					editStep(step.parent, step);
-				} else {
-					auto flag = _dir.flags[index - _dir.steps.length];
-					editFlag(flag.parent, flag);
-				}
-			}
-		}
-	}
-
 	class MListener : MouseAdapter {
 	public:
 		override void mouseDoubleClick(MouseEvent e) {
 			if (e.button == 1) {
-				startEdit;
+				edit();
 			}
 		}
 	}
@@ -975,7 +962,7 @@ private:
 	public:
 		override void keyPressed(KeyEvent e) {
 			if (e.character == SWT.CR) {
-				startEdit;
+				edit();
 			}
 		}
 	}
@@ -1148,7 +1135,7 @@ public:
 		flags.addKeyListener(new KListener);
 		flags.addMouseListener(new MListener);
 		auto menu = new Menu(flags.getShell, SWT.POP_UP);
-		createMenuItem(menu, prop.msgs.menuCEdit, prop.images.menuCEdit, &startEdit);
+		createMenuItem(menu, prop.msgs.menuCEdit, prop.images.menuCEdit, &edit);
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(menu, prop.msgs.menuUndo, prop.images.menuUndo, &this.undo);
 		createMenuItem(menu, prop.msgs.menuRedo, prop.images.menuRedo, &this.redo);
@@ -1265,6 +1252,21 @@ public:
 	/// 適切に設定された場合、新規ステップを生成する。
 	void createStep() {
 		editStep(_dir, null);
+	}
+
+	/// 選択中のフラグ・ステップの編集を開始する。
+	void edit() {
+		if (_dir !is null) {
+			foreach (index; flags.getSelectionIndices) {
+				if (index < _dir.steps.length) {
+					auto step = _dir.steps[index];
+					editStep(step.parent, step);
+				} else {
+					auto flag = _dir.flags[index - _dir.steps.length];
+					editFlag(flag.parent, flag);
+				}
+			}
+		}
 	}
 
 	/// 編集対象のディレクトリを設定する。

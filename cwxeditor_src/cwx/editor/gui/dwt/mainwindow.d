@@ -402,9 +402,9 @@ private:
 		_comm.refScenarioName.call;
 		_comm.refScenarioPath.call;
 		if (!dock) {
-			if (_prop.var.dataWin.visible) _comm.openDataWin;
-			if (_prop.var.cardWin.visible) _comm.openBindCardWin;
-			if (_prop.var.dirWin.visible) _comm.openDirWin;
+			if (_prop.var.dataWin.visible) _comm.openDataWin(false);
+			if (_prop.var.cardWin.visible) _comm.openBindCardWin(false);
+			if (_prop.var.dirWin.visible) _comm.openDirWin(false);
 		}
 		setupMenu(_menu);
 		setupMenu(_tool);
@@ -429,7 +429,7 @@ private:
 			openScenario(summ);
 			foreach (path; _openPaths) {
 				try {
-					if (openCWXPath(path)) {
+					if (openCWXPath(path, true)) {
 						continue;
 					}
 				} catch (Exception e) {
@@ -455,6 +455,12 @@ private:
 		loadScenarioFromFile!(Summary)(_prop, _comm.mainShell, &setStatusLine,
 			_prop.var.etc.expandXMLs, old, fname, &openScenarioImpl);
 	}
+	void playSavedSound() {
+		string file = _prop.var.etc.savedSound;
+		if (file.length && .exists(file)) {
+			playSE(file, false);
+		}
+	}
 	void saveScenario() {
 		auto fc = _win.getDisplay.getFocusControl;
 		save(fc.getShell);
@@ -479,6 +485,7 @@ private:
 					_comm.saved.call;
 					addHistory;
 					GC.collect();
+					playSavedSound();
 					return true;
 				} catch (SummaryException e) {
 					debugln(e);
@@ -525,6 +532,7 @@ private:
 					_comm.refPaths.call("");
 					addHistory;
 					GC.collect();
+					playSavedSound();
 				} catch (SummaryException e) {
 					debugln(e);
 					MessageBox.showWarning(e.msg, _prop.msgs.dlgTitWarning, shell);
@@ -545,28 +553,28 @@ private:
 			execEngineP(engine);
 		}
 	}
-	void openDataWindow() {
+	private void openDataWindow() {
 		if (summary || dock) {
 			_prop.var.dataWin.visible = true;
-			_comm.openDataWin;
+			_comm.openDataWin(true);
 		}
 	}
-	void openFlagWindow() {
+	private void openFlagWindow() {
 		if (dock) {
-			_comm.openFlagWin;
+			_comm.openFlagWin(true);
 		}
 	}
-	void openCardWindow() {
+	private void openCardWindow() {
 		assert (_cardWin);
 		if (summary || dock) {
 			_prop.var.cardWin.visible = true;
-			_comm.openBindCardWin;
+			_comm.openBindCardWin(true);
 		}
 	}
-	void openDirWindow() {
+	private void openDirWindow() {
 		if (summary || dock) {
 			_prop.var.dirWin.visible = true;
-			_comm.openDirWin;
+			_comm.openDirWin(true);
 		}
 	}
 	void exitAll() {
@@ -820,7 +828,7 @@ private:
 			if (!paths.length) paths = [""];
 			foreach (p; paths) {
 				try {
-					openCWXPath(p);
+					openCWXPath(p, true);
 				} catch {}
 			}
 		}
@@ -1722,23 +1730,23 @@ public:
 	}
 	private void openCast() {
 		if (!summary && !_comm.singleWindowMode(_prop)) return;
-		_comm.openCastWin();
+		_comm.openCastWin(true);
 	}
 	private void openSkill() {
 		if (!summary && !_comm.singleWindowMode(_prop)) return;
-		_comm.openSkillWin();
+		_comm.openSkillWin(true);
 	}
 	private void openItem() {
 		if (!summary && !_comm.singleWindowMode(_prop)) return;
-		_comm.openItemWin();
+		_comm.openItemWin(true);
 	}
 	private void openBeast() {
 		if (!summary && !_comm.singleWindowMode(_prop)) return;
-		_comm.openBeastWin();
+		_comm.openBeastWin(true);
 	}
 	private void openInfo() {
 		if (!summary && !_comm.singleWindowMode(_prop)) return;
-		_comm.openInfoWin();
+		_comm.openInfoWin(true);
 	}
 	private void refreshAll(SelectionEvent se) {
 		if (!_dock) return;
@@ -2046,7 +2054,7 @@ public:
 				_infoWin.reNumberingAll();
 			}
 			foreach (c; summary.casts) {
-				auto w = _comm.handCardWindowFrom(_prop, summary, c, false);
+				auto w = _comm.handCardWindowFrom(_prop, summary, c, false, false);
 				if (w) {
 					w.reNumberingAll();
 				} else {
@@ -2078,7 +2086,7 @@ public:
 		return null;
 	}
 
-	bool openCWXPath(string path) {
+	bool openCWXPath(string path, bool shellActivate = true) {
 		if (!summary) return false;
 		bool open() {
 			path = cwx.utils.toLower(path);
@@ -2089,16 +2097,16 @@ public:
 			switch (cate) {
 			case "area", "battle", "package", "area:id", "battle:id", "package:id", "variable": {
 				if (_dataWin) {
-					return _dataWin.openCWXPath(path);
+					return _dataWin.openCWXPath(path, shellActivate);
 				} else if (cate == "variable") {
-					return _flagWin.openCWXPath(path);
+					return _flagWin.openCWXPath(path, shellActivate);
 				} else {
-					return _tableWin.openCWXPath(path);
+					return _tableWin.openCWXPath(path, shellActivate);
 				}
 			} case "castcard", "skillcard", "itemcard", "beastcard", "infocard",
 					"castcard:id", "skillcard:id", "itemcard:id", "beastcard:id", "infocard:id": {
 				if (_cardWin) {
-					return _cardWin.openCWXPath(path);
+					return _cardWin.openCWXPath(path, shellActivate);
 				} else {
 					assert (_castWin);
 					assert (_skillWin);
@@ -2107,15 +2115,15 @@ public:
 					assert (_infoWin);
 					switch (cate) {
 					case "castcard", "castcard:id":
-						return _castWin.openCWXPath(path);
+						return _castWin.openCWXPath(path, shellActivate);
 					case "skillcard", "skillcard:id":
-						return _skillWin.openCWXPath(path);
+						return _skillWin.openCWXPath(path, shellActivate);
 					case "itemcard", "itemcard:id":
-						return _itemWin.openCWXPath(path);
+						return _itemWin.openCWXPath(path, shellActivate);
 					case "beastcard", "beastcard:id":
-						return _beastWin.openCWXPath(path);
+						return _beastWin.openCWXPath(path, shellActivate);
 					case "infocard", "infocard:id":
-						return _infoWin.openCWXPath(path);
+						return _infoWin.openCWXPath(path, shellActivate);
 					default:
 						return false;
 					}
@@ -2125,7 +2133,7 @@ public:
 		}
 		if (open) {
 			_win.setMinimized = false;
-			_win.forceActive;
+			if (shellActivate) _win.forceActive();
 			return true;
 		}
 		return false;

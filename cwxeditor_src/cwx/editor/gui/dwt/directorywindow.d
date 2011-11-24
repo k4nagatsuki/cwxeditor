@@ -1049,7 +1049,7 @@ private:
 	}
 	void createDirDirs() {
 		if (!_win || _win.isDisposed) {
-			_comm.openDirWin();
+			_comm.openDirWin(false);
 		}
 		auto fp = createDir();
 		if (!fp) return;
@@ -1060,7 +1060,7 @@ private:
 	}
 	void createDirFiles() {
 		if (!_win || _win.isDisposed) {
-			_comm.openDirWin();
+			_comm.openDirWin(false);
 		}
 		auto fp = createDir();
 		if (!fp) return;
@@ -1700,7 +1700,7 @@ public:
 	}
 	void createNewFolder() {
 		if (!_win || _win.isDisposed) {
-			_comm.openDirWin();
+			_comm.openDirWin(false);
 		}
 		if (_files.isFocusControl) {
 			createDirFiles();
@@ -2017,7 +2017,7 @@ public:
 		return _dirs.isFocusControl || _files.isFocusControl;
 	}
 
-	override bool openCWXPath(string path) {
+	override bool openCWXPath(string path, bool shellActivate = true) {
 		return false;
 	}
 }

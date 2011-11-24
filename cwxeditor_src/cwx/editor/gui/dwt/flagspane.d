@@ -143,8 +143,8 @@ public:
 		_dirs.rootDir = root;
 	}
 
-	bool openCWXPath(string path) {
-		return _dirs.openCWXPath(path);
+	bool openCWXPath(string path, bool shellActivate = true) {
+		return _dirs.openCWXPath(path, shellActivate);
 	}
 
 	FlagDirTree dirs() {
