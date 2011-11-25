@@ -1032,6 +1032,7 @@ public:
 		_comm.delItem.add(&delItem);
 		_comm.delBeast.add(&delBeast);
 		_comm.delInfo.add(&delInfo);
+		_comm.refSearchHistories.add(&refSearchHistories);
 
 		_comm.refScenario.add(&refreshScenario);
 		_win.addDisposeListener(new DL);
@@ -1103,6 +1104,7 @@ public:
 			_comm.delItem.remove(&delItem);
 			_comm.delBeast.remove(&delBeast);
 			_comm.delInfo.remove(&delInfo);
+			_comm.refSearchHistories.remove(&refSearchHistories);
 		}
 	}
 	private void refreshScenario(Summary summ) {
@@ -1694,6 +1696,16 @@ public:
 				{return _prop.var.etc.replaceHistories.dup;},
 				_prop.var.etc.searchHistoryMax, to);
 		}
+		_comm.refSearchHistories.call(this);
+	}
+	private void refSearchHistories(Object sender) {
+		if (sender is this) return;
+		string ft = _from.getText;
+		string tt = _to.getText;
+		setComboItems(_from, _prop.var.etc.searchHistories.dup);
+		setComboItems(_to, _prop.var.etc.replaceHistories.dup);
+		_from.setText = ft;
+		_to.setText = tt;
 	}
 	private Regex!(dchar) _regex;
 	private bool _regexTarg = false;

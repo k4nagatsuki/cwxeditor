@@ -196,6 +196,7 @@ private:
 	UndoManager _undoTools;
 	UndoManager _undoCEngines;
 	KeyDownFilter _kdFilter;
+	void delegate() _sendReloadProps;
 
 	CTabItem _tabB;
 	Text _enginePath;
@@ -208,7 +209,9 @@ private:
 	Button _backupDirOpen;
 	Text _author;
 	Text _wallpaper;
+	Button _clearHist;
 	Spinner _histMax;
+	Button _clearSHist;
 	Spinner _sHistMax;
 
 	CTabItem _tabS;
@@ -267,6 +270,7 @@ private:
 	Button _showImagePreview;
 	Button _expandXMLs;
 	Button _contentsFloat;
+	Button _contentsAutoHide;
 	Button _xmlCopy;
 	Button _saveInnerImagePath;
 	Button _traceDirectories;
@@ -681,6 +685,12 @@ private:
 			selectSysSound(_text);
 		}
 	}
+	void refHistories() {
+		_clearHist.setEnabled = _prop.var.etc.openHistories.length > 0;
+	}
+	void refSearchHistories() {
+		_clearSHist.setEnabled = _prop.var.etc.searchHistories.length || _prop.var.etc.replaceHistories.length;
+	}
 	class ClearHist : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
 			auto dlg = new MessageBox(_histMax.getShell, SWT.ICON_QUESTION | SWT.OK | SWT.CANCEL);
@@ -688,7 +698,9 @@ private:
 			dlg.setMessage = _prop.msgs.dlgMsgHistoryClear;
 			if (SWT.OK == dlg.open) {
 				_prop.var.etc.openHistories = [];
-				(cast(Control) e.widget).setEnabled = false;
+				_comm.refHistories.call();
+				_prop.var.save(_dock);
+				_sendReloadProps();
 			}
 		}
 	}
@@ -700,7 +712,9 @@ private:
 			if (SWT.OK == dlg.open) {
 				_prop.var.etc.searchHistories = [];
 				_prop.var.etc.replaceHistories = [];
-				(cast(Control) e.widget).setEnabled = false;
+				_comm.refSearchHistories.call();
+				_prop.var.save(_dock);
+				_sendReloadProps();
 			}
 		}
 	}
@@ -894,10 +908,10 @@ private:
 					_histMax.setMinimum = 0;
 					_histMax.setMaximum = 99;
 					mod(_histMax);
-					auto clear = new Button(grp, SWT.PUSH);
-					clear.setEnabled = _prop.var.etc.openHistories.length > 0;
-					clear.setText = _prop.msgs.openHistoryClear;
-					clear.addSelectionListener(new ClearHist);
+					_clearHist = new Button(grp, SWT.PUSH);
+					_clearHist.setEnabled = _prop.var.etc.openHistories.length > 0;
+					_clearHist.setText = _prop.msgs.openHistoryClear;
+					_clearHist.addSelectionListener(new ClearHist);
 				}
 				{
 					auto lComp = new Composite(grp, SWT.NONE);
@@ -911,10 +925,10 @@ private:
 					_sHistMax.setMinimum = 0;
 					_sHistMax.setMaximum = 99;
 					mod(_sHistMax);
-					auto clear = new Button(grp, SWT.PUSH);
-					clear.setEnabled = _prop.var.etc.searchHistories.length > 0;
-					clear.setText = _prop.msgs.searchHistoryClear;
-					clear.addSelectionListener(new ClearSHist);
+					_clearSHist = new Button(grp, SWT.PUSH);
+					_clearSHist.setEnabled = _prop.var.etc.searchHistories.length > 0;
+					_clearSHist.setText = _prop.msgs.searchHistoryClear;
+					_clearSHist.addSelectionListener(new ClearSHist);
 				}
 			}
 		}
@@ -1743,6 +1757,11 @@ private:
 		}
 	}
 
+	class SelContentsFloat : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			_contentsAutoHide.setEnabled = !_contentsFloat.getSelection;
+		}
+	}
 	void construct5(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
 		_tabE = new CTabItem(tabf, SWT.NONE);
@@ -1772,6 +1791,9 @@ private:
 				_showImagePreview = createB(_prop.msgs.showImagePreview);
 				_expandXMLs = createB(_prop.msgs.expandXMLs);
 				_contentsFloat = createB(_prop.msgs.contentsFloat);
+				_contentsAutoHide = createB(_prop.msgs.contentsAutoHide);
+				_contentsFloat.addSelectionListener(new SelContentsFloat);
+				_contentsAutoHide.setEnabled = !_contentsFloat.getSelection;
 				_xmlCopy = createB(_prop.msgs.xmlCopy);
 				_saveInnerImagePath = createB(_prop.msgs.saveInnerImagePath);
 				_traceDirectories = createB(_prop.msgs.traceDirectories);
@@ -1882,12 +1904,13 @@ private:
 		}
 	}
 public:
-	this(Commons comm, Props prop, Shell shell, DockingFolderCTC dock, Summary summ) {
+	this(Commons comm, Props prop, Shell shell, DockingFolderCTC dock, Summary summ, void delegate() sendReloadProps) {
 		super(prop, shell, false, prop.msgs.dlgTitSettings, prop.images.menuSettings, true, prop.var.settingsDlg, true);
 		_comm = comm;
 		_prop = prop;
 		_dock = dock;
 		_summ = summ;
+		_sendReloadProps = sendReloadProps;
 		_undoBgStgs = new UndoManager(1024);
 		_undoTools = new UndoManager(1024);
 		_undoCEngines = new UndoManager(1024);
@@ -1897,9 +1920,13 @@ protected:
 	override void setup(Composite area) {
 		area.setLayout = windowGridLayout(1, true);
 		_comm.refScenario.add(&refreshScenario);
+		_comm.refHistories.add(&refHistories);
+		_comm.refSearchHistories.add(&refSearchHistories);
 		area.addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) {
 				_comm.refScenario.remove(&refreshScenario);
+				_comm.refHistories.remove(&refHistories);
+				_comm.refSearchHistories.remove(&refSearchHistories);
 				e.widget.getDisplay.removeFilter(SWT.KeyDown, _kdFilter);
 			}
 		});
@@ -1934,6 +1961,7 @@ protected:
 		_showImagePreview.setSelection = _prop.var.etc.showImagePreview;
 		_singleWindow.setSelection = _prop.var.etc.singleWindow;
 		_contentsFloat.setSelection = _prop.var.etc.contentsFloat;
+		_contentsAutoHide.setSelection = _prop.var.etc.contentsAutoHide;
 		_xmlCopy.setSelection = _prop.var.etc.xmlCopy;
 		_saveInnerImagePath.setSelection = _prop.var.etc.saveInnerImagePath;
 		_traceDirectories.setSelection = _prop.var.etc.traceDirectories;
@@ -2019,57 +2047,9 @@ protected:
 			err(_tabB, _backupDir, _prop.msgs.errorBackupPath);
 			return false;
 		}
-		string oldEnginePath = _prop.var.etc.enginePath;
-		string oldWallpaper = _prop.var.etc.wallpaper;
-		auto oldKeyCodes = _prop.var.etc.standardKeyCodes;
-		auto tools = _prop.var.etc.outerTools;
-		auto cEngines = _prop.var.etc.classicEngines;
-		auto oldIgnorePaths = _prop.var.etc.ignorePaths;
-		bool oldSmoothingCard = _prop.var.etc.smoothingCard;
-		bool oldLogicalSort = _prop.var.etc.logicalSort;
+		auto oldStgs = OldSettings(_prop);
 		scope (exit) {
-			bool refSkin = false;
-			if (_summ && oldEnginePath != _prop.var.etc.enginePath) {
-				refSkin = true;
-			}
-			if (oldWallpaper != _prop.var.etc.wallpaper) {
-				_comm.refreshWallpaper(_prop);
-				_comm.refWallpaper.call;
-			}
-			if (oldKeyCodes != _prop.var.etc.standardKeyCodes) {
-				_comm.refStandardKeyCodes.call;
-			}
-			if (tools != _prop.var.etc.outerTools) {
-				_comm.refOuterTools.call;
-			}
-			if (cEngines != _prop.var.etc.classicEngines) {
-				refSkin = true;
-			}
-			if (oldIgnorePaths != _prop.var.etc.ignorePaths) {
-				_comm.refIgnorePaths.call;
-			}
-			if (oldSmoothingCard != _prop.var.etc.smoothingCard) {
-				_comm.refCardState.call;
-			}
-			if (oldLogicalSort != _prop.var.etc.logicalSort) {
-				if (_summ) {
-					if (_prop.var.etc.logicalSort) {
-						_summ.flagDirRoot.sorter = (string a, string b) {
-							return ncmp(a, b);
-						};
-					} else {
-						_summ.flagDirRoot.sorter = (string a, string b) {
-							return cmp(a, b);
-						};
-					}
-				}
-				_comm.refSortCondition.call;
-			}
-			if (refSkin) {
-				_comm.skin = findSkin(_comm, _prop, _summ, false);
-				_comm.refSkin.call;
-			}
-			_comm.refClassicSkin.call();
+			oldStgs.raiseEvent(_comm);
 		}
 		_prop.var.etc.enginePath = engine;
 		_prop.var.etc.tempPath = temp;
@@ -2106,6 +2086,7 @@ protected:
 		_prop.var.etc.switchTabWheel = _switchTabWheel.getSelection;
 		_prop.var.etc.openTabAtRightOfCurrentTab = _openTabAtRightOfCurrentTab.getSelection;
 		_prop.var.etc.contentsFloat = _contentsFloat.getSelection;
+		_prop.var.etc.contentsAutoHide = _contentsAutoHide.getSelection;
 		version (Windows) {
 			_prop.var.etc.soundPlayType = _soundPlayType.getSelectionIndex;
 		}
@@ -2133,7 +2114,87 @@ protected:
 		_prop.var.etc.outerTools = _tools.dup;
 		_prop.var.etc.classicEngines = _cEngines.dup;
 		_prop.var.save(_dock);
+		_sendReloadProps();
 		return true;
+	}
+}
+
+struct OldSettings {
+	Props prop;
+	string oldEnginePath;
+	string oldWallpaper;
+	const string[] oldKeyCodes;
+	const OuterTool[] tools;
+	const ClassicEngine[] cEngines;
+	const string[] oldIgnorePaths;
+	bool oldSmoothingCard;
+	bool oldLogicalSort;
+	const string[] oldOpenHistories;
+	const string[] oldSearchHistories;
+	const string[] oldReplaceHistories;
+	this (Props prop) {
+		this.prop = prop;
+		this.oldEnginePath = prop.var.etc.enginePath;
+		this.oldWallpaper = prop.var.etc.wallpaper;
+		this.oldKeyCodes = prop.var.etc.standardKeyCodes;
+		this.tools = prop.var.etc.outerTools;
+		this.cEngines = prop.var.etc.classicEngines;
+		this.oldIgnorePaths = prop.var.etc.ignorePaths;
+		this.oldSmoothingCard = prop.var.etc.smoothingCard;
+		this.oldLogicalSort = prop.var.etc.logicalSort;
+		this.oldOpenHistories = prop.var.etc.openHistories;
+		this.oldSearchHistories = prop.var.etc.searchHistories;
+		this.oldReplaceHistories = prop.var.etc.replaceHistories;
+	}
+	void raiseEvent(Commons comm) {
+		bool refSkin = false;
+		if (comm.summary && oldEnginePath != prop.var.etc.enginePath) {
+			refSkin = true;
+		}
+		if (oldWallpaper != prop.var.etc.wallpaper) {
+			comm.refreshWallpaper(prop);
+			comm.refWallpaper.call;
+		}
+		if (oldKeyCodes != prop.var.etc.standardKeyCodes) {
+			comm.refStandardKeyCodes.call;
+		}
+		if (tools != prop.var.etc.outerTools) {
+			comm.refOuterTools.call;
+		}
+		if (cEngines != prop.var.etc.classicEngines) {
+			refSkin = true;
+		}
+		if (oldIgnorePaths != prop.var.etc.ignorePaths) {
+			comm.refIgnorePaths.call;
+		}
+		if (oldSmoothingCard != prop.var.etc.smoothingCard) {
+			comm.refCardState.call;
+		}
+		if (oldLogicalSort != prop.var.etc.logicalSort) {
+			if (comm.summary) {
+				if (prop.var.etc.logicalSort) {
+					comm.summary.flagDirRoot.sorter = (string a, string b) {
+						return ncmp(a, b);
+					};
+				} else {
+					comm.summary.flagDirRoot.sorter = (string a, string b) {
+						return cmp(a, b);
+					};
+				}
+			}
+			comm.refSortCondition.call;
+		}
+		if (refSkin) {
+			comm.skin = findSkin(comm, prop, comm.summary, false);
+			comm.refSkin.call;
+		}
+		comm.refClassicSkin.call();
+		if (oldOpenHistories != prop.var.etc.openHistories) {
+			comm.refHistories.call();
+		}
+		if (oldSearchHistories != prop.var.etc.searchHistories || oldReplaceHistories != prop.var.etc.replaceHistories) {
+			comm.refSearchHistories.call();
+		}
 	}
 }
 

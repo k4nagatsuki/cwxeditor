@@ -15,6 +15,7 @@ import std.string;
 import std.file;
 import std.path;
 import std.utf;
+import std.datetime;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Control;
@@ -567,11 +568,17 @@ class FlexEtcProps : Properties {
 	mixin Property!("imageListHeight", int, 300);
 	mixin Property!("cardLife", bool, false);
 	mixin Property!("cardDetails", bool, false);
-	mixin Property!("cardsMarginX", int, 5, true);
-	mixin Property!("cardsSpaceX", int, 8, true);
-	mixin Property!("cardsMarginY", int, 5, true);
-	mixin Property!("cardsSpaceY", int, 8, true);
-	mixin Property!("cardsDefaultWrap", int, 4, true);
+	// FIXME: リンクエラー！
+//	mixin Property!("cardsMarginX", int, 5, true);
+//	mixin Property!("cardsSpaceX", int, 8, true);
+//	mixin Property!("cardsMarginY", int, 5, true);
+//	mixin Property!("cardsSpaceY", int, 8, true);
+//	mixin Property!("cardsDefaultWrap", int, 4, true);
+	int cardsMarginX = 5;
+	int cardsSpaceX = 8;
+	int cardsMarginY = 5;
+	int cardsSpaceY = 8;
+	int cardsDefaultWrap = 4;
 	mixin Property!("seKeyCodeSashL", int, 4);
 	mixin Property!("seKeyCodeSashR", int, 7);
 	mixin Property!("talkSashL", int, 1);
@@ -596,6 +603,7 @@ class FlexEtcProps : Properties {
 	mixin Property!("contentsAutoOpen", bool, true);
 	mixin Property!("contentsContinue", bool, false);
 	mixin Property!("contentsFloat", bool, false);
+	mixin Property!("contentsAutoHide", bool, false);
 	mixin Property!("smoothingCard", bool, true);
 	mixin Property!("ignorePathsWidth", int, 50, false);
 	mixin Property!("bgImageSettingsNameWidth", int, 150, true);
@@ -912,15 +920,8 @@ public class FlexProps {
 
 		_path = std.path.buildPath(dir, iniFileName);
 		if (exists(_path)) {
-			try {
-				auto node = XNode.parse(std.file.readText(_path));
-				if (node.name == "cwxeditor" || node.name == "CWXEditor") {
-					foreach (i, fld; this.tupleof) {
-						this.tupleof[i] = fromNode(node, fld);
-					}
-					return;
-				}
-			} catch {
+			if (!reloadImpl(false)) {
+				createBackup();
 			}
 			foreach (i, fld; this.tupleof) {
 				this.tupleof[i] = newField(fld);
@@ -945,15 +946,32 @@ public class FlexProps {
 			}
 		}
 	}
-	T fromNode(T)(ref XNode node, T t) {
+	bool reload() {
+		return reloadImpl(true);
+	}
+	private bool reloadImpl(bool force) {
+		try {
+			auto node = XNode.parse(std.file.readText(_path));
+			if (node.name == "cwxeditor" || node.name == "CWXEditor") {
+				foreach (i, fld; this.tupleof) {
+					this.tupleof[i] = fromNode(node, fld, force);
+				}
+			}
+			return true;
+		} catch(Exception e) {
+			debugln(e);
+			return false;
+		}
+	}
+	private T fromNode(T)(ref XNode node, T t, bool force) {
 		static if (is(typeof(T.fromNode(node)))) {
-			if (!t) {
+			if (!t || force) {
 				return T.fromNode(node);
 			}
 		}
 		return t;
 	}
-	T newField(T)(T t) {
+	private T newField(T)(T t) {
 		static if (is(typeof(new T))) {
 			if (!t) {
 				return new T;
@@ -981,6 +999,7 @@ public class FlexProps {
 					if (r && r.area) r.area.dispose;
 					retryCount++;
 					if (retryCount > 100) {
+						createBackup();
 						debugln(e);
 						return null;
 					}
@@ -988,6 +1007,15 @@ public class FlexProps {
 			}
 		}
 		return r;
+	}
+	private void createBackup() {
+		auto d = Clock.currTime;
+		string bakPath = format("%s.bak.%04d%02d%02d%02d%02d%02d", _path, d.year, d.month, d.day, d.hour, d.minute, d.second);
+		try {
+			std.file.copy(_path, bakPath);
+		} catch (Exception e) {
+			debugln(e);
+		}
 	}
 	void save(DockingFolderCTC dock) {
 		save(_path, dock);

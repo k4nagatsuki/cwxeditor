@@ -46,6 +46,8 @@ import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -56,11 +58,13 @@ import org.eclipse.swt.graphics.PaletteData;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseTrackAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.ShellAdapter;
 import org.eclipse.swt.events.ShellEvent;
@@ -92,6 +96,7 @@ public:
 class EventTreeView : TCPD {
 private:
 	Shell _toolWin = null;
+	Shell _autoHideTools = null;
 	Composite _comp;
 	Tree _tree;
 
@@ -101,6 +106,7 @@ private:
 	EventTree _et;
 	bool _toolWinVisible = false;
 	bool _opened = false;
+	Composite _contentsBoxArea;
 
 	bool _autoOpen;
 	bool _conti;
@@ -532,6 +538,9 @@ private:
 		_comp.setCursor = null;
 		if (_toolWin && !_toolWin.isDisposed) {
 			_toolWin.setCursor = null;
+		}
+		if (_autoHideTools) {
+			_autoHideTools.setCursor = null;
 		}
 		_radioGroup.select = _arrowTI;
 	}
@@ -1190,6 +1199,9 @@ private:
 				if (_v._toolWin && !_v._toolWin.isDisposed) {
 					_v._toolWin.setCursor = _cursor;
 				}
+				if (_v._autoHideTools) {
+					_v._autoHideTools.setCursor = _cursor;
+				}
 				_v._arrowMode = false;
 				_v._cType = type;
 				_v._evtTI = _itm;
@@ -1260,12 +1272,58 @@ private:
 	class TCListener : ControlAdapter {
 		override void controlMoved(ControlEvent e) {
 			assert (_toolWin);
-			if (_toolWin.isDisposed) return;
+			if (!_toolWin || _toolWin.isDisposed) return;
 			auto pb = _toolWin.getParent.getBounds;
 			auto tb = _toolWin.getBounds;
 			_toolWin.setBounds(tb.x + pb.x - _parX, tb.y + pb.y - _parY, tb.width, tb.height);
 			_parX = pb.x;
 			_parY = pb.y;
+		}
+	}
+	class AHTCListener : ControlAdapter {
+		override void controlResized(ControlEvent e) {
+			if (!_autoHideTools.isVisible) return;
+			calcAutoHideSize();
+		}
+	}
+	void calcAutoHideSize() {
+		if (!_autoHideTools) return;
+		auto tb = _tree.getBounds;
+		auto ca1 = _contentsBoxArea.getBounds;
+		int x = _tree.toDisplay(tb.x, tb.y).x;
+		int y = _contentsBoxArea.toDisplay(0, ca1.y).y + ca1.height;
+		auto size = _autoHideTools.computeSize(tb.width, SWT.DEFAULT);
+		_autoHideTools.setBounds = new Rectangle(x, y, size.x, size.y);
+	}
+	class MouseTrack : Listener {
+		override void handleEvent(Event e) {
+			auto c = cast(Control) e.widget;
+			if (!c || !_autoHideTools) return;
+			if (!isDescendant(_autoHideTools, c) && !isDescendant(_contentsBoxArea, c)) {
+				_autoHideTools.setVisible = false;
+				return;
+			}
+			auto p = c.toDisplay(e.x, e.y);
+			auto ca2 = _autoHideTools.getBounds;
+			ca2.x = 0;
+			ca2.y = 0;
+			if (!_autoHideTools.isVisible) {
+				ca2.width = 0;
+				ca2.height = 0;
+			}
+			auto p2 = _autoHideTools.toControl(p);
+			auto ca1 = _contentsBoxArea.getBounds;
+			ca1.x = 0;
+			ca1.y = 0;
+			auto p1 = _contentsBoxArea.toControl(p);
+			if (ca1.contains(p1) || ca2.contains(p2)) {
+				if (!_autoHideTools.isVisible) {
+					calcAutoHideSize();
+					_autoHideTools.setVisible = true;
+				}
+			} else {
+				_autoHideTools.setVisible = false;
+			}
 		}
 	}
 	class PSListener : ShellAdapter {
@@ -1313,6 +1371,11 @@ private:
 			if (_toolWin) {
 				saveToolWinPos;
 				_toolWin.dispose;
+			}
+			if (_autoHideTools) {
+				auto mTrack = new MouseTrack;
+				_autoHideTools.getDisplay.removeFilter(SWT.MouseEnter, mTrack);
+				_autoHideTools.getDisplay.removeFilter(SWT.MouseExit, mTrack);
 			}
 			foreach (dlg; _editDlgs.values) {
 				dlg.forceCancel();
@@ -1480,13 +1543,15 @@ private:
 public:
 	this(Commons comm, Props prop, Summary summ, Composite parent, UndoManager undo,
 			void delegate(size_t[]) forceSel,
-			void delegate() refreshTopStart) {
+			void delegate() refreshTopStart,
+			Composite contentsBoxArea) {
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
 		_undo = undo;
 		_forceSel = forceSel;
 		_refreshTopStart = refreshTopStart;
+		_contentsBoxArea = contentsBoxArea;
 
 		_comp = new Composite(parent, SWT.NONE);
 		_comp.setLayout = zeroGridLayout(1, false);
@@ -1496,10 +1561,20 @@ public:
 			_toolWin.setText = prop.msgs.tools;
 			_toolWin.addShellListener(new TSListener);
 			_toolWin.addMouseListener(new TMListener);
+			_cbarPar = new Composite(_toolWin, SWT.NONE);
+		} else if (_prop.var.etc.contentsAutoHide) {
+			_autoHideTools = new Shell(parent.getShell, SWT.NO_TRIM);
+			_autoHideTools.setLayout = zeroGridLayout(1);
+			_autoHideTools.addMouseListener(new TMListener);
+			_cbarPar = new Composite(_autoHideTools, SWT.NONE);
+			auto mTrack = new MouseTrack;
+			_autoHideTools.getDisplay.addFilter(SWT.MouseEnter, mTrack);
+			_autoHideTools.getDisplay.addFilter(SWT.MouseExit, mTrack);
+		} else {
+			_cbarPar = new Composite(_comp, SWT.NONE);
 		}
 		_autoOpen = _prop.var.etc.contentsAutoOpen;
 		_conti = _prop.var.etc.contentsContinue;
-		_cbarPar = new Composite(_prop.var.etc.contentsFloat ? _toolWin : _comp, SWT.NONE);
 		_cbarPar.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		_cbarPar.setLayout = new FillLayout;
 		_tree = new Tree(_comp, SWT.SINGLE | SWT.BORDER | SWT.VIRTUAL);
@@ -1607,7 +1682,10 @@ public:
 		if (_tree.isDisposed || _constructTools) return;
 		_constructTools = true;
 		auto cbar = createCoolBar!("contents")(_prop, _cbarPar, (CoolBar cbar) {
-			if (!_prop.var.etc.contentsFloat) {
+			void createCoolItem(CoolBar cbar, ToolBar tbar, int index = -1) {
+				.createCoolItem(cbar, tbar, index);
+			}
+			if (!_prop.var.etc.contentsFloat || _autoHideTools) {
 				cbar.addMouseListener(new TMListener);
 			}
 			auto g = new RadioGroup!(ToolItem);
@@ -1763,6 +1841,9 @@ public:
 			_tree.getShell.addShellListener(new PSListener);
 		} else {
 			_cbarPar.getParent.layout(true);
+			if (_autoHideTools) {
+				cbar.addControlListener(new AHTCListener);
+			}
 		}
 	}
 
@@ -2285,6 +2366,7 @@ public:
 			_toolWinVisible = false;
 		}
 	}
+
 	void refreshTreeName() {
 		_tree.getItems[0].setText = _et.name;
 		refreshStatusLine;

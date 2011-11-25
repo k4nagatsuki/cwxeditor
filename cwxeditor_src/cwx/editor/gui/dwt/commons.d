@@ -199,6 +199,8 @@ TLPData tlpData(Control c) {
 class Commons {
 	Dlg!(Shell) save;
 	Dlg!() saved;
+	Dlg!() refHistories;
+	Dlg!() refSearchHistories;
 	Dlg!(Summary) refScenario;
 	Dlg!() refScenarioName;
 	Dlg!() refScenarioPath;

@@ -932,7 +932,7 @@ public:
 			}
 		}
 		{
-			_etree = new EventTreeView(comm, prop, summ, _sash, _undo, &forceSel, &refreshTopStart);
+			_etree = new EventTreeView(comm, prop, summ, _sash, _undo, &forceSel, &refreshTopStart, toolbar);
 			auto _edit = new TreeEdit(_cards, &editEnd, &createEditor);
 			setupToolBar(toolbar);
 		}

@@ -548,7 +548,12 @@ private:
 	bool _change = false;
 
 	void changeHandler() {
-		_change = true;
+		if (!_change) {
+			_change = true;
+			foreach (dlg; changedEvent) {
+				dlg();
+			}
+		}
 	}
 
 	this(string sPath) {
@@ -575,6 +580,10 @@ public:
 			lock;
 		}
 	}
+
+	/// シナリオに変更があった際に発生するイベントのハンドラ。
+	void delegate()[] changedEvent;
+
 	override string cwxPath() {return "";}
 	override CWXPath findCWXPath(string path) {
 		if (cpempty(path)) return this;
@@ -636,7 +645,7 @@ public:
 	}
 	/// 変更を通知する。
 	void changed() {
-		_change = true;
+		changeHandler();
 	}
 	/// このシナリオが持つ使用回数カウンタ。
 	UseCounter useCounter() {

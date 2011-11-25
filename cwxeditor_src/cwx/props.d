@@ -1107,8 +1107,16 @@ public:
 	const string defaultStartName() {return "イベント開始";}
 
 	/// メインウィンドウ。
-	const string mainWindowName(string name, string path) {
-		return name !is null ? "" ~ name ~ " [ " ~ path ~ " ] - CWXEditor" : "CWXEditor";
+	const string mainWindowName(string name, string path, bool changed) {
+		if (name && path) {
+			string buf;
+			if (changed) {
+				buf ~= "*";
+			}
+			return buf ~ name ~ " [ " ~ path ~ " ] - CWXEditor";
+		} else {
+			return "CWXEditor";
+		}
 	}
 	const string errorExecEngine(string enginePath) {
 		return baseName(enginePath) ~ "の起動に失敗しました。";
@@ -2311,6 +2319,7 @@ public:
 	const string showImagePreview() {return "カードや背景のプレビュー表示を行う";}
 	const string expandXMLs() {return "圧縮されたシナリオの読込み時にXMLファイルを展開する";}
 	const string contentsFloat() {return "コンテンツボックスを別ウィンドウで表示する";}
+	const string contentsAutoHide() {return "コンテンツボックスを自動的に隠す";}
 	const string xmlCopy() {return "コピーや切り取りを常にXML形式で行う";}
 	const string saveInnerImagePath() {return "クラシックなシナリオで格納イメージにファイルパスを埋め込む";}
 	const string traceDirectories() {

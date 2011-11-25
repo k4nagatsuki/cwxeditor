@@ -208,12 +208,12 @@ private:
 		}
 	}
 
-	void __refreshTitle() {
+	void refreshTitle() {
 		if (summary) {
 			string path = summary.scenarioPath;
-			_win.setText = _prop.msgs.mainWindowName(summary.scenarioName, path);
+			_win.setText = _prop.msgs.mainWindowName(summary.scenarioName, path, summary.isChanged);
 		} else {
-			_win.setText = _prop.msgs.mainWindowName(null, null);
+			_win.setText = _prop.msgs.mainWindowName(null, null, false);
 		}
 	}
 
@@ -420,6 +420,7 @@ private:
 		}
 		summ.resetChanged;
 		statusLine = _prop.msgs.loaded(summ.scenarioName);
+		summ.changedEvent ~= &refreshTitle;
 		GC.collect();
 	}
 	string _firstScenarioPath = null;
@@ -631,11 +632,12 @@ private:
 		override void widgetDisposed(DisposeEvent e) {
 			_quit = true;
 			_comm.save.remove(&savec);
-			_comm.refScenarioName.remove(&__refreshTitle);
-			_comm.refScenarioPath.remove(&__refreshTitle);
+			_comm.refScenarioName.remove(&refreshTitle);
+			_comm.refScenarioPath.remove(&refreshTitle);
 			_comm.refWallpaper.remove(&redrawAll);
-			_comm.replText.remove(&__refreshTitle);
+			_comm.replText.remove(&refreshTitle);
 			_comm.refClassicSkin.remove(&refreshExecEngine);
+			_comm.refHistories.remove(&createFileMenu);
 			auto b = _win.getBounds;
 			_prop.var.mainWin.x = b.x;
 			_prop.var.mainWin.y = b.y;
@@ -664,18 +666,29 @@ private:
 			}
 		}
 	}
+	void sendReloadProps() {
+		sendToPipe((string recv) {
+			if (!recv) {
+				return "reload settings";
+			}
+			return "";
+		}, {
+			return true;
+		});
+	}
+	void reloadProps() {
+		auto oldStgs = OldSettings(_prop);
+		scope (exit) {
+			oldStgs.raiseEvent(_comm);
+		}
+		_prop.var.reload();
+	}
 	private SettingsDialog _stgDlg = null;
 	void settings() {
-		const(string)[] oldHist = _prop.var.etc.openHistories;
-		scope (exit) {
-			if (oldHist != _prop.var.etc.openHistories) {
-				createFileMenu;
-			}
-		}
 		if (_stgDlg) {
 			_stgDlg.active();
 		} else {
-			_stgDlg = new SettingsDialog(_comm, _prop, _win, _dock, summary);
+			_stgDlg = new SettingsDialog(_comm, _prop, _win, _dock, summary, &sendReloadProps);
 			_stgDlg.closeEvent ~= {
 				_stgDlg = null;
 			};
@@ -710,7 +723,8 @@ private:
 		_prop.var.etc.openHistories
 			= [hist] ~ (hists.length < _prop.var.etc.historyMax ? hists : hists[0 .. $ - 1]);
 		_prop.var.save(dock);
-		createFileMenu;
+		sendReloadProps();
+		_comm.refHistories.call();
 	}
 	class Hist {
 		private string _hist;
@@ -829,13 +843,52 @@ private:
 			foreach (p; paths) {
 				try {
 					openCWXPath(p, true);
-				} catch {}
+				} catch (Throwable e) {
+					debugln (e);
+				}
+			}
+		}
+	}
+	class ReloadSettings : Runnable {
+		override void run() {
+			try {
+				reloadProps();
+			} catch (Throwable e) {
+				debugln (e);
 			}
 		}
 	}
 	void pipeThr() {
 		try {
+			auto openPath = new OpenCWXPath;
+			auto reloadSettings = new ReloadSettings;
+			createPipeName();
 			if (!_pipeName.length) return;
+			Summary summ = null;
+			string recvSend(in char[] recv, out bool quit) {
+				quit = false;
+				if (recv == "quit") {
+					quit = true;
+					return null;
+				} else if (recv == "get opened scenario") {
+					summ = summary;
+					if (!summ) return null;
+					string send = "opened scenario ";
+					if (summ.useTemp) {
+						send ~= summ.zipName;
+					} else {
+						send ~= summ.scenarioPath;
+					}
+					return send;
+				} else if (std.string.startsWith(recv.idup, "open cwxpath ")) {
+					openPath.path = recv["open cwxpath ".length .. $].idup;
+					_display.asyncExec(openPath);
+					return null;
+				} else if (recv == "reload settings") {
+					_display.asyncExec(reloadSettings);
+				}
+				return null;
+			}
 			version (Windows) {
 				auto pipe = CreateNamedPipeW(toUTFz!(wchar*)(_pipeName), PIPE_ACCESS_DUPLEX,
 					PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT,
@@ -844,27 +897,16 @@ private:
 				scope (exit) CloseHandle(pipe);
 				char[MAX_PATH] buf;
 				DWORD len;
-				auto openPath = new OpenCWXPath;
-				while (ConnectNamedPipe(pipe, null)) {
+				bool quit = false;
+				while (!quit && ConnectNamedPipe(pipe, null)) {
 					scope (exit) DisconnectNamedPipe(pipe);
-					if (!ReadFile(pipe, buf.ptr, buf.length, &len, null)) continue;
-					char[] rstr = buf[0 .. len];
-					if (rstr == "quit") break;
-					auto summ = summary;
-					if (rstr == "get opened scenario" && summ) {
-						string send;
-						if (summ.useTemp) {
-							send = summ.zipName;
-						} else {
-							send = summ.scenarioPath;
-						}
-						if (!WriteFile(pipe, send.ptr, send.length, &len, null)) continue;
-						if (!ReadFile(pipe, buf.ptr, buf.length, &len, null)) continue;
-						rstr = buf[0 .. len];
-					}
-					if (std.string.startsWith(rstr, "open cwxpath ")) {
-						openPath.path = rstr["open cwxpath ".length .. $].idup;
-						_display.asyncExec(openPath);
+					while (true) {
+						if (!ReadFile(pipe, buf.ptr, buf.length, &len, null)) break;
+						auto recv = buf[0 .. len];
+						string send = recvSend(recv, quit);
+						if (quit) break;
+						if (!send) break;
+						if (!WriteFile(pipe, send.ptr, send.length, &len, null)) break;
 					}
 				}
 			} else {
@@ -878,30 +920,19 @@ private:
 				if (0 != listen(pipe, 1)) return -1;
 				char[4096] buf;
 				int len;
-				auto openPath = new OpenCWXPath;
 				typeof(pipe) rsock;
 				sockaddr_un raddr;
 				socklen_t rsocklen;
-				while (-1 != (rsock = accept(pipe, cast(sockaddr*) &raddr, &rsocklen))) {
+				bool quit = false;
+				while (!quit && -1 != (rsock = accept(pipe, cast(sockaddr*) &raddr, &rsocklen))) {
 					scope (exit) close(rsock);
-					if (-1 == (len = cread(pipe, buf.ptr, buf.length))) continue;
-					string rstr = buf[0 .. len];
-					if (rstr == "quit") break;
-					auto summ = summary;
-					if (rstr == "get opened scenario" && summ) {
-						string send;
-						if (summ.useTemp) {
-							send = summ.zipName;
-						} else {
-							send = summ.scenarioPath;
-						}
-						if (-1 == cwrite(pipe, send.ptr, send.length)) continue;
-						if (-1 == (len = cread(pipe, buf.ptr, buf.length))) continue;
-						rstr = buf[0 .. len];
-					}
-					if (std.string.startsWith(rstr, "open cwxpath ")) {
-						openPath.path = rstr["open cwxpath ".length .. $];
-						_display.asyncExec(openPath);
+					while (true) {
+						if (-1 == (len = cread(pipe, buf.ptr, buf.length))) break;
+						string recv = buf[0 .. len];
+						string send = recvSend(recv, quit);
+						if (quit) break;
+						if (!send) break;
+						if (-1 == cwrite(pipe, send.ptr, send.length)) break;
 					}
 				}
 				close(pipe);
@@ -911,6 +942,86 @@ private:
 			}
 		} catch (Exception e) {
 			debugln(e);
+		}
+	}
+	/// このプロセスが待ち受けする際のパイプ名を生成。
+	void createPipeName() {
+		version (Windows) {
+			for (size_t i = 0; i < PIPE_APP_MAX; i++) {
+				string pipeName = r"\\.\pipe\cwxeditor_" ~ to!(string)(i);
+				auto p = CreateFileW(toUTFz!(wchar*)(pipeName),
+					GENERIC_READ | GENERIC_WRITE, 0, null, OPEN_EXISTING, 0, null);
+				if (p == INVALID_HANDLE_VALUE) {
+					_pipeName = pipeName;
+					break;
+				}
+				CloseHandle(p);
+			}
+		} else {
+			for (size_t i = 0; i < PIPE_APP_MAX; i++) {
+				string pipeName = r"/pipe/cwxeditor_" ~ to!(string)(i);
+				auto p = socket(PF_UNIX, SOCK_STREAM, 0);
+				if (-1 == p) continue;
+				scope (exit) close(p);
+				sockaddr_un raddr;
+				raddr.sun_family = AF_INET;
+				strcpy(&(raddr.sun_path[1]), pipeName.ptr);
+				if (-1 == connect(p, cast(sockaddr*) &raddr, raddr.sizeof)) {
+					_pipeName = pipeName;
+					break;
+				}
+			}
+		}
+	}
+	/// CWXEditorのプロセスに対してパイプを通じてメッセージを送る。
+	void sendToPipe(string delegate(string) sendRecv, bool delegate() next) {
+		version (Windows) {
+			char[MAX_PATH] buf;
+			DWORD len;
+			for (size_t i = 0; i < PIPE_APP_MAX; i++) {
+				if (!next()) break;
+				string pipeName = r"\\.\pipe\cwxeditor_" ~ to!(string)(i);
+				if (_pipeName == pipeName) continue;
+				auto p = CreateFileW(toUTFz!(wchar*)(pipeName),
+					GENERIC_READ | GENERIC_WRITE, 0, null, OPEN_EXISTING, 0, null);
+				if (p == INVALID_HANDLE_VALUE) {
+					continue;
+				}
+				scope (exit) CloseHandle(p);
+				string recv = null;
+				while (true) {
+					string send = sendRecv(recv);
+					if (!send || !send.length) break;
+					if (!WriteFile(p, send.ptr, send.length, &len, null)) break;
+					if (!ReadFile(p, buf.ptr, buf.length, &len, null)) break;
+					recv = buf[0 .. len].idup;
+				}
+			}
+		} else {
+			char[4096] buf;
+			for (size_t i = 0; i < PIPE_APP_MAX; i++) {
+				if (!next()) break;
+				string pipeName = r"/pipe/cwxeditor_" ~ to!(string)(i);
+				if (_pipeName == pipeName) continue;
+				auto p = socket(PF_UNIX, SOCK_STREAM, 0);
+				if (-1 == p) continue;
+				scope (exit) close(p);
+				sockaddr_un raddr;
+				raddr.sun_family = AF_INET;
+				strcpy(&(raddr.sun_path[1]), pipeName.ptr);
+				if (-1 == connect(p, cast(sockaddr*) &raddr, raddr.sizeof)) {
+					continue;
+				}
+				string recv = null;
+				while (true) {
+					string send = sendRecv(recv);
+					if (!send || !send.length) break;
+					if (-1 == cwrite(p, send.ptr, send.length)) break;
+					int len = cread(p, buf.ptr, buf.length);
+					if (-1 == len) break;
+					recv = buf[0 .. len].idup;
+				}
+			}
 		}
 	}
 public:
@@ -929,7 +1040,31 @@ public:
 				path1 = nabs(dirName(path1));
 			}
 		}
-		version (Windows) {
+		bool execute = true;
+		sendToPipe((string recv) {
+			if (!recv) {
+				return "get opened scenario";
+			} else if (std.string.startsWith(recv, "opened scenario ")) {
+				if (cfnmatch(path1, nabs(recv["opened scenario ".length .. $]))) {
+					string send = "open cwxpath ";
+					foreach (j, s; openPaths) {
+						if (j > 0) send ~= CWXPATH_SEP;
+						send ~= s;
+					}
+					path1 = "";
+					execute = false;
+					return send;
+				} else {
+					return "";
+				}
+			} else {
+				return "";
+			}
+		}, {
+			return path1.length > 0;
+		});
+		if (!execute) return;
+/+		version (Windows) {
 			char[MAX_PATH] buf;
 			DWORD len;
 			for (size_t i = 0; i < PIPE_APP_MAX; i++) {
@@ -976,7 +1111,7 @@ public:
 				if (-1 == cwrite(p, send.ptr, send.length)) continue;
 				int len = cread(p, buf.ptr, buf.length);
 				if (-1 == len) continue;
-				auto path2 = nabs(buf[0 .. len]);
+				auto path2 = nabs(buf["opend scenario " .. len]);
 				if (!cfnmatch(path1, path2)) continue;
 				send = "open cwxpath ";
 				foreach (j, s; openPaths) {
@@ -987,7 +1122,7 @@ public:
 				return;
 			}
 		}
-		_firstScenarioPath = firstScenarioPath;
++/		_firstScenarioPath = firstScenarioPath;
 		_openPaths = openPaths;
 		_saveSync = new Object;
 		_prop = new Props(confFilePath, new CProps(appPath, sys));
@@ -1037,18 +1172,19 @@ public:
 		_win.setImage = _prop.images.app;
 
 		_comm.save.add(&savec);
-		_comm.refScenarioName.add(&__refreshTitle);
-		_comm.refScenarioPath.add(&__refreshTitle);
+		_comm.refScenarioName.add(&refreshTitle);
+		_comm.refScenarioPath.add(&refreshTitle);
 		_comm.refWallpaper.add(&redrawAll);
-		_comm.replText.add(&__refreshTitle);
+		_comm.replText.add(&refreshTitle);
 		_comm.refClassicSkin.add(&refreshExecEngine);
+		_comm.refHistories.add(&createFileMenu);
 		_win.addDisposeListener(new DListener);
 		_win.addShellListener(new SListener);
 		_comm.refreshWallpaper(_prop);
 		foreach (f; _prop.looks.fontFiles) {
 			d.loadFont(std.path.buildPath(engineDir, f));
 		}
-		_win.setText(_prop.msgs.mainWindowName(null, null));
+		_win.setText(_prop.msgs.mainWindowName(null, null, false));
 		if (_prop.var.etc.singleWindow) {
 			_sbshl.contentPane.setLayout = zeroGridLayout(1, true);
 		} else {
@@ -1254,7 +1390,7 @@ public:
 			auto bar = new Menu(_win, SWT.BAR);
 
 			_menuFile = createMenu(bar, _prop.msgs.menuFile);
-			createFileMenu;
+			createFileMenu();
 
 			auto me = createMenu(bar, _prop.msgs.menuEdit);
 			if (_prop.var.etc.singleWindow) {
@@ -2201,6 +2337,7 @@ public:
 		_prop.images.disposeImages;
 		d.dispose;
 		_prop.var.save(dock);
+		sendReloadProps();
 		version (Console) {
 			debug writeln("Exit Main Thread");
 		}
