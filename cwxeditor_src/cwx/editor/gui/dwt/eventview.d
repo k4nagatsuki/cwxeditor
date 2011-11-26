@@ -570,11 +570,14 @@ private:
 			return;
 		}
 		static if (UseFire) {
-			assert (cast(KeyCodeObj) itm.getData);
+			auto obj = cast(KeyCodeObj) itm.getData;
+			assert (obj);
 			auto p = itm.getParentItem;
 			tree = cast(EventTree) p.getData;
 			store(tree);
 			tree.setKeyCode(p.indexOf(itm) - keyCodesIndex(p), text);
+			itm.setImage = keyCodeImage(text);
+			obj.array = text.dup;
 		}
 	}
 	static if (UseFire) {
@@ -769,9 +772,16 @@ private:
 				}
 			}
 		}
+		Image keyCodeImage(string keyCode) {
+			final switch (_prop.sys.fireKeyCodeKind(keyCode)) {
+			case FKCKind.Use: return _prop.images.keyCode;
+			case FKCKind.Success: return _prop.images.menuKeyCodeTimingSuccess;
+			case FKCKind.Failure: return _prop.images.menuKeyCodeTimingFailure;
+			}
+		}
 		void createKeyCodeItem(T)(TreeItem parent, T a) {
 			foreach (kc; a.keyCodes) {
-				createTreeItem(parent, new KeyCodeObj(kc), kc, _prop.images.keyCode);
+				createTreeItem(parent, new KeyCodeObj(kc), kc, keyCodeImage(kc));
 			}
 		}
 	}
@@ -824,6 +834,35 @@ private:
 				refreshFires(etItm);
 				etItm.setExpanded = true;
 			}
+		}
+	}
+	static if (is(A : Area) || is(A : Battle)) {
+		void keyCodeTimImpl(FKCKind kind) {
+			auto itm = selection;
+			if (!itm) return;
+			auto kc = cast(KeyCodeObj) itm.getData;
+			if (!kc) return;
+			string old = kc.array.idup;
+			string keyCode = _prop.sys.convFireKeyCode(old, kind);
+			kc.array = keyCode.dup;
+			auto etItm = selectionEventTree;
+			assert (etItm);
+			auto et = cast(EventTree) etItm.getData;
+			assert (et);
+			int i = cCountUntil(et.keyCodes, old);
+			assert (-1 != i);
+			et.setKeyCode(i, keyCode);
+			itm.setText = keyCode;
+			itm.setImage = keyCodeImage(keyCode);
+		}
+		void keyCodeTimUse() {
+			keyCodeTimImpl(FKCKind.Use);
+		}
+		void keyCodeTimSuccess() {
+			keyCodeTimImpl(FKCKind.Success);
+		}
+		void keyCodeTimFailure() {
+			keyCodeTimImpl(FKCKind.Failure);
 		}
 	}
 public:
@@ -924,6 +963,16 @@ public:
 				try {
 					menu = new Menu(parent.getShell, SWT.POP_UP);
 					appendMenuTCPD(_prop, menu, this, true, true, true, true);
+					static if (is(A : Area) || is(A : Battle)) {
+						new MenuItem(menu, SWT.SEPARATOR);
+						void delegate() dlg = null;
+						auto cascade = createMenuItem(menu, _prop.msgs.menuKeyCodeTiming, _prop.images.keyCode, dlg, SWT.CASCADE);
+						auto sub = new Menu(parent.getShell, SWT.DROP_DOWN);
+						cascade.setMenu = sub;
+						createMenuItem(sub, _prop.msgs.menuKeyCodeTimingUse, _prop.images.menuKeyCodeTimingUse, &keyCodeTimUse);
+						createMenuItem(sub, _prop.msgs.menuKeyCodeTimingSuccess, _prop.images.menuKeyCodeTimingSuccess, &keyCodeTimSuccess);
+						createMenuItem(sub, _prop.msgs.menuKeyCodeTimingFailure, _prop.images.menuKeyCodeTimingFailure, &keyCodeTimFailure);
+					}
 					new MenuItem(menu, SWT.SEPARATOR);
 					createMenuItem(menu, _prop.msgs.menuToScript, _prop.images.menuToScript, &toScript);
 					createMenuItem(menu, _prop.msgs.menuToScriptAll, _prop.images.menuToScriptAll, &toScriptAll);

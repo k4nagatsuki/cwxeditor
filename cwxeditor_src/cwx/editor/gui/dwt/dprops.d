@@ -296,6 +296,9 @@ public:
 	Image defStart() {return imgd!("def_start.png");}
 	Image keyCode() {return imgd!("key_code.png");}
 	Image round() {return imgd!("round.png");}
+	Image menuKeyCodeTimingUse() {return imgd!("key_code.png");}
+	Image menuKeyCodeTimingSuccess() {return imgd!("key_code_suc.png");}
+	Image menuKeyCodeTimingFailure() {return imgd!("key_code_fail.png");}
 
 	Image menuAddManyRounds() {return imgd!("add_many_round.png");}
 
@@ -580,6 +583,9 @@ enum MenuID : int {
 	WriteComment,
 	EditScene,
 	EditEvent,
+	KeyCodeTimingUse,
+	KeyCodeTimingSuccess,
+	KeyCodeTimingFailure,
 }
 
 public class Props {

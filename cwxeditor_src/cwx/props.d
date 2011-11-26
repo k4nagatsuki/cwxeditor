@@ -1526,6 +1526,10 @@ public:
 	const string keyCodeTimingUse() {return "使用";}
 	const string keyCodeTimingSuccess() {return "成功";}
 	const string keyCodeTimingFailure() {return "失敗";}
+	const string menuKeyCodeTiming() {return "キーコード発火タイミング(&K)";}
+	const string menuKeyCodeTimingUse() {return "使用(&U)";}
+	const string menuKeyCodeTimingSuccess() {return "成功(&S)";}
+	const string menuKeyCodeTimingFailure() {return "失敗(&F)";}
 
 	const string menuAddManyRounds() {return "複数のラウンドを追加";}
 	const string manyRounds() {return "追加する発火ラウンドの範囲";}

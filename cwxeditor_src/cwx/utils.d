@@ -82,9 +82,7 @@ string debugString(T)(ref T v) {
 				try {
 					for (size_t i = 0; i < file.length; i++) {
 						char c = file[i];
-						// FIXME: これだけでOPTLINKがエラーを吐く！
-//						.validate([c]);
-						.format("%s", [c]); // validateの代替
+						.validate([c]);
 						trace ~= c;
 					}
 				} catch (Exception e) {
@@ -93,7 +91,7 @@ string debugString(T)(ref T v) {
 				}
 			}
 		}
-		return .format("[%s] %s, %d: %s", v.toString, v.file, v.line, trace);
+		return .format("[%s] %s, %d: ", v.msg, v.file, v.line) ~ trace.idup;
 	} else {
 		return .format("%s", v);
 	}
@@ -140,7 +138,9 @@ shared void fdebugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) {
 			debugLogFile.writeLine(log);
 			debugLogFile.flush();
 		}
-	} catch {}
+	} catch (Throwable e) {
+		std.stdio.writeln(__FILE__, " ", __LINE__, " ", e.msg);
+	}
 }
 shared static ~this () {
 	synchronized {

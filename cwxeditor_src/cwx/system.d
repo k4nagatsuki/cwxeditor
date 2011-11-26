@@ -224,7 +224,17 @@ class System {
 
 	private immutable FKC_SUCCESS = "○";
 	private immutable FKC_FAILURE = "×";
-	/// 発火条件キーコードを変換する。
+	/// キーコード発火条件の種別を返す。
+	const
+	FKCKind fireKeyCodeKind(string keyCode) {
+		if (std.string.endsWith(keyCode, FKC_SUCCESS.idup)) {
+			return FKCKind.Success;
+		} else if (std.string.endsWith(keyCode, FKC_FAILURE.idup)) {
+			return FKCKind.Failure;
+		}
+		return FKCKind.Use;
+	}
+	/// キーコード発火条件を変換する。
 	const
 	string convFireKeyCode(string keyCode, FKCKind kind) {
 		if (std.string.endsWith(keyCode, FKC_SUCCESS.idup)) {
