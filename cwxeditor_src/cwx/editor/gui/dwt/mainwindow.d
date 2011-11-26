@@ -2230,6 +2230,13 @@ public:
 		bool open() {
 			path = cwx.utils.toLower(path);
 			if (cpempty(path)) {
+				if (cphasattr(path, "opendialog")) {
+					if (_dataWin) {
+						_dataWin.editSummary();
+					} else {
+						_tableWin.editSummary();
+					}
+				}
 				return true;
 			}
 			auto cate = cpcategory(path);

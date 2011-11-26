@@ -1811,7 +1811,7 @@ public:
 				}
 				try {
 					if (_comm.openCWXPath(path, false)) {
-						_win.setActive;
+						if (!_prop.var.etc.searchOpenDialog) _win.setActive;
 						return;
 					}
 				} catch (Exception e) {

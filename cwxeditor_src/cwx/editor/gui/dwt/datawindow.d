@@ -549,6 +549,9 @@ public:
 		if (cpempty(path)) {
 			static if (UseArea) {
 				_comm.openDataWin(shellActivate);
+				if (cphasattr(path, "opendialog")) {
+					editSummary();
+				}
 			} else {
 				_comm.openFlagWin(shellActivate);
 			}

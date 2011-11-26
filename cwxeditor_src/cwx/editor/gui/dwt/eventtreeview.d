@@ -2593,7 +2593,7 @@ public:
 			if (index >= itm.getItemCount) return false;
 			auto child = itm.getItem(index);
 			path = cpbottom(path);
-			if (cpempty(path) || cpcategory(path) != "") {
+			if (cpempty(path) || cpcategory(cpbottom(path)) != "") {
 				forceFocus(_tree, shellActivate);
 				_tree.select = child;
 				refreshStatusLine();
