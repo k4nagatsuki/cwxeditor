@@ -325,8 +325,8 @@ private:
 		assert (0);
 	}
 
-	void __select(TreeItem itm) {
-		_cards.setSelection = [itm];
+	void __select(TreeItem itm, bool sel = true) {
+		if (sel) _cards.setSelection = [itm];
 		if (cast(EventTree) itm.getData) {
 			_selItm = itm;
 			_etree.refresh(cast(EventTree) itm.getData);
@@ -356,7 +356,7 @@ private:
 	}
 	class SListener : SelectionAdapter {
 		public override void widgetSelected(SelectionEvent e) {
-			__select(cast(TreeItem) e.item);
+			__select(cast(TreeItem) e.item, false);
 		}
 	}
 	static int before(T)(T parent, int index) {
@@ -531,7 +531,11 @@ private:
 		void refreshFires(TreeItem eItm, Object sel = null) {
 			auto t = cast(EventTree) eItm.getData;
 			bool expand = eItm.getExpanded;
-			scope (exit) eItm.setExpanded = expand;
+			scope (exit) {
+				if (!sel) {
+					eItm.setExpanded = expand;
+				}
+			}
 			eItm.removeAll;
 			static if (is (A == Area)) {
 				if (t.fireEnter) {
