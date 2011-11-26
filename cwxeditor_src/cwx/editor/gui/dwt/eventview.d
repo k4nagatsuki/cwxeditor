@@ -520,11 +520,13 @@ private:
 			return;
 		}
 		static if (UseFire) {
-			assert (cast(KeyCodeObj) itm.getData);
+			auto obj = cast(KeyCodeObj) itm.getData;
+			assert (obj);
 			auto p = itm.getParentItem;
 			tree = cast(EventTree) p.getData;
 			store(tree);
 			tree.setKeyCode(p.indexOf(itm) - keyCodesIndex(p), text);
+			obj.array = text;
 		}
 	}
 	static if (UseFire) {
