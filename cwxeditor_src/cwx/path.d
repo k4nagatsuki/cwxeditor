@@ -18,6 +18,8 @@ interface CWXPath {
 	CWXPath findCWXPath(string);
 	/// 直下のパスを全て返す。
 	CWXPath[] cwxChilds();
+	/// 親を返す。
+	CWXPath cwxParent();
 }
 
 /// シナリオ内パスを結合する。

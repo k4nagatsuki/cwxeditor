@@ -769,7 +769,6 @@ protected:
 	}
 
 	override bool apply() {
-		if (!_evt) _evt = new Content(CType.CHANGE_BG_IMAGE, "");
 		_evt.backs = _cont.backs;
 		auto ts = _tsTbl[_ts.getSelectionIndex];
 		uint tsSpeed = _tsSpeed.getSelection;

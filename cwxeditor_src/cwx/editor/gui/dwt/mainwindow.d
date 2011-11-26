@@ -421,6 +421,7 @@ private:
 		summ.resetChanged;
 		statusLine = _prop.msgs.loaded(summ.scenarioName);
 		summ.changedEvent ~= &refreshTitle;
+		refreshTitle();
 		GC.collect();
 	}
 	string _firstScenarioPath = null;
@@ -484,6 +485,7 @@ private:
 						summary.saveOverwrite(_prop.parent, _prop.var.etc.doubleIO, _prop.var.etc.saveInnerImagePath);
 					}
 					_comm.saved.call;
+					refreshTitle();
 					addHistory;
 					GC.collect();
 					playSavedSound();
@@ -528,6 +530,7 @@ private:
 					}
 					_comm.skin = findSkin(_comm, _prop, summary);
 					_comm.saved.call;
+					refreshTitle();
 					_comm.refScenarioPath.call;
 					_comm.refSkin.call;
 					_comm.refPaths.call("");

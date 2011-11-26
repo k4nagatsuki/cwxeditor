@@ -778,6 +778,7 @@ public:
 		r ~= cast(CWXPath[]) beasts;
 		return r;
 	}
+	CWXPath cwxParent() {return _owner;}
 }
 
 /// スキル・アイテム・召喚獣といった、「効果」のあるカードの親クラス。
@@ -814,6 +815,7 @@ private:
 		override bool canHasFireKeyCode() {return false;}
 		override size_t[] areaPath() {return [0];}
 		string cwxPath() {return this.outer.cwxPath;}
+		CWXPath cwxParent() {return this.outer.cwxParent;}
 	}
 public:
 	/// 唯一のコンストラクタ。
@@ -1235,6 +1237,7 @@ public:
 	string cwxPath() {
 		return _owner ? cpjoin(_owner, "skillcard", .cCountUntil!("a is b")(_owner.skills, this)) : "";
 	}
+	CWXPath cwxParent() {return _owner;}
 }
 
 /// アイテムカード。
@@ -1381,6 +1384,7 @@ public:
 	string cwxPath() {
 		return _owner ? cpjoin(_owner, "itemcard", .cCountUntil!("a is b")(_owner.items, this)) : "";
 	}
+	CWXPath cwxParent() {return _owner;}
 }
 
 /// 召喚獣カード。
@@ -1478,6 +1482,7 @@ public:
 	string cwxPath() {
 		return _owner ? cpjoin(_owner, "beastcard", .cCountUntil!("a is b")(_owner.beasts, this)) : "";
 	}
+	CWXPath cwxParent() {return _owner;}
 }
 
 /// 情報カード。
@@ -1551,4 +1556,5 @@ public:
 		return null;
 	}
 	CWXPath[] cwxChilds() {return [];}
+	CWXPath cwxParent() {return _owner;}
 }

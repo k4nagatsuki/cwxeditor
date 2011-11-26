@@ -932,6 +932,23 @@ private:
 				}
 			}
 		}
+		{
+			auto grp = new Group(comp, SWT.NONE);
+			grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+			grp.setText = _prop.msgs.systemSounds;
+			grp.setLayout = new GridLayout(4, false);
+			auto l = new Label(grp, SWT.NONE);
+			l.setText = _prop.msgs.soundSaved;
+			_savedSound = new Text(grp, SWT.BORDER);
+			createTextMenu!Text(_prop, _savedSound, &catchMod);
+			_savedSound.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+			mod(_savedSound);
+			auto refr = new Button(grp, SWT.PUSH);
+			refr.setText = _prop.msgs.reference;
+			refr.addSelectionListener(new SelSysSound(_savedSound));
+			createOpenButton(grp, _savedSound, false);
+			setupDropFile(grp, _savedSound, &dropSysSound);	
+		}
 	}
 	Spinner createS(Composite parent, string name, int max, int min) {
 		auto l = new Label(parent, SWT.NONE);
@@ -1820,23 +1837,6 @@ private:
 					_soundPlayType.add(_prop.msgs.soundPlayTypeMCI);
 					_soundPlayType.add(_prop.msgs.soundPlayTypeApp);
 				}
-			}
-			{
-				auto grp = new Group(comp2, SWT.NONE);
-				grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				grp.setText = _prop.msgs.systemSounds;
-				grp.setLayout = new GridLayout(4, false);
-				auto l = new Label(grp, SWT.NONE);
-				l.setText = _prop.msgs.soundSaved;
-				_savedSound = new Text(grp, SWT.BORDER);
-				createTextMenu!Text(_prop, _savedSound, &catchMod);
-				_savedSound.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				mod(_savedSound);
-				auto refr = new Button(grp, SWT.PUSH);
-				refr.setText = _prop.msgs.reference;
-				refr.addSelectionListener(new SelSysSound(_savedSound));
-				createOpenButton(grp, _savedSound, false);
-				setupDropFile(grp, _savedSound, &dropSysSound);	
 			}
 		}
 		{

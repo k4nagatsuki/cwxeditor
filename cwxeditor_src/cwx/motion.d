@@ -481,4 +481,5 @@ public:
 		if (_beast) r ~= _beast;
 		return r;
 	}
+	CWXPath cwxParent() {return _owner;}
 }

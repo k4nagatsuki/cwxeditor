@@ -401,6 +401,7 @@ public:
 		return null;
 	}
 	CWXPath[] cwxChilds() {return [];}
+	CWXPath cwxParent() {return _owner;}
 }
 
 /// 口調分け条件とメッセージ内容を持つクラス。
@@ -552,6 +553,7 @@ public:
 		return null;
 	}
 	CWXPath[] cwxChilds() {return _text.cwxChilds;}
+	CWXPath cwxParent() {return _parent;}
 }
 
 class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
@@ -919,6 +921,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		r ~= cast(CWXPath[]) backs;
 		return r;
 	}
+	CWXPath cwxParent() {return _parent;}
 
 	/// EventTreeからこのコンテントに到達するまでのindex群を返す。
 	size_t[] ctPath() {
@@ -1811,6 +1814,8 @@ public:
 		r ~= cast(CWXPath[]) starts;
 		return r;
 	}
+	CWXPath cwxParent() {return _owner;}
+
 	/// 変更ハンドラを登録する。
 	void changeHandler(void delegate() change) {
 		foreach (s; _starts) {

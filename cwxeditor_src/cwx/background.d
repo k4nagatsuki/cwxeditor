@@ -235,6 +235,7 @@ public:
 		return null;
 	}
 	CWXPath[] cwxChilds() {return [];}
+	CWXPath cwxParent() {return _owner;}
 }
 
 /// BgImage所持者のインタフェース。
@@ -243,7 +244,8 @@ interface BgImageOwner : CWXPath {
 	const const(BgImage)[] backs();
 }
 
-/// BgImageのコンテナ。背景変更イベントで使用。
+/// BgImageのコンテナ。背景変更イベントの編集で使用。
+/// シナリオのデータ構造には組み込まれない。
 class BgImageContainer : BgImageOwner {
 private:
 	BgImage[] _bgImgs;
@@ -271,6 +273,8 @@ public:
 		r ~= cast(CWXPath[]) backs;
 		return r;
 	}
+	CWXPath cwxParent() {return null;}
+
 	/// 背景イメージ群。
 	BgImage[] backs() {
 		return _bgImgs;

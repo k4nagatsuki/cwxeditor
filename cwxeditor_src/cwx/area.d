@@ -179,6 +179,8 @@ public:
 	string cwxPath() {
 		return _owner ? cpjoin(_owner, "enemycard", .cCountUntil!("a is b")(_owner.cards, this)) : "";
 	}
+	CWXPath cwxParent() {return _owner;}
+
 	override size_t[] areaPath() {
 		if (_owner) {
 			return [.cCountUntil!("a is b")(_owner.cards, this) + 1];
@@ -334,6 +336,8 @@ public:
 	string cwxPath() {
 		return _owner ? cpjoin(_owner, "menucard", .cCountUntil!("a is b")(_owner.cards, this)) : "";
 	}
+	CWXPath cwxParent() {return _owner;}
+
 	override size_t[] areaPath() {
 		if (_owner) {
 			return [.cCountUntil!("a is b")(_owner.cards, this) + 1];
@@ -912,6 +916,7 @@ public:
 		r ~= super.cwxChilds;
 		return r;
 	}
+	CWXPath cwxParent() {return _owner;}
 }
 
 /// パッケージ。
@@ -1000,6 +1005,7 @@ public:
 	string cwxPath() {
 		return _owner ? cpjoin(_owner, "package", .cCountUntil!("a is b")(_owner.packages, this)) : "";
 	}
+	CWXPath cwxParent() {return _owner;}
 }
 
 /// バトル。
@@ -1246,4 +1252,5 @@ public:
 		r ~= super.cwxChilds;
 		return r;
 	}
+	CWXPath cwxParent() {return _owner;}
 }

@@ -366,6 +366,7 @@ private:
 			override string cwxPath() {return "";}
 			override CWXPath findCWXPath(string path) {return null;}
 			override CWXPath[] cwxChilds() {return [];}
+			CWXPath cwxParent() {return null;}
 		}
 		static class UndoMusic : AUndo {
 			private PathUser _path;

@@ -1215,6 +1215,25 @@ public:
 		}
 	}
 	private void replaceIDImpl2(ID)(ID from, ID to) {
+		bool[CWXPath] range;
+		void recurse(TreeItem itm) {
+			range[cast(CWXPath) itm.getData] = itm.getChecked;
+			foreach (cItm; itm.getItems) {
+				recurse(cItm);
+			}
+		}
+		foreach (itm; _range.getItems) {
+			recurse(itm);
+		}
+		bool dec(CWXPath path) {
+			assert (path);
+			auto p = path in range;
+			if (p) {
+				return *p;
+			}
+			return dec(path.cwxParent);
+		}
+		// TODO
 		auto uc = _summ.useCounter;
 		auto users = uc.values(from);
 		if (_replMode) uc.change(from, to, true);

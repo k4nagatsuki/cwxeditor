@@ -229,6 +229,7 @@ public:
 		return null;
 	}
 	override CWXPath[] cwxChilds() {return [];}
+	CWXPath cwxParent() {return _parent;}
 }
 
 /// ステップ。
@@ -405,6 +406,7 @@ public:
 		return null;
 	}
 	override CWXPath[] cwxChilds() {return [];}
+	CWXPath cwxParent() {return _parent;}
 }
 
 /// フラグ/ステップ、及びサブディレクトリを格納するディレクトリ。
@@ -498,6 +500,8 @@ public:
 		r ~= cast(CWXPath[]) subDirs;
 		return r;
 	}
+	CWXPath cwxParent() {return _parent;}
+
 	/// 子要素をソートする際に使用する比較関数を設定する。
 	/// 親ディレクトリを持つ場合は例外を投げる。
 	void sorter(int delegate(string, string) sorter) {

@@ -1271,6 +1271,10 @@ private:
 	}
 	class TCListener : ControlAdapter {
 		override void controlMoved(ControlEvent e) {
+			if (_autoHideTools) {
+				calcAutoHideSize();
+				return;
+			}
 			assert (_toolWin);
 			if (!_toolWin || _toolWin.isDisposed) return;
 			auto pb = _toolWin.getParent.getBounds;
@@ -1843,6 +1847,7 @@ public:
 			_cbarPar.getParent.layout(true);
 			if (_autoHideTools) {
 				cbar.addControlListener(new AHTCListener);
+				_autoHideTools.getParent.addControlListener(new TCListener);
 			}
 		}
 	}

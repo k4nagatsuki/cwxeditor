@@ -629,6 +629,8 @@ public:
 		r ~= flagDirRoot;
 		return r;
 	}
+	CWXPath cwxParent() {return null;}
+
 	/// マシン上で一意なID。
 	const
 	string id() {
@@ -1689,6 +1691,8 @@ public:
 		return findCWXPathImpl(path, cpcategory(path));
 	}
 	override CWXPath[] cwxChilds() {return cwxChildsImpl;}
+	CWXPath cwxParent() {return null;}
+
 	/// マシン上で一意なID。
 	const
 	string id() {
