@@ -10,6 +10,7 @@ import cwx.skin;
 import cwx.usecounter;
 import cwx.path;
 import cwx.script;
+import cwx.system;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;
@@ -89,6 +90,9 @@ private:
 	ToolBar _toolbar;
 	CCombo _treeKind;
 	ToolItem _fireItm;
+	static if (is (A == Area) || is (A == Battle)) {
+		CCombo _keyCodeTim;
+	}
 
 	TCPD[] _tcpd;
 	TreeItem _oldSelP = null;
@@ -368,8 +372,8 @@ private:
 		assert (0);
 	}
 
-	void __select(TreeItem itm) {
-		_cards.setSelection = [itm];
+	void __select(TreeItem itm, bool sel = true) {
+		if (sel) _cards.setSelection = [itm];
 		if (cast(EventTree) itm.getData) {
 			_selItm = itm;
 			_etree.refresh(cast(EventTree) itm.getData);
@@ -399,7 +403,7 @@ private:
 	}
 	class SListener : SelectionAdapter {
 		public override void widgetSelected(SelectionEvent e) {
-			__select(cast(TreeItem) e.item);
+			__select(cast(TreeItem) e.item, false);
 		}
 	}
 	static int before(T)(T parent, int index) {
@@ -577,7 +581,11 @@ private:
 		void refreshFires(TreeItem eItm, Object sel = null) {
 			auto t = cast(EventTree) eItm.getData;
 			bool expand = eItm.getExpanded;
-			scope (exit) eItm.setExpanded = expand;
+			scope (exit) {
+				if (!sel) {
+					eItm.setExpanded = expand;
+				}
+			}
 			eItm.removeAll;
 			static if (is (A == Area)) {
 				if (t.fireEnter) {
@@ -648,6 +656,17 @@ private:
 			static if (!is (C == void)) {
 				Object addKeyCodes() {
 					auto kc = (cast(CCombo) _fireItm.getControl).getText;
+					final switch (_keyCodeTim.getSelectionIndex) {
+					case 0:
+						// 入力値をそのまま使用
+						break;
+					case 1:
+						kc = _prop.sys.convFireKeyCode(kc, FKCKind.Success);
+						break;
+					case 2:
+						kc = _prop.sys.convFireKeyCode(kc, FKCKind.Failure);
+						break;
+					}
 					return kc.length > 0 ? new KeyCodeObj(kc) : null;
 				}
 				Object addAreaAndEtc() {
@@ -1219,6 +1238,20 @@ public:
 			_fireItm.setWidth = _prop.var.etc.firesWidth;
 			createCombo(true, areaDefVals);
 		}
+		static if (is (A == Area) || is (A == Battle)) {
+			new ToolItem(bar, SWT.SEPARATOR);
+			{
+				auto keyCodeTimItm = new ToolItem(bar, SWT.SEPARATOR);
+				_keyCodeTim = new CCombo(bar, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
+				_keyCodeTim.setEnabled = false;
+				_keyCodeTim.add(_prop.msgs.keyCodeTimingUse);
+				_keyCodeTim.add(_prop.msgs.keyCodeTimingSuccess);
+				_keyCodeTim.add(_prop.msgs.keyCodeTimingFailure);
+				_keyCodeTim.select = 0;
+				keyCodeTimItm.setControl = _keyCodeTim;
+				keyCodeTimItm.setWidth = _keyCodeTim.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
+			}
+		}
 		new ToolItem(bar, SWT.SEPARATOR);
 		createToolItem(bar, _prop.msgs.ttNewEventTree, _prop.images.menuNewEventTree, &createEventTree);
 		static if (UseFire) {
@@ -1295,9 +1328,11 @@ public:
 				switch (_treeKind.getSelectionIndex) {
 				case 0:
 					createCombo(true, startDefVals);
+					_keyCodeTim.setEnabled = false;
 					break;
 				case 1:
 					createCombo(false, _prop.var.etc.standardKeyCodes.dup, true);
+					_keyCodeTim.setEnabled = true;
 					break;
 				default: assert (0);
 				}
@@ -1305,9 +1340,11 @@ public:
 				switch (_treeKind.getSelectionIndex) {
 				case 0:
 					createCombo(true, startDefVals);
+					_keyCodeTim.setEnabled = false;
 					break;
 				case 1:
 					createCombo(false, _prop.var.etc.standardKeyCodes.dup, true);
+					_keyCodeTim.setEnabled = true;
 					break;
 				case 2:
 					auto spn = new Spinner(_toolbar, SWT.BORDER);
@@ -1315,6 +1352,7 @@ public:
 					spn.setMinimum = 1;
 					spn.setSelection = 1;
 					setFireControl = spn;
+					_keyCodeTim.setEnabled = false;
 					break;
 				default: assert (0);
 				}

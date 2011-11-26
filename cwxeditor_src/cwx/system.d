@@ -5,6 +5,13 @@ import cwx.card;
 import cwx.features;
 import cwx.utils;
 
+/// 発火条件キーコードの種別。
+enum FKCKind {
+	Use, /// 使用時。
+	Success, /// 成功時。
+	Failure /// 失敗時。
+}
+
 class System {
 	/// 唯一のコンストラクタ。
 	this () {}
@@ -213,5 +220,31 @@ class System {
 	const
 	bool isRecycle(EffectCard card) {
 		return contains(card.keyCodes, "リサイクル");
+	}
+
+	private immutable FKC_SUCCESS = "○";
+	private immutable FKC_FAILURE = "×";
+	/// 発火条件キーコードを変換する。
+	const
+	string convFireKeyCode(string keyCode, FKCKind kind) {
+		if (std.string.endsWith(keyCode, FKC_SUCCESS.idup)) {
+			final switch (kind) {
+			case FKCKind.Use: return keyCode[0 .. $ - FKC_SUCCESS.length];
+			case FKCKind.Success: return keyCode;
+			case FKCKind.Failure: return keyCode[0 .. $ - FKC_SUCCESS.length] ~ FKC_FAILURE;
+			}
+		} else if (std.string.endsWith(keyCode, FKC_FAILURE.idup)) {
+			final switch (kind) {
+			case FKCKind.Use: return keyCode[0 .. $ - FKC_FAILURE.length];
+			case FKCKind.Success: return keyCode[0 .. $ - FKC_FAILURE.length] ~ FKC_SUCCESS;
+			case FKCKind.Failure: return keyCode;
+			}
+		} else {
+			final switch (kind) {
+			case FKCKind.Use: return keyCode;
+			case FKCKind.Success: return keyCode ~ FKC_SUCCESS;
+			case FKCKind.Failure: return keyCode ~ FKC_FAILURE;
+			}
+		}
 	}
 }

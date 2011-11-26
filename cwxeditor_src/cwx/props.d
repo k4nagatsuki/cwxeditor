@@ -1523,6 +1523,9 @@ public:
 	const string startPackage() {return "パッケージ";}
 	const string startUse() {return "使用時";}
 	const string startRound(uint round) {return "ラウンド = " ~ to!(string)(round);}
+	const string keyCodeTimingUse() {return "使用";}
+	const string keyCodeTimingSuccess() {return "成功";}
+	const string keyCodeTimingFailure() {return "失敗";}
 
 	const string menuAddManyRounds() {return "複数のラウンドを追加";}
 	const string manyRounds() {return "追加する発火ラウンドの範囲";}
