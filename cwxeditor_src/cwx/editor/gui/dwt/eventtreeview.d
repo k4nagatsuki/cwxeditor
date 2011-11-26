@@ -2363,7 +2363,7 @@ public:
 			if (index >= itm.getItemCount) return false;
 			auto child = itm.getItem(index);
 			path = cpbottom(path);
-			if (path == "" || cpcategory(path) != "") {
+			if (path == "" || cpcategory(cpbottom(path)) != "") {
 				forceFocus(_tree);
 				_tree.select = child;
 				refreshStatusLine;
