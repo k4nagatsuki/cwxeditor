@@ -1233,17 +1233,38 @@ public:
 			}
 			return dec(path.cwxParent);
 		}
-		// TODO
+
 		auto uc = _summ.useCounter;
 		auto users = uc.values(from);
-		if (_replMode) uc.change(from, to, true);
 		_result.setRedraw = false;
 		scope (exit) _result.setRedraw = true;
-		foreach (user; users) {
-			addResult(user.owner);
+		size_t count = 0;
+		foreach (u; users) {
+			if (!dec(u.owner)) continue;
+			if (_replMode) {
+				static if (is(ID : AreaId)) {
+					u.area = to;
+				} else static if (is(ID : BattleId)) {
+					u.battle = to;
+				} else static if (is(ID : PackageId)) {
+					u.packages = to;
+				} else static if (is(ID : CastId)) {
+					u.casts = to;
+				} else static if (is(ID : SkillId)) {
+					u.skill = to;
+				} else static if (is(ID : ItemId)) {
+					u.item = to;
+				} else static if (is(ID : BeastId)) {
+					u.beast = to;
+				} else static if (is(ID : InfoId)) {
+					u.info = to;
+				} else static assert (0);
+			}
+			addResult(u.owner);
+			count++;
 		}
-		setResultStatus(users.length);
-		if (users.length) _comm.replID.call;
+		setResultStatus(count);
+		if (count) _comm.replID.call;
 	}
 	private void replaceIDImpl() {
 		ulong getID(Combo combo, Spinner spn, ulong[int] tbl) {

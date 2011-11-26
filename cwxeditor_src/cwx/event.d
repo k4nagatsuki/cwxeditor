@@ -921,7 +921,14 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		r ~= cast(CWXPath[]) backs;
 		return r;
 	}
-	CWXPath cwxParent() {return _parent;}
+	CWXPath cwxParent() {
+		if (_parent) {
+			return _parent;
+		} else if (_tree) {
+			return _tree;
+		}
+		return null;
+	}
 
 	/// EventTreeからこのコンテントに到達するまでのindex群を返す。
 	size_t[] ctPath() {
