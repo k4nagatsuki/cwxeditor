@@ -1407,11 +1407,6 @@ public:
 				mixin (MenuAction!("me", "Paste"));
 				mixin (MenuAction!("me", "Del"));
 				new MenuItem(me, SWT.SEPARATOR);
-				if (!_prop.var.etc.bindSceneWithEvent) {
-					mixin (MenuAction!("me", "EditScene"));
-					mixin (MenuAction!("me", "EditEvent"));
-					new MenuItem(me, SWT.SEPARATOR);
-				}
 				mixin (MenuAction!("me", "WriteComment"));
 				new MenuItem(me, SWT.SEPARATOR);
 				mixin (MenuAction!("me", "ToScript"));
@@ -1424,8 +1419,6 @@ public:
 			mixin (MenuAction!("me", "ReplaceText", SWT.PUSH, "replaceText"));
 			mixin (MenuAction!("me", "ReNumberingAll", SWT.PUSH, "reNumberingAll"));
 			mixin (MenuAction!("me", "ToXML", SWT.PUSH, "clipboardToXML"));
-			new MenuItem(me, SWT.SEPARATOR);
-			mixin (MenuAction!("me", "Reload", SWT.PUSH, "reload"));
 			if (_prop.var.etc.singleWindow) {
 				new MenuItem(me, SWT.SEPARATOR);
 				mixin (MenuAction!("me", "NewFolder", SWT.PUSH, "_dirWin.createNewFolder"));
@@ -1459,6 +1452,11 @@ public:
 				auto ma = createMenu(bar, _prop.msgs.menuTable);
 				mixin (MenuAction!("ma", "Summary", SWT.PUSH, "_tableWin.editSummary"));
 				new MenuItem(ma, SWT.SEPARATOR);
+				if (!_prop.var.etc.bindSceneWithEvent) {
+					mixin (MenuAction!("ma", "EditScene"));
+					mixin (MenuAction!("ma", "EditEvent"));
+					new MenuItem(ma, SWT.SEPARATOR);
+				}
 				mixin (MenuAction!("ma", "NewArea", SWT.PUSH, "_tableWin.createArea"));
 				mixin (MenuAction!("ma", "NewBattle", SWT.PUSH, "_tableWin.createBattle"));
 				mixin (MenuAction!("ma", "NewPackage", SWT.PUSH, "_tableWin.createPackage"));
@@ -2209,13 +2207,7 @@ public:
 		if (summary) {
 			if (!_replDlg || _replDlg.widget.isDisposed) {
 				_replDlg = new ReplaceDialog(_comm, _prop, _win, summary);
-				auto b = _win.getBounds;
-				auto p = _replDlg.widget.getSize;
-				int x = b.x + (b.width - p.x) / 2;
-				int y = b.y + (b.height - p.y) / 2;
-				intoDisplay(x, y, p.x, p.y);
-				_replDlg.widget.setLocation = new Point(x, y);
-				_replDlg.replaceText("");
+				_replDlg.open();
 			} else {
 				_replDlg.widget.setMinimized = false;
 				_replDlg.widget.setActive;

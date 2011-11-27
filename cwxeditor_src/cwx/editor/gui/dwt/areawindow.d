@@ -155,7 +155,7 @@ public:
 		_comm.replText.add(&__refreshTitle);
 		_win.addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) {
-				saveWin;
+				saveWin();
 				static if (is (A == Area)) {
 					_comm.delArea.remove(&__deleteArea);
 					_comm.refArea.remove(&__refArea);

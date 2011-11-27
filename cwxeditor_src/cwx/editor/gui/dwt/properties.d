@@ -666,6 +666,8 @@ class FlexEtcProps : Properties {
 
 	mixin Property!("soundPlayType", int, 0);
 
+	mixin Property!("searchPlan", int, 0);
+	mixin Property!("searchIDKind", int, 0);
 	mixin Property!("searchHistories", string[], []);
 	mixin Property!("replaceHistories", string[], []);
 	mixin Property!("searchHistoryMax", int, 50);
@@ -831,7 +833,7 @@ public class FlexProps {
 	CardEventWin cardEventWin;
 	ContWin contentsWin;
 	DialogParam!("settingsDialog") settingsDlg;
-	DialogParam!("replaceDialog", 600) replaceDlg;
+	WindowProps!("replaceDialog", 600, SWT.DEFAULT) replaceDlg;
 	DialogParam!("summaryDialog") summaryDlg;
 	DialogParam!("menuCardDialog") menuCardDlg;
 	DialogParam!("areaBackgroundDialog") areaBackgroundDlg;

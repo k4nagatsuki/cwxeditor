@@ -337,12 +337,14 @@ private:
 	}
 	class SelIDKind : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			setupIDs;
+			setupIDs();
+			_prop.var.etc.searchIDKind = _idKind.getSelectionIndex;
 		}
 	}
 	private void tabChanged() {
 		auto sel = _tabf.getSelection;
 		if (!sel) return;
+		_prop.var.etc.searchPlan = _tabf.getSelectionIndex;
 		foreach (tab, comp; _comps) {
 			auto gd = cast(GridData) comp.getLayoutData;
 			if (tab is sel) {
@@ -358,7 +360,7 @@ private:
 	}
 	class TSListener : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			tabChanged;
+			tabChanged();
 		}
 	}
 	LCheck[] _checked;
@@ -514,6 +516,9 @@ private:
 				_idKind.add(_prop.msgs.replIDBeast);
 				_idKind.add(_prop.msgs.replIDInfo);
 				_idKind.select = 0;
+				if (0 <= _prop.var.etc.searchIDKind && _prop.var.etc.searchIDKind < _idKind.getItemCount) {
+					_idKind.select = _prop.var.etc.searchIDKind;
+				}
 				auto gd = new GridData;
 				gd.horizontalSpan = 2;
 				_idKind.setLayoutData = gd;
@@ -865,20 +870,36 @@ public:
 		}
 	}
 
+	void open() {
+		reset();
+		tabChanged();
+		auto tab = _tabf.getSelection;
+		if (tab is _tabText) {
+			_from.setFocus;
+		} else if (tab is _tabID) {
+			_idKind.setFocus;
+		} else if (tab is _tabPath) {
+			_fromPath.setFocus;
+		} else if (tab is _tabUnuse) {
+			// Nothing
+		} else if (tab is _tabError) {
+			// Nothing
+		} else assert (0);
+	}
 	void replaceText(string from) {
-		reset;
+		reset();
 		_from.setText = from;
 		_to.setText = "";
 		_tabf.setSelection = _tabText;
-		tabChanged;
+		tabChanged();
 		_from.setFocus;
 	}
 	void replacePath(string from) {
-		reset;
+		reset();
 		_fromPath.setText = from;
 		_toPath.setText = "";
 		_tabf.setSelection = _tabPath;
-		tabChanged;
+		tabChanged();
 		_fromPath.setFocus;
 	}
 
@@ -1012,6 +1033,10 @@ public:
 		foreach (l; _checked) {
 			l.check;
 		}
+		_tabf.setSelection = 0;
+		if (0 <= _prop.var.etc.searchPlan && _prop.var.etc.searchPlan < _tabf.getItemCount) {
+			_tabf.setSelection = _prop.var.etc.searchPlan;
+		}
 
 		sash.addDisposeListener(new SashDispose);
 		sash.setWeights = [_prop.var.etc.replaceRangeSashL, _prop.var.etc.replaceRangeSashR];
@@ -1041,6 +1066,26 @@ public:
 		if (size.width != SWT.DEFAULT) cs.x = size.width;
 		if (size.height != SWT.DEFAULT) cs.y = size.height;
 		_win.setSize = cs;
+
+		auto winProps = _prop.var.replaceDlg;
+		_win.setMaximized = winProps.maximized;
+		scope wp = _win.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+		int width = winProps.width == SWT.DEFAULT ? wp.x : winProps.width;
+		int height = winProps.height == SWT.DEFAULT ? wp.y : winProps.height;
+		int x = winProps.x == SWT.DEFAULT ? _win.getBounds.x : winProps.x + _win.getParent.getBounds.x;
+		int y = winProps.y == SWT.DEFAULT ? _win.getBounds.y : winProps.y + _win.getParent.getBounds.y;
+		intoDisplay(x, y, width, height);
+		_win.setBounds(x, y, width, height);
+	}
+	private void saveWin() {
+		auto winProps = _prop.var.replaceDlg;
+		if (!_win.getMaximized) {
+			winProps.width = _win.getSize.x;
+			winProps.height = _win.getSize.y;
+			winProps.x = _win.getBounds.x - _win.getParent.getBounds.x;
+			winProps.y = _win.getBounds.y - _win.getParent.getBounds.y;
+		}
+		winProps.maximized = _win.getMaximized;
 	}
 	private class SashDispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
@@ -1053,11 +1098,7 @@ public:
 	private class DL : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
 			_comm.refScenario.remove(&refreshScenario);
-			if (!_win.getMaximized) {
-				auto s = _win.getSize;
-				_prop.var.replaceDlg.width = s.x;
-				_prop.var.replaceDlg.height = s.y;
-			}
+			saveWin();
 			_prop.var.etc.replaceTextNotIgnoreCase = _notIgnoreCase.getSelection;
 			_prop.var.etc.replaceTextRegExp = _useRegex.getSelection;
 			_prop.var.etc.replaceTextWildcard = _useWildcard.getSelection;
