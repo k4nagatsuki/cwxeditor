@@ -126,7 +126,7 @@ private {
 			to!(int)(astrip(sp[2])), to!(int)(astrip(sp[3])));
 	}
 	CRGB rgbVal(string value) {
-		if (value.length < 7 && (value[0] != '$' && value[0] != '#')) {
+		if (value.length < 7 || (value[0] != '$' && value[0] != '#')) {
 			throw new Exception("invalid rgb: " ~ value);
 		}
 		auto sr = value[1 .. 3];
