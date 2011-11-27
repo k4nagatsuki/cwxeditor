@@ -541,7 +541,7 @@ private:
 	void refreshCoupons() {
 		auto c = _name.getText;
 		_name.removeAll();
-		addCastCoupons(_name, prop, true, comm.skin.legacyName);
+		addCastCoupons(_name, prop, false, comm.skin.legacyName);
 		_name.select = 0;
 		if (c.length && -1 == _name.indexOf(c)) {
 			_name.add(c, 0);
