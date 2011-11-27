@@ -124,7 +124,9 @@ private {
 			to!(int)(strip(sp[2])), to!(int)(strip(sp[3])));
 	}
 	CRGB rgbVal(string value) {
-		if (value.length < 7 && value[0] != '$') throw new Exception("invalid rgb: " ~ value);
+		if (value.length < 7 || (value[0] != '$' && value[0] != '#')) {
+			throw new Exception("invalid rgb: " ~ value);
+		}
 		auto sr = value[1 .. 3];
 		auto sg = value[3 .. 5];
 		auto sb = value[5 .. 7];
@@ -417,7 +419,7 @@ private struct JptxParser {
 			text = replace(text, "\n", "");
 		}
 		while (text.length) {
-			auto reg = search(text, "</(b|i|u|s|shiftx|shifty|lineheight|font)>|<(br|b|i|u|s|shiftx=\"-?[0-9]+\"|shifty=\"-?[0-9]+\"|lineheight=\"-?[0-9]+\"|font( +(face=\".+\"|color=\"\\$[0-9A-Fa-f]{6}\"|pixels=\"[0-9]+\"))+)>", "i");
+			auto reg = search(text, "</(b|i|u|s|shiftx|shifty|lineheight|font)>|<(br|b|i|u|s|shiftx=\"-?[0-9]+\"|shifty=\"-?[0-9]+\"|lineheight=\"-?[0-9]+\"|font( +(face=\".+\"|color=\"[\\$#][0-9A-Fa-f]{6}\"|pixels=\"[0-9]+\"))+)>", "i");
 			if (reg) {
 				if (onText && reg.pre.length) onText(reg.pre);
 				auto m = reg.match(0);
