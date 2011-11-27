@@ -126,7 +126,9 @@ private {
 			to!(int)(astrip(sp[2])), to!(int)(astrip(sp[3])));
 	}
 	CRGB rgbVal(string value) {
-		if (value.length < 7 && value[0] != '$') throw new Exception("invalid rgb: " ~ value);
+		if (value.length < 7 && (value[0] != '$' && value[0] != '#')) {
+			throw new Exception("invalid rgb: " ~ value);
+		}
 		auto sr = value[1 .. 3];
 		auto sg = value[3 .. 5];
 		auto sb = value[5 .. 7];
@@ -433,7 +435,7 @@ private struct JptxParser {
 			~ "|<"d
 			~ "(br|b|i|u|s|shiftx=\"-?[0-9]+\"|shifty=\"-?[0-9]+\""d
 			~ "|lineheight=\"-?[0-9]+\""d
-			~ "|font( +(face=\"[^\"]+\"|color=\"\\$[0-9A-Fa-f]{6}\""d
+			~ "|font( +(face=\"[^\"]+\"|color=\"[\\$#][0-9A-Fa-f]{6}\""d
 			~ "|pixels=\"[0-9]+\"))+)"d
 			~ ">"d, "i");
 		while (text.length) {
