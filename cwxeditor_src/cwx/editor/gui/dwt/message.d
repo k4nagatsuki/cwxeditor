@@ -7,6 +7,7 @@ import cwx.event;
 import cwx.summary;
 import cwx.skin;
 import cwx.xml;
+import cwx.flag;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;
@@ -39,6 +40,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.List;
 import org.eclipse.swt.widgets.Table;
@@ -547,6 +549,10 @@ protected:
 			auto bar = createSkinSCharBar(area, &insert, prop, skin);
 			bar.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		}
+		{
+			auto bar = createFlagStepBar(area, &insert, comm, prop);
+			bar.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+		}
 		sash.addDisposeListener(new Dispose);
 		sash.setWeights = [prop.var.etc.talkSashL, prop.var.etc.talkSashR];
 		_kdFilter = new KeyDownFilter;
@@ -700,6 +706,10 @@ protected:
 		}
 		{
 			auto bar = createSkinSCharBar(area, &insert, prop, skin);
+			bar.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+		}
+		{
+			auto bar = createFlagStepBar(area, &insert, comm, prop);
 			bar.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		}
 		_tabf.addSelectionListener(new SL);
@@ -984,6 +994,65 @@ private ToolBar createSkinSCharBar(Composite parent, void delegate(string) inser
 			foreach (img; _imgs) {
 				img.dispose;
 			}
+		}
+	});
+	return bar;
+}
+
+private Composite createFlagStepBar(Composite parent, void delegate(string) insert, Commons comm, Props prop) {
+	auto bar = new Composite(parent, SWT.NONE);
+	bar.setLayout = zeroMarginGridLayout(3, false);
+	void create(out Combo list, out Button put, string refs, string puts, string lc) {
+		auto l = new Label(bar, SWT.NONE);
+		l.setText = refs;
+		list = new Combo(bar, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
+		list.setVisibleItemCount = 20;
+		list.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+		put = new Button(bar, SWT.PUSH);
+		put.setText = puts;
+		put.addSelectionListener(new class SelectionAdapter {
+			override void widgetSelected(SelectionEvent e) {
+				insert(lc ~ list.getText ~ lc);
+			}
+		});
+	}
+	Combo flags, steps;
+	Button putFlag, putStep;
+	create(flags, putFlag, prop.msgs.msgRefFlag, prop.msgs.addMsgRefFlag, "%");
+	create(steps, putStep, prop.msgs.msgRefStep, prop.msgs.addMsgRefStep, "$");
+
+	void refList() {
+		auto root = comm.summary.flagDirRoot;
+		auto fSel = flags.getText;
+		auto sSel = steps.getText;
+		flags.removeAll();
+		foreach (i, flag; root.allFlags) {
+			auto p = flag.path;
+			flags.add(p);
+			if (0 == i || icmp(p, fSel)) flags.select = i;
+		}
+		steps.removeAll();
+		foreach (i, step; root.allSteps) {
+			auto p = step.path;
+			steps.add(p);
+			if (0 == i || icmp(p, sSel)) steps.select = i;
+		}
+		flags.setEnabled = flags.getItemCount > 0;
+		putFlag.setEnabled = flags.getEnabled;
+		steps.setEnabled = steps.getItemCount > 0;
+		putStep.setEnabled = steps.getEnabled;
+	}
+	refList();
+
+	void refFlagAndStep(Flag[] flags, Step[] steps) {
+		refList();
+	}
+	comm.refFlagAndStep.add(&refFlagAndStep);
+	comm.delFlagAndStep.add(&refFlagAndStep);
+	bar.addDisposeListener(new class DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			comm.refFlagAndStep.remove(&refFlagAndStep);
+			comm.delFlagAndStep.remove(&refFlagAndStep);
 		}
 	});
 	return bar;

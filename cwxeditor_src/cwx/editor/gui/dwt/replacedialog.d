@@ -1256,6 +1256,7 @@ public:
 		}
 	}
 	private void replaceIDImpl2(ID)(ID from, ID to) {
+		reset();
 		bool[CWXPath] range;
 		void recurse(TreeItem itm) {
 			range[cast(CWXPath) itm.getData] = itm.getChecked;
@@ -1299,13 +1300,21 @@ public:
 					u.beast = to;
 				} else static if (is(ID : InfoId)) {
 					u.info = to;
+				} else static if (is(ID : PathId)) {
+					u.path = cast(string) to;
 				} else static assert (0);
 			}
 			addResult(u.owner);
 			count++;
 		}
 		setResultStatus(count);
-		if (count) _comm.replID.call;
+		if (count) {
+			static if (is(ID : PathId)) {
+				_comm.replPath.call(cast(string) from, cast(string) to);
+			} else {
+				_comm.replID.call;
+			}
+		}
 	}
 	private void replaceIDImpl() {
 		ulong getID(Combo combo, Spinner spn, ulong[int] tbl) {
@@ -1318,7 +1327,6 @@ public:
 		ulong from = getID(_fromID, _fromIDVal, _fromIDTbl);
 		ulong to = getID(_toID, _toIDVal, _toIDTbl);
 		if (from == to) _replMode = false;
-		reset;
 		switch (_idKind.getSelectionIndex) {
 		case ID_AREA: replaceIDImpl2(toAreaId(from), toAreaId(to)); break;
 		case ID_BATTLE: replaceIDImpl2(toBattleId(from), toBattleId(to)); break;
@@ -1336,17 +1344,7 @@ public:
 		auto from = toPathId(_fromPath.getText);
 		auto to = toPathId(_toPath.getText);
 		if (from == to) _replMode = false;
-		auto uc = _summ.useCounter;
-		auto users = uc.values(from);
-		if (_replMode) uc.change(from, to, true);
-		_result.setRedraw = false;
-		scope (exit) _result.setRedraw = true;
-		reset;
-		foreach (user; users) {
-			addResult(user.owner);
-		}
-		setResultStatus(users.length);
-		if (users.length) _comm.replPath.call(cast(string) from, cast(string) to);
+		replaceIDImpl2(from, to);
 	}
 	private void searchUnuseImpl2(string ToId, T)(T[] all, ref uint count) {
 		foreach (o; all) {
@@ -1489,6 +1487,11 @@ public:
 			}
 			auto c = cast(Content) path;
 			if (!c) return;
+			if (_summ.legacy && c.type == CType.WAIT && !c.next.length) {
+				addResult(path, _prop.msgs.searchErrorIgnoreWait);
+				count++;
+				return;
+			}
 			if (c.detail.owner && c.detail.nextType != CNextType.TEXT) {
 				auto set = new HashSet!(string);
 				foreach (cld; c.next) {

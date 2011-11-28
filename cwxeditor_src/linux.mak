@@ -27,6 +27,7 @@ SRC = cwxeditor.d \
 	cwx/graphics.d \
 	cwx/jpy.d \
 	cwx/script.d \
+	cwx/msgs.d \
 	cwx/editor/gui/sound.d \
 	cwx/editor/gui/dwt/sbshell.d \
 	cwx/editor/gui/dwt/mainwindow.d \
@@ -77,6 +78,7 @@ SRC = cwxeditor.d \
 	cwx/editor/gui/dwt/textdialog.d \
 	cwx/editor/gui/dwt/imagelistwindow.d \
 	cwx/editor/gui/dwt/smalldialogs.d \
+	cwx/editor/gui/dwt/variables.d \
 
 OBJ = $(SRC:%.d=%.o)
 DMD = dmd

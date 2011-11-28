@@ -27,6 +27,7 @@ SRC = cwxeditor.d \
 	cwx\graphics.d \
 	cwx\jpy.d \
 	cwx\script.d \
+	cwx\msgs.d \
 	cwx\editor\gui\sound.d \
 	cwx\editor\gui\dwt\sbshell.d \
 	cwx\editor\gui\dwt\mainwindow.d \
@@ -77,6 +78,7 @@ SRC = cwxeditor.d \
 	cwx\editor\gui\dwt\textdialog.d \
 	cwx\editor\gui\dwt\imagelistwindow.d \
 	cwx\editor\gui\dwt\smalldialogs.d \
+	cwx\editor\gui\dwt\variables.d \
 
 OBJ = objs\cwxeditor.obj \
 	objs\cwx\utils.obj \
@@ -107,6 +109,7 @@ OBJ = objs\cwxeditor.obj \
 	objs\cwx\graphics.obj \
 	objs\cwx\jpy.obj \
 	objs\cwx\script.obj \
+	objs\cwx\msgs.obj \
 	objs\cwx\editor\gui\sound.obj \
 	objs\cwx\editor\gui\dwt\sbshell.obj \
 	objs\cwx\editor\gui\dwt\mainwindow.obj \
@@ -157,6 +160,7 @@ OBJ = objs\cwxeditor.obj \
 	objs\cwx\editor\gui\dwt\textdialog.obj \
 	objs\cwx\editor\gui\dwt\imagelistwindow.obj \
 	objs\cwx\editor\gui\dwt\smalldialogs.obj \
+	objs\cwx\editor\gui\dwt\variables.obj \
 
 DMD = dmd
 RCC = rcc

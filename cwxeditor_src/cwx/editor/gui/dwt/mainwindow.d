@@ -2310,6 +2310,7 @@ public:
 				}
 			}
 		}
+		bool openErrDlg = false;
 		while (!_win.isDisposed) {
 			version (nocatch) {
 				if (!d.readAndDispatch) {
@@ -2322,12 +2323,18 @@ public:
 						d.sleep;
 					}
 				} catch (Throwable e) {
-					_win.setVisible = true;
-					fdebugln(e);
-					auto dlg = new MessageBox(_win, SWT.ICON_ERROR | SWT.OK);
-					dlg.setText = _prop.msgs.dlgTitError;
-					dlg.setMessage = _prop.msgs.unknownError ~ "\n---\n" ~ e.msg;
-					dlg.open;
+					if (!openErrDlg) {
+						// 際限の無い連続発生を抑制
+						openErrDlg = true;
+						_win.setVisible = true;
+						fdebugln(e);
+						string s = createDebugln(e);
+						auto dlg = new ErrorDialog(_prop, _win, s);
+						dlg.closeEvent ~= {
+							openErrDlg = false;
+						};
+						dlg.open();
+					}
 				}
 			}
 		}

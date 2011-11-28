@@ -19,6 +19,7 @@ import cwx.system;
 import cwx.motion;
 import cwx.props;
 import cwx.structs;
+import cwx.msgs;
 
 import cwx.editor.gui.dwt.properties;
 

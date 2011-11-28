@@ -172,3 +172,32 @@ protected:
 		build.setText = _prop.msgs.appBuild;
 	}
 }
+
+class ErrorDialog : AbsDialog {
+	private Props _prop;
+	private string _desc;
+
+	this (Props prop, Shell shell, string desc) {
+		auto size = new class DSize {
+			void width(int v) {}
+			void height(int v) {}
+			int width() {return 450;}
+			int height() {return 200;}
+		};
+		super (prop, shell, false, prop.msgs.dlgTitError, shell.getImage, true, size, false, false);
+		_prop = prop;
+		_desc = desc;
+	}
+
+	override void setup(Composite area) {
+		area.setLayout = new GridLayout(1, true);
+
+		auto l = new Label(area, SWT.WRAP);
+		l.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+		l.setText = _prop.msgs.unknownError;
+
+		auto msg = new Text(area, SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL | SWT.READ_ONLY);
+		msg.setLayoutData = new GridData(GridData.FILL_BOTH);
+		msg.setText = _desc;
+	}
+}
