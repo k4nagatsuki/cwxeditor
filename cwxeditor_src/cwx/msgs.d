@@ -574,10 +574,8 @@ public:
 	const string scRef() {return "話者(#I)";}
 	const string scTeam() {return "チーム名(#T)";}
 	const string scYado() {return "宿屋名(#Y)";}
-	const string msgRefFlag() {return "フラグ参照";}
-	const string msgRefStep() {return "ステップ参照";}
-	const string addMsgRefFlag() {return "追加";}
-	const string addMsgRefStep() {return "追加";}
+	const string addMsgRefFlag() {return "フラグ参照の追加";}
+	const string addMsgRefStep() {return "ステップ参照の追加";}
 	const string createDialog() {return "台詞の作成";}
 	const string deleteDialog() {return "台詞の削除";}
 	const string copyToDialogs() {return "台詞を全体にコピー";}

@@ -1001,15 +1001,17 @@ private ToolBar createSkinSCharBar(Composite parent, void delegate(string) inser
 
 private Composite createFlagStepBar(Composite parent, void delegate(string) insert, Commons comm, Props prop) {
 	auto bar = new Composite(parent, SWT.NONE);
-	bar.setLayout = zeroMarginGridLayout(3, false);
-	void create(out Combo list, out Button put, string refs, string puts, string lc) {
-		auto l = new Label(bar, SWT.NONE);
-		l.setText = refs;
-		list = new Combo(bar, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
+	bar.setLayout = zeroMarginGridLayout(2, true);
+	void create(out Combo list, out Button put, string puts, Image image, string lc) {
+		auto comp = new Composite(bar, SWT.NONE);
+		comp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+		comp.setLayout = zeroMarginGridLayout(2, false);
+		list = new Combo(comp, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
 		list.setVisibleItemCount = 20;
 		list.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-		put = new Button(bar, SWT.PUSH);
-		put.setText = puts;
+		put = new Button(comp, SWT.PUSH);
+		put.setToolTipText = puts;
+		put.setImage = image;
 		put.addSelectionListener(new class SelectionAdapter {
 			override void widgetSelected(SelectionEvent e) {
 				insert(lc ~ list.getText ~ lc);
@@ -1018,8 +1020,8 @@ private Composite createFlagStepBar(Composite parent, void delegate(string) inse
 	}
 	Combo flags, steps;
 	Button putFlag, putStep;
-	create(flags, putFlag, prop.msgs.msgRefFlag, prop.msgs.addMsgRefFlag, "%");
-	create(steps, putStep, prop.msgs.msgRefStep, prop.msgs.addMsgRefStep, "$");
+	create(flags, putFlag, prop.msgs.addMsgRefFlag, prop.images.flag, "%");
+	create(steps, putStep, prop.msgs.addMsgRefStep, prop.images.step, "$");
 
 	void refList() {
 		auto root = comm.summary.flagDirRoot;
