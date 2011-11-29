@@ -181,10 +181,11 @@ class ErrorDialog : AbsDialog {
 		auto size = new class DSize {
 			void width(int v) {}
 			void height(int v) {}
-			int width() {return 450;}
-			int height() {return 200;}
+			int width() {return 500;}
+			int height() {return 400;}
 		};
-		super (prop, shell, false, prop.msgs.dlgTitError, shell.getImage, true, size, false, false);
+		auto info = ButtonInfo(prop.msgs.shutdown, {std.c.stdlib.exit(0);});
+		super (prop, shell, false, prop.msgs.dlgTitError, shell.getImage, true, size, false, false, [info]);
 		_prop = prop;
 		_desc = desc;
 	}

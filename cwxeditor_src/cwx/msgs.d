@@ -93,6 +93,7 @@ public:
 			~ "データが壊れている可能性を考慮して、シナリオを保存せずに終了する事をお勧めします。\n"
 			~ "エラー内容は" ~ CWX_EDITOR ~ "と同じ" ~ DIR ~ "にあるcwxeditor_error.logに記録されます。";
 	}
+	const string shutdown() {return "強制終了";}
 
 	const string dlgTextOK() {return "&OK";}
 	const string dlgTextApply() {return "適用";}

@@ -35,6 +35,11 @@ interface DSize {
 	int height();
 }
 
+struct ButtonInfo {
+	string name;
+	void delegate() func;
+}
+
 abstract class AbsDialog {
 	/// ダイアログが閉じられた際に呼び出される。
 	void delegate()[] closeEvent;
@@ -49,10 +54,10 @@ abstract class AbsDialog {
 	private Composite _area;
 	private bool _modal;
 	private bool _hasApply;
-	this (Props prop, Shell parent, string text, Image img, bool resizable, DSize size = null, bool apply = false, bool cancel = true) {
-		this (prop, parent, true, text, img, resizable, size, apply, cancel);
+	this (Props prop, Shell parent, string text, Image img, bool resizable, DSize size = null, bool apply = false, bool cancel = true, ButtonInfo[] button = []) {
+		this (prop, parent, true, text, img, resizable, size, apply, cancel, button);
 	}
-	this (Props prop, Shell parent, bool modal, string text, Image img, bool resizable, DSize size = null, bool apply = false, bool cancel = true) {
+	this (Props prop, Shell parent, bool modal, string text, Image img, bool resizable, DSize size = null, bool apply = false, bool cancel = true, ButtonInfo[] button = []) {
 		_prop = prop;
 		_size = size;
 		_modal = modal;
@@ -78,6 +83,7 @@ abstract class AbsDialog {
 		int gll = 1;
 		if (apply) gll++;
 		if (cancel) gll++;
+		gll += button.length;
 		buttons.setLayout = new GridLayout(gll, true);
 		auto okComp = new Composite(buttons, SWT.NONE);
 		okComp.setLayout = new FillLayout;
@@ -87,6 +93,9 @@ abstract class AbsDialog {
 		}
 		if (apply) {
 			_apply = createButton(buttons, prop.msgs.dlgTextApply, &this.applyFunc);
+		}
+		foreach (info; button) {
+			createButton(buttons, info.name, info.func);
 		}
 	}
 	private Button createButton(Composite parent, string text, void delegate() push) {
