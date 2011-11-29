@@ -93,6 +93,7 @@ protected:
 			buf ~= _prop.msgs.scriptErrorOver100Error ~ "\n";
 		}
 		_result = new Text(area, SWT.BORDER | SWT.MULTI | SWT.READ_ONLY | SWT.WRAP | SWT.V_SCROLL);
+		createTextMenu!Text(_prop, _result, null);
 		_result.setText = buf;
 		auto font = _result.getFont;
 		auto fSize = font ? cast(uint) font.getFontData[0].height : 0;

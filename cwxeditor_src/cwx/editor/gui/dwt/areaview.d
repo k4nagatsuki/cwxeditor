@@ -1713,7 +1713,7 @@ public:
 				} else static if (is (C == EnemyCard)) {
 					_cards = createList(listsP, prop.msgs.enemyCards,
 						prop.images.cards, ctcpd, &editCard, &_area.cards);
-					new TableComboEdit!CCombo(_cards, 0, &createEnemyCombo, &enemyEditEnd);
+					new TableComboEdit!CCombo(_prop, _cards, 0, &createEnemyCombo, &enemyEditEnd);
 				}
 				_cards.addSelectionListener(new SCListener);
 				static if (is (C == MenuCard)) {
@@ -1728,7 +1728,7 @@ public:
 				_backs = createList(listsP, prop.msgs.backs,
 					prop.images.backs, btcpd, &editBack, &_area.backs);
 				_backs.addSelectionListener(new SBListener);
-				new TableComboEdit!CCombo(_backs, 0, &createBgImageCombo, &bgImageEditEnd);
+				new TableComboEdit!CCombo(_prop, _backs, 0, &createBgImageCombo, &bgImageEditEnd);
 				new BLDropTarget(_backs);
 				_backs.addMouseTrackListener(prevTrig);
 				_backs.addMouseMoveListener(prevTrig);

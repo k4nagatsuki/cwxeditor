@@ -1269,6 +1269,7 @@ public:
 		{
 			auto treeKindItm = new ToolItem(bar, SWT.SEPARATOR);
 			_treeKind = new CCombo(bar, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
+			createTextMenu!CCombo(_prop, _treeKind, null);
 			_treeKind.add(_prop.msgs.eventTreeKindSystem);
 			_treeKind.setText = _prop.msgs.eventTreeKindSystem;
 			static if (is (A == Area) || is (A == Battle)) {
@@ -1292,6 +1293,7 @@ public:
 			{
 				auto keyCodeTimItm = new ToolItem(bar, SWT.SEPARATOR);
 				_keyCodeTim = new CCombo(bar, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
+				createTextMenu!CCombo(_prop, _keyCodeTim, null);
 				_keyCodeTim.setEnabled = false;
 				_keyCodeTim.add(_prop.msgs.keyCodeTimingUse);
 				_keyCodeTim.add(_prop.msgs.keyCodeTimingSuccess);
@@ -1355,7 +1357,7 @@ public:
 			c.add(v);
 			if (i == 0) c.setText = v;
 		}
-		if (!readOnly) createTextMenu!CCombo(_prop, c, null);
+		createTextMenu!CCombo(_prop, c, null);
 		setFireControl(c);
 	}
 	static if (is (A == Area) || is (A == Battle)) {

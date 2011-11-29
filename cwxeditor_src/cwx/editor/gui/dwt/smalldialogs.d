@@ -168,6 +168,7 @@ protected:
 		ln.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		ln.addSelectionListener(new OpenLink);
 		auto build = new Text(area, SWT.READ_ONLY | SWT.BORDER | SWT.MULTI);
+		createTextMenu!Text(_prop, build, null);
 		build.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		build.setText = _prop.msgs.appBuild;
 	}
@@ -198,6 +199,7 @@ class ErrorDialog : AbsDialog {
 		l.setText = _prop.msgs.unknownError;
 
 		auto msg = new Text(area, SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL | SWT.READ_ONLY);
+		createTextMenu!Text(_prop, msg, null);
 		msg.setLayoutData = new GridData(GridData.FILL_BOTH);
 		msg.setText = _desc;
 	}

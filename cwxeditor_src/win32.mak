@@ -79,6 +79,7 @@ SRC = cwxeditor.d \
 	cwx\editor\gui\dwt\imagelistwindow.d \
 	cwx\editor\gui\dwt\smalldialogs.d \
 	cwx\editor\gui\dwt\variables.d \
+	cwx\editor\gui\dwt\image.d \
 
 OBJ = objs\cwxeditor.obj \
 	objs\cwx\utils.obj \
@@ -161,6 +162,7 @@ OBJ = objs\cwxeditor.obj \
 	objs\cwx\editor\gui\dwt\imagelistwindow.obj \
 	objs\cwx\editor\gui\dwt\smalldialogs.obj \
 	objs\cwx\editor\gui\dwt\variables.obj \
+	objs\cwx\editor\gui\dwt\image.obj \
 
 DMD = dmd
 RCC = rcc

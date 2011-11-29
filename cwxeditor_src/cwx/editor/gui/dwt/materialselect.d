@@ -79,6 +79,7 @@ public:
 		} else static if (is (D == CCombo)) {
 			_dirs = new D(parent, SWT.BORDER | SWT.READ_ONLY);
 			_dirs.setVisibleItemCount = 20;
+			createTextMenu!D(_prop, _dirs, null);
 		} else {
 			static assert (0);
 		}
@@ -112,6 +113,7 @@ public:
 		} else static if (is (C == CCombo)) {
 			_fileList = new C(parent, SWT.BORDER | SWT.READ_ONLY);
 			_fileList.setVisibleItemCount = 20;
+			createTextMenu!CCombo(_prop, _fileList, null);
 		} else {
 			static assert (0);
 		}

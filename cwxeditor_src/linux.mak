@@ -79,6 +79,7 @@ SRC = cwxeditor.d \
 	cwx/editor/gui/dwt/imagelistwindow.d \
 	cwx/editor/gui/dwt/smalldialogs.d \
 	cwx/editor/gui/dwt/variables.d \
+	cwx/editor/gui/dwt/image.d \
 
 OBJ = $(SRC:%.d=%.o)
 DMD = dmd

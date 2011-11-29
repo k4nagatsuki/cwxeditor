@@ -53,10 +53,10 @@ protected:
 		int style = SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL;
 		if (_readOnly) style |= SWT.READ_ONLY;
 		_viewer = new Text(area, style);
+		createTextMenu!Text(_prop, _viewer, &catchMod);
 		_viewer.setText = _text;
 		if (!_readOnly) {
 			_viewer.setSelection = _text.length;
-			createTextMenu!Text(_prop, _viewer, &catchMod);
 		}
 		auto font = _viewer.getFont;
 		auto fSize = font ? cast(uint) font.getFontData[0].height : 0;

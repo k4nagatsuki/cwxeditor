@@ -473,10 +473,13 @@ Text createTextEditor(Props prop, Composite parent, string str) {
 	}
 }
 
-C createComboEditor(C = CCombo)(Composite parent, string[] strs, string str) {
+C createComboEditor(C = CCombo)(Props prop, Composite parent, string[] strs, string str) {
 	try {
 		auto combo = new C(parent, SWT.BORDER | SWT.READ_ONLY);
 		combo.setVisibleItemCount = 20;
+		static if (is(C : CCombo)) {
+			createTextMenu!C(prop, combo, null);
+		}
 		foreach (s; strs) {
 			if (s) {
 				combo.add(s);
@@ -646,6 +649,7 @@ public:
 /// ditto
 class TableComboEdit(C = CCombo) : AbstractTableEdit {
 private:
+	Props _prop;
 	void delegate(TableItem itm, int column, out string[] strs, out string str) createCombo;
 	void delegate(TableItem itm, int column, C combo) editEnd = null;
 
@@ -658,12 +662,13 @@ public:
 	///           単にテーブルアイテムのテキストを編集後のテキストで置換する。
 	/// canEdit = テーブルアイテムが編集可能か否かを判定する関数。nullを指定した場合、
 	///           すべてのセルが編集可能になる。
-	this(Table table, int editC,
+	this(Props prop, Table table, int editC,
 			void delegate(TableItem itm, int column, out string[] strs, out string str) createCombo,
 			void delegate(TableItem itm, int column, C combo) editEnd = null,
 			bool delegate(TableItem itm, int column) canEdit = null) {
 		try {
 			super (table, editC, canEdit);
+			_prop = prop;
 			this.createCombo = createCombo;
 			this.editEnd = editEnd;
 		} catch (Exception e) {
@@ -675,7 +680,7 @@ public:
 		string[] strs;
 		string str;
 		createCombo(itm, editC, strs, str);
-		return createComboEditor!C(itm.getParent, strs, str);
+		return createComboEditor!C(_prop, itm.getParent, strs, str);
 	}
 	protected override void end(Control c) {
 		try {
@@ -2443,20 +2448,24 @@ void setComboItems(C)(C combo, string[] items) {
 /// Text/Combo/CComboに、アンドゥ・リドゥ及び
 /// 切り取り・コピー・貼り付け・削除のメニューをつける。
 TextMenuModify createTextMenu(T = Text)(Props prop, T text, bool delegate() canSaveHistory, UndoManager undo = null, TMAppendData apd = TMAppendData()) {
-	if (!undo) {
+	bool readOnly = (text.getStyle & SWT.READ_ONLY) != 0;
+	if (!readOnly && !undo) {
 		undo = new UndoManager(1024);
 	}
-	auto ml = new TextMenuModify(TMM(text), canSaveHistory, undo, apd);
-	text.addModifyListener(ml);
+	TextMenuModify ml = null;
+	if (!readOnly) {
+		ml = new TextMenuModify(TMM(text), canSaveHistory, undo, apd);
+		text.addModifyListener(ml);
+	}
 
 	auto menu = new Menu(text.getShell, SWT.POP_UP);
-	createMenuItem(menu, prop.msgs.menuUndo, prop.images.menuUndo, {undo.undo();});
-	createMenuItem(menu, prop.msgs.menuRedo, prop.images.menuRedo, {undo.redo();});
+	auto u = createMenuItem(menu, prop.msgs.menuUndo, prop.images.menuUndo, {undo.undo();});
+	auto r = createMenuItem(menu, prop.msgs.menuRedo, prop.images.menuRedo, {undo.redo();});
 	new MenuItem(menu, SWT.SEPARATOR);
-	createMenuItem(menu, prop.msgs.menuCut, prop.images.menuCut, &text.cut);
-	createMenuItem(menu, prop.msgs.menuCopy, prop.images.menuCopy, &text.copy);
-	createMenuItem(menu, prop.msgs.menuPaste, prop.images.menuPaste, &text.paste);
-	createMenuItem(menu, prop.msgs.menuDel, prop.images.menuDel, {
+	auto t = createMenuItem(menu, prop.msgs.menuCut, prop.images.menuCut, &text.cut);
+	auto c = createMenuItem(menu, prop.msgs.menuCopy, prop.images.menuCopy, &text.copy);
+	auto p = createMenuItem(menu, prop.msgs.menuPaste, prop.images.menuPaste, &text.paste);
+	auto d = createMenuItem(menu, prop.msgs.menuDel, prop.images.menuDel, {
 		auto p = text.getSelection;
 		auto t = to!dstring(text.getText);
 		if (t.length <= p.x) return;
@@ -2468,9 +2477,14 @@ TextMenuModify createTextMenu(T = Text)(Props prop, T text, bool delegate() canS
 		text.setSelection(new Point(p.x, p.x));
 	});
 	new MenuItem(menu, SWT.SEPARATOR);
-	createMenuItem(menu, prop.msgs.menuSelectAll, prop.images.menuSelectAll, {
+	auto a = createMenuItem(menu, prop.msgs.menuSelectAll, prop.images.menuSelectAll, {
 		text.setSelection(new Point(0, text.getText.length));
 	});
+	u.setEnabled = !readOnly;
+	r.setEnabled = !readOnly;
+	t.setEnabled = !readOnly;
+	p.setEnabled = !readOnly;
+	d.setEnabled = !readOnly;
 	text.setMenu = menu;
 
 	return ml;

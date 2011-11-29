@@ -53,7 +53,8 @@ void main(string[] args) {
 			}
 			if (help) {
 				version (Console) {
-					try {
+					// FIXME: リンクエラー！
+/+					try {
 						string dir;
 						version (Windows) {
 							dir = "Folder";
@@ -75,7 +76,7 @@ void main(string[] args) {
 					} catch (Exception e) {
 						debugln(e);
 					}
-				}
++/				}
 				try {
 					auto prop = new Props(conf, new CProps(args[0], sys));
 					auto dlg = new TextDialog(prop, null, prop.msgs.dlgTitUsage, prop.images.app, prop.msgs.usage);

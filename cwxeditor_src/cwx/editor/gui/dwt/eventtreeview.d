@@ -2080,7 +2080,7 @@ public:
 		vals[0] = mixin (Create);
 		name = _prop.msgs.evtChildFalse;
 		vals[1] = mixin (Create);
-		return createComboEditor(_tree, vals, vals[child.name == _prop.msgs.evtChildTrue ? 0 : 1]);
+		return createComboEditor(_prop, _tree, vals, vals[child.name == _prop.msgs.evtChildTrue ? 0 : 1]);
 	}
 	private CCombo createBoolEditor2(string Create)(Content evt, Content child) {
 		string[] vals;
@@ -2089,7 +2089,7 @@ public:
 		vals[0] = mixin (Create);
 		name = _prop.msgs.evtChildFalse;
 		vals[1] = mixin (Create);
-		return createComboEditor(_tree, vals, vals[child.name == _prop.msgs.evtChildTrue ? 0 : 1]);
+		return createComboEditor(_prop, _tree, vals, vals[child.name == _prop.msgs.evtChildTrue ? 0 : 1]);
 	}
 	private CCombo createNumEditor(string Create)(Content evt, Content child, ulong[] nums) {
 		string[] vals;
@@ -2104,7 +2104,7 @@ public:
 		}
 		string name = _prop.msgs.evtChildDefault;
 		vals[$ - 1] = mixin (Create);
-		return createComboEditor(_tree, vals, vals[index]);
+		return createComboEditor(_prop, _tree, vals, vals[index]);
 	}
 	private CCombo createAreaSelectEditor(string Create, A)(Content evt, Content child, A[] areas) {
 		ulong[] nums;

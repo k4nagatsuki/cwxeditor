@@ -1153,7 +1153,7 @@ public:
 		flags.addDisposeListener(new DListener);
 
 		new TableTextEdit(prop, flags, 0, &nameEditEnd, null);
-		new TableComboEdit!CCombo(flags, 1, &initCombo, &initEditEnd, null);
+		new TableComboEdit!CCombo(prop, flags, 1, &initCombo, &initEditEnd, null);
 
 		_comp.addDisposeListener(new Dispose);
 
