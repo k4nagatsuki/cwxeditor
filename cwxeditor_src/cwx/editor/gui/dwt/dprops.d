@@ -483,6 +483,8 @@ public:
 
 	Image menuEditScene() {return imgd!("area_cards.png");}
 	Image menuEditEvent() {return imgd!("area_event.png");}
+
+	Image menuOpenView() {return imgd!("view.png");}
 }
 
 enum MenuID : int {
@@ -587,6 +589,7 @@ enum MenuID : int {
 	KeyCodeTimingUse,
 	KeyCodeTimingSuccess,
 	KeyCodeTimingFailure,
+	OpenView,
 }
 
 public class Props {

@@ -457,8 +457,8 @@ public:
 	const string searchErrorInfoNotFound() {return "情報カードが見つからない";}
 	const string searchErrorStartNotFound() {return "スタートコンテントが見つからない";}
 	const string searchErrorIgnoreWait() {return "後続コンテントが無いため、空白時間が無視される";}
-
 	const string searchOpenDialog() {return "検索結果へジャンプする時、ダイアログを開く";}
+	const string menuOpenView() {return "ビューで開く(&V)";}
 
 	/// イベント設定。
 	const string ttStartToPackage() {return "このツリーをパッケージ化する";}

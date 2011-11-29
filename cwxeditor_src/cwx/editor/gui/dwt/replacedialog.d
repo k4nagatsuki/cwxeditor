@@ -45,6 +45,7 @@ import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Spinner;
+import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.ShellAdapter;
@@ -53,6 +54,7 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.DisposeListener;
@@ -903,6 +905,27 @@ public:
 		_fromPath.setFocus;
 	}
 
+	private void openRangePath() {
+		auto sels = _range.getSelection;
+		if (!sels.length) return;
+		string path = (cast(CWXPath) sels[0].getData).cwxPath;
+		path = cpaddattr(path, "shallow");
+		auto r = _comm.openCWXPath(path, false);
+		if (!r) {
+			MessageBox.showWarning(_prop.msgs.cwxPathOpenError(path), _prop.msgs.dlgTitWarning, _win);
+		}
+	}
+	private class OpenPath : MouseAdapter, KeyListener {
+		override void mouseDoubleClick(MouseEvent e) {
+			if (1 == e.button) {
+				openRangePath();
+			}
+		}
+		override void keyReleased(KeyEvent e) {}
+		override void keyPressed(KeyEvent e) {
+			if (SWT.CR == e.character) openRangePath();
+		}
+	}
 	private void setup() {
 		_win.addShellListener(new SListener);
 		_win.setLayout = zeroGridLayout(1, true);
@@ -938,6 +961,9 @@ public:
 			_result.addMouseListener = new ML;
 			_result.addKeyListener = new KL;
 			new FullTableColumn(_result, SWT.NONE);
+			auto menu = new Menu(_win, SWT.POP_UP);
+			createMenuItem(menu, _prop.msgs.menuOpenView, _prop.images.menuOpenView, &openPath);
+			_result.setMenu = menu;
 		}
 		{
 			auto openDlg = new Button(left, SWT.CHECK);
@@ -963,6 +989,12 @@ public:
 			_rangeAllCheck.setText = _prop.msgs.allCheckRange;
 			refreshRangeAllCheck();
 			_rangeAllCheck.addSelectionListener(new RangeAllCheck);
+			auto openPath = new OpenPath;
+			_range.addKeyListener(openPath);
+			_range.addMouseListener(openPath);
+			auto menu = new Menu(_win, SWT.POP_UP);
+			createMenuItem(menu, _prop.msgs.menuOpenView, _prop.images.menuOpenView, &openRangePath);
+			_range.setMenu = menu;
 		}
 		{
 			auto sep = new Label(_win, SWT.SEPARATOR | SWT.HORIZONTAL);
