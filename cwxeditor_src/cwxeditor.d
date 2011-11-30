@@ -54,29 +54,29 @@ void main(string[] args) {
 			if (help) {
 				version (Console) {
 					// FIXME: リンクエラー！
-/+					try {
+					try {
 						string dir;
 						version (Windows) {
 							dir = "Folder";
 						} else {
 							dir = "Directory";
 						}
-						writefln("Usage: cwxeditor [-help | -conf <PATH>] <SCENARIO> [<CWXPath ...>]");
-						writefln("");
-						writefln("  Options:");
-						writefln("    -help         print help");
-						writefln("    -conf <PATH>  set config file path");
-						writefln("    <SCENARIO>    read scenario (*.wsn/Summary.xml/Summary.wsm/[" ~ dir ~ "])");
-						writefln("  OpenID:");
-						writefln("    -a   <ID>     open area from <ID>");
-						writefln("    -b   <ID>     open battle from <ID>");
-						writefln("    -p   <ID>     open package from <ID>");
-						writefln("  OpenPath:");
-						writefln("    <CWXPath>     open resource from <CWXPath>");
+						writeln("Usage: cwxeditor [-help | -conf <PATH>] <SCENARIO> [<CWXPath ...>]");
+						writeln("");
+						writeln("  Options:");
+						writeln("    -help         print help");
+						writeln("    -conf <PATH>  set config file path");
+						writeln("    <SCENARIO>    read scenario (*.wsn/Summary.xml/Summary.wsm/[" ~ dir ~ "])");
+						writeln("  OpenID:");
+						writeln("    -a   <ID>     open area from <ID>");
+						writeln("    -b   <ID>     open battle from <ID>");
+						writeln("    -p   <ID>     open package from <ID>");
+						writeln("  OpenPath:");
+						writeln("    <CWXPath>     open resource from <CWXPath>");
 					} catch (Exception e) {
 						debugln(e);
 					}
-+/				}
+				}
 				try {
 					auto prop = new Props(conf, new CProps(args[0], sys));
 					auto dlg = new TextDialog(prop, null, prop.msgs.dlgTitUsage, prop.images.app, prop.msgs.usage);

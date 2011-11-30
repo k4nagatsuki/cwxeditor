@@ -182,7 +182,7 @@ class ErrorDialog : AbsDialog {
 		auto size = new class DSize {
 			void width(int v) {}
 			void height(int v) {}
-			int width() {return 500;}
+			int width() {return 600;}
 			int height() {return 400;}
 		};
 		auto info = ButtonInfo(prop.msgs.shutdown, {std.c.stdlib.exit(0);});
@@ -192,15 +192,29 @@ class ErrorDialog : AbsDialog {
 	}
 
 	override void setup(Composite area) {
-		area.setLayout = new GridLayout(1, true);
+		auto d = area.getDisplay;
+		auto gl = new GridLayout(2, false);
+		gl.horizontalSpacing = 0;
+		area.setLayout = gl;
 
+		{
+			auto comp = new Composite(area, SWT.NONE);
+			auto cgl = new GridLayout(1, true);
+			cgl.marginWidth = 10;
+			cgl.marginHeight = 10;
+			comp.setLayout = cgl;
+			auto img = new Label(comp, SWT.NONE);
+			img.setImage = d.getSystemImage(SWT.ICON_ERROR);
+		}
 		auto l = new Label(area, SWT.WRAP);
 		l.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		l.setText = _prop.msgs.unknownError;
 
 		auto msg = new Text(area, SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL | SWT.READ_ONLY);
 		createTextMenu!Text(_prop, msg, null);
-		msg.setLayoutData = new GridData(GridData.FILL_BOTH);
+		auto msgL = new GridData(GridData.FILL_BOTH);
+		msgL.horizontalSpan = 2;
+		msg.setLayoutData = msgL;
 		msg.setText = _desc;
 	}
 }

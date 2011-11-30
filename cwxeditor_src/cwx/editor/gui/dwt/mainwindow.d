@@ -2334,6 +2334,8 @@ public:
 							openErrDlg = false;
 						};
 						dlg.open();
+					} else {
+						core.thread.Thread.sleep(.dur!("msecs")(1));
 					}
 				}
 			}
