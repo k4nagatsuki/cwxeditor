@@ -2346,7 +2346,9 @@ public:
 	const string soundPlayType() {return "音声再生方法";}
 	const string soundPlayTypeDef() {return "自動選択";}
 	const string soundPlayTypeSDL() {return "SDL(CardWirthPy形式)";}
-	const string soundPlayTypeMCI() {return "MCI(CardWirth形式)";}
+	version (Windows) {
+		const string soundPlayTypeMCI() {return "MCI(CardWirth形式)";}
+	}
 	const string soundPlayTypeApp() {return "関連付けされたアプリケーションで開く";}
 
 	const string wallpaper() {

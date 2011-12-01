@@ -11,6 +11,13 @@ import cwx.editor.gui.dwt.properties;
 
 import org.eclipse.swt.SWT;
 
+immutable SOUND_TYPE_AUTO = 0;
+immutable SOUND_TYPE_SDL = 1;
+version (Windows) {
+	immutable SOUND_TYPE_MCI = 2;
+}
+immutable SOUND_TYPE_APP = 3;
+
 class FlexEtcProps : Properties {
 	mixin Property!("singleWindow", bool, true);
 	mixin Property!("toolsLock", bool, false);
@@ -85,45 +92,29 @@ class FlexEtcProps : Properties {
 	mixin Property!("flagNameColumn", int, 190);
 	mixin Property!("flagInitColumn", int, 90);
 	mixin Property!("flagCountColumn", int, 60);
-	// FIXME: リンクエラー！
-//	mixin Property!("filesWidth", int, 150, true);
-//	mixin Property!("filesHeight", int, 150, true);
-	int filesWidth = 150;
-	int filesHeight = 150;
+	mixin Property!("filesWidth", int, 150, true);
+	mixin Property!("filesHeight", int, 150, true);
 	mixin Property!("talkersWidth", int, 100, true);
 	mixin Property!("motionsWidth", int, 150, true);
 	mixin Property!("imageListWidth", int, 380);
 	mixin Property!("imageListHeight", int, 300);
 	mixin Property!("cardLife", bool, false);
 	mixin Property!("cardDetails", bool, false);
-	// FIXME: リンクエラー！
-//	mixin Property!("cardsMarginX", int, 5, true);
-//	mixin Property!("cardsSpaceX", int, 8, true);
-//	mixin Property!("cardsMarginY", int, 5, true);
-//	mixin Property!("cardsSpaceY", int, 8, true);
-//	mixin Property!("cardsDefaultWrap", int, 4, true);
-	int cardsMarginX = 5;
-	int cardsSpaceX = 8;
-	int cardsMarginY = 5;
-	int cardsSpaceY = 8;
-	int cardsDefaultWrap = 4;
+	mixin Property!("cardsMarginX", int, 5, true);
+	mixin Property!("cardsSpaceX", int, 8, true);
+	mixin Property!("cardsMarginY", int, 5, true);
+	mixin Property!("cardsSpaceY", int, 8, true);
+	mixin Property!("cardsDefaultWrap", int, 4, true);
 	mixin Property!("seKeyCodeSashL", int, 4);
 	mixin Property!("seKeyCodeSashR", int, 7);
 	mixin Property!("talkSashL", int, 1);
 	mixin Property!("talkSashR", int, 1);
-	// FIXME: リンクエラー！
-//	mixin Property!("msgBackR", int, 0, true);
-//	mixin Property!("msgBackG", int, 0, true);
-//	mixin Property!("msgBackB", int, 128, true);
-//	mixin Property!("msgForeR", int, 255, true);
-//	mixin Property!("msgForeG", int, 255, true);
-//	mixin Property!("msgForeB", int, 255, true);
-	int msgBackR = 0;
-	int msgBackG = 0;
-	int msgBackB = 128;
-	int msgForeR = 255;
-	int msgForeG = 255;
-	int msgForeB = 255;
+	mixin Property!("msgBackR", int, 0, true);
+	mixin Property!("msgBackG", int, 0, true);
+	mixin Property!("msgBackB", int, 128, true);
+	mixin Property!("msgForeR", int, 255, true);
+	mixin Property!("msgForeG", int, 255, true);
+	mixin Property!("msgForeB", int, 255, true);
 
 	mixin Property!("contentsOrder", int[], []);
 	mixin Property!("contentsLock", bool, false);

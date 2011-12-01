@@ -20,6 +20,7 @@ import cwx.editor.gui.dwt.xmlbytestransfer;
 import cwx.editor.gui.dwt.dockingfolder;
 import cwx.editor.gui.dwt.customtext;
 import cwx.editor.gui.dwt.undo;
+import cwx.editor.gui.dwt.variables;
 
 import std.path;
 import std.file;
@@ -281,9 +282,9 @@ private:
 	Button _doubleIO;
 	Button _switchTabWheel;
 	Button _openTabAtRightOfCurrentTab;
-	version (Windows) {
-		Combo _soundPlayType;
-	}
+	Combo _soundPlayType;
+	int[int] _soundPlayTypeTbl;
+	int[int] _soundPlayTypeTbl2;
 	Text _savedSound;
 
 	class RefE : SelectionAdapter, ModifyListener {
@@ -1823,20 +1824,26 @@ private:
 				_openTabAtRightOfCurrentTab = createB(_prop.msgs.openTabAtRightOfCurrentTab);
 			}
 			{
-				version (Windows) {
-					auto grp = new Group(comp2, SWT.NONE);
-					grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-					grp.setText = _prop.msgs.soundPlayType;
-					grp.setLayout = new GridLayout(1, false);
-					_soundPlayType = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
-					mod(_soundPlayType);
-					_soundPlayType.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-					_soundPlayType.setVisibleItemCount = 20;
-					_soundPlayType.add(_prop.msgs.soundPlayTypeDef);
-					_soundPlayType.add(_prop.msgs.soundPlayTypeSDL);
-					_soundPlayType.add(_prop.msgs.soundPlayTypeMCI);
-					_soundPlayType.add(_prop.msgs.soundPlayTypeApp);
+				auto grp = new Group(comp2, SWT.NONE);
+				grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+				grp.setText = _prop.msgs.soundPlayType;
+				grp.setLayout = new GridLayout(1, false);
+				_soundPlayType = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
+				mod(_soundPlayType);
+				_soundPlayType.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+				_soundPlayType.setVisibleItemCount = 20;
+				void addType(int type, string name) {
+					int i = _soundPlayType.getItemCount;
+					_soundPlayTypeTbl[type] = i;
+					_soundPlayTypeTbl2[i] = type;
+					_soundPlayType.add(name);
 				}
+				addType(SOUND_TYPE_AUTO, _prop.msgs.soundPlayTypeDef);
+				addType(SOUND_TYPE_SDL, _prop.msgs.soundPlayTypeSDL);
+				version (Windows) {
+					addType(SOUND_TYPE_MCI, _prop.msgs.soundPlayTypeMCI);
+				}
+				addType(SOUND_TYPE_APP, _prop.msgs.soundPlayTypeApp);
 			}
 		}
 		{
@@ -1972,8 +1979,11 @@ protected:
 		_doubleIO.setSelection = _prop.var.etc.doubleIO;
 		_switchTabWheel.setSelection = _prop.var.etc.switchTabWheel;
 		_openTabAtRightOfCurrentTab.setSelection = _prop.var.etc.openTabAtRightOfCurrentTab;
-		version (Windows) {
-			_soundPlayType.select = _prop.var.etc.soundPlayType;
+		auto sptp = _prop.var.etc.soundPlayType in _soundPlayTypeTbl;
+		if (sptp) {
+			_soundPlayType.select = *sptp;
+		} else {
+			_soundPlayType.select = 0;
 		}
 		_savedSound.setText = _prop.var.etc.savedSound;
 
@@ -2087,9 +2097,7 @@ protected:
 		_prop.var.etc.openTabAtRightOfCurrentTab = _openTabAtRightOfCurrentTab.getSelection;
 		_prop.var.etc.contentsFloat = _contentsFloat.getSelection;
 		_prop.var.etc.contentsAutoHide = _contentsAutoHide.getSelection;
-		version (Windows) {
-			_prop.var.etc.soundPlayType = _soundPlayType.getSelectionIndex;
-		}
+		_prop.var.etc.soundPlayType = _soundPlayTypeTbl2[_soundPlayType.getSelectionIndex];
 		_prop.var.etc.savedSound = _savedSound.getText;
 		if (_prop.var.etc.historyMax < _prop.var.etc.openHistories.length) {
 			_prop.var.etc.openHistories

@@ -19,6 +19,7 @@ import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.effectcarddialog;
 import cwx.editor.gui.dwt.xmlbytestransfer;
 import cwx.editor.gui.dwt.undo;
+import cwx.editor.gui.dwt.eventwindow;
 
 import std.string;
 import std.datetime;
@@ -132,7 +133,8 @@ private:
 			_old.removeUseCounter();
 			_old = v.motion(_index).dup;
 			_old.setUseCounter(comm.summary.useCounter.sub);
-			v.motion(_index, old);
+			auto m = v.motion(_index);
+			v.motion(_index, old, false);
 		}
 		override void undo() {impl();}
 		override void redo() {impl();}
@@ -279,14 +281,39 @@ private:
 	Image[TypeInfo] _imgMsns;
 	Image[Element] _imgElm;
 
+	// FIXME: HashSet!Compositeでリンクエラー
+	HashSet!Object _beWin;
+	void openBeastEventWin(BeastCard beast) {
+		auto w = _comm.openUseEvents(_prop, _summ, beast, true);
+		if (_beWin.contains(w.shell)) return;
+		w.shell.addDisposeListener(new CloseRemover!(Object)(_beWin, w.shell));
+		_beWin.add(w.shell);
+	}
+	void editBeastUseEvent() {
+		auto m = selection;
+		if (!m || !m.detail.use(MArg.BEAST)) return;
+		auto b = m.beast;
+		if (!b) return;
+		openBeastEventWin(b);
+	}
+
 	Motion motion(int index) {
 		return cast(Motion) _motions.getItem(index).getData;
 	}
-	void motion(int index, Motion m) {
-		_motions.getItem(index).setData = m;
+	void motion(int index, Motion m, bool store) {
+		if (store) storeEdit(index);
+		auto itm = _motions.getItem(index);
+		auto o = cast(Motion) itm.getData;
+		assert (o);
+		if (o.beast) {
+			_comm.delBeast.call(o.beast);
+		}
+		itm.setData = m;
 		if (index == _motions.getSelectionIndex) {
 			refreshSels();
 		}
+		foreach (dlg; modEvent) dlg();
+		foreach (dlg; warningEvent) dlg();
 	}
 	Motion selection() {
 		int i = _motions.getSelectionIndex;
@@ -721,6 +748,9 @@ private:
 			_comm.refBeast.remove(&refBeast);
 			_comm.delBeast.remove(&refBeast);
 			getDisplay.removeFilter(SWT.KeyDown, _kdFilter);
+			foreach (w; _beWin.toArray) {
+				_comm.close(cast(Composite) w);
+			}
 		}
 	}
 	class KeyDownFilter : Listener {
@@ -766,6 +796,7 @@ public:
 		_prop = prop;
 		_summ = summ;
 		_undo = undo ? undo : new UndoManager(1024);
+		_beWin = new typeof(_beWin);
 
 		setLayout = zeroMarginGridLayout(3, false);
 		{
@@ -962,6 +993,8 @@ public:
 				_beastImg.addKeyListener(eb);
 				auto menu = new Menu(_beastImg);
 				createMenuItem(menu, prop.msgs.menuCEdit, prop.images.menuCEdit, &editBeastM);
+				new MenuItem(menu, SWT.SEPARATOR);
+				createMenuItem(menu, _prop.msgs.menuEditUseEvent, _prop.images.menuEditUseEvent, &editBeastUseEvent);
 				new MenuItem(menu, SWT.SEPARATOR);
 				createMenuItem(menu, _prop.msgs.menuUndo, _prop.images.menuUndo, &this.undo);
 				createMenuItem(menu, _prop.msgs.menuRedo, _prop.images.menuRedo, &this.redo);

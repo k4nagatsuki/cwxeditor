@@ -28,6 +28,7 @@ import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.jpyimage;
 import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.customtext;
+import cwx.editor.gui.dwt.variables;
 
 import core.thread;
 
@@ -2356,18 +2357,30 @@ void drawTileImage(GC gc, Image img, Rectangle rect) {
 
 bool playBGMCW(Props prop, string path, bool legacy) {
 	switch (prop.var.etc.soundPlayType) {
-	case 1: playBGM(path, false); return true;
-	case 2: playBGM(path, true); return true;
-	case 3: Program.launch(path); return false;
+	case SOUND_TYPE_SDL: playBGM(path, false); return true;
+	case SOUND_TYPE_MCI:
+		version (Windows) {
+			playBGM(path, true);
+			return true;
+		} else {
+			goto default;
+		}
+	case SOUND_TYPE_APP: Program.launch(path); return false;
 	default: playBGM(path, legacy); return true;
 	}
 }
 
 void playSECW(Props prop, string path, bool legacy) {
 	switch (prop.var.etc.soundPlayType) {
-	case 1: playSE(path, false); break;
-	case 2: playSE(path, true); break;
-	case 3: Program.launch(path); break;
+	case SOUND_TYPE_SDL: playSE(path, false); break;
+	case SOUND_TYPE_MCI:
+		version (Windows) {
+			playSE(path, true);
+			break;
+		} else {
+			goto default;
+		}
+	case SOUND_TYPE_APP: Program.launch(path); break;
 	default: playSE(path, legacy); break;
 	}
 }

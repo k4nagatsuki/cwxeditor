@@ -53,7 +53,6 @@ void main(string[] args) {
 			}
 			if (help) {
 				version (Console) {
-					// FIXME: リンクエラー！
 					try {
 						string dir;
 						version (Windows) {
