@@ -1613,6 +1613,7 @@ public:
 				}
 			} case "castcard", "skillcard", "itemcard", "beastcard", "infocard",
 					"castcard:id", "skillcard:id", "itemcard:id", "beastcard:id", "infocard:id": {
+				_comm.openCardWin();
 				return _cardWin.openCWXPath(path);
 			} default: return false;
 			}
