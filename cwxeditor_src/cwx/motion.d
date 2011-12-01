@@ -462,7 +462,7 @@ public:
 	}
 
 	override string cwxPath() {
-		return _owner ? cpjoin(_owner, .cCountUntil!("a is b")(_owner.motions, this)) : "";
+		return _owner ? cpjoin(_owner, "motion", .cCountUntil!("a is b")(_owner.motions, this)) : "";
 	}
 	override CWXPath findCWXPath(string path) {
 		if (cpempty(path)) return this;

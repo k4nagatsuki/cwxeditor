@@ -193,6 +193,8 @@ area:3/event:0/:5/:1
 　enemycard  .... バトルに配置されるカード
 
 　event      .... イベントツリー
+　motion     .... 効果
+　dialog     .... 台詞コンテント
 
 　variable   .... 状態変数(フラグ・ステップ)のルート
 　flag       .... フラグ
