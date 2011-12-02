@@ -2602,7 +2602,10 @@ public:
 				refreshStatusLine();
 				if (cphasattr(path, "opendialog")) {
 					auto d = edit();
-					assert (d);
+					if (d) {
+						// ダイアログ無し、もしくは開けない状態のコンテント
+						return true;
+					}
 					if (!cpempty(path)) {
 						return d.openCWXPath(path, shellActivate);
 					}
