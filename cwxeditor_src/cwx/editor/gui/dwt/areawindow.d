@@ -125,9 +125,29 @@ private:
 		if (!_refUndo) return;
 		_undo.max = _prop.var.etc.undoMaxEvent;
 	}
+	class Dispose : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			saveWin();
+			static if (is (A == Area)) {
+				_comm.delArea.remove(&__deleteArea);
+				_comm.refArea.remove(&__refArea);
+			} else static if (is (A == Battle)) {
+				_comm.delBattle.remove(&__deleteArea);
+				_comm.refBattle.remove(&__refArea);
+			} else static if (is (A == Package)) {
+				_comm.delPackage.remove(&__deleteArea);
+				_comm.refPackage.remove(&__refArea);
+			} else {
+				static assert (0);
+			}
+			_comm.replText.remove(&__refreshTitle);
+			_comm.refUndoMax.remove(&refUndoMax);
+		}
+	}
 public:
 	this(Commons comm, Props prop, Summary summ, Composite parent, Shell areaWin, A area, UndoManager undo = null) {
 		_comm = comm;
+		_prop = prop;
 		_summ = summ;
 		_area = area;
 		_refUndo = undo is null;
@@ -160,25 +180,7 @@ public:
 		}
 		_comm.replText.add(&__refreshTitle);
 		_comm.refUndoMax.add(&refUndoMax);
-		_win.addDisposeListener(new class DisposeListener {
-			override void widgetDisposed(DisposeEvent e) {
-				saveWin();
-				static if (is (A == Area)) {
-					_comm.delArea.remove(&__deleteArea);
-					_comm.refArea.remove(&__refArea);
-				} else static if (is (A == Battle)) {
-					_comm.delBattle.remove(&__deleteArea);
-					_comm.refBattle.remove(&__refArea);
-				} else static if (is (A == Package)) {
-					_comm.delPackage.remove(&__deleteArea);
-					_comm.refPackage.remove(&__refArea);
-				} else {
-					static assert (0);
-				}
-				_comm.replText.remove(&__refreshTitle);
-				_comm.refUndoMax.remove(&refUndoMax);
-			}
-		});
+		_win.addDisposeListener(new Dispose);
 		contPane.setLayout = windowGridLayout(1, true);
 		_prop = prop;
 		static if (WithEventView) {
