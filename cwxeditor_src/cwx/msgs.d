@@ -782,6 +782,21 @@ public:
 		}
 	}
 
+	const string dialogText(in SDialog dlg) {
+		auto rCoupons = dlg.rCoupons;
+		if (rCoupons.length > 0) {
+			string rBuf = "";
+			foreach (i, rc; rCoupons) {
+				rBuf ~= rc;
+				rBuf ~= i + 1 < rCoupons.length ? " " : ": ";
+			}
+			auto text = dlg.text;
+			return rBuf ~ std.array.replace(text, "\n", "");
+		} else {
+			auto text = dlg.text;
+			return std.array.replace(text, "\n", "");
+		}
+	}
 	const string contentText(in Skin skin, in Content evt, in Summary summ) {
 		switch (evt.type) {
 		case CType.START: {
@@ -854,19 +869,7 @@ public:
 			default: assert (0);
 			}
 		} case CType.TALK_DIALOG: {
-			auto rCoupons = evt.dialogs[0].rCoupons;
-			if (rCoupons.length > 0) {
-				string rBuf = "";
-				foreach (i, rc; rCoupons) {
-					rBuf ~= rc;
-					rBuf ~= i + 1 < rCoupons.length ? " " : ": ";
-				}
-				auto text = evt.dialogs[0].text;
-				return rBuf ~ std.array.replace(text, "\n", "");
-			} else {
-				auto text = evt.dialogs[0].text;
-				return std.array.replace(text, "\n", "");
-			}
+			return dialogText(evt.dialogs[0]);
 		} case CType.PLAY_BGM: {
 			if (evt.bgmPath is null || !evt.bgmPath.length) return "BGM停止";
 			auto path = skin.findPath(evt.bgmPath, skin.extBgm, skin.bgmDir, summ.scenarioPath);
@@ -2418,9 +2421,14 @@ public:
 	const string dlgTitBgImagesDefault() {return "デフォルト背景の設定";}
 
 	const string systemSounds() {return "システム音声";}
-	const string soundSaved() {return "シナリオ保存完了";}
+	const string soundSaved() {return "保存完了";}
 	const string playableSounds(string exts) {return "サウンドファイル (" ~ exts ~ ")";}
 	const string dlgTitSystemSound() {return "システム音声の選択";}
+
+	const string undoMax() {return "「元に戻す」回数";}
+	const string undoMaxMainView() {return "エリア/カード/フラグ";}
+	const string undoMaxEvent() {return "メニュー/エネミー/背景/イベント";}
+	const string undoMaxEtc() {return "テキスト/その他";}
 
 	/// スクリプト関係。
 	const string ttToScript() {return "スクリプトに変換してコピー";}

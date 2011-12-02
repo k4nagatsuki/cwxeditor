@@ -1265,7 +1265,7 @@ public:
 				propNode.onTag["Type"] = (ref XNode node) {summ._type = node.value;};
 				propNode.parse;
 			};
-			summ._froot = FlagDir.fromXmlNode(summNode, &summ.changeHandler, summ.dataVersion);
+			summ._froot = FlagDir.fromXmlNode(summNode, summ, &summ.changeHandler, summ.dataVersion);
 			return summ;
 		}
 		throw new SummaryException("File is not summary: " ~ sPath);

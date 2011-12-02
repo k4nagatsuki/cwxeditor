@@ -197,7 +197,7 @@ private:
 		}
 		void udb(EventTreeView v) {
 			if (!v) return;
-			.forceFocus(v._tree);
+			.forceFocus(v._tree, false);
 			v._forceSel(_etPath);
 			auto sel = v.selection;
 			_selPath2 = sel ? (cast(Content) sel.getData).ctPath : null;
@@ -456,12 +456,14 @@ private:
 		_comm.refUseCount.call;
 		refreshStatusLine;
 	}
-	void edit() {
+	void editM() {edit();}
+	EventDialog edit() {
 		auto sels = _tree.getSelection;
 		if (sels.length > 0) {
 			auto c = cast(Content) sels[0].getData;
-			edit(c);
+			return edit(c);
 		}
+		return null;
 	}
 	void create(TreeItem insertTo) {
 		if (!_tree.getItems.length) return;
@@ -831,12 +833,12 @@ private:
 		dlg.open();
 	}
 
-	void edit(Content evt) {
-		if (!hasDialog(evt.type) || !checkOpenDialog(evt.type)) return;
+	EventDialog edit(Content evt) {
+		if (!hasDialog(evt.type) || !checkOpenDialog(evt.type)) return null;
 		auto p = evt in _editDlgs;
 		if (p) {
 			p.active();
-			return;
+			return *p;
 		}
 		EventDialog dlg;
 		auto parent = evt.parent;
@@ -1034,6 +1036,7 @@ private:
 			_editDlgs.remove(evt);
 		};
 		dlg.open();
+		return dlg;
 	}
 
 	AbstractArea refTarget() {
@@ -1596,7 +1599,7 @@ public:
 				Menu popup = null;
 				try {
 					popup = new Menu(parent.getShell, SWT.POP_UP);
-					createMenuItem(popup, _prop.msgs.menuCEdit, _prop.images.menuCEdit, &edit);
+					createMenuItem(popup, _prop.msgs.menuCEdit, _prop.images.menuCEdit, &editM);
 					new MenuItem(popup, SWT.SEPARATOR);
 					createMenuItem(popup, _prop.msgs.menuWriteComment, _prop.images.menuWriteComment, &writeComment);
 					new MenuItem(popup, SWT.SEPARATOR);
@@ -1887,7 +1890,7 @@ public:
 	void writeComment() {
 		auto itm = selection;
 		if (!itm) return;
-		.forceFocus(_tree);
+		.forceFocus(_tree, false);
 		auto c = cast(Content) itm.getData;
 		auto p = c in _commentDlgs;
 		if (p) {
@@ -2080,7 +2083,7 @@ public:
 		vals[0] = mixin (Create);
 		name = _prop.msgs.evtChildFalse;
 		vals[1] = mixin (Create);
-		return createComboEditor(_prop, _tree, vals, vals[child.name == _prop.msgs.evtChildTrue ? 0 : 1]);
+		return createComboEditor(_comm, _prop, _tree, vals, vals[child.name == _prop.msgs.evtChildTrue ? 0 : 1]);
 	}
 	private CCombo createBoolEditor2(string Create)(Content evt, Content child) {
 		string[] vals;
@@ -2089,7 +2092,7 @@ public:
 		vals[0] = mixin (Create);
 		name = _prop.msgs.evtChildFalse;
 		vals[1] = mixin (Create);
-		return createComboEditor(_prop, _tree, vals, vals[child.name == _prop.msgs.evtChildTrue ? 0 : 1]);
+		return createComboEditor(_comm, _prop, _tree, vals, vals[child.name == _prop.msgs.evtChildTrue ? 0 : 1]);
 	}
 	private CCombo createNumEditor(string Create)(Content evt, Content child, ulong[] nums) {
 		string[] vals;
@@ -2104,7 +2107,7 @@ public:
 		}
 		string name = _prop.msgs.evtChildDefault;
 		vals[$ - 1] = mixin (Create);
-		return createComboEditor(_prop, _tree, vals, vals[index]);
+		return createComboEditor(_comm, _prop, _tree, vals, vals[index]);
 	}
 	private CCombo createAreaSelectEditor(string Create, A)(Content evt, Content child, A[] areas) {
 		ulong[] nums;
@@ -2118,12 +2121,12 @@ public:
 		auto parent = itm.getParentItem;
 		if (parent) {
 			if ((cast(Content) parent.getData).detail.nextType == CNextType.TEXT) {
-				return createTextEditor(_prop, _tree, (cast(Content) itm.getData).name);
+				return createTextEditor(_comm, _prop, _tree, (cast(Content) itm.getData).name);
 			}
 		} else if (_tree.getItem(0) is itm) {
 			return null;
 		} else {
-			return createTextEditor(_prop, _tree, (cast(Content) itm.getData).name);
+			return createTextEditor(_comm, _prop, _tree, (cast(Content) itm.getData).name);
 		}
 		auto data = cast(Content) parent.getData;
 		auto c = cast(Content) itm.getData;
@@ -2480,7 +2483,7 @@ public:
 						addContents(cs);
 					}
 				} catch (CWXScriptException e) {
-					auto dlg = new ScriptErrorDialog(_prop, _tree, e);
+					auto dlg = new ScriptErrorDialog(_comm, _prop, _tree, e);
 					dlg.open();
 				}
 			}
@@ -2598,7 +2601,11 @@ public:
 				_tree.select = child;
 				refreshStatusLine();
 				if (cphasattr(path, "opendialog")) {
-					edit();
+					auto d = edit();
+					assert (d);
+					if (!cpempty(path)) {
+						return d.openCWXPath(path, shellActivate);
+					}
 				}
 				return true;
 			} else {
@@ -2607,7 +2614,7 @@ public:
 		}
 		return false;
 	}
-	bool openCWXPath(string path, bool shellActivate = true) {
+	bool openCWXPath(string path, bool shellActivate) {
 		return openCWXPathImpl(_tree, path, shellActivate);
 	}
 }

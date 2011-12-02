@@ -339,14 +339,14 @@ public:
 		void createArea() {
 			if (!_summ) return;
 			_comm.openDataWin(false);
-			.forceFocus(_areas.table);
-			_areas.createArea;
+			.forceFocus(_areas.table, false);
+			_areas.createArea();
 		}
 		void createBattle() {
 			if (!_summ) return;
 			_comm.openDataWin(false);
-			.forceFocus(_areas.table);
-			_areas.createBattle;
+			.forceFocus(_areas.table, false);
+			_areas.createBattle();
 		}
 		void createPackage() {
 			createPackage(null);
@@ -354,7 +354,7 @@ public:
 		ulong createPackage(Content baseStart) {
 			if (!_summ) return 0;
 			_comm.openDataWin(false);
-			.forceFocus(_areas.table);
+			.forceFocus(_areas.table, false);
 			return _areas.createPackage(baseStart);
 		}
 		void reNumberingAll() {
@@ -375,7 +375,7 @@ public:
 			_flags.flags.createStep;
 		}
 		private void changeVHSide() {
-			.forceFocus(_flags.widget);
+			.forceFocus(_flags.widget, false);
 			_flags.changeVHSide;
 		}
 	}
@@ -545,7 +545,7 @@ public:
 		}
 		return false;
 	}
-	bool openCWXPath(string path, bool shellActivate = true) {
+	bool openCWXPath(string path, bool shellActivate) {
 		if (cpempty(path)) {
 			static if (UseArea) {
 				_comm.openDataWin(shellActivate);

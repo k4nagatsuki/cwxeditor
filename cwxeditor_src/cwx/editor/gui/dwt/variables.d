@@ -331,5 +331,10 @@ class FlexEtcProps : Properties {
 	mixin Property!("previewMaxWidth", int, 150, true);
 	mixin Property!("previewMaxHeight", int, 150, true);
 
+	mixin Property!("undoMaxMainView", int, 1024);
+	mixin Property!("undoMaxEvent", int, 1024);
+	mixin Property!("undoMaxEtc", int, 1024);
+	mixin Property!("undoMaxLimit", int, short.max);
+
 	mixin XMLFuncs!(FlexEtcProps);
 }

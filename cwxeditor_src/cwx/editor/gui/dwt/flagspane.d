@@ -82,18 +82,23 @@ private:
 	void refScenario(Summary summ) {
 		_undo.reset();
 	}
+	void refUndoMax() {
+		_undo.max = _prop.var.etc.undoMaxMainView;
+	}
 public:
 	this(Commons comm, Props prop) {
 		_comm = comm;
 		_prop = prop;
 
-		_undo = new UndoManager(1024);
+		_undo = new UndoManager(_prop.var.etc.undoMaxMainView);
 		_flags = new FlagTable(comm, prop, _undo);
 		_dirs = new FlagDirTree(comm, prop, _flags, _undo);
 	}
 
 	void construct(Composite parent) {
+		_undo.reset();
 		_comm.refScenario.add(&refScenario);
+		_comm.refUndoMax.add(&refUndoMax);
 
 		_comp = new Composite(parent, SWT.NONE);
 		_comp.setLayout = new FillLayout;
@@ -111,6 +116,7 @@ public:
 	private class DListener : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
 			_comm.refScenario.remove(&refScenario);
+			_comm.refUndoMax.remove(&refUndoMax);
 			_prop.var.etc.flagSashL = _sash.getWeights[0];
 			_prop.var.etc.flagSashR = _sash.getWeights[1];
 			_prop.var.etc.flagSashV = (_sash.getStyle & SWT.VERTICAL) != 0;
@@ -143,7 +149,7 @@ public:
 		_dirs.rootDir = root;
 	}
 
-	bool openCWXPath(string path, bool shellActivate = true) {
+	bool openCWXPath(string path, bool shellActivate) {
 		return _dirs.openCWXPath(path, shellActivate);
 	}
 

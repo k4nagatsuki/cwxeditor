@@ -8,6 +8,7 @@ import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.dutils;
+import cwx.editor.gui.dwt.commons;
 
 import std.string;
 
@@ -28,6 +29,7 @@ import org.eclipse.swt.program.Program;
 
 class CreateScenarioDialog : AbsDialog {
 private:
+	Commons _comm;
 	Props _prop;
 
 	Text _name;
@@ -35,7 +37,8 @@ private:
 	string _nameVal, _skinVal, _classicFolder;
 
 public:
-	this (Props prop, Shell shell) {
+	this (Commons comm, Props prop, Shell shell) {
+		_comm = comm;
 		_prop = prop;
 		super(_prop, shell, _prop.msgs.dlgTitNewScenario, _prop.images.menuNew, true, _prop.var.newScDlg);
 		enterClose = true;
@@ -62,7 +65,7 @@ protected:
 			auto l = new Label(comp, SWT.NONE);
 			l.setText = _prop.msgs.scenarioName;
 			_name = new Text(comp, SWT.BORDER);
-			createTextMenu!Text(_prop, _name, &catchMod);
+			createTextMenu!Text(_comm, _prop, _name, &catchMod);
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
 			gd.widthHint = _prop.var.etc.nameWidth;
 			_name.setLayoutData = gd;
@@ -131,6 +134,7 @@ protected:
 
 class VersionDialog : AbsDialog {
 private:
+	Commons _comm;
 	Props _prop;
 
 	class OpenLink : SelectionAdapter {
@@ -140,8 +144,9 @@ private:
 		}
 	}
 public:
-	this(Props prop, Shell shell) {
+	this(Commons comm, Props prop, Shell shell) {
 		super(prop, shell, true, prop.msgs.dlgTitVersion, prop.images.menuVersion, false, null, false, false);
+		_comm = comm;
 		_prop = prop;
 		enterClose = true;
 		firstFocusIsOK = true;
@@ -168,17 +173,18 @@ protected:
 		ln.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		ln.addSelectionListener(new OpenLink);
 		auto build = new Text(area, SWT.READ_ONLY | SWT.BORDER | SWT.MULTI);
-		createTextMenu!Text(_prop, build, null);
+		createTextMenu!Text(_comm, _prop, build, null);
 		build.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		build.setText = _prop.msgs.appBuild;
 	}
 }
 
 class ErrorDialog : AbsDialog {
+	private Commons _comm;
 	private Props _prop;
 	private string _desc;
 
-	this (Props prop, Shell shell, string desc) {
+	this (Commons comm, Props prop, Shell shell, string desc) {
 		auto size = new class DSize {
 			void width(int v) {}
 			void height(int v) {}
@@ -187,6 +193,7 @@ class ErrorDialog : AbsDialog {
 		};
 		auto info = ButtonInfo(prop.msgs.shutdown, {std.c.stdlib.exit(0);});
 		super (prop, shell, false, prop.msgs.dlgTitError, shell.getImage, true, size, false, false, [info]);
+		_comm = comm;
 		_prop = prop;
 		_desc = desc;
 	}
@@ -211,7 +218,7 @@ class ErrorDialog : AbsDialog {
 		l.setText = _prop.msgs.unknownError;
 
 		auto msg = new Text(area, SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL | SWT.READ_ONLY);
-		createTextMenu!Text(_prop, msg, null);
+		createTextMenu!Text(_comm, _prop, msg, null);
 		auto msgL = new GridData(GridData.FILL_BOTH);
 		msgL.horizontalSpan = 2;
 		msg.setLayoutData = msgL;

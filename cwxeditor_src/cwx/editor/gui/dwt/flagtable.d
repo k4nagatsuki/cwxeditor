@@ -149,7 +149,7 @@ protected:
 			(new Label(comp, SWT.NULL)).setText = prop.msgs.dlgLblStepName;
 			stepName = new Text(comp, SWT.BORDER);
 			mod(stepName);
-			createTextMenu!Text(prop, stepName, &catchMod);
+			createTextMenu!Text(_comm, prop, stepName, &catchMod);
 			setGridMinW(stepName, prop.var.etc.flagNameWidth, GridData.FILL_HORIZONTAL);
 			checker(stepName);
 
@@ -188,7 +188,7 @@ protected:
 				}
 				(new Label(valsComp, SWT.NULL)).setText = prop.msgs.dlgLblStep(i);
 				auto t = new Text(valsComp, SWT.BORDER);
-				createTextMenu!Text(prop, t, &catchMod);
+				createTextMenu!Text(_comm, prop, t, &catchMod);
 				stepVals ~= t;
 				mod(t);
 				stepVals[i].addModifyListener(new ModValue(i));
@@ -340,7 +340,7 @@ protected:
 
 			(new Label(comp, SWT.NULL)).setText = prop.msgs.dlgLblFlagName;
 			flagName = new Text(comp, SWT.BORDER);
-			createTextMenu!Text(prop, flagName, &catchMod);
+			createTextMenu!Text(_comm, prop, flagName, &catchMod);
 			mod(flagName);
 			setGridMinW(flagName, prop.var.etc.flagNameWidth, GridData.FILL_HORIZONTAL);
 			checker(flagName);
@@ -370,7 +370,7 @@ protected:
 			mod(flagTrue);
 			setComboItems(flagTrue, prop.var.etc.flagTrues.dup);
 			flagTrue.setVisibleItemCount = 20;
-			createTextMenu!Combo(prop, flagTrue, &catchMod);
+			createTextMenu!Combo(_comm, prop, flagTrue, &catchMod);
 			auto tmod = new ModOnOff(0);
 			flagTrue.addModifyListener = tmod;
 			flagTrue.addSelectionListener = tmod;
@@ -381,7 +381,7 @@ protected:
 			mod(flagFalse);
 			setComboItems(flagFalse, prop.var.etc.flagFalses.dup);
 			flagFalse.setVisibleItemCount = 20;
-			createTextMenu!Combo(prop, flagFalse, &catchMod);
+			createTextMenu!Combo(_comm, prop, flagFalse, &catchMod);
 			auto fmod = new ModOnOff(1);
 			flagFalse.addModifyListener = fmod;
 			flagFalse.addSelectionListener = fmod;
@@ -463,7 +463,7 @@ private abstract class FTVUndo : Undo {
 		_selectedB = _selected.dup;
 		saveSelected(v);
 		if (v && v.flags && !v.flags.isDisposed) {
-			.forceFocus(v.flags);
+			.forceFocus(v.flags, false);
 		}
 	}
 	void uda(FlagTable v) {
@@ -1152,8 +1152,8 @@ public:
 		flags.addSelectionListener(new SListener);
 		flags.addDisposeListener(new DListener);
 
-		new TableTextEdit(prop, flags, 0, &nameEditEnd, null);
-		new TableComboEdit!CCombo(prop, flags, 1, &initCombo, &initEditEnd, null);
+		new TableTextEdit(_comm, prop, flags, 0, &nameEditEnd, null);
+		new TableComboEdit!CCombo(_comm, prop, flags, 1, &initCombo, &initEditEnd, null);
 
 		_comp.addDisposeListener(new Dispose);
 

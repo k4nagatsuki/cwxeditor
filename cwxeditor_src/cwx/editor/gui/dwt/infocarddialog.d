@@ -7,6 +7,7 @@ import cwx.types;
 import cwx.features;
 import cwx.utils;
 import cwx.skin;
+import cwx.path;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;
@@ -81,6 +82,10 @@ public:
 	InfoCard card() {
 		return _card;
 	}
+
+	bool openCWXPath(string path, bool shellActivate) {
+		return cpempty(path);
+	}
 protected:
 	override void setup(Composite area) {
 		area.setLayout = new GridLayout(1, false);
@@ -92,7 +97,7 @@ protected:
 			_name = new GBLimitText(_prop.looks.monospace,
 				_prop.looks.nameLimit, false, grp, SWT.BORDER);
 			mod(_name.widget);
-			createTextMenu!Text(_prop, _name.widget, &catchMod);
+			createTextMenu!Text(_comm, _prop, _name.widget, &catchMod);
 			_name.limitEvent ~= &refreshWarning;
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
 			gd.widthHint = _name.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
@@ -113,7 +118,7 @@ protected:
 			grp.setLayout = new CenterLayout(SWT.HORIZONTAL);
 			grp.setText = _prop.msgs.desc;
 			_desc = new FixedWidthText(dwtData(_prop.looks.cardDescFont(_summ.legacy)), _prop.looks.cardDescLen, grp, SWT.BORDER);
-			createTextMenu!Text(_prop, _desc.widget, &catchMod);
+			createTextMenu!Text(_comm, _prop, _desc.widget, &catchMod);
 			mod(_desc.widget);
 			_desc.widget.setLayoutData = _desc.computeTextBaseSize(_prop.looks.cardDescLine);
 		}

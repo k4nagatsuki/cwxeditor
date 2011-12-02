@@ -8,6 +8,7 @@ import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.centerlayout;
+import cwx.editor.gui.dwt.commons;
 
 import std.array;
 import std.string;
@@ -24,13 +25,15 @@ import java.lang.all;
 
 class TextDialog : AbsDialog {
 private:
+	Commons _comm;
 	Props _prop;
 	bool _readOnly;
 	string _text;
 	Text _viewer;
 
 public:
-	this(Props prop, Shell shell, string title, Image icon, string text, bool readOnly = true, DSize size = null) {
+	this(Commons comm, Props prop, Shell shell, string title, Image icon, string text, bool readOnly = true, DSize size = null) {
+		_comm = comm;
 		_prop = prop;
 		_readOnly = readOnly;
 		_text = text;
@@ -53,7 +56,7 @@ protected:
 		int style = SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL;
 		if (_readOnly) style |= SWT.READ_ONLY;
 		_viewer = new Text(area, style);
-		createTextMenu!Text(_prop, _viewer, &catchMod);
+		createTextMenu!Text(_comm, _prop, _viewer, &catchMod);
 		_viewer.setText = _text;
 		if (!_readOnly) {
 			_viewer.setSelection = _text.length;

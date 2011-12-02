@@ -8,6 +8,7 @@ import cwx.summary;
 import cwx.skin;
 import cwx.xml;
 import cwx.flag;
+import cwx.path;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;
@@ -440,6 +441,7 @@ private:
 			prop.var.etc.talkSashL = ws[0];
 			prop.var.etc.talkSashR = ws[1];
 			sash.getDisplay.removeFilter(SWT.KeyDown, _kdFilter);
+			comm.refUndoMax.remove(&refUndoMax);
 		}
 	}
 	private class KeyDownFilter : Listener {
@@ -461,11 +463,29 @@ private:
 			}
 		}
 	}
+	void refUndoMax() {
+		_undo.max = prop.var.etc.undoMaxEtc;
+	}
 public:
 	this(Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
 		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime);
 		super(comm, prop, shell, summ, CType.TALK_DIALOG, parent, evt, true, prop.var.speakDlg, false);
-		_undo = new UndoManager(1024);
+		_undo = new UndoManager(prop.var.etc.undoMaxEtc);
+	}
+
+	override
+	bool openCWXPath(string path, bool shellActivate) {
+		auto cate = cpcategory(path);
+		if ("dialog" == cate) {
+			auto index = cpindex(path);
+			if (index >= _dlgsL.getItemCount) return false;
+			_dlgsL.select = index;
+			selectChanged();
+			.forceFocus(_dlgsL, shellActivate);
+			path = cpbottom(path);
+			return cpempty(path);
+		}
+		return super.openCWXPath(path, shellActivate);
 	}
 protected:
 	override void setup(Composite area) {
@@ -557,6 +577,7 @@ protected:
 		sash.setWeights = [prop.var.etc.talkSashL, prop.var.etc.talkSashR];
 		_kdFilter = new KeyDownFilter;
 		sash.getDisplay.addFilter(SWT.KeyDown, _kdFilter);
+		comm.refUndoMax.add(&refUndoMax);
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
@@ -569,8 +590,8 @@ protected:
 		}
 		refreshDlgList();
 
-		_textTM = createTextMenu!Text(prop, _rCoupons, &catchMod, _undo, TMAppendData(&readAPD, &writeAPD));
-		_rCouponsTM = createTextMenu!Text(prop, _text.widget, &catchMod, _undo, TMAppendData(&readAPD, &writeAPD));
+		_textTM = createTextMenu!Text(comm, prop, _rCoupons, &catchMod, _undo, TMAppendData(&readAPD, &writeAPD));
+		_rCouponsTM = createTextMenu!Text(comm, prop, _text.widget, &catchMod, _undo, TMAppendData(&readAPD, &writeAPD));
 	}
 	override bool apply() {
 		Talker talker;
@@ -639,6 +660,7 @@ private:
 			auto c = cast(Control) e.widget;
 			assert (c);
 			c.getDisplay.removeFilter(SWT.KeyDown, _kdFilter);
+			comm.refUndoMax.remove(&refUndoMax);
 		}
 	}
 	private class KeyDownFilter : Listener {
@@ -660,10 +682,13 @@ private:
 			}
 		}
 	}
+	void refUndoMax() {
+		_undo.max = prop.var.etc.undoMaxEtc;
+	}
 public:
 	this(Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
 		super(comm, prop, shell, summ, CType.TALK_MESSAGE, parent, evt, true, prop.var.msgDlg, false);
-		_undo = new UndoManager(1024);
+		_undo = new UndoManager(prop.var.etc.undoMaxEtc);
 	}
 protected:
 	override void setup(Composite area) {
@@ -688,7 +713,7 @@ protected:
 			_msgCompA.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0));
 			_text = createMessagePane(comm, prop, true, _msgCompA, summ);
 			mod(_text.widget);
-			createTextMenu!Text(prop, _text.widget, &catchMod, _undo);
+			createTextMenu!Text(comm, prop, _text.widget, &catchMod, _undo);
 			auto tab = new CTabItem(_tabf, SWT.NONE);
 			tab.setText = prop.msgs.imageMessage;
 			tab.setControl = comp;
@@ -716,6 +741,7 @@ protected:
 		_tabf.addDisposeListener(new Dispose);
 		_kdFilter = new KeyDownFilter;
 		_tabf.getDisplay.addFilter(SWT.KeyDown, _kdFilter);
+		comm.refUndoMax.add(&refUndoMax);
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
@@ -795,7 +821,7 @@ private Composite createTalkerPane2(Composite parent, Commons comm, Props prop, 
 	}
 	couponCombo = new Combo(comp, SWT.DROP_DOWN | SWT.BORDER);
 	couponCombo.setVisibleItemCount = 20;
-	createTextMenu!Combo(prop, couponCombo, null);
+	createTextMenu!Combo(comm, prop, couponCombo, null);
 	auto push = new Button(comp, SWT.PUSH);
 	auto skin = comm.skin;
 	{

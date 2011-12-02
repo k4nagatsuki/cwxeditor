@@ -7,6 +7,7 @@ import cwx.props;
 import cwx.editor.gui.dwt.mainwindow;
 import cwx.editor.gui.dwt.textdialog;
 import cwx.editor.gui.dwt.dprops;
+import cwx.editor.gui.dwt.commons;
 
 import std.file;
 import std.path;
@@ -78,7 +79,8 @@ void main(string[] args) {
 				}
 				try {
 					auto prop = new Props(conf, new CProps(args[0], sys));
-					auto dlg = new TextDialog(prop, null, prop.msgs.dlgTitUsage, prop.images.app, prop.msgs.usage);
+					auto comm = new Commons(prop);
+					auto dlg = new TextDialog(comm, prop, null, prop.msgs.dlgTitUsage, prop.images.app, prop.msgs.usage);
 					dlg.open;
 					prop.images.disposeImages;
 				} catch (Exception e) {

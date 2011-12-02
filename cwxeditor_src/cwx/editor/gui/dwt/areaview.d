@@ -291,6 +291,14 @@ private:
 			}
 			_imgp.redraw();
 		}
+		void openRefAreaView() {
+			if (!_refTarget) return;
+			try {
+				_comm.openCWXPath(cpaddattr(_refTarget.cwxPath, "shallow"), false);
+			} catch (Exception e) {
+				debugln(e);
+			}
+		}
 	}
 
 	static class AUndo : Undo {
@@ -318,7 +326,7 @@ private:
 				}
 				ct = ct.getParent;
 			}
-			.forceFocus(v._imgp);
+			.forceFocus(v._imgp, false);
 		}
 		protected void uda(AbstractAreaView v) {
 			if (!v) return;
@@ -1559,6 +1567,16 @@ private:
 			}
 		}
 	}
+	void openFlagView() {
+		if (-1 == _flag.getSelectionIndex) return;
+		auto flag = _summ.flagDirRoot.findFlag(_flag.getText);
+		if (!flag) return;
+		try {
+			_comm.openCWXPath(flag.cwxPath, false);
+		} catch (Exception e) {
+			debugln(e);
+		}
+	}
 
 	private TopLevelPanel _tlp;
 public:
@@ -1709,11 +1727,11 @@ public:
 				static if (is (C == MenuCard)) {
 					_cards = createList(listsP, prop.msgs.menuCards,
 						prop.images.cards, ctcpd, &editCard, &_area.cards);
-					new TableTextEdit(_prop, _cards, 0, &nameEditEnd);
+					new TableTextEdit(_comm, _prop, _cards, 0, &nameEditEnd);
 				} else static if (is (C == EnemyCard)) {
 					_cards = createList(listsP, prop.msgs.enemyCards,
 						prop.images.cards, ctcpd, &editCard, &_area.cards);
-					new TableComboEdit!CCombo(_prop, _cards, 0, &createEnemyCombo, &enemyEditEnd);
+					new TableComboEdit!CCombo(_comm, _prop, _cards, 0, &createEnemyCombo, &enemyEditEnd);
 				}
 				_cards.addSelectionListener(new SCListener);
 				static if (is (C == MenuCard)) {
@@ -1728,7 +1746,7 @@ public:
 				_backs = createList(listsP, prop.msgs.backs,
 					prop.images.backs, btcpd, &editBack, &_area.backs);
 				_backs.addSelectionListener(new SBListener);
-				new TableComboEdit!CCombo(_prop, _backs, 0, &createBgImageCombo, &bgImageEditEnd);
+				new TableComboEdit!CCombo(_comm, _prop, _backs, 0, &createBgImageCombo, &bgImageEditEnd);
 				new BLDropTarget(_backs);
 				_backs.addMouseTrackListener(prevTrig);
 				_backs.addMouseMoveListener(prevTrig);
@@ -1779,6 +1797,11 @@ public:
 			_comm.refFlag.add(&refFlag);
 			_comm.delFlag.add(&refFlag);
 			_flag.addDisposeListener(new FlagsDispose);
+			{
+				auto menu = new Menu(_flag.getShell, SWT.POP_UP);
+				createMenuItem(menu, _prop.msgs.menuOpenFlagView, _prop.images.menuOpenFlagView, &openFlagView);
+				_flag.setMenu = menu;
+			}
 			static if (RefCards) {
 				auto lRef = new Label(left, SWT.NONE);
 				lRef.setText = _prop.msgs.areaViewRefAreaDesc;
@@ -1794,6 +1817,11 @@ public:
 						refreshPanel();
 					}
 				});
+				{
+					auto menu = new Menu(_refAreas.getShell, SWT.POP_UP);
+					createMenuItem(menu, _prop.msgs.menuOpenTableView, _prop.images.menuOpenTableView, &openRefAreaView);
+					_refAreas.setMenu = menu;
+				}
 				_comm.refArea.add(&refreshRefAreasA);
 				_comm.delArea.add(&refreshRefAreasA);
 				_comm.refBattle.add(&refreshRefAreasB);
@@ -2072,7 +2100,7 @@ public:
 	static if (UseCards && UseBacks) {
 		private void reverseView(T)(ref bool view, Table list, int[T] edits, T[] delegate() col, int startIndex,
 				MenuItem menu, ToolItem titm) {
-			if (_imgp.isVisible) .forceFocus(this);
+			if (_imgp.isVisible) .forceFocus(this, false);
 			view = !view;
 			list.setEnabled = view;
 			for (int i = 0; i < col().length; i++) {
@@ -3347,7 +3375,7 @@ public:
 	void undo() {_undo.undo;}
 	void redo() {_undo.redo;}
 
-	bool openCWXPath(string path, bool shellActivate = true) {
+	bool openCWXPath(string path, bool shellActivate) {
 		auto cate = cpcategory(path);
 		auto index = cpindex(path);
 		bool sel(Table list) {
@@ -3506,7 +3534,17 @@ PImg createMenuCardImage(PImg)(Props prop, Skin skin,
 }
 
 BgImagesView createBgImagesViewAndMenu(Commons comm, Props prop, Summary summ, BgImageContainer cont, Composite parent, AbstractArea refTarget) {
-	auto view = new BgImagesView(comm, prop, summ, cont, parent, refTarget, new UndoManager(1024));
+	auto undo = new UndoManager(prop.var.etc.undoMaxEvent);
+	void refUndoMax() {
+		undo.max = prop.var.etc.undoMaxEvent;
+	}
+	auto view = new BgImagesView(comm, prop, summ, cont, parent, refTarget, undo);
+	comm.refUndoMax.add(&refUndoMax);
+	view.addDisposeListener(new class DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			comm.refUndoMax.remove(&refUndoMax);
+		}
+	});
 	auto bar = new Menu(parent.getShell, SWT.BAR);
 	parent.getShell.setMenuBar = bar;
 	auto me = createMenu(bar, prop.msgs.menuEdit);

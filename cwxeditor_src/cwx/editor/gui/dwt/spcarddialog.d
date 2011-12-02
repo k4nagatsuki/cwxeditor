@@ -206,7 +206,7 @@ protected:
 							grp.setLayout = new GridLayout(1, false);
 							grp.setText = _prop.msgs.name;
 							_name = new Text(grp, SWT.BORDER);
-							createTextMenu!Text(_prop, _name, &catchMod);
+							createTextMenu!Text(_comm, _prop, _name, &catchMod);
 							mod(_name);
 							_name.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 						} else static if (is (C == EnemyCard)) {
@@ -307,7 +307,7 @@ protected:
 					grp.setLayout = new CenterLayout(SWT.HORIZONTAL);
 					grp.setText = _prop.msgs.desc;
 					_desc = new FixedWidthText(dwtData(_prop.looks.cardDescFont(_summ ? _summ.legacy : false)), _prop.looks.cardDescLen, grp, SWT.BORDER);
-					createTextMenu!Text(_prop, _desc.widget, &catchMod);
+					createTextMenu!Text(_comm, _prop, _desc.widget, &catchMod);
 					mod(_desc.widget);
 					_desc.widget.setLayoutData = _desc.computeTextBaseSize(_prop.looks.cardDescLine);
 				}

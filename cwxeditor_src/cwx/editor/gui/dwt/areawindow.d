@@ -120,12 +120,18 @@ private:
 			}
 		}
 	}
+	bool _refUndo = false;
+	void refUndoMax() {
+		if (!_refUndo) return;
+		_undo.max = _prop.var.etc.undoMaxEvent;
+	}
 public:
 	this(Commons comm, Props prop, Summary summ, Composite parent, Shell areaWin, A area, UndoManager undo = null) {
 		_comm = comm;
 		_summ = summ;
 		_area = area;
-		_undo = undo ? undo : new UndoManager(1024);
+		_refUndo = undo is null;
+		_undo = undo ? undo : new UndoManager(_prop.var.etc.undoMaxEvent);
 		Shell shell = null;
 		auto parShl = cast(Shell) parent;
 		Composite contPane;
@@ -153,6 +159,7 @@ public:
 			static assert (0);
 		}
 		_comm.replText.add(&__refreshTitle);
+		_comm.refUndoMax.add(&refUndoMax);
 		_win.addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) {
 				saveWin();
@@ -169,6 +176,7 @@ public:
 					static assert (0);
 				}
 				_comm.replText.remove(&__refreshTitle);
+				_comm.refUndoMax.remove(&refUndoMax);
 			}
 		});
 		contPane.setLayout = windowGridLayout(1, true);
@@ -460,7 +468,7 @@ public:
 			return .hasFocus(_win);
 		}
 	}
-	bool openCWXPath(string path, bool shellActivate = true) {
+	bool openCWXPath(string path, bool shellActivate) {
 		auto cate = cpcategory(path);
 		if (cpempty(path)) {
 			static if (WithEventView) {

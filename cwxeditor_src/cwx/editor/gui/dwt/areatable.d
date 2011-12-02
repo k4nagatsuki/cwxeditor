@@ -105,7 +105,7 @@ private:
 			_selB = _sel;
 			saveIDs(v);
 			if (v && v._areas && !v._areas.isDisposed) {
-				.forceFocus(v._areas);
+				.forceFocus(v._areas, false);
 			}
 		}
 		private void resetID(alias ToID, A)(AreaTable v, A[] arr, ulong[] ids) {
@@ -690,6 +690,7 @@ private:
 			_comm.refUseCount.remove(&__refreshUseCount);
 			_comm.replText.remove(&refresh);
 			_comm.refScenario.remove(&refScenario);
+			_comm.refUndoMax.remove(&refUndoMax);
 		}
 	}
 	private void refreshAreas() {
@@ -752,11 +753,14 @@ private:
 	void refScenario(Summary summ) {
 		_undo.reset();
 	}
+	void refUndoMax() {
+		_undo.max = _prop.var.etc.undoMaxMainView;
+	}
 public:
 	this(Commons comm, Props prop) {
 		_comm = comm;
 		_prop = prop;
-		_undo = new UndoManager(1024);
+		_undo = new UndoManager(_prop.var.etc.undoMaxMainView);
 	}
 
 	void construct(Composite parent, FlagTable flags) {
@@ -767,6 +771,7 @@ public:
 		_comm.refUseCount.add(&__refreshUseCount);
 		_comm.replText.add(&refresh);
 		_comm.refScenario.add(&refScenario);
+		_comm.refUndoMax.add(&refUndoMax);
 		_areas = new Table(parent, SWT.BORDER | SWT.FULL_SELECTION);
 		_areas.addDisposeListener(new ADListener);
 		_areas.addSelectionListener(new SListener);
@@ -781,7 +786,7 @@ public:
 		countCol.setText = _prop.msgs.areaCount;
 		saveColumnWidth!("prop.var.etc.areaCountColumn")(_prop, countCol);
 
-		_areasEdit = new TableTextEdit(_prop, _areas, 1, &editEnd);
+		_areasEdit = new TableTextEdit(_comm, _prop, _areas, 1, &editEnd);
 
 		auto menu = new Menu(parent.getShell, SWT.POP_UP);
 		if (!_comm.singleWindowMode(_prop) || _prop.var.etc.bindSceneWithEvent) {

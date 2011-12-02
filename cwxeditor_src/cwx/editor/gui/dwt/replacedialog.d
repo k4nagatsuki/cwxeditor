@@ -417,7 +417,7 @@ private:
 			lf.setText = _prop.msgs.replFrom;
 			_from = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN);
 			_from.setVisibleItemCount = 20;
-			createTextMenu!Combo(_prop, _from, &catchMod);
+			createTextMenu!Combo(_comm, _prop, _from, &catchMod);
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
 			gd.widthHint = _prop.var.etc.nameWidth;
 			_from.setLayoutData = gd;
@@ -425,7 +425,7 @@ private:
 			lt.setText = _prop.msgs.replTo;
 			_to = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN);
 			_to.setVisibleItemCount = 20;
-			createTextMenu!Combo(_prop, _to, &catchMod);
+			createTextMenu!Combo(_comm, _prop, _to, &catchMod);
 			_to.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		}
 		{
@@ -574,7 +574,7 @@ private:
 				l.setText = text;
 				auto combo = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN);
 				combo.setVisibleItemCount = 20;
-				createTextMenu!Combo(_prop, combo, &catchMod);
+				createTextMenu!Combo(_comm, _prop, combo, &catchMod);
 				auto gd = new GridData(GridData.FILL_HORIZONTAL);
 				gd.widthHint = _prop.var.etc.nameWidth;
 				combo.setLayoutData = gd;
@@ -2001,6 +2001,13 @@ public:
 				text = _prop.msgs.contentText(_comm.skin, c, _summ);
 			}
 		}
+		auto sdlg = cast(SDialog) path;
+		if (sdlg) {
+			con = sdlg.parent;
+			assert (con);
+			img = _prop.images.content(con.type);
+			text = _prop.msgs.dialogText(sdlg);
+		}
 		auto fla = cast(Flag) path;
 		if (fla) {
 			img = _prop.images.flag;
@@ -2176,15 +2183,20 @@ public:
 		if (end) {
 			r |= repl(null, e.completeStamp, &e.completeStamp, count);
 		}
+		bool rDlg = false;
 		if (msg) {
 			r |= repl(null, e.text, &e.text, count);
 			auto dlgs = e.dialogs;
 			foreach (dlg; dlgs) {
-				if (msg) {
-					r |= repl(null, dlg.text, &dlg.text, count);
+				if (msg && repl(dlg, dlg.text, &dlg.text, count)) {
+					r |= true;
+					rDlg = true;
+					continue;
 				}
-				if (coupon) {
-					r |= replRqCoupons!(typeof(dlg))(null, dlg, count);
+				if (coupon && replRqCoupons!(typeof(dlg))(dlg, dlg, count)) {
+					r |= true;
+					rDlg = true;
+					continue;
 				}
 			}
 		}
@@ -2196,7 +2208,7 @@ public:
 		if (comment) {
 			r |= repl(null, e.comment, &e.comment, count);
 		}
-		if (r) {
+		if (r && !rDlg) {
 			addResult(e);
 		}
 	}

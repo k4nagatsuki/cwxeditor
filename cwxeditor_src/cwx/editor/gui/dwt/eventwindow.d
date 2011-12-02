@@ -58,6 +58,11 @@ private:
 		EventView!(A, void, false) _eview;
 	}
 
+	bool _refUndo = false;
+	void refUndoMax() {
+		if (!_refUndo) return;
+		_undo.max = _prop.var.etc.undoMaxEvent;
+	}
 public:
 	this(Commons comm, Props prop, Summary summ, Composite parent, Shell parent2, A eto, UndoManager undo) {
 		Shell shell = null;
@@ -79,7 +84,8 @@ public:
 		_summ = summ;
 		_eto = eto;
 		_comm = comm;
-		_undo = undo ? undo : new UndoManager(1024);
+		_refUndo = undo is null;
+		_undo = undo ? undo : new UndoManager(_prop.var.etc.undoMaxEvent);
 
 		static if (is (A == Area)) {
 			_comm.delArea.add(&__deleteOwner);
@@ -103,6 +109,7 @@ public:
 			static assert (0);
 		}
 		_comm.replText.add(&__refreshTitle);
+		_comm.refUndoMax.add(&refUndoMax);
 		_win.addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) {
 				saveWin;
@@ -128,6 +135,7 @@ public:
 					static assert (0);
 				}
 				_comm.replText.remove(&__refreshTitle);
+				_comm.refUndoMax.remove(&refUndoMax);
 			}
 		});
 		{
@@ -340,7 +348,7 @@ public:
 			return _eview.canDoTCPD;
 		}
 	}
-	bool openCWXPath(string path, bool shellActivate = true) {
+	bool openCWXPath(string path, bool shellActivate) {
 		return _eview.openCWXPath(path, shellActivate);
 	}
 }

@@ -19,6 +19,16 @@ class UndoManager {
 	void opCatAssign(Undo undo) {
 		add(undo);
 	}
+	void max(size_t v) {
+		_max = v;
+		cut();
+	}
+	private void cut() {
+		if (_max < _pointer) {
+			_undos = _undos[_pointer - _max .. $];
+			_pointer = _max;
+		}
+	}
 	size_t pointer() {return _pointer;}
 	void add(Undo undo) {
 		if (_max == 0) return;
@@ -51,6 +61,7 @@ class UndoManager {
 		if (!canRedo) return false;
 		_undos[_pointer].redo;
 		_pointer++;
+		cut();
 		return true;
 	}
 	void reset() {

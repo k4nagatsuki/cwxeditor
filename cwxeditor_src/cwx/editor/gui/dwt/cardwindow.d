@@ -9,6 +9,7 @@ import cwx.types;
 import cwx.xml;
 import cwx.skin;
 import cwx.path;
+import cwx.motion;
 
 import cwx.editor.gui.dwt.commondialog;
 import cwx.editor.gui.dwt.images;
@@ -135,7 +136,7 @@ private:
 				_selB = _sel;
 				saveIDs(v);
 				if (v && v.widget && !v.widget.isDisposed) {
-					.forceFocus(v.widget);
+					.forceFocus(v.widget, false);
 				}
 			}
 			private void resetID(CardPane v) {
@@ -355,7 +356,9 @@ private:
 	Composite _parent;
 	Commons _comm;
 	Props _prop;
-	UndoManager _undo;
+	static if (EditMode) {
+		UndoManager _undo;
+	}
 	CardOwner _owner = null;
 	PCardOwner _summ = null;
 	void delegate(Shell) _save;
@@ -854,17 +857,18 @@ private:
 
 	static if (EditMode) {
 		static if (is (C == CastCard)) {
-			CastCardDialog[C] _editDlgs;
+			alias CastCardDialog CardDialog;
 		} else static if (is (C : EffectCard)) {
-			EffectCardDialog!(C)[C] _editDlgs;
+			alias EffectCardDialog!C CardDialog;
 		} else static if (is (C == InfoCard)) {
-			InfoCardDialog[C] _editDlgs;
+			alias InfoCardDialog CardDialog;
 		} else static assert (0, typeof(C));
-		void edit(C c) {
+		CardDialog[C] _editDlgs;
+		CardDialog edit(C c) {
 			auto p = c in _editDlgs;
 			if (p) {
 				p.active();
-				return;
+				return *p;
 			}
 			static if (is (C == CastCard)) {
 				auto dlg = new CastCardDialog(_comm, _prop, dlgParShl, _summ, c);
@@ -885,6 +889,7 @@ private:
 			};
 			_editDlgs[c] = dlg;
 			dlg.open();
+			return dlg;
 		}
 	}
 	static if (EditMode) {
@@ -1015,18 +1020,22 @@ private:
 		return doc.text;
 	}
 	static if (EditMode) {
-		void edit() {
+		private void editM() {
+			edit();
+		}
+		CardDialog edit() {
 			if (_viewMode == CViewMode.TABLE) {
 				int index = _tbl.getSelectionIndex;
 				if (index >= 0) {
-					edit(cast(C) _tbl.getItem(index).getData);
+					return edit(cast(C) _tbl.getItem(index).getData);
 				}
 			} else {
 				int index = _list.selection;
 				if (index >= 0) {
-					edit(_list.card(index));
+					return edit(_list.card(index));
 				}
 			}
+			return null;
 		}
 	}
 	class LMouse : MouseAdapter {
@@ -1168,7 +1177,7 @@ private:
 			_tbl.addDisposeListener(new DisposeTable);
 		}
 		static if (EditMode) {
-			new TableTextEdit(_prop, _tbl, 1, &nameEditEnd, null);
+			new TableTextEdit(_comm, _prop, _tbl, 1, &nameEditEnd, null);
 		}
 
 		static if (is (C == CastCard)) {
@@ -1219,12 +1228,19 @@ private:
 	static if (is (C == CastCard) && !EditMode) {
 		private void delegate() _openHand;
 	}
+	static if (EditMode) {
+		void refUndoMax() {
+			_undo.max = _prop.var.etc.undoMaxMainView;
+		}
+	}
 	private void construct1(Commons comm, Props prop, PCardOwner summ) {
 		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime);
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
-		_undo = new UndoManager(1024);
+		static if (EditMode) {
+			_undo = new UndoManager(_prop.var.etc.undoMaxMainView);
+		}
 		static if (is (C == CastCard)) {
 			_cimg = prop.images.casts;
 		} else static if (is (C == SkillCard)) {
@@ -1275,6 +1291,7 @@ private:
 			} else static if (is (C == InfoCard)) {
 				_comm.refInfo.add(&refCardCallback);
 			}
+			_comm.refUndoMax.add(&refUndoMax);
 			_list.addDisposeListener(new class DisposeListener {
 				override void widgetDisposed(DisposeEvent e) {
 					_comm.refScenario.remove(&refScenario);
@@ -1289,6 +1306,7 @@ private:
 					} else static if (is (C == InfoCard)) {
 						_comm.refInfo.remove(&refCardCallback);
 					}
+					_comm.refUndoMax.remove(&refUndoMax);
 					foreach (w; _editDlgs.values) {
 						w.forceCancel();
 					}
@@ -1296,15 +1314,15 @@ private:
 			});
 			auto pop = new Menu(parent.getShell, SWT.POP_UP);
 			static if (is (C == CastCard)) {
-				createMenuItem(pop, _prop.msgs.menuCEdit, _prop.images.menuCEdit, &edit);
+				createMenuItem(pop, _prop.msgs.menuCEdit, _prop.images.menuCEdit, &editM);
 				new MenuItem(pop, SWT.SEPARATOR);
 				createMenuItem(pop, _prop.msgs.menuEditHand, _prop.images.menuEditHand, &editHand);
 			} else static if (is (C == SkillCard) || is (C == ItemCard) || is (C == BeastCard)) {
-				createMenuItem(pop, _prop.msgs.menuCEdit, _prop.images.menuCEdit, &edit);
+				createMenuItem(pop, _prop.msgs.menuCEdit, _prop.images.menuCEdit, &editM);
 				new MenuItem(pop, SWT.SEPARATOR);
 				createMenuItem(pop, _prop.msgs.menuEditUseEvent, _prop.images.menuEditUseEvent, &editUseEvent);
 			} else static if (is (C == InfoCard)) {
-				createMenuItem(pop, _prop.msgs.menuCEdit, _prop.images.menuCEdit, &edit);
+				createMenuItem(pop, _prop.msgs.menuCEdit, _prop.images.menuCEdit, &editM);
 			} else {
 				static assert (0);
 			}
@@ -1628,11 +1646,13 @@ public:
 			return _list.isVisible || _tbl.isVisible;
 		}
 	}
-	void undo() {
-		_undo.undo;
-	}
-	void redo() {
-		_undo.redo;
+	static if (EditMode) {
+		void undo() {
+			_undo.undo;
+		}
+		void redo() {
+			_undo.redo;
+		}
 	}
 }
 
@@ -2569,48 +2589,50 @@ public:
 			return EditMode;
 		}
 	}
-	void undo() {
-		static if (1 < Cards.length) {
-			int i = _tabf.getSelectionIndex;
-			static if (UseCast) {
-				if (i == CAST) _pane[CAST].undo;
+	static if (EditMode) {
+		void undo() {
+			static if (1 < Cards.length) {
+				int i = _tabf.getSelectionIndex;
+				static if (UseCast) {
+					if (i == CAST) _pane[CAST].undo;
+				}
+				static if (UseSkill) {
+					if (i == SKILL) _pane[SKILL].undo;
+				}
+				static if (UseItem) {
+					if (i == ITEM) _pane[ITEM].undo;
+				}
+				static if (UseBeast) {
+					if (i == BEAST) _pane[BEAST].undo;
+				}
+				static if (UseInfo) {
+					if (i == INFO) _pane[INFO].undo;
+				}
+			} else {
+				_pane[0].undo;
 			}
-			static if (UseSkill) {
-				if (i == SKILL) _pane[SKILL].undo;
-			}
-			static if (UseItem) {
-				if (i == ITEM) _pane[ITEM].undo;
-			}
-			static if (UseBeast) {
-				if (i == BEAST) _pane[BEAST].undo;
-			}
-			static if (UseInfo) {
-				if (i == INFO) _pane[INFO].undo;
-			}
-		} else {
-			_pane[0].undo;
 		}
-	}
-	void redo() {
-		static if (1 < Cards.length) {
-			int i = _tabf.getSelectionIndex;
-			static if (UseCast) {
-				if (i == CAST) _pane[CAST].redo;
+		void redo() {
+			static if (1 < Cards.length) {
+				int i = _tabf.getSelectionIndex;
+				static if (UseCast) {
+					if (i == CAST) _pane[CAST].redo;
+				}
+				static if (UseSkill) {
+					if (i == SKILL) _pane[SKILL].redo;
+				}
+				static if (UseItem) {
+					if (i == ITEM) _pane[ITEM].redo;
+				}
+				static if (UseBeast) {
+					if (i == BEAST) _pane[BEAST].redo;
+				}
+				static if (UseInfo) {
+					if (i == INFO) _pane[INFO].redo;
+				}
+			} else {
+				_pane[0].redo;
 			}
-			static if (UseSkill) {
-				if (i == SKILL) _pane[SKILL].redo;
-			}
-			static if (UseItem) {
-				if (i == ITEM) _pane[ITEM].redo;
-			}
-			static if (UseBeast) {
-				if (i == BEAST) _pane[BEAST].redo;
-			}
-			static if (UseInfo) {
-				if (i == INFO) _pane[INFO].redo;
-			}
-		} else {
-			_pane[0].redo;
 		}
 	}
 
@@ -2618,7 +2640,8 @@ public:
 		auto cate = cpcategory(path);
 		auto index = cpindex(path);
 		bool isId = std.string.endsWith(cate, ":id") != 0;
-		typeof(_pane[C].cards[0]) card;
+		alias typeof(_pane[C].cards[0]) CType;
+		CType card;
 		if (isId) {
 			card = _pane[C].card(index);
 			if (!card) return false;
@@ -2628,12 +2651,15 @@ public:
 			card = _pane[C].cards[index];
 		}
 		path = cpbottom(path);
-		if (cpempty(path)) {
-			forceFocus(_pane[C].widget, shellActivate);
+		if (cpempty(path) || (is(CType : MotionOwner) && "motion" == cpcategory(path))) {
+			.forceFocus(_pane[C].widget, shellActivate);
 			_pane[C].select(index);
 			static if (EditMode) {
 				if (cphasattr(path, "opendialog")) {
-					_pane[C].edit();
+					auto dlg = _pane[C].edit();
+					if (!cpempty(path)) {
+						return dlg.openCWXPath(path, shellActivate);
+					}
 				}
 			}
 			return true;
@@ -2658,7 +2684,7 @@ public:
 		}
 		return false;
 	}
-	bool openCWXPath(string path, bool shellActivate = true) {
+	bool openCWXPath(string path, bool shellActivate) {
 		auto cate = cpcategory(path);
 		switch (cate) {
 		case "castcard", "castcard:id": {

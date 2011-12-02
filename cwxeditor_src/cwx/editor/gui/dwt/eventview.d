@@ -137,7 +137,7 @@ private:
 		}
 		protected void udb(EventView v) {
 			if (!v) return;
-			.forceFocus(v._cards);
+			.forceFocus(v._cards, false);
 			_selPath2 = getSelPath(v);
 		}
 		protected void uda(EventView v) {
@@ -548,11 +548,11 @@ private:
 	Control createEditor(TreeItem itm) {
 		static if (UseFire) {
 			if (cast(EventTree) itm.getData || cast(KeyCodeObj) itm.getData) {
-				return createTextEditor(_prop, _cards, itm.getText);
+				return createTextEditor(_comm, _prop, _cards, itm.getText);
 			}
 		} else {
 			if (cast(EventTree) itm.getData) {
-				return createTextEditor(_prop, _cards, itm.getText);
+				return createTextEditor(_comm, _prop, _cards, itm.getText);
 			}
 		}
 		return null;
@@ -1269,7 +1269,7 @@ public:
 		{
 			auto treeKindItm = new ToolItem(bar, SWT.SEPARATOR);
 			_treeKind = new CCombo(bar, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
-			createTextMenu!CCombo(_prop, _treeKind, null);
+			createTextMenu!CCombo(_comm, _prop, _treeKind, null);
 			_treeKind.add(_prop.msgs.eventTreeKindSystem);
 			_treeKind.setText = _prop.msgs.eventTreeKindSystem;
 			static if (is (A == Area) || is (A == Battle)) {
@@ -1293,7 +1293,7 @@ public:
 			{
 				auto keyCodeTimItm = new ToolItem(bar, SWT.SEPARATOR);
 				_keyCodeTim = new CCombo(bar, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
-				createTextMenu!CCombo(_prop, _keyCodeTim, null);
+				createTextMenu!CCombo(_comm, _prop, _keyCodeTim, null);
 				_keyCodeTim.setEnabled = false;
 				_keyCodeTim.add(_prop.msgs.keyCodeTimingUse);
 				_keyCodeTim.add(_prop.msgs.keyCodeTimingSuccess);
@@ -1357,7 +1357,7 @@ public:
 			c.add(v);
 			if (i == 0) c.setText = v;
 		}
-		createTextMenu!CCombo(_prop, c, null);
+		createTextMenu!CCombo(_comm, _prop, c, null);
 		setFireControl(c);
 	}
 	static if (is (A == Area) || is (A == Battle)) {
@@ -1441,7 +1441,7 @@ public:
 			if (cs[0].type !is CType.START) return;
 			createEventTree(cs);
 		} catch (CWXScriptException e) {
-			auto dlg = new ScriptErrorDialog(_prop, _cards, e);
+			auto dlg = new ScriptErrorDialog(_comm, _prop, _cards, e);
 			dlg.open;
 		}
 	}
@@ -1599,7 +1599,7 @@ public:
 	void undo() {_undo.undo;}
 	void redo() {_undo.redo;}
 
-	bool openCWXPath(string path, bool shellActivate = true) {
+	bool openCWXPath(string path, bool shellActivate) {
 		initial;
 		auto cate = cpcategory(path);
 		auto index = cpindex(path);

@@ -281,7 +281,7 @@ private:
 
 	void createScenario() {
 		if (qSave) {
-			auto dlg = new CreateScenarioDialog(_prop, _win);
+			auto dlg = new CreateScenarioDialog(_comm, _prop, _win);
 			if (!dlg.open) return;
 			Summary summ;
 			if (dlg.legacy) {
@@ -2003,7 +2003,7 @@ public:
 	private void newInfo() {mixin (NewCard!("Info"));}
 	private void newBeast() {mixin (NewCard!("Beast"));}
 	private void versionInfo() {
-		(new VersionDialog(_prop, _win)).open();
+		(new VersionDialog(_comm, _prop, _win)).open();
 	}
 
 	private HashSet!(MenuID) _noSummMenu;
@@ -2217,7 +2217,7 @@ public:
 		return null;
 	}
 
-	bool openCWXPath(string path, bool shellActivate = true) {
+	bool openCWXPath(string path, bool shellActivate) {
 		if (!summary) return false;
 		bool open() {
 			path = cwx.utils.toLower(path);
@@ -2329,7 +2329,7 @@ public:
 						_win.setVisible = true;
 						fdebugln(e);
 						string s = createDebugln(e);
-						auto dlg = new ErrorDialog(_prop, _win, s);
+						auto dlg = new ErrorDialog(_comm, _prop, _win, s);
 						dlg.closeEvent ~= {
 							openErrDlg = false;
 						};

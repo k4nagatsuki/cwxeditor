@@ -214,6 +214,9 @@ private:
 	Spinner _histMax;
 	Button _clearSHist;
 	Spinner _sHistMax;
+	Spinner _undoMaxMainView;
+	Spinner _undoMaxEvent;
+	Spinner _undoMaxEtc;
 
 	CTabItem _tabS;
 	List _bgStgsL;
@@ -771,7 +774,7 @@ private:
 			grp.setLayout = new GridLayout(3, false);
 			grp.setText = _prop.msgs.enginePath(_prop.var.etc.engine);
 			_enginePath = new Text(grp, SWT.BORDER);
-			createTextMenu!Text(_prop, _enginePath, &catchMod);
+			createTextMenu!Text(_comm, _prop, _enginePath, &catchMod);
 			_enginePath.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			mod(_enginePath);
 			auto refr = new Button(grp, SWT.PUSH);
@@ -791,7 +794,7 @@ private:
 			grp.setLayout = new GridLayout(3, false);
 			grp.setText = _prop.msgs.tempDir;
 			_tempDir = new Text(grp, SWT.BORDER);
-			createTextMenu!Text(_prop, _tempDir, &catchMod);
+			createTextMenu!Text(_comm, _prop, _tempDir, &catchMod);
 			_tempDir.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			mod(_tempDir);
 			auto refr = new Button(grp, SWT.PUSH);
@@ -847,8 +850,8 @@ private:
 				auto l = new Label(comp2, SWT.NONE);
 				l.setText = _prop.msgs.backupPath;
 				_backupDir = new Text(comp2, SWT.BORDER);
-				createTextMenu!Text(_prop, _backupDir, &catchMod);
-				_backupDir.setLayoutData = new GridData(GridData.FILL_BOTH);
+				createTextMenu!Text(_comm, _prop, _backupDir, &catchMod);
+				_backupDir.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				mod(_backupDir);
 				_backupRef = new Button(comp2, SWT.PUSH);
 				_backupRef.setText = _prop.msgs.reference;
@@ -873,7 +876,7 @@ private:
 					grp.setLayout = cl;
 					grp.setText = _prop.msgs.scenarioAuthor;
 					_author = new Text(grp, SWT.BORDER);
-					createTextMenu!Text(_prop, _author, &catchMod);
+					createTextMenu!Text(_comm, _prop, _author, &catchMod);
 					mod(_author);
 				}
 				{
@@ -882,7 +885,7 @@ private:
 					grp.setLayout = new GridLayout(3, false);
 					grp.setText = _prop.msgs.wallpaper;
 					_wallpaper = new Text(grp, SWT.BORDER);
-					createTextMenu!Text(_prop, _wallpaper, &catchMod);
+					createTextMenu!Text(_comm, _prop, _wallpaper, &catchMod);
 					_wallpaper.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 					mod(_wallpaper);
 					auto refr = new Button(grp, SWT.PUSH);
@@ -891,64 +894,90 @@ private:
 					createOpenButton(grp, _wallpaper, false);
 					setupDropFile(grp, _wallpaper, &dropWallpaper);
 				}
+				{
+					auto grp = new Group(comp3, SWT.NONE);
+					grp.setLayoutData = new GridData(GridData.FILL_BOTH);
+					grp.setText = _prop.msgs.systemSounds;
+					grp.setLayout = new GridLayout(4, false);
+					auto l = new Label(grp, SWT.NONE);
+					l.setText = _prop.msgs.soundSaved;
+					_savedSound = new Text(grp, SWT.BORDER);
+					createTextMenu!Text(_comm, _prop, _savedSound, &catchMod);
+					_savedSound.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+					mod(_savedSound);
+					auto refr = new Button(grp, SWT.PUSH);
+					refr.setText = _prop.msgs.reference;
+					refr.addSelectionListener(new SelSysSound(_savedSound));
+					createOpenButton(grp, _savedSound, false);
+					setupDropFile(grp, _savedSound, &dropSysSound);	
+				}
 			}
 			{
-				auto grp = new Group(comp2, SWT.NONE);
-				grp.setText = _prop.msgs.historiesSettings;
-				grp.setLayoutData = new GridData(GridData.FILL_VERTICAL);
-				grp.setLayout = new GridLayout(3, false);
+				auto comp3 = new Composite(comp2, SWT.NONE);
+				comp3.setLayout = zeroMarginGridLayout(1, true);
+				comp3.setLayoutData = new GridData(GridData.FILL_VERTICAL);
 				{
-					auto lComp = new Composite(grp, SWT.NONE);
-					auto cl = new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0);
-					cl.fillHorizontal = true;
-					lComp.setLayout = cl;
-					lComp.setLayoutData = new GridData(GridData.FILL_VERTICAL);
-					auto l = new Label(lComp, SWT.NONE);
-					l.setText = _prop.msgs.openHistoryMax;
-					_histMax = new Spinner(grp, SWT.BORDER);
-					_histMax.setMinimum = 0;
-					_histMax.setMaximum = 99;
-					mod(_histMax);
-					_clearHist = new Button(grp, SWT.PUSH);
-					_clearHist.setEnabled = _prop.var.etc.openHistories.length > 0;
-					_clearHist.setText = _prop.msgs.openHistoryClear;
-					_clearHist.addSelectionListener(new ClearHist);
+					auto grp = new Group(comp3, SWT.NONE);
+					grp.setText = _prop.msgs.historiesSettings;
+					grp.setLayoutData = new GridData(GridData.FILL_BOTH);
+					grp.setLayout = new GridLayout(3, false);
+					{
+						auto lComp = new Composite(grp, SWT.NONE);
+						auto cl = new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0);
+						cl.fillHorizontal = true;
+						lComp.setLayout = cl;
+						lComp.setLayoutData = new GridData(GridData.FILL_BOTH);
+						auto l = new Label(lComp, SWT.NONE);
+						l.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+						l.setText = _prop.msgs.openHistoryMax;
+						_histMax = new Spinner(grp, SWT.BORDER);
+						_histMax.setMinimum = 0;
+						_histMax.setMaximum = 99;
+						mod(_histMax);
+						_clearHist = new Button(grp, SWT.PUSH);
+						_clearHist.setEnabled = _prop.var.etc.openHistories.length > 0;
+						_clearHist.setText = _prop.msgs.openHistoryClear;
+						_clearHist.addSelectionListener(new ClearHist);
+					}
+					{
+						auto lComp = new Composite(grp, SWT.NONE);
+						auto cl = new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0);
+						cl.fillHorizontal = true;
+						lComp.setLayout = cl;
+						lComp.setLayoutData = new GridData(GridData.FILL_BOTH);
+						auto l = new Label(lComp, SWT.NONE);
+						l.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+						l.setText = _prop.msgs.searchHistoryMax;
+						_sHistMax = new Spinner(grp, SWT.BORDER);
+						_sHistMax.setMinimum = 0;
+						_sHistMax.setMaximum = 99;
+						mod(_sHistMax);
+						_clearSHist = new Button(grp, SWT.PUSH);
+						_clearSHist.setEnabled = _prop.var.etc.searchHistories.length > 0;
+						_clearSHist.setText = _prop.msgs.searchHistoryClear;
+						_clearSHist.addSelectionListener(new ClearSHist);
+					}
 				}
 				{
-					auto lComp = new Composite(grp, SWT.NONE);
-					auto cl = new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0);
-					cl.fillHorizontal = true;
-					lComp.setLayout = cl;
-					lComp.setLayoutData = new GridData(GridData.FILL_VERTICAL);
-					auto l = new Label(lComp, SWT.NONE);
-					l.setText = _prop.msgs.searchHistoryMax;
-					_sHistMax = new Spinner(grp, SWT.BORDER);
-					_sHistMax.setMinimum = 0;
-					_sHistMax.setMaximum = 99;
-					mod(_sHistMax);
-					_clearSHist = new Button(grp, SWT.PUSH);
-					_clearSHist.setEnabled = _prop.var.etc.searchHistories.length > 0;
-					_clearSHist.setText = _prop.msgs.searchHistoryClear;
-					_clearSHist.addSelectionListener(new ClearSHist);
+					auto grp = new Group(comp3, SWT.NONE);
+					grp.setText = _prop.msgs.undoMax;
+					grp.setLayoutData = new GridData(GridData.FILL_BOTH);
+					grp.setLayout = new GridLayout(2, false);
+					Spinner createUndoMax(string title) {
+						auto l = new Label(grp, SWT.NONE);
+						l.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+						l.setText = title;
+						auto spn = new Spinner(grp, SWT.BORDER);
+						mod(spn);
+						spn.setMaximum = _prop.var.etc.undoMaxLimit;
+						spn.setMinimum = 0;
+						return spn;
+					}
+					_undoMaxMainView = createUndoMax(_prop.msgs.undoMaxMainView);
+					_undoMaxEvent = createUndoMax(_prop.msgs.undoMaxEvent);
+					_undoMaxEtc = createUndoMax(_prop.msgs.undoMaxEtc);
 				}
 			}
-		}
-		{
-			auto grp = new Group(comp, SWT.NONE);
-			grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-			grp.setText = _prop.msgs.systemSounds;
-			grp.setLayout = new GridLayout(4, false);
-			auto l = new Label(grp, SWT.NONE);
-			l.setText = _prop.msgs.soundSaved;
-			_savedSound = new Text(grp, SWT.BORDER);
-			createTextMenu!Text(_prop, _savedSound, &catchMod);
-			_savedSound.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-			mod(_savedSound);
-			auto refr = new Button(grp, SWT.PUSH);
-			refr.setText = _prop.msgs.reference;
-			refr.addSelectionListener(new SelSysSound(_savedSound));
-			createOpenButton(grp, _savedSound, false);
-			setupDropFile(grp, _savedSound, &dropSysSound);	
 		}
 	}
 	Spinner createS(Composite parent, string name, int max, int min) {
@@ -1191,7 +1220,7 @@ private:
 					comp3.setLayoutData = gd;
 					comp3.setLayout = zeroMarginGridLayout(2, false);
 					_bgImgName = new Text(comp3, SWT.BORDER);
-					_bgImgTMs ~= createTextMenu!Text(_prop, _bgImgName, &catchMod);
+					_bgImgTMs ~= createTextMenu!Text(_comm, _prop, _bgImgName, &catchMod);
 					auto ngd = new GridData(GridData.FILL_HORIZONTAL);
 					ngd.widthHint = _prop.var.etc.bgImageSettingsNameWidth;
 					_bgImgName.setLayoutData = ngd;
@@ -1234,7 +1263,7 @@ private:
 			grp.setLayout = new GridLayout(1, false);
 			grp.setText = _prop.msgs.standardKeyCode;
 			_keyCodes = new Text(grp, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
-			createTextMenu!Text(_prop, _keyCodes, &catchMod);
+			createTextMenu!Text(_comm, _prop, _keyCodes, &catchMod);
 			mod(_keyCodes);
 			auto gd = new GridData(GridData.FILL_BOTH);
 			gd.widthHint = _prop.var.etc.keyCodeWidth;
@@ -1556,7 +1585,7 @@ private:
 					auto l = new Label(comp2, SWT.NONE);
 					l.setText = _prop.msgs.classicEngineName;
 					_cEngineName = new Text(comp2, SWT.BORDER);
-					_cEngineTMs ~= createTextMenu!Text(_prop, _cEngineName, &catchMod);
+					_cEngineTMs ~= createTextMenu!Text(_comm, _prop, _cEngineName, &catchMod);
 					auto gd = new GridData(GridData.FILL_HORIZONTAL);
 					gd.horizontalSpan = 3;
 					gd.widthHint = _prop.var.etc.classicEnginesNameWidth;
@@ -1566,7 +1595,7 @@ private:
 					auto l = new Label(comp2, SWT.NONE);
 					l.setText = _prop.msgs.classicEnginePath;
 					_cEnginePath = new Text(comp2, SWT.BORDER);
-					_cEngineTMs ~= createTextMenu!Text(_prop, _cEnginePath, &catchMod);
+					_cEngineTMs ~= createTextMenu!Text(_comm, _prop, _cEnginePath, &catchMod);
 					auto gd = new GridData(GridData.FILL_HORIZONTAL);
 					gd.widthHint = 0;
 					_cEnginePath.setLayoutData = gd;
@@ -1580,7 +1609,7 @@ private:
 					auto l = new Label(comp2, SWT.NONE);
 					l.setText = _prop.msgs.classicEngineDataDirName;
 					_cEngineDataDir = new Text(comp2, SWT.BORDER);
-					_cEngineTMs ~= createTextMenu!Text(_prop, _cEngineDataDir, &catchMod);
+					_cEngineTMs ~= createTextMenu!Text(_comm, _prop, _cEngineDataDir, &catchMod);
 					_cEngineDataDir.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 
 					_cEngineDataDirRef = new Button(comp2, SWT.PUSH);
@@ -1593,7 +1622,7 @@ private:
 					auto l = new Label(comp2, SWT.NONE);
 					l.setText = _prop.msgs.classicEngineExecute;
 					_cEngineExecute = new Text(comp2, SWT.BORDER);
-					_cEngineTMs ~= createTextMenu!Text(_prop, _cEngineExecute, &catchMod);
+					_cEngineTMs ~= createTextMenu!Text(_comm, _prop, _cEngineExecute, &catchMod);
 					_cEngineExecute.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 
 					_cEngineExecuteRef = new Button(comp2, SWT.PUSH);
@@ -1693,7 +1722,7 @@ private:
 					auto l = new Label(comp2, SWT.NONE);
 					l.setText = _prop.msgs.outerToolName;
 					_toolName = new Text(comp2, SWT.BORDER);
-					_toolTMs ~= createTextMenu!Text(_prop, _toolName, &catchMod);
+					_toolTMs ~= createTextMenu!Text(_comm, _prop, _toolName, &catchMod);
 					auto gd = new GridData(GridData.FILL_HORIZONTAL);
 					gd.horizontalSpan = 3;
 					_toolName.setLayoutData = gd;
@@ -1702,7 +1731,7 @@ private:
 					auto l = new Label(comp2, SWT.NONE);
 					l.setText = _prop.msgs.outerToolCommand;
 					_toolCommand = new Text(comp2, SWT.BORDER);
-					_toolTMs ~= createTextMenu!Text(_prop, _toolCommand, &catchMod);
+					_toolTMs ~= createTextMenu!Text(_comm, _prop, _toolCommand, &catchMod);
 					auto gd = new GridData(GridData.FILL_HORIZONTAL);
 					gd.widthHint = 0;
 					_toolCommand.setLayoutData = gd;
@@ -1716,7 +1745,7 @@ private:
 					auto l = new Label(comp2, SWT.NONE);
 					l.setText = _prop.msgs.outerToolWorkDir;
 					_toolWorkDir = new Text(comp2, SWT.BORDER);
-					_toolTMs ~= createTextMenu!Text(_prop, _toolWorkDir, &catchMod);
+					_toolTMs ~= createTextMenu!Text(_comm, _prop, _toolWorkDir, &catchMod);
 					auto gd = new GridData(GridData.FILL_HORIZONTAL);
 					gd.widthHint = 0;
 					_toolWorkDir.setLayoutData = gd;
@@ -1857,7 +1886,7 @@ private:
 			grp.setText = _prop.msgs.ignorePaths;
 			grp.setLayout = new GridLayout(1, false);
 			_ignorePaths = new Text(grp, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
-			createTextMenu!Text(_prop, _ignorePaths, &catchMod);
+			createTextMenu!Text(_comm, _prop, _ignorePaths, &catchMod);
 			mod(_ignorePaths);
 			auto gdp = new GridData(GridData.FILL_BOTH);
 			gdp.widthHint = _prop.var.etc.ignorePathsWidth;
@@ -1910,6 +1939,11 @@ private:
 			if (chk(_cEnginesView, _undoCEngines)) return;
 		}
 	}
+	void refUndoMax() {
+		_undoBgStgs.max = _prop.var.etc.undoMaxEtc;
+		_undoTools.max = _prop.var.etc.undoMaxEtc;
+		_undoCEngines.max = _prop.var.etc.undoMaxEtc;
+	}
 public:
 	this(Commons comm, Props prop, Shell shell, DockingFolderCTC dock, Summary summ, void delegate() sendReloadProps) {
 		super(prop, shell, false, prop.msgs.dlgTitSettings, prop.images.menuSettings, true, prop.var.settingsDlg, true);
@@ -1918,9 +1952,9 @@ public:
 		_dock = dock;
 		_summ = summ;
 		_sendReloadProps = sendReloadProps;
-		_undoBgStgs = new UndoManager(1024);
-		_undoTools = new UndoManager(1024);
-		_undoCEngines = new UndoManager(1024);
+		_undoBgStgs = new UndoManager(_prop.var.etc.undoMaxEtc);
+		_undoTools = new UndoManager(_prop.var.etc.undoMaxEtc);
+		_undoCEngines = new UndoManager(_prop.var.etc.undoMaxEtc);
 	}
 
 protected:
@@ -1929,11 +1963,13 @@ protected:
 		_comm.refScenario.add(&refreshScenario);
 		_comm.refHistories.add(&refHistories);
 		_comm.refSearchHistories.add(&refSearchHistories);
+		_comm.refUndoMax.add(&refUndoMax);
 		area.addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) {
 				_comm.refScenario.remove(&refreshScenario);
 				_comm.refHistories.remove(&refHistories);
 				_comm.refSearchHistories.remove(&refSearchHistories);
+				_comm.refUndoMax.remove(&refUndoMax);
 				e.widget.getDisplay.removeFilter(SWT.KeyDown, _kdFilter);
 			}
 		});
@@ -1958,6 +1994,9 @@ protected:
 		_wallpaper.setText = _prop.var.etc.wallpaper;
 		_histMax.setSelection = _prop.var.etc.historyMax;
 		_sHistMax.setSelection = _prop.var.etc.searchHistoryMax;
+		_undoMaxMainView.setSelection = _prop.var.etc.undoMaxMainView;
+		_undoMaxEvent.setSelection = _prop.var.etc.undoMaxEvent;
+		_undoMaxEtc.setSelection = _prop.var.etc.undoMaxEtc;
 		string ipbuf = "";
 		foreach (path; _prop.var.etc.ignorePaths) {
 			ipbuf ~= path ~ "\n";
@@ -2071,6 +2110,9 @@ protected:
 		_prop.var.etc.wallpaper = _wallpaper.getText;
 		_prop.var.etc.historyMax = _histMax.getSelection;
 		_prop.var.etc.searchHistoryMax = _sHistMax.getSelection;
+		_prop.var.etc.undoMaxMainView = _undoMaxMainView.getSelection;
+		_prop.var.etc.undoMaxEvent = _undoMaxEvent.getSelection;
+		_prop.var.etc.undoMaxEtc = _undoMaxEtc.getSelection;
 		string[] ipLines = splitLines(_ignorePaths.getText);
 		if (ipLines.length > 0) {
 			int i;
@@ -2140,6 +2182,9 @@ struct OldSettings {
 	const string[] oldOpenHistories;
 	const string[] oldSearchHistories;
 	const string[] oldReplaceHistories;
+	int oldUndoMaxMainView;
+	int oldUndoMaxEvent;
+	int oldUndoMaxEtc;
 	this (Props prop) {
 		this.prop = prop;
 		this.oldEnginePath = prop.var.etc.enginePath;
@@ -2153,6 +2198,9 @@ struct OldSettings {
 		this.oldOpenHistories = prop.var.etc.openHistories;
 		this.oldSearchHistories = prop.var.etc.searchHistories;
 		this.oldReplaceHistories = prop.var.etc.replaceHistories;
+		this.oldUndoMaxMainView = prop.var.etc.undoMaxMainView;
+		this.oldUndoMaxEvent = prop.var.etc.undoMaxEvent;
+		this.oldUndoMaxEtc = prop.var.etc.undoMaxEtc;
 	}
 	void raiseEvent(Commons comm) {
 		bool refSkin = false;
@@ -2202,6 +2250,11 @@ struct OldSettings {
 		}
 		if (oldSearchHistories != prop.var.etc.searchHistories || oldReplaceHistories != prop.var.etc.replaceHistories) {
 			comm.refSearchHistories.call();
+		}
+		if (oldUndoMaxMainView != prop.var.etc.undoMaxMainView
+				|| oldUndoMaxEvent != prop.var.etc.undoMaxEvent
+				|| oldUndoMaxEtc != prop.var.etc.undoMaxEtc) {
+			comm.refUndoMax.call();
 		}
 	}
 }

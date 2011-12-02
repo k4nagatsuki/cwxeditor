@@ -114,6 +114,10 @@ abstract class EventDialog : AbsDialog {
 	protected void evt(Content evt) {_evt = evt;}
 
 	protected void refSkin() {}
+
+	bool openCWXPath(string path, bool shellActivate) {
+		return cpempty(path);
+	}
 }
 
 class ContentCommentDialog : AbsDialog {
@@ -154,7 +158,7 @@ class ContentCommentDialog : AbsDialog {
 		_comment = new Text(area, SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
 		mod(_comment);
 		_comment.setText = _evt.comment;
-		createTextMenu!Text(_prop, _comment, &catchMod);
+		createTextMenu!Text(_comm, _prop, _comment, &catchMod);
 		auto font = _comment.getFont;
 		auto fSize = font ? cast(uint) font.getFontData[0].height : 0;
 		_comment.setFont = new Font(Display.getCurrent, dwtData(_prop.looks.textDlgFont(fSize)));
@@ -583,7 +587,7 @@ protected:
 					_name = new Combo(comp, SWT.BORDER | SWT.DROP_DOWN);
 					mod(_name);
 					_name.setVisibleItemCount = 20;
-					createTextMenu!Combo(_prop, _name, &catchMod);
+					createTextMenu!Combo(_comm, _prop, _name, &catchMod);
 					auto gd = new GridData(GridData.FILL_HORIZONTAL);
 					gd.horizontalSpan = 3;
 					gd.widthHint = _prop.var.etc.nameWidth;
@@ -661,7 +665,7 @@ protected:
 
 			_text = new Text(comp, SWT.BORDER);
 			mod(_text);
-			createTextMenu!Text(_prop, _text, &catchMod);
+			createTextMenu!Text(_comm, _prop, _text, &catchMod);
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
 			gd.widthHint = _prop.var.etc.nameWidth;
 			_text.setLayoutData = gd;
@@ -721,6 +725,11 @@ public:
 			}
 		}
 		_cont = new BgImageContainer(bgImages);
+	}
+
+	override
+	bool openCWXPath(string path, bool shellActivate) {
+		return _view.openCWXPath(path, shellActivate);
 	}
 protected:
 	override void setup(Composite area) {
@@ -968,6 +977,11 @@ private:
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
 		super (comm, prop, shell, summ, CType.EFFECT, parent, evt, true, prop.var.effEvtDlg, true);
+	}
+
+	override
+	bool openCWXPath(string path, bool shellActivate) {
+		return _mview.openCWXPath(path, shellActivate);
 	}
 protected:
 	override void setup(Composite area) {

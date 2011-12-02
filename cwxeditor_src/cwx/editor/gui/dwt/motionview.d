@@ -9,6 +9,7 @@ import cwx.utils;
 import cwx.xml;
 import cwx.skin;
 import cwx.event;
+import cwx.path;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;
@@ -283,11 +284,12 @@ private:
 
 	// FIXME: HashSet!Compositeでリンクエラー
 	HashSet!Object _beWin;
-	void openBeastEventWin(BeastCard beast) {
+	BeastEventWindow openBeastEventWin(BeastCard beast) {
 		auto w = _comm.openUseEvents(_prop, _summ, beast, true);
-		if (_beWin.contains(w.shell)) return;
+		if (_beWin.contains(w.shell)) return w;
 		w.shell.addDisposeListener(new CloseRemover!(Object)(_beWin, w.shell));
 		_beWin.add(w.shell);
+		return w;
 	}
 	void editBeastUseEvent() {
 		auto m = selection;
@@ -408,7 +410,7 @@ private:
 	void editBeastM() {
 		editBeast();
 	}
-	bool editBeast() {
+	EffectCardDialog!BeastCard editBeast() {
 		auto m = selection;
 		if (m && m.detail.use(MArg.BEAST)) {
 			auto b = m.beast;
@@ -428,10 +430,10 @@ private:
 						_beastDlg = null;
 					};
 				}
-				return true;
+				return _beastDlg;
 			}
 		}
-		return false;
+		return null;
 	}
 	class EditBeast : MouseAdapter, KeyListener {
 	override:
@@ -747,6 +749,7 @@ private:
 		override void widgetDisposed(DisposeEvent e) {
 			_comm.refBeast.remove(&refBeast);
 			_comm.delBeast.remove(&refBeast);
+			_comm.refUndoMax.remove(&refUndoMax);
 			getDisplay.removeFilter(SWT.KeyDown, _kdFilter);
 			foreach (w; _beWin.toArray) {
 				_comm.close(cast(Composite) w);
@@ -788,6 +791,11 @@ private:
 			_beasts.add(c.name);
 		}
 	}
+	bool _refUndo = false;
+	void refUndoMax() {
+		if (!_refUndo) return;
+		_undo.max = _prop.var.etc.undoMaxEtc;
+	}
 public:
 	this (Commons comm, Props prop, Summary summ, Composite parent, UndoManager undo = null) {
 		super(parent, SWT.NONE);
@@ -795,7 +803,8 @@ public:
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
-		_undo = undo ? undo : new UndoManager(1024);
+		_refUndo = undo is null;
+		_undo = undo ? undo : new UndoManager(_prop.var.etc.undoMaxEtc);
 		_beWin = new typeof(_beWin);
 
 		setLayout = zeroMarginGridLayout(3, false);
@@ -1092,6 +1101,7 @@ public:
 		_kdFilter = new KeyDownFilter();
 		_comm.refBeast.add(&refBeast);
 		_comm.delBeast.add(&refBeast);
+		_comm.refUndoMax.add(&refUndoMax);
 		getDisplay.addFilter(SWT.KeyDown, _kdFilter);
 	}
 	void motions(Motion[] motions) {
@@ -1224,5 +1234,43 @@ public:
 	}
 	void redo() {
 		_undo.redo();
+	}
+
+	bool openCWXPath(string path, bool shellActivate) {
+		auto cate = cpcategory(path);
+		if (cate == "motion") {
+			auto index = cpindex(path);
+			if (index >= _motions.getItemCount) return false;
+			_motions.select = index;
+			refreshSels();
+			path = cpbottom(path);
+			.forceFocus(_motions, shellActivate);
+			if (cpempty(path)) return true;
+			auto m = selection;
+			if (m.beast) {
+				switch (cpcategory(path)) {
+				case "beastcard":
+					if (0 != cpindex(path)) return false;
+					break;
+				case "beastcard:id":
+					if (m.beast.id != cpindex(path)) return false;
+					break;
+				default: return false;
+				}
+				path = cpbottom(path);
+				if ("event" == cpcategory(path)) {
+					auto w = openBeastEventWin(m.beast);
+					return w.openCWXPath(path, shellActivate);
+				} else {
+					if (cphasattr(path, "opendialog")) {
+						auto d = editBeast();
+						return d.openCWXPath(path, shellActivate);
+					}
+					return true;
+				}
+			}
+			return false;
+		}
+		return cpempty(path);
 	}
 }

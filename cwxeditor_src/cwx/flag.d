@@ -500,7 +500,7 @@ public:
 		r ~= cast(CWXPath[]) subDirs;
 		return r;
 	}
-	CWXPath cwxParent() {return _parent;}
+	CWXPath cwxParent() {return _owner ? _owner : _parent;}
 
 	/// 子要素をソートする際に使用する比較関数を設定する。
 	/// 親ディレクトリを持つ場合は例外を投げる。
@@ -1410,8 +1410,8 @@ public:
 	/// node = ノード。
 	/// change = 変更を通知するハンドラ。
 	/// Returns: ディレクトリツリー。
-	static FlagDir fromXmlNode(ref XNode node, void delegate() change, string ver) {
-		auto root = new FlagDir("");
+	static FlagDir fromXmlNode(ref XNode node, CWXPath owner, void delegate() change, string ver) {
+		auto root = new FlagDir(owner);
 		node.onTag["Flags"] = (ref XNode node) {
 			__fromXmlNode!(Flag)(node, root, "Flag", &Flag.createFromNode, ver);
 		};

@@ -462,24 +462,24 @@ public:
 	}
 }
 
-Text createTextEditor(Props prop, Composite parent, string str) {
+Text createTextEditor(Commons comm, Props prop, Composite parent, string str) {
 	try {
 		auto text = new Text(parent, SWT.BORDER);
 		text.setText(str ? str : "");
 		text.selectAll();
-		createTextMenu!Text(prop, text, null);
+		createTextMenu!Text(comm, prop, text, null);
 		return text;
 	} catch (Exception e) {
 		throw new Exception(e.msg, __FILE__, __LINE__);
 	}
 }
 
-C createComboEditor(C = CCombo)(Props prop, Composite parent, string[] strs, string str) {
+C createComboEditor(C = CCombo)(Commons comm, Props prop, Composite parent, string[] strs, string str) {
 	try {
 		auto combo = new C(parent, SWT.BORDER | SWT.READ_ONLY);
 		combo.setVisibleItemCount = 20;
 		static if (is(C : CCombo)) {
-			createTextMenu!C(prop, combo, null);
+			createTextMenu!C(comm, prop, combo, null);
 		}
 		foreach (s; strs) {
 			if (s) {
@@ -605,6 +605,7 @@ public:
 /// ditto
 class TableTextEdit : AbstractTableEdit {
 private:
+	Commons _comm;
 	Props _prop;
 	void delegate(TableItem itm, int column, string newText) editEnd = null;
 
@@ -616,11 +617,12 @@ public:
 	///           単にテーブルアイテムのテキストを編集後のテキストで置換する。
 	/// canEdit = テーブルアイテムが編集可能か否かを判定する関数。nullを指定した場合、
 	///           すべてのセルが編集可能になる。
-	this(Props prop, Table table, int editC,
+	this(Commons comm, Props prop, Table table, int editC,
 			void delegate(TableItem itm, int column, string text) editEnd = null,
 			bool delegate(TableItem itm, int column) canEdit = null) {
 		try {
 			super (table, editC, canEdit);
+			_comm = comm;
 			_prop = prop;
 			this.editEnd = editEnd;
 		} catch (Exception e) {
@@ -629,7 +631,7 @@ public:
 	}
 
 	protected override Control createEditor(TableItem itm, int editC) {
-		return createTextEditor(_prop, itm.getParent, itm.getText(editC));
+		return createTextEditor(_comm, _prop, itm.getParent, itm.getText(editC));
 	}
 	protected override void end(Control c) {
 		try {
@@ -650,6 +652,7 @@ public:
 /// ditto
 class TableComboEdit(C = CCombo) : AbstractTableEdit {
 private:
+	Commons _comm;
 	Props _prop;
 	void delegate(TableItem itm, int column, out string[] strs, out string str) createCombo;
 	void delegate(TableItem itm, int column, C combo) editEnd = null;
@@ -663,12 +666,13 @@ public:
 	///           単にテーブルアイテムのテキストを編集後のテキストで置換する。
 	/// canEdit = テーブルアイテムが編集可能か否かを判定する関数。nullを指定した場合、
 	///           すべてのセルが編集可能になる。
-	this(Props prop, Table table, int editC,
+	this(Commons comm, Props prop, Table table, int editC,
 			void delegate(TableItem itm, int column, out string[] strs, out string str) createCombo,
 			void delegate(TableItem itm, int column, C combo) editEnd = null,
 			bool delegate(TableItem itm, int column) canEdit = null) {
 		try {
 			super (table, editC, canEdit);
+			_comm = comm;
 			_prop = prop;
 			this.createCombo = createCombo;
 			this.editEnd = editEnd;
@@ -681,7 +685,7 @@ public:
 		string[] strs;
 		string str;
 		createCombo(itm, editC, strs, str);
-		return createComboEditor!C(_prop, itm.getParent, strs, str);
+		return createComboEditor!C(_comm, _prop, itm.getParent, strs, str);
 	}
 	protected override void end(Control c) {
 		try {
@@ -2143,7 +2147,7 @@ E getRadioValue(E)(Button[E] radios) {
 	assert (0);
 }
 
-void forceFocus(Widget widget, bool shellActivate = true) {
+void forceFocus(Widget widget, bool shellActivate) {
 	auto d = Display.getCurrent;
 	if (widget is d.getFocusControl) return;
 	forceFocusImpl(widget, null, shellActivate);
@@ -2460,10 +2464,19 @@ void setComboItems(C)(C combo, string[] items) {
 
 /// Text/Combo/CComboに、アンドゥ・リドゥ及び
 /// 切り取り・コピー・貼り付け・削除のメニューをつける。
-TextMenuModify createTextMenu(T = Text)(Props prop, T text, bool delegate() canSaveHistory, UndoManager undo = null, TMAppendData apd = TMAppendData()) {
+TextMenuModify createTextMenu(T = Text)(Commons comm, Props prop, T text, bool delegate() canSaveHistory, UndoManager undo = null, TMAppendData apd = TMAppendData()) {
 	bool readOnly = (text.getStyle & SWT.READ_ONLY) != 0;
 	if (!readOnly && !undo) {
-		undo = new UndoManager(1024);
+		undo = new UndoManager(prop.var.etc.undoMaxEtc);
+		void refUndoMax() {
+			undo.max = prop.var.etc.undoMaxEtc;
+		}
+		comm.refUndoMax.add(&refUndoMax);
+		text.addDisposeListener(new class DisposeListener {
+			override void widgetDisposed(DisposeEvent e) {
+				comm.refUndoMax.remove(&refUndoMax);
+			}
+		});
 	}
 	TextMenuModify ml = null;
 	if (!readOnly) {

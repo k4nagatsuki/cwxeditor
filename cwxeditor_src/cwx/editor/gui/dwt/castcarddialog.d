@@ -11,6 +11,7 @@ import cwx.race;
 import cwx.xml;
 import cwx.skin;
 import cwx.motion;
+import cwx.path;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;
@@ -463,7 +464,7 @@ private:
 					_prop.looks.castNameLimit, false, grp, SWT.BORDER);
 				_name.limitEvent ~= &refreshWarning;
 				mod(_name.widget);
-				createTextMenu!Text(_prop, _name.widget, &catchMod);
+				createTextMenu!Text(_comm, _prop, _name.widget, &catchMod);
 				auto gd = new GridData(GridData.FILL_HORIZONTAL);
 				gd.widthHint = _name.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
 				_name.widget.setLayoutData = gd;
@@ -567,7 +568,7 @@ private:
 			grp.setText = _prop.msgs.desc;
 			_desc = new FixedWidthText(dwtData(_prop.looks.cardDescFont(_summ.legacy)), _prop.looks.cardDescLen, grp, SWT.BORDER);
 			mod(_desc.widget);
-			createTextMenu!Text(_prop, _desc.widget, &catchMod);
+			createTextMenu!Text(_comm, _prop, _desc.widget, &catchMod);
 			auto p = _desc.computeTextBaseSize(1);
 			p.y = SWT.DEFAULT;
 			_desc.widget.setLayoutData = p;
@@ -613,7 +614,7 @@ private:
 			}
 			{
 				_newCoupon = new Text(grp, SWT.BORDER);
-				_newCouponTM = createTextMenu!Text(_prop, _newCoupon, &catchMod);
+				_newCouponTM = createTextMenu!Text(_comm, _prop, _newCoupon, &catchMod);
 				_newCoupon.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 				_couponVal = new Spinner(grp, SWT.BORDER);
 				_couponVal.setMinimum = cast(int) _prop.looks.couponValueMax * -1;
@@ -1221,6 +1222,7 @@ private:
 			_comm.delCast.remove(&delCard);
 			_comm.refScenario.remove(&refScenario);
 			_comm.refSkin.remove(&refSkin);
+			_comm.refUndoMax.remove(&refUndoMax);
 			e.widget.getDisplay.removeFilter(SWT.KeyDown, _kdFilter);
 		}
 	}
@@ -1282,6 +1284,9 @@ private:
 		}
 	}
 
+	void refUndoMax() {
+		_undoCoupons.max = _prop.var.etc.undoMaxEtc;
+	}
 public:
 	this(Commons comm, Props prop, Shell shell, Summary summ, CastCard card) {
 		assert (summ !is null);
@@ -1290,13 +1295,17 @@ public:
 		_summ = summ;
 		_card = card;
 		_prop = prop;
-		_undoCoupons = new UndoManager(1024);
+		_undoCoupons = new UndoManager(_prop.var.etc.undoMaxEtc);
 		super(prop, shell, false, _card ? _prop.msgs.dlgTitCast(_card.name) : _prop.msgs.dlgTitNewCast,
 			_prop.images.casts, true, _prop.var.castCardDlg, true);
 	}
 
 	CastCard card() {
 		return _card;
+	}
+
+	bool openCWXPath(string path, bool shellActivate) {
+		return cpempty(path);
 	}
 protected:
 	override void setup(Composite area) {
@@ -1315,6 +1324,7 @@ protected:
 		_comm.delCast.add(&delCard);
 		_comm.refScenario.add(&refScenario);
 		_comm.refSkin.add(&refSkin);
+		_comm.refUndoMax.add(&refUndoMax);
 		area.addDisposeListener(new Dispose);
 		_kdFilter = new KeyDownFilter();
 		area.getDisplay.addFilter(SWT.KeyDown, _kdFilter);

@@ -8,6 +8,7 @@ import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.centerlayout;
+import cwx.editor.gui.dwt.commons;
 
 import std.array;
 import std.string;
@@ -25,6 +26,7 @@ import java.lang.all;
 
 class ScriptErrorDialog : AbsDialog {
 private:
+	Commons _comm;
 	Props _prop;
 	Control _parent;
 	CWXScriptException _ex;
@@ -44,7 +46,8 @@ private:
 		}
 	}
 public:
-	this(Props prop, Control parent, CWXScriptException ex) {
+	this(Commons comm, Props prop, Control parent, CWXScriptException ex) {
+		_comm = comm;
 		_prop = prop;
 		_parent = parent;
 		_ex = ex;
@@ -93,7 +96,7 @@ protected:
 			buf ~= _prop.msgs.scriptErrorOver100Error ~ "\n";
 		}
 		_result = new Text(area, SWT.BORDER | SWT.MULTI | SWT.READ_ONLY | SWT.WRAP | SWT.V_SCROLL);
-		createTextMenu!Text(_prop, _result, null);
+		createTextMenu!Text(_comm, _prop, _result, null);
 		_result.setText = buf;
 		auto font = _result.getFont;
 		auto fSize = font ? cast(uint) font.getFontData[0].height : 0;

@@ -934,7 +934,7 @@ private:
 		}
 	}
 	Control dirsCreateEditor(TreeItem itm) {
-		return itm.getParentItem ? createTextEditor(_prop, _dirs, itm.getText) : null;
+		return itm.getParentItem ? createTextEditor(_comm, _prop, _dirs, itm.getText) : null;
 	}
 	void filesEditEnd(TableItem itm, int column, string newText) {
 		if (newText.length == 0) return;
@@ -1055,7 +1055,7 @@ private:
 		if (!fp) return;
 		refreshDirs(fp);
 		refreshFiles(null);
-		.forceFocus(_dirs);
+		.forceFocus(_dirs, true);
 		_dirsEdit.startEdit;
 	}
 	void createDirFiles() {
@@ -1069,7 +1069,7 @@ private:
 		refreshFiles(files);
 		foreach (itm; _files.getItems) {
 			if (cfnmatch((cast(FileNameObj) itm.getData).array, fp)) {
-				.forceFocus(_files);
+				.forceFocus(_files, true);
 				_filesEdit.startEdit(itm);
 				break;
 			}
@@ -1530,7 +1530,7 @@ public:
 			auto cc = new TableColumn(_files, SWT.NONE);
 			cc.setText = _prop.msgs.fileCount;
 			saveColumnWidth!("prop.var.etc.fileCountColumn")(_prop, cc);
-			_filesEdit = new TableTextEdit(_prop, _files, 0, &filesEditEnd);
+			_filesEdit = new TableTextEdit(_comm, _prop, _files, 0, &filesEditEnd);
 
 			auto fs = new FileSelect;
 			_files.addKeyListener(fs);
@@ -2017,7 +2017,7 @@ public:
 		return _dirs.isFocusControl || _files.isFocusControl;
 	}
 
-	override bool openCWXPath(string path, bool shellActivate = true) {
+	override bool openCWXPath(string path, bool shellActivate) {
 		return false;
 	}
 }

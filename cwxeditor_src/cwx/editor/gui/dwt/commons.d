@@ -175,7 +175,7 @@ abstract class TopLevelPanel {
 		auto t = statusText;
 		if (t) t(statusLine);
 	}
-	abstract bool openCWXPath(string cwxPath, bool shellActivate = true);
+	abstract bool openCWXPath(string cwxPath, bool shellActivate);
 }
 class TLPData {
 	TopLevelPanel tlp;
@@ -238,6 +238,7 @@ class Commons {
 	Dlg!() refWallpaper;
 	Dlg!() refSortCondition;
 	Dlg!(TableColumn, int) refCardTableColumnWidth;
+	Dlg!() refUndoMax;
 
 	Dlg!(Area) refArea;
 	Dlg!(Area) delArea;
@@ -857,7 +858,7 @@ class Commons {
 		}
 	}
 
-	bool openCWXPath(string path, bool shellActivate = true) {
+	bool openCWXPath(string path, bool shellActivate) {
 		return _main.openCWXPath(path, shellActivate);
 	}
 	bool openFilePath(string path, bool shellActivate) {
