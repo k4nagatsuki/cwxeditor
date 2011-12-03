@@ -803,6 +803,8 @@ private:
 	MotionUser _muser;
 	AbstractEventTreeOwner _ceto;
 	class CETO : AbstractEventTreeOwner {
+		override
+		protected EventTreeOwner con() {return this.outer;}
 		const
 		override bool canHasFireEnter() {return false;}
 		const

@@ -1,6 +1,7 @@
 
 module cwx.utils;
 
+import cwx.structs;
 import cwx.sjis;
 
 import std.algorithm;
@@ -884,54 +885,103 @@ dchar decodeFontPath(string path) {
 	return toUniUpper(dpath[0]);
 }
 
-/// テキストの中で使用されているフラグ・ステップ・画像パスを抽出する。
-/// Params:
-/// text = テキスト。
-/// flags = 使用されているフラグ群。
-/// steps = 使用されているステップ群。
-/// fonts = 使用されている画像パス群。
-void textUseItems(in string text,
-		out string[] flags, out string[] steps, out string[] fonts) {
-	dstring dtext = toUTF32(text);
-	for (size_t i = 0; i + 1 < dtext.length; i++) {
+/// テキストの中で使用されているフラグ・ステップ・画像パス・名前を置換し、
+/// 変換後のテキスト、及び外部イメージと色変更記号の位置を返す。
+string formatMsg(in string text,
+		string delegate(string) getFlag,
+		string delegate(string) getStep,
+		string delegate(char) getName,
+		out string[size_t] fonts,
+		out char[size_t] colors) {
+	dchar[] result;
+	dstring dtext = to!dstring(text);
+	for (size_t i = 0; i < dtext.length; i++) {
 		dchar c = dtext[i];
-		void flag_step(ref string[] targ, dchar c) {
+		bool flag_step(string delegate(string) get, dchar c) {
 			int next = .countUntil(dtext[i + 1 .. $], c);
-			if (next >= 0) {
-				next = i + 1 + next;
-				targ ~= toUTF8(dtext[i + 1 .. next]);
-				dtext = dtext[next .. $];
-				i = 0;
-			}
+			if (next < 0) return false;
+			dstring fl = dtext[i + 1 .. i + 1 + next];
+			i = i + 1 + next;
+			result ~= to!dstring(get(to!string(fl)));
+			return true;
 		}
 		switch (c) {
 		case '#':
-			switch (std.ascii.toUpper(dtext[i + 1])) {
+			if (i + 1 == dtext.length) goto default;
+			auto nc = std.ascii.toUpper(dtext[i + 1]);
+			switch (nc) {
 			case 'M', 'R', 'U', 'C', 'I', 'T', 'Y':
-				break;
+				result ~= to!dstring(getName(cast(char) nc));
+				i++;
+				continue;
 			default:
-				fonts ~= toUTF8("font_"d ~ dtext[i + 1] ~ ".bmp"d);
+				fonts[result.length] = toUTF8("font_"d ~ dtext[i + 1] ~ ".bmp"d);
 				break;
 			}
-			i++;
-			break;
+			goto default;
 		case '%':
-			flag_step(flags, '%');
+			if (!flag_step(getFlag, '%')) goto default;
 			break;
 		case '$':
-			flag_step(steps, '$');
+			if (!flag_step(getStep, '$')) goto default;
 			break;
+		case '&':
+			if (i + 1 == dtext.length) goto default;
+			auto nc = std.ascii.toUpper(dtext[i + 1]);
+			switch (nc) {
+			case 'W', 'R', 'B', 'G', 'Y':
+				colors[result.length] = cast(char) nc;
+				break;
+			default:
+				break;
+			}
+			goto default;
 		default:
+			result ~= c;
 			break;
 		}
 	}
+	return to!string(assumeUnique(result));
+} unittest {
+	string[size_t] rFonts;
+	char[size_t] rColors;
+	string result = formatMsg("%flag1%, %flag2%, $step1$, $step2$, &R, &W, #m, #r", (string flag) {
+		if ("flag1" == flag) return "f1test";
+		return "f2";
+	}, (string step) {
+		if ("step1" == step) return "s1test";
+		return " ";
+	}, (char name) {
+		if (name == 'R') return "R_test";
+		return "";
+	}, rFonts, rColors);
+	assert (result == "f1test, f2, s1test,  , &R, &W, , R_test", result);
+	assert (rFonts.length == 0);
+	assert (rColors == [cast(size_t) 23:'R', cast(size_t) 27:'W'], .text(rColors));
+}
+/// テキストの中で使用されているフラグ・ステップ・画像パスを抽出する。
+void textUseItems(in string text,
+		out string[] flags, out string[] steps, out string[] fonts) {
+	string[size_t] rFonts;
+	char[size_t] rColors;
+	formatMsg(text, (string flag) {
+		flags ~= flag;
+		return "";
+	}, (string step) {
+		steps ~= step;
+		return "";
+	}, (char name) {
+		return "";
+	}, rFonts, rColors);
+	fonts = rFonts.values;
 } unittest {
 	string[] flags, steps, fonts;
 	textUseItems("#M#R#U#C#I#T#Yaaa$test$$あああ\t2$$#tes%t3$%tes#t%#a#Z#1#2#33d$dd%aaa%%#%#;%vv%#表%#", flags, steps, fonts);
-	assert(flags == ["tes#t", "aaa", "#", "vv"]);
-	assert(steps == ["test", "あああ\t2", "#tes%t3"]);
-	assert(fonts == ["font_a.bmp", "font_Z.bmp", "font_1.bmp", "font_2.bmp", "font_3.bmp", "font_;.bmp", "font_表.bmp"]);
+	assert(flags.sort == ["tes#t", "aaa", "#", "vv"].sort, .text(flags));
+	assert(steps.sort == ["test", "あああ\t2", "#tes%t3"].sort, .text(steps));
+	assert(fonts.sort == ["font_a.bmp", "font_Z.bmp", "font_1.bmp", "font_2.bmp", "font_3.bmp", "font_;.bmp", "font_表.bmp"].sort, .text(fonts));
 }
+
 private void __replOn(ref dstring dtext, ref dstring buf, ref size_t i, dstring dold, dstring dnew, dchar targC) {
 	int next = .countUntil(dtext[i + 1 .. $], targC);
 	if (next >= 0) {
@@ -1022,18 +1072,18 @@ string replTextUseStep(string text, string oldStep, string newStep) {
 /// newFont = 置換後の画像パス。
 string replTextUseFont(string text, string oldFont, string newFont)
 in {
-	dstring dold = toUTF32(toLower(oldFont));
-	dstring dnew = toUTF32(toLower(newFont));
-	assert(dold.length == 10);
+	dstring dold = toUTF32(toLower(oldFont.baseName));
+	dstring dnew = toUTF32(toLower(newFont.baseName));
+	assert(dold.length == 10, .text(dold));
 	assert(startsWith(dold, "font_"d));
 	assert(endsWith(dold, ".bmp"d));
-	assert(dnew.length == 10);
+	assert(dnew.length == 10, .text(dnew));
 	assert(startsWith(dnew, "font_"d));
 	assert(endsWith(dnew, ".bmp"d));
 } body {
 	dstring dtext = toUTF32(text);
-	dchar dold = toUTF32(oldFont)[5];
-	dchar dnew = toUTF32(newFont)[5];
+	dchar dold = toUTF32(oldFont.baseName)[5];
+	dchar dnew = toUTF32(newFont.baseName)[5];
 	dstring buf;
 	for (size_t i; i < dtext.length; i++) {
 		dchar c = dtext[i];
@@ -1295,7 +1345,7 @@ void delAll(string delpath, bool force = true) {
 }
 
 /// arrにaが見つかればtrueを返す。
-bool contains(string pred = "a == b", T)(in T[] arr, in T a) {
+bool contains(string pred = "a == b", T1, T2)(in T1[] arr, in T2 a) {
 	foreach (b; arr) {
 		if (mixin(pred)) return true;
 	}

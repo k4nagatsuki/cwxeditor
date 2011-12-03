@@ -33,6 +33,7 @@ import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.jpyimage;
 import cwx.editor.gui.dwt.areawindow;
+import cwx.editor.gui.dwt.message;
 
 import std.algorithm;
 import std.math;
@@ -1986,7 +1987,7 @@ public:
 			img.visible = _viewParty;
 			_imgp.append(img);
 		}
-		auto img = createMessageImage(_prop);
+		auto img = createMessageImage(_comm, _prop);
 		img.visible = _viewMsg;
 		_imgp.append(img);
 	}
@@ -3561,33 +3562,13 @@ BgImagesView createBgImagesViewAndMenu(Commons comm, Props prop, Summary summ, B
 	return view;
 }
 
-PileImage createMessageImage(Props prop) {
-	auto d = Display.getCurrent;
+PileImage createMessageImage(Commons comm, Props prop) {
 	auto rect = prop.looks.messageBounds;
-	auto bh = prop.looks.messageButtonHeight;
-	auto canvas = new Image(d, rect.width, rect.height + bh);
-	scope (exit) canvas.dispose;
-	auto gc = new GC(canvas);
-	scope (exit) gc.dispose;
-	int alpha;
-	auto c1 = new Color(d, dwtData(prop.looks.messageLineColor1, alpha));
-	scope (exit) c1.dispose;
-	auto c2 = new Color(d, dwtData(prop.looks.messageLineColor2, alpha));
-	scope (exit) c2.dispose;
-	auto c3 = new Color(d, dwtData(prop.looks.messageBackColor, alpha));
-	scope (exit) c3.dispose;
-	gc.setForeground = c1;
-	gc.drawRectangle(0, 0, rect.width - 1, rect.height - 1);
-	gc.drawRectangle(2, 2, rect.width - 5, rect.height - 5);
-	gc.drawRectangle(0, rect.height, rect.width - 1, bh - 1);
-	gc.drawRectangle(2, rect.height + 2, rect.width - 5, bh - 5);
-	gc.setForeground = c2;
-	gc.drawRectangle(1, 1, rect.width - 3, rect.height - 3);
-	gc.drawRectangle(1, rect.height + 1, rect.width - 3, bh - 3);
-	gc.setBackground = c3;
-	gc.fillRectangle(3, 3, rect.width - 6, rect.height - 6);
-	gc.fillRectangle(3, rect.height + 3, rect.width - 6, bh - 6);
-	auto img = new PileImage(canvas.getImageData, rect.x, rect.y, rect.width, rect.height + bh);
+	string[char] names;
+	string[string] flags;
+	// 特殊文字が無いためシナリオパス不要
+	auto imgData = previewMessage(comm, prop, "", null, "", [""], names, flags);
+	auto img = new PileImage(imgData, rect.x, rect.y, imgData.width, imgData.height);
 	img.alpha = prop.var.etc.messageAlpha;
 	img.createImage;
 	return img;

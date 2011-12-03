@@ -9,6 +9,7 @@ import cwx.skin;
 import cwx.xml;
 import cwx.flag;
 import cwx.path;
+import cwx.structs;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;
@@ -57,6 +58,8 @@ import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.PaletteData;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.events.PaintListener;
@@ -79,6 +82,7 @@ import org.eclipse.swt.dnd.DropTarget;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.Transfer;
 
+/// 台詞コンテントの設定ダイアログ。
 class SpeakDialog : EventDialog {
 private:
 	class APData {
@@ -614,6 +618,7 @@ protected:
 	}
 }
 
+/// メッセージコンテントの設定ダイアログ。
 class MessageDialog : EventDialog {
 private:
 	CTabFolder _tabf;
@@ -1093,4 +1098,224 @@ private void putColor(FixedWidthText text, dchar put) {
 	text.setText = toUTF8(newt);
 	int nSel = sel.y + (newt.length - old.length);
 	text.widget.setSelection(nSel);
+}
+
+/// メッセージのプレビューを生成する。
+ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talker, string message, in string[] sel, in string[char] names, in string[string] flags) {
+	auto d = Display.getCurrent;
+	version (Windows) {
+		bool legacy = comm.skin.legacy;
+	} else {
+		bool legacy = false;
+	}
+	auto rect = prop.looks.messageBounds;
+	auto bh = prop.looks.messageButtonHeight(legacy);
+	auto canvas = new Image(d, rect.width, rect.height + bh * sel.length);
+	scope (exit) canvas.dispose;
+	auto gc = new GC(canvas);
+	scope (exit) gc.dispose;
+	int alpha;
+
+	// 背景の描画
+	auto back = new Color(d, dwtData(prop.looks.messageBackColor, alpha));
+	scope (exit) back.dispose();
+	gc.setBackground = back;
+	gc.fillRectangle(3, 3, rect.width - 6, rect.height - 6);
+	foreach (i; 0 .. sel.length) {
+		gc.fillRectangle(3, rect.height + 3 + bh * i, rect.width - 6, bh - 6);
+	}
+
+	// 文章と特殊文字の描画
+
+	// 改行置換
+	if (.contains(message, '\r')) {
+		message = message.splitlines.join("\n");
+	}
+	// 特殊文字・フラグ・ステップ・色
+	string[size_t] rFonts;
+	char[size_t] rColors;
+	string fValue(string path) {
+		foreach (f, v; flags) {
+			if (0 == icmp(f, path)) {
+				return v;
+			}
+		}
+		return "";
+	}
+	message = formatMsg(message, &fValue, &fValue, delegate string (char name) {
+		auto dc = std.ascii.toUpper(name);
+		foreach (c, v; names) {
+			if (std.ascii.toUpper(c) == dc) {
+				return v;
+			}
+		}
+		return "";
+	}, rFonts, rColors);
+	auto dmsg = to!dstring(message);
+
+	CPoint[] spFontP;
+	string[] spFont;
+	auto cr = d.getSystemColor(SWT.COLOR_RED);
+	auto cb = d.getSystemColor(SWT.COLOR_BLUE);
+	auto cg = d.getSystemColor(SWT.COLOR_GREEN);
+	auto cy = d.getSystemColor(SWT.COLOR_YELLOW);
+
+	auto font = new Font(d, dwtData(prop.looks.messageFont(legacy)));
+	scope (exit) font.dispose();
+	auto fc = new Color(d, dwtData(prop.looks.messageForeColor, alpha));
+	scope (exit) fc.dispose();
+	auto hc = new Color(d, dwtData(prop.looks.messageHemColor, alpha));
+	scope (exit) hc.dispose();
+	auto selFont = new Font(d, dwtData(prop.looks.messageSelectFont(legacy)));
+	scope (exit) selFont.dispose();
+
+	if (legacy) {
+		auto textCanvas = new Image(d, rect.width, rect.height + bh * sel.length);
+		scope (exit) textCanvas.dispose();
+		auto tgc = new GC(textCanvas);
+		scope (exit) tgc.dispose();
+		// FIXME: IPAフォントの使用とアンチエイリアス設定を
+		//        同時に行うと一部環境で問題が出る。
+//		tgc.setTextAntialias = SWT.OFF;
+		tgc.setFont = font;
+		tgc.setForeground = fc;
+		tgc.setBackground = hc;
+		tgc.fillRectangle(0, 0, rect.width, rect.height + bh * sel.length);
+		auto start = prop.looks.messageStartPos(talker !is null);
+		auto lineH = tgc.getFontMetrics.getHeight + 2;
+		int x = start.x, y = start.y;
+		for (size_t i = 0; i < dmsg.length; i++) {
+			if (rect.height < y + lineH) {
+				// 行数オーバー
+				break;
+			}
+			auto cf = i in rFonts;
+			if (cf) {
+				// 特殊文字の描画位置を記憶
+				string s1 = to!string(dmsg[i]);
+				i++;
+				string s2 = to!string(dmsg[i]);
+				spFontP ~= CPoint(x, y);
+				spFont ~= *cf;
+				x += tgc.textExtent(s1).x - 1;
+				x += tgc.textExtent(s2).x - 1;
+				continue;
+			}
+			auto cp = i in rColors;
+			if (cp) {
+				// フォント色変更
+				switch (*cp) {
+				case 'W': tgc.setForeground = fc; break;
+				case 'R': tgc.setForeground = cr; break;
+				case 'B': tgc.setForeground = cb; break;
+				case 'G': tgc.setForeground = cg; break;
+				case 'Y': tgc.setForeground = cy; break;
+				default: assert (0);
+				}
+				i++;
+				continue;
+			}
+			auto c = dmsg[i];
+			switch (c) {
+			case '\n':
+				x = start.x;
+				y += lineH;
+				break;
+			default:
+				auto s = to!string(c);
+				tgc.drawText(s, x, y);
+				x += tgc.textExtent(s).x - 1;
+				if (rect.width < x + lineH) {
+					// 列数オーバー
+					goto case '\n';
+				}
+				break;
+			}
+		}
+
+		// 選択肢
+		tgc.setForeground = fc;
+		tgc.setFont = selFont;
+		auto slh = tgc.getFontMetrics.getHeight;
+		int sx;
+		int sy = rect.height + ((bh - slh) / 2);
+		foreach (i, t; sel) {
+			sx = (rect.width - tgc.textExtent(t).x) / 2;
+			tgc.drawText(t, sx, sy);
+			sy += bh;
+		}
+
+		// 貼り付け
+		auto tImgData = textCanvas.getImageData;
+		tImgData.transparentPixel = tImgData.getPixel(0, 0);
+		auto hemImgData = new ImageData(tImgData.width, tImgData.height, 2, new PaletteData([new RGB(255, 255, 255), new RGB(0, 0, 0)]));
+		hemImgData.transparentPixel = 0;
+		foreach (ix; 0 .. tImgData.width) {
+			foreach (iy; 0 .. tImgData.height) {
+				if (tImgData.getPixel(ix, iy) != tImgData.transparentPixel) {
+					hemImgData.setPixel(ix, iy, 1);
+				}
+			}
+		}
+		auto hemImg = new Image(d, hemImgData);
+		scope (exit) hemImg.dispose();
+		auto tImg = new Image(d, tImgData);
+		scope (exit) tImg.dispose();
+		gc.drawImage(hemImg, -1, -1);
+		gc.drawImage(hemImg, 0, -1);
+		gc.drawImage(hemImg, 1, -1);
+		gc.drawImage(hemImg, 1, 0);
+		gc.drawImage(hemImg, 1, 1);
+		gc.drawImage(hemImg, 0, 1);
+		gc.drawImage(hemImg, -1, 1);
+		gc.drawImage(hemImg, -1, 0);
+		gc.drawImage(tImg, 0, 0);
+	}
+
+	// フォントイメージ
+	auto spChars = comm.skin.spChars;
+	for (size_t i = 0; i < spFontP.length; i++) {
+		auto pt = spFontP[i];
+		auto path = spFont[i];
+		string fpath = comm.skin.findImagePath(path, sPath);
+		if (!fpath || !fpath.length) {
+			auto p = decodeFontPath(path) in spChars;
+			if (p) {
+				fpath = *p;
+			}
+		}
+		if (fpath && fpath.length) {
+			auto img = new Image(d, loadImage(fpath, true));
+			scope (exit) img.dispose();
+			gc.drawImage(img, pt.x - 2, pt.y - 2);
+		}
+	}
+
+	// 話者
+	if (talker) {
+		auto tImg = new Image(d, talker);
+		scope (exit) tImg.dispose();
+		auto tp = prop.looks.messageTalkerPos;
+		gc.drawImage(tImg, tp.x, tp.y);
+	}
+
+	// 枠
+	auto c1 = new Color(d, dwtData(prop.looks.messageLineColor1, alpha));
+	scope (exit) c1.dispose();
+	auto c2 = new Color(d, dwtData(prop.looks.messageLineColor2, alpha));
+	scope (exit) c2.dispose();
+	gc.setForeground = c1;
+	gc.drawRectangle(0, 0, rect.width - 1, rect.height - 1);
+	gc.drawRectangle(2, 2, rect.width - 5, rect.height - 5);
+	foreach (i; 0 .. sel.length) {
+		gc.drawRectangle(0, rect.height + bh * i, rect.width - 1, bh - 1);
+		gc.drawRectangle(2, rect.height + 2 + bh * i, rect.width - 5, bh - 5);
+	}
+	gc.setForeground = c2;
+	gc.drawRectangle(1, 1, rect.width - 3, rect.height - 3);
+	foreach (i; 0 .. sel.length) {
+		gc.drawRectangle(1, rect.height + 1 + bh * i, rect.width - 3, bh - 3);
+	}
+
+	return canvas.getImageData;
 }

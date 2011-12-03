@@ -402,7 +402,7 @@ private:
 		if (!files.length) return "";
 		foreach (file; files) {
 			string ext = cwx.utils.toLower(cwx.utils.getExt(file));
-			if (.contains!("a == b", string)(SYSTEM_SOUND_EXT, ext)) {
+			if (.contains!("a == b", string, string)(SYSTEM_SOUND_EXT, ext)) {
 				return file;
 			}
 		}
@@ -452,7 +452,7 @@ private:
 	string dropWallpaper(string[] files) {
 		if (!files.length) return "";
 		foreach (file; files) {
-			if (.contains!("a == b", string)(WALLPAPER_EXT, cwx.utils.toLower(cwx.utils.getExt(file)))) {
+			if (.contains!("a == b", string, string)(WALLPAPER_EXT, cwx.utils.toLower(cwx.utils.getExt(file)))) {
 				return file;
 			}
 		}

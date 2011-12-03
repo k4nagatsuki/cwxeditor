@@ -1749,7 +1749,7 @@ public:
 			if (!fc) return;
 			bool ro = !(fc.getStyle & SWT.READ_ONLY);
 			if (ro && (cast(Spinner) fc || cast(Text) fc || cast(Combo) fc || cast(CCombo) fc)) {
-				if (!(e.stateMask & SWT.CTRL) && !.contains!("a == b", int)(F, e.keyCode)) {
+				if (!(e.stateMask & SWT.CTRL) && !.contains!("a == b", int, int)(F, e.keyCode)) {
 					return;
 				}
 			}

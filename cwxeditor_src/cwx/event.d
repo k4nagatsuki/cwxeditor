@@ -2348,6 +2348,8 @@ public:
 	protected void changed() {
 		if (_change) _change();
 	}
+	/// 移譲によって使用する場合は移譲元を返す。
+	protected EventTreeOwner con() {return null;}
 
 	EventTree[] trees() {
 		return _evts;
@@ -2376,7 +2378,7 @@ public:
 			evt.setUseCounter(_uc);
 		}
 		evt.changeHandler = changeHandler;
-		evt._owner = this;
+		evt._owner = con ? con : this;
 		changed;
 	}
 	void add(EventTree evt) {
