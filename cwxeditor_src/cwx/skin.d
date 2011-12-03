@@ -668,7 +668,16 @@ class Skin {
 			foreach (path; clistdir(fd)) {
 				path = std.path.join(fd, path);
 				if (!isdir(path) && cfnmatch(getExt(path), _resExtImg)) {
-					_spChars[toUniUpper(toUTF32(getBaseName(path))[0])] = path;
+					auto dp = toUTF32(getName(getBaseName(path)));
+					auto c = toUniUpper(dp[0]);
+					switch (c) {
+					case 'M', 'R', 'U', 'C', 'I', 'T', 'Y':
+						c = toUniUpper(dp[$ - 1]);
+						break;
+					default:
+						break;
+					}
+					_spChars[c] = path;
 				}
 			}
 		} catch (Exception e) {
