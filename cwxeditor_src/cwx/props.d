@@ -57,14 +57,18 @@ public:
 	}
 
 	const CRect messageBounds() {return CRect(81, 50, 470, 180);}
-	const int messageButtonHeight(bool legacy) {return legacy ? 25 : 26;}
+	const int messageButtonHeight() {return 25;}
 	const CRGB messageLineColor1() {return CRGB(0, 0, 0);}
 	const CRGB messageLineColor2() {return CRGB(128, 0, 0);}
 	const CRGB messageBackColor() {return CRGB(0, 0, 128);}
 	const CRGB messageForeColor() {return CRGB(255, 255, 255);}
 	const CRGB messageHemColor() {return CRGB(0, 0, 0);}
-	const CPoint messageStartPos(bool withTalker) {
-		return withTalker ? CPoint(115, 11) : CPoint(16, 11);
+	const CPoint messageStartPos(bool legacy, bool withTalker) {
+		if (legacy) {
+			return withTalker ? CPoint(115, 11) : CPoint(16, 11);
+		} else {
+			return withTalker ? CPoint(115, 15) : CPoint(15, 15);
+		}
 	}
 	const CPoint messageTalkerPos() {return CPoint(15, 43);}
 	const int levelMax() {return 15;}
@@ -209,7 +213,7 @@ public:
 		version (Windows) {
 			if (legacy) return CFont(pgothic(legacy), 11, true, false);
 		}
-		return CFont(gothic(legacy), 12, false, false);
+		return CFont(pgothic(legacy), 14, false, false);
 	}
 	const CFont scriptErrorFont(uint defSize) {
 		return textDlgFont(defSize);

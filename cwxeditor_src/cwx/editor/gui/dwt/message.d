@@ -1109,7 +1109,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 		bool legacy = false;
 	}
 	auto rect = prop.looks.messageBounds;
-	auto bh = prop.looks.messageButtonHeight(legacy);
+	auto bh = prop.looks.messageButtonHeight;
 	auto canvas = new Image(d, rect.width, rect.height + bh * sel.length);
 	scope (exit) canvas.dispose;
 	auto gc = new GC(canvas);
@@ -1169,6 +1169,8 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 	auto selFont = new Font(d, dwtData(prop.looks.messageSelectFont(legacy)));
 	scope (exit) selFont.dispose();
 
+	auto start = prop.looks.messageStartPos(legacy, talker !is null);
+	int x = start.x, y = start.y;
 	if (legacy) {
 		auto textCanvas = new Image(d, rect.width, rect.height + bh * sel.length);
 		scope (exit) textCanvas.dispose();
@@ -1181,9 +1183,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 		tgc.setForeground = fc;
 		tgc.setBackground = hc;
 		tgc.fillRectangle(0, 0, rect.width, rect.height + bh * sel.length);
-		auto start = prop.looks.messageStartPos(talker !is null);
 		auto lineH = tgc.getFontMetrics.getHeight + 2;
-		int x = start.x, y = start.y;
 		for (size_t i = 0; i < dmsg.length; i++) {
 			if (rect.height < y + lineH) {
 				// 行数オーバー
@@ -1195,7 +1195,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 				string s1 = to!string(dmsg[i]);
 				i++;
 				string s2 = to!string(dmsg[i]);
-				spFontP ~= CPoint(x, y);
+				spFontP ~= CPoint(x - 2, y - 2);
 				spFont ~= *cf;
 				x += tgc.textExtent(s1).x - 1;
 				x += tgc.textExtent(s2).x - 1;
@@ -1223,7 +1223,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 				break;
 			default:
 				auto s = to!string(c);
-				tgc.drawText(s, x, y);
+				tgc.drawText(s, x, y, true);
 				x += tgc.textExtent(s).x - 1;
 				if (rect.width < x + lineH) {
 					// 列数オーバー
@@ -1241,7 +1241,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 		int sy = rect.height + ((bh - slh) / 2);
 		foreach (i, t; sel) {
 			sx = (rect.width - tgc.textExtent(t).x) / 2;
-			tgc.drawText(t, sx, sy);
+			tgc.drawText(t, sx, sy, true);
 			sy += bh;
 		}
 
@@ -1270,6 +1270,97 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 		gc.drawImage(hemImg, -1, 1);
 		gc.drawImage(hemImg, -1, 0);
 		gc.drawImage(tImg, 0, 0);
+	} else {
+		// FIXME: IPAフォントの使用とアンチエイリアス設定を
+		//        同時に行うと一部環境で問題が出る。
+//		gc.setTextAntialias = SWT.ON;
+		gc.setFont = font;
+		auto lineH = gc.getFontMetrics.getHeight;
+
+		string old = "";
+		void drawText(string s, int x, int y) {
+			if ("―" == s && "―" == old) {
+				// "―"の場合のみ表示を接続する処理が入る
+				gc.setForeground = hc;
+				gc.drawText(s, x, y - 1, true);
+				gc.drawText(s, x, y + 1, true);
+				gc.drawText(s, x - lineH / 2 + 2, y - 1, true);
+				gc.drawText(s, x - lineH / 2 + 2, y + 1, true);
+				gc.setForeground = fc;
+				gc.drawText(s, x - lineH / 2, y, true);
+				gc.drawText(s, x, y, true);
+			} else {
+				gc.setForeground = hc;
+				gc.drawText(s, x - 1, y, true);
+				gc.drawText(s, x + 1, y, true);
+				gc.drawText(s, x, y - 1, true);
+				gc.drawText(s, x, y + 1, true);
+				gc.setForeground = fc;
+				gc.drawText(s, x, y, true);
+			}
+			old = s;
+		}
+		for (size_t i = 0; i < dmsg.length; i++) {
+			if (rect.height < y + lineH) {
+				// 行数オーバー
+				break;
+			}
+			auto cf = i in rFonts;
+			if (cf) {
+				// 特殊文字の描画位置を記憶
+				string s1 = to!string(dmsg[i]);
+				i++;
+				string s2 = to!string(dmsg[i]);
+				spFontP ~= CPoint(x, y - 2);
+				spFont ~= *cf;
+				x += gc.textExtent(s1).x - 1;
+				x += gc.textExtent(s2).x - 1;
+				continue;
+			}
+			auto cp = i in rColors;
+			if (cp) {
+				// フォント色変更
+				switch (*cp) {
+				case 'W': gc.setForeground = fc; break;
+				case 'R': gc.setForeground = cr; break;
+				case 'B': gc.setForeground = cb; break;
+				case 'G': gc.setForeground = cg; break;
+				case 'Y': gc.setForeground = cy; break;
+				default: assert (0);
+				}
+				i++;
+				continue;
+			}
+			auto c = dmsg[i];
+			switch (c) {
+			case '\n':
+				x = start.x;
+				y += lineH;
+				old = "";
+				break;
+			default:
+				auto s = to!string(c);
+				drawText(s, x, y);
+				x += gc.textExtent(s).x;
+				if (rect.width < x + lineH) {
+					// 列数オーバー
+					goto case '\n';
+				}
+				break;
+			}
+		}
+
+		// 選択肢
+		gc.setForeground = fc;
+		gc.setFont = selFont;
+		auto slh = gc.getFontMetrics.getHeight;
+		int sx;
+		int sy = rect.height + ((bh - slh) / 2);
+		foreach (i, t; sel) {
+			sx = (rect.width - gc.textExtent(t).x) / 2;
+			drawText(t, sx, sy);
+			sy += bh;
+		}
 	}
 
 	// フォントイメージ
@@ -1287,7 +1378,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 		if (fpath && fpath.length) {
 			auto img = new Image(d, loadImage(fpath, true));
 			scope (exit) img.dispose();
-			gc.drawImage(img, pt.x - 2, pt.y - 2);
+			gc.drawImage(img, pt.x, pt.y);
 		}
 	}
 

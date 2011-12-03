@@ -3569,7 +3569,7 @@ PileImage createMessageImage(Commons comm, Props prop) {
 	// 特殊文字が無いためシナリオパス不要
 	auto imgData = previewMessage(comm, prop, "", null, "", [""], names, flags);
 	auto img = new PileImage(imgData, rect.x, rect.y, imgData.width, imgData.height);
-	img.alpha = prop.var.etc.messageAlpha;
+//	img.alpha = prop.var.etc.messageAlpha;
 	img.createImage;
 	return img;
 }
