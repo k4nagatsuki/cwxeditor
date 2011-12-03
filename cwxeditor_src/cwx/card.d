@@ -740,6 +740,8 @@ public:
 	this(ulong id, string name, string imagePath, string desc) {
 		super(id, name, imagePath, desc);
 		_ceto = new class AbstractEventTreeOwner {
+			override
+			protected EventTreeOwner con() {return this.outer;}
 			override bool canHasFireEnter() {return false;}
 			override bool canHasFireLose() {return false;}
 			override bool canHasFireEscape() {return false;}

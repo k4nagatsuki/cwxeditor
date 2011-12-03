@@ -835,8 +835,8 @@ string replTextUseStep(string text, string oldStep, string newStep) {
 /// newFont = 置換後の画像パス。
 string replTextUseFont(string text, string oldFont, string newFont)
 in {
-	dstring dold = toUTF32(toLower(oldFont));
-	dstring dnew = toUTF32(toLower(newFont));
+	dstring dold = toUTF32(toLower(std.path.getBaseName(oldFont)));
+	dstring dnew = toUTF32(toLower(std.path.getBaseName(newFont)));
 	assert(dold.length == 10);
 	assert(startsWith(dold, "font_"d));
 	assert(endsWith(dold, ".bmp"d));
@@ -845,8 +845,8 @@ in {
 	assert(endsWith(dnew, ".bmp"d));
 } body {
 	dstring dtext = toUTF32(text);
-	dchar dold = toUTF32(oldFont)[5];
-	dchar dnew = toUTF32(newFont)[5];
+	dchar dold = toUTF32(std.path.getBaseName(oldFont))[5];
+	dchar dnew = toUTF32(std.path.getBaseName(newFont))[5];
 	dstring buf;
 	for (size_t i; i < dtext.length; i++) {
 		dchar c = dtext[i];
