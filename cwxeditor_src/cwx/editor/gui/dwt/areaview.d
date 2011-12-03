@@ -3567,9 +3567,9 @@ PileImage createMessageImage(Commons comm, Props prop) {
 	string[char] names;
 	string[string] flags;
 	// 特殊文字が無いためシナリオパス不要
-	auto imgData = previewMessage(comm, prop, "", null, "一行目\n#Q#L#O#B#H\n二行目――～～", ["OK"], names, flags);
+	auto imgData = previewMessage(comm, prop, "", null, "", [""], names, flags);
 	auto img = new PileImage(imgData, rect.x, rect.y, imgData.width, imgData.height);
-//	img.alpha = prop.var.etc.messageAlpha;
+	img.alpha = prop.var.etc.messageAlpha;
 	img.createImage;
 	return img;
 }
