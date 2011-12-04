@@ -457,6 +457,7 @@ public:
 				_path = std.path.buildPath(p, _fileList.getItem(0));
 				if (_refresh) _refresh();
 			}
+			_selDir = sel;
 		}
 	}
 private:

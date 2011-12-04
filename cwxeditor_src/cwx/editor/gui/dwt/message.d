@@ -1575,6 +1575,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 
 	CPoint[] spFontP;
 	string[] spFont;
+	RGB[] spColor;
 	auto cr = d.getSystemColor(SWT.COLOR_RED);
 	auto cb = d.getSystemColor(SWT.COLOR_BLUE);
 	auto cg = d.getSystemColor(SWT.COLOR_GREEN);
@@ -1624,6 +1625,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 				string s2 = to!string(dmsg[i]);
 				spFontP ~= CPoint(x - 2, y - 2);
 				spFont ~= *cf;
+				spColor ~= tgc.getForeground.getRGB;
 				x += tgc.textExtent(s1).x - 1;
 				x += tgc.textExtent(s2).x - 1;
 				continue;
@@ -1744,6 +1746,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 				string s2 = to!string(dmsg[i]);
 				spFontP ~= CPoint(x, y - 2);
 				spFont ~= *cf;
+				spColor ~= gc.getForeground.getRGB;
 				x += gc.textExtent(s1).x - 1;
 				x += gc.textExtent(s2).x - 1;
 				continue;
@@ -1798,19 +1801,39 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 	}
 
 	// フォントイメージ
-	auto spChars = comm.skin.spChars;
+	auto wrgb = fc.getRGB;
 	for (size_t i = 0; i < spFontP.length; i++) {
 		auto pt = spFontP[i];
 		auto path = spFont[i];
 		string fpath = comm.skin.findImagePath(path, sPath);
-		if (!fpath || !fpath.length) {
-			auto p = decodeFontPath(path) in spChars;
-			if (p) {
-				fpath = *p;
+		ImageData data = null;
+		if (fpath && fpath.length) {
+			// シナリオ内特殊文字
+			data = loadImage(fpath, true);
+		}
+		if (!data) {
+			// 標準特殊文字
+			auto c = spColor[i];
+			data = spChar(comm.skin, decodeFontPath(path));
+			if (data && !wrgb.opEquals(c)) {
+				auto spc = data;
+				data = new ImageData(spc.width, spc.height, 24, new PaletteData(0xFF << 16, 0xFF << 8, 0xFF << 0));
+				// &R等による色の置換
+				foreach (dx; 0 .. data.width) {
+					foreach (dy; 0 .. data.height) {
+						auto p = spc.palette.getRGB(spc.getPixel(dx, dy));
+						if (wrgb.opEquals(p)) {
+							data.setPixel(dx, dy, (c.red << 16) | (c.green << 8) | (c.blue << 0));
+						} else {
+							data.setPixel(dx, dy, (p.red << 16) | (p.green << 8) | (p.blue << 0));
+						}
+					}
+				}
+				data.transparentPixel = data.getPixel(0, 0);
 			}
 		}
-		if (fpath && fpath.length) {
-			auto img = new Image(d, loadImage(fpath, true));
+		if (data) {
+			auto img = new Image(d, data);
 			scope (exit) img.dispose();
 			gc.drawImage(img, pt.x, pt.y);
 		}

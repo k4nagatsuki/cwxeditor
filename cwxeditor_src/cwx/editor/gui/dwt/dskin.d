@@ -272,8 +272,13 @@ ImageData spChar(Skin skin, dchar c) {
 	default: res = "";
 	}
 	return createImg(skin.legacyEngine, res, delegate string (out bool mask, out bool rMask) {
-		mask = true;
-		rMask = false;
-		return skin.spChars[c];
+		auto p = c in skin.spChars;
+		if (p) {
+			mask = true;
+			rMask = false;
+			return *p;
+		} else {
+			return null;
+		}
 	});
 }

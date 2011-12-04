@@ -908,6 +908,7 @@ string formatMsg(in string text,
 		switch (c) {
 		case '#':
 			if (i + 1 == dtext.length) goto default;
+			if ('\n' == dtext[i + 1]) goto default;
 			auto nc = std.ascii.toUpper(dtext[i + 1]);
 			switch (nc) {
 			case 'M', 'R', 'U', 'C', 'I', 'T', 'Y':
@@ -927,6 +928,7 @@ string formatMsg(in string text,
 			break;
 		case '&':
 			if (i + 1 == dtext.length) goto default;
+			if ('\n' == dtext[i + 1]) goto default;
 			auto nc = std.ascii.toUpper(dtext[i + 1]);
 			switch (nc) {
 			case 'W', 'R', 'B', 'G', 'Y':
