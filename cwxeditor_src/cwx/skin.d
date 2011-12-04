@@ -119,7 +119,7 @@ class Skin {
 		_legacyPath = resDir;
 		_legacyEngine = lEnginePath;
 		if (!('A' in _spChars)) _spChars['A'] = "";
-		if (!('C' in _spChars)) _spChars['C'] = "";
+		if (!('B' in _spChars)) _spChars['B'] = "";
 		if (!('D' in _spChars)) _spChars['D'] = "";
 		if (!('E' in _spChars)) _spChars['E'] = "";
 		if (!('F' in _spChars)) _spChars['F'] = "";

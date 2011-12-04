@@ -52,6 +52,7 @@ abstract class AbsDialog {
 	private Shell _win;
 	private DSize _size;
 	private Composite _area;
+	private Composite _addition;
 	private bool _modal;
 	private bool _hasApply;
 	this (Props prop, Shell parent, string text, Image img, bool resizable, DSize size = null, bool apply = false, bool cancel = true, ButtonInfo[] button = []) {
@@ -69,14 +70,21 @@ abstract class AbsDialog {
 		_win = new Shell(parent, style);
 		_win.setText = text;
 		_win.setImage = img;
-		_win.setLayout = zeroGridLayout(1, true);
+		_win.setLayout = zeroGridLayout(2, false);
 		_win.addShellListener(new SListener);
 
 		_area = new Composite(_win, SWT.NONE);
-		_area.setLayoutData = new GridData(GridData.FILL_BOTH);
+		auto agd = new GridData(GridData.FILL_BOTH);
+		agd.horizontalSpan = 2;
+		_area.setLayoutData = agd;
 
 		auto sep = new Label(_win, SWT.SEPARATOR | SWT.HORIZONTAL);
-		sep.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+		auto sgd = new GridData(GridData.FILL_HORIZONTAL);
+		sgd.horizontalSpan = 2;
+		sep.setLayoutData = sgd;
+
+		_addition = new Composite(_win, SWT.NONE);
+		_addition.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 
 		auto buttons = new Composite(_win, SWT.NONE);
 		buttons.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
@@ -98,6 +106,8 @@ abstract class AbsDialog {
 			createButton(buttons, info.name, info.func);
 		}
 	}
+	Composite addition() {return _addition;}
+
 	private Button createButton(Composite parent, string text, void delegate() push) {
 		auto b = new Button(parent, SWT.PUSH);
 		auto gd = new GridData(GridData.FILL_HORIZONTAL);

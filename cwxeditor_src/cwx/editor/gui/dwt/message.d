@@ -25,6 +25,7 @@ import cwx.editor.gui.dwt.eventdialog;
 import cwx.editor.gui.dwt.xmlbytestransfer;
 import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.splitpane;
+import cwx.editor.gui.dwt.properties;
 
 import std.array;
 import std.utf;
@@ -72,6 +73,9 @@ import org.eclipse.swt.events.ShellAdapter;
 import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ControlAdapter;
+import org.eclipse.swt.events.ControlListener;
+import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.DragSourceAdapter;
 import org.eclipse.swt.dnd.DragSourceEvent;
@@ -163,6 +167,7 @@ private:
 	UndoManager _undo;
 	Listener _kdFilter;
 	TextMenuModify _textTM, _rCouponsTM;
+	MsgPreview _preview = null;
 
 	void selectChanged() {
 		bool oldIgnoreMod = ignoreMod;
@@ -176,6 +181,7 @@ private:
 		}
 		_rCoupons.setText = rcs;
 		_text.setText = dlg.text;
+		refreshPreview();
 	}
 	void createDialog(SDialog dlg) {
 		insertDialog(dlg, _dlgsL.getSelectionIndex);
@@ -295,6 +301,11 @@ private:
 			selectChanged();
 		}
 	}
+	class SelectTalker : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			refreshPreview();
+		}
+	}
 	private void refreshDlgList(int index) {
 		string text = std.array.replace(wrapReturnCode(_dlgs[index].text), "\n", "");
 		// FIXME: ""をsetTextするとArgument cannot be null
@@ -307,6 +318,7 @@ private:
 				putText(_dlgs[_dlgsL.getSelectionIndex]);
 			}
 			refreshDlgList(_dlgsL.getSelectionIndex);
+			refreshPreview();
 		}
 	}
 	class ModRC : ModifyListener {
@@ -438,6 +450,21 @@ private:
 			selectChanged();
 		}
 	}
+	class SelPrev : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			auto btn = cast(Button) e.widget;
+			if (btn.getSelection) {
+				_preview.open();
+			} else {
+				_preview.close();
+			}
+		}
+	}
+	void refreshPreview() {
+		if (_preview) {
+			_preview.text(selectedTalker, "", wrapReturnCode(_text.getText));
+		}
+	}
 	class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
 			auto sash = cast(SplitPane) e.widget;
@@ -490,6 +517,15 @@ public:
 			return cpempty(path);
 		}
 		return super.openCWXPath(path, shellActivate);
+	}
+
+	Talker selectedTalker() {
+		switch (_talkers.getSelectionIndex) {
+		case 0: return Talker.SELECTED;
+		case 1: return Talker.UNSELECTED;
+		case 2: return Talker.RANDOM;
+		default: assert (0);
+		}
 	}
 protected:
 	override void setup(Composite area) {
@@ -554,6 +590,7 @@ protected:
 			}
 			mod(_talkers);
 			mod(_rCoupons);
+			_talkers.addSelectionListener(new SelectTalker);
 			_rCoupons.addModifyListener(new ModRC);
 			refreshCoupons();
 			tp.setLayoutData = new GridData(GridData.FILL_BOTH);
@@ -577,6 +614,12 @@ protected:
 			auto bar = createFlagStepBar(area, &insert, comm, prop);
 			bar.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		}
+		auto aComp = addition();
+		aComp.setLayout = new GridLayout(1, true);
+		auto prev = new Button(aComp, SWT.TOGGLE);
+		prev.setText = prop.msgs.messagePreview;
+		prev.addSelectionListener(new SelPrev);
+
 		sash.addDisposeListener(new Dispose);
 		sash.setWeights = [prop.var.etc.talkSashL, prop.var.etc.talkSashR];
 		_kdFilter = new KeyDownFilter;
@@ -596,24 +639,22 @@ protected:
 
 		_textTM = createTextMenu!Text(comm, prop, _rCoupons, &catchMod, _undo, TMAppendData(&readAPD, &writeAPD));
 		_rCouponsTM = createTextMenu!Text(comm, prop, _text.widget, &catchMod, _undo, TMAppendData(&readAPD, &writeAPD));
+
+		_preview = new MsgPreview(getShell, comm, prop, summ, prev, prop.var.dlgPrev);
+		refreshPreview();
 	}
+	override
+	protected void opened() {
+		if (prop.var.etc.showDialogPreview) _preview.open();
+		closeEvent ~= {
+			prop.var.etc.showDialogPreview = _preview.isVisible;
+		};
+	}
+
 	override bool apply() {
-		Talker talker;
-		switch (_talkers.getSelectionIndex) {
-		case 0:
-			talker = Talker.SELECTED;
-			break;
-		case 1:
-			talker = Talker.UNSELECTED;
-			break;
-		case 2:
-			talker = Talker.RANDOM;
-			break;
-		default: assert (0);
-		}
 		if (!evt) evt = new Content(CType.TALK_DIALOG, "");
 		evt.dialogs = _dlgs;
-		evt.talkerNC = talker;
+		evt.talkerNC = selectedTalker;
 		return true;
 	}
 }
@@ -627,6 +668,7 @@ private:
 	ImageSelect!(MtType.CARD, Combo) _msel;
 	UndoManager _undo;
 	KeyDownFilter _kdFilter;
+	MsgPreview _preview = null;
 
 	void tabChanged() {
 		switch (_tabf.getSelectionIndex) {
@@ -646,9 +688,24 @@ private:
 			_text.widget.getParent.getParent.layout();
 		}
 	}
+	class SelPrev : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			auto btn = cast(Button) e.widget;
+			if (btn.getSelection) {
+				_preview.open();
+			} else {
+				_preview.close();
+			}
+		}
+	}
 	class SL : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
 			tabChanged();
+		}
+	}
+	class ModText : ModifyListener {
+		override void modifyText(ModifyEvent e) {
+			refreshPreview();
 		}
 	}
 	void put(dchar put) {
@@ -656,6 +713,14 @@ private:
 	}
 	void insert(string put) {
 		_text.insert(put);
+	}
+	void refreshPreview() {
+		if (_preview) {
+			Talker talker;
+			string imgPath;
+			selectedTalker(talker, imgPath);
+			_preview.text(talker, imgPath, wrapReturnCode(_text.getText));
+		}
 	}
 	protected override void refSkin() {
 		_text.font = dwtData(prop.looks.messageFont(summ.legacy));
@@ -695,6 +760,35 @@ public:
 		super(comm, prop, shell, summ, CType.TALK_MESSAGE, parent, evt, true, prop.var.msgDlg, false);
 		_undo = new UndoManager(prop.var.etc.undoMaxEtc);
 	}
+
+	void selectedTalker(out Talker talker, out string imgPath) {
+		imgPath = "";
+		switch (_tabf.getSelectionIndex) {
+		case 0:
+			switch (_msel.dirsCombo.getSelectionIndex) {
+			case 0:
+				talker = Talker.SELECTED;
+				break;
+			case 1:
+				talker = Talker.UNSELECTED;
+				break;
+			case 2:
+				talker = Talker.RANDOM;
+				break;
+			case 3:
+				talker = Talker.CARD;
+				break;
+			default:
+				talker = Talker.IMAGE;
+				imgPath = _msel.image;
+			}
+			break;
+		case 1:
+			talker = Talker.NARRATION;
+			break;
+		default: assert (0);
+		}
+	}
 protected:
 	override void setup(Composite area) {
 		area.setLayout = windowGridLayout(1, true);
@@ -718,6 +812,7 @@ protected:
 			_msgCompA.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0));
 			_text = createMessagePane(comm, prop, true, _msgCompA, summ);
 			mod(_text.widget);
+			_text.widget.addModifyListener(new ModText);
 			createTextMenu!Text(comm, prop, _text.widget, &catchMod, _undo);
 			auto tab = new CTabItem(_tabf, SWT.NONE);
 			tab.setText = prop.msgs.imageMessage;
@@ -742,6 +837,12 @@ protected:
 			auto bar = createFlagStepBar(area, &insert, comm, prop);
 			bar.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 		}
+		auto aComp = addition();
+		aComp.setLayout = new GridLayout(1, true);
+		auto prev = new Button(aComp, SWT.TOGGLE);
+		prev.setText = prop.msgs.messagePreview;
+		prev.addSelectionListener(new SelPrev);
+
 		_tabf.addSelectionListener(new SL);
 		_tabf.addDisposeListener(new Dispose);
 		_kdFilter = new KeyDownFilter;
@@ -750,6 +851,7 @@ protected:
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
+		_tabf.setSelection = 0;
 		if (evt) {
 			_text.setText = evt.text;
 			if (evt.talkerC == Talker.NARRATION) {
@@ -759,37 +861,25 @@ protected:
 			_tabf.setSelection = 1;
 		}
 		tabChanged();
+
+		_preview = new MsgPreview(getShell, comm, prop, summ, prev, prop.var.msgPrev);
+		refreshPreview();
+		_msel.modEvent ~= &refreshPreview;
 	}
+	override
+	protected void opened() {
+		if (prop.var.etc.showMessagePreview) _preview.open();
+		closeEvent ~= {
+			prop.var.etc.showMessagePreview = _preview.isVisible;
+		};
+	}
+
 	override bool apply() {
 		string text;
 		string path = "";
 		Talker talker;
+		selectedTalker(talker, path);
 		text = lastRet(wrapReturnCode(_text.getText));
-		switch (_tabf.getSelectionIndex) {
-		case 0:
-			switch (_msel.dirsCombo.getSelectionIndex) {
-			case 0:
-				talker = Talker.SELECTED;
-				break;
-			case 1:
-				talker = Talker.UNSELECTED;
-				break;
-			case 2:
-				talker = Talker.RANDOM;
-				break;
-			case 3:
-				talker = Talker.CARD;
-				break;
-			default:
-				talker = Talker.IMAGE;
-				path = _msel.image;
-			}
-			break;
-		case 1:
-			talker = Talker.NARRATION;
-			break;
-		default: assert (0);
-		}
 		if (!evt) evt = new Content(CType.TALK_MESSAGE, "");
 		evt.text = text;
 		evt.talkerC = talker;
@@ -1062,13 +1152,13 @@ private Composite createFlagStepBar(Composite parent, void delegate(string) inse
 		foreach (i, flag; root.allFlags) {
 			auto p = flag.path;
 			flags.add(p);
-			if (0 == i || icmp(p, fSel)) flags.select = i;
+			if (0 == i || 0 == icmp(p, fSel)) flags.select = i;
 		}
 		steps.removeAll();
 		foreach (i, step; root.allSteps) {
 			auto p = step.path;
 			steps.add(p);
-			if (0 == i || icmp(p, sSel)) steps.select = i;
+			if (0 == i || 0 == icmp(p, sSel)) steps.select = i;
 		}
 		flags.setEnabled = flags.getItemCount > 0;
 		putFlag.setEnabled = flags.getEnabled;
@@ -1100,8 +1190,338 @@ private void putColor(FixedWidthText text, dchar put) {
 	text.widget.setSelection(nSel);
 }
 
+class MsgPreview {
+	private static class FlagData {
+		Flag flag;
+		bool onOff;
+	}
+	private static class StepData {
+		Step step;
+		int select;
+	}
+	private enum C {
+		M = 0, // 選択中
+		U = 1, // 選択外
+		R = 2, // ランダム
+		C = 3, // カード
+		I = 4, // 話者
+		T = 5, // チーム
+		Y = 6 // 宿
+	}
+	private static immutable C_TBL = [
+		'M',
+		'U',
+		'R',
+		'C',
+		'I',
+		'T',
+		'Y'
+	];
+
+	private Commons _comm;
+	private Props _prop;
+	private Summary _summ;
+	private WSize _size;
+	private Button _toggle;
+
+	private Shell _win;
+	private ControlListener _winL;
+	private int _parX, _parY;
+	private Canvas _canvas;
+	private Table _values;
+	private Image _img = null;
+
+	private Talker _talker = Talker.NARRATION;
+	private string _imgPath = "";
+	private string _message = "";
+
+	private class Paint : PaintListener {
+		override void paintControl(PaintEvent e) {
+			auto b = _canvas.getBounds;
+			auto rect = _prop.looks.messageBounds;
+			e.gc.drawImage(_img, (b.width - rect.width) / 2, (b.height - rect.height) / 2);
+		}
+	}
+	private class Dispose : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			_win.getParent.removeControlListener(_winL);
+			if (_img) _img.dispose();
+			_comm.refFlagAndStep.remove(&refFlagAndStep);
+			_prop.var.etc.messageVarSelected = _values.getItem(C.M).getText(1);
+			_prop.var.etc.messageVarUnselected = _values.getItem(C.U).getText(1);
+			_prop.var.etc.messageVarRandom = _values.getItem(C.R).getText(1);
+			_prop.var.etc.messageVarCard = _values.getItem(C.C).getText(1);
+			_prop.var.etc.messageVarRef = _values.getItem(C.I).getText(1);
+			_prop.var.etc.messageVarTeam = _values.getItem(C.T).getText(1);
+			_prop.var.etc.messageVarYado = _values.getItem(C.Y).getText(1);
+			_prop.var.etc.messageVarKindColumn = _values.getColumn(0).getWidth;
+			_prop.var.etc.messageVarValueColumn = _values.getColumn(1).getWidth;
+			saveWin();
+		}
+	}
+	private class PShellL : ControlAdapter {
+		override void controlMoved(ControlEvent e) {
+			auto pb = _win.getParent.getBounds;
+			auto tb = _win.getBounds;
+			_win.setBounds(tb.x + pb.x - _parX, tb.y + pb.y - _parY, tb.width, tb.height);
+			_parX = pb.x;
+			_parY = pb.y;
+		}
+	}
+	private class ShellL : ShellAdapter {
+		override void shellClosed(ShellEvent e) {
+			close();
+			e.doit = false;
+		}
+	}
+	private void refreshFlags() {
+		int[string] pvs;
+
+		if (C.max + 1 < _values.getItemCount) {
+			foreach (i; C.max .. _values.getItemCount) {
+				auto itm = _values.getItem(i);
+				string key = cwx.utils.toLower(itm.getText(0));
+				auto o = itm.getData;
+				auto f = cast(FlagData) o;
+				if (f) pvs[key] = f.onOff ? 1 : 0;
+				auto s = cast(StepData) o;
+				if (s) pvs[key] = s.select;
+			}
+			_values.remove(C.max + 1, _values.getItemCount);
+		}
+		foreach (f; _summ.flagDirRoot.allFlags) {
+			auto itm = new TableItem(_values, SWT.NONE);
+			auto path = f.path;
+			itm.setImage(0, _prop.images.flag);
+			itm.setText(0, path);
+			itm.setText(1, f.onOff ? f.on : f.off);
+			auto d = new FlagData;
+			itm.setData = d;
+			d.flag = f;
+			d.onOff = f.onOff;
+			auto p = cwx.utils.toLower(path) in pvs;
+			if (p) {
+				if (*p == 1) {
+					itm.setText(1, f.on);
+					d.onOff = true;
+				} else if (*p == 0) {
+					itm.setText(1, f.off);
+					d.onOff = false;
+				}
+			}
+		}
+		foreach (f; _summ.flagDirRoot.allSteps) {
+			auto itm = new TableItem(_values, SWT.NONE);
+			auto path = f.path;
+			itm.setImage(0, _prop.images.step);
+			itm.setText(0, path);
+			itm.setText(1, f.values[f.select]);
+			auto d = new StepData;
+			itm.setData = d;
+			d.step = f;
+			d.select = f.select;
+			auto p = cwx.utils.toLower(path) in pvs;
+			if (p) {
+				if (0 <= *p && *p < f.values.length) {
+					itm.setText(1, f.values[*p]);
+					d.select = *p;
+				}
+			}
+		}
+	}
+	private void refFlagAndStep(Flag[] flags, Step[] steps) {
+		refreshFlags();
+	}
+	private Control createEditor(TableItem itm, int editC) {
+		auto fd = cast(FlagData) itm.getData;
+		if (fd) {
+			return createComboEditor!Combo(_comm, _prop, itm.getParent, [fd.flag.on, fd.flag.off], itm.getText(1));
+		}
+		auto sd = cast(StepData) itm.getData;
+		if (sd) {
+			return createComboEditor!Combo(_comm, _prop, itm.getParent, sd.step.values, itm.getText(1));
+		}
+		return createTextEditor(_comm, _prop, itm.getParent, itm.getText(1));
+	}
+	private void editEnd(TableItem itm, int column, Control ctrl) {
+		auto old = itm.getText(column);
+		auto text = cast(Text) ctrl;
+		if (text) itm.setText(column, text.getText);
+		auto combo = cast(Combo) ctrl;
+		if (combo) {
+			itm.setText(column, combo.getText);
+			auto fd = cast(FlagData) itm.getData;
+			if (fd) fd.onOff = combo.getSelectionIndex == 1;
+			auto sd = cast(StepData) itm.getData;
+			if (sd) sd.select = combo.getSelectionIndex;
+		}
+		if (old != itm.getText) refresh();
+	}
+
+	this (Shell parent, Commons comm, Props prop, Summary summ, Button toggle, WSize size) {
+		_comm = comm;
+		_prop = prop;
+		_summ = summ;
+		_size = size;
+		_toggle = toggle;
+
+		_winL = new PShellL;
+		parent.addControlListener(_winL);
+
+		_win = new Shell(parent, SWT.TITLE | SWT.RESIZE | SWT.TOOL | SWT.CLOSE);
+		_win.setText = _prop.msgs.dlgTitMessagePreview;
+		_win.setLayout = zeroGridLayout(1, true);
+		_win.addShellListener(new ShellL);
+
+		_canvas = new Canvas(_win, SWT.DOUBLE_BUFFERED);
+		auto cgd = new GridData(GridData.FILL_HORIZONTAL);
+		auto rect = _prop.looks.messageBounds;
+		cgd.widthHint = rect.width;
+		cgd.heightHint = rect.height;
+		_canvas.setLayoutData = cgd;
+		_canvas.addPaintListener(new Paint);
+		_canvas.addDisposeListener(new Dispose);
+
+		_values = new Table(_win, SWT.BORDER | SWT.FULL_SELECTION);
+		auto vgd = new GridData(GridData.FILL_BOTH);
+		vgd.heightHint = _prop.var.etc.messageVarTableHeight;
+		_values.setLayoutData = vgd;
+		_values.setHeaderVisible = true;
+		auto kindCol = new TableColumn(_values, SWT.NONE);
+		kindCol.setText = _prop.msgs.messageVarKindColumn;
+		kindCol.setWidth = _prop.var.etc.messageVarKindColumn;
+		auto valueCol = new TableColumn(_values, SWT.NONE);
+		valueCol.setText = _prop.msgs.messageVarValueColumn;
+		valueCol.setWidth = _prop.var.etc.messageVarValueColumn;
+
+		foreach (i; C.min .. C.max + 1) {
+			auto itm = new TableItem(_values, SWT.NONE);
+			final switch (cast(C) i) {
+			case C.M:
+				itm.setImage(0, _prop.images.scTalker(Talker.SELECTED));
+				itm.setText(0, _prop.msgs.scTalker(Talker.SELECTED));
+				itm.setText(1, _prop.var.etc.messageVarSelected);
+				break;
+			case C.U:
+				itm.setImage(0, _prop.images.scTalker(Talker.UNSELECTED));
+				itm.setText(0, _prop.msgs.scTalker(Talker.UNSELECTED));
+				itm.setText(1, _prop.var.etc.messageVarUnselected);
+				break;
+			case C.R:
+				itm.setImage(0, _prop.images.scTalker(Talker.RANDOM));
+				itm.setText(0, _prop.msgs.scTalker(Talker.RANDOM));
+				itm.setText(1, _prop.var.etc.messageVarRandom);
+				break;
+			case C.C:
+				itm.setImage(0, _prop.images.scTalker(Talker.CARD));
+				itm.setText(0, _prop.msgs.scTalker(Talker.CARD));
+				itm.setText(1, _prop.var.etc.messageVarCard);
+				break;
+			case C.I:
+				itm.setImage(0, _prop.images.scRef);
+				itm.setText(0, _prop.msgs.scRef);
+				itm.setText(1, _prop.var.etc.messageVarRef);
+				break;
+			case C.T:
+				itm.setImage(0, _prop.images.scTeam);
+				itm.setText(0, _prop.msgs.scTeam);
+				itm.setText(1, _prop.var.etc.messageVarTeam);
+				break;
+			case C.Y:
+				itm.setImage(0, _prop.images.scYado);
+				itm.setText(0, _prop.msgs.scYado);
+				itm.setText(1, _prop.var.etc.messageVarYado);
+				break;
+			}
+		}
+		refreshFlags();
+		_comm.refFlagAndStep.add(&refFlagAndStep);
+
+		new TableTCEdit(_values, 1, &createEditor, &editEnd, null);
+	}
+	private void saveWin() {
+		auto winProps = _size;
+		winProps.width = _win.getSize.x;
+		winProps.height = _win.getSize.y;
+		winProps.x = _win.getBounds.x - _win.getParent.getBounds.x;
+		winProps.y = _win.getBounds.y - _win.getParent.getBounds.y;
+	}
+
+	bool isVisible() {return _win.isVisible;}
+
+	void open() {
+		if (_win.isVisible) return;
+		auto pb = _win.getParent.getBounds;
+		_parX = pb.x;
+		_parY = pb.y;
+		auto winProps = _size;
+		scope wp = _win.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+		int width = winProps.width == SWT.DEFAULT ? wp.x : winProps.width;
+		int height = winProps.height == SWT.DEFAULT ? wp.y : winProps.height;
+		int x = winProps.x == SWT.DEFAULT ? pb.x + pb.width : winProps.x + pb.x;
+		int y = winProps.y == SWT.DEFAULT ? pb.y : winProps.y + pb.y;
+		intoDisplay(x, y, width, height);
+		_win.setBounds(x, y, width, height);
+		_win.setVisible = true;
+		_toggle.setSelection = true;
+	}
+	void close() {
+		if (!_win.isVisible) return;
+		saveWin();
+		_win.setVisible = false;
+		_toggle.setSelection = false;
+	}
+
+	void text(Talker talker, string imgPath, string message) {
+		if (_img && talker is _talker && imgPath == _imgPath && message == _message) {
+			return;
+		}
+		_talker = talker;
+		_imgPath = imgPath;
+		_message = message;
+		refresh();
+	}
+
+	private void refresh() {
+		auto d = _canvas.getDisplay;
+		if (_img) {
+			_img.dispose();
+		}
+		ImageData tImg = null;
+		final switch (_talker) {
+		case Talker.NARRATION:
+			tImg = null;
+			break;
+		case Talker.SELECTED:
+		case Talker.UNSELECTED:
+		case Talker.RANDOM:
+			tImg = _prop.images.talker(_talker).getImageData;
+			break;
+		case Talker.IMAGE:
+			tImg = loadImage(_comm.skin.findImagePath(_imgPath, _summ.scenarioPath), true);
+			break;
+		case Talker.CARD:
+			auto cRect = _prop.looks.cardSize;
+			tImg = menuCard(_comm.skin).scaledTo(cRect.width, cRect.height);
+			break;
+		}
+
+		string[char] names;
+		string[string] flags;
+		foreach (i; C.min .. C.max + 1) {
+			names[C_TBL[cast(C) i]] = _values.getItem(i).getText(1);
+		}
+		foreach (i; C.max .. _values.getItemCount) {
+			auto itm = _values.getItem(i);
+			flags[itm.getText(0)] = itm.getText(1);
+		}
+		_img = new Image(d, previewMessage(_comm, _prop, _summ.scenarioPath, tImg, _message, [], names, flags));
+		_canvas.redraw();
+	}
+}
+
 /// メッセージのプレビューを生成する。
-ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talker, string message, in string[] sel, in string[char] names, in string[string] flags) {
+ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talker, string message, in string[] sel, in string[char] names, /+ FIXME: リンクエラー！ +//+in +/string[string] flags) {
 	auto d = Display.getCurrent;
 	version (Windows) {
 		bool legacy = comm.skin.legacy;
@@ -1171,6 +1591,13 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 
 	auto start = prop.looks.messageStartPos(legacy, talker !is null);
 	int x = start.x, y = start.y;
+	int lineH;
+	string old = "";
+	void ret() {
+		x = start.x;
+		y += lineH;
+		old = "";
+	}
 	if (legacy) {
 		auto textCanvas = new Image(d, rect.width, rect.height + bh * sel.length);
 		scope (exit) textCanvas.dispose();
@@ -1183,9 +1610,9 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 		tgc.setForeground = fc;
 		tgc.setBackground = hc;
 		tgc.fillRectangle(0, 0, rect.width, rect.height + bh * sel.length);
-		auto lineH = tgc.getFontMetrics.getHeight + 2;
+		lineH = tgc.getFontMetrics.getHeight + 2;
 		for (size_t i = 0; i < dmsg.length; i++) {
-			if (rect.height < y + lineH) {
+			if (rect.height - 6 < y + lineH) {
 				// 行数オーバー
 				break;
 			}
@@ -1223,12 +1650,17 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 				break;
 			default:
 				auto s = to!string(c);
-				tgc.drawText(s, x, y, true);
-				x += tgc.textExtent(s).x - 1;
-				if (rect.width < x + lineH) {
+				int w = tgc.textExtent(s).x - 1;
+				if (rect.width - 6 < x + w) {
 					// 列数オーバー
-					goto case '\n';
+					ret();
+					if (rect.height - 6 < y + lineH) {
+						// 行数オーバー
+						break;
+					}
 				}
+				tgc.drawText(s, x, y, true);
+				x += w;
 				break;
 			}
 		}
@@ -1275,9 +1707,8 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 		//        同時に行うと一部環境で問題が出る。
 //		gc.setTextAntialias = SWT.ON;
 		gc.setFont = font;
-		auto lineH = gc.getFontMetrics.getHeight;
+		lineH = gc.getFontMetrics.getHeight;
 
-		string old = "";
 		void drawText(string s, int x, int y) {
 			if ("―" == s && "―" == old) {
 				// "―"の場合のみ表示を接続する処理が入る
@@ -1301,7 +1732,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 			old = s;
 		}
 		for (size_t i = 0; i < dmsg.length; i++) {
-			if (rect.height < y + lineH) {
+			if (rect.height - 6 < y + lineH) {
 				// 行数オーバー
 				break;
 			}
@@ -1334,18 +1765,21 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 			auto c = dmsg[i];
 			switch (c) {
 			case '\n':
-				x = start.x;
-				y += lineH;
-				old = "";
+				ret();
 				break;
 			default:
 				auto s = to!string(c);
-				drawText(s, x, y);
-				x += gc.textExtent(s).x;
-				if (rect.width < x + lineH) {
+				int w = gc.textExtent(s).x;
+				if (rect.width - 6 < x + w) {
 					// 列数オーバー
-					goto case '\n';
+					ret();
+					if (rect.height - 6 < y + lineH) {
+						// 行数オーバー
+						break;
+					}
 				}
+				drawText(s, x, y);
+				x += w;
 				break;
 			}
 		}

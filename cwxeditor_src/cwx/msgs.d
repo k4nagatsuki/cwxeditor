@@ -583,6 +583,10 @@ public:
 	const string copyToUpper() {return "台詞を上方にコピー";}
 	const string copyToLower() {return "台詞を下方にコピー";}
 	const string setTalkerCoupon() {return "追加";}
+	const string messagePreview() {return "プレビュー";}
+	const string dlgTitMessagePreview() {return "プレビュー";}
+	const string messageVarKindColumn() {return "状態変数";}
+	const string messageVarValueColumn() {return "サンプル値";}
 
 	const string transition() {return "背景切替方式";}
 	const string transition(Transition t) {

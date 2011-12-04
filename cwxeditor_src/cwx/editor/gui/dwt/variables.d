@@ -336,5 +336,18 @@ class FlexEtcProps : Properties {
 	mixin Property!("undoMaxEtc", int, 1024);
 	mixin Property!("undoMaxLimit", int, short.max);
 
+	mixin Property!("showDialogPreview", bool, false);
+	mixin Property!("showMessagePreview", bool, false);
+	mixin Property!("messageVarKindColumn", int, 200);
+	mixin Property!("messageVarValueColumn", int, 250);
+	mixin Property!("messageVarTableHeight", int, 300, true);
+	mixin Property!("messageVarSelected", string, "[選択中----14]");
+	mixin Property!("messageVarUnselected", string, "[選択外----14]");
+	mixin Property!("messageVarRandom", string, "[ランダム--14]");
+	mixin Property!("messageVarCard", string, "[カード--12]");
+	mixin Property!("messageVarRef", string, "[話者------14]");
+	mixin Property!("messageVarTeam", string, "[チーム名------------------30]");
+	mixin Property!("messageVarYado", string, "[宿屋名--------18]");
+
 	mixin XMLFuncs!(FlexEtcProps);
 }

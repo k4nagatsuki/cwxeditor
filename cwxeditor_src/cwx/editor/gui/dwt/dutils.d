@@ -701,6 +701,51 @@ public:
 	}
 }
 
+/// ditto
+class TableTCEdit : AbstractTableEdit {
+private:
+	Control delegate(TableItem itm, int editC) _createEditor;
+	void delegate(TableItem itm, int column, Control ctrl) editEnd = null;
+
+public:
+	this(Table table, int editC,
+			Control delegate(TableItem itm, int editC) createEditor,
+			void delegate(TableItem itm, int column, Control ctrl) editEnd = null,
+			bool delegate(TableItem itm, int column) canEdit = null) {
+		try {
+			super (table, editC, canEdit);
+			_createEditor = createEditor;
+			this.editEnd = editEnd;
+		} catch (Exception e) {
+			throw new Exception(e.msg, __FILE__, __LINE__);
+		}
+	}
+
+	protected override Control createEditor(TableItem itm, int editC) {
+		return _createEditor(itm, editC);
+	}
+	protected override void end(Control c) {
+		try {
+			void set(string text) {
+				if (editEnd is null) {
+					editor.getItem.setText(editC, text);
+				} else {
+					editEnd(editor.getItem, editC, c);
+				}
+			}
+			auto spinner = cast(Spinner) c;
+			if (spinner) set(spinner.getText);
+			auto text = cast(Text) c;
+			if (text) set(text.getText);
+			auto combo = cast(Combo) c;
+			if (combo) set(combo.getText);
+			auto ccombo = cast(CCombo) c;
+			if (ccombo) set(ccombo.getText);
+		} catch (Exception e) {
+			throw new Exception(e.msg, __FILE__, __LINE__);
+		}
+	}
+}
 /// ツリーのテキストを編集可能にする。
 /// ダブルクリック、またはF2キーの押下で編集開始。
 class TreeEdit {

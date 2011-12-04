@@ -191,8 +191,14 @@ abstract class Properties {
 	}
 }
 
+interface WSize : DSize {
+	void x(int);
+	void y(int);
+	int x();
+	int y();
+}
 class WindowProps(string PropName, int Width, int Height)
-		: Properties, DSize {
+		: Properties, WSize {
 	mixin Property!("maximized", bool, false);
 	mixin Property!("minimized", bool, false);
 	mixin Property!("x", int, SWT.DEFAULT);
@@ -204,7 +210,7 @@ class WindowProps(string PropName, int Width, int Height)
 	mixin XMLFuncs!(WindowProps, PropName);
 }
 
-class MainWin : Properties, DSize {
+class MainWin : Properties, WSize {
 	mixin Property!("x", int, SWT.DEFAULT);
 	mixin Property!("y", int, SWT.DEFAULT);
 	mixin Property!("width", int, 1024);
@@ -229,7 +235,7 @@ class DialogParam(string Name, int WidthDef = SWT.DEFAULT, int HeightDef = SWT.D
 	mixin XMLFuncs!(DialogParam, Name);
 }
 
-class EventWin(string Name, int Width, int Height) : Properties, DSize {
+class EventWin(string Name, int Width, int Height) : Properties, WSize {
 	mixin Property!("x", int, SWT.DEFAULT);
 	mixin Property!("y", int, SWT.DEFAULT);
 	mixin Property!("maximized", bool, false);
@@ -525,6 +531,8 @@ public class FlexProps {
 	DialogParam!("selectEventDialog") selEvtDlg;
 	DialogParam!("scriptDialog", 400, 300) scriptDlg;
 	DialogParam!("commentDialog", 300, 200) commentDlg;
+	WindowProps!("dialogPreview", SWT.DEFAULT, 500) dlgPrev;
+	WindowProps!("messagePreview", SWT.DEFAULT, 500) msgPrev;
 	FlexEtcProps etc;
 
 	private enum IniLocation {
