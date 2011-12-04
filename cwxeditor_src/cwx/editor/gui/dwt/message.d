@@ -1649,11 +1649,19 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 				string s1 = to!string(dmsg[i]);
 				i++;
 				string s2 = to!string(dmsg[i]);
+				auto w = (tgc.textExtent(s1).x - 1) + (tgc.textExtent(s2).x - 1);
+				if (rect.width - 6 < x + w) {
+					// 列数オーバー
+					ret();
+					if (rect.height - 6 < y + lineH) {
+						// 行数オーバー
+						break;
+					}
+				}
 				spFontP ~= CPoint(x - 2, y - 2);
 				spFont ~= *cf;
 				spColor ~= tgc.getForeground.getRGB;
-				x += tgc.textExtent(s1).x - 1;
-				x += tgc.textExtent(s2).x - 1;
+				x += w;
 				continue;
 			}
 			auto cp = i in rColors;
@@ -1771,11 +1779,19 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 				string s1 = to!string(dmsg[i]);
 				i++;
 				string s2 = to!string(dmsg[i]);
+				auto w = (gc.textExtent(s1).x - 1) + (gc.textExtent(s2).x - 1);
+				if (rect.width - 6 < x + w) {
+					// 列数オーバー
+					ret();
+					if (rect.height - 6 < y + lineH) {
+						// 行数オーバー
+						break;
+					}
+				}
 				spFontP ~= CPoint(x, y - 2);
 				spFont ~= *cf;
 				spColor ~= gc.getForeground.getRGB;
-				x += gc.textExtent(s1).x - 1;
-				x += gc.textExtent(s2).x - 1;
+				x += w;
 				continue;
 			}
 			auto cp = i in rColors;
