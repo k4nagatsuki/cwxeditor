@@ -1355,6 +1355,7 @@ class MsgPreview {
 	}
 	private void refFlagAndStep(Flag[] flags, Step[] steps) {
 		refreshFlags();
+		refresh();
 	}
 	private Control createEditor(TableItem itm, int editC) {
 		auto fd = cast(FlagData) itm.getData;
