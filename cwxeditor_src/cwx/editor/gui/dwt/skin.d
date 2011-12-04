@@ -221,7 +221,7 @@ ImageData spChar(Skin skin, dchar c) {
 	string res;
 	switch (c) {
 	case 'A', 'a': res = "FONT_ANGRY"; break;
-	case 'C', 'c': res = "FONT_CLUB"; break;
+	case 'B', 'b': res = "FONT_CLUB"; break;
 	case 'D', 'd': res = "FONT_DIAMOND"; break;
 	case 'E', 'e': res = "FONT_EASY"; break;
 	case 'F', 'f': res = "FONT_FLY"; break;
