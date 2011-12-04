@@ -687,6 +687,7 @@ private:
 		if (0 == _tabf.getSelectionIndex) {
 			_text.widget.getParent.getParent.layout();
 		}
+		refreshPreview();
 	}
 	class SelPrev : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
@@ -1248,6 +1249,7 @@ class MsgPreview {
 			if (_img) _img.dispose();
 			_comm.refFlagAndStep.remove(&refFlagAndStep);
 			_comm.delFlagAndStep.remove(&refFlagAndStep);
+			_comm.refSkin.remove(&refresh);
 			_prop.var.etc.messageVarSelected = _values.getItem(C.M).getText(1);
 			_prop.var.etc.messageVarUnselected = _values.getItem(C.U).getText(1);
 			_prop.var.etc.messageVarRandom = _values.getItem(C.R).getText(1);
@@ -1459,6 +1461,7 @@ class MsgPreview {
 		refreshFlags();
 		_comm.refFlagAndStep.add(&refFlagAndStep);
 		_comm.delFlagAndStep.add(&refFlagAndStep);
+		_comm.refSkin.add(&refresh);
 
 		new TableTCEdit(_values, 1, &createEditor, &editEnd, null);
 	}
@@ -1733,6 +1736,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 //		gc.setTextAntialias = SWT.ON;
 		gc.setFont = font;
 		lineH = gc.getFontMetrics.getHeight;
+		gc.setForeground = fc;
 
 		void drawText(string s, int x, int y) {
 			if ("―" == s && "―" == old) {
@@ -1838,7 +1842,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 			// 標準特殊文字
 			auto c = spColor[i];
 			data = spChar(comm.skin, decodeFontPath(path));
-			if (data && !wrgb.opEquals(c)) {
+			if (data) {
 				auto spc = data;
 				data = new ImageData(spc.width, spc.height, 24, new PaletteData(0xFF << 16, 0xFF << 8, 0xFF << 0));
 				// &R等による色の置換
