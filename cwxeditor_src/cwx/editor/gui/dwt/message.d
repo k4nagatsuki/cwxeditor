@@ -1247,6 +1247,7 @@ class MsgPreview {
 			_win.getParent.removeControlListener(_winL);
 			if (_img) _img.dispose();
 			_comm.refFlagAndStep.remove(&refFlagAndStep);
+			_comm.delFlagAndStep.remove(&refFlagAndStep);
 			_prop.var.etc.messageVarSelected = _values.getItem(C.M).getText(1);
 			_prop.var.etc.messageVarUnselected = _values.getItem(C.U).getText(1);
 			_prop.var.etc.messageVarRandom = _values.getItem(C.R).getText(1);
@@ -1275,7 +1276,17 @@ class MsgPreview {
 		}
 	}
 	private void refreshFlags() {
+		_values.setRedraw = false;
+		scope (exit) _values.setRedraw = true;
+		int topIndex = _values.getTopIndex;
+		scope (exit) {
+			if (_values.getItemCount <= topIndex) {
+				topIndex = _values.getItemCount - 1;
+			}
+			_values.setTopIndex = topIndex;
+		}
 		int[string] pvs;
+		string selPath = null;
 
 		if (C.max + 1 < _values.getItemCount) {
 			foreach (i; C.max .. _values.getItemCount) {
@@ -1286,8 +1297,11 @@ class MsgPreview {
 				if (f) pvs[key] = f.onOff ? 1 : 0;
 				auto s = cast(StepData) o;
 				if (s) pvs[key] = s.select;
+				if (i == _values.getSelectionIndex) {
+					selPath = key;
+				}
 			}
-			_values.remove(C.max + 1, _values.getItemCount);
+			_values.remove(C.max + 1, _values.getItemCount - 1);
 		}
 		foreach (f; _summ.flagDirRoot.allFlags) {
 			auto itm = new TableItem(_values, SWT.NONE);
@@ -1299,7 +1313,8 @@ class MsgPreview {
 			itm.setData = d;
 			d.flag = f;
 			d.onOff = f.onOff;
-			auto p = cwx.utils.toLower(path) in pvs;
+			string lpath = cwx.utils.toLower(path);
+			auto p = lpath in pvs;
 			if (p) {
 				if (*p == 1) {
 					itm.setText(1, f.on);
@@ -1308,6 +1323,9 @@ class MsgPreview {
 					itm.setText(1, f.off);
 					d.onOff = false;
 				}
+			}
+			if (selPath && selPath == lpath) {
+				_values.select = _values.getItemCount - 1;
 			}
 		}
 		foreach (f; _summ.flagDirRoot.allSteps) {
@@ -1320,12 +1338,16 @@ class MsgPreview {
 			itm.setData = d;
 			d.step = f;
 			d.select = f.select;
-			auto p = cwx.utils.toLower(path) in pvs;
+			string lpath = cwx.utils.toLower(path);
+			auto p = lpath in pvs;
 			if (p) {
 				if (0 <= *p && *p < f.values.length) {
 					itm.setText(1, f.values[*p]);
 					d.select = *p;
 				}
+			}
+			if (selPath && selPath == lpath) {
+				_values.select = _values.getItemCount - 1;
 			}
 		}
 	}
@@ -1436,6 +1458,7 @@ class MsgPreview {
 		}
 		refreshFlags();
 		_comm.refFlagAndStep.add(&refFlagAndStep);
+		_comm.delFlagAndStep.add(&refFlagAndStep);
 
 		new TableTCEdit(_values, 1, &createEditor, &editEnd, null);
 	}
