@@ -1277,6 +1277,17 @@ class MsgPreview {
 			e.doit = false;
 		}
 	}
+	private class Mod : ModifyListener {
+		private TableItem _itm;
+		this (TableItem itm) {
+			_itm = itm;
+		}
+		override void modifyText(ModifyEvent e) {
+			string text = ctrlText(cast(Control) e.widget);
+			_itm.setText(1, text);
+			refresh();
+		}
+	}
 	private void refreshFlags() {
 		_values.setRedraw = false;
 		scope (exit) _values.setRedraw = true;
@@ -1360,13 +1371,26 @@ class MsgPreview {
 	private Control createEditor(TableItem itm, int editC) {
 		auto fd = cast(FlagData) itm.getData;
 		if (fd) {
-			return createComboEditor!Combo(_comm, _prop, itm.getParent, [fd.flag.on, fd.flag.off], itm.getText(1));
+			auto text = createComboEditor!Combo(_comm, _prop, itm.getParent, [fd.flag.on, fd.flag.off], itm.getText(1));
+			text.addModifyListener(new Mod(itm));
+			return text;
 		}
 		auto sd = cast(StepData) itm.getData;
 		if (sd) {
-			return createComboEditor!Combo(_comm, _prop, itm.getParent, sd.step.values, itm.getText(1));
+			auto text = createComboEditor!Combo(_comm, _prop, itm.getParent, sd.step.values, itm.getText(1));
+			text.addModifyListener(new Mod(itm));
+			return text;
 		}
-		return createTextEditor(_comm, _prop, itm.getParent, itm.getText(1));
+		auto combo = createTextEditor(_comm, _prop, itm.getParent, itm.getText(1));
+		combo.addModifyListener(new Mod(itm));
+		return combo;
+	}
+	private static string ctrlText(Control ctrl) {
+		auto text = cast(Text) ctrl;
+		if (text) return text.getText;
+		auto combo = cast(Combo) ctrl;
+		if (combo) return combo.getText;
+		assert (0);
 	}
 	private void editEnd(TableItem itm, int column, Control ctrl) {
 		auto old = itm.getText(column);
@@ -1489,6 +1513,7 @@ class MsgPreview {
 		int y = winProps.y == SWT.DEFAULT ? pb.y : winProps.y + pb.y;
 		intoDisplay(x, y, width, height);
 		_win.setBounds(x, y, width, height);
+		refresh();
 		_win.setVisible = true;
 		_toggle.setSelection = true;
 	}
@@ -1506,7 +1531,7 @@ class MsgPreview {
 		_talker = talker;
 		_imgPath = imgPath;
 		_message = message;
-		refresh();
+		if (isVisible) refresh();
 	}
 
 	private void refresh() {
@@ -1604,7 +1629,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 	string[] spFont;
 	RGB[] spColor;
 	auto cr = d.getSystemColor(SWT.COLOR_RED);
-	auto cb = d.getSystemColor(SWT.COLOR_BLUE);
+	auto cb = d.getSystemColor(SWT.COLOR_CYAN);
 	auto cg = d.getSystemColor(SWT.COLOR_GREEN);
 	auto cy = d.getSystemColor(SWT.COLOR_YELLOW);
 
