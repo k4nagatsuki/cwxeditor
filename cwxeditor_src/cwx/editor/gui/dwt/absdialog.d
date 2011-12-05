@@ -84,6 +84,7 @@ abstract class AbsDialog {
 		sep.setLayoutData = sgd;
 
 		_addition = new Composite(_win, SWT.NONE);
+		_addition.setLayout = new GridLayout(1, true);
 		_addition.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 
 		auto buttons = new Composite(_win, SWT.NONE);
