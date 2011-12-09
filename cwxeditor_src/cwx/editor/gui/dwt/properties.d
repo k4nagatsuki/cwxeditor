@@ -191,12 +191,6 @@ abstract class Properties {
 	}
 }
 
-interface WSize : DSize {
-	void x(int);
-	void y(int);
-	int x();
-	int y();
-}
 class WindowProps(string PropName, int Width, int Height)
 		: Properties, WSize {
 	mixin Property!("maximized", bool, false);
@@ -520,8 +514,8 @@ public class FlexProps {
 	DialogParam!("flagDialog") flagDlg;
 	DialogParam!("stepDialog") stepDlg;
 	DialogParam!("newScenarioDialog") newScDlg;
-	DialogParam!("speakDialog") speakDlg;
-	DialogParam!("messageDialog") msgDlg;
+	WindowProps!("speakDialog", SWT.DEFAULT, SWT.DEFAULT) speakDlg;
+	WindowProps!("messageDialog", SWT.DEFAULT, SWT.DEFAULT) msgDlg;
 	DialogParam!("cardEventDialog") cardEvtDlg;
 	DialogParam!("flagEventDialog", 350) flagEvtDlg;
 	DialogParam!("effectEventDialog") effEvtDlg;

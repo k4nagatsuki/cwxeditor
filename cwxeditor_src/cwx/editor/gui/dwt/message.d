@@ -26,6 +26,7 @@ import cwx.editor.gui.dwt.xmlbytestransfer;
 import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.properties;
+import cwx.editor.gui.dwt.absdialog;
 
 import std.array;
 import std.utf;

@@ -35,6 +35,15 @@ interface DSize {
 	int height();
 }
 
+interface WSize : DSize {
+	void x(int);
+	void y(int);
+	int x();
+	int y();
+	void maximized(bool);
+	bool maximized();
+}
+
 struct ButtonInfo {
 	string name;
 	void delegate() func;
@@ -189,9 +198,7 @@ abstract class AbsDialog {
 			_ret = close(_ret, cancel);
 			e.doit = !cancel;
 			if (e.doit && _size) {
-				auto s = _win.getSize;
-				_size.width = s.x;
-				_size.height = s.y;
+				saveWin();
 			}
 			if (e.doit) {
 				if (_ret) {
@@ -205,6 +212,29 @@ abstract class AbsDialog {
 				auto parShl = cast(Shell) _win.getParent;
 				if (parShl) parShl.setImeInputMode = _imeMode;
 			}
+		}
+	}
+	private void saveWin() {
+		if (!_size) return;
+		auto ws = cast(WSize) _size;
+		auto p = _win.getParent;
+		if (!_win.getMaximized && !_win.getMinimized) {
+			auto b = _win.getBounds;
+			_size.width = b.width;
+			_size.height = b.height;
+			if (ws) {
+				if (p) {
+					auto pb = p.getBounds;
+					ws.x = b.x - pb.x;
+					ws.y = b.y - pb.y;
+				} else {
+					ws.x = b.x;
+					ws.y = b.y;
+				}
+			}
+		}
+		if (ws) {
+			ws.maximized = _win.getMaximized;
 		}
 	}
 	private bool _ret = false;
@@ -230,11 +260,54 @@ abstract class AbsDialog {
 		if (!_win.isDisposed) _win.close();
 	}
 
+	private void calcBounds() {
+		if (!_size) {
+			_win.pack();
+			return;
+		}
+		auto par = _win.getParent;
+		auto winProps = cast(WSize) _size;
+		scope wp = _win.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+		int width = _size.width == SWT.DEFAULT ? wp.x : _size.width;
+		int height = _size.height == SWT.DEFAULT ? wp.y : _size.height;
+		int x, y;
+		if (par) {
+			auto pb = par.getBounds;
+			if (winProps && winProps.x != SWT.DEFAULT) {
+				x = winProps.x + pb.x;
+			} else {
+				x = pb.x + (pb.width - width) / 2;
+			}
+			if (winProps && winProps.y != SWT.DEFAULT) {
+				y = winProps.y + pb.y;
+			} else {
+				y = pb.y + (pb.height - height) / 2;
+			}
+		} else {
+			auto pb = _win.getDisplay.getBounds;
+			if (winProps && winProps.x != SWT.DEFAULT) {
+				x = winProps.x;
+			} else {
+				x = (pb.width - width) / 2;
+			}
+			if (winProps && winProps.y != SWT.DEFAULT) {
+				y = winProps.y;
+			} else {
+				y = (pb.height - height) / 2;
+			}
+		}
+		intoDisplay(x, y, width, height);
+		_win.setBounds(x, y, width, height);
+		if (winProps) {
+			_win.setMaximized = winProps.maximized;
+		}
+	}
 	bool open() {
 		setup(_area);
 		if (_enterClose) {
 			_win.setDefaultButton = _okBtn;
 		}
+		calcBounds();
 		if (_size) {
 			auto p = new Point(_size.width, _size.height);
 			if (p.x == SWT.DEFAULT || p.y == SWT.DEFAULT) {
@@ -248,12 +321,6 @@ abstract class AbsDialog {
 		}
 		auto par = cast(Shell) _win.getParent;
 		if (par) {
-			auto b = par.getBounds;
-			auto p = _win.getSize;
-			int x = b.x + (b.width - p.x) / 2;
-			int y = b.y + (b.height - p.y) / 2;
-			intoDisplay(x, y, p.x, p.y);
-			_win.setLocation = new Point(x, y);
 			_imeMode = par.getImeInputMode;
 			_win.setImeInputMode = _imeMode;
 		}
