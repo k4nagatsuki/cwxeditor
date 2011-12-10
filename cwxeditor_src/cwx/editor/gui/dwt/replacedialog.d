@@ -1185,6 +1185,8 @@ public:
 			_win.close();
 		} else {
 			_summ = summ;
+			reset();
+			refreshRangeTree();
 		}
 	}
 	private void search() {
