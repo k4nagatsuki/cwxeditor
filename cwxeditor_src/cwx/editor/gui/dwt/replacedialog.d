@@ -597,7 +597,7 @@ public:
 	void summary(Summary summ) {
 		if (!_win.isDisposed) {
 			_summ = summ;
-			_result.removeAll;
+			reset();
 		}
 	}
 
