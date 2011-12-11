@@ -261,15 +261,11 @@ abstract class AbsDialog {
 	}
 
 	private void calcBounds() {
-		if (!_size) {
-			_win.pack();
-			return;
-		}
 		auto par = _win.getParent;
 		auto winProps = cast(WSize) _size;
 		scope wp = _win.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-		int width = _size.width == SWT.DEFAULT ? wp.x : _size.width;
-		int height = _size.height == SWT.DEFAULT ? wp.y : _size.height;
+		int width = !_size || _size.width == SWT.DEFAULT ? wp.x : _size.width;
+		int height = !_size || _size.height == SWT.DEFAULT ? wp.y : _size.height;
 		int x, y;
 		if (par) {
 			auto pb = par.getBounds;
@@ -308,17 +304,6 @@ abstract class AbsDialog {
 			_win.setDefaultButton = _okBtn;
 		}
 		calcBounds();
-		if (_size) {
-			auto p = new Point(_size.width, _size.height);
-			if (p.x == SWT.DEFAULT || p.y == SWT.DEFAULT) {
-				auto cs = _win.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-				p.x = p.x == SWT.DEFAULT ? cs.x : p.x;
-				p.y = p.y == SWT.DEFAULT ? cs.y : p.y;
-			}
-			_win.setSize = p;
-		} else {
-			_win.pack;
-		}
 		auto par = cast(Shell) _win.getParent;
 		if (par) {
 			_imeMode = par.getImeInputMode;
