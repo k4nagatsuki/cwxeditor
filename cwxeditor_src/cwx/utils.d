@@ -884,6 +884,10 @@ dchar decodeFontPath(string path) {
 	enforce(1 == dpath.length);
 	return toUniUpper(dpath[0]);
 }
+/// cを"font_X.bmp"等に変換する。
+string encodeFontPath(dchar c, string ext) {
+	return ("font_" ~ to!string(c)).addExt(ext);
+}
 
 /// テキストの中で使用されているフラグ・ステップ・画像パス・名前を置換し、
 /// 変換後のテキスト、及び外部イメージと色変更記号の位置を返す。
@@ -916,7 +920,7 @@ string formatMsg(in string text,
 				i++;
 				continue;
 			default:
-				fonts[result.length] = toUTF8("font_"d ~ dtext[i + 1] ~ ".bmp"d);
+				fonts[result.length] = encodeFontPath(dtext[i + 1], "bmp");
 				break;
 			}
 			goto default;

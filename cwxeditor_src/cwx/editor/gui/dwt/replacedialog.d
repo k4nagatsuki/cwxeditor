@@ -2185,20 +2185,60 @@ public:
 		if (end) {
 			r |= repl(null, e.completeStamp, &e.completeStamp, count);
 		}
-		bool rDlg = false;
 		if (msg) {
 			r |= repl(null, e.text, &e.text, count);
+		}
+		bool replInText(ITextHolder th) {
+			bool r = false;
+			if (file) {
+				auto ps = th.fontsInText;
+				foreach (i, p; ps) {
+					auto c = decodeFontPath(p);
+					string ext = cwx.utils.getExt(p);
+					r |= repl(null, .to!string(c), (string s) {
+						dstring ds = .to!dstring(s);
+						if (!ds.length) return;
+						th.changeInText(i, toPathId(encodeFontPath(ds[0], ext)));
+					}, count);
+				}
+			}
+			if (flag) {
+				auto fps = th.flagsInText;
+				foreach (i, p; fps) {
+					r |= repl(null, p, (string s) {
+						th.changeInText(i, toFlagId(s));
+					}, count);
+				}
+				auto sps = th.stepsInText;
+				foreach (i, p; sps) {
+					r |= repl(null, p, (string s) {
+						th.changeInText(i, toStepId(s));
+					}, count);
+				}
+			}
+			return r;
+		}
+		r |= replInText(e);
+		bool rDlg = false;
+		if (msg || coupon || file || flag) {
 			auto dlgs = e.dialogs;
 			foreach (dlg; dlgs) {
+				auto put = dlg;
 				if (msg && repl(dlg, dlg.text, &dlg.text, count)) {
 					r |= true;
 					rDlg = true;
-					continue;
+					put = null;
 				}
-				if (coupon && replRqCoupons!(typeof(dlg))(dlg, dlg, count)) {
+				if (coupon && replRqCoupons!(typeof(dlg))(put, dlg, count)) {
 					r |= true;
 					rDlg = true;
-					continue;
+					put = null;
+				}
+				if (replInText(dlg)) {
+					if (put) addResult(put);
+					r |= true;
+					rDlg = true;
+					put = null;
 				}
 			}
 		}

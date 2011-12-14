@@ -377,6 +377,18 @@ public:
 			u.change(id);
 		}
 	}
+	/// テキスト内のfont_X.bmp・フラグ・ステップを置換する。
+	void change(size_t index, PathId id) {
+		_fontusers[index].change(id);
+	}
+	/// ditto
+	void change(size_t index, FlagId id) {
+		_flagusers[index].change(id);
+	}
+	/// ditto
+	void change(size_t index, StepId id) {
+		_stepusers[index].change(id);
+	}
 	override void changeCallback(PathId oldVal, PathId newVal) {
 		_text = replTextUseFont(_text, cast(string) oldVal, cast(string) newVal);
 	}
@@ -404,8 +416,24 @@ public:
 	CWXPath cwxParent() {return _owner;}
 }
 
+/// メッセージテキストの保持者。
+interface ITextHolder {
+	/// テキスト内で使用されているfont_X.png・フラグ・ステップのパス。
+	const string[] fontsInText();
+	/// ditto
+	const string[] flagsInText();
+	/// ditto
+	const string[] stepsInText();
+	/// テキスト内のfont_X.bmp・フラグ・ステップを置換する。
+	void changeInText(size_t index, PathId id);
+	/// ditto
+	void changeInText(size_t index, FlagId id);
+	/// ditto
+	void changeInText(size_t index, StepId id);
+}
+
 /// 口調分け条件とメッセージ内容を持つクラス。
-static class SDialog : CWXPath, IPathUser, IFlagUser, IStepUser {
+static class SDialog : CWXPath, IPathUser, IFlagUser, IStepUser, ITextHolder {
 private:
 	string[] _rCoupons;
 	TextHolder _text;
@@ -483,7 +511,7 @@ public:
 	}
 	// テキスト内で使用されているfont_X.png等のパス。
 	const
-	string[] fontsInText() {
+	override string[] fontsInText() {
 		string[] r;
 		foreach (u; _text._fontusers) {
 			r ~= u.path;
@@ -492,7 +520,7 @@ public:
 	}
 	// テキスト内で使用されているフラグのパス。
 	const
-	string[] flagsInText() {
+	override string[] flagsInText() {
 		string[] r;
 		foreach (u; _text._flagusers) {
 			r ~= u.flag;
@@ -501,12 +529,24 @@ public:
 	}
 	// テキスト内で使用されているステップのパス。
 	const
-	string[] stepsInText() {
+	override string[] stepsInText() {
 		string[] r;
 		foreach (u; _text._stepusers) {
 			r ~= u.step;
 		}
 		return r;
+	}
+	/// テキスト内のfont_X.bmp・フラグ・ステップを置換する。
+	override void changeInText(size_t index, PathId id) {
+		_text.change(index, id);
+	}
+	/// ditto
+	override void changeInText(size_t index, FlagId id) {
+		_text.change(index, id);
+	}
+	/// ditto
+	override void changeInText(size_t index, StepId id) {
+		_text.change(index, id);
 	}
 	const
 	XNode toNode() {
@@ -559,7 +599,7 @@ public:
 class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		IFlagUser, IStepUser,
 		ICastUser, IItemUser, ISkillUser, IBeastUser, IInfoUser, IStartUser,
-		MotionOwner, BgImageOwner {
+		MotionOwner, BgImageOwner, ITextHolder {
 	private EventTree _tree = null;
 
 	/// 型と後続テキストnameを指定してインスタンスを生成。
@@ -1393,7 +1433,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 	// テキスト内で使用されているfont_X.png等のパス。
 	const
-	string[] fontsInText() {
+	override string[] fontsInText() {
 		if (!_text) return [];
 		string[] r;
 		foreach (u; _text._fontusers) {
@@ -1403,7 +1443,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	}
 	// テキスト内で使用されているフラグのパス。
 	const
-	string[] flagsInText() {
+	override string[] flagsInText() {
 		if (!_text) return [];
 		string[] r;
 		foreach (u; _text._flagusers) {
@@ -1413,13 +1453,25 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	}
 	// テキスト内で使用されているステップのパス。
 	const
-	string[] stepsInText() {
+	override string[] stepsInText() {
 		if (!_text) return [];
 		string[] r;
 		foreach (u; _text._stepusers) {
 			r ~= u.step;
 		}
 		return r;
+	}
+	/// テキスト内のfont_X.bmp・フラグ・ステップを置換する。
+	override void changeInText(size_t index, PathId id) {
+		_text.change(index, id);
+	}
+	/// ditto
+	override void changeInText(size_t index, FlagId id) {
+		_text.change(index, id);
+	}
+	/// ditto
+	override void changeInText(size_t index, StepId id) {
+		_text.change(index, id);
 	}
 
 	/// コンテントをXMLテキストにして返す。
