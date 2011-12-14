@@ -1529,6 +1529,8 @@ public:
 		}
 		if (msg) {
 			r |= repl(null, &e.text, &e.text, count);
+		}
+		if (msg || coupon) {
 			auto dlgs = e.dialogs;
 			foreach (dlg; dlgs) {
 				if (msg) {
