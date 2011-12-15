@@ -1216,6 +1216,7 @@ public:
 		auto a = getSelectionArea;
 		if (a) {
 			r ~= a.cwxPath;
+			r ~= cpaddattr(a.cwxPath, "shallow");
 		}
 		return r;
 	}

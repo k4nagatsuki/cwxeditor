@@ -543,9 +543,10 @@ public:
 			_comm.openFlagWin(shellActivate);
 			forceFocus(flags.widget, shellActivate);
 			current = dir;
-			flags.select(dir.flags[index], false);
 			if (cphasattr(path, "opendialog")) {
 				flags.edit(dir.flags[index]);
+			} else {
+				flags.select(dir.flags[index], false);
 			}
 			return true;
 		} break;
@@ -554,9 +555,10 @@ public:
 			_comm.openFlagWin(shellActivate);
 			forceFocus(flags.widget, shellActivate);
 			current = dir;
-			flags.select(dir.steps[index], false);
 			if (cphasattr(path, "opendialog")) {
 				flags.edit(dir.steps[index]);
+			} else {
+				flags.select(dir.steps[index], false);
 			}
 			return true;
 		} break;

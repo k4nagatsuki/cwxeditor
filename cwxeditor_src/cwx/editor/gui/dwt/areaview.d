@@ -3382,41 +3382,49 @@ public:
 		bool sel(Table list) {
 			if (index >= list.getItemCount) return false;
 			.forceFocus(_imgp, shellActivate);
-			list.deselectAll;
 			list.select = index;
 			list.showSelection;
 			return true;
 		}
 		static if (UseCards && is(C : MenuCard)) {
 			if (cate == "menucard") {
-				if (sel(_cards)) {
-					listSelectC;
-					if (cphasattr(path, "opendialog")) {
-						editCard(_cards.getSelectionIndices);
-					}
+				if (cphasattr(path, "opendialog")) {
+					if (index >= _cards.getItemCount) return false;
+					editCard([index]);
 					return true;
+				} else {
+					if (sel(_cards)) {
+						listSelectC;
+						return true;
+					}
 				}
 			}
 		}
 		static if (UseCards && is(C : EnemyCard)) {
 			if (cate == "enemycard") {
-				if (sel(_cards)) {
-					listSelectC;
-					if (cphasattr(path, "opendialog")) {
-						editCard(_cards.getSelectionIndices);
-					}
+				if (cphasattr(path, "opendialog")) {
+					if (index >= _cards.getItemCount) return false;
+					editCard([index]);
 					return true;
+				} else {
+					if (sel(_cards)) {
+						listSelectC;
+						return true;
+					}
 				}
 			}
 		}
 		static if (UseBacks) {
 			if (cate == "background") {
-				if (sel(_backs)) {
-					listSelectB;
-					if (cphasattr(path, "opendialog")) {
-						editBack(_backs.getSelectionIndices);
-					}
+				if (cphasattr(path, "opendialog")) {
+					if (index >= _backs.getItemCount) return false;
+					editBack([index]);
 					return true;
+				} else {
+					if (sel(_backs)) {
+						listSelectB;
+						return true;
+					}
 				}
 			}
 		}
