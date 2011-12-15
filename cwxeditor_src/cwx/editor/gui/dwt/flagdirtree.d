@@ -543,9 +543,9 @@ public:
 			_comm.openFlagWin(shellActivate);
 			forceFocus(flags.widget, shellActivate);
 			current = dir;
-			flags.select(dir.flags[index]);
+			flags.select(dir.flags[index], false);
 			if (cphasattr(path, "opendialog")) {
-				flags.edit();
+				flags.edit(dir.flags[index]);
 			}
 			return true;
 		} break;
@@ -554,9 +554,9 @@ public:
 			_comm.openFlagWin(shellActivate);
 			forceFocus(flags.widget, shellActivate);
 			current = dir;
-			flags.select(dir.steps[index]);
+			flags.select(dir.steps[index], false);
 			if (cphasattr(path, "opendialog")) {
-				flags.edit();
+				flags.edit(dir.steps[index]);
 			}
 			return true;
 		} break;
@@ -577,6 +577,14 @@ public:
 	}
 	bool openCWXPath(string path, bool shellActivate) {
 		return openCWXPathImpl(root, path, shellActivate);
+	}
+	string[] openedCWXPath() {
+		string[] r;
+		auto cur = current;
+		if (cur) {
+			r ~= cur.cwxPath;
+		}
+		return r;
 	}
 	void undo() {
 		_undo.undo();

@@ -176,6 +176,7 @@ abstract class TopLevelPanel {
 		if (t) t(statusLine);
 	}
 	abstract bool openCWXPath(string cwxPath, bool shellActivate);
+	abstract string[] openedCWXPath();
 }
 class TLPData {
 	TopLevelPanel tlp;

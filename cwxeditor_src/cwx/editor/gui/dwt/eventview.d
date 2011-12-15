@@ -1650,6 +1650,26 @@ public:
 		}
 		return false;
 	}
+	string[] openedCWXPath() {
+		string[] r;
+		auto etItm = selectionEventTree;
+		if (etItm) {
+			auto et = cast(EventTree) etItm.getData;
+			assert (et);
+			r ~= et.cwxPath;
+		} else {
+			auto cardItm = selectionParent;
+			if (cardItm) {
+				auto card = cast(A) cardItm.getData;
+				assert (card);
+				r ~= cpaddattr(card.cwxPath, "eventview");
+			} else {
+				r ~= cpaddattr(_area.cwxPath, "eventview");
+			}
+		}
+		r ~= _etree.openedCWXPath;
+		return r;
+	}
 }
 
 private class ManyRoundsDialog : AbsDialog {

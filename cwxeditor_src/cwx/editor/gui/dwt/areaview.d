@@ -3422,6 +3422,20 @@ public:
 		}
 		return false;
 	}
+	string[] openedCWXPath() {
+		string[] r;
+		static if (UseCards) {
+			foreach (i; _cards.getSelectionIndices) {
+				r ~= _area.cards[i].cwxPath;
+			}
+		}
+		static if (UseBacks) {
+			foreach (i; _backs.getSelectionIndices) {
+				r ~= _area.backs[i].cwxPath;
+			}
+		}
+		return r.length ? r : [_area.cwxPath];
+	}
 }
 
 alias AbstractAreaView!(Area, MenuCard, true, true) AreaView;

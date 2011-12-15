@@ -321,6 +321,7 @@ class FlexEtcProps : Properties {
 	mixin Property!("commentBoxDistance", int, 50, true);
 
 	mixin Property!("doubleIO", bool, true);
+	mixin Property!("reconstruction", bool, true);
 
 	mixin Property!("savedSound", string, "");
 

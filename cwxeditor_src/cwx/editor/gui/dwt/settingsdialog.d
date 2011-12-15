@@ -269,7 +269,7 @@ private:
 
 	CTabItem _tabE;
 	Text _ignorePaths;
-	Button _singleWindow;
+	Button _singleWindow = null;
 	Button _smoothingCard;
 	Button _showImagePreview;
 	Button _expandXMLs;
@@ -285,6 +285,7 @@ private:
 	Button _doubleIO;
 	Button _switchTabWheel;
 	Button _openTabAtRightOfCurrentTab;
+	Button _reconstruction;
 	Combo _soundPlayType;
 	int[int] _soundPlayTypeTbl;
 	int[int] _soundPlayTypeTbl2;
@@ -1833,7 +1834,9 @@ private:
 					btn.setLayoutData = gd;
 					return btn;
 				}
-				_singleWindow = createB(_prop.msgs.singleWindow);
+				if (!_comm.singleWindowMode(_prop)) {
+					_singleWindow = createB(_prop.msgs.singleWindow);
+				}
 				_smoothingCard = createB(_prop.msgs.smoothingCard);
 				_showImagePreview = createB(_prop.msgs.showImagePreview);
 				_expandXMLs = createB(_prop.msgs.expandXMLs);
@@ -1851,6 +1854,7 @@ private:
 				_doubleIO = createB(_prop.msgs.doubleIO);
 				_switchTabWheel = createB(_prop.msgs.switchTabWheel);
 				_openTabAtRightOfCurrentTab = createB(_prop.msgs.openTabAtRightOfCurrentTab);
+				_reconstruction = createB(_prop.msgs.reconstruction);
 			}
 			{
 				auto grp = new Group(comp2, SWT.NONE);
@@ -2005,7 +2009,9 @@ protected:
 		_expandXMLs.setSelection = _prop.var.etc.expandXMLs;
 		_smoothingCard.setSelection = _prop.var.etc.smoothingCard;
 		_showImagePreview.setSelection = _prop.var.etc.showImagePreview;
-		_singleWindow.setSelection = _prop.var.etc.singleWindow;
+		if (_singleWindow) {
+			_singleWindow.setSelection = _prop.var.etc.singleWindow;
+		}
 		_contentsFloat.setSelection = _prop.var.etc.contentsFloat;
 		_contentsAutoHide.setSelection = _prop.var.etc.contentsAutoHide;
 		_xmlCopy.setSelection = _prop.var.etc.xmlCopy;
@@ -2018,6 +2024,7 @@ protected:
 		_doubleIO.setSelection = _prop.var.etc.doubleIO;
 		_switchTabWheel.setSelection = _prop.var.etc.switchTabWheel;
 		_openTabAtRightOfCurrentTab.setSelection = _prop.var.etc.openTabAtRightOfCurrentTab;
+		_reconstruction.setSelection = _prop.var.etc.reconstruction;
 		auto sptp = _prop.var.etc.soundPlayType in _soundPlayTypeTbl;
 		if (sptp) {
 			_soundPlayType.select = *sptp;
@@ -2123,7 +2130,9 @@ protected:
 		} else {
 			_prop.var.etc.ignorePaths = [];
 		}
-		_prop.var.etc.singleWindow = _singleWindow.getSelection;
+		if (_singleWindow) {
+			_prop.var.etc.singleWindow = _singleWindow.getSelection;
+		}
 		_prop.var.etc.smoothingCard = _smoothingCard.getSelection;
 		_prop.var.etc.showImagePreview = _showImagePreview.getSelection;
 		_prop.var.etc.expandXMLs = _expandXMLs.getSelection;
@@ -2137,6 +2146,7 @@ protected:
 		_prop.var.etc.doubleIO = _doubleIO.getSelection;
 		_prop.var.etc.switchTabWheel = _switchTabWheel.getSelection;
 		_prop.var.etc.openTabAtRightOfCurrentTab = _openTabAtRightOfCurrentTab.getSelection;
+		_prop.var.etc.reconstruction = _reconstruction.getSelection;
 		_prop.var.etc.contentsFloat = _contentsFloat.getSelection;
 		_prop.var.etc.contentsAutoHide = _contentsAutoHide.getSelection;
 		_prop.var.etc.soundPlayType = _soundPlayTypeTbl2[_soundPlayType.getSelectionIndex];

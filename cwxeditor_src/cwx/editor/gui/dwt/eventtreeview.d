@@ -93,6 +93,7 @@ import java.lang.all;
 
 public:
 
+/// イベントコンテントツリー。
 class EventTreeView : TCPD {
 private:
 	Shell _toolWin = null;
@@ -2619,5 +2620,19 @@ public:
 	}
 	bool openCWXPath(string path, bool shellActivate) {
 		return openCWXPathImpl(_tree, path, shellActivate);
+	}
+	string[] openedCWXPath() {
+		string[] r;
+		if (_et) {
+			auto e = selection;
+			if (e) {
+				auto c = cast(Content) e.getData;
+				assert (c);
+				r ~= c.cwxPath;
+			} else {
+				r ~= _et.cwxPath;
+			}
+		}
+		return r;
 	}
 }

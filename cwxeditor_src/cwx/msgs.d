@@ -2350,6 +2350,7 @@ public:
 	const string doubleIO() {return "分割読込・保存を行う(デュアルコア以上の環境で高速化)";}
 	const string switchTabWheel() {return "マウスホイールでタブ切替を行う";}
 	const string openTabAtRightOfCurrentTab() {return "新しいタブを現在のタブの直後に開く";}
+	const string reconstruction() {return "シナリオごとにタブの配置を記憶する";}
 	const string soundPlayType() {return "音声再生方法";}
 	const string soundPlayTypeDef() {return "自動選択";}
 	const string soundPlayTypeSDL() {return "SDL(CardWirthPy形式)";}

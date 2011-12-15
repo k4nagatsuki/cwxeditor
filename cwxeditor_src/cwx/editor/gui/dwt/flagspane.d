@@ -152,6 +152,12 @@ public:
 	bool openCWXPath(string path, bool shellActivate) {
 		return _dirs.openCWXPath(path, shellActivate);
 	}
+	string[] openedCWXPath() {
+		string[] r;
+		r ~= _dirs.openedCWXPath;
+		r ~= _flags.openedCWXPath;
+		return r;
+	}
 
 	FlagDirTree dirs() {
 		return _dirs;

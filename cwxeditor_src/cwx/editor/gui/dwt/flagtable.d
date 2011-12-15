@@ -17,6 +17,7 @@ import cwx.editor.gui.dwt.undo;
 
 import std.conv;
 import std.string;
+import std.exception;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
@@ -1268,6 +1269,16 @@ public:
 			}
 		}
 	}
+	/// 指定されたフラグの編集を開始する。
+	void edit(Flag flag) {
+		enforce(flag.parent is dir);
+		editFlag(flag.parent, flag);
+	}
+	/// 指定されたステップの編集を開始する。
+	void edit(Step step) {
+		enforce(step.parent is dir);
+		editStep(step.parent, step);
+	}
 
 	/// 編集対象のディレクトリを設定する。
 	/// Params:
@@ -1289,8 +1300,8 @@ public:
 		return _dir;
 	}
 
-	private void selectImpl(Object flag) {
-		flags.deselectAll;
+	private void selectImpl(Object flag, bool deselect) {
+		if (deselect) flags.deselectAll;
 		foreach (i, itm; flags.getItems) {
 			if (itm.getData is flag) {
 				flags.select = i;
@@ -1300,12 +1311,12 @@ public:
 		flags.showSelection();
 	}
 	/// フラグを選択する。
-	void select(Flag flag) {
-		selectImpl(flag);
+	void select(Flag flag, bool deselect) {
+		selectImpl(flag, deselect);
 	}
 	/// ステップを選択する。
-	void select(Step step) {
-		selectImpl(step);
+	void select(Step step, bool deselect) {
+		selectImpl(step, deselect);
 	}
 
 	/// コントロールを解放する。
@@ -1398,5 +1409,19 @@ public:
 	}
 	void redo() {
 		_undo.redo();
+	}
+
+	string[] openedCWXPath() {
+		string[] r;
+		Flag[] fs;
+		Step[] ss;
+		getSelectionFlagAndStep(fs, ss);
+		foreach (f; fs) {
+			r ~= f.cwxPath;
+		}
+		foreach (s; ss) {
+			r ~= s.cwxPath;
+		}
+		return r;
 	}
 }

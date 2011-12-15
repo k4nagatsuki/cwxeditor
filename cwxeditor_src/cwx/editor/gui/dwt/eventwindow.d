@@ -351,6 +351,9 @@ public:
 	bool openCWXPath(string path, bool shellActivate) {
 		return _eview.openCWXPath(path, shellActivate);
 	}
+	string[] openedCWXPath() {
+		return _eview.openedCWXPath;
+	}
 }
 
 alias EventWindow!(Area) AreaEventWindow;

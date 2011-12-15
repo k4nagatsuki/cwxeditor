@@ -1210,4 +1210,13 @@ public:
 	void redo() {
 		_undo.redo();
 	}
+
+	string[] openedCWXPath() {
+		string[] r;
+		auto a = getSelectionArea;
+		if (a) {
+			r ~= a.cwxPath;
+		}
+		return r;
+	}
 }

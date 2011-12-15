@@ -365,6 +365,8 @@ private:
 		return cwx.utils.ncmp(a, b);
 	}
 	void openScenario(Summary summ) {
+		_win.setRedraw = false;
+		scope (exit) _win.setRedraw = true;
 		assert (summ);
 		_lastBackup = Clock.currTime;
 		_dirWin.stopTrace;
@@ -376,6 +378,7 @@ private:
 		}
 		summ.flagDirRoot.sortFlags(true);
 		summ.flagDirRoot.sortSteps(true);
+		writeDock();
 		auto old = summary;
 		if (summ.type.length && !hasSkin(_prop, summ.type)
 				&& summ.type != _prop.var.etc.defaultSkin) {
@@ -408,7 +411,8 @@ private:
 		}
 		setupMenu(_menu);
 		setupMenu(_tool);
-		addHistory;
+		string fullHist = findFullHist(createHistString(summary));
+		addHistory();
 		try {
 			if (old) {
 				synchronized (_saveSync) {
@@ -422,10 +426,14 @@ private:
 		statusLine = _prop.msgs.loaded(summ.scenarioName);
 		summ.changedEvent ~= &refreshTitle;
 		refreshTitle();
+		foreach (cwxPath; fullHistToCWXPaths(fullHist)) {
+			openCWXPath(cwxPath, false);
+		}
 		GC.collect();
 	}
 	string _firstScenarioPath = null;
 	string[] _openPaths;
+
 	void openScenarioImpl(Summary summ) {
 		if (summ) {
 			openScenario(summ);
@@ -486,7 +494,7 @@ private:
 					}
 					_comm.saved.call;
 					refreshTitle();
-					addHistory;
+					addHistory();
 					GC.collect();
 					playSavedSound();
 					return true;
@@ -534,7 +542,7 @@ private:
 					_comm.refScenarioPath.call;
 					_comm.refSkin.call;
 					_comm.refPaths.call("");
-					addHistory;
+					addHistory();
 					GC.collect();
 					playSavedSound();
 				} catch (SummaryException e) {
@@ -627,6 +635,9 @@ private:
 		override void shellClosed(ShellEvent e) {
 			e.doit = qSave;
 			if (e.doit) {
+				if (summary) {
+					writeDock();
+				}
 				_comm.closeAll();
 			}
 		}
@@ -699,7 +710,19 @@ private:
 		}
 	}
 
-	void addHistory() {
+	string findFullHist(string hist) {
+		if ("" == hist) return hist;
+		auto hists = _prop.var.etc.openHistories.dup;
+		foreach (i, h; hists) {
+			if (cfnmatch(fullHistToHist(h), hist)) {
+				hist = h;
+				break;
+			}
+		}
+		return hist;
+	}
+	static string createHistString(Summary summary) {
+		if (!summary) return "";
 		string hist;
 		if (summary.legacy) {
 			if (summary.useTemp) {
@@ -709,15 +732,72 @@ private:
 			}
 		} else if (summary.useTemp) {
 			hist = summary.zipName;
-			if (!hist.length) return;
+			if (!hist.length) return "";
 		} else {
 			hist = std.path.buildPath(summary.scenarioPath, "Summary.xml");
 		}
-		hist = nabs(hist);
-		_prop.var.etc.scenarioPath = summary.useTemp ? dirName(hist) : dirName(dirName(hist));
+		return nabs(hist);
+	}
+	string createFullHistString() {
+		string hist = createHistString(summary);
+		if ("" == hist) return "";
+		if (_prop.var.etc.reconstruction) {
+			hist = "\"" ~ hist ~ "\" " ~ std.string.join(openedCWXPath, CWXPATH_SEP.idup);
+		}
+		return hist;
+	}
+	void writeDock() {
+		string hist = createHistString(summary);
+		if ("" == hist) return;
 		auto hists = _prop.var.etc.openHistories.dup;
 		foreach (i, h; hists) {
-			if (cfnmatch(h, hist)) {
+			if (cfnmatch(fullHistToHist(h), hist)) {
+				if (_prop.var.etc.reconstruction) {
+					hists[i] = createFullHistString();
+				} else {
+					hists[i] = hist;
+				}
+				_prop.var.etc.openHistories = hists;
+				break;
+			}
+		}
+	}
+	/// `"/foo/bar" /cwx:0/path:0...` -> `/foo/bar`
+	static string fullHistToHist(string hist) {
+		if (std.string.startsWith(hist, "\"")) {
+			int i = std.string.indexOf(hist["\"".length .. $], "\"");
+			if (-1 != i) {
+				return hist["\"".length .. i + "\"".length];
+			}
+		}
+		return hist;
+	} unittest {
+		assert (fullHistToHist(r"C:\test\test1") == r"C:\test\test1");
+		assert (fullHistToHist(`"C:\test\test1" aaa`) == r"C:\test\test1");
+	}
+	/// `"/foo/bar" /cwx:0/path:0&/cwx:1/path1:0` -> [`/cwx:0/path:0`, `/cwx:1/path:1`]
+	static string[] fullHistToCWXPaths(string hist) {
+		if (std.string.startsWith(hist, "\"")) {
+			int i = std.string.indexOf(hist["\"".length .. $], "\"");
+			if (-1 != i) {
+				return std.string.split(strip(hist[i + "\"".length + 1 .. $]), CWXPATH_SEP.idup);
+			}
+		}
+		return [];
+	} unittest {
+		assert (fullHistToCWXPaths(r"C:\test\test1") == []);
+		assert (fullHistToCWXPaths(`"C:\test\test1" aaa&bbb`) == ["aaa", "bbb"]);
+	}
+	void addHistory() {
+		string hist = createFullHistString();
+		if ("" == hist) return;
+		string p = fullHistToHist(hist);
+		_prop.var.etc.scenarioPath = summary.useTemp ? dirName(p) : dirName(dirName(p));
+		auto hists = _prop.var.etc.openHistories.dup;
+		foreach (i, h; hists) {
+			if (cfnmatch(fullHistToHist(h), p)) {
+				// すでに履歴中に存在するため、最新位置に移動
+				hist = h;
 				_prop.var.etc.openHistories = hists[0 .. i] ~ hists[i + 1 .. $];
 				hists = _prop.var.etc.openHistories.dup;
 				break;
@@ -732,6 +812,7 @@ private:
 	class Hist {
 		private string _hist;
 		this(Menu menu, int num, string hist) {
+			hist = fullHistToHist(hist);
 			string text;
 			Image img;
 			auto snipLen = _prop.var.etc.historySnipLength;
@@ -1067,65 +1148,7 @@ public:
 			return path1.length > 0;
 		});
 		if (!execute) return;
-/+		version (Windows) {
-			char[MAX_PATH] buf;
-			DWORD len;
-			for (size_t i = 0; i < PIPE_APP_MAX; i++) {
-				string pipeName = r"\\.\pipe\cwxeditor_" ~ to!(string)(i);
-				auto p = CreateFileW(toUTFz!(wchar*)(pipeName),
-					GENERIC_READ | GENERIC_WRITE, 0, null, OPEN_EXISTING, 0, null);
-				if (p == INVALID_HANDLE_VALUE) {
-					if (!_pipeName.length) _pipeName = pipeName;
-					if (!path1.length) break;
-					continue;
-				}
-				scope (exit) CloseHandle(p);
-				if (!path1.length) continue;
-				string send = "get opened scenario";
-				if (!WriteFile(p, send.ptr, send.length, &len, null)) continue;
-				if (!ReadFile(p, buf.ptr, buf.length, &len, null)) continue;
-				auto path2 = nabs(buf[0 .. len].idup);
-				if (!cfnmatch(path1, path2)) continue;
-				send = "open cwxpath ";
-				foreach (j, s; openPaths) {
-					if (j > 0) send ~= CWXPATH_SEP;
-					send ~= s;
-				}
-				if (!WriteFile(p, send.ptr, send.length, &len, null)) continue;
-				return;
-			}
-		} else {
-			char[4096] buf;
-			for (size_t i = 0; i < PIPE_APP_MAX; i++) {
-				string pipeName = r"/pipe/cwxeditor_" ~ to!(string)(i);
-				auto p = socket(PF_UNIX, SOCK_STREAM, 0);
-				if (-1 == p) continue;
-				scope (exit) close(p);
-				sockaddr_un raddr;
-				raddr.sun_family = AF_INET;
-				strcpy(&(raddr.sun_path[1]), pipeName.ptr);
-				if (-1 == connect(p, cast(sockaddr*) &raddr, raddr.sizeof)) {
-					if (!_pipeName.length) _pipeName = pipeName;
-					if (!path1.length) break;
-					continue;
-				}
-				if (!path1.length) continue;
-				string send = "get opened scenario";
-				if (-1 == cwrite(p, send.ptr, send.length)) continue;
-				int len = cread(p, buf.ptr, buf.length);
-				if (-1 == len) continue;
-				auto path2 = nabs(buf["opend scenario " .. len]);
-				if (!cfnmatch(path1, path2)) continue;
-				send = "open cwxpath ";
-				foreach (j, s; openPaths) {
-					if (j > 0) send ~= CWXPATH_SEP;
-					send ~= s;
-				}
-				if (-1 == cwrite(p, send.ptr, send.length)) continue;
-				return;
-			}
-		}
-+/		_firstScenarioPath = firstScenarioPath;
+		_firstScenarioPath = firstScenarioPath;
 		_openPaths = openPaths;
 		_saveSync = new Object;
 		_prop = new Props(confFilePath, new CProps(appPath, sys));
@@ -2269,12 +2292,51 @@ public:
 			} default: return false;
 			}
 		}
-		if (open) {
-			_win.setMinimized = false;
-			if (shellActivate) _win.forceActive();
-			return true;
+		bool r = true;
+		foreach (p; std.string.split(path, CWXPATH_SEP.idup)) {
+			if (open()) {
+				_win.setMinimized = false;
+				if (shellActivate) _win.forceActive();
+			} else {
+				r = false;
+			}
 		}
-		return false;
+		return r;
+	}
+	string[] openedCWXPath() {
+		string[] r;
+		if (!_dock) return r;
+		foreach (paneKey; _dock.paneKeys) {
+			foreach (ctrl; _dock.controls(paneKey)) {
+				auto tlpData = cast(TLPData) ctrl.getData;
+				if (tlpData.tlp is this) continue;
+				assert (tlpData);
+				r ~= tlpData.tlp.openedCWXPath;
+			}
+			// ペイン内で選択中のタブを末尾に追加
+			string ctrlKey = _dock.selectedCtrl(paneKey);
+			if ("" != ctrlKey) {
+				auto ctrl = _dock.control(ctrlKey);
+				assert (ctrl);
+				auto tlpData = cast(TLPData) ctrl.getData;
+				assert (tlpData);
+				if (tlpData.tlp !is this) {
+					r ~= tlpData.tlp.openedCWXPath;
+				}
+			}
+		}
+		// 現在フォーカスのあるコントロールを末尾に追加
+		auto d = _win.getDisplay;
+		auto fc = d.getFocusControl;
+		while (fc) {
+			auto tlpData = cast(TLPData) fc.getData;
+			if (tlpData && tlpData.tlp !is this) {
+				r ~= tlpData.tlp.openedCWXPath;
+				break;
+			}
+			fc = fc.getParent;
+		}
+		return r;
 	}
 
 	void doCWX() {

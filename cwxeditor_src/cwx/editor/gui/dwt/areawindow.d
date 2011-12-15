@@ -494,6 +494,22 @@ public:
 		}
 		return false;
 	}
+	string[] openedCWXPath() {
+		string[] r;
+		static if (WithEventView) {
+			_eview.initial();
+			if (_tabf.getSelection is _tabE) {
+				r ~= _aview.openedCWXPath;
+				r ~= _eview.openedCWXPath;
+			} else {
+				r ~= _eview.openedCWXPath;
+				r ~= _aview.openedCWXPath;
+			}
+		} else {
+			r ~= _aview.openedCWXPath;
+		}
+		return r;
+	}
 }
 
 alias TAreaWindow!(AreaView, Area, MenuCard, true) AreaWindow;

@@ -622,6 +622,24 @@ public:
 		}
 		return false;
 	}
+	string[] openedCWXPath() {
+		string[] r;
+		static if (UseArea && UseFlag) {
+			if (tabf.getSelection is tabA) {
+				r ~= _areas.openedCWXPath;
+				r ~= _flags.openedCWXPath;
+			} else {
+				r ~= _flags.openedCWXPath;
+				r ~= _areas.openedCWXPath;
+			}
+		} else static if (UseArea) {
+			r ~= _areas.openedCWXPath;
+		} else static if (UseFlag) {
+			r ~= _flags.openedCWXPath;
+		} else static assert (0);
+		return r;
+	}
+
 	void undo() {
 		static if (UseArea && UseFlag) {
 			if (tabf.getSelection is tabA) {

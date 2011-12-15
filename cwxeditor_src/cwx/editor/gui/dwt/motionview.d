@@ -282,13 +282,12 @@ private:
 	Image[TypeInfo] _imgMsns;
 	Image[Element] _imgElm;
 
-	// FIXME: HashSet!Compositeでリンクエラー
-	HashSet!Object _beWin;
+	HashSet!BeastEventWindow _beWin;
 	BeastEventWindow openBeastEventWin(BeastCard beast) {
 		auto w = _comm.openUseEvents(_prop, _summ, beast, true);
-		if (_beWin.contains(w.shell)) return w;
-		w.shell.addDisposeListener(new CloseRemover!(Object)(_beWin, w.shell));
-		_beWin.add(w.shell);
+		if (_beWin.contains(w)) return w;
+		w.shell.addDisposeListener(new CloseRemover!(BeastEventWindow)(_beWin, w));
+		_beWin.add(w);
 		return w;
 	}
 	void editBeastUseEvent() {
@@ -752,7 +751,7 @@ private:
 			_comm.refUndoMax.remove(&refUndoMax);
 			getDisplay.removeFilter(SWT.KeyDown, _kdFilter);
 			foreach (w; _beWin.toArray) {
-				_comm.close(cast(Composite) w);
+				_comm.close(w.shell);
 			}
 		}
 	}

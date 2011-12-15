@@ -2020,6 +2020,9 @@ public:
 	override bool openCWXPath(string path, bool shellActivate) {
 		return false;
 	}
+	override string[] openedCWXPath() {
+		return [];
+	}
 }
 
 version (Windows) {
