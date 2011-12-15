@@ -411,7 +411,10 @@ private:
 		}
 		setupMenu(_menu);
 		setupMenu(_tool);
-		string fullHist = findFullHist(createHistString(summary));
+		string fullHist = "";
+		if (_prop.var.etc.reconstruction) {
+			fullHist = findFullHist(createHistString(summary));
+		}
 		addHistory();
 		try {
 			if (old) {
@@ -426,8 +429,10 @@ private:
 		statusLine = _prop.msgs.loaded(summ.scenarioName);
 		summ.changedEvent ~= &refreshTitle;
 		refreshTitle();
-		foreach (cwxPath; fullHistToCWXPaths(fullHist)) {
-			openCWXPath(cwxPath, false);
+		if (_prop.var.etc.reconstruction) {
+			foreach (cwxPath; fullHistToCWXPaths(fullHist)) {
+				openCWXPath(cwxPath, false);
+			}
 		}
 		GC.collect();
 	}
