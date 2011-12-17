@@ -330,8 +330,7 @@ public:
 	bool openCWXPath(string path) {
 		auto cate = cpcategory(path);
 		if (path == "") {
-			_tabf.setSelection = _tabA;
-			return true;
+			return _aview.openCWXPath(path);
 		} else if (((cate == "menucard" || cate == "enemycard")
 				&& cpbottom(path) == "")
 				|| cate == "background") {

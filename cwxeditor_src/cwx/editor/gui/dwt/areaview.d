@@ -2549,6 +2549,10 @@ public:
 	void redo() {_undo.redo;}
 
 	bool openCWXPath(string path) {
+		if (path == "") {
+			.forceFocus(_imgp);
+			return true;
+		}
 		auto cate = cpcategory(path);
 		auto index = cpindex(path);
 		bool sel(List list) {
