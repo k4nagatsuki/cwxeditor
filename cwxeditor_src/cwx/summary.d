@@ -543,6 +543,26 @@ private:
 	Area[] _area; /// エリア
 	Package[] _pkg; /// パッケージ
 	Battle[] _btl; /// バトル
+	/// Aに対応する配列。
+	template CArray(A) {
+		static if (is(A : Area)) {
+			alias _area CArray;
+		} else static if (is(A : Battle)) {
+			alias _btl CArray;
+		} else static if (is(A : Package)) {
+			alias _pkg CArray;
+		} else static if (is(A : CastCard)) {
+			alias _cast CArray;
+		} else static if (is(A : SkillCard)) {
+			alias _skl CArray;
+		} else static if (is(A : ItemCard)) {
+			alias _itm CArray;
+		} else static if (is(A : BeastCard)) {
+			alias _bst CArray;
+		} else static if (is(A : InfoCard)) {
+			alias _info CArray;
+		} else static assert (0);
+	}
 
 	UseCounter _uc;
 	bool _change = false;
@@ -556,7 +576,7 @@ private:
 		}
 	}
 
-	this(string sPath) {
+	this (string sPath) {
 		_sPath = sPath;
 		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime);
 		_uc = new UseCounter;
@@ -1126,6 +1146,36 @@ public:
 		}
 	}
 
+	/// index1とindex2を交換する。
+	void swap(A)(int index1, int index2) {
+		if (index1 == index2) return;
+		enforce(0 <= index1 && index1 < CArray!A.length);
+		enforce(0 <= index2 && index2 < CArray!A.length);
+
+		ulong id1 = CArray!A[index1].id;
+		ulong id2 = CArray!A[index2].id;
+		std.algorithm.swap(CArray!A[index1], CArray!A[index2]);
+
+		// ID置換
+		CArray!A[index1].id = id1;
+		CArray!A[index2].id = id2;
+		_uc.change(A.toID(id1), A.toID(ulong.max));
+		_uc.change(A.toID(id2), A.toID(id1));
+		_uc.change(A.toID(ulong.max), A.toID(id2));
+
+		changeHandler();
+	}
+	/// ditto
+	alias swap!CastCard swapCast;
+	/// ditto
+	alias swap!SkillCard swapSkill;
+	/// ditto
+	alias swap!ItemCard swapItem;
+	/// ditto
+	alias swap!BeastCard swapBeast;
+	/// ditto
+	alias swap!InfoCard swapInfo;
+
 	const
 	private string summaryToXML() {
 		auto root = XNode.create("Summary");
@@ -1675,6 +1725,21 @@ private:
 	string _sname;
 	string _id;
 	string _type = "";
+
+	/// Aに対応する配列。
+	template CArray(A) {
+		static if (UseCast && is(A : CastCard)) {
+			alias _cast CArray;
+		} else static if (UseSkill && is(A : SkillCard)) {
+			alias _skl CArray;
+		} else static if (UseItem && is(A : ItemCard)) {
+			alias _itm CArray;
+		} else static if (UseBeast && is(A : BeastCard)) {
+			alias _bst CArray;
+		} else static if (UseInfo && is(A : InfoCard)) {
+			alias _info CArray;
+		} else static assert (0);
+	}
 public:
 	mixin STemplate!(UseCast, UseSkill, UseItem, UseBeast, UseInfo);
 

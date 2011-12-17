@@ -156,6 +156,7 @@ class FlexEtcProps : Properties {
 	mixin Property!("openHistories", string[], []);
 	mixin Property!("historyMax", int, 9);
 	mixin Property!("historySnipLength", int, 30);
+	mixin Property!("lastScenario", string, "");
 	mixin Property!("searchResultTableWidth", int, 400, true);
 	mixin Property!("searchResultTableHeight", int, 200, true);
 	version (Windows) {
@@ -322,6 +323,7 @@ class FlexEtcProps : Properties {
 
 	mixin Property!("doubleIO", bool, true);
 	mixin Property!("reconstruction", bool, true);
+	mixin Property!("openLastScenario", bool, true);
 
 	mixin Property!("savedSound", string, "");
 

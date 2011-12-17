@@ -83,6 +83,7 @@ public:
 		});
 		addListener(SWT.KeyDown, new class Listener {
 			public override void handleEvent(Event e) {
+				bool ctrl = (e.stateMask & SWT.CTRL) != 0;
 				if (e.character == SWT.CR && (getStyle & SWT.MULTI) != 0) {
 					if (_cur in _sels) {
 						deselect(_cur);
@@ -117,6 +118,7 @@ public:
 						}
 						break;
 					case SWT.ARROW_UP:
+						if (ctrl) return;
 						int nCur = _cur - _wrap;
 						if (nCur < 0) {
 							nCur = _wrap * (_line - 1) + _cur;
@@ -125,6 +127,7 @@ public:
 						setCursor(nCur, true);
 						break;
 					case SWT.ARROW_DOWN:
+						if (ctrl) return;
 						int nCur = _cur + _wrap;
 						if (_items.length <= nCur) {
 							nCur = _cur % _wrap;
@@ -132,6 +135,7 @@ public:
 						setCursor(nCur, true);
 						break;
 					case SWT.ARROW_LEFT:
+						if (ctrl) return;
 						int nCur;
 						if (isFirstCol(_cur)) {
 							nCur = _cur + _wrap - 1;
@@ -142,6 +146,7 @@ public:
 						setCursor(nCur, true);
 						break;
 					case SWT.ARROW_RIGHT:
+						if (ctrl) return;
 						int nCur;
 						if (_cur == _items.length - 1) {
 							int d = _items.length % _wrap;

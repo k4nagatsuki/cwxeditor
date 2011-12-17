@@ -167,6 +167,13 @@ public:
 		return _flags;
 	}
 
+	void up() {
+		_dirs.up();
+	}
+	void down() {
+		_dirs.down();
+	}
+
 	void undo() {
 		_undo.undo();
 	}

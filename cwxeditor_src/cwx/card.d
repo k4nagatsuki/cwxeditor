@@ -14,6 +14,7 @@ import cwx.utils;
 import cwx.path;
 
 import std.algorithm;
+import std.exception;
 
 public:
 
@@ -206,6 +207,16 @@ private:
 	ItemCard[] _items;
 	SkillCard[] _skills;
 	BeastCard[] _beasts;
+
+	template CArray(C) {
+		static if (is(C : ItemCard)) {
+			alias _items CArray;
+		} else static if (is(C : SkillCard)) {
+			alias _skills CArray;
+		} else static if (is(C : BeastCard)) {
+			alias _beasts CArray;
+		} else static assert (0);
+	}
 public:
 	/// キャストカードのXML要素名。
 	static const string XML_NAME = "CastCard";
@@ -423,6 +434,7 @@ public:
 			return c;
 		}
 	}
+
 	/// 所持アイテム。
 	ItemCard[] items() {return _items;}
 	/// ditto
@@ -491,6 +503,27 @@ public:
 			static assert (0);
 		}
 	}
+
+	/// index1とindex2を交換する。
+	void swap(C)(int index1, int index2) {
+		if (index1 == index2) return;
+		enforce(0 <= index1 && index1 < CArray!C.length);
+		enforce(0 <= index2 && index2 < CArray!C.length);
+		changed();
+
+		ulong id1 = CArray!C[index1].id;
+		ulong id2 = CArray!C[index2].id;
+		std.algorithm.swap(CArray!C[index1], CArray!C[index2]);
+
+		CArray!C[index1].id = id1;
+		CArray!C[index2].id = id2;
+	}
+	/// ditto
+	alias swap!SkillCard swapSkill;
+	/// ditto
+	alias swap!ItemCard swapItem;
+	/// ditto
+	alias swap!BeastCard swapBeast;
 
 	/// 精神状態。
 	const

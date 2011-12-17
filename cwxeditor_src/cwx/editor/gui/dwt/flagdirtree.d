@@ -77,6 +77,9 @@ private:
 	void storeEditDir(FlagDir dir, string oldName) {
 		_undo ~= new UndoEditDir(flags, _comm, dir, oldName);
 	}
+	void storeSwap(FlagDir par, int index1, int index2) {
+		_undo ~= new UndoSwap(flags, _comm, cast(FlagDir) selectedItem.getData, par, index1, index2);
+	}
 
 	Props prop;
 	UseCounter uc;
@@ -327,6 +330,10 @@ private:
 		if (sender is this) return;
 		refresh(null);
 	}
+	TreeItem selectedItem() {
+		auto sels = dirs.getSelection;
+		return sels.length ? sels[0] : null;
+	}
 public:
 	this(Commons comm, Props prop, FlagTable flags, UndoManager undo) {
 		_undo = undo;
@@ -437,6 +444,35 @@ public:
 			}
 		}
 		return root;
+	}
+
+	private void udImpl(int plus) {
+		auto sel = selectedItem;
+		if (!sel) return;
+		auto dir = cast(FlagDir) sel.getData;
+		auto par = dir.parent;
+		if (!par) return;
+		int index1 = par.indexOf(dir.name);
+		assert (-1 != index1);
+		int index2 = index1 + plus;
+		if (index2 < 0 || par.subDirs.length <= index2) return;
+		storeSwap(par, index1, index2);
+		par.swapDir(index1, index2);
+		auto parItm = sel.getParentItem;
+		assert (parItm);
+		auto dir1 = par.subDirs[index1], dir2 = par.subDirs[index2];
+		auto itm1 = parItm.getItem(index1), itm2 = parItm.getItem(index2);
+		itm1.setData = dir1;
+		itm1.setText = dir1.name;
+		itm2.setData = dir2;
+		itm2.setText = dir2.name;
+		refresh(dir2.path);
+	}
+	void up() {
+		udImpl(-1);
+	}
+	void down() {
+		udImpl(1);
 	}
 
 	override {

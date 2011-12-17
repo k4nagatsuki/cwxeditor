@@ -650,6 +650,7 @@ private:
 	class DListener : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
 			_quit = true;
+			_prop.var.etc.lastScenario = summary ? summary.scenarioPath : "";
 			_comm.save.remove(&savec);
 			_comm.refScenarioName.remove(&refreshTitle);
 			_comm.refScenarioPath.remove(&refreshTitle);
@@ -810,6 +811,7 @@ private:
 		}
 		_prop.var.etc.openHistories
 			= [hist] ~ (hists.length < _prop.var.etc.historyMax ? hists : hists[0 .. $ - 1]);
+		_prop.var.etc.lastScenario = p;
 		_prop.var.save(dock);
 		sendReloadProps();
 		_comm.refHistories.call();
@@ -2350,6 +2352,8 @@ public:
 		_win.open;
 		if (_firstScenarioPath) {
 			openScenario(_firstScenarioPath);
+		} else if (_prop.var.etc.openLastScenario && _prop.var.etc.lastScenario.length) {
+			openScenario(_prop.var.etc.lastScenario);
 		}
 
 		auto pipe = new core.thread.Thread(&pipeThr);

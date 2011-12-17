@@ -286,6 +286,7 @@ private:
 	Button _switchTabWheel;
 	Button _openTabAtRightOfCurrentTab;
 	Button _reconstruction;
+	Button _openLastScenario;
 	Combo _soundPlayType;
 	int[int] _soundPlayTypeTbl;
 	int[int] _soundPlayTypeTbl2;
@@ -1855,6 +1856,7 @@ private:
 				_switchTabWheel = createB(_prop.msgs.switchTabWheel);
 				_openTabAtRightOfCurrentTab = createB(_prop.msgs.openTabAtRightOfCurrentTab);
 				_reconstruction = createB(_prop.msgs.reconstruction);
+				_openLastScenario = createB(_prop.msgs.openLastScenario);
 			}
 			{
 				auto grp = new Group(comp2, SWT.NONE);
@@ -2025,6 +2027,7 @@ protected:
 		_switchTabWheel.setSelection = _prop.var.etc.switchTabWheel;
 		_openTabAtRightOfCurrentTab.setSelection = _prop.var.etc.openTabAtRightOfCurrentTab;
 		_reconstruction.setSelection = _prop.var.etc.reconstruction;
+		_openLastScenario.setSelection = _prop.var.etc.openLastScenario;
 		auto sptp = _prop.var.etc.soundPlayType in _soundPlayTypeTbl;
 		if (sptp) {
 			_soundPlayType.select = *sptp;
@@ -2147,6 +2150,7 @@ protected:
 		_prop.var.etc.switchTabWheel = _switchTabWheel.getSelection;
 		_prop.var.etc.openTabAtRightOfCurrentTab = _openTabAtRightOfCurrentTab.getSelection;
 		_prop.var.etc.reconstruction = _reconstruction.getSelection;
+		_prop.var.etc.openLastScenario = _openLastScenario.getSelection;
 		_prop.var.etc.contentsFloat = _contentsFloat.getSelection;
 		_prop.var.etc.contentsAutoHide = _contentsAutoHide.getSelection;
 		_prop.var.etc.soundPlayType = _soundPlayTypeTbl2[_soundPlayType.getSelectionIndex];

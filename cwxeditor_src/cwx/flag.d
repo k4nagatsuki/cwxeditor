@@ -10,6 +10,7 @@ import std.array;
 import std.datetime;
 import std.string;
 import std.typecons;
+import std.exception;
 
 private static const {
 	string XML_ROOT_FLAGS_AND_STEPS = "FlagsAndSteps";
@@ -745,6 +746,15 @@ public:
 	const
 	int indexOf(string name) {
 		return .cCountUntil!("0 == icmp(a.name, b)")(_subdir, name);
+	}
+
+	/// サブディレクトリの位置を交換する。
+	void swapDir(int index1, int index2) {
+		if (index1 == index2) return;
+		enforce(0 <= index1 && index1 < _subdir.length);
+		enforce(0 <= index2 && index2 < _subdir.length);
+		if (_change) _change();
+		std.algorithm.swap(_subdir[index1], _subdir[index2]);
 	}
 
 	private static F __get(F)(F[] arr, string name) {

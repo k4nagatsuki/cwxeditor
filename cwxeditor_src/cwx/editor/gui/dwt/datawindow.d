@@ -157,6 +157,9 @@ public:
 				createMenuItem(me, _prop.msgs.menuRedo, _prop.images.menuRedo, &redo);
 				new MenuItem(me, SWT.SEPARATOR);
 				appendMenuTCPD(_prop, me, this, true, true, true, true);
+				new MenuItem(me, SWT.SEPARATOR);
+				createMenuItem(me, _prop.msgs.menuUp, _prop.images.menuUp, &up);
+				createMenuItem(me, _prop.msgs.menuDown, _prop.images.menuDown, &down);
 
 				static if (UseFlag) {
 					auto mi = createMenu(bar, _prop.msgs.menuView);
@@ -189,6 +192,8 @@ public:
 				static if (UseArea && UseFlag) {
 					createToolItem(bar, _prop.msgs.ttSummary, _prop.images.menuSummary, &editSummary);
 				}
+				createToolItem(bar, _prop.msgs.ttUp, _prop.images.menuUp, &up);
+				createToolItem(bar, _prop.msgs.ttDown, _prop.images.menuDown, &down);
 				static if (UseArea) {
 					new ToolItem(bar, SWT.SEPARATOR);
 					createToolItem(bar, _prop.msgs.ttNewArea, _prop.images.menuNewArea, &createArea);
@@ -223,6 +228,8 @@ public:
 			}
 			putMenuAction(MenuID.Undo, &undo);
 			putMenuAction(MenuID.Redo, &redo);
+			putMenuAction(MenuID.Up, &up);
+			putMenuAction(MenuID.Down, &down);
 		}
 		{
 			static if (UseArea && UseFlag) {
@@ -437,6 +444,35 @@ public:
 		static if (UseFlag) {
 			_flags.setFlagDirTree(_summ.flagDirRoot, _summ.useCounter);
 		}
+	}
+
+	void up() {
+		static if (UseArea && UseFlag) {
+			if (tabf.getSelection is tabA) {
+				_areas.up();
+			} else {
+				assert (tabf.getSelection is tabF);
+				_flags.up();
+			}
+		} else static if (UseArea) {
+			_areas.up();
+		} else static if (UseFlag) {
+			_flags.up();
+		} else static assert (0);
+	}
+	void down() {
+		static if (UseArea && UseFlag) {
+			if (tabf.getSelection is tabA) {
+				_areas.down();
+			} else {
+				assert (tabf.getSelection is tabF);
+				_flags.down();
+			}
+		} else static if (UseArea) {
+			_areas.down();
+		} else static if (UseFlag) {
+			_flags.down();
+		} else static assert (0);
 	}
 
 	/// 指定されたディレクトリにあるSummary.xmlからシナリオをロードする。

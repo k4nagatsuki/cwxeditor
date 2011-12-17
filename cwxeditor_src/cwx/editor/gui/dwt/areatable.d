@@ -254,6 +254,50 @@ private:
 	void storeMove(int from, int to) {
 		_undo ~= new UndoMove(this, _comm, _summ, from, to);
 	}
+	static class UndoSwap : ATUndo {
+		private int _index1, _index2;
+		this (AreaTable v, Commons comm, Summary summ, int index1, int index2) {
+			super (v, comm, summ);
+			_index1 = index1;
+			_index2 = index2;
+		}
+		private void impl() {
+			auto v = view();
+			udb(v);
+			scope (exit) uda(v);
+			auto area1 = areaFromIndex(summ, _index1);
+			auto area2 = areaFromIndex(summ, _index2);
+			auto a = cast(Area) area1;
+			if (a) {
+				summ.swap!Area(toAreaIndex(summ, _index1), toAreaIndex(summ, _index2));
+				comm.refArea.call(cast(Area) area1);
+				comm.refArea.call(cast(Area) area2);
+			}
+			auto b = cast(Battle) area1;
+			if (b) {
+				summ.swap!Battle(toBattleIndex(summ, _index1), toBattleIndex(summ, _index2));
+				comm.refBattle.call(cast(Battle) area1);
+				comm.refBattle.call(cast(Battle) area2);
+			}
+			auto p = cast(Package) area1;
+			if (p) {
+				summ.swap!Package(toPackageIndex(summ, _index1), toPackageIndex(summ, _index2));
+				comm.refPackage.call(cast(Package) area1);
+				comm.refPackage.call(cast(Package) area2);
+			}
+			swap(_index1, _index2);
+		}
+		override void undo() {
+			impl();
+		}
+		override void redo() {
+			impl();
+		}
+		override void dispose() {}
+	}
+	void storeSwap(int index1, int index2) {
+		_undo ~= new UndoSwap(this, _comm, _summ, index1, index2);
+	}
 	static class UndoInsertDelete : ATUndo {
 		private bool _insert;
 
@@ -423,15 +467,18 @@ private:
 		_comm.statusLine(_areas, _statusLine);
 	}
 
-	static int toAreaIndex(Summary summ, int index) {
-		return index;
+	static int toIndex(A)(Summary summ, int index) {
+		static if (is(A : Area)) {
+			return index;
+		} else static if (is(A : Battle)) {
+			return index - summ.areas.length;
+		} else static if (is(A : Package)) {
+			return index - (summ.areas.length + summ.battles.length);
+		} else static assert (0);
 	}
-	static int toBattleIndex(Summary summ, int index) {
-		return index - summ.areas.length;
-	}
-	static int toPackageIndex(Summary summ, int index) {
-		return index - (summ.areas.length + summ.battles.length);
-	}
+	alias toIndex!Area toAreaIndex;
+	alias toIndex!Battle toBattleIndex;
+	alias toIndex!Package toPackageIndex;
 	static AbstractArea areaFromIndex(Summary summ, int index) {
 		if (summ.areas.length + summ.battles.length <= index) {
 			return summ.packages[toPackageIndex(summ, index)];
@@ -1112,6 +1159,54 @@ public:
 	}
 	void openPackage(ulong id, bool shellActivate) {
 		_comm.openArea(_prop, _summ, _summ.packages(id), shellActivate);
+	}
+
+	private void udImpl(int index1, int index2) {
+		if (index1 < 0 || _areas.getItemCount <= index1) return;
+		if (index2 < 0 || _areas.getItemCount <= index2) return;
+		auto area1 = areaFromIndex(_summ, index1);
+		auto area2 = areaFromIndex(_summ, index2);
+		if (cast(Area) area1 && cast(Area) area2) {
+			udImpl2!Area(index1, index2);
+		}
+		if (cast(Battle) area1 && cast(Battle) area2) {
+			udImpl2!Battle(index1, index2);
+		}
+		if (cast(Package) area1 && cast(Package) area2) {
+			udImpl2!Package(index1, index2);
+		}
+	}
+	private void udImpl2(A)(int index1, int index2) {
+		auto a1 = cast(A) areaFromIndex(_summ, index1);
+		auto a2 = cast(A) areaFromIndex(_summ, index2);
+		if (!a1 || !a2) return;
+		storeSwap(index1, index2);
+		int i1 = toIndex!A(_summ, index1);
+		int i2 = toIndex!A(_summ, index2);
+		_summ.swap!A(i1, i2);
+		refData(a2, _areas.getItem(index1));
+		refData(a1, _areas.getItem(index2));
+		_areas.select = index2;
+		static if (is(A : Area)) {
+			_comm.refArea.call(a1);
+			_comm.refArea.call(a2);
+		} else static if (is(A : Battle)) {
+			_comm.refBattle.call(a1);
+			_comm.refBattle.call(a2);
+		} else static if (is(A : Package)) {
+			_comm.refPackage.call(a1);
+			_comm.refPackage.call(a2);
+		} else static assert (0);
+	}
+	void up() {
+		int sel = _areas.getSelectionIndex;
+		if (-1 == sel) return;
+		udImpl(sel, sel - 1);
+	}
+	void down() {
+		int sel = _areas.getSelectionIndex;
+		if (-1 == sel) return;
+		udImpl(sel, sel + 1);
 	}
 
 	override {

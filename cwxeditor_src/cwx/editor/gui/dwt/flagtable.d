@@ -638,7 +638,7 @@ package class UndoInsertDelete : FTVUndo {
 		_dirIndices.length = 0;
 		_flagName.length = 0;
 		_stepName.length = 0;
-		selDir = _ds.length == 1 && !_fs.length && !_ss.length ? _ds[0] : null;
+		selDir = (_ds.length == 1 && !_fs.length && !_ss.length) ? _ds.values[0] : null;
 		foreach (f; _fs) {
 			_flagName ~= f.name;
 			dir.add(f);
@@ -760,6 +760,28 @@ package class UndoEditDir : FTVUndo {
 		_oldName = oldName;
 
 		comm.refFlagDir.call([dir]);
+	}
+	override void undo() {impl();}
+	override void redo() {impl();}
+	override void dispose() {}
+}
+package class UndoSwap : FTVUndo {
+	private FlagDir _parent;
+	private int _index1, _index2;
+	this (FlagTable v, Commons comm, FlagDir dir, FlagDir parent, int index1, int index2) {
+		super (v, comm, dir);
+		_parent = parent;
+		_index1 = index1;
+		_index2 = index2;
+	}
+	private void impl() {
+		auto v = view();
+		udb(v);
+		scope (exit) uda(v);
+
+		_parent.swapDir(_index1, _index2);
+
+		comm.refFlagDir.call([_parent, _parent.subDirs[_index1], _parent.subDirs[_index2]]);
 	}
 	override void undo() {impl();}
 	override void redo() {impl();}
