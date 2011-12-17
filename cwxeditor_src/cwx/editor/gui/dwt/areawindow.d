@@ -473,10 +473,7 @@ public:
 	bool openCWXPath(string path, bool shellActivate) {
 		auto cate = cpcategory(path);
 		if (cpempty(path)) {
-			static if (WithEventView) {
-				_tabf.setSelection = _tabA;
-			}
-			return true;
+			return _aview.openCWXPath(path, shellActivate);
 		} else if (cphasattr(path, "eventview")) {
 			static if (WithEventView) {
 				_eview.initial();

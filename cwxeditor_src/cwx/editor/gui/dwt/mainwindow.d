@@ -2343,7 +2343,15 @@ public:
 			}
 			fc = fc.getParent;
 		}
-		return r;
+		// uniq()
+		string[] r2;
+		string last = "";
+		foreach (p; r) {
+			if (p == last) continue;
+			last = p;
+			r2 ~= p;
+		}
+		return r2;
 	}
 
 	void doCWX() {

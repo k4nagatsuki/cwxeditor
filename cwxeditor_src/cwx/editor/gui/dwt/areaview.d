@@ -3377,6 +3377,10 @@ public:
 	void redo() {_undo.redo;}
 
 	bool openCWXPath(string path, bool shellActivate) {
+		if (cpempty(path)) {
+			.forceFocus(_imgp, shellActivate);
+			return true;
+		}
 		auto cate = cpcategory(path);
 		auto index = cpindex(path);
 		bool sel(Table list) {
