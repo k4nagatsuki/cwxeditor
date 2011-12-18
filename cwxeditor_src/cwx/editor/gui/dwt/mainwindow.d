@@ -14,6 +14,8 @@ import std.metastrings;
 import std.string;
 import std.datetime;
 import std.regex;
+import std.array;
+import std.algorithm;
 debug import std.stdio;
 
 import cwx.cwl;
@@ -2343,15 +2345,7 @@ public:
 			}
 			fc = fc.getParent;
 		}
-		// uniq()
-		string[] r2;
-		string last = "";
-		foreach (p; r) {
-			if (p == last) continue;
-			last = p;
-			r2 ~= p;
-		}
-		return r2;
+		return array(uniq(r));
 	}
 
 	void doCWX() {
