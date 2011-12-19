@@ -380,7 +380,6 @@ private:
 		}
 		summ.flagDirRoot.sortFlags(true);
 		summ.flagDirRoot.sortSteps(true);
-		writeDock();
 		auto old = summary;
 		if (summ.type.length && !hasSkin(_prop, summ.type)
 				&& summ.type != _prop.var.etc.defaultSkin) {
@@ -417,6 +416,11 @@ private:
 		if (_prop.var.etc.reconstruction) {
 			fullHist = findFullHist(createHistString(summary));
 		}
+		if (_prop.var.etc.reconstruction) {
+			foreach (cwxPath; fullHistToCWXPaths(fullHist)) {
+				openCWXPath(cwxPath, false);
+			}
+		}
 		addHistory();
 		try {
 			if (old) {
@@ -431,11 +435,6 @@ private:
 		statusLine = _prop.msgs.loaded(summ.scenarioName);
 		summ.changedEvent ~= &refreshTitle;
 		refreshTitle();
-		if (_prop.var.etc.reconstruction) {
-			foreach (cwxPath; fullHistToCWXPaths(fullHist)) {
-				openCWXPath(cwxPath, false);
-			}
-		}
 		GC.collect();
 	}
 	string _firstScenarioPath = null;
