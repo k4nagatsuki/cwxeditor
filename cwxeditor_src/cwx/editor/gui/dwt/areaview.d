@@ -1577,6 +1577,16 @@ public:
 	}
 
 	void up() {
+		int[] cards, backs;
+		static if (UseCards) {
+			cards = _cards.getSelectionIndices.sort;
+			if (cards.length && 0 >= cards[0]) return;
+		}
+		static if (UseBacks) {
+			backs = _backs.getSelectionIndices.sort;
+			if (backs.length && 0 >= backs[0]) return;
+		}
+		if (!cards.length && !backs.length) return;
 		_undo ~= new UndoUp;
 		upImpl;
 	}
@@ -1594,6 +1604,16 @@ public:
 		if (refC.length > 0 || refB.length > 0) _imgp.redraw;
 	}
 	void down() {
+		int[] cards, backs;
+		static if (UseCards) {
+			cards = _cards.getSelectionIndices.sort;
+			if (cards.length && _cards.getItemCount - 1 <= cards[$ - 1]) return;
+		}
+		static if (UseBacks) {
+			backs = _backs.getSelectionIndices.sort;
+			if (backs.length && _backs.getItemCount - 1 <= backs[$ - 1]) return;
+		}
+		if (!cards.length && !backs.length) return;
 		_undo ~= new UndoDown;
 		downImpl;
 	}
