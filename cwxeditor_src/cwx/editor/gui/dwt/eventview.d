@@ -1056,13 +1056,13 @@ public:
 			size_t i = cpindex(cpbottom(cwxPath));
 			removeCard(i);
 		}
-		void upCard(string cwxPath, int[] indices) {
+		void upCard(string cwxPath, int[] indices, int count) {
 			if (!cpeq(_area.cwxPath, cwxPath)) return;
-			upCard(indices);
+			upCard(indices, count);
 		}
-		void downCard(string cwxPath, int[] indices) {
+		void downCard(string cwxPath, int[] indices, int count) {
 			if (!cpeq(_area.cwxPath, cwxPath)) return;
-			downCard(indices);
+			downCard(indices, count);
 		}
 		void appendCard(int index, C c) {
 			if (initial) return;
@@ -1089,24 +1089,27 @@ public:
 			auto itm = _cards.getItems[index + 1];
 			itm.setText = cardName(cast(C) itm.getData);
 		}
-		void __udCard(int[] indices, int function(TreeItem) ud, int udVal) {
-			foreach (i; indices) {
-				if (_selItm && _selItm.getParentItem is _cards.getItems[i + 1]) {
-					int s = _selItm.getParentItem.indexOf(_selItm);
-					int newI = ud(_cards.getItems[i + 1]) + udVal;
-					__select(_cards.getItems[newI].getItems[s]);
-				} else {
-					ud(_cards.getItems[i + 1]);
+		void __udCard(int[] indices, int function(TreeItem) ud, int udVal, int count) {
+			foreach (j; 0 .. count) {
+				foreach (i; indices) {
+					i += udVal * j;
+					if (_selItm && _selItm.getParentItem is _cards.getItems[i + 1]) {
+						int s = _selItm.getParentItem.indexOf(_selItm);
+						int newI = ud(_cards.getItems[i + 1]) + udVal;
+						__select(_cards.getItems[newI].getItems[s]);
+					} else {
+						ud(_cards.getItems[i + 1]);
+					}
 				}
 			}
 		}
-		void upCard(int[] indices) {
+		void upCard(int[] indices, int count) {
 			if (initial) return;
-			__udCard(indices, &treeItemUp, -1);
+			__udCard(indices, &treeItemUp, -1, count);
 		}
-		void downCard(int[] indices) {
+		void downCard(int[] indices, int count) {
 			if (initial) return;
-			__udCard(indices, &treeItemDown, 1);
+			__udCard(indices, &treeItemDown, 1, count);
 		}
 	}
 	private bool _initialed = false;

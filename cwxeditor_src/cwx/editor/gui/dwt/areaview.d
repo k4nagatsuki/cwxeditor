@@ -40,6 +40,8 @@ import std.math;
 import std.path;
 import std.file;
 import std.traits;
+import std.datetime;
+import std.string;
 
 import org.eclipse.swt.SWTException;
 import org.eclipse.swt.widgets.Display;
@@ -96,6 +98,9 @@ import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.DropTarget;
 import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.dnd.DropTargetAdapter;
+import org.eclipse.swt.dnd.DragSource;
+import org.eclipse.swt.dnd.DragSourceEvent;
+import org.eclipse.swt.dnd.DragSourceAdapter;
 import org.eclipse.swt.dnd.FileTransfer;
 import org.eclipse.swt.dnd.ByteArrayTransfer;
 import org.eclipse.swt.dnd.Transfer;
@@ -145,6 +150,12 @@ private ToolItem createToolItemC(ToolBar bar, Control c) {
 	return ti;
 }
 
+private enum DropTarg {
+	ImagePane,
+	Card,
+	Back
+}
+
 class AbstractAreaView(A, C, bool UseCards, bool UseBacks) : Composite, TCPD {
 	/// 変更があった際に呼び出される。
 	void delegate()[] modEvent;
@@ -152,6 +163,7 @@ class AbstractAreaView(A, C, bool UseCards, bool UseBacks) : Composite, TCPD {
 		foreach (dlg; modEvent) dlg();
 	}
 private:
+	string _id;
 	Commons _comm;
 	Props _prop;
 	A _area;
@@ -268,26 +280,22 @@ private:
 			_imgp.remove(refCardIndex + i);
 			_imgp.redraw();
 		}
-		void upRefMenuCards(string a, int[] indices) {
+		void upRefMenuCards(string a, int[] indices, int count) {
 			if (!_refTarget) return;
 			if (!cpeq(_refTarget.cwxPath, a)) return;
-			auto i2 = indices.dup;
-			i2[] -= 1;
-			indices ~= i2;
+			if (!indices.length) return;
 			indices = indices.sort;
-			foreach (i; indices.uniq) {
+			foreach (i; indices[0] - count .. indices[$ - 1] + 1) {
 				_imgp.set(refCardIndex + i, createRefCardFromIndex(i));
 			}
 			_imgp.redraw();
 		}
-		void downRefMenuCards(string a, int[] indices) {
+		void downRefMenuCards(string a, int[] indices, int count) {
 			if (!_refTarget) return;
 			if (!cpeq(_refTarget.cwxPath, a)) return;
-			auto i2 = indices.dup;
-			i2[] += 1;
-			indices ~= i2;
+			if (!indices.length) return;
 			indices = indices.sort;
-			foreach (i; indices.uniq) {
+			foreach (i; indices[0] .. indices[$ - 1] + count + 1) {
 				_imgp.set(refCardIndex + i, createRefCardFromIndex(i));
 			}
 			_imgp.redraw();
@@ -424,18 +432,25 @@ private:
 	}
 	static class UndoUD(int I) : AUndo {
 		mixin Reselect;
+		private int _count = 1;
+		this (AbstractAreaView v, Commons comm, A area, Summary summ, int[] cIdcs, int[] bIdcs, int count) {
+			super (v, comm, area, summ);
+			_cIdcs = cIdcs;
+			_bIdcs = bIdcs;
+			_count = count;
+		}
 		override void undo() {
 			auto v = view();
 			udb(v);
 			scope (exit) uda(v);
-			add(I);
+			add(I * _count);
 			reselect(v);
 			static if (I < 0) {
-				downImpl(v, comm, area, _cIdcs, _bIdcs);
+				downImpl(v, comm, area, _cIdcs, _bIdcs, _count, false);
 			} else {
-				upImpl(v, comm, area, _cIdcs, _bIdcs);
+				upImpl(v, comm, area, _cIdcs, _bIdcs, _count, false);
 			}
-			add(-I);
+			add(-I * _count);
 		}
 		override void redo() {
 			auto v = view();
@@ -443,9 +458,9 @@ private:
 			scope (exit) uda(v);
 			reselect(v);
 			static if (I < 0) {
-				upImpl(v, comm, area, _cIdcs, _bIdcs);
+				upImpl(v, comm, area, _cIdcs, _bIdcs, _count, false);
 			} else {
-				downImpl(v, comm, area, _cIdcs, _bIdcs);
+				downImpl(v, comm, area, _cIdcs, _bIdcs, _count, false);
 			}
 		}
 		override void dispose() {}
@@ -979,43 +994,49 @@ private:
 			_backs.setSelection = idx;
 		}
 	}
-	static void upImpl2(T)(AbstractAreaView v, Table list, void delegate(int, int) swap, int startIndex, int[] indices) {
+	static void upImpl2(T)(AbstractAreaView v, Table list, void delegate(int, int) swap, int startIndex, int[] indices, int count) {
 		indices = indices.sort;
 		if (!indices.length) return;
 		if (indices[0] != 0) {
-			foreach (i; indices) {
-				if (v) v._imgp.swap(i + startIndex - 1, i + startIndex);
-				swap(i - 1, i);
-				if (list) {
-					auto itm1 = list.getItem(i - 1);
-					auto itm2 = list.getItem(i);
-					string temp = itm1.getText;
-					itm1.setText = itm2.getText;
-					itm2.setText = temp;
-					auto dtemp = itm1.getData;
-					itm1.setData = itm2.getData;
-					itm2.setData = dtemp;
+			foreach (j; 0 .. count) {
+				foreach (i; indices) {
+					i -= j;
+					if (v) v._imgp.swap(i + startIndex - 1, i + startIndex);
+					swap(i - 1, i);
+					if (list) {
+						auto itm1 = list.getItem(i - 1);
+						auto itm2 = list.getItem(i);
+						string temp = itm1.getText;
+						itm1.setText = itm2.getText;
+						itm2.setText = temp;
+						auto dtemp = itm1.getData;
+						itm1.setData = itm2.getData;
+						itm2.setData = dtemp;
+					}
 				}
 			}
 		}
 		if (v) v.callModEvent();
 	}
-	static void downImpl2(T)(AbstractAreaView v, Table list, void delegate(int, int) swap, int startIndex, int[] indices, int count) {
+	static void downImpl2(T)(AbstractAreaView v, Table list, void delegate(int, int) swap, int startIndex, int[] indices, int cardsCount, int count) {
 		indices = indices.sort;
 		if (!indices.length) return;
-		if (indices[$ - 1] + 1 < count) {
-			foreach_reverse (i; indices) {
-				if (v) v._imgp.swap(i + startIndex + 1, i + startIndex);
-				swap(i + 1, i);
-				if (list) {
-					auto itm1 = list.getItem(i + 1);
-					auto itm2 = list.getItem(i);
-					string temp = itm1.getText;
-					itm1.setText = itm2.getText;
-					itm2.setText = temp;
-					auto dtemp = itm1.getData;
-					itm1.setData = itm2.getData;
-					itm2.setData = dtemp;
+		if (indices[$ - 1] + 1 < cardsCount) {
+			foreach (j; 0 .. count) {
+				foreach_reverse (i; indices) {
+					i += j;
+					if (v) v._imgp.swap(i + startIndex + 1, i + startIndex);
+					swap(i + 1, i);
+					if (list) {
+						auto itm1 = list.getItem(i + 1);
+						auto itm2 = list.getItem(i);
+						string temp = itm1.getText;
+						itm1.setText = itm2.getText;
+						itm2.setText = temp;
+						auto dtemp = itm1.getData;
+						itm1.setData = itm2.getData;
+						itm2.setData = dtemp;
+					}
 				}
 			}
 		}
@@ -1583,6 +1604,7 @@ private:
 public:
 	this(Commons comm, Props prop, Summary summ, A area, Composite parent, TopLevelPanel tlp, UndoManager undo) {
 		super(parent, SWT.NONE);
+		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime);
 		auto gl = windowGridLayout(1);
 		gl.marginWidth = 0;
 		gl.marginHeight = 0;
@@ -1736,7 +1758,7 @@ public:
 				}
 				_cards.addSelectionListener(new SCListener);
 				static if (is (C == MenuCard)) {
-					auto target = new DropTarget(_cards, DND.DROP_DEFAULT | DND.DROP_COPY);
+					auto target = new DropTarget(_cards, DND.DROP_DEFAULT | DND.DROP_COPY | DND.DROP_LINK);
 					target.setTransfer([cast(Transfer) FileTransfer.getInstance, XMLBytesTransfer.getInstance]);
 					target.addDropListener(new CLDropTarget);
 				}
@@ -1748,7 +1770,9 @@ public:
 					prop.images.backs, btcpd, &editBack, &_area.backs);
 				_backs.addSelectionListener(new SBListener);
 				new TableComboEdit!CCombo(_comm, _prop, _backs, 0, &createBgImageCombo, &bgImageEditEnd);
-				new BLDropTarget(_backs);
+				auto backDrop = new DropTarget(_backs, DND.DROP_DEFAULT | DND.DROP_COPY | DND.DROP_LINK);
+				backDrop.setTransfer([cast(Transfer) FileTransfer.getInstance, XMLBytesTransfer.getInstance]);
+				backDrop.addDropListener(new BLDropTarget);
 				_backs.addMouseTrackListener(prevTrig);
 				_backs.addMouseMoveListener(prevTrig);
 			}
@@ -1850,7 +1874,7 @@ public:
 		{
 			createImagePane(lrSash);
 			static if (is (C == MenuCard) || UseBacks) {
-				auto target = new DropTarget(_imgp, DND.DROP_DEFAULT | DND.DROP_COPY);
+				auto target = new DropTarget(_imgp, DND.DROP_DEFAULT | DND.DROP_COPY | DND.DROP_LINK);
 				static if (is (C == MenuCard)) {
 					target.setTransfer([cast(Transfer) FileTransfer.getInstance, XMLBytesTransfer.getInstance]);
 				} else {
@@ -1864,16 +1888,27 @@ public:
 		}
 		static if (is(A : Battle) && is(C : EnemyCard)) {
 			{
-				auto target = new DropTarget(imagePane, DND.DROP_DEFAULT | DND.DROP_LINK);
+				auto target = new DropTarget(imagePane, DND.DROP_DEFAULT | DND.DROP_COPY | DND.DROP_LINK);
 				target.setTransfer([XMLBytesTransfer.getInstance]);
-				target.addDropListener(new DTListener(true));
+				target.addDropListener(new DTListener);
 			}
 			{
-				auto target = new DropTarget(cardList, DND.DROP_DEFAULT | DND.DROP_LINK);
+				auto target = new DropTarget(cardList, DND.DROP_DEFAULT | DND.DROP_COPY | DND.DROP_LINK);
 				target.setTransfer([XMLBytesTransfer.getInstance]);
-				target.addDropListener(new DTListener(false));
+				target.addDropListener(new DTListener);
 			}
 		}
+		static if (UseCards) {
+			auto cardDrag = new DragSource(_cards, DND.DROP_LINK | DND.DROP_COPY);
+			cardDrag.setTransfer([XMLBytesTransfer.getInstance]);
+			cardDrag.addDragListener(new CardDrag);
+		}
+		static if (UseBacks) {
+			auto backDrag = new DragSource(_backs, DND.DROP_LINK | DND.DROP_COPY);
+			backDrag.setTransfer([XMLBytesTransfer.getInstance]);
+			backDrag.addDragListener(new BackDrag);
+		}
+
 		lrSash.setWeights = [_prop.var.etc.areaViewL, _prop.var.etc.areaViewR];
 		lrSash.addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) {
@@ -2047,53 +2082,113 @@ public:
 	}
 
 	void up() {
+		up(1, true, true);
+	}
+	void up(int count, bool cards, bool backs) {
 		int[] cIdcs;
 		int[] bIdcs;
 		static if (UseCards) {
-			if (_viewCards) cIdcs = _cards.getSelectionIndices;
+			if (cards) {
+				if (_viewCards) cIdcs = _cards.getSelectionIndices;
+				cIdcs = cIdcs.sort;
+				if (cIdcs.length && cIdcs[0] < count) {
+					count = cIdcs[0];
+				}
+			}
 		}
 		static if (UseBacks) {
-			if (_viewBacks) bIdcs = _backs.getSelectionIndices;
+			if (backs) {
+				if (_viewBacks) bIdcs = _backs.getSelectionIndices;
+				bIdcs = bIdcs.sort;
+				if (bIdcs.length && bIdcs[0] < count) {
+					count = bIdcs[0];
+				}
+			}
 		}
-		_undo ~= new UndoUp(this, _comm, _area, _summ, cIdcs, bIdcs);
-		upImpl(this, _comm, _area, cIdcs, bIdcs);
+		if ((!cIdcs.length && !bIdcs.length) || 0 >= count) return;
+		_undo ~= new UndoUp(this, _comm, _area, _summ, cIdcs, bIdcs, count);
+		upImpl(this, _comm, _area, cIdcs, bIdcs, count, true);
 	}
-	private static void upImpl(AbstractAreaView v, Commons comm, A area, int[] cIdcs, int[] bIdcs) {
+	private static void upImpl(AbstractAreaView v, Commons comm, A area, int[] cIdcs, int[] bIdcs, int count, bool sel) {
 		static if (UseCards) {
-			upImpl2!(C)(v, v ? v._cards : null, &area.swapCards, staticCardsIndex(area), cIdcs);
-			comm.upMenuCard.call(area.cwxPath, cIdcs);
+			upImpl2!(C)(v, v ? v._cards : null, &area.swapCards, staticCardsIndex(area), cIdcs, count);
+			comm.upMenuCard.call(area.cwxPath, cIdcs, count);
 		}
 		static if (UseBacks) {
-			upImpl2!(BgImage)(v, v ? v._backs : null, &area.swapBacks, 0, bIdcs);
-			comm.upBgImage.call(area.cwxPath, bIdcs);
+			upImpl2!(BgImage)(v, v ? v._backs : null, &area.swapBacks, 0, bIdcs, count);
+			comm.upBgImage.call(area.cwxPath, bIdcs, count);
 		}
 		if (v) {
+			if (sel) {
+				int[] sels;
+				static if (UseCards) {
+					foreach (ci; cIdcs) {
+						sels ~= staticCardsIndex(area) + ci - count;
+					}
+				}
+				static if (UseBacks) {
+					foreach (bi; bIdcs) {
+						sels ~= bi - count;
+					}
+				}
+				v._imgp.select = sels;
+			}
 			v.refreshSelected;
 			if (cIdcs.length > 0 || bIdcs.length > 0) v._imgp.redraw;
 		}
 	}
 	void down() {
+		down(1, true, true);
+	}
+	void down(int count, bool cards, bool backs) {
 		int[] cIdcs;
 		int[] bIdcs;
 		static if (UseCards) {
-			if (_viewCards) cIdcs = _cards.getSelectionIndices;
+			if (cards) {
+				if (_viewCards) cIdcs = _cards.getSelectionIndices;
+				cIdcs = cIdcs.sort;
+				if (cIdcs.length && _cards.getItemCount - count <= cIdcs[$ - 1]) {
+					count = _cards.getItemCount - 1 - cIdcs[$ - 1];
+				}
+			}
 		}
 		static if (UseBacks) {
-			if (_viewBacks) bIdcs = _backs.getSelectionIndices;
+			if (backs) {
+				if (_viewBacks) bIdcs = _backs.getSelectionIndices;
+				bIdcs = bIdcs.sort;
+				if (bIdcs.length && _backs.getItemCount - count <= bIdcs[$ - 1]) {
+					count = _backs.getItemCount - 1 - bIdcs[$ - 1];
+				}
+			}
 		}
-		_undo ~= new UndoDown(this, _comm, _area, _summ, cIdcs, bIdcs);
-		downImpl(this, _comm, _area, cIdcs, bIdcs);
+		if ((!cIdcs.length && !bIdcs.length) || 0 >= count) return;
+		_undo ~= new UndoDown(this, _comm, _area, _summ, cIdcs, bIdcs, count);
+		downImpl(this, _comm, _area, cIdcs, bIdcs, count, true);
 	}
-	private static void downImpl(AbstractAreaView v, Commons comm, A area, int[] cIdcs, int[] bIdcs) {
+	private static void downImpl(AbstractAreaView v, Commons comm, A area, int[] cIdcs, int[] bIdcs, int count, bool sel) {
 		static if (UseCards) {
-			downImpl2!(C)(v, v ? v._cards : null, &area.swapCards, staticCardsIndex(area), cIdcs, area.cards.length);
-			comm.downMenuCard.call(area.cwxPath, cIdcs);
+			downImpl2!(C)(v, v ? v._cards : null, &area.swapCards, staticCardsIndex(area), cIdcs, area.cards.length, count);
+			comm.downMenuCard.call(area.cwxPath, cIdcs, count);
 		}
 		static if (UseBacks) {
-			downImpl2!(BgImage)(v, v ? v._backs : null, &area.swapBacks, 0, bIdcs, area.backs.length);
-			comm.downBgImage.call(area.cwxPath, bIdcs);
+			downImpl2!(BgImage)(v, v ? v._backs : null, &area.swapBacks, 0, bIdcs, area.backs.length, count);
+			comm.downBgImage.call(area.cwxPath, bIdcs, count);
 		}
 		if (v) {
+			if (sel) {
+				int[] sels;
+				static if (UseCards) {
+					foreach (ci; cIdcs) {
+						sels ~= staticCardsIndex(area) + ci + count;
+					}
+				}
+				static if (UseBacks) {
+					foreach (bi; bIdcs) {
+						sels ~= bi + count;
+					}
+				}
+				v._imgp.select = sels;
+			}
 			v.refreshSelected;
 			if (cIdcs.length > 0 || bIdcs.length > 0) v._imgp.redraw;
 		}
@@ -2800,7 +2895,7 @@ public:
 			}
 			private class CLDropTarget : DropTargetAdapter {
 				override void dragEnter(DropTargetEvent e){
-					e.detail = _summ ? DND.DROP_COPY : DND.DROP_NONE;
+					e.detail = _summ ? DND.DROP_LINK : DND.DROP_NONE;
 				}
 				private int[] addC;
 				override void drop(DropTargetEvent e) {
@@ -2821,9 +2916,12 @@ public:
 						}
 						return;
 					} else if (isXMLBytes(e.data)) {
-						int[] i = appendCardFromXML(bytesToXML(e.data), 0, 0, false);
-						if (i.length > 0) {
-							_undo ~= new UndoInsert(this.outer, _comm, _area, _summ, i, []);
+						int[] ci, bi;
+						auto ctrl = (cast(DropTarget) e.getSource).getControl;
+						auto p = ctrl.toControl(e.x, e.y);
+						appendFromXML(bytesToXML(e.data), p.x, p.y, DropTarg.Card, ci, bi);
+						if (ci.length || bi.length) {
+							_undo ~= new UndoInsert(this.outer, _comm, _area, _summ, ci, bi);
 						}
 					}
 				}
@@ -2839,6 +2937,29 @@ public:
 					}
 					return true;
 				}
+			}
+		}
+		class CardDrag : DragSourceAdapter {
+			override void dragStart(DragSourceEvent e) {
+				e.doit = (cast(DragSource) e.getSource).getControl.isFocusControl;
+			}
+			override void dragSetData(DragSourceEvent e){
+				if (XMLBytesTransfer.getInstance.isSupportedType(e.dataType)) {
+					auto tbl = cast(Table) (cast(DragSource) e.getSource).getControl;
+					auto sel = tbl.getSelectionIndex;
+					auto curItm = sel != -1 ? tbl.getItem(sel) : null;
+					C[] cs;
+					foreach (itm; tbl.getSelection) {
+						cs ~= cast(C) itm.getData;
+					}
+					auto node = A.CtoNode(cs);
+					node.newAttr("paneId", _id);
+					if (curItm) node.newAttr("cursorIndex", tbl.indexOf(curItm));
+					e.data = bytesFromXML(node.text);
+				}
+			}
+			override void dragFinished(DragSourceEvent e) {
+				// Nothing
 			}
 		}
 	}
@@ -2927,15 +3048,39 @@ public:
 			auto back = new BgImage(fname, "", x, y, w, h, false);
 			return appendBgImage(back, true, true, fromImgPane);
 		}
-		private class BLDropTarget : FileDropTarget {
-		public:
-			this(Control c) {
-				super(c);
-			}
+		private class BLDropTarget : DropTargetAdapter {
 			private int[] addB;
-		protected:
-			override bool canDrop() {return _summ !is null;}
-			bool doFile(string path, int x, int y) {
+			override void dragEnter(DropTargetEvent e){
+				e.detail = DND.DROP_LINK;
+			}
+			override void drop(DropTargetEvent e) {
+				assert (_summ);
+				scope (exit) addB = [];
+				auto arr = cast(FileNames) e.data;
+				if (arr) {
+					foreach (fname; arr.array) {
+						try {
+							if (!doFile(fname)) {
+								break;
+							}
+						} catch (SWTException e) {}
+					}
+					if (addB.length) {
+						auto undo = new UndoInsert(this.outer, _comm, _area, _summ, [], addB);
+						_comm.refPaths.call(_comm.skin.materialPath);
+					}
+					return;
+				} else if (isXMLBytes(e.data)) {
+					int[] ci, bi;
+					auto ctrl = (cast(DropTarget) e.getSource).getControl;
+					auto p = ctrl.toControl(e.x, e.y);
+					appendFromXML(bytesToXML(e.data), p.x, p.y, DropTarg.Back, ci, bi);
+					if (ci.length || bi.length) {
+						_undo ~= new UndoInsert(this.outer, _comm, _area, _summ, ci, bi);
+					}
+				}
+			}
+			private bool doFile(string path) {
 				assert (_summ);
 				auto img = loadBgImage(_comm.skin, path);
 				if (img) {
@@ -2947,44 +3092,190 @@ public:
 				}
 				return false;
 			}
-			void doExit(string[] copy) {
-				assert (_summ);
-				scope (exit) addB = [];
-				if (copy.length > 0) {
-					_undo ~= new UndoInsert(this.outer, _comm, _area, _summ, [], addB);
-					_comm.refPaths.call(_comm.skin.materialPath);
+		}
+		class BackDrag : DragSourceAdapter {
+			override void dragStart(DragSourceEvent e) {
+				e.doit = (cast(DragSource) e.getSource).getControl.isFocusControl;
+			}
+			override void dragSetData(DragSourceEvent e){
+				if (XMLBytesTransfer.getInstance.isSupportedType(e.dataType)) {
+					auto tbl = cast(Table) (cast(DragSource) e.getSource).getControl;
+					auto sel = tbl.getSelectionIndex;
+					auto curItm = sel != -1 ? tbl.getItem(sel) : null;
+					BgImage[] bs;
+					foreach (itm; tbl.getSelection) {
+						bs ~= cast(BgImage) itm.getData;
+					}
+					auto node = Area.BtoNode(bs);
+					node.newAttr("paneId", _id);
+					if (curItm) node.newAttr("cursorIndex", tbl.indexOf(curItm));
+					e.data = bytesFromXML(node.text);
 				}
+			}
+			override void dragFinished(DragSourceEvent e) {
+				// Nothing
 			}
 		}
 	}
 
-	static if (UseCards && is (C == MenuCard)) {
-		int[] appendCardFromXML(string xml, int x, int y, bool fromImgPane) {
-			try {
-				auto root = XNode.parse(xml);
-				auto cards = MenuCard.createFromCardNode(root, _prop.var.etc.copyDesc, LATEST_VERSION);
-				int[] r;
+	private void moveItems(Table list, int fromIndex, int toIndex) {
+		if (fromIndex < 0 || list.getItemCount <= fromIndex) return;
+		if (fromIndex == toIndex) return;
+		bool cards = false;
+		bool backs = false;
+		static if (UseCards) cards = list is _cards;
+		static if (UseBacks) backs = list is _backs;
+		if (fromIndex < toIndex) {
+			down(toIndex - fromIndex, cards, backs);
+		} else if (fromIndex > toIndex) {
+			up(fromIndex - toIndex, cards, backs);
+		}
+	}
+	private void appendFromXML(string xml, int x, int y, DropTarg dTarg, out int[] ci, out int[] bi) {
+		try {
+			bool toImgp = dTarg is DropTarg.ImagePane;
+			auto node = XNode.parse(xml);
+			int ptoi(Table list) {
+				auto itm = list.getItem(new Point(x, y));
+				if (itm) {
+					return list.indexOf(itm);
+				} else {
+					return list.getItemCount;
+				}
+			}
+
+			MenuCard[] mcs;
+			BgImage[] bs;
+			if (Area.CBfromXML(node, mcs, bs)) {
+				if (!mcs.length && !bs.length) return;
+				if (toImgp) {
+					if (_id == node.attr("paneId", false)) return;
+					static if (is(C : MenuCard)) {
+						foreach (card; mcs) {
+							ci ~= appendCard(card, true, true, toImgp);
+						}
+					}
+					static if (UseBacks) {
+						foreach (back; bs) {
+							bi ~= appendBgImage(back, true, true, toImgp);
+						}
+					}
+					_comm.refUseCount.call;
+					return;
+				}
+				static if (is(C : MenuCard)) {
+					if (DropTarg.Card is dTarg && mcs.length) {
+						if (_id == node.attr("paneId", false)) {
+							moveItems(_cards, node.attr("cursorIndex", false, -1), ptoi(_cards));
+							return;
+						}
+						int si = ptoi(_cards);
+						foreach (i, card; mcs) {
+							appendCard(si + i, card, true, true);
+							ci ~= si + i;
+						}
+						_comm.refUseCount.call;
+						return;
+					}
+				}
+				static if (UseBacks) {
+					if (DropTarg.Back is dTarg && bs.length) {
+						if (_id == node.attr("paneId", false)) {
+							moveItems(_backs, node.attr("cursorIndex", false, -1), ptoi(_backs));
+							return;
+						}
+						int si = ptoi(_backs);
+						foreach (i, back; bs) {
+							appendBgImage(si + i, back, true, true);
+							bi ~= si + i;
+						}
+						_comm.refUseCount.call;
+						return;
+					}
+				}
+				return;
+			}
+			static if (is(C : EnemyCard)) {
+				EnemyCard[] ecs;
+				if (Battle.CfromXML(node, ecs)) {
+					if (!ecs.length) return;
+					if (toImgp) {
+						if (_id == node.attr("paneId", false)) return;
+						foreach (card; ecs) {
+							ci ~= appendCard(card, true, true, toImgp);
+						}
+						_comm.refUseCount.call;
+						return;
+					}
+					if (DropTarg.Card is dTarg && ecs.length) {
+						if (_id == node.attr("paneId", false)) {
+							moveItems(_cards, node.attr("cursorIndex", false, -1), ptoi(_cards));
+							return;
+						}
+						int si = ptoi(_cards);
+						foreach (i, card; ecs) {
+							appendCard(si + i, card, true, true);
+							ci ~= si + i;
+						}
+						_comm.refUseCount.call;
+						return;
+					}
+					return;
+				}
+			}
+
+			static if (is(A : Battle) && is(C : EnemyCard)) {
+				if (node.name == CastCard.XML_NAME_M) {
+					// キャストカードからのエネミーカード生成
+					if (summary.id != node.attr("summId", false)) return;
+					auto cards = EnemyCard.createCardsFromNode(node, LATEST_VERSION);
+					if (cards.length) {
+						int cx = 0;
+						int cy = 0;
+						if (toImgp) {
+							auto s = _prop.looks.cardSize;
+							auto ins = _prop.looks.castCardInsets;
+							cx = x - cast(int) (s.width + ins.e + ins.w) / 2;
+							cy = y - cast(int) (s.height + ins.n + ins.s) / 2;
+						}
+						foreach (i, card; cards) {
+							assert (card.scale == 1.0);
+							card.x = cx;
+							card.y = cy;
+							ci ~= appendCard(card, true, true, toImgp);
+						}
+						_comm.refUseCount.call;
+					}
+					return;
+				}
+			}
+
+			static if (is(C : MenuCard)) {
+				// その他カードからのメニューカード生成
+				auto cards = MenuCard.createFromCardNode(node, _prop.var.etc.copyDesc, LATEST_VERSION);
 				// x, y座標を中心にして配置
-				auto s = _prop.looks.cardSize;
-				auto ins = _prop.looks.menuCardInsets;
-				int cx = x - cast(int) (s.width + ins.e + ins.w) / 2;
-				int cy = y - cast(int) (s.height + ins.n + ins.s) / 2;
+				int cx = 0;
+				int cy = 0;
+				if (toImgp) {
+					auto s = _prop.looks.cardSize;
+					auto ins = _prop.looks.menuCardInsets;
+					cx = x - cast(int) (s.width + ins.e + ins.w) / 2;
+					cy = y - cast(int) (s.height + ins.n + ins.s) / 2;
+				}
 				foreach (card; cards) {
 					assert (card.scale == 1.0);
 					card.x = cx;
 					card.y = cy;
-					r ~= appendCard(card, true, true, fromImgPane);
+					ci ~= appendCard(card, true, true, toImgp);
 				}
-				return r;
-			} catch (Exception e) {
-				debugln(e);
 			}
-			return [];
+		} catch (Exception e) {
+			debugln(e);
 		}
 	}
 	private class IPDropTarget : DropTargetAdapter {
 		override void dragEnter(DropTargetEvent e){
-			e.detail = _summ ? DND.DROP_COPY : DND.DROP_NONE;
+			e.detail = _summ ? DND.DROP_LINK : DND.DROP_NONE;
 		}
 		private int[] addC;
 		private int[] addB;
@@ -3010,13 +3301,12 @@ public:
 				}
 				return;
 			}
-			static if (UseCards && is (C == MenuCard)) {
-				if (isXMLBytes(e.data)) {
-					scope p = _imgp.toControl(e.x, e.y);
-					int[] i = appendCardFromXML(bytesToXML(e.data), p.x, p.y, true);
-					if (i.length > 0) {
-						_undo ~= new UndoInsert(this.outer, _comm, _area, _summ, i, []);
-					}
+			if (isXMLBytes(e.data)) {
+				scope p = _imgp.toControl(e.x, e.y);
+				int[] ci, bi;
+				appendFromXML(bytesToXML(e.data), p.x, p.y, DropTarg.ImagePane, ci, bi);
+				if (ci.length || bi.length) {
+					_undo ~= new UndoInsert(this.outer, _comm, _area, _summ, ci, bi);
 				}
 			}
 		}
@@ -3103,46 +3393,20 @@ public:
 		}
 	}
 	static if (is(A : Battle) && is(C : EnemyCard)) {
-		int[] appendEnemyFromXML(string xml, int x, int y, bool fromImgPane) {
-			int[] r;
-			try {
-				auto node = XNode.parse(xml);
-				if (node.name != CastCard.XML_NAME_M) return [];
-				if (summary.id != node.attr("summId", false)) return [];
-				bool refr = false;
-				auto cards = EnemyCard.createCardsFromNode(node, LATEST_VERSION);
-				if (cards.length) {
-					foreach (i, c; cards) {
-						c.x = x;
-						c.y = y;
-						r ~= appendCard(c, true, true, fromImgPane);
-					}
-					_comm.refUseCount.call;
-				}
-			} catch (Exception e) {
-				debugln(e);
-			}
-			return r;
-		}
 		class DTListener : DropTargetAdapter {
-			private bool _isImgPane;
-			this (bool isImgPane) {_isImgPane = isImgPane;}
 			override void dragEnter(DropTargetEvent e){
 				e.detail = DND.DROP_LINK;
 			}
 			override void drop(DropTargetEvent e) {
 				if (isXMLBytes(e.data)) {
 					auto arr = bytesToXML(e.data);
-					auto imgp = cast(ImagePane) (cast(DropTarget) e.getSource).getControl;
-					int[] indices;
-					if (imgp) {
-						auto p = imgp.toControl(e.x, e.y);
-						indices = appendEnemyFromXML(arr, p.x, p.y, _isImgPane);
-					} else {
-						indices = appendEnemyFromXML(arr, 0, 0, _isImgPane);
-					}
-					if (indices.length) {
-						_undo ~= new UndoInsert(this.outer, _comm, _area, _summ, indices, []);
+					auto ctrl = (cast(DropTarget) e.getSource).getControl;
+					auto p = ctrl.toControl(e.x, e.y);
+					auto imgp = cast(ImagePane) ctrl;
+					int[] ci, bi;
+					appendFromXML(arr, p.x, p.y, imgp ? DropTarg.ImagePane : DropTarg.Card, ci, bi);
+					if (ci.length || bi.length) {
+						_undo ~= new UndoInsert(this.outer, _comm, _area, _summ, ci, bi);
 					}
 				}
 			}

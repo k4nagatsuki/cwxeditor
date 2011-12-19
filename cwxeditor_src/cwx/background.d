@@ -23,6 +23,11 @@ private:
 	int _w, _h;
 	void delegate() _change;
 public:
+	/// XML要素名。
+	immutable XML_NAME = "BgImage";
+	/// XML要素名(複数)。
+	immutable XML_NAME_M = "BgImages";
+
 	const
 	bool opEquals(ref const(Object) o) {
 		auto b = cast(BgImage) o;
@@ -143,9 +148,9 @@ public:
 	}
 
 	static BgImage[] bgImagesFromNode(ref XNode node, string ver) {
-		assert (node.name == "BgImages");
+		assert (node.name == XML_NAME_M);
 		BgImage[] bgImgs;
-		node.onTag["BgImage"] = (ref XNode bgn) {
+		node.onTag[XML_NAME] = (ref XNode bgn) {
 			auto bg = BgImage.createFromNode(bgn, ver);
 			if (bg.path.length > 0) {
 				bgImgs ~= bg;
@@ -157,7 +162,7 @@ public:
 
 	/// 指定されたノードに背景イメージ群のデータを追加する。
 	static void toNode(in BgImage[] bgImgs, ref XNode e) {
-		auto bge = e.newElement("BgImages");
+		auto bge = e.newElement(XML_NAME_M);
 		if (bgImgs.length > 0) {
 			// FIXME: このサイズはCPropsに持たせているがコンパイラのバグで参照できない。暫定。
 			if (bgImgs[0].width != 632 || bgImgs[0].height != 420) {
@@ -174,8 +179,8 @@ public:
 	/// XMLノード(BgImages)にインスタンスのデータを追加する。
 	const
 	void toNode(ref XNode node) {
-		assert (node.name == "BgImages", node.name ~ " != BgImages");
-		auto e = node.newElement("BgImage");
+		assert (node.name == XML_NAME_M, node.name ~ " != BgImages");
+		auto e = node.newElement(XML_NAME);
 		e.newAttr("mask", fromBool(_mask));
 		e.newElement("ImagePath", encodePath(_user.path));
 		e.newElement("Flag", super.flag);
@@ -188,8 +193,8 @@ public:
 	}
 	/// 背景イメージが一枚も無い場合。
 	static void appendEmptyToNode(ref XNode node) {
-		assert (node.name == "BgImages", node.name ~ " != BgImages");
-		auto e = node.newElement("BgImage");
+		assert (node.name == XML_NAME_M, node.name ~ " != BgImages");
+		auto e = node.newElement(XML_NAME);
 		e.newAttr("mask", "False");
 		e.newElement("ImagePath");
 		e.newElement("Flag");
@@ -202,7 +207,7 @@ public:
 	}
 
 	static BgImage createFromNode(ref XNode node, string ver) {
-		if (node.name != "BgImage") throw new AreaException("Node is not BgImage");
+		if (node.name != XML_NAME) throw new AreaException("Node is not BgImage");
 		bool mask = parseBool(node.attr("mask", true));
 		string path = "";
 		string flag = "";
@@ -323,7 +328,7 @@ public:
 	static string BtoXML(BgImage[] backs) {
 		scope doc = XNode.create("MenuCardsAndBgImages");
 		if (backs.length) {
-			auto be = doc.newElement("BgImages");
+			auto be = doc.newElement(BgImage.XML_NAME_M);
 			foreach (b; backs) {
 				b.toNode(be);
 			}
@@ -335,8 +340,8 @@ public:
 		try {
 			scope doc = XNode.parse(xml);
 			if (doc.name == "MenuCardsAndBgImages") {
-				doc.onTag["BgImages"] = (ref XNode node) {
-					node.onTag["BgImage"] = (ref XNode n) {
+				doc.onTag[BgImage.XML_NAME_M] = (ref XNode node) {
+					node.onTag[BgImage.XML_NAME] = (ref XNode n) {
 						backs ~= BgImage.createFromNode(n, LATEST_VERSION);
 					};
 					node.parse;

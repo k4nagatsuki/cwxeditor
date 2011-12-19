@@ -169,6 +169,11 @@ private:
 	bool _escape;
 	CastUser _user;
 public:
+	/// XML要素名。
+	immutable XML_NAME = "EnemyCard";
+	/// XML要素名(複数)。
+	immutable XML_NAME_M = "EnemyCards";
+
 	/// 唯一のコンストラクタ。
 	this(ulong id, bool escape, string flag, int x, int y, real scale) {
 		super(flag, x, y, scale);
@@ -250,15 +255,15 @@ public:
 	/// XMLノードにして返す。
 	const
 	XNode toNode() {
-		auto e = XNode.create("EnemyCard");
+		auto e = XNode.create(XML_NAME);
 		toNodeImpl(e);
 		return e;
 	}
 	/// XMLノード(EnemyCards)にインスタンスのデータを追加する。
 	const
 	XNode toNode(ref XNode node) {
-		assert (node.name == "EnemyCards", node.name ~ " != EnemyCards");
-		auto e = node.newElement("EnemyCard");
+		assert (node.name == XML_NAME_M, node.name ~ " != EnemyCards");
+		auto e = node.newElement(XML_NAME);
 		toNodeImpl(e);
 		return e;
 	}
@@ -275,7 +280,7 @@ public:
 	/// AreaException = nodeがMenuCardでない。またはデータが不足している。
 	/// IllegalArgmentException = 数値であるべきデータが数値でない。
 	static EnemyCard createFromNode(ref XNode node, string ver) {
-		if (node.name != "EnemyCard") throw new AreaException("Node is not EnemyCard");
+		if (node.name != XML_NAME) throw new AreaException("Node is not EnemyCard");
 
 		bool getId = false;
 
@@ -316,6 +321,11 @@ private:
 	PathUser _user;
 
 public:
+	/// XML要素名。
+	immutable XML_NAME = "MenuCard";
+	/// XML要素名(複数)。
+	immutable XML_NAME_M = "MenuCards";
+
 	/// 唯一のコンストラクタ。
 	/// Params:
 	/// name = カード名。
@@ -434,15 +444,15 @@ public:
 	/// XMLノードにして返す。
 	const
 	XNode toNode() {
-		auto e = XNode.create("MenuCard");
+		auto e = XNode.create(XML_NAME);
 		toNodeImpl(e);
 		return e;
 	}
 	/// XMLノード(MenuCards)にインスタンスのデータを追加する。
 	const
 	XNode toNode(ref XNode node) {
-		assert (node.name == "MenuCards", node.name ~ " != MenuCards");
-		auto e = node.newElement("MenuCard");
+		assert (node.name == XML_NAME_M, node.name ~ " != MenuCards");
+		auto e = node.newElement(XML_NAME);
 		toNodeImpl(e);
 		return e;
 	}
@@ -461,7 +471,7 @@ public:
 	/// AreaException = nodeがMenuCardでない。またはデータが不足している。
 	/// IllegalArgmentException = 数値であるべきデータが数値でない。
 	static MenuCard createFromNode(ref XNode node, string ver) {
-		if (node.name != "MenuCard") throw new AreaException("Node is not MenuCard");
+		if (node.name != XML_NAME) throw new AreaException("Node is not MenuCard");
 
 		string name = null;
 		string path = "";
@@ -830,16 +840,28 @@ public:
 		return r;
 	}
 
-	/// メニューカード群をXMLテキストにして返す。
+	/// メニューカード群をXMLデータにして返す。
 	static string CtoXML(MenuCard[] cards) {
-		return CBtoXML(cards, []);
+		return CtoNode(cards).text;
 	}
-	/// 背景イメージ群をXMLテキストにして返す。
+	/// ditto
+	static XNode CtoNode(MenuCard[] cards) {
+		return CBtoNode(cards, []);
+	}
+	/// 背景イメージ群をXMLデータにして返す。
 	static string BtoXML(BgImage[] backs) {
-		return CBtoXML([], backs);
+		return BtoNode(backs).text;
 	}
-	/// メニューカード群と背景イメージ群をXMLテキストにして返す。
+	/// ditto
+	static XNode BtoNode(BgImage[] backs) {
+		return CBtoNode([], backs);
+	}
+	/// メニューカード群と背景イメージ群をXMLデータにして返す。
 	static string CBtoXML(MenuCard[] cards, BgImage[] backs) {
+		return CBtoNode(cards, backs).text;
+	}
+	/// ditto
+	static XNode CBtoNode(MenuCard[] cards, BgImage[] backs) {
 		auto e = XNode.create("MenuCardsAndBgImages");
 		if (cards.length > 0) {
 			auto me = e.newElement("MenuCards");
@@ -853,7 +875,7 @@ public:
 				b.toNode(be);
 			}
 		}
-		return e.text;
+		return e;
 	}
 
 	/// XMLテキストからメニューカードと背景画像を生成する。
@@ -866,23 +888,33 @@ public:
 	static bool CBfromXML(string xml, out MenuCard[] cards, out BgImage[] backs) {
 		try {
 			scope doc = XNode.parse(xml);
-			if (doc.name == "MenuCardsAndBgImages") {
-				doc.onTag["MenuCards"] = (ref XNode node) {
+			return CBfromXML(doc, cards, backs);
+		} catch (Exception e) {
+			debugln(e);
+		}
+		return false;
+	}
+	/// ditto
+	static bool CBfromXML(ref XNode node, out MenuCard[] cards, out BgImage[] backs) {
+		try {
+			if (node.name == "MenuCardsAndBgImages") {
+				node.onTag["MenuCards"] = (ref XNode node) {
 					node.onTag["MenuCard"] = (ref XNode n) {
 						cards ~= MenuCard.createFromNode(n, LATEST_VERSION);
 					};
 					node.parse;
 				};
-				doc.onTag["BgImages"] = (ref XNode node) {
+				node.onTag["BgImages"] = (ref XNode node) {
 					node.onTag["BgImage"] = (ref XNode n) {
 						backs ~= BgImage.createFromNode(n, LATEST_VERSION);
 					};
 					node.parse;
 				};
-				doc.parse;
+				node.parse;
 				return true;
 			}
 		} catch (Exception e) {
+			debugln(e);
 		}
 		return false;
 	}
@@ -1198,13 +1230,17 @@ public:
 		return r;
 	}
 
-	/// エネミーカード群をXMLテキストにして返す。
+	/// エネミーカード群をXMLデータにして返す。
 	static string CtoXML(EnemyCard[] cards) {
-		scope doc = XNode.create("EnemyCards");
+		return CtoNode(cards).text;
+	}
+	/// ditto
+	static XNode CtoNode(EnemyCard[] cards) {
+		auto doc = XNode.create("EnemyCards");
 		foreach (c; cards) {
 			c.toNode(doc);
 		}
-		return doc.text;
+		return doc;
 	}
 
 	/// XMLテキストからエネミーカードを生成する。
@@ -1217,14 +1253,24 @@ public:
 	static bool CfromXML(string xml, out EnemyCard[] cards) {
 		try {
 			scope doc = XNode.parse(xml);
-			if (doc.name == "EnemyCards") {
-				doc.onTag["EnemyCard"] = (ref XNode n) {
+			return CfromXML(doc, cards);
+		} catch (Exception e) {
+			debugln(e);
+		}
+		return false;
+	}
+	/// ditto
+	static bool CfromXML(ref XNode node, out EnemyCard[] cards) {
+		try {
+			if (node.name == "EnemyCards") {
+				node.onTag["EnemyCard"] = (ref XNode n) {
 					cards ~= EnemyCard.createFromNode(n, LATEST_VERSION);
 				};
-				doc.parse;
+				node.parse;
 				return true;
 			}
 		} catch (Exception e) {
+			debugln(e);
 		}
 		return false;
 	}

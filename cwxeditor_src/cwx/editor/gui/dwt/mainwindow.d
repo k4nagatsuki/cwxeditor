@@ -642,7 +642,7 @@ private:
 		override void shellClosed(ShellEvent e) {
 			e.doit = qSave;
 			if (e.doit) {
-				if (summary) {
+				if (summary && !_comm.isChanged) {
 					writeDock();
 				}
 				_comm.closeAll();
@@ -814,6 +814,7 @@ private:
 		_prop.var.etc.openHistories
 			= [hist] ~ (hists.length < _prop.var.etc.historyMax ? hists : hists[0 .. $ - 1]);
 		_prop.var.etc.lastScenario = p;
+		writeDock();
 		_prop.var.save(dock);
 		sendReloadProps();
 		_comm.refHistories.call();
