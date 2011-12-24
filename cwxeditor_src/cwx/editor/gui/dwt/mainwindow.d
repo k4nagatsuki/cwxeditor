@@ -387,6 +387,7 @@ private:
 				_prop.msgs.dlgTitWarning, _win);
 			summ.type = _prop.var.etc.defaultSkin;
 		}
+		summ.resetChanged();
 		_comm.skin = findSkin(_comm, _prop, summ);
 		_comm.closeAll;
 		if (_dataWin) {
@@ -431,7 +432,6 @@ private:
 		} catch (Exception e) {
 			debugln(e);
 		}
-		summ.resetChanged;
 		statusLine = _prop.msgs.loaded(summ.scenarioName);
 		summ.changedEvent ~= &refreshTitle;
 		refreshTitle();

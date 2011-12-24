@@ -1776,9 +1776,7 @@ private class LSFFThr(S, bool Array) {
 	}
 	void run() {
 		scope (exit) {
-			if (!current) {
-				display.syncExec(new Exit);
-			}
+			display.syncExec(new Exit);
 		}
 		scope (failure) {
 			display.syncExec(new Failed);
@@ -2455,12 +2453,14 @@ Cursor[Shell] setWaitCursors(Shell shell) {
 	}
 	put(shell);
 	foreach (chld; shell.getShells) {
+		if (chld.isDisposed) continue;
 		put(chld);
 	}
 	return cursors;
 }
 void resetCursors(Cursor[Shell] cursors) {
 	foreach (shl, cur; cursors) {
+		if (shl.isDisposed) continue;
 		shl.setCursor = cur;
 	}
 }
