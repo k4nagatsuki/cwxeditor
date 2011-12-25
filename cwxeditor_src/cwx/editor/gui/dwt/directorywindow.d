@@ -131,7 +131,7 @@ private struct FC {
 	}
 	const
 	string toString() {
-		return time.toISOExtendedString ~ "\t" ~ path;
+		return time.toISOExtString ~ "\t" ~ path;
 	}
 }
 

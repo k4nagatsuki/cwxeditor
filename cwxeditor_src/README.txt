@@ -2,11 +2,11 @@
 [[[ CWXEditor ビルドガイド ]]]
 
 ビルドツール:
-	・dmd 2.056
+	・dmd 2.057
 	・rake
 	・Digital Mars rcc
 ライブラリ:
-	・DWT2 rev.125
+	・DWT2 rev.130
 
 　後はSubversionとMercurialのクライアントがあると楽です。
 
@@ -14,8 +14,10 @@
 [ Windowsの場合 ]
 
 　DWT2をMercurialのリポジトリから取ってきます。
+　最新のものがどこにあるかよく分からないのですが、次の場所にある版が
+dmd 2.057でビルド可能です。
 ---
-hg clone -r 125 http://hg.dsource.org/projects/dwt2
+hg clone -r 130 https://bitbucket.org/kntroh/dwt2-with-d2
 ---
 　DWT2はビルドにrakeを使います。こいつはRuby言語のスクリプトなのですが、
 RubyInstaller for Windowsを使うとRuby本体諸共入手できるようです。

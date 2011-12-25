@@ -1749,7 +1749,7 @@ private class LSFFThr(S, bool Array) {
 			}
 		}
 	}
-	class Error : Runnable {
+	class SError : Runnable {
 		SummaryException e;
 		this (SummaryException e) {this.e = e;}
 		void run() {
@@ -1807,7 +1807,7 @@ private class LSFFThr(S, bool Array) {
 				temp = r.useTemp ? r.scenarioPath : "";
 				display.syncExec(new Load(r));
 			} catch (SummaryException e) {
-				display.syncExec(new Error(e));
+				display.syncExec(new SError(e));
 			}
 		}
 	}

@@ -300,11 +300,15 @@ private struct JptxTag {
 			p = p[ei + 4 .. $];
 		}
 		static const ATTR = " *([A-Z]+)=\"([^\"]+)\""d;
-		foreach (areg; .match(p, .regex!(dstring)(ATTR, "i"))) {
-			foreach (m; areg) {
-				auto cap = m.captures;
-				tag.attr[cwx.utils.toLower(toUTF8(cap[1]))] = toUTF8(cap[2]);
-			}
+		auto attrReg = .regex!(dstring)(ATTR, "i");
+		// FIXME: 最初の一つしかヒットしない
+/+		foreach (cap; .match(p, attrReg)) {
++/		while (true) {
+			auto m = .match(p, attrReg);
+			if(m.empty) break;
+			p = m.post;
+			auto cap = m.captures;
+			tag.attr[cwx.utils.toLower(to!string(cap[1]))] = to!string(cap[2]);
 		}
 		return tag;
 	} unittest {

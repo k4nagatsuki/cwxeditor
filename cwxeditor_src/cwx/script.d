@@ -244,7 +244,7 @@ class CWXScript {
 		}
 		return decode(tok.value[1 .. $ - 1], tok.value[0]);
 	} unittest {
-		auto s = new CWXScript(null, null);
+		auto s = new CWXScript(new CProps("", null), null);
 		assert (s.stringValue(Token(0, 0, Kind.STRING, `"abc"`), 0) == "abc");
 		assert (s.stringValue(Token(0, 0, Kind.STRING, `"a""bc"`), 0) == "a\"bc");
 		assert (s.stringValue(Token(0, 0, Kind.STRING, `'ab''c'`), 0) == "ab'c");
@@ -268,8 +268,16 @@ class CWXScript {
 		dstring post;
 		bool spaceAfter = false;
 		string docComment = "";
-		foreach (token; .match(dtext, reg)) {
+		dstring tPre;
+		// FIXME: 最初の一つしかヒットしない
+/+		foreach (cap; .match(dtext, reg)) {
++/		while (true) {
+			auto token = .match(dtext, reg);
+			if(token.empty) break;
+			dtext = token.post;
 			post = token.post;
+			dstring pre = tPre ~ token.pre;
+			tPre = tPre ~ token.pre ~ token.hit;
 			auto dstr = token.hit;
 			void retCount2(dstring dstr) {
 				size_t count = .count(dstr, "\n"d);
@@ -286,13 +294,13 @@ class CWXScript {
 			auto c = dstr[0];
 			string str = to!string(dstr);
 
-			if (token.pre.length - hits > 0) {
+			if (cast(int) pre.length - cast(int) hits > 0) {
 				if (0 < commentLevel) {
 					/// in comment
-					retCount2(token.pre[hits .. $]);
-					hits = token.pre.length;
+					retCount2(pre[hits .. $]);
+					hits = pre.length;
 				} else {
-					dstring lpre = token.pre;
+					dstring lpre = pre;
 					if (lpre.length && (lpre[$ - 1] == '@' || lpre[$ - 1] == '"' || lpre[$ - 1] == '\'')) {
 						throwErrorToken(_prop.msgs.scriptErrorUnCloseString, i, pos, "");
 						return r;
@@ -468,9 +476,10 @@ class CWXScript {
 		if (post.length) throwErrorToken(_prop.msgs.scriptErrorInvalidToken, i, pos, "");
 		return r;
 	} unittest {
-		auto s = new CWXScript(null, null);
+		auto s = new CWXScript(new CProps("", null), null);
 		assert (s.tokenize("/*/*\n*/*/").length == 0);
-		assert (s.tokenize("/*c*/start, 12.3 \ntest1 [$void] =\"str\ning//\"\n\r //comment\nELIF if\n1/2+3*4%(5-6)")
+		auto tokens = s.tokenize("/*c*/start, 12.3 \ntest1 [$void] =\"str\ning//\"\n\r //comment\nELIF if\n1/2+3*4%(5-6)");
+		assert (tokens
 			== [
 				Token(0, 5, Kind.START, "start", "c"),
 				Token(0, 10, Kind.COMMA, ","),
@@ -496,7 +505,7 @@ class CWXScript {
 				Token(6, 10, Kind.MIN, "-"),
 				Token(6, 11, Kind.NUMBER, "6"),
 				Token(6, 12, Kind.C_PAR, ")")
-			]);
+			], to!string(tokens));
 	}
 
 	private enum CRKind {STR, INT, REAL}
@@ -751,7 +760,7 @@ class CWXScript {
 		Token[string] varTable;
 		varTable["$abc"] = Token(0, 0, Kind.NUMBER, "15");
 		varTable["$s"] = Token(0, 0, Kind.NUMBER, "0");
-		auto s = new CWXScript(null, null);
+		auto s = new CWXScript(new CProps("", null), null);
 		i = 0;
 		assert (s.calc(s.tokenize("(-42)"), i, varTable, 0) == -42);
 		i = 0;
@@ -1356,7 +1365,7 @@ fi`;
 		}
 		return r;
 	} unittest {
-		auto s = new CWXScript(null, null);
+		auto s = new CWXScript(new CProps("", null), null);
 		Token[] tokens;
 		size_t i;
 		tokens = s.tokenize(`goarea`);
@@ -2387,7 +2396,7 @@ fi`;
 		default: assert (0);
 		}
 	}
-	private typedef string Symbol;
+	private alias string Symbol;
 	private static class VarTable {
 		bool useVar = true;
 		bool useCenter = true;

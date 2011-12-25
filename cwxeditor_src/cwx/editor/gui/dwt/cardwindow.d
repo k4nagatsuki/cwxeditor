@@ -1265,7 +1265,7 @@ private:
 					r ~= acw;
 				}
 			}
-			addScenario(r);
+			addScenario(cast(Object[]) r);
 		}
 	}
 	this() {}

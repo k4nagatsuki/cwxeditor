@@ -34,7 +34,7 @@ version (Windows) {
 		src = nabs(src);
 		auto h = fciCreate(nabs(cab));
 		if (!h) return false;
-		scope (exit) destroy(h);
+		scope (exit) destroyFCI(h);
 		string cut = dirName(src) ~ sep.idup;
 		bool adds(string file) {
 			if (isArc && !isArc(file)) return true;
@@ -88,13 +88,13 @@ version (Windows) {
 		if (!.exists(file)) return false;
 		auto h = fdiCreate;
 		if (!h) return false;
-		scope (exit) destroy(h);
+		scope (exit) destroyFDI(h);
 		return isCab(h, file) && copyFiles(h, file, dest, expand);
 	}
 
 	private extern (Windows) {
-		typedef HANDLE HFCI;
-		typedef HANDLE HFDI;
+		alias HANDLE HFCI;
+		alias HANDLE HFDI;
 		alias size_t SIZE_T;
 		alias USHORT TCOMP;
 
@@ -460,7 +460,7 @@ version (Windows) {
 	private bool flush(HFCI hfci) {
 		return FCIFlushCabinet(hfci, false, null, &FNFCISTATUS) != 0;
 	}
-	private bool destroy(HFCI hfci) {
+	private bool destroyFCI(HFCI hfci) {
 		return FCIDestroy(hfci) != 0;
 	}
 
@@ -488,7 +488,7 @@ version (Windows) {
 		string delegate(string) expand = null;
 		char* onExpand = null;
 	}
-	private bool destroy(HFDI hfdi) {
+	private bool destroyFDI(HFDI hfdi) {
 		return FDIDestroy(hfdi) != 0;
 	}
 

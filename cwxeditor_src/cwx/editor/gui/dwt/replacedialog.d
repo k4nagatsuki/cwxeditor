@@ -28,7 +28,7 @@ import std.array;
 import std.string;
 import std.file;
 import std.path;
-import std.regex;
+import std.regex : Regex, regex, RegexMatch, match;
 import std.utf;
 
 import org.eclipse.swt.widgets.Shell;
@@ -1832,13 +1832,13 @@ public:
 	/// FIXME: std.regex.replace()がdstringでコンパイルエラーになる。
 	private static dstring impReplace(dstring s, Regex!(dchar) regex, dstring to) {
 		dstring r = "";
-		RegexMatch!(dstring) match;
+		dstring post = "";
 		foreach (m; .match(s, regex)) {
-			match = m;
 			r ~= m.pre;
 			r ~= to;
+			r = m.post;
 		}
-		return r ~ match.post;
+		return r ~ post;
 	}
 	private string fTextRepl(string s) {
 		if (_regexTarg) {

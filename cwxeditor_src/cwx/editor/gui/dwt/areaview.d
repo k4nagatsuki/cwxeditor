@@ -2865,7 +2865,7 @@ public:
 				imgs ~= img;
 				if (raiseEvent) _comm.addMenuCard.call(card.cwxPath);
 			}
-			_imgp.insert(cardsIndex + index, imgs);
+			_imgp.insert(cardsIndex + index, cast(PileImage[]) imgs);
 			foreach (i, c; cards) {
 				auto itm = new TableItem(_cards, SWT.NONE, index + i);
 				itm.setImage = _prop.images.cards;
@@ -3020,7 +3020,7 @@ public:
 			foreach (back; backs) {
 				imgs ~= create(back);
 			}
-			_imgp.insert(index, imgs);
+			_imgp.insert(index, cast(PileImage[]) imgs);
 			foreach (i, b; backs) {
 				auto itm = new TableItem(_backs, SWT.NONE, index + i);
 				itm.setImage = _prop.images.backs;

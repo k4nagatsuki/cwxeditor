@@ -304,7 +304,10 @@ public:
 }
 
 /// エリアのID。
-typedef ulong AreaId;
+struct AreaId {
+	ulong id;
+	alias id this;
+}
 /// 数値をエリアIDに変換。
 AreaId toAreaId(ulong id) {return cast(AreaId) id;}
 /// エリアの使用者。
@@ -371,7 +374,10 @@ public:
 }
 
 /// バトルのID。
-typedef ulong BattleId;
+struct BattleId {
+	ulong id;
+	alias id this;
+}
 /// 数値をバトルIDに変換。
 BattleId toBattleId(ulong id) {return cast(BattleId) id;}
 /// バトルの使用者。
@@ -438,7 +444,10 @@ public:
 }
 
 /// パッケージのID。
-typedef ulong PackageId;
+struct PackageId {
+	ulong id;
+	alias id this;
+}
 /// 数値をパッケージIDに変換。
 PackageId toPackageId(ulong id) {return cast(PackageId) id;}
 /// パッケージの使用者。
@@ -659,7 +668,10 @@ public:
 }
 
 /// キャストカードのID。
-typedef ulong CastId;
+struct CastId {
+	ulong id;
+	alias id this;
+}
 /// 数値をキャストIDに変換。
 CastId toCastId(ulong id) {return cast(CastId) id;}
 /// キャストカードの使用者。
@@ -722,7 +734,10 @@ public:
 	}
 }
 /// スキルカードのID。
-typedef ulong SkillId;
+struct SkillId {
+	ulong id;
+	alias id this;
+}
 /// 数値をスキルIDに変換。
 SkillId toSkillId(ulong id) {return cast(SkillId) id;}
 /// スキルカードの使用者。
@@ -785,7 +800,10 @@ public:
 	}
 }
 /// アイテムカードのID。
-typedef ulong ItemId;
+struct ItemId {
+	ulong id;
+	alias id this;
+}
 /// 数値をアイテムIDに変換。
 ItemId toItemId(ulong id) {return cast(ItemId) id;}
 /// アイテムカードの使用者。
@@ -848,7 +866,10 @@ public:
 	}
 }
 /// 召喚獣カードのID。
-typedef ulong BeastId;
+struct BeastId {
+	ulong id;
+	alias id this;
+}
 /// 数値を召喚獣IDに変換。
 BeastId toBeastId(ulong id) {return cast(BeastId) id;}
 /// 召喚獣カードの使用者。
@@ -911,7 +932,10 @@ public:
 	}
 }
 /// 情報カードのID。
-typedef ulong InfoId;
+struct InfoId {
+	ulong id;
+	alias id this;
+}
 /// 数値を情報IDに変換。
 InfoId toInfoId(ulong id) {return cast(InfoId) id;}
 /// 情報カードの使用者。
