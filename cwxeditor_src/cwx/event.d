@@ -269,10 +269,7 @@ struct CDetail {
 }
 
 /// スタートのID。
-struct StartId {
-	string id;
-	alias id this;
-}
+alias string StartId;
 /// 文字列をスタートIDに変換。
 StartId toStartId(string start) {return cast(StartId) start;}
 /// スタートコンテントの使用者。
