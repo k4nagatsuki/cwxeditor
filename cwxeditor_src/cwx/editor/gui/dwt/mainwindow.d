@@ -416,13 +416,20 @@ private:
 		if (_prop.var.etc.reconstruction) {
 			fullHist = findFullHist(createHistString(summary));
 		}
+		bool opened = false;
+		string openedS = "";
 		if (_prop.var.etc.reconstruction) {
 			auto paths = fullHistToCWXPaths(fullHist);
 			if (paths.length) {
 				statusLine = _prop.msgs.reconstructionStatus(0, paths.length);
 				foreach (i, cwxPath; paths) {
-					openCWXPath(cwxPath, false);
-					statusLine = _prop.msgs.reconstructionStatus(i + 1, paths.length);
+					if (openCWXPath(cwxPath, false)) {
+						opened = true;
+						openedS = statusLine;
+						statusLine = _prop.msgs.reconstructionStatus(i + 1, paths.length);
+					} else {
+						statusLine = _prop.msgs.reconstructionStatus(i + 1, paths.length);
+					}
 				}
 			}
 		}
@@ -436,7 +443,11 @@ private:
 		} catch (Exception e) {
 			debugln(e);
 		}
-		statusLine = _prop.msgs.loaded(summ.scenarioName);
+		if (!opened || !openedS.length) {
+			statusLine = _prop.msgs.loaded(summ.scenarioName);
+		} else {
+			statusLine = openedS;
+		}
 		summ.changedEvent ~= &refreshTitle;
 		refreshTitle();
 		GC.collect();
