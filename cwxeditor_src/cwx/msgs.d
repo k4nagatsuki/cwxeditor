@@ -28,6 +28,13 @@ version (Windows) {
 	static immutable DIR = "ディレクトリ";
 }
 
+/// 台詞コンテントの簡易表示方式。
+enum DialogStatus {
+	Top = 0, /// 最上位を表示。
+	Under = 1, /// 最下位を表示。
+	UnderWithCoupon = 2, /// 最下位(条件クーポンあり)を表示。
+}
+
 class Msgs {
 public:
 	const string application() {return "CWXEditor";}
@@ -801,7 +808,7 @@ public:
 			return std.array.replace(text, "\n", "");
 		}
 	}
-	const string contentText(in Skin skin, in Content evt, in Summary summ) {
+	const string contentText(in Skin skin, in Content evt, in Summary summ, DialogStatus dlgStat) {
 		switch (evt.type) {
 		case CType.START: {
 			return "スタートコンテント: " ~ evt.name;
@@ -873,7 +880,20 @@ public:
 			default: assert (0);
 			}
 		} case CType.TALK_DIALOG: {
-			return dialogText(evt.dialogs[0]);
+			assert (evt.dialogs.length);
+			final switch (dlgStat) {
+			case DialogStatus.Top:
+				return dialogText(evt.dialogs[0]);
+			case DialogStatus.Under:
+				return dialogText(evt.dialogs[$ - 1]);
+			case DialogStatus.UnderWithCoupon:
+				foreach_reverse (dlg; evt.dialogs) {
+					if (dlg.rCoupons.length) {
+						return dialogText(dlg);
+					}
+				}
+				assert (0);
+			}
 		} case CType.PLAY_BGM: {
 			if (evt.bgmPath is null || !evt.bgmPath.length) return "BGM停止";
 			auto path = skin.findPath(evt.bgmPath, skin.extBgm, skin.bgmDir, summ.scenarioPath);
@@ -2260,6 +2280,10 @@ public:
 	const string rangeHint(int min, int max) {
 		return "(" ~ to!(string)(min) ~ "～" ~ to!(string)(max) ~ ")";
 	}
+	const string source() {return "出典";}
+	const string sourceScenario() {return "シナリオ名";}
+	const string sourceAuthor() {return "シナリオ作者";}
+	const string resetSource() {return "現在のシナリオを出典に設定";}
 
 	/// ファイルビュー。
 	const string dirTabName(in Summary summ) {
@@ -2435,6 +2459,15 @@ public:
 	const string undoMaxMainView() {return "エリア/カード/フラグ";}
 	const string undoMaxEvent() {return "メニュー/エネミー/背景/イベント";}
 	const string undoMaxEtc() {return "テキスト/その他";}
+
+	const string dialogStatus() {return "台詞コンテントのステータス";}
+	const string dialogStatusName(DialogStatus dlgStat) {
+		final switch (dlgStat) {
+		case DialogStatus.Top: return "最上位の台詞";
+		case DialogStatus.Under: return "最下位の台詞";
+		case DialogStatus.UnderWithCoupon: return "最下位の台詞(条件クーポン設定あり)";
+		}
+	}
 
 	/// スクリプト関係。
 	const string ttToScript() {return "スクリプトに変換してコピー";}

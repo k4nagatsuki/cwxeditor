@@ -476,7 +476,7 @@ private:
 			scope (exit) uda(v);
 			reselect(v);
 			_delUndo = new UndoDelete(v, comm, area, summ, _cIdcs, _bIdcs);
-			delImpl2(v, comm, area, _cIdcs, _bIdcs);
+			delImpl2(v, comm, area, _cIdcs, _bIdcs, false);
 		}
 		override void redo() {
 			_delUndo.undo;
@@ -539,7 +539,7 @@ private:
 			int[] bs;
 			static if (UseCards) cs = _cs.keys;
 			static if (UseBacks) bs = _bs.keys;
-			delImpl2(v, comm, area, cs, bs);
+			delImpl2(v, comm, area, cs, bs, false);
 		}
 		override void dispose() {
 			static if (UseCards) {
@@ -1819,8 +1819,8 @@ public:
 			_flag.add(_prop.msgs.noFlag);
 			refreshFlag();
 			_flag.addSelectionListener(new SelFlag);
-			_comm.refFlag.add(&refFlag);
-			_comm.delFlag.add(&refFlag);
+			_comm.refFlagAndStep.add(&refFlag);
+			_comm.delFlagAndStep.add(&refFlag);
 			_flag.addDisposeListener(new FlagsDispose);
 			{
 				auto menu = new Menu(_flag.getShell, SWT.POP_UP);
@@ -2728,8 +2728,8 @@ public:
 	}
 	private class FlagsDispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
-			_comm.refFlag.remove(&refFlag);
-			_comm.delFlag.remove(&refFlag);
+			_comm.refFlagAndStep.remove(&refFlag);
+			_comm.delFlagAndStep.remove(&refFlag);
 		}
 	}
 	private class SelFlag : SelectionAdapter {
@@ -2759,7 +2759,8 @@ public:
 			_comm.refUseCount.call();
 		}
 	}
-	private void refFlag(Flag flag) {
+	private void refFlag(Flag[] flag, Step[] step) {
+		if (!flag.length) return;
 		refreshFlag();
 	}
 	private void refreshFlag() {
@@ -3437,7 +3438,8 @@ public:
 	private void delImpl() {
 		_tcpd.del(null);
 	}
-	private static void delImpl2(AbstractAreaView v, Commons comm, A area, int[] cIdcs, int[] bIdcs) {
+	private static void delImpl2(AbstractAreaView v, Commons comm, A area, int[] cIdcs, int[] bIdcs, bool store) {
+		if (store && v) v._undo ~= new UndoDelete(v, comm, area, comm.summary, cIdcs, bIdcs);
 		static if (UseCards) {
 			foreach_reverse (i; cIdcs.sort) {
 				if (v) {
@@ -3525,7 +3527,7 @@ public:
 				}
 			}
 			void del(SelectionEvent se) {
-				delImpl2(this.outer, _comm, _area, _cards.getSelectionIndices, _backs.getSelectionIndices);
+				delImpl2(this.outer, _comm, _area, _cards.getSelectionIndices, _backs.getSelectionIndices, true);
 			}
 			bool canDoTCPD() {
 				return _imgp.isVisible;
@@ -3578,7 +3580,7 @@ public:
 				}
 			}
 			void del(SelectionEvent se) {
-				delImpl2(this.outer, _comm, _area, _cards.getSelectionIndices, []);
+				delImpl2(this.outer, _comm, _area, _cards.getSelectionIndices, [], true);
 			}
 			bool canDoTCPD() {
 				return _cards.isVisible && _cards.isEnabled;
@@ -3630,7 +3632,7 @@ public:
 				}
 			}
 			void del(SelectionEvent se) {
-				delImpl2(this.outer, _comm, _area, [], _backs.getSelectionIndices);
+				delImpl2(this.outer, _comm, _area, [], _backs.getSelectionIndices, true);
 			}
 			bool canDoTCPD() {
 				return _backs.isVisible && _backs.isEnabled;

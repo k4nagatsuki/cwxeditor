@@ -28,6 +28,7 @@ SRC = cwxeditor.d \
 	cwx/jpy.d \
 	cwx/script.d \
 	cwx/msgs.d \
+	d2std/xml.d \
 	cwx/editor/gui/sound.d \
 	cwx/editor/gui/dwt/sbshell.d \
 	cwx/editor/gui/dwt/mainwindow.d \

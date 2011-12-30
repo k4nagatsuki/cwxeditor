@@ -6,6 +6,7 @@ import cwx.utils;
 import cwx.xml;
 import cwx.summary;
 import cwx.skin;
+import cwx.msgs;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.properties;
@@ -290,6 +291,9 @@ private:
 	Combo _soundPlayType;
 	int[int] _soundPlayTypeTbl;
 	int[int] _soundPlayTypeTbl2;
+	Combo _dialogStatus;
+	int[int] _dialogStatusTbl;
+	int[int] _dialogStatusTbl2;
 	Text _savedSound;
 
 	class RefE : SelectionAdapter, ModifyListener {
@@ -1819,7 +1823,7 @@ private:
 		comp.setLayout = new GridLayout(2, false);
 		{
 			auto comp2 = new Composite(comp, SWT.NONE);
-			comp2.setLayoutData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
+			comp2.setLayoutData = new GridData(GridData.FILL_VERTICAL);
 			comp2.setLayout = zeroMarginGridLayout(1, false);
 			{
 				auto grp = new Group(comp2, SWT.NONE);
@@ -1857,28 +1861,62 @@ private:
 				_openTabAtRightOfCurrentTab = createB(_prop.msgs.openTabAtRightOfCurrentTab);
 				_reconstruction = createB(_prop.msgs.reconstruction);
 				_openLastScenario = createB(_prop.msgs.openLastScenario);
-			}
-			{
-				auto grp = new Group(comp2, SWT.NONE);
-				grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				grp.setText = _prop.msgs.soundPlayType;
-				grp.setLayout = new GridLayout(1, false);
-				_soundPlayType = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
-				mod(_soundPlayType);
-				_soundPlayType.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				_soundPlayType.setVisibleItemCount = 20;
-				void addType(int type, string name) {
-					int i = _soundPlayType.getItemCount;
-					_soundPlayTypeTbl[type] = i;
-					_soundPlayTypeTbl2[i] = type;
-					_soundPlayType.add(name);
+
+				auto sep = new Label(grp, SWT.SEPARATOR | SWT.HORIZONTAL);
+				auto sepgd = new GridData(GridData.FILL_HORIZONTAL);
+				sepgd.horizontalSpan = 2;
+				sep.setLayoutData = sepgd;
+
+				Combo createC(string title, in int[] values, in string[] names, ref int[int] tblA, ref int[int] tblB) {
+					assert (values.length == names.length);
+					auto l = new Label(grp, SWT.NONE);
+					l.setText = title;
+					auto combo = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
+					mod(combo);
+					combo.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+					combo.setVisibleItemCount = 20;
+					foreach (i, val; values) {
+						tblA[val] = i;
+						tblB[i] = val;
+						combo.add(names[i]);
+					}
+					return combo;
 				}
-				addType(SOUND_TYPE_AUTO, _prop.msgs.soundPlayTypeDef);
-				addType(SOUND_TYPE_SDL, _prop.msgs.soundPlayTypeSDL);
 				version (Windows) {
-					addType(SOUND_TYPE_MCI, _prop.msgs.soundPlayTypeMCI);
+					const int[] soundPlayTypeVals = [
+						SOUND_TYPE_AUTO,
+						SOUND_TYPE_SDL,
+						SOUND_TYPE_MCI,
+						SOUND_TYPE_APP
+					];
+					string[] soundPlayTypeNames = [
+						_prop.msgs.soundPlayTypeDef,
+						_prop.msgs.soundPlayTypeSDL,
+						_prop.msgs.soundPlayTypeMCI,
+						_prop.msgs.soundPlayTypeApp
+					];
+				} else {
+					const int[] soundPlayTypeVals = [
+						SOUND_TYPE_AUTO,
+						SOUND_TYPE_SDL,
+						SOUND_TYPE_APP
+					];
+					string[] soundPlayTypeNames = [
+						_prop.msgs.soundPlayTypeDef,
+						_prop.msgs.soundPlayTypeSDL,
+						_prop.msgs.soundPlayTypeApp
+					];
 				}
-				addType(SOUND_TYPE_APP, _prop.msgs.soundPlayTypeApp);
+				_soundPlayType = createC(_prop.msgs.soundPlayType, soundPlayTypeVals, soundPlayTypeNames, _soundPlayTypeTbl, _soundPlayTypeTbl2);
+				_dialogStatus = createC(_prop.msgs.dialogStatus, [
+					cast(int) DialogStatus.Top,
+					cast(int) DialogStatus.Under,
+					cast(int) DialogStatus.UnderWithCoupon,
+				], [
+					_prop.msgs.dialogStatusName(DialogStatus.Top),
+					_prop.msgs.dialogStatusName(DialogStatus.Under),
+					_prop.msgs.dialogStatusName(DialogStatus.UnderWithCoupon),
+				], _dialogStatusTbl, _dialogStatusTbl2);
 			}
 		}
 		{
@@ -2034,6 +2072,12 @@ protected:
 		} else {
 			_soundPlayType.select = 0;
 		}
+		auto dsp = _prop.var.etc.dialogStatus in _dialogStatusTbl;
+		if (dsp) {
+			_dialogStatus.select = *dsp;
+		} else {
+			_dialogStatus.select = DialogStatus.Top;
+		}
 		_savedSound.setText = _prop.var.etc.savedSound;
 
 		_bgStgs.length = _prop.var.etc.bgImageSettings.length;
@@ -2154,6 +2198,7 @@ protected:
 		_prop.var.etc.contentsFloat = _contentsFloat.getSelection;
 		_prop.var.etc.contentsAutoHide = _contentsAutoHide.getSelection;
 		_prop.var.etc.soundPlayType = _soundPlayTypeTbl2[_soundPlayType.getSelectionIndex];
+		_prop.var.etc.dialogStatus = cast(DialogStatus) _dialogStatusTbl2[_dialogStatus.getSelectionIndex];
 		_prop.var.etc.savedSound = _savedSound.getText;
 		if (_prop.var.etc.historyMax < _prop.var.etc.openHistories.length) {
 			_prop.var.etc.openHistories
@@ -2199,6 +2244,7 @@ struct OldSettings {
 	int oldUndoMaxMainView;
 	int oldUndoMaxEvent;
 	int oldUndoMaxEtc;
+	DialogStatus oldDialogStatus;
 	this (Props prop) {
 		this.prop = prop;
 		this.oldEnginePath = prop.var.etc.enginePath;
@@ -2215,6 +2261,7 @@ struct OldSettings {
 		this.oldUndoMaxMainView = prop.var.etc.undoMaxMainView;
 		this.oldUndoMaxEvent = prop.var.etc.undoMaxEvent;
 		this.oldUndoMaxEtc = prop.var.etc.undoMaxEtc;
+		this.oldDialogStatus = prop.var.etc.dialogStatus;
 	}
 	void raiseEvent(Commons comm) {
 		bool refSkin = false;
@@ -2269,6 +2316,9 @@ struct OldSettings {
 				|| oldUndoMaxEvent != prop.var.etc.undoMaxEvent
 				|| oldUndoMaxEtc != prop.var.etc.undoMaxEtc) {
 			comm.refUndoMax.call();
+		}
+		if (oldDialogStatus != prop.var.etc.dialogStatus) {
+			comm.refContentText.call();
 		}
 	}
 }

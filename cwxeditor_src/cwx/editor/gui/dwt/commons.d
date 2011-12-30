@@ -228,10 +228,6 @@ class Commons {
 	Dlg!(FlagDir[]) delFlagDir;
 	Dlg!(Flag[], Step[]) refFlagAndStep;
 	Dlg!(Flag[], Step[]) delFlagAndStep;
-	Dlg!(Flag) refFlag;
-	Dlg!(Step) refStep;
-	Dlg!(Flag) delFlag;
-	Dlg!(Step) delStep;
 	Dlg!() replText;
 	Dlg!() replID;
 	Dlg!() refIgnorePaths;
@@ -261,6 +257,8 @@ class Commons {
 
 	Dlg!(Content) refContent;
 	Dlg!(Content) delContent;
+
+	Dlg!() refContentText;
 
 	Dlg!(Importable) closeAdds;
 

@@ -6,6 +6,7 @@ import cwx.xml;
 import cwx.skin;
 import cwx.background;
 import cwx.structs;
+import cwx.msgs;
 
 import cwx.editor.gui.dwt.properties;
 
@@ -324,6 +325,7 @@ class FlexEtcProps : Properties {
 	mixin Property!("doubleIO", bool, true);
 	mixin Property!("reconstruction", bool, true);
 	mixin Property!("openLastScenario", bool, true);
+	mixin Property!("imageCache", bool, true);
 
 	mixin Property!("savedSound", string, "");
 
@@ -338,6 +340,8 @@ class FlexEtcProps : Properties {
 	mixin Property!("undoMaxEvent", int, 1024);
 	mixin Property!("undoMaxEtc", int, 1024);
 	mixin Property!("undoMaxLimit", int, short.max);
+
+	mixin Property!("dialogStatus", DialogStatus, DialogStatus.Top);
 
 	mixin Property!("showDialogPreview", bool, false);
 	mixin Property!("showMessagePreview", bool, false);

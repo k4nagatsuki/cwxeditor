@@ -966,7 +966,7 @@ private:
 					} else {
 						img.newY = img.newY - point;
 					}
-				});
+				}, false);
 			} break;
 			case SWT.ARROW_RIGHT: {
 				redrawProcMove((FlexImage img) {
@@ -975,7 +975,7 @@ private:
 					} else {
 						img.newX = img.newX + point;
 					}
-				});
+				}, false);
 			} break;
 			case SWT.ARROW_DOWN: {
 				redrawProcMove((FlexImage img) {
@@ -984,7 +984,7 @@ private:
 					} else {
 						img.newY = img.newY + point;
 					}
-				});
+				}, false);
 			} break;
 			case SWT.ARROW_LEFT: {
 				redrawProcMove((FlexImage img) {
@@ -993,17 +993,17 @@ private:
 					} else {
 						img.newX = img.newX - point;
 					}
-				});
+				}, false);
 			} break;
 			case SWT.ESC: {
-				redrawProcMove((FlexImage img) {img.reset;});
+				redrawProcMove((FlexImage img) {img.reset;}, false);
 			} break;
 			case SWT.CR: {
-				redrawProc((FlexImage img) {img.resize;});
+				redrawProc((FlexImage img) {img.resize;}, true);
 			} break;
 			default: {
 				if (ke.character == ' ') {
-					redrawProc((FlexImage img) {img.resize;});
+					redrawProc((FlexImage img) {img.resize;}, true);
 				}
 			} break;
 			}
@@ -1144,11 +1144,19 @@ private:
 				}
 			} else if (me.button == 3) {
 				dragTgl = Toggle.NONE;
-				redrawProc((FlexImage img) {img.reset;});
+				redrawProc((FlexImage img) {img.reset;}, false);
 			}
 		}
 	}
-	void redrawProcMove(void delegate(FlexImage) proc) {
+	void redrawProcBefore() {
+		foreach (img; dragImgs.keys) {
+			if (img.x != img.newX || img.y != img.newY || img.width != img.newWidth || img.height != img.newHeight) {
+				changingImages();
+			}
+		}
+	}
+	void redrawProcMove(void delegate(FlexImage) proc, bool resize) {
+		if (resize) redrawProcBefore();
 		foreach (img; dragImgs.keys) {
 			auto oldArea = img.drawNewArea;
 			proc(img);
@@ -1157,7 +1165,8 @@ private:
 			redraw(newArea.x, newArea.y, newArea.width, newArea.height, false);
 		}
 	}
-	void redrawProc(void delegate(FlexImage) proc) {
+	void redrawProc(void delegate(FlexImage) proc, bool resize) {
+		if (resize) redrawProcBefore();
 		foreach (img; dragImgs.keys) {
 			auto oldArea = img.drawArea;
 			proc(img);
@@ -1169,7 +1178,7 @@ private:
 	class FocusLost : Listener {
 		override void handleEvent(Event me) {
 			dragTgl = Toggle.NONE;
-			redrawProc((FlexImage img) {img.resize;});
+			redrawProc((FlexImage img) {img.resize;}, true);
 		}
 	}
 	class MouseUp : Listener {

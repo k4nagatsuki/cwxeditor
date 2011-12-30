@@ -2396,14 +2396,17 @@ fi`;
 		default: assert (0);
 		}
 	}
-	private alias string Symbol;
+	private struct Symbol {
+		string symbol;
+		alias symbol this;
+	}
 	private static class VarTable {
 		bool useVar = true;
 		bool useCenter = true;
 		private Symbol idVar(string Name, A)(in A a, ulong id, ref string[ulong] tbl, ref ulong[string] tblR) {
-			if (!useVar || !a) return cast(Symbol) to!(string)(id);
+			if (!useVar || !a) return Symbol(to!(string)(id));
 			auto p = a.id in tbl;
-			if (p) return cast(Symbol) *p;
+			if (p) return Symbol(*p);
 			string base = "$" ~ Name ~ "_" ~ validVarName(a.name);
 			string name = base;
 			size_t i = 1;
@@ -2413,7 +2416,7 @@ fi`;
 			}
 			tbl[a.id] = name;
 			tblR[name] = a.id;
-			return cast(Symbol) name;
+			return Symbol(name);
 		}
 		private string[ulong] _areas;
 		private ulong[string] _areasR;
@@ -2579,7 +2582,7 @@ fi`;
 				if (c.cardNumber != 0) {
 					attrs ~= toAttr(c.cardNumber, command, indentValue, vars);
 				} else {
-					attrs ~= toAttr(cast(Symbol) "all", command, indentValue, vars);
+					attrs ~= toAttr(Symbol("all"), command, indentValue, vars);
 				}
 			}
 			if (detail.use(CArg.MOTIONS)) {
@@ -2634,7 +2637,7 @@ fi`;
 				if (c.bgmPath.length) {
 					attrs ~= toAttr(encodePath(c.bgmPath), command, indentValue, vars);
 				} else {
-					attrs ~= toAttr(cast(Symbol) "stop", command, indentValue, vars);
+					attrs ~= toAttr(Symbol("stop"), command, indentValue, vars);
 				}
 			}
 			if (detail.use(CArg.SOUND_PATH)) {

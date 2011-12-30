@@ -271,7 +271,7 @@ struct CDetail {
 /// スタートのID。
 alias string StartId;
 /// 文字列をスタートIDに変換。
-StartId toStartId(string start) {return cast(StartId) start;}
+StartId toStartId(string start) {return start;}
 /// スタートコンテントの使用者。
 alias User!(StartId) IStartUser;
 /// スタートコンテントの使用回数カウンタ。

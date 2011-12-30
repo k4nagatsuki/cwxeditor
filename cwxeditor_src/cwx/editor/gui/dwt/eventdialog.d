@@ -1229,21 +1229,26 @@ private:
 	}
 	class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
-			static if (is(F : Flag)) {
-				_comm.refFlag.remove(&refFS);
-				_comm.delFlag.remove(&delFS);
-			} else static if (is(F : Step)) {
-				_comm.refStep.remove(&refFS);
-				_comm.delStep.remove(&delFS);
-			} else static assert (0);
+			_comm.refFlagAndStep.remove(&refFS);
+			_comm.delFlagAndStep.remove(&delFS);
 		}
 	}
-	void refFS(F f) {
+	void refFS(Flag[] f, Step[] s) {
+		static if (is(F : Flag)) {
+			if (!f.length) return;
+		} else {
+			if (!s.length) return;
+		}
 		int sel = _values.getSelectionIndex;
 		refreshValues(false);
 		_values.select = sel;
 	}
-	void delFS(F f) {
+	void delFS(Flag[] f, Step[] s) {
+		static if (is(F : Flag)) {
+			if (!f.length) return;
+		} else {
+			if (!s.length) return;
+		}
 		static if (is(F : Flag)) {
 			if (!_root.allFlags.length) {
 				forceCancel();
@@ -1332,13 +1337,8 @@ protected:
 			_values.setLayoutData = gd;
 			_values.setEnabled = SelValue;
 		}
-		static if (is(F : Flag)) {
-			_comm.refFlag.add(&refFS);
-			_comm.delFlag.add(&delFS);
-		} else static if (is(F : Step)) {
-			_comm.refStep.add(&refFS);
-			_comm.delStep.add(&delFS);
-		} else static assert (0);
+		_comm.refFlagAndStep.add(&refFS);
+		_comm.delFlagAndStep.add(&delFS);
 		_flags.addDisposeListener(new Dispose);
 
 		ignoreMod = true;

@@ -123,7 +123,20 @@ private:
 	Combo _se1;
 	Combo _se2;
 	Combo[] _keyCodes;
-
+	Text _scenario;
+	TextMenuModify _scenarioTM;
+	Text _author;
+	TextMenuModify _authorTM;
+	class ResetSource : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			ignoreMod = true;
+			scope (exit) ignoreMod = false;
+			_scenario.setText = _summ.scenarioName;
+			_author.setText = _summ.author;
+			_scenarioTM.reset();
+			_authorTM.reset();
+		}
+	}
 	void refreshWarning() {
 		string[] ws;
 		if (_name.over) {
@@ -308,8 +321,8 @@ private:
 		{
 			auto grp = new Group(comp, SWT.NONE);
 			auto gd = new GridData(GridData.FILL_BOTH);
-			grp.setLayoutData = gd;
 			gd.horizontalSpan = 2;
+			grp.setLayoutData = gd;
 			grp.setLayout = new CenterLayout(SWT.HORIZONTAL);
 			grp.setText = _prop.msgs.desc;
 			_desc = new FixedWidthText(dwtData(_prop.looks.cardDescFont(_summ.legacy)), _prop.looks.cardDescLen, grp, SWT.BORDER);
@@ -317,6 +330,33 @@ private:
 			createTextMenu!Text(_comm, _prop, _desc.widget, &catchMod);
 			_desc.widget.setLayoutData = _desc.computeTextBaseSize(_prop.looks.cardDescLine);
 		}
+		{
+			auto grp = new Group(comp, SWT.NONE);
+			auto gd = new GridData(GridData.FILL_HORIZONTAL);
+			gd.horizontalSpan = 2;
+			grp.setLayoutData = gd;
+			grp.setLayout = new GridLayout(2, false);
+			grp.setText = _prop.msgs.source;
+			Text createLine(string title, out TextMenuModify tm) {
+				auto l = new Label(grp, SWT.NONE);
+				l.setText = title;
+				auto text = new Text(grp, SWT.BORDER);
+				mod(text);
+				tm = createTextMenu!Text(_comm, _prop, text, &catchMod);
+				text.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+				return text;
+			}
+			_scenario = createLine(_prop.msgs.sourceScenario, _scenarioTM);
+			_author = createLine(_prop.msgs.sourceAuthor, _authorTM);
+
+			auto resetSource = new Button(grp, SWT.PUSH);
+			auto rgd = new GridData(GridData.HORIZONTAL_ALIGN_END);
+			rgd.horizontalSpan = 2;
+			resetSource.setLayoutData = rgd;
+			resetSource.setText = _prop.msgs.resetSource;
+			resetSource.addSelectionListener(new ResetSource);
+		}
+
 		auto tab = new CTabItem(tabf, SWT.NONE);
 		static if (is (C == SkillCard)) {
 			tab.setText = _prop.msgs.levelAndDesc;
@@ -715,6 +755,8 @@ protected:
 		if (_card) {
 			_imgPath.image = _card.path;
 			_desc.setText = _card.desc;
+			_scenario.setText = _card.scenario;
+			_author.setText = _card.author;
 			_name.setText = _card.name;
 			_needSpell.setSelection = _card.spell;
 			_effTyp[_card.effectType].setSelection = true;
@@ -764,6 +806,8 @@ protected:
 			refreshWarning();
 		} else {
 			_imgPath.image = "";
+			_scenario.setText = _summ.scenarioName;
+			_author.setText = _summ.author;
 			_effTyp[EffectType.PHYSIC].setSelection = true;
 			_res[Resist.AVOID].setSelection = true;
 			_phy[Physical.DEX].setSelection = true;
@@ -852,8 +896,8 @@ protected:
 			if (c.getText.length > 0) last = i + 1;
 		}
 		keyCodes.length = last;
-		_card.scenario = _summ.scenarioName;
-		_card.author = _summ.author;
+		_card.scenario = _scenario.getText;
+		_card.author = _author.getText;
 		_card.keyCodes = keyCodes;
 		return true;
 	}

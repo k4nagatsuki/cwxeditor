@@ -651,7 +651,7 @@ private:
 	class DListener : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
 			_quit = true;
-			_prop.var.etc.lastScenario = summary ? summary.scenarioPath : "";
+			_prop.var.etc.lastScenario = summary ? createHistString(summary) : "";
 			_comm.save.remove(&savec);
 			_comm.refScenarioName.remove(&refreshTitle);
 			_comm.refScenarioPath.remove(&refreshTitle);

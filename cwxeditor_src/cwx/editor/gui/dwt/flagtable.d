@@ -103,13 +103,16 @@ private:
 	}
 	class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
-			_comm.delStep.remove(&delStep);
+			_comm.delFlagAndStep.remove(&delStep);
 			_comm.refScenario.remove(&refScenario);
 		}
 	}
-	void delStep(Step step) {
-		if (step is _step) {
-			forceCancel();
+	void delStep(Flag[] flag, Step[] step) {
+		foreach (s; step) {
+			if (s is _step) {
+				forceCancel();
+				return;
+			}
 		}
 	}
 	void refScenario(Summary summ) {
@@ -203,7 +206,7 @@ protected:
 			}
 			comp.setLayout = new GridLayout(gdc, false);
 		}
-		_comm.delStep.add(&delStep);
+		_comm.delFlagAndStep.add(&delStep);
 		_comm.refScenario.add(&refScenario);
 		getShell.addDisposeListener(new Dispose);
 
@@ -248,7 +251,6 @@ protected:
 			_step = new Step(this.name, vals, stepInit.getSelectionIndex);
 			dir.add(_step);
 		}
-		_comm.refStep.call(_step);
 		_comm.refFlagAndStep.call([], [_step]);
 		return true;
 	}
@@ -288,13 +290,16 @@ private:
 	}
 	class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
-			_comm.delFlag.remove(&delFlag);
+			_comm.delFlagAndStep.remove(&delFlag);
 			_comm.refScenario.remove(&refScenario);
 		}
 	}
-	void delFlag(Flag flag) {
-		if (flag is _flag) {
-			forceCancel();
+	void delFlag(Flag[] flag, Step[] step) {
+		foreach (f; flag) {
+			if (f is _flag) {
+				forceCancel();
+				return;
+			}
 		}
 	}
 	void refScenario(Summary summ) {
@@ -388,7 +393,7 @@ protected:
 			flagFalse.addSelectionListener = fmod;
 			setGridMinW(flagFalse, prop.var.etc.flagValueWidth, GridData.FILL_HORIZONTAL);
 		}
-		_comm.delFlag.add(&delFlag);
+		_comm.delFlagAndStep.add(&delFlag);
 		_comm.refScenario.add(&refScenario);
 		getShell.addDisposeListener(new Dispose);
 
@@ -427,7 +432,6 @@ protected:
 				flagInit.getSelectionIndex == 0);
 			dir.add(_flag);
 		}
-		_comm.refFlag.call(_flag);
 		_comm.refFlagAndStep.call([_flag], []);
 		return true;
 	}
@@ -527,7 +531,7 @@ package class UndoEdit : FTVUndo {
 				comm.summary.useCounter.change(toFlagId(oPath), toFlagId(nPath));
 			}
 			if (refVal) {
-				comm.refFlag.call(f);
+				comm.refFlagAndStep.call([f], []);
 			}
 		}
 		auto s = cast(Step) p;
@@ -543,7 +547,7 @@ package class UndoEdit : FTVUndo {
 				comm.summary.useCounter.change(toStepId(oPath), toStepId(nPath));
 			}
 			if (refVal) {
-				comm.refStep.call(s);
+				comm.refFlagAndStep.call([], [s]);
 			}
 		}
 		if (v && v.flags && !v.flags.isDisposed) {
@@ -1031,11 +1035,9 @@ private:
 			if (e.detail == DND.DROP_MOVE) {
 				foreach (flag; _dragFlags) {
 					flag.parent.remove(flag);
-					_comm.delFlag.call(flag);
 				}
 				foreach (step; _dragSteps) {
 					step.parent.remove(step);
-					_comm.delStep.call(step);
 				}
 				refresh;
 				_comm.delFlagAndStep.call(_dragFlags, _dragSteps);
@@ -1409,13 +1411,11 @@ public:
 				if (flag) {
 					fs ~= flag;
 					_dir.remove(flag);
-					_comm.delFlag.call(flag);
 				}
 				auto step = cast(Step) data;
 				if (step) {
 					ss ~= step;
 					_dir.remove(step);
-					_comm.delStep.call(step);
 				}
 			}
 			storeDelete(sels, fs, ss);

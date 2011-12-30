@@ -1057,7 +1057,7 @@ private:
 	void refreshStatusLine() {
 		auto itm = selection;
 		if (itm) {
-			_statusLine = _prop.msgs.contentText(_comm.skin, cast(Content) itm.getData, _summ);
+			_statusLine = _prop.msgs.contentText(_comm.skin, cast(Content) itm.getData, _summ, _prop.var.etc.dialogStatus);
 		} else {
 			_statusLine = "";
 		}
@@ -1376,6 +1376,7 @@ private:
 			_comm.replText.remove(&__refreshCard);
 			_comm.replText.remove(&__refreshEventText);
 			_comm.replID.remove(&__refreshCard);
+			_comm.refContentText.remove(&refreshStatusLine);
 			if (_toolWin) {
 				saveToolWinPos;
 				_toolWin.dispose;
@@ -1668,6 +1669,7 @@ public:
 		_comm.replText.add(&__refreshCard);
 		_comm.replText.add(&__refreshEventText);
 		_comm.replID.add(&__refreshCard);
+		_comm.refContentText.add(&refreshStatusLine);
 
 		auto dt = new DropTarget(_tree, DND.DROP_DEFAULT | DND.DROP_MOVE);
 		dt.setTransfer = [XMLBytesTransfer.getInstance];

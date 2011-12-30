@@ -467,6 +467,7 @@ public:
 		itm2.setData = dir2;
 		itm2.setText = dir2.name;
 		refresh(dir2.path);
+		_comm.refFlagAndStep.call(dir1.allFlags ~ dir2.allFlags, dir1.allSteps ~ dir2.allSteps);
 	}
 	void up() {
 		udImpl(-1);

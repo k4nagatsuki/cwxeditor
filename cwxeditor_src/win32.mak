@@ -165,6 +165,7 @@ OBJ = objs\cwxeditor.obj \
 	objs\cwx\editor\gui\dwt\variables.obj \
 	objs\cwx\editor\gui\dwt\image.obj \
 	objs\cwx\editor\gui\dwt\cardpane.obj \
+	d2std\xml.obj \
 
 DMD = dmd
 RCC = rcc

@@ -1090,6 +1090,7 @@ public:
 		_comm.delBeast.add(&delBeast);
 		_comm.delInfo.add(&delInfo);
 		_comm.refSearchHistories.add(&refSearchHistories);
+		_comm.refContentText.add(&refContentText);
 
 		_comm.refScenario.add(&refreshScenario);
 		_win.addDisposeListener(new DL);
@@ -1178,6 +1179,7 @@ public:
 			_comm.delBeast.remove(&delBeast);
 			_comm.delInfo.remove(&delInfo);
 			_comm.refSearchHistories.remove(&refSearchHistories);
+			_comm.refContentText.remove(&refContentText);
 		}
 	}
 	private void refreshScenario(Summary summ) {
@@ -1924,7 +1926,9 @@ public:
 					return _prop.images.se;
 				}
 			}
-		} catch {}
+		} catch (Exception e) {
+			debugln(e);
+		}
 		return _prop.images.unknown;
 	}
 	private void addResult(string path) {
@@ -1932,6 +1936,18 @@ public:
 		itm.setImage = fimage(std.path.buildPath(_summ.scenarioPath, path));
 		itm.setText = encodePath(path);
 		itm.setData = new PathString(path);
+	}
+	private void refContentText() {
+		foreach (itm; _result.getItems) {
+			auto c = cast(Content) itm.getData;
+			if (c) {
+				string text;
+				Image img;
+				getPathParams(c, text, img);
+				itm.setText = text;
+				itm.setImage = img;
+			}
+		}
 	}
 	private void getPathParams(CWXPath path, out string text, out Image img) {
 		img = null;
@@ -1989,7 +2005,7 @@ public:
 		auto con = cast(Content) path;
 		if (con) {
 			img = _prop.images.content(con.type);
-			text = _prop.msgs.contentText(_comm.skin, con, _summ);
+			text = _prop.msgs.contentText(_comm.skin, con, _summ, _prop.var.etc.dialogStatus);
 		}
 		auto tex = cast(TextHolder) path;
 		if (tex) {
@@ -2000,7 +2016,7 @@ public:
 			}
 			if (c) {
 				img = _prop.images.content(c.type);
-				text = _prop.msgs.contentText(_comm.skin, c, _summ);
+				text = _prop.msgs.contentText(_comm.skin, c, _summ, _prop.var.etc.dialogStatus);
 			}
 		}
 		auto sdlg = cast(SDialog) path;
