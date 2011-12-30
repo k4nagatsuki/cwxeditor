@@ -118,6 +118,7 @@ public:
 	const string loading(string fname) {return fname ~ "の読込みを開始";}
 	const string loaded(string sName) {return sName ~ "の読込みを完了";}
 	const string loaded(size_t count) {return format("%d件の読込みを完了", count);}
+	const string reconstructionStatus(size_t count, size_t max) {return .format("編集状態を復元中 (%d/%d)", count, max);}
 	const string cwxPathOpenError(string path) {return "パス [" ~ path ~ "] を開けません。";}
 	const string filePathOpenError(string path) {return "パス [" ~ path ~ "] を開けません。";}
 

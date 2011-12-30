@@ -368,8 +368,6 @@ private:
 		return cwx.utils.ncmp(a, b);
 	}
 	void openScenario(Summary summ) {
-		_win.setRedraw = false;
-		scope (exit) _win.setRedraw = true;
 		assert (summ);
 		_lastBackup = Clock.currTime;
 		_dirWin.stopTrace;
@@ -419,8 +417,13 @@ private:
 			fullHist = findFullHist(createHistString(summary));
 		}
 		if (_prop.var.etc.reconstruction) {
-			foreach (cwxPath; fullHistToCWXPaths(fullHist)) {
-				openCWXPath(cwxPath, false);
+			auto paths = fullHistToCWXPaths(fullHist);
+			if (paths.length) {
+				statusLine = _prop.msgs.reconstructionStatus(0, paths.length);
+				foreach (i, cwxPath; paths) {
+					openCWXPath(cwxPath, false);
+					statusLine = _prop.msgs.reconstructionStatus(i + 1, paths.length);
+				}
 			}
 		}
 		addHistory();
@@ -2282,6 +2285,8 @@ public:
 
 	bool openCWXPath(string path, bool shellActivate) {
 		if (!summary) return false;
+		_win.setRedraw = false;
+		scope (exit) _win.setRedraw = true;
 		bool open() {
 			path = cwx.utils.toLower(path);
 			if (cpempty(path)) {
