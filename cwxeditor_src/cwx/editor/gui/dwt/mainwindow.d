@@ -487,7 +487,9 @@ private:
 	bool save(Shell shell) {
 		if (summary) {
 			_dirWin.pauseTrace;
-			scope (exit) _dirWin.resumeTrace;
+			scope (exit) {
+				_dirWin.resumeTrace;
+			}
 			if (!summary.isSaved) {
 				// いまだ保存されていない場合は名前をつけて保存
 				return __saveScenarioA(shell);

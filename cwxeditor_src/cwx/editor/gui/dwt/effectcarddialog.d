@@ -58,6 +58,8 @@ import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.ModifyEvent;
 import java.lang.all;
 
 public:
@@ -137,6 +139,16 @@ private:
 			_authorTM.reset();
 		}
 	}
+	class ModSource : ModifyListener {
+		override void modifyText(ModifyEvent e) {
+			refreshWarning();
+		}
+	}
+	void refEventTree(EventTree et) {
+		if (et.owner is _card || et.owner is null) {
+			refreshWarning();
+		}
+	}
 	void refreshWarning() {
 		string[] ws;
 		if (_name.over) {
@@ -149,6 +161,11 @@ private:
 			if (m.type == MType.VANISH_TARGET && m.element != cast(int) Element.MIRACLE) {
 				ws ~= _prop.msgs.warningVanishCast;
 				break;
+			}
+		}
+		if (_card && _card.trees.length) {
+			if (_scenario.getText != _summ.scenarioName || _author.getText != _summ.author) {
+				ws ~= _prop.msgs.diffSource;
 			}
 		}
 		warning = ws;
@@ -344,6 +361,7 @@ private:
 				mod(text);
 				tm = createTextMenu!Text(_comm, _prop, text, &catchMod);
 				text.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+				text.addModifyListener(new ModSource);
 				return text;
 			}
 			_scenario = createLine(_prop.msgs.sourceScenario, _scenarioTM);
@@ -657,6 +675,8 @@ private:
 			_comm.refSkin.remove(&refSkin);
 			_comm.refScenario.remove(&refScenario);
 			_comm.refStandardKeyCodes.remove(&refStandardKeyCodes);
+			_comm.refEventTree.remove(&refEventTree);
+			_comm.delEventTree.remove(&refEventTree);
 		}
 	}
 	void setKeyCodesEnabled() {
@@ -730,6 +750,8 @@ protected:
 		_comm.refSkin.add(&refSkin);
 		_comm.refScenario.add(&refScenario);
 		_comm.refStandardKeyCodes.add(&refStandardKeyCodes);
+		_comm.refEventTree.add(&refEventTree);
+		_comm.delEventTree.add(&refEventTree);
 		area.addDisposeListener(new Dispose);
 
 		// Windows Vistaだとタブの横幅が凄いことになったので必要最低限にする。

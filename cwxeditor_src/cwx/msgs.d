@@ -2284,6 +2284,7 @@ public:
 	const string sourceScenario() {return "シナリオ名";}
 	const string sourceAuthor() {return "シナリオ作者";}
 	const string resetSource() {return "現在のシナリオを出典に設定";}
+	const string diffSource() {return "出典のシナリオ名と作者名が現在のシナリオと異なるため、使用時イベントは実行されません。";}
 
 	/// ファイルビュー。
 	const string dirTabName(in Summary summ) {

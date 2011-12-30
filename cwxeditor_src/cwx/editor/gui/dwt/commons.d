@@ -255,9 +255,10 @@ class Commons {
 	Dlg!(string, int[], int) upBgImage;
 	Dlg!(string, int[], int) downBgImage;
 
+	Dlg!(EventTree) refEventTree;
+	Dlg!(EventTree) delEventTree;
 	Dlg!(Content) refContent;
 	Dlg!(Content) delContent;
-
 	Dlg!() refContentText;
 
 	Dlg!(Importable) closeAdds;
@@ -853,8 +854,15 @@ class Commons {
 			data.tlp.statusLine = status;
 		}
 		if (refMain && _main.dock) {
-			_main.statusLine = status;
+			auto fc = Display.getCurrent.getFocusControl;
+			auto data2 = tlp(fc);
+			if (!data2 || data2 is data) {
+				_main.statusLine = status;
+			}
 		}
+	}
+	string statusLine() {
+		return _main.statusLine;
 	}
 
 	bool openCWXPath(string path, bool shellActivate) {

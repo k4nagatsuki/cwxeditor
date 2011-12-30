@@ -225,6 +225,7 @@ private:
 					v.refreshFires(itm);
 				}
 			}
+			comm.refEventTree.call(tree);
 		}
 		override void undo() {impl();}
 		override void redo() {impl();}
@@ -264,6 +265,7 @@ private:
 				if (v._selItm is itm) v._selItm = null;
 				itm.dispose;
 			}
+			comm.delEventTree.call(tree);
 			comm.refUseCount.call;
 		}
 		override void redo() {
@@ -344,7 +346,7 @@ private:
 			if (v) {
 				v.up(v._cards.getItem(_ownerIndex).getItem(max(_swapIndex1, _swapIndex2)), false);
 			} else {
-				staticUDImpl(etos(area)[_ownerIndex], _swapIndex1, _swapIndex2);
+				staticUDImpl(comm, etos(area)[_ownerIndex], _swapIndex1, _swapIndex2);
 			}
 		}
 		override void undo() {impl();}
@@ -518,6 +520,7 @@ private:
 	}
 	private static void appendTreeImpl(Commons comm, EventTreeOwner eto, EventTree tree, int index) {
 		eto.insert(index, tree);
+		comm.refEventTree.call(tree);
 		comm.refUseCount.call;
 	}
 	void appendTree(TreeItem parItm, EventTree tree, int index, Object defFire, bool store) {
@@ -567,6 +570,7 @@ private:
 			store(tree);
 			tree.name = text;
 			_etree.refreshTreeName;
+			_comm.refEventTree.call(tree);
 			return;
 		}
 		static if (UseFire) {
@@ -578,6 +582,7 @@ private:
 			tree.setKeyCode(p.indexOf(itm) - keyCodesIndex(p), text);
 			itm.setImage = keyCodeImage(text);
 			obj.array = text.dup;
+			_comm.refEventTree.call(tree);
 		}
 	}
 	static if (UseFire) {
@@ -720,9 +725,9 @@ private:
 			auto treeItm = selectionEventTree;
 			if (!treeItm) return;
 			auto tree = cast(EventTree) treeItm.getData;
-			store(tree);
 			auto fire = addingFire(treeItm.getParentItem.getData);
 			if (!fire) return;
+			store(tree);
 			addFire(treeItm, fire);
 			refreshFires(treeItm, fire);
 		}
@@ -740,6 +745,7 @@ private:
 				assert (cast(RoundObj) fire);
 				tree.addRound((cast(RoundObj) fire).intValue);
 			}
+			_comm.refEventTree.call(tree);
 		}
 		static __gshared Object ENTER;
 		static __gshared Object ESCAPE;
@@ -805,16 +811,24 @@ private:
 			}
 			foreach (itm2; itm.getItems) {
 				auto et = cast(EventTree) itm2.getData;
-				itm2.setText = et.name;
+				bool chg = false;
+				if (itm2.getText != et.name) {
+					itm2.setText = et.name;
+					chg = true;
+				}
 				static if (UseFire && (is (A == Area) || is (A == Battle))) {
 					int startKC = -1;
 					foreach (i, itm3; itm2.getItems) {
 						auto kc = cast(KeyCodeObj) itm3.getData;
 						if (kc && startKC <= 0) startKC = i;
-						if (startKC >= 0) {
+						if (startKC >= 0 && itm3.getText != et.keyCodes[i - startKC]) {
 							itm3.setText = et.keyCodes[i - startKC];
+							chg = true;
 						}
 					}
+				}
+				if (chg) {
+					_comm.refEventTree.call(et);
 				}
 			}
 		}
@@ -833,6 +847,7 @@ private:
 				et.addRounds(dlg.rounds);
 				refreshFires(etItm);
 				etItm.setExpanded = true;
+				_comm.refEventTree.call(et);
 			}
 		}
 	}
@@ -1190,10 +1205,13 @@ public:
 					scope (exit) _cards.setRedraw = true;
 					if (store) this.store(_cards.indexOf(parent), from, to);
 					// イベントツリー
-					(cast(EventTreeOwner) parent.getData).swapEventTree(from, to);
+					auto eto = (cast(EventTreeOwner) parent.getData);
+					eto.swapEventTree(from, to);
 					treeSwap(itm);
 					_selItm = selection;
 					_cards.showSelection;
+					_comm.refEventTree.call(eto.trees[from]);
+					_comm.refEventTree.call(eto.trees[to]);
 				} else {
 					static if (UseFire) {
 						if (cast(KeyCodeObj) data) {
@@ -1210,14 +1228,17 @@ public:
 								treeSwap(itm);
 								_cards.showSelection;
 							}
+							_comm.refEventTree.call(tree);
 						}
 					}
 				}
 			}
 		}
 	}
-	private static void staticUDImpl(EventTreeOwner eto, int from, int to) {
+	private static void staticUDImpl(Commons comm, EventTreeOwner eto, int from, int to) {
 		eto.swapEventTree(from, to);
+		comm.refEventTree.call(eto.trees[from]);
+		comm.refEventTree.call(eto.trees[to]);
 	}
 	void up() {
 		initial;
@@ -1520,6 +1541,7 @@ public:
 							static if (UseFire) {
 								refreshFires(treeItm);
 							}
+							_comm.refEventTree.call(tree);
 						} else {
 							static if (UseFire) {
 								if (!(cast(EventTreeOwner) itm.getData)) {
@@ -1544,6 +1566,7 @@ public:
 											}
 										}
 									}
+									_comm.refEventTree.call(tree);
 								}
 							}
 						}
@@ -1572,6 +1595,7 @@ public:
 						_selItm = null;
 						_etree.refresh(null);
 					}
+					_comm.delEventTree.call(tree);
 				} else {
 					static if (UseFire) {
 						tree = cast(EventTree) par;
@@ -1589,6 +1613,7 @@ public:
 						} else {
 							assert (0);
 						}
+						_comm.refEventTree.call(tree);
 					}
 				}
 				itm.dispose;
