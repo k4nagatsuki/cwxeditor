@@ -1182,6 +1182,9 @@ public:
 		}
 		return to!(string)(name.length) ~ "件のシナリオの読込みに失敗";
 	}
+	const string scenarioNotFound(string fname) {
+		return fname ~ "は存在しないか、シナリオではありません。削除しますか？";
+	}
 
 	/// データウィンドウ
 	const string dataTabName(in Summary summ) {

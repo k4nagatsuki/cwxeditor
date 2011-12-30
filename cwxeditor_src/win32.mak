@@ -81,6 +81,7 @@ SRC = cwxeditor.d \
 	cwx\editor\gui\dwt\variables.d \
 	cwx\editor\gui\dwt\image.d \
 	cwx\editor\gui\dwt\cardpane.d \
+	cwx\editor\gui\dwt\loader.d \
 
 OBJ = objs\cwxeditor.obj \
 	objs\cwx\utils.obj \
@@ -165,6 +166,7 @@ OBJ = objs\cwxeditor.obj \
 	objs\cwx\editor\gui\dwt\variables.obj \
 	objs\cwx\editor\gui\dwt\image.obj \
 	objs\cwx\editor\gui\dwt\cardpane.obj \
+	objs\cwx\editor\gui\dwt\loader.obj \
 	d2std\xml.obj \
 
 DMD = dmd

@@ -82,6 +82,7 @@ SRC = cwxeditor.d \
 	cwx/editor/gui/dwt/variables.d \
 	cwx/editor/gui/dwt/image.d \
 	cwx/editor/gui/dwt/cardpane.d \
+	cwx/editor/gui/dwt/loader.d \
 
 OBJ = $(SRC:%.d=%.o)
 DMD = dmd

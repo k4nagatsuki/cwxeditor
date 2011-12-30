@@ -27,6 +27,7 @@ import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.sbshell;
 import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.cardpane;
+import cwx.editor.gui.dwt.loader;
 
 import std.algorithm;
 import std.array;

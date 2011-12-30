@@ -51,6 +51,7 @@ import cwx.editor.gui.dwt.flagspane;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.smalldialogs;
+import cwx.editor.gui.dwt.loader;
 
 import org.eclipse.swt.SWTException;
 import org.eclipse.swt.events.SelectionListener;
@@ -338,7 +339,7 @@ private:
 					}
 				} else {
 					if (!.exists(wsm)) wsm = old.scenarioPath;
-					loadScenarioFromFile!(Summary)(_prop, _comm.mainShell, &setStatusLine, expand, old, wsm, &openScenario);
+					loadScenarioFromFile!(Summary)(_prop, _comm.mainShell, &setStatusLine, expand, old, wsm, &openScenario, null);
 				}
 			} else if (expand) {
 				try {
@@ -351,7 +352,7 @@ private:
 				}
 			} else {
 				assert (old.zipName.length);
-				loadScenarioFromFile!(Summary)(_prop, _comm.mainShell, &setStatusLine, expand, old, old.zipName, &openScenario);
+				loadScenarioFromFile!(Summary)(_prop, _comm.mainShell, &setStatusLine, expand, old, old.zipName, &openScenario, null);
 			}
 		}
 	}
@@ -460,16 +461,16 @@ private:
 		auto old = summary;
 		loadScenario!(Summary)(_prop, _comm.mainShell, &setStatusLine,
 			_prop.var.etc.expandXMLs, old, _prop.msgs.dlgTitOpenScenario,
-			_openPaths, &openScenarioImpl);
+			_openPaths, &openScenarioImpl, null);
 	}
-	void openScenario(string fname) {
+	void openScenario(string fname, void delegate() failure = null) {
 		if (cfnmatch(cwx.utils.getExt(fname), "wsm") && !.exists(fname)) {
 			fname = dirName(fname);
 		}
 		decScenarioPath(fname, _openPaths);
 		auto old = summary;
 		loadScenarioFromFile!(Summary)(_prop, _comm.mainShell, &setStatusLine,
-			_prop.var.etc.expandXMLs, old, fname, &openScenarioImpl);
+			_prop.var.etc.expandXMLs, old, fname, &openScenarioImpl, failure);
 	}
 	void playSavedSound() {
 		string file = _prop.var.etc.savedSound;
@@ -797,6 +798,21 @@ private:
 		assert (fullHistToCWXPaths(r"C:\test\test1") == []);
 		assert (fullHistToCWXPaths(`"C:\test\test1" aaa&bbb`) == ["aaa", "bbb"]);
 	}
+	void delHist(string fullHist) {
+		auto hists = _prop.var.etc.openHistories.dup;
+		string hist = fullHistToHist(fullHist);
+		string[] hists2;
+		foreach (i, h; hists) {
+			if (!cfnmatch(fullHistToHist(h), hist)) {
+				hists2 ~= h;
+			}
+		}
+		_prop.var.etc.openHistories = hists2;
+		writeDock();
+		_prop.var.save(dock);
+		sendReloadProps();
+		_comm.refHistories.call();
+	}
 	void addHistory() {
 		string hist = createFullHistString();
 		if ("" == hist) return;
@@ -854,7 +870,20 @@ private:
 		}
 		private void run() {
 			if (qSave) {
-				openScenario(_hist);
+				openScenario(_hist, &delHist);
+			}
+		}
+		private void delHist() {
+			auto dlg = new MessageBox(_win, SWT.ICON_QUESTION | SWT.YES | SWT.NO);
+			string h = _hist;
+			string ext = cwx.utils.getExt(h);
+			if (cfnmatch(ext, "xml") || cfnmatch(ext, "wsm") || cfnmatch(ext, "wid")) {
+				h = dirName(h);
+			}
+			dlg.setMessage = _prop.msgs.scenarioNotFound(h);
+			dlg.setText = _prop.msgs.dlgTitQuestion;
+			if (SWT.YES == dlg.open) {
+				this.outer.delHist(_hist);
 			}
 		}
 		private static string cuthist(string hist, int cut) {
