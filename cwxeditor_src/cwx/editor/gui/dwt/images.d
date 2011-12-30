@@ -917,7 +917,7 @@ private:
 					} else {
 						img.newY = img.newY - 1;
 					}
-				});
+				}, false);
 			} break;
 			case SWT.ARROW_RIGHT: {
 				redrawProc((FlexImage img) {
@@ -926,7 +926,7 @@ private:
 					} else {
 						img.newX = img.newX + 1;
 					}
-				});
+				}, false);
 			} break;
 			case SWT.ARROW_DOWN: {
 				redrawProc((FlexImage img) {
@@ -935,7 +935,7 @@ private:
 					} else {
 						img.newY = img.newY + 1;
 					}
-				});
+				}, false);
 			} break;
 			case SWT.ARROW_LEFT: {
 				redrawProc((FlexImage img) {
@@ -944,13 +944,13 @@ private:
 					} else {
 						img.newX = img.newX - 1;
 					}
-				});
+				}, false);
 			} break;
 			case SWT.ESC: {
-				redrawProc((FlexImage img) {img.reset;});
+				redrawProc((FlexImage img) {img.reset;}, false);
 			} break;
 			case SWT.CR: {
-				redrawProc((FlexImage img) {img.resize;});
+				redrawProc((FlexImage img) {img.resize;}, true);
 			} break;
 			default: break;
 			}
@@ -1091,11 +1091,19 @@ private:
 				}
 			} else if (me.button == 3) {
 				dragTgl = Toggle.NONE;
-				redrawProc((FlexImage img) {img.reset;});
+				redrawProc((FlexImage img) {img.reset;}, false);
 			}
 		}
 	}
-	void redrawProc(void delegate(FlexImage) proc) {
+	void redrawProcBefore() {
+		foreach (img; dragImgs.keys) {
+			if (img.x != img.newX || img.y != img.newY || img.width != img.newWidth || img.height != img.newHeight) {
+				changingImages();
+			}
+		}
+	}
+	void redrawProc(void delegate(FlexImage) proc, bool resize) {
+		if (resize) redrawProcBefore();
 		foreach (img; dragImgs.keys) {
 			auto newArea = img.drawNewArea;
 			auto oldArea = img.drawArea;
@@ -1107,7 +1115,7 @@ private:
 	class FocusLost : Listener {
 		override void handleEvent(Event me) {
 			dragTgl = Toggle.NONE;
-			redrawProc((FlexImage img) {img.resize;});
+			redrawProc((FlexImage img) {img.resize;}, true);
 		}
 	}
 	class MouseUp : Listener {
