@@ -165,6 +165,14 @@ public:
 				: to!(string)(files.length) ~ "個の項目をごみ箱に移動しますか？";
 		}
 	}
+	const string ttDeleteUnuse() {return "未使用のファイルを削除";}
+	const string menuDeleteUnuse() {return ttDeleteUnuse ~ "(&U)";}
+	const string dlgMsgDeleteUnuse(string[] files) {
+		return .format("%d個の未使用ファイルを完全に削除しますか？", files.length);
+	}
+	const string dlgMsgDeleteRecycleUnuse(string[] files) {
+		return .format("%d個の未使用ファイルをごみ箱に移動しますか？", files.length);
+	}
 
 	const string ttClosePane() {return "閉じる";}
 	const string menuClosePane() {return ttClosePane ~ "(&C)";}
@@ -1184,7 +1192,7 @@ public:
 		return to!(string)(name.length) ~ "件のシナリオの読込みに失敗";
 	}
 	const string scenarioNotFound(string fname) {
-		return fname ~ "は存在しないか、シナリオではありません。削除しますか？";
+		return fname ~ "は存在しないか、シナリオではありません。履歴から削除しますか？";
 	}
 
 	/// データウィンドウ

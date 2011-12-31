@@ -446,6 +446,7 @@ public:
 	Image menuOpenDirectory() {return imgd!("folder.png");}
 	Image menuNewFolder() {return imgd!("folder_new.png");}
 	Image menuReplacePath() {return imgd!("replace.png");}
+	Image menuDeleteUnuse() {return imgd!("del_unuse.png");}
 
 	Image menuReplaceText() {return imgd!("replace.png");}
 	Image menuReload() {return imgd!("reload.png");}

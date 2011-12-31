@@ -1499,6 +1499,8 @@ public:
 			if (_prop.var.etc.singleWindow) {
 				new MenuItem(me, SWT.SEPARATOR);
 				mixin (MenuAction!("me", "NewFolder", SWT.PUSH, "_dirWin.createNewFolder"));
+				new MenuItem(me, SWT.SEPARATOR);
+				mixin (MenuAction!("me", "DeleteUnuse", SWT.PUSH, "_dirWin.deleteUnuse"));
 			}
 
 			auto mv = createMenu(bar, _prop.msgs.menuView);

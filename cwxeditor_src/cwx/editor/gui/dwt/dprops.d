@@ -115,6 +115,7 @@ enum MenuID : int {
 	ReNumberingAll,
 	NewFolder,
 	ReplacePath,
+	DeleteUnuse,
 	ReplaceText,
 	Reload,
 	StartToPackage,

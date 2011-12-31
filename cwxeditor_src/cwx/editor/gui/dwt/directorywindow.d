@@ -1027,6 +1027,9 @@ private:
 		appendMenuTCPD(_prop, menu, this, true, true, true, true);
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(menu, _prop.msgs.menuCopyFilePath, _prop.images.menuCopyFilePath, &copyFilePath);
+		new MenuItem(menu, SWT.SEPARATOR);
+		createMenuItem(menu, _prop.msgs.menuDeleteUnuse, _prop.images.menuDeleteUnuse, &deleteUnuse);
+
 		_files.setMenu(menu);
 	}
 	string createDir() {
@@ -1452,6 +1455,8 @@ public:
 			createMenuItem(me, _prop.msgs.menuCreateArchive, _prop.images.menuCreateArchive, &createArchive);
 			new MenuItem(me, SWT.SEPARATOR);
 			appendMenuTCPD(_prop, me, this, true, true, true, true);
+			new MenuItem(me, SWT.SEPARATOR);
+			createMenuItem(me, _prop.msgs.menuDeleteUnuse, _prop.images.menuDeleteUnuse, &deleteUnuse);
 
 			auto mv = createMenu(bar, _prop.msgs.menuView);
 			createMenuItem(mv, _prop.msgs.menuRefresh, _prop.images.menuRefresh, &__refresh);
@@ -1467,6 +1472,7 @@ public:
 			putMenuAction(MenuID.NewFolder, &createNewFolder);
 			putMenuAction(MenuID.CreateArchive, &createArchive);
 			putMenuAction(MenuID.ChangeVH, &changeVHSide);
+			putMenuAction(MenuID.DeleteUnuse, &deleteUnuse);
 		}
 		if (shell) {
 			auto bar = new ToolBar(contPane, SWT.FLAT);
@@ -1513,6 +1519,8 @@ public:
 			createMenuItem(menu, _prop.msgs.menuCreateArchive, _prop.images.menuCreateArchive, &createArchive);
 			new MenuItem(menu, SWT.SEPARATOR);
 			appendMenuTCPD(_prop, menu, this, true, true, true, true);
+			new MenuItem(menu, SWT.SEPARATOR);
+			createMenuItem(menu, _prop.msgs.menuDeleteUnuse, _prop.images.menuDeleteUnuse, &deleteUnuse);
 			_dirs.setMenu(menu);
 		}
 		auto fComp = new Composite(_sash, SWT.NONE);
@@ -1606,6 +1614,67 @@ public:
 			}
 			_prop.var.dirWin.maximized = win.getMaximized;
 			_prop.var.dirWin.minimized = win.getMinimized;
+		}
+	}
+	void removeFiles(in string[] file, bool recycle) {
+		pauseTrace;
+		scope (exit) resumeTrace;
+		version (Windows) {
+			wstring targ;
+			foreach (i, f; file) {
+				targ ~= toUTF16(f);
+				targ ~= '\0';
+			}
+			targ ~= '\0';
+			SHFILEOPSTRUCT ope;
+			ope.hwnd = cast(HANDLE) shell.handle;
+			ope.wFunc = FO_DELETE;
+			ope.pFrom = targ.ptr;
+			ope.pTo = null;
+			ope.fFlags = FOF_MULTIDESTFILES | FOF_NOCONFIRMATION;
+			if (recycle) ope.fFlags |= FOF_ALLOWUNDO;
+			ope.fAnyOperationsAborted = false;
+			ope.hNameMappings = null;
+			ope.lpszProgressTitle = null;
+			if (0 != SHFileOperationW(&ope)) return;
+		} else {
+			foreach (f; file) {
+				delAll(f);
+			}
+		}
+	}
+	void deleteUnuse(SelectionEvent se) {
+		string[] files;
+		string abs = nabs(_summ.scenarioPath);
+		foreach (string file; _summ.scenarioPath.dirEntries(SpanMode.breadth)) {
+			auto full = nabs(file);
+			bool sp = cast(bool) cfnmatch(full, abs);
+			auto p = new FileNameObj(file);
+			if (sp) {
+				if (isDef(p.array, p.dir)) continue;
+			} else {
+				if (isIgnore(p.array)) continue;
+			}
+			if (!p.dir && p.material && !_summ.useCounter.get(p.pathId)) {
+				files ~= full;
+			}
+		}
+		if (!files.length) return;
+		bool recycle = (se.stateMask & SWT.SHIFT) == 0;
+		auto shl = dlgParShl.getShell;
+		auto dlg = new MessageBox(shl, SWT.ICON_QUESTION | SWT.YES | SWT.NO);
+		version (Windows) {
+			if (recycle) {
+				dlg.setMessage = _prop.msgs.dlgMsgDeleteRecycleUnuse(files);
+			} else {
+				dlg.setMessage = _prop.msgs.dlgMsgDeleteUnuse(files);
+			}
+		} else {
+			dlg.setMessage = _prop.msgs.dlgMsgDeleteUnuse(files);
+		}
+		dlg.setText = _prop.msgs.dlgTitQuestion;
+		if (SWT.YES == dlg.open) {
+			removeFiles(files, recycle);
 		}
 	}
 
@@ -1932,11 +2001,7 @@ public:
 		foreach (i, f; file) {
 			fileNames[i] = nabs(f);
 		}
-		version (Windows) {
-			bool recycle = (se.stateMask & SWT.SHIFT) == 0;
-		}
-		pauseTrace;
-		scope (exit) resumeTrace;
+		bool recycle = (se.stateMask & SWT.SHIFT) == 0;
 		if (_dirs.isFocusControl) {
 			if (!dir) return;
 			version (Windows) {
@@ -1949,21 +2014,7 @@ public:
 				dlg.setMessage = _prop.msgs.dlgMsgDelete([nabs(dir)]);
 			}
 			if (SWT.OK == dlg.open) {
-				version (Windows) {
-					SHFILEOPSTRUCT ope;
-					ope.hwnd = cast(HANDLE) shell.handle;
-					ope.wFunc = FO_DELETE;
-					ope.pFrom = toUTFz!(wchar*)(dir ~ '\0' ~ '\0');
-					ope.pTo = null;
-					ope.fFlags = FOF_MULTIDESTFILES | FOF_NOCONFIRMATION;
-					if (recycle) ope.fFlags |= FOF_ALLOWUNDO;
-					ope.fAnyOperationsAborted = false;
-					ope.hNameMappings = null;
-					ope.lpszProgressTitle = null;
-					if (0 != SHFileOperationW(&ope)) return;
-				} else {
-					delAll(nabs(dir));
-				}
+				removeFiles([nabs(dir)], recycle);
 			} else {
 				return;
 			}
@@ -1980,29 +2031,7 @@ public:
 				dlg.setMessage = _prop.msgs.dlgMsgDelete(fileNames);
 			}
 			if (SWT.OK == dlg.open) {
-				version (Windows) {
-					wstring targ;
-					foreach (i, f; file) {
-						targ ~= toUTF16(f);
-						targ ~= '\0';
-					}
-					targ ~= '\0';
-					SHFILEOPSTRUCT ope;
-					ope.hwnd = cast(HANDLE) shell.handle;
-					ope.wFunc = FO_DELETE;
-					ope.pFrom = targ.ptr;
-					ope.pTo = null;
-					ope.fFlags = FOF_MULTIDESTFILES | FOF_NOCONFIRMATION;
-					if (recycle) ope.fFlags |= FOF_ALLOWUNDO;
-					ope.fAnyOperationsAborted = false;
-					ope.hNameMappings = null;
-					ope.lpszProgressTitle = null;
-					if (0 != SHFileOperationW(&ope)) return;
-				} else {
-					foreach (f; file) {
-						delAll(f);
-					}
-				}
+				removeFiles(file, recycle);
 			} else {
 				return;
 			}
