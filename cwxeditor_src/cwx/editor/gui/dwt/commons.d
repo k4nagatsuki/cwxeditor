@@ -845,6 +845,7 @@ class Commons {
 		TLPData tlp(Control base) {
 			TLPData data = null;
 			while (base && (data = cast(TLPData) base.getData) is null) {
+				if (cast(Shell) base) break;
 				base = base.getParent;
 			}
 			return data;

@@ -451,6 +451,7 @@ private:
 		summ.changedEvent ~= &refreshTitle;
 		refreshTitle();
 		GC.collect();
+		_win.redraw();
 	}
 	string _firstScenarioPath = null;
 	string[] _openPaths;
