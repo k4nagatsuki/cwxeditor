@@ -55,7 +55,7 @@ class ImageListWindow(MtType Type) {
 		_selection = selection;
 		_shl = new Shell(parent, SWT.RESIZE | SWT.MODELESS);
 		_shl.setSize(_prop.var.etc.imageListWidth, _prop.var.etc.imageListHeight);
-		_shl.setLayout = new FillLayout;
+		_shl.setLayout(new FillLayout);
 		_shl.addDisposeListener(new Dispose);
 		_list = new ImageList(_shl, SWT.NONE);
 		static if (Type == MtType.CARD) {
@@ -96,10 +96,10 @@ class ImageListWindow(MtType Type) {
 	}
 
 	void images(string dir, string[] path) {
-		_shl.setRedraw = false;
-		scope (exit) _shl.setRedraw = true;
+		_shl.setRedraw(false);
+		scope (exit) _shl.setRedraw(true);
 
-		_shl.setText = dir;
+		_shl.setText(dir);
 		_list.removeAll();
 		_list.add(path);
 	}
@@ -140,8 +140,8 @@ class ImageList : Composite {
 		addControlListener(new Resize);
 		addPaintListener(new Paint);
 		addMouseMoveListener(new MouseMove);
-		setForeground = getDisplay().getSystemColor(SWT.COLOR_LIST_FOREGROUND);
-		setBackground = getDisplay().getSystemColor(SWT.COLOR_LIST_BACKGROUND);
+		setForeground(getDisplay().getSystemColor(SWT.COLOR_LIST_FOREGROUND));
+		setBackground(getDisplay().getSystemColor(SWT.COLOR_LIST_BACKGROUND));
 	}
 	void init(int imgW, int imgH, ImageData delegate(string path, bool mask) createImage) {
 		_imgW = imgW;
@@ -149,7 +149,7 @@ class ImageList : Composite {
 		_createImage = createImage;
 
 		auto vs = getVerticalBar();
-		vs.setIncrement = _imgH / 4;
+		vs.setIncrement(_imgH / 4);
 	}
 	private int calcCountPerLine() {
 		auto ca = getClientArea();
@@ -162,7 +162,7 @@ class ImageList : Composite {
 	private void calcScrollParams() {
 		auto ca = getClientArea();
 		auto vs = getVerticalBar();
-		vs.setPageIncrement = max(vs.getIncrement(), ca.height / 2);
+		vs.setPageIncrement(max(vs.getIncrement(), ca.height / 2));
 
 		auto gc = new GC(this);
 		scope (exit) gc.dispose();
@@ -171,9 +171,9 @@ class ImageList : Composite {
 		int countPerLine = calcCountPerLine();
 		int row = _path.length / countPerLine;
 		if (_path.length % countPerLine) row++;
-		vs.setMinimum = 0;
-		vs.setMaximum = row * h + SPACING;
-		vs.setThumb = ca.height;
+		vs.setMinimum(0);
+		vs.setMaximum(row * h + SPACING);
+		vs.setThumb(ca.height);
 		vs.addSelectionListener(new Redraw);
 	}
 
@@ -181,11 +181,11 @@ class ImageList : Composite {
 		override void mouseMove(MouseEvent e) {
 			int i = indexOf(e.x, e.y);
 			if (-1 == i) {
-				setCursor = null;
-				setToolTipText = "";
+				setCursor(null);
+				setToolTipText("");
 			} else {
-				setCursor = getDisplay().getSystemCursor(SWT.CURSOR_HAND);
-				setToolTipText = _path[i];
+				setCursor(getDisplay().getSystemCursor(SWT.CURSOR_HAND));
+				setToolTipText(_path[i]);
 			}
 		}
 	}
@@ -289,9 +289,9 @@ class ImageList : Composite {
 		int h = SPACING + _imgH + fh;
 		int y = _sel / countPerLine * h;
 		if (y < vs.getSelection()) {
-			vs.setSelection = y;
+			vs.setSelection(y);
 		} else if (vs.getSelection() + vs.getThumb() < y + h + SPACING) {
-			vs.setSelection = y + h + SPACING - vs.getThumb();
+			vs.setSelection(y + h + SPACING - vs.getThumb());
 		}
 		redraw();
 	}

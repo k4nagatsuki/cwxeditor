@@ -89,12 +89,12 @@ public:
 	}
 protected:
 	override void setup(Composite area) {
-		area.setLayout = new GridLayout(1, false);
+		area.setLayout(new GridLayout(1, false));
 		{
 			auto grp = new Group(area, SWT.NONE);
-			grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-			grp.setLayout = new GridLayout(1, false);
-			grp.setText = _prop.msgs.name;
+			grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			grp.setLayout(new GridLayout(1, false));
+			grp.setText(_prop.msgs.name);
 			_name = new GBLimitText(_prop.looks.monospace,
 				_prop.looks.nameLimit, false, grp, SWT.BORDER);
 			mod(_name.widget);
@@ -102,7 +102,7 @@ protected:
 			_name.limitEvent ~= &refreshWarning;
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
 			gd.widthHint = _name.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
-			_name.widget.setLayoutData = gd;
+			_name.widget.setLayoutData(gd);
 		}
 		{
 			auto skin = _comm.skin;
@@ -111,17 +111,17 @@ protected:
 			_imgPath = new ImageSelect!(MtType.CARD)(area, SWT.NONE, _comm, _prop, _summ,
 				_prop.looks.cardSize.width, _prop.looks.cardSize.height, including, saveName);
 			mod(_imgPath);
-			_imgPath.widget.setLayoutData = new GridData(GridData.FILL_BOTH);
+			_imgPath.widget.setLayoutData(new GridData(GridData.FILL_BOTH));
 		}
 		{
 			auto grp = new Group(area, SWT.NONE);
-			grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-			grp.setLayout = new CenterLayout(SWT.HORIZONTAL);
-			grp.setText = _prop.msgs.desc;
+			grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			grp.setLayout(new CenterLayout(SWT.HORIZONTAL));
+			grp.setText(_prop.msgs.desc);
 			_desc = new FixedWidthText(dwtData(_prop.looks.cardDescFont(_summ.legacy)), _prop.looks.cardDescLen, grp, SWT.BORDER);
 			createTextMenu!Text(_comm, _prop, _desc.widget, &catchMod);
 			mod(_desc.widget);
-			_desc.widget.setLayoutData = _desc.computeTextBaseSize(_prop.looks.cardDescLine);
+			_desc.widget.setLayoutData(_desc.computeTextBaseSize(_prop.looks.cardDescLine));
 		}
 		_comm.delInfo.add(&delCard);
 		_comm.refScenario.add(&refScenario);
@@ -136,8 +136,8 @@ protected:
 		scope (exit) ignoreMod = false;
 		if (_card) {
 			_imgPath.image = _card.path;
-			_name.setText = _card.name;
-			_desc.setText = _card.desc;
+			_name.setText(_card.name);
+			_desc.setText(_card.desc);
 		} else {
 			_imgPath.image = "";
 		}

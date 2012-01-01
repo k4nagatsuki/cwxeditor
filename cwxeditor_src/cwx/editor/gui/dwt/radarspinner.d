@@ -84,7 +84,7 @@ class RadarSpinner : Composite {
 	/// style = スタイル。指定可能なスタイルはSWT.BORDER、DWT.READ_ONLY。
 	this(Composite parent, int style) {
 		super(parent, style | SWT.DOUBLE_BUFFERED);
-		setBackgroundMode = SWT.INHERIT_DEFAULT;
+		setBackgroundMode(SWT.INHERIT_DEFAULT);
 		_ovalFore = Display.getCurrent().getSystemColor(SWT.COLOR_LIST_FOREGROUND);
 		_ovalBack = Display.getCurrent().getSystemColor(SWT.COLOR_LIST_BACKGROUND);
 		_readOnly = (style & SWT.READ_ONLY) != 0;
@@ -150,13 +150,13 @@ class RadarSpinner : Composite {
 				scope size = getClientArea();
 				if (size.width == 0 || size.height == 0) return;
 				auto gc = e.gc;
-				gc.setAntialias = _antialias;
+				gc.setAntialias(_antialias);
 				if (_step_c > 0) {
 					for (uint i = 0; i < _step_c; i += _ovalStep) {
 						if (i == 0) {
-							gc.setLineWidth = 2;
-							gc.setForeground = e.gc.getForeground();
-							gc.setBackground = _ovalBack;
+							gc.setLineWidth(2);
+							gc.setForeground(e.gc.getForeground());
+							gc.setBackground(_ovalBack);
 							if (_oval) {
 								auto oval = _ovals[i];
 								gc.fillOval(oval.x, oval.y, oval.width, oval.height);
@@ -165,9 +165,9 @@ class RadarSpinner : Composite {
 								gc.fillPolygon(_polys[i]);
 								gc.drawPolygon(_polys[i]);
 							}
-							gc.setForeground = _ovalFore;
-							gc.setLineWidth = 1;
-							gc.setLineStyle = SWT.LINE_DASH;
+							gc.setForeground(_ovalFore);
+							gc.setLineWidth(1);
+							gc.setLineStyle(SWT.LINE_DASH);
 						} else if (!isBorderline(_step_c + _min - 1 - i)) {
 							if (_oval) {
 								auto oval = _ovals[i];
@@ -187,7 +187,7 @@ class RadarSpinner : Composite {
 							}
 						}
 					}
-					gc.setLineStyle = SWT.LINE_SOLID;
+					gc.setLineStyle(SWT.LINE_SOLID);
 					foreach (line; _borderlines) {
 						if (_oval) {
 							auto oval = _ovals[$ + _min - 1 - line];
@@ -196,15 +196,15 @@ class RadarSpinner : Composite {
 							gc.drawPolygon(_polys[$ + _min - 1 - line]);
 						}
 					}
-					gc.setLineStyle = SWT.LINE_DASH;
+					gc.setLineStyle(SWT.LINE_DASH);
 					foreach (i, tgls; _tgls) {
 						gc.drawLine(tgls[0].x, tgls[0].y, tgls[$ - 1].x, tgls[$ - 1].y);
 					}
 				} else {
-					gc.setLineWidth = 1;
+					gc.setLineWidth(1);
 				}
 				if (_step_c > 0) {
-					gc.setLineStyle = SWT.LINE_SOLID;
+					gc.setLineStyle(SWT.LINE_SOLID);
 					scope int[] poly;
 					poly.length = _spns.length * 2;
 					foreach (i, spn; _spns) {
@@ -213,9 +213,9 @@ class RadarSpinner : Composite {
 						poly[i * 2 + 1] = tgl.y;
 					}
 					if (_alpha > 0) {
-						gc.setAlpha = _alpha;
+						gc.setAlpha(_alpha);
 						gc.fillPolygon(poly);
-						gc.setAlpha = 0xFF;
+						gc.setAlpha(0xFF);
 					}
 					gc.drawPolygon(poly);
 					if (!_readOnly) {
@@ -307,31 +307,31 @@ class RadarSpinner : Composite {
 		_lbls.length = _param_c;
 		foreach (i, ref comp; _comps) {
 			comp = new Composite(this, SWT.NONE);
-			comp.setCapture = false;
+			comp.setCapture(false);
 			auto gl = new GridLayout(1, true);
 			gl.marginWidth = 0;
 			gl.marginHeight = 0;
 			gl.verticalSpacing = 2;
-			comp.setLayout = gl;
+			comp.setLayout(gl);
 			auto lbl = new Label(comp, SWT.CENTER | SWT.EMBEDDED);
-			lbl.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-			lbl.setText = names[i];
-			lbl.setForeground = getForeground();
-			lbl.setFont = getFont();
-			lbl.setCapture = false;
+			lbl.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			lbl.setText(names[i]);
+			lbl.setForeground(getForeground());
+			lbl.setFont(getFont());
+			lbl.setCapture(false);
 			Control spn;
 			if (_readOnly) {
 				auto sspn = new Label(comp, SWT.BORDER | SWT.CENTER | SWT.EMBEDDED);
-				sspn.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				sspn.setData = new Integer(min);
+				sspn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				sspn.setData(new Integer(min));
 				spn = sspn;
 			} else {
 				auto sspn = new Spinner(comp, SWT.BORDER);
 				sspn.addListener(SWT.Modify, _mod_redraw);
-				sspn.setMinimum = min;
-				sspn.setMaximum = step_c - 1 + min;
-				sspn.setSelection = min;
-				sspn.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_CENTER);
+				sspn.setMinimum(min);
+				sspn.setMaximum(step_c - 1 + min);
+				sspn.setSelection(min);
+				sspn.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_CENTER));
 				sspn.addListener(SWT.Selection, new SpnListener(i));
 				spn = sspn;
 			}
@@ -362,11 +362,11 @@ class RadarSpinner : Composite {
 			int ty = tgl.y - TOGGLE_CATCH_SIZE / 2;
 			scope rect = new Rectangle(tx, ty, TOGGLE_CATCH_SIZE, TOGGLE_CATCH_SIZE);
 			if (rect.contains(x, y)) {
-				setCursor = Display.getCurrent().getSystemCursor(SWT.CURSOR_CROSS);
+				setCursor(Display.getCurrent().getSystemCursor(SWT.CURSOR_CROSS));
 				return true;
 			}
 		}
-		setCursor = null;
+		setCursor(null);
 		return false;
 	}
 	/// カーソルの位置にあるトグルを取得。被る場合はより近い方を優先する。
@@ -418,22 +418,22 @@ class RadarSpinner : Composite {
 			if (_readOnly) {
 				old = (cast(Integer) _spns[i].getData()).intValue();
 				auto sspn = cast(Label) _spns[i];
-				sspn.setText = to!(string)(v);
+				sspn.setText(to!(string)(v));
 			} else {
 				auto sspn = (cast(Spinner) _spns[i]);
 				old = sspn.getMaximum();
 				if (v < 0) {
 					// Spinner#computeSize()で'-'を無視してくれるので
-					sspn.setMaximum = abs(v) * 10;
+					sspn.setMaximum(abs(v) * 10);
 				} else {
-					sspn.setMaximum = abs(v);
+					sspn.setMaximum(abs(v));
 				}
 			}
 			scope s = comp.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 			if (_readOnly) {
-				(cast(Label) _spns[i]).setText = to!(string)(old);
+				(cast(Label) _spns[i]).setText(to!(string)(old));
 			} else {
-				(cast(Spinner) _spns[i]).setMaximum = old;
+				(cast(Spinner) _spns[i]).setMaximum(old);
 			}
 			if (s.x > _maxSize.x) _maxSize.x = s.x;
 			if (s.y > _maxSize.y) _maxSize.y = s.y;
@@ -512,10 +512,10 @@ class RadarSpinner : Composite {
 	/// value = 値。
 	void setValue(int index, int value) {
 		if (_readOnly) {
-			(cast(Label) _spns[index]).setText = to!(string)(value);
-			_spns[index].setData = new Integer(value);
+			(cast(Label) _spns[index]).setText(to!(string)(value));
+			_spns[index].setData(new Integer(value));
 		} else {
-			(cast(Spinner) _spns[index]).setSelection = value;
+			(cast(Spinner) _spns[index]).setSelection(value);
 		}
 		redraw();
 	}
@@ -525,10 +525,10 @@ class RadarSpinner : Composite {
 	void setValues(int[] value) {
 		foreach (i, spn; _spns) {
 			if (_readOnly) {
-				(cast(Label) spn).setText = to!(string)(value[i]);
-				spn.setData = new Integer(value[i]);
+				(cast(Label) spn).setText(to!(string)(value[i]));
+				spn.setData(new Integer(value[i]));
 			} else {
-				(cast(Spinner) spn).setSelection = value[i];
+				(cast(Spinner) spn).setSelection(value[i]);
 			}
 		}
 		redraw();
@@ -832,9 +832,9 @@ class RadarSpinner : Composite {
 		}
 		void setFont(Font font) {
 			if (getFont() != font) {
-				super.setFont = font;
+				super.setFont(font);
 				foreach (lbl; _lbls) {
-					lbl.setFont = font;
+					lbl.setFont(font);
 				}
 				__calcMaxSize();
 				_mod = true;
@@ -842,9 +842,9 @@ class RadarSpinner : Composite {
 			}
 		}
 		void setForeground(Color color) {
-			super.setForeground = color;
+			super.setForeground(color);
 			foreach (lbl; _lbls) {
-				lbl.setForeground = color;
+				lbl.setForeground(color);
 			}
 		}
 	}

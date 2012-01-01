@@ -39,21 +39,21 @@ public:
 	}
 protected:
 	override void setup(Composite area) {
-		area.setLayout = new GridLayout(1, false);
+		area.setLayout(new GridLayout(1, false));
 		{
 			auto grp = new Group(area, SWT.NONE);
-			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-			grp.setText = _prop.msgs.reNumbering;
-			grp.setLayout = new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0);
+			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			grp.setText(_prop.msgs.reNumbering);
+			grp.setLayout(new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0));
 			auto comp = new Composite(grp, SWT.NONE);
-			comp.setLayout = new GridLayout(3, false);
+			comp.setLayout(new GridLayout(3, false));
 			auto l1 = new Label(comp, SWT.NONE);
-			l1.setText = _prop.msgs.reNumbering1(_area, _minId, _prop.looks.idMax);
+			l1.setText(_prop.msgs.reNumbering1(_area, _minId, _prop.looks.idMax));
 			_id = new Spinner(comp, SWT.BORDER);
-			_id.setMaximum = _prop.looks.idMax;
-			_id.setMinimum = cast(int) _minId;
+			_id.setMaximum(_prop.looks.idMax);
+			_id.setMinimum(cast(int) _minId);
 			auto l2 = new Label(comp, SWT.NONE);
-			l2.setText = _prop.msgs.reNumbering2(_area, _minId, _prop.looks.idMax);
+			l2.setText(_prop.msgs.reNumbering2(_area, _minId, _prop.looks.idMax));
 		}
 	}
 	override bool close(bool ok) {

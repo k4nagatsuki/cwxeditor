@@ -29,7 +29,7 @@ public:
 	this (Composite parent, int style) {
 		super(parent, style | SWT.NO_BACKGROUND);
 		_origin = new Point(0, 0);
-		setBackground = Display.getCurrent().getSystemColor(SWT.COLOR_LIST_BACKGROUND);
+		setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_LIST_BACKGROUND));
 		void setupBar(ScrollBar scr, void delegate(int) setOrigin) {
 			if (scr !is null) {
 				scr.addListener(SWT.Selection, new class(scr, setOrigin) Listener {
@@ -57,7 +57,7 @@ public:
 				auto area = getClientArea();
 				scope img = new Image(Display.getCurrent(), area.width, area.height);
 				scope gc = new GC(img);
-				gc.setBackground = getBackground();
+				gc.setBackground(getBackground());
 				gc.fillRectangle(area);
 				__repaint(gc);
 				e.gc.drawImage(img, 0, 0);
@@ -258,14 +258,14 @@ public:
 				_dragging = true;
 			}
 		});
-		setDragDetect = false;
+		setDragDetect(false);
 		setData(DragSource.DEFAULT_DRAG_SOURCE_EFFECT, new CardListDragSourceEffect!(C)(this));
 		addListener(SWT.MouseMove, new class Listener {
 			public override void handleEvent(Event e) {
 				int index = searchIndex(e.x, e.y);
 				if (_oldMoveIndex != index) {
 					_oldMoveIndex = index;
-					setDragDetect = index >= 0;
+					setDragDetect(index >= 0);
 					__refreshToolTip();
 				}
 			}
@@ -393,9 +393,9 @@ public:
 		if (_defItmW >= 0) _itmW = _defItmW;
 		if (_defItmH >= 0) _itmH = _defItmH;
 		auto vScr = getVerticalBar();
-		if (vScr) vScr.setIncrement = _itmH / 4;
+		if (vScr) vScr.setIncrement(_itmH / 4);
 		auto hScr = getHorizontalBar();
-		if (hScr) hScr.setIncrement = _itmW / 4;
+		if (hScr) hScr.setIncrement(_itmW / 4);
 		if (_items.length > 0) {
 			scroll(0);
 			_cur = 0;
@@ -585,9 +585,9 @@ private:
 	void __refreshToolTip() {
 		if (_createToolTip) {
 			if (0 <= _oldMoveIndex && _oldMoveIndex < _items.length) {
-				setToolTipText = _createToolTip(cast(C) _items[_oldMoveIndex].getData());
+				setToolTipText(_createToolTip(cast(C) _items[_oldMoveIndex].getData()));
 			} else {
-				setToolTipText = _createToolTip(null);
+				setToolTipText(_createToolTip(null));
 			}
 		}
 	}
@@ -606,7 +606,7 @@ private:
 	void scrollX(int x) {
 		auto bar = getHorizontalBar();
 		if (bar !is null) {
-			bar.setSelection = x;
+			bar.setSelection(x);
 			_origin.x = bar.getSelection();
 			redraw();
 		}
@@ -614,7 +614,7 @@ private:
 	void scrollY(int y) {
 		auto bar = getVerticalBar();
 		if (bar !is null) {
-			bar.setSelection = y;
+			bar.setSelection(y);
 			_origin.y = bar.getSelection();
 			redraw();
 		}
@@ -646,7 +646,7 @@ private:
 		int index, iy, ix;
 		int x;
 		int y = _marginY - _origin.y;
-		if (gc) gc.setBackground = Display.getCurrent().getSystemColor(SWT.COLOR_LIST_SELECTION);
+		if (gc) gc.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_LIST_SELECTION));
 		for (iy = 0; iy < _line; iy++) {
 			x = _marginX - _origin.x;
 			for (ix = 0; ix < _wrap && (index = iy * _wrap + ix) < _items.length; ix++) {
@@ -665,9 +665,9 @@ private:
 							gc.drawFocus(fx, fy, fw, fh);
 						}
 						if (index in _sels) {
-							gc.setAlpha = 64;
+							gc.setAlpha(64);
 							gc.fillRectangle(x, y, itm.width, itm.height);
-							gc.setAlpha = 255;
+							gc.setAlpha(255);
 						}
 					}
 				}
@@ -701,7 +701,7 @@ private:
 
 		void setupBar(ScrollBar bar, int pr, int size, void delegate(int) scr) {
 			if (bar !is null) {
-				bar.setMaximum = pr;
+				bar.setMaximum(pr);
 				bar.setThumb(pr < size ? pr : size);
 				bar.setPageIncrement(size - bar.getIncrement());
 

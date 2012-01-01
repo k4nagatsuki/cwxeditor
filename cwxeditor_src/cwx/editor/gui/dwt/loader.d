@@ -296,10 +296,10 @@ string[] scenarioFilter() {
 S[] loadScenarios(S)(Props prop, Shell w, void delegate(string) status,
 		bool expandXMLs, string dlgTitle, void delegate(S[]) loaded = null, void delegate() failure = null, bool oThr = true) {
 	auto dlg = new FileDialog(w, SWT.PRIMARY_MODAL | SWT.APPLICATION_MODAL | SWT.MULTI | SWT.OPEN);
-	dlg.setFilterExtensions = scenarioFilter;
-	dlg.setFilterNames = prop.msgs.filterScenario;
-	dlg.setText = dlgTitle;
-	dlg.setFilterPath = scenarioFilterPath(prop);
+	dlg.setFilterExtensions(scenarioFilter);
+	dlg.setFilterNames(prop.msgs.filterScenario);
+	dlg.setText(dlgTitle);
+	dlg.setFilterPath(scenarioFilterPath(prop));
 	string fname = dlg.open();
 	if (fname) {
 		auto put = new class Object {
@@ -377,10 +377,10 @@ string scenarioFilterPath(Props prop) {
 S loadScenario(S)(Props prop, Shell w, void delegate(string) status,
 		bool expandXMLs, S old, string dlgTitle, ref string[] openPaths, void delegate(S) loaded = null, void delegate() failure = null, bool oThr = true) {
 	auto dlg = new FileDialog(w, SWT.PRIMARY_MODAL | SWT.APPLICATION_MODAL | SWT.SINGLE | SWT.OPEN);
-	dlg.setFilterExtensions = scenarioFilter;
-	dlg.setFilterNames = prop.msgs.filterScenario;
-	dlg.setText = dlgTitle;
-	dlg.setFilterPath = scenarioFilterPath(prop);
+	dlg.setFilterExtensions(scenarioFilter);
+	dlg.setFilterNames(prop.msgs.filterScenario);
+	dlg.setText(dlgTitle);
+	dlg.setFilterPath(scenarioFilterPath(prop));
 	string fname = dlg.open();
 	if (fname) {
 		decScenarioPath(fname, openPaths);

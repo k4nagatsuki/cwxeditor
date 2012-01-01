@@ -52,7 +52,7 @@ class TableSorter(DataT) {
 	}
 	void doSort(int dir) {
 		auto tbl = _col.getParent();
-		tbl.setSortDirection = dir;
+		tbl.setSortDirection(dir);
 		if (dir == SWT.NONE) return;
 		auto itms = tbl.getItems();
 		int count = tbl.getColumnCount();
@@ -75,7 +75,7 @@ class TableSorter(DataT) {
 		for (int i = 0; i < itms.length; i++) {
 			auto c = arr[i];
 			auto row = tbl.getItem(i);
-			row.setData = c.data;
+			row.setData(c.data);
 			for (int j = 0; j < count; j++) {
 				row.setImage(j, c.image[j]);
 				row.setText(j, c.text[j]);
@@ -89,7 +89,7 @@ class TableSorter(DataT) {
 				cursor.setSelection(i, cursor.getColumn());
 			}
 		}
-		tbl.setSortColumn = _col;
+		tbl.setSortColumn(_col);
 	}
 	@property
 	TableColumn column() {
@@ -118,7 +118,7 @@ class FullTableColumn {
 	private Listener _rl;
 	this (Table tbl, int style) {
 		_column = new TableColumn(tbl, style);
-		_column.setResizable = false;
+		_column.setResizable(false);
 		_rl = new RL;
 		tbl.addListener(SWT.Resize, _rl);
 	}
@@ -138,7 +138,7 @@ class FullTableColumn {
 		}
 		width += trim.x;
 		width -= trim.width;
-		_column.setWidth = _packWidth > width ? _packWidth : width;
+		_column.setWidth(_packWidth > width ? _packWidth : width);
 	}
 	private class RL : Listener {
 		override void handleEvent(Event e) {

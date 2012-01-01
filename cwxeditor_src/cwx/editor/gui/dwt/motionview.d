@@ -309,7 +309,7 @@ private:
 		if (o.beast) {
 			_comm.delBeast.call(o.beast);
 		}
-		itm.setData = m;
+		itm.setData(m);
 		if (index == _motions.getSelectionIndex()) {
 			refreshSels();
 		}
@@ -462,12 +462,12 @@ private:
 		auto img = itm1.getImage();
 		auto text = itm1.getText();
 		auto data = itm1.getData();
-		itm1.setImage = itm2.getImage();
-		itm1.setText = itm2.getText();
-		itm1.setData = itm2.getData();
-		itm2.setImage = img;
-		itm2.setText = text;
-		itm2.setData = data;
+		itm1.setImage(itm2.getImage());
+		itm1.setText(itm2.getText());
+		itm1.setData(itm2.getData());
+		itm2.setImage(img);
+		itm2.setText(text);
+		itm2.setData(data);
 		foreach (dlg; modEvent) dlg();
 	}
 	void up() {
@@ -536,9 +536,9 @@ private:
 		} else {
 			itm = new TableItem(_motions, SWT.NONE);
 		}
-		itm.setImage = _prop.images.motion(motion.type);
-		itm.setText = _descs[motion.type];
-		itm.setData = motion;
+		itm.setImage(_prop.images.motion(motion.type));
+		itm.setText(_descs[motion.type]);
+		itm.setData(motion);
 		if (callMod) {
 			foreach (dlg; modEvent) dlg();
 		}
@@ -553,7 +553,7 @@ private:
 	void refreshSels(bool force = false) {
 		auto sels = _motions.getSelection();
 		auto stack = cast(StackLayout) _editComp.getLayout();
-		_motionElm.setEnabled = sels.length > 0;
+		_motionElm.setEnabled(sels.length > 0);
 		if (sels.length == 0) {
 			_motionElm.deselectAll();
 			stack.topControl = _noneComp;
@@ -577,23 +577,23 @@ private:
 					_editComp.layout();
 				}
 			} else if (d.use(MArg.ROUND) && d.use(MArg.A_VALUE)) {
-				_abiVal.setSelection = m.aValue + Motion.aValue_max;
-				_abiRound.setSelection = m.round;
+				_abiVal.setSelection(m.aValue + Motion.aValue_max);
+				_abiRound.setSelection(m.round);
 				if (stack.topControl !is _abilityComp) {
 					stack.topControl = _abilityComp;
 					_editComp.layout();
 				}
 			} else if (d.use(MArg.ROUND)) {
-				_rndRound.setSelection = m.round;
+				_rndRound.setSelection(m.round);
 				if (stack.topControl !is _roundComp) {
 					stack.topControl = _roundComp;
 					_editComp.layout();
 				}
 			} else if (d.use(MArg.U_VALUE)) {
 				foreach (typ, radio; _dmgTyp) {
-					_dmgTyp[typ].setSelection = (typ == m.damageType);
+					_dmgTyp[typ].setSelection((typ == m.damageType));
 				}
-				_valValue.setSelection = m.uValue;
+				_valValue.setSelection(m.uValue);
 				if (stack.topControl !is _valueComp) {
 					stack.topControl = _valueComp;
 					_editComp.layout();
@@ -641,10 +641,10 @@ private:
 				e.gc.drawImage(img, x, y);
 				img.dispose();
 				if (pane.isFocusControl()) {
-					e.gc.setBackground = Display.getCurrent().getSystemColor(SWT.COLOR_LIST_SELECTION);
-					e.gc.setAlpha = 64;
+					e.gc.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_LIST_SELECTION));
+					e.gc.setAlpha(64);
 					e.gc.fillRectangle(x, y, data.width, data.height);
-					e.gc.setAlpha = 255;
+					e.gc.setAlpha(255);
 				}
 			}
 		}
@@ -808,13 +808,13 @@ public:
 		_undo = undo ? undo : new UndoManager(_prop.var.etc.undoMaxEtc);
 		_beWin = new typeof(_beWin);
 
-		setLayout = zeroMarginGridLayout(3, false);
+		setLayout(zeroMarginGridLayout(3, false));
 		{
 			auto mtabf = new CTabFolder(this, SWT.FLAT | SWT.BORDER);
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
 			gd.widthHint = 0;
 			gd.horizontalSpan = 3;
-			mtabf.setLayoutData = gd;
+			mtabf.setLayoutData(gd);
 			ToolBar createBar(string name) {
 				auto bar = new ToolBar(mtabf, SWT.FLAT);
 				bar.addListener(SWT.Traverse, new class Listener {
@@ -829,8 +829,8 @@ public:
 				createToolItem(bar, _prop.msgs.ttDown, _prop.images.menuDown, &down);
 				new ToolItem(bar, SWT.SEPARATOR);
 				auto tab = new CTabItem(mtabf, SWT.NONE);
-				tab.setControl = bar;
-				tab.setText = name;
+				tab.setControl(bar);
+				tab.setText(name);
 				return bar;
 			}
 			{
@@ -914,8 +914,8 @@ public:
 			_motions = new Table(this, SWT.BORDER | SWT.SINGLE | SWT.V_SCROLL | SWT.FULL_SELECTION);
 			auto gd = new GridData(GridData.FILL_BOTH);
 			gd.widthHint = _prop.var.etc.motionsWidth;
-			_motions.setLayoutData = gd;
-			_motions.setHeaderVisible = true;
+			_motions.setLayoutData(gd);
+			_motions.setHeaderVisible(true);
 			auto menu = new Menu(_motions);
 			createMenuItem(menu, _prop.msgs.menuUndo, _prop.images.menuUndo, &this.undo);
 			createMenuItem(menu, _prop.msgs.menuRedo, _prop.images.menuRedo, &this.redo);
@@ -924,52 +924,52 @@ public:
 			createMenuItem(menu, _prop.msgs.menuDown, _prop.images.menuDown, &down);
 			new MenuItem(menu, SWT.SEPARATOR);
 			appendMenuTCPD(_prop, menu, new MotionTCPD, true, true, true, true);
-			_motions.setMenu = menu;
+			_motions.setMenu(menu);
 			auto col = new FullTableColumn(_motions, SWT.NONE);
-			col.column.setText = _prop.msgs.motionKind;
+			col.column.setText(_prop.msgs.motionKind);
 		}
 		{
 			_motionElm = new Table(this, SWT.BORDER | SWT.SINGLE | SWT.NO_SCROLL | SWT.FULL_SELECTION);
-			_motionElm.setLayoutData = new GridData(GridData.FILL_VERTICAL);
-			_motionElm.setHeaderVisible = true;
+			_motionElm.setLayoutData(new GridData(GridData.FILL_VERTICAL));
+			_motionElm.setHeaderVisible(true);
 			_motionElm.addSelectionListener(new SelElement);
-			_motionElm.setEnabled = false;
+			_motionElm.setEnabled(false);
 			auto col = new FullTableColumn(_motionElm, SWT.NONE);
-			col.column.setText = _prop.msgs.motionElement;
+			col.column.setText(_prop.msgs.motionElement);
 			foreach (elm; [Element.ALL, Element.HEALTH, Element.MIND,
 					Element.MIRACLE, Element.MAGIC, Element.FIRE, Element.ICE]) {
 				auto itm = new TableItem(_motionElm, SWT.NONE);
-				itm.setImage = _prop.images.element(elm);
-				itm.setText = _prop.msgs.elementName(elm);
-				itm.setData = new Integer(elm);
+				itm.setImage(_prop.images.element(elm));
+				itm.setText(_prop.msgs.elementName(elm));
+				itm.setData(new Integer(elm));
 			}
 			auto menu = new Menu(_motionElm);
 			createMenuItem(menu, _prop.msgs.menuUndo, _prop.images.menuUndo, &this.undo);
 			createMenuItem(menu, _prop.msgs.menuRedo, _prop.images.menuRedo, &this.redo);
-			_motionElm.setMenu = menu;
+			_motionElm.setMenu(menu);
 		}
 		{
 			_editComp = new Composite(this, SWT.NONE);
-			_editComp.setLayoutData = new GridData(GridData.FILL_VERTICAL);
+			_editComp.setLayoutData(new GridData(GridData.FILL_VERTICAL));
 			auto motionStack = new StackLayout;
-			_editComp.setLayout = motionStack;
+			_editComp.setLayout(motionStack);
 			Composite createC() {
 				auto c = new Composite(_editComp, SWT.NONE);
-				c.setLayout = zeroMarginGridLayout(1, false);
+				c.setLayout(zeroMarginGridLayout(1, false));
 				return c;
 			}
 			_summonComp = createC();
 			{
 				auto grp = new Group(_summonComp, SWT.NONE);
-				grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-				grp.setLayout = new GridLayout(2, false);
-				grp.setText = _prop.msgs.motionBeast;
+				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+				grp.setLayout(new GridLayout(2, false));
+				grp.setText(_prop.msgs.motionBeast);
 				_beasts = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
-				_beasts.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+				_beasts.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				refBeasts();
 				auto setBeast = new Button(grp, SWT.PUSH);
-				setBeast.setImage = _prop.images.setBeast;
-				setBeast.setToolTipText = _prop.msgs.setBeast;
+				setBeast.setImage(_prop.images.setBeast);
+				setBeast.setToolTipText(_prop.msgs.setBeast);
 				setBeast.addSelectionListener(new SetBeast);
 				_beastImg = new Canvas(grp, SWT.BORDER | SWT.DOUBLE_BUFFERED);
 				_beastImg.addListener(SWT.Traverse, new class Listener {
@@ -1010,7 +1010,7 @@ public:
 				createMenuItem(menu, _prop.msgs.menuRedo, _prop.images.menuRedo, &this.redo);
 				new MenuItem(menu, SWT.SEPARATOR);
 				appendMenuTCPD(_prop, menu, new BeastTCPD, true, true, true, true);
-				_beastImg.setMenu = menu;
+				_beastImg.setMenu(menu);
 				auto gd = new GridData(GridData.FILL_BOTH);
 				gd.horizontalSpan = 2;
 				auto csize = _prop.looks.cardSize;
@@ -1020,22 +1020,22 @@ public:
 				auto rect = _beastImg.computeTrim(0, 0, csize.width, csize.height);
 				gd.widthHint = rect.width;
 				gd.heightHint = rect.height;
-				_beastImg.setLayoutData = gd;
+				_beastImg.setLayoutData(gd);
 			}
 			Spinner createSpinner(Composite parent, string name, int max, string hint,
 					void delegate(int) edit, int delegate(int) cancel) {
 				auto rgrp = new Group(parent, SWT.NONE);
-				rgrp.setText = name;
-				rgrp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				rgrp.setLayout = new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0);
+				rgrp.setText(name);
+				rgrp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				rgrp.setLayout(new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0));
 				auto rcomp = new Composite(rgrp, SWT.NONE);
-				rcomp.setLayout = new GridLayout(2, false);
+				rcomp.setLayout(new GridLayout(2, false));
 				auto round = new Spinner(rcomp, SWT.BORDER);
-				round.setMaximum = max;
-				round.setMinimum = 1;
+				round.setMaximum(max);
+				round.setMinimum(1);
 				new SpinnerEdit(round, edit, edit, cancel);
 				auto l_round = new Label(rcomp, SWT.NONE);
-				l_round.setText = hint;
+				l_round.setText(hint);
 				return round;
 			}
 			Spinner createRoundC(Composite parent) {
@@ -1045,24 +1045,24 @@ public:
 			_abilityComp = createC();
 			{
 				auto vgrp = new Group(_abilityComp, SWT.NONE);
-				vgrp.setText = _prop.msgs.motionEnhValue;
-				vgrp.setLayout = new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0);
+				vgrp.setText(_prop.msgs.motionEnhValue);
+				vgrp.setLayout(new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0));
 				auto vcomp = new Composite(vgrp, SWT.NONE);
-				vcomp.setLayout = new GridLayout(2, false);
+				vcomp.setLayout(new GridLayout(2, false));
 				_abiVal = new Scale(vcomp, SWT.NONE);
 				auto gd_av = new GridData(GridData.FILL_HORIZONTAL);
 				gd_av.horizontalSpan = 2;
-				_abiVal.setLayoutData = gd_av;
-				_abiVal.setMinimum = 0;
-				_abiVal.setMaximum = Motion.aValue_max - Motion.aValue_min;
-				_abiVal.setPageIncrement = Motion.aValue_max / 2;
+				_abiVal.setLayoutData(gd_av);
+				_abiVal.setMinimum(0);
+				_abiVal.setMaximum(Motion.aValue_max - Motion.aValue_min);
+				_abiVal.setPageIncrement(Motion.aValue_max / 2);
 				_abiVal.addSelectionListener(new AbiValListener);
 				auto l_min = new Label(vcomp, SWT.NONE);
-				l_min.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
-				l_min.setText = to!(string)(Motion.aValue_min);
+				l_min.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));
+				l_min.setText(to!(string)(Motion.aValue_min));
 				auto l_max = new Label(vcomp, SWT.NONE);
-				l_max.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
-				l_max.setText = "+" ~ to!(string)(Motion.aValue_max);
+				l_max.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+				l_max.setText("+" ~ to!(string)(Motion.aValue_max));
 				_abiRound = createRoundC(_abilityComp);
 			}
 			_roundComp = createC();
@@ -1072,15 +1072,15 @@ public:
 			_valueComp = createC();
 			{
 				auto grp = new Group(_valueComp, SWT.NONE);
-				grp.setText = _prop.msgs.motionDamageType;
-				grp.setLayout = new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0);
-				grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+				grp.setText(_prop.msgs.motionDamageType);
+				grp.setLayout(new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0));
+				grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				auto comp = new Composite(grp, SWT.NONE);
-				comp.setLayout = new GridLayout(1, false);
+				comp.setLayout(new GridLayout(1, false));
 				auto dtl = new DamageTypeListener;
 				foreach (typ; [DamageType.LEVEL_RATIO, DamageType.NORMAL, DamageType.MAX]) {
 					auto radio = new Button(comp, SWT.RADIO);
-					radio.setText = _prop.msgs.damageType(typ);
+					radio.setText(_prop.msgs.damageType(typ));
 					radio.addSelectionListener(dtl);
 					_dmgTyp[typ] = radio;
 				}
@@ -1113,13 +1113,13 @@ public:
 				foreach (we; warningEvent) we();
 			}
 		}
-		_motions.setRedraw = false;
+		_motions.setRedraw(false);
 		_undo.reset();
 		foreach (m; motions) {
 			appendMotion(m.dup, -1, false, false, false);
 		}
 		foreach (dlg; modEvent) dlg();
-		_motions.setRedraw = true;
+		_motions.setRedraw(true);
 	}
 	@property
 	Motion[] motions() {

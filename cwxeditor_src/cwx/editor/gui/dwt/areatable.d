@@ -767,13 +767,13 @@ private:
 		itm.setText(ID, to!(string)(a.id));
 		itm.setText(NAME, a.name);
 		itm.setText(UC, to!(string)(uc));
-		itm.setData = a;
+		itm.setData(a);
 	}
 	void refData(A)(A a, TableItem itm) {
 		itm.setText(ID, to!(string)(a.id));
 		itm.setText(NAME, a.name);
 		itm.setText(UC, to!(string)(_summ.useCounter.get(A.toID(a.id))));
-		itm.setData = a;
+		itm.setData(a);
 	}
 	private int newAreaItem(int index) {
 		auto a = _summ.areas[index];
@@ -822,15 +822,15 @@ public:
 		_areas = new Table(parent, SWT.BORDER | SWT.FULL_SELECTION);
 		_areas.addDisposeListener(new ADListener);
 		_areas.addSelectionListener(new SListener);
-		_areas.setHeaderVisible = true;
+		_areas.setHeaderVisible(true);
 		auto idCol = new TableColumn(_areas, SWT.NULL);
-		idCol.setText = _prop.msgs.areaId;
+		idCol.setText(_prop.msgs.areaId);
 		saveColumnWidth!("prop.var.etc.areaIdColumn")(_prop, idCol);
 		auto nameCol = new TableColumn(_areas, SWT.NULL);
-		nameCol.setText = _prop.msgs.areaName;
+		nameCol.setText(_prop.msgs.areaName);
 		saveColumnWidth!("prop.var.etc.areaNameColumn")(_prop, nameCol);
 		auto countCol = new TableColumn(_areas, SWT.NULL);
-		countCol.setText = _prop.msgs.areaCount;
+		countCol.setText(_prop.msgs.areaCount);
 		saveColumnWidth!("prop.var.etc.areaCountColumn")(_prop, countCol);
 
 		_areasEdit = new TableTextEdit(_comm, _prop, _areas, 1, &editEnd);
@@ -851,7 +851,7 @@ public:
 		appendMenuTCPD(_prop, menu, this, true, true, true, true);
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(menu, _prop.msgs.menuReNumbering, _prop.images.menuReNumbering, &reNumbering);
-		_areas.setMenu = menu;
+		_areas.setMenu(menu);
 
 		_areas.addMouseListener(new MListener);
 		_areas.addKeyListener(new KListener);
@@ -1062,17 +1062,17 @@ public:
 	}
 	@property
 	private void selArea(int index) {
-		_areas.setSelection = index;
+		_areas.setSelection(index);
 		_areas.showSelection();
 	}
 	@property
 	private void selBattle(int index) {
-		_areas.setSelection = _summ.areas.length + index;
+		_areas.setSelection(_summ.areas.length + index);
 		_areas.showSelection();
 	}
 	@property
 	private void selPackage(int index) {
-		_areas.setSelection = _summ.areas.length + _summ.battles.length + index;
+		_areas.setSelection(_summ.areas.length + _summ.battles.length + index);
 		_areas.showSelection();
 	}
 	@property
@@ -1107,7 +1107,7 @@ public:
 	void openAreaEvent(int x, int y, bool shellActivate) {
 		auto itm = _areas.getItem(new Point(x, y));
 		if (itm) {
-			_areas.setSelection = [itm];
+			_areas.setSelection([itm]);
 			openAreaEvent(cast(AbstractArea) itm.getData(), shellActivate);
 		} else {
 			openAreaEvent(shellActivate);

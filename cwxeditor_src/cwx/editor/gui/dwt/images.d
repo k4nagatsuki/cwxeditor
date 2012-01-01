@@ -1136,12 +1136,12 @@ private:
 						auto img = cast(FlexImage) pimg;
 						Toggle tgl = img.inToggle(x, y);
 						if (tgl != Toggle.NONE) {
-							setCursor = getToggleCursor(tgl);
+							setCursor(getToggleCursor(tgl));
 							return;
 						}
 					}
 				}
-				setCursor = getToggleCursor(Toggle.NONE);
+				setCursor(getToggleCursor(Toggle.NONE));
 			}
 		}
 	}

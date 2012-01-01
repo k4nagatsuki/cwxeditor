@@ -168,7 +168,7 @@ private:
 				if (itm && CDetail.fromType(_cType).owner) {
 					auto c = cast(Content) itm.getData();
 					if (c.parent) {
-						_tree.setSelection = [itm];
+						_tree.setSelection([itm]);
 						create(itm);
 					}
 				}
@@ -218,13 +218,13 @@ private:
 		abstract override void dispose();
 	}
 	private static void insertStart(EventTreeView v, Commons comm, EventTree et, int index, Content c) {
-		if (v) v._tree.setRedraw = false;
-		scope (exit) if (v) v._tree.setRedraw = true;
+		if (v) v._tree.setRedraw(false);
+		scope (exit) if (v) v._tree.setRedraw(true);
 		et.insert(index, c);
 		if (v) {
 			auto itm = createTreeItem(v._tree, c, c.name, v._prop.images.content(c.type), index);
 			v.createChilds(itm, c, false);
-			itm.setExpanded = true;
+			itm.setExpanded(true);
 			v.refreshStatusLine();
 			v._refreshTopStart();
 		}
@@ -262,8 +262,8 @@ private:
 					et.insert(index, c);
 					text = c.name;
 				}
-				if (v) v._tree.setRedraw = false;
-				scope (exit) if (v) v._tree.setRedraw = true;
+				if (v) v._tree.setRedraw(false);
+				scope (exit) if (v) v._tree.setRedraw(true);
 				if (v) {
 					auto now = v.fromPath(_path[i]);
 					auto par = now.getParentItem();
@@ -274,7 +274,7 @@ private:
 						itm = createTreeItem(v._tree, c, text, prop.images.content(c.type), index);
 					}
 					v.createChilds(itm, c, false);
-					itm.setExpanded = true;
+					itm.setExpanded(true);
 				}
 				delImpl(v, comm, et, tc);
 				if (v && !pc) {
@@ -327,8 +327,8 @@ private:
 			auto v = view();
 			udb(v);
 			scope (exit) uda(v);
-			if (v) v._tree.setRedraw = false;
-			scope (exit) if (v) v._tree.setRedraw = true;
+			if (v) v._tree.setRedraw(false);
+			scope (exit) if (v) v._tree.setRedraw(true);
 			for (size_t i = 0; i < _count; i++) {
 				auto node = et.starts[_index].toNode();
 				auto c = Content.createFromNode(node, LATEST_VERSION);
@@ -380,8 +380,8 @@ private:
 			auto v = view();
 			udb(v);
 			scope (exit) uda(v);
-			if (v) v._tree.setRedraw = false;
-			scope (exit) if (v) v._tree.setRedraw = true;
+			if (v) v._tree.setRedraw(false);
+			scope (exit) if (v) v._tree.setRedraw(true);
 			delImpl(v, comm, et, et.starts[_index]);
 			comm.refUseCount.call();
 			if (v) {
@@ -450,7 +450,7 @@ private:
 		foreach (childItm; itm.getItems()) {
 			auto par = cast(Content) itm.getData();
 			assert (par.detail.owner);
-			childItm.setText = eventText(par, cast(Content) childItm.getData());
+			childItm.setText(eventText(par, cast(Content) childItm.getData()));
 		}
 		_tree.select = itm;
 		.forceFocus(_tree, false);
@@ -470,8 +470,8 @@ private:
 	void create(TreeItem insertTo) {
 		if (!_tree.getItems().length) return;
 		if (!_arrowMode) {
-			_tree.setRedraw = false;
-			scope (exit) _tree.setRedraw = true;
+			_tree.setRedraw(false);
+			scope (exit) _tree.setRedraw(true);
 			if (_cType == CType.START) {
 				if (insertTo) return;
 				create(null, _cType, "", (Content evt) {
@@ -510,15 +510,15 @@ private:
 						store(owner);
 						owner.add(evt);
 						TreeItem itm = createTreeItem(oItm, evt, eventText(owner, evt), _prop.images.content(evt.type));
-						oItm.setExpanded = true;
-						_tree.setSelection = [itm];
+						oItm.setExpanded(true);
+						_tree.setSelection([itm]);
 						if (insertTo) {
 							auto ic = cast(Content) insertTo.getData();
 							_comm.delContent.call(ic);
 							evt.add(ic);
 							insertTo.dispose();
 							createChilds(itm, evt, false);
-							itm.setExpanded = true;
+							itm.setExpanded(true);
 						}
 						_tree.showSelection();
 						.forceFocus(_tree, false);
@@ -539,12 +539,12 @@ private:
 	}
 	void arrow() {
 		_arrowMode = true;
-		_comp.setCursor = null;
+		_comp.setCursor(null);
 		if (_toolWin && !_toolWin.isDisposed()) {
-			_toolWin.setCursor = null;
+			_toolWin.setCursor(null);
 		}
 		if (_autoHideTools) {
-			_autoHideTools.setCursor = null;
+			_autoHideTools.setCursor(null);
 		}
 		_radioGroup.select = _arrowTI;
 	}
@@ -1109,9 +1109,9 @@ private:
 				} else {
 					_et.remove(c);
 				}
-				_tree.setRedraw = false;
+				_tree.setRedraw(false);
 				itm.dispose();
-				_tree.setRedraw = true;
+				_tree.setRedraw(true);
 				_comm.refUseCount.call();
 			}
 		}
@@ -1155,16 +1155,16 @@ private:
 						// 転送先が自分の子コンテントではないなら転送成功
 						owner.add(evt);
 						_comm.refContent.call(evt);
-						_tree.setRedraw = false;
+						_tree.setRedraw(false);
 						auto itm = createTreeItem(ti, evt, eventText(owner, evt), _prop.images.content(evt.type));
-						_tree.setSelection = [itm];
+						_tree.setSelection([itm]);
 						refreshStatusLine();
 						_comm.refUseCount.call();
 						if (evt.detail.owner) {
 							createChilds(itm, evt);
-							itm.setExpanded = true;
+							itm.setExpanded(true);
 						}
-						_tree.setRedraw = true;
+						_tree.setRedraw(true);
 						refreshStatusLine();
 						e.detail = DND.DROP_MOVE;
 					}
@@ -1201,12 +1201,12 @@ private:
 		}
 		void create() {
 			if (_itm.getSelection()) {
-				_v._comp.setCursor = _cursor;
+				_v._comp.setCursor(_cursor);
 				if (_v._toolWin && !_v._toolWin.isDisposed()) {
-					_v._toolWin.setCursor = _cursor;
+					_v._toolWin.setCursor(_cursor);
 				}
 				if (_v._autoHideTools) {
-					_v._autoHideTools.setCursor = _cursor;
+					_v._autoHideTools.setCursor(_cursor);
 				}
 				_v._arrowMode = false;
 				_v._cType = type;
@@ -1233,9 +1233,9 @@ private:
 			if (newd.use(CArg.DIALOGS) && !oldd.use(CArg.DIALOGS)) {
 				c.dialogs = [new SDialog];
 			}
-			sel.setImage = _prop.images.content(type);
+			sel.setImage(_prop.images.content(type));
 			foreach (itm; sel.getItems()) {
-				itm.setText = eventText(c, cast(Content) itm.getData());
+				itm.setText(eventText(c, cast(Content) itm.getData()));
 			}
 			refreshConvMenu();
 			refreshStatusLine();
@@ -1254,7 +1254,7 @@ private:
 		g.append(itm);
 		if (type != CType.START) {
 			ce.convMenuItem = createMenuItem(convMenu, text, img, &ce.convert);
-			ce.convMenuItem.setEnabled = false;
+			ce.convMenuItem.setEnabled(false);
 			_conts ~= ce;
 		}
 		return itm;
@@ -1303,14 +1303,14 @@ private:
 		int x = _tree.toDisplay(tb.x, tb.y).x;
 		int y = _contentsBoxArea.toDisplay(0, ca1.y).y + ca1.height;
 		auto size = _autoHideTools.computeSize(tb.width, SWT.DEFAULT);
-		_autoHideTools.setBounds = new Rectangle(x, y, size.x, size.y);
+		_autoHideTools.setBounds(new Rectangle(x, y, size.x, size.y));
 	}
 	class MouseTrack : Listener {
 		override void handleEvent(Event e) {
 			auto c = cast(Control) e.widget;
 			if (!c || !_autoHideTools) return;
 			if (!isDescendant(_autoHideTools, c) && !isDescendant(_contentsBoxArea, c)) {
-				_autoHideTools.setVisible = false;
+				_autoHideTools.setVisible(false);
 				return;
 			}
 			auto p = c.toDisplay(e.x, e.y);
@@ -1329,10 +1329,10 @@ private:
 			if (ca1.contains(p1) || ca2.contains(p2)) {
 				if (!_autoHideTools.isVisible()) {
 					calcAutoHideSize();
-					_autoHideTools.setVisible = true;
+					_autoHideTools.setVisible(true);
 				}
 			} else {
-				_autoHideTools.setVisible = false;
+				_autoHideTools.setVisible(false);
 			}
 		}
 	}
@@ -1342,10 +1342,10 @@ private:
 			if (_toolWin.isDisposed()) return;
 			auto oldAct = _comm.actToolWin;
 			if (oldAct && !oldAct.isDisposed() && oldAct.isVisible()) {
-				oldAct.setVisible = false;
+				oldAct.setVisible(false);
 			}
 			_comm.actToolWin = _toolWin;
-			_toolWin.setVisible = _toolWinVisible;
+			_toolWin.setVisible(_toolWinVisible);
 		}
 	}
 	class TRDListener : DisposeListener {
@@ -1400,7 +1400,7 @@ private:
 		public override void shellClosed(ShellEvent e) {
 			assert (_toolWin);
 			if (_toolWin.isDisposed()) return;
-			_toolWin.setVisible = false;
+			_toolWin.setVisible(false);
 			e.doit = false;
 		}
 	}
@@ -1441,8 +1441,8 @@ private:
 			if (b.y + b.height <= ca.y) continue;
 			if (ca.y + ca.height < b.y) break;
 			if (_prop.var.etc.drawContentTreeLine && 0 < i) {
-				e.gc.setForeground = lineColor;
-				scope (exit) e.gc.setForeground = fore;
+				e.gc.setForeground(lineColor);
+				scope (exit) e.gc.setForeground(fore);
 				e.gc.drawLine(0, b.y, ca.width, b.y);
 			}
 			if (_prop.var.etc.drawCountOfUseOfStart) {
@@ -1450,8 +1450,8 @@ private:
 				int tx = ca.width - maxW - 5;
 				int ty = b.y + (b.height - h) / 2;
 				e.gc.drawString(t, tx, ty);
-				e.gc.setForeground = fontColor;
-				scope (exit) e.gc.setForeground = fore;
+				e.gc.setForeground(fontColor);
+				scope (exit) e.gc.setForeground(fore);
 				e.gc.drawString(_prop.msgs.startUseCount, tx - ucExtent.x - 5, ty);
 			}
 		}
@@ -1462,7 +1462,7 @@ private:
 		auto back = e.gc.getBackground();
 		auto font = e.gc.getFont();
 		auto fSize = font ? cast(uint) font.getFontData()[0].height : 0;
-		e.gc.setFont = new Font(_tree.getDisplay(), dwtData(_prop.looks.textDlgFont(fSize)));
+		e.gc.setFont(new Font(_tree.getDisplay(), dwtData(_prop.looks.textDlgFont(fSize))));
 		scope (exit) e.gc.getFont().dispose();
 		TreeItem[] itms;
 		void recurse(TreeItem itm) {
@@ -1512,9 +1512,9 @@ private:
 					by = ty - MARGIN_T;
 				}
 
-				e.gc.setAlpha = 128;
+				e.gc.setAlpha(128);
 				e.gc.fillRectangle(bx, by, bw, bh);
-				e.gc.setAlpha = alpha;
+				e.gc.setAlpha(alpha);
 
 				// FIXME: 場合によって改行が反映されない
 //				e.gc.drawString(cm, tx, ty, true);
@@ -1527,8 +1527,8 @@ private:
 				// FIXME: 一度でもsetAlpha()を呼び出すと描画されなくなる
 //				e.gc.drawRectangle(bx, by, bw, bh);
 //				e.gc.drawLine(px, py, px + dis - MARGIN_L - 2, py);
-				e.gc.setBackground = lineColor;
-				scope (exit) e.gc.setBackground = back;
+				e.gc.setBackground(lineColor);
+				scope (exit) e.gc.setBackground(back);
 				e.gc.fillRectangle(px, py, dis - MARGIN_L - 2, 1);
 				e.gc.fillRectangle(bx, by, bw, 1);
 				e.gc.fillRectangle(bx, by + bh - 1, bw, 1);
@@ -1565,17 +1565,17 @@ public:
 		_contentsBoxArea = contentsBoxArea;
 
 		_comp = new Composite(parent, SWT.NONE);
-		_comp.setLayout = zeroGridLayout(1, false);
+		_comp.setLayout(zeroGridLayout(1, false));
 		if (_prop.var.etc.contentsFloat) {
 			_toolWin = new Shell(parent.getShell(), SWT.TITLE | SWT.RESIZE | SWT.TOOL);
-			_toolWin.setLayout = zeroGridLayout(1);
-			_toolWin.setText = prop.msgs.tools;
+			_toolWin.setLayout(zeroGridLayout(1));
+			_toolWin.setText(prop.msgs.tools);
 			_toolWin.addShellListener(new TSListener);
 			_toolWin.addMouseListener(new TMListener);
 			_cbarPar = new Composite(_toolWin, SWT.NONE);
 		} else if (_prop.var.etc.contentsAutoHide) {
 			_autoHideTools = new Shell(parent.getShell(), SWT.NO_TRIM);
-			_autoHideTools.setLayout = zeroGridLayout(1);
+			_autoHideTools.setLayout(zeroGridLayout(1));
 			_autoHideTools.addMouseListener(new TMListener);
 			_cbarPar = new Composite(_autoHideTools, SWT.NONE);
 			auto mTrack = new MouseTrack;
@@ -1586,10 +1586,10 @@ public:
 		}
 		_autoOpen = _prop.var.etc.contentsAutoOpen;
 		_conti = _prop.var.etc.contentsContinue;
-		_cbarPar.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-		_cbarPar.setLayout = new FillLayout;
+		_cbarPar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		_cbarPar.setLayout(new FillLayout);
 		_tree = new Tree(_comp, SWT.SINGLE | SWT.BORDER | SWT.VIRTUAL);
-		_tree.setLayoutData = new GridData(GridData.FILL_BOTH);
+		_tree.setLayoutData(new GridData(GridData.FILL_BOTH));
 		_tree.addPaintListener(new PaintTree);
 		new TreeEdit(_tree, &editEnd, &createEditor);
 		_tree.addDisposeListener(new TRDListener);
@@ -1623,9 +1623,9 @@ public:
 						new MenuItem(popup, SWT.SEPARATOR);
 						createMenuItem(popup, "debug: Create CWX &Path", null, &createCWXPath);
 					}
-					convMI.setMenu = _convM;
+					convMI.setMenu(_convM);
 
-					_tree.setMenu = popup;
+					_tree.setMenu(popup);
 					break;
 				} catch (Throwable e) {
 					// 環境によってはMenuが異常な状態になり、
@@ -1674,10 +1674,10 @@ public:
 		_comm.refContentText.add(&refreshStatusLine);
 
 		auto dt = new DropTarget(_tree, DND.DROP_DEFAULT | DND.DROP_MOVE);
-		dt.setTransfer = [XMLBytesTransfer.getInstance()];
+		dt.setTransfer([XMLBytesTransfer.getInstance()]);
 		dt.addDropListener(new EventDropTarget);
 		auto ds = new DragSource(_tree, DND.DROP_MOVE);
-		ds.setTransfer = [XMLBytesTransfer.getInstance()];
+		ds.setTransfer([XMLBytesTransfer.getInstance()]);
 		ds.addDragListener(new EventDragSource);
 	}
 	private int _parX, _parY;
@@ -1706,23 +1706,23 @@ public:
 			Menu convMenu(string text, Image img) {
 				auto mi = createMenuItem(_convM, text, img, dlg, SWT.CASCADE);
 				auto m = new Menu(_tree.getShell(), SWT.DROP_DOWN);
-				mi.setMenu = m;
+				mi.setMenu(m);
 				return m;
 			}
 
 			auto atm = new ToolBar(cbar, SWT.FLAT);
 			atm.addMouseListener(new TMListener);
 			_arrowTI = createToolItem(atm, _prop.msgs.evtArrow, _prop.images.evtArrow, &arrow, SWT.RADIO);
-			_arrowTI.setSelection = true;
+			_arrowTI.setSelection(true);
 			g.append(_arrowTI);
 			createCoolItem(cbar, atm);
 
 			auto mode = new ToolBar(cbar, SWT.FLAT);
 			mode.addMouseListener(new TMListener);
 			_contiTI = createToolItem(mode, _prop.msgs.evtAddContinue, _prop.images.evtAddContinue, &addContinue, SWT.CHECK);
-			_contiTI.setSelection = _conti;
+			_contiTI.setSelection(_conti);
 			_autoOpenTI = createToolItem(mode, _prop.msgs.evtAutoOpen, _prop.images.evtAutoOpen, &autoOpen, SWT.CHECK);
-			_autoOpenTI.setSelection = _autoOpen;
+			_autoOpenTI.setSelection(_autoOpen);
 			createCoolItem(cbar, mode);
 
 			auto e1 = new ToolBar(cbar, SWT.FLAT);
@@ -1837,8 +1837,8 @@ public:
 			auto dummy = new Composite(_toolWin, SWT.NONE);
 			auto gd = new GridData(GridData.FILL_BOTH);
 			gd.heightHint = 0;
-			dummy.setLayoutData = gd;
-			_toolWin.setVisible = false;
+			dummy.setLayoutData(gd);
+			_toolWin.setVisible(false);
 			auto pb = _toolWin.getParent().getBounds();
 			auto size = _toolWin.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 			auto ts = _toolWin.getBounds();
@@ -1921,12 +1921,12 @@ public:
 	private void refreshConvMenu() {
 		if (!_et || !selection) {
 			foreach (ce; _conts) {
-				ce.convMenuItem.setEnabled = false;
+				ce.convMenuItem.setEnabled(false);
 			}
 		} else {
 			auto c = cast(Content) selection.getData();
 			foreach (ce; _conts) {
-				ce.convMenuItem.setEnabled = c.canConvert(ce.type);
+				ce.convMenuItem.setEnabled(c.canConvert(ce.type));
 			}
 		}
 	}
@@ -1973,7 +1973,7 @@ public:
 			} break;
 			default: assert (0);
 			}
-			itm.setImage = _prop.images.content(c.type);
+			itm.setImage(_prop.images.content(c.type));
 		}
 		refreshStatusLine();
 		_comm.refUseCount.call();
@@ -1990,21 +1990,21 @@ public:
 				dlg.forceCancel();
 			}
 			_et = et;
-			_tree.setRedraw = false;
+			_tree.setRedraw(false);
 			_tree.removeAll();
 			if (et) {
 				foreach (start; et.starts) {
 					auto itm = createTreeItem(_tree, start, start.name, _prop.images.content(CType.START));
 					createChilds(itm, start);
-					itm.setExpanded = true;
+					itm.setExpanded(true);
 				}
 			} else {
 				closeToolWindow();
 			}
 			if (0 < _tree.getItemCount()) {
-				_tree.setSelection = [_tree.getItem(0)];
+				_tree.setSelection([_tree.getItem(0)]);
 			}
-			_tree.setRedraw = true;
+			_tree.setRedraw(true);
 			refreshStatusLine();
 		}
 	}
@@ -2013,7 +2013,7 @@ public:
 	}
 	void treeClose() {
 		foreach (itm; _tree.getItems()) {
-			itm.setExpanded = false;
+			itm.setExpanded(false);
 		}
 	}
 	private void editEnd(TreeItem itm, Control c) {
@@ -2036,7 +2036,7 @@ public:
 			} else {
 				evt.name = text;
 			}
-			itm.setText = evt.name;
+			itm.setText(evt.name);
 			if (evt.type == CType.START && _tree.indexOf(itm) == 0) {
 				_refreshTopStart();
 			}
@@ -2077,7 +2077,7 @@ public:
 			if (name == evt.name) return;
 			store(evt);
 			evt.name = name;
-			itm.setText = combo.getText();
+			itm.setText(combo.getText());
 			_comm.refUseCount.call();
 		}
 		_comm.refContent.call(evt);
@@ -2284,12 +2284,12 @@ public:
 		foreach (c; evt.next) {
 			auto itm = createTreeItem(parent, c, eventText(evt, c), _prop.images.content(c.type));
 			if (select) {
-				_tree.setSelection = [itm];
+				_tree.setSelection([itm]);
 			}
 			if (c.detail.owner) {
 				createChilds(itm, c, select);
 			}
-			itm.setExpanded = true;
+			itm.setExpanded(true);
 		}
 	}
 
@@ -2304,8 +2304,8 @@ public:
 
 	private static void udImpl(int To)(EventTreeView v, Commons comm, EventTree et, Content c, bool store) {
 		if (!et) return;
-		if (v) v._tree.setRedraw = false;
-		scope (exit) if (v) v._tree.setRedraw = true;
+		if (v) v._tree.setRedraw(false);
+		scope (exit) if (v) v._tree.setRedraw(true);
 		auto pc = c.parent;
 		int i, j;
 		auto path = c.ctPath;
@@ -2364,7 +2364,7 @@ public:
 			if (_toolWin.isDisposed()) return;
 			if (_et) {
 				if (_opened) {
-					_toolWin.setVisible = true;
+					_toolWin.setVisible(true);
 					_toolWinVisible = true;
 				} else {
 					_opened = true;
@@ -2379,13 +2379,13 @@ public:
 	void closeToolWindow() {
 		if (_toolWin) {
 			if (_toolWin.isDisposed()) return;
-			_toolWin.setVisible = false;
+			_toolWin.setVisible(false);
 			_toolWinVisible = false;
 		}
 	}
 
 	void refreshTreeName() {
-		_tree.getItems()[0].setText = _et.name;
+		_tree.getItems()[0].setText(_et.name);
 		refreshStatusLine();
 	}
 
@@ -2395,8 +2395,8 @@ public:
 		auto owner = cast(Content) itm.getData();
 		assert (owner);
 		if (!owner.detail.owner) return;
-		_tree.setRedraw = false;
-		scope (exit) _tree.setRedraw = true;
+		_tree.setRedraw(false);
+		scope (exit) _tree.setRedraw(true);
 		store(owner);
 		foreach (ct; cs) {
 			owner.add(ct);
@@ -2407,8 +2407,8 @@ public:
 		refreshStatusLine();
 	}
 	private void addStarts(Content[] cs ...) {
-		_tree.setRedraw = false;
-		scope (exit) _tree.setRedraw = true;
+		_tree.setRedraw(false);
+		scope (exit) _tree.setRedraw(true);
 		auto sel = selection;
 		int index;
 		if (sel) {
@@ -2431,7 +2431,7 @@ public:
 			_et.insert(index + i, c);
 			sItm = createTreeItem(_tree, c, c.name, _prop.images.content(c.type), index + i);
 			createChilds(sItm, c, true);
-			sItm.setExpanded = true;
+			sItm.setExpanded(true);
 			_comm.refContent.call(c);
 		}
 		if (!sItm) return;
@@ -2500,8 +2500,8 @@ public:
 		void del(SelectionEvent se) {
 			auto itm = selection;
 			if (itm && itm !is _tree.getItems()[0]) {
-				_tree.setRedraw = false;
-				scope(exit) _tree.setRedraw = true;
+				_tree.setRedraw(false);
+				scope(exit) _tree.setRedraw(true);
 				delImpl(itm, true);
 				_comm.refUseCount.call();
 			}
@@ -2540,7 +2540,7 @@ public:
 	private void __refreshCardImpl(TreeItem evt) {
 		foreach (childItm; evt.getItems()) {
 			auto child = cast(Content) childItm.getData();
-			childItm.setText = eventText(cast(Content) evt.getData(), child);
+			childItm.setText(eventText(cast(Content) evt.getData(), child));
 			if (child.detail.owner) {
 				__refreshCardImpl(childItm);
 			}
@@ -2559,7 +2559,7 @@ public:
 		assert (par.detail.owner);
 	} body {
 		auto e = cast(Content) itm.getData();
-		itm.setText = eventText(par, e);
+		itm.setText(eventText(par, e));
 		if (e.detail.owner) {
 			foreach (child; itm.getItems()) {
 				__refreshEventTextImpl(e, child);
@@ -2573,7 +2573,7 @@ public:
 			foreach (itm; _tree.getItems()) {
 				auto start = cast(Content) itm.getData();
 				assert (start.type == CType.START);
-				itm.setText = start.name;
+				itm.setText(start.name);
 				foreach (child; itm.getItems()) {
 					__refreshEventTextImpl(start, child);
 				}

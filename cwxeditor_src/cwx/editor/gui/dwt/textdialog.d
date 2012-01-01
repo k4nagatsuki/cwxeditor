@@ -53,18 +53,18 @@ protected:
 		auto cl = new CenterLayout;
 		cl.fillHorizontal = true;
 		cl.fillVertical = true;
-		area.setLayout = cl;
+		area.setLayout(cl);
 		int style = SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL;
 		if (_readOnly) style |= SWT.READ_ONLY;
 		_viewer = new Text(area, style);
 		createTextMenu!Text(_comm, _prop, _viewer, &catchMod);
-		_viewer.setText = _text;
+		_viewer.setText(_text);
 		if (!_readOnly) {
-			_viewer.setSelection = _text.length;
+			_viewer.setSelection(_text.length);
 		}
 		auto font = _viewer.getFont();
 		auto fSize = font ? cast(uint) font.getFontData()[0].height : 0;
-		_viewer.setFont = new Font(Display.getCurrent(), dwtData(_prop.looks.textDlgFont(fSize)));
+		_viewer.setFont(new Font(Display.getCurrent(), dwtData(_prop.looks.textDlgFont(fSize))));
 		closeEvent ~= () {
 			_viewer.getFont().dispose();
 		};

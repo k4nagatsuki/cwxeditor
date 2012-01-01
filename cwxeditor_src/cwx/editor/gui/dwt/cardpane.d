@@ -343,7 +343,7 @@ private:
 						foreach (i, c; _cards) {
 							v.createTableItem(c, _indices[i]);
 						}
-						v._tbl.setSelection = [_indices[$ - 1]];
+						v._tbl.setSelection([_indices[$ - 1]]);
 						v._tbl.showSelection();
 					} else {
 						v.refresh();
@@ -459,7 +459,7 @@ private:
 			foreach (i, c; __cards) {
 				createTableItem(c);
 				if (sel is c) {
-					_tbl.setSelection = [i];
+					_tbl.setSelection([i]);
 				}
 			}
 			_tbl.showSelection();
@@ -497,7 +497,7 @@ private:
 		static if (is (CardOwner == Summary)) {
 			itm.setText(3, to!(string)(_summ.useCounter.get(C.toID(c.id))));
 		}
-		itm.setData = c;
+		itm.setData(c);
 
 		int w = textWidth(_prop, itm.getParent(), c.name);
 		static if (is(C : CastCard)) {
@@ -794,7 +794,7 @@ private:
 				refresh();
 				foreach (i, itm; _tbl.getItems()) {
 					if (c is itm.getData()) {
-						_tbl.setSelection = [i];
+						_tbl.setSelection([i]);
 						_tbl.showSelection();
 						return;
 					}
@@ -823,7 +823,7 @@ private:
 		if (fromSPath.length > 0 && !cfnmatch(fromSPath, nabs(ownerScenarioPath))) {
 			scope uc = new UseCounter;
 			foreach (c; cs) {
-				c.setUseCounter = uc;
+				c.setUseCounter(uc);
 			}
 			bool copy;
 			auto skin = _comm.skin;
@@ -901,7 +901,7 @@ private:
 		int index = _list.selection;
 		refresh();
 		if (index >= 0) {
-			_tbl.setSelection = [index];
+			_tbl.setSelection([index]);
 			_tbl.showSelection();
 		}
 		refreshStatusLine();
@@ -1005,7 +1005,7 @@ private:
 			if (_tbl is c.getParent()) return;
 			int i = c.getParent().indexOf(c);
 			auto col = _tbl.getColumn(i);
-			col.setWidth = width;
+			col.setWidth(width);
 		}
 		class DisposeTable : DisposeListener {
 			override void widgetDisposed(DisposeEvent e) {
@@ -1031,29 +1031,29 @@ private:
 		_list.selectChanged(&refreshStatusLine);
 		_tbl = new Table(parent, SWT.FULL_SELECTION | (EditMode ? SWT.SINGLE : SWT.MULTI) | SWT.BORDER);
 		_tbl.addSelectionListener(new SelChanged);
-		_tbl.setHeaderVisible = true;
+		_tbl.setHeaderVisible(true);
 		auto idCol = new TableColumn(_tbl, SWT.NONE);
-		idCol.setText = _prop.msgs.cardId;
-		idCol.setWidth = _prop.var.etc.cardIdColumn;
+		idCol.setText(_prop.msgs.cardId);
+		idCol.setWidth(_prop.var.etc.cardIdColumn);
 		static if (is(CardOwner : Summary)) {
 			idCol.addControlListener(new ColResize!("cardIdColumn"));
 		}
 		auto nameCol = new TableColumn(_tbl, SWT.NONE);
-		nameCol.setText = _prop.msgs.cardName;
-		nameCol.setWidth = _prop.var.etc.cardNameColumn;
+		nameCol.setText(_prop.msgs.cardName);
+		nameCol.setWidth(_prop.var.etc.cardNameColumn);
 		static if (is(CardOwner : Summary)) {
 			nameCol.addControlListener(new ColResize!("cardNameColumn"));
 		}
 		auto descCol = new TableColumn(_tbl, SWT.NONE);
-		descCol.setText = _prop.msgs.cardDesc;
-		descCol.setWidth = _prop.var.etc.cardDescriptionColumn;
+		descCol.setText(_prop.msgs.cardDesc);
+		descCol.setWidth(_prop.var.etc.cardDescriptionColumn);
 		static if (is(CardOwner : Summary)) {
 			descCol.addControlListener(new ColResize!("cardDescriptionColumn"));
 		}
 		static if (is (CardOwner == Summary)) {
 			auto ucCol = new TableColumn(_tbl, SWT.NONE);
-			ucCol.setText = _prop.msgs.cardCount;
-			ucCol.setWidth = _prop.var.etc.cardCountColumn;
+			ucCol.setText(_prop.msgs.cardCount);
+			ucCol.setWidth(_prop.var.etc.cardCountColumn);
 			static if (is(CardOwner : Summary)) {
 				ucCol.addControlListener(new ColResize!("cardCountColumn"));
 			}
@@ -1262,8 +1262,8 @@ public:
 			new MenuItem(pop, SWT.SEPARATOR);
 			appendMenuTCPD(_prop, pop, this, false, true, false, false);
 		}
-		_list.setMenu = pop;
-		_tbl.setMenu = pop;
+		_list.setMenu(pop);
+		_tbl.setMenu(pop);
 		refreshStatusLine();
 	}
 
@@ -1519,7 +1519,7 @@ public:
 				foreach (c; cs) {
 					createTableItem(c);
 				}
-				_tbl.setSelection = [_tbl.getItemCount() - 1];
+				_tbl.setSelection([_tbl.getItemCount() - 1]);
 				_tbl.showSelection();
 			} else {
 				refresh();

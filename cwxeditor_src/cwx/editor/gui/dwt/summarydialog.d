@@ -96,12 +96,12 @@ private:
 
 	void levMaxEnter(int enter) {
 		if (enter > 0 && _levMin.getSelection() != 0 && enter < _levMin.getSelection()) {
-			_levMin.setSelection = enter;
+			_levMin.setSelection(enter);
 		}
 	}
 	void levMinEnter(int enter) {
 		if (enter > 0 && _levMax.getSelection() != 0 && enter > _levMax.getSelection()) {
-			_levMax.setSelection = enter;
+			_levMax.setSelection(enter);
 		}
 	}
 
@@ -155,25 +155,25 @@ private:
 			{
 				void drawCenterText(FontData fontData, string text, int y) {
 					scope font = new Font(d, fontData);
-					gc.setFont = font;
+					gc.setFont(font);
 					scope p = gc.stringExtent(text);
 					gc.drawString(text, (size.width - p.x) / 2, y, true);
 					font.dispose();
 				}
 				int alpha;
 				scope c = new Color(d, dwtData(_prop.looks.summaryLevelColor, alpha));
-				gc.setForeground = c;
-				gc.setAlpha = alpha;
+				gc.setForeground(c);
+				gc.setAlpha(alpha);
 				drawCenterText(dwtData(_prop.looks.summaryLevelFont(skin.legacy)),
 					_prop.msgs.targetLevelText(_levMin.getSelection(), _levMax.getSelection()),
 					_prop.looks.summaryLevelY);
 				c.dispose();
-				gc.setAlpha = 255;
-				gc.setForeground = d.getSystemColor(SWT.COLOR_BLACK);
+				gc.setAlpha(255);
+				gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
 				drawCenterText(dwtData(_prop.looks.summaryTitleFont(skin.legacy)),
 					_sname.getText(), _prop.looks.summaryTitleY);
 				scope font = new Font(d, dwtData(_prop.looks.summaryDescFont(skin.legacy)));
-				gc.setFont = font;
+				gc.setFont(font);
 				int hig = gc.getFontMetrics().getHeight();
 				int x = _prop.looks.summaryDescXY.x;
 				int y = _prop.looks.summaryDescXY.y;
@@ -185,7 +185,7 @@ private:
 				} else {
 					gc.drawText(_desc.getRRText(), x, y, SWT.DRAW_DELIMITER | SWT.DRAW_TRANSPARENT);
 				}
-				gc.setFont = null;
+				gc.setFont(null);
 				font.dispose();
 				drawCenterText(dwtData(_prop.looks.summaryPageFont(skin.legacy)),
 					_prop.msgs.summaryPageDummy, _prop.looks.summaryPageY);
@@ -216,31 +216,31 @@ private:
 	void constructTab1(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
 		auto size = _prop.looks.summarySize;
-		comp.setLayout = new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0);
+		comp.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0));
 		_summImage = new Canvas(comp, SWT.BORDER | SWT.DOUBLE_BUFFERED);
-		_summImage.setLayoutData = _summImage.computeSize(size.width, size.height);
+		_summImage.setLayoutData(_summImage.computeSize(size.width, size.height));
 		_summImage.addPaintListener(new PListener);
 		auto tab = new CTabItem(tabf, SWT.NONE);
-		tab.setText = _prop.msgs.summaryImage;
-		tab.setControl = comp;
+		tab.setText(_prop.msgs.summaryImage);
+		tab.setControl(comp);
 	}
 	private void setCDataX(Control c, GridData data) {
 		auto p = c.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 		data.widthHint = p.x;
-		c.setLayoutData = data;
+		c.setLayoutData(data);
 	}
 	private void setCDataXY(Control c, GridData data) {
 		auto p = c.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 		data.widthHint = p.x;
 		data.heightHint = p.y;
-		c.setLayoutData = data;
+		c.setLayoutData(data);
 	}
 	void constructTab2(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
-		comp.setLayout = new GridLayout(1, true);
+		comp.setLayout(new GridLayout(1, true));
 		{
 			_tab2Sash = new SplitPane(comp, SWT.HORIZONTAL);
-			_tab2Sash.setLayoutData = new GridData(GridData.FILL_BOTH);
+			_tab2Sash.setLayoutData(new GridData(GridData.FILL_BOTH));
 			auto skin = _comm.skin;
 			{
 				bool including = isBinImg(_summ.imagePath);
@@ -252,112 +252,112 @@ private:
 			}
 			{
 				auto comp2 = new Composite(_tab2Sash, SWT.NONE);
-				comp2.setLayout = zeroGridLayout(1, true);
+				comp2.setLayout(zeroGridLayout(1, true));
 				{
 					auto grp = centerGroup(comp2, _prop.msgs.title, true, false, new GridData(GridData.FILL_BOTH));
-					grp.setLayout = new GridLayout(1, true);
+					grp.setLayout(new GridLayout(1, true));
 					_sname = new Text(grp, SWT.BORDER);
 					createTextMenu!Text(_comm, _prop, _sname, &catchMod);
 					mod(_sname);
 					setCDataX(_sname, new GridData(GridData.FILL_HORIZONTAL));
-					_sname.setText = _summ.scenarioName;
+					_sname.setText(_summ.scenarioName);
 					checker(_sname);
 				}
 				{
 					auto grp = centerGroup(comp2, _prop.msgs.author, true, false, new GridData(GridData.FILL_BOTH));
-					grp.setLayout = new GridLayout(1, true);
+					grp.setLayout(new GridLayout(1, true));
 					_author = new Text(grp, SWT.BORDER);
 					createTextMenu!Text(_comm, _prop, _author, &catchMod);
 					mod(_author);
 					setCDataX(_author, new GridData(GridData.FILL_HORIZONTAL));
-					_author.setText = _summ.author;
+					_author.setText(_summ.author);
 				}
 				{
 					auto grp = centerGroup(comp2, _prop.msgs.targetLevel, false, false, new GridData(GridData.FILL_BOTH));
-					grp.setLayout = new GridLayout(3, false);
+					grp.setLayout(new GridLayout(3, false));
 					_levMin = new Spinner(grp, SWT.BORDER);
 					mod(_levMin);
-					_levMin.setSelection = _summ.levelMin;
-					_levMin.setMinimum = 0;
-					_levMin.setMaximum = _prop.looks.levelMax;
+					_levMin.setSelection(_summ.levelMin);
+					_levMin.setMinimum(0);
+					_levMin.setMaximum(_prop.looks.levelMax);
 					new SpinnerEdit(_levMin, &levMinEnter);
 					auto lbl = new Label(grp, SWT.NONE);
-					lbl.setText = _prop.msgs.levSep;
-					lbl.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
+					lbl.setText(_prop.msgs.levSep);
+					lbl.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 					_levMax = new Spinner(grp, SWT.BORDER);
 					mod(_levMax);
-					_levMax.setSelection = _summ.levelMax;
-					_levMax.setMinimum = 0;
-					_levMax.setMaximum = _prop.looks.levelMax;
+					_levMax.setSelection(_summ.levelMax);
+					_levMax.setMinimum(0);
+					_levMax.setMaximum(_prop.looks.levelMax);
 					new SpinnerEdit(_levMax, &levMaxEnter);
 				}
 			}
-			_tab2Sash.setWeights = [_prop.var.etc.summaryParamSashL, _prop.var.etc.summaryParamSashR];
+			_tab2Sash.setWeights([_prop.var.etc.summaryParamSashL, _prop.var.etc.summaryParamSashR]);
 		}
 		{
 			auto grp = new Group(comp, SWT.NONE);
-			grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-			grp.setLayout = new CenterLayout(SWT.HORIZONTAL);
-			grp.setText = _prop.msgs.desc;
+			grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			grp.setLayout(new CenterLayout(SWT.HORIZONTAL));
+			grp.setText(_prop.msgs.desc);
 			_desc = new FixedWidthText(dwtData(_prop.looks.summaryDescFont(_summ.legacy)), _prop.looks.summaryDescLen, grp, SWT.BORDER);
 			createTextMenu!Text(_comm, _prop, _desc.widget, &catchMod);
 			mod(_desc.widget);
-			_desc.widget.setLayoutData = _desc.computeTextBaseSize(_prop.looks.summaryDescLine);
-			_desc.setText = _summ.desc;
+			_desc.widget.setLayoutData(_desc.computeTextBaseSize(_prop.looks.summaryDescLine));
+			_desc.setText(_summ.desc);
 		}
 		auto tab = new CTabItem(tabf, SWT.NONE);
-		tab.setText = _prop.msgs.baseData;
-		tab.setControl = comp;
+		tab.setText(_prop.msgs.baseData);
+		tab.setControl(comp);
 	}
 	void constructTab3(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
-		comp.setLayout = new GridLayout(1, true);
+		comp.setLayout(new GridLayout(1, true));
 		{
 			_tab3Sash = new SplitPane(comp, SWT.HORIZONTAL);
-			_tab3Sash.setLayoutData = new GridData(GridData.FILL_BOTH);
+			_tab3Sash.setLayoutData(new GridData(GridData.FILL_BOTH));
 			auto skin = _comm.skin;
 			{
 				auto comp2 = new Composite(_tab3Sash, SWT.NONE);
-				comp2.setLayout = zeroMarginGridLayout(1, true);
+				comp2.setLayout(zeroMarginGridLayout(1, true));
 				{
 					auto grp = new Group(comp2, SWT.NONE);
-					grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-					grp.setText = _prop.msgs.scenarioType;
-					grp.setLayout = new GridLayout(1, true);
+					grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+					grp.setText(_prop.msgs.scenarioType);
+					grp.setLayout(new GridLayout(1, true));
 					auto refTypes = new RefreshTypes;
 					_typeSkin = new Button(grp, SWT.RADIO);
-					_typeSkin.setText = _prop.msgs.sTypeXML;
+					_typeSkin.setText(_prop.msgs.sTypeXML);
 					_typeSkin.addSelectionListener(refTypes);
 					_typeClassic = new Button(grp, SWT.RADIO);
-					_typeClassic.setText = _prop.msgs.sTypeClassic;
+					_typeClassic.setText(_prop.msgs.sTypeClassic);
 					_typeClassic.addSelectionListener(refTypes);
 					_type = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 					mod(_type);
-					_type.setVisibleItemCount = 20;
-					_type.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+					_type.setVisibleItemCount(20);
+					_type.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 					refreshTypes();
 				}
 				{
 					auto grp = new Group(comp2, SWT.NONE);
-					grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-					grp.setText = _prop.msgs.qualification;
-					grp.setLayout = new GridLayout(2, false);
+					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+					grp.setText(_prop.msgs.qualification);
+					grp.setLayout(new GridLayout(2, false));
 					{
 						auto lblN = new Label(grp, SWT.NONE);
-						lblN.setText = _prop.msgs.rCouponNum;
+						lblN.setText(_prop.msgs.rCouponNum);
 						_rCouponNum = new Spinner(grp, SWT.BORDER);
 						mod(_rCouponNum);
-						_rCouponNum.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-						_rCouponNum.setSelection = _summ.rCouponNum;
-						_rCouponNum.setMaximum = 999;
-						_rCouponNum.setMinimum = 0;
+						_rCouponNum.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+						_rCouponNum.setSelection(_summ.rCouponNum);
+						_rCouponNum.setMaximum(999);
+						_rCouponNum.setMinimum(0);
 					}
 					{
 						auto lblR = new Label(grp, SWT.NONE);
 						auto gd = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
 						gd.horizontalSpan = 2;
-						lblR.setLayoutData = gd;
-						lblR.setText = _prop.msgs.rCoupons;
+						lblR.setLayoutData(gd);
+						lblR.setText(_prop.msgs.rCoupons);
 					}
 					{
 						_rCoupons = new Text(grp, SWT.BORDER | SWT.MULTI | SWT.WRAP);
@@ -371,15 +371,15 @@ private:
 							buf ~= t;
 							buf ~= "\n";
 						}
-						_rCoupons.setText = buf;
+						_rCoupons.setText(buf);
 					}
 				}
 			}
 			{
 				auto grp = new Group(_tab3Sash, SWT.NONE);
-				grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-				grp.setText = _prop.msgs.startArea;
-				grp.setLayout = new GridLayout(1, false);
+				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+				grp.setText(_prop.msgs.startArea);
+				grp.setLayout(new GridLayout(1, false));
 				_startArea = new Table(grp, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.V_SCROLL);
 				mod(_startArea);
 				auto idCol = new TableColumn(_startArea, SWT.NONE);
@@ -388,11 +388,11 @@ private:
 				setCDataXY(_startArea, new GridData(GridData.FILL_BOTH));
 				refreshAreas();
 			}
-			_tab3Sash.setWeights = [_prop.var.etc.rCouponsStartAreaSashL, _prop.var.etc.rCouponsStartAreaSashR];
+			_tab3Sash.setWeights([_prop.var.etc.rCouponsStartAreaSashL, _prop.var.etc.rCouponsStartAreaSashR]);
 		}
 		auto tab = new CTabItem(tabf, SWT.NONE);
-		tab.setText = _prop.msgs.etcData;
-		tab.setControl = comp;
+		tab.setText(_prop.msgs.etcData);
+		tab.setControl(comp);
 	}
 	class RefreshTypes : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
@@ -432,7 +432,7 @@ private:
 		_startArea.removeAll();
 		foreach (i, area; _summ.areas) {
 			auto itm = new TableItem(_startArea, SWT.NONE);
-			itm.setData = area;
+			itm.setData(area);
 			itm.setImage(0, _prop.images.area);
 			itm.setText(0, to!(string)(area.id));
 			itm.setText(1, area.name);
@@ -467,9 +467,9 @@ private:
 
 		if (!_typeSkin.getSelection() && !_typeClassic.getSelection()) {
 			if (_comm.skin.legacy) {
-				_typeClassic.setSelection = true;
+				_typeClassic.setSelection(true);
 			} else {
-				_typeSkin.setSelection = true;
+				_typeSkin.setSelection(true);
 			}
 			selType = _summ.type;
 			selClassic = _comm.skin.legacyEngine.length ? _comm.skin.legacyEngine : null;
@@ -513,7 +513,7 @@ private:
 			}
 		}
 		_hasLegacySkin = false;
-		_typeClassic.setEnabled = true;
+		_typeClassic.setEnabled(true);
 		if (_typeSkin.getSelection()) {
 			initSkin();
 		} else {
@@ -539,9 +539,9 @@ private:
 			}
 			if (!_type.getItemCount()) {
 				// クラシックエンジンが無い
-				_typeClassic.setEnabled = false;
-				_typeClassic.setSelection = false;
-				_typeSkin.setSelection = true;
+				_typeClassic.setEnabled(false);
+				_typeClassic.setSelection(false);
+				_typeSkin.setSelection(true);
 				initSkin();
 			}
 		}
@@ -562,9 +562,9 @@ public:
 
 protected:
 	override void setup(Composite area) {
-		area.setLayout = windowGridLayout(1, true);
+		area.setLayout(windowGridLayout(1, true));
 		auto tabf = new CTabFolder(area, SWT.BORDER);
-		tabf.setLayoutData = new GridData(GridData.FILL_BOTH);
+		tabf.setLayoutData(new GridData(GridData.FILL_BOTH));
 		constructTab1(tabf);
 		constructTab2(tabf);
 		constructTab3(tabf);

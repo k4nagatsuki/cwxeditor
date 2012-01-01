@@ -46,7 +46,7 @@ private:
 		}
 	}
 public:
-	this(Commons comm, Props prop, Control parent, CWXScriptException ex) {
+	this (Commons comm, Props prop, Control parent, CWXScriptException ex) {
 		_comm = comm;
 		_prop = prop;
 		_parent = parent;
@@ -63,7 +63,7 @@ protected:
 		auto cl = new CenterLayout;
 		cl.fillHorizontal = true;
 		cl.fillVertical = true;
-		area.setLayout = cl;
+		area.setLayout(cl);
 		string buf = _prop.msgs.scriptError ~ "\n";
 		auto lines = splitLines(_ex.text);
 		foreach (err; _ex.errors) {
@@ -97,10 +97,10 @@ protected:
 		}
 		_result = new Text(area, SWT.BORDER | SWT.MULTI | SWT.READ_ONLY | SWT.WRAP | SWT.V_SCROLL);
 		createTextMenu!Text(_comm, _prop, _result, null);
-		_result.setText = buf;
+		_result.setText(buf);
 		auto font = _result.getFont();
 		auto fSize = font ? cast(uint) font.getFontData()[0].height : 0;
-		_result.setFont = new Font(Display.getCurrent(), dwtData(_prop.looks.scriptErrorFont(fSize)));
+		_result.setFont(new Font(Display.getCurrent(), dwtData(_prop.looks.scriptErrorFont(fSize))));
 		_result.addDisposeListener(new Dispose);
 	}
 }

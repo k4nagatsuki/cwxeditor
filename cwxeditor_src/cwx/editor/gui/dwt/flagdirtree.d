@@ -241,7 +241,7 @@ private:
 		if (oldName == text) return;
 		if (dir.rename(text, uc)) {
 			storeEditDir(dir, oldName);
-			itm.setText = dir.name;
+			itm.setText(dir.name);
 			_comm.refFlagDir.call(this, [dir]);
 		}
 	}
@@ -252,8 +252,8 @@ private:
 
 	private void refreshDirs() {
 		if (!dirs || dirs.isDisposed()) return;
-		dirs.setRedraw = false;
-		scope (exit) dirs.setRedraw = true;
+		dirs.setRedraw(false);
+		scope (exit) dirs.setRedraw(true);
 		auto exAll = expandAll();
 		auto sel = current;
 		dirs.removeAll();
@@ -280,24 +280,24 @@ private:
 	}
 	private void newItem(T)(FlagDir dir, T parent, bool[string] exAll) {
 		auto sItm = new TreeItem(parent, SWT.NONE);
-		sItm.setImage = prop.images.flagDir;
+		sItm.setImage(prop.images.flagDir);
 		static if (is(T : Tree)) {
-			sItm.setText = prop.msgs.flagDirRoot;
+			sItm.setText(prop.msgs.flagDirRoot);
 		} else {
-			sItm.setText = dir.name;
+			sItm.setText(dir.name);
 		}
-		sItm.setData = dir;
+		sItm.setData(dir);
 		foreach (sub; dir.subDirs) {
 			newItem(sub, sItm, exAll);
 		}
 		auto ep = toLower(dir.path) in exAll;
 		if (!ep || *ep) {
-			sItm.setExpanded = true;
+			sItm.setExpanded(true);
 		}
 	}
 	private void refreshDirs(FlagDir targ) {
-		dirs.setRedraw = false;
-		scope (exit) dirs.setRedraw = true;
+		dirs.setRedraw(false);
+		scope (exit) dirs.setRedraw(true);
 		auto itm = find(targ);
 		if (itm) {
 			auto exAll = expandAll();
@@ -383,7 +383,7 @@ public:
 	/// parent = 親コントロール。
 	Control createControl(Composite parent) {
 		_comp = new Composite(parent, SWT.NONE);
-		_comp.setLayout = new FillLayout;
+		_comp.setLayout(new FillLayout);
 		dirs = new Tree(_comp, SWT.SINGLE | SWT.BORDER);
 
 		edit = new TreeEdit(dirs, &editEnd, &createEditor);
@@ -397,10 +397,10 @@ public:
 		dirs.setMenu(menu);
 
 		auto ds = new DragSource(dirs, DND.DROP_MOVE);
-		ds.setTransfer = [XMLBytesTransfer.getInstance()];
+		ds.setTransfer([XMLBytesTransfer.getInstance()]);
 		ds.addDragListener(new FlagDirDragListener);
 		auto dt = new DropTarget(dirs, DND.DROP_MOVE);
-		dt.setTransfer = [XMLBytesTransfer.getInstance()];
+		dt.setTransfer([XMLBytesTransfer.getInstance()]);
 		dt.addDropListener(new FlagsDropListener);
 
 		_comm.replText.add(&refresh);
@@ -471,10 +471,10 @@ public:
 		assert (parItm);
 		auto dir1 = par.subDirs[index1], dir2 = par.subDirs[index2];
 		auto itm1 = parItm.getItem(index1), itm2 = parItm.getItem(index2);
-		itm1.setData = dir1;
-		itm1.setText = dir1.name;
-		itm2.setData = dir2;
-		itm2.setText = dir2.name;
+		itm1.setData(dir1);
+		itm1.setText(dir1.name);
+		itm2.setData(dir2);
+		itm2.setText(dir2.name);
 		refresh(dir2.path);
 		_comm.refFlagAndStep.call(dir1.allFlags ~ dir2.allFlags, dir1.allSteps ~ dir2.allSteps);
 	}

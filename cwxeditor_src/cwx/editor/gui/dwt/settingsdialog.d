@@ -80,8 +80,8 @@ private:
 			auto old = _old;
 			auto selected = _selected;
 			save();
-			_bgStgsL.setRedraw = false;
-			scope (exit) _bgStgsL.setRedraw = true;
+			_bgStgsL.setRedraw(false);
+			scope (exit) _bgStgsL.setRedraw(true);
 			_bgStgs = old;
 			_bgStgsL.removeAll();
 			foreach (o; old) {
@@ -121,8 +121,8 @@ private:
 			auto old = _old;
 			auto selected = _selected;
 			save();
-			_toolsL.setRedraw = false;
-			scope (exit) _toolsL.setRedraw = true;
+			_toolsL.setRedraw(false);
+			scope (exit) _toolsL.setRedraw(true);
 			_tools = old;
 			_toolsL.removeAll();
 			foreach (o; old) {
@@ -162,8 +162,8 @@ private:
 			auto old = _old;
 			auto selected = _selected;
 			save();
-			_cEnginesL.setRedraw = false;
-			scope (exit) _cEnginesL.setRedraw = true;
+			_cEnginesL.setRedraw(false);
+			scope (exit) _cEnginesL.setRedraw(true);
 			_cEngines = old;
 			_cEnginesL.removeAll();
 			foreach (o; old) {
@@ -371,7 +371,7 @@ private:
 			e.detail = DND.DROP_NONE;
 			auto str = _drop((cast(FileNames) e.data).array);
 			if (str.length && str != _text.getText()) {
-				_text.setText = str;
+				_text.setText(str);
 				_text.selectAll();
 				e.detail = DND.DROP_LINK;
 				if (_dropPath) _dropPath(str);
@@ -467,14 +467,14 @@ private:
 	}
 	static string selectFile(Text file, string[] name, string[] ext, string fileName, string title, string p) {
 		auto dlg = new FileDialog(file.getShell(), SWT.PRIMARY_MODAL | SWT.APPLICATION_MODAL | SWT.SINGLE | SWT.OPEN);
-		dlg.setFilterExtensions = ext;
-		dlg.setFilterNames = name;
-		dlg.setText = title;
-		dlg.setFilterPath = dirName(nabs(p));
-		dlg.setFileName = fileName;
+		dlg.setFilterExtensions(ext);
+		dlg.setFilterNames(name);
+		dlg.setText(title);
+		dlg.setFilterPath(dirName(nabs(p)));
+		dlg.setFileName(fileName);
 		string fname = dlg.open();
 		if (fname) {
-			file.setText = fname;
+			file.setText(fname);
 		}
 		return fname;
 	}
@@ -508,8 +508,8 @@ private:
 	}
 	string selectDir(Text dir, string title, string msg, string p, bool appPath = true) {
 		auto dlg = new DirectoryDialog(dir.getShell());
-		dlg.setText = title;
-		dlg.setMessage = msg;
+		dlg.setText(title);
+		dlg.setMessage(msg);
 		string path = p;
 		if (appPath) {
 			auto d = dir.getText();
@@ -518,10 +518,10 @@ private:
 			}
 			path = d;
 		}
-		dlg.setFilterPath = nabs(path);
+		dlg.setFilterPath(nabs(path));
 		string fname = dlg.open();
 		if (fname) {
-			dir.setText = fname;
+			dir.setText(fname);
 		}
 		return fname;
 	}
@@ -545,7 +545,7 @@ private:
 		string resDir = Skin.findResDir(path.dirName);
 		if (resDir.length) {
 			_cEngines[i].dataDirName = resDir;
-			_cEngineDataDir.setText = resDir;
+			_cEngineDataDir.setText(resDir);
 		}
 	}
 	void selectCEngineDataDir(int i) {
@@ -558,7 +558,7 @@ private:
 		string fname = selectDir(_cEngineDataDir, _prop.msgs.classicEngineDataDirName, _prop.msgs.classicEngineDataDirNameDesc, path, false);
 		if (fname) {
 			fname = dropCEngineSub(fname);
-			_cEngineDataDir.setText = fname;
+			_cEngineDataDir.setText(fname);
 			_cEngines[i].dataDirName = fname;
 		}
 	}
@@ -584,7 +584,7 @@ private:
 		string fname = selectFile(_cEngineExecute, _prop.msgs.classicEngineExecuteTName, ext, fileName, _prop.msgs.dlgTitClassicEngineExecute, path);
 		if (fname) {
 			fname = dropCEngineSub(fname);
-			_cEngineExecute.setText = fname;
+			_cEngineExecute.setText(fname);
 			_cEngines[i].execute = fname;
 		}
 	}
@@ -614,23 +614,23 @@ private:
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		int i = _bgStgsL.getSelectionIndex();
-		_bgImgDel.setEnabled = i >= 0;
+		_bgImgDel.setEnabled(i >= 0);
 		if (i >= 0) {
-			_bgImgName.setText = _bgStgs[i].name;
-			_bgImgX.setSelection = _bgStgs[i].x;
-			_bgImgY.setSelection = _bgStgs[i].y;
-			_bgImgW.setSelection = _bgStgs[i].width;
-			_bgImgH.setSelection = _bgStgs[i].height;
-			_bgImgMask.setSelection = _bgStgs[i].mask;
+			_bgImgName.setText(_bgStgs[i].name);
+			_bgImgX.setSelection(_bgStgs[i].x);
+			_bgImgY.setSelection(_bgStgs[i].y);
+			_bgImgW.setSelection(_bgStgs[i].width);
+			_bgImgH.setSelection(_bgStgs[i].height);
+			_bgImgMask.setSelection(_bgStgs[i].mask);
 		} else {
-			_bgImgName.setText = "";
-			_bgImgX.setSelection = 0;
-			_bgImgY.setSelection = 0;
-			_bgImgW.setSelection = 0;
-			_bgImgH.setSelection = 0;
-			_bgImgMask.setSelection = false;
+			_bgImgName.setText("");
+			_bgImgX.setSelection(0);
+			_bgImgY.setSelection(0);
+			_bgImgW.setSelection(0);
+			_bgImgH.setSelection(0);
+			_bgImgMask.setSelection(false);
 		}
-		_bgImgAlt.setEnabled = false;
+		_bgImgAlt.setEnabled(false);
 		foreach (tm; _bgImgTMs) {
 			tm.reset();
 		}
@@ -639,17 +639,17 @@ private:
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		int i = _toolsL.getSelectionIndex();
-		_toolDel.setEnabled = i >= 0;
+		_toolDel.setEnabled(i >= 0);
 		if (i >= 0) {
-			_toolName.setText = _tools[i].name;
-			_toolCommand.setText = _tools[i].command;
-			_toolWorkDir.setText = _tools[i].workDir;
+			_toolName.setText(_tools[i].name);
+			_toolCommand.setText(_tools[i].command);
+			_toolWorkDir.setText(_tools[i].workDir);
 		} else {
-			_toolName.setText = "";
-			_toolCommand.setText = "";
-			_toolWorkDir.setText = "";
+			_toolName.setText("");
+			_toolCommand.setText("");
+			_toolWorkDir.setText("");
 		}
-		_toolAlt.setEnabled = false;
+		_toolAlt.setEnabled(false);
 		foreach (tm; _toolTMs) {
 			tm.reset();
 		}
@@ -658,19 +658,19 @@ private:
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		int i = _cEnginesL.getSelectionIndex();
-		_cEngineDel.setEnabled = i >= 0;
+		_cEngineDel.setEnabled(i >= 0);
 		if (i >= 0) {
-			_cEngineName.setText = _cEngines[i].name;
-			_cEnginePath.setText = _cEngines[i].enginePath;
-			_cEngineDataDir.setText = _cEngines[i].dataDirName;
-			_cEngineExecute.setText = _cEngines[i].execute;
+			_cEngineName.setText(_cEngines[i].name);
+			_cEnginePath.setText(_cEngines[i].enginePath);
+			_cEngineDataDir.setText(_cEngines[i].dataDirName);
+			_cEngineExecute.setText(_cEngines[i].execute);
 		} else {
-			_cEngineName.setText = "";
-			_cEnginePath.setText = "";
-			_cEngineDataDir.setText = "";
-			_cEngineExecute.setText = "";
+			_cEngineName.setText("");
+			_cEnginePath.setText("");
+			_cEngineDataDir.setText("");
+			_cEngineExecute.setText("");
 		}
-		_cEngineAlt.setEnabled = false;
+		_cEngineAlt.setEnabled(false);
 		foreach (tm; _cEngineTMs) {
 			tm.reset();
 		}
@@ -697,16 +697,16 @@ private:
 		}
 	}
 	void refHistories() {
-		_clearHist.setEnabled = _prop.var.etc.openHistories.length > 0;
+		_clearHist.setEnabled(_prop.var.etc.openHistories.length > 0);
 	}
 	void refSearchHistories() {
-		_clearSHist.setEnabled = _prop.var.etc.searchHistories.length || _prop.var.etc.replaceHistories.length;
+		_clearSHist.setEnabled(_prop.var.etc.searchHistories.length || _prop.var.etc.replaceHistories.length);
 	}
 	class ClearHist : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
 			auto dlg = new MessageBox(_histMax.getShell(), SWT.ICON_QUESTION | SWT.OK | SWT.CANCEL);
-			dlg.setText = _prop.msgs.dlgTitQuestion;
-			dlg.setMessage = _prop.msgs.dlgMsgHistoryClear;
+			dlg.setText(_prop.msgs.dlgTitQuestion);
+			dlg.setMessage(_prop.msgs.dlgMsgHistoryClear);
 			if (SWT.OK == dlg.open()) {
 				_prop.var.etc.openHistories = [];
 				_comm.refHistories.call();
@@ -718,8 +718,8 @@ private:
 	class ClearSHist : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
 			auto dlg = new MessageBox(_sHistMax.getShell(), SWT.ICON_QUESTION | SWT.OK | SWT.CANCEL);
-			dlg.setText = _prop.msgs.dlgTitQuestion;
-			dlg.setMessage = _prop.msgs.dlgMsgSearchHistoryClear;
+			dlg.setText(_prop.msgs.dlgTitQuestion);
+			dlg.setMessage(_prop.msgs.dlgMsgSearchHistoryClear);
 			if (SWT.OK == dlg.open()) {
 				_prop.var.etc.searchHistories = [];
 				_prop.var.etc.replaceHistories = [];
@@ -757,111 +757,111 @@ private:
 	}
 	Button createOpenButton(Composite parent, Text path, bool dir) {
 		auto open = new Button(parent, SWT.PUSH);
-		open.setToolTipText = dir ? _prop.msgs.ttOpenDirectory : _prop.msgs.ttOpenFilePlace;
-		open.setImage = _prop.images.menuOpenDirectory;
+		open.setToolTipText(dir ? _prop.msgs.ttOpenDirectory : _prop.msgs.ttOpenFilePlace);
+		open.setImage(_prop.images.menuOpenDirectory);
 		open.addSelectionListener(new OpenDir(path, false));
 		return open;
 	}
 	Button createCEngineSubOpenButton(Composite parent, Text path, bool dir) {
 		auto open = new Button(parent, SWT.PUSH);
-		open.setToolTipText = dir ? _prop.msgs.ttOpenDirectory : _prop.msgs.ttOpenFilePlace;
-		open.setImage = _prop.images.menuOpenDirectory;
+		open.setToolTipText(dir ? _prop.msgs.ttOpenDirectory : _prop.msgs.ttOpenFilePlace);
+		open.setImage(_prop.images.menuOpenDirectory);
 		open.addSelectionListener(new OpenDir(path, true));
 		return open;
 	}
 	void construct1(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
-		comp.setLayout = new GridLayout(1, false);
+		comp.setLayout(new GridLayout(1, false));
 		_tabB = new CTabItem(tabf, SWT.NONE);
-		_tabB.setText = _prop.msgs.baseSettings;
-		_tabB.setControl = comp;
+		_tabB.setText(_prop.msgs.baseSettings);
+		_tabB.setControl(comp);
 		{
 			auto grp = new Group(comp, SWT.NONE);
-			grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-			grp.setLayout = new GridLayout(3, false);
-			grp.setText = _prop.msgs.enginePath(_prop.var.etc.engine);
+			grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			grp.setLayout(new GridLayout(3, false));
+			grp.setText(_prop.msgs.enginePath(_prop.var.etc.engine));
 			_enginePath = new Text(grp, SWT.BORDER);
 			createTextMenu!Text(_comm, _prop, _enginePath, &catchMod);
-			_enginePath.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+			_enginePath.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			mod(_enginePath);
 			auto refr = new Button(grp, SWT.PUSH);
-			refr.setText = _prop.msgs.reference;
+			refr.setText(_prop.msgs.reference);
 			refr.addSelectionListener(new SelEngine);
 			createOpenButton(grp, _enginePath, false);
 			auto l = new Label(grp, SWT.NONE);
-			l.setText = _prop.msgs.enginePathAtten;
+			l.setText(_prop.msgs.enginePathAtten);
 			auto gd = new GridData;
 			gd.horizontalSpan = 3;
-			l.setLayoutData = gd;
+			l.setLayoutData(gd);
 			setupDropFile(grp, _enginePath, &dropEngine);
 		}
 		{
 			auto grp = new Group(comp, SWT.NONE);
-			grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-			grp.setLayout = new GridLayout(3, false);
-			grp.setText = _prop.msgs.tempDir;
+			grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			grp.setLayout(new GridLayout(3, false));
+			grp.setText(_prop.msgs.tempDir);
 			_tempDir = new Text(grp, SWT.BORDER);
 			createTextMenu!Text(_comm, _prop, _tempDir, &catchMod);
-			_tempDir.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+			_tempDir.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			mod(_tempDir);
 			auto refr = new Button(grp, SWT.PUSH);
-			refr.setText = _prop.msgs.reference;
+			refr.setText(_prop.msgs.reference);
 			refr.addSelectionListener(new SelTemp);
 			createOpenButton(grp, _tempDir, true);
 			setupDropFile(grp, _tempDir, &dropDir);
 		}
 		{
 			auto grp = new Group(comp, SWT.NONE);
-			grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-			grp.setText = _prop.msgs.backupDir;
+			grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			grp.setText(_prop.msgs.backupDir);
 			auto gl = new GridLayout(3, false);
 			gl.horizontalSpacing = 10;
-			grp.setLayout = gl;
+			grp.setLayout(gl);
 
 			{
 				_backupEnabled = new Button(grp, SWT.CHECK);
-				_backupEnabled.setText = _prop.msgs.backupEnabled;
+				_backupEnabled.setText(_prop.msgs.backupEnabled);
 				mod(_backupEnabled);
 				_backupEnabled.addSelectionListener(_refe);
 			}
 			{
 				auto comp2 = new Composite(grp, SWT.NONE);
-				comp2.setLayoutData = new GridData(GridData.FILL_VERTICAL);
-				comp2.setLayout = zeroMarginGridLayout(3, false);
+				comp2.setLayoutData(new GridData(GridData.FILL_VERTICAL));
+				comp2.setLayout(zeroMarginGridLayout(3, false));
 				auto l = new Label(comp2, SWT.CENTER);
-				l.setText = _prop.msgs.backupInterval;
+				l.setText(_prop.msgs.backupInterval);
 				_backupInterval = new Spinner(comp2, SWT.BORDER);
-				_backupInterval.setMinimum = 1;
-				_backupInterval.setMaximum = 99;
+				_backupInterval.setMinimum(1);
+				_backupInterval.setMaximum(99);
 				mod(_backupInterval);
 				auto l2 = new Label(comp2, SWT.CENTER);
-				l2.setText = _prop.msgs.minute;
+				l2.setText(_prop.msgs.minute);
 			}
 			{
 				auto comp2 = new Composite(grp, SWT.NONE);
-				comp2.setLayoutData = new GridData(GridData.FILL_VERTICAL);
-				comp2.setLayout = zeroMarginGridLayout(2, false);
+				comp2.setLayoutData(new GridData(GridData.FILL_VERTICAL));
+				comp2.setLayout(zeroMarginGridLayout(2, false));
 				auto l = new Label(comp2, SWT.CENTER);
-				l.setText = _prop.msgs.backupCount;
+				l.setText(_prop.msgs.backupCount);
 				_backupCount = new Spinner(comp2, SWT.BORDER);
-				_backupCount.setMinimum = 0;
-				_backupCount.setMaximum = 99;
+				_backupCount.setMinimum(0);
+				_backupCount.setMaximum(99);
 				mod(_backupCount);
 			}
 			{
 				auto comp2 = new Composite(grp, SWT.NONE);
 				auto gd = new GridData(GridData.FILL_HORIZONTAL);
 				gd.horizontalSpan = 3;
-				comp2.setLayoutData = gd;;
-				comp2.setLayout = zeroMarginGridLayout(4, false);
+				comp2.setLayoutData(gd);
+				comp2.setLayout(zeroMarginGridLayout(4, false));
 				auto l = new Label(comp2, SWT.NONE);
-				l.setText = _prop.msgs.backupPath;
+				l.setText(_prop.msgs.backupPath);
 				_backupDir = new Text(comp2, SWT.BORDER);
 				createTextMenu!Text(_comm, _prop, _backupDir, &catchMod);
-				_backupDir.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+				_backupDir.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				mod(_backupDir);
 				_backupRef = new Button(comp2, SWT.PUSH);
-				_backupRef.setText = _prop.msgs.reference;
+				_backupRef.setText(_prop.msgs.reference);
 				_backupRef.addSelectionListener(new SelBackup);
 				_backupDirOpen = createOpenButton(comp2, _backupDir, true);
 				setupDropFile(grp, _backupDir, &dropDir);
@@ -869,51 +869,51 @@ private:
 		}
 		{
 			auto comp2 = new Composite(comp, SWT.NONE);
-			comp2.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-			comp2.setLayout = zeroMarginGridLayout(2, false);
+			comp2.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			comp2.setLayout(zeroMarginGridLayout(2, false));
 			{
 				auto comp3 = new Composite(comp2, SWT.NONE);
-				comp3.setLayoutData = new GridData(GridData.FILL_BOTH);
-				comp3.setLayout = zeroMarginGridLayout(1, false);
+				comp3.setLayoutData(new GridData(GridData.FILL_BOTH));
+				comp3.setLayout(zeroMarginGridLayout(1, false));
 				{
 					auto grp = new Group(comp3, SWT.NONE);
-					grp.setLayoutData = new GridData(GridData.FILL_BOTH);
+					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 					auto cl = new CenterLayout;
 					cl.fillHorizontal = true;
-					grp.setLayout = cl;
-					grp.setText = _prop.msgs.scenarioAuthor;
+					grp.setLayout(cl);
+					grp.setText(_prop.msgs.scenarioAuthor);
 					_author = new Text(grp, SWT.BORDER);
 					createTextMenu!Text(_comm, _prop, _author, &catchMod);
 					mod(_author);
 				}
 				{
 					auto grp = new Group(comp3, SWT.NONE);
-					grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-					grp.setLayout = new GridLayout(3, false);
-					grp.setText = _prop.msgs.wallpaper;
+					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+					grp.setLayout(new GridLayout(3, false));
+					grp.setText(_prop.msgs.wallpaper);
 					_wallpaper = new Text(grp, SWT.BORDER);
 					createTextMenu!Text(_comm, _prop, _wallpaper, &catchMod);
-					_wallpaper.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+					_wallpaper.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 					mod(_wallpaper);
 					auto refr = new Button(grp, SWT.PUSH);
-					refr.setText = _prop.msgs.reference;
+					refr.setText(_prop.msgs.reference);
 					refr.addSelectionListener(new SelWallpaper);
 					createOpenButton(grp, _wallpaper, false);
 					setupDropFile(grp, _wallpaper, &dropWallpaper);
 				}
 				{
 					auto grp = new Group(comp3, SWT.NONE);
-					grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-					grp.setText = _prop.msgs.systemSounds;
-					grp.setLayout = new GridLayout(4, false);
+					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+					grp.setText(_prop.msgs.systemSounds);
+					grp.setLayout(new GridLayout(4, false));
 					auto l = new Label(grp, SWT.NONE);
-					l.setText = _prop.msgs.soundSaved;
+					l.setText(_prop.msgs.soundSaved);
 					_savedSound = new Text(grp, SWT.BORDER);
 					createTextMenu!Text(_comm, _prop, _savedSound, &catchMod);
-					_savedSound.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+					_savedSound.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 					mod(_savedSound);
 					auto refr = new Button(grp, SWT.PUSH);
-					refr.setText = _prop.msgs.reference;
+					refr.setText(_prop.msgs.reference);
 					refr.addSelectionListener(new SelSysSound(_savedSound));
 					createOpenButton(grp, _savedSound, false);
 					setupDropFile(grp, _savedSound, &dropSysSound);	
@@ -921,63 +921,63 @@ private:
 			}
 			{
 				auto comp3 = new Composite(comp2, SWT.NONE);
-				comp3.setLayout = zeroMarginGridLayout(1, true);
-				comp3.setLayoutData = new GridData(GridData.FILL_VERTICAL);
+				comp3.setLayout(zeroMarginGridLayout(1, true));
+				comp3.setLayoutData(new GridData(GridData.FILL_VERTICAL));
 				{
 					auto grp = new Group(comp3, SWT.NONE);
-					grp.setText = _prop.msgs.historiesSettings;
-					grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-					grp.setLayout = new GridLayout(3, false);
+					grp.setText(_prop.msgs.historiesSettings);
+					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+					grp.setLayout(new GridLayout(3, false));
 					{
 						auto lComp = new Composite(grp, SWT.NONE);
 						auto cl = new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0);
 						cl.fillHorizontal = true;
-						lComp.setLayout = cl;
-						lComp.setLayoutData = new GridData(GridData.FILL_BOTH);
+						lComp.setLayout(cl);
+						lComp.setLayoutData(new GridData(GridData.FILL_BOTH));
 						auto l = new Label(lComp, SWT.NONE);
-						l.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-						l.setText = _prop.msgs.openHistoryMax;
+						l.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+						l.setText(_prop.msgs.openHistoryMax);
 						_histMax = new Spinner(grp, SWT.BORDER);
-						_histMax.setMinimum = 0;
-						_histMax.setMaximum = 99;
+						_histMax.setMinimum(0);
+						_histMax.setMaximum(99);
 						mod(_histMax);
 						_clearHist = new Button(grp, SWT.PUSH);
-						_clearHist.setEnabled = _prop.var.etc.openHistories.length > 0;
-						_clearHist.setText = _prop.msgs.openHistoryClear;
+						_clearHist.setEnabled(_prop.var.etc.openHistories.length > 0);
+						_clearHist.setText(_prop.msgs.openHistoryClear);
 						_clearHist.addSelectionListener(new ClearHist);
 					}
 					{
 						auto lComp = new Composite(grp, SWT.NONE);
 						auto cl = new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0);
 						cl.fillHorizontal = true;
-						lComp.setLayout = cl;
-						lComp.setLayoutData = new GridData(GridData.FILL_BOTH);
+						lComp.setLayout(cl);
+						lComp.setLayoutData(new GridData(GridData.FILL_BOTH));
 						auto l = new Label(lComp, SWT.NONE);
-						l.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-						l.setText = _prop.msgs.searchHistoryMax;
+						l.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+						l.setText(_prop.msgs.searchHistoryMax);
 						_sHistMax = new Spinner(grp, SWT.BORDER);
-						_sHistMax.setMinimum = 0;
-						_sHistMax.setMaximum = 99;
+						_sHistMax.setMinimum(0);
+						_sHistMax.setMaximum(99);
 						mod(_sHistMax);
 						_clearSHist = new Button(grp, SWT.PUSH);
-						_clearSHist.setEnabled = _prop.var.etc.searchHistories.length > 0;
-						_clearSHist.setText = _prop.msgs.searchHistoryClear;
+						_clearSHist.setEnabled(_prop.var.etc.searchHistories.length > 0);
+						_clearSHist.setText(_prop.msgs.searchHistoryClear);
 						_clearSHist.addSelectionListener(new ClearSHist);
 					}
 				}
 				{
 					auto grp = new Group(comp3, SWT.NONE);
-					grp.setText = _prop.msgs.undoMax;
-					grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-					grp.setLayout = new GridLayout(2, false);
+					grp.setText(_prop.msgs.undoMax);
+					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+					grp.setLayout(new GridLayout(2, false));
 					Spinner createUndoMax(string title) {
 						auto l = new Label(grp, SWT.NONE);
-						l.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-						l.setText = title;
+						l.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+						l.setText(title);
 						auto spn = new Spinner(grp, SWT.BORDER);
 						mod(spn);
-						spn.setMaximum = _prop.var.etc.undoMaxLimit;
-						spn.setMinimum = 0;
+						spn.setMaximum(_prop.var.etc.undoMaxLimit);
+						spn.setMinimum(0);
 						return spn;
 					}
 					_undoMaxMainView = createUndoMax(_prop.msgs.undoMaxMainView);
@@ -989,12 +989,12 @@ private:
 	}
 	Spinner createS(Composite parent, string name, int max, int min) {
 		auto l = new Label(parent, SWT.NONE);
-		l.setText = name;
+		l.setText(name);
 		auto spn = new Spinner(parent, SWT.BORDER);
-		spn.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-		spn.setMaximum = max;
-		spn.setMinimum = min;
-		spn.setSelection = 0;
+		spn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		spn.setMaximum(max);
+		spn.setMinimum(min);
+		spn.setSelection(0);
 		return spn;
 	}
 	class DefBgSetting : SelectionAdapter {
@@ -1066,7 +1066,7 @@ private:
 		_bgStgs[i].y = _bgImgY.getSelection();
 		_bgStgs[i].width = _bgImgW.getSelection();
 		_bgStgs[i].height = _bgImgH.getSelection();
-		_bgImgAlt.setEnabled = false;
+		_bgImgAlt.setEnabled(false);
 		applyEnabled();
 	}
 	void delBgImage() {
@@ -1137,7 +1137,7 @@ private:
 			ctrl.addSelectionListener(new class SelectionAdapter {
 				override void widgetSelected(SelectionEvent e) {
 					if (0 < list.getItemCount()) {
-						button.setEnabled = true;
+						button.setEnabled(true);
 					}
 				}
 			});
@@ -1145,7 +1145,7 @@ private:
 			ctrl.addModifyListener(new class ModifyListener {
 				override void modifyText(ModifyEvent e) {
 					if (0 < list.getItemCount()) {
-						button.setEnabled = true;
+						button.setEnabled(true);
 					}
 				}
 			});
@@ -1154,41 +1154,41 @@ private:
 	void construct2(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
 		_tabS = new CTabItem(tabf, SWT.NONE);
-		_tabS.setText = _prop.msgs.bgImageAndKeyCode;
-		_tabS.setControl = comp;
-		comp.setLayout = new GridLayout(1, true);
+		_tabS.setText(_prop.msgs.bgImageAndKeyCode);
+		_tabS.setControl(comp);
+		comp.setLayout(new GridLayout(1, true));
 		auto sash = new SplitPane(comp, SWT.HORIZONTAL);
-		sash.setLayoutData = new GridData(GridData.FILL_BOTH);
+		sash.setLayoutData(new GridData(GridData.FILL_BOTH));
 		auto back = new Composite(sash, SWT.NONE);
-		back.setLayout = zeroMarginGridLayout(1, true);
+		back.setLayout(zeroMarginGridLayout(1, true));
 		{
 			auto grp = new Group(back, SWT.NONE);
-			grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+			grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			auto cl = new CenterLayout;
 			cl.fillHorizontal = true;
-			grp.setLayout = cl;
-			grp.setText = _prop.msgs.bgImagesDefault;
+			grp.setLayout(cl);
+			grp.setText(_prop.msgs.bgImagesDefault);
 			auto defBtn = new Button(grp, SWT.PUSH);
-			defBtn.setText = _prop.msgs.setBgImagesDefault;
+			defBtn.setText(_prop.msgs.setBgImagesDefault);
 			defBtn.addSelectionListener(new DefBgSetting);
 		}
 		{
 			auto grp = new Group(back, SWT.NONE);
 			_bgStgsView = grp;
-			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-			grp.setLayout = new GridLayout(1, true);
-			grp.setText = _prop.msgs.bgImageSettings;
+			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			grp.setLayout(new GridLayout(1, true));
+			grp.setText(_prop.msgs.bgImageSettings);
 			auto leftSash = new SplitPane(grp, SWT.HORIZONTAL);
-			leftSash.setLayoutData = new GridData(GridData.FILL_BOTH);
+			leftSash.setLayoutData(new GridData(GridData.FILL_BOTH));
 			{
 				auto left = new Composite(leftSash, SWT.NONE);
-				left.setLayout = zeroMarginGridLayout(2, true);
+				left.setLayout(zeroMarginGridLayout(2, true));
 				_bgStgsL = new List(left, SWT.BORDER | SWT.SINGLE | SWT.V_SCROLL);
 				auto gd = new GridData(GridData.FILL_BOTH);
 				gd.widthHint = _prop.var.etc.bgImageSettingsNameWidth;
 				gd.heightHint = _prop.var.etc.bgImageSettingsNameHeight;
 				gd.horizontalSpan = 2;
-				_bgStgsL.setLayoutData = gd;
+				_bgStgsL.setLayoutData(gd);
 				_bgStgsL.addSelectionListener(new SelBgImgStg);
 
 				auto menu = new Menu(_bgStgsL);
@@ -1199,41 +1199,41 @@ private:
 				createMenuItem(menu, _prop.msgs.menuDown, _prop.images.menuDown, &downBgImage);
 				new MenuItem(menu, SWT.SEPARATOR);
 				appendMenuTCPD(_prop, menu, new BgImagesTCPD, true, true, true, true);
-				_bgStgsL.setMenu = menu;
+				_bgStgsL.setMenu(menu);
 
 				auto up = new Button(left, SWT.PUSH);
-				up.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				up.setText = _prop.msgs.ttUp;
-				up.setImage = _prop.images.menuUp;
+				up.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				up.setText(_prop.msgs.ttUp);
+				up.setImage(_prop.images.menuUp);
 				up.addSelectionListener(new UpBgImgStg);
 				auto down = new Button(left, SWT.PUSH);
-				down.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				down.setText = _prop.msgs.ttDown;
-				down.setImage = _prop.images.menuDown;
+				down.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				down.setText(_prop.msgs.ttDown);
+				down.setImage(_prop.images.menuDown);
 				down.addSelectionListener(new DownBgImgStg);
 			}
-			leftSash.setWeights = [_prop.var.etc.bgImageSettingsSashL, _prop.var.etc.bgImageSettingsSashR];
+			leftSash.setWeights([_prop.var.etc.bgImageSettingsSashL, _prop.var.etc.bgImageSettingsSashR]);
 			leftSash.addDisposeListener(new DBgImgStg);
 			auto right = new Composite(leftSash, SWT.NONE);
-			right.setLayout = zeroMarginGridLayout(1, true);
+			right.setLayout(zeroMarginGridLayout(1, true));
 			{
 				auto comp2 = new Composite(right, SWT.NONE);
-				comp2.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				comp2.setLayout = zeroMarginGridLayout(4, false);
+				comp2.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				comp2.setLayout(zeroMarginGridLayout(4, false));
 				{
 					auto comp3 = new Composite(comp2, SWT.NONE);
 					auto gd = new GridData(GridData.FILL_HORIZONTAL);
 					gd.horizontalSpan = 4;
-					comp3.setLayoutData = gd;
-					comp3.setLayout = zeroMarginGridLayout(2, false);
+					comp3.setLayoutData(gd);
+					comp3.setLayout(zeroMarginGridLayout(2, false));
 					_bgImgName = new Text(comp3, SWT.BORDER);
 					_bgImgTMs ~= createTextMenu!Text(_comm, _prop, _bgImgName, &catchMod);
 					auto ngd = new GridData(GridData.FILL_HORIZONTAL);
 					ngd.widthHint = _prop.var.etc.bgImageSettingsNameWidth;
-					_bgImgName.setLayoutData = ngd;
+					_bgImgName.setLayoutData(ngd);
 					_bgImgMask = new Button(comp3, SWT.TOGGLE);
-					_bgImgMask.setImage = _prop.images.menuMask;
-					_bgImgMask.setToolTipText = _prop.msgs.ttMask;
+					_bgImgMask.setImage(_prop.images.menuMask);
+					_bgImgMask.setToolTipText(_prop.msgs.ttMask);
 				}
 				_bgImgX = createS(comp2, _prop.msgs.left, _prop.looks.posLeftMax, _prop.looks.posLeftMin);
 				_bgImgY = createS(comp2, _prop.msgs.top, _prop.looks.posTopMax, _prop.looks.posTopMin);
@@ -1242,19 +1242,19 @@ private:
 			}
 			{
 				auto buttons = new Composite(right, SWT.NONE);
-				buttons.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
-				buttons.setLayout = zeroMarginGridLayout(3, true);
+				buttons.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+				buttons.setLayout(zeroMarginGridLayout(3, true));
 				auto newBstg = new Button(buttons, SWT.PUSH);
-				newBstg.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				newBstg.setText = _prop.msgs.newBgImageSetting;
+				newBstg.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				newBstg.setText(_prop.msgs.newBgImageSetting);
 				newBstg.addSelectionListener(new NewBgImgStg);
 				_bgImgAlt = new Button(buttons, SWT.PUSH);
-				_bgImgAlt.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				_bgImgAlt.setText = _prop.msgs.altBgImageSetting;
+				_bgImgAlt.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				_bgImgAlt.setText(_prop.msgs.altBgImageSetting);
 				_bgImgAlt.addSelectionListener(new AltBgImgStg);
 				_bgImgDel = new Button(buttons, SWT.PUSH);
-				_bgImgDel.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				_bgImgDel.setText = _prop.msgs.delBgImageSetting;
+				_bgImgDel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				_bgImgDel.setText(_prop.msgs.delBgImageSetting);
 				_bgImgDel.addSelectionListener(new DelBgImgStg);
 			}
 			modB(_bgImgAlt, _bgStgsL, _bgImgName);
@@ -1266,18 +1266,18 @@ private:
 		}
 		{
 			auto grp = new Group(sash, SWT.NONE);
-			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-			grp.setLayout = new GridLayout(1, false);
-			grp.setText = _prop.msgs.standardKeyCode;
+			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			grp.setLayout(new GridLayout(1, false));
+			grp.setText(_prop.msgs.standardKeyCode);
 			_keyCodes = new Text(grp, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
 			createTextMenu!Text(_comm, _prop, _keyCodes, &catchMod);
 			mod(_keyCodes);
 			auto gd = new GridData(GridData.FILL_BOTH);
 			gd.widthHint = _prop.var.etc.keyCodeWidth;
 			gd.heightHint = 0;
-			_keyCodes.setLayoutData = gd;
+			_keyCodes.setLayoutData(gd);
 		}
-		sash.setWeights = [_prop.var.etc.bgImageKeyCodeSashL, _prop.var.etc.bgImageKeyCodeSashR];
+		sash.setWeights([_prop.var.etc.bgImageKeyCodeSashL, _prop.var.etc.bgImageKeyCodeSashR]);
 		sash.addDisposeListener(new DBgImgKeyCodeSash);
 	}
 	class SelOutTools : SelectionAdapter {
@@ -1334,7 +1334,7 @@ private:
 		_toolsL.setItem(i, _tools[i].name);
 		_tools[i].command = _toolCommand.getText();
 		_tools[i].workDir = _toolWorkDir.getText();
-		_toolAlt.setEnabled = false;
+		_toolAlt.setEnabled(false);
 		applyEnabled();
 	}
 	void delTool() {
@@ -1444,7 +1444,7 @@ private:
 		_cEngines[i].enginePath = _cEnginePath.getText();
 		_cEngines[i].dataDirName = _cEngineDataDir.getText();
 		_cEngines[i].execute = _cEngineExecute.getText();
-		_cEngineAlt.setEnabled = false;
+		_cEngineAlt.setEnabled(false);
 		applyEnabled();
 	}
 	void delCEngine() {
@@ -1538,27 +1538,27 @@ private:
 
 	void construct3(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
-		comp.setLayout = new GridLayout(1, false);
+		comp.setLayout(new GridLayout(1, false));
 		_tabC = new CTabItem(tabf, SWT.NONE);
-		_tabC.setText = _prop.msgs.classicEngines;
-		_tabC.setControl = comp;
+		_tabC.setText(_prop.msgs.classicEngines);
+		_tabC.setControl(comp);
 		{
 			auto grp = new Group(comp, SWT.NONE);
 			_cEnginesView = grp;
-			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-			grp.setLayout = new GridLayout(1, true);
-			grp.setText = _prop.msgs.classicEnginesTitle;
+			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			grp.setLayout(new GridLayout(1, true));
+			grp.setText(_prop.msgs.classicEnginesTitle);
 			auto sash = new SplitPane(grp, SWT.HORIZONTAL);
-			sash.setLayoutData = new GridData(GridData.FILL_BOTH);
+			sash.setLayoutData(new GridData(GridData.FILL_BOTH));
 			{
 				auto left = new Composite(sash, SWT.NONE);
-				left.setLayout = zeroMarginGridLayout(2, true);
+				left.setLayout(zeroMarginGridLayout(2, true));
 				_cEnginesL = new List(left, SWT.BORDER | SWT.SINGLE | SWT.V_SCROLL);
 				auto gd = new GridData(GridData.FILL_BOTH);
 				gd.widthHint = _prop.var.etc.classicEnginesNameWidth;
 				gd.heightHint = _prop.var.etc.classicEnginesNameHeight;
 				gd.horizontalSpan = 2;
-				_cEnginesL.setLayoutData = gd;
+				_cEnginesL.setLayoutData(gd);
 				_cEnginesL.addSelectionListener(new SelCEngine);
 
 				auto menu = new Menu(_cEnginesL);
@@ -1569,133 +1569,133 @@ private:
 				createMenuItem(menu, _prop.msgs.menuDown, _prop.images.menuDown, &downCEngine);
 				new MenuItem(menu, SWT.SEPARATOR);
 				appendMenuTCPD(_prop, menu, new CEnginesTCPD, true, true, true, true);
-				_cEnginesL.setMenu = menu;
+				_cEnginesL.setMenu(menu);
 
 				auto up = new Button(left, SWT.PUSH);
-				up.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				up.setText = _prop.msgs.ttUp;
-				up.setImage = _prop.images.menuUp;
+				up.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				up.setText(_prop.msgs.ttUp);
+				up.setImage(_prop.images.menuUp);
 				up.addSelectionListener(new UpCEngines);
 				auto down = new Button(left, SWT.PUSH);
-				down.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				down.setText = _prop.msgs.ttDown;
-				down.setImage = _prop.images.menuDown;
+				down.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				down.setText(_prop.msgs.ttDown);
+				down.setImage(_prop.images.menuDown);
 				down.addSelectionListener(new DownCEngines);
 			}
 			auto right = new Composite(sash, SWT.NONE);
-			right.setLayout = zeroMarginGridLayout(1, true);
+			right.setLayout(zeroMarginGridLayout(1, true));
 			{
 				auto comp2 = new Composite(right, SWT.NONE);
-				comp2.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				comp2.setLayout = zeroMarginGridLayout(4, false);
+				comp2.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				comp2.setLayout(zeroMarginGridLayout(4, false));
 				{
 					auto l = new Label(comp2, SWT.NONE);
-					l.setText = _prop.msgs.classicEngineName;
+					l.setText(_prop.msgs.classicEngineName);
 					_cEngineName = new Text(comp2, SWT.BORDER);
 					_cEngineTMs ~= createTextMenu!Text(_comm, _prop, _cEngineName, &catchMod);
 					auto gd = new GridData(GridData.FILL_HORIZONTAL);
 					gd.horizontalSpan = 3;
 					gd.widthHint = _prop.var.etc.classicEnginesNameWidth;
-					_cEngineName.setLayoutData = gd;
+					_cEngineName.setLayoutData(gd);
 				}
 				{
 					auto l = new Label(comp2, SWT.NONE);
-					l.setText = _prop.msgs.classicEnginePath;
+					l.setText(_prop.msgs.classicEnginePath);
 					_cEnginePath = new Text(comp2, SWT.BORDER);
 					_cEngineTMs ~= createTextMenu!Text(_comm, _prop, _cEnginePath, &catchMod);
 					auto gd = new GridData(GridData.FILL_HORIZONTAL);
 					gd.widthHint = 0;
-					_cEnginePath.setLayoutData = gd;
+					_cEnginePath.setLayoutData(gd);
 					_cEnginePathRef = new Button(comp2, SWT.PUSH);
-					_cEnginePathRef.setText = _prop.msgs.reference;
+					_cEnginePathRef.setText(_prop.msgs.reference);
 					_cEnginePathRef.addSelectionListener(new PushCEnginePathRef);
 					_cEnginePathDirOpen = createOpenButton(comp2, _cEnginePath, false);
 					setupDropFile(_cEnginePath, _cEnginePath, &dropCEnginePath, &dropCEnginePath);
 				}
 				{
 					auto l = new Label(comp2, SWT.NONE);
-					l.setText = _prop.msgs.classicEngineDataDirName;
+					l.setText(_prop.msgs.classicEngineDataDirName);
 					_cEngineDataDir = new Text(comp2, SWT.BORDER);
 					_cEngineTMs ~= createTextMenu!Text(_comm, _prop, _cEngineDataDir, &catchMod);
-					_cEngineDataDir.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+					_cEngineDataDir.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 					_cEngineDataDirRef = new Button(comp2, SWT.PUSH);
-					_cEngineDataDirRef.setText = _prop.msgs.reference;
+					_cEngineDataDirRef.setText(_prop.msgs.reference);
 					_cEngineDataDirRef.addSelectionListener(new PushCEngineDataDirRef);
 					_cEngineDataDirOpen = createCEngineSubOpenButton(comp2, _cEngineDataDir, true);
 					setupDropFile(_cEngineDataDir, _cEngineDataDir, &dropCEngineDataDir);
 				}
 				{
 					auto l = new Label(comp2, SWT.NONE);
-					l.setText = _prop.msgs.classicEngineExecute;
+					l.setText(_prop.msgs.classicEngineExecute);
 					_cEngineExecute = new Text(comp2, SWT.BORDER);
 					_cEngineTMs ~= createTextMenu!Text(_comm, _prop, _cEngineExecute, &catchMod);
-					_cEngineExecute.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+					_cEngineExecute.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 					_cEngineExecuteRef = new Button(comp2, SWT.PUSH);
-					_cEngineExecuteRef.setText = _prop.msgs.reference;
+					_cEngineExecuteRef.setText(_prop.msgs.reference);
 					_cEngineExecuteRef.addSelectionListener(new PushCEngineExecuteRef);
 					_cEngineExecuteDirOpen = createCEngineSubOpenButton(comp2, _cEngineExecute, true);
 					setupDropFile(_cEngineExecute, _cEngineExecute, &dropCEngineExecute);
 				}
 				{
 					auto hint1 = new Label(comp2, SWT.NONE);
-					hint1.setText = _prop.msgs.classicEngineHint1;
+					hint1.setText(_prop.msgs.classicEngineHint1);
 					auto gd1 = new GridData;
 					gd1.horizontalSpan = 4;
-					hint1.setLayoutData = gd1;
+					hint1.setLayoutData(gd1);
 				}
 			}
 			{
 				auto buttons = new Composite(right, SWT.NONE);
-				buttons.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
-				buttons.setLayout = zeroMarginGridLayout(3, true);
+				buttons.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+				buttons.setLayout(zeroMarginGridLayout(3, true));
 				auto newCEngine = new Button(buttons, SWT.PUSH);
-				newCEngine.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				newCEngine.setText = _prop.msgs.newClassicEngine;
+				newCEngine.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				newCEngine.setText(_prop.msgs.newClassicEngine);
 				newCEngine.addSelectionListener(new NewCEngine);
 				_cEngineAlt = new Button(buttons, SWT.PUSH);
-				_cEngineAlt.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				_cEngineAlt.setText = _prop.msgs.altClassicEngine;
+				_cEngineAlt.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				_cEngineAlt.setText(_prop.msgs.altClassicEngine);
 				_cEngineAlt.addSelectionListener(new AltCEngine);
 				_cEngineDel = new Button(buttons, SWT.PUSH);
-				_cEngineDel.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				_cEngineDel.setText = _prop.msgs.delClassicEngine;
+				_cEngineDel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				_cEngineDel.setText(_prop.msgs.delClassicEngine);
 				_cEngineDel.addSelectionListener(new DelCEngine);
 			}
 			modB(_cEngineAlt, _cEnginesL, _cEngineName);
 			modB(_cEngineAlt, _cEnginesL, _cEnginePath);
 			modB(_cEngineAlt, _cEnginesL, _cEngineDataDir);
 			modB(_cEngineAlt, _cEnginesL, _cEngineExecute);
-			sash.setWeights = [_prop.var.etc.classicEnginesSashL, _prop.var.etc.classicEnginesSashR];
+			sash.setWeights([_prop.var.etc.classicEnginesSashL, _prop.var.etc.classicEnginesSashR]);
 			sash.addDisposeListener(new DCEnginesSash);
 		}
 	}
 
 	void construct4(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
-		comp.setLayout = new GridLayout(1, false);
+		comp.setLayout(new GridLayout(1, false));
 		_tabT = new CTabItem(tabf, SWT.NONE);
-		_tabT.setText = _prop.msgs.outerTools;
-		_tabT.setControl = comp;
+		_tabT.setText(_prop.msgs.outerTools);
+		_tabT.setControl(comp);
 
 		{
 			auto grp = new Group(comp, SWT.NONE);
 			_toolsView = grp;
-			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-			grp.setLayout = new GridLayout(1, true);
-			grp.setText = _prop.msgs.outerToolsTitle;
+			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			grp.setLayout(new GridLayout(1, true));
+			grp.setText(_prop.msgs.outerToolsTitle);
 			auto sash = new SplitPane(grp, SWT.HORIZONTAL);
-			sash.setLayoutData = new GridData(GridData.FILL_BOTH);
+			sash.setLayoutData(new GridData(GridData.FILL_BOTH));
 			{
 				auto left = new Composite(sash, SWT.NONE);
-				left.setLayout = zeroMarginGridLayout(2, true);
+				left.setLayout(zeroMarginGridLayout(2, true));
 				_toolsL = new List(left, SWT.BORDER | SWT.SINGLE | SWT.V_SCROLL);
 				auto gd = new GridData(GridData.FILL_BOTH);
 				gd.widthHint = _prop.var.etc.outerToolsNameWidth;
 				gd.heightHint = _prop.var.etc.outerToolsNameHeight;
 				gd.horizontalSpan = 2;
-				_toolsL.setLayoutData = gd;
+				_toolsL.setLayoutData(gd);
 				_toolsL.addSelectionListener(new SelOutTools);
 
 				auto menu = new Menu(_toolsL);
@@ -1706,58 +1706,58 @@ private:
 				createMenuItem(menu, _prop.msgs.menuDown, _prop.images.menuDown, &downTool);
 				new MenuItem(menu, SWT.SEPARATOR);
 				appendMenuTCPD(_prop, menu, new ToolsTCPD, true, true, true, true);
-				_toolsL.setMenu = menu;
+				_toolsL.setMenu(menu);
 
 				auto up = new Button(left, SWT.PUSH);
-				up.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				up.setText = _prop.msgs.ttUp;
-				up.setImage = _prop.images.menuUp;
+				up.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				up.setText(_prop.msgs.ttUp);
+				up.setImage(_prop.images.menuUp);
 				up.addSelectionListener(new UpOutTools);
 				auto down = new Button(left, SWT.PUSH);
-				down.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				down.setText = _prop.msgs.ttDown;
-				down.setImage = _prop.images.menuDown;
+				down.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				down.setText(_prop.msgs.ttDown);
+				down.setImage(_prop.images.menuDown);
 				down.addSelectionListener(new DownOutTools);
 			}
 			auto right = new Composite(sash, SWT.NONE);
-			right.setLayout = zeroMarginGridLayout(1, true);
+			right.setLayout(zeroMarginGridLayout(1, true));
 			{
 				auto comp2 = new Composite(right, SWT.NONE);
-				comp2.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				comp2.setLayout = zeroMarginGridLayout(4, false);
+				comp2.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				comp2.setLayout(zeroMarginGridLayout(4, false));
 				{
 					auto l = new Label(comp2, SWT.NONE);
-					l.setText = _prop.msgs.outerToolName;
+					l.setText(_prop.msgs.outerToolName);
 					_toolName = new Text(comp2, SWT.BORDER);
 					_toolTMs ~= createTextMenu!Text(_comm, _prop, _toolName, &catchMod);
 					auto gd = new GridData(GridData.FILL_HORIZONTAL);
 					gd.horizontalSpan = 3;
-					_toolName.setLayoutData = gd;
+					_toolName.setLayoutData(gd);
 				}
 				{
 					auto l = new Label(comp2, SWT.NONE);
-					l.setText = _prop.msgs.outerToolCommand;
+					l.setText(_prop.msgs.outerToolCommand);
 					_toolCommand = new Text(comp2, SWT.BORDER);
 					_toolTMs ~= createTextMenu!Text(_comm, _prop, _toolCommand, &catchMod);
 					auto gd = new GridData(GridData.FILL_HORIZONTAL);
 					gd.widthHint = 0;
-					_toolCommand.setLayoutData = gd;
+					_toolCommand.setLayoutData(gd);
 					_toolCommandRef = new Button(comp2, SWT.PUSH);
-					_toolCommandRef.setText = _prop.msgs.reference;
+					_toolCommandRef.setText(_prop.msgs.reference);
 					_toolCommandRef.addSelectionListener(new PushToolCmdRef);
 					_toolCommandDirOpen = createOpenButton(comp2, _toolCommand, false);
 					setupDropFile(_toolCommand, _toolCommand, &dropDefault);
 				}
 				{
 					auto l = new Label(comp2, SWT.NONE);
-					l.setText = _prop.msgs.outerToolWorkDir;
+					l.setText(_prop.msgs.outerToolWorkDir);
 					_toolWorkDir = new Text(comp2, SWT.BORDER);
 					_toolTMs ~= createTextMenu!Text(_comm, _prop, _toolWorkDir, &catchMod);
 					auto gd = new GridData(GridData.FILL_HORIZONTAL);
 					gd.widthHint = 0;
-					_toolWorkDir.setLayoutData = gd;
+					_toolWorkDir.setLayoutData(gd);
 					_toolWorkDirRef = new Button(comp2, SWT.PUSH);
-					_toolWorkDirRef.setText = _prop.msgs.reference;
+					_toolWorkDirRef.setText(_prop.msgs.reference);
 					_toolWorkDirRef.addSelectionListener(new PushToolWorkDirRef);
 					_toolWorkDirOpen = createOpenButton(comp2, _toolWorkDir, true);
 					setupDropFile(_toolWorkDir, _toolWorkDir, &dropDir);
@@ -1768,76 +1768,76 @@ private:
 					gd.verticalSpan = 3;
 					gd.widthHint = 0;
 					gd.heightHint = 0;
-					dummy.setLayoutData = gd;
+					dummy.setLayoutData(gd);
 					auto hint1 = new Label(comp2, SWT.NONE);
-					hint1.setText = _prop.msgs.toolsHint1;
+					hint1.setText(_prop.msgs.toolsHint1);
 					auto gd1 = new GridData;
 					gd1.horizontalSpan = 3;
-					hint1.setLayoutData = gd1;
+					hint1.setLayoutData(gd1);
 					auto hint2 = new Label(comp2, SWT.NONE);
-					hint2.setText = _prop.msgs.toolsHint2;
+					hint2.setText(_prop.msgs.toolsHint2);
 					auto gd2 = new GridData;
 					gd2.horizontalSpan = 3;
-					hint2.setLayoutData = gd2;
+					hint2.setLayoutData(gd2);
 					auto hint3 = new Label(comp2, SWT.NONE);
-					hint3.setText = _prop.msgs.toolsHint3;
+					hint3.setText(_prop.msgs.toolsHint3);
 					auto gd3 = new GridData;
 					gd3.horizontalSpan = 3;
-					hint3.setLayoutData = gd3;
+					hint3.setLayoutData(gd3);
 				}
 			}
 			{
 				auto buttons = new Composite(right, SWT.NONE);
-				buttons.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
-				buttons.setLayout = zeroMarginGridLayout(3, true);
+				buttons.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+				buttons.setLayout(zeroMarginGridLayout(3, true));
 				auto newTool = new Button(buttons, SWT.PUSH);
-				newTool.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				newTool.setText = _prop.msgs.newOuterTool;
+				newTool.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				newTool.setText(_prop.msgs.newOuterTool);
 				newTool.addSelectionListener(new NewOutTool);
 				_toolAlt = new Button(buttons, SWT.PUSH);
-				_toolAlt.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				_toolAlt.setText = _prop.msgs.altOuterTool;
+				_toolAlt.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				_toolAlt.setText(_prop.msgs.altOuterTool);
 				_toolAlt.addSelectionListener(new AltOutTool);
 				_toolDel = new Button(buttons, SWT.PUSH);
-				_toolDel.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				_toolDel.setText = _prop.msgs.delOuterTool;
+				_toolDel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				_toolDel.setText(_prop.msgs.delOuterTool);
 				_toolDel.addSelectionListener(new DelOutTool);
 			}
 			modB(_toolAlt, _toolsL, _toolName);
 			modB(_toolAlt, _toolsL, _toolCommand);
 			modB(_toolAlt, _toolsL, _toolWorkDir);
-			sash.setWeights = [_prop.var.etc.outerToolsSashL, _prop.var.etc.outerToolsSashR];
+			sash.setWeights([_prop.var.etc.outerToolsSashL, _prop.var.etc.outerToolsSashR]);
 			sash.addDisposeListener(new DOutToolsSash);
 		}
 	}
 
 	class SelContentsFloat : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			_contentsAutoHide.setEnabled = !_contentsFloat.getSelection();
+			_contentsAutoHide.setEnabled(!_contentsFloat.getSelection());
 		}
 	}
 	void construct5(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
 		_tabE = new CTabItem(tabf, SWT.NONE);
-		_tabE.setText = _prop.msgs.etcSettings;
-		_tabE.setControl = comp;
-		comp.setLayout = new GridLayout(2, false);
+		_tabE.setText(_prop.msgs.etcSettings);
+		_tabE.setControl(comp);
+		comp.setLayout(new GridLayout(2, false));
 		{
 			auto comp2 = new Composite(comp, SWT.NONE);
-			comp2.setLayoutData = new GridData(GridData.FILL_VERTICAL);
-			comp2.setLayout = zeroMarginGridLayout(1, false);
+			comp2.setLayoutData(new GridData(GridData.FILL_VERTICAL));
+			comp2.setLayout(zeroMarginGridLayout(1, false));
 			{
 				auto grp = new Group(comp2, SWT.NONE);
-				grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				grp.setText = _prop.msgs.etcSettingsTitle;
-				grp.setLayout = new GridLayout(2, false);
+				grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				grp.setText(_prop.msgs.etcSettingsTitle);
+				grp.setLayout(new GridLayout(2, false));
 				Button createB(string text) {
 					auto btn = new Button(grp, SWT.CHECK);
-					btn.setText = text;
+					btn.setText(text);
 					mod(btn);
 					auto gd = new GridData;
 					gd.horizontalSpan = 2;
-					btn.setLayoutData = gd;
+					btn.setLayoutData(gd);
 					return btn;
 				}
 				if (!_comm.singleWindowMode(_prop)) {
@@ -1849,7 +1849,7 @@ private:
 				_contentsFloat = createB(_prop.msgs.contentsFloat);
 				_contentsAutoHide = createB(_prop.msgs.contentsAutoHide);
 				_contentsFloat.addSelectionListener(new SelContentsFloat);
-				_contentsAutoHide.setEnabled = !_contentsFloat.getSelection();
+				_contentsAutoHide.setEnabled(!_contentsFloat.getSelection());
 				_xmlCopy = createB(_prop.msgs.xmlCopy);
 				_saveInnerImagePath = createB(_prop.msgs.saveInnerImagePath);
 				_traceDirectories = createB(_prop.msgs.traceDirectories);
@@ -1866,16 +1866,16 @@ private:
 				auto sep = new Label(grp, SWT.SEPARATOR | SWT.HORIZONTAL);
 				auto sepgd = new GridData(GridData.FILL_HORIZONTAL);
 				sepgd.horizontalSpan = 2;
-				sep.setLayoutData = sepgd;
+				sep.setLayoutData(sepgd);
 
 				Combo createC(string title, in int[] values, in string[] names, ref int[int] tblA, ref int[int] tblB) {
 					assert (values.length == names.length);
 					auto l = new Label(grp, SWT.NONE);
-					l.setText = title;
+					l.setText(title);
 					auto combo = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 					mod(combo);
-					combo.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-					combo.setVisibleItemCount = 20;
+					combo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+					combo.setVisibleItemCount(20);
 					foreach (i, val; values) {
 						tblA[val] = i;
 						tblB[i] = val;
@@ -1927,16 +1927,16 @@ private:
 			version (Windows) {
 				gd.verticalSpan++;
 			}
-			grp.setLayoutData = gd;
-			grp.setText = _prop.msgs.ignorePaths;
-			grp.setLayout = new GridLayout(1, false);
+			grp.setLayoutData(gd);
+			grp.setText(_prop.msgs.ignorePaths);
+			grp.setLayout(new GridLayout(1, false));
 			_ignorePaths = new Text(grp, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
 			createTextMenu!Text(_comm, _prop, _ignorePaths, &catchMod);
 			mod(_ignorePaths);
 			auto gdp = new GridData(GridData.FILL_BOTH);
 			gdp.widthHint = _prop.var.etc.ignorePathsWidth;
 			gdp.heightHint = 0;
-			_ignorePaths.setLayoutData = gdp;
+			_ignorePaths.setLayoutData(gdp);
 		}
 	}
 	private RefE _refe;
@@ -1948,11 +1948,11 @@ private:
 		}
 	}
 	private void refreshEnabled() {
-		_backupDir.setEnabled = _backupEnabled.getSelection();
-		_backupInterval.setEnabled = _backupEnabled.getSelection();
-		_backupCount.setEnabled = _backupEnabled.getSelection();
-		_backupRef.setEnabled = _backupEnabled.getSelection();
-		_backupDirOpen.setEnabled = _backupEnabled.getSelection();
+		_backupDir.setEnabled(_backupEnabled.getSelection());
+		_backupInterval.setEnabled(_backupEnabled.getSelection());
+		_backupCount.setEnabled(_backupEnabled.getSelection());
+		_backupRef.setEnabled(_backupEnabled.getSelection());
+		_backupDirOpen.setEnabled(_backupEnabled.getSelection());
 	}
 	class KeyDownFilter : Listener {
 		private int _undoAcc;
@@ -2004,7 +2004,7 @@ public:
 
 protected:
 	override void setup(Composite area) {
-		area.setLayout = windowGridLayout(1, true);
+		area.setLayout(windowGridLayout(1, true));
 		_comm.refScenario.add(&refreshScenario);
 		_comm.refHistories.add(&refHistories);
 		_comm.refSearchHistories.add(&refSearchHistories);
@@ -2021,7 +2021,7 @@ protected:
 		_kdFilter = new KeyDownFilter();
 		area.getDisplay().addFilter(SWT.KeyDown, _kdFilter);
 		auto tabf = new CTabFolder(area, SWT.BORDER);
-		tabf.setLayoutData = new GridData(GridData.FILL_BOTH);
+		tabf.setLayoutData(new GridData(GridData.FILL_BOTH));
 		_refe = new RefE;
 		construct1(tabf);
 		construct2(tabf);
@@ -2029,44 +2029,44 @@ protected:
 		construct4(tabf);
 		construct5(tabf);
 
-		_enginePath.setText = _prop.var.etc.enginePath;
-		_tempDir.setText = _prop.var.etc.tempPath;
-		_backupDir.setText = _prop.var.etc.backupPath;
-		_backupEnabled.setSelection = _prop.var.etc.backupEnabled;
-		_backupInterval.setSelection = _prop.var.etc.backupInterval;
-		_backupCount.setSelection = _prop.var.etc.backupCount;
-		_author.setText = _prop.var.etc.defaultAuthor;
-		_wallpaper.setText = _prop.var.etc.wallpaper;
-		_histMax.setSelection = _prop.var.etc.historyMax;
-		_sHistMax.setSelection = _prop.var.etc.searchHistoryMax;
-		_undoMaxMainView.setSelection = _prop.var.etc.undoMaxMainView;
-		_undoMaxEvent.setSelection = _prop.var.etc.undoMaxEvent;
-		_undoMaxEtc.setSelection = _prop.var.etc.undoMaxEtc;
+		_enginePath.setText(_prop.var.etc.enginePath);
+		_tempDir.setText(_prop.var.etc.tempPath);
+		_backupDir.setText(_prop.var.etc.backupPath);
+		_backupEnabled.setSelection(_prop.var.etc.backupEnabled);
+		_backupInterval.setSelection(_prop.var.etc.backupInterval);
+		_backupCount.setSelection(_prop.var.etc.backupCount);
+		_author.setText(_prop.var.etc.defaultAuthor);
+		_wallpaper.setText(_prop.var.etc.wallpaper);
+		_histMax.setSelection(_prop.var.etc.historyMax);
+		_sHistMax.setSelection(_prop.var.etc.searchHistoryMax);
+		_undoMaxMainView.setSelection(_prop.var.etc.undoMaxMainView);
+		_undoMaxEvent.setSelection(_prop.var.etc.undoMaxEvent);
+		_undoMaxEtc.setSelection(_prop.var.etc.undoMaxEtc);
 		string ipbuf = "";
 		foreach (path; _prop.var.etc.ignorePaths) {
 			ipbuf ~= path ~ "\n";
 		}
-		_ignorePaths.setText = ipbuf;
-		_expandXMLs.setSelection = _prop.var.etc.expandXMLs;
-		_smoothingCard.setSelection = _prop.var.etc.smoothingCard;
-		_showImagePreview.setSelection = _prop.var.etc.showImagePreview;
+		_ignorePaths.setText(ipbuf);
+		_expandXMLs.setSelection(_prop.var.etc.expandXMLs);
+		_smoothingCard.setSelection(_prop.var.etc.smoothingCard);
+		_showImagePreview.setSelection(_prop.var.etc.showImagePreview);
 		if (_singleWindow) {
-			_singleWindow.setSelection = _prop.var.etc.singleWindow;
+			_singleWindow.setSelection(_prop.var.etc.singleWindow);
 		}
-		_contentsFloat.setSelection = _prop.var.etc.contentsFloat;
-		_contentsAutoHide.setSelection = _prop.var.etc.contentsAutoHide;
-		_xmlCopy.setSelection = _prop.var.etc.xmlCopy;
-		_saveInnerImagePath.setSelection = _prop.var.etc.saveInnerImagePath;
-		_traceDirectories.setSelection = _prop.var.etc.traceDirectories;
-		_logicalSort.setSelection = _prop.var.etc.logicalSort;
-		_copyDesc.setSelection = _prop.var.etc.copyDesc;
-		_refCardsAtEditBgImage.setSelection = _prop.var.etc.refCardsAtEditBgImage;
-		_addNewClassicEngine.setSelection = _prop.var.etc.addNewClassicEngine;
-		_doubleIO.setSelection = _prop.var.etc.doubleIO;
-		_switchTabWheel.setSelection = _prop.var.etc.switchTabWheel;
-		_openTabAtRightOfCurrentTab.setSelection = _prop.var.etc.openTabAtRightOfCurrentTab;
-		_reconstruction.setSelection = _prop.var.etc.reconstruction;
-		_openLastScenario.setSelection = _prop.var.etc.openLastScenario;
+		_contentsFloat.setSelection(_prop.var.etc.contentsFloat);
+		_contentsAutoHide.setSelection(_prop.var.etc.contentsAutoHide);
+		_xmlCopy.setSelection(_prop.var.etc.xmlCopy);
+		_saveInnerImagePath.setSelection(_prop.var.etc.saveInnerImagePath);
+		_traceDirectories.setSelection(_prop.var.etc.traceDirectories);
+		_logicalSort.setSelection(_prop.var.etc.logicalSort);
+		_copyDesc.setSelection(_prop.var.etc.copyDesc);
+		_refCardsAtEditBgImage.setSelection(_prop.var.etc.refCardsAtEditBgImage);
+		_addNewClassicEngine.setSelection(_prop.var.etc.addNewClassicEngine);
+		_doubleIO.setSelection(_prop.var.etc.doubleIO);
+		_switchTabWheel.setSelection(_prop.var.etc.switchTabWheel);
+		_openTabAtRightOfCurrentTab.setSelection(_prop.var.etc.openTabAtRightOfCurrentTab);
+		_reconstruction.setSelection(_prop.var.etc.reconstruction);
+		_openLastScenario.setSelection(_prop.var.etc.openLastScenario);
 		auto sptp = _prop.var.etc.soundPlayType in _soundPlayTypeTbl;
 		if (sptp) {
 			_soundPlayType.select = *sptp;
@@ -2079,7 +2079,7 @@ protected:
 		} else {
 			_dialogStatus.select = DialogStatus.Top;
 		}
-		_savedSound.setText = _prop.var.etc.savedSound;
+		_savedSound.setText(_prop.var.etc.savedSound);
 
 		_bgStgs.length = _prop.var.etc.bgImageSettings.length;
 		foreach (i, stg; _prop.var.etc.bgImageSettings) {
@@ -2094,7 +2094,7 @@ protected:
 		foreach (kc; _prop.var.etc.standardKeyCodes) {
 			buf ~= kc ~ "\n";
 		}
-		_keyCodes.setText = buf;
+		_keyCodes.setText(buf);
 
 		_tools.length = _prop.var.etc.outerTools.length;
 		foreach (i, tool; _prop.var.etc.outerTools) {
@@ -2118,10 +2118,10 @@ protected:
 	override bool apply() {
 		void err(CTabItem tab, Text t, string msg) {
 			auto dlg = new MessageBox(t.getShell(), SWT.ICON_WARNING | SWT.OK);
-			dlg.setText = _prop.msgs.dlgTitWarning;
-			dlg.setMessage = msg;
+			dlg.setText(_prop.msgs.dlgTitWarning);
+			dlg.setMessage(msg);
 			dlg.open();
-			tab.getParent().setSelection = tab;
+			tab.getParent().setSelection(tab);
 			t.setFocus();
 		}
 		string engine;
@@ -2348,11 +2348,11 @@ public:
 	BgImageS[] backs() {return BgImageS.createBgImageSs(_cont.backs);}
 protected:
 	override void setup(Composite area) {
-		area.setLayout = new GridLayout(1, false);
+		area.setLayout(new GridLayout(1, false));
 		{
 			_view = createBgImagesViewAndMenu(_comm, _prop, null, _cont, area, null);
 			mod(_view);
-			_view.setLayoutData = new GridData(GridData.FILL_BOTH);
+			_view.setLayoutData(new GridData(GridData.FILL_BOTH));
 		}
 	}
 

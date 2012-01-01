@@ -146,13 +146,13 @@ public:
 	}
 protected:
 	override void setup(Composite area) {
-		area.setLayout = zeroGridLayout(1);
+		area.setLayout(zeroGridLayout(1));
 		{
 			auto comp = new Composite(area, SWT.NULL);
 			comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			comp.setLayout = new GridLayout(5, false);
+			comp.setLayout(new GridLayout(5, false));
 
-			(new Label(comp, SWT.NULL)).setText = prop.msgs.dlgLblStepName;
+			(new Label(comp, SWT.NULL)).setText(prop.msgs.dlgLblStepName);
 			stepName = new Text(comp, SWT.BORDER);
 			mod(stepName);
 			createTextMenu!Text(_comm, prop, stepName, &catchMod);
@@ -163,10 +163,10 @@ protected:
 			gd.heightHint = 0;
 			(new Label(comp, SWT.SEPARATOR | SWT.VERTICAL)).setLayoutData(gd);
 
-			(new Label(comp, SWT.NULL)).setText = prop.msgs.dlgLblStepInit;
+			(new Label(comp, SWT.NULL)).setText(prop.msgs.dlgLblStepInit);
 			stepInit = new Combo(comp, SWT.READ_ONLY);
 			mod(stepInit);
-			stepInit.setVisibleItemCount = 20;
+			stepInit.setVisibleItemCount(20);
 			setGridMinW(stepInit, prop.var.etc.flagInitWidth);
 		}
 		(new Label(area, SWT.SEPARATOR | SWT.HORIZONTAL))
@@ -189,10 +189,10 @@ protected:
 					}
 					valsComp = new Composite(comp, SWT.NULL);
 					valsComp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-					valsComp.setLayout = new GridLayout(2, false);
+					valsComp.setLayout(new GridLayout(2, false));
 					gdc++;
 				}
-				(new Label(valsComp, SWT.NULL)).setText = prop.msgs.dlgLblStep(i);
+				(new Label(valsComp, SWT.NULL)).setText(prop.msgs.dlgLblStep(i));
 				auto t = new Text(valsComp, SWT.BORDER);
 				createTextMenu!Text(_comm, prop, t, &catchMod);
 				stepVals ~= t;
@@ -206,7 +206,7 @@ protected:
 				});
 				setGridMinW(stepVals[i], prop.var.etc.flagValueWidth, GridData.FILL_HORIZONTAL);
 			}
-			comp.setLayout = new GridLayout(gdc, false);
+			comp.setLayout(new GridLayout(gdc, false));
 		}
 		_comm.delFlagAndStep.add(&delStep);
 		_comm.refScenario.add(&refScenario);
@@ -216,7 +216,7 @@ protected:
 		scope (exit) ignoreMod = false;
 		string[] vals;
 		if (_step !is null) {
-			stepName.setText = _step.name;
+			stepName.setText(_step.name);
 			foreach (i, stepVal; stepVals) {
 				if (i < _step.count) {
 					stepVal.setText(_step.getValue(i));
@@ -226,7 +226,7 @@ protected:
 				vals ~= stepVal.getText();
 			}
 		} else {
-			stepName.setText = "";
+			stepName.setText("");
 			foreach (i, stepVal; stepVals) {
 				stepVal.setText(prop.msgs.dlgTxtStep(i));
 				vals ~= stepVal.getText();
@@ -234,7 +234,7 @@ protected:
 		}
 		if (!_step.parent) {
 			// 新規作成時
-			stepName.setText = "";
+			stepName.setText("");
 		}
 		stepName.selectAll();
 		setComboItems(stepInit, vals);
@@ -342,13 +342,13 @@ protected:
 	}
 
 	override void setup(Composite area) {
-		area.setLayout = zeroGridLayout(1);
+		area.setLayout(zeroGridLayout(1));
 		{
 			auto comp = new Composite(area, SWT.NULL);
 			comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			comp.setLayout = new GridLayout(5, false);
+			comp.setLayout(new GridLayout(5, false));
 
-			(new Label(comp, SWT.NULL)).setText = prop.msgs.dlgLblFlagName;
+			(new Label(comp, SWT.NULL)).setText(prop.msgs.dlgLblFlagName);
 			flagName = new Text(comp, SWT.BORDER);
 			createTextMenu!Text(_comm, prop, flagName, &catchMod);
 			mod(flagName);
@@ -359,7 +359,7 @@ protected:
 			gd.heightHint = 0;
 			(new Label(comp, SWT.SEPARATOR | SWT.VERTICAL)).setLayoutData(gd);
 
-			(new Label(comp, SWT.NULL)).setText = prop.msgs.dlgLblFlagInit;
+			(new Label(comp, SWT.NULL)).setText(prop.msgs.dlgLblFlagInit);
 			flagInit = new Combo(comp, SWT.READ_ONLY);
 			mod(flagInit);
 			setGridMinW(flagInit, prop.var.etc.flagInitWidth);
@@ -371,26 +371,26 @@ protected:
 			ocomp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			auto cl = new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0);
 			cl.fillHorizontal = true;
-			ocomp.setLayout = cl;
+			ocomp.setLayout(cl);
 			auto comp = new Composite(ocomp, SWT.NONE);
 			comp.setLayout(new GridLayout(2, false));
 
-			(new Label(comp, SWT.NULL)).setText = prop.msgs.dlgLblFlagTrue;
+			(new Label(comp, SWT.NULL)).setText(prop.msgs.dlgLblFlagTrue);
 			flagTrue = new Combo(comp, SWT.NULL);
 			mod(flagTrue);
 			setComboItems(flagTrue, prop.var.etc.flagTrues.dup);
-			flagTrue.setVisibleItemCount = 20;
+			flagTrue.setVisibleItemCount(20);
 			createTextMenu!Combo(_comm, prop, flagTrue, &catchMod);
 			auto tmod = new ModOnOff(0);
 			flagTrue.addModifyListener = tmod;
 			flagTrue.addSelectionListener = tmod;
 			setGridMinW(flagTrue, prop.var.etc.flagValueWidth, GridData.FILL_HORIZONTAL);
 
-			(new Label(comp, SWT.NULL)).setText = prop.msgs.dlgLblFlagFalse;
+			(new Label(comp, SWT.NULL)).setText(prop.msgs.dlgLblFlagFalse);
 			flagFalse = new Combo(comp, SWT.NULL);
 			mod(flagFalse);
 			setComboItems(flagFalse, prop.var.etc.flagFalses.dup);
-			flagFalse.setVisibleItemCount = 20;
+			flagFalse.setVisibleItemCount(20);
 			createTextMenu!Combo(_comm, prop, flagFalse, &catchMod);
 			auto fmod = new ModOnOff(1);
 			flagFalse.addModifyListener = fmod;
@@ -404,23 +404,23 @@ protected:
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		if (_flag !is null) {
-			flagName.setText = _flag.name;
-			flagTrue.setText = _flag.on;
+			flagName.setText(_flag.name);
+			flagTrue.setText(_flag.on);
 			if (-1 == flagTrue.indexOf(_flag.on)) flagTrue.add(_flag.on, 0);
-			flagFalse.setText = _flag.off;
+			flagFalse.setText(_flag.off);
 			if (-1 == flagFalse.indexOf(_flag.off)) flagFalse.add(_flag.off, 0);
 			setComboItems(flagInit, [flagTrue.getText(), flagFalse.getText()]);
 			flagInit.select = _flag.onOff ? 0 : 1;
 		} else {
-			flagName.setText = "";
-			flagTrue.setText = prop.var.etc.flagTrues.length > 0 ? prop.var.etc.flagTrues[0] : "";
-			flagFalse.setText = prop.var.etc.flagFalses.length > 0 ? prop.var.etc.flagFalses[0] : "";
+			flagName.setText("");
+			flagTrue.setText(prop.var.etc.flagTrues.length > 0 ? prop.var.etc.flagTrues[0] : "");
+			flagFalse.setText(prop.var.etc.flagFalses.length > 0 ? prop.var.etc.flagFalses[0] : "");
 			setComboItems(flagInit, [flagTrue.getText(), flagFalse.getText()]);
 			flagInit.select = 0;
 		}
 		if (!_flag.parent) {
 			// 新規作成時
-			flagName.setText = "";
+			flagName.setText("");
 		}
 		flagName.selectAll();
 	}
@@ -856,7 +856,7 @@ private:
 				itm.setText(NAME, f.name);
 				itm.setText(VALUE, f.value);
 				itm.setText(UC, to!(string)(uc.get(toStepId(f.path))));
-				itm.setData = f;
+				itm.setData(f);
 				i++;
 			}
 			foreach (f; _dir.flags) {
@@ -870,7 +870,7 @@ private:
 				itm.setText(NAME, f.name);
 				itm.setText(VALUE, f.onOff ? f.on : f.off);
 				itm.setText(UC, to!(string)(uc.get(toFlagId(f.path))));
-				itm.setData = f;
+				itm.setData(f);
 				i++;
 			}
 			if (i < flags.getItemCount()) {
@@ -1150,17 +1150,17 @@ public:
 	/// parent = 親コントロール。
 	Control createControl(Composite parent) {
 		_comp = new Composite(parent, SWT.NONE);
-		_comp.setLayout = new FillLayout;
+		_comp.setLayout(new FillLayout);
 		flags = new Table(_comp, SWT.MULTI | SWT.BORDER | SWT.FULL_SELECTION);
-		flags.setHeaderVisible = true;
+		flags.setHeaderVisible(true);
 		auto nameCol = new TableColumn(flags, SWT.NULL);
-		nameCol.setText = prop.msgs.flagName;
+		nameCol.setText(prop.msgs.flagName);
 		saveColumnWidth!("prop.var.etc.flagNameColumn")(prop, nameCol);
 		auto initCol = new TableColumn(flags, SWT.NULL);
-		initCol.setText = prop.msgs.flagInit;
+		initCol.setText(prop.msgs.flagInit);
 		saveColumnWidth!("prop.var.etc.flagInitColumn")(prop, initCol);
 		auto countCol = new TableColumn(flags, SWT.NULL);
-		countCol.setText = prop.msgs.flagCount;
+		countCol.setText(prop.msgs.flagCount);
 		saveColumnWidth!("prop.var.etc.flagCountColumn")(prop, countCol);
 
 		flags.addKeyListener(new KListener);
@@ -1175,7 +1175,7 @@ public:
 		flags.setMenu(menu);
 
 		auto ds = new DragSource(flags, DND.DROP_MOVE | DND.DROP_COPY);
-		ds.setTransfer = [XMLBytesTransfer.getInstance()];
+		ds.setTransfer([XMLBytesTransfer.getInstance()]);
 		ds.addDragListener(new FlagDragListener);
 
 		_comm.refUseCount.add(&__refreshUseCount);

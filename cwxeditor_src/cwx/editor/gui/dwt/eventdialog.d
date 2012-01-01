@@ -155,15 +155,15 @@ class ContentCommentDialog : AbsDialog {
 		auto cl = new CenterLayout;
 		cl.fillHorizontal = true;
 		cl.fillVertical = true;
-		area.setLayout = cl;
+		area.setLayout(cl);
 		_comment = new Text(area, SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
 		mod(_comment);
-		_comment.setText = _evt.comment;
+		_comment.setText(_evt.comment);
 		createTextMenu!Text(_comm, _prop, _comment, &catchMod);
 		auto font = _comment.getFont();
 		auto fSize = font ? cast(uint) font.getFontData()[0].height : 0;
-		_comment.setFont = new Font(Display.getCurrent(), dwtData(_prop.looks.textDlgFont(fSize)));
-		_comment.setSelection = to!dstring(_comment.getText()).length;
+		_comment.setFont(new Font(Display.getCurrent(), dwtData(_prop.looks.textDlgFont(fSize))));
+		_comment.setSelection(to!dstring(_comment.getText()).length);
 		closeEvent ~= () {
 			_comment.getFont().dispose();
 		};
@@ -209,7 +209,7 @@ private:
 		_list.removeAll();
 		foreach (i, a; mixin (Areas)) {
 			auto itm = new TableItem(_list, SWT.NONE);
-			itm.setData = a;
+			itm.setData(a);
 			static if (Type == CType.CHANGE_AREA) {
 				itm.setImage(0, _prop.images.area);
 			} else static if (Type == CType.START_BATTLE) {
@@ -264,8 +264,8 @@ private:
 	}
 	void refreshTS() {
 		static if (Type == CType.CHANGE_AREA) {
-			_ts.setEnabled = !_summ.legacy;
-			_tsSpeed.setEnabled = !_summ.legacy;
+			_ts.setEnabled(!_summ.legacy);
+			_tsSpeed.setEnabled(!_summ.legacy);
 		}
 	}
 	void openView() {
@@ -290,7 +290,7 @@ public:
 	}
 protected:
 	override void setup(Composite area) {
-		area.setLayout = new GridLayout(1, false);
+		area.setLayout(new GridLayout(1, false));
 		_list = new Table(area, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.V_SCROLL);
 		mod(_list);
 		auto idCol = new TableColumn(_list, SWT.NONE);
@@ -299,7 +299,7 @@ protected:
 		auto gd = new GridData(GridData.FILL_BOTH);
 		gd.widthHint = _prop.var.etc.nameTableWidth;
 		gd.heightHint = _prop.var.etc.nameTableHeight;
-		_list.setLayoutData = gd;
+		_list.setLayoutData(gd);
 		_list.addMouseListener(new OpenView);
 		auto menu = new Menu(_list.getShell(), SWT.POP_UP);
 		static if (is(A : Area) || is(A : Battle) || is(A : Package)) {
@@ -307,40 +307,40 @@ protected:
 		} else static if (is(A : CastCard) || is(A : InfoCard)) {
 			createMenuItem(menu, _prop.msgs.menuOpenCardView, _prop.images.menuOpenCardView, &openView);
 		} else static assert (0);
-		_list.setMenu = menu;
+		_list.setMenu(menu);
 		refreshList();
 		static if (Type == CType.CHANGE_AREA) {
 			{
 				auto comp = new Composite(area, SWT.NONE);
-				comp.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
-				comp.setLayout = zeroMarginGridLayout(3, false);
+				comp.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+				comp.setLayout(zeroMarginGridLayout(3, false));
 				auto lt = new Label(comp, SWT.NONE);
-				lt.setText = _prop.msgs.transition;
+				lt.setText(_prop.msgs.transition);
 				_ts = new Combo(comp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 				auto tgd = new GridData;
 				tgd.horizontalSpan = 2;
 				_ts.setLayoutData(tgd);
-				_ts.setVisibleItemCount = 20;
+				_ts.setVisibleItemCount(20);
 				foreach (i, t; ALL_TRANSITION) {
 					_ts.add(_prop.msgs.transitionName(t));
 					_tsTbl[i] = t;
 					if (_evt && t == _evt.transition) _ts.select(i);
 				}
 				auto ls = new Label(comp, SWT.NONE);
-				ls.setText = _prop.msgs.transitionSpeed;
+				ls.setText(_prop.msgs.transitionSpeed);
 				_tsSpeed = new Spinner(comp, SWT.BORDER);
-				_tsSpeed.setMaximum = Content.transitionSpeed_max;
-				_tsSpeed.setMinimum = Content.transitionSpeed_min;
+				_tsSpeed.setMaximum(Content.transitionSpeed_max);
+				_tsSpeed.setMinimum(Content.transitionSpeed_min);
 				auto hint = new Label(comp, SWT.NONE);
 				hint.setText = _prop.msgs.rangeHint
 					(Content.transitionSpeed_min,
 					Content.transitionSpeed_max);
 			}
 			if (_evt) {
-				_tsSpeed.setSelection = _evt.transitionSpeed;
+				_tsSpeed.setSelection(_evt.transitionSpeed);
 			} else {
 				_ts.select = 0;
-				_tsSpeed.setSelection = _prop.looks.transitionSpeedDef;
+				_tsSpeed.setSelection(_prop.looks.transitionSpeedDef);
 			}
 			refreshTS();
 		}
@@ -424,7 +424,7 @@ private:
 		foreach (s; _et.starts) {
 			if (s is c) continue;
 			auto itm = new TableItem(_list, SWT.NONE);
-			itm.setData = s;
+			itm.setData(s);
 			itm.setImage(0, _prop.images.content(CType.START));
 			itm.setText(0, s.name);
 			if (i == 0) _list.select = i;
@@ -457,18 +457,18 @@ public:
 
 protected:
 	override void setup(Composite area) {
-		area.setLayout = new GridLayout(1, false);
+		area.setLayout(new GridLayout(1, false));
 		_list = new Table(area, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.V_SCROLL);
 		mod(_list);
 		auto nameCol = new FullTableColumn(_list, SWT.NONE);
 		auto gd = new GridData(GridData.FILL_BOTH);
 		gd.widthHint = _prop.var.etc.nameTableWidth;
 		gd.heightHint = _prop.var.etc.nameTableHeight;
-		_list.setLayoutData = gd;
+		_list.setLayoutData(gd);
 		_list.addMouseListener(new OpenView);
 		auto menu = new Menu(_list.getShell(), SWT.POP_UP);
 		createMenuItem(menu, _prop.msgs.menuOpenEventTreeView, _prop.images.menuOpenEventTreeView, &openView);
-		_list.setMenu = menu;
+		_list.setMenu(menu);
 
 		refreshStarts();
 		_comm.refContent.add(&refContent);
@@ -498,27 +498,27 @@ protected:
 	override void setup(Composite area) {
 		auto cl = new CenterLayout;
 		cl.fillHorizontal = true;
-		area.setLayout = cl;
+		area.setLayout(cl);
 		auto grp = new Group(area, SWT.NONE);
-		grp.setText = _prop.msgs.afterClear;
-		grp.setLayout = new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0);
+		grp.setText(_prop.msgs.afterClear);
+		grp.setLayout(new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0));
 		auto comp = new Composite(grp, SWT.NONE);
-		comp.setLayout = new GridLayout(1, true);
+		comp.setLayout(new GridLayout(1, true));
 		_mark = new Button(comp, SWT.RADIO);
 		mod(_mark);
-		_mark.setText = _prop.msgs.afterClearEndMark;
+		_mark.setText(_prop.msgs.afterClearEndMark);
 		_unmark = new Button(comp, SWT.RADIO);
 		mod(_unmark);
-		_unmark.setText = _prop.msgs.afterClearNoEndMark;
+		_unmark.setText(_prop.msgs.afterClearNoEndMark);
 
 		if (_evt) {
 			if (_evt.complete) {
-				_mark.setSelection = true;
+				_mark.setSelection(true);
 			} else {
-				_unmark.setSelection = true;
+				_unmark.setSelection(true);
 			}
 		} else {
-			_mark.setSelection = true;
+			_mark.setSelection(true);
 		}
 	}
 
@@ -551,7 +551,7 @@ private:
 		if (c.length && -1 == _name.indexOf(c)) {
 			_name.add(c, 0);
 		}
-		_name.setText = c;
+		_name.setText(c);
 	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
@@ -559,69 +559,69 @@ public:
 	}
 protected:
 	override void setup(Composite area) {
-		area.setLayout = new GridLayout(2, false);
+		area.setLayout(new GridLayout(2, false));
 		auto skin = _comm.skin;
 		{
 			auto grp = new Group(area, SWT.NONE);
-			grp.setLayoutData = new GridData(GridData.FILL_VERTICAL);
-			grp.setText = _prop.msgs.range;
-			grp.setLayout = new GridLayout(1, true);
+			grp.setLayoutData(new GridData(GridData.FILL_VERTICAL));
+			grp.setText(_prop.msgs.range);
+			grp.setLayout(new GridLayout(1, true));
 			foreach (r; RANGE_MEMBER) {
 				auto radio = new Button(grp, SWT.RADIO);
 				mod(radio);
-				radio.setLayoutData = new GridData(GridData.FILL_BOTH);
-				radio.setText = _prop.msgs.rangeName(r);
+				radio.setLayoutData(new GridData(GridData.FILL_BOTH));
+				radio.setText(_prop.msgs.rangeName(r));
 				_range[r] = radio;
 			}
 		}
 		{
 			auto grp = new Group(area, SWT.NONE);
-			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
+			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			auto cl = new CenterLayout(SWT.VERTICAL, 0);
 			cl.fillHorizontal = true;
-			grp.setLayout = cl;
-			grp.setText = _prop.msgs.couponName;
+			grp.setLayout(cl);
+			grp.setText(_prop.msgs.couponName);
 			{
 				auto comp = new Composite(grp, SWT.NONE);
-				comp.setLayout = new GridLayout(3, false);
+				comp.setLayout(new GridLayout(3, false));
 				{
 					_name = new Combo(comp, SWT.BORDER | SWT.DROP_DOWN);
 					mod(_name);
-					_name.setVisibleItemCount = 20;
+					_name.setVisibleItemCount(20);
 					createTextMenu!Combo(_comm, _prop, _name, &catchMod);
 					auto gd = new GridData(GridData.FILL_HORIZONTAL);
 					gd.horizontalSpan = 3;
 					gd.widthHint = _prop.var.etc.nameWidth;
-					_name.setLayoutData = gd;
+					_name.setLayoutData(gd);
 					refreshCoupons();
 				}
 				static if (EditValue) {
 					auto ll = new Label(comp, SWT.RIGHT);
-					ll.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-					ll.setText = _prop.msgs.couponValue;
+					ll.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+					ll.setText(_prop.msgs.couponValue);
 					_value = new Spinner(comp, SWT.BORDER);
 					mod(_value);
-					_value.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_CENTER);
-					_value.setMaximum = Content.couponValue_max;
-					_value.setMinimum = Content.couponValue_min;
+					_value.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_CENTER));
+					_value.setMaximum(Content.couponValue_max);
+					_value.setMinimum(Content.couponValue_min);
 					auto lr = new Label(comp, SWT.LEFT);
-					lr.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-					lr.setText = _prop.msgs.couponValueRange(Content.couponValue_max);
+					lr.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+					lr.setText(_prop.msgs.couponValueRange(Content.couponValue_max));
 				}
 			}
 		}
 
 		if (_evt) {
-			_range[_evt.range].setSelection = true;
-			_name.setText = _evt.coupon;
+			_range[_evt.range].setSelection(true);
+			_name.setText(_evt.coupon);
 			_name.add(_evt.coupon, 0);
 			static if (EditValue) {
-				_value.setSelection = _evt.couponValue;
+				_value.setSelection(_evt.couponValue);
 			}
 		} else {
-			_range[Range.SELECTED].setSelection = true;
+			_range[Range.SELECTED].setSelection(true);
 			static if (EditValue) {
-				_value.setSelection = 0;
+				_value.setSelection(0);
 			}
 		}
 	}
@@ -653,27 +653,27 @@ public:
 	}
 protected:
 	override void setup(Composite area) {
-		area.setLayout = new GridLayout(1, false);
+		area.setLayout(new GridLayout(1, false));
 		{
 			auto grp = new Group(area, SWT.NONE);
-			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-			grp.setText = mixin (Name);
+			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			grp.setText(mixin (Name));
 			auto cl = new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0);
 			cl.fillHorizontal = true;
-			grp.setLayout = cl;
+			grp.setLayout(cl);
 			auto comp = new Composite(grp, SWT.NONE);
-			comp.setLayout = new GridLayout(1, true);
+			comp.setLayout(new GridLayout(1, true));
 
 			_text = new Text(comp, SWT.BORDER);
 			mod(_text);
 			createTextMenu!Text(_comm, _prop, _text, &catchMod);
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
 			gd.widthHint = _prop.var.etc.nameWidth;
-			_text.setLayoutData = gd;
+			_text.setLayoutData(gd);
 		}
 
 		if (_evt) {
-			_text.setText = mixin (Get);
+			_text.setText(mixin (Get));
 		}
 	}
 
@@ -711,8 +711,8 @@ private:
 		refreshTS();
 	}
 	void refreshTS() {
-		_ts.setEnabled = !_summ.legacy;
-		_tsSpeed.setEnabled = !_summ.legacy;
+		_ts.setEnabled(!_summ.legacy);
+		_tsSpeed.setEnabled(!_summ.legacy);
 	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt, AbstractArea refTarget) {
@@ -734,33 +734,33 @@ public:
 	}
 protected:
 	override void setup(Composite area) {
-		area.setLayout = new GridLayout(1, false);
+		area.setLayout(new GridLayout(1, false));
 		auto skin = _comm.skin;
 		{
 			_view = createBgImagesViewAndMenu(_comm, _prop, _summ, _cont, area, _refTarget);
 			mod(_view);
-			_view.setLayoutData = new GridData(GridData.FILL_BOTH);
+			_view.setLayoutData(new GridData(GridData.FILL_BOTH));
 		}
 		{
 			auto comp = new Composite(area, SWT.NONE);
-			comp.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
-			comp.setLayout = zeroMarginGridLayout(5, false);
+			comp.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+			comp.setLayout(zeroMarginGridLayout(5, false));
 			auto lt = new Label(comp, SWT.NONE);
-			lt.setText = _prop.msgs.transition;
+			lt.setText(_prop.msgs.transition);
 			_ts = new Combo(comp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 			mod(_ts);
-			_ts.setVisibleItemCount = 20;
+			_ts.setVisibleItemCount(20);
 			foreach (i, t; ALL_TRANSITION) {
 				_ts.add(_prop.msgs.transitionName(t));
 				_tsTbl[i] = t;
 				if (_evt && t == _evt.transition) _ts.select(i);
 			}
 			auto ls = new Label(comp, SWT.NONE);
-			ls.setText = _prop.msgs.transitionSpeed;
+			ls.setText(_prop.msgs.transitionSpeed);
 			_tsSpeed = new Spinner(comp, SWT.BORDER);
 			mod(_tsSpeed);
-			_tsSpeed.setMaximum = Content.transitionSpeed_max;
-			_tsSpeed.setMinimum = Content.transitionSpeed_min;
+			_tsSpeed.setMaximum(Content.transitionSpeed_max);
+			_tsSpeed.setMinimum(Content.transitionSpeed_min);
 			auto hint = new Label(comp, SWT.NONE);
 			hint.setText = _prop.msgs.rangeHint
 				(Content.transitionSpeed_min,
@@ -771,10 +771,10 @@ protected:
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		if (_evt) {
-			_tsSpeed.setSelection = _evt.transitionSpeed;
+			_tsSpeed.setSelection(_evt.transitionSpeed);
 		} else {
 			_ts.select = 0;
-			_tsSpeed.setSelection = _prop.looks.transitionSpeedDef;
+			_tsSpeed.setSelection(_prop.looks.transitionSpeedDef);
 		}
 	}
 
@@ -799,24 +799,24 @@ public:
 	}
 protected:
 	override void setup(Composite area) {
-		area.setLayout = new GridLayout(4, false);
+		area.setLayout(new GridLayout(4, false));
 		{
 			auto skin = _comm.skin;
 			_msel = new MaterialSelect!(MtType.BGM, Combo, Table)
 				(_comm, _prop, _summ, null, [_prop.msgs.bgmStop]);
-			_msel.createDirsCombo(area).setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+			_msel.createDirsCombo(area).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			mod(_msel);
 
-			_msel.createPlayButton(area).setLayoutData = new GridData;
-			_msel.createRefreshButton(area, false).setLayoutData = new GridData;
-			_msel.createDirectoryButton(area, false).setLayoutData = new GridData;
+			_msel.createPlayButton(area).setLayoutData(new GridData);
+			_msel.createRefreshButton(area, false).setLayoutData(new GridData);
+			_msel.createDirectoryButton(area, false).setLayoutData(new GridData);
 
 			auto gd = new GridData(GridData.FILL_BOTH);
 			gd.horizontalSpan = 4;
 			gd.widthHint = _prop.var.etc.nameTableWidth;
 			gd.heightHint = _prop.var.etc.nameTableHeight;
 			auto list = _msel.createFileList(area);
-			list.setLayoutData = gd;
+			list.setLayoutData(gd);
 		}
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
@@ -841,25 +841,25 @@ public:
 	}
 protected:
 	override void setup(Composite area) {
-		area.setLayout = new GridLayout(5, false);
+		area.setLayout(new GridLayout(5, false));
 		{
 			auto skin = _comm.skin;
 			_msel = new MaterialSelect!(MtType.SE, Combo, Table)
 				(_comm, _prop, _summ, null, []);
-			_msel.createDirsCombo(area).setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+			_msel.createDirsCombo(area).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			mod(_msel);
 
-			_msel.createStopButton(area).setLayoutData = new GridData;
-			_msel.createPlayButton(area).setLayoutData = new GridData;
-			_msel.createRefreshButton(area, false).setLayoutData = new GridData;
-			_msel.createDirectoryButton(area, false).setLayoutData = new GridData;
+			_msel.createStopButton(area).setLayoutData(new GridData);
+			_msel.createPlayButton(area).setLayoutData(new GridData);
+			_msel.createRefreshButton(area, false).setLayoutData(new GridData);
+			_msel.createDirectoryButton(area, false).setLayoutData(new GridData);
 
 			auto gd = new GridData(GridData.FILL_BOTH);
 			gd.horizontalSpan = 5;
 			gd.widthHint = _prop.var.etc.nameTableWidth;
 			gd.heightHint = _prop.var.etc.nameTableHeight;
 			auto list = _msel.createFileList(area);
-			list.setLayoutData = gd;
+			list.setLayoutData(gd);
 		}
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
@@ -887,41 +887,41 @@ protected:
 		private int _v;
 		this (int v) {_v = v;}
 		override void widgetSelected(SelectionEvent e) {
-			_value.setSelection = _value.getSelection() + _v;
+			_value.setSelection(_value.getSelection() + _v);
 		}
 	}
 	override void setup(Composite area) {
-		area.setLayout = new GridLayout(1, false);
+		area.setLayout(new GridLayout(1, false));
 		{
 			auto grp = new Group(area, SWT.NONE);
-			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-			grp.setText = mixin (Name);
-			grp.setLayout = new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0);
+			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			grp.setText(mixin (Name));
+			grp.setLayout(new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0));
 			auto comp = new Composite(grp, SWT.NONE);
 			_value = new Spinner(comp, SWT.BORDER);
 			mod(_value);
-			_value.setMinimum = Min;
-			_value.setMaximum = mixin (Max);
-			comp.setLayout = new GridLayout(10 <= _value.getMaximum() ? 3 : 2, false);
+			_value.setMinimum(Min);
+			_value.setMaximum(mixin (Max));
+			comp.setLayout(new GridLayout(10 <= _value.getMaximum() ? 3 : 2, false));
 			if (10 <= _value.getMaximum()) {
 				auto tools = new Composite(comp, SWT.NONE);
-				tools.setLayout = new FillLayout(SWT.HORIZONTAL);
+				tools.setLayout(new FillLayout(SWT.HORIZONTAL));
 				for (int i = 5; i <= _value.getMaximum() && i < 10000; i*= i == 5 ? 2 : 10) {
 					auto ts = new Composite(tools, SWT.NONE);
-					ts.setLayout = new FillLayout(SWT.VERTICAL);
+					ts.setLayout(new FillLayout(SWT.VERTICAL));
 					void createB(int i) {
 						auto r = new Button(ts, SWT.PUSH);
 						auto fontd = r.getFont().getFontData();
 						foreach (fd; fontd) {
 							fd.height /= 1.5;
 						}
-						r.setFont = new Font(Display.getCurrent(), fontd);
+						r.setFont(new Font(Display.getCurrent(), fontd));
 						r.addDisposeListener(new class DisposeListener {
 							override void widgetDisposed(DisposeEvent e) {
 								(cast(Control) e.widget).getFont().dispose();
 							}
 						});
-						r.setText = i < 0 ? to!(string)(i) : "+" ~ to!(string)(i);
+						r.setText(i < 0 ? to!(string)(i) : "+" ~ to!(string)(i));
 						r.addSelectionListener(new PM(i));
 					}
 					createB(i);
@@ -929,15 +929,15 @@ protected:
 				}
 			}
 			auto l = new Label(comp, SWT.NONE);
-			l.setText = _prop.msgs.rangeHint(Min, _value.getMaximum());
+			l.setText(_prop.msgs.rangeHint(Min, _value.getMaximum()));
 		}
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		if (_evt) {
-			_value.setSelection = mixin (Get);
+			_value.setSelection(mixin (Get));
 		} else {
-			_value.setSelection = Def;
+			_value.setSelection(Def);
 		}
 	}
 
@@ -989,43 +989,43 @@ protected:
 		auto cl = new CenterLayout;
 		cl.fillHorizontal = true;
 		cl.fillVertical = true;
-		area.setLayout = cl;
+		area.setLayout(cl);
 		auto tabf = new CTabFolder(area, SWT.BORDER);
 		auto tabM = new CTabItem(tabf, SWT.NONE);
-		tabM.setText = _prop.msgs.motion;
+		tabM.setText(_prop.msgs.motion);
 		{
 			_mview = new MotionView(_comm, _prop, _summ, tabf);
 			mod(_mview);
-			tabM.setControl = _mview;
+			tabM.setControl(_mview);
 		}
 		auto tabS = new CTabItem(tabf, SWT.NONE);
-		tabS.setText = _prop.msgs.settings;
+		tabS.setText(_prop.msgs.settings);
 		{
 			auto comp = new Composite(tabf, SWT.NONE);
-			tabS.setControl = comp;
-			comp.setLayout = new GridLayout(2, false);
+			tabS.setControl(comp);
+			comp.setLayout(new GridLayout(2, false));
 			{
 				auto comp2 = new Composite(comp, SWT.NONE);
-				comp2.setLayoutData = new GridData(GridData.FILL_BOTH);
-				comp2.setLayout = zeroMarginGridLayout(1, true);
+				comp2.setLayoutData(new GridData(GridData.FILL_BOTH));
+				comp2.setLayout(zeroMarginGridLayout(1, true));
 				{
 					auto grp = new Group(comp2, SWT.NONE);
-					grp.setText = _prop.msgs.targetLevel;
-					grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-					grp.setLayout = new GridLayout(2, false);
+					grp.setText(_prop.msgs.targetLevel);
+					grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+					grp.setLayout(new GridLayout(2, false));
 					_lev = new Spinner(grp, SWT.BORDER);
 					mod(_lev);
-					_lev.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-					_lev.setMinimum = Content.signedLevel_min;
-					_lev.setMaximum = Content.signedLevel_max;
+					_lev.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+					_lev.setMinimum(Content.signedLevel_min);
+					_lev.setMaximum(Content.signedLevel_max);
 					auto l = new Label(grp, SWT.NONE);
-					l.setText = _prop.msgs.rangeHint(_lev.getMinimum(), _lev.getMaximum());
+					l.setText(_prop.msgs.rangeHint(_lev.getMinimum(), _lev.getMaximum()));
 				}
 				{
 					auto grp = new Group(comp2, SWT.NONE);
-					grp.setText = _prop.msgs.elementProps;
-					grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-					grp.setLayout = new GridLayout(2, true);
+					grp.setText(_prop.msgs.elementProps);
+					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+					grp.setLayout(new GridLayout(2, true));
 					foreach (i, eff; [EffectType.PHYSIC, EffectType.MAGIC,
 							EffectType.MAGICAL_PHYSIC, EffectType.PHYSICAL_MAGIC,
 							EffectType.NONE]) {
@@ -1035,96 +1035,96 @@ protected:
 						if (2 <= i) {
 							gd.horizontalSpan = 2;
 						}
-						radio.setLayoutData = gd;
-						radio.setText = _prop.msgs.effectType(eff);
+						radio.setLayoutData(gd);
+						radio.setText(_prop.msgs.effectType(eff));
 						_effTyp[eff] = radio;
 					}
 				}
 				{
 					auto grp = new Group(comp2, SWT.NONE);
-					grp.setText = _prop.msgs.resistProps;
-					grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-					grp.setLayout = new GridLayout(2, true);
+					grp.setText(_prop.msgs.resistProps);
+					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+					grp.setLayout(new GridLayout(2, true));
 					foreach (res; [Resist.AVOID, Resist.RESIST, Resist.UNFAIL]) {
 						auto radio = new Button(grp, SWT.RADIO);
 						mod(radio);
-						radio.setText = _prop.msgs.resist(res);
-						radio.setLayoutData = new GridData(GridData.FILL_BOTH);
+						radio.setText(_prop.msgs.resist(res));
+						radio.setLayoutData(new GridData(GridData.FILL_BOTH));
 						_res[res] = radio;
 					}
 				}
 			}
 			{
 				auto comp2 = new Composite(comp, SWT.NONE);
-				comp2.setLayoutData = new GridData(GridData.FILL_BOTH);
-				comp2.setLayout = zeroMarginGridLayout(2, false);
+				comp2.setLayoutData(new GridData(GridData.FILL_BOTH));
+				comp2.setLayout(zeroMarginGridLayout(2, false));
 				{
 					auto grp = new Group(comp2, SWT.NONE);
-					grp.setText = _prop.msgs.effectVisual;
-					grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-					grp.setLayout = new GridLayout(1, false);
+					grp.setText(_prop.msgs.effectVisual);
+					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+					grp.setLayout(new GridLayout(1, false));
 					foreach (v; [CardVisual.NONE, CardVisual.REVERSE, CardVisual.HORIZONTAL, CardVisual.VERTICAL]) {
 						auto radio = new Button(grp, SWT.RADIO);
 						mod(radio);
-						radio.setLayoutData = new GridData(GridData.FILL_BOTH);
-						radio.setText = _prop.msgs.cardVisual(v);
+						radio.setLayoutData(new GridData(GridData.FILL_BOTH));
+						radio.setText(_prop.msgs.cardVisual(v));
 						_vis[v] = radio;
 					}
 				}
 				{
 					auto grp = new Group(comp2, SWT.NONE);
-					grp.setText = _prop.msgs.judgeTarget;
-					grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-					grp.setLayout = new GridLayout(1, true);
+					grp.setText(_prop.msgs.judgeTarget);
+					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+					grp.setLayout(new GridLayout(1, true));
 					foreach (m; [Target.M.SELECTED, Target.M.RANDOM, Target.M.PARTY]) {
 						auto radio = new Button(grp, SWT.RADIO);
 						mod(radio);
-						radio.setText = _prop.msgs.targetName(m);
-						radio.setLayoutData = new GridData(GridData.FILL_BOTH);
+						radio.setText(_prop.msgs.targetName(m));
+						radio.setLayoutData(new GridData(GridData.FILL_BOTH));
 						_targ[m] = radio;
 					}
 				}
 				{
 					auto grp = new Group(comp2, SWT.NONE);
-					grp.setText = _prop.msgs.se;
+					grp.setText(_prop.msgs.se);
 					auto gd = new GridData(GridData.FILL_BOTH);
 					gd.horizontalSpan = 2;
-					grp.setLayoutData = gd;
-					grp.setLayout = new GridLayout(1, true);
+					grp.setLayoutData(gd);
+					grp.setLayout(new GridLayout(1, true));
 					createDefSoundCombo(_comm, _prop, _summ, grp, _se)
-						.setLayoutData = new GridData(GridData.FILL_BOTH);
+						.setLayoutData(new GridData(GridData.FILL_BOTH));
 					mod(_se);
 				}
 				{
 					auto gd = new GridData(GridData.FILL_BOTH);
 					gd.horizontalSpan = 2;
-					createSuccessRateScale(_prop, comp2, _sucRate).setLayoutData = gd;
+					createSuccessRateScale(_prop, comp2, _sucRate).setLayoutData(gd);
 					mod(_sucRate);
 				}
 			}
 		}
-		tabf.setLayoutData = area.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+		tabf.setLayoutData(area.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		if (_evt) {
 			_mview.motions = _evt.motions;
-			_lev.setSelection = _evt.signedLevel;
+			_lev.setSelection(_evt.signedLevel);
 			int sei = _se.indexOf(baseName(_evt.soundPath));
 			_se.select = sei >= 0 ? sei : 0;
-			_sucRate.setSelection = _evt.successRate + Content.successRate_max;
-			_effTyp[_evt.effectType].setSelection = true;
-			_res[_evt.resist].setSelection = true;
-			_vis[_evt.cardVisual].setSelection = true;
-			_targ[_evt.targetNS.m].setSelection = true;
+			_sucRate.setSelection(_evt.successRate + Content.successRate_max);
+			_effTyp[_evt.effectType].setSelection(true);
+			_res[_evt.resist].setSelection(true);
+			_vis[_evt.cardVisual].setSelection(true);
+			_targ[_evt.targetNS.m].setSelection(true);
 		} else {
 			_mview.motions = [];
-			_lev.setSelection = 0;
+			_lev.setSelection(0);
 			_se.select = 0;
-			_sucRate.setSelection = Content.successRate_max + Content.successRate_max;
-			_effTyp[EffectType.NONE].setSelection = true;
-			_res[Resist.UNFAIL].setSelection = true;
-			_vis[CardVisual.NONE].setSelection = true;
-			_targ[Target.M.SELECTED].setSelection = true;
+			_sucRate.setSelection(Content.successRate_max + Content.successRate_max);
+			_effTyp[EffectType.NONE].setSelection(true);
+			_res[Resist.UNFAIL].setSelection(true);
+			_vis[CardVisual.NONE].setSelection(true);
+			_targ[Target.M.SELECTED].setSelection(true);
 		}
 	}
 
@@ -1170,13 +1170,13 @@ private:
 		_values.removeAll();
 		static if (is (F == Flag)) {
 			auto itm1 = new TableItem(_values, SWT.NONE);
-			itm1.setText = flag.on;
+			itm1.setText(flag.on);
 			auto itm2 = new TableItem(_values, SWT.NONE);
-			itm2.setText = flag.off;
+			itm2.setText(flag.off);
 		} else static if (is (F == Step)) {
 			foreach (val; flag.values) {
 				auto itm = new TableItem(_values, SWT.NONE);
-				itm.setText = val;
+				itm.setText(val);
 			}
 		} else {
 			static assert (0);
@@ -1217,12 +1217,12 @@ private:
 		foreach (i, flag; flags) {
 			auto path = flag.path;
 			auto itm = new TableItem(_flags, SWT.NONE);
-			itm.setData = flag;
-			itm.setText = path;
+			itm.setData(flag);
+			itm.setText(path);
 			static if (is(F : Flag)) {
-				itm.setImage = _prop.images.flag;
+				itm.setImage(_prop.images.flag);
 			} else static if (is(F : Step)) {
-				itm.setImage = _prop.images.step;
+				itm.setImage(_prop.images.step);
 			} else static assert (0);
 			if (0 == i) _flags.select = i;
 			if (path == sel) _flags.select = i;
@@ -1292,24 +1292,24 @@ public:
 	}
 protected:
 	override void setup(Composite area) {
-		area.setLayout = new GridLayout(1, true);
+		area.setLayout(new GridLayout(1, true));
 		_sash = new SplitPane(area, SWT.HORIZONTAL);
-		_sash.setLayoutData = new GridData(GridData.FILL_BOTH);
+		_sash.setLayoutData(new GridData(GridData.FILL_BOTH));
 		auto left = new Composite(_sash, SWT.NONE);
-		left.setLayout = zeroGridLayout(1);
+		left.setLayout(zeroGridLayout(1));
 		auto right = new Composite(_sash, SWT.NONE);
-		right.setLayout = zeroGridLayout(1);
+		right.setLayout(zeroGridLayout(1));
 		{
 			auto l1 = new CLabel(left, SWT.NONE);
 			auto l2 = new CLabel(right, SWT.NONE);
 			static if (is (F == Flag)) {
-				l1.setText = _prop.msgs.flag;
-				l1.setImage = _prop.images.flag;
-				l2.setText = _prop.msgs.flagValue;
+				l1.setText(_prop.msgs.flag);
+				l1.setImage(_prop.images.flag);
+				l2.setText(_prop.msgs.flagValue);
 			} else static if (is (F == Step)) {
-				l1.setText = _prop.msgs.step;
-				l1.setImage = _prop.images.step;
-				l2.setText = _prop.msgs.stepValue;
+				l1.setText(_prop.msgs.step);
+				l1.setImage(_prop.images.step);
+				l2.setText(_prop.msgs.stepValue);
 			} else {
 				static assert (0);
 			}
@@ -1320,14 +1320,14 @@ protected:
 			new FullTableColumn(_flags, SWT.NONE);
 			auto gd = new GridData(GridData.FILL_BOTH);
 			gd.heightHint = _prop.var.etc.nameTableHeight;
-			_flags.setLayoutData = gd;
+			_flags.setLayoutData(gd);
 			refreshList();
 			_flags.addSelectionListener(new SListener);
 
 			_flags.addMouseListener(new OpenView);
 			auto menu = new Menu(_flags.getShell(), SWT.POP_UP);
 			createMenuItem(menu, _prop.msgs.menuOpenFlagView, _prop.images.menuOpenFlagView, &openView);
-			_flags.setMenu = menu;
+			_flags.setMenu(menu);
 		}
 		{
 			_values = new Table(right, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.V_SCROLL);
@@ -1335,8 +1335,8 @@ protected:
 			mod(_values);
 			auto gd = new GridData(GridData.FILL_BOTH);
 			gd.heightHint = _prop.var.etc.nameTableHeight;
-			_values.setLayoutData = gd;
-			_values.setEnabled = SelValue;
+			_values.setLayoutData(gd);
+			_values.setEnabled(SelValue);
 		}
 		_comm.refFlagAndStep.add(&refFS);
 		_comm.delFlagAndStep.add(&delFS);
@@ -1422,20 +1422,20 @@ public:
 	}
 protected:
 	override void setup(Composite area) {
-		area.setLayout = new GridLayout(2, false);
+		area.setLayout(new GridLayout(2, false));
 		void createR(string title, string trueText, string falseText, ref Button[] btns) {
 			auto grp = new Group(area, SWT.NONE);
-			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-			grp.setLayout = new CenterLayout;
-			grp.setText = title;
+			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			grp.setLayout(new CenterLayout);
+			grp.setText(title);
 			auto comp = new Composite(grp, SWT.NONE);
-			comp.setLayout = zeroMarginGridLayout(1, true);
+			comp.setLayout(zeroMarginGridLayout(1, true));
 			auto btnT = new Button(comp, SWT.RADIO);
 			mod(btnT);
-			btnT.setText = trueText;
+			btnT.setText(trueText);
 			auto btnF = new Button(comp, SWT.RADIO);
 			mod(btnF);
-			btnF.setText = falseText;
+			btnF.setText(falseText);
 			btns.length = 2;
 			btns[0] = btnT;
 			btns[1] = btnF;
@@ -1446,11 +1446,11 @@ protected:
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		if (_evt) {
-			_all[_evt.targetAll ? 1 : 0].setSelection = true;
-			_random[_evt.random ? 1 : 0].setSelection = true;
+			_all[_evt.targetAll ? 1 : 0].setSelection(true);
+			_random[_evt.random ? 1 : 0].setSelection(true);
 		} else {
-			_all[0].setSelection = true;
-			_random[0].setSelection = true;
+			_all[0].setSelection(true);
+			_random[0].setSelection(true);
 		}
 	}
 
@@ -1478,76 +1478,76 @@ public:
 	}
 protected:
 	override void setup(Composite area) {
-		area.setLayout = new GridLayout(3, false);
+		area.setLayout(new GridLayout(3, false));
 		{
 			auto comp = new Composite(area, SWT.NONE);
-			comp.setLayout = zeroMarginGridLayout(1, true);
+			comp.setLayout(zeroMarginGridLayout(1, true));
 			{
 				auto grp = new Group(comp, SWT.NONE);
-				grp.setText = _prop.msgs.targetLevel;
-				grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				grp.setLayout = new GridLayout(2, false);
+				grp.setText(_prop.msgs.targetLevel);
+				grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				grp.setLayout(new GridLayout(2, false));
 				_lev = new Spinner(grp, SWT.BORDER);
 				mod(_lev);
-				_lev.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				_lev.setMinimum = Content.signedLevel_min;
-				_lev.setMaximum = Content.signedLevel_max;
+				_lev.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				_lev.setMinimum(Content.signedLevel_min);
+				_lev.setMaximum(Content.signedLevel_max);
 				auto l = new Label(grp, SWT.NONE);
-				l.setText = _prop.msgs.rangeHint(_lev.getMinimum(), _lev.getMaximum());
+				l.setText(_prop.msgs.rangeHint(_lev.getMinimum(), _lev.getMaximum()));
 			}
 			{
 				auto grp = new Group(comp, SWT.NONE);
-				grp.setText = _prop.msgs.judgeTarget;
-				grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-				grp.setLayout = new GridLayout(1, true);
+				grp.setText(_prop.msgs.judgeTarget);
+				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+				grp.setLayout(new GridLayout(1, true));
 				foreach (m; [Target.M.SELECTED, Target.M.RANDOM, Target.M.PARTY]) {
 					auto radio = new Button(grp, SWT.RADIO);
 					mod(radio);
-					radio.setText = _prop.msgs.targetName(m);
-					radio.setLayoutData = new GridData(GridData.FILL_BOTH);
+					radio.setText(_prop.msgs.targetName(m));
+					radio.setLayoutData(new GridData(GridData.FILL_BOTH));
 					_targ[m] = radio;
 				}
 			}
 			{
 				auto grp = new Group(comp, SWT.NONE);
-				grp.setText = _prop.msgs.judgeSleep;
-				grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-				grp.setLayout = new GridLayout(1, true);
+				grp.setText(_prop.msgs.judgeSleep);
+				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+				grp.setLayout(new GridLayout(1, true));
 				_sleep[1] = new Button(grp, SWT.RADIO);
 				mod(_sleep[1]);
-				_sleep[1].setText = _prop.msgs.sleepDisabled;
+				_sleep[1].setText(_prop.msgs.sleepDisabled);
 				_sleep[0] = new Button(grp, SWT.RADIO);
 				mod(_sleep[0]);
-				_sleep[0].setText = _prop.msgs.sleepEnabled;
+				_sleep[0].setText(_prop.msgs.sleepEnabled);
 			}
 		}
 		{
 			auto grp = new Group(area, SWT.NONE);
-			grp.setText = _prop.msgs.aptPhysical;
-			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
+			grp.setText(_prop.msgs.aptPhysical);
+			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			auto cl = new CenterLayout(SWT.HORIZONTAL, 0);
 			cl.fillVertical = true;
-			grp.setLayout = cl;
+			grp.setLayout(cl);
 			auto comp2 = new Composite(grp, SWT.NONE);
-			comp2.setLayout = new GridLayout(1, true);
+			comp2.setLayout(new GridLayout(1, true));
 			foreach (phy; [Physical.DEX, Physical.AGL, Physical.INT,
 					Physical.STR, Physical.VIT, Physical.MIN]) {
 				auto radio = new Button(comp2, SWT.RADIO);
 				mod(radio);
-				radio.setLayoutData = new GridData(GridData.FILL_VERTICAL);
-				radio.setText = _prop.msgs.physicalName(phy);
+				radio.setLayoutData(new GridData(GridData.FILL_VERTICAL));
+				radio.setText(_prop.msgs.physicalName(phy));
 				_phy[phy] = radio;
 			}
 		}
 		{
 			auto grp = new Group(area, SWT.NONE);
-			grp.setText = _prop.msgs.aptMental;
-			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
+			grp.setText(_prop.msgs.aptMental);
+			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			auto cl = new CenterLayout(SWT.HORIZONTAL, 0);
 			cl.fillVertical = true;
-			grp.setLayout = cl;
+			grp.setLayout(cl);
 			auto comp2 = new Composite(grp, SWT.NONE);
-			comp2.setLayout = new GridLayout(2, true);
+			comp2.setLayout(new GridLayout(2, true));
 			static const Ms = [Mental.AGGRESSIVE, Mental.UNAGGRESSIVE,
 				Mental.CHEERFUL, Mental.UNCHEERFUL,
 				Mental.BRAVE, Mental.UNBRAVE, Mental.CAUTIOUS, Mental.UNCAUTIOUS,
@@ -1555,25 +1555,25 @@ protected:
 			foreach (i, m; Ms) {
 				auto radio = new Button(comp2, SWT.RADIO);
 				mod(radio);
-				radio.setLayoutData = new GridData(GridData.FILL_BOTH);
-				radio.setText = _prop.msgs.mentalName(m);
+				radio.setLayoutData(new GridData(GridData.FILL_BOTH));
+				radio.setText(_prop.msgs.mentalName(m));
 				_mtl[m] = radio;
 			}
 		}
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		if (_evt) {
-			_lev.setSelection = _evt.signedLevel;
-			_targ[_evt.targetS.m].setSelection = true;
-			_sleep[_evt.targetS.sleep ? 0 : 1].setSelection = true;
-			_phy[_evt.physical].setSelection = true;
-			_mtl[_evt.mental].setSelection = true;
+			_lev.setSelection(_evt.signedLevel);
+			_targ[_evt.targetS.m].setSelection(true);
+			_sleep[_evt.targetS.sleep ? 0 : 1].setSelection(true);
+			_phy[_evt.physical].setSelection(true);
+			_mtl[_evt.mental].setSelection(true);
 		} else {
-			_lev.setSelection = 0;
-			_targ[Target.M.SELECTED].setSelection = true;
-			_sleep[1].setSelection = true;
-			_phy[Physical.DEX].setSelection = true;
-			_mtl[Mental.AGGRESSIVE].setSelection = true;
+			_lev.setSelection(0);
+			_targ[Target.M.SELECTED].setSelection(true);
+			_sleep[1].setSelection(true);
+			_phy[Physical.DEX].setSelection(true);
+			_mtl[Mental.AGGRESSIVE].setSelection(true);
 		}
 	}
 
@@ -1600,45 +1600,45 @@ public:
 	}
 protected:
 	override void setup(Composite area) {
-		area.setLayout = new GridLayout(2, false);
+		area.setLayout(new GridLayout(2, false));
 		{
 			auto grp = new Group(area, SWT.NONE);
-			grp.setText = _prop.msgs.judgeTarget;
-			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-			grp.setLayout = new CenterLayout;
+			grp.setText(_prop.msgs.judgeTarget);
+			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			grp.setLayout(new CenterLayout);
 			auto comp = new Composite(grp, SWT.NONE);
-			comp.setLayout = zeroMarginGridLayout(1, true);
+			comp.setLayout(zeroMarginGridLayout(1, true));
 			_ave[1] = new Button(comp, SWT.RADIO);
 			mod(_ave[1]);
-			_ave[1].setText = _prop.msgs.selectedLevel;
+			_ave[1].setText(_prop.msgs.selectedLevel);
 			_ave[0] = new Button(comp, SWT.RADIO);
 			mod(_ave[0]);
-			_ave[0].setText = _prop.msgs.allMemberLevel;
+			_ave[0].setText(_prop.msgs.allMemberLevel);
 		}
 		{
 			auto grp = new Group(area, SWT.NONE);
-			grp.setText = _prop.msgs.judgeLevel;
-			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-			grp.setLayout = new CenterLayout;
+			grp.setText(_prop.msgs.judgeLevel);
+			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			grp.setLayout(new CenterLayout);
 			auto comp = new Composite(grp, SWT.NONE);
-			comp.setLayout = zeroMarginGridLayout(2, false);
+			comp.setLayout(zeroMarginGridLayout(2, false));
 			_lev = new Spinner(comp, SWT.BORDER);
 			mod(_lev);
-			_lev.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-			_lev.setMinimum = Content.unsignedLevel_min;
-			_lev.setMaximum = Content.unsignedLevel_max;
+			_lev.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			_lev.setMinimum(Content.unsignedLevel_min);
+			_lev.setMaximum(Content.unsignedLevel_max);
 			auto l = new Label(comp, SWT.NONE);
-			l.setText = _prop.msgs.rangeHint(_lev.getMinimum(), _lev.getMaximum());
+			l.setText(_prop.msgs.rangeHint(_lev.getMinimum(), _lev.getMaximum()));
 		}
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		if (_evt) {
-			_ave[_evt.average ? 0 : 1].setSelection = true;
-			_lev.setSelection = _evt.unsignedLevel;
+			_ave[_evt.average ? 0 : 1].setSelection(true);
+			_lev.setSelection(_evt.unsignedLevel);
 		} else {
-			_ave[1].setSelection = true;
-			_lev.setSelection = 1;
+			_ave[1].setSelection(true);
+			_lev.setSelection(1);
 		}
 	}
 
@@ -1662,60 +1662,60 @@ public:
 	}
 protected:
 	override void setup(Composite area) {
-		area.setLayout = new GridLayout(1, false);
+		area.setLayout(new GridLayout(1, false));
 		{
 			auto grp = new Group(area, SWT.NONE);
-			grp.setText = _prop.msgs.judgeTarget;
-			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-			grp.setLayout = new GridLayout(3, true);
+			grp.setText(_prop.msgs.judgeTarget);
+			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			grp.setLayout(new GridLayout(3, true));
 			foreach (m; [Target.M.SELECTED, Target.M.RANDOM, Target.M.PARTY]) {
 				auto radio = new Button(grp, SWT.RADIO);
 				mod(radio);
-				radio.setText = _prop.msgs.targetName(m);
-				radio.setLayoutData = new GridData(GridData.FILL_BOTH);
+				radio.setText(_prop.msgs.targetName(m));
+				radio.setLayoutData(new GridData(GridData.FILL_BOTH));
 				_targ[m] = radio;
 			}
 		}
 		{
 			auto grp = new Group(area, SWT.NONE);
-			grp.setText = _prop.msgs.judgeState;
-			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-			grp.setLayout = new GridLayout(4, true);
+			grp.setText(_prop.msgs.judgeState);
+			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			grp.setLayout(new GridLayout(4, true));
 			foreach (s; [Status.ACTIVE, Status.INACTIVE, Status.ALIVE, Status.DEAD,
 					Status.FINE, Status.INJURED, Status.HEAVY_INJURED, Status.UNCONSCIOUS,
 					Status.POISON, Status.SLEEP, Status.BIND, Status.PARALYZE]) {
 				auto radio = new Button(grp, SWT.RADIO);
 				mod(radio);
-				radio.setText = _prop.msgs.statusName(s);
-				radio.setLayoutData = new GridData(GridData.FILL_BOTH);
+				radio.setText(_prop.msgs.statusName(s));
+				radio.setLayoutData(new GridData(GridData.FILL_BOTH));
 				_stat[s] = radio;
 			}
 		}
 		{
 			auto grp = new Group(area, SWT.NONE);
-			grp.setText = _prop.msgs.stateHint;
-			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-			grp.setLayout = new CenterLayout;
+			grp.setText(_prop.msgs.stateHint);
+			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			grp.setLayout(new CenterLayout);
 			auto comp = new Composite(grp, SWT.NONE);
-			comp.setLayout = zeroMarginGridLayout(1, true);
+			comp.setLayout(zeroMarginGridLayout(1, true));
 			auto hint1 = new Label(comp, SWT.NONE);
-			hint1.setText = _prop.msgs.statusActive;
+			hint1.setText(_prop.msgs.statusActive);
 			auto hint2 = new Label(comp, SWT.NONE);
-			hint2.setText = _prop.msgs.statusInactive;
+			hint2.setText(_prop.msgs.statusInactive);
 			auto hint3 = new Label(comp, SWT.NONE);
-			hint3.setText = _prop.msgs.statusAlive;
+			hint3.setText(_prop.msgs.statusAlive);
 			auto hint4 = new Label(comp, SWT.NONE);
-			hint4.setText = _prop.msgs.statusDead;
+			hint4.setText(_prop.msgs.statusDead);
 		}
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		if (_evt) {
-			_targ[_evt.targetNS.m].setSelection = true;
-			_stat[_evt.status].setSelection = true;
+			_targ[_evt.targetNS.m].setSelection(true);
+			_stat[_evt.status].setSelection(true);
 		} else {
-			_targ[Target.M.SELECTED].setSelection = true;
-			_stat[Status.ACTIVE].setSelection = true;
+			_targ[Target.M.SELECTED].setSelection(true);
+			_stat[Status.ACTIVE].setSelection(true);
 		}
 	}
 
@@ -1736,7 +1736,7 @@ private:
 		Button _allDel;
 		class DelSListener : SelectionAdapter {
 			override void widgetSelected(SelectionEvent e) {
-				_num.setEnabled = !_allDel.getSelection();
+				_num.setEnabled(!_allDel.getSelection());
 			}
 		}
 	}
@@ -1762,7 +1762,7 @@ private:
 		_list.removeAll();
 		foreach (i, c; mixin (Cards)) {
 			auto itm = new TableItem(_list, SWT.NONE);
-			itm.setData = c;
+			itm.setData(c);
 			static if (is (C == SkillCard)) {
 				itm.setImage(0, _prop.images.skill);
 			} else static if (is (C == ItemCard)) {
@@ -1828,48 +1828,48 @@ public:
 	}
 protected:
 	override void setup(Composite area) {
-		area.setLayout = new GridLayout(2, false);
+		area.setLayout(new GridLayout(2, false));
 		{
 			auto comp = new Composite(area, SWT.NONE);
-			comp.setLayoutData = new GridData(GridData.FILL_VERTICAL);
-			comp.setLayout = zeroMarginGridLayout(1, true);
+			comp.setLayoutData(new GridData(GridData.FILL_VERTICAL));
+			comp.setLayout(zeroMarginGridLayout(1, true));
 			{
 				auto grp = new Group(comp, SWT.NONE);
-				grp.setText = _prop.msgs.cardNumber;
-				grp.setLayoutData = new GridData(GridData.FILL_BOTH);
+				grp.setText(_prop.msgs.cardNumber);
+				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 				auto cl = new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0);
 				cl.fillHorizontal = true;
-				grp.setLayout = cl;
+				grp.setLayout(cl);
 				auto comp2 = new Composite(grp, SWT.NONE);
-				comp2.setLayout = new GridLayout(2, false);
+				comp2.setLayout(new GridLayout(2, false));
 				_num = new Spinner(comp2, SWT.BORDER);
 				mod(_num);
-				_num.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				_num.setMinimum = 1;
-				_num.setMaximum = Content.cardNumber_max;
+				_num.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				_num.setMinimum(1);
+				_num.setMaximum(Content.cardNumber_max);
 				auto l = new Label(comp2, SWT.NONE);
-				l.setText = _prop.msgs.rangeHint(_num.getMinimum(), _num.getMaximum());
+				l.setText(_prop.msgs.rangeHint(_num.getMinimum(), _num.getMaximum()));
 				static if (Delete) {
 					_allDel = new Button(comp2, SWT.CHECK);
 					mod(_allDel);
-					_allDel.setText = _prop.msgs.cardAllDelete;
+					_allDel.setText(_prop.msgs.cardAllDelete);
 					auto gd = new GridData;
 					gd.horizontalSpan = 2;
-					_allDel.setLayoutData = gd;
+					_allDel.setLayoutData(gd);
 					_allDel.addSelectionListener(new DelSListener);
 				}
 			}
 			{
 				auto grp = new Group(comp, SWT.NONE);
-				grp.setText = _prop.msgs.cardEventRange;
-				grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-				grp.setLayout = new GridLayout(1, true);
+				grp.setText(_prop.msgs.cardEventRange);
+				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+				grp.setLayout(new GridLayout(1, true));
 				foreach (r; [Range.SELECTED, Range.RANDOM, Range.PARTY,
 						Range.BACKPACK, Range.PARTY_AND_BACKPACK, Range.FIELD]) {
 					auto radio = new Button(grp, SWT.RADIO);
 					mod(radio);
-					radio.setText = _prop.msgs.rangeName(r);
-					radio.setLayoutData = new GridData(GridData.FILL_BOTH);
+					radio.setText(_prop.msgs.rangeName(r));
+					radio.setLayoutData(new GridData(GridData.FILL_BOTH));
 					_range[r] = radio;
 				}
 			}
@@ -1883,12 +1883,12 @@ protected:
 			auto gd = new GridData(GridData.FILL_BOTH);
 			gd.widthHint = _prop.var.etc.nameTableWidth;
 			gd.heightHint = _prop.var.etc.nameTableHeight;
-			_list.setLayoutData = gd;
+			_list.setLayoutData(gd);
 
 			_list.addMouseListener(new OpenView);
 			auto menu = new Menu(_list.getShell(), SWT.POP_UP);
 			createMenuItem(menu, _prop.msgs.menuOpenCardView, _prop.images.menuOpenCardView, &openView);
-			_list.setMenu = menu;
+			_list.setMenu(menu);
 
 			refreshList();
 		}
@@ -1909,23 +1909,23 @@ protected:
 		if (_evt) {
 			static if (Delete) {
 				if (_evt.cardNumber == 0u) {
-					_allDel.setSelection = true;
-					_num.setSelection = 1;
-					_num.setEnabled = false;
+					_allDel.setSelection(true);
+					_num.setSelection(1);
+					_num.setEnabled(false);
 				} else {
-					_allDel.setSelection = false;
-					_num.setSelection = _evt.cardNumber;
+					_allDel.setSelection(false);
+					_num.setSelection(_evt.cardNumber);
 				}
 			} else {
-				_num.setSelection = _evt.cardNumber;
+				_num.setSelection(_evt.cardNumber);
 			}
-			_range[_evt.range].setSelection = true;
+			_range[_evt.range].setSelection(true);
 		} else {
 			static if (Delete) {
-				_allDel.setSelection = false;
+				_allDel.setSelection(false);
 			}
-			_num.setSelection = 1;
-			_range[RangeDef].setSelection = true;
+			_num.setSelection(1);
+			_range[RangeDef].setSelection(true);
 		}
 	}
 
@@ -1978,33 +1978,33 @@ public:
 	}
 protected:
 	override void setup(Composite area) {
-		area.setLayout = new GridLayout(1, false);
+		area.setLayout(new GridLayout(1, false));
 		{
 			auto grp = new Group(area, SWT.NONE);
-			grp.setText = _prop.msgs.transitionType;
-			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-			grp.setLayout = new CenterLayout;
+			grp.setText(_prop.msgs.transitionType);
+			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			grp.setLayout(new CenterLayout);
 			auto comp = new Composite(grp, SWT.NONE);
-			comp.setLayout = zeroMarginGridLayout(3, false);
+			comp.setLayout(zeroMarginGridLayout(3, false));
 			auto lt = new Label(comp, SWT.NONE);
-			lt.setText = _prop.msgs.transition;
+			lt.setText(_prop.msgs.transition);
 			_ts = new Combo(comp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 			mod(_ts);
 			auto gd = new GridData;
 			gd.horizontalSpan = 2;
-			_ts.setLayoutData = gd;
-			_ts.setVisibleItemCount = 20;
+			_ts.setLayoutData(gd);
+			_ts.setVisibleItemCount(20);
 			foreach (i, t; ALL_TRANSITION) {
 				_ts.add(_prop.msgs.transitionName(t));
 				_tsTbl[i] = t;
 				if (_evt && t == _evt.transition) _ts.select(i);
 			}
 			auto ls = new Label(comp, SWT.NONE);
-			ls.setText = _prop.msgs.transitionSpeed;
+			ls.setText(_prop.msgs.transitionSpeed);
 			_tsSpeed = new Spinner(comp, SWT.BORDER);
 			mod(_tsSpeed);
-			_tsSpeed.setMaximum = Content.transitionSpeed_max;
-			_tsSpeed.setMinimum = Content.transitionSpeed_min;
+			_tsSpeed.setMaximum(Content.transitionSpeed_max);
+			_tsSpeed.setMinimum(Content.transitionSpeed_min);
 			auto hint = new Label(comp, SWT.NONE);
 			hint.setText = _prop.msgs.rangeHint
 				(Content.transitionSpeed_min,
@@ -2013,10 +2013,10 @@ protected:
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		if (_evt) {
-			_tsSpeed.setSelection = _evt.transitionSpeed;
+			_tsSpeed.setSelection(_evt.transitionSpeed);
 		} else {
 			_ts.select = 0;
-			_tsSpeed.setSelection = _prop.looks.transitionSpeedDef;
+			_tsSpeed.setSelection(_prop.looks.transitionSpeedDef);
 		}
 	}
 

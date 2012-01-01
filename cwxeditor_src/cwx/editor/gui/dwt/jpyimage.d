@@ -117,7 +117,7 @@ private ImageData loadJPYImageImpl(Skin skin, string path, string[] stratum) {
 		int alpha;
 		auto dbc = new Color(d, dwtData(i == 0 ? sec.backcolor : sec.color, alpha));
 		scope (exit) dbc.dispose();
-		dgc.setBackground = dbc;
+		dgc.setBackground(dbc);
 		dgc.fillRectangle(0, 0, dtw, dth);
 		if (data) {
 			auto timg = new Image(d, data);
@@ -232,9 +232,9 @@ private ImageData loadJPYImageImpl(Skin skin, string path, string[] stratum) {
 			auto simg = new Image(d, data);
 			scope (exit) simg.dispose();
 			if (sec.alpha < 0xFF && sec.paintmode == Paintmode.BLEND) {
-				gc.setAlpha = sec.alpha;
+				gc.setAlpha(sec.alpha);
 			}
-			scope (exit) gc.setAlpha = 0xFF;
+			scope (exit) gc.setAlpha(0xFF);
 			gc.drawImage(simg, sec.position.x, sec.position.y);
 		}
 	}
@@ -281,17 +281,17 @@ private ImageData loadJPTXImage(string path) {
 	version (Windows) {} else {
 		// FIXME: IPAフォントの使用とアンチエイリアス設定を
 		//        同時に行うと一部環境で問題が出る。
-//		gc.setTextAntialias = jptx.antialias ? SWT.ON : SWT.OFF;
+//		gc.setTextAntialias(jptx.antialias ? SWT.ON : SWT.OFF);
 	}
 	int alpha;
 	auto cBack = new Color(d, dwtData(jptx.backcolor, alpha));
 	scope (exit) cBack.dispose();
-	gc.setBackground = cBack;
+	gc.setBackground(cBack);
 	gc.fillRectangle(0, 0, width, height);
 	if (jptx.fonttransparent) {
 		auto cFore = new Color(d, dwtData(jptx.fontcolor, alpha));
 		scope (exit) cFore.dispose();
-		gc.setForeground = cFore;
+		gc.setForeground(cFore);
 		gc.drawLine(0, 0, img.width, 0);
 	}
 	int x = 0;
@@ -326,7 +326,7 @@ private ImageData loadJPTXImage(string path) {
 			auto font = new Font(d, fontData);
 		}
 		scope (exit) font.dispose();
-		gc.setFont = font;
+		gc.setFont(font);
 		int height = gc.getFontMetrics().getHeight();
 		if (text == "\n") {
 			// wrap
@@ -337,7 +337,7 @@ private ImageData loadJPTXImage(string path) {
 		}
 		auto cFore = new Color(d, dwtData(param.color, alpha));
 		scope (exit) cFore.dispose();
-		gc.setForeground = cFore;
+		gc.setForeground(cFore);
 		int tx = x + param.shiftx, ty = y + param.shifty;
 		gc.drawText(text, tx, ty);
 		int w = gc.textExtent(text).x;
@@ -367,7 +367,7 @@ private ImageData loadJPTXImage(string path) {
 	auto r = new Image(d, rw, rh);
 	scope (exit) r.dispose();
 	auto rgc = new GC(r);
-	rgc.setBackground = cBack;
+	rgc.setBackground(cBack);
 	rgc.fillRectangle(0, 0, rw, rh);
 	scope (exit) rgc.dispose();
 	int w = width < rw ? width : rw;
@@ -383,9 +383,9 @@ private ImageData loadJPDCImage(string path) {
 	scope (exit) img.dispose();
 	auto gc = new GC(img);
 	scope (exit) gc.dispose();
-	gc.setForeground = d.getSystemColor(SWT.COLOR_WHITE);
+	gc.setForeground(d.getSystemColor(SWT.COLOR_WHITE));
 	gc.fillRectangle(0, 0, jpdc.clip.width, jpdc.clip.height);
-	gc.setForeground = d.getSystemColor(SWT.COLOR_BLACK);
+	gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
 	int tw = jpdc.clip.width - 4;
 	string text = "JPDC Save to: " ~ (jpdc.saveFileName.length ? jpdc.saveFileName : "(undefined)");
 	int ty = 2;
