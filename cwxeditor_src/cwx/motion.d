@@ -111,13 +111,15 @@ private void static_this () {
 }
 
 private MDetail[MType] _MOTION_DETAILS;
+@property
 private MDetail[MType] MOTION_DETAILS() {
-	static_this;
+	static_this();
 	return _MOTION_DETAILS;
 }
 private MType[string] _MTYPE_MAP;
+@property
 private MType[string] MTYPE_MAP() {
-	static_this;
+	static_this();
 	return _MTYPE_MAP;
 }
 
@@ -156,9 +158,11 @@ private:
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
 	this (MotionOwner cwxPath) {_cwxPath = cwxPath;}
+	@property
 	string cwxPath() {return _cwxPath.cwxPath;}
 
 	/// 変更ハンドラを登録する。
+	@property
 	void changeHandler(void delegate() change) {
 		_change = change;
 	}
@@ -168,8 +172,10 @@ public:
 	}
 
 	/// 使用回数カウンタ。
+	@property
 	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
+	@property
 	void setUseCounter(UseCounter uc) {
 		foreach (m; _motions) {
 			m.setUseCounter(uc);
@@ -179,7 +185,7 @@ public:
 	/// ditto
 	void removeUseCounter() {
 		foreach (m; _motions) {
-			m.removeUseCounter;
+			m.removeUseCounter();
 		}
 		_uc = null;
 	}
@@ -190,12 +196,13 @@ public:
 		}
 	}
 	/// 効果群。
+	@property
 	void motions(Motion[] motions) {
 		if (_motions != motions) {
-			changed;
+			changed();
 			foreach (m; _motions) {
 				m.changeHandler = null;
-				m.removeUseCounter;
+				m.removeUseCounter();
 				m._owner = null;
 			}
 			foreach (m; motions) {
@@ -207,10 +214,12 @@ public:
 		}
 	}
 	/// ditto
+	@property
 	Motion[] motions() {
 		return _motions;
 	}
 	/// ditto
+	@property
 	const
 	const(Motion)[] motions() {
 		return _motions;
@@ -219,7 +228,9 @@ public:
 
 /// 効果の所持者である事を示すインタフェース。
 interface MotionOwner : CWXPath {
+	@property
 	Motion[] motions();
+	@property
 	const
 	const(Motion)[] motions();
 }
@@ -245,28 +256,33 @@ public:
 	static const XML_NAME = "Motion";
 
 	/// 唯一のコンストラクタ。
-	this(MType type, Element el) {
+	this (MType type, Element el) {
 		_type = type;
 		_el = el;
 	}
 	/// 効果の種類。
+	@property
 	const
 	MType type() {return _type;}
 	/// 効果の概要。
+	@property
 	const
 	MDetail detail() {
-		static_this;
+		static_this();
 		return MOTION_DETAILS[type];
 	}
 
 	/// 変更ハンドラを登録する。
+	@property
 	void changeHandler(void delegate() change) {
 		if (_beast) _beast.changeHandler = change;
 		_change = change;
 	}
 	/// 使用回数カウンタ。
+	@property
 	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
+	@property
 	void setUseCounter(UseCounter uc) {
 		if (_beast) {
 			_beast.setUseCounter(uc);
@@ -276,12 +292,13 @@ public:
 	/// ditto
 	void removeUseCounter() {
 		if (_beast) {
-			_beast.removeUseCounter;
+			_beast.removeUseCounter();
 		}
 		_uc = null;
 	}
 
 	/// コピーを作成する。
+	@property
 	const
 	Motion dup() {
 		auto r = new Motion(type, element);
@@ -306,7 +323,7 @@ public:
 		if (m.round != round) return false;
 		if (_beast) {
 			if (m._beast) {
-				return _beast.toXML == m._beast.toXML;
+				return _beast.toXML() == m._beast.toXML();
 			}
 			return false;
 		} else {
@@ -320,17 +337,22 @@ public:
 	}
 
 	/// 効果属性。
+	@property
 	const
 	Element element() {return _el;}
 	/// ditto
+	@property
 	void element(Element el) {_el = el;}
 
 	/// 値の形式。
+	@property
 	const
 	DamageType damageType() {return _dtyp;}
 	/// ditto
+	@property
 	void damageType(DamageType dtyp) {_dtyp = dtyp;}
 	/// ダメージ・回復値。
+	@property
 	const
 	uint uValue() {return _uValue;}
 	/// ditto
@@ -338,10 +360,12 @@ public:
 	/// ditto
 	static const uValue_max = 999;
 	/// ditto
+	@property
 	void uValue(int val) {
 		_uValue = roundValue(val, uValue_max, uValue_min);
 	}
 	/// ボーナス・ペナルティ値。
+	@property
 	const
 	int aValue() {return _aValue;}
 	/// ditto
@@ -349,13 +373,16 @@ public:
 	/// ditto
 	static const aValue_max = 10;
 	/// ditto
+	@property
 	void aValue(int val) {
 		_aValue = roundValue(val, aValue_max, aValue_min);
 	}
 	/// ラウンド数。
+	@property
 	const
 	int round() {return _round;}
 	/// ditto
+	@property
 	void round(int val) {
 		_round = roundValue(val, round_max, round_min);
 	}
@@ -364,17 +391,21 @@ public:
 	/// ditto
 	static const round_max = 999;
 	/// 召喚獣。
+	@property
 	BeastCard beast() {return _beast;}
 	/// ditto
+	@property
 	const
 	const(BeastCard) beast() {return _beast;}
 	/// ditto
+	@property
 	BeastCard[] beasts() {return _beast ? [_beast] : [];}
 	/// ditto
+	@property
 	void beast(in BeastCard beast) {
 		if (_beast) {
 			_beast.changeHandler = null;
-			_beast.removeUseCounter;
+			_beast.removeUseCounter();
 			_beast.owner = null;
 		}
 		if (beast) {
@@ -403,7 +434,7 @@ public:
 	/// XMLテキスト化して返す。
 	const
 	string toXML() {
-		return toNode.text;
+		return toNode().text;
 	}
 	/// XMLノード化して返す。
 	const
@@ -440,7 +471,7 @@ public:
 
 	/// XMLノードからインスタンスを生成して返す。
 	static Motion createFromNode(ref XNode node, string ver) {
-		static_this;
+		static_this();
 		string elStr = null;
 		auto type = MTYPE_MAP[node.attr("type", true)];
 		auto d = MOTION_DETAILS[type];
@@ -454,13 +485,14 @@ public:
 				node.onTag["BeastCard"] = (ref XNode node) {
 					r.setBeastFromNode(node, ver);
 				};
-				node.parse;
+				node.parse();
 			};
-			node.parse;
+			node.parse();
 		}
 		return r;
 	}
 
+	@property
 	override string cwxPath() {
 		return _owner ? cpjoin(_owner, "motion", .cCountUntil!("a is b")(_owner.motions, this)) : "";
 	}
@@ -476,10 +508,12 @@ public:
 		}
 		return null;
 	}
+	@property
 	CWXPath[] cwxChilds() {
 		CWXPath[] r;
 		if (_beast) r ~= _beast;
 		return r;
 	}
+	@property
 	CWXPath cwxParent() {return _owner;}
 }

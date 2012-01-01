@@ -69,12 +69,13 @@ class ImageListWindow(MtType Type) {
 	}
 	private class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
-			auto size = _shl.getSize;
+			auto size = _shl.getSize();
 			_prop.var.etc.imageListWidth = size.x;
 			_prop.var.etc.imageListHeight = size.y;
 		}
 	}
 
+	@property
 	Shell shell() {return _shl;}
 
 	private ImageData createImage(string path, bool mask) {
@@ -83,10 +84,14 @@ class ImageListWindow(MtType Type) {
 		return loadImage(imgPath, mask);
 	}
 	static if (Type == MtType.CARD) {
+		@property
 		private string defExt() {return _comm.skin.extImage;}
+		@property
 		private string defDir() {return _comm.skin.tableDir;}
 	} else static if (Type == MtType.BG_IMG) {
+		@property
 		private string defExt() {return _comm.skin.extImage;}
+		@property
 		private string defDir() {return _comm.skin.tableDir;}
 	}
 
@@ -98,11 +103,13 @@ class ImageListWindow(MtType Type) {
 		_list.removeAll();
 		_list.add(path);
 	}
+	@property
 	void select(string path) {
 		_list.select(path);
 		_list.showSelection();
 	}
 
+	@property
 	void mask(bool mask) {_list.mask = mask;}
 
 	private class MouseDown : MouseAdapter {
@@ -133,19 +140,19 @@ class ImageList : Composite {
 		addControlListener(new Resize);
 		addPaintListener(new Paint);
 		addMouseMoveListener(new MouseMove);
-		setForeground = getDisplay.getSystemColor(SWT.COLOR_LIST_FOREGROUND);
-		setBackground = getDisplay.getSystemColor(SWT.COLOR_LIST_BACKGROUND);
+		setForeground = getDisplay().getSystemColor(SWT.COLOR_LIST_FOREGROUND);
+		setBackground = getDisplay().getSystemColor(SWT.COLOR_LIST_BACKGROUND);
 	}
 	void init(int imgW, int imgH, ImageData delegate(string path, bool mask) createImage) {
 		_imgW = imgW;
 		_imgH = imgH;
 		_createImage = createImage;
 
-		auto vs = getVerticalBar;
+		auto vs = getVerticalBar();
 		vs.setIncrement = _imgH / 4;
 	}
 	private int calcCountPerLine() {
-		auto ca = getClientArea;
+		auto ca = getClientArea();
 
 		int w = SPACING + _imgW;
 		int countPerLine = ca.width / w;
@@ -153,13 +160,13 @@ class ImageList : Composite {
 		return max(1, countPerLine);
 	}
 	private void calcScrollParams() {
-		auto ca = getClientArea;
-		auto vs = getVerticalBar;
-		vs.setPageIncrement = max(vs.getIncrement, ca.height / 2);
+		auto ca = getClientArea();
+		auto vs = getVerticalBar();
+		vs.setPageIncrement = max(vs.getIncrement(), ca.height / 2);
 
 		auto gc = new GC(this);
 		scope (exit) gc.dispose();
-		int fh = gc.getFontMetrics.getHeight;
+		int fh = gc.getFontMetrics().getHeight();
 		int h = SPACING + _imgH + fh;
 		int countPerLine = calcCountPerLine();
 		int row = _path.length / countPerLine;
@@ -177,7 +184,7 @@ class ImageList : Composite {
 				setCursor = null;
 				setToolTipText = "";
 			} else {
-				setCursor = getDisplay.getSystemCursor(SWT.CURSOR_HAND);
+				setCursor = getDisplay().getSystemCursor(SWT.CURSOR_HAND);
 				setToolTipText = _path[i];
 			}
 		}
@@ -198,10 +205,10 @@ class ImageList : Composite {
 		}
 	}
 	private void onPaint(PaintEvent e) {
-		auto ca = getClientArea;
+		auto ca = getClientArea();
 		int x = SPACING;
-		int y = SPACING - getVerticalBar.getSelection;
-		int fh = e.gc.getFontMetrics.getHeight;
+		int y = SPACING - getVerticalBar().getSelection();
+		int fh = e.gc.getFontMetrics().getHeight();
 		int dotw = e.gc.textExtent("...").x;
 		foreach (i, ref imgData; _image) {
 			if (ca.intersects(x, y, _imgW, fh + _imgH)) {
@@ -222,7 +229,7 @@ class ImageList : Composite {
 						ih = imgData.height;
 					}
 				}
-				auto img = new Image(getDisplay, imgData);
+				auto img = new Image(getDisplay(), imgData);
 				scope (exit) img.dispose();
 				string name = _path[i].baseName;
 				int tw = e.gc.textExtent(name).x;
@@ -255,10 +262,12 @@ class ImageList : Composite {
 		}
 	}
 
+	@property
 	const
 	string path(size_t index) {
 		return _path[index];
 	}
+	@property
 	void select(string path) {
 		if (path == "") {
 			_sel = -1;
@@ -269,33 +278,33 @@ class ImageList : Composite {
 	}
 	void showSelection() {
 		if (-1 == _sel) return;
-		auto vs = getVerticalBar;
+		auto vs = getVerticalBar();
 
 		int countPerLine = calcCountPerLine();
 
 		auto gc = new GC(this);
 		scope (exit) gc.dispose();
-		int fh = gc.getFontMetrics.getHeight;
+		int fh = gc.getFontMetrics().getHeight();
 
 		int h = SPACING + _imgH + fh;
 		int y = _sel / countPerLine * h;
-		if (y < vs.getSelection) {
+		if (y < vs.getSelection()) {
 			vs.setSelection = y;
-		} else if (vs.getSelection + vs.getThumb < y + h + SPACING) {
-			vs.setSelection = y + h + SPACING - vs.getThumb;
+		} else if (vs.getSelection() + vs.getThumb() < y + h + SPACING) {
+			vs.setSelection = y + h + SPACING - vs.getThumb();
 		}
 		redraw();
 	}
 
 	int indexOf(int x, int y) {
-		auto vs = getVerticalBar;
-		y += vs.getSelection;
+		auto vs = getVerticalBar();
+		y += vs.getSelection();
 
 		int countPerLine = calcCountPerLine();
 
 		auto gc = new GC(this);
 		scope (exit) gc.dispose();
-		int fh = gc.getFontMetrics.getHeight;
+		int fh = gc.getFontMetrics().getHeight();
 		int h = SPACING + _imgH + fh;
 		int w = SPACING + _imgW;
 		int colp = x % w;
@@ -307,6 +316,7 @@ class ImageList : Composite {
 		return index < _path.length ? index : -1;
 	}
 
+	@property
 	void mask(bool mask) {
 		if (_mask == mask) return;
 		_mask = mask;

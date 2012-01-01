@@ -23,7 +23,7 @@ private static const {
 /// フラグ関連の例外。
 public class FlagException : Exception {
 public:
-	this(string msg) {
+	this (string msg) {
 		super(msg);
 	}
 }
@@ -91,14 +91,14 @@ private:
 	void delegate() _change = null;
 public:
 	/// コピーコンストラクタ。
-	this(Flag copyBase) {
+	this (Flag copyBase) {
 		_name = copyBase.name;
 		_on = copyBase.on;
 		_off = copyBase.off;
 		_onOff = copyBase.onOff;
 	}
 	/// 名前・On/Off時のテキスト・On/Off状態を指定してインスタンスを生成。
-	this(string name, string on, string off, bool onOff) {
+	this (string name, string on, string off, bool onOff) {
 		_on = on;
 		_off = off;
 		_onOff = onOff;
@@ -112,38 +112,46 @@ public:
 		onOff = flag.onOff;
 	}
 	/// このフラグの親ディレクトリ。
+	@property
 	FlagDir parent() {
 		return _parent;
 	}
 	/// ditto
+	@property
 	const
 	const(FlagDir) parent() {
 		return _parent;
 	}
 	/// ditto
+	@property
 	private void parent(FlagDir parent) {
 		assert (!parent || !parent.getFlag(name));
 		_parent = parent;
 	}
 	/// 最上位のディレクトリ。
+	@property
 	FlagDir root() {
 		return _parent.root;
 	}
 	/// ditto
+	@property
 	const
 	const(FlagDir) root() {
 		return _parent.root;
 	}
 	/// 変更ハンドラを設定する。
+	@property
 	void changeHandler(void delegate() change) {
 		_change = change;
 	}
 	/// フラグ名。同一のディレクトリ内では重複しない。
+	@property
 	const
 	string name() {
 		return _name;
 	}
 	/// ditto
+	@property
 	bool name(string name) {
 		name = FlagDir.validName(name);
 		if (!_parent || _parent.canAppendFS(name)) {
@@ -154,31 +162,37 @@ public:
 		return false;
 	}
 	/// On時のテキスト。
+	@property
 	const
 	string on() {
 		return _on;
 	}
 	/// ditto
+	@property
 	void on(string on) {
 		if (_change && _on != on) _change();
 		_on = on;
 	}
 	/// Off時のテキスト。
+	@property
 	const
 	string off() {
 		return _off;
 	}
 	/// ditto
+	@property
 	void off(string off) {
 		if (_change && _off != off) _change();
 		_off = off;
 	}
 	/// On/Off初期状態。
+	@property
 	const
 	bool onOff() {
 		return _onOff;
 	}
 	/// ditto
+	@property
 	void onOff(bool onOff) {
 		if (_change && _onOff != onOff) _change();
 		_onOff = onOff;
@@ -188,6 +202,7 @@ public:
 		return icmp(name, (cast(Flag) o).name);
 	}
 	/// このフラグのフルパスを返す。
+	@property
 	const
 	string path() {
 		return _parent.path ~ _name;
@@ -209,7 +224,7 @@ public:
 		fe.onTag["Name"] = (ref XNode n) {name = FlagDir.basename(n.value);};
 		fe.onTag["True"] = (ref XNode n) {tv = n.value;};
 		fe.onTag["False"] = (ref XNode n) {fv = n.value;};
-		fe.parse;
+		fe.parse();
 		if (!name) throw new FlagException("Flag name not found.");
 		return new Flag(name, tv, fv, def);
 	}
@@ -222,6 +237,7 @@ public:
 		e.newElement("True", on);
 		e.newElement("False", off);
 	}
+	@property
 	override string cwxPath() {
 		return cpjoin(_parent, "flag", .cCountUntil!("a is b")(_parent.flags, this));
 	}
@@ -229,7 +245,9 @@ public:
 		if (cpempty(path)) return this;
 		return null;
 	}
+	@property
 	override CWXPath[] cwxChilds() {return [];}
+	@property
 	CWXPath cwxParent() {return _parent;}
 }
 
@@ -243,13 +261,13 @@ private:
 	void delegate() _change = null;
 public:
 	/// コピーコンストラクタ。
-	this(Step copyBase) {
+	this (Step copyBase) {
 		_name = copyBase.name;
 		_vals = copyBase._vals.dup;
 		_select = copyBase._select;
 	}
 	/// ステップ名、各段階のステップ値、選択状態を指定してインスタンスを生成。
-	this(string name, string[] vals, uint select) {
+	this (string name, string[] vals, uint select) {
 		_vals = vals;
 		_select = select;
 		_name = FlagDir.validName(name);
@@ -260,38 +278,46 @@ public:
 		setValues(step.values, step.select);
 	}
 	/// このステップの親ディレクトリ。
+	@property
 	FlagDir parent() {
 		return _parent;
 	}
 	/// ditto
+	@property
 	const
 	const(FlagDir) parent() {
 		return _parent;
 	}
 	/// ditto
+	@property
 	private void parent(FlagDir parent) {
 		assert (!parent || !parent.getStep(name));
 		_parent = parent;
 	}
 	/// 最上位のディレクトリ。
+	@property
 	FlagDir root() {
 		return _parent.root;
 	}
 	/// ditto
+	@property
 	const
 	const(FlagDir) root() {
 		return _parent.root;
 	}
 	/// 変更ハンドラを設定する。
+	@property
 	void changeHandler(void delegate() change) {
 		_change = change;
 	}
 	/// ステップ名。
+	@property
 	const
 	string name() {
 		return _name;
 	}
 	/// ditto
+	@property
 	bool name(string name) {
 		name = FlagDir.validName(name);
 		if (!_parent || _parent.canAppendFS(name)) {
@@ -314,28 +340,33 @@ public:
 	}
 
 	/// ステップの段階数を返す。
+	@property
 	const
 	uint count() {
 		return _vals.length;
 	}
 
 	/// ステップの選択状態を返す。
+	@property
 	const
 	uint select() {
 		return _select;
 	}
 	/// ditto
+	@property
 	void select(uint select) {
 		if (_change && _select != select) _change();
 		_select = select;
 	}
 
 	/// 選択中の値のテキストを返す。
+	@property
 	const
 	string value() {
 		return _vals[_select];
 	}
 	/// ステップ値群を返す。
+	@property
 	string[] values() {
 		return _vals;
 	}
@@ -353,6 +384,7 @@ public:
 	}
 
 	/// ステップのフルパス。
+	@property
 	const
 	string path() {
 		return _parent.path ~ _name;
@@ -382,7 +414,7 @@ public:
 				}
 			}
 		};
-		se.parse;
+		se.parse();
 		if (!name) throw new FlagException("Step name not found.");
 		if (def < 0 || vals.length <= def) {
 			throw new FlagException("Step default value invalid. Count: " ~ to!(string)(vals.length) ~ ", default: " ~ to!(string)(def));
@@ -399,6 +431,7 @@ public:
 			e.newElement("Value" ~ to!(string)(i), _vals[i]);
 		}
 	}
+	@property
 	override string cwxPath() {
 		return cpjoin(_parent, "step", .cCountUntil!("a is b")(_parent.steps, this));
 	}
@@ -406,7 +439,9 @@ public:
 		if (cpempty(path)) return this;
 		return null;
 	}
+	@property
 	override CWXPath[] cwxChilds() {return [];}
+	@property
 	CWXPath cwxParent() {return _parent;}
 }
 
@@ -438,20 +473,20 @@ public:
 		return parent ~ SEPARATOR ~ path;
 	}
 	/// ルートディレクトリを生成する。
-	package this(CWXPath owner) {
-		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime);
+	package this (CWXPath owner) {
+		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime());
 		_owner = owner;
 	}
 	/// サブディレクトリを生成する。
 	/// Params:
 	/// name = ディレクトリ名。
-	this(string name) {
-		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime);
+	this (string name) {
+		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime());
 		_name = validName(name);
 	}
 	/// コピーコンストラクタ。
 	/// サブディレクトリ等も全てコピーされる。
-	this(FlagDir copyBase) {
+	this (FlagDir copyBase) {
 		name = copyBase.name;
 		foreach (d; copyBase.subDirs) {
 			add(new FlagDir(d));
@@ -463,6 +498,7 @@ public:
 			add(new Step(s));
 		}
 	}
+	@property
 	override string cwxPath() {
 		if (_owner) {
 			return cpjoin(_owner, "variable");
@@ -494,6 +530,7 @@ public:
 		}
 		return null;
 	}
+	@property
 	override CWXPath[] cwxChilds() {
 		CWXPath[] r;
 		r ~= cast(CWXPath[]) flags;
@@ -501,10 +538,12 @@ public:
 		r ~= cast(CWXPath[]) subDirs;
 		return r;
 	}
+	@property
 	CWXPath cwxParent() {return _owner ? _owner : _parent;}
 
 	/// 子要素をソートする際に使用する比較関数を設定する。
 	/// 親ディレクトリを持つ場合は例外を投げる。
+	@property
 	void sorter(int delegate(string, string) sorter) {
 		if (parent) throw new Exception("FlagDir sorter");
 		sorterImpl(sorter);
@@ -516,20 +555,24 @@ public:
 		}
 	}
 	/// 親ディレクトリ。
+	@property
 	FlagDir parent() {
 		return _parent;
 	}
 	/// ditto
+	@property
 	const
 	const(FlagDir) parent() {
 		return _parent;
 	}
 	/// ditto
+	@property
 	private void parent(FlagDir parent) {
 		assert (!parent || !parent.getSubDir(name));
 		_parent = parent;
 	}
 	/// 変更ハンドラを登録する。
+	@property
 	void changeHandler(void delegate() change) {
 		foreach (f; _flags) {
 			f.changeHandler = change;
@@ -544,6 +587,7 @@ public:
 	}
 
 	/// 最上位のディレクトリ。
+	@property
 	FlagDir root() {
 		auto dir = this;
 		while (dir.parent !is null) {
@@ -551,6 +595,8 @@ public:
 		}
 		return dir;
 	}
+	/// ditto
+	@property
 	const
 	const(FlagDir) root() {
 		Rebindable!(const(FlagDir)) dir = this;
@@ -561,17 +607,20 @@ public:
 	}
 
 	/// マシン上で一意なID。ドラッグ&ドロップ等で使用する。
+	@property
 	const
 	string id() {
 		return _id;
 	}
 
 	/// ディレクトリ名。
+	@property
 	const
 	string name() {
 		return _name;
 	}
 	/// ditto
+	@property
 	bool name(string name) {
 		name = FlagDir.validName(name);
 		if (!_parent || _parent.canAppendSub(name)) {
@@ -715,14 +764,17 @@ public:
 	}
 
 	/// サブディレクトリ群。
+	@property
 	FlagDir[] subDirs() {
 		return _subdir;
 	}
 	/// フラグ群。
+	@property
 	Flag[] flags() {
 		return _flags;
 	}
 	/// ステップ群。
+	@property
 	Step[] steps() {
 		return _steps;
 	}
@@ -796,6 +848,7 @@ public:
 
 	/// このディレクトリとサブディレクトリの中にある
 	/// すべてのフラグ・ステップを返す。
+	@property
 	Flag[] allFlags() {
 		Flag[] r;
 		foreach (flg; _flags) {
@@ -807,6 +860,7 @@ public:
 		return r;
 	}
 	/// ditto
+	@property
 	const
 	const(Flag)[] allFlags() {
 		const(Flag)[] r;
@@ -819,6 +873,7 @@ public:
 		return r;
 	}
 	/// ditto
+	@property
 	Step[] allSteps() {
 		Step[] r;
 		foreach (step; _steps) {
@@ -830,6 +885,7 @@ public:
 		return r;
 	}
 	/// ditto
+	@property
 	const
 	const(Step)[] allSteps() {
 		const(Step)[] r;
@@ -882,6 +938,7 @@ public:
 	}
 
 	/// このディレクトリのフルパスを返す。
+	@property
 	const
 	string path() {
 		if (_parent !is null) {
@@ -1060,9 +1117,9 @@ public:
 				}
 				c[n.childText("Name", true)] = f;
 			};
-			node.parse;
+			node.parse();
 		};
-		node.parse;
+		node.parse();
 		return ret;
 	}
 	private bool loadFlagAndSteps
@@ -1119,7 +1176,7 @@ public:
 					return;
 				}
 			};
-			node.parse;
+			node.parse();
 			if (ret) {
 				this.add(sub);
 				return sub;
@@ -1175,15 +1232,15 @@ public:
 							doc.onTag["Flag"] = (ref XNode node) {
 								add(getFlag(node.childText("Name", true)));
 							};
-							node.parse;
+							node.parse();
 						};
 						doc.onTag["Steps"] = (ref XNode node) {
 							doc.onTag["Step"] = (ref XNode node) {
 								add(getStep(node.childText("Name", true)));
 							};
-							node.parse;
+							node.parse();
 						};
-						doc.parse;
+						doc.parse();
 						return AppendXmlResult.FLAG_STEP_ON_DIR;
 					}
 					if (loadFlagAndSteps(doc, cFlags, cSteps, copy, ver)) {
@@ -1428,7 +1485,7 @@ public:
 		node.onTag["Steps"] = (ref XNode node) {
 			__fromXmlNode!(Step)(node, root, "Step", &Step.createFromNode, ver);
 		};
-		node.parse;
+		node.parse();
 		root.changeHandler = change;
 		return root;
 	}
@@ -1448,7 +1505,7 @@ public:
 				throw new FlagException(es ~ " name not found.");
 			}
 		};
-		node.parse;
+		node.parse();
 		root.sortFlags(true);
 		root.sortSteps(true);
 	}

@@ -154,7 +154,7 @@ private:
 		if (_name.over) {
 			ws ~= _prop.msgs.warningNameLenOver(_prop.looks.nameLimit);
 		}
-		if (_effTyp[EffectType.NONE].getSelection) {
+		if (_effTyp[EffectType.NONE].getSelection()) {
 			ws ~= _prop.msgs.warningEffectTypeNone;
 		}
 		foreach (m; _motions.motions) {
@@ -164,7 +164,7 @@ private:
 			}
 		}
 		if (_card && _card.trees.length) {
-			if (_scenario.getText != _summ.scenarioName || _author.getText != _summ.author) {
+			if (_scenario.getText() != _summ.scenarioName || _author.getText() != _summ.author) {
 				ws ~= _prop.msgs.diffSource;
 			}
 		}
@@ -173,7 +173,7 @@ private:
 
 	class OASelect : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			__refreshEnblOneAll;
+			__refreshEnblOneAll();
 		}
 	}
 	class SelEffectType : SelectionAdapter {
@@ -401,7 +401,7 @@ private:
 				auto radio = new Button(comp2, SWT.RADIO);
 				mod(radio);
 				radio.setLayoutData = new GridData(GridData.FILL_VERTICAL);
-				radio.setText = _prop.msgs.physical(phy);
+				radio.setText = _prop.msgs.physicalName(phy);
 				_phy[phy] = radio;
 			}
 		}
@@ -424,7 +424,7 @@ private:
 				auto radio = new Button(comp2, SWT.RADIO);
 				mod(radio);
 				radio.setLayoutData = new GridData(GridData.FILL_BOTH);
-				radio.setText = _prop.msgs.mental(m);
+				radio.setText = _prop.msgs.mentalName(m);
 				_mtl[m] = radio;
 			}
 		}
@@ -624,7 +624,7 @@ private:
 		sash.setWeights = [_prop.var.etc.seKeyCodeSashL, _prop.var.etc.seKeyCodeSashR];
 		class Dispose : DisposeListener {
 			override void widgetDisposed(DisposeEvent e) {
-				auto ws = sash.getWeights;
+				auto ws = sash.getWeights();
 				_prop.var.etc.seKeyCodeSashL = ws[0];
 				_prop.var.etc.seKeyCodeSashR = ws[1];
 			}
@@ -639,14 +639,14 @@ private:
 	void refStandardKeyCodes() {
 		string[] stdKCs = _prop.var.etc.standardKeyCodes.dup;
 		foreach (i, combo; _keyCodes) {
-			string text = combo.getText;
+			string text = combo.getText();
 			combo.removeAll();
 			foreach (kc; stdKCs) {
 				combo.add(kc);
 			}
 			combo.setText = text;
 			auto kc = _card.keyCodes[i];
-			if (_card && !contains(combo.getItems, kc)) {
+			if (_card && !contains(combo.getItems(), kc)) {
 				combo.add(kc, 0);
 			}
 		}
@@ -714,9 +714,11 @@ public:
 		super(prop, shell, false, text, img, true, size, true);
 	}
 
+	@property
 	C card() {
 		return _card;
 	}
+	@property
 	void card(C v) {
 		_card = v;
 	}
@@ -756,8 +758,8 @@ protected:
 
 		// Windows Vistaだとタブの横幅が凄いことになったので必要最低限にする。
 		scope maxSize = new Point(0, 0);
-		foreach (tab; tabf.getItems) {
-			scope size = tab.getControl.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+		foreach (tab; tabf.getItems()) {
+			scope size = tab.getControl().computeSize(SWT.DEFAULT, SWT.DEFAULT);
 			if (maxSize.x < size.x) maxSize.x = size.x;
 			if (maxSize.y < size.y) maxSize.y = size.y;
 		}
@@ -808,7 +810,7 @@ protected:
 			_targ[_card.target].setSelection = true;
 			_one.setSelection = !_card.allRange;
 			_all.setSelection = _card.allRange;
-			__refreshEnblOneAll;
+			__refreshEnblOneAll();
 			_vis[_card.visual].setSelection = true;
 			_prem[_card.premium].setSelection = true;
 			_sucRate.setSelection = _card.successRate + Content.successRate_max;
@@ -821,7 +823,7 @@ protected:
 			_se2.select = se2i >= 0 ? se2i : 0;
 			foreach (i, kc; _card.keyCodes) {
 				_keyCodes[i].setText = kc;
-				if (!contains(_keyCodes[i].getItems, kc)) {
+				if (!contains(_keyCodes[i].getItems(), kc)) {
 					_keyCodes[i].add(kc, 0);
 				}
 			}
@@ -847,7 +849,7 @@ protected:
 			}
 			_targ[CardTarget.NONE].setSelection = true;
 			_one.setSelection = true;
-			__refreshEnblOneAll;
+			__refreshEnblOneAll();
 			_vis[CardVisual.NONE].setSelection = true;
 			_prem[Premium.NORMAL].setSelection = true;
 			_sucRate.setSelection = Content.successRate_max;
@@ -855,45 +857,45 @@ protected:
 			_se2.select = 0;
 		}
 		static if (is (C == SkillCard)) {
-			calcPrice(_level.getSelection);
+			calcPrice(_level.getSelection());
 		} else static if (is (C == BeastCard)) {
-			calcPrice(_useCount.getSelection);
+			calcPrice(_useCount.getSelection());
 		}
 	}
 	private void __refreshEnblOneAll() {
 		_oneAllGrp.setEnabled
-			= _targ[CardTarget.PARTY].getSelection
-			|| _targ[CardTarget.ENEMY].getSelection
-			|| _targ[CardTarget.BOTH].getSelection;
-		_one.setEnabled = _oneAllGrp.getEnabled;
-		_all.setEnabled = _oneAllGrp.getEnabled;
+			= _targ[CardTarget.PARTY].getSelection()
+			|| _targ[CardTarget.ENEMY].getSelection()
+			|| _targ[CardTarget.BOTH].getSelection();
+		_one.setEnabled = _oneAllGrp.getEnabled();
+		_all.setEnabled = _oneAllGrp.getEnabled();
 	}
 
 	override bool apply() {
 		if (_card) {
 			_card.path = _imgPath.image;
-			_card.desc = wrapReturnCode(_desc.getText);
-			_card.name = _name.getText;
+			_card.desc = wrapReturnCode(_desc.getText());
+			_card.name = _name.getText();
 		} else {
-			_card = new C(_summ.newId!(C), _name.getText,
-				_imgPath.image, wrapReturnCode(_desc.getText));
+			_card = new C(_summ.newId!(C), _name.getText(),
+				_imgPath.image, wrapReturnCode(_desc.getText()));
 		}
-		_card.spell = _needSpell.getSelection;
+		_card.spell = _needSpell.getSelection();
 		putRadioValue!(EffectType)(_effTyp, &_card.effectType);
 		putRadioValue!(Resist)(_res, &_card.resist);
 		putRadioValue!(Physical)(_phy, &_card.physical);
 		putRadioValue!(Mental)(_mtl, &_card.mental);
 		static if (is (C == SkillCard)) {
-			_card.level = _level.getSelection;
+			_card.level = _level.getSelection();
 		}
 		static if (is (C == ItemCard)) {
-			_card.useLimitMax = _useCount.getSelection;
-			_card.useLimit = _useCount.getSelection;
+			_card.useLimitMax = _useCount.getSelection();
+			_card.useLimit = _useCount.getSelection();
 		} else static if (is (C == BeastCard)) {
-			_card.useLimit = _useCount.getSelection;
+			_card.useLimit = _useCount.getSelection();
 		}
 		static if (is (C == ItemCard)) {
-			_card.price = _price.getSelection;
+			_card.price = _price.getSelection();
 		}
 		_card.motions = _motions.motions;
 		foreach (e, index; _useModTbl) {
@@ -905,21 +907,21 @@ protected:
 			}
 		}
 		putRadioValue!(CardTarget)(_targ, &_card.target);
-		_card.allRange = _oneAllGrp.isEnabled && _all.getSelection;
+		_card.allRange = _oneAllGrp.isEnabled() && _all.getSelection();
 		putRadioValue!(CardVisual)(_vis, &_card.visual);
 		putRadioValue!(Premium)(_prem, &_card.premium);
-		_card.successRate = cast(int) _sucRate.getSelection - Content.successRate_max;
-		_card.soundPath1 = _se1.getSelectionIndex > 0 ? _se1.getText : "";
-		_card.soundPath2 = _se2.getSelectionIndex > 0 ? _se2.getText : "";
+		_card.successRate = cast(int) _sucRate.getSelection() - Content.successRate_max;
+		_card.soundPath1 = _se1.getSelectionIndex() > 0 ? _se1.getText() : "";
+		_card.soundPath2 = _se2.getSelectionIndex() > 0 ? _se2.getText() : "";
 		string[] keyCodes;
 		int last = 0;
 		foreach (i, c; _keyCodes) {
-			keyCodes ~= c.getText;
-			if (c.getText.length > 0) last = i + 1;
+			keyCodes ~= c.getText();
+			if (c.getText().length > 0) last = i + 1;
 		}
 		keyCodes.length = last;
-		_card.scenario = _scenario.getText;
-		_card.author = _author.getText;
+		_card.scenario = _scenario.getText();
+		_card.author = _author.getText();
 		_card.keyCodes = keyCodes;
 		return true;
 	}

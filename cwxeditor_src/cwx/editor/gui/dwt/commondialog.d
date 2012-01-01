@@ -25,7 +25,7 @@ private:
 
 	ulong _newId;
 public:
-	this(Props prop, Shell shell, A area, ulong minId) {
+	this (Props prop, Shell shell, A area, ulong minId) {
 		_prop = prop;
 		_area = area;
 		_minId = minId;
@@ -33,6 +33,7 @@ public:
 		enterClose = true;
 	}
 
+	@property
 	ulong newId() {
 		return _newId;
 	}
@@ -57,7 +58,7 @@ protected:
 	}
 	override bool close(bool ok) {
 		if (ok) {
-			_newId = _id.getSelection;
+			_newId = _id.getSelection();
 		}
 		return ok;
 	}

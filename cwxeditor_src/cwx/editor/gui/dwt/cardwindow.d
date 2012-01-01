@@ -85,10 +85,15 @@ import java.lang.all;
 public:
 
 interface ICardWindow {
+	@property
 	bool canCreateCast();
+	@property
 	bool canCreateSkill();
+	@property
 	bool canCreateItem();
+	@property
 	bool canCreateBeast();
+	@property
 	bool canCreateInfo();
 	void createCast();
 	void createSkill();
@@ -170,11 +175,11 @@ private:
 	static if (EditMode) {
 		void create(int Index)() {
 			static if (1 < Cards.length) {
-				if (_tabf && !_tabf.isDisposed) {
-					_tabf.setSelection = _tab[Index];
+				if (_tabf && !_tabf.isDisposed()) {
+					_tabf.setSelection(_tab[Index]);
 				}
 			}
-			_pane[Index].create;
+			_pane[Index].create();
 		}
 	}
 	static if (EditMode) {
@@ -182,7 +187,7 @@ private:
 			static if (is(CardOwner : Summary)) {
 				static if (1 < Cards.length) {
 					_comm.openBindCardWin(shellActivate);
-					_tabf.setSelection = _tab[Index];
+					_tabf.setSelection(_tab[Index]);
 				} else {
 					static if (UseCast && CAST == Index) {
 						_comm.openCastWin(shellActivate);
@@ -197,16 +202,16 @@ private:
 					} else static assert (0);
 				}
 			} else {
-				_tabf.setSelection = _tab[Index];
+				_tabf.setSelection(_tab[Index]);
 			}
 		}
 	}
 
 	void __refresh() {
 		foreach (f; _pane) {
-			f.refresh;
+			f.refresh();
 		}
-		refreshTitle;
+		refreshTitle();
 	}
 	static if (EditMode && is (CardOwner == Summary)) {
 		void addScenario() {
@@ -224,15 +229,16 @@ private:
 			}
 		}
 	}
+	@property
 	Shell dlgParShl() {
-		if (_win && !_win.isDisposed) return _win.getShell;
-		return _comm.mainWin.shell.getShell;
+		if (_win && !_win.isDisposed()) return _win.getShell();
+		return _comm.mainWin.shell.getShell();
 	}
 	static if (!EditMode) {
 		void addCard() {
 			static if (1 < Cards.length) {
 				foreach (i, f; _pane) {
-					if (_tabf.getSelection is _tab[i]) {
+					if (_tabf.getSelection() is _tab[i]) {
 						f.addCard();
 						return;
 					}
@@ -247,26 +253,26 @@ private:
 			auto sels = _pane[CAST].selectedCards;
 			foreach (sel; sels) {
 				auto ahcw = _comm.openAddHands(_prop, _summ, sel, _toc, true);
-				ahcw.setAddSkill(_pane[SKILL].getAddCard);
-				ahcw.setAddItem(_pane[ITEM].getAddCard);
-				ahcw.setAddBeast(_pane[BEAST].getAddCard);
+				ahcw.setAddSkill(_pane[SKILL].getAddCard());
+				ahcw.setAddItem(_pane[ITEM].getAddCard());
+				ahcw.setAddBeast(_pane[BEAST].getAddCard());
 			}
 		}
 	}
 public:
 	static if (EditMode) {
 		static if (is (CardOwner == Summary)) {
-			this(Commons comm, Props prop, Composite parent) {
+			this (Commons comm, Props prop, Composite parent) {
 				_comm = comm;
 				_prop = prop;
 				if (parent) {
 					construct(comm, prop, null, parent);
 				} else {
-					initPane!(0);
+					initPane!(0)();
 				}
 			}
 			void reconstruct(Composite parent) {
-				if (_win && !_win.isDisposed) return;
+				if (_win && !_win.isDisposed()) return;
 				construct(_comm, _prop, _summ, parent);
 				if (_owner) refresh(_owner);
 			}
@@ -283,7 +289,7 @@ public:
 				if (shell) {
 					shell.addShellListener(new class ShellAdapter {
 						override void shellClosed(ShellEvent e) {
-							(cast(Shell) e.widget).setVisible = false;
+							(cast(Shell) e.widget).setVisible(false);
 							e.doit = false;
 							_prop.var.cardWin.visible = false;
 						}
@@ -314,7 +320,7 @@ public:
 			assert (!_pane[Index]);
 			_pane[Index] = new typeof(_pane[Index])(_comm, _prop, _summ, _tabf);
 			static if (Index + 1 < Cards.length) {
-				initPane!(Index + 1);
+				initPane!(Index + 1)();
 			}
 		}
 		void newPane(int Index)() {
@@ -325,7 +331,7 @@ public:
 				_pane[Index].construct();
 			}
 			static if (Index + 1 < Cards.length) {
-				newPane!(Index + 1);
+				newPane!(Index + 1)();
 			}
 		}
 	} else {
@@ -341,10 +347,10 @@ public:
 				_pane[Index].construct();
 			}
 			static if (Index + 1 < Cards.length) {
-				newPane!(Index + 1);
+				newPane!(Index + 1)();
 			}
 		}
-		this(Commons comm, Props prop,
+		this (Commons comm, Props prop,
 				Composite parent, PCardOwner summ, CardOwner owner, ToCardOwner toc) {
 			_toc = toc;
 			construct1(comm, prop, parent);
@@ -377,17 +383,17 @@ public:
 		if (parShl) {
 			_sbshl = new SBShell(parShl, SWT.SHELL_TRIM);
 			shell = _sbshl.shell;
-			shell.setImage = prop.images.app;
+			shell.setImage(prop.images.app);
 			_win = shell;
 			contPane = _sbshl.contentPane;
 		} else {
 			_win = new Composite(parent, SWT.NONE);
 			contPane = _win;
 		}
-		_win.setData = new TLPData(this);
-		contPane.setLayout = new FillLayout;
+		_win.setData(new TLPData(this));
+		contPane.setLayout(new FillLayout);
 		_comp = new Composite(contPane, SWT.NONE);
-		_comp.setLayout = windowGridLayout(1, true);
+		_comp.setLayout(windowGridLayout(1, true));
 		if (shell) {
 			{
 				auto bar = new Menu(shell, SWT.BAR);
@@ -431,7 +437,7 @@ public:
 					static if (UseBeast) createMenuItem(mt, prop.msgs.menuNewBeast, prop.images.menuNewBeast, &create!(BEAST));
 					static if (UseInfo) createMenuItem(mt, prop.msgs.menuNewInfo, prop.images.menuNewInfo, &create!(INFO));
 				}
-				shell.setMenuBar = bar;
+				shell.setMenuBar(bar);
 			}
 			{
 				auto bar = new ToolBar(_comp, SWT.FLAT);
@@ -489,20 +495,20 @@ public:
 		} else {
 			_tabf = new Composite(_comp, SWT.BORDER);
 			_stackL = new StackLayout;
-			_tabf.setLayout = _stackL;
+			_tabf.setLayout(_stackL);
 		}
-		_tabf.setLayoutData = new GridData(GridData.FILL_BOTH);
+		_tabf.setLayoutData(new GridData(GridData.FILL_BOTH));
 
 		static if (EditMode && is (CardOwner == Summary)) {
 			auto drop = new DropTarget(_comp, DND.DROP_DEFAULT | DND.DROP_LINK);
-			drop.setTransfer([FileTransfer.getInstance]);
+			drop.setTransfer([FileTransfer.getInstance()]);
 			drop.addDropListener(new DropScenario);
 		}
 	}
 	static if (1 < Cards.length) {
 		private class SelChanged : SelectionAdapter {
 			override void widgetSelected(SelectionEvent e) {
-				refreshStatusLine;
+				refreshStatusLine();
 			}
 		}
 	}
@@ -516,19 +522,19 @@ public:
 	void showCardLife() {
 		if (_viewMode != CViewMode.LIFE) {
 			_viewMode = CViewMode.LIFE;
-			if (_win && !_win.isDisposed) {
+			if (_win && !_win.isDisposed()) {
 				if (_listM) {
-					_lifeM.setSelection = true;
-					_lifeT.setSelection = true;
-					_listM.setSelection = false;
-					_listT.setSelection = false;
-					_tblM.setSelection = false;
-					_tblT.setSelection = false;
+					_lifeM.setSelection(true);
+					_lifeT.setSelection(true);
+					_listM.setSelection(false);
+					_listT.setSelection(false);
+					_tblM.setSelection(false);
+					_tblT.setSelection(false);
 				}
 				foreach (i, f; _pane) {
-					f.showCardLife;
+					f.showCardLife();
 					static if (1 < Cards.length) {
-						_tab[i].setControl = f.widget;
+						_tab[i].setControl(f.widget);
 					} else {
 						_stackL.topControl = f.widget;
 						_tabf.layout();
@@ -539,25 +545,25 @@ public:
 				_prop.var.etc.cardLife = true;
 				_prop.var.etc.cardDetails = false;
 			}
-			refreshStatusLine;
+			refreshStatusLine();
 		}
 	}
 	void showCardList() {
 		if (_viewMode != CViewMode.CARD) {
 			_viewMode = CViewMode.CARD;
-			if (_win && !_win.isDisposed) {
+			if (_win && !_win.isDisposed()) {
 				if (_listM) {
-					_lifeM.setSelection = false;
-					_lifeT.setSelection = false;
-					_listM.setSelection = true;
-					_listT.setSelection = true;
-					_tblM.setSelection = false;
-					_tblT.setSelection = false;
+					_lifeM.setSelection(false);
+					_lifeT.setSelection(false);
+					_listM.setSelection(true);
+					_listT.setSelection(true);
+					_tblM.setSelection(false);
+					_tblT.setSelection(false);
 				}
 				foreach (i, f; _pane) {
-					f.showCardList;
+					f.showCardList();
 					static if (1 < Cards.length) {
-						_tab[i].setControl = f.widget;
+						_tab[i].setControl(f.widget);
 					} else {
 						_stackL.topControl = f.widget;
 						_tabf.layout();
@@ -568,25 +574,25 @@ public:
 				_prop.var.etc.cardLife = false;
 				_prop.var.etc.cardDetails = false;
 			}
-			refreshStatusLine;
+			refreshStatusLine();
 		}
 	}
 	void showCardTable() {
 		if (_viewMode != CViewMode.TABLE) {
 			_viewMode = CViewMode.TABLE;
-			if (_win && !_win.isDisposed) {
+			if (_win && !_win.isDisposed()) {
 				if (_listM) {
-					_lifeM.setSelection = false;
-					_lifeT.setSelection = false;
-					_listM.setSelection = false;
-					_listT.setSelection = false;
-					_tblM.setSelection = true;
-					_tblT.setSelection = true;
+					_lifeM.setSelection(false);
+					_lifeT.setSelection(false);
+					_listM.setSelection(false);
+					_listT.setSelection(false);
+					_tblM.setSelection(true);
+					_tblT.setSelection(true);
 				}
 				foreach (i, f; _pane) {
-					f.showCardTable;
+					f.showCardTable();
 					static if (1 < Cards.length) {
-						_tab[i].setControl = f.widget;
+						_tab[i].setControl(f.widget);
 					} else {
 						_stackL.topControl = f.widget;
 						_tabf.layout();
@@ -597,16 +603,16 @@ public:
 				_prop.var.etc.cardLife = false;
 				_prop.var.etc.cardDetails = true;
 			}
-			refreshStatusLine;
+			refreshStatusLine();
 		}
 	}
 
 	void setStatusLine(string status) {
 		auto w = _win;
-		if (w.isDisposed) {
+		if (w.isDisposed()) {
 			w = null;
 		}
-		_comm.statusLine(w, status);
+		_comm.setStatusLine(w, status);
 	}
 
 	static if (is(CardOwner : Summary)) {
@@ -649,7 +655,7 @@ public:
 	void createCast() {
 		if (!_summ) return;
 		static if (EditMode && UseCast) {
-			create!(CAST);
+			create!(CAST)();
 		} else {
 			throw new Exception("can not create cast");
 		}
@@ -657,7 +663,7 @@ public:
 	void createSkill() {
 		if (!_summ) return;
 		static if (EditMode && UseSkill) {
-			create!(SKILL);
+			create!(SKILL)();
 		} else {
 			throw new Exception("can not create skill");
 		}
@@ -665,7 +671,7 @@ public:
 	void createItem() {
 		if (!_summ) return;
 		static if (EditMode && UseItem) {
-			create!(ITEM);
+			create!(ITEM)();
 		} else {
 			throw new Exception("can not create item");
 		}
@@ -673,7 +679,7 @@ public:
 	void createBeast() {
 		if (!_summ) return;
 		static if (EditMode && UseBeast) {
-			create!(BEAST);
+			create!(BEAST)();
 		} else {
 			throw new Exception("can not create beast");
 		}
@@ -681,22 +687,30 @@ public:
 	void createInfo() {
 		if (!_summ) return;
 		static if (EditMode && UseInfo) {
-			create!(INFO);
+			create!(INFO)();
 		} else {
 			throw new Exception("can not create info");
 		}
 	}
+	@property
 	bool canCreateCast() {return EditMode && UseCast;}
+	@property
 	bool canCreateSkill() {return EditMode && UseSkill;}
+	@property
 	bool canCreateItem() {return EditMode && UseItem;}
+	@property
 	bool canCreateBeast() {return EditMode && UseBeast;}
+	@property
 	bool canCreateInfo() {return EditMode && UseInfo;}
+	@property
 	private bool isViewLife() {
 		return _viewMode == CViewMode.LIFE;
 	}
+	@property
 	private bool isViewList() {
 		return _viewMode == CViewMode.CARD;
 	}
+	@property
 	private bool isViewTable() {
 		return _viewMode == CViewMode.TABLE;
 	}
@@ -710,17 +724,17 @@ public:
 				procRefColWidth = true;
 				scope (exit) procRefColWidth = false;
 				auto c = cast(TableColumn) e.widget;
-				int width = c.getWidth;
+				int width = c.getWidth();
 				foreach (col; cols) {
 					if (c !is col) {
-						col.setWidth = width;
+						col.setWidth(width);
 					}
 				}
 			}
 		}
 	}
 	private void construct2() {
-		newPane!(0);
+		newPane!(0)();
 		static if (!is(CardOwner : Summary)) {
 			ColResize[] colR;
 			colR.length = (is (CardOwner == Summary)) ? 4 : 3;
@@ -729,7 +743,7 @@ public:
 				colR[i].comm = _comm;
 			}
 			void addTable(Table tbl) {
-				foreach (i, col; tbl.getColumns) {
+				foreach (i, col; tbl.getColumns()) {
 					colR[i].cols ~= col;
 					col.addControlListener(colR[i]);
 				}
@@ -740,32 +754,32 @@ public:
 				_tab[i] = new CTabItem(_tabf, SWT.NONE);
 				static if (UseCast) {
 					if (i == CAST) {
-						_tab[i].setText = _prop.msgs.casts;
-						_tab[i].setImage = _prop.images.casts;
+						_tab[i].setText(_prop.msgs.casts);
+						_tab[i].setImage(_prop.images.casts);
 					}
 				}
 				static if (UseSkill) {
 					if (i == SKILL) {
-						_tab[i].setText = _prop.msgs.skill;
-						_tab[i].setImage = _prop.images.skill;
+						_tab[i].setText(_prop.msgs.skill);
+						_tab[i].setImage(_prop.images.skill);
 					}
 				}
 				static if (UseItem) {
 					if (i == ITEM) {
-						_tab[i].setText = _prop.msgs.item;
-						_tab[i].setImage = _prop.images.item;
+						_tab[i].setText(_prop.msgs.item);
+						_tab[i].setImage(_prop.images.item);
 					}
 				}
 				static if (UseBeast) {
 					if (i == BEAST) {
-						_tab[i].setText = _prop.msgs.beast;
-						_tab[i].setImage = _prop.images.beast;
+						_tab[i].setText(_prop.msgs.beast);
+						_tab[i].setImage(_prop.images.beast);
 					}
 				}
 				static if (UseInfo) {
 					if (i == INFO) {
-						_tab[i].setText = _prop.msgs.info;
-						_tab[i].setImage = _prop.images.info;
+						_tab[i].setText(_prop.msgs.info);
+						_tab[i].setImage(_prop.images.info);
 					}
 				}
 			}
@@ -777,23 +791,23 @@ public:
 		auto shell = cast(Shell) _win;
 
 		static if (1 < Cards.length) {
-			_tabf.setSelection = 0;
+			_tabf.setSelection(0);
 		}
 		bool life = _prop.var.etc.cardLife;
 		bool detail = _prop.var.etc.cardDetails;
 		if (life) {
-			showCardLife;
+			showCardLife();
 		} else {
-			showCardList;
+			showCardList();
 		}
 		if (shell) {
 			scope wp = shell.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 			int width = _prop.var.cardWin.width == SWT.DEFAULT ? wp.x : _prop.var.cardWin.width;
 			static if (is (CardOwner == Summary)) {
-				shell.setMaximized = _prop.var.cardWin.maximized;
-				shell.setMinimized = _prop.var.cardWin.minimized;
-				int x = _prop.var.cardWin.x == SWT.DEFAULT ? shell.getBounds.x : _prop.var.cardWin.x + shell.getParent.getBounds.x;
-				int y = _prop.var.cardWin.y == SWT.DEFAULT ? shell.getBounds.y : _prop.var.cardWin.y + shell.getParent.getBounds.y;
+				shell.setMaximized(_prop.var.cardWin.maximized);
+				shell.setMinimized(_prop.var.cardWin.minimized);
+				int x = _prop.var.cardWin.x == SWT.DEFAULT ? shell.getBounds().x : _prop.var.cardWin.x + shell.getParent().getBounds().x;
+				int y = _prop.var.cardWin.y == SWT.DEFAULT ? shell.getBounds().y : _prop.var.cardWin.y + shell.getParent().getBounds().y;
 				intoDisplay(x, y, width, _prop.var.cardWin.height);
 				shell.setBounds(x, y, width, _prop.var.cardWin.height);
 				shell.addControlListener(new SizeL);
@@ -802,28 +816,28 @@ public:
 			}
 		}
 		if (!life && detail) {
-			showCardTable;
+			showCardTable();
 		}
 	}
 	private class SizeL : ControlAdapter {
 		private void saveCardWin() {
 			auto shell = cast(Shell) _win;
 			if (shell) {
-				if (!shell.getMaximized && !shell.getMinimized) {
-					_prop.var.cardWin.width = shell.getSize.x;
-					_prop.var.cardWin.height = shell.getSize.y;
-					_prop.var.cardWin.x = shell.getBounds.x - shell.getParent.getBounds.x;
-					_prop.var.cardWin.y = shell.getBounds.y - shell.getParent.getBounds.y;
+				if (!shell.getMaximized() && !shell.getMinimized()) {
+					_prop.var.cardWin.width = shell.getSize().x;
+					_prop.var.cardWin.height = shell.getSize().y;
+					_prop.var.cardWin.x = shell.getBounds().x - shell.getParent().getBounds().x;
+					_prop.var.cardWin.y = shell.getBounds().y - shell.getParent().getBounds().y;
 				}
-				_prop.var.cardWin.maximized = shell.getMaximized;
-				_prop.var.cardWin.minimized = shell.getMinimized;
+				_prop.var.cardWin.maximized = shell.getMaximized();
+				_prop.var.cardWin.minimized = shell.getMinimized();
 			}
 		}
 		override void controlMoved(ControlEvent e) {
-			saveCardWin;
+			saveCardWin();
 		}
 		override void controlResized(ControlEvent e) {
-			saveCardWin;
+			saveCardWin();
 		}
 	}
 	static if (!EditMode && is(CardOwner == CastCard)) {
@@ -834,20 +848,23 @@ public:
 		}
 	}
 
+	@property
 	Composite shell() {
 		return _win;
 	}
+	@property
 	CardOwner owner() {
 		return _owner;
 	}
+	@property
 	PCardOwner summary() {
 		return _summ;
 	}
 	static if (EditMode && is (CardOwner == CastCard) && is (PCardOwner == Summary)) {
 		private void __refOwner(CastCard c) {
 			if (_owner is c) {
-				__refresh;
-				refreshTitle;
+				__refresh();
+				refreshTitle();
 			}
 		}
 		private void __delOwner(CastCard c) {
@@ -857,9 +874,11 @@ public:
 		}
 	}
 
+	@property
 	Image image() {
 		return mixin ("_prop.images." ~ ShellImage);
 	}
+	@property
 	string title() {
 		auto shl = cast(Shell) _win;
 		if (shl) {
@@ -867,10 +886,11 @@ public:
 		}
 		return mixin ("_prop.msgs." ~ Title);
 	}
+	@property
 	void delegate(string) statusText() {return _sbshl ? &_sbshl.statusLine : null;}
 
 	void refreshTitle() {
-		if (_win && !_win.isDisposed) _comm.setTitle(shell, title);
+		if (_win && !_win.isDisposed()) _comm.setTitle(shell, title);
 	}
 
 	static if (EditMode) {
@@ -890,15 +910,15 @@ public:
 		foreach (f; _pane) {
 			f.refreshAll(summ, owner);
 		}
-		if (_win && !_win.isDisposed) {
-			refreshTitle;
+		if (_win && !_win.isDisposed()) {
+			refreshTitle();
 		}
 	}
 	static if (EditMode) {
 		void add(int Index)(ref XNode node, string ver) {
 			if (_pane[Index].addFromNode(node, ver)) {
 				static if (1 < Cards.length) {
-					_tabf.setSelection = _tab[Index];
+					_tabf.setSelection(_tab[Index]);
 				}
 			}
 		}
@@ -930,43 +950,43 @@ public:
 	} else {
 		static if (UseCast) {
 			void setAddCast(void delegate(ref XNode node, string) addc) {
-				_pane[CAST].setAddCard = addc;
+				_pane[CAST].setAddCard(addc);
 			}
 		}
 		static if (UseSkill) {
 			void setAddSkill(void delegate(ref XNode node, string) addc) {
-				_pane[SKILL].setAddCard = addc;
+				_pane[SKILL].setAddCard(addc);
 			}
 		}
 		static if (UseItem) {
 			void setAddItem(void delegate(ref XNode node, string) addc) {
-				_pane[ITEM].setAddCard = addc;
+				_pane[ITEM].setAddCard(addc);
 			}
 		}
 		static if (UseBeast) {
 			void setAddBeast(void delegate(ref XNode node, string) addc) {
-				_pane[BEAST].setAddCard = addc;
+				_pane[BEAST].setAddCard(addc);
 			}
 		}
 		static if (UseInfo) {
 			void setAddInfo(void delegate(ref XNode node, string) addc) {
-				_pane[INFO].setAddCard = addc;
+				_pane[INFO].setAddCard(addc);
 			}
 		}
 	}
 	private void refreshStatusLine() {
-		if (!_win || _win.isDisposed) return;
+		if (!_win || _win.isDisposed()) return;
 		static if (1 < Cards.length) {
-			int i = _tabf.getSelectionIndex;
+			int i = _tabf.getSelectionIndex();
 			string s = "";
 			static if (UseCast) if (i == CAST) s = _pane[CAST].statusLine;
 			static if (UseSkill) if (i == SKILL) s = _pane[SKILL].statusLine;
 			static if (UseItem) if (i == ITEM) s = _pane[ITEM].statusLine;
 			static if (UseBeast) if (i == BEAST) s = _pane[BEAST].statusLine;
 			static if (UseInfo) if (i == INFO) s = _pane[INFO].statusLine;
-			_comm.statusLine(_tabf, s);
+			_comm.setStatusLine(_tabf, s);
 		} else {
-			_comm.statusLine(_comp, _pane[0].statusLine);
+			_comm.setStatusLine(_comp, _pane[0].statusLine);
 		}
 	}
 
@@ -1012,90 +1032,90 @@ public:
 	static if (EditMode) {
 		void undo() {
 			static if (1 < Cards.length) {
-				int i = _tabf.getSelectionIndex;
+				int i = _tabf.getSelectionIndex();
 				static if (UseCast) {
-					if (i == CAST) _pane[CAST].undo;
+					if (i == CAST) _pane[CAST].undo();
 				}
 				static if (UseSkill) {
-					if (i == SKILL) _pane[SKILL].undo;
+					if (i == SKILL) _pane[SKILL].undo();
 				}
 				static if (UseItem) {
-					if (i == ITEM) _pane[ITEM].undo;
+					if (i == ITEM) _pane[ITEM].undo();
 				}
 				static if (UseBeast) {
-					if (i == BEAST) _pane[BEAST].undo;
+					if (i == BEAST) _pane[BEAST].undo();
 				}
 				static if (UseInfo) {
-					if (i == INFO) _pane[INFO].undo;
+					if (i == INFO) _pane[INFO].undo();
 				}
 			} else {
-				_pane[0].undo;
+				_pane[0].undo();
 			}
 		}
 		void redo() {
 			static if (1 < Cards.length) {
-				int i = _tabf.getSelectionIndex;
+				int i = _tabf.getSelectionIndex();
 				static if (UseCast) {
-					if (i == CAST) _pane[CAST].redo;
+					if (i == CAST) _pane[CAST].redo();
 				}
 				static if (UseSkill) {
-					if (i == SKILL) _pane[SKILL].redo;
+					if (i == SKILL) _pane[SKILL].redo();
 				}
 				static if (UseItem) {
-					if (i == ITEM) _pane[ITEM].redo;
+					if (i == ITEM) _pane[ITEM].redo();
 				}
 				static if (UseBeast) {
-					if (i == BEAST) _pane[BEAST].redo;
+					if (i == BEAST) _pane[BEAST].redo();
 				}
 				static if (UseInfo) {
-					if (i == INFO) _pane[INFO].redo;
+					if (i == INFO) _pane[INFO].redo();
 				}
 			} else {
-				_pane[0].redo;
+				_pane[0].redo();
 			}
 		}
 		void up() {
 			static if (1 < Cards.length) {
-				int i = _tabf.getSelectionIndex;
+				int i = _tabf.getSelectionIndex();
 				static if (UseCast) {
-					if (i == CAST) _pane[CAST].up;
+					if (i == CAST) _pane[CAST].up();
 				}
 				static if (UseSkill) {
-					if (i == SKILL) _pane[SKILL].up;
+					if (i == SKILL) _pane[SKILL].up();
 				}
 				static if (UseItem) {
-					if (i == ITEM) _pane[ITEM].up;
+					if (i == ITEM) _pane[ITEM].up();
 				}
 				static if (UseBeast) {
-					if (i == BEAST) _pane[BEAST].up;
+					if (i == BEAST) _pane[BEAST].up();
 				}
 				static if (UseInfo) {
-					if (i == INFO) _pane[INFO].up;
+					if (i == INFO) _pane[INFO].up();
 				}
 			} else {
-				_pane[0].up;
+				_pane[0].up();
 			}
 		}
 		void down() {
 			static if (1 < Cards.length) {
-				int i = _tabf.getSelectionIndex;
+				int i = _tabf.getSelectionIndex();
 				static if (UseCast) {
-					if (i == CAST) _pane[CAST].down;
+					if (i == CAST) _pane[CAST].down();
 				}
 				static if (UseSkill) {
-					if (i == SKILL) _pane[SKILL].down;
+					if (i == SKILL) _pane[SKILL].down();
 				}
 				static if (UseItem) {
-					if (i == ITEM) _pane[ITEM].down;
+					if (i == ITEM) _pane[ITEM].down();
 				}
 				static if (UseBeast) {
-					if (i == BEAST) _pane[BEAST].down;
+					if (i == BEAST) _pane[BEAST].down();
 				}
 				static if (UseInfo) {
-					if (i == INFO) _pane[INFO].down;
+					if (i == INFO) _pane[INFO].down();
 				}
 			} else {
-				_pane[0].down;
+				_pane[0].down();
 			}
 		}
 	}
@@ -1104,7 +1124,7 @@ public:
 		auto cate = cpcategory(path);
 		auto index = cpindex(path);
 		bool isId = std.string.endsWith(cate, ":id") != 0;
-		alias typeof(_pane[C].cards[0]) CType;
+		alias typeof(_pane[C].cards()[0]) CType;
 		CType card;
 		if (isId) {
 			card = _pane[C].card(index);
@@ -1180,12 +1200,13 @@ public:
 		}
 		return false;
 	}
+	@property
 	string[] openedCWXPath() {
 		string[] r;
 		static if (1 < Cards.length) {
 			string[] last;
 			foreach (i, pane; _pane) {
-				if (_tabf.getSelectionIndex == i) {
+				if (_tabf.getSelectionIndex() == i) {
 					last = pane.openedCWXPath;
 				} else {
 					r ~= pane.openedCWXPath;
@@ -1224,12 +1245,12 @@ alias CardWindow!("infoWindowName(owner)", "infoTabName(owner)", "menuInfoWin", 
 
 private class DelTemp(CC) : DisposeListener {
 	private CC _cc;
-	this(CC cc) {
+	this (CC cc) {
 		_cc = cc;
 	}
 	override void widgetDisposed(DisposeEvent dse) {
 		try {
-			_cc.delTemp;
+			_cc.delTemp();
 		} catch (Exception e) {
 			debugln(e);
 		}

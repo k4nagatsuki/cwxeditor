@@ -29,18 +29,28 @@ import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.ModifyEvent;
 
 interface DSize {
+	@property
 	void width(int);
+	@property
 	void height(int);
+	@property
 	int width();
+	@property
 	int height();
 }
 
 interface WSize : DSize {
+	@property
 	void x(int);
+	@property
 	void y(int);
+	@property
 	int x();
+	@property
 	int y();
+	@property
 	void maximized(bool);
+	@property
 	bool maximized();
 }
 
@@ -77,34 +87,34 @@ abstract class AbsDialog {
 			style |= SWT.APPLICATION_MODAL;
 		}
 		_win = new Shell(parent, style);
-		_win.setText = text;
-		_win.setImage = img;
-		_win.setLayout = zeroGridLayout(2, false);
+		_win.setText(text);
+		_win.setImage(img);
+		_win.setLayout(zeroGridLayout(2, false));
 		_win.addShellListener(new SListener);
 
 		_area = new Composite(_win, SWT.NONE);
 		auto agd = new GridData(GridData.FILL_BOTH);
 		agd.horizontalSpan = 2;
-		_area.setLayoutData = agd;
+		_area.setLayoutData(agd);
 
 		auto sep = new Label(_win, SWT.SEPARATOR | SWT.HORIZONTAL);
 		auto sgd = new GridData(GridData.FILL_HORIZONTAL);
 		sgd.horizontalSpan = 2;
-		sep.setLayoutData = sgd;
+		sep.setLayoutData(sgd);
 
 		_addition = new Composite(_win, SWT.NONE);
-		_addition.setLayout = new GridLayout(1, true);
-		_addition.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+		_addition.setLayout(new GridLayout(1, true));
+		_addition.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 		auto buttons = new Composite(_win, SWT.NONE);
-		buttons.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
+		buttons.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 		int gll = 1;
 		if (apply) gll++;
 		if (cancel) gll++;
 		gll += button.length;
-		buttons.setLayout = new GridLayout(gll, true);
+		buttons.setLayout(new GridLayout(gll, true));
 		auto okComp = new Composite(buttons, SWT.NONE);
-		okComp.setLayout = new FillLayout;
+		okComp.setLayout(new FillLayout);
 		_okBtn = createButton(okComp, prop.msgs.dlgTextOK, &this.ok);
 		if (cancel) {
 			createButton(buttons, prop.msgs.dlgTextCancel, &this.cancel);
@@ -116,18 +126,19 @@ abstract class AbsDialog {
 			createButton(buttons, info.name, info.func);
 		}
 	}
+	@property
 	Composite addition() {return _addition;}
 
 	private Button createButton(Composite parent, string text, void delegate() push) {
 		auto b = new Button(parent, SWT.PUSH);
 		auto gd = new GridData(GridData.FILL_HORIZONTAL);
 		gd.widthHint = 85;
-		if (cast(GridLayout) parent.getLayout) {
-			b.setLayoutData = gd;
+		if (cast(GridLayout) parent.getLayout()) {
+			b.setLayoutData(gd);
 		} else {
-			parent.setLayoutData = gd;
+			parent.setLayoutData(gd);
 		}
-		b.setText = text;
+		b.setText(text);
 		auto sa = new Push;
 		sa.push = push;
 		b.addSelectionListener(sa);
@@ -147,7 +158,7 @@ abstract class AbsDialog {
 			mod();
 		}
 		void mod() {
-			if (!ignoreMod) applyEnabled;
+			if (!ignoreMod) applyEnabled();
 		}
 	}
 	private Mod _mod = null;
@@ -167,6 +178,7 @@ abstract class AbsDialog {
 	/// trueの時は適用ボタンの有効化を行わない。
 	protected bool ignoreMod = false;
 	/// ignoreModを反転して返す。
+	@property
 	const
 	bool catchMod() {return !ignoreMod;}
 
@@ -188,7 +200,7 @@ abstract class AbsDialog {
 				}
 				return;
 			}
-			_imeMode = _win.getImeInputMode;
+			_imeMode = _win.getImeInputMode();
 			if (_ret) {
 				foreach (dlg; applyEvent) {
 					dlg();
@@ -209,22 +221,22 @@ abstract class AbsDialog {
 				foreach (dlg; closeEvent) {
 					dlg();
 				}
-				auto parShl = cast(Shell) _win.getParent;
-				if (parShl) parShl.setImeInputMode = _imeMode;
+				auto parShl = cast(Shell) _win.getParent();
+				if (parShl) parShl.setImeInputMode(_imeMode);
 			}
 		}
 	}
 	private void saveWin() {
 		if (!_size) return;
 		auto ws = cast(WSize) _size;
-		auto p = _win.getParent;
-		if (!_win.getMaximized && !_win.getMinimized) {
-			auto b = _win.getBounds;
+		auto p = _win.getParent();
+		if (!_win.getMaximized() && !_win.getMinimized()) {
+			auto b = _win.getBounds();
 			_size.width = b.width;
 			_size.height = b.height;
 			if (ws) {
 				if (p) {
-					auto pb = p.getBounds;
+					auto pb = p.getBounds();
 					ws.x = b.x - pb.x;
 					ws.y = b.y - pb.y;
 				} else {
@@ -234,41 +246,45 @@ abstract class AbsDialog {
 			}
 		}
 		if (ws) {
-			ws.maximized = _win.getMaximized;
+			ws.maximized = _win.getMaximized();
 		}
 	}
 	private bool _ret = false;
 	private void ok() {
 		if (_inCloseEvent) return;
 		_ret = true;
-		_win.close;
+		_win.close();
 	}
 	private bool _enterClose;
+	@property
 	void enterClose(bool value) {_enterClose = value;}
+	@property
 	bool enterClose() {return _enterClose;}
 	private bool _ffio = false;
+	@property
 	void firstFocusIsOK(bool ffio) {_ffio = true;}
+	@property
 	bool firstFocusIsOK() {return _ffio;}
 	private void cancel() {
 		if (_inCloseEvent) return;
-		_win.close;
+		_win.close();
 	}
 	private bool _forceCancel = false;
 	void forceCancel() {
 		if (_inCloseEvent) return;
 		_forceCancel = true;
-		if (!_win.isDisposed) _win.close();
+		if (!_win.isDisposed()) _win.close();
 	}
 
 	private void calcBounds() {
-		auto par = _win.getParent;
+		auto par = _win.getParent();
 		auto winProps = cast(WSize) _size;
 		scope wp = _win.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 		int width = !_size || _size.width == SWT.DEFAULT ? wp.x : _size.width;
 		int height = !_size || _size.height == SWT.DEFAULT ? wp.y : _size.height;
 		int x, y;
 		if (par) {
-			auto pb = par.getBounds;
+			auto pb = par.getBounds();
 			if (winProps && winProps.x != SWT.DEFAULT) {
 				x = winProps.x + pb.x;
 			} else {
@@ -280,7 +296,7 @@ abstract class AbsDialog {
 				y = pb.y + (pb.height - height) / 2;
 			}
 		} else {
-			auto pb = _win.getDisplay.getBounds;
+			auto pb = _win.getDisplay().getBounds();
 			if (winProps && winProps.x != SWT.DEFAULT) {
 				x = winProps.x;
 			} else {
@@ -295,58 +311,58 @@ abstract class AbsDialog {
 		intoDisplay(x, y, width, height);
 		_win.setBounds(x, y, width, height);
 		if (winProps) {
-			_win.setMaximized = winProps.maximized;
+			_win.setMaximized(winProps.maximized);
 		}
 	}
 	bool open() {
 		setup(_area);
 		if (_enterClose) {
-			_win.setDefaultButton = _okBtn;
+			_win.setDefaultButton(_okBtn);
 		}
 		calcBounds();
-		auto par = cast(Shell) _win.getParent;
+		auto par = cast(Shell) _win.getParent();
 		if (par) {
-			_imeMode = par.getImeInputMode;
-			_win.setImeInputMode = _imeMode;
+			_imeMode = par.getImeInputMode();
+			_win.setImeInputMode(_imeMode);
 		}
-		if (_apply) _apply.setEnabled = false;
-		_win.open;
-		if (firstFocusIsOK) _okBtn.setFocus;
-		opened;
+		if (_apply) _apply.setEnabled(false);
+		_win.open();
+		if (firstFocusIsOK) _okBtn.setFocus();
+		opened();
 		if (!_modal) return false;
-		auto d = _win.getDisplay;
+		auto d = _win.getDisplay();
 		scope (failure) {
-			if (!_win.isDisposed) _win.close;
+			if (!_win.isDisposed()) _win.close();
 		}
-		while (!_win.isDisposed) {
+		while (!_win.isDisposed()) {
 			try {
-				if (!d.readAndDispatch) d.sleep;
+				if (!d.readAndDispatch()) d.sleep();
 			} catch (Throwable e) {
 				throw e;
 			}
 		}
 		if (par) {
-			par.setImeInputMode = _imeMode;
+			par.setImeInputMode(_imeMode);
 		}
 		return _ret || _applied;
 	}
 	void active() {
-		if (!_win.isDisposed) {
+		if (!_win.isDisposed()) {
 			_win.setActive();
 		}
 	}
 	bool close() {
 		if (_inCloseEvent) return false;
 		_win.close();
-		return _win.isDisposed;
+		return _win.isDisposed();
 	}
 
 	private void applyFunc() {
 		foreach (dlg; applyEvent) {
 			dlg();
 		}
-		if (apply) {
-			_apply.setEnabled = false;
+		if (apply()) {
+			_apply.setEnabled(false);
 			_applied = true;
 			foreach (dlg; appliedEvent) {
 				dlg();
@@ -356,69 +372,73 @@ abstract class AbsDialog {
 	private void check() {
 		bool enbl = true;
 		for (size_t i = 0; enbl && i < _chk1.length; i++) {
-			enbl &= _chk1[i].getText && _chk1[i].getText.length > 0;
+			enbl &= _chk1[i].getText() && _chk1[i].getText().length > 0;
 		}
 		for (size_t i = 0; enbl && i < _chk2.length; i++) {
-			enbl &= _chk2[i].getText && _chk2[i].getText.length > 0;
+			enbl &= _chk2[i].getText() && _chk2[i].getText().length > 0;
 		}
 		for (size_t i = 0; enbl && i < _chk3.length; i++) {
-			enbl &= _chk3[i].getText && _chk3[i].getText.length > 0;
+			enbl &= _chk3[i].getText() && _chk3[i].getText().length > 0;
 		}
-		_okBtn.setEnabled = enbl;
-		if (_apply) _apply.setEnabled = _apply.getEnabled && enbl;
+		_okBtn.setEnabled(enbl);
+		if (_apply) _apply.setEnabled(_apply.getEnabled() && enbl);
 	}
 	private class MListener : ModifyListener {
 		override void modifyText(ModifyEvent e) {
 			auto t = cast(Text) e.widget;
-			check;
+			check();
 		}
 	}
 	protected final void applyEnabled() {
 		check();
-		if (_apply) _apply.setEnabled = _okBtn.getEnabled;
+		if (_apply) _apply.setEnabled(_okBtn.getEnabled());
 	}
 
+	@property
 	protected final void warning(string[] ws) {
-		if ((_okBtn.getImage !is null) != (0 != ws.length)) {
+		if ((_okBtn.getImage() !is null) != (0 != ws.length)) {
 			// FIXME:
 			// 画像の有無を切り替えるとOKボタンの文字が
 			// ずれてしまうため、作り直す
-			auto parent = _okBtn.getParent;
-			bool enbl = _okBtn.getEnabled;
-			bool focus = _okBtn.isFocusControl;
+			auto parent = _okBtn.getParent();
+			bool enbl = _okBtn.getEnabled();
+			bool focus = _okBtn.isFocusControl();
 			_okBtn.dispose();
 			_okBtn = createButton(parent, _prop.msgs.dlgTextOK, &this.ok);
 			if (_enterClose) {
-				_win.setDefaultButton = _okBtn;
+				_win.setDefaultButton(_okBtn);
 			}
-			_okBtn.setEnabled = enbl;
-			if (focus) _okBtn.setFocus;
+			_okBtn.setEnabled(enbl);
+			if (focus) _okBtn.setFocus();
 			parent.layout(true);
 		}
 		if (ws.length) {
-			_okBtn.setImage = _prop.images.warning;
-			_okBtn.setToolTipText = std.string.join(ws, "\n");
+			_okBtn.setImage(_prop.images.warning);
+			_okBtn.setToolTipText(std.string.join(ws, "\n"));
 		} else {
-			_okBtn.setImage = null;
-			_okBtn.setToolTipText = null;
+			_okBtn.setImage(null);
+			_okBtn.setToolTipText(null);
 		}
 	}
 
 	protected void checkerImpl(T)(T text) {
-		check;
+		check();
 		text.addModifyListener = new MListener;
 	}
 	private Combo[] _chk1;
 	private CCombo[] _chk2;
 	private Text[] _chk3;
+	@property
 	protected void checker(Combo text) {
 		_chk1 ~= text;
 		checkerImpl(text);
 	}
+	@property
 	protected void checker(CCombo text) {
 		_chk2 ~= text;
 		checkerImpl(text);
 	}
+	@property
 	protected void checker(Text text) {
 		_chk3 ~= text;
 		checkerImpl(text);
@@ -430,7 +450,7 @@ abstract class AbsDialog {
 	protected bool close(bool ok, out bool cancel) {
 		if (_hasApply) {
 			if (ok) {
-				ok = apply;
+				ok = apply();
 				if (!ok) cancel = true;
 			}
 			return ok;

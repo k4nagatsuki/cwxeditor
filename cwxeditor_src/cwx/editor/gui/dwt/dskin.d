@@ -120,9 +120,9 @@ version (Windows) {
 			hbmp = LoadBitmapW(handle, toUTFz!(wchar*)(resName));
 			if (!hbmp) return null;
 			scope (exit) DeleteObject(hbmp);
-			auto img = Image.win32_new(Display.getCurrent, SWT.BITMAP, hbmp);
-			auto data = img.getImageData;
-			img.destroy;
+			auto img = Image.win32_new(Display.getCurrent(), SWT.BITMAP, hbmp);
+			auto data = img.getImageData();
+			img.destroy();
 			if (mask) {
 				data.transparentPixel = data.getPixel(0, 0);
 			}

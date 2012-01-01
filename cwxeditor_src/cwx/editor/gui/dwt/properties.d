@@ -26,6 +26,7 @@ private:
 
 struct PropValue(string PKey, T, T Default, bool ReadOnly) {
 	private T _value = Default;
+	@property
 	const
 	string key() {
 		return PKey;
@@ -40,6 +41,7 @@ struct PropValue(string PKey, T, T Default, bool ReadOnly) {
 			_value = value;
 		}
 	}
+	@property
 	static T init() {return Default;}
 	const
 	void toNode(ref XNode node) {
@@ -79,7 +81,7 @@ struct PropValue(string PKey, T, T Default, bool ReadOnly) {
 					_value ~= to!(typeof(_value[0]))(v.value);
 				}
 			};
-			node.parse;
+			node.parse();
 		} else {
 			_value = to!(T)(node.value);
 		}
@@ -120,10 +122,10 @@ abstract class Properties {
 		mixin ("private PropValue!("
 			~ "\"" ~ Name ~ "\", " ~ VType.stringof ~ ", " ~ Default.stringof ~ ", " ~ ReadOnly.stringof ~ ") "
 			~ "_" ~ Name ~ ";");
-		mixin ("const const(" ~ VType.stringof ~ ") " ~ Name ~ "() {return _" ~ Name ~ "();}");
-		mixin ("const const(" ~ VType.stringof ~ ") " ~ Name ~ "_init() {return Default;}");
+		mixin ("@property const const(" ~ VType.stringof ~ ") " ~ Name ~ "() {return _" ~ Name ~ "();}");
+		mixin ("@property const const(" ~ VType.stringof ~ ") " ~ Name ~ "_init() {return Default;}");
 		static if (!ReadOnly) {
-			mixin ("void " ~ Name ~ "(" ~ VType.stringof ~ " value) {_" ~ Name ~ " = value;}");
+			mixin ("@property void " ~ Name ~ "(" ~ VType.stringof ~ " value) {_" ~ Name ~ " = value;}");
 		}
 	}
 	/// mixinによってXML化する関数及びXMLからプロパティ群をロードする関数を生成する。
@@ -258,6 +260,7 @@ struct BgImageSetting {
 	int width;
 	int height;
 	bool mask;
+	@property
 	const
 	BgImageSetting dup() {
 		BgImageSetting r;
@@ -314,6 +317,7 @@ struct OuterTool {
 	string name;
 	string command;
 	string workDir;
+	@property
 	const
 	OuterTool dup() {
 		OuterTool r;
@@ -557,7 +561,7 @@ public class FlexProps {
 				node.onTag["file"] = (ref XNode node) {
 					iniFileName = node.value;
 				};
-				node.parse;
+				node.parse();
 			}
 		} catch (Exception e) {
 			debugln(e);
@@ -661,12 +665,12 @@ public class FlexProps {
 						r = DockingFolderCTC.fromNode(node, parent, style, create);
 					}
 					node.onTag["dockingFolder"] = &df;
-					node.parse;
+					node.parse();
 					return r;
 				} catch (Exception e) {
 					// FIXME: DockingFolder.fromNode()内でたまにアクセス違反が発生する
 					debug debugln(e);
-					if (r && r.area) r.area.dispose;
+					if (r && r.area) r.area.dispose();
 					retryCount++;
 					if (retryCount > 100) {
 						createBackup();
@@ -679,7 +683,7 @@ public class FlexProps {
 		return r;
 	}
 	private void createBackup() {
-		auto d = Clock.currTime;
+		auto d = Clock.currTime();
 		string bakPath = format("%s.bak.%04d%02d%02d%02d%02d%02d", _path, d.year, d.month, d.day, d.hour, d.minute, d.second);
 		try {
 			std.file.copy(_path, bakPath);

@@ -76,40 +76,40 @@ public:
 		static if (is(C == Table)) {
 			// 背景イメージ選択等
 			auto group = new Group(parent, style);
-			group.setText = prop.msgs.image;
+			group.setText(prop.msgs.image);
 			_group = group;
 			auto gl = new GridLayout(2, false);
 			gl.verticalSpacing = 0;
-			_group.setLayout = gl;
+			_group.setLayout(gl);
 
 			auto compl = new Composite(_group, SWT.NONE);
-			compl.setLayoutData = new GridData(GridData.FILL_VERTICAL);
-			compl.setLayout = zeroMarginGridLayout(1, false);
+			compl.setLayoutData(new GridData(GridData.FILL_VERTICAL));
+			compl.setLayout(zeroMarginGridLayout(1, false));
 
 			auto compr = new Composite(_group, SWT.NONE);
 			auto cgd = new GridData(GridData.FILL_BOTH);
 			cgd.verticalSpan = 2;
-			compr.setLayoutData = cgd;
+			compr.setLayoutData(cgd);
 		} else static if (is(C == Combo) || is(C == CCombo)) {
 			// 話者選択等
 			_group = new Composite(parent, style);
-			_group.setLayout = zeroMarginGridLayout(1, false);
+			_group.setLayout(zeroMarginGridLayout(1, false));
 
 			auto compr = new Composite(_group, SWT.NONE);
 			auto cgd = new GridData(GridData.FILL_HORIZONTAL);
-			compr.setLayoutData = cgd;
+			compr.setLayoutData(cgd);
 
 			auto compl = new Composite(_group, SWT.NONE);
-			compl.setLayoutData = new GridData(GridData.FILL_BOTH);
-			compl.setLayout = zeroMarginGridLayout(1, false);
+			compl.setLayoutData(new GridData(GridData.FILL_BOTH));
+			compl.setLayout(zeroMarginGridLayout(1, false));
 		}
 		{
 			{
 				auto comp = new Composite(compl, SWT.NONE);
-				comp.setLayoutData = new GridData(GridData.FILL_BOTH);
-				comp.setLayout = new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0);
+				comp.setLayoutData(new GridData(GridData.FILL_BOTH));
+				comp.setLayout(new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0));
 				_image = new Canvas(comp, SWT.BORDER | SWT.DOUBLE_BUFFERED);
-				_image.setLayoutData = _image.computeSize(w, h);
+				_image.setLayoutData(_image.computeSize(w, h));
 				_image.addPaintListener(new PListener);
 			}
 			if (defs) {
@@ -129,12 +129,12 @@ public:
 			};
 			{
 				auto comp = new Composite(compl, SWT.NONE);
-				comp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				comp.setLayout = zeroMarginGridLayout(3, false);
+				comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				comp.setLayout(zeroMarginGridLayout(3, false));
 				auto imgList = new Button(comp, SWT.PUSH);
-				imgList.setLayoutData = new GridData(GridData.FILL_VERTICAL);
-				imgList.setImage = _prop.images.menuImageList;
-				imgList.setToolTipText = _prop.msgs.ttImageList;
+				imgList.setLayoutData(new GridData(GridData.FILL_VERTICAL));
+				imgList.setImage(_prop.images.menuImageList);
+				imgList.setToolTipText(_prop.msgs.ttImageList);
 				imgList.addSelectionListener(new SelImageList);
 				_msel.createRefreshButton(comp, true).setLayoutData
 					= new GridData(GridData.FILL_BOTH);
@@ -143,15 +143,15 @@ public:
 			}
 		}
 		{
-			compr.setLayout = zeroMarginGridLayout(canIncluding ? 2 : 1, false);
+			compr.setLayout(zeroMarginGridLayout(canIncluding ? 2 : 1, false));
 			{
 				auto dirs = _msel.createDirsCombo(compr);
-				dirs.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+				dirs.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				dirs.addSelectionListener(new DirSelect);
 				if (canIncluding) {
 					auto saveIncludeImage = new Button(compr, SWT.PUSH);
-					saveIncludeImage.setImage = _prop.images.menuSaveIncludeImage;
-					saveIncludeImage.setToolTipText = _prop.msgs.ttSaveIncludeImage;
+					saveIncludeImage.setImage(_prop.images.menuSaveIncludeImage);
+					saveIncludeImage.setToolTipText(_prop.msgs.ttSaveIncludeImage);
 					saveIncludeImage.addSelectionListener(new SaveIncImg);
 				}
 			}
@@ -163,46 +163,56 @@ public:
 				}
 				gd.widthHint = _prop.var.etc.filesWidth;
 				gd.heightHint = fileList.computeSize(SWT.DEFAULT, SWT.DEFAULT).y;
-				fileList.setLayoutData = gd;
+				fileList.setLayoutData(gd);
 				fileList.addSelectionListener(new FileSelect);
 			}
 		}
 	} 
+	@property
 	void mask(bool mask) {
 		_mask = mask;
-		_image.redraw;
-		if (_imgList && !_imgList.shell.isDisposed) {
+		_image.redraw();
+		if (_imgList && !_imgList.shell.isDisposed()) {
 			_imgList.mask = mask;
 		}
 	}
+	@property
 	bool mask() {
 		return _mask;
 	}
 	/// 画像のファイルパス。
+	@property
 	string image() {
 		return _msel.path;
 	}
+	@property
 	string filePath() {
 		return _msel.filePath;
 	}
 	/// Params:
 	/// path = 画像のファイルパス。
+	@property
 	void image(string path) {
 		_msel.path = path;
 		_image.redraw();
 	}
+	@property
 	Composite widget() {
 		return _group;
 	}
+	@property
 	Point sampleSize() {
 		return new Point(_w, _h);
 	}
+	@property
 	Combo dirsCombo() {
 		return _msel.dirsCombo;
 	}
+	@property
 	C fileList() {
 		return _msel.fileList;
 	}
+	@property
 	void selectDir(int sel) {
 		_msel.selectDir(sel);
 		selectDirImpl(sel);
@@ -212,38 +222,38 @@ private:
 		auto dirs = dirsCombo;
 		if (-1 == sel && _oldDirSel == sel) return;
 		_oldDirSel = sel;
-		if (_imgList && !_imgList.shell.isDisposed) {
-			_imgList.images(dirs.getText, _msel.showingPaths);
+		if (_imgList && !_imgList.shell.isDisposed()) {
+			_imgList.images(dirs.getText(), _msel.showingPaths);
 			_imgList.select(_msel.path);
 		}
 	}
 	class DirSelect : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			selectDirImpl(dirsCombo.getSelectionIndex);
+			selectDirImpl(dirsCombo.getSelectionIndex());
 		}
 	}
 	class FileSelect : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			if (_imgList && !_imgList.shell.isDisposed) {
+			if (_imgList && !_imgList.shell.isDisposed()) {
 				_imgList.select(_msel.path);
 			}
 		}
 	}
 	class SelImageList : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			if (_imgList && !_imgList.shell.isDisposed) {
+			if (_imgList && !_imgList.shell.isDisposed()) {
 				_imgList.shell.setActive();
 				return;
 			}
-			auto parent = (cast(Control) e.widget).getShell;
+			auto parent = (cast(Control) e.widget).getShell();
 			_imgList = new ImageListWindow!Type(_prop, _comm, _summ, parent, &image);
 			_imgList.shell.open();
 
-			auto cloc = Display.getCurrent.getCursorLocation;
-			auto p = _imgList.shell.getSize;
+			auto cloc = Display.getCurrent().getCursorLocation();
+			auto p = _imgList.shell.getSize();
 			intoDisplay(cloc.x, cloc.y, p.x, p.y);
 			_imgList.shell.setLocation(cloc.x, cloc.y);
-			_imgList.images(dirsCombo.getText, _msel.showingPaths);
+			_imgList.images(dirsCombo.getText(), _msel.showingPaths);
 			static if (Type == MtType.BG_IMG) {
 				_imgList.mask = mask;
 			}
@@ -255,24 +265,24 @@ private:
 			auto path = _msel.oldPath;
 			if (!isBinImg(path)) return;
 			ubyte[] bytes = strToBImg(path);
-			auto dlg = new FileDialog(_image.getShell, SWT.APPLICATION_MODAL | SWT.SINGLE | SWT.SAVE);
-			dlg.setFilterExtensions = ["*.bmp"];
-			dlg.setFilterNames = [_prop.msgs.filterBitmapImage];
-			dlg.setText = _prop.msgs.dlgTitSaveBitmapImage;
+			auto dlg = new FileDialog(_image.getShell(), SWT.APPLICATION_MODAL | SWT.SINGLE | SWT.SAVE);
+			dlg.setFilterExtensions(["*.bmp"]);
+			dlg.setFilterNames([_prop.msgs.filterBitmapImage]);
+			dlg.setText(_prop.msgs.dlgTitSaveBitmapImage);
 			auto dir = _msel.filePath;
 			if (isBinImg(dir)) {
 				if (_summ) {
 					dir = _summ.scenarioPath;
 				} else {
-					dir = getcwd;
+					dir = getcwd();
 				}
 			} else {
 				if (!.exists(dir) || !isDir(dir)) dir = dirName(dir);
 			}
-			dlg.setFilterPath = dir;
-			dlg.setFileName = setExtension(_saveName, "bmp");
-			dlg.setOverwrite = true;
-			string fname = dlg.open;
+			dlg.setFilterPath(dir);
+			dlg.setFileName(setExtension(_saveName, "bmp"));
+			dlg.setOverwrite(true);
+			string fname = dlg.open();
 			if (fname) {
 				std.file.write(fname, bytes);
 			}
@@ -281,7 +291,7 @@ private:
 	class PListener : PaintListener {
 		private ImageData _img = null;
 		public override void paintControl(PaintEvent e) {
-			int dirsi = dirsCombo.getSelectionIndex;
+			int dirsi = dirsCombo.getSelectionIndex();
 			string path = filePath;
 			ImageData imgData = null;
 			if (path !is null && path.length > 0) {
@@ -296,9 +306,9 @@ private:
 				imgData = _createDefImage(dirsi);
 			}
 			if (!imgData) return;
-			scope img = new Image(Display.getCurrent, imgData);
-			scope b = img.getBounds;
-			scope area = _image.getClientArea;
+			scope img = new Image(Display.getCurrent(), imgData);
+			scope b = img.getBounds();
+			scope area = _image.getClientArea();
 			int x, y, w, h;
 			if (area.width >= b.width) {
 				x = (area.width - b.width) / 2;
@@ -321,9 +331,9 @@ private:
 	void __refresh() {
 		if (_refresh) _refresh();
 		_paintedPath = null;
-		_image.redraw;
-		if (_imgList && !_imgList.shell.isDisposed) {
-			_imgList.images(dirsCombo.getText, _msel.showingPaths);
+		_image.redraw();
+		if (_imgList && !_imgList.shell.isDisposed()) {
+			_imgList.images(dirsCombo.getText(), _msel.showingPaths);
 			_imgList.select(_msel.path);
 		}
 	}

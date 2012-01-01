@@ -44,13 +44,17 @@ public:
 		enterClose = true;
 	}
 
+	@property
 	string name() {
 		return _nameVal;
 	}
+	@property
 	string skin() {
 		return _skinVal;
 	}
+	@property
 	bool legacy() {return _skinVal.length == 0;}
+	@property
 	string classicFolder() {
 		return _classicFolder;
 	}
@@ -58,24 +62,24 @@ protected:
 	override void setup(Composite area) {
 		auto cl = new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0);
 		cl.fillHorizontal = true;
-		area.setLayout = cl;
+		area.setLayout(cl);
 		auto comp = new Composite(area, SWT.NONE);
-		comp.setLayout = new GridLayout(2, false);
+		comp.setLayout(new GridLayout(2, false));
 		{
 			auto l = new Label(comp, SWT.NONE);
-			l.setText = _prop.msgs.scenarioName;
+			l.setText(_prop.msgs.scenarioName);
 			_name = new Text(comp, SWT.BORDER);
 			createTextMenu!Text(_comm, _prop, _name, &catchMod);
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
 			gd.widthHint = _prop.var.etc.nameWidth;
-			_name.setLayoutData = gd;
+			_name.setLayoutData(gd);
 			checker(_name);
 		}
 		{
 			auto l = new Label(comp, SWT.NONE);
-			l.setText = _prop.msgs.type;
+			l.setText(_prop.msgs.type);
 			_skinC = new Combo(comp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
-			_skinC.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+			_skinC.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			auto skins = skinTable(_prop).keys;
 			if (_prop.var.etc.logicalSort) {
 				skins = sort!(ncmp)(skins);
@@ -85,38 +89,38 @@ protected:
 			foreach (type; skins) {
 				_skinC.add(type);
 			}
-			if (!_skinC.getItemCount) {
+			if (!_skinC.getItemCount()) {
 				// スキンが無い
 				_skinC.add(_prop.var.etc.defaultSkin);
 			}
 			if (_prop.var.etc.canCreateClassic) {
 				_skinC.add(_prop.msgs.classic);
 			}
-			_skinC.setText = _prop.var.etc.defaultSkin;
-			if (_skinC.getSelectionIndex == -1) _skinC.select = 0;
+			_skinC.setText(_prop.var.etc.defaultSkin);
+			if (_skinC.getSelectionIndex() == -1) _skinC.select = 0;
 			checker(_skinC);
 		}
 	}
 
 	override bool close(bool ok, out bool cancel) {
 		if (ok) {
-			_nameVal = _name.getText;
-			if (_prop.var.etc.canCreateClassic && _skinC.getSelectionIndex == _skinC.getItemCount - 1) {
+			_nameVal = _name.getText();
+			if (_prop.var.etc.canCreateClassic && _skinC.getSelectionIndex() == _skinC.getItemCount() - 1) {
 				_skinVal = "";
-				auto dlg = new DirectoryDialog(getShell);
-				dlg.setText = _prop.msgs.newClassicDir;
-				dlg.setMessage = _prop.msgs.newClassicDirDesc;
-				dlg.setFilterPath = _prop.var.etc.scenarioPath;
+				auto dlg = new DirectoryDialog(getShell());
+				dlg.setText(_prop.msgs.newClassicDir);
+				dlg.setMessage(_prop.msgs.newClassicDirDesc);
+				dlg.setFilterPath(_prop.var.etc.scenarioPath);
 				while (true) {
-					auto path = dlg.open;
+					auto path = dlg.open();
 					if (path) {
 						if (clistdir(path).length) {
-							auto q = new MessageBox(getShell, SWT.OK | SWT.CANCEL | SWT.ICON_QUESTION);
-							q.setText = _prop.msgs.dlgTitQuestion;
-							q.setMessage = _prop.msgs.notEmptyDir(path);
-							if (SWT.OK != q.open) continue;
+							auto q = new MessageBox(getShell(), SWT.OK | SWT.CANCEL | SWT.ICON_QUESTION);
+							q.setText(_prop.msgs.dlgTitQuestion);
+							q.setMessage(_prop.msgs.notEmptyDir(path));
+							if (SWT.OK != q.open()) continue;
 						}
-						_prop.var.etc.scenarioPath = dlg.getFilterPath;
+						_prop.var.etc.scenarioPath = dlg.getFilterPath();
 						_classicFolder = path;
 					} else {
 						ok = false;
@@ -125,7 +129,7 @@ protected:
 					break;
 				}
 			} else {
-				_skinVal = _skinC.getText;
+				_skinVal = _skinC.getText();
 			}
 		}
 		return ok;
@@ -156,26 +160,26 @@ protected:
 		auto gl = new GridLayout(2, false);
 		gl.marginWidth = 10;
 		gl.horizontalSpacing = 15;
-		area.setLayout = gl;
-		auto d = Display.getCurrent;
+		area.setLayout(gl);
+		auto d = Display.getCurrent();
 		auto img = new Label(area, SWT.CENTER);
-		img.setImage = _prop.images.icon;
+		img.setImage(_prop.images.icon);
 		auto gd = new GridData;
-		auto rect = _prop.images.icon.getBounds;
+		auto rect = _prop.images.icon.getBounds();
 		gd.widthHint = rect.width;
 		gd.heightHint = rect.height;
 		gd.verticalSpan = 2;
-		img.setLayoutData = gd;
+		img.setLayoutData(gd);
 		auto ln = new Link(area, SWT.NONE);
 		ln.setText = _prop.msgs.application ~ " / " ~ _prop.msgs.appVersion ~ "\n"
 			~ "<a>" ~ _prop.msgs.appWebSiteURI ~ "</a>\n"
 			~ _prop.msgs.appDesc;
-		ln.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+		ln.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		ln.addSelectionListener(new OpenLink);
 		auto build = new Text(area, SWT.READ_ONLY | SWT.BORDER | SWT.MULTI);
 		createTextMenu!Text(_comm, _prop, build, null);
-		build.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-		build.setText = _prop.msgs.appBuild;
+		build.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		build.setText(_prop.msgs.appBuild);
 	}
 }
 
@@ -192,36 +196,36 @@ class ErrorDialog : AbsDialog {
 			int height() {return 400;}
 		};
 		auto info = ButtonInfo(prop.msgs.shutdown, {std.c.stdlib.exit(0);});
-		super (prop, shell, false, prop.msgs.dlgTitError, shell.getImage, true, size, false, false, [info]);
+		super (prop, shell, false, prop.msgs.dlgTitError, shell.getImage(), true, size, false, false, [info]);
 		_comm = comm;
 		_prop = prop;
 		_desc = desc;
 	}
 
 	override void setup(Composite area) {
-		auto d = area.getDisplay;
+		auto d = area.getDisplay();
 		auto gl = new GridLayout(2, false);
 		gl.horizontalSpacing = 0;
-		area.setLayout = gl;
+		area.setLayout(gl);
 
 		{
 			auto comp = new Composite(area, SWT.NONE);
 			auto cgl = new GridLayout(1, true);
 			cgl.marginWidth = 10;
 			cgl.marginHeight = 10;
-			comp.setLayout = cgl;
+			comp.setLayout(cgl);
 			auto img = new Label(comp, SWT.NONE);
-			img.setImage = d.getSystemImage(SWT.ICON_ERROR);
+			img.setImage(d.getSystemImage(SWT.ICON_ERROR));
 		}
 		auto l = new Label(area, SWT.WRAP);
-		l.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-		l.setText = _prop.msgs.unknownError;
+		l.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		l.setText(_prop.msgs.unknownError);
 
 		auto msg = new Text(area, SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL | SWT.READ_ONLY);
 		createTextMenu!Text(_comm, _prop, msg, null);
 		auto msgL = new GridData(GridData.FILL_BOTH);
 		msgL.horizontalSpan = 2;
-		msg.setLayoutData = msgL;
-		msg.setText = _desc;
+		msg.setLayoutData(msgL);
+		msg.setText(_desc);
 	}
 }

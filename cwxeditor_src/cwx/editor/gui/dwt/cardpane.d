@@ -86,8 +86,10 @@ private enum CViewMode {INIT, LIFE, CARD, TABLE}
 private class CardPane(PCardOwner, CardOwner, C : Card, ToCardOwner, string GetAll, string GetFromId) : TCPD {
 private:
 	static const bool EditMode = is (ToCardOwner == void);
-	private static C[] cards(CardOwner owner) {mixin ("return owner." ~ GetAll ~ ";");}
-	public C[] cards() {return cards(owner);}
+	private static C[] cardsFrom(CardOwner owner) {mixin ("return owner." ~ GetAll ~ ";");}
+	@property
+	public C[] cards() {return cardsFrom(owner);}
+	@property
 	private C[] __cards() {
 		if (_owner) {
 			return cards;
@@ -122,8 +124,8 @@ private:
 			}
 			private void saveIDs(CardPane v) {
 				_ids.length = 0;
-				foreach (c; cards(owner)) _ids ~= c.id;
-				if (v && v.widget && !v.widget.isDisposed) {
+				foreach (c; cardsFrom(owner)) _ids ~= c.id;
+				if (v && v.widget && !v.widget.isDisposed()) {
 					_sel = v.selectionIndex;
 				}
 			}
@@ -134,13 +136,13 @@ private:
 				_idsB = _ids.dup;
 				_selB = _sel;
 				saveIDs(v);
-				if (v && v.widget && !v.widget.isDisposed) {
+				if (v && v.widget && !v.widget.isDisposed()) {
 					.forceFocus(v.widget, false);
 				}
 			}
 			private void resetID(CardPane v) {
 				ulong[] oldIDs;
-				auto arr = cards(owner);
+				auto arr = cardsFrom(owner);
 				foreach (i, c; arr) {
 					auto oID = c.id;
 					c.id = ulong.max - arr.length + i;
@@ -160,12 +162,12 @@ private:
 			}
 			protected void uda(CardPane v) {
 				resetID(v);
-				if (v && v.widget && !v.widget.isDisposed) {
+				if (v && v.widget && !v.widget.isDisposed()) {
 					v.refresh();
 					v.select = _selB;
 					v.refreshStatusLine();
 				}
-				comm.refUseCount.call;
+				comm.refUseCount.call();
 			}
 			protected CardPane view() {
 				return _v;
@@ -192,7 +194,7 @@ private:
 			private int _index;
 			this (CardPane v, Commons comm, CardOwner owner, int index) {
 				super (v, comm, owner);
-				auto c = cards(owner)[index];
+				auto c = cardsFrom(owner)[index];
 				_card = new C(c.id, c.name, c.path, c.desc);
 				_card.shallowCopy(c);
 				_card.setUseCounter(comm.summary.useCounter.sub);
@@ -203,18 +205,18 @@ private:
 				udb(v);
 				scope (exit) uda(v);
 				auto card = _card;
-				card.removeUseCounter;
-				auto c = cards(owner)[_index];
+				card.removeUseCounter();
+				auto c = cardsFrom(owner)[_index];
 				_card = new C(c.id, c.name, c.path, c.desc);
 				_card.shallowCopy(c);
 				_card.setUseCounter(comm.summary.useCounter.sub);
 				c.shallowCopy(card);
 
-				if (v && v.widget && !v.widget.isDisposed) {
+				if (v && v.widget && !v.widget.isDisposed()) {
 					v.refresh();
 				}
 				refCard(v, comm, c);
-				comm.refUseCount.call;
+				comm.refUseCount.call();
 			}
 			override void undo() {
 				impl();
@@ -241,8 +243,8 @@ private:
 				udb(v);
 				scope (exit) uda(v);
 				owner.swap!C(_index1, _index2);
-				refCard(v, comm, cards(owner)[_index1]);
-				refCard(v, comm, cards(owner)[_index2]);
+				refCard(v, comm, cardsFrom(owner)[_index1]);
+				refCard(v, comm, cardsFrom(owner)[_index2]);
 			}
 			override void undo() {
 				impl();
@@ -266,7 +268,7 @@ private:
 				auto v = view();
 				udb(v);
 				scope (exit) uda(v);
-				auto card = cards(owner)[_to];
+				auto card = cardsFrom(owner)[_to];
 				int from = _from;
 				if (_to <= from) from++;
 				owner.insert(from, card);
@@ -306,8 +308,8 @@ private:
 				}
 				_cards.length = 0;
 				foreach (index; _indices) {
-					auto c = cards(owner)[index];
-					auto node = c.toNode;
+					auto c = cardsFrom(owner)[index];
+					auto node = c.toNode();
 					auto card = C.createFromNode(node, LATEST_VERSION);
 					card.setUseCounter(comm.summary.useCounter.sub);
 					_cards ~= card;
@@ -320,10 +322,10 @@ private:
 				_insert = false;
 				initUndoDelete();
 				foreach_reverse (i, index; _indices) {
-					auto card = cards(owner)[index];
+					auto card = cardsFrom(owner)[index];
 					delImpl(v, comm, owner, card);
 				}
-				comm.refUseCount.call;
+				comm.refUseCount.call();
 			}
 			void undoDelete() {
 				auto v = view();
@@ -336,22 +338,22 @@ private:
 					owner.insert(index, c);
 					refCard(v, comm, c);
 				}
-				if (v && v.widget && !v.widget.isDisposed) {
+				if (v && v.widget && !v.widget.isDisposed()) {
 					if (v._viewMode == CViewMode.TABLE) {
 						foreach (i, c; _cards) {
 							v.createTableItem(c, _indices[i]);
 						}
 						v._tbl.setSelection = [_indices[$ - 1]];
-						v._tbl.showSelection;
+						v._tbl.showSelection();
 					} else {
-						v.refresh;
+						v.refresh();
 						v._list.select(_indices[$ - 1]);
 						v._list.scroll(_indices[$ - 1]);
 					}
-					v.refreshStatusLine;
+					v.refreshStatusLine();
 				}
 				_cards.length = 0;
-				comm.refUseCount.call;
+				comm.refUseCount.call();
 			}
 			override void undo() {
 				if (_insert) {
@@ -399,7 +401,7 @@ private:
 
 	void refreshStatusLine() {
 		if (!_tbl || !_list || !_comm) return;
-		if (_tbl.isDisposed) return;
+		if (_tbl.isDisposed()) return;
 		if (_owner) {
 			auto c = cards.length;
 			auto s = selectedCards;
@@ -415,23 +417,23 @@ private:
 		} else {
 			_statusLine = "";
 		}
-		_comm.statusLine(_tbl, _statusLine);
+		_comm.setStatusLine(_tbl, _statusLine);
 	}
 	static if (EditMode) {
 		void nameEditEnd(TableItem itm, int column, string newText) {
-			auto c = cast(C) itm.getData;
+			auto c = cast(C) itm.getData();
 			assert (c);
-			storeEdit(itm.getParent.indexOf(itm));
+			storeEdit(itm.getParent().indexOf(itm));
 			c.name = newText;
-			refresh;
+			refresh();
 			refCard(c);
 		}
 	}
 	void __refreshR(string from, string to) {
-		__refresh;
+		__refresh();
 	}
 	void refresh(C c) {
-		if (!_tbl || _tbl.isDisposed) return;
+		if (!_tbl || _tbl.isDisposed()) return;
 		int i;
 		for (i = 0; i < cards.length; i++) {
 			if (cards[i] is c) {
@@ -444,23 +446,23 @@ private:
 		} else {
 			refreshListItem(i);
 		}
-		refreshStatusLine;
+		refreshStatusLine();
 	}
 	void __refresh() {
 		if (_viewMode == CViewMode.TABLE) {
 			C sel = null;
-			auto sels = _tbl.getSelection;
+			auto sels = _tbl.getSelection();
 			if (sels.length > 0) {
-				sel = cast(C) sels[0].getData;
+				sel = cast(C) sels[0].getData();
 			}
-			_tbl.removeAll;
+			_tbl.removeAll();
 			foreach (i, c; __cards) {
 				createTableItem(c);
 				if (sel is c) {
 					_tbl.setSelection = [i];
 				}
 			}
-			_tbl.showSelection;
+			_tbl.showSelection();
 		} else {
 			_list.refresh(__cards, &__cardImage);
 			int sel = _list.selection;
@@ -468,7 +470,7 @@ private:
 				_list.scroll(sel);
 			}
 		}
-		refreshStatusLine;
+		refreshStatusLine();
 	}
 	void createTableItem(C c, int index = -1) {
 		auto itm = index >= 0
@@ -497,7 +499,7 @@ private:
 		}
 		itm.setData = c;
 
-		int w = textWidth(_prop, itm.getParent, c.name);
+		int w = textWidth(_prop, itm.getParent(), c.name);
 		static if (is(C : CastCard)) {
 			bool warn = w > _prop.looks.castNameLimit;
 		} else static if (is(C : InfoCard)) {
@@ -532,36 +534,38 @@ private:
 							addFromNode(node, LATEST_VERSION);
 						} catch {}
 					}
-					refreshStatusLine;
+					refreshStatusLine();
 				} catch (Exception e) {
 					debugln(e);
 				}
 			}
 		}
 		override bool canDoTCPD() {
-			return widget.isFocusControl;
+			return widget.isFocusControl();
 		}
 	}
 	static if (EditMode) {
 		static void delImpl(CardPane v, Commons comm, CardOwner owner, C card) {
 			if (!card) return;
-			int index = cCountUntil!("a is b")(cards(owner), card);
+			int index = cCountUntil!("a is b")(cardsFrom(owner), card);
 			owner.remove(card);
-			if (v && v.widget && !v.widget.isDisposed) {
+			if (v && v.widget && !v.widget.isDisposed()) {
 				if (v._viewMode == CViewMode.TABLE) {
 					v._tbl.remove(index);
-					v._tbl.redraw;
+					v._tbl.redraw();
 				} else {
-					v.refresh;
+					v.refresh();
 				}
 			}
 			delCard(v, comm, owner, card);
 		}
 	}
 	class CL : TCPD {
+		@property
 		CardList!(C) widget() {
 			return _list;
 		}
+		@property
 		C selectionCard() {
 			return _list.selectionCard;
 		}
@@ -572,7 +576,7 @@ private:
 				if (c) {
 					storeDelete([_list.selection]);
 					_owner.remove(c);
-					refresh;
+					refresh();
 					delCard(c);
 				}
 			}
@@ -596,8 +600,8 @@ private:
 		} else {
 			static assert (0);
 		}
-		if (v && v.widget && !v.widget.isDisposed) {
-			v.refreshStatusLine;
+		if (v && v.widget && !v.widget.isDisposed()) {
+			v.refreshStatusLine();
 		}
 	}
 	void delCard(C c) {
@@ -626,31 +630,33 @@ private:
 		} else {
 			static assert (0);
 		}
-		comm.refUseCount.call;
+		comm.refUseCount.call();
 		static if (is (CardOwner : CastCard) && is (C : BeastCard)) {
 			comm.refCast.call(owner);
 		}
-		if (v && v.widget && !v.widget.isDisposed) {
-			v.refreshStatusLine;
+		if (v && v.widget && !v.widget.isDisposed()) {
+			v.refreshStatusLine();
 		}
 	}
 	class CT : TCPD {
+		@property
 		Table widget() {
 			return _tbl;
 		}
+		@property
 		C selectionCard() {
-			auto sels = _tbl.getSelection;
-			return sels.length > 0 ? cast(C) sels[0].getData : null;
+			auto sels = _tbl.getSelection();
+			return sels.length > 0 ? cast(C) sels[0].getData() : null;
 		}
 		mixin CopyAndPaste;
 		override void del(SelectionEvent se) {
 			static if (EditMode) {
 				auto c = selectionCard;
 				if (c) {
-					storeDelete([_tbl.getSelectionIndex]);
+					storeDelete([_tbl.getSelectionIndex()]);
 					_owner.remove(c);
-					_tbl.getSelection[0].dispose;
-					_tbl.redraw;
+					_tbl.getSelection()[0].dispose();
+					_tbl.redraw();
 					delCard(c);
 				}
 			}
@@ -665,7 +671,7 @@ private:
 				try {
 					auto node = XNode.parse(xml);
 					if (node.name != C.XML_NAME_M) return;
-					scope p = (cast(DropTarget) e.getSource).getControl.toControl(e.x, e.y);
+					scope p = (cast(DropTarget) e.getSource()).getControl().toControl(e.x, e.y);
 					int index = indexOf(p);
 					bool samePane = _id == node.attr("paneId", false);
 					bool sameSc = ownerId == node.attr("summId", false);
@@ -693,14 +699,14 @@ private:
 							adds ~= this.outer.__card(id);
 							e.detail = DND.DROP_NONE;
 						};
-						node.parse;
+						node.parse();
 						if (adds.length == 0) return;
 						assert (adds.length == 1);
 						auto card = adds[0];
 						storeMove(_owner.indexOf!C(card), index);
 						_owner.insert(index, card);
 						insert(card, true);
-						refreshStatusLine;
+						refreshStatusLine();
 					} else {
 						e.detail = DND.DROP_NONE;
 						// 他のリストからのコピー
@@ -710,7 +716,7 @@ private:
 							auto card = C.createFromNode(cNode, LATEST_VERSION);
 							adds ~= card;
 						};
-						node.parse;
+						node.parse();
 						if (adds.length == 0) return;
 						if (qCardMaterialCopy(node, adds)) {
 							int[] indices;
@@ -722,8 +728,8 @@ private:
 							}
 							storeInsert(indices);
 							insert(adds[$ - 1], false);
-							_comm.refUseCount.call;
-							refreshStatusLine;
+							_comm.refUseCount.call();
+							refreshStatusLine();
 						}
 					}
 				} catch (Exception e) {
@@ -739,12 +745,14 @@ private:
 				e.detail = DND.DROP_MOVE;
 			}
 			mixin Drop;
+			@property
 			private int selectionIndex() {
 				return _list.selection;
 			}
 			private int indexOf(Point p) {
 				return _list.searchIndexLoose(p.x, p.y);
 			}
+			@property
 			private int cardCount() {
 				return _list.count;
 			}
@@ -752,11 +760,11 @@ private:
 				_list.scroll(index);
 			}
 			private void insert(C c, bool move) {
-				refresh;
+				refresh();
 				int index = _list.indexOf(c);
 				_list.select(index);
 				_list.scroll(index);
-				refreshStatusLine;
+				refreshStatusLine();
 			}
 		}
 		class CTDTListener : DropTargetAdapter {
@@ -767,25 +775,27 @@ private:
 				e.detail = DND.DROP_MOVE;
 			}
 			mixin Drop;
+			@property
 			private int selectionIndex() {
-				return _tbl.getSelectionIndex;
+				return _tbl.getSelectionIndex();
 			}
 			private int indexOf(Point p) {
 				auto itm = _tbl.getItem(p);
-				return itm ? _tbl.indexOf(itm) : _tbl.getItemCount;
+				return itm ? _tbl.indexOf(itm) : _tbl.getItemCount();
 			}
+			@property
 			private int cardCount() {
-				return _tbl.getItemCount;
+				return _tbl.getItemCount();
 			}
 			private void selectOnly(int index) {
-				_tbl.showSelection;
+				_tbl.showSelection();
 			}
 			private void insert(C c, bool move) {
-				refresh;
-				foreach (i, itm; _tbl.getItems) {
-					if (c is itm.getData) {
+				refresh();
+				foreach (i, itm; _tbl.getItems()) {
+					if (c is itm.getData()) {
 						_tbl.setSelection = [i];
-						_tbl.showSelection;
+						_tbl.showSelection();
 						return;
 					}
 				}
@@ -795,12 +805,12 @@ private:
 	}
 	class CDSListener : DragSourceAdapter {
 		override void dragStart(DragSourceEvent e) {
-			e.doit = (cast(DragSource) e.getSource).getControl.isFocusControl
+			e.doit = (cast(DragSource) e.getSource()).getControl().isFocusControl()
 				&& selectedCards.length > 0;
 		}
 		override void dragSetData(DragSourceEvent e){
-			if (XMLBytesTransfer.getInstance.isSupportedType(e.dataType)) {
-				Control c = (cast(DragSource) e.getSource).getControl;
+			if (XMLBytesTransfer.getInstance().isSupportedType(e.dataType)) {
+				Control c = (cast(DragSource) e.getSource()).getControl();
 				C[] sels = selectedCards;
 				if (sels.length > 0) {
 					e.data = bytesFromXML(toXML(sels));
@@ -820,7 +830,7 @@ private:
 			bool r = qMaterialCopy(_prop, skin, dlgParShl,
 				uc, _summ.scenarioPath, fromSPath, copy, _summ.legacy);
 			foreach (c; cs) {
-				c.removeUseCounter;
+				c.removeUseCounter();
 			}
 			if (copy) {
 				_comm.refPaths.call(skin.materialPath);
@@ -830,11 +840,13 @@ private:
 		return true;
 	}
 
+	@property
 	Shell dlgParShl() {
-		if (_list && !_list.isDisposed) return _list.getShell;
-		return _comm.mainWin.shell.getShell;
+		if (_list && !_list.isDisposed()) return _list.getShell();
+		return _comm.mainWin.shell.getShell();
 	}
 
+	@property
 	string ownerScenarioPath() {
 		static if (is (CardOwner == CastCard)) {
 			return _summ.scenarioPath;
@@ -842,6 +854,7 @@ private:
 			return _owner.scenarioPath;
 		}
 	}
+	@property
 	string ownerId() {
 		static if (is (CardOwner == CastCard)) {
 			return _summ.id;
@@ -870,7 +883,7 @@ private:
 	}
 
 	void __refList() {
-		auto sels = _tbl.getSelectionIndices;
+		auto sels = _tbl.getSelectionIndices();
 		int index = -1;
 		if (sels.length > 0) {
 			index = sels[0];
@@ -880,18 +893,18 @@ private:
 			_list.select(index);
 			_list.scroll(index);
 		} else {
-			_list.deselectAll;
+			_list.deselectAll();
 		}
-		refreshStatusLine;
+		refreshStatusLine();
 	}
 	void __refTbl() {
 		int index = _list.selection;
 		refresh();
 		if (index >= 0) {
 			_tbl.setSelection = [index];
-			_tbl.showSelection;
+			_tbl.showSelection();
 		}
-		refreshStatusLine;
+		refreshStatusLine();
 	}
 	void toNode(ref XNode sn, C[] sels) {
 		sn.newAttr("summId", ownerId);
@@ -930,14 +943,14 @@ private:
 	class TMouse : MouseAdapter {
 		override void mouseDoubleClick(MouseEvent e) {
 			if (e.button != 1) return;
-			int index = _tbl.getSelectionIndex;
+			int index = _tbl.getSelectionIndex();
 			if (index >= 0) {
 				scope p = _tbl.toControl(e.x, e.y);
 				auto itm = _tbl.getItem(index);
-				for (int i = 0; i < _tbl.getColumnCount; i++) {
+				for (int i = 0; i < _tbl.getColumnCount(); i++) {
 					if (itm.getBounds(i).contains(e.x, e.y)) {
 						static if (EditMode) {
-							edit(cast(C) _tbl.getSelection[0].getData);
+							edit(cast(C) _tbl.getSelection()[0].getData());
 						} else {
 							addCard();
 						}
@@ -970,9 +983,9 @@ private:
 			} else {
 				bool keyMatch = e.character == SWT.CR;
 			}
-			if (keyMatch && _tbl.getSelectionIndex >= 0) {
+			if (keyMatch && _tbl.getSelectionIndex() >= 0) {
 				static if (EditMode) {
-					edit(cast(C) _tbl.getSelection[0].getData);
+					edit(cast(C) _tbl.getSelection()[0].getData());
 				} else {
 					addCard();
 				}
@@ -981,16 +994,16 @@ private:
 	}
 	private class SelChanged : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			refreshStatusLine;
+			refreshStatusLine();
 		}
 	}
 	static if (is(CardOwner : Summary)) {
 		private bool _procRefColW = false;
 		void refColumnWidth(TableColumn c, int width) {
 			if (_procRefColW) return;
-			if (!_tbl || _tbl.isDisposed) return;
-			if (_tbl is c.getParent) return;
-			int i = c.getParent.indexOf(c);
+			if (!_tbl || _tbl.isDisposed()) return;
+			if (_tbl is c.getParent()) return;
+			int i = c.getParent().indexOf(c);
 			auto col = _tbl.getColumn(i);
 			col.setWidth = width;
 		}
@@ -1005,7 +1018,7 @@ private:
 				_procRefColW = true;
 				scope (exit) _procRefColW = false;
 				auto col = cast(TableColumn) e.widget;
-				int width = col.getWidth;
+				int width = col.getWidth();
 				_comm.refCardTableColumnWidth.call(col, width);
 				mixin("_prop.var.etc." ~ WidthPropName ~ " = width;");
 			}
@@ -1073,7 +1086,7 @@ private:
 			} else {
 				auto drag = new DragSource(c, DND.DROP_MOVE | DND.DROP_COPY);
 			}
-			drag.setTransfer([XMLBytesTransfer.getInstance]);
+			drag.setTransfer([XMLBytesTransfer.getInstance()]);
 			drag.addDragListener(new CDSListener);
 		}
 		setupDrag(_list);
@@ -1085,13 +1098,13 @@ private:
 		_tbl.addKeyListener(new TKey);
 		static if (EditMode) {
 			auto dropL = new DropTarget(_list, DND.DROP_DEFAULT | DND.DROP_MOVE);
-			dropL.setTransfer([XMLBytesTransfer.getInstance]);
+			dropL.setTransfer([XMLBytesTransfer.getInstance()]);
 			dropL.addDropListener(new CLDTListener);
 			auto dropT = new DropTarget(_tbl, DND.DROP_DEFAULT | DND.DROP_MOVE);
-			dropT.setTransfer([XMLBytesTransfer.getInstance]);
+			dropT.setTransfer([XMLBytesTransfer.getInstance()]);
 			dropT.addDropListener(new CTDTListener);
 		}
-		__refList;
+		__refList();
 	}
 	static if (EditMode) {
 		void refScenario(Summary summ) {
@@ -1107,7 +1120,7 @@ private:
 		}
 	}
 	private void construct1(Commons comm, Props prop, PCardOwner summ) {
-		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime);
+		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime());
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
@@ -1218,7 +1231,7 @@ public:
 					}
 				}
 			});
-			auto pop = new Menu(parent.getShell, SWT.POP_UP);
+			auto pop = new Menu(parent.getShell(), SWT.POP_UP);
 			static if (is (C == CastCard)) {
 				createMenuItem(pop, _prop.msgs.menuCEdit, _prop.images.menuCEdit, &editM);
 				new MenuItem(pop, SWT.SEPARATOR);
@@ -1240,7 +1253,7 @@ public:
 			new MenuItem(pop, SWT.SEPARATOR);
 			createMenuItem(pop, _prop.msgs.menuReNumbering, _prop.images.menuReNumbering, &reNumbering);
 		} else {
-			auto pop = new Menu(parent.getShell, SWT.POP_UP);
+			auto pop = new Menu(parent.getShell(), SWT.POP_UP);
 			static if (is (C == CastCard)) {
 				createMenuItem(pop, _prop.msgs.menuOpenHand, _prop.images.menuOpenHand, _openHand);
 				new MenuItem(pop, SWT.SEPARATOR);
@@ -1251,15 +1264,18 @@ public:
 		}
 		_list.setMenu = pop;
 		_tbl.setMenu = pop;
-		refreshStatusLine;
+		refreshStatusLine();
 	}
 
+	@property
 	CardOwner owner() {
 		return _owner;
 	}
+	@property
 	PCardOwner summary() {
 		return _summ;
 	}
+	@property
 	Control widget() {
 		if (_viewMode == CViewMode.TABLE) {
 			return _tbl;
@@ -1267,14 +1283,15 @@ public:
 			return _list;
 		}
 	}
+	@property
 	string statusLine() {return _statusLine;}
 
 	void refresh() {
-		if (!_tbl || _tbl.isDisposed) return;
+		if (!_tbl || _tbl.isDisposed()) return;
 		if (_owner) {
-			__refresh;
+			__refresh();
 		}
-		refreshStatusLine;
+		refreshStatusLine();
 	}
 	static if (EditMode){
 		private void refCardCallback(Object sender, C c) {
@@ -1285,30 +1302,31 @@ public:
 	void showCardLife() {
 		if (_viewMode != CViewMode.LIFE) {
 			_viewMode = CViewMode.LIFE;
-			__refList;
+			__refList();
 		}
 	}
 	void showCardList() {
 		if (_viewMode != CViewMode.CARD) {
 			_viewMode = CViewMode.CARD;
-			__refList;
+			__refList();
 		}
 	}
 	void showCardTable() {
 		if (_viewMode != CViewMode.TABLE) {
 			_viewMode = CViewMode.TABLE;
-			__refTbl;
+			__refTbl();
 		}
 	}
 
+	@property
 	void select(int index) {
-		if (!_tbl || _tbl.isDisposed) return;
+		if (!_tbl || _tbl.isDisposed()) return;
 		if (_viewMode == CViewMode.TABLE) {
 			if (-1 == index) {
 				_tbl.deselectAll();
 			} else {
 				_tbl.select(index);
-				_tbl.showSelection;
+				_tbl.showSelection();
 			}
 		} else {
 			if (-1 == index) {
@@ -1318,31 +1336,34 @@ public:
 				_list.scroll(index);
 			}
 		}
-		refreshStatusLine;
+		refreshStatusLine();
 	}
+	@property
 	C[] selectedCards() {
 		if (_viewMode == CViewMode.TABLE) {
 			C[] r;
-			auto sels = _tbl.getSelection;
+			auto sels = _tbl.getSelection();
 			r.length = sels.length;
 			foreach (i, itm; sels) {
-				r[i] = cast(C) sels[i].getData;
+				r[i] = cast(C) sels[i].getData();
 			}
 			return r;
 		} else {
 			return _list.selectionCards;
 		}
 	}
+	@property
 	int selectionIndex() {
 		if (_viewMode == CViewMode.TABLE) {
-			return _tbl.getSelectionIndex;
+			return _tbl.getSelectionIndex();
 		} else {
 			return _list.selection;
 		}
 	}
+	@property
 	C selection() {
 		if (_viewMode == CViewMode.TABLE) {
-			return _tbl.getSelectionIndex >= 0 ? cast(C) _tbl.getSelection[0].getData : null;
+			return _tbl.getSelectionIndex() >= 0 ? cast(C) _tbl.getSelection()[0].getData() : null;
 		} else {
 			return _list.selectionCard;
 		}
@@ -1397,7 +1418,7 @@ public:
 				} else {
 					_owner.add(c);
 				}
-				refresh;
+				refresh();
 				select(__cards.length - 1);
 				static if (is(C : CastCard)) {
 					_comm.refCast.call(this, c);
@@ -1418,7 +1439,7 @@ public:
 					storeEdit(_owner.indexOf(c));
 				};
 				dlg.appliedEvent ~= {
-					refresh;
+					refresh();
 					refCard(c);
 				};
 			};
@@ -1431,8 +1452,8 @@ public:
 		static if (is (CardOwner == Summary)) {
 			private void __refreshUseCount() {
 				if (_viewMode == CViewMode.TABLE) {
-					foreach (itm; _tbl.getItems) {
-						auto c = cast(C) itm.getData;
+					foreach (itm; _tbl.getItems()) {
+						auto c = cast(C) itm.getData();
 						itm.setText(3, to!(string)(_summ.useCounter.get(C.toID(c.id))));
 					}
 				}
@@ -1445,7 +1466,7 @@ public:
 				node.onTag[C.XML_NAME] = (ref XNode cNode) {
 					adds ~= C.createFromNode(cNode, ver);
 				};
-				node.parse;
+				node.parse();
 				if (!qCardMaterialCopy(node, adds)) return false;
 			} else {
 				node.onTag[C.XML_NAME] = (ref XNode cNode) {
@@ -1457,7 +1478,7 @@ public:
 						adds ~= card;
 					}
 				};
-				node.parse;
+				node.parse();
 			}
 			if (adds.length == 0) return false;
 			open(false);
@@ -1487,7 +1508,7 @@ public:
 			}
 			storeInsert(indices);
 			pasteRefresh(adds);
-			_comm.refUseCount.call;
+			_comm.refUseCount.call();
 			static if (is (CardOwner : CastCard) && is (C : BeastCard)) {
 				_comm.refCast.call(_owner);
 			}
@@ -1498,14 +1519,14 @@ public:
 				foreach (c; cs) {
 					createTableItem(c);
 				}
-				_tbl.setSelection = [_tbl.getItemCount - 1];
-				_tbl.showSelection;
+				_tbl.setSelection = [_tbl.getItemCount() - 1];
+				_tbl.showSelection();
 			} else {
-				refresh;
+				refresh();
 				_list.select(_list.count - 1);
 				_list.scroll(_list.count - 1);
 			}
-			refreshStatusLine;
+			refreshStatusLine();
 		}
 	} else {
 		private void delegate(ref XNode, string) _addc;
@@ -1528,6 +1549,7 @@ public:
 		refresh();
 	}
 
+	@property
 	Table cardTable() {
 		return _tbl;
 	}
@@ -1537,7 +1559,7 @@ public:
 			auto index = selectionIndex;
 			auto dlg = new ReNumDialog!(C)(_prop, dlgParShl, cards[index],
 				index == 0 ? 1 : cards[index - 1].id + 1);
-			if (dlg.open) {
+			if (dlg.open()) {
 				reNumbering(index, dlg.newId);
 			}
 		}
@@ -1567,7 +1589,7 @@ public:
 				refCard(cards[i]);
 				newId++;
 			}
-			refreshIDs;
+			refreshIDs();
 			if (refIDs) _undo ~= undo;
 		}
 
@@ -1596,7 +1618,7 @@ public:
 				storeEdit(_owner.indexOf(c));
 			};
 			dlg.appliedEvent ~= {
-				refresh;
+				refresh();
 				refCard(c);
 			};
 			dlg.closeEvent ~= {
@@ -1608,9 +1630,9 @@ public:
 		}
 		CardDialog edit() {
 			if (_viewMode == CViewMode.TABLE) {
-				int index = _tbl.getSelectionIndex;
+				int index = _tbl.getSelectionIndex();
 				if (index >= 0) {
-					return edit(cast(C) _tbl.getItem(index).getData);
+					return edit(cast(C) _tbl.getItem(index).getData());
 				}
 			} else {
 				int index = _list.selection;
@@ -1638,13 +1660,13 @@ public:
 		}
 
 		private void udImpl(int index1, int index2) {
-			auto arr = cards(_owner);
+			auto arr = cardsFrom(_owner);
 			if (index1 < 0 || arr.length <= index1) return;
 			if (index2 < 0 || arr.length <= index2) return;
 			storeSwap(index1, index2);
 			_owner.swap!C(index1, index2);
 			refresh();
-			arr = cards(_owner);
+			arr = cardsFrom(_owner);
 			refCard(arr[index1]);
 			refCard(arr[index2]);
 			select = index2;
@@ -1696,19 +1718,21 @@ public:
 				}
 			}
 		}
+		@property
 		bool canDoTCPD() {
-			return _list.isVisible || _tbl.isVisible;
+			return _list.isVisible() || _tbl.isVisible();
 		}
 	}
 	static if (EditMode) {
 		void undo() {
-			_undo.undo;
+			_undo.undo();
 		}
 		void redo() {
-			_undo.redo;
+			_undo.redo();
 		}
 	}
 
+	@property
 	string[] openedCWXPath() {
 		string[] r;
 		foreach (c; selectedCards) {
@@ -1719,7 +1743,7 @@ public:
 }
 
 template CastCardPane(PCardOwner, CardOwner, ToCardOwner) {
-	alias CardPane!(PCardOwner, CardOwner, CastCard, ToCardOwner, "casts", "casts") CastCardPane;
+	alias CardPane!(PCardOwner, CardOwner, CastCard, ToCardOwner, "casts", "cwCast") CastCardPane;
 }
 template SkillCardPane(PCardOwner, CardOwner, ToCardOwner) {
 	alias CardPane!(PCardOwner, CardOwner, SkillCard, ToCardOwner, "skills", "skill") SkillCardPane;

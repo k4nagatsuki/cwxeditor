@@ -37,12 +37,12 @@ enum DialogStatus {
 
 class Msgs {
 public:
-	const string application() {return "CWXEditor";}
-	const string dlgTitVersion() {return "バージョン情報";}
-	const string appDesc() {return "Scenario editor for CardWirthPy.";}
-	const string appVersion() {return splitLines(import("@version.txt"))[0];}
-	const string appWebSiteURI() {return splitLines(import("@version.txt"))[1];}
-	const string appBuild() {
+	@property const string application() {return "CWXEditor";}
+	@property const string dlgTitVersion() {return "バージョン情報";}
+	@property const string appDesc() {return "Scenario editor for CardWirthPy.";}
+	@property const string appVersion() {return splitLines(import("@version.txt"))[0];}
+	@property const string appWebSiteURI() {return splitLines(import("@version.txt"))[1];}
+	@property const string appBuild() {
 		string buf = "Build: "
 			~ __DATE__[7 .. $]
 			~ "-" ~ [
@@ -71,8 +71,8 @@ public:
 		}
 		return buf ~ linesep ~ "Compiled by " ~ __VENDOR__ ~ " " ~ .text(__VERSION__);
 	}
-	const string dlgTitUsage() {return "使い方 - CWXEditor";}
-	const string usage() {
+	@property const string dlgTitUsage() {return "使い方 - CWXEditor";}
+	@property const string usage() {
 		return "使い方: cwxeditor [-help | -conf <PATH> | <OpenID ...>] <SCENARIO> [<CWXPath ...>]\n"
 			~ "オプション:\n"
 			~ "  -help         起動オプションの説明を表示して終了します。\n"
@@ -87,10 +87,10 @@ public:
 			~ "  <CWXPath>     シナリオを開いた後、<CWXPath>で指定したリソースを開きます。";
 	}
 
-	const string dlgTitError() {return "エラー - CWXEditor";}
-	const string dlgTitWarning() {return "警告 - CWXEditor";}
-	const string dlgTitQuestion() {return "確認 - CWXEditor";}
-	const string unknownError() {
+	@property const string dlgTitError() {return "エラー - CWXEditor";}
+	@property const string dlgTitWarning() {return "警告 - CWXEditor";}
+	@property const string dlgTitQuestion() {return "確認 - CWXEditor";}
+	@property const string unknownError() {
 		version (Windows) {
 			static const CWX_EDITOR = "cwxeditor.exe";
 		} else {
@@ -100,13 +100,13 @@ public:
 			~ "データが壊れている可能性を考慮して、シナリオを保存せずに終了する事をお勧めします。\n"
 			~ "エラー内容は" ~ CWX_EDITOR ~ "と同じ" ~ DIR ~ "にあるcwxeditor_error.logに記録されます。";
 	}
-	const string shutdown() {return "強制終了";}
+	@property const string shutdown() {return "強制終了";}
 
-	const string dlgTextOK() {return "&OK";}
-	const string dlgTextApply() {return "適用";}
-	const string dlgTextCancel() {return "キャンセル";}
+	@property const string dlgTextOK() {return "&OK";}
+	@property const string dlgTextApply() {return "適用";}
+	@property const string dlgTextCancel() {return "キャンセル";}
 
-	const string filterAll() {
+	@property const string filterAll() {
 		return "すべてのファイル (*.*)";
 	}
 
@@ -131,25 +131,25 @@ public:
 		return "デフォルトのスキン「" ~ name ~ "」が見つかりません。\n" ~ cwp ~ "の場所が正しくないか、Data" ~ DIR ~ "が正しく配置されていない可能性があります。\nこのまま開始すると、一部リソース画像が非表示になります。";
 	}
 	const string useDefaultSkin(string name, string defSkin) {return "スキン「" ~ name ~ "」が見つかりません。\nデフォルトのスキン「" ~ defSkin ~ "」を使用します。";}
-	const string scenarioName() {return "シナリオ名";}
-	const string type() {return "タイプ";}
-	const string classic() {return "[クラシック]";}
-	const string newClassicDir() {
+	@property const string scenarioName() {return "シナリオ名";}
+	@property const string type() {return "タイプ";}
+	@property const string classic() {return "[クラシック]";}
+	@property const string newClassicDir() {
 		return "シナリオ作成先の選択";
 	}
-	const string newClassicDirDesc() {
+	@property const string newClassicDirDesc() {
 		return "シナリオを作成する" ~ DIR ~ "を選択してください。";
 	}
 	const string notEmptyDir(string dir) {
 		return dir ~ "は空ではありません。\n本当にここでシナリオを作成しますか？";
 	}
 
-	const string newScenarioName() {return "新規シナリオ";}
+	@property const string newScenarioName() {return "新規シナリオ";}
 
-	const string dlgTitSaveBitmapImage() {
+	@property const string dlgTitSaveBitmapImage() {
 		return "格納イメージの保存";
 	}
-	const string filterBitmapImage() {
+	@property const string filterBitmapImage() {
 		return "ビットマップイメージ (*.bmp)";
 	}
 
@@ -165,8 +165,8 @@ public:
 				: to!(string)(files.length) ~ "個の項目をごみ箱に移動しますか？";
 		}
 	}
-	const string ttDeleteUnuse() {return "未使用のファイルを削除";}
-	const string menuDeleteUnuse() {return ttDeleteUnuse ~ "(&U)";}
+	@property const string ttDeleteUnuse() {return "未使用のファイルを削除";}
+	@property const string menuDeleteUnuse() {return ttDeleteUnuse ~ "(&U)";}
 	const string dlgMsgDeleteUnuse(string[] files) {
 		return .format("%d個の未使用ファイルを完全に削除しますか？", files.length);
 	}
@@ -174,25 +174,25 @@ public:
 		return .format("%d個の未使用ファイルをごみ箱に移動しますか？", files.length);
 	}
 
-	const string ttClosePane() {return "閉じる";}
-	const string menuClosePane() {return ttClosePane ~ "(&C)";}
-	const string ttClosePaneEtc() {return "他のタブを閉じる";}
-	const string menuClosePaneEtc() {return ttClosePaneEtc ~ "(&W)";}
-	const string ttClosePaneLeft() {return "左側のタブを閉じる";}
-	const string menuClosePaneLeft() {return ttClosePaneLeft ~ "(&L)";}
-	const string ttClosePaneRight() {return "右側のタブを閉じる";}
-	const string menuClosePaneRight() {return ttClosePaneRight ~ "(&R)";}
-	const string ttClosePaneAll() {return "全てのタブを閉じる";}
-	const string menuClosePaneAll() {return ttClosePaneAll ~ "(&A)";}
+	@property const string ttClosePane() {return "閉じる";}
+	@property const string menuClosePane() {return ttClosePane ~ "(&C)";}
+	@property const string ttClosePaneEtc() {return "他のタブを閉じる";}
+	@property const string menuClosePaneEtc() {return ttClosePaneEtc ~ "(&W)";}
+	@property const string ttClosePaneLeft() {return "左側のタブを閉じる";}
+	@property const string menuClosePaneLeft() {return ttClosePaneLeft ~ "(&L)";}
+	@property const string ttClosePaneRight() {return "右側のタブを閉じる";}
+	@property const string menuClosePaneRight() {return ttClosePaneRight ~ "(&R)";}
+	@property const string ttClosePaneAll() {return "全てのタブを閉じる";}
+	@property const string menuClosePaneAll() {return ttClosePaneAll ~ "(&A)";}
 
-	const string image() {return "イメージ";}
-	const string pathDef() {return "[デフォルト]";}
-	const string imageNone() {return "[イメージ無し]";}
-	const string fileNone() {return "[ファイルを選択]";}
-	const string imageIncluding() {return "[イメージ格納]";}
-	const string seNone() {return "[サウンド無し]";}
-	const string bgmStop() {return "[BGM停止]";}
-	const string bgmNone() {return "[BGM無し]";}
+	@property const string image() {return "イメージ";}
+	@property const string pathDef() {return "[デフォルト]";}
+	@property const string imageNone() {return "[イメージ無し]";}
+	@property const string fileNone() {return "[ファイルを選択]";}
+	@property const string imageIncluding() {return "[イメージ格納]";}
+	@property const string seNone() {return "[サウンド無し]";}
+	@property const string bgmStop() {return "[BGM停止]";}
+	@property const string bgmNone() {return "[BGM無し]";}
 	const string dlgMsgIsSaveBeforeReload(string name) {return "「" ~ name ~ "」は変更されています。再読込しますか？";}
 	const string reloadBeforeSaveError(string name) {return "「" ~ name ~ "」は保存されていないため、再読込できません。";}
 	const string dlgMsgIsSaveBeforeExit(string name) {return "「" ~ name ~ "」は変更されています。保存しますか？";}
@@ -206,8 +206,8 @@ public:
 			: (to!(string)(paths.length) ~ "個の項目が"))
 			~ "すでに存在します。上書きしますか？";
 	}
-	const string dlgTitDropFiles() {return "素材ファイルの追加";}
-	const string dlgMsgCopyError() {return "いくつかのファイルのコピーに失敗しました。";}
+	@property const string dlgTitDropFiles() {return "素材ファイルの追加";}
+	@property const string dlgMsgCopyError() {return "いくつかのファイルのコピーに失敗しました。";}
 
 	const string dlgMsgCopyMaterial(string[] fromPath, uint binImgCount) {
 		if (!fromPath.length && binImgCount) {
@@ -224,181 +224,181 @@ public:
 		}
 	}
 
-	const string dlgTitSettings() {return "CWXEditorの設定";}
+	@property const string dlgTitSettings() {return "CWXEditorの設定";}
 
 	/// メニュー。
-	const string menuFile() {return "ファイル(&F)";}
-	const string ttNew() {return "新規作成";}
-	const string menuNew() {return ttNew ~ "(&N)..." ~ "\tCtrl+N";}
-	const string ttOpen() {return "開く";}
-	const string menuOpen() {return ttOpen ~ "(&O)..." ~ "\tCtrl+O";}
-	const string ttClose() {return "閉じる";}
-	const string menuClose() {return ttClose ~ "(&C)";}
-	const string menuCloseWin() {return "閉じる(&C)";}
-	const string ttSave() {return "上書き保存";}
-	const string menuSave() {return ttSave ~ "(&S)" ~ "\tCtrl+S";}
-	const string ttSaveA() {return "名前を付けて保存";}
-	const string menuSaveA() {return ttSaveA ~ "(&A)...";}
-	const string ttReload() {return "再読込";}
-	const string menuReload() {return ttReload ~ "(&R)";}
-	const string ttOpenDirectory() {
+	@property const string menuFile() {return "ファイル(&F)";}
+	@property const string ttNew() {return "新規作成";}
+	@property const string menuNew() {return ttNew ~ "(&N)..." ~ "\tCtrl+N";}
+	@property const string ttOpen() {return "開く";}
+	@property const string menuOpen() {return ttOpen ~ "(&O)..." ~ "\tCtrl+O";}
+	@property const string ttClose() {return "閉じる";}
+	@property const string menuClose() {return ttClose ~ "(&C)";}
+	@property const string menuCloseWin() {return "閉じる(&C)";}
+	@property const string ttSave() {return "上書き保存";}
+	@property const string menuSave() {return ttSave ~ "(&S)" ~ "\tCtrl+S";}
+	@property const string ttSaveA() {return "名前を付けて保存";}
+	@property const string menuSaveA() {return ttSaveA ~ "(&A)...";}
+	@property const string ttReload() {return "再読込";}
+	@property const string menuReload() {return ttReload ~ "(&R)";}
+	@property const string ttOpenDirectory() {
 		return DIR ~ "を開く";
 	}
-	const string menuOpenDirectory() {return ttOpenDirectory ~ "(&O)";}
-	const string ttOpenFilePlace() {
+	@property const string menuOpenDirectory() {return ttOpenDirectory ~ "(&O)";}
+	@property const string ttOpenFilePlace() {
 		return "ファイルの場所を開く";
 	}
-	const string menuOpenFilePlace() {return ttOpenFilePlace ~ "(&O)";}
-	const string ttSaveIncludeImage() {
+	@property const string menuOpenFilePlace() {return ttOpenFilePlace ~ "(&O)";}
+	@property const string ttSaveIncludeImage() {
 		return "格納イメージをファイルに保存";
 	}
-	const string ttImageList() {return "画像を一覧表示";}
-	const string menuImageList() {return ttImageList ~ "(&L)";}
+	@property const string ttImageList() {return "画像を一覧表示";}
+	@property const string menuImageList() {return ttImageList ~ "(&L)";}
 
-	const string ttChangeVH() {return "分割領域の縦横を切替";}
-	const string menuChangeVH() {return ttChangeVH ~ "(&V)" ~ "";}
+	@property const string ttChangeVH() {return "分割領域の縦横を切替";}
+	@property const string menuChangeVH() {return ttChangeVH ~ "(&V)" ~ "";}
 
-	const string menuEdit() {return "編集(&E)";}
-	const string ttReplaceText() {return "検索と置換";}
-	const string menuReplaceText() {return ttReplaceText ~ "(&F)...\tCtrl+F";}
-	const string ttCEdit() {return "編集";}
-	const string menuCEdit() {return ttCEdit ~ "(&E)" ~ "\tEnter";}
-	const string ttRefresh() {return "最新の情報に更新";}
-	const string ttRefreshS() {return "更新";}
-	const string menuRefresh() {return ttRefresh ~ "(&R)" ~ "\tF5";}
-	const string ttUndo() {return "元に戻す";}
-	const string menuUndo() {return ttUndo ~ "(&U)" ~ "\tCtrl+Z";}
-	const string ttRedo() {return "やり直し";}
-	const string menuRedo() {return ttRedo ~ "(&R)" ~ "\tCtrl+Y";}
-	const string ttCut() {return "切り取り";}
-	const string menuCut() {return ttCut ~ "(&T)" ~ "\tCtrl+X";}
-	const string ttCopy() {return "コピー";}
-	const string menuCopy() {return ttCopy ~ "(&C)" ~ "\tCtrl+C";}
-	const string ttPaste() {return "貼り付け";}
-	const string menuPaste() {return ttPaste ~ "(&P)" ~ "\tCtrl+V";}
-	const string ttDel() {return "削除";}
-	const string menuDel() {return ttDel ~ "(&D)" ~ "\tDelete";}
-	const string ttSelectAll() {return "すべて選択";}
-	const string menuSelectAll() {return ttSelectAll ~ "(&A)" ~ "\tCtrl+A";}
+	@property const string menuEdit() {return "編集(&E)";}
+	@property const string ttReplaceText() {return "検索と置換";}
+	@property const string menuReplaceText() {return ttReplaceText ~ "(&F)...\tCtrl+F";}
+	@property const string ttCEdit() {return "編集";}
+	@property const string menuCEdit() {return ttCEdit ~ "(&E)" ~ "\tEnter";}
+	@property const string ttRefresh() {return "最新の情報に更新";}
+	@property const string ttRefreshS() {return "更新";}
+	@property const string menuRefresh() {return ttRefresh ~ "(&R)" ~ "\tF5";}
+	@property const string ttUndo() {return "元に戻す";}
+	@property const string menuUndo() {return ttUndo ~ "(&U)" ~ "\tCtrl+Z";}
+	@property const string ttRedo() {return "やり直し";}
+	@property const string menuRedo() {return ttRedo ~ "(&R)" ~ "\tCtrl+Y";}
+	@property const string ttCut() {return "切り取り";}
+	@property const string menuCut() {return ttCut ~ "(&T)" ~ "\tCtrl+X";}
+	@property const string ttCopy() {return "コピー";}
+	@property const string menuCopy() {return ttCopy ~ "(&C)" ~ "\tCtrl+C";}
+	@property const string ttPaste() {return "貼り付け";}
+	@property const string menuPaste() {return ttPaste ~ "(&P)" ~ "\tCtrl+V";}
+	@property const string ttDel() {return "削除";}
+	@property const string menuDel() {return ttDel ~ "(&D)" ~ "\tDelete";}
+	@property const string ttSelectAll() {return "すべて選択";}
+	@property const string menuSelectAll() {return ttSelectAll ~ "(&A)" ~ "\tCtrl+A";}
 
-	const string ttToXML() {return "コピーしたデータをXMLに変換";}
-	const string menuToXML() {return ttToXML ~ "(&X)" ~ "";}
+	@property const string ttToXML() {return "コピーしたデータをXMLに変換";}
+	@property const string menuToXML() {return ttToXML ~ "(&X)" ~ "";}
 
-	const string menuView() {return "表示(&V)";}
-	const string ttDataWin() {return "テーブルビュー";}
-	const string menuDataWin() {return ttDataWin ~ "(&D)";}
-	const string ttFlagWin() {return "状態変数ビュー";}
-	const string menuFlagWin() {return ttFlagWin ~ "(&V)";}
-	const string ttCardWin() {return "カードビュー";}
-	const string menuCardWin() {return ttCardWin ~ "(&W)";}
-	const string ttCastWin() {return "キャストカードビュー";}
-	const string menuCastWin() {return ttCastWin ~ "(&C)";}
-	const string ttSkillWin() {return "特殊技能カードビュー";}
-	const string menuSkillWin() {return ttSkillWin ~ "(&S)";}
-	const string ttItemWin() {return "アイテムカードビュー";}
-	const string menuItemWin() {return ttItemWin ~ "(&I)";}
-	const string ttBeastWin() {return "召喚獣カードビュー";}
-	const string menuBeastWin() {return ttBeastWin ~ "(&B)";}
-	const string ttInfoWin() {return "情報カードビュー";}
-	const string menuInfoWin() {return ttInfoWin ~ "(&N)";}
-	const string ttDirWin() {return "ファイルビュー";}
-	const string menuDirWin() {return ttDirWin ~ "(&F)";}
+	@property const string menuView() {return "表示(&V)";}
+	@property const string ttDataWin() {return "テーブルビュー";}
+	@property const string menuDataWin() {return ttDataWin ~ "(&D)";}
+	@property const string ttFlagWin() {return "状態変数ビュー";}
+	@property const string menuFlagWin() {return ttFlagWin ~ "(&V)";}
+	@property const string ttCardWin() {return "カードビュー";}
+	@property const string menuCardWin() {return ttCardWin ~ "(&W)";}
+	@property const string ttCastWin() {return "キャストカードビュー";}
+	@property const string menuCastWin() {return ttCastWin ~ "(&C)";}
+	@property const string ttSkillWin() {return "特殊技能カードビュー";}
+	@property const string menuSkillWin() {return ttSkillWin ~ "(&S)";}
+	@property const string ttItemWin() {return "アイテムカードビュー";}
+	@property const string menuItemWin() {return ttItemWin ~ "(&I)";}
+	@property const string ttBeastWin() {return "召喚獣カードビュー";}
+	@property const string menuBeastWin() {return ttBeastWin ~ "(&B)";}
+	@property const string ttInfoWin() {return "情報カードビュー";}
+	@property const string menuInfoWin() {return ttInfoWin ~ "(&N)";}
+	@property const string ttDirWin() {return "ファイルビュー";}
+	@property const string menuDirWin() {return ttDirWin ~ "(&F)";}
 
-	const string menuTools() {return "ツール(&T)";}
-	const string ttExecEngine() {return "エンジン起動";}
-	const string menuExecEngine() {return ttExecEngine ~ "(&G)";}
-	const string menuExecEngineAuto() {return "自動選択(&G)\tF9";}
-	const string ttSettings() {return "エディタ設定";}
-	const string menuSettings() {return ttSettings ~ "(&O)...";}
+	@property const string menuTools() {return "ツール(&T)";}
+	@property const string ttExecEngine() {return "エンジン起動";}
+	@property const string menuExecEngine() {return ttExecEngine ~ "(&G)";}
+	@property const string menuExecEngineAuto() {return "自動選択(&G)\tF9";}
+	@property const string ttSettings() {return "エディタ設定";}
+	@property const string menuSettings() {return ttSettings ~ "(&O)...";}
 
-	const string menuTable() {return "テーブル(&B)";}
-	const string menuVariable() {return "状態変数(&R)";}
+	@property const string menuTable() {return "テーブル(&B)";}
+	@property const string menuVariable() {return "状態変数(&R)";}
 
-	const string menuHelp() {return "ヘルプ(&H)";}
-	const string ttVersion() {return "バージョン情報";}
-	const string menuVersion() {return ttVersion ~ "(&A)";}
+	@property const string menuHelp() {return "ヘルプ(&H)";}
+	@property const string ttVersion() {return "バージョン情報";}
+	@property const string menuVersion() {return ttVersion ~ "(&A)";}
 
-	const string ttLockBar() {return "ツールバーを固定";}
-	const string menuLockBar() {return ttLockBar ~ "(&L)";}
-	const string ttResetBar() {return "配置をリセット";}
-	const string menuResetBar() {return ttResetBar ~ "(&R)";}
+	@property const string ttLockBar() {return "ツールバーを固定";}
+	@property const string menuLockBar() {return ttLockBar ~ "(&L)";}
+	@property const string ttResetBar() {return "配置をリセット";}
+	@property const string menuResetBar() {return ttResetBar ~ "(&R)";}
 
-	const string summary() {return "シナリオの設定";}
-	const string area() {return "エリア";}
-	const string battle() {return "バトル";}
-	const string packages() {return "パッケージ";}
+	@property const string summary() {return "シナリオの設定";}
+	@property const string area() {return "エリア";}
+	@property const string battle() {return "バトル";}
+	@property const string packages() {return "パッケージ";}
 
-	const string dlgTitReplaceText() {return "検索と置換";}
-	const string replForText() {return "テキスト検索";}
-	const string replForID() {return "ID検索";}
-	const string replForPath() {return "素材検索";}
-	const string replForUnuse() {return "未使用検索";}
-	const string replForError() {return "誤り検索";}
+	@property const string dlgTitReplaceText() {return "検索と置換";}
+	@property const string replForText() {return "テキスト検索";}
+	@property const string replForID() {return "ID検索";}
+	@property const string replForPath() {return "素材検索";}
+	@property const string replForUnuse() {return "未使用検索";}
+	@property const string replForError() {return "誤り検索";}
 
-	const string searchRange() {return "検索対象";}
-	const string flagsAndSteps() {return "フラグとステップ";}
-	const string allCheckRange() {return "全てチェック/全てチェックを外す";}
+	@property const string searchRange() {return "検索対象";}
+	@property const string flagsAndSteps() {return "フラグとステップ";}
+	@property const string allCheckRange() {return "全てチェック/全てチェックを外す";}
 
-	const string allCheck() {return "全てチェック/全てチェックを外す(&L)";}
+	@property const string allCheck() {return "全てチェック/全てチェックを外す(&L)";}
 
-	const string replError() {return "重複する分岐(フラグ分岐が両方ともTRUEになっている等)・条件クーポンに抜けがある台詞コンテント・存在しない素材を参照しているコンテント等を検索します。";}
+	@property const string replError() {return "重複する分岐(フラグ分岐が両方ともTRUEになっている等)・条件クーポンに抜けがある台詞コンテント・存在しない素材を参照しているコンテント等を検索します。";}
 
-	const string replFrom() {return "検索(置換前)";}
-	const string replTo() {return "置換後";}
+	@property const string replFrom() {return "検索(置換前)";}
+	@property const string replTo() {return "置換後";}
 
-	const string replText() {return "検索/置換するテキスト";}
-	const string replTextTarget() {return "検索/置換対象";}
-	const string replTextSummary() {return "貼り紙(&1)";}
-	const string replTextMessage() {return "メッセージ(&2)";}
-	const string replTextCardName() {return "カード名(&3)";}
-	const string replTextCardDesc() {return "カード解説(&4)";}
-	const string replTextEventText() {return "イベントテキスト(&5)";}
-	const string replTextStart() {return "スタートコンテント(&6)";}
-	const string replTextFlagAndStep() {return "フラグ/ステップ(&7)";}
-	const string replTextCoupon() {return "クーポン(&8)";}
-	const string replTextGossip() {return "ゴシップ(&9)";}
-	const string replTextEndScenario() {return "終了印(&A)";}
-	const string replTextAreaName() {return "エリア/バトル/パッケージ名(&B)";}
-	const string replTextKeyCode() {return "キーコード(&D)";}
-	const string replTextFile() {return "ファイル(&E)";}
-	const string replTextComment() {return "コメント(&G)";}
+	@property const string replText() {return "検索/置換するテキスト";}
+	@property const string replTextTarget() {return "検索/置換対象";}
+	@property const string replTextSummary() {return "貼り紙(&1)";}
+	@property const string replTextMessage() {return "メッセージ(&2)";}
+	@property const string replTextCardName() {return "カード名(&3)";}
+	@property const string replTextCardDesc() {return "カード解説(&4)";}
+	@property const string replTextEventText() {return "イベントテキスト(&5)";}
+	@property const string replTextStart() {return "スタートコンテント(&6)";}
+	@property const string replTextFlagAndStep() {return "フラグ/ステップ(&7)";}
+	@property const string replTextCoupon() {return "クーポン(&8)";}
+	@property const string replTextGossip() {return "ゴシップ(&9)";}
+	@property const string replTextEndScenario() {return "終了印(&A)";}
+	@property const string replTextAreaName() {return "エリア/バトル/パッケージ名(&B)";}
+	@property const string replTextKeyCode() {return "キーコード(&D)";}
+	@property const string replTextFile() {return "ファイル(&E)";}
+	@property const string replTextComment() {return "コメント(&G)";}
 
-	const string replID() {return "検索/置換対象";}
-	const string replIDKind() {return "対象";}
-	const string replIDArea() {return "エリア";}
-	const string replIDBattle() {return "バトル";}
-	const string replIDPackage() {return "パッケージ";}
-	const string replIDCast() {return "キャストカード";}
-	const string replIDSkill() {return "スキルカード";}
-	const string replIDItem() {return "アイテムカード";}
-	const string replIDBeast() {return "召喚獣カード";}
-	const string replIDInfo() {return "情報カード";}
-	const string replSetID() {return "[IDを直接指定]";}
+	@property const string replID() {return "検索/置換対象";}
+	@property const string replIDKind() {return "対象";}
+	@property const string replIDArea() {return "エリア";}
+	@property const string replIDBattle() {return "バトル";}
+	@property const string replIDPackage() {return "パッケージ";}
+	@property const string replIDCast() {return "キャストカード";}
+	@property const string replIDSkill() {return "スキルカード";}
+	@property const string replIDItem() {return "アイテムカード";}
+	@property const string replIDBeast() {return "召喚獣カード";}
+	@property const string replIDInfo() {return "情報カード";}
+	@property const string replSetID() {return "[IDを直接指定]";}
 
-	const string replPath() {return "検索/置換する素材";}
+	@property const string replPath() {return "検索/置換する素材";}
 
-	const string replUnuseTarget() {return "検索対象";}
-	const string replUnuseFlag() {return "フラグ(&1)";}
-	const string replUnuseStep() {return "ステップ(&2)";}
-	const string replUnuseArea() {return "エリア(&3)";}
-	const string replUnuseBattle() {return "バトル(&4)";}
-	const string replUnusePackage() {return "パッケージ(&5)";}
-	const string replUnuseCast() {return "キャストカード(&6)";}
-	const string replUnuseSkill() {return "スキルカード(&7)";}
-	const string replUnuseItem() {return "アイテムカード(&8)";}
-	const string replUnuseBeast() {return "召喚獣カード(&9)";}
-	const string replUnuseInfo() {return "情報カード(&A)";}
-	const string replUnuseStart() {return "スタートコンテント(&B)";}
-	const string replUnusePath() {return "素材(&C)";}
+	@property const string replUnuseTarget() {return "検索対象";}
+	@property const string replUnuseFlag() {return "フラグ(&1)";}
+	@property const string replUnuseStep() {return "ステップ(&2)";}
+	@property const string replUnuseArea() {return "エリア(&3)";}
+	@property const string replUnuseBattle() {return "バトル(&4)";}
+	@property const string replUnusePackage() {return "パッケージ(&5)";}
+	@property const string replUnuseCast() {return "キャストカード(&6)";}
+	@property const string replUnuseSkill() {return "スキルカード(&7)";}
+	@property const string replUnuseItem() {return "アイテムカード(&8)";}
+	@property const string replUnuseBeast() {return "召喚獣カード(&9)";}
+	@property const string replUnuseInfo() {return "情報カード(&A)";}
+	@property const string replUnuseStart() {return "スタートコンテント(&B)";}
+	@property const string replUnusePath() {return "素材(&C)";}
 
-	const string replNotIgnoreCase() {return "大文字と小文字を区別する(&C)";}
-	const string replRegExp() {return "正規表現(&E) (. = 任意1文字, * = 直前の文字の任意数繰返し, $1 = 1つめの文字列グループ ...)";}
-	const string regexError() {return "正規表現が正しくありません。";}
-	const string replWildcard() {return "ワイルドカード(&W) (* = 任意文字列, ? = 任意1文字, \\* = *, \\? = ?, \\\\ = \\)";}
-	const string replCond() {return "検索条件";}
-	const string search() {return "検索(&F)";}
-	const string replace() {return "全て置換(&R)";}
-	const string replaceExit() {return "閉じる";}
+	@property const string replNotIgnoreCase() {return "大文字と小文字を区別する(&C)";}
+	@property const string replRegExp() {return "正規表現(&E) (. = 任意1文字, * = 直前の文字の任意数繰返し, $1 = 1つめの文字列グループ ...)";}
+	@property const string regexError() {return "正規表現が正しくありません。";}
+	@property const string replWildcard() {return "ワイルドカード(&W) (* = 任意文字列, ? = 任意1文字, \\* = *, \\? = ?, \\\\ = \\)";}
+	@property const string replCond() {return "検索条件";}
+	@property const string search() {return "検索(&F)";}
+	@property const string replace() {return "全て置換(&R)";}
+	@property const string replaceExit() {return "閉じる";}
 	const string searchResult(size_t count, string kind) {
 		string r = to!(string)(count) ~ "件の検索結果";
 		return kind.length ? r ~ "(" ~ kind ~ ")" : r;
@@ -447,40 +447,40 @@ public:
 		return "メニューカード - " ~ c.name;
 	}
 	const string searchResultEnemyCard(in EnemyCard c, in Summary summ) {
-		auto card = summ.casts(c.id);
+		auto card = summ.cwCast(c.id);
 		return "エネミーカード - " ~ (card ? card.name : "[対象無し]");
 	}
 
-	const string searchErrorNoImage() {return "イメージ指定無し";}
-	const string searchErrorImageNotFound() {return "イメージファイルが見つからない";}
-	const string searchErrorBGMNotFound() {return "BGMファイルが見つからない";}
-	const string searchErrorSENotFound() {return "効果音ファイルが見つからない";}
-	const string searchErrorStartAreaNotFound() {return "開始エリア無し";}
-	const string searchErrorFlagNotFound() {return "フラグが見つからない";}
-	const string searchErrorStepNotFound() {return "ステップが見つからない";}
-	const string searchErrorNoCast() {return "キャストカード指定無し";}
-	const string searchErrorNoBeast() {return "召喚獣カード指定無し";}
-	const string searchErrorDupNextContent() {return "分岐条件の重複";}
-	const string searchErrorSPFontNotFound() {return "特殊フォントイメージが見つからない";}
-	const string searchErrorNoRCouponsDialog() {return "最終項目以外にクーポン指定無し項目あり";}
-	const string searchErrorAreaNotFound() {return "エリアが見つからない";}
-	const string searchErrorBattleNotFound() {return "バトルが見つからない";}
-	const string searchErrorPackageNotFound() {return "パッケージが見つからない";}
-	const string searchErrorCastNotFound() {return "キャストカードが見つからない";}
-	const string searchErrorSkillNotFound() {return "スキルカードが見つからない";}
-	const string searchErrorItemNotFound() {return "アイテムカードが見つからない";}
-	const string searchErrorBeastNotFound() {return "召喚獣カードが見つからない";}
-	const string searchErrorInfoNotFound() {return "情報カードが見つからない";}
-	const string searchErrorStartNotFound() {return "スタートコンテントが見つからない";}
-	const string searchErrorIgnoreWait() {return "後続コンテントが無いため、空白時間が無視される";}
-	const string searchOpenDialog() {return "検索結果へジャンプする時、ダイアログを開く";}
-	const string menuOpenView() {return "ビューで開く(&V)";}
+	@property const string searchErrorNoImage() {return "イメージ指定無し";}
+	@property const string searchErrorImageNotFound() {return "イメージファイルが見つからない";}
+	@property const string searchErrorBGMNotFound() {return "BGMファイルが見つからない";}
+	@property const string searchErrorSENotFound() {return "効果音ファイルが見つからない";}
+	@property const string searchErrorStartAreaNotFound() {return "開始エリア無し";}
+	@property const string searchErrorFlagNotFound() {return "フラグが見つからない";}
+	@property const string searchErrorStepNotFound() {return "ステップが見つからない";}
+	@property const string searchErrorNoCast() {return "キャストカード指定無し";}
+	@property const string searchErrorNoBeast() {return "召喚獣カード指定無し";}
+	@property const string searchErrorDupNextContent() {return "分岐条件の重複";}
+	@property const string searchErrorSPFontNotFound() {return "特殊フォントイメージが見つからない";}
+	@property const string searchErrorNoRCouponsDialog() {return "最終項目以外にクーポン指定無し項目あり";}
+	@property const string searchErrorAreaNotFound() {return "エリアが見つからない";}
+	@property const string searchErrorBattleNotFound() {return "バトルが見つからない";}
+	@property const string searchErrorPackageNotFound() {return "パッケージが見つからない";}
+	@property const string searchErrorCastNotFound() {return "キャストカードが見つからない";}
+	@property const string searchErrorSkillNotFound() {return "スキルカードが見つからない";}
+	@property const string searchErrorItemNotFound() {return "アイテムカードが見つからない";}
+	@property const string searchErrorBeastNotFound() {return "召喚獣カードが見つからない";}
+	@property const string searchErrorInfoNotFound() {return "情報カードが見つからない";}
+	@property const string searchErrorStartNotFound() {return "スタートコンテントが見つからない";}
+	@property const string searchErrorIgnoreWait() {return "後続コンテントが無いため、空白時間が無視される";}
+	@property const string searchOpenDialog() {return "検索結果へジャンプする時、ダイアログを開く";}
+	@property const string menuOpenView() {return "ビューで開く(&V)";}
 
 	/// イベント設定。
-	const string ttStartToPackage() {return "このツリーをパッケージ化する";}
-	const string menuStartToPackage() {return ttStartToPackage ~ "(&P)";}
-	const string ttConvertContent() {return "変換";}
-	const string menuConvertContent() {return ttConvertContent ~ "(&R)";}
+	@property const string ttStartToPackage() {return "このツリーをパッケージ化する";}
+	@property const string menuStartToPackage() {return ttStartToPackage ~ "(&P)";}
+	@property const string ttConvertContent() {return "変換";}
+	@property const string menuConvertContent() {return ttConvertContent ~ "(&R)";}
 
 	const string dlgTitContent(CType type) {
 		final switch (type) {
@@ -553,25 +553,25 @@ public:
 		}
 	}
 
-	const string afterClear() {return "シナリオ終了後";}
-	const string afterClearEndMark() {return "シナリオに済印を付ける";}
-	const string afterClearNoEndMark() {return "何もしない";}
+	@property const string afterClear() {return "シナリオ終了後";}
+	@property const string afterClearEndMark() {return "シナリオに済印を付ける";}
+	@property const string afterClearNoEndMark() {return "何もしない";}
 
-	const string couponName() {return "クーポン名";}
-	const string couponValue() {return "得点";}
+	@property const string couponName() {return "クーポン名";}
+	@property const string couponValue() {return "得点";}
 	const string couponValueRange(uint r) {return "(" ~ to!(string)(-(cast(int) r)) ~ "～" ~ to!(string)(r) ~ ")";}
-	const string range() {return "適用範囲";}
-	const string gossipName() {return "ゴシップ名";}
-	const string endName() {return "シナリオ名";}
+	@property const string range() {return "適用範囲";}
+	@property const string gossipName() {return "ゴシップ名";}
+	@property const string endName() {return "シナリオ名";}
 
-	const string imageMessage() {return "イメージ付きメッセージ";}
-	const string noImageMessage() {return "イメージ無しメッセージ";}
-	const string spCharsTitle() {return "特殊文字";}
-	const string defaultColor() {return "デフォルト(&W)";}
-	const string red() {return "赤(&R)";}
-	const string blue() {return "青(&B)";}
-	const string green() {return "緑(&G)";}
-	const string yellow() {return "黄(&Y)";}
+	@property const string imageMessage() {return "イメージ付きメッセージ";}
+	@property const string noImageMessage() {return "イメージ無しメッセージ";}
+	@property const string spCharsTitle() {return "特殊文字";}
+	@property const string defaultColor() {return "デフォルト(&W)";}
+	@property const string red() {return "赤(&R)";}
+	@property const string blue() {return "青(&B)";}
+	@property const string green() {return "緑(&G)";}
+	@property const string yellow() {return "黄(&Y)";}
 	const string scTalker(Talker talker) {
 		final switch (talker) {
 		case Talker.SELECTED:
@@ -588,24 +588,24 @@ public:
 			return "画像";
 		}
 	}
-	const string scRef() {return "話者(#I)";}
-	const string scTeam() {return "チーム名(#T)";}
-	const string scYado() {return "宿屋名(#Y)";}
-	const string addMsgRefFlag() {return "フラグ参照の追加";}
-	const string addMsgRefStep() {return "ステップ参照の追加";}
-	const string createDialog() {return "台詞の作成";}
-	const string deleteDialog() {return "台詞の削除";}
-	const string copyToDialogs() {return "台詞を全体にコピー";}
-	const string copyToUpper() {return "台詞を上方にコピー";}
-	const string copyToLower() {return "台詞を下方にコピー";}
-	const string setTalkerCoupon() {return "追加";}
-	const string messagePreview() {return "プレビュー";}
-	const string dlgTitMessagePreview() {return "プレビュー";}
-	const string messageVarKindColumn() {return "状態変数";}
-	const string messageVarValueColumn() {return "サンプル値";}
+	@property const string scRef() {return "話者(#I)";}
+	@property const string scTeam() {return "チーム名(#T)";}
+	@property const string scYado() {return "宿屋名(#Y)";}
+	@property const string addMsgRefFlag() {return "フラグ参照の追加";}
+	@property const string addMsgRefStep() {return "ステップ参照の追加";}
+	@property const string createDialog() {return "台詞の作成";}
+	@property const string deleteDialog() {return "台詞の削除";}
+	@property const string copyToDialogs() {return "台詞を全体にコピー";}
+	@property const string copyToUpper() {return "台詞を上方にコピー";}
+	@property const string copyToLower() {return "台詞を下方にコピー";}
+	@property const string setTalkerCoupon() {return "追加";}
+	@property const string messagePreview() {return "プレビュー";}
+	@property const string dlgTitMessagePreview() {return "プレビュー";}
+	@property const string messageVarKindColumn() {return "状態変数";}
+	@property const string messageVarValueColumn() {return "サンプル値";}
 
-	const string transition() {return "背景切替方式";}
-	const string transition(Transition t) {
+	@property const string transition() {return "背景切替方式";}
+	const string transitionName(Transition t) {
 		final switch (t) {
 		case Transition.DEFAULT:
 			return "[プレイヤーの設定を使用]";
@@ -619,57 +619,57 @@ public:
 			return "ブラインド式";
 		}
 	}
-	const string transitionSpeed() {return "背景切替ウェイト";}
-	const string waitName() {return "空白時間(0.1秒単位)";}
-	const string moneyName() {return "金額";}
-	const string randomName() {return "確率(%)";}
-	const string partyNumName() {return "パーティの人数";}
-	const string judgeTarget() {return "判定対象";}
-	const string flag() {return "フラグ";}
-	const string step() {return "ステップ";}
-	const string flagValue() {return "値";}
-	const string stepValue() {return "段階";}
-	const string selectMember() {return "選択対象";}
-	const string activeMember() {return "動けるメンバから選択";}
-	const string allMember() {return "パーティ全員から選択";}
-	const string selectMethod() {return "選択方法";}
-	const string manualMethod() {return "手動で選択";}
-	const string randomMethod() {return "ランダムで選択";}
-	const string judgeSleep() {return "眠り判定";}
-	const string sleepDisabled() {return "睡眠者無効";}
-	const string sleepEnabled() {return "睡眠者有効";}
-	const string selectedLevel() {return "現在選択中のメンバ";}
-	const string allMemberLevel() {return "パーティ全員の平均値";}
-	const string judgeLevel() {return "判定レベル";}
-	const string judgeState() {return "判定状態";}
-	const string stateHint() {return "ヒント";}
-	const string cardNumber() {return "枚数";}
-	const string cardAllDelete() {return "全て削除する";}
-	const string cardEventRange() {return "適用範囲";}
-	const string transitionType() {return "背景切替方式";}
+	@property const string transitionSpeed() {return "背景切替ウェイト";}
+	@property const string waitName() {return "空白時間(0.1秒単位)";}
+	@property const string moneyName() {return "金額";}
+	@property const string randomName() {return "確率(%)";}
+	@property const string partyNumName() {return "パーティの人数";}
+	@property const string judgeTarget() {return "判定対象";}
+	@property const string flag() {return "フラグ";}
+	@property const string step() {return "ステップ";}
+	@property const string flagValue() {return "値";}
+	@property const string stepValue() {return "段階";}
+	@property const string selectMember() {return "選択対象";}
+	@property const string activeMember() {return "動けるメンバから選択";}
+	@property const string allMember() {return "パーティ全員から選択";}
+	@property const string selectMethod() {return "選択方法";}
+	@property const string manualMethod() {return "手動で選択";}
+	@property const string randomMethod() {return "ランダムで選択";}
+	@property const string judgeSleep() {return "眠り判定";}
+	@property const string sleepDisabled() {return "睡眠者無効";}
+	@property const string sleepEnabled() {return "睡眠者有効";}
+	@property const string selectedLevel() {return "現在選択中のメンバ";}
+	@property const string allMemberLevel() {return "パーティ全員の平均値";}
+	@property const string judgeLevel() {return "判定レベル";}
+	@property const string judgeState() {return "判定状態";}
+	@property const string stateHint() {return "ヒント";}
+	@property const string cardNumber() {return "枚数";}
+	@property const string cardAllDelete() {return "全て削除する";}
+	@property const string cardEventRange() {return "適用範囲";}
+	@property const string transitionType() {return "背景切替方式";}
 
 	/// イベント。
-	const string evtArrow() {return "イベント編集";}
+	@property const string evtArrow() {return "イベント編集";}
 
-	const string evtAddContinue() {return "連続で配置";}
-	const string evtAutoOpen() {return "配置と同時に編集";}
+	@property const string evtAddContinue() {return "連続で配置";}
+	@property const string evtAutoOpen() {return "配置と同時に編集";}
 
-	const string ttEvtTerminal() {return "開始/終端";}
-	const string menuEvtTerminal() {return ttEvtTerminal ~ "(&T)";}
-	const string ttEvtStandard() {return "基本";}
-	const string menuEvtStandard() {return ttEvtStandard ~ "(&S)";}
-	const string ttEvtData() {return "変数操作/分岐";}
-	const string menuEvtData() {return ttEvtData ~ "(&D)";}
-	const string ttEvtUtility() {return "状況分岐";}
-	const string menuEvtUtility() {return ttEvtUtility ~ "(&U)";}
-	const string ttEvtBranch() {return "保有分岐";}
-	const string menuEvtBranch() {return ttEvtBranch ~ "(&B)";}
-	const string ttEvtGet() {return "取得";}
-	const string menuEvtGet() {return ttEvtGet ~ "(&G)";}
-	const string ttEvtLost() {return "喪失";}
-	const string menuEvtLost() {return ttEvtLost ~ "(&L)";}
-	const string ttEvtVisual() {return "外観操作";}
-	const string menuEvtVisual() {return ttEvtVisual ~ "(&V)";}
+	@property const string ttEvtTerminal() {return "開始/終端";}
+	@property const string menuEvtTerminal() {return ttEvtTerminal ~ "(&T)";}
+	@property const string ttEvtStandard() {return "基本";}
+	@property const string menuEvtStandard() {return ttEvtStandard ~ "(&S)";}
+	@property const string ttEvtData() {return "変数操作/分岐";}
+	@property const string menuEvtData() {return ttEvtData ~ "(&D)";}
+	@property const string ttEvtUtility() {return "状況分岐";}
+	@property const string menuEvtUtility() {return ttEvtUtility ~ "(&U)";}
+	@property const string ttEvtBranch() {return "保有分岐";}
+	@property const string menuEvtBranch() {return ttEvtBranch ~ "(&B)";}
+	@property const string ttEvtGet() {return "取得";}
+	@property const string menuEvtGet() {return ttEvtGet ~ "(&G)";}
+	@property const string ttEvtLost() {return "喪失";}
+	@property const string menuEvtLost() {return ttEvtLost ~ "(&L)";}
+	@property const string ttEvtVisual() {return "外観操作";}
+	@property const string menuEvtVisual() {return ttEvtVisual ~ "(&V)";}
 
 	const string content(CType type) {
 		switch (type) {
@@ -743,21 +743,21 @@ public:
 		}
 	}
 
-	const string msnGroupVitality() {return "生命力";}
-	const string msnGroupPhysical() {return "肉体";}
-	const string msnGroupSkill() {return "技能";}
-	const string msnGroupMental() {return "精神";}
-	const string msnGroupMagic() {return "魔法";}
-	const string msnGroupEnhance() {return "能力";}
-	const string msnGroupVanish() {return "消滅";}
-	const string msnGroupCard() {return "カード";}
-	const string msnGroupBeast() {return "召喚";}
+	@property const string msnGroupVitality() {return "生命力";}
+	@property const string msnGroupPhysical() {return "肉体";}
+	@property const string msnGroupSkill() {return "技能";}
+	@property const string msnGroupMental() {return "精神";}
+	@property const string msnGroupMagic() {return "魔法";}
+	@property const string msnGroupEnhance() {return "能力";}
+	@property const string msnGroupVanish() {return "消滅";}
+	@property const string msnGroupCard() {return "カード";}
+	@property const string msnGroupBeast() {return "召喚";}
 
-	const string msnDelete() {return "効果削除";}
+	@property const string msnDelete() {return "効果削除";}
 
 	const string msnDesc(string group, string name) {return group ~ " - " ~ name;}
 
-	const string motion(MType type) {
+	const string motionName(MType type) {
 		switch (type) {
 		case MType.HEAL: return "回復";
 		case MType.DAMAGE: return "ダメージ";
@@ -841,7 +841,7 @@ public:
 			}
 			return buf;
 		} case CType.EFFECT: {
-			string buf = target(evt.targetNS.m);
+			string buf = targetName(evt.targetNS.m);
 			buf ~= " レベル" ~ to!(string)(evt.signedLevel);
 			buf ~= " " ~ effectType(evt.effectType, evt.resist);
 			buf ~= " 成功率" ~ (evt.successRate >= 0 ? "+" : "") ~ to!(string)(evt.successRate);
@@ -849,7 +849,7 @@ public:
 			buf ~= " " ~ cardVisual(evt.cardVisual);
 			buf ~= " 効果 = ";
 			foreach (i, m; evt.motions) {
-				buf ~= "[" ~ motion(m.type) ~ "]";
+				buf ~= "[" ~ motionName(m.type) ~ "]";
 				if (i + 1 < evt.motions.length) buf ~= " ";
 			}
 			return buf;
@@ -861,7 +861,7 @@ public:
 				? .format("存在しないスタートコンテント(名称:%s)", evt.start) : "スタートコンテント「" ~ evt.start ~ "」へのリンク";
 		} case CType.LINK_PACKAGE: {
 			if (0 == evt.packages) return "パッケージ指定無し";
-			auto p = summ.packages(evt.packages);
+			auto p = summ.cwPackage(evt.packages);
 			return p is null ? .format("存在しないパッケージ(ID:%d)", evt.packages) : "パッケージビュー「" ~ p.name ~ "」";
 		} case CType.TALK_MESSAGE: {
 			string text = evt.text;
@@ -926,7 +926,7 @@ public:
 			return !evt.tree.hasStart(evt.start) ? .format("存在しないスタートコンテント(名称:%s)", evt.start) : "スタートコンテント「" ~ evt.start ~ "」のコール";
 		} case CType.CALL_PACKAGE: {
 			if (0 == evt.packages) return "パッケージ指定無し";
-			auto p = summ.packages(evt.packages);
+			auto p = summ.cwPackage(evt.packages);
 			return p is null ? .format("存在しないパッケージ(ID:%d)", evt.packages) : "パッケージビュー「" ~ p.name ~ "」のコール";
 		} case CType.BRANCH_FLAG: {
 			if (evt.flag is null || !evt.flag.length) return "フラグ指定無し";
@@ -952,9 +952,9 @@ public:
 			buf ~= "でメンバを選択";
 			return buf;
 		} case CType.BRANCH_ABILITY: {
-			string buf = target(evt.targetS.m) ~ "の";
-			buf ~= physical(evt.physical) ~ "と";
-			buf ~= mental(evt.mental) ~ "で能力判定";
+			string buf = targetName(evt.targetS.m) ~ "の";
+			buf ~= physicalName(evt.physical) ~ "と";
+			buf ~= mentalName(evt.mental) ~ "で能力判定";
 			buf ~= "(レベル" ~ to!(string)(evt.signedLevel) ~ ")";
 			return buf;
 		} case CType.BRANCH_RANDOM: {
@@ -964,8 +964,8 @@ public:
 			buf ~= "のレベルが" ~ to!(string)(evt.unsignedLevel) ~ "以上・未満で分岐";
 			return buf;
 		} case CType.BRANCH_STATUS: {
-			string buf = target(evt.targetNS.m) ~ "が";
-			buf ~= status(evt.status) ~ "状態か否かで分岐";
+			string buf = targetName(evt.targetNS.m) ~ "が";
+			buf ~= statusName(evt.status) ~ "状態か否かで分岐";
 			return buf;
 		} case CType.BRANCH_PARTY_NUMBER: {
 			return "人数 = " ~ to!(string)(evt.partyNumber) ~ "人";
@@ -977,14 +977,14 @@ public:
 			return "戦闘中判定分岐コンテント";
 		} case CType.BRANCH_CAST: {
 			if (0 == evt.casts) return "キャストカード指定無し";
-			auto c = summ.casts(evt.casts);
+			auto c = summ.cwCast(evt.casts);
 			return c is null ? .format("存在しないキャストカード(ID:%d)", evt.casts) : "キャストカード「" ~ c.name ~ "」の同行有無で分岐";
 		} case CType.BRANCH_ITEM: {
 			if (0 == evt.item) return "アイテムカード指定無し";
 			auto c = summ.item(evt.item);
 			string buf = c is null ? .format("存在しないアイテムカード(ID:%d)", evt.item) : "アイテムカード「" ~ c.name ~ "」";
 			buf ~= "の有無で分岐(";
-			buf ~= range(evt.range) ~ "に";
+			buf ~= rangeName(evt.range) ~ "に";
 			buf ~= to!(string)(evt.cardNumber) ~ "枚)";
 			return buf;
 		} case CType.BRANCH_SKILL: {
@@ -992,7 +992,7 @@ public:
 			auto c = summ.skill(evt.skill);
 			string buf = c is null ? .format("存在しない特殊技能カード(ID:%d)", evt.skill) : "特殊技能カード「" ~ c.name ~ "」";
 			buf ~= "の有無で分岐(";
-			buf ~= range(evt.range) ~ "に";
+			buf ~= rangeName(evt.range) ~ "に";
 			buf ~= to!(string)(evt.cardNumber) ~ "枚)";
 			return buf;
 		} case CType.BRANCH_INFO: {
@@ -1004,7 +1004,7 @@ public:
 			auto c = summ.beast(evt.beast);
 			string buf = c is null ? .format("存在しない召喚獣カード(ID:%d)", evt.beast) : "召喚獣カード「" ~ c.name ~ "」";
 			buf ~= "の有無で分岐(";
-			buf ~= range(evt.range) ~ "に";
+			buf ~= rangeName(evt.range) ~ "に";
 			buf ~= to!(string)(evt.cardNumber) ~ "枚)";
 			return buf;
 		} case CType.BRANCH_MONEY: {
@@ -1013,7 +1013,7 @@ public:
 			if (evt.coupon is null || evt.coupon.length == 0) {
 				return "指定無し";
 			} else {
-				return "称号「" ~ evt.coupon ~ "」の有無で分岐(" ~ range(evt.range) ~ ")";
+				return "称号「" ~ evt.coupon ~ "」の有無で分岐(" ~ rangeName(evt.range) ~ ")";
 			}
 		} case CType.BRANCH_COMPLETE_STAMP: {
 			return evt.completeStamp is null || evt.completeStamp.length == 0 ? "指定無し" : "シナリオ「" ~ evt.completeStamp ~ "」が終了済みか否かで分岐";
@@ -1045,14 +1045,14 @@ public:
 			return f is null ? .format("存在しないフラグ(パス:%s)", evt.flag) : "フラグ「" ~ f.path ~ "」の値が[" ~ f.on ~ "]であれば出現";
 		} case CType.GET_CAST: {
 			if (0 == evt.casts) return "キャストカード指定無し";
-			auto c = summ.casts(evt.casts);
+			auto c = summ.cwCast(evt.casts);
 			return c is null ? .format("存在しないキャストカード(ID:%d)", evt.casts) : "キャストカード「" ~ c.name ~ "」を同行させる";
 		} case CType.GET_ITEM: {
 			if (0 == evt.item) return "アイテムカード指定無し";
 			auto c = summ.item(evt.item);
 			string buf = c is null ? .format("存在しないアイテムカード(ID:%d)", evt.item) : "アイテムカード「" ~ c.name ~ "」";
 			buf ~= "を獲得(";
-			buf ~= range(evt.range) ~ "に";
+			buf ~= rangeName(evt.range) ~ "に";
 			buf ~= to!(string)(evt.cardNumber) ~ "枚)";
 			return buf;
 		} case CType.GET_SKILL: {
@@ -1060,7 +1060,7 @@ public:
 			auto c = summ.skill(evt.skill);
 			string buf = c is null ? .format("存在しない特殊技能カード(ID:%d)", evt.skill) : "特殊技能カード「" ~ c.name ~ "」";
 			buf ~= "を獲得(";
-			buf ~= range(evt.range) ~ "に";
+			buf ~= rangeName(evt.range) ~ "に";
 			buf ~= to!(string)(evt.cardNumber) ~ "枚)";
 			return buf;
 		} case CType.GET_INFO: {
@@ -1072,7 +1072,7 @@ public:
 			auto c = summ.beast(evt.beast);
 			string buf = c is null ? .format("存在しない召喚獣カード(ID:%d)", evt.beast) : "召喚獣カード「" ~ c.name ~ "」";
 			buf ~= "を獲得(";
-			buf ~= range(evt.range) ~ "に";
+			buf ~= rangeName(evt.range) ~ "に";
 			buf ~= to!(string)(evt.cardNumber) ~ "枚)";
 			return buf;
 		} case CType.GET_MONEY: {
@@ -1081,7 +1081,7 @@ public:
 			if (evt.coupon is null || evt.coupon.length == 0) {
 				return "指定無し";
 			} else {
-				return "称号「" ~ evt.coupon ~ "」を獲得(" ~ range(evt.range) ~ ")";
+				return "称号「" ~ evt.coupon ~ "」を獲得(" ~ rangeName(evt.range) ~ ")";
 			}
 		} case CType.GET_COMPLETE_STAMP: {
 			return evt.completeStamp is null || evt.completeStamp.length == 0 ? "指定無し" : "シナリオ「" ~ evt.completeStamp ~ "」を終了済みにする";
@@ -1089,14 +1089,14 @@ public:
 			return evt.gossip is null || evt.gossip.length == 0 ? "指定無し" : "宿屋クーポン「" ~ evt.gossip ~ "」を獲得";
 		} case CType.LOSE_CAST: {
 			if (0 == evt.casts) return "キャストカード指定無し";
-			auto c = summ.casts(evt.casts);
+			auto c = summ.cwCast(evt.casts);
 			return c is null ? .format("存在しないキャストカード(ID:%d)", evt.casts) : "キャストカード「" ~ c.name ~ "」の同行を解除";
 		} case CType.LOSE_ITEM: {
 			if (0 == evt.item) return "アイテムカード指定無し";
 			auto c = summ.item(evt.item);
 			string buf = c is null ? .format("存在しないアイテムカード(ID:%d)", evt.item) : "アイテムカード「" ~ c.name ~ "」";
 			buf ~= "を喪失(";
-			buf ~= range(evt.range) ~ "から";
+			buf ~= rangeName(evt.range) ~ "から";
 			buf ~= evt.cardNumber == 0 ? "全て" : to!(string)(evt.cardNumber) ~ "枚";
 			buf ~= ")";
 			return buf;
@@ -1105,7 +1105,7 @@ public:
 			auto c = summ.skill(evt.skill);
 			string buf = c is null ? .format("存在しない特殊技能カード(ID:%d)", evt.skill) : "特殊技能カード「" ~ c.name ~ "」";
 			buf ~= "を喪失(";
-			buf ~= range(evt.range) ~ "から";
+			buf ~= rangeName(evt.range) ~ "から";
 			buf ~= evt.cardNumber == 0 ? "全て" : to!(string)(evt.cardNumber) ~ "枚";
 			buf ~= ")";
 			return buf;
@@ -1118,7 +1118,7 @@ public:
 			auto c = summ.beast(evt.beast);
 			string buf = c is null ? .format("存在しない召喚獣カード(ID:%d)", evt.beast) : "召喚獣カード「" ~ c.name ~ "」";
 			buf ~= "を喪失(";
-			buf ~= range(evt.range) ~ "から";
+			buf ~= rangeName(evt.range) ~ "から";
 			buf ~= evt.cardNumber == 0 ? "全て" : to!(string)(evt.cardNumber) ~ "枚";
 			buf ~= ")";
 			return buf;
@@ -1128,7 +1128,7 @@ public:
 			if (evt.coupon is null || evt.coupon.length == 0) {
 				return "指定無し";
 			} else {
-				return "称号「" ~ evt.coupon ~ "」を喪失(" ~ range(evt.range) ~ ")";
+				return "称号「" ~ evt.coupon ~ "」を喪失(" ~ rangeName(evt.range) ~ ")";
 			}
 		} case CType.LOSE_COMPLETE_STAMP: {
 			return evt.completeStamp is null || evt.completeStamp.length == 0 ? "指定無し" : "シナリオ「" ~ evt.completeStamp ~ "」の終了印を削除";
@@ -1144,7 +1144,7 @@ public:
 		}
 	}
 
-	const string defaultStartName() {return "イベント開始";}
+	@property const string defaultStartName() {return "イベント開始";}
 
 	/// メインウィンドウ。
 	const string mainWindowName(string name, string path, bool changed) {
@@ -1163,10 +1163,10 @@ public:
 	}
 
 	/// シナリオ選択ダイアログ
-	const string dlgTitNewScenario() {return "新規シナリオの作成";}
+	@property const string dlgTitNewScenario() {return "新規シナリオの作成";}
 	const string createError(string path) {return path ~ "でシナリオの作成に失敗しました。";}
-	const string dlgTitOpenScenario() {return "シナリオを開く";}
-	const string[] filterScenario() {
+	@property const string dlgTitOpenScenario() {return "シナリオを開く";}
+	@property const string[] filterScenario() {
 		string[] r;
 		if (canUncab) {
 			r ~= "シナリオファイル (*.wsn;Summary.xml;*.cab;*.zip;Summary.wsm)";
@@ -1176,13 +1176,13 @@ public:
 		r ~= "エリア・カードファイル (*.xml;*.wid)";
 		return r;
 	}
-	const string dlgTitSaveScenario() {return "名前を付けて保存";}
-	const string filterScenarioSave() {return "XMLシナリオファイル (*.wsn)";}
+	@property const string dlgTitSaveScenario() {return "名前を付けて保存";}
+	@property const string filterScenarioSave() {return "XMLシナリオファイル (*.wsn)";}
 	const string notScenario(string name) {return name ~ "はシナリオ圧縮ファイルではありません";}
 	const string zipError(string name) {return name ~ "の展開に失敗しました。";}
 	const string loadError(string name) {return name ~ "の読込みに失敗しました。";}
 	const string saveError(string name) {return name ~ "の保存に失敗しました。";}
-	const string dlgTitUnzip() {return "圧縮ファイルの展開 - CWXEditor";}
+	@property const string dlgTitUnzip() {return "圧縮ファイルの展開 - CWXEditor";}
 	const string unzip(string name) {return name ~ "を展開しています……";}
 	const string loadErrorStatus(string name) {return name ~ "の読込みに失敗";}
 	const string loadErrorStatus(in string[] name) {
@@ -1254,28 +1254,28 @@ public:
 		}
 		return r;
 	}
-	const string scenarioView() {return "シナリオビューリスト";}
-	const string variableView() {return "状態変数インスペクタ";}
-	const string ttSummary() {return "シナリオの設定";}
-	const string ttNewArea() {return "エリアの作成";}
-	const string ttNewBattle() {return "バトルの作成";}
-	const string ttNewPackage() {return "パッケージの作成";}
+	@property const string scenarioView() {return "シナリオビューリスト";}
+	@property const string variableView() {return "状態変数インスペクタ";}
+	@property const string ttSummary() {return "シナリオの設定";}
+	@property const string ttNewArea() {return "エリアの作成";}
+	@property const string ttNewBattle() {return "バトルの作成";}
+	@property const string ttNewPackage() {return "パッケージの作成";}
 
-	const string menuSummary() {return ttSummary ~ "(&S)...";}
-	const string menuNewArea() {return ttNewArea ~ "(&A)";}
-	const string menuNewBattle() {return ttNewBattle ~ "(&B)";}
-	const string menuNewPackage() {return ttNewPackage ~ "(&K)";}
+	@property const string menuSummary() {return ttSummary ~ "(&S)...";}
+	@property const string menuNewArea() {return ttNewArea ~ "(&A)";}
+	@property const string menuNewBattle() {return ttNewBattle ~ "(&B)";}
+	@property const string menuNewPackage() {return ttNewPackage ~ "(&K)";}
 
-	const string ttReNumberingAll() {return "全てのIDを1から振り直す";}
-	const string menuReNumberingAll() {return ttReNumberingAll ~ "(&A)";}
-	const string reNumberingAll() {
+	@property const string ttReNumberingAll() {return "全てのIDを1から振り直す";}
+	@property const string menuReNumberingAll() {return ttReNumberingAll ~ "(&A)";}
+	@property const string reNumberingAll() {
 		return "全てのエリアやカードのIDの1から振り直します。\nよろしいですか？";
 	}
 
-	const string ttReNumbering() {return "IDの振り直し";}
-	const string menuReNumbering() {return ttReNumbering ~ "(&N)";}
-	const string dlgTitReNumbering() {return "IDの振り直し";}
-	const string reNumbering() {return "IDの振り直し";}
+	@property const string ttReNumbering() {return "IDの振り直し";}
+	@property const string menuReNumbering() {return ttReNumbering ~ "(&N)";}
+	@property const string dlgTitReNumbering() {return "IDの振り直し";}
+	@property const string reNumbering() {return "IDの振り直し";}
 	const string reNumbering1(in Card card, ulong min, ulong max) {
 		string buf;
 		if (cast(CastCard) card) {
@@ -1312,44 +1312,44 @@ public:
 	}
 
 	/// エリアのテーブル。
-	const string areaId() {return "ID";}
-	const string areaName() {return "名称";}
-	const string areaCount() {return "利用数";}
-	const string areaNew() {return "新規エリア";}
-	const string battleNew() {return "新規バトル";}
-	const string packageNew() {return "新規パッケージ";}
-	const string ttEditScene() {return "シーンビューを開く";}
-	const string menuEditScene() {return ttEditScene ~ "(&S)\tF3";}
-	const string ttEditEvent() {return "イベントビューを開く";}
-	const string menuEditEvent() {return ttEditEvent ~ "(&E)\tF4";}
+	@property const string areaId() {return "ID";}
+	@property const string areaName() {return "名称";}
+	@property const string areaCount() {return "利用数";}
+	@property const string areaNew() {return "新規エリア";}
+	@property const string battleNew() {return "新規バトル";}
+	@property const string packageNew() {return "新規パッケージ";}
+	@property const string ttEditScene() {return "シーンビューを開く";}
+	@property const string menuEditScene() {return ttEditScene ~ "(&S)\tF3";}
+	@property const string ttEditEvent() {return "イベントビューを開く";}
+	@property const string menuEditEvent() {return ttEditEvent ~ "(&E)\tF4";}
 
 	/// フラグのディレクトリ。
-	const string flagDirRoot() {return "Data";}
-	const string flagDirNew() {return "新規フォルダ";}
-	const string ttNewFlagDir() {return "フォルダの作成";}
-	const string menuNewFlagDir() {return ttNewFlagDir ~ "(&N)...";}
-	const int menuNewDirA() {return -1;}
+	@property const string flagDirRoot() {return "Data";}
+	@property const string flagDirNew() {return "新規フォルダ";}
+	@property const string ttNewFlagDir() {return "フォルダの作成";}
+	@property const string menuNewFlagDir() {return ttNewFlagDir ~ "(&N)...";}
+	@property const int menuNewDirA() {return -1;}
 
 	/// フラグ/ステップのテーブル。
-	const string flagName() {return "名称";}
-	const string flagInit() {return "初期値";}
-	const string flagCount() {return "利用数";}
-	const string ttNewFlag() {return "フラグの作成";}
-	const string menuNewFlag() {return ttNewFlag ~ "(&F)..." ~ "\tCtrl+L";}
-	const string ttNewStep() {return "ステップの作成";}
-	const string menuNewStep() {return ttNewStep ~ "(&S)..." ~ "\tCtrl+P";}
+	@property const string flagName() {return "名称";}
+	@property const string flagInit() {return "初期値";}
+	@property const string flagCount() {return "利用数";}
+	@property const string ttNewFlag() {return "フラグの作成";}
+	@property const string menuNewFlag() {return ttNewFlag ~ "(&F)..." ~ "\tCtrl+L";}
+	@property const string ttNewStep() {return "ステップの作成";}
+	@property const string menuNewStep() {return ttNewStep ~ "(&S)..." ~ "\tCtrl+P";}
 
 	/// フラグ設定ダイアログ関連。
-	const string dlgTitFlag() {return "フラグの設定";}
-	const string dlgLblFlagName() {return "フラグ名";}
-	const string dlgLblFlagInit() {return "初期値";}
-	const string dlgLblFlagTrue() {return "TRUE";}
-	const string dlgLblFlagFalse() {return "FALSE";}
+	@property const string dlgTitFlag() {return "フラグの設定";}
+	@property const string dlgLblFlagName() {return "フラグ名";}
+	@property const string dlgLblFlagInit() {return "初期値";}
+	@property const string dlgLblFlagTrue() {return "TRUE";}
+	@property const string dlgLblFlagFalse() {return "FALSE";}
 
 	/// ステップ設定ダイアログ関連。
-	const string dlgTitStep() {return "ステップの設定";}
-	const string dlgLblStepName() {return "ステップ名";}
-	const string dlgLblStepInit() {return "初期値";}
+	@property const string dlgTitStep() {return "ステップの設定";}
+	@property const string dlgLblStepName() {return "ステップ名";}
+	@property const string dlgLblStepInit() {return "初期値";}
 	const string dlgLblStep(uint index) {return dlgTxtStep(index);}
 	const string dlgTxtStep(uint index) {
 		return "Step - " ~ to!(string)(index);
@@ -1357,10 +1357,10 @@ public:
 
 	/// 貼り紙設定ダイアログ関連。
 	const string dlgTitSummary(string sname) {return "概略の設定 - [ " ~ sname ~ " ]";}
-	const string summaryImage() {return "表示イメージ";}
-	const string baseData() {return "基本データ";}
-	const string etcData() {return "詳細データ";}
-	const string targetLevel(uint levL, uint levH) {
+	@property const string summaryImage() {return "表示イメージ";}
+	@property const string baseData() {return "基本データ";}
+	@property const string etcData() {return "詳細データ";}
+	const string targetLevelText(uint levL, uint levH) {
 		if (levL > 0 && levL == levH) {
 			return "対象レベル " ~ to!(string)(levL);
 		} else if (levL > 0 && levH > 0) {
@@ -1373,22 +1373,22 @@ public:
 			return "";
 		}
 	}
-	const string summaryPageDummy() {return "1/1";}
-	const string title() {return "シナリオタイトル";}
-	const string author() {return "作者名";}
-	const string targetLevel() {return "対象レベル";}
-	const string desc() {return "解説";}
-	const string levSep() {return "～";}
-	const string qualification() {return "シナリオ出現条件";}
-	const string rCouponNum() {return "必要数";}
-	const string rCoupons() {return "必要とする称号";}
-	const string startArea() {return "シナリオ開始エリア";}
+	@property const string summaryPageDummy() {return "1/1";}
+	@property const string title() {return "シナリオタイトル";}
+	@property const string author() {return "作者名";}
+	@property const string targetLevel() {return "対象レベル";}
+	@property const string desc() {return "解説";}
+	@property const string levSep() {return "～";}
+	@property const string qualification() {return "シナリオ出現条件";}
+	@property const string rCouponNum() {return "必要数";}
+	@property const string rCoupons() {return "必要とする称号";}
+	@property const string startArea() {return "シナリオ開始エリア";}
 
-	const string scenarioType() {return "シナリオタイプ";}
-	const string sTypeXML() {
+	@property const string scenarioType() {return "シナリオタイプ";}
+	@property const string sTypeXML() {
 		return "スキンを指定";
 	}
-	const string sTypeClassic() {
+	@property const string sTypeClassic() {
 		return "クラシックエンジンを使用";
 	}
 	const string currentEngineSkin(string lEnginePath) {
@@ -1396,57 +1396,57 @@ public:
 	}
 
 	/// エリア・戦闘・パッケージウィンドウ。
-	const string ttUp() {return "上へ";}
-	const string menuUp() {return ttUp ~ "(&U)" ~ "\tCtrl+Arrow_Up";}
-	const string ttDown() {return "下へ";}
-	const string menuDown() {return ttDown ~ "(&D)" ~ "\tCtrl+Arrow_Down";}
-	const string menuCardsAndBacks() {return "カードと背景" ~ "(&A)";}
-	const string ttViewParty() {return "パーティカードの表示";}
-	const string menuViewParty() {return ttViewParty ~ "(&P)";}
-	const string ttViewMsg() {return "メッセージ枠の表示";}
-	const string menuViewMsg() {return ttViewMsg ~ "(&M)";}
-	const string ttFixed() {return "イメージの固定";}
-	const string menuFixed() {return ttFixed ~ "(&F)";}
-	const string ttEnemyCardDebugView() {return "レベルとライフを表示";}
-	const string menuEnemyCardDebugView() {return ttEnemyCardDebugView ~ "(&L)";}
-	const string ttViewCards() {return "カードの表示";}
-	const string menuViewCards() {return ttViewCards ~ "(&V)";}
-	const string ttViewBacks() {return "背景の表示";}
-	const string menuViewBacks() {return ttViewBacks ~ "(&I)";}
-	const string ttNewMenuCard() {return "メニューカードの作成";}
-	const string menuNewMenuCard() {return ttNewMenuCard ~ "(&C)...";}
-	const string ttNewEnemyCard() {return "エネミーカードの作成";}
-	const string menuNewEnemyCard() {return ttNewEnemyCard ~ "(&C)...";}
-	const string ttNewBack() {return "背景の作成";}
-	const string menuNewBack() {return ttNewBack ~ "(&B)...";}
-	const string ttAuto() {return "カードを自動的に並べる";}
-	const string menuAuto() {return ttAuto ~ "(&A)";}
-	const string ttCustom() {return "カードの位置を自分で決定する";}
-	const string menuCustom() {return ttCustom ~ "(&U)";}
-	const string ttMask() {return "透明色を使用";}
-	const string menuMask() {return ttMask ~ "(&M)";}
-	const string ttDoEscape() {return "逃走の有無";}
-	const string menuDoEscape() {return ttMask ~ "(&E)";}
-	const string noRefArea() {return "[カード配置参照無し]";}
-	const string areaViewFlagDesc() {return "フラグ";}
-	const string areaViewRefAreaDesc() {return "参照";}
+	@property const string ttUp() {return "上へ";}
+	@property const string menuUp() {return ttUp ~ "(&U)" ~ "\tCtrl+Arrow_Up";}
+	@property const string ttDown() {return "下へ";}
+	@property const string menuDown() {return ttDown ~ "(&D)" ~ "\tCtrl+Arrow_Down";}
+	@property const string menuCardsAndBacks() {return "カードと背景" ~ "(&A)";}
+	@property const string ttViewParty() {return "パーティカードの表示";}
+	@property const string menuViewParty() {return ttViewParty ~ "(&P)";}
+	@property const string ttViewMsg() {return "メッセージ枠の表示";}
+	@property const string menuViewMsg() {return ttViewMsg ~ "(&M)";}
+	@property const string ttFixed() {return "イメージの固定";}
+	@property const string menuFixed() {return ttFixed ~ "(&F)";}
+	@property const string ttEnemyCardDebugView() {return "レベルとライフを表示";}
+	@property const string menuEnemyCardDebugView() {return ttEnemyCardDebugView ~ "(&L)";}
+	@property const string ttViewCards() {return "カードの表示";}
+	@property const string menuViewCards() {return ttViewCards ~ "(&V)";}
+	@property const string ttViewBacks() {return "背景の表示";}
+	@property const string menuViewBacks() {return ttViewBacks ~ "(&I)";}
+	@property const string ttNewMenuCard() {return "メニューカードの作成";}
+	@property const string menuNewMenuCard() {return ttNewMenuCard ~ "(&C)...";}
+	@property const string ttNewEnemyCard() {return "エネミーカードの作成";}
+	@property const string menuNewEnemyCard() {return ttNewEnemyCard ~ "(&C)...";}
+	@property const string ttNewBack() {return "背景の作成";}
+	@property const string menuNewBack() {return ttNewBack ~ "(&B)...";}
+	@property const string ttAuto() {return "カードを自動的に並べる";}
+	@property const string menuAuto() {return ttAuto ~ "(&A)";}
+	@property const string ttCustom() {return "カードの位置を自分で決定する";}
+	@property const string menuCustom() {return ttCustom ~ "(&U)";}
+	@property const string ttMask() {return "透明色を使用";}
+	@property const string menuMask() {return ttMask ~ "(&M)";}
+	@property const string ttDoEscape() {return "逃走の有無";}
+	@property const string menuDoEscape() {return ttMask ~ "(&E)";}
+	@property const string noRefArea() {return "[カード配置参照無し]";}
+	@property const string areaViewFlagDesc() {return "フラグ";}
+	@property const string areaViewRefAreaDesc() {return "参照";}
 
-	const string menuPosTop() {return "上に揃える" ~ "(&U)";}
-	const string menuPosBottom() {return "下に揃える" ~ "(&D)";}
-	const string menuPosLeft() {return "左に揃える" ~ "(&L)";}
-	const string menuPosRight() {return "右に揃える" ~ "(&R)";}
-	const string menuPosEven() {return "等間隔に並べる" ~ "(&E)";}
-	const string menuScaleMin() {return "最小のカードスケール" ~ "(&S)";}
-	const string menuScaleMiddle() {return "標準のカードスケール" ~ "(&I)";}
-	const string menuScaleMax() {return "最大のカードスケール" ~ "(&G)";}
-	const string menuScaleEvenBig() {return "大きく揃える" ~ "(&L)";}
-	const string menuScaleEvenSmall() {return "小さく揃える" ~ "(&N)";}
+	@property const string menuPosTop() {return "上に揃える" ~ "(&U)";}
+	@property const string menuPosBottom() {return "下に揃える" ~ "(&D)";}
+	@property const string menuPosLeft() {return "左に揃える" ~ "(&L)";}
+	@property const string menuPosRight() {return "右に揃える" ~ "(&R)";}
+	@property const string menuPosEven() {return "等間隔に並べる" ~ "(&E)";}
+	@property const string menuScaleMin() {return "最小のカードスケール" ~ "(&S)";}
+	@property const string menuScaleMiddle() {return "標準のカードスケール" ~ "(&I)";}
+	@property const string menuScaleMax() {return "最大のカードスケール" ~ "(&G)";}
+	@property const string menuScaleEvenBig() {return "大きく揃える" ~ "(&L)";}
+	@property const string menuScaleEvenSmall() {return "小さく揃える" ~ "(&N)";}
 
-	const string left() {return "X";}
-	const string top() {return "Y";}
-	const string width() {return "幅";}
-	const string height() {return "高";}
-	const string scale() {return "拡大率";}
+	@property const string left() {return "X";}
+	@property const string top() {return "Y";}
+	@property const string width() {return "幅";}
+	@property const string height() {return "高";}
+	@property const string scale() {return "拡大率";}
 
 	const string areaViewStatus(Summary summ, AbstractSpCard[] cards, BgImage[] backs, bool useFlag) {
 		if (cards.length == 1 && backs.length == 0 && useFlag) {
@@ -1459,7 +1459,7 @@ public:
 			}
 			auto enemy = cast(EnemyCard) cards[0];
 			if (enemy && summ) {
-				auto casts = summ.casts(enemy.id);
+				auto casts = summ.cwCast(enemy.id);
 				return "エネミーカード [" ~ (casts ? (to!(string)(enemy.id) ~ "." ~  casts.name) : "対象無し") ~ flag;
 			}
 		} else if (cards.length == 0 && backs.length == 1 && useFlag) {
@@ -1511,7 +1511,7 @@ public:
 	const string handCardsTab(ulong id, string name) {
 		return __viewNameTab(id, name);
 	}
-	const string cardCount() {return "使用数";}
+	@property const string cardCount() {return "使用数";}
 	const string addCardWindow(string name, string path) {
 		return "カードのインポート - [ " ~ name ~ " ] - " ~ path;
 	}
@@ -1519,91 +1519,91 @@ public:
 		return name;
 	}
 
-	const string cardAndBackView() {return "カードと背景";}
-	const string enemyCardView() {return "エネミーカード";}
-	const string menuCards() {return "カード";}
-	const string enemyCards() {return "カード";}
-	const string backs() {return "背景";}
-	const string eventView() {return "イベント";}
+	@property const string cardAndBackView() {return "カードと背景";}
+	@property const string enemyCardView() {return "エネミーカード";}
+	@property const string menuCards() {return "カード";}
+	@property const string enemyCards() {return "カード";}
+	@property const string backs() {return "背景";}
+	@property const string eventView() {return "イベント";}
 	/// カード/背景配置領域関連。
-	const string dlgTitDropCard() {return "カード画像の追加";}
+	@property const string dlgTitDropCard() {return "カード画像の追加";}
 	const string dlgMsgDropCard(string fname) {
 		return "カード画像をシナリオ" ~ DIR ~ "にコピーしますか？\n" ~ fname;
 	}
-	const string dlgTitDropBack() {return "背景画像の追加";}
+	@property const string dlgTitDropBack() {return "背景画像の追加";}
 	const string dlgMsgDropBack(string fname) {
 		return "背景画像をシナリオ" ~ DIR ~ "にコピーしますか？\n" ~ fname;
 	}
 
-	const string refFlag() {return "フラグ参照先";}
-	const string refStep() {return "ステップ参照先";}
-	const string noFlag() {return "[参照無し]";}
-	const string cardPosition() {return "カード位置";}
-	const string backPosition() {return "位置";}
-	const string bgImageSettings() {return "簡単設定";}
-	const string bgImageSettingCustom() {return "[カスタム]";}
-	const string bgImageSettingOriginal() {return "[元のサイズ]";}
-	const string enemyCardBase() {return "基本設定";}
+	@property const string refFlag() {return "フラグ参照先";}
+	@property const string refStep() {return "ステップ参照先";}
+	@property const string noFlag() {return "[参照無し]";}
+	@property const string cardPosition() {return "カード位置";}
+	@property const string backPosition() {return "位置";}
+	@property const string bgImageSettings() {return "簡単設定";}
+	@property const string bgImageSettingCustom() {return "[カスタム]";}
+	@property const string bgImageSettingOriginal() {return "[元のサイズ]";}
+	@property const string enemyCardBase() {return "基本設定";}
 	const string dlgTitMenuCard(string name) {return "メニューカードの設定 [ " ~ name ~ " ]";}
-	const string dlgTitNewMenuCard() {return "メニューカードの作成";}
-	const string dlgTitBgImage() {return "背景画像の設定";}
-	const string dlgTitNewBgImage() {return "背景画像の作成";}
+	@property const string dlgTitNewMenuCard() {return "メニューカードの作成";}
+	@property const string dlgTitBgImage() {return "背景画像の設定";}
+	@property const string dlgTitNewBgImage() {return "背景画像の作成";}
 	const string dlgTitEnemyCard(string name) {return "エネミーカードの設定 [ " ~ name ~ " ]";}
-	const string dlgTitNewEnemyCard() {return "エネミーカードの作成";}
+	@property const string dlgTitNewEnemyCard() {return "エネミーカードの作成";}
 	const string stopBGM(string playingFile) {return baseName(playingFile) ~ "の再生を停止";}
-	const string playBGM() {return "再生";}
+	@property const string playBGM() {return "再生";}
 	const string menuStopBGM(string playingFile) {return stopBGM(playingFile) ~ "(&P)";}
-	const string menuPlayBGM() {return playBGM ~ "(&P)";}
+	@property const string menuPlayBGM() {return playBGM ~ "(&P)";}
 
 	/// イベントビュー。
-	const string tools() {return "イベントコンテント";}
-	const string startEnter() {return "到着";}
-	const string startSelect() {return "クリック";}
-	const string startDead() {return "死亡";}
-	const string startVictory() {return "勝利";}
-	const string startEscape() {return "逃走";}
-	const string startLose() {return "敗北";}
-	const string startPackage() {return "パッケージ";}
-	const string startUse() {return "使用時";}
+	@property const string tools() {return "イベントコンテント";}
+	@property const string startEnter() {return "到着";}
+	@property const string startSelect() {return "クリック";}
+	@property const string startDead() {return "死亡";}
+	@property const string startVictory() {return "勝利";}
+	@property const string startEscape() {return "逃走";}
+	@property const string startLose() {return "敗北";}
+	@property const string startPackage() {return "パッケージ";}
+	@property const string startUse() {return "使用時";}
 	const string startRound(uint round) {return "ラウンド = " ~ to!(string)(round);}
-	const string keyCodeTimingUse() {return "使用";}
-	const string keyCodeTimingSuccess() {return "成功";}
-	const string keyCodeTimingFailure() {return "失敗";}
-	const string menuKeyCodeTiming() {return "キーコード発火タイミング(&K)";}
-	const string menuKeyCodeTimingUse() {return "使用(&U)";}
-	const string menuKeyCodeTimingSuccess() {return "成功(&S)";}
-	const string menuKeyCodeTimingFailure() {return "失敗(&F)";}
+	@property const string keyCodeTimingUse() {return "使用";}
+	@property const string keyCodeTimingSuccess() {return "成功";}
+	@property const string keyCodeTimingFailure() {return "失敗";}
+	@property const string menuKeyCodeTiming() {return "キーコード発火タイミング(&K)";}
+	@property const string menuKeyCodeTimingUse() {return "使用(&U)";}
+	@property const string menuKeyCodeTimingSuccess() {return "成功(&S)";}
+	@property const string menuKeyCodeTimingFailure() {return "失敗(&F)";}
 
-	const string menuAddManyRounds() {return "複数のラウンドを追加";}
-	const string manyRounds() {return "追加する発火ラウンドの範囲";}
-	const string dlgTitAddManyRounds() {return "追加する発火ラウンドの範囲";}
-	const string roundSep() {return "～";}
+	@property const string menuAddManyRounds() {return "複数のラウンドを追加";}
+	@property const string manyRounds() {return "追加する発火ラウンドの範囲";}
+	@property const string dlgTitAddManyRounds() {return "追加する発火ラウンドの範囲";}
+	@property const string roundSep() {return "～";}
 
-	const string enterTree() {return "到着";}
-	const string selectTree() {return "クリック";}
-	const string deadTree() {return "死亡";}
-	const string victoryTree() {return "勝利";}
-	const string escapeTree() {return "逃走";}
-	const string loseTree() {return "敗北";}
-	const string packageTree() {return "パッケージイベント";}
-	const string useTree() {return "使用時イベント";}
+	@property const string enterTree() {return "到着";}
+	@property const string selectTree() {return "クリック";}
+	@property const string deadTree() {return "死亡";}
+	@property const string victoryTree() {return "勝利";}
+	@property const string escapeTree() {return "逃走";}
+	@property const string loseTree() {return "敗北";}
+	@property const string packageTree() {return "パッケージイベント";}
+	@property const string useTree() {return "使用時イベント";}
 	const string keyCodeTree(string keyCode) {return "[" ~ keyCode ~ "]";}
 	const string roundTree(uint round) {return "ラウンド" ~ to!(string)(round);}
 
-	const string ttNewEventTree() {return "イベントの作成";}
-	const string ttNewEventFire() {return "イベント発火条件の作成";}
-	const string ttNewTreeOpen() {return "全コンテントツリーを開く";}
-	const string ttNewTreeClose() {return "全コンテントツリーを閉じる";}
-	const string eventTreeKindSystem() {return "システム";}
-	const string eventTreeKindKeyCode() {return "キーコード";}
-	const string eventTreeKindRound() {return "ラウンド";}
+	@property const string ttNewEventTree() {return "イベントの作成";}
+	@property const string ttNewEventFire() {return "イベント発火条件の作成";}
+	@property const string ttNewTreeOpen() {return "全コンテントツリーを開く";}
+	@property const string ttNewTreeClose() {return "全コンテントツリーを閉じる";}
+	@property const string eventTreeKindSystem() {return "システム";}
+	@property const string eventTreeKindKeyCode() {return "キーコード";}
+	@property const string eventTreeKindRound() {return "ラウンド";}
 
-	const string startUseCount() {return "利用数";}
+	@property const string startUseCount() {return "利用数";}
 
-	const string evtChildTrue() {return "○";}
-	const string evtChildFalse() {return "×";}
-	const string evtChildDefault() {return "Default";}
-	const string evtChildOK() {return "ＯＫ";}
+	@property const string evtChildTrue() {return "○";}
+	@property const string evtChildFalse() {return "×";}
+	@property const string evtChildDefault() {return "Default";}
+	@property const string evtChildOK() {return "ＯＫ";}
 
 	const string evtChildBrFlag(in Flag flag, ref string text) {
 		bool val = (text != evtChildFalse);
@@ -1651,8 +1651,8 @@ public:
 	const string evtChildBrPower(Target targ, Physical p, Mental m, int lev, ref string text) {
 		bool val = (text != evtChildFalse);
 		text = val ? evtChildTrue : evtChildFalse;
-		return target(targ) ~ "がレベル" ~ to!(string)(lev) ~ "で"
-			~ physical(p) ~ "と" ~ mental(m) ~ "で行う判定に" ~ (val ? "成功" : "失敗");
+		return targetName(targ) ~ "がレベル" ~ to!(string)(lev) ~ "で"
+			~ physicalName(p) ~ "と" ~ mentalName(m) ~ "で行う判定に" ~ (val ? "成功" : "失敗");
 	}
 	const string evtChildBrRandom(int percent, ref string text) {
 		bool val = (text != evtChildFalse);
@@ -1668,7 +1668,7 @@ public:
 	const string evtChildBrState(Target targ, Status stat, ref string text) {
 		bool val = (text != evtChildFalse);
 		text = val ? evtChildTrue : evtChildFalse;
-		return target(targ) ~ "での「" ~ status(stat) ~ "」" ~ "の判定に"
+		return targetName(targ) ~ "での「" ~ statusName(stat) ~ "」" ~ "の判定に"
 			~ (val ? "成功" : "失敗");
 	}
 	const string evtChildBrNum(int num, ref string text) {
@@ -1721,17 +1721,17 @@ public:
 	const string evtChildBrItem(in ItemCard c, Range r, uint num, ref string text) {
 		bool val = (text != evtChildFalse);
 		text = val ? evtChildTrue : evtChildFalse;
-		return range(r) ~ "で「" ~ (c is null ? "指定無し" : c.name) ~ "」を所有して" ~ (val ? "いる" : "いない");
+		return rangeName(r) ~ "で「" ~ (c is null ? "指定無し" : c.name) ~ "」を所有して" ~ (val ? "いる" : "いない");
 	}
 	const string evtChildBrSkill(in SkillCard c, Range r, uint num, ref string text) {
 		bool val = (text != evtChildFalse);
 		text = val ? evtChildTrue : evtChildFalse;
-		return range(r) ~ "で「" ~ (c is null ? "指定無し" : c.name) ~ "」を所有して" ~ (val ? "いる" : "いない");
+		return rangeName(r) ~ "で「" ~ (c is null ? "指定無し" : c.name) ~ "」を所有して" ~ (val ? "いる" : "いない");
 	}
 	const string evtChildBrBeast(in BeastCard c, Range r, uint num, ref string text) {
 		bool val = (text != evtChildFalse);
 		text = val ? evtChildTrue : evtChildFalse;
-		return range(r) ~ "で「" ~ (c is null ? "指定無し" : c.name) ~ "」を所有して" ~ (val ? "いる" : "いない");
+		return rangeName(r) ~ "で「" ~ (c is null ? "指定無し" : c.name) ~ "」を所有して" ~ (val ? "いる" : "いない");
 	}
 	const string evtChildBrInfo(in InfoCard c, ref string text) {
 		bool val = (text != evtChildFalse);
@@ -1746,7 +1746,7 @@ public:
 	const string evtChildBrCoupon(Range r, string coupon, ref string text) {
 		bool val = (text != evtChildFalse);
 		text = val ? evtChildTrue : evtChildFalse;
-		return range(r) ~ "がクーポン「" ~ coupon ~ "」を所有して" ~ (val ? "いる" : "いない");
+		return rangeName(r) ~ "がクーポン「" ~ coupon ~ "」を所有して" ~ (val ? "いる" : "いない");
 	}
 	const string evtChildBrEnd(string scenario, ref string text) {
 		bool val = (text != evtChildFalse);
@@ -1758,7 +1758,7 @@ public:
 		text = val ? evtChildTrue : evtChildFalse;
 		return "クーポン「" ~ gossip ~ "」が宿屋に" ~ (val ? "ある" : "無い");
 	}
-	const string physical(Physical p) {
+	const string physicalName(Physical p) {
 		final switch (p) {
 		case Physical.DEX:
 			return "器用度";
@@ -1774,7 +1774,7 @@ public:
 			return "精神力";
 		}
 	}
-	const string mental(Mental m) {
+	const string mentalName(Mental m) {
 		final switch (m) {
 		case Mental.AGGRESSIVE:
 			return "好戦性";
@@ -1798,7 +1798,7 @@ public:
 			return "正直性";
 		}
 	}
-	const string status(Status stat) {
+	const string statusName(Status stat) {
 		final switch (stat) {
 		case Status.ACTIVE:
 			return "行動可能";
@@ -1870,8 +1870,8 @@ public:
 			return "双方";
 		}
 	}
-	const string cardTargetOne() {return "一体";}
-	const string cardTargetAll() {return "全体";}
+	@property const string cardTargetOne() {return "一体";}
+	@property const string cardTargetAll() {return "全体";}
 	const string cardVisual(CardVisual vis) {
 		final switch (vis) {
 		case CardVisual.NONE:
@@ -1906,10 +1906,10 @@ public:
 			return "防御";
 		}
 	}
-	const string mentality() {
+	@property const string mentality() {
 		return "精神状態";
 	}
-	const string mentality(Mentality m) {
+	const string mentalityName(Mentality m) {
 		final switch (m) {
 		case Mentality.NORMAL: return "正常";
 		case Mentality.SLEEP: return "睡眠";
@@ -1923,22 +1923,22 @@ public:
 	const string enhanceBonus(Enhance r) {
 		return enhance(r) ~ "ボーナス";
 	}
-	const string statusActive() {
+	@property const string statusActive() {
 		return "※ 行動可能 = (健康 | 負傷 | 重傷 | 中毒)";
 	}
-	const string statusInactive() {
+	@property const string statusInactive() {
 		return "※ 行動不可 = (意識不明 | 麻痺/石化 | 呪縛 | 眠り)";
 	}
-	const string statusAlive() {
+	@property const string statusAlive() {
 		return "※ 生存 = (健康 | 負傷 | 重傷 | 中毒 | 呪縛 | 眠り)";
 	}
-	const string statusDead() {
+	@property const string statusDead() {
 		return "※ 非生存 = (意識不明 | 麻痺/石化)";
 	}
-	const string target(Target targ) {
-		return target(targ.m);
+	const string targetName(Target targ) {
+		return targetName(targ.m);
 	}
-	const string target(Target.M m) {
+	const string targetName(Target.M m) {
 		final switch (m) {
 		case Target.M.SELECTED:
 			return "選択中のメンバ";
@@ -1950,7 +1950,7 @@ public:
 			return "パーティ全員";
 		}
 	}
-	const string talker(Talker talker) {
+	const string talkerName(Talker talker) {
 		final switch (talker) {
 		case Talker.SELECTED:
 			return "[選択中]";
@@ -1966,7 +1966,7 @@ public:
 			return "[画像]";
 		}
 	}
-	const string range(Range r) {
+	const string rangeName(Range r) {
 		final switch (r) {
 		case Range.SELECTED:
 			return "現在選択中のメンバ";
@@ -1992,7 +1992,7 @@ public:
 			return "最大値処理";
 		}
 	}
-	const string element(Element el) {
+	const string elementName(Element el) {
 		final switch (el) {
 		case Element.ALL:
 			return "全";
@@ -2017,24 +2017,24 @@ public:
 		case Sex.FEMALE: return "女/♀";
 		}
 	}
-	const string sexUnknown() {return "謎/？";}
-	const string periodUnknown() {return "不明";}
-	const string natureUnknown() {return "その他";}
+	@property const string sexUnknown() {return "謎/？";}
+	@property const string periodUnknown() {return "不明";}
+	@property const string natureUnknown() {return "その他";}
 
-	const string ttOpenTableView() {return "テーブルビューで開く";}
-	const string menuOpenTableView() {return ttOpenTableView ~ "(&V)";}
-	const string ttOpenFlagView() {return "フラグビューで開く";}
-	const string menuOpenFlagView() {return ttOpenFlagView ~ "(&V)";}
-	const string ttOpenCardView() {return "カードビューで開く";}
-	const string menuOpenCardView() {return ttOpenCardView ~ "(&V)";}
-	const string ttOpenFileView() {return "ファイルビューで開く";}
-	const string menuOpenFileView() {return ttOpenFileView ~ "(&V)";}
-	const string ttOpenEventTreeView() {return "イベントビューで開く";}
-	const string menuOpenEventTreeView() {return ttOpenEventTreeView ~ "(&V)";}
+	@property const string ttOpenTableView() {return "テーブルビューで開く";}
+	@property const string menuOpenTableView() {return ttOpenTableView ~ "(&V)";}
+	@property const string ttOpenFlagView() {return "フラグビューで開く";}
+	@property const string menuOpenFlagView() {return ttOpenFlagView ~ "(&V)";}
+	@property const string ttOpenCardView() {return "カードビューで開く";}
+	@property const string menuOpenCardView() {return ttOpenCardView ~ "(&V)";}
+	@property const string ttOpenFileView() {return "ファイルビューで開く";}
+	@property const string menuOpenFileView() {return ttOpenFileView ~ "(&V)";}
+	@property const string ttOpenEventTreeView() {return "イベントビューで開く";}
+	@property const string menuOpenEventTreeView() {return ttOpenEventTreeView ~ "(&V)";}
 
-	const string ttWriteComment() {return "コメントを記述";}
-	const string menuWriteComment() {return ttWriteComment ~ "(&M)\tCtrl+M";}
-	const string dlgTitComment() {return "コメントの記述";}
+	@property const string ttWriteComment() {return "コメントを記述";}
+	@property const string menuWriteComment() {return ttWriteComment ~ "(&M)\tCtrl+M";}
+	@property const string dlgTitComment() {return "コメントの記述";}
 
 	/// カードウィンドウ。
 	const string cardTabName(in Summary summ) {
@@ -2097,7 +2097,7 @@ public:
 			return "情報";
 		}
 	}
-	const string dlgTitAddScenario() {return "インポート元の選択";}
+	@property const string dlgTitAddScenario() {return "インポート元の選択";}
 
 	const string cardStatus(C)(size_t cardCount, in C[] selCards) {
 		string r = to!(string)(cardCount) ~ "枚のカード";
@@ -2112,103 +2112,103 @@ public:
 		return to!(string)(cardCount) ~ "枚のカード (有効枚数 = " ~ to!(string)(max) ~ ")";
 	}
 
-	const string ttShowCardLife() {return "レベルとライフを表示";}
-	const string menuShowCardLife() {return ttShowCardLife ~ "(&L)";}
-	const string ttShowCardList() {return "カード表示";}
-	const string menuShowCardList() {return ttShowCardList ~ "(&C)";}
-	const string ttShowCardTable() {return "詳細表示";}
-	const string menuShowCardTable() {return ttShowCardTable ~ "(&D)";}
-	const string menuNewCards() {return "カード" ~ "(&C)";}
+	@property const string ttShowCardLife() {return "レベルとライフを表示";}
+	@property const string menuShowCardLife() {return ttShowCardLife ~ "(&L)";}
+	@property const string ttShowCardList() {return "カード表示";}
+	@property const string menuShowCardList() {return ttShowCardList ~ "(&C)";}
+	@property const string ttShowCardTable() {return "詳細表示";}
+	@property const string menuShowCardTable() {return ttShowCardTable ~ "(&D)";}
+	@property const string menuNewCards() {return "カード" ~ "(&C)";}
 
-	const string ttAddScenario() {return "外部シナリオから追加";}
-	const string menuAddScenario() {return ttAddScenario ~ "(&A)...";}
-	const string ttNewCast() {return "キャストカードの作成";}
-	const string menuNewCast() {return ttNewCast ~ "(&C)...";}
-	const string ttNewSkill() {return "スキルカードの作成";}
-	const string menuNewSkill() {return ttNewSkill ~ "(&S)...";}
-	const string ttNewItem() {return "アイテムカードの作成";}
-	const string menuNewItem() {return ttNewItem ~ "(&I)...";}
-	const string ttNewBeast() {return "召喚獣カードの作成";}
-	const string menuNewBeast() {return ttNewBeast ~ "(&B)...";}
-	const string ttNewInfo() {return "情報カードの作成";}
-	const string menuNewInfo() {return ttNewInfo ~ "(&F)...";}
+	@property const string ttAddScenario() {return "外部シナリオから追加";}
+	@property const string menuAddScenario() {return ttAddScenario ~ "(&A)...";}
+	@property const string ttNewCast() {return "キャストカードの作成";}
+	@property const string menuNewCast() {return ttNewCast ~ "(&C)...";}
+	@property const string ttNewSkill() {return "スキルカードの作成";}
+	@property const string menuNewSkill() {return ttNewSkill ~ "(&S)...";}
+	@property const string ttNewItem() {return "アイテムカードの作成";}
+	@property const string menuNewItem() {return ttNewItem ~ "(&I)...";}
+	@property const string ttNewBeast() {return "召喚獣カードの作成";}
+	@property const string menuNewBeast() {return ttNewBeast ~ "(&B)...";}
+	@property const string ttNewInfo() {return "情報カードの作成";}
+	@property const string menuNewInfo() {return ttNewInfo ~ "(&F)...";}
 
-	const string ttAdd() {return "シナリオに追加";}
-	const string menuAdd() {return ttAdd ~ "(&A)" ~ "\tCtrl+P";}
+	@property const string ttAdd() {return "シナリオに追加";}
+	@property const string menuAdd() {return ttAdd ~ "(&A)" ~ "\tCtrl+P";}
 
-	const string menuEditHand() {return "所有カードの設定" ~ "(&H)";}
-	const string menuOpenHand() {return "所有カード" ~ "(&H)";}
-	const string menuEditUseEvent() {return "使用時イベントの設定" ~ "(&E)";}
+	@property const string menuEditHand() {return "所有カードの設定" ~ "(&H)";}
+	@property const string menuOpenHand() {return "所有カード" ~ "(&H)";}
+	@property const string menuEditUseEvent() {return "使用時イベントの設定" ~ "(&E)";}
 
-	const string casts() {return "キャスト";}
-	const string skill() {return "スキル";}
-	const string item() {return "アイテム";}
-	const string beast() {return "召喚獣";}
-	const string info() {return "情報";}
+	@property const string casts() {return "キャスト";}
+	@property const string skill() {return "スキル";}
+	@property const string item() {return "アイテム";}
+	@property const string beast() {return "召喚獣";}
+	@property const string info() {return "情報";}
 
-	const string cardId() {return "ID";}
-	const string cardName() {return "名称";}
-	const string cardDesc() {return "説明";}
+	@property const string cardId() {return "ID";}
+	@property const string cardName() {return "名称";}
+	@property const string cardDesc() {return "説明";}
 
-	const string dlgTitNewCast() {return "キャストカードの作成";}
-	const string dlgTitNewSkill() {return "特殊技能カードの作成";}
-	const string dlgTitNewItem() {return "アイテムカードの作成";}
-	const string dlgTitNewBeast() {return "召喚獣カードの作成";}
-	const string dlgTitNewInfo() {return "情報カードの作成";}
+	@property const string dlgTitNewCast() {return "キャストカードの作成";}
+	@property const string dlgTitNewSkill() {return "特殊技能カードの作成";}
+	@property const string dlgTitNewItem() {return "アイテムカードの作成";}
+	@property const string dlgTitNewBeast() {return "召喚獣カードの作成";}
+	@property const string dlgTitNewInfo() {return "情報カードの作成";}
 	const string dlgTitCast(string name) {return "キャストカードの設定 [ " ~ name ~ " ]";}
 	const string dlgTitSkill(string name) {return "特殊技能カードの設定 [ " ~ name ~ " ]";}
 	const string dlgTitItem(string name) {return "アイテムカードの設定 [ " ~ name ~ " ]";}
 	const string dlgTitBeast(string name) {return "召喚獣カードの設定 [ " ~ name ~ " ]";}
 	const string dlgTitInfo(string name) {return "情報カードの設定 [ " ~ name ~ " ]";}
 
-	const string name() {return "名前";}
+	@property const string name() {return "名前";}
 	const string nameLimit(uint limit) {return "(" ~ to!(string)(limit / 2) ~ "文字まで)";}
-	const string level() {return "レベル";}
-	const string life() {return "体力";}
-	const string lifeCalc() {return "標準値";}
-	const string history() {return "経歴";}
-	const string coupons() {return "経歴";}
-	const string addCoupon() {return "新規クーポンの追加";}
-	const string altCoupon() {return "クーポンの上書き";}
-	const string delCoupon() {return "クーポンの削除";}
-	const string sex() {return "性別";}
-	const string period() {return "年代";}
-	const string race() {return "種族";}
-	const string noRace() {return "[未指定]";}
+	@property const string level() {return "レベル";}
+	@property const string life() {return "体力";}
+	@property const string lifeCalc() {return "標準値";}
+	@property const string history() {return "経歴";}
+	@property const string coupons() {return "経歴";}
+	@property const string addCoupon() {return "新規クーポンの追加";}
+	@property const string altCoupon() {return "クーポンの上書き";}
+	@property const string delCoupon() {return "クーポンの削除";}
+	@property const string sex() {return "性別";}
+	@property const string period() {return "年代";}
+	@property const string race() {return "種族";}
+	@property const string noRace() {return "[未指定]";}
 	const string raceCoupon(Race race) {return "＠Ｒ" ~ race.name;}
-	const string nature() {return "素質";}
-	const string makings() {return "特徴";}
-	const string tolerant() {return "対属性";}
-	const string tolerantBase() {return "対カード属性";}
-	const string tolerantElement() {return "対効果属性";}
-	const string resistWeapon() {return "武器が効かない";}
-	const string resistMagic() {return "魔法が効かない";}
-	const string undead() {return "命を持たない";}
-	const string automaton() {return "心を持たない";}
-	const string unholy() {return "不浄な存在";}
-	const string constructure() {return "魔法生物";}
-	const string resist(Element e) {return element(e) ~ "に耐性を持つ";}
-	const string weakness(Element e) {return element(e) ~ "に弱い";}
-	const string descResistWeapon() {return "(物理属性のカードが無効)";}
-	const string descResistMagic() {return "(魔法属性のカードが無効)";}
-	const string descUndead() {return "(肉体属性の効果が無効)";}
-	const string descAutomaton() {return "(精神属性の効果が無効)";}
-	const string descUnholy() {return "(神聖属性の効果に影響)";}
-	const string descConstructure() {return "(魔力属性の効果に影響)";}
-	const string descResist(Element e) {return "(" ~ element(e) ~ "属性の効果が無効)";}
-	const string descWeakness(Element e) {return "(" ~ element(e) ~ "属性の効果に影響)";}
-	const string basicResist() {return "標準値";}
-	const string physicalParams() {return "身体能力";}
-	const string physicalCalc() {return "標準値";}
-	const string mentalParams() {return "精神傾向";}
-	const string mentalCalc() {return "標準値";}
-	const string castEnhance() {return "能力修正";}
-	const string basicEnhance() {return "標準値";}
+	@property const string nature() {return "素質";}
+	@property const string makings() {return "特徴";}
+	@property const string tolerant() {return "対属性";}
+	@property const string tolerantBase() {return "対カード属性";}
+	@property const string tolerantElement() {return "対効果属性";}
+	@property const string resistWeapon() {return "武器が効かない";}
+	@property const string resistMagic() {return "魔法が効かない";}
+	@property const string undead() {return "命を持たない";}
+	@property const string automaton() {return "心を持たない";}
+	@property const string unholy() {return "不浄な存在";}
+	@property const string constructure() {return "魔法生物";}
+	const string resistName(Element e) {return elementName(e) ~ "に耐性を持つ";}
+	const string weaknessName(Element e) {return elementName(e) ~ "に弱い";}
+	@property const string descResistWeapon() {return "(物理属性のカードが無効)";}
+	@property const string descResistMagic() {return "(魔法属性のカードが無効)";}
+	@property const string descUndead() {return "(肉体属性の効果が無効)";}
+	@property const string descAutomaton() {return "(精神属性の効果が無効)";}
+	@property const string descUnholy() {return "(神聖属性の効果に影響)";}
+	@property const string descConstructure() {return "(魔力属性の効果に影響)";}
+	const string descResist(Element e) {return "(" ~ elementName(e) ~ "属性の効果が無効)";}
+	const string descWeakness(Element e) {return "(" ~ elementName(e) ~ "属性の効果に影響)";}
+	@property const string basicResist() {return "標準値";}
+	@property const string physicalParams() {return "身体能力";}
+	@property const string physicalCalc() {return "標準値";}
+	@property const string mentalParams() {return "精神傾向";}
+	@property const string mentalCalc() {return "標準値";}
+	@property const string castEnhance() {return "能力修正";}
+	@property const string basicEnhance() {return "標準値";}
 
-	const string liveStatus() {return "初期状態";}
-	const string lifeAndMentality() {return "体力と精神状態";}
-	const string enhanceLiveBonus() {return "能力ボーナス/ペナルティ";}
-	const string enhanceLiveBonus(Enhance enh) {
+	@property const string liveStatus() {return "初期状態";}
+	@property const string lifeAndMentality() {return "体力と精神状態";}
+	@property const string enhanceLiveBonus() {return "能力ボーナス/ペナルティ";}
+	const string enhanceLiveBonusName(Enhance enh) {
 		switch (enh) {
 		case Enhance.ACTION: return "行動";
 		case Enhance.AVOID: return "回避";
@@ -2217,86 +2217,86 @@ public:
 		default: assert (0);
 		}
 	}
-	const string useMax() {return "最大値を使用";}
-	const string status() {return "異常状態";}
-	const string paralyze() {return "麻痺/石化";}
-	const string poison() {return "中毒";}
-	const string bind() {return "呪縛";}
-	const string silence() {return "沈黙";}
-	const string faceUp() {return "暴露";}
-	const string antiMagic() {return "魔法無効";}
-	const string unitValue() {return "点";}
-	const string unitRound() {return "ラウンド";}
-	const string resetLiveStatus() {return "通常状態に戻す";}
+	@property const string useMax() {return "最大値を使用";}
+	@property const string status() {return "異常状態";}
+	@property const string paralyze() {return "麻痺/石化";}
+	@property const string poison() {return "中毒";}
+	@property const string bind() {return "呪縛";}
+	@property const string silence() {return "沈黙";}
+	@property const string faceUp() {return "暴露";}
+	@property const string antiMagic() {return "魔法無効";}
+	@property const string unitValue() {return "点";}
+	@property const string unitRound() {return "ラウンド";}
+	@property const string resetLiveStatus() {return "通常状態に戻す";}
 
-	const string needSpellGroup() {return "発声による発動";}
-	const string needSpell() {return "沈黙時に使用不可";}
-	const string elementProps() {return "効果属性";}
-	const string resistProps() {return "抵抗属性";}
-	const string aptPhysical() {return "身体的要素";}
-	const string aptMental() {return "精神的要素";}
-	const string skillLevel() {return "技能レベル";}
-	const string useCountGroup() {return "使用可能回数";}
+	@property const string needSpellGroup() {return "発声による発動";}
+	@property const string needSpell() {return "沈黙時に使用不可";}
+	@property const string elementProps() {return "効果属性";}
+	@property const string resistProps() {return "抵抗属性";}
+	@property const string aptPhysical() {return "身体的要素";}
+	@property const string aptMental() {return "精神的要素";}
+	@property const string skillLevel() {return "技能レベル";}
+	@property const string useCountGroup() {return "使用可能回数";}
 	const string useCountRange(uint max) {return "(0～" ~ to!(string)(max) ~ " : 0 = ∞)";}
-	const string price() {return "価格";}
-	const string priceAuto() {return "(参考用)";}
-	const string useModify() {return "使用時 能力値修正";}
-	const string haveModify() {return "所有時 能力値修正";}
-	const string motionKind() {return "効果種別";}
-	const string motionElement() {return "属性";}
-	const string motionDamageType() {return "タイプ";}
-	const string motionValue() {return "値";}
-	const string motionBeast() {return "召喚するカード";}
-	const string beastNone() {return "召喚獣無し";}
-	const string setBeast() {return "選択";}
-	const string motionRound() {return "継続時間 (ラウンド数)";}
-	const string motionEnhValue() {return "変化値";}
-	const string effectTarget() {return "効果目標";}
-	const string effectRange() {return "効果範囲";}
-	const string effectVisual() {return "視覚効果";}
-	const string cardPremium() {return "カードの価値";}
-	const string successRate() {return "成功率修正値";}
-	const string allFail() {return "絶対失敗\n(-5)";}
-	const string allSuccess() {return "絶対成功\n(+5)";}
-	const string se() {return "効果音";}
-	const string se1() {return "初期効果";}
-	const string se2() {return "二次効果";}
-	const string soundNone() {return "[効果音無し]";}
-	const string stopSound() {return "停止";}
-	const string playSound() {return "再生";}
-	const string menuStopSound() {return stopSound ~ "(&S)";}
-	const string menuPlaySound() {return playSound ~ "(&P)";}
-	const string keyCodes() {return "イベント発火のキーコード";}
+	@property const string price() {return "価格";}
+	@property const string priceAuto() {return "(参考用)";}
+	@property const string useModify() {return "使用時 能力値修正";}
+	@property const string haveModify() {return "所有時 能力値修正";}
+	@property const string motionKind() {return "効果種別";}
+	@property const string motionElement() {return "属性";}
+	@property const string motionDamageType() {return "タイプ";}
+	@property const string motionValue() {return "値";}
+	@property const string motionBeast() {return "召喚するカード";}
+	@property const string beastNone() {return "召喚獣無し";}
+	@property const string setBeast() {return "選択";}
+	@property const string motionRound() {return "継続時間 (ラウンド数)";}
+	@property const string motionEnhValue() {return "変化値";}
+	@property const string effectTarget() {return "効果目標";}
+	@property const string effectRange() {return "効果範囲";}
+	@property const string effectVisual() {return "視覚効果";}
+	@property const string cardPremium() {return "カードの価値";}
+	@property const string successRate() {return "成功率修正値";}
+	@property const string allFail() {return "絶対失敗\n(-5)";}
+	@property const string allSuccess() {return "絶対成功\n(+5)";}
+	@property const string se() {return "効果音";}
+	@property const string se1() {return "初期効果";}
+	@property const string se2() {return "二次効果";}
+	@property const string soundNone() {return "[効果音無し]";}
+	@property const string stopSound() {return "停止";}
+	@property const string playSound() {return "再生";}
+	@property const string menuStopSound() {return stopSound ~ "(&S)";}
+	@property const string menuPlaySound() {return playSound ~ "(&P)";}
+	@property const string keyCodes() {return "イベント発火のキーコード";}
 
-	const string warningEffectTypeNone() {
+	@property const string warningEffectTypeNone() {
 		return "無属性のカードをシナリオ外に持ち出した場合、予期せぬ動作の原因になります。";
 	}
-	const string warningVanishCast() {
+	@property const string warningVanishCast() {
 		return "神聖属性以外の対象消去効果を持つカードをシナリオ外に持ち出した場合、予期せぬ動作の原因になります。";
 	}
 	const string warningNameLenOver(uint limit) {
 		return "名前の長さが" ~ to!string(limit / 2) ~ "文字を超えています。メッセージにカード名が表示された際に不具合が発生する可能性があります。";
 	}
 
-	const string card() {return "カード";}
-	const string apt() {return "要素";}
-	const string useCountAndDesc() {return "使用回数/解説";}
-	const string levelAndDesc() {return "レベル/解説";}
-	const string useBonus() {return "使用ボーナス";}
-	const string haveBonus() {return "所持ボーナス";}
-	const string motion() {return "効果";}
-	const string cardProps() {return "属性";}
-	const string settings() {return "設定";}
-	const string seAndKeyCode() {return "効果音/キーコード";}
+	@property const string card() {return "カード";}
+	@property const string apt() {return "要素";}
+	@property const string useCountAndDesc() {return "使用回数/解説";}
+	@property const string levelAndDesc() {return "レベル/解説";}
+	@property const string useBonus() {return "使用ボーナス";}
+	@property const string haveBonus() {return "所持ボーナス";}
+	@property const string motion() {return "効果";}
+	@property const string cardProps() {return "属性";}
+	@property const string settings() {return "設定";}
+	@property const string seAndKeyCode() {return "効果音/キーコード";}
 
 	const string rangeHint(int min, int max) {
 		return "(" ~ to!(string)(min) ~ "～" ~ to!(string)(max) ~ ")";
 	}
-	const string source() {return "出典";}
-	const string sourceScenario() {return "シナリオ名";}
-	const string sourceAuthor() {return "シナリオ作者";}
-	const string resetSource() {return "現在のシナリオを出典に設定";}
-	const string diffSource() {return "出典のシナリオ名と作者名が現在のシナリオと異なるため、使用時イベントは実行されません。";}
+	@property const string source() {return "出典";}
+	@property const string sourceScenario() {return "シナリオ名";}
+	@property const string sourceAuthor() {return "シナリオ作者";}
+	@property const string resetSource() {return "現在のシナリオを出典に設定";}
+	@property const string diffSource() {return "出典のシナリオ名と作者名が現在のシナリオと異なるため、使用時イベントは実行されません。";}
 
 	/// ファイルビュー。
 	const string dirTabName(in Summary summ) {
@@ -2316,20 +2316,20 @@ public:
 		}
 		return r;
 	}
-	const string fileName() {return "ファイル名";}
-	const string fileExt() {return "拡張子";}
-	const string fileCount() {return "使用数";}
+	@property const string fileName() {return "ファイル名";}
+	@property const string fileExt() {return "拡張子";}
+	@property const string fileCount() {return "使用数";}
 	const string errorExec(string appName) {return appName ~ "の起動に失敗しました。";}
-	const string ttNewFolder() {return "新規" ~ DIR;}
-	const string menuNewFolder() {return ttNewFolder ~ "(&I)";}
-	const string newFolder() {return ttNewFolder;}
-	const string ttCopyFilePath() {return "素材のパスをコピー";}
-	const string menuCopyFilePath() {return ttCopyFilePath ~ "(&M)";}
-	const string ttReplacePath() {return "素材の差替え";}
-	const string menuReplacePath() {return ttReplacePath ~ "(&R)...";}
-	const string ttCreateArchive() {return "シナリオを圧縮";}
-	const string menuCreateArchive() {return ttCreateArchive ~ "(&A)...";}
-	const string[] filterArchive() {
+	@property const string ttNewFolder() {return "新規" ~ DIR;}
+	@property const string menuNewFolder() {return ttNewFolder ~ "(&I)";}
+	@property const string newFolder() {return ttNewFolder;}
+	@property const string ttCopyFilePath() {return "素材のパスをコピー";}
+	@property const string menuCopyFilePath() {return ttCopyFilePath ~ "(&M)";}
+	@property const string ttReplacePath() {return "素材の差替え";}
+	@property const string menuReplacePath() {return ttReplacePath ~ "(&R)...";}
+	@property const string ttCreateArchive() {return "シナリオを圧縮";}
+	@property const string menuCreateArchive() {return ttCreateArchive ~ "(&A)...";}
+	@property const string[] filterArchive() {
 		string[] r;
 		r ~= "ZIP アーカイブ (*.zip)";
 		if (canUncab) {
@@ -2338,142 +2338,142 @@ public:
 		r ~= "シナリオファイル (*.wsn)";
 		return r;
 	}
-	const string dlgTitCreateArchive() {return "シナリオの圧縮";}
-	const string failedCreateArchive() {return "シナリオの圧縮に失敗";}
+	@property const string dlgTitCreateArchive() {return "シナリオの圧縮";}
+	@property const string failedCreateArchive() {return "シナリオの圧縮に失敗";}
 	const string dlgMsgIsSaveBeforeCreateArchive(string name) {return "「" ~ name ~ "」は変更されています。保存しますか？";}
 
 	/// エディタ設定ダイアログ。
-	const string baseSettings() {return "基本設定";}
-	const string reference() {return "...";}
+	@property const string baseSettings() {return "基本設定";}
+	@property const string reference() {return "...";}
 	const string enginePath(string appName) {return appName ~ "の場所";}
-	const string enginePathAtten() {return "※ クラシックなシナリオのみに使用する場合は空欄にしてください";}
+	@property const string enginePathAtten() {return "※ クラシックなシナリオのみに使用する場合は空欄にしてください";}
 	const string dlgTitEnginePath(string appName) {return appName ~ "の場所";}
-	const string tempDir() {return "シナリオの一時展開先";}
-	const string tempDirDesc() {return "wsn圧縮されたシナリオの一時的な展開先を選択してください。";}
-	const string backupDir() {return "自動バックアップ";}
-	const string backupEnabled() {return "自動バックアップを行う";}
-	const string backupPath() {return "保存先";}
-	const string backupDirDesc() {return "シナリオを定期的に自動バックアップする" ~ DIR ~ "を選択してください。";}
-	const string backupInterval() {return "保存間隔";}
-	const string minute() {return "分";}
-	const string backupCount() {return "最大保存数";}
-	const string skin() {return "スキン";}
-	const string scenarioAuthor() {return "シナリオ作者(新規作成時に自動設定されます)";}
-	const string historiesSettings() {return "履歴";}
-	const string openHistoryMax() {return "シナリオ履歴保存件数";}
-	const string openHistoryClear() {return "クリア";}
-	const string dlgMsgHistoryClear() {return "シナリオ履歴を削除してよろしいですか？";}
-	const string searchHistoryMax() {return "検索/置換履歴保存件数";}
-	const string searchHistoryClear() {return "クリア";}
-	const string dlgMsgSearchHistoryClear() {return "検索/置換履歴を削除してよろしいですか？";}
-	const string ignorePaths() {return "無視ファイル(改行区切り)";}
-	const string etcSettings() {return "その他";}
-	const string etcSettingsTitle() {return "詳細";}
-	const string singleWindow() {return "シングルウィンドウモード(再起動後に反映されます)";}
-	const string smoothingCard() {return "カードのサイズ変更時にスムージングを行う";}
-	const string showImagePreview() {return "カードや背景のプレビュー表示を行う";}
-	const string expandXMLs() {return "圧縮されたシナリオの読込み時にXMLファイルを展開する";}
-	const string contentsFloat() {return "コンテンツボックスを別ウィンドウで表示する";}
-	const string contentsAutoHide() {return "コンテンツボックスを自動的に隠す";}
-	const string xmlCopy() {return "コピーや切り取りを常にXML形式で行う";}
-	const string saveInnerImagePath() {return "クラシックなシナリオで格納イメージにファイルパスを埋め込む";}
-	const string traceDirectories() {
+	@property const string tempDir() {return "シナリオの一時展開先";}
+	@property const string tempDirDesc() {return "wsn圧縮されたシナリオの一時的な展開先を選択してください。";}
+	@property const string backupDir() {return "自動バックアップ";}
+	@property const string backupEnabled() {return "自動バックアップを行う";}
+	@property const string backupPath() {return "保存先";}
+	@property const string backupDirDesc() {return "シナリオを定期的に自動バックアップする" ~ DIR ~ "を選択してください。";}
+	@property const string backupInterval() {return "保存間隔";}
+	@property const string minute() {return "分";}
+	@property const string backupCount() {return "最大保存数";}
+	@property const string skin() {return "スキン";}
+	@property const string scenarioAuthor() {return "シナリオ作者(新規作成時に自動設定されます)";}
+	@property const string historiesSettings() {return "履歴";}
+	@property const string openHistoryMax() {return "シナリオ履歴保存件数";}
+	@property const string openHistoryClear() {return "クリア";}
+	@property const string dlgMsgHistoryClear() {return "シナリオ履歴を削除してよろしいですか？";}
+	@property const string searchHistoryMax() {return "検索/置換履歴保存件数";}
+	@property const string searchHistoryClear() {return "クリア";}
+	@property const string dlgMsgSearchHistoryClear() {return "検索/置換履歴を削除してよろしいですか？";}
+	@property const string ignorePaths() {return "無視ファイル(改行区切り)";}
+	@property const string etcSettings() {return "その他";}
+	@property const string etcSettingsTitle() {return "詳細";}
+	@property const string singleWindow() {return "シングルウィンドウモード(再起動後に反映されます)";}
+	@property const string smoothingCard() {return "カードのサイズ変更時にスムージングを行う";}
+	@property const string showImagePreview() {return "カードや背景のプレビュー表示を行う";}
+	@property const string expandXMLs() {return "圧縮されたシナリオの読込み時にXMLファイルを展開する";}
+	@property const string contentsFloat() {return "コンテンツボックスを別ウィンドウで表示する";}
+	@property const string contentsAutoHide() {return "コンテンツボックスを自動的に隠す";}
+	@property const string xmlCopy() {return "コピーや切り取りを常にXML形式で行う";}
+	@property const string saveInnerImagePath() {return "クラシックなシナリオで格納イメージにファイルパスを埋め込む";}
+	@property const string traceDirectories() {
 		return "ファイル・" ~ DIR ~ "の変更を自動的に追跡する";
 	}
-	const string logicalSort() {return "数値参照型ソートを行う(1, 10, 2, 3, ... → 1, 2, 3, 10, ...)";}
-	const string copyDesc() {return "カードをエリアに貼り付け・ドロップした時、解説もコピーする";}
-	const string refCardsAtEditBgImage() {return "背景変更コンテントの編集を開始する際、最初からカード配置の参照を行う";}
-	const string addNewClassicEngine() {return "未知のクラシックエンジンを見つけたら記憶する";}
-	const string doubleIO() {return "分割読込・保存を行う(デュアルコア以上の環境で高速化)";}
-	const string switchTabWheel() {return "マウスホイールでタブ切替を行う";}
-	const string openTabAtRightOfCurrentTab() {return "新しいタブを現在のタブの直後に開く";}
-	const string reconstruction() {return "シナリオごとにタブの配置を記憶する";}
-	const string openLastScenario() {return "終了時に開いていたシナリオを次の起動時に開く";}
-	const string soundPlayType() {return "音声再生方法";}
-	const string soundPlayTypeDef() {return "自動選択";}
-	const string soundPlayTypeSDL() {return "SDL(CardWirthPy形式)";}
+	@property const string logicalSort() {return "数値参照型ソートを行う(1, 10, 2, 3, ... → 1, 2, 3, 10, ...)";}
+	@property const string copyDesc() {return "カードをエリアに貼り付け・ドロップした時、解説もコピーする";}
+	@property const string refCardsAtEditBgImage() {return "背景変更コンテントの編集を開始する際、最初からカード配置の参照を行う";}
+	@property const string addNewClassicEngine() {return "未知のクラシックエンジンを見つけたら記憶する";}
+	@property const string doubleIO() {return "分割読込・保存を行う(デュアルコア以上の環境で高速化)";}
+	@property const string switchTabWheel() {return "マウスホイールでタブ切替を行う";}
+	@property const string openTabAtRightOfCurrentTab() {return "新しいタブを現在のタブの直後に開く";}
+	@property const string reconstruction() {return "シナリオごとにタブの配置を記憶する";}
+	@property const string openLastScenario() {return "終了時に開いていたシナリオを次の起動時に開く";}
+	@property const string soundPlayType() {return "音声再生方法";}
+	@property const string soundPlayTypeDef() {return "自動選択";}
+	@property const string soundPlayTypeSDL() {return "SDL(CardWirthPy形式)";}
 	version (Windows) {
-		const string soundPlayTypeMCI() {return "MCI(CardWirth形式)";}
+		@property const string soundPlayTypeMCI() {return "MCI(CardWirth形式)";}
 	}
-	const string soundPlayTypeApp() {return "関連付けされたアプリケーションで開く";}
+	@property const string soundPlayTypeApp() {return "関連付けされたアプリケーションで開く";}
 
-	const string wallpaper() {
+	@property const string wallpaper() {
 		return "エディタの壁紙";
 	}
-	const string filterWallpaper() {
+	@property const string filterWallpaper() {
 		return "画像ファイル (*.bmp;*.jpg;*.jpeg;*.png;*.tif;*.tiff;*.ico;*.icon)";
 	}
-	const string dlgTitWallpaper() {return "壁紙画像の選択";}
+	@property const string dlgTitWallpaper() {return "壁紙画像の選択";}
 
-	const string bgImageAndKeyCode() {return "背景とキーコード";}
-	const string newBgImageSetting() {return "新規作成";}
-	const string altBgImageSetting() {return "上書き";}
-	const string delBgImageSetting() {return "削除";}
-	const string standardKeyCode() {return "標準のキーコード";}
+	@property const string bgImageAndKeyCode() {return "背景とキーコード";}
+	@property const string newBgImageSetting() {return "新規作成";}
+	@property const string altBgImageSetting() {return "上書き";}
+	@property const string delBgImageSetting() {return "削除";}
+	@property const string standardKeyCode() {return "標準のキーコード";}
 
 	const string errorEnginePath(string appName) {return appName ~ "の場所が正しくありません。";}
-	const string errorTempPath() {return "一時展開先が正しくありません。";}
-	const string errorBackupPath() {return "自動バックアップ先が正しくありません。";}
+	@property const string errorTempPath() {return "一時展開先が正しくありません。";}
+	@property const string errorBackupPath() {return "自動バックアップ先が正しくありません。";}
 
-	const string outerTools() {return "外部ツール";}
-	const string outerToolsTitle() {return "外部ツールの設定";}
-	const string outerToolName() {return "外部ツール名";}
-	const string outerToolCommand() {return "コマンド";}
-	const string dlgTitOuterTool() {return "外部ツールの選択";}
-	const string toolsHint1() {return "$F = ファイル名";}
-	const string toolsHint3() {return "$$ = $";}
-	const string outerToolWorkDir() {return "作業" ~ DIR;}
-	const string toolWorkDir() {return "作業" ~ DIR ~ "の選択";}
-	const string toolWorkDirDesc() {return "外部ツールの作業" ~ DIR ~ "を選択してください。";}
-	const string toolsHint2() {return "$S = シナリオの" ~ DIR;}
+	@property const string outerTools() {return "外部ツール";}
+	@property const string outerToolsTitle() {return "外部ツールの設定";}
+	@property const string outerToolName() {return "外部ツール名";}
+	@property const string outerToolCommand() {return "コマンド";}
+	@property const string dlgTitOuterTool() {return "外部ツールの選択";}
+	@property const string toolsHint1() {return "$F = ファイル名";}
+	@property const string toolsHint3() {return "$$ = $";}
+	@property const string outerToolWorkDir() {return "作業" ~ DIR;}
+	@property const string toolWorkDir() {return "作業" ~ DIR ~ "の選択";}
+	@property const string toolWorkDirDesc() {return "外部ツールの作業" ~ DIR ~ "を選択してください。";}
+	@property const string toolsHint2() {return "$S = シナリオの" ~ DIR;}
 	version (Windows) {
-		const string[] toolTName() {return ["実行ファイル (*.exe)", "すべてのファイル (*.*)"];}
+		@property const string[] toolTName() {return ["実行ファイル (*.exe)", "すべてのファイル (*.*)"];}
 	} else {
-		const string[] toolTName() {return ["すべてのファイル (*.*)"];}
+		@property const string[] toolTName() {return ["すべてのファイル (*.*)"];}
 	}
-	const string newOuterTool() {return "新規作成";}
-	const string altOuterTool() {return "上書き";}
-	const string delOuterTool() {return "削除";}
+	@property const string newOuterTool() {return "新規作成";}
+	@property const string altOuterTool() {return "上書き";}
+	@property const string delOuterTool() {return "削除";}
 
-	const string classicEngines() {return "クラシックエンジン";}
-	const string classicEnginesTitle() {return "クラシックエンジンの設定";}
-	const string classicEngineName() {return "エンジン名";}
-	const string classicEnginePath() {return "実行ファイルパス";}
-	const string classicEngineDataDirName() {return "データフォルダ";}
-	const string classicEngineDataDirNameDesc() {return "クラシックエンジンのデータフォルダを選択してください。";}
-	const string classicEngineExecute() {return "代替実行ファイル";}
-	const string classicEngineHint1() {return "※ 代替実行ファイルを指定すると、エンジン本体の代わりに実行されます";}
+	@property const string classicEngines() {return "クラシックエンジン";}
+	@property const string classicEnginesTitle() {return "クラシックエンジンの設定";}
+	@property const string classicEngineName() {return "エンジン名";}
+	@property const string classicEnginePath() {return "実行ファイルパス";}
+	@property const string classicEngineDataDirName() {return "データフォルダ";}
+	@property const string classicEngineDataDirNameDesc() {return "クラシックエンジンのデータフォルダを選択してください。";}
+	@property const string classicEngineExecute() {return "代替実行ファイル";}
+	@property const string classicEngineHint1() {return "※ 代替実行ファイルを指定すると、エンジン本体の代わりに実行されます";}
 	version (Windows) {
-		const string[] classicEnginePathTName() {return ["実行ファイル (*.exe)", "すべてのファイル (*.*)"];}
+		@property const string[] classicEnginePathTName() {return ["実行ファイル (*.exe)", "すべてのファイル (*.*)"];}
 	} else {
-		const string[] classicEnginePathTName() {return ["すべてのファイル (*.*)"];}
+		@property const string[] classicEnginePathTName() {return ["すべてのファイル (*.*)"];}
 	}
-	const string dlgTitClassicEnginePath() {return "クラシックエンジンの選択";}
+	@property const string dlgTitClassicEnginePath() {return "クラシックエンジンの選択";}
 	version (Windows) {
-		const string[] classicEngineExecuteTName() {return ["実行ファイル (*.exe)", "すべてのファイル (*.*)"];}
+		@property const string[] classicEngineExecuteTName() {return ["実行ファイル (*.exe)", "すべてのファイル (*.*)"];}
 	} else {
-		const string[] classicEngineExecuteTName() {return ["すべてのファイル (*.*)"];}
+		@property const string[] classicEngineExecuteTName() {return ["すべてのファイル (*.*)"];}
 	}
-	const string dlgTitClassicEngineExecute() {return "代替実行ファイルの選択";}
-	const string newClassicEngine() {return "新規作成";}
-	const string altClassicEngine() {return "上書き";}
-	const string delClassicEngine() {return "削除";}
+	@property const string dlgTitClassicEngineExecute() {return "代替実行ファイルの選択";}
+	@property const string newClassicEngine() {return "新規作成";}
+	@property const string altClassicEngine() {return "上書き";}
+	@property const string delClassicEngine() {return "削除";}
 
-	const string bgImagesDefault() {return "デフォルト背景";}
-	const string setBgImagesDefault() {return "デフォルト背景の設定...";}
-	const string dlgTitBgImagesDefault() {return "デフォルト背景の設定";}
+	@property const string bgImagesDefault() {return "デフォルト背景";}
+	@property const string setBgImagesDefault() {return "デフォルト背景の設定...";}
+	@property const string dlgTitBgImagesDefault() {return "デフォルト背景の設定";}
 
-	const string systemSounds() {return "システム音声";}
-	const string soundSaved() {return "保存完了";}
+	@property const string systemSounds() {return "システム音声";}
+	@property const string soundSaved() {return "保存完了";}
 	const string playableSounds(string exts) {return "サウンドファイル (" ~ exts ~ ")";}
-	const string dlgTitSystemSound() {return "システム音声の選択";}
+	@property const string dlgTitSystemSound() {return "システム音声の選択";}
 
-	const string undoMax() {return "「元に戻す」回数";}
-	const string undoMaxMainView() {return "エリア/カード/フラグ";}
-	const string undoMaxEvent() {return "メニュー/エネミー/背景/イベント";}
-	const string undoMaxEtc() {return "テキスト/その他";}
+	@property const string undoMax() {return "「元に戻す」回数";}
+	@property const string undoMaxMainView() {return "エリア/カード/フラグ";}
+	@property const string undoMaxEvent() {return "メニュー/エネミー/背景/イベント";}
+	@property const string undoMaxEtc() {return "テキスト/その他";}
 
-	const string dialogStatus() {return "台詞コンテントのステータス";}
+	@property const string dialogStatus() {return "台詞コンテントのステータス";}
 	const string dialogStatusName(DialogStatus dlgStat) {
 		final switch (dlgStat) {
 		case DialogStatus.Top: return "最上位の台詞";
@@ -2483,66 +2483,66 @@ public:
 	}
 
 	/// スクリプト関係。
-	const string ttToScript() {return "スクリプトに変換してコピー";}
-	const string menuToScript() {return ttToScript ~ "(&S)\tCtrl+G";}
-	const string ttToScriptAll() {return "全てをスクリプトに変換してコピー";}
-	const string menuToScriptAll() {return ttToScriptAll ~ "(&P)\tCtrl+B";}
-	const string dlgTitScriptError() {
+	@property const string ttToScript() {return "スクリプトに変換してコピー";}
+	@property const string menuToScript() {return ttToScript ~ "(&S)\tCtrl+G";}
+	@property const string ttToScriptAll() {return "全てをスクリプトに変換してコピー";}
+	@property const string menuToScriptAll() {return ttToScriptAll ~ "(&P)\tCtrl+B";}
+	@property const string dlgTitScriptError() {
 		return "CWXスクリプトエラー";
 	}
-	const string scriptError() {
+	@property const string scriptError() {
 		return "CWXスクリプトのコンパイル中にエラーが発生しました。";
 	}
-	const string scriptErrorOver100Error() {return "エラーが100件を超えたため、スクリプトの解析を終了します。";}
-	const string scriptErrorInvalidToken() {return "スクリプトに使用できない文字が含まれています。";}
-	const string scriptErrorInvalidString() {return "ここに文字列が必要です。";}
-	const string scriptErrorUnCloseString() {return "文字列が閉じられていません。";}
-	const string scriptErrorUnOpenComment() {return "コメントは開始されていません。";}
-	const string scriptErrorUnCloseComment() {return "コメントが閉じられていません。";}
-	const string scriptErrorInvalidNumber() {return "数値が正しくありません。";}
-	const string scriptErrorCloseBracketNotFound() {return "閉じ括弧が見つかりません。";}
-	const string scriptErrorCloseParenNotFound() {return "閉じ括弧が見つかりません。";}
-	const string scriptErrorZeroDivision() {return "0で除算を行いました。";}
-	const string scriptErrorInvalidAttr() {return "属性が正しくありません。";}
-	const string scriptErrorInvalidVar() {return "変数が正しくありません。";}
-	const string scriptErrorInvalidVarVal() {return "変数の値が正しくありません。";}
-	const string scriptErrorNoStartText() {return "スタートコンテントの名前がありません。";}
-	const string scriptErrorInvalidStatement() {return "文が正しくありません。";}
-	const string scriptErrorInvalidBranch() {return "分岐の構成が正しくありません。";}
-	const string scriptErrorNoIfText() {return "ifの条件が見つかりません。";}
-	const string scriptErrorNoIfContents() {return "分岐先のコンテントが見つかりません。";}
-	const string scriptErrorInvalidKeyword() {return "未知のキーワードです。";}
-	const string scriptErrorInvalidValuesOpen() {return "パラメータ列ではありません。";}
-	const string scriptErrorInvalidValuesClose() {return "閉じ括弧が見つかりません。";}
-	const string scriptErrorNoVarSet() {return "変数に値をセットしていません。";}
-	const string scriptErrorNoVarVal() {return "変数の値がありません。";}
-	const string scriptErrorInvalidCalc() {return "計算式が不正です。";}
-	const string scriptErrorInvalidBoolVal() {return "キーワードが正しくありません。";}
-	const string scriptErrorInvalidTransition() {return "未知の画面切替方式です。";}
-	const string scriptErrorInvalidRange() {return "未知の範囲です。";}
-	const string scriptErrorInvalidStatus() {return "未知のステータスです。";}
-	const string scriptErrorInvalidTarget() {return "未知のターゲットです。";}
-	const string scriptErrorInvalidEffectType() {return "未知の効果属性です。";}
-	const string scriptErrorInvalidResist() {return "未知の命中属性です。";}
-	const string scriptErrorInvalidCardVisual() {return "未知の視覚効果です。";}
-	const string scriptErrorInvalidMental() {return "未知の精神要素です。";}
-	const string scriptErrorInvalidPhysical() {return "未知の肉体要素です。";}
-	const string scriptErrorInvalidMotionType() {return "未知の効果タイプです。";}
-	const string scriptErrorInvalidMotion() {return "効果が正しくありません。";}
-	const string scriptErrorInvalidElement() {return "未知の属性です。";}
-	const string scriptErrorInvalidDamageType() {return "未知のダメージタイプです。";}
-	const string scriptErrorInvalidBgImage() {return "背景画像が正しくありません。";}
-	const string scriptErrorInvalidDialog() {return "台詞が正しくありません。";}
-	const string scriptErrorInvalidTalker() {return "話者が正しくありません。";}
-	const string scriptErrorUndefinedSymbol() {return "未知のシンボルです。";}
-	const string scriptErrorStartsMixedContent() {return "スタートコンテントの中に他のコンテントが混入しています。";}
-	const string scriptErrorContentsMixedStart() {return "ここにスタートコンテントが現れる事はできません。";}
-	const string scriptErrorInvalidCommand() {return "命令が正しくありません。";}
-	const string scriptErrorCanNotHaveContent() {return "このコンテントが後続コンテントを持つ事はできません。";}
-	const string scriptErrorInvalidStr() {return "文字列が正しくありません。";}
-	const string scriptErrorReqNumber() {return "ここに数値が必要です。";}
-	const string scriptErrorReqID() {return "ここにIDが必要です。";}
-	const string scriptErrorUndefinedVar() {return "存在しない変数です。";}
-	const string scriptErrorInvalidValue() {return "値が正しくありません。";}
-	const string scriptErrorCommaNotFound() {return "パラメータの区切りにカンマがありません。";}
+	@property const string scriptErrorOver100Error() {return "エラーが100件を超えたため、スクリプトの解析を終了します。";}
+	@property const string scriptErrorInvalidToken() {return "スクリプトに使用できない文字が含まれています。";}
+	@property const string scriptErrorInvalidString() {return "ここに文字列が必要です。";}
+	@property const string scriptErrorUnCloseString() {return "文字列が閉じられていません。";}
+	@property const string scriptErrorUnOpenComment() {return "コメントは開始されていません。";}
+	@property const string scriptErrorUnCloseComment() {return "コメントが閉じられていません。";}
+	@property const string scriptErrorInvalidNumber() {return "数値が正しくありません。";}
+	@property const string scriptErrorCloseBracketNotFound() {return "閉じ括弧が見つかりません。";}
+	@property const string scriptErrorCloseParenNotFound() {return "閉じ括弧が見つかりません。";}
+	@property const string scriptErrorZeroDivision() {return "0で除算を行いました。";}
+	@property const string scriptErrorInvalidAttr() {return "属性が正しくありません。";}
+	@property const string scriptErrorInvalidVar() {return "変数が正しくありません。";}
+	@property const string scriptErrorInvalidVarVal() {return "変数の値が正しくありません。";}
+	@property const string scriptErrorNoStartText() {return "スタートコンテントの名前がありません。";}
+	@property const string scriptErrorInvalidStatement() {return "文が正しくありません。";}
+	@property const string scriptErrorInvalidBranch() {return "分岐の構成が正しくありません。";}
+	@property const string scriptErrorNoIfText() {return "ifの条件が見つかりません。";}
+	@property const string scriptErrorNoIfContents() {return "分岐先のコンテントが見つかりません。";}
+	@property const string scriptErrorInvalidKeyword() {return "未知のキーワードです。";}
+	@property const string scriptErrorInvalidValuesOpen() {return "パラメータ列ではありません。";}
+	@property const string scriptErrorInvalidValuesClose() {return "閉じ括弧が見つかりません。";}
+	@property const string scriptErrorNoVarSet() {return "変数に値をセットしていません。";}
+	@property const string scriptErrorNoVarVal() {return "変数の値がありません。";}
+	@property const string scriptErrorInvalidCalc() {return "計算式が不正です。";}
+	@property const string scriptErrorInvalidBoolVal() {return "キーワードが正しくありません。";}
+	@property const string scriptErrorInvalidTransition() {return "未知の画面切替方式です。";}
+	@property const string scriptErrorInvalidRange() {return "未知の範囲です。";}
+	@property const string scriptErrorInvalidStatus() {return "未知のステータスです。";}
+	@property const string scriptErrorInvalidTarget() {return "未知のターゲットです。";}
+	@property const string scriptErrorInvalidEffectType() {return "未知の効果属性です。";}
+	@property const string scriptErrorInvalidResist() {return "未知の命中属性です。";}
+	@property const string scriptErrorInvalidCardVisual() {return "未知の視覚効果です。";}
+	@property const string scriptErrorInvalidMental() {return "未知の精神要素です。";}
+	@property const string scriptErrorInvalidPhysical() {return "未知の肉体要素です。";}
+	@property const string scriptErrorInvalidMotionType() {return "未知の効果タイプです。";}
+	@property const string scriptErrorInvalidMotion() {return "効果が正しくありません。";}
+	@property const string scriptErrorInvalidElement() {return "未知の属性です。";}
+	@property const string scriptErrorInvalidDamageType() {return "未知のダメージタイプです。";}
+	@property const string scriptErrorInvalidBgImage() {return "背景画像が正しくありません。";}
+	@property const string scriptErrorInvalidDialog() {return "台詞が正しくありません。";}
+	@property const string scriptErrorInvalidTalker() {return "話者が正しくありません。";}
+	@property const string scriptErrorUndefinedSymbol() {return "未知のシンボルです。";}
+	@property const string scriptErrorStartsMixedContent() {return "スタートコンテントの中に他のコンテントが混入しています。";}
+	@property const string scriptErrorContentsMixedStart() {return "ここにスタートコンテントが現れる事はできません。";}
+	@property const string scriptErrorInvalidCommand() {return "命令が正しくありません。";}
+	@property const string scriptErrorCanNotHaveContent() {return "このコンテントが後続コンテントを持つ事はできません。";}
+	@property const string scriptErrorInvalidStr() {return "文字列が正しくありません。";}
+	@property const string scriptErrorReqNumber() {return "ここに数値が必要です。";}
+	@property const string scriptErrorReqID() {return "ここにIDが必要です。";}
+	@property const string scriptErrorUndefinedVar() {return "存在しない変数です。";}
+	@property const string scriptErrorInvalidValue() {return "値が正しくありません。";}
+	@property const string scriptErrorCommaNotFound() {return "パラメータの区切りにカンマがありません。";}
 }

@@ -179,7 +179,7 @@ private:
 		setupMenu(_tool);
 	}
 	void refreshExecEngineImpl(Menu menu, bool autoSelect) {
-		foreach (itm; menu.getItems) {
+		foreach (itm; menu.getItems()) {
 			itm.dispose();
 		}
 		if (autoSelect) {
@@ -193,13 +193,13 @@ private:
 			});
 		}
 		if (_prop.var.etc.enginePath.length) {
-			if (0 < menu.getItemCount) {
+			if (0 < menu.getItemCount()) {
 				new MenuItem(menu, SWT.SEPARATOR);
 			}
 			putMenu(_prop.enginePath, "&0 " ~ _prop.enginePath.baseName.stripExtension, _prop.images.menuExecEngine);
 		}
 		if (!_prop.var.etc.classicEngines.length) return;
-		if (0 < menu.getItemCount) {
+		if (0 < menu.getItemCount()) {
 			new MenuItem(menu, SWT.SEPARATOR);
 		}
 		foreach (i, ce; _prop.var.etc.classicEngines) {
@@ -214,20 +214,20 @@ private:
 	void refreshTitle() {
 		if (summary) {
 			string path = summary.scenarioPath;
-			_win.setText = _prop.msgs.mainWindowName(summary.scenarioName, path, summary.isChanged);
+			_win.setText(_prop.msgs.mainWindowName(summary.scenarioName, path, summary.isChanged));
 		} else {
-			_win.setText = _prop.msgs.mainWindowName(null, null, false);
+			_win.setText(_prop.msgs.mainWindowName(null, null, false));
 		}
 	}
 
 	private SysTime _lastBackup;
 	void backupThr() {
 		try {
-			_lastBackup = Clock.currTime;
+			_lastBackup = Clock.currTime();
 			while (!_quit) {
-				if (_lastBackup + dur!"minutes"(_prop.var.etc.backupInterval) <= Clock.currTime) {
+				if (_lastBackup + dur!"minutes"(_prop.var.etc.backupInterval) <= Clock.currTime()) {
 					createBackup();
-					_lastBackup = Clock.currTime;
+					_lastBackup = Clock.currTime();
 				}
 				core.thread.Thread.sleep(dur!"seconds"(1));
 			}
@@ -248,7 +248,7 @@ private:
 			auto bc = _prop.var.etc.backupCount;
 			if (0 < bc) {
 				string sPath = summ.scenarioPath;
-				auto d = Clock.currTime;
+				auto d = Clock.currTime();
 				string file = .format("cwxeditor_backup_%04d%02d%02d%02d%02d%02d[%s].zip",
 					d.year, d.month, d.day, d.hour, d.minute, d.second, sPath.baseName);
 				string zFile = std.path.buildPath(parent, file);
@@ -283,9 +283,9 @@ private:
 	}
 
 	void createScenario() {
-		if (qSave) {
+		if (qSave()) {
 			auto dlg = new CreateScenarioDialog(_comm, _prop, _win);
-			if (!dlg.open) return;
+			if (!dlg.open()) return;
 			Summary summ;
 			if (dlg.legacy) {
 				summ = new Summary(dlg.name, dlg.skin, dlg.classicFolder, false, true);
@@ -310,7 +310,7 @@ private:
 		override void drop(DropTargetEvent e) {
 			auto arr = cast(FileNames) e.data;
 			if (arr && arr.array.length > 0) {
-				if (qSave) {
+				if (qSave()) {
 					openScenario(arr.array[0]);
 				}
 			}
@@ -357,8 +357,8 @@ private:
 		}
 	}
 	void openScenarioM() {
-		if (qSave) {
-			openScenario;
+		if (qSave()) {
+			openScenario();
 		}
 	}
 	int cmp(string a, string b) {
@@ -369,9 +369,9 @@ private:
 	}
 	void openScenario(Summary summ) {
 		assert (summ);
-		_lastBackup = Clock.currTime;
-		_dirWin.stopTrace;
-		scope (exit) _dirWin.resumeTrace;
+		_lastBackup = Clock.currTime();
+		_dirWin.stopTrace();
+		scope (exit) _dirWin.resumeTrace();
 		if (_prop.var.etc.logicalSort) {
 			summ.flagDirRoot.sorter = &ncmp;
 		} else {
@@ -388,7 +388,7 @@ private:
 		}
 		summ.resetChanged();
 		_comm.skin = findSkin(_comm, _prop, summ);
-		_comm.closeAll;
+		_comm.closeAll();
 		if (_dataWin) {
 			_dataWin.load(summ);
 		} else {
@@ -403,8 +403,8 @@ private:
 		if (_infoWin) _infoWin.refresh(summ);
 		_dirWin.refresh(summ);
 		_comm.refScenario.call(summ);
-		_comm.refScenarioName.call;
-		_comm.refScenarioPath.call;
+		_comm.refScenarioName.call();
+		_comm.refScenarioPath.call();
 		if (!dock) {
 			if (_prop.var.dataWin.visible) _comm.openDataWin(false);
 			if (_prop.var.cardWin.visible) _comm.openBindCardWin(false);
@@ -437,7 +437,7 @@ private:
 		try {
 			if (old) {
 				synchronized (_saveSync) {
-					old.delTemp;
+					old.delTemp();
 				}
 			}
 		} catch (Exception e) {
@@ -494,17 +494,17 @@ private:
 		}
 	}
 	void saveScenario() {
-		auto fc = _win.getDisplay.getFocusControl;
-		save(fc.getShell);
+		auto fc = _win.getDisplay().getFocusControl();
+		save(fc.getShell());
 	}
 	void savec(Shell shell) {
 		save(shell);
 	}
 	bool save(Shell shell) {
 		if (summary) {
-			_dirWin.pauseTrace;
+			_dirWin.pauseTrace();
 			scope (exit) {
-				_dirWin.resumeTrace;
+				_dirWin.resumeTrace();
 			}
 			if (!summary.isSaved) {
 				// いまだ保存されていない場合は名前をつけて保存
@@ -516,7 +516,7 @@ private:
 					synchronized (_saveSync) {
 						summary.saveOverwrite(_prop.parent, _prop.var.etc.doubleIO, _prop.var.etc.saveInnerImagePath);
 					}
-					_comm.saved.call;
+					_comm.saved.call();
 					refreshTitle();
 					addHistory();
 					GC.collect();
@@ -537,18 +537,18 @@ private:
 	bool __saveScenarioA(Shell shell) {
 		if (summary) {
 			auto dlg = new FileDialog(shell, SWT.PRIMARY_MODAL | SWT.APPLICATION_MODAL | SWT.SINGLE | SWT.SAVE);
-			dlg.setFilterExtensions = ["*.wsn"];
-			dlg.setFilterNames = [_prop.msgs.filterScenarioSave];
-			dlg.setText = _prop.msgs.dlgTitSaveScenario;
-			dlg.setFilterPath = scenarioFilterPath(_prop);
-			dlg.setFileName = setExtension(summary.scenarioName, "wsn");
-			dlg.setOverwrite = true;
-			string fname = dlg.open;
+			dlg.setFilterExtensions(["*.wsn"]);
+			dlg.setFilterNames([_prop.msgs.filterScenarioSave]);
+			dlg.setText(_prop.msgs.dlgTitSaveScenario);
+			dlg.setFilterPath(scenarioFilterPath(_prop));
+			dlg.setFileName(setExtension(summary.scenarioName, "wsn"));
+			dlg.setOverwrite(true);
+			string fname = dlg.open();
 			if (fname) {
 				auto cursors = setWaitCursors(shell);
 				scope (exit) resetCursors(cursors);
-				_dirWin.pauseTrace;
-				scope (exit) _dirWin.resumeTrace;
+				_dirWin.pauseTrace();
+				scope (exit) _dirWin.resumeTrace();
 				string tempPath = _prop.tempPath;
 				bool expandXMLs = _prop.var.etc.expandXMLs;
 				Skin defSkin = .findSkin2(_prop, _prop.var.etc.defaultSkin);
@@ -561,10 +561,10 @@ private:
 							});
 					}
 					_comm.skin = findSkin(_comm, _prop, summary);
-					_comm.saved.call;
+					_comm.saved.call();
 					refreshTitle();
-					_comm.refScenarioPath.call;
-					_comm.refSkin.call;
+					_comm.refScenarioPath.call();
+					_comm.refSkin.call();
 					_comm.refPaths.call("");
 					addHistory();
 					GC.collect();
@@ -614,18 +614,18 @@ private:
 		}
 	}
 	void exitAll() {
-		if (qSave) {
-			_win.close;
+		if (qSave()) {
+			_win.close();
 		}
 	}
 	private ReplaceDialog _replDlg = null;
 	void replaceText() {
-		openReplWin;
+		openReplWin();
 	}
 	void clipboardToXML() {
-		auto c = _comm.clipboard.getContents(XMLBytesTransfer.getInstance);
+		auto c = _comm.clipboard.getContents(XMLBytesTransfer.getInstance());
 		if (c !is null && isXMLBytes(c)) {
-			_comm.clipboard.setContents([new ArrayWrapperString(bytesToXML(c))], [TextTransfer.getInstance]);
+			_comm.clipboard.setContents([new ArrayWrapperString(bytesToXML(c))], [TextTransfer.getInstance()]);
 		}
 	}
 
@@ -634,14 +634,14 @@ private:
 			MessageBox dlg;
 			if (reload) {
 				dlg = new MessageBox(_win, SWT.OK | SWT.CANCEL | SWT.ICON_QUESTION);
-				dlg.setMessage = _prop.msgs.dlgMsgIsSaveBeforeReload(summary.scenarioName);
+				dlg.setMessage(_prop.msgs.dlgMsgIsSaveBeforeReload(summary.scenarioName));
 			} else {
 				dlg = new MessageBox(_win, SWT.YES | SWT.NO | SWT.CANCEL | SWT.ICON_QUESTION);
-				dlg.setMessage = _prop.msgs.dlgMsgIsSaveBeforeExit(summary.scenarioName);
+				dlg.setMessage(_prop.msgs.dlgMsgIsSaveBeforeExit(summary.scenarioName));
 			}
-			dlg.setText = _prop.msgs.dlgTitQuestion;
-			_win.setMinimized = false;
-			switch (dlg.open) {
+			dlg.setText(_prop.msgs.dlgTitQuestion);
+			_win.setMinimized(false);
+			switch (dlg.open()) {
 			case SWT.YES, SWT.OK:
 				return reload ? true : save(_win);
 			case SWT.NO:
@@ -657,7 +657,7 @@ private:
 	private CoolBar _cbar = null;
 	class SListener : ShellAdapter {
 		override void shellClosed(ShellEvent e) {
-			e.doit = qSave;
+			e.doit = qSave();
 			if (e.doit) {
 				if (summary && !_comm.isChanged) {
 					writeDock();
@@ -677,11 +677,11 @@ private:
 			_comm.replText.remove(&refreshTitle);
 			_comm.refClassicSkin.remove(&refreshExecEngine);
 			_comm.refHistories.remove(&createFileMenu);
-			auto b = _win.getBounds;
+			auto b = _win.getBounds();
 			_prop.var.mainWin.x = b.x;
 			_prop.var.mainWin.y = b.y;
 			if (dock) {
-				_prop.var.mainWin.maximized = _win.getMaximized;
+				_prop.var.mainWin.maximized = _win.getMaximized();
 				if (!_prop.var.mainWin.maximized) {
 					_prop.var.mainWin.width = b.width;
 					_prop.var.mainWin.height = b.height;
@@ -689,15 +689,15 @@ private:
 			}
 			stopSE();
 			stopBGM();
-			_win.setVisible = false;
-			scope (failure) _win.setVisible = true;
+			_win.setVisible(false);
+			scope (failure) _win.setVisible(true);
 			_comm.refScenario.call(null);
-			_comm.closeAll;
+			_comm.closeAll();
 			if (summary && summary.useTemp) {
-				_dirWin.stopTrace;
+				_dirWin.stopTrace();
 				try {
 					synchronized (_saveSync) {
-						summary.delTemp;
+						summary.delTemp();
 					}
 				} catch (Exception e) {
 					debugln(e);
@@ -884,7 +884,7 @@ private:
 			_hist = hist;
 		}
 		private void run() {
-			if (qSave) {
+			if (qSave()) {
 				openScenario(_hist, &delHist);
 			}
 		}
@@ -895,9 +895,9 @@ private:
 			if (cfnmatch(ext, "xml") || cfnmatch(ext, "wsm") || cfnmatch(ext, "wid")) {
 				h = dirName(h);
 			}
-			dlg.setMessage = _prop.msgs.scenarioNotFound(h);
-			dlg.setText = _prop.msgs.dlgTitQuestion;
-			if (SWT.YES == dlg.open) {
+			dlg.setMessage(_prop.msgs.scenarioNotFound(h));
+			dlg.setText(_prop.msgs.dlgTitQuestion);
+			if (SWT.YES == dlg.open()) {
 				this.outer.delHist(_hist);
 			}
 		}
@@ -952,8 +952,8 @@ private:
 	}
 	private Menu _menuFile;
 	void createFileMenu() {
-		foreach (itm; _menuFile.getItems) {
-			itm.dispose;
+		foreach (itm; _menuFile.getItems()) {
+			itm.dispose();
 		}
 		mixin (MenuAction!("_menuFile", "New", SWT.PUSH, "createScenario"));
 		mixin (MenuAction!("_menuFile", "Open", SWT.PUSH, "openScenarioM"));
@@ -1231,7 +1231,7 @@ public:
 
 		auto d = new Display;
 		_display = d;
-		d.setAppName = _prop.msgs.application;
+		d.setAppName(_prop.msgs.application);
 
 		string engineDir = "";
 		if (_prop.enginePath.length && .exists(_prop.enginePath)) {
@@ -1248,9 +1248,9 @@ public:
 		} else {
 			_sbshl = new SBShell(null, SWT.DIALOG_TRIM | SWT.MIN);
 		}
-		_win = _sbshl.shell;
-		_win.setData = new TLPData(this);
-		_win.setImage = _prop.images.app;
+		_win = _sbshl.shell();
+		_win.setData(new TLPData(this));
+		_win.setImage(_prop.images.app);
 
 		_comm.save.add(&savec);
 		_comm.refScenarioName.add(&refreshTitle);
@@ -1267,17 +1267,17 @@ public:
 		}
 		_win.setText(_prop.msgs.mainWindowName(null, null, false));
 		if (_prop.var.etc.singleWindow) {
-			_sbshl.contentPane.setLayout = zeroGridLayout(1, true);
+			_sbshl.contentPane.setLayout(zeroGridLayout(1, true));
 		} else {
-			_sbshl.contentPane.setLayout = windowGridLayout(1, true);
+			_sbshl.contentPane.setLayout(windowGridLayout(1, true));
 		}
 		auto toolComp = new Composite(_sbshl.contentPane, SWT.NONE);
-		toolComp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-		toolComp.setLayout = new FillLayout;
+		toolComp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		toolComp.setLayout(new FillLayout);
 		if (_prop.var.etc.singleWindow) {
 			auto dockComp = new Composite(_sbshl.contentPane, SWT.NONE);
-			dockComp.setLayoutData = new GridData(GridData.FILL_BOTH);
-			dockComp.setLayout = windowGridLayout(1, true);
+			dockComp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			dockComp.setLayout(windowGridLayout(1, true));
 			_dock = _prop.var.loadDock(dockComp, SWT.NONE, delegate Control(Composite parent, string key) {
 				switch (key) {
 				case "data": {
@@ -1349,10 +1349,10 @@ public:
 				_dock.selectEvent ~= &dockSelect;
 				_dock.closeCtrlEvent ~= &dockCloseCtrl;
 				_dock.addCreatePaneEvent(&createPaneEvent);
-				_dock.area.setLayoutData = new GridData(GridData.FILL_BOTH);
+				_dock.area.setLayoutData(new GridData(GridData.FILL_BOTH));
 			}
 			if (_dock) {
-				initDock;
+				initDock();
 				if (_tableWin) {
 					_dock.tabImage("data", _tableWin.image);
 					_dock.tabText("data", _tableWin.title);
@@ -1412,7 +1412,7 @@ public:
 				}
 			} else {
 				_dock = new DockingFolderCTC(dockComp, SWT.NONE, "work");
-				initDock;
+				initDock();
 				auto data = _dock.addPane(_dock.first, Dir.N, 1, 3, "data");
 				_tableWin = new TableWindow(_comm, _prop, _win, data);
 				_dock.add(_tableWin.shell, _tableWin.title, _tableWin.image, "data", true);
@@ -1558,11 +1558,11 @@ public:
 				auto sct = _menu[MenuID.ShowCardTable];
 				g.append(sct);
 				if (_prop.var.etc.cardLife) {
-					scf.setSelection = true;
+					scf.setSelection(true);
  				} else if (_prop.var.etc.cardDetails) {
-					sct.setSelection = true;
+					sct.setSelection(true);
 				} else {
-					scl.setSelection = true;
+					scl.setSelection(true);
 				}
 				_menuRG ~= g;
 				new MenuItem(mc, SWT.SEPARATOR);
@@ -1579,14 +1579,14 @@ public:
 			void delegate(SelectionEvent) dummy = null;
 			auto eemi = createMenuItem(mt, _prop.msgs.menuExecEngine, _prop.images.menuExecEngine, dummy, SWT.CASCADE);
 			_mExecEngine = new Menu(eemi);
-			eemi.setMenu = _mExecEngine;
+			eemi.setMenu(_mExecEngine);
 			new MenuItem(mt, SWT.SEPARATOR);
 			mixin (MenuAction!("mt", "Settings", SWT.PUSH, "settings"));
 
 			auto mh = createMenu(bar, _prop.msgs.menuHelp);
 			mixin (MenuAction!("mh", "Version", SWT.PUSH, "versionInfo"));
 
-			_win.setMenuBar = bar;
+			_win.setMenuBar(bar);
 		}
 
 		Menu tmOpenCardWin;
@@ -1707,11 +1707,11 @@ public:
 					auto sct = _tool[MenuID.ShowCardTable];
 					g.append(sct);
 					if (_prop.var.etc.cardLife) {
-						scf.setSelection = true;
+						scf.setSelection(true);
 					} else if (_prop.var.etc.cardDetails) {
-						sct.setSelection = true;
+						sct.setSelection(true);
 					} else {
-						scl.setSelection = true;
+						scl.setSelection(true);
 					}
 					_toolRG ~= g;
 					new ToolItem(bar, SWT.SEPARATOR);
@@ -1740,7 +1740,7 @@ public:
 			});
 
 			auto drop = new DropTarget(_cbar, DND.DROP_DEFAULT | DND.DROP_LINK);
-			drop.setTransfer([FileTransfer.getInstance]);
+			drop.setTransfer([FileTransfer.getInstance()]);
 			drop.addDropListener(new DTListener);
 
 			_comm.baseShell(this, _tableWin, _flagWin, _castWin, _skillWin, _itemWin, _beastWin, _infoWin, _dirWin);
@@ -1769,7 +1769,7 @@ public:
 			_toolBar ~= bar;
 
 			auto drop = new DropTarget(bar, DND.DROP_DEFAULT | DND.DROP_LINK);
-			drop.setTransfer([FileTransfer.getInstance]);
+			drop.setTransfer([FileTransfer.getInstance()]);
 			drop.addDropListener(new DTListener);
 
 			_comm.baseShell(this, _dataWin, _cardWin, _dirWin);
@@ -1780,17 +1780,17 @@ public:
 		d.addFilter(SWT.MouseWheel, new SwitchTab);
 		refreshExecEngine();
 
-		int tx = _prop.var.mainWin.x == SWT.DEFAULT ? _win.getBounds.x : _prop.var.mainWin.x;
-		int ty = _prop.var.mainWin.y == SWT.DEFAULT ? _win.getBounds.y : _prop.var.mainWin.y;
+		int tx = _prop.var.mainWin.x == SWT.DEFAULT ? _win.getBounds().x : _prop.var.mainWin.x;
+		int ty = _prop.var.mainWin.y == SWT.DEFAULT ? _win.getBounds().y : _prop.var.mainWin.y;
 		if (_prop.var.etc.singleWindow) {
-			_win.setMaximized = _prop.var.mainWin.maximized;
+			_win.setMaximized(_prop.var.mainWin.maximized);
 			intoDisplay(tx, ty, _prop.var.mainWin.width, _prop.var.mainWin.height);
 			_win.setBounds(tx, ty, _prop.var.mainWin.width, _prop.var.mainWin.height);
 			_win.layout(true);
 		} else {
-			_win.pack;
-			intoDisplay(tx, ty, _win.getSize.x, _win.getSize.y);
-			_win.setBounds(tx, ty, _win.getSize.x, _win.getSize.y);
+			_win.pack();
+			intoDisplay(tx, ty, _win.getSize().x, _win.getSize().y);
+			_win.setBounds(tx, ty, _win.getSize().x, _win.getSize().y);
 		}
 		if (_dock) {
 			if (_dock.pane("data")) {
@@ -1824,10 +1824,10 @@ public:
 				SWT.F11, SWT.F12, SWT.F13, SWT.F14, SWT.F15,
 			];
 			e.doit = true;
-			auto d = Display.getCurrent;
+			auto d = Display.getCurrent();
 			auto fc = d.getFocusControl();
 			if (!fc) return;
-			bool ro = !(fc.getStyle & SWT.READ_ONLY);
+			bool ro = !(fc.getStyle() & SWT.READ_ONLY);
 			if (ro && (cast(Spinner) fc || cast(Text) fc || cast(Combo) fc || cast(CCombo) fc)) {
 				if (!(e.stateMask & SWT.CTRL) && !.contains!("a == b", int, int)(F, e.keyCode)) {
 					return;
@@ -1843,31 +1843,31 @@ public:
 				menu.notifyListeners(SWT.Selection, se);
 				e.doit = false;
 			}
-			if (fc.getMenu) {
-				auto menu = findMenu(fc.getMenu, e.keyCode, e.character, e.stateMask);
-				if (menu && menu.getEnabled) {
+			if (fc.getMenu()) {
+				auto menu = findMenu(fc.getMenu(), e.keyCode, e.character, e.stateMask);
+				if (menu && menu.getEnabled()) {
 					raiseEvent(menu);
 					return;
 				}
 			}
-			if (!.isDescendant(_win, fc.getShell)) return;
+			if (!.isDescendant(_win, fc.getShell())) return;
 			// フォーカスのあるコントロールのShellのメニューを探し、
 			// 該当するメニューが無かった場合は
 			// 順に上位のShellを探索する
-			auto shl = fc.getShell;
+			auto shl = fc.getShell();
 			MenuItem menu = null;
 			while (!menu && shl) {
 				menu = findMenu(shl, e.keyCode, e.character, e.stateMask);
 				if (menu) break;
 				if (shl is _win) break;
-				int s = shl.getStyle;
+				int s = shl.getStyle();
 				if ((s & SWT.PRIMARY_MODAL) || (s & SWT.APPLICATION_MODAL) || (s & SWT.SYSTEM_MODAL)) {
 					break;
 				}
-				shl = cast(Shell) shl.getParent;
+				shl = cast(Shell) shl.getParent();
 				if (!shl) break;
 			}
-			if (menu && menu.getEnabled) {
+			if (menu && menu.getEnabled()) {
 				raiseEvent(menu);
 				return;
 			}
@@ -1880,20 +1880,20 @@ public:
 			if (!tab || 0 == e.count) return false;
 			auto w = cast(Control) e.widget;
 			if (!w) return false;
-			if (tabf.getItemCount <= 1) return false;
+			if (tabf.getItemCount() <= 1) return false;
 			auto p = w.toDisplay(e.x, e.y);
-			auto ca = tabf.getClientArea;
+			auto ca = tabf.getClientArea();
 			if (ca.y <= tabf.toControl(p).y) return false;
 			int index = tabf.indexOf(tab);
 			assert (-1 != index);
 			if (e.count < 0) {
 				index++;
-				if (tabf.getItemCount <= index) index = 0;
+				if (tabf.getItemCount() <= index) index = 0;
 			} else if (0 < e.count) {
 				index--;
-				if (index < 0) index = tabf.getItemCount - 1;
+				if (index < 0) index = tabf.getItemCount() - 1;
 			}
-			tabf.setSelection = index;
+			tabf.setSelection(index);
 
 			scope se = new Event;
 			se.type = SWT.Selection;
@@ -1909,20 +1909,20 @@ public:
 		override void handleEvent(Event e) {
 			if (!_prop.var.etc.switchTabWheel) return;
 			if (e.type != SWT.MouseWheel) return;
-			auto d = Display.getCurrent;
-			auto c = d.getCursorControl;
+			auto d = Display.getCurrent();
+			auto c = d.getCursorControl();
 			if (!c) return;
-			if (!.isDescendant(_win, c.getShell)) return;
+			if (!.isDescendant(_win, c.getShell())) return;
 
 			auto ctabf = cast(CTabFolder) c;
 			if (ctabf) {
-				if (switchTab(ctabf, ctabf.getSelection, e)) {
+				if (switchTab(ctabf, ctabf.getSelection(), e)) {
 					e.doit = false;
 				}
 			}
 			auto tabf = cast(TabFolder) c;
-			if (tabf && 0 < tabf.getSelection.length) {
-				if (switchTab(tabf, tabf.getSelection[0], e)) {
+			if (tabf && 0 < tabf.getSelection().length) {
+				if (switchTab(tabf, tabf.getSelection()[0], e)) {
 					e.doit = false;
 				}
 			}
@@ -1968,7 +1968,7 @@ public:
 	private void refreshAll(SelectionEvent se) {
 		if (!_dock) return;
 		foreach (ctrl; _dock.showingControls) {
-			auto tlpData = cast(TLPData) ctrl.getData;
+			auto tlpData = cast(TLPData) ctrl.getData();
 			if (!tlpData) continue;
 			auto act = tlpData.tlp.menuAction(MenuID.Refresh);
 			if (act) act(se);
@@ -1978,8 +1978,8 @@ public:
 		override void paintControl(PaintEvent e) {
 			if (!_comm.wallpaper) return;
 			auto tabf = cast(CTabFolder) e.widget;
-			if (!tabf || tabf.getItemCount > 0) return;
-			auto rect = tabf.getClientArea;
+			if (!tabf || tabf.getItemCount() > 0) return;
+			auto rect = tabf.getClientArea();
 			drawTileImage(e.gc, _comm.wallpaper, rect);
 		}
 	}
@@ -1989,7 +1989,7 @@ public:
 			_paneKey = paneKey;
 			auto comp = _dock.pane(paneKey);
 			comp.addPaintListener(new TabfPaint);
-			auto menu = new Menu(comp.getShell, SWT.POP_UP);
+			auto menu = new Menu(comp.getShell(), SWT.POP_UP);
 			createMenuItem(menu, _prop.msgs.menuClosePane, _prop.images.menuClosePane, &close);
 			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(menu, _prop.msgs.menuClosePaneEtc, _prop.images.menuClosePaneEtc, &closeEtc);
@@ -2027,7 +2027,7 @@ public:
 		if (!summary) return;
 		auto dirWin = cast(DirectoryWindow) _tlp;
 		if (dirWin) {
-			dirWin.openDirectory;
+			dirWin.openDirectory();
 		} else {
 			openFolder(summary.scenarioPath);
 		}
@@ -2040,13 +2040,13 @@ public:
 		if (cw && !isMainCardWin(cw)) {
 			menuAction!(MenuID.ShowCardLife)(se);
 		} else {
-			if (_cardWin) _cardWin.showCardLife;
-			if (_castWin) _castWin.showCardLife;
-			if (_skillWin) _skillWin.showCardLife;
-			if (_itemWin) _itemWin.showCardLife;
-			if (_beastWin) _beastWin.showCardLife;
-			if (_infoWin) _infoWin.showCardLife;
-			menuActionAfter!(MenuID.ShowCardLife);
+			if (_cardWin) _cardWin.showCardLife();
+			if (_castWin) _castWin.showCardLife();
+			if (_skillWin) _skillWin.showCardLife();
+			if (_itemWin) _itemWin.showCardLife();
+			if (_beastWin) _beastWin.showCardLife();
+			if (_infoWin) _infoWin.showCardLife();
+			menuActionAfter!(MenuID.ShowCardLife)();
 		}
 	}
 	private void showCardList(SelectionEvent se) {
@@ -2054,13 +2054,13 @@ public:
 		if (cw && !isMainCardWin(cw)) {
 			menuAction!(MenuID.ShowCardList)(se);
 		} else {
-			if (_cardWin) _cardWin.showCardList;
-			if (_castWin) _castWin.showCardList;
-			if (_skillWin) _skillWin.showCardList;
-			if (_itemWin) _itemWin.showCardList;
-			if (_beastWin) _beastWin.showCardList;
-			if (_infoWin) _infoWin.showCardList;
-			menuActionAfter!(MenuID.ShowCardList);
+			if (_cardWin) _cardWin.showCardList();
+			if (_castWin) _castWin.showCardList();
+			if (_skillWin) _skillWin.showCardList();
+			if (_itemWin) _itemWin.showCardList();
+			if (_beastWin) _beastWin.showCardList();
+			if (_infoWin) _infoWin.showCardList();
+			menuActionAfter!(MenuID.ShowCardList)();
 		}
 	}
 	private void showCardTable(SelectionEvent se) {
@@ -2068,13 +2068,13 @@ public:
 		if (cw && !isMainCardWin(cw)) {
 			menuAction!(MenuID.ShowCardTable)(se);
 		} else {
-			if (_cardWin) _cardWin.showCardTable;
-			if (_castWin) _castWin.showCardTable;
-			if (_skillWin) _skillWin.showCardTable;
-			if (_itemWin) _itemWin.showCardTable;
-			if (_beastWin) _beastWin.showCardTable;
-			if (_infoWin) _infoWin.showCardTable;
-			menuActionAfter!(MenuID.ShowCardTable);
+			if (_cardWin) _cardWin.showCardTable();
+			if (_castWin) _castWin.showCardTable();
+			if (_skillWin) _skillWin.showCardTable();
+			if (_itemWin) _itemWin.showCardTable();
+			if (_beastWin) _beastWin.showCardTable();
+			if (_infoWin) _infoWin.showCardTable();
+			menuActionAfter!(MenuID.ShowCardTable)();
 		}
 	}
 	private void newCast() {mixin (NewCard!("Cast"));}
@@ -2122,13 +2122,13 @@ public:
 				auto b = *p;
 				foreach (g; rg) {
 					if (g.contains(b)) {
-						foreach (gb; g.set) {
-							gb.setSelection = gb is b;
+						foreach (gb; g.set()) {
+							gb.setSelection(gb is b);
 						}
 						return;
 					}
 				}
-				b.setSelection = _tlp.menuChecked(ID)();
+				b.setSelection(_tlp.menuChecked(ID)());
 			}
 		}
 	}
@@ -2137,7 +2137,7 @@ public:
 		auto act = _tlp.menuAction(ID);
 		assert (act, .text(ID) ~ " " ~ .text(_tlp));
 		act(se);
-		menuActionAfter!(ID);
+		menuActionAfter!(ID)();
 	}
 	private void menuActionAfter(MenuID ID)() {
 		menuActionAfterImpl!(ID)(_menu, _menuRG);
@@ -2147,31 +2147,31 @@ public:
 	private void setupMenu(M)(M[MenuID] menus) {
 		foreach (id, itm; menus) {
 			if (id is MenuID.ExecEngine) {
-				itm.setEnabled = _prop.var.etc.enginePath.length || _prop.var.etc.classicEngines.length;
+				itm.setEnabled(_prop.var.etc.enginePath.length || _prop.var.etc.classicEngines.length);
 				continue;
 			}
 			if (_tlp) {
-				auto s = itm.getStyle;
+				auto s = itm.getStyle();
 				if ((s & SWT.RADIO) || (s & SWT.CHECK)) {
 					auto chk = _tlp.menuChecked(id);
-					if (chk) itm.setSelection = chk();
+					if (chk) itm.setSelection(chk());
 				}
 			}
 			if (!summary && !_noSummMenu.contains(id)) {
-				itm.setEnabled = false;
+				itm.setEnabled(false);
 				continue;
 			}
 			if (_mainMenu.contains(id)) {
-				itm.setEnabled = true;
+				itm.setEnabled(true);
 				continue;
 			}
-			itm.setEnabled = _tlp && _tlp.menuAction(id);
+			itm.setEnabled(_tlp && _tlp.menuAction(id));
 		}
 	}
 	private void dockSelect(string key) {
 		if (!_dock) return;
 		if (!_dock.control(key)) return;
-		auto tlp = (cast(TLPData) _dock.control(key).getData).tlp;
+		auto tlp = (cast(TLPData) _dock.control(key).getData()).tlp;
 		assert (tlp, key);
 		_tlp = tlp;
 		statusLine = tlp.statusLine;
@@ -2213,15 +2213,21 @@ public:
 		return "";
 	}
 	void setStatusLine(string status) {
-		_comm.statusLine(_win, status);
+		_comm.setStatusLine(_win, status);
 	}
 
-	string title() {return _win.getText;}
-	Image image() {return _win.getImage;}
+	@property
+	string title() {return _win.getText();}
+	@property
+	Image image() {return _win.getImage();}
+	@property
 	Composite shell() {return _win;}
+	@property
 	void delegate(string) statusText() {return &_sbshl.statusLine;}
+	@property
 	DockingFolderCTC dock() {return _dock;}
 
+	@property
 	Summary summary() {return _dataWin ? _dataWin.summary : _tableWin.summary;}
 
 	void reNumberingHands(A)(A[] arr) {
@@ -2253,9 +2259,9 @@ public:
 	void reNumberingAll() {
 		if (!summary) return;
 		auto dlg = new MessageBox(_win, SWT.ICON_QUESTION | SWT.OK | SWT.CANCEL);
-		dlg.setText = _prop.msgs.dlgTitQuestion;
-		dlg.setMessage = _prop.msgs.reNumberingAll;
-		if (SWT.OK == dlg.open) {
+		dlg.setText(_prop.msgs.dlgTitQuestion);
+		dlg.setMessage(_prop.msgs.reNumberingAll);
+		if (SWT.OK == dlg.open()) {
 			if (_dataWin) {
 				_dataWin.reNumberingAll();
 			} else if (_tableWin) {
@@ -2285,12 +2291,12 @@ public:
 
 	ReplaceDialog openReplWin() {
 		if (summary) {
-			if (!_replDlg || _replDlg.widget.isDisposed) {
+			if (!_replDlg || _replDlg.widget.isDisposed()) {
 				_replDlg = new ReplaceDialog(_comm, _prop, _win, summary);
 				_replDlg.open();
 			} else {
-				_replDlg.widget.setMinimized = false;
-				_replDlg.widget.setActive;
+				_replDlg.widget.setMinimized(false);
+				_replDlg.widget.setActive();
 			}
 			return _replDlg;
 		}
@@ -2299,8 +2305,8 @@ public:
 
 	bool openCWXPath(string path, bool shellActivate) {
 		if (!summary) return false;
-		_win.setRedraw = false;
-		scope (exit) _win.setRedraw = true;
+		_win.setRedraw(false);
+		scope (exit) _win.setRedraw(true);
 		bool open() {
 			path = cwx.utils.toLower(path);
 			if (cpempty(path)) {
@@ -2354,7 +2360,7 @@ public:
 		bool r = true;
 		foreach (p; std.string.split(path, CWXPATH_SEP.idup)) {
 			if (open()) {
-				_win.setMinimized = false;
+				_win.setMinimized(false);
 				if (shellActivate) _win.forceActive();
 			} else {
 				r = false;
@@ -2362,12 +2368,13 @@ public:
 		}
 		return r;
 	}
+	@property
 	string[] openedCWXPath() {
 		string[] r;
 		if (!_dock) return r;
 		foreach (paneKey; _dock.paneKeys) {
 			foreach (ctrl; _dock.controls(paneKey)) {
-				auto tlpData = cast(TLPData) ctrl.getData;
+				auto tlpData = cast(TLPData) ctrl.getData();
 				if (tlpData.tlp is this) continue;
 				assert (tlpData);
 				r ~= tlpData.tlp.openedCWXPath;
@@ -2377,7 +2384,7 @@ public:
 			if ("" != ctrlKey) {
 				auto ctrl = _dock.control(ctrlKey);
 				assert (ctrl);
-				auto tlpData = cast(TLPData) ctrl.getData;
+				auto tlpData = cast(TLPData) ctrl.getData();
 				assert (tlpData);
 				if (tlpData.tlp !is this) {
 					r ~= tlpData.tlp.openedCWXPath;
@@ -2385,23 +2392,23 @@ public:
 			}
 		}
 		// 現在フォーカスのあるコントロールを末尾に追加
-		auto d = _win.getDisplay;
-		auto fc = d.getFocusControl;
+		auto d = _win.getDisplay();
+		auto fc = d.getFocusControl();
 		while (fc) {
-			auto tlpData = cast(TLPData) fc.getData;
+			auto tlpData = cast(TLPData) fc.getData();
 			if (tlpData && tlpData.tlp !is this) {
 				r ~= tlpData.tlp.openedCWXPath;
 				break;
 			}
-			fc = fc.getParent;
+			fc = fc.getParent();
 		}
 		return array(uniq(r));
 	}
 
 	void doCWX() {
 		if (!_win) return;
-		auto d = _win.getDisplay;
-		_win.open;
+		auto d = _win.getDisplay();
+		_win.open();
 		if (_firstScenarioPath) {
 			openScenario(_firstScenarioPath);
 		} else if (_prop.var.etc.openLastScenario && _prop.var.etc.lastScenario.length) {
@@ -2409,9 +2416,9 @@ public:
 		}
 
 		auto pipe = new core.thread.Thread(&pipeThr);
-		pipe.start;
+		pipe.start();
 		auto backup = new core.thread.Thread(&backupThr);
-		backup.start;
+		backup.start();
 		version (Windows) {
 			scope (exit) {
 				auto p = CreateFileW(toUTFz!(wchar*)(_pipeName),
@@ -2434,22 +2441,22 @@ public:
 			}
 		}
 		bool openErrDlg = false;
-		while (!_win.isDisposed) {
+		while (!_win.isDisposed()) {
 			version (nocatch) {
-				if (!d.readAndDispatch) {
-					d.sleep;
+				if (!d.readAndDispatch()) {
+					d.sleep();
 				}
 			} else {
 				// なるべくユーザデータを消さないよう、例外が発生しても処理を続行する。
 				try {
-					if (!d.readAndDispatch) {
-						d.sleep;
+					if (!d.readAndDispatch()) {
+						d.sleep();
 					}
 				} catch (Throwable e) {
 					if (!openErrDlg) {
 						// 際限の無い連続発生を抑制
 						openErrDlg = true;
-						_win.setVisible = true;
+						_win.setVisible(true);
 						fdebugln(e);
 						string s = createDebugln(e);
 						auto dlg = new ErrorDialog(_comm, _prop, _win, s);
@@ -2466,10 +2473,10 @@ public:
 		// FIXME: quitTrace()をbackup.join()より先に行うと時々アクセス違反
 		_quit = true;
 		backup.join();
-		_dirWin.quitTrace;
-		_comm.dispose;
-		_prop.images.disposeImages;
-		d.dispose;
+		_dirWin.quitTrace();
+		_comm.dispose();
+		_prop.images.disposeImages();
+		d.dispose();
 		_prop.var.save(dock);
 		sendReloadProps();
 		version (Console) {

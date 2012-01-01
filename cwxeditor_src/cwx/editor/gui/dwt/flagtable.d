@@ -96,8 +96,8 @@ private:
 			this.index = index;
 		}
 		override void modifyText(ModifyEvent e) {
-			if (index < stepInit.getItemCount) {
-				stepInit.setItem(index, (cast(Text) e.getSource).getText);
+			if (index < stepInit.getItemCount()) {
+				stepInit.setItem(index, (cast(Text) e.getSource()).getText());
 			}
 		}
 	}
@@ -124,7 +124,7 @@ public:
 	/// shell = 親ウィンドウ。
 	/// dir = 設定するステップの親ディレクトリ。
 	/// step = 設定するステップ。新規の場合はnull。
-	this(Commons comm, Props prop, Shell shell, FlagDir dir, Step step = null) {
+	this (Commons comm, Props prop, Shell shell, FlagDir dir, Step step = null) {
 		super(prop, shell, false, prop.msgs.dlgTitStep, prop.images.step, true, prop.var.stepDlg, true);
 		_comm = comm;
 		this.prop = prop;
@@ -134,12 +134,14 @@ public:
 	}
 
 	/// Returns: 編集対象となったステップ。
+	@property
 	Step step() {
 		return _step;
 	}
 	/// 入力中の名前を妥当な形にして返す。
+	@property
 	string name() {
-		auto name = FlagDir.validName(stepName.getText);
+		auto name = FlagDir.validName(stepName.getText());
 		return dir.createNewStepName(name);
 	}
 protected:
@@ -199,7 +201,7 @@ protected:
 				stepVals[i].addFocusListener(new class FocusAdapter {
 					override void focusGained(FocusEvent e) {
 						auto text = cast(Text) e.widget;
-						text.selectAll;
+						text.selectAll();
 					}
 				});
 				setGridMinW(stepVals[i], prop.var.etc.flagValueWidth, GridData.FILL_HORIZONTAL);
@@ -208,7 +210,7 @@ protected:
 		}
 		_comm.delFlagAndStep.add(&delStep);
 		_comm.refScenario.add(&refScenario);
-		getShell.addDisposeListener(new Dispose);
+		getShell().addDisposeListener(new Dispose);
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
@@ -221,20 +223,20 @@ protected:
 				} else {
 					stepVal.setText(prop.msgs.dlgTxtStep(i));
 				}
-				vals ~= stepVal.getText;
+				vals ~= stepVal.getText();
 			}
 		} else {
 			stepName.setText = "";
 			foreach (i, stepVal; stepVals) {
 				stepVal.setText(prop.msgs.dlgTxtStep(i));
-				vals ~= stepVal.getText;
+				vals ~= stepVal.getText();
 			}
 		}
 		if (!_step.parent) {
 			// 新規作成時
 			stepName.setText = "";
 		}
-		stepName.selectAll;
+		stepName.selectAll();
 		setComboItems(stepInit, vals);
 		stepInit.select(_step is null ? 0 : _step.select);
 	}
@@ -242,13 +244,13 @@ protected:
 	override bool apply() {
 		string[] vals;
 		foreach (stepVal; stepVals) {
-			vals ~= stepVal.getText;
+			vals ~= stepVal.getText();
 		}
 		if (_step.parent) {
-			_step.name = stepName.getText;
-			_step.setValues(vals, stepInit.getSelectionIndex);
+			_step.name = stepName.getText();
+			_step.setValues(vals, stepInit.getSelectionIndex());
 		} else {
-			_step = new Step(this.name, vals, stepInit.getSelectionIndex);
+			_step = new Step(this.name, vals, stepInit.getSelectionIndex());
 			dir.add(_step);
 		}
 		_comm.refFlagAndStep.call([], [_step]);
@@ -273,8 +275,8 @@ private:
 	private:
 		int index;
 		void change(E)(E e) {
-			if (index < flagInit.getItemCount) {
-				flagInit.setItem(index, (cast(Combo) e.getSource).getText);
+			if (index < flagInit.getItemCount()) {
+				flagInit.setItem(index, (cast(Combo) e.getSource()).getText());
 			}
 		}
 	public:
@@ -321,12 +323,14 @@ public:
 	}
 
 	/// Returns: 編集対象となったフラグ。
+	@property
 	Flag flag() {
 		return _flag;
 	}
 	/// 入力中の名前を妥当な形にして返す。
+	@property
 	string name() {
-		auto name = FlagDir.validName(flagName.getText);
+		auto name = FlagDir.validName(flagName.getText());
 		return dir.createNewStepName(name);
 	}
 protected:
@@ -395,7 +399,7 @@ protected:
 		}
 		_comm.delFlagAndStep.add(&delFlag);
 		_comm.refScenario.add(&refScenario);
-		getShell.addDisposeListener(new Dispose);
+		getShell().addDisposeListener(new Dispose);
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
@@ -405,31 +409,31 @@ protected:
 			if (-1 == flagTrue.indexOf(_flag.on)) flagTrue.add(_flag.on, 0);
 			flagFalse.setText = _flag.off;
 			if (-1 == flagFalse.indexOf(_flag.off)) flagFalse.add(_flag.off, 0);
-			setComboItems(flagInit, [flagTrue.getText, flagFalse.getText]);
+			setComboItems(flagInit, [flagTrue.getText(), flagFalse.getText()]);
 			flagInit.select = _flag.onOff ? 0 : 1;
 		} else {
 			flagName.setText = "";
 			flagTrue.setText = prop.var.etc.flagTrues.length > 0 ? prop.var.etc.flagTrues[0] : "";
 			flagFalse.setText = prop.var.etc.flagFalses.length > 0 ? prop.var.etc.flagFalses[0] : "";
-			setComboItems(flagInit, [flagTrue.getText, flagFalse.getText]);
+			setComboItems(flagInit, [flagTrue.getText(), flagFalse.getText()]);
 			flagInit.select = 0;
 		}
 		if (!_flag.parent) {
 			// 新規作成時
 			flagName.setText = "";
 		}
-		flagName.selectAll;
+		flagName.selectAll();
 	}
 
 	override bool apply() {
 		if (_flag.parent) {
-			_flag.name = flagName.getText;
-			_flag.onOff = flagInit.getSelectionIndex == 0;
-			_flag.on = flagTrue.getText;
-			_flag.off = flagFalse.getText;
+			_flag.name = flagName.getText();
+			_flag.onOff = flagInit.getSelectionIndex() == 0;
+			_flag.on = flagTrue.getText();
+			_flag.off = flagFalse.getText();
 		} else {
-			_flag = new Flag(this.name, flagTrue.getText, flagFalse.getText,
-				flagInit.getSelectionIndex == 0);
+			_flag = new Flag(this.name, flagTrue.getText(), flagFalse.getText(),
+				flagInit.getSelectionIndex() == 0);
 			dir.add(_flag);
 		}
 		_comm.refFlagAndStep.call([_flag], []);
@@ -451,6 +455,7 @@ private abstract class FTVUndo : Undo {
 		this.comm = comm;
 		saveSelected(v);
 	}
+	@property
 	protected FlagDir dir() {
 		return cast(FlagDir) comm.summary.flagDirRoot.findPath(_dir, false);
 	}
@@ -458,8 +463,8 @@ private abstract class FTVUndo : Undo {
 		auto dir = this.dir();
 		if (!dir) return;
 		_selectedDir = dir.cwxPath;
-		if (v && v.flags && !v.flags.isDisposed) {
-			_selected = v.flags.getSelectionIndices;
+		if (v && v.flags && !v.flags.isDisposed()) {
+			_selected = v.flags.getSelectionIndices();
 		} else {
 			_selected.length = 0;
 		}
@@ -467,12 +472,12 @@ private abstract class FTVUndo : Undo {
 	void udb(FlagTable v) {
 		_selectedB = _selected.dup;
 		saveSelected(v);
-		if (v && v.flags && !v.flags.isDisposed) {
+		if (v && v.flags && !v.flags.isDisposed()) {
 			.forceFocus(v.flags, false);
 		}
 	}
 	void uda(FlagTable v) {
-		if (v && v.flags && !v.flags.isDisposed) {
+		if (v && v.flags && !v.flags.isDisposed()) {
 			if (selDir) {
 				if (comm.openCWXPath(selDir.cwxPath, true)) {
 					v.flags.deselectAll();
@@ -550,7 +555,7 @@ package class UndoEdit : FTVUndo {
 				comm.refFlagAndStep.call([], [s]);
 			}
 		}
-		if (v && v.flags && !v.flags.isDisposed) {
+		if (v && v.flags && !v.flags.isDisposed()) {
 			v.refresh();
 		}
 	}
@@ -630,7 +635,7 @@ package class UndoInsertDelete : FTVUndo {
 			fs ~= d.allFlags;
 			ss ~= d.allSteps;
 		}
-		if (v && v.flags && !v.flags.isDisposed) {
+		if (v && v.flags && !v.flags.isDisposed()) {
 			v.refresh();
 		}
 		if (ds.length) comm.delFlagDir.call(ds.values);
@@ -658,7 +663,7 @@ package class UndoInsertDelete : FTVUndo {
 			_fs ~= d.allFlags;
 			_ss ~= d.allSteps;
 		}
-		if (v && v.flags && !v.flags.isDisposed) {
+		if (v && v.flags && !v.flags.isDisposed()) {
 			v.refresh();
 		}
 		if (_ds.length) comm.refFlagDir.call(_ds.values);
@@ -722,8 +727,8 @@ package class UndoMove : FTVUndo {
 		}
 		_cFlags = cFlags;
 		_cSteps = cSteps;
-		if (v && v.flags && !v.flags.isDisposed) {
-			v.__refreshUseCount;
+		if (v && v.flags && !v.flags.isDisposed()) {
+			v.__refreshUseCount();
 		}
 	}
 	override void undo() {
@@ -842,7 +847,7 @@ private:
 			int i = 0;
 			foreach (f; _dir.steps) {
 				TableItem itm;
-				if (i < flags.getItemCount) {
+				if (i < flags.getItemCount()) {
 					itm = flags.getItem(i);
 				} else {
 					itm = new TableItem(flags, SWT.NONE);
@@ -856,7 +861,7 @@ private:
 			}
 			foreach (f; _dir.flags) {
 				TableItem itm;
-				if (i < flags.getItemCount) {
+				if (i < flags.getItemCount()) {
 					itm = flags.getItem(i);
 				} else {
 					itm = new TableItem(flags, SWT.NONE);
@@ -868,11 +873,11 @@ private:
 				itm.setData = f;
 				i++;
 			}
-			if (i < flags.getItemCount) {
-				flags.remove(i, flags.getItemCount - 1);
+			if (i < flags.getItemCount()) {
+				flags.remove(i, flags.getItemCount() - 1);
 			}
 		} else {
-			flags.removeAll;
+			flags.removeAll();
 		}
 	}
 
@@ -916,8 +921,8 @@ private:
 			if (old && old != flag.path) uc.change(toFlagId(old), toFlagId(flag.path), true);
 			if (createMode) {
 				int[] indices;
-				if (flags && !flags.isDisposed) {
-					indices = flags.getSelectionIndices;
+				if (flags && !flags.isDisposed()) {
+					indices = flags.getSelectionIndices();
 				}
 				storeInsert(indices, [flag.name], []);
 				createMode = false;
@@ -960,8 +965,8 @@ private:
 			if (old && old != step.path) uc.change(toStepId(old), toStepId(step.path), true);
 			if (createMode) {
 				int[] indices;
-				if (flags && !flags.isDisposed) {
-					indices = flags.getSelectionIndices;
+				if (flags && !flags.isDisposed()) {
+					indices = flags.getSelectionIndices();
 				}
 				storeInsert(indices, [step.name], []);
 				createMode = false;
@@ -1000,7 +1005,7 @@ private:
 	/// ss = 選択中のステップの配列が格納される。
 	/// Returns: 選択中ならtrue。
 	bool getSelectionFlagAndStep(out Flag[] fs, out Step[] ss) {
-		auto indices = flags.getSelectionIndices;
+		auto indices = flags.getSelectionIndices();
 		if (indices.length > 0) {
 			foreach (i; indices) {
 				if (i < _dir.steps.length) {
@@ -1022,10 +1027,10 @@ private:
 		int[] dragIndices;
 	public:
 		override void dragStart(DragSourceEvent e) {
-			e.doit = flags.getSelectionCount > 0;
+			e.doit = flags.getSelectionCount() > 0;
 		}
 		override void dragSetData(DragSourceEvent e) {
-			if (XMLBytesTransfer.getInstance.isSupportedType(e.dataType)) {
+			if (XMLBytesTransfer.getInstance().isSupportedType(e.dataType)) {
 				// XML化して転送する。
 				getSelectionFlagAndStep(_dragFlags, _dragSteps);
 				e.data = bytesFromXML(getXML(_dir, _dragFlags, _dragSteps));
@@ -1039,7 +1044,7 @@ private:
 				foreach (step; _dragSteps) {
 					step.parent.remove(step);
 				}
-				refresh;
+				refresh();
 				_comm.delFlagAndStep.call(_dragFlags, _dragSteps);
 			}
 			_dragFlags.length = 0;
@@ -1048,7 +1053,7 @@ private:
 	}
 	class SListener : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			refreshStatusLine;
+			refreshStatusLine();
 		}
 	}
 	class DListener : DisposeListener {
@@ -1059,20 +1064,20 @@ private:
 	}
 	void nameEditEnd(TableItem itm, int column, string text) {
 		text = FlagDir.validName(text);
-		auto f = cast(Flag) itm.getData;
+		auto f = cast(Flag) itm.getData();
 		if (f) {
 			if (0 == icmp(f.name, text)) return;
-			storeEdit(itm.getParent.indexOf(itm));
+			storeEdit(itm.getParent().indexOf(itm));
 			auto oldId = toFlagId(f.path);
 			f.name = f.parent.createNewFlagName(text);
 			itm.setText(column, f.name);
 			uc.change(oldId, toFlagId(f.path), true);
 			return;
 		}
-		auto s = cast(Step) itm.getData;
+		auto s = cast(Step) itm.getData();
 		if (s) {
 			if (0 == icmp(s.name, text)) return;
-			storeEdit(itm.getParent.indexOf(itm));
+			storeEdit(itm.getParent().indexOf(itm));
 			auto oldId = toStepId(s.path);
 			s.name = s.parent.createNewStepName(text);
 			itm.setText(column, s.name);
@@ -1081,13 +1086,13 @@ private:
 		}
 	}
 	void initCombo(TableItem itm, int column, out string[] strs, out string str) {
-		auto f = cast(Flag) itm.getData;
+		auto f = cast(Flag) itm.getData();
 		if (f) {
 			strs = [f.on, f.off];
 			str = f.onOff ? f.on : f.off;
 			return;
 		}
-		auto s = cast(Step) itm.getData;
+		auto s = cast(Step) itm.getData();
 		if (s) {
 			foreach (i, v; s.values) {
 				strs ~= v;
@@ -1099,9 +1104,9 @@ private:
 		}
 	}
 	void initEditEnd(TableItem itm, int column, CCombo combo) {
-		int i = combo.getSelectionIndex;
+		int i = combo.getSelectionIndex();
 		if (-1 == i) return;
-		auto f = cast(Flag) itm.getData;
+		auto f = cast(Flag) itm.getData();
 		if (f) {
 			if (f.onOff == (0 == i)) return;
 			storeEdit(flags.indexOf(itm));
@@ -1109,7 +1114,7 @@ private:
 			itm.setText(column, f.onOff ? f.on : f.off);
 			return;
 		}
-		auto s = cast(Step) itm.getData;
+		auto s = cast(Step) itm.getData();
 		if (s) {
 			if (s.select == i) return; 
 			storeEdit(flags.indexOf(itm));
@@ -1128,12 +1133,13 @@ private:
 			}
 		}
 	}
+	@property
 	Shell dlgParShl() {
-		if (flags && !flags.isDisposed) return flags.getShell;
-		return _comm.mainWin.shell.getShell;
+		if (flags && !flags.isDisposed()) return flags.getShell();
+		return _comm.mainWin.shell.getShell();
 	}
 public:
-	this(Commons comm, Props prop, UndoManager undo) {
+	this (Commons comm, Props prop, UndoManager undo) {
 		_undo = undo;
 		_comm = comm;
 		this.prop = prop;
@@ -1159,7 +1165,7 @@ public:
 
 		flags.addKeyListener(new KListener);
 		flags.addMouseListener(new MListener);
-		auto menu = new Menu(flags.getShell, SWT.POP_UP);
+		auto menu = new Menu(flags.getShell(), SWT.POP_UP);
 		createMenuItem(menu, prop.msgs.menuCEdit, prop.images.menuCEdit, &edit);
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(menu, prop.msgs.menuUndo, prop.images.menuUndo, &this.undo);
@@ -1169,7 +1175,7 @@ public:
 		flags.setMenu(menu);
 
 		auto ds = new DragSource(flags, DND.DROP_MOVE | DND.DROP_COPY);
-		ds.setTransfer = [XMLBytesTransfer.getInstance];
+		ds.setTransfer = [XMLBytesTransfer.getInstance()];
 		ds.addDragListener(new FlagDragListener);
 
 		_comm.refUseCount.add(&__refreshUseCount);
@@ -1185,9 +1191,12 @@ public:
 		return _comp;
 	}
 	private Composite _comp = null;
+	@property
 	Control widget() {return _comp;}
 
+	@property
 	package Flag[] dragFlags() {return _dragFlags;}
+	@property
 	package Step[] dragSteps() {return _dragSteps;}
 
 	private void refreshStatusLine() {
@@ -1201,17 +1210,18 @@ public:
 		Step[] selSteps;
 		getSelectionFlagAndStep(selFlags, selSteps);
 		_statusLine = prop.msgs.flagStatus(fs, ss, selFlags, selSteps);
-		_comm.statusLine(flags, _statusLine);
+		_comm.setStatusLine(flags, _statusLine);
 	}
+	@property
 	string statusLine() {return _statusLine;}
 
 	private void __refreshUseCount() {
-		foreach (itm; flags.getItems) {
-			if (cast(Flag) itm.getData) {
-				itm.setText(2, to!(string)(uc.flag.get(toFlagId((cast(Flag) itm.getData).path))));
+		foreach (itm; flags.getItems()) {
+			if (cast(Flag) itm.getData()) {
+				itm.setText(2, to!(string)(uc.flag.get(toFlagId((cast(Flag) itm.getData()).path))));
 			} else {
-				assert (cast(Step) itm.getData);
-				itm.setText(2, to!(string)(uc.step.get(toStepId((cast(Step) itm.getData).path))));
+				assert (cast(Step) itm.getData());
+				itm.setText(2, to!(string)(uc.step.get(toStepId((cast(Step) itm.getData()).path))));
 			}
 		}
 	}
@@ -1219,44 +1229,45 @@ public:
 		refresh(null);
 	}
 	void refresh(string selName) {
-		if (!flags || flags.isDisposed) return;
+		if (!flags || flags.isDisposed()) return;
 		if (_dir) {
 			string[] sels;
 			if (selName) {
 				sels ~= selName;
 			} else {
-				foreach (itm; flags.getSelection) {
+				foreach (itm; flags.getSelection()) {
 					sels ~= itm.getText(NAME);
 				}
 			}
-			flags.deselectAll;
-			_dir.sortSteps;
-			_dir.sortFlags;
-			refreshFlags;
-			foreach (i, itm; flags.getItems) {
+			flags.deselectAll();
+			_dir.sortSteps();
+			_dir.sortFlags();
+			refreshFlags();
+			foreach (i, itm; flags.getItems()) {
 				if (contains(sels, itm.getText(NAME))) {
 					flags.select(i);
 				}
 			}
 			if (selName) {
-				flags.showSelection;
+				flags.showSelection();
 			}
 		}
-		refreshStatusLine;
+		refreshStatusLine();
 	}
 	/// 表示上で選択されているindex。
+	@property
 	int[] selected() {
-		if (flags && !flags.isDisposed) {
-			return flags.getSelectionIndices;
+		if (flags && !flags.isDisposed()) {
+			return flags.getSelectionIndices();
 		}
 		return [];
 	}
 	/// 表示上で選択されているフラグまたはステップ。
-	int[] selected(out Flag[] fs, out Step[] ss) {
-		if (flags && !flags.isDisposed) {
-			auto indices = flags.getSelectionIndices;
+	int[] selectedItems(out Flag[] fs, out Step[] ss) {
+		if (flags && !flags.isDisposed()) {
+			auto indices = flags.getSelectionIndices();
 			foreach (i; indices) {
-				auto o = flags.getItem(i).getData;
+				auto o = flags.getItem(i).getData();
 				auto f = cast(Flag) o;
 				if (f) fs ~= f;
 				auto s = cast(Step) o;
@@ -1282,7 +1293,7 @@ public:
 	/// 選択中のフラグ・ステップの編集を開始する。
 	void edit() {
 		if (_dir !is null) {
-			foreach (index; flags.getSelectionIndices) {
+			foreach (index; flags.getSelectionIndices()) {
 				if (index < _dir.steps.length) {
 					auto step = _dir.steps[index];
 					editStep(step.parent, step);
@@ -1307,7 +1318,7 @@ public:
 	/// 編集対象のディレクトリを設定する。
 	/// Params:
 	/// dir = ディレクトリ。
-	void dir(FlagDir dir, bool forceRefresh = false) {
+	void setDir(FlagDir dir, bool forceRefresh = false) {
 		if (!forceRefresh && _dir is dir) return;
 		foreach (dlg; _editDlgsF.values) {
 			dlg.forceCancel();
@@ -1320,14 +1331,15 @@ public:
 	}
 
 	/// Returns: 編集対象のディレクトリ。
+	@property
 	FlagDir dir() {
 		return _dir;
 	}
 
 	private void selectImpl(Object flag, bool deselect) {
-		if (deselect) flags.deselectAll;
-		foreach (i, itm; flags.getItems) {
-			if (itm.getData is flag) {
+		if (deselect) flags.deselectAll();
+		foreach (i, itm; flags.getItems()) {
+			if (itm.getData() is flag) {
 				flags.select = i;
 				break;
 			}
@@ -1346,13 +1358,14 @@ public:
 	/// コントロールを解放する。
 	void dispose() {
 		if (flags !is null) {
-			flags.dispose;
+			flags.dispose();
 		}
 	}
 
 	/// 使用回数カウンタを設定する。
 	/// Params:
 	/// uc = 使用回数カウンタ。
+	@property
 	void useCounter(UseCounter uc) {
 		this.uc = uc;
 	}
@@ -1380,7 +1393,7 @@ public:
 					string rootId;
 					Flag[string] cFlags;
 					Step[string] cSteps;
-					auto sels = flags.getSelectionIndices;
+					auto sels = flags.getSelectionIndices();
 					if (_dir.appendFromXML(c, LATEST_VERSION,
 							true, false, cFlags, cSteps, newPath, rootId)) {
 						string[] flagName;
@@ -1392,7 +1405,7 @@ public:
 							stepName ~= s.name;
 						}
 						storeInsert(sels, flagName, stepName);
-						refresh;
+						refresh();
 						_comm.refFlagAndStep.call(cFlags.values, cSteps.values);
 					}
 				} catch (Exception e) {
@@ -1402,11 +1415,11 @@ public:
 		}
 		void del(SelectionEvent se) {
 			if (!_dir) return;
-			auto sels = flags.getSelectionIndices;
+			auto sels = flags.getSelectionIndices();
 			Flag[] fs;
 			Step[] ss;
-			foreach (itm; flags.getSelection) {
-				auto data = itm.getData;
+			foreach (itm; flags.getSelection()) {
+				auto data = itm.getData();
 				auto flag = cast(Flag) data;
 				if (flag) {
 					fs ~= flag;
@@ -1420,10 +1433,11 @@ public:
 			}
 			storeDelete(sels, fs, ss);
 			_comm.delFlagAndStep.call(fs, ss);
-			refresh;
+			refresh();
 		}
+		@property
 		bool canDoTCPD() {
-			return flags.isFocusControl;
+			return flags.isFocusControl();
 		}
 	}
 	void undo() {
@@ -1433,6 +1447,7 @@ public:
 		_undo.redo();
 	}
 
+	@property
 	string[] openedCWXPath() {
 		string[] r;
 		Flag[] fs;

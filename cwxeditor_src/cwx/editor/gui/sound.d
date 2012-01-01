@@ -181,7 +181,7 @@ private __gshared Mix_Chunk *chunk = null;
 private __gshared intptr_t channel = -1;
 
 private void __play(string file, bool loop, bool legacy) {
-	stopBGM;
+	stopBGM();
 	try {
 		version (Windows) {
 			if (winmm && (legacy || !sdl)) {
@@ -281,7 +281,7 @@ void playBGM(string path, bool legacy) {
 /// BGMを停止する。
 void stopBGM() {
 	try {
-		__stop;
+		__stop();
 	} catch (Throwable e) {
 		debugln(e);
 	}
@@ -299,7 +299,7 @@ void playSE(string path, bool legacy) {
 /// 効果音を停止する。
 void stopSE() {
 	try {
-		__stop;
+		__stop();
 	} catch (Throwable e) {
 		debugln(e);
 	}

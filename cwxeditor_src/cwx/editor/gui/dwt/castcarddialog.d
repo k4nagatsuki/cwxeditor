@@ -146,9 +146,10 @@ private:
 		warning = ws;
 	}
 
+	@property
 	Race selectedRace() {
 		if (_race) {
-			int index = _race.getSelectionIndex;
+			int index = _race.getSelectionIndex();
 			if (index > 0) {
 				return _comm.skin.races[index - 1];
 			}
@@ -163,7 +164,7 @@ private:
 	}
 	class SelectRace : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			raceToolTip;
+			raceToolTip();
 		}
 	}
 	class BasicResist : SelectionAdapter {
@@ -201,7 +202,7 @@ private:
 		}
 		private void save() {
 			_coupons = this.outer.coupons;
-			_selected = this.outer._coupons.getSelectionIndex;
+			_selected = this.outer._coupons.getSelectionIndex();
 		}
 		private void impl() {
 			auto coupons = _coupons;
@@ -231,11 +232,12 @@ private:
 	void redoCoupons() {
 		_undoCoupons.redo();
 	}
+	@property
 	Coupon[] coupons() {
 		Coupon[] r;
-		r.length = _coupons.getItemCount;
-		foreach (i, itm; _coupons.getItems) {
-			r[i] = cast(Coupon) itm.getData;
+		r.length = _coupons.getItemCount();
+		foreach (i, itm; _coupons.getItems()) {
+			r[i] = cast(Coupon) itm.getData();
 		}
 		return r;
 	}
@@ -256,33 +258,33 @@ private:
 		itm.setText(1, to!(string)(coupon.value));
 		itm.setData = coupon;
 		_coupons.setSelection = [itm];
-		_coupons.showSelection;
+		_coupons.showSelection();
 	}
 	void addCoupon() {
-		if (_newCoupon.getText.length > 0) {
-			foreach (i, itm; _coupons.getItems) {
-				if (_newCoupon.getText == (cast(Coupon) itm.getData).name) {
+		if (_newCoupon.getText().length > 0) {
+			foreach (i, itm; _coupons.getItems()) {
+				if (_newCoupon.getText() == (cast(Coupon) itm.getData()).name) {
 					_coupons.select(i);
 					return;
 				}
 			}
 			storeCoupons();
-			appendCoupon(new Coupon(_newCoupon.getText, _couponVal.getSelection), _coupons.getSelectionIndex);
+			appendCoupon(new Coupon(_newCoupon.getText(), _couponVal.getSelection()), _coupons.getSelectionIndex());
 		}
 		applyEnabled();
 	}
 	void altCoupon() {
-		int index = _coupons.getSelectionIndex;
-		if (_newCoupon.getText.length > 0 && index >= 0) {
-			foreach (i, itm; _coupons.getItems) {
-				if (_newCoupon.getText == (cast(Coupon) itm.getData).name && i != index) {
+		int index = _coupons.getSelectionIndex();
+		if (_newCoupon.getText().length > 0 && index >= 0) {
+			foreach (i, itm; _coupons.getItems()) {
+				if (_newCoupon.getText() == (cast(Coupon) itm.getData()).name && i != index) {
 					_coupons.select(i);
 					return;
 				}
 			}
 			storeCoupons();
 			auto itm = _coupons.getItem(index);
-			auto coupon = new Coupon(_newCoupon.getText, _couponVal.getSelection);
+			auto coupon = new Coupon(_newCoupon.getText(), _couponVal.getSelection());
 			itm.setImage(0, couponImage(coupon.value));
 			itm.setText(0, coupon.name);
 			itm.setText(1, to!(string)(coupon.value));
@@ -291,22 +293,22 @@ private:
 		}
 	}
 	void delCoupon() {
-		int i = _coupons.getSelectionIndex;
+		int i = _coupons.getSelectionIndex();
 		if (i >= 0) {
 			storeCoupons();
 			_coupons.remove(i);
-			if (i >= _coupons.getItemCount) i--;
+			if (i >= _coupons.getItemCount()) i--;
 			if (i >= 0) {
 				_coupons.select = i;
-				selCoupon;
+				selCoupon();
 			}
 			applyEnabled();
 		}
 	}
 	void selCoupon() {
-		auto sels = _coupons.getSelection;
+		auto sels = _coupons.getSelection();
 		if (sels.length > 0) {
-			auto c = cast(Coupon) sels[0].getData;
+			auto c = cast(Coupon) sels[0].getData();
 			_newCoupon.setText = c.name;
 			_newCouponTM.reset();
 			_couponVal.setSelection = c.value;
@@ -315,14 +317,14 @@ private:
 	void swapCoupon(int index1, int index2) {
 		auto itm1 = _coupons.getItem(index1);
 		auto itm2 = _coupons.getItem(index2);
-		auto img = itm1.getImage;
+		auto img = itm1.getImage();
 		auto text1 = itm1.getText(0);
 		auto text2 = itm1.getText(1);
-		auto data = itm1.getData;
-		itm1.setImage = itm2.getImage;
+		auto data = itm1.getData();
+		itm1.setImage = itm2.getImage();
 		itm1.setText(0, itm2.getText(0));
 		itm1.setText(1, itm2.getText(1));
-		itm1.setData = itm2.getData;
+		itm1.setData = itm2.getData();
 		itm2.setImage = img;
 		itm2.setText(0, text1);
 		itm2.setText(1, text2);
@@ -330,7 +332,7 @@ private:
 		applyEnabled();
 	}
 	void upCoupon() {
-		int index = _coupons.getSelectionIndex;
+		int index = _coupons.getSelectionIndex();
 		if (index > 0) {
 			storeCoupons();
 			swapCoupon(index, index - 1);
@@ -338,8 +340,8 @@ private:
 		}
 	}
 	void downCoupon() {
-		int index = _coupons.getSelectionIndex;
-		if (index >= 0 && index + 1 < _coupons.getItemCount) {
+		int index = _coupons.getSelectionIndex();
+		if (index >= 0 && index + 1 < _coupons.getItemCount()) {
 			storeCoupons();
 			swapCoupon(index, index + 1);
 			_coupons.select(index + 1);
@@ -360,10 +362,10 @@ private:
 			try {
 				auto node = XNode.parse(xml);
 				if (node.name != Coupon.XML_NAME) return;
-				scope p = (cast(DropTarget) e.getSource).getControl.toControl(e.x, e.y);
+				scope p = (cast(DropTarget) e.getSource()).getControl().toControl(e.x, e.y);
 				storeCoupons();
 				auto t = _coupons.getItem(p);
-				int index = t ? _coupons.indexOf(t) : _coupons.getItemCount;
+				int index = t ? _coupons.indexOf(t) : _coupons.getItemCount();
 				appendCoupon(Coupon.fromNode(node, LATEST_VERSION), index);
 				if (_id == node.attr("paneId", false)) {
 					_coupons.select(index);
@@ -376,15 +378,15 @@ private:
 	class CDragListener : DragSourceAdapter {
 		private TableItem _itm;
 		override void dragStart(DragSourceEvent e) {
-			e.doit = (cast(DragSource) e.getSource).getControl.isFocusControl;
+			e.doit = (cast(DragSource) e.getSource()).getControl().isFocusControl();
 		}
 		override void dragSetData(DragSourceEvent e){
-			if (XMLBytesTransfer.getInstance.isSupportedType(e.dataType)) {
-				auto c = cast(Table) (cast(DragSource) e.getSource).getControl;
-				int index = c.getSelectionIndex;
+			if (XMLBytesTransfer.getInstance().isSupportedType(e.dataType)) {
+				auto c = cast(Table) (cast(DragSource) e.getSource()).getControl();
+				int index = c.getSelectionIndex();
 				if (index >= 0) {
-					auto cp = cast(Coupon) c.getItem(index).getData;
-					auto node = cp.toNode;
+					auto cp = cast(Coupon) c.getItem(index).getData();
+					auto node = cp.toNode();
 					node.newAttr("paneId", _id);
 					e.data = bytesFromXML(node.text);
 					_itm = c.getItem(index);
@@ -393,15 +395,16 @@ private:
 		}
 		override void dragFinished(DragSourceEvent e) {
 			if (e.detail == DND.DROP_MOVE) {
-				_itm.dispose;
-				_coupons.redraw;
+				_itm.dispose();
+				_coupons.redraw();
 			}
 		}
 	}
 	private class CouponTCPD : TCPD {
+		@property
 		private Coupon selection() {
-			auto sels = _coupons.getSelection;
-			return sels.length > 0 ? cast(Coupon) sels[0].getData : null;
+			auto sels = _coupons.getSelection();
+			return sels.length > 0 ? cast(Coupon) sels[0].getData() : null;
 		}
 		override void cut(SelectionEvent se) {
 			auto c = selection;
@@ -413,7 +416,7 @@ private:
 		override void copy(SelectionEvent se) {
 			auto c = selection;
 			if (c) {
-				XMLtoCB(_prop, _comm.clipboard, c.toNode.text);
+				XMLtoCB(_prop, _comm.clipboard, c.toNode().text);
 			}
 		}
 		override void paste(SelectionEvent se) {
@@ -423,7 +426,7 @@ private:
 					auto node = XNode.parse(xml);
 					if (node.name == Coupon.XML_NAME) {
 						storeCoupons();
-						appendCoupon(Coupon.fromNode(node, LATEST_VERSION), _coupons.getSelectionIndex);
+						appendCoupon(Coupon.fromNode(node, LATEST_VERSION), _coupons.getSelectionIndex());
 					}
 					applyEnabled();
 				} catch (Exception e) {
@@ -432,16 +435,17 @@ private:
 			}
 		}
 		override void del(SelectionEvent se) {
-			delCoupon;
+			delCoupon();
 		}
+		@property
 		override bool canDoTCPD() {
-			return _coupons.isFocusControl;
+			return _coupons.isFocusControl();
 		}
 	}
 
 	class SelLifeC : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			_lifeMax.setSelection = _prop.looks.lifeCalc(_level.getSelection,
+			_lifeMax.setSelection = _prop.looks.lifeCalc(_level.getSelection(),
 				_phy.getValue(_phyTbl[Physical.VIT]),
 				_phy.getValue(_phyTbl[Physical.MIN]));
 		}
@@ -544,14 +548,14 @@ private:
 		tab.setControl = comp;
 	}
 	void setMaxLife() {
-		_life.setMaximum = _lifeMax.getSelection;
-		if (_lifeUseMax.getSelection) {
-			_life.setSelection = _lifeMax.getSelection;
+		_life.setMaximum = _lifeMax.getSelection();
+		if (_lifeUseMax.getSelection()) {
+			_life.setSelection = _lifeMax.getSelection();
 		}
 	}
 	class LifeMaxL : ModifyListener {
 		public override void modifyText(ModifyEvent e) {
-			setMaxLife;
+			setMaxLife();
 		}
 	}
 	void constructDesc(CTabFolder tabf) {
@@ -579,7 +583,7 @@ private:
 	}
 	class SelCoupon : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			selCoupon;
+			selCoupon();
 		}
 	}
 	class HTBTraverse : Listener {
@@ -642,10 +646,10 @@ private:
 			}
 			_coupons.addSelectionListener(new SelCoupon);
 			auto drag = new DragSource(_coupons, DND.DROP_MOVE | DND.DROP_COPY);
-			drag.setTransfer([XMLBytesTransfer.getInstance]);
+			drag.setTransfer([XMLBytesTransfer.getInstance()]);
 			drag.addDragListener(new CDragListener);
 			auto drop = new DropTarget(_coupons, DND.DROP_DEFAULT | DND.DROP_MOVE | DND.DROP_COPY);
-			drop.setTransfer([XMLBytesTransfer.getInstance]);
+			drop.setTransfer([XMLBytesTransfer.getInstance()]);
 			drop.addDropListener(new CDropListener);
 		}
 		{
@@ -688,8 +692,8 @@ private:
 	class MSListener : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
 			auto radio = cast(Button) e.widget;
-			if (radio.getSelection) {
-				auto m = cast(Makings) (cast(Integer) radio.getData).intValue;
+			if (radio.getSelection()) {
+				auto m = cast(Makings) (cast(Integer) radio.getData()).intValue();
 				auto r = reverseMakings(m);
 				_makings[r].setSelection = false;
 			}
@@ -743,7 +747,7 @@ private:
 		}
 		override void widgetSelected(SelectionEvent e) {
 			auto radio = cast(Button) e.widget;
-			if (radio.getSelection) {
+			if (radio.getSelection()) {
 				_targ.setSelection = false;
 			}
 		}
@@ -775,22 +779,22 @@ private:
 			Composite tcomp, bcomp;
 			{
 				tcomp = createButtonGroup(comp, _prop.msgs.tolerantBase, 2, 1);
-				auto gl = cast(GridLayout) tcomp.getLayout;
+				auto gl = cast(GridLayout) tcomp.getLayout();
 				gl.horizontalSpacing = 15;
 				_resW = createC(tcomp, _prop.msgs.resistWeapon, _prop.msgs.descResistWeapon);
 				_resM = createC(tcomp, _prop.msgs.resistMagic, _prop.msgs.descResistMagic);
 			}
 			{
 				bcomp = createButtonGroup(comp, _prop.msgs.tolerantElement, 2, 1);
-				auto gl = cast(GridLayout) bcomp.getLayout;
+				auto gl = cast(GridLayout) bcomp.getLayout();
 				gl.horizontalSpacing = 15;
 				_undead = createC(bcomp, _prop.msgs.undead, _prop.msgs.descUndead);
 				_automaton = createC(bcomp, _prop.msgs.automaton, _prop.msgs.descAutomaton);
 				_unholy = createC(bcomp, _prop.msgs.unholy, _prop.msgs.descUnholy);
 				_constructure = createC(bcomp, _prop.msgs.constructure, _prop.msgs.descConstructure);
 				foreach (e; [Element.FIRE, Element.ICE]) {
-					auto res = createC(bcomp, _prop.msgs.resist(e), _prop.msgs.descResist(e));
-					auto weak = createC(bcomp, _prop.msgs.weakness(e), _prop.msgs.descWeakness(e));
+					auto res = createC(bcomp, _prop.msgs.resistName(e), _prop.msgs.descResist(e));
+					auto weak = createC(bcomp, _prop.msgs.weaknessName(e), _prop.msgs.descWeakness(e));
 					res.addSelectionListener(new ESListener(weak));
 					weak.addSelectionListener(new ESListener(res));
 					_res[e] = res;
@@ -833,7 +837,7 @@ private:
 			names.length = Ps.length;
 			foreach (i, p; Ps) {
 				_phyTbl[p] = i;
-				names[i] = _prop.msgs.physical(p);
+				names[i] = _prop.msgs.physicalName(p);
 			}
 			_phy.setRadar(_prop.looks.physicalMax + 1, names, 0);
 			_phy.setRadarSize(_prop.var.etc.physicalRadarWidth, _prop.var.etc.physicalRadarHeight);
@@ -855,7 +859,7 @@ private:
 	real calcPhy(E)(Physical phy, Button[E] radios, bool all) {
 		real r = 0.0;
 		foreach (e, radio; radios) {
-			if (radio.getSelection) {
+			if (radio.getSelection()) {
 				r += physicalMod(e, phy);
 				if (!all) break;
 			}
@@ -917,7 +921,7 @@ private:
 				Mental.CAUTIOUS, Mental.TRICKISH];
 			foreach (m; Ms) {
 				auto minl = new Label(grp, SWT.NONE);
-				minl.setText = _prop.msgs.mental(reverseMental(m));
+				minl.setText = _prop.msgs.mentalName(reverseMental(m));
 				auto scale = new Scale(grp, SWT.NONE);
 				mod(scale);
 				scale.setLayoutData = new GridData(GridData.FILL_BOTH);
@@ -926,7 +930,7 @@ private:
 				scale.setIncrement = 1;
 				scale.setPageIncrement = _prop.looks.mentalMax;
 				auto maxl = new Label(grp, SWT.NONE);
-				maxl.setText = _prop.msgs.mental(m);
+				maxl.setText = _prop.msgs.mentalName(m);
 				_mtl[m] = scale;
 			}
 		}
@@ -944,7 +948,7 @@ private:
 	real calcMtl(E)(Mental mtl, Button[E] radios, bool all) {
 		real r = 0.0;
 		foreach (e, radio; radios) {
-			if (radio.getSelection) {
+			if (radio.getSelection()) {
 				r += mentalMod(e, mtl);
 				if (!all) break;
 			}
@@ -1071,13 +1075,13 @@ private:
 				_mtly.setVisibleItemCount = 20;
 				foreach (i, mtly; [Mentality.NORMAL, Mentality.SLEEP, Mentality.CONFUSE,
 						Mentality.OVERHEAT, Mentality.BRAVE, Mentality.PANIC]) {
-					_mtly.add(_prop.msgs.mentality(mtly));
+					_mtly.add(_prop.msgs.mentalityName(mtly));
 					_mtlyTbl[i] = mtly;
 					if (_card && _card.mentality is mtly) {
 						_mtly.select = i;
 					}
 				}
-				if (_mtly.getSelectionIndex < 0) _mtly.select = 0;
+				if (_mtly.getSelectionIndex() < 0) _mtly.select = 0;
 				_mtly.addSelectionListener(new SelMentality);
 				_mtlyRound = createSpn(comp2);
 				_mtlyRound.setMaximum = Motion.round_max;
@@ -1092,7 +1096,7 @@ private:
 			foreach (enh; [Enhance.ACTION, Enhance.AVOID, Enhance.RESIST, Enhance.DEFENSE]) {
 				auto comp2 = createComp(grp);
 				auto l = new Label(comp2, SWT.NONE);
-				l.setText = _prop.msgs.enhanceLiveBonus(enh);
+				l.setText = _prop.msgs.enhanceLiveBonusName(enh);
 				lbls1 ~= l;
 				auto spn = createSpn(comp2);
 				spn.setMaximum = _prop.looks.enhanceMax;
@@ -1159,37 +1163,37 @@ private:
 	}
 	class LiveEnh : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			changeLiveEnhance;
+			changeLiveEnhance();
 		}
 	}
 	class SelMentality : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			changeMentality;
+			changeMentality();
 		}
 	}
 	class LifeUseMax : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			changeLifeUseMax;
+			changeLifeUseMax();
 		}
 	}
 	class ResetLiveStatus : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			resetLiveStatus;
+			resetLiveStatus();
 		}
 	}
 	void changeLiveEnhance() {
 		foreach (enh, spn; _liveEnh) {
-			_enhRound[enh].setEnabled = spn.getSelection != 0;
+			_enhRound[enh].setEnabled = spn.getSelection() != 0;
 		}
 	}
 	void changeMentality() {
-		_mtlyRound.setEnabled = _mtly.getSelectionIndex != 0;
+		_mtlyRound.setEnabled = _mtly.getSelectionIndex() != 0;
 	}
 	void changeLifeUseMax() {
-		_life.setEnabled = !_lifeUseMax.getSelection;
+		_life.setEnabled = !_lifeUseMax.getSelection();
 	}
 	void resetLiveStatus() {
-		_life.setSelection = _lifeMax.getSelection;
+		_life.setSelection = _lifeMax.getSelection();
 		_lifeUseMax.setSelection = true;
 		foreach (enh, spn; _liveEnh) {
 			spn.setSelection = 0;
@@ -1205,9 +1209,9 @@ private:
 		_antiMagic.setSelection = 0;
 		_mtly.select = 0;
 		_mtlyRound.setSelection = 0;
-		changeLiveEnhance;
-		changeMentality;
-		changeLifeUseMax;
+		changeLiveEnhance();
+		changeMentality();
+		changeLifeUseMax();
 	}
 	void delCard(CastCard c) {
 		if (_card is c) {
@@ -1223,7 +1227,7 @@ private:
 			_comm.refScenario.remove(&refScenario);
 			_comm.refSkin.remove(&refSkin);
 			_comm.refUndoMax.remove(&refUndoMax);
-			e.widget.getDisplay.removeFilter(SWT.KeyDown, _kdFilter);
+			e.widget.getDisplay().removeFilter(SWT.KeyDown, _kdFilter);
 		}
 	}
 	class KeyDownFilter : Listener {
@@ -1235,9 +1239,9 @@ private:
 		}
 		override void handleEvent(Event e) {
 			auto c = cast(Control) e.widget;
-			if (!c || c.getShell !is getShell) return;
+			if (!c || c.getShell() !is getShell()) return;
 			if (isDescendant(_couponView, c)) {
-				if (c.getMenu && findMenu(c.getMenu, e.keyCode, e.character, e.stateMask)) return;
+				if (c.getMenu() && findMenu(c.getMenu(), e.keyCode, e.character, e.stateMask)) return;
 				if (eqAcc(_undoAcc, e.keyCode, e.character, e.stateMask)) {
 					_undoCoupons.undo();
 					e.doit = false;
@@ -1290,7 +1294,7 @@ private:
 public:
 	this(Commons comm, Props prop, Shell shell, Summary summ, CastCard card) {
 		assert (summ !is null);
-		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime);
+		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime());
 		_comm = comm;
 		_summ = summ;
 		_card = card;
@@ -1300,6 +1304,7 @@ public:
 			_prop.images.casts, true, _prop.var.castCardDlg, true);
 	}
 
+	@property
 	CastCard card() {
 		return _card;
 	}
@@ -1327,12 +1332,12 @@ protected:
 		_comm.refUndoMax.add(&refUndoMax);
 		area.addDisposeListener(new Dispose);
 		_kdFilter = new KeyDownFilter();
-		area.getDisplay.addFilter(SWT.KeyDown, _kdFilter);
+		area.getDisplay().addFilter(SWT.KeyDown, _kdFilter);
 
 		// Windows Vistaだとタブの横幅が凄いことになったので必要最低限にする。
 		scope maxSize = new Point(0, 0);
-		foreach (tab; tabf.getItems) {
-			scope size = tab.getControl.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+		foreach (tab; tabf.getItems()) {
+			scope size = tab.getControl().computeSize(SWT.DEFAULT, SWT.DEFAULT);
 			if (maxSize.x < size.x) maxSize.x = size.x;
 			if (maxSize.y < size.y) maxSize.y = size.y;
 		}
@@ -1398,7 +1403,7 @@ protected:
 					foreach (i, r; _comm.skin.races) {
 						if (c.name == _prop.msgs.raceCoupon(r)) {
 							_race.select = i + 1;
-							raceToolTip;
+							raceToolTip();
 							continue cp;
 						}
 					}
@@ -1445,9 +1450,9 @@ protected:
 			_faceUp.setSelection = _card.faceUpRound;
 			_antiMagic.setSelection = _card.antiMagicRound;
 			_mtlyRound.setSelection = _card.mentalityRound;
-			changeLiveEnhance;
-			changeMentality;
-			changeLifeUseMax;
+			changeLiveEnhance();
+			changeMentality();
+			changeLifeUseMax();
 		} else {
 			_imgPath.image = "";
 			if (_race) _race.select = 0;
@@ -1466,14 +1471,14 @@ protected:
 			bonus[] = 0;
 			_enh.setValues(bonus);
 
-			resetLiveStatus;
+			resetLiveStatus();
 		}
-		setMaxLife;
+		setMaxLife();
 	}
 
 	private Coupon createCoupon(E)(Button[E] radios, string delegate(E, string) coupon, string legacyName) {
 		foreach (e, radio; radios) {
-			if (radio.getSelection) {
+			if (radio.getSelection()) {
 				return new Coupon(coupon(e, legacyName), 0);
 			}
 		}
@@ -1482,14 +1487,14 @@ protected:
 	override bool apply() {
 		if (_card) {
 			_card.path = _imgPath.image;
-			_card.desc = _desc.getRRText;
-			_card.name = _name.getText;
-			_card.level = _level.getSelection;
-			_card.lifeMax = _lifeMax.getSelection;
-			_card.life = _lifeMax.getSelection;
+			_card.desc = _desc.getRRText();
+			_card.name = _name.getText();
+			_card.level = _level.getSelection();
+			_card.lifeMax = _lifeMax.getSelection();
+			_card.life = _lifeMax.getSelection();
 		} else {
-			_card = new CastCard(_summ.newId!(CastCard), _name.getText, _imgPath.image,
-				_desc.getRRText, _level.getSelection, _lifeMax.getSelection);
+			_card = new CastCard(_summ.newId!(CastCard), _name.getText(), _imgPath.image,
+				_desc.getRRText(), _level.getSelection(), _lifeMax.getSelection());
 		}
 		auto skin = _comm.skin;
 		string legacyName = skin.legacyName;
@@ -1505,57 +1510,57 @@ protected:
 		auto nature = createCoupon!(Nature)(_nature, &_prop.sys.natureCoupon, legacyName);
 		if (nature) cs ~= nature;
 		foreach (m, radio; _makings) {
-			if (radio.getSelection) {
+			if (radio.getSelection()) {
 				cs ~= new Coupon(_prop.sys.makingsCoupon(m, legacyName), 0);
 			}
 		}
 		cs ~= coupons;
 		_card.coupons = cs;
-		_card.weaponResist = _resW.getSelection;
-		_card.magicResist = _resM.getSelection;
-		_card.undead = _undead.getSelection;
-		_card.automaton = _automaton.getSelection;
-		_card.unholy = _unholy.getSelection;
-		_card.constructure = _constructure.getSelection;
+		_card.weaponResist = _resW.getSelection();
+		_card.magicResist = _resM.getSelection();
+		_card.undead = _undead.getSelection();
+		_card.automaton = _automaton.getSelection();
+		_card.unholy = _unholy.getSelection();
+		_card.constructure = _constructure.getSelection();
 		foreach (e, radio; _res) {
-			_card.resist(e, radio.getSelection);
+			_card.resist(e, radio.getSelection());
 		}
 		foreach (e, radio; _weak) {
-			_card.weakness(e, radio.getSelection);
+			_card.weakness(e, radio.getSelection());
 		}
 		foreach (phy, i; _phyTbl) {
 			_card.physical(phy, _phy.getValue(i));
 		}
 		foreach (mtl, scale; _mtl) {
-			_card.mental(mtl, cast(int) scale.getSelection - _prop.looks.mentalMax);
+			_card.mental(mtl, cast(int) scale.getSelection() - _prop.looks.mentalMax);
 		}
 		foreach (enh, i; _enhTbl) {
 			_card.defaultEnhance(enh, _enh.getValue(i));
 		}
 
-		_card.life = _lifeUseMax.getSelection ? _card.lifeMax : _life.getSelection;
+		_card.life = _lifeUseMax.getSelection() ? _card.lifeMax : _life.getSelection();
 		foreach (enh, spn; _liveEnh) {
-			if (_enhRound[enh].getSelection > 0) {
-				_card.enhance(enh, spn.getSelection);
+			if (_enhRound[enh].getSelection() > 0) {
+				_card.enhance(enh, spn.getSelection());
 			} else {
 				_card.enhance(enh, 0);
 			}
 		}
 		foreach (enh, spn; _enhRound) {
 			if (_card.enhance(enh) != 0) {
-				_card.enhanceRound(enh, spn.getSelection);
+				_card.enhanceRound(enh, spn.getSelection());
 			}
 		}
-		_card.paralyze = _paralyze.getSelection;
-		_card.poison = _poison.getSelection;
-		_card.bindRound = _bind.getSelection;
-		_card.silenceRound = _silence.getSelection;
-		_card.faceUpRound = _faceUp.getSelection;
-		_card.antiMagicRound = _antiMagic.getSelection;
-		_card.mentality = _mtlyRound.getSelection == 0
-			? Mentality.NORMAL : _mtlyTbl[_mtly.getSelectionIndex];
+		_card.paralyze = _paralyze.getSelection();
+		_card.poison = _poison.getSelection();
+		_card.bindRound = _bind.getSelection();
+		_card.silenceRound = _silence.getSelection();
+		_card.faceUpRound = _faceUp.getSelection();
+		_card.antiMagicRound = _antiMagic.getSelection();
+		_card.mentality = _mtlyRound.getSelection() == 0
+			? Mentality.NORMAL : _mtlyTbl[_mtly.getSelectionIndex()];
 		_card.mentalityRound = _card.mentality == Mentality.NORMAL
-			? 0 : _mtlyRound.getSelection;
+			? 0 : _mtlyRound.getSelection();
 		return true;
 	}
 }

@@ -225,13 +225,15 @@ private void static_this () {
 }
 
 private CDetail[CType] _CONTENT_DETAILS;
+@property
 private CDetail[CType] CONTENT_DETAILS() {
-	static_this;
+	static_this();
 	return _CONTENT_DETAILS;
 }
 private CType[string][string] _CTYPE_MAP;
+@property
 private CType[string][string] CTYPE_MAP() {
-	static_this;
+	static_this();
 	return _CTYPE_MAP;
 }
 
@@ -293,18 +295,20 @@ public:
 		this.text = base.text;
 	}
 	/// テキスト。
+	@property
 	const
 	string text() {
 		return _text;
 	}
 	/// ditto
+	@property
 	void text(string text) {
 		if (_text != text) {
 			string[] flags;
 			string[] steps;
 			string[] fonts;
 			textUseItems(text, flags, steps, fonts);
-			removeTextUseCounter;
+			removeTextUseCounter();
 			_fontusers = [];
 			foreach (f; fonts) {
 				auto u = new PathUser(this);
@@ -330,8 +334,10 @@ public:
 		}
 	}
 	/// 使用回数カウンタ。
+	@property
 	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを設定する。
+	@property
 	void setUseCounter(UseCounter uc) {
 		foreach (u; _fontusers) {
 			u.setUseCounter(uc);
@@ -347,19 +353,19 @@ public:
 	private void removeTextUseCounter() {
 		if (_uc) {
 			foreach (u; _fontusers) {
-				u.removeUseCounter;
+				u.removeUseCounter();
 			}
 			foreach (u; _flagusers) {
-				u.removeUseCounter;
+				u.removeUseCounter();
 			}
 			foreach (u; _stepusers) {
-				u.removeUseCounter;
+				u.removeUseCounter();
 			}
 		}
 	}
 	/// 使用回数カウンタを除去。
 	void removeUseCounter() {
-		removeTextUseCounter;
+		removeTextUseCounter();
 		_uc = null;
 	}
 	void change(PathId id) {
@@ -399,9 +405,12 @@ public:
 		_text = replTextUseStep(_text, cast(string) oldVal, cast(string) newVal);
 	}
 	/// このTextHolderの所持者。
+	@property
 	CWXPath owner() {return _owner;}
 	private CWXPath _owner = null;
+	@property
 	private void owner(CWXPath owner) {_owner = owner;}
+	@property
 	string cwxPath() {
 		if (_owner) {
 			return cpjoin(_owner, "text");
@@ -412,17 +421,22 @@ public:
 		if (cpempty(path)) return this;
 		return null;
 	}
+	@property
 	CWXPath[] cwxChilds() {return [];}
+	@property
 	CWXPath cwxParent() {return _owner;}
 }
 
 /// メッセージテキストの保持者。
 interface ITextHolder {
 	/// テキスト内で使用されているfont_X.png・フラグ・ステップのパス。
+	@property
 	const string[] fontsInText();
 	/// ditto
+	@property
 	const string[] flagsInText();
 	/// ditto
+	@property
 	const string[] stepsInText();
 	/// テキスト内のfont_X.bmp・フラグ・ステップを置換する。
 	void changeInText(size_t index, PathId id);
@@ -459,46 +473,55 @@ public:
 		return d && d._rCoupons == _rCoupons && d.text == text;
 	}
 	/// メッセージ。
+	@property
 	const
 	string text() {
 		return _text.text;
 	}
 	/// ditto
+	@property
 	void text(string text) {
-		if (_parent && _text.text != text) _parent.changed;
+		if (_parent && _text.text != text) _parent.changed();
 		_text.text = text;
 	}
 	/// 口調分け条件クーポン群。
+	@property
 	string[] rCoupons() {
 		return _rCoupons;
 	}
 	/// ditto
+	@property
 	const
 	const(string)[] rCoupons() {
 		return _rCoupons;
 	}
 	/// ditto
+	@property
 	void rCoupons(string[] rCoupons) {
-		if (_parent && _rCoupons != rCoupons) _parent.changed;
+		if (_parent && _rCoupons != rCoupons) _parent.changed();
 		_rCoupons = rCoupons;
 	}
 	/// このSDialogを所持するSpeak。
+	@property
 	Content parent() {
 		return _parent;
 	}
 	/// ditto
+	@property
 	void parent(Content s) {
 		_parent = s;
 	}
 	/// 使用回数カウンタ。
+	@property
 	UseCounter useCounter() {return _text.useCounter;}
 	/// 使用回数カウンタを設定・除去する。
+	@property
 	void setUseCounter(UseCounter uc) {
 		_text.setUseCounter(uc);
 	}
 	/// ditto
 	void removeUseCounter() {
-		_text.removeTextUseCounter;
+		_text.removeTextUseCounter();
 	}
 	override void change(PathId id) {
 		_text.change(id);
@@ -510,6 +533,7 @@ public:
 		_text.change(id);
 	}
 	// テキスト内で使用されているfont_X.png等のパス。
+	@property
 	const
 	override string[] fontsInText() {
 		string[] r;
@@ -519,6 +543,7 @@ public:
 		return r;
 	}
 	// テキスト内で使用されているフラグのパス。
+	@property
 	const
 	override string[] flagsInText() {
 		string[] r;
@@ -528,6 +553,7 @@ public:
 		return r;
 	}
 	// テキスト内で使用されているステップのパス。
+	@property
 	const
 	override string[] stepsInText() {
 		string[] r;
@@ -576,9 +602,10 @@ public:
 		node.onTag["Text"] = (ref XNode n) {
 			text = decodeLf2(n.value);
 		};
-		node.parse;
+		node.parse();
 		return new SDialog(text, rCoupons);
 	}
+	@property
 	string cwxPath() {
 		return _parent ? cpjoin(_parent, "dialog", .cCountUntil!("a is b")(_parent.dialogs, this)) : "";
 	}
@@ -592,7 +619,9 @@ public:
 		}
 		return null;
 	}
+	@property
 	CWXPath[] cwxChilds() {return _text.cwxChilds;}
+	@property
 	CWXPath cwxParent() {return _parent;}
 }
 
@@ -604,11 +633,12 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 	/// 型と後続テキストnameを指定してインスタンスを生成。
 	this (CType type, string name) {
-		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime);
+		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime());
 		_type = type;
 		_name = name;
 	}
 	/// ディープコピーを生成する。
+	@property
 	const
 	Content dup() {
 		auto copy = new Content(type, name);
@@ -692,14 +722,17 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	private string _id;
 	/// イベントID。ドラッグ&ドロップ等でイベントを移動するとき、
 	/// 自分自身を識別するために使用する。
+	@property
 	const
 	string eventId() {return _id;}
 
 	private CType _type;
 	/// コンテントの型。
+	@property
 	const
 	CType type() {return _type;}
 	/// コンテントの概要。
+	@property
 	const
 	CDetail detail() {return CONTENT_DETAILS[type];}
 
@@ -717,10 +750,10 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		}
 	}
 	/// コンテントの型を変換。
-	void type(CType type, in CProps prop) {
+	void convertType(CType type, in CProps prop) {
 		if (!canConvert(type)) throw new Exception("can not convert: " ~ prop.msgs.content(type));
 		if (_type == type) return;
-		changed;
+		changed();
 		auto od = detail;
 		auto d = CONTENT_DETAILS[type];
 		foreach (n; next) {
@@ -743,7 +776,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 				}
 			} break;
 			case CNextType.ID_AREA: {
-				setNum;
+				setNum();
 				if (n.name != prop.msgs.evtChildDefault) {
 					try {
 						n.area = to!(ulong)(n.name);
@@ -755,7 +788,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 				}
 			} break;
 			case CNextType.ID_BATTLE: {
-				setNum;
+				setNum();
 				if (n.name != prop.msgs.evtChildDefault) {
 					try {
 						n.battle = to!(ulong)(n.name);
@@ -830,9 +863,10 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 	private string _name;
 	/// テキスト。
+	@property
 	void name(string name) {
 		if (_name != name) {
-			changed;
+			changed();
 			if (_type is CType.START && _tree) {
 				_tree.startUseCounter.change(toStartId(_name), toStartId(name), true);
 			}
@@ -862,15 +896,18 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		_name = name;
 	}
 	/// ditto
+	@property
 	const
 	string name() {return _name;}
 
 	/// 専らシナリオ作者が参考のために記すコンテントのコメント。
 	private string _comment = "";
 	/// ditto
+	@property
 	const
 	string comment() {return _comment;}
 	/// ditto
+	@property
 	void comment(string v) {
 		if (_comment == v) return;
 		changed();
@@ -880,6 +917,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 	private Content _parent = null;
 	/// 親イベント。
+	@property
 	private void parent(Content parent) in {
 		assert (!parent || parent.detail.owner);
 	} body {
@@ -917,10 +955,13 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		_parent = parent;
 	}
 	/// ditto
+	@property
 	Content parent() {return _parent;}
 	/// ditto
+	@property
 	const
 	const(Content) parent() {return _parent;}
+	@property
 	override string cwxPath() {
 		if (_parent) {
 			return cpjoin(_parent, .cCountUntil!("a is b")(_parent.next, this));
@@ -952,6 +993,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		}
 		return null;
 	}
+	@property
 	CWXPath[] cwxChilds() {
 		CWXPath[] r;
 		r ~= cast(CWXPath[]) next;
@@ -961,6 +1003,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		r ~= cast(CWXPath[]) backs;
 		return r;
 	}
+	@property
 	CWXPath cwxParent() {
 		if (_parent) {
 			return _parent;
@@ -971,6 +1014,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	}
 
 	/// EventTreeからこのコンテントに到達するまでのindex群を返す。
+	@property
 	size_t[] ctPath() {
 		if (parent) {
 			assert (contains!("a is b")(parent.next, this));
@@ -983,12 +1027,14 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		}
 	}
 	/// このコンテントが属すツリーを返す。
+	@property
 	EventTree tree() {
 		auto ps = parentStart;
 		if (ps) return ps._tree;
 		return null;
 	}
 	/// ditto
+	@property
 	const
 	const(EventTree) tree() {
 		auto ps = parentStart;
@@ -996,12 +1042,14 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		return null;
 	}
 	/// このコンテントが属すスタートコンテントを返す。
+	@property
 	Content parentStart() {
 		if (type is CType.START) return this;
 		if (!parent) return null;
 		return parent.parentStart;
 	}
 	/// ditto
+	@property
 	const
 	const(Content) parentStart() {
 		if (type is CType.START) return this;
@@ -1024,14 +1072,16 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 	private Content[] _next = [];
 	/// 後続イベント群。
+	@property
 	Content[] next() {return _next;}
 	/// ditto
+	@property
 	const
 	const(Content)[] next() {return _next;}
 
 	/// 後続コンテントのインデックスを交換する。
 	void swapContent(int index1, int index2) {
-		if (index1 != index2) changed;
+		if (index1 != index2) changed();
 		auto temp = _next[index1];
 		_next[index1] = _next[index2];
 		_next[index2] = temp;
@@ -1045,7 +1095,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		if (_suc !is null) c.setSUseCounter(startUseCounter);
 		c.changeHandler = changeHandler;
 		_next ~= c;
-		changed;
+		changed();
 	}
 	/// ditto
 	void insert(int index, Content c) {
@@ -1058,18 +1108,18 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			if (_suc !is null) c.setSUseCounter(startUseCounter);
 			c.changeHandler = changeHandler;
 			_next = _next[0 .. index] ~ c ~ _next[index .. $];
-			changed;
+			changed();
 		}
 	}
 
 	/// 後続コンテントを除外する。
 	void remove(int index) {
-		if (_uc !is null) _next[index].removeUseCounter;
-		if (_suc !is null) _next[index].removeSUseCounter;
+		if (_uc !is null) _next[index].removeUseCounter();
+		if (_suc !is null) _next[index].removeSUseCounter();
 		_next[index].changeHandler = null;
 		_next[index].parent = null;
 		_next = _next[0 .. index] ~ _next[index + 1 .. $];
-		changed;
+		changed();
 	}
 	/// ditto
 	void remove(Content c) {
@@ -1088,7 +1138,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		}
 		static if (is(typeof(val.setUseCounter(uc)))) {
 			if (val.useCounter || !uc) {
-				val.removeUseCounter;
+				val.removeUseCounter();
 			}
 			if (uc) {
 				val.setUseCounter(uc);
@@ -1110,7 +1160,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	/// private AreaUser _area;
 	/// void area(ulong val) {
 	/// 	if (!_area) _area = new AreaUser(this);
-	/// 	if (_area.area != val) changed;
+	/// 	if (_area.area != val) changed();
 	/// 	setValUCs(this._area.area, null, null);
 	/// 	setValUCs(val, _uc, this);
 	/// 	_area.area = val;
@@ -1125,7 +1175,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		} else {
 			mixin ("private " ~ T.stringof ~ " _" ~ Name ~ " = Def;");
 		}
-		mixin ("void " ~ Name ~ "(" ~ T2.stringof ~ " val) {"
+		mixin ("@property void " ~ Name ~ "(" ~ T2.stringof ~ " val) {"
 			~ "static if (is(typeof(check_" ~ Name ~ "(val)))) {"
 			~ "    if (!check_" ~ Name ~ "(val)) throw new EventException(\"Invalid " ~ Name ~ "\");"
 			~ "}"
@@ -1145,17 +1195,17 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 				~ "    static if (is(T == BattleUser)) _" ~ Name ~ ".handleChange = &battleChg;"
 				~ "}"
 			) : "")
-			~ "if (_" ~ Name ~ Get ~ " != val) changed;"
+			~ "if (_" ~ Name ~ Get ~ " != val) changed();"
 			~ "setValUCs(this._" ~ Name ~ Get ~ ");"
 			~ "setValUCs(val, _uc, this);"
 			~ "_" ~ Name ~ Set ~ " = val;"
 		"}");
 		static if (New) {
-			mixin (T2.stringof ~ " " ~ Name ~ "() {return _" ~ Name ~ " ? _" ~ Name ~ Get ~ " : Def;}");
-			mixin ("const const(T2) " ~ Name ~ "() {return _" ~ Name ~ " ? _" ~ Name ~ Get ~ " : Def;}");
+			mixin ("@property " ~ T2.stringof ~ " " ~ Name ~ "() {return _" ~ Name ~ " ? _" ~ Name ~ Get ~ " : Def;}");
+			mixin ("@property const const(T2) " ~ Name ~ "() {return _" ~ Name ~ " ? _" ~ Name ~ Get ~ " : Def;}");
 		} else {
-			mixin ("T2 " ~ Name ~ "() {return _" ~ Name ~ Get ~ ";}");
-			mixin ("const const(T2) " ~ Name ~ "() {return _" ~ Name ~ Get ~ ";}");
+			mixin ("@property T2 " ~ Name ~ "() {return _" ~ Name ~ Get ~ ";}");
+			mixin ("@property const const(T2) " ~ Name ~ "() {return _" ~ Name ~ Get ~ ";}");
 		}
 	}
 	private template Prop(T, string Name, T Def) {
@@ -1168,6 +1218,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 	private string _start = "";
 	/// スタート名。
+	@property
 	void start(string start) {
 		if (_suc) {
 			if (_start) _suc.remove(toStartId(_start), this);
@@ -1176,6 +1227,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		_start = start;
 	}
 	/// ditto
+	@property
 	const
 	string start() {return _start;}
 
@@ -1322,6 +1374,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 	private void delegate() _change;
 	/// 変更ハンドラを登録する。
+	@property
 	void changeHandler(void delegate() change) {
 		foreach (c; _next) {
 			c.changeHandler = change;
@@ -1329,6 +1382,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		_change = change;
 	}
 	/// 変更ハンドラ。
+	@property
 	private void delegate() changeHandler() {
 		return _change;
 	}
@@ -1346,7 +1400,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			if (uc) {
 				v.setUseCounter(uc);
 			} else {
-				v.removeUseCounter;
+				v.removeUseCounter();
 			}
 		} else static if (!isSomeString!(T) && is(typeof(v[0u]))) {
 			foreach (i, vc; v) {
@@ -1356,6 +1410,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		}
 	}
 	/// 使用回数カウンタを設定・除去する。
+	@property
 	void setUseCounter(UseCounter uc) {
 		foreach (v; this.tupleof) {
 			setUseCounterImpl(v, uc);
@@ -1368,10 +1423,12 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		_uc = null;
 	}
 	/// 使用回数カウンタを返す。存在しない場合はnullを返す。
+	@property
 	UseCounter useCounter() {return _uc;}
 
 	private SUseCounter _suc = null;
 	/// スタートの使用回数カウンタを設定・除去する。
+	@property
 	void setSUseCounter(SUseCounter suc) {
 		if (_suc is suc) return;
 		if (suc && _start) {
@@ -1391,11 +1448,12 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			_suc.remove(toStartId(_start), this);
 		}
 		foreach (c; next) {
-			c.removeSUseCounter;
+			c.removeSUseCounter();
 		}
 		_suc = null;
 	}
 	/// スタートの使用回数カウンタ。
+	@property
 	SUseCounter startUseCounter() {return _suc;}
 	override void change(StartId newVal) {
 		_start = newVal;
@@ -1432,6 +1490,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	override void change(InfoId id) {idChange(id);}
 
 	// テキスト内で使用されているfont_X.png等のパス。
+	@property
 	const
 	override string[] fontsInText() {
 		if (!_text) return [];
@@ -1442,6 +1501,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		return r;
 	}
 	// テキスト内で使用されているフラグのパス。
+	@property
 	const
 	override string[] flagsInText() {
 		if (!_text) return [];
@@ -1452,6 +1512,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		return r;
 	}
 	// テキスト内で使用されているステップのパス。
+	@property
 	const
 	override string[] stepsInText() {
 		if (!_text) return [];
@@ -1477,7 +1538,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	/// コンテントをXMLテキストにして返す。
 	const
 	string toXML() {
-		return toNode.text;
+		return toNode().text;
 	}
 	/// コンテントをXMLノードにして返す。
 	const
@@ -1602,7 +1663,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		node.onTag[null] = (ref XNode en) {
 			r ~= createFromNode(en, ver);
 		};
-		node.parse;
+		node.parse();
 		return r;
 	}
 	/// XMLテキストからイベントを生成する。
@@ -1689,7 +1750,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 				node.onTag["Motion"] = (ref XNode node) {
 					motions ~= Motion.createFromNode(node, ver);
 				};
-				node.parse;
+				node.parse();
 				r.motions = motions;
 			};
 		}
@@ -1703,7 +1764,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 				node.onTag["Dialog"] = (ref XNode node) {
 					dlgs ~= SDialog.createFromNode(node, ver);
 				};
-				node.parse;
+				node.parse();
 				if (dlgs.length == 0) dlgs ~= new SDialog;
 				r.dialogs = dlgs;
 			};
@@ -1744,7 +1805,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 				}
 			};
 		}
-		en.parse;
+		en.parse();
 		return r;
 	}
 }
@@ -1821,7 +1882,7 @@ private:
 	SUseCounter _suc;
 	void delegate() _change = null;
 
-	this(Content[] starts) in {
+	this (Content[] starts) in {
 		foreach (c; starts) {
 			assert (c.type is CType.START);
 		}
@@ -1833,28 +1894,30 @@ private:
 			s.setSUseCounter(_suc);
 		}
 	}
-	this() {
+	this () {
 		_suc = new SUseCounter;
 	}
 public:
 	/// イベントツリー名を指定してインスタンスを生成。
-	this(string name) {
+	this (string name) {
 		this(new Content(CType.START, name));
 	}
 	/// スタートコンテントを指定してインスタンスを生成。
 	/// startがすでにイベントツリーに所属している場合、
 	/// コピーが生成される。
-	this(Content start) in {
+	this (Content start) in {
 		assert (start.type == CType.START);
 	} body {
 		_suc = new SUseCounter;
 		if (start.tree) {
-			auto node = start.toNode;
+			auto node = start.toNode();
 			start = start.createFromNode(node, LATEST_VERSION);
 		}
 		add(start);
 	}
+	@property
 	EventTreeOwner owner() {return _owner;}
+	@property
 	override string cwxPath() {
 		return _owner ? cpjoin(_owner, "event", .cCountUntil!("a is b")(_owner.trees, this)) : "";
 	}
@@ -1868,14 +1931,17 @@ public:
 		}
 		return null;
 	}
+	@property
 	CWXPath[] cwxChilds() {
 		CWXPath[] r;
 		r ~= cast(CWXPath[]) starts;
 		return r;
 	}
+	@property
 	CWXPath cwxParent() {return _owner;}
 
 	/// 変更ハンドラを登録する。
+	@property
 	void changeHandler(void delegate() change) {
 		foreach (s; _starts) {
 			s.changeHandler = change;
@@ -1883,6 +1949,7 @@ public:
 		_change = change;
 	}
 	/// 変更ハンドラを返す。
+	@property
 	protected void delegate() changeHandler() {
 		return _change;
 	}
@@ -1893,11 +1960,13 @@ public:
 
 	/// イベントツリー名。
 	/// 最初のスタートコンテントのテキストと常に一致する。
+	@property
 	void name(string name) {
-		if (_starts[0].name != name) changed;
+		if (_starts[0].name != name) changed();
 		_starts[0].name = name;
 	}
 	/// ditto
+	@property
 	const
 	string name() {
 		return _starts[0].name;
@@ -1905,14 +1974,14 @@ public:
 
 	/// スタートコンテントのインデックスを交換。
 	void swapStart(int index1, int index2) {
-		if (index1 != index2) changed;
+		if (index1 != index2) changed();
 		auto temp = _starts[index1];
 		_starts[index1] = _starts[index2];
 		_starts[index2] = temp;
 	}
 	/// キーコードのインデックスを交換。
 	void swapKeyCode(int index1, int index2) {
-		if (index1 != index2) changed;
+		if (index1 != index2) changed();
 		auto temp = _keyCodes[index1];
 		_keyCodes[index1] = _keyCodes[index2];
 		_keyCodes[index2] = temp;
@@ -1929,7 +1998,7 @@ public:
 		evt._tree = this;
 		evt.changeHandler = changeHandler;
 		_starts ~= evt;
-		changed;
+		changed();
 	}
 	/// ditto
 	void insert(int index, Content evt) in {
@@ -1942,16 +2011,16 @@ public:
 		evt._tree = this;
 		evt.changeHandler = changeHandler;
 		_starts = _starts[0u .. index] ~ evt ~ _starts[index .. $];
-		changed;
+		changed();
 	}
 	/// スタートコンテントを除外。
 	void remove(int index) in {
 		assert (_starts.length > 1);
 	} body {
 		if (_uc !is null) {
-			_starts[index].removeUseCounter;
+			_starts[index].removeUseCounter();
 		}
-		_starts[index].removeSUseCounter;
+		_starts[index].removeSUseCounter();
 		_starts[index]._tree = null;
 		_starts[index].changeHandler = null;
 		_starts = _starts[0 .. index] ~ _starts[index + 1 .. $];
@@ -1969,6 +2038,7 @@ public:
 		assert (0);
 	}
 	/// スタートコンテント群。
+	@property
 	Content[] starts() out (r) {
 		foreach (c; r) {
 			assert (c.type is CType.START);
@@ -1985,6 +2055,7 @@ public:
 		return false;
 	}
 	/// 属するエリア等からの相対パスを返す。
+	@property
 	size_t[] areaPath() {
 		if (_owner) {
 			return _owner.areaPath ~ cast(size_t) .cCountUntil!("a is b")(_owner.trees, this);
@@ -2001,11 +2072,12 @@ public:
 
 	/// 指定されたインデックスのキーコードを差し替える。
 	void setKeyCode(int index, string keyCode) {
-		if (_keyCodes[index] != keyCode) changed;
+		if (_keyCodes[index] != keyCode) changed();
 		_keyCodes[index] = keyCode;
 	}
 
 	/// 使用回数カウンタを設定する。
+	@property
 	void setUseCounter(UseCounter uc) {
 		foreach (s; starts) {
 			s.setUseCounter(uc);
@@ -2015,42 +2087,49 @@ public:
 	/// 使用回数カウンタを外す。
 	void removeUseCounter() {
 		foreach (s; starts) {
-			s.removeUseCounter;
+			s.removeUseCounter();
 		}
 		_uc = null;
 	}
 
 	/// スタートの使用回数カウンタ。
+	@property
 	SUseCounter startUseCounter() {return _suc;}
 
 	/// エリア到着時・クリック時・パッケージ開始時・勝利・死亡時に発火するか。
+	@property
 	void enter(bool enter) {
-		if (_enter != enter) changed;
+		if (_enter != enter) changed();
 		_enter = enter;
 	}
 	/// ditto
+	@property
 	const
 	bool fireEnter() {
 		return _enter;
 	}
 
 	/// 逃走時に発火するか。
+	@property
 	void escape(bool escape) {
-		if (_escape != escape) changed;
+		if (_escape != escape) changed();
 		_escape = escape;
 	}
 	/// ditto
+	@property
 	const
 	bool fireEscape() {
 		return _escape;
 	}
 
 	/// 敗北時に発火するか。
+	@property
 	void lose(bool lose) {
-		if (_lose != lose) changed;
+		if (_lose != lose) changed();
 		_lose = lose;
 	}
 	/// ditto
+	@property
 	const
 	bool fireLose() {
 		return _lose;
@@ -2059,7 +2138,7 @@ public:
 	/// 発火ラウンドを追加。追加できた場合はtrueを返す。
 	bool addRound(uint round) {
 		if (!fireRound(round)) {
-			changed;
+			changed();
 			_rounds ~= round;
 			return true;
 		}
@@ -2070,9 +2149,9 @@ public:
 		auto s = new HashSet!(uint);
 		foreach (r; _rounds) s.add(r);
 		foreach (r; rounds) s.add(r);
-		rounds = s.toArray.sort;
+		rounds = s.toArray().sort;
 		if (rounds != _rounds) {
-			changed;
+			changed();
 			_rounds = rounds;
 			return true;
 		}
@@ -2089,6 +2168,7 @@ public:
 		return false;
 	}
 	/// 発火ラウンド群。
+	@property
 	uint[] rounds() {
 		return _rounds;
 	}
@@ -2111,7 +2191,7 @@ public:
 	/// Returns: 追加できた場合はtrue。
 	bool addKeyCode(string keyCode) {
 		if (!fireKeyCode(keyCode)) {
-			changed;
+			changed();
 			_keyCodes ~= keyCode;
 			return true;
 		}
@@ -2128,12 +2208,14 @@ public:
 		return false;
 	}
 	/// 発火キーコード群。
+	@property
 	string[] keyCodes() {
 		return _keyCodes;
 	}
 	/// ditto
+	@property
 	void keyCodes(string[] keyCodes) {
-		if (_keyCodes != keyCodes) changed;
+		if (_keyCodes != keyCodes) changed();
 		_keyCodes = keyCodes;
 	}
 	/// 発火キーコードを除去。
@@ -2154,7 +2236,7 @@ public:
 	/// イベントツリーをXMLテキストにする。
 	const
 	string toXML() {
-		return toNode.text;
+		return toNode().text;
 	}
 	/// イベントツリーをXMLノードにする。
 	const
@@ -2210,7 +2292,7 @@ public:
 			node.onTag["Start"] = (ref XNode node) {
 				r.add(Content.createFromNode(node, ver));
 			};
-			node.parse;
+			node.parse();
 		};
 		node.onTag["Ignitions"] = (ref XNode node) {
 			node.onTag["Number"] = (ref XNode n) {
@@ -2241,9 +2323,9 @@ public:
 					}
 				}
 			};
-			node.parse;
+			node.parse();
 		};
-		node.parse;
+		node.parse();
 		return r.starts.length > 0 ? r : null;
 	}
 
@@ -2323,21 +2405,27 @@ public:
 /// イベントツリーの所持者。エリアや効果カード等。
 public interface EventTreeOwner : CWXPath {
 	/// イベントツリー群。
+	@property
 	EventTree[] trees();
 
 	/// 発火条件「到着時」に対応しているか。
+	@property
 	const
 	bool canHasFireEnter();
 	/// 発火条件「敗北時」に対応しているか。
+	@property
 	const
 	bool canHasFireLose();
 	/// 発火条件「逃走時」に対応しているか。
+	@property
 	const
 	bool canHasFireEscape();
 	/// 発火条件「ラウンド」に対応しているか。
+	@property
 	const
 	bool canHasFireRound();
 	/// 発火条件「キーコード」に対応しているか。
+	@property
 	const
 	bool canHasFireKeyCode();
 
@@ -2353,6 +2441,7 @@ public interface EventTreeOwner : CWXPath {
 	void swapEventTree(int index1, int index2);
 
 	/// 属すエリア等からの相対パス。
+	@property
 	size_t[] areaPath();
 }
 
@@ -2363,6 +2452,7 @@ private:
 	UseCounter _uc;
 	void delegate() _change;
 public:
+	@property
 	override abstract size_t[] areaPath();
 
 	CWXPath findCWXPath(string path) {
@@ -2375,6 +2465,7 @@ public:
 		}
 		return null;
 	}
+	@property
 	CWXPath[] cwxChilds() {
 		CWXPath[] r;
 		r ~= cast(CWXPath[]) trees;
@@ -2382,10 +2473,12 @@ public:
 	}
 
 	/// 使用回数カウンタ。
+	@property
 	UseCounter useCounter() {
 		return _uc;
 	}
 	/// 変更ハンドラを登録する。
+	@property
 	void changeHandler(void delegate() change) {
 		foreach (e; _evts) {
 			e.changeHandler = change;
@@ -2393,6 +2486,7 @@ public:
 		_change = change;
 	}
 	/// 変更ハンドラ。
+	@property
 	protected void delegate() changeHandler() {
 		return _change;
 	}
@@ -2401,14 +2495,16 @@ public:
 		if (_change) _change();
 	}
 	/// 委譲によって使用する場合は委譲元を返す。
+	@property
 	protected EventTreeOwner con() {return this;}
 
+	@property
 	EventTree[] trees() {
 		return _evts;
 	}
 
 	void swapEventTree(int index1, int index2) {
-		if (index1 != index2) changed;
+		if (index1 != index2) changed();
 		auto temp = _evts[index1];
 		_evts[index1] = _evts[index2];
 		_evts[index2] = temp;
@@ -2423,15 +2519,15 @@ public:
 		if (!canHasFireEnter) evt.enter = false;
 		if (!canHasFireLose) evt.lose = false;
 		if (!canHasFireEscape) evt.escape = false;
-		if (!canHasFireRound) evt.removeRoundsAll;
-		if (!canHasFireKeyCode) evt.removeKeyCodesAll;
+		if (!canHasFireRound) evt.removeRoundsAll();
+		if (!canHasFireKeyCode) evt.removeKeyCodesAll();
 
 		if (_uc !is null) {
 			evt.setUseCounter(_uc);
 		}
 		evt.changeHandler = changeHandler;
 		evt._owner = con;
-		changed;
+		changed();
 	}
 	void add(EventTree evt) {
 		addCmn(evt);
@@ -2446,25 +2542,30 @@ public:
 		}
 	}
 	/// このクラスを継承する場合、「到着時」は有効になる。
+	@property
 	const
 	bool canHasFireEnter() {return true;}
+	@property
 	const
 	abstract bool canHasFireLose();
+	@property
 	const
 	abstract bool canHasFireEscape();
+	@property
 	const
 	abstract bool canHasFireRound();
+	@property
 	const
 	abstract bool canHasFireKeyCode();
 
 	void removeEvent(int index) {
 		if (_uc !is null) {
-			_evts[index].removeUseCounter;
+			_evts[index].removeUseCounter();
 		}
 		_evts[index].changeHandler = null;
 		_evts[index]._owner = null;
 		_evts = _evts[0 .. index] ~ _evts[index + 1 .. $];
-		changed;
+		changed();
 	}
 	void remove(EventTree et) {
 		foreach (i, t; _evts) {
@@ -2477,6 +2578,7 @@ public:
 	}
 
 	/// 使用回数カウンタを登録・除去する。
+	@property
 	void setUseCounter(UseCounter uc) {
 		foreach (tree; _evts) {
 			tree.setUseCounter(uc);
@@ -2486,7 +2588,7 @@ public:
 	/// ditto
 	void removeUseCounter() {
 		foreach (tree; _evts) {
-			tree.removeUseCounter;
+			tree.removeUseCounter();
 		}
 		_uc = null;
 	}
@@ -2499,7 +2601,7 @@ public:
 			auto tree = EventTree.createFromNode(node, ver);
 			if (tree) r ~= tree;
 		};
-		node.parse;
+		node.parse();
 		return r;
 	}
 	/// XMLノードにイベントツリー群のデータを追加する。
@@ -2515,7 +2617,7 @@ public:
 /// イベント関連の例外。
 public class EventException : Exception {
 public:
-	this(string msg) {
+	this (string msg) {
 		super(msg);
 	}
 }

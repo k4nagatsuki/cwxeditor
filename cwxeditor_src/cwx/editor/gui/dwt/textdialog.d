@@ -44,8 +44,9 @@ public:
 		}
 	}
 
+	@property
 	string text() {
-		return wrapReturnCode(_viewer.getText);
+		return wrapReturnCode(_viewer.getText());
 	}
 protected:
 	override void setup(Composite area) {
@@ -61,11 +62,11 @@ protected:
 		if (!_readOnly) {
 			_viewer.setSelection = _text.length;
 		}
-		auto font = _viewer.getFont;
-		auto fSize = font ? cast(uint) font.getFontData[0].height : 0;
-		_viewer.setFont = new Font(Display.getCurrent, dwtData(_prop.looks.textDlgFont(fSize)));
+		auto font = _viewer.getFont();
+		auto fSize = font ? cast(uint) font.getFontData()[0].height : 0;
+		_viewer.setFont = new Font(Display.getCurrent(), dwtData(_prop.looks.textDlgFont(fSize)));
 		closeEvent ~= () {
-			_viewer.getFont.dispose;
+			_viewer.getFont().dispose();
 		};
 	}
 }

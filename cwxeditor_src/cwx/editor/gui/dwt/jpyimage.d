@@ -50,11 +50,11 @@ private ImageData loadJPYImageImpl(Skin skin, string path, string[] stratum) {
 	int width = 632, height = 420;
 	if (init.backwidth > 0) width = init.backwidth;
 	if (init.backheight > 0) height = init.backheight;
-	auto d = Display.getCurrent;
+	auto d = Display.getCurrent();
 	auto img = new Image(d, width, height);
-	scope (exit) img.dispose;
+	scope (exit) img.dispose();
 	auto gc = new GC(img);
-	scope (exit) gc.dispose;
+	scope (exit) gc.dispose();
 	path = nabs(path);
 	ImageData[Cache] cache;
 	foreach (i, sec; jpy.sections) {
@@ -111,17 +111,17 @@ private ImageData loadJPYImageImpl(Skin skin, string path, string[] stratum) {
 		int dtw = data && data.width > 0 ? data.width : pw;
 		int dth = data && data.height > 0 ? data.height : ph;
 		auto dimg = new Image(d, dtw, dth);
-		scope (exit) dimg.dispose;
+		scope (exit) dimg.dispose();
 		auto dgc = new GC(dimg);
-		scope (exit) dgc.dispose;
+		scope (exit) dgc.dispose();
 		int alpha;
 		auto dbc = new Color(d, dwtData(i == 0 ? sec.backcolor : sec.color, alpha));
-		scope (exit) dbc.dispose;
+		scope (exit) dbc.dispose();
 		dgc.setBackground = dbc;
 		dgc.fillRectangle(0, 0, dtw, dth);
 		if (data) {
 			auto timg = new Image(d, data);
-			scope (exit) timg.dispose;
+			scope (exit) timg.dispose();
 			if (sec.clip.width > 0 && sec.clip.height > 0) {
 				dgc.drawImage(timg, sec.clip.x, sec.clip.y, sec.clip.width, sec.clip.height,
 					0, 0, data.width, data.height);
@@ -129,7 +129,7 @@ private ImageData loadJPYImageImpl(Skin skin, string path, string[] stratum) {
 				dgc.drawImage(timg, 0, 0);
 			}
 		}
-		data = dimg.getImageData;
+		data = dimg.getImageData();
 		if (sec.colorexchange != Colorexchange.NONE) {
 			data.data = cast(byte[]) colorexchange(sec.colorexchange, cast(ubyte[]) data.data, data.depth, data.width, data.height, data.bytesPerLine);
 		}
@@ -230,7 +230,7 @@ private ImageData loadJPYImageImpl(Skin skin, string path, string[] stratum) {
 		}
 		if (sec.visible && sec.paintmode != Paintmode.NO_PAINT) {
 			auto simg = new Image(d, data);
-			scope (exit) simg.dispose;
+			scope (exit) simg.dispose();
 			if (sec.alpha < 0xFF && sec.paintmode == Paintmode.BLEND) {
 				gc.setAlpha = sec.alpha;
 			}
@@ -238,7 +238,7 @@ private ImageData loadJPYImageImpl(Skin skin, string path, string[] stratum) {
 			gc.drawImage(simg, sec.position.x, sec.position.y);
 		}
 	}
-	return img.getImageData;
+	return img.getImageData();
 }
 
 version (Windows) {
@@ -265,7 +265,7 @@ version (Windows) {
 private ImageData loadJPTXImage(string path) {
 	auto jptx = Jptx.load(path);
 	if (jptx.backwidth == 0 || jptx.backheight == 0) return blankImage;
-	auto d = Display.getCurrent;
+	auto d = Display.getCurrent();
 	int width = 632, height = 420;
 	if (jptx.backwidth > -1) {
 		width = jptx.backwidth;
@@ -274,9 +274,9 @@ private ImageData loadJPTXImage(string path) {
 		height = jptx.backheight;
 	}
 	auto img = new Image(d, width, height);
-	scope (exit) img.dispose;
+	scope (exit) img.dispose();
 	auto gc = new GC(img);
-	scope (exit) gc.dispose;
+	scope (exit) gc.dispose();
 	// FIXME: cwconv.dllの実装で必ずantialiasがかかってしまう
 	version (Windows) {} else {
 		// FIXME: IPAフォントの使用とアンチエイリアス設定を
@@ -285,12 +285,12 @@ private ImageData loadJPTXImage(string path) {
 	}
 	int alpha;
 	auto cBack = new Color(d, dwtData(jptx.backcolor, alpha));
-	scope (exit) cBack.dispose;
+	scope (exit) cBack.dispose();
 	gc.setBackground = cBack;
 	gc.fillRectangle(0, 0, width, height);
 	if (jptx.fonttransparent) {
 		auto cFore = new Color(d, dwtData(jptx.fontcolor, alpha));
-		scope (exit) cFore.dispose;
+		scope (exit) cFore.dispose();
 		gc.setForeground = cFore;
 		gc.drawLine(0, 0, img.width, 0);
 	}
@@ -321,13 +321,13 @@ private ImageData loadJPTXImage(string path) {
 			int fStyle = SWT.NORMAL;
 			if (param.b) fStyle |= SWT.BOLD;
 			if (param.i) fStyle |= SWT.ITALIC;
-			auto h = cast(int) (jptx.fontpixels * (72.0 / d.getDPI.y) + 0.5);
+			auto h = cast(int) (jptx.fontpixels * (72.0 / d.getDPI().y) + 0.5);
 			auto fontData = new FontData(param.face, h, fStyle);
 			auto font = new Font(d, fontData);
 		}
-		scope (exit) font.dispose;
+		scope (exit) font.dispose();
 		gc.setFont = font;
-		int height = gc.getFontMetrics.getHeight;
+		int height = gc.getFontMetrics().getHeight();
 		if (text == "\n") {
 			// wrap
 			height *= param.lineheight / 100.0;
@@ -336,7 +336,7 @@ private ImageData loadJPTXImage(string path) {
 			return;
 		}
 		auto cFore = new Color(d, dwtData(param.color, alpha));
-		scope (exit) cFore.dispose;
+		scope (exit) cFore.dispose();
 		gc.setForeground = cFore;
 		int tx = x + param.shiftx, ty = y + param.shifty;
 		gc.drawText(text, tx, ty);
@@ -365,24 +365,24 @@ private ImageData loadJPTXImage(string path) {
 	int rw = jptx.backwidth == -1 ? autoW : jptx.backwidth;
 	int rh = jptx.backheight == -1 ? autoH : jptx.backheight;
 	auto r = new Image(d, rw, rh);
-	scope (exit) r.dispose;
+	scope (exit) r.dispose();
 	auto rgc = new GC(r);
 	rgc.setBackground = cBack;
 	rgc.fillRectangle(0, 0, rw, rh);
-	scope (exit) rgc.dispose;
+	scope (exit) rgc.dispose();
 	int w = width < rw ? width : rw;
 	int h = height < rh ? height : rh;
 	rgc.drawImage(img, 0, 0, w, h, 0, 0, w, h);
-	return r.getImageData;
+	return r.getImageData();
 }
 
 private ImageData loadJPDCImage(string path) {
 	auto jpdc = Jpdc.load(path);
-	auto d = Display.getCurrent;
+	auto d = Display.getCurrent();
 	auto img = new Image(d, jpdc.clip.width, jpdc.clip.height);
-	scope (exit) img.dispose;
+	scope (exit) img.dispose();
 	auto gc = new GC(img);
-	scope (exit) gc.dispose;
+	scope (exit) gc.dispose();
 	gc.setForeground = d.getSystemColor(SWT.COLOR_WHITE);
 	gc.fillRectangle(0, 0, jpdc.clip.width, jpdc.clip.height);
 	gc.setForeground = d.getSystemColor(SWT.COLOR_BLACK);
@@ -400,6 +400,6 @@ private ImageData loadJPDCImage(string path) {
 		ty += gc.textExtent(t).y;
 		text = text[t.length .. $];
 	}
-	auto data = img.getImageData;
+	auto data = img.getImageData();
 	return data;
 }

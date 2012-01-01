@@ -81,8 +81,8 @@ void main(string[] args) {
 					auto prop = new Props(conf, new CProps(args[0], sys));
 					auto comm = new Commons(prop);
 					auto dlg = new TextDialog(comm, prop, null, prop.msgs.dlgTitUsage, prop.images.app, prop.msgs.usage);
-					dlg.open;
-					prop.images.disposeImages;
+					dlg.open();
+					prop.images.disposeImages();
 				} catch (Exception e) {
 					debugln(e);
 				}
@@ -91,10 +91,10 @@ void main(string[] args) {
 		}
 		if (sc < args.length) {
 			auto main = new MainWindow(args[0], conf, sys, args[sc], openPaths);
-			main.doCWX;
+			main.doCWX();
 			return;
 		}
 	}
 	auto main = new MainWindow(args[0], conf, sys);
-	main.doCWX;
+	main.doCWX();
 }

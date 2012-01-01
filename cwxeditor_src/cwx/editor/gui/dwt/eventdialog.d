@@ -84,7 +84,7 @@ abstract class EventDialog : AbsDialog {
 	}
 	private void delContent(Content c) {
 		if ((_evt && _evt.isDescendant(c)) || (_parent && _parent.isDescendant(c))) {
-			forceCancel;
+			forceCancel();
 		}
 	}
 
@@ -101,17 +101,18 @@ abstract class EventDialog : AbsDialog {
 		_evt = evt;
 		_comm.delContent.add(&delContent);
 		_comm.refSkin.add(&refSkin);
-		getShell.addDisposeListener(new Dispose);
+		getShell().addDisposeListener(new Dispose);
 	}
 
+	@property
 	Content event() {
 		return _evt;
 	}
-	protected Commons comm() {return _comm;}
-	protected Props prop() {return _prop;}
-	protected Summary summ() {return _summ;}
-	protected Content evt() {return _evt;}
-	protected void evt(Content evt) {_evt = evt;}
+	@property protected Commons comm() {return _comm;}
+	@property protected Props prop() {return _prop;}
+	@property protected Summary summ() {return _summ;}
+	@property protected Content evt() {return _evt;}
+	@property protected void evt(Content evt) {_evt = evt;}
 
 	protected void refSkin() {}
 
@@ -147,7 +148,7 @@ class ContentCommentDialog : AbsDialog {
 		_parent = parent;
 		_evt = evt;
 		_comm.delContent.add(&delContent);
-		getShell.addDisposeListener(new Dispose);
+		getShell().addDisposeListener(new Dispose);
 	}
 
 	override void setup(Composite area) {
@@ -159,17 +160,17 @@ class ContentCommentDialog : AbsDialog {
 		mod(_comment);
 		_comment.setText = _evt.comment;
 		createTextMenu!Text(_comm, _prop, _comment, &catchMod);
-		auto font = _comment.getFont;
-		auto fSize = font ? cast(uint) font.getFontData[0].height : 0;
-		_comment.setFont = new Font(Display.getCurrent, dwtData(_prop.looks.textDlgFont(fSize)));
-		_comment.setSelection = to!dstring(_comment.getText).length;
+		auto font = _comment.getFont();
+		auto fSize = font ? cast(uint) font.getFontData()[0].height : 0;
+		_comment.setFont = new Font(Display.getCurrent(), dwtData(_prop.looks.textDlgFont(fSize)));
+		_comment.setSelection = to!dstring(_comment.getText()).length;
 		closeEvent ~= () {
-			_comment.getFont.dispose;
+			_comment.getFont().dispose();
 		};
 	}
 
 	override bool apply() {
-		_evt.comment = lastRet(wrapReturnCode(_comment.getText));
+		_evt.comment = lastRet(wrapReturnCode(_comment.getText()));
 		return true;
 	}
 }
@@ -186,10 +187,10 @@ private:
 	}
 	void refreshList() {
 		auto summary = _summ;
-		auto sels = _list.getSelection;
+		auto sels = _list.getSelection();
 		ulong id = 0;
 		if (sels.length) {
-			id = (cast(A) sels[0].getData).id;
+			id = (cast(A) sels[0].getData()).id;
 		} else if (_evt) {
 			static if (Type == CType.CHANGE_AREA) {
 				id = _evt.area;
@@ -268,9 +269,9 @@ private:
 		}
 	}
 	void openView() {
-		auto i = _list.getSelectionIndex;
+		auto i = _list.getSelectionIndex();
 		if (-1 == i) return;
-		auto a = cast(A) _list.getItem(i).getData;
+		auto a = cast(A) _list.getItem(i).getData();
 		try {
 			_comm.openCWXPath(cpaddattr(a.cwxPath, "shallow"), false);
 		} catch (Exception e) {
@@ -300,7 +301,7 @@ protected:
 		gd.heightHint = _prop.var.etc.nameTableHeight;
 		_list.setLayoutData = gd;
 		_list.addMouseListener(new OpenView);
-		auto menu = new Menu(_list.getShell, SWT.POP_UP);
+		auto menu = new Menu(_list.getShell(), SWT.POP_UP);
 		static if (is(A : Area) || is(A : Battle) || is(A : Package)) {
 			createMenuItem(menu, _prop.msgs.menuOpenTableView, _prop.images.menuOpenTableView, &openView);
 		} else static if (is(A : CastCard) || is(A : InfoCard)) {
@@ -321,7 +322,7 @@ protected:
 				_ts.setLayoutData(tgd);
 				_ts.setVisibleItemCount = 20;
 				foreach (i, t; ALL_TRANSITION) {
-					_ts.add(_prop.msgs.transition(t));
+					_ts.add(_prop.msgs.transitionName(t));
 					_tsTbl[i] = t;
 					if (_evt && t == _evt.transition) _ts.select(i);
 				}
@@ -343,7 +344,7 @@ protected:
 			}
 			refreshTS();
 		}
-		_list.showSelection;
+		_list.showSelection();
 		static if (is(A : Area)) {
 			_comm.refArea.add(&refA);
 			_comm.delArea.add(&delA);
@@ -364,13 +365,13 @@ protected:
 	}
 
 	override bool apply() {
-		auto id = (cast(A) _list.getSelection[0].getData).id;
+		auto id = (cast(A) _list.getSelection()[0].getData()).id;
 		if (!_evt) {
 			_evt = new Content(Type, "");
 		}
 		static if (Type == CType.CHANGE_AREA) {
-			auto ts = _tsTbl[_ts.getSelectionIndex];
-			uint tsSpeed = _tsSpeed.getSelection;
+			auto ts = _tsTbl[_ts.getSelectionIndex()];
+			uint tsSpeed = _tsSpeed.getSelection();
 			_evt.area = id;
 			_evt.transition = ts;
 			_evt.transitionSpeed = tsSpeed;
@@ -413,9 +414,9 @@ private:
 		if (_evt) {
 			sel = _evt.start;
 		}
-		int selIndex = _list.getSelectionIndex;
+		int selIndex = _list.getSelectionIndex();
 		if (-1 != selIndex) {
-			sel = (cast(Content) _list.getItem(selIndex).getData).name;
+			sel = (cast(Content) _list.getItem(selIndex).getData()).name;
 		}
 		
 		_list.removeAll();
@@ -430,12 +431,12 @@ private:
 			if (sel == s.name) _list.select = i;
 			i++;
 		}
-		_list.showSelection;
+		_list.showSelection();
 	}
 	void openView() {
-		auto i = _list.getSelectionIndex;
+		auto i = _list.getSelectionIndex();
 		if (-1 == i) return;
-		auto a = cast(Content) _list.getItem(i).getData;
+		auto a = cast(Content) _list.getItem(i).getData();
 		try {
 			_comm.openCWXPath(cpaddattr(a.cwxPath, "shallow"), false);
 		} catch (Exception e) {
@@ -465,7 +466,7 @@ protected:
 		gd.heightHint = _prop.var.etc.nameTableHeight;
 		_list.setLayoutData = gd;
 		_list.addMouseListener(new OpenView);
-		auto menu = new Menu(_list.getShell, SWT.POP_UP);
+		auto menu = new Menu(_list.getShell(), SWT.POP_UP);
 		createMenuItem(menu, _prop.msgs.menuOpenEventTreeView, _prop.images.menuOpenEventTreeView, &openView);
 		_list.setMenu = menu;
 
@@ -476,7 +477,7 @@ protected:
 	}
 
 	override bool apply() {
-		auto name = (cast(Content) _list.getSelection[0].getData).name;
+		auto name = (cast(Content) _list.getSelection()[0].getData()).name;
 		if (!_evt) _evt = new Content(Type, "");
 		_evt.start = name;
 		return true;
@@ -525,7 +526,7 @@ protected:
 		if (!_evt) {
 			_evt = new Content(CType.END, "");
 		}
-		_evt.complete = _mark.getSelection;
+		_evt.complete = _mark.getSelection();
 		return true;
 	}
 }
@@ -543,7 +544,7 @@ private:
 		refreshCoupons();
 	}
 	void refreshCoupons() {
-		auto c = _name.getText;
+		auto c = _name.getText();
 		_name.removeAll();
 		addCastCoupons(_name, prop, false, comm.skin.legacyName);
 		_name.select = 0;
@@ -569,7 +570,7 @@ protected:
 				auto radio = new Button(grp, SWT.RADIO);
 				mod(radio);
 				radio.setLayoutData = new GridData(GridData.FILL_BOTH);
-				radio.setText = _prop.msgs.range(r);
+				radio.setText = _prop.msgs.rangeName(r);
 				_range[r] = radio;
 			}
 		}
@@ -628,11 +629,11 @@ protected:
 	override bool apply() {
 		if (!_evt) _evt = new Content(Type, "");
 		foreach (range, radio; _range) {
-			if (radio.getSelection) {
+			if (radio.getSelection()) {
 				_evt.range = range;
-				_evt.coupon = _name.getText;
+				_evt.coupon = _name.getText();
 				static if (EditValue) {
-					_evt.couponValue = _value.getSelection;
+					_evt.couponValue = _value.getSelection();
 				}
 				break;
 			}
@@ -678,7 +679,7 @@ protected:
 
 	override bool apply() {
 		if (!_evt) _evt = new Content(Type, "");
-		string text = _text.getText;
+		string text = _text.getText();
 		mixin (Set);
 		return true;
 	}
@@ -750,7 +751,7 @@ protected:
 			mod(_ts);
 			_ts.setVisibleItemCount = 20;
 			foreach (i, t; ALL_TRANSITION) {
-				_ts.add(_prop.msgs.transition(t));
+				_ts.add(_prop.msgs.transitionName(t));
 				_tsTbl[i] = t;
 				if (_evt && t == _evt.transition) _ts.select(i);
 			}
@@ -779,8 +780,8 @@ protected:
 
 	override bool apply() {
 		_evt.backs = _cont.backs;
-		auto ts = _tsTbl[_ts.getSelectionIndex];
-		uint tsSpeed = _tsSpeed.getSelection;
+		auto ts = _tsTbl[_ts.getSelectionIndex()];
+		uint tsSpeed = _tsSpeed.getSelection();
 		_evt.transition = ts;
 		_evt.transitionSpeed = tsSpeed;
 		return true;
@@ -886,7 +887,7 @@ protected:
 		private int _v;
 		this (int v) {_v = v;}
 		override void widgetSelected(SelectionEvent e) {
-			_value.setSelection = _value.getSelection + _v;
+			_value.setSelection = _value.getSelection() + _v;
 		}
 	}
 	override void setup(Composite area) {
@@ -901,23 +902,23 @@ protected:
 			mod(_value);
 			_value.setMinimum = Min;
 			_value.setMaximum = mixin (Max);
-			comp.setLayout = new GridLayout(10 <= _value.getMaximum ? 3 : 2, false);
-			if (10 <= _value.getMaximum) {
+			comp.setLayout = new GridLayout(10 <= _value.getMaximum() ? 3 : 2, false);
+			if (10 <= _value.getMaximum()) {
 				auto tools = new Composite(comp, SWT.NONE);
 				tools.setLayout = new FillLayout(SWT.HORIZONTAL);
-				for (int i = 5; i <= _value.getMaximum && i < 10000; i*= i == 5 ? 2 : 10) {
+				for (int i = 5; i <= _value.getMaximum() && i < 10000; i*= i == 5 ? 2 : 10) {
 					auto ts = new Composite(tools, SWT.NONE);
 					ts.setLayout = new FillLayout(SWT.VERTICAL);
 					void createB(int i) {
 						auto r = new Button(ts, SWT.PUSH);
-						auto fontd = r.getFont.getFontData;
+						auto fontd = r.getFont().getFontData();
 						foreach (fd; fontd) {
 							fd.height /= 1.5;
 						}
-						r.setFont = new Font(Display.getCurrent, fontd);
+						r.setFont = new Font(Display.getCurrent(), fontd);
 						r.addDisposeListener(new class DisposeListener {
 							override void widgetDisposed(DisposeEvent e) {
-								(cast(Control) e.widget).getFont.dispose;
+								(cast(Control) e.widget).getFont().dispose();
 							}
 						});
 						r.setText = i < 0 ? to!(string)(i) : "+" ~ to!(string)(i);
@@ -928,7 +929,7 @@ protected:
 				}
 			}
 			auto l = new Label(comp, SWT.NONE);
-			l.setText = _prop.msgs.rangeHint(Min, _value.getMaximum);
+			l.setText = _prop.msgs.rangeHint(Min, _value.getMaximum());
 		}
 
 		ignoreMod = true;
@@ -942,7 +943,7 @@ protected:
 
 	override bool apply() {
 		if (!_evt) _evt = new Content(Type, "");
-		int value = _value.getSelection;
+		int value = _value.getSelection();
 		mixin (Set);
 		return true;
 	}
@@ -1018,7 +1019,7 @@ protected:
 					_lev.setMinimum = Content.signedLevel_min;
 					_lev.setMaximum = Content.signedLevel_max;
 					auto l = new Label(grp, SWT.NONE);
-					l.setText = _prop.msgs.rangeHint(_lev.getMinimum, _lev.getMaximum);
+					l.setText = _prop.msgs.rangeHint(_lev.getMinimum(), _lev.getMaximum());
 				}
 				{
 					auto grp = new Group(comp2, SWT.NONE);
@@ -1078,7 +1079,7 @@ protected:
 					foreach (m; [Target.M.SELECTED, Target.M.RANDOM, Target.M.PARTY]) {
 						auto radio = new Button(grp, SWT.RADIO);
 						mod(radio);
-						radio.setText = _prop.msgs.target(m);
+						radio.setText = _prop.msgs.targetName(m);
 						radio.setLayoutData = new GridData(GridData.FILL_BOTH);
 						_targ[m] = radio;
 					}
@@ -1130,9 +1131,9 @@ protected:
 	override bool apply() {
 		if (!_evt) _evt = new Content(CType.EFFECT, "");
 		_evt.motions = _mview.motions;
-		_evt.signedLevel = _lev.getSelection;
-		_evt.soundPath = _se.getSelectionIndex > 0 ? _se.getText : "";
-		_evt.successRate = cast(int) _sucRate.getSelection - Content.successRate_max;
+		_evt.signedLevel = _lev.getSelection();
+		_evt.soundPath = _se.getSelectionIndex() > 0 ? _se.getText() : "";
+		_evt.successRate = cast(int) _sucRate.getSelection() - Content.successRate_max;
 		_evt.effectType = getRadioValue!(EffectType)(_effTyp);
 		_evt.resist = getRadioValue!(Resist)(_res);
 		_evt.cardVisual = getRadioValue!(CardVisual)(_vis);
@@ -1156,17 +1157,17 @@ private:
 
 	void refreshValues(bool manual) {
 		static if (SelValue) {
-			if (manual && _values.getItemCount && _sel == _flags.getSelectionIndex) {
+			if (manual && _values.getItemCount() && _sel == _flags.getSelectionIndex()) {
 				_values.select = 0;
 				return;
 			}
-			_sel = _flags.getSelectionIndex;
+			_sel = _flags.getSelectionIndex();
 		}
-		F flag = cast(F) _flags.getItem(_flags.getSelectionIndex).getData;
+		F flag = cast(F) _flags.getItem(_flags.getSelectionIndex()).getData();
 		static if (SelValue) {
-			int sel = _values.getSelectionIndex;
+			int sel = _values.getSelectionIndex();
 		}
-		_values.removeAll;
+		_values.removeAll();
 		static if (is (F == Flag)) {
 			auto itm1 = new TableItem(_values, SWT.NONE);
 			itm1.setText = flag.on;
@@ -1195,9 +1196,9 @@ private:
 	}
 	void refreshList() {
 		string sel = "";
-		auto ix = _flags.getSelectionIndex;
+		auto ix = _flags.getSelectionIndex();
 		if (-1 != ix) {
-			sel = (cast(F) _flags.getItem(ix).getData).path;
+			sel = (cast(F) _flags.getItem(ix).getData()).path;
 		}
 		static if (is (F == Flag)) {
 			if (!sel && _evt) {
@@ -1239,7 +1240,7 @@ private:
 		} else {
 			if (!s.length) return;
 		}
-		int sel = _values.getSelectionIndex;
+		int sel = _values.getSelectionIndex();
 		refreshValues(false);
 		_values.select = sel;
 	}
@@ -1264,9 +1265,9 @@ private:
 	}
 
 	void openView() {
-		auto i = _flags.getSelectionIndex;
+		auto i = _flags.getSelectionIndex();
 		if (-1 == i) return;
-		auto a = cast(F) _flags.getItem(i).getData;
+		auto a = cast(F) _flags.getItem(i).getData();
 		try {
 			_comm.openCWXPath(cpaddattr(a.cwxPath, "shallow"), false);
 		} catch (Exception e) {
@@ -1284,7 +1285,7 @@ public:
 		_root = root;
 		super (comm, prop, shell, summ, Type, parent, evt, true, prop.var.flagEvtDlg, true);
 		closeEvent ~= {
-			auto ws = _sash.getWeights;
+			auto ws = _sash.getWeights();
 			_prop.var.etc.flagEventSashL = ws[0];
 			_prop.var.etc.flagEventSashR = ws[1];
 		};
@@ -1324,7 +1325,7 @@ protected:
 			_flags.addSelectionListener(new SListener);
 
 			_flags.addMouseListener(new OpenView);
-			auto menu = new Menu(_flags.getShell, SWT.POP_UP);
+			auto menu = new Menu(_flags.getShell(), SWT.POP_UP);
 			createMenuItem(menu, _prop.msgs.menuOpenFlagView, _prop.images.menuOpenFlagView, &openView);
 			_flags.setMenu = menu;
 		}
@@ -1352,8 +1353,8 @@ protected:
 				static assert (0);
 			}
 			int index = -1;
-			foreach (i, itm; _flags.getItems) {
-				if (itm.getText == sel) {
+			foreach (i, itm; _flags.getItems()) {
+				if (itm.getText() == sel) {
 					index = i;
 					break;
 				}
@@ -1369,7 +1370,7 @@ protected:
 				} else {
 					static assert (0);
 				}
-				_sel = _flags.getSelectionIndex;
+				_sel = _flags.getSelectionIndex();
 			}
 		} else {
 			_flags.select = 0;
@@ -1382,14 +1383,14 @@ protected:
 	override bool apply() {
 		if (!_evt) _evt = new Content(Type, "");
 		static if (is (F == Flag)) {
-			_evt.flag = (cast(F) _flags.getSelection[0].getData).path;
+			_evt.flag = (cast(F) _flags.getSelection()[0].getData()).path;
 			static if (SelValue) {
-				_evt.flagValue = _values.getSelectionIndex == 0;
+				_evt.flagValue = _values.getSelectionIndex() == 0;
 			}
 		} else static if (is (F == Step)) {
-			_evt.step = (cast(F) _flags.getSelection[0].getData).path;
+			_evt.step = (cast(F) _flags.getSelection()[0].getData()).path;
 			static if (SelValue) {
-				_evt.stepValue = _values.getSelectionIndex;
+				_evt.stepValue = _values.getSelectionIndex();
 			}
 		} else {
 			static assert (0);
@@ -1455,8 +1456,8 @@ protected:
 
 	override bool apply() {
 		if (!_evt) _evt = new Content(CType.BRANCH_SELECT, "");
-		_evt.targetAll = _all[1].getSelection;
-		_evt.random = _random[1].getSelection;
+		_evt.targetAll = _all[1].getSelection();
+		_evt.random = _random[1].getSelection();
 		return true;
 	}
 }
@@ -1492,7 +1493,7 @@ protected:
 				_lev.setMinimum = Content.signedLevel_min;
 				_lev.setMaximum = Content.signedLevel_max;
 				auto l = new Label(grp, SWT.NONE);
-				l.setText = _prop.msgs.rangeHint(_lev.getMinimum, _lev.getMaximum);
+				l.setText = _prop.msgs.rangeHint(_lev.getMinimum(), _lev.getMaximum());
 			}
 			{
 				auto grp = new Group(comp, SWT.NONE);
@@ -1502,7 +1503,7 @@ protected:
 				foreach (m; [Target.M.SELECTED, Target.M.RANDOM, Target.M.PARTY]) {
 					auto radio = new Button(grp, SWT.RADIO);
 					mod(radio);
-					radio.setText = _prop.msgs.target(m);
+					radio.setText = _prop.msgs.targetName(m);
 					radio.setLayoutData = new GridData(GridData.FILL_BOTH);
 					_targ[m] = radio;
 				}
@@ -1534,7 +1535,7 @@ protected:
 				auto radio = new Button(comp2, SWT.RADIO);
 				mod(radio);
 				radio.setLayoutData = new GridData(GridData.FILL_VERTICAL);
-				radio.setText = _prop.msgs.physical(phy);
+				radio.setText = _prop.msgs.physicalName(phy);
 				_phy[phy] = radio;
 			}
 		}
@@ -1555,7 +1556,7 @@ protected:
 				auto radio = new Button(comp2, SWT.RADIO);
 				mod(radio);
 				radio.setLayoutData = new GridData(GridData.FILL_BOTH);
-				radio.setText = _prop.msgs.mental(m);
+				radio.setText = _prop.msgs.mentalName(m);
 				_mtl[m] = radio;
 			}
 		}
@@ -1578,8 +1579,8 @@ protected:
 
 	override bool apply() {
 		if (!_evt) _evt = new Content(CType.BRANCH_ABILITY, "");
-		auto targ = Target(getRadioValue!(Target.M)(_targ), _sleep[0].getSelection);
-		_evt.signedLevel = _lev.getSelection;
+		auto targ = Target(getRadioValue!(Target.M)(_targ), _sleep[0].getSelection());
+		_evt.signedLevel = _lev.getSelection();
 		_evt.targetS = targ;
 		_evt.physical = getRadioValue!(Physical)(_phy);
 		_evt.mental = getRadioValue!(Mental)(_mtl);
@@ -1627,7 +1628,7 @@ protected:
 			_lev.setMinimum = Content.unsignedLevel_min;
 			_lev.setMaximum = Content.unsignedLevel_max;
 			auto l = new Label(comp, SWT.NONE);
-			l.setText = _prop.msgs.rangeHint(_lev.getMinimum, _lev.getMaximum);
+			l.setText = _prop.msgs.rangeHint(_lev.getMinimum(), _lev.getMaximum());
 		}
 
 		ignoreMod = true;
@@ -1643,8 +1644,8 @@ protected:
 
 	override bool apply() {
 		if (!_evt) _evt = new Content(CType.BRANCH_LEVEL, "");
-		_evt.average = _ave[0].getSelection;
-		_evt.unsignedLevel = _lev.getSelection;
+		_evt.average = _ave[0].getSelection();
+		_evt.unsignedLevel = _lev.getSelection();
 		return true;
 	}
 }
@@ -1670,7 +1671,7 @@ protected:
 			foreach (m; [Target.M.SELECTED, Target.M.RANDOM, Target.M.PARTY]) {
 				auto radio = new Button(grp, SWT.RADIO);
 				mod(radio);
-				radio.setText = _prop.msgs.target(m);
+				radio.setText = _prop.msgs.targetName(m);
 				radio.setLayoutData = new GridData(GridData.FILL_BOTH);
 				_targ[m] = radio;
 			}
@@ -1685,7 +1686,7 @@ protected:
 					Status.POISON, Status.SLEEP, Status.BIND, Status.PARALYZE]) {
 				auto radio = new Button(grp, SWT.RADIO);
 				mod(radio);
-				radio.setText = _prop.msgs.status(s);
+				radio.setText = _prop.msgs.statusName(s);
 				radio.setLayoutData = new GridData(GridData.FILL_BOTH);
 				_stat[s] = radio;
 			}
@@ -1735,7 +1736,7 @@ private:
 		Button _allDel;
 		class DelSListener : SelectionAdapter {
 			override void widgetSelected(SelectionEvent e) {
-				_num.setEnabled = !_allDel.getSelection;
+				_num.setEnabled = !_allDel.getSelection();
 			}
 		}
 	}
@@ -1743,10 +1744,10 @@ private:
 	Table _list;
 
 	void refreshList() {
-		auto sels = _list.getSelection;
+		auto sels = _list.getSelection();
 		ulong id = 0;
 		if (sels.length) {
-			id = (cast(C) sels[0].getData).id;
+			id = (cast(C) sels[0].getData()).id;
 		} else if (_evt) {
 			static if (is (C == SkillCard)) {
 				id = _evt.skill;
@@ -1776,7 +1777,7 @@ private:
 			if (i == 0) _list.select = i;
 			if (id == c.id) _list.select = i;
 		}
-		_list.showSelection;
+		_list.showSelection();
 	}
 	class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
@@ -1806,9 +1807,9 @@ private:
 	}
 
 	void openView() {
-		auto i = _list.getSelectionIndex;
+		auto i = _list.getSelectionIndex();
 		if (-1 == i) return;
-		auto a = cast(C) _list.getItem(i).getData;
+		auto a = cast(C) _list.getItem(i).getData();
 		try {
 			_comm.openCWXPath(cpaddattr(a.cwxPath, "shallow"), false);
 		} catch (Exception e) {
@@ -1847,7 +1848,7 @@ protected:
 				_num.setMinimum = 1;
 				_num.setMaximum = Content.cardNumber_max;
 				auto l = new Label(comp2, SWT.NONE);
-				l.setText = _prop.msgs.rangeHint(_num.getMinimum, _num.getMaximum);
+				l.setText = _prop.msgs.rangeHint(_num.getMinimum(), _num.getMaximum());
 				static if (Delete) {
 					_allDel = new Button(comp2, SWT.CHECK);
 					mod(_allDel);
@@ -1867,7 +1868,7 @@ protected:
 						Range.BACKPACK, Range.PARTY_AND_BACKPACK, Range.FIELD]) {
 					auto radio = new Button(grp, SWT.RADIO);
 					mod(radio);
-					radio.setText = _prop.msgs.range(r);
+					radio.setText = _prop.msgs.rangeName(r);
 					radio.setLayoutData = new GridData(GridData.FILL_BOTH);
 					_range[r] = radio;
 				}
@@ -1885,7 +1886,7 @@ protected:
 			_list.setLayoutData = gd;
 
 			_list.addMouseListener(new OpenView);
-			auto menu = new Menu(_list.getShell, SWT.POP_UP);
+			auto menu = new Menu(_list.getShell(), SWT.POP_UP);
 			createMenuItem(menu, _prop.msgs.menuOpenCardView, _prop.images.menuOpenCardView, &openView);
 			_list.setMenu = menu;
 
@@ -1930,7 +1931,7 @@ protected:
 
 	override bool apply() {
 		if (!_evt) _evt = new Content(Type, "");
-		auto id = (cast(C) _list.getSelection[0].getData).id;
+		auto id = (cast(C) _list.getSelection()[0].getData()).id;
 		static if (is (C == SkillCard)) {
 			_evt.skill = id;
 		} else static if (is (C == ItemCard)) {
@@ -1942,13 +1943,13 @@ protected:
 		}
 		_evt.range = getRadioValue!(Range)(_range);
 		static if (Delete) {
-			if (_allDel.getSelection) {
+			if (_allDel.getSelection()) {
 				_evt.cardNumber = 0u;
 			} else {
-				_evt.cardNumber = _num.getSelection;
+				_evt.cardNumber = _num.getSelection();
 			}
 		} else {
-			_evt.cardNumber = _num.getSelection;
+			_evt.cardNumber = _num.getSelection();
 		}
 		return true;
 	}
@@ -1994,7 +1995,7 @@ protected:
 			_ts.setLayoutData = gd;
 			_ts.setVisibleItemCount = 20;
 			foreach (i, t; ALL_TRANSITION) {
-				_ts.add(_prop.msgs.transition(t));
+				_ts.add(_prop.msgs.transitionName(t));
 				_tsTbl[i] = t;
 				if (_evt && t == _evt.transition) _ts.select(i);
 			}
@@ -2021,8 +2022,8 @@ protected:
 
 	override bool apply() {
 		if (!_evt) _evt = new Content(CType.REDISPLAY, "");
-		auto ts = _tsTbl[_ts.getSelectionIndex];
-		uint tsSpeed = _tsSpeed.getSelection;
+		auto ts = _tsTbl[_ts.getSelectionIndex()];
+		uint tsSpeed = _tsSpeed.getSelection();
 		_evt.transition = ts;
 		_evt.transitionSpeed = tsSpeed;
 		return true;

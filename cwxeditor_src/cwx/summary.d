@@ -31,8 +31,8 @@ public:
 /// 貼り紙関連の例外。
 class SummaryException : Exception {
 public:
-	this(string msg) {
-		super(msg);
+	this (string msg) {
+		super (msg);
 	}
 }
 
@@ -117,21 +117,23 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 	public {
 		static if (UseCast) {
 			/// キャスト。
+			@property
 			CastCard[] casts() {
 				return _cast;
 			}
 			/// ditto
-			CastCard casts(ulong id) {
+			CastCard cwCast(ulong id) {
 				return find(_cast, id);
 			}
 			/// ditto
 			const
-			const(CastCard) casts(ulong id) {
+			const(CastCard) cwCast(ulong id) {
 				return find(_cast, id);
 			}
 		}
 		static if (UseSkill) {
 			/// スキル。
+			@property
 			SkillCard[] skills() {
 				return _skl;
 			}
@@ -147,6 +149,7 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 		}
 		static if (UseItem) {
 			/// アイテム。
+			@property
 			ItemCard[] items() {
 				return _itm;
 			}
@@ -162,6 +165,7 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 		}
 		static if (UseBeast) {
 			/// 召喚獣。
+			@property
 			BeastCard[] beasts() {
 				return _bst;
 			}
@@ -176,6 +180,7 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 		}
 		static if (UseInfo) {
 			/// 情報カード。
+			@property
 			InfoCard[] infos() {
 				return _info;
 			}
@@ -200,17 +205,22 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 	private bool _legacy = false;
 
 	/// XMLファイルを展開しているか。
+	@property
 	const
 	bool expandXMLs() {return _expandXMLs;}
 	/// 現在のscenarioPathは一時展開先か。
+	@property
 	const
 	bool useTemp() {return _useTemp;}
 	/// 元の圧縮ファイル名は何か。圧縮されていないシナリオの場合は""。
+	@property
 	const
 	string zipName() {return _zipName;}
 	/// ditto
+	@property
 	void zipName(string zipName) {_zipName = zipName;}
 	/// クラシックな形式のシナリオか。
+	@property
 	const
 	bool legacy() {return _legacy;}
 
@@ -334,7 +344,7 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 					r._legacy = true;
 					r._zipName = fname;
 					r._tempPath = fn;
-					r.lock;
+					r.lock();
 					return r;
 				} catch (Exception e) {
 					delAll(fn);
@@ -364,7 +374,7 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 					if (cfnmatch(baseName(fname), "Summary.wsm")) {
 						return ll(dirName(fname));
  					} else if (canUncab && cfnmatch(cwx.utils.getExt(fname), "cab")) {
- 						return legacyCommon;
+ 						return legacyCommon();
 					} else if (cfnmatch(baseName(fname), "Summary.xml")) {
 						expand = true;
 						auto r = load(dirName(fname));
@@ -389,7 +399,7 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 									r._zipName = zipname;
 									r._tempPath = fname;
 									r._legacy = false;
-									r.lock;
+									r.lock();
 									return r;
 								} catch (Exception e) {
 									delAll(fname);
@@ -400,7 +410,7 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 								return null;
 							}
 						} else {
- 							return legacyCommon;
+							return legacyCommon();
 						}
 					}
 				} catch (ZipException e) {
@@ -428,7 +438,7 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 	/// 一時展開先を削除する。
 	void delTemp() {
 		if (useTemp) {
-			_lock.close;
+			_lock.close();
 			_lock = null;
 			try {
 				delAll(_tempPath.length ? _tempPath : scenarioPath, true);
@@ -451,7 +461,7 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 		}
 		case "castcard:id": {
 			static if (UseCast) {
-				auto card = casts(cpindex(path));
+				auto card = cwCast(cpindex(path));
 				return card ? card.findCWXPath(cpbottom(path)) : null;
 			}
 		}
@@ -507,6 +517,7 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 		}
 		return null;
 	}
+	@property
 	private CWXPath[] cwxChildsImpl() {
 		CWXPath[] r;
 		static if (UseCast) r ~= cast(CWXPath[]) casts;
@@ -578,7 +589,7 @@ private:
 
 	this (string sPath) {
 		_sPath = sPath;
-		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime);
+		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime());
 		_uc = new UseCounter;
 		_froot = new FlagDir(this);
 		_froot.changeHandler = &changeHandler;
@@ -589,7 +600,7 @@ private:
 	}
 public:
 	/// シナリオ名、スキン、シナリオのパスを指定してインスタンスを生成。
-	this(string sname, string type, string sPath, bool temp, bool legacy) {
+	this (string sname, string type, string sPath, bool temp, bool legacy) {
 		this(sPath);
 		_type = type;
 		_sname = sname;
@@ -597,13 +608,14 @@ public:
 		_useTemp = temp;
 		if (_useTemp) {
 			_tempPath = _sPath;
-			lock;
+			lock();
 		}
 	}
 
 	/// シナリオに変更があった際に発生するイベントのハンドラ。
 	void delegate()[] changedEvent;
 
+	@property
 	override string cwxPath() {return "";}
 	override CWXPath findCWXPath(string path) {
 		if (cpempty(path)) return this;
@@ -630,7 +642,7 @@ public:
 			return index < packages.length ? packages[index].findCWXPath(cpbottom(path)) : null;
 		}
 		case "package:id": {
-			auto area = packages(cpindex(path));
+			auto area = cwPackage(cpindex(path));
 			return area ? area.findCWXPath(cpbottom(path)) : null;
 		}
 		case "variable": {
@@ -640,6 +652,7 @@ public:
 		}
 		return findCWXPathImpl(path, cate);
 	}
+	@property
 	override CWXPath[] cwxChilds() {
 		CWXPath[] r;
 		r ~= cast(CWXPath[]) areas;
@@ -649,14 +662,17 @@ public:
 		r ~= flagDirRoot;
 		return r;
 	}
+	@property
 	CWXPath cwxParent() {return null;}
 
 	/// マシン上で一意なID。
+	@property
 	const
 	string id() {
 		return _id;
 	}
 	/// このシナリオが変更済みであればtrueを返す。
+	@property
 	const
 	bool isChanged() {
 		return _change;
@@ -670,6 +686,7 @@ public:
 		changeHandler();
 	}
 	/// このシナリオが持つ使用回数カウンタ。
+	@property
 	UseCounter useCounter() {
 		return _uc;
 	}
@@ -707,122 +724,145 @@ public:
 		_legacy = false;
 		this.scenarioPath = scenarioPath;
 		_tempPath = scenarioPath;
-		lock;
+		lock();
 	}
 
 	/// データバージョン。
+	@property
 	const
 	string dataVersion() {return _dataVersion;}
+	@property
 	/// ditto
 	private void dataVersion(string ver) {_dataVersion = ver;}
 
 	/// シナリオの作者名。
+	@property
 	void author(string author) {
-		if (_author != author) changeHandler;
+		if (_author != author) changeHandler();
 		_author = author;
 	}
 	/// ditto
+	@property
 	const
 	string author() {
 		return _author;
 	}
 
 	/// シナリオのタイプ。スキンを決定する。
+	@property
 	const
 	string type() {
 		return _type;
 	}
 	/// ditto
+	@property
 	void type(string type) {
-		if (_type != type) changeHandler;
+		if (_type != type) changeHandler();
 		_type = type;
 	}
 
 	/// 貼り紙の画像パス。
+	@property
 	void imagePath(string imgPath) {
-		if (_imgPath.path != imgPath) changeHandler;
+		if (_imgPath.path != imgPath) changeHandler();
 		_imgPath.path = imgPath;
 	}
 	/// ditto
+	@property
 	const
 	string imagePath() {
 		return _imgPath.path;
 	}
 
 	/// シナリオの解説。
+	@property
 	void desc(string desc) {
-		if (_desc != desc) changeHandler;
+		if (_desc != desc) changeHandler();
 		_desc = desc;
 	}
 	/// ditto
+	@property
 	const
 	string desc() {
 		return _desc;
 	}
 
 	/// 推奨レベル(低)
+	@property
 	void levelMin(uint levMin) {
-		if (_levMin != levMin) changeHandler;
+		if (_levMin != levMin) changeHandler();
 		_levMin = levMin;
 	}
 	/// ditto
+	@property
 	const
 	uint levelMin() {
 		return _levMin;
 	}
 
 	/// 推奨レベル(高)
+	@property
 	void levelMax(uint levMax) {
-		if (_levMax != levMax) changeHandler;
+		if (_levMax != levMax) changeHandler();
 		_levMax = levMax;
 	}
 	/// ditto
+	@property
 	const
 	uint levelMax() {
 		return _levMax;
 	}
 
 	/// 開始条件クーポンの必要数。
+	@property
 	void rCouponNum(uint rCouponNum) {
-		if (_rCouponNum != rCouponNum) changeHandler;
+		if (_rCouponNum != rCouponNum) changeHandler();
 		_rCouponNum = rCouponNum;
 	}
 	/// ditto
+	@property
 	const
 	uint rCouponNum() {
 		return _rCouponNum;
 	}
 
 	/// 開始条件クーポンの一覧。
+	@property
 	void rCoupons(string[] rCoupons) {
-		if (_rCoupons != rCoupons) changeHandler;
+		if (_rCoupons != rCoupons) changeHandler();
 		_rCoupons = rCoupons;
 	}
 	/// ditto
+	@property
 	string[] rCoupons() {
 		return _rCoupons;
 	}
 
 	/// シナリオの開始エリア。
+	@property
 	void startArea(ulong startAreaId) {
-		if (_startAreaId.area != startAreaId) changeHandler;
+		if (_startAreaId.area != startAreaId) changeHandler();
 		_startAreaId.area = startAreaId;
 	}
 	/// ditto
+	@property
 	const
 	ulong startArea() {
 		return _startAreaId.area;
 	}
 
 	/// シナリオに含まれるエリア。
+	@property
 	Area[] areas() {
 		return _area;
 	}
 	/// シナリオに含まれるパッケージ。
+	@property
 	Package[] packages() {
 		return _pkg;
 	}
 	/// シナリオに含まれるバトル。
+	@property
 	Battle[] battles() {
 		return _btl;
 	}
@@ -877,11 +917,11 @@ public:
 		return find(_btl, id);
 	}
 	/// パッケージ。
-	Package packages(ulong id) {
+	Package cwPackage(ulong id) {
 		return find(_pkg, id);
 	}
 	const
-	const(Package) packages(ulong id) {
+	const(Package) cwPackage(ulong id) {
 		return find(_pkg, id);
 	}
 
@@ -913,6 +953,7 @@ public:
 	}
 
 	/// 今現在このシナリオに含まれていないTのIDを生成して返す。
+	@property
 	const
 	ulong newId(T)() {
 		static if (is (T == CastCard)) {
@@ -936,16 +977,19 @@ public:
 		}
 	}
 	/// ditto
+	@property
 	const
 	ulong newAreaId() {
 		return newIdImpl(_area);
 	}
 	/// ditto
+	@property
 	const
 	ulong newBattleId() {
 		return newIdImpl(_btl);
 	}
 	/// ditto
+	@property
 	const
 	ulong newPackageId() {
 		return newIdImpl(_pkg);
@@ -985,7 +1029,7 @@ public:
 			c.setUseCounter = _uc;
 			c.changeHandler = &changeHandler;
 			c.owner = this;
-			changeHandler;
+			changeHandler();
 			foreach_reverse (o; chg.keys.sort) {
 				_uc.change(ToID(o), ToID(chg[o]));
 			}
@@ -1045,7 +1089,7 @@ public:
 		area.setUseCounter = _uc;
 		area.changeHandler = &changeHandler;
 		area.owner = this;
-		changeHandler;
+		changeHandler();
 		return oldId;
 	}
 
@@ -1090,10 +1134,10 @@ public:
 		foreach (i, a; arr) {
 			if (a.id == area.id) {
 				arr = arr[0 .. i] ~ arr[i + 1 .. $];
-				area.removeUseCounter;
+				area.removeUseCounter();
 				area.changeHandler = null;
 				area.owner = null;
-				changeHandler;
+				changeHandler();
 				return;
 			}
 		}
@@ -1211,7 +1255,7 @@ public:
 	const
 	string[string][string] toXMLs() {
 		string e = "";
-		string[string] s = ["Summary.xml":summaryToXML];
+		string[string] s = ["Summary.xml":summaryToXML()];
 		string[string][string] r = [e:s];
 
 		void put(string parent, string[string] p) {
@@ -1235,7 +1279,7 @@ public:
 		string[string] r;
 		foreach (targ; targs) {
 			auto fname = format("%02d", targ.id) ~ ".xml";
-			r[fname] = targ.toXML;
+			r[fname] = targ.toXML();
 		}
 		return r;
 	}
@@ -1247,7 +1291,7 @@ public:
 	/// Throws:
 	/// FileException = ファイル削除時・保存時例外発生時。
 	void saveXMLs(string path) {
-		std.file.write(std.path.buildPath(path, "Summary.xml"), summaryToXML);
+		std.file.write(std.path.buildPath(path, "Summary.xml"), summaryToXML());
 
 		saveXML(std.path.buildPath(path, PATH_AREA), _area);
 		saveXML(std.path.buildPath(path, PATH_BATTLE), _btl);
@@ -1287,7 +1331,7 @@ public:
 			}
 			foreach (targ; targs) {
 				auto p = createFileI(path, targ.name, "xml", format("%02d", targ.id) ~ "_");
-				std.file.write(p, targ.toXML);
+				std.file.write(p, targ.toXML());
 			}
 		}
 	}
@@ -1313,7 +1357,7 @@ public:
 				};
 				propNode.onTag["StartAreaId"] = (ref XNode node) {summ._startAreaId.area = node.valueTo!(ulong);};
 				propNode.onTag["Type"] = (ref XNode node) {summ._type = node.value;};
-				propNode.parse;
+				propNode.parse();
 			};
 			summ._froot = FlagDir.fromXmlNode(summNode, summ, &summ.changeHandler, summ.dataVersion);
 			return summ;
@@ -1345,7 +1389,7 @@ public:
 		Summary summ = summaryFromXML(sPath, *summXML);
 
 		summ.loadXML2(xmls, PATH_AREA, "Area", summ._area, summ.useCounter, &summ.changeHandler, summ.dataVersion);
-		summ.checkStartArea;
+		summ.checkStartArea();
 		summ.loadXML2(xmls, PATH_BATTLE, "Battle", summ._btl, summ.useCounter, &summ.changeHandler, summ.dataVersion);
 		summ.loadXML2(xmls, PATH_PACKAGE, "Package", summ._pkg, summ.useCounter, &summ.changeHandler, summ.dataVersion);
 
@@ -1360,7 +1404,7 @@ public:
 	private static void fromXMLs(Summary summ) {
 		auto path = summ.scenarioPath;
 		summ.loadXML1(std.path.buildPath(path, PATH_AREA), "Area", summ._area, summ.useCounter, &summ.changeHandler, summ.dataVersion);
-		summ.checkStartArea;
+		summ.checkStartArea();
 		summ.loadXML1(std.path.buildPath(path, PATH_BATTLE), "Battle", summ._btl, summ.useCounter, &summ.changeHandler, summ.dataVersion);
 		summ.loadXML1(std.path.buildPath(path, PATH_PACKAGE), "Package", summ._pkg, summ.useCounter, &summ.changeHandler, summ.dataVersion);
 
@@ -1407,10 +1451,12 @@ public:
 	}
 
 	/// フラグとステップのルートディレクトリ。
+	@property
 	FlagDir flagDirRoot() {
 		return _froot;
 	}
 	/// ditto
+	@property
 	const
 	const(FlagDir) flagDirRoot() {
 		return _froot;
@@ -1419,22 +1465,26 @@ public:
 	mixin STemplate!(true, true, true, true, true);
 
 	/// シナリオのディレクトリ。
+	@property
 	const
 	string scenarioPath() {
 		return _sPath;
 	}
 	/// シナリオのディレクトリ。
+	@property
 	void scenarioPath(string sPath) {
 		_sPath = sPath;
 	}
 	/// シナリオ名。
+	@property
 	const
 	string scenarioName() {
 		return _sname;
 	}
 	/// シナリオ名。
+	@property
 	void scenarioName(string sname) {
-		if (_sname != sname) changeHandler;
+		if (_sname != sname) changeHandler();
 		_sname = sname;
 	}
 
@@ -1553,6 +1603,7 @@ public:
 		return temp;
 	}
 	/// 保存場所が決まっている場合はtrue。
+	@property
 	const
 	bool isSaved() {
 		return !useTemp || zipName.length;
@@ -1617,18 +1668,18 @@ public:
 			} else if (archive || useTemp || legacyToX) {
 				auto oldPath = scenarioPath;
 				if (expandXMLs) {
-					saveXMLs;
+					saveXMLs();
 					expand = true;
 				} else if (legacyToX && defExpandXMLs) {
 					scenarioPath = temp;
 					scope (failure) scenarioPath = oldPath;
-					saveXMLs;
+					saveXMLs();
 					expand = true;
 				}
 				auto lock = std.path.buildPath(scenarioPath, "cwxeditor.lock");
 				scope arc = .zip(scenarioPath, false, [lock]);
 				if (!expand) {
-					auto xmls = toXMLs;
+					auto xmls = toXMLs();
 					foreach (path, files; xmls) {
 						foreach (name, xml; files) {
 							auto p = std.path.buildPath(path, name);
@@ -1637,13 +1688,13 @@ public:
 					}
 					_oldXMLs = xmls;
 				}
-				std.file.write(zipName, arc.build);
+				std.file.write(zipName, arc.build());
 			} else {
 				assert (expandXMLs);
-				saveXMLs;
+				saveXMLs();
 			}
 			dataVersion = LATEST_VERSION;
-			resetChanged;
+			resetChanged();
 			if (legacyToX || (!useTemp && archive)) {
 				toArchive(zipName, temp, expand);
 			}
@@ -1667,7 +1718,7 @@ public:
 				}
 			}
 		}
-		std.file.write(zipName, arc.build);
+		std.file.write(zipName, arc.build());
 	}
 	/// データを保存せずにシナリオのフォルダのアーカイブを作成する。
 	/// 非展開のXMLファイルは一時的に展開される。
@@ -1744,35 +1795,42 @@ public:
 	mixin STemplate!(UseCast, UseSkill, UseItem, UseBeast, UseInfo);
 
 	/// 唯一のコンストラクタ。
-	this(string sPath, string sname, bool legacy) {
-		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime);
+	this (string sPath, string sname, bool legacy) {
+		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime());
 		_sPath = sPath;
 		_sname = sname;
 		_legacy = legacy;
 	}
+	@property
 	override string cwxPath() {return "";}
 	override CWXPath findCWXPath(string path) {
 		if (cpempty(path)) return this;
 		return findCWXPathImpl(path, cpcategory(path));
 	}
+	@property
 	override CWXPath[] cwxChilds() {return cwxChildsImpl;}
+	@property
 	CWXPath cwxParent() {return null;}
 
 	/// マシン上で一意なID。
+	@property
 	const
 	string id() {
 		return _id;
 	}
 	/// スキン。
+	@property
 	const
 	string type() {return _type;}
 
 	/// シナリオのディレクトリ。
+	@property
 	const
 	string scenarioPath() {
 		return _sPath;
 	}
 	/// シナリオ名。
+	@property
 	const
 	string scenarioName() {
 		return _sname;
@@ -1815,9 +1873,9 @@ public:
 		summNode.onTag["Property"] = (ref XNode node) {
 			node.onTag["Name"] = (ref XNode node) {sname = node.value;};
 			node.onTag["Type"] = (ref XNode node) {type = node.value;};
-			node.parse;
+			node.parse();
 		};
-		summNode.parse;
+		summNode.parse();
 		if (!sname) throw new SummaryException("Scenario name is not found: " ~ sPath);
 		auto cc = new CardContainer(sPath, sname, false);
 		cc._type = type;
@@ -1894,20 +1952,23 @@ private:
 	Exception _e;
 public:
 	/// 読み込み対象のパスと発生した例外からインスタンスを生成。
-	this(string path, Exception e) {
+	this (string path, Exception e) {
 		super(e.msg);
 		_path = path;
 		_e = e;
 	}
 	/// 読み込み対象パス。
+	@property
 	const
 	string path() {
 		return _path;
 	}
 	/// 例外。
+	@property
 	Exception e() {
 		return _e;
 	}
+	@property
 	const
 	const(Exception) e() {
 		return _e;

@@ -21,6 +21,12 @@ class UCCont(K, U) {
 private:
 	HashSet!(U)[K] _cont;
 public:
+	/// 唯一のコンストラクタ
+	@property
+	this () {
+		// Nothing
+	}
+
 	/// キーの使用回数を返す。
 	/// Params:
 	/// key = キー。
@@ -33,6 +39,7 @@ public:
 
 	/// キーの一覧を返す。
 	/// Returns: キーの一覧。
+	@property
 	const
 	K[] keys() {
 		return _cont.keys;
@@ -42,10 +49,11 @@ public:
 	/// Params:
 	/// key = キー。
 	/// Returns: 使用者の一覧。
+	@property
 	const
 	U[] values(K key) {
 		auto p = key in _cont;
-		return p ? p.toArray : cast(U[]) [];
+		return p ? p.toArray() : cast(U[]) [];
 	}
 
 	/// キーの使用者を追加する。
@@ -159,13 +167,16 @@ public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
 	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
 	/// このオブジェクトの所有者。
+	@property
 	CWXPath owner() {return _cwxPath;}
 	/// このオブジェクトの所有者のリソースパス。
+	@property
 	string cwxPath() {return _cwxPath.cwxPath;}
 
 	/// フラグを設定する。
 	/// Params:
 	/// flag = フラグ。
+	@property
 	void flag(string flag) {
 		if (_uc !is null) {
 			if (_flag !is null) _uc.flag.remove(toFlagId(_flag), this);
@@ -175,14 +186,17 @@ public:
 	}
 
 	/// Returns: フラグ。
+	@property
 	const
 	string flag() {
 		return _flag;
 	}
 
 	/// 使用回数カウンタ。
+	@property
 	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
+	@property
 	void setUseCounter(UseCounter uc) {
 		if (uc && _flag) {
 			uc.flag.add(toFlagId(_flag), this);
@@ -255,13 +269,16 @@ public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
 	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
 	/// このオブジェクトの所有者。
+	@property
 	CWXPath owner() {return _cwxPath;}
 	/// このオブジェクトの所有者のリソースパス。
+	@property
 	string cwxPath() {return _cwxPath.cwxPath;}
 
 	/// ステップを設定する。
 	/// Params:
 	/// step = ステップ。
+	@property
 	void step(string step) {
 		if (_uc !is null) {
 			if (_step !is null) _uc.step.remove(toStepId(_step), this);
@@ -271,14 +288,17 @@ public:
 	}
 
 	/// Returns: ステップ。
+	@property
 	const
 	string step() {
 		return _step;
 	}
 
 	/// 使用回数カウンタ。
+	@property
 	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
+	@property
 	void setUseCounter(UseCounter uc) {
 		if (uc && _step) {
 			uc.step.add(toStepId(_step), this);
@@ -324,13 +344,16 @@ public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
 	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
 	/// このオブジェクトの所有者。
+	@property
 	CWXPath owner() {return _cwxPath;}
 	/// このオブジェクトの所有者のリソースパス。
+	@property
 	string cwxPath() {return _cwxPath.cwxPath;}
 
 	/// エリアIDを設定する。
 	/// Params:
 	/// id = エリアID。
+	@property
 	void area(ulong id) {
 		if (_uc !is null) {
 			if (_id > 0) _uc.area.remove(toAreaId(_id), this);
@@ -340,14 +363,17 @@ public:
 	}
 
 	/// Returns: エリアID。
+	@property
 	const
 	ulong area() {
 		return _id;
 	}
 
 	/// 使用回数カウンタ。
+	@property
 	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
+	@property
 	void setUseCounter(UseCounter uc) {
 		if (uc && _id > 0) {
 			uc.area.add(toAreaId(_id), this);
@@ -370,6 +396,7 @@ public:
 	}
 	private void delegate(AreaId) _handleChange = null;
 	/// change呼出しをdlgに通知する。
+	@property
 	void handleChange(void delegate(AreaId) dlg) {_handleChange = dlg;}
 }
 
@@ -394,13 +421,16 @@ public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
 	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
 	/// このオブジェクトの所有者。
+	@property
 	CWXPath owner() {return _cwxPath;}
 	/// このオブジェクトの所有者のリソースパス。
+	@property
 	string cwxPath() {return _cwxPath.cwxPath;}
 
 	/// バトルIDを設定する。
 	/// Params:
 	/// id = バトルID。
+	@property
 	void battle(ulong id) {
 		if (_uc !is null) {
 			if (_id > 0) _uc.battle.remove(toBattleId(_id), this);
@@ -410,14 +440,17 @@ public:
 	}
 
 	/// Returns: バトルID。
+	@property
 	const
 	ulong battle() {
 		return _id;
 	}
 
 	/// 使用回数カウンタ。
+	@property
 	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
+	@property
 	void setUseCounter(UseCounter uc) {
 		if (uc && _id > 0) {
 			uc.battle.add(toBattleId(_id), this);
@@ -440,6 +473,7 @@ public:
 	}
 	private void delegate(BattleId) _handleChange = null;
 	/// change呼出しをdlgに通知する。
+	@property
 	void handleChange(void delegate(BattleId) dlg) {_handleChange = dlg;}
 }
 
@@ -464,13 +498,16 @@ public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
 	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
 	/// このオブジェクトの所有者。
+	@property
 	CWXPath owner() {return _cwxPath;}
 	/// このオブジェクトの所有者のリソースパス。
+	@property
 	string cwxPath() {return _cwxPath.cwxPath;}
 
 	/// パッケージIDを設定する。
 	/// Params:
 	/// id = パッケージID。
+	@property
 	void packages(ulong id) {
 		if (_uc !is null) {
 			if (_id > 0) _uc.packages.remove(toPackageId(_id), this);
@@ -480,14 +517,17 @@ public:
 	}
 
 	/// Returns: パッケージID。
+	@property
 	const
 	ulong packages() {
 		return _id;
 	}
 
 	/// 使用回数カウンタ。
+	@property
 	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
+	@property
 	void setUseCounter(UseCounter uc) {
 		if (uc && _id > 0) {
 			uc.packages.add(toPackageId(_id), this);
@@ -525,10 +565,12 @@ struct PathId {
 		r.binImg = binImg;
 		return r;
 	}
+	@property
 	const
 	bool isBinImg() {
 		return binImg.length > 0u;
 	}
+	@property
 	const
 	bool valid() {
 		return id.length || binImg.length;
@@ -583,7 +625,7 @@ struct PathId {
 	string toString() {
 		string buf = "PathId {";
 		if (isBinImg) {
-			buf ~= "BinaryImage, hash: " ~ to!(string)(toHash);
+			buf ~= "BinaryImage, hash: " ~ to!(string)(toHash());
 		} else {
 			buf ~= id;
 		}
@@ -618,11 +660,14 @@ public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
 	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
 	/// このオブジェクトの所有者。
+	@property
 	CWXPath owner() {return _cwxPath;}
 	/// このオブジェクトの所有者のリソースパス。
+	@property
 	string cwxPath() {return _cwxPath.cwxPath;}
 
 	/// ファイルパスを設定する。
+	@property
 	void path(string path) {
 		if (_uc !is null) {
 			if (_path.valid) {
@@ -636,12 +681,15 @@ public:
 	}
 
 	/// ファイルパス。
+	@property
 	const
 	string path() {return _path.isBinImg ? _path.binImg : cast(string) _path;}
 
 	/// 使用回数カウンタ。
+	@property
 	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
+	@property
 	void setUseCounter(UseCounter uc) {
 		if (uc && _path.valid) {
 			uc.path.add(_path, this);
@@ -688,13 +736,16 @@ public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
 	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
 	/// このオブジェクトの所有者。
+	@property
 	CWXPath owner() {return _cwxPath;}
 	/// このオブジェクトの所有者のリソースパス。
+	@property
 	string cwxPath() {return _cwxPath.cwxPath;}
 
 	/// キャストIDを設定する。
 	/// Params:
 	/// id = キャストID。
+	@property
 	void casts(ulong id) {
 		if (_uc !is null) {
 			if (_id > 0) _uc.casts.remove(toCastId(_id), this);
@@ -704,14 +755,17 @@ public:
 	}
 
 	/// Returns: キャストID。
+	@property
 	const
 	ulong casts() {
 		return _id;
 	}
 
 	/// 使用回数カウンタ。
+	@property
 	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
+	@property
 	void setUseCounter(UseCounter uc) {
 		if (uc && _id > 0) {
 			uc.casts.add(toCastId(_id), this);
@@ -754,13 +808,16 @@ public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
 	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
 	/// このオブジェクトの所有者。
+	@property
 	CWXPath owner() {return _cwxPath;}
 	/// このオブジェクトの所有者のリソースパス。
+	@property
 	string cwxPath() {return _cwxPath.cwxPath;}
 
 	/// スキルIDを設定する。
 	/// Params:
 	/// id = スキルID。
+	@property
 	void skill(ulong id) {
 		if (_uc !is null) {
 			if (_id > 0) _uc.skill.remove(toSkillId(_id), this);
@@ -770,14 +827,17 @@ public:
 	}
 
 	/// Returns: スキルID。
+	@property
 	const
 	ulong skill() {
 		return _id;
 	}
 
 	/// 使用回数カウンタ。
+	@property
 	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
+	@property
 	void setUseCounter(UseCounter uc) {
 		if (uc && _id > 0) {
 			uc.skill.add(toSkillId(_id), this);
@@ -820,13 +880,16 @@ public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
 	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
 	/// このオブジェクトの所有者。
+	@property
 	CWXPath owner() {return _cwxPath;}
 	/// このオブジェクトの所有者のリソースパス。
+	@property
 	string cwxPath() {return _cwxPath.cwxPath;}
 
 	/// アイテムIDを設定する。
 	/// Params:
 	/// id = アイテムID。
+	@property
 	void item(ulong id) {
 		if (_uc !is null) {
 			if (_id > 0) _uc.item.remove(toItemId(_id), this);
@@ -836,14 +899,17 @@ public:
 	}
 
 	/// Returns: アイテムID。
+	@property
 	const
 	ulong item() {
 		return _id;
 	}
 
 	/// 使用回数カウンタ。
+	@property
 	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
+	@property
 	void setUseCounter(UseCounter uc) {
 		if (uc && _id > 0) {
 			uc.item.add(toItemId(_id), this);
@@ -886,13 +952,16 @@ public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
 	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
 	/// このオブジェクトの所有者。
+	@property
 	CWXPath owner() {return _cwxPath;}
 	/// このオブジェクトの所有者のリソースパス。
+	@property
 	string cwxPath() {return _cwxPath.cwxPath;}
 
 	/// 召喚獣IDを設定する。
 	/// Params:
 	/// id = 召喚獣ID。
+	@property
 	void beast(ulong id) {
 		if (_uc !is null) {
 			if (_id > 0) _uc.beast.remove(toBeastId(_id), this);
@@ -902,14 +971,17 @@ public:
 	}
 
 	/// Returns: 召喚獣ID。
+	@property
 	const
 	ulong beast() {
 		return _id;
 	}
 
 	/// 使用回数カウンタ。
+	@property
 	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
+	@property
 	void setUseCounter(UseCounter uc) {
 		if (uc && _id > 0) {
 			uc.beast.add(toBeastId(_id), this);
@@ -952,13 +1024,16 @@ public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
 	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
 	/// このオブジェクトの所有者。
+	@property
 	CWXPath owner() {return _cwxPath;}
 	/// このオブジェクトの所有者のリソースパス。
+	@property
 	string cwxPath() {return _cwxPath.cwxPath;}
 
 	/// 情報カードIDを設定する。
 	/// Params:
 	/// id = 情報カードID。
+	@property
 	void info(ulong id) {
 		if (_uc !is null) {
 			if (_id > 0) _uc.info.remove(toInfoId(_id), this);
@@ -968,14 +1043,17 @@ public:
 	}
 
 	/// Returns: 情報カードID。
+	@property
 	const
 	ulong info() {
 		return _id;
 	}
 
 	/// 使用回数カウンタ。
+	@property
 	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
+	@property
 	void setUseCounter(UseCounter uc) {
 		if (uc && _id > 0) {
 			uc.info.add(toInfoId(_id), this);
@@ -1037,30 +1115,42 @@ public:
 	}
 	/// 「アンドゥリストの中にあるのでカウントはしないが、パスの更新は反映したい」
 	/// 等の場合に使う。
+	@property
 	UseCounter sub() {
 		return _child;
 	}
 	/// 各種カウント対象の使用者のコンテナ。
+	@property
 	UCCont!(FlagId, FlagUser) flag() {return _flag;}
 	/// ditto
+	@property
 	UCCont!(StepId, StepUser) step() {return _step;}
 	/// ditto
+	@property
 	UCCont!(AreaId, AreaUser) area() {return _area;}
 	/// ditto
+	@property
 	UCCont!(BattleId, BattleUser) battle() {return _battle;}
 	/// ditto
+	@property
 	UCCont!(PackageId, PackageUser) packages() {return _package;}
 	/// ditto
+	@property
 	UCCont!(PathId, PathUser) path() {return _path;}
 	/// ditto
+	@property
 	UCCont!(CastId, CastUser) casts() {return _cast;}
 	/// ditto
+	@property
 	UCCont!(SkillId, SkillUser) skill() {return _skill;}
 	/// ditto
+	@property
 	UCCont!(ItemId, ItemUser) item() {return _item;}
 	/// ditto
+	@property
 	UCCont!(BeastId, BeastUser) beast() {return _beast;}
 	/// ditto
+	@property
 	UCCont!(InfoId, InfoUser) info() {return _info;}
 	/// ID・Tの変更を通知する。
 	void change(T)(T oldId, T newId, bool dup = false) {
@@ -1121,26 +1211,37 @@ public:
 		}
 	}
 	/// idの使用者一覧を返す。
+	@property
 	const
 	FlagUser[] values(FlagId id) {return _flag.values(id);}
+	@property
 	const
 	StepUser[] values(StepId id) {return _step.values(id);} /// ditto
+	@property
 	const
 	AreaUser[] values(AreaId id) {return _area.values(id);} /// ditto
+	@property
 	const
 	BattleUser[] values(BattleId id) {return _battle.values(id);} /// ditto
+	@property
 	const
 	PackageUser[] values(PackageId id) {return _package.values(id);} /// ditto
+	@property
 	const
 	PathUser[] values(PathId id) {return _path.values(id);} /// ditto
+	@property
 	const
 	CastUser[] values(CastId id) {return _cast.values(id);} /// ditto
+	@property
 	const
 	SkillUser[] values(SkillId id) {return _skill.values(id);} /// ditto
+	@property
 	const
 	ItemUser[] values(ItemId id) {return _item.values(id);} /// ditto
+	@property
 	const
 	BeastUser[] values(BeastId id) {return _beast.values(id);} /// ditto
+	@property
 	const
 	InfoUser[] values(InfoId id) {return _info.values(id);} /// ditto
 }

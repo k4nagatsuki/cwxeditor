@@ -118,7 +118,7 @@ LIB = org.eclipse.swt.gtk.linux.x86.a \
 	-L-lgdk-x11-2.0 \
 	-L-lgtk-x11-2.0 \
 
-FLAGS = -J. -Jresource -op -c
+FLAGS = -J. -Jresource -op -c -property
 
 $(OUT) : $(SRC)
 	$(DMD) $(FLAGS) $(SRC) -g -debug -unittest

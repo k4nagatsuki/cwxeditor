@@ -74,7 +74,7 @@ private:
 		}
 		private void save() {
 			_old = _bgStgs.dup;
-			_selected = _bgStgsL.getSelectionIndex;
+			_selected = _bgStgsL.getSelectionIndex();
 		}
 		private void impl() {
 			auto old = _old;
@@ -115,7 +115,7 @@ private:
 		}
 		private void save() {
 			_old = _tools.dup;
-			_selected = _toolsL.getSelectionIndex;
+			_selected = _toolsL.getSelectionIndex();
 		}
 		private void impl() {
 			auto old = _old;
@@ -156,7 +156,7 @@ private:
 		}
 		private void save() {
 			_old = _cEngines.dup;
-			_selected = _cEnginesL.getSelectionIndex;
+			_selected = _cEnginesL.getSelectionIndex();
 		}
 		private void impl() {
 			auto old = _old;
@@ -305,7 +305,7 @@ private:
 		}
 	}
 	void up(T)(List list, ref T[] array) {
-		int i = list.getSelectionIndex;
+		int i = list.getSelectionIndex();
 		if (i <= 0) return;
 		string tempS = list.getItem(i - 1);
 		list.setItem(i - 1, list.getItem(i));
@@ -314,10 +314,10 @@ private:
 		array[i - 1] = array[i];
 		array[i] = temp;
 		list.select = i - 1;
-		applyEnabled;
+		applyEnabled();
 	}
 	void down(T)(List list, ref T[] array) {
-		int i = list.getSelectionIndex;
+		int i = list.getSelectionIndex();
 		if (i < 0 || array.length <= i + 1) return;
 		string tempS = list.getItem(i + 1);
 		list.setItem(i + 1, list.getItem(i));
@@ -326,7 +326,7 @@ private:
 		array[i + 1] = array[i];
 		array[i] = temp;
 		list.select = i + 1;
-		applyEnabled;
+		applyEnabled();
 	}
 	void upBgImage() {
 		storeBgStgs();
@@ -370,9 +370,9 @@ private:
 		override void drop(DropTargetEvent e){
 			e.detail = DND.DROP_NONE;
 			auto str = _drop((cast(FileNames) e.data).array);
-			if (str.length && str != _text.getText) {
+			if (str.length && str != _text.getText()) {
 				_text.setText = str;
-				_text.selectAll;
+				_text.selectAll();
 				e.detail = DND.DROP_LINK;
 				if (_dropPath) _dropPath(str);
 			}
@@ -380,7 +380,7 @@ private:
 	}
 	void setupDropFile(Control c, Text text, string delegate(string[] files) drop, void delegate(string) dropPath = null) {
 		auto dropt = new DropTarget(c, DND.DROP_DEFAULT | DND.DROP_LINK);
-		dropt.setTransfer([FileTransfer.getInstance]);
+		dropt.setTransfer([FileTransfer.getInstance()]);
 		if (!drop) drop = &dropDefault;
 		dropt.addDropListener(new DropFiles(text, drop, dropPath));
 	}
@@ -436,8 +436,9 @@ private:
 		}
 		return file;
 	}
+	@property
 	string curCEnginePath() {
-		string path = _cEnginePath.getText;
+		string path = _cEnginePath.getText();
 		if (!path.length) return path;
 		if (cwx.utils.isabs(path)) return path;
 		return std.path.buildPath(nabs(_prop.parent.appPath).dirName, path);
@@ -465,13 +466,13 @@ private:
 		return "";
 	}
 	static string selectFile(Text file, string[] name, string[] ext, string fileName, string title, string p) {
-		auto dlg = new FileDialog(file.getShell, SWT.PRIMARY_MODAL | SWT.APPLICATION_MODAL | SWT.SINGLE | SWT.OPEN);
+		auto dlg = new FileDialog(file.getShell(), SWT.PRIMARY_MODAL | SWT.APPLICATION_MODAL | SWT.SINGLE | SWT.OPEN);
 		dlg.setFilterExtensions = ext;
 		dlg.setFilterNames = name;
 		dlg.setText = title;
 		dlg.setFilterPath = dirName(nabs(p));
 		dlg.setFileName = fileName;
-		string fname = dlg.open;
+		string fname = dlg.open();
 		if (fname) {
 			file.setText = fname;
 		}
@@ -489,8 +490,8 @@ private:
 		}
 		string exts = std.string.join(extArr, ";");
 		selectFile(widget, [_prop.msgs.playableSounds(exts)], [exts],
-			baseName(widget.getText), _prop.msgs.dlgTitSystemSound,
-			widget.getText);
+			baseName(widget.getText()), _prop.msgs.dlgTitSystemSound,
+			widget.getText());
 	}
 	void selectProgram(int i) {
 		auto tool = _tools[i];
@@ -506,19 +507,19 @@ private:
 		}
 	}
 	string selectDir(Text dir, string title, string msg, string p, bool appPath = true) {
-		auto dlg = new DirectoryDialog(dir.getShell);
+		auto dlg = new DirectoryDialog(dir.getShell());
 		dlg.setText = title;
 		dlg.setMessage = msg;
 		string path = p;
 		if (appPath) {
-			auto d = dir.getText;
+			auto d = dir.getText();
 			if (!cwx.utils.isabs(d)) {
 				d = std.path.buildPath(std.path.dirName(_prop.parent.appPath), d);
 			}
 			path = d;
 		}
 		dlg.setFilterPath = nabs(path);
-		string fname = dlg.open;
+		string fname = dlg.open();
 		if (fname) {
 			dir.setText = fname;
 		}
@@ -539,7 +540,7 @@ private:
 		}
 	}
 	void dropCEnginePath(string path) {
-		auto i = _cEnginesL.getSelectionIndex;
+		auto i = _cEnginesL.getSelectionIndex();
 		if (-1 == i) return;
 		string resDir = Skin.findResDir(path.dirName);
 		if (resDir.length) {
@@ -607,12 +608,12 @@ private:
 			"*"
 		];
 		selectFile(_wallpaper, filterName, filter,
-			_prop.var.etc.wallpaper, _prop.msgs.dlgTitWallpaper, getcwd);
+			_prop.var.etc.wallpaper, _prop.msgs.dlgTitWallpaper, getcwd());
 	}
 	void selectBgImageSetting() {
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
-		int i = _bgStgsL.getSelectionIndex;
+		int i = _bgStgsL.getSelectionIndex();
 		_bgImgDel.setEnabled = i >= 0;
 		if (i >= 0) {
 			_bgImgName.setText = _bgStgs[i].name;
@@ -637,7 +638,7 @@ private:
 	void selectOuterTool() {
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
-		int i = _toolsL.getSelectionIndex;
+		int i = _toolsL.getSelectionIndex();
 		_toolDel.setEnabled = i >= 0;
 		if (i >= 0) {
 			_toolName.setText = _tools[i].name;
@@ -656,7 +657,7 @@ private:
 	void selectCEngine() {
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
-		int i = _cEnginesL.getSelectionIndex;
+		int i = _cEnginesL.getSelectionIndex();
 		_cEngineDel.setEnabled = i >= 0;
 		if (i >= 0) {
 			_cEngineName.setText = _cEngines[i].name;
@@ -675,16 +676,16 @@ private:
 		}
 	}
 	class SelEngine : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {selectEngine;}
+		override void widgetSelected(SelectionEvent e) {selectEngine();}
 	}
 	class SelTemp : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {selectTemp;}
+		override void widgetSelected(SelectionEvent e) {selectTemp();}
 	}
 	class SelBackup : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {selectBackup;}
+		override void widgetSelected(SelectionEvent e) {selectBackup();}
 	}
 	class SelWallpaper : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {selectWallpaper;}
+		override void widgetSelected(SelectionEvent e) {selectWallpaper();}
 	}
 	class SelSysSound : SelectionAdapter {
 		private Text _text;
@@ -703,10 +704,10 @@ private:
 	}
 	class ClearHist : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			auto dlg = new MessageBox(_histMax.getShell, SWT.ICON_QUESTION | SWT.OK | SWT.CANCEL);
+			auto dlg = new MessageBox(_histMax.getShell(), SWT.ICON_QUESTION | SWT.OK | SWT.CANCEL);
 			dlg.setText = _prop.msgs.dlgTitQuestion;
 			dlg.setMessage = _prop.msgs.dlgMsgHistoryClear;
-			if (SWT.OK == dlg.open) {
+			if (SWT.OK == dlg.open()) {
 				_prop.var.etc.openHistories = [];
 				_comm.refHistories.call();
 				_prop.var.save(_dock);
@@ -716,10 +717,10 @@ private:
 	}
 	class ClearSHist : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			auto dlg = new MessageBox(_sHistMax.getShell, SWT.ICON_QUESTION | SWT.OK | SWT.CANCEL);
+			auto dlg = new MessageBox(_sHistMax.getShell(), SWT.ICON_QUESTION | SWT.OK | SWT.CANCEL);
 			dlg.setText = _prop.msgs.dlgTitQuestion;
 			dlg.setMessage = _prop.msgs.dlgMsgSearchHistoryClear;
-			if (SWT.OK == dlg.open) {
+			if (SWT.OK == dlg.open()) {
 				_prop.var.etc.searchHistories = [];
 				_prop.var.etc.replaceHistories = [];
 				_comm.refSearchHistories.call();
@@ -736,7 +737,7 @@ private:
 			_cEngineSub = cEngineSub;
 		}
 		override void widgetSelected(SelectionEvent e) {
-			string file = _text.getText;
+			string file = _text.getText();
 			if (!cwx.utils.isabs(file)) {
 				if (_cEngineSub) {
 					auto engine = curCEnginePath;
@@ -1003,10 +1004,10 @@ private:
 				_dlg.active();
 				return;
 			}
-			_dlg = new DefBgImgDialog(_comm, _prop, getShell, _bgImagesDefault);
+			_dlg = new DefBgImgDialog(_comm, _prop, getShell(), _bgImagesDefault);
 			_dlg.appliedEvent ~= {
 				_bgImagesDefault = _dlg.backs;
-				applyEnabled;
+				applyEnabled();
 			};
 			_dlg.closeEvent ~= {
 				_dlg = null;
@@ -1015,28 +1016,28 @@ private:
 		}
 	}
 	class SelBgImgStg : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {selectBgImageSetting;}
+		override void widgetSelected(SelectionEvent e) {selectBgImageSetting();}
 	}
 	class UpBgImgStg : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			upBgImage;
+			upBgImage();
 		}
 	}
 	class DownBgImgStg : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			downBgImage;
+			downBgImage();
 		}
 	}
 	class DBgImgStg : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
-			auto ws = (cast(SplitPane) e.widget).getWeights;
+			auto ws = (cast(SplitPane) e.widget).getWeights();
 			_prop.var.etc.bgImageSettingsSashL = ws[0];
 			_prop.var.etc.bgImageSettingsSashR = ws[1];
 		}
 	}
 	void addBgImage(BgImageSetting bgStg) {
 		storeBgStgs();
-		int index = _bgStgsL.getItemCount;
+		int index = _bgStgsL.getItemCount();
 		_bgStgs ~= bgStg;
 		_bgStgsL.add(bgStg.name);
 		_bgStgsL.select = index;
@@ -1045,31 +1046,31 @@ private:
 	}
 	class NewBgImgStg : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			string name = _bgImgName.getText;
-			bool mask = _bgImgMask.getSelection;
-			int x = _bgImgX.getSelection;
-			int y = _bgImgY.getSelection;
-			int w = _bgImgW.getSelection;
-			int h = _bgImgH.getSelection;
+			string name = _bgImgName.getText();
+			bool mask = _bgImgMask.getSelection();
+			int x = _bgImgX.getSelection();
+			int y = _bgImgY.getSelection();
+			int w = _bgImgW.getSelection();
+			int h = _bgImgH.getSelection();
 			addBgImage(BgImageSetting(name, x, y, w, h, mask));
 		}
 	}
 	void altBgImage() {
-		int i = _bgStgsL.getSelectionIndex;
+		int i = _bgStgsL.getSelectionIndex();
 		if (-1 == i) return;
 		storeBgStgs();
-		_bgStgs[i].name = _bgImgName.getText;
+		_bgStgs[i].name = _bgImgName.getText();
 		_bgStgsL.setItem(i, _bgStgs[i].name);
-		_bgStgs[i].mask = _bgImgMask.getSelection;
-		_bgStgs[i].x = _bgImgX.getSelection;
-		_bgStgs[i].y = _bgImgY.getSelection;
-		_bgStgs[i].width = _bgImgW.getSelection;
-		_bgStgs[i].height = _bgImgH.getSelection;
+		_bgStgs[i].mask = _bgImgMask.getSelection();
+		_bgStgs[i].x = _bgImgX.getSelection();
+		_bgStgs[i].y = _bgImgY.getSelection();
+		_bgStgs[i].width = _bgImgW.getSelection();
+		_bgStgs[i].height = _bgImgH.getSelection();
 		_bgImgAlt.setEnabled = false;
 		applyEnabled();
 	}
 	void delBgImage() {
-		int i = _bgStgsL.getSelectionIndex;
+		int i = _bgStgsL.getSelectionIndex();
 		if (i < 0) return;
 		storeBgStgs();
 		_bgStgsL.remove(i);
@@ -1092,22 +1093,22 @@ private:
 	}
 	class DBgImgKeyCodeSash : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
-			auto ws = (cast(SplitPane) e.widget).getWeights;
+			auto ws = (cast(SplitPane) e.widget).getWeights();
 			_prop.var.etc.bgImageKeyCodeSashL = ws[0];
 			_prop.var.etc.bgImageKeyCodeSashR = ws[1];
 		}
 	}
 	class BgImagesTCPD : TCPD {
 		void cut(SelectionEvent se) {
-			int i = _bgStgsL.getSelectionIndex;
+			int i = _bgStgsL.getSelectionIndex();
 			if (i < 0) return;
 			copy(se);
 			del(se);
 		}
 		void copy(SelectionEvent se) {
-			int i = _bgStgsL.getSelectionIndex;
+			int i = _bgStgsL.getSelectionIndex();
 			if (i < 0) return;
-			XMLtoCB(_prop, _comm.clipboard, _bgStgs[i].toNode.text);
+			XMLtoCB(_prop, _comm.clipboard, _bgStgs[i].toNode().text);
 		}
 		void paste(SelectionEvent se) {
 			auto xml = CBtoXML(_comm.clipboard);
@@ -1125,17 +1126,17 @@ private:
 			}
 		}
 		void del(SelectionEvent se) {
-			delBgImage;
+			delBgImage();
 		}
 		bool canDoTCPD() {
-			return _bgStgsL.isFocusControl;
+			return _bgStgsL.isFocusControl();
 		}
 	}
 	void modB(C)(Button button, List list, C ctrl) {
 		static if (is(C : Button)) {
 			ctrl.addSelectionListener(new class SelectionAdapter {
 				override void widgetSelected(SelectionEvent e) {
-					if (0 < list.getItemCount) {
+					if (0 < list.getItemCount()) {
 						button.setEnabled = true;
 					}
 				}
@@ -1143,7 +1144,7 @@ private:
 		} else {
 			ctrl.addModifyListener(new class ModifyListener {
 				override void modifyText(ModifyEvent e) {
-					if (0 < list.getItemCount) {
+					if (0 < list.getItemCount()) {
 						button.setEnabled = true;
 					}
 				}
@@ -1280,37 +1281,37 @@ private:
 		sash.addDisposeListener(new DBgImgKeyCodeSash);
 	}
 	class SelOutTools : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {selectOuterTool;}
+		override void widgetSelected(SelectionEvent e) {selectOuterTool();}
 	}
 	class UpOutTools : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			upTool;
+			upTool();
 		}
 	}
 	class DownOutTools : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			downTool;
+			downTool();
 		}
 	}
 	class PushToolCmdRef : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			int i = _toolsL.getSelectionIndex;
+			int i = _toolsL.getSelectionIndex();
 			if (i < 0) return;
 			selectProgram(i);
-			applyEnabled;
+			applyEnabled();
 		}
 	}
 	class PushToolWorkDirRef : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			int i = _toolsL.getSelectionIndex;
+			int i = _toolsL.getSelectionIndex();
 			if (i < 0) return;
 			selectWorkDir(i);
-			applyEnabled;
+			applyEnabled();
 		}
 	}
 	void addTool(OuterTool tool) {
 		storeTools();
-		int index = _toolsL.getItemCount;
+		int index = _toolsL.getItemCount();
 		_tools ~= tool;
 		_toolsL.add(tool.name);
 		_toolsL.select = index;
@@ -1319,25 +1320,25 @@ private:
 	}
 	class NewOutTool : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			string name = _toolName.getText;
-			string commnad = _toolCommand.getText;
-			string workDir = _toolWorkDir.getText;
+			string name = _toolName.getText();
+			string commnad = _toolCommand.getText();
+			string workDir = _toolWorkDir.getText();
 			addTool(OuterTool(name, commnad, workDir));
 		}
 	}
 	void altTool() {
-		int i = _toolsL.getSelectionIndex;
+		int i = _toolsL.getSelectionIndex();
 		if (-1 == i) return;
 		storeTools();
-		_tools[i].name = _toolName.getText;
+		_tools[i].name = _toolName.getText();
 		_toolsL.setItem(i, _tools[i].name);
-		_tools[i].command = _toolCommand.getText;
-		_tools[i].workDir = _toolWorkDir.getText;
+		_tools[i].command = _toolCommand.getText();
+		_tools[i].workDir = _toolWorkDir.getText();
 		_toolAlt.setEnabled = false;
 		applyEnabled();
 	}
 	void delTool() {
-		int i = _toolsL.getSelectionIndex;
+		int i = _toolsL.getSelectionIndex();
 		if (i < 0) return;
 		storeTools();
 		_toolsL.remove(i);
@@ -1360,22 +1361,22 @@ private:
 	}
 	class DOutToolsSash : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
-			auto ws = (cast(SplitPane) e.widget).getWeights;
+			auto ws = (cast(SplitPane) e.widget).getWeights();
 			_prop.var.etc.outerToolsSashL = ws[0];
 			_prop.var.etc.outerToolsSashR = ws[1];
 		}
 	}
 	class ToolsTCPD : TCPD {
 		void cut(SelectionEvent se) {
-			int i = _toolsL.getSelectionIndex;
+			int i = _toolsL.getSelectionIndex();
 			if (i < 0) return;
 			copy(se);
 			del(se);
 		}
 		void copy(SelectionEvent se) {
-			int i = _toolsL.getSelectionIndex;
+			int i = _toolsL.getSelectionIndex();
 			if (i < 0) return;
-			XMLtoCB(_prop, _comm.clipboard, _tools[i].toNode.text);
+			XMLtoCB(_prop, _comm.clipboard, _tools[i].toNode().text);
 		}
 		void paste(SelectionEvent se) {
 			auto xml = CBtoXML(_comm.clipboard);
@@ -1393,32 +1394,32 @@ private:
 			}
 		}
 		void del(SelectionEvent se) {
-			delTool;
+			delTool();
 		}
 		bool canDoTCPD() {
-			return _toolsL.isFocusControl;
+			return _toolsL.isFocusControl();
 		}
 	}
 
 	class PushCEngineRef : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			int i = _cEnginesL.getSelectionIndex;
+			int i = _cEnginesL.getSelectionIndex();
 			if (i < 0) return;
 			selectCEnginePath(i);
-			applyEnabled;
+			applyEnabled();
 		}
 	}
 	class PushCEnginePathRef : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			int i = _cEnginesL.getSelectionIndex;
+			int i = _cEnginesL.getSelectionIndex();
 			if (i < 0) return;
 			selectCEnginePath(i);
-			applyEnabled;
+			applyEnabled();
 		}
 	}
 	void addCEngine(ClassicEngine cEngine) {
 		storeCEngines();
-		int index = _cEnginesL.getItemCount;
+		int index = _cEnginesL.getItemCount();
 		_cEngines ~= cEngine;
 		_cEnginesL.add(cEngine.name);
 		_cEnginesL.select = index;
@@ -1427,27 +1428,27 @@ private:
 	}
 	class NewCEngine : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			string name = _cEngineName.getText;
-			string path = _cEnginePath.getText;
-			string dataDir = _cEngineDataDir.getText;
-			string execute = _cEngineExecute.getText;
+			string name = _cEngineName.getText();
+			string path = _cEnginePath.getText();
+			string dataDir = _cEngineDataDir.getText();
+			string execute = _cEngineExecute.getText();
 			addCEngine(ClassicEngine(name, path, dataDir, execute));
 		}
 	}
 	void altCEngine() {
-		int i = _cEnginesL.getSelectionIndex;
+		int i = _cEnginesL.getSelectionIndex();
 		if (-1 == i) return;
 		storeCEngines();
-		_cEngines[i].name = _cEngineName.getText;
+		_cEngines[i].name = _cEngineName.getText();
 		_cEnginesL.setItem(i, _cEngines[i].name);
-		_cEngines[i].enginePath = _cEnginePath.getText;
-		_cEngines[i].dataDirName = _cEngineDataDir.getText;
-		_cEngines[i].execute = _cEngineExecute.getText;
+		_cEngines[i].enginePath = _cEnginePath.getText();
+		_cEngines[i].dataDirName = _cEngineDataDir.getText();
+		_cEngines[i].execute = _cEngineExecute.getText();
 		_cEngineAlt.setEnabled = false;
 		applyEnabled();
 	}
 	void delCEngine() {
-		int i = _cEnginesL.getSelectionIndex;
+		int i = _cEnginesL.getSelectionIndex();
 		if (i < 0) return;
 		storeCEngines();
 		_cEnginesL.remove(i);
@@ -1469,32 +1470,32 @@ private:
 		}
 	}
 	class SelCEngine : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {selectCEngine;}
+		override void widgetSelected(SelectionEvent e) {selectCEngine();}
 	}
 	class UpCEngines : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {upCEngine;}
+		override void widgetSelected(SelectionEvent e) {upCEngine();}
 	}
 	class DownCEngines : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {downCEngine;}
+		override void widgetSelected(SelectionEvent e) {downCEngine();}
 	}
 	class DCEnginesSash : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
-			auto ws = (cast(SplitPane) e.widget).getWeights;
+			auto ws = (cast(SplitPane) e.widget).getWeights();
 			_prop.var.etc.classicEnginesSashL = ws[0];
 			_prop.var.etc.classicEnginesSashR = ws[1];
 		}
 	}
 	class CEnginesTCPD : TCPD {
 		void cut(SelectionEvent se) {
-			int i = _cEnginesL.getSelectionIndex;
+			int i = _cEnginesL.getSelectionIndex();
 			if (i < 0) return;
 			copy(se);
 			del(se);
 		}
 		void copy(SelectionEvent se) {
-			int i = _cEnginesL.getSelectionIndex;
+			int i = _cEnginesL.getSelectionIndex();
 			if (i < 0) return;
-			XMLtoCB(_prop, _comm.clipboard, _cEngines[i].toNode.text);
+			XMLtoCB(_prop, _comm.clipboard, _cEngines[i].toNode().text);
 		}
 		void paste(SelectionEvent se) {
 			auto xml = CBtoXML(_comm.clipboard);
@@ -1515,23 +1516,23 @@ private:
 			delCEngine();
 		}
 		bool canDoTCPD() {
-			return _cEnginesL.isFocusControl;
+			return _cEnginesL.isFocusControl();
 		}
 	}
 	class PushCEngineDataDirRef : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			int i = _cEnginesL.getSelectionIndex;
+			int i = _cEnginesL.getSelectionIndex();
 			if (i < 0) return;
 			selectCEngineDataDir(i);
-			applyEnabled;
+			applyEnabled();
 		}
 	}
 	class PushCEngineExecuteRef : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			int i = _cEnginesL.getSelectionIndex;
+			int i = _cEnginesL.getSelectionIndex();
 			if (i < 0) return;
 			selectCEngineExecute(i);
-			applyEnabled;
+			applyEnabled();
 		}
 	}
 
@@ -1812,7 +1813,7 @@ private:
 
 	class SelContentsFloat : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			_contentsAutoHide.setEnabled = !_contentsFloat.getSelection;
+			_contentsAutoHide.setEnabled = !_contentsFloat.getSelection();
 		}
 	}
 	void construct5(CTabFolder tabf) {
@@ -1848,7 +1849,7 @@ private:
 				_contentsFloat = createB(_prop.msgs.contentsFloat);
 				_contentsAutoHide = createB(_prop.msgs.contentsAutoHide);
 				_contentsFloat.addSelectionListener(new SelContentsFloat);
-				_contentsAutoHide.setEnabled = !_contentsFloat.getSelection;
+				_contentsAutoHide.setEnabled = !_contentsFloat.getSelection();
 				_xmlCopy = createB(_prop.msgs.xmlCopy);
 				_saveInnerImagePath = createB(_prop.msgs.saveInnerImagePath);
 				_traceDirectories = createB(_prop.msgs.traceDirectories);
@@ -1947,11 +1948,11 @@ private:
 		}
 	}
 	private void refreshEnabled() {
-		_backupDir.setEnabled = _backupEnabled.getSelection;
-		_backupInterval.setEnabled = _backupEnabled.getSelection;
-		_backupCount.setEnabled = _backupEnabled.getSelection;
-		_backupRef.setEnabled = _backupEnabled.getSelection;
-		_backupDirOpen.setEnabled = _backupEnabled.getSelection;
+		_backupDir.setEnabled = _backupEnabled.getSelection();
+		_backupInterval.setEnabled = _backupEnabled.getSelection();
+		_backupCount.setEnabled = _backupEnabled.getSelection();
+		_backupRef.setEnabled = _backupEnabled.getSelection();
+		_backupDirOpen.setEnabled = _backupEnabled.getSelection();
 	}
 	class KeyDownFilter : Listener {
 		private int _undoAcc;
@@ -1962,10 +1963,10 @@ private:
 		}
 		override void handleEvent(Event e) {
 			auto c = cast(Control) e.widget;
-			if (!c || c.getShell !is getShell) return;
+			if (!c || c.getShell() !is getShell()) return;
 			bool chk(Composite view, UndoManager undo) {
 				if (isDescendant(view, c)) {
-					if (c.getMenu && findMenu(c.getMenu, e.keyCode, e.character, e.stateMask)) return false;
+					if (c.getMenu() && findMenu(c.getMenu(), e.keyCode, e.character, e.stateMask)) return false;
 					if (eqAcc(_undoAcc, e.keyCode, e.character, e.stateMask)) {
 						undo.undo();
 						e.doit = false;
@@ -1989,7 +1990,7 @@ private:
 		_undoCEngines.max = _prop.var.etc.undoMaxEtc;
 	}
 public:
-	this(Commons comm, Props prop, Shell shell, DockingFolderCTC dock, Summary summ, void delegate() sendReloadProps) {
+	this (Commons comm, Props prop, Shell shell, DockingFolderCTC dock, Summary summ, void delegate() sendReloadProps) {
 		super(prop, shell, false, prop.msgs.dlgTitSettings, prop.images.menuSettings, true, prop.var.settingsDlg, true);
 		_comm = comm;
 		_prop = prop;
@@ -2014,11 +2015,11 @@ protected:
 				_comm.refHistories.remove(&refHistories);
 				_comm.refSearchHistories.remove(&refSearchHistories);
 				_comm.refUndoMax.remove(&refUndoMax);
-				e.widget.getDisplay.removeFilter(SWT.KeyDown, _kdFilter);
+				e.widget.getDisplay().removeFilter(SWT.KeyDown, _kdFilter);
 			}
 		});
 		_kdFilter = new KeyDownFilter();
-		area.getDisplay.addFilter(SWT.KeyDown, _kdFilter);
+		area.getDisplay().addFilter(SWT.KeyDown, _kdFilter);
 		auto tabf = new CTabFolder(area, SWT.BORDER);
 		tabf.setLayoutData = new GridData(GridData.FILL_BOTH);
 		_refe = new RefE;
@@ -2116,16 +2117,16 @@ protected:
 
 	override bool apply() {
 		void err(CTabItem tab, Text t, string msg) {
-			auto dlg = new MessageBox(t.getShell, SWT.ICON_WARNING | SWT.OK);
+			auto dlg = new MessageBox(t.getShell(), SWT.ICON_WARNING | SWT.OK);
 			dlg.setText = _prop.msgs.dlgTitWarning;
 			dlg.setMessage = msg;
-			dlg.open;
-			tab.getParent.setSelection = tab;
-			t.setFocus;
+			dlg.open();
+			tab.getParent().setSelection = tab;
+			t.setFocus();
 		}
 		string engine;
 		try {
-			engine = _enginePath.getText;
+			engine = _enginePath.getText();
 		} catch {
 			err(_tabB, _enginePath, _prop.msgs.errorEnginePath(_prop.var.etc.engine));
 			return false;
@@ -2138,14 +2139,14 @@ protected:
 		}
 		string temp;
 		try {
-			temp = _tempDir.getText;
+			temp = _tempDir.getText();
 		} catch {
 			err(_tabB, _tempDir, _prop.msgs.errorTempPath);
 			return false;
 		}
 		string backup;
 		try {
-			backup = _backupDir.getText;
+			backup = _backupDir.getText();
 		} catch {
 			err(_tabB, _backupDir, _prop.msgs.errorBackupPath);
 			return false;
@@ -2157,17 +2158,17 @@ protected:
 		_prop.var.etc.enginePath = engine;
 		_prop.var.etc.tempPath = temp;
 		_prop.var.etc.backupPath = backup;
-		_prop.var.etc.backupEnabled = _backupEnabled.getSelection;
-		_prop.var.etc.backupInterval = _backupInterval.getSelection;
-		_prop.var.etc.backupCount = _backupCount.getSelection;
-		_prop.var.etc.defaultAuthor = _author.getText;
-		_prop.var.etc.wallpaper = _wallpaper.getText;
-		_prop.var.etc.historyMax = _histMax.getSelection;
-		_prop.var.etc.searchHistoryMax = _sHistMax.getSelection;
-		_prop.var.etc.undoMaxMainView = _undoMaxMainView.getSelection;
-		_prop.var.etc.undoMaxEvent = _undoMaxEvent.getSelection;
-		_prop.var.etc.undoMaxEtc = _undoMaxEtc.getSelection;
-		string[] ipLines = splitLines(_ignorePaths.getText);
+		_prop.var.etc.backupEnabled = _backupEnabled.getSelection();
+		_prop.var.etc.backupInterval = _backupInterval.getSelection();
+		_prop.var.etc.backupCount = _backupCount.getSelection();
+		_prop.var.etc.defaultAuthor = _author.getText();
+		_prop.var.etc.wallpaper = _wallpaper.getText();
+		_prop.var.etc.historyMax = _histMax.getSelection();
+		_prop.var.etc.searchHistoryMax = _sHistMax.getSelection();
+		_prop.var.etc.undoMaxMainView = _undoMaxMainView.getSelection();
+		_prop.var.etc.undoMaxEvent = _undoMaxEvent.getSelection();
+		_prop.var.etc.undoMaxEtc = _undoMaxEtc.getSelection();
+		string[] ipLines = splitLines(_ignorePaths.getText());
 		if (ipLines.length > 0) {
 			int i;
 			for (i = ipLines.length - 1; i >= 0 && ipLines[i].length == 0; i--) {
@@ -2178,28 +2179,28 @@ protected:
 			_prop.var.etc.ignorePaths = [];
 		}
 		if (_singleWindow) {
-			_prop.var.etc.singleWindow = _singleWindow.getSelection;
+			_prop.var.etc.singleWindow = _singleWindow.getSelection();
 		}
-		_prop.var.etc.smoothingCard = _smoothingCard.getSelection;
-		_prop.var.etc.showImagePreview = _showImagePreview.getSelection;
-		_prop.var.etc.expandXMLs = _expandXMLs.getSelection;
-		_prop.var.etc.xmlCopy = _xmlCopy.getSelection;
-		_prop.var.etc.saveInnerImagePath = _saveInnerImagePath.getSelection;
-		_prop.var.etc.traceDirectories = _traceDirectories.getSelection;
-		_prop.var.etc.logicalSort = _logicalSort.getSelection;
-		_prop.var.etc.copyDesc = _copyDesc.getSelection;
-		_prop.var.etc.refCardsAtEditBgImage = _refCardsAtEditBgImage.getSelection;
-		_prop.var.etc.addNewClassicEngine = _addNewClassicEngine.getSelection;
-		_prop.var.etc.doubleIO = _doubleIO.getSelection;
-		_prop.var.etc.switchTabWheel = _switchTabWheel.getSelection;
-		_prop.var.etc.openTabAtRightOfCurrentTab = _openTabAtRightOfCurrentTab.getSelection;
-		_prop.var.etc.reconstruction = _reconstruction.getSelection;
-		_prop.var.etc.openLastScenario = _openLastScenario.getSelection;
-		_prop.var.etc.contentsFloat = _contentsFloat.getSelection;
-		_prop.var.etc.contentsAutoHide = _contentsAutoHide.getSelection;
-		_prop.var.etc.soundPlayType = _soundPlayTypeTbl2[_soundPlayType.getSelectionIndex];
-		_prop.var.etc.dialogStatus = cast(DialogStatus) _dialogStatusTbl2[_dialogStatus.getSelectionIndex];
-		_prop.var.etc.savedSound = _savedSound.getText;
+		_prop.var.etc.smoothingCard = _smoothingCard.getSelection();
+		_prop.var.etc.showImagePreview = _showImagePreview.getSelection();
+		_prop.var.etc.expandXMLs = _expandXMLs.getSelection();
+		_prop.var.etc.xmlCopy = _xmlCopy.getSelection();
+		_prop.var.etc.saveInnerImagePath = _saveInnerImagePath.getSelection();
+		_prop.var.etc.traceDirectories = _traceDirectories.getSelection();
+		_prop.var.etc.logicalSort = _logicalSort.getSelection();
+		_prop.var.etc.copyDesc = _copyDesc.getSelection();
+		_prop.var.etc.refCardsAtEditBgImage = _refCardsAtEditBgImage.getSelection();
+		_prop.var.etc.addNewClassicEngine = _addNewClassicEngine.getSelection();
+		_prop.var.etc.doubleIO = _doubleIO.getSelection();
+		_prop.var.etc.switchTabWheel = _switchTabWheel.getSelection();
+		_prop.var.etc.openTabAtRightOfCurrentTab = _openTabAtRightOfCurrentTab.getSelection();
+		_prop.var.etc.reconstruction = _reconstruction.getSelection();
+		_prop.var.etc.openLastScenario = _openLastScenario.getSelection();
+		_prop.var.etc.contentsFloat = _contentsFloat.getSelection();
+		_prop.var.etc.contentsAutoHide = _contentsAutoHide.getSelection();
+		_prop.var.etc.soundPlayType = _soundPlayTypeTbl2[_soundPlayType.getSelectionIndex()];
+		_prop.var.etc.dialogStatus = cast(DialogStatus) _dialogStatusTbl2[_dialogStatus.getSelectionIndex()];
+		_prop.var.etc.savedSound = _savedSound.getText();
 		if (_prop.var.etc.historyMax < _prop.var.etc.openHistories.length) {
 			_prop.var.etc.openHistories
 				= _prop.var.etc.openHistories[0 .. _prop.var.etc.historyMax].dup;
@@ -2210,7 +2211,7 @@ protected:
 		}
 		_prop.var.etc.bgImageSettings = _bgStgs.dup;
 		_prop.var.etc.bgImagesDefault = _bgImagesDefault;
-		string[] lines = splitLines(_keyCodes.getText);
+		string[] lines = splitLines(_keyCodes.getText());
 		if (lines.length > 0) {
 			int i;
 			for (i = lines.length - 1; i >= 0 && lines[i].length == 0; i--) {
@@ -2270,22 +2271,22 @@ struct OldSettings {
 		}
 		if (oldWallpaper != prop.var.etc.wallpaper) {
 			comm.refreshWallpaper(prop);
-			comm.refWallpaper.call;
+			comm.refWallpaper.call();
 		}
 		if (oldKeyCodes != prop.var.etc.standardKeyCodes) {
-			comm.refStandardKeyCodes.call;
+			comm.refStandardKeyCodes.call();
 		}
 		if (tools != prop.var.etc.outerTools) {
-			comm.refOuterTools.call;
+			comm.refOuterTools.call();
 		}
 		if (cEngines != prop.var.etc.classicEngines) {
 			refSkin = true;
 		}
 		if (oldIgnorePaths != prop.var.etc.ignorePaths) {
-			comm.refIgnorePaths.call;
+			comm.refIgnorePaths.call();
 		}
 		if (oldSmoothingCard != prop.var.etc.smoothingCard) {
-			comm.refCardState.call;
+			comm.refCardState.call();
 		}
 		if (oldLogicalSort != prop.var.etc.logicalSort) {
 			if (comm.summary) {
@@ -2299,11 +2300,11 @@ struct OldSettings {
 					};
 				}
 			}
-			comm.refSortCondition.call;
+			comm.refSortCondition.call();
 		}
 		if (refSkin) {
 			comm.skin = findSkin(comm, prop, comm.summary, false);
-			comm.refSkin.call;
+			comm.refSkin.call();
 		}
 		comm.refClassicSkin.call();
 		if (oldOpenHistories != prop.var.etc.openHistories) {
@@ -2332,7 +2333,7 @@ private:
 	BgImagesView _view;
 
 public:
-	this(Commons comm, Props prop, Shell shell, BgImageS[] bgImagesDefault) {
+	this (Commons comm, Props prop, Shell shell, BgImageS[] bgImagesDefault) {
 		super(prop, shell, false, prop.msgs.dlgTitBgImagesDefault,
 			prop.images.menuSettings, true, prop.var.bgImagesDlg, true);
 		_comm = comm;
@@ -2343,6 +2344,7 @@ public:
 		_cont = new BgImageContainer(BgImageS.createBgImages(skin, bgImagesDefault));
 	}
 
+	@property
 	BgImageS[] backs() {return BgImageS.createBgImageSs(_cont.backs);}
 protected:
 	override void setup(Composite area) {

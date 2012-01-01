@@ -121,9 +121,9 @@ private:
 			auto itm = v.selection;
 			if (itm) {
 				int[] selPath;
-				while (itm.getParentItem) {
-					selPath = [itm.getParentItem.indexOf(itm)] ~ selPath;
-					itm = itm.getParentItem;
+				while (itm.getParentItem()) {
+					selPath = [itm.getParentItem().indexOf(itm)] ~ selPath;
+					itm = itm.getParentItem();
 				}
 				return [v._cards.indexOf(itm)] ~ selPath;
 			} else {
@@ -161,7 +161,7 @@ private:
 				}
 				_selPath = _selPath2;
 			} else {
-				v._cards.deselectAll;
+				v._cards.deselectAll();
 			}
 		}
 		protected EventView view() {
@@ -189,7 +189,7 @@ private:
 			save(v, tree);
 		}
 		private void save(EventView v, EventTree tree) {
-			if (v) _vals.expand = getItem(v).getExpanded;
+			if (v) _vals.expand = getItem(v).getExpanded();
 			_vals.name = tree.name;
 			_vals.enter = tree.fireEnter;
 			_vals.escape = tree.fireEscape;
@@ -212,15 +212,15 @@ private:
 			tree.enter = vals.enter;
 			tree.escape = vals.escape;
 			tree.lose = vals.lose;
-			tree.removeKeyCodesAll;
+			tree.removeKeyCodesAll();
 			foreach (kc; vals.keyCodes) tree.addKeyCode(kc);
-			tree.removeRoundsAll;
+			tree.removeRoundsAll();
 			foreach (rnd; vals.rounds) tree.addRound(rnd);
 			if (v) {
 				auto itm = getItem(v);
-				itm.setExpanded = vals.expand;
-				itm.setText = vals.name;
-				v._etree.refreshTreeName;
+				itm.setExpanded(vals.expand);
+				itm.setText(vals.name);
+				v._etree.refreshTreeName();
 				static if (UseFire) {
 					v.refreshFires(itm);
 				}
@@ -263,10 +263,10 @@ private:
 				auto ownItm = v._cards.getItem(_ownerIndex);
 				auto itm = ownItm.getItem(_insertIndex);
 				if (v._selItm is itm) v._selItm = null;
-				itm.dispose;
+				itm.dispose();
 			}
 			comm.delEventTree.call(tree);
-			comm.refUseCount.call;
+			comm.refUseCount.call();
 		}
 		override void redo() {
 			auto v = view();
@@ -276,7 +276,7 @@ private:
 			_delUndo = null;
 		}
 		override void dispose() {
-			if (_delUndo) _delUndo.dispose;
+			if (_delUndo) _delUndo.dispose();
 		}
 	}
 	void storeI(int ownerIndex, int insertIndex) {
@@ -294,7 +294,7 @@ private:
 			auto owner = tree.owner;
 			_ownerIndex = .cCountUntil!("a is b")(etos(area), owner);
 			_treeIndex = .cCountUntil!("a is b")(owner.trees, tree);
-			auto node = tree.toNode;
+			auto node = tree.toNode();
 			_tree = EventTree.createFromNode(node, LATEST_VERSION);
 			_tree.setUseCounter(summ.useCounter.sub);
 		}
@@ -322,8 +322,8 @@ private:
 			_istUndo = null;
 		}
 		override void dispose() {
-			_tree.removeUseCounter;
-			if (_istUndo) _istUndo.dispose;
+			_tree.removeUseCounter();
+			if (_istUndo) _istUndo.dispose();
 		}
 	}
 	void storeD(EventTree tree) {
@@ -361,9 +361,9 @@ private:
 		auto eet = _etree.eventTree;
 		if (eet && eet.areaPath == etAreaPath) return;
 		auto eta = _area.etFromPath(etAreaPath).areaPath;
-		foreach (i, itm; _cards.getItems) {
-			foreach (j, tItm; itm.getItems) {
-				auto cet = cast(EventTree) tItm.getData;
+		foreach (i, itm; _cards.getItems()) {
+			foreach (j, tItm; itm.getItems()) {
+				auto cet = cast(EventTree) tItm.getData();
 				assert (cet);
 				if (cet.areaPath == eta) {
 					__select(tItm);
@@ -375,33 +375,33 @@ private:
 	}
 
 	void __select(TreeItem itm, bool sel = true) {
-		if (sel) _cards.setSelection = [itm];
-		if (cast(EventTree) itm.getData) {
+		if (sel) _cards.setSelection([itm]);
+		if (cast(EventTree) itm.getData()) {
 			_selItm = itm;
-			_etree.refresh(cast(EventTree) itm.getData);
+			_etree.refresh(cast(EventTree) itm.getData());
 		}
 		static if (UseFire) {
 			auto parItm = selectionParent;
-			if (parItm && (!_oldSelP || _oldSelP != parItm) && _treeKind.getSelectionIndex == 0) {
-				auto c = cast(CCombo) _fireItm.getControl;
-				c.removeAll;
+			if (parItm && (!_oldSelP || _oldSelP != parItm) && _treeKind.getSelectionIndex() == 0) {
+				auto c = cast(CCombo) _fireItm.getControl();
+				c.removeAll();
 				string[] vals;
-				if (cast(EventTreeOwner) parItm.getData) {
+				if (cast(EventTreeOwner) parItm.getData()) {
 					vals = startDefVals;
 				}
 				foreach (i, v; vals) {
 					c.add(v);
-					if (i == 0) c.setText = v;
+					if (i == 0) c.setText(v);
 				}
 			}
 		}
-		if (isVisible) openToolWindow;
+		if (isVisible()) openToolWindow();
 	}
 
 	void refreshTopStart() {
 		assert (_selItm);
-		assert (_selItm.getData is _etree.eventTree);
-		_selItm.setText = _etree.eventTree.name;
+		assert (_selItm.getData() is _etree.eventTree);
+		_selItm.setText(_etree.eventTree.name);
 	}
 	class SListener : SelectionAdapter {
 		public override void widgetSelected(SelectionEvent e) {
@@ -415,41 +415,45 @@ private:
 		return -1;
 	}
 	static int after(T)(T parent, int index) {
-		if (index + 1 < parent.getItemCount) {
+		if (index + 1 < parent.getItemCount()) {
 			return index + 1;
 		}
 		return -1;
 	}
+	@property
 	TreeItem selection() {
-		auto sels = _cards.getSelection;
+		auto sels = _cards.getSelection();
 		if (sels.length > 0) {
 			return sels[0];
 		}
 		return null;
 	}
+	@property
 	void selection(int index) {
-		__select(_cards.getItems[index]);
+		__select(_cards.getItems()[index]);
 	}
+	@property
 	private TreeItem selectionParent() {
 		auto itm = selection;
 		if (!itm) return null;
-		auto data = itm.getData;
+		auto data = itm.getData();
 		if (cast(EventTreeOwner) data) return itm;
 		if (cast(EventTree) data) {
-			return itm.getParentItem;
+			return itm.getParentItem();
 		} else {
-			return itm.getParentItem.getParentItem;
+			return itm.getParentItem().getParentItem();
 		}
 	}
+	@property
 	private TreeItem selectionEventTree() {
 		auto itm = selection;
 		if (!itm) return null;
-		auto data = itm.getData;
+		auto data = itm.getData();
 		if (cast(EventTreeOwner) data) return null;
 		if (cast(EventTree) data) {
 			return itm;
 		} else {
-			return itm.getParentItem;
+			return itm.getParentItem();
 		}
 	}
 	void createEventTree() {
@@ -463,10 +467,10 @@ private:
 		if (!parItm) return;
 		string treeName;
 		static if (UseFire) {
-			auto fire = addingFire(parItm.getData);
+			auto fire = addingFire(parItm.getData());
 			if (!fire) return;
 			if (fire is ENTER) {
-				if (cast(A) parItm.getData) {
+				if (cast(A) parItm.getData()) {
 					static if (is (A == Area)) {
 						treeName = _prop.msgs.enterTree;
 					} else static if (is (A == Battle)) {
@@ -478,10 +482,10 @@ private:
 					}
 				} else {
 					static if (is (C == MenuCard)) {
-						assert (cast(C) parItm.getData);
+						assert (cast(C) parItm.getData());
 						treeName = _prop.msgs.selectTree;
 					} else static if (is (C == EnemyCard)) {
-						assert (cast(C) parItm.getData);
+						assert (cast(C) parItm.getData());
 						treeName = _prop.msgs.deadTree;
 					}
 				}
@@ -493,7 +497,7 @@ private:
 				treeName = _prop.msgs.keyCodeTree((cast(KeyCodeObj) fire).array.idup);
 			} else {
 				assert (cast(RoundObj) fire);
-				treeName = _prop.msgs.roundTree((cast(RoundObj) fire).intValue);
+				treeName = _prop.msgs.roundTree((cast(RoundObj) fire).intValue());
 			}
 		} else {
 			Object fire = null;
@@ -503,7 +507,7 @@ private:
 				treeName = _prop.msgs.useTree;
 			}
 		}
-		auto owner = cast(EventTreeOwner) parItm.getData;
+		auto owner = cast(EventTreeOwner) parItm.getData();
 		EventTree tree;
 		if (starts.length) {
 			tree = new EventTree(starts[0]);
@@ -515,31 +519,31 @@ private:
 		}
 		appendTree(parItm, tree, owner.trees.length, fire, true);
 		if (starts.length) {
-			_comm.refUseCount.call;
+			_comm.refUseCount.call();
 		}
 	}
 	private static void appendTreeImpl(Commons comm, EventTreeOwner eto, EventTree tree, int index) {
 		eto.insert(index, tree);
 		comm.refEventTree.call(tree);
-		comm.refUseCount.call;
+		comm.refUseCount.call();
 	}
 	void appendTree(TreeItem parItm, EventTree tree, int index, Object defFire, bool store) {
-		auto eto = cast(EventTreeOwner) parItm.getData;
+		auto eto = cast(EventTreeOwner) parItm.getData();
 		if (store) storeI(_cards.indexOf(parItm), eto.trees.length);
 		appendTreeImpl(_comm, eto, tree, index);
 		auto treeItm = appendTreeItem(parItm, index, defFire);
 		__select(treeItm);
 	}
 	void refreshTrees(TreeItem parItm) {
-		auto par = cast(EventTreeOwner) parItm.getData;
-		parItm.removeAll;
+		auto par = cast(EventTreeOwner) parItm.getData();
+		parItm.removeAll();
 		foreach (index, tree; par.trees) {
 			appendTreeItem(parItm, index, null);
 		}
-		parItm.setExpanded = true;
+		parItm.setExpanded(true);
 	}
 	TreeItem appendTreeItem(TreeItem parItm, int index, Object defFire) {
-		auto par = cast(EventTreeOwner) parItm.getData;
+		auto par = cast(EventTreeOwner) parItm.getData();
 		auto tree = par.trees[index];
 		auto treeItm = createTreeItem(parItm, tree, tree.name, _prop.images.eventTree, index);
 		static if (UseFire) {
@@ -550,63 +554,63 @@ private:
 	}
 	Control createEditor(TreeItem itm) {
 		static if (UseFire) {
-			if (cast(EventTree) itm.getData || cast(KeyCodeObj) itm.getData) {
-				return createTextEditor(_comm, _prop, _cards, itm.getText);
+			if (cast(EventTree) itm.getData() || cast(KeyCodeObj) itm.getData()) {
+				return createTextEditor(_comm, _prop, _cards, itm.getText());
 			}
 		} else {
-			if (cast(EventTree) itm.getData) {
-				return createTextEditor(_comm, _prop, _cards, itm.getText);
+			if (cast(EventTree) itm.getData()) {
+				return createTextEditor(_comm, _prop, _cards, itm.getText());
 			}
 		}
 		return null;
 	}
 	void editEnd(TreeItem itm, Control c) {
-		string text = (cast(Text) c).getText;
+		string text = (cast(Text) c).getText();
 		if (!text) text = "";
 		if (text.length == 0) return;
-		itm.setText = text;
-		auto tree = cast(EventTree) itm.getData;
+		itm.setText(text);
+		auto tree = cast(EventTree) itm.getData();
 		if (tree) {
 			store(tree);
 			tree.name = text;
-			_etree.refreshTreeName;
+			_etree.refreshTreeName();
 			_comm.refEventTree.call(tree);
 			return;
 		}
 		static if (UseFire) {
-			auto obj = cast(KeyCodeObj) itm.getData;
+			auto obj = cast(KeyCodeObj) itm.getData();
 			assert (obj);
-			auto p = itm.getParentItem;
-			tree = cast(EventTree) p.getData;
+			auto p = itm.getParentItem();
+			tree = cast(EventTree) p.getData();
 			store(tree);
 			tree.setKeyCode(p.indexOf(itm) - keyCodesIndex(p), text);
-			itm.setImage = keyCodeImage(text);
+			itm.setImage(keyCodeImage(text));
 			obj.array = text.dup;
 			_comm.refEventTree.call(tree);
 		}
 	}
 	static if (UseFire) {
 		void refreshFires(TreeItem eItm, Object sel = null) {
-			auto t = cast(EventTree) eItm.getData;
-			bool expand = eItm.getExpanded;
+			auto t = cast(EventTree) eItm.getData();
+			bool expand = eItm.getExpanded();
 			scope (exit) {
 				if (!sel) {
-					eItm.setExpanded = expand;
+					eItm.setExpanded(expand);
 				}
 			}
-			eItm.removeAll;
+			eItm.removeAll();
 			static if (is (A == Area)) {
 				if (t.fireEnter) {
-					if (cast(A) eItm.getParentItem.getData) {
+					if (cast(A) eItm.getParentItem().getData()) {
 						createTreeItem(eItm, ENTER, _prop.msgs.startEnter, _prop.images.defStart);
 					} else {
-						assert (cast(C) eItm.getParentItem.getData);
+						assert (cast(C) eItm.getParentItem().getData());
 						createTreeItem(eItm, ENTER, _prop.msgs.startSelect, _prop.images.defStart);
 					}
 				}
 				createKeyCodeItem(eItm, t);
 			} else static if (is (A == Battle)) {
-				if (cast(A) eItm.getParentItem.getData) {
+				if (cast(A) eItm.getParentItem().getData()) {
 					if (t.fireEnter) {
 						createTreeItem(eItm, ENTER, _prop.msgs.startVictory, _prop.images.defStart);
 					}
@@ -617,13 +621,13 @@ private:
 						createTreeItem(eItm, LOSE, _prop.msgs.startLose, _prop.images.defStart);
 					}
 				} else {
-					assert (cast(C) eItm.getParentItem.getData);
+					assert (cast(C) eItm.getParentItem().getData());
 					if (t.fireEnter) {
 						createTreeItem(eItm, ENTER, _prop.msgs.startDead, _prop.images.defStart);
 					}
 				}
 				createKeyCodeItem(eItm, t);
-				if (cast(A) eItm.getParentItem.getData) {
+				if (cast(A) eItm.getParentItem().getData()) {
 					foreach (r; t.rounds) {
 						createTreeItem(eItm, new RoundObj(r), _prop.msgs.startRound(r), _prop.images.round);
 					}
@@ -639,32 +643,32 @@ private:
 				}
 			}
 			if (sel) {
-				foreach (itm; eItm.getItems) {
-					auto data = itm.getData;
+				foreach (itm; eItm.getItems()) {
+					auto data = itm.getData();
 					if (cast(KeyCodeObj) data && cast(KeyCodeObj) sel) {
 						if ((cast(KeyCodeObj) data).array == (cast(KeyCodeObj) sel).array) {
-							_cards.setSelection = [itm];
+							_cards.setSelection([itm]);
 							break;
 						}
 					} else if (cast(RoundObj) data && cast(RoundObj) sel) {
-						if ((cast(RoundObj) data).intValue == (cast(RoundObj) sel).intValue) {
-							_cards.setSelection = [itm];
+						if ((cast(RoundObj) data).intValue() == (cast(RoundObj) sel).intValue()) {
+							_cards.setSelection([itm]);
 							break;
 						}
 					} else if (data is sel) {
 						assert (data is ENTER || data is LOSE || data is ESCAPE);
-						_cards.setSelection = [itm];
+						_cards.setSelection([itm]);
 						break;
 					}
 				}
-				eItm.setExpanded = true;
+				eItm.setExpanded(true);
 			}
 		}
 		Object addingFire(Object areaOrCard) {
 			static if (!is (C == void)) {
 				Object addKeyCodes() {
-					auto kc = (cast(CCombo) _fireItm.getControl).getText;
-					final switch (_keyCodeTim.getSelectionIndex) {
+					auto kc = (cast(CCombo) _fireItm.getControl()).getText();
+					final switch (_keyCodeTim.getSelectionIndex()) {
 					case 0:
 						// 入力値をそのまま使用
 						break;
@@ -678,11 +682,11 @@ private:
 					return kc.length > 0 ? new KeyCodeObj(kc) : null;
 				}
 				Object addAreaAndEtc() {
-					switch (_treeKind.getSelectionIndex) {
+					switch (_treeKind.getSelectionIndex()) {
 					case 0:
 						return ENTER;
 					case 1:
-						return addKeyCodes;
+						return addKeyCodes();
 					default:
 						return null;
 					}
@@ -690,11 +694,11 @@ private:
 			}
 			if (cast(A) areaOrCard) {
 				static if (is (A == Area)) {
-					return addAreaAndEtc;
+					return addAreaAndEtc();
 				} else static if (is (A == Battle)) {
-					switch (_treeKind.getSelectionIndex) {
+					switch (_treeKind.getSelectionIndex()) {
 					case 0:
-						switch ((cast(CCombo) _fireItm.getControl).getSelectionIndex) {
+						switch ((cast(CCombo) _fireItm.getControl()).getSelectionIndex()) {
 						case 0:
 							return ENTER;
 						case 1:
@@ -704,9 +708,9 @@ private:
 						default: assert (0);
 						}
 					case 1:
-						return addKeyCodes;
+						return addKeyCodes();
 					case 2:
-						int round = (cast(Spinner) _fireItm.getControl).getSelection;
+						int round = (cast(Spinner) _fireItm.getControl()).getSelection();
 						return new RoundObj(round);
 					default: assert (0);
 					}
@@ -716,7 +720,7 @@ private:
 			} else {
 				static if (!is (C == void)) {
 					assert (cast(C) areaOrCard);
-					return addAreaAndEtc;
+					return addAreaAndEtc();
 				}
 			}
 			return null;
@@ -724,15 +728,15 @@ private:
 		void createEventFire() {
 			auto treeItm = selectionEventTree;
 			if (!treeItm) return;
-			auto tree = cast(EventTree) treeItm.getData;
-			auto fire = addingFire(treeItm.getParentItem.getData);
+			auto tree = cast(EventTree) treeItm.getData();
+			auto fire = addingFire(treeItm.getParentItem().getData());
 			if (!fire) return;
 			store(tree);
 			addFire(treeItm, fire);
 			refreshFires(treeItm, fire);
 		}
 		void addFire(TreeItem treeItm, Object fire) {
-			auto tree = cast(EventTree) treeItm.getData;
+			auto tree = cast(EventTree) treeItm.getData();
 			if (fire is ENTER) {
 				tree.enter = true;
 			} else if (fire is ESCAPE) {
@@ -743,7 +747,7 @@ private:
 				tree.addKeyCode((cast(KeyCodeObj) fire).array.idup);
 			} else {
 				assert (cast(RoundObj) fire);
-				tree.addRound((cast(RoundObj) fire).intValue);
+				tree.addRound((cast(RoundObj) fire).intValue());
 			}
 			_comm.refEventTree.call(tree);
 		}
@@ -756,10 +760,10 @@ private:
 			LOSE = new Object;
 		}
 		int keyCodesIndex(TreeItem itm) {
-			assert (cast(EventTree) itm.getData);
-			auto o = itm.getParentItem.getData;
+			assert (cast(EventTree) itm.getData());
+			auto o = itm.getParentItem().getData();
 			if (cast(A) o) {
-				auto tree = cast(EventTree) itm.getData;
+				auto tree = cast(EventTree) itm.getData();
 				static if (is (A == Battle)) {
 					int r = 0;
 					if (tree.fireEnter) r++;
@@ -767,12 +771,12 @@ private:
 					if (tree.fireEscape) r++;
 					return r;
 				} else {
-					return (cast(EventTree) itm.getData).fireEnter ? 1 : 0;
+					return (cast(EventTree) itm.getData()).fireEnter ? 1 : 0;
 				}
 			} else {
 				static if (!is (C == void)) {
 					assert (cast(C) o);
-					return (cast(EventTree) itm.getData).fireEnter ? 1 : 0;
+					return (cast(EventTree) itm.getData()).fireEnter ? 1 : 0;
 				} else {
 					assert (0);
 				}
@@ -792,37 +796,37 @@ private:
 		}
 	}
 	void replText() {
-		foreach (itm; _cards.getItems) {
-			auto data = itm.getData;
+		foreach (itm; _cards.getItems()) {
+			auto data = itm.getData();
 			if (cast(A) data) {
-				itm.setText = (cast(A) data).name;
+				itm.setText((cast(A) data).name);
 			}
 			static if (!is (C == void)) {
 				if (cast(C) data) {
 					static if (is (C == MenuCard)) {
-						itm.setText = (cast(C) data).name;
+						itm.setText((cast(C) data).name);
 					} else static if (is (C == EnemyCard)) {
-						auto castCard = _summ.casts((cast(C) data).id);
-						itm.setText = castCard ? castCard.name : "";
+						auto castCard = _summ.cwCast((cast(C) data).id);
+						itm.setText(castCard ? castCard.name : "");
 					} else {
 						static assert (0);
 					}
 				}
 			}
-			foreach (itm2; itm.getItems) {
-				auto et = cast(EventTree) itm2.getData;
+			foreach (itm2; itm.getItems()) {
+				auto et = cast(EventTree) itm2.getData();
 				bool chg = false;
-				if (itm2.getText != et.name) {
-					itm2.setText = et.name;
+				if (itm2.getText() != et.name) {
+					itm2.setText(et.name);
 					chg = true;
 				}
 				static if (UseFire && (is (A == Area) || is (A == Battle))) {
 					int startKC = -1;
-					foreach (i, itm3; itm2.getItems) {
-						auto kc = cast(KeyCodeObj) itm3.getData;
+					foreach (i, itm3; itm2.getItems()) {
+						auto kc = cast(KeyCodeObj) itm3.getData();
 						if (kc && startKC <= 0) startKC = i;
-						if (startKC >= 0 && itm3.getText != et.keyCodes[i - startKC]) {
-							itm3.setText = et.keyCodes[i - startKC];
+						if (startKC >= 0 && itm3.getText() != et.keyCodes[i - startKC]) {
+							itm3.setText(et.keyCodes[i - startKC]);
 							chg = true;
 						}
 					}
@@ -838,15 +842,15 @@ private:
 			auto etItm = selectionEventTree;
 			if (!etItm) return;
 			auto parItm = selectionParent;
-			if (!parItm || !(cast(Battle) parItm.getData)) return;
-			auto dlg = new ManyRoundsDialog(_prop, _cards.getShell);
-			if (dlg.open) {
-				auto et = cast(EventTree) etItm.getData;
+			if (!parItm || !(cast(Battle) parItm.getData())) return;
+			auto dlg = new ManyRoundsDialog(_prop, _cards.getShell());
+			if (dlg.open()) {
+				auto et = cast(EventTree) etItm.getData();
 				store(et);
 				assert (et);
 				et.addRounds(dlg.rounds);
 				refreshFires(etItm);
-				etItm.setExpanded = true;
+				etItm.setExpanded(true);
 				_comm.refEventTree.call(et);
 			}
 		}
@@ -855,20 +859,20 @@ private:
 		void keyCodeTimImpl(FKCKind kind) {
 			auto itm = selection;
 			if (!itm) return;
-			auto kc = cast(KeyCodeObj) itm.getData;
+			auto kc = cast(KeyCodeObj) itm.getData();
 			if (!kc) return;
 			string old = kc.array.idup;
 			string keyCode = _prop.sys.convFireKeyCode(old, kind);
 			kc.array = keyCode.dup;
 			auto etItm = selectionEventTree;
 			assert (etItm);
-			auto et = cast(EventTree) etItm.getData;
+			auto et = cast(EventTree) etItm.getData();
 			assert (et);
 			int i = cCountUntil(et.keyCodes, old);
 			assert (-1 != i);
 			et.setKeyCode(i, keyCode);
-			itm.setText = keyCode;
-			itm.setImage = keyCodeImage(keyCode);
+			itm.setText(keyCode);
+			itm.setImage(keyCodeImage(keyCode));
 		}
 		void keyCodeTimUse() {
 			keyCodeTimImpl(FKCKind.Use);
@@ -891,10 +895,10 @@ public:
 		auto gl = windowGridLayout(1);
 		gl.marginWidth = 0;
 		gl.marginHeight = 0;
-		setLayout = gl;
+		setLayout(gl);
 
 		auto toolbar = new ToolBar(this, SWT.FLAT);
-		toolbar.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+		toolbar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 		_sash = new SplitPane(this, SWT.HORIZONTAL);
 		static if (is (A == Area) || is (A == Battle)) {
@@ -924,7 +928,7 @@ public:
 		} else static assert (0);
 		_sash.addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) {
-				int[] ws = _sash.getWeights;
+				int[] ws = _sash.getWeights();
 				static if (is (A == Area)) {
 					_prop.var.areaWin.eventSashL = ws[0];
 					_prop.var.areaWin.eventSashR = ws[1];
@@ -967,7 +971,7 @@ public:
 				} else static assert (0);
 			}
 		});
-		_sash.setLayoutData = new GridData(GridData.FILL_BOTH);
+		_sash.setLayoutData(new GridData(GridData.FILL_BOTH));
 		{
 			_cards = new Tree(_sash, SWT.SINGLE | SWT.BORDER);
 			_cards.addSelectionListener(new SListener);
@@ -976,14 +980,14 @@ public:
 			while (true) {
 				Menu menu = null;
 				try {
-					menu = new Menu(parent.getShell, SWT.POP_UP);
+					menu = new Menu(parent.getShell(), SWT.POP_UP);
 					appendMenuTCPD(_prop, menu, this, true, true, true, true);
 					static if (is(A : Area) || is(A : Battle)) {
 						new MenuItem(menu, SWT.SEPARATOR);
 						void delegate() dlg = null;
 						auto cascade = createMenuItem(menu, _prop.msgs.menuKeyCodeTiming, _prop.images.keyCode, dlg, SWT.CASCADE);
-						auto sub = new Menu(parent.getShell, SWT.DROP_DOWN);
-						cascade.setMenu = sub;
+						auto sub = new Menu(parent.getShell(), SWT.DROP_DOWN);
+						cascade.setMenu(sub);
 						createMenuItem(sub, _prop.msgs.menuKeyCodeTimingUse, _prop.images.menuKeyCodeTimingUse, &keyCodeTimUse);
 						createMenuItem(sub, _prop.msgs.menuKeyCodeTimingSuccess, _prop.images.menuKeyCodeTimingSuccess, &keyCodeTimSuccess);
 						createMenuItem(sub, _prop.msgs.menuKeyCodeTimingFailure, _prop.images.menuKeyCodeTimingFailure, &keyCodeTimFailure);
@@ -995,7 +999,7 @@ public:
 						new MenuItem(menu, SWT.SEPARATOR);
 						createMenuItem(menu, _prop.msgs.menuAddManyRounds, _prop.images.menuAddManyRounds, &addManyRounds);
 					}
-					_cards.setMenu = menu;
+					_cards.setMenu(menu);
 					break;
 				} catch (Throwable e) {
 					// 環境によってはMenuが異常な状態になり、
@@ -1020,30 +1024,31 @@ public:
 			setupToolBar(toolbar);
 		}
 		static if (is (A == Area)) {
-			_sash.setWeights = [_prop.var.areaWin.eventSashL, _prop.var.areaWin.eventSashR];
+			_sash.setWeights([_prop.var.areaWin.eventSashL, _prop.var.areaWin.eventSashR]);
 		} else static if (is (A == Battle)) {
-			_sash.setWeights = [_prop.var.battleWin.eventSashL, _prop.var.battleWin.eventSashR];
+			_sash.setWeights([_prop.var.battleWin.eventSashL, _prop.var.battleWin.eventSashR]);
 		} else static if (is (A == Package)) {
-			_sash.setWeights = [_prop.var.packageWin.eventSashL, _prop.var.packageWin.eventSashR];
+			_sash.setWeights([_prop.var.packageWin.eventSashL, _prop.var.packageWin.eventSashR]);
 		} else static if (is (A : EffectCard)) {
-			_sash.setWeights = [_prop.var.cardEventWin.eventSashL, _prop.var.cardEventWin.eventSashR];
+			_sash.setWeights([_prop.var.cardEventWin.eventSashL, _prop.var.cardEventWin.eventSashR]);
 		} else {
 			static assert (0);
 		}
 	}
+	@property
 	EventTreeView eventTreeView() {
 		return _etree;
 	}
 
 	/// エリアの名称表示を更新する。
 	void refreshTitle() {
-		if (!initial) return;
-		_cards.getItems[0].setText = _area.name;
+		if (!initial()) return;
+		_cards.getItems()[0].setText(_area.name);
 	}
 	private void refreshTitleA(A area) {
-		if (!initial) return;
+		if (!initial()) return;
 		if (area is _area) {
-			_cards.getItems[0].setText = _area.name;
+			_cards.getItems()[0].setText(_area.name);
 		}
 	}
 	static if (!is (C == void)) {
@@ -1052,7 +1057,7 @@ public:
 				return c.name;
 			} else {
 				static assert (is (C == EnemyCard));
-				auto castCard = _summ.casts(c.id);
+				auto castCard = _summ.cwCast(c.id);
 				return castCard ? castCard.name : "";
 			}
 		}
@@ -1080,7 +1085,7 @@ public:
 			downCard(indices, count);
 		}
 		void appendCard(int index, C c) {
-			if (initial) return;
+			if (initial()) return;
 			Image imgCard;
 			static if (is (C == MenuCard)) {
 				imgCard = _prop.images.cards;
@@ -1091,39 +1096,39 @@ public:
 			refreshTrees(itm);
 		}
 		void removeCard(int index) {
-			if (initial) return;
-			if (_selItm && !_selItm.isDisposed
-					&& _selItm.getParentItem is _cards.getItems[index + 1]) {
+			if (initial()) return;
+			if (_selItm && !_selItm.isDisposed()
+					&& _selItm.getParentItem() is _cards.getItems()[index + 1]) {
 				_etree.refresh(null);
 				_selItm = null;
 			}
-			_cards.getItems[index + 1].dispose;
+			_cards.getItems()[index + 1].dispose();
 		}
 		void renameCard(int index) {
-			if (initial) return;
-			auto itm = _cards.getItems[index + 1];
-			itm.setText = cardName(cast(C) itm.getData);
+			if (initial()) return;
+			auto itm = _cards.getItems()[index + 1];
+			itm.setText(cardName(cast(C) itm.getData()));
 		}
 		void __udCard(int[] indices, int function(TreeItem) ud, int udVal, int count) {
 			foreach (j; 0 .. count) {
 				foreach (i; indices) {
 					i += udVal * j;
-					if (_selItm && _selItm.getParentItem is _cards.getItems[i + 1]) {
-						int s = _selItm.getParentItem.indexOf(_selItm);
-						int newI = ud(_cards.getItems[i + 1]) + udVal;
-						__select(_cards.getItems[newI].getItems[s]);
+					if (_selItm && _selItm.getParentItem() is _cards.getItems()[i + 1]) {
+						int s = _selItm.getParentItem().indexOf(_selItm);
+						int newI = ud(_cards.getItems()[i + 1]) + udVal;
+						__select(_cards.getItems()[newI].getItems()[s]);
 					} else {
-						ud(_cards.getItems[i + 1]);
+						ud(_cards.getItems()[i + 1]);
 					}
 				}
 			}
 		}
 		void upCard(int[] indices, int count) {
-			if (initial) return;
+			if (initial()) return;
 			__udCard(indices, &treeItemUp, -1, count);
 		}
 		void downCard(int[] indices, int count) {
-			if (initial) return;
+			if (initial()) return;
 			__udCard(indices, &treeItemDown, 1, count);
 		}
 	}
@@ -1137,9 +1142,9 @@ public:
 	}
 	void refresh(bool openToolWin = true) {
 		_initialed = true;
-		_etree.constructTools;
-		_etree.closeToolWindow;
-		_cards.removeAll;
+		_etree.constructTools();
+		_etree.closeToolWindow();
+		_cards.removeAll();
 		{
 			Image imgArea;
 			static if (is (A == Area)) {
@@ -1170,7 +1175,7 @@ public:
 			if (_area.trees.length == 0) {
 				__select(aItm);
 			}
-			aItm.setExpanded = true;
+			aItm.setExpanded(true);
 		}
 		static if (!is (C == void)) {
 			foreach (c; _area.cards) {
@@ -1187,38 +1192,38 @@ public:
 						refreshFires(eItm);
 					}
 				}
-				cItm.setExpanded = true;
+				cItm.setExpanded(true);
 			}
 		}
-		if (openToolWin) openToolWindow;
+		if (openToolWin) openToolWindow();
 	}
 	private void udImpl(string BeforeAfter, string CanSwapKeyCode)
 			(TreeItem itm, int function(TreeItem) treeSwap, bool store) {
-		if (itm && itm.getParentItem) {
-			auto data = itm.getData;
-			auto parent = itm.getParentItem;
+		if (itm && itm.getParentItem()) {
+			auto data = itm.getData();
+			auto parent = itm.getParentItem();
 			int from = parent.indexOf(itm);
 			int to = mixin (BeforeAfter);
 			if (to >= 0) {
 				if (cast(EventTree) data) {
-					_cards.setRedraw = false;
-					scope (exit) _cards.setRedraw = true;
+					_cards.setRedraw(false);
+					scope (exit) _cards.setRedraw(true);
 					if (store) this.store(_cards.indexOf(parent), from, to);
 					// イベントツリー
-					auto eto = (cast(EventTreeOwner) parent.getData);
+					auto eto = (cast(EventTreeOwner) parent.getData());
 					eto.swapEventTree(from, to);
 					treeSwap(itm);
 					_selItm = selection;
-					_cards.showSelection;
+					_cards.showSelection();
 					_comm.refEventTree.call(eto.trees[from]);
 					_comm.refEventTree.call(eto.trees[to]);
 				} else {
 					static if (UseFire) {
 						if (cast(KeyCodeObj) data) {
-							_cards.setRedraw = false;
-							scope (exit) _cards.setRedraw = true;
+							_cards.setRedraw(false);
+							scope (exit) _cards.setRedraw(true);
 							// キーコード
-							auto tree = cast(EventTree) parent.getData;
+							auto tree = cast(EventTree) parent.getData();
 							if (store) this.store(tree);
 							int keyCodeLen = tree.keyCodes.length;
 							from -= keyCodesIndex(parent);
@@ -1226,7 +1231,7 @@ public:
 							if (mixin (CanSwapKeyCode)) {
 								tree.swapKeyCode(from, to);
 								treeSwap(itm);
-								_cards.showSelection;
+								_cards.showSelection();
 							}
 							_comm.refEventTree.call(tree);
 						}
@@ -1241,24 +1246,24 @@ public:
 		comm.refEventTree.call(eto.trees[to]);
 	}
 	void up() {
-		initial;
+		initial();
 		up(selection, true);
 	}
 	private void up(TreeItem itm, bool store) {
-		if (_etree.isFocusControl) {
-			_etree.up;
-		} else if (_cards.isFocusControl) {
+		if (_etree.isFocusControl()) {
+			_etree.up();
+		} else if (_cards.isFocusControl()) {
 			udImpl!("before(parent, from)", "to >= 0")(itm, &treeItemUp, store);
 		}
 	}
 	void down() {
-		initial;
+		initial();
 		down(selection, true);
 	}
 	private void down(TreeItem itm, bool store) {
-		if (_etree.isFocusControl) {
-			_etree.down;
-		} else if (_cards.isFocusControl) {
+		if (_etree.isFocusControl()) {
+			_etree.down();
+		} else if (_cards.isFocusControl()) {
 			udImpl!("after(parent, from)", "to < keyCodeLen")(itm, &treeItemDown, store);
 		}
 	}
@@ -1295,21 +1300,21 @@ public:
 			_treeKind = new CCombo(bar, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
 			createTextMenu!CCombo(_comm, _prop, _treeKind, null);
 			_treeKind.add(_prop.msgs.eventTreeKindSystem);
-			_treeKind.setText = _prop.msgs.eventTreeKindSystem;
+			_treeKind.setText(_prop.msgs.eventTreeKindSystem);
 			static if (is (A == Area) || is (A == Battle)) {
 				_treeKind.add(_prop.msgs.eventTreeKindKeyCode);
 			}
 			static if (is (A == Battle)) {
 				_treeKind.add(_prop.msgs.eventTreeKindRound);
 			}
-			treeKindItm.setControl = _treeKind;
-			treeKindItm.setWidth = _treeKind.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
+			treeKindItm.setControl(_treeKind);
+			treeKindItm.setWidth(_treeKind.computeSize(SWT.DEFAULT, SWT.DEFAULT).x);
 			_treeKind.addSelectionListener(new KSListener);
 		}
 		new ToolItem(bar, SWT.SEPARATOR);
 		{
 			_fireItm = new ToolItem(bar, SWT.SEPARATOR);
-			_fireItm.setWidth = _prop.var.etc.firesWidth;
+			_fireItm.setWidth(_prop.var.etc.firesWidth);
 			createCombo(true, areaDefVals);
 		}
 		static if (is (A == Area) || is (A == Battle)) {
@@ -1318,13 +1323,13 @@ public:
 				auto keyCodeTimItm = new ToolItem(bar, SWT.SEPARATOR);
 				_keyCodeTim = new CCombo(bar, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
 				createTextMenu!CCombo(_comm, _prop, _keyCodeTim, null);
-				_keyCodeTim.setEnabled = false;
+				_keyCodeTim.setEnabled(false);
 				_keyCodeTim.add(_prop.msgs.keyCodeTimingUse);
 				_keyCodeTim.add(_prop.msgs.keyCodeTimingSuccess);
 				_keyCodeTim.add(_prop.msgs.keyCodeTimingFailure);
 				_keyCodeTim.select = 0;
-				keyCodeTimItm.setControl = _keyCodeTim;
-				keyCodeTimItm.setWidth = _keyCodeTim.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
+				keyCodeTimItm.setControl(_keyCodeTim);
+				keyCodeTimItm.setWidth(_keyCodeTim.computeSize(SWT.DEFAULT, SWT.DEFAULT).x);
 			}
 		}
 		new ToolItem(bar, SWT.SEPARATOR);
@@ -1337,9 +1342,10 @@ public:
 		createToolItem(bar, _prop.msgs.ttNewTreeClose, _prop.images.menuTreeClose, &_etree.treeClose);
 	}
 	private void setFireControl(Control c) {
-		if (_fireItm.getControl) _fireItm.getControl.dispose;
-		_fireItm.setControl = c;
+		if (_fireItm.getControl()) _fireItm.getControl().dispose();
+		_fireItm.setControl(c);
 	}
+	@property
 	private string[] areaDefVals() {
 		static if (is (A == Area)) {
 			return [_prop.msgs.startEnter];
@@ -1351,10 +1357,11 @@ public:
 			return [_prop.msgs.startUse];
 		}
 	}
+	@property
 	private string[] startDefVals() {
 		auto itm = selectionParent;
 		if (!itm) return [];
-		auto data = itm.getData;
+		auto data = itm.getData();
 		string[] vals;
 		if (cast(A) data) {
 			return areaDefVals;
@@ -1376,22 +1383,22 @@ public:
 		int style = SWT.BORDER | SWT.DROP_DOWN;
 		if (readOnly) style |= SWT.READ_ONLY;
 		auto c = new CCombo(_toolbar, style);
-		if (visLong) c.setVisibleItemCount = 20;
+		if (visLong) c.setVisibleItemCount(20);
 		foreach (i, v; vals) {
 			c.add(v);
-			if (i == 0) c.setText = v;
+			if (i == 0) c.setText(v);
 		}
 		createTextMenu!CCombo(_comm, _prop, c, null);
 		setFireControl(c);
 	}
 	static if (is (A == Area) || is (A == Battle)) {
 		private void refKeyCodes() {
-			if (_treeKind.getSelectionIndex == 1) {
-				auto combo = cast(CCombo) _fireItm.getControl;
-				combo.removeAll;
+			if (_treeKind.getSelectionIndex() == 1) {
+				auto combo = cast(CCombo) _fireItm.getControl();
+				combo.removeAll();
 				foreach (i, v; _prop.var.etc.standardKeyCodes) {
 					combo.add(v);
-					if (i == 0) combo.setText = v;
+					if (i == 0) combo.setText(v);
 				}
 			}
 		}
@@ -1400,34 +1407,34 @@ public:
 	public:
 		override void widgetSelected(SelectionEvent e) {
 			static if (is (A == Area)) {
-				switch (_treeKind.getSelectionIndex) {
+				switch (_treeKind.getSelectionIndex()) {
 				case 0:
 					createCombo(true, startDefVals);
-					_keyCodeTim.setEnabled = false;
+					_keyCodeTim.setEnabled(false);
 					break;
 				case 1:
 					createCombo(false, _prop.var.etc.standardKeyCodes.dup, true);
-					_keyCodeTim.setEnabled = true;
+					_keyCodeTim.setEnabled(true);
 					break;
 				default: assert (0);
 				}
 			} else static if (is (A == Battle)) {
-				switch (_treeKind.getSelectionIndex) {
+				switch (_treeKind.getSelectionIndex()) {
 				case 0:
 					createCombo(true, startDefVals);
-					_keyCodeTim.setEnabled = false;
+					_keyCodeTim.setEnabled(false);
 					break;
 				case 1:
 					createCombo(false, _prop.var.etc.standardKeyCodes.dup, true);
-					_keyCodeTim.setEnabled = true;
+					_keyCodeTim.setEnabled(true);
 					break;
 				case 2:
 					auto spn = new Spinner(_toolbar, SWT.BORDER);
-					spn.setMaximum = 9999;
-					spn.setMinimum = 1;
-					spn.setSelection = 1;
-					setFireControl = spn;
-					_keyCodeTim.setEnabled = false;
+					spn.setMaximum(9999);
+					spn.setMinimum(1);
+					spn.setSelection(1);
+					setFireControl(spn);
+					_keyCodeTim.setEnabled(false);
 					break;
 				default: assert (0);
 				}
@@ -1436,28 +1443,29 @@ public:
 	}
 
 	void openToolWindow() {
-		_etree.openToolWindow;
+		_etree.openToolWindow();
 	}
 	void closeToolWindow() {
-		_etree.closeToolWindow;
+		_etree.closeToolWindow();
 	}
 
+	@property
 	string statusLine() {
 		return _etree.statusLine;
 	}
 
 	void toScript() {
-		_etree.toScript;
+		_etree.toScript();
 	}
 	void toScriptAll() {
-		_etree.toScriptAll;
+		_etree.toScriptAll();
 	}
 	void writeComment() {
-		_etree.writeComment;
+		_etree.writeComment();
 	}
 
 	private void pasteScript(Clipboard cb) {
-		auto script = cast(ArrayWrapperString) cb.getContents(TextTransfer.getInstance);
+		auto script = cast(ArrayWrapperString) cb.getContents(TextTransfer.getInstance());
 		if (!script) return;
 		try {
 			auto cs = cwx.script.compile(_prop.parent, _summ, script.array.idup);
@@ -1466,12 +1474,12 @@ public:
 			createEventTree(cs);
 		} catch (CWXScriptException e) {
 			auto dlg = new ScriptErrorDialog(_comm, _prop, _cards, e);
-			dlg.open;
+			dlg.open();
 		}
 	}
 	override {
 		void cut(SelectionEvent se) {
-			initial;
+			initial();
 			if (_etree.isFocusControl) {
 				_etree.cut(se);
 			} else {
@@ -1480,31 +1488,31 @@ public:
 			}
 		}
 		void copy(SelectionEvent se) {
-			initial;
+			initial();
 			if (_etree.isFocusControl) {
 				_etree.copy(se);
 			} else {
 				auto itm = selection;
 				if (!itm) return;
-				auto parItm = itm.getParentItem;
+				auto parItm = itm.getParentItem();
 				if (!parItm) return;
-				auto par = parItm.getData;
-				auto data = itm.getData;
+				auto par = parItm.getData();
+				auto data = itm.getData();
 				string xml;
 				if (cast(EventTree) data) {
-					xml = (cast(EventTree) data).toXML;
+					xml = (cast(EventTree) data).toXML();
 				} else {
 					static if (UseFire) {
 						if (ENTER is data) {
-							xml = EventTree.enterToXML;
+							xml = EventTree.enterToXML();
 						} else if (ESCAPE is data) {
-							xml = EventTree.escapeToXML;
+							xml = EventTree.escapeToXML();
 						} else if (LOSE is data) {
-							xml = EventTree.loseToXML;
+							xml = EventTree.loseToXML();
 						} else if (cast(KeyCodeObj) data) {
 							xml = EventTree.keyCodeToXML((cast(KeyCodeObj) data).array.idup);
 						} else if (cast(RoundObj) data) {
-							xml = EventTree.roundToXML((cast(RoundObj) data).intValue);
+							xml = EventTree.roundToXML((cast(RoundObj) data).intValue());
 						} else {
 							assert (0);
 						}
@@ -1516,7 +1524,7 @@ public:
 			}
 		}
 		void paste(SelectionEvent se) {
-			initial;
+			initial();
 			if (_etree.isFocusControl) {
 				_etree.paste(se);
 			} else {
@@ -1530,7 +1538,7 @@ public:
 				auto parItm = selectionParent;
 				if (parItm) {
 					try {
-						auto par = cast(EventTreeOwner) parItm.getData;
+						auto par = cast(EventTreeOwner) parItm.getData();
 						EventTree tree = EventTree.fromXML(xml, LATEST_VERSION);
 						if (tree) {
 							storeI(_cards.indexOf(parItm), par.trees.length);
@@ -1544,10 +1552,10 @@ public:
 							_comm.refEventTree.call(tree);
 						} else {
 							static if (UseFire) {
-								if (!(cast(EventTreeOwner) itm.getData)) {
+								if (!(cast(EventTreeOwner) itm.getData())) {
 									// 開始条件
-									auto treeItm = cast(EventTree) itm.getData ? itm : itm.getParentItem;
-									tree = cast(EventTree) treeItm.getData;
+									auto treeItm = cast(EventTree) itm.getData() ? itm : itm.getParentItem();
+									tree = cast(EventTree) treeItm.getData();
 									store(tree);
 									if (tree.enterFromXML(par, xml)) {
 										refreshFires(treeItm, ENTER);
@@ -1577,16 +1585,16 @@ public:
 			}
 		}
 		void del(SelectionEvent se) {
-			initial;
+			initial();
 			if (_etree.isFocusControl) {
 				_etree.del(se);
 			} else {
 				auto itm = selection;
 				if (!itm) return;
-				auto parItm = itm.getParentItem;
+				auto parItm = itm.getParentItem();
 				if (!parItm) return;
-				auto par = parItm.getData;
-				auto data = itm.getData;
+				auto par = parItm.getData();
+				auto data = itm.getData();
 				auto tree = cast(EventTree) data;
 				if (tree) {
 					storeD(tree);
@@ -1609,30 +1617,31 @@ public:
 						} else if (cast(KeyCodeObj) data) {
 							tree.removeKeyCode((cast(KeyCodeObj) data).array.idup);
 						} else if (cast(RoundObj) data) {
-							tree.removeRound((cast(RoundObj) data).intValue);
+							tree.removeRound((cast(RoundObj) data).intValue());
 						} else {
 							assert (0);
 						}
 						_comm.refEventTree.call(tree);
 					}
 				}
-				itm.dispose;
-				_comm.refUseCount.call;
+				itm.dispose();
+				_comm.refUseCount.call();
 			}
 		}
+		@property
 		bool canDoTCPD() {
-			return _cards.isFocusControl || _etree.isFocusControl;
+			return _cards.isFocusControl() || _etree.isFocusControl();
 		}
 	}
-	void undo() {_undo.undo;}
-	void redo() {_undo.redo;}
+	void undo() {_undo.undo();}
+	void redo() {_undo.redo();}
 
 	bool openCWXPath(string path, bool shellActivate) {
-		initial;
+		initial();
 		auto cate = cpcategory(path);
 		auto index = cpindex(path);
 		bool open(TreeItem itm) {
-			if (index >= itm.getItemCount) {
+			if (index >= itm.getItemCount()) {
 				return false;
 			}
 			__select(itm.getItem(index));
@@ -1640,7 +1649,7 @@ public:
 		}
 		static if (is(C : MenuCard) || is(C : EnemyCard)) {
 			bool card() {
-				if (index + 1 >= _cards.getItemCount) {
+				if (index + 1 >= _cards.getItemCount()) {
 					return false;
 				}
 				auto itm = _cards.getItem(index + 1);
@@ -1678,17 +1687,18 @@ public:
 		}
 		return false;
 	}
+	@property
 	string[] openedCWXPath() {
 		string[] r;
 		auto etItm = selectionEventTree;
 		if (etItm) {
-			auto et = cast(EventTree) etItm.getData;
+			auto et = cast(EventTree) etItm.getData();
 			assert (et);
 			r ~= et.cwxPath;
 		} else {
 			auto cardItm = selectionParent;
 			if (cardItm) {
-				auto card = cast(A) cardItm.getData;
+				auto card = cast(A) cardItm.getData();
 				assert (card);
 				r ~= cpaddattr(card.cwxPath, "eventview");
 			} else {
@@ -1715,52 +1725,53 @@ public:
 		enterClose = true;
 	}
 
+	@property
 	uint[] rounds() {
 		return _rounds;
 	}
 protected:
 	private class SelMin : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			int f = _from.getSelection;
-			if (f >= _to.getSelection) {
-				_to.setSelection = f;
+			int f = _from.getSelection();
+			if (f >= _to.getSelection()) {
+				_to.setSelection(f);
 			}
 		}
 	}
 	private class SelMax : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			int t = _to.getSelection;
-			if (t <= _from.getSelection) {
-				_from.setSelection = t;
+			int t = _to.getSelection();
+			if (t <= _from.getSelection()) {
+				_from.setSelection(t);
 			}
 		}
 	}
 	override void setup(Composite area) {
-		area.setLayout = new GridLayout(1, false);
+		area.setLayout(new GridLayout(1, false));
 		{
 			auto grp = new Group(area, SWT.NONE);
-			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-			grp.setText = _prop.msgs.manyRounds;
-			grp.setLayout = new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0);
+			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			grp.setText(_prop.msgs.manyRounds);
+			grp.setLayout(new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0));
 			auto comp = new Composite(grp, SWT.NONE);
-			comp.setLayout = new GridLayout(4, false);
+			comp.setLayout(new GridLayout(4, false));
 			_from = new Spinner(comp, SWT.BORDER);
-			_from.setMinimum = 1;
-			_from.setMaximum = _prop.looks.roundMax;
+			_from.setMinimum(1);
+			_from.setMaximum(_prop.looks.roundMax);
 			_from.addSelectionListener(new SelMin);
 			auto l1 = new Label(comp, SWT.NONE);
-			l1.setText = _prop.msgs.roundSep;
+			l1.setText(_prop.msgs.roundSep);
 			_to = new Spinner(comp, SWT.BORDER);
-			_to.setMinimum = 1;
-			_to.setMaximum = _prop.looks.roundMax;
+			_to.setMinimum(1);
+			_to.setMaximum(_prop.looks.roundMax);
 			_to.addSelectionListener(new SelMax);
 			auto l2 = new Label(comp, SWT.NONE);
-			l2.setText = _prop.msgs.rangeHint(1, _prop.looks.roundMax);
+			l2.setText(_prop.msgs.rangeHint(1, _prop.looks.roundMax));
 		}
 	}
 	override bool close(bool ok) {
 		if (ok) {
-			for (uint i = _from.getSelection; i <= _to.getSelection; i++) {
+			for (uint i = _from.getSelection(); i <= _to.getSelection(); i++) {
 				_rounds ~= i;
 			}
 		}

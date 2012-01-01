@@ -131,7 +131,7 @@ private struct FC {
 	}
 	const
 	string toString() {
-		return time.toISOExtString ~ "\t" ~ path;
+		return time.toISOExtString() ~ "\t" ~ path;
 	}
 }
 
@@ -241,6 +241,7 @@ private:
 		int r = ac - bc;
 		return r != 0 ? r > 0 : compFName(a, b);
 	}
+	@property
 	FC[] allPaths() {
 		FC[] fcs;
 		if (_summ) {
@@ -282,67 +283,67 @@ private:
 	}
 
 	void refreshDirs(string sel) {
-		if (!_win || _win.isDisposed) return;
+		if (!_win || _win.isDisposed()) return;
 		try {
-			scope (exit) refreshStatusLine;
+			scope (exit) refreshStatusLine();
 			if (!_summ) {
-				_dirs.removeAll;
+				_dirs.removeAll();
 				return;
 			}
 			bool[string] expands;
 			void exps(TreeItem itm) {
-				if (itm.getExpanded) {
-					expands[(cast(FileNameObj) itm.getData).array] = true;
+				if (itm.getExpanded()) {
+					expands[(cast(FileNameObj) itm.getData()).array] = true;
 				}
-				foreach (sub; itm.getItems) {
+				foreach (sub; itm.getItems()) {
 					exps(sub);
 				}
 			}
-			foreach (itm; _dirs.getItems) {
+			foreach (itm; _dirs.getItems()) {
 				exps(itm);
 			}
-			_dirs.setRedraw = false;
-			scope (exit) _dirs.setRedraw = true;
-			int hs = _dirs.getHorizontalBar.getSelection;
-			auto topItm = _dirs.getTopItem;
+			_dirs.setRedraw(false);
+			scope (exit) _dirs.setRedraw(true);
+			int hs = _dirs.getHorizontalBar().getSelection();
+			auto topItm = _dirs.getTopItem();
 			string top = null;
 			if (topItm) {
-				top = (cast(FileNameObj) topItm.getData).array;
+				top = (cast(FileNameObj) topItm.getData()).array;
 				if (!.exists(top)) top = null;
 			}
 			TreeItem nTopItm = null;
-			_dirs.removeAll;
+			_dirs.removeAll();
 			if (!addp(_dirs, _summ.scenarioPath, sel ? nabs(sel) : null, top, nTopItm)) {
-				_dirs.setSelection(_dirs.getItems[0]);
+				_dirs.setSelection(_dirs.getItems()[0]);
 			}
-			if (nTopItm) _dirs.setTopItem = nTopItm;
+			if (nTopItm) _dirs.setTopItem(nTopItm);
 			void expst(TreeItem itm) {
-				if ((cast(FileNameObj) itm.getData).array in expands) {
-					itm.setExpanded = true;
+				if ((cast(FileNameObj) itm.getData()).array in expands) {
+					itm.setExpanded(true);
 				}
-				foreach (sub; itm.getItems) {
+				foreach (sub; itm.getItems()) {
 					expst(sub);
 				}
 			}
-			foreach (itm; _dirs.getItems) {
+			foreach (itm; _dirs.getItems()) {
 				expst(itm);
 			}
-			_dirs.getHorizontalBar.setSelection = hs;
-			_dirs.showSelection;
+			_dirs.getHorizontalBar().setSelection(hs);
+			_dirs.showSelection();
 		} catch (Exception e) {
 			debugln(e);
 		}
 	}
 	void refreshFiles(string[] sels) {
-		if (!_win || _win.isDisposed) return;
+		if (!_win || _win.isDisposed()) return;
 		try {
-			scope (exit) refreshStatusLine;
+			scope (exit) refreshStatusLine();
 			if (!_summ) {
-				_files.removeAll;
+				_files.removeAll();
 				return;
 			}
-			_files.setRedraw = false;
-			scope (exit) _files.setRedraw = true;
+			_files.setRedraw(false);
+			scope (exit) _files.setRedraw(true);
 			scope selset = new HashSet!(string);
 			if (sels) {
 				foreach (path; sels) {
@@ -351,39 +352,39 @@ private:
 					}
 				}
 			}
-			if (_dirs.getSelection.length > 0) {
-				_files.deselectAll;
-				_files.removeAll; // 不要分だけremoveしようとすると Widget is disposed
-				auto path = (cast(FileNameObj) _dirs.getSelection[0].getData).array;
+			if (_dirs.getSelection().length > 0) {
+				_files.deselectAll();
+				_files.removeAll(); // 不要分だけremoveしようとすると Widget is disposed
+				auto path = (cast(FileNameObj) _dirs.getSelection()[0].getData()).array;
 				FileNameObj[] list;
 				foreach (f; clistdir(path)) {
 					list ~= new FileNameObj(path, f);
 				}
-				if (_files.getSortColumn is _sortName.column) {
-					if (_files.getSortDirection == SWT.UP) {
+				if (_files.getSortColumn() is _sortName.column) {
+					if (_files.getSortDirection() == SWT.UP) {
 						list = .sortDlg!(FileNameObj, typeof(&compFName))(list, &compFName);
 					} else {
-						assert (_files.getSortDirection == SWT.DOWN);
+						assert (_files.getSortDirection() == SWT.DOWN);
 						list = .sortDlg!(FileNameObj, typeof(&revCompFName))(list, &revCompFName);
 					}
-				} else if (_files.getSortColumn is _sortExt.column) {
-					if (_files.getSortDirection == SWT.UP) {
+				} else if (_files.getSortColumn() is _sortExt.column) {
+					if (_files.getSortDirection() == SWT.UP) {
 						list = .sortDlg!(FileNameObj, typeof(&compFExt))(list, &compFExt);
 					} else {
-						assert (_files.getSortDirection == SWT.DOWN);
+						assert (_files.getSortDirection() == SWT.DOWN);
 						list = .sortDlg!(FileNameObj, typeof(&revCompFExt))(list, &revCompFExt);
 					}
 				} else {
-					assert (_files.getSortColumn is _sortCount.column);
-					if (_files.getSortDirection == SWT.UP) {
+					assert (_files.getSortColumn() is _sortCount.column);
+					if (_files.getSortDirection() == SWT.UP) {
 						list = .sortDlg!(FileNameObj, typeof(&compFCount))(list, &compFCount);
 					} else {
-						assert (_files.getSortDirection == SWT.DOWN);
+						assert (_files.getSortDirection() == SWT.DOWN);
 						list = .sortDlg!(FileNameObj, typeof(&revCompFCount))(list, &revCompFCount);
 					}
 				}
 				int count = 0;
-				int oldC = _files.getItemCount;
+				int oldC = _files.getItemCount();
 				bool sp = cast(bool) cfnmatch(nabs(path), nabs(_summ.scenarioPath));
 				Skin skin = _comm.skin;
 				foreach (p; list) {
@@ -414,7 +415,7 @@ private:
 						itm.setText(2, "");
 					}
 					p.array = nabs(p.array);
-					itm.setData = p;
+					itm.setData(p);
 					if (selset.size > 0) {
 						if (selset.contains(p.array)) {
 							_files.select = count;
@@ -423,11 +424,11 @@ private:
 					count++;
 				}
 				if (count > 0 && !sels) {
-					_files.setTopIndex = 0;
+					_files.setTopIndex(0);
 				}
-				_files.showSelection;
+				_files.showSelection();
 			} else {
-				_files.removeAll;
+				_files.removeAll();
 			}
 		} catch (Exception e) {
 			debugln(e);
@@ -437,18 +438,18 @@ private:
 		auto itm = new TreeItem(parItm, SWT.NONE);
 		auto full = nabs(path);
 		if (0 == filenameCharCmp('A', 'a') ? _cuts.contains(cwx.utils.toLower(full)) : _cuts.contains(full)) {
-			itm.setImage = _sImgFolder;
+			itm.setImage(_sImgFolder);
 		} else {
-			itm.setImage = _prop.images.folder;
+			itm.setImage(_prop.images.folder);
 		}
 		string abs = nabs(_summ.scenarioPath);
 		bool sp = cast(bool) cfnmatch(full, abs);
 		if (sp) {
-			itm.setText = "Scenario";
+			itm.setText("Scenario");
 		} else {
-			itm.setText = baseName(path);
+			itm.setText(baseName(path));
 		}
-		itm.setData = new FileNameObj(full);
+		itm.setData(new FileNameObj(full));
 		string[] subs;
 		foreach (p; clistdir(path)) {
 			p = std.path.buildPath(path, p);
@@ -467,7 +468,7 @@ private:
 		if (sel) {
 			auto absp = nabs(path);
 			if (cfnmatch(sel, absp)) {
-				itm.getParent.setSelection(itm);
+				itm.getParent().setSelection(itm);
 				s = true;
 			}
 			if (top && !topItm && cfnmatch(nabs(top), absp)) {
@@ -589,19 +590,19 @@ private:
 	}
 	class FilesSelection : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			refreshStatusLine;
+			refreshStatusLine();
 		}
 	}
 	class FileSelect : KeyAdapter, MouseListener {
 	private:
 		void select() {
-			int index = _files.getSelectionIndex;
+			int index = _files.getSelectionIndex();
 			if (index >= 0) {
-				auto path = (cast(FileNameObj) _files.getItem(index).getData).array;
+				auto path = (cast(FileNameObj) _files.getItem(index).getData()).array;
 				if (.isDir(path)) {
-					foreach (itm; _dirs.getSelection[0].getItems) {
-						if (cfnmatch((cast(FileNameObj) itm.getData).array, path)) {
-							_dirs.setSelection = itm;
+					foreach (itm; _dirs.getSelection()[0].getItems()) {
+						if (cfnmatch((cast(FileNameObj) itm.getData()).array, path)) {
+							_dirs.setSelection(itm);
 							refreshFiles([]);
 							return;
 						}
@@ -616,29 +617,29 @@ private:
 		void mouseUp(MouseEvent e) {}
 		void mouseDown(MouseEvent e) {}
 		void mouseDoubleClick(MouseEvent e) {
-			if ((cast(Control) e.widget).isFocusControl && e.button == 1) {
-				select;
+			if ((cast(Control) e.widget).isFocusControl() && e.button == 1) {
+				select();
 			}
 		}
 		void keyPressed(KeyEvent e) {
 			if (e.character == SWT.CR) {
-				select;
+				select();
 			}
 		}
 	}
 
 	class FilesDrag(C) : DragSourceAdapter {
 		override void dragStart(DragSourceEvent e) {
-			e.doit = (cast(DragSource) e.getSource).getControl.isFocusControl;
+			e.doit = (cast(DragSource) e.getSource()).getControl().isFocusControl();
 		}
 		override void dragSetData(DragSourceEvent e) {
 			auto itms
-				= (cast(C) (cast(DragSource) e.getSource).getControl).getSelection;
+				= (cast(C) (cast(DragSource) e.getSource()).getControl()).getSelection();
 			if (itms.length == 0) return;
 			string[] data;
 			data.length = itms.length;
 			foreach (i, itm; itms) {
-				data[i] = (cast(FileNameObj) itm.getData).array;
+				data[i] = (cast(FileNameObj) itm.getData()).array;
 			}
 			e.data = new FileNames(data);
 		}
@@ -649,8 +650,8 @@ private:
 				refreshDirs(sdp);
 				refreshFiles(sels);
 				_comm.refPaths.call(this.outer, toRelPath(sdp));
-				clearCut;
-				if (_summ.useTemp) _summ.changed;
+				clearCut();
+				if (_summ.useTemp) _summ.changed();
 			}
 		}
 	}
@@ -670,9 +671,9 @@ private:
 			auto files = cast(FileNames) e.data;
 			bool fromOut;
 			static if (is (C == Table)) {
-				auto toparP = e.item ? (cast(FileNameObj) e.item.getData).array : selDirPath;
+				auto toparP = e.item ? (cast(FileNameObj) e.item.getData()).array : selDirPath;
 			} else static if (is (C == Tree)) {
-				auto toparP = (cast(FileNameObj) e.item.getData).array;
+				auto toparP = (cast(FileNameObj) e.item.getData()).array;
 			} else {
 				static assert (0);
 			}
@@ -680,14 +681,14 @@ private:
 			string topar = .isDir(toparP) ? toparP : dirName(toparP);
 			if (__paste(topar, files, true, fromOut)) {
 				e.detail = fromOut ? DND.DROP_COPY : DND.DROP_NONE;
-				clearCut;
+				clearCut();
 			}
 		}
 	}
 	bool __paste(string targ, FileNames files, bool move, out bool fromOut) {
 		if (files && files.array.length > 0) {
-			pauseTrace;
-			scope (exit) resumeTrace;
+			pauseTrace();
+			scope (exit) resumeTrace();
 			fromOut = false;
 			scope pfull = nabs(_summ.scenarioPath);
 			bool top = cast(bool) cfnmatch(nabs(targ), pfull);
@@ -727,10 +728,10 @@ private:
 				bool over = false;
 				if (exists.length > 0) {
 					auto dlg = new MessageBox
-						(_win.getShell, SWT.ICON_QUESTION | SWT.YES | SWT.NO | SWT.CANCEL);
-					dlg.setText = _prop.msgs.dlgTitQuestion;
-					dlg.setMessage = _prop.msgs.dlgMsgDropOverWriteFiles(exists);
-					int r = dlg.open;
+						(_win.getShell(), SWT.ICON_QUESTION | SWT.YES | SWT.NO | SWT.CANCEL);
+					dlg.setText(_prop.msgs.dlgTitQuestion);
+					dlg.setMessage(_prop.msgs.dlgMsgDropOverWriteFiles(exists));
+					int r = dlg.open();
 					if (r == SWT.YES) {
 						over = true;
 					} else if (r == SWT.CANCEL) {
@@ -771,7 +772,7 @@ private:
 								string p2 = toRelPath(to);
 								if (_summ.useCounter.get(toPathId(p1)) > 0) {
 									_summ.useCounter.change(toPathId(p1), toPathId(p2), true);
-									_summ.changed;
+									_summ.changed();
 								}
 								_comm.refPath.call(p1, p2, false);
 								std.file.rename(from, to);
@@ -808,21 +809,23 @@ private:
 		}
 		return false;
 	}
+	@property
 	string selDirPath() {
-		if (_win && !_win.isDisposed) {
-			if (_dirs.getSelection.length > 0) {
-				return (cast(FileNameObj) _dirs.getSelection[0].getData).array;
+		if (_win && !_win.isDisposed()) {
+			if (_dirs.getSelection().length > 0) {
+				return (cast(FileNameObj) _dirs.getSelection()[0].getData()).array;
 			}
 		}
 		return null;
 	}
+	@property
 	string[] selFiles() {
 		string[] r;
-		if (_win && !_win.isDisposed) {
-			auto sels = _files.getSelection;
+		if (_win && !_win.isDisposed()) {
+			auto sels = _files.getSelection();
 			r.length = sels.length;
 			foreach (i, itm; sels) {
-				r[i] = (cast(FileNameObj) itm.getData).array;
+				r[i] = (cast(FileNameObj) itm.getData()).array;
 			}
 		}
 		return r;
@@ -848,8 +851,8 @@ private:
 	Commons _comm;
 
 	string pathRename(T)(T itm, string newName) {
-		clearCut;
-		auto path = (cast(FileNameObj) itm.getData).array;
+		clearCut();
+		auto path = (cast(FileNameObj) itm.getData()).array;
 		string frp = toRelPath(path);
 		string frd = nabs(path);
 		newName = std.array.replace(newName, sep, "");
@@ -882,7 +885,7 @@ private:
 					string p2 = toRelPath(file);
 					if (_summ.useCounter.get(toPathId(p1)) > 0) {
 						_summ.useCounter.change(toPathId(p1), toPathId(p2));
-						_summ.changed;
+						_summ.changed();
 					}
 				}
 			}
@@ -894,47 +897,47 @@ private:
 			string p2 = toRelPath(to);
 			if (_summ.useCounter.get(toPathId(p1)) > 0) {
 				_summ.useCounter.change(toPathId(p1), toPathId(p2));
-				_summ.changed;
+				_summ.changed();
 			}
 			_comm.refPath.call(p1, p2, false);
 		}
-		itm.setData = new FileNameObj(to);
+		itm.setData(new FileNameObj(to));
 		static if (is (T == TreeItem)) {
-			itm.setText = baseName(stripExtension(to));
+			itm.setText(baseName(stripExtension(to)));
 		} else static if (is (T == TableItem)) {
 			itm.setText(0, .isDir(to) ? baseName(to) : baseName(stripExtension(to)));
 		} else {
 			static assert (0);
 		}
 		_comm.refPath.call(frp, trp, isdir);
-		_comm.refUseCount.call;
+		_comm.refUseCount.call();
 		return to;
 	}
 	void dirsEditEnd(TreeItem itm, Control c) {
-		string text = (cast(Text) c).getText;
+		string text = (cast(Text) c).getText();
 		if (!text) text = "";
 		if (text.length == 0) return;
-		auto from = (cast(FileNameObj) itm.getData).array;
+		auto from = (cast(FileNameObj) itm.getData()).array;
 		string frd = nabs(from);
 		auto to = pathRename(itm, text);
 		if (to) {
 			string tod = nabs(to);
 			void drename(TreeItem itm) {
-				itm.setData = new FileNameObj(tod ~ (cast(FileNameObj) itm.getData).array[frd.length .. $]);
-				foreach (c; itm.getItems) {
+				itm.setData(new FileNameObj(tod ~ (cast(FileNameObj) itm.getData()).array[frd.length .. $]));
+				foreach (c; itm.getItems()) {
 					drename(c);
 				}
 			}
-			foreach (cc; itm.getItems) {
+			foreach (cc; itm.getItems()) {
 				drename(cc);
 			}
-			foreach (t; _files.getItems) {
-				t.setData = new FileNameObj(std.path.buildPath(tod, (cast(FileNameObj) t.getData).basename));
+			foreach (t; _files.getItems()) {
+				t.setData(new FileNameObj(std.path.buildPath(tod, (cast(FileNameObj) t.getData()).basename)));
 			}
 		}
 	}
 	Control dirsCreateEditor(TreeItem itm) {
-		return itm.getParentItem ? createTextEditor(_comm, _prop, _dirs, itm.getText) : null;
+		return itm.getParentItem() ? createTextEditor(_comm, _prop, _dirs, itm.getText()) : null;
 	}
 	void filesEditEnd(TableItem itm, int column, string newText) {
 		if (newText.length == 0) return;
@@ -953,9 +956,9 @@ private:
 	}
 
 	void __refreshUseCount() {
-		foreach (itm; _files.getItems) {
+		foreach (itm; _files.getItems()) {
 			try {
-				auto file = cast(FileNameObj) itm.getData;
+				auto file = cast(FileNameObj) itm.getData();
 				if (!.exists(file.array) || !file.material) continue;
 				auto c = _summ.useCounter.path.get(file.pathId);
 				itm.setText(2, to!(string)(c));
@@ -978,7 +981,7 @@ private:
 		}
 	}
 	void saveScenario() {
-		_comm.save.call(dlgParShl.getShell);
+		_comm.save.call(dlgParShl.getShell());
 	}
 	class Exec {
 		private OuterTool _tool;
@@ -989,8 +992,8 @@ private:
 				file ~= `"` ~ f ~ `"`;
 				if (i + 1 < sf.length) file ~= " ";
 			}
-			string sp = _summ ? _summ.scenarioPath : std.file.getcwd;
-			auto cwd = std.file.getcwd;
+			string sp = _summ ? _summ.scenarioPath : std.file.getcwd();
+			auto cwd = std.file.getcwd();
 			string wd = OuterTool.parse(_tool.workDir, file, sp);
 			if (wd.length > 0) {
 				if (!cwx.utils.isabs(wd)) {
@@ -1003,17 +1006,17 @@ private:
 			if (!exec(cmd, wd)) {
 				MessageBox.showWarning
 					(_prop.msgs.errorExec(_tool.name),
-					_prop.msgs.dlgTitWarning, _win.getShell);
+					_prop.msgs.dlgTitWarning, _win.getShell());
 			}
 		}
-		this(Menu menu, OuterTool tool) {
+		this (Menu menu, OuterTool tool) {
 			createMenuItem(menu, tool.name, null, &run);
 			_tool = tool;
 		}
 	}
 	void createFilesMenu() {
-		if (_files.getMenu) _files.getMenu.dispose;
-		auto menu = new Menu(_win.getShell, SWT.POP_UP);
+		if (_files.getMenu()) _files.getMenu().dispose();
+		auto menu = new Menu(_win.getShell(), SWT.POP_UP);
 		createMenuItem(menu, _prop.msgs.menuReplacePath, _prop.images.menuReplacePath, &replace);
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(menu, _prop.msgs.menuNewFolder, _prop.images.menuNewFolder, &createDirFiles);
@@ -1042,7 +1045,7 @@ private:
 			if (!.exists(fp)) {
 				std.file.mkdir(fp);
 				fp = nabs(fp);
-				if (_summ.useTemp) _summ.changed;
+				if (_summ.useTemp) _summ.changed();
 				return true;
 			} else {
 				return false;
@@ -1051,7 +1054,7 @@ private:
 		return fp;
 	}
 	void createDirDirs() {
-		if (!_win || _win.isDisposed) {
+		if (!_win || _win.isDisposed()) {
 			_comm.openDirWin(false);
 		}
 		auto fp = createDir();
@@ -1059,10 +1062,10 @@ private:
 		refreshDirs(fp);
 		refreshFiles(null);
 		.forceFocus(_dirs, true);
-		_dirsEdit.startEdit;
+		_dirsEdit.startEdit();
 	}
 	void createDirFiles() {
-		if (!_win || _win.isDisposed) {
+		if (!_win || _win.isDisposed()) {
 			_comm.openDirWin(false);
 		}
 		auto fp = createDir();
@@ -1070,8 +1073,8 @@ private:
 		auto files = selFiles ~ fp;
 		refreshDirs(selDirPath);
 		refreshFiles(files);
-		foreach (itm; _files.getItems) {
-			if (cfnmatch((cast(FileNameObj) itm.getData).array, fp)) {
+		foreach (itm; _files.getItems()) {
+			if (cfnmatch((cast(FileNameObj) itm.getData()).array, fp)) {
 				.forceFocus(_files, true);
 				_filesEdit.startEdit(itm);
 				break;
@@ -1079,20 +1082,20 @@ private:
 		}
 	}
 	void __replace(string sel) {
-		if (!_summ || !_win || _win.isDisposed) return;
+		if (!_summ || !_win || _win.isDisposed()) return;
 		_comm.replacePath(sel);
 	}
 	class SClose : ShellAdapter {
 		override void shellClosed(ShellEvent e) {
-			(cast(Shell) e.widget).setVisible = false;
+			(cast(Shell) e.widget).setVisible(false);
 			e.doit = false;
 			_prop.var.dirWin.visible = false;
-			_prop.var.etc.filesSortDirection = _files.getSortDirection;
-			if (_files.getSortColumn is _sortName.column) {
+			_prop.var.etc.filesSortDirection = _files.getSortDirection();
+			if (_files.getSortColumn() is _sortName.column) {
 				_prop.var.etc.filesSortColumn = 0;
-			} else if (_files.getSortColumn is _sortExt.column) {
+			} else if (_files.getSortColumn() is _sortExt.column) {
 				_prop.var.etc.filesSortColumn = 1;
-			} else if (_files.getSortColumn is _sortCount.column) {
+			} else if (_files.getSortColumn() is _sortCount.column) {
 				_prop.var.etc.filesSortColumn = 2;
 			} else {
 				_prop.var.etc.filesSortColumn = -1;
@@ -1114,21 +1117,21 @@ private:
 			_comm.saved.remove(&refCheckPaths);
 			_comm.replText.remove(&__refreshTitle);
 			_comm.refIgnorePaths.remove(&__refresh);
-			_sImgFolder.dispose;
-			_sImgCards.dispose;
-			_sImgBacks.dispose;
-			_sImgBgm.dispose;
-			_sImgSe.dispose;
-			_sImgText.dispose;
-			_sImgUnknown.dispose;
+			_sImgFolder.dispose();
+			_sImgCards.dispose();
+			_sImgBacks.dispose();
+			_sImgBgm.dispose();
+			_sImgSe.dispose();
+			_sImgText.dispose();
+			_sImgUnknown.dispose();
 		}
 	}
 	private SDListener _sdl;
 	class SDListener : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
-			_prop.var.etc.directorySashL = _sash.getWeights[0];
-			_prop.var.etc.directorySashR = _sash.getWeights[1];
-			_prop.var.etc.directorySashV = (_sash.getStyle & SWT.VERTICAL) != 0;
+			_prop.var.etc.directorySashL = _sash.getWeights()[0];
+			_prop.var.etc.directorySashR = _sash.getWeights()[1];
+			_prop.var.etc.directorySashV = (_sash.getStyle() & SWT.VERTICAL) != 0;
 			_win = null;
 		}
 	}
@@ -1140,9 +1143,9 @@ private:
 			_onRefresh = true;
 			scope (exit) _onRefresh = false;
 			if (_stopTrace) return;
-			if (_dirsEdit.isEditing || _filesEdit.isEditing) return;
+			if (_dirsEdit.isEditing() || _filesEdit.isEditing()) return;
 			try {
-				__refresh;
+				__refresh();
 				_comm.refPaths.call(this.outer, _summ.scenarioPath);
 			} catch (Exception e) {
 				debugln(e);
@@ -1156,7 +1159,7 @@ private:
 	version (Windows) {
 		private HANDLE _traceHandle = INVALID_HANDLE_VALUE;
 		private void closeTraceHandle() {
-			synchronized (_refreshThr) closeTraceHandleImpl;
+			synchronized (_refreshThr) closeTraceHandleImpl();
 		}
 		private void closeTraceHandleImpl() {
 			if (_traceHandle !is INVALID_HANDLE_VALUE) FindCloseChangeNotification(_traceHandle);
@@ -1184,13 +1187,14 @@ private:
 					.sleep(1); // 1sec
 				}
 			}
+			@property
 			bool canDoChk() {
-				return summ && !_display.isDisposed && _prop.var.etc.traceDirectories && _win;
+				return summ && !_display.isDisposed() && _prop.var.etc.traceDirectories && _win;
 			}
 			version (Windows) {
 				bool setup() {
 					synchronized (_refreshThr) {
-						closeTraceHandleImpl;
+						closeTraceHandleImpl();
 						if (summ) {
 							DWORD fs = FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME;
 							_traceHandle = FindFirstChangeNotificationW(toUTFz!(wchar*)(summ.scenarioPath), TRUE, fs);
@@ -1208,31 +1212,31 @@ private:
 					synchronized (_refreshThr) {
 						if (_traceHandle !is INVALID_HANDLE_VALUE) {
 							if (!FindNextChangeNotification(_traceHandle)) {
-								debugln("FindNextChangeNotification failed: ", GetLastError);
+								debugln("FindNextChangeNotification failed: ", GetLastError());
 							}
 						}
 					}
 				}
-				while (_onTrace && _display && !_display.isDisposed) {
+				while (_onTrace && _display && !_display.isDisposed()) {
 					try {
 						if (_stopTrace) {
-							sleep;
+							sleep();
 							continue;
 						}
 						if (summ !is _summ) {
 							summ = _summ;
-							if (!setup) {
-								debugln("FindFirstChangeNotification failed: ", GetLastError);
+							if (!setup()) {
+								debugln("FindFirstChangeNotification failed: ", GetLastError());
 								continue;
 							}
 						}
 						if (!canDoChk) {
-							sleep;
+							sleep();
 							continue;
 						}
 						switch (WaitForSingleObject(_traceHandle, 1000)) {
 						case WAIT_TIMEOUT: {
-							next;
+							next();
 						} break;
 						case WAIT_ABANDONED: {
 							break;
@@ -1240,10 +1244,10 @@ private:
 						case WAIT_OBJECT_0: {
 							if (!canDoChk) continue;
 							_display.asyncExec(_refreshThr);
-							next;
+							next();
 						} break;
 						case WAIT_FAILED: {
-							debugln("WaitForSingleObject failed: ", GetLastError);
+							debugln("WaitForSingleObject failed: ", GetLastError());
 						} break;
 						default: break;
 						}
@@ -1255,7 +1259,7 @@ private:
 			} else version (linux) {
 				bool setup() {
 					synchronized (_refreshThr) {
-						closeTraceHandleImpl;
+						closeTraceHandleImpl();
 						_traceHandle = inotify_init();
 						if (_traceHandle is -1) return false;
 						void put(string path) {
@@ -1278,21 +1282,21 @@ private:
 						if (_traceHandle !is -1) close(_traceHandle);
 					}
 				}
-				while (_onTrace && _display && !_display.isDisposed) {
+				while (_onTrace && _display && !_display.isDisposed()) {
 					try {
 						if (_stopTrace) {
-							sleep;
+							sleep();
 							continue;
 						}
 						if (summ !is _summ) {
 							summ = _summ;
-							if (!setup) {
+							if (!setup()) {
 								debugln("inotify_init() failed");
 								continue;
 							}
 						}
 						if (!canDoChk) {
-							sleep;
+							sleep();
 							continue;
 						}
 						byte[inotify_event.sizeof * 1024] buf;
@@ -1302,7 +1306,7 @@ private:
 						}
 						if (-1 == len) break;
 						if (0 == len) {
-							sleep;
+							sleep();
 							continue;
 						}
 						if (!canDoChk) continue;
@@ -1332,17 +1336,17 @@ private:
 					}
 					dirTimes = times;
 				}
-				while (_onTrace && _display && !_display.isDisposed) {
+				while (_onTrace && _display && !_display.isDisposed()) {
 					try {
 						if (_stopTrace) {
-							sleep;
+							sleep();
 							continue;
 						}
 						if (summ !is _summ) {
 							summ = _summ;
-							setup;
+							setup();
 						}
-						sleep;
+						sleep();
 						if (!canDoChk) continue;
 						bool chk(string path) {
 							if (summ.isSystemFile(path)
@@ -1374,34 +1378,35 @@ private:
 		}
 	}
 	void refreshStatusLine() {
-		if (!_win || _win.isDisposed) return;
+		if (!_win || _win.isDisposed()) return;
 		ulong size;
-		foreach (itm; _files.getItems) {
-			auto d = cast(FileNameObj) itm.getData;
+		foreach (itm; _files.getItems()) {
+			auto d = cast(FileNameObj) itm.getData();
 			size += d.size;
 		}
-		_comm.statusLine(_win, _prop.msgs.dirStatus(_files.getItemCount, size, selFiles),
-			_dirs.isFocusControl || _files.isFocusControl);
+		_comm.setStatusLine(_win, _prop.msgs.dirStatus(_files.getItemCount(), size, selFiles),
+			_dirs.isFocusControl() || _files.isFocusControl());
 	}
+	@property
 	Shell dlgParShl() {
-		if (_win && !_win.isDisposed) return _win.getShell;
-		return _comm.mainWin.shell.getShell;
+		if (_win && !_win.isDisposed()) return _win.getShell();
+		return _comm.mainWin.shell.getShell();
 	}
 public:
-	this(Commons comm, Props prop, Composite parent) {
+	this (Commons comm, Props prop, Composite parent) {
 		_prop = prop;
 		_comm = comm;
-		_display = Display.getCurrent;
+		_display = Display.getCurrent();
 		if (parent) construct(parent);
 
 		// FXIME: 本当は素材管理ウィンドウ非表示時は止めておきたかったが
 		// シナリオ読込み後のスレッドの開始に失敗する事があるので常時起動
 		_refreshThr = new RefreshThr;
 		_traceThr = new core.thread.Thread(&trace);
-		_traceThr.start;
+		_traceThr.start();
 	}
 	void reconstruct(Composite parent) {
-		if (_win && !_win.isDisposed) return;
+		if (_win && !_win.isDisposed()) return;
 		construct(parent);
 		if (_summ) refresh(_summ);
 	}
@@ -1413,7 +1418,7 @@ public:
 		if (parShl) {
 			_sbshl = new SBShell(parShl, SWT.SHELL_TRIM);
 			shell = _sbshl.shell;
-			shell.setImage = _prop.images.app;
+			shell.setImage(_prop.images.app);
 			shell.addShellListener(new SClose);
 			_win = shell;
 			contPane = _sbshl.contentPane;
@@ -1421,8 +1426,8 @@ public:
 			_win = new Composite(parent, SWT.NONE);
 			contPane = _win;
 		}
-		_win.setData = new TLPData(this);
-		contPane.setLayout = windowGridLayout(1, true);
+		_win.setData(new TLPData(this));
+		contPane.setLayout(windowGridLayout(1, true));
 		_comm.refScenarioName.add(&__refreshTitle);
 		_comm.refScenarioPath.add(&__refreshTitle);
 		_comm.refUseCount.add(&__refreshUseCount);
@@ -1463,7 +1468,7 @@ public:
 			new MenuItem(mv, SWT.SEPARATOR);
 			createMenuItem(mv, _prop.msgs.menuChangeVH, _prop.images.menuChangeVH, &changeVHSide);
 
-			shell.setMenuBar = bar;
+			shell.setMenuBar(bar);
 		} else {
 			appendMenuTCPD(_prop, this, this, true, true, true, true);
 			putMenuAction(MenuID.ReplacePath, &replace);
@@ -1476,7 +1481,7 @@ public:
 		}
 		if (shell) {
 			auto bar = new ToolBar(contPane, SWT.FLAT);
-			bar.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+			bar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 			createToolItem(bar, _prop.msgs.ttOpenDirectory, _prop.images.folder, &openDirectory);
 			new ToolItem(bar, SWT.SEPARATOR);
@@ -1496,9 +1501,9 @@ public:
 			createToolItem(bar, _prop.msgs.ttChangeVH, _prop.images.menuChangeVH, &changeVHSide);
 		}
 		_sash = new SplitPane(contPane, _prop.var.etc.directorySashV ? SWT.VERTICAL : SWT.HORIZONTAL);
-		_sash.setLayoutData = new GridData(GridData.FILL_BOTH);
+		_sash.setLayoutData(new GridData(GridData.FILL_BOTH));
 		auto dirsComp = new Composite(_sash, SWT.NONE);
-		dirsComp.setLayout = new FillLayout;
+		dirsComp.setLayout(new FillLayout);
 		_dirs = new Tree(dirsComp, SWT.SINGLE | SWT.BORDER | SWT.VIRTUAL);
 		{
 			_dirs.addSelectionListener(new DirsSelection);
@@ -1506,14 +1511,14 @@ public:
 
 			auto drop = new DropTarget
 				(_dirs, DND.DROP_DEFAULT | DND.DROP_COPY | DND.DROP_MOVE);
-			drop.setTransfer([FileTransfer.getInstance]);
+			drop.setTransfer([FileTransfer.getInstance()]);
 			drop.addDropListener(new FilesDrop!(Tree));
 			auto drag = new DragSource
 				(_dirs, DND.DROP_DEFAULT | DND.DROP_COPY | DND.DROP_MOVE);
-			drag.setTransfer([FileTransfer.getInstance]);
+			drag.setTransfer([FileTransfer.getInstance()]);
 			drag.addDragListener(new FilesDrag!(Tree));
 
-			auto menu = new Menu(_win.getShell, SWT.POP_UP);
+			auto menu = new Menu(_win.getShell(), SWT.POP_UP);
 			createMenuItem(menu, _prop.msgs.menuNewFolder, _prop.images.menuNewFolder, &createDirDirs);
 			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(menu, _prop.msgs.menuCreateArchive, _prop.images.menuCreateArchive, &createArchive);
@@ -1524,19 +1529,19 @@ public:
 			_dirs.setMenu(menu);
 		}
 		auto fComp = new Composite(_sash, SWT.NONE);
-		fComp.setLayout = new FillLayout;
+		fComp.setLayout(new FillLayout);
 		_files = new Table(fComp, SWT.MULTI | SWT.FULL_SELECTION | SWT.BORDER | SWT.VIRTUAL);
 		{
 			_files.addSelectionListener(new FilesSelection);
-			_files.setHeaderVisible = true;
+			_files.setHeaderVisible(true);
 			auto namec = new TableColumn(_files, SWT.NONE);
-			namec.setText = _prop.msgs.fileName;
+			namec.setText(_prop.msgs.fileName);
 			saveColumnWidth!("prop.var.etc.fileNameColumn")(_prop, namec);
 			auto extc = new TableColumn(_files, SWT.NONE);
-			extc.setText = _prop.msgs.fileExt;
+			extc.setText(_prop.msgs.fileExt);
 			saveColumnWidth!("prop.var.etc.fileExtColumn")(_prop, extc);
 			auto cc = new TableColumn(_files, SWT.NONE);
-			cc.setText = _prop.msgs.fileCount;
+			cc.setText(_prop.msgs.fileCount);
 			saveColumnWidth!("prop.var.etc.fileCountColumn")(_prop, cc);
 			_filesEdit = new TableTextEdit(_comm, _prop, _files, 0, &filesEditEnd);
 
@@ -1545,11 +1550,11 @@ public:
 			_files.addMouseListener(fs);
 			auto drop = new DropTarget
 				(_files, DND.DROP_DEFAULT | DND.DROP_COPY | DND.DROP_MOVE);
-			drop.setTransfer([FileTransfer.getInstance]);
+			drop.setTransfer([FileTransfer.getInstance()]);
 			drop.addDropListener(new FilesDrop!(Table));
 			auto drag = new DragSource
 				(_files, DND.DROP_DEFAULT | DND.DROP_COPY | DND.DROP_MOVE);
-			drag.setTransfer([FileTransfer.getInstance]);
+			drag.setTransfer([FileTransfer.getInstance()]);
 			drag.addDragListener(new FilesDrag!(Table));
 
 			_sortName = new TableSorter!(FileNameObj)(namec, &compFName, &revCompFName);
@@ -1572,24 +1577,24 @@ public:
 
 			_comm.refOuterTools.add(&createFilesMenu);
 			_files.addDisposeListener(new FDListener);
-			createFilesMenu;
+			createFilesMenu();
 		}
 		_sash.setWeights([_prop.var.etc.directorySashL, _prop.var.etc.directorySashR]);
 		_sdl = new SDListener;
 		_sash.addDisposeListener(_sdl);
 		if (shell) {
-			shell.setMaximized = _prop.var.dirWin.maximized;
-			shell.setMinimized = _prop.var.dirWin.minimized;
-			shell.pack;
+			shell.setMaximized(_prop.var.dirWin.maximized);
+			shell.setMinimized(_prop.var.dirWin.minimized);
+			shell.pack();
 			scope wp = shell.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 			int width = _prop.var.dirWin.width == SWT.DEFAULT
 				? wp.x : _prop.var.dirWin.width;
 			int height = _prop.var.dirWin.height == SWT.DEFAULT
 				? wp.y : _prop.var.dirWin.height;
 			int x = _prop.var.dirWin.x == SWT.DEFAULT
-				? shell.getBounds.x : _prop.var.dirWin.x + shell.getParent.getBounds.x;
+				? shell.getBounds().x : _prop.var.dirWin.x + shell.getParent().getBounds().x;
 			int y = _prop.var.dirWin.y == SWT.DEFAULT
-				? shell.getBounds.y : _prop.var.dirWin.y + shell.getParent.getBounds.y;
+				? shell.getBounds().y : _prop.var.dirWin.y + shell.getParent().getBounds().y;
 			intoDisplay(x, y, width, height);
 			shell.setBounds(x, y, width, height);
 			shell.addControlListener(new SCListener);
@@ -1597,28 +1602,28 @@ public:
 	}
 	private class SCListener : ControlAdapter {
 		override void controlMoved(ControlEvent e) {
-			saveWin;
+			saveWin();
 		}
 		override void controlResized(ControlEvent e) {
-			saveWin;
+			saveWin();
 		}
 	}
 	private void saveWin() {
 		auto win = cast(Shell) _win;
 		if (win) {
-			if (!win.getMaximized && !win.getMinimized) {
-				_prop.var.dirWin.width = win.getSize.x;
-				_prop.var.dirWin.height = win.getSize.y;
-				_prop.var.dirWin.x = win.getBounds.x - win.getParent.getBounds.x;
-				_prop.var.dirWin.y = win.getBounds.y - win.getParent.getBounds.y;
+			if (!win.getMaximized() && !win.getMinimized()) {
+				_prop.var.dirWin.width = win.getSize().x;
+				_prop.var.dirWin.height = win.getSize().y;
+				_prop.var.dirWin.x = win.getBounds().x - win.getParent().getBounds().x;
+				_prop.var.dirWin.y = win.getBounds().y - win.getParent().getBounds().y;
 			}
-			_prop.var.dirWin.maximized = win.getMaximized;
-			_prop.var.dirWin.minimized = win.getMinimized;
+			_prop.var.dirWin.maximized = win.getMaximized();
+			_prop.var.dirWin.minimized = win.getMinimized();
 		}
 	}
 	void removeFiles(in string[] file, bool recycle) {
-		pauseTrace;
-		scope (exit) resumeTrace;
+		pauseTrace();
+		scope (exit) resumeTrace();
 		version (Windows) {
 			wstring targ;
 			foreach (i, f; file) {
@@ -1661,28 +1666,31 @@ public:
 		}
 		if (!files.length) return;
 		bool recycle = (se.stateMask & SWT.SHIFT) == 0;
-		auto shl = dlgParShl.getShell;
+		auto shl = dlgParShl.getShell();
 		auto dlg = new MessageBox(shl, SWT.ICON_QUESTION | SWT.YES | SWT.NO);
 		version (Windows) {
 			if (recycle) {
-				dlg.setMessage = _prop.msgs.dlgMsgDeleteRecycleUnuse(files);
+				dlg.setMessage(_prop.msgs.dlgMsgDeleteRecycleUnuse(files));
 			} else {
-				dlg.setMessage = _prop.msgs.dlgMsgDeleteUnuse(files);
+				dlg.setMessage(_prop.msgs.dlgMsgDeleteUnuse(files));
 			}
 		} else {
-			dlg.setMessage = _prop.msgs.dlgMsgDeleteUnuse(files);
+			dlg.setMessage(_prop.msgs.dlgMsgDeleteUnuse(files));
 		}
-		dlg.setText = _prop.msgs.dlgTitQuestion;
-		if (SWT.YES == dlg.open) {
+		dlg.setText(_prop.msgs.dlgTitQuestion);
+		if (SWT.YES == dlg.open()) {
 			removeFiles(files, recycle);
 		}
 	}
 
+	@property
 	Composite shell() {return _win;}
 
+	@property
 	Image image() {
 		return _prop.images.menuDirWin;
 	}
+	@property
 	string title() {
 		auto shl = cast(Shell) _win;
 		if (shl) {
@@ -1690,20 +1698,21 @@ public:
 		}
 		return _prop.msgs.dirTabName(_summ);
 	}
+	@property
 	void delegate(string) statusText() {return _sbshl ? &_sbshl.statusLine : null;}
 
 	void copyFilePath() {
 		if (!_summ) return;
-		int sel = _files.getSelectionIndex;
+		int sel = _files.getSelectionIndex();
 		if (-1 == sel) return;
-		auto fno = cast(FileNameObj) _files.getItem(sel).getData;
+		auto fno = cast(FileNameObj) _files.getItem(sel).getData();
 		_comm.clipboard.setContents([new PathString(encodePath(fno.relPath))],
-			[TextTransfer.getInstance]);
+			[TextTransfer.getInstance()]);
 	}
 	void replace() {
 		if (!_summ) return;
-		if (_files.getSelectionIndex >= 0) {
-			__replace((cast(FileNameObj) _files.getItem(_files.getSelectionIndex).getData).relPath);
+		if (_files.getSelectionIndex() >= 0) {
+			__replace((cast(FileNameObj) _files.getItem(_files.getSelectionIndex()).getData()).relPath);
 		} else {
 			__replace(null);
 		}
@@ -1715,7 +1724,7 @@ public:
 	}
 
 	void stopTrace() {
-		closeTraceHandle;
+		closeTraceHandle();
 		_stopTrace = true;
 	}
 	void resumeTrace() {_stopTrace = false;}
@@ -1723,18 +1732,19 @@ public:
 
 	void refresh(Summary summ) {
 		_summ = summ;
-		if (_win && !_win.isDisposed) {
+		if (_win && !_win.isDisposed()) {
 			refreshDirs(std.path.buildPath(_summ.scenarioPath, _comm.skin.materialPath));
 			refreshFiles(null);
 			auto root = _dirs.getItem(0);
-			root.setExpanded = true;
-			_dirs.setSelection = [root];
-			_dirs.showSelection;
-			refCheckPaths;
-			__refreshTitle;
+			root.setExpanded(true);
+			_dirs.setSelection([root]);
+			_dirs.showSelection();
+			refCheckPaths();
+			__refreshTitle();
 		}
 	}
 
+	@property
 	bool isChanged() {
 		if (_summ.useTemp) {
 			return _summ.isChanged || _checkPaths != allPaths;
@@ -1743,22 +1753,22 @@ public:
 	}
 
 	private void clearCut() {
-		_cuts.clear;
+		_cuts.clear();
 		void titm(TreeItem itm) {
-			if (itm.getImage is _sImgFolder) {
-				itm.setImage = _prop.images.folder;
+			if (itm.getImage() is _sImgFolder) {
+				itm.setImage(_prop.images.folder);
 			}
-			foreach (child; itm.getItems) {
+			foreach (child; itm.getItems()) {
 				titm(child);
 			}
 		}
-		foreach (itm; _dirs.getItems) {
+		foreach (itm; _dirs.getItems()) {
 			titm(itm);
 		}
-		foreach (itm; _files.getItems) {
-			auto img = fimage(itm.getImage);
-			if (itm.getImage !is img) {
-				itm.setImage = img;
+		foreach (itm; _files.getItems()) {
+			auto img = fimage(itm.getImage());
+			if (itm.getImage() !is img) {
+				itm.setImage(img);
 			}
 		}
 	}
@@ -1768,10 +1778,10 @@ public:
 		if (dir) openFolder(dir);
 	}
 	void createNewFolder() {
-		if (!_win || _win.isDisposed) {
+		if (!_win || _win.isDisposed()) {
 			_comm.openDirWin(false);
 		}
-		if (_files.isFocusControl) {
+		if (_files.isFocusControl()) {
 			createDirFiles();
 		} else {
 			createDirDirs();
@@ -1779,8 +1789,8 @@ public:
 	}
 
 	private bool selectImpl(T)(T tree, string path) {
-		foreach (itm; tree.getItems) {
-			auto fno = cast(FileNameObj) itm.getData;
+		foreach (itm; tree.getItems()) {
+			auto fno = cast(FileNameObj) itm.getData();
 			if (cfnmatch(fno.array, path)) {
 				_dirs.select = itm;
 				refreshFiles(selFiles);
@@ -1800,13 +1810,13 @@ public:
 				string dir = isdir ? path : dirName(path);
 				bool r = selectImpl(_dirs, dir);
 				if (r) {
-					_dirs.showSelection;
+					_dirs.showSelection();
 					if (!isdir) {
-						foreach (i, itm; _files.getItems) {
-							auto fno = cast(FileNameObj) itm.getData;
+						foreach (i, itm; _files.getItems()) {
+							auto fno = cast(FileNameObj) itm.getData();
 							if (cfnmatch(fno.array, path)) {
 								_files.select = i;
-								_files.showSelection;
+								_files.showSelection();
 								return true;
 							}
 						}
@@ -1825,7 +1835,7 @@ public:
 		if (!_traceThr) return;
 		_onTrace = false;
 		try {
-			_traceThr.join;
+			_traceThr.join();
 		} catch (Throwable e) {
 			debugln(e);
 		}
@@ -1833,13 +1843,13 @@ public:
 
 	void createArchive() {
 		if (!_summ) return;
-		auto shl = dlgParShl.getShell;
+		auto shl = dlgParShl.getShell();
 		if (_comm.isChanged) {
 			auto dlg = new MessageBox(shl, SWT.YES | SWT.NO | SWT.CANCEL | SWT.ICON_QUESTION);
-			dlg.setText = _prop.msgs.dlgTitQuestion;
-			dlg.setMessage = _prop.msgs.dlgMsgIsSaveBeforeCreateArchive(_summ.scenarioName);
-			shl.setMinimized = false;
-			switch (dlg.open) {
+			dlg.setText(_prop.msgs.dlgTitQuestion);
+			dlg.setMessage(_prop.msgs.dlgMsgIsSaveBeforeCreateArchive(_summ.scenarioName));
+			shl.setMinimized(false);
+			switch (dlg.open()) {
 			case SWT.YES, SWT.OK:
 				saveScenario();
 				break;
@@ -1853,42 +1863,42 @@ public:
 		auto dlg = new FileDialog(shl, SWT.APPLICATION_MODAL | SWT.SINGLE | SWT.SAVE);
 		int zip, cab, wsn;
 		if (canUncab) {
-			dlg.setFilterExtensions = ["*.zip", "*.cab", "*.wsn"];
+			dlg.setFilterExtensions(["*.zip", "*.cab", "*.wsn"]);
 			zip = 0;
 			cab = 1;
 			wsn = 2;
 		} else {
-			dlg.setFilterExtensions = ["*.zip", "*.wsn"];
+			dlg.setFilterExtensions(["*.zip", "*.wsn"]);
 			zip = 0;
 			cab = -1;
 			wsn = 1;
 		}
-		dlg.setFilterNames = _prop.msgs.filterArchive;
-		dlg.setText = _prop.msgs.dlgTitCreateArchive;
-		dlg.setFilterPath = getcwd;
+		dlg.setFilterNames(_prop.msgs.filterArchive);
+		dlg.setText(_prop.msgs.dlgTitCreateArchive);
+		dlg.setFilterPath(getcwd());
 		switch (_prop.var.etc.selectedArchiveFilter) {
 		case "cab":
 			if (!canUncab) {
 				goto default;
 			}
-			dlg.setFilterIndex = cab;
-			dlg.setFileName = setExtension(_summ.scenarioName, "cab");
+			dlg.setFilterIndex(cab);
+			dlg.setFileName(setExtension(_summ.scenarioName, "cab"));
 			break;
 		case "wsn":
-			dlg.setFilterIndex = wsn;
-			dlg.setFileName = setExtension(_summ.scenarioName, "wsn");
+			dlg.setFilterIndex(wsn);
+			dlg.setFileName(setExtension(_summ.scenarioName, "wsn"));
 			break;
 		default:
-			dlg.setFilterIndex = zip;
-			dlg.setFileName = setExtension(_summ.scenarioName, "zip");
+			dlg.setFilterIndex(zip);
+			dlg.setFileName(setExtension(_summ.scenarioName, "zip"));
 			break;
 		}
-		dlg.setOverwrite = true;
-		string fname = dlg.open;
+		dlg.setOverwrite(true);
+		string fname = dlg.open();
 		if (!fname) return;
 
 		try {
-			switch (dlg.getFilterIndex) {
+			switch (dlg.getFilterIndex()) {
 			case cab:
 				synchronized (_comm.saveSync) {
 					_summ.createCab(fname, _prop.var.etc.ignorePaths);
@@ -1905,36 +1915,36 @@ public:
 				synchronized (_comm.saveSync) {
 					_summ.createZip(fname, _prop.var.etc.ignorePaths, true);
 				}
-				_prop.var.etc.selectedArchiveFilter = "zip";;
+				_prop.var.etc.selectedArchiveFilter = "zip";
 				break;
 			}
 		} catch (Exception e) {
 			debugln(e);
-			_comm.statusLine(_win, _prop.msgs.failedCreateArchive);
+			_comm.setStatusLine(_win, _prop.msgs.failedCreateArchive);
 		}
 	}
 
 	override void cut(SelectionEvent se) {
 		if (!canDoTCPD) return;
-		if (_dirs.isFocusControl) {
-			if (_dirs.getSelection.length == 0) return;
-			if (!_dirs.getSelection[0].getParentItem) return;
+		if (_dirs.isFocusControl()) {
+			if (_dirs.getSelection().length == 0) return;
+			if (!_dirs.getSelection()[0].getParentItem()) return;
 		}
-		if (__copy) {
-			if (_dirs.isFocusControl) {
+		if (__copy()) {
+			if (_dirs.isFocusControl()) {
 				auto dir = selDirPath;
-				_dirs.getSelection[0].setImage = sfimage(dir);
+				_dirs.getSelection()[0].setImage(sfimage(dir));
 				static if (0 == filenameCharCmp('A', 'a')) {
 					_cuts.add(cwx.utils.toLower(nabs(dir)));
 				} else {
 					_cuts.add(nabs(dir));
 				}
 			} else {
-				assert (_files.isFocusControl);
+				assert (_files.isFocusControl());
 				bool isdir = false;
-				foreach (itm; _files.getSelection) {
-					auto p = (cast(FileNameObj) itm.getData).array;
-					itm.setImage = sfimage(itm.getImage);
+				foreach (itm; _files.getSelection()) {
+					auto p = (cast(FileNameObj) itm.getData()).array;
+					itm.setImage(sfimage(itm.getImage()));
 					static if (0 == filenameCharCmp('A', 'a')) {
 						_cuts.add(cwx.utils.toLower(nabs(p)));
 					} else {
@@ -1948,19 +1958,19 @@ public:
 	}
 	override void copy(SelectionEvent se) {
 		if (!canDoTCPD) return;
-		__copy;
+		__copy();
 	}
 	private bool __copy() {
-		clearCut;
-		if (_dirs.isFocusControl) {
+		clearCut();
+		if (_dirs.isFocusControl()) {
 			auto dir = selDirPath;
 			if (dir) {
 				_comm.clipboard.setContents([new FileNames([nabs(dir)])],
-					[FileTransfer.getInstance]);
+					[FileTransfer.getInstance()]);
 				return true;
 			}
 		} else {
-			assert (_files.isFocusControl);
+			assert (_files.isFocusControl());
 			auto files = selFiles;
 			if (files.length > 0) {
 				string[] arr;
@@ -1969,7 +1979,7 @@ public:
 					arr[i] = nabs(f);
 				}
 				_comm.clipboard.setContents([new FileNames(arr)],
-					[FileTransfer.getInstance]);
+					[FileTransfer.getInstance()]);
 				return true;
 			}
 		}
@@ -1977,23 +1987,23 @@ public:
 	}
 	override void paste(SelectionEvent se) {
 		if (!canDoTCPD) return;
-		auto c = _comm.clipboard.getContents(FileTransfer.getInstance);
+		auto c = _comm.clipboard.getContents(FileTransfer.getInstance());
 		if (c && cast(FileNames) c) {
 			bool fromOut;
 			if (__paste(selDirPath, cast(FileNames) c, false, fromOut)) {
-				clearCut;
-				if (_summ.useTemp) _summ.changed;
+				clearCut();
+				if (_summ.useTemp) _summ.changed();
 			}
 		}
 	}
 	override void del(SelectionEvent se) {
 		if (!canDoTCPD) return;
-		if (_dirs.isFocusControl) {
-			if (_dirs.getSelection.length == 0) return;
-			if (!_dirs.getSelection[0].getParentItem) return;
+		if (_dirs.isFocusControl()) {
+			if (_dirs.getSelection().length == 0) return;
+			if (!_dirs.getSelection()[0].getParentItem()) return;
 		}
-		auto dlg = new MessageBox(_win.getShell, SWT.ICON_QUESTION | SWT.OK | SWT.CANCEL);
-		dlg.setText = _prop.msgs.dlgTitQuestion;
+		auto dlg = new MessageBox(_win.getShell(), SWT.ICON_QUESTION | SWT.OK | SWT.CANCEL);
+		dlg.setText(_prop.msgs.dlgTitQuestion);
 		auto dir = selDirPath;
 		auto file = selFiles;
 		string[] fileNames;
@@ -2002,35 +2012,35 @@ public:
 			fileNames[i] = nabs(f);
 		}
 		bool recycle = (se.stateMask & SWT.SHIFT) == 0;
-		if (_dirs.isFocusControl) {
+		if (_dirs.isFocusControl()) {
 			if (!dir) return;
 			version (Windows) {
 				if (recycle) {
-					dlg.setMessage = _prop.msgs.dlgMsgDeleteRecycle([nabs(dir)]);
+					dlg.setMessage(_prop.msgs.dlgMsgDeleteRecycle([nabs(dir)]));
 				} else {
-					dlg.setMessage = _prop.msgs.dlgMsgDelete([nabs(dir)]);
+					dlg.setMessage(_prop.msgs.dlgMsgDelete([nabs(dir)]));
 				}
 			} else {
-				dlg.setMessage = _prop.msgs.dlgMsgDelete([nabs(dir)]);
+				dlg.setMessage(_prop.msgs.dlgMsgDelete([nabs(dir)]));
 			}
-			if (SWT.OK == dlg.open) {
+			if (SWT.OK == dlg.open()) {
 				removeFiles([nabs(dir)], recycle);
 			} else {
 				return;
 			}
 		} else {
-			assert (_files.isFocusControl);
+			assert (_files.isFocusControl());
 			if (file.length == 0) return;
 			version (Windows) {
 				if (recycle) {
-					dlg.setMessage = _prop.msgs.dlgMsgDeleteRecycle(fileNames);
+					dlg.setMessage(_prop.msgs.dlgMsgDeleteRecycle(fileNames));
 				} else {
-					dlg.setMessage = _prop.msgs.dlgMsgDelete(fileNames);
+					dlg.setMessage(_prop.msgs.dlgMsgDelete(fileNames));
 				}
 			} else {
-				dlg.setMessage = _prop.msgs.dlgMsgDelete(fileNames);
+				dlg.setMessage(_prop.msgs.dlgMsgDelete(fileNames));
 			}
-			if (SWT.OK == dlg.open) {
+			if (SWT.OK == dlg.open()) {
 				removeFiles(file, recycle);
 			} else {
 				return;
@@ -2039,16 +2049,18 @@ public:
 		refreshDirs(dir);
 		refreshFiles(file);
 		_comm.delPaths.call(this);
-		if (_summ.useTemp) _summ.changed;
-		clearCut;
+		if (_summ.useTemp) _summ.changed();
+		clearCut();
 	}
+	@property
 	override bool canDoTCPD() {
-		return _dirs.isFocusControl || _files.isFocusControl;
+		return _dirs.isFocusControl() || _files.isFocusControl();
 	}
 
 	override bool openCWXPath(string path, bool shellActivate) {
 		return false;
 	}
+	@property
 	override string[] openedCWXPath() {
 		return [];
 	}

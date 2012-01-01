@@ -24,18 +24,18 @@ bool isXMLBytes(Object o) {
 
 void XMLtoCB(Props prop, Clipboard cb, string xml) {
 	if (prop.var.etc.xmlCopy) {
-		cb.setContents([new ArrayWrapperString(xml)], [TextTransfer.getInstance]);
+		cb.setContents([new ArrayWrapperString(xml)], [TextTransfer.getInstance()]);
 	} else {
-		cb.setContents([bytesFromXML(xml)], [XMLBytesTransfer.getInstance]);
+		cb.setContents([bytesFromXML(xml)], [XMLBytesTransfer.getInstance()]);
 	}
 }
 
 string CBtoXML(Clipboard cb) {
-	auto c = cb.getContents(XMLBytesTransfer.getInstance);
+	auto c = cb.getContents(XMLBytesTransfer.getInstance());
 	if (c !is null && isXMLBytes(c)) {
 		return bytesToXML(c);
 	}
-	c = cb.getContents(TextTransfer.getInstance);
+	c = cb.getContents(TextTransfer.getInstance());
 	if (c !is null) {
 		auto aws = cast(ArrayWrapperString) c;
 		string head = XML_HEADER_S;
@@ -69,16 +69,16 @@ class XMLBytesTransfer : ByteArrayTransfer {
 	}
 	private this() {}
 	static XMLBytesTransfer getInstance() {
-		static_this;
+		static_this();
 		return INSTANCE;
 	}
 
 	int[] getTypeIds() {
-		static_this;
+		static_this();
 		return [TYPE_ID];
 	}
 	string[] getTypeNames() {
-		static_this;
+		static_this();
 		return [TYPE_NAME];
 	}
 }

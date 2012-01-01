@@ -85,7 +85,7 @@ ArchiveMember archive(string name, ubyte[] data, bool isDir, bool useSysEnc = fa
 		name = std.array.replace(name, altsep, "/");
 	}
 	auto am = new ArchiveMember;
-	am.time = SysTimeToDosFileTime(Clock.currTime);
+	am.time = SysTimeToDosFileTime(Clock.currTime());
 	am.compressionMethod = 8;
 	// Attributes: Directory = 0x10, File = 0x20, ReadOnly = 0x01
 	am.externalAttributes = isDir ? 0x10 : 0x20;
@@ -181,7 +181,7 @@ ZipArchive zip(string targ, bool top, string[] excludePath = [], bool useSysEnc 
 /// targをzip圧縮し、パスzipに保存する。
 void zip(string targ, string zip, bool top, bool delegate(string path) ignorePath = null, bool useSysEnc = false) {
 	scope arc = .zip(targ, top, ignorePath);
-	std.file.write(zip, arc.build);
+	std.file.write(zip, arc.build());
 }
 void zip(string targ, string zip, bool top, string[] excludePath = [], bool useSysEnc = false) {
 	foreach (i, ex; excludePath) {

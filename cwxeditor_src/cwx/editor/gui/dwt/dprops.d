@@ -145,11 +145,12 @@ private:
 	Images _images;
 	FlexProps _var;
 public:
-	this(string confFilePath, CProps parent) {
+	this (string confFilePath, CProps parent) {
 		_parent = parent;
 		_images = new Images(parent.appPath);
 		_var = new FlexProps(parent.appPath, confFilePath);
 	}
+	@property
 	const
 	string enginePath() {
 		if (!var.etc.enginePath.length) return "";
@@ -159,6 +160,7 @@ public:
 			return std.path.buildPath(std.path.dirName(parent.appPath), var.etc.enginePath);
 		}
 	}
+	@property
 	const
 	string tempPath() {
 		if (!var.etc.tempPath.length) return "";
@@ -168,6 +170,7 @@ public:
 			return std.path.buildPath(std.path.dirName(parent.appPath), var.etc.tempPath);
 		}
 	}
+	@property
 	const
 	string backupPath() {
 		if (!var.etc.backupPath.length) return "";
@@ -177,16 +180,23 @@ public:
 			return std.path.buildPath(std.path.dirName(parent.appPath), var.etc.backupPath);
 		}
 	}
+	@property
 	const
 	const(CProps) parent() {return _parent;}
+	@property
 	const
 	const(cwx.system.System) sys() {return _parent.sys;}
+	@property
 	Images images() {return _images;}
+	@property
 	const
 	const(Msgs) msgs() {return _parent.msgs;}
+	@property
 	const
 	const(Looks) looks() {return _parent.looks;}
+	@property
 	FlexProps var() {return _var;}
+	@property
 	const
 	const(FlexProps) var() {return _var;}
 

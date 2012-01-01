@@ -159,7 +159,7 @@ ImageData loadImage(Skin skin, string path, bool mask = true, int maskX = 0, int
 				bytes = cast(byte[]) std.file.read(path);
 			}
 			auto s = new ByteArrayInputStream(bytes);
-			scope (exit) s.close;
+			scope (exit) s.close();
 			auto data = new ImageData(s);
 			if (mask) data.transparentPixel = data.getPixel(maskX, maskY);
 			return data;
@@ -170,6 +170,7 @@ ImageData loadImage(Skin skin, string path, bool mask = true, int maskX = 0, int
 	return blankImage;
 }
 
+@property
 ImageData blankImage() {
 	auto data = new ImageData(1, 1, 8, new PaletteData(0, 0, 0));
 	data.transparentPixel = data.getPixel(0, 0);
@@ -223,12 +224,12 @@ void setGridMinW(Control c, int minW, int gridStyle = SWT.NULL) {
 
 Composite centerGroup(Composite parent, string text, bool fillH = true, bool fillV = false, Object layoutData = null) {
 	auto grp = new Group(parent, SWT.NONE);
-	grp.setLayoutData = layoutData;
+	grp.setLayoutData(layoutData);
 	auto cl = new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0);
 	cl.fillHorizontal = fillH;
 	cl.fillVertical = fillV;
-	grp.setLayout = cl;
-	grp.setText = text;
+	grp.setLayout(cl);
+	grp.setText(text);
 	auto comp = new Composite(grp, SWT.NONE);
 	return comp;
 }
@@ -242,39 +243,39 @@ private:
 	int delegate(int oldVal) _cancel;
 	bool _noEdit = false;
 	void enter() {
-		if (_spn.getText.length > 0 && _oldVal != _spn.getSelection) {
-			_enter(_spn.getSelection);
+		if (_spn.getText().length > 0 && _oldVal != _spn.getSelection()) {
+			_enter(_spn.getSelection());
 		} else {
 			_noEdit = true;
 			scope (exit) _noEdit = false;
-			_spn.setSelection = _cancel !is null ? _cancel(_oldVal) : _oldVal;
+			_spn.setSelection(_cancel !is null ? _cancel(_oldVal) : _oldVal);
 		}
-		_oldVal = _spn.getSelection;
+		_oldVal = _spn.getSelection();
 	}
 	class KListener : KeyAdapter {
 		public override void keyPressed(KeyEvent e) {
 			if (e.character == SWT.CR) {
-				enter;
+				enter();
 			} else if (e.character == SWT.ESC) {
 				_noEdit = true;
 				scope (exit) _noEdit = false;
-				_spn.setSelection = _cancel !is null ? _cancel(_oldVal) : _oldVal;
-				_oldVal = _spn.getSelection;
+				_spn.setSelection(_cancel !is null ? _cancel(_oldVal) : _oldVal);
+				_oldVal = _spn.getSelection();
 			}
 		}
 	}
 	class MSListener : FocusListener {
 		void focusGained(FocusEvent e) {
-			_oldVal = _spn.getSelection;
+			_oldVal = _spn.getSelection();
 		}
 		void focusLost(FocusEvent e) {
-			enter;
+			enter();
 		}
 	}
 	class MDListener : ModifyListener {
 		public override void modifyText(ModifyEvent e) {
-			if (_spn.isFocusControl && _edit !is null && !_noEdit) {
-				_edit(_spn.getSelection);
+			if (_spn.isFocusControl() && _edit !is null && !_noEdit) {
+				_edit(_spn.getSelection());
 			}
 		}
 	}
@@ -346,12 +347,12 @@ public:
 			} else {
 				synchronized {
 					if (e.button == 1 && itm !is null) {
-						if (_itm !is null && itm == _itm && _time <= Clock.currTime) {
+						if (_itm !is null && itm == _itm && _time <= Clock.currTime()) {
 							_itm = null;
 							_startEdit(itm);
 						} else {
 							_itm = itm;
-							_time = Clock.currTime + dur!"msecs"(Display.getCurrent.getDoubleClickTime);
+							_time = Clock.currTime() + dur!"msecs"(Display.getCurrent().getDoubleClickTime());
 						}
 					}
 				}
@@ -406,15 +407,16 @@ public:
 	}
 	void setFocus() {
 		try {
-			ctrl.setFocus;
+			ctrl.setFocus();
 			auto combo = cast(Combo) ctrl;
-			if (combo) combo.setListVisible = true;
+			if (combo) combo.setListVisible(true);
 			auto ccombo = cast(CCombo) ctrl;
-			if (ccombo) ccombo.setListVisible = true;
+			if (ccombo) ccombo.setListVisible(true);
 		} catch (Exception e) {
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
+	@property
 	Control editor() {
 		try {
 			return ctrl;
@@ -435,15 +437,16 @@ public:
 			if (e.character == SWT.CR) {
 				enter();
 			} else if (e.keyCode == SWT.ESC) {
-				ctrl.dispose;
+				ctrl.dispose();
 			}
 		} catch (Exception e) {
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
+	@property
 	bool isExit() {
 		try {
-			return ctrl.isDisposed;
+			return ctrl.isDisposed();
 		} catch (Exception e) {
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
@@ -455,7 +458,7 @@ public:
 			} catch (Exception e) {
 				debugln(e);
 			}
-			ctrl.dispose;
+			ctrl.dispose();
 		} catch (Exception e) {
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
@@ -477,7 +480,7 @@ Text createTextEditor(Commons comm, Props prop, Composite parent, string str) {
 C createComboEditor(C = CCombo)(Commons comm, Props prop, Composite parent, string[] strs, string str) {
 	try {
 		auto combo = new C(parent, SWT.BORDER | SWT.READ_ONLY);
-		combo.setVisibleItemCount = 20;
+		combo.setVisibleItemCount(20);
 		static if (is(C : CCombo)) {
 			createTextMenu!C(comm, prop, combo, null);
 		}
@@ -505,10 +508,10 @@ private:
 
 	Item selectionM(int x, int y) {
 		try {
-			if (table.getSelectionCount == 1) {
-				auto itm = table.getSelection[0];
+			if (table.getSelectionCount() == 1) {
+				auto itm = table.getSelection()[0];
 				if (itm.getBounds(editC).contains(x, y)) {
-					if (!itm.getImage || !itm.getImageBounds(editC).contains(x, y)) {
+					if (!itm.getImage() || !itm.getImageBounds(editC).contains(x, y)) {
 						return itm;
 					}
 				}
@@ -520,8 +523,8 @@ private:
 	}
 	Item selectionK() {
 		try {
-			if (table.getSelectionCount == 1) {
-				return table.getSelection[0];
+			if (table.getSelectionCount() == 1) {
+				return table.getSelection()[0];
 			}
 			return null;
 		} catch (Exception e) {
@@ -570,7 +573,7 @@ public:
 	/// 選択されているセルの編集を開始する。
 	void startEdit() {
 		try {
-			auto sels = table.getSelection;
+			auto sels = table.getSelection();
 			if (sels.length == 1) {
 				startEdit(sels[0]);
 			}
@@ -580,18 +583,19 @@ public:
 	}
 	void startEdit(TableItem itm) {
 		try {
-			if (!itm.getParent.isFocusControl) return;
-			if (_tee !is null && !_tee.isExit) _tee.enter;
+			if (!itm.getParent().isFocusControl()) return;
+			if (_tee !is null && !_tee.isExit) _tee.enter();
 			auto sel = itm;
 			if (canEdit is null || canEdit(sel, editC)) {
 				_tee = new EditEnd(table, createEditor(sel, editC), &endImpl);
 				editor.setEditor(_tee.editor, sel, editC);
-				_tee.setFocus;
+				_tee.setFocus();
 			}
 		} catch (Exception e) {
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
+	@property
 	bool isEditing() {
 		try {
 			return _tee !is null;
@@ -631,18 +635,18 @@ public:
 	}
 
 	protected override Control createEditor(TableItem itm, int editC) {
-		return createTextEditor(_comm, _prop, itm.getParent, itm.getText(editC));
+		return createTextEditor(_comm, _prop, itm.getParent(), itm.getText(editC));
 	}
 	protected override void end(Control c) {
 		try {
-			auto newText = (cast(Text) c).getText;
+			auto newText = (cast(Text) c).getText();
 			if (!newText) newText = "";
 			if (editEnd is null) {
 				if (newText.length > 0) {
-					editor.getItem.setText(editC, newText);
+					editor.getItem().setText(editC, newText);
 				}
 			} else {
-				editEnd(editor.getItem, editC, newText);
+				editEnd(editor.getItem(), editC, newText);
 			}
 		} catch (Exception e) {
 			throw new Exception(e.msg, __FILE__, __LINE__);
@@ -685,15 +689,15 @@ public:
 		string[] strs;
 		string str;
 		createCombo(itm, editC, strs, str);
-		return createComboEditor!C(_comm, _prop, itm.getParent, strs, str);
+		return createComboEditor!C(_comm, _prop, itm.getParent(), strs, str);
 	}
 	protected override void end(Control c) {
 		try {
 			auto combo = cast(C) c;
 			if (editEnd is null) {
-				editor.getItem.setText(editC, combo.getText);
+				editor.getItem().setText(editC, combo.getText());
 			} else {
-				editEnd(editor.getItem, editC, combo);
+				editEnd(editor.getItem(), editC, combo);
 			}
 		} catch (Exception e) {
 			throw new Exception(e.msg, __FILE__, __LINE__);
@@ -728,19 +732,19 @@ public:
 		try {
 			void set(string text) {
 				if (editEnd is null) {
-					editor.getItem.setText(editC, text);
+					editor.getItem().setText(editC, text);
 				} else {
-					editEnd(editor.getItem, editC, c);
+					editEnd(editor.getItem(), editC, c);
 				}
 			}
 			auto spinner = cast(Spinner) c;
-			if (spinner) set(spinner.getText);
+			if (spinner) set(spinner.getText());
 			auto text = cast(Text) c;
-			if (text) set(text.getText);
+			if (text) set(text.getText());
 			auto combo = cast(Combo) c;
-			if (combo) set(combo.getText);
+			if (combo) set(combo.getText());
 			auto ccombo = cast(CCombo) c;
-			if (ccombo) set(ccombo.getText);
+			if (ccombo) set(ccombo.getText());
 		} catch (Exception e) {
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
@@ -759,9 +763,9 @@ private:
 
 	Item selectionM(int x, int y) {
 		try {
-			if (tree.getSelectionCount == 1) {
-				auto itm = tree.getSelection[0];
-				if (itm.getBounds.contains(x, y)) {
+			if (tree.getSelectionCount() == 1) {
+				auto itm = tree.getSelection()[0];
+				if (itm.getBounds().contains(x, y)) {
 					return itm;
 				}
 			}
@@ -772,8 +776,8 @@ private:
 	}
 	Item selectionK() {
 		try {
-			if (tree.getSelectionCount == 1) {
-				return tree.getSelection[0];
+			if (tree.getSelectionCount() == 1) {
+				return tree.getSelection()[0];
 			}
 			return null;
 		} catch (Exception e) {
@@ -783,7 +787,7 @@ private:
 
 	void end(Control ctrl) {
 		try {
-			editEnd(editor.getItem, ctrl);
+			editEnd(editor.getItem(), ctrl);
 			_tee = null;
 		} catch (Exception e) {
 			throw new Exception(e.msg, __FILE__, __LINE__);
@@ -792,13 +796,13 @@ private:
 
 	void startEdit(Item itm) {
 		try {
-			if (_tee !is null && !_tee.isExit) _tee.enter;
+			if (_tee !is null && !_tee.isExit) _tee.enter();
 			auto sel = cast(TreeItem) itm;
 			auto c = createEditor(sel);
 			if (c) {
 				_tee = new EditEnd(tree, c, &end);
 				editor.setEditor(_tee.editor, sel);
-				_tee.setFocus;
+				_tee.setFocus();
 			}
 		} catch (Exception e) {
 			throw new Exception(e.msg, __FILE__, __LINE__);
@@ -829,7 +833,7 @@ public:
 	/// 選択されているセルの編集を開始する。
 	void startEdit() {
 		try {
-			auto sels = tree.getSelection;
+			auto sels = tree.getSelection();
 			if (sels.length == 1) {
 				startEdit(sels[0]);
 			}
@@ -852,53 +856,54 @@ public:
 	void copy(SelectionEvent se);
 	void paste(SelectionEvent se);
 	void del(SelectionEvent se);
+	@property
 	bool canDoTCPD();
 }
 
 private class InTCPD {
 	TCPD tcpd;
 	void cut(SelectionEvent se) {
-		auto fc = Display.getCurrent.getFocusControl;
-		bool ro = !(fc.getStyle & SWT.READ_ONLY);
+		auto fc = Display.getCurrent().getFocusControl();
+		bool ro = !(fc.getStyle() & SWT.READ_ONLY);
 		if (ro && cast(Text) fc) {
-			(cast(Text) fc).cut;
+			(cast(Text) fc).cut();
 		} else if (ro && cast(Combo) fc) {
-			(cast(Combo) fc).cut;
+			(cast(Combo) fc).cut();
 		} else if (ro && cast(CCombo) fc) {
-			(cast(CCombo) fc).cut;
+			(cast(CCombo) fc).cut();
 		} else {
 			tcpd.cut(se);
 		}
 	}
 	void copy(SelectionEvent se) {
-		auto fc = Display.getCurrent.getFocusControl;
-		bool ro = !(fc.getStyle & SWT.READ_ONLY);
+		auto fc = Display.getCurrent().getFocusControl();
+		bool ro = !(fc.getStyle() & SWT.READ_ONLY);
 		if (ro && cast(Text) fc) {
-			(cast(Text) fc).copy;
+			(cast(Text) fc).copy();
 		} else if (ro && cast(Combo) fc) {
-			(cast(Combo) fc).copy;
+			(cast(Combo) fc).copy();
 		} else if (ro && cast(CCombo) fc) {
-			(cast(CCombo) fc).copy;
+			(cast(CCombo) fc).copy();
 		} else {
 			tcpd.copy(se);
 		}
 	}
 	void paste(SelectionEvent se) {
-		auto fc = Display.getCurrent.getFocusControl;
-		bool ro = !(fc.getStyle & SWT.READ_ONLY);
+		auto fc = Display.getCurrent().getFocusControl();
+		bool ro = !(fc.getStyle() & SWT.READ_ONLY);
 		if (ro && cast(Text) fc) {
-			(cast(Text) fc).paste;
+			(cast(Text) fc).paste();
 		} else if (ro && cast(Combo) fc) {
-			(cast(Combo) fc).paste;
+			(cast(Combo) fc).paste();
 		} else if (ro && cast(CCombo) fc) {
-			(cast(CCombo) fc).paste;
+			(cast(CCombo) fc).paste();
 		} else {
 			tcpd.paste(se);
 		}
 	}
 	void del(SelectionEvent se) {
-		auto fc = Display.getCurrent.getFocusControl;
-		bool ro = !(fc.getStyle & SWT.READ_ONLY);
+		auto fc = Display.getCurrent().getFocusControl();
+		bool ro = !(fc.getStyle() & SWT.READ_ONLY);
 		if (ro && cast(Text) fc) {
 			(cast(Text) fc).insert("");
 		} else {
@@ -1032,11 +1037,11 @@ private class MenuSel(Dlg) : SelectionAdapter {
 private MenuItem createMenuItemImpl(Dlg)(Menu sub, string text, Image img,
 		Dlg func, int style = SWT.PUSH) {
 	auto itm = new MenuItem(sub, style);
-	itm.setText = text;
+	itm.setText(text);
 	if (func) {
 		itm.addSelectionListener(new MenuSel!(Dlg)(func));
 	}
-	if (img) itm.setImage = img;
+	if (img) itm.setImage(img);
 	return itm;
 }
 MenuItem createMenuItem(Menu sub, string text, Image img,
@@ -1048,25 +1053,25 @@ MenuItem createMenuItem(Menu sub, string text, Image img,
 	return createMenuItemImpl(sub, text, img, func, style);
 }
 Menu createMenu(Menu bar, string text) {
-	auto menu = new Menu(bar.getShell, SWT.DROP_DOWN);
+	auto menu = new Menu(bar.getShell(), SWT.DROP_DOWN);
 	auto mi = new MenuItem(bar, SWT.CASCADE);
-	mi.setText = text;
-	mi.setMenu = menu;
+	mi.setText(text);
+	mi.setMenu(menu);
 	return menu;
 }
 
 ToolItem createDropDownItem(ToolBar bar, string text, Image img, void delegate() func, out Menu menu) {
 	auto ti = new ToolItem(bar, SWT.DROP_DOWN);
-	ti.setToolTipText = text;
-	ti.setImage = img;
-	menu = new Menu(bar.getShell);
+	ti.setToolTipText(text);
+	ti.setImage(img);
+	menu = new Menu(bar.getShell());
 	class Push : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			if (SWT.ARROW == e.detail && 0 < menu.getItemCount) {
-				auto b = ti.getBounds;
+			if (SWT.ARROW == e.detail && 0 < menu.getItemCount()) {
+				auto b = ti.getBounds();
 				auto pt = bar.toDisplay(b.x, b.y + b.height);
-				menu.setLocation = pt;
-				menu.setVisible = true;
+				menu.setLocation(pt);
+				menu.setVisible(true);
 			} else {
 				func();
 			}
@@ -1078,9 +1083,9 @@ ToolItem createDropDownItem(ToolBar bar, string text, Image img, void delegate()
 ToolItem createToolItemImpl(Dlg)(ToolBar bar, string tip, string text, Image img,
 		Dlg func, int style = SWT.PUSH) {
 	auto itm = new ToolItem(bar, style);
-	itm.setText = text;
-	itm.setToolTipText = tip;
-	itm.setImage = img;
+	itm.setText(text);
+	itm.setToolTipText(tip);
+	itm.setImage(img);
 	if (func) {
 		itm.addSelectionListener(new MenuSel!(Dlg)(func));
 	}
@@ -1110,9 +1115,9 @@ private class ToolSel : SelectionAdapter {
 ToolItem createToolItem(ToolBar bar, string tip, string text, Image img,
 		void delegate(ToolItem) func, int style = SWT.PUSH) {
 	auto itm = new ToolItem(bar, style);
-	itm.setText = text;
-	itm.setToolTipText = tip;
-	itm.setImage = img;
+	itm.setText(text);
+	itm.setToolTipText(tip);
+	itm.setImage(img);
 	if (func) {
 		itm.addSelectionListener(new ToolSel(func));
 	}
@@ -1125,41 +1130,41 @@ ToolItem createToolItem(ToolBar bar, string text, Image img,
 }
 
 bool hasFocus(Control c) {
-	auto ctrl = Display.getCurrent.getFocusControl;
+	auto ctrl = Display.getCurrent().getFocusControl();
 	if (c is ctrl) return true;
-	auto parent = ctrl.getParent;
+	auto parent = ctrl.getParent();
 	while (parent) {
 		if (c is parent) return true;
-		parent = parent.getParent;
+		parent = parent.getParent();
 	}
 	return false;
 }
 Shell topShell(Shell shell) {
-	auto parent = cast(Shell) shell.getParent;
+	auto parent = cast(Shell) shell.getParent();
 	if (!parent) return shell;
-	while (parent.getParent) {
-		parent = cast(Shell) parent.getParent;
+	while (parent.getParent()) {
+		parent = cast(Shell) parent.getParent();
 	}
 	return parent;
 }
 bool isDescendant(Shell shell1, Shell shell2) {
 	while (shell1 !is shell2) {
 		if (!shell2) return false;
-		shell2 = cast(Shell) shell2.getParent;
+		shell2 = cast(Shell) shell2.getParent();
 	}
 	return true;
 }
 bool isDescendant(Composite comp, Control ctrl) {
 	while (comp !is ctrl) {
 		if (!ctrl) return false;
-		ctrl = ctrl.getParent;
+		ctrl = ctrl.getParent();
 	}
 	return true;
 }
 class CloseRemover(Window) : DisposeListener {
 	private HashSet!(Window) _ws;
 	private Window _w;
-	public this(HashSet!(Window) ws, Window w) {
+	public this (HashSet!(Window) ws, Window w) {
 		_ws = ws;
 		_w = w;
 	}
@@ -1197,7 +1202,7 @@ private:
 				}
 			}
 			if (paths.length > 0) {
-				doExit;
+				doExit();
 			}
 		}
 	}
@@ -1205,12 +1210,14 @@ public:
 	this(Control c) {
 		_c = c;
 		auto target = new DropTarget(c, DND.DROP_DEFAULT | DND.DROP_COPY);
-		target.setTransfer([FileTransfer.getInstance]);
+		target.setTransfer([FileTransfer.getInstance()]);
 		target.addDropListener(new DListener);
 	}
+	@property
 	Control control() {
 		return _c;
 	}
+	@property
 	protected bool canDrop() {
 		return true;
 	}
@@ -1218,20 +1225,21 @@ public:
 		return files;
 	}
 	protected void doExit() {
+		// Nothing
 	}
 	protected abstract bool doFile(string path, int x, int y);
 }
 
 class RadioGroup(B : Widget) {
 public:
-	this() {
+	this () {
 		_set = new HashSet!(B);
 		_l = new L;
 	}
 	void select(B b) {
 		if (_sel !is b) {
-			_sel.setSelection = false;
-			b.setSelection = true;
+			_sel.setSelection(false);
+			b.setSelection(true);
 			_sel = b;
 		}
 	}
@@ -1241,13 +1249,13 @@ public:
 	HashSet!(B) set() {return _set;}
 	void append(B b) {
 		_set.add(b);
-		assert ((b.getStyle & SWT.RADIO) != 0);
+		assert ((b.getStyle() & SWT.RADIO) != 0);
 		if (_sel is null){
-			if (b.getSelection) {
+			if (b.getSelection()) {
 				_sel = b;
 			}
 		} else {
-			b.setSelection = false;
+			b.setSelection(false);
 		}
 		b.addListener(SWT.Selection, _l);
 	}
@@ -1261,7 +1269,7 @@ private:
 			if (_sel is null) {
 				_sel = b;
 			} else if (b !is _sel) {
-				_sel.setSelection = false;
+				_sel.setSelection(false);
 				_sel = b;
 			}
 		}
@@ -1275,16 +1283,16 @@ TreeItem createTreeItem(T)(T parent, Object data, string text, Image img, int in
 	} else {
 		r = new TreeItem(parent, SWT.NONE);
 	}
-	r.setData = data;
-	r.setText = text;
-	r.setImage = img;
+	r.setData(data);
+	r.setText(text);
+	r.setImage(img);
 	return r;
 }
 
 TreeItem topItem(TreeItem itm) {
 	if (!itm) return null;
-	if (itm.getParentItem) {
-		return topItem(itm.getParentItem);
+	if (itm.getParentItem()) {
+		return topItem(itm.getParentItem());
 	}
 	return itm;
 }
@@ -1292,11 +1300,11 @@ int treeItemUp(TreeItem itm) {
 	return __treeItemUD!("i > 0", "i - 1")(itm);
 }
 int treeItemDown(TreeItem itm) {
-	return __treeItemUD!("i + 1 < parent.getItemCount", "i + 2")(itm);
+	return __treeItemUD!("i + 1 < parent.getItemCount()", "i + 2")(itm);
 }
 private int __treeItemUD(string SwapOK, string ToIndex)(TreeItem itm) {
-	auto tree = itm.getParent;
-	auto p = itm.getParentItem;
+	auto tree = itm.getParent();
+	auto p = itm.getParentItem();
 	if (p is null) {
 		return __treeItemUD2!(Tree, SwapOK, ToIndex)(tree, itm);
 	} else {
@@ -1305,65 +1313,65 @@ private int __treeItemUD(string SwapOK, string ToIndex)(TreeItem itm) {
 }
 private int __treeItemUD2(T, string SwapOK, string ToIndex)(T parent, TreeItem itm) {
 	int i = parent.indexOf(itm);
-	auto tree = itm.getParent;
+	auto tree = itm.getParent();
 	if (mixin (SwapOK)) {
 		auto ti = cloneItem!(T)(parent, itm, mixin (ToIndex));
-		foreach (sel; tree.getSelection) {
+		foreach (sel; tree.getSelection()) {
 			if (sel is itm) {
 				tree.setSelection(ti);
 				break;
 			}
 		}
-		itm.dispose;
+		itm.dispose();
 		return i;
 	}
 	return -1;
 }
 private TreeItem cloneItem(T)(T parent, TreeItem old, int index) {
-	auto ti = new TreeItem(parent, old.getStyle, index);
-	ti.setData = old.getData;
-	ti.setChecked = old.getChecked;
-	ti.setForeground = old.getForeground;
-	ti.setBackground = old.getBackground;
-	ti.setGrayed = old.getGrayed;
-	ti.setFont = old.getFont;
-	int imgCount = old.getParent.getColumnCount + 1;
+	auto ti = new TreeItem(parent, old.getStyle(), index);
+	ti.setData(old.getData());
+	ti.setChecked(old.getChecked());
+	ti.setForeground(old.getForeground());
+	ti.setBackground(old.getBackground());
+	ti.setGrayed(old.getGrayed());
+	ti.setFont(old.getFont());
+	int imgCount = old.getParent().getColumnCount() + 1;
 	for (int i = 0; i < imgCount; i++) {
 		ti.setText(i, old.getText(i));
 		ti.setImage(i, old.getImage(i));
 	}
-	foreach (i, itm; old.getItems) {
+	foreach (i, itm; old.getItems()) {
 		cloneItem(ti, itm, i);
 	}
-	ti.setExpanded = old.getExpanded;
+	ti.setExpanded(old.getExpanded());
 	return ti;
 }
 
 void treeExpandedAll(TreeItem tree) {
-	foreach (itm; tree.getItems) {
+	foreach (itm; tree.getItems()) {
 		treeExpandedAll(itm);
 	}
-	tree.setExpanded = true;
+	tree.setExpanded(true);
 }
 void treeExpandedAll(Tree tree) {
-	tree.setRedraw = false;
-	foreach (itm; tree.getItems) {
+	tree.setRedraw(false);
+	foreach (itm; tree.getItems()) {
 		treeExpandedAll(itm);
 	}
-	tree.setRedraw = true;
+	tree.setRedraw(true);
 }
 void treeUnexpandedAll(TreeItem tree) {
-	foreach (itm; tree.getItems) {
+	foreach (itm; tree.getItems()) {
 		treeUnexpandedAll(itm);
 	}
-	tree.setExpanded = false;
+	tree.setExpanded(false);
 }
 void treeUnexpandedAll(Tree tree) {
-	tree.setRedraw = false;
-	foreach (itm; tree.getItems) {
+	tree.setRedraw(false);
+	foreach (itm; tree.getItems()) {
 		treeUnexpandedAll(itm);
 	}
-	tree.setRedraw = true;
+	tree.setRedraw(true);
 }
 
 version (Windows) {} else {
@@ -1379,8 +1387,8 @@ bool openFolder(string path) {
 }
 
 void hemming(GC gc, string s, int tx, int ty, Color color) {
-	auto d = Display.getCurrent;
-	gc.setForeground = d.getSystemColor(SWT.COLOR_BLACK);
+	auto d = Display.getCurrent();
+	gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
 	gc.drawText(s, tx - 1, ty, true);
 	gc.drawText(s, tx, ty - 1, true);
 	gc.drawText(s, tx + 1, ty, true);
@@ -1389,7 +1397,7 @@ void hemming(GC gc, string s, int tx, int ty, Color color) {
 	gc.drawText(s, tx - 1, ty + 1, true);
 	gc.drawText(s, tx + 1, ty - 1, true);
 	gc.drawText(s, tx + 1, ty + 1, true);
-	gc.setForeground = color;
+	gc.setForeground(color);
 	gc.drawText(s, tx, ty, true);
 }
 ImageData castCardImage(Props prop, Skin skin, CastCard c, string sPath, bool dbgMode) {
@@ -1427,7 +1435,7 @@ ImageData castCardImage(Props prop, Skin skin, CastCard c, string sPath, bool db
 	r.append(skin.findImagePath(c.path, sPath), matPad, true);
 	int stMax = prop.looks.statusVerMax;
 	if (dbgMode || c.faceUpRound > 0) {
-		auto d = Display.getCurrent;
+		auto d = Display.getCurrent();
 		auto lgid = lifeGuage(skin);
 		int lgw = lgid.width;
 		int lgh = lgid.height;
@@ -1435,20 +1443,20 @@ ImageData castCardImage(Props prop, Skin skin, CastCard c, string sPath, bool db
 			try {
 				lgid.transparentPixel = lgid.getPixel(lgw / 2, lgh / 2);
 				auto lgi = new Image(d, lgid);
-				scope (exit) lgi.dispose;
+				scope (exit) lgi.dispose();
 				auto lbid = lifeBar(skin);
 				auto lbi = new Image(d, lbid);
-				scope (exit) lbi.dispose;
+				scope (exit) lbi.dispose();
 				auto bmp = new Image(d, lgw, lgh);
-				scope (exit) bmp.dispose;
+				scope (exit) bmp.dispose();
 				auto gc = new GC(bmp);
-				scope (exit) gc.dispose;
+				scope (exit) gc.dispose();
 				int lbh = lbid.height;
 				auto ln = cast(real) c.life / c.lifeMax;
 				gc.drawImage(lbi, lgw, 0, lgw, lbh, 0, (lgh - lbh) / 2, lgw, lbh);
 				gc.drawImage(lbi, 0, 0, cast(int) (lgw * ln), lbh, 0, (lgh - lbh) / 2, cast(int) (lgw * ln), lbh);
 				gc.drawImage(lgi, 0, 0);
-				auto life = bmp.getImageData;
+				auto life = bmp.getImageData();
 				life.transparentPixel = life.getPixel(0, 0);
 				r.append(life, stp);
 				stp.y -= lgh + 2;
@@ -1507,28 +1515,28 @@ ImageData castCardImage(Props prop, Skin skin, CastCard c, string sPath, bool db
 		}
 	}
 	if (beastCount > 0) {
-		auto d = Display.getCurrent;
+		auto d = Display.getCurrent();
 		auto bid = summon(skin);
 		auto bmp = new Image(d, bid.width, bid.height);
-		scope (exit) bmp.dispose;
+		scope (exit) bmp.dispose();
 		auto gc = new GC(bmp);
-		scope (exit) gc.dispose;
+		scope (exit) gc.dispose();
 		auto bi = new Image(d, bid);
-		scope (exit) bi.dispose;
+		scope (exit) bi.dispose();
 		gc.drawImage(bi, 0, 0);
 		auto bff = new Font(d, dwtData(prop.looks.beastNumFont(skin.legacy)));
-		scope (exit) bff.dispose;
-		gc.setFont = bff;
+		scope (exit) bff.dispose();
+		gc.setFont(bff);
 		string s = to!(string)(beastCount);
 		auto cw = gc.textExtent(s).x;
-		auto mt = gc.getFontMetrics;
+		auto mt = gc.getFontMetrics();
 		auto tx = bid.width - cw - 1;
-		auto ty = bid.height - mt.getAscent - 2;
+		auto ty = bid.height - mt.getAscent() - 2;
 		hemming(gc, s, tx, ty, d.getSystemColor(SWT.COLOR_WHITE));
-		r.append(bmp.getImageData, stp);
+		r.append(bmp.getImageData(), stp);
 	}
 	r.setTitle(c.name, dwtData(prop.looks.castCardNameFont(skin.legacy)), dwtData(prop.looks.castCardNamePoint));
-	return r.createImageData;
+	return r.createImageData();
 }
 ImageData cardImage(C)(Props prop, Skin skin, C c, string sPath, CastCard owner = null) {
 	static if (is (C == SkillCard)) {
@@ -1603,30 +1611,30 @@ ImageData cardImage(C)(Props prop, Skin skin, C c, string sPath, CastCard owner 
 			auto ul = c.useLimit;
 		} else static assert (0);
 		if (ul > 0) {
-			auto d = Display.getCurrent;
-			auto imgData = r.createImageData;
+			auto d = Display.getCurrent();
+			auto imgData = r.createImageData();
 			auto img = new Image(d, imgData);
-			scope (exit) img.dispose;
+			scope (exit) img.dispose();
 			auto gc = new GC(img);
-			scope (exit) gc.dispose;
+			scope (exit) gc.dispose();
 			auto font = new Font(d, dwtData(prop.looks.useCountFont(skin.legacy)));
-			scope (exit) font.dispose;
-			gc.setFont = font;
+			scope (exit) font.dispose();
+			gc.setFont(font);
 			bool res = prop.sys.isRecycle(c);
 			int alpha;
 			auto color = res
 				? new Color(d, dwtData(prop.looks.recycleNumColor, alpha))
 				: d.getSystemColor(SWT.COLOR_WHITE);
 			scope (exit) {
-				if (res) color.dispose;
+				if (res) color.dispose();
 			}
 			auto p = prop.looks.useCountPoint;
 			string s = to!(string)(c.useLimit);
 			hemming(gc, s, p.x, p.y, color);
-			return img.getImageData;
+			return img.getImageData();
 		}
 	}
-	return r.createImageData;
+	return r.createImageData();
 }
 
 void addCastCoupons(Combo combo, Props prop, bool talker, string legacyName) {
@@ -1664,7 +1672,7 @@ bool qMaterialCopy(Props prop, Skin skin, Shell shell,
 	}
 	if (paths.length == 0) return true;
 	auto copyM = new MessageBox(shell, SWT.YES | SWT.NO | SWT.CANCEL | SWT.ICON_QUESTION);
-	copyM.setText = prop.msgs.dlgTitQuestion;
+	copyM.setText(prop.msgs.dlgTitQuestion);
 	uint bin = 0u;
 	string[] msgPaths;
 	foreach (p; paths) {
@@ -1674,8 +1682,8 @@ bool qMaterialCopy(Props prop, Skin skin, Shell shell,
 			msgPaths ~= std.path.buildPath(fromSPath, p);
 		}
 	}
-	copyM.setMessage = prop.msgs.dlgMsgCopyMaterial(msgPaths, bin);
-	switch (copyM.open) {
+	copyM.setMessage(prop.msgs.dlgMsgCopyMaterial(msgPaths, bin));
+	switch (copyM.open()) {
 	case SWT.YES:
 		bool err = false;
 		foreach (i, key; paths) {
@@ -1709,7 +1717,7 @@ bool qMaterialCopy(Props prop, Skin skin, Shell shell,
 }
 
 void saveColumnWidth(string Value)(Props prop, TableColumn col) {
-	col.setWidth = mixin (Value);
+	col.setWidth(mixin (Value));
 	static if (is (typeof(mixin(Value ~ " = 0")) == void)) {
 		static class SaveColumnWidth : DisposeListener {
 			Props prop;
@@ -1717,7 +1725,7 @@ void saveColumnWidth(string Value)(Props prop, TableColumn col) {
 				this.prop = prop;
 			}
 			override void widgetDisposed(DisposeEvent e) {
-				int width = (cast(TableColumn) e.widget).getWidth;
+				int width = (cast(TableColumn) e.widget).getWidth();
 				mixin (Value ~ " = width;");
 			}
 		}
@@ -1726,7 +1734,7 @@ void saveColumnWidth(string Value)(Props prop, TableColumn col) {
 }
 
 void intoDisplay(ref int x, ref int y, int w, int h) {
-	auto pb = Display.getCurrent.getClientArea;
+	auto pb = Display.getCurrent().getClientArea();
 	if (pb.x + pb.width < x + w) x = pb.x + pb.width - w;
 	if (pb.y + pb.height < y + h) y = pb.y + pb.height - h;
 	if (x < pb.x) x = pb.x;
@@ -1735,33 +1743,33 @@ void intoDisplay(ref int x, ref int y, int w, int h) {
 
 class StopBGM : SelectionAdapter, DisposeListener {
 	override void widgetSelected(SelectionEvent e) {
-		stopSE;
+		stopSE();
 	}
 	override void widgetDisposed(DisposeEvent e) {
-		stopBGM;
+		stopBGM();
 	}
 }
 class StopSE : SelectionAdapter, DisposeListener {
 	override void widgetSelected(SelectionEvent e) {
-		stopSE;
+		stopSE();
 	}
 	override void widgetDisposed(DisposeEvent e) {
-		stopSE;
+		stopSE();
 	}
 }
 
 Image skeletonImage(Image src, bool mask = true) {
-	auto data = src.getImageData;
-	auto img = new Image(Display.getCurrent, data.width, data.height);
+	auto data = src.getImageData();
+	auto img = new Image(Display.getCurrent(), data.width, data.height);
 	scope gc = new GC(img);
-	gc.setAlpha = 0x7F;
-	scope (exit) gc.dispose;
+	gc.setAlpha(0x7F);
+	scope (exit) gc.dispose();
 	gc.drawImage(src, 0, 0);
 	if (!mask) return img;
-	scope (exit) img.dispose;
-	data = img.getImageData;
+	scope (exit) img.dispose();
+	data = img.getImageData();
 	data.transparentPixel = data.getPixel(0, 0);
-	return new Image(Display.getCurrent, data);
+	return new Image(Display.getCurrent(), data);
 }
 
 Composite createDefSoundCombo(Commons comm, Props prop, Summary summ, Composite parent, out Combo combo, string title = null) {
@@ -1777,33 +1785,33 @@ Composite createDefSoundCombo(Commons comm, Props prop, Summary summ, Composite 
 			_combo = combo;
 		}
 		override void widgetSelected(SelectionEvent e) {
-			if (_combo.getSelectionIndex > 0) {
-				playSECW(_prop, std.path.buildPath(_comm.skin.seDir, _combo.getText), _summ.legacy);
+			if (_combo.getSelectionIndex() > 0) {
+				playSECW(_prop, std.path.buildPath(_comm.skin.seDir, _combo.getText()), _summ.legacy);
 			}
 		}
 	}
 	auto comp2 = new Composite(parent, SWT.NONE);
 	if (title) {
-		comp2.setLayout = zeroMarginGridLayout(2, true);
+		comp2.setLayout(zeroMarginGridLayout(2, true));
 		auto l = new CLabel(comp2, SWT.NONE);
 		auto gdl = new GridData(GridData.FILL_HORIZONTAL);
 		gdl.horizontalSpan = 2;
-		l.setLayoutData = gdl;
-		l.setImage = prop.images.sound;
-		l.setText = title;
+		l.setLayoutData(gdl);
+		l.setImage(prop.images.sound);
+		l.setText(title);
 	} else {
-		comp2.setLayout = zeroMarginGridLayout(3, false);
+		comp2.setLayout(zeroMarginGridLayout(3, false));
 	}
 	combo = new Combo(comp2, SWT.BORDER | SWT.READ_ONLY | SWT.DROP_DOWN);
-	combo.setVisibleItemCount = 20;
+	combo.setVisibleItemCount(20);
 	auto gdc = new GridData(GridData.FILL_HORIZONTAL);
 	if (title) {
 		gdc.horizontalSpan = 2;
 	}
-	combo.setLayoutData = gdc;
+	combo.setLayoutData(gdc);
 	void refSkin() {
-		string se = combo.getText;
-		setComboItems(combo, prop.msgs.soundNone ~ comm.skin.sounds);
+		string se = combo.getText();
+		setComboItems(combo, prop.msgs.soundNone ~ comm.skin.sounds());
 		se = comm.skin.findPath(se, comm.skin.extSound, comm.skin.seDir, null);
 		se = abs2rel(comm.skin.seDir, se);
 		int i = combo.indexOf(se);
@@ -1819,19 +1827,19 @@ Composite createDefSoundCombo(Commons comm, Props prop, Summary summ, Composite 
 	combo.addDisposeListener(new Dispose);
 	auto stop = new Button(comp2, SWT.PUSH);
 	if (title) {
-		stop.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+		stop.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 	}
-	stop.setImage = prop.images.stopSound;
-	stop.setToolTipText = prop.msgs.stopSound;
+	stop.setImage(prop.images.stopSound);
+	stop.setToolTipText(prop.msgs.stopSound);
 	auto sse = new StopSE;
 	stop.addSelectionListener(sse);
 	stop.addDisposeListener(sse);
 	auto play = new Button(comp2, SWT.PUSH);
 	if (title) {
-		play.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+		play.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 	}
-	play.setImage = prop.images.playSound;
-	play.setToolTipText = prop.msgs.playSound;
+	play.setImage(prop.images.playSound);
+	play.setToolTipText(prop.msgs.playSound);
 	play.addSelectionListener(new PlaySE(comm, summ, prop, combo));
 	return comp2;
 }
@@ -1839,20 +1847,20 @@ Composite createSuccessRateScale(Props prop, Composite parent, out Scale sucRate
 	auto grp = new Group(parent, SWT.NONE);
 	auto cl = new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0);
 	cl.fillHorizontal = true;
-	grp.setLayout = cl;
-	grp.setText = prop.msgs.successRate;
+	grp.setLayout(cl);
+	grp.setText(prop.msgs.successRate);
 	auto comp = new Composite(grp, SWT.NONE);
-	comp.setLayout = new GridLayout(3, false);
+	comp.setLayout(new GridLayout(3, false));
 	auto allf = new Label(comp, SWT.CENTER);
-	allf.setText = prop.msgs.allFail;
+	allf.setText(prop.msgs.allFail);
 	sucRate = new Scale(comp, SWT.NONE);
-	sucRate.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+	sucRate.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 	// 0以上でないといけないらしい
-	sucRate.setMinimum = 0;
-	sucRate.setMaximum = Content.successRate_max - Content.successRate_min;
-	sucRate.setPageIncrement = Content.successRate_max;
+	sucRate.setMinimum(0);
+	sucRate.setMaximum(Content.successRate_max - Content.successRate_min);
+	sucRate.setPageIncrement(Content.successRate_max);
 	auto alls = new Label(comp, SWT.CENTER);
-	alls.setText = prop.msgs.allSuccess;
+	alls.setText(prop.msgs.allSuccess);
 	return grp;
 }
 
@@ -1862,7 +1870,7 @@ void putRadioValue(E)(Button[E] radios, void delegate(E) set) {
 
 E getRadioValue(E)(Button[E] radios) {
 	foreach (e, radio; radios) {
-		if (radio.getSelection) {
+		if (radio.getSelection()) {
 			return e;
 		}
 	}
@@ -1870,28 +1878,28 @@ E getRadioValue(E)(Button[E] radios) {
 }
 
 void forceFocus(Widget widget, bool shellActivate) {
-	auto d = Display.getCurrent;
-	if (widget is d.getFocusControl) return;
+	auto d = Display.getCurrent();
+	if (widget is d.getFocusControl()) return;
 	forceFocusImpl(widget, null, shellActivate);
 }
 
 private void forceFocusImpl(Widget widget, Widget child, bool shellActivate) {
-	if (!widget || widget.isDisposed) return;
-	auto d = Display.getCurrent;
+	if (!widget || widget.isDisposed()) return;
+	auto d = Display.getCurrent();
 	auto ti = cast(TableItem) widget;
 	if (ti) {
-		auto tbl = ti.getParent;
+		auto tbl = ti.getParent();
 		forceFocusImpl(tbl, null, shellActivate);
-		tbl.setSelection = ti;
-		tbl.showSelection;
+		tbl.setSelection(ti);
+		tbl.showSelection();
 		return;
 	}
 	auto tri = cast(TreeItem) widget;
 	if (tri) {
-		auto tree = tri.getParent;
+		auto tree = tri.getParent();
 		forceFocusImpl(tree, null, shellActivate);
-		tree.select = tri;
-		tree.showSelection;
+		tree.select(tri);
+		tree.showSelection();
 		return;
 	}
 	auto sh = cast(Shell) widget;
@@ -1903,10 +1911,10 @@ private void forceFocusImpl(Widget widget, Widget child, bool shellActivate) {
 	}
 	auto tf = cast(TabFolder) widget;
 	if (tf) {
-		foreach (i; tf.getItems) {
-			if (i.getControl is child) {
-				forceFocusImpl(tf.getParent, tf, shellActivate);
-				tf.setSelection = i;
+		foreach (i; tf.getItems()) {
+			if (i.getControl() is child) {
+				forceFocusImpl(tf.getParent(), tf, shellActivate);
+				tf.setSelection(i);
 				return;
 			}
 		}
@@ -1914,10 +1922,10 @@ private void forceFocusImpl(Widget widget, Widget child, bool shellActivate) {
 	}
 	auto ctf = cast(CTabFolder) widget;
 	if (ctf) {
-		foreach (i; ctf.getItems) {
-			if (i.getControl is child) {
-				forceFocusImpl(ctf.getParent, ctf, shellActivate);
-				ctf.setSelection = i;
+		foreach (i; ctf.getItems()) {
+			if (i.getControl() is child) {
+				forceFocusImpl(ctf.getParent(), ctf, shellActivate);
+				ctf.setSelection(i);
 				return;
 			}
 		}
@@ -1925,13 +1933,13 @@ private void forceFocusImpl(Widget widget, Widget child, bool shellActivate) {
 	}
 	auto ctl = cast(Control) widget;
 	if (ctl) {
-		forceFocusImpl(ctl.getParent, ctl, shellActivate);
+		forceFocusImpl(ctl.getParent(), ctl, shellActivate);
 		if (!shellActivate) {
-			if (ctl.getShell is d.getActiveShell) {
-				ctl.setFocus;
+			if (ctl.getShell() is d.getActiveShell()) {
+				ctl.setFocus();
 			}
 		} else {
-			ctl.setFocus;
+			ctl.setFocus();
 		}
 		return;
 	}
@@ -1940,10 +1948,10 @@ private void forceFocusImpl(Widget widget, Widget child, bool shellActivate) {
 
 /// Controlの階層構造を表示する。
 void writeRec(Control c, string tab = "") {
-	std.stdio.writef(tab ~ c.toString);
-	std.stdio.writefln(c.isDisposed ? " disposed" : "");
+	std.stdio.writef(tab ~ c.toString());
+	std.stdio.writefln(c.isDisposed() ? " disposed" : "");
 	if (cast(Composite) c) {
-		foreach (cc; (cast(Composite) c).getChildren) {
+		foreach (cc; (cast(Composite) c).getChildren()) {
 			writeRec(cc, tab ~ "  ");
 		}
 	}
@@ -1960,36 +1968,36 @@ private class CBarListener(string Name) : ControlAdapter, DisposeListener {
 	override void widgetDisposed(DisposeEvent e) {
 		auto cbar = cast(CoolBar) e.widget;
 		int[] ixs;
-		for (int i = 0; i < _cbar.getItemCount; i++) {
+		for (int i = 0; i < _cbar.getItemCount(); i++) {
 			ixs ~= i;
 		}
-		mixin ("_prop.var.etc." ~ Name ~ "Lock = cbar.getLocked;");
-		if (ixs == cbar.getItemOrder) {
+		mixin ("_prop.var.etc." ~ Name ~ "Lock = cbar.getLocked();");
+		if (ixs == cbar.getItemOrder()) {
 			mixin ("_prop.var.etc." ~ Name ~ "Order = [];");
 		} else {
-			mixin ("_prop.var.etc." ~ Name ~ "Order = cbar.getItemOrder;");
+			mixin ("_prop.var.etc." ~ Name ~ "Order = cbar.getItemOrder();");
 		}
-		mixin ("_prop.var.etc." ~ Name ~ "WrapIndices = cbar.getWrapIndices;");
+		mixin ("_prop.var.etc." ~ Name ~ "WrapIndices = cbar.getWrapIndices();");
 	}
 	override void controlResized(ControlEvent e) {
 		auto cbar = cast(CoolBar) e.widget;
-		cbar.getShell.layout(true, true);
+		cbar.getShell().layout(true, true);
 	}
 	void reset() {
 		int[] ixs;
-		for (int i = 0; i < _cbar.getItemCount; i++) {
+		for (int i = 0; i < _cbar.getItemCount(); i++) {
 			ixs ~= i;
 		}
-		_cbar.setItemOrder = ixs;
-		_cbar.setWrapIndices = mixin ("_prop.var.etc." ~ Name ~ "WrapIndices_init.dup");
-		foreach_reverse (i; _cbar.getItemOrder) {
+		_cbar.setItemOrder(ixs);
+		_cbar.setWrapIndices(mixin ("_prop.var.etc." ~ Name ~ "WrapIndices_init.dup"));
+		foreach_reverse (i; _cbar.getItemOrder()) {
 			resetCISize(_cbar.getItem(i));
 		}
 	}
 	void lock() {
-		_cbar.setLocked = !_cbar.getLocked;
-		if (_lock) _lock.setSelection = _cbar.getLocked;
-		foreach_reverse (i; _cbar.getItemOrder) {
+		_cbar.setLocked(!_cbar.getLocked());
+		if (_lock) _lock.setSelection(_cbar.getLocked());
+		foreach_reverse (i; _cbar.getItemOrder()) {
 			resetCISize(_cbar.getItem(i));
 		}
 	}
@@ -2004,30 +2012,30 @@ CoolBar createCoolBar(string Name)(Props prop, Composite parent,
 	cbar.addControlListener(ls);
 	cbar.addDisposeListener(ls);
 
-	auto menu = new Menu(parent.getShell, SWT.POP_UP);
+	auto menu = new Menu(parent.getShell(), SWT.POP_UP);
 	ls._lock = createMenuItem(menu, prop.msgs.menuLockBar, prop.images.menuLockBar, &ls.lock, SWT.CHECK);
 	new MenuItem(menu, SWT.SEPARATOR);
 	createMenuItem(menu, prop.msgs.menuResetBar,  prop.images.menuResetBar, &ls.reset);
-	cbar.setMenu = menu;
+	cbar.setMenu(menu);
 
-	foreach (itm; cbar.getItems) {
-		itm.getControl.setMenu = menu;
+	foreach (itm; cbar.getItems()) {
+		itm.getControl().setMenu(menu);
 	}
-	if (mixin ("prop.var.etc." ~ Name ~ "Order.length") == cbar.getItemCount) {
-		cbar.setItemOrder = mixin ("prop.var.etc." ~ Name ~ "Order.dup");
+	if (mixin ("prop.var.etc." ~ Name ~ "Order.length") == cbar.getItemCount()) {
+		cbar.setItemOrder(mixin ("prop.var.etc." ~ Name ~ "Order.dup"));
 	}
 	int[] wi;
 	foreach (i; mixin ("prop.var.etc." ~ Name ~ "WrapIndices")) {
-		if (i > 0 && i < cbar.getItemCount) wi ~= i;
+		if (i > 0 && i < cbar.getItemCount()) wi ~= i;
 	}
-	if (wi != cbar.getWrapIndices) cbar.setWrapIndices = wi;
-	cbar.setLocked = mixin ("prop.var.etc." ~ Name ~ "Lock");
-	ls._lock.setSelection = cbar.getLocked;
+	if (wi != cbar.getWrapIndices()) cbar.setWrapIndices(wi);
+	cbar.setLocked(mixin ("prop.var.etc." ~ Name ~ "Lock"));
+	ls._lock.setSelection(cbar.getLocked());
 	return cbar;
 }
 
 void resetCISize(CoolItem itm) {
-	auto p = itm.getControl.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+	auto p = itm.getControl().computeSize(SWT.DEFAULT, SWT.DEFAULT);
 	auto p2 = itm.computeSize(p.x, p.y);
 	itm.setMinimumSize(p.x, p.y);
 	itm.setPreferredSize(p2.x, p2.y);
@@ -2040,36 +2048,36 @@ CoolItem createCoolItem(CoolBar cbar, ToolBar tbar, int index = -1) {
 	} else {
 		itm = new CoolItem(cbar, SWT.PUSH);
 	}
-	itm.setControl = tbar;
+	itm.setControl(tbar);
 	resetCISize(itm);
 	return itm;
 }
 
 SplitPane changeVHSide(SplitPane sash) {
-	auto style = sash.getStyle & !SWT.HORIZONTAL & !SWT.VERTICAL;
+	auto style = sash.getStyle() & !SWT.HORIZONTAL & !SWT.VERTICAL;
 	assert (!(style & SWT.HORIZONTAL));
 	assert (!(style & SWT.VERTICAL));
-	auto vh = (sash.getStyle & SWT.VERTICAL) ? SWT.HORIZONTAL : SWT.VERTICAL;
-	auto sp = new SplitPane(sash.getParent, style | vh);
-	assert ((sash.getStyle & SWT.VERTICAL)
-		? ((sp.getStyle & SWT.HORIZONTAL) && !(sp.getStyle & SWT.VERTICAL))
-		: ((sp.getStyle & SWT.VERTICAL) && !(sp.getStyle & SWT.HORIZONTAL)));
-	auto ws = sash.getWeights;
-	foreach (c; sash.getChildren) {
+	auto vh = (sash.getStyle() & SWT.VERTICAL) ? SWT.HORIZONTAL : SWT.VERTICAL;
+	auto sp = new SplitPane(sash.getParent(), style | vh);
+	assert ((sash.getStyle() & SWT.VERTICAL)
+		? ((sp.getStyle() & SWT.HORIZONTAL) && !(sp.getStyle() & SWT.VERTICAL))
+		: ((sp.getStyle() & SWT.VERTICAL) && !(sp.getStyle() & SWT.HORIZONTAL)));
+	auto ws = sash.getWeights();
+	foreach (c; sash.getChildren()) {
 		if (!(cast(Sash) c)) {
-			c.setParent = sp;
+			c.setParent(sp);
 		}
 	}
-	sp.setLayoutData = sash.getLayoutData;
-	sp.setWeights = ws;
-	sash.dispose;
-	sp.getParent.layout(true);
+	sp.setLayoutData(sash.getLayoutData());
+	sp.setWeights(ws);
+	sash.dispose();
+	sp.getParent().layout(true);
 	sp.layout(true);
 	return sp;
 }
 
 void drawTileImage(GC gc, Image img, Rectangle rect) {
-	auto data = img.getBounds;
+	auto data = img.getBounds();
 	for (int x = 0; x < rect.width; x += data.width) {
 		for (int y = 0; y < rect.height; y += data.height) {
 			int xi = rect.x + x;
@@ -2115,32 +2123,32 @@ void playSECW(Props prop, string path, bool legacy) {
 int textWidth(Props prop, Control c, string text) {
 	auto gc = new GC(c);
 	scope (exit) gc.dispose();
-	auto mono = new Font(Display.getCurrent, new FontData(prop.looks.monospace, 10, SWT.NORMAL));
+	auto mono = new Font(Display.getCurrent(), new FontData(prop.looks.monospace, 10, SWT.NORMAL));
 	scope (exit) mono.dispose();
-	gc.setFont = mono;
+	gc.setFont(mono);
 	return gc.textExtent(text).x / gc.textExtent(" ").x;
 }
 
 Cursor[Shell] setWaitCursors(Shell shell) {
-	auto cWait = shell.getDisplay.getSystemCursor(SWT.CURSOR_WAIT);
+	auto cWait = shell.getDisplay().getSystemCursor(SWT.CURSOR_WAIT);
 	Cursor[Shell] cursors;
 	void put(Shell cShl) {
-		if (cShl.getCursor !is cWait) {
-			cursors[cShl] = cShl.getCursor;
-			cShl.setCursor = cWait;
+		if (cShl.getCursor() !is cWait) {
+			cursors[cShl] = cShl.getCursor();
+			cShl.setCursor(cWait);
 		}
 	}
 	put(shell);
-	foreach (chld; shell.getShells) {
-		if (chld.isDisposed) continue;
+	foreach (chld; shell.getShells()) {
+		if (chld.isDisposed()) continue;
 		put(chld);
 	}
 	return cursors;
 }
 void resetCursors(Cursor[Shell] cursors) {
 	foreach (shl, cur; cursors) {
-		if (shl.isDisposed) continue;
-		shl.setCursor = cur;
+		if (shl.isDisposed()) continue;
+		shl.setCursor(cur);
 	}
 }
 
@@ -2159,18 +2167,18 @@ RGB alphaColor(in RGB c, in RGB b, int a) {
 
 /// 押されたキーに該当するアクセラレータを持つメニューを探す。
 MenuItem findMenu(Shell shell, int keyCode, wchar character, int stateMask) {
-	auto menu = shell.getMenuBar;
+	auto menu = shell.getMenuBar();
 	if (!menu) return null;
 	return findMenu(menu, keyCode, character, stateMask);
 }
 /// ditto
 MenuItem findMenu(Menu menu, int keyCode, wchar character, int stateMask) {
-	foreach (itm; menu.getItems) {
-		if (eqAcc(convertAccelerator(itm.getText), keyCode, character, stateMask)) {
+	foreach (itm; menu.getItems()) {
+		if (eqAcc(convertAccelerator(itm.getText()), keyCode, character, stateMask)) {
 			return itm;
 		}
-		if (itm.getStyle & SWT.CASCADE) {
-			auto r = findMenu(itm.getMenu, keyCode, character, stateMask);
+		if (itm.getStyle() & SWT.CASCADE) {
+			auto r = findMenu(itm.getMenu(), keyCode, character, stateMask);
 			if (r) return r;
 		}
 	}
@@ -2189,7 +2197,7 @@ void setComboItems(C)(C combo, string[] items) {
 /// Text/Combo/CComboに、アンドゥ・リドゥ及び
 /// 切り取り・コピー・貼り付け・削除のメニューをつける。
 TextMenuModify createTextMenu(T = Text)(Commons comm, Props prop, T text, bool delegate() canSaveHistory, UndoManager undo = null, TMAppendData apd = TMAppendData()) {
-	bool readOnly = (text.getStyle & SWT.READ_ONLY) != 0;
+	bool readOnly = (text.getStyle() & SWT.READ_ONLY) != 0;
 	if (!readOnly && !undo) {
 		undo = new UndoManager(prop.var.etc.undoMaxEtc);
 		void refUndoMax() {
@@ -2208,7 +2216,7 @@ TextMenuModify createTextMenu(T = Text)(Commons comm, Props prop, T text, bool d
 		text.addModifyListener(ml);
 	}
 
-	auto menu = new Menu(text.getShell, SWT.POP_UP);
+	auto menu = new Menu(text.getShell(), SWT.POP_UP);
 	auto u = createMenuItem(menu, prop.msgs.menuUndo, prop.images.menuUndo, {undo.undo();});
 	auto r = createMenuItem(menu, prop.msgs.menuRedo, prop.images.menuRedo, {undo.redo();});
 	new MenuItem(menu, SWT.SEPARATOR);
@@ -2216,26 +2224,26 @@ TextMenuModify createTextMenu(T = Text)(Commons comm, Props prop, T text, bool d
 	auto c = createMenuItem(menu, prop.msgs.menuCopy, prop.images.menuCopy, &text.copy);
 	auto p = createMenuItem(menu, prop.msgs.menuPaste, prop.images.menuPaste, &text.paste);
 	auto d = createMenuItem(menu, prop.msgs.menuDel, prop.images.menuDel, {
-		auto p = text.getSelection;
-		auto t = to!dstring(text.getText);
+		auto p = text.getSelection();
+		auto t = to!dstring(text.getText());
 		if (t.length <= p.x) return;
 		if (p.x != p.y) {
-			text.setText = to!string(t[0 .. p.x] ~ t[p.y .. $]);
+			text.setText(to!string(t[0 .. p.x] ~ t[p.y .. $]));
 		} else {
-			text.setText = to!string(t[0 .. p.x] ~ t[p.y + 1 .. $]);
+			text.setText(to!string(t[0 .. p.x] ~ t[p.y + 1 .. $]));
 		}
 		text.setSelection(new Point(p.x, p.x));
 	});
 	new MenuItem(menu, SWT.SEPARATOR);
 	auto a = createMenuItem(menu, prop.msgs.menuSelectAll, prop.images.menuSelectAll, {
-		text.setSelection(new Point(0, text.getText.length));
+		text.setSelection(new Point(0, text.getText().length));
 	});
-	u.setEnabled = !readOnly;
-	r.setEnabled = !readOnly;
-	t.setEnabled = !readOnly;
-	p.setEnabled = !readOnly;
-	d.setEnabled = !readOnly;
-	text.setMenu = menu;
+	u.setEnabled(!readOnly);
+	r.setEnabled(!readOnly);
+	t.setEnabled(!readOnly);
+	p.setEnabled(!readOnly);
+	d.setEnabled(!readOnly);
+	text.setMenu(menu);
 
 	return ml;
 }

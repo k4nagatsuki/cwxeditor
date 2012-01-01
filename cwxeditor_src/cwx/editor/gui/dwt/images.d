@@ -117,7 +117,7 @@ public:
 	/// y = 縦位置。
 	/// baseW = 本来の幅。
 	/// baseH = 本来の高さ。
-	this(string path, int x, int y, int baseW, int baseH) {
+	this (string path, int x, int y, int baseW, int baseH) {
 		this.path = path;
 		rect = new Rectangle(x, y, baseW, baseH);
 		initW = baseW;
@@ -129,7 +129,7 @@ public:
 	/// path = 画像のファイルパス。
 	/// baseW = 本来の幅。
 	/// baseH = 本来の高さ。
-	this(string path, int baseW, int baseH) {
+	this (string path, int baseW, int baseH) {
 		this(path, 0, 0, baseW, baseH);
 	}
 	/// 画像のデータ、位置、サイズを指定してインスタンスを生成する。
@@ -140,7 +140,7 @@ public:
 	/// y = 縦位置。
 	/// baseW = 本来の幅。
 	/// baseH = 本来の高さ。
-	this(ImageData data, int x, int y, int baseW, int baseH) {
+	this (ImageData data, int x, int y, int baseW, int baseH) {
 		this.data = data;
 		rect = new Rectangle(x, y, baseW, baseH);
 		initW = baseW;
@@ -152,26 +152,30 @@ public:
 	/// data = 画像のデータ。
 	/// baseW = 本来の幅。
 	/// baseH = 本来の高さ。
-	this(ImageData data, int baseW, int baseH) {
+	this (ImageData data, int baseW, int baseH) {
 		this(data, 0, 0, baseW, baseH);
 	}
 	/// Returns: ベースとなる幅。
+	@property
 	const
 	int baseWidth() {
 		return initW;
 	}
 	/// Returns: ベースとなる高さ。
+	@property
 	const
 	int baseHeight() {
 		return initH;
 	}
 	/// Params:
 	/// initW = ベースとなる幅。
+	@property
 	void baseWidth(int initW) {
 		this.initW = initW;
 	}
 	/// Params:
 	/// initH = ベースとなる高さ。
+	@property
 	void baseHeight(int initH) {
 		this.initH = initH;
 	}
@@ -251,11 +255,13 @@ public:
 		this.titFont = font;
 		this.titPoint = titPoint;
 	}
+	@property
 	void title(string title) {
 		assert (titFont !is null);
 		assert (titPoint);
 		_title = title;
 	}
+	@property
 	const
 	string title() {
 		return this._title;
@@ -264,9 +270,9 @@ public:
 	/// このメソッドを呼び出すことで、画像が生成される。
 	/// See_Also: append(), setTitle(), transparent()
 	void createImage() {
-		if (_img) _img.dispose;
-		auto data = createImageData;
-		_img = data ? new Image(Display.getCurrent, data) : null;
+		if (_img) _img.dispose();
+		auto data = createImageData();
+		_img = data ? new Image(Display.getCurrent(), data) : null;
 	}
 	/// イメージ・タイトル・透明色の設定有無を設定した後に
 	/// このメソッドを呼び出すことで、ImageDataが生成される。
@@ -275,9 +281,9 @@ public:
 		if (width == 0 || height == 0 || initW == 0 || initH == 0) return null;
 		auto cur = Display.getCurrent();
 		auto bmp = new Image(cur, initW, initH);
-		scope (exit) bmp.dispose;
+		scope (exit) bmp.dispose();
 		auto dc = new GC(bmp);
-		scope (exit) dc.dispose;
+		scope (exit) dc.dispose();
 
 		try {
 			ImageData matImgData;
@@ -293,7 +299,7 @@ public:
 				}
 			}
 			auto matImg = new Image(cur, matImgData);
-			scope (exit) matImg.dispose;
+			scope (exit) matImg.dispose();
 			dc.drawImage(matImg, 0, 0);
 
 			foreach (a; appends) {
@@ -309,26 +315,27 @@ public:
 							(initW - a.insets.w - a.insets.e,
 							initH - a.insets.n - a.insets.s);
 						auto img = new Image(cur, imgData);
-						scope (exit) img.dispose;
+						scope (exit) img.dispose();
 						dc.drawImage(img, a.insets.w, a.insets.n);
 					} catch (SWTException e) {
 						// ファイルが無い場合は表示しない。
+						debugln(e);
 					}
 				}
 				if (a.text.length) {
 					try {
 						auto font = new Font(cur, dwtData(a.font));
-						scope (exit) font.dispose;
-						dc.setFont = font;
-						scope (exit) dc.setFont = null;
+						scope (exit) font.dispose();
+						dc.setFont(font);
+						scope (exit) dc.setFont(null);
 						int alpha;
 						auto color = new Color(cur, dwtData(a.fontColor, alpha));
-						scope (exit) color.dispose;
-						auto fore = dc.getForeground;
-						dc.setForeground = color;
-						scope (exit) dc.setForeground = fore;
-						dc.setAlpha = alpha;
-						scope (exit) dc.setAlpha = 255;
+						scope (exit) color.dispose();
+						auto fore = dc.getForeground();
+						dc.setForeground(color);
+						scope (exit) dc.setForeground(fore);
+						dc.setAlpha(alpha);
+						scope (exit) dc.setAlpha(255);
 						switch (a.textPos) {
 						case TPos.LEFT: {
 							dc.drawText(a.text, a.insets.w, a.insets.n, true);
@@ -340,14 +347,15 @@ public:
 						default: assert (0);
 						}
 					} catch (SWTException e) {
+						debugln(e);
 					}
 				}
 			}
 
 			if (_title !is null) {
 				auto font = new Font(cur, titFont);
-				scope (exit) font.dispose;
-				dc.setFont = font;
+				scope (exit) font.dispose();
+				dc.setFont(font);
 				dc.setForeground(cur.getSystemColor(SWT.COLOR_BLACK));
 				dc.drawText(_title, titPoint.x, titPoint.y, true);
 				dc.setFont(null);
@@ -355,8 +363,8 @@ public:
 		} catch (Exception e) {
 			debugln(e);
 		}
-		auto bmpData = bmp.getImageData;
-		_baseSizeData = bmp.getImageData;
+		auto bmpData = bmp.getImageData();
+		_baseSizeData = bmp.getImageData();
 		try {
 			if (transparent) {
 				bmpData.transparentPixel = bmpData.getPixel(0, 0);
@@ -383,55 +391,66 @@ public:
 	/// dc = キャンバス。
 	void draw(GC gc) {
 		if (_visible && _img) {
-			int olda = gc.getAlpha;
-			gc.setAlpha = alpha;
-			scope (exit) gc.setAlpha = olda;
+			int olda = gc.getAlpha();
+			gc.setAlpha(alpha);
+			scope (exit) gc.setAlpha(olda);
 			gc.drawImage(_img, x, y);
 		}
 	}
 	/// 画像。
+	@property
 	Image image() {
 		return _img;
 	}
 	/// リサイズ前の画像。
+	@property
 	ImageData baseSizeData() {
 		return _baseSizeData;
 	}
 	/// Returns: 表示するか。
+	@property
 	const
 	bool visible() {
 		return _visible;
 	}
 	/// Params:
 	/// v = 表示するか。
+	@property
 	void visible(bool v) {
 		_visible = v;
 	}
 	/// Returns: 拡大・縮小時に平滑化するか。
+	@property
 	const
 	bool smoothing() {
 		return _smoothing;
 	}
 	/// Params:
-	/// smoothing = 表示するか。
+	/// smoothing = 平滑化するか。
+	@property
 	void smoothing(bool smoothing) {
 		_smoothing = smoothing;
 	}
 	/// 透明色を使用するか。
+	@property
 	const
 	bool transparent() {
 		return t;
 	}
 	/// ditto
+	@property
 	void transparent(bool t) {
 		this.t = t;
 	}
 	/// 透明度。0(透明)～255(不透明)。
+	@property
 	const
 	int alpha() {return _alpha;}
 	/// ditto
+	@property
 	void alpha(int val) {_alpha = val;}
 	/// Returns: 横位置。
+	@property
 	const
 	int x() {
 		return rect.x;
@@ -439,10 +458,12 @@ public:
 	/// 横位置を変更する。
 	/// Params:
 	/// x = 横位置。
+	@property
 	void x(int x) {
 		rect.x = x;
 	}
 	/// Returns: 縦位置。
+	@property
 	const
 	int y() {
 		return rect.y;
@@ -450,16 +471,19 @@ public:
 	/// 縦位置を変更する。
 	/// Params:
 	/// y = 縦位置。
+	@property
 	void y(int y) {
 		rect.y = y;
 	}
 	/// 幅を設定する。
 	/// Params:
 	/// w = 幅。
+	@property
 	void width(int w) {
 		rect.width = w;
 	}
 	/// Returns: 幅。
+	@property
 	const
 	int width() {
 		return rect.width;
@@ -468,10 +492,12 @@ public:
 	/// 高さを設定する。
 	/// Params:
 	/// h = 高さ。
+	@property
 	void height(int h) {
 		rect.height = h;
 	}
 	/// Returns: 高さ。
+	@property
 	const
 	int height() {
 		return rect.height;
@@ -480,6 +506,7 @@ public:
 	/// 位置とサイズを設定する。
 	/// Params:
 	/// rect = 位置とサイズ。
+	@property
 	void bounds(Rectangle rect) {
 		this.rect.x = rect.x;
 		this.rect.y = rect.y;
@@ -488,6 +515,7 @@ public:
 	}
 
 	/// Returns: 位置とサイズ。
+	@property
 	const
 	Rectangle bounds() {
 		return new Rectangle(x, y, width, height);
@@ -495,7 +523,7 @@ public:
 
 	/// 全てのリソースを解放する。
 	void dispose() {
-		if (_img) _img.dispose;
+		if (_img) _img.dispose();
 	}
 }
 
@@ -528,7 +556,7 @@ public:
 	/// y = 縦位置。
 	/// baseW = 本来の幅。
 	/// baseH = 本来の高さ。
-	this(string path, int x, int y, int baseW, int baseH) {
+	this (string path, int x, int y, int baseW, int baseH) {
 		super(path, x, y, baseW, baseH);
 		newR = new Rectangle(x, y, baseW, baseH);
 	}
@@ -539,69 +567,81 @@ public:
 	/// y = 縦位置。
 	/// baseW = 本来の幅。
 	/// baseH = 本来の高さ。
-	this(ImageData data, int x, int y, int baseW, int baseH) {
+	this (ImageData data, int x, int y, int baseW, int baseH) {
 		super(data, x, y, baseW, baseH);
 		newR = new Rectangle(x, y, baseW, baseH);
 	}
 	/// Returns: 最小の幅。初期値は1。
+	@property
 	const
 	int minimumWidth() {
 		return minW;
 	}
 	/// Params:
 	/// minW = 最小の幅。
+	@property
 	void minimumWidth(int minW) {
 		this.minW = minW;
 	}
 	/// Returns: 最小の高さ。初期値は1。
+	@property
 	const
 	int minimumHeight() {
 		return minH;
 	}
 	/// Params:
 	/// minW = 最小の高さ。
+	@property
 	void minimumHeight(int minH) {
 		this.minH = minH;
 	}
 	/// Returns: 最大の幅。初期値は65536。
+	@property
 	const
 	int maximumWidth() {
 		return maxW;
 	}
 	/// Params:
 	/// minW = 最大の幅。
+	@property
 	void maximumWidth(int maxW) {
 		this.maxW = maxW;
 	}
 	/// Returns: 最大の高さ。初期値は65536。
+	@property
 	const
 	int maximumHeight() {
 		return maxH;
 	}
 	/// Params:
 	/// minW = 最大の高さ。
+	@property
 	void maximumHeight(int maxH) {
 		this.maxH = maxH;
 	}
 	/// 縦横比固定か。
+	@property
 	const
 	bool ratioFix() {
 		return whconst;
 	}
 	/// ditto
+	@property
 	void ratioFix(bool whconst) {
 		this.whconst = whconst;
 	}
 	/// サイズ・位置固定モードか。
+	@property
 	const
 	bool fixed() {return _fixed;}
 	/// ditto
+	@property
 	void fixed(bool value) {
 		_fixed = value;
 		if (value) {
-			reset;
+			reset();
 		} else {
-			retoggle;
+			retoggle();
 		}
 	}
 	/// サイズ変更/移動更作業を終えてサイズ/位置を確定し、画像をその位置に配置する。
@@ -617,8 +657,8 @@ public:
 				l(this, x, y, cast(real) width / initW);
 			}
 		}
-		createImage;
-		retoggle;
+		createImage();
+		retoggle();
 	}
 	/// サイズと移動の仮設定を最初の状態に戻す。
 	void reset() {
@@ -626,7 +666,7 @@ public:
 		newR.y = y;
 		newR.width = width;
 		newR.height = height;
-		retoggle;
+		retoggle();
 	}
 	/// トグル以外の画像を描画する。
 	void drawImage(GC gc) {
@@ -637,8 +677,8 @@ public:
 	/// トグルを描画する。
 	void drawToggle(GC gc) {
 		if (visible && selected) {
-			gc.setBackground(Display.getCurrent.getSystemColor(SWT.COLOR_WHITE));
-			gc.setForeground(Display.getCurrent.getSystemColor(SWT.COLOR_BLACK));
+			gc.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_WHITE));
+			gc.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_BLACK));
 			gc.drawFocus(newX, newY, newWidth, newHeight);
 			foreach (rect; tgls.values) {
 				gc.fillRectangle(rect.x + 1, rect.y + 1, tglSize - 1, tglSize - 1);
@@ -655,12 +695,14 @@ public:
 		drawToggle(gc);
 	}
 	/// Returns: 選択中か。
+	@property
 	const
 	bool selected() {
 		return s;
 	}
 	/// Params:
 	/// s = 選択状態。
+	@property
 	private void selected(bool s) {
 		this.s = s;
 	}
@@ -671,6 +713,7 @@ public:
 		}
 	}
 	/// Returns: 仮の横位置。
+	@property
 	const
 	int newX() {
 		return newR.x;
@@ -679,11 +722,13 @@ public:
 	/// Params:
 	/// x = 横位置。
 	/// See_Also: resize()
+	@property
 	void newX(int x) {
 		newR.x = x;
 		retoggle();
 	}
 	/// Returns: 仮の縦位置。
+	@property
 	const
 	int newY() {
 		return newR.y;
@@ -692,6 +737,7 @@ public:
 	/// Params:
 	/// y = 縦位置。
 	/// See_Also: resize()
+	@property
 	void newY(int y) {
 		newR.y = y;
 		retoggle();
@@ -719,6 +765,7 @@ public:
 		}
 	}
 	/// Returns: 仮の幅。
+	@property
 	const
 	int newWidth() {
 		return newR.width;
@@ -726,6 +773,7 @@ public:
 	/// 幅を仮に設定する。確定するにはresize()を使用。
 	/// Params:
 	/// w = 幅。
+	@property
 	void newWidth(int w) {
 		newR.width = roundMWidth(w);
 		newR.height = roundHeight(newR.height);
@@ -754,6 +802,7 @@ public:
 		}
 	}
 	/// Returns: 仮の高さ。
+	@property
 	const
 	int newHeight() {
 		return newR.height;
@@ -761,6 +810,7 @@ public:
 	/// 高さを仮に設定する。確定するにはresize()を使用。
 	/// Params:
 	/// h = 高さ。
+	@property
 	void newHeight(int h) {
 		newR.height = roundMHeight(h);
 		newR.width = roundWidth(newR.width);
@@ -769,6 +819,7 @@ public:
 	/// 位置とサイズを仮に設定する。確定するにはresize()を使用。
 	/// Params:
 	/// rect = 位置とサイズ。
+	@property
 	void newBounds(Rectangle rect) {
 		newR.x = rect.x;
 		newR.y = rect.y;
@@ -784,12 +835,14 @@ public:
 	/// スケールを指定してサイズを設定する。
 	/// Params:
 	/// scale = 元のサイズに対するスケール
+	@property
 	void scale(real scale) {
 		newR.width = cast(int) rndtol(initW * scale);
 		newR.height = roundHeight(cast(int) rndtol(initH * rect.height));
 		retoggle();
 	}
 	/// Returns: 仮の位置とサイズ。
+	@property
 	const
 	Rectangle newBounds() {
 		return new Rectangle(newR.x, newR.y, newR.width, newR.height);
@@ -882,6 +935,7 @@ public:
 
 	/// 移動後に描画する領域を返す。
 	/// Returns: 描画する領域。
+	@property
 	const
 	Rectangle drawNewArea() {
 		if (fixed) {
@@ -893,6 +947,7 @@ public:
 	}
 	/// 描画する領域を返す。
 	/// Returns: 描画する領域。
+	@property
 	const
 	Rectangle drawArea() {
 		auto r = bounds;
@@ -920,7 +975,7 @@ public:
 
 	/// 全てのリソースを解放する。
 	void dispose() {
-		super.dispose;
+		super.dispose();
 	}
 }
 
@@ -951,7 +1006,7 @@ private:
 	class DListener : DisposeListener {
 		public override void widgetDisposed(DisposeEvent e)  {
 			foreach (img; backs) {
-				img.dispose;
+				img.dispose();
 			}
 		}
 	}
@@ -996,14 +1051,14 @@ private:
 				}, false);
 			} break;
 			case SWT.ESC: {
-				redrawProcMove((FlexImage img) {img.reset;}, false);
+				redrawProcMove((FlexImage img) {img.reset();}, false);
 			} break;
 			case SWT.CR: {
-				redrawProc((FlexImage img) {img.resize;}, true);
+				redrawProc((FlexImage img) {img.resize();}, true);
 			} break;
 			default: {
 				if (ke.character == ' ') {
-					redrawProc((FlexImage img) {img.resize;}, true);
+					redrawProc((FlexImage img) {img.resize();}, true);
 				}
 			} break;
 			}
@@ -1093,7 +1148,7 @@ private:
 
 	class MouseDown : Listener {
 		override void handleEvent(Event me) {
-			setFocus;
+			setFocus();
 			moved = false;
 			_ctrl = (me.stateMask & SWT.SHIFT) != 0 || (me.stateMask & SWT.CTRL) != 0;
 			int x = me.x;
@@ -1121,37 +1176,37 @@ private:
 					_mouseP = img;
 					if (me.button == 1) {
 						if (!_ctrl) {
-							if (!img.selected) doDeselectAll;
+							if (!img.selected) doDeselectAll();
 							doSelect(img);
 						}
 						dragTgl = tgl;
 					} else if (me.button == 3) {
-						if (!img.selected) doDeselectAll;
+						if (!img.selected) doDeselectAll();
 						doSelect(img);
 					}
 					return;
 				}
-				doDeselectAll;
+				doDeselectAll();
 				_mouseP = null;
 			} else if (me.button == 2) {
 				auto ids = selectedIndices;
 				if (ids.length == 0 || !changeSelect(x, y)) {
 					int i = findIndex(x, y);
 					if (i >= 0) {
-						doDeselectAll;
+						doDeselectAll();
 						doSelect(cast(FlexImage) images[i]);
 					}
 				}
 			} else if (me.button == 3) {
 				dragTgl = Toggle.NONE;
-				redrawProc((FlexImage img) {img.reset;}, false);
+				redrawProc((FlexImage img) {img.reset();}, false);
 			}
 		}
 	}
 	void redrawProcBefore() {
 		foreach (img; dragImgs.keys) {
 			if (img.x != img.newX || img.y != img.newY || img.width != img.newWidth || img.height != img.newHeight) {
-				changingImages();
+				callChangingImages();
 			}
 		}
 	}
@@ -1178,7 +1233,7 @@ private:
 	class FocusLost : Listener {
 		override void handleEvent(Event me) {
 			dragTgl = Toggle.NONE;
-			redrawProc((FlexImage img) {img.resize;}, true);
+			redrawProc((FlexImage img) {img.resize();}, true);
 		}
 	}
 	class MouseUp : Listener {
@@ -1193,10 +1248,10 @@ private:
 						scope oldRect = img.bounds;
 						if (oldRect != img.newBounds) {
 							if (!ci) {
-								changingImages;
+								callChangingImages();
 								ci = true;
 							}
-							img.resize;
+							img.resize();
 							scope area = img.drawNewArea;
 							redraw(oldRect.x, oldRect.y, oldRect.width, oldRect.height, false);
 							redraw(area.x, area.y, area.width, area.height, false);
@@ -1212,7 +1267,7 @@ private:
 							doSelect(_mouseP);
 						}
 					} else {
-						doDeselectAll;
+						doDeselectAll();
 						doSelect(_mouseP);
 					}
 				}
@@ -1233,18 +1288,18 @@ private:
 	}
 	class PListener : PaintListener {
 		override void paintControl(PaintEvent e) {
-			auto buf = new Image(getShell.getDisplay, getSize.x, getSize.y);
+			auto buf = new Image(getShell().getDisplay(), getSize().x, getSize().y);
 			auto gc = new GC(buf);
 
-			auto backImg = getBackgroundImage;
-			auto rect = getClientArea;
+			auto backImg = getBackgroundImage();
+			auto rect = getClientArea();
 			if (backImg) {
 				drawTileImage(gc, backImg, rect);
 			} else if (_backColor) {
 				gc.setBackground(_backColor);
 				gc.fillRectangle(rect.x, rect.y, rect.width, rect.height);
 			} else {
-				gc.setBackground(getShell.getDisplay.getSystemColor(SWT.COLOR_DARK_BLUE));
+				gc.setBackground(getShell().getDisplay().getSystemColor(SWT.COLOR_DARK_BLUE));
 				gc.fillRectangle(rect.x, rect.y, rect.width, rect.height);
 			}
 			foreach (bmp; backs) {
@@ -1252,7 +1307,7 @@ private:
 			}
 
 			e.gc.drawImage(buf, 0, 0);
-			buf.dispose;
+			buf.dispose();
 		}
 	}
 	class Traverse : Listener {
@@ -1286,6 +1341,7 @@ public:
 	void setBackgroundColor(Color backColor) {_backColor = backColor;}
 	Color getBackgroundColor() {return _backColor;}
 
+	@property
 	PileImage[] images() {
 		return backs;
 	}
@@ -1296,19 +1352,22 @@ public:
 		backs[index2] = temp;
 	}
 
+	@property
 	void select(FlexImage[] imgs) {
 		foreach (img; imgs) {
 			select(img);
 		}
 	}
+	@property
 	void select(FlexImage img) {
 		if (!img.selected) {
 			img.selected = true;
 			__setSelected(img);
 		}
 	}
+	@property
 	void select(int[] indices) {
-		deselectAll;
+		deselectAll();
 		foreach (i; indices) {
 			auto fi = cast(FlexImage) backs[i];
 			select(fi);
@@ -1316,7 +1375,7 @@ public:
 	}
 	private void doSelect(FlexImage img) {
 		if (!img.selected) {
-			img.doSelected = true;
+			img.doSelected(true);
 			__setSelected(img);
 		}
 	}
@@ -1355,6 +1414,7 @@ public:
 			if (img) deselect(img);
 		}
 	}
+	@property
 	int[] selectedIndices() {
 		int[] r;
 		foreach (i, img; backs) {
@@ -1363,6 +1423,7 @@ public:
 		}
 		return r;
 	}
+	@property
 	int selectedIndex() {
 		foreach_reverse (i, img; backs) {
 			auto fi = cast(FlexImage) img;
@@ -1422,14 +1483,14 @@ public:
 	}
 
 	void remove(int index) {
-		backs[index].dispose;
+		backs[index].dispose();
 		removeDragImage(backs[index]);
 		backs = backs[0 .. index] ~ backs[index + 1 .. $];
 	}
 
 	void removeRange(int fromIndex, int toIndex) {
 		for (int i = fromIndex; i < toIndex; i++) {
-			backs[i].dispose;
+			backs[i].dispose();
 			removeDragImage(backs[i]);
 		}
 		backs = backs[0 .. fromIndex] ~ backs[toIndex .. $];
@@ -1454,7 +1515,7 @@ public:
 		}
 	}
 	void set(int index, PileImage img) {
-		backs[index].dispose;
+		backs[index].dispose();
 		removeDragImage(backs[index]);
 		this.backs[index] = img;
 		if (cast(FlexImage) img) __setSelected(cast(FlexImage) img);
@@ -1471,15 +1532,16 @@ public:
 	}
 
 	private void delegate()[] _changingImages;
+	@property
 	void changingImages(void delegate() changingImages) {
 		_changingImages ~= changingImages;
 	}
-	private void changingImages() {
+	private void callChangingImages() {
 		foreach (ci; _changingImages) ci();
 	}
 
 	/// 唯一のコンストラクタ。
-	this(Composite parent, int style) {
+	this (Composite parent, int style) {
 		super(parent, style);
 		addListener(SWT.MouseDown, new MouseDown);
 		addListener(SWT.MouseUp, new MouseUp);

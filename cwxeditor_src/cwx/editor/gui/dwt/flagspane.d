@@ -106,7 +106,7 @@ public:
 
 		_dirs.createControl(_sash);
 		_flags.createControl(_sash);
-		_flags.dir(_dirs.current, true);
+		_flags.setDir(_dirs.current, true);
 
 		_sash.setWeights([_prop.var.etc.flagSashL, _prop.var.etc.flagSashR]);
 		_sdl = new DListener;
@@ -117,19 +117,21 @@ public:
 		override void widgetDisposed(DisposeEvent e) {
 			_comm.refScenario.remove(&refScenario);
 			_comm.refUndoMax.remove(&refUndoMax);
-			_prop.var.etc.flagSashL = _sash.getWeights[0];
-			_prop.var.etc.flagSashR = _sash.getWeights[1];
-			_prop.var.etc.flagSashV = (_sash.getStyle & SWT.VERTICAL) != 0;
+			_prop.var.etc.flagSashL = _sash.getWeights()[0];
+			_prop.var.etc.flagSashR = _sash.getWeights()[1];
+			_prop.var.etc.flagSashV = (_sash.getStyle() & SWT.VERTICAL) != 0;
 		}
 	}
 	void setupTLP(TopLevelPanel tlp) {
 		tlp.putMenuAction(MenuID.ChangeVH, &changeVHSide);
 	}
 
+	@property
 	Control widget() {
 		return _comp;
 	}
 
+	@property
 	string statusLine() {return _flags.statusLine;}
 
 	void changeVHSide() {
@@ -152,6 +154,7 @@ public:
 	bool openCWXPath(string path, bool shellActivate) {
 		return _dirs.openCWXPath(path, shellActivate);
 	}
+	@property
 	string[] openedCWXPath() {
 		string[] r;
 		r ~= _dirs.openedCWXPath;
@@ -159,10 +162,12 @@ public:
 		return r;
 	}
 
+	@property
 	FlagDirTree dirs() {
 		return _dirs;
 	}
 
+	@property
 	FlagTable flags() {
 		return _flags;
 	}

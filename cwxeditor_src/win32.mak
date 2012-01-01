@@ -199,7 +199,7 @@ LIB = /rc:cwxeditor \
 	+dwt-base.lib \
 	+org.eclipse.swt.win32.win32.x86.lib \
 
-FLAGS = -J. -Jresource -op -c
+FLAGS = -J. -Jresource -op -c -property
 
 $(OUT) : $(SRC) $(RES)
 	$(DMD) $(FLAGS) $(SRC) -g -debug -unittest -version="Console" -odobjs

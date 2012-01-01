@@ -55,11 +55,13 @@ public:
 		_mask = mask;
 	}
 	/// コピーを生成する。
+	@property
 	const
 	BgImage dup() {
 		return new BgImage(path, flag, x, y, width, height, mask);
 	}
 	/// 変更ハンドラを登録する。
+	@property
 	void changeHandler(void delegate() change) {
 		_change = change;
 	}
@@ -69,76 +71,89 @@ public:
 	}
 
 	/// 透明色を使用するか。
+	@property
 	const
 	bool mask() {
 		return _mask;
 	}
 	/// ditto
+	@property
 	void mask(bool mask) {
-		if (_mask != mask) changed;
+		if (_mask != mask) changed();
 		_mask = mask;
 	}
 	/// X座標。
+	@property
 	const
 	int x() {
 		return _x;
 	}
 	/// ditto
+	@property
 	void x(int x) {
-		if (_x != x) changed;
+		if (_x != x) changed();
 		_x = x;
 	}
 	/// Y座標。
+	@property
 	const
 	int y() {
 		return _y;
 	}
 	/// ditto
+	@property
 	void y(int y) {
-		if (_y != y) changed;
+		if (_y != y) changed();
 		_y = y;
 	}
 
 	/// 幅。
+	@property
 	const
 	int width() {
 		return _w;
 	}
 	/// ditto
+	@property
 	void width(int w) {
 		if (w < 0) w = 0;
-		if (_w != w) changed;
+		if (_w != w) changed();
 		_w = w;
 	}
 	/// 高さ。
+	@property
 	const
 	int height() {
 		return _h;
 	}
 	/// ditto
+	@property
 	void height(int h) {
 		if (h < 0) h = 0;
-		if (_h != h) changed;
+		if (_h != h) changed();
 		_h = h;
 	}
 	/// 画像ファイルパス。
+	@property
 	const
 	string path() {
 		return _user.path;
 	}
 	/// ditto
+	@property
 	void path(string path) {
-		if (_user.path != path) changed;
+		if (_user.path != path) changed();
 		_user.path = path;
 	}
 
+	@property
 	override void setUseCounter(UseCounter uc) {
 		_user.setUseCounter(uc);
 		super.setUseCounter(uc);
 	}
 	override void removeUseCounter() {
-		_user.removeUseCounter;
-		super.removeUseCounter;
+		_user.removeUseCounter();
+		super.removeUseCounter();
 	}
 	override void change(FlagId id) {
 		super.change(id);
@@ -156,7 +171,7 @@ public:
 				bgImgs ~= bg;
 			}
 		};
-		node.parse;
+		node.parse();
 		return bgImgs;
 	}
 
@@ -227,11 +242,13 @@ public:
 			w = n.attr!(int)("width", true);
 			h = n.attr!(int)("height", true);
 		};
-		node.parse;
+		node.parse();
 		return new BgImage(path, flag, x, y, w, h, mask);
 	}
 	private BgImageOwner _owner;
+	@property
 	package void owner(BgImageOwner owner) {_owner = owner;}
+	@property
 	override string cwxPath() {
 		return _owner ? cpjoin(_owner, "background", .cCountUntil!("a is b")(_owner.backs, this)) : "";
 	}
@@ -239,13 +256,17 @@ public:
 		if (cpempty(path)) return this;
 		return null;
 	}
+	@property
 	CWXPath[] cwxChilds() {return [];}
+	@property
 	CWXPath cwxParent() {return _owner;}
 }
 
 /// BgImage所持者のインタフェース。
 interface BgImageOwner : CWXPath {
+	@property
 	BgImage[] backs();
+	@property
 	const const(BgImage)[] backs();
 }
 
@@ -256,9 +277,10 @@ private:
 	BgImage[] _bgImgs;
 public:
 	/// 唯一のコンストラクタ。
-	this(BgImage[] bgImgs) {
+	this (BgImage[] bgImgs) {
 		_bgImgs = bgImgs;
 	}
+	@property
 	override string cwxPath() {return "";}
 	override CWXPath findCWXPath(string path) {
 		if (cpempty(path)) return this;
@@ -273,23 +295,28 @@ public:
 		}
 		return null;
 	}
+	@property
 	CWXPath[] cwxChilds() {
 		CWXPath[] r;
 		r ~= cast(CWXPath[]) backs;
 		return r;
 	}
+	@property
 	CWXPath cwxParent() {return null;}
 
 	/// 背景イメージ群。
+	@property
 	BgImage[] backs() {
 		return _bgImgs;
 	}
 	/// ditto
+	@property
 	const
 	const(BgImage)[] backs() {
 		return _bgImgs;
 	}
 	/// ditto
+	@property
 	void backs(BgImage[] bgImgs) {
 		foreach (b; _bgImgs) {
 			b.owner = null;
@@ -344,9 +371,9 @@ public:
 					node.onTag[BgImage.XML_NAME] = (ref XNode n) {
 						backs ~= BgImage.createFromNode(n, LATEST_VERSION);
 					};
-					node.parse;
+					node.parse();
 				};
-				doc.parse;
+				doc.parse();
 				return true;
 			}
 		} catch (Exception e) {

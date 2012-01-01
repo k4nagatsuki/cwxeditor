@@ -26,10 +26,10 @@ public:
 	/// Params:
 	/// parent = 親コンポーネント。
 	/// style = スタイル。使用可能なスタイルはSWT.MULTI、DWT.V_SCROLL、DWT.H_SCROLL。
-	this(Composite parent, int style) {
+	this (Composite parent, int style) {
 		super(parent, style | SWT.NO_BACKGROUND);
 		_origin = new Point(0, 0);
-		setBackground = Display.getCurrent.getSystemColor(SWT.COLOR_LIST_BACKGROUND);
+		setBackground = Display.getCurrent().getSystemColor(SWT.COLOR_LIST_BACKGROUND);
 		void setupBar(ScrollBar scr, void delegate(int) setOrigin) {
 			if (scr !is null) {
 				scr.addListener(SWT.Selection, new class(scr, setOrigin) Listener {
@@ -40,34 +40,34 @@ public:
 						_setOrigin = setOrigin;
 					}
 					public override void handleEvent(Event e) {
-						_setOrigin(_bar.getSelection);
+						_setOrigin(_bar.getSelection());
 					}
 				});
 			}
 		}
-		setupBar(getVerticalBar, &scrollY);
-		setupBar(getHorizontalBar, &scrollX);
+		setupBar(getVerticalBar(), &scrollY);
+		setupBar(getHorizontalBar(), &scrollX);
 		addListener(SWT.Dispose, new class Listener {
 			public override void handleEvent(Event e) {
-				disposeItems;
+				disposeItems();
 			}
 		});
 		addListener(SWT.Paint, new class Listener {
 			public override void handleEvent(Event e) {
-				auto area = getClientArea;
-				scope img = new Image(Display.getCurrent, area.width, area.height);
+				auto area = getClientArea();
+				scope img = new Image(Display.getCurrent(), area.width, area.height);
 				scope gc = new GC(img);
-				gc.setBackground = getBackground;
+				gc.setBackground = getBackground();
 				gc.fillRectangle(area);
 				__repaint(gc);
 				e.gc.drawImage(img, 0, 0);
-				gc.dispose;
-				img.dispose;
+				gc.dispose();
+				img.dispose();
 			}
 		});
 		addListener(SWT.Resize, new class Listener {
 			public override void handleEvent(Event e) {
-				__resize;
+				__resize();
 			}
 		});
 		addListener(SWT.Traverse, new class Listener {
@@ -84,37 +84,37 @@ public:
 		addListener(SWT.KeyDown, new class Listener {
 			public override void handleEvent(Event e) {
 				bool ctrl = (e.stateMask & SWT.CTRL) != 0;
-				if (e.character == SWT.CR && (getStyle & SWT.MULTI) != 0) {
+				if (e.character == SWT.CR && (getStyle() & SWT.MULTI) != 0) {
 					if (_cur in _sels) {
 						deselect(_cur);
 					} else {
 						select(_cur);
 					}
-					selectChanged;
+					callSelectChanged();
 				} else {
 					switch (e.keyCode) {
 					case SWT.PAGE_UP:
-						auto bar = getVerticalBar;
+						auto bar = getVerticalBar();
 						if (bar !is null) {
-							scrollY(bar.getSelection - bar.getPageIncrement);
+							scrollY(bar.getSelection() - bar.getPageIncrement());
 						}
 						break;
 					case SWT.PAGE_DOWN:
-						auto bar = getVerticalBar;
+						auto bar = getVerticalBar();
 						if (bar !is null) {
-							scrollY(bar.getSelection + bar.getPageIncrement);
+							scrollY(bar.getSelection() + bar.getPageIncrement());
 						}
 						break;
 					case SWT.HOME:
-						auto bar = getVerticalBar;
+						auto bar = getVerticalBar();
 						if (bar !is null) {
-							scrollY(bar.getMinimum);
+							scrollY(bar.getMinimum());
 						}
 						break;
 					case SWT.END:
-						auto bar = getVerticalBar;
+						auto bar = getVerticalBar();
 						if (bar !is null) {
-							scrollY(bar.getMaximum - bar.getThumb);
+							scrollY(bar.getMaximum() - bar.getThumb());
 						}
 						break;
 					case SWT.ARROW_UP:
@@ -166,19 +166,19 @@ public:
 		});
 		addListener(SWT.MouseUp, new class Listener {
 			public override void handleEvent(Event e) {
-				if (!_dragging && (getStyle & SWT.MULTI) != 0 && e.button == 1 && _mouseP >= 0) {
+				if (!_dragging && (getStyle() & SWT.MULTI) != 0 && e.button == 1 && _mouseP >= 0) {
 					if (_ctrl) {
-						if (isSelected(_mouseP)) {
+						if (isSelectedAt(_mouseP)) {
 							deselect(_mouseP);
-							selectChanged;
+							callSelectChanged();
 						} else {
 							select(_mouseP);
-							selectChanged;
+							callSelectChanged();
 						}
 					} else if (!_shift) {
-						deselectAll;
+						deselectAll();
 						select(_mouseP);
-						selectChanged;
+						callSelectChanged();
 					}
 				}
 				_dragging = false;
@@ -193,7 +193,7 @@ public:
 				int i = searchIndex(e.x, e.y);
 				if (i >= 0) {
 					_mouseP = i;
-					if ((getStyle & SWT.MULTI) == 0) {
+					if ((getStyle() & SWT.MULTI) == 0) {
 						if (e.button == 1 || e.button == 3) {
 							_mouseP = i;
 							// SINGLEモードではsetCursor()で同時に選択が行われる
@@ -213,7 +213,7 @@ public:
 										i1 = i;
 										i2 = _shiftP;
 									}
-									deselectAll;
+									deselectAll();
 									for (int j = i1; j <= i2; j++) {
 										select(j);
 									}
@@ -221,38 +221,38 @@ public:
 									select(i);
 									_shiftP = i;
 								}
-								selectChanged;
+								callSelectChanged();
 							} else {
-								if (!isSelected(i)) deselectAll;
+								if (!isSelectedAt(i)) deselectAll();
 								select(i);
 								_shiftP = i;
-								selectChanged;
+								callSelectChanged();
 							}
 							setCursor(i);
 						} else if (e.button == 3) {
 							if (!_ctrl) {
-								if (!isSelected(i)) deselectAll;
+								if (!isSelectedAt(i)) deselectAll();
 								_shiftP = i;
 								select(i);
 								setCursor(i);
-								selectChanged;
+								callSelectChanged();
 							}
 						}
 					}
 				} else if (e.button == 1 || e.button == 3) {
-					deselectAll;
+					deselectAll();
 					_shiftP = -1;
 					_mouseP = -1;
-					selectChanged;
+					callSelectChanged();
 				}
 			}
 		});
 		addListener(SWT.DragDetect, new class Listener {
 			public override void handleEvent(Event e) {
-				if ((getStyle & SWT.MULTI) != 0) {
+				if ((getStyle() & SWT.MULTI) != 0) {
 					if (_ctrl && _mouseP >= 0) {
 						select(_mouseP);
-						selectChanged;
+						callSelectChanged();
 					}
 				}
 				_dragging = true;
@@ -266,15 +266,15 @@ public:
 				if (_oldMoveIndex != index) {
 					_oldMoveIndex = index;
 					setDragDetect = index >= 0;
-					__refreshToolTip;
+					__refreshToolTip();
 				}
 			}
 		});
 		addListener(SWT.FocusIn, new class Listener {
 			public override void handleEvent(Event e) {
-				if ((getStyle & SWT.MULTI) == 0 && _sels.length == 0 && _items.length > 0) {
+				if ((getStyle() & SWT.MULTI) == 0 && _sels.length == 0 && _items.length > 0) {
 					select(0);
-					selectChanged;
+					callSelectChanged();
 				}
 				if (_cur >= 0) redrawCard(_cur);
 			}
@@ -286,11 +286,12 @@ public:
 		});
 	}
 	/// 選択の変更をdlgに通知する。
+	@property
 	void selectChanged(void delegate() dlg) {
 		_selected ~= dlg;
 	}
 	private void delegate()[] _selected;
-	private void selectChanged() {
+	private void callSelectChanged() {
 		foreach (dlg; _selected) dlg();
 	}
 	/// 指定されたインデックスをカーソル位置にする。
@@ -304,9 +305,9 @@ public:
 			if (index >= 0) redrawCard(index);
 			_cur = index;
 		}
-		if ((getStyle & SWT.MULTI) == 0) {
+		if ((getStyle() & SWT.MULTI) == 0) {
 			this.select(_cur);
-			selectChanged;
+			callSelectChanged();
 		}
 		if (scroll) this.scroll(_cur);
 	}
@@ -323,7 +324,7 @@ public:
 	/// Returns: インデックス。見つからなかった場合は-1。
 	int indexOf(C c) {
 		foreach (i, itm; _items) {
-			if (itm.getData is c) {
+			if (itm.getData() is c) {
 				return i;
 			}
 		}
@@ -332,6 +333,7 @@ public:
 	/// 指定されたカードを選択する。
 	/// Params:
 	/// c = カード。
+	@property
 	void select(C c) {
 		int i = indexOf(c);
 		if (i >= 0) select(i);
@@ -339,13 +341,14 @@ public:
 	/// 指定されたインデックスを選択する。
 	/// Params:
 	/// index = インデックス。
+	@property
 	void select(int index) {
 		if (!(index in _sels)) {
-			if ((getStyle & SWT.MULTI) == 0) {
-				deselectAll;
+			if ((getStyle() & SWT.MULTI) == 0) {
+				deselectAll();
 				_sels[index] = _items[index];
 				_cur = index;
-				redraw;
+				redraw();
 			} else {
 				_sels[index] = _items[index];
 				redrawCard(index);
@@ -377,10 +380,10 @@ public:
 		int oy = _origin.y;
 		scope sels = new HashSet!(C);
 		foreach (itm; _sels.values) {
-			sels.add(cast(C) itm.getData);
+			sels.add(cast(C) itm.getData());
 		}
-		deselectAll;
-		disposeItems;
+		deselectAll();
+		disposeItems();
 		foreach (c; cards) {
 			auto itm = new CardListItem!(C)(this, SWT.NONE, c, createImage);
 			_items ~= itm;
@@ -389,9 +392,9 @@ public:
 		}
 		if (_defItmW >= 0) _itmW = _defItmW;
 		if (_defItmH >= 0) _itmH = _defItmH;
-		auto vScr = getVerticalBar;
+		auto vScr = getVerticalBar();
 		if (vScr) vScr.setIncrement = _itmH / 4;
-		auto hScr = getHorizontalBar;
+		auto hScr = getHorizontalBar();
 		if (hScr) hScr.setIncrement = _itmW / 4;
 		if (_items.length > 0) {
 			scroll(0);
@@ -400,27 +403,31 @@ public:
 			_cur = -1;
 		}
 		foreach (i, itm; _items) {
-			if (sels.contains(cast(C) itm.getData)) {
+			if (sels.contains(cast(C) itm.getData())) {
 				select(i);
 			}
 		}
-		__resize;
+		__resize();
 		scrollX(ox);
 		scrollY(oy);
-		selectChanged;
+		callSelectChanged();
 	}
+	@property
 	int count() {
 		return _items.length;
 	}
 	/// Returns: 選択中のアイテムの配列。
+	@property
 	protected CardListItem!(C)[] selectionItems() {
 		return _sels.values;
 	}
 	/// Returns: 選択されているインデックスの配列。ソートされているとは限らない。
+	@property
 	int[] selectionIndices() {
 		return _sels.keys;
 	}
 	/// Returns: 選択されているインデックスの最初の一件。選択が無い場合は-1。
+	@property
 	int selection() {
 		if (isSelected) {
 			int i = int.max;
@@ -435,37 +442,40 @@ public:
 	/// indexの画像を更新する。
 	void refresh(int index) {
 		_items[index].createImage(true);
-		redraw;
+		redraw();
 	}
 	/// Returns: 選択されているカードの配列。
+	@property
 	C[] selectionCards() {
 		C[] cs;
 		cs.length = _sels.length;
 		foreach (i, c; _sels.values) {
-			cs[i] = cast(C) c.getData;
+			cs[i] = cast(C) c.getData();
 		}
 		return cs;
 	}
 	/// Returns: 選択されているカードの最初の一件。選択が無い場合はnull。
+	@property
 	C selectionCard() {
 		int index = selection;
-		return index >= 0 ? cast(C) _items[index].getData : null;
+		return index >= 0 ? cast(C) _items[index].getData() : null;
 	}
 	C card(int index) {
-		return cast(C) _items[index].getData;
+		return cast(C) _items[index].getData();
 	}
 	/// Returns: 選択があるか。
+	@property
 	bool isSelected() {
 		return _sels.length > 0;
 	}
 	/// Returns: 選択されているか。
-	bool isSelected(int index) {
+	bool isSelectedAt(int index) {
 		return (index in _sels) !is null;
 	}
 	/// Returns: 指定された座標に存在するカード。
 	C search(int x, int y) {
 		int i = searchIndex(x, y);
-		return i >= 0 ? (cast(C) _items[i].getData) : null;
+		return i >= 0 ? (cast(C) _items[i].getData()) : null;
 	}
 	/// Returns: 指定された座標に存在するカードのインデックス。
 	int searchIndex(int x, int y) {
@@ -497,7 +507,7 @@ public:
 		_marginY = marginY;
 		_spaceY = spaceY;
 		_defWrap = defWrap;
-		if (isVisible) redraw;
+		if (isVisible()) redraw();
 	}
 	override {
 		Point computeSize(int wHint, int hHint) {
@@ -535,12 +545,12 @@ public:
 		void __scroll(ScrollBar bar, int left, int width, void delegate(int) scr,
 				bool delegate(int) isFirst, bool delegate(int) isLast, int margin, int space) {
 			if (bar !is null) {
-				int scLeft = bar.getSelection;
+				int scLeft = bar.getSelection();
 				left += scLeft;
 				int right = left + width;
 				left -= isFirst(index) ? margin : space;
 				right += isLast(index) ? margin : space;
-				int scWidth = bar.getThumb;
+				int scWidth = bar.getThumb();
 				int scRight = scLeft + scWidth;
 				if (left <= scLeft && right >= scRight) {
 					// 両側にはみ出している
@@ -550,7 +560,7 @@ public:
 				if (left < scLeft) {
 					scr(left);
 				} else if (right > scRight) {
-					if (right - left > bar.getThumb) {
+					if (right - left > bar.getThumb()) {
 						// スクロールした結果、左側がはみ出てしまうようなら
 						scr(left);
 					} else {
@@ -560,12 +570,12 @@ public:
 				}
 			}
 		}
-		__scroll(getVerticalBar, itm.y, itm.height, &scrollY, &isFirstRow, &isLastRow, _marginY, _spaceY);
-		__scroll(getHorizontalBar, itm.x, itm.width, &scrollX, &isFirstCol, &isLastCol, _marginX, _spaceX);
+		__scroll(getVerticalBar(), itm.y, itm.height, &scrollY, &isFirstRow, &isLastRow, _marginY, _spaceY);
+		__scroll(getHorizontalBar(), itm.x, itm.width, &scrollX, &isFirstCol, &isLastCol, _marginX, _spaceX);
 	}
 	void setToolTip(string delegate(C) createToolTip) {
 		_createToolTip = createToolTip;
-		__refreshToolTip;
+		__refreshToolTip();
 	}
 	Rectangle getBounds(int index) {
 		auto itm = _items[index];
@@ -575,7 +585,7 @@ private:
 	void __refreshToolTip() {
 		if (_createToolTip) {
 			if (0 <= _oldMoveIndex && _oldMoveIndex < _items.length) {
-				setToolTipText = _createToolTip(cast(C) _items[_oldMoveIndex].getData);
+				setToolTipText = _createToolTip(cast(C) _items[_oldMoveIndex].getData());
 			} else {
 				setToolTipText = _createToolTip(null);
 			}
@@ -594,24 +604,24 @@ private:
 		return index % _wrap == _wrap - 1;
 	}
 	void scrollX(int x) {
-		auto bar = getHorizontalBar;
+		auto bar = getHorizontalBar();
 		if (bar !is null) {
 			bar.setSelection = x;
-			_origin.x = bar.getSelection;
-			redraw;
+			_origin.x = bar.getSelection();
+			redraw();
 		}
 	}
 	void scrollY(int y) {
-		auto bar = getVerticalBar;
+		auto bar = getVerticalBar();
 		if (bar !is null) {
 			bar.setSelection = y;
-			_origin.y = bar.getSelection;
-			redraw;
+			_origin.y = bar.getSelection();
+			redraw();
 		}
 	}
 	void calcBounds() {
 		if (_items.length == 0) return;
-		auto rect = getClientArea;
+		auto rect = getClientArea();
 		int w = rect.width;
 		int index, iy, ix;
 		int x;
@@ -631,23 +641,23 @@ private:
 	}
 	void __repaint(GC gc) {
 		if (_items.length == 0) return;
-		auto rect = getClientArea;
+		auto rect = getClientArea();
 		int w = rect.width;
 		int index, iy, ix;
 		int x;
 		int y = _marginY - _origin.y;
-		if (gc) gc.setBackground = Display.getCurrent.getSystemColor(SWT.COLOR_LIST_SELECTION);
+		if (gc) gc.setBackground = Display.getCurrent().getSystemColor(SWT.COLOR_LIST_SELECTION);
 		for (iy = 0; iy < _line; iy++) {
 			x = _marginX - _origin.x;
 			for (ix = 0; ix < _wrap && (index = iy * _wrap + ix) < _items.length; ix++) {
 				auto itm = _items[index];
 				itm.x = x;
 				itm.y = y;
-				if ((getStyle | SWT.VIRTUAL) || y < rect.y + rect.height) {
+				if ((getStyle() | SWT.VIRTUAL) || y < rect.y + rect.height) {
 					if (gc) {
-						itm.createImage;
-						gc.drawImage(itm.getImage, x, y);
-						if (isFocusControl && _cur == index) {
+						itm.createImage();
+						gc.drawImage(itm.getImage(), x, y);
+						if (isFocusControl() && _cur == index) {
 							int fx = x + _focusLinePadding;
 							int fy = y + _focusLinePadding;
 							int fw = itm.width - _focusLinePadding * 2;
@@ -669,7 +679,7 @@ private:
 		}
 	}
 	void __resize() {
-		auto rect = getClientArea;
+		auto rect = getClientArea();
 		int prW, prH;
 		if (_items.length == 0) {
 			auto s = computeSize(SWT.DEFAULT, SWT.DEFAULT);
@@ -693,21 +703,21 @@ private:
 			if (bar !is null) {
 				bar.setMaximum = pr;
 				bar.setThumb(pr < size ? pr : size);
-				bar.setPageIncrement(size - bar.getIncrement);
+				bar.setPageIncrement(size - bar.getIncrement());
 
-				scr(bar.getSelection);
+				scr(bar.getSelection());
 			}
 		}
-		setupBar(getVerticalBar, prH, rect.height, &scrollY);
-		setupBar(getHorizontalBar, prW, rect.width, &scrollX);
+		setupBar(getVerticalBar(), prH, rect.height, &scrollY);
+		setupBar(getHorizontalBar(), prW, rect.width, &scrollX);
 
-		__refreshToolTip;
+		__refreshToolTip();
 		__repaint(null);
-		redraw;
+		redraw();
 	}
 	void disposeItems() {
 		foreach (itm; _items) {
-			itm.dispose;
+			itm.dispose();
 		}
 		_items.length = 0;
 		if (_defItmW >= 0) _itmW = 0;
@@ -743,70 +753,77 @@ private:
 	ImageData delegate(C) _createImage;
 	int _x, _y;
 public:
-	this(CardList!(C) parent, int style, C c, ImageData delegate(C) createImage) {
+	this (CardList!(C) parent, int style, C c, ImageData delegate(C) createImage) {
 		super(parent, style);
 		setData(c);
 		_createImage = createImage;
 	}
 	void createImage(bool force = false) {
 		if (!_imgData || force) {
-			_imgData = _createImage(cast(C) getData);
-			auto img = getImage;
-			if (img) img.dispose;
-			setImage(new Image(Display.getCurrent, _imgData));
+			_imgData = _createImage(cast(C) getData());
+			auto img = getImage();
+			if (img) img.dispose();
+			setImage(new Image(Display.getCurrent(), _imgData));
 		}
 	}
+	@property
 	int x() {
 		return _x;
 	}
+	@property
 	protected void x(int x) {
 		_x = x;
 	}
+	@property
 	int y() {
 		return _y;
 	}
+	@property
 	protected void y(int y) {
 		_y = y;
 	}
+	@property
 	int width() {
-		createImage;
+		createImage();
 		return _imgData.width;
 	}
+	@property
 	int height() {
-		createImage;
+		createImage();
 		return _imgData.height;
 	}
 	override void dispose() {
-		auto img = getImage;
-		if (img) img.dispose;
+		auto img = getImage();
+		if (img) img.dispose();
 	}
 }
 
 private class CardListDragSourceEffect(C) : DragSourceEffect {
 public:
-	this(CardList!(C) list) {
-		super(list);
+	this (CardList!(C) list) {
+		super (list);
 	}
 private:
 	Image _dImg;
+	@property
 	CardList!(C) list() {
-		return cast(CardList!(C)) getControl;
+		return cast(CardList!(C)) getControl();
 	}
 	void disposeImage() {
 		if (_dImg !is null) {
-			_dImg.dispose;
+			_dImg.dispose();
 			_dImg = null;
 		}
 	}
 public override:
 	void dragFinished(DragSourceEvent event) {
-		disposeImage;
+		disposeImage();
 	}
 	void dragStart(DragSourceEvent event) {
-		auto clist = cast(CardList!(C)) getControl;
+		auto clist = cast(CardList!(C)) getControl();
 		int i = clist.searchIndex(event.x, event.y);
 		if (i >= 0) {
-			disposeImage;
+			disposeImage();
 			auto sels = list.selectionItems;
 			int left = int.max;
 			int right = int.min;
@@ -821,17 +838,17 @@ public override:
 			int w = right - left;
 			int h = bottom - top;
 
-			auto img = new Image(Display.getCurrent, w, h);
-			scope (exit) img.dispose;
+			auto img = new Image(Display.getCurrent(), w, h);
+			scope (exit) img.dispose();
 			scope gc = new GC(img);
-			scope (exit) gc.dispose;
+			scope (exit) gc.dispose();
 			int maxW = 0;
 			foreach (s; sels) {
-				s.createImage;
-				gc.drawImage(s.getImage, s.x - left, s.y - top);
+				s.createImage();
+				gc.drawImage(s.getImage(), s.x - left, s.y - top);
 				if (maxW < s.width) maxW = s.width;
 			}
-			scope data = img.getImageData;
+			scope data = img.getImageData();
 			scope byte[] alphas;
 			alphas.length = maxW;
 			alphas[] = cast(byte) 255;
@@ -840,7 +857,7 @@ public override:
 					data.setAlphas(s.x - left, y, s.width, alphas, 0);
 				}
 			}
-			_dImg = new Image(Display.getCurrent, data);
+			_dImg = new Image(Display.getCurrent(), data);
 			event.image = _dImg;
 			event.x += event.x - left;
 			event.y += event.y - top;

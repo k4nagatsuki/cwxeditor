@@ -35,6 +35,7 @@ import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.SelectionEvent;
 
 interface IEventWindow {
+	@property
 	EventTreeView eventTreeView();
 }
 
@@ -71,15 +72,15 @@ public:
 		if (parShl) {
 			_sbshl = new SBShell(parShl, SWT.SHELL_TRIM);
 			shell = _sbshl.shell;
-			shell.setImage = prop.images.app;
+			shell.setImage(prop.images.app);
 			_win = shell;
 			contPane = _sbshl.contentPane;
 		} else {
 			_win = new Composite(parent, SWT.NONE);
 			contPane = _win;
 		}
-		_win.setData = new TLPData(this);
-		contPane.setLayout = windowGridLayout(1, true);
+		_win.setData(new TLPData(this));
+		contPane.setLayout(windowGridLayout(1, true));
 		_prop = prop;
 		_summ = summ;
 		_eto = eto;
@@ -112,7 +113,7 @@ public:
 		_comm.refUndoMax.add(&refUndoMax);
 		_win.addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) {
-				saveWin;
+				saveWin();
 						static if (is (A == Area)) {
 					_comm.delArea.remove(&__deleteOwner);
 					_comm.refArea.remove(&__refOwner);
@@ -140,7 +141,7 @@ public:
 		});
 		{
 			_eview = new typeof(_eview)(comm, prop, summ, eto, contPane, _undo);
-			_eview.setLayoutData = new GridData(GridData.FILL_BOTH);
+			_eview.setLayoutData(new GridData(GridData.FILL_BOTH));
 		}
 		if (shell) {
 			auto bar = new Menu(shell, SWT.BAR);
@@ -169,7 +170,7 @@ public:
 			createMenuItem(me, _prop.msgs.menuToScript, _prop.images.menuToScript, &_eview.toScript);
 			createMenuItem(me, _prop.msgs.menuToScriptAll, _prop.images.menuToScriptAll, &_eview.toScriptAll);
 
-			shell.setMenuBar = bar;
+			shell.setMenuBar(bar);
 		} else {
 			appendMenuTCPD(_prop, this, this, true, true, true, true);
 			static if (is(A : Area) || is(A : Battle)) {
@@ -196,18 +197,18 @@ public:
 			} else {
 				static assert (0);
 			}
-			shell.setMaximized = winProps.maximized;
+			shell.setMaximized(winProps.maximized);
 			int width = winProps.width;
 			int height = winProps.height;
-			int x = winProps.x == SWT.DEFAULT ? shell.getBounds.x : winProps.x + parent2.getBounds.x;
-			int y = winProps.y == SWT.DEFAULT ? shell.getBounds.y : winProps.y + parent2.getBounds.y;
+			int x = winProps.x == SWT.DEFAULT ? shell.getBounds().x : winProps.x + parent2.getBounds().x;
+			int y = winProps.y == SWT.DEFAULT ? shell.getBounds().y : winProps.y + parent2.getBounds().y;
 			intoDisplay(x, y, width, height);
 			shell.setBounds(x, y, width, height);
 			_parent2 = parent2;
 		}
 
-		_eview.refresh;
-		__refreshTitle;
+		_eview.refresh();
+		__refreshTitle();
 	}
 	private void saveWin() {
 		static if (is(A == Area)) {
@@ -227,23 +228,25 @@ public:
 		}
 		auto shell = cast(Shell) _win;
 		if (shell) {
-			if (!shell.getMaximized) {
-				winProps.width = shell.getSize.x;
-				winProps.height = shell.getSize.y;
-				if (_parent2.isDisposed) {
-					winProps.x = shell.getBounds.x - parentProps.x;
-					winProps.y = shell.getBounds.y - parentProps.y;
+			if (!shell.getMaximized()) {
+				winProps.width = shell.getSize().x;
+				winProps.height = shell.getSize().y;
+				if (_parent2.isDisposed()) {
+					winProps.x = shell.getBounds().x - parentProps.x;
+					winProps.y = shell.getBounds().y - parentProps.y;
 				} else {
-					winProps.x = shell.getBounds.x - _parent2.getBounds.x;
-					winProps.y = shell.getBounds.y - _parent2.getBounds.y;
+					winProps.x = shell.getBounds().x - _parent2.getBounds().x;
+					winProps.y = shell.getBounds().y - _parent2.getBounds().y;
 				}
 			}
-			winProps.maximized = shell.getMaximized;
+			winProps.maximized = shell.getMaximized();
 		}
 	}
+	@property
 	Composite shell() {
 		return _win;
 	}
+	@property
 	UndoManager undoManager() {
 		return _undo;
 	}
@@ -259,9 +262,10 @@ public:
 	}
 	private void __refOwner(A a) {
 		if (_eto is a) {
-			__refreshTitle;
+			__refreshTitle();
 		}
 	}
+	@property
 	Image image() {
 		static if (is (A == Area)) {
 			return _prop.images.areaEventTreeView;
@@ -279,6 +283,7 @@ public:
 			static assert (0);
 		}
 	}
+	@property
 	string title() {
 		auto shl = cast(Shell) _win;
 		static if (is (A == Area)) {
@@ -315,18 +320,22 @@ public:
 			static assert (0);
 		}
 	}
+	@property
 	void delegate(string) statusText() {return _sbshl ? &_sbshl.statusLine : null;}
 	private void __refreshTitle() {
 		_comm.setTitle(_win, title);
-		_eview.refreshTitle;
+		_eview.refreshTitle();
 	}
 	/// Returns: 編集中のイベントツリー所持者。
+	@property
 	A eventTreeOwner() {
 		return _eto;
 	}
+	@property
 	typeof(_eview) eventView() {
 		return _eview;
 	}
+	@property
 	override EventTreeView eventTreeView() {
 		return _eview.eventTreeView;
 	}
@@ -344,6 +353,7 @@ public:
 		void del(SelectionEvent se) {
 			_eview.del(se);
 		}
+		@property
 		bool canDoTCPD() {
 			return _eview.canDoTCPD;
 		}
@@ -351,6 +361,7 @@ public:
 	bool openCWXPath(string path, bool shellActivate) {
 		return _eview.openCWXPath(path, shellActivate);
 	}
+	@property
 	string[] openedCWXPath() {
 		return _eview.openedCWXPath;
 	}

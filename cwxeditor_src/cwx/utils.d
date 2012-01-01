@@ -109,7 +109,7 @@ string createDebugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) {
 			buf ~= debugString(v);
 		}
 	}
-	auto d = Clock.currTime;
+	auto d = Clock.currTime();
 	int year = d.year;
 	int month = d.month;
 	int day = d.day;
@@ -128,7 +128,7 @@ shared void fdebugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) {
 			version (Console) {
 				version (Windows) {
 					printf("%s\n\0".ptr, toMBSz(log));
-					dout.flush;
+					dout.flush();
 				} else {
 					writeln(log);
 				}
@@ -162,7 +162,7 @@ void cdebugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) {
 			string log = createDebugln!(F, L)(vals);
 			version (Windows) {
 				printf("%s\n\0".ptr, toMBSz(log));
-				dout.flush;
+				dout.flush();
 			} else {
 				writeln(log);
 			}
@@ -558,7 +558,7 @@ string normal(string path) {
 /// 絶対パスをbaseからの相対パスに変換する。
 /// baseを指定しなかった場合は現在の作業ディレクトリが用いられる。
 string abs2rel(string path) {
-	return abs2rel(getcwd, path);
+	return abs2rel(getcwd(), path);
 }
 /// ditto
 string abs2rel(string base, string path) {
@@ -1214,7 +1214,7 @@ string getenv(string env) {
 	return r;
 }
 
-private string __createF(bool Dir)(string parent, string name, string ext, string prefix) {
+private string createFileImpl(bool Dir)(string parent, string name, string ext, string prefix) {
 	string clean(string name) {
 		name = replace(name, sep, "");
 		static if (altsep.length) {
@@ -1243,10 +1243,10 @@ private string __createF(bool Dir)(string parent, string name, string ext, strin
 	}
 	name = clean(name);
 	try {
-		create;
+		create();
 	} catch (Exception e) {
 		name = toHex(name);
-		create;
+		create();
 	}
 	return r;
 }
@@ -1255,11 +1255,11 @@ private string __createF(bool Dir)(string parent, string name, string ext, strin
 /// 括弧つき数字をつける。
 /// それでも存在する場合、括弧内の数値をインクリメントしてゆく。
 string createFileI(string parent, string name, string ext, string prefix) {
-	return __createF!(false)(parent, name, ext, prefix);
+	return createFileImpl!(false)(parent, name, ext, prefix);
 }
 /// ditto
 string createFolder(string parent, string name) {
-	return __createF!(true)(parent, name, "", "");
+	return createFileImpl!(true)(parent, name, "", "");
 }
 
 /// ファイル削除の準備を行う。
@@ -1460,24 +1460,37 @@ T[] remove(string pred = "a == b", T)(ref T[] arr, T a) {
 /// 簡単なhashset。
 class HashSet(T) {
 	private int[T] a;
+	/// 唯一のコンストラクタ。
+	@property
+	this () {
+		/// Nothing
+	}
+	/// 要素を追加する。
 	void add(T v) {
 		a[v] = 0;
 	}
+	/// 要素を除外する。
 	void remove(T v) {
 		a.remove(v);
 	}
+	/// 要素を全て除外する。
 	void clear() {
 		int[T] init;
 		a = init;
 	}
+	/// 含まれていればtrue。
 	const
 	bool contains(T v) {
 		return (v in a) !is null;
 	}
+	/// 要素数。
+	@property
 	const
 	size_t size() {
 		return a.length;
 	}
+	/// 空であればtrue。
+	@property
 	const
 	bool isEmpty() {
 		return a.length == 0u;
@@ -1765,7 +1778,7 @@ string sliceJ(string text, size_t from, size_t to) {
 		string msg = "text: " ~ text ~ ", from: " ~ .to!(string)(from) ~ ", to: " ~ .to!(string)(to);
 		throw new Exception(msg, __FILE__, __LINE__);
 	}
-	if (from > to) te;
+	if (from > to) te();
 	size_t i = 0u, j = 0u;
 	size_t s = size_t.max, e;
 	bool ok = false;
@@ -1784,7 +1797,7 @@ string sliceJ(string text, size_t from, size_t to) {
 			break;
 		}
 	}
-	if (!ok) te;
+	if (!ok) te();
 	return text[s .. e];
 } unittest {
 	assert (sliceJ("あいうえお", 2, 10) == "いうえお");

@@ -111,6 +111,7 @@ private class Dlg(Arg ...) {
 		}
 		assert (0);
 	}
+	@property
 	size_t count() {
 		return _dlg.length;
 	}
@@ -128,9 +129,13 @@ private class Dlg(Arg ...) {
 
 /// 最上位のパネル。
 abstract class TopLevelPanel {
+	@property
 	abstract string title();
+	@property
 	abstract Image image();
+	@property
 	abstract Composite shell();
+	@property
 	protected abstract void delegate(string) statusText();
 
 	private static class WrapDlg {
@@ -169,13 +174,16 @@ abstract class TopLevelPanel {
 		return p ? *p : null;
 	}
 	private string _status = "";
+	@property
 	string statusLine() {return _status;}
+	@property
 	void statusLine(string statusLine) {
 		_status = statusLine;
 		auto t = statusText;
 		if (t) t(statusLine);
 	}
 	abstract bool openCWXPath(string cwxPath, bool shellActivate);
+	@property
 	abstract string[] openedCWXPath();
 }
 class TLPData {
@@ -188,11 +196,11 @@ class TLPData {
 
 TLPData tlpData(Control c) {
 	while (c) {
-		auto tlpData = cast(TLPData) c.getData;
+		auto tlpData = cast(TLPData) c.getData();
 		if (tlpData) {
 			return tlpData;
 		}
-		c = c.getParent;
+		c = c.getParent();
 	}
 	throw new Exception("Not TLP child.", __FILE__, __LINE__);
 }
@@ -269,7 +277,7 @@ class Commons {
 
 	private HashSet!(Composite) _ws;
 	private Object[Composite] _wos;
-	this(Props prop) {
+	this (Props prop) {
 		saveSync = new Object;
 		_prop = prop;
 		_ws = new HashSet!(Composite);
@@ -302,7 +310,7 @@ class Commons {
 		_dataWin = dataWin;
 		_cardWin = cardWin;
 		_dirWin = dirWin;
-		_clipboard = new Clipboard(_main.shell.getDisplay);
+		_clipboard = new Clipboard(_main.shell.getDisplay());
 	}
 	void baseShell(MainWindow main, TableWindow tableWin, FlagWindow flagWin,
 			CastCardWindow castWin, SkillCardWindow skillWin, ItemCardWindow itemWin, BeastCardWindow beastWin, InfoCardWindow infoWin,
@@ -316,14 +324,18 @@ class Commons {
 		_beastWin = beastWin;
 		_infoWin = infoWin;
 		_dirWin = dirWin;
-		_clipboard = new Clipboard(_main.shell.getDisplay);
+		_clipboard = new Clipboard(_main.shell.getDisplay());
 	}
+	@property
 	MainWindow mainWin() {return _main;}
-	Shell mainShell() {return _main.shell.getShell;}
+	@property
+	Shell mainShell() {return _main.shell.getShell();}
 	/// Clipboard#dispose()で異常が発生するため、
 	/// 新規生成は避け、常にこの唯一のインスタンスを使用する。
+	@property
 	Clipboard clipboard() {return _clipboard;}
 
+	@property
 	Summary summary() {
 		if (_dataWin) {
 			return _dataWin.summary;
@@ -332,6 +344,7 @@ class Commons {
 		} else assert (0);
 	}
 
+	@property
 	bool isChanged() {
 		Summary summ;
 		if (_dataWin) {
@@ -343,11 +356,11 @@ class Commons {
 	}
 
 	void closeAll() {
-		foreach (w; _ws.toArray) {
+		foreach (w; _ws.toArray()) {
 			close(w);
 		}
 		assert (_ws.size == 0);
-		foreach (w; _aws.toArray) {
+		foreach (w; _aws.toArray()) {
 			close(w);
 		}
 		assert (_aws.size == 0);
@@ -355,27 +368,31 @@ class Commons {
 
 	private Skin _skin;
 	/// 現在のスキン。
+	@property
 	void skin(Skin skin) {_skin = skin;}
 	/// ditto
+	@property
 	Skin skin() {return _skin;}
 
 	/// アクティブなコンテントツールボックス。
+	@property
 	void actToolWin(Shell v) {_actToolWin = v;}
+	@property
 	Shell actToolWin() {return _actToolWin;}
 	private Shell _actToolWin = null;
 
 	private void activate(Composite w, bool shellActivate) {
 		auto shl = cast(Shell) w;
 		if (shl) {
-			shl.setMinimized = false;
-			if (shellActivate) shl.setActive;
+			shl.setMinimized(false);
+			if (shellActivate) shl.setActive();
 		} else {
 			.forceFocus(w, shellActivate);
 		}
 	}
 	private Window rOpen(Window, Main)(Main m, bool shellActivate) {
 		foreach (w; _ws) {
-			if ((cast(TLPData) w.getData).main is m) {
+			if ((cast(TLPData) w.getData()).main is m) {
 				activate(w, shellActivate);
 				return cast(Window) _wos[w];
 			}
@@ -385,7 +402,7 @@ class Commons {
 	private Composite[] opened(Main)(Main m) {
 		Composite[] ws;
 		foreach (w; _ws) {
-			if ((cast(TLPData) w.getData).main is m) {
+			if ((cast(TLPData) w.getData()).main is m) {
 				ws ~= w;
 			}
 		}
@@ -400,7 +417,7 @@ class Commons {
 	}
 	private Window __open2(string Pane, Window, Main, string Etc, Args ...)(Main m, bool shellActivate, Args args) {
 		auto w = new Window(args);
-		(cast(TLPData) w.shell.getData).main = m;
+		(cast(TLPData) w.shell.getData()).main = m;
 		static if (Etc.length) mixin (Etc);
 		open(w, Pane);
 		return w;
@@ -411,13 +428,16 @@ class Commons {
 			_wos.remove(shl);
 		}
 	}
+	@property
 	private string workPaneKey() {
 		return _main.dock.findPane("work")[0];
 	}
+	@property
 	private Composite workPane() {
 		if (!_main.dock) return _main.shell;
 		return _main.dock.pane(workPaneKey);
 	}
+	@property
 	Composite sidePane() {
 		if (!_main.dock) return _main.shell;
 		auto s = _main.dock.findPane("side");
@@ -434,7 +454,7 @@ class Commons {
 		auto ws = opened(area);
 		UndoManager undo = null;
 		foreach (w; ws) {
-			auto tlpData = (cast(TLPData) w.getData);
+			auto tlpData = (cast(TLPData) w.getData());
 			auto sw = cast(SceneWindow) tlpData.tlp;
 			if (sw) {
 				undo = sw.undoManager;
@@ -451,7 +471,7 @@ class Commons {
 		auto ws = opened(area);
 		UndoManager undo = null;
 		foreach (w; ws) {
-			auto tlpData = (cast(TLPData) w.getData);
+			auto tlpData = (cast(TLPData) w.getData());
 			auto aw = cast(BindWindow) tlpData.tlp;
 			if (aw) {
 				activate(w, shellActivate);
@@ -535,7 +555,7 @@ class Commons {
 			TopLevelPanel delegate(Composite) create, string text, bool shellActivate) {
 		auto shl = cast(Shell) c;
 		if (shl) {
-			shl.setMinimized = false;
+			shl.setMinimized(false);
 			shl.open();
 		} else {
 			if (_main.dock.control(key)) {
@@ -561,6 +581,7 @@ class Commons {
 			_main.dock.add(tlp.shell, text, tlp.image, key, true, loc);
 		}
 	}
+	@property
 	private NewCtrlLocation loc() {
 		if (_prop.var.etc.openTabAtRightOfCurrentTab) {
 			return NewCtrlLocation.Right;
@@ -585,7 +606,7 @@ class Commons {
 			openMain!("flag", "data", Dir.N)(_flagWin, shellActivate);
 		} else {
 			openMain!("data", "data", Dir.N)(_dataWin, shellActivate);
-			_dataWin.selectFlags;
+			_dataWin.selectFlags();
 		}
 	}
 	void openBindCardWin(bool shellActivate) {
@@ -641,7 +662,7 @@ class Commons {
 		tlp.shell.addDisposeListener(new SCL);
 		auto shl = cast(Shell) tlp.shell;
 		if (shl) {
-			shl.open;
+			shl.open();
 		} else {
 			_main.dock.add(tlp.shell, tlp.title, tlp.image, _main.dock.newCtrlKey(pane), true, loc);
 		}
@@ -652,7 +673,7 @@ class Commons {
 		auto a = mainWin.summary.findCWXPath(cwxPath);
 		if (!a) return null;
 		foreach (w; _ws) {
-			auto tlpData = (cast(TLPData) w.getData);
+			auto tlpData = (cast(TLPData) w.getData());
 			if (tlpData.main is cast(Object) a) {
 				auto aw = cast(AreaWindow) tlpData.tlp;
 				if (aw) return tlpData.tlp;
@@ -671,7 +692,7 @@ class Commons {
 		auto a = mainWin.summary.findCWXPath(cwxPath);
 		if (!a) return null;
 		foreach (w; _ws) {
-			auto tlpData = (cast(TLPData) w.getData);
+			auto tlpData = (cast(TLPData) w.getData());
 			if (tlpData.main is cast(Object) a) {
 				auto aw = cast(AreaWindow) tlpData.tlp;
 				if (aw) return tlpData.tlp;
@@ -688,7 +709,7 @@ class Commons {
 		auto a = mainWin.summary.findCWXPath(cwxPath);
 		if (!a) return null;
 		foreach (w; _ws) {
-			auto tlpData = (cast(TLPData) w.getData);
+			auto tlpData = (cast(TLPData) w.getData());
 			if (tlpData.main is cast(Object) a) {
 				static if (is(A : Area)) {
 					auto aw = cast(AreaWindow) tlpData.tlp;
@@ -710,7 +731,7 @@ class Commons {
 		auto a = mainWin.summary.findCWXPath(cwxPath);
 		if (!a) return null;
 		foreach (w; _ws) {
-			auto tlpData = (cast(TLPData) w.getData);
+			auto tlpData = (cast(TLPData) w.getData());
 			if (tlpData.main is cast(Object) a) {
 				static if (is(A : Area) && is(C : MenuCard) && UseFire) {
 					auto aw = cast(AreaWindow) tlpData.tlp;
@@ -735,7 +756,7 @@ class Commons {
 		auto spc = cast(AbstractSpCard) eto;
 		if (spc) eto = spc.abstractOwner;
 		foreach (w; _ws) {
-			auto tlpData = (cast(TLPData) w.getData);
+			auto tlpData = (cast(TLPData) w.getData());
 			if (tlpData.main is cast(Object) eto) {
 				auto aw = cast(AreaWindow) tlpData.tlp;
 				if (aw) return aw.eventView.eventTreeView;
@@ -749,7 +770,7 @@ class Commons {
 	}
 	HandCardWindow handCardWindowFrom(Props prop, Summary summ, CastCard c, bool open, bool shellActivate) {
 		foreach (w; _ws) {
-			auto tlpData = (cast(TLPData) w.getData);
+			auto tlpData = (cast(TLPData) w.getData());
 			if (tlpData.main is c) {
 				return cast(HandCardWindow) tlpData.tlp;
 			}
@@ -820,7 +841,7 @@ class Commons {
 	void setTitle(Composite comp, string text) {
 		auto shell = cast(Shell) comp;
 		if (shell) {
-			shell.setText = text;
+			shell.setText(text);
 		} else {
 			_main.dock.tabText(_main.dock.keyFromCtrl(comp), text);
 		}
@@ -828,7 +849,7 @@ class Commons {
 	void close(Composite comp) {
 		auto shell = cast(Shell) comp;
 		if (shell) {
-			shell.close;
+			shell.close();
 		} else {
 			_main.dock.close(_main.dock.keyFromCtrl(comp));
 		}
@@ -840,13 +861,13 @@ class Commons {
 		return prop.var.etc.singleWindow;
 	}
 
-	void statusLine(Control base, string status, bool refMain = true) {
+	void setStatusLine(Control base, string status, bool refMain = true) {
 		if (!_main) return;
 		TLPData tlp(Control base) {
 			TLPData data = null;
-			while (base && (data = cast(TLPData) base.getData) is null) {
+			while (base && (data = cast(TLPData) base.getData()) is null) {
 				if (cast(Shell) base) break;
-				base = base.getParent;
+				base = base.getParent();
 			}
 			return data;
 		}
@@ -855,13 +876,14 @@ class Commons {
 			data.tlp.statusLine = status;
 		}
 		if (refMain && _main.dock) {
-			auto fc = Display.getCurrent.getFocusControl;
+			auto fc = Display.getCurrent().getFocusControl();
 			auto data2 = tlp(fc);
 			if (!data2 || data2 is data) {
 				_main.statusLine = status;
 			}
 		}
 	}
+	@property
 	string statusLine() {
 		return _main.statusLine;
 	}
@@ -874,7 +896,7 @@ class Commons {
 		return _dirWin.select(path);
 	}
 	void replacePath(string from) {
-		auto replWin = _main.openReplWin;
+		auto replWin = _main.openReplWin();
 		if (replWin) replWin.replacePath(from);
 	}
 
@@ -888,6 +910,7 @@ class Commons {
 	}
 
 	private Image _wallpaper = null;
+	@property
 	Image wallpaper() {return _wallpaper;}
 	void refreshWallpaper(Props prop) {
 		try {
@@ -907,7 +930,7 @@ class Commons {
 			}
 			auto data = loadImage(w, false);
 			if (_wallpaper) _wallpaper.dispose();
-			_wallpaper = new Image(Display.getCurrent, data);
+			_wallpaper = new Image(Display.getCurrent(), data);
 		} catch (Exception e) {
 			if (_wallpaper) _wallpaper.dispose();
 			_wallpaper = null;

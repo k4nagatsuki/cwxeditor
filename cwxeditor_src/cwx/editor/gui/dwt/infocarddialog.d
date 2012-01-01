@@ -79,6 +79,7 @@ public:
 		enterClose = true;
 	}
 
+	@property
 	InfoCard card() {
 		return _card;
 	}
@@ -144,12 +145,12 @@ protected:
 
 	override bool apply() {
 		if (_card) {
-			_card.name = _name.getText;
+			_card.name = _name.getText();
 			_card.path = _imgPath.image;
-			_card.desc = wrapReturnCode(_desc.getText);
+			_card.desc = wrapReturnCode(_desc.getText());
 		} else {
-			_card = new InfoCard(_summ.newId!(InfoCard), _name.getText,
-				_imgPath.image, wrapReturnCode(_desc.getText));
+			_card = new InfoCard(_summ.newId!(InfoCard), _name.getText(),
+				_imgPath.image, wrapReturnCode(_desc.getText()));
 		}
 		return true;
 	}

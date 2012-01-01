@@ -179,7 +179,7 @@ S loadLScenario(S)(string p, string skin, bool doubleIO, string newName = null) 
 		foreach (a; beasts.sort) summ.add(a, false);
 		foreach (a; infos.sort) summ.add(a, false);
 		summ.startArea = startAreaId;
-		summ.resetChanged;
+		summ.resetChanged();
 	} else {
 		static if (AR) foreach (a; areas.sort) summ.add(a);
 		static if (BA) foreach (a; battles.sort) summ.add(a);
@@ -1653,8 +1653,8 @@ void saveLScenario(Summary summ, bool doubleIO, bool saveInnerImagePath = false)
 			std.file.remove(path);
 		}
 	}
-	save1.rename;
-	save2.rename;
+	save1.rename();
+	save2.rename();
 }
 
 private byte fromTarget(Target v) {

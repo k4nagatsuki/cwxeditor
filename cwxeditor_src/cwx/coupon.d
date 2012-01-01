@@ -13,21 +13,23 @@ public:
 	static const XML_NAME = "Coupon";
 
 	/// 唯一のコンストラクタ。
-	this(string name, int val) {
+	this (string name, int val) {
 		_name = name;
 		_val = val;
 	}
 	/// コピーコンストラクタ。
-	this(Coupon c) {
+	this (Coupon c) {
 		_name = c.name;
 		_val = c.value;
 	}
 	/// クーポン名。
+	@property
 	const
 	string name() {
 		return _name;
 	}
 	/// 値。
+	@property
 	const
 	int value() {
 		return _val;

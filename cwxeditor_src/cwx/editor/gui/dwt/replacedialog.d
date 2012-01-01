@@ -110,18 +110,19 @@ private:
 	Button _useWildcard;
 	class SelRegex : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			if (_useRegex.getSelection) {
-				_useWildcard.setSelection = false;
+			if (_useRegex.getSelection()) {
+				_useWildcard.setSelection(false);
 			}
 		}
 	}
 	class SelWildcard : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			if (_useWildcard.getSelection) {
-				_useRegex.setSelection = false;
+			if (_useWildcard.getSelection()) {
+				_useRegex.setSelection(false);
 			}
 		}
 	}
+	@property
 	const
 	bool catchMod() {return !ignoreMod;}
 
@@ -176,45 +177,45 @@ private:
 
 	Label _status;
 
-	bool summary() {return _summary.getSelection;}
-	bool msg() {return _msg.getSelection;}
-	bool cardName() {return _cardName.getSelection;}
-	bool cardDesc() {return _cardDesc.getSelection;}
-	bool event() {return _event.getSelection;}
-	bool start() {return _start.getSelection;}
-	bool flag() {return _flag.getSelection;}
-	bool coupon() {return _coupon.getSelection;}
-	bool gossip() {return _gossip.getSelection;}
-	bool end() {return _end.getSelection;}
-	bool area() {return _area.getSelection;}
-	bool keyCode() {return _keyCode.getSelection;}
-	bool file() {return _file.getSelection;}
-	bool comment() {return _comment.getSelection;}
+	@property bool summary() {return _summary.getSelection();}
+	@property bool msg() {return _msg.getSelection();}
+	@property bool cardName() {return _cardName.getSelection();}
+	@property bool cardDesc() {return _cardDesc.getSelection();}
+	@property bool event() {return _event.getSelection();}
+	@property bool start() {return _start.getSelection();}
+	@property bool flag() {return _flag.getSelection();}
+	@property bool coupon() {return _coupon.getSelection();}
+	@property bool gossip() {return _gossip.getSelection();}
+	@property bool end() {return _end.getSelection();}
+	@property bool area() {return _area.getSelection();}
+	@property bool keyCode() {return _keyCode.getSelection();}
+	@property bool file() {return _file.getSelection();}
+	@property bool comment() {return _comment.getSelection();}
 
-	bool unuseFlag() {return _unuseFlag.getSelection;}
-	bool unuseStep() {return _unuseStep.getSelection;}
-	bool unuseArea() {return _unuseArea.getSelection;}
-	bool unuseBattle() {return _unuseBattle.getSelection;}
-	bool unusePackage() {return _unusePackage.getSelection;}
-	bool unuseCast() {return _unuseCast.getSelection;}
-	bool unuseSkill() {return _unuseSkill.getSelection;}
-	bool unuseItem() {return _unuseItem.getSelection;}
-	bool unuseBeast() {return _unuseBeast.getSelection;}
-	bool unuseInfo() {return _unuseInfo.getSelection;}
-	bool unuseStart() {return _unuseStart.getSelection;}
-	bool unusePath() {return _unusePath.getSelection;}
+	@property bool unuseFlag() {return _unuseFlag.getSelection();}
+	@property bool unuseStep() {return _unuseStep.getSelection();}
+	@property bool unuseArea() {return _unuseArea.getSelection();}
+	@property bool unuseBattle() {return _unuseBattle.getSelection();}
+	@property bool unusePackage() {return _unusePackage.getSelection();}
+	@property bool unuseCast() {return _unuseCast.getSelection();}
+	@property bool unuseSkill() {return _unuseSkill.getSelection();}
+	@property bool unuseItem() {return _unuseItem.getSelection();}
+	@property bool unuseBeast() {return _unuseBeast.getSelection();}
+	@property bool unuseInfo() {return _unuseInfo.getSelection();}
+	@property bool unuseStart() {return _unuseStart.getSelection();}
+	@property bool unusePath() {return _unusePath.getSelection();}
 
 	class ML : MouseAdapter {
 		public override void mouseDoubleClick(MouseEvent e) {
-			if (_result.isFocusControl && e.button == 1) {
-				openPath;
+			if (_result.isFocusControl() && e.button == 1) {
+				openPath();
 			}
 		}
 	}
 	class KL : KeyAdapter {
 		public override void keyPressed(KeyEvent e) {
-			if (_result.isFocusControl && e.character == SWT.CR) {
-				openPath;
+			if (_result.isFocusControl() && e.character == SWT.CR) {
+				openPath();
 			}
 		}
 	}
@@ -228,8 +229,8 @@ private:
 	static const ID_INFO = 7;
 	private void setupIDsImpl2(T)(T[] arr, Combo combo, Spinner spn, ref ulong[int] tbl) {
 		ulong[int] tbl2;
-		string oldSel = combo.getText;
-		combo.removeAll;
+		string oldSel = combo.getText();
+		combo.removeAll();
 		combo.add(_prop.msgs.replSetID);
 		foreach (i, a; arr) {
 			combo.add(to!(string)(a.id) ~ "." ~ a.name);
@@ -240,7 +241,7 @@ private:
 			auto i = combo.indexOf(oldSel);
 			if (i >= 0) combo.select = i;
 		}
-		spn.setEnabled = combo.getSelectionIndex == 0;
+		spn.setEnabled(combo.getSelectionIndex() == 0);
 		tbl = tbl2;
 	}
 	private void setupIDsImpl1(T)(T[] arr) {
@@ -248,7 +249,7 @@ private:
 		setupIDsImpl2(arr, _toID, _toIDVal, _toIDTbl);
 	}
 	private void setupIDs() {
-		switch (_idKind.getSelectionIndex) {
+		switch (_idKind.getSelectionIndex()) {
 		case ID_AREA: setupIDsImpl1(_summ.areas); break;
 		case ID_BATTLE: setupIDsImpl1(_summ.battles); break;
 		case ID_PACKAGE: setupIDsImpl1(_summ.packages); break;
@@ -288,15 +289,15 @@ private:
 		find(sPath);
 		if (!scenarioOnly) {
 			auto skin = _comm.skin;
-			foreach (p; skin.tables) {
+			foreach (p; skin.tables()) {
 				tbl.add(toPathId(p));
 				paths ~= encodePath(p);
 			}
-			foreach (p; skin.musics) {
+			foreach (p; skin.musics()) {
 				tbl.add(toPathId(p));
 				paths ~= encodePath(p);
 			}
-			foreach (p; skin.sounds) {
+			foreach (p; skin.sounds()) {
 				tbl.add(toPathId(p));
 				paths ~= encodePath(p);
 			}
@@ -316,17 +317,17 @@ private:
 
 		string[] paths = [""] ~ allMaterials(false);
 		void setPaths(Combo combo) {
-			auto old = combo.getText;
+			auto old = combo.getText();
 			setComboItems(combo, paths);
-			combo.setText = old;
+			combo.setText(old);
 		}
 		setPaths(_fromPath);
 		setPaths(_toPath);
 	}
 	class SListener : ShellAdapter {
 		override void shellActivated(ShellEvent e) {
-			setupIDs;
-			setupPaths;
+			setupIDs();
+			setupPaths();
 		}
 	}
 	class SelID : SelectionAdapter {
@@ -334,21 +335,21 @@ private:
 		this (Spinner spn) {_spn = spn;}
 		override void widgetSelected(SelectionEvent e) {
 			auto combo = cast(Combo) e.widget;
-			_spn.setEnabled = combo.getSelectionIndex == 0;
+			_spn.setEnabled(combo.getSelectionIndex() == 0);
 		}
 	}
 	class SelIDKind : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
 			setupIDs();
-			_prop.var.etc.searchIDKind = _idKind.getSelectionIndex;
+			_prop.var.etc.searchIDKind = _idKind.getSelectionIndex();
 		}
 	}
 	private void tabChanged() {
-		auto sel = _tabf.getSelection;
+		auto sel = _tabf.getSelection();
 		if (!sel) return;
-		_prop.var.etc.searchPlan = _tabf.getSelectionIndex;
+		_prop.var.etc.searchPlan = _tabf.getSelectionIndex();
 		foreach (tab, comp; _comps) {
-			auto gd = cast(GridData) comp.getLayoutData;
+			auto gd = cast(GridData) comp.getLayoutData();
 			if (tab is sel) {
 				gd.heightHint= SWT.DEFAULT;
 			} else {
@@ -356,9 +357,9 @@ private:
 			}
 		}
 		_parent.layout(true);
-		_replace.setEnabled = sel !is _tabUnuse && sel !is _tabError;
-		_range.setEnabled = sel !is _tabUnuse;
-		_rangeAllCheck.setEnabled = _range.getEnabled;
+		_replace.setEnabled(sel !is _tabUnuse && sel !is _tabError);
+		_range.setEnabled(sel !is _tabUnuse);
+		_rangeAllCheck.setEnabled(_range.getEnabled());
 	}
 	class TSListener : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
@@ -372,92 +373,92 @@ private:
 		class AllCheck : SelectionAdapter {
 			override void widgetSelected(SelectionEvent e) {
 				foreach (b; buttons) {
-					b.setSelection = _all.getSelection;
+					b.setSelection(_all.getSelection());
 				}
 			}
 		}
 		void check() {
 			bool checked = true;
 			foreach (b; buttons) {
-				checked &= b.getSelection;
+				checked &= b.getSelection();
 			}
-			_all.setSelection = checked;
+			_all.setSelection(checked);
 		}
 		override void widgetSelected(SelectionEvent e) {
 			assert (_all);
-			check;
+			check();
 		}
 		void createAlls(Composite parent) {
 			_all = new Button(parent, SWT.CHECK);
-			_all.setText = _prop.msgs.allCheck;
+			_all.setText(_prop.msgs.allCheck);
 			_all.addSelectionListener(new AllCheck);
-			check;
+			check();
 		}
 	}
 	Composite addButtonLine(Composite grp) {
 		auto comp = new Composite(grp, SWT.NONE);
-		comp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+		comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		auto rl = new RowLayout(SWT.HORIZONTAL);
 		rl.wrap = true;
 		rl.pack = false;
-		comp.setLayout = rl;
+		comp.setLayout(rl);
 		return comp;
 	}
 	void constructText(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
-		comp.setLayout = new GridLayout(1, true);
+		comp.setLayout(new GridLayout(1, true));
 		auto comp2 = new Composite(comp, SWT.NONE);
-		comp2.setLayout = zeroGridLayout(1, true);
+		comp2.setLayout(zeroGridLayout(1, true));
 		{
 			auto grp = new Group(comp2, SWT.NONE);
-			grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-			grp.setText = _prop.msgs.replText;
-			grp.setLayout = new GridLayout(2, false);
+			grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			grp.setText(_prop.msgs.replText);
+			grp.setLayout(new GridLayout(2, false));
 			auto lf = new Label(grp, SWT.NONE);
-			lf.setText = _prop.msgs.replFrom;
+			lf.setText(_prop.msgs.replFrom);
 			_from = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN);
-			_from.setVisibleItemCount = 20;
+			_from.setVisibleItemCount(20);
 			createTextMenu!Combo(_comm, _prop, _from, &catchMod);
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
 			gd.widthHint = _prop.var.etc.nameWidth;
-			_from.setLayoutData = gd;
+			_from.setLayoutData(gd);
 			auto lt = new Label(grp, SWT.NONE);
-			lt.setText = _prop.msgs.replTo;
+			lt.setText(_prop.msgs.replTo);
 			_to = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN);
-			_to.setVisibleItemCount = 20;
+			_to.setVisibleItemCount(20);
 			createTextMenu!Combo(_comm, _prop, _to, &catchMod);
-			_to.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+			_to.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		}
 		{
 			auto grp = new Group(comp2, SWT.NONE);
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
 			gd.widthHint = _prop.var.etc.searchResultTableWidth;
-			grp.setLayoutData = gd;
-			grp.setText = _prop.msgs.replCond;
-			grp.setLayout = new GridLayout(1, true);
+			grp.setLayoutData(gd);
+			grp.setText(_prop.msgs.replCond);
+			grp.setLayout(new GridLayout(1, true));
 			_notIgnoreCase = new Button(grp, SWT.CHECK);
-			_notIgnoreCase.setText = _prop.msgs.replNotIgnoreCase;
+			_notIgnoreCase.setText(_prop.msgs.replNotIgnoreCase);
 			_useWildcard = new Button(grp, SWT.CHECK);
-			_useWildcard.setText = _prop.msgs.replWildcard;
+			_useWildcard.setText(_prop.msgs.replWildcard);
 			_useWildcard.addSelectionListener(new SelWildcard);
 			_useRegex = new Button(grp, SWT.CHECK);
-			_useRegex.setText = _prop.msgs.replRegExp;
+			_useRegex.setText(_prop.msgs.replRegExp);
 			_useRegex.addSelectionListener(new SelRegex);
 		}
 		{
 			auto grp = new Group(comp2, SWT.NONE);
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
 			gd.widthHint = _prop.var.etc.searchResultTableWidth;
-			grp.setLayoutData = gd;
-			grp.setText = _prop.msgs.replTextTarget;
-			grp.setLayout = zeroGridLayout(1, true);
+			grp.setLayoutData(gd);
+			grp.setText(_prop.msgs.replTextTarget);
+			grp.setLayout(zeroGridLayout(1, true));
 			auto checked = new LCheck;
 			_checked ~= checked;
 			{
 				auto btns = addButtonLine(grp);
 				Button createB(string text) {
 					auto b = new Button(btns, SWT.CHECK);
-					b.setText = text;
+					b.setText(text);
 					checked.buttons ~= b;
 					b.addSelectionListener(checked);
 					return b;
@@ -478,7 +479,7 @@ private:
 				_comment = createB(_prop.msgs.replTextComment);
 			}
 			auto sep = new Label(grp, SWT.SEPARATOR | SWT.HORIZONTAL);
-			sep.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+			sep.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			{
 				auto btns = addButtonLine(grp);
 				checked.createAlls(btns);
@@ -486,29 +487,29 @@ private:
 		}
 
 		auto tab = new CTabItem(tabf, SWT.NONE);
-		tab.setText = _prop.msgs.replForText;
-		tab.setControl = comp;
+		tab.setText(_prop.msgs.replForText);
+		tab.setControl(comp);
 		_tabText = tab;
 
 		auto gd = new GridData(GridData.FILL_BOTH);
-		comp2.setLayoutData = gd;
+		comp2.setLayoutData(gd);
 		_comps[tab] = comp2;
 	}
 	void constructID(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
-		comp.setLayout = new GridLayout(1, true);
+		comp.setLayout(new GridLayout(1, true));
 		auto comp2 = new Composite(comp, SWT.NONE);
-		comp2.setLayout = zeroGridLayout(1, true);
+		comp2.setLayout(zeroGridLayout(1, true));
 		{
 			auto grp = new Group(comp2, SWT.NONE);
-			grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-			grp.setText = _prop.msgs.replID;
-			grp.setLayout = new GridLayout(3, false);
+			grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			grp.setText(_prop.msgs.replID);
+			grp.setLayout(new GridLayout(3, false));
 			{
 				auto l = new Label(grp, SWT.NONE);
-				l.setText = _prop.msgs.replIDKind;
+				l.setText(_prop.msgs.replIDKind);
 				_idKind = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
-				_idKind.setVisibleItemCount = 20;
+				_idKind.setVisibleItemCount(20);
 				_idKind.add(_prop.msgs.replIDArea);
 				_idKind.add(_prop.msgs.replIDBattle);
 				_idKind.add(_prop.msgs.replIDPackage);
@@ -518,31 +519,31 @@ private:
 				_idKind.add(_prop.msgs.replIDBeast);
 				_idKind.add(_prop.msgs.replIDInfo);
 				_idKind.select = 0;
-				if (0 <= _prop.var.etc.searchIDKind && _prop.var.etc.searchIDKind < _idKind.getItemCount) {
+				if (0 <= _prop.var.etc.searchIDKind && _prop.var.etc.searchIDKind < _idKind.getItemCount()) {
 					_idKind.select = _prop.var.etc.searchIDKind;
 				}
 				auto gd = new GridData;
 				gd.horizontalSpan = 2;
-				_idKind.setLayoutData = gd;
+				_idKind.setLayoutData(gd);
 				_idKind.addSelectionListener(new SelIDKind);
 			}
 			{
 				auto sep = new Label(grp, SWT.SEPARATOR | SWT.HORIZONTAL);
 				auto gd = new GridData(GridData.FILL_HORIZONTAL);
 				gd.horizontalSpan = 3;
-				sep.setLayoutData = gd;
+				sep.setLayoutData(gd);
 			}
 			void setupID(string text, ref Combo combo, ref Spinner spn) {
 				auto l = new Label(grp, SWT.NONE);
-				l.setText = text;
+				l.setText(text);
 				combo = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
-				combo.setVisibleItemCount = 20;
+				combo.setVisibleItemCount(20);
 				auto gd = new GridData(GridData.FILL_HORIZONTAL);
 				gd.widthHint = _prop.var.etc.nameWidth;
-				combo.setLayoutData = gd;
+				combo.setLayoutData(gd);
 				spn = new Spinner(grp, SWT.BORDER);
-				spn.setMinimum = 1;
-				spn.setMaximum = _prop.looks.idMax;
+				spn.setMinimum(1);
+				spn.setMaximum(_prop.looks.idMax);
 				combo.addSelectionListener(new SelID(spn));
 			}
 			setupID(_prop.msgs.replFrom, _fromID, _fromIDVal);
@@ -550,34 +551,34 @@ private:
 		}
 
 		auto tab = new CTabItem(tabf, SWT.NONE);
-		tab.setText = _prop.msgs.replForID;
-		tab.setControl = comp;
+		tab.setText(_prop.msgs.replForID);
+		tab.setControl(comp);
 		_tabID = tab;
 
 		auto gd = new GridData(GridData.FILL_BOTH);
 		gd.heightHint = 0;
-		comp2.setLayoutData = gd;
+		comp2.setLayoutData(gd);
 		_comps[tab] = comp2;
 	}
 	void constructPath(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
-		comp.setLayout = new GridLayout(1, true);
+		comp.setLayout(new GridLayout(1, true));
 		auto comp2 = new Composite(comp, SWT.NONE);
-		comp2.setLayout = zeroGridLayout(1, true);
+		comp2.setLayout(zeroGridLayout(1, true));
 		{
 			auto grp = new Group(comp2, SWT.NONE);
-			grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-			grp.setText = _prop.msgs.replPath;
-			grp.setLayout = new GridLayout(2, false);
+			grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			grp.setText(_prop.msgs.replPath);
+			grp.setLayout(new GridLayout(2, false));
 			Combo setupPath(string text) {
 				auto l = new Label(grp, SWT.NONE);
-				l.setText = text;
+				l.setText(text);
 				auto combo = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN);
-				combo.setVisibleItemCount = 20;
+				combo.setVisibleItemCount(20);
 				createTextMenu!Combo(_comm, _prop, combo, &catchMod);
 				auto gd = new GridData(GridData.FILL_HORIZONTAL);
 				gd.widthHint = _prop.var.etc.nameWidth;
-				combo.setLayoutData = gd;
+				combo.setLayoutData(gd);
 				return combo;
 			}
 			_fromPath = setupPath(_prop.msgs.replFrom);
@@ -585,32 +586,32 @@ private:
 		}
 
 		auto tab = new CTabItem(tabf, SWT.NONE);
-		tab.setText = _prop.msgs.replForPath;
-		tab.setControl = comp;
+		tab.setText(_prop.msgs.replForPath);
+		tab.setControl(comp);
 		_tabPath = tab;
 
 		auto gd = new GridData(GridData.FILL_BOTH);
 		gd.heightHint = 0;
-		comp2.setLayoutData = gd;
+		comp2.setLayoutData(gd);
 		_comps[tab] = comp2;
 	}
 	void constructUnuse(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
-		comp.setLayout = new GridLayout(1, true);
+		comp.setLayout(new GridLayout(1, true));
 		auto comp2 = new Composite(comp, SWT.NONE);
-		comp2.setLayout = zeroGridLayout(1, true);
+		comp2.setLayout(zeroGridLayout(1, true));
 		{
 			auto grp = new Group(comp2, SWT.NONE);
-			grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-			grp.setText = _prop.msgs.replUnuseTarget;
-			grp.setLayout = zeroGridLayout(1, true);
+			grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			grp.setText(_prop.msgs.replUnuseTarget);
+			grp.setLayout(zeroGridLayout(1, true));
 			auto checked = new LCheck;
 			_checked ~= checked;
 			{
 				auto btns = addButtonLine(grp);
 				Button createB(string text) {
 					auto b = new Button(btns, SWT.CHECK);
-					b.setText = text;
+					b.setText(text);
 					checked.buttons ~= b;
 					b.addSelectionListener(checked);
 					return b;
@@ -629,7 +630,7 @@ private:
 				_unusePath = createB(_prop.msgs.replUnusePath);
 			}
 			auto sep = new Label(grp, SWT.SEPARATOR | SWT.HORIZONTAL);
-			sep.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+			sep.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			{
 				auto btns = addButtonLine(grp);
 				checked.createAlls(btns);
@@ -637,48 +638,48 @@ private:
 		}
 
 		auto tab = new CTabItem(tabf, SWT.NONE);
-		tab.setText = _prop.msgs.replForUnuse;
-		tab.setControl = comp;
+		tab.setText(_prop.msgs.replForUnuse);
+		tab.setControl(comp);
 		_tabUnuse = tab;
 
 		auto gd = new GridData(GridData.FILL_BOTH);
 		gd.heightHint = 0;
-		comp2.setLayoutData = gd;
+		comp2.setLayoutData(gd);
 		_comps[tab] = comp2;
 	}
 	void constructError(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
-		comp.setLayout = new GridLayout(1, true);
+		comp.setLayout(new GridLayout(1, true));
 		auto comp2 = new Composite(comp, SWT.NONE);
-		comp2.setLayout = zeroGridLayout(1, true);
+		comp2.setLayout(zeroGridLayout(1, true));
 		{
 			auto l = new Label(comp2, SWT.WRAP);
-			l.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-			l.setText = _prop.msgs.replError;
+			l.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			l.setText(_prop.msgs.replError);
 		}
 
 		auto tab = new CTabItem(tabf, SWT.NONE);
-		tab.setText = _prop.msgs.replForError;
-		tab.setControl = comp;
+		tab.setText(_prop.msgs.replForError);
+		tab.setControl(comp);
 		_tabError = tab;
 
 		auto gd = new GridData(GridData.FILL_BOTH);
 		gd.heightHint = 0;
-		comp2.setLayoutData = gd;
+		comp2.setLayoutData(gd);
 		_comps[tab] = comp2;
 	}
 
 	void refFunc(bool Del, A : CWXPath)(A a) {
 		bool recurse(TreeItem itm) {
-			if (a is itm.getData) {
+			if (a is itm.getData()) {
 				static if (Del) {
 					itm.dispose();
 				} else {
-					itm.setText = a.name;
+					itm.setText(a.name);
 				}
 				return true;
 			} else {
-				foreach (child; itm.getItems) {
+				foreach (child; itm.getItems()) {
 					if (recurse(child)) {
 						return true;
 					}
@@ -686,7 +687,7 @@ private:
 				return false;
 			}
 		}
-		foreach (child; _range.getItems) {
+		foreach (child; _range.getItems()) {
 			if (recurse(child)) {
 				return;
 			}
@@ -746,9 +747,9 @@ private:
 	}
 	void refreshRangeTree() {
 		CWXPath sel = null;
-		auto selItm = _range.getSelection;
+		auto selItm = _range.getSelection();
 		if (selItm.length) {
-			sel = cast(CWXPath) selItm[0].getData;
+			sel = cast(CWXPath) selItm[0].getData();
 		}
 		_range.removeAll();
 		TreeItem add(TreeItem par, string name, CWXPath path) {
@@ -761,12 +762,12 @@ private:
 			string text;
 			Image img;
 			getPathParams(path, text, img);
-			itm.setText = name;
-			itm.setImage = img;
-			itm.setData = cast(Object) path;
-			itm.setChecked = true;
+			itm.setText(name);
+			itm.setImage(img);
+			itm.setData(cast(Object) path);
+			itm.setChecked(true);
 			if (sel is path) {
-				_range.setSelection = [itm];
+				_range.setSelection([itm]);
 			}
 			return itm;
 		}
@@ -805,14 +806,14 @@ private:
 		foreach (a; _summ.infos) {
 			add(null, a.name, a);
 		}
-		_range.showSelection;
+		_range.showSelection();
 	}
 	void refreshRangeAllCheck() {
 		bool recurse(TreeItem itm) {
-			if (!itm.getChecked) {
+			if (!itm.getChecked()) {
 				return true;
 			} else {
-				foreach (child; itm.getItems) {
+				foreach (child; itm.getItems()) {
 					if (recurse(child)) {
 						return true;
 					}
@@ -820,13 +821,13 @@ private:
 				return false;
 			}
 		}
-		foreach (child; _range.getItems) {
+		foreach (child; _range.getItems()) {
 			if (recurse(child)) {
-				_rangeAllCheck.setSelection = false;
+				_rangeAllCheck.setSelection(false);
 				return;
 			}
 		}
-		_rangeAllCheck.setSelection = true;
+		_rangeAllCheck.setSelection(true);
 	}
 	class RefRangeAllCheck : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
@@ -837,51 +838,53 @@ private:
 	class RangeAllCheck : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
 			void recurse(TreeItem itm) {
-				itm.setChecked = _rangeAllCheck.getSelection;
-				foreach (child; itm.getItems) {
+				itm.setChecked(_rangeAllCheck.getSelection());
+				foreach (child; itm.getItems()) {
 					recurse(child);
 				}
 			}
-			foreach (child; _range.getItems) {
+			foreach (child; _range.getItems()) {
 				recurse(child);
 			}
 		}
 	}
 public:
-	this(Commons comm, Props prop, Shell shell, Summary summ) {
+	this (Commons comm, Props prop, Shell shell, Summary summ) {
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
 		_win = new Shell(shell, SWT.SHELL_TRIM);
 		if (shell) {
-			_win.setImeInputMode = shell.getImeInputMode;
+			_win.setImeInputMode(shell.getImeInputMode());
 		}
-		_win.setText = _prop.msgs.dlgTitReplaceText;
-		_win.setImage = prop.images.menuReplaceText;
-		setup;
-		_win.open;
-		_win.setActive;
+		_win.setText(_prop.msgs.dlgTitReplaceText);
+		_win.setImage(prop.images.menuReplaceText);
+		setup();
+		_win.open();
+		_win.setActive();
 	}
+	@property
 	Shell widget() {
 		return _win;
 	}
+	@property
 	void summary(Summary summ) {
-		if (!_win.isDisposed) {
+		if (!_win.isDisposed()) {
 			_summ = summ;
-			_result.removeAll;
+			_result.removeAll();
 		}
 	}
 
 	void open() {
 		reset();
 		tabChanged();
-		auto tab = _tabf.getSelection;
+		auto tab = _tabf.getSelection();
 		if (tab is _tabText) {
-			_from.setFocus;
+			_from.setFocus();
 		} else if (tab is _tabID) {
-			_idKind.setFocus;
+			_idKind.setFocus();
 		} else if (tab is _tabPath) {
-			_fromPath.setFocus;
+			_fromPath.setFocus();
 		} else if (tab is _tabUnuse) {
 			// Nothing
 		} else if (tab is _tabError) {
@@ -890,25 +893,25 @@ public:
 	}
 	void replaceText(string from) {
 		reset();
-		_from.setText = from;
-		_to.setText = "";
-		_tabf.setSelection = _tabText;
+		_from.setText(from);
+		_to.setText("");
+		_tabf.setSelection(_tabText);
 		tabChanged();
-		_from.setFocus;
+		_from.setFocus();
 	}
 	void replacePath(string from) {
 		reset();
-		_fromPath.setText = from;
-		_toPath.setText = "";
-		_tabf.setSelection = _tabPath;
+		_fromPath.setText(from);
+		_toPath.setText("");
+		_tabf.setSelection(_tabPath);
 		tabChanged();
-		_fromPath.setFocus;
+		_fromPath.setFocus();
 	}
 
 	private void openRangePath() {
-		auto sels = _range.getSelection;
+		auto sels = _range.getSelection();
 		if (!sels.length) return;
-		string path = (cast(CWXPath) sels[0].getData).cwxPath;
+		string path = (cast(CWXPath) sels[0].getData()).cwxPath;
 		path = cpaddattr(path, "shallow");
 		auto r = _comm.openCWXPath(path, false);
 		if (!r) {
@@ -928,23 +931,23 @@ public:
 	}
 	private void setup() {
 		_win.addShellListener(new SListener);
-		_win.setLayout = zeroGridLayout(1, true);
+		_win.setLayout(zeroGridLayout(1, true));
 		auto area = new Composite(_win, SWT.NONE);
-		area.setLayoutData = new GridData(GridData.FILL_BOTH);
-		area.setLayout = windowGridLayout(2, false);
+		area.setLayoutData(new GridData(GridData.FILL_BOTH));
+		area.setLayout(windowGridLayout(2, false));
 
 		auto sash = new SplitPane(area, SWT.HORIZONTAL);
-		sash.setLayoutData = new GridData(GridData.FILL_BOTH);
+		sash.setLayoutData(new GridData(GridData.FILL_BOTH));
 
 		auto left = new Composite(sash, SWT.NONE);
-		left.setLayout = windowGridLayout(1, true);
+		left.setLayout(windowGridLayout(1, true));
 		_parent = left;
 		auto right = new Composite(sash, SWT.NONE);
-		right.setLayout = windowGridLayout(1, true);
+		right.setLayout(windowGridLayout(1, true));
 
 		_tabf = new CTabFolder(left, SWT.BORDER);
 		{
-			_tabf.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+			_tabf.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			constructText(_tabf);
 			constructID(_tabf);
 			constructPath(_tabf);
@@ -957,36 +960,36 @@ public:
 			auto gd = new GridData(GridData.FILL_BOTH);
 			gd.widthHint = _prop.var.etc.searchResultTableWidth;
 			gd.heightHint = _prop.var.etc.searchResultTableHeight;
-			_result.setLayoutData = gd;
+			_result.setLayoutData(gd);
 			_result.addMouseListener = new ML;
 			_result.addKeyListener = new KL;
 			new FullTableColumn(_result, SWT.NONE);
 			auto menu = new Menu(_win, SWT.POP_UP);
 			createMenuItem(menu, _prop.msgs.menuOpenView, _prop.images.menuOpenView, &openPath);
-			_result.setMenu = menu;
+			_result.setMenu(menu);
 		}
 		{
 			auto openDlg = new Button(left, SWT.CHECK);
-			openDlg.setText = _prop.msgs.searchOpenDialog;
-			openDlg.setSelection = _prop.var.etc.searchOpenDialog;
+			openDlg.setText(_prop.msgs.searchOpenDialog);
+			openDlg.setSelection(_prop.var.etc.searchOpenDialog);
 			openDlg.addSelectionListener(new class SelectionAdapter {
 				override void widgetSelected(SelectionEvent e) {
-					_prop.var.etc.searchOpenDialog = openDlg.getSelection;
+					_prop.var.etc.searchOpenDialog = openDlg.getSelection();
 				}
 			});
-			openDlg.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
+			openDlg.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 		}
 		{
 			auto grp = new Group(right, SWT.NONE);
-			grp.setText = _prop.msgs.searchRange;
-			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-			grp.setLayout = new GridLayout(1, true);
+			grp.setText(_prop.msgs.searchRange);
+			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			grp.setLayout(new GridLayout(1, true));
 			_range = new Tree(grp, SWT.SINGLE | SWT.BORDER | SWT.VIRTUAL | SWT.CHECK);
 			_range.addSelectionListener(new RefRangeAllCheck);
-			_range.setLayoutData = new GridData(GridData.FILL_BOTH);
+			_range.setLayoutData(new GridData(GridData.FILL_BOTH));
 			refreshRangeTree();
 			_rangeAllCheck = new Button(grp, SWT.CHECK);
-			_rangeAllCheck.setText = _prop.msgs.allCheckRange;
+			_rangeAllCheck.setText(_prop.msgs.allCheckRange);
 			refreshRangeAllCheck();
 			_rangeAllCheck.addSelectionListener(new RangeAllCheck);
 			auto openPath = new OpenPath;
@@ -994,29 +997,29 @@ public:
 			_range.addMouseListener(openPath);
 			auto menu = new Menu(_win, SWT.POP_UP);
 			createMenuItem(menu, _prop.msgs.menuOpenView, _prop.images.menuOpenView, &openRangePath);
-			_range.setMenu = menu;
+			_range.setMenu(menu);
 		}
 		{
 			auto sep = new Label(_win, SWT.SEPARATOR | SWT.HORIZONTAL);
-			sep.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+			sep.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		}
 		{
 			auto bArea = new Composite(_win, SWT.NONE);
-			bArea.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-			bArea.setLayout = new GridLayout(2, false);
+			bArea.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			bArea.setLayout(new GridLayout(2, false));
 			_status = new Label(bArea, SWT.NONE);
-			_status.setText = _prop.msgs.searchResult(0, "");
-			_status.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+			_status.setText(_prop.msgs.searchResult(0, ""));
+			_status.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			auto comp = new Composite(bArea, SWT.NONE);
-			comp.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
+			comp.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 			auto gl = new GridLayout(3, true);
 			gl.marginWidth = 0;
 			gl.marginHeight = 0;
-			comp.setLayout = gl;
+			comp.setLayout(gl);
 			Button createButton(string text, void delegate() push) {
 				auto b = new Button(comp, SWT.PUSH);
-				b.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				b.setText = text;
+				b.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				b.setText(text);
 				auto sa = new class SelectionAdapter {
 					private void delegate() push;
 					override void widgetSelected(SelectionEvent e) {
@@ -1033,45 +1036,45 @@ public:
 		}
 		setComboItems(_from, _prop.var.etc.searchHistories.dup);
 		setComboItems(_to, _prop.var.etc.replaceHistories.dup);
-		_notIgnoreCase.setSelection = _prop.var.etc.replaceTextNotIgnoreCase;
-		_useRegex.setSelection = _prop.var.etc.replaceTextRegExp;
-		_useWildcard.setSelection = _prop.var.etc.replaceTextWildcard;
-		_summary.setSelection = _prop.var.etc.replaceTextSummary;
-		_msg.setSelection = _prop.var.etc.replaceTextMessage;
-		_cardName.setSelection = _prop.var.etc.replaceTextCardName;
-		_cardDesc.setSelection = _prop.var.etc.replaceTextCardDescription;
-		_event.setSelection = _prop.var.etc.replaceTextEventText;
-		_flag.setSelection = _prop.var.etc.replaceTextFlagAndStep;
-		_start.setSelection = _prop.var.etc.replaceTextStart;
-		_coupon.setSelection = _prop.var.etc.replaceTextCoupon;
-		_gossip.setSelection = _prop.var.etc.replaceTextGossip;
-		_end.setSelection = _prop.var.etc.replaceTextEndScenario;
-		_area.setSelection = _prop.var.etc.replaceTextAreaName;
-		_keyCode.setSelection = _prop.var.etc.replaceTextKeyCode;
-		_file.setSelection = _prop.var.etc.replaceTextFile;
-		_comment.setSelection = _prop.var.etc.replaceTextComment;
-		_unuseFlag.setSelection = _prop.var.etc.searchUnusedFlag;
-		_unuseStep.setSelection = _prop.var.etc.searchUnusedStep;
-		_unuseArea.setSelection = _prop.var.etc.searchUnusedArea;
-		_unuseBattle.setSelection = _prop.var.etc.searchUnusedBattle;
-		_unusePackage.setSelection = _prop.var.etc.searchUnusedPackage;
-		_unuseCast.setSelection = _prop.var.etc.searchUnusedCast;
-		_unuseSkill.setSelection = _prop.var.etc.searchUnusedSkill;
-		_unuseItem.setSelection = _prop.var.etc.searchUnusedItem;
-		_unuseBeast.setSelection = _prop.var.etc.searchUnusedBeast;
-		_unuseInfo.setSelection = _prop.var.etc.searchUnusedInfo;
-		_unuseStart.setSelection = _prop.var.etc.searchUnusedStart;
-		_unusePath.setSelection = _prop.var.etc.searchUnusedPath;
+		_notIgnoreCase.setSelection(_prop.var.etc.replaceTextNotIgnoreCase);
+		_useRegex.setSelection(_prop.var.etc.replaceTextRegExp);
+		_useWildcard.setSelection(_prop.var.etc.replaceTextWildcard);
+		_summary.setSelection(_prop.var.etc.replaceTextSummary);
+		_msg.setSelection(_prop.var.etc.replaceTextMessage);
+		_cardName.setSelection(_prop.var.etc.replaceTextCardName);
+		_cardDesc.setSelection(_prop.var.etc.replaceTextCardDescription);
+		_event.setSelection(_prop.var.etc.replaceTextEventText);
+		_flag.setSelection(_prop.var.etc.replaceTextFlagAndStep);
+		_start.setSelection(_prop.var.etc.replaceTextStart);
+		_coupon.setSelection(_prop.var.etc.replaceTextCoupon);
+		_gossip.setSelection(_prop.var.etc.replaceTextGossip);
+		_end.setSelection(_prop.var.etc.replaceTextEndScenario);
+		_area.setSelection(_prop.var.etc.replaceTextAreaName);
+		_keyCode.setSelection(_prop.var.etc.replaceTextKeyCode);
+		_file.setSelection(_prop.var.etc.replaceTextFile);
+		_comment.setSelection(_prop.var.etc.replaceTextComment);
+		_unuseFlag.setSelection(_prop.var.etc.searchUnusedFlag);
+		_unuseStep.setSelection(_prop.var.etc.searchUnusedStep);
+		_unuseArea.setSelection(_prop.var.etc.searchUnusedArea);
+		_unuseBattle.setSelection(_prop.var.etc.searchUnusedBattle);
+		_unusePackage.setSelection(_prop.var.etc.searchUnusedPackage);
+		_unuseCast.setSelection(_prop.var.etc.searchUnusedCast);
+		_unuseSkill.setSelection(_prop.var.etc.searchUnusedSkill);
+		_unuseItem.setSelection(_prop.var.etc.searchUnusedItem);
+		_unuseBeast.setSelection(_prop.var.etc.searchUnusedBeast);
+		_unuseInfo.setSelection(_prop.var.etc.searchUnusedInfo);
+		_unuseStart.setSelection(_prop.var.etc.searchUnusedStart);
+		_unusePath.setSelection(_prop.var.etc.searchUnusedPath);
 		foreach (l; _checked) {
-			l.check;
+			l.check();
 		}
-		_tabf.setSelection = 0;
-		if (0 <= _prop.var.etc.searchPlan && _prop.var.etc.searchPlan < _tabf.getItemCount) {
-			_tabf.setSelection = _prop.var.etc.searchPlan;
+		_tabf.setSelection(0);
+		if (0 <= _prop.var.etc.searchPlan && _prop.var.etc.searchPlan < _tabf.getItemCount()) {
+			_tabf.setSelection(_prop.var.etc.searchPlan);
 		}
 
 		sash.addDisposeListener(new SashDispose);
-		sash.setWeights = [_prop.var.etc.replaceRangeSashL, _prop.var.etc.replaceRangeSashR];
+		sash.setWeights([_prop.var.etc.replaceRangeSashL, _prop.var.etc.replaceRangeSashR]);
 
 		_comm.refArea.add(&refArea);
 		_comm.refBattle.add(&refBattle);
@@ -1098,32 +1101,32 @@ public:
 		auto size = _prop.var.replaceDlg;
 		if (size.width != SWT.DEFAULT) cs.x = size.width;
 		if (size.height != SWT.DEFAULT) cs.y = size.height;
-		_win.setSize = cs;
+		_win.setSize(cs);
 
 		auto winProps = _prop.var.replaceDlg;
-		_win.setMaximized = winProps.maximized;
+		_win.setMaximized(winProps.maximized);
 		scope wp = _win.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 		int width = winProps.width == SWT.DEFAULT ? wp.x : winProps.width;
 		int height = winProps.height == SWT.DEFAULT ? wp.y : winProps.height;
-		int x = winProps.x == SWT.DEFAULT ? _win.getBounds.x : winProps.x + _win.getParent.getBounds.x;
-		int y = winProps.y == SWT.DEFAULT ? _win.getBounds.y : winProps.y + _win.getParent.getBounds.y;
+		int x = winProps.x == SWT.DEFAULT ? _win.getBounds().x : winProps.x + _win.getParent().getBounds().x;
+		int y = winProps.y == SWT.DEFAULT ? _win.getBounds().y : winProps.y + _win.getParent().getBounds().y;
 		intoDisplay(x, y, width, height);
 		_win.setBounds(x, y, width, height);
 	}
 	private void saveWin() {
 		auto winProps = _prop.var.replaceDlg;
-		if (!_win.getMaximized) {
-			winProps.width = _win.getSize.x;
-			winProps.height = _win.getSize.y;
-			winProps.x = _win.getBounds.x - _win.getParent.getBounds.x;
-			winProps.y = _win.getBounds.y - _win.getParent.getBounds.y;
+		if (!_win.getMaximized()) {
+			winProps.width = _win.getSize().x;
+			winProps.height = _win.getSize().y;
+			winProps.x = _win.getBounds().x - _win.getParent().getBounds().x;
+			winProps.y = _win.getBounds().y - _win.getParent().getBounds().y;
 		}
-		winProps.maximized = _win.getMaximized;
+		winProps.maximized = _win.getMaximized();
 	}
 	private class SashDispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
 			auto sash = cast(SplitPane) e.widget;
-			auto ws = sash.getWeights;
+			auto ws = sash.getWeights();
 			_prop.var.etc.replaceRangeSashL = ws[0];
 			_prop.var.etc.replaceRangeSashR = ws[1];
 		}
@@ -1132,35 +1135,35 @@ public:
 		override void widgetDisposed(DisposeEvent e) {
 			_comm.refScenario.remove(&refreshScenario);
 			saveWin();
-			_prop.var.etc.replaceTextNotIgnoreCase = _notIgnoreCase.getSelection;
-			_prop.var.etc.replaceTextRegExp = _useRegex.getSelection;
-			_prop.var.etc.replaceTextWildcard = _useWildcard.getSelection;
-			_prop.var.etc.replaceTextSummary = _summary.getSelection;
-			_prop.var.etc.replaceTextMessage = _msg.getSelection;
-			_prop.var.etc.replaceTextCardName = _cardName.getSelection;
-			_prop.var.etc.replaceTextCardDescription = _cardDesc.getSelection;
-			_prop.var.etc.replaceTextEventText = _event.getSelection;
-			_prop.var.etc.replaceTextStart = _start.getSelection;
-			_prop.var.etc.replaceTextFlagAndStep = _flag.getSelection;
-			_prop.var.etc.replaceTextCoupon = _coupon.getSelection;
-			_prop.var.etc.replaceTextGossip = _gossip.getSelection;
-			_prop.var.etc.replaceTextEndScenario = _end.getSelection;
-			_prop.var.etc.replaceTextAreaName = _area.getSelection;
-			_prop.var.etc.replaceTextKeyCode = _keyCode.getSelection;
-			_prop.var.etc.replaceTextFile = _file.getSelection;
-			_prop.var.etc.replaceTextComment = _comment.getSelection;
-			_prop.var.etc.searchUnusedFlag = _unuseFlag.getSelection;
-			_prop.var.etc.searchUnusedStep = _unuseStep.getSelection;
-			_prop.var.etc.searchUnusedArea = _unuseArea.getSelection;
-			_prop.var.etc.searchUnusedBattle = _unuseBattle.getSelection;
-			_prop.var.etc.searchUnusedPackage = _unusePackage.getSelection;
-			_prop.var.etc.searchUnusedCast = _unuseCast.getSelection;
-			_prop.var.etc.searchUnusedSkill = _unuseSkill.getSelection;
-			_prop.var.etc.searchUnusedItem = _unuseItem.getSelection;
-			_prop.var.etc.searchUnusedBeast = _unuseBeast.getSelection;
-			_prop.var.etc.searchUnusedInfo = _unuseInfo.getSelection;
-			_prop.var.etc.searchUnusedStart = _unuseStart.getSelection;
-			_prop.var.etc.searchUnusedPath = _unusePath.getSelection;
+			_prop.var.etc.replaceTextNotIgnoreCase = _notIgnoreCase.getSelection();
+			_prop.var.etc.replaceTextRegExp = _useRegex.getSelection();
+			_prop.var.etc.replaceTextWildcard = _useWildcard.getSelection();
+			_prop.var.etc.replaceTextSummary = _summary.getSelection();
+			_prop.var.etc.replaceTextMessage = _msg.getSelection();
+			_prop.var.etc.replaceTextCardName = _cardName.getSelection();
+			_prop.var.etc.replaceTextCardDescription = _cardDesc.getSelection();
+			_prop.var.etc.replaceTextEventText = _event.getSelection();
+			_prop.var.etc.replaceTextStart = _start.getSelection();
+			_prop.var.etc.replaceTextFlagAndStep = _flag.getSelection();
+			_prop.var.etc.replaceTextCoupon = _coupon.getSelection();
+			_prop.var.etc.replaceTextGossip = _gossip.getSelection();
+			_prop.var.etc.replaceTextEndScenario = _end.getSelection();
+			_prop.var.etc.replaceTextAreaName = _area.getSelection();
+			_prop.var.etc.replaceTextKeyCode = _keyCode.getSelection();
+			_prop.var.etc.replaceTextFile = _file.getSelection();
+			_prop.var.etc.replaceTextComment = _comment.getSelection();
+			_prop.var.etc.searchUnusedFlag = _unuseFlag.getSelection();
+			_prop.var.etc.searchUnusedStep = _unuseStep.getSelection();
+			_prop.var.etc.searchUnusedArea = _unuseArea.getSelection();
+			_prop.var.etc.searchUnusedBattle = _unuseBattle.getSelection();
+			_prop.var.etc.searchUnusedPackage = _unusePackage.getSelection();
+			_prop.var.etc.searchUnusedCast = _unuseCast.getSelection();
+			_prop.var.etc.searchUnusedSkill = _unuseSkill.getSelection();
+			_prop.var.etc.searchUnusedItem = _unuseItem.getSelection();
+			_prop.var.etc.searchUnusedBeast = _unuseBeast.getSelection();
+			_prop.var.etc.searchUnusedInfo = _unuseInfo.getSelection();
+			_prop.var.etc.searchUnusedStart = _unuseStart.getSelection();
+			_prop.var.etc.searchUnusedPath = _unusePath.getSelection();
 
 			_comm.refArea.remove(&refArea);
 			_comm.refBattle.remove(&refBattle);
@@ -1193,46 +1196,46 @@ public:
 	}
 	private void search() {
 		_replMode = false;
-		replaceImpl;
+		replaceImpl();
 	}
 	private void replace() {
 		_replMode = true;
-		replaceImpl;
+		replaceImpl();
 	}
 	private void reset() {
-		_result.removeAll;
+		_result.removeAll();
 		if (_replMode) {
-			_status.setText = _prop.msgs.replResult(0, "");
+			_status.setText(_prop.msgs.replResult(0, ""));
 		} else {
-			_status.setText = _prop.msgs.searchResult(0, "");
+			_status.setText(_prop.msgs.searchResult(0, ""));
 		}
 	}
 	private void replaceImpl() {
-		if (_tabf.getSelection is _tabText) {
-			replaceTextImpl;
-		} else if (_tabf.getSelection is _tabID) {
-			replaceIDImpl;
-		} else if (_tabf.getSelection is _tabPath) {
-			replacePathImpl;
-		} else if (_tabf.getSelection is _tabUnuse) {
-			searchUnuseImpl;
-		} else if (_tabf.getSelection is _tabError) {
-			searchErrorImpl;
+		if (_tabf.getSelection() is _tabText) {
+			replaceTextImpl();
+		} else if (_tabf.getSelection() is _tabID) {
+			replaceIDImpl();
+		} else if (_tabf.getSelection() is _tabPath) {
+			replacePathImpl();
+		} else if (_tabf.getSelection() is _tabUnuse) {
+			searchUnuseImpl();
+		} else if (_tabf.getSelection() is _tabError) {
+			searchErrorImpl();
 		} else assert (0);
 	}
 	private void searchRange(ref uint count,
 			void delegate(CWXPath path, ref uint count) dlg) {
 		void recurse(TreeItem itm) {
-			auto path = cast(CWXPath) itm.getData;
+			auto path = cast(CWXPath) itm.getData();
 			searchAll(path, count, dlg);
-			foreach (child; itm.getItems) {
-				if (child.getChecked) {
+			foreach (child; itm.getItems()) {
+				if (child.getChecked()) {
 					recurse(child);
 				}
 			}
 		}
-		foreach (itm; _range.getItems) {
-			if (itm.getChecked) {
+		foreach (itm; _range.getItems()) {
+			if (itm.getChecked()) {
 				recurse(itm);
 			}
 		}
@@ -1281,26 +1284,26 @@ public:
 
 	private void setResultStatus(uint count) {
 		if (count > 0) {
-			if (_replMode) _summ.changed;
-			_comm.refUseCount.call;
+			if (_replMode) _summ.changed();
+			_comm.refUseCount.call();
 		}
-		string kind = _tabf.getSelection.getText;
+		string kind = _tabf.getSelection().getText();
 		if (_replMode) {
-			_status.setText = _prop.msgs.replResult(count, kind);
+			_status.setText(_prop.msgs.replResult(count, kind));
 		} else {
-			_status.setText = _prop.msgs.searchResult(count, kind);
+			_status.setText(_prop.msgs.searchResult(count, kind));
 		}
 	}
 	private void replaceIDImpl2(ID)(ID from, ID to) {
 		reset();
 		bool[CWXPath] range;
 		void recurse(TreeItem itm) {
-			range[cast(CWXPath) itm.getData] = itm.getChecked;
-			foreach (cItm; itm.getItems) {
+			range[cast(CWXPath) itm.getData()] = itm.getChecked();
+			foreach (cItm; itm.getItems()) {
 				recurse(cItm);
 			}
 		}
-		foreach (itm; _range.getItems) {
+		foreach (itm; _range.getItems()) {
 			recurse(itm);
 		}
 		bool dec(CWXPath path) {
@@ -1314,8 +1317,8 @@ public:
 
 		auto uc = _summ.useCounter;
 		auto users = uc.values(from);
-		_result.setRedraw = false;
-		scope (exit) _result.setRedraw = true;
+		_result.setRedraw(false);
+		scope (exit) _result.setRedraw(true);
 		size_t count = 0;
 		foreach (u; users) {
 			if (!dec(u.owner)) continue;
@@ -1348,22 +1351,22 @@ public:
 			static if (is(ID : PathId)) {
 				_comm.replPath.call(cast(string) from, cast(string) to);
 			} else {
-				_comm.replID.call;
+				_comm.replID.call();
 			}
 		}
 	}
 	private void replaceIDImpl() {
 		ulong getID(Combo combo, Spinner spn, ulong[int] tbl) {
-			if (combo.getSelectionIndex == 0) {
-				return spn.getSelection;
+			if (combo.getSelectionIndex() == 0) {
+				return spn.getSelection();
 			} else {
-				return tbl[combo.getSelectionIndex];
+				return tbl[combo.getSelectionIndex()];
 			}
 		}
 		ulong from = getID(_fromID, _fromIDVal, _fromIDTbl);
 		ulong to = getID(_toID, _toIDVal, _toIDTbl);
 		if (from == to) _replMode = false;
-		switch (_idKind.getSelectionIndex) {
+		switch (_idKind.getSelectionIndex()) {
 		case ID_AREA: replaceIDImpl2(toAreaId(from), toAreaId(to)); break;
 		case ID_BATTLE: replaceIDImpl2(toBattleId(from), toBattleId(to)); break;
 		case ID_PACKAGE: replaceIDImpl2(toPackageId(from), toPackageId(to)); break;
@@ -1376,9 +1379,9 @@ public:
 		}
 	}
 	private void replacePathImpl() {
-		if (!_fromPath.getText.length) return;
-		auto from = toPathId(_fromPath.getText);
-		auto to = toPathId(_toPath.getText);
+		if (!_fromPath.getText().length) return;
+		auto from = toPathId(_fromPath.getText());
+		auto to = toPathId(_toPath.getText());
 		if (from == to) _replMode = false;
 		replaceIDImpl2(from, to);
 	}
@@ -1393,9 +1396,9 @@ public:
 	private void searchUnuseImpl() {
 		_replMode = false;
 		uint count = 0;
-		_result.setRedraw = false;
-		scope (exit) _result.setRedraw = true;
-		reset;
+		_result.setRedraw(false);
+		scope (exit) _result.setRedraw(true);
+		reset();
 		if (unuseFlag) {
 			searchUnuseImpl2!("toFlagId(o.path)")(_summ.flagDirRoot.allFlags, count);
 		}
@@ -1449,7 +1452,7 @@ public:
 		auto froot = _summ.flagDirRoot;
 		auto sPath = _summ.scenarioPath;
 		auto skin = _comm.skin;
-		reset;
+		reset();
 		searchRange(count, (CWXPath path, ref uint count) {
 			auto summ = cast(Summary) path;
 			if (summ) {
@@ -1510,7 +1513,7 @@ public:
 					count++;
 					return;
 				}
-				if (!_summ.casts(ec.id)) {
+				if (!_summ.cwCast(ec.id)) {
 					addResult(path, _prop.msgs.searchErrorCastNotFound);
 					count++;
 					return;
@@ -1627,12 +1630,12 @@ public:
 				count++;
 				return;
 			}
-			if (c.packages != 0 && !_summ.packages(c.packages)) {
+			if (c.packages != 0 && !_summ.cwPackage(c.packages)) {
 				addResult(path, _prop.msgs.searchErrorPackageNotFound);
 				count++;
 				return;
 			}
-			if (c.casts != 0 && !_summ.casts(c.casts)) {
+			if (c.casts != 0 && !_summ.cwCast(c.casts)) {
 				addResult(path, _prop.msgs.searchErrorCastNotFound);
 				count++;
 				return;
@@ -1670,8 +1673,8 @@ public:
 				}
 			}
 		});
-		_result.setRedraw = false;
-		scope (exit) _result.setRedraw = true;
+		_result.setRedraw(false);
+		scope (exit) _result.setRedraw(true);
 		setResultStatus(count);
 	}
 	private void replaceTextImpl(CWXPath c, ref size_t count) {
@@ -1758,12 +1761,12 @@ public:
 		}
 	}
 	private void replaceTextImpl() {
-		string from = _from.getText;
-		string to = _to.getText;
+		string from = _from.getText();
+		string to = _to.getText();
 		if (!from.length) return;
-		if (_useRegex.getSelection) {
+		if (_useRegex.getSelection()) {
 			try {
-				_regex = .regex!(dstring)(toUTF32(from), _notIgnoreCase.getSelection ? "gm" : "gim");
+				_regex = .regex!(dstring)(toUTF32(from), _notIgnoreCase.getSelection() ? "gm" : "gim");
 				_regexTarg = true;
 				_toTemp = toUTF32(to);
 			} catch (Exception e) {
@@ -1772,8 +1775,8 @@ public:
 					_prop.msgs.dlgTitWarning, _win);
 				return;
 			}
-		} else if (_useWildcard.getSelection) {
-			_wildcard = Wildcard(from, !_notIgnoreCase.getSelection);
+		} else if (_useWildcard.getSelection()) {
+			_wildcard = Wildcard(from, !_notIgnoreCase.getSelection());
 		} else {
 			if (from == to) _replMode = false;
 		}
@@ -1785,12 +1788,12 @@ public:
 		scope (exit) _wildcard = null;
 
 		size_t count = 0;
-		_result.setRedraw = false;
-		scope (exit) _result.setRedraw = true;
-		reset;
+		_result.setRedraw(false);
+		scope (exit) _result.setRedraw(true);
+		reset();
 		searchRange(count, &replaceTextImpl);
 		setResultStatus(count);
-		if (count > 0) _comm.replText.call;
+		if (count > 0) _comm.replText.call();
 
 		static void addHist(Combo combo, void delegate(string[]) set,
 				string[] delegate() get, int max, string text) {
@@ -1820,12 +1823,12 @@ public:
 	}
 	private void refSearchHistories(Object sender) {
 		if (sender is this) return;
-		string ft = _from.getText;
-		string tt = _to.getText;
+		string ft = _from.getText();
+		string tt = _to.getText();
 		setComboItems(_from, _prop.var.etc.searchHistories.dup);
 		setComboItems(_to, _prop.var.etc.replaceHistories.dup);
-		_from.setText = ft;
-		_to.setText = tt;
+		_from.setText(ft);
+		_to.setText(tt);
 	}
 	private Regex!(dchar) _regex;
 	private bool _regexTarg = false;
@@ -1846,12 +1849,12 @@ public:
 		if (_regexTarg) {
 			return toUTF8(impReplace(toUTF32(s), _regex, _toTemp));
 		}
-		string to = _to.getText;
+		string to = _to.getText();
 		if (_wildcard) {
 			return _wildcard.replace(s, to);
 		}
-		string from = _from.getText;
-		if (_notIgnoreCase.getSelection) {
+		string from = _from.getText();
+		if (_notIgnoreCase.getSelection()) {
 			return .replace(s, from, to);
 		} else {
 			return .ireplace(s, from, to);
@@ -1868,22 +1871,22 @@ public:
 		if (_wildcard) {
 			return _wildcard.count(s);
 		}
-		string from = _from.getText;
-		if (_notIgnoreCase.getSelection) {
+		string from = _from.getText();
+		if (_notIgnoreCase.getSelection()) {
 			return std.algorithm.count(s, from);
 		} else {
 			return .icount(s, from);
 		}
 	}
 	private void exit() {
-		_win.close;
+		_win.close();
 	}
 	private bool _replMode = false;
 
 	private void openPath() {
-		auto itms = _result.getSelection;
+		auto itms = _result.getSelection();
 		if (itms.length) {
-			auto rp = cast(CWXPathString) itms[0].getData;
+			auto rp = cast(CWXPathString) itms[0].getData();
 			if (rp) {
 				auto path = rp.array;
 				if (_prop.var.etc.searchOpenDialog) {
@@ -1891,7 +1894,7 @@ public:
 				}
 				try {
 					if (_comm.openCWXPath(path, false)) {
-						if (!_prop.var.etc.searchOpenDialog) _win.setActive;
+						if (!_prop.var.etc.searchOpenDialog) _win.setActive();
 						return;
 					}
 				} catch (Exception e) {
@@ -1899,11 +1902,11 @@ public:
 				}
 				MessageBox.showWarning(_prop.msgs.cwxPathOpenError(path), _prop.msgs.dlgTitWarning, _win);
 			} else {
-				auto p = cast(PathString) itms[0].getData;
+				auto p = cast(PathString) itms[0].getData();
 				assert (p);
 				auto path = nabs(std.path.buildPath(_summ.scenarioPath, p.array));
 				if (_comm.openFilePath(path, false)) {
-					_win.setActive;
+					_win.setActive();
 					return;
 				}
 				MessageBox.showWarning(_prop.msgs.filePathOpenError(path), _prop.msgs.dlgTitWarning, _win);
@@ -1933,19 +1936,19 @@ public:
 	}
 	private void addResult(string path) {
 		auto itm = new TableItem(_result, SWT.NONE);
-		itm.setImage = fimage(std.path.buildPath(_summ.scenarioPath, path));
-		itm.setText = encodePath(path);
-		itm.setData = new PathString(path);
+		itm.setImage(fimage(std.path.buildPath(_summ.scenarioPath, path)));
+		itm.setText(encodePath(path));
+		itm.setData(new PathString(path));
 	}
 	private void refContentText() {
-		foreach (itm; _result.getItems) {
-			auto c = cast(Content) itm.getData;
+		foreach (itm; _result.getItems()) {
+			auto c = cast(Content) itm.getData();
 			if (c) {
 				string text;
 				Image img;
 				getPathParams(c, text, img);
-				itm.setText = text;
-				itm.setImage = img;
+				itm.setText(text);
+				itm.setImage(img);
 			}
 		}
 	}
@@ -2063,10 +2066,10 @@ public:
 		string text;
 		Image img;
 		getPathParams(path, text, img);
-		itm.setImage = img;
+		itm.setImage(img);
 		if (desc.length) text = desc ~ " - " ~ text;
-		itm.setText = text;
-		itm.setData = new CWXPathString(path.cwxPath);
+		itm.setText(text);
+		itm.setData(new CWXPathString(path.cwxPath));
 	}
 	private bool repl(CWXPath path, string text, void delegate(string) set, ref size_t count) {
 		auto c = fTextCount(text);
@@ -2133,8 +2136,8 @@ public:
 	}
 
 	private bool replBgImage(CWXPath path, BgImage back, ref size_t count) {
-		string from = _from.getText;
-		string to = _to.getText;
+		string from = _from.getText();
+		string to = _to.getText();
 		bool r = false;
 		if (flag) {
 			r |= repl(null, back.flag, &back.flag, count);
@@ -2148,8 +2151,8 @@ public:
 		return r;
 	}
 	private bool replCard(C)(CWXPath path, C card, ref size_t count) {
-		string from = _from.getText;
-		string to = _to.getText;
+		string from = _from.getText();
+		string to = _to.getText();
 		bool r = false;
 		if (cardName) {
 			r |= repl(null, card.name, &card.name, count);
@@ -2176,8 +2179,8 @@ public:
 	void replContent(Content e, ref size_t count) {
 		auto eo = e.parent;
 		assert (!eo || eo.detail.owner);
-		string from = _from.getText;
-		string to = _to.getText;
+		string from = _from.getText();
+		string to = _to.getText();
 		bool r = false;
 		if (event && (!eo || eo.detail.nextType == CNextType.TEXT)) {
 			r |= repl(null, e.name, &e.name, count);

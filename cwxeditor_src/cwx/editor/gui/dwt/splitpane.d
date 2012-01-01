@@ -44,10 +44,10 @@ class SplitPane : Composite {
 	void setWeights(int[] weights) {
 		if (weights.length != 2) throw new Exception("SplitPane weights length");
 		_weights = weights.dup;
-		resize;
+		resize();
 	}
 	private int[] computeWeights() {
-		auto cs = getChildren;
+		auto cs = getChildren();
 		if (cs.length >= 2) {
 			int l = cs[0].computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
 			int r = cs[0].computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
@@ -59,13 +59,13 @@ class SplitPane : Composite {
 		assert (_weights);
 		assert (_weights.length == 2u);
 		if (_weights[0u] <= 0 || _weights[1u] <= 0) {
-			_weights = computeWeights;
+			_weights = computeWeights();
 		}
 		int l = _weights[0u];
 		int r = _weights[1u];
 		int full = l + r;
-		auto ca = getClientArea;
-		if (getStyle & SWT.VERTICAL) {
+		auto ca = getClientArea();
+		if (getStyle() & SWT.VERTICAL) {
 			if (ca.height == 0) return false;
 			int lw = cast(int) rndtol((ca.height - SASH_WIDTH) * (cast(real) l / full));
 			_sfd.top = new FormAttachment(0, lw);
@@ -74,12 +74,12 @@ class SplitPane : Composite {
 			int lw = cast(int) rndtol((ca.width - SASH_WIDTH) * (cast(real) l / full));
 			_sfd.left = new FormAttachment(0, lw);
 		}
-		relo;
+		relo();
 		return true;
 	}
 	private void relo() {
-		auto ca = getClientArea;
-		if (getStyle & SWT.VERTICAL) {
+		auto ca = getClientArea();
+		if (getStyle() & SWT.VERTICAL) {
 			int lw = _sfd.top.offset;
 			if (lw < MIN) lw = MIN;
 			if (lw + SASH_WIDTH >= ca.height - MIN) lw = ca.height - SASH_WIDTH - MIN;
@@ -94,12 +94,12 @@ class SplitPane : Composite {
 			_fd1.right.control = _sash;
 			_fd2.left.control = _sash;
 		}
-		_sash.setLayoutData = _sfd;
-		auto cs = getChildren;
-		cs[0].setLayoutData = _fd1;
-		cs[1].setLayoutData = _fd2;
+		_sash.setLayoutData(_sfd);
+		auto cs = getChildren();
+		cs[0].setLayoutData(_fd1);
+		cs[1].setLayoutData(_fd2);
 		layout(true);
-		refreshWeights;
+		refreshWeights();
 	}
 	private class ResizeL : Listener {
 		private bool _first = true;
@@ -109,34 +109,34 @@ class SplitPane : Composite {
 		private bool _maximizedAfter = false;
 		override void handleEvent(Event e) {
 			if (_first) {
-				if (getChildren.length < 2) {
+				if (getChildren().length < 2) {
 					return;
 				}
-				if (!_sash) initSash;
-				_first = !resize;
-				if (!isVisible && getShell.getMaximized) {
+				if (!_sash) initSash();
+				_first = !resize();
+				if (!isVisible() && getShell().getMaximized()) {
 					_maximizedAfter = true;
 				}
-			} else if (isVisible) {
+			} else if (isVisible()) {
 				if (_maximizedAfter) {
-					resize;
+					resize();
 					_maximizedAfter = false;
 				} else {
-					relo;
+					relo();
 				}
 			} else {
-				resize;
-				if (!isVisible && getShell.getMaximized) {
+				resize();
+				if (!isVisible() && getShell().getMaximized()) {
 					_maximizedAfter = true;
 				}
 			}
 		}
 	}
 	private void refreshWeights() {
-		auto cs = getChildren;
+		auto cs = getChildren();
 		if (cs[0] && cs[1]) {
-			auto ca = getClientArea;
-			if (getStyle & SWT.VERTICAL) {
+			auto ca = getClientArea();
+			if (getStyle() & SWT.VERTICAL) {
 				int l = _sfd.top.offset - ca.y;
 				_weights = [l, ca.height - l - SASH_WIDTH];
 			} else {
@@ -146,8 +146,8 @@ class SplitPane : Composite {
 		}
 	}
 	private void initSash() {
-		_sash = new Sash(this, (getStyle & SWT.HORIZONTAL) ? SWT.VERTICAL : SWT.HORIZONTAL);
-		if (getStyle & SWT.VERTICAL) {
+		_sash = new Sash(this, (getStyle() & SWT.HORIZONTAL) ? SWT.VERTICAL : SWT.HORIZONTAL);
+		if (getStyle() & SWT.VERTICAL) {
 			_fd1.left = new FormAttachment(0, 0);
 			_fd1.right = new FormAttachment(100, 0);
 			_fd1.top = new FormAttachment(0, 0);
@@ -158,7 +158,7 @@ class SplitPane : Composite {
 			_fd1.top = new FormAttachment(0, 0);
 			_fd1.bottom = new FormAttachment(100, 0);
 		}
-		if (getStyle & SWT.VERTICAL) {
+		if (getStyle() & SWT.VERTICAL) {
 			_sfd.left = new FormAttachment(0, 0);
 			_sfd.top = new FormAttachment(50, 0);
 			_sfd.right = new FormAttachment(100, 0);
@@ -167,7 +167,7 @@ class SplitPane : Composite {
 			_sfd.top = new FormAttachment(0, 0);
 			_sfd.bottom = new FormAttachment(100, 0);
 		}
-		if (getStyle & SWT.VERTICAL) {
+		if (getStyle() & SWT.VERTICAL) {
 			_fd2.left = new FormAttachment(0, 0);
 			_fd2.right = new FormAttachment(100, 0);
 			_fd2.top = new FormAttachment(_sash, 0);
@@ -179,22 +179,22 @@ class SplitPane : Composite {
 			_fd2.bottom = new FormAttachment(100, 0);
 		}
 		_sfd.width = SASH_WIDTH;
-		_sash.setLayoutData = _sfd;
+		_sash.setLayoutData(_sfd);
 		_sash.addListener(SWT.Selection, new SSelL);
 	}
 	private static const SASH_WIDTH = 3;
 	private static const MIN = 10;
 	private class SSelL : Listener {
 		override void handleEvent(Event e) {
-			auto sb = _sash.getBounds;
-			auto cb = getClientArea;
-			if (getStyle & SWT.VERTICAL) {
+			auto sb = _sash.getBounds();
+			auto cb = getClientArea();
+			if (getStyle() & SWT.VERTICAL) {
 				int right = cb.height - sb.height - SashForm.DRAG_MINIMUM;
 				if (right < e.y) e.y = right;
 				if (SashForm.DRAG_MINIMUM > e.y) e.y = SashForm.DRAG_MINIMUM;
 				if (e.y != sb.y)  {
 					_sfd.top = new FormAttachment(0, e.y);
-					relo;
+					relo();
 				}
 			} else {
 				int right = cb.width - sb.width - SashForm.DRAG_MINIMUM;
@@ -202,7 +202,7 @@ class SplitPane : Composite {
 				if (SashForm.DRAG_MINIMUM > e.x) e.x = SashForm.DRAG_MINIMUM;
 				if (e.x != sb.x)  {
 					_sfd.left = new FormAttachment(0, e.x);
-					relo;
+					relo();
 				}
 			}
 		}
@@ -212,7 +212,7 @@ class SplitPane : Composite {
 	}
 	override Point computeSize(int wHint, int hHint, bool change) {
 		Point[] size;
-		foreach (c; getChildren) {
+		foreach (c; getChildren()) {
 			if (!(cast(Sash) c)) {
 				size ~= c.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 			}
@@ -220,7 +220,7 @@ class SplitPane : Composite {
 		int x = 0, y = 0;
 		if (wHint != SWT.DEFAULT) {
 			x = wHint;
-		} else if (getStyle & SWT.VERTICAL) {
+		} else if (getStyle() & SWT.VERTICAL) {
 			foreach (s; size) {
 				if (x < s.x) x = s.x;
 			}
@@ -232,7 +232,7 @@ class SplitPane : Composite {
 		}
 		if (hHint != SWT.DEFAULT) {
 			y = hHint;
-		} else if (getStyle & SWT.VERTICAL) {
+		} else if (getStyle() & SWT.VERTICAL) {
 			foreach (s; size) {
 				y += s.y;
 			}

@@ -98,7 +98,7 @@ private:
 	}
 	Object readAPD(Object old) {
 		auto o = new APData;
-		o.selDlg = _dlgsL.getSelectionIndex;
+		o.selDlg = _dlgsL.getSelectionIndex();
 		auto apd = cast(APData) old;
 		if (apd) {
 			o.targDlg = apd.targDlg;
@@ -132,7 +132,7 @@ private:
 			foreach (d; this.outer._dlgs) {
 				_dlgs ~= new SDialog(d);
 			}
-			_selDlg = _dlgsL.getSelectionIndex;
+			_selDlg = _dlgsL.getSelectionIndex();
 		}
 		private void impl() {
 			auto dlgs = _dlgs;
@@ -174,7 +174,7 @@ private:
 		bool oldIgnoreMod = ignoreMod;
 		ignoreMod = true;
 		scope (exit) ignoreMod = oldIgnoreMod;
-		auto dlg = _dlgs[_dlgsL.getSelectionIndex];
+		auto dlg = _dlgs[_dlgsL.getSelectionIndex()];
 		string rcs;
 		foreach (rc; dlg.rCoupons) {
 			rcs ~= rc;
@@ -185,7 +185,7 @@ private:
 		refreshPreview();
 	}
 	void createDialog(SDialog dlg) {
-		insertDialog(dlg, _dlgsL.getSelectionIndex);
+		insertDialog(dlg, _dlgsL.getSelectionIndex());
 	}
 	void createDialog() {
 		createDialog(new SDialog);
@@ -197,14 +197,14 @@ private:
 		auto itm = new TableItem(_dlgsL, SWT.NONE, index);
 		itm.setImage = prop.images.content(CType.TALK_DIALOG);
 		_dlgsL.setSelection = [itm];
-		_dlgsL.showSelection;
+		_dlgsL.showSelection();
 		selectChanged();
 		applyEnabled();
 	}
 	void deleteDialog(int index, bool store = true) {
 		if (index < 0 || _dlgs.length <= 1) return;
 		if (store) storeEdit();
-		bool sel = _dlgsL.getSelectionIndex == index;
+		bool sel = _dlgsL.getSelectionIndex() == index;
 		_dlgs = _dlgs[0 .. index] ~ _dlgs[index + 1 .. $];
 		_dlgsL.remove(index);
 		if (sel) {
@@ -214,31 +214,31 @@ private:
 		applyEnabled();
 	}
 	void deleteDialogSel() {
-		deleteDialog(_dlgsL.getSelectionIndex);
+		deleteDialog(_dlgsL.getSelectionIndex());
 	}
 	void up() {
-		int index = _dlgsL.getSelectionIndex;
+		int index = _dlgsL.getSelectionIndex();
 		if (index > 0) {
 			storeEdit();
 			auto temp = _dlgs[index - 1];
 			_dlgs[index - 1] = _dlgs[index];
 			_dlgs[index] = temp;
-			auto tempL = _dlgsL.getItem(index - 1).getText;
-			_dlgsL.getItem(index - 1).setText(_dlgsL.getItem(index).getText);
+			auto tempL = _dlgsL.getItem(index - 1).getText();
+			_dlgsL.getItem(index - 1).setText(_dlgsL.getItem(index).getText());
 			_dlgsL.getItem(index).setText(tempL);
 			_dlgsL.select = index - 1;
 			applyEnabled();
 		}
 	}
 	void down() {
-		int index = _dlgsL.getSelectionIndex;
+		int index = _dlgsL.getSelectionIndex();
 		if (index + 1 < _dlgs.length) {
 			storeEdit();
 			auto temp = _dlgs[index + 1];
 			_dlgs[index + 1] = _dlgs[index];
 			_dlgs[index] = temp;
-			auto tempL = _dlgsL.getItem(index + 1).getText;
-			_dlgsL.getItem(index + 1).setText(_dlgsL.getItem(index).getText);
+			auto tempL = _dlgsL.getItem(index + 1).getText();
+			_dlgsL.getItem(index + 1).setText(_dlgsL.getItem(index).getText());
 			_dlgsL.getItem(index).setText(tempL);
 			_dlgsL.select = index + 1;
 			applyEnabled();
@@ -246,9 +246,9 @@ private:
 	}
 	void copyToUpper() {
 		storeEdit();
-		int index = _dlgsL.getSelectionIndex;
-		string textL = _dlgsL.getItem(index).getText;
-		string text = lastRet(wrapReturnCode(_text.getText));
+		int index = _dlgsL.getSelectionIndex();
+		string textL = _dlgsL.getItem(index).getText();
+		string text = lastRet(wrapReturnCode(_text.getText()));
 		for (int i = 0; i < index; i++) {
 			_dlgsL.getItem(i).setText(textL);
 			_dlgs[i].text = text;
@@ -257,9 +257,9 @@ private:
 	}
 	void copyToLower() {
 		storeEdit();
-		int index = _dlgsL.getSelectionIndex;
-		string textL = _dlgsL.getItem(index).getText;
-		string text = lastRet(wrapReturnCode(_text.getText));
+		int index = _dlgsL.getSelectionIndex();
+		string textL = _dlgsL.getItem(index).getText();
+		string text = lastRet(wrapReturnCode(_text.getText()));
 		for (int i = index + 1; i < _dlgs.length; i++) {
 			_dlgsL.getItem(i).setText(textL);
 			_dlgs[i].text = text;
@@ -268,9 +268,9 @@ private:
 	}
 	void copyToDialogs() {
 		storeEdit();
-		int index = _dlgsL.getSelectionIndex;
-		string textL = _dlgsL.getItem(index).getText;
-		string text = lastRet(wrapReturnCode(_text.getText));
+		int index = _dlgsL.getSelectionIndex();
+		string textL = _dlgsL.getItem(index).getText();
+		string text = lastRet(wrapReturnCode(_text.getText()));
 		foreach (i, dlg; _dlgs) {
 			if (i != index) {
 				_dlgsL.getItem(i).setText(textL);
@@ -286,11 +286,11 @@ private:
 		_text.insert(put);
 	}
 	void putText(SDialog dlg) {
-		dlg.text = lastRet(wrapReturnCode(_text.getText));
+		dlg.text = lastRet(wrapReturnCode(_text.getText()));
 	}
 	void putRCoupons(SDialog dlg) {
 		string[] rcs;
-		foreach (rc; splitLines(_rCoupons.getText)) {
+		foreach (rc; splitLines(_rCoupons.getText())) {
 			if (rc.length > 0) {
 				rcs ~= rc;
 			}
@@ -315,27 +315,28 @@ private:
 	}
 	class ModL : ModifyListener {
 		override void modifyText(ModifyEvent e) {
-			if (_textTM && _rCouponsTM && !_textTM.inProc && !_rCouponsTM.inProc) {
-				putText(_dlgs[_dlgsL.getSelectionIndex]);
+			if (_textTM && _rCouponsTM && !_textTM.inProc() && !_rCouponsTM.inProc()) {
+				putText(_dlgs[_dlgsL.getSelectionIndex()]);
 			}
-			refreshDlgList(_dlgsL.getSelectionIndex);
+			refreshDlgList(_dlgsL.getSelectionIndex());
 			refreshPreview();
 		}
 	}
 	class ModRC : ModifyListener {
 		override void modifyText(ModifyEvent e) {
-			if (_textTM && _rCouponsTM && !_textTM.inProc && !_rCouponsTM.inProc) {
-				putRCoupons(_dlgs[_dlgsL.getSelectionIndex]);
+			if (_textTM && _rCouponsTM && !_textTM.inProc() && !_rCouponsTM.inProc()) {
+				putRCoupons(_dlgs[_dlgsL.getSelectionIndex()]);
 			}
 		}
 	}
+	@property
 	SDialog selection() {
-		int index = _dlgsL.getSelectionIndex;
+		int index = _dlgsL.getSelectionIndex();
 		return index >= 0 ? _dlgs[index] : null;
 	}
 	class DialogsTCPD : TCPD {
 		void cut(SelectionEvent se) {
-			if (_dlgsL.getItemCount > 1 && selection) {
+			if (_dlgsL.getItemCount() > 1 && selection) {
 				copy(se);
 				del(se);
 			}
@@ -343,7 +344,7 @@ private:
 		void copy(SelectionEvent se) {
 			auto d = selection;
 			if (d) {
-				XMLtoCB(prop, comm.clipboard, d.toNode.text);
+				XMLtoCB(prop, comm.clipboard, d.toNode().text);
 			}
 		}
 		void paste(SelectionEvent se) {
@@ -359,8 +360,8 @@ private:
 				}
 			}
 		}
-		void del(SelectionEvent se) {deleteDialogSel;}
-		bool canDoTCPD() {return _dlgsL.isFocusControl;}
+		void del(SelectionEvent se) {deleteDialogSel();}
+		bool canDoTCPD() {return _dlgsL.isFocusControl();}
 	}
 	class DDropListener : DropTargetAdapter {
 		override void dragEnter(DropTargetEvent e){
@@ -377,9 +378,9 @@ private:
 				auto node = XNode.parse(xml);
 				if (node.name != SDialog.XML_NAME) return;
 				storeEdit();
-				scope p = (cast(DropTarget) e.getSource).getControl.toControl(e.x, e.y);
+				scope p = (cast(DropTarget) e.getSource()).getControl().toControl(e.x, e.y);
 				auto t = _dlgsL.getItem(p);
-				int index = t ? _dlgsL.indexOf(t) : _dlgsL.getItemCount;
+				int index = t ? _dlgsL.indexOf(t) : _dlgsL.getItemCount();
 				insertDialog(SDialog.createFromNode(node, LATEST_VERSION), index, false);
 				if (_id == node.attr("paneId", false)) {
 					e.detail = DND.DROP_MOVE;
@@ -390,15 +391,15 @@ private:
 	class DDragListener : DragSourceAdapter {
 		private TableItem _itm;
 		override void dragStart(DragSourceEvent e) {
-			e.doit = (cast(DragSource) e.getSource).getControl.isFocusControl;
+			e.doit = (cast(DragSource) e.getSource()).getControl().isFocusControl();
 		}
 		override void dragSetData(DragSourceEvent e){
-			if (XMLBytesTransfer.getInstance.isSupportedType(e.dataType)) {
-				auto c = cast(Table) (cast(DragSource) e.getSource).getControl;
-				int index = c.getSelectionIndex;
+			if (XMLBytesTransfer.getInstance().isSupportedType(e.dataType)) {
+				auto c = cast(Table) (cast(DragSource) e.getSource()).getControl();
+				int index = c.getSelectionIndex();
 				if (index >= 0) {
 					auto d = _dlgs[index];
-					auto node = d.toNode;
+					auto node = d.toNode();
 					node.newAttr("paneId", _id);
 					e.data = bytesFromXML(node.text);
 					_itm = c.getItem(index);
@@ -412,7 +413,7 @@ private:
 		}
 	}
 	void refreshCoupons() {
-		auto c = _rCouponsList.getText;
+		auto c = _rCouponsList.getText();
 		_rCouponsList.removeAll();
 		addCastCoupons(_rCouponsList, prop, true, comm.skin.legacyName);
 		_rCouponsList.select = 0;
@@ -429,8 +430,8 @@ private:
 		bool oldIgnoreMod = ignoreMod;
 		ignoreMod = true;
 		scope (exit) ignoreMod = oldIgnoreMod;
-		int selIndex = _dlgsL.getSelectionIndex;
-		int topIndex = _dlgsL.getTopIndex;
+		int selIndex = _dlgsL.getSelectionIndex();
+		int topIndex = _dlgsL.getTopIndex();
 
 		_dlgsL.removeAll();
 		foreach (dlg; _dlgs) {
@@ -447,14 +448,14 @@ private:
 			_dlgsL.select = selIndex;
 			_dlgsL.setTopIndex = topIndex;
 		}
-		if (selIndex != _dlgsL.getSelectionIndex) {
+		if (selIndex != _dlgsL.getSelectionIndex()) {
 			selectChanged();
 		}
 	}
 	class SelPrev : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
 			auto btn = cast(Button) e.widget;
-			if (btn.getSelection) {
+			if (btn.getSelection()) {
 				_preview.open();
 			} else {
 				_preview.close();
@@ -463,16 +464,16 @@ private:
 	}
 	void refreshPreview() {
 		if (_preview) {
-			_preview.text(selectedTalker, "", wrapReturnCode(_text.getText));
+			_preview.text(selectedTalker, "", wrapReturnCode(_text.getText()));
 		}
 	}
 	class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
 			auto sash = cast(SplitPane) e.widget;
-			auto ws = sash.getWeights;
+			auto ws = sash.getWeights();
 			prop.var.etc.talkSashL = ws[0];
 			prop.var.etc.talkSashR = ws[1];
-			sash.getDisplay.removeFilter(SWT.KeyDown, _kdFilter);
+			sash.getDisplay().removeFilter(SWT.KeyDown, _kdFilter);
 			comm.refUndoMax.remove(&refUndoMax);
 		}
 	}
@@ -485,7 +486,7 @@ private:
 		}
 		override void handleEvent(Event e) {
 			auto c = cast(Control) e.widget;
-			if (!c || c.getShell !is getShell) return;
+			if (!c || c.getShell() !is getShell()) return;
 			if (eqAcc(_undoAcc, e.keyCode, e.character, e.stateMask)) {
 				_undo.undo();
 				e.doit = false;
@@ -500,7 +501,7 @@ private:
 	}
 public:
 	this(Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
-		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime);
+		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime());
 		super(comm, prop, shell, summ, CType.TALK_DIALOG, parent, evt, true, prop.var.speakDlg, false);
 		_undo = new UndoManager(prop.var.etc.undoMaxEtc);
 	}
@@ -510,7 +511,7 @@ public:
 		auto cate = cpcategory(path);
 		if ("dialog" == cate) {
 			auto index = cpindex(path);
-			if (index >= _dlgsL.getItemCount) return false;
+			if (index >= _dlgsL.getItemCount()) return false;
 			_dlgsL.select = index;
 			selectChanged();
 			.forceFocus(_dlgsL, shellActivate);
@@ -520,8 +521,9 @@ public:
 		return super.openCWXPath(path, shellActivate);
 	}
 
+	@property
 	Talker selectedTalker() {
-		switch (_talkers.getSelectionIndex) {
+		switch (_talkers.getSelectionIndex()) {
 		case 0: return Talker.SELECTED;
 		case 1: return Talker.UNSELECTED;
 		case 2: return Talker.RANDOM;
@@ -545,10 +547,10 @@ protected:
 			_dlgsL.addSelectionListener(new SelL);
 
 			auto drag = new DragSource(_dlgsL, DND.DROP_MOVE | DND.DROP_COPY);
-			drag.setTransfer([XMLBytesTransfer.getInstance]);
+			drag.setTransfer([XMLBytesTransfer.getInstance()]);
 			drag.addDragListener(new DDragListener);
 			auto drop = new DropTarget(_dlgsL, DND.DROP_DEFAULT | DND.DROP_MOVE | DND.DROP_COPY);
-			drop.setTransfer([XMLBytesTransfer.getInstance]);
+			drop.setTransfer([XMLBytesTransfer.getInstance()]);
 			drop.addDropListener(new DDropListener);
 
 			auto menu = new Menu(_dlgsL);
@@ -624,7 +626,7 @@ protected:
 		sash.addDisposeListener(new Dispose);
 		sash.setWeights = [prop.var.etc.talkSashL, prop.var.etc.talkSashR];
 		_kdFilter = new KeyDownFilter;
-		sash.getDisplay.addFilter(SWT.KeyDown, _kdFilter);
+		sash.getDisplay().addFilter(SWT.KeyDown, _kdFilter);
 		comm.refUndoMax.add(&refUndoMax);
 
 		ignoreMod = true;
@@ -641,14 +643,14 @@ protected:
 		_textTM = createTextMenu!Text(comm, prop, _rCoupons, &catchMod, _undo, TMAppendData(&readAPD, &writeAPD));
 		_rCouponsTM = createTextMenu!Text(comm, prop, _text.widget, &catchMod, _undo, TMAppendData(&readAPD, &writeAPD));
 
-		_preview = new MsgPreview(getShell, comm, prop, summ, prev, prop.var.dlgPrev);
+		_preview = new MsgPreview(getShell(), comm, prop, summ, prev, prop.var.dlgPrev);
 		refreshPreview();
 	}
 	override
 	protected void opened() {
 		if (prop.var.etc.showDialogPreview) _preview.open();
 		closeEvent ~= {
-			prop.var.etc.showDialogPreview = _preview.isVisible;
+			prop.var.etc.showDialogPreview = _preview.isVisible();
 		};
 	}
 
@@ -672,7 +674,7 @@ private:
 	MsgPreview _preview = null;
 
 	void tabChanged() {
-		switch (_tabf.getSelectionIndex) {
+		switch (_tabf.getSelectionIndex()) {
 		case 0:
 			_text.num = prop.looks.messageImageLen;
 			_text.widget.setParent = _msgCompA;
@@ -684,16 +686,16 @@ private:
 		default: return;
 		}
 		_text.widget.setLayoutData = _text.computeTextBaseSize(prop.looks.messageLine);
-		_text.widget.getParent.layout();
-		if (0 == _tabf.getSelectionIndex) {
-			_text.widget.getParent.getParent.layout();
+		_text.widget.getParent().layout();
+		if (0 == _tabf.getSelectionIndex()) {
+			_text.widget.getParent().getParent().layout();
 		}
 		refreshPreview();
 	}
 	class SelPrev : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
 			auto btn = cast(Button) e.widget;
-			if (btn.getSelection) {
+			if (btn.getSelection()) {
 				_preview.open();
 			} else {
 				_preview.close();
@@ -721,7 +723,7 @@ private:
 			Talker talker;
 			string imgPath;
 			selectedTalker(talker, imgPath);
-			_preview.text(talker, imgPath, wrapReturnCode(_text.getText));
+			_preview.text(talker, imgPath, wrapReturnCode(_text.getText()));
 		}
 	}
 	protected override void refSkin() {
@@ -731,7 +733,7 @@ private:
 		override void widgetDisposed(DisposeEvent e) {
 			auto c = cast(Control) e.widget;
 			assert (c);
-			c.getDisplay.removeFilter(SWT.KeyDown, _kdFilter);
+			c.getDisplay().removeFilter(SWT.KeyDown, _kdFilter);
 			comm.refUndoMax.remove(&refUndoMax);
 		}
 	}
@@ -744,7 +746,7 @@ private:
 		}
 		override void handleEvent(Event e) {
 			auto c = cast(Control) e.widget;
-			if (!c || c.getShell !is getShell) return;
+			if (!c || c.getShell() !is getShell()) return;
 			if (eqAcc(_undoAcc, e.keyCode, e.character, e.stateMask)) {
 				_undo.undo();
 				e.doit = false;
@@ -765,9 +767,9 @@ public:
 
 	void selectedTalker(out Talker talker, out string imgPath) {
 		imgPath = "";
-		switch (_tabf.getSelectionIndex) {
+		switch (_tabf.getSelectionIndex()) {
 		case 0:
-			switch (_msel.dirsCombo.getSelectionIndex) {
+			switch (_msel.dirsCombo.getSelectionIndex()) {
 			case 0:
 				talker = Talker.SELECTED;
 				break;
@@ -848,7 +850,7 @@ protected:
 		_tabf.addSelectionListener(new SL);
 		_tabf.addDisposeListener(new Dispose);
 		_kdFilter = new KeyDownFilter;
-		_tabf.getDisplay.addFilter(SWT.KeyDown, _kdFilter);
+		_tabf.getDisplay().addFilter(SWT.KeyDown, _kdFilter);
 		comm.refUndoMax.add(&refUndoMax);
 
 		ignoreMod = true;
@@ -864,7 +866,7 @@ protected:
 		}
 		tabChanged();
 
-		_preview = new MsgPreview(getShell, comm, prop, summ, prev, prop.var.msgPrev);
+		_preview = new MsgPreview(getShell(), comm, prop, summ, prev, prop.var.msgPrev);
 		refreshPreview();
 		_msel.modEvent ~= &refreshPreview;
 	}
@@ -872,7 +874,7 @@ protected:
 	protected void opened() {
 		if (prop.var.etc.showMessagePreview) _preview.open();
 		closeEvent ~= {
-			prop.var.etc.showMessagePreview = _preview.isVisible;
+			prop.var.etc.showMessagePreview = _preview.isVisible();
 		};
 	}
 
@@ -881,7 +883,7 @@ protected:
 		string path = "";
 		Talker talker;
 		selectedTalker(talker, path);
-		text = lastRet(wrapReturnCode(_text.getText));
+		text = lastRet(wrapReturnCode(_text.getText()));
 		if (!evt) evt = new Content(CType.TALK_MESSAGE, "");
 		evt.text = text;
 		evt.talkerC = talker;
@@ -899,9 +901,9 @@ private Composite createTalkerPane2(Composite parent, Commons comm, Props prop, 
 		auto gd = new GridData(GridData.FILL_HORIZONTAL);
 		gd.horizontalSpan = 2;
 		talkerCombo.setLayoutData = gd;
-		talkerCombo.add(prop.msgs.talker(Talker.SELECTED));
-		talkerCombo.add(prop.msgs.talker(Talker.UNSELECTED));
-		talkerCombo.add(prop.msgs.talker(Talker.RANDOM));
+		talkerCombo.add(prop.msgs.talkerName(Talker.SELECTED));
+		talkerCombo.add(prop.msgs.talkerName(Talker.UNSELECTED));
+		talkerCombo.add(prop.msgs.talkerName(Talker.RANDOM));
 		switch (talker) {
 		case Talker.SELECTED:
 			talkerCombo.select = 0;
@@ -946,13 +948,13 @@ private Composite createTalkerPane2(Composite parent, Commons comm, Props prop, 
 				_list = couponList;
 			}
 			override void widgetSelected(SelectionEvent e) {
-				if (_combo.getText.length > 0) {
-					_list.setSelection(_list.getText.length, _list.getText.length);
-					string[] lines = splitLines(_list.getText);
+				if (_combo.getText().length > 0) {
+					_list.setSelection(_list.getText().length, _list.getText().length);
+					string[] lines = splitLines(_list.getText());
 					if (lines.length > 0 && lines[$ - 1].length > 0) {
 						_list.insert("\n");
 					}
-					_list.insert(_combo.getText ~ "\n");
+					_list.insert(_combo.getText() ~ "\n");
 				}
 			}
 		});
@@ -967,9 +969,9 @@ private Composite createTalkerPane
 	{
 		comp.setLayout = zeroMarginGridLayout(1, true);
 	}
-	auto selected = prop.images.talker(Talker.SELECTED).getImageData;
-	auto unselected = prop.images.talker(Talker.UNSELECTED).getImageData;
-	auto random = prop.images.talker(Talker.RANDOM).getImageData;
+	auto selected = prop.images.talker(Talker.SELECTED).getImageData();
+	auto unselected = prop.images.talker(Talker.UNSELECTED).getImageData();
+	auto random = prop.images.talker(Talker.RANDOM).getImageData();
 	ImageData createDefImage(size_t index) {
 		switch (index) {
 		case 0:
@@ -988,10 +990,10 @@ private Composite createTalkerPane
 		}
 	}
 	string[] defs = [
-		prop.msgs.talker(Talker.SELECTED),
-		prop.msgs.talker(Talker.UNSELECTED),
-		prop.msgs.talker(Talker.RANDOM),
-		prop.msgs.talker(Talker.CARD)
+		prop.msgs.talkerName(Talker.SELECTED),
+		prop.msgs.talkerName(Talker.UNSELECTED),
+		prop.msgs.talkerName(Talker.RANDOM),
+		prop.msgs.talkerName(Talker.CARD)
 	];
 	auto s = prop.looks.cardSize;
 	msel = new ImageSelect!(MtType.CARD, Combo)(comp, SWT.NONE, comm, prop, summ, s.width, s.height,
@@ -1034,7 +1036,7 @@ class DisposeText : DisposeListener {
 private FixedWidthText createMessagePane(Commons comm, Props prop, bool image, Composite parent, Summary summ) {
 	int len = image ? prop.looks.messageImageLen : prop.looks.messageLen;
 	auto r = new FixedWidthText(dwtData(prop.looks.messageFont(summ.legacy)), len, parent, SWT.BORDER);
-	auto d = r.widget.getDisplay;
+	auto d = r.widget.getDisplay();
 	auto back = new Color(d, new RGB(prop.var.etc.msgBackR, prop.var.etc.msgBackG, prop.var.etc.msgBackB));
 	auto fore = new Color(d, new RGB(prop.var.etc.msgForeR, prop.var.etc.msgForeG, prop.var.etc.msgForeB));
 	r.widget.setBackground = back;
@@ -1104,7 +1106,7 @@ private ToolBar createSkinSCharBar(Composite parent, void delegate(string) inser
 	});
 	Image[] imgs;
 	foreach (spc; skin.spChars.keys) {
-		auto img = new Image(Display.getCurrent, spChar(skin, spc));
+		auto img = new Image(Display.getCurrent(), spChar(skin, spc));
 		string name = toUTF8("#"d ~ spc);
 		auto scp = new PutC(insert, name);
 		createToolItem(bar, name, img, &scp.put);
@@ -1115,7 +1117,7 @@ private ToolBar createSkinSCharBar(Composite parent, void delegate(string) inser
 		this() {_imgs = imgs;}
 		override void widgetDisposed(DisposeEvent e) {
 			foreach (img; _imgs) {
-				img.dispose;
+				img.dispose();
 			}
 		}
 	});
@@ -1137,7 +1139,7 @@ private Composite createFlagStepBar(Composite parent, void delegate(string) inse
 		put.setImage = image;
 		put.addSelectionListener(new class SelectionAdapter {
 			override void widgetSelected(SelectionEvent e) {
-				insert(lc ~ list.getText ~ lc);
+				insert(lc ~ list.getText() ~ lc);
 			}
 		});
 	}
@@ -1148,8 +1150,8 @@ private Composite createFlagStepBar(Composite parent, void delegate(string) inse
 
 	void refList() {
 		auto root = comm.summary.flagDirRoot;
-		auto fSel = flags.getText;
-		auto sSel = steps.getText;
+		auto fSel = flags.getText();
+		auto sSel = steps.getText();
 		flags.removeAll();
 		foreach (i, flag; root.allFlags) {
 			auto p = flag.path;
@@ -1162,10 +1164,10 @@ private Composite createFlagStepBar(Composite parent, void delegate(string) inse
 			steps.add(p);
 			if (0 == i || 0 == icmp(p, sSel)) steps.select = i;
 		}
-		flags.setEnabled = flags.getItemCount > 0;
-		putFlag.setEnabled = flags.getEnabled;
-		steps.setEnabled = steps.getItemCount > 0;
-		putStep.setEnabled = steps.getEnabled;
+		flags.setEnabled = flags.getItemCount() > 0;
+		putFlag.setEnabled = flags.getEnabled();
+		steps.setEnabled = steps.getItemCount() > 0;
+		putStep.setEnabled = steps.getEnabled();
 	}
 	refList();
 
@@ -1184,8 +1186,8 @@ private Composite createFlagStepBar(Composite parent, void delegate(string) inse
 }
 
 private void putColor(FixedWidthText text, dchar put) {
-	auto sel = text.widget.getSelection;
-	auto old = toUTF32(text.getText);
+	auto sel = text.widget.getSelection();
+	auto old = toUTF32(text.getText());
 	auto newt = cwx.utils.putColor(old, put, sel.x, sel.y);
 	text.setText = toUTF8(newt);
 	int nSel = sel.y + (newt.length - old.length);
@@ -1239,14 +1241,14 @@ class MsgPreview {
 
 	private class Paint : PaintListener {
 		override void paintControl(PaintEvent e) {
-			auto b = _canvas.getBounds;
+			auto b = _canvas.getBounds();
 			auto rect = _prop.looks.messageBounds;
 			e.gc.drawImage(_img, (b.width - rect.width) / 2, (b.height - rect.height) / 2);
 		}
 	}
 	private class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
-			_win.getParent.removeControlListener(_winL);
+			_win.getParent().removeControlListener(_winL);
 			if (_img) _img.dispose();
 			_comm.refFlagAndStep.remove(&refFlagAndStep);
 			_comm.delFlagAndStep.remove(&refFlagAndStep);
@@ -1258,15 +1260,15 @@ class MsgPreview {
 			_prop.var.etc.messageVarRef = _values.getItem(C.I).getText(1);
 			_prop.var.etc.messageVarTeam = _values.getItem(C.T).getText(1);
 			_prop.var.etc.messageVarYado = _values.getItem(C.Y).getText(1);
-			_prop.var.etc.messageVarKindColumn = _values.getColumn(0).getWidth;
-			_prop.var.etc.messageVarValueColumn = _values.getColumn(1).getWidth;
+			_prop.var.etc.messageVarKindColumn = _values.getColumn(0).getWidth();
+			_prop.var.etc.messageVarValueColumn = _values.getColumn(1).getWidth();
 			saveWin();
 		}
 	}
 	private class PShellL : ControlAdapter {
 		override void controlMoved(ControlEvent e) {
-			auto pb = _win.getParent.getBounds;
-			auto tb = _win.getBounds;
+			auto pb = _win.getParent().getBounds();
+			auto tb = _win.getBounds();
 			_win.setBounds(tb.x + pb.x - _parX, tb.y + pb.y - _parY, tb.width, tb.height);
 			_parX = pb.x;
 			_parY = pb.y;
@@ -1292,30 +1294,30 @@ class MsgPreview {
 	private void refreshFlags() {
 		_values.setRedraw = false;
 		scope (exit) _values.setRedraw = true;
-		int topIndex = _values.getTopIndex;
+		int topIndex = _values.getTopIndex();
 		scope (exit) {
-			if (_values.getItemCount <= topIndex) {
-				topIndex = _values.getItemCount - 1;
+			if (_values.getItemCount() <= topIndex) {
+				topIndex = _values.getItemCount() - 1;
 			}
 			_values.setTopIndex = topIndex;
 		}
 		int[string] pvs;
 		string selPath = null;
 
-		if (C.max + 1 < _values.getItemCount) {
-			foreach (i; C.max .. _values.getItemCount) {
+		if (C.max + 1 < _values.getItemCount()) {
+			foreach (i; C.max .. _values.getItemCount()) {
 				auto itm = _values.getItem(i);
 				string key = cwx.utils.toLower(itm.getText(0));
-				auto o = itm.getData;
+				auto o = itm.getData();
 				auto f = cast(FlagData) o;
 				if (f) pvs[key] = f.onOff ? 1 : 0;
 				auto s = cast(StepData) o;
 				if (s) pvs[key] = s.select;
-				if (i == _values.getSelectionIndex) {
+				if (i == _values.getSelectionIndex()) {
 					selPath = key;
 				}
 			}
-			_values.remove(C.max + 1, _values.getItemCount - 1);
+			_values.remove(C.max + 1, _values.getItemCount() - 1);
 		}
 		foreach (f; _summ.flagDirRoot.allFlags) {
 			auto itm = new TableItem(_values, SWT.NONE);
@@ -1339,7 +1341,7 @@ class MsgPreview {
 				}
 			}
 			if (selPath && selPath == lpath) {
-				_values.select = _values.getItemCount - 1;
+				_values.select = _values.getItemCount() - 1;
 			}
 		}
 		foreach (f; _summ.flagDirRoot.allSteps) {
@@ -1361,7 +1363,7 @@ class MsgPreview {
 				}
 			}
 			if (selPath && selPath == lpath) {
-				_values.select = _values.getItemCount - 1;
+				_values.select = _values.getItemCount() - 1;
 			}
 		}
 	}
@@ -1370,42 +1372,42 @@ class MsgPreview {
 		refresh();
 	}
 	private Control createEditor(TableItem itm, int editC) {
-		auto fd = cast(FlagData) itm.getData;
+		auto fd = cast(FlagData) itm.getData();
 		if (fd) {
-			auto text = createComboEditor!Combo(_comm, _prop, itm.getParent, [fd.flag.on, fd.flag.off], itm.getText(1));
+			auto text = createComboEditor!Combo(_comm, _prop, itm.getParent(), [fd.flag.on, fd.flag.off], itm.getText(1));
 			text.addModifyListener(new Mod(itm));
 			return text;
 		}
-		auto sd = cast(StepData) itm.getData;
+		auto sd = cast(StepData) itm.getData();
 		if (sd) {
-			auto text = createComboEditor!Combo(_comm, _prop, itm.getParent, sd.step.values, itm.getText(1));
+			auto text = createComboEditor!Combo(_comm, _prop, itm.getParent(), sd.step.values, itm.getText(1));
 			text.addModifyListener(new Mod(itm));
 			return text;
 		}
-		auto combo = createTextEditor(_comm, _prop, itm.getParent, itm.getText(1));
+		auto combo = createTextEditor(_comm, _prop, itm.getParent(), itm.getText(1));
 		combo.addModifyListener(new Mod(itm));
 		return combo;
 	}
 	private static string ctrlText(Control ctrl) {
 		auto text = cast(Text) ctrl;
-		if (text) return text.getText;
+		if (text) return text.getText();
 		auto combo = cast(Combo) ctrl;
-		if (combo) return combo.getText;
+		if (combo) return combo.getText();
 		assert (0);
 	}
 	private void editEnd(TableItem itm, int column, Control ctrl) {
 		auto old = itm.getText(column);
 		auto text = cast(Text) ctrl;
-		if (text) itm.setText(column, text.getText);
+		if (text) itm.setText(column, text.getText());
 		auto combo = cast(Combo) ctrl;
 		if (combo) {
-			itm.setText(column, combo.getText);
-			auto fd = cast(FlagData) itm.getData;
-			if (fd) fd.onOff = combo.getSelectionIndex == 1;
-			auto sd = cast(StepData) itm.getData;
-			if (sd) sd.select = combo.getSelectionIndex;
+			itm.setText(column, combo.getText());
+			auto fd = cast(FlagData) itm.getData();
+			if (fd) fd.onOff = combo.getSelectionIndex() == 1;
+			auto sd = cast(StepData) itm.getData();
+			if (sd) sd.select = combo.getSelectionIndex();
 		}
-		if (old != itm.getText) refresh();
+		if (old != itm.getText()) refresh();
 	}
 
 	this (Shell parent, Commons comm, Props prop, Summary summ, Button toggle, WSize size) {
@@ -1493,17 +1495,17 @@ class MsgPreview {
 	}
 	private void saveWin() {
 		auto winProps = _size;
-		winProps.width = _win.getSize.x;
-		winProps.height = _win.getSize.y;
-		winProps.x = _win.getBounds.x - _win.getParent.getBounds.x;
-		winProps.y = _win.getBounds.y - _win.getParent.getBounds.y;
+		winProps.width = _win.getSize().x;
+		winProps.height = _win.getSize().y;
+		winProps.x = _win.getBounds().x - _win.getParent().getBounds().x;
+		winProps.y = _win.getBounds().y - _win.getParent().getBounds().y;
 	}
 
-	bool isVisible() {return _win.isVisible;}
+	bool isVisible() {return _win.isVisible();}
 
 	void open() {
-		if (_win.isVisible) return;
-		auto pb = _win.getParent.getBounds;
+		if (_win.isVisible()) return;
+		auto pb = _win.getParent().getBounds();
 		_parX = pb.x;
 		_parY = pb.y;
 		auto winProps = _size;
@@ -1519,7 +1521,7 @@ class MsgPreview {
 		_toggle.setSelection = true;
 	}
 	void close() {
-		if (!_win.isVisible) return;
+		if (!_win.isVisible()) return;
 		saveWin();
 		_win.setVisible = false;
 		_toggle.setSelection = false;
@@ -1532,11 +1534,11 @@ class MsgPreview {
 		_talker = talker;
 		_imgPath = imgPath;
 		_message = message;
-		if (isVisible) refresh();
+		if (isVisible()) refresh();
 	}
 
 	private void refresh() {
-		auto d = _canvas.getDisplay;
+		auto d = _canvas.getDisplay();
 		if (_img) {
 			_img.dispose();
 		}
@@ -1548,7 +1550,7 @@ class MsgPreview {
 		case Talker.SELECTED:
 		case Talker.UNSELECTED:
 		case Talker.RANDOM:
-			tImg = _prop.images.talker(_talker).getImageData;
+			tImg = _prop.images.talker(_talker).getImageData();
 			break;
 		case Talker.IMAGE:
 			tImg = loadImage(_comm.skin.findImagePath(_imgPath, _summ.scenarioPath), true);
@@ -1564,7 +1566,7 @@ class MsgPreview {
 		foreach (i; C.min .. C.max + 1) {
 			names[C_TBL[cast(C) i]] = _values.getItem(i).getText(1);
 		}
-		foreach (i; C.max .. _values.getItemCount) {
+		foreach (i; C.max .. _values.getItemCount()) {
 			auto itm = _values.getItem(i);
 			flags[itm.getText(0)] = itm.getText(1);
 		}
@@ -1575,7 +1577,7 @@ class MsgPreview {
 
 /// メッセージのプレビューを生成する。
 ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talker, string message, in string[] sel, in string[char] names, /+ FIXME: リンクエラー！ +//+in +/string[string] flags) {
-	auto d = Display.getCurrent;
+	auto d = Display.getCurrent();
 	version (Windows) {
 		bool legacy = comm.skin.legacy;
 	} else {
@@ -1584,9 +1586,9 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 	auto rect = prop.looks.messageBounds;
 	auto bh = prop.looks.messageButtonHeight;
 	auto canvas = new Image(d, rect.width, rect.height + bh * sel.length);
-	scope (exit) canvas.dispose;
+	scope (exit) canvas.dispose();
 	auto gc = new GC(canvas);
-	scope (exit) gc.dispose;
+	scope (exit) gc.dispose();
 	int alpha;
 
 	// 背景の描画
@@ -1664,7 +1666,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 		tgc.setForeground = fc;
 		tgc.setBackground = hc;
 		tgc.fillRectangle(0, 0, rect.width, rect.height + bh * sel.length);
-		lineH = tgc.getFontMetrics.getHeight + 2;
+		lineH = tgc.getFontMetrics().getHeight() + 2;
 		for (size_t i = 0; i < dmsg.length; i++) {
 			if (rect.height - 6 < y + lineH) {
 				// 行数オーバー
@@ -1687,7 +1689,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 				}
 				spFontP ~= CPoint(x - 2, y - 2);
 				spFont ~= *cf;
-				spColor ~= tgc.getForeground.getRGB;
+				spColor ~= tgc.getForeground().getRGB();
 				x += w;
 				continue;
 			}
@@ -1731,7 +1733,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 		// 選択肢
 		tgc.setForeground = fc;
 		tgc.setFont = selFont;
-		auto slh = tgc.getFontMetrics.getHeight;
+		auto slh = tgc.getFontMetrics().getHeight();
 		int sx;
 		int sy = rect.height + ((bh - slh) / 2);
 		foreach (i, t; sel) {
@@ -1741,7 +1743,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 		}
 
 		// 貼り付け
-		auto tImgData = textCanvas.getImageData;
+		auto tImgData = textCanvas.getImageData();
 		tImgData.transparentPixel = tImgData.getPixel(0, 0);
 		auto hemImgData = new ImageData(tImgData.width, tImgData.height, 2, new PaletteData([new RGB(255, 255, 255), new RGB(0, 0, 0)]));
 		hemImgData.transparentPixel = 0;
@@ -1770,7 +1772,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 		//        同時に行うと一部環境で問題が出る。
 //		gc.setTextAntialias = SWT.ON;
 		gc.setFont = font;
-		lineH = gc.getFontMetrics.getHeight;
+		lineH = gc.getFontMetrics().getHeight();
 		gc.setForeground = fc;
 
 		void drawText(string s, int x, int y) {
@@ -1817,7 +1819,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 				}
 				spFontP ~= CPoint(x, y - 2);
 				spFont ~= *cf;
-				spColor ~= gc.getForeground.getRGB;
+				spColor ~= gc.getForeground().getRGB();
 				x += w;
 				continue;
 			}
@@ -1860,7 +1862,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 		// 選択肢
 		gc.setForeground = fc;
 		gc.setFont = selFont;
-		auto slh = gc.getFontMetrics.getHeight;
+		auto slh = gc.getFontMetrics().getHeight();
 		int sx;
 		int sy = rect.height + ((bh - slh) / 2);
 		foreach (i, t; sel) {
@@ -1871,7 +1873,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 	}
 
 	// フォントイメージ
-	auto wrgb = fc.getRGB;
+	auto wrgb = fc.getRGB();
 	for (size_t i = 0; i < spFontP.length; i++) {
 		auto pt = spFontP[i];
 		auto path = spFont[i];
@@ -1935,5 +1937,5 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 		gc.drawRectangle(1, rect.height + 1 + bh * i, rect.width - 3, bh - 3);
 	}
 
-	return canvas.getImageData;
+	return canvas.getImageData();
 }

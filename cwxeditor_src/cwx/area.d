@@ -14,14 +14,17 @@ import std.math;
 
 /// エリア等の所持者を示すインタフェース。
 interface AreaOwner : CWXPath {
+	@property
 	Area[] areas();
 }
 /// ditto
 interface BattleOwner : CWXPath {
+	@property
 	Battle[] battles();
 }
 /// ditto
 interface PackageOwner : CWXPath {
+	@property
 	Package[] packages();
 }
 
@@ -58,7 +61,7 @@ private:
 	FlagUser _user;
 public:
 	/// 唯一のコンストラクタ。
-	this(string flag, int x, int y, real scale) {
+	this (string flag, int x, int y, real scale) {
 		_user = new FlagUser(this);
 		_user.flag = flag;
 		_x = x;
@@ -66,66 +69,80 @@ public:
 		_scale = scale;
 	}
 	/// このカードの所属先を返す。
+	@property
 	const
 	const(AbstractArea) abstractOwner();
 
+	@property
 	const
 	override bool canHasFireLose() {return false;}
+	@property
 	const
 	override bool canHasFireEscape() {return false;}
+	@property
 	const
 	override bool canHasFireRound() {return false;}
+	@property
 	const
 	override bool canHasFireKeyCode() {return true;}
 
 	/// 表示フラグ。
+	@property
 	void flag(string flag) {
-		if (_user.flag != flag) changed;
+		if (_user.flag != flag) changed();
 		_user.flag = flag;
 	}
 	/// ditto
+	@property
 	const
 	string flag() {
 		return _user.flag;
 	}
 	/// X座標。
+	@property
 	const
 	int x() {
 		return _x;
 	}
 	/// ditto
+	@property
 	void x(int x) {
-		if (_x != x) changed;
+		if (_x != x) changed();
 		_x = x;
 	}
 	/// Y座標。
+	@property
 	const
 	int y() {
 		return _y;
 	}
 	/// ditto
+	@property
 	void y(int y) {
-		if (_y != y) changed;
+		if (_y != y) changed();
 		_y = y;
 	}
 	/// スケール。1.0が標準。0.75～2.0。
+	@property
 	const
 	real scale() {
 		return _scale;
 	}
 	/// ditto
+	@property
 	void scale(real scale) {
-		if (_scale != scale) changed;
+		if (_scale != scale) changed();
 		_scale = scale;
 	}
 
+	@property
 	override void setUseCounter(UseCounter uc) {
 		_user.setUseCounter(uc);
 		super.setUseCounter(uc);
 	}
 	override void removeUseCounter() {
-		_user.removeUseCounter;
-		super.removeUseCounter;
+		_user.removeUseCounter();
+		super.removeUseCounter();
 	}
 	override void change(FlagId id) {
 		_user.change(id);
@@ -158,7 +175,7 @@ public:
 			}
 			scale = to!(real)(val) / 100.0;
 		};
-		pNode.parse;
+		pNode.parse();
 	}
 }
 
@@ -175,17 +192,20 @@ public:
 	immutable XML_NAME_M = "EnemyCards";
 
 	/// 唯一のコンストラクタ。
-	this(ulong id, bool escape, string flag, int x, int y, real scale) {
+	this (ulong id, bool escape, string flag, int x, int y, real scale) {
 		super(flag, x, y, scale);
 		_user = new CastUser(this);
 		_user.casts = id;
 		_escape = escape;
 	}
+	@property
 	string cwxPath() {
 		return _owner ? cpjoin(_owner, "enemycard", .cCountUntil!("a is b")(_owner.cards, this)) : "";
 	}
+	@property
 	CWXPath cwxParent() {return _owner;}
 
+	@property
 	override size_t[] areaPath() {
 		if (_owner) {
 			return [.cCountUntil!("a is b")(_owner.cards, this) + 1];
@@ -193,44 +213,51 @@ public:
 			return [];
 		}
 	}
+	@property
 	const
 	override const(AbstractArea) abstractOwner() {
 		return _owner;
 	}
 	/// このカードの所属先を返す。
+	@property
 	const
 	const(Battle) owner() {
 		return _owner;
 	}
 
 	/// 逃走するか否か。
+	@property
 	const
 	bool escape() {
 		return _escape;
 	}
 	/// ditto
+	@property
 	void escape(bool escape) {
-		if (_escape != escape) changed;
+		if (_escape != escape) changed();
 		_escape = escape;
 	}
 	/// キャストID。
+	@property
 	const
 	ulong id() {
 		return _user.casts;
 	}
 	/// ditto
+	@property
 	void id(ulong id) {
-		if (_user.casts != id) changed;
+		if (_user.casts != id) changed();
 		_user.casts = id;
 	}
 
+	@property
 	override void setUseCounter(UseCounter uc) {
 		_user.setUseCounter(uc);
 		super.setUseCounter(uc);
 	}
 	override void removeUseCounter() {
-		_user.removeUseCounter;
-		super.removeUseCounter;
+		_user.removeUseCounter();
+		super.removeUseCounter();
 	}
 	override void change(CastId id) {
 		_user.change(id);
@@ -246,9 +273,9 @@ public:
 					cards ~= new EnemyCard(to!(ulong)(idStr), false, "", 0, 0, 1.0);
 				}
 			};
-			cNode.parse;
+			cNode.parse();
 		};
-		node.parse;
+		node.parse();
 		return cards;
 	}
 
@@ -303,7 +330,7 @@ public:
 		node.onTag["Events"] = (ref XNode node) {
 			evt = loadEventsFromNode(node, ver);
 		};
-		node.parse;
+		node.parse();
 		if (!getId) throw new AreaException("EnemyCard ID not found");
 		auto r = new EnemyCard(id, escape, flag, x, y, scale);
 		r.addAll(evt);
@@ -335,7 +362,7 @@ public:
 	/// x = X座標。
 	/// y = Y座標。
 	/// scale = スケール。通常0.75～2.0。
-	this(string name, string path, string desc, string flag,
+	this (string name, string path, string desc, string flag,
 			int x, int y, real scale) {
 		super(flag, x, y, scale);
 				_user = new PathUser(this);
@@ -343,11 +370,14 @@ public:
 		_name = name;
 		_desc = desc;
 	}
+	@property
 	string cwxPath() {
 		return _owner ? cpjoin(_owner, "menucard", .cCountUntil!("a is b")(_owner.cards, this)) : "";
 	}
+	@property
 	CWXPath cwxParent() {return _owner;}
 
+	@property
 	override size_t[] areaPath() {
 		if (_owner) {
 			return [.cCountUntil!("a is b")(_owner.cards, this) + 1];
@@ -355,54 +385,63 @@ public:
 			return [];
 		}
 	}
+	@property
 	const
 	override const(AbstractArea) abstractOwner() {
 		return _owner;
 	}
 	/// このカードの所属先を返す。
+	@property
 	const
 	const(Area) owner() {
 		return _owner;
 	}
 
 	/// カード名。
+	@property
 	const
 	string name() {
 		return _name;
 	}
 	/// ditto
+	@property
 	void name(string name) {
-		if (_name != name) changed;
+		if (_name != name) changed();
 		_name = name;
 	}
 	/// 説明。
+	@property
 	const
 	string desc() {
 		return _desc;
 	}
 	/// ditto
+	@property
 	void desc(string desc) {
-		if (_desc != desc) changed;
+		if (_desc != desc) changed();
 		_desc = desc;
 	}
 	/// 画像ファイルパス。
+	@property
 	const
 	string path() {
 		return _user.path;
 	}
 	/// ditto
+	@property
 	void path(string path) {
-		if (_user.path != path) changed;
+		if (_user.path != path) changed();
 		_user.path = path;
 	}
 
+	@property
 	override void setUseCounter(UseCounter uc) {
 		_user.setUseCounter(uc);
 		super.setUseCounter(uc);
 	}
 	override void removeUseCounter() {
-		_user.removeUseCounter;
-		super.removeUseCounter;
+		_user.removeUseCounter();
+		super.removeUseCounter();
 	}
 	override void change(PathId id) {
 		_user.change(id);
@@ -422,7 +461,7 @@ public:
 					desc = decodeLf2(node.value);
 				};
 			}
-			pNode.parse;
+			pNode.parse();
 			if (!name) return null;
 			return new MenuCard(name, path, desc, "", 0, 0, 1.0);
 		}
@@ -436,7 +475,7 @@ public:
 				auto card = parse(node);
 				if (card) r ~= card;
 			};
-			node.parse;
+			node.parse();
 			return r;
 		}
 	}
@@ -490,7 +529,7 @@ public:
 		node.onTag["Events"] = (ref XNode node) {
 			evt = loadEventsFromNode(node, ver);
 		};
-		node.parse;
+		node.parse();
 		if (name is null) name = "";
 		auto r = new MenuCard(name, path, desc, flag, x, y, scale);
 		r.addAll(evt);
@@ -505,28 +544,32 @@ public abstract class AbstractArea : AbstractEventTreeOwner {
 	string _name;
 public:
 	/// 唯一のコンストラクタ。
-	this(ulong id, string name) {
+	this (ulong id, string name) {
 		_id = id;
 		_name = name;
 	}
 	/// エリアID。
+	@property
 	const
 	ulong id() {
 		return _id;
 	}
 	/// ditto
+	@property
 	void id(ulong id) {
-		if (_id != id) changed;
+		if (_id != id) changed();
 		_id = id;
 	}
 	/// エリア名。
+	@property
 	const
 	string name() {
 		return _name;
 	}
 	/// ditto
+	@property
 	void name(string name) {
-		if (_name != name) changed;
+		if (_name != name) changed();
 		_name = name;
 	}
 
@@ -535,9 +578,11 @@ public:
 		return cast(int) _id - cast(int) (cast(const(AbstractArea)) o)._id;
 	}
 
+	@property
 	const
 	abstract string rootName();
 
+	@property
 	override size_t[] areaPath() {return [0];}
 
 	/// XMLテキスト化して返す。
@@ -594,9 +639,9 @@ public:
 			pNode.onTag["MusicPath"] = (ref XNode n) {
 				path = decodePath(n.value);
 			};
-			pNode.parse;
+			pNode.parse();
 		};
-		aNode.parse;
+		aNode.parse();
 		if (idStr is null) throw new AreaException("Id not found");
 		if (name is null) throw new AreaException("Name not found");
 		id = to!(long)(idStr);
@@ -615,10 +660,12 @@ public:
 	alias toAreaId toID;
 
 	/// 唯一のコンストラクタ。
-	this(ulong id, string name) {
+	this (ulong id, string name) {
 		super(id, name);
 	}
+	@property
 	protected override void delegate() changeHandler() {return super.changeHandler;}
+	@property
 	override void changeHandler(void delegate() change) {
 		foreach (b; _bgImgs) {
 			b.changeHandler = change;
@@ -629,12 +676,16 @@ public:
 		super.changeHandler = change;
 	}
 
+	@property
 	const
 	override bool canHasFireLose() {return false;}
+	@property
 	const
 	override bool canHasFireEscape() {return false;}
+	@property
 	const
 	override bool canHasFireRound() {return false;}
+	@property
 	const
 	override bool canHasFireKeyCode() {return true;}
 	EventTree etFromPath(size_t[] path) {
@@ -647,44 +698,50 @@ public:
 
 	/// メニューカードのインデックスを交換する。
 	void swapCards(int index1, int index2) {
-		if (index1 != index2) changed;
+		if (index1 != index2) changed();
 		auto temp = _cards[index1];
 		_cards[index1] = _cards[index2];
 		_cards[index2] = temp;
 	}
 	/// 背景イメージのインデックスを交換する。
 	void swapBacks(int index1, int index2) {
-		if (index1 != index2) changed;
+		if (index1 != index2) changed();
 		auto temp = _bgImgs[index1];
 		_bgImgs[index1] = _bgImgs[index2];
 		_bgImgs[index2] = temp;
 	}
 
 	/// オート配置か否か。
+	@property
 	const
 	bool spAuto() {
 		return _auto;
 	}
 	/// ditto
+	@property
 	void spAuto(bool spAuto) {
-		if (_auto != spAuto) changed;
+		if (_auto != spAuto) changed();
 		_auto = spAuto;
 	}
 
 	/// メニューカード群。
+	@property
 	MenuCard[] cards() {
 		return _cards;
 	}
 	/// ditto
+	@property
 	const
 	const(MenuCard)[] cards() {
 		return _cards;
 	}
 	/// 背景画像群。
+	@property
 	BgImage[] backs() {
 		return _bgImgs;
 	}
 	/// ditto
+	@property
 	const
 	const(BgImage)[] backs() {
 		return _bgImgs;
@@ -696,7 +753,7 @@ public:
 		if (useCounter) card.setUseCounter = useCounter;
 		card._owner = this;
 		_cards ~= card;
-		changed;
+		changed();
 	}
 	/// ditto
 	void insert(int index, MenuCard card) {
@@ -707,16 +764,16 @@ public:
 			if (useCounter) card.setUseCounter = useCounter;
 			card._owner = this;
 			_cards = _cards[0 .. index] ~ card ~ _cards[index .. $];
-			changed;
+			changed();
 		}
 	}
 	/// メニューカードを除去する。
 	void removeCard(int index) {
 		_cards[index].changeHandler = null;
-		_cards[index].removeUseCounter;
+		_cards[index].removeUseCounter();
 		_cards[index]._owner = null;
 		_cards = _cards[0 .. index] ~ _cards[index + 1 .. $];
-		changed;
+		changed();
 	}
 
 	/// 背景画像を追加する。
@@ -725,7 +782,7 @@ public:
 		if (useCounter) back.setUseCounter = useCounter;
 		back.owner = this;
 		_bgImgs ~= back;
-		changed;
+		changed();
 	}
 	/// ditto
 	void insert(int index, BgImage back) {
@@ -736,18 +793,19 @@ public:
 			if (useCounter) back.setUseCounter = useCounter;
 			back.owner = this;
 			_bgImgs = _bgImgs[0 .. index] ~ back ~ _bgImgs[index .. $];
-			changed;
+			changed();
 		}
 	}
 	/// 背景画像を除去する。
 	void removeBgImage(int index) {
 		_bgImgs[index].changeHandler = null;
-		_bgImgs[index].removeUseCounter;
+		_bgImgs[index].removeUseCounter();
 		_bgImgs[index].owner = null;
 		_bgImgs = _bgImgs[0 .. index] ~ _bgImgs[index + 1 .. $];
-		changed;
+		changed();
 	}
 
+	@property
 	override void setUseCounter(UseCounter uc) {
 		foreach (c; _cards) {
 			c.setUseCounter(uc);
@@ -760,14 +818,15 @@ public:
 
 	override void removeUseCounter() {
 		foreach (c; _cards) {
-			c.removeUseCounter;
+			c.removeUseCounter();
 		}
 		foreach (bg; _bgImgs) {
-			bg.removeUseCounter;
+			bg.removeUseCounter();
 		}
-		super.removeUseCounter;
+		super.removeUseCounter();
 	}
 
+	@property
 	const
 	override string rootName() {return "Area";}
 
@@ -821,7 +880,7 @@ public:
 			n.onTag["MenuCard"] = (ref XNode mcn) {
 				cards ~= MenuCard.createFromNode(mcn, ver);
 			};
-			n.parse;
+			n.parse();
 		};
 		aNode.onTag["BgImages"] = (ref XNode n) {
 			bgImgs = BgImage.bgImagesFromNode(n, ver);
@@ -902,15 +961,15 @@ public:
 					node.onTag["MenuCard"] = (ref XNode n) {
 						cards ~= MenuCard.createFromNode(n, LATEST_VERSION);
 					};
-					node.parse;
+					node.parse();
 				};
 				node.onTag["BgImages"] = (ref XNode node) {
 					node.onTag["BgImage"] = (ref XNode n) {
 						backs ~= BgImage.createFromNode(n, LATEST_VERSION);
 					};
-					node.parse;
+					node.parse();
 				};
-				node.parse;
+				node.parse();
 				return true;
 			}
 		} catch (Exception e) {
@@ -919,7 +978,9 @@ public:
 		return false;
 	}
 	private AreaOwner _owner = null;
+	@property
 	package void owner(AreaOwner owner) {_owner = owner;}
+	@property
 	string cwxPath() {
 		return _owner ? cpjoin(_owner, "area", .cCountUntil!("a is b")(_owner.areas, this)) : "";
 	}
@@ -941,6 +1002,7 @@ public:
 		}
 		return super.findCWXPath(path);
 	}
+	@property
 	CWXPath[] cwxChilds() {
 		CWXPath[] r;
 		r ~= cast(CWXPath[]) cards;
@@ -948,6 +1010,7 @@ public:
 		r ~= super.cwxChilds;
 		return r;
 	}
+	@property
 	CWXPath cwxParent() {return _owner;}
 }
 
@@ -958,17 +1021,22 @@ public:
 	alias toPackageId toID;
 
 	/// 唯一のコンストラクタ。
-	this(ulong id, string name) {
-		super(id, name);
+	this (ulong id, string name) {
+		super (id, name);
 	}
+	@property
 	const
 	override bool canHasFireEnter() {return false;}
+	@property
 	const
 	override bool canHasFireLose() {return false;}
+	@property
 	const
 	override bool canHasFireEscape() {return false;}
+	@property
 	const
 	override bool canHasFireRound() {return false;}
+	@property
 	const
 	override bool canHasFireKeyCode() {return false;}
 	EventTree etFromPath(size_t[] path) {
@@ -981,11 +1049,12 @@ public:
 	override void add(EventTree evt) {
 		evt.lose = false;
 		evt.escape = false;
-		evt.removeKeyCodesAll;
-		evt.removeRoundsAll;
+		evt.removeKeyCodesAll();
+		evt.removeRoundsAll();
 		super.add(evt);
 	}
 
+	@property
 	const
 	override string rootName() {return "Package";}
 	const
@@ -1033,10 +1102,13 @@ public:
 		return r;
 	}
 	private PackageOwner _owner = null;
+	@property
 	package void owner(PackageOwner owner) {_owner = owner;}
+	@property
 	string cwxPath() {
 		return _owner ? cpjoin(_owner, "package", .cCountUntil!("a is b")(_owner.packages, this)) : "";
 	}
+	@property
 	CWXPath cwxParent() {return _owner;}
 }
 
@@ -1053,24 +1125,30 @@ public:
 	/// 唯一のコンストラクタ。
 	/// Params:
 	///  music = BGMのファイルパス。
-	this(ulong id, string name, string music) {
+	this (ulong id, string name, string music) {
 		super(id, name);
 		_music = new PathUser(this);
 		_music.path = music;
 	}
+	@property
 	protected override void delegate() changeHandler() {return super.changeHandler;}
+	@property
 	override void changeHandler(void delegate() change) {
 		foreach (c; _cards) {
 			c.changeHandler = change;
 		}
 		super.changeHandler = change;
 	}
+	@property
 	const
 	override bool canHasFireLose() {return true;}
+	@property
 	const
 	override bool canHasFireEscape() {return true;}
+	@property
 	const
 	override bool canHasFireRound() {return true;}
+	@property
 	const
 	override bool canHasFireKeyCode() {return true;}
 	EventTree etFromPath(size_t[] path) {
@@ -1082,11 +1160,13 @@ public:
 	}
 
 	/// BGMのファイルパス。
+	@property
 	void music(string music) {
-		if (_music.path != music) changed;
+		if (_music.path != music) changed();
 		_music.path = music;
 	}
 	/// ditto
+	@property
 	const
 	string music() {
 		return _music.path;
@@ -1098,7 +1178,7 @@ public:
 		if (useCounter) card.setUseCounter = useCounter;
 		card._owner = this;
 		_cards ~= card;
-		changed;
+		changed();
 	}
 	/// ditto
 	void insert(int index, EnemyCard card) {
@@ -1109,41 +1189,45 @@ public:
 			if (useCounter) card.setUseCounter = useCounter;
 			card._owner = this;
 			_cards = _cards[0 .. index] ~ card ~ _cards[index .. $];
-			changed;
+			changed();
 		}
 	}
 	/// エネミーカードを除去する。
 	void removeCard(int index) {
 		_cards[index].changeHandler = null;
-		_cards[index].removeUseCounter;
+		_cards[index].removeUseCounter();
 		_cards[index]._owner = null;
 		_cards = _cards[0 .. index] ~ _cards[index + 1 .. $];
-		changed;
+		changed();
 	}
 
 	/// エネミーカードのインデックスを交換する。
 	void swapCards(int index1, int index2) {
-		if (index1 != index2) changed;
+		if (index1 != index2) changed();
 		auto temp = _cards[index1];
 		_cards[index1] = _cards[index2];
 		_cards[index2] = temp;
 	}
 	/// エネミーカード群。
+	@property
 	EnemyCard[] cards() {
 		return _cards;
 	}
 
 	/// オート配置か否か。
+	@property
 	const
 	bool spAuto() {
 		return _auto;
 	}
 	/// ditto
+	@property
 	void spAuto(bool spAuto) {
-		if (_auto != spAuto) changed;
+		if (_auto != spAuto) changed();
 		_auto = spAuto;
 	}
 
+	@property
 	override void setUseCounter(UseCounter uc) {
 		foreach (c; _cards) {
 			c.setUseCounter(uc);
@@ -1154,16 +1238,17 @@ public:
 
 	override void removeUseCounter() {
 		foreach (c; _cards) {
-			c.removeUseCounter;
+			c.removeUseCounter();
 		}
-		_music.removeUseCounter;
-		super.removeUseCounter;
+		_music.removeUseCounter();
+		super.removeUseCounter();
 	}
 
 	override void change(PathId id) {
 		_music.change(id);
 	}
 
+	@property
 	const
 	override string rootName() {return "Battle";}
 	const
@@ -1216,7 +1301,7 @@ public:
 			node.onTag["EnemyCard"] = (ref XNode ecn) {
 				cards ~= EnemyCard.createFromNode(ecn, ver);
 			};
-			node.parse;
+			node.parse();
 		};
 		aNode.onTag["Events"] = (ref XNode node) {
 			evt = loadEventsFromNode(node, ver);
@@ -1266,7 +1351,7 @@ public:
 				node.onTag["EnemyCard"] = (ref XNode n) {
 					cards ~= EnemyCard.createFromNode(n, LATEST_VERSION);
 				};
-				node.parse;
+				node.parse();
 				return true;
 			}
 		} catch (Exception e) {
@@ -1275,7 +1360,9 @@ public:
 		return false;
 	}
 	private BattleOwner _owner = null;
+	@property
 	package void owner(BattleOwner owner) {_owner = owner;}
+	@property
 	string cwxPath() {
 		return _owner ? cpjoin(_owner, "battle", .cCountUntil!("a is b")(_owner.battles, this)) : "";
 	}
@@ -1292,11 +1379,13 @@ public:
 		}
 		return super.findCWXPath(path);
 	}
+	@property
 	CWXPath[] cwxChilds() {
 		CWXPath[] r;
 		r ~= cast(CWXPath[]) cards;
 		r ~= super.cwxChilds;
 		return r;
 	}
+	@property
 	CWXPath cwxParent() {return _owner;}
 }

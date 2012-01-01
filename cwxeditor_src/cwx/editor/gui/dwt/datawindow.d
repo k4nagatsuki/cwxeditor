@@ -72,11 +72,11 @@ private:
 
 	static if (UseArea && UseFlag) {
 		void selectedImpl() {
-			if (tabf.getSelection is tabA) {
-				_comm.statusLine(tabf, _areas.statusLine);
+			if (tabf.getSelection() is tabA) {
+				_comm.setStatusLine(tabf, _areas.statusLine);
 			} else {
-				assert (tabf.getSelection is tabF);
-				_comm.statusLine(tabf, _flags.statusLine);
+				assert (tabf.getSelection() is tabF);
+				_comm.setStatusLine(tabf, _flags.statusLine);
 			}
 		}
 		class SListener : SelectionAdapter {
@@ -100,7 +100,7 @@ public:
 		if (parent) construct(parent);
 	}
 	void reconstruct(Composite parent) {
-		if (_win && !_win.isDisposed) return;
+		if (_win && !_win.isDisposed()) return;
 		construct(parent);
 		if (_summ) refresh();
 	}
@@ -111,10 +111,10 @@ public:
 		if (parShl) {
 			_sbshl = new SBShell(parShl, SWT.SHELL_TRIM);
 			shell = _sbshl.shell;
-			shell.setImage = _prop.images.app;
+			shell.setImage(_prop.images.app);
 			shell.addShellListener(new class ShellAdapter {
 				public override void shellClosed(ShellEvent e) {
-					(cast(Shell) e.widget).setVisible = false;
+					(cast(Shell) e.widget).setVisible(false);
 					e.doit = false;
 					static if (UseArea && UseFlag) {
 						_prop.var.dataWin.visible = false;
@@ -127,8 +127,8 @@ public:
 			_win = new Composite(parent, SWT.NONE);
 			contPane = _win;
 		}
-		_win.setData = new TLPData(this);
-		contPane.setLayout = windowGridLayout(1, true);
+		_win.setData(new TLPData(this));
+		contPane.setLayout(windowGridLayout(1, true));
 
 		_comm.refScenarioName.add(&__refreshTitle);
 		_comm.refScenarioPath.add(&__refreshTitle);
@@ -183,11 +183,11 @@ public:
 					createMenuItem(mv, _prop.msgs.menuNewFlag, _prop.images.menuNewFlag, &createFlag);
 					createMenuItem(mv, _prop.msgs.menuNewStep, _prop.images.menuNewStep, &createStep);
 				}
-				shell.setMenuBar = bar;
+				shell.setMenuBar(bar);
 			}
 			{
 				auto bar = new ToolBar(contPane, SWT.FLAT);
-				bar.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+				bar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 				static if (UseArea && UseFlag) {
 					createToolItem(bar, _prop.msgs.ttSummary, _prop.images.menuSummary, &editSummary);
@@ -234,17 +234,17 @@ public:
 		{
 			static if (UseArea && UseFlag) {
 				tabf = new CTabFolder(contPane, SWT.BORDER);
-				tabf.setLayoutData = new GridData(GridData.FILL_BOTH);
+				tabf.setLayoutData(new GridData(GridData.FILL_BOTH));
 				tabf.addSelectionListener(new SListener);
 
 				_flags.construct(tabf);
 				_areas.construct(tabf, _flags.flags);
 
 				tabA = new CTabItem(tabf, SWT.NONE);
-				tabA.setText = _prop.msgs.scenarioView;
+				tabA.setText(_prop.msgs.scenarioView);
 				tabA.setControl(_areas.table);
 				tabF = new CTabItem(tabf, SWT.NONE);
-				tabF.setText = _prop.msgs.variableView;
+				tabF.setText(_prop.msgs.variableView);
 				tabF.setControl(_flags.widget);
 
 				_tcpd ~= _areas;
@@ -252,32 +252,32 @@ public:
 				_tcpd ~= _flags.dirs;
 			} else static if (UseArea) {
 				_areas.construct(contPane, null);
-				_areas.table.setLayoutData = new GridData(GridData.FILL_BOTH);
+				_areas.table.setLayoutData(new GridData(GridData.FILL_BOTH));
 				_tcpd ~= _areas;
 			} else static if (UseFlag) {
 				_flags.construct(contPane);
-				_flags.widget.setLayoutData = new GridData(GridData.FILL_BOTH);
+				_flags.widget.setLayoutData(new GridData(GridData.FILL_BOTH));
 				_tcpd ~= _flags.flags;
 				_tcpd ~= _flags.dirs;
 			} else static assert (0);
 		}
 		static if (UseArea && UseFlag) {
 			if (shell) {
-				shell.setMaximized = _prop.var.dataWin.maximized;
-				shell.setMinimized = _prop.var.dataWin.minimized;
+				shell.setMaximized(_prop.var.dataWin.maximized);
+				shell.setMinimized(_prop.var.dataWin.minimized);
 				scope wp = shell.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 				int width = _prop.var.dataWin.width == SWT.DEFAULT ? wp.x : _prop.var.dataWin.width;
 				int height = _prop.var.dataWin.height == SWT.DEFAULT ? wp.y : _prop.var.dataWin.height;
-				int x = _prop.var.dataWin.x == SWT.DEFAULT ? shell.getBounds.x : _prop.var.dataWin.x + shell.getParent.getBounds.x;
-				int y = _prop.var.dataWin.y == SWT.DEFAULT ? shell.getBounds.y : _prop.var.dataWin.y + shell.getParent.getBounds.y;
+				int x = _prop.var.dataWin.x == SWT.DEFAULT ? shell.getBounds().x : _prop.var.dataWin.x + shell.getParent().getBounds().x;
+				int y = _prop.var.dataWin.y == SWT.DEFAULT ? shell.getBounds().y : _prop.var.dataWin.y + shell.getParent().getBounds().y;
 				intoDisplay(x, y, width, height);
 				shell.setBounds(x, y, width, height);
 				shell.addControlListener(new class ControlAdapter {
 					override void controlMoved(ControlEvent e) {
-						saveDataWin;
+						saveDataWin();
 					}
 					override void controlResized(ControlEvent e) {
-						saveDataWin;
+						saveDataWin();
 					}
 				});
 			}
@@ -293,24 +293,25 @@ public:
 		private void saveDataWin() {
 			auto win = cast(Shell) _win;
 			if (win) {
-				if (!win.getMaximized && !win.getMinimized) {
-					_prop.var.dataWin.width = win.getSize.x;
-					_prop.var.dataWin.height = win.getSize.y;
-					_prop.var.dataWin.x = win.getBounds.x - win.getParent.getBounds.x;
-					_prop.var.dataWin.y = win.getBounds.y - win.getParent.getBounds.y;
+				if (!win.getMaximized() && !win.getMinimized()) {
+					_prop.var.dataWin.width = win.getSize().x;
+					_prop.var.dataWin.height = win.getSize().y;
+					_prop.var.dataWin.x = win.getBounds().x - win.getParent().getBounds().x;
+					_prop.var.dataWin.y = win.getBounds().y - win.getParent().getBounds().y;
 				}
-				_prop.var.dataWin.maximized = win.getMaximized;
-				_prop.var.dataWin.minimized = win.getMinimized;
+				_prop.var.dataWin.maximized = win.getMaximized();
+				_prop.var.dataWin.minimized = win.getMinimized();
 			}
 		}
 	}
+	@property
 	Composite shell() {return _win;}
 
 	static if (UseArea) {
 		void editSummary() {
 			if (!_summ) return;
-			if (_win && !_win.isDisposed) {
-				_areas.editSummary(_win.getShell);
+			if (_win && !_win.isDisposed()) {
+				_areas.editSummary(_win.getShell());
 			} else {
 				_areas.editSummary(_parentShell);
 			}
@@ -371,32 +372,33 @@ public:
 	static if (UseFlag) {
 		void createFlagDir() {
 			if (!_summ) return;
-			_flags.dirs.createDir;
+			_flags.dirs.createDir();
 		}
 		void createFlag() {
 			if (!_summ) return;
-			_flags.flags.createFlag;
+			_flags.flags.createFlag();
 		}
 		void createStep() {
 			if (!_summ) return;
-			_flags.flags.createStep;
+			_flags.flags.createStep();
 		}
 		private void changeVHSide() {
 			.forceFocus(_flags.widget, false);
-			_flags.changeVHSide;
+			_flags.changeVHSide();
 		}
 	}
 	static if (UseArea && UseFlag) {
 		void selectData() {
-			tabf.setSelection = tabA;
+			tabf.setSelection(tabA);
 			selectedImpl();
 		}
 		void selectFlags() {
-			tabf.setSelection = tabF;
+			tabf.setSelection(tabF);
 			selectedImpl();
 		}
 	}
 
+	@property
 	Image image() {
 		static if (UseArea && UseFlag) {
 			return _prop.images.menuDataWin;
@@ -406,6 +408,7 @@ public:
 			return _prop.images.menuFlagWin;
 		} else static assert (0);
 	}
+	@property
 	string title() {
 		auto shl = cast(Shell) _win;
 		static if (UseArea && UseFlag) {
@@ -425,19 +428,20 @@ public:
 			return _prop.msgs.flagTabName(_summ);
 		} else static assert (0);
 	}
+	@property
 	void delegate(string) statusText() {return _sbshl ? &_sbshl.statusLine : null;}
 
 	private void __refreshTitle() {
-		if (!_win || _win.isDisposed) return;
+		if (!_win || _win.isDisposed()) return;
 		_comm.setTitle(_win, title);
 	}
 	private void refresh() {
-		__refreshTitle;
+		__refreshTitle();
 		static if (UseArea) {
 			_areas.summary = _summ;
 			static if (UseFlag) {
-				if (_win && !_win.isDisposed) {
-					tabf.setSelection = tabA;
+				if (_win && !_win.isDisposed()) {
+					tabf.setSelection(tabA);
 				}
 			}
 		}
@@ -448,10 +452,10 @@ public:
 
 	void up() {
 		static if (UseArea && UseFlag) {
-			if (tabf.getSelection is tabA) {
+			if (tabf.getSelection() is tabA) {
 				_areas.up();
 			} else {
-				assert (tabf.getSelection is tabF);
+				assert (tabf.getSelection() is tabF);
 				_flags.up();
 			}
 		} else static if (UseArea) {
@@ -462,10 +466,10 @@ public:
 	}
 	void down() {
 		static if (UseArea && UseFlag) {
-			if (tabf.getSelection is tabA) {
+			if (tabf.getSelection() is tabA) {
 				_areas.down();
 			} else {
-				assert (tabf.getSelection is tabF);
+				assert (tabf.getSelection() is tabF);
 				_flags.down();
 			}
 		} else static if (UseArea) {
@@ -488,6 +492,7 @@ public:
 	}
 
 	/// Returns: 貼り紙。
+	@property
 	Summary summary() {
 		return _summ;
 	}
@@ -575,7 +580,7 @@ public:
 		}
 		if (w) {
 			static if (UseArea && UseFlag) {
-				tabf.setSelection = tabA;
+				tabf.setSelection(tabA);
 			}
 			return w.openCWXPath(path, shellActivate);
 		}
@@ -644,7 +649,7 @@ public:
 		} break;
 		case "package:id": {
 			static if (UseArea) {
-				auto a = _summ.packages(index);
+				auto a = _summ.cwPackage(index);
 				return openCWXPathAf(_comm.openArea(_prop, _summ, a, shellActivate),
 					a, path, shellActivate);
 			}
@@ -658,10 +663,11 @@ public:
 		}
 		return false;
 	}
+	@property
 	string[] openedCWXPath() {
 		string[] r;
 		static if (UseArea && UseFlag) {
-			if (tabf.getSelection is tabA) {
+			if (tabf.getSelection() is tabA) {
 				r ~= _areas.openedCWXPath;
 				r ~= _flags.openedCWXPath;
 			} else {
@@ -678,10 +684,10 @@ public:
 
 	void undo() {
 		static if (UseArea && UseFlag) {
-			if (tabf.getSelection is tabA) {
+			if (tabf.getSelection() is tabA) {
 				_areas.undo();
 			} else {
-				assert (tabf.getSelection is tabF);
+				assert (tabf.getSelection() is tabF);
 				_flags.undo();
 			}
 		} else static if (UseArea) {
@@ -692,10 +698,10 @@ public:
 	}
 	void redo() {
 		static if (UseArea && UseFlag) {
-			if (tabf.getSelection is tabA) {
+			if (tabf.getSelection() is tabA) {
 				_areas.redo();
 			} else {
-				assert (tabf.getSelection is tabF);
+				assert (tabf.getSelection() is tabF);
 				_flags.redo();
 			}
 		} else static if (UseArea) {

@@ -46,12 +46,15 @@ class CWXScriptException : Exception {
 	private bool _over100;
 
 	/// 解析対象のテキスト。
+	@property
 	const
 	string text() {return _text;}
 	/// 発生したエラーの配列。
+	@property
 	const
 	const(CWXSError[]) errors() {return _errors;}
 	/// エラーが100件を超えたか。
+	@property
 	const
 	bool over100() {return _over100;}
 }
@@ -82,6 +85,7 @@ class CWXScript {
 	}
 	private CWXSError[] _errors;
 	/// 各メソッド呼び出しで蓄積されたエラーを返す。
+	@property
 	const
 	const(CWXSError[]) errors() {return _errors;}
 
@@ -330,7 +334,7 @@ class CWXScript {
 				commentLevel--;
 			} else if (0 < commentLevel) {
 				spaceAfter = true;
-				retCount;
+				retCount();
  			} else if (isAlpha(c) || c == '_') {
 				spaceAfter = false;
 				// symbol
@@ -394,12 +398,12 @@ class CWXScript {
 					r ~= Token(i, pos, Kind.STRING, str, docComment);
 				}
 				spaceAfter = false;
-				retCount;
+				retCount();
  				docComment = "";
 			} else if (isWhite(c)) {
 				// whitespace
 				spaceAfter = true;
-				retCount;
+				retCount();
 			} else if (c == '+') {
 				// plus
 				spaceAfter = false;
@@ -2106,9 +2110,9 @@ fi`;
 		char[] buf;
 		auto table = new VarTable;
 		toScriptImpl(buf, cs, indent, "", KEYS, table, legacy);
-		auto vars = table.vars;
+		auto vars = table.vars();
 		if (vars.length) {
-			buf = std.string.join(table.vars, "\n") ~ "\n\n" ~ buf;
+			buf = std.string.join(vars, "\n") ~ "\n\n" ~ buf;
 		}
 		return assumeUnique(buf);
 	}
@@ -2522,11 +2526,11 @@ fi`;
 				attrs ~= toAttr(vars.id(a, c.battle), command, indentValue, vars);
 			}
 			if (detail.use(CArg.PACKAGE)) {
-				auto a = _summ.packages(c.packages);
+				auto a = _summ.cwPackage(c.packages);
 				attrs ~= toAttr(vars.id(a, c.packages), command, indentValue, vars);
 			}
 			if (detail.use(CArg.CAST)) {
-				auto a = _summ.casts(c.casts);
+				auto a = _summ.cwCast(c.casts);
 				attrs ~= toAttr(vars.id(a, c.casts), command, indentValue, vars);
 			}
 			if (detail.use(CArg.ITEM)) {

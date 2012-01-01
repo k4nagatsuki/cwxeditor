@@ -91,8 +91,8 @@ private:
 			foreach (a; summ.battles) _battleIDs ~= a.id;
 			_packageIDs.length = 0;
 			foreach (a; summ.packages) _packageIDs ~= a.id;
-			if (v && v._areas && !v._areas.isDisposed) {
-				_sel = v._areas.getSelectionIndex;
+			if (v && v._areas && !v._areas.isDisposed()) {
+				_sel = v._areas.getSelectionIndex();
 			}
 		}
 		abstract override void undo();
@@ -104,7 +104,7 @@ private:
 			_packageIDsB = _packageIDs.dup;
 			_selB = _sel;
 			saveIDs(v);
-			if (v && v._areas && !v._areas.isDisposed) {
+			if (v && v._areas && !v._areas.isDisposed()) {
 				.forceFocus(v._areas, false);
 			}
 		}
@@ -137,7 +137,7 @@ private:
 			resetID!toAreaId(v, summ.areas, _areaIDsB);
 			resetID!toBattleId(v, summ.battles, _battleIDsB);
 			resetID!toPackageId(v, summ.packages, _packageIDsB);
-			if (v && v._areas && !v._areas.isDisposed) {
+			if (v && v._areas && !v._areas.isDisposed()) {
 				int i = 0;
 				foreach (a; summ.areas) {
 					v.refData(a, v._areas.getItem(i));
@@ -155,7 +155,7 @@ private:
 				v._areas.showSelection();
 				v.refreshStatusLine();
 			}
-			comm.refUseCount.call;
+			comm.refUseCount.call();
 		}
 		protected AreaTable view() {
 			return _v;
@@ -193,7 +193,7 @@ private:
 			string oldName = area.name;
 			area.name = _name;
 			_name = oldName;
-			if (v && v._areas && !v._areas.isDisposed) {
+			if (v && v._areas && !v._areas.isDisposed()) {
 				v._areas.getItem(_index).setText(NAME, area.name);
 			}
 			auto a = cast(Area) area;
@@ -208,7 +208,7 @@ private:
 			if (p) {
 				comm.refPackage.call(v, p);
 			}
-			comm.refUseCount.call;
+			comm.refUseCount.call();
 		}
 		override void undo() {
 			impl();
@@ -318,7 +318,7 @@ private:
 		private void initUndoDelete() {
 			auto area = areaFromIndex(summ, _index);
 			_isStartArea = cast(Area) area && summ.startArea == area.id;
-			auto node = area.toNode;
+			auto node = area.toNode();
 			auto a = cast(Area) area;
 			if (a) {
 				_area = Area.createFromNode(node, LATEST_VERSION);
@@ -342,7 +342,7 @@ private:
 			initUndoDelete();
 			auto area = areaFromIndex(summ, _index);
 			summ.remove(area);
-			if (v && v._areas && !v._areas.isDisposed) {
+			if (v && v._areas && !v._areas.isDisposed()) {
 				v._areas.remove(_index);
 			}
 			auto a = cast(Area) area;
@@ -357,7 +357,7 @@ private:
 			if (p) {
 				comm.delPackage.call(v, p);
 			}
-			comm.refUseCount.call;
+			comm.refUseCount.call();
 		}
 		void undoDelete() {
 			auto v = view();
@@ -372,7 +372,7 @@ private:
 			if (a) {
 				int i = toAreaIndex(summ, _index);
 				summ.insert(i, a);
-				if (v && v._areas && !v._areas.isDisposed) v.newAreaItem(i);
+				if (v && v._areas && !v._areas.isDisposed()) v.newAreaItem(i);
 				if (_isStartArea) {
 					summ.startArea = a.id;
 					_isStartArea = false;
@@ -384,7 +384,7 @@ private:
 			if (b) {
 				int i = toBattleIndex(summ, _index);
 				summ.insert(i, b);
-				if (v && v._areas && !v._areas.isDisposed) v.newBattleItem(i);
+				if (v && v._areas && !v._areas.isDisposed()) v.newBattleItem(i);
 				comm.refBattle.call(v, b);
 				return;
 			}
@@ -392,7 +392,7 @@ private:
 			if (p) {
 				int i = toPackageIndex(summ, _index);
 				summ.insert(i, p);
-				if (v && v._areas && !v._areas.isDisposed) v.newPackageItem(i);
+				if (v && v._areas && !v._areas.isDisposed()) v.newPackageItem(i);
 				comm.refPackage.call(v, p);
 				return;
 			}
@@ -424,7 +424,7 @@ private:
 	void editEnd(TableItem itm, int column, string newText) {
 		assert (column == 1);
 		if (newText.length > 0) {
-			auto area = cast(AbstractArea) itm.getData;
+			auto area = cast(AbstractArea) itm.getData();
 			if (area.name == newText) return;
 			storeEdit(_areas.indexOf(itm));
 			area.name = newText;
@@ -463,8 +463,8 @@ private:
 			battles = _summ.battles;
 			packages = _summ.packages;
 		}
-		_statusLine = _prop.msgs.areaStatus(areas, battles, packages, getSelectionArea);
-		_comm.statusLine(_areas, _statusLine);
+		_statusLine = _prop.msgs.areaStatus(areas, battles, packages, getSelectionArea());
+		_comm.setStatusLine(_areas, _statusLine);
 	}
 
 	static int toIndex(A)(Summary summ, int index) {
@@ -489,31 +489,31 @@ private:
 		return summ.areas[toAreaIndex(summ, index)];
 	}
 	AbstractArea getSelectionArea() {
-		auto itm = _areas.getSelection;
+		auto itm = _areas.getSelection();
 		if (itm.length > 0) {
-			return cast(AbstractArea) itm[0].getData;
+			return cast(AbstractArea) itm[0].getData();
 		}
 		return null;
 	}
 	void refArea(Object sender, Area a) {
 		if (sender is this) return;
-		foreach (itm; _areas.getItems[0 .. _summ.areas.length]) {
-			if (itm.getData is a) refData(a, itm);
+		foreach (itm; _areas.getItems()[0 .. _summ.areas.length]) {
+			if (itm.getData() is a) refData(a, itm);
 		}
 	}
 	void refBattle(Object sender, Battle a) {
 		if (sender is this) return;
 		size_t ai = _summ.areas.length;
-		foreach (itm; _areas.getItems[ai .. ai + _summ.battles.length]) {
-			if (itm.getData is a) refData(a, itm);
+		foreach (itm; _areas.getItems()[ai .. ai + _summ.battles.length]) {
+			if (itm.getData() is a) refData(a, itm);
 		}
 	}
 	void refPackage(Object sender, Package a) {
 		if (sender is this) return;
 		size_t ai = _summ.areas.length;
 		size_t bi = _summ.battles.length;
-		foreach (itm; _areas.getItems[ai + bi .. ai + bi + _summ.packages.length]) {
-			if (itm.getData is a) refData(a, itm);
+		foreach (itm; _areas.getItems()[ai + bi .. ai + bi + _summ.packages.length]) {
+			if (itm.getData() is a) refData(a, itm);
 		}
 	}
 	void callRefArea(AbstractArea area) {
@@ -534,9 +534,9 @@ private:
 		}
 	}
 	void refreshIDs(bool callRef) {
-		if (!_areas || _areas.isDisposed) return;
-		foreach (itm; _areas.getItems) {
-			auto area = cast(AbstractArea) itm.getData;
+		if (!_areas || _areas.isDisposed()) return;
+		foreach (itm; _areas.getItems()) {
+			auto area = cast(AbstractArea) itm.getData();
 			auto str = to!(string)(area.id);
 			if (callRef && str != itm.getText(ID)) callRefArea(area);
 			itm.setText(ID, str);
@@ -546,12 +546,12 @@ private:
 	class DragArea : DragSourceAdapter {
 		AbstractArea _data;
 		override void dragStart(DragSourceEvent e) {
-			e.doit = (cast(DragSource) e.getSource).getControl.isFocusControl;
+			e.doit = (cast(DragSource) e.getSource()).getControl().isFocusControl();
 		}
 		override void dragSetData(DragSourceEvent e){
-			if (XMLBytesTransfer.getInstance.isSupportedType(e.dataType)) {
-				auto tbl = cast(Table) (cast(DragSource) e.getSource).getControl;
-				_data = cast(AbstractArea) tbl.getSelection[0].getData;
+			if (XMLBytesTransfer.getInstance().isSupportedType(e.dataType)) {
+				auto tbl = cast(Table) (cast(DragSource) e.getSource()).getControl();
+				_data = cast(AbstractArea) tbl.getSelection()[0].getData();
 				e.data = bytesFromXML(_data.toXML(_summ.id));
 			}
 		}
@@ -568,7 +568,7 @@ private:
 					assert (cast(Package) area);
 					_comm.delPackage.call(cast(Package) area);
 				}
-				refreshStatusLine;
+				refreshStatusLine();
 			}
 		}
 	}
@@ -596,9 +596,9 @@ private:
 					return;
 				}
 
-				auto tbl = cast(Table) (cast(DropTarget) e.getSource).getControl;
+				auto tbl = cast(Table) (cast(DropTarget) e.getSource()).getControl();
 				auto toItm = tbl.getItem(tbl.toControl(e.x, e.y));
-				int count = tbl.getItemCount;
+				int count = tbl.getItemCount();
 				int index = toItm ? tbl.indexOf(toItm) : count;
 				int revId(int index) {
 					if (tid == typeid(Area)) {
@@ -625,15 +625,15 @@ private:
 				}
 				if (_summ.id == AbstractArea.summaryId(node)) {
 					// 同一リスト内で移動。
-					if ((index < count ? index : count - 1) == tbl.getSelectionIndex
-							|| index == tbl.getSelectionIndex + 1) {
-						tbl.showSelection;
+					if ((index < count ? index : count - 1) == tbl.getSelectionIndex()
+							|| index == tbl.getSelectionIndex() + 1) {
+						tbl.showSelection();
 						return;
 					}
 					index = revId(index);
-					auto area = cast(AbstractArea) tbl.getSelection[0].getData;
-					int fromIndex = tbl.getSelectionIndex;
-					tbl.getSelection[0].dispose;
+					auto area = cast(AbstractArea) tbl.getSelection()[0].getData();
+					int fromIndex = tbl.getSelectionIndex();
+					tbl.getSelection()[0].dispose();
 					int toIndex;
 					if (tid == typeid(Area)) {
 						_summ.insert(index, cast(Area) area);
@@ -652,7 +652,7 @@ private:
 					storeMove(fromIndex, toIndex);
 					callRefArea(area);
 					refreshIDs(true);
-					refreshStatusLine;
+					refreshStatusLine();
 					e.detail = DND.DROP_NONE;
 				} else {
 					// 他のリストからのコピー
@@ -690,8 +690,8 @@ private:
 		}
 	}
 	void __refreshUseCount() {
-		foreach (itm; _areas.getItems) {
-			auto element = itm.getData;
+		foreach (itm; _areas.getItems()) {
+			auto element = itm.getData();
 			if (cast(Area) element) {
 				itm.setText(2, to!(string)(_summ.useCounter.area.get(toAreaId((cast(AbstractArea) element).id))));
 			} else if (cast(Battle) element) {
@@ -709,7 +709,7 @@ private:
 			}
 		}
 		public override void mouseDoubleClick(MouseEvent e) {
-			if (_areas.isFocusControl && e.button == 1) {
+			if (_areas.isFocusControl() && e.button == 1) {
 				if (e.stateMask & SWT.SHIFT) {
 					openAreaEvent(true);
 				} else {
@@ -720,7 +720,7 @@ private:
 	}
 	class KListener : KeyAdapter {
 		public override void keyPressed(KeyEvent e) {
-			if (_areas.isFocusControl && e.character == SWT.CR) {
+			if (_areas.isFocusControl() && e.character == SWT.CR) {
 				if (e.stateMask & SWT.SHIFT) {
 					openAreaEvent(true);
 				} else {
@@ -741,8 +741,8 @@ private:
 		}
 	}
 	private void refreshAreas() {
-		if (!_areas || _areas.isDisposed) return;
-		_areas.removeAll;
+		if (!_areas || _areas.isDisposed()) return;
+		_areas.removeAll();
 		if (_summ) {
 			foreach (i, a; _summ.areas) {
 				newAreaItem(i);
@@ -754,7 +754,7 @@ private:
 				newPackageItem(i);
 			}
 		}
-		refreshStatusLine;
+		refreshStatusLine();
 	}
 	void item(AbstractArea a, Image img, int uc, int index = -1) {
 		TableItem itm;
@@ -794,7 +794,7 @@ private:
 	}
 	private class SListener : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			refreshStatusLine;
+			refreshStatusLine();
 		}
 	}
 	void refScenario(Summary summ) {
@@ -804,7 +804,7 @@ private:
 		_undo.max = _prop.var.etc.undoMaxMainView;
 	}
 public:
-	this(Commons comm, Props prop) {
+	this (Commons comm, Props prop) {
 		_comm = comm;
 		_prop = prop;
 		_undo = new UndoManager(_prop.var.etc.undoMaxMainView);
@@ -835,7 +835,7 @@ public:
 
 		_areasEdit = new TableTextEdit(_comm, _prop, _areas, 1, &editEnd);
 
-		auto menu = new Menu(parent.getShell, SWT.POP_UP);
+		auto menu = new Menu(parent.getShell(), SWT.POP_UP);
 		if (!_comm.singleWindowMode(_prop) || _prop.var.etc.bindSceneWithEvent) {
 			createMenuItem(menu, _prop.msgs.menuCEdit, _prop.images.menuCEdit, {openAreaScene(true);});
 		} else {
@@ -856,10 +856,10 @@ public:
 		_areas.addMouseListener(new MListener);
 		_areas.addKeyListener(new KListener);
 		auto drag = new DragSource(_areas, DND.DROP_MOVE | DND.DROP_COPY);
-		drag.setTransfer([XMLBytesTransfer.getInstance]);
+		drag.setTransfer([XMLBytesTransfer.getInstance()]);
 		drag.addDragListener(new DragArea);
 		auto drop = new DropTarget(_areas, DND.DROP_DEFAULT | DND.DROP_MOVE);
-		drop.setTransfer([XMLBytesTransfer.getInstance]);
+		drop.setTransfer([XMLBytesTransfer.getInstance()]);
 		drop.addDropListener(new DropArea);
 	}
 
@@ -938,31 +938,31 @@ public:
 	}
 	void reNumbering() {
 		if (!_summ) return;
-		int index = _areas.getSelectionIndex;
+		int index = _areas.getSelectionIndex();
 		if (index < 0) return;
 		int ai = toAreaIndex(index);
 		if (ai >= 0) {
-			auto dlg = new ReNumDialog!(Area)(_prop, _areas.getShell, _summ.areas[ai],
+			auto dlg = new ReNumDialog!(Area)(_prop, _areas.getShell(), _summ.areas[ai],
 				ai == 0 ? 1 : _summ.areas[ai - 1].id + 1);
-			if (dlg.open) {
+			if (dlg.open()) {
 				reNumberingArea(ai, dlg.newId);
 			}
 			return;
 		}
 		int bi = toBattleIndex(index);
 		if (bi >= 0) {
-			auto dlg = new ReNumDialog!(Battle)(_prop, _areas.getShell, _summ.battles[bi],
+			auto dlg = new ReNumDialog!(Battle)(_prop, _areas.getShell(), _summ.battles[bi],
 				bi == 0 ? 1 : _summ.battles[bi - 1].id + 1);
-			if (dlg.open) {
+			if (dlg.open()) {
 				reNumberingBattle(bi, dlg.newId);
 			}
 			return;
 		}
 		int pi = toPackageIndex(index);
 		if (pi >= 0) {
-			auto dlg = new ReNumDialog!(Package)(_prop, _areas.getShell, _summ.packages[pi],
+			auto dlg = new ReNumDialog!(Package)(_prop, _areas.getShell(), _summ.packages[pi],
 				pi == 0 ? 1 : _summ.packages[pi - 1].id + 1);
-			if (dlg.open) {
+			if (dlg.open()) {
 				reNumberingPackage(pi, dlg.newId);
 			}
 			return;
@@ -979,9 +979,9 @@ public:
 			_summDlg.active();
 			return;
 		}
-		_summDlg = new SummaryDialog(_comm, _prop, parent.getShell, _summ);
+		_summDlg = new SummaryDialog(_comm, _prop, parent.getShell(), _summ);
 		_summDlg.appliedEvent ~= {
-			refresh;
+			refresh();
 		};
 		_summDlg.closeEvent ~= {
 			_summDlg = null;
@@ -989,19 +989,22 @@ public:
 		_summDlg.open();
 	}
 
+	@property
 	Control table() {
 		return _areas;
 	}
 
+	@property
 	string statusLine() {return _statusLine;}
 
 	void refresh() {
-		refreshAreas;
+		refreshAreas();
 	}
 
+	@property
 	void summary(Summary summ) {
 		_summ = summ;
-		refreshAreas;
+		refreshAreas();
 	}
 
 	/// 新規エリアが作成され、名前の入力待ちになる。
@@ -1020,8 +1023,8 @@ public:
 		newAreaItem(index);
 		selArea(index);
 		_comm.refArea.call(area);
-		_areasEdit.startEdit;
-		refreshStatusLine;
+		_areasEdit.startEdit();
+		refreshStatusLine();
 	}
 
 	/// 新規バトルが作成され、名前の入力待ちになる。
@@ -1033,8 +1036,8 @@ public:
 		newBattleItem(index);
 		selBattle(index);
 		_comm.refBattle.call(btl);
-		_areasEdit.startEdit;
-		refreshStatusLine;
+		_areasEdit.startEdit();
+		refreshStatusLine();
 	}
 
 	/// 新規パッケージが作成され、名前の入力待ちになる。
@@ -1053,24 +1056,28 @@ public:
 		newPackageItem(index);
 		selPackage(index);
 		_comm.refPackage.call(pkg);
-		_areasEdit.startEdit;
-		refreshStatusLine;
+		_areasEdit.startEdit();
+		refreshStatusLine();
 		return pkg.id;
 	}
+	@property
 	private void selArea(int index) {
 		_areas.setSelection = index;
-		_areas.showSelection;
+		_areas.showSelection();
 	}
+	@property
 	private void selBattle(int index) {
 		_areas.setSelection = _summ.areas.length + index;
-		_areas.showSelection;
+		_areas.showSelection();
 	}
+	@property
 	private void selPackage(int index) {
 		_areas.setSelection = _summ.areas.length + _summ.battles.length + index;
-		_areas.showSelection;
+		_areas.showSelection();
 	}
+	@property
 	void select(AbstractArea a) {
-		int i = cCountUntil!("a.getData is b")(_areas.getItems, a);
+		int i = cCountUntil!("a.getData() is b")(_areas.getItems(), a);
 		if (0 <= i) {
 			_areas.select = i;
 			_areas.showSelection();
@@ -1078,7 +1085,7 @@ public:
 	}
 
 	void openAreaScene(bool shellActivate) {
-		auto area = getSelectionArea;
+		auto area = getSelectionArea();
 		if (area) {
 			auto a = cast(Area) area;
 			if (a) {
@@ -1101,13 +1108,13 @@ public:
 		auto itm = _areas.getItem(new Point(x, y));
 		if (itm) {
 			_areas.setSelection = [itm];
-			openAreaEvent(cast(AbstractArea) itm.getData, shellActivate);
+			openAreaEvent(cast(AbstractArea) itm.getData(), shellActivate);
 		} else {
 			openAreaEvent(shellActivate);
 		}
 	}
 	void openAreaEvent(bool shellActivate) {
-		auto area = getSelectionArea;
+		auto area = getSelectionArea();
 		if (area) {
 			openAreaEvent(area, shellActivate);
 		}
@@ -1158,12 +1165,12 @@ public:
 		openAreaEventImpl(_summ.area(id), shellActivate);
 	}
 	void openPackage(ulong id, bool shellActivate) {
-		_comm.openArea(_prop, _summ, _summ.packages(id), shellActivate);
+		_comm.openArea(_prop, _summ, _summ.cwPackage(id), shellActivate);
 	}
 
 	private void udImpl(int index1, int index2) {
-		if (index1 < 0 || _areas.getItemCount <= index1) return;
-		if (index2 < 0 || _areas.getItemCount <= index2) return;
+		if (index1 < 0 || _areas.getItemCount() <= index1) return;
+		if (index2 < 0 || _areas.getItemCount() <= index2) return;
 		auto area1 = areaFromIndex(_summ, index1);
 		auto area2 = areaFromIndex(_summ, index2);
 		if (cast(Area) area1 && cast(Area) area2) {
@@ -1199,12 +1206,12 @@ public:
 		} else static assert (0);
 	}
 	void up() {
-		int sel = _areas.getSelectionIndex;
+		int sel = _areas.getSelectionIndex();
 		if (-1 == sel) return;
 		udImpl(sel, sel - 1);
 	}
 	void down() {
-		int sel = _areas.getSelectionIndex;
+		int sel = _areas.getSelectionIndex();
 		if (-1 == sel) return;
 		udImpl(sel, sel + 1);
 	}
@@ -1215,7 +1222,7 @@ public:
 			del(se);
 		}
 		void copy(SelectionEvent se) {
-			auto area = getSelectionArea;
+			auto area = getSelectionArea();
 			if (area !is null) {
 				XMLtoCB(_prop, _comm.clipboard, area.toXML(_summ.id));
 			}
@@ -1259,9 +1266,9 @@ public:
 								_summ.useCounter.change(toPackageId(oldId), toPackageId(newId));
 							}
 						} else assert (0);
-						if (_flags) _flags.refresh;
-						_comm.refUseCount.call;
-						refreshStatusLine;
+						if (_flags) _flags.refresh();
+						_comm.refUseCount.call();
+						refreshStatusLine();
 					}
 				} catch (Exception e) {
 					debugln(e);
@@ -1269,9 +1276,9 @@ public:
 			}
 		}
 		void del(SelectionEvent se) {
-			auto area = getSelectionArea;
+			auto area = getSelectionArea();
 			if (area) {
-				storeDelete(_areas.getSelectionIndex);
+				storeDelete(_areas.getSelectionIndex());
 				_summ.remove(area);
 				delItem(area);
 				if (cast(Area) area) {
@@ -1282,19 +1289,20 @@ public:
 					assert (cast(Package) area);
 					_comm.delPackage.call(cast(Package) area);
 				}
-				if (_flags) _flags.refresh;
-				_comm.refUseCount.call;
-				refreshStatusLine;
+				if (_flags) _flags.refresh();
+				_comm.refUseCount.call();
+				refreshStatusLine();
 			}
 		}
+		@property
 		bool canDoTCPD() {
-			return _areas.isFocusControl;
+			return _areas.isFocusControl();
 		}
 	}
 	private void delItem(AbstractArea area) {
-		foreach (itm; _areas.getItems) {
-			if (itm.getData is area) {
-				itm.dispose;
+		foreach (itm; _areas.getItems()) {
+			if (itm.getData() is area) {
+				itm.dispose();
 				break;
 			}
 		}
@@ -1306,9 +1314,10 @@ public:
 		_undo.redo();
 	}
 
+	@property
 	string[] openedCWXPath() {
 		string[] r;
-		auto a = getSelectionArea;
+		auto a = getSelectionArea();
 		if (a) {
 			r ~= cpaddattr(a.cwxPath, "shallow");
 		}

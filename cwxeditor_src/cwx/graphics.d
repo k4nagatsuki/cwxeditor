@@ -76,6 +76,8 @@ struct FC {
 /// intを使用するRGB。
 struct FCu {
 	int r, g, b;
+	@property
+	const
 	FC fc() {
 		return FC(cast(ubyte) r, cast(ubyte) g, cast(ubyte) b);
 	}

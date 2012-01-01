@@ -41,7 +41,7 @@ private:
 
 	class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
-			_result.getFont.dispose;
+			_result.getFont().dispose();
 			_parent.removeDisposeListener(_parentClose);
 		}
 	}
@@ -51,7 +51,7 @@ public:
 		_prop = prop;
 		_parent = parent;
 		_ex = ex;
-		super(prop, parent.getShell, false, prop.msgs.dlgTitScriptError, prop.images.script, true, prop.var.scriptDlg, false, false);
+		super(prop, parent.getShell(), false, prop.msgs.dlgTitScriptError, prop.images.script, true, prop.var.scriptDlg, false, false);
 		enterClose = true;
 		firstFocusIsOK = true;
 		_parentClose = new ParentClose;
@@ -98,9 +98,9 @@ protected:
 		_result = new Text(area, SWT.BORDER | SWT.MULTI | SWT.READ_ONLY | SWT.WRAP | SWT.V_SCROLL);
 		createTextMenu!Text(_comm, _prop, _result, null);
 		_result.setText = buf;
-		auto font = _result.getFont;
-		auto fSize = font ? cast(uint) font.getFontData[0].height : 0;
-		_result.setFont = new Font(Display.getCurrent, dwtData(_prop.looks.scriptErrorFont(fSize)));
+		auto font = _result.getFont();
+		auto fSize = font ? cast(uint) font.getFontData()[0].height : 0;
+		_result.setFont = new Font(Display.getCurrent(), dwtData(_prop.looks.scriptErrorFont(fSize)));
 		_result.addDisposeListener(new Dispose);
 	}
 }

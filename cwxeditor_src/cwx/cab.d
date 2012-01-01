@@ -21,6 +21,7 @@ version (Windows) {
 
 	/// uncab()が行える状態であればtrueを返す。
 	/// cabinet.dllが使用できないなどの理由でfalseを返す事がある。
+	@property
 	bool canUncab() {
 		return usable;
 	}
@@ -86,7 +87,7 @@ version (Windows) {
 	bool uncab(string file, string dest, string delegate(string) expand = null) {
 		if (!canUncab) return false;
 		if (!.exists(file)) return false;
-		auto h = fdiCreate;
+		auto h = fdiCreate();
 		if (!h) return false;
 		scope (exit) destroyFDI(h);
 		return isCab(h, file) && copyFiles(h, file, dest, expand);
@@ -252,11 +253,11 @@ version (Windows) {
 				return 0;
 			}
 			LPVOID FNFCIALLOC(ULONG cb) {
-				return HeapAlloc(GetProcessHeap, 0, cb);
+				return HeapAlloc(GetProcessHeap(), 0, cb);
 			}
 			alias FNFCIALLOC FNALLOC;
 			void FNFCIFREE(LPVOID memory) {
-				HeapFree(GetProcessHeap, 0, memory);
+				HeapFree(GetProcessHeap(), 0, memory);
 			}
 			alias FNFCIFREE FNFREE;
 			INT FNFCIOPEN(LPSTR pszFile, INT oflag, INT pmode, INT *err, LPVOID pv) {
@@ -543,6 +544,7 @@ version (Windows) {
 } else {
 	/// uncab()が行える状態であればtrueを返す。
 	/// Windows以外のOSでは必ずfalseを返す。
+	@property
 	bool canUncab() {return false;}
 
 	/// src以下のファイル・フォルダを全て圧縮し、CAB書庫cabを生成する。

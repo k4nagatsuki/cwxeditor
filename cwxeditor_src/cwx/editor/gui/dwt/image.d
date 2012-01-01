@@ -36,7 +36,7 @@ public class Images {
 private:
 	string _appPath;
 	Image[string] _imgReg;
-	Image imgd(string Path)() {
+	@property Image imgd(string Path)() {
 		auto p = Path in _imgReg;
 		if (p) {
 			return *p;
@@ -47,7 +47,7 @@ private:
 			if (.exists(dynPath)) {
 				try {
 					auto s = new ByteArrayInputStream(cast(byte[]) std.file.read(dynPath));
-					scope (exit) s.close;
+					scope (exit) s.close();
 					imgData = new ImageData(s);
 				} catch (Exception e) {
 					debugln(e);
@@ -55,15 +55,16 @@ private:
 			}
 			if (!imgData) {
 				auto s = new ByteArrayInputStream(cast(byte[]) getImportData!(Path).data);
-				scope (exit) s.close;
+				scope (exit) s.close();
 				imgData = new ImageData(s);
 			}
 			imgData.transparentPixel = imgData.getPixel(0, 0);
-			auto img = new Image(Display.getCurrent, imgData);
+			auto img = new Image(Display.getCurrent(), imgData);
 			_imgReg[Path] = img;
 			return img;
 		}
 	}
+	@property
 	static string resourceDir() {return "resource";}
 public:
 	this (string appPath) {
@@ -72,75 +73,75 @@ public:
 
 	void disposeImages() {
 		foreach (p, img; _imgReg) {
-			img.dispose;
+			img.dispose();
 		}
 		typeof(_imgReg) imgReg;
 		_imgReg = imgReg;
 	}
 
-	Image app() {return imgd!("new.png");}
-	Image menuVersion() {return imgd!("version.png");}
-	Image icon() {return imgd!("cwxeditor.ico");}
+	@property Image app() {return imgd!("new.png");}
+	@property Image menuVersion() {return imgd!("version.png");}
+	@property Image icon() {return imgd!("cwxeditor.ico");}
 
-	Image text() {return imgd!("text.png");}
+	@property Image text() {return imgd!("text.png");}
 
-	Image classicEngine() {return imgd!("classic_engine.png");}
+	@property Image classicEngine() {return imgd!("classic_engine.png");}
 
-	Image warning() {return imgd!("warning.png");}
+	@property Image warning() {return imgd!("warning.png");}
 
-	Image summary() {return imgd!("summary.png");}
+	@property Image summary() {return imgd!("summary.png");}
 
-	Image cards() {return imgd!("cards.png");}
-	Image backs() {return imgd!("backs.png");}
+	@property Image cards() {return imgd!("cards.png");}
+	@property Image backs() {return imgd!("backs.png");}
 
-	Image bgm() {return imgd!("evt_bgm.png");}
-	Image se() {return imgd!("evt_se.png");}
-	Image unknown() {return imgd!("unknown.png");}
+	@property Image bgm() {return imgd!("evt_bgm.png");}
+	@property Image se() {return imgd!("evt_se.png");}
+	@property Image unknown() {return imgd!("unknown.png");}
 
-	Image folder() {return imgd!("folder.png");}
-	Image scenario() {return imgd!("scenario.png");}
+	@property Image folder() {return imgd!("folder.png");}
+	@property Image scenario() {return imgd!("scenario.png");}
 
-	Image area() {return imgd!("area.png");}
-	Image battle() {return imgd!("battle.png");}
-	Image packages() {return imgd!("package.png");}
+	@property Image area() {return imgd!("area.png");}
+	@property Image battle() {return imgd!("battle.png");}
+	@property Image packages() {return imgd!("package.png");}
 
-	Image areaSceneView() {return imgd!("area_cards.png");}
-	Image areaEventTreeView() {return imgd!("area_event.png");}
-	Image battleSceneView() {return imgd!("battle_cards.png");}
-	Image battleEventTreeView() {return imgd!("battle_event.png");}
+	@property Image areaSceneView() {return imgd!("area_cards.png");}
+	@property Image areaEventTreeView() {return imgd!("area_event.png");}
+	@property Image battleSceneView() {return imgd!("battle_cards.png");}
+	@property Image battleEventTreeView() {return imgd!("battle_event.png");}
 
-	Image casts() {return imgd!("cast.png");}
-	Image skill() {return imgd!("skill.png");}
-	Image item() {return imgd!("item.png");}
-	Image beast() {return imgd!("beast.png");}
-	Image info() {return imgd!("info.png");}
+	@property Image casts() {return imgd!("cast.png");}
+	@property Image skill() {return imgd!("skill.png");}
+	@property Image item() {return imgd!("item.png");}
+	@property Image beast() {return imgd!("beast.png");}
+	@property Image info() {return imgd!("info.png");}
 
-	Image flagDir() {return imgd!("flagdir.png");}
-	Image flag() {return imgd!("flag.png");}
-	Image step() {return imgd!("step.png");}
+	@property Image flagDir() {return imgd!("flagdir.png");}
+	@property Image flag() {return imgd!("flag.png");}
+	@property Image step() {return imgd!("step.png");}
 
-	Image couponNormal() {return imgd!("coupon_n.png");}
-	Image couponPlus() {return imgd!("coupon_plus.png");}
-	Image couponMinus() {return imgd!("coupon_minus.png");}
-	Image couponHigh() {return imgd!("coupon.png");}
-	Image couponDelete() {return imgd!("evt_stop.png");}
+	@property Image couponNormal() {return imgd!("coupon_n.png");}
+	@property Image couponPlus() {return imgd!("coupon_plus.png");}
+	@property Image couponMinus() {return imgd!("coupon_minus.png");}
+	@property Image couponHigh() {return imgd!("coupon.png");}
+	@property Image couponDelete() {return imgd!("evt_stop.png");}
 
-	Image stopBGM() {return imgd!("sound_stop.png");}
-	Image playBGM() {return imgd!("sound_play.png");}
+	@property Image stopBGM() {return imgd!("sound_stop.png");}
+	@property Image playBGM() {return imgd!("sound_play.png");}
 
-	Image evtArrow() {return imgd!("evt_arrow.png");}
+	@property Image evtArrow() {return imgd!("evt_arrow.png");}
 
-	Image evtAddContinue() {return imgd!("evt_add_continue.png");}
-	Image evtAutoOpen() {return imgd!("evt_auto_edit.png");}
+	@property Image evtAddContinue() {return imgd!("evt_add_continue.png");}
+	@property Image evtAutoOpen() {return imgd!("evt_auto_edit.png");}
 
-	Image menuEvtTerminal() {return imgd!("evt_j_term.png");}
-	Image menuEvtStandard() {return imgd!("evt_j_std.png");}
-	Image menuEvtData() {return imgd!("evt_j_data.png");}
-	Image menuEvtUtility() {return imgd!("evt_j_util.png");}
-	Image menuEvtBranch() {return imgd!("evt_j_br.png");}
-	Image menuEvtGet() {return imgd!("evt_j_get.png");}
-	Image menuEvtLost() {return imgd!("evt_j_lost.png");}
-	Image menuEvtVisual() {return imgd!("evt_j_vis.png");}
+	@property Image menuEvtTerminal() {return imgd!("evt_j_term.png");}
+	@property Image menuEvtStandard() {return imgd!("evt_j_std.png");}
+	@property Image menuEvtData() {return imgd!("evt_j_data.png");}
+	@property Image menuEvtUtility() {return imgd!("evt_j_util.png");}
+	@property Image menuEvtBranch() {return imgd!("evt_j_br.png");}
+	@property Image menuEvtGet() {return imgd!("evt_j_get.png");}
+	@property Image menuEvtLost() {return imgd!("evt_j_lost.png");}
+	@property Image menuEvtVisual() {return imgd!("evt_j_vis.png");}
 
 	Image content(CType type) {
 		switch (type) {
@@ -214,7 +215,7 @@ public:
 		}
 	}
 
-	Image msnDelete() {return imgd!("evt_stop.png");}
+	@property Image msnDelete() {return imgd!("evt_stop.png");}
 
 	Image motion(MType type) {
 		switch (type) {
@@ -293,32 +294,32 @@ public:
 		}
 	}
 
-	Image eventTree() {return imgd!("event_tree.png");}
-	Image defStart() {return imgd!("def_start.png");}
-	Image keyCode() {return imgd!("key_code.png");}
-	Image round() {return imgd!("round.png");}
-	Image menuKeyCodeTimingUse() {return imgd!("key_code.png");}
-	Image menuKeyCodeTimingSuccess() {return imgd!("key_code_suc.png");}
-	Image menuKeyCodeTimingFailure() {return imgd!("key_code_fail.png");}
+	@property Image eventTree() {return imgd!("event_tree.png");}
+	@property Image defStart() {return imgd!("def_start.png");}
+	@property Image keyCode() {return imgd!("key_code.png");}
+	@property Image round() {return imgd!("round.png");}
+	@property Image menuKeyCodeTimingUse() {return imgd!("key_code.png");}
+	@property Image menuKeyCodeTimingSuccess() {return imgd!("key_code_suc.png");}
+	@property Image menuKeyCodeTimingFailure() {return imgd!("key_code_fail.png");}
 
-	Image menuAddManyRounds() {return imgd!("add_many_round.png");}
+	@property Image menuAddManyRounds() {return imgd!("add_many_round.png");}
 
-	Image addCoupon() {return imgd!("coupon.png");}
-	Image altCoupon() {return imgd!("alt_coupon.png");}
-	Image delCoupon() {return imgd!("evt_stop.png");}
+	@property Image addCoupon() {return imgd!("coupon.png");}
+	@property Image altCoupon() {return imgd!("alt_coupon.png");}
+	@property Image delCoupon() {return imgd!("evt_stop.png");}
 
-	Image setBeast() {return imgd!("set_beast.png");}
+	@property Image setBeast() {return imgd!("set_beast.png");}
 
-	Image sound() {return imgd!("evt_se.png");}
-	Image stopSound() {return imgd!("sound_stop.png");}
-	Image playSound() {return imgd!("sound_play.png");}
+	@property Image sound() {return imgd!("evt_se.png");}
+	@property Image stopSound() {return imgd!("sound_stop.png");}
+	@property Image playSound() {return imgd!("sound_play.png");}
 
-	Image setTalkerCoupon() {return imgd!("set_beast.png");}
-	Image defaultColor() {return imgd!("cc_w.png");}
-	Image red() {return imgd!("cc_r.png");}
-	Image blue() {return imgd!("cc_b.png");}
-	Image green() {return imgd!("cc_g.png");}
-	Image yellow() {return imgd!("cc_y.png");}
+	@property Image setTalkerCoupon() {return imgd!("set_beast.png");}
+	@property Image defaultColor() {return imgd!("cc_w.png");}
+	@property Image red() {return imgd!("cc_r.png");}
+	@property Image blue() {return imgd!("cc_b.png");}
+	@property Image green() {return imgd!("cc_g.png");}
+	@property Image yellow() {return imgd!("cc_y.png");}
 	Image scTalker(Talker talker) {
 		final switch (talker) {
 		case Talker.SELECTED:
@@ -333,157 +334,157 @@ public:
 			throw new Exception("Narration and image haven't image.");
 		}
 	}
-	Image scRef() {return imgd!("sc_i.png");}
-	Image scTeam() {return imgd!("sc_t.png");}
-	Image scYado() {return imgd!("sc_y.png");}
+	@property Image scRef() {return imgd!("sc_i.png");}
+	@property Image scTeam() {return imgd!("sc_t.png");}
+	@property Image scYado() {return imgd!("sc_y.png");}
 
-	Image createDialog() {return imgd!("evt_speak.png");}
-	Image deleteDialog() {return imgd!("evt_stop.png");}
-	Image copyToDialogs() {return imgd!("copy_dialog.png");}
-	Image copyToUpper() {return imgd!("copy_dialog_u.png");}
-	Image copyToLower() {return imgd!("copy_dialog_l.png");}
+	@property Image createDialog() {return imgd!("evt_speak.png");}
+	@property Image deleteDialog() {return imgd!("evt_stop.png");}
+	@property Image copyToDialogs() {return imgd!("copy_dialog.png");}
+	@property Image copyToUpper() {return imgd!("copy_dialog_u.png");}
+	@property Image copyToLower() {return imgd!("copy_dialog_l.png");}
 
-	Image summaryFile() {return imgd!("summary_file.png");}
-	Image scenarioArchive() {return imgd!("scenario_arc.png");}
-	Image classic() {return imgd!("classic.png");}
+	@property Image summaryFile() {return imgd!("summary_file.png");}
+	@property Image scenarioArchive() {return imgd!("scenario_arc.png");}
+	@property Image classic() {return imgd!("classic.png");}
 
-	Image menuRefresh() {return imgd!("refresh.png");}
+	@property Image menuRefresh() {return imgd!("refresh.png");}
 
-	Image menuCEdit() {return imgd!("edit.png");}
+	@property Image menuCEdit() {return imgd!("edit.png");}
 
-	Image menuUndo() {return imgd!("undo.png");}
-	Image menuRedo() {return imgd!("redo.png");}
+	@property Image menuUndo() {return imgd!("undo.png");}
+	@property Image menuRedo() {return imgd!("redo.png");}
 
-	Image menuCut() {return imgd!("cut.png");}
-	Image menuCopy() {return imgd!("copy.png");}
-	Image menuPaste() {return imgd!("paste.png");}
-	Image menuDel() {return imgd!("del.png");}
-	Image menuSelectAll() {return imgd!("select_all.png");}
+	@property Image menuCut() {return imgd!("cut.png");}
+	@property Image menuCopy() {return imgd!("copy.png");}
+	@property Image menuPaste() {return imgd!("paste.png");}
+	@property Image menuDel() {return imgd!("del.png");}
+	@property Image menuSelectAll() {return imgd!("select_all.png");}
 
-	Image menuToXML() {return imgd!("toxml.png");}
+	@property Image menuToXML() {return imgd!("toxml.png");}
 
-	Image menuNew() {return imgd!("new.png");}
-	Image menuOpen() {return imgd!("open.png");}
-	Image menuClose() {return imgd!("close.png");}
-	Image menuCloseWin() {return imgd!("close_win.png");}
-	Image menuSave() {return imgd!("save.png");}
-	Image menuSaveA() {return imgd!("save_a.png");}
+	@property Image menuNew() {return imgd!("new.png");}
+	@property Image menuOpen() {return imgd!("open.png");}
+	@property Image menuClose() {return imgd!("close.png");}
+	@property Image menuCloseWin() {return imgd!("close_win.png");}
+	@property Image menuSave() {return imgd!("save.png");}
+	@property Image menuSaveA() {return imgd!("save_a.png");}
 
-	Image menuDataWin() {return imgd!("data_win.png");}
-	Image menuFlagWin() {return imgd!("flag_win.png");}
-	Image menuCardWin() {return imgd!("card_win.png");}
-	Image menuCastWin() {return imgd!("cast_win.png");}
-	Image menuSkillWin() {return imgd!("skill_win.png");}
-	Image menuItemWin() {return imgd!("item_win.png");}
-	Image menuBeastWin() {return imgd!("beast_win.png");}
-	Image menuInfoWin() {return imgd!("info_win.png");}
-	Image menuDirWin() {return imgd!("dir_win.png");}
+	@property Image menuDataWin() {return imgd!("data_win.png");}
+	@property Image menuFlagWin() {return imgd!("flag_win.png");}
+	@property Image menuCardWin() {return imgd!("card_win.png");}
+	@property Image menuCastWin() {return imgd!("cast_win.png");}
+	@property Image menuSkillWin() {return imgd!("skill_win.png");}
+	@property Image menuItemWin() {return imgd!("item_win.png");}
+	@property Image menuBeastWin() {return imgd!("beast_win.png");}
+	@property Image menuInfoWin() {return imgd!("info_win.png");}
+	@property Image menuDirWin() {return imgd!("dir_win.png");}
 
-	Image menuChangeVH() {return imgd!("chg_vh.png");}
+	@property Image menuChangeVH() {return imgd!("chg_vh.png");}
 
-	Image menuExecEngine() {return imgd!("exec_engine.png");}
-	Image menuSettings() {return imgd!("settings.png");}
+	@property Image menuExecEngine() {return imgd!("exec_engine.png");}
+	@property Image menuSettings() {return imgd!("settings.png");}
 
-	Image menuSummary() {return imgd!("summary.png");}
-	Image menuNewArea() {return imgd!("area_new.png");}
-	Image menuNewBattle() {return imgd!("battle_new.png");}
-	Image menuNewPackage() {return imgd!("package_new.png");}
+	@property Image menuSummary() {return imgd!("summary.png");}
+	@property Image menuNewArea() {return imgd!("area_new.png");}
+	@property Image menuNewBattle() {return imgd!("battle_new.png");}
+	@property Image menuNewPackage() {return imgd!("package_new.png");}
 
-	Image menuNewFlagDir() {return imgd!("flagdir_new.png");}
-	Image menuNewFlag() {return imgd!("flag_new.png");}
-	Image menuNewStep() {return imgd!("step_new.png");}
+	@property Image menuNewFlagDir() {return imgd!("flagdir_new.png");}
+	@property Image menuNewFlag() {return imgd!("flag_new.png");}
+	@property Image menuNewStep() {return imgd!("step_new.png");}
 
-	Image menuViewParty() {return imgd!("party_cards.png");}
-	Image menuViewMsg() {return imgd!("view_msg.png");}
-	Image menuFixed() {return imgd!("fixed.png");}
-	Image menuEnemyCardDebugView() {return imgd!("card_life.png");}
-	Image menuViewCards() {return imgd!("cards.png");}
-	Image menuViewBacks() {return imgd!("backs.png");}
-	Image menuUp() {return imgd!("up.png");}
-	Image menuDown() {return imgd!("down.png");}
-	Image menuNewMenuCard() {return imgd!("card_new.png");}
-	Image menuNewEnemyCard() {return imgd!("card_new.png");}
-	Image menuNewBack() {return imgd!("back_new.png");}
-	Image menuAuto() {return imgd!("auto.png");}
-	Image menuCustom() {return imgd!("custom.png");}
-	Image menuMask() {return imgd!("mask.png");}
-	Image menuDoEscape() {return imgd!("escape.png");}
-	Image menuPosTop() {return imgd!("pos_top.png");}
-	Image menuPosBottom() {return imgd!("pos_bottom.png");}
-	Image menuPosLeft() {return imgd!("pos_left.png");}
-	Image menuPosRight() {return imgd!("pos_right.png");}
-	Image menuPosEven() {return imgd!("pos_even.png");}
-	Image menuScaleMin() {return imgd!("scale_min.png");}
-	Image menuScaleMiddle() {return imgd!("scale_middle.png");}
-	Image menuScaleMax() {return imgd!("scale_max.png");}
-	Image menuScaleEvenBig() {return imgd!("scale_even_big.png");}
-	Image menuScaleEvenSmall() {return imgd!("scale_even_small.png");}
+	@property Image menuViewParty() {return imgd!("party_cards.png");}
+	@property Image menuViewMsg() {return imgd!("view_msg.png");}
+	@property Image menuFixed() {return imgd!("fixed.png");}
+	@property Image menuEnemyCardDebugView() {return imgd!("card_life.png");}
+	@property Image menuViewCards() {return imgd!("cards.png");}
+	@property Image menuViewBacks() {return imgd!("backs.png");}
+	@property Image menuUp() {return imgd!("up.png");}
+	@property Image menuDown() {return imgd!("down.png");}
+	@property Image menuNewMenuCard() {return imgd!("card_new.png");}
+	@property Image menuNewEnemyCard() {return imgd!("card_new.png");}
+	@property Image menuNewBack() {return imgd!("back_new.png");}
+	@property Image menuAuto() {return imgd!("auto.png");}
+	@property Image menuCustom() {return imgd!("custom.png");}
+	@property Image menuMask() {return imgd!("mask.png");}
+	@property Image menuDoEscape() {return imgd!("escape.png");}
+	@property Image menuPosTop() {return imgd!("pos_top.png");}
+	@property Image menuPosBottom() {return imgd!("pos_bottom.png");}
+	@property Image menuPosLeft() {return imgd!("pos_left.png");}
+	@property Image menuPosRight() {return imgd!("pos_right.png");}
+	@property Image menuPosEven() {return imgd!("pos_even.png");}
+	@property Image menuScaleMin() {return imgd!("scale_min.png");}
+	@property Image menuScaleMiddle() {return imgd!("scale_middle.png");}
+	@property Image menuScaleMax() {return imgd!("scale_max.png");}
+	@property Image menuScaleEvenBig() {return imgd!("scale_even_big.png");}
+	@property Image menuScaleEvenSmall() {return imgd!("scale_even_small.png");}
 
-	Image menuNewEventTree() {return imgd!("event_tree.png");}
-	Image menuNewEventFire() {return imgd!("def_start.png");}
-	Image menuTreeOpen() {return imgd!("tree_open.png");}
-	Image menuTreeClose() {return imgd!("tree_close.png");}
+	@property Image menuNewEventTree() {return imgd!("event_tree.png");}
+	@property Image menuNewEventFire() {return imgd!("def_start.png");}
+	@property Image menuTreeOpen() {return imgd!("tree_open.png");}
+	@property Image menuTreeClose() {return imgd!("tree_close.png");}
 
-	Image menuShowCardLife() {return imgd!("card_life.png");}
-	Image menuShowCardList() {return imgd!("card_list.png");}
-	Image menuShowCardTable() {return imgd!("card_table.png");}
-	Image menuAddScenario() {return imgd!("add_scenario.png");}
-	Image menuNewCast() {return imgd!("cast_new.png");}
-	Image menuNewSkill() {return imgd!("skill_new.png");}
-	Image menuNewItem() {return imgd!("item_new.png");}
-	Image menuNewBeast() {return imgd!("beast_new.png");}
-	Image menuNewInfo() {return imgd!("info_new.png");}
+	@property Image menuShowCardLife() {return imgd!("card_life.png");}
+	@property Image menuShowCardList() {return imgd!("card_list.png");}
+	@property Image menuShowCardTable() {return imgd!("card_table.png");}
+	@property Image menuAddScenario() {return imgd!("add_scenario.png");}
+	@property Image menuNewCast() {return imgd!("cast_new.png");}
+	@property Image menuNewSkill() {return imgd!("skill_new.png");}
+	@property Image menuNewItem() {return imgd!("item_new.png");}
+	@property Image menuNewBeast() {return imgd!("beast_new.png");}
+	@property Image menuNewInfo() {return imgd!("info_new.png");}
 
-	Image menuAdd() {return imgd!("add.png");}
+	@property Image menuAdd() {return imgd!("add.png");}
 
-	Image menuEditHand() {return imgd!("card_hand.png");}
-	Image menuOpenHand() {return imgd!("card_hand.png");}
-	Image menuEditUseEvent() {return imgd!("event_tree.png");}
+	@property Image menuEditHand() {return imgd!("card_hand.png");}
+	@property Image menuOpenHand() {return imgd!("card_hand.png");}
+	@property Image menuEditUseEvent() {return imgd!("event_tree.png");}
 
-	Image menuReNumbering() {return imgd!("renum.png");}
-	Image menuReNumberingAll() {return imgd!("renum_all.png");}
+	@property Image menuReNumbering() {return imgd!("renum.png");}
+	@property Image menuReNumberingAll() {return imgd!("renum_all.png");}
 
-	Image menuOpenDirectory() {return imgd!("folder.png");}
-	Image menuNewFolder() {return imgd!("folder_new.png");}
-	Image menuReplacePath() {return imgd!("replace.png");}
-	Image menuDeleteUnuse() {return imgd!("del_unuse.png");}
+	@property Image menuOpenDirectory() {return imgd!("folder.png");}
+	@property Image menuNewFolder() {return imgd!("folder_new.png");}
+	@property Image menuReplacePath() {return imgd!("replace.png");}
+	@property Image menuDeleteUnuse() {return imgd!("del_unuse.png");}
 
-	Image menuReplaceText() {return imgd!("replace.png");}
-	Image menuReload() {return imgd!("reload.png");}
+	@property Image menuReplaceText() {return imgd!("replace.png");}
+	@property Image menuReload() {return imgd!("reload.png");}
 
-	Image menuStartToPackage() {return imgd!("s_to_p.png");}
-	Image menuConvertContent() {return imgd!("conv_cont.png");}
+	@property Image menuStartToPackage() {return imgd!("s_to_p.png");}
+	@property Image menuConvertContent() {return imgd!("conv_cont.png");}
 
-	Image menuClosePane() {return imgd!("close_pane.png");}
-	Image menuClosePaneEtc() {return imgd!("close_pane_e.png");}
-	Image menuClosePaneLeft() {return imgd!("close_pane_l.png");}
-	Image menuClosePaneRight() {return imgd!("close_pane_r.png");}
-	Image menuClosePaneAll() {return imgd!("close_pane_a.png");}
+	@property Image menuClosePane() {return imgd!("close_pane.png");}
+	@property Image menuClosePaneEtc() {return imgd!("close_pane_e.png");}
+	@property Image menuClosePaneLeft() {return imgd!("close_pane_l.png");}
+	@property Image menuClosePaneRight() {return imgd!("close_pane_r.png");}
+	@property Image menuClosePaneAll() {return imgd!("close_pane_a.png");}
 
-	Image menuLockBar() {return imgd!("lock_bar.png");}
-	Image menuResetBar() {return imgd!("reset_bar.png");}
+	@property Image menuLockBar() {return imgd!("lock_bar.png");}
+	@property Image menuResetBar() {return imgd!("reset_bar.png");}
 
-	Image menuSaveIncludeImage() {return imgd!("save_inc_img.png");}
+	@property Image menuSaveIncludeImage() {return imgd!("save_inc_img.png");}
 
-	Image script() {return imgd!("script.png");}
-	Image menuToScript() {return imgd!("script.png");}
-	Image menuToScriptAll() {return imgd!("script_all.png");}
+	@property Image script() {return imgd!("script.png");}
+	@property Image menuToScript() {return imgd!("script.png");}
+	@property Image menuToScriptAll() {return imgd!("script_all.png");}
 
-	Image menuImageList() {return imgd!("img_list.png");}
+	@property Image menuImageList() {return imgd!("img_list.png");}
 
-	Image menuCreateArchive() {return imgd!("create_archive.png");}
+	@property Image menuCreateArchive() {return imgd!("create_archive.png");}
 
-	Image menuOpenTableView() {return imgd!("open_tableview.png");}
-	Image menuOpenFlagView() {return imgd!("open_flagview.png");}
-	Image menuOpenCardView() {return imgd!("open_cardview.png");}
-	Image menuOpenFileView() {return imgd!("open_fileview.png");}
-	Image menuCopyFilePath() {return imgd!("copy_path.png");}
-	Image menuOpenEventTreeView() {return imgd!("open_eventtreeview.png");}
+	@property Image menuOpenTableView() {return imgd!("open_tableview.png");}
+	@property Image menuOpenFlagView() {return imgd!("open_flagview.png");}
+	@property Image menuOpenCardView() {return imgd!("open_cardview.png");}
+	@property Image menuOpenFileView() {return imgd!("open_fileview.png");}
+	@property Image menuCopyFilePath() {return imgd!("copy_path.png");}
+	@property Image menuOpenEventTreeView() {return imgd!("open_eventtreeview.png");}
 
-	Image menuWriteComment() {return imgd!("comment.png");}
+	@property Image menuWriteComment() {return imgd!("comment.png");}
 
-	Image menuEditScene() {return imgd!("area_cards.png");}
-	Image menuEditEvent() {return imgd!("area_event.png");}
+	@property Image menuEditScene() {return imgd!("area_cards.png");}
+	@property Image menuEditEvent() {return imgd!("area_event.png");}
 
-	Image menuOpenView() {return imgd!("view.png");}
+	@property Image menuOpenView() {return imgd!("view.png");}
 }

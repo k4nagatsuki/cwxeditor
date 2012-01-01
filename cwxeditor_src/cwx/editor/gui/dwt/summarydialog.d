@@ -95,24 +95,25 @@ private:
 	}
 
 	void levMaxEnter(int enter) {
-		if (enter > 0 && _levMin.getSelection != 0 && enter < _levMin.getSelection) {
+		if (enter > 0 && _levMin.getSelection() != 0 && enter < _levMin.getSelection()) {
 			_levMin.setSelection = enter;
 		}
 	}
 	void levMinEnter(int enter) {
-		if (enter > 0 && _levMax.getSelection != 0 && enter > _levMax.getSelection) {
+		if (enter > 0 && _levMax.getSelection() != 0 && enter > _levMax.getSelection()) {
 			_levMax.setSelection = enter;
 		}
 	}
 
+	@property
 	Skin selectedSkin() {
-		if (_typeSkin.getSelection) {
-			auto p = _type.getText in skinTable(_prop);
+		if (_typeSkin.getSelection()) {
+			auto p = _type.getText() in skinTable(_prop);
 			if (p) {
 				return *p;
 			}
-		} else if (_typeClassic.getSelection) {
-			int i = _type.getSelectionIndex;
+		} else if (_typeClassic.getSelection()) {
+			int i = _type.getSelectionIndex();
 			if (_hasLegacySkin) {
 				if (i == 0) {
 					return .findSkin(_comm, _prop, _summ, false);
@@ -125,16 +126,16 @@ private:
 	}
 	class PListener : PaintListener {
 		override void paintControl(PaintEvent e) {
-			auto d = Display.getCurrent;
+			auto d = Display.getCurrent();
 			auto size = _prop.looks.summarySize;
-			auto rect = _summImage.getClientArea;
+			auto rect = _summImage.getClientArea();
 
 			scope buf = new Image(d, size.width, size.height);
 			scope (exit) buf.dispose();
 			scope gc = new GC(buf);
 			scope (exit) gc.dispose();
 
-			auto skin = selectedSkin;
+			auto skin = selectedSkin();
 			auto path = nabs(skin.findImagePath(_imgPath.image, _summ.scenarioPath));
 			if (!_bufImagePath || !_summImageBuf || !.cfnmatch(_bufImagePath, path)) {
 				if (_summImageBuf) _summImageBuf.dispose();
@@ -148,7 +149,7 @@ private:
 				if (imgPath.length) {
 					scope img = new Image(d, loadImage(skin, imgPath));
 					gc.drawImage(img, _prop.looks.summaryImageXY.x, _prop.looks.summaryImageXY.y);
-					img.dispose;
+					img.dispose();
 				}
 			}
 			{
@@ -157,35 +158,35 @@ private:
 					gc.setFont = font;
 					scope p = gc.stringExtent(text);
 					gc.drawString(text, (size.width - p.x) / 2, y, true);
-					font.dispose;
+					font.dispose();
 				}
 				int alpha;
 				scope c = new Color(d, dwtData(_prop.looks.summaryLevelColor, alpha));
 				gc.setForeground = c;
 				gc.setAlpha = alpha;
 				drawCenterText(dwtData(_prop.looks.summaryLevelFont(skin.legacy)),
-					_prop.msgs.targetLevel(_levMin.getSelection, _levMax.getSelection),
+					_prop.msgs.targetLevelText(_levMin.getSelection(), _levMax.getSelection()),
 					_prop.looks.summaryLevelY);
-				c.dispose;
+				c.dispose();
 				gc.setAlpha = 255;
 				gc.setForeground = d.getSystemColor(SWT.COLOR_BLACK);
 				drawCenterText(dwtData(_prop.looks.summaryTitleFont(skin.legacy)),
-					_sname.getText, _prop.looks.summaryTitleY);
+					_sname.getText(), _prop.looks.summaryTitleY);
 				scope font = new Font(d, dwtData(_prop.looks.summaryDescFont(skin.legacy)));
 				gc.setFont = font;
-				int hig = gc.getFontMetrics.getHeight;
+				int hig = gc.getFontMetrics().getHeight();
 				int x = _prop.looks.summaryDescXY.x;
 				int y = _prop.looks.summaryDescXY.y;
 				if (_comm.skin.legacy) {
-					foreach (line; splitLines(_desc.getRRText)) {
+					foreach (line; splitLines(_desc.getRRText())) {
 						gc.drawText(line, x, y, SWT.DRAW_DELIMITER | SWT.DRAW_TRANSPARENT);
 						y += _prop.looks.summaryDescLineHeightClassic;
 					}
 				} else {
-					gc.drawText(_desc.getRRText, x, y, SWT.DRAW_DELIMITER | SWT.DRAW_TRANSPARENT);
+					gc.drawText(_desc.getRRText(), x, y, SWT.DRAW_DELIMITER | SWT.DRAW_TRANSPARENT);
 				}
 				gc.setFont = null;
-				font.dispose;
+				font.dispose();
 				drawCenterText(dwtData(_prop.looks.summaryPageFont(skin.legacy)),
 					_prop.msgs.summaryPageDummy, _prop.looks.summaryPageY);
 			}
@@ -200,8 +201,8 @@ private:
 					size.width = cast(int) (size.width * hp);
 					size.height = rect.height;
 				}
-				data = _summImageBuf.getImageData.scaledTo(size.width, size.height);
-				_summImageBuf.dispose;
+				data = _summImageBuf.getImageData().scaledTo(size.width, size.height);
+				_summImageBuf.dispose();
 				_summImageBuf = null;
 				if (size.width > 0 && size.height > 0) {
 					_summImageBuf = new Image(d, data);
@@ -404,10 +405,10 @@ private:
 			if (_summImageBuf) {
 				_summImageBuf.dispose();
 			}
-			auto ws1 = _tab2Sash.getWeights;
+			auto ws1 = _tab2Sash.getWeights();
 			_prop.var.etc.summaryParamSashL = ws1[0];
 			_prop.var.etc.summaryParamSashR = ws1[1];
-			auto ws2 = _tab3Sash.getWeights;
+			auto ws2 = _tab3Sash.getWeights();
 			_prop.var.etc.rCouponsStartAreaSashL = ws2[0];
 			_prop.var.etc.rCouponsStartAreaSashR = ws2[1];
 			_comm.refArea.remove(&refArea);
@@ -421,10 +422,10 @@ private:
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 
-		auto sels = _startArea.getSelection;
+		auto sels = _startArea.getSelection();
 		ulong id;
 		if (sels.length) {
-			id = (cast(Area) sels[0].getData).id;
+			id = (cast(Area) sels[0].getData()).id;
 		} else {
 			id = _summ.startArea;
 		}
@@ -439,14 +440,14 @@ private:
 				_startArea.setSelection(i);
 			}
 		}
-		if (!_startArea.getSelection.length) {
+		if (!_startArea.getSelection().length) {
 			foreach (i, area; _summ.areas) {
 				if (area.id == _summ.startArea) {
 					_startArea.setSelection(i);
 				}
 			}
 		}
-		_startArea.showSelection;
+		_startArea.showSelection();
 	}
 	void refArea(Area area) {
 		refreshAreas();
@@ -464,7 +465,7 @@ private:
 		string selType = _summ.type;
 		string selClassic = null;
 
-		if (!_typeSkin.getSelection && !_typeClassic.getSelection) {
+		if (!_typeSkin.getSelection() && !_typeClassic.getSelection()) {
 			if (_comm.skin.legacy) {
 				_typeClassic.setSelection = true;
 			} else {
@@ -473,10 +474,10 @@ private:
 			selType = _summ.type;
 			selClassic = _comm.skin.legacyEngine.length ? _comm.skin.legacyEngine : null;
 		} else {
-			if (_typeSkin.getSelection) {
-				selType = _type.getText;
-			} else if (_typeClassic.getSelection) {
-				int i = _type.getSelectionIndex;
+			if (_typeSkin.getSelection()) {
+				selType = _type.getText();
+			} else if (_typeClassic.getSelection()) {
+				int i = _type.getSelectionIndex();
 				if (-1 != i) {
 					if (_hasLegacySkin) {
 						if (0 < i) {
@@ -506,17 +507,17 @@ private:
 					_type.select = i;
 				}
 			}
-			if (!_type.getItemCount) {
+			if (!_type.getItemCount()) {
 				// スキンが無い
 				_type.add(_prop.var.etc.defaultSkin);
 			}
 		}
 		_hasLegacySkin = false;
 		_typeClassic.setEnabled = true;
-		if (_typeSkin.getSelection) {
+		if (_typeSkin.getSelection()) {
 			initSkin();
 		} else {
-			assert (_typeClassic.getSelection);
+			assert (_typeClassic.getSelection());
 			// クラシックエンジンのリソース
 			string resDir, lEnginePath;
 			auto curSkin = Skin.findLegacy(_summ.scenarioPath, resDir, lEnginePath);
@@ -529,14 +530,14 @@ private:
 				}
 				if (cur && cfnmatch(lEnginePath, _prop.toAppAbs(ce.enginePath))) {
 					cur = false;
-					if (-1 == _type.getSelectionIndex) _type.select = i;
+					if (-1 == _type.getSelectionIndex()) _type.select = i;
 				}
 			}
 			if (cur) {
 				_type.add(_prop.msgs.currentEngineSkin(lEnginePath), 0);
 				_hasLegacySkin = true;
 			}
-			if (!_type.getItemCount) {
+			if (!_type.getItemCount()) {
 				// クラシックエンジンが無い
 				_typeClassic.setEnabled = false;
 				_typeClassic.setSelection = false;
@@ -544,8 +545,8 @@ private:
 				initSkin();
 			}
 		}
-		assert (_type.getItemCount);
-		if (-1 == _type.getSelectionIndex) {
+		assert (_type.getItemCount());
+		if (-1 == _type.getSelectionIndex()) {
 			_type.select = 0;
 		}
 	}
@@ -579,8 +580,8 @@ protected:
 
 	private void setNamesOne(C : EffectCard)(ref C card) {
 		if (card.scenario == _summ.scenarioName && card.author == _summ.author) {
-			card.author = _author.getText;
-			card.scenario = _sname.getText;
+			card.author = _author.getText();
+			card.scenario = _sname.getText();
 		}
 	}
 	private void setNames(C)(C[] cards) {
@@ -611,9 +612,9 @@ protected:
 		string oldName = _summ.scenarioName;
 		string oldResDir = nabs(_comm.skin.resDir);
 		scope (exit) {
-			if (oldName != _summ.scenarioName) _comm.refScenarioName.call;
+			if (oldName != _summ.scenarioName) _comm.refScenarioName.call();
 			if (!cfnmatch(oldResDir, nabs(_comm.skin.resDir))) _comm.refSkin.call(this);
-			_comm.refUseCount.call;
+			_comm.refUseCount.call();
 		}
 		setNames(_summ.skills);
 		setNames(_summ.items);
@@ -628,24 +629,24 @@ protected:
 		setContentNames(_summ.battles);
 		foreach (area; _summ.battles) setContentNames(area.cards);
 		setContentNames(_summ.packages);
-		_summ.scenarioName = _sname.getText;
-		_summ.author = _author.getText;
-		_summ.desc = _desc.getRRText;
+		_summ.scenarioName = _sname.getText();
+		_summ.author = _author.getText();
+		_summ.desc = _desc.getRRText();
 		_summ.imagePath = _imgPath.image;
-		_summ.levelMin = _levMin.getSelection;
-		_summ.levelMax = _levMax.getSelection;
+		_summ.levelMin = _levMin.getSelection();
+		_summ.levelMax = _levMax.getSelection();
 		string[] rcs;
-		foreach (s; splitLines(_rCoupons.getText)) {
+		foreach (s; splitLines(_rCoupons.getText())) {
 			if (s.length > 0) {
 				rcs ~= s;
 			}
 		}
 		_summ.rCoupons = rcs;
-		_summ.rCouponNum = _rCouponNum.getSelection;
-		_summ.startArea = _startArea.getItemCount > 0 && _startArea.getSelection.length > 0
-			? (cast(Area) _startArea.getSelection[0].getData).id : 0;
-		if (_typeSkin.getSelection) {
-			_summ.type = _type.getText;
+		_summ.rCouponNum = _rCouponNum.getSelection();
+		_summ.startArea = _startArea.getItemCount() > 0 && _startArea.getSelection().length > 0
+			? (cast(Area) _startArea.getSelection()[0].getData()).id : 0;
+		if (_typeSkin.getSelection()) {
+			_summ.type = _type.getText();
 		} else {
 			_summ.type = "";
 		}

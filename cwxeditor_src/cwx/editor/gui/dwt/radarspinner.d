@@ -85,14 +85,14 @@ class RadarSpinner : Composite {
 	this(Composite parent, int style) {
 		super(parent, style | SWT.DOUBLE_BUFFERED);
 		setBackgroundMode = SWT.INHERIT_DEFAULT;
-		_ovalFore = Display.getCurrent.getSystemColor(SWT.COLOR_LIST_FOREGROUND);
-		_ovalBack = Display.getCurrent.getSystemColor(SWT.COLOR_LIST_BACKGROUND);
+		_ovalFore = Display.getCurrent().getSystemColor(SWT.COLOR_LIST_FOREGROUND);
+		_ovalBack = Display.getCurrent().getSystemColor(SWT.COLOR_LIST_BACKGROUND);
 		_readOnly = (style & SWT.READ_ONLY) != 0;
 		if (!_readOnly) {
 			_mod_redraw = new class Listener {
 				override void handleEvent(Event e) {
 					foreach (dlg; modEvent) dlg();
-					redraw;
+					redraw();
 				}
 			};
 			addListener(SWT.MouseMove, new class Listener {
@@ -113,7 +113,7 @@ class RadarSpinner : Composite {
 						}
 						setValue(i, minIdx + _min);
 						foreach (dlg; modEvent) dlg();
-						redraw;
+						redraw();
 					} else {
 						__cursor_check(e.x, e.y);
 					}
@@ -132,7 +132,7 @@ class RadarSpinner : Composite {
 					if (e.button == 1) {
 						_onDrag = __cursor_get(e.x, e.y);
 						if (_onDrag >= 0) {
-							(cast(Spinner) _spns[_onDrag]).setFocus;
+							(cast(Spinner) _spns[_onDrag]).setFocus();
 						}
 					}
 				}
@@ -141,13 +141,13 @@ class RadarSpinner : Composite {
 		addListener(SWT.Resize, new class Listener {
 			override void handleEvent(Event e) {
 				_mod = true;
-				__resize;
+				__resize();
 			}
 		});
 		addListener(SWT.Paint, new class Listener {
 			override void handleEvent(Event e) {
-				__resize;
-				scope size = getClientArea;
+				__resize();
+				scope size = getClientArea();
 				if (size.width == 0 || size.height == 0) return;
 				auto gc = e.gc;
 				gc.setAntialias = _antialias;
@@ -155,7 +155,7 @@ class RadarSpinner : Composite {
 					for (uint i = 0; i < _step_c; i += _ovalStep) {
 						if (i == 0) {
 							gc.setLineWidth = 2;
-							gc.setForeground = e.gc.getForeground;
+							gc.setForeground = e.gc.getForeground();
 							gc.setBackground = _ovalBack;
 							if (_oval) {
 								auto oval = _ovals[i];
@@ -279,7 +279,7 @@ class RadarSpinner : Composite {
 		this(int index) {_index = index;}
 		override void handleEvent(Event e) {
 			foreach (h; _modHandler) {
-				h(_index, (cast(Spinner) e.widget).getSelection);
+				h(_index, (cast(Spinner) e.widget).getSelection());
 			}
 		}
 	}
@@ -292,7 +292,7 @@ class RadarSpinner : Composite {
 	*/
 	void setRadar(uint step_c, string[] names, int min = 0) {
 		foreach (comp; _comps) {
-			comp.dispose;
+			comp.dispose();
 		}
 		_borderlines.length = 0;
 		_names = names;
@@ -316,8 +316,8 @@ class RadarSpinner : Composite {
 			auto lbl = new Label(comp, SWT.CENTER | SWT.EMBEDDED);
 			lbl.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
 			lbl.setText = names[i];
-			lbl.setForeground = getForeground;
-			lbl.setFont = getFont;
+			lbl.setForeground = getForeground();
+			lbl.setFont = getFont();
 			lbl.setCapture = false;
 			Control spn;
 			if (_readOnly) {
@@ -338,7 +338,7 @@ class RadarSpinner : Composite {
 			_lbls[i] = lbl;
 			_spns[i] = spn;
 		}
-		__calcMaxSize;
+		__calcMaxSize();
 
 		_tgls.length = _param_c;
 		foreach (ref ts; _tgls) {
@@ -352,7 +352,7 @@ class RadarSpinner : Composite {
 		oval = !_oval;
 
 		_mod = true;
-		__resize;
+		__resize();
 	}
 	private bool __cursor_check(int x, int y) {
 		assert (!_readOnly);
@@ -362,7 +362,7 @@ class RadarSpinner : Composite {
 			int ty = tgl.y - TOGGLE_CATCH_SIZE / 2;
 			scope rect = new Rectangle(tx, ty, TOGGLE_CATCH_SIZE, TOGGLE_CATCH_SIZE);
 			if (rect.contains(x, y)) {
-				setCursor = Display.getCurrent.getSystemCursor(SWT.CURSOR_CROSS);
+				setCursor = Display.getCurrent().getSystemCursor(SWT.CURSOR_CROSS);
 				return true;
 			}
 		}
@@ -416,12 +416,12 @@ class RadarSpinner : Composite {
 		foreach (i, comp; _comps) {
 			int old;
 			if (_readOnly) {
-				old = (cast(Integer) _spns[i].getData).intValue;
+				old = (cast(Integer) _spns[i].getData()).intValue();
 				auto sspn = cast(Label) _spns[i];
 				sspn.setText = to!(string)(v);
 			} else {
 				auto sspn = (cast(Spinner) _spns[i]);
-				old = sspn.getMaximum;
+				old = sspn.getMaximum();
 				if (v < 0) {
 					// Spinner#computeSize()で'-'を無視してくれるので
 					sspn.setMaximum = abs(v) * 10;
@@ -442,7 +442,7 @@ class RadarSpinner : Composite {
 	private void __resize() {
 		if (!_mod) return;
 		_mod = false;
-		scope client = getClientArea;
+		scope client = getClientArea();
 		scope size = new Point
 			(_ovalW + TOGGLE_SIZE + MARGIN * 2 + _maxSize.x * 2,
 			_ovalH + TOGGLE_SIZE + MARGIN * 2 + _maxSize.y * 2);
@@ -504,7 +504,7 @@ class RadarSpinner : Composite {
 			_comps[i].setBounds
 				(cast(int) rndtol(px - sp.x / 2), cast(int) rndtol(py - sp.y / 2), sp.x, sp.y);
 		}
-		redraw;
+		redraw();
 	}
 	/// 値を設定する。
 	/// Params:
@@ -517,7 +517,7 @@ class RadarSpinner : Composite {
 		} else {
 			(cast(Spinner) _spns[index]).setSelection = value;
 		}
-		redraw;
+		redraw();
 	}
 	/// 全ての値を設定する。
 	/// Params:
@@ -531,7 +531,7 @@ class RadarSpinner : Composite {
 				(cast(Spinner) spn).setSelection = value[i];
 			}
 		}
-		redraw;
+		redraw();
 	}
 	/// 値を返す。
 	/// Params:
@@ -539,9 +539,9 @@ class RadarSpinner : Composite {
 	/// Returns: 値。
 	int getValue(int index) {
 		if (_readOnly) {
-			return (cast(Integer) _spns[index].getData).intValue;
+			return (cast(Integer) _spns[index].getData()).intValue();
 		} else {
-			return (cast(Spinner) _spns[index]).getSelection;
+			return (cast(Spinner) _spns[index]).getSelection();
 		}
 	}
 	/// 全ての値を返す。
@@ -555,18 +555,22 @@ class RadarSpinner : Composite {
 		return vals;
 	}
 	/// 全てのパラメータ名。
+	@property
 	string[] names() {
 		return _names;
 	}
 	/// パラメータ数。
+	@property
 	int paramCount() {
 		return _param_c;
 	}
 	/// 値の範囲。
+	@property
 	int step() {
 		return _step_c;
 	}
 	/// 値の最小値。
+	@property
 	int minimum() {
 		return _min;
 	}
@@ -574,11 +578,13 @@ class RadarSpinner : Composite {
 	/// 初期値は1。
 	/// Params:
 	/// step = ポイント数。
+	@property
 	void lineStep(uint step) {
 		_ovalStep = step;
-		redraw;
+		redraw();
 	}
 	/// ポイント数。
+	@property
 	uint lineStep() {
 		return _ovalStep;
 	}
@@ -586,11 +592,13 @@ class RadarSpinner : Composite {
 	/// 初期値はSWT.DEFAULT。
 	/// Params:
 	/// antialias = SWT.ONまたはSWT.OFFまたはSWT.DEFAULT。
+	@property
 	void antialias(int antialias) {
 		_antialias = antialias;
-		redraw;
+		redraw();
 	}
 	/// アンチエイリアス設定。DWT.ONまたはSWT.OFFまたはSWT.DEFAULT。
+	@property
 	int antialias() {
 		return _antialias;
 	}
@@ -600,20 +608,23 @@ class RadarSpinner : Composite {
 	/// 初期値はtrue。
 	/// Params:
 	/// sideMode = 配置モード。
+	@property
 	void sideMode(bool sideMode) {
 		if (_side != sideMode) {
 			_side = sideMode;
 			_mod = true;
-			__resize;
+			__resize();
 		}
 	}
 	/// 配置モード。
+	@property
 	bool sideMode() {
 		return _side;
 	}
 	/// レーダーの表示形式を設定する。
 	/// Params:
 	/// oval = trueなら円、falseなら多角形。
+	@property
 	void oval(bool oval) {
 		if (_oval != oval) {
 			_oval = oval;
@@ -631,10 +642,11 @@ class RadarSpinner : Composite {
 				}
 			}
 			_mod = true;
-			__resize;
+			__resize();
 		}
 	}
 	/// 表示形式。
+	@property
 	bool oval() {
 		return _oval;
 	}
@@ -649,11 +661,13 @@ class RadarSpinner : Composite {
 	/// 強調表示する値を設定する。
 	/// Params:
 	/// lines = 強調表示する値の配列。
+	@property
 	void borderlines(int[] lines) {
 		_borderlines = lines;
-		redraw;
+		redraw();
 	}
 	/// 強調表示する値の配列。
+	@property
 	int[] borderlines() {
 		return _borderlines;
 	}
@@ -661,11 +675,13 @@ class RadarSpinner : Composite {
 	/// 初期値はOBLIQUE_SQUARE。
 	/// Params:
 	/// style = スタイル。
+	@property
 	void toggleStyle(Toggle style) {
 		_tstyle = style;
-		redraw;
+		redraw();
 	}
 	/// スタイル。
+	@property
 	Toggle toggleStyle() {
 		return _tstyle;
 	}
@@ -730,10 +746,10 @@ class RadarSpinner : Composite {
 		}
 		cx = minL;
 		cy = minT;
-		cx -= getBorderWidth;
-		cy -= getBorderWidth;
-		cwidth += getBorderWidth * 2;
-		cheight += getBorderWidth * 2;
+		cx -= getBorderWidth();
+		cy -= getBorderWidth();
+		cwidth += getBorderWidth() * 2;
+		cheight += getBorderWidth() * 2;
 		return new Rectangle(cx, cy, cwidth, cheight);
 	}
 	/// 円のサイズを設定する。
@@ -746,7 +762,7 @@ class RadarSpinner : Composite {
 			_ovalW = width;
 			_ovalH = height;
 			_mod = true;
-			__resize;
+			__resize();
 		}
 	}
 	/// 円のサイズ。
@@ -760,13 +776,15 @@ class RadarSpinner : Composite {
 	void setRadarColor(Color fore, Color back) {
 		_ovalFore = fore;
 		_ovalBack = back;
-		redraw;
+		redraw();
 	}
 	/// 円の前景色。
+	@property
 	Color radarForeground() {
 		return _ovalFore;
 	}
 	/// 円の背景色。
+	@property
 	Color radarBackground() {
 		return _ovalBack;
 	}
@@ -774,11 +792,13 @@ class RadarSpinner : Composite {
 	/// 初期値は0x9F。
 	/// Params:
 	/// alpha = アルファ値。
+	@property
 	void alpha(int alpha) {
 		_alpha = alpha;
-		redraw;
+		redraw();
 	}
 	/// アルファ値。
+	@property
 	int alpha() {
 		return _alpha;
 	}
@@ -811,14 +831,14 @@ class RadarSpinner : Composite {
 			}
 		}
 		void setFont(Font font) {
-			if (getFont != font) {
+			if (getFont() != font) {
 				super.setFont = font;
 				foreach (lbl; _lbls) {
 					lbl.setFont = font;
 				}
-				__calcMaxSize;
+				__calcMaxSize();
 				_mod = true;
-				__resize;
+				__resize();
 			}
 		}
 		void setForeground(Color color) {

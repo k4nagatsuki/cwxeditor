@@ -151,7 +151,7 @@ private class LSFFThr(S, bool Array) {
 			try {
 				resetCursors(cursors);
 			} catch {
-				clear;
+				clear();
 			}
 		}
 	}
@@ -172,7 +172,7 @@ private class LSFFThr(S, bool Array) {
 			try {
 				status(prop.msgs.loadProgress(fname, max, worked));
 			} catch {
-				clear;
+				clear();
 			}
 		}
 	}
@@ -187,7 +187,7 @@ private class LSFFThr(S, bool Array) {
 			bool success() {return r !is null;}
 		}
 		void run() {
-			if (success) {
+			if (success()) {
 				try {
 					static if (Array) {
 						if (r.length == 1) {
@@ -212,7 +212,7 @@ private class LSFFThr(S, bool Array) {
 						status(prop.msgs.loadErrorStatus(r.scenarioName));
 					}
 				} catch {
-					clear;
+					clear();
 				}
 			}
 		}
@@ -224,7 +224,7 @@ private class LSFFThr(S, bool Array) {
 			try {
 				MessageBox.showWarning(e.msg, prop.msgs.dlgTitWarning, w);
 			} catch {
-				clear;
+				clear();
 			}
 			static if (Array) {
 				status(prop.msgs.loadErrorStatus(files));
@@ -280,6 +280,8 @@ private class LSFFThr(S, bool Array) {
 		}
 	}
 }
+
+@property
 string[] scenarioFilter() {
 	string[] r;
 	if (canUncab) {
@@ -298,7 +300,7 @@ S[] loadScenarios(S)(Props prop, Shell w, void delegate(string) status,
 	dlg.setFilterNames = prop.msgs.filterScenario;
 	dlg.setText = dlgTitle;
 	dlg.setFilterPath = scenarioFilterPath(prop);
-	string fname = dlg.open;
+	string fname = dlg.open();
 	if (fname) {
 		auto put = new class Object {
 			Props prop;
@@ -313,17 +315,17 @@ S[] loadScenarios(S)(Props prop, Shell w, void delegate(string) status,
 			}
 		};
 		put.prop = prop;
-		put.filterPath = dlg.getFilterPath;
+		put.filterPath = dlg.getFilterPath();
 		put.loaded = loaded;
 		auto files = new HashSet!(string);
-		foreach (file; dlg.getFileNames) {
+		foreach (file; dlg.getFileNames()) {
 			if (cfnmatch(cwx.utils.getExt(file), "wid")) {
 				file = dirName(file);
 			}
-			files.add(nabs(std.path.buildPath(dlg.getFilterPath, file)));
+			files.add(nabs(std.path.buildPath(dlg.getFilterPath(), file)));
 		}
 		S[] r = loadScenariosFromFile!(S)(prop, w, status, expandXMLs,
-			files.toArray, &put.put, failure, oThr);
+			files.toArray(), &put.put, failure, oThr);
 		if (!oThr && r.length) put.put(r);
 		return r;
 	}
@@ -332,7 +334,7 @@ S[] loadScenarios(S)(Props prop, Shell w, void delegate(string) status,
 
 S[] loadScenariosFromFile(S)(Props prop, Shell w, void delegate(string) status,
 		bool expandXMLs, string[] files, void delegate(S[]) loaded = null, void delegate() failure = null, bool oThr = true) {
-	auto display = Display.getCurrent;
+	auto display = Display.getCurrent();
 	if (oThr && loaded) {
 		auto thr = new LSFFThr!(S, true);
 		thr.display = display;
@@ -345,7 +347,7 @@ S[] loadScenariosFromFile(S)(Props prop, Shell w, void delegate(string) status,
 		thr.status = status;
 		thr.cursors = setWaitCursors(w);
 		auto t = new core.thread.Thread(&thr.run);
-		t.start;
+		t.start();
 		return [];
 	} else {
 		auto cursors = setWaitCursors(w);
@@ -379,7 +381,7 @@ S loadScenario(S)(Props prop, Shell w, void delegate(string) status,
 	dlg.setFilterNames = prop.msgs.filterScenario;
 	dlg.setText = dlgTitle;
 	dlg.setFilterPath = scenarioFilterPath(prop);
-	string fname = dlg.open;
+	string fname = dlg.open();
 	if (fname) {
 		decScenarioPath(fname, openPaths);
 		auto put = new class Object {
@@ -405,7 +407,7 @@ private S loadScenarioFromFileImpl(S)(Props prop, Shell w, void delegate(string)
 		void delegate (uint) setMax = null, void delegate (uint) worked = null) {
 	if (oThr && loaded) {
 		auto thr = new LSFFThr!(S, false);
-		thr.display = current ? current : Display.getCurrent;
+		thr.display = current ? current : Display.getCurrent();
 		thr.current = current;
 		thr.prop = prop;
 		thr.w = w;
@@ -419,7 +421,7 @@ private S loadScenarioFromFileImpl(S)(Props prop, Shell w, void delegate(string)
 			thr.cursors = setWaitCursors(w);
 		}
 		auto t = new core.thread.Thread(&thr.run);
-		t.start;
+		t.start();
 		return null;
 	} else {
 		Cursor[Shell] cursors;

@@ -38,58 +38,61 @@ class FixedWidthText {
 	private GC _gc = null;
 	private int _width;
 	private int _num;
-	this(FontData fontData, int num, Composite parent, int style) {
+	this (FontData fontData, int num, Composite parent, int style) {
 		_widget = new Text(parent, style | SWT.MULTI | SWT.WRAP);
 		_num = num;
 		font = fontData;
 
 		_widget.addListener(SWT.Dispose, new class Listener {
 			override void handleEvent(Event e) {
-				_widget.getFont.dispose;
-				_gc.dispose;
+				_widget.getFont().dispose();
+				_gc.dispose();
 			}
 		});
 	}
+	@property
 	void num(int num) {
 		_num = num;
 		calcWidth();
 	}
+	@property
 	void font(FontData fontData) {
 		if (_gc) {
-			_widget.getFont.dispose;
+			_widget.getFont().dispose();
 		}
-		_widget.setFont = new Font(Display.getCurrent, fontData);
+		_widget.setFont(new Font(Display.getCurrent(), fontData));
 		calcWidth();
 	}
 	private void calcWidth() {
 		if (_gc) {
-			_gc.dispose;
+			_gc.dispose();
 		}
 		_gc = new GC(_widget);
-		_gc.setFont = _widget.getFont;
+		_gc.setFont(_widget.getFont());
 		// FIXME: Windows環境で太字にするとサイズが合わなくなる
 /+		_width = _gc.getAdvanceWidth(' ') * _num;
 +/		_width = _gc.textExtent("　").x * (_num / 2) + 1;
 		if (_num & 1) _width += _gc.textExtent(" ").x;
 	}
+	@property
 	Text widget() {
 		return _widget;
 	}
 	Point computeTextBaseSize(int line) {
-		return _widget.computeSize(_width, _gc.getFontMetrics.getHeight * line);
+		return _widget.computeSize(_width, _gc.getFontMetrics().getHeight() * line);
 	}
 	string getRRText(bool lastRet = true) {
-		return toRRText(_widget.getText, _width, _gc, lastRet);
+		return toRRText(_widget.getText(), _width, _gc, lastRet);
 	}
 	static string toRRText(string targ, int num, FontData fontData, bool lastRet = true) {
 		if (targ == "") return "";
-		scope img = new Image(Display.getCurrent, 1, 1);
-		scope (exit) img.dispose;
+		scope img = new Image(Display.getCurrent(), 1, 1);
+		scope (exit) img.dispose();
 		scope gc = new GC(img);
-		scope (exit) gc.dispose;
-		scope font = new Font(Display.getCurrent, fontData);
-		scope (exit) font.dispose;
-		gc.setFont = font;
+		scope (exit) gc.dispose();
+		scope font = new Font(Display.getCurrent(), fontData);
+		scope (exit) font.dispose();
+		gc.setFont(font);
 		int width = gc.getAdvanceWidth(' ') * num;
 		return toRRText(targ, width, gc, lastRet);
 	}
@@ -133,10 +136,10 @@ class FixedWidthText {
 		_widget.insert = text;
 	}
 	void setText(string text) {
-		_widget.setText = text;
+		_widget.setText(text);
 	}
 	string getText() {
-		return _widget.getText;
+		return _widget.getText();
 	}
 }
 
@@ -159,11 +162,11 @@ class GBLimitText {
 	/// font = 検証に使用するフォント。
 	/// num = 最大文字数。[' 'の幅 * num]が入力可能な文字列幅となる。
 	/// cut = trueの場合、制限を超えた分は無条件にカットする。
-	this(string font, int num, bool cut, Composite parent, int style) {
+	this (string font, int num, bool cut, Composite parent, int style) {
 		_widget = new Text(parent, style | SWT.NO_BACKGROUND);
 		_cut = cut;
 		_gc = new GC(_widget);
-		_gc.setFont = new Font(Display.getCurrent, new FontData(font, 10, SWT.NORMAL));
+		_gc.setFont(new Font(Display.getCurrent(), new FontData(font, 10, SWT.NORMAL)));
 		_width = _gc.textExtent(" ").x * num;
 
 		_widget.addListener(SWT.Verify, new class Listener {
@@ -185,8 +188,8 @@ class GBLimitText {
 					// 文字数が減少するなら無条件に通す
 					e.doit = true;
 				} else {
-					scope text = toUTF32(_widget.getText);
-					scope p = _widget.getSelection;
+					scope text = toUTF32(_widget.getText());
+					scope p = _widget.getSelection();
 					text = text[0 .. p.x] ~ text[p.y .. $];
 					scope st = text[0 .. e.start];
 					scope el = text[e.end .. $];
@@ -208,7 +211,7 @@ class GBLimitText {
 		_widget.addListener(SWT.Modify, new class Listener {
 			override void handleEvent(Event e) {
 				if (!_cut) {
-					bool over = _gc.textExtent(getText).x > _width;
+					bool over = _gc.textExtent(getText()).x > _width;
 					if (_over != over) {
 						_over = over;
 						foreach (le; limitEvent) {
@@ -220,44 +223,46 @@ class GBLimitText {
 					return;
 				}
 				if (_ed) return;
-				if (_gc.textExtent(getText).x <= _width) {
-					_old = _widget.getText;
+				if (_gc.textExtent(getText()).x <= _width) {
+					_old = _widget.getText();
 				} else {
 					dstring old32 = toUTF32(_old);
-					int cur = _widget.getCaretPosition;
-					Point sel = _widget.getSelection;
+					int cur = _widget.getCaretPosition();
+					Point sel = _widget.getSelection();
 					if (cur >= sel.x) sel.x--;
 					if (cur >= sel.y) sel.y--;
 					_ed = true;
-					_widget.setText = _old;
+					_widget.setText(_old);
 					_ed = false;
-					_widget.setSelection = sel;
+					_widget.setSelection(sel);
 				}
 			}
 		});
 		_widget.addListener(SWT.Dispose, new class Listener {
 			override void handleEvent(Event e) {
-				_gc.getFont.dispose;
-				_gc.dispose;
+				_gc.getFont().dispose();
+				_gc.dispose();
 			}
 		});
 	}
+	@property
 	Text widget() {
 		return _widget;
 	}
 	Point computeSize(int wHint, int hHint) {
 		return _widget.computeSize(wHint == SWT.DEFAULT ? _width : wHint, hHint);
 	}
+	@property
 	bool over() {return _over;}
 	void insert(string text) {
 		_widget.insert = text;
 	}
 	void setText(string text) {
-		_widget.setText = text;
+		_widget.setText(text);
 		_old = text;
 	}
 	string getText() {
-		return _widget.getText;
+		return _widget.getText();
 	}
 }
 
@@ -293,46 +298,46 @@ struct TMM {
 	string getText() {
 		final switch (kind) {
 		case TMM_T:
-			return text.getText;
+			return text.getText();
 		case TMM_C:
-			return combo.getText;
+			return combo.getText();
 		case TMM_CC:
-			return ccombo.getText;
+			return ccombo.getText();
 		}
 	}
 	void setText(string v) {
 		final switch (kind) {
 		case TMM_T:
-			text.setText = v;
+			text.setText(v);
 			break;
 		case TMM_C:
-			combo.setText = v;
+			combo.setText(v);
 			break;
 		case TMM_CC:
-			ccombo.setText = v;
+			ccombo.setText(v);
 			break;
 		}
 	}
 	Point getSelection() {
 		final switch (kind) {
 		case TMM_T:
-			return text.getSelection;
+			return text.getSelection();
 		case TMM_C:
-			return combo.getSelection;
+			return combo.getSelection();
 		case TMM_CC:
-			return ccombo.getSelection;
+			return ccombo.getSelection();
 		}
 	}
 	void setSelection(Point v) {
 		final switch (kind) {
 		case TMM_T:
-			text.setSelection = v;
+			text.setSelection(v);
 			break;
 		case TMM_C:
-			combo.setSelection = v;
+			combo.setSelection(v);
 			break;
 		case TMM_CC:
-			ccombo.setSelection = v;
+			ccombo.setSelection(v);
 			break;
 		}
 	}
@@ -374,12 +379,12 @@ class TextMenuModify : ModifyListener {
 			auto os = _sel;
 
 			if (_apd.read) _apData = _apd.read(oapd);
-			_oldText = _text.getText;
-			_sel = _text.getSelection;
+			_oldText = _text.getText();
+			_sel = _text.getSelection();
 
 			if (_apd.write) _apd.write(oapd);
-			_text.setText = o;
-			_text.setSelection = os;
+			_text.setText(o);
+			_text.setSelection(os);
 
 			_oldApData = oapd;
 			_oldSel = os;
@@ -402,7 +407,7 @@ class TextMenuModify : ModifyListener {
 	private UndoManager _undo;
 	private class SelectChanged : Listener {
 		override void handleEvent(Event e) {
-			_oldSel = _text.getSelection;
+			_oldSel = _text.getSelection();
 		}
 	}
 
@@ -422,8 +427,8 @@ class TextMenuModify : ModifyListener {
 	}
 	private void save() {
 		if (_apd.read) _oldApData = _apd.read(_oldApData);
-		_oldSel = _text.getSelection;
-		_oldTextBase = _text.getText;
+		_oldSel = _text.getSelection();
+		_oldTextBase = _text.getText();
 	}
 
 	const
@@ -436,7 +441,7 @@ class TextMenuModify : ModifyListener {
 
 	override void modifyText(ModifyEvent e) {
 		if (_inProc) return;
-		if (_oldTextBase == _text.getText) return;
+		if (_oldTextBase == _text.getText()) return;
 		if (!_canSaveHistory) {
 			_undo ~= new TextMenuUndo;
 		} else if (_canSaveHistory()) {

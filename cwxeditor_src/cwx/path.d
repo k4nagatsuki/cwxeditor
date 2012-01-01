@@ -12,13 +12,16 @@ immutable CWXPATH_SEP = "&";
 /// シナリオ内パスを取得できるオブジェクトである事を示す。
 interface CWXPath {
 	/// シナリオ内パス。
+	@property
 	string cwxPath();
 	/// パスが示すオブジェクトを返す。
 	/// 見つからない場合はnullを返す。
 	CWXPath findCWXPath(string);
 	/// 直下のパスを全て返す。
+	@property
 	CWXPath[] cwxChilds();
 	/// 親を返す。
+	@property
 	CWXPath cwxParent();
 }
 

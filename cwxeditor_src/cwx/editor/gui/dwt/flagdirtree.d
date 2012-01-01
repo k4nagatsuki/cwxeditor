@@ -78,7 +78,7 @@ private:
 		_undo ~= new UndoEditDir(flags, _comm, dir, oldName);
 	}
 	void storeSwap(FlagDir par, int index1, int index2) {
-		_undo ~= new UndoSwap(flags, _comm, cast(FlagDir) selectedItem.getData, par, index1, index2);
+		_undo ~= new UndoSwap(flags, _comm, cast(FlagDir) selectedItem.getData(), par, index1, index2);
 	}
 
 	Props prop;
@@ -95,7 +95,7 @@ private:
 
 	class DirSelection : SelectionAdapter {
 		public override void widgetSelected(SelectionEvent e) {
-			flags.dir = current;
+			flags.setDir(current);
 		}
 	}
 
@@ -103,10 +103,10 @@ private:
 	class FlagDirDragListener : DragSourceListener {
 	public:
 		override void dragStart(DragSourceEvent e) {
-			e.doit = current != root && (cast(DragSource) e.getSource).getControl.isFocusControl;
+			e.doit = current != root && (cast(DragSource) e.getSource()).getControl().isFocusControl();
 		}
 		override void dragSetData(DragSourceEvent e) {
-			if (XMLBytesTransfer.getInstance.isSupportedType(e.dataType)) {
+			if (XMLBytesTransfer.getInstance().isSupportedType(e.dataType)) {
 				_moveDir = current;
 
 				// XML化して転送する。
@@ -116,7 +116,7 @@ private:
 		override void dragFinished(DragSourceEvent e) {
 			if (e.detail == DND.DROP_MOVE) {
 				_moveDir.parent.remove(_moveDir);
-				refresh;
+				refresh();
 				_comm.delFlagAndStep.call(_moveDir.allFlags, _moveDir.allSteps);
 			}
 			_moveDir = null;
@@ -138,9 +138,9 @@ private:
 		override void drop(DropTargetEvent e){
 			if (!isXMLBytes(e.data)) return;
 			assert (cast(TreeItem) e.item);
-			if (cast(FlagDir) e.item.getData) {
+			if (cast(FlagDir) e.item.getData()) {
 				auto data = bytesToXML(e.data);
-				auto dir = cast(FlagDir) e.item.getData;
+				auto dir = cast(FlagDir) e.item.getData();
 				string newPath;
 				string rootId;
 				Flag[] fs = flags.dragFlags;
@@ -157,6 +157,7 @@ private:
 					moveDirParent = _moveDir.parent;
 					dirIndex = moveDirParent.indexOf(_moveDir.name);
 				}
+				@property
 				string[] flagName() {
 					string[] name;
 					foreach (f; cFlags) {
@@ -164,6 +165,7 @@ private:
 					}
 					return name;
 				}
+				@property
 				string[] stepName() {
 					string[] name;
 					foreach (s; cSteps) {
@@ -199,13 +201,13 @@ private:
 						e.detail = DND.DROP_COPY;
 						storeInsert(dir, tblSels, [], flagName, stepName);
 					}
-					if (cFlags.length > 0) dir.sortFlags;
-					if (cSteps.length > 0) dir.sortSteps;
-					flags.refresh;
+					if (cFlags.length > 0) dir.sortFlags();
+					if (cSteps.length > 0) dir.sortSteps();
+					flags.refresh();
 					break;
 				case FlagDir.AppendXmlResult.ON_DIR:
 					e.detail = DND.DROP_NONE;
-					refresh;
+					refresh();
 					break;
 				case FlagDir.AppendXmlResult.FLAG_STEP_ON_DIR:
 					e.detail = DND.DROP_NONE;
@@ -232,8 +234,8 @@ private:
 	}
 
 	void editEnd(TreeItem itm, Control c) {
-		auto dir = cast(FlagDir) itm.getData;
-		auto text = (cast(Text) c).getText;
+		auto dir = cast(FlagDir) itm.getData();
+		auto text = (cast(Text) c).getText();
 		if (!text) text = "";
 		string oldName = dir.name;
 		if (oldName == text) return;
@@ -245,16 +247,16 @@ private:
 	}
 
 	Control createEditor(TreeItem itm) {
-		return itm.getData != root ? createTextEditor(_comm, prop, dirs, itm.getText) : null;
+		return itm.getData() != root ? createTextEditor(_comm, prop, dirs, itm.getText()) : null;
 	}
 
 	private void refreshDirs() {
-		if (!dirs || dirs.isDisposed) return;
+		if (!dirs || dirs.isDisposed()) return;
 		dirs.setRedraw = false;
 		scope (exit) dirs.setRedraw = true;
-		auto exAll = expandAll;
+		auto exAll = expandAll();
 		auto sel = current;
-		dirs.removeAll;
+		dirs.removeAll();
 		if (root) {
 			newItem(root, dirs, exAll);
 			if (sel) {
@@ -265,13 +267,13 @@ private:
 	private bool[string] expandAll() {
 		bool[string]  r;
 		void all(TreeItem itm) {
-			auto dir = cast(FlagDir) itm.getData;
-			r[dir.path.toLower] = itm.getItemCount == 0 || itm.getExpanded;
-			foreach (sub; itm.getItems) {
+			auto dir = cast(FlagDir) itm.getData();
+			r[dir.path.toLower] = itm.getItemCount() == 0 || itm.getExpanded();
+			foreach (sub; itm.getItems()) {
 				all(sub);
 			}
 		}
-		foreach (itm; dirs.getItems) {
+		foreach (itm; dirs.getItems()) {
 			all(itm);
 		}
 		return r;
@@ -298,9 +300,9 @@ private:
 		scope (exit) dirs.setRedraw = true;
 		auto itm = find(targ);
 		if (itm) {
-			auto exAll = expandAll;
+			auto exAll = expandAll();
 			auto sel = current;
-			itm.removeAll;
+			itm.removeAll();
 			foreach (sub; targ.subDirs) {
 				newItem(sub, itm, exAll);
 			}
@@ -308,8 +310,8 @@ private:
 		}
 	}
 	private TreeItem findImpl(TreeItem parent, FlagDir dir) {
-		if (parent.getData is dir) return parent;
-		foreach (itm; parent.getItems) {
+		if (parent.getData() is dir) return parent;
+		foreach (itm; parent.getItems()) {
 			auto r = findImpl(itm, dir);
 			if (r) return r;
 		}
@@ -317,9 +319,10 @@ private:
 	}
 	private TreeItem find(FlagDir dir) {
 		if (!root) return null;
-		if (!dirs || dirs.isDisposed) return null;
+		if (!dirs || dirs.isDisposed()) return null;
 		return findImpl(dirs.getItem(0), dir);
 	}
+	@property
 	private void select(FlagDir dir) {
 		auto itm = find(dir);
 		if (itm) {
@@ -330,18 +333,20 @@ private:
 		if (sender is this) return;
 		refresh(null);
 	}
+	@property
 	TreeItem selectedItem() {
-		auto sels = dirs.getSelection;
+		auto sels = dirs.getSelection();
 		return sels.length ? sels[0] : null;
 	}
 public:
-	this(Commons comm, Props prop, FlagTable flags, UndoManager undo) {
+	this (Commons comm, Props prop, FlagTable flags, UndoManager undo) {
 		_undo = undo;
 		_comm = comm;
 		this.prop = prop;
 		this.flags = flags;
 	}
 	private Composite _comp = null;
+	@property
 	Control widget() {return _comp;}
 
 	void refresh() {
@@ -351,10 +356,11 @@ public:
 		if (!selPath) {
 			selPath = current.path;
 		}
-		refreshDirs;
+		refreshDirs();
 		select(selPath);
 	}
 
+	@property
 	void select(string path) {
 		auto dir = FlagDir.searchPath(root, path);
 		if (!dir) {
@@ -367,6 +373,7 @@ public:
 	/// 使用回数カウンタを設定する。
 	/// Params:
 	/// uc = 使用回数カウンタ。
+	@property
 	void useCounter(UseCounter uc) {
 		this.uc = uc;
 	}
@@ -382,7 +389,7 @@ public:
 		edit = new TreeEdit(dirs, &editEnd, &createEditor);
 
 		dirs.addSelectionListener(new DirSelection);
-		auto menu = new Menu(dirs.getShell, SWT.POP_UP);
+		auto menu = new Menu(dirs.getShell(), SWT.POP_UP);
 		createMenuItem(menu, prop.msgs.menuUndo, prop.images.menuUndo, &this.undo);
 		createMenuItem(menu, prop.msgs.menuRedo, prop.images.menuRedo, &this.redo);
 		new MenuItem(menu, SWT.SEPARATOR);
@@ -390,10 +397,10 @@ public:
 		dirs.setMenu(menu);
 
 		auto ds = new DragSource(dirs, DND.DROP_MOVE);
-		ds.setTransfer = [XMLBytesTransfer.getInstance];
+		ds.setTransfer = [XMLBytesTransfer.getInstance()];
 		ds.addDragListener(new FlagDirDragListener);
 		auto dt = new DropTarget(dirs, DND.DROP_MOVE);
-		dt.setTransfer = [XMLBytesTransfer.getInstance];
+		dt.setTransfer = [XMLBytesTransfer.getInstance()];
 		dt.addDropListener(new FlagsDropListener);
 
 		_comm.replText.add(&refresh);
@@ -424,23 +431,25 @@ public:
 		cur.add(dir);
 		refreshDirs(cur);
 		current = dir;
-		edit.startEdit;
+		edit.startEdit();
 	}
 
+	@property
 	private void current(FlagDir dir) {
 		auto itm = find(dir);
 		if (itm) {
 			dirs.select = itm;
-			dirs.showSelection;
+			dirs.showSelection();
 		}
-		flags.dir = dir;
+		flags.setDir(dir);
 	}
 
+	@property
 	FlagDir current() {
-		if (dirs && !dirs.isDisposed) {
-			auto sels = dirs.getSelection;
+		if (dirs && !dirs.isDisposed()) {
+			auto sels = dirs.getSelection();
 			if (sels.length) {
-				return cast(FlagDir) sels[0].getData;
+				return cast(FlagDir) sels[0].getData();
 			}
 		}
 		return root;
@@ -449,7 +458,7 @@ public:
 	private void udImpl(int plus) {
 		auto sel = selectedItem;
 		if (!sel) return;
-		auto dir = cast(FlagDir) sel.getData;
+		auto dir = cast(FlagDir) sel.getData();
 		auto par = dir.parent;
 		if (!par) return;
 		int index1 = par.indexOf(dir.name);
@@ -458,7 +467,7 @@ public:
 		if (index2 < 0 || par.subDirs.length <= index2) return;
 		storeSwap(par, index1, index2);
 		par.swapDir(index1, index2);
-		auto parItm = sel.getParentItem;
+		auto parItm = sel.getParentItem();
 		assert (parItm);
 		auto dir1 = par.subDirs[index1], dir2 = par.subDirs[index2];
 		auto itm1 = parItm.getItem(index1), itm2 = parItm.getItem(index2);
@@ -486,7 +495,7 @@ public:
 		}
 		void copy(SelectionEvent se) {
 			if (!root) return;
-			if (dirs.getSelection.length > 0) {
+			if (dirs.getSelection().length > 0) {
 				XMLtoCB(prop, _comm.clipboard, getXML(prop.msgs.flagDirRoot, current));
 			}
 		}
@@ -519,7 +528,7 @@ public:
 							stepName ~= s.name;
 						}
 						storeInsert(cur, tblSels, [], flagName, stepName);
-						flags.refresh;
+						flags.refresh();
 						break;
 					case FlagDir.AppendXmlResult.FLAG_STEP_ON_DIR:
 					case FlagDir.AppendXmlResult.ON_DIR:
@@ -549,12 +558,14 @@ public:
 				_comm.delFlagDir.call([cur]);
 			}
 		}
+		@property
 		bool canDoTCPD() {
-			return dirs.isFocusControl;
+			return dirs.isFocusControl();
 		}
 	}
 
 	/// Returns: ルートディレクトリを返す。
+	@property
 	FlagDir rootDir() {
 		return root;
 	}
@@ -562,11 +573,12 @@ public:
 	/// ディレクトリツリーを設定する。
 	/// Params:
 	/// root = ルートディレクトリ。
+	@property
 	void rootDir(FlagDir root) {
 		this.root = root;
-		refreshDirs;
+		refreshDirs();
 		current = root;
-		if (dirs && !dirs.isDisposed) {
+		if (dirs && !dirs.isDisposed()) {
 			treeExpandedAll(dirs);
 		}
 	}
@@ -617,6 +629,7 @@ public:
 	bool openCWXPath(string path, bool shellActivate) {
 		return openCWXPathImpl(root, path, shellActivate);
 	}
+	@property
 	string[] openedCWXPath() {
 		string[] r;
 		auto cur = current;

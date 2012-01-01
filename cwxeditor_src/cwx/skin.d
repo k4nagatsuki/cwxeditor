@@ -240,10 +240,13 @@ class Skin {
 			loadFromXML(skinFile);
 		}
 	}
+	@property
 	const
 	string name() {return _name;}
+	@property
 	const
 	string type() {return _type;}
+	@property
 	const
 	string skinFile() {return _skinFile;}
 
@@ -433,6 +436,7 @@ class Skin {
 	/// CardWirth本体のパス。
 	/// クラシックなシナリオの編集中は、そのシナリオが
 	/// 属すと思われるパスを返す。
+	@property
 	const
 	string engine() {
 		if (_legacyEngine.length) {
@@ -444,6 +448,7 @@ class Skin {
 
 	/// クラシックなCardWirth本体のパス。
 	/// 所属エンジンが無いか、クラシックでないシナリオの編集中であれば""を返す。
+	@property
 	const
 	string legacyEngine() {
 		if (!_legacyEngine.length) return "";
@@ -451,6 +456,7 @@ class Skin {
 	}
 
 	/// エンジンを実行する際のパス。
+	@property
 	const
 	string executeEngine() {
 		if (_legacyEngine.length) {
@@ -465,18 +471,22 @@ class Skin {
 
 	/// クラシックなシナリオの編集中は、拡張子を除く所属エンジンのパスを返す。
 	/// 所属エンジンが無いか、クラシックでないシナリオの編集中であれば""を返す。
+	@property
 	const
 	string legacyName() {return _legacyEngine.length ? stripExtension(baseName(_legacyEngine)) : "";}
 
 	/// クラシックなCardWirthのDataディレクトリのパス。
+	@property
 	const
 	string legacyDataPath() {return _legacyPath;}
 
 	/// クラシックなCardWirthEditorで作成されたシナリオのスキンならtrue。
+	@property
 	const
 	bool legacy() {return _legacy;}
 
 	/// エンジン内のリソースを使用している場合はtrue。
+	@property
 	const
 	bool useLegacyRes() {
 		version (Windows) {
@@ -486,6 +496,7 @@ class Skin {
 	}
 
 	/// シナリオの素材を置くディレクトリの標準。シナリオのルートからの相対パス。
+	@property
 	const
 	string materialPath() {
 		return legacy ? "" : "Material";
@@ -582,6 +593,7 @@ class Skin {
 	}
 
 	/// 特殊文字の情報。
+	@property
 	const
 	const(string[dchar]) spChars() {return _spChars;}
 
@@ -656,6 +668,7 @@ class Skin {
 	string[] sounds(string dir, bool forceRefresh) {return list!(isSE)(dir, forceRefresh);}
 
 	/// 標準素材ディレクトリのルート。
+	@property
 	const
 	string resDir() {
 		if (_legacyPath.length) {
@@ -664,6 +677,7 @@ class Skin {
 		return _path;
 	}
 	/// 標準の背景画像のディレクトリ。
+	@property
 	const
 	string tableDir() {
 		if (_legacyPath.length) {
@@ -672,6 +686,7 @@ class Skin {
 		return std.path.buildPath(_path, "Table");
 	}
 	/// 標準のBGMのディレクトリ。
+	@property
 	const
 	string bgmDir() {
 		if (_legacyPath.length) {
@@ -680,6 +695,7 @@ class Skin {
 		return std.path.buildPath(_path, "Bgm");
 	}
 	/// 標準のSEのディレクトリ。
+	@property
 	const
 	string seDir() {
 		if (_legacyPath.length) {
@@ -688,30 +704,37 @@ class Skin {
 		return std.path.buildPath(_path, "Sound");
 	}
 	/// その他リソースのディレクトリ。
+	@property
 	const
 	string resourceDir() {
 		return std.path.buildPath(_path, buildPath("Resource", "Image"));
 	}
 
 	/// 標準画像の拡張子。
+	@property
 	const
 	string extImage() {return _extImg;}
 	/// 標準BGMの拡張子。
+	@property
 	const
 	string extBgm() {return _extBgm;}
 	/// 標準SEの拡張子。
+	@property
 	const
 	string extSound() {return _extSound;}
 	/// 標準リソース画像の拡張子。
+	@property
 	const
 	string resExtImage() {return _resExtImg;}
 
 	/// 種族。
+	@property
 	Race[] races() {
 		return _races.dup;
 	}
 
 	/// バトルを作成した際、最初に設定されているBGMの名前。
+	@property
 	const
 	string defBattle() {return setExtension("DefBattle", extBgm);}
 
@@ -801,15 +824,15 @@ class Skin {
 					readExt("bgm", _extBgm, _resExtBgm);
 					readExt("sound", _extSound, _resExtSound);
 				};
-				pNode.parse;
+				pNode.parse();
 			};
 			sNode.onTag["Races"] = (ref XNode node) {
 				node.onTag["Race"] = (ref XNode node) {
 					_races ~= Race.fromNode(node, LATEST_VERSION);
 				};
-				node.parse;
+				node.parse();
 			};
-			sNode.parse;
+			sNode.parse();
 			typeof(_spChars) spCharsInit;
 			_spChars = spCharsInit;
 			auto fd = std.path.buildPath(resourceDir, "Font");
