@@ -479,7 +479,7 @@ public:
 	}
 protected:
 	override void setup(Composite area) {
-		area.setLayout = windowGridLayout(1, true);
+		area.setLayout = new GridLayout(1, true);
 		_tabf = new CTabFolder(area, SWT.BORDER);
 		_tabf.setLayoutData = new GridData(GridData.FILL_BOTH);
 		auto skin = _comm.skin;
