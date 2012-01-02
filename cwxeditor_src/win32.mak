@@ -83,6 +83,7 @@ SRC = cwxeditor.d \
 	cwx\editor\gui\dwt\image.d \
 	cwx\editor\gui\dwt\cardpane.d \
 	cwx\editor\gui\dwt\loader.d \
+	cwx\editor\gui\dwt\areaviewutils.d \
 	d2std\xml.d \
 	d2std\xml2.d \
 
@@ -171,6 +172,7 @@ OBJ = objs\cwxeditor.obj \
 	objs\cwx\editor\gui\dwt\image.obj \
 	objs\cwx\editor\gui\dwt\cardpane.obj \
 	objs\cwx\editor\gui\dwt\loader.obj \
+	objs\cwx\editor\gui\dwt\areaviewutils.obj \
 	objs\d2std\xml.obj \
 	objs\d2std\xml2.obj \
 

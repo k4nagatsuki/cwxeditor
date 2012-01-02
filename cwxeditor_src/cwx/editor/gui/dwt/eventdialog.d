@@ -17,6 +17,7 @@ import cwx.path;
 import cwx.editor.gui.sound;
 
 import cwx.editor.gui.dwt.areaview;
+import cwx.editor.gui.dwt.areaviewutils;
 import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.dprops;

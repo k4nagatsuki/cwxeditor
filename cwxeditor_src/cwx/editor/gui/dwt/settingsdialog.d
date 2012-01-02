@@ -17,6 +17,7 @@ import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.areaview;
+import cwx.editor.gui.dwt.areaviewutils;
 import cwx.editor.gui.dwt.xmlbytestransfer;
 import cwx.editor.gui.dwt.dockingfolder;
 import cwx.editor.gui.dwt.customtext;
