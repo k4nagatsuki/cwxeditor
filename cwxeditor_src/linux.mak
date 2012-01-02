@@ -28,7 +28,7 @@ SRC = cwxeditor.d \
 	cwx/jpy.d \
 	cwx/script.d \
 	cwx/msgs.d \
-	d2std/xml.d \
+	cwx/versioninfo.d \
 	cwx/editor/gui/sound.d \
 	cwx/editor/gui/dwt/sbshell.d \
 	cwx/editor/gui/dwt/mainwindow.d \
@@ -83,6 +83,8 @@ SRC = cwxeditor.d \
 	cwx/editor/gui/dwt/image.d \
 	cwx/editor/gui/dwt/cardpane.d \
 	cwx/editor/gui/dwt/loader.d \
+	d2std/xml.d \
+	d2std/xml2.d \
 
 OBJ = $(SRC:%.d=%.o)
 DMD = dmd

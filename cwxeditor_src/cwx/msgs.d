@@ -40,37 +40,7 @@ public:
 	@property const string application() {return "CWXEditor";}
 	@property const string dlgTitVersion() {return "バージョン情報";}
 	@property const string appDesc() {return "Scenario editor for CardWirthPy.";}
-	@property const string appVersion() {return splitLines(import("@version.txt"))[0];}
-	@property const string appWebSiteURI() {return splitLines(import("@version.txt"))[1];}
-	@property const string appBuild() {
-		string buf = "Build: "
-			~ __DATE__[7 .. $]
-			~ "-" ~ [
-				"Jan":"01",
-				"Feb":"02",
-				"Mar":"03",
-				"Apr":"04",
-				"May":"05",
-				"Jun":"06",
-				"Jul":"07",
-				"Aug":"08",
-				"Sep":"09",
-				"Oct":"10",
-				"Nov":"11",
-				"Dec":"12"
-			][__DATE__[0 .. 3]]
-			~ "-" ~ .format("%02d", .to!int(strip(__DATE__[4 .. 6])))
-			~ " " ~ __TIME__ ~ " ";
-		debug {
-			buf ~= "Debug";
-			version (Console) {
-				buf ~= " / Console";
-			}
-		} else {
-			buf ~= "Release";
-		}
-		return buf ~ linesep ~ "Compiled by " ~ __VENDOR__ ~ " " ~ .text(__VERSION__);
-	}
+
 	@property const string dlgTitUsage() {return "使い方 - CWXEditor";}
 	@property const string usage() {
 		return "使い方: cwxeditor [-help | -conf <PATH> | <OpenID ...>] <SCENARIO> [<CWXPath ...>]\n"

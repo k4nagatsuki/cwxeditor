@@ -3,6 +3,7 @@ module cwx.utils;
 
 import cwx.structs;
 import cwx.sjis;
+import cwx.versioninfo;
 
 import std.algorithm;
 import std.array;
@@ -116,7 +117,7 @@ string createDebugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) {
 	int hour = d.hour;
 	int min = d.minute;
 	int second = d.second;
-	buf = format("%04d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, min, second) ~ "\t" ~ buf;
+	buf = format("%04d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, min, second) ~ " [" ~ APP_BUILD.splitLines[0] ~ "]\t" ~ buf;
 	return assumeUnique(buf);
 }
 

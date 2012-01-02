@@ -2,6 +2,7 @@
 module cwx.editor.gui.dwt.smalldialogs;
 
 import cwx.utils;
+import cwx.versioninfo;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.absdialog;
@@ -171,15 +172,15 @@ protected:
 		gd.verticalSpan = 2;
 		img.setLayoutData(gd);
 		auto ln = new Link(area, SWT.NONE);
-		ln.setText = _prop.msgs.application ~ " / " ~ _prop.msgs.appVersion ~ "\n"
-			~ "<a>" ~ _prop.msgs.appWebSiteURI ~ "</a>\n"
+		ln.setText = _prop.msgs.application ~ " / " ~ APP_VERSION ~ "\n"
+			~ "<a>" ~ APP_WEB_SITE_URI ~ "</a>\n"
 			~ _prop.msgs.appDesc;
 		ln.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		ln.addSelectionListener(new OpenLink);
 		auto build = new Text(area, SWT.READ_ONLY | SWT.BORDER | SWT.MULTI);
 		createTextMenu!Text(_comm, _prop, build, null);
 		build.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		build.setText(_prop.msgs.appBuild);
+		build.setText(APP_BUILD);
 	}
 }
 

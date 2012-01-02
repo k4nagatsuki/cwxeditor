@@ -28,6 +28,7 @@ SRC = cwxeditor.d \
 	cwx\jpy.d \
 	cwx\script.d \
 	cwx\msgs.d \
+	cwx\versioninfo.d \
 	cwx\editor\gui\sound.d \
 	cwx\editor\gui\dwt\sbshell.d \
 	cwx\editor\gui\dwt\mainwindow.d \
@@ -82,6 +83,8 @@ SRC = cwxeditor.d \
 	cwx\editor\gui\dwt\image.d \
 	cwx\editor\gui\dwt\cardpane.d \
 	cwx\editor\gui\dwt\loader.d \
+	d2std\xml.d \
+	d2std\xml2.d \
 
 OBJ = objs\cwxeditor.obj \
 	objs\cwx\utils.obj \
@@ -113,6 +116,7 @@ OBJ = objs\cwxeditor.obj \
 	objs\cwx\jpy.obj \
 	objs\cwx\script.obj \
 	objs\cwx\msgs.obj \
+	objs\cwx\versioninfo.obj \
 	objs\cwx\editor\gui\sound.obj \
 	objs\cwx\editor\gui\dwt\sbshell.obj \
 	objs\cwx\editor\gui\dwt\mainwindow.obj \
@@ -167,7 +171,8 @@ OBJ = objs\cwxeditor.obj \
 	objs\cwx\editor\gui\dwt\image.obj \
 	objs\cwx\editor\gui\dwt\cardpane.obj \
 	objs\cwx\editor\gui\dwt\loader.obj \
-	d2std\xml.obj \
+	objs\d2std\xml.obj \
+	objs\d2std\xml2.obj \
 
 DMD = dmd
 RCC = rcc
