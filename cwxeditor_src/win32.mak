@@ -84,8 +84,6 @@ SRC = cwxeditor.d \
 	cwx\editor\gui\dwt\cardpane.d \
 	cwx\editor\gui\dwt\loader.d \
 	cwx\editor\gui\dwt\areaviewutils.d \
-	d2std\xml.d \
-	d2std\xml2.d \
 
 OBJ = objs\cwxeditor.obj \
 	objs\cwx\utils.obj \
@@ -173,8 +171,7 @@ OBJ = objs\cwxeditor.obj \
 	objs\cwx\editor\gui\dwt\cardpane.obj \
 	objs\cwx\editor\gui\dwt\loader.obj \
 	objs\cwx\editor\gui\dwt\areaviewutils.obj \
-	objs\d2std\xml.obj \
-	objs\d2std\xml2.obj \
+	objs\xml.obj \
 
 DMD = dmd
 RCC = rcc
@@ -210,14 +207,17 @@ FLAGS = -J. -Jresource -op -c -property
 
 $(OUT) : $(SRC) $(RES)
 	$(DMD) $(FLAGS) $(SRC) -g -debug -unittest -version="Console" -odobjs
+	$(DMD) -c -O -inline -release d2std\xml.d -odobjs
 	$(DMD) $(OBJ) -L"$(LIB)" -g -debug -of"$(OUT)" -L/exet:nt/su:console:4.0
 
 debug_windows : $(SRC) $(RES)
 	$(DMD) $(FLAGS) $(SRC) -g -debug -unittest -odobjs
+	$(DMD) -c -O -inline -release d2std\xml.d -odobjs
 	$(DMD) $(OBJ) -L"$(LIB)" -g -of"$(OUT)" -L/exet:nt/su:windows:4.0
 
 release : $(SRC) $(RES)
 	$(DMD) $(FLAGS) $(SRC) -release -odobjs
+	$(DMD) -c -O -inline -release d2std\xml.d -odd2std
 	$(DMD) $(OBJ) -L"$(LIB)" -of"$(OUT)" -L/exet:nt/su:windows:4.0 -O
 
 $(RES) : $(RC)

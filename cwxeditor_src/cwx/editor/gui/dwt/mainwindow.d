@@ -544,6 +544,7 @@ private:
 				}
 			} catch (Throwable e) {
 				debugln(debugString); // FIXME: エラー箇所を突き止めるため
+				throw e;
 			}
 		}
 		return true;
