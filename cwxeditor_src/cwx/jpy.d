@@ -423,25 +423,29 @@ private struct JptxParser {
 		}
 	}
 	void parse(string text) {
+		immutable TAG = "</(b|i|u|s|shiftx|shifty|lineheight|font)>"d
+			~ "|<"d
+			~ "(br|b|i|u|s|shiftx=\"-?[0-9]+\"|shifty=\"-?[0-9]+\""d
+			~ "|lineheight=\"-?[0-9]+\""d
+			~ "|font( +(face=\"[^\"]+\"|color=\"[\\$#][0-9A-Fa-f]{6}\""d
+			~ "|pixels=\"[0-9]+\"))+)"d
+			~ ">"d;
 		if (autoline) {
+			auto r = .regex!(dstring)("^" ~ TAG ~ "$", "i");
 			auto lines = splitLines(text);
 			text = "";
 			foreach (i, line; lines) {
 				text ~= line;
-				if (i + 1 < lines.length) text ~= "<br>";
+				if (i + 1 < lines.length && .match(toUTF32(line), r).empty) {
+					text ~= "<br>";
+				}
 			}
 		} else {
 			text = replace(text, "\r\n", "");
 			text = replace(text, "\r", "");
 			text = replace(text, "\n", "");
 		}
-		auto r = .regex!(dstring)("</(b|i|u|s|shiftx|shifty|lineheight|font)>"d
-			~ "|<"d
-			~ "(br|b|i|u|s|shiftx=\"-?[0-9]+\"|shifty=\"-?[0-9]+\""d
-			~ "|lineheight=\"-?[0-9]+\""d
-			~ "|font( +(face=\"[^\"]+\"|color=\"[\\$#][0-9A-Fa-f]{6}\""d
-			~ "|pixels=\"[0-9]+\"))+)"d
-			~ ">"d, "i");
+		auto r = .regex!(dstring)(TAG, "i");
 		while (text.length) {
 			auto reg = .match(toUTF32(text), r);
 			if (!reg.empty) {
