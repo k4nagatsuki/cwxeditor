@@ -406,12 +406,15 @@ private struct JptxParser {
 		}
 	}
 	void parse(string text) {
+		const TAG = "</(b|i|u|s|shiftx|shifty|lineheight|font)>|<(br|b|i|u|s|shiftx=\"-?[0-9]+\"|shifty=\"-?[0-9]+\"|lineheight=\"-?[0-9]+\"|font( +(face=\".+\"|color=\"[\\$#][0-9A-Fa-f]{6}\"|pixels=\"[0-9]+\"))+)>";
 		if (autoline) {
 			auto lines = splitlines(text);
 			text = "";
 			foreach (i, line; lines) {
 				text ~= line;
-				if (i + 1 < lines.length) text ~= "<br>";
+				if (i + 1 < lines.length && !search(line, "^" ~ TAG ~ "$", "i")) {
+					text ~= "<br>";
+				}
 			}
 		} else {
 			text = replace(text, "\r\n", "");
@@ -419,7 +422,7 @@ private struct JptxParser {
 			text = replace(text, "\n", "");
 		}
 		while (text.length) {
-			auto reg = search(text, "</(b|i|u|s|shiftx|shifty|lineheight|font)>|<(br|b|i|u|s|shiftx=\"-?[0-9]+\"|shifty=\"-?[0-9]+\"|lineheight=\"-?[0-9]+\"|font( +(face=\".+\"|color=\"[\\$#][0-9A-Fa-f]{6}\"|pixels=\"[0-9]+\"))+)>", "i");
+			auto reg = search(text, TAG, "i");
 			if (reg) {
 				if (onText && reg.pre.length) onText(reg.pre);
 				auto m = reg.match(0);
