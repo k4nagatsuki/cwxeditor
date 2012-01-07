@@ -851,6 +851,7 @@ private:
 		if (this !is sender) {
 			refreshPaths();
 		}
+		if (_refresh) _refresh();
 	}
 	void __refPath(string o, string n, bool isDir) {
 		auto old = _path;
@@ -890,6 +891,7 @@ private:
 				}
 			}
 		}
+		if (_refresh) _refresh();
 	}
 	void __delPaths() {
 		refreshPaths();

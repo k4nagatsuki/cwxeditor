@@ -1698,9 +1698,17 @@ public:
 		} else {
 			auto cardItm = selectionParent;
 			if (cardItm) {
-				auto card = cast(A) cardItm.getData();
-				assert (card);
-				r ~= cpaddattr(card.cwxPath, "eventview");
+				auto d = cardItm.getData();;
+				auto area = cast(A) d;
+				if (area) {
+					r ~= cpaddattr(area.cwxPath, "eventview");
+				}
+				static if (!is(C : void)) {
+					auto card = cast(C) d;
+					if (card) {
+						r ~= cpaddattr(card.cwxPath, "eventview");
+					}
+				}
 			} else {
 				r ~= cpaddattr(_area.cwxPath, "eventview");
 			}

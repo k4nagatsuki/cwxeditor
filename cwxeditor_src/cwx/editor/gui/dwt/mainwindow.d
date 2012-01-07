@@ -502,49 +502,33 @@ private:
 	}
 	bool save(Shell shell) {
 		if (summary) {
-			string debugString = .text(__LINE__); // FIXME: エラー箇所を突き止めるため
-			try {
-				_dirWin.pauseTrace();
+			_dirWin.pauseTrace();
+			scope (exit) {
+				_dirWin.resumeTrace();
+			}
+			if (!summary.isSaved) {
+				// いまだ保存されていない場合は名前をつけて保存
+				return __saveScenarioA(shell);
+			} else {
+				auto cursors = setWaitCursors(shell);
 				scope (exit) {
-					_dirWin.resumeTrace();
-					debugString ~= " - " ~ .text(__LINE__);
+					resetCursors(cursors);
 				}
-				if (!summary.isSaved) {
-					// いまだ保存されていない場合は名前をつけて保存
-					return __saveScenarioA(shell);
-				} else {
-					debugString ~= " - " ~ .text(__LINE__);
-					auto cursors = setWaitCursors(shell);
-					debugString ~= " - " ~ .text(__LINE__);
-					scope (exit) {
-						resetCursors(cursors);
-						debugString ~= " - " ~ .text(__LINE__);
+				try {
+					synchronized (_saveSync) {
+						summary.saveOverwrite(_prop.parent, _prop.var.etc.doubleIO, _prop.var.etc.saveInnerImagePath);
 					}
-					try {
-						synchronized (_saveSync) {
-							summary.saveOverwrite(_prop.parent, _prop.var.etc.doubleIO, _prop.var.etc.saveInnerImagePath);
-						}
-						debugString ~= " - " ~ .text(__LINE__);
-						_comm.saved.call();
-						debugString ~= " - " ~ .text(__LINE__);
-						refreshTitle();
-						debugString ~= " - " ~ .text(__LINE__);
-						addHistory();
-						debugString ~= " - " ~ .text(__LINE__);
-						GC.collect();
-						debugString ~= " - " ~ .text(__LINE__);
-						playSavedSound();
-						debugString ~= " - " ~ .text(__LINE__);
-						return true;
-					} catch (SummaryException e) {
-						debugln(e);
-						MessageBox.showWarning(e.msg, _prop.msgs.dlgTitWarning, shell);
-						return false;
-					}
+					_comm.saved.call();
+					refreshTitle();
+					addHistory();
+					GC.collect();
+					playSavedSound();
+					return true;
+				} catch (SummaryException e) {
+					debugln(e);
+					MessageBox.showWarning(e.msg, _prop.msgs.dlgTitWarning, shell);
+					return false;
 				}
-			} catch (Throwable e) {
-				debugln(debugString); // FIXME: エラー箇所を突き止めるため
-				throw e;
 			}
 		}
 		return true;
