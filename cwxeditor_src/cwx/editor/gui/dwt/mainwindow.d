@@ -1884,6 +1884,7 @@ public:
 			// 起動失敗
 			fdebugln(dStr);
 			fdebugln(e);
+			throw e;
 		}
 	}
 	private class KeyDownFilter : Listener {
@@ -2570,6 +2571,7 @@ public:
 			// 起動・終了失敗
 			fdebugln(dStr);
 			fdebugln(e);
+			throw e;
 		}
 	}
 }

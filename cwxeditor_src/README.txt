@@ -17,6 +17,7 @@
 　submoduleがあるので、submodule initとupdateをしておきましょう。
 ---
 git clone https://github.com/d-widget-toolkit/dwt.git
+cd dwt
 git submodule update --init
 ---
 　DWTはビルドにrakeを使います。こいつはRuby言語のスクリプトなのですが、
@@ -73,6 +74,7 @@ make -f win32.mak release
 　submoduleがあるので、submodule initとupdateをしておきましょう。
 ---
 git clone https://github.com/d-widget-toolkit/dwt.git
+cd dwt
 git submodule update --init
 ---
 　さらに、org.eclipse.swt.browserがあると余計な依存関係が発生するので、
