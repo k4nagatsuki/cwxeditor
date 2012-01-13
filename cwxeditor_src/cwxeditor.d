@@ -16,6 +16,7 @@ import std.exception;
 import std.conv;
 
 version (Windows) {
+	import std.windows.charset;
 	import std.c.windows.windows;
 	import std.c.string;
 }
@@ -25,8 +26,7 @@ void main(string[] args) {
 	version (Windows) {
 		char[MAX_PATH] pathBuf;
 		if (GetModuleFileNameA(null, pathBuf.ptr, pathBuf.length)) {
-			auto pathBuf2 = pathBuf[0 .. strlen(pathBuf.ptr)];
-			appPath = assumeUnique(pathBuf2);
+			appPath = fromMBSz(pathBuf.idup.ptr);
 		} else {
 			version (Console) {
 				writeln("GetModuleFileName failure!");

@@ -8,6 +8,7 @@ import cwx.structs;
 import cwx.event;
 
 import std.path;
+import std.conv;
 
 public class Looks {
 public:
@@ -228,10 +229,22 @@ private:
 	string _appPath;
 public:
 	this (string appPath, cwx.system.System sys) {
-		_appPath = appPath;
-		_sys = sys;
-		_msgs = new Msgs;
-		_looks = new Looks;
+		string dStr = .text(__LINE__);
+		try {
+			dStr ~= " - " ~ .text(__LINE__);
+			_appPath = appPath;
+			_sys = sys;
+			dStr ~= " - " ~ .text(__LINE__);
+			_msgs = new Msgs;
+			dStr ~= " - " ~ .text(__LINE__);
+			_looks = new Looks;
+			dStr ~= " - " ~ .text(__LINE__);
+		} catch (Throwable e) {
+			fdebugln(dStr);
+			// FIXME: リンクエラー！
+//			fdebugln(e);
+			throw e;
+		}
 	}
 	@property const string appPath() {return _appPath;}
 	@property const const(cwx.system.System) sys() {return _sys;}

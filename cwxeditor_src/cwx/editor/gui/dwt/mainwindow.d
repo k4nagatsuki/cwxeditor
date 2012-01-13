@@ -1215,7 +1215,9 @@ public:
 			_openPaths = openPaths;
 			_saveSync = new Object;
 			dStr ~= " - " ~ .text(__LINE__);
-			_prop = new Props(confFilePath, new CProps(appPath, sys));
+			auto cProps = new CProps(appPath, sys);
+			dStr ~= " - " ~ .text(__LINE__);
+			_prop = new Props(confFilePath, cProps);
 			if (exists(_prop.tempPath)) {
 				dStr ~= " - " ~ .text(__LINE__);
 				foreach (temp; clistdir(_prop.tempPath)) {
@@ -1302,16 +1304,22 @@ public:
 				dockComp.setLayout(windowGridLayout(1, true));
 				dStr ~= " - " ~ .text(__LINE__);
 				_dock = _prop.var.loadDock(dockComp, SWT.NONE, delegate Control(Composite parent, string key) {
+					scope (exit) {
+						dStr ~= " - " ~ .text(__LINE__);
+					}
 					switch (key) {
 					case "data": {
+						dStr ~= " - " ~ .text(__LINE__);
 						_tableWin = new TableWindow(_comm, _prop, _win, parent);
 						return _tableWin.shell;
 					}
 					case "flag": {
+						dStr ~= " - " ~ .text(__LINE__);
 						_flagWin = new FlagWindow(_comm, _prop, _win, parent);
 						return _flagWin.shell;
 					}
 					case "card": {
+						dStr ~= " - " ~ .text(__LINE__);
 						if (_prop.var.etc.bindCardViews) {
 							_cardWin = new MainCardWindow(_comm, _prop, parent);
 							return _cardWin.shell;
@@ -1319,6 +1327,7 @@ public:
 						return null;
 					}
 					case "castCard": {
+						dStr ~= " - " ~ .text(__LINE__);
 						if (!_prop.var.etc.bindCardViews) {
 							_castWin = new CastCardWindow(_comm, _prop, parent);
 							return _castWin.shell;
@@ -1326,6 +1335,7 @@ public:
 						return null;
 					}
 					case "skillCard": {
+						dStr ~= " - " ~ .text(__LINE__);
 						if (!_prop.var.etc.bindCardViews) {
 							_skillWin = new SkillCardWindow(_comm, _prop, parent);
 							return _skillWin.shell;
@@ -1333,6 +1343,7 @@ public:
 						return null;
 					}
 					case "itemCard": {
+						dStr ~= " - " ~ .text(__LINE__);
 						if (!_prop.var.etc.bindCardViews) {
 							_itemWin = new ItemCardWindow(_comm, _prop, parent);
 							return _itemWin.shell;
@@ -1340,6 +1351,7 @@ public:
 						return null;
 					}
 					case "beastCard": {
+						dStr ~= " - " ~ .text(__LINE__);
 						if (!_prop.var.etc.bindCardViews) {
 							_beastWin = new BeastCardWindow(_comm, _prop, parent);
 							return _beastWin.shell;
@@ -1347,6 +1359,7 @@ public:
 						return null;
 					}
 					case "infoCard": {
+						dStr ~= " - " ~ .text(__LINE__);
 						if (!_prop.var.etc.bindCardViews) {
 							_infoWin = new InfoCardWindow(_comm, _prop, parent);
 							return _infoWin.shell;
@@ -1354,10 +1367,12 @@ public:
 						return null;
 					}
 					case "file": {
+						dStr ~= " - " ~ .text(__LINE__);
 						_dirWin = new DirectoryWindow(_comm, _prop, parent);
 						return _dirWin.shell;
 					}
 					default:
+						dStr ~= " - " ~ .text(__LINE__);
 						debugln("Unknown pane key: " ~ key);
 						return null;
 					}

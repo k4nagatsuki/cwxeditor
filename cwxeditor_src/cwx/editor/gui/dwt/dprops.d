@@ -26,6 +26,7 @@ import cwx.editor.gui.dwt.properties;
 
 import std.file;
 import std.path;
+import std.conv;
 
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.graphics.Image;
@@ -146,9 +147,20 @@ private:
 	FlexProps _var;
 public:
 	this (string confFilePath, CProps parent) {
-		_parent = parent;
-		_images = new Images(parent.appPath);
-		_var = new FlexProps(parent.appPath, confFilePath);
+		string dStr = .text(__LINE__);
+		try {
+			_parent = parent;
+			dStr ~= " - " ~ .text(__LINE__);
+			_images = new Images(parent.appPath);
+			dStr ~= " - " ~ .text(__LINE__);
+			_var = new FlexProps(parent.appPath, confFilePath);
+			dStr ~= " - " ~ .text(__LINE__);
+		} catch (Throwable e) {
+			fdebugln(dStr);
+			// FIXME: リンクエラー！
+//			fdebugln(e);
+			throw e;
+		}
 	}
 	@property
 	const
