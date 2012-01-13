@@ -6,32 +6,32 @@
 	・rake
 	・Digital Mars rcc
 ライブラリ:
-	・DWT2 rev.130
+	・DWT at GitHub
 
-　後はSubversionとMercurialのクライアントがあると楽です。
+　後はgitとMercurialのクライアントがあると楽です。
 
 
 [ Windowsの場合 ]
 
-　DWT2をMercurialのリポジトリから取ってきます。
-　最新のものがどこにあるかよく分からないのですが、次の場所にある版が
-dmd 2.057でビルド可能です。
+　DWTをGitHubから取ってきます。
+　submoduleがあるので、submodule initとupdateをしておきましょう。
 ---
-hg clone -r 130 https://bitbucket.org/kntroh/dwt2-with-d2
+git clone https://github.com/d-widget-toolkit/dwt.git
+git submodule update --init
 ---
-　DWT2はビルドにrakeを使います。こいつはRuby言語のスクリプトなのですが、
+　DWTはビルドにrakeを使います。こいつはRuby言語のスクリプトなのですが、
 RubyInstaller for Windowsを使うとRuby本体諸共入手できるようです。
 　http://rubyinstaller.org/
-　Rubyのbinフォルダにパスを通して、DWT2をビルド。baseとswtだけでOKです。
+　Rubyのbinフォルダにパスを通して、DWTをビルド。baseとswtだけでOKです。
 ---
 rake base swt
 ---
 
-　後は、dmd2/windows/bin/sc.iniを弄くってDWT2のインポートフォルダやら
+　後は、dmd2/windows/bin/sc.iniを弄くってDWTのインポートフォルダやら
 リソースフォルダやらを探しに行くようにしておきましょう。
 ---
-LIB="%@P%\..\lib";\dm\lib;"%@P%\..\..\dwt2\lib"
-DFLAGS="-I%@P%\..\..\src\phobos" "-I%@P%\..\..\src\druntime\import" "-I%@P%\..\..\import" "-I%@P%\..\..\dwt2\imp" "-J%@P%\..\..\dwt2\res"
+LIB="%@P%\..\lib";\dm\lib;"%@P%\..\..\dwt\lib"
+DFLAGS="-I%@P%\..\..\src\phobos" "-I%@P%\..\..\src\druntime\import" "-I%@P%\..\..\import" "-I%@P%\..\..\dwt\imp" "-J%@P%\..\..\dwt\res"
 LINKCMD=%@P%\link.exe
 ---
 　最後にリソースコンパイル用のrccを入手します。
@@ -69,9 +69,11 @@ make -f win32.mak release
 
 / DライブラリとCWXEditorのビルド /
 
-　DWT2をMercurialのリポジトリから取ってきます。
+　DWTをGitHubから取ってきます。
+　submoduleがあるので、submodule initとupdateをしておきましょう。
 ---
-hg clone -r 125 http://hg.dsource.org/projects/dwt2
+git clone https://github.com/d-widget-toolkit/dwt.git
+git submodule update --init
 ---
 　さらに、org.eclipse.swt.browserがあると余計な依存関係が発生するので、
 消すか、どこかへ移動してしまう必要があります。
@@ -79,17 +81,17 @@ hg clone -r 125 http://hg.dsource.org/projects/dwt2
 mv org.eclipse.swt.gtk.linux.x86/src/org/eclipse/swt/browser .
 ---
 
-　DWT2はビルドにrakeを使います。
+　DWTはビルドにrakeを使います。
 　rakeで"base"と"swt"をビルドし、ライブラリを作りましょう。
 　 dwt-base.a
 　 org.eclipse.swt.gtk.linux.x86.a
-　dwt2/libにある状態では何をどうしてもリンクできなかったので、cwxeditor_src/
+　dwt/libにある状態では何をどうしてもリンクできなかったので、cwxeditor_src/
 に放り込んでしまってください。
 　名前が"lib"から始まっていないのが悪いのですが、そのままリンクする方法が
 あるんでしょうか。自分は完膚無きまでにタコなので、分かっている人は教えて
 くださると助かります。
 
-　後はTangoの"bin/sc.ini"のDFLAGSを弄くってDWT2のインポートフォルダやら
+　後はTangoの"bin/sc.ini"のDFLAGSを弄くってDWTのインポートフォルダやら
 リソースフォルダやらを探しに行くようにしておきましょう。
 
 　ここまで準備をすれば、後はmakeするだけ。
@@ -105,15 +107,14 @@ make -f linux.mak release
 　後はどうかDWTが死なないことを私と一緒に祈ってください。
 
 
-[ dwt2_trace.patch について ]
+[ avoids_error_in_optlink.patch について ]
 
-　Javaと違ってDは例外のスタックトレースを出してくれないため、とりあえずの
-対策として、全てのSWTExceptionとSWTErrorがファイル名と行番号を含むように
-したパッチです。以下のようにして適用できます。
-
+　おそらくOPTLINKのバグにより、DWTをDEBUGビルドするとリンクに失敗します。
+　これはその失敗を避けるための改造を入れたパッチです。
+　以下のようにして適用できます。
 ---
-cd dwt2
-hg import dwt2_trace.patch
+cd dwt
+patch -p1 < avoids_error_in_optlink.patch
 ---
 
 　これが無いとデバグにどれほど苦労する事やら……あっても苦労するけど。
