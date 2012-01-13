@@ -538,99 +538,133 @@ public class FlexProps {
 	}
 
 	private string _path;
-	this(string appPath, string confFileName) {
-		IniLocation loc = IniLocation.STANDARD;
-		string iniFileName = "cwxeditor.xml";
-		if (.exists(std.path.buildPath(appPath.dirName, iniFileName))) {
-			// 1.0との互換性を維持するため、アプリケーションのディレクトリに
-			// cwxeditor.xmlがあった場合、LOCALをデフォルトにする。
-			loc = IniLocation.LOCAL;
-		}
+	this (string appPath, string confFileName) {
+		string dStr = .text(__LINE__);
 		try {
-			if (.exists(confFileName)) {
-				auto node = XNode.parse(std.file.readText(confFileName));
-				node.onTag["location"] = (ref XNode node) {
-					if (0 == icmp(node.value, "standard")) {
-						loc = IniLocation.STANDARD;
-					} else if (0 == icmp(node.value, "local")) {
-						loc = IniLocation.LOCAL;
-					} else if (0 == icmp(node.value, "copy")) {
-						loc = IniLocation.COPY;
-					}
-				};
-				node.onTag["file"] = (ref XNode node) {
-					iniFileName = node.value;
-				};
-				node.parse();
+			dStr ~= " - " ~ .text(__LINE__);
+			IniLocation loc = IniLocation.STANDARD;
+			string iniFileName = "cwxeditor.xml";
+			if (.exists(std.path.buildPath(appPath.dirName, iniFileName))) {
+				// 1.0との互換性を維持するため、アプリケーションのディレクトリに
+				// cwxeditor.xmlがあった場合、LOCALをデフォルトにする。
+				loc = IniLocation.LOCAL;
 			}
-		} catch (Exception e) {
-			debugln(e);
-		}
-
-		string dir;
-		final switch (loc) {
-		case IniLocation.STANDARD:
-			dir = appDataDir(appPath);
-			dir = std.path.buildPath(dir, "cwxeditor");
-			break;
-		case IniLocation.LOCAL:
-			dir = appPath.dirName;
-			break;
-		case IniLocation.COPY:
-			string base = std.path.buildPath(appPath.dirName, iniFileName);
-			dir = appDataDir(appPath);
-			dir = std.path.buildPath(dir, "cwxeditor");
-			string dest = std.path.buildPath(dir, iniFileName);
-			if (.exists(base) && !.exists(dest)) {
-				try {
-					if (!.exists(dir)) mkdirRecurse(dir);
-					std.file.copy(base, dest);
-				} catch (Exception e) {
-					debugln(e);
+			dStr ~= " - " ~ .text(__LINE__);
+			try {
+				if (.exists(confFileName)) {
+					dStr ~= " - " ~ .text(__LINE__);
+					auto node = XNode.parse(std.file.readText(confFileName));
+					node.onTag["location"] = (ref XNode node) {
+						if (0 == icmp(node.value, "standard")) {
+							loc = IniLocation.STANDARD;
+						} else if (0 == icmp(node.value, "local")) {
+							loc = IniLocation.LOCAL;
+						} else if (0 == icmp(node.value, "copy")) {
+							loc = IniLocation.COPY;
+						}
+					};
+					node.onTag["file"] = (ref XNode node) {
+						iniFileName = node.value;
+					};
+					dStr ~= " - " ~ .text(__LINE__);
+					node.parse();
+					dStr ~= " - " ~ .text(__LINE__);
 				}
+			} catch (Exception e) {
+				debugln(e);
 			}
-			break;
-		}
+			dStr ~= " - " ~ .text(__LINE__);
 
-		_path = std.path.buildPath(dir, iniFileName);
-		if (exists(_path)) {
-			if (!reloadImpl(false)) {
-				createBackup();
-			}
-			foreach (i, fld; this.tupleof) {
-				this.tupleof[i] = newField(fld);
-			}
-		} else {
-			foreach (i, fld; this.tupleof) {
-				this.tupleof[i] = newField(fld);
-			}
-
-			// この二つの設定だけは環境によって初期値が変わる
+			string dir;
+			dStr ~= " - " ~ .text(__LINE__);
 			final switch (loc) {
-			case IniLocation.STANDARD, IniLocation.COPY:
+			case IniLocation.STANDARD:
+				dStr ~= " - " ~ .text(__LINE__);
 				dir = appDataDir(appPath);
 				dir = std.path.buildPath(dir, "cwxeditor");
-				etc.tempPath = std.path.buildPath(dir, "temp");
-				etc.backupPath = std.path.buildPath(dir, "backup");
 				break;
 			case IniLocation.LOCAL:
-				etc.tempPath = "temp";
-				etc.backupPath = "backup";
+				dStr ~= " - " ~ .text(__LINE__);
+				dir = appPath.dirName;
+				break;
+			case IniLocation.COPY:
+				dStr ~= " - " ~ .text(__LINE__);
+				string base = std.path.buildPath(appPath.dirName, iniFileName);
+				dir = appDataDir(appPath);
+				dir = std.path.buildPath(dir, "cwxeditor");
+				string dest = std.path.buildPath(dir, iniFileName);
+				if (.exists(base) && !.exists(dest)) {
+					try {
+						if (!.exists(dir)) mkdirRecurse(dir);
+						std.file.copy(base, dest);
+					} catch (Exception e) {
+						debugln(e);
+					}
+				}
 				break;
 			}
+			dStr ~= " - " ~ .text(__LINE__);
+
+			_path = std.path.buildPath(dir, iniFileName);
+			if (exists(_path)) {
+				dStr ~= " - " ~ .text(__LINE__);
+				if (!reloadImpl(false, dStr)) {
+					dStr ~= " - " ~ .text(__LINE__);
+					createBackup();
+				}
+				dStr ~= " - " ~ .text(__LINE__);
+				foreach (i, fld; this.tupleof) {
+					this.tupleof[i] = newField(fld);
+				}
+				dStr ~= " - " ~ .text(__LINE__);
+			} else {
+				dStr ~= " - " ~ .text(__LINE__);
+				foreach (i, fld; this.tupleof) {
+					this.tupleof[i] = newField(fld);
+				}
+				dStr ~= " - " ~ .text(__LINE__);
+
+				// この二つの設定だけは環境によって初期値が変わる
+				final switch (loc) {
+				case IniLocation.STANDARD, IniLocation.COPY:
+					dStr ~= " - " ~ .text(__LINE__);
+					dir = appDataDir(appPath);
+					dir = std.path.buildPath(dir, "cwxeditor");
+					etc.tempPath = std.path.buildPath(dir, "temp");
+					etc.backupPath = std.path.buildPath(dir, "backup");
+					break;
+				case IniLocation.LOCAL:
+					dStr ~= " - " ~ .text(__LINE__);
+					etc.tempPath = "temp";
+					etc.backupPath = "backup";
+					break;
+				}
+				dStr ~= " - " ~ .text(__LINE__);
+			}
+		} catch (Throwable e) {
+			fdebugln(dStr);
+			// FIXME: リンクエラー！
+//			fdebugln(e);
+			throw e;
 		}
 	}
 	bool reload() {
-		return reloadImpl(true);
+		string dStr = .text(__LINE__);
+		return reloadImpl(true, dStr);
 	}
-	private bool reloadImpl(bool force) {
+	private bool reloadImpl(bool force, ref string dStr) {
 		try {
+			dStr ~= " - " ~ .text(__LINE__);
 			auto node = XNode.parse(std.file.readText(_path));
+			dStr ~= " - " ~ .text(__LINE__);
 			if (node.name == "cwxeditor" || node.name == "CWXEditor") {
+				dStr ~= " - " ~ .text(__LINE__);
 				foreach (i, fld; this.tupleof) {
 					this.tupleof[i] = fromNode(node, fld, force);
 				}
+				dStr ~= " - " ~ .text(__LINE__);
 			}
+			dStr ~= " - " ~ .text(__LINE__);
 			return true;
 		} catch(Exception e) {
 			debugln(e);
