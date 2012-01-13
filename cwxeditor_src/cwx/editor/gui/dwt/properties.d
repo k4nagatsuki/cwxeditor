@@ -544,7 +544,9 @@ public class FlexProps {
 			dStr ~= " - " ~ .text(__LINE__);
 			IniLocation loc = IniLocation.STANDARD;
 			string iniFileName = "cwxeditor.xml";
-			if (.exists(std.path.buildPath(appPath.dirName, iniFileName))) {
+			string iniPath = std.path.buildPath(appPath.dirName, iniFileName);
+			dStr ~= " - " ~ iniPath;
+			if (.exists(iniPath)) {
 				// 1.0との互換性を維持するため、アプリケーションのディレクトリに
 				// cwxeditor.xmlがあった場合、LOCALをデフォルトにする。
 				loc = IniLocation.LOCAL;

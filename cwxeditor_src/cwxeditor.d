@@ -33,6 +33,9 @@ void main(string[] args) {
 			}
 		}
 	}
+	version (Console) {
+		writeln("Executed: " ~ appPath);
+	}
 
 	cwx.utils.debugLog = buildPath(dirName(appPath), cwx.utils.debugLog);
 	string dStr = .text(__LINE__); // 起動ログ
