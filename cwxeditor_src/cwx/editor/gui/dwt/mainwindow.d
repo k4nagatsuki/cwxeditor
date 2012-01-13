@@ -1168,654 +1168,722 @@ private:
 public:
 	this (string appPath, string confFilePath, cwx.system.System sys,
 			string firstScenarioPath = null, string[] openPaths = []) {
-		decScenarioPath(firstScenarioPath, openPaths);
-		/// すでにfirstScenarioPathを開いている
-		/// 既存のcwxeditorプロセスがある場合、
-		/// そちらを開くようにする。
-		string path1 = "";
-		if (firstScenarioPath && .exists(firstScenarioPath)) {
-			path1 = nabs(firstScenarioPath);
-			auto ext = cwx.utils.getExt(path1);
-			if (!.isDir(path1)
-					&& (cfnmatch(ext, "xml") || cfnmatch(ext, "wsm") || cfnmatch(ext, "wid"))) {
-				path1 = nabs(dirName(path1));
+		string dStr = .text(__LINE__); // 起動ログ
+		try {
+			dStr ~= " - " ~ .text(__LINE__);
+			decScenarioPath(firstScenarioPath, openPaths);
+			/// すでにfirstScenarioPathを開いている
+			/// 既存のcwxeditorプロセスがある場合、
+			/// そちらを開くようにする。
+			string path1 = "";
+			dStr ~= " - " ~ .text(__LINE__);
+			if (firstScenarioPath && .exists(firstScenarioPath)) {
+				path1 = nabs(firstScenarioPath);
+				auto ext = cwx.utils.getExt(path1);
+				if (!.isDir(path1)
+						&& (cfnmatch(ext, "xml") || cfnmatch(ext, "wsm") || cfnmatch(ext, "wid"))) {
+					path1 = nabs(dirName(path1));
+				}
 			}
-		}
-		bool execute = true;
-		sendToPipe((string recv) {
-			if (!recv) {
-				return "get opened scenario";
-			} else if (std.string.startsWith(recv, "opened scenario ")) {
-				if (cfnmatch(path1, nabs(recv["opened scenario ".length .. $]))) {
-					string send = "open cwxpath ";
-					foreach (j, s; openPaths) {
-						if (j > 0) send ~= CWXPATH_SEP;
-						send ~= s;
+			bool execute = true;
+			dStr ~= " - " ~ .text(__LINE__);
+			sendToPipe((string recv) {
+				if (!recv) {
+					return "get opened scenario";
+				} else if (std.string.startsWith(recv, "opened scenario ")) {
+					if (cfnmatch(path1, nabs(recv["opened scenario ".length .. $]))) {
+						string send = "open cwxpath ";
+						foreach (j, s; openPaths) {
+							if (j > 0) send ~= CWXPATH_SEP;
+							send ~= s;
+						}
+						path1 = "";
+						execute = false;
+						return send;
+					} else {
+						return "";
 					}
-					path1 = "";
-					execute = false;
-					return send;
 				} else {
 					return "";
 				}
-			} else {
-				return "";
-			}
-		}, {
-			return path1.length > 0;
-		});
-		if (!execute) return;
-		_firstScenarioPath = firstScenarioPath;
-		_openPaths = openPaths;
-		_saveSync = new Object;
-		_prop = new Props(confFilePath, new CProps(appPath, sys));
-		if (exists(_prop.tempPath)) {
-			foreach (temp; clistdir(_prop.tempPath)) {
-				temp = std.path.buildPath(_prop.tempPath, temp);
-				if (exists(temp) && isDir(temp)) {
-					auto lock = std.path.buildPath(temp, "cwxeditor.lock");
-					if (exists(lock)) {
-						try {
-							std.file.remove(lock);
-							delAll(temp);
-						} catch (Exception e) {}
-					} else if (fnstartsWith(baseName(temp), "cwxeditor_temp_")) {
-						try {
-							delAll(temp);
-						} catch (Exception e) {}
-					}
-				}
-			}
-		}
-
-		_comm = new Commons(_prop);
-		_comm.skin = findSkin2(_prop, _prop.var.etc.defaultSkin);
-
-		auto d = new Display;
-		_display = d;
-		d.setAppName(_prop.msgs.application);
-
-		string engineDir = "";
-		if (_prop.enginePath.length && .exists(_prop.enginePath)) {
-			engineDir = dirName(nabs(_prop.enginePath));
-			auto skinTable = .skinTable(_prop);
-			if (!(_prop.var.etc.defaultSkin in skinTable)) {
-				MessageBox.showWarning(_prop.msgs.loadSkinError(_prop.var.etc.defaultSkin),
-					_prop.msgs.dlgTitWarning, null);
-			}
-		}
-
-		if (_prop.var.etc.singleWindow) {
-			_sbshl = new SBShell(null, SWT.SHELL_TRIM);
-		} else {
-			_sbshl = new SBShell(null, SWT.DIALOG_TRIM | SWT.MIN);
-		}
-		_win = _sbshl.shell();
-		_win.setData(new TLPData(this));
-		_win.setImage(_prop.images.app);
-
-		_comm.save.add(&savec);
-		_comm.refScenarioName.add(&refreshTitle);
-		_comm.refScenarioPath.add(&refreshTitle);
-		_comm.refWallpaper.add(&redrawAll);
-		_comm.replText.add(&refreshTitle);
-		_comm.refClassicSkin.add(&refreshExecEngine);
-		_comm.refHistories.add(&createFileMenu);
-		_win.addDisposeListener(new DListener);
-		_win.addShellListener(new SListener);
-		_comm.refreshWallpaper(_prop);
-		foreach (f; _prop.looks.fontFiles) {
-			d.loadFont(std.path.buildPath(engineDir, f));
-		}
-		_win.setText(_prop.msgs.mainWindowName(null, null, false));
-		if (_prop.var.etc.singleWindow) {
-			_sbshl.contentPane.setLayout(zeroGridLayout(1, true));
-		} else {
-			_sbshl.contentPane.setLayout(windowGridLayout(1, true));
-		}
-		auto toolComp = new Composite(_sbshl.contentPane, SWT.NONE);
-		toolComp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		toolComp.setLayout(new FillLayout);
-		if (_prop.var.etc.singleWindow) {
-			auto dockComp = new Composite(_sbshl.contentPane, SWT.NONE);
-			dockComp.setLayoutData(new GridData(GridData.FILL_BOTH));
-			dockComp.setLayout(windowGridLayout(1, true));
-			_dock = _prop.var.loadDock(dockComp, SWT.NONE, delegate Control(Composite parent, string key) {
-				switch (key) {
-				case "data": {
-					_tableWin = new TableWindow(_comm, _prop, _win, parent);
-					return _tableWin.shell;
-				}
-				case "flag": {
-					_flagWin = new FlagWindow(_comm, _prop, _win, parent);
-					return _flagWin.shell;
-				}
-				case "card": {
-					if (_prop.var.etc.bindCardViews) {
-						_cardWin = new MainCardWindow(_comm, _prop, parent);
-						return _cardWin.shell;
-					}
-					return null;
-				}
-				case "castCard": {
-					if (!_prop.var.etc.bindCardViews) {
-						_castWin = new CastCardWindow(_comm, _prop, parent);
-						return _castWin.shell;
-					}
-					return null;
-				}
-				case "skillCard": {
-					if (!_prop.var.etc.bindCardViews) {
-						_skillWin = new SkillCardWindow(_comm, _prop, parent);
-						return _skillWin.shell;
-					}
-					return null;
-				}
-				case "itemCard": {
-					if (!_prop.var.etc.bindCardViews) {
-						_itemWin = new ItemCardWindow(_comm, _prop, parent);
-						return _itemWin.shell;
-					}
-					return null;
-				}
-				case "beastCard": {
-					if (!_prop.var.etc.bindCardViews) {
-						_beastWin = new BeastCardWindow(_comm, _prop, parent);
-						return _beastWin.shell;
-					}
-					return null;
-				}
-				case "infoCard": {
-					if (!_prop.var.etc.bindCardViews) {
-						_infoWin = new InfoCardWindow(_comm, _prop, parent);
-						return _infoWin.shell;
-					}
-					return null;
-				}
-				case "file": {
-					_dirWin = new DirectoryWindow(_comm, _prop, parent);
-					return _dirWin.shell;
-				}
-				default:
-					debugln("Unknown pane key: " ~ key);
-					return null;
-				}
+			}, {
+				return path1.length > 0;
 			});
-			void initDock() {
-				if (!_dock.findPane("work").length) {
-					_dock.addPane(_dock.first, Dir.N, 3, 1, "work");
+			dStr ~= " - " ~ .text(__LINE__);
+			if (!execute) return;
+			_firstScenarioPath = firstScenarioPath;
+			_openPaths = openPaths;
+			_saveSync = new Object;
+			dStr ~= " - " ~ .text(__LINE__);
+			_prop = new Props(confFilePath, new CProps(appPath, sys));
+			if (exists(_prop.tempPath)) {
+				dStr ~= " - " ~ .text(__LINE__);
+				foreach (temp; clistdir(_prop.tempPath)) {
+					temp = std.path.buildPath(_prop.tempPath, temp);
+					if (exists(temp) && isDir(temp)) {
+						auto lock = std.path.buildPath(temp, "cwxeditor.lock");
+						if (exists(lock)) {
+							try {
+								std.file.remove(lock);
+								delAll(temp);
+							} catch (Exception e) {}
+						} else if (fnstartsWith(baseName(temp), "cwxeditor_temp_")) {
+							try {
+								delAll(temp);
+							} catch (Exception e) {}
+						}
+					}
 				}
-				_dock.canMove = &dockCanMove;
-				_dock.newPaneName = &dockNewPaneName;
-				_dock.canVanish = &dockCanVanish;
-				_dock.selectEvent ~= &dockSelect;
-				_dock.closeCtrlEvent ~= &dockCloseCtrl;
-				_dock.addCreatePaneEvent(&createPaneEvent);
-				_dock.area.setLayoutData(new GridData(GridData.FILL_BOTH));
 			}
-			if (_dock) {
-				initDock();
-				if (_tableWin) {
-					_dock.tabImage("data", _tableWin.image);
-					_dock.tabText("data", _tableWin.title);
-				} else {
-					_tableWin = new TableWindow(_comm, _prop, _win, null);
+
+			dStr ~= " - " ~ .text(__LINE__);
+			_comm = new Commons(_prop);
+			_comm.skin = findSkin2(_prop, _prop.var.etc.defaultSkin);
+			dStr ~= " - " ~ .text(__LINE__);
+
+			auto d = new Display;
+			_display = d;
+			d.setAppName(_prop.msgs.application);
+			dStr ~= " - " ~ .text(__LINE__);
+
+			string engineDir = "";
+			if (_prop.enginePath.length && .exists(_prop.enginePath)) {
+				dStr ~= " - " ~ .text(__LINE__);
+				engineDir = dirName(nabs(_prop.enginePath));
+				auto skinTable = .skinTable(_prop);
+				if (!(_prop.var.etc.defaultSkin in skinTable)) {
+					MessageBox.showWarning(_prop.msgs.loadSkinError(_prop.var.etc.defaultSkin),
+						_prop.msgs.dlgTitWarning, null);
 				}
-				if (_flagWin) {
-					_dock.tabImage("flag", _flagWin.image);
-					_dock.tabText("flag", _flagWin.title);
-				} else {
-					_flagWin = new FlagWindow(_comm, _prop, _win, null);
-				}
-				if (_prop.var.etc.bindCardViews) {
-					if (_cardWin) {
-						_dock.tabImage("card", _cardWin.image);
-						_dock.tabText("card", _cardWin.title);
-					} else {
-						_cardWin = new MainCardWindow(_comm, _prop, null);
-					}
-				} else {
-					if (_castWin) {
-						_dock.tabImage("castCard", _castWin.image);
-						_dock.tabText("castCard", _castWin.title);
-					} else {
-						_castWin = new CastCardWindow(_comm, _prop, null);
-					}
-					if (_skillWin) {
-						_dock.tabImage("skillCard", _skillWin.image);
-						_dock.tabText("skillCard", _skillWin.title);
-					} else {
-						_skillWin = new SkillCardWindow(_comm, _prop, null);
-					}
-					if (_itemWin) {
-						_dock.tabImage("itemCard", _itemWin.image);
-						_dock.tabText("itemCard", _itemWin.title);
-					} else {
-						_itemWin = new ItemCardWindow(_comm, _prop, null);
-					}
-					if (_beastWin) {
-						_dock.tabImage("beastCard", _beastWin.image);
-						_dock.tabText("beastCard", _beastWin.title);
-					} else {
-						_beastWin = new BeastCardWindow(_comm, _prop, null);
-					}
-					if (_infoWin) {
-						_dock.tabImage("infoCard", _infoWin.image);
-						_dock.tabText("infoCard", _infoWin.title);
-					} else {
-						_infoWin = new InfoCardWindow(_comm, _prop, null);
-					}
-				}
-				if (_dirWin) {
-					_dock.tabImage("file", _dirWin.image);
-					_dock.tabText("file", _dirWin.title);
-				} else {
-					_dirWin = new DirectoryWindow(_comm, _prop, null);
-				}
+			}
+
+			if (_prop.var.etc.singleWindow) {
+				dStr ~= " - " ~ .text(__LINE__);
+				_sbshl = new SBShell(null, SWT.SHELL_TRIM);
 			} else {
-				_dock = new DockingFolderCTC(dockComp, SWT.NONE, "work");
-				initDock();
-				auto data = _dock.addPane(_dock.first, Dir.N, 1, 3, "data");
-				_tableWin = new TableWindow(_comm, _prop, _win, data);
-				_dock.add(_tableWin.shell, _tableWin.title, _tableWin.image, "data", true);
-				_flagWin = new FlagWindow(_comm, _prop, _win, data);
-				_dock.add(_flagWin.shell, _flagWin.title, _flagWin.image, "flag", false);
-				if (_prop.var.etc.bindCardViews) {
-					_cardWin = new MainCardWindow(_comm, _prop, data);
-					_dock.add(_cardWin.shell, _cardWin.title, _cardWin.image, "card", false);
-				} else {
-					_castWin = new CastCardWindow(_comm, _prop, data);
-					_dock.add(_castWin.shell, _castWin.title, _castWin.image, "castCard", false);
-					_skillWin = new SkillCardWindow(_comm, _prop, data);
-					_dock.add(_skillWin.shell, _skillWin.title, _skillWin.image, "skillCard", false);
-					_itemWin = new ItemCardWindow(_comm, _prop, data);
-					_dock.add(_itemWin.shell, _itemWin.title, _itemWin.image, "itemCard", false);
-					_beastWin = new BeastCardWindow(_comm, _prop, data);
-					_dock.add(_beastWin.shell, _beastWin.title, _beastWin.image, "beastCard", false);
-					_infoWin = new InfoCardWindow(_comm, _prop, data);
-					_dock.add(_infoWin.shell, _infoWin.title, _infoWin.image, "infoCard", false);
-				}
-				_dirWin = new DirectoryWindow(_comm, _prop, data);
-				_dock.add(_dirWin.shell, _dirWin.title, _dirWin.image, "file", false);
+				dStr ~= " - " ~ .text(__LINE__);
+				_sbshl = new SBShell(null, SWT.DIALOG_TRIM | SWT.MIN);
 			}
-		} else {
-			_dataWin = new DataWindow(_comm, _prop, _win, _win);
-			_cardWin = new MainCardWindow(_comm, _prop, _win);
-			_dirWin = new DirectoryWindow(_comm, _prop, _win);
-		}
+			dStr ~= " - " ~ .text(__LINE__);
+			_win = _sbshl.shell();
+			_win.setData(new TLPData(this));
+			_win.setImage(_prop.images.app);
 
-		_noSummMenu = new HashSet!(MenuID);
-		_noSummMenu.add(MenuID.New);
-		_noSummMenu.add(MenuID.Open);
-		_noSummMenu.add(MenuID.Close);
-		_noSummMenu.add(MenuID.ToXML);
-		if (_prop.var.etc.singleWindow) {
-			_noSummMenu.add(MenuID.DataWin);
-			_noSummMenu.add(MenuID.FlagWin);
-			_noSummMenu.add(MenuID.CardWin);
-			_noSummMenu.add(MenuID.CastWin);
-			_noSummMenu.add(MenuID.SkillWin);
-			_noSummMenu.add(MenuID.ItemWin);
-			_noSummMenu.add(MenuID.BeastWin);
-			_noSummMenu.add(MenuID.InfoWin);
-			_noSummMenu.add(MenuID.DirWin);
-		}
-		_noSummMenu.add(MenuID.ChangeVH);
-		_noSummMenu.add(MenuID.ShowCardLife);
-		_noSummMenu.add(MenuID.ShowCardList);
-		_noSummMenu.add(MenuID.ShowCardTable);
-		_noSummMenu.add(MenuID.ExecEngine);
-		_noSummMenu.add(MenuID.Settings);
-		_noSummMenu.add(MenuID.Version);
-
-		{
-			_mainMenu = new HashSet!(MenuID);
-			auto bar = new Menu(_win, SWT.BAR);
-
-			_menuFile = createMenu(bar, _prop.msgs.menuFile);
-			createFileMenu();
-
-			auto me = createMenu(bar, _prop.msgs.menuEdit);
+			dStr ~= " - " ~ .text(__LINE__);
+			_comm.save.add(&savec);
+			_comm.refScenarioName.add(&refreshTitle);
+			_comm.refScenarioPath.add(&refreshTitle);
+			_comm.refWallpaper.add(&redrawAll);
+			_comm.replText.add(&refreshTitle);
+			_comm.refClassicSkin.add(&refreshExecEngine);
+			_comm.refHistories.add(&createFileMenu);
+			_win.addDisposeListener(new DListener);
+			_win.addShellListener(new SListener);
+			_comm.refreshWallpaper(_prop);
+			dStr ~= " - " ~ .text(__LINE__);
+			foreach (f; _prop.looks.fontFiles) {
+				d.loadFont(std.path.buildPath(engineDir, f));
+			}
+			dStr ~= " - " ~ .text(__LINE__);
+			_win.setText(_prop.msgs.mainWindowName(null, null, false));
 			if (_prop.var.etc.singleWindow) {
-				mixin (MenuAction!("me", "OpenDirectory", SWT.PUSH, "openDirectory"));
-				new MenuItem(me, SWT.SEPARATOR);
-				mixin (MenuAction!("me", "Undo"));
-				mixin (MenuAction!("me", "Redo"));
-				new MenuItem(me, SWT.SEPARATOR);
-				mixin (MenuAction!("me", "Cut"));
-				mixin (MenuAction!("me", "Copy"));
-				mixin (MenuAction!("me", "Paste"));
-				mixin (MenuAction!("me", "Del"));
-				new MenuItem(me, SWT.SEPARATOR);
-				mixin (MenuAction!("me", "WriteComment"));
-				new MenuItem(me, SWT.SEPARATOR);
-				mixin (MenuAction!("me", "ToScript"));
-				mixin (MenuAction!("me", "ToScriptAll"));
-				new MenuItem(me, SWT.SEPARATOR);
-				mixin (MenuAction!("me", "Up"));
-				mixin (MenuAction!("me", "Down"));
-				new MenuItem(me, SWT.SEPARATOR);
-			}
-			mixin (MenuAction!("me", "ReplaceText", SWT.PUSH, "replaceText"));
-			mixin (MenuAction!("me", "ReNumberingAll", SWT.PUSH, "reNumberingAll"));
-			mixin (MenuAction!("me", "ToXML", SWT.PUSH, "clipboardToXML"));
-			if (_prop.var.etc.singleWindow) {
-				new MenuItem(me, SWT.SEPARATOR);
-				mixin (MenuAction!("me", "NewFolder", SWT.PUSH, "_dirWin.createNewFolder"));
-				new MenuItem(me, SWT.SEPARATOR);
-				mixin (MenuAction!("me", "DeleteUnuse", SWT.PUSH, "_dirWin.deleteUnuse"));
-			}
-
-			auto mv = createMenu(bar, _prop.msgs.menuView);
-			mixin (MenuAction!("mv", "DataWin", SWT.PUSH, "openDataWindow"));
-			if (_prop.var.etc.singleWindow) {
-				mixin (MenuAction!("mv", "FlagWin", SWT.PUSH, "openFlagWindow"));
-			}
-			if (!_prop.var.etc.singleWindow || _prop.var.etc.bindCardViews) {
-				mixin (MenuAction!("mv", "CardWin", SWT.PUSH, "openCardWindow"));
+				_sbshl.contentPane.setLayout(zeroGridLayout(1, true));
 			} else {
-				new MenuItem(mv, SWT.SEPARATOR);
-				mixin (MenuAction!("mv", "CastWin", SWT.PUSH, "openCast"));
-				mixin (MenuAction!("mv", "SkillWin", SWT.PUSH, "openSkill"));
-				mixin (MenuAction!("mv", "ItemWin", SWT.PUSH, "openItem"));
-				mixin (MenuAction!("mv", "BeastWin", SWT.PUSH, "openBeast"));
-				mixin (MenuAction!("mv", "InfoWin", SWT.PUSH, "openInfo"));
-				new MenuItem(mv, SWT.SEPARATOR);
+				_sbshl.contentPane.setLayout(windowGridLayout(1, true));
 			}
-			mixin (MenuAction!("mv", "DirWin", SWT.PUSH, "openDirWindow"));
+			dStr ~= " - " ~ .text(__LINE__);
+			auto toolComp = new Composite(_sbshl.contentPane, SWT.NONE);
+			toolComp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			toolComp.setLayout(new FillLayout);
 			if (_prop.var.etc.singleWindow) {
-				new MenuItem(mv, SWT.SEPARATOR);
-				mixin (MenuAction!("mv", "Refresh", SWT.PUSH, "refreshAll"));
-				new MenuItem(mv, SWT.SEPARATOR);
-				mixin (MenuAction!("mv", "ChangeVH"));
-			}
-
-			if (_prop.var.etc.singleWindow) {
-				auto ma = createMenu(bar, _prop.msgs.menuTable);
-				mixin (MenuAction!("ma", "Summary", SWT.PUSH, "_tableWin.editSummary"));
-				new MenuItem(ma, SWT.SEPARATOR);
-				if (!_prop.var.etc.bindSceneWithEvent) {
-					mixin (MenuAction!("ma", "EditScene"));
-					mixin (MenuAction!("ma", "EditEvent"));
-					new MenuItem(ma, SWT.SEPARATOR);
+				dStr ~= " - " ~ .text(__LINE__);
+				auto dockComp = new Composite(_sbshl.contentPane, SWT.NONE);
+				dockComp.setLayoutData(new GridData(GridData.FILL_BOTH));
+				dockComp.setLayout(windowGridLayout(1, true));
+				dStr ~= " - " ~ .text(__LINE__);
+				_dock = _prop.var.loadDock(dockComp, SWT.NONE, delegate Control(Composite parent, string key) {
+					switch (key) {
+					case "data": {
+						_tableWin = new TableWindow(_comm, _prop, _win, parent);
+						return _tableWin.shell;
+					}
+					case "flag": {
+						_flagWin = new FlagWindow(_comm, _prop, _win, parent);
+						return _flagWin.shell;
+					}
+					case "card": {
+						if (_prop.var.etc.bindCardViews) {
+							_cardWin = new MainCardWindow(_comm, _prop, parent);
+							return _cardWin.shell;
+						}
+						return null;
+					}
+					case "castCard": {
+						if (!_prop.var.etc.bindCardViews) {
+							_castWin = new CastCardWindow(_comm, _prop, parent);
+							return _castWin.shell;
+						}
+						return null;
+					}
+					case "skillCard": {
+						if (!_prop.var.etc.bindCardViews) {
+							_skillWin = new SkillCardWindow(_comm, _prop, parent);
+							return _skillWin.shell;
+						}
+						return null;
+					}
+					case "itemCard": {
+						if (!_prop.var.etc.bindCardViews) {
+							_itemWin = new ItemCardWindow(_comm, _prop, parent);
+							return _itemWin.shell;
+						}
+						return null;
+					}
+					case "beastCard": {
+						if (!_prop.var.etc.bindCardViews) {
+							_beastWin = new BeastCardWindow(_comm, _prop, parent);
+							return _beastWin.shell;
+						}
+						return null;
+					}
+					case "infoCard": {
+						if (!_prop.var.etc.bindCardViews) {
+							_infoWin = new InfoCardWindow(_comm, _prop, parent);
+							return _infoWin.shell;
+						}
+						return null;
+					}
+					case "file": {
+						_dirWin = new DirectoryWindow(_comm, _prop, parent);
+						return _dirWin.shell;
+					}
+					default:
+						debugln("Unknown pane key: " ~ key);
+						return null;
+					}
+				});
+				dStr ~= " - " ~ .text(__LINE__);
+				void initDock() {
+					dStr ~= " - " ~ .text(__LINE__);
+					if (!_dock.findPane("work").length) {
+						_dock.addPane(_dock.first, Dir.N, 3, 1, "work");
+					}
+					dStr ~= " - " ~ .text(__LINE__);
+					_dock.canMove = &dockCanMove;
+					_dock.newPaneName = &dockNewPaneName;
+					_dock.canVanish = &dockCanVanish;
+					_dock.selectEvent ~= &dockSelect;
+					_dock.closeCtrlEvent ~= &dockCloseCtrl;
+					_dock.addCreatePaneEvent(&createPaneEvent);
+					_dock.area.setLayoutData(new GridData(GridData.FILL_BOTH));
+					dStr ~= " - " ~ .text(__LINE__);
 				}
-				mixin (MenuAction!("ma", "NewArea", SWT.PUSH, "_tableWin.createArea"));
-				mixin (MenuAction!("ma", "NewBattle", SWT.PUSH, "_tableWin.createBattle"));
-				mixin (MenuAction!("ma", "NewPackage", SWT.PUSH, "_tableWin.createPackage"));
-
-				auto mf = createMenu(bar, _prop.msgs.menuVariable);
-				mixin (MenuAction!("mf", "NewFlagDir", SWT.PUSH, "_flagWin.createFlagDir"));
-				mixin (MenuAction!("mf", "NewFlag", SWT.PUSH, "_flagWin.createFlag"));
-				mixin (MenuAction!("mf", "NewStep", SWT.PUSH, "_flagWin.createStep"));
-
-				auto mc = createMenu(bar, _prop.msgs.menuNewCards);
-				auto g = new RadioGroup!(MenuItem);
-				mixin (MenuAction!("mc", "ShowCardLife", SWT.RADIO, "showCardLife"));
-				auto scf = _menu[MenuID.ShowCardLife];
-				g.append(scf);
-				mixin (MenuAction!("mc", "ShowCardList", SWT.RADIO, "showCardList"));
-				auto scl = _menu[MenuID.ShowCardList];
-				g.append(scl);
-				mixin (MenuAction!("mc", "ShowCardTable", SWT.RADIO, "showCardTable"));
-				auto sct = _menu[MenuID.ShowCardTable];
-				g.append(sct);
-				if (_prop.var.etc.cardLife) {
-					scf.setSelection(true);
- 				} else if (_prop.var.etc.cardDetails) {
-					sct.setSelection(true);
-				} else {
-					scl.setSelection(true);
-				}
-				_menuRG ~= g;
-				new MenuItem(mc, SWT.SEPARATOR);
-				mixin (MenuAction!("mc", "NewCast", SWT.PUSH, "newCast"));
-				mixin (MenuAction!("mc", "NewSkill", SWT.PUSH, "newSkill"));
-				mixin (MenuAction!("mc", "NewItem", SWT.PUSH, "newItem"));
-				mixin (MenuAction!("mc", "NewBeast", SWT.PUSH, "newBeast"));
-				mixin (MenuAction!("mc", "NewInfo", SWT.PUSH, "newInfo"));
-				new MenuItem(mc, SWT.SEPARATOR);
-				mixin (MenuAction!("mc", "AddScenario", SWT.PUSH, "addScenario"));
-			}
-
-			auto mt = createMenu(bar, _prop.msgs.menuTools);
-			void delegate(SelectionEvent) dummy = null;
-			auto eemi = createMenuItem(mt, _prop.msgs.menuExecEngine, _prop.images.menuExecEngine, dummy, SWT.CASCADE);
-			_mExecEngine = new Menu(eemi);
-			eemi.setMenu(_mExecEngine);
-			new MenuItem(mt, SWT.SEPARATOR);
-			mixin (MenuAction!("mt", "Settings", SWT.PUSH, "settings"));
-
-			auto mh = createMenu(bar, _prop.msgs.menuHelp);
-			mixin (MenuAction!("mh", "Version", SWT.PUSH, "versionInfo"));
-
-			_win.setMenuBar(bar);
-		}
-
-		Menu tmOpenCardWin;
-		void createCardWinTI(ToolBar bar) {
-			_mainMenu.add(MenuID.CardWin);
-			auto ti = createDropDownItem(bar, _prop.msgs.ttCardWin, _prop.images.menuCardWin, &openCardWindow, tmOpenCardWin);
-			_tool[MenuID.CardWin] = ti;
-			createMenuItem(tmOpenCardWin, _prop.msgs.casts, _prop.images.casts, &openCast);
-			createMenuItem(tmOpenCardWin, _prop.msgs.skill, _prop.images.skill, &openSkill);
-			createMenuItem(tmOpenCardWin, _prop.msgs.item, _prop.images.item, &openItem);
-			createMenuItem(tmOpenCardWin, _prop.msgs.beast, _prop.images.beast, &openBeast);
-			createMenuItem(tmOpenCardWin, _prop.msgs.info, _prop.images.info, &openInfo);
-		}
-		void createExecEngineTI(ToolBar bar) {
-			_mainMenu.add(MenuID.ExecEngine);
-			auto ti = createDropDownItem(bar, _prop.msgs.ttExecEngine, _prop.images.menuExecEngine, &execEngine, _tmExecEngine);
-			_tool[MenuID.ExecEngine] = ti;
-		}
-
-		if (_prop.var.etc.singleWindow) {
-			_cbar = createCoolBar!("tools")(_prop, toolComp, (CoolBar cbar) {
-				void createCoolItem(CoolBar cbar, ToolBar tbar) {
-					.createCoolItem(cbar, tbar);
-					_toolBar ~= tbar;
-				}
-				{
-					auto bar = new ToolBar(cbar, SWT.FLAT);
-					mixin (ToolAction!("bar", "New", SWT.PUSH, "createScenario"));
-					mixin (ToolAction!("bar", "Open", SWT.PUSH, "openScenarioM"));
-					mixin (ToolAction!("bar", "Save", SWT.PUSH, "saveScenario"));
-					mixin (ToolAction!("bar", "SaveA", SWT.PUSH, "saveScenarioA"));
-					new ToolItem(bar, SWT.SEPARATOR);
-					mixin (ToolAction!("bar", "CreateArchive", SWT.PUSH, "_dirWin.createArchive"));
-					new ToolItem(bar, SWT.SEPARATOR);
-					mixin (ToolAction!("bar", "Reload", SWT.PUSH, "reload"));
-					createCoolItem(cbar, bar);
-				}
-				{
-					auto bar = new ToolBar(cbar, SWT.FLAT);
-					mixin (ToolAction!("bar", "Refresh", SWT.PUSH, "refreshAll"));
-					createCoolItem(cbar, bar);
-				}
-				{
-					auto bar = new ToolBar(cbar, SWT.FLAT);
-					mixin (ToolAction!("bar", "Undo"));
-					mixin (ToolAction!("bar", "Redo"));
-					createCoolItem(cbar, bar);
-				}
-				{
-					auto bar = new ToolBar(cbar, SWT.FLAT);
-					mixin (ToolAction!("bar", "Cut"));
-					mixin (ToolAction!("bar", "Copy"));
-					mixin (ToolAction!("bar", "Paste"));
-					mixin (ToolAction!("bar", "Del"));
-					createCoolItem(cbar, bar);
-				}
-				{
-					auto bar = new ToolBar(cbar, SWT.FLAT);
-					mixin (ToolAction!("bar", "Up"));
-					mixin (ToolAction!("bar", "Down"));
-					createCoolItem(cbar, bar);
-				}
-				{
-					auto bar = new ToolBar(cbar, SWT.FLAT);
-					mixin (ToolAction!("bar", "ReplaceText", SWT.PUSH, "replaceText"));
-					new ToolItem(bar, SWT.SEPARATOR);
-					mixin (ToolAction!("bar", "ReNumberingAll", SWT.PUSH, "reNumberingAll"));
-					new ToolItem(bar, SWT.SEPARATOR);
-					mixin (ToolAction!("bar", "ToXML", SWT.PUSH, "clipboardToXML"));
-					createCoolItem(cbar, bar);
-				}
-				{
-					auto bar = new ToolBar(cbar, SWT.FLAT);
-					mixin (ToolAction!("bar", "DataWin", SWT.PUSH, "openDataWindow"));
-					mixin (ToolAction!("bar", "FlagWin", SWT.PUSH, "openFlagWindow"));
+				if (_dock) {
+					dStr ~= " - " ~ .text(__LINE__);
+					initDock();
+					dStr ~= " - " ~ .text(__LINE__);
+					if (_tableWin) {
+						dStr ~= " - " ~ .text(__LINE__);
+						_dock.tabImage("data", _tableWin.image);
+						_dock.tabText("data", _tableWin.title);
+					} else {
+						dStr ~= " - " ~ .text(__LINE__);
+						_tableWin = new TableWindow(_comm, _prop, _win, null);
+					}
+					dStr ~= " - " ~ .text(__LINE__);
+					if (_flagWin) {
+						dStr ~= " - " ~ .text(__LINE__);
+						_dock.tabImage("flag", _flagWin.image);
+						_dock.tabText("flag", _flagWin.title);
+					} else {
+						dStr ~= " - " ~ .text(__LINE__);
+						_flagWin = new FlagWindow(_comm, _prop, _win, null);
+					}
+					dStr ~= " - " ~ .text(__LINE__);
 					if (_prop.var.etc.bindCardViews) {
-						createCardWinTI(bar);
+						dStr ~= " - " ~ .text(__LINE__);
+						if (_cardWin) {
+							_dock.tabImage("card", _cardWin.image);
+							_dock.tabText("card", _cardWin.title);
+						} else {
+							_cardWin = new MainCardWindow(_comm, _prop, null);
+						}
 					} else {
-						new ToolItem(bar, SWT.SEPARATOR);
-						mixin (ToolAction!("bar", "CastWin", SWT.PUSH, "openCast"));
-						mixin (ToolAction!("bar", "SkillWin", SWT.PUSH, "openSkill"));
-						mixin (ToolAction!("bar", "ItemWin", SWT.PUSH, "openItem"));
-						mixin (ToolAction!("bar", "BeastWin", SWT.PUSH, "openBeast"));
-						mixin (ToolAction!("bar", "InfoWin", SWT.PUSH, "openInfo"));
-						new ToolItem(bar, SWT.SEPARATOR);
+						dStr ~= " - " ~ .text(__LINE__);
+						if (_castWin) {
+							_dock.tabImage("castCard", _castWin.image);
+							_dock.tabText("castCard", _castWin.title);
+						} else {
+							_castWin = new CastCardWindow(_comm, _prop, null);
+						}
+						if (_skillWin) {
+							_dock.tabImage("skillCard", _skillWin.image);
+							_dock.tabText("skillCard", _skillWin.title);
+						} else {
+							_skillWin = new SkillCardWindow(_comm, _prop, null);
+						}
+						if (_itemWin) {
+							_dock.tabImage("itemCard", _itemWin.image);
+							_dock.tabText("itemCard", _itemWin.title);
+						} else {
+							_itemWin = new ItemCardWindow(_comm, _prop, null);
+						}
+						if (_beastWin) {
+							_dock.tabImage("beastCard", _beastWin.image);
+							_dock.tabText("beastCard", _beastWin.title);
+						} else {
+							_beastWin = new BeastCardWindow(_comm, _prop, null);
+						}
+						if (_infoWin) {
+							_dock.tabImage("infoCard", _infoWin.image);
+							_dock.tabText("infoCard", _infoWin.title);
+						} else {
+							_infoWin = new InfoCardWindow(_comm, _prop, null);
+						}
 					}
-					mixin (ToolAction!("bar", "DirWin", SWT.PUSH, "openDirWindow"));
-					createCoolItem(cbar, bar);
+					dStr ~= " - " ~ .text(__LINE__);
+					if (_dirWin) {
+						dStr ~= " - " ~ .text(__LINE__);
+						_dock.tabImage("file", _dirWin.image);
+						_dock.tabText("file", _dirWin.title);
+					} else {
+						dStr ~= " - " ~ .text(__LINE__);
+						_dirWin = new DirectoryWindow(_comm, _prop, null);
+					}
+					dStr ~= " - " ~ .text(__LINE__);
+				} else {
+					dStr ~= " - " ~ .text(__LINE__);
+					_dock = new DockingFolderCTC(dockComp, SWT.NONE, "work");
+					initDock();
+					dStr ~= " - " ~ .text(__LINE__);
+					auto data = _dock.addPane(_dock.first, Dir.N, 1, 3, "data");
+					_tableWin = new TableWindow(_comm, _prop, _win, data);
+					_dock.add(_tableWin.shell, _tableWin.title, _tableWin.image, "data", true);
+					_flagWin = new FlagWindow(_comm, _prop, _win, data);
+					_dock.add(_flagWin.shell, _flagWin.title, _flagWin.image, "flag", false);
+					dStr ~= " - " ~ .text(__LINE__);
+					if (_prop.var.etc.bindCardViews) {
+						_cardWin = new MainCardWindow(_comm, _prop, data);
+						_dock.add(_cardWin.shell, _cardWin.title, _cardWin.image, "card", false);
+					} else {
+						dStr ~= " - " ~ .text(__LINE__);
+						_castWin = new CastCardWindow(_comm, _prop, data);
+						_dock.add(_castWin.shell, _castWin.title, _castWin.image, "castCard", false);
+						_skillWin = new SkillCardWindow(_comm, _prop, data);
+						_dock.add(_skillWin.shell, _skillWin.title, _skillWin.image, "skillCard", false);
+						_itemWin = new ItemCardWindow(_comm, _prop, data);
+						_dock.add(_itemWin.shell, _itemWin.title, _itemWin.image, "itemCard", false);
+						_beastWin = new BeastCardWindow(_comm, _prop, data);
+						_dock.add(_beastWin.shell, _beastWin.title, _beastWin.image, "beastCard", false);
+						_infoWin = new InfoCardWindow(_comm, _prop, data);
+						_dock.add(_infoWin.shell, _infoWin.title, _infoWin.image, "infoCard", false);
+						dStr ~= " - " ~ .text(__LINE__);
+					}
+					_dirWin = new DirectoryWindow(_comm, _prop, data);
+					_dock.add(_dirWin.shell, _dirWin.title, _dirWin.image, "file", false);
+					dStr ~= " - " ~ .text(__LINE__);
 				}
-				{
-					auto bar = new ToolBar(cbar, SWT.FLAT);
-					mixin (ToolAction!("bar", "ChangeVH"));
-					createCoolItem(cbar, bar);
+			} else {
+				dStr ~= " - " ~ .text(__LINE__);
+				_dataWin = new DataWindow(_comm, _prop, _win, _win);
+				_cardWin = new MainCardWindow(_comm, _prop, _win);
+				_dirWin = new DirectoryWindow(_comm, _prop, _win);
+				dStr ~= " - " ~ .text(__LINE__);
+			}
+			dStr ~= " - " ~ .text(__LINE__);
+
+			_noSummMenu = new HashSet!(MenuID);
+			_noSummMenu.add(MenuID.New);
+			_noSummMenu.add(MenuID.Open);
+			_noSummMenu.add(MenuID.Close);
+			_noSummMenu.add(MenuID.ToXML);
+			if (_prop.var.etc.singleWindow) {
+				_noSummMenu.add(MenuID.DataWin);
+				_noSummMenu.add(MenuID.FlagWin);
+				_noSummMenu.add(MenuID.CardWin);
+				_noSummMenu.add(MenuID.CastWin);
+				_noSummMenu.add(MenuID.SkillWin);
+				_noSummMenu.add(MenuID.ItemWin);
+				_noSummMenu.add(MenuID.BeastWin);
+				_noSummMenu.add(MenuID.InfoWin);
+				_noSummMenu.add(MenuID.DirWin);
+			}
+			_noSummMenu.add(MenuID.ChangeVH);
+			_noSummMenu.add(MenuID.ShowCardLife);
+			_noSummMenu.add(MenuID.ShowCardList);
+			_noSummMenu.add(MenuID.ShowCardTable);
+			_noSummMenu.add(MenuID.ExecEngine);
+			_noSummMenu.add(MenuID.Settings);
+			_noSummMenu.add(MenuID.Version);
+
+			dStr ~= " - " ~ .text(__LINE__);
+			{
+				_mainMenu = new HashSet!(MenuID);
+				auto bar = new Menu(_win, SWT.BAR);
+				dStr ~= " - " ~ .text(__LINE__);
+
+				_menuFile = createMenu(bar, _prop.msgs.menuFile);
+				createFileMenu();
+
+				auto me = createMenu(bar, _prop.msgs.menuEdit);
+				if (_prop.var.etc.singleWindow) {
+					mixin (MenuAction!("me", "OpenDirectory", SWT.PUSH, "openDirectory"));
+					new MenuItem(me, SWT.SEPARATOR);
+					mixin (MenuAction!("me", "Undo"));
+					mixin (MenuAction!("me", "Redo"));
+					new MenuItem(me, SWT.SEPARATOR);
+					mixin (MenuAction!("me", "Cut"));
+					mixin (MenuAction!("me", "Copy"));
+					mixin (MenuAction!("me", "Paste"));
+					mixin (MenuAction!("me", "Del"));
+					new MenuItem(me, SWT.SEPARATOR);
+					mixin (MenuAction!("me", "WriteComment"));
+					new MenuItem(me, SWT.SEPARATOR);
+					mixin (MenuAction!("me", "ToScript"));
+					mixin (MenuAction!("me", "ToScriptAll"));
+					new MenuItem(me, SWT.SEPARATOR);
+					mixin (MenuAction!("me", "Up"));
+					mixin (MenuAction!("me", "Down"));
+					new MenuItem(me, SWT.SEPARATOR);
 				}
-				{
-					auto bar = new ToolBar(cbar, SWT.FLAT);
-					mixin (ToolAction!("bar", "Summary", SWT.PUSH, "_tableWin.editSummary"));
-					new ToolItem(bar, SWT.SEPARATOR);
-					mixin (ToolAction!("bar", "NewArea", SWT.PUSH, "_tableWin.createArea"));
-					mixin (ToolAction!("bar", "NewBattle", SWT.PUSH, "_tableWin.createBattle"));
-					mixin (ToolAction!("bar", "NewPackage", SWT.PUSH, "_tableWin.createPackage"));
-					new ToolItem(bar, SWT.SEPARATOR);
-					mixin (ToolAction!("bar", "NewFlagDir", SWT.PUSH, "_flagWin.createFlagDir"));
-					mixin (ToolAction!("bar", "NewFlag", SWT.PUSH, "_flagWin.createFlag"));
-					mixin (ToolAction!("bar", "NewStep", SWT.PUSH, "_flagWin.createStep"));
-					createCoolItem(cbar, bar);
+				mixin (MenuAction!("me", "ReplaceText", SWT.PUSH, "replaceText"));
+				mixin (MenuAction!("me", "ReNumberingAll", SWT.PUSH, "reNumberingAll"));
+				mixin (MenuAction!("me", "ToXML", SWT.PUSH, "clipboardToXML"));
+				dStr ~= " - " ~ .text(__LINE__);
+				if (_prop.var.etc.singleWindow) {
+					new MenuItem(me, SWT.SEPARATOR);
+					mixin (MenuAction!("me", "NewFolder", SWT.PUSH, "_dirWin.createNewFolder"));
+					new MenuItem(me, SWT.SEPARATOR);
+					mixin (MenuAction!("me", "DeleteUnuse", SWT.PUSH, "_dirWin.deleteUnuse"));
 				}
-				{
-					auto bar = new ToolBar(cbar, SWT.FLAT);
-					auto g = new RadioGroup!(ToolItem);
-					mixin (ToolAction!("bar", "ShowCardLife", SWT.RADIO, "showCardLife"));
-					auto scf = _tool[MenuID.ShowCardLife];
+
+				auto mv = createMenu(bar, _prop.msgs.menuView);
+				mixin (MenuAction!("mv", "DataWin", SWT.PUSH, "openDataWindow"));
+				if (_prop.var.etc.singleWindow) {
+					mixin (MenuAction!("mv", "FlagWin", SWT.PUSH, "openFlagWindow"));
+				}
+				if (!_prop.var.etc.singleWindow || _prop.var.etc.bindCardViews) {
+					mixin (MenuAction!("mv", "CardWin", SWT.PUSH, "openCardWindow"));
+				} else {
+					new MenuItem(mv, SWT.SEPARATOR);
+					mixin (MenuAction!("mv", "CastWin", SWT.PUSH, "openCast"));
+					mixin (MenuAction!("mv", "SkillWin", SWT.PUSH, "openSkill"));
+					mixin (MenuAction!("mv", "ItemWin", SWT.PUSH, "openItem"));
+					mixin (MenuAction!("mv", "BeastWin", SWT.PUSH, "openBeast"));
+					mixin (MenuAction!("mv", "InfoWin", SWT.PUSH, "openInfo"));
+					new MenuItem(mv, SWT.SEPARATOR);
+				}
+				mixin (MenuAction!("mv", "DirWin", SWT.PUSH, "openDirWindow"));
+				if (_prop.var.etc.singleWindow) {
+					dStr ~= " - " ~ .text(__LINE__);
+					new MenuItem(mv, SWT.SEPARATOR);
+					mixin (MenuAction!("mv", "Refresh", SWT.PUSH, "refreshAll"));
+					new MenuItem(mv, SWT.SEPARATOR);
+					mixin (MenuAction!("mv", "ChangeVH"));
+				}
+				dStr ~= " - " ~ .text(__LINE__);
+
+				if (_prop.var.etc.singleWindow) {
+					auto ma = createMenu(bar, _prop.msgs.menuTable);
+					mixin (MenuAction!("ma", "Summary", SWT.PUSH, "_tableWin.editSummary"));
+					new MenuItem(ma, SWT.SEPARATOR);
+					if (!_prop.var.etc.bindSceneWithEvent) {
+						mixin (MenuAction!("ma", "EditScene"));
+						mixin (MenuAction!("ma", "EditEvent"));
+						new MenuItem(ma, SWT.SEPARATOR);
+					}
+					mixin (MenuAction!("ma", "NewArea", SWT.PUSH, "_tableWin.createArea"));
+					mixin (MenuAction!("ma", "NewBattle", SWT.PUSH, "_tableWin.createBattle"));
+					mixin (MenuAction!("ma", "NewPackage", SWT.PUSH, "_tableWin.createPackage"));
+
+					auto mf = createMenu(bar, _prop.msgs.menuVariable);
+					mixin (MenuAction!("mf", "NewFlagDir", SWT.PUSH, "_flagWin.createFlagDir"));
+					mixin (MenuAction!("mf", "NewFlag", SWT.PUSH, "_flagWin.createFlag"));
+					mixin (MenuAction!("mf", "NewStep", SWT.PUSH, "_flagWin.createStep"));
+
+					auto mc = createMenu(bar, _prop.msgs.menuNewCards);
+					auto g = new RadioGroup!(MenuItem);
+					mixin (MenuAction!("mc", "ShowCardLife", SWT.RADIO, "showCardLife"));
+					auto scf = _menu[MenuID.ShowCardLife];
 					g.append(scf);
-					mixin (ToolAction!("bar", "ShowCardList", SWT.RADIO, "showCardList"));
-					auto scl = _tool[MenuID.ShowCardList];
+					mixin (MenuAction!("mc", "ShowCardList", SWT.RADIO, "showCardList"));
+					auto scl = _menu[MenuID.ShowCardList];
 					g.append(scl);
-					mixin (ToolAction!("bar", "ShowCardTable", SWT.RADIO, "showCardTable"));
-					auto sct = _tool[MenuID.ShowCardTable];
+					mixin (MenuAction!("mc", "ShowCardTable", SWT.RADIO, "showCardTable"));
+					auto sct = _menu[MenuID.ShowCardTable];
 					g.append(sct);
 					if (_prop.var.etc.cardLife) {
 						scf.setSelection(true);
-					} else if (_prop.var.etc.cardDetails) {
+	 				} else if (_prop.var.etc.cardDetails) {
 						sct.setSelection(true);
 					} else {
 						scl.setSelection(true);
 					}
-					_toolRG ~= g;
-					new ToolItem(bar, SWT.SEPARATOR);
-					mixin (ToolAction!("bar", "NewCast", SWT.PUSH, "newCast"));
-					mixin (ToolAction!("bar", "NewSkill", SWT.PUSH, "newSkill"));
-					mixin (ToolAction!("bar", "NewItem", SWT.PUSH, "newItem"));
-					mixin (ToolAction!("bar", "NewBeast", SWT.PUSH, "newBeast"));
-					mixin (ToolAction!("bar", "NewInfo", SWT.PUSH, "newInfo"));
-					new ToolItem(bar, SWT.SEPARATOR);
-					mixin (ToolAction!("bar", "AddScenario", SWT.PUSH, "addScenario"));
-					createCoolItem(cbar, bar);
+					_menuRG ~= g;
+					new MenuItem(mc, SWT.SEPARATOR);
+					mixin (MenuAction!("mc", "NewCast", SWT.PUSH, "newCast"));
+					mixin (MenuAction!("mc", "NewSkill", SWT.PUSH, "newSkill"));
+					mixin (MenuAction!("mc", "NewItem", SWT.PUSH, "newItem"));
+					mixin (MenuAction!("mc", "NewBeast", SWT.PUSH, "newBeast"));
+					mixin (MenuAction!("mc", "NewInfo", SWT.PUSH, "newInfo"));
+					new MenuItem(mc, SWT.SEPARATOR);
+					mixin (MenuAction!("mc", "AddScenario", SWT.PUSH, "addScenario"));
 				}
-				{
-					auto bar = new ToolBar(cbar, SWT.FLAT);
-					mixin (ToolAction!("bar", "OpenDirectory", SWT.PUSH, "openDirectory"));
-					mixin (ToolAction!("bar", "NewFolder", SWT.PUSH, "_dirWin.createNewFolder"));
-					createCoolItem(cbar, bar);
-				}
-				{
-					auto bar = new ToolBar(cbar, SWT.FLAT);
-					createExecEngineTI(bar);
-					new ToolItem(bar, SWT.SEPARATOR);
-					mixin (ToolAction!("bar", "Settings", SWT.PUSH, "settings"));
-					createCoolItem(cbar, bar);
-				}
-			});
+				dStr ~= " - " ~ .text(__LINE__);
 
-			auto drop = new DropTarget(_cbar, DND.DROP_DEFAULT | DND.DROP_LINK);
-			drop.setTransfer([FileTransfer.getInstance()]);
-			drop.addDropListener(new DTListener);
+				auto mt = createMenu(bar, _prop.msgs.menuTools);
+				void delegate(SelectionEvent) dummy = null;
+				auto eemi = createMenuItem(mt, _prop.msgs.menuExecEngine, _prop.images.menuExecEngine, dummy, SWT.CASCADE);
+				_mExecEngine = new Menu(eemi);
+				eemi.setMenu(_mExecEngine);
+				new MenuItem(mt, SWT.SEPARATOR);
+				mixin (MenuAction!("mt", "Settings", SWT.PUSH, "settings"));
 
-			_comm.baseShell(this, _tableWin, _flagWin, _castWin, _skillWin, _itemWin, _beastWin, _infoWin, _dirWin);
-		} else {
-			auto bar = new ToolBar(toolComp, SWT.FLAT);
-			mixin (ToolAction!("bar", "New", SWT.PUSH, "createScenario"));
-			mixin (ToolAction!("bar", "Open", SWT.PUSH, "openScenarioM"));
-			mixin (ToolAction!("bar", "Save", SWT.PUSH, "saveScenario"));
-			mixin (ToolAction!("bar", "SaveA", SWT.PUSH, "saveScenarioA"));
-			new ToolItem(bar, SWT.SEPARATOR);
-			mixin (ToolAction!("bar", "ReplaceText", SWT.PUSH, "replaceText"));
-			mixin (ToolAction!("bar", "ReNumberingAll", SWT.PUSH, "reNumberingAll"));
-			mixin (ToolAction!("bar", "ToXML", SWT.PUSH, "clipboardToXML"));
-			new ToolItem(bar, SWT.SEPARATOR);
-			mixin (ToolAction!("bar", "Reload", SWT.PUSH, "reload"));
-			new ToolItem(bar, SWT.SEPARATOR);
-			mixin (ToolAction!("bar", "DataWin", SWT.PUSH, "openDataWindow"));
-			createCardWinTI(bar);
-			mixin (ToolAction!("bar", "DirWin", SWT.PUSH, "openDirWindow"));
-			new ToolItem(bar, SWT.SEPARATOR);
-			createExecEngineTI(bar);
-			new ToolItem(bar, SWT.SEPARATOR);
-			mixin (ToolAction!("bar", "Settings", SWT.PUSH, "settings"));
-			new ToolItem(bar, SWT.SEPARATOR);
-			mixin (ToolAction!("bar", "Close", SWT.PUSH, "exitAll"));
-			_toolBar ~= bar;
+				auto mh = createMenu(bar, _prop.msgs.menuHelp);
+				mixin (MenuAction!("mh", "Version", SWT.PUSH, "versionInfo"));
 
-			auto drop = new DropTarget(bar, DND.DROP_DEFAULT | DND.DROP_LINK);
-			drop.setTransfer([FileTransfer.getInstance()]);
-			drop.addDropListener(new DTListener);
-
-			_comm.baseShell(this, _dataWin, _cardWin, _dirWin);
-			setupMenu(_menu);
-			setupMenu(_tool);
-		}
-		d.addFilter(SWT.KeyDown, new KeyDownFilter);
-		d.addFilter(SWT.MouseWheel, new SwitchTab);
-		refreshExecEngine();
-
-		int tx = _prop.var.mainWin.x == SWT.DEFAULT ? _win.getBounds().x : _prop.var.mainWin.x;
-		int ty = _prop.var.mainWin.y == SWT.DEFAULT ? _win.getBounds().y : _prop.var.mainWin.y;
-		if (_prop.var.etc.singleWindow) {
-			_win.setMaximized(_prop.var.mainWin.maximized);
-			intoDisplay(tx, ty, _prop.var.mainWin.width, _prop.var.mainWin.height);
-			_win.setBounds(tx, ty, _prop.var.mainWin.width, _prop.var.mainWin.height);
-			_win.layout(true);
-		} else {
-			_win.pack();
-			intoDisplay(tx, ty, _win.getSize().x, _win.getSize().y);
-			_win.setBounds(tx, ty, _win.getSize().x, _win.getSize().y);
-		}
-		if (_dock) {
-			if (_dock.pane("data")) {
-				dockSelect("data");
-			} else if (_dock.pane("card")) {
-				dockSelect("card");
-			} else if (_dock.pane("flag")) {
-				dockSelect("flag");
-			} else if (_dock.pane("castCard")) {
-				dockSelect("castCard");
-			} else if (_dock.pane("skillCard")) {
-				dockSelect("skillCard");
-			} else if (_dock.pane("itemCard")) {
-				dockSelect("itemCard");
-			} else if (_dock.pane("beastCard")) {
-				dockSelect("beastCard");
-			} else if (_dock.pane("infoCard")) {
-				dockSelect("infoCard");
-			} else if (_dock.pane("file")) {
-				dockSelect("file");
+				_win.setMenuBar(bar);
+				dStr ~= " - " ~ .text(__LINE__);
 			}
-			setupMenu(_menu);
-			setupMenu(_tool);
+			dStr ~= " - " ~ .text(__LINE__);
+
+			Menu tmOpenCardWin;
+			void createCardWinTI(ToolBar bar) {
+				_mainMenu.add(MenuID.CardWin);
+				auto ti = createDropDownItem(bar, _prop.msgs.ttCardWin, _prop.images.menuCardWin, &openCardWindow, tmOpenCardWin);
+				_tool[MenuID.CardWin] = ti;
+				createMenuItem(tmOpenCardWin, _prop.msgs.casts, _prop.images.casts, &openCast);
+				createMenuItem(tmOpenCardWin, _prop.msgs.skill, _prop.images.skill, &openSkill);
+				createMenuItem(tmOpenCardWin, _prop.msgs.item, _prop.images.item, &openItem);
+				createMenuItem(tmOpenCardWin, _prop.msgs.beast, _prop.images.beast, &openBeast);
+				createMenuItem(tmOpenCardWin, _prop.msgs.info, _prop.images.info, &openInfo);
+			}
+			void createExecEngineTI(ToolBar bar) {
+				_mainMenu.add(MenuID.ExecEngine);
+				auto ti = createDropDownItem(bar, _prop.msgs.ttExecEngine, _prop.images.menuExecEngine, &execEngine, _tmExecEngine);
+				_tool[MenuID.ExecEngine] = ti;
+			}
+
+			if (_prop.var.etc.singleWindow) {
+				dStr ~= " - " ~ .text(__LINE__);
+				_cbar = createCoolBar!("tools")(_prop, toolComp, (CoolBar cbar) {
+					void createCoolItem(CoolBar cbar, ToolBar tbar) {
+						.createCoolItem(cbar, tbar);
+						_toolBar ~= tbar;
+					}
+					{
+						auto bar = new ToolBar(cbar, SWT.FLAT);
+						mixin (ToolAction!("bar", "New", SWT.PUSH, "createScenario"));
+						mixin (ToolAction!("bar", "Open", SWT.PUSH, "openScenarioM"));
+						mixin (ToolAction!("bar", "Save", SWT.PUSH, "saveScenario"));
+						mixin (ToolAction!("bar", "SaveA", SWT.PUSH, "saveScenarioA"));
+						new ToolItem(bar, SWT.SEPARATOR);
+						mixin (ToolAction!("bar", "CreateArchive", SWT.PUSH, "_dirWin.createArchive"));
+						new ToolItem(bar, SWT.SEPARATOR);
+						mixin (ToolAction!("bar", "Reload", SWT.PUSH, "reload"));
+						createCoolItem(cbar, bar);
+					}
+					{
+						auto bar = new ToolBar(cbar, SWT.FLAT);
+						mixin (ToolAction!("bar", "Refresh", SWT.PUSH, "refreshAll"));
+						createCoolItem(cbar, bar);
+					}
+					{
+						auto bar = new ToolBar(cbar, SWT.FLAT);
+						mixin (ToolAction!("bar", "Undo"));
+						mixin (ToolAction!("bar", "Redo"));
+						createCoolItem(cbar, bar);
+					}
+					{
+						auto bar = new ToolBar(cbar, SWT.FLAT);
+						mixin (ToolAction!("bar", "Cut"));
+						mixin (ToolAction!("bar", "Copy"));
+						mixin (ToolAction!("bar", "Paste"));
+						mixin (ToolAction!("bar", "Del"));
+						createCoolItem(cbar, bar);
+					}
+					{
+						auto bar = new ToolBar(cbar, SWT.FLAT);
+						mixin (ToolAction!("bar", "Up"));
+						mixin (ToolAction!("bar", "Down"));
+						createCoolItem(cbar, bar);
+					}
+					{
+						auto bar = new ToolBar(cbar, SWT.FLAT);
+						mixin (ToolAction!("bar", "ReplaceText", SWT.PUSH, "replaceText"));
+						new ToolItem(bar, SWT.SEPARATOR);
+						mixin (ToolAction!("bar", "ReNumberingAll", SWT.PUSH, "reNumberingAll"));
+						new ToolItem(bar, SWT.SEPARATOR);
+						mixin (ToolAction!("bar", "ToXML", SWT.PUSH, "clipboardToXML"));
+						createCoolItem(cbar, bar);
+					}
+					{
+						auto bar = new ToolBar(cbar, SWT.FLAT);
+						mixin (ToolAction!("bar", "DataWin", SWT.PUSH, "openDataWindow"));
+						mixin (ToolAction!("bar", "FlagWin", SWT.PUSH, "openFlagWindow"));
+						if (_prop.var.etc.bindCardViews) {
+							createCardWinTI(bar);
+						} else {
+							new ToolItem(bar, SWT.SEPARATOR);
+							mixin (ToolAction!("bar", "CastWin", SWT.PUSH, "openCast"));
+							mixin (ToolAction!("bar", "SkillWin", SWT.PUSH, "openSkill"));
+							mixin (ToolAction!("bar", "ItemWin", SWT.PUSH, "openItem"));
+							mixin (ToolAction!("bar", "BeastWin", SWT.PUSH, "openBeast"));
+							mixin (ToolAction!("bar", "InfoWin", SWT.PUSH, "openInfo"));
+							new ToolItem(bar, SWT.SEPARATOR);
+						}
+						mixin (ToolAction!("bar", "DirWin", SWT.PUSH, "openDirWindow"));
+						createCoolItem(cbar, bar);
+					}
+					{
+						auto bar = new ToolBar(cbar, SWT.FLAT);
+						mixin (ToolAction!("bar", "ChangeVH"));
+						createCoolItem(cbar, bar);
+					}
+					{
+						auto bar = new ToolBar(cbar, SWT.FLAT);
+						mixin (ToolAction!("bar", "Summary", SWT.PUSH, "_tableWin.editSummary"));
+						new ToolItem(bar, SWT.SEPARATOR);
+						mixin (ToolAction!("bar", "NewArea", SWT.PUSH, "_tableWin.createArea"));
+						mixin (ToolAction!("bar", "NewBattle", SWT.PUSH, "_tableWin.createBattle"));
+						mixin (ToolAction!("bar", "NewPackage", SWT.PUSH, "_tableWin.createPackage"));
+						new ToolItem(bar, SWT.SEPARATOR);
+						mixin (ToolAction!("bar", "NewFlagDir", SWT.PUSH, "_flagWin.createFlagDir"));
+						mixin (ToolAction!("bar", "NewFlag", SWT.PUSH, "_flagWin.createFlag"));
+						mixin (ToolAction!("bar", "NewStep", SWT.PUSH, "_flagWin.createStep"));
+						createCoolItem(cbar, bar);
+					}
+					{
+						auto bar = new ToolBar(cbar, SWT.FLAT);
+						auto g = new RadioGroup!(ToolItem);
+						mixin (ToolAction!("bar", "ShowCardLife", SWT.RADIO, "showCardLife"));
+						auto scf = _tool[MenuID.ShowCardLife];
+						g.append(scf);
+						mixin (ToolAction!("bar", "ShowCardList", SWT.RADIO, "showCardList"));
+						auto scl = _tool[MenuID.ShowCardList];
+						g.append(scl);
+						mixin (ToolAction!("bar", "ShowCardTable", SWT.RADIO, "showCardTable"));
+						auto sct = _tool[MenuID.ShowCardTable];
+						g.append(sct);
+						if (_prop.var.etc.cardLife) {
+							scf.setSelection(true);
+						} else if (_prop.var.etc.cardDetails) {
+							sct.setSelection(true);
+						} else {
+							scl.setSelection(true);
+						}
+						_toolRG ~= g;
+						new ToolItem(bar, SWT.SEPARATOR);
+						mixin (ToolAction!("bar", "NewCast", SWT.PUSH, "newCast"));
+						mixin (ToolAction!("bar", "NewSkill", SWT.PUSH, "newSkill"));
+						mixin (ToolAction!("bar", "NewItem", SWT.PUSH, "newItem"));
+						mixin (ToolAction!("bar", "NewBeast", SWT.PUSH, "newBeast"));
+						mixin (ToolAction!("bar", "NewInfo", SWT.PUSH, "newInfo"));
+						new ToolItem(bar, SWT.SEPARATOR);
+						mixin (ToolAction!("bar", "AddScenario", SWT.PUSH, "addScenario"));
+						createCoolItem(cbar, bar);
+					}
+					{
+						auto bar = new ToolBar(cbar, SWT.FLAT);
+						mixin (ToolAction!("bar", "OpenDirectory", SWT.PUSH, "openDirectory"));
+						mixin (ToolAction!("bar", "NewFolder", SWT.PUSH, "_dirWin.createNewFolder"));
+						createCoolItem(cbar, bar);
+					}
+					{
+						auto bar = new ToolBar(cbar, SWT.FLAT);
+						createExecEngineTI(bar);
+						new ToolItem(bar, SWT.SEPARATOR);
+						mixin (ToolAction!("bar", "Settings", SWT.PUSH, "settings"));
+						createCoolItem(cbar, bar);
+					}
+				});
+
+				auto drop = new DropTarget(_cbar, DND.DROP_DEFAULT | DND.DROP_LINK);
+				drop.setTransfer([FileTransfer.getInstance()]);
+				drop.addDropListener(new DTListener);
+
+				_comm.baseShell(this, _tableWin, _flagWin, _castWin, _skillWin, _itemWin, _beastWin, _infoWin, _dirWin);
+				dStr ~= " - " ~ .text(__LINE__);
+			} else {
+				dStr ~= " - " ~ .text(__LINE__);
+				auto bar = new ToolBar(toolComp, SWT.FLAT);
+				mixin (ToolAction!("bar", "New", SWT.PUSH, "createScenario"));
+				mixin (ToolAction!("bar", "Open", SWT.PUSH, "openScenarioM"));
+				mixin (ToolAction!("bar", "Save", SWT.PUSH, "saveScenario"));
+				mixin (ToolAction!("bar", "SaveA", SWT.PUSH, "saveScenarioA"));
+				new ToolItem(bar, SWT.SEPARATOR);
+				mixin (ToolAction!("bar", "ReplaceText", SWT.PUSH, "replaceText"));
+				mixin (ToolAction!("bar", "ReNumberingAll", SWT.PUSH, "reNumberingAll"));
+				mixin (ToolAction!("bar", "ToXML", SWT.PUSH, "clipboardToXML"));
+				new ToolItem(bar, SWT.SEPARATOR);
+				mixin (ToolAction!("bar", "Reload", SWT.PUSH, "reload"));
+				new ToolItem(bar, SWT.SEPARATOR);
+				mixin (ToolAction!("bar", "DataWin", SWT.PUSH, "openDataWindow"));
+				createCardWinTI(bar);
+				mixin (ToolAction!("bar", "DirWin", SWT.PUSH, "openDirWindow"));
+				new ToolItem(bar, SWT.SEPARATOR);
+				createExecEngineTI(bar);
+				new ToolItem(bar, SWT.SEPARATOR);
+				mixin (ToolAction!("bar", "Settings", SWT.PUSH, "settings"));
+				new ToolItem(bar, SWT.SEPARATOR);
+				mixin (ToolAction!("bar", "Close", SWT.PUSH, "exitAll"));
+				_toolBar ~= bar;
+
+				auto drop = new DropTarget(bar, DND.DROP_DEFAULT | DND.DROP_LINK);
+				drop.setTransfer([FileTransfer.getInstance()]);
+				drop.addDropListener(new DTListener);
+
+				_comm.baseShell(this, _dataWin, _cardWin, _dirWin);
+				setupMenu(_menu);
+				setupMenu(_tool);
+				dStr ~= " - " ~ .text(__LINE__);
+			}
+			d.addFilter(SWT.KeyDown, new KeyDownFilter);
+			d.addFilter(SWT.MouseWheel, new SwitchTab);
+			refreshExecEngine();
+
+			dStr ~= " - " ~ .text(__LINE__);
+			int tx = _prop.var.mainWin.x == SWT.DEFAULT ? _win.getBounds().x : _prop.var.mainWin.x;
+			int ty = _prop.var.mainWin.y == SWT.DEFAULT ? _win.getBounds().y : _prop.var.mainWin.y;
+			if (_prop.var.etc.singleWindow) {
+				_win.setMaximized(_prop.var.mainWin.maximized);
+				intoDisplay(tx, ty, _prop.var.mainWin.width, _prop.var.mainWin.height);
+				_win.setBounds(tx, ty, _prop.var.mainWin.width, _prop.var.mainWin.height);
+				_win.layout(true);
+			} else {
+				_win.pack();
+				intoDisplay(tx, ty, _win.getSize().x, _win.getSize().y);
+				_win.setBounds(tx, ty, _win.getSize().x, _win.getSize().y);
+			}
+			dStr ~= " - " ~ .text(__LINE__);
+			if (_dock) {
+				if (_dock.pane("data")) {
+					dockSelect("data");
+				} else if (_dock.pane("card")) {
+					dockSelect("card");
+				} else if (_dock.pane("flag")) {
+					dockSelect("flag");
+				} else if (_dock.pane("castCard")) {
+					dockSelect("castCard");
+				} else if (_dock.pane("skillCard")) {
+					dockSelect("skillCard");
+				} else if (_dock.pane("itemCard")) {
+					dockSelect("itemCard");
+				} else if (_dock.pane("beastCard")) {
+					dockSelect("beastCard");
+				} else if (_dock.pane("infoCard")) {
+					dockSelect("infoCard");
+				} else if (_dock.pane("file")) {
+					dockSelect("file");
+				}
+				dStr ~= " - " ~ .text(__LINE__);
+				setupMenu(_menu);
+				setupMenu(_tool);
+			}
+		} catch (Throwable e) {
+			// 起動失敗
+			fdebugln(dStr);
+			fdebugln(e);
 		}
 	}
 	private class KeyDownFilter : Listener {
@@ -2409,80 +2477,99 @@ public:
 
 	void doCWX() {
 		if (!_win) return;
-		auto d = _win.getDisplay();
-		_win.open();
-		if (_firstScenarioPath) {
-			openScenario(_firstScenarioPath);
-		} else if (_prop.var.etc.openLastScenario && _prop.var.etc.lastScenario.length) {
-			openScenario(_prop.var.etc.lastScenario);
-		}
+		string dStr = .text(__LINE__);;
+		try {
+			auto d = _win.getDisplay();
+			_win.open();
+			dStr ~= " - " ~ .text(__LINE__);
+			if (_firstScenarioPath) {
+				dStr ~= " - " ~ .text(__LINE__);
+				openScenario(_firstScenarioPath);
+			} else if (_prop.var.etc.openLastScenario && _prop.var.etc.lastScenario.length) {
+				dStr ~= " - " ~ .text(__LINE__);
+				openScenario(_prop.var.etc.lastScenario);
+			}
+			dStr ~= " - " ~ .text(__LINE__);
 
-		auto pipe = new core.thread.Thread(&pipeThr);
-		pipe.start();
-		auto backup = new core.thread.Thread(&backupThr);
-		backup.start();
-		version (Windows) {
-			scope (exit) {
-				auto p = CreateFileW(toUTFz!(wchar*)(_pipeName),
-					GENERIC_READ | GENERIC_WRITE, 0, null, OPEN_EXISTING, 0, null);
-				if (p != INVALID_HANDLE_VALUE) {
-					scope (exit) CloseHandle(p);
-					string pmsg = "quit";
-					DWORD len;
-					WriteFile(p, pmsg.ptr, pmsg.length, &len, null);
-				}
-			}
-		} else {
-			scope (exit) {
-				auto fd = open(std.string.toStringz(_pipeName), O_WRONLY, 0);
-				if (fd != -1) {
-					scope (exit) close(fd);
-					string pmsg = "quit";
-					cwrite(fd, pmsg.ptr, pmsg.length);
-				}
-			}
-		}
-		bool openErrDlg = false;
-		while (!_win.isDisposed()) {
-			version (nocatch) {
-				if (!d.readAndDispatch()) {
-					d.sleep();
+			auto pipe = new core.thread.Thread(&pipeThr);
+			pipe.start();
+			auto backup = new core.thread.Thread(&backupThr);
+			backup.start();
+			version (Windows) {
+				scope (exit) {
+					auto p = CreateFileW(toUTFz!(wchar*)(_pipeName),
+						GENERIC_READ | GENERIC_WRITE, 0, null, OPEN_EXISTING, 0, null);
+					if (p != INVALID_HANDLE_VALUE) {
+						scope (exit) CloseHandle(p);
+						string pmsg = "quit";
+						DWORD len;
+						WriteFile(p, pmsg.ptr, pmsg.length, &len, null);
+					}
 				}
 			} else {
-				// なるべくユーザデータを消さないよう、例外が発生しても処理を続行する。
-				try {
+				scope (exit) {
+					auto fd = open(std.string.toStringz(_pipeName), O_WRONLY, 0);
+					if (fd != -1) {
+						scope (exit) close(fd);
+						string pmsg = "quit";
+						cwrite(fd, pmsg.ptr, pmsg.length);
+					}
+				}
+			}
+			dStr ~= " - " ~ .text(__LINE__);
+			bool openErrDlg = false;
+			while (!_win.isDisposed()) {
+				version (nocatch) {
 					if (!d.readAndDispatch()) {
 						d.sleep();
 					}
-				} catch (Throwable e) {
-					if (!openErrDlg) {
-						// 際限の無い連続発生を抑制
-						openErrDlg = true;
-						_win.setVisible(true);
-						fdebugln(e);
-						string s = createDebugln(e);
-						auto dlg = new ErrorDialog(_comm, _prop, _win, s);
-						dlg.closeEvent ~= {
-							openErrDlg = false;
-						};
-						dlg.open();
-					} else {
-						core.thread.Thread.sleep(.dur!("msecs")(1));
+				} else {
+					// なるべくユーザデータを消さないよう、例外が発生しても処理を続行する。
+					try {
+						if (!d.readAndDispatch()) {
+							d.sleep();
+						}
+					} catch (Throwable e) {
+						if (!openErrDlg) {
+							// 際限の無い連続発生を抑制
+							openErrDlg = true;
+							_win.setVisible(true);
+							fdebugln(e);
+							string s = createDebugln(e);
+							auto dlg = new ErrorDialog(_comm, _prop, _win, s);
+							dlg.closeEvent ~= {
+								openErrDlg = false;
+							};
+							dlg.open();
+						} else {
+							core.thread.Thread.sleep(.dur!("msecs")(1));
+						}
 					}
 				}
 			}
-		}
-		// FIXME: quitTrace()をbackup.join()より先に行うと時々アクセス違反
-		_quit = true;
-		backup.join();
-		_dirWin.quitTrace();
-		_comm.dispose();
-		_prop.images.disposeImages();
-		d.dispose();
-		_prop.var.save(dock);
-		sendReloadProps();
-		version (Console) {
-			debug writeln("Exit Main Thread");
+			// FIXME: quitTrace()をbackup.join()より先に行うと時々アクセス違反
+			_quit = true;
+			dStr ~= " - " ~ .text(__LINE__);
+			backup.join();
+			dStr ~= " - " ~ .text(__LINE__);
+			_dirWin.quitTrace();
+			dStr ~= " - " ~ .text(__LINE__);
+			_comm.dispose();
+			dStr ~= " - " ~ .text(__LINE__);
+			_prop.images.disposeImages();
+			dStr ~= " - " ~ .text(__LINE__);
+			d.dispose();
+			dStr ~= " - " ~ .text(__LINE__);
+			_prop.var.save(dock);
+			dStr ~= " - " ~ .text(__LINE__);
+			sendReloadProps();
+			version (Console) {
+				debug writeln("Exit Main Thread");
+			}
+		} catch (Throwable e) {
+			// 起動・終了失敗
+			fdebugln(dStr);
+			fdebugln(e);
 		}
 	}
 }
