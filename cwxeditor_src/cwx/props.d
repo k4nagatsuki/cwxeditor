@@ -240,10 +240,10 @@ public:
 			_looks = new Looks;
 			dStr ~= " - " ~ .text(__LINE__);
 		} catch (Throwable e) {
-			fdebugln(dStr);
 			// FIXME: リンクエラー！
+//			fdebugln(dStr);
 //			fdebugln(e);
-			throw e;
+			throw new Exception(dStr, __FILE__, __LINE__);
 		}
 	}
 	@property const string appPath() {return _appPath;}

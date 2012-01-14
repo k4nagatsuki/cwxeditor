@@ -1215,9 +1215,7 @@ public:
 			_openPaths = openPaths;
 			_saveSync = new Object;
 			dStr ~= " - " ~ .text(__LINE__);
-			auto cProps = new CProps(appPath, sys);
-			dStr ~= " - " ~ .text(__LINE__);
-			_prop = new Props(confFilePath, cProps);
+			_prop = new Props(confFilePath, new CProps(appPath, sys));
 			if (exists(_prop.tempPath)) {
 				dStr ~= " - " ~ .text(__LINE__);
 				foreach (temp; clistdir(_prop.tempPath)) {

@@ -156,10 +156,10 @@ public:
 			_var = new FlexProps(parent.appPath, confFilePath);
 			dStr ~= " - " ~ .text(__LINE__);
 		} catch (Throwable e) {
-			fdebugln(dStr);
 			// FIXME: リンクエラー！
+//			fdebugln(dStr);
 //			fdebugln(e);
-			throw e;
+			throw new Exception(dStr, __FILE__, __LINE__);
 		}
 	}
 	@property

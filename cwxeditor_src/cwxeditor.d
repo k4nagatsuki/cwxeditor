@@ -14,6 +14,7 @@ import std.path;
 import std.stdio;
 import std.exception;
 import std.conv;
+import std.cstream;
 
 version (Windows) {
 	import std.windows.charset;
@@ -34,7 +35,13 @@ void main(string[] args) {
 		}
 	}
 	version (Console) {
-		writeln("Executed: " ~ appPath);
+		string log = "Executed: " ~ appPath;
+		version (Windows) {
+			printf("%s\n\0".ptr, toMBSz(log));
+			dout.flush();
+		} else {
+			writeln(log);
+		}
 	}
 
 	cwx.utils.debugLog = buildPath(dirName(appPath), cwx.utils.debugLog);
