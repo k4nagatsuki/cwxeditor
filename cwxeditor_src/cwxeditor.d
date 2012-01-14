@@ -9,10 +9,22 @@ import std.file;
 import std.path;
 import std.stdio;
 
+version (Windows) {
+	import std.c.windows.windows;
+	import std.windows.charset;
+}
+
 void main(string[] args) {
-	cwx.utils.debugLog = join(getDirName(args[0u]), cwx.utils.debugLog);
+	string appPath = args[0];
+	version (Windows) {
+		char[MAX_PATH] pathBuf;
+		if (GetModuleFileNameA(null, pathBuf.ptr, pathBuf.length)) {
+			appPath = fromMBSz(pathBuf.ptr);
+		}
+	}
+	cwx.utils.debugLog = join(getDirName(appPath), cwx.utils.debugLog);
 	auto sys = new System;
-	string ini = join(getDirName(args[0u]), "cwxeditor.xml");
+	string ini = join(getDirName(appPath), "cwxeditor.xml");
 	if (args.length > 1) {
 		string[] openPaths;
 		size_t sc = 1u;
@@ -64,11 +76,11 @@ void main(string[] args) {
 			} catch {}
 		}
 		if (sc < args.length) {
-			auto main = new MainWindow(args[0], ini, sys, args[sc], openPaths);
+			auto main = new MainWindow(appPath, ini, sys, args[sc], openPaths);
 			main.doCWX;
 			return;
 		}
 	}
-	auto main = new MainWindow(args[0], ini, sys);
+	auto main = new MainWindow(appPath, ini, sys);
 	main.doCWX;
 }
