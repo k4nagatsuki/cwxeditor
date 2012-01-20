@@ -9,6 +9,7 @@ import cwx.usecounter;
 import cwx.xml;
 import cwx.path;
 import cwx.props;
+import cwx.msgutils;
 
 import std.algorithm;
 import std.datetime;

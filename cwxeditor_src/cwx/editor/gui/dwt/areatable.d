@@ -1194,6 +1194,7 @@ public:
 		refData(a2, _areas.getItem(index1));
 		refData(a1, _areas.getItem(index2));
 		_areas.select = index2;
+		_areas.showSelection();
 		static if (is(A : Area)) {
 			_comm.refArea.call(a1);
 			_comm.refArea.call(a2);

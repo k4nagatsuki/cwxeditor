@@ -29,6 +29,7 @@ SRC = cwxeditor.d \
 	cwx/script.d \
 	cwx/msgs.d \
 	cwx/versioninfo.d \
+	cwx/msgutils.d \
 	cwx/editor/gui/sound.d \
 	cwx/editor/gui/dwt/sbshell.d \
 	cwx/editor/gui/dwt/mainwindow.d \

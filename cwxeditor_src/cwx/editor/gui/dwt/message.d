@@ -10,6 +10,7 @@ import cwx.xml;
 import cwx.flag;
 import cwx.path;
 import cwx.structs;
+import cwx.msgutils;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;
@@ -1188,7 +1189,7 @@ private Composite createFlagStepBar(Composite parent, void delegate(string) inse
 private void putColor(FixedWidthText text, dchar put) {
 	auto sel = text.widget.getSelection();
 	auto old = toUTF32(text.getText());
-	auto newt = cwx.utils.putColor(old, put, sel.x, sel.y);
+	auto newt = cwx.msgutils.putColor(old, put, sel.x, sel.y);
 	text.setText(toUTF8(newt));
 	int nSel = sel.y + (newt.length - old.length);
 	text.widget.setSelection(nSel);
@@ -1625,6 +1626,8 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 			}
 		}
 		return "";
+	}, (string path) {
+		return comm.skin.findImagePath(path, comm.summary.scenarioPath).length != 0;
 	}, rFonts, rColors);
 	auto dmsg = to!dstring(message);
 

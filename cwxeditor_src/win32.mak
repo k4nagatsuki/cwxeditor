@@ -29,6 +29,7 @@ SRC = cwxeditor.d \
 	cwx\script.d \
 	cwx\msgs.d \
 	cwx\versioninfo.d \
+	cwx\msgutils.d \
 	cwx\editor\gui\sound.d \
 	cwx\editor\gui\dwt\sbshell.d \
 	cwx\editor\gui\dwt\mainwindow.d \
@@ -116,6 +117,7 @@ OBJ = objs\cwxeditor.obj \
 	objs\cwx\script.obj \
 	objs\cwx\msgs.obj \
 	objs\cwx\versioninfo.obj \
+	objs\cwx\msgutils.obj \
 	objs\cwx\editor\gui\sound.obj \
 	objs\cwx\editor\gui\dwt\sbshell.obj \
 	objs\cwx\editor\gui\dwt\mainwindow.obj \

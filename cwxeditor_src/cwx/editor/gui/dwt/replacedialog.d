@@ -14,6 +14,7 @@ import cwx.types;
 import cwx.path;
 import cwx.background;
 import cwx.skin;
+import cwx.msgutils;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dutils;
