@@ -15,6 +15,7 @@ import cwx.skin;
 import cwx.cab;
 import cwx.structs;
 import cwx.event;
+import cwx.graphics;
 
 import cwx.editor.gui.sound;
 import cwx.editor.gui.dwt.images;
@@ -2076,16 +2077,77 @@ SplitPane changeVHSide(SplitPane sash) {
 	return sp;
 }
 
-void drawTileImage(GC gc, Image img, Rectangle rect) {
-	auto data = img.getBounds();
-	for (int x = 0; x < rect.width; x += data.width) {
-		for (int y = 0; y < rect.height; y += data.height) {
-			int xi = rect.x + x;
-			int yi = rect.y + y;
-			int wi = x + data.width >= rect.width ? rect.width - x : data.width;
-			int hi = y + data.height >= rect.height ? rect.height - y : data.height;
-			gc.drawImage(img, 0, 0, wi, hi, xi, yi, wi, hi);
+void drawWallpaper(GC gc, Image img, Rectangle rect, WallpaperStyle style) {
+	final switch (style) {
+	case WallpaperStyle.Center:
+		auto data = img.getBounds();
+		int xi, yi, wi, hi;
+		int xw, yw, ww, hw;
+		void cen(int rectX, int rectW, int dataW, out int xi, out int wi, out int xw, out int ww) {
+			xw = (rectW - dataW) / 2;
+			if (xw >= 0) {
+				xi = 0;
+				wi = dataW;
+				ww = dataW;
+			} else {
+				xi = -xw;
+				wi = rectW;
+				xw = 0;
+				ww = rectW;
+			}
+			xw += rectX;
 		}
+		cen(rect.x, rect.width, data.width, xi, wi, xw, ww);
+		cen(rect.y, rect.height, data.height, yi, hi, yw, hw);
+		gc.drawImage(img, xi, yi, wi, hi, xw, yw, ww, hw);
+		break;
+	case WallpaperStyle.Tile:
+		auto data = img.getBounds();
+		for (int x = 0; x < rect.width; x += data.width) {
+			for (int y = 0; y < rect.height; y += data.height) {
+				int xi = rect.x + x;
+				int yi = rect.y + y;
+				int wi = x + data.width >= rect.width ? rect.width - x : data.width;
+				int hi = y + data.height >= rect.height ? rect.height - y : data.height;
+				gc.drawImage(img, 0, 0, wi, hi, xi, yi, wi, hi);
+			}
+		}
+		break;
+	case WallpaperStyle.ExpandFull, WallpaperStyle.Expand:
+		auto data = img.getImageData();
+		real scW = cast(real) rect.width / data.width;
+		real scH = cast(real) rect.height / data.height;
+		int wi, hi;
+		if ((style == WallpaperStyle.ExpandFull) ? (scW < scH) : (scW >= scH)) {
+			wi = cast(int) (data.width * scH);
+			hi = rect.height;
+		} else {
+			wi = rect.width;
+			hi = cast(int) (data.height * scW);
+		}
+		if (data.width != wi || data.height != hi) {
+			auto d = Display.getCurrent();
+			if (!data.palette.isDirect || data.depth < 16) {
+				auto buf = new Image(d, data.width, data.height);
+				scope (exit) buf.dispose();
+				auto igc = new GC(buf);
+				scope (exit) igc.dispose();
+				igc.drawImage(img, 0, 0);
+				data = buf.getImageData();
+			}
+			size_t bpl;
+			data.data = cast(byte[]) cwx.graphics.smoothResize(wi, hi, cast(ubyte[]) data.data,
+				data.depth, data.width, data.height, data.bytesPerLine, bpl);
+			data.width = wi;
+			data.height = hi;
+			data.bytesPerLine = bpl;
+			auto img2 = new Image(d, data);
+			scope (exit) img2.dispose();
+			drawWallpaper(gc, img2, rect, WallpaperStyle.Center);
+		} else {
+			drawWallpaper(gc, img, rect, WallpaperStyle.Center);
+		}
+		break;
 	}
 }
 

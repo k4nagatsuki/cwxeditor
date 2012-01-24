@@ -690,33 +690,57 @@ public class FlexProps {
 		return t;
 	}
 	DockingFolderCTC loadDock(Composite parent, int style, Control delegate(Composite, string) create) {
-		DockingFolderCTC r = null;
-		if (exists(_path)) {
-			int retryCount = 0;
-			while (!r) {
-				try {
-					auto text = std.file.readText(_path);
-					auto node = XNode.parse(text);
-					void df(ref XNode node) {
-						r = DockingFolderCTC.fromNode(node, parent, style, create);
+		string dStr = .text(__LINE__);
+		try {
+			dStr ~= " - " ~ .text(__LINE__);
+			DockingFolderCTC r = null;
+			if (exists(_path)) {
+				int retryCount = 0;
+				dStr ~= " - " ~ .text(__LINE__);
+				while (!r) {
+					try {
+						dStr ~= " - " ~ .text(__LINE__);
+						auto text = std.file.readText(_path);
+						dStr ~= " - " ~ .text(__LINE__);
+						auto node = XNode.parse(text);
+						void df(ref XNode node) {
+							dStr ~= " - " ~ .text(__LINE__);
+							r = DockingFolderCTC.fromNode(node, parent, style, create);
+							dStr ~= " - " ~ .text(__LINE__);
+						}
+						node.onTag["dockingFolder"] = &df;
+						dStr ~= " - " ~ .text(__LINE__);
+						node.parse();
+						dStr ~= " - " ~ .text(__LINE__);
+						return r;
+					} catch (Exception e) {
+						// FIXME: DockingFolder.fromNode()内でたまにアクセス違反が発生する
+						dStr ~= " - " ~ .text(__LINE__);
+						debug debugln(e);
+						if (r && r.area) r.area.dispose();
+						dStr ~= " - " ~ .text(__LINE__);
+						retryCount++;
+						if (retryCount > 100) {
+							dStr ~= " - " ~ .text(__LINE__);
+							createBackup();
+							dStr ~= " - " ~ .text(__LINE__);
+							debugln(e);
+							dStr ~= " - " ~ .text(__LINE__);
+							return null;
+						}
 					}
-					node.onTag["dockingFolder"] = &df;
-					node.parse();
-					return r;
-				} catch (Exception e) {
-					// FIXME: DockingFolder.fromNode()内でたまにアクセス違反が発生する
-					debug debugln(e);
-					if (r && r.area) r.area.dispose();
-					retryCount++;
-					if (retryCount > 100) {
-						createBackup();
-						debugln(e);
-						return null;
-					}
+					dStr ~= " - " ~ .text(__LINE__);
 				}
+				dStr ~= " - " ~ .text(__LINE__);
 			}
+			dStr ~= " - " ~ .text(__LINE__);
+			return r;
+		} catch (Throwable e) {
+			// FIXME: リンクエラー！
+//			fdebugln(dStr);
+//			fdebugln(e);
+			throw new Exception(dStr, __FILE__, __LINE__);
 		}
-		return r;
 	}
 	private void createBackup() {
 		auto d = Clock.currTime();

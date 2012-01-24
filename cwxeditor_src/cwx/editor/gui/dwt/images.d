@@ -1000,6 +1000,7 @@ private:
 	Toggle dragTgl = Toggle.NONE;
 	int dragStartX, dragStartY;
 	bool moved = false;
+	WallpaperStyle _wallpaperStyle = WallpaperStyle.Tile;
 
 	PileImage[] backs = [];
 
@@ -1074,6 +1075,7 @@ private:
 				}
 				int movX = x - dragStartX;
 				int movY = y - dragStartY;
+				bool ratioFix = (me.stateMask & SWT.SHIFT) != 0;
 				foreach (img; dragImgs.keys) {
 					if (img.selected && !img.fixed && img.visible) {
 						auto rect = dragImgs[img];
@@ -1101,6 +1103,19 @@ private:
 							break;
 						default:
 							break;
+						}
+						// 縦横比固定モード
+						if (ratioFix && !img.ratioFix
+								&& (dragTgl == Toggle.LEFT_TOP || dragTgl == Toggle.RIGHT_TOP
+								|| dragTgl == Toggle.RIGHT_BOTTOM || dragTgl == Toggle.RIGHT_BOTTOM)) {
+							// 元のサイズによって縦横の優先順を変更
+							if (rect.width >= rect.height) {
+								real scale = newRect.width / cast(real) rect.width;
+								newRect.height = cast(int) rndtol(rect.height * scale);
+							} else {
+								real scale = newRect.height / cast(real) rect.height;
+								newRect.width = cast(int) rndtol(rect.width * scale);
+							}
 						}
 						switch (dragTgl) {
 						case Toggle.LEFT_TOP, Toggle.MIDDLE_TOP, Toggle.RIGHT_TOP:
@@ -1293,14 +1308,15 @@ private:
 
 			auto backImg = getBackgroundImage();
 			auto rect = getClientArea();
-			if (backImg) {
-				drawTileImage(gc, backImg, rect);
-			} else if (_backColor) {
+			if (_backColor) {
 				gc.setBackground(_backColor);
 				gc.fillRectangle(rect.x, rect.y, rect.width, rect.height);
 			} else {
 				gc.setBackground(getShell().getDisplay().getSystemColor(SWT.COLOR_DARK_BLUE));
 				gc.fillRectangle(rect.x, rect.y, rect.width, rect.height);
+			}
+			if (backImg) {
+				drawWallpaper(gc, backImg, rect, _wallpaperStyle);
 			}
 			foreach (bmp; backs) {
 				bmp.draw(gc);
@@ -1538,6 +1554,19 @@ public:
 	}
 	private void callChangingImages() {
 		foreach (ci; _changingImages) ci();
+	}
+
+	/// 壁紙表示モード。
+	@property
+	const
+	WallpaperStyle wallpaperStyle() {
+		return _wallpaperStyle;
+	}
+	/// ditto
+	@property
+	void wallpaperStyle(WallpaperStyle v) {
+		_wallpaperStyle = v;
+		redraw();
 	}
 
 	/// 唯一のコンストラクタ。

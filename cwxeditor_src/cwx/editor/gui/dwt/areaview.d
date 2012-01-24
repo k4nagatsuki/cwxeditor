@@ -15,6 +15,7 @@ import cwx.usecounter;
 import cwx.path;
 import cwx.structs;
 import cwx.sjis;
+import cwx.graphics;
 
 import cwx.editor.gui.sound;
 
@@ -1293,6 +1294,7 @@ private:
 	}
 	void refreshWallpaper() {
 		_imgp.setBackgroundImage(_comm.wallpaper);
+		_imgp.wallpaperStyle = _prop.var.etc.wallpaperStyle;
 	}
 	Control createImagePane(Composite parent) {
 		auto sc = new ScrolledComposite(parent, SWT.H_SCROLL | SWT.V_SCROLL);

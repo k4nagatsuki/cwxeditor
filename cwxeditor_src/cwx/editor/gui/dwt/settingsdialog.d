@@ -7,6 +7,7 @@ import cwx.xml;
 import cwx.summary;
 import cwx.skin;
 import cwx.msgs;
+import cwx.graphics;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.properties;
@@ -28,6 +29,7 @@ import std.path;
 import std.file;
 import std.string;
 import std.functional;
+import std.traits;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
@@ -212,6 +214,9 @@ private:
 	Button _backupDirOpen;
 	Text _author;
 	Text _wallpaper;
+	Combo _wallpaperStyle;
+	int[int] _wallpaperStyleTbl;
+	int[int] _wallpaperStyleTbl2;
 	Button _clearHist;
 	Spinner _histMax;
 	Button _clearSHist;
@@ -890,16 +895,34 @@ private:
 				{
 					auto grp = new Group(comp3, SWT.NONE);
 					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-					grp.setLayout(new GridLayout(3, false));
+					grp.setLayout(new GridLayout(1, true));
 					grp.setText(_prop.msgs.wallpaper);
-					_wallpaper = new Text(grp, SWT.BORDER);
-					createTextMenu!Text(_comm, _prop, _wallpaper, &catchMod);
-					_wallpaper.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-					mod(_wallpaper);
-					auto refr = new Button(grp, SWT.PUSH);
-					refr.setText(_prop.msgs.reference);
-					refr.addSelectionListener(new SelWallpaper);
-					createOpenButton(grp, _wallpaper, false);
+					{
+						auto comp4 = new Composite(grp, SWT.NONE);
+						comp4.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+						comp4.setLayout(zeroMarginGridLayout(3, false));
+						_wallpaper = new Text(comp4, SWT.BORDER);
+						createTextMenu!Text(_comm, _prop, _wallpaper, &catchMod);
+						_wallpaper.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+						mod(_wallpaper);
+						auto refr = new Button(comp4, SWT.PUSH);
+						refr.setText(_prop.msgs.reference);
+						refr.addSelectionListener(new SelWallpaper);
+						createOpenButton(comp4, _wallpaper, false);
+					}
+					{
+						auto comp4 = new Composite(grp, SWT.NONE);
+						comp4.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+						comp4.setLayout(zeroMarginGridLayout(2, false));
+
+						int[] styles;
+						string[] names;
+						foreach (s; [WallpaperStyle.Center, WallpaperStyle.Tile, WallpaperStyle.ExpandFull, WallpaperStyle.Expand]) {
+							styles ~= cast(int) s;
+							names ~= _prop.msgs.wallpaperStyleName(s);
+						}
+						_wallpaperStyle = createEnumC(comp4, _prop.msgs.wallpaperStyle, styles, names, _wallpaperStyleTbl, _wallpaperStyleTbl2);
+					}
 					setupDropFile(grp, _wallpaper, &dropWallpaper);
 				}
 				{
@@ -1817,6 +1840,22 @@ private:
 			_contentsAutoHide.setEnabled(!_contentsFloat.getSelection());
 		}
 	}
+
+	Combo createEnumC(Composite grp, string title, in int[] values, in string[] names, ref int[int] tblA, ref int[int] tblB) {
+		assert (values.length == names.length);
+		auto l = new Label(grp, SWT.NONE);
+		l.setText(title);
+		auto combo = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
+		mod(combo);
+		combo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		combo.setVisibleItemCount(20);
+		foreach (i, val; values) {
+			tblA[val] = i;
+			tblB[i] = val;
+			combo.add(names[i]);
+		}
+		return combo;
+	}
 	void construct5(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
 		_tabE = new CTabItem(tabf, SWT.NONE);
@@ -1869,21 +1908,6 @@ private:
 				sepgd.horizontalSpan = 2;
 				sep.setLayoutData(sepgd);
 
-				Combo createC(string title, in int[] values, in string[] names, ref int[int] tblA, ref int[int] tblB) {
-					assert (values.length == names.length);
-					auto l = new Label(grp, SWT.NONE);
-					l.setText(title);
-					auto combo = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
-					mod(combo);
-					combo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-					combo.setVisibleItemCount(20);
-					foreach (i, val; values) {
-						tblA[val] = i;
-						tblB[i] = val;
-						combo.add(names[i]);
-					}
-					return combo;
-				}
 				version (Windows) {
 					const int[] soundPlayTypeVals = [
 						SOUND_TYPE_AUTO,
@@ -1909,8 +1933,8 @@ private:
 						_prop.msgs.soundPlayTypeApp
 					];
 				}
-				_soundPlayType = createC(_prop.msgs.soundPlayType, soundPlayTypeVals, soundPlayTypeNames, _soundPlayTypeTbl, _soundPlayTypeTbl2);
-				_dialogStatus = createC(_prop.msgs.dialogStatus, [
+				_soundPlayType = createEnumC(grp, _prop.msgs.soundPlayType, soundPlayTypeVals, soundPlayTypeNames, _soundPlayTypeTbl, _soundPlayTypeTbl2);
+				_dialogStatus = createEnumC(grp, _prop.msgs.dialogStatus, [
 					cast(int) DialogStatus.Top,
 					cast(int) DialogStatus.Under,
 					cast(int) DialogStatus.UnderWithCoupon,
@@ -2038,6 +2062,12 @@ protected:
 		_backupCount.setSelection(_prop.var.etc.backupCount);
 		_author.setText(_prop.var.etc.defaultAuthor);
 		_wallpaper.setText(_prop.var.etc.wallpaper);
+		auto wsp = _prop.var.etc.wallpaperStyle in _wallpaperStyleTbl;
+		if (wsp) {
+			_wallpaperStyle.select = *wsp;
+		} else {
+			_wallpaperStyle.select = WallpaperStyle.Tile;
+		}
 		_histMax.setSelection(_prop.var.etc.historyMax);
 		_sHistMax.setSelection(_prop.var.etc.searchHistoryMax);
 		_undoMaxMainView.setSelection(_prop.var.etc.undoMaxMainView);
@@ -2164,6 +2194,7 @@ protected:
 		_prop.var.etc.backupCount = _backupCount.getSelection();
 		_prop.var.etc.defaultAuthor = _author.getText();
 		_prop.var.etc.wallpaper = _wallpaper.getText();
+		_prop.var.etc.wallpaperStyle = cast(WallpaperStyle) _wallpaperStyleTbl2[_wallpaperStyle.getSelectionIndex()];
 		_prop.var.etc.historyMax = _histMax.getSelection();
 		_prop.var.etc.searchHistoryMax = _sHistMax.getSelection();
 		_prop.var.etc.undoMaxMainView = _undoMaxMainView.getSelection();
@@ -2234,6 +2265,7 @@ struct OldSettings {
 	Props prop;
 	string oldEnginePath;
 	string oldWallpaper;
+	WallpaperStyle oldWallpaperStyle;
 	const string[] oldKeyCodes;
 	const OuterTool[] tools;
 	const ClassicEngine[] cEngines;
@@ -2251,6 +2283,7 @@ struct OldSettings {
 		this.prop = prop;
 		this.oldEnginePath = prop.var.etc.enginePath;
 		this.oldWallpaper = prop.var.etc.wallpaper;
+		this.oldWallpaperStyle = prop.var.etc.wallpaperStyle;
 		this.oldKeyCodes = prop.var.etc.standardKeyCodes;
 		this.tools = prop.var.etc.outerTools;
 		this.cEngines = prop.var.etc.classicEngines;
@@ -2270,8 +2303,10 @@ struct OldSettings {
 		if (comm.summary && oldEnginePath != prop.var.etc.enginePath) {
 			refSkin = true;
 		}
-		if (oldWallpaper != prop.var.etc.wallpaper) {
-			comm.refreshWallpaper(prop);
+		if (oldWallpaper != prop.var.etc.wallpaper || oldWallpaperStyle != prop.var.etc.wallpaperStyle) {
+			if (oldWallpaper != prop.var.etc.wallpaper) {
+				comm.refreshWallpaper(prop);
+			}
 			comm.refWallpaper.call();
 		}
 		if (oldKeyCodes != prop.var.etc.standardKeyCodes) {

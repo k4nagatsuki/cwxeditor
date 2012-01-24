@@ -45,6 +45,7 @@ import java.lang.all;
 import std.algorithm;
 import std.file;
 import std.string;
+import std.conv;
 
 debug alias DockingFolder!(TabFolder, SWT.NONE) DockingFolderT;
 debug alias DockingFolder!(CTabFolder, SWT.BORDER | SWT.FLAT) DockingFolderCT;
@@ -1018,32 +1019,65 @@ class DockingFolder(TabF, int Style) {
 		Composite par;
 		Control delegate(Composite, string) create;
 		void sash(ref XNode node) {
-			string type = node.attr("type", true);
-			/// FIXME: たまに type == VERTICAL の所でアクセス違反が起きる？
-			auto sash = new SplitPane(par, type == VERTICAL ? SWT.VERTICAL : SWT.HORIZONTAL);
-			Proc proc;
-			proc.r = r;
-			proc.par = sash;
-			proc.create = create;
-			node.onTag["sash"] = &proc.sash;
-			node.onTag["tabs"] = &proc.tabs;
-			node.parse();
-			sash.setWeights([node.attr!(int)("lWeight", true), node.attr!(int)("rWeight", true)]);
+			string dStr = .text(__LINE__);
+			try {
+				dStr ~= " - " ~ .text(__LINE__);
+				string type = node.attr("type", true);
+				/// FIXME: たまに type == VERTICAL の所でアクセス違反が起きる？
+				dStr ~= " - " ~ .text(__LINE__);
+				auto sash = new SplitPane(par, type == VERTICAL ? SWT.VERTICAL : SWT.HORIZONTAL);
+				dStr ~= " - " ~ .text(__LINE__);
+				Proc proc;
+				proc.r = r;
+				proc.par = sash;
+				proc.create = create;
+				node.onTag["sash"] = &proc.sash;
+				node.onTag["tabs"] = &proc.tabs;
+				dStr ~= " - " ~ .text(__LINE__);
+				node.parse();
+				dStr ~= " - " ~ .text(__LINE__);
+				sash.setWeights([node.attr!(int)("lWeight", true), node.attr!(int)("rWeight", true)]);
+				dStr ~= " - " ~ .text(__LINE__);
+			} catch (Throwable e) {
+				// FIXME: リンクエラー！
+//				fdebugln(dStr);
+//				fdebugln(e);
+				throw new Exception(dStr, __FILE__, __LINE__);
+			}
 		}
 		void tabs(ref XNode node) {
-			auto key = node.attr("key", true);
-			auto tabf = r.newTabf(par, key);
-			node.onTag["tab"] = (ref XNode node) {
+			string dStr = .text(__LINE__);
+			try {
+				dStr ~= " - " ~ .text(__LINE__);
 				auto key = node.attr("key", true);
-				auto v = create(tabf, key);
-				if (v) r.add(v, node.attr("name", true), key);
-			};
-			node.parse();
-			auto i = node.attr!(int)("select", false, -1);
-			if (0 < tabf.getItemCount()) {
-				i = std.algorithm.max(i, 0);
-				i = std.algorithm.min(i, tabf.getItemCount() - 1);
-				tabf.setSelection(i);
+				dStr ~= " - " ~ .text(__LINE__);
+				auto tabf = r.newTabf(par, key);
+				dStr ~= " - " ~ .text(__LINE__);
+				node.onTag["tab"] = (ref XNode node) {
+					dStr ~= " - " ~ .text(__LINE__);
+					auto key = node.attr("key", true);
+					dStr ~= " - " ~ .text(__LINE__);
+					auto v = create(tabf, key);
+					dStr ~= " - " ~ .text(__LINE__);
+					if (v) r.add(v, node.attr("name", true), key);
+					dStr ~= " - " ~ .text(__LINE__);
+				};
+				dStr ~= " - " ~ .text(__LINE__);
+				node.parse();
+				dStr ~= " - " ~ .text(__LINE__);
+				auto i = node.attr!(int)("select", false, -1);
+				if (0 < tabf.getItemCount()) {
+					dStr ~= " - " ~ .text(__LINE__);
+					i = std.algorithm.max(i, 0);
+					i = std.algorithm.min(i, tabf.getItemCount() - 1);
+					tabf.setSelection(i);
+				}
+				dStr ~= " - " ~ .text(__LINE__);
+			} catch (Throwable e) {
+				// FIXME: リンクエラー！
+//				fdebugln(dStr);
+//				fdebugln(e);
+				throw new Exception(dStr, __FILE__, __LINE__);
 			}
 		}
 	}
@@ -1054,25 +1088,41 @@ class DockingFolder(TabF, int Style) {
 	static DockingFolder fromNode(ref XNode node, Composite parent, int style,
 			Control delegate(Composite, string) create,
 			void delegate(string) createPaneEvent = null) {
-		assert (node.name == "dockingFolder", "dockingfolder#fromNode");
-		DockingFolder r = null;
+		string dStr = .text(__LINE__);
 		try {
-			r = new DockingFolder(parent, style, false);
-			if (createPaneEvent) r.createPaneEvent ~= createPaneEvent;
-			Proc proc;
-			proc.r = r;
-			proc.par = r._area;
-			proc.create = create;
-			node.onTag["sash"] = &proc.sash;
-			node.onTag["tabs"] = &proc.tabs;
-			node.parse();
-			return r;
-		} catch (Exception e) {
-			if (r && r.area) {
-				r._canSave = false;
-				r.area.dispose();
+			dStr ~= " - " ~ .text(__LINE__);
+			assert (node.name == "dockingFolder", "dockingfolder#fromNode");
+			DockingFolder r = null;
+			try {
+				r = new DockingFolder(parent, style, false);
+				dStr ~= " - " ~ .text(__LINE__);
+				if (createPaneEvent) r.createPaneEvent ~= createPaneEvent;
+				Proc proc;
+				proc.r = r;
+				proc.par = r._area;
+				proc.create = create;
+				node.onTag["sash"] = &proc.sash;
+				node.onTag["tabs"] = &proc.tabs;
+				dStr ~= " - " ~ .text(__LINE__);
+				node.parse();
+				dStr ~= " - " ~ .text(__LINE__);
+				return r;
+			} catch (Exception e) {
+				dStr ~= " - " ~ .text(__LINE__);
+				if (r && r.area) {
+					dStr ~= " - " ~ .text(__LINE__);
+					r._canSave = false;
+					r.area.dispose();
+				}
+				dStr ~= " - " ~ .text(__LINE__);
+				throw e;
 			}
-			throw e;
+			dStr ~= " - " ~ .text(__LINE__);
+		} catch (Throwable e) {
+			// FIXME: リンクエラー！
+//			fdebugln(dStr);
+//			fdebugln(e);
+			throw new Exception(dStr, __FILE__, __LINE__);
 		}
 	}
 }

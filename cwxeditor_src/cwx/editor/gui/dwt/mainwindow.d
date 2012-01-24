@@ -30,6 +30,7 @@ import cwx.usecounter;
 import cwx.props;
 import cwx.skin;
 import cwx.path;
+import cwx.graphics;
 
 import cwx.editor.gui.sound;
 
@@ -2064,7 +2065,7 @@ public:
 			auto tabf = cast(CTabFolder) e.widget;
 			if (!tabf || tabf.getItemCount() > 0) return;
 			auto rect = tabf.getClientArea();
-			drawTileImage(e.gc, _comm.wallpaper, rect);
+			drawWallpaper(e.gc, _comm.wallpaper, rect, _prop.var.etc.wallpaperStyle);
 		}
 	}
 	private class TabMenu {

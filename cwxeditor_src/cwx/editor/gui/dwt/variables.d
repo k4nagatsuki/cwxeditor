@@ -7,6 +7,7 @@ import cwx.skin;
 import cwx.background;
 import cwx.structs;
 import cwx.msgs;
+import cwx.graphics;
 
 import cwx.editor.gui.dwt.properties;
 
@@ -134,6 +135,7 @@ class FlexEtcProps : Properties {
 	mixin Property!("classicEnginesNameHeight", int, 250, true);
 
 	mixin Property!("wallpaper", string, "");
+	mixin Property!("wallpaperStyle", WallpaperStyle, WallpaperStyle.Tile);
 	mixin Property!("wallColorR", int, 0);
 	mixin Property!("wallColorG", int, 0);
 	mixin Property!("wallColorB", int, 128);

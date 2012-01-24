@@ -16,6 +16,7 @@ import cwx.background;
 import cwx.cab;
 import cwx.structs;
 import cwx.skin;
+import cwx.graphics;
 
 import std.conv;
 import std.path;
@@ -2374,6 +2375,21 @@ public:
 		return "画像ファイル (*.bmp;*.jpg;*.jpeg;*.png;*.tif;*.tiff;*.ico;*.icon)";
 	}
 	@property const string dlgTitWallpaper() {return "壁紙画像の選択";}
+	@property const string wallpaperStyle() {
+		return "表示形式";
+	}
+	const string wallpaperStyleName(WallpaperStyle s) {
+		final switch (s) {
+		case WallpaperStyle.Center:
+			return "中央に表示";
+		case WallpaperStyle.Tile:
+			return "並べて表示";
+		case WallpaperStyle.ExpandFull:
+			return "拡大して表示";
+		case WallpaperStyle.Expand:
+			return "はみ出さないように拡大";
+		}
+	}
 
 	@property const string bgImageAndKeyCode() {return "背景とキーコード";}
 	@property const string newBgImageSetting() {return "新規作成";}
