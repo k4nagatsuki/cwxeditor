@@ -101,9 +101,9 @@ void turn(ref ubyte[] data, ref size_t width, ref size_t height, ref size_t byte
 	size_t bpp = bytesPerLine / width;
 	size_t nw = height;
 	size_t nh = width;
-	size_t nbpl = bpp * width;
+	size_t newBytesPerLine = bpp * nw;
 	auto base = Pixels(data, width, height, depth, bytesPerLine, bpp);
-	auto r = Pixels(new ubyte[nbpl * height], nw, nh, depth, nbpl, bpp);
+	auto r = Pixels(new ubyte[newBytesPerLine * nw], nw, nh, depth, newBytesPerLine, bpp);
 	for (size_t y = 0; y < height; y++) {
 		for (size_t x = 0; x < width; x++) {
 			size_t xt;
@@ -125,7 +125,7 @@ void turn(ref ubyte[] data, ref size_t width, ref size_t height, ref size_t byte
 	data = r.data;
 	width = nw;
 	height = nh;
-	bytesPerLine = nbpl;
+	bytesPerLine = newBytesPerLine;
 }
 /// Flipの効果を適用する。
 ubyte[] flip(ubyte[] data, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
