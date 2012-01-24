@@ -19,10 +19,12 @@ struct Pixels {
 	/// 色深度。
 	size_t depth;
 	/// 1行のバイト数。
+	size_t bytesPerLine;
+	/// 1ピクセルのバイト数。
 	size_t bpp;
 	/// Pixelを取得する。
 	FC get(size_t x, size_t y) {
-		size_t i = y * width * bpp + x * bpp;
+		size_t i = y * bytesPerLine + x * bpp;
 		switch (depth) {
 		case 24, 32:
 			return FC(data[i + 2], data[i + 1], data[i]);
@@ -38,7 +40,7 @@ struct Pixels {
 	}
 	/// Pixelを設定する。
 	void set(size_t x, size_t y, ubyte r, ubyte g, ubyte b) {
-		size_t i = y * width * bpp + x * bpp;
+		size_t i = y * bytesPerLine + x * bpp;
 		switch (depth) {
 		case 24, 32:
 			data[i + 2] = r;
@@ -88,9 +90,12 @@ void turn(ref ubyte[] data, ref size_t width, ref size_t height, ref size_t byte
 	size_t bpp = bytesPerLine / width;
 	size_t nw = height;
 	size_t nh = width;
-	size_t nbpl = bpp * width;
-	auto base = Pixels(data, width, height, depth, bpp);
-	auto r = Pixels(new ubyte[nbpl * height], nw, nh, depth, bpp);
+	size_t newBytesPerLine = bpp * nw;
+	if (newBytesPerLine % 4 != 0) {
+		newBytesPerLine = newBytesPerLine - (newBytesPerLine % 4) + 4;
+	}
+	auto base = Pixels(data, width, height, depth, bytesPerLine, bpp);
+	auto r = Pixels(new ubyte[newBytesPerLine * nh], nw, nh, depth, newBytesPerLine, bpp);
 	for (size_t y = 0; y < height; y++) {
 		for (size_t x = 0; x < width; x++) {
 			size_t xt;
@@ -112,13 +117,13 @@ void turn(ref ubyte[] data, ref size_t width, ref size_t height, ref size_t byte
 	data = r.data;
 	width = nw;
 	height = nh;
-	bytesPerLine = nbpl;
+	bytesPerLine = newBytesPerLine;
 }
 /// Flipの効果を適用する。
 ubyte[] flip(ubyte[] data, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
 	if (width < 1 || height < 1) return data;
 	size_t bpp = bytesPerLine / width;
-	auto r = Pixels(data, width, height, depth, bpp);
+	auto r = Pixels(data, width, height, depth, bytesPerLine, bpp);
 	for (size_t y1 = 0; y1 < height / 2; y1++) {
 		for (size_t x = 0; x < width; x++) {
 			size_t y2 = height - y1 - 1;
@@ -131,7 +136,7 @@ ubyte[] flip(ubyte[] data, size_t depth, size_t width, size_t height, size_t byt
 ubyte[] mirror(ubyte[] data, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
 	if (width < 1 || height < 1) return data;
 	size_t bpp = bytesPerLine / width;
-	auto r = Pixels(data, width, height, depth, bpp);
+	auto r = Pixels(data, width, height, depth, bytesPerLine, bpp);
 	for (size_t y = 0; y < height; y++) {
 		for (size_t x1 = 0; x1 < width / 2; x1++) {
 			size_t x2 = width - x1 - 1;
@@ -222,7 +227,7 @@ private void round(ref FCu rgb) {
 private ubyte[] pixelProc(T)(T f, ubyte[] data, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
 	if (width < 1 || height < 1) return data;
 	size_t bpp = bytesPerLine / width;
-	auto r = Pixels(data, width, height, depth, bpp);
+	auto r = Pixels(data, width, height, depth, bytesPerLine, bpp);
 	for (size_t y = 0; y < height; y++) {
 		for (size_t x = 0; x < width; x++) {
 			auto rgb = r.get(x, y);
@@ -244,7 +249,7 @@ ubyte[] colormap(Colormap f, ubyte[] data, size_t depth, size_t width, size_t he
 private ubyte[] emboss(ubyte[] data, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
 	if (width < 1 || height < 1) return data;
 	size_t bpp = bytesPerLine / width;
-	auto r = Pixels(data, width, height, depth, bpp);
+	auto r = Pixels(data, width, height, depth, bytesPerLine, bpp);
 	for (size_t y = 0; y < height; y++) {
 		for (size_t x = 0; x < width; x++) {
 			int jx = x + 1 < width ? x + 1 : x;
@@ -264,8 +269,8 @@ private ubyte[] deffusion(ubyte[] data, size_t depth, size_t width, size_t heigh
 	rand_seed(1, 0); // 拡散値を固定する
 	scope (exit) rand_seed(nextSeed, 0);
 	size_t bpp = bytesPerLine / width;
-	auto base = Pixels(data, width, height, depth, bpp);
-	auto r = Pixels(new ubyte[data.length], width, height, depth, bpp);
+	auto base = Pixels(data, width, height, depth, bytesPerLine, bpp);
+	auto r = Pixels(new ubyte[data.length], width, height, depth, bytesPerLine, bpp);
 	for (size_t y = 0; y < height; y++) {
 		// cwconv.dllの実装では縦方向への拡散が微妙だがそれに合わせる
 		// 真に拡散させたい場合、jyの計算はxのループの内側にあるべき
@@ -360,8 +365,8 @@ ubyte[] filter(Filter f, ubyte[] data, size_t depth, size_t width, size_t height
 	default: assert (0);
 	}
 	size_t bpp = bytesPerLine / width;
-	auto base = Pixels(data, width, height, depth, bpp);
-	auto result = Pixels(new ubyte[data.length], width, height, depth, bpp);
+	auto base = Pixels(data, width, height, depth, bytesPerLine, bpp);
+	auto result = Pixels(new ubyte[data.length], width, height, depth, bytesPerLine, bpp);
 	for (size_t y = 0; y < height; y++) {
 		for (size_t x = 0; x < width; x++) {
 			int r = 0, g = 0, b = 0;
@@ -393,10 +398,10 @@ ubyte[] filter(Filter f, ubyte[] data, size_t depth, size_t width, size_t height
 ubyte[] mask(Mask f, ubyte[] data, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
 	if (width < 1 || height < 1) return data;
 	size_t bpp = bytesPerLine / width;
-	auto r = Pixels(data, width, height, depth, bpp);
+	auto r = Pixels(data, width, height, depth, bytesPerLine, bpp);
 	for (size_t y = 0; y < height; y++) {
 		for (size_t x = 0; x < width; x++) {
-			size_t i = y * width * bpp + x * bpp;
+			size_t i = y * bytesPerLine + x * bpp;
 			if (((f is Mask.V_LINE || f is Mask.MESH) && !(x & 0x1))
 					|| ((f is Mask.H_LINE || f is Mask.MESH) && !(y & 0x1))) {
 				r.set(x, y, cast(ubyte) 0, cast(ubyte) 0, cast(ubyte) 0);
@@ -465,7 +470,7 @@ ubyte[] noise(Noise f, int value, ubyte[] data, size_t depth, size_t width, size
 		}
 	}
 	size_t bpp = bytesPerLine / width;
-	auto r = Pixels(data, width, height, depth, bpp);
+	auto r = Pixels(data, width, height, depth, bytesPerLine, bpp);
 	for (size_t y = 0; y < height; y++) {
 		for (size_t x = 0; x < width; x++) {
 			if (f is Noise.MOSAIC) {
@@ -498,8 +503,11 @@ ubyte[] resize(size_t newWidth, size_t newHeight,
 	real ph = cast(real) newHeight / height;
 	size_t bpp = bytesPerLine / width;
 	newBytesPerLine = bpp * newWidth;
-	auto base = Pixels(data, width, height, depth, bpp);
-	auto r = Pixels(new ubyte[newHeight * newBytesPerLine], newHeight, newHeight, depth, bpp);
+	if (newBytesPerLine % 4 != 0) {
+		newBytesPerLine = newBytesPerLine - (newBytesPerLine % 4) + 4;
+	}
+	auto base = Pixels(data, width, height, depth, bytesPerLine, bpp);
+	auto r = Pixels(new ubyte[newHeight * newBytesPerLine], newHeight, newHeight, depth, bytesPerLine, bpp);
 	for (size_t y = 0; y < newHeight; y++) {
 		size_t ty = cast(size_t) (y / ph);
 		for (size_t x = 0; x < newWidth; x++) {
@@ -524,8 +532,11 @@ ubyte[] smoothResize(size_t newWidth, size_t newHeight,
 	real ph = cast(real) newHeight / height;
 	size_t bpp = bytesPerLine / width;
 	newBytesPerLine = bpp * newWidth;
-	auto base = Pixels(data, width, height, depth, bpp);
-	auto result = Pixels(new ubyte[newHeight * newBytesPerLine], newWidth, newHeight, depth, bpp);
+	if (newBytesPerLine % 4 != 0) {
+		newBytesPerLine = newBytesPerLine - (newBytesPerLine % 4) + 4;
+	}
+	auto base = Pixels(data, width, height, depth, bytesPerLine, bpp);
+	auto result = Pixels(new ubyte[newHeight * newBytesPerLine], newWidth, newHeight, depth, newBytesPerLine, bpp);
 	for (size_t y = 0; y < newHeight; y++) {
 		real ty = y / ph;
 		int bby = cast(int) ty;
@@ -545,7 +556,6 @@ ubyte[] smoothResize(size_t newWidth, size_t newHeight,
 					if (height <= by) by = height - 1;
 					if (bx < 0) bx = 0;
 					if (width <= bx) bx = width - 1;
-					size_t bi = by * width * bpp + bx * bpp;
 					auto rgb = base.get(bx, by);
 					a[i][j].r = rgb.r;
 					a[i][j].g = rgb.g;
