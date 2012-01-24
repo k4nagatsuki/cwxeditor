@@ -102,6 +102,9 @@ void turn(ref ubyte[] data, ref size_t width, ref size_t height, ref size_t byte
 	size_t nw = height;
 	size_t nh = width;
 	size_t newBytesPerLine = bpp * nw;
+	if (newBytesPerLine % 4 != 0) {
+		newBytesPerLine = newBytesPerLine - (newBytesPerLine % 4) + 4;
+	}
 	auto base = Pixels(data, width, height, depth, bytesPerLine, bpp);
 	auto r = Pixels(new ubyte[newBytesPerLine * nw], nw, nh, depth, newBytesPerLine, bpp);
 	for (size_t y = 0; y < height; y++) {
