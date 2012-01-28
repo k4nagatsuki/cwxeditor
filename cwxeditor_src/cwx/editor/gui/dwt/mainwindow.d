@@ -1831,11 +1831,18 @@ protected:
 		gd.heightHint = rect.height;
 		gd.verticalSpan = 2;
 		img.setLayoutData = gd;
-		auto ln = new Link(area, SWT.NONE);
-		ln.setText = _prop.msgs.application ~ " / " ~ _prop.msgs.appVersion ~ "\n"
-			~ "<a>" ~ _prop.msgs.appWebSiteURI ~ "</a>\n"
-			~ _prop.msgs.appDesc;
-		ln.addSelectionListener(new OpenLink);
+		{
+			auto comp = new Composite(area, SWT.NONE);
+			comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			comp.setLayout(zeroGridLayout(1, true));
+			auto l1 = new Label(comp, SWT.NONE);
+			l1.setText(_prop.msgs.application ~ " / " ~ _prop.msgs.appVersion);
+			auto ln = new Link(comp, SWT.NONE);
+			ln.setText("<a>" ~ _prop.msgs.appWebSiteURI ~ "</a>");
+			ln.addSelectionListener(new OpenLink);
+			auto l2 = new Label(comp, SWT.NONE);
+			l2.setText(_prop.msgs.appDesc);
+		}
 		auto lb = new Label(area, SWT.NONE);
 		lb.setText = _prop.msgs.appBuild;
 	}
