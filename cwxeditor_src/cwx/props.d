@@ -2209,7 +2209,7 @@ public:
 		return r <= 10 ? r : 10;
 	}
 	int cardDescLen() {return 38;}
-	int cardDescLine() {return 7;}
+	int cardDescLine() {return 8;}
 
 	int messageImageLen() {return 34;}
 	int messageLen() {return 44;}
