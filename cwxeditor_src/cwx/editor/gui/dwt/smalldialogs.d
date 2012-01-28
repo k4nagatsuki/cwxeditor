@@ -171,12 +171,18 @@ protected:
 		gd.heightHint = rect.height;
 		gd.verticalSpan = 2;
 		img.setLayoutData(gd);
-		auto ln = new Link(area, SWT.NONE);
-		ln.setText = _prop.msgs.application ~ " / " ~ APP_VERSION ~ "\n"
-			~ "<a>" ~ APP_WEB_SITE_URI ~ "</a>\n"
-			~ _prop.msgs.appDesc;
-		ln.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		ln.addSelectionListener(new OpenLink);
+		{
+			auto comp = new Composite(area, SWT.NONE);
+			comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			comp.setLayout(zeroGridLayout(1, true));
+			auto l1 = new Label(comp, SWT.NONE);
+			l1.setText(_prop.msgs.application ~ " / " ~ APP_VERSION);
+			auto ln = new Link(comp, SWT.NONE);
+			ln.setText("<a>" ~ APP_WEB_SITE_URI ~ "</a>");
+			ln.addSelectionListener(new OpenLink);
+			auto l2 = new Label(comp, SWT.NONE);
+			l2.setText(_prop.msgs.appDesc);
+		}
 		auto build = new Text(area, SWT.READ_ONLY | SWT.BORDER | SWT.MULTI);
 		createTextMenu!Text(_comm, _prop, build, null);
 		build.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
