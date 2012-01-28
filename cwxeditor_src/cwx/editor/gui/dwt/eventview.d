@@ -974,6 +974,7 @@ public:
 		_sash.setLayoutData(new GridData(GridData.FILL_BOTH));
 		{
 			_cards = new Tree(_sash, SWT.SINGLE | SWT.BORDER);
+			initTree(_cards, false);
 			_cards.addSelectionListener(new SListener);
 
 			uint retry = 0;

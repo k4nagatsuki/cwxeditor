@@ -794,6 +794,7 @@ private:
 			foreach (c; a.beasts) {
 				add(par, c.name, c);
 			}
+			par.setExpanded(true);
 		}
 		foreach (a; _summ.skills) {
 			add(null, a.name, a);
@@ -986,6 +987,7 @@ public:
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			grp.setLayout(new GridLayout(1, true));
 			_range = new Tree(grp, SWT.SINGLE | SWT.BORDER | SWT.VIRTUAL | SWT.CHECK);
+			initTree(_range, false);
 			_range.addSelectionListener(new RefRangeAllCheck);
 			_range.setLayoutData(new GridData(GridData.FILL_BOTH));
 			refreshRangeTree();

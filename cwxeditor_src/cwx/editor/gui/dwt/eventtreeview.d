@@ -1589,6 +1589,7 @@ public:
 		_cbarPar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		_cbarPar.setLayout(new FillLayout);
 		_tree = new Tree(_comp, SWT.SINGLE | SWT.BORDER | SWT.VIRTUAL);
+		initTree(_tree, true);
 		_tree.setLayoutData(new GridData(GridData.FILL_BOTH));
 		_tree.addPaintListener(new PaintTree);
 		new TreeEdit(_tree, &editEnd, &createEditor);

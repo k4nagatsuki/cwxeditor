@@ -113,6 +113,12 @@ import org.eclipse.swt.dnd.DropTargetAdapter;
 import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.dnd.DropTarget;
 import org.eclipse.swt.dnd.FileTransfer;
+
+version (Windows) {
+	import org.eclipse.swt.internal.win32.OS;
+	import org.eclipse.swt.internal.win32.WINTYPES;
+}
+
 import java.lang.all;
 import java.io.ByteArrayInputStream;
 
@@ -2308,4 +2314,17 @@ TextMenuModify createTextMenu(T = Text)(Commons comm, Props prop, T text, bool d
 	text.setMenu(menu);
 
 	return ml;
+}
+
+/// Windows Vista以降で、Treeに点線を表示する。
+void initTree(Tree tree, bool closeRoot) {
+	version (Windows) {
+		auto style = OS.GetWindowLong(tree.handle, GWL_STYLE);
+		style |= OS.TVS_HASLINES;
+		if (!closeRoot) {
+			style &= ~OS.TVS_LINESATROOT;
+		}
+		style = OS.SetWindowLong(tree.handle, GWL_STYLE, style);
+		OS.SetWindowPos(tree.handle, null, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+	}
 }

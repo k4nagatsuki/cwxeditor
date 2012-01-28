@@ -381,6 +381,9 @@ private:
 		summ.flagDirRoot.sortFlags(true);
 		summ.flagDirRoot.sortSteps(true);
 		auto old = summary;
+		if (old) {
+			addHistory();
+		}
 		if (summ.type.length && !hasSkin(_prop, summ.type)
 				&& summ.type != _prop.var.etc.defaultSkin) {
 			MessageBox.showWarning(_prop.msgs.useDefaultSkin(summ.type, _prop.var.etc.defaultSkin),

@@ -485,15 +485,8 @@ private:
 		itm.setImage(0, _cimg);
 		itm.setText(0, to!(string)(c.id));
 		itm.setText(1, c.name);
-		if (c.desc.length > 0) {
-			// FIXME: セルの値が長すぎると表示されないことがあるので自らカット
-			string desc = std.array.replace(c.desc, "\n", "");
-			dstring ddesc = toUTF32(desc);
-			if (ddesc.length > 50) {
-				desc = toUTF8(ddesc[0 .. 50] ~ "...");
-			}
-			itm.setText(2, desc);
-		}
+		string desc = std.array.replace(c.desc, "\n", "");
+		itm.setText(2, desc);
 		static if (is (CardOwner == Summary)) {
 			itm.setText(3, to!(string)(_summ.useCounter.get(C.toID(c.id))));
 		}
