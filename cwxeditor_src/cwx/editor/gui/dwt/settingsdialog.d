@@ -223,6 +223,7 @@ private:
 	Spinner _sHistMax;
 	Spinner _undoMaxMainView;
 	Spinner _undoMaxEvent;
+	Spinner _undoMaxReplace;
 	Spinner _undoMaxEtc;
 
 	CTabItem _tabS;
@@ -1006,6 +1007,7 @@ private:
 					}
 					_undoMaxMainView = createUndoMax(_prop.msgs.undoMaxMainView);
 					_undoMaxEvent = createUndoMax(_prop.msgs.undoMaxEvent);
+					_undoMaxReplace = createUndoMax(_prop.msgs.undoMaxReplace);
 					_undoMaxEtc = createUndoMax(_prop.msgs.undoMaxEtc);
 				}
 			}
@@ -2072,6 +2074,7 @@ protected:
 		_sHistMax.setSelection(_prop.var.etc.searchHistoryMax);
 		_undoMaxMainView.setSelection(_prop.var.etc.undoMaxMainView);
 		_undoMaxEvent.setSelection(_prop.var.etc.undoMaxEvent);
+		_undoMaxReplace.setSelection(_prop.var.etc.undoMaxReplace);
 		_undoMaxEtc.setSelection(_prop.var.etc.undoMaxEtc);
 		string ipbuf = "";
 		foreach (path; _prop.var.etc.ignorePaths) {
@@ -2199,6 +2202,7 @@ protected:
 		_prop.var.etc.searchHistoryMax = _sHistMax.getSelection();
 		_prop.var.etc.undoMaxMainView = _undoMaxMainView.getSelection();
 		_prop.var.etc.undoMaxEvent = _undoMaxEvent.getSelection();
+		_prop.var.etc.undoMaxReplace = _undoMaxReplace.getSelection();
 		_prop.var.etc.undoMaxEtc = _undoMaxEtc.getSelection();
 		string[] ipLines = splitLines(_ignorePaths.getText());
 		if (ipLines.length > 0) {
@@ -2277,6 +2281,7 @@ struct OldSettings {
 	const string[] oldReplaceHistories;
 	int oldUndoMaxMainView;
 	int oldUndoMaxEvent;
+	int oldUndoMaxReplace;
 	int oldUndoMaxEtc;
 	DialogStatus oldDialogStatus;
 	this (Props prop) {
@@ -2295,6 +2300,7 @@ struct OldSettings {
 		this.oldReplaceHistories = prop.var.etc.replaceHistories;
 		this.oldUndoMaxMainView = prop.var.etc.undoMaxMainView;
 		this.oldUndoMaxEvent = prop.var.etc.undoMaxEvent;
+		this.oldUndoMaxReplace = prop.var.etc.undoMaxReplace;
 		this.oldUndoMaxEtc = prop.var.etc.undoMaxEtc;
 		this.oldDialogStatus = prop.var.etc.dialogStatus;
 	}
@@ -2351,6 +2357,7 @@ struct OldSettings {
 		}
 		if (oldUndoMaxMainView != prop.var.etc.undoMaxMainView
 				|| oldUndoMaxEvent != prop.var.etc.undoMaxEvent
+				|| oldUndoMaxReplace != prop.var.etc.undoMaxReplace
 				|| oldUndoMaxEtc != prop.var.etc.undoMaxEtc) {
 			comm.refUndoMax.call();
 		}

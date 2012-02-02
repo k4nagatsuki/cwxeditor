@@ -585,6 +585,9 @@ private:
 				dlg();
 			}
 		}
+		foreach (dlg; changedEventForce) {
+			dlg();
+		}
 	}
 
 	this (string sPath) {
@@ -613,7 +616,11 @@ public:
 	}
 
 	/// シナリオに変更があった際に発生するイベントのハンドラ。
+	/// すでに変更済みであった場合は通知されない。
 	void delegate()[] changedEvent;
+	/// シナリオに変更があった際に発生するイベントのハンドラ。
+	/// すでに変更済みであっても通知される。
+	void delegate()[] changedEventForce;
 
 	@property
 	override string cwxPath() {return "";}

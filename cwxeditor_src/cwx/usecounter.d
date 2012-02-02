@@ -173,6 +173,16 @@ public:
 	@property
 	string cwxPath() {return _cwxPath.cwxPath;}
 
+	/// IDを設定する。
+	/// 所有者がChgFlagCallbackであればコールバックが行われる。
+	@property
+	void id(FlagId newVal) {
+		if (cast(ChgFlagCallback) _cwxPath) {
+			(cast(ChgFlagCallback) _cwxPath).changeCallback(toFlagId(_flag), newVal);
+		}
+		flag = newVal.id;
+	}
+
 	/// フラグを設定する。
 	/// Params:
 	/// flag = フラグ。
@@ -275,6 +285,16 @@ public:
 	@property
 	string cwxPath() {return _cwxPath.cwxPath;}
 
+	/// IDを設定する。
+	/// 所有者がChgStepCallbackであればコールバックが行われる。
+	@property
+	void id(StepId newVal) {
+		if (cast(ChgStepCallback) _cwxPath) {
+			(cast(ChgStepCallback) _cwxPath).changeCallback(toStepId(_step), newVal);
+		}
+		step = newVal.id;
+	}
+
 	/// ステップを設定する。
 	/// Params:
 	/// step = ステップ。
@@ -349,6 +369,12 @@ public:
 	/// このオブジェクトの所有者のリソースパス。
 	@property
 	string cwxPath() {return _cwxPath.cwxPath;}
+
+	/// IDを設定する。
+	@property
+	void id(AreaId newVal) {
+		area = newVal;
+	}
 
 	/// エリアIDを設定する。
 	/// Params:
@@ -427,6 +453,12 @@ public:
 	@property
 	string cwxPath() {return _cwxPath.cwxPath;}
 
+	/// IDを設定する。
+	@property
+	void id(BattleId newVal) {
+		battle = newVal;
+	}
+
 	/// バトルIDを設定する。
 	/// Params:
 	/// id = バトルID。
@@ -503,6 +535,12 @@ public:
 	/// このオブジェクトの所有者のリソースパス。
 	@property
 	string cwxPath() {return _cwxPath.cwxPath;}
+
+	/// IDを設定する。
+	@property
+	void id(PackageId newVal) {
+		packages = newVal;
+	}
 
 	/// パッケージIDを設定する。
 	/// Params:
@@ -666,6 +704,16 @@ public:
 	@property
 	string cwxPath() {return _cwxPath.cwxPath;}
 
+	/// IDを設定する。
+	/// 所有者がChgPathCallbackであればコールバックが行われる。
+	@property
+	void id(PathId newVal) {
+		if (cast(ChgPathCallback) _cwxPath) {
+			(cast(ChgPathCallback) _cwxPath).changeCallback(_path, newVal);
+		}
+		path = cast(string) newVal;
+	}
+
 	/// ファイルパスを設定する。
 	@property
 	void path(string path) {
@@ -742,6 +790,12 @@ public:
 	@property
 	string cwxPath() {return _cwxPath.cwxPath;}
 
+	/// IDを設定する。
+	@property
+	void id(CastId newVal) {
+		casts = newVal;
+	}
+
 	/// キャストIDを設定する。
 	/// Params:
 	/// id = キャストID。
@@ -813,6 +867,12 @@ public:
 	/// このオブジェクトの所有者のリソースパス。
 	@property
 	string cwxPath() {return _cwxPath.cwxPath;}
+
+	/// IDを設定する。
+	@property
+	void id(SkillId newVal) {
+		skill = newVal;
+	}
 
 	/// スキルIDを設定する。
 	/// Params:
@@ -886,6 +946,12 @@ public:
 	@property
 	string cwxPath() {return _cwxPath.cwxPath;}
 
+	/// IDを設定する。
+	@property
+	void id(ItemId newVal) {
+		item = newVal;
+	}
+
 	/// アイテムIDを設定する。
 	/// Params:
 	/// id = アイテムID。
@@ -958,6 +1024,12 @@ public:
 	@property
 	string cwxPath() {return _cwxPath.cwxPath;}
 
+	/// IDを設定する。
+	@property
+	void id(BeastId newVal) {
+		beast = newVal;
+	}
+
 	/// 召喚獣IDを設定する。
 	/// Params:
 	/// id = 召喚獣ID。
@@ -1029,6 +1101,12 @@ public:
 	/// このオブジェクトの所有者のリソースパス。
 	@property
 	string cwxPath() {return _cwxPath.cwxPath;}
+
+	/// IDを設定する。
+	@property
+	void id(InfoId newVal) {
+		info = newVal;
+	}
 
 	/// 情報カードIDを設定する。
 	/// Params:

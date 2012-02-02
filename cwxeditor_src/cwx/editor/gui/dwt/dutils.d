@@ -16,6 +16,7 @@ import cwx.cab;
 import cwx.structs;
 import cwx.event;
 import cwx.graphics;
+import cwx.path;
 
 import cwx.editor.gui.sound;
 import cwx.editor.gui.dwt.images;
@@ -2326,5 +2327,24 @@ void initTree(Tree tree, bool closeRoot) {
 		}
 		style = OS.SetWindowLong(tree.handle, GWL_STYLE, style);
 		OS.SetWindowPos(tree.handle, null, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+	}
+}
+
+class SDialogsUndo : TUndo!(SDialog[]) {
+	this (SDialog[] o, SDialog[] n, void delegate(SDialog[]) set) {
+		super (o, n, set, (SDialog[] v) {
+			auto r = new SDialog[v.length];
+			foreach (i, dlg; v) r[i] = new SDialog(dlg);
+			return r;
+		});
+	}
+}
+
+class CWXPathString {
+	CWXPath path;
+	string array;
+	this (CWXPath path, string array) {
+		this.path = path;
+		this.array = array;
 	}
 }

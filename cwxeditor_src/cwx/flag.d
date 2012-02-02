@@ -90,6 +90,9 @@ private:
 	FlagDir _parent;
 	void delegate() _change = null;
 public:
+	/// パスをIDに置換する。
+	alias toFlagId toID;
+
 	/// コピーコンストラクタ。
 	this (Flag copyBase) {
 		_name = copyBase.name;
@@ -260,6 +263,9 @@ private:
 	FlagDir _parent;
 	void delegate() _change = null;
 public:
+	/// パスをIDに置換する。
+	alias toStepId toID;
+
 	/// コピーコンストラクタ。
 	this (Step copyBase) {
 		_name = copyBase.name;

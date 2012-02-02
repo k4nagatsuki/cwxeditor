@@ -8,18 +8,22 @@
 ライブラリ:
 	・DWT at GitHub
 
-　後はgitとMercurialのクライアントがあると楽です。
+　後はgitのクライアントがあると楽です。
 
 
 [ Windowsの場合 ]
 
 　DWTをGitHubから取ってきます。
 　submoduleがあるので、submodule initとupdateをしておきましょう。
+　各submoduleが最新のcommitになっていない事が結構あるので、強制的に
+pullもしておきます。
 ---
 git clone https://github.com/d-widget-toolkit/dwt.git
 cd dwt
 git submodule update --init
+git submodule foreach git pull origin master
 ---
+
 　DWTはビルドにrakeを使います。こいつはRuby言語のスクリプトなのですが、
 RubyInstaller for Windowsを使うとRuby本体諸共入手できるようです。
 　http://rubyinstaller.org/
@@ -35,6 +39,7 @@ LIB="%@P%\..\lib";\dm\lib;"%@P%\..\..\dwt\lib"
 DFLAGS="-I%@P%\..\..\src\phobos" "-I%@P%\..\..\src\druntime\import" "-I%@P%\..\..\import" "-I%@P%\..\..\dwt\imp" "-J%@P%\..\..\dwt\res"
 LINKCMD=%@P%\link.exe
 ---
+
 　最後にリソースコンパイル用のrccを入手します。
 　Digital MarsのサイトからBasic Utilitiesを入手して、パスを通しましょう。
 　http://www.digitalmars.com//download/freecompiler.html
@@ -72,10 +77,13 @@ make -f win32.mak release
 
 　DWTをGitHubから取ってきます。
 　submoduleがあるので、submodule initとupdateをしておきましょう。
+　各submoduleが最新のcommitになっていない事が結構あるので、強制的に
+pullもしておきます。
 ---
 git clone https://github.com/d-widget-toolkit/dwt.git
 cd dwt
 git submodule update --init
+git submodule foreach git pull origin master
 ---
 　さらに、org.eclipse.swt.browserがあると余計な依存関係が発生するので、
 消すか、どこかへ移動してしまう必要があります。

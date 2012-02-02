@@ -430,6 +430,12 @@ public:
 
 /// メッセージテキストの保持者。
 interface ITextHolder {
+	/// テキスト。
+	@property
+	const string text();
+	/// ditto
+	@property
+	void text(string);
 	/// テキスト内で使用されているfont_X.png・フラグ・ステップのパス。
 	@property
 	const string[] fontsInText();
@@ -1202,8 +1208,12 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			~ "_" ~ Name ~ Set ~ " = val;"
 		"}");
 		static if (New) {
-			mixin ("@property " ~ T2.stringof ~ " " ~ Name ~ "() {return _" ~ Name ~ " ? _" ~ Name ~ Get ~ " : Def;}");
-			mixin ("@property const const(T2) " ~ Name ~ "() {return _" ~ Name ~ " ? _" ~ Name ~ Get ~ " : Def;}");
+			static if (is(T2 == string)) {
+				mixin ("@property const T2 " ~ Name ~ "() {return _" ~ Name ~ " ? _" ~ Name ~ Get ~ " : Def;}");
+			} else {
+				mixin ("@property " ~ T2.stringof ~ " " ~ Name ~ "() {return _" ~ Name ~ " ? _" ~ Name ~ Get ~ " : Def;}");
+				mixin ("@property const const(T2) " ~ Name ~ "() {return _" ~ Name ~ " ? _" ~ Name ~ Get ~ " : Def;}");
+			}
 		} else {
 			mixin ("@property T2 " ~ Name ~ "() {return _" ~ Name ~ Get ~ ";}");
 			mixin ("@property const const(T2) " ~ Name ~ "() {return _" ~ Name ~ Get ~ ";}");

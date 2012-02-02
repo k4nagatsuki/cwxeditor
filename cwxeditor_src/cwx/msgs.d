@@ -378,6 +378,12 @@ public:
 		string r = to!(string)(count) ~ "箇所の置換";
 		return kind.length ? r ~ "(" ~ kind ~ ")" : r;
 	}
+	const string replaceUndo(size_t count) {
+		return to!(string)(count) ~ "件を元に戻しました";
+	}
+	const string replaceRedo(size_t count) {
+		return to!(string)(count) ~ "件をやり直しました";
+	}
 	const string searchResultBgImage(in BgImage back) {
 		return "背景画像 - " ~ encodePath(back.path);
 	}
@@ -2457,6 +2463,7 @@ public:
 	@property const string undoMax() {return "「元に戻す」回数";}
 	@property const string undoMaxMainView() {return "エリア/カード/フラグ";}
 	@property const string undoMaxEvent() {return "メニュー/エネミー/背景/イベント";}
+	@property const string undoMaxReplace() {return "置換";}
 	@property const string undoMaxEtc() {return "テキスト/その他";}
 
 	@property const string dialogStatus() {return "台詞コンテントのステータス";}

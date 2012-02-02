@@ -1404,6 +1404,7 @@ string ireplace(string s, string from, string to) {
 		s = s[i + from.length .. $];
 	}
 } unittest {
+	assert (ireplace("testte", "te", "tea") == "teasttea");
 	assert (ireplace("test", "Es", "TT") == "tTTt");
 	assert (ireplace("aaaaaaa", "AA", "BB") == "BBBBBBa");
 }

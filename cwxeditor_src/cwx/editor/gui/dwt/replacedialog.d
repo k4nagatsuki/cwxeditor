@@ -15,6 +15,7 @@ import cwx.path;
 import cwx.background;
 import cwx.skin;
 import cwx.msgutils;
+import cwx.flag;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dutils;
@@ -23,6 +24,7 @@ import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.splitpane;
+import cwx.editor.gui.dwt.undo;
 
 import std.conv;
 import std.array;
@@ -47,6 +49,7 @@ import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.ShellAdapter;
@@ -67,19 +70,50 @@ import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.graphics.Image;
 import java.lang.all;
 
-private class CWXPathString {
-	string array;
-	this (string array) {
-		this.array = array;
-	}
-}
-
 /// 検索と置換を行うダイアログ。
 class ReplaceDialog {
 private:
+	class RUndo : Undo {
+		private CWXPath _path;
+		private Undo[] _uArr;
+		this (CWXPath path, Undo[] uArr) {
+			_path = path;
+			_uArr = uArr;
+		}
+		void undo() {
+			foreach_reverse (u; _uArr) u.undo();
+			if (_path) addResult(_path);
+		}
+		void redo() {
+			foreach_reverse (u; _uArr) u.redo();
+			if (_path) addResult(_path);
+		}
+		void dispose() {
+			foreach (u; _uArr) u.dispose();
+		}
+	}
+
+	void store(CWXPath path, Undo[] uArr) {
+		_rUndo ~= new RUndo(path, uArr);
+	}
+	void store(CWXPath path, string o, string n, void delegate(string) set) {
+		_rUndo ~= new RUndo(path, [new StrUndo(o, n, set)]);
+	}
+	void store(CWXPath path, string[] o, string[] n, void delegate(string[]) set) {
+		_rUndo ~= new RUndo(path, [new StrArrUndo(o, n, set)]);
+	}
+	void storeID(User, Id)(CWXPath path, User u, Id from, Id to, void delegate(Id) set) {
+		_rUndo ~= new RUndo(path, [new TUndo!Id(from, to, set)]);
+	}
+
+	bool _inProc = false;
+	Undo[] _rUndo;
+	void delegate()[] _after;
+
 	Commons _comm;
 	Props _prop;
 	Summary _summ;
+	UndoManager _undo;
 
 	Shell _win;
 	Composite _parent;
@@ -177,34 +211,6 @@ private:
 	Composite[CTabItem] _comps;
 
 	Label _status;
-
-	@property bool summary() {return _summary.getSelection();}
-	@property bool msg() {return _msg.getSelection();}
-	@property bool cardName() {return _cardName.getSelection();}
-	@property bool cardDesc() {return _cardDesc.getSelection();}
-	@property bool event() {return _event.getSelection();}
-	@property bool start() {return _start.getSelection();}
-	@property bool flag() {return _flag.getSelection();}
-	@property bool coupon() {return _coupon.getSelection();}
-	@property bool gossip() {return _gossip.getSelection();}
-	@property bool end() {return _end.getSelection();}
-	@property bool area() {return _area.getSelection();}
-	@property bool keyCode() {return _keyCode.getSelection();}
-	@property bool file() {return _file.getSelection();}
-	@property bool comment() {return _comment.getSelection();}
-
-	@property bool unuseFlag() {return _unuseFlag.getSelection();}
-	@property bool unuseStep() {return _unuseStep.getSelection();}
-	@property bool unuseArea() {return _unuseArea.getSelection();}
-	@property bool unuseBattle() {return _unuseBattle.getSelection();}
-	@property bool unusePackage() {return _unusePackage.getSelection();}
-	@property bool unuseCast() {return _unuseCast.getSelection();}
-	@property bool unuseSkill() {return _unuseSkill.getSelection();}
-	@property bool unuseItem() {return _unuseItem.getSelection();}
-	@property bool unuseBeast() {return _unuseBeast.getSelection();}
-	@property bool unuseInfo() {return _unuseInfo.getSelection();}
-	@property bool unuseStart() {return _unuseStart.getSelection();}
-	@property bool unusePath() {return _unusePath.getSelection();}
 
 	class ML : MouseAdapter {
 		public override void mouseDoubleClick(MouseEvent e) {
@@ -850,11 +856,15 @@ private:
 			}
 		}
 	}
+	void refUndoMax() {
+		_undo.max = _prop.var.etc.undoMaxReplace;
+	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ) {
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
+		_undo = new UndoManager(_prop.var.etc.undoMaxReplace);
 		_win = new Shell(shell, SWT.SHELL_TRIM);
 		if (shell) {
 			_win.setImeInputMode(shell.getImeInputMode());
@@ -871,10 +881,15 @@ public:
 	}
 	@property
 	void summary(Summary summ) {
-		if (!_win.isDisposed()) {
+		if (_win.isDisposed()) return;
+		if (!summ) {
+			_win.close();
+		} else {
 			_summ = summ;
-			_result.removeAll();
+			reset();
+			refreshRangeTree();
 		}
+		_undo.reset();
 	}
 
 	void open() {
@@ -967,6 +982,9 @@ public:
 			_result.addKeyListener = new KL;
 			new FullTableColumn(_result, SWT.NONE);
 			auto menu = new Menu(_win, SWT.POP_UP);
+			createMenuItem(menu, _prop.msgs.menuUndo, _prop.images.menuUndo, &undo);
+			createMenuItem(menu, _prop.msgs.menuRedo, _prop.images.menuRedo, &redo);
+			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(menu, _prop.msgs.menuOpenView, _prop.images.menuOpenView, &openPath);
 			_result.setMenu(menu);
 		}
@@ -1097,8 +1115,10 @@ public:
 		_comm.delInfo.add(&delInfo);
 		_comm.refSearchHistories.add(&refSearchHistories);
 		_comm.refContentText.add(&refContentText);
+		_comm.refUndoMax.add(&refUndoMax);
 
-		_comm.refScenario.add(&refreshScenario);
+		_comm.changed.add(&changed);
+		_comm.refScenario.add(&summary);
 		_win.addDisposeListener(new DL);
 		auto cs = _win.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 		auto size = _prop.var.replaceDlg;
@@ -1136,7 +1156,8 @@ public:
 	}
 	private class DL : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
-			_comm.refScenario.remove(&refreshScenario);
+			_comm.changed.remove(&changed);
+			_comm.refScenario.remove(&summary);
 			saveWin();
 			_prop.var.etc.replaceTextNotIgnoreCase = _notIgnoreCase.getSelection();
 			_prop.var.etc.replaceTextRegExp = _useRegex.getSelection();
@@ -1186,16 +1207,33 @@ public:
 			_comm.delInfo.remove(&delInfo);
 			_comm.refSearchHistories.remove(&refSearchHistories);
 			_comm.refContentText.remove(&refContentText);
+			_comm.refUndoMax.remove(&refUndoMax);
 		}
 	}
-	private void refreshScenario(Summary summ) {
-		if (!summ) {
-			_win.close();
-		} else {
-			_summ = summ;
-			reset();
-			refreshRangeTree();
+	private void changed() {
+		if (!_inProc) {
+			_undo.reset();
 		}
+	}
+	private void undo() {
+		if (!_undo.canUndo) return;
+		_inProc = true;
+		scope (exit) _inProc = false;
+		reset();
+		_undo.undo();
+		refContentText();
+		_status.setText(_prop.msgs.replaceUndo(_result.getItemCount()));
+		_comm.replText.call();
+	}
+	private void redo() {
+		if (!_undo.canRedo) return;
+		_inProc = true;
+		scope (exit) _inProc = false;
+		reset();
+		_undo.redo();
+		refContentText();
+		_status.setText(_prop.msgs.replaceRedo(_result.getItemCount()));
+		_comm.replText.call();
 	}
 	private void search() {
 		_replMode = false;
@@ -1214,6 +1252,10 @@ public:
 		}
 	}
 	private void replaceImpl() {
+		_inProc = true;
+		scope (exit) _inProc = false;
+		_rUndo.length = 0;
+		_after.length = 0;
 		if (_tabf.getSelection() is _tabText) {
 			replaceTextImpl();
 		} else if (_tabf.getSelection() is _tabID) {
@@ -1225,6 +1267,16 @@ public:
 		} else if (_tabf.getSelection() is _tabError) {
 			searchErrorImpl();
 		} else assert (0);
+		foreach (a; _after) a();
+		if (_after.length) {
+			refContentText();
+			_comm.replText.call();
+		}
+		if (_replMode && _rUndo.length) {
+			_undo ~= new UndoArr(_rUndo, false);
+		}
+		_rUndo = [];
+		_after = [];
 	}
 	private void searchRange(ref uint count,
 			void delegate(CWXPath path, ref uint count) dlg) {
@@ -1326,25 +1378,8 @@ public:
 		foreach (u; users) {
 			if (!dec(u.owner)) continue;
 			if (_replMode) {
-				static if (is(ID : AreaId)) {
-					u.area = to;
-				} else static if (is(ID : BattleId)) {
-					u.battle = to;
-				} else static if (is(ID : PackageId)) {
-					u.packages = to;
-				} else static if (is(ID : CastId)) {
-					u.casts = to;
-				} else static if (is(ID : SkillId)) {
-					u.skill = to;
-				} else static if (is(ID : ItemId)) {
-					u.item = to;
-				} else static if (is(ID : BeastId)) {
-					u.beast = to;
-				} else static if (is(ID : InfoId)) {
-					u.info = to;
-				} else static if (is(ID : PathId)) {
-					u.path = cast(string) to;
-				} else static assert (0);
+				u.id = to;
+				storeID(u.owner, u, from, to, &u.id);
 			}
 			addResult(u.owner);
 			count++;
@@ -1402,37 +1437,37 @@ public:
 		_result.setRedraw(false);
 		scope (exit) _result.setRedraw(true);
 		reset();
-		if (unuseFlag) {
+		if (_unuseFlag.getSelection()) {
 			searchUnuseImpl2!("toFlagId(o.path)")(_summ.flagDirRoot.allFlags, count);
 		}
-		if (unuseStep) {
+		if (_unuseStep.getSelection()) {
 			searchUnuseImpl2!("toStepId(o.path)")(_summ.flagDirRoot.allSteps, count);
 		}
-		if (unuseArea) {
+		if (_unuseArea.getSelection()) {
 			searchUnuseImpl2!("toAreaId(o.id)")(_summ.areas, count);
 		}
-		if (unuseBattle) {
+		if (_unuseBattle.getSelection()) {
 			searchUnuseImpl2!("toBattleId(o.id)")(_summ.battles, count);
 		}
-		if (unusePackage) {
+		if (_unusePackage.getSelection()) {
 			searchUnuseImpl2!("toPackageId(o.id)")(_summ.packages, count);
 		}
-		if (unuseCast) {
+		if (_unuseCast.getSelection()) {
 			searchUnuseImpl2!("toCastId(o.id)")(_summ.casts, count);
 		}
-		if (unuseSkill) {
+		if (_unuseSkill.getSelection()) {
 			searchUnuseImpl2!("toSkillId(o.id)")(_summ.skills, count);
 		}
-		if (unuseItem) {
+		if (_unuseItem.getSelection()) {
 			searchUnuseImpl2!("toItemId(o.id)")(_summ.items, count);
 		}
-		if (unuseBeast) {
+		if (_unuseBeast.getSelection()) {
 			searchUnuseImpl2!("toBeastId(o.id)")(_summ.beasts, count);
 		}
-		if (unuseInfo) {
+		if (_unuseInfo.getSelection()) {
 			searchUnuseImpl2!("toInfoId(o.id)")(_summ.infos, count);
 		}
-		if (unuseStart) {
+		if (_unuseStart.getSelection()) {
 			searchRange(count, (CWXPath path, ref uint count) {
 				auto et = cast(EventTree) path;
 				if (et) {
@@ -1445,7 +1480,7 @@ public:
 				}
 			});
 		}
-		if (unusePath) {
+		if (_unusePath.getSelection()) {
 			searchUnuseImpl2!("toPathId(o)")(allMaterials(true), count);
 		}
 		setResultStatus(count);
@@ -1688,75 +1723,86 @@ public:
 		auto summ = cast(Summary) c;
 		if (summ) {
 			bool sr = false;
-			if (summary) {
-				sr |= repl(null, summ.scenarioName, &summ.scenarioName, count);
-				sr |= repl(null, summ.desc, &summ.desc, count);
+			Undo[] uArr;
+			if (_summary.getSelection()) {
+				sr |= repl(null, summ.scenarioName, &summ.scenarioName, count, uArr);
+				sr |= repl(null, summ.desc, &summ.desc, count, uArr);
 			}
-			if (coupon) {
-				sr |= replRqCoupons!(Summary)(null, _summ, count);
+			if (_coupon.getSelection()) {
+				sr |= replRqCoupons!(Summary)(null, _summ, count, uArr);
 			}
-			if (sr) addResult(summ);
+			if (sr) {
+				if (_replMode) store(summ, uArr);
+				addResult(summ);
+			}
 		}
 		auto cc = cast(CastCard) c;
 		if (cc) {
-			bool r = replCard!(CastCard)(null, cc, count);
-			if (coupon) {
+			Undo[] uArr;
+			bool r = replCard!(CastCard)(null, cc, count, uArr);
+			if (_coupon.getSelection()) {
 				auto coupons = cc.coupons.dup;
 				foreach (i, cp; coupons) {
 					r |= repl(null, cp.name,
-						(string t) {cp = new Coupon(t, cp.value);}, count);
+						(string t) {cp = new Coupon(t, cp.value);}, count, uArr);
 					if (_replMode) coupons[i] = cp;
 				}
 				cc.coupons = coupons;
 			}
-			if (r) addResult(cc);
+			if (r) {
+				if (_replMode) store(cc, uArr);
+				addResult(cc);
+			}
 		}
+		Undo[] nArr;
 		auto eff = cast(EffectCard) c;
 		if (eff) {
-			replCard(eff, eff, count);
+			replCard(eff, eff, count, nArr);
 		}
 		auto info = cast(InfoCard) c;
 		if (info) {
-			replCard(info, info, count);
+			replCard(info, info, count, nArr);
 		}
 		auto a = cast(AbstractArea) c;
 		if (a) {
-			if (area) {
-				repl(a, a.name, &a.name, count);
+			if (_area.getSelection()) {
+				repl(a, a.name, &a.name, count, nArr);
 			}
 		}
 		auto menu = cast(MenuCard) c;
 		if (menu) {
-			replCard(menu, menu, count);
+			replCard(menu, menu, count, nArr);
 		}
 		auto back = cast(BgImage) c;
 		if (back) {
-			replBgImage(back, back, count);
+			replBgImage(back, back, count, nArr);
 		}
 		auto f = cast(Flag) c;
-		if (f) {
-			string old = f.name;
-			replFlagName(f.parent, f, count);
-			_summ.useCounter.change(toFlagId(old), toFlagId(f.name));
-			bool r = false;
-			r |= repl(null, f.on, &f.on, count);
-			r |= repl(null, f.off, &f.off, count);
-			if (r) addResult(f);
+		if (f && _flag.getSelection()) {
+			Undo[] uArr = new Undo[0];
+			bool r = replFlagName!Flag(f.parent, f, count, uArr);
+			r |= repl(null, f.on, &f.on, count, uArr);
+			r |= repl(null, f.off, &f.off, count, uArr);
+			if (r) {
+				if (_replMode) store(f, uArr);
+				addResult(f);
+			}
 		}
 		auto s = cast(Step) c;
-		if (s) {
-			string old = s.name;
-			replFlagName(s.parent, s, count);
-			_summ.useCounter.change(toStepId(old), toStepId(s.name));
-			bool r = false;
+		if (s && _flag.getSelection()) {
+			Undo[] uArr;
+			bool r = replFlagName!Step(s.parent, s, count, uArr);
 			foreach (i, v; s.values) {
-				r |= repl(null, v, (string t) {s.setValue(i, t);}, count);
+				r |= repl(null, v, (string t) {s.setValue(i, t);}, count, uArr);
 			}
-			if (r) addResult(s);
+			if (r) {
+				if (_replMode) store(s, uArr);
+				addResult(s);
+			}
 		}
 		auto et = cast(EventTree) c;
 		if (et) {
-			replKeyCode(et, et, count);
+			replKeyCode(et, et, count, nArr);
 		}
 		auto content = cast(Content) c;
 		if (content) {
@@ -1796,7 +1842,7 @@ public:
 		reset();
 		searchRange(count, &replaceTextImpl);
 		setResultStatus(count);
-		if (count > 0) _comm.replText.call();
+		if (!_after.length) _comm.replText.call();
 
 		static void addHist(Combo combo, void delegate(string[]) set,
 				string[] delegate() get, int max, string text) {
@@ -1945,11 +1991,11 @@ public:
 	}
 	private void refContentText() {
 		foreach (itm; _result.getItems()) {
-			auto c = cast(Content) itm.getData();
+			auto c = cast(CWXPathString) itm.getData();
 			if (c) {
 				string text;
 				Image img;
-				getPathParams(c, text, img);
+				getPathParams(c.path, text, img);
 				itm.setText(text);
 				itm.setImage(img);
 			}
@@ -2064,155 +2110,210 @@ public:
 		}
 		assert (img);
 	}
-	private void addResult(CWXPath path, string desc = "") {
-		auto itm = new TableItem(_result, SWT.NONE);
+	private void addResult(CWXPath path, string desc = "", int index = -1) {
+		auto itm = new TableItem(_result, SWT.NONE, -1 == index ? _result.getItemCount() : index);
 		string text;
 		Image img;
 		getPathParams(path, text, img);
 		itm.setImage(img);
 		if (desc.length) text = desc ~ " - " ~ text;
 		itm.setText(text);
-		itm.setData(new CWXPathString(path.cwxPath));
+		itm.setData(new CWXPathString(path, path.cwxPath));
 	}
-	private bool repl(CWXPath path, string text, void delegate(string) set, ref size_t count) {
+	private bool repl(CWXPath path, string text, void delegate(string) set, ref size_t count, ref Undo[] uArr, bool storeToArr = false) {
 		auto c = fTextCount(text);
 		count += c;
 		if (c > 0) {
-			if (_replMode) set(fTextRepl(text));
-			if (path) addResult(path);
+			string n;
+			if (_replMode && set) {
+				n = fTextRepl(text);
+				if (!path || storeToArr) uArr ~= new StrUndo(text, n, set);
+				set(n);
+			}
+			if (path) {
+				if (_replMode && set && !storeToArr) store(path, text, n, set);
+				addResult(path);
+			}
 			return true;
 		}
 		return false;
 	}
-	private bool replFilePath(string text, void delegate(string) set, ref size_t count) {
+	private bool replFilePath(string text, void delegate(string) set, ref size_t count, ref Undo[] uArr) {
 		auto c = fTextCount(encodePath(text));
 		count += c;
 		if (c > 0) {
-			if (_replMode) set(fTextRepl(decodePath(text)));
+			if (_replMode) {
+				auto o = decodePath(text);
+				string n = fTextRepl(o);
+				uArr ~= new StrUndo(o, n, set);
+				set(n);
+			}
 			return true;
 		}
 		return false;
 	}
 
-	private bool replFlagName(F)(FlagDir parent, F flag, ref size_t count) {
+	private bool replFlagName(F)(FlagDir parent, F flag, ref size_t count, ref Undo[] uArr) {
 		string text = flag.name;
 		auto c = fTextCount(text);
 		count += c;
 		if (c > 0) {
-			if (_replMode) flag.name = parent.validName(fTextRepl(text));
-			addResult(flag);
+			if (_replMode) {
+				string oldPath = flag.path;
+				string n = fTextRepl(text);
+				uArr ~= new StrUndo(text, n, (string name) {
+					auto parent = flag.parent;
+					if (parent) {
+						flag.name = parent.validName(name);
+					} else {
+						flag.name = name;
+					}
+				});
+				flag.name = parent.validName(n);
+				_after ~= {
+					string newPath = flag.path;
+					auto oldID = F.toID(oldPath);
+					auto newID = F.toID(newPath);
+					foreach (v; _summ.useCounter.values(oldID)) {
+						v.id = newID;
+						storeID(null, v, oldID, newID, &v.id);
+					}
+				};
+			}
 			return true;
 		}
 		return false;
 	}
 
-	private bool replRqCoupons(C)(CWXPath path, C targ, ref size_t count) {
+	private bool replRqCoupons(C)(CWXPath path, C targ, ref size_t count, ref Undo[] uArr, bool storeToArr = false) {
 		string[] coupons = targ.rCoupons;
+		string[] old = coupons.dup;
 		bool r = false;
 		foreach (i, cp; coupons) {
-			r |= repl(null, cp, (string t) {cp = t;}, count);
+			Undo[] nArr;
+			r |= repl(null, cp, (string t) {cp = t;}, count, nArr);
 			if (_replMode) coupons[i] = cp;
 		}
 		if (r) {
-			if (_replMode) targ.rCoupons = coupons;
-			if (path) addResult(targ);
+			if (_replMode) {
+				if (!path || storeToArr) uArr ~= new StrArrUndo(old, coupons.dup, &targ.rCoupons);
+				targ.rCoupons = coupons;
+			}
+			if (path) {
+				if (_replMode && !storeToArr) store(path, old, coupons.dup, &targ.rCoupons);
+				addResult(targ);
+			}
 			return true;
 		}
 		return false;
 	}
 
-	private bool replKeyCode(C)(CWXPath path, C targ, ref size_t count) {
-		if (keyCode) {
+	private bool replKeyCode(C)(CWXPath path, C targ, ref size_t count, ref Undo[] uArr) {
+		if (_keyCode.getSelection()) {
 			auto kcs = targ.keyCodes.dup;
+			auto old = targ.keyCodes.dup;
 			bool r = false;
+			Undo[] nArr;
 			foreach (i, kc; kcs) {
-				r |= repl(null, kc, (string t) {kc = t;}, count);
+				r |= repl(null, kc, (string t) {kc = t;}, count, nArr);
 				if (_replMode) kcs[i] = kc;
 			}
 			if (r) {
-				if (_replMode) targ.keyCodes = kcs;
-				if (path) addResult(path);
+				if (_replMode) {
+					if (!path) uArr ~= new StrArrUndo(old, kcs.dup, &targ.keyCodes);
+					targ.keyCodes = kcs;
+				}
+				if (path) {
+					if (_replMode) store(path, old, kcs.dup, &targ.keyCodes);
+					addResult(path);
+				}
 				return true;
 			}
 		}
 		return false;
 	}
 
-	private bool replBgImage(CWXPath path, BgImage back, ref size_t count) {
-		string from = _from.getText();
-		string to = _to.getText();
+	private bool replBgImage(CWXPath path, BgImage back, ref size_t count, ref Undo[] uArr) {
 		bool r = false;
-		if (flag) {
-			r |= repl(null, back.flag, &back.flag, count);
+		Undo[] uArr2;
+		if (_flag.getSelection()) {
+			r |= repl(null, back.flag, &back.flag, count, uArr2);
 		}
-		if (file) {
-			r |= replFilePath(back.path, &back.path, count);
+		if (_file.getSelection()) {
+			r |= replFilePath(back.path, &back.path, count, uArr2);
 		}
 		if (r && path) {
+			if (_replMode) store(path, uArr2);
 			addResult(path);
+		} else {
+			uArr ~= uArr2;
 		}
 		return r;
 	}
-	private bool replCard(C)(CWXPath path, C card, ref size_t count) {
-		string from = _from.getText();
-		string to = _to.getText();
+	private bool replCard(C)(CWXPath path, C card, ref size_t count, ref Undo[] uArr) {
 		bool r = false;
-		if (cardName) {
-			r |= repl(null, card.name, &card.name, count);
+		Undo[] uArr2;
+		if (_cardName.getSelection()) {
+			r |= repl(null, card.name, &card.name, count, uArr2);
 		}
-		if (cardDesc) {
-			r |= repl(null, card.desc, &card.desc, count);
+		if (_cardDesc.getSelection()) {
+			r |= repl(null, card.desc, &card.desc, count, uArr2);
 		}
-		if (flag) {
+		if (_flag.getSelection()) {
 			static if (is (C : IFlagUser)) {
-				r |= repl(null, card.flag, &card.flag, count);
+				r |= repl(null, card.flag, &card.flag, count, uArr2);
 			}
 		}
-		if (file) {
-			r |= replFilePath(card.path, &card.path, count);
+		if (_file.getSelection()) {
+			r |= replFilePath(card.path, &card.path, count, uArr2);
 		}
 		static if (is (C : EffectCard)) {
-			r |= replKeyCode!(C)(null, card, count);
+			r |= replKeyCode!(C)(null, card, count, uArr2);
 		}
 		if (r && path) {
+			if (_replMode) store(path, uArr2);
 			addResult(path);
+		} else {
+			uArr ~= uArr2;
 		}
 		return r;
 	}
 	void replContent(Content e, ref size_t count) {
 		auto eo = e.parent;
 		assert (!eo || eo.detail.owner);
-		string from = _from.getText();
-		string to = _to.getText();
 		bool r = false;
-		if (event && (!eo || eo.detail.nextType == CNextType.TEXT)) {
-			r |= repl(null, e.name, &e.name, count);
+		Undo[] uArr2;
+		if (_event.getSelection() && (!eo || eo.detail.nextType == CNextType.TEXT)) {
+			r |= repl(null, e.name, &e.name, count, uArr2);
 		}
-		if (flag) {
-			r |= repl(null, e.flag, &e.flag, count);
-			r |= repl(null, e.step, &e.step, count);
+		if (_flag.getSelection()) {
+			// Flag/StepについてはUseCounter経由で置換される
+			r |= repl(null, e.flag, null, count, uArr2);
+			r |= repl(null, e.step, null, count, uArr2);
 		}
-		if (start) {
-			r |= repl(null, e.start, &e.start, count);
+		if (_start.getSelection()) {
+			r |= repl(null, e.start, &e.start, count, uArr2);
 			if (e.type == CType.START) {
-				r |= repl(null, e.name, &e.name, count);
+				r |= repl(null, e.name, &e.name, count, uArr2);
 			}
 		}
-		if (coupon) {
-			r |= repl(null, e.coupon, &e.coupon, count);
+		if (_coupon.getSelection()) {
+			r |= repl(null, e.coupon, &e.coupon, count, uArr2);
 		}
-		if (gossip) {
-			r |= repl(null, e.gossip, &e.gossip, count);
+		if (_gossip.getSelection()) {
+			r |= repl(null, e.gossip, &e.gossip, count, uArr2);
 		}
-		if (end) {
-			r |= repl(null, e.completeStamp, &e.completeStamp, count);
+		if (_end.getSelection()) {
+			r |= repl(null, e.completeStamp, &e.completeStamp, count, uArr2);
 		}
-		if (msg) {
-			r |= repl(null, e.text, &e.text, count);
+		if (_msg.getSelection()) {
+			r |= repl(null, e.text, &e.text, count, uArr2);
 		}
-		bool replInText(ITextHolder th) {
+		bool replInText(ITextHolder th, ref Undo[] uArr) {
+			Undo[] nArr;
 			bool r = false;
-			if (file) {
+			string old = th.text;
+			if (_file.getSelection()) {
 				auto ps = th.fontsInText;
 				foreach (i, p; ps) {
 					auto c = decodeFontPath(p);
@@ -2221,58 +2322,59 @@ public:
 						dstring ds = .to!dstring(s);
 						if (!ds.length) return;
 						th.changeInText(i, toPathId(encodeFontPath(ds[0], ext)));
-					}, count);
+					}, count, nArr);
 				}
+				uArr ~= new StrUndo(old, th.text, &th.text);
 			}
-			if (flag) {
+			if (_flag.getSelection() && !_msg.getSelection()) {
 				auto fps = th.flagsInText;
 				foreach (i, p; fps) {
-					r |= repl(null, p, (string s) {
-						th.changeInText(i, toFlagId(s));
-					}, count);
+					r |= repl(null, p, null, count, nArr);
 				}
 				auto sps = th.stepsInText;
 				foreach (i, p; sps) {
-					r |= repl(null, p, (string s) {
-						th.changeInText(i, toStepId(s));
-					}, count);
+					r |= repl(null, p, null, count, nArr);
 				}
 			}
 			return r;
 		}
-		r |= replInText(e);
+		r |= replInText(e, uArr2);
 		bool rDlg = false;
-		if (msg || coupon || file || flag) {
+		if (_msg.getSelection() || _coupon.getSelection() || _file.getSelection() || _flag.getSelection()) {
 			auto dlgs = e.dialogs;
 			foreach (dlg; dlgs) {
+				Undo[] uArrDlg;
 				auto put = dlg;
-				if (msg && repl(dlg, dlg.text, &dlg.text, count)) {
-					r |= true;
+				if (_msg.getSelection() && repl(dlg, dlg.text, &dlg.text, count, uArrDlg, true)) {
 					rDlg = true;
 					put = null;
 				}
-				if (coupon && replRqCoupons!(typeof(dlg))(put, dlg, count)) {
-					r |= true;
+				if (_coupon.getSelection() && replRqCoupons!(typeof(dlg))(put, dlg, count, uArrDlg, true)) {
 					rDlg = true;
 					put = null;
 				}
-				if (replInText(dlg)) {
+				if (replInText(dlg, uArrDlg)) {
 					if (put) addResult(put);
-					r |= true;
 					rDlg = true;
 					put = null;
+				}
+				if (_replMode && !put) {
+					store(dlg, uArrDlg);
 				}
 			}
 		}
-		if (file) {
-			r |= replFilePath(e.cardPath, &e.cardPath, count);
-			r |= replFilePath(e.bgmPath, &e.bgmPath, count);
-			r |= replFilePath(e.soundPath, &e.soundPath, count);
+		if (_file.getSelection()) {
+			r |= replFilePath(e.cardPath, &e.cardPath, count, uArr2);
+			r |= replFilePath(e.bgmPath, &e.bgmPath, count, uArr2);
+			r |= replFilePath(e.soundPath, &e.soundPath, count, uArr2);
 		}
-		if (comment) {
-			r |= repl(null, e.comment, &e.comment, count);
+		if (_comment.getSelection()) {
+			r |= repl(null, e.comment, &e.comment, count, uArr2);
 		}
-		if (r && !rDlg) {
+		if (r) {
+			if (_replMode) {
+				store(e, uArr2);
+			}
 			addResult(e);
 		}
 	}

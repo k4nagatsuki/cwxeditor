@@ -452,6 +452,7 @@ private:
 		} else {
 			statusLine = openedS;
 		}
+		summ.changedEventForce ~= &_comm.changed.call;
 		summ.changedEvent ~= &refreshTitle;
 		refreshTitle();
 		GC.collect();

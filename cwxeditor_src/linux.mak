@@ -124,7 +124,7 @@ LIB = org.eclipse.swt.gtk.linux.x86.a \
 FLAGS = -J. -Jresource -op -c -property
 
 $(OUT) : $(SRC)
-	$(DMD) $(FLAGS) $(SRC) -g -debug -unittest
+	$(DMD) $(FLAGS) $(SRC) -g -gs -debug -unittest
 	$(DMD) $(OBJ) $(LIB) -of"$(OUT)"
 
 release : $(SRC)

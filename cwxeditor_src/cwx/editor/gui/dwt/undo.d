@@ -9,6 +9,65 @@ interface Undo {
 	void dispose();
 }
 
+/// 最も簡易なUndoの実装。
+class TUndo(T) : Undo {
+	private T _old;
+	private T _new;
+	private void delegate(T) _set;
+	T delegate(T) _copy;
+	this (T old, T n, void delegate(T) set, T delegate(T) copy = null) {
+		_old = old;
+		_new = n;
+		_set = set;
+		_copy = copy;
+	}
+	void undo() {
+		if (_copy) _old = _copy(_old);
+		_set(_old);
+	}
+	void redo() {
+		if (_copy) _new = _copy(_new);
+		_set(_new);
+	}
+	void dispose() {
+		// Nothing
+	}
+}
+/// ditto
+class StrUndo : TUndo!(string) {
+	this (string old, string n, void delegate(string) set) {
+		super (old, n, set, null);
+	}
+}
+/// ditto
+class StrArrUndo : TUndo!(string[]) {
+	this (string[] old, string[] n, void delegate(string[]) set) {
+		super (old.dup, n.dup, set, (string[] v) {return v.dup;});
+	}
+}
+
+class UndoArr : Undo {
+	private Undo[] _array;
+	private bool _rev;
+	this (Undo[] array, bool rev = true) {
+		_array = array;
+		_rev = rev;
+	}
+	void undo() {
+		if (_rev) {
+			foreach_reverse (u; _array) u.undo();
+		} else {
+			foreach (u; _array) u.undo();
+		}
+	}
+	void redo() {
+		foreach (u; _array) u.redo();
+	}
+	void dispose() {
+		foreach (u; _array) u.dispose();
+	}
+}
+
 class UndoManager {
 	private Undo[] _undos;
 	private size_t _max;
@@ -69,9 +128,11 @@ class UndoManager {
 		return true;
 	}
 	void reset() {
+		if (!_undos.length) return;
 		dispose();
 	}
 	void dispose() {
+		if (!_undos.length) return;
 		foreach (u; _undos) u.dispose();
 		_undos.length = 0;
 		_pointer = 0;

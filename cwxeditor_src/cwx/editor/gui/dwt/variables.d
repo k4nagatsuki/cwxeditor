@@ -342,6 +342,7 @@ class FlexEtcProps : Properties {
 	mixin Property!("undoMaxEvent", int, 1024);
 	mixin Property!("undoMaxEtc", int, 1024);
 	mixin Property!("undoMaxLimit", int, short.max);
+	mixin Property!("undoMaxReplace", int, 16);
 
 	mixin Property!("dialogStatus", DialogStatus, DialogStatus.Top);
 

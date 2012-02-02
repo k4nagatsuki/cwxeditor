@@ -206,6 +206,7 @@ TLPData tlpData(Control c) {
 }
 
 class Commons {
+	Dlg!() changed;
 	Dlg!(Shell) save;
 	Dlg!() saved;
 	Dlg!() refHistories;
