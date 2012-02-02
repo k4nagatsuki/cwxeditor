@@ -219,7 +219,7 @@ debug_windows : $(SRC) $(RES)
 
 release : $(SRC) $(RES)
 	$(DMD) $(FLAGS) $(SRC) -release -odobjs
-	$(DMD) -c -O -inline -release d2std\xml.d -odd2std
+	$(DMD) -c -O -inline -release d2std\xml.d -odobjs
 	$(DMD) $(OBJ) -L"$(LIB)" -of"$(OUT)" -L/exet:nt/su:windows:4.0 -O
 
 $(RES) : $(RC)
