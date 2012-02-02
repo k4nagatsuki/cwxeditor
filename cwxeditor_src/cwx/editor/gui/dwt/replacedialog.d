@@ -1131,20 +1131,18 @@ public:
 		}
 		auto f = cast(Flag) c;
 		if (f) {
-			string old = f.name;
-			replFlagName(f.parent, f, count);
-			_summ.useCounter.change(toFlagId(old), toFlagId(f.name));
-			bool r = false;
+			string old = f.path;
+			bool r = replFlagName(f.parent, f, count);
+			_summ.useCounter.change(toFlagId(old), toFlagId(f.path));
 			r |= repl(null, &f.on, &f.on, count);
 			r |= repl(null, &f.off, &f.off, count);
 			if (r) addResult(f);
 		}
 		auto s = cast(Step) c;
 		if (s) {
-			string old = s.name;
-			replFlagName(s.parent, s, count);
-			_summ.useCounter.change(toStepId(old), toStepId(s.name));
-			bool r = false;
+			string old = s.path;
+			bool r = replFlagName(s.parent, s, count);
+			_summ.useCounter.change(toStepId(old), toStepId(s.path));
 			foreach (i, v; s.values) {
 				r |= repl(null, {return v;}, (string t) {s.setValue(i, t);}, count);
 			}
