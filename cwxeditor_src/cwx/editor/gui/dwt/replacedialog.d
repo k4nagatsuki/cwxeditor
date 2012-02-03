@@ -50,6 +50,9 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.swt.widgets.Widget;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.ShellAdapter;
@@ -121,6 +124,7 @@ private:
 	CTabItem _tabText;
 	CTabItem _tabID;
 	CTabItem _tabPath;
+	CTabItem _tabContents;
 	CTabItem _tabUnuse;
 	CTabItem _tabError;
 	Button _replace;
@@ -209,6 +213,8 @@ private:
 	Tree _range;
 
 	Composite[CTabItem] _comps;
+
+	ToolItem[CType] _contents;
 
 	Label _status;
 
@@ -364,7 +370,7 @@ private:
 			}
 		}
 		_parent.layout(true);
-		_replace.setEnabled(sel !is _tabUnuse && sel !is _tabError);
+		_replace.setEnabled(sel !is _tabContents && sel !is _tabUnuse && sel !is _tabError);
 		_range.setEnabled(sel !is _tabUnuse);
 		_rangeAllCheck.setEnabled(_range.getEnabled());
 	}
@@ -375,19 +381,32 @@ private:
 	}
 	LCheck[] _checked;
 	class LCheck : SelectionAdapter {
-		Button[] buttons;
+		Widget[] buttons;
 		private Button _all = null;
+		private void setSelection(Widget b, bool s) {
+			auto button = cast(Button) b;
+			if (button) button.setSelection(s);
+			auto ti = cast(ToolItem) b;
+			if (ti) ti.setSelection(s);
+		}
+		private bool getSelection(Widget b) {
+			auto button = cast(Button) b;
+			if (button) return button.getSelection();
+			auto ti = cast(ToolItem) b;
+			if (ti) return ti.getSelection();
+			assert (0);
+		}
 		class AllCheck : SelectionAdapter {
 			override void widgetSelected(SelectionEvent e) {
 				foreach (b; buttons) {
-					b.setSelection(_all.getSelection());
+					setSelection(b, _all.getSelection());
 				}
 			}
 		}
 		void check() {
 			bool checked = true;
 			foreach (b; buttons) {
-				checked &= b.getSelection();
+				checked &= getSelection(b);
 			}
 			_all.setSelection(checked);
 		}
@@ -395,9 +414,9 @@ private:
 			assert (_all);
 			check();
 		}
-		void createAlls(Composite parent) {
+		void createAlls(Composite parent, string text) {
 			_all = new Button(parent, SWT.CHECK);
-			_all.setText(_prop.msgs.allCheck);
+			_all.setText(text);
 			_all.addSelectionListener(new AllCheck);
 			check();
 		}
@@ -415,7 +434,10 @@ private:
 		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout(new GridLayout(1, true));
 		auto comp2 = new Composite(comp, SWT.NONE);
-		comp2.setLayout(zeroGridLayout(1, true));
+		auto comp2gl = windowGridLayout(1, true);
+		comp2gl.marginWidth = 0;
+		comp2gl.marginHeight = 0;
+		comp2.setLayout(comp2gl);
 		{
 			auto grp = new Group(comp2, SWT.NONE);
 			grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -489,7 +511,7 @@ private:
 			sep.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			{
 				auto btns = addButtonLine(grp);
-				checked.createAlls(btns);
+				checked.createAlls(btns, _prop.msgs.allCheck);
 			}
 		}
 
@@ -602,6 +624,55 @@ private:
 		comp2.setLayoutData(gd);
 		_comps[tab] = comp2;
 	}
+	void constructContents(CTabFolder tabf) {
+		auto comp = new Composite(tabf, SWT.NONE);
+		comp.setLayout(new GridLayout(1, true));
+		auto comp2 = new Composite(comp, SWT.NONE);
+		comp2.setLayout(zeroGridLayout(1, true));
+		{
+			auto grp = new Group(comp2, SWT.NONE);
+			grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			grp.setText(_prop.msgs.searchRange);
+			grp.setLayout(zeroGridLayout(1, true));
+			auto checked = new LCheck;
+			_checked ~= checked;
+
+			auto comp3 = new Composite(grp, SWT.NONE);
+			comp3.setLayoutData(new GridData(GridData.FILL_BOTH));
+			comp3.setLayout(windowGridLayout(1, true));
+			auto bar = new ToolBar(comp3, SWT.HORIZONTAL | SWT.FLAT | SWT.WRAP);
+			bar.setLayoutData(new GridData(GridData.FILL_BOTH));
+			foreach (cGrp, cs; CTYPE_GROUP) {
+				foreach (cType; cs) {
+					auto text = _prop.msgs.content(cType);
+					auto img = _prop.images.content(cType);
+					void delegate() func = null;
+					auto ti = createToolItem(bar, text, img, func, SWT.CHECK);;
+					_contents[cType] = ti;
+					checked.buttons ~= ti;
+					ti.addSelectionListener(checked);
+				}
+				if (cGrp < CTypeGroup.max) {
+					new ToolItem(bar, SWT.SEPARATOR);
+				}
+			}
+			auto sep = new Label(grp, SWT.SEPARATOR | SWT.HORIZONTAL);
+			sep.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+			auto btns = addButtonLine(grp);
+			checked.createAlls(btns, _prop.msgs.allSelect);
+		}
+
+		auto tab = new CTabItem(tabf, SWT.NONE);
+		tab.setText(_prop.msgs.replContents);
+		tab.setControl(comp);
+		_tabContents = tab;
+
+		auto gd = new GridData(GridData.FILL_BOTH);
+		gd.heightHint = 0;
+		comp2.setLayoutData(gd);
+		_comps[tab] = comp2;
+	}
 	void constructUnuse(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout(new GridLayout(1, true));
@@ -640,7 +711,7 @@ private:
 			sep.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			{
 				auto btns = addButtonLine(grp);
-				checked.createAlls(btns);
+				checked.createAlls(btns, _prop.msgs.allCheck);
 			}
 		}
 
@@ -902,6 +973,8 @@ public:
 			_idKind.setFocus();
 		} else if (tab is _tabPath) {
 			_fromPath.setFocus();
+		} else if (tab is _tabContents) {
+			// Nothing
 		} else if (tab is _tabUnuse) {
 			// Nothing
 		} else if (tab is _tabError) {
@@ -968,6 +1041,7 @@ public:
 			constructText(_tabf);
 			constructID(_tabf);
 			constructPath(_tabf);
+			constructContents(_tabf);
 			constructUnuse(_tabf);
 			constructError(_tabf);
 			_tabf.addSelectionListener(new TSListener);
@@ -1074,6 +1148,74 @@ public:
 		_keyCode.setSelection(_prop.var.etc.replaceTextKeyCode);
 		_file.setSelection(_prop.var.etc.replaceTextFile);
 		_comment.setSelection(_prop.var.etc.replaceTextComment);
+
+		_contents[CType.START].setSelection(_prop.var.etc.searchContentsStart);
+		_contents[CType.START_BATTLE].setSelection(_prop.var.etc.searchContentsStartBattle);
+		_contents[CType.END].setSelection(_prop.var.etc.searchContentsEnd);
+		_contents[CType.END_BAD_END].setSelection(_prop.var.etc.searchContentsEndBadEnd);
+		_contents[CType.CHANGE_AREA].setSelection(_prop.var.etc.searchContentsChangeArea);
+		_contents[CType.CHANGE_BG_IMAGE].setSelection(_prop.var.etc.searchContentsChangeBgImage);
+		_contents[CType.EFFECT].setSelection(_prop.var.etc.searchContentsEffect);
+		_contents[CType.EFFECT_BREAK].setSelection(_prop.var.etc.searchContentsEffectBreak);
+		_contents[CType.LINK_START].setSelection(_prop.var.etc.searchContentsLinkStart);
+		_contents[CType.LINK_PACKAGE].setSelection(_prop.var.etc.searchContentsLinkPackage);
+		_contents[CType.TALK_MESSAGE].setSelection(_prop.var.etc.searchContentsTalkMessage);
+		_contents[CType.TALK_DIALOG].setSelection(_prop.var.etc.searchContentsTalkDialog);
+		_contents[CType.PLAY_BGM].setSelection(_prop.var.etc.searchContentsPlayBgm);
+		_contents[CType.PLAY_SOUND].setSelection(_prop.var.etc.searchContentsPlaySound);
+		_contents[CType.WAIT].setSelection(_prop.var.etc.searchContentsWait);
+		_contents[CType.ELAPSE_TIME].setSelection(_prop.var.etc.searchContentsElapseTime);
+		_contents[CType.CALL_START].setSelection(_prop.var.etc.searchContentsCallStart);
+		_contents[CType.CALL_PACKAGE].setSelection(_prop.var.etc.searchContentsCallPackage);
+		_contents[CType.BRANCH_FLAG].setSelection(_prop.var.etc.searchContentsBranchFlag);
+		_contents[CType.BRANCH_MULTI_STEP].setSelection(_prop.var.etc.searchContentsBranchMultiStep);
+		_contents[CType.BRANCH_STEP].setSelection(_prop.var.etc.searchContentsBranchStep);
+		_contents[CType.BRANCH_SELECT].setSelection(_prop.var.etc.searchContentsBranchSelect);
+		_contents[CType.BRANCH_ABILITY].setSelection(_prop.var.etc.searchContentsBranchAbility);
+		_contents[CType.BRANCH_RANDOM].setSelection(_prop.var.etc.searchContentsBranchRandom);
+		_contents[CType.BRANCH_LEVEL].setSelection(_prop.var.etc.searchContentsBranchLevel);
+		_contents[CType.BRANCH_STATUS].setSelection(_prop.var.etc.searchContentsBranchStatus);
+		_contents[CType.BRANCH_PARTY_NUMBER].setSelection(_prop.var.etc.searchContentsBranchPartyNumber);
+		_contents[CType.BRANCH_AREA].setSelection(_prop.var.etc.searchContentsBranchArea);
+		_contents[CType.BRANCH_BATTLE].setSelection(_prop.var.etc.searchContentsBranchBattle);
+		_contents[CType.BRANCH_IS_BATTLE].setSelection(_prop.var.etc.searchContentsBranchIsBattle);
+		_contents[CType.BRANCH_CAST].setSelection(_prop.var.etc.searchContentsBranchCast);
+		_contents[CType.BRANCH_ITEM].setSelection(_prop.var.etc.searchContentsBranchItem);
+		_contents[CType.BRANCH_SKILL].setSelection(_prop.var.etc.searchContentsBranchSkill);
+		_contents[CType.BRANCH_INFO].setSelection(_prop.var.etc.searchContentsBranchInfo);
+		_contents[CType.BRANCH_BEAST].setSelection(_prop.var.etc.searchContentsBranchBeast);
+		_contents[CType.BRANCH_MONEY].setSelection(_prop.var.etc.searchContentsBranchMoney);
+		_contents[CType.BRANCH_COUPON].setSelection(_prop.var.etc.searchContentsBranchCoupon);
+		_contents[CType.BRANCH_COMPLETE_STAMP].setSelection(_prop.var.etc.searchContentsBranchCompleteStamp);
+		_contents[CType.BRANCH_GOSSIP].setSelection(_prop.var.etc.searchContentsBranchGossip);
+		_contents[CType.SET_FLAG].setSelection(_prop.var.etc.searchContentsSetFlag);
+		_contents[CType.SET_STEP].setSelection(_prop.var.etc.searchContentsSetStep);
+		_contents[CType.SET_STEP_UP].setSelection(_prop.var.etc.searchContentsSetStepUp);
+		_contents[CType.SET_STEP_DOWN].setSelection(_prop.var.etc.searchContentsSetStepDown);
+		_contents[CType.REVERSE_FLAG].setSelection(_prop.var.etc.searchContentsReverseFlag);
+		_contents[CType.CHECK_FLAG].setSelection(_prop.var.etc.searchContentsCheckFlag);
+		_contents[CType.GET_CAST].setSelection(_prop.var.etc.searchContentsGetCast);
+		_contents[CType.GET_ITEM].setSelection(_prop.var.etc.searchContentsGetItem);
+		_contents[CType.GET_SKILL].setSelection(_prop.var.etc.searchContentsGetSkill);
+		_contents[CType.GET_INFO].setSelection(_prop.var.etc.searchContentsGetInfo);
+		_contents[CType.GET_BEAST].setSelection(_prop.var.etc.searchContentsGetBeast);
+		_contents[CType.GET_MONEY].setSelection(_prop.var.etc.searchContentsGetMoney);
+		_contents[CType.GET_COUPON].setSelection(_prop.var.etc.searchContentsGetCoupon);
+		_contents[CType.GET_COMPLETE_STAMP].setSelection(_prop.var.etc.searchContentsGetCompleteStamp);
+		_contents[CType.GET_GOSSIP].setSelection(_prop.var.etc.searchContentsGetGossip);
+		_contents[CType.LOSE_CAST].setSelection(_prop.var.etc.searchContentsLoseCast);
+		_contents[CType.LOSE_ITEM].setSelection(_prop.var.etc.searchContentsLoseItem);
+		_contents[CType.LOSE_SKILL].setSelection(_prop.var.etc.searchContentsLoseSkill);
+		_contents[CType.LOSE_INFO].setSelection(_prop.var.etc.searchContentsLoseInfo);
+		_contents[CType.LOSE_BEAST].setSelection(_prop.var.etc.searchContentsLoseBeast);
+		_contents[CType.LOSE_MONEY].setSelection(_prop.var.etc.searchContentsLoseMoney);
+		_contents[CType.LOSE_COUPON].setSelection(_prop.var.etc.searchContentsLoseCoupon);
+		_contents[CType.LOSE_COMPLETE_STAMP].setSelection(_prop.var.etc.searchContentsLoseCompleteStamp);
+		_contents[CType.LOSE_GOSSIP].setSelection(_prop.var.etc.searchContentsLoseGossip);
+		_contents[CType.SHOW_PARTY].setSelection(_prop.var.etc.searchContentsShowParty);
+		_contents[CType.HIDE_PARTY].setSelection(_prop.var.etc.searchContentsHideParty);
+		_contents[CType.REDISPLAY].setSelection(_prop.var.etc.searchContentsRedisplay);
+
 		_unuseFlag.setSelection(_prop.var.etc.searchUnusedFlag);
 		_unuseStep.setSelection(_prop.var.etc.searchUnusedStep);
 		_unuseArea.setSelection(_prop.var.etc.searchUnusedArea);
@@ -1176,6 +1318,74 @@ public:
 			_prop.var.etc.replaceTextKeyCode = _keyCode.getSelection();
 			_prop.var.etc.replaceTextFile = _file.getSelection();
 			_prop.var.etc.replaceTextComment = _comment.getSelection();
+
+			_prop.var.etc.searchContentsStart = _contents[CType.START].getSelection();
+			_prop.var.etc.searchContentsStartBattle = _contents[CType.START_BATTLE].getSelection();
+			_prop.var.etc.searchContentsEnd = _contents[CType.END].getSelection();
+			_prop.var.etc.searchContentsEndBadEnd = _contents[CType.END_BAD_END].getSelection();
+			_prop.var.etc.searchContentsChangeArea = _contents[CType.CHANGE_AREA].getSelection();
+			_prop.var.etc.searchContentsChangeBgImage = _contents[CType.CHANGE_BG_IMAGE].getSelection();
+			_prop.var.etc.searchContentsEffect = _contents[CType.EFFECT].getSelection();
+			_prop.var.etc.searchContentsEffectBreak = _contents[CType.EFFECT_BREAK].getSelection();
+			_prop.var.etc.searchContentsLinkStart = _contents[CType.LINK_START].getSelection();
+			_prop.var.etc.searchContentsLinkPackage = _contents[CType.LINK_PACKAGE].getSelection();
+			_prop.var.etc.searchContentsTalkMessage = _contents[CType.TALK_MESSAGE].getSelection();
+			_prop.var.etc.searchContentsTalkDialog = _contents[CType.TALK_DIALOG].getSelection();
+			_prop.var.etc.searchContentsPlayBgm = _contents[CType.PLAY_BGM].getSelection();
+			_prop.var.etc.searchContentsPlaySound = _contents[CType.PLAY_SOUND].getSelection();
+			_prop.var.etc.searchContentsWait = _contents[CType.WAIT].getSelection();
+			_prop.var.etc.searchContentsElapseTime = _contents[CType.ELAPSE_TIME].getSelection();
+			_prop.var.etc.searchContentsCallStart = _contents[CType.CALL_START].getSelection();
+			_prop.var.etc.searchContentsCallPackage = _contents[CType.CALL_PACKAGE].getSelection();
+			_prop.var.etc.searchContentsBranchFlag = _contents[CType.BRANCH_FLAG].getSelection();
+			_prop.var.etc.searchContentsBranchMultiStep = _contents[CType.BRANCH_MULTI_STEP].getSelection();
+			_prop.var.etc.searchContentsBranchStep = _contents[CType.BRANCH_STEP].getSelection();
+			_prop.var.etc.searchContentsBranchSelect = _contents[CType.BRANCH_SELECT].getSelection();
+			_prop.var.etc.searchContentsBranchAbility = _contents[CType.BRANCH_ABILITY].getSelection();
+			_prop.var.etc.searchContentsBranchRandom = _contents[CType.BRANCH_RANDOM].getSelection();
+			_prop.var.etc.searchContentsBranchLevel = _contents[CType.BRANCH_LEVEL].getSelection();
+			_prop.var.etc.searchContentsBranchStatus = _contents[CType.BRANCH_STATUS].getSelection();
+			_prop.var.etc.searchContentsBranchPartyNumber = _contents[CType.BRANCH_PARTY_NUMBER].getSelection();
+			_prop.var.etc.searchContentsBranchArea = _contents[CType.BRANCH_AREA].getSelection();
+			_prop.var.etc.searchContentsBranchBattle = _contents[CType.BRANCH_BATTLE].getSelection();
+			_prop.var.etc.searchContentsBranchIsBattle = _contents[CType.BRANCH_IS_BATTLE].getSelection();
+			_prop.var.etc.searchContentsBranchCast = _contents[CType.BRANCH_CAST].getSelection();
+			_prop.var.etc.searchContentsBranchItem = _contents[CType.BRANCH_ITEM].getSelection();
+			_prop.var.etc.searchContentsBranchSkill = _contents[CType.BRANCH_SKILL].getSelection();
+			_prop.var.etc.searchContentsBranchInfo = _contents[CType.BRANCH_INFO].getSelection();
+			_prop.var.etc.searchContentsBranchBeast = _contents[CType.BRANCH_BEAST].getSelection();
+			_prop.var.etc.searchContentsBranchMoney = _contents[CType.BRANCH_MONEY].getSelection();
+			_prop.var.etc.searchContentsBranchCoupon = _contents[CType.BRANCH_COUPON].getSelection();
+			_prop.var.etc.searchContentsBranchCompleteStamp = _contents[CType.BRANCH_COMPLETE_STAMP].getSelection();
+			_prop.var.etc.searchContentsBranchGossip = _contents[CType.BRANCH_GOSSIP].getSelection();
+			_prop.var.etc.searchContentsSetFlag = _contents[CType.SET_FLAG].getSelection();
+			_prop.var.etc.searchContentsSetStep = _contents[CType.SET_STEP].getSelection();
+			_prop.var.etc.searchContentsSetStepUp = _contents[CType.SET_STEP_UP].getSelection();
+			_prop.var.etc.searchContentsSetStepDown = _contents[CType.SET_STEP_DOWN].getSelection();
+			_prop.var.etc.searchContentsReverseFlag = _contents[CType.REVERSE_FLAG].getSelection();
+			_prop.var.etc.searchContentsCheckFlag = _contents[CType.CHECK_FLAG].getSelection();
+			_prop.var.etc.searchContentsGetCast = _contents[CType.GET_CAST].getSelection();
+			_prop.var.etc.searchContentsGetItem = _contents[CType.GET_ITEM].getSelection();
+			_prop.var.etc.searchContentsGetSkill = _contents[CType.GET_SKILL].getSelection();
+			_prop.var.etc.searchContentsGetInfo = _contents[CType.GET_INFO].getSelection();
+			_prop.var.etc.searchContentsGetBeast = _contents[CType.GET_BEAST].getSelection();
+			_prop.var.etc.searchContentsGetMoney = _contents[CType.GET_MONEY].getSelection();
+			_prop.var.etc.searchContentsGetCoupon = _contents[CType.GET_COUPON].getSelection();
+			_prop.var.etc.searchContentsGetCompleteStamp = _contents[CType.GET_COMPLETE_STAMP].getSelection();
+			_prop.var.etc.searchContentsGetGossip = _contents[CType.GET_GOSSIP].getSelection();
+			_prop.var.etc.searchContentsLoseCast = _contents[CType.LOSE_CAST].getSelection();
+			_prop.var.etc.searchContentsLoseItem = _contents[CType.LOSE_ITEM].getSelection();
+			_prop.var.etc.searchContentsLoseSkill = _contents[CType.LOSE_SKILL].getSelection();
+			_prop.var.etc.searchContentsLoseInfo = _contents[CType.LOSE_INFO].getSelection();
+			_prop.var.etc.searchContentsLoseBeast = _contents[CType.LOSE_BEAST].getSelection();
+			_prop.var.etc.searchContentsLoseMoney = _contents[CType.LOSE_MONEY].getSelection();
+			_prop.var.etc.searchContentsLoseCoupon = _contents[CType.LOSE_COUPON].getSelection();
+			_prop.var.etc.searchContentsLoseCompleteStamp = _contents[CType.LOSE_COMPLETE_STAMP].getSelection();
+			_prop.var.etc.searchContentsLoseGossip = _contents[CType.LOSE_GOSSIP].getSelection();
+			_prop.var.etc.searchContentsShowParty = _contents[CType.SHOW_PARTY].getSelection();
+			_prop.var.etc.searchContentsHideParty = _contents[CType.HIDE_PARTY].getSelection();
+			_prop.var.etc.searchContentsRedisplay = _contents[CType.REDISPLAY].getSelection();
+
 			_prop.var.etc.searchUnusedFlag = _unuseFlag.getSelection();
 			_prop.var.etc.searchUnusedStep = _unuseStep.getSelection();
 			_prop.var.etc.searchUnusedArea = _unuseArea.getSelection();
@@ -1262,6 +1472,8 @@ public:
 			replaceIDImpl();
 		} else if (_tabf.getSelection() is _tabPath) {
 			replacePathImpl();
+		} else if (_tabf.getSelection() is _tabContents) {
+			searchContents();
 		} else if (_tabf.getSelection() is _tabUnuse) {
 			searchUnuseImpl();
 		} else if (_tabf.getSelection() is _tabError) {
@@ -1423,6 +1635,23 @@ public:
 		if (from == to) _replMode = false;
 		replaceIDImpl2(from, to);
 	}
+
+	private void searchContents() {
+		uint count = 0;
+		reset();
+		_result.setRedraw(false);
+		scope (exit) _result.setRedraw(true);
+		searchRange(count, (CWXPath path, ref uint count) {
+			auto c = cast(Content) path;
+			if (!c) return;
+			assert (c.type in _contents);
+			if (!_contents[c.type].getSelection()) return;
+			addResult(path);
+			count++;
+		});
+		setResultStatus(count);
+	}
+
 	private void searchUnuseImpl2(string ToId, T)(T[] all, ref uint count) {
 		foreach (o; all) {
 			if (_summ.useCounter.get(mixin (ToId)) == 0) {
@@ -1491,6 +1720,8 @@ public:
 		auto sPath = _summ.scenarioPath;
 		auto skin = _comm.skin;
 		reset();
+		_result.setRedraw(false);
+		scope (exit) _result.setRedraw(true);
 		searchRange(count, (CWXPath path, ref uint count) {
 			auto summ = cast(Summary) path;
 			if (summ) {
@@ -1711,8 +1942,6 @@ public:
 				}
 			}
 		});
-		_result.setRedraw(false);
-		scope (exit) _result.setRedraw(true);
 		setResultStatus(count);
 	}
 	private void replaceTextImpl(CWXPath c, ref size_t count) {
@@ -1912,8 +2141,13 @@ public:
 	private size_t fTextCount(string s) {
 		if (_regexTarg) {
 			size_t c = 0;
-			foreach (m; std.regex.match(toUTF32(s), _regex)) {
-				c++;
+			try {
+				foreach (m; std.regex.match(toUTF32(s), _regex)) {
+					c++;
+				}
+			} catch (Throwable e) {
+ 				debugln(_from.getText(), " -> ", s);
+				throw e;
 			}
 			return c;
 		}
@@ -2001,16 +2235,17 @@ public:
 			}
 		}
 	}
-	private void getPathParams(CWXPath path, out string text, out Image img) {
+	private void getPathParams(CWXPath path, out string text, out Image img, bool par = false) {
 		img = null;
-		text = "*Error*";
+		text = par ? "" : "*Error*";
+		if (!path) return;
 		auto sum = cast(Summary) path;
-		if (sum) {
+		if (sum && !par) {
 			img = _prop.images.summary;
 			text = _prop.msgs.summary;
 		}
 		auto bgi = cast(BgImage) path;
-		if (bgi) {
+		if (bgi && !par) {
 			img = _prop.images.backs;
 			text = _prop.msgs.searchResultBgImage(bgi);
 		}
@@ -2055,12 +2290,12 @@ public:
 			text = _prop.msgs.searchResultIds(inf);
 		}
 		auto con = cast(Content) path;
-		if (con) {
+		if (con && !par) {
 			img = _prop.images.content(con.type);
 			text = _prop.msgs.contentText(_comm.skin, con, _summ, _prop.var.etc.dialogStatus);
 		}
 		auto tex = cast(TextHolder) path;
-		if (tex) {
+		if (tex && !par) {
 			Content c = cast(Content) tex.owner;
 			if (!c) {
 				auto dlg = cast(SDialog) tex.owner;
@@ -2072,29 +2307,29 @@ public:
 			}
 		}
 		auto sdlg = cast(SDialog) path;
-		if (sdlg) {
+		if (sdlg && !par) {
 			con = sdlg.parent;
 			assert (con);
 			img = _prop.images.content(con.type);
 			text = _prop.msgs.dialogText(sdlg);
 		}
 		auto fla = cast(Flag) path;
-		if (fla) {
+		if (fla && !par) {
 			img = _prop.images.flag;
 			text = _prop.msgs.searchResultFlags(fla);
 		}
 		auto ste = cast(Step) path;
-		if (ste) {
+		if (ste && !par) {
 			img = _prop.images.step;
 			text = _prop.msgs.searchResultFlags(ste);
 		}
 		auto fld = cast(FlagDir) path;
-		if (fld) {
+		if (fld && !par) {
 			img = _prop.images.flagDir;
 			text = _prop.msgs.searchResultFlags(fld);
 		}
 		auto eve = cast(EventTree) path;
-		if (eve) {
+		if (eve && !par) {
 			img = _prop.images.eventTree;
 			text = _prop.msgs.searchResultEventTree(eve);
 		}
@@ -2108,7 +2343,17 @@ public:
 			img = _prop.images.cards;
 			text = _prop.msgs.searchResultEnemyCard(ene, _summ);
 		}
-		assert (img);
+		assert (par || img);
+		string parText = "";
+		Image parImg;
+		getPathParams(path.cwxParent, parText, parImg, true);
+		if (parText != "") {
+			if (text == "") {
+				text = parText;
+			} else {
+				text ~= " @ " ~ parText;
+			}
+		}
 	}
 	private void addResult(CWXPath path, string desc = "", int index = -1) {
 		auto itm = new TableItem(_result, SWT.NONE, -1 == index ? _result.getItemCount() : index);

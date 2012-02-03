@@ -13,13 +13,6 @@ import cwx.editor.gui.dwt.properties;
 
 import org.eclipse.swt.SWT;
 
-immutable SOUND_TYPE_AUTO = 0;
-immutable SOUND_TYPE_SDL = 1;
-version (Windows) {
-	immutable SOUND_TYPE_MCI = 2;
-}
-immutable SOUND_TYPE_APP = 3;
-
 class FlexEtcProps : Properties {
 	mixin Property!("singleWindow", bool, true);
 	mixin Property!("toolsLock", bool, false);
@@ -196,6 +189,7 @@ class FlexEtcProps : Properties {
 	mixin Property!("replaceTextNotIgnoreCase", bool, false);
 	mixin Property!("replaceTextRegExp", bool, false);
 	mixin Property!("replaceTextWildcard", bool, false);
+
 	mixin Property!("replaceTextSummary", bool, true);
 	mixin Property!("replaceTextMessage", bool, true);
 	mixin Property!("replaceTextCardName", bool, true);
@@ -210,6 +204,74 @@ class FlexEtcProps : Properties {
 	mixin Property!("replaceTextKeyCode", bool, true);
 	mixin Property!("replaceTextFile", bool, false);
 	mixin Property!("replaceTextComment", bool, true);
+
+	mixin Property!("searchContentsStart", bool, false);
+	mixin Property!("searchContentsStartBattle", bool, false);
+	mixin Property!("searchContentsEnd", bool, false);
+	mixin Property!("searchContentsEndBadEnd", bool, false);
+	mixin Property!("searchContentsChangeArea", bool, false);
+	mixin Property!("searchContentsChangeBgImage", bool, false);
+	mixin Property!("searchContentsEffect", bool, false);
+	mixin Property!("searchContentsEffectBreak", bool, false);
+	mixin Property!("searchContentsLinkStart", bool, false);
+	mixin Property!("searchContentsLinkPackage", bool, false);
+	mixin Property!("searchContentsTalkMessage", bool, false);
+	mixin Property!("searchContentsTalkDialog", bool, false);
+	mixin Property!("searchContentsPlayBgm", bool, false);
+	mixin Property!("searchContentsPlaySound", bool, false);
+	mixin Property!("searchContentsWait", bool, false);
+	mixin Property!("searchContentsElapseTime", bool, false);
+	mixin Property!("searchContentsCallStart", bool, false);
+	mixin Property!("searchContentsCallPackage", bool, false);
+	mixin Property!("searchContentsBranchFlag", bool, false);
+	mixin Property!("searchContentsBranchMultiStep", bool, false);
+	mixin Property!("searchContentsBranchStep", bool, false);
+	mixin Property!("searchContentsBranchSelect", bool, false);
+	mixin Property!("searchContentsBranchAbility", bool, false);
+	mixin Property!("searchContentsBranchRandom", bool, false);
+	mixin Property!("searchContentsBranchLevel", bool, false);
+	mixin Property!("searchContentsBranchStatus", bool, false);
+	mixin Property!("searchContentsBranchPartyNumber", bool, false);
+	mixin Property!("searchContentsBranchArea", bool, false);
+	mixin Property!("searchContentsBranchBattle", bool, false);
+	mixin Property!("searchContentsBranchIsBattle", bool, false);
+	mixin Property!("searchContentsBranchCast", bool, false);
+	mixin Property!("searchContentsBranchItem", bool, false);
+	mixin Property!("searchContentsBranchSkill", bool, false);
+	mixin Property!("searchContentsBranchInfo", bool, false);
+	mixin Property!("searchContentsBranchBeast", bool, false);
+	mixin Property!("searchContentsBranchMoney", bool, false);
+	mixin Property!("searchContentsBranchCoupon", bool, false);
+	mixin Property!("searchContentsBranchCompleteStamp", bool, false);
+	mixin Property!("searchContentsBranchGossip", bool, false);
+	mixin Property!("searchContentsSetFlag", bool, false);
+	mixin Property!("searchContentsSetStep", bool, false);
+	mixin Property!("searchContentsSetStepUp", bool, false);
+	mixin Property!("searchContentsSetStepDown", bool, false);
+	mixin Property!("searchContentsReverseFlag", bool, false);
+	mixin Property!("searchContentsCheckFlag", bool, false);
+	mixin Property!("searchContentsGetCast", bool, false);
+	mixin Property!("searchContentsGetItem", bool, false);
+	mixin Property!("searchContentsGetSkill", bool, false);
+	mixin Property!("searchContentsGetInfo", bool, false);
+	mixin Property!("searchContentsGetBeast", bool, false);
+	mixin Property!("searchContentsGetMoney", bool, false);
+	mixin Property!("searchContentsGetCoupon", bool, false);
+	mixin Property!("searchContentsGetCompleteStamp", bool, false);
+	mixin Property!("searchContentsGetGossip", bool, false);
+	mixin Property!("searchContentsLoseCast", bool, false);
+	mixin Property!("searchContentsLoseItem", bool, false);
+	mixin Property!("searchContentsLoseSkill", bool, false);
+	mixin Property!("searchContentsLoseInfo", bool, false);
+	mixin Property!("searchContentsLoseBeast", bool, false);
+	mixin Property!("searchContentsLoseMoney", bool, false);
+	mixin Property!("searchContentsLoseCoupon", bool, false);
+	mixin Property!("searchContentsLoseCompleteStamp", bool, false);
+	mixin Property!("searchContentsLoseGossip", bool, false);
+	mixin Property!("searchContentsShowParty", bool, false);
+	mixin Property!("searchContentsHideParty", bool, false);
+	mixin Property!("searchContentsRedisplay", bool, false);
+
 	mixin Property!("searchUnusedFlag", bool, true);
 	mixin Property!("searchUnusedStep", bool, true);
 	mixin Property!("searchUnusedArea", bool, true);

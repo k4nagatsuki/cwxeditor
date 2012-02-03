@@ -9,6 +9,8 @@ import cwx.skin;
 import cwx.msgs;
 import cwx.graphics;
 
+import cwx.editor.gui.sound;
+
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.properties;
 import cwx.editor.gui.dwt.dutils;

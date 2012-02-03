@@ -16,6 +16,7 @@ import std.datetime;
 import std.string;
 import std.traits;
 
+/// コンテントのタイプ。
 enum CType {
 	START,
 	START_BATTLE,
@@ -85,6 +86,18 @@ enum CType {
 	REDISPLAY
 }
 
+/// コンテントタイプの分類。
+enum CTypeGroup {
+	Terminal = 0, /// 開始/終端。
+	Standard = 1, /// 基本。
+	Data = 2, /// 変数操作/分岐。
+	Utility = 3, /// 状況分岐。
+	Branch = 4, /// 保有分岐。
+	Get = 5, /// 取得。
+	Lost = 6, /// 喪失。
+	Visual = 7, // 外観操作。
+}
+
 enum CArg {
 	AREA,
 	BATTLE,
@@ -150,6 +163,85 @@ private bool static_this_completed = false;
 private void static_this () {
 	if (static_this_completed) return;
 	static_this_completed = true;
+
+	_CTYPE_GROUP = [
+		CTypeGroup.Terminal:[
+			CType.START,
+			CType.START_BATTLE,
+			CType.END,
+			CType.END_BAD_END,
+			CType.CHANGE_AREA,
+			CType.EFFECT_BREAK,
+			CType.LINK_START,
+			CType.LINK_PACKAGE,
+		], CTypeGroup.Standard:[
+			CType.TALK_MESSAGE,
+			CType.TALK_DIALOG,
+			CType.PLAY_BGM,
+			CType.PLAY_SOUND,
+			CType.WAIT,
+			CType.ELAPSE_TIME,
+			CType.EFFECT,
+			CType.CALL_START,
+			CType.CALL_PACKAGE,
+		], CTypeGroup.Data:[
+			CType.BRANCH_FLAG,
+			CType.SET_FLAG,
+			CType.REVERSE_FLAG,
+			CType.BRANCH_MULTI_STEP,
+			CType.BRANCH_STEP,
+			CType.SET_STEP,
+			CType.SET_STEP_UP,
+			CType.SET_STEP_DOWN,
+			CType.CHECK_FLAG,
+		], CTypeGroup.Utility:[
+			CType.BRANCH_SELECT,
+			CType.BRANCH_ABILITY,
+			CType.BRANCH_RANDOM,
+			CType.BRANCH_LEVEL,
+			CType.BRANCH_STATUS,
+			CType.BRANCH_PARTY_NUMBER,
+			CType.BRANCH_AREA,
+			CType.BRANCH_BATTLE,
+			CType.BRANCH_IS_BATTLE,
+		], CTypeGroup.Branch:[
+			CType.BRANCH_CAST,
+			CType.BRANCH_ITEM,
+			CType.BRANCH_SKILL,
+			CType.BRANCH_INFO,
+			CType.BRANCH_BEAST,
+			CType.BRANCH_MONEY,
+			CType.BRANCH_COUPON,
+			CType.BRANCH_COMPLETE_STAMP,
+			CType.BRANCH_GOSSIP,
+		], CTypeGroup.Get:[
+			CType.GET_CAST,
+			CType.GET_ITEM,
+			CType.GET_SKILL,
+			CType.GET_INFO,
+			CType.GET_BEAST,
+			CType.GET_MONEY,
+			CType.GET_COUPON,
+			CType.GET_COMPLETE_STAMP,
+			CType.GET_GOSSIP,
+		], CTypeGroup.Lost:[
+			CType.LOSE_CAST,
+			CType.LOSE_ITEM,
+			CType.LOSE_SKILL,
+			CType.LOSE_INFO,
+			CType.LOSE_BEAST,
+			CType.LOSE_MONEY,
+			CType.LOSE_COUPON,
+			CType.LOSE_COMPLETE_STAMP,
+			CType.LOSE_GOSSIP,
+		], CTypeGroup.Visual:[
+			CType.SHOW_PARTY,
+			CType.HIDE_PARTY,
+			CType.CHANGE_BG_IMAGE,
+			CType.REDISPLAY,
+		]
+	];
+
 	string _(string v) {return v;}
 	_CONTENT_DETAILS = [
 		CType.START:CDetail("Start", "", CNextType.NONE, true),
@@ -225,13 +317,23 @@ private void static_this () {
 	}
 }
 
+private CType[][CTypeGroup] _CTYPE_GROUP;
+/// コンテントタイプの分類毎の配列。
+@property
+CType[][CTypeGroup] CTYPE_GROUP() {
+	static_this();
+	return _CTYPE_GROUP;
+}
+
 private CDetail[CType] _CONTENT_DETAILS;
+/// コンテントタイプ毎の情報。
 @property
 private CDetail[CType] CONTENT_DETAILS() {
 	static_this();
 	return _CONTENT_DETAILS;
 }
 private CType[string][string] _CTYPE_MAP;
+/// コンテントタイプと要素名・属性名の対応表。
 @property
 private CType[string][string] CTYPE_MAP() {
 	static_this();
@@ -239,10 +341,10 @@ private CType[string][string] CTYPE_MAP() {
 }
 
 struct CDetail {
-	string name;
-	string type;
-	CNextType nextType;
-	bool owner;
+	string name; /// 要素名。
+	string type; /// 属性名。
+	CNextType nextType; /// 後続パラメータのタイプ。
+	bool owner; /// 後続コンテントを持てるか。
 
 	string[CArg] args;
 	/// argを使用するコンテントであればtrueを返す。

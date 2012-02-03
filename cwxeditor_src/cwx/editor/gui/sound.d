@@ -8,6 +8,13 @@ import std.stdint;
 import cwx.sjis;
 import cwx.utils : cdebugln, debugln, enforce;
 
+immutable SOUND_TYPE_AUTO = 0;
+immutable SOUND_TYPE_SDL = 1;
+version (Windows) {
+	immutable SOUND_TYPE_MCI = 2;
+}
+immutable SOUND_TYPE_APP = 3;
+
 version (Windows) {
 	import std.windows.charset;
 	import std.c.windows.windows;

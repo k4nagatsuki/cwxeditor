@@ -134,14 +134,18 @@ public:
 	@property Image evtAddContinue() {return imgd!("evt_add_continue.png");}
 	@property Image evtAutoOpen() {return imgd!("evt_auto_edit.png");}
 
-	@property Image menuEvtTerminal() {return imgd!("evt_j_term.png");}
-	@property Image menuEvtStandard() {return imgd!("evt_j_std.png");}
-	@property Image menuEvtData() {return imgd!("evt_j_data.png");}
-	@property Image menuEvtUtility() {return imgd!("evt_j_util.png");}
-	@property Image menuEvtBranch() {return imgd!("evt_j_br.png");}
-	@property Image menuEvtGet() {return imgd!("evt_j_get.png");}
-	@property Image menuEvtLost() {return imgd!("evt_j_lost.png");}
-	@property Image menuEvtVisual() {return imgd!("evt_j_vis.png");}
+	Image menuEvtGroup(CTypeGroup cGrp) {
+		final switch (cGrp) {
+		case CTypeGroup.Terminal: return imgd!("evt_j_term.png");
+		case CTypeGroup.Standard: return imgd!("evt_j_std.png");
+		case CTypeGroup.Data: return imgd!("evt_j_data.png");
+		case CTypeGroup.Utility: return imgd!("evt_j_util.png");
+		case CTypeGroup.Branch: return imgd!("evt_j_br.png");
+		case CTypeGroup.Get: return imgd!("evt_j_get.png");
+		case CTypeGroup.Lost: return imgd!("evt_j_lost.png");
+		case CTypeGroup.Visual: return imgd!("evt_j_vis.png");
+		}
+	}
 
 	Image content(CType type) {
 		switch (type) {

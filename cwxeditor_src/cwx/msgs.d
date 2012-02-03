@@ -303,6 +303,7 @@ public:
 	@property const string replForText() {return "テキスト検索";}
 	@property const string replForID() {return "ID検索";}
 	@property const string replForPath() {return "素材検索";}
+	@property const string replContents() {return "コンテント検索";}
 	@property const string replForUnuse() {return "未使用検索";}
 	@property const string replForError() {return "誤り検索";}
 
@@ -311,6 +312,7 @@ public:
 	@property const string allCheckRange() {return "全てチェック/全てチェックを外す";}
 
 	@property const string allCheck() {return "全てチェック/全てチェックを外す(&L)";}
+	@property const string allSelect() {return "全て選択/全て選択を外す(&L)";}
 
 	@property const string replError() {return "重複する分岐(フラグ分岐が両方ともTRUEになっている等)・条件クーポンに抜けがある台詞コンテント・存在しない素材を参照しているコンテント等を検索します。";}
 
@@ -385,7 +387,7 @@ public:
 		return to!(string)(count) ~ "件をやり直しました";
 	}
 	const string searchResultBgImage(in BgImage back) {
-		return "背景画像 - " ~ encodePath(back.path);
+		return "背景画像 [" ~ encodePath(back.path) ~ "]";
 	}
 	const string searchResultIds(C)(in C c) {
 		string name;
@@ -406,26 +408,26 @@ public:
 		} else static if (is(C : InfoCard)) {
 			name = "情報";
 		} else static assert (0);
-		return name ~ "(" ~ to!(string)(c.id) ~ ") - " ~ c.name;
+		return name ~ " [" ~ to!(string)(c.id) ~ "." ~ c.name ~ "]";
 	}
 	const string searchResultFlags(F)(in F f) {
 		static if (is(F : Flag)) {
-			return "フラグ - " ~ f.path;
+			return "フラグ [" ~ f.path ~ "]";
 		} else static if (is(F : Step)) {
-			return "ステップ - " ~ f.path;
+			return "ステップ [" ~ f.path ~ "]";
 		} else static if (is(F : FlagDir)) {
-			return "ディレクトリ - " ~ f.path;
+			return "ディレクトリ [" ~ f.path ~ "]";
 		} else static assert (0);
 	}
 	const string searchResultEventTree(in EventTree evt) {
-		return "イベントツリー - " ~ evt.name;
+		return "イベントツリー [" ~ evt.name ~ "]";
 	}
 	const string searchResultMenuCard(in MenuCard c) {
-		return "メニューカード - " ~ c.name;
+		return "メニューカード [" ~ c.name ~ "]";
 	}
 	const string searchResultEnemyCard(in EnemyCard c, in Summary summ) {
 		auto card = summ.cwCast(c.id);
-		return "エネミーカード - " ~ (card ? card.name : "[対象無し]");
+		return "エネミーカード [" ~ (card ? card.name : "対象無し") ~ "]";
 	}
 
 	@property const string searchErrorNoImage() {return "イメージ指定無し";}
@@ -631,22 +633,31 @@ public:
 	@property const string evtAddContinue() {return "連続で配置";}
 	@property const string evtAutoOpen() {return "配置と同時に編集";}
 
-	@property const string ttEvtTerminal() {return "開始/終端";}
-	@property const string menuEvtTerminal() {return ttEvtTerminal ~ "(&T)";}
-	@property const string ttEvtStandard() {return "基本";}
-	@property const string menuEvtStandard() {return ttEvtStandard ~ "(&S)";}
-	@property const string ttEvtData() {return "変数操作/分岐";}
-	@property const string menuEvtData() {return ttEvtData ~ "(&D)";}
-	@property const string ttEvtUtility() {return "状況分岐";}
-	@property const string menuEvtUtility() {return ttEvtUtility ~ "(&U)";}
-	@property const string ttEvtBranch() {return "保有分岐";}
-	@property const string menuEvtBranch() {return ttEvtBranch ~ "(&B)";}
-	@property const string ttEvtGet() {return "取得";}
-	@property const string menuEvtGet() {return ttEvtGet ~ "(&G)";}
-	@property const string ttEvtLost() {return "喪失";}
-	@property const string menuEvtLost() {return ttEvtLost ~ "(&L)";}
-	@property const string ttEvtVisual() {return "外観操作";}
-	@property const string menuEvtVisual() {return ttEvtVisual ~ "(&V)";}
+	const string ttEvtGroup(CTypeGroup cGrp) {
+		final switch (cGrp) {
+		case CTypeGroup.Terminal: return "開始/終端";
+		case CTypeGroup.Standard: return "基本";
+		case CTypeGroup.Data: return "変数操作/分岐";
+		case CTypeGroup.Utility: return "状況分岐";
+		case CTypeGroup.Branch: return "保有分岐";
+		case CTypeGroup.Get: return "取得";
+		case CTypeGroup.Lost: return "喪失";
+		case CTypeGroup.Visual: return "外観操作";
+		}
+	}
+	const string menuEvtGroup(CTypeGroup cGrp) {
+		string tt = ttEvtGroup(cGrp);
+		final switch (cGrp) {
+		case CTypeGroup.Terminal: return tt ~ "(&T)";
+		case CTypeGroup.Standard: return tt ~ "(&S)";
+		case CTypeGroup.Data: return tt ~ "(&D)";
+		case CTypeGroup.Utility: return tt ~ "(&U)";
+		case CTypeGroup.Branch: return tt ~ "(&B)";
+		case CTypeGroup.Get: return tt ~ "(&G)";
+		case CTypeGroup.Lost: return tt ~ "(&L)";
+		case CTypeGroup.Visual: return tt ~ "(&V)";
+		}
+	}
 
 	const string content(CType type) {
 		switch (type) {

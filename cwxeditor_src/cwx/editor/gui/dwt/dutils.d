@@ -2330,16 +2330,6 @@ void initTree(Tree tree, bool closeRoot) {
 	}
 }
 
-class SDialogsUndo : TUndo!(SDialog[]) {
-	this (SDialog[] o, SDialog[] n, void delegate(SDialog[]) set) {
-		super (o, n, set, (SDialog[] v) {
-			auto r = new SDialog[v.length];
-			foreach (i, dlg; v) r[i] = new SDialog(dlg);
-			return r;
-		});
-	}
-}
-
 class CWXPathString {
 	CWXPath path;
 	string array;

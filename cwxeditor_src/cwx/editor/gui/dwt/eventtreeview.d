@@ -1726,111 +1726,20 @@ public:
 			_autoOpenTI.setSelection(_autoOpen);
 			createCoolItem(cbar, mode);
 
-			auto e1 = new ToolBar(cbar, SWT.FLAT);
-			e1.addMouseListener(new TMListener);
-			auto e1c = convMenu(_prop.msgs.menuEvtTerminal, _prop.images.menuEvtTerminal);
-			createEI(CType.START, e1, g, _convM);
-			createEI(CType.START_BATTLE, e1, g, e1c);
-			createEI(CType.END, e1, g, e1c);
-			createEI(CType.END_BAD_END, e1, g, e1c);
-			createEI(CType.CHANGE_AREA, e1, g, e1c);
-			createEI(CType.EFFECT_BREAK, e1, g, e1c);
-			createEI(CType.LINK_START, e1, g, e1c);
-			createEI(CType.LINK_PACKAGE, e1, g, e1c);
-			createCoolItem(cbar, e1);
-
-			auto e2 = new ToolBar(cbar, SWT.FLAT);
-			e2.addMouseListener(new TMListener);
-			auto e2c = convMenu(_prop.msgs.menuEvtStandard, _prop.images.menuEvtStandard);
-			createEI(CType.TALK_MESSAGE, e2, g, e2c);
-			createEI(CType.TALK_DIALOG, e2, g, e2c);
-			createEI(CType.PLAY_BGM, e2, g, e2c);
-			createEI(CType.PLAY_SOUND, e2, g, e2c);
-			createEI(CType.WAIT, e2, g, e2c);
-			createEI(CType.ELAPSE_TIME, e2, g, e2c);
-			createEI(CType.EFFECT, e2, g, e2c);
-			createEI(CType.CALL_START, e2, g, e2c);
-			createEI(CType.CALL_PACKAGE, e2, g, e2c);
-			createCoolItem(cbar, e2);
-
-			auto e3 = new ToolBar(cbar, SWT.FLAT);
-			e3.addMouseListener(new TMListener);
-			auto e3c = convMenu(_prop.msgs.menuEvtData, _prop.images.menuEvtData);
-			createEI(CType.BRANCH_FLAG, e3, g, e3c);
-			createEI(CType.SET_FLAG, e3, g, e3c);
-			createEI(CType.REVERSE_FLAG, e3, g, e3c);
-			createEI(CType.BRANCH_MULTI_STEP, e3, g, e3c);
-			createEI(CType.BRANCH_STEP, e3, g, e3c);
-			createEI(CType.SET_STEP, e3, g, e3c);
-			createEI(CType.SET_STEP_UP, e3, g, e3c);
-			createEI(CType.SET_STEP_DOWN, e3, g, e3c);
-			createEI(CType.CHECK_FLAG, e3, g, e3c);
-			createCoolItem(cbar, e3);
-
-			auto e4 = new ToolBar(cbar, SWT.FLAT);
-			e4.addMouseListener(new TMListener);
-			auto e4c = convMenu(_prop.msgs.menuEvtUtility, _prop.images.menuEvtUtility);
-			createEI(CType.BRANCH_SELECT, e4, g, e4c);
-			createEI(CType.BRANCH_ABILITY, e4, g, e4c);
-			createEI(CType.BRANCH_RANDOM, e4, g, e4c);
-			createEI(CType.BRANCH_LEVEL, e4, g, e4c);
-			createEI(CType.BRANCH_STATUS, e4, g, e4c);
-			createEI(CType.BRANCH_PARTY_NUMBER, e4, g, e4c);
-			createEI(CType.BRANCH_AREA, e4, g, e4c);
-			createEI(CType.BRANCH_BATTLE, e4, g, e4c);
-			createEI(CType.BRANCH_IS_BATTLE, e4, g, e4c);
-			createCoolItem(cbar, e4);
-
-			auto e5 = new ToolBar(cbar, SWT.FLAT);
-			e5.addMouseListener(new TMListener);
-			auto e5c = convMenu(_prop.msgs.menuEvtBranch, _prop.images.menuEvtBranch);
-			createEI(CType.BRANCH_CAST, e5, g, e5c);
-			createEI(CType.BRANCH_ITEM, e5, g, e5c);
-			createEI(CType.BRANCH_SKILL, e5, g, e5c);
-			createEI(CType.BRANCH_INFO, e5, g, e5c);
-			createEI(CType.BRANCH_BEAST, e5, g, e5c);
-			createEI(CType.BRANCH_MONEY, e5, g, e5c);
-			createEI(CType.BRANCH_COUPON, e5, g, e5c);
-			createEI(CType.BRANCH_COMPLETE_STAMP, e5, g, e5c);
-			createEI(CType.BRANCH_GOSSIP, e5, g, e5c);
-			createCoolItem(cbar, e5);
-
-			auto e6 = new ToolBar(cbar, SWT.FLAT);
-			e6.addMouseListener(new TMListener);
-			auto e6c = convMenu(_prop.msgs.menuEvtGet, _prop.images.menuEvtGet);
-			createEI(CType.GET_CAST, e6, g, e6c);
-			createEI(CType.GET_ITEM, e6, g, e6c);
-			createEI(CType.GET_SKILL, e6, g, e6c);
-			createEI(CType.GET_INFO, e6, g, e6c);
-			createEI(CType.GET_BEAST, e6, g, e6c);
-			createEI(CType.GET_MONEY, e6, g, e6c);
-			createEI(CType.GET_COUPON, e6, g, e6c);
-			createEI(CType.GET_COMPLETE_STAMP, e6, g, e6c);
-			createEI(CType.GET_GOSSIP, e6, g, e6c);
-			createCoolItem(cbar, e6);
-
-			auto e7 = new ToolBar(cbar, SWT.FLAT);
-			e7.addMouseListener(new TMListener);
-			auto e7c = convMenu(_prop.msgs.menuEvtLost, _prop.images.menuEvtLost);
-			createEI(CType.LOSE_CAST, e7, g, e7c);
-			createEI(CType.LOSE_ITEM, e7, g, e7c);
-			createEI(CType.LOSE_SKILL, e7, g, e7c);
-			createEI(CType.LOSE_INFO, e7, g, e7c);
-			createEI(CType.LOSE_BEAST, e7, g, e7c);
-			createEI(CType.LOSE_MONEY, e7, g, e7c);
-			createEI(CType.LOSE_COUPON, e7, g, e7c);
-			createEI(CType.LOSE_COMPLETE_STAMP, e7, g, e7c);
-			createEI(CType.LOSE_GOSSIP, e7, g, e7c);
-			createCoolItem(cbar, e7);
-
-			auto e8 = new ToolBar(cbar, SWT.FLAT);
-			e8.addMouseListener(new TMListener);
-			auto e8c = convMenu(_prop.msgs.menuEvtVisual, _prop.images.menuEvtVisual);
-			createEI(CType.SHOW_PARTY, e8, g, e8c);
-			createEI(CType.HIDE_PARTY, e8, g, e8c);
-			createEI(CType.CHANGE_BG_IMAGE, e8, g, e8c);
-			createEI(CType.REDISPLAY, e8, g, e8c);
-			createCoolItem(cbar, e8, 2);
+			auto tml = new TMListener;
+			foreach (cGrp, cs; CTYPE_GROUP) {
+				auto eBar = new ToolBar(cbar, SWT.FLAT);
+				eBar.addMouseListener(tml);
+				auto conv = convMenu(_prop.msgs.menuEvtGroup(cGrp), _prop.images.menuEvtGroup(cGrp));
+				foreach (cType; cs) {
+					createEI(cType, eBar, g, cType is CType.START ? _convM : conv);
+				}
+				if (cGrp is CTypeGroup.Visual) {
+					createCoolItem(cbar, eBar, 2);
+				} else {
+					createCoolItem(cbar, eBar);
+				}
+			}
 
 			cbar.addDisposeListener(new CDListener);
 		});
