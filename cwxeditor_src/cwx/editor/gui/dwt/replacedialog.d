@@ -976,6 +976,8 @@ public:
 		auto froot = _summ.flagDirRoot;
 		auto sPath = _summ.scenarioPath;
 		auto skin = _comm.skin;
+		_result.setRedraw = false;
+		scope (exit) _result.setRedraw = true;
 		reset;
 		searchAll(_summ, count, (CWXPath path, ref uint count) {
 			auto summ = cast(Summary) path;
@@ -1077,8 +1079,6 @@ public:
 				}
 			}
 		});
-		_result.setRedraw = false;
-		scope (exit) _result.setRedraw = true;
 		setResultStatus(count);
 	}
 	private void replaceTextImpl(CWXPath c, ref size_t count) {
