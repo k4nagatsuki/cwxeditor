@@ -306,9 +306,9 @@ private:
 		}
 	}
 	void selCoupon() {
-		auto sels = _coupons.getSelection();
-		if (sels.length > 0) {
-			auto c = cast(Coupon) sels[0].getData();
+		auto i = _coupons.getSelectionIndex();
+		if (-1 != i) {
+			auto c = cast(Coupon) _coupons.getItem(i).getData();
 			_newCoupon.setText = c.name;
 			_newCouponTM.reset();
 			_couponVal.setSelection = c.value;
@@ -403,8 +403,8 @@ private:
 	private class CouponTCPD : TCPD {
 		@property
 		private Coupon selection() {
-			auto sels = _coupons.getSelection();
-			return sels.length > 0 ? cast(Coupon) sels[0].getData() : null;
+			auto i = _coupons.getSelectionIndex();
+			return -1 != i ? cast(Coupon) _coupons.getItem(i).getData() : null;
 		}
 		override void cut(SelectionEvent se) {
 			auto c = selection;

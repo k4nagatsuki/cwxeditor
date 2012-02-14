@@ -30,6 +30,7 @@ SRC = cwxeditor.d \
 	cwx\msgs.d \
 	cwx\versioninfo.d \
 	cwx\msgutils.d \
+	cwx\settings.d \
 	cwx\editor\gui\sound.d \
 	cwx\editor\gui\dwt\sbshell.d \
 	cwx\editor\gui\dwt\mainwindow.d \
@@ -85,6 +86,7 @@ SRC = cwxeditor.d \
 	cwx\editor\gui\dwt\cardpane.d \
 	cwx\editor\gui\dwt\loader.d \
 	cwx\editor\gui\dwt\areaviewutils.d \
+	cwx\editor\gui\dwt\messageutils.d \
 
 OBJ = objs\cwxeditor.obj \
 	objs\cwx\utils.obj \
@@ -118,6 +120,7 @@ OBJ = objs\cwxeditor.obj \
 	objs\cwx\msgs.obj \
 	objs\cwx\versioninfo.obj \
 	objs\cwx\msgutils.obj \
+	objs\cwx\settings.obj \
 	objs\cwx\editor\gui\sound.obj \
 	objs\cwx\editor\gui\dwt\sbshell.obj \
 	objs\cwx\editor\gui\dwt\mainwindow.obj \
@@ -173,6 +176,7 @@ OBJ = objs\cwxeditor.obj \
 	objs\cwx\editor\gui\dwt\cardpane.obj \
 	objs\cwx\editor\gui\dwt\loader.obj \
 	objs\cwx\editor\gui\dwt\areaviewutils.obj \
+	objs\cwx\editor\gui\dwt\messageutils.obj \
 	objs\xml.obj \
 
 DMD = dmd
@@ -221,6 +225,10 @@ release : $(SRC) $(RES)
 	$(DMD) $(FLAGS) $(SRC) -release -odobjs
 	$(DMD) -c -O -inline -release d2std\xml.d -odobjs
 	$(DMD) $(OBJ) -L"$(LIB)" -of"$(OUT)" -L/exet:nt/su:windows:4.0 -O
+
+linktest : $(OBJ)
+	$(DMD) $(OBJ) -L"$(LIB)" -g -gs -debug -of"$(OUT)" -L/exet:nt/su:console:4.0
+	$(DMD) $(OBJ) -L"$(LIB)" -g -gs -of"$(OUT)" -L/exet:nt/su:windows:4.0
 
 $(RES) : $(RC)
 	rcc $(RC)

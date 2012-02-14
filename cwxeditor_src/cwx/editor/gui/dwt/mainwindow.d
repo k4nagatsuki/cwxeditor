@@ -31,6 +31,7 @@ import cwx.props;
 import cwx.skin;
 import cwx.path;
 import cwx.graphics;
+import cwx.msgs;
 
 import cwx.editor.gui.sound;
 
@@ -965,7 +966,7 @@ private:
 		mixin (MenuAction!("_menuFile", "New", SWT.PUSH, "createScenario"));
 		mixin (MenuAction!("_menuFile", "Open", SWT.PUSH, "openScenarioM"));
 		mixin (MenuAction!("_menuFile", "Save", SWT.PUSH, "saveScenario"));
-		mixin (MenuAction!("_menuFile", "SaveA", SWT.PUSH, "saveScenarioA"));
+		mixin (MenuAction!("_menuFile", "SaveAs", SWT.PUSH, "saveScenarioA"));
 		new MenuItem(_menuFile, SWT.SEPARATOR);
 		mixin (MenuAction!("_menuFile", "CreateArchive", SWT.PUSH, "_dirWin.createArchive"));
 		new MenuItem(_menuFile, SWT.SEPARATOR);
@@ -1694,7 +1695,7 @@ public:
 						mixin (ToolAction!("bar", "New", SWT.PUSH, "createScenario"));
 						mixin (ToolAction!("bar", "Open", SWT.PUSH, "openScenarioM"));
 						mixin (ToolAction!("bar", "Save", SWT.PUSH, "saveScenario"));
-						mixin (ToolAction!("bar", "SaveA", SWT.PUSH, "saveScenarioA"));
+						mixin (ToolAction!("bar", "SaveAs", SWT.PUSH, "saveScenarioA"));
 						new ToolItem(bar, SWT.SEPARATOR);
 						mixin (ToolAction!("bar", "CreateArchive", SWT.PUSH, "_dirWin.createArchive"));
 						new ToolItem(bar, SWT.SEPARATOR);
@@ -1828,7 +1829,7 @@ public:
 				mixin (ToolAction!("bar", "New", SWT.PUSH, "createScenario"));
 				mixin (ToolAction!("bar", "Open", SWT.PUSH, "openScenarioM"));
 				mixin (ToolAction!("bar", "Save", SWT.PUSH, "saveScenario"));
-				mixin (ToolAction!("bar", "SaveA", SWT.PUSH, "saveScenarioA"));
+				mixin (ToolAction!("bar", "SaveAs", SWT.PUSH, "saveScenarioA"));
 				new ToolItem(bar, SWT.SEPARATOR);
 				mixin (ToolAction!("bar", "ReplaceText", SWT.PUSH, "replaceText"));
 				mixin (ToolAction!("bar", "ReNumberingAll", SWT.PUSH, "reNumberingAll"));

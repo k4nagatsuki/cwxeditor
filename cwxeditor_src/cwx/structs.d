@@ -2,6 +2,62 @@
 module cwx.structs;
 
 import cwx.xml;
+import cwx.utils;
+
+import std.conv;
+import std.path;
+
+/// ソート方向を表す。
+enum SortDir {
+	Up = 1, /// 昇順。
+	Down = 2, /// 降順。
+	None = 0 /// ソートしない。
+}
+
+/// 台詞コンテントの簡易表示方式。
+enum DialogStatus {
+	Top = 0, /// 最上位を表示。
+	Under = 1, /// 最下位を表示。
+	UnderWithCoupon = 2, /// 最下位(条件クーポンあり)を表示。
+}
+
+/// サイズを持つオブジェクト。
+interface DSize {
+	/// 幅。
+	@property
+	void width(int);
+	/// ditto
+	@property
+	int width();
+	/// 高さ。
+	@property
+	void height(int);
+	/// ditto
+	@property
+	int height();
+}
+
+/// サイズと位置を持つオブジェクト。
+interface WSize : DSize {
+	/// X座標。
+	@property
+	void x(int);
+	/// ditto
+	@property
+	int x();
+	/// Y座標
+	@property
+	void y(int);
+	/// ditto
+	@property
+	int y();
+	/// 最大化。
+	@property
+	void maximized(bool);
+	/// ditto
+	@property
+	bool maximized();
+}
 
 /// 座標を表す。
 struct CPoint {
@@ -120,5 +176,238 @@ struct CFont {
 		point = node.attr!(uint)("point", true);
 		bold = node.attr!(bool)("bold", true);
 		italic = node.attr!(bool)("italic", true);
+	}
+}
+
+/// 背景画像の簡単設定。
+struct BgImageSetting {
+	static const XML_NAME = "bgImageSetting";
+	string name; /// 設定名。
+	int x; /// X座標。
+	int y; /// Y座標。
+	int width; /// 幅。
+	int height; /// 高さ。
+	bool mask; /// マスク。
+	/// コピーを作成する。
+	@property
+	const
+	BgImageSetting dup() {
+		BgImageSetting r;
+		r.name = name;
+		r.x = x;
+		r.y = y;
+		r.width = width;
+		r.height = height;
+		r.mask = mask;
+		return r;
+	}
+	static BgImageSetting opCall(string name, int x, int y, int width, int height, bool mask) {
+		BgImageSetting r;
+		r.name = name;
+		r.x = x;
+		r.y = y;
+		r.width = width;
+		r.height = height;
+		r.mask = mask;
+		return r;
+	}
+	/// XMLノードとして取り扱うための関数群。
+	const
+	XNode toNode() {
+		auto e = XNode.create(XML_NAME);
+		toNodeImpl(e);
+		return e;
+	}
+	/// ditto
+	const
+	void toNode(ref XNode node) {
+		auto e = node.newElement(XML_NAME);
+		toNodeImpl(e);
+	}
+	/// ditto
+	const
+	private void toNodeImpl(ref XNode e) {
+		e.newElement("name", name);
+		e.newElement("x", x);
+		e.newElement("y", y);
+		e.newElement("width", width);
+		e.newElement("height", height);
+		e.newElement("mask", mask);
+	}
+	/// ditto
+	void fromNode(ref XNode node) {
+		name = node.childText("name", true);
+		x = to!(int)(node.childText("x", true));
+		y = to!(int)(node.childText("y", true));
+		width = to!(int)(node.childText("width", true));
+		height = to!(int)(node.childText("height", true));
+		mask = to!(bool)(node.childText("mask", true));
+	}
+}
+
+/// 外部ツールの設定。
+struct OuterTool {
+	static const XML_NAME = "tool";
+	string name; /// 設定名。
+	string command; /// コマンド。
+	string workDir; /// 実行ディレクトリ。
+	/// コピーを作成する。
+	@property
+	const
+	OuterTool dup() {
+		OuterTool r;
+		r.name = name;
+		r.command = command;
+		r.workDir = workDir;
+		return r;
+	}
+	static OuterTool opCall(string name, string command, string workDir) {
+		OuterTool r;
+		r.name = name;
+		r.command = command;
+		r.workDir = workDir;
+		return r;
+	}
+	/// XMLノードとして取り扱うための関数群。
+	const
+	XNode toNode() {
+		auto e = XNode.create(XML_NAME);
+		toNodeImpl(e);
+		return e;
+	}
+	/// ditto
+	const
+	void toNode(ref XNode node) {
+		auto e = node.newElement(XML_NAME);
+		toNodeImpl(e);
+	}
+	/// ditto
+	const
+	private void toNodeImpl(ref XNode e) {
+		e.newElement("name", name);
+		e.newElement("command", command);
+		e.newElement("workDir", workDir);
+	}
+	/// ditto
+	void fromNode(ref XNode node) {
+		name = node.childText("name", true);
+		command = node.childText("command", true);
+		workDir = node.childText("workDir", true);
+	}
+	/// コマンドをパースする。$Fをファイル名に置換、$Sをシナリオ名に置換する。
+	static string parse(string str, string file, string sPath) {
+		dstring buf;
+		bool bs = false;
+		foreach (dchar c; str) {
+			if (bs) {
+				if (c == 'f' || c == 'F') {
+					buf ~= to!dstring(file);
+				} else if (c == 's' || c == 'S') {
+					buf ~= to!dstring(sPath);
+				} else if (c == '$') {
+					buf ~= "$"d;
+				} else {
+					buf ~= "$"d ~ c;
+				}
+				bs = false;
+			} else {
+				if (c == '$') {
+					bs = true;
+				} else {
+					buf ~= c;
+				}
+			}
+		}
+		if (bs) {
+			buf ~= "$";
+		}
+		return to!string(buf);
+	}
+}
+
+/// デフォルト設定用の背景画像構造体。
+struct BgImageS {
+	string name; /// ファイル名。拡張子はスキンによるため、拡張子を含めない。
+	int x; /// X座標。
+	int y; /// Y座標。
+	uint width; /// 幅。
+	uint height; /// 高さ。
+	bool mask; /// マスク。
+	/// XMLノードとして取り扱うための関数群。
+	const
+	void toNode(ref XNode e) {
+		auto r = e.newElement("background");
+		r.newAttr("name", name);
+		r.newAttr("x", x);
+		r.newAttr("y", y);
+		r.newAttr("width", width);
+		r.newAttr("height", height);
+		r.newAttr("mask", mask);
+	}
+	/// ditto
+	void fromNode(ref XNode node) {
+		if (node.name != "background") throw new Exception("Node is not background");
+		name = node.attr!(string)("name", true);
+		x = node.attr!(int)("x", true);
+		y = node.attr!(int)("y", true);
+		width = node.attr!(uint)("width", true);
+		height = node.attr!(uint)("height", true);
+		mask = node.attr!(bool)("mask", true);
+	}
+}
+
+/// クラシックなエンジンの情報。
+struct ClassicEngine {
+	static const XML_NAME = "classicEngine";
+	string name; /// 情報名。
+	string enginePath = ""; /// 実行ファイルのパス。
+	string dataDirName = ""; /// データフォルダのパス。
+	string execute = ""; /// 実行ファイルの代わりに実行されるファイルの名称。
+	/// エンジンを実行する。
+	const
+	string executePath(string appPath) {
+		if (!enginePath.length) return "";
+		string path = enginePath;
+		if (!cwx.utils.isabs(path)) {
+			auto dir = appPath.dirName;
+			path = std.path.buildPath(dir, path);
+		}
+		if (execute.length) {
+			if (cwx.utils.isabs(execute)) {
+				path = execute;
+			} else {
+				path = std.path.buildPath(path.dirName, execute);
+			}
+		}
+		return path;
+	}
+	/// XMLノードとして取り扱うための関数群。
+	const
+	XNode toNode() {
+		auto e = XNode.create(XML_NAME);
+		toNodeImpl(e);
+		return e;
+	}
+	/// ditto
+	const
+	void toNode(ref XNode node) {
+		auto e = node.newElement(XML_NAME);
+		toNodeImpl(e);
+	}
+	/// ditto
+	const
+	private void toNodeImpl(ref XNode e) {
+		e.newAttr("name", name);
+		e.newAttr("enginePath", enginePath);
+		e.newAttr("dataDirName", dataDirName);
+		e.newAttr("execute", execute);
+	}
+	/// ditto
+	void fromNode(ref XNode node) {
+		if (node.name != "classicEngine") throw new Exception("Node is not classicEngine");
+		name = node.attr!(string)("name", true);
+		enginePath = node.attr!(string)("enginePath", true);
+		dataDirName = node.attr!(string)("dataDirName", true);
+		execute = node.attr!(string)("execute", true);
 	}
 }

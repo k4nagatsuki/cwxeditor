@@ -9,6 +9,7 @@ import cwx.utils;
 import cwx.event;
 import cwx.skin;
 import cwx.xml;
+import cwx.msgs;
 
 import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.dprops;

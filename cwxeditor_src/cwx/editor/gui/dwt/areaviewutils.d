@@ -33,7 +33,7 @@ import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.jpyimage;
 import cwx.editor.gui.dwt.areawindow;
-import cwx.editor.gui.dwt.message;
+import cwx.editor.gui.dwt.messageutils;
 import cwx.editor.gui.dwt.areaview;
 
 import std.algorithm;

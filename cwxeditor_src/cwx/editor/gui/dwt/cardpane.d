@@ -451,9 +451,9 @@ private:
 	void __refresh() {
 		if (_viewMode == CViewMode.TABLE) {
 			C sel = null;
-			auto sels = _tbl.getSelection();
-			if (sels.length > 0) {
-				sel = cast(C) sels[0].getData();
+			auto index = _tbl.getSelectionIndex();
+			if (-1 != index) {
+				sel = cast(C) _tbl.getItem(index).getData();
 			}
 			_tbl.removeAll();
 			foreach (i, c; __cards) {
@@ -638,17 +638,19 @@ private:
 		}
 		@property
 		C selectionCard() {
-			auto sels = _tbl.getSelection();
-			return sels.length > 0 ? cast(C) sels[0].getData() : null;
+			auto i = _tbl.getSelectionIndex();
+			return -1 != i ? cast(C) _tbl.getItem(i).getData() : null;
 		}
 		mixin CopyAndPaste;
 		override void del(SelectionEvent se) {
 			static if (EditMode) {
 				auto c = selectionCard;
 				if (c) {
-					storeDelete([_tbl.getSelectionIndex()]);
+					int i = _tbl.getSelectionIndex();
+					if (-1 == i) return;
+					storeDelete([i]);
 					_owner.remove(c);
-					_tbl.getSelection()[0].dispose();
+					_tbl.getItem(i).dispose();
 					_tbl.redraw();
 					delCard(c);
 				}
@@ -877,13 +879,10 @@ private:
 
 	void __refList() {
 		auto sels = _tbl.getSelectionIndices();
-		int index = -1;
-		if (sels.length > 0) {
-			index = sels[0];
-		}
+		int index = _tbl.getSelectionIndex();
 		refresh();
-		if (index >= 0) {
-			_list.select(index);
+		if (-1 != index) {
+			_list.selectionIndices(sels);
 			_list.scroll(index);
 		} else {
 			_list.deselectAll();
@@ -891,10 +890,10 @@ private:
 		refreshStatusLine();
 	}
 	void __refTbl() {
-		int index = _list.selection;
+		auto sels = _list.selectionIndices;
 		refresh();
-		if (index >= 0) {
-			_tbl.setSelection([index]);
+		if (sels.length > 0) {
+			_tbl.setSelection(sels);
 			_tbl.showSelection();
 		}
 		refreshStatusLine();
@@ -937,13 +936,13 @@ private:
 		override void mouseDoubleClick(MouseEvent e) {
 			if (e.button != 1) return;
 			int index = _tbl.getSelectionIndex();
-			if (index >= 0) {
+			if (-1 != index) {
 				scope p = _tbl.toControl(e.x, e.y);
 				auto itm = _tbl.getItem(index);
 				for (int i = 0; i < _tbl.getColumnCount(); i++) {
 					if (itm.getBounds(i).contains(e.x, e.y)) {
 						static if (EditMode) {
-							edit(cast(C) _tbl.getSelection()[0].getData());
+							edit(cast(C) itm.getData());
 						} else {
 							addCard();
 						}
@@ -976,9 +975,10 @@ private:
 			} else {
 				bool keyMatch = e.character == SWT.CR;
 			}
-			if (keyMatch && _tbl.getSelectionIndex() >= 0) {
+			int i = _tbl.getSelectionIndex();
+			if (keyMatch && -1 != i) {
 				static if (EditMode) {
-					edit(cast(C) _tbl.getSelection()[0].getData());
+					edit(cast(C) _tbl.getItem(i).getData());
 				} else {
 					addCard();
 				}
@@ -1356,7 +1356,8 @@ public:
 	@property
 	C selection() {
 		if (_viewMode == CViewMode.TABLE) {
-			return _tbl.getSelectionIndex() >= 0 ? cast(C) _tbl.getSelection()[0].getData() : null;
+			int i = _tbl.getSelectionIndex();
+			return -1 != i ? cast(C) _tbl.getItem(i).getData() : null;
 		} else {
 			return _list.selectionCard;
 		}

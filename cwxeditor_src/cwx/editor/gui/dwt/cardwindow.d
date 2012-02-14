@@ -10,6 +10,7 @@ import cwx.xml;
 import cwx.skin;
 import cwx.path;
 import cwx.motion;
+import cwx.msgs;
 
 import cwx.editor.gui.dwt.commondialog;
 import cwx.editor.gui.dwt.images;

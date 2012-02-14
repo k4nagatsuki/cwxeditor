@@ -13,6 +13,7 @@ import cwx.features;
 import cwx.usecounter;
 import cwx.skin;
 import cwx.path;
+import cwx.structs;
 
 import cwx.editor.gui.sound;
 
@@ -188,10 +189,10 @@ private:
 	}
 	void refreshList() {
 		auto summary = _summ;
-		auto sels = _list.getSelection();
+		auto index = _list.getSelectionIndex();
 		ulong id = 0;
-		if (sels.length) {
-			id = (cast(A) sels[0].getData()).id;
+		if (-1 != index) {
+			id = (cast(A) _list.getItem(index).getData()).id;
 		} else if (_evt) {
 			static if (Type == CType.CHANGE_AREA) {
 				id = _evt.area;
@@ -366,7 +367,13 @@ protected:
 	}
 
 	override bool apply() {
-		auto id = (cast(A) _list.getSelection()[0].getData()).id;
+		assert (_list.getItemCount() > 0);
+		int index = _list.getSelectionIndex();
+		if (-1 == index) {
+			index = 0;
+			_list.select(index);
+		}
+		auto id = (cast(A) _list.getItem(index).getData()).id;
 		if (!_evt) {
 			_evt = new Content(Type, "");
 		}
@@ -478,7 +485,13 @@ protected:
 	}
 
 	override bool apply() {
-		auto name = (cast(Content) _list.getSelection()[0].getData()).name;
+		assert (_list.getItemCount() > 0);
+		int index = _list.getSelectionIndex();
+		if (-1 == index) {
+			index = 0;
+			_list.select(index);
+		}
+		auto name = (cast(Content) _list.getItem(index).getData()).name;
 		if (!_evt) _evt = new Content(Type, "");
 		_evt.start = name;
 		return true;
@@ -1382,14 +1395,20 @@ protected:
 	}
 
 	override bool apply() {
+		assert (_flags.getItemCount() > 0);
 		if (!_evt) _evt = new Content(Type, "");
+		int index = _flags.getSelectionIndex();
+		if (-1 == index) {
+			index = 0;
+			_flags.select(index);
+		}
 		static if (is (F == Flag)) {
-			_evt.flag = (cast(F) _flags.getSelection()[0].getData()).path;
+			_evt.flag = (cast(F) _flags.getItem(index).getData()).path;
 			static if (SelValue) {
 				_evt.flagValue = _values.getSelectionIndex() == 0;
 			}
 		} else static if (is (F == Step)) {
-			_evt.step = (cast(F) _flags.getSelection()[0].getData()).path;
+			_evt.step = (cast(F) _flags.getItem(index).getData()).path;
 			static if (SelValue) {
 				_evt.stepValue = _values.getSelectionIndex();
 			}
@@ -1745,10 +1764,10 @@ private:
 	Table _list;
 
 	void refreshList() {
-		auto sels = _list.getSelection();
+		auto index = _list.getSelectionIndex();
 		ulong id = 0;
-		if (sels.length) {
-			id = (cast(C) sels[0].getData()).id;
+		if (-1 != index) {
+			id = (cast(C) _list.getItem(index).getData()).id;
 		} else if (_evt) {
 			static if (is (C == SkillCard)) {
 				id = _evt.skill;
@@ -1931,8 +1950,14 @@ protected:
 	}
 
 	override bool apply() {
+		assert (_list.getItemCount());
+		int index = _list.getSelectionIndex();
+		if (-1 == index) {
+			index = 0;
+			_list.select(index);
+		}
 		if (!_evt) _evt = new Content(Type, "");
-		auto id = (cast(C) _list.getSelection()[0].getData()).id;
+		auto id = (cast(C) _list.getItem(index).getData()).id;
 		static if (is (C == SkillCard)) {
 			_evt.skill = id;
 		} else static if (is (C == ItemCard)) {

@@ -3,6 +3,7 @@ module cwx.editor.gui.dwt.textdialog;
 
 import cwx.utils;
 import cwx.script;
+import cwx.structs;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dutils;

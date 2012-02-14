@@ -16,6 +16,7 @@ import cwx.path;
 import cwx.structs;
 import cwx.sjis;
 import cwx.graphics;
+import cwx.msgs;
 
 import cwx.editor.gui.sound;
 
@@ -1953,9 +1954,9 @@ public:
 		void openEvent() {
 			if (!_summ) return;
 			string path;
-			auto sels = _cards.getSelection();
-			if (sels.length) {
-				auto card = cast(C) sels[0].getData();
+			auto i = _cards.getSelectionIndex();
+			if (-1 != i) {
+				auto card = cast(C) _cards.getItem(i).getData();
 				if (card.trees.length) {
 					path = card.trees[0].cwxPath;
 				} else {

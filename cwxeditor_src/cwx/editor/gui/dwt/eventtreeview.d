@@ -13,6 +13,7 @@ import cwx.usecounter;
 import cwx.background;
 import cwx.path;
 import cwx.script;
+import cwx.structs;
 
 import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.dprops;
@@ -20,6 +21,7 @@ import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.eventdialog;
 import cwx.editor.gui.dwt.message;
+import cwx.editor.gui.dwt.messageutils;
 import cwx.editor.gui.dwt.xmlbytestransfer;
 import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.properties;
@@ -600,7 +602,7 @@ private:
 		if (!_conti) arrow();
 		void initial(Content c) {
 			if (type is CType.CHANGE_BG_IMAGE) {
-				c.backs = BgImageS.createBgImages(_comm.skin, _prop.var.etc.bgImagesDefault);
+				c.backs = createBgImages(_comm.skin, _prop.var.etc.bgImagesDefault);
 			} else if (type is CType.TALK_DIALOG) {
 				c.dialogs = [new SDialog];
 			} else if (type is CType.BRANCH_SKILL || type is CType.BRANCH_ITEM || type is CType.BRANCH_BEAST) {
@@ -645,7 +647,7 @@ private:
 			break;
 		} case CType.CHANGE_BG_IMAGE: {
 			auto c = new Content(type, name);
-			c.backs = BgImageS.createBgImages(_comm.skin, _prop.var.etc.bgImagesDefault);
+			c.backs = createBgImages(_comm.skin, _prop.var.etc.bgImagesDefault);
 			dlg = new BgImagesDialog(_comm, _prop, _tree.getShell(), _summ, parent, c, refTarget);
 			break;
 		} case CType.EFFECT: {
@@ -1228,7 +1230,7 @@ private:
 			c.convertType(type, _prop.parent);
 			auto newd = c.detail;
 			if (newd.use(CArg.BG_IMAGES) && !oldd.use(CArg.BG_IMAGES)) {
-				c.backs = BgImageS.createBgImages(_comm.skin, _prop.var.etc.bgImagesDefault);
+				c.backs = createBgImages(_comm.skin, _prop.var.etc.bgImagesDefault);
 			}
 			if (newd.use(CArg.DIALOGS) && !oldd.use(CArg.DIALOGS)) {
 				c.dialogs = [new SDialog];

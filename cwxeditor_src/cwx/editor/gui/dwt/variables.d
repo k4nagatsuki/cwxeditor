@@ -9,9 +9,7 @@ import cwx.structs;
 import cwx.msgs;
 import cwx.graphics;
 
-import cwx.editor.gui.dwt.properties;
-
-import org.eclipse.swt.SWT;
+import cwx.settings;
 
 class FlexEtcProps : Properties {
 	mixin Property!("singleWindow", bool, true);
@@ -22,7 +20,7 @@ class FlexEtcProps : Properties {
 	mixin Property!("directorySashR", int, 5);
 	mixin Property!("directorySashV", bool, false);
 	mixin Property!("filesSortColumn", int, 1);
-	mixin Property!("filesSortDirection", int, SWT.UP);
+	mixin Property!("filesSortDirection", int, SortDir.Up);
 	mixin Property!("fileNameColumn", int, 300);
 	mixin Property!("fileExtColumn", int, 60);
 	mixin Property!("fileCountColumn", int, 60);
@@ -204,6 +202,11 @@ class FlexEtcProps : Properties {
 	mixin Property!("replaceTextKeyCode", bool, true);
 	mixin Property!("replaceTextFile", bool, false);
 	mixin Property!("replaceTextComment", bool, true);
+
+	mixin Property!("replaceNameCoupon", bool, true);
+	mixin Property!("replaceNameGossip", bool, true);
+	mixin Property!("replaceNameEndScenario", bool, true);
+	mixin Property!("replaceNameKeyCode", bool, true);
 
 	mixin Property!("searchContentsStart", bool, false);
 	mixin Property!("searchContentsStartBattle", bool, false);

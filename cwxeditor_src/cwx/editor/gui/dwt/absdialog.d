@@ -2,6 +2,7 @@
 module cwx.editor.gui.dwt.absdialog;
 
 import cwx.utils;
+import cwx.structs;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dutils;
@@ -27,32 +28,6 @@ import org.eclipse.swt.events.ShellAdapter;
 import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.ModifyEvent;
-
-interface DSize {
-	@property
-	void width(int);
-	@property
-	void height(int);
-	@property
-	int width();
-	@property
-	int height();
-}
-
-interface WSize : DSize {
-	@property
-	void x(int);
-	@property
-	void y(int);
-	@property
-	int x();
-	@property
-	int y();
-	@property
-	void maximized(bool);
-	@property
-	bool maximized();
-}
 
 struct ButtonInfo {
 	string name;

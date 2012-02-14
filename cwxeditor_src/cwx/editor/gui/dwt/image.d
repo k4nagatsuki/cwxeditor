@@ -126,6 +126,9 @@ public:
 	@property Image couponHigh() {return imgd!("coupon.png");}
 	@property Image couponDelete() {return imgd!("evt_stop.png");}
 
+	@property Image gossip() {return imgd!("gossip.png");}
+	@property Image endScenario() {return imgd!("end.png");}
+
 	@property Image stopBGM() {return imgd!("sound_stop.png");}
 	@property Image playBGM() {return imgd!("sound_play.png");}
 
@@ -372,7 +375,7 @@ public:
 	@property Image menuClose() {return imgd!("close.png");}
 	@property Image menuCloseWin() {return imgd!("close_win.png");}
 	@property Image menuSave() {return imgd!("save.png");}
-	@property Image menuSaveA() {return imgd!("save_a.png");}
+	@property Image menuSaveAs() {return imgd!("save_a.png");}
 
 	@property Image menuDataWin() {return imgd!("data_win.png");}
 	@property Image menuFlagWin() {return imgd!("flag_win.png");}

@@ -8,6 +8,7 @@ import cwx.summary;
 import cwx.background;
 import cwx.imagesize;
 import cwx.skin;
+import cwx.structs;
 
 import cwx.editor.gui.dwt.properties;
 import cwx.editor.gui.dwt.dprops;

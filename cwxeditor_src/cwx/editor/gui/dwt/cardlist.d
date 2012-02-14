@@ -426,6 +426,13 @@ public:
 	int[] selectionIndices() {
 		return _sels.keys;
 	}
+	/// ditto
+	@property
+	void selectionIndices(int[] indices) {
+		foreach (i; indices) {
+			select = i;
+		}
+	}
 	/// Returns: 選択されているインデックスの最初の一件。選択が無い場合は-1。
 	@property
 	int selection() {

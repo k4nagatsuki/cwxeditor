@@ -6,6 +6,7 @@ import cwx.flag;
 import cwx.utils;
 import cwx.usecounter;
 import cwx.path;
+import cwx.msgs;
 
 import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.dprops;

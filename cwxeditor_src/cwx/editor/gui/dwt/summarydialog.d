@@ -8,6 +8,7 @@ import cwx.area;
 import cwx.event;
 import cwx.skin;
 import cwx.card;
+import cwx.structs;
 
 import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.dutils;
@@ -422,10 +423,10 @@ private:
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 
-		auto sels = _startArea.getSelection();
+		auto index = _startArea.getSelectionIndex();
 		ulong id;
-		if (sels.length) {
-			id = (cast(Area) sels[0].getData()).id;
+		if (-1 != index) {
+			id = (cast(Area) _startArea.getItem(index).getData()).id;
 		} else {
 			id = _summ.startArea;
 		}
@@ -643,8 +644,9 @@ protected:
 		}
 		_summ.rCoupons = rcs;
 		_summ.rCouponNum = _rCouponNum.getSelection();
-		_summ.startArea = _startArea.getItemCount() > 0 && _startArea.getSelection().length > 0
-			? (cast(Area) _startArea.getSelection()[0].getData()).id : 0;
+		int si = _startArea.getSelectionIndex();
+		_summ.startArea = _startArea.getItemCount() > 0 && si != -1
+			? (cast(Area) _startArea.getItem(si).getData()).id : 0;
 		if (_typeSkin.getSelection()) {
 			_summ.type = _type.getText();
 		} else {

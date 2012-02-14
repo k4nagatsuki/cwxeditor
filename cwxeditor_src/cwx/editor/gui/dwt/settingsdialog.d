@@ -8,6 +8,7 @@ import cwx.summary;
 import cwx.skin;
 import cwx.msgs;
 import cwx.graphics;
+import cwx.structs;
 
 import cwx.editor.gui.sound;
 
@@ -2386,11 +2387,11 @@ public:
 
 		BgImage[] bgImages;
 		auto skin = _comm.skin;
-		_cont = new BgImageContainer(BgImageS.createBgImages(skin, bgImagesDefault));
+		_cont = new BgImageContainer(createBgImages(skin, bgImagesDefault));
 	}
 
 	@property
-	BgImageS[] backs() {return BgImageS.createBgImageSs(_cont.backs);}
+	BgImageS[] backs() {return createBgImageSs(_cont.backs);}
 protected:
 	override void setup(Composite area) {
 		area.setLayout(new GridLayout(1, false));

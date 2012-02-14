@@ -33,6 +33,7 @@ import std.file;
 import std.path;
 import std.regex : Regex, regex, RegexMatch, match;
 import std.utf;
+import std.algorithm : uniq;
 
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
@@ -71,6 +72,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.dnd.TextTransfer;
 import java.lang.all;
 
 /// 検索と置換を行うダイアログ。
@@ -125,6 +127,7 @@ private:
 	CTabItem _tabID;
 	CTabItem _tabPath;
 	CTabItem _tabContents;
+	CTabItem _tabCoupon;
 	CTabItem _tabUnuse;
 	CTabItem _tabError;
 	Button _replace;
@@ -208,6 +211,11 @@ private:
 	Button _unuseInfo;
 	Button _unuseStart;
 	Button _unusePath;
+
+	Button _cCoupon;
+	Button _cGossip;
+	Button _cEnd;
+	Button _cKeyCode;
 
 	Table _result;
 	Tree _range;
@@ -370,7 +378,7 @@ private:
 			}
 		}
 		_parent.layout(true);
-		_replace.setEnabled(sel !is _tabContents && sel !is _tabUnuse && sel !is _tabError);
+		_replace.setEnabled(sel !is _tabContents && sel !is _tabCoupon && sel !is _tabUnuse && sel !is _tabError);
 		_range.setEnabled(sel !is _tabUnuse);
 		_rangeAllCheck.setEnabled(_range.getEnabled());
 	}
@@ -485,27 +493,27 @@ private:
 			_checked ~= checked;
 			{
 				auto btns = addButtonLine(grp);
-				Button createB(string text) {
+				Button createB(string text, char accr) {
 					auto b = new Button(btns, SWT.CHECK);
-					b.setText(text);
+					b.setText(text ~ "(&" ~ accr ~ ")");
 					checked.buttons ~= b;
 					b.addSelectionListener(checked);
 					return b;
 				}
-				_summary = createB(_prop.msgs.replTextSummary);
-				_msg = createB(_prop.msgs.replTextMessage);
-				_cardName = createB(_prop.msgs.replTextCardName);
-				_cardDesc = createB(_prop.msgs.replTextCardDesc);
-				_event = createB(_prop.msgs.replTextEventText);
-				_start = createB(_prop.msgs.replTextStart);
-				_flag = createB(_prop.msgs.replTextFlagAndStep);
-				_coupon = createB(_prop.msgs.replTextCoupon);
-				_gossip = createB(_prop.msgs.replTextGossip);
-				_end = createB(_prop.msgs.replTextEndScenario);
-				_area = createB(_prop.msgs.replTextAreaName);
-				_keyCode = createB(_prop.msgs.replTextKeyCode);
-				_file = createB(_prop.msgs.replTextFile);
-				_comment = createB(_prop.msgs.replTextComment);
+				_summary = createB(_prop.msgs.replTextSummary, '1');
+				_msg = createB(_prop.msgs.replTextMessage, '2');
+				_cardName = createB(_prop.msgs.replTextCardName, '3');
+				_cardDesc = createB(_prop.msgs.replTextCardDesc, '4');
+				_event = createB(_prop.msgs.replTextEventText, '5');
+				_start = createB(_prop.msgs.replTextStart, '6');
+				_flag = createB(_prop.msgs.replTextFlagAndStep, '7');
+				_coupon = createB(_prop.msgs.replTextCoupon, '8');
+				_gossip = createB(_prop.msgs.replTextGossip, '9');
+				_end = createB(_prop.msgs.replTextEndScenario, 'A');
+				_area = createB(_prop.msgs.replTextAreaName, 'B');
+				_keyCode = createB(_prop.msgs.replTextKeyCode, 'D');
+				_file = createB(_prop.msgs.replTextFile, 'E');
+				_comment = createB(_prop.msgs.replTextComment, 'G');
 			}
 			auto sep = new Label(grp, SWT.SEPARATOR | SWT.HORIZONTAL);
 			sep.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -631,7 +639,9 @@ private:
 		comp2.setLayout(zeroGridLayout(1, true));
 		{
 			auto grp = new Group(comp2, SWT.NONE);
-			grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			auto gd = new GridData(GridData.FILL_HORIZONTAL);
+			gd.widthHint = _prop.var.etc.searchResultTableWidth;
+			grp.setLayoutData(gd);
 			grp.setText(_prop.msgs.searchRange);
 			grp.setLayout(zeroGridLayout(1, true));
 			auto checked = new LCheck;
@@ -673,6 +683,54 @@ private:
 		comp2.setLayoutData(gd);
 		_comps[tab] = comp2;
 	}
+	void constructCoupon(CTabFolder tabf) {
+		auto comp = new Composite(tabf, SWT.NONE);
+		comp.setLayout(new GridLayout(1, true));
+		auto comp2 = new Composite(comp, SWT.NONE);
+		auto comp2gl = windowGridLayout(1, true);
+		comp2gl.marginWidth = 0;
+		comp2gl.marginHeight = 0;
+		comp2.setLayout(comp2gl);
+		{
+			auto grp = new Group(comp2, SWT.NONE);
+			auto gd = new GridData(GridData.FILL_HORIZONTAL);
+			gd.widthHint = _prop.var.etc.searchResultTableWidth;
+			grp.setLayoutData(gd);
+			grp.setText(_prop.msgs.searchRange);
+			grp.setLayout(zeroGridLayout(1, true));
+			auto checked = new LCheck;
+			_checked ~= checked;
+			{
+				auto btns = addButtonLine(grp);
+				Button createB(string text, char accr) {
+					auto b = new Button(btns, SWT.CHECK);
+					b.setText(text ~ "(&" ~ accr ~ ")");
+					checked.buttons ~= b;
+					b.addSelectionListener(checked);
+					return b;
+				}
+				_cCoupon = createB(_prop.msgs.replTextCoupon, '1');
+				_cGossip = createB(_prop.msgs.replTextGossip, '2');
+				_cEnd = createB(_prop.msgs.replTextEndScenario, '3');
+				_cKeyCode = createB(_prop.msgs.replTextKeyCode, '4');
+			}
+			auto sep = new Label(grp, SWT.SEPARATOR | SWT.HORIZONTAL);
+			sep.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			{
+				auto btns = addButtonLine(grp);
+				checked.createAlls(btns, _prop.msgs.allCheck);
+			}
+		}
+
+		auto tab = new CTabItem(tabf, SWT.NONE);
+		tab.setText(_prop.msgs.replForCoupon);
+		tab.setControl(comp);
+		_tabCoupon = tab;
+
+		auto gd = new GridData(GridData.FILL_BOTH);
+		comp2.setLayoutData(gd);
+		_comps[tab] = comp2;
+	}
 	void constructUnuse(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout(new GridLayout(1, true));
@@ -687,25 +745,25 @@ private:
 			_checked ~= checked;
 			{
 				auto btns = addButtonLine(grp);
-				Button createB(string text) {
+				Button createB(string text, char accr) {
 					auto b = new Button(btns, SWT.CHECK);
-					b.setText(text);
+					b.setText(text ~ "(&" ~ accr ~ ")");
 					checked.buttons ~= b;
 					b.addSelectionListener(checked);
 					return b;
 				}
-				_unuseFlag = createB(_prop.msgs.replUnuseFlag);
-				_unuseStep = createB(_prop.msgs.replUnuseStep);
-				_unuseArea = createB(_prop.msgs.replUnuseArea);
-				_unuseBattle = createB(_prop.msgs.replUnuseBattle);
-				_unusePackage = createB(_prop.msgs.replUnusePackage);
-				_unuseCast = createB(_prop.msgs.replUnuseCast);
-				_unuseSkill = createB(_prop.msgs.replUnuseSkill);
-				_unuseItem = createB(_prop.msgs.replUnuseItem);
-				_unuseBeast = createB(_prop.msgs.replUnuseBeast);
-				_unuseInfo = createB(_prop.msgs.replUnuseInfo);
-				_unuseStart = createB(_prop.msgs.replUnuseStart);
-				_unusePath = createB(_prop.msgs.replUnusePath);
+				_unuseFlag = createB(_prop.msgs.replUnuseFlag, '1');
+				_unuseStep = createB(_prop.msgs.replUnuseStep, '2');
+				_unuseArea = createB(_prop.msgs.replUnuseArea, '3');
+				_unuseBattle = createB(_prop.msgs.replUnuseBattle, '4');
+				_unusePackage = createB(_prop.msgs.replUnusePackage, '5');
+				_unuseCast = createB(_prop.msgs.replUnuseCast, '6');
+				_unuseSkill = createB(_prop.msgs.replUnuseSkill, '7');
+				_unuseItem = createB(_prop.msgs.replUnuseItem, '8');
+				_unuseBeast = createB(_prop.msgs.replUnuseBeast, '9');
+				_unuseInfo = createB(_prop.msgs.replUnuseInfo, 'A');
+				_unuseStart = createB(_prop.msgs.replUnuseStart, 'B');
+				_unusePath = createB(_prop.msgs.replUnusePath, 'C');
 			}
 			auto sep = new Label(grp, SWT.SEPARATOR | SWT.HORIZONTAL);
 			sep.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -975,19 +1033,24 @@ public:
 			_fromPath.setFocus();
 		} else if (tab is _tabContents) {
 			// Nothing
+		} else if (tab is _tabCoupon) {
+			// Nothing
 		} else if (tab is _tabUnuse) {
 			// Nothing
 		} else if (tab is _tabError) {
 			// Nothing
 		} else assert (0);
 	}
-	void replaceText(string from) {
+	void replaceText(string from, bool start = false) {
 		reset();
 		_from.setText(from);
 		_to.setText("");
 		_tabf.setSelection(_tabText);
 		tabChanged();
 		_from.setFocus();
+		if (start) {
+			search();
+		}
 	}
 	void replacePath(string from) {
 		reset();
@@ -1042,12 +1105,13 @@ public:
 			constructID(_tabf);
 			constructPath(_tabf);
 			constructContents(_tabf);
+			constructCoupon(_tabf);
 			constructUnuse(_tabf);
 			constructError(_tabf);
 			_tabf.addSelectionListener(new TSListener);
 		}
 		{
-			_result = new Table(left, SWT.BORDER | SWT.SINGLE | SWT.FULL_SELECTION | SWT.V_SCROLL | SWT.VIRTUAL);
+			_result = new Table(left, SWT.BORDER | SWT.MULTI | SWT.FULL_SELECTION | SWT.V_SCROLL | SWT.VIRTUAL);
 			auto gd = new GridData(GridData.FILL_BOTH);
 			gd.widthHint = _prop.var.etc.searchResultTableWidth;
 			gd.heightHint = _prop.var.etc.searchResultTableHeight;
@@ -1058,6 +1122,10 @@ public:
 			auto menu = new Menu(_win, SWT.POP_UP);
 			createMenuItem(menu, _prop.msgs.menuUndo, _prop.images.menuUndo, &undo);
 			createMenuItem(menu, _prop.msgs.menuRedo, _prop.images.menuRedo, &redo);
+			new MenuItem(menu, SWT.SEPARATOR);
+			createMenuItem(menu, _prop.msgs.menuSearchResultCopy, _prop.images.menuCopy, &copyResult);
+			new MenuItem(menu, SWT.SEPARATOR);
+			createMenuItem(menu, _prop.msgs.menuSelectAll, _prop.images.menuSelectAll, &_result.selectAll);
 			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(menu, _prop.msgs.menuOpenView, _prop.images.menuOpenView, &openPath);
 			_result.setMenu(menu);
@@ -1215,6 +1283,11 @@ public:
 		_contents[CType.SHOW_PARTY].setSelection(_prop.var.etc.searchContentsShowParty);
 		_contents[CType.HIDE_PARTY].setSelection(_prop.var.etc.searchContentsHideParty);
 		_contents[CType.REDISPLAY].setSelection(_prop.var.etc.searchContentsRedisplay);
+
+		_cCoupon.setSelection(_prop.var.etc.replaceNameCoupon);
+		_cGossip.setSelection(_prop.var.etc.replaceNameGossip);
+		_cEnd.setSelection(_prop.var.etc.replaceNameEndScenario);
+		_cKeyCode.setSelection(_prop.var.etc.replaceNameKeyCode);
 
 		_unuseFlag.setSelection(_prop.var.etc.searchUnusedFlag);
 		_unuseStep.setSelection(_prop.var.etc.searchUnusedStep);
@@ -1386,6 +1459,11 @@ public:
 			_prop.var.etc.searchContentsHideParty = _contents[CType.HIDE_PARTY].getSelection();
 			_prop.var.etc.searchContentsRedisplay = _contents[CType.REDISPLAY].getSelection();
 
+			_prop.var.etc.replaceNameCoupon = _cCoupon.getSelection();
+			_prop.var.etc.replaceNameGossip = _cGossip.getSelection();
+			_prop.var.etc.replaceNameEndScenario = _cEnd.getSelection();
+			_prop.var.etc.replaceNameKeyCode = _cKeyCode.getSelection();
+
 			_prop.var.etc.searchUnusedFlag = _unuseFlag.getSelection();
 			_prop.var.etc.searchUnusedStep = _unuseStep.getSelection();
 			_prop.var.etc.searchUnusedArea = _unuseArea.getSelection();
@@ -1474,6 +1552,8 @@ public:
 			replacePathImpl();
 		} else if (_tabf.getSelection() is _tabContents) {
 			searchContents();
+		} else if (_tabf.getSelection() is _tabCoupon) {
+			searchCoupon();
 		} else if (_tabf.getSelection() is _tabUnuse) {
 			searchUnuseImpl();
 		} else if (_tabf.getSelection() is _tabError) {
@@ -1634,6 +1714,81 @@ public:
 		auto to = toPathId(_toPath.getText());
 		if (from == to) _replMode = false;
 		replaceIDImpl2(from, to);
+	}
+
+	private void searchCoupon() {
+		uint count = 0;
+		reset();
+		_result.setRedraw(false);
+		scope (exit) _result.setRedraw(true);
+		string[] coupons;
+		string[] gossips;
+		string[] scenarios;
+		string[] keyCodes;
+		searchRange(count, (CWXPath path, ref uint count) {
+			auto summ = cast(Summary) path;
+			if (summ) {
+				if (_cCoupon.getSelection()) {
+					coupons ~= summ.rCoupons;
+				}
+			}
+			auto casts = cast(CastCard) path;
+			if (casts) {
+				if (_cCoupon.getSelection()) {
+					foreach (c; casts.coupons) {
+						coupons ~= c.name;
+					}
+				}
+			}
+			auto eff = cast(EffectCard) path;
+			if (eff) {
+				if (_cKeyCode.getSelection()) {
+					keyCodes ~= eff.keyCodes;
+				}
+			}
+			auto et = cast(EventTree) path;
+			if (et) {
+				if (_cKeyCode.getSelection()) {
+					keyCodes ~= et.keyCodes;
+				}
+			}
+			auto c = cast(Content) path;
+			if (c) {
+				if (_cCoupon.getSelection()) {
+					if (c.coupon.length) coupons ~= c.coupon;
+					foreach (dlg; c.dialogs) {
+						coupons ~= dlg.rCoupons;
+					}
+				}
+				if (_cGossip.getSelection()) {
+					if (c.gossip.length) gossips ~= c.gossip;
+				}
+				if (_cEnd.getSelection()) {
+					if (c.completeStamp.length) scenarios ~= c.completeStamp;
+				}
+			}
+		});
+		foreach (n; coupons.sort.uniq) {
+			if (!n.length) continue;
+			addResult(n, _prop.images.couponNormal);
+			count++;
+		}
+		foreach (n; gossips.sort.uniq) {
+			if (!n.length) continue;
+			addResult(n, _prop.images.gossip);
+			count++;
+		}
+		foreach (n; scenarios.sort.uniq) {
+			if (!n.length) continue;
+			addResult(n, _prop.images.endScenario);
+			count++;
+		}
+		foreach (n; keyCodes.sort.uniq) {
+			if (!n.length) continue;
+			addResult(n, _prop.images.keyCode);
+			count++;
+		}
+		setResultStatus(count);
 	}
 
 	private void searchContents() {
@@ -2167,9 +2322,11 @@ public:
 	private bool _replMode = false;
 
 	private void openPath() {
-		auto itms = _result.getSelection();
-		if (itms.length) {
-			auto rp = cast(CWXPathString) itms[0].getData();
+		auto i = _result.getSelectionIndex();
+		if (-1 != i) {
+			auto itm = _result.getItem(i);
+			auto d = itm.getData();
+			auto rp = cast(CWXPathString) d;
 			if (rp) {
 				auto path = rp.array;
 				if (_prop.var.etc.searchOpenDialog) {
@@ -2184,9 +2341,9 @@ public:
 					debugln(e);
 				}
 				MessageBox.showWarning(_prop.msgs.cwxPathOpenError(path), _prop.msgs.dlgTitWarning, _win);
-			} else {
-				auto p = cast(PathString) itms[0].getData();
-				assert (p);
+			}
+			auto p = cast(PathString) d;
+			if (p) {
 				auto path = nabs(std.path.buildPath(_summ.scenarioPath, p.array));
 				if (_comm.openFilePath(path, false)) {
 					_win.setActive();
@@ -2216,6 +2373,15 @@ public:
 			debugln(e);
 		}
 		return _prop.images.unknown;
+	}
+	private void copyResult() {
+		string[] t;
+		foreach (itm; _result.getSelection()) {
+			t ~= itm.getText().replace("\n", linesep);
+		}
+		if (!t.length) return;
+		auto text = new ArrayWrapperString(std.string.join(t, linesep));
+		_comm.clipboard.setContents([text], [TextTransfer.getInstance()]);
 	}
 	private void addResult(string path) {
 		auto itm = new TableItem(_result, SWT.NONE);
@@ -2364,6 +2530,11 @@ public:
 		if (desc.length) text = desc ~ " - " ~ text;
 		itm.setText(text);
 		itm.setData(new CWXPathString(path, path.cwxPath));
+	}
+	private void addResult(string name, Image image, int index = -1) {
+		auto itm = new TableItem(_result, SWT.NONE, -1 == index ? _result.getItemCount() : index);
+		itm.setText(name);
+		itm.setImage(image);
 	}
 	private bool repl(CWXPath path, string text, void delegate(string) set, ref size_t count, ref Undo[] uArr, bool storeToArr = false) {
 		auto c = fTextCount(text);

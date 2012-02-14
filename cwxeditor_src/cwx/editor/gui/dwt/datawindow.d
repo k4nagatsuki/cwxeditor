@@ -8,6 +8,7 @@ import cwx.utils;
 import cwx.usecounter;
 import cwx.skin;
 import cwx.path;
+import cwx.msgs;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dutils;

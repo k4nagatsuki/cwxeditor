@@ -3,6 +3,7 @@ module cwx.editor.gui.dwt.smalldialogs;
 
 import cwx.utils;
 import cwx.versioninfo;
+import cwx.structs;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.absdialog;

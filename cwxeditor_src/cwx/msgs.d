@@ -23,20 +23,119 @@ import std.path;
 import std.math;
 import std.string;
 
-version (Windows) {
-	static immutable DIR = "フォルダ";
-} else {
-	static immutable DIR = "ディレクトリ";
-}
-
-/// 台詞コンテントの簡易表示方式。
-enum DialogStatus {
-	Top = 0, /// 最上位を表示。
-	Under = 1, /// 最下位を表示。
-	UnderWithCoupon = 2, /// 最下位(条件クーポンあり)を表示。
+enum MenuID : int {
+	Refresh,
+	CEdit,
+	Undo,
+	Redo,
+	Cut,
+	Copy,
+	Paste,
+	Del,
+	ToXML,
+	New,
+	Open,
+	Close,
+	CloseWin,
+	Save,
+	SaveAs,
+	DataWin,
+	FlagWin,
+	CardWin,
+	CastWin,
+	SkillWin,
+	ItemWin,
+	BeastWin,
+	InfoWin,
+	DirWin,
+	ChangeVH,
+	ExecEngine,
+	Settings,
+	Summary,
+	NewArea,
+	NewBattle,
+	NewPackage,
+	NewFlagDir,
+	NewFlag,
+	NewStep,
+	ViewParty,
+	ViewMsg,
+	Fixed,
+	EnemyCardDebugView,
+	ViewCards,
+	ViewBacks,
+	Up,
+	Down,
+	NewMenuCard,
+	NewEnemyCard,
+	NewBack,
+	Auto,
+	Custom,
+	Mask,
+	DoEscape,
+	PosTop,
+	PosBottom,
+	PosLeft,
+	PosRight,
+	PosEven,
+	ScaleMin,
+	ScaleMiddle,
+	ScaleMax,
+	ScaleEvenBig,
+	ScaleEvenSmall,
+	NewEventTree,
+	NewEventFire,
+	TreeOpen,
+	TreeClose,
+	ShowCardLife,
+	ShowCardList,
+	ShowCardTable,
+	AddScenario,
+	NewCast,
+	NewSkill,
+	NewItem,
+	NewBeast,
+	NewInfo,
+	Add,
+	EditHand,
+	OpenHand,
+	EditUseEvent,
+	OpenDirectory,
+	ReNumbering,
+	ReNumberingAll,
+	NewFolder,
+	ReplacePath,
+	DeleteUnuse,
+	ReplaceText,
+	Reload,
+	StartToPackage,
+	ConvertContent,
+	Version,
+	ToScript,
+	ToScriptAll,
+	CreateArchive,
+	OpenTableView,
+	OpenFlagView,
+	OpenCardView,
+	OpenFileView,
+	CopyFilePath,
+	OpenEventTreeView,
+	WriteComment,
+	EditScene,
+	EditEvent,
+	KeyCodeTimingUse,
+	KeyCodeTimingSuccess,
+	KeyCodeTimingFailure,
+	OpenView,
 }
 
 class Msgs {
+private:
+	version (Windows) {
+		static immutable DIR = "フォルダ";
+	} else {
+		static immutable DIR = "ディレクトリ";
+	}
 public:
 	@property const string application() {return "CWXEditor";}
 	@property const string dlgTitVersion() {return "バージョン情報";}
@@ -208,8 +307,8 @@ public:
 	@property const string menuCloseWin() {return "閉じる(&C)";}
 	@property const string ttSave() {return "上書き保存";}
 	@property const string menuSave() {return ttSave ~ "(&S)" ~ "\tCtrl+S";}
-	@property const string ttSaveA() {return "名前を付けて保存";}
-	@property const string menuSaveA() {return ttSaveA ~ "(&A)...";}
+	@property const string ttSaveAs() {return "名前を付けて保存";}
+	@property const string menuSaveAs() {return ttSaveAs ~ "(&A)...";}
 	@property const string ttReload() {return "再読込";}
 	@property const string menuReload() {return ttReload ~ "(&R)";}
 	@property const string ttOpenDirectory() {
@@ -304,6 +403,7 @@ public:
 	@property const string replForID() {return "ID検索";}
 	@property const string replForPath() {return "素材検索";}
 	@property const string replContents() {return "コンテント検索";}
+	@property const string replForCoupon() {return "称号・名称一覧";}
 	@property const string replForUnuse() {return "未使用検索";}
 	@property const string replForError() {return "誤り検索";}
 
@@ -321,20 +421,20 @@ public:
 
 	@property const string replText() {return "検索/置換するテキスト";}
 	@property const string replTextTarget() {return "検索/置換対象";}
-	@property const string replTextSummary() {return "貼り紙(&1)";}
-	@property const string replTextMessage() {return "メッセージ(&2)";}
-	@property const string replTextCardName() {return "カード名(&3)";}
-	@property const string replTextCardDesc() {return "カード解説(&4)";}
-	@property const string replTextEventText() {return "イベントテキスト(&5)";}
-	@property const string replTextStart() {return "スタートコンテント(&6)";}
-	@property const string replTextFlagAndStep() {return "フラグ/ステップ(&7)";}
-	@property const string replTextCoupon() {return "クーポン(&8)";}
-	@property const string replTextGossip() {return "ゴシップ(&9)";}
-	@property const string replTextEndScenario() {return "終了印(&A)";}
-	@property const string replTextAreaName() {return "エリア/バトル/パッケージ名(&B)";}
-	@property const string replTextKeyCode() {return "キーコード(&D)";}
-	@property const string replTextFile() {return "ファイル(&E)";}
-	@property const string replTextComment() {return "コメント(&G)";}
+	@property const string replTextSummary() {return "貼り紙";}
+	@property const string replTextMessage() {return "メッセージ";}
+	@property const string replTextCardName() {return "カード名";}
+	@property const string replTextCardDesc() {return "カード解説";}
+	@property const string replTextEventText() {return "イベントテキスト";}
+	@property const string replTextStart() {return "スタートコンテント";}
+	@property const string replTextFlagAndStep() {return "フラグ/ステップ";}
+	@property const string replTextCoupon() {return "クーポン";}
+	@property const string replTextGossip() {return "ゴシップ";}
+	@property const string replTextEndScenario() {return "終了印";}
+	@property const string replTextAreaName() {return "エリア/バトル/パッケージ名";}
+	@property const string replTextKeyCode() {return "キーコード";}
+	@property const string replTextFile() {return "ファイル";}
+	@property const string replTextComment() {return "コメント";}
 
 	@property const string replID() {return "検索/置換対象";}
 	@property const string replIDKind() {return "対象";}
@@ -351,18 +451,18 @@ public:
 	@property const string replPath() {return "検索/置換する素材";}
 
 	@property const string replUnuseTarget() {return "検索対象";}
-	@property const string replUnuseFlag() {return "フラグ(&1)";}
-	@property const string replUnuseStep() {return "ステップ(&2)";}
-	@property const string replUnuseArea() {return "エリア(&3)";}
-	@property const string replUnuseBattle() {return "バトル(&4)";}
-	@property const string replUnusePackage() {return "パッケージ(&5)";}
-	@property const string replUnuseCast() {return "キャストカード(&6)";}
-	@property const string replUnuseSkill() {return "スキルカード(&7)";}
-	@property const string replUnuseItem() {return "アイテムカード(&8)";}
-	@property const string replUnuseBeast() {return "召喚獣カード(&9)";}
-	@property const string replUnuseInfo() {return "情報カード(&A)";}
-	@property const string replUnuseStart() {return "スタートコンテント(&B)";}
-	@property const string replUnusePath() {return "素材(&C)";}
+	@property const string replUnuseFlag() {return "フラグ";}
+	@property const string replUnuseStep() {return "ステップ";}
+	@property const string replUnuseArea() {return "エリア";}
+	@property const string replUnuseBattle() {return "バトル";}
+	@property const string replUnusePackage() {return "パッケージ";}
+	@property const string replUnuseCast() {return "キャストカード";}
+	@property const string replUnuseSkill() {return "スキルカード";}
+	@property const string replUnuseItem() {return "アイテムカード";}
+	@property const string replUnuseBeast() {return "召喚獣カード";}
+	@property const string replUnuseInfo() {return "情報カード";}
+	@property const string replUnuseStart() {return "スタートコンテント";}
+	@property const string replUnusePath() {return "素材";}
 
 	@property const string replNotIgnoreCase() {return "大文字と小文字を区別する(&C)";}
 	@property const string replRegExp() {return "正規表現(&E) (. = 任意1文字, * = 直前の文字の任意数繰返し, $1 = 1つめの文字列グループ ...)";}
@@ -386,6 +486,9 @@ public:
 	const string replaceRedo(size_t count) {
 		return to!(string)(count) ~ "件をやり直しました";
 	}
+	@property const string ttSearchResultCopy() {return "テキストとしてコピー";}
+	@property const string menuSearchResultCopy() {return ttSearchResultCopy ~ "(&C)" ~ "\tCtrl+C";}
+
 	const string searchResultBgImage(in BgImage back) {
 		return "背景画像 [" ~ encodePath(back.path) ~ "]";
 	}
@@ -1006,7 +1109,7 @@ public:
 		} case CType.BRANCH_COMPLETE_STAMP: {
 			return evt.completeStamp is null || evt.completeStamp.length == 0 ? "指定無し" : "シナリオ「" ~ evt.completeStamp ~ "」が終了済みか否かで分岐";
 		} case CType.BRANCH_GOSSIP: {
-			return evt.gossip is null || evt.gossip.length == 0 ? "指定無し" : "宿屋クーポン「" ~ evt.gossip ~ "」の有無で分岐";
+			return evt.gossip is null || evt.gossip.length == 0 ? "指定無し" : "ゴシップ「" ~ evt.gossip ~ "」の有無で分岐";
 		} case CType.SET_FLAG: {
 			if (evt.flag is null || !evt.flag.length) return "フラグ指定無し";
 			auto f = summ.flagDirRoot.findFlag(evt.flag);
@@ -1074,7 +1177,7 @@ public:
 		} case CType.GET_COMPLETE_STAMP: {
 			return evt.completeStamp is null || evt.completeStamp.length == 0 ? "指定無し" : "シナリオ「" ~ evt.completeStamp ~ "」を終了済みにする";
 		} case CType.GET_GOSSIP: {
-			return evt.gossip is null || evt.gossip.length == 0 ? "指定無し" : "宿屋クーポン「" ~ evt.gossip ~ "」を獲得";
+			return evt.gossip is null || evt.gossip.length == 0 ? "指定無し" : "ゴシップ「" ~ evt.gossip ~ "」を獲得";
 		} case CType.LOSE_CAST: {
 			if (0 == evt.casts) return "キャストカード指定無し";
 			auto c = summ.cwCast(evt.casts);
@@ -1121,7 +1224,7 @@ public:
 		} case CType.LOSE_COMPLETE_STAMP: {
 			return evt.completeStamp is null || evt.completeStamp.length == 0 ? "指定無し" : "シナリオ「" ~ evt.completeStamp ~ "」の終了印を削除";
 		} case CType.LOSE_GOSSIP: {
-			return evt.gossip is null || evt.gossip.length == 0 ? "指定無し" : "宿屋クーポン「" ~ evt.gossip ~ "」を喪失";
+			return evt.gossip is null || evt.gossip.length == 0 ? "指定無し" : "ゴシップ「" ~ evt.gossip ~ "」を喪失";
 		} case CType.SHOW_PARTY: {
 			return "パーティ表示コンテント";
 		} case CType.HIDE_PARTY: {

@@ -7,6 +7,8 @@ import cwx.utils;
 import cwx.skin;
 import cwx.sjis;
 import cwx.cab;
+import cwx.structs;
+import cwx.msgs;
 
 import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.commons;
@@ -352,10 +354,11 @@ private:
 					}
 				}
 			}
-			if (_dirs.getSelection().length > 0) {
+			auto selDirs = _dirs.getSelection();
+			if (selDirs.length > 0) {
 				_files.deselectAll();
 				_files.removeAll(); // 不要分だけremoveしようとすると Widget is disposed
-				auto path = (cast(FileNameObj) _dirs.getSelection()[0].getData()).array;
+				auto path = (cast(FileNameObj) selDirs[0].getData()).array;
 				FileNameObj[] list;
 				foreach (f; clistdir(path)) {
 					list ~= new FileNameObj(path, f);
@@ -600,7 +603,9 @@ private:
 			if (index >= 0) {
 				auto path = (cast(FileNameObj) _files.getItem(index).getData()).array;
 				if (.isDir(path)) {
-					foreach (itm; _dirs.getSelection()[0].getItems()) {
+					auto sels = _dirs.getSelection();
+					if (!sels.length) return;
+					foreach (itm; sels[0].getItems()) {
 						if (cfnmatch((cast(FileNameObj) itm.getData()).array, path)) {
 							_dirs.setSelection(itm);
 							refreshFiles([]);
@@ -812,8 +817,9 @@ private:
 	@property
 	string selDirPath() {
 		if (_win && !_win.isDisposed()) {
-			if (_dirs.getSelection().length > 0) {
-				return (cast(FileNameObj) _dirs.getSelection()[0].getData()).array;
+			auto sels = _dirs.getSelection();
+			if (sels.length) {
+				return (cast(FileNameObj) sels[0].getData()).array;
 			}
 		}
 		return null;
@@ -1090,7 +1096,18 @@ private:
 			(cast(Shell) e.widget).setVisible(false);
 			e.doit = false;
 			_prop.var.dirWin.visible = false;
-			_prop.var.etc.filesSortDirection = _files.getSortDirection();
+			switch (_files.getSortDirection()) {
+			case SWT.UP:
+				_prop.var.etc.filesSortDirection = SortDir.Up;
+				break;
+			case SWT.DOWN:
+				_prop.var.etc.filesSortDirection = SortDir.Down;
+				break;
+			default:
+				// 必ずソートする
+				_prop.var.etc.filesSortDirection = SortDir.Up;
+				break;
+			}
 			if (_files.getSortColumn() is _sortName.column) {
 				_prop.var.etc.filesSortColumn = 0;
 			} else if (_files.getSortColumn() is _sortExt.column) {
@@ -1574,7 +1591,18 @@ public:
 				break;
 			default:
 			}
-			st.doSort(_prop.var.etc.filesSortDirection);
+			switch (_prop.var.etc.filesSortDirection) {
+			case SortDir.Up:
+				st.doSort(SWT.UP);
+				break;
+			case SortDir.Down:
+				st.doSort(SWT.DOWN);
+				break;
+			default:
+				// 必ずソートする
+				st.doSort(SWT.UP);
+				break;
+			}
 
 			_comm.refOuterTools.add(&createFilesMenu);
 			_files.addDisposeListener(new FDListener);
@@ -1928,13 +1956,16 @@ public:
 	override void cut(SelectionEvent se) {
 		if (!canDoTCPD) return;
 		if (_dirs.isFocusControl()) {
-			if (_dirs.getSelection().length == 0) return;
-			if (!_dirs.getSelection()[0].getParentItem()) return;
+			auto sels = _dirs.getSelection();
+			if (!sels.length) return;
+			if (!sels[0].getParentItem()) return;
 		}
 		if (__copy()) {
 			if (_dirs.isFocusControl()) {
+				auto sels = _dirs.getSelection();
+				if (!sels.length) return;
 				auto dir = selDirPath;
-				_dirs.getSelection()[0].setImage(sfimage(dir));
+				sels[0].setImage(sfimage(dir));
 				static if (0 == filenameCharCmp('A', 'a')) {
 					_cuts.add(cwx.utils.toLower(nabs(dir)));
 				} else {
@@ -2000,8 +2031,9 @@ public:
 	override void del(SelectionEvent se) {
 		if (!canDoTCPD) return;
 		if (_dirs.isFocusControl()) {
-			if (_dirs.getSelection().length == 0) return;
-			if (!_dirs.getSelection()[0].getParentItem()) return;
+			auto sels = _dirs.getSelection();
+			if (!sels.length) return;
+			if (!sels[0].getParentItem()) return;
 		}
 		auto dlg = new MessageBox(_win.getShell(), SWT.ICON_QUESTION | SWT.OK | SWT.CANCEL);
 		dlg.setText(_prop.msgs.dlgTitQuestion);

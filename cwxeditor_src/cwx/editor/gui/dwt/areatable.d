@@ -11,6 +11,7 @@ import cwx.usecounter;
 import cwx.xml;
 import cwx.skin;
 import cwx.path;
+import cwx.structs;
 
 import cwx.editor.gui.dwt.commondialog;
 import cwx.editor.gui.dwt.dprops;
@@ -489,9 +490,9 @@ private:
 		return summ.areas[toAreaIndex(summ, index)];
 	}
 	AbstractArea getSelectionArea() {
-		auto itm = _areas.getSelection();
-		if (itm.length > 0) {
-			return cast(AbstractArea) itm[0].getData();
+		auto i = _areas.getSelectionIndex();
+		if (-1 != i) {
+			return cast(AbstractArea) _areas.getItem(i).getData();
 		}
 		return null;
 	}
@@ -546,12 +547,15 @@ private:
 	class DragArea : DragSourceAdapter {
 		AbstractArea _data;
 		override void dragStart(DragSourceEvent e) {
-			e.doit = (cast(DragSource) e.getSource()).getControl().isFocusControl();
+			auto tbl = cast(Table) (cast(DragSource) e.getSource()).getControl();
+			e.doit = tbl.isFocusControl() && tbl.getSelectionIndex() != -1;
 		}
 		override void dragSetData(DragSourceEvent e){
 			if (XMLBytesTransfer.getInstance().isSupportedType(e.dataType)) {
 				auto tbl = cast(Table) (cast(DragSource) e.getSource()).getControl();
-				_data = cast(AbstractArea) tbl.getSelection()[0].getData();
+				int i = tbl.getSelectionIndex();
+				assert (-1 != i);
+				_data = cast(AbstractArea) tbl.getItem(i).getData();
 				e.data = bytesFromXML(_data.toXML(_summ.id));
 			}
 		}
@@ -631,9 +635,10 @@ private:
 						return;
 					}
 					index = revId(index);
-					auto area = cast(AbstractArea) tbl.getSelection()[0].getData();
 					int fromIndex = tbl.getSelectionIndex();
-					tbl.getSelection()[0].dispose();
+					if (-1 == fromIndex) return;
+					auto area = cast(AbstractArea) tbl.getItem(fromIndex).getData();
+					tbl.getItem(fromIndex).dispose();
 					int toIndex;
 					if (tid == typeid(Area)) {
 						_summ.insert(index, cast(Area) area);
@@ -1011,7 +1016,7 @@ public:
 	void createArea() {
 		storeInsert(_summ.areas.length);
 		auto area = new Area(_summ.newAreaId, _prop.msgs.areaNew);
-		auto bgImages = BgImageS.createBgImages(_comm.skin, _prop.var.etc.bgImagesDefault);
+		auto bgImages = createBgImages(_comm.skin, _prop.var.etc.bgImagesDefault);
 		foreach (b; bgImages) {
 			area.append(b);
 		}

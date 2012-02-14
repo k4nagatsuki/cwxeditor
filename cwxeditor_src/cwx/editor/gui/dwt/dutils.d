@@ -17,6 +17,7 @@ import cwx.structs;
 import cwx.event;
 import cwx.graphics;
 import cwx.path;
+import cwx.msgs;
 
 import cwx.editor.gui.sound;
 import cwx.editor.gui.dwt.images;
@@ -517,7 +518,7 @@ private:
 	Item selectionM(int x, int y) {
 		try {
 			if (table.getSelectionCount() == 1) {
-				auto itm = table.getSelection()[0];
+				auto itm = table.getItem(table.getSelectionIndex());
 				if (itm.getBounds(editC).contains(x, y)) {
 					if (!itm.getImage() || !itm.getImageBounds(editC).contains(x, y)) {
 						return itm;
@@ -532,7 +533,7 @@ private:
 	Item selectionK() {
 		try {
 			if (table.getSelectionCount() == 1) {
-				return table.getSelection()[0];
+				return table.getItem(table.getSelectionIndex());
 			}
 			return null;
 		} catch (Exception e) {

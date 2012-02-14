@@ -561,7 +561,7 @@ private:
 			_oldIndex = -1;
 		} else if (force || _oldIndex != _motions.getSelectionIndex()) {
 			_oldIndex = _motions.getSelectionIndex();
-			auto m = cast(Motion) sels[0].getData();
+			auto m = cast(Motion) _motions.getItem(_oldIndex).getData();
 			foreach (i, itm; _motionElm.getItems()) {
 				if ((cast(Element) (cast(Integer) itm.getData()).intValue()) == m.element) {
 					_motionElm.select = i;
@@ -734,14 +734,15 @@ private:
 		override void widgetSelected(SelectionEvent e) {
 			auto m = selection;
 			if (m) {
-				storeEdit(_motions.getSelectionIndex());
+				int i = _motions.getSelectionIndex();
+				storeEdit(i);
 				bool oldVan = hasVan;
 				scope (exit) {
 					if (oldVan != hasVan) {
 						foreach (we; warningEvent) we();
 					}
 				}
-				m.element = cast(Element) (cast(Integer) _motionElm.getSelection()[0].getData()).intValue();
+				m.element = cast(Element) (cast(Integer) _motionElm.getItem(i).getData()).intValue();
 				foreach (dlg; modEvent) dlg();
 			}
 		}
