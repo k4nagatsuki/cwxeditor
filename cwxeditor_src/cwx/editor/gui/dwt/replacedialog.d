@@ -16,6 +16,7 @@ import cwx.background;
 import cwx.skin;
 import cwx.msgutils;
 import cwx.flag;
+import cwx.menu;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dutils;
@@ -25,6 +26,7 @@ import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.undo;
+import cwx.editor.gui.dwt.dmenu;
 
 import std.conv;
 import std.array;
@@ -74,6 +76,15 @@ import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.dnd.TextTransfer;
 import java.lang.all;
+
+private class CWXPathString {
+	CWXPath path;
+	string array;
+	this (CWXPath path, string array) {
+		this.path = path;
+		this.array = array;
+	}
+}
 
 /// 検索と置換を行うダイアログ。
 class ReplaceDialog {
@@ -257,10 +268,10 @@ private:
 			combo.add(to!(string)(a.id) ~ "." ~ a.name);
 			tbl2[i + 1] = a.id;
 		}
-		combo.select = arr.length ? 1 : 0;
+		combo.select(arr.length ? 1 : 0);
 		if (oldSel) {
 			auto i = combo.indexOf(oldSel);
-			if (i >= 0) combo.select = i;
+			if (i >= 0) combo.select(i);
 		}
 		spn.setEnabled(combo.getSelectionIndex() == 0);
 		tbl = tbl2;
@@ -555,9 +566,9 @@ private:
 				_idKind.add(_prop.msgs.replIDItem);
 				_idKind.add(_prop.msgs.replIDBeast);
 				_idKind.add(_prop.msgs.replIDInfo);
-				_idKind.select = 0;
+				_idKind.select(0);
 				if (0 <= _prop.var.etc.searchIDKind && _prop.var.etc.searchIDKind < _idKind.getItemCount()) {
-					_idKind.select = _prop.var.etc.searchIDKind;
+					_idKind.select(_prop.var.etc.searchIDKind);
 				}
 				auto gd = new GridData;
 				gd.horizontalSpan = 2;
@@ -657,7 +668,7 @@ private:
 					auto text = _prop.msgs.content(cType);
 					auto img = _prop.images.content(cType);
 					void delegate() func = null;
-					auto ti = createToolItem(bar, text, img, func, SWT.CHECK);;
+					auto ti = createToolItem2(bar, text, img, func, SWT.CHECK);;
 					_contents[cType] = ti;
 					checked.buttons ~= ti;
 					ti.addSelectionListener(checked);
@@ -999,7 +1010,7 @@ public:
 			_win.setImeInputMode(shell.getImeInputMode());
 		}
 		_win.setText(_prop.msgs.dlgTitReplaceText);
-		_win.setImage(prop.images.menuReplaceText);
+		_win.setImage(prop.images.menu(MenuID.Find));
 		setup();
 		_win.open();
 		_win.setActive();
@@ -1116,18 +1127,18 @@ public:
 			gd.widthHint = _prop.var.etc.searchResultTableWidth;
 			gd.heightHint = _prop.var.etc.searchResultTableHeight;
 			_result.setLayoutData(gd);
-			_result.addMouseListener = new ML;
-			_result.addKeyListener = new KL;
+			_result.addMouseListener(new ML);
+			_result.addKeyListener(new KL);
 			new FullTableColumn(_result, SWT.NONE);
 			auto menu = new Menu(_win, SWT.POP_UP);
-			createMenuItem(menu, _prop.msgs.menuUndo, _prop.images.menuUndo, &undo);
-			createMenuItem(menu, _prop.msgs.menuRedo, _prop.images.menuRedo, &redo);
+			createMenuItem(_comm, menu, MenuID.Undo, &undo);
+			createMenuItem(_comm, menu, MenuID.Redo, &redo);
 			new MenuItem(menu, SWT.SEPARATOR);
-			createMenuItem(menu, _prop.msgs.menuSearchResultCopy, _prop.images.menuCopy, &copyResult);
+			createMenuItem(_comm, menu, MenuID.CopyAsText, &copyResult);
 			new MenuItem(menu, SWT.SEPARATOR);
-			createMenuItem(menu, _prop.msgs.menuSelectAll, _prop.images.menuSelectAll, &_result.selectAll);
+			createMenuItem(_comm, menu, MenuID.SelectAll, &_result.selectAll);
 			new MenuItem(menu, SWT.SEPARATOR);
-			createMenuItem(menu, _prop.msgs.menuOpenView, _prop.images.menuOpenView, &openPath);
+			createMenuItem(_comm, menu, MenuID.OpenAtView, &openPath);
 			_result.setMenu(menu);
 		}
 		{
@@ -1159,7 +1170,7 @@ public:
 			_range.addKeyListener(openPath);
 			_range.addMouseListener(openPath);
 			auto menu = new Menu(_win, SWT.POP_UP);
-			createMenuItem(menu, _prop.msgs.menuOpenView, _prop.images.menuOpenView, &openRangePath);
+			createMenuItem(_comm, menu, MenuID.OpenAtView, &openRangePath);
 			_range.setMenu(menu);
 		}
 		{
@@ -2241,7 +2252,7 @@ public:
 				}
 				set(list);
 				setComboItems(combo, list);
-				combo.select = 0;
+				combo.select(0);
 			}
 		}
 		addHist(_from, &_prop.var.etc.searchHistories,

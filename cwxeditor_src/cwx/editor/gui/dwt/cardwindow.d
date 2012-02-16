@@ -11,6 +11,7 @@ import cwx.skin;
 import cwx.path;
 import cwx.motion;
 import cwx.msgs;
+import cwx.menu;
 
 import cwx.editor.gui.dwt.commondialog;
 import cwx.editor.gui.dwt.images;
@@ -29,6 +30,7 @@ import cwx.editor.gui.dwt.sbshell;
 import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.cardpane;
 import cwx.editor.gui.dwt.loader;
+import cwx.editor.gui.dwt.dmenu;
 
 import std.algorithm;
 import std.array;
@@ -399,44 +401,44 @@ public:
 			{
 				auto bar = new Menu(shell, SWT.BAR);
 
-				auto mf = createMenu(bar, prop.msgs.menuFile);
-				createMenuItem(mf, prop.msgs.menuCloseWin, prop.images.menuCloseWin, &shell.close);
+				auto mf = createMenu(_comm, bar, MenuID.File);
+				createMenuItem(_comm, mf, MenuID.CloseWin, &shell.close);
 
-				auto me = createMenu(bar, prop.msgs.menuEdit);
+				auto me = createMenu(_comm, bar, MenuID.Edit);
 				static if (EditMode) {
-					createMenuItem(me, prop.msgs.menuUndo, prop.images.menuUndo, &undo);
-					createMenuItem(me, prop.msgs.menuRedo, prop.images.menuRedo, &redo);
+					createMenuItem(_comm, me, MenuID.Undo, &undo);
+					createMenuItem(_comm, me, MenuID.Redo, &redo);
 					new MenuItem(me, SWT.SEPARATOR);
-					appendMenuTCPD(prop, me, this, true, true, true, true);
+					appendMenuTCPD(_comm, me, this, true, true, true, true);
 					new MenuItem(me, SWT.SEPARATOR);
-					createMenuItem(me, prop.msgs.menuUp, prop.images.menuUp, &up);
-					createMenuItem(me, prop.msgs.menuDown, prop.images.menuDown, &down);
+					createMenuItem(_comm, me, MenuID.Up, &up);
+					createMenuItem(_comm, me, MenuID.Down, &down);
 				} else {
-					createMenuItem(me, prop.msgs.menuAdd, prop.images.menuAdd, &addCard);
+					createMenuItem(_comm, me, MenuID.Import, &addCard);
 					new MenuItem(me, SWT.SEPARATOR);
-					appendMenuTCPD(prop, me, this, false, true, false, false);
+					appendMenuTCPD(_comm, me, this, false, true, false, false);
 				}
 
-				auto mv = createMenu(bar, prop.msgs.menuView);
+				auto mv = createMenu(_comm, bar, MenuID.View);
 				static if (EditMode) {
-					createMenuItem(mv, prop.msgs.menuRefresh, prop.images.menuRefresh, &__refresh);
+					createMenuItem(_comm, mv, MenuID.Refresh, &__refresh);
 					new MenuItem(mv, SWT.SEPARATOR);
 				}
-				_lifeM = createMenuItem(mv, prop.msgs.menuShowCardLife, prop.images.menuShowCardLife, &showCardLife, SWT.RADIO);
-				_listM = createMenuItem(mv, prop.msgs.menuShowCardList, prop.images.menuShowCardList, &showCardList, SWT.RADIO);
-				_tblM = createMenuItem(mv, prop.msgs.menuShowCardTable, prop.images.menuShowCardTable, &showCardTable, SWT.RADIO);
+				_lifeM = createMenuItem(_comm, mv, MenuID.ShowCardProp, &showCardLife, SWT.RADIO);
+				_listM = createMenuItem(_comm, mv, MenuID.ShowCardImage, &showCardList, SWT.RADIO);
+				_tblM = createMenuItem(_comm, mv, MenuID.ShowCardDetail, &showCardTable, SWT.RADIO);
 
 				static if (EditMode) {
-					auto mt = createMenu(bar, prop.msgs.menuNewCards);
+					auto mt = createMenu(_comm, bar, MenuID.Card);
 					static if (is (CardOwner == Summary)) {
-						createMenuItem(mt, prop.msgs.menuAddScenario, prop.images.menuAddScenario, &addScenario);
+						createMenuItem(_comm, mt, MenuID.OpenImportSource, &addScenario);
 						new MenuItem(mt, SWT.SEPARATOR);
 					}
-					static if (UseCast) createMenuItem(mt, prop.msgs.menuNewCast, prop.images.menuNewCast, &create!(CAST));
-					static if (UseSkill) createMenuItem(mt, prop.msgs.menuNewSkill, prop.images.menuNewSkill, &create!(SKILL));
-					static if (UseItem) createMenuItem(mt, prop.msgs.menuNewItem, prop.images.menuNewItem, &create!(ITEM));
-					static if (UseBeast) createMenuItem(mt, prop.msgs.menuNewBeast, prop.images.menuNewBeast, &create!(BEAST));
-					static if (UseInfo) createMenuItem(mt, prop.msgs.menuNewInfo, prop.images.menuNewInfo, &create!(INFO));
+					static if (UseCast) createMenuItem(_comm, mt, MenuID.NewCast, &create!(CAST));
+					static if (UseSkill) createMenuItem(_comm, mt, MenuID.NewSkill, &create!(SKILL));
+					static if (UseItem) createMenuItem(_comm, mt, MenuID.NewItem, &create!(ITEM));
+					static if (UseBeast) createMenuItem(_comm, mt, MenuID.NewBeast, &create!(BEAST));
+					static if (UseInfo) createMenuItem(_comm, mt, MenuID.NewInfo, &create!(INFO));
 				}
 				shell.setMenuBar(bar);
 			}
@@ -444,35 +446,35 @@ public:
 				auto bar = new ToolBar(_comp, SWT.FLAT);
 				static if (EditMode) {
 					static if (is (CardOwner == Summary)) {
-						createToolItem(bar, prop.msgs.ttAddScenario, prop.images.menuAddScenario, &addScenario);
+						createToolItem(_comm, bar, MenuID.OpenImportSource, &addScenario);
 						new ToolItem(bar, SWT.SEPARATOR);
 					}
 				}
 				static if (EditMode) {
-					createToolItem(bar, prop.msgs.ttRefresh, prop.images.menuRefresh, &__refresh);
+					createToolItem(_comm, bar, MenuID.Refresh, &__refresh);
 					new ToolItem(bar, SWT.SEPARATOR);
-					createToolItem(bar, prop.msgs.ttUp, prop.images.menuUp, &up);
-					createToolItem(bar, prop.msgs.ttDown, prop.images.menuDown, &down);
+					createToolItem(_comm, bar, MenuID.Up, &up);
+					createToolItem(_comm, bar, MenuID.Down, &down);
 					new ToolItem(bar, SWT.SEPARATOR);
-					static if (UseCast) createToolItem(bar, prop.msgs.ttNewCast, prop.images.menuNewCast, &create!(CAST));
-					static if (UseSkill) createToolItem(bar, prop.msgs.ttNewSkill, prop.images.menuNewSkill, &create!(SKILL));
-					static if (UseItem) createToolItem(bar, prop.msgs.ttNewItem, prop.images.menuNewItem, &create!(ITEM));
-					static if (UseBeast) createToolItem(bar, prop.msgs.ttNewBeast, prop.images.menuNewBeast, &create!(BEAST));
-					static if (UseInfo) createToolItem(bar, prop.msgs.ttNewInfo, prop.images.menuNewInfo, &create!(INFO));
+					static if (UseCast) createToolItem(_comm, bar, MenuID.NewCast, &create!(CAST));
+					static if (UseSkill) createToolItem(_comm, bar, MenuID.NewSkill, &create!(SKILL));
+					static if (UseItem) createToolItem(_comm, bar, MenuID.NewItem, &create!(ITEM));
+					static if (UseBeast) createToolItem(_comm, bar, MenuID.NewBeast, &create!(BEAST));
+					static if (UseInfo) createToolItem(_comm, bar, MenuID.NewInfo, &create!(INFO));
 				} else {
-					createToolItem(bar, prop.msgs.ttAdd, prop.images.menuAdd, &addCard);
+					createToolItem(_comm, bar, MenuID.Import, &addCard);
 				}
 				new ToolItem(bar, SWT.SEPARATOR);
-				_lifeT = createToolItem(bar, prop.msgs.ttShowCardLife, prop.images.menuShowCardLife, &showCardLife, SWT.RADIO);
-				_listT = createToolItem(bar, prop.msgs.ttShowCardList, prop.images.menuShowCardList, &showCardList, SWT.RADIO);
-				_tblT = createToolItem(bar, prop.msgs.ttShowCardTable, prop.images.menuShowCardTable, &showCardTable, SWT.RADIO);
+				_lifeT = createToolItem(_comm, bar, MenuID.ShowCardProp, &showCardLife, SWT.RADIO);
+				_listT = createToolItem(_comm, bar, MenuID.ShowCardImage, &showCardList, SWT.RADIO);
+				_tblT = createToolItem(_comm, bar, MenuID.ShowCardDetail, &showCardTable, SWT.RADIO);
 			}
 		} else {
 			static if (EditMode) {
-				appendMenuTCPD(prop, this, this, true, true, true, true);
+				appendMenuTCPD(_comm, this, this, true, true, true, true);
 				putMenuAction(MenuID.Refresh, &__refresh);
 				static if (is (CardOwner == Summary)) {
-					putMenuAction(MenuID.AddScenario, &addScenario);
+					putMenuAction(MenuID.OpenImportSource, &addScenario);
 				}
 				putMenuAction(MenuID.Undo, &undo);
 				putMenuAction(MenuID.Redo, &redo);
@@ -484,11 +486,11 @@ public:
 				putMenuAction(MenuID.Up, &up);
 				putMenuAction(MenuID.Down, &down);
 			} else {
-				appendMenuTCPD(prop, this, this, false, true, false, false);
+				appendMenuTCPD(_comm, this, this, false, true, false, false);
 			}
-			putMenuChecked(MenuID.ShowCardLife, &showCardLife, &isViewLife);
-			putMenuChecked(MenuID.ShowCardList, &showCardList, &isViewList);
-			putMenuChecked(MenuID.ShowCardTable, &showCardTable, &isViewTable);
+			putMenuChecked(MenuID.ShowCardProp, &showCardLife, &isViewLife);
+			putMenuChecked(MenuID.ShowCardImage, &showCardList, &isViewList);
+			putMenuChecked(MenuID.ShowCardDetail, &showCardTable, &isViewTable);
 		}
 		static if (1 < Cards.length) {
 			_tabf = new CTabFolder(_comp, SWT.BORDER);
@@ -1222,27 +1224,27 @@ public:
 }
 
 alias CardWindow!("handCards(owner.id, owner.name)", "handCardsTab(owner.id, owner.name)",
-	"menuAddScenario", Importable, CastCard, Summary, SkillCard, ItemCard, BeastCard) AddHandCardWindow;
+	"menu(MenuID.OpenImportSource)", Importable, CastCard, Summary, SkillCard, ItemCard, BeastCard) AddHandCardWindow;
 
 // FIXME: 以下の二つをaliasにすると前方参照のエラーが発生する
 class HandCardWindow : CardWindow!("handCards(owner.id, owner.name)",
-		"handCardsTab(owner.id, owner.name)", "menuOpenHand",
+		"handCardsTab(owner.id, owner.name)", "menu(MenuID.OpenHand)",
 		Summary, CastCard, void, SkillCard, ItemCard, BeastCard) {
 	this (Commons comm, Props prop, Summary summ, Composite parent) {
 		super (comm, prop, summ, parent);
 	}
 }
 class MainCardWindow : CardWindow!("cardWindowName(owner)", "cardTabName(owner)",
-		"menuCardWin", Summary, Summary, void, CastCard, SkillCard, ItemCard, BeastCard, InfoCard) {
+		"menu(MenuID.CardView)", Summary, Summary, void, CastCard, SkillCard, ItemCard, BeastCard, InfoCard) {
 	this (Commons comm, Props prop, Composite parent) {
 		super (comm, prop, parent);
 	}
 }
-alias CardWindow!("castWindowName(owner)", "castTabName(owner)", "menuCastWin", Summary, Summary, void, CastCard) CastCardWindow;
-alias CardWindow!("skillWindowName(owner)", "skillTabName(owner)", "menuSkillWin", Summary, Summary, void, SkillCard) SkillCardWindow;
-alias CardWindow!("itemWindowName(owner)", "itemTabName(owner)", "menuItemWin", Summary, Summary, void, ItemCard) ItemCardWindow;
-alias CardWindow!("beastWindowName(owner)", "beastTabName(owner)", "menuBeastWin", Summary, Summary, void, BeastCard) BeastCardWindow;
-alias CardWindow!("infoWindowName(owner)", "infoTabName(owner)", "menuInfoWin", Summary, Summary, void, InfoCard) InfoCardWindow;
+alias CardWindow!("castWindowName(owner)", "castTabName(owner)", "menu(MenuID.CastView)", Summary, Summary, void, CastCard) CastCardWindow;
+alias CardWindow!("skillWindowName(owner)", "skillTabName(owner)", "menu(MenuID.SkillView)", Summary, Summary, void, SkillCard) SkillCardWindow;
+alias CardWindow!("itemWindowName(owner)", "itemTabName(owner)", "menu(MenuID.ItemView)", Summary, Summary, void, ItemCard) ItemCardWindow;
+alias CardWindow!("beastWindowName(owner)", "beastTabName(owner)", "menu(MenuID.BeastView)", Summary, Summary, void, BeastCard) BeastCardWindow;
+alias CardWindow!("infoWindowName(owner)", "infoTabName(owner)", "menu(MenuID.InfoView)", Summary, Summary, void, InfoCard) InfoCardWindow;
 
 private class DelTemp(CC) : DisposeListener {
 	private CC _cc;
@@ -1261,7 +1263,7 @@ private class AddCard {
 private:
 	alias CardContainer!(true, true, true, true, true) CC;
 	alias CardWindow!("addCardWindow(owner.scenarioName, owner.scenarioPath)",
-		"addCardTab(owner.scenarioName, owner.scenarioPath)", "menuAddScenario",
+		"addCardTab(owner.scenarioName, owner.scenarioPath)", "menu(MenuID.OpenImportSource)",
 		CC, CC, Summary, CastCard, SkillCard, ItemCard, BeastCard, InfoCard) ACW;
 	static class AddS {
 		Commons comm;

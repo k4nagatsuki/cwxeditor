@@ -14,6 +14,7 @@ import cwx.background;
 import cwx.path;
 import cwx.script;
 import cwx.structs;
+import cwx.menu;
 
 import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.dprops;
@@ -29,6 +30,7 @@ import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.scripterrordialog;
 import cwx.editor.gui.dwt.textdialog;
+import cwx.editor.gui.dwt.dmenu;
 
 import std.algorithm;
 import std.conv;
@@ -208,7 +210,7 @@ private:
 		}
 		void uda(EventTreeView v) {
 			if (!v) return;
-			if (_selPath) v._tree.select = v.fromPath(_selPath);
+			if (_selPath) v._tree.select(v.fromPath(_selPath));
 			_selPath = _selPath2;
 			v.refreshStatusLine();
 		}
@@ -454,7 +456,7 @@ private:
 			assert (par.detail.owner);
 			childItm.setText(eventText(par, cast(Content) childItm.getData()));
 		}
-		_tree.select = itm;
+		_tree.select(itm);
 		.forceFocus(_tree, false);
 		_comm.refContent.call(c);
 		_comm.refUseCount.call();
@@ -488,7 +490,7 @@ private:
 					storeInsert(index);
 					_et.insert(index, cast(Content) evt);
 					auto sItm = createTreeItem(_tree, evt, evt.name, _prop.images.content(CType.START), index);
-					_tree.select = sItm;
+					_tree.select(sItm);
 					_tree.showSelection();
 					.forceFocus(_tree, false);
 					_comm.refContent.call(evt);
@@ -548,7 +550,7 @@ private:
 		if (_autoHideTools) {
 			_autoHideTools.setCursor(null);
 		}
-		_radioGroup.select = _arrowTI;
+		_radioGroup.select(_arrowTI);
 	}
 
 	bool hasDialog(CType type) {
@@ -1215,6 +1217,7 @@ private:
 				_v._evtTI = _itm;
 			}
 		}
+		@property
 		void ti(ToolItem ti) {
 			_itm = ti;
 		}
@@ -1251,11 +1254,11 @@ private:
 		auto cursor = new Cursor(Display.getCurrent(), imgData, imgData.width / 2, imgData.height / 2);
 		_cursors ~= cursor;
 		auto ce = new CreateEvent(this, type, cursor);
-		auto itm = createToolItem(bar, text, img, &ce.create, SWT.RADIO);
+		auto itm = createToolItem2(bar, text, img, &ce.create, SWT.RADIO);
 		ce.ti = itm;
 		g.append(itm);
 		if (type != CType.START) {
-			ce.convMenuItem = createMenuItem(convMenu, text, img, &ce.convert);
+			ce.convMenuItem = createMenuItem2(convMenu, text, img, &ce.convert);
 			ce.convMenuItem.setEnabled(false);
 			_conts ~= ce;
 		}
@@ -1495,7 +1498,7 @@ private:
 				// 改行文字があると横幅がおかしくなるため
 				// 測り直す
 				te.x = 0;
-				auto lines = splitLines(cm);
+				auto lines = splitLines!string(cm);
 				foreach (line; lines) {
 					te.x = max(e.gc.textExtent(line).x, te.x);
 				}
@@ -1606,25 +1609,25 @@ public:
 				Menu popup = null;
 				try {
 					popup = new Menu(parent.getShell(), SWT.POP_UP);
-					createMenuItem(popup, _prop.msgs.menuCEdit, _prop.images.menuCEdit, &editM);
+					createMenuItem(_comm, popup, MenuID.EditProp, &editM);
 					new MenuItem(popup, SWT.SEPARATOR);
-					createMenuItem(popup, _prop.msgs.menuWriteComment, _prop.images.menuWriteComment, &writeComment);
+					createMenuItem(_comm, popup, MenuID.Comment, &writeComment);
 					new MenuItem(popup, SWT.SEPARATOR);
-					createMenuItem(popup, _prop.msgs.menuUndo, _prop.images.menuUndo, &this.undo);
-					createMenuItem(popup, _prop.msgs.menuRedo, _prop.images.menuRedo, &this.redo);
+					createMenuItem(_comm, popup, MenuID.Undo, &this.undo);
+					createMenuItem(_comm, popup, MenuID.Redo, &this.redo);
 					new MenuItem(popup, SWT.SEPARATOR);
-					appendMenuTCPD(_prop, popup, this, true, true, true, true);
+					appendMenuTCPD(_comm, popup, this, true, true, true, true);
 					new MenuItem(popup, SWT.SEPARATOR);
-					createMenuItem(popup, _prop.msgs.menuToScript, _prop.images.menuToScript, &toScript);
-					createMenuItem(popup, _prop.msgs.menuToScriptAll, _prop.images.menuToScriptAll, &toScriptAll);
+					createMenuItem(_comm, popup, MenuID.ToScript, &toScript);
+					createMenuItem(_comm, popup, MenuID.ToScriptAll, &toScriptAll);
 					new MenuItem(popup, SWT.SEPARATOR);
-					createMenuItem(popup, _prop.msgs.menuStartToPackage, _prop.images.menuStartToPackage, &startToPackage);
+					createMenuItem(_comm, popup, MenuID.StartToPackage, &startToPackage);
 					void delegate() dlg = null;
-					auto convMI = createMenuItem(popup, _prop.msgs.menuConvertContent, _prop.images.menuConvertContent, dlg, SWT.CASCADE);
+					auto convMI = createMenuItem(_comm, popup, MenuID.ConvertContent, dlg, SWT.CASCADE);
 					_convM = new Menu(_tree.getShell(), SWT.DROP_DOWN);
 					debug {
 						new MenuItem(popup, SWT.SEPARATOR);
-						createMenuItem(popup, "debug: Create CWX &Path", null, &createCWXPath);
+						createMenuItem2(popup, "debug: Create CWX &Path", null, &createCWXPath);
 					}
 					convMI.setMenu(_convM);
 
@@ -1696,7 +1699,7 @@ public:
 	void constructTools() {
 		if (_tree.isDisposed() || _constructTools) return;
 		_constructTools = true;
-		auto cbar = createCoolBar!("contents")(_prop, _cbarPar, (CoolBar cbar) {
+		auto cbar = createCoolBar!("contents")(_comm, _cbarPar, (CoolBar cbar) {
 			void createCoolItem(CoolBar cbar, ToolBar tbar, int index = -1) {
 				.createCoolItem(cbar, tbar, index);
 			}
@@ -1706,8 +1709,8 @@ public:
 			auto g = new RadioGroup!(ToolItem);
 			_radioGroup = g;
 			void delegate() dlg = null;
-			Menu convMenu(string text, Image img) {
-				auto mi = createMenuItem(_convM, text, img, dlg, SWT.CASCADE);
+			Menu convMenu(CTypeGroup g) {
+				auto mi = createMenuItem(_comm, _convM, cTypeGroupToMenuID(g), dlg, SWT.CASCADE);
 				auto m = new Menu(_tree.getShell(), SWT.DROP_DOWN);
 				mi.setMenu(m);
 				return m;
@@ -1715,16 +1718,16 @@ public:
 
 			auto atm = new ToolBar(cbar, SWT.FLAT);
 			atm.addMouseListener(new TMListener);
-			_arrowTI = createToolItem(atm, _prop.msgs.evtArrow, _prop.images.evtArrow, &arrow, SWT.RADIO);
+			_arrowTI = createToolItem2(atm, _prop.msgs.evtArrow, _prop.images.evtArrow, &arrow, SWT.RADIO);
 			_arrowTI.setSelection(true);
 			g.append(_arrowTI);
 			createCoolItem(cbar, atm);
 
 			auto mode = new ToolBar(cbar, SWT.FLAT);
 			mode.addMouseListener(new TMListener);
-			_contiTI = createToolItem(mode, _prop.msgs.evtAddContinue, _prop.images.evtAddContinue, &addContinue, SWT.CHECK);
+			_contiTI = createToolItem2(mode, _prop.msgs.evtAddContinue, _prop.images.evtAddContinue, &addContinue, SWT.CHECK);
 			_contiTI.setSelection(_conti);
-			_autoOpenTI = createToolItem(mode, _prop.msgs.evtAutoOpen, _prop.images.evtAutoOpen, &autoOpen, SWT.CHECK);
+			_autoOpenTI = createToolItem2(mode, _prop.msgs.evtAutoOpen, _prop.images.evtAutoOpen, &autoOpen, SWT.CHECK);
 			_autoOpenTI.setSelection(_autoOpen);
 			createCoolItem(cbar, mode);
 
@@ -1732,7 +1735,7 @@ public:
 			foreach (cGrp, cs; CTYPE_GROUP) {
 				auto eBar = new ToolBar(cbar, SWT.FLAT);
 				eBar.addMouseListener(tml);
-				auto conv = convMenu(_prop.msgs.menuEvtGroup(cGrp), _prop.images.menuEvtGroup(cGrp));
+				auto conv = convMenu(cGrp);
 				foreach (cType; cs) {
 					createEI(cType, eBar, g, cType is CType.START ? _convM : conv);
 				}
@@ -2347,7 +2350,7 @@ public:
 			_comm.refContent.call(c);
 		}
 		if (!sItm) return;
-		_tree.select = sItm;
+		_tree.select(sItm);
 		_tree.showSelection();
 		_comm.refUseCount.call();
 		refreshStatusLine();
@@ -2520,7 +2523,7 @@ public:
 			path = cpbottom(path);
 			if (cpempty(path) || cpcategory(path) != "") {
 				forceFocus(_tree, shellActivate);
-				_tree.select = child;
+				_tree.select(child);
 				refreshStatusLine();
 				if (cphasattr(path, "opendialog")) {
 					auto d = edit();

@@ -7,6 +7,7 @@ import cwx.skin;
 import cwx.background;
 import cwx.structs;
 import cwx.settings;
+import cwx.menu;
 
 import cwx.editor.gui.dwt.dockingfolder;
 import cwx.editor.gui.dwt.variables;
@@ -125,6 +126,7 @@ public class FlexProps {
 	DialogParam!("commentDialog", 300, 200) commentDlg;
 	WindowProps!("dialogPreview", SWT.DEFAULT, 500) dlgPrev;
 	WindowProps!("messagePreview", SWT.DEFAULT, 500) msgPrev;
+	MenuProps menu;
 	FlexEtcProps etc;
 
 	private enum IniLocation {

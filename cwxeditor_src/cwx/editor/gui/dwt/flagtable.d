@@ -6,6 +6,7 @@ import cwx.flag;
 import cwx.utils;
 import cwx.usecounter;
 import cwx.path;
+import cwx.menu;
 
 import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.dprops;
@@ -14,6 +15,7 @@ import cwx.editor.gui.dwt.xmlbytestransfer;
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.undo;
+import cwx.editor.gui.dwt.dmenu;
 
 import std.conv;
 import std.string;
@@ -382,8 +384,8 @@ protected:
 			flagTrue.setVisibleItemCount(20);
 			createTextMenu!Combo(_comm, prop, flagTrue, &catchMod);
 			auto tmod = new ModOnOff(0);
-			flagTrue.addModifyListener = tmod;
-			flagTrue.addSelectionListener = tmod;
+			flagTrue.addModifyListener(tmod);
+			flagTrue.addSelectionListener(tmod);
 			setGridMinW(flagTrue, prop.var.etc.flagValueWidth, GridData.FILL_HORIZONTAL);
 
 			(new Label(comp, SWT.NULL)).setText(prop.msgs.dlgLblFlagFalse);
@@ -393,8 +395,8 @@ protected:
 			flagFalse.setVisibleItemCount(20);
 			createTextMenu!Combo(_comm, prop, flagFalse, &catchMod);
 			auto fmod = new ModOnOff(1);
-			flagFalse.addModifyListener = fmod;
-			flagFalse.addSelectionListener = fmod;
+			flagFalse.addModifyListener(fmod);
+			flagFalse.addSelectionListener(fmod);
 			setGridMinW(flagFalse, prop.var.etc.flagValueWidth, GridData.FILL_HORIZONTAL);
 		}
 		_comm.delFlagAndStep.add(&delFlag);
@@ -410,13 +412,13 @@ protected:
 			flagFalse.setText(_flag.off);
 			if (-1 == flagFalse.indexOf(_flag.off)) flagFalse.add(_flag.off, 0);
 			setComboItems(flagInit, [flagTrue.getText(), flagFalse.getText()]);
-			flagInit.select = _flag.onOff ? 0 : 1;
+			flagInit.select(_flag.onOff ? 0 : 1);
 		} else {
 			flagName.setText("");
 			flagTrue.setText(prop.var.etc.flagTrues.length > 0 ? prop.var.etc.flagTrues[0] : "");
 			flagFalse.setText(prop.var.etc.flagFalses.length > 0 ? prop.var.etc.flagFalses[0] : "");
 			setComboItems(flagInit, [flagTrue.getText(), flagFalse.getText()]);
-			flagInit.select = 0;
+			flagInit.select(0);
 		}
 		if (!_flag.parent) {
 			// 新規作成時
@@ -485,7 +487,7 @@ private abstract class FTVUndo : Undo {
 			} else {
 				if (comm.openCWXPath(_selectedDir, true)) {
 					v.flags.deselectAll();
-					v.flags.select = _selectedB;
+					v.flags.select(_selectedB);
 				}
 			}
 			v.refreshStatusLine();
@@ -1118,7 +1120,7 @@ private:
 		if (s) {
 			if (s.select == i) return; 
 			storeEdit(flags.indexOf(itm));
-			s.select = i;
+			s.select(i);
 			itm.setText(column, s.value);
 			return;
 		}
@@ -1166,12 +1168,12 @@ public:
 		flags.addKeyListener(new KListener);
 		flags.addMouseListener(new MListener);
 		auto menu = new Menu(flags.getShell(), SWT.POP_UP);
-		createMenuItem(menu, prop.msgs.menuCEdit, prop.images.menuCEdit, &edit);
+		createMenuItem(_comm, menu, MenuID.EditProp, &edit);
 		new MenuItem(menu, SWT.SEPARATOR);
-		createMenuItem(menu, prop.msgs.menuUndo, prop.images.menuUndo, &this.undo);
-		createMenuItem(menu, prop.msgs.menuRedo, prop.images.menuRedo, &this.redo);
+		createMenuItem(_comm, menu, MenuID.Undo, &this.undo);
+		createMenuItem(_comm, menu, MenuID.Redo, &this.redo);
 		new MenuItem(menu, SWT.SEPARATOR);
-		appendMenuTCPD(prop, menu, this, true, true, true, true);
+		appendMenuTCPD(_comm, menu, this, true, true, true, true);
 		flags.setMenu(menu);
 
 		auto ds = new DragSource(flags, DND.DROP_MOVE | DND.DROP_COPY);
@@ -1340,7 +1342,7 @@ public:
 		if (deselect) flags.deselectAll();
 		foreach (i, itm; flags.getItems()) {
 			if (itm.getData() is flag) {
-				flags.select = i;
+				flags.select(i);
 				break;
 			}
 		}

@@ -30,6 +30,7 @@ import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.customtext;
 import cwx.editor.gui.dwt.variables;
 import cwx.editor.gui.dwt.dutils;
+import cwx.editor.gui.dwt.dmenu;
 
 import core.thread;
 

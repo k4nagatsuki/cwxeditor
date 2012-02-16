@@ -9,6 +9,7 @@ import cwx.skin;
 import cwx.utils;
 import cwx.path;
 import cwx.msgs;
+import cwx.menu;
 
 import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.dskin;
@@ -18,6 +19,7 @@ import cwx.editor.gui.dwt.eventview;
 import cwx.editor.gui.dwt.eventtreeview;
 import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.sbshell;
+import cwx.editor.gui.dwt.dmenu;
 
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Shell;
@@ -147,41 +149,41 @@ public:
 		if (shell) {
 			auto bar = new Menu(shell, SWT.BAR);
 
-			auto mf = createMenu(bar, _prop.msgs.menuFile);
+			auto mf = createMenu(_comm, bar, MenuID.File);
 			static if (is(A : Area)) {
-				createMenuItem(mf, _prop.msgs.menuEditScene, _prop.images.areaSceneView, &openScene);
+				createMenuItem(_comm, mf, MenuID.EditSceneArea, &openScene);
 				new MenuItem(mf, SWT.SEPARATOR);
 			} else static if (is(A : Battle)) {
-				createMenuItem(mf, _prop.msgs.menuEditScene, _prop.images.battleSceneView, &openScene);
+				createMenuItem(_comm, mf, MenuID.EditSceneArea, &openScene);
 				new MenuItem(mf, SWT.SEPARATOR);
 			}
-			createMenuItem(mf, _prop.msgs.menuCloseWin, _prop.images.menuCloseWin, &shell.close);
+			createMenuItem(_comm, mf, MenuID.CloseWin, &shell.close);
 
-			auto me = createMenu(bar, _prop.msgs.menuEdit);
-			createMenuItem(me, _prop.msgs.menuUndo, _prop.images.menuUndo, &_eview.undo);
-			createMenuItem(me, _prop.msgs.menuRedo, _prop.images.menuRedo, &_eview.redo);
+			auto me = createMenu(_comm, bar, MenuID.Edit);
+			createMenuItem(_comm, me, MenuID.Undo, &_eview.undo);
+			createMenuItem(_comm, me, MenuID.Redo, &_eview.redo);
 			new MenuItem(me, SWT.SEPARATOR);
-			createMenuItem(me, _prop.msgs.menuUp, _prop.images.menuUp, &_eview.up);
-			createMenuItem(me, _prop.msgs.menuDown, _prop.images.menuDown, &_eview.down);
+			createMenuItem(_comm, me, MenuID.Up, &_eview.up);
+			createMenuItem(_comm, me, MenuID.Down, &_eview.down);
 			new MenuItem(me, SWT.SEPARATOR);
-			appendMenuTCPD(_prop, me, this, true, true, true, true);
+			appendMenuTCPD(_comm, me, this, true, true, true, true);
 			new MenuItem(me, SWT.SEPARATOR);
-			createMenuItem(me, _prop.msgs.menuWriteComment, _prop.images.menuWriteComment, &_eview.writeComment);
+			createMenuItem(_comm, me, MenuID.Comment, &_eview.writeComment);
 			new MenuItem(me, SWT.SEPARATOR);
-			createMenuItem(me, _prop.msgs.menuToScript, _prop.images.menuToScript, &_eview.toScript);
-			createMenuItem(me, _prop.msgs.menuToScriptAll, _prop.images.menuToScriptAll, &_eview.toScriptAll);
+			createMenuItem(_comm, me, MenuID.ToScript, &_eview.toScript);
+			createMenuItem(_comm, me, MenuID.ToScriptAll, &_eview.toScriptAll);
 
 			shell.setMenuBar(bar);
 		} else {
-			appendMenuTCPD(_prop, this, this, true, true, true, true);
+			appendMenuTCPD(_comm, this, this, true, true, true, true);
 			static if (is(A : Area) || is(A : Battle)) {
-				putMenuAction(MenuID.EditScene, &openScene);
+				putMenuAction(MenuID.EditSceneArea, &openScene);
 			}
 			putMenuAction(MenuID.Undo, &_eview.undo);
 			putMenuAction(MenuID.Redo, &_eview.redo);
 			putMenuAction(MenuID.Up, &_eview.up);
 			putMenuAction(MenuID.Down, &_eview.down);
-			putMenuAction(MenuID.WriteComment, &_eview.writeComment);
+			putMenuAction(MenuID.Comment, &_eview.writeComment);
 			putMenuAction(MenuID.ToScript, &_eview.toScript);
 			putMenuAction(MenuID.ToScriptAll, &_eview.toScriptAll);
 		}

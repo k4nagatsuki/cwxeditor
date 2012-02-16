@@ -22,6 +22,7 @@ import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.properties;
+import cwx.editor.gui.dwt.dmenu;
 
 import std.conv;
 import std.string;
@@ -179,7 +180,7 @@ private:
 				int x = _prop.looks.summaryDescXY.x;
 				int y = _prop.looks.summaryDescXY.y;
 				if (_comm.skin.legacy) {
-					foreach (line; splitLines(_desc.getRRText())) {
+					foreach (line; splitLines!string(_desc.getRRText())) {
 						gc.drawText(line, x, y, SWT.DRAW_DELIMITER | SWT.DRAW_TRANSPARENT);
 						y += _prop.looks.summaryDescLineHeightClassic;
 					}
@@ -505,7 +506,7 @@ private:
 			foreach (i, type; skins) {
 				_type.add(type);
 				if (type == selType) {
-					_type.select = i;
+					_type.select(i);
 				}
 			}
 			if (!_type.getItemCount()) {
@@ -527,11 +528,11 @@ private:
 			foreach (i, ce; _prop.var.etc.classicEngines) {
 				_type.add(ce.name);
 				if (selClassic && cfnmatch(selClassic, _prop.toAppAbs(ce.enginePath))) {
-					_type.select = i;
+					_type.select(i);
 				}
 				if (cur && cfnmatch(lEnginePath, _prop.toAppAbs(ce.enginePath))) {
 					cur = false;
-					if (-1 == _type.getSelectionIndex()) _type.select = i;
+					if (-1 == _type.getSelectionIndex()) _type.select(i);
 				}
 			}
 			if (cur) {
@@ -548,7 +549,7 @@ private:
 		}
 		assert (_type.getItemCount());
 		if (-1 == _type.getSelectionIndex()) {
-			_type.select = 0;
+			_type.select(0);
 		}
 	}
 public:
@@ -637,7 +638,7 @@ protected:
 		_summ.levelMin = _levMin.getSelection();
 		_summ.levelMax = _levMax.getSelection();
 		string[] rcs;
-		foreach (s; splitLines(_rCoupons.getText())) {
+		foreach (s; splitLines!string(_rCoupons.getText())) {
 			if (s.length > 0) {
 				rcs ~= s;
 			}

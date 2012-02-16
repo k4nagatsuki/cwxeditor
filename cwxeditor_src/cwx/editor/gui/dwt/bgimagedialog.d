@@ -9,6 +9,7 @@ import cwx.background;
 import cwx.imagesize;
 import cwx.skin;
 import cwx.structs;
+import cwx.menu;
 
 import cwx.editor.gui.dwt.properties;
 import cwx.editor.gui.dwt.dprops;
@@ -22,6 +23,7 @@ import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.splitpane;
+import cwx.editor.gui.dwt.dmenu;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
@@ -226,8 +228,8 @@ protected:
 				_h = createS(_prop.msgs.height, _prop.looks.backHeightMax, _prop.looks.backHeightMin);
 				_mask = new Button(comp2, SWT.TOGGLE);
 				mod(_mask);
-				_mask.setImage(_prop.images.menuMask);
-				_mask.setToolTipText(_prop.msgs.ttMask);
+				_mask.setImage(_prop.images.menu(MenuID.Mask));
+				_mask.setToolTipText(_prop.buildTool(MenuID.Mask));
 				_mask.addSelectionListener(new MaskListener);
 			}
 			{
@@ -244,7 +246,7 @@ protected:
 					_easy.add(bs.name);
 				}
 				_easy.addSelectionListener(new SettingsListener);
-				_easy.select = 0;
+				_easy.select(0);
 			}
 			scope p = comp.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 			auto gd = new GridData(GridData.FILL_BOTH);

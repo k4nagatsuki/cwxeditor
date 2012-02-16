@@ -10,6 +10,7 @@ import cwx.xml;
 import cwx.skin;
 import cwx.path;
 import cwx.motion;
+import cwx.menu;
 
 import cwx.editor.gui.dwt.commondialog;
 import cwx.editor.gui.dwt.images;
@@ -27,6 +28,7 @@ import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.sbshell;
 import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.cardpane;
+import cwx.editor.gui.dwt.dmenu;
 
 import std.algorithm;
 import std.array;
@@ -164,7 +166,7 @@ private:
 				resetID(v);
 				if (v && v.widget && !v.widget.isDisposed()) {
 					v.refresh();
-					v.select = _selB;
+					v.select(_selB);
 					v.refreshStatusLine();
 				}
 				comm.refUseCount.call();
@@ -1226,34 +1228,34 @@ public:
 			});
 			auto pop = new Menu(parent.getShell(), SWT.POP_UP);
 			static if (is (C == CastCard)) {
-				createMenuItem(pop, _prop.msgs.menuCEdit, _prop.images.menuCEdit, &editM);
+				createMenuItem(_comm, pop, MenuID.EditProp, &editM);
 				new MenuItem(pop, SWT.SEPARATOR);
-				createMenuItem(pop, _prop.msgs.menuEditHand, _prop.images.menuEditHand, &editHand);
+				createMenuItem(_comm, pop, MenuID.OpenHand, &editHand);
 			} else static if (is (C == SkillCard) || is (C == ItemCard) || is (C == BeastCard)) {
-				createMenuItem(pop, _prop.msgs.menuCEdit, _prop.images.menuCEdit, &editM);
+				createMenuItem(_comm, pop, MenuID.EditProp, &editM);
 				new MenuItem(pop, SWT.SEPARATOR);
-				createMenuItem(pop, _prop.msgs.menuEditUseEvent, _prop.images.menuEditUseEvent, &editUseEvent);
+				createMenuItem(_comm, pop, MenuID.EditEventAtTimeOfUsing, &editUseEvent);
 			} else static if (is (C == InfoCard)) {
-				createMenuItem(pop, _prop.msgs.menuCEdit, _prop.images.menuCEdit, &editM);
+				createMenuItem(_comm, pop, MenuID.EditProp, &editM);
 			} else {
 				static assert (0);
 			}
 			new MenuItem(pop, SWT.SEPARATOR);
-			createMenuItem(pop, _prop.msgs.menuUndo, _prop.images.menuUndo, &undo);
-			createMenuItem(pop, _prop.msgs.menuRedo, _prop.images.menuRedo, &redo);
+			createMenuItem(_comm, pop, MenuID.Undo, &undo);
+			createMenuItem(_comm, pop, MenuID.Redo, &redo);
 			new MenuItem(pop, SWT.SEPARATOR);
-			appendMenuTCPD(_prop, pop, this, true, true, true, true);
+			appendMenuTCPD(_comm, pop, this, true, true, true, true);
 			new MenuItem(pop, SWT.SEPARATOR);
-			createMenuItem(pop, _prop.msgs.menuReNumbering, _prop.images.menuReNumbering, &reNumbering);
+			createMenuItem(_comm, pop, MenuID.ReNumbering, &reNumbering);
 		} else {
 			auto pop = new Menu(parent.getShell(), SWT.POP_UP);
 			static if (is (C == CastCard)) {
-				createMenuItem(pop, _prop.msgs.menuOpenHand, _prop.images.menuOpenHand, _openHand);
+				createMenuItem(_comm, pop, MenuID.OpenHand, _openHand);
 				new MenuItem(pop, SWT.SEPARATOR);
 			}
-			createMenuItem(pop, _prop.msgs.menuAdd, _prop.images.menuAdd, &addCard);
+			createMenuItem(_comm, pop, MenuID.Import, &addCard);
 			new MenuItem(pop, SWT.SEPARATOR);
-			appendMenuTCPD(_prop, pop, this, false, true, false, false);
+			appendMenuTCPD(_comm, pop, this, false, true, false, false);
 		}
 		_list.setMenu(pop);
 		_tbl.setMenu(pop);
@@ -1663,7 +1665,7 @@ public:
 			arr = cardsFrom(_owner);
 			refCard(arr[index1]);
 			refCard(arr[index2]);
-			select = index2;
+			select(index2);
 		}
 		void up() {
 			int sel = selectionIndex;

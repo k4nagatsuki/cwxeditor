@@ -7,6 +7,7 @@ import cwx.utils;
 import cwx.usecounter;
 import cwx.path;
 import cwx.msgs;
+import cwx.menu;
 
 import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.dprops;
@@ -16,6 +17,7 @@ import cwx.editor.gui.dwt.flagdirtree;
 import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.xmlbytestransfer;
 import cwx.editor.gui.dwt.undo;
+import cwx.editor.gui.dwt.dmenu;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;

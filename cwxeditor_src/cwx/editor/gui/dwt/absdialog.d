@@ -6,6 +6,7 @@ import cwx.structs;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dutils;
+import cwx.editor.gui.dwt.dmenu;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
@@ -398,7 +399,7 @@ abstract class AbsDialog {
 
 	protected void checkerImpl(T)(T text) {
 		check();
-		text.addModifyListener = new MListener;
+		text.addModifyListener(new MListener);
 	}
 	private Combo[] _chk1;
 	private CCombo[] _chk2;

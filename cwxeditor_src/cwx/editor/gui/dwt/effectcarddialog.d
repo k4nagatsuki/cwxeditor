@@ -24,6 +24,7 @@ import cwx.editor.gui.dwt.motionview;
 import cwx.editor.gui.dwt.radarspinner;
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.splitpane;
+import cwx.editor.gui.dwt.dmenu;
 
 import std.algorithm : max;
 import std.path;
@@ -596,11 +597,9 @@ private:
 			grp.setText(_prop.msgs.se);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			grp.setLayout(new GridLayout(1, false));
-			createDefSoundCombo(_comm, _prop, _summ, grp, _se1, _prop.msgs.se1).setLayoutData
-				= new GridData(GridData.FILL_BOTH);
+			createDefSoundCombo(_comm, _prop, _summ, grp, _se1, _prop.msgs.se1).setLayoutData(new GridData(GridData.FILL_BOTH));
 			mod(_se1);
-			createDefSoundCombo(_comm, _prop, _summ, grp, _se2, _prop.msgs.se2).setLayoutData
-				= new GridData(GridData.FILL_BOTH);
+			createDefSoundCombo(_comm, _prop, _summ, grp, _se2, _prop.msgs.se2).setLayoutData(new GridData(GridData.FILL_BOTH));
 			mod(_se2);
 		}
 		{
@@ -818,9 +817,9 @@ protected:
 				return baseName(skin.findPath(baseName(path), skin.extSound, skin.seDir, ""));
 			}
 			int se1i = _se1.indexOf(findPath(_card.soundPath1));
-			_se1.select = se1i >= 0 ? se1i : 0;
+			_se1.select(se1i >= 0 ? se1i : 0);
 			int se2i = _se2.indexOf(findPath(_card.soundPath2));
-			_se2.select = se2i >= 0 ? se2i : 0;
+			_se2.select(se2i >= 0 ? se2i : 0);
 			foreach (i, kc; _card.keyCodes) {
 				_keyCodes[i].setText(kc);
 				if (!contains(_keyCodes[i].getItems(), kc)) {
@@ -853,8 +852,8 @@ protected:
 			_vis[CardVisual.NONE].setSelection(true);
 			_prem[Premium.NORMAL].setSelection(true);
 			_sucRate.setSelection(Content.successRate_max);
-			_se1.select = 0;
-			_se2.select = 0;
+			_se1.select(0);
+			_se2.select(0);
 		}
 		static if (is (C == SkillCard)) {
 			calcPrice(_level.getSelection());
@@ -863,10 +862,9 @@ protected:
 		}
 	}
 	private void __refreshEnblOneAll() {
-		_oneAllGrp.setEnabled
-			= _targ[CardTarget.PARTY].getSelection()
+		_oneAllGrp.setEnabled(_targ[CardTarget.PARTY].getSelection()
 			|| _targ[CardTarget.ENEMY].getSelection()
-			|| _targ[CardTarget.BOTH].getSelection();
+			|| _targ[CardTarget.BOTH].getSelection());
 		_one.setEnabled(_oneAllGrp.getEnabled());
 		_all.setEnabled(_oneAllGrp.getEnabled());
 	}

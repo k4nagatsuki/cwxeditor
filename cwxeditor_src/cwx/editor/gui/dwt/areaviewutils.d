@@ -15,6 +15,7 @@ import cwx.usecounter;
 import cwx.path;
 import cwx.structs;
 import cwx.sjis;
+import cwx.menu;
 
 import cwx.editor.gui.sound;
 
@@ -35,6 +36,7 @@ import cwx.editor.gui.dwt.jpyimage;
 import cwx.editor.gui.dwt.areawindow;
 import cwx.editor.gui.dwt.messageutils;
 import cwx.editor.gui.dwt.areaview;
+import cwx.editor.gui.dwt.dmenu;
 
 import std.algorithm;
 import std.math;
@@ -220,16 +222,16 @@ BgImagesView createBgImagesViewAndMenu(Commons comm, Props prop, Summary summ, B
 	});
 	auto bar = new Menu(parent.getShell(), SWT.BAR);
 	parent.getShell().setMenuBar(bar);
-	auto me = createMenu(bar, prop.msgs.menuEdit);
-	createMenuItem(me, prop.msgs.menuUndo, prop.images.menuUndo, &view.undo);
-	createMenuItem(me, prop.msgs.menuRedo, prop.images.menuRedo, &view.redo);
+	auto me = createMenu(comm, bar, MenuID.Edit);
+	createMenuItem(comm, me, MenuID.Undo, &view.undo);
+	createMenuItem(comm, me, MenuID.Redo, &view.redo);
 	new MenuItem(me, SWT.SEPARATOR);
-	createMenuItem(me, prop.msgs.menuUp, prop.images.menuUp, &view.up);
-	createMenuItem(me, prop.msgs.menuDown, prop.images.menuDown, &view.down);
+	createMenuItem(comm, me, MenuID.Up, &view.up);
+	createMenuItem(comm, me, MenuID.Down, &view.down);
 	new MenuItem(me, SWT.SEPARATOR);
-	appendMenuTCPD(prop, me, view, true, true, true, true);
-	auto mv = createMenu(bar, prop.msgs.menuView);
-	createMenuItem(mv, prop.msgs.menuRefresh, prop.images.menuRefresh, &view.refresh);
+	appendMenuTCPD(comm, me, view, true, true, true, true);
+	auto mv = createMenu(comm, bar, MenuID.View);
+	createMenuItem(comm, mv, MenuID.Refresh, &view.refresh);
 	view.setupMenu(bar);
 	return view;
 }

@@ -4,6 +4,7 @@ module cwx.editor.gui.dwt.smalldialogs;
 import cwx.utils;
 import cwx.versioninfo;
 import cwx.structs;
+import cwx.menu;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.absdialog;
@@ -11,6 +12,7 @@ import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.commons;
+import cwx.editor.gui.dwt.dmenu;
 
 import std.string;
 
@@ -42,7 +44,7 @@ public:
 	this (Commons comm, Props prop, Shell shell) {
 		_comm = comm;
 		_prop = prop;
-		super(_prop, shell, _prop.msgs.dlgTitNewScenario, _prop.images.menuNew, true, _prop.var.newScDlg);
+		super(_prop, shell, _prop.msgs.dlgTitNewScenario, _prop.images.menu(MenuID.New), true, _prop.var.newScDlg);
 		enterClose = true;
 	}
 
@@ -99,7 +101,7 @@ protected:
 				_skinC.add(_prop.msgs.classic);
 			}
 			_skinC.setText(_prop.var.etc.defaultSkin);
-			if (_skinC.getSelectionIndex() == -1) _skinC.select = 0;
+			if (_skinC.getSelectionIndex() == -1) _skinC.select(0);
 			checker(_skinC);
 		}
 	}
@@ -151,7 +153,7 @@ private:
 	}
 public:
 	this(Commons comm, Props prop, Shell shell) {
-		super(prop, shell, true, prop.msgs.dlgTitVersion, prop.images.menuVersion, false, null, false, false);
+		super(prop, shell, true, prop.msgs.dlgTitVersion, prop.images.menu(MenuID.VersionInfo), false, null, false, false);
 		_comm = comm;
 		_prop = prop;
 		enterClose = true;

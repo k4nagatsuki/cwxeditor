@@ -11,6 +11,7 @@ import cwx.usecounter;
 import cwx.path;
 import cwx.script;
 import cwx.system;
+import cwx.menu;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;
@@ -25,6 +26,7 @@ import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.scripterrordialog;
 import cwx.editor.gui.dwt.eventwindow;
+import cwx.editor.gui.dwt.dmenu;
 
 import std.algorithm : max;
 import std.string;
@@ -785,8 +787,8 @@ private:
 		Image keyCodeImage(string keyCode) {
 			final switch (_prop.sys.fireKeyCodeKind(keyCode)) {
 			case FKCKind.Use: return _prop.images.keyCode;
-			case FKCKind.Success: return _prop.images.menuKeyCodeTimingSuccess;
-			case FKCKind.Failure: return _prop.images.menuKeyCodeTimingFailure;
+			case FKCKind.Success: return _prop.images.menu(MenuID.KeyCodeTimingSuccess);
+			case FKCKind.Failure: return _prop.images.menu(MenuID.KeyCodeTimingFailure);
 			}
 		}
 		void createKeyCodeItem(T)(TreeItem parent, T a) {
@@ -982,23 +984,23 @@ public:
 				Menu menu = null;
 				try {
 					menu = new Menu(parent.getShell(), SWT.POP_UP);
-					appendMenuTCPD(_prop, menu, this, true, true, true, true);
+					appendMenuTCPD(_comm, menu, this, true, true, true, true);
 					static if (is(A : Area) || is(A : Battle)) {
 						new MenuItem(menu, SWT.SEPARATOR);
 						void delegate() dlg = null;
-						auto cascade = createMenuItem(menu, _prop.msgs.menuKeyCodeTiming, _prop.images.keyCode, dlg, SWT.CASCADE);
+						auto cascade = createMenuItem(_comm, menu, MenuID.KeyCodeTiming, dlg, SWT.CASCADE);
 						auto sub = new Menu(parent.getShell(), SWT.DROP_DOWN);
 						cascade.setMenu(sub);
-						createMenuItem(sub, _prop.msgs.menuKeyCodeTimingUse, _prop.images.menuKeyCodeTimingUse, &keyCodeTimUse);
-						createMenuItem(sub, _prop.msgs.menuKeyCodeTimingSuccess, _prop.images.menuKeyCodeTimingSuccess, &keyCodeTimSuccess);
-						createMenuItem(sub, _prop.msgs.menuKeyCodeTimingFailure, _prop.images.menuKeyCodeTimingFailure, &keyCodeTimFailure);
+						createMenuItem(_comm, sub, MenuID.KeyCodeTimingUse, &keyCodeTimUse);
+						createMenuItem(_comm, sub, MenuID.KeyCodeTimingSuccess, &keyCodeTimSuccess);
+						createMenuItem(_comm, sub, MenuID.KeyCodeTimingFailure, &keyCodeTimFailure);
 					}
 					new MenuItem(menu, SWT.SEPARATOR);
-					createMenuItem(menu, _prop.msgs.menuToScript, _prop.images.menuToScript, &toScript);
-					createMenuItem(menu, _prop.msgs.menuToScriptAll, _prop.images.menuToScriptAll, &toScriptAll);
+					createMenuItem(_comm, menu, MenuID.ToScript, &toScript);
+					createMenuItem(_comm, menu, MenuID.ToScriptAll, &toScriptAll);
 					static if (is (A == Battle)) {
 						new MenuItem(menu, SWT.SEPARATOR);
-						createMenuItem(menu, _prop.msgs.menuAddManyRounds, _prop.images.menuAddManyRounds, &addManyRounds);
+						createMenuItem(_comm, menu, MenuID.AddRangeOfRound, &addManyRounds);
 					}
 					_cards.setMenu(menu);
 					break;
@@ -1279,21 +1281,21 @@ public:
 		_toolbar = bar;
 		static if (is(A : Area)) {
 			if (cast(AreaEventWindow) tlpData(this).tlp) {
-				createToolItem(bar, _prop.msgs.ttEditScene, _prop.images.areaSceneView, &openScene);
+				createToolItem(_comm, bar, MenuID.EditSceneArea, &openScene);
 				new ToolItem(bar, SWT.SEPARATOR);
 			}
 		} else static if (is(A : Battle)) {
 			if (cast(BattleEventWindow) tlpData(this).tlp) {
-				createToolItem(bar, _prop.msgs.ttEditScene, _prop.images.battleSceneView, &openScene);
+				createToolItem(_comm, bar, MenuID.EditSceneBattle, &openScene);
 				new ToolItem(bar, SWT.SEPARATOR);
 			}
 		}
 		if (!_comm.singleWindowMode(_prop)) {
-			createToolItem(bar, _prop.msgs.ttUndo, _prop.images.menuUndo, &undo);
-			createToolItem(bar, _prop.msgs.ttRedo, _prop.images.menuRedo, &redo);
+			createToolItem(_comm, bar, MenuID.Undo, &undo);
+			createToolItem(_comm, bar, MenuID.Redo, &redo);
 			new ToolItem(bar, SWT.SEPARATOR);
-			createToolItem(bar, _prop.msgs.ttUp, _prop.images.menuUp, &up);
-			createToolItem(bar, _prop.msgs.ttDown, _prop.images.menuDown, &down);
+			createToolItem(_comm, bar, MenuID.Up, &up);
+			createToolItem(_comm, bar, MenuID.Down, &down);
 			new ToolItem(bar, SWT.SEPARATOR);
 		}
 		{
@@ -1328,19 +1330,19 @@ public:
 				_keyCodeTim.add(_prop.msgs.keyCodeTimingUse);
 				_keyCodeTim.add(_prop.msgs.keyCodeTimingSuccess);
 				_keyCodeTim.add(_prop.msgs.keyCodeTimingFailure);
-				_keyCodeTim.select = 0;
+				_keyCodeTim.select(0);
 				keyCodeTimItm.setControl(_keyCodeTim);
 				keyCodeTimItm.setWidth(_keyCodeTim.computeSize(SWT.DEFAULT, SWT.DEFAULT).x);
 			}
 		}
 		new ToolItem(bar, SWT.SEPARATOR);
-		createToolItem(bar, _prop.msgs.ttNewEventTree, _prop.images.menuNewEventTree, &createEventTree);
+		createToolItem(_comm, bar, MenuID.NewEvent, &createEventTree);
 		static if (UseFire) {
-			createToolItem(bar, _prop.msgs.ttNewEventFire, _prop.images.menuNewEventFire, &createEventFire);
+			createToolItem(_comm, bar, MenuID.NewIgnition, &createEventFire);
 		}
 		new ToolItem(bar, SWT.SEPARATOR);
-		createToolItem(bar, _prop.msgs.ttNewTreeOpen, _prop.images.menuTreeOpen, &_etree.treeOpen);
-		createToolItem(bar, _prop.msgs.ttNewTreeClose, _prop.images.menuTreeClose, &_etree.treeClose);
+		createToolItem(_comm, bar, MenuID.ExpandTree, &_etree.treeOpen);
+		createToolItem(_comm, bar, MenuID.FoldTree, &_etree.treeClose);
 	}
 	private void setFireControl(Control c) {
 		if (_fireItm.getControl()) _fireItm.getControl().dispose();
@@ -1728,9 +1730,9 @@ private:
 
 	uint[] _rounds;
 public:
-	this(Props prop, Shell shell) {
+	this (Props prop, Shell shell) {
 		_prop = prop;
-		super(prop, shell, prop.msgs.dlgTitAddManyRounds, prop.images.menuAddManyRounds, false);
+		super (prop, shell, prop.msgs.dlgTitAddManyRounds, prop.images.menu(MenuID.AddRangeOfRound), false);
 		enterClose = true;
 	}
 

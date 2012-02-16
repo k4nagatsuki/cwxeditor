@@ -260,8 +260,8 @@ private template ReadBytesB(I, size_t Len = I.sizeof) {
 private template ReadBytesL(I, size_t Len = I.sizeof, size_t N = 1) {
 	static if (N < Len) {
 		const string ReadBytesL = "i |= "
-			~ (N > size_t.sizeof ? "cast(" ~ I.stringof ~ ") " : "")
-			~ "_bytes[_pointer++] << 8 * " ~ .toStringNow!(N) ~ ";\n" ~ ReadBytesL!(I, Len, N + 1);
+			~ (N >= size_t.sizeof ? "cast(" ~ I.stringof ~ ") " : "")
+		~ "_bytes[_pointer++] << 8 * " ~ .toStringNow!(N) ~ ";\n" ~ ReadBytesL!(I, Len, N + 1);
 	} else {
 		const string ReadBytesL = "";
 	}

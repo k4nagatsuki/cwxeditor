@@ -840,10 +840,10 @@ class Skin {
 				path = std.path.buildPath(fd, path);
 				if (!isDir(path) && cfnmatch(cwx.utils.getExt(path), _resExtImg)) {
 					auto dp = toUTF32(getName(baseName(path)));
-					auto c = toUniUpper(dp[0]);
+					auto c = std.uni.toUpper(dp[0]);
 					switch (c) {
 					case 'M', 'R', 'U', 'C', 'I', 'T', 'Y':
-						c = toUniUpper(dp[$ - 1]);
+						c = std.uni.toUpper(dp[$ - 1]);
 						break;
 					default:
 						break;

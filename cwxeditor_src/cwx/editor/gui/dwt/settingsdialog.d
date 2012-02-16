@@ -9,6 +9,7 @@ import cwx.skin;
 import cwx.msgs;
 import cwx.graphics;
 import cwx.structs;
+import cwx.menu;
 
 import cwx.editor.gui.sound;
 
@@ -27,12 +28,15 @@ import cwx.editor.gui.dwt.dockingfolder;
 import cwx.editor.gui.dwt.customtext;
 import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.variables;
+import cwx.editor.gui.dwt.dmenu;
+import cwx.editor.gui.dwt.customtable;
 
 import std.path;
 import std.file;
 import std.string;
 import std.functional;
 import std.traits;
+import std.array;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
@@ -53,8 +57,12 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.events.FocusAdapter;
+import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -93,7 +101,7 @@ private:
 			foreach (o; old) {
 				_bgStgsL.add(o.name);
 			}
-			_bgStgsL.select = selected;
+			_bgStgsL.select(selected);
 			_bgStgsL.showSelection();
 			selectBgImageSetting();
 			applyEnabled();
@@ -134,7 +142,7 @@ private:
 			foreach (o; old) {
 				_toolsL.add(o.name);
 			}
-			_toolsL.select = selected;
+			_toolsL.select(selected);
 			_toolsL.showSelection();
 			selectOuterTool();
 			applyEnabled();
@@ -175,7 +183,7 @@ private:
 			foreach (o; old) {
 				_cEnginesL.add(o.name);
 			}
-			_cEnginesL.select = selected;
+			_cEnginesL.select(selected);
 			_cEnginesL.showSelection();
 			selectCEngine();
 			applyEnabled();
@@ -306,6 +314,16 @@ private:
 	int[int] _dialogStatusTbl2;
 	Text _savedSound;
 
+	Text _mnemonic;
+	HotKeyField _hotkey;
+	Table _menu;
+	Button _menuApply;
+	class SMenuData {
+		MenuID id;
+		string mnemonic;
+		string hotkey;
+	}
+
 	class RefE : SelectionAdapter, ModifyListener {
 		override void widgetSelected(SelectionEvent e) {
 			refreshEnabled();
@@ -323,7 +341,7 @@ private:
 		auto temp = array[i - 1];
 		array[i - 1] = array[i];
 		array[i] = temp;
-		list.select = i - 1;
+		list.select(i - 1);
 		applyEnabled();
 	}
 	void down(T)(List list, ref T[] array) {
@@ -335,7 +353,7 @@ private:
 		auto temp = array[i + 1];
 		array[i + 1] = array[i];
 		array[i] = temp;
-		list.select = i + 1;
+		list.select(i + 1);
 		applyEnabled();
 	}
 	void upBgImage() {
@@ -767,15 +785,15 @@ private:
 	}
 	Button createOpenButton(Composite parent, Text path, bool dir) {
 		auto open = new Button(parent, SWT.PUSH);
-		open.setToolTipText(dir ? _prop.msgs.ttOpenDirectory : _prop.msgs.ttOpenFilePlace);
-		open.setImage(_prop.images.menuOpenDirectory);
+		open.setToolTipText(_prop.buildTool(dir ? MenuID.OpenDir : MenuID.OpenPlace));
+		open.setImage(_prop.images.menu(MenuID.OpenDir));
 		open.addSelectionListener(new OpenDir(path, false));
 		return open;
 	}
 	Button createCEngineSubOpenButton(Composite parent, Text path, bool dir) {
 		auto open = new Button(parent, SWT.PUSH);
-		open.setToolTipText(dir ? _prop.msgs.ttOpenDirectory : _prop.msgs.ttOpenFilePlace);
-		open.setImage(_prop.images.menuOpenDirectory);
+		open.setToolTipText(_prop.buildTool(dir ? MenuID.OpenDir : MenuID.OpenPlace));
+		open.setImage(_prop.images.menu(MenuID.OpenDir));
 		open.addSelectionListener(new OpenDir(path, true));
 		return open;
 	}
@@ -1069,7 +1087,7 @@ private:
 		int index = _bgStgsL.getItemCount();
 		_bgStgs ~= bgStg;
 		_bgStgsL.add(bgStg.name);
-		_bgStgsL.select = index;
+		_bgStgsL.select(index);
 		selectBgImageSetting();
 		applyEnabled();
 	}
@@ -1105,7 +1123,7 @@ private:
 		_bgStgsL.remove(i);
 		_bgStgs = _bgStgs[0 .. i] ~ _bgStgs[i + 1 .. $];
 		if (_bgStgs.length > 0) {
-			_bgStgsL.select = i < _bgStgs.length ? i : _bgStgs.length - 1;
+			_bgStgsL.select(i < _bgStgs.length ? i : _bgStgs.length - 1);
 		}
 		selectBgImageSetting();
 		applyEnabled();
@@ -1221,24 +1239,24 @@ private:
 				_bgStgsL.addSelectionListener(new SelBgImgStg);
 
 				auto menu = new Menu(_bgStgsL);
-				createMenuItem(menu, _prop.msgs.menuUndo, _prop.images.menuUndo, &undoBgStgs);
-				createMenuItem(menu, _prop.msgs.menuRedo, _prop.images.menuRedo, &redoBgStgs);
+				createMenuItem(_comm, menu, MenuID.Undo, &undoBgStgs);
+				createMenuItem(_comm, menu, MenuID.Redo, &redoBgStgs);
 				new MenuItem(menu, SWT.SEPARATOR);
-				createMenuItem(menu, _prop.msgs.menuUp, _prop.images.menuUp, &upBgImage);
-				createMenuItem(menu, _prop.msgs.menuDown, _prop.images.menuDown, &downBgImage);
+				createMenuItem(_comm, menu, MenuID.Up, &upBgImage);
+				createMenuItem(_comm, menu, MenuID.Down, &downBgImage);
 				new MenuItem(menu, SWT.SEPARATOR);
-				appendMenuTCPD(_prop, menu, new BgImagesTCPD, true, true, true, true);
+				appendMenuTCPD(_comm, menu, new BgImagesTCPD, true, true, true, true);
 				_bgStgsL.setMenu(menu);
 
 				auto up = new Button(left, SWT.PUSH);
 				up.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-				up.setText(_prop.msgs.ttUp);
-				up.setImage(_prop.images.menuUp);
+				up.setText(_prop.buildTool(MenuID.Up));
+				up.setImage(_prop.images.menu(MenuID.Up));
 				up.addSelectionListener(new UpBgImgStg);
 				auto down = new Button(left, SWT.PUSH);
 				down.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-				down.setText(_prop.msgs.ttDown);
-				down.setImage(_prop.images.menuDown);
+				down.setText(_prop.buildTool(MenuID.Down));
+				down.setImage(_prop.images.menu(MenuID.Down));
 				down.addSelectionListener(new DownBgImgStg);
 			}
 			leftSash.setWeights([_prop.var.etc.bgImageSettingsSashL, _prop.var.etc.bgImageSettingsSashR]);
@@ -1261,8 +1279,8 @@ private:
 					ngd.widthHint = _prop.var.etc.bgImageSettingsNameWidth;
 					_bgImgName.setLayoutData(ngd);
 					_bgImgMask = new Button(comp3, SWT.TOGGLE);
-					_bgImgMask.setImage(_prop.images.menuMask);
-					_bgImgMask.setToolTipText(_prop.msgs.ttMask);
+					_bgImgMask.setImage(_prop.images.menu(MenuID.Mask));
+					_bgImgMask.setToolTipText(_prop.buildTool(MenuID.Mask));
 				}
 				_bgImgX = createS(comp2, _prop.msgs.left, _prop.looks.posLeftMax, _prop.looks.posLeftMin);
 				_bgImgY = createS(comp2, _prop.msgs.top, _prop.looks.posTopMax, _prop.looks.posTopMin);
@@ -1343,7 +1361,7 @@ private:
 		int index = _toolsL.getItemCount();
 		_tools ~= tool;
 		_toolsL.add(tool.name);
-		_toolsL.select = index;
+		_toolsL.select(index);
 		selectOuterTool();
 		applyEnabled();
 	}
@@ -1373,7 +1391,7 @@ private:
 		_toolsL.remove(i);
 		_tools = _tools[0 .. i] ~ _tools[i + 1 .. $];
 		if (_tools.length > 0) {
-			_toolsL.select = i < _tools.length ? i : _tools.length - 1;
+			_toolsL.select(i < _tools.length ? i : _tools.length - 1);
 		}
 		selectOuterTool();
 		applyEnabled();
@@ -1451,7 +1469,7 @@ private:
 		int index = _cEnginesL.getItemCount();
 		_cEngines ~= cEngine;
 		_cEnginesL.add(cEngine.name);
-		_cEnginesL.select = index;
+		_cEnginesL.select(index);
 		selectCEngine();
 		applyEnabled();
 	}
@@ -1483,7 +1501,7 @@ private:
 		_cEnginesL.remove(i);
 		_cEngines = _cEngines[0 .. i] ~ _cEngines[i + 1 .. $];
 		if (_cEngines.length > 0) {
-			_cEnginesL.select = i < _cEngines.length ? i : _cEngines.length - 1;
+			_cEnginesL.select(i < _cEngines.length ? i : _cEngines.length - 1);
 		}
 		selectCEngine();
 		applyEnabled();
@@ -1591,24 +1609,24 @@ private:
 				_cEnginesL.addSelectionListener(new SelCEngine);
 
 				auto menu = new Menu(_cEnginesL);
-				createMenuItem(menu, _prop.msgs.menuUndo, _prop.images.menuUndo, &undoCEngines);
-				createMenuItem(menu, _prop.msgs.menuRedo, _prop.images.menuRedo, &undoCEngines);
+				createMenuItem(_comm, menu, MenuID.Undo, &undoCEngines);
+				createMenuItem(_comm, menu, MenuID.Redo, &undoCEngines);
 				new MenuItem(menu, SWT.SEPARATOR);
-				createMenuItem(menu, _prop.msgs.menuUp, _prop.images.menuUp, &upCEngine);
-				createMenuItem(menu, _prop.msgs.menuDown, _prop.images.menuDown, &downCEngine);
+				createMenuItem(_comm, menu, MenuID.Up, &upCEngine);
+				createMenuItem(_comm, menu, MenuID.Down, &downCEngine);
 				new MenuItem(menu, SWT.SEPARATOR);
-				appendMenuTCPD(_prop, menu, new CEnginesTCPD, true, true, true, true);
+				appendMenuTCPD(_comm, menu, new CEnginesTCPD, true, true, true, true);
 				_cEnginesL.setMenu(menu);
 
 				auto up = new Button(left, SWT.PUSH);
 				up.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-				up.setText(_prop.msgs.ttUp);
-				up.setImage(_prop.images.menuUp);
+				up.setText(_prop.buildTool(MenuID.Up));
+				up.setImage(_prop.images.menu(MenuID.Up));
 				up.addSelectionListener(new UpCEngines);
 				auto down = new Button(left, SWT.PUSH);
 				down.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-				down.setText(_prop.msgs.ttDown);
-				down.setImage(_prop.images.menuDown);
+				down.setText(_prop.buildTool(MenuID.Down));
+				down.setImage(_prop.images.menu(MenuID.Down));
 				down.addSelectionListener(new DownCEngines);
 			}
 			auto right = new Composite(sash, SWT.NONE);
@@ -1728,24 +1746,24 @@ private:
 				_toolsL.addSelectionListener(new SelOutTools);
 
 				auto menu = new Menu(_toolsL);
-				createMenuItem(menu, _prop.msgs.menuUndo, _prop.images.menuUndo, &undoTools);
-				createMenuItem(menu, _prop.msgs.menuRedo, _prop.images.menuRedo, &redoTools);
+				createMenuItem(_comm, menu, MenuID.Undo, &undoTools);
+				createMenuItem(_comm, menu, MenuID.Redo, &redoTools);
 				new MenuItem(menu, SWT.SEPARATOR);
-				createMenuItem(menu, _prop.msgs.menuUp, _prop.images.menuUp, &upTool);
-				createMenuItem(menu, _prop.msgs.menuDown, _prop.images.menuDown, &downTool);
+				createMenuItem(_comm, menu, MenuID.Up, &upTool);
+				createMenuItem(_comm, menu, MenuID.Down, &downTool);
 				new MenuItem(menu, SWT.SEPARATOR);
-				appendMenuTCPD(_prop, menu, new ToolsTCPD, true, true, true, true);
+				appendMenuTCPD(_comm, menu, new ToolsTCPD, true, true, true, true);
 				_toolsL.setMenu(menu);
 
 				auto up = new Button(left, SWT.PUSH);
 				up.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-				up.setText(_prop.msgs.ttUp);
-				up.setImage(_prop.images.menuUp);
+				up.setText(_prop.buildTool(MenuID.Up));
+				up.setImage(_prop.images.menu(MenuID.Up));
 				up.addSelectionListener(new UpOutTools);
 				auto down = new Button(left, SWT.PUSH);
 				down.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-				down.setText(_prop.msgs.ttDown);
-				down.setImage(_prop.images.menuDown);
+				down.setText(_prop.buildTool(MenuID.Down));
+				down.setImage(_prop.images.menu(MenuID.Down));
 				down.addSelectionListener(new DownOutTools);
 			}
 			auto right = new Composite(sash, SWT.NONE);
@@ -1861,6 +1879,50 @@ private:
 		}
 		return combo;
 	}
+	class DMISash : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			auto ws = (cast(SplitPane) e.widget).getWeights();
+			_prop.var.etc.ignoreMenuSashL = ws[0];
+			_prop.var.etc.ignoreMenuSashR = ws[1];
+		}
+	}
+	void selectMenu() {
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
+		auto i = _menu.getSelectionIndex();
+		if (-1 == i) return;
+		auto itm = _menu.getItem(i);
+		auto data = cast(SMenuData) itm.getData();
+		_mnemonic.setText(data.mnemonic);
+		_hotkey.accelerator = data.hotkey;
+		_menuApply.setEnabled(false);
+	}
+	class SelectMenu : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			selectMenu();
+		}
+	}
+	class ModMenu : ModifyListener {
+		override void modifyText(ModifyEvent e) {
+			if (ignoreMod) return;
+			_menuApply.setEnabled(true);
+		}
+	}
+	class ApplyMenu : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			ignoreMod = true;
+			scope (exit) ignoreMod = false;
+			auto i = _menu.getSelectionIndex();
+			assert (i != -1);
+			auto itm = _menu.getItem(i);
+			auto data = cast(SMenuData) itm.getData();
+			data.mnemonic = _mnemonic.getText();
+			data.hotkey = _hotkey.acceleratorText;
+			itm.setText(MenuProps.buildMenu(_prop.parent, data.id, data.mnemonic, data.hotkey).replace("\t", " "));
+			_menuApply.setEnabled(false);
+			applyEnabled();
+		}
+	}
 	void construct5(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
 		_tabE = new CTabItem(tabf, SWT.NONE);
@@ -1951,22 +2013,71 @@ private:
 			}
 		}
 		{
-			auto grp = new Group(comp, SWT.NONE);
-			auto gd = new GridData(GridData.FILL_BOTH);
-			gd.verticalSpan = 2;
-			version (Windows) {
-				gd.verticalSpan++;
+			auto sash = new SplitPane(comp, SWT.VERTICAL);
+			auto sgd = new GridData(GridData.FILL_BOTH);
+			sgd.verticalSpan = 3;
+			sash.setLayoutData(sgd);
+			{
+				auto grp = new Group(sash, SWT.NONE);
+				grp.setText(_prop.msgs.keyBind);
+				grp.setLayout(new GridLayout(3, false));
+
+				auto l1 = new Label(grp, SWT.NONE);
+				l1.setText(_prop.msgs.mnemonic);
+				_mnemonic = mnemonicText(grp, SWT.BORDER);
+				createTextMenu!Text(_comm, _prop, _mnemonic, &catchMod);
+				_mnemonic.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				_mnemonic.addModifyListener(new ModMenu);
+
+				_menuApply = new Button(grp, SWT.PUSH);
+				_menuApply.setText(_prop.msgs.apply);
+				_menuApply.addSelectionListener(new ApplyMenu);
+
+				auto l2 = new Label(grp, SWT.NONE);
+				l2.setText(_prop.msgs.hotkey);
+				_hotkey = new HotKeyField(grp, SWT.BORDER);
+				createTextMenu!Text(_comm, _prop, _hotkey.widget, &catchMod);
+				auto hgd = new GridData(GridData.FILL_HORIZONTAL);
+				hgd.horizontalSpan = 2;
+				_hotkey.widget.setLayoutData(hgd);
+				_hotkey.widget.addModifyListener(new ModMenu);
+
+				_menu = new Table(grp, SWT.BORDER | SWT.SINGLE | SWT.V_SCROLL | SWT.FULL_SELECTION);
+				_menu.setData(new CIgnoreHotkey); // 間違いやすいので
+				auto mgd = new GridData(GridData.FILL_BOTH);
+				mgd.horizontalSpan = 3;
+				_menu.setLayoutData(mgd);
+				new FullTableColumn(_menu, SWT.NONE);
+				foreach (id; EnumMembers!MenuID) {
+					if (id == MenuID.None) continue;
+					if (isNoKeyBindMenu(id)) continue;
+					auto itm = new TableItem(_menu, SWT.NONE);
+					itm.setText(_prop.buildMenu(id).replace("\t", " "));
+					itm.setImage(_prop.images.menu(id));
+					auto data = new SMenuData();
+					data.id = id;
+					data.mnemonic = _prop.var.menu.mnemonic(id);
+					data.hotkey = _prop.var.menu.hotkey(id);
+					itm.setData(data);
+				}
+				_menu.select(0);
+				selectMenu();
+				_menu.addSelectionListener(new SelectMenu);
 			}
-			grp.setLayoutData(gd);
-			grp.setText(_prop.msgs.ignorePaths);
-			grp.setLayout(new GridLayout(1, false));
-			_ignorePaths = new Text(grp, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
-			createTextMenu!Text(_comm, _prop, _ignorePaths, &catchMod);
-			mod(_ignorePaths);
-			auto gdp = new GridData(GridData.FILL_BOTH);
-			gdp.widthHint = _prop.var.etc.ignorePathsWidth;
-			gdp.heightHint = 0;
-			_ignorePaths.setLayoutData(gdp);
+			{
+				auto grp = new Group(sash, SWT.NONE);
+				grp.setText(_prop.msgs.ignorePaths);
+				grp.setLayout(new GridLayout(1, false));
+				_ignorePaths = new Text(grp, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
+				createTextMenu!Text(_comm, _prop, _ignorePaths, &catchMod);
+				mod(_ignorePaths);
+				auto gdp = new GridData(GridData.FILL_BOTH);
+				gdp.widthHint = _prop.var.etc.ignorePathsWidth;
+				gdp.heightHint = 0;
+				_ignorePaths.setLayoutData(gdp);
+			}
+			sash.setWeights([_prop.var.etc.ignoreMenuSashL, _prop.var.etc.ignoreMenuSashR]);
+			sash.addDisposeListener(new DMISash);
 		}
 	}
 	private RefE _refe;
@@ -1985,11 +2096,9 @@ private:
 		_backupDirOpen.setEnabled(_backupEnabled.getSelection());
 	}
 	class KeyDownFilter : Listener {
-		private int _undoAcc;
-		private int _redoAcc;
 		this () {
-			_undoAcc = convertAccelerator(_prop.msgs.menuUndo);
-			_redoAcc = convertAccelerator(_prop.msgs.menuRedo);
+			refMenu(MenuID.Undo);
+			refMenu(MenuID.Redo);
 		}
 		override void handleEvent(Event e) {
 			auto c = cast(Control) e.widget;
@@ -2014,6 +2123,12 @@ private:
 			if (chk(_cEnginesView, _undoCEngines)) return;
 		}
 	}
+	private int _undoAcc;
+	private int _redoAcc;
+	void refMenu(MenuID id) {
+		if (id == MenuID.Undo) _undoAcc = convertAccelerator(_prop.buildMenu(MenuID.Undo));
+		if (id == MenuID.Redo) _redoAcc = convertAccelerator(_prop.buildMenu(MenuID.Redo));
+	}
 	void refUndoMax() {
 		_undoBgStgs.max = _prop.var.etc.undoMaxEtc;
 		_undoTools.max = _prop.var.etc.undoMaxEtc;
@@ -2021,7 +2136,7 @@ private:
 	}
 public:
 	this (Commons comm, Props prop, Shell shell, DockingFolderCTC dock, Summary summ, void delegate() sendReloadProps) {
-		super(prop, shell, false, prop.msgs.dlgTitSettings, prop.images.menuSettings, true, prop.var.settingsDlg, true);
+		super(prop, shell, false, prop.msgs.dlgTitSettings, prop.images.menu(MenuID.Settings), true, prop.var.settingsDlg, true);
 		_comm = comm;
 		_prop = prop;
 		_dock = dock;
@@ -2038,12 +2153,14 @@ protected:
 		_comm.refScenario.add(&refreshScenario);
 		_comm.refHistories.add(&refHistories);
 		_comm.refSearchHistories.add(&refSearchHistories);
+		_comm.refMenu.add(&refMenu);
 		_comm.refUndoMax.add(&refUndoMax);
 		area.addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) {
 				_comm.refScenario.remove(&refreshScenario);
 				_comm.refHistories.remove(&refHistories);
 				_comm.refSearchHistories.remove(&refSearchHistories);
+				_comm.refMenu.remove(&refMenu);
 				_comm.refUndoMax.remove(&refUndoMax);
 				e.widget.getDisplay().removeFilter(SWT.KeyDown, _kdFilter);
 			}
@@ -2069,9 +2186,9 @@ protected:
 		_wallpaper.setText(_prop.var.etc.wallpaper);
 		auto wsp = _prop.var.etc.wallpaperStyle in _wallpaperStyleTbl;
 		if (wsp) {
-			_wallpaperStyle.select = *wsp;
+			_wallpaperStyle.select(*wsp);
 		} else {
-			_wallpaperStyle.select = WallpaperStyle.Tile;
+			_wallpaperStyle.select(WallpaperStyle.Tile);
 		}
 		_histMax.setSelection(_prop.var.etc.historyMax);
 		_sHistMax.setSelection(_prop.var.etc.searchHistoryMax);
@@ -2106,15 +2223,15 @@ protected:
 		_openLastScenario.setSelection(_prop.var.etc.openLastScenario);
 		auto sptp = _prop.var.etc.soundPlayType in _soundPlayTypeTbl;
 		if (sptp) {
-			_soundPlayType.select = *sptp;
+			_soundPlayType.select(*sptp);
 		} else {
-			_soundPlayType.select = 0;
+			_soundPlayType.select(0);
 		}
 		auto dsp = _prop.var.etc.dialogStatus in _dialogStatusTbl;
 		if (dsp) {
-			_dialogStatus.select = *dsp;
+			_dialogStatus.select(*dsp);
 		} else {
-			_dialogStatus.select = DialogStatus.Top;
+			_dialogStatus.select(DialogStatus.Top);
 		}
 		_savedSound.setText(_prop.var.etc.savedSound);
 
@@ -2123,7 +2240,7 @@ protected:
 			_bgStgsL.add(stg.name);
 			_bgStgs[i] = stg.dup;
 		}
-		if (_bgStgs.length > 0) _bgStgsL.select = 0;
+		if (_bgStgs.length > 0) _bgStgsL.select(0);
 		_bgImagesDefault = _prop.var.etc.bgImagesDefault.dup;
 		selectBgImageSetting();
 
@@ -2138,7 +2255,7 @@ protected:
 			_toolsL.add(tool.name);
 			_tools[i] = tool.dup;
 		}
-		if (_tools.length > 0) _toolsL.select = 0;
+		if (_tools.length > 0) _toolsL.select(0);
 		selectOuterTool();
 
 		_cEngines.length = _prop.var.etc.classicEngines.length;
@@ -2146,7 +2263,7 @@ protected:
 			_cEnginesL.add(cEngine.name);
 			_cEngines[i] = cEngine;
 		}
-		if (_cEngines.length > 0) _cEnginesL.select = 0;
+		if (_cEngines.length > 0) _cEnginesL.select(0);
 		selectCEngine();
 
 		refreshEnabled();
@@ -2207,7 +2324,7 @@ protected:
 		_prop.var.etc.undoMaxEvent = _undoMaxEvent.getSelection();
 		_prop.var.etc.undoMaxReplace = _undoMaxReplace.getSelection();
 		_prop.var.etc.undoMaxEtc = _undoMaxEtc.getSelection();
-		string[] ipLines = splitLines(_ignorePaths.getText());
+		string[] ipLines = splitLines!string(_ignorePaths.getText());
 		if (ipLines.length > 0) {
 			int i;
 			for (i = ipLines.length - 1; i >= 0 && ipLines[i].length == 0; i--) {
@@ -2250,7 +2367,7 @@ protected:
 		}
 		_prop.var.etc.bgImageSettings = _bgStgs.dup;
 		_prop.var.etc.bgImagesDefault = _bgImagesDefault;
-		string[] lines = splitLines(_keyCodes.getText());
+		string[] lines = splitLines!string(_keyCodes.getText());
 		if (lines.length > 0) {
 			int i;
 			for (i = lines.length - 1; i >= 0 && lines[i].length == 0; i--) {
@@ -2262,6 +2379,11 @@ protected:
 		}
 		_prop.var.etc.outerTools = _tools.dup;
 		_prop.var.etc.classicEngines = _cEngines.dup;
+		foreach (itm; _menu.getItems()) {
+			auto data = cast(SMenuData) itm.getData();
+			_prop.var.menu.mnemonic(data.id, data.mnemonic);
+			_prop.var.menu.hotkey(data.id, data.hotkey);
+		}
 		_prop.var.save(_dock);
 		_sendReloadProps();
 		return true;
@@ -2287,6 +2409,8 @@ struct OldSettings {
 	int oldUndoMaxReplace;
 	int oldUndoMaxEtc;
 	DialogStatus oldDialogStatus;
+	string[MenuID] oldMnemonic;
+	string[MenuID] oldHotkey;
 	this (Props prop) {
 		this.prop = prop;
 		this.oldEnginePath = prop.var.etc.enginePath;
@@ -2306,6 +2430,11 @@ struct OldSettings {
 		this.oldUndoMaxReplace = prop.var.etc.undoMaxReplace;
 		this.oldUndoMaxEtc = prop.var.etc.undoMaxEtc;
 		this.oldDialogStatus = prop.var.etc.dialogStatus;
+		foreach (id; EnumMembers!MenuID) {
+			if (isNoKeyBindMenu(id)) continue;
+			oldMnemonic[id] = prop.var.menu.mnemonic(id);
+			oldHotkey[id] = prop.var.menu.hotkey(id);
+		}
 	}
 	void raiseEvent(Commons comm) {
 		bool refSkin = false;
@@ -2367,6 +2496,12 @@ struct OldSettings {
 		if (oldDialogStatus != prop.var.etc.dialogStatus) {
 			comm.refContentText.call();
 		}
+		foreach (id; EnumMembers!MenuID) {
+			if (isNoKeyBindMenu(id)) continue;
+			if (oldMnemonic[id] != prop.var.menu.mnemonic(id) || oldHotkey[id] != prop.var.menu.hotkey(id)) {
+				comm.refMenu.call(id);
+			}
+		}
 	}
 }
 
@@ -2381,7 +2516,7 @@ private:
 public:
 	this (Commons comm, Props prop, Shell shell, BgImageS[] bgImagesDefault) {
 		super(prop, shell, false, prop.msgs.dlgTitBgImagesDefault,
-			prop.images.menuSettings, true, prop.var.bgImagesDlg, true);
+			prop.images.menu(MenuID.Settings), true, prop.var.bgImagesDlg, true);
 		_comm = comm;
 		_prop = prop;
 

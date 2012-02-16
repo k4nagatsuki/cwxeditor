@@ -12,6 +12,7 @@ import cwx.xml;
 import cwx.skin;
 import cwx.path;
 import cwx.structs;
+import cwx.menu;
 
 import cwx.editor.gui.dwt.commondialog;
 import cwx.editor.gui.dwt.dprops;
@@ -26,6 +27,7 @@ import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.properties;
 import cwx.editor.gui.dwt.xmlbytestransfer;
 import cwx.editor.gui.dwt.undo;
+import cwx.editor.gui.dwt.dmenu;
 
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
@@ -152,7 +154,7 @@ private:
 					v.refData(a, v._areas.getItem(i));
 					i++;
 				}
-				v._areas.select = _selB;
+				v._areas.select(_selB);
 				v._areas.showSelection();
 				v.refreshStatusLine();
 			}
@@ -842,20 +844,20 @@ public:
 
 		auto menu = new Menu(parent.getShell(), SWT.POP_UP);
 		if (!_comm.singleWindowMode(_prop) || _prop.var.etc.bindSceneWithEvent) {
-			createMenuItem(menu, _prop.msgs.menuCEdit, _prop.images.menuCEdit, {openAreaScene(true);});
+			createMenuItem(_comm, menu, MenuID.EditProp, {openAreaScene(true);});
 		} else {
-			createMenuItem(menu, _prop.msgs.menuEditScene, _prop.images.menuEditScene, {openAreaScene(true);});
-			createMenuItem(menu, _prop.msgs.menuEditEvent, _prop.images.menuEditEvent, {openAreaEvent(true);});
+			createMenuItem(_comm, menu, MenuID.EditSceneArea, {openAreaScene(true);});
+			createMenuItem(_comm, menu, MenuID.EditEventArea, {openAreaEvent(true);});
 		}
 		new MenuItem(menu, SWT.SEPARATOR);
-		createMenuItem(menu, _prop.msgs.menuSummary, _prop.images.menuSummary, &editSummary);
+		createMenuItem(_comm, menu, MenuID.EditSummary, &editSummary);
 		new MenuItem(menu, SWT.SEPARATOR);
-		createMenuItem(menu, _prop.msgs.menuUndo, _prop.images.menuUndo, &undo);
-		createMenuItem(menu, _prop.msgs.menuRedo, _prop.images.menuRedo, &redo);
+		createMenuItem(_comm, menu, MenuID.Undo, &undo);
+		createMenuItem(_comm, menu, MenuID.Redo, &redo);
 		new MenuItem(menu, SWT.SEPARATOR);
-		appendMenuTCPD(_prop, menu, this, true, true, true, true);
+		appendMenuTCPD(_comm, menu, this, true, true, true, true);
 		new MenuItem(menu, SWT.SEPARATOR);
-		createMenuItem(menu, _prop.msgs.menuReNumbering, _prop.images.menuReNumbering, &reNumbering);
+		createMenuItem(_comm, menu, MenuID.ReNumbering, &reNumbering);
 		_areas.setMenu(menu);
 
 		_areas.addMouseListener(new MListener);
@@ -1084,7 +1086,7 @@ public:
 	void select(AbstractArea a) {
 		int i = cCountUntil!("a.getData() is b")(_areas.getItems(), a);
 		if (0 <= i) {
-			_areas.select = i;
+			_areas.select(i);
 			_areas.showSelection();
 		}
 	}
@@ -1198,7 +1200,7 @@ public:
 		_summ.swap!A(i1, i2);
 		refData(a2, _areas.getItem(index1));
 		refData(a1, _areas.getItem(index2));
-		_areas.select = index2;
+		_areas.select(index2);
 		_areas.showSelection();
 		static if (is(A : Area)) {
 			_comm.refArea.call(a1);

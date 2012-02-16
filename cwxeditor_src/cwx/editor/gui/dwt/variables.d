@@ -146,6 +146,8 @@ class FlexEtcProps : Properties {
 	mixin Property!("backupEnabled", bool, true);
 	mixin Property!("backupInterval", int, 15);
 	mixin Property!("backupCount", int, 10);
+	mixin Property!("ignoreMenuSashL", int, 2);
+	mixin Property!("ignoreMenuSashR", int, 1);
 
 	mixin Property!("openHistories", string[], []);
 	mixin Property!("historyMax", int, 9);

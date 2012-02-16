@@ -10,6 +10,7 @@ import cwx.xml;
 import cwx.skin;
 import cwx.event;
 import cwx.path;
+import cwx.menu;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;
@@ -21,6 +22,7 @@ import cwx.editor.gui.dwt.effectcarddialog;
 import cwx.editor.gui.dwt.xmlbytestransfer;
 import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.eventwindow;
+import cwx.editor.gui.dwt.dmenu;
 
 import std.string;
 import std.datetime;
@@ -108,7 +110,7 @@ private:
 		}
 		protected void uda(MotionView v) {
 			if (!v || v.isDisposed()) return;
-			v._motions.select = _selectedB;
+			v._motions.select(_selectedB);
 			v._motions.showSelection();
 			v.refreshSels(true);
 		}
@@ -398,7 +400,7 @@ private:
 		auto mt = new MT;
 		mt.v = v;
 		mt.type = type;
-		createToolItem(tbar, tt, _prop.images.motion(type), &mt.create);
+		createToolItem2(tbar, tt, _prop.images.motion(type), &mt.create);
 	}
 	int indexOf(Motion m) {
 		foreach (i, itm; _motions.getItems()) {
@@ -507,7 +509,7 @@ private:
 			_motions.remove(index);
 			if (index >= _motions.getItemCount()) index--;
 			if (index >= 0) {
-				_motions.select = index;
+				_motions.select(index);
 			}
 			_oldIndex = -1;
 			_motions.redraw();
@@ -564,7 +566,7 @@ private:
 			auto m = cast(Motion) _motions.getItem(_oldIndex).getData();
 			foreach (i, itm; _motionElm.getItems()) {
 				if ((cast(Element) (cast(Integer) itm.getData()).intValue()) == m.element) {
-					_motionElm.select = i;
+					_motionElm.select(i);
 					break;
 				}
 			}
@@ -749,6 +751,7 @@ private:
 	}
 	class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
+			_comm.refMenu.remove(&refMenu);
 			_comm.refBeast.remove(&refBeast);
 			_comm.delBeast.remove(&refBeast);
 			_comm.refUndoMax.remove(&refUndoMax);
@@ -759,11 +762,9 @@ private:
 		}
 	}
 	class KeyDownFilter : Listener {
-		private int _undoAcc;
-		private int _redoAcc;
 		this () {
-			_undoAcc = convertAccelerator(_prop.msgs.menuUndo);
-			_redoAcc = convertAccelerator(_prop.msgs.menuRedo);
+			refMenu(MenuID.Undo);
+			refMenu(MenuID.Redo);
 		}
 		override void handleEvent(Event e) {
 			auto c = cast(Control) e.widget;
@@ -778,6 +779,12 @@ private:
 			}
 		}
 	}
+	private int _undoAcc;
+	private int _redoAcc;
+	void refMenu(MenuID id) {
+		if (id == MenuID.Undo) _undoAcc = convertAccelerator(_prop.buildMenu(MenuID.Undo));
+		if (id == MenuID.Redo) _redoAcc = convertAccelerator(_prop.buildMenu(MenuID.Redo));
+	}
 	void refBeast(BeastCard beast) {
 		refBeasts();
 	}
@@ -787,7 +794,7 @@ private:
 		_beastTbl = b;
 		_beasts.add(_prop.msgs.beastNone);
 		_beastTbl[0] = null;
-		_beasts.select = 0;
+		_beasts.select(0);
 		foreach (i, c; _summ.beasts) {
 			_beastTbl[i + 1] = c;
 			_beasts.add(c.name);
@@ -824,10 +831,10 @@ public:
 				bar.addListener(SWT.KeyDown, new class Listener {
 					override void handleEvent(Event e) {e.doit = true;}
 				});
-				createToolItem(bar, _prop.msgs.msnDelete, _prop.images.msnDelete, &removeMotion);
+				createToolItem2(bar, _prop.msgs.msnDelete, _prop.images.msnDelete, &removeMotion);
 				new ToolItem(bar, SWT.SEPARATOR);
-				createToolItem(bar, _prop.msgs.ttUp, _prop.images.menuUp, &up);
-				createToolItem(bar, _prop.msgs.ttDown, _prop.images.menuDown, &down);
+				createToolItem(_comm, bar, MenuID.Up, &up);
+				createToolItem(_comm, bar, MenuID.Down, &down);
 				new ToolItem(bar, SWT.SEPARATOR);
 				auto tab = new CTabItem(mtabf, SWT.NONE);
 				tab.setControl(bar);
@@ -918,13 +925,13 @@ public:
 			_motions.setLayoutData(gd);
 			_motions.setHeaderVisible(true);
 			auto menu = new Menu(_motions);
-			createMenuItem(menu, _prop.msgs.menuUndo, _prop.images.menuUndo, &this.undo);
-			createMenuItem(menu, _prop.msgs.menuRedo, _prop.images.menuRedo, &this.redo);
+			createMenuItem(_comm, menu, MenuID.Undo, &this.undo);
+			createMenuItem(_comm, menu, MenuID.Redo, &this.redo);
 			new MenuItem(menu, SWT.SEPARATOR);
-			createMenuItem(menu, _prop.msgs.menuUp, _prop.images.menuUp, &up);
-			createMenuItem(menu, _prop.msgs.menuDown, _prop.images.menuDown, &down);
+			createMenuItem(_comm, menu, MenuID.Up, &up);
+			createMenuItem(_comm, menu, MenuID.Down, &down);
 			new MenuItem(menu, SWT.SEPARATOR);
-			appendMenuTCPD(_prop, menu, new MotionTCPD, true, true, true, true);
+			appendMenuTCPD(_comm, menu, new MotionTCPD, true, true, true, true);
 			_motions.setMenu(menu);
 			auto col = new FullTableColumn(_motions, SWT.NONE);
 			col.column.setText(_prop.msgs.motionKind);
@@ -945,8 +952,8 @@ public:
 				itm.setData(new Integer(elm));
 			}
 			auto menu = new Menu(_motionElm);
-			createMenuItem(menu, _prop.msgs.menuUndo, _prop.images.menuUndo, &this.undo);
-			createMenuItem(menu, _prop.msgs.menuRedo, _prop.images.menuRedo, &this.redo);
+			createMenuItem(_comm, menu, MenuID.Undo, &this.undo);
+			createMenuItem(_comm, menu, MenuID.Redo, &this.redo);
 			_motionElm.setMenu(menu);
 		}
 		{
@@ -1003,14 +1010,14 @@ public:
 				_beastImg.addMouseListener(eb);
 				_beastImg.addKeyListener(eb);
 				auto menu = new Menu(_beastImg);
-				createMenuItem(menu, prop.msgs.menuCEdit, prop.images.menuCEdit, &editBeastM);
+				createMenuItem(_comm, menu, MenuID.EditProp, &editBeastM);
 				new MenuItem(menu, SWT.SEPARATOR);
-				createMenuItem(menu, _prop.msgs.menuEditUseEvent, _prop.images.menuEditUseEvent, &editBeastUseEvent);
+				createMenuItem(_comm, menu, MenuID.EditEventAtTimeOfUsing, &editBeastUseEvent);
 				new MenuItem(menu, SWT.SEPARATOR);
-				createMenuItem(menu, _prop.msgs.menuUndo, _prop.images.menuUndo, &this.undo);
-				createMenuItem(menu, _prop.msgs.menuRedo, _prop.images.menuRedo, &this.redo);
+				createMenuItem(_comm, menu, MenuID.Undo, &this.undo);
+				createMenuItem(_comm, menu, MenuID.Redo, &this.redo);
 				new MenuItem(menu, SWT.SEPARATOR);
-				appendMenuTCPD(_prop, menu, new BeastTCPD, true, true, true, true);
+				appendMenuTCPD(_comm, menu, new BeastTCPD, true, true, true, true);
 				_beastImg.setMenu(menu);
 				auto gd = new GridData(GridData.FILL_BOTH);
 				gd.horizontalSpan = 2;
@@ -1101,6 +1108,7 @@ public:
 
 		addDisposeListener(new Dispose);
 		_kdFilter = new KeyDownFilter();
+		_comm.refMenu.add(&refMenu);
 		_comm.refBeast.add(&refBeast);
 		_comm.delBeast.add(&refBeast);
 		_comm.refUndoMax.add(&refUndoMax);
@@ -1247,7 +1255,7 @@ public:
 		if (cate == "motion") {
 			auto index = cpindex(path);
 			if (index >= _motions.getItemCount()) return false;
-			_motions.select = index;
+			_motions.select(index);
 			refreshSels();
 			path = cpbottom(path);
 			.forceFocus(_motions, shellActivate);

@@ -20,6 +20,7 @@ import cwx.motion;
 import cwx.props;
 import cwx.structs;
 import cwx.msgs;
+import cwx.menu;
 
 import cwx.editor.gui.dwt.image;
 import cwx.editor.gui.dwt.properties;
@@ -108,6 +109,15 @@ public:
 
 	const
 	string toAppAbs(string path) {return parent.toAppAbs(path);}
+
+	const
+	string buildTool(MenuID id) {
+		return var.menu.buildTool(parent, id);
+	}
+	const
+	string buildMenu(MenuID id) {
+		return var.menu.buildMenu(parent, id);
+	}
 }
 
 /// CPoint等の構造体をSWTのクラスに変換するための関数。

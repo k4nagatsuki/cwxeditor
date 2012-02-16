@@ -12,6 +12,7 @@ import cwx.xml;
 import cwx.skin;
 import cwx.motion;
 import cwx.path;
+import cwx.menu;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;
@@ -26,6 +27,7 @@ import cwx.editor.gui.dwt.radarspinner;
 import cwx.editor.gui.dwt.xmlbytestransfer;
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.undo;
+import cwx.editor.gui.dwt.dmenu;
 
 import std.datetime;
 import std.string;
@@ -159,7 +161,7 @@ private:
 	void raceToolTip() {
 		if (_race) {
 			auto race = selectedRace;
-			_race.setToolTipText = race ? race.desc : "";
+			_race.setToolTipText(race ? race.desc : "");
 		}
 	}
 	class SelectRace : SelectionAdapter {
@@ -171,15 +173,15 @@ private:
 		override void widgetSelected(SelectionEvent e) {
 			auto race = selectedRace;
 			if (race) {
-				_automaton.setSelection = race.automaton;
-				_constructure.setSelection = race.constructure;
-				_undead.setSelection = race.undead;
-				_unholy.setSelection = race.unholy;
-				_resW.setSelection = race.weaponResist;
-				_resM.setSelection = race.magicResist;
+				_automaton.setSelection(race.automaton);
+				_constructure.setSelection(race.constructure);
+				_undead.setSelection(race.undead);
+				_unholy.setSelection(race.unholy);
+				_resW.setSelection(race.weaponResist);
+				_resM.setSelection(race.magicResist);
 				foreach (el; _res.keys) {
-					_res[el].setSelection = race.resist(el);
-					_weak[el].setSelection = race.weakness(el);
+					_res[el].setSelection(race.resist(el));
+					_weak[el].setSelection(race.weakness(el));
 				}
 			}
 		}
@@ -208,13 +210,13 @@ private:
 			auto coupons = _coupons;
 			auto selected = _selected;
 			save();
-			this.outer._coupons.setRedraw = false;
-			scope (exit) this.outer._coupons.setRedraw = true;
+			this.outer._coupons.setRedraw(false);
+			scope (exit) this.outer._coupons.setRedraw(true);
 			this.outer._coupons.removeAll();
 			foreach (c; coupons) {
 				appendCoupon(c);
 			}
-			this.outer._coupons.select = selected;
+			this.outer._coupons.select(selected);
 			this.outer._coupons.showSelection();
 		}
 		override void undo() {impl();}
@@ -256,8 +258,8 @@ private:
 		itm.setImage(0, couponImage(coupon.value));
 		itm.setText(0, coupon.name);
 		itm.setText(1, to!(string)(coupon.value));
-		itm.setData = coupon;
-		_coupons.setSelection = [itm];
+		itm.setData(coupon);
+		_coupons.setSelection([itm]);
 		_coupons.showSelection();
 	}
 	void addCoupon() {
@@ -288,7 +290,7 @@ private:
 			itm.setImage(0, couponImage(coupon.value));
 			itm.setText(0, coupon.name);
 			itm.setText(1, to!(string)(coupon.value));
-			itm.setData = coupon;
+			itm.setData(coupon);
 			applyEnabled();
 		}
 	}
@@ -299,7 +301,7 @@ private:
 			_coupons.remove(i);
 			if (i >= _coupons.getItemCount()) i--;
 			if (i >= 0) {
-				_coupons.select = i;
+				_coupons.select(i);
 				selCoupon();
 			}
 			applyEnabled();
@@ -309,9 +311,9 @@ private:
 		auto i = _coupons.getSelectionIndex();
 		if (-1 != i) {
 			auto c = cast(Coupon) _coupons.getItem(i).getData();
-			_newCoupon.setText = c.name;
+			_newCoupon.setText(c.name);
 			_newCouponTM.reset();
-			_couponVal.setSelection = c.value;
+			_couponVal.setSelection(c.value);
 		}
 	}
 	void swapCoupon(int index1, int index2) {
@@ -321,14 +323,14 @@ private:
 		auto text1 = itm1.getText(0);
 		auto text2 = itm1.getText(1);
 		auto data = itm1.getData();
-		itm1.setImage = itm2.getImage();
+		itm1.setImage(itm2.getImage());
 		itm1.setText(0, itm2.getText(0));
 		itm1.setText(1, itm2.getText(1));
-		itm1.setData = itm2.getData();
-		itm2.setImage = img;
+		itm1.setData(itm2.getData());
+		itm2.setImage(img);
 		itm2.setText(0, text1);
 		itm2.setText(1, text2);
-		itm2.setData = data;
+		itm2.setData(data);
 		applyEnabled();
 	}
 	void upCoupon() {
@@ -445,25 +447,25 @@ private:
 
 	class SelLifeC : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			_lifeMax.setSelection = _prop.looks.lifeCalc(_level.getSelection(),
+			_lifeMax.setSelection(_prop.looks.lifeCalc(_level.getSelection(),
 				_phy.getValue(_phyTbl[Physical.VIT]),
-				_phy.getValue(_phyTbl[Physical.MIN]));
+				_phy.getValue(_phyTbl[Physical.MIN])));
 		}
 	}
 
 	void constructBase(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
-		comp.setLayout = new GridLayout(2, false);
+		comp.setLayout(new GridLayout(2, false));
 		auto skin = _comm.skin;
 		{
 			auto comp2 = new Composite(comp, SWT.NONE);
-			comp2.setLayoutData = new GridData(GridData.FILL_BOTH);
-			comp2.setLayout = zeroMarginGridLayout(1, false);
+			comp2.setLayoutData(new GridData(GridData.FILL_BOTH));
+			comp2.setLayout(zeroMarginGridLayout(1, false));
 			{
 				auto grp = new Group(comp2, SWT.NONE);
-				grp.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				grp.setLayout = new GridLayout(2, false);
-				grp.setText = _prop.msgs.name;
+				grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				grp.setLayout(new GridLayout(2, false));
+				grp.setText(_prop.msgs.name);
 				_name = new GBLimitText(_prop.looks.monospace,
 					_prop.looks.castNameLimit, false, grp, SWT.BORDER);
 				_name.limitEvent ~= &refreshWarning;
@@ -471,71 +473,71 @@ private:
 				createTextMenu!Text(_comm, _prop, _name.widget, &catchMod);
 				auto gd = new GridData(GridData.FILL_HORIZONTAL);
 				gd.widthHint = _name.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
-				_name.widget.setLayoutData = gd;
+				_name.widget.setLayoutData(gd);
 				auto l = new Label(grp, SWT.NONE);
-				l.setText = _prop.msgs.nameLimit(_prop.looks.castNameLimit);
+				l.setText(_prop.msgs.nameLimit(_prop.looks.castNameLimit));
 			}
 			{
 				bool including = _card && isBinImg(_card.path);
 				string saveName = including ? _card.name : "";
 				_imgPath = new ImageSelect!(MtType.CARD)(comp2, SWT.NONE, _comm, _prop, _summ,
 					_prop.looks.cardSize.width, _prop.looks.cardSize.height, including, saveName);
-				_imgPath.widget.setLayoutData = new GridData(GridData.FILL_BOTH);
+				_imgPath.widget.setLayoutData(new GridData(GridData.FILL_BOTH));
 				mod(_imgPath);
 			}
 		}
 		{
 			auto compr = new Composite(comp, SWT.NONE);
-			compr.setLayoutData = new GridData(GridData.FILL_VERTICAL);
-			compr.setLayout = zeroMarginGridLayout(1, false);
+			compr.setLayoutData(new GridData(GridData.FILL_VERTICAL));
+			compr.setLayout(zeroMarginGridLayout(1, false));
 			{
 				auto grp = new Group(compr, SWT.NONE);
-				grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-				grp.setLayout = new CenterLayout;
-				grp.setText = _prop.msgs.level;
+				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+				grp.setLayout(new CenterLayout);
+				grp.setText(_prop.msgs.level);
 				auto comp2 = new Composite(grp, SWT.NONE);
-				comp2.setLayout = zeroMarginGridLayout(2, false);
+				comp2.setLayout(zeroMarginGridLayout(2, false));
 				_level = new Spinner(comp2, SWT.BORDER);
 				mod(_level);
-				_level.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				_level.setMinimum = 1;
-				_level.setMaximum = _prop.looks.castLevelMax;
+				_level.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				_level.setMinimum(1);
+				_level.setMaximum(_prop.looks.castLevelMax);
 				auto hint = new Label(comp2, SWT.RIGHT);
-				hint.setText = _prop.msgs.rangeHint(1, _prop.looks.castLevelMax);
+				hint.setText(_prop.msgs.rangeHint(1, _prop.looks.castLevelMax));
 			}
 			{
 				auto grp = new Group(compr, SWT.NONE);
-				grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-				grp.setLayout = new CenterLayout;
-				grp.setText = _prop.msgs.life;
+				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+				grp.setLayout(new CenterLayout);
+				grp.setText(_prop.msgs.life);
 				auto comp2 = new Composite(grp, SWT.NONE);
-				comp2.setLayout = zeroMarginGridLayout(2, false);
+				comp2.setLayout(zeroMarginGridLayout(2, false));
 				_lifeMax = new Spinner(comp2, SWT.BORDER);
 				mod(_lifeMax);
-				_lifeMax.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-				_lifeMax.setMinimum = 1;
-				_lifeMax.setMaximum = _prop.looks.lifeMax;
+				_lifeMax.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				_lifeMax.setMinimum(1);
+				_lifeMax.setMaximum(_prop.looks.lifeMax);
 				_lifeMax.addModifyListener(new LifeMaxL);
 				auto hint = new Label(comp2, SWT.RIGHT);
-				hint.setText = _prop.msgs.rangeHint(1, _prop.looks.lifeMax);
+				hint.setText(_prop.msgs.rangeHint(1, _prop.looks.lifeMax));
 				auto lifec = new Button(comp2, SWT.PUSH);
 				mod(lifec);
 				auto lgd = new GridData(GridData.FILL_HORIZONTAL);
 				lgd.horizontalSpan = 2;
-				lifec.setLayoutData = lgd;
-				lifec.setText = _prop.msgs.lifeCalc;
+				lifec.setLayoutData(lgd);
+				lifec.setText(_prop.msgs.lifeCalc);
 				lifec.addSelectionListener(new SelLifeC);
 			}
 			auto grp = new Group(compr, SWT.NONE);
-			grp.setText = _prop.msgs.race;
-			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
+			grp.setText(_prop.msgs.race);
+			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			auto cl = new CenterLayout;
 			cl.fillHorizontal = true;
-			grp.setLayout = cl;
+			grp.setLayout(cl);
 			_race = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 			mod(_race);
-			_race.setVisibleItemCount = 20;
-			_race.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+			_race.setVisibleItemCount(20);
+			_race.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			_race.add(_prop.msgs.noRace);
 			foreach (race; skin.races) {
 				_race.add(race.name);
@@ -544,13 +546,13 @@ private:
 			refreshRace();
 		}
 		auto tab = new CTabItem(tabf, SWT.NONE);
-		tab.setText = _prop.msgs.card;
-		tab.setControl = comp;
+		tab.setText(_prop.msgs.card);
+		tab.setControl(comp);
 	}
 	void setMaxLife() {
-		_life.setMaximum = _lifeMax.getSelection();
+		_life.setMaximum(_lifeMax.getSelection());
 		if (_lifeUseMax.getSelection()) {
-			_life.setSelection = _lifeMax.getSelection();
+			_life.setSelection(_lifeMax.getSelection());
 		}
 	}
 	class LifeMaxL : ModifyListener {
@@ -560,26 +562,26 @@ private:
 	}
 	void constructDesc(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
-		comp.setLayout = new GridLayout(2, false);
+		comp.setLayout(new GridLayout(2, false));
 		{
 			auto grp = new Group(comp, SWT.NONE);
 			auto gd = new GridData(GridData.FILL_BOTH);
-			grp.setLayoutData = gd;
+			grp.setLayoutData(gd);
 			gd.horizontalSpan = 2;
 			auto cl = new CenterLayout(SWT.HORIZONTAL);
 			cl.fillVertical = true;
-			grp.setLayout = cl;
-			grp.setText = _prop.msgs.desc;
+			grp.setLayout(cl);
+			grp.setText(_prop.msgs.desc);
 			_desc = new FixedWidthText(dwtData(_prop.looks.cardDescFont(_summ.legacy)), _prop.looks.cardDescLen, grp, SWT.BORDER);
 			mod(_desc.widget);
 			createTextMenu!Text(_comm, _prop, _desc.widget, &catchMod);
 			auto p = _desc.computeTextBaseSize(1);
 			p.y = SWT.DEFAULT;
-			_desc.widget.setLayoutData = p;
+			_desc.widget.setLayoutData(p);
 		}
 		auto tab = new CTabItem(tabf, SWT.NONE);
-		tab.setText = _prop.msgs.desc;
-		tab.setControl = comp;
+		tab.setText(_prop.msgs.desc);
+		tab.setControl(comp);
 	}
 	class SelCoupon : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
@@ -594,55 +596,55 @@ private:
 	}
 	void constructHistory(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
-		comp.setLayout = new GridLayout(2, false);
+		comp.setLayout(new GridLayout(2, false));
 		auto skin = _comm.skin;
 		{
 			auto grp = new Group(comp, SWT.NONE);
 			_couponView = grp;
-			grp.setText = _prop.msgs.coupons;
-			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-			grp.setLayout = new GridLayout(2, false);
+			grp.setText(_prop.msgs.coupons);
+			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			grp.setLayout(new GridLayout(2, false));
 			{
 				auto toolbar = new ToolBar(grp, SWT.FLAT);
 				auto gd = new GridData(GridData.FILL_HORIZONTAL);
 				gd.horizontalSpan = 2;
-				toolbar.setLayoutData = gd;
+				toolbar.setLayoutData(gd);
 				toolbar.addListener(SWT.Traverse, new HTBTraverse);
 				toolbar.addListener(SWT.KeyDown, new HTBKeyDown);
-				createToolItem(toolbar, _prop.msgs.addCoupon, _prop.images.addCoupon, &addCoupon);
-				createToolItem(toolbar, _prop.msgs.altCoupon, _prop.images.altCoupon, &altCoupon);
-				createToolItem(toolbar, _prop.msgs.delCoupon, _prop.images.couponDelete, &delCoupon);
+				createToolItem2(toolbar, _prop.msgs.addCoupon, _prop.images.addCoupon, &addCoupon);
+				createToolItem2(toolbar, _prop.msgs.altCoupon, _prop.images.altCoupon, &altCoupon);
+				createToolItem2(toolbar, _prop.msgs.delCoupon, _prop.images.couponDelete, &delCoupon);
 				new ToolItem(toolbar, SWT.SEPARATOR);
-				createToolItem(toolbar, _prop.msgs.ttUp, _prop.images.menuUp, &upCoupon);
-				createToolItem(toolbar, _prop.msgs.ttDown, _prop.images.menuDown, &downCoupon);
+				createToolItem(_comm, toolbar, MenuID.Up, &upCoupon);
+				createToolItem(_comm, toolbar, MenuID.Down, &downCoupon);
 			}
 			{
 				_newCoupon = new Text(grp, SWT.BORDER);
 				_newCouponTM = createTextMenu!Text(_comm, _prop, _newCoupon, &catchMod);
-				_newCoupon.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+				_newCoupon.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				_couponVal = new Spinner(grp, SWT.BORDER);
-				_couponVal.setMinimum = cast(int) _prop.looks.couponValueMax * -1;
-				_couponVal.setMaximum = _prop.looks.couponValueMax;
+				_couponVal.setMinimum(cast(int) _prop.looks.couponValueMax * -1);
+				_couponVal.setMaximum(_prop.looks.couponValueMax);
 			}
 			{
 				_coupons = new Table(grp, SWT.BORDER | SWT.SINGLE | SWT.FULL_SELECTION);
 				auto gd = new GridData(GridData.FILL_BOTH);
 				gd.horizontalSpan = 2;
 				gd.widthHint = _prop.var.etc.couponWidth;
-				_coupons.setLayoutData = gd;
+				_coupons.setLayoutData(gd);
 				auto cc = new FullTableColumn(_coupons, SWT.NONE);
 				auto cv = new TableColumn(_coupons, SWT.NONE);
-				cv.setWidth = 40;
+				cv.setWidth(40);
 				saveColumnWidth!("prop.var.etc.couponValueColumn")(_prop, cv);
 				auto menu = new Menu(_coupons);
-				createMenuItem(menu, _prop.msgs.menuUndo, _prop.images.menuUndo, &undoCoupons);
-				createMenuItem(menu, _prop.msgs.menuRedo, _prop.images.menuRedo, &redoCoupons);
+				createMenuItem(_comm, menu, MenuID.Undo, &undoCoupons);
+				createMenuItem(_comm, menu, MenuID.Redo, &redoCoupons);
 				new MenuItem(menu, SWT.SEPARATOR);
-				createMenuItem(menu, _prop.msgs.menuUp, _prop.images.menuUp, &upCoupon);
-				createMenuItem(menu, _prop.msgs.menuDown, _prop.images.menuDown, &downCoupon);
+				createMenuItem(_comm, menu, MenuID.Up, &upCoupon);
+				createMenuItem(_comm, menu, MenuID.Down, &downCoupon);
 				new MenuItem(menu, SWT.SEPARATOR);
-				appendMenuTCPD(_prop, menu, new CouponTCPD, true, true, true, true);
-				_coupons.setMenu = menu;
+				appendMenuTCPD(_comm, menu, new CouponTCPD, true, true, true, true);
+				_coupons.setMenu(menu);
 			}
 			_coupons.addSelectionListener(new SelCoupon);
 			auto drag = new DragSource(_coupons, DND.DROP_MOVE | DND.DROP_COPY);
@@ -654,13 +656,13 @@ private:
 		}
 		{
 			auto comp2 = new Composite(comp, SWT.NONE);
-			comp2.setLayoutData = new GridData(GridData.FILL_VERTICAL);
-			comp2.setLayout = zeroMarginGridLayout(2, false);
+			comp2.setLayoutData(new GridData(GridData.FILL_VERTICAL));
+			comp2.setLayout(zeroMarginGridLayout(2, false));
 			Button createR(Composite parent, string name) {
 				auto radio = new Button(parent, SWT.RADIO);
 				mod(radio);
-				radio.setLayoutData = new GridData(GridData.FILL_BOTH);
-				radio.setText = name;
+				radio.setLayoutData(new GridData(GridData.FILL_BOTH));
+				radio.setText(name);
 				return radio;
 			}
 			{
@@ -686,8 +688,8 @@ private:
 			}
 		}
 		auto tab = new CTabItem(tabf, SWT.NONE);
-		tab.setText = _prop.msgs.history;
-		tab.setControl = comp;
+		tab.setText(_prop.msgs.history);
+		tab.setControl(comp);
 	}
 	class MSListener : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
@@ -695,13 +697,13 @@ private:
 			if (radio.getSelection()) {
 				auto m = cast(Makings) (cast(Integer) radio.getData()).intValue();
 				auto r = reverseMakings(m);
-				_makings[r].setSelection = false;
+				_makings[r].setSelection(false);
 			}
 		}
 	};
 	void constructMakings(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
-		comp.setLayout = new GridLayout(1, false);
+		comp.setLayout(new GridLayout(1, false));
 		auto skin = _comm.skin;
 		{
 			auto comp3 = createButtonGroup(comp, _prop.msgs.coupons, 4, 1, true);
@@ -710,9 +712,9 @@ private:
 				void createR(Makings m) {
 					auto radio = new Button(comp3, SWT.CHECK);
 					mod(radio);
-					radio.setLayoutData = new GridData(GridData.FILL_BOTH);
-					radio.setText = _prop.sys.makingsName(m, skin.legacyName);
-					radio.setData = new Integer(m);
+					radio.setLayoutData(new GridData(GridData.FILL_BOTH));
+					radio.setText(_prop.sys.makingsName(m, skin.legacyName));
+					radio.setData(new Integer(m));
 					radio.addSelectionListener(sl);
 					_makings[m] = radio;
 				}
@@ -721,23 +723,23 @@ private:
 			}
 		}
 		auto tab = new CTabItem(tabf, SWT.NONE);
-		tab.setText = _prop.msgs.makings;
-		tab.setControl = comp;
+		tab.setText(_prop.msgs.makings);
+		tab.setControl(comp);
 	}
 	Composite createButtonGroup(Composite parent, string name,
 			int row, int horSpan = 1, bool min = false) {
 		auto grp = new Group(parent, SWT.NONE);
-		grp.setText = name;
+		grp.setText(name);
 		auto gd = new GridData(GridData.FILL_BOTH);
 		gd.horizontalSpan = horSpan;
-		grp.setLayoutData = gd;
+		grp.setLayoutData(gd);
 		auto cl = new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0);
 		cl.fillVertical = true;
-		grp.setLayout = cl;
+		grp.setLayout(cl);
 		auto comp3 = new Composite(grp, SWT.NONE);
 		auto gl = new GridLayout(row, true);
 		if (min) gl.verticalSpacing = 2;
-		comp3.setLayout = gl;
+		comp3.setLayout(gl);
 		return comp3;
 	}
 	class ESListener : SelectionAdapter {
@@ -748,31 +750,31 @@ private:
 		override void widgetSelected(SelectionEvent e) {
 			auto radio = cast(Button) e.widget;
 			if (radio.getSelection()) {
-				_targ.setSelection = false;
+				_targ.setSelection(false);
 			}
 		}
 	};
 	void constructResist(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
-		comp.setLayout = new GridLayout(1, false);
+		comp.setLayout(new GridLayout(1, false));
 		Button createC(Composite parent, string name, string desc) {
 			auto comp = new Composite(parent, SWT.NONE);
-			comp.setLayoutData = new GridData(GridData.FILL_BOTH);
-			comp.setLayout = zeroGridLayout(2, false);
+			comp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			comp.setLayout(zeroGridLayout(2, false));
 			auto c = new Button(comp, SWT.CHECK);
 			mod(c);
 			auto cgd = new GridData(GridData.FILL_HORIZONTAL);
 			cgd.horizontalSpan = 2;
-			c.setLayoutData = cgd;
-			c.setText = name;
+			c.setLayoutData(cgd);
+			c.setText(name);
 			auto dummy = new Composite(comp, SWT.NONE);
 			auto dgd = new GridData;
 			dgd.widthHint = 20;
 			dgd.heightHint = 0;
-			dummy.setLayoutData = dgd;
+			dummy.setLayoutData(dgd);
 			auto l = new Label(comp, SWT.NONE);
-			l.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-			l.setText = desc;
+			l.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			l.setText(desc);
 			return c;
 		}
 		{
@@ -806,29 +808,29 @@ private:
 			int maxW = ts.x > bs.x ? ts.x : bs.x;
 			ts.x = maxW;
 			bs.x = maxW;
-			tcomp.setLayoutData = ts;
-			bcomp.setLayoutData = bs;
+			tcomp.setLayoutData(ts);
+			bcomp.setLayoutData(bs);
 		}
 		{
 			auto basic = new Button(comp, SWT.PUSH);
 			mod(basic);
-			basic.setText = _prop.msgs.basicResist;
-			basic.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
+			basic.setText(_prop.msgs.basicResist);
+			basic.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 			basic.addSelectionListener(new BasicResist);
 		}
 		auto tab = new CTabItem(tabf, SWT.NONE);
-		tab.setText = _prop.msgs.tolerant;
-		tab.setControl = comp;
+		tab.setText(_prop.msgs.tolerant);
+		tab.setControl(comp);
 	}
 	void constructPhysical(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
-		comp.setLayout = new GridLayout(1, false);
+		comp.setLayout(new GridLayout(1, false));
 		{
 			auto grp = new Group(comp, SWT.NONE);
-			grp.setText = _prop.msgs.physicalParams;
-			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
+			grp.setText(_prop.msgs.physicalParams);
+			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			auto cl = new CenterLayout;
-			grp.setLayout = cl;
+			grp.setLayout(cl);
 			_phy = new RadarSpinner(grp, SWT.NONE);
 			mod(_phy);
 			static const Ps = [Physical.DEX, Physical.AGL, Physical.INT,
@@ -848,13 +850,13 @@ private:
 		{
 			auto basic = new Button(comp, SWT.PUSH);
 			mod(basic);
-			basic.setText = _prop.msgs.physicalCalc;
-			basic.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
+			basic.setText(_prop.msgs.physicalCalc);
+			basic.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 			basic.addSelectionListener(new CalcPhysical);
 		}
 		auto tab = new CTabItem(tabf, SWT.NONE);
-		tab.setText = _prop.msgs.physicalParams;
-		tab.setControl = comp;
+		tab.setText(_prop.msgs.physicalParams);
+		tab.setControl(comp);
 	}
 	real calcPhy(E)(Physical phy, Button[E] radios, bool all) {
 		real r = 0.0;
@@ -909,41 +911,41 @@ private:
 	}
 	void constructMental(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
-		comp.setLayout = new GridLayout(1, false);
+		comp.setLayout(new GridLayout(1, false));
 		{
 			auto grp = new Group(comp, SWT.NONE);
-			grp.setText = _prop.msgs.mentalParams;
-			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
+			grp.setText(_prop.msgs.mentalParams);
+			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			auto ggl = new GridLayout(3, false);
 			ggl.verticalSpacing = 0;
-			grp.setLayout = ggl;
+			grp.setLayout(ggl);
 			static const Ms = [Mental.AGGRESSIVE, Mental.CHEERFUL, Mental.BRAVE,
 				Mental.CAUTIOUS, Mental.TRICKISH];
 			foreach (m; Ms) {
 				auto minl = new Label(grp, SWT.NONE);
-				minl.setText = _prop.msgs.mentalName(reverseMental(m));
+				minl.setText(_prop.msgs.mentalName(reverseMental(m)));
 				auto scale = new Scale(grp, SWT.NONE);
 				mod(scale);
-				scale.setLayoutData = new GridData(GridData.FILL_BOTH);
-				scale.setMaximum = _prop.looks.mentalMax * 2;
-				scale.setMinimum = 0;
-				scale.setIncrement = 1;
-				scale.setPageIncrement = _prop.looks.mentalMax;
+				scale.setLayoutData(new GridData(GridData.FILL_BOTH));
+				scale.setMaximum(_prop.looks.mentalMax * 2);
+				scale.setMinimum(0);
+				scale.setIncrement(1);
+				scale.setPageIncrement(_prop.looks.mentalMax);
 				auto maxl = new Label(grp, SWT.NONE);
-				maxl.setText = _prop.msgs.mentalName(m);
+				maxl.setText(_prop.msgs.mentalName(m));
 				_mtl[m] = scale;
 			}
 		}
 		{
 			auto basic = new Button(comp, SWT.PUSH);
 			mod(basic);
-			basic.setText = _prop.msgs.mentalCalc;
-			basic.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
+			basic.setText(_prop.msgs.mentalCalc);
+			basic.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 			basic.addSelectionListener(new CalcMental);
 		}
 		auto tab = new CTabItem(tabf, SWT.NONE);
-		tab.setText = _prop.msgs.mentalParams;
-		tab.setControl = comp;
+		tab.setText(_prop.msgs.mentalParams);
+		tab.setControl(comp);
 	}
 	real calcMtl(E)(Mental mtl, Button[E] radios, bool all) {
 		real r = 0.0;
@@ -977,18 +979,18 @@ private:
 				int v = cast(int) val;
 				if (v < min) v = min;
 				if (v > max) v = max;
-				scale.setSelection = v + _prop.looks.mentalMax;
+				scale.setSelection(v + _prop.looks.mentalMax);
 			}
 		}
 	}
 	void constructEnhance(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
-		comp.setLayout = new GridLayout(1, false);
+		comp.setLayout(new GridLayout(1, false));
 		{
 			auto grp = new Group(comp, SWT.NONE);
-			grp.setText = _prop.msgs.castEnhance;
-			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
-			grp.setLayout = new CenterLayout;
+			grp.setText(_prop.msgs.castEnhance);
+			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			grp.setLayout(new CenterLayout);
 			_enh = new RadarSpinner(grp, SWT.NONE);
 			mod(_enh);
 			static const Es = [Enhance.AVOID, Enhance.RESIST, Enhance.DEFENSE];
@@ -1008,23 +1010,23 @@ private:
 		{
 			auto basic = new Button(comp, SWT.PUSH);
 			mod(basic);
-			basic.setText = _prop.msgs.basicEnhance;
-			basic.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
+			basic.setText(_prop.msgs.basicEnhance);
+			basic.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 			basic.addSelectionListener(new BasicEnhance);
 		}
 		auto tab = new CTabItem(tabf, SWT.NONE);
-		tab.setText = _prop.msgs.castEnhance;
-		tab.setControl = comp;
+		tab.setText(_prop.msgs.castEnhance);
+		tab.setControl(comp);
 	}
 	void constructStatus(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
-		comp.setLayout = new GridLayout(1, false);
+		comp.setLayout(new GridLayout(1, false));
 		Label[] lbls1, lbls2;
 		Composite[] spns;
 		Spinner createSpn(Composite comp) {
 			// なぜかCompositeを挟まなければSpinner#computeSize()が大きめの値を返す
 			Composite comp2 = new Composite(comp, SWT.NONE);
-			comp2.setLayout = new FillLayout;
+			comp2.setLayout(new FillLayout);
 			auto spn = new Spinner(comp2, SWT.BORDER);
 			mod(spn);
 			spns ~= comp2;
@@ -1032,23 +1034,23 @@ private:
 		}
 		Composite createGrp(string text) {
 			auto grp = new Group(comp, SWT.NONE);
-			grp.setLayoutData = new GridData(GridData.FILL_BOTH);
+			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			auto gl = new GridLayout(2, false);
 			gl.horizontalSpacing = 15;
-			grp.setLayout = gl;
-			grp.setText = text;
+			grp.setLayout(gl);
+			grp.setText(text);
 			return grp;
 		}
 		Composite createComp(Composite grp) {
 			auto comp2 = new Composite(grp, SWT.NONE);
-			comp2.setLayoutData = new GridData(GridData.FILL_BOTH);
+			comp2.setLayoutData(new GridData(GridData.FILL_BOTH));
 			auto rl = new RowLayout(SWT.HORIZONTAL);
 			rl.center = true;
 			rl.marginLeft = 0;
 			rl.marginRight = 0;
 			rl.marginTop = 0;
 			rl.marginBottom = 0;
-			comp2.setLayout = rl;
+			comp2.setLayout(rl);
 			return comp2;
 		}
 		{
@@ -1056,39 +1058,39 @@ private:
 			{
 				auto comp2 = createComp(grp);
 				auto l = new Label(comp2, SWT.NONE);
-				l.setText = _prop.msgs.life;
+				l.setText(_prop.msgs.life);
 				lbls1 ~= l;
 				_life = new Spinner(comp2, SWT.BORDER);
 				mod(_life);
 				_lifeUseMax = new Button(comp2, SWT.CHECK);
 				mod(_lifeUseMax);
-				_lifeUseMax.setText = _prop.msgs.useMax;
+				_lifeUseMax.setText(_prop.msgs.useMax);
 				_lifeUseMax.addSelectionListener(new LifeUseMax);
 			}
 			{
 				auto comp2 = createComp(grp);
 				auto lm = new Label(comp2, SWT.NONE);
-				lm.setText = _prop.msgs.mentality;
+				lm.setText(_prop.msgs.mentality);
 				lbls1 ~= lm;
 				_mtly = new Combo(comp2, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 				mod(_mtly);
-				_mtly.setVisibleItemCount = 20;
+				_mtly.setVisibleItemCount(20);
 				foreach (i, mtly; [Mentality.NORMAL, Mentality.SLEEP, Mentality.CONFUSE,
 						Mentality.OVERHEAT, Mentality.BRAVE, Mentality.PANIC]) {
 					_mtly.add(_prop.msgs.mentalityName(mtly));
 					_mtlyTbl[i] = mtly;
 					if (_card && _card.mentality is mtly) {
-						_mtly.select = i;
+						_mtly.select(i);
 					}
 				}
-				if (_mtly.getSelectionIndex() < 0) _mtly.select = 0;
+				if (_mtly.getSelectionIndex() < 0) _mtly.select(0);
 				_mtly.addSelectionListener(new SelMentality);
 				_mtlyRound = createSpn(comp2);
-				_mtlyRound.setMaximum = Motion.round_max;
-				_mtlyRound.setMinimum = Motion.round_min;
+				_mtlyRound.setMaximum(Motion.round_max);
+				_mtlyRound.setMinimum(Motion.round_min);
 				spns ~= _mtlyRound;
 				auto lm2  = new Label(comp2, SWT.NONE);
-				lm2.setText = _prop.msgs.unitRound;
+				lm2.setText(_prop.msgs.unitRound);
 			}
 		}
 		{
@@ -1096,34 +1098,34 @@ private:
 			foreach (enh; [Enhance.ACTION, Enhance.AVOID, Enhance.RESIST, Enhance.DEFENSE]) {
 				auto comp2 = createComp(grp);
 				auto l = new Label(comp2, SWT.NONE);
-				l.setText = _prop.msgs.enhanceLiveBonusName(enh);
+				l.setText(_prop.msgs.enhanceLiveBonusName(enh));
 				lbls1 ~= l;
 				auto spn = createSpn(comp2);
-				spn.setMaximum = _prop.looks.enhanceMax;
-				spn.setMinimum = -(cast(int) _prop.looks.enhanceMax);
+				spn.setMaximum(_prop.looks.enhanceMax);
+				spn.setMinimum(-(cast(int) _prop.looks.enhanceMax));
 				spns ~= spn;
 				_liveEnh[enh] = spn;
 				auto rnd = createSpn(comp2);
-				rnd.setMaximum = Motion.round_max;
-				rnd.setMinimum = Motion.round_min;
+				rnd.setMaximum(Motion.round_max);
+				rnd.setMinimum(Motion.round_min);
 				spns ~= rnd;
 				_enhRound[enh] = rnd;
 				auto l2  = new Label(comp2, SWT.NONE);
-				l2.setText = _prop.msgs.unitRound;
+				l2.setText(_prop.msgs.unitRound);
 				spn.addSelectionListener(new LiveEnh);
 			}
 		}
 		Spinner createStSpn(Composite grp, string name, uint max, string val) {
 			auto comp2 = createComp(grp);
 			auto l = new Label(comp2, SWT.NONE);
-			l.setText = name;
+			l.setText(name);
 			lbls1 ~= l;
 			auto spn = createSpn(comp2);
-			spn.setMaximum = max;
-			spn.setMinimum = 0;
+			spn.setMaximum(max);
+			spn.setMinimum(0);
 			spns ~= spn;
 			auto l2  = new Label(comp2, SWT.NONE);
-			l2.setText = val;
+			l2.setText(val);
 			lbls2 ~= l2;
 			return spn;
 		}
@@ -1144,7 +1146,7 @@ private:
 			}
 			foreach (lbl; lbls) {
 				auto gd = new RowData(maxW, SWT.DEFAULT);
-				lbl.setLayoutData = gd;
+				lbl.setLayoutData(gd);
 			}
 		}
 		setlblw(cast(Control[]) lbls1);
@@ -1153,13 +1155,13 @@ private:
 		{
 			auto reset = new Button(comp, SWT.PUSH);
 			mod(reset);
-			reset.setText = _prop.msgs.resetLiveStatus;
-			reset.setLayoutData = new GridData(GridData.HORIZONTAL_ALIGN_END);
+			reset.setText(_prop.msgs.resetLiveStatus);
+			reset.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 			reset.addSelectionListener(new ResetLiveStatus);
 		}
 		auto tab = new CTabItem(tabf, SWT.NONE);
-		tab.setText = _prop.msgs.liveStatus;
-		tab.setControl = comp;
+		tab.setText(_prop.msgs.liveStatus);
+		tab.setControl(comp);
 	}
 	class LiveEnh : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
@@ -1183,32 +1185,32 @@ private:
 	}
 	void changeLiveEnhance() {
 		foreach (enh, spn; _liveEnh) {
-			_enhRound[enh].setEnabled = spn.getSelection() != 0;
+			_enhRound[enh].setEnabled(spn.getSelection() != 0);
 		}
 	}
 	void changeMentality() {
-		_mtlyRound.setEnabled = _mtly.getSelectionIndex() != 0;
+		_mtlyRound.setEnabled(_mtly.getSelectionIndex() != 0);
 	}
 	void changeLifeUseMax() {
-		_life.setEnabled = !_lifeUseMax.getSelection();
+		_life.setEnabled(!_lifeUseMax.getSelection());
 	}
 	void resetLiveStatus() {
-		_life.setSelection = _lifeMax.getSelection();
-		_lifeUseMax.setSelection = true;
+		_life.setSelection(_lifeMax.getSelection());
+		_lifeUseMax.setSelection(true);
 		foreach (enh, spn; _liveEnh) {
-			spn.setSelection = 0;
+			spn.setSelection(0);
 		}
 		foreach (enh, spn; _enhRound) {
-			spn.setSelection = 0;
+			spn.setSelection(0);
 		}
-		_paralyze.setSelection = 0;
-		_poison.setSelection = 0;
-		_bind.setSelection = 0;
-		_silence.setSelection = 0;
-		_faceUp.setSelection = 0;
-		_antiMagic.setSelection = 0;
-		_mtly.select = 0;
-		_mtlyRound.setSelection = 0;
+		_paralyze.setSelection(0);
+		_poison.setSelection(0);
+		_bind.setSelection(0);
+		_silence.setSelection(0);
+		_faceUp.setSelection(0);
+		_antiMagic.setSelection(0);
+		_mtly.select(0);
+		_mtlyRound.setSelection(0);
 		changeLiveEnhance();
 		changeMentality();
 		changeLifeUseMax();
@@ -1225,17 +1227,16 @@ private:
 		override void widgetDisposed(DisposeEvent e) {
 			_comm.delCast.remove(&delCard);
 			_comm.refScenario.remove(&refScenario);
+			_comm.refMenu.remove(&refMenu);
 			_comm.refSkin.remove(&refSkin);
 			_comm.refUndoMax.remove(&refUndoMax);
 			e.widget.getDisplay().removeFilter(SWT.KeyDown, _kdFilter);
 		}
 	}
 	class KeyDownFilter : Listener {
-		private int _undoAcc;
-		private int _redoAcc;
 		this () {
-			_undoAcc = convertAccelerator(_prop.msgs.menuUndo);
-			_redoAcc = convertAccelerator(_prop.msgs.menuRedo);
+			refMenu(MenuID.Undo);
+			refMenu(MenuID.Redo);
 		}
 		override void handleEvent(Event e) {
 			auto c = cast(Control) e.widget;
@@ -1252,6 +1253,12 @@ private:
 			}
 		}
 	}
+	private int _undoAcc;
+	private int _redoAcc;
+	void refMenu(MenuID id) {
+		if (id == MenuID.Undo) _undoAcc = convertAccelerator(_prop.buildMenu(MenuID.Undo));
+		if (id == MenuID.Redo) _redoAcc = convertAccelerator(_prop.buildMenu(MenuID.Redo));
+	}
 	void refSkin() {
 		_desc.font = dwtData(_prop.looks.cardDescFont(_summ.legacy));
 		refreshRace();
@@ -1261,27 +1268,27 @@ private:
 		refreshMakings();
 	}
 	void refreshRace() {
-		_race.setEnabled = !_summ.legacy;
+		_race.setEnabled(!_summ.legacy);
 	}
 	void refreshSex() {
 		foreach (s; SEX_ALL) {
-			_sex[s].setText = _prop.sys.sexName(s, _comm.skin.legacyName);
+			_sex[s].setText(_prop.sys.sexName(s, _comm.skin.legacyName));
 		}
 	}
 	void refreshPeriod() {
 		foreach (p; PERIOD_ALL) {
-			_period[p].setText = _prop.sys.periodName(p, _comm.skin.legacyName);
+			_period[p].setText(_prop.sys.periodName(p, _comm.skin.legacyName));
 		}
 	}
 	void refreshNature() {
 		foreach (n; NATURE_DEF) {
-			_nature[n].setText = _prop.sys.natureName(n, _comm.skin.legacyName);
+			_nature[n].setText(_prop.sys.natureName(n, _comm.skin.legacyName));
 		}
 	}
 	void refreshMakings() {
 		foreach (m; MAKINGS_LEFT) {
 			void refresh(Makings m) {
-				_makings[m].setText = _prop.sys.makingsName(m, _comm.skin.legacyName);
+				_makings[m].setText(_prop.sys.makingsName(m, _comm.skin.legacyName));
 			}
 			refresh(m);
 			refresh(reverseMakings(m));
@@ -1314,7 +1321,7 @@ public:
 	}
 protected:
 	override void setup(Composite area) {
-		area.setLayout = windowGridLayout(1);
+		area.setLayout(windowGridLayout(1));
 		auto tabf = new CTabFolder(area, SWT.BORDER);
 		constructBase(tabf);
 		constructDesc(tabf);
@@ -1328,6 +1335,7 @@ protected:
 
 		_comm.delCast.add(&delCard);
 		_comm.refScenario.add(&refScenario);
+		_comm.refMenu.add(&refMenu);
 		_comm.refSkin.add(&refSkin);
 		_comm.refUndoMax.add(&refUndoMax);
 		area.addDisposeListener(new Dispose);
@@ -1345,7 +1353,7 @@ protected:
 		auto gd = new GridData(GridData.FILL_BOTH);
 		gd.widthHint = rect.width;
 		gd.heightHint = rect.height;
-		tabf.setLayoutData = gd;
+		tabf.setLayoutData(gd);
 
 		refCard(_card);
 	}
@@ -1357,44 +1365,44 @@ protected:
 		auto skin = _comm.skin;
 		if (_card) {
 			_imgPath.image = _card.path;
-			if (_race) _race.select = 0;
-			_desc.setText = _card.desc;
-			_name.setText = _card.name;
-			_level.setSelection = _card.level;
-			_lifeMax.setSelection = _card.lifeMax;
+			if (_race) _race.select(0);
+			_desc.setText(_card.desc);
+			_name.setText(_card.name);
+			_level.setSelection(_card.level);
+			_lifeMax.setSelection(_card.lifeMax);
 			bool sex = false, period = false, nature = false;
 			scope makings = new HashSet!(Makings);
 			cp: foreach (c; _card.coupons) {
 				foreach (s; SEX_ALL) {
 					if (c.name == _prop.sys.sexCoupon(s, skin.legacyName)) {
-						if (!sex) _sex[s].setSelection = true;
+						if (!sex) _sex[s].setSelection(true);
 						sex = true;
 						continue cp;
 					}
 				}
 				foreach (per; PERIOD_ALL) {
 					if (c.name == _prop.sys.periodCoupon(per, skin.legacyName)) {
-						if (!period) _period[per].setSelection = true;
+						if (!period) _period[per].setSelection(true);
 						period = true;
 						continue cp;
 					}
 				}
 				foreach (nat; NATURE_DEF) {
 					if (c.name == _prop.sys.natureCoupon(nat, skin.legacyName)) {
-						if (!nature) _nature[nat].setSelection = true;
+						if (!nature) _nature[nat].setSelection(true);
 						nature = true;
 						continue cp;
 					}
 				}
 				foreach (m; MAKINGS_LEFT) {
 					if (c.name == _prop.sys.makingsCoupon(m, skin.legacyName)) {
-						if (!makings.contains(m)) _makings[m].setSelection = true;
+						if (!makings.contains(m)) _makings[m].setSelection(true);
 						makings.add(m);
 						continue cp;
 					}
 					auto r = reverseMakings(m);
 					if (c.name == _prop.sys.makingsCoupon(r, skin.legacyName)) {
-						if (!makings.contains(m)) _makings[r].setSelection = true;
+						if (!makings.contains(m)) _makings[r].setSelection(true);
 						makings.add(m);
 						continue cp;
 					}
@@ -1402,7 +1410,7 @@ protected:
 				if (_race) {
 					foreach (i, r; _comm.skin.races) {
 						if (c.name == _prop.msgs.raceCoupon(r)) {
-							_race.select = i + 1;
+							_race.select(i + 1);
 							raceToolTip();
 							continue cp;
 						}
@@ -1410,61 +1418,61 @@ protected:
 				}
 				appendCoupon(c);
 			}
-			if (!sex) _sexU.setSelection = true;
-			if (!period) _periodU.setSelection = true;
-			if (!nature) _natureU.setSelection = true;
-			_resW.setSelection = _card.weaponResist;
-			_resM.setSelection = _card.magicResist;
-			_undead.setSelection = _card.undead;
-			_automaton.setSelection = _card.automaton;
-			_unholy.setSelection = _card.unholy;
-			_constructure.setSelection = _card.constructure;
+			if (!sex) _sexU.setSelection(true);
+			if (!period) _periodU.setSelection(true);
+			if (!nature) _natureU.setSelection(true);
+			_resW.setSelection(_card.weaponResist);
+			_resM.setSelection(_card.magicResist);
+			_undead.setSelection(_card.undead);
+			_automaton.setSelection(_card.automaton);
+			_unholy.setSelection(_card.unholy);
+			_constructure.setSelection(_card.constructure);
 			foreach (e, radio; _res) {
-				radio.setSelection = _card.resist(e);
+				radio.setSelection(_card.resist(e));
 			}
 			foreach (e, radio; _weak) {
-				radio.setSelection = _card.weakness(e);
+				radio.setSelection(_card.weakness(e));
 			}
 			foreach (phy, i; _phyTbl) {
 				_phy.setValue(i, _card.physical(phy));
 			}
 			foreach (mtl, scale; _mtl) {
-				scale.setSelection = _prop.looks.mentalMax + _card.mental(mtl);
+				scale.setSelection(_prop.looks.mentalMax + _card.mental(mtl));
 			}
 			foreach (enh, i; _enhTbl) {
 				_enh.setValue(i, _card.defaultEnhance(enh));
 			}
 
-			_life.setSelection = _card.life;
-			_lifeUseMax.setSelection = _card.life == _card.lifeMax;
+			_life.setSelection(_card.life);
+			_lifeUseMax.setSelection(_card.life == _card.lifeMax);
 			foreach (enh, spn; _liveEnh) {
-				spn.setSelection = _card.enhance(enh);
+				spn.setSelection(_card.enhance(enh));
 			}
 			foreach (enh, spn; _enhRound) {
-				spn.setSelection = _card.enhanceRound(enh);
+				spn.setSelection(_card.enhanceRound(enh));
 			}
-			_paralyze.setSelection = _card.paralyze;
-			_poison.setSelection = _card.poison;
-			_bind.setSelection = _card.bindRound;
-			_silence.setSelection = _card.silenceRound;
-			_faceUp.setSelection = _card.faceUpRound;
-			_antiMagic.setSelection = _card.antiMagicRound;
-			_mtlyRound.setSelection = _card.mentalityRound;
+			_paralyze.setSelection(_card.paralyze);
+			_poison.setSelection(_card.poison);
+			_bind.setSelection(_card.bindRound);
+			_silence.setSelection(_card.silenceRound);
+			_faceUp.setSelection(_card.faceUpRound);
+			_antiMagic.setSelection(_card.antiMagicRound);
+			_mtlyRound.setSelection(_card.mentalityRound);
 			changeLiveEnhance();
 			changeMentality();
 			changeLifeUseMax();
 		} else {
 			_imgPath.image = "";
-			if (_race) _race.select = 0;
-			_sexU.setSelection = true;
-			_periodU.setSelection = true;
-			_natureU.setSelection = true;
+			if (_race) _race.select(0);
+			_sexU.setSelection(true);
+			_periodU.setSelection(true);
+			_natureU.setSelection(true);
 			int[] phys;
 			phys.length = _phy.paramCount;
 			phys[] = _prop.looks.physicalNormal;
 			_phy.setValues(phys);
 			foreach (radio; _mtl) {
-				radio.setSelection = _prop.looks.mentalMax;
+				radio.setSelection(_prop.looks.mentalMax);
 			}
 			int[] bonus;
 			bonus.length = _enh.paramCount;

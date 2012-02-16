@@ -4,10 +4,14 @@ module cwx.editor.gui.dwt.customtext;
 import cwx.utils;
 
 import cwx.editor.gui.dwt.undo;
+import cwx.editor.gui.dwt.dmenu;
 
 import std.utf;
 import std.string;
 import std.exception;
+import std.array;
+import std.ascii;
+import std.conv;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
@@ -20,17 +24,84 @@ import org.eclipse.swt.widgets.Widget;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.layout.GridData;
 import java.lang.all;
+
+Text mnemonicText(Composite parent, int style) {
+	auto text = new Text(parent, style | SWT.READ_ONLY);
+	class Key : KeyAdapter {
+		override void keyPressed(KeyEvent e) {
+			text.setText(acceleratorText(e.keyCode));
+		}
+	}
+	text.addKeyListener(new Key);
+	text.setData(new CIgnoreHotkey);
+	return text;
+}
+
+/// ホットキーを入力するためのフィールド。
+class HotKeyField {
+	private Text _char;
+	this (Composite parent, int style) {
+		_char = new Text(parent, style | SWT.READ_ONLY);
+		_char.addKeyListener(new StateMaskKey);
+		_char.setData(new CIgnoreHotkey);
+	}
+	private class StateMaskKey : KeyAdapter {
+		override void keyPressed(KeyEvent e) {
+			refText(e.keyCode | e.stateMask);
+		}
+	}
+	private void refText(int val) {
+		string t = "";
+		void put(string a) {
+			if (!a.length) return;
+			if (t.length) t ~= " + ";
+			t ~= a;
+		}
+		if (SWT.CONTROL & val) {
+			put("Ctrl");
+			val &= ~SWT.CONTROL;
+		}
+		if (SWT.SHIFT & val) {
+			put("Shift");
+			val &= ~SWT.SHIFT;
+		}
+		if (SWT.ALT & val) {
+			put("Alt");
+			val &= ~SWT.ALT;
+		}
+		if (SWT.COMMAND & val) {
+			put("Command");
+			val &= ~SWT.COMMAND;
+		}
+		put(.acceleratorText(val));
+		_char.setText(t);
+	}
+	@property
+	Text widget() {return _char;}
+	@property
+	string acceleratorText() {
+		return _char.getText().replace(" + ", "+");
+	}
+	@property
+	void accelerator(string hotkey) {
+		refText(convertAccelerator2(hotkey));
+	}
+}
 
 /// 折り返しを反映したテキストを取得可能なText。
 class FixedWidthText {
@@ -99,7 +170,7 @@ class FixedWidthText {
 	private static string toRRText(string targ, int width, GC gc, bool lastRet) {
 		if (targ == "") return "";
 		dstring[] buf;
-		string[] text = splitLines(targ);
+		string[] text = splitLines!string(targ);
 		foreach (t8; text) {
 			dstring t = toUTF32(t8);
 			if (gc.textExtent(t8).x > width) {
@@ -133,7 +204,7 @@ class FixedWidthText {
 		return "";
 	}
 	void insert(string text) {
-		_widget.insert = text;
+		_widget.insert(text);
 	}
 	void setText(string text) {
 		_widget.setText(text);
@@ -176,7 +247,7 @@ class GBLimitText {
 					return;
 				}
 				if (_ed) return;
-				scope dstring vText;
+				dstring vText;
 				try {
 					vText = toUTF32(e.text);
 				} catch {
@@ -188,11 +259,11 @@ class GBLimitText {
 					// 文字数が減少するなら無条件に通す
 					e.doit = true;
 				} else {
-					scope text = toUTF32(_widget.getText());
-					scope p = _widget.getSelection();
+					auto text = toUTF32(_widget.getText());
+					auto p = _widget.getSelection();
 					text = text[0 .. p.x] ~ text[p.y .. $];
-					scope st = text[0 .. e.start];
-					scope el = text[e.end .. $];
+					auto st = text[0 .. e.start];
+					auto el = text[e.end .. $];
 					if (vText.length > 1) {
 						// 複数文字挿入。ペーストのみ。
 						while (_gc.textExtent(toUTF8(st ~ vText ~ el)).x > _width && vText.length > 0) {
@@ -255,7 +326,7 @@ class GBLimitText {
 	@property
 	bool over() {return _over;}
 	void insert(string text) {
-		_widget.insert = text;
+		_widget.insert(text);
 	}
 	void setText(string text) {
 		_widget.setText(text);

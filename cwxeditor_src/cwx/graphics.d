@@ -277,7 +277,7 @@ private ubyte[] emboss(ubyte[] data, size_t depth, size_t width, size_t height, 
 private ubyte[] deffusion(ubyte[] data, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
 	if (width < 1 || height < 1) return data;
 	Random rnd;
-	rnd.seed = 1; // 拡散値を固定する
+	rnd.seed(1); // 拡散値を固定する
 	size_t bpp = bytesPerLine / width;
 	auto base = Pixels(data, width, height, depth, bytesPerLine, bpp);
 	auto r = Pixels(new ubyte[data.length], width, height, depth, bytesPerLine, bpp);
@@ -470,7 +470,7 @@ ubyte[] noise(Noise f, int value, ubyte[] data, size_t depth, size_t width, size
 	value %= 256;
 	if (f is Noise.MOSAIC && value < 0) return data;
 	Random rnd;
-	rnd.seed = 42; // ノイズを固定する
+	rnd.seed(42); // ノイズを固定する
 	size_t bpp = bytesPerLine / width;
 	auto r = Pixels(data, width, height, depth, bytesPerLine, bpp);
 	for (size_t y = 0; y < height; y++) {

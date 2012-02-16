@@ -10,6 +10,7 @@ import cwx.event;
 import cwx.skin;
 import cwx.xml;
 import cwx.msgs;
+import cwx.menu;
 
 import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.dprops;
@@ -26,6 +27,7 @@ import cwx.editor.gui.dwt.datawindow;
 import cwx.editor.gui.dwt.dockingfolder;
 import cwx.editor.gui.dwt.sbshell;
 import cwx.editor.gui.dwt.undo;
+import cwx.editor.gui.dwt.dmenu;
 
 import std.exception;
 import std.path;
@@ -246,6 +248,7 @@ class Commons {
 	Dlg!() refSortCondition;
 	Dlg!(TableColumn, int) refCardTableColumnWidth;
 	Dlg!() refUndoMax;
+	Dlg!(MenuID) refMenu;
 
 	Dlg!(Area) refArea;
 	Dlg!(Area) delArea;
@@ -290,6 +293,8 @@ class Commons {
 			}
 		}
 	}
+	@property
+	Props prop() {return _prop;}
 	void dispose() {
 		if (_wallpaper) _wallpaper.dispose();
 	}

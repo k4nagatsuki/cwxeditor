@@ -12,11 +12,11 @@ struct XNode {
 
 	private static E ps(E)(ElementParser ep) {
 		auto e = new E(ep.tag);
-		ep.onText = (string text) {e ~= new Text(text);};
-		ep.onCData = (string cdata) {e ~= new CData(cdata);};
-		ep.onComment = (string comment) {e ~= new Comment(comment);};
-		ep.onPI = (string pi) {e ~= new ProcessingInstruction(pi);};
-		ep.onXI = (string xi) {e.items ~= new XMLInstruction(xi);};
+		ep.onText((string text) {e ~= new Text(text);});
+		ep.onCData((string cdata) {e ~= new CData(cdata);});
+		ep.onComment((string comment) {e ~= new Comment(comment);});
+		ep.onPI((string pi) {e ~= new ProcessingInstruction(pi);});
+		ep.onXI((string xi) {e.items ~= new XMLInstruction(xi);});
 		ep.onStartTag[null] = (ElementParser ep) {e ~= ps!(Element)(ep);};
 		ep.parse();
 		return e;

@@ -14,6 +14,7 @@ import cwx.usecounter;
 import cwx.skin;
 import cwx.path;
 import cwx.structs;
+import cwx.menu;
 
 import cwx.editor.gui.sound;
 
@@ -30,6 +31,7 @@ import cwx.editor.gui.dwt.motionview;
 import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.splitpane;
+import cwx.editor.gui.dwt.dmenu;
 
 import std.conv;
 import std.math;
@@ -144,7 +146,7 @@ class ContentCommentDialog : AbsDialog {
 	this (Commons comm, Props prop, Shell shell, Content parent, Content evt) in {
 		assert (evt);
 	} body {
-		super (prop, shell, false, prop.msgs.dlgTitComment, prop.images.menuWriteComment, true, prop.var.commentDlg, true);
+		super (prop, shell, false, prop.msgs.dlgTitComment, prop.images.menu(MenuID.Comment), true, prop.var.commentDlg, true);
 		_comm = comm;
 		_prop = prop;
 		_parent = parent;
@@ -227,8 +229,8 @@ private:
 			}
 			itm.setText(0, to!(string)(a.id));
 			itm.setText(1, a.name);
-			if (i == 0) _list.select = i;
-			if (id == a.id) _list.select = i;
+			if (i == 0) _list.select(i);
+			if (id == a.id) _list.select(i);
 		}
 	}
 	void refA(A a) {refreshList();}
@@ -305,9 +307,9 @@ protected:
 		_list.addMouseListener(new OpenView);
 		auto menu = new Menu(_list.getShell(), SWT.POP_UP);
 		static if (is(A : Area) || is(A : Battle) || is(A : Package)) {
-			createMenuItem(menu, _prop.msgs.menuOpenTableView, _prop.images.menuOpenTableView, &openView);
+			createMenuItem(comm, menu, MenuID.OpenAtTableView, &openView);
 		} else static if (is(A : CastCard) || is(A : InfoCard)) {
-			createMenuItem(menu, _prop.msgs.menuOpenCardView, _prop.images.menuOpenCardView, &openView);
+			createMenuItem(comm, menu, MenuID.OpenAtCardView, &openView);
 		} else static assert (0);
 		_list.setMenu(menu);
 		refreshList();
@@ -334,14 +336,12 @@ protected:
 				_tsSpeed.setMaximum(Content.transitionSpeed_max);
 				_tsSpeed.setMinimum(Content.transitionSpeed_min);
 				auto hint = new Label(comp, SWT.NONE);
-				hint.setText = _prop.msgs.rangeHint
-					(Content.transitionSpeed_min,
-					Content.transitionSpeed_max);
+				hint.setText(_prop.msgs.rangeHint(Content.transitionSpeed_min, Content.transitionSpeed_max));
 			}
 			if (_evt) {
 				_tsSpeed.setSelection(_evt.transitionSpeed);
 			} else {
-				_ts.select = 0;
+				_ts.select(0);
 				_tsSpeed.setSelection(_prop.looks.transitionSpeedDef);
 			}
 			refreshTS();
@@ -435,8 +435,8 @@ private:
 			itm.setData(s);
 			itm.setImage(0, _prop.images.content(CType.START));
 			itm.setText(0, s.name);
-			if (i == 0) _list.select = i;
-			if (sel == s.name) _list.select = i;
+			if (i == 0) _list.select(i);
+			if (sel == s.name) _list.select(i);
 			i++;
 		}
 		_list.showSelection();
@@ -475,7 +475,7 @@ protected:
 		_list.setLayoutData(gd);
 		_list.addMouseListener(new OpenView);
 		auto menu = new Menu(_list.getShell(), SWT.POP_UP);
-		createMenuItem(menu, _prop.msgs.menuOpenEventTreeView, _prop.images.menuOpenEventTreeView, &openView);
+		createMenuItem(comm, menu, MenuID.OpenAtEventView, &openView);
 		_list.setMenu(menu);
 
 		refreshStarts();
@@ -561,7 +561,7 @@ private:
 		auto c = _name.getText();
 		_name.removeAll();
 		addCastCoupons(_name, prop, false, comm.skin.legacyName);
-		_name.select = 0;
+		_name.select(0);
 		if (c.length && -1 == _name.indexOf(c)) {
 			_name.add(c, 0);
 		}
@@ -776,9 +776,7 @@ protected:
 			_tsSpeed.setMaximum(Content.transitionSpeed_max);
 			_tsSpeed.setMinimum(Content.transitionSpeed_min);
 			auto hint = new Label(comp, SWT.NONE);
-			hint.setText = _prop.msgs.rangeHint
-				(Content.transitionSpeed_min,
-				Content.transitionSpeed_max);
+			hint.setText(_prop.msgs.rangeHint(Content.transitionSpeed_min, Content.transitionSpeed_max));
 		}
 		refreshTS();
 
@@ -787,7 +785,7 @@ protected:
 		if (_evt) {
 			_tsSpeed.setSelection(_evt.transitionSpeed);
 		} else {
-			_ts.select = 0;
+			_ts.select(0);
 			_tsSpeed.setSelection(_prop.looks.transitionSpeedDef);
 		}
 	}
@@ -1124,7 +1122,7 @@ protected:
 			_mview.motions = _evt.motions;
 			_lev.setSelection(_evt.signedLevel);
 			int sei = _se.indexOf(baseName(_evt.soundPath));
-			_se.select = sei >= 0 ? sei : 0;
+			_se.select(sei >= 0 ? sei : 0);
 			_sucRate.setSelection(_evt.successRate + Content.successRate_max);
 			_effTyp[_evt.effectType].setSelection(true);
 			_res[_evt.resist].setSelection(true);
@@ -1133,7 +1131,7 @@ protected:
 		} else {
 			_mview.motions = [];
 			_lev.setSelection(0);
-			_se.select = 0;
+			_se.select(0);
 			_sucRate.setSelection(Content.successRate_max + Content.successRate_max);
 			_effTyp[EffectType.NONE].setSelection(true);
 			_res[Resist.UNFAIL].setSelection(true);
@@ -1172,7 +1170,7 @@ private:
 	void refreshValues(bool manual) {
 		static if (SelValue) {
 			if (manual && _values.getItemCount() && _sel == _flags.getSelectionIndex()) {
-				_values.select = 0;
+				_values.select(0);
 				return;
 			}
 			_sel = _flags.getSelectionIndex();
@@ -1200,7 +1198,7 @@ private:
 			static if (is (F == Step)) {
 				if (sel >= flag.values.length) sel = flag.values.length - 1;
 			}
-			_values.select = sel;
+			_values.select(sel);
 		}
 	}
 	class SListener : SelectionAdapter {
@@ -1238,8 +1236,8 @@ private:
 			} else static if (is(F : Step)) {
 				itm.setImage(_prop.images.step);
 			} else static assert (0);
-			if (0 == i) _flags.select = i;
-			if (path == sel) _flags.select = i;
+			if (0 == i) _flags.select(i);
+			if (path == sel) _flags.select(i);
 		}
 	}
 	class Dispose : DisposeListener {
@@ -1256,7 +1254,7 @@ private:
 		}
 		int sel = _values.getSelectionIndex();
 		refreshValues(false);
-		_values.select = sel;
+		_values.select(sel);
 	}
 	void delFS(Flag[] f, Step[] s) {
 		static if (is(F : Flag)) {
@@ -1340,7 +1338,7 @@ protected:
 
 			_flags.addMouseListener(new OpenView);
 			auto menu = new Menu(_flags.getShell(), SWT.POP_UP);
-			createMenuItem(menu, _prop.msgs.menuOpenFlagView, _prop.images.menuOpenFlagView, &openView);
+			createMenuItem(comm, menu, MenuID.OpenAtVarView, &openView);
 			_flags.setMenu(menu);
 		}
 		{
@@ -1373,21 +1371,21 @@ protected:
 					break;
 				}
 			}
-			_flags.select = index >= 0 ? index : 0;
+			_flags.select(index >= 0 ? index : 0);
 			_flags.showSelection();
 			refreshValues(false);
 			static if (SelValue) {
 				static if (is (F == Flag)) {
-					_values.select = _evt.flagValue ? 0 : 1;
+					_values.select(_evt.flagValue ? 0 : 1);
 				} else static if (is (F == Step)) {
-					_values.select = _evt.stepValue;
+					_values.select(_evt.stepValue);
 				} else {
 					static assert (0);
 				}
 				_sel = _flags.getSelectionIndex();
 			}
 		} else {
-			_flags.select = 0;
+			_flags.select(0);
 			refreshValues(false);
 			static if (SelValue) _sel = 0;
 		}
@@ -1794,8 +1792,8 @@ private:
 			}
 			itm.setText(0, to!(string)(c.id));
 			itm.setText(1, c.name);
-			if (i == 0) _list.select = i;
-			if (id == c.id) _list.select = i;
+			if (i == 0) _list.select(i);
+			if (id == c.id) _list.select(i);
 		}
 		_list.showSelection();
 	}
@@ -1907,7 +1905,7 @@ protected:
 
 			_list.addMouseListener(new OpenView);
 			auto menu = new Menu(_list.getShell(), SWT.POP_UP);
-			createMenuItem(menu, _prop.msgs.menuOpenCardView, _prop.images.menuOpenCardView, &openView);
+			createMenuItem(comm, menu, MenuID.OpenAtCardView, &openView);
 			_list.setMenu(menu);
 
 			refreshList();
@@ -2032,16 +2030,14 @@ protected:
 			_tsSpeed.setMaximum(Content.transitionSpeed_max);
 			_tsSpeed.setMinimum(Content.transitionSpeed_min);
 			auto hint = new Label(comp, SWT.NONE);
-			hint.setText = _prop.msgs.rangeHint
-				(Content.transitionSpeed_min,
-				Content.transitionSpeed_max);
+			hint.setText(_prop.msgs.rangeHint(Content.transitionSpeed_min, Content.transitionSpeed_max));
 		}
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		if (_evt) {
 			_tsSpeed.setSelection(_evt.transitionSpeed);
 		} else {
-			_ts.select = 0;
+			_ts.select(0);
 			_tsSpeed.setSelection(_prop.looks.transitionSpeedDef);
 		}
 	}

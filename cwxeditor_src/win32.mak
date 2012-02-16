@@ -31,6 +31,7 @@ SRC = cwxeditor.d \
 	cwx\versioninfo.d \
 	cwx\msgutils.d \
 	cwx\settings.d \
+	cwx\menu.d \
 	cwx\editor\gui\sound.d \
 	cwx\editor\gui\dwt\sbshell.d \
 	cwx\editor\gui\dwt\mainwindow.d \
@@ -87,6 +88,7 @@ SRC = cwxeditor.d \
 	cwx\editor\gui\dwt\loader.d \
 	cwx\editor\gui\dwt\areaviewutils.d \
 	cwx\editor\gui\dwt\messageutils.d \
+	cwx\editor\gui\dwt\dmenu.d \
 
 OBJ = objs\cwxeditor.obj \
 	objs\cwx\utils.obj \
@@ -121,6 +123,7 @@ OBJ = objs\cwxeditor.obj \
 	objs\cwx\versioninfo.obj \
 	objs\cwx\msgutils.obj \
 	objs\cwx\settings.obj \
+	objs\cwx\menu.obj \
 	objs\cwx\editor\gui\sound.obj \
 	objs\cwx\editor\gui\dwt\sbshell.obj \
 	objs\cwx\editor\gui\dwt\mainwindow.obj \
@@ -177,6 +180,7 @@ OBJ = objs\cwxeditor.obj \
 	objs\cwx\editor\gui\dwt\loader.obj \
 	objs\cwx\editor\gui\dwt\areaviewutils.obj \
 	objs\cwx\editor\gui\dwt\messageutils.obj \
+	objs\cwx\editor\gui\dwt\dmenu.obj \
 	objs\xml.obj \
 
 DMD = dmd

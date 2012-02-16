@@ -5,8 +5,8 @@ import std.string;
 import std.path;
 import std.conv;
 
-shared const string APP_VERSION = splitLines(import("@version.txt"))[0];
-shared const string APP_WEB_SITE_URI =  splitLines(import("@version.txt"))[1];
+shared const string APP_VERSION = splitLines!string(import("@version.txt"))[0];
+shared const string APP_WEB_SITE_URI =  splitLines!string(import("@version.txt"))[1];
 debug {
 	version (Console) {
 		private const DR = "Debug / Console";

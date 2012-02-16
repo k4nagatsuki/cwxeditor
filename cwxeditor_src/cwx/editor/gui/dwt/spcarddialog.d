@@ -6,6 +6,7 @@ import cwx.flag;
 import cwx.utils;
 import cwx.summary;
 import cwx.card;
+import cwx.menu;
 
 import cwx.editor.gui.sound;
 
@@ -20,6 +21,7 @@ import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.splitpane;
+import cwx.editor.gui.dwt.dmenu;
 
 import std.conv;
 import std.math;
@@ -221,9 +223,9 @@ protected:
 							_casts.addSelectionListener(new Repaint);
 							_escape = new Button(grp, SWT.TOGGLE);
 							mod(_escape);
-							_escape.setImage(_prop.images.menuDoEscape);
+							_escape.setImage(_prop.images.menu(MenuID.Escape));
 
-							_escape.setToolTipText(_prop.msgs.ttDoEscape);
+							_escape.setToolTipText(_prop.buildTool(MenuID.Escape));
 						} else {
 							static assert (0);
 						}
@@ -347,7 +349,7 @@ protected:
 				if (_summ) {
 					foreach (i, c; _summ.casts) {
 						if (c.id == _card.id) {
-							_casts.select = i;
+							_casts.select(i);
 							break;
 						}
 					}

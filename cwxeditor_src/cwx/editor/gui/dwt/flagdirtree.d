@@ -5,6 +5,7 @@ import cwx.utils;
 import cwx.flag;
 import cwx.usecounter;
 import cwx.path;
+import cwx.menu;
 
 import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.dprops;
@@ -12,6 +13,7 @@ import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.flagtable;
 import cwx.editor.gui.dwt.xmlbytestransfer;
 import cwx.editor.gui.dwt.undo;
+import cwx.editor.gui.dwt.dmenu;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
@@ -326,7 +328,7 @@ private:
 	private void select(FlagDir dir) {
 		auto itm = find(dir);
 		if (itm) {
-			dirs.select = itm;
+			dirs.select(itm);
 		}
 	}
 	void refreshD(Object sender, FlagDir[] dirs) {
@@ -391,10 +393,10 @@ public:
 
 		dirs.addSelectionListener(new DirSelection);
 		auto menu = new Menu(dirs.getShell(), SWT.POP_UP);
-		createMenuItem(menu, prop.msgs.menuUndo, prop.images.menuUndo, &this.undo);
-		createMenuItem(menu, prop.msgs.menuRedo, prop.images.menuRedo, &this.redo);
+		createMenuItem(_comm, menu, MenuID.Undo, &this.undo);
+		createMenuItem(_comm, menu, MenuID.Redo, &this.redo);
 		new MenuItem(menu, SWT.SEPARATOR);
-		appendMenuTCPD(prop, menu, this, true, true, true, true);
+		appendMenuTCPD(_comm, menu, this, true, true, true, true);
 		dirs.setMenu(menu);
 
 		auto ds = new DragSource(dirs, DND.DROP_MOVE);
@@ -439,7 +441,7 @@ public:
 	private void current(FlagDir dir) {
 		auto itm = find(dir);
 		if (itm) {
-			dirs.select = itm;
+			dirs.select(itm);
 			dirs.showSelection();
 		}
 		flags.setDir(dir);
@@ -507,10 +509,11 @@ public:
 				try {
 					auto cur = current;
 					string newPath;
+					string rootId;
 					Flag[string] cFlags;
 					Step[string] cSteps;
 					auto tblSels = flags.selected;
-					switch (cur.appendFromXML(c, LATEST_VERSION, true, true, cFlags, cSteps, newPath)) {
+					switch (cur.appendFromXML(c, LATEST_VERSION, true, true, cFlags, cSteps, newPath, rootId)) {
 					case FlagDir.AppendXmlResult.DIR_SUCCESS:
 						refresh(newPath);
 						auto dir = root.findPath(newPath, false);

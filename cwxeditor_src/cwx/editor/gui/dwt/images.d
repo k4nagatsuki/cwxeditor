@@ -8,6 +8,7 @@ import cwx.graphics;
 
 import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.dprops;
+import cwx.editor.gui.dwt.dmenu;
 
 import std.algorithm;
 import std.math;
@@ -1403,7 +1404,7 @@ public:
 	}
 	private void doDeselect(FlexImage img) {
 		if (img.selected) {
-			img.doSelected = false;
+			img.doSelected(false);
 			deselAfter(img);
 		}
 	}

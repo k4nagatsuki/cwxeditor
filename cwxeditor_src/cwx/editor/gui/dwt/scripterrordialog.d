@@ -9,6 +9,7 @@ import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.commons;
+import cwx.editor.gui.dwt.dmenu;
 
 import std.array;
 import std.string;
@@ -65,7 +66,7 @@ protected:
 		cl.fillVertical = true;
 		area.setLayout(cl);
 		string buf = _prop.msgs.scriptError ~ "\n";
-		auto lines = splitLines(_ex.text);
+		auto lines = splitLines!string(_ex.text);
 		foreach (err; _ex.errors) {
 			buf ~= "\n";
 			buf ~= err.message ~ "\n";

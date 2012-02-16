@@ -20,6 +20,7 @@ import cwx.motion;
 import cwx.props;
 import cwx.structs;
 import cwx.msgs;
+import cwx.menu;
 
 import cwx.editor.gui.dwt.properties;
 
@@ -80,7 +81,6 @@ public:
 	}
 
 	@property Image app() {return imgd!("new.png");}
-	@property Image menuVersion() {return imgd!("version.png");}
 	@property Image icon() {return imgd!("cwxeditor.ico");}
 
 	@property Image text() {return imgd!("text.png");}
@@ -129,26 +129,10 @@ public:
 	@property Image gossip() {return imgd!("gossip.png");}
 	@property Image endScenario() {return imgd!("end.png");}
 
-	@property Image stopBGM() {return imgd!("sound_stop.png");}
-	@property Image playBGM() {return imgd!("sound_play.png");}
-
 	@property Image evtArrow() {return imgd!("evt_arrow.png");}
 
 	@property Image evtAddContinue() {return imgd!("evt_add_continue.png");}
 	@property Image evtAutoOpen() {return imgd!("evt_auto_edit.png");}
-
-	Image menuEvtGroup(CTypeGroup cGrp) {
-		final switch (cGrp) {
-		case CTypeGroup.Terminal: return imgd!("evt_j_term.png");
-		case CTypeGroup.Standard: return imgd!("evt_j_std.png");
-		case CTypeGroup.Data: return imgd!("evt_j_data.png");
-		case CTypeGroup.Utility: return imgd!("evt_j_util.png");
-		case CTypeGroup.Branch: return imgd!("evt_j_br.png");
-		case CTypeGroup.Get: return imgd!("evt_j_get.png");
-		case CTypeGroup.Lost: return imgd!("evt_j_lost.png");
-		case CTypeGroup.Visual: return imgd!("evt_j_vis.png");
-		}
-	}
 
 	Image content(CType type) {
 		switch (type) {
@@ -305,11 +289,6 @@ public:
 	@property Image defStart() {return imgd!("def_start.png");}
 	@property Image keyCode() {return imgd!("key_code.png");}
 	@property Image round() {return imgd!("round.png");}
-	@property Image menuKeyCodeTimingUse() {return imgd!("key_code.png");}
-	@property Image menuKeyCodeTimingSuccess() {return imgd!("key_code_suc.png");}
-	@property Image menuKeyCodeTimingFailure() {return imgd!("key_code_fail.png");}
-
-	@property Image menuAddManyRounds() {return imgd!("add_many_round.png");}
 
 	@property Image addCoupon() {return imgd!("coupon.png");}
 	@property Image altCoupon() {return imgd!("alt_coupon.png");}
@@ -318,8 +297,6 @@ public:
 	@property Image setBeast() {return imgd!("set_beast.png");}
 
 	@property Image sound() {return imgd!("evt_se.png");}
-	@property Image stopSound() {return imgd!("sound_stop.png");}
-	@property Image playSound() {return imgd!("sound_play.png");}
 
 	@property Image setTalkerCoupon() {return imgd!("set_beast.png");}
 	@property Image defaultColor() {return imgd!("cc_w.png");}
@@ -355,143 +332,153 @@ public:
 	@property Image scenarioArchive() {return imgd!("scenario_arc.png");}
 	@property Image classic() {return imgd!("classic.png");}
 
-	@property Image menuRefresh() {return imgd!("refresh.png");}
-
-	@property Image menuCEdit() {return imgd!("edit.png");}
-
-	@property Image menuUndo() {return imgd!("undo.png");}
-	@property Image menuRedo() {return imgd!("redo.png");}
-
-	@property Image menuCut() {return imgd!("cut.png");}
-	@property Image menuCopy() {return imgd!("copy.png");}
-	@property Image menuPaste() {return imgd!("paste.png");}
-	@property Image menuDel() {return imgd!("del.png");}
-	@property Image menuSelectAll() {return imgd!("select_all.png");}
-
-	@property Image menuToXML() {return imgd!("toxml.png");}
-
-	@property Image menuNew() {return imgd!("new.png");}
-	@property Image menuOpen() {return imgd!("open.png");}
-	@property Image menuClose() {return imgd!("close.png");}
-	@property Image menuCloseWin() {return imgd!("close_win.png");}
-	@property Image menuSave() {return imgd!("save.png");}
-	@property Image menuSaveAs() {return imgd!("save_a.png");}
-
-	@property Image menuDataWin() {return imgd!("data_win.png");}
-	@property Image menuFlagWin() {return imgd!("flag_win.png");}
-	@property Image menuCardWin() {return imgd!("card_win.png");}
-	@property Image menuCastWin() {return imgd!("cast_win.png");}
-	@property Image menuSkillWin() {return imgd!("skill_win.png");}
-	@property Image menuItemWin() {return imgd!("item_win.png");}
-	@property Image menuBeastWin() {return imgd!("beast_win.png");}
-	@property Image menuInfoWin() {return imgd!("info_win.png");}
-	@property Image menuDirWin() {return imgd!("dir_win.png");}
-
-	@property Image menuChangeVH() {return imgd!("chg_vh.png");}
-
-	@property Image menuExecEngine() {return imgd!("exec_engine.png");}
-	@property Image menuSettings() {return imgd!("settings.png");}
-
-	@property Image menuSummary() {return imgd!("summary.png");}
-	@property Image menuNewArea() {return imgd!("area_new.png");}
-	@property Image menuNewBattle() {return imgd!("battle_new.png");}
-	@property Image menuNewPackage() {return imgd!("package_new.png");}
-
-	@property Image menuNewFlagDir() {return imgd!("flagdir_new.png");}
-	@property Image menuNewFlag() {return imgd!("flag_new.png");}
-	@property Image menuNewStep() {return imgd!("step_new.png");}
-
-	@property Image menuViewParty() {return imgd!("party_cards.png");}
-	@property Image menuViewMsg() {return imgd!("view_msg.png");}
-	@property Image menuFixed() {return imgd!("fixed.png");}
-	@property Image menuEnemyCardDebugView() {return imgd!("card_life.png");}
-	@property Image menuViewCards() {return imgd!("cards.png");}
-	@property Image menuViewBacks() {return imgd!("backs.png");}
-	@property Image menuUp() {return imgd!("up.png");}
-	@property Image menuDown() {return imgd!("down.png");}
-	@property Image menuNewMenuCard() {return imgd!("card_new.png");}
-	@property Image menuNewEnemyCard() {return imgd!("card_new.png");}
-	@property Image menuNewBack() {return imgd!("back_new.png");}
-	@property Image menuAuto() {return imgd!("auto.png");}
-	@property Image menuCustom() {return imgd!("custom.png");}
-	@property Image menuMask() {return imgd!("mask.png");}
-	@property Image menuDoEscape() {return imgd!("escape.png");}
-	@property Image menuPosTop() {return imgd!("pos_top.png");}
-	@property Image menuPosBottom() {return imgd!("pos_bottom.png");}
-	@property Image menuPosLeft() {return imgd!("pos_left.png");}
-	@property Image menuPosRight() {return imgd!("pos_right.png");}
-	@property Image menuPosEven() {return imgd!("pos_even.png");}
-	@property Image menuScaleMin() {return imgd!("scale_min.png");}
-	@property Image menuScaleMiddle() {return imgd!("scale_middle.png");}
-	@property Image menuScaleMax() {return imgd!("scale_max.png");}
-	@property Image menuScaleEvenBig() {return imgd!("scale_even_big.png");}
-	@property Image menuScaleEvenSmall() {return imgd!("scale_even_small.png");}
-
-	@property Image menuNewEventTree() {return imgd!("event_tree.png");}
-	@property Image menuNewEventFire() {return imgd!("def_start.png");}
-	@property Image menuTreeOpen() {return imgd!("tree_open.png");}
-	@property Image menuTreeClose() {return imgd!("tree_close.png");}
-
-	@property Image menuShowCardLife() {return imgd!("card_life.png");}
-	@property Image menuShowCardList() {return imgd!("card_list.png");}
-	@property Image menuShowCardTable() {return imgd!("card_table.png");}
-	@property Image menuAddScenario() {return imgd!("add_scenario.png");}
-	@property Image menuNewCast() {return imgd!("cast_new.png");}
-	@property Image menuNewSkill() {return imgd!("skill_new.png");}
-	@property Image menuNewItem() {return imgd!("item_new.png");}
-	@property Image menuNewBeast() {return imgd!("beast_new.png");}
-	@property Image menuNewInfo() {return imgd!("info_new.png");}
-
-	@property Image menuAdd() {return imgd!("add.png");}
-
-	@property Image menuEditHand() {return imgd!("card_hand.png");}
-	@property Image menuOpenHand() {return imgd!("card_hand.png");}
-	@property Image menuEditUseEvent() {return imgd!("event_tree.png");}
-
-	@property Image menuReNumbering() {return imgd!("renum.png");}
-	@property Image menuReNumberingAll() {return imgd!("renum_all.png");}
-
-	@property Image menuOpenDirectory() {return imgd!("folder.png");}
-	@property Image menuNewFolder() {return imgd!("folder_new.png");}
-	@property Image menuReplacePath() {return imgd!("replace.png");}
-	@property Image menuDeleteUnuse() {return imgd!("del_unuse.png");}
-
-	@property Image menuReplaceText() {return imgd!("replace.png");}
-	@property Image menuReload() {return imgd!("reload.png");}
-
-	@property Image menuStartToPackage() {return imgd!("s_to_p.png");}
-	@property Image menuConvertContent() {return imgd!("conv_cont.png");}
-
-	@property Image menuClosePane() {return imgd!("close_pane.png");}
-	@property Image menuClosePaneEtc() {return imgd!("close_pane_e.png");}
-	@property Image menuClosePaneLeft() {return imgd!("close_pane_l.png");}
-	@property Image menuClosePaneRight() {return imgd!("close_pane_r.png");}
-	@property Image menuClosePaneAll() {return imgd!("close_pane_a.png");}
-
-	@property Image menuLockBar() {return imgd!("lock_bar.png");}
-	@property Image menuResetBar() {return imgd!("reset_bar.png");}
-
-	@property Image menuSaveIncludeImage() {return imgd!("save_inc_img.png");}
-
 	@property Image script() {return imgd!("script.png");}
-	@property Image menuToScript() {return imgd!("script.png");}
-	@property Image menuToScriptAll() {return imgd!("script_all.png");}
 
-	@property Image menuImageList() {return imgd!("img_list.png");}
+	Image menu(MenuID id) {
+		final switch (id) {
+		case MenuID.None: return null;
 
-	@property Image menuCreateArchive() {return imgd!("create_archive.png");}
+		case MenuID.File: return null;
+		case MenuID.Edit: return null;
+		case MenuID.View: return null;
+		case MenuID.Tool: return null;
+		case MenuID.Table: return null;
+		case MenuID.Variable: return null;
+		case MenuID.Help: return null;
+		case MenuID.Card: return null;
+		case MenuID.CardsAndBacks: return null;
 
-	@property Image menuOpenTableView() {return imgd!("open_tableview.png");}
-	@property Image menuOpenFlagView() {return imgd!("open_flagview.png");}
-	@property Image menuOpenCardView() {return imgd!("open_cardview.png");}
-	@property Image menuOpenFileView() {return imgd!("open_fileview.png");}
-	@property Image menuCopyFilePath() {return imgd!("copy_path.png");}
-	@property Image menuOpenEventTreeView() {return imgd!("open_eventtreeview.png");}
-
-	@property Image menuWriteComment() {return imgd!("comment.png");}
-
-	@property Image menuEditScene() {return imgd!("area_cards.png");}
-	@property Image menuEditEvent() {return imgd!("area_event.png");}
-
-	@property Image menuOpenView() {return imgd!("view.png");}
+		case MenuID.DelNotUsedFile: return imgd!("del_unuse.png");
+		case MenuID.ClosePane: return imgd!("close_pane.png");
+		case MenuID.ClosePaneExcept: return imgd!("close_pane_e.png");
+		case MenuID.ClosePaneLeft: return imgd!("close_pane_l.png");
+		case MenuID.ClosePaneRight: return imgd!("close_pane_r.png");
+		case MenuID.ClosePaneAll: return imgd!("close_pane_a.png");
+		case MenuID.New: return imgd!("new.png");
+		case MenuID.Open: return imgd!("open.png");
+		case MenuID.Close: return imgd!("close.png");
+		case MenuID.CloseWin: return imgd!("close_win.png");
+		case MenuID.Save: return imgd!("save.png");
+		case MenuID.SaveAs: return imgd!("save_a.png");
+		case MenuID.Reload: return imgd!("reload.png");
+		case MenuID.OpenDir: return imgd!("folder.png");
+		case MenuID.OpenPlace: return imgd!("folder.png");
+		case MenuID.SaveImage: return imgd!("save_inc_img.png");
+		case MenuID.LookImages: return imgd!("img_list.png");
+		case MenuID.ChangeVH: return imgd!("chg_vh.png");
+		case MenuID.Find: return imgd!("replace.png");
+		case MenuID.EditProp: return imgd!("edit.png");
+		case MenuID.Refresh: return imgd!("refresh.png");
+		case MenuID.Undo: return imgd!("undo.png");
+		case MenuID.Redo: return imgd!("redo.png");
+		case MenuID.Cut: return imgd!("cut.png");
+		case MenuID.Copy: return imgd!("copy.png");
+		case MenuID.Paste: return imgd!("paste.png");
+		case MenuID.Delete: return imgd!("del.png");
+		case MenuID.SelectAll: return imgd!("select_all.png");
+		case MenuID.ToXMLText: return imgd!("toxml.png");
+		case MenuID.TableView: return imgd!("data_win.png");
+		case MenuID.VarView: return imgd!("flag_win.png");
+		case MenuID.CardView: return imgd!("card_win.png");
+		case MenuID.CastView: return imgd!("cast_win.png");
+		case MenuID.SkillView: return imgd!("skill_win.png");
+		case MenuID.ItemView: return imgd!("item_win.png");
+		case MenuID.BeastView: return imgd!("beast_win.png");
+		case MenuID.InfoView: return imgd!("info_win.png");
+		case MenuID.FileView: return imgd!("dir_win.png");
+		case MenuID.ExecEngine: return imgd!("exec_engine.png");
+		case MenuID.ExecEngineAuto: return imgd!("exec_engine.png");
+		case MenuID.Settings: return imgd!("settings.png");
+		case MenuID.VersionInfo: return imgd!("version.png");
+		case MenuID.LockToolBar: return imgd!("lock_bar.png");
+		case MenuID.ResetToolBar: return imgd!("reset_bar.png");
+		case MenuID.CopyAsText: return imgd!("copy.png");
+		case MenuID.OpenAtView: return imgd!("view.png");
+		case MenuID.StartToPackage: return imgd!("s_to_p.png");
+		case MenuID.ConvertContent: return imgd!("conv_cont.png");
+		case MenuID.CGroupTerminal: return imgd!("evt_j_term.png");
+		case MenuID.CGroupStandard: return imgd!("evt_j_std.png");
+		case MenuID.CGroupData: return imgd!("evt_j_data.png");
+		case MenuID.CGroupUtility: return imgd!("evt_j_util.png");
+		case MenuID.CGroupBranch: return imgd!("evt_j_br.png");
+		case MenuID.CGroupGet: return imgd!("evt_j_get.png");
+		case MenuID.CGroupLost: return imgd!("evt_j_lost.png");
+		case MenuID.CGroupVisual: return imgd!("evt_j_vis.png");
+		case MenuID.EditSummary: return imgd!("summary.png");
+		case MenuID.NewArea: return imgd!("area_new.png");
+		case MenuID.NewBattle: return imgd!("battle_new.png");
+		case MenuID.NewPackage: return imgd!("package_new.png");
+		case MenuID.ReNumberingAll: return imgd!("renum_all.png");
+		case MenuID.ReNumbering: return imgd!("renum.png");
+		case MenuID.EditSceneArea: return imgd!("area_cards.png");
+		case MenuID.EditEventArea: return imgd!("area_event.png");
+		case MenuID.EditSceneBattle: return imgd!("battle_cards.png");
+		case MenuID.EditEventBattle: return imgd!("battle_event.png");
+		case MenuID.NewFlagDir: return imgd!("flagdir_new.png");
+		case MenuID.NewFlag: return imgd!("flag_new.png");
+		case MenuID.NewStep: return imgd!("step_new.png");
+		case MenuID.Up: return imgd!("up.png");
+		case MenuID.Down: return imgd!("down.png");
+		case MenuID.ShowParty: return imgd!("party_cards.png");
+		case MenuID.ShowMsg: return imgd!("view_msg.png");
+		case MenuID.FixedImage: return imgd!("fixed.png");
+		case MenuID.ShowEnemyCardProp: return imgd!("card_life.png");
+		case MenuID.ShowCard: return imgd!("cards.png");
+		case MenuID.ShowBack: return imgd!("backs.png");
+		case MenuID.NewMenuCard: return imgd!("card_new.png");
+		case MenuID.NewEnemyCard: return imgd!("card_new.png");
+		case MenuID.NewBack: return imgd!("back_new.png");
+		case MenuID.AutoArrange: return imgd!("auto.png");
+		case MenuID.ManualArrange: return imgd!("custom.png");
+		case MenuID.Mask: return imgd!("mask.png");
+		case MenuID.Escape: return imgd!("escape.png");
+		case MenuID.PosTop: return imgd!("pos_top.png");
+		case MenuID.PosBottom: return imgd!("pos_bottom.png");
+		case MenuID.PosLeft: return imgd!("pos_left.png");
+		case MenuID.PosRight: return imgd!("pos_right.png");
+		case MenuID.PosEven: return imgd!("pos_even.png");
+		case MenuID.ScaleMin: return imgd!("scale_min.png");
+		case MenuID.ScaleMiddle: return imgd!("scale_middle.png");
+		case MenuID.ScaleMax: return imgd!("scale_max.png");
+		case MenuID.ScaleBig: return imgd!("scale_even_big.png");
+		case MenuID.ScaleSmall: return imgd!("scale_even_small.png");
+		case MenuID.StopBGM: return imgd!("sound_stop.png");
+		case MenuID.PlayBGM: return imgd!("sound_play.png");
+		case MenuID.KeyCodeTiming: return imgd!("key_code.png");
+		case MenuID.KeyCodeTimingUse: return imgd!("key_code.png");
+		case MenuID.KeyCodeTimingSuccess: return imgd!("key_code_suc.png");
+		case MenuID.KeyCodeTimingFailure: return imgd!("key_code_fail.png");
+		case MenuID.AddRangeOfRound: return imgd!("add_many_round.png");
+		case MenuID.OpenAtTableView: return imgd!("open_tableview.png");
+		case MenuID.OpenAtVarView: return imgd!("open_flagview.png");
+		case MenuID.OpenAtCardView: return imgd!("open_cardview.png");
+		case MenuID.OpenAtFileView: return imgd!("open_fileview.png");
+		case MenuID.OpenAtEventView: return imgd!("open_eventtreeview.png");
+		case MenuID.Comment: return imgd!("comment.png");
+		case MenuID.ShowCardProp: return imgd!("card_life.png");
+		case MenuID.ShowCardImage: return imgd!("card_list.png");
+		case MenuID.ShowCardDetail: return imgd!("card_table.png");
+		case MenuID.OpenImportSource: return imgd!("add_scenario.png");
+		case MenuID.NewCast: return imgd!("cast_new.png");
+		case MenuID.NewSkill: return imgd!("skill_new.png");
+		case MenuID.NewItem: return imgd!("item_new.png");
+		case MenuID.NewBeast: return imgd!("beast_new.png");
+		case MenuID.NewInfo: return imgd!("info_new.png");
+		case MenuID.Import: return imgd!("add.png");
+		case MenuID.OpenHand: return imgd!("card_hand.png");
+		case MenuID.EditEventAtTimeOfUsing: return imgd!("event_tree.png");
+		case MenuID.PlaySE: return imgd!("sound_play.png");
+		case MenuID.StopSE: return imgd!("sound_stop.png");
+		case MenuID.NewDir: return imgd!("folder_new.png");
+		case MenuID.CopyFilePath: return imgd!("copy_path.png");
+		case MenuID.ReplFilePath: return imgd!("replace.png");
+		case MenuID.CreateArchive: return imgd!("create_archive.png");
+		case MenuID.ToScript: return imgd!("script.png");
+		case MenuID.ToScriptAll: return imgd!("script_all.png");
+		case MenuID.NewEvent: return imgd!("event_tree.png");
+		case MenuID.NewIgnition: return imgd!("def_start.png");
+		case MenuID.ExpandTree: return imgd!("tree_open.png");
+		case MenuID.FoldTree: return imgd!("tree_close.png");
+		}
+	}
 }

@@ -554,6 +554,7 @@ public:
 		if (parent) throw new Exception("FlagDir sorter");
 		sorterImpl(sorter);
 	}
+	@property
 	private void sorterImpl(int delegate(string, string) sorter) {
 		_sorter = sorter;
 		foreach (sub; subDirs) {
@@ -1223,7 +1224,9 @@ public:
 	/// Returns: XMLからの追加を試みた結果。
 	/// See_Also: getXml(FlagDir, Flag[], Step[]), getXml(FlagDir)
 	AppendXmlResult appendFromXML(string xml, string ver, bool copy, bool dirMode,
-			out Flag[string] cFlags, out Step[string] cSteps, out string newPath = null, out string rootId = "") {
+			out Flag[string] cFlags, out Step[string] cSteps, out string newPath, out string rootId) {
+		newPath = null;
+		rootId = "";
 		try {
 			scope doc = XNode.parse(xml);
 			rootId = doc.attr(XML_ATT_ROOT_ID, false, "");

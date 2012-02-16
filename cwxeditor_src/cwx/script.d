@@ -212,7 +212,7 @@ class CWXScript {
 		}
 		if (tok.value[0] == '@') {
 			char[] buf;
-			auto linesBase = .splitLines(tok.value[0 .. $ - 1].idup);
+			auto linesBase = .splitLines!string(tok.value[0 .. $ - 1].idup);
 			string firstLine = linesBase[0];
 			string[] lines;
 			foreach (i, line; linesBase[1 .. $]) {
@@ -1907,7 +1907,7 @@ fi`;
 		auto commentReg = .regex(`^[\s|\*|\/]*(.*)[\s|\*|\/]*$`);
 		string parseComment(string comment) {
 			string r = "";
-			foreach (i, line; splitLines(comment)) {
+			foreach (i, line; splitLines!string(comment)) {
 				auto m = .match(line, commentReg);
 				if (!m.empty) {
 					line = m.captures[1];
@@ -2126,7 +2126,7 @@ fi`;
 			attrs ~= value;
 		} else static if (is(Unqual!(T) == string)) {
 			string attr;
-			auto lines = splitLines(value.idup);
+			auto lines = splitLines!string(value.idup);
 			if (lines.length == 0) {
 				attr ~= `""`;
 			} else if (lines.length == 1) {
@@ -2474,7 +2474,7 @@ fi`;
 			buf ~= indentValue;
 			auto detail = c.detail;
 			if (c.comment.length) {
-				foreach (line; splitLines(lastRet(c.comment))) {
+				foreach (line; splitLines!string(lastRet(c.comment))) {
 					buf ~= "// " ~ line;
 					buf ~= "\n";
 					buf ~= indentValue;

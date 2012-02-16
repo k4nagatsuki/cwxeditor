@@ -427,7 +427,7 @@ private string readString(ref ByteIO f, ref string[string] addInfo, bool lns = f
 }
 private string[] readStrings(ref ByteIO f) {
 	auto str = readString(f, true);
-	return str.length ? splitLines(str) : cast(string[]) [];
+	return str.length ? splitLines!string(str) : cast(string[]) [];
 }
 private S loadSummary(S)(ref RData d, ref ByteIO f, out ulong startAreaId) {
 	string img = readImage(d, f);
@@ -501,7 +501,7 @@ private S loadSummary(S)(ref RData d, ref ByteIO f, out ulong startAreaId) {
 		return new S(d.sPath, readString(f), true);
 	}
 }
-private Motion readMotion(in RData d, ref ByteIO f) {
+private Motion readMotion(ref RData d, ref ByteIO f) {
 	byte tType = f.readByte;
 	if (d.dataVersion > 2) {
 		f.readByte;
@@ -630,7 +630,9 @@ private Motion readMotion(in RData d, ref ByteIO f) {
 		BeastCard beast = null;
 		uint bNum = f.readUIntL; // 常に0か1のはず
 		for (uint i = 0u; i < bNum ; i++) {
-			beast = loadBeast(d, f, 1);
+			auto d2 = d;
+			// d.dataVersionを上書きしない
+			beast = loadBeast(d2, f, 1);
 		}
 		auto m = new Motion(MType.SUMMON_BEAST, el);
 		m.beast = beast;
@@ -639,7 +641,7 @@ private Motion readMotion(in RData d, ref ByteIO f) {
 	default: throw new SummaryException("Unknown motion: " ~ to!(string)(tType) ~ ", " ~ to!(string)(type));
 	}
 }
-private Content readContent(in RData d, ref ByteIO f) {
+private Content readContent(ref RData d, ref ByteIO f) {
 	byte type = f.readByte;
 	string[string] info;
 	string name = readString(f, info, false, false);
@@ -1150,7 +1152,7 @@ private Content readContent(in RData d, ref ByteIO f) {
 	}
 	return e;
 }
-private EventTree readCEventTree(in RData d, ref ByteIO f) {
+private EventTree readCEventTree(ref RData d, ref ByteIO f) {
 	auto tree = new EventTree("");
 	auto dest = tree.starts[0u];
 	uint cNum = f.readUIntL;
@@ -1160,7 +1162,7 @@ private EventTree readCEventTree(in RData d, ref ByteIO f) {
 	tree.remove(dest);
 	return tree;
 }
-private EventTree readEventTree(in RData d, ref ByteIO f, bool enemyCard) {
+private EventTree readEventTree(ref RData d, ref ByteIO f, bool enemyCard) {
 	auto tree = new EventTree("");
 	auto dest = tree.starts[0u];
 	uint cNum = f.readUIntL;
@@ -1324,7 +1326,7 @@ private Battle loadBattle(ref RData d, ref ByteIO f, ulong fid) {
 	}
 	return r;
 }
-private Package loadPackage(in RData d, ref ByteIO f, ulong fid) {
+private Package loadPackage(ref RData d, ref ByteIO f, ulong fid) {
 	f.readUIntL;
 	string name = readString(f);
 	ulong id = f.readUIntL;

@@ -9,6 +9,7 @@ import cwx.usecounter;
 import cwx.skin;
 import cwx.path;
 import cwx.msgs;
+import cwx.menu;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dutils;
@@ -18,6 +19,7 @@ import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.flagspane;
 import cwx.editor.gui.dwt.summarydialog;
 import cwx.editor.gui.dwt.sbshell;
+import cwx.editor.gui.dwt.dmenu;
 
 import std.file;
 import std.path;
@@ -145,44 +147,44 @@ public:
 			{
 				auto bar = new Menu(shell, SWT.BAR);
 
-				auto mf = createMenu(bar, _prop.msgs.menuFile);
-				createMenuItem(mf, _prop.msgs.menuCloseWin, _prop.images.menuCloseWin, &shell.close);
+				auto mf = createMenu(_comm, bar, MenuID.File);
+				createMenuItem(_comm, mf, MenuID.CloseWin, &shell.close);
 
-				auto me = createMenu(bar, _prop.msgs.menuEdit);
+				auto me = createMenu(_comm, bar, MenuID.Edit);
 				static if (UseArea) {
-					createMenuItem(me, _prop.msgs.menuEditScene, _prop.images.menuEditScene, &openAreaScene);
-					createMenuItem(me, _prop.msgs.menuEditEvent, _prop.images.menuEditEvent, &openAreaEvent);
+					createMenuItem(_comm, me, MenuID.EditSceneArea, &openAreaScene);
+					createMenuItem(_comm, me, MenuID.EditEventArea, &openAreaEvent);
 					new MenuItem(me, SWT.SEPARATOR);
 				}
-				createMenuItem(me, _prop.msgs.menuUndo, _prop.images.menuUndo, &undo);
-				createMenuItem(me, _prop.msgs.menuRedo, _prop.images.menuRedo, &redo);
+				createMenuItem(_comm, me, MenuID.Undo, &undo);
+				createMenuItem(_comm, me, MenuID.Redo, &redo);
 				new MenuItem(me, SWT.SEPARATOR);
-				appendMenuTCPD(_prop, me, this, true, true, true, true);
+				appendMenuTCPD(_comm, me, this, true, true, true, true);
 				new MenuItem(me, SWT.SEPARATOR);
-				createMenuItem(me, _prop.msgs.menuUp, _prop.images.menuUp, &up);
-				createMenuItem(me, _prop.msgs.menuDown, _prop.images.menuDown, &down);
+				createMenuItem(_comm, me, MenuID.Up, &up);
+				createMenuItem(_comm, me, MenuID.Down, &down);
 
 				static if (UseFlag) {
-					auto mi = createMenu(bar, _prop.msgs.menuView);
-					createMenuItem(mi, _prop.msgs.menuChangeVH, _prop.images.menuChangeVH, &changeVHSide);
+					auto mi = createMenu(_comm, bar, MenuID.View);
+					createMenuItem(_comm, mi, MenuID.ChangeVH, &changeVHSide);
 				}
 
 				static if (UseArea) {
-					auto mt = createMenu(bar, _prop.msgs.menuTable);
+					auto mt = createMenu(_comm, bar, MenuID.Table);
 					static if (UseFlag) {
-						createMenuItem(mt, _prop.msgs.menuSummary, _prop.images.menuSummary, &editSummary);
+						createMenuItem(_comm, mt, MenuID.EditSummary, &editSummary);
 						new MenuItem(mt, SWT.SEPARATOR);
 					}
-					createMenuItem(mt, _prop.msgs.menuNewArea, _prop.images.menuNewArea, &createArea);
-					createMenuItem(mt, _prop.msgs.menuNewBattle, _prop.images.menuNewBattle, &createBattle);
-					createMenuItem(mt, _prop.msgs.menuNewPackage, _prop.images.menuNewPackage, &createPackage);
+					createMenuItem(_comm, mt, MenuID.NewArea, &createArea);
+					createMenuItem(_comm, mt, MenuID.NewBattle, &createBattle);
+					createMenuItem(_comm, mt, MenuID.NewPackage, &createPackage);
 				}
 				static if (UseFlag) {
-					auto mv = createMenu(bar, _prop.msgs.menuVariable);
-					createMenuItem(mv, _prop.msgs.menuNewFlagDir, _prop.images.menuNewFlagDir, &createFlagDir);
+					auto mv = createMenu(_comm, bar, MenuID.Variable);
+					createMenuItem(_comm, mv, MenuID.NewFlagDir, &createFlagDir);
 					new MenuItem(mv, SWT.SEPARATOR);
-					createMenuItem(mv, _prop.msgs.menuNewFlag, _prop.images.menuNewFlag, &createFlag);
-					createMenuItem(mv, _prop.msgs.menuNewStep, _prop.images.menuNewStep, &createStep);
+					createMenuItem(_comm, mv, MenuID.NewFlag, &createFlag);
+					createMenuItem(_comm, mv, MenuID.NewStep, &createStep);
 				}
 				shell.setMenuBar(bar);
 			}
@@ -191,33 +193,33 @@ public:
 				bar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 				static if (UseArea && UseFlag) {
-					createToolItem(bar, _prop.msgs.ttSummary, _prop.images.menuSummary, &editSummary);
+					createToolItem(_comm, bar, MenuID.EditSummary, &editSummary);
 				}
-				createToolItem(bar, _prop.msgs.ttUp, _prop.images.menuUp, &up);
-				createToolItem(bar, _prop.msgs.ttDown, _prop.images.menuDown, &down);
+				createToolItem(_comm, bar, MenuID.Up, &up);
+				createToolItem(_comm, bar, MenuID.Down, &down);
 				static if (UseArea) {
 					new ToolItem(bar, SWT.SEPARATOR);
-					createToolItem(bar, _prop.msgs.ttNewArea, _prop.images.menuNewArea, &createArea);
-					createToolItem(bar, _prop.msgs.ttNewBattle, _prop.images.menuNewBattle, &createBattle);
-					createToolItem(bar, _prop.msgs.ttNewPackage, _prop.images.menuNewPackage, &createPackage);
+					createToolItem(_comm, bar, MenuID.NewArea, &createArea);
+					createToolItem(_comm, bar, MenuID.NewBattle, &createBattle);
+					createToolItem(_comm, bar, MenuID.NewPackage, &createPackage);
 				}
 				static if (UseFlag) {
 					new ToolItem(bar, SWT.SEPARATOR);
-					createToolItem(bar, _prop.msgs.ttNewFlag, _prop.images.menuNewFlag, &createFlag);
-					createToolItem(bar, _prop.msgs.ttNewStep, _prop.images.menuNewStep, &createStep);
-					createToolItem(bar, _prop.msgs.ttNewFlagDir, _prop.images.menuNewFlagDir, &createFlagDir);
+					createToolItem(_comm, bar, MenuID.NewFlag, &createFlag);
+					createToolItem(_comm, bar, MenuID.NewStep, &createStep);
+					createToolItem(_comm, bar, MenuID.NewFlagDir, &createFlagDir);
 					new ToolItem(bar, SWT.SEPARATOR);
-					createToolItem(bar, _prop.msgs.ttChangeVH, _prop.images.menuChangeVH, &changeVHSide);
+					createToolItem(_comm, bar, MenuID.ChangeVH, &changeVHSide);
 				}
 			}
 		} else {
-			appendMenuTCPD(_prop, this, this, true, true, true, true);
+			appendMenuTCPD(_comm, this, this, true, true, true, true);
 			static if (UseArea && UseFlag) {
-				putMenuAction(MenuID.Summary, &editSummary);
+				putMenuAction(MenuID.EditSummary, &editSummary);
 			}
 			static if (UseArea) {
-				putMenuAction(MenuID.EditScene, &openAreaScene);
-				putMenuAction(MenuID.EditEvent, &openAreaEvent);
+				putMenuAction(MenuID.EditSceneArea, &openAreaScene);
+				putMenuAction(MenuID.EditEventArea, &openAreaEvent);
 				putMenuAction(MenuID.NewArea, &createArea);
 				putMenuAction(MenuID.NewBattle, &createBattle);
 				putMenuAction(MenuID.NewPackage, &createPackage);
@@ -402,11 +404,11 @@ public:
 	@property
 	Image image() {
 		static if (UseArea && UseFlag) {
-			return _prop.images.menuDataWin;
+			return _prop.images.menu(MenuID.TableView);
 		} else static if (UseArea) {
-			return _prop.images.menuDataWin;
+			return _prop.images.menu(MenuID.TableView);
 		} else static if (UseFlag) {
-			return _prop.images.menuFlagWin;
+			return _prop.images.menu(MenuID.VarView);
 		} else static assert (0);
 	}
 	@property
@@ -536,7 +538,7 @@ public:
 		path = cpbottom(path);
 		if (cpattr(path).contains("shallow") && cpempty(path)) {
 			.forceFocus(_areas.table, shellActivate);
-			_areas.select = a;
+			_areas.select(a);
 			return true;
 		}
 		return false;

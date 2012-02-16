@@ -17,6 +17,7 @@ import cwx.structs;
 import cwx.sjis;
 import cwx.graphics;
 import cwx.msgs;
+import cwx.menu;
 
 import cwx.editor.gui.sound;
 
@@ -37,6 +38,7 @@ import cwx.editor.gui.dwt.jpyimage;
 import cwx.editor.gui.dwt.areawindow;
 import cwx.editor.gui.dwt.message;
 import cwx.editor.gui.dwt.areaviewutils;
+import cwx.editor.gui.dwt.dmenu;
 
 import std.algorithm;
 import std.math;
@@ -228,16 +230,16 @@ private:
 			_refAreas.removeAll();
 			if (!_area) return;
 			_refAreas.add(_prop.msgs.noRefArea);
-			_refAreas.select = 0;
+			_refAreas.select(0);
 			foreach (a; _summ.areas) {
 				_refAreasArr ~= a;
 				_refAreas.add(to!string(a.id) ~ "." ~ a.name);
-				if(_refTarget is a) _refAreas.select = _refAreas.getItemCount() - 1;
+				if(_refTarget is a) _refAreas.select(_refAreas.getItemCount() - 1);
 			}
 			foreach (a; _summ.battles) {
 				_refAreasArr ~= a;
 				_refAreas.add(to!string(a.id) ~ "." ~ a.name);
-				if(_refTarget is a) _refAreas.select = _refAreas.getItemCount() - 1;
+				if(_refTarget is a) _refAreas.select(_refAreas.getItemCount() - 1);
 			}
 			if (0 == _refAreas.getSelectionIndex()) {
 				_refTarget = null;
@@ -1330,28 +1332,31 @@ private:
 		_imgp.changingImages(&changingImages);
 		{
 			auto menu = new Menu(parent.getShell(), SWT.POP_UP);
-			createMenuItem(menu, _prop.msgs.menuCEdit, _prop.images.menuCEdit, &edit);
+			createMenuItem(_comm, menu, MenuID.EditProp, &edit);
 			new MenuItem(menu, SWT.SEPARATOR);
-			appendMenuTCPD(_prop, menu, _tcpd, true, true, true, true);
-			static if (is(A : Area) || is(A : Battle)) {
+			appendMenuTCPD(_comm, menu, _tcpd, true, true, true, true);
+			static if (is(A : Area)) {
 				new MenuItem(menu, SWT.SEPARATOR);
-				createMenuItem(menu, _prop.msgs.menuEditEvent, _prop.images.menuEditEvent, &openEvent);
+				createMenuItem(_comm, menu, MenuID.EditEventArea, &openEvent);
+			} else static if (is(A : Battle)) {
+				new MenuItem(menu, SWT.SEPARATOR);
+				createMenuItem(_comm, menu, MenuID.EditEventBattle, &openEvent);
 			}
 			new MenuItem(menu, SWT.SEPARATOR);
-			createMenuItem(menu, _prop.msgs.menuPosTop, _prop.images.menuPosTop, &posTop);
-			createMenuItem(menu, _prop.msgs.menuPosBottom, _prop.images.menuPosBottom, &posBottom);
-			createMenuItem(menu, _prop.msgs.menuPosLeft, _prop.images.menuPosLeft, &posLeft);
-			createMenuItem(menu, _prop.msgs.menuPosRight, _prop.images.menuPosRight, &posRight);
-			createMenuItem(menu, _prop.msgs.menuPosEven, _prop.images.menuPosEven, &posEven);
+			createMenuItem(_comm, menu, MenuID.PosTop, &posTop);
+			createMenuItem(_comm, menu, MenuID.PosBottom, &posBottom);
+			createMenuItem(_comm, menu, MenuID.PosLeft, &posLeft);
+			createMenuItem(_comm, menu, MenuID.PosRight, &posRight);
+			createMenuItem(_comm, menu, MenuID.PosEven, &posEven);
 			static if (UseCards) {
 				new MenuItem(menu, SWT.SEPARATOR);
-				createMenuItem(menu, _prop.msgs.menuScaleMin, _prop.images.menuScaleMin, &__scaleCMin);
-	 			createMenuItem(menu, _prop.msgs.menuScaleMiddle, _prop.images.menuScaleMiddle, &__scaleCMiddle);
-				createMenuItem(menu, _prop.msgs.menuScaleMax, _prop.images.menuScaleMax, &__scaleCMax);
+				createMenuItem(_comm, menu, MenuID.ScaleMin, &__scaleCMin);
+	 			createMenuItem(_comm, menu, MenuID.ScaleMiddle, &__scaleCMiddle);
+				createMenuItem(_comm, menu, MenuID.ScaleMax, &__scaleCMax);
 			}
 			new MenuItem(menu, SWT.SEPARATOR);
-			createMenuItem(menu, _prop.msgs.menuScaleEvenBig, _prop.images.menuScaleEvenBig, &scaleEvenBig);
-			createMenuItem(menu, _prop.msgs.menuScaleEvenSmall, _prop.images.menuScaleEvenSmall, &scaleEvenSmall);
+			createMenuItem(_comm, menu, MenuID.ScaleBig, &scaleEvenBig);
+			createMenuItem(_comm, menu, MenuID.ScaleSmall, &scaleEvenSmall);
 			_imgp.setMenu(menu);
 		}
 		_imgp.addDisposeListener(new class DisposeListener {
@@ -1565,14 +1570,18 @@ private:
 		list.setLayoutData(gd);
 		{
 			auto menu = new Menu(parent.getShell(), SWT.POP_UP);
-			createMenuItem(menu, _prop.msgs.menuCEdit, _prop.images.menuCEdit, {
+			createMenuItem(_comm, menu, MenuID.EditProp, {
 				edit(list.getSelectionIndices());
 			});
 			new MenuItem(menu, SWT.SEPARATOR);
-			appendMenuTCPD(_prop, menu, tcpd, true, true, true, true);
+			appendMenuTCPD(_comm, menu, tcpd, true, true, true, true);
 			static if ((is(A : Area) || is(A : Battle)) && is(C : AbstractSpCard)) {
 				new MenuItem(menu, SWT.SEPARATOR);
-				createMenuItem(menu, _prop.msgs.menuEditEvent, _prop.images.menuEditEvent, &openEvent);
+				static if (is(A : Area)) {
+					createMenuItem(_comm, menu, MenuID.EditEventArea, &openEvent);
+				} else static if (is(A : Battle)) {
+					createMenuItem(_comm, menu, MenuID.EditEventBattle, &openEvent);
+				} else static assert (0);
 			}
 			list.setMenu(menu);
 		}
@@ -1837,7 +1846,7 @@ public:
 			_flag.addDisposeListener(new FlagsDispose);
 			{
 				auto menu = new Menu(_flag.getShell(), SWT.POP_UP);
-				createMenuItem(menu, _prop.msgs.menuOpenFlagView, _prop.images.menuOpenFlagView, &openFlagView);
+				createMenuItem(_comm, menu, MenuID.OpenAtVarView, &openFlagView);
 				_flag.setMenu(menu);
 			}
 			static if (RefCards) {
@@ -1857,7 +1866,7 @@ public:
 				});
 				{
 					auto menu = new Menu(_refAreas.getShell(), SWT.POP_UP);
-					createMenuItem(menu, _prop.msgs.menuOpenTableView, _prop.images.menuOpenTableView, &openRefAreaView);
+					createMenuItem(_comm, menu, MenuID.OpenAtTableView, &openRefAreaView);
 					_refAreas.setMenu(menu);
 				}
 				_comm.refArea.add(&refreshRefAreasA);
@@ -2021,7 +2030,7 @@ public:
 		}
 		_imgp.removeRange(partyIndex, _imgp.images.length);
 		appendPartyCards();
-		_imgp.select = sels;
+		_imgp.select(sels);
 		_imgp.redraw();
 	}
 	private void appendPartyCards() {
@@ -2148,7 +2157,7 @@ public:
 						sels ~= bi - count;
 					}
 				}
-				v._imgp.select = sels;
+				v._imgp.select(sels);
 			}
 			v.refreshSelected();
 			if (cIdcs.length > 0 || bIdcs.length > 0) v._imgp.redraw();
@@ -2204,7 +2213,7 @@ public:
 						sels ~= bi + count;
 					}
 				}
-				v._imgp.select = sels;
+				v._imgp.select(sels);
 			}
 			v.refreshSelected();
 			if (cIdcs.length > 0 || bIdcs.length > 0) v._imgp.redraw();
@@ -2551,15 +2560,15 @@ public:
 		bool spCustom() {return !_area.spAuto;}
 	}
 	private void setupTLP(TopLevelPanel tlp) {
-		_tlp.putMenuChecked(MenuID.ViewParty, &reverseViewParty, &isViewParty);
-		_tlp.putMenuChecked(MenuID.Fixed, &reverseFixed, &isFixed);
+		_tlp.putMenuChecked(MenuID.ShowParty, &reverseViewParty, &isViewParty);
+		_tlp.putMenuChecked(MenuID.FixedImage, &reverseFixed, &isFixed);
 		static if (UseCards && UseBacks) {
-			_tlp.putMenuChecked(MenuID.ViewCards, &reverseViewCards, &isViewCards);
-			_tlp.putMenuChecked(MenuID.ViewBacks, &reverseViewBacks, &isViewBacks);
+			_tlp.putMenuChecked(MenuID.ShowCard, &reverseViewCards, &isViewCards);
+			_tlp.putMenuChecked(MenuID.ShowBack, &reverseViewBacks, &isViewBacks);
 		}
 		static if (UseCards) {
-			_tlp.putMenuChecked(MenuID.Auto, &setAuto, &_area.spAuto);
-			_tlp.putMenuChecked(MenuID.Custom, &setCustom, &spCustom);
+			_tlp.putMenuChecked(MenuID.AutoArrange, &setAuto, &_area.spAuto);
+			_tlp.putMenuChecked(MenuID.ManualArrange, &setCustom, &spCustom);
 		}
 		_tlp.putMenuAction(MenuID.Refresh, &refresh);
 		_tlp.putMenuAction(MenuID.Undo, &undo);
@@ -2572,51 +2581,50 @@ public:
 	/// Params:
 	/// bar = メニュー。
 	void setupMenu(Menu bar) {
-		auto mv = createMenu(bar, _prop.msgs.menuCardsAndBacks);
-		_vpMenu = createMenuItem(mv, _prop.msgs.menuViewParty, _prop.images.menuViewParty,
+		auto mv = createMenu(_comm, bar, MenuID.CardsAndBacks);
+		_vpMenu = createMenuItem(_comm, mv, MenuID.ShowParty,
 			&reverseViewParty, SWT.CHECK);
 		_vpMenu.setSelection(_viewParty);
-		_vmMenu = createMenuItem(mv, _prop.msgs.menuViewMsg, _prop.images.menuViewMsg,
+		_vmMenu = createMenuItem(_comm, mv, MenuID.ShowMsg,
 			&reverseViewMsg, SWT.CHECK);
 		_vmMenu.setSelection(_viewMsg);
 		new MenuItem(mv, SWT.SEPARATOR);
-		_vfMenu = createMenuItem(mv, _prop.msgs.menuFixed, _prop.images.menuFixed,
+		_vfMenu = createMenuItem(_comm, mv, MenuID.FixedImage,
 			&reverseFixed, SWT.CHECK);
 		_vfMenu.setSelection(_fixed);
 		static if (is(C : EnemyCard) || RefCards) {
 			if (_summ) {
 				new MenuItem(mv, SWT.SEPARATOR);
-				_dbgMenu = createMenuItem(mv,
-					_prop.msgs.menuEnemyCardDebugView,
-					_prop.images.menuEnemyCardDebugView,
+				_dbgMenu = createMenuItem(_comm, mv,
+					MenuID.ShowEnemyCardProp,
 					&reverseDebugMode, SWT.CHECK);
 				_dbgMenu.setSelection(_dbgMode);
 			}
 		}
 		static if (UseCards && UseBacks) {
 			new MenuItem(mv, SWT.SEPARATOR);
-			_vcMenu = createMenuItem(mv, _prop.msgs.menuViewCards, _prop.images.menuViewCards,
+			_vcMenu = createMenuItem(_comm, mv, MenuID.ShowCard,
 				&reverseViewCards, SWT.CHECK);
 			_vcMenu.setSelection(_viewCards);
-			_vbMenu = createMenuItem(mv, _prop.msgs.menuViewBacks, _prop.images.menuViewBacks,
+			_vbMenu = createMenuItem(_comm, mv, MenuID.ShowBack,
 				&reverseViewBacks, SWT.CHECK);
 			_vbMenu.setSelection(_viewBacks);
 		}
 		static if (UseCards) {
 			new MenuItem(mv, SWT.SEPARATOR);
-			_autoMenu = createMenuItem(mv, _prop.msgs.menuAuto, _prop.images.menuAuto, &setAuto, SWT.RADIO);
-			_customMenu = createMenuItem(mv, _prop.msgs.menuCustom, _prop.images.menuCustom, &setCustom, SWT.RADIO);
+			_autoMenu = createMenuItem(_comm, mv, MenuID.AutoArrange, &setAuto, SWT.RADIO);
+			_customMenu = createMenuItem(_comm, mv, MenuID.ManualArrange, &setCustom, SWT.RADIO);
 			_autoMenu.setSelection(_area.spAuto);
 			_customMenu.setSelection(!_area.spAuto);
 		}
 		new MenuItem(mv, SWT.SEPARATOR);
 		static if (is (C == MenuCard)) {
-			createMenuItem(mv, _prop.msgs.menuNewMenuCard, _prop.images.menuNewMenuCard, &createCard);
+			createMenuItem(_comm, mv, MenuID.NewMenuCard, &createCard);
 		} else static if (is (C == EnemyCard)) {
-			createMenuItem(mv, _prop.msgs.menuNewEnemyCard, _prop.images.menuNewEnemyCard, &createCard);
+			createMenuItem(_comm, mv, MenuID.NewEnemyCard, &createCard);
 		}
 		static if (UseBacks) {
-			createMenuItem(mv, _prop.msgs.menuNewBack, _prop.images.menuNewBack, &createBackground);
+			createMenuItem(_comm, mv, MenuID.NewBack, &createBackground);
 		}
 	}
 
@@ -2626,78 +2634,77 @@ public:
 	private void setupToolBar(ToolBar bar) {
 		static if (is(A : Area)) {
 			if (cast(AreaSceneWindow) tlpData(this).tlp) {
-				createToolItem(bar, _prop.msgs.ttEditEvent, _prop.images.areaEventTreeView, &openEvent);
+				createToolItem(_comm, bar, MenuID.EditEventArea, &openEvent);
 				new ToolItem(bar, SWT.SEPARATOR);
 			}
 		} else static if (is(A : Battle)) {
 			if (cast(BattleSceneWindow) tlpData(this).tlp) {
-				createToolItem(bar, _prop.msgs.ttEditEvent, _prop.images.battleEventTreeView, &openEvent);
+				createToolItem(_comm, bar, MenuID.EditEventBattle, &openEvent);
 				new ToolItem(bar, SWT.SEPARATOR);
 			}
 		}
 		if (!_tlp) {
-			createToolItem(bar, _prop.msgs.ttRefresh, _prop.images.menuRefresh, &refresh);
+			createToolItem(_comm, bar, MenuID.Refresh, &refresh);
 			new ToolItem(bar, SWT.SEPARATOR);
 		}
-		_vpTMenu = createToolItem(bar,
-			_prop.msgs.ttViewParty, _prop.images.menuViewParty,
+		_vpTMenu = createToolItem(_comm, bar,
+			MenuID.ShowParty,
 			&reverseViewParty, SWT.CHECK);
 		_vpTMenu.setSelection(_viewParty);
-		_vmTMenu = createToolItem(bar,
-			_prop.msgs.ttViewMsg, _prop.images.menuViewMsg,
+		_vmTMenu = createToolItem(_comm, bar,
+			MenuID.ShowMsg,
 			&reverseViewMsg, SWT.CHECK);
 		_vmTMenu.setSelection(_viewMsg);
 		new ToolItem(bar, SWT.SEPARATOR);
-		_vfTMenu = createToolItem(bar,
-			_prop.msgs.ttFixed, _prop.images.menuFixed,
+		_vfTMenu = createToolItem(_comm, bar,
+			MenuID.FixedImage,
 			&reverseFixed, SWT.CHECK);
 		_vfTMenu.setSelection(_fixed);
 		static if (is(C : EnemyCard) || RefCards) {
 			if (_summ) {
 				new ToolItem(bar, SWT.SEPARATOR);
-				_dbgTMenu = createToolItem(bar,
-					_prop.msgs.ttEnemyCardDebugView,
-					_prop.images.menuEnemyCardDebugView,
+				_dbgTMenu = createToolItem(_comm, bar,
+					MenuID.ShowEnemyCardProp,
 					&reverseDebugMode, SWT.CHECK);
 				_dbgTMenu.setSelection(_dbgMode);
 			}
 		}
 		static if (UseCards && UseBacks) {
 			new ToolItem(bar, SWT.SEPARATOR);
-			_vcTMenu = createToolItem(bar,
-				_prop.msgs.ttViewCards, _prop.images.menuViewCards,
+			_vcTMenu = createToolItem(_comm, bar,
+				MenuID.ShowCard,
 				&reverseViewCards, SWT.CHECK);
 			_vcTMenu.setSelection(_viewCards);
-			_vbTMenu = createToolItem(bar,
-				_prop.msgs.ttViewBacks, _prop.images.menuViewBacks,
+			_vbTMenu = createToolItem(_comm, bar,
+				MenuID.ShowBack,
 				&reverseViewBacks, SWT.CHECK);
 			_vbTMenu.setSelection(_viewBacks);
 		}
 		new ToolItem(bar, SWT.SEPARATOR);
 		if (!_tlp) {
-			createToolItem(bar, _prop.msgs.ttUndo, _prop.images.menuUndo, &undo);
-			createToolItem(bar, _prop.msgs.ttRedo, _prop.images.menuRedo, &redo);
+			createToolItem(_comm, bar, MenuID.Undo, &undo);
+			createToolItem(_comm, bar, MenuID.Redo, &redo);
 			new ToolItem(bar, SWT.SEPARATOR);
-			createToolItem(bar, _prop.msgs.ttUp, _prop.images.menuUp, &up);
-			createToolItem(bar, _prop.msgs.ttDown, _prop.images.menuDown, &down);
+			createToolItem(_comm, bar, MenuID.Up, &up);
+			createToolItem(_comm, bar, MenuID.Down, &down);
 			new ToolItem(bar, SWT.SEPARATOR);
 		}
 		static if (UseCards) {
-			_autoTMenu = createToolItem(bar, _prop.msgs.ttAuto, _prop.images.menuAuto, &setAuto, SWT.RADIO);
-			_customTMenu = createToolItem(bar, _prop.msgs.ttCustom, _prop.images.menuCustom, &setCustom, SWT.RADIO);
+			_autoTMenu = createToolItem(_comm, bar, MenuID.AutoArrange, &setAuto, SWT.RADIO);
+			_customTMenu = createToolItem(_comm, bar, MenuID.ManualArrange, &setCustom, SWT.RADIO);
 			_autoTMenu.setSelection(_area.spAuto);
 			_customTMenu.setSelection(!_area.spAuto);
 			new ToolItem(bar, SWT.SEPARATOR);
 			static if (is (C == MenuCard)) {
-				createToolItem(bar, _prop.msgs.ttNewMenuCard, _prop.images.menuNewMenuCard, &createCard);
+				createToolItem(_comm, bar, MenuID.NewMenuCard, &createCard);
 			} else static if (is (C == EnemyCard)) {
-				createToolItem(bar, _prop.msgs.ttNewEnemyCard, _prop.images.menuNewEnemyCard, &createCard);
+				createToolItem(_comm, bar, MenuID.NewEnemyCard, &createCard);
 			} else {
 				static assert (0);
 			}
 		}
 		static if (UseBacks) {
-			createToolItem(bar, _prop.msgs.ttNewBack, _prop.images.menuNewBack, &createBackground);
+			createToolItem(_comm, bar, MenuID.NewBack, &createBackground);
 		}
 		new ToolItem(bar, SWT.SEPARATOR);
 		_xSpn = createSpinner(bar, _prop.msgs.left, _prop.looks.posLeftMax, _prop.looks.posLeftMin, 0,
@@ -2728,12 +2735,12 @@ public:
 		}
 		static if (UseBacks) {
 			new ToolItem(bar, SWT.SEPARATOR);
-			_maskTMenu = createToolItem(bar, _prop.msgs.ttMask, _prop.images.menuMask, &setMask, SWT.CHECK);
+			_maskTMenu = createToolItem(_comm, bar, MenuID.Mask, &setMask, SWT.CHECK);
 			_maskTMenu.setEnabled(false);
 		}
 		static if (is (C == EnemyCard)) {
 			new ToolItem(bar, SWT.SEPARATOR);
-			_escTMenu = createToolItem(bar, _prop.msgs.ttDoEscape, _prop.images.menuDoEscape,
+			_escTMenu = createToolItem(_comm, bar, MenuID.Escape,
 					&setEscape, SWT.CHECK);
 			_escTMenu.setEnabled(false);
 			new ToolItem(bar, SWT.SEPARATOR);
@@ -2790,7 +2797,7 @@ public:
 		string f = _flag.getText();
 		_flag.removeAll();
 		_flag.add(_prop.msgs.noFlag);
-		_flag.select = 0;
+		_flag.select(0);
 		foreach (i, fl; _summ.flagDirRoot.allFlags) {
 			auto path = fl.path;
 			_flag.add(path);
@@ -3680,7 +3687,7 @@ public:
 		bool sel(Table list) {
 			if (index >= list.getItemCount()) return false;
 			.forceFocus(_imgp, shellActivate);
-			list.select = index;
+			list.select(index);
 			list.showSelection();
 			return true;
 		}

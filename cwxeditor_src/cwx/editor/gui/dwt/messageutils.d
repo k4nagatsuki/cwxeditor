@@ -11,6 +11,7 @@ import cwx.flag;
 import cwx.path;
 import cwx.structs;
 import cwx.msgutils;
+import cwx.menu;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;
@@ -28,6 +29,7 @@ import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.properties;
 import cwx.editor.gui.dwt.absdialog;
+import cwx.editor.gui.dwt.dmenu;
 
 import std.array;
 import std.utf;
@@ -116,7 +118,7 @@ private:
 		scope (exit) ignoreMod = oldIgnoreMod;
 		auto apd = cast(APData) o;
 		assert (apd);
-		_dlgsL.select = apd.selDlg;
+		_dlgsL.select(apd.selDlg);
 		_dlgs[apd.targDlg].text = apd.text;
 		_dlgs[apd.targDlg].rCoupons = apd.rCoupons.dup;
 		refreshDlgList(apd.targDlg);
@@ -145,7 +147,7 @@ private:
 				this.outer._dlgs ~= new SDialog(dlg);
 			}
 			refreshDlgList();
-			_dlgsL.select = selDlg;
+			_dlgsL.select(selDlg);
 			selectChanged();
 		}
 		override void undo() {impl();}
@@ -209,7 +211,7 @@ private:
 		_dlgs = _dlgs[0 .. index] ~ _dlgs[index + 1 .. $];
 		_dlgsL.remove(index);
 		if (sel) {
-			_dlgsL.select = index < _dlgs.length ? index : _dlgs.length - 1;
+			_dlgsL.select(index < _dlgs.length ? index : _dlgs.length - 1);
 			selectChanged();
 		}
 		applyEnabled();
@@ -227,7 +229,7 @@ private:
 			auto tempL = _dlgsL.getItem(index - 1).getText();
 			_dlgsL.getItem(index - 1).setText(_dlgsL.getItem(index).getText());
 			_dlgsL.getItem(index).setText(tempL);
-			_dlgsL.select = index - 1;
+			_dlgsL.select(index - 1);
 			applyEnabled();
 		}
 	}
@@ -241,7 +243,7 @@ private:
 			auto tempL = _dlgsL.getItem(index + 1).getText();
 			_dlgsL.getItem(index + 1).setText(_dlgsL.getItem(index).getText());
 			_dlgsL.getItem(index).setText(tempL);
-			_dlgsL.select = index + 1;
+			_dlgsL.select(index + 1);
 			applyEnabled();
 		}
 	}
@@ -291,7 +293,7 @@ private:
 	}
 	void putRCoupons(SDialog dlg) {
 		string[] rcs;
-		foreach (rc; splitLines(_rCoupons.getText())) {
+		foreach (rc; splitLines!string(_rCoupons.getText())) {
 			if (rc.length > 0) {
 				rcs ~= rc;
 			}
@@ -417,7 +419,7 @@ private:
 		auto c = _rCouponsList.getText();
 		_rCouponsList.removeAll();
 		addCastCoupons(_rCouponsList, prop, true, comm.skin.legacyName);
-		_rCouponsList.select = 0;
+		_rCouponsList.select(0);
 		if (c.length && -1 == _rCouponsList.indexOf(c)) {
 			_rCouponsList.add(c, 0);
 		}
@@ -444,9 +446,9 @@ private:
 		}
 
 		if (selIndex < 0 || _dlgs.length <= selIndex) {
-			_dlgsL.select = 0;
+			_dlgsL.select(0);
 		} else {
-			_dlgsL.select = selIndex;
+			_dlgsL.select(selIndex);
 			_dlgsL.setTopIndex(topIndex);
 		}
 		if (selIndex != _dlgsL.getSelectionIndex()) {
@@ -475,15 +477,14 @@ private:
 			prop.var.etc.talkSashL = ws[0];
 			prop.var.etc.talkSashR = ws[1];
 			sash.getDisplay().removeFilter(SWT.KeyDown, _kdFilter);
+			comm.refMenu.remove(&refMenu);
 			comm.refUndoMax.remove(&refUndoMax);
 		}
 	}
 	private class KeyDownFilter : Listener {
-		private int _undoAcc;
-		private int _redoAcc;
 		this () {
-			_undoAcc = convertAccelerator(prop.msgs.menuUndo);
-			_redoAcc = convertAccelerator(prop.msgs.menuRedo);
+			refMenu(MenuID.Undo);
+			refMenu(MenuID.Redo);
 		}
 		override void handleEvent(Event e) {
 			auto c = cast(Control) e.widget;
@@ -496,6 +497,12 @@ private:
 				e.doit = false;
 			}
 		}
+	}
+	private int _undoAcc;
+	private int _redoAcc;
+	void refMenu(MenuID id) {
+		if (id == MenuID.Undo) _undoAcc = convertAccelerator(prop.buildMenu(MenuID.Undo));
+		if (id == MenuID.Redo) _redoAcc = convertAccelerator(prop.buildMenu(MenuID.Redo));
 	}
 	void refUndoMax() {
 		_undo.max = prop.var.etc.undoMaxEtc;
@@ -513,7 +520,7 @@ public:
 		if ("dialog" == cate) {
 			auto index = cpindex(path);
 			if (index >= _dlgsL.getItemCount()) return false;
-			_dlgsL.select = index;
+			_dlgsL.select(index);
 			selectChanged();
 			.forceFocus(_dlgsL, shellActivate);
 			path = cpbottom(path);
@@ -555,13 +562,13 @@ protected:
 			drop.addDropListener(new DDropListener);
 
 			auto menu = new Menu(_dlgsL);
-			createMenuItem(menu, prop.msgs.menuUndo, prop.images.menuUndo, {_undo.undo();});
-			createMenuItem(menu, prop.msgs.menuRedo, prop.images.menuRedo, {_undo.redo();});
+			createMenuItem(comm, menu, MenuID.Undo, {_undo.undo();});
+			createMenuItem(comm, menu, MenuID.Redo, {_undo.redo();});
 			new MenuItem(menu, SWT.SEPARATOR);
-			createMenuItem(menu, prop.msgs.menuUp, prop.images.menuUp, &up);
-			createMenuItem(menu, prop.msgs.menuDown, prop.images.menuDown, &down);
+			createMenuItem(comm, menu, MenuID.Up, &up);
+			createMenuItem(comm, menu, MenuID.Down, &down);
 			new MenuItem(menu, SWT.SEPARATOR);
-			appendMenuTCPD(prop, menu, new DialogsTCPD, true, true, true, true);
+			appendMenuTCPD(comm, menu, new DialogsTCPD, true, true, true, true);
 			_dlgsL.setMenu(menu);
 
 			auto bar = new ToolBar(comp, SWT.FLAT | SWT.VERTICAL);
@@ -572,15 +579,15 @@ protected:
 			bar.addListener(SWT.KeyDown, new class Listener {
 				override void handleEvent(Event e) {e.doit = true;}
 			});
-			createToolItem(bar, prop.msgs.createDialog, prop.images.createDialog, &createDialog);
-			createToolItem(bar, prop.msgs.deleteDialog, prop.images.deleteDialog, &deleteDialogSel);
+			createToolItem2(bar, prop.msgs.createDialog, prop.images.createDialog, &createDialog);
+			createToolItem2(bar, prop.msgs.deleteDialog, prop.images.deleteDialog, &deleteDialogSel);
 			new ToolItem(bar, SWT.SEPARATOR);
-			createToolItem(bar, prop.msgs.ttUp, prop.images.menuUp, &up);
-			createToolItem(bar, prop.msgs.ttDown, prop.images.menuDown, &down);
+			createToolItem(comm, bar, MenuID.Up, &up);
+			createToolItem(comm, bar, MenuID.Down, &down);
 			new ToolItem(bar, SWT.SEPARATOR);
-			createToolItem(bar, prop.msgs.copyToDialogs, prop.images.copyToDialogs, &copyToDialogs);
-			createToolItem(bar, prop.msgs.copyToUpper, prop.images.copyToUpper, &copyToUpper);
-			createToolItem(bar, prop.msgs.copyToLower, prop.images.copyToLower, &copyToLower);
+			createToolItem2(bar, prop.msgs.copyToDialogs, prop.images.copyToDialogs, &copyToDialogs);
+			createToolItem2(bar, prop.msgs.copyToUpper, prop.images.copyToUpper, &copyToUpper);
+			createToolItem2(bar, prop.msgs.copyToLower, prop.images.copyToLower, &copyToLower);
 		}
 		auto skin = comm.skin;
 		{
@@ -628,6 +635,7 @@ protected:
 		sash.setWeights([prop.var.etc.talkSashL, prop.var.etc.talkSashR]);
 		_kdFilter = new KeyDownFilter;
 		sash.getDisplay().addFilter(SWT.KeyDown, _kdFilter);
+		comm.refMenu.add(&refMenu);
 		comm.refUndoMax.add(&refUndoMax);
 
 		ignoreMod = true;
@@ -735,15 +743,14 @@ private:
 			auto c = cast(Control) e.widget;
 			assert (c);
 			c.getDisplay().removeFilter(SWT.KeyDown, _kdFilter);
+			comm.refMenu.remove(&refMenu);
 			comm.refUndoMax.remove(&refUndoMax);
 		}
 	}
 	private class KeyDownFilter : Listener {
-		private int _undoAcc;
-		private int _redoAcc;
 		this () {
-			_undoAcc = convertAccelerator(prop.msgs.menuUndo);
-			_redoAcc = convertAccelerator(prop.msgs.menuRedo);
+			refMenu(MenuID.Undo);
+			refMenu(MenuID.Redo);
 		}
 		override void handleEvent(Event e) {
 			auto c = cast(Control) e.widget;
@@ -756,6 +763,12 @@ private:
 				e.doit = false;
 			}
 		}
+	}
+	private int _undoAcc;
+	private int _redoAcc;
+	void refMenu(MenuID id) {
+		if (id == MenuID.Undo) _undoAcc = convertAccelerator(prop.buildMenu(MenuID.Undo));
+		if (id == MenuID.Redo) _redoAcc = convertAccelerator(prop.buildMenu(MenuID.Redo));
 	}
 	void refUndoMax() {
 		_undo.max = prop.var.etc.undoMaxEtc;
@@ -852,6 +865,7 @@ protected:
 		_tabf.addDisposeListener(new Dispose);
 		_kdFilter = new KeyDownFilter;
 		_tabf.getDisplay().addFilter(SWT.KeyDown, _kdFilter);
+		comm.refMenu.add(&refMenu);
 		comm.refUndoMax.add(&refUndoMax);
 
 		ignoreMod = true;
@@ -907,16 +921,16 @@ private Composite createTalkerPane2(Composite parent, Commons comm, Props prop, 
 		talkerCombo.add(prop.msgs.talkerName(Talker.RANDOM));
 		switch (talker) {
 		case Talker.SELECTED:
-			talkerCombo.select = 0;
+			talkerCombo.select(0);
 			break;
 		case Talker.UNSELECTED:
-			talkerCombo.select = 1;
+			talkerCombo.select(1);
 			break;
 		case Talker.RANDOM:
-			talkerCombo.select = 2;
+			talkerCombo.select(2);
 			break;
 		default:
-			talkerCombo.select = 0;
+			talkerCombo.select(0);
 		}
 	}
 	couponCombo = new Combo(comp, SWT.DROP_DOWN | SWT.BORDER);
@@ -951,7 +965,7 @@ private Composite createTalkerPane2(Composite parent, Commons comm, Props prop, 
 			override void widgetSelected(SelectionEvent e) {
 				if (_combo.getText().length > 0) {
 					_list.setSelection(_list.getText().length, _list.getText().length);
-					string[] lines = splitLines(_list.getText());
+					string[] lines = splitLines!string(_list.getText());
 					if (lines.length > 0 && lines[$ - 1].length > 0) {
 						_list.insert("\n");
 					}
@@ -1005,19 +1019,19 @@ private Composite createTalkerPane
 	if (msel.image.length == 0) {
 		switch (talker) {
 		case Talker.SELECTED:
-			msel.dirsCombo.select = 0;
+			msel.dirsCombo.select(0);
 			break;
 		case Talker.UNSELECTED:
-			msel.dirsCombo.select = 1;
+			msel.dirsCombo.select(1);
 			break;
 		case Talker.RANDOM:
-			msel.dirsCombo.select = 2;
+			msel.dirsCombo.select(2);
 			break;
 		case Talker.CARD:
-			msel.dirsCombo.select = 3;
+			msel.dirsCombo.select(3);
 			break;
 		default:
-			msel.dirsCombo.select = 0;
+			msel.dirsCombo.select(0);
 		}
 	}
 	return comp;
@@ -1078,23 +1092,23 @@ private ToolBar createSCharBar(Composite parent,
 	bar.addListener(SWT.KeyDown, new class Listener {
 		override void handleEvent(Event e) {e.doit = true;}
 	});
-	createToolItem(bar, prop.msgs.defaultColor, prop.images.defaultColor, &(new PutColor(putColor, 'W')).put);
-	createToolItem(bar, prop.msgs.red, prop.images.red, &(new PutColor(putColor, 'R')).put);
-	createToolItem(bar, prop.msgs.blue, prop.images.blue, &(new PutColor(putColor, 'B')).put);
-	createToolItem(bar, prop.msgs.green, prop.images.green, &(new PutColor(putColor, 'G')).put);
-	createToolItem(bar, prop.msgs.yellow, prop.images.yellow, &(new PutColor(putColor, 'Y')).put);
+	createToolItem2(bar, prop.msgs.defaultColor, prop.images.defaultColor, &(new PutColor(putColor, 'W')).put);
+	createToolItem2(bar, prop.msgs.red, prop.images.red, &(new PutColor(putColor, 'R')).put);
+	createToolItem2(bar, prop.msgs.blue, prop.images.blue, &(new PutColor(putColor, 'B')).put);
+	createToolItem2(bar, prop.msgs.green, prop.images.green, &(new PutColor(putColor, 'G')).put);
+	createToolItem2(bar, prop.msgs.yellow, prop.images.yellow, &(new PutColor(putColor, 'Y')).put);
 	new ToolItem(bar, SWT.SEPARATOR);
-	createToolItem(bar, prop.msgs.scRef, prop.images.scRef, &(new PutC(insert, "#I")).put);
-	createToolItem(bar, prop.msgs.scTalker(Talker.SELECTED), prop.images.scTalker(Talker.SELECTED),
+	createToolItem2(bar, prop.msgs.scRef, prop.images.scRef, &(new PutC(insert, "#I")).put);
+	createToolItem2(bar, prop.msgs.scTalker(Talker.SELECTED), prop.images.scTalker(Talker.SELECTED),
 		&(new PutC(insert, "#M")).put);
-	createToolItem(bar, prop.msgs.scTalker(Talker.UNSELECTED), prop.images.scTalker(Talker.UNSELECTED),
+	createToolItem2(bar, prop.msgs.scTalker(Talker.UNSELECTED), prop.images.scTalker(Talker.UNSELECTED),
 		&(new PutC(insert, "#U")).put);
-	createToolItem(bar, prop.msgs.scTalker(Talker.RANDOM), prop.images.scTalker(Talker.RANDOM),
+	createToolItem2(bar, prop.msgs.scTalker(Talker.RANDOM), prop.images.scTalker(Talker.RANDOM),
 		&(new PutC(insert, "#R")).put);
-	createToolItem(bar, prop.msgs.scTalker(Talker.CARD), prop.images.scTalker(Talker.CARD),
+	createToolItem2(bar, prop.msgs.scTalker(Talker.CARD), prop.images.scTalker(Talker.CARD),
 		&(new PutC(insert, "#C")).put);
-	createToolItem(bar, prop.msgs.scTeam, prop.images.scTeam, &(new PutC(insert, "#T")).put);
-	createToolItem(bar, prop.msgs.scYado, prop.images.scYado, &(new PutC(insert, "#Y")).put);
+	createToolItem2(bar, prop.msgs.scTeam, prop.images.scTeam, &(new PutC(insert, "#T")).put);
+	createToolItem2(bar, prop.msgs.scYado, prop.images.scYado, &(new PutC(insert, "#Y")).put);
 	return bar;
 }
 
@@ -1111,7 +1125,7 @@ private ToolBar createSkinSCharBar(Composite parent, void delegate(string) inser
 		auto img = new Image(Display.getCurrent(), spChar(skin, spc));
 		string name = toUTF8("#"d ~ spc);
 		auto scp = new PutC(insert, name);
-		createToolItem(bar, name, img, &scp.put);
+		createToolItem2(bar, name, img, &scp.put);
 		imgs ~= img;
 	}
 	bar.addDisposeListener(new class DisposeListener {
@@ -1158,13 +1172,13 @@ private Composite createFlagStepBar(Composite parent, void delegate(string) inse
 		foreach (i, flag; root.allFlags) {
 			auto p = flag.path;
 			flags.add(p);
-			if (0 == i || 0 == icmp(p, fSel)) flags.select = i;
+			if (0 == i || 0 == icmp(p, fSel)) flags.select(i);
 		}
 		steps.removeAll();
 		foreach (i, step; root.allSteps) {
 			auto p = step.path;
 			steps.add(p);
-			if (0 == i || 0 == icmp(p, sSel)) steps.select = i;
+			if (0 == i || 0 == icmp(p, sSel)) steps.select(i);
 		}
 		flags.setEnabled(flags.getItemCount() > 0);
 		putFlag.setEnabled(flags.getEnabled());
@@ -1343,7 +1357,7 @@ class MsgPreview {
 				}
 			}
 			if (selPath && selPath == lpath) {
-				_values.select = _values.getItemCount() - 1;
+				_values.select(_values.getItemCount() - 1);
 			}
 		}
 		foreach (f; _summ.flagDirRoot.allSteps) {
@@ -1365,7 +1379,7 @@ class MsgPreview {
 				}
 			}
 			if (selPath && selPath == lpath) {
-				_values.select = _values.getItemCount() - 1;
+				_values.select(_values.getItemCount() - 1);
 			}
 		}
 	}
@@ -1606,7 +1620,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 
 	// 改行置換
 	if (.contains(message, '\r')) {
-		message = message.splitlines.join("\n");
+		message = message.splitLines.join("\n");
 	}
 	// 特殊文字・フラグ・ステップ・色
 	string[size_t] rFonts;

@@ -9,6 +9,7 @@ import cwx.sjis;
 import cwx.cab;
 import cwx.structs;
 import cwx.msgs;
+import cwx.menu;
 
 import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.commons;
@@ -19,6 +20,7 @@ import cwx.editor.gui.dwt.properties;
 import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.sbshell;
+import cwx.editor.gui.dwt.dmenu;
 
 import core.thread;
 
@@ -421,7 +423,7 @@ private:
 					itm.setData(p);
 					if (selset.size > 0) {
 						if (selset.contains(p.array)) {
-							_files.select = count;
+							_files.select(count);
 						}
 					}
 					count++;
@@ -1016,28 +1018,28 @@ private:
 			}
 		}
 		this (Menu menu, OuterTool tool) {
-			createMenuItem(menu, tool.name, null, &run);
+			createMenuItem2(menu, tool.name, null, &run);
 			_tool = tool;
 		}
 	}
 	void createFilesMenu() {
 		if (_files.getMenu()) _files.getMenu().dispose();
 		auto menu = new Menu(_win.getShell(), SWT.POP_UP);
-		createMenuItem(menu, _prop.msgs.menuReplacePath, _prop.images.menuReplacePath, &replace);
+		createMenuItem(_comm, menu, MenuID.ReplFilePath, &replace);
 		new MenuItem(menu, SWT.SEPARATOR);
-		createMenuItem(menu, _prop.msgs.menuNewFolder, _prop.images.menuNewFolder, &createDirFiles);
+		createMenuItem(_comm, menu, MenuID.NewDir, &createDirFiles);
 		new MenuItem(menu, SWT.SEPARATOR);
-		createMenuItem(menu, _prop.msgs.menuCreateArchive, _prop.images.menuCreateArchive, &createArchive);
+		createMenuItem(_comm, menu, MenuID.CreateArchive, &createArchive);
 		new MenuItem(menu, SWT.SEPARATOR);
 		foreach (tool; _prop.var.etc.outerTools) {
 			new Exec(menu, tool);
 		}
 		if (_prop.var.etc.outerTools.length > 0) new MenuItem(menu, SWT.SEPARATOR);
-		appendMenuTCPD(_prop, menu, this, true, true, true, true);
+		appendMenuTCPD(_comm, menu, this, true, true, true, true);
 		new MenuItem(menu, SWT.SEPARATOR);
-		createMenuItem(menu, _prop.msgs.menuCopyFilePath, _prop.images.menuCopyFilePath, &copyFilePath);
+		createMenuItem(_comm, menu, MenuID.CopyFilePath, &copyFilePath);
 		new MenuItem(menu, SWT.SEPARATOR);
-		createMenuItem(menu, _prop.msgs.menuDeleteUnuse, _prop.images.menuDeleteUnuse, &deleteUnuse);
+		createMenuItem(_comm, menu, MenuID.DelNotUsedFile, &deleteUnuse);
 
 		_files.setMenu(menu);
 	}
@@ -1464,58 +1466,58 @@ public:
 		if (shell) {
 			auto bar = new Menu(shell, SWT.BAR);
 
-			auto mf = createMenu(bar, _prop.msgs.menuFile);
-			createMenuItem(mf, _prop.msgs.menuOpenDirectory, _prop.images.folder, &openDirectory);
+			auto mf = createMenu(_comm, bar, MenuID.File);
+			createMenuItem(_comm, mf, MenuID.OpenDir, &openDirectory);
 			new MenuItem(mf, SWT.SEPARATOR);
-			createMenuItem(mf, _prop.msgs.menuCloseWin, _prop.images.menuCloseWin, &shell.close);
+			createMenuItem(_comm, mf, MenuID.CloseWin, &shell.close);
 
-			auto me = createMenu(bar, _prop.msgs.menuEdit);
-			createMenuItem(me, _prop.msgs.menuReplacePath, _prop.images.menuReplacePath, &replace);
+			auto me = createMenu(_comm, bar, MenuID.Edit);
+			createMenuItem(_comm, me, MenuID.ReplFilePath, &replace);
 			new MenuItem(me, SWT.SEPARATOR);
-			createMenuItem(me, _prop.msgs.menuNewFolder, _prop.images.menuNewFolder, &createNewFolder);
+			createMenuItem(_comm, me, MenuID.NewDir, &createNewFolder);
 			new MenuItem(me, SWT.SEPARATOR);
-			createMenuItem(me, _prop.msgs.menuCreateArchive, _prop.images.menuCreateArchive, &createArchive);
+			createMenuItem(_comm, me, MenuID.CreateArchive, &createArchive);
 			new MenuItem(me, SWT.SEPARATOR);
-			appendMenuTCPD(_prop, me, this, true, true, true, true);
+			appendMenuTCPD(_comm, me, this, true, true, true, true);
 			new MenuItem(me, SWT.SEPARATOR);
-			createMenuItem(me, _prop.msgs.menuDeleteUnuse, _prop.images.menuDeleteUnuse, &deleteUnuse);
+			createMenuItem(_comm, me, MenuID.DelNotUsedFile, &deleteUnuse);
 
-			auto mv = createMenu(bar, _prop.msgs.menuView);
-			createMenuItem(mv, _prop.msgs.menuRefresh, _prop.images.menuRefresh, &__refresh);
+			auto mv = createMenu(_comm, bar, MenuID.View);
+			createMenuItem(_comm, mv, MenuID.Refresh, &__refresh);
 			new MenuItem(mv, SWT.SEPARATOR);
-			createMenuItem(mv, _prop.msgs.menuChangeVH, _prop.images.menuChangeVH, &changeVHSide);
+			createMenuItem(_comm, mv, MenuID.ChangeVH, &changeVHSide);
 
 			shell.setMenuBar(bar);
 		} else {
-			appendMenuTCPD(_prop, this, this, true, true, true, true);
-			putMenuAction(MenuID.ReplacePath, &replace);
+			appendMenuTCPD(_comm, this, this, true, true, true, true);
+			putMenuAction(MenuID.ReplFilePath, &replace);
 			putMenuAction(MenuID.Refresh, &__refresh);
-			putMenuAction(MenuID.OpenDirectory, &openDirectory);
-			putMenuAction(MenuID.NewFolder, &createNewFolder);
+			putMenuAction(MenuID.OpenDir, &openDirectory);
+			putMenuAction(MenuID.NewDir, &createNewFolder);
 			putMenuAction(MenuID.CreateArchive, &createArchive);
 			putMenuAction(MenuID.ChangeVH, &changeVHSide);
-			putMenuAction(MenuID.DeleteUnuse, &deleteUnuse);
+			putMenuAction(MenuID.DelNotUsedFile, &deleteUnuse);
 		}
 		if (shell) {
 			auto bar = new ToolBar(contPane, SWT.FLAT);
 			bar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
-			createToolItem(bar, _prop.msgs.ttOpenDirectory, _prop.images.folder, &openDirectory);
+			createToolItem(_comm, bar, MenuID.OpenDir, &openDirectory);
 			new ToolItem(bar, SWT.SEPARATOR);
-			createToolItem(bar, _prop.msgs.ttRefresh, _prop.images.menuRefresh, &__refresh);
+			createToolItem(_comm, bar, MenuID.Refresh, &__refresh);
 			new ToolItem(bar, SWT.SEPARATOR);
-			createToolItem(bar, _prop.msgs.ttReplacePath, _prop.images.menuReplacePath, &replace);
+			createToolItem(_comm, bar, MenuID.ReplFilePath, &replace);
 			new ToolItem(bar, SWT.SEPARATOR);
-			createToolItem(bar, _prop.msgs.ttNewFolder, _prop.images.menuNewFolder, &createNewFolder);
+			createToolItem(_comm, bar, MenuID.NewDir, &createNewFolder);
 			new ToolItem(bar, SWT.SEPARATOR);
-			createToolItem(bar, _prop.msgs.ttCreateArchive, _prop.images.menuCreateArchive, &createArchive);
+			createToolItem(_comm, bar, MenuID.CreateArchive, &createArchive);
 			new ToolItem(bar, SWT.SEPARATOR);
-			createToolItem(bar, _prop.msgs.ttCut, _prop.images.menuCut, &cut);
-			createToolItem(bar, _prop.msgs.ttCopy, _prop.images.menuCopy, &copy);
-			createToolItem(bar, _prop.msgs.ttPaste, _prop.images.menuPaste, &paste);
-			createToolItem(bar, _prop.msgs.ttDel, _prop.images.menuDel, &del);
+			createToolItem(_comm, bar, MenuID.Cut, &cut);
+			createToolItem(_comm, bar, MenuID.Copy, &copy);
+			createToolItem(_comm, bar, MenuID.Paste, &paste);
+			createToolItem(_comm, bar, MenuID.Delete, &del);
 			new ToolItem(bar, SWT.SEPARATOR);
-			createToolItem(bar, _prop.msgs.ttChangeVH, _prop.images.menuChangeVH, &changeVHSide);
+			createToolItem(_comm, bar, MenuID.ChangeVH, &changeVHSide);
 		}
 		_sash = new SplitPane(contPane, _prop.var.etc.directorySashV ? SWT.VERTICAL : SWT.HORIZONTAL);
 		_sash.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -1537,13 +1539,13 @@ public:
 			drag.addDragListener(new FilesDrag!(Tree));
 
 			auto menu = new Menu(_win.getShell(), SWT.POP_UP);
-			createMenuItem(menu, _prop.msgs.menuNewFolder, _prop.images.menuNewFolder, &createDirDirs);
+			createMenuItem(_comm, menu, MenuID.NewDir, &createDirDirs);
 			new MenuItem(menu, SWT.SEPARATOR);
-			createMenuItem(menu, _prop.msgs.menuCreateArchive, _prop.images.menuCreateArchive, &createArchive);
+			createMenuItem(_comm, menu, MenuID.CreateArchive, &createArchive);
 			new MenuItem(menu, SWT.SEPARATOR);
-			appendMenuTCPD(_prop, menu, this, true, true, true, true);
+			appendMenuTCPD(_comm, menu, this, true, true, true, true);
 			new MenuItem(menu, SWT.SEPARATOR);
-			createMenuItem(menu, _prop.msgs.menuDeleteUnuse, _prop.images.menuDeleteUnuse, &deleteUnuse);
+			createMenuItem(_comm, menu, MenuID.DelNotUsedFile, &deleteUnuse);
 			_dirs.setMenu(menu);
 		}
 		auto fComp = new Composite(_sash, SWT.NONE);
@@ -1717,7 +1719,7 @@ public:
 
 	@property
 	Image image() {
-		return _prop.images.menuDirWin;
+		return _prop.images.menu(MenuID.FileView);
 	}
 	@property
 	string title() {
@@ -1821,7 +1823,7 @@ public:
 		foreach (itm; tree.getItems()) {
 			auto fno = cast(FileNameObj) itm.getData();
 			if (cfnmatch(fno.array, path)) {
-				_dirs.select = itm;
+				_dirs.select(itm);
 				refreshFiles(selFiles);
 				return true;
 			}
@@ -1844,7 +1846,7 @@ public:
 						foreach (i, itm; _files.getItems()) {
 							auto fno = cast(FileNameObj) itm.getData();
 							if (cfnmatch(fno.array, path)) {
-								_files.select = i;
+								_files.select(i);
 								_files.showSelection();
 								return true;
 							}

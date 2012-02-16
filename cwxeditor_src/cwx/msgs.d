@@ -17,117 +17,12 @@ import cwx.cab;
 import cwx.structs;
 import cwx.skin;
 import cwx.graphics;
+import cwx.menu;
 
 import std.conv;
 import std.path;
 import std.math;
 import std.string;
-
-enum MenuID : int {
-	Refresh,
-	CEdit,
-	Undo,
-	Redo,
-	Cut,
-	Copy,
-	Paste,
-	Del,
-	ToXML,
-	New,
-	Open,
-	Close,
-	CloseWin,
-	Save,
-	SaveAs,
-	DataWin,
-	FlagWin,
-	CardWin,
-	CastWin,
-	SkillWin,
-	ItemWin,
-	BeastWin,
-	InfoWin,
-	DirWin,
-	ChangeVH,
-	ExecEngine,
-	Settings,
-	Summary,
-	NewArea,
-	NewBattle,
-	NewPackage,
-	NewFlagDir,
-	NewFlag,
-	NewStep,
-	ViewParty,
-	ViewMsg,
-	Fixed,
-	EnemyCardDebugView,
-	ViewCards,
-	ViewBacks,
-	Up,
-	Down,
-	NewMenuCard,
-	NewEnemyCard,
-	NewBack,
-	Auto,
-	Custom,
-	Mask,
-	DoEscape,
-	PosTop,
-	PosBottom,
-	PosLeft,
-	PosRight,
-	PosEven,
-	ScaleMin,
-	ScaleMiddle,
-	ScaleMax,
-	ScaleEvenBig,
-	ScaleEvenSmall,
-	NewEventTree,
-	NewEventFire,
-	TreeOpen,
-	TreeClose,
-	ShowCardLife,
-	ShowCardList,
-	ShowCardTable,
-	AddScenario,
-	NewCast,
-	NewSkill,
-	NewItem,
-	NewBeast,
-	NewInfo,
-	Add,
-	EditHand,
-	OpenHand,
-	EditUseEvent,
-	OpenDirectory,
-	ReNumbering,
-	ReNumberingAll,
-	NewFolder,
-	ReplacePath,
-	DeleteUnuse,
-	ReplaceText,
-	Reload,
-	StartToPackage,
-	ConvertContent,
-	Version,
-	ToScript,
-	ToScriptAll,
-	CreateArchive,
-	OpenTableView,
-	OpenFlagView,
-	OpenCardView,
-	OpenFileView,
-	CopyFilePath,
-	OpenEventTreeView,
-	WriteComment,
-	EditScene,
-	EditEvent,
-	KeyCodeTimingUse,
-	KeyCodeTimingSuccess,
-	KeyCodeTimingFailure,
-	OpenView,
-}
 
 class Msgs {
 private:
@@ -176,6 +71,8 @@ public:
 	@property const string dlgTextApply() {return "適用";}
 	@property const string dlgTextCancel() {return "キャンセル";}
 
+	@property const string apply() {return "適用";}
+
 	@property const string filterAll() {
 		return "すべてのファイル (*.*)";
 	}
@@ -223,6 +120,8 @@ public:
 		return "ビットマップイメージ (*.bmp)";
 	}
 
+	@property const string newFolder() {return "新規" ~ DIR;}
+
 	const string dlgMsgDelete(string[] files) {
 		return files.length == 1
 			? baseName(files[0]) ~ "を完全に削除しますか？"
@@ -235,25 +134,12 @@ public:
 				: to!(string)(files.length) ~ "個の項目をごみ箱に移動しますか？";
 		}
 	}
-	@property const string ttDeleteUnuse() {return "未使用のファイルを削除";}
-	@property const string menuDeleteUnuse() {return ttDeleteUnuse ~ "(&U)";}
 	const string dlgMsgDeleteUnuse(string[] files) {
 		return .format("%d個の未使用ファイルを完全に削除しますか？", files.length);
 	}
 	const string dlgMsgDeleteRecycleUnuse(string[] files) {
 		return .format("%d個の未使用ファイルをごみ箱に移動しますか？", files.length);
 	}
-
-	@property const string ttClosePane() {return "閉じる";}
-	@property const string menuClosePane() {return ttClosePane ~ "(&C)";}
-	@property const string ttClosePaneEtc() {return "他のタブを閉じる";}
-	@property const string menuClosePaneEtc() {return ttClosePaneEtc ~ "(&W)";}
-	@property const string ttClosePaneLeft() {return "左側のタブを閉じる";}
-	@property const string menuClosePaneLeft() {return ttClosePaneLeft ~ "(&L)";}
-	@property const string ttClosePaneRight() {return "右側のタブを閉じる";}
-	@property const string menuClosePaneRight() {return ttClosePaneRight ~ "(&R)";}
-	@property const string ttClosePaneAll() {return "全てのタブを閉じる";}
-	@property const string menuClosePaneAll() {return ttClosePaneAll ~ "(&A)";}
 
 	@property const string image() {return "イメージ";}
 	@property const string pathDef() {return "[デフォルト]";}
@@ -296,102 +182,7 @@ public:
 
 	@property const string dlgTitSettings() {return "CWXEditorの設定";}
 
-	/// メニュー。
-	@property const string menuFile() {return "ファイル(&F)";}
-	@property const string ttNew() {return "新規作成";}
-	@property const string menuNew() {return ttNew ~ "(&N)..." ~ "\tCtrl+N";}
-	@property const string ttOpen() {return "開く";}
-	@property const string menuOpen() {return ttOpen ~ "(&O)..." ~ "\tCtrl+O";}
-	@property const string ttClose() {return "閉じる";}
-	@property const string menuClose() {return ttClose ~ "(&C)";}
-	@property const string menuCloseWin() {return "閉じる(&C)";}
-	@property const string ttSave() {return "上書き保存";}
-	@property const string menuSave() {return ttSave ~ "(&S)" ~ "\tCtrl+S";}
-	@property const string ttSaveAs() {return "名前を付けて保存";}
-	@property const string menuSaveAs() {return ttSaveAs ~ "(&A)...";}
-	@property const string ttReload() {return "再読込";}
-	@property const string menuReload() {return ttReload ~ "(&R)";}
-	@property const string ttOpenDirectory() {
-		return DIR ~ "を開く";
-	}
-	@property const string menuOpenDirectory() {return ttOpenDirectory ~ "(&O)";}
-	@property const string ttOpenFilePlace() {
-		return "ファイルの場所を開く";
-	}
-	@property const string menuOpenFilePlace() {return ttOpenFilePlace ~ "(&O)";}
-	@property const string ttSaveIncludeImage() {
-		return "格納イメージをファイルに保存";
-	}
-	@property const string ttImageList() {return "画像を一覧表示";}
-	@property const string menuImageList() {return ttImageList ~ "(&L)";}
-
-	@property const string ttChangeVH() {return "分割領域の縦横を切替";}
-	@property const string menuChangeVH() {return ttChangeVH ~ "(&V)" ~ "";}
-
-	@property const string menuEdit() {return "編集(&E)";}
-	@property const string ttReplaceText() {return "検索と置換";}
-	@property const string menuReplaceText() {return ttReplaceText ~ "(&F)...\tCtrl+F";}
-	@property const string ttCEdit() {return "編集";}
-	@property const string menuCEdit() {return ttCEdit ~ "(&E)" ~ "\tEnter";}
-	@property const string ttRefresh() {return "最新の情報に更新";}
-	@property const string ttRefreshS() {return "更新";}
-	@property const string menuRefresh() {return ttRefresh ~ "(&R)" ~ "\tF5";}
-	@property const string ttUndo() {return "元に戻す";}
-	@property const string menuUndo() {return ttUndo ~ "(&U)" ~ "\tCtrl+Z";}
-	@property const string ttRedo() {return "やり直し";}
-	@property const string menuRedo() {return ttRedo ~ "(&R)" ~ "\tCtrl+Y";}
-	@property const string ttCut() {return "切り取り";}
-	@property const string menuCut() {return ttCut ~ "(&T)" ~ "\tCtrl+X";}
-	@property const string ttCopy() {return "コピー";}
-	@property const string menuCopy() {return ttCopy ~ "(&C)" ~ "\tCtrl+C";}
-	@property const string ttPaste() {return "貼り付け";}
-	@property const string menuPaste() {return ttPaste ~ "(&P)" ~ "\tCtrl+V";}
-	@property const string ttDel() {return "削除";}
-	@property const string menuDel() {return ttDel ~ "(&D)" ~ "\tDelete";}
-	@property const string ttSelectAll() {return "すべて選択";}
-	@property const string menuSelectAll() {return ttSelectAll ~ "(&A)" ~ "\tCtrl+A";}
-
-	@property const string ttToXML() {return "コピーしたデータをXMLに変換";}
-	@property const string menuToXML() {return ttToXML ~ "(&X)" ~ "";}
-
-	@property const string menuView() {return "表示(&V)";}
-	@property const string ttDataWin() {return "テーブルビュー";}
-	@property const string menuDataWin() {return ttDataWin ~ "(&D)";}
-	@property const string ttFlagWin() {return "状態変数ビュー";}
-	@property const string menuFlagWin() {return ttFlagWin ~ "(&V)";}
-	@property const string ttCardWin() {return "カードビュー";}
-	@property const string menuCardWin() {return ttCardWin ~ "(&W)";}
-	@property const string ttCastWin() {return "キャストカードビュー";}
-	@property const string menuCastWin() {return ttCastWin ~ "(&C)";}
-	@property const string ttSkillWin() {return "特殊技能カードビュー";}
-	@property const string menuSkillWin() {return ttSkillWin ~ "(&S)";}
-	@property const string ttItemWin() {return "アイテムカードビュー";}
-	@property const string menuItemWin() {return ttItemWin ~ "(&I)";}
-	@property const string ttBeastWin() {return "召喚獣カードビュー";}
-	@property const string menuBeastWin() {return ttBeastWin ~ "(&B)";}
-	@property const string ttInfoWin() {return "情報カードビュー";}
-	@property const string menuInfoWin() {return ttInfoWin ~ "(&N)";}
-	@property const string ttDirWin() {return "ファイルビュー";}
-	@property const string menuDirWin() {return ttDirWin ~ "(&F)";}
-
-	@property const string menuTools() {return "ツール(&T)";}
-	@property const string ttExecEngine() {return "エンジン起動";}
-	@property const string menuExecEngine() {return ttExecEngine ~ "(&G)";}
-	@property const string menuExecEngineAuto() {return "自動選択(&G)\tF9";}
-	@property const string ttSettings() {return "エディタ設定";}
-	@property const string menuSettings() {return ttSettings ~ "(&O)...";}
-
-	@property const string menuTable() {return "テーブル(&B)";}
-	@property const string menuVariable() {return "状態変数(&R)";}
-
-	@property const string menuHelp() {return "ヘルプ(&H)";}
-	@property const string ttVersion() {return "バージョン情報";}
-	@property const string menuVersion() {return ttVersion ~ "(&A)";}
-
-	@property const string ttLockBar() {return "ツールバーを固定";}
-	@property const string menuLockBar() {return ttLockBar ~ "(&L)";}
-	@property const string ttResetBar() {return "配置をリセット";}
-	@property const string menuResetBar() {return ttResetBar ~ "(&R)";}
+	@property const string refreshS() {return "更新";}
 
 	@property const string summary() {return "シナリオの設定";}
 	@property const string area() {return "エリア";}
@@ -486,8 +277,6 @@ public:
 	const string replaceRedo(size_t count) {
 		return to!(string)(count) ~ "件をやり直しました";
 	}
-	@property const string ttSearchResultCopy() {return "テキストとしてコピー";}
-	@property const string menuSearchResultCopy() {return ttSearchResultCopy ~ "(&C)" ~ "\tCtrl+C";}
 
 	const string searchResultBgImage(in BgImage back) {
 		return "背景画像 [" ~ encodePath(back.path) ~ "]";
@@ -556,14 +345,8 @@ public:
 	@property const string searchErrorStartNotFound() {return "スタートコンテントが見つからない";}
 	@property const string searchErrorIgnoreWait() {return "後続コンテントが無いため、空白時間が無視される";}
 	@property const string searchOpenDialog() {return "検索結果へジャンプする時、ダイアログを開く";}
-	@property const string menuOpenView() {return "ビューで開く(&V)";}
 
 	/// イベント設定。
-	@property const string ttStartToPackage() {return "このツリーをパッケージ化する";}
-	@property const string menuStartToPackage() {return ttStartToPackage ~ "(&P)";}
-	@property const string ttConvertContent() {return "変換";}
-	@property const string menuConvertContent() {return ttConvertContent ~ "(&R)";}
-
 	const string dlgTitContent(CType type) {
 		final switch (type) {
 		case CType.START: assert (0);
@@ -735,32 +518,6 @@ public:
 
 	@property const string evtAddContinue() {return "連続で配置";}
 	@property const string evtAutoOpen() {return "配置と同時に編集";}
-
-	const string ttEvtGroup(CTypeGroup cGrp) {
-		final switch (cGrp) {
-		case CTypeGroup.Terminal: return "開始/終端";
-		case CTypeGroup.Standard: return "基本";
-		case CTypeGroup.Data: return "変数操作/分岐";
-		case CTypeGroup.Utility: return "状況分岐";
-		case CTypeGroup.Branch: return "保有分岐";
-		case CTypeGroup.Get: return "取得";
-		case CTypeGroup.Lost: return "喪失";
-		case CTypeGroup.Visual: return "外観操作";
-		}
-	}
-	const string menuEvtGroup(CTypeGroup cGrp) {
-		string tt = ttEvtGroup(cGrp);
-		final switch (cGrp) {
-		case CTypeGroup.Terminal: return tt ~ "(&T)";
-		case CTypeGroup.Standard: return tt ~ "(&S)";
-		case CTypeGroup.Data: return tt ~ "(&D)";
-		case CTypeGroup.Utility: return tt ~ "(&U)";
-		case CTypeGroup.Branch: return tt ~ "(&B)";
-		case CTypeGroup.Get: return tt ~ "(&G)";
-		case CTypeGroup.Lost: return tt ~ "(&L)";
-		case CTypeGroup.Visual: return tt ~ "(&V)";
-		}
-	}
 
 	const string content(CType type) {
 		switch (type) {
@@ -1347,24 +1104,11 @@ public:
 	}
 	@property const string scenarioView() {return "シナリオビューリスト";}
 	@property const string variableView() {return "状態変数インスペクタ";}
-	@property const string ttSummary() {return "シナリオの設定";}
-	@property const string ttNewArea() {return "エリアの作成";}
-	@property const string ttNewBattle() {return "バトルの作成";}
-	@property const string ttNewPackage() {return "パッケージの作成";}
 
-	@property const string menuSummary() {return ttSummary ~ "(&S)...";}
-	@property const string menuNewArea() {return ttNewArea ~ "(&A)";}
-	@property const string menuNewBattle() {return ttNewBattle ~ "(&B)";}
-	@property const string menuNewPackage() {return ttNewPackage ~ "(&K)";}
-
-	@property const string ttReNumberingAll() {return "全てのIDを1から振り直す";}
-	@property const string menuReNumberingAll() {return ttReNumberingAll ~ "(&A)";}
 	@property const string reNumberingAll() {
 		return "全てのエリアやカードのIDの1から振り直します。\nよろしいですか？";
 	}
 
-	@property const string ttReNumbering() {return "IDの振り直し";}
-	@property const string menuReNumbering() {return ttReNumbering ~ "(&N)";}
 	@property const string dlgTitReNumbering() {return "IDの振り直し";}
 	@property const string reNumbering() {return "IDの振り直し";}
 	const string reNumbering1(in Card card, ulong min, ulong max) {
@@ -1409,26 +1153,15 @@ public:
 	@property const string areaNew() {return "新規エリア";}
 	@property const string battleNew() {return "新規バトル";}
 	@property const string packageNew() {return "新規パッケージ";}
-	@property const string ttEditScene() {return "シーンビューを開く";}
-	@property const string menuEditScene() {return ttEditScene ~ "(&S)\tF3";}
-	@property const string ttEditEvent() {return "イベントビューを開く";}
-	@property const string menuEditEvent() {return ttEditEvent ~ "(&E)\tF4";}
 
 	/// フラグのディレクトリ。
 	@property const string flagDirRoot() {return "Data";}
 	@property const string flagDirNew() {return "新規フォルダ";}
-	@property const string ttNewFlagDir() {return "フォルダの作成";}
-	@property const string menuNewFlagDir() {return ttNewFlagDir ~ "(&N)...";}
-	@property const int menuNewDirA() {return -1;}
 
 	/// フラグ/ステップのテーブル。
 	@property const string flagName() {return "名称";}
 	@property const string flagInit() {return "初期値";}
 	@property const string flagCount() {return "利用数";}
-	@property const string ttNewFlag() {return "フラグの作成";}
-	@property const string menuNewFlag() {return ttNewFlag ~ "(&F)..." ~ "\tCtrl+L";}
-	@property const string ttNewStep() {return "ステップの作成";}
-	@property const string menuNewStep() {return ttNewStep ~ "(&S)..." ~ "\tCtrl+P";}
 
 	/// フラグ設定ダイアログ関連。
 	@property const string dlgTitFlag() {return "フラグの設定";}
@@ -1487,51 +1220,9 @@ public:
 	}
 
 	/// エリア・戦闘・パッケージウィンドウ。
-	@property const string ttUp() {return "上へ";}
-	@property const string menuUp() {return ttUp ~ "(&U)" ~ "\tCtrl+Arrow_Up";}
-	@property const string ttDown() {return "下へ";}
-	@property const string menuDown() {return ttDown ~ "(&D)" ~ "\tCtrl+Arrow_Down";}
-	@property const string menuCardsAndBacks() {return "カードと背景" ~ "(&A)";}
-	@property const string ttViewParty() {return "パーティカードの表示";}
-	@property const string menuViewParty() {return ttViewParty ~ "(&P)";}
-	@property const string ttViewMsg() {return "メッセージ枠の表示";}
-	@property const string menuViewMsg() {return ttViewMsg ~ "(&M)";}
-	@property const string ttFixed() {return "イメージの固定";}
-	@property const string menuFixed() {return ttFixed ~ "(&F)";}
-	@property const string ttEnemyCardDebugView() {return "レベルとライフを表示";}
-	@property const string menuEnemyCardDebugView() {return ttEnemyCardDebugView ~ "(&L)";}
-	@property const string ttViewCards() {return "カードの表示";}
-	@property const string menuViewCards() {return ttViewCards ~ "(&V)";}
-	@property const string ttViewBacks() {return "背景の表示";}
-	@property const string menuViewBacks() {return ttViewBacks ~ "(&I)";}
-	@property const string ttNewMenuCard() {return "メニューカードの作成";}
-	@property const string menuNewMenuCard() {return ttNewMenuCard ~ "(&C)...";}
-	@property const string ttNewEnemyCard() {return "エネミーカードの作成";}
-	@property const string menuNewEnemyCard() {return ttNewEnemyCard ~ "(&C)...";}
-	@property const string ttNewBack() {return "背景の作成";}
-	@property const string menuNewBack() {return ttNewBack ~ "(&B)...";}
-	@property const string ttAuto() {return "カードを自動的に並べる";}
-	@property const string menuAuto() {return ttAuto ~ "(&A)";}
-	@property const string ttCustom() {return "カードの位置を自分で決定する";}
-	@property const string menuCustom() {return ttCustom ~ "(&U)";}
-	@property const string ttMask() {return "透明色を使用";}
-	@property const string menuMask() {return ttMask ~ "(&M)";}
-	@property const string ttDoEscape() {return "逃走の有無";}
-	@property const string menuDoEscape() {return ttMask ~ "(&E)";}
 	@property const string noRefArea() {return "[カード配置参照無し]";}
 	@property const string areaViewFlagDesc() {return "フラグ";}
 	@property const string areaViewRefAreaDesc() {return "参照";}
-
-	@property const string menuPosTop() {return "上に揃える" ~ "(&U)";}
-	@property const string menuPosBottom() {return "下に揃える" ~ "(&D)";}
-	@property const string menuPosLeft() {return "左に揃える" ~ "(&L)";}
-	@property const string menuPosRight() {return "右に揃える" ~ "(&R)";}
-	@property const string menuPosEven() {return "等間隔に並べる" ~ "(&E)";}
-	@property const string menuScaleMin() {return "最小のカードスケール" ~ "(&S)";}
-	@property const string menuScaleMiddle() {return "標準のカードスケール" ~ "(&I)";}
-	@property const string menuScaleMax() {return "最大のカードスケール" ~ "(&G)";}
-	@property const string menuScaleEvenBig() {return "大きく揃える" ~ "(&L)";}
-	@property const string menuScaleEvenSmall() {return "小さく揃える" ~ "(&N)";}
 
 	@property const string left() {return "X";}
 	@property const string top() {return "Y";}
@@ -1641,10 +1332,6 @@ public:
 	@property const string dlgTitNewBgImage() {return "背景画像の作成";}
 	const string dlgTitEnemyCard(string name) {return "エネミーカードの設定 [ " ~ name ~ " ]";}
 	@property const string dlgTitNewEnemyCard() {return "エネミーカードの作成";}
-	const string stopBGM(string playingFile) {return baseName(playingFile) ~ "の再生を停止";}
-	@property const string playBGM() {return "再生";}
-	const string menuStopBGM(string playingFile) {return stopBGM(playingFile) ~ "(&P)";}
-	@property const string menuPlayBGM() {return playBGM ~ "(&P)";}
 
 	/// イベントビュー。
 	@property const string tools() {return "イベントコンテント";}
@@ -1660,12 +1347,7 @@ public:
 	@property const string keyCodeTimingUse() {return "使用";}
 	@property const string keyCodeTimingSuccess() {return "成功";}
 	@property const string keyCodeTimingFailure() {return "失敗";}
-	@property const string menuKeyCodeTiming() {return "キーコード発火タイミング(&K)";}
-	@property const string menuKeyCodeTimingUse() {return "使用(&U)";}
-	@property const string menuKeyCodeTimingSuccess() {return "成功(&S)";}
-	@property const string menuKeyCodeTimingFailure() {return "失敗(&F)";}
 
-	@property const string menuAddManyRounds() {return "複数のラウンドを追加";}
 	@property const string manyRounds() {return "追加する発火ラウンドの範囲";}
 	@property const string dlgTitAddManyRounds() {return "追加する発火ラウンドの範囲";}
 	@property const string roundSep() {return "～";}
@@ -1681,10 +1363,6 @@ public:
 	const string keyCodeTree(string keyCode) {return "[" ~ keyCode ~ "]";}
 	const string roundTree(uint round) {return "ラウンド" ~ to!(string)(round);}
 
-	@property const string ttNewEventTree() {return "イベントの作成";}
-	@property const string ttNewEventFire() {return "イベント発火条件の作成";}
-	@property const string ttNewTreeOpen() {return "全コンテントツリーを開く";}
-	@property const string ttNewTreeClose() {return "全コンテントツリーを閉じる";}
 	@property const string eventTreeKindSystem() {return "システム";}
 	@property const string eventTreeKindKeyCode() {return "キーコード";}
 	@property const string eventTreeKindRound() {return "ラウンド";}
@@ -2112,19 +1790,6 @@ public:
 	@property const string periodUnknown() {return "不明";}
 	@property const string natureUnknown() {return "その他";}
 
-	@property const string ttOpenTableView() {return "テーブルビューで開く";}
-	@property const string menuOpenTableView() {return ttOpenTableView ~ "(&V)";}
-	@property const string ttOpenFlagView() {return "フラグビューで開く";}
-	@property const string menuOpenFlagView() {return ttOpenFlagView ~ "(&V)";}
-	@property const string ttOpenCardView() {return "カードビューで開く";}
-	@property const string menuOpenCardView() {return ttOpenCardView ~ "(&V)";}
-	@property const string ttOpenFileView() {return "ファイルビューで開く";}
-	@property const string menuOpenFileView() {return ttOpenFileView ~ "(&V)";}
-	@property const string ttOpenEventTreeView() {return "イベントビューで開く";}
-	@property const string menuOpenEventTreeView() {return ttOpenEventTreeView ~ "(&V)";}
-
-	@property const string ttWriteComment() {return "コメントを記述";}
-	@property const string menuWriteComment() {return ttWriteComment ~ "(&M)\tCtrl+M";}
 	@property const string dlgTitComment() {return "コメントの記述";}
 
 	/// カードウィンドウ。
@@ -2202,34 +1867,6 @@ public:
 	const string handCardStatus(C)(size_t cardCount, in C[] selCards, int max) {
 		return to!(string)(cardCount) ~ "枚のカード (有効枚数 = " ~ to!(string)(max) ~ ")";
 	}
-
-	@property const string ttShowCardLife() {return "レベルとライフを表示";}
-	@property const string menuShowCardLife() {return ttShowCardLife ~ "(&L)";}
-	@property const string ttShowCardList() {return "カード表示";}
-	@property const string menuShowCardList() {return ttShowCardList ~ "(&C)";}
-	@property const string ttShowCardTable() {return "詳細表示";}
-	@property const string menuShowCardTable() {return ttShowCardTable ~ "(&D)";}
-	@property const string menuNewCards() {return "カード" ~ "(&C)";}
-
-	@property const string ttAddScenario() {return "外部シナリオから追加";}
-	@property const string menuAddScenario() {return ttAddScenario ~ "(&A)...";}
-	@property const string ttNewCast() {return "キャストカードの作成";}
-	@property const string menuNewCast() {return ttNewCast ~ "(&C)...";}
-	@property const string ttNewSkill() {return "スキルカードの作成";}
-	@property const string menuNewSkill() {return ttNewSkill ~ "(&S)...";}
-	@property const string ttNewItem() {return "アイテムカードの作成";}
-	@property const string menuNewItem() {return ttNewItem ~ "(&I)...";}
-	@property const string ttNewBeast() {return "召喚獣カードの作成";}
-	@property const string menuNewBeast() {return ttNewBeast ~ "(&B)...";}
-	@property const string ttNewInfo() {return "情報カードの作成";}
-	@property const string menuNewInfo() {return ttNewInfo ~ "(&F)...";}
-
-	@property const string ttAdd() {return "シナリオに追加";}
-	@property const string menuAdd() {return ttAdd ~ "(&A)" ~ "\tCtrl+P";}
-
-	@property const string menuEditHand() {return "所有カードの設定" ~ "(&H)";}
-	@property const string menuOpenHand() {return "所有カード" ~ "(&H)";}
-	@property const string menuEditUseEvent() {return "使用時イベントの設定" ~ "(&E)";}
 
 	@property const string casts() {return "キャスト";}
 	@property const string skill() {return "スキル";}
@@ -2353,10 +1990,6 @@ public:
 	@property const string se1() {return "初期効果";}
 	@property const string se2() {return "二次効果";}
 	@property const string soundNone() {return "[効果音無し]";}
-	@property const string stopSound() {return "停止";}
-	@property const string playSound() {return "再生";}
-	@property const string menuStopSound() {return stopSound ~ "(&S)";}
-	@property const string menuPlaySound() {return playSound ~ "(&P)";}
 	@property const string keyCodes() {return "イベント発火のキーコード";}
 
 	@property const string warningEffectTypeNone() {
@@ -2411,15 +2044,6 @@ public:
 	@property const string fileExt() {return "拡張子";}
 	@property const string fileCount() {return "使用数";}
 	const string errorExec(string appName) {return appName ~ "の起動に失敗しました。";}
-	@property const string ttNewFolder() {return "新規" ~ DIR;}
-	@property const string menuNewFolder() {return ttNewFolder ~ "(&I)";}
-	@property const string newFolder() {return ttNewFolder;}
-	@property const string ttCopyFilePath() {return "素材のパスをコピー";}
-	@property const string menuCopyFilePath() {return ttCopyFilePath ~ "(&M)";}
-	@property const string ttReplacePath() {return "素材の差替え";}
-	@property const string menuReplacePath() {return ttReplacePath ~ "(&R)...";}
-	@property const string ttCreateArchive() {return "シナリオを圧縮";}
-	@property const string menuCreateArchive() {return ttCreateArchive ~ "(&A)...";}
 	@property const string[] filterArchive() {
 		string[] r;
 		r ~= "ZIP アーカイブ (*.zip)";
@@ -2487,6 +2111,9 @@ public:
 		@property const string soundPlayTypeMCI() {return "MCI(CardWirth形式)";}
 	}
 	@property const string soundPlayTypeApp() {return "関連付けされたアプリケーションで開く";}
+	@property const string keyBind() {return "キーバインド";}
+	@property const string mnemonic() {return "アクセスキー";}
+	@property const string hotkey() {return "ショートカット";}
 
 	@property const string wallpaper() {
 		return "エディタの壁紙";
@@ -2590,10 +2217,6 @@ public:
 	}
 
 	/// スクリプト関係。
-	@property const string ttToScript() {return "スクリプトに変換してコピー";}
-	@property const string menuToScript() {return ttToScript ~ "(&S)\tCtrl+G";}
-	@property const string ttToScriptAll() {return "全てをスクリプトに変換してコピー";}
-	@property const string menuToScriptAll() {return ttToScriptAll ~ "(&P)\tCtrl+B";}
 	@property const string dlgTitScriptError() {
 		return "CWXスクリプトエラー";
 	}
@@ -2652,4 +2275,153 @@ public:
 	@property const string scriptErrorUndefinedVar() {return "存在しない変数です。";}
 	@property const string scriptErrorInvalidValue() {return "値が正しくありません。";}
 	@property const string scriptErrorCommaNotFound() {return "パラメータの区切りにカンマがありません。";}
+
+	/// メニュー。
+	const string menuText(MenuID id) {
+		final switch (id) {
+		case MenuID.None: return "";
+
+		case MenuID.File: return "ファイル";
+		case MenuID.Edit: return "編集";
+		case MenuID.View: return "表示";
+		case MenuID.Tool: return "ツール";
+		case MenuID.Table: return "テーブル";
+		case MenuID.Variable: return "状態変数";
+		case MenuID.Help: return "ヘルプ";
+		case MenuID.Card: return "カード";
+		case MenuID.CardsAndBacks: return "カードと背景";
+
+		case MenuID.DelNotUsedFile: return "未使用のファイルを削除";
+		case MenuID.ClosePane: return "閉じる";
+		case MenuID.ClosePaneExcept: return "他のタブを閉じる";
+		case MenuID.ClosePaneLeft: return "左側のタブを閉じる";
+		case MenuID.ClosePaneRight: return "右側のタブを閉じる";
+		case MenuID.ClosePaneAll: return "全てのタブを閉じる";
+		case MenuID.New: return "新規作成";
+		case MenuID.Open: return "開く";
+		case MenuID.Close: return "閉じる";
+		case MenuID.CloseWin: return "閉じる";
+		case MenuID.Save: return "上書き保存";
+		case MenuID.SaveAs: return "名前を付けて保存";
+		case MenuID.Reload: return "再読込";
+		case MenuID.OpenDir: return DIR ~ "を開く";
+		case MenuID.OpenPlace: return "ファイルの場所を開く";
+		case MenuID.SaveImage: return "格納イメージをファイルに保存";
+		case MenuID.LookImages: return "画像を一覧表示";
+		case MenuID.ChangeVH: return "分割領域の縦横を切替";
+		case MenuID.Find: return "検索と置換";
+		case MenuID.EditProp: return "編集";
+		case MenuID.Refresh: return "最新の情報に更新";
+		case MenuID.Undo: return "元に戻す";
+		case MenuID.Redo: return "やり直し";
+		case MenuID.Cut: return "切り取り";
+		case MenuID.Copy: return "コピー";
+		case MenuID.Paste: return "貼り付け";
+		case MenuID.Delete: return "削除";
+		case MenuID.SelectAll: return "すべて選択";
+		case MenuID.ToXMLText: return "コピーしたデータをXMLに変換";
+		case MenuID.TableView: return "テーブルビュー";
+		case MenuID.VarView: return "状態変数ビュー";
+		case MenuID.CardView: return "カードビュー";
+		case MenuID.CastView: return "キャストカードビュー";
+		case MenuID.SkillView: return "特殊技能カードビュー";
+		case MenuID.ItemView: return "アイテムカードビュー";
+		case MenuID.BeastView: return "召喚獣カードビュー";
+		case MenuID.InfoView: return "情報カードビュー";
+		case MenuID.FileView: return "ファイルビュー";
+		case MenuID.ExecEngine: return "エンジン起動";
+		case MenuID.ExecEngineAuto: return "自動選択";
+		case MenuID.Settings: return "エディタ設定";
+		case MenuID.VersionInfo: return "バージョン情報";
+		case MenuID.LockToolBar: return "ツールバーを固定";
+		case MenuID.ResetToolBar: return "配置をリセット";
+		case MenuID.CopyAsText: return "テキストとしてコピー";
+		case MenuID.OpenAtView: return "ビューで開く";
+		case MenuID.StartToPackage: return "このツリーをパッケージ化する";
+		case MenuID.ConvertContent: return "変換";
+		case MenuID.CGroupTerminal: return "開始/終端";
+		case MenuID.CGroupStandard: return "基本";
+		case MenuID.CGroupData: return "変数操作/分岐";
+		case MenuID.CGroupUtility: return "状況分岐";
+		case MenuID.CGroupBranch: return "保有分岐";
+		case MenuID.CGroupGet: return "取得";
+		case MenuID.CGroupLost: return "喪失";
+		case MenuID.CGroupVisual: return "外観操作";
+		case MenuID.EditSummary: return "シナリオの設定";
+		case MenuID.NewArea: return "エリアの作成";
+		case MenuID.NewBattle: return "バトルの作成";
+		case MenuID.NewPackage: return "パッケージの作成";
+		case MenuID.ReNumberingAll: return "全てのIDを1から振り直す";
+		case MenuID.ReNumbering: return "IDの振り直し";
+		case MenuID.EditSceneArea: return "シーンビューを開く";
+		case MenuID.EditSceneBattle: return "シーンビューを開く";
+		case MenuID.EditEventArea: return "イベントビューを開く";
+		case MenuID.EditEventBattle: return "イベントビューを開く";
+		case MenuID.NewFlagDir: return "フォルダの作成";
+		case MenuID.NewFlag: return "フラグの作成";
+		case MenuID.NewStep: return "ステップの作成";
+		case MenuID.Up: return "上へ";
+		case MenuID.Down: return "下へ";
+		case MenuID.ShowParty: return "パーティカードの表示";
+		case MenuID.ShowMsg: return "メッセージ枠の表示";
+		case MenuID.FixedImage: return "イメージの固定";
+		case MenuID.ShowEnemyCardProp: return "レベルとライフを表示";
+		case MenuID.ShowCard: return "カードの表示";
+		case MenuID.ShowBack: return "背景の表示";
+		case MenuID.NewMenuCard: return "メニューカードの作成";
+		case MenuID.NewEnemyCard: return "エネミーカードの作成";
+		case MenuID.NewBack: return "背景の作成";
+		case MenuID.AutoArrange: return "カードを自動的に並べる";
+		case MenuID.ManualArrange: return "カードの位置を自分で決定する";
+		case MenuID.Mask: return "透明色を使用";
+		case MenuID.Escape: return "逃走の有無";
+		case MenuID.PosTop: return "上に揃える";
+		case MenuID.PosBottom: return "下に揃える";
+		case MenuID.PosLeft: return "左に揃える";
+		case MenuID.PosRight: return "右に揃える";
+		case MenuID.PosEven: return "等間隔に並べる";
+		case MenuID.ScaleMin: return "最小のカードスケール";
+		case MenuID.ScaleMiddle: return "標準のカードスケール";
+		case MenuID.ScaleMax: return "最大のカードスケール";
+		case MenuID.ScaleBig: return "大きく揃える";
+		case MenuID.ScaleSmall: return "小さく揃える";
+		case MenuID.StopBGM: return "%1$sの再生を停止";
+		case MenuID.PlayBGM: return "再生";
+		case MenuID.KeyCodeTiming: return "キーコード発火タイミング";
+		case MenuID.KeyCodeTimingUse: return "使用";
+		case MenuID.KeyCodeTimingSuccess: return "成功";
+		case MenuID.KeyCodeTimingFailure: return "失敗";
+		case MenuID.AddRangeOfRound: return "複数のラウンドを追加";
+		case MenuID.OpenAtTableView: return "テーブルビューで開く";
+		case MenuID.OpenAtVarView: return "状態変数ビューで開く";
+		case MenuID.OpenAtCardView: return "カードビューで開く";
+		case MenuID.OpenAtFileView: return "ファイルビューで開く";
+		case MenuID.OpenAtEventView: return "イベントビューで開く";
+		case MenuID.Comment: return "コメントを記述";
+		case MenuID.ShowCardProp: return "レベルとライフを表示";
+		case MenuID.ShowCardImage: return "カード表示";
+		case MenuID.ShowCardDetail: return "詳細表示";
+		case MenuID.OpenImportSource: return "外部シナリオから追加";
+		case MenuID.NewCast: return "キャストカードの作成";
+		case MenuID.NewSkill: return "スキルカードの作成";
+		case MenuID.NewItem: return "アイテムカードの作成";
+		case MenuID.NewBeast: return "召喚獣カードの作成";
+		case MenuID.NewInfo: return "情報カードの作成";
+		case MenuID.Import: return "シナリオに追加";
+		case MenuID.OpenHand: return "所有カード";
+		case MenuID.EditEventAtTimeOfUsing: return "使用時イベントの設定";
+		case MenuID.PlaySE: return "再生";
+		case MenuID.StopSE: return "停止";
+		case MenuID.NewDir: return "新規" ~ DIR;
+		case MenuID.CopyFilePath: return "素材のパスをコピー";
+		case MenuID.ReplFilePath: return "素材の差替え";
+		case MenuID.CreateArchive: return "シナリオを圧縮";
+		case MenuID.ToScript: return "スクリプトに変換してコピー";
+		case MenuID.ToScriptAll: return "全てをスクリプトに変換してコピー";
+		case MenuID.NewEvent: return "イベントの作成";
+		case MenuID.NewIgnition: return "イベント発火条件の作成";
+		case MenuID.ExpandTree: return "全コンテントツリーを開く";
+		case MenuID.FoldTree: return "全コンテントツリーを閉じる";
+		}
+	}
 }

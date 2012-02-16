@@ -31,6 +31,7 @@ SRC = cwxeditor.d \
 	cwx/versioninfo.d \
 	cwx/msgutils.d \
 	cwx/settings.d \
+	cwx/menu.d \
 	cwx/editor/gui/sound.d \
 	cwx/editor/gui/dwt/sbshell.d \
 	cwx/editor/gui/dwt/mainwindow.d \
@@ -87,6 +88,7 @@ SRC = cwxeditor.d \
 	cwx/editor/gui/dwt/loader.d \
 	cwx/editor/gui/dwt/areaviewutils.d \
 	cwx/editor/gui/dwt/messageutils.d \
+	cwx/editor/gui/dwt/dmenu.d \
 	d2std/xml.d \
 	d2std/xml2.d \
 

@@ -2432,7 +2432,7 @@ public:
 				auto val = n.value;
 				if (val.length > 0) {
 					foreach (kc; decodeLf(val)) {
-						r.addKeyCode = kc;
+						r.addKeyCode(kc);
 					}
 				}
 			};

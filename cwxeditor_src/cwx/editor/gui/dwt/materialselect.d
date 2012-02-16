@@ -5,6 +5,8 @@ import cwx.cwl;
 import cwx.utils;
 import cwx.summary;
 import cwx.skin;
+import cwx.menu;
+
 import cwx.editor.gui.sound;
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dutils;
@@ -12,6 +14,7 @@ import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.customtable;
+import cwx.editor.gui.dwt.dmenu;
 
 import std.array;
 import std.file;
@@ -135,15 +138,15 @@ public:
 			}
 		}
 		auto menu = new Menu(_fileList.getShell(), SWT.POP_UP);
-		createMenuItem(menu, _prop.msgs.menuOpenFileView, _prop.images.menuOpenFileView, &openFilePath);
-		createMenuItem(menu, _prop.msgs.menuCopyFilePath, _prop.images.menuCopyFilePath, &copyFilePath);
+		createMenuItem(_comm, menu, MenuID.OpenAtFileView, &openFilePath);
+		createMenuItem(_comm, menu, MenuID.CopyFilePath, &copyFilePath);
 		static if (Type == MtType.BGM) {
 			new MenuItem(menu, SWT.SEPARATOR);
-			_bgmMenu = createMenuItem(menu, _prop.msgs.menuPlayBGM, _prop.images.playBGM, &playBGM);
+			_bgmMenu = createMenuItem(_comm, menu, MenuID.PlayBGM, &playBGM);
 		} else static if (Type == MtType.SE) {
 			new MenuItem(menu, SWT.SEPARATOR);
-			createMenuItem(menu, _prop.msgs.menuPlaySound, _prop.images.playSound, &playSE);
-			createMenuItem(menu, _prop.msgs.menuStopSound, _prop.images.stopSound, &stopSE);
+			createMenuItem(_comm, menu, MenuID.PlaySE, &playSE);
+			createMenuItem(_comm, menu, MenuID.StopSE, &stopSE);
 		}
 		_fileList.setMenu(menu);
 		new class(_fileList) FileDropTarget {
@@ -189,13 +192,13 @@ public:
 		private Button _bgmBtn;
 		string _playing;
 		void createPlayToolItem(ToolBar bar) {
-			_bgmTMenu = createToolItem(bar, _prop.msgs.playBGM, _prop.images.playBGM, &playBGM, SWT.CHECK);
+			_bgmTMenu = createToolItem(_comm, bar, MenuID.PlayBGM, &playBGM, SWT.CHECK);
 		}
 		Button createPlayButton(Composite parent) {
 			_bgmBtn = new Button(parent, SWT.TOGGLE);
 			_bgmBtn.setLayoutData(new GridData);
-			_bgmBtn.setToolTipText(_prop.msgs.playBGM);
-			_bgmBtn.setImage(_prop.images.playBGM);
+			_bgmBtn.setToolTipText(_prop.buildTool(MenuID.PlayBGM));
+			_bgmBtn.setImage(_prop.images.menu(MenuID.PlayBGM));
 			auto pbgm = new Play;
 			_bgmBtn.addSelectionListener(pbgm);
 			return _bgmBtn;
@@ -207,36 +210,40 @@ public:
 				if (inPlay) {
 					_playing = p;
 					if (_bgmMenu) {
-						_bgmMenu.setText(_prop.msgs.menuStopBGM(p));
-						_bgmMenu.setImage(_prop.images.stopBGM);
+						_bgmMenu.setText(.tryFormat(_prop.buildMenu(MenuID.StopBGM), p));
+						auto d = cast(MenuData) _bgmMenu.getData();
+						d.id = MenuID.StopBGM;
+						_bgmMenu.setImage(_prop.images.menu(MenuID.StopBGM));
 						_bgmMenu.setSelection(true);
 					}
 					if (_bgmTMenu) {
-						_bgmTMenu.setToolTipText(_prop.msgs.stopBGM(p));
-						_bgmTMenu.setImage(_prop.images.stopBGM);
+						_bgmTMenu.setToolTipText(.tryFormat(_prop.buildTool(MenuID.StopBGM), p));
+						_bgmTMenu.setImage(_prop.images.menu(MenuID.StopBGM));
 						_bgmTMenu.setSelection(true);
 					}
 					if (_bgmBtn) {
-						_bgmBtn.setToolTipText(_prop.msgs.stopBGM(baseName(path)));
-						_bgmBtn.setImage(_prop.images.stopBGM);
+						_bgmBtn.setToolTipText(.tryFormat(_prop.buildTool(MenuID.StopBGM), baseName(path)));
+						_bgmBtn.setImage(_prop.images.menu(MenuID.StopBGM));
 						_bgmBtn.setSelection(true);
 					}
 					return;
 				}
 			}
 			if (_bgmMenu) {
-				_bgmMenu.setText(_prop.msgs.menuPlayBGM);
-				_bgmMenu.setImage(_prop.images.playBGM);
+				_bgmMenu.setText(_prop.buildMenu(MenuID.PlayBGM));
+				auto d = cast(MenuData) _bgmMenu.getData();
+				d.id = MenuID.PlayBGM;
+				_bgmMenu.setImage(_prop.images.menu(MenuID.PlayBGM));
 				_bgmMenu.setSelection(false);
 			}
 			if (_bgmTMenu) {
-				_bgmTMenu.setToolTipText(_prop.msgs.playBGM);
-				_bgmTMenu.setImage(_prop.images.playBGM);
+				_bgmTMenu.setToolTipText(_prop.buildTool(MenuID.PlayBGM));
+				_bgmTMenu.setImage(_prop.images.menu(MenuID.PlayBGM));
 				_bgmTMenu.setSelection(false);
 			}
 			if (_bgmBtn) {
-				_bgmBtn.setToolTipText(_prop.msgs.playBGM);
-				_bgmBtn.setImage(_prop.images.playBGM);
+				_bgmBtn.setToolTipText(_prop.buildTool(MenuID.PlayBGM));
+				_bgmBtn.setImage(_prop.images.menu(MenuID.PlayBGM));
 				_bgmBtn.setSelection(false);
 			}
 			stopBGM();
@@ -262,20 +269,20 @@ public:
 		}
 	} else static if (Type == MtType.SE) {
 		void createPlayToolItem(ToolBar bar) {
-			createToolItem(bar, _prop.msgs.playSound, _prop.images.playSound, &playSE, SWT.PUSH);
+			createToolItem(_comm, bar, MenuID.PlaySE, &playSE, SWT.PUSH);
 		}
 		Button createPlayButton(Composite parent) {
 			auto seBtn = new Button(parent, SWT.PUSH);
-			seBtn.setToolTipText(_prop.msgs.playSound);
-			seBtn.setImage(_prop.images.playSound);
+			seBtn.setToolTipText(_prop.buildTool(MenuID.PlaySE));
+			seBtn.setImage(_prop.images.menu(MenuID.PlaySE));
 			auto play = new Play;
 			seBtn.addSelectionListener(play);
 			return seBtn;
 		}
 		Button createStopButton(Composite parent) {
 			auto stop = new Button(parent, SWT.PUSH);
-			stop.setToolTipText(_prop.msgs.stopSound);
-			stop.setImage(_prop.images.stopSound);
+			stop.setToolTipText(_prop.buildTool(MenuID.StopSE));
+			stop.setImage(_prop.images.menu(MenuID.StopSE));
 			auto sse = new StopSE;
 			stop.addSelectionListener(sse);
 			stop.addDisposeListener(sse);
@@ -311,11 +318,11 @@ public:
 	}
 	Button createRefreshButton(Composite parent, bool text) {
 		auto refBtn = new Button(parent, SWT.PUSH);
-		refBtn.setImage(_prop.images.menuRefresh);
+		refBtn.setImage(_prop.images.menu(MenuID.Refresh));
 		if (text) {
-			refBtn.setText(_prop.msgs.ttRefreshS);
+			refBtn.setText(_prop.msgs.refreshS);
 		} else {
-			refBtn.setToolTipText(_prop.msgs.ttRefresh);
+			refBtn.setToolTipText(_prop.buildTool(MenuID.Refresh));
 		}
 		refBtn.addSelectionListener(new RSListener);
 		return refBtn;
@@ -326,9 +333,9 @@ public:
 		dirBtn.setImage(_prop.images.folder);
 		dirBtn.addSelectionListener(new DSListener);
 		if (text) {
-			dirBtn.setText(_prop.msgs.ttOpenDirectory);
+			dirBtn.setText(_prop.buildTool(MenuID.OpenDir));
 		} else {
-			dirBtn.setToolTipText(_prop.msgs.ttOpenDirectory);
+			dirBtn.setToolTipText(_prop.buildTool(MenuID.OpenDir));
 		}
 		return dirBtn;
 	}
@@ -442,7 +449,7 @@ public:
 
 	@property
 	void selectDir(int sel) {
-		_dirs.select = sel;
+		_dirs.select(sel);
 		refreshList();
 		if (sel < _defs.length) {
 			_path = "";
@@ -462,7 +469,7 @@ public:
 				string p = currentDir;
 				if (!p) return;
 				if (0 == _fileList.getItemCount()) return;
-				_fileList.select = 0;
+				_fileList.select(0);
 				_path = std.path.buildPath(p, _fileList.getItem(0));
 				if (_refresh) _refresh();
 			}
@@ -555,7 +562,7 @@ private:
 					}
 					_dirs.setText(s);
 				} else {
-					_dirs.select = _tbl;
+					_dirs.select(_tbl);
 					file = s;
 				}
 				refreshList();
@@ -566,7 +573,7 @@ private:
 						break;
 					}
 				}
-				_fileList.select = selIndex;
+				_fileList.select(selIndex);
 				static if (is (C == Table)) {
 					_fileList.showSelection();
 				}
@@ -581,7 +588,7 @@ private:
 						if (index == 0) return;
 						_fileList.remove(0);
 					}
-					_dirs.select = _defs.length;
+					_dirs.select(_defs.length);
 					p = currentDir;
 				}
 				if (p) {
@@ -708,10 +715,10 @@ private:
 		if (sel.length > 0 && _dirs.getSelectionIndex() == _selDir) {
 			int index = flIndexOf(sel);
 			if (index >= 0) {
-				_fileList.select = index;
+				_fileList.select(index);
 			} else if (_dirs.getSelectionIndex() == _tbl) {
 				index = flIndexOf(setExtension(sel, defExt));
-				if (index >= 0) _fileList.select = index;
+				if (index >= 0) _fileList.select(index);
 			}
 		}
 		static if (is (C == Table)) {
@@ -748,10 +755,10 @@ private:
 				__refreshList(dirs, forceRefresh);
 				static if (is(C : Combo) || is(C : CCombo)) {
 					_fileList.add(_prop.msgs.fileNone, 0);
-					_fileList.select = 0;
+					_fileList.select(0);
 					_fnone = true;
 				} else {
-					_fileList.select = -1;
+					_fileList.select(-1);
 				}
 			}
 		} else if (_dirs.getSelectionIndex() == _tbl) {
@@ -806,19 +813,19 @@ private:
 		if (!select) {
 			void selectOld() {
 				if (oldSel < _defs.length) {
-					_dirs.select = oldSel;
+					_dirs.select(oldSel);
 				} else {
 					int index = dirsIndexOf(oldSelS);
 					if (index >= 0) {
-						_dirs.select = index;
+						_dirs.select(index);
 					} else if (_dirs.getItemCount() > 0) {
-						_dirs.select = 0;
+						_dirs.select(0);
 					}
 				}
 			}
 			bool def;
 			if (isBinImg(_path)) {
-				_dirs.select = _including;
+				_dirs.select(_including);
 			} else {
 				auto p = _comm.skin.findPathF(_path, defExt, defDir, _summ ? _summ.scenarioPath : "", def);
 				if (p.length > 0) {
@@ -827,13 +834,13 @@ private:
 							// ファイルが無い
 							selectOld();
 						} else {
-							_dirs.select = _tbl;
+							_dirs.select(_tbl);
 						}
 					} else if (_summ) {
 						string pt = dirName(p);
 						pt = pt.length <= cut ? sep.idup : pt[cut .. $];
 						pt = toViewPath(pt);
-						_dirs.select = dirsIndexOf(pt);
+						_dirs.select(dirsIndexOf(pt));
 					}
 				} else {
 					selectOld();

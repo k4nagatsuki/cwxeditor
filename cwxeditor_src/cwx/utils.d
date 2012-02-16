@@ -8,6 +8,7 @@ import cwx.versioninfo;
 import std.algorithm;
 import std.array;
 import std.conv;
+import std.uni;
 import std.metastrings;
 import std.string;
 import std.file;
@@ -117,7 +118,7 @@ string createDebugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) {
 	int hour = d.hour;
 	int min = d.minute;
 	int second = d.second;
-	buf = format("%04d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, min, second) ~ " [" ~ APP_BUILD.splitLines[0] ~ "]\t" ~ buf;
+	buf = format("%04d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, min, second) ~ " [" ~ .splitLines!string(APP_BUILD)[0] ~ "]\t" ~ buf;
 	return assumeUnique(buf);
 }
 
@@ -265,6 +266,78 @@ void swap(T)(ref T t1, ref T t2) {
 	T temp = t1;
 	t1 = t2;
 	t2 = temp;
+}
+
+/// Enumメンバ名の先頭を小文字にして文字列に変換する。
+@safe
+pure
+string enumToString(E)(E e) {
+	mixin("final switch (e) {"
+		~ enumToStringImpl!(E, 0)
+		~ "}");
+} unittest {
+	enum En {
+		Abc, Def
+	}
+	assert (enumToString(En.Abc) == "abc");
+	assert (enumToString(En.Def) == "def");
+}
+private template enumToStringImpl(E, size_t Index) {
+	static if (EnumMembers!E.length <= Index) {
+		immutable enumToStringImpl = "";
+	} else {
+		immutable enumToStringImpl = "case E." ~ .text(EnumMembers!E[Index])
+			~ ": return `" ~ .capLower(.text(EnumMembers!E[Index])) ~ "`;"
+			~ enumToStringImpl!(E, Index + 1);
+	}
+}
+
+/// 先頭を小文字にしたEnumメンバ名文字列をEnum値に変換する。
+@safe
+pure
+E stringToEnum(E)(string name) {
+	mixin("switch (name) {"
+		~ stringToEnumImpl!(E, 0)
+		~ "default: return E.init;"
+		~ "}");
+} unittest {
+	enum En {
+		Abc, Def
+	}
+	assert (stringToEnum!En("abc") == En.Abc);
+	assert (stringToEnum!En("def") == En.Def);
+}
+private template stringToEnumImpl(E, size_t Index) {
+	static if (EnumMembers!E.length <= Index) {
+		immutable stringToEnumImpl = "";
+	} else {
+		immutable stringToEnumImpl = "case `" ~ .capLower(.text(EnumMembers!E[Index])) ~ "`:"
+			~ "return E." ~ .text(EnumMembers!E[Index]) ~ ";"
+			~ stringToEnumImpl!(E, Index + 1);
+	}
+}
+
+/// sの先頭1文字を小文字にする。
+string capLower(string s) {
+	if (!s.length) return s;
+	dstring ds = to!dstring(s);
+	return to!string([std.uni.toLower(ds[0])] ~ ds[1 .. $]);
+}
+/// sの先頭1文字を大文字にする。
+string capUpper(string s) {
+	if (!s.length) return s;
+	dstring ds = to!dstring(s);
+	return to!string([std.uni.toUpper(ds[0])] ~ ds[1 .. $]);
+}
+
+/// 例外を発しないstd.string.format()。
+string tryFormat(T ...)(string s, T vals) {
+	try {
+		return .format(s, vals);
+	} catch (Exception e) {
+		debugln(e);
+		return s;
+	}
 }
 
 /// ワイルドカードを用いてパターンマッチングを行う。
@@ -641,7 +714,7 @@ string lastRet(string text) {
 string toLower(string s) {
 	dstring r;
 	foreach (dchar c; s) {
-		r ~= toUniLower(c);
+		r ~= std.uni.toLower(c);
 	}
 	return toUTF8(r);
 }
@@ -844,13 +917,13 @@ string[] decodeLf(string str, bool useEmpty = false) {
 	string[] r;
 	if (useEmpty) {
 		int last = 0;
-		foreach (i, s; splitLines(decodeLf2(str))) {
+		foreach (i, s; splitLines!string(decodeLf2(str))) {
 			r ~= s;
 			if (s.length > 0) last = i + 1;
 		}
 		r.length = last;
 	} else {
-		foreach (s; splitLines(decodeLf2(str))) {
+		foreach (s; splitLines!string(decodeLf2(str))) {
 			if (s.length > 0) {
 				r ~= s;
 			}
@@ -1474,7 +1547,7 @@ size_t lineCount(in string[] lines) {
 	}
 	return to - from;
 } unittest {
-	assert (lineCount(splitLines("\na\nb\n\nc\n\n")) == 4);
+	assert (lineCount(splitLines!string("\na\nb\n\nc\n\n")) == 4);
 }
 /// std.algorithm.countUntilはconst配列に対する検索が通らない
 sizediff_t cCountUntil(string pred = "a == b", R1, R2)(R1 arr, R2 b) {

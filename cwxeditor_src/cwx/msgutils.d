@@ -15,7 +15,7 @@ dchar decodeFontPath(string path) {
 	enforce(istartsWith(path, "font_"));
 	auto dpath = to!dstring(path["font_".length .. $].stripExtension);
 	enforce(1 == dpath.length);
-	return toUniUpper(dpath[0]);
+	return std.uni.toUpper(dpath[0]);
 }
 /// cを"font_X.bmp"等に変換する。
 string encodeFontPath(dchar c, string ext) {

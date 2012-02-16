@@ -174,7 +174,7 @@ struct Jpy1 {
 	/// pathからJpy1を読込む。
 	static Jpy1 load(string path) {
 		Jpy1 r;
-		foreach (line; splitLines(readJPYFile(path))) {
+		foreach (line; splitLines!string(readJPYFile(path))) {
 			line = astrip(line);
 			if (!line.length || line[0] == ';') continue;
 			if (line[0] == '[' && line[$ - 1] == ']') {
@@ -432,7 +432,7 @@ private struct JptxParser {
 			~ ">"d;
 		if (autoline) {
 			auto r = .regex!(dstring)("^" ~ TAG ~ "$", "i");
-			auto lines = splitLines(text);
+			auto lines = splitLines!string(text);
 			text = "";
 			foreach (i, line; lines) {
 				text ~= line;
@@ -715,7 +715,7 @@ struct Jptx {
 		bool textFirst = true;
 		bool init = false;
 		bool text = false;
-		foreach (line; splitLines(readJPYFile(path))) {
+		foreach (line; splitLines!string(readJPYFile(path))) {
 			auto sline = astrip(line);
 			if (!text && sline.length && sline[0] == ';') continue;
 			if (sline.length && sline[0] == '[' && sline[$ - 1] == ']') {
@@ -808,7 +808,7 @@ struct Jpdc {
 	static Jpdc load(string path) {
 		Jpdc r;
 		bool init = false;
-		foreach (line; splitLines(readJPYFile(path))) {
+		foreach (line; splitLines!string(readJPYFile(path))) {
 			line = astrip(line);
 			if (!line.length || line[0] == ';') continue;
 			if (line[0] == '[' && line[$ - 1] == ']') {

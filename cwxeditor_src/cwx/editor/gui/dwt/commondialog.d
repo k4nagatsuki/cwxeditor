@@ -2,6 +2,7 @@
 module cwx.editor.gui.dwt.commondialog;
 
 import cwx.area;
+import cwx.menu;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.absdialog;
@@ -29,7 +30,7 @@ public:
 		_prop = prop;
 		_area = area;
 		_minId = minId;
-		super(prop, shell, prop.msgs.dlgTitReNumbering, prop.images.menuReNumbering, false);
+		super(prop, shell, prop.msgs.dlgTitReNumbering, prop.images.menu(MenuID.ReNumbering), false);
 		enterClose = true;
 	}
 

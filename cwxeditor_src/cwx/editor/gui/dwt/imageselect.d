@@ -4,6 +4,8 @@ module cwx.editor.gui.dwt.imageselect;
 import cwx.utils;
 import cwx.summary;
 import cwx.skin;
+import cwx.menu;
+
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.dskin;
@@ -11,6 +13,7 @@ import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.materialselect;
 import cwx.editor.gui.dwt.imagelistwindow;
+import cwx.editor.gui.dwt.dmenu;
 
 import std.file;
 import std.path;
@@ -133,13 +136,11 @@ public:
 				comp.setLayout(zeroMarginGridLayout(3, false));
 				auto imgList = new Button(comp, SWT.PUSH);
 				imgList.setLayoutData(new GridData(GridData.FILL_VERTICAL));
-				imgList.setImage(_prop.images.menuImageList);
-				imgList.setToolTipText(_prop.msgs.ttImageList);
+				imgList.setImage(_prop.images.menu(MenuID.LookImages));
+				imgList.setToolTipText(_prop.buildTool(MenuID.LookImages));
 				imgList.addSelectionListener(new SelImageList);
-				_msel.createRefreshButton(comp, true).setLayoutData
-					= new GridData(GridData.FILL_BOTH);
-				_msel.createDirectoryButton(comp, false).setLayoutData
-					= new GridData(GridData.FILL_VERTICAL);
+				_msel.createRefreshButton(comp, true).setLayoutData(new GridData(GridData.FILL_BOTH));
+				_msel.createDirectoryButton(comp, false).setLayoutData(new GridData(GridData.FILL_VERTICAL));
 			}
 		}
 		{
@@ -150,8 +151,8 @@ public:
 				dirs.addSelectionListener(new DirSelect);
 				if (canIncluding) {
 					auto saveIncludeImage = new Button(compr, SWT.PUSH);
-					saveIncludeImage.setImage(_prop.images.menuSaveIncludeImage);
-					saveIncludeImage.setToolTipText(_prop.msgs.ttSaveIncludeImage);
+					saveIncludeImage.setImage(_prop.images.menu(MenuID.SaveImage));
+					saveIncludeImage.setToolTipText(_prop.buildTool(MenuID.SaveImage));
 					saveIncludeImage.addSelectionListener(new SaveIncImg);
 				}
 			}
@@ -257,7 +258,7 @@ private:
 			static if (Type == MtType.BG_IMG) {
 				_imgList.mask = mask;
 			}
-			_imgList.select = _msel.path;
+			_imgList.select(_msel.path);
 		}
 	}
 	class SaveIncImg : SelectionAdapter {

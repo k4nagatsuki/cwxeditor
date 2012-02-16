@@ -7,6 +7,7 @@ import cwx.skin;
 import cwx.utils;
 import cwx.path;
 import cwx.msgs;
+import cwx.menu;
 
 import cwx.editor.gui.dwt.areaview;
 import cwx.editor.gui.dwt.eventview;
@@ -19,6 +20,7 @@ import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.sbshell;
 import cwx.editor.gui.dwt.eventwindow;
 import cwx.editor.gui.dwt.eventtreeview;
+import cwx.editor.gui.dwt.dmenu;
 
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.ToolBar;
@@ -207,33 +209,33 @@ public:
 		if (shell) {
 			auto bar = new Menu(shell, SWT.BAR);
 
-			auto mf = createMenu(bar, _prop.msgs.menuFile);
+			auto mf = createMenu(_comm, bar, MenuID.File);
 			static if (is(A : Area) && !WithEventView) {
-				createMenuItem(mf, _prop.msgs.menuEditEvent, _prop.images.areaEventTreeView, &openEvent);
+				createMenuItem(_comm, mf, MenuID.EditEventArea, &openEvent);
 				new MenuItem(mf, SWT.SEPARATOR);
 			} else static if (is(A : Battle) && !WithEventView) {
-				createMenuItem(mf, _prop.msgs.menuEditEvent, _prop.images.battleEventTreeView, &openEvent);
+				createMenuItem(_comm, mf, MenuID.EditEventBattle, &openEvent);
 				new MenuItem(mf, SWT.SEPARATOR);
 			}
-			createMenuItem(mf, _prop.msgs.menuCloseWin, _prop.images.menuCloseWin, &shell.close);
+			createMenuItem(_comm, mf, MenuID.CloseWin, &shell.close);
 
-			auto me = createMenu(bar, _prop.msgs.menuEdit);
-			createMenuItem(me, _prop.msgs.menuUndo, _prop.images.menuUndo, &this.undo);
-			createMenuItem(me, _prop.msgs.menuRedo, _prop.images.menuRedo, &this.redo);
+			auto me = createMenu(_comm, bar, MenuID.Edit);
+			createMenuItem(_comm, me, MenuID.Undo, &this.undo);
+			createMenuItem(_comm, me, MenuID.Redo, &this.redo);
 			new MenuItem(me, SWT.SEPARATOR);
-			createMenuItem(me, _prop.msgs.menuUp, _prop.images.menuUp, &up);
-			createMenuItem(me, _prop.msgs.menuDown, _prop.images.menuDown, &down);
+			createMenuItem(_comm, me, MenuID.Up, &up);
+			createMenuItem(_comm, me, MenuID.Down, &down);
 			new MenuItem(me, SWT.SEPARATOR);
-			appendMenuTCPD(_prop, me, this, true, true, true, true);
+			appendMenuTCPD(_comm, me, this, true, true, true, true);
 			static if (WithEventView) {
 				new MenuItem(me, SWT.SEPARATOR);
-				createMenuItem(me, _prop.msgs.menuWriteComment, _prop.images.menuWriteComment, &writeComment);
+				createMenuItem(_comm, me, MenuID.Comment, &writeComment);
 				new MenuItem(me, SWT.SEPARATOR);
-				createMenuItem(me, _prop.msgs.menuToScript, _prop.images.menuToScript, &toScript);
-				createMenuItem(me, _prop.msgs.menuToScriptAll, _prop.images.menuToScriptAll, &toScriptAll);
+				createMenuItem(_comm, me, MenuID.ToScript, &toScript);
+				createMenuItem(_comm, me, MenuID.ToScriptAll, &toScriptAll);
 			}
-			auto mv = createMenu(bar, _prop.msgs.menuView);
-			createMenuItem(mv, _prop.msgs.menuRefresh, _prop.images.menuRefresh, &refresh);
+			auto mv = createMenu(_comm, bar, MenuID.View);
+			createMenuItem(_comm, mv, MenuID.Refresh, &refresh);
 
 			shell.setMenuBar(bar);
 		} else {
@@ -241,13 +243,13 @@ public:
 			putMenuAction(MenuID.Redo, &this.redo);
 			putMenuAction(MenuID.Up, &up);
 			putMenuAction(MenuID.Down, &down);
-			appendMenuTCPD(_prop, this, this, true, true, true, true);
+			appendMenuTCPD(_comm, this, this, true, true, true, true);
 			static if (WithEventView) {
-				putMenuAction(MenuID.WriteComment, &writeComment);
+				putMenuAction(MenuID.Comment, &writeComment);
 				putMenuAction(MenuID.ToScript, &toScript);
 				putMenuAction(MenuID.ToScriptAll, &toScriptAll);
 			} else {
-				putMenuAction(MenuID.EditEvent, &openEvent);
+				putMenuAction(MenuID.EditEventArea, &openEvent);
 			}
 			putMenuAction(MenuID.Refresh, &refresh);
 		}
