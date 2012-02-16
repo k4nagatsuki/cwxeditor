@@ -318,6 +318,7 @@ private:
 	HotKeyField _hotkey;
 	Table _menu;
 	Button _menuApply;
+	Button _menuDel;
 	class SMenuData {
 		MenuID id;
 		string mnemonic;
@@ -1896,6 +1897,20 @@ private:
 		_mnemonic.setText(data.mnemonic);
 		_hotkey.accelerator = data.hotkey;
 		_menuApply.setEnabled(false);
+		_menuDel.setEnabled(_mnemonic.getText().length || _hotkey.widget.getText().length);
+	}
+	void applyMenu() {
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
+		auto i = _menu.getSelectionIndex();
+		assert (i != -1);
+		auto itm = _menu.getItem(i);
+		auto data = cast(SMenuData) itm.getData();
+		data.mnemonic = _mnemonic.getText();
+		data.hotkey = _hotkey.acceleratorText;
+		itm.setText(MenuProps.buildMenu(_prop.parent, data.id, data.mnemonic, data.hotkey).replace("\t", " "));
+		_menuApply.setEnabled(false);
+		applyEnabled();
 	}
 	class SelectMenu : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
@@ -1906,21 +1921,22 @@ private:
 		override void modifyText(ModifyEvent e) {
 			if (ignoreMod) return;
 			_menuApply.setEnabled(true);
+			_menuDel.setEnabled(_mnemonic.getText().length || _hotkey.widget.getText().length);
+		}
+	}
+	class DelMenuAccel : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			ignoreMod = true;
+			scope (exit) ignoreMod = false;
+			_mnemonic.setText("");
+			_hotkey.widget.setText("");
+			applyMenu();
+			_menuDel.setEnabled(false);
 		}
 	}
 	class ApplyMenu : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			ignoreMod = true;
-			scope (exit) ignoreMod = false;
-			auto i = _menu.getSelectionIndex();
-			assert (i != -1);
-			auto itm = _menu.getItem(i);
-			auto data = cast(SMenuData) itm.getData();
-			data.mnemonic = _mnemonic.getText();
-			data.hotkey = _hotkey.acceleratorText;
-			itm.setText(MenuProps.buildMenu(_prop.parent, data.id, data.mnemonic, data.hotkey).replace("\t", " "));
-			_menuApply.setEnabled(false);
-			applyEnabled();
+			applyMenu();
 		}
 	}
 	void construct5(CTabFolder tabf) {
@@ -2020,7 +2036,7 @@ private:
 			{
 				auto grp = new Group(sash, SWT.NONE);
 				grp.setText(_prop.msgs.keyBind);
-				grp.setLayout(new GridLayout(3, false));
+				grp.setLayout(new GridLayout(4, false));
 
 				auto l1 = new Label(grp, SWT.NONE);
 				l1.setText(_prop.msgs.mnemonic);
@@ -2032,20 +2048,23 @@ private:
 				_menuApply = new Button(grp, SWT.PUSH);
 				_menuApply.setText(_prop.msgs.apply);
 				_menuApply.addSelectionListener(new ApplyMenu);
+				_menuDel = new Button(grp, SWT.PUSH);
+				_menuDel.setText(_prop.msgs.del);
+				_menuDel.addSelectionListener(new DelMenuAccel);
 
 				auto l2 = new Label(grp, SWT.NONE);
 				l2.setText(_prop.msgs.hotkey);
 				_hotkey = new HotKeyField(grp, SWT.BORDER);
 				createTextMenu!Text(_comm, _prop, _hotkey.widget, &catchMod);
 				auto hgd = new GridData(GridData.FILL_HORIZONTAL);
-				hgd.horizontalSpan = 2;
+				hgd.horizontalSpan = 3;
 				_hotkey.widget.setLayoutData(hgd);
 				_hotkey.widget.addModifyListener(new ModMenu);
 
 				_menu = new Table(grp, SWT.BORDER | SWT.SINGLE | SWT.V_SCROLL | SWT.FULL_SELECTION);
 				_menu.setData(new CIgnoreHotkey); // 間違いやすいので
 				auto mgd = new GridData(GridData.FILL_BOTH);
-				mgd.horizontalSpan = 3;
+				mgd.horizontalSpan = 4;
 				_menu.setLayoutData(mgd);
 				new FullTableColumn(_menu, SWT.NONE);
 				foreach (id; EnumMembers!MenuID) {

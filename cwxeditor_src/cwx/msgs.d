@@ -72,6 +72,7 @@ public:
 	@property const string dlgTextCancel() {return "キャンセル";}
 
 	@property const string apply() {return "適用";}
+	@property const string del() {return "削除";}
 
 	@property const string filterAll() {
 		return "すべてのファイル (*.*)";
