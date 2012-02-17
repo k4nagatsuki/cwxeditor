@@ -11,6 +11,7 @@ import std.conv;
 import std.uni;
 import std.metastrings;
 import std.string;
+import std.format;
 import std.file;
 import std.path;
 import std.uni;
@@ -333,7 +334,9 @@ string capUpper(string s) {
 /// 例外を発しないstd.string.format()。
 string tryFormat(T ...)(string s, T vals) {
 	try {
-		return .format(s, vals);
+		auto a = appender!string();
+		formattedWrite(a, s, vals);
+		return a.data;
 	} catch (Exception e) {
 		debugln(e);
 		return s;

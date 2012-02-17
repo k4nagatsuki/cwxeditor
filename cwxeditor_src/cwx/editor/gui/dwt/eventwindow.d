@@ -151,10 +151,10 @@ public:
 
 			auto mf = createMenu(_comm, bar, MenuID.File);
 			static if (is(A : Area)) {
-				createMenuItem(_comm, mf, MenuID.EditSceneArea, &openScene);
+				createMenuItem(_comm, mf, MenuID.EditScene, &openScene);
 				new MenuItem(mf, SWT.SEPARATOR);
 			} else static if (is(A : Battle)) {
-				createMenuItem(_comm, mf, MenuID.EditSceneArea, &openScene);
+				createMenuItem(_comm, mf, MenuID.EditScene, &openScene);
 				new MenuItem(mf, SWT.SEPARATOR);
 			}
 			createMenuItem(_comm, mf, MenuID.CloseWin, &shell.close);
@@ -177,7 +177,7 @@ public:
 		} else {
 			appendMenuTCPD(_comm, this, this, true, true, true, true);
 			static if (is(A : Area) || is(A : Battle)) {
-				putMenuAction(MenuID.EditSceneArea, &openScene);
+				putMenuAction(MenuID.EditScene, &openScene);
 			}
 			putMenuAction(MenuID.Undo, &_eview.undo);
 			putMenuAction(MenuID.Redo, &_eview.redo);
@@ -359,6 +359,22 @@ public:
 		@property
 		bool canDoTCPD() {
 			return _eview.canDoTCPD;
+		}
+		@property
+		bool canDoT() {
+			return _eview.canDoT;
+		}
+		@property
+		bool canDoC() {
+			return _eview.canDoC;
+		}
+		@property
+		bool canDoP() {
+			return _eview.canDoP;
+		}
+		@property
+		bool canDoD() {
+			return _eview.canDoD;
 		}
 	}
 	bool openCWXPath(string path, bool shellActivate) {

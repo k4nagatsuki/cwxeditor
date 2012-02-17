@@ -846,8 +846,8 @@ public:
 		if (!_comm.singleWindowMode(_prop) || _prop.var.etc.bindSceneWithEvent) {
 			createMenuItem(_comm, menu, MenuID.EditProp, {openAreaScene(true);});
 		} else {
-			createMenuItem(_comm, menu, MenuID.EditSceneArea, {openAreaScene(true);});
-			createMenuItem(_comm, menu, MenuID.EditEventArea, {openAreaEvent(true);});
+			createMenuItem(_comm, menu, MenuID.EditScene, {openAreaScene(true);});
+			createMenuItem(_comm, menu, MenuID.EditEvent, {openAreaEvent(true);});
 		}
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.EditSummary, &editSummary);
@@ -1305,6 +1305,22 @@ public:
 		@property
 		bool canDoTCPD() {
 			return _areas.isFocusControl();
+		}
+		@property
+		bool canDoT() {
+			return _areas.getSelectionIndex() != -1;
+		}
+		@property
+		bool canDoC() {
+			return _areas.getSelectionIndex() != -1;
+		}
+		@property
+		bool canDoP() {
+			return true;
+		}
+		@property
+		bool canDoD() {
+			return _areas.getSelectionIndex() != -1;
 		}
 	}
 	private void delItem(AbstractArea area) {

@@ -1337,10 +1337,11 @@ private:
 			appendMenuTCPD(_comm, menu, _tcpd, true, true, true, true);
 			static if (is(A : Area)) {
 				new MenuItem(menu, SWT.SEPARATOR);
-				createMenuItem(_comm, menu, MenuID.EditEventArea, &openEvent);
+				createMenuItem(_comm, menu, MenuID.EditEvent, &openEvent);
 			} else static if (is(A : Battle)) {
 				new MenuItem(menu, SWT.SEPARATOR);
-				createMenuItem(_comm, menu, MenuID.EditEventBattle, &openEvent);
+				auto itm = createMenuItem(_comm, menu, MenuID.EditEvent, &openEvent);
+				itm.setImage(_prop.images.editEventBattle);
 			}
 			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(_comm, menu, MenuID.PosTop, &posTop);
@@ -1578,9 +1579,10 @@ private:
 			static if ((is(A : Area) || is(A : Battle)) && is(C : AbstractSpCard)) {
 				new MenuItem(menu, SWT.SEPARATOR);
 				static if (is(A : Area)) {
-					createMenuItem(_comm, menu, MenuID.EditEventArea, &openEvent);
+					createMenuItem(_comm, menu, MenuID.EditEvent, &openEvent);
 				} else static if (is(A : Battle)) {
-					createMenuItem(_comm, menu, MenuID.EditEventBattle, &openEvent);
+					auto itm = createMenuItem(_comm, menu, MenuID.EditEvent, &openEvent);
+					itm.setImage(_prop.images.editEventBattle);
 				} else static assert (0);
 			}
 			list.setMenu(menu);
@@ -2582,38 +2584,31 @@ public:
 	/// bar = メニュー。
 	void setupMenu(Menu bar) {
 		auto mv = createMenu(_comm, bar, MenuID.CardsAndBacks);
-		_vpMenu = createMenuItem(_comm, mv, MenuID.ShowParty,
-			&reverseViewParty, SWT.CHECK);
+		_vpMenu = createMenuItem(_comm, mv, MenuID.ShowParty, &reverseViewParty, null, SWT.CHECK);
 		_vpMenu.setSelection(_viewParty);
-		_vmMenu = createMenuItem(_comm, mv, MenuID.ShowMsg,
-			&reverseViewMsg, SWT.CHECK);
+		_vmMenu = createMenuItem(_comm, mv, MenuID.ShowMsg, &reverseViewMsg, null, SWT.CHECK);
 		_vmMenu.setSelection(_viewMsg);
 		new MenuItem(mv, SWT.SEPARATOR);
-		_vfMenu = createMenuItem(_comm, mv, MenuID.FixedImage,
-			&reverseFixed, SWT.CHECK);
+		_vfMenu = createMenuItem(_comm, mv, MenuID.FixedImage, &reverseFixed, null, SWT.CHECK);
 		_vfMenu.setSelection(_fixed);
 		static if (is(C : EnemyCard) || RefCards) {
 			if (_summ) {
 				new MenuItem(mv, SWT.SEPARATOR);
-				_dbgMenu = createMenuItem(_comm, mv,
-					MenuID.ShowEnemyCardProp,
-					&reverseDebugMode, SWT.CHECK);
+				_dbgMenu = createMenuItem(_comm, mv, MenuID.ShowEnemyCardProp, &reverseDebugMode, null, SWT.CHECK);
 				_dbgMenu.setSelection(_dbgMode);
 			}
 		}
 		static if (UseCards && UseBacks) {
 			new MenuItem(mv, SWT.SEPARATOR);
-			_vcMenu = createMenuItem(_comm, mv, MenuID.ShowCard,
-				&reverseViewCards, SWT.CHECK);
+			_vcMenu = createMenuItem(_comm, mv, MenuID.ShowCard, &reverseViewCards, null, SWT.CHECK);
 			_vcMenu.setSelection(_viewCards);
-			_vbMenu = createMenuItem(_comm, mv, MenuID.ShowBack,
-				&reverseViewBacks, SWT.CHECK);
+			_vbMenu = createMenuItem(_comm, mv, MenuID.ShowBack, &reverseViewBacks, null, SWT.CHECK);
 			_vbMenu.setSelection(_viewBacks);
 		}
 		static if (UseCards) {
 			new MenuItem(mv, SWT.SEPARATOR);
-			_autoMenu = createMenuItem(_comm, mv, MenuID.AutoArrange, &setAuto, SWT.RADIO);
-			_customMenu = createMenuItem(_comm, mv, MenuID.ManualArrange, &setCustom, SWT.RADIO);
+			_autoMenu = createMenuItem(_comm, mv, MenuID.AutoArrange, &setAuto, null, SWT.RADIO);
+			_customMenu = createMenuItem(_comm, mv, MenuID.ManualArrange, &setCustom, null, SWT.RADIO);
 			_autoMenu.setSelection(_area.spAuto);
 			_customMenu.setSelection(!_area.spAuto);
 		}
@@ -2634,12 +2629,13 @@ public:
 	private void setupToolBar(ToolBar bar) {
 		static if (is(A : Area)) {
 			if (cast(AreaSceneWindow) tlpData(this).tlp) {
-				createToolItem(_comm, bar, MenuID.EditEventArea, &openEvent);
+				createToolItem(_comm, bar, MenuID.EditEvent, &openEvent);
 				new ToolItem(bar, SWT.SEPARATOR);
 			}
 		} else static if (is(A : Battle)) {
 			if (cast(BattleSceneWindow) tlpData(this).tlp) {
-				createToolItem(_comm, bar, MenuID.EditEventBattle, &openEvent);
+				auto itm = createToolItem(_comm, bar, MenuID.EditEvent, &openEvent);
+				itm.setImage(_prop.images.editEventBattle);
 				new ToolItem(bar, SWT.SEPARATOR);
 			}
 		}
@@ -2647,37 +2643,25 @@ public:
 			createToolItem(_comm, bar, MenuID.Refresh, &refresh);
 			new ToolItem(bar, SWT.SEPARATOR);
 		}
-		_vpTMenu = createToolItem(_comm, bar,
-			MenuID.ShowParty,
-			&reverseViewParty, SWT.CHECK);
+		_vpTMenu = createToolItem(_comm, bar, MenuID.ShowParty, &reverseViewParty, null, SWT.CHECK);
 		_vpTMenu.setSelection(_viewParty);
-		_vmTMenu = createToolItem(_comm, bar,
-			MenuID.ShowMsg,
-			&reverseViewMsg, SWT.CHECK);
+		_vmTMenu = createToolItem(_comm, bar, MenuID.ShowMsg, &reverseViewMsg, null, SWT.CHECK);
 		_vmTMenu.setSelection(_viewMsg);
 		new ToolItem(bar, SWT.SEPARATOR);
-		_vfTMenu = createToolItem(_comm, bar,
-			MenuID.FixedImage,
-			&reverseFixed, SWT.CHECK);
+		_vfTMenu = createToolItem(_comm, bar, MenuID.FixedImage, &reverseFixed, null, SWT.CHECK);
 		_vfTMenu.setSelection(_fixed);
 		static if (is(C : EnemyCard) || RefCards) {
 			if (_summ) {
 				new ToolItem(bar, SWT.SEPARATOR);
-				_dbgTMenu = createToolItem(_comm, bar,
-					MenuID.ShowEnemyCardProp,
-					&reverseDebugMode, SWT.CHECK);
+				_dbgTMenu = createToolItem(_comm, bar, MenuID.ShowEnemyCardProp, &reverseDebugMode, null, SWT.CHECK);
 				_dbgTMenu.setSelection(_dbgMode);
 			}
 		}
 		static if (UseCards && UseBacks) {
 			new ToolItem(bar, SWT.SEPARATOR);
-			_vcTMenu = createToolItem(_comm, bar,
-				MenuID.ShowCard,
-				&reverseViewCards, SWT.CHECK);
+			_vcTMenu = createToolItem(_comm, bar, MenuID.ShowCard, &reverseViewCards, null, SWT.CHECK);
 			_vcTMenu.setSelection(_viewCards);
-			_vbTMenu = createToolItem(_comm, bar,
-				MenuID.ShowBack,
-				&reverseViewBacks, SWT.CHECK);
+			_vbTMenu = createToolItem(_comm, bar, MenuID.ShowBack, &reverseViewBacks, null, SWT.CHECK);
 			_vbTMenu.setSelection(_viewBacks);
 		}
 		new ToolItem(bar, SWT.SEPARATOR);
@@ -2690,8 +2674,8 @@ public:
 			new ToolItem(bar, SWT.SEPARATOR);
 		}
 		static if (UseCards) {
-			_autoTMenu = createToolItem(_comm, bar, MenuID.AutoArrange, &setAuto, SWT.RADIO);
-			_customTMenu = createToolItem(_comm, bar, MenuID.ManualArrange, &setCustom, SWT.RADIO);
+			_autoTMenu = createToolItem(_comm, bar, MenuID.AutoArrange, &setAuto, null, SWT.RADIO);
+			_customTMenu = createToolItem(_comm, bar, MenuID.ManualArrange, &setCustom, null, SWT.RADIO);
 			_autoTMenu.setSelection(_area.spAuto);
 			_customTMenu.setSelection(!_area.spAuto);
 			new ToolItem(bar, SWT.SEPARATOR);
@@ -2735,18 +2719,16 @@ public:
 		}
 		static if (UseBacks) {
 			new ToolItem(bar, SWT.SEPARATOR);
-			_maskTMenu = createToolItem(_comm, bar, MenuID.Mask, &setMask, SWT.CHECK);
+			_maskTMenu = createToolItem(_comm, bar, MenuID.Mask, &setMask, null, SWT.CHECK);
 			_maskTMenu.setEnabled(false);
 		}
 		static if (is (C == EnemyCard)) {
 			new ToolItem(bar, SWT.SEPARATOR);
-			_escTMenu = createToolItem(_comm, bar, MenuID.Escape,
-					&setEscape, SWT.CHECK);
+			_escTMenu = createToolItem(_comm, bar, MenuID.Escape, &setEscape, null, SWT.CHECK);
 			_escTMenu.setEnabled(false);
 			new ToolItem(bar, SWT.SEPARATOR);
 			auto skin = _comm.skin;
-			_bgm = new MaterialSelect!(MtType.BGM, CCombo, CCombo)
-				(_comm, _prop, _summ, &selectBGM, [_prop.msgs.bgmNone]);
+			_bgm = new MaterialSelect!(MtType.BGM, CCombo, CCombo)(_comm, _prop, _summ, &selectBGM, [_prop.msgs.bgmNone]);
 			auto dirs = _bgm.createDirsCombo(bar);
 			createToolItemC(bar, dirs);
 			auto files = _bgm.createFileList(bar);
@@ -3505,6 +3487,22 @@ public:
 	bool canDoTCPD() {
 		return _imgp.isVisible();
 	}
+	@property
+	bool canDoT() {
+		return _imgp.selectedIndex != -1;
+	}
+	@property
+	bool canDoC() {
+		return _imgp.selectedIndex != -1;
+	}
+	@property
+	bool canDoP() {
+		return true;
+	}
+	@property
+	bool canDoD() {
+		return _imgp.selectedIndex != -1;
+	}
 	static if (UseCards && UseBacks) {
 		private class AllTCPD : TCPD {
 			void cut(SelectionEvent se) {
@@ -3565,6 +3563,22 @@ public:
 			bool canDoTCPD() {
 				return _imgp.isVisible();
 			}
+			@property
+			bool canDoT() {
+				return _imgp.selectedIndex != -1;
+			}
+			@property
+			bool canDoC() {
+				return _imgp.selectedIndex != -1;
+			}
+			@property
+			bool canDoP() {
+				return true;
+			}
+			@property
+			bool canDoD() {
+				return _imgp.selectedIndex != -1;
+			}
 		}
 	}
 
@@ -3619,6 +3633,22 @@ public:
 			bool canDoTCPD() {
 				return _cards.isVisible() && _cards.isEnabled();
 			}
+			@property
+			bool canDoT() {
+				return _cards.getSelectionIndex() != -1;
+			}
+			@property
+			bool canDoC() {
+				return _cards.getSelectionIndex() != -1;
+			}
+			@property
+			bool canDoP() {
+				return true;
+			}
+			@property
+			bool canDoD() {
+				return _cards.getSelectionIndex() != -1;
+			}
 		}
 	}
 	static if (UseBacks) {
@@ -3671,6 +3701,22 @@ public:
 			@property
 			bool canDoTCPD() {
 				return _backs.isVisible() && _backs.isEnabled();
+			}
+			@property
+			bool canDoT() {
+				return _backs.getSelectionIndex() != -1;
+			}
+			@property
+			bool canDoC() {
+				return _backs.getSelectionIndex() != -1;
+			}
+			@property
+			bool canDoP() {
+				return true;
+			}
+			@property
+			bool canDoD() {
+				return _backs.getSelectionIndex() != -1;
 			}
 		}
 	}

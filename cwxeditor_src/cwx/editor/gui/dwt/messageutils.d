@@ -364,7 +364,11 @@ private:
 			}
 		}
 		void del(SelectionEvent se) {deleteDialogSel();}
-		bool canDoTCPD() {return _dlgsL.isFocusControl();}
+		@property bool canDoTCPD() {return _dlgsL.isFocusControl();}
+		@property bool canDoT() {return _dlgsL.getSelectionIndex() > 0;}
+		@property bool canDoC() {return canDoT;}
+		@property bool canDoP() {return true;}
+		@property bool canDoD() {return canDoT;}
 	}
 	class DDropListener : DropTargetAdapter {
 		override void dragEnter(DropTargetEvent e){
@@ -579,15 +583,15 @@ protected:
 			bar.addListener(SWT.KeyDown, new class Listener {
 				override void handleEvent(Event e) {e.doit = true;}
 			});
-			createToolItem2(bar, prop.msgs.createDialog, prop.images.createDialog, &createDialog);
-			createToolItem2(bar, prop.msgs.deleteDialog, prop.images.deleteDialog, &deleteDialogSel);
+			createToolItem2(comm, bar, prop.msgs.createDialog, prop.images.createDialog, &createDialog);
+			createToolItem2(comm, bar, prop.msgs.deleteDialog, prop.images.deleteDialog, &deleteDialogSel);
 			new ToolItem(bar, SWT.SEPARATOR);
 			createToolItem(comm, bar, MenuID.Up, &up);
 			createToolItem(comm, bar, MenuID.Down, &down);
 			new ToolItem(bar, SWT.SEPARATOR);
-			createToolItem2(bar, prop.msgs.copyToDialogs, prop.images.copyToDialogs, &copyToDialogs);
-			createToolItem2(bar, prop.msgs.copyToUpper, prop.images.copyToUpper, &copyToUpper);
-			createToolItem2(bar, prop.msgs.copyToLower, prop.images.copyToLower, &copyToLower);
+			createToolItem2(comm, bar, prop.msgs.copyToDialogs, prop.images.copyToDialogs, &copyToDialogs);
+			createToolItem2(comm, bar, prop.msgs.copyToUpper, prop.images.copyToUpper, &copyToUpper);
+			createToolItem2(comm, bar, prop.msgs.copyToLower, prop.images.copyToLower, &copyToLower);
 		}
 		auto skin = comm.skin;
 		{
@@ -614,11 +618,11 @@ protected:
 			_text.widget.addModifyListener(new ModL);
 		}
 		{
-			auto bar = createSCharBar(area, &insert, &put, prop, skin);
+			auto bar = createSCharBar(comm, area, &insert, &put, prop, skin);
 			bar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		}
 		{
-			auto bar = createSkinSCharBar(area, &insert, prop, skin);
+			auto bar = createSkinSCharBar(comm, area, &insert, prop, skin);
 			bar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		}
 		{
@@ -844,11 +848,11 @@ protected:
 			tab.setControl(_msgCompB);
 		}
 		{
-			auto bar = createSCharBar(area, &insert, &put, prop, skin);
+			auto bar = createSCharBar(comm, area, &insert, &put, prop, skin);
 			bar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		}
 		{
-			auto bar = createSkinSCharBar(area, &insert, prop, skin);
+			auto bar = createSkinSCharBar(comm, area, &insert, prop, skin);
 			bar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		}
 		{
@@ -1083,7 +1087,7 @@ private class PutColor {
 	}
 }
 
-private ToolBar createSCharBar(Composite parent,
+private ToolBar createSCharBar(Commons comm, Composite parent,
 		void delegate(string) insert, void delegate(dchar) putColor, Props prop, Skin skin) {
 	auto bar = new ToolBar(parent, SWT.FLAT);
 	bar.addListener(SWT.Traverse, new class Listener {
@@ -1092,27 +1096,25 @@ private ToolBar createSCharBar(Composite parent,
 	bar.addListener(SWT.KeyDown, new class Listener {
 		override void handleEvent(Event e) {e.doit = true;}
 	});
-	createToolItem2(bar, prop.msgs.defaultColor, prop.images.defaultColor, &(new PutColor(putColor, 'W')).put);
-	createToolItem2(bar, prop.msgs.red, prop.images.red, &(new PutColor(putColor, 'R')).put);
-	createToolItem2(bar, prop.msgs.blue, prop.images.blue, &(new PutColor(putColor, 'B')).put);
-	createToolItem2(bar, prop.msgs.green, prop.images.green, &(new PutColor(putColor, 'G')).put);
-	createToolItem2(bar, prop.msgs.yellow, prop.images.yellow, &(new PutColor(putColor, 'Y')).put);
+	foreach (c; ['W', 'R', 'B', 'G', 'Y']) {
+		createToolItem2(comm, bar, prop.msgs.color(c), prop.images.color(c), &(new PutColor(putColor, c)).put);
+	}
 	new ToolItem(bar, SWT.SEPARATOR);
-	createToolItem2(bar, prop.msgs.scRef, prop.images.scRef, &(new PutC(insert, "#I")).put);
-	createToolItem2(bar, prop.msgs.scTalker(Talker.SELECTED), prop.images.scTalker(Talker.SELECTED),
+	createToolItem2(comm, bar, prop.msgs.scRef, prop.images.scRef, &(new PutC(insert, "#I")).put);
+	createToolItem2(comm, bar, prop.msgs.scTalker(Talker.SELECTED), prop.images.scTalker(Talker.SELECTED),
 		&(new PutC(insert, "#M")).put);
-	createToolItem2(bar, prop.msgs.scTalker(Talker.UNSELECTED), prop.images.scTalker(Talker.UNSELECTED),
+	createToolItem2(comm, bar, prop.msgs.scTalker(Talker.UNSELECTED), prop.images.scTalker(Talker.UNSELECTED),
 		&(new PutC(insert, "#U")).put);
-	createToolItem2(bar, prop.msgs.scTalker(Talker.RANDOM), prop.images.scTalker(Talker.RANDOM),
+	createToolItem2(comm, bar, prop.msgs.scTalker(Talker.RANDOM), prop.images.scTalker(Talker.RANDOM),
 		&(new PutC(insert, "#R")).put);
-	createToolItem2(bar, prop.msgs.scTalker(Talker.CARD), prop.images.scTalker(Talker.CARD),
+	createToolItem2(comm, bar, prop.msgs.scTalker(Talker.CARD), prop.images.scTalker(Talker.CARD),
 		&(new PutC(insert, "#C")).put);
-	createToolItem2(bar, prop.msgs.scTeam, prop.images.scTeam, &(new PutC(insert, "#T")).put);
-	createToolItem2(bar, prop.msgs.scYado, prop.images.scYado, &(new PutC(insert, "#Y")).put);
+	createToolItem2(comm, bar, prop.msgs.scTeam, prop.images.scTeam, &(new PutC(insert, "#T")).put);
+	createToolItem2(comm, bar, prop.msgs.scYado, prop.images.scYado, &(new PutC(insert, "#Y")).put);
 	return bar;
 }
 
-private ToolBar createSkinSCharBar(Composite parent, void delegate(string) insert, Props prop, Skin skin) {
+private ToolBar createSkinSCharBar(Commons comm, Composite parent, void delegate(string) insert, Props prop, Skin skin) {
 	auto bar = new ToolBar(parent, SWT.FLAT);
 	bar.addListener(SWT.Traverse, new class Listener {
 		override void handleEvent(Event e) {e.doit = true;}
@@ -1125,7 +1127,7 @@ private ToolBar createSkinSCharBar(Composite parent, void delegate(string) inser
 		auto img = new Image(Display.getCurrent(), spChar(skin, spc));
 		string name = toUTF8("#"d ~ spc);
 		auto scp = new PutC(insert, name);
-		createToolItem2(bar, name, img, &scp.put);
+		createToolItem2(comm, bar, name, img, &scp.put);
 		imgs ~= img;
 	}
 	bar.addDisposeListener(new class DisposeListener {

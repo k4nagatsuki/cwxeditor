@@ -143,6 +143,8 @@ public:
 		static if (Type == MtType.BGM) {
 			new MenuItem(menu, SWT.SEPARATOR);
 			_bgmMenu = createMenuItem(_comm, menu, MenuID.PlayBGM, &playBGM);
+			auto data = cast(MenuData) _bgmMenu.getData();
+			data.format = (string t) {return data.id is MenuID.StopBGM ? .tryFormat(t, _playing) : t;};
 		} else static if (Type == MtType.SE) {
 			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(_comm, menu, MenuID.PlaySE, &playSE);
@@ -192,7 +194,9 @@ public:
 		private Button _bgmBtn;
 		string _playing;
 		void createPlayToolItem(ToolBar bar) {
-			_bgmTMenu = createToolItem(_comm, bar, MenuID.PlayBGM, &playBGM, SWT.CHECK);
+			_bgmTMenu = createToolItem(_comm, bar, MenuID.PlayBGM, &playBGM, null, SWT.CHECK);
+			auto data = cast(MenuData) _bgmTMenu.getData();
+			data.format = (string t) {return data.id is MenuID.StopBGM ? .tryFormat(t, _playing) : t;};
 		}
 		Button createPlayButton(Composite parent) {
 			_bgmBtn = new Button(parent, SWT.TOGGLE);
@@ -269,7 +273,7 @@ public:
 		}
 	} else static if (Type == MtType.SE) {
 		void createPlayToolItem(ToolBar bar) {
-			createToolItem(_comm, bar, MenuID.PlaySE, &playSE, SWT.PUSH);
+			createToolItem(_comm, bar, MenuID.PlaySE, &playSE);
 		}
 		Button createPlayButton(Composite parent) {
 			auto seBtn = new Button(parent, SWT.PUSH);

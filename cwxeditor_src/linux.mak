@@ -32,6 +32,7 @@ SRC = cwxeditor.d \
 	cwx/msgutils.d \
 	cwx/settings.d \
 	cwx/menu.d \
+	cwx/variables.d \
 	cwx/editor/gui/sound.d \
 	cwx/editor/gui/dwt/sbshell.d \
 	cwx/editor/gui/dwt/mainwindow.d \
@@ -82,7 +83,6 @@ SRC = cwxeditor.d \
 	cwx/editor/gui/dwt/textdialog.d \
 	cwx/editor/gui/dwt/imagelistwindow.d \
 	cwx/editor/gui/dwt/smalldialogs.d \
-	cwx/editor/gui/dwt/variables.d \
 	cwx/editor/gui/dwt/image.d \
 	cwx/editor/gui/dwt/cardpane.d \
 	cwx/editor/gui/dwt/loader.d \

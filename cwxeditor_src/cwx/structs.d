@@ -7,6 +7,14 @@ import cwx.utils;
 import std.conv;
 import std.path;
 
+/// 壁紙のスタイル。
+enum WallpaperStyle {
+	Center = 0, /// 中央に表示。
+	Tile = 1, /// 並べて表示。
+	Expand = 2, /// 拡大して表示。
+	ExpandFull = 3 /// はみ出さないように拡大。
+}
+
 /// ソート方向を表す。
 enum SortDir {
 	Up = 1, /// 昇順。

@@ -988,7 +988,7 @@ public:
 					static if (is(A : Area) || is(A : Battle)) {
 						new MenuItem(menu, SWT.SEPARATOR);
 						void delegate() dlg = null;
-						auto cascade = createMenuItem(_comm, menu, MenuID.KeyCodeTiming, dlg, SWT.CASCADE);
+						auto cascade = createMenuItem(_comm, menu, MenuID.KeyCodeTiming, dlg, null, SWT.CASCADE);
 						auto sub = new Menu(parent.getShell(), SWT.DROP_DOWN);
 						cascade.setMenu(sub);
 						createMenuItem(_comm, sub, MenuID.KeyCodeTimingUse, &keyCodeTimUse);
@@ -1281,12 +1281,13 @@ public:
 		_toolbar = bar;
 		static if (is(A : Area)) {
 			if (cast(AreaEventWindow) tlpData(this).tlp) {
-				createToolItem(_comm, bar, MenuID.EditSceneArea, &openScene);
+				createToolItem(_comm, bar, MenuID.EditScene, &openScene);
 				new ToolItem(bar, SWT.SEPARATOR);
 			}
 		} else static if (is(A : Battle)) {
 			if (cast(BattleEventWindow) tlpData(this).tlp) {
-				createToolItem(_comm, bar, MenuID.EditSceneBattle, &openScene);
+				auto itm = createToolItem(_comm, bar, MenuID.EditScene, &openScene);
+				itm.setImage(_prop.images.editSceneBattle);
 				new ToolItem(bar, SWT.SEPARATOR);
 			}
 		}
@@ -1336,13 +1337,13 @@ public:
 			}
 		}
 		new ToolItem(bar, SWT.SEPARATOR);
-		createToolItem(_comm, bar, MenuID.NewEvent, &createEventTree);
+		createToolItem2(_comm, bar, _prop.msgs.newEvent, _prop.images.newEvent, &createEventTree);
 		static if (UseFire) {
-			createToolItem(_comm, bar, MenuID.NewIgnition, &createEventFire);
+			createToolItem2(_comm, bar, _prop.msgs.newIgnition, _prop.images.newIgnition, &createEventFire);
 		}
 		new ToolItem(bar, SWT.SEPARATOR);
-		createToolItem(_comm, bar, MenuID.ExpandTree, &_etree.treeOpen);
-		createToolItem(_comm, bar, MenuID.FoldTree, &_etree.treeClose);
+		createToolItem2(_comm, bar, _prop.msgs.expandTree, _prop.images.expandTree, &_etree.treeOpen);
+		createToolItem2(_comm, bar,_prop.msgs.foldTree,  _prop.images.foldTree, &_etree.treeClose);
 	}
 	private void setFireControl(Control c) {
 		if (_fireItm.getControl()) _fireItm.getControl().dispose();
@@ -1634,6 +1635,42 @@ public:
 		@property
 		bool canDoTCPD() {
 			return _cards.isFocusControl() || _etree.isFocusControl();
+		}
+		@property
+		bool canDoT() {
+			if (_cards.isFocusControl()) {
+				return selection && selection.getParentItem();
+			} else if (_etree.isFocusControl()) {
+				return _etree.canDoT;
+			}
+			return false;
+		}
+		@property
+		bool canDoC() {
+			if (_cards.isFocusControl()) {
+				return canDoT;
+			} else if (_etree.isFocusControl()) {
+				return _etree.canDoC;
+			}
+			return false;
+		}
+		@property
+		bool canDoP() {
+			if (_cards.isFocusControl()) {
+				return true;
+			} else if (_etree.isFocusControl()) {
+				return _etree.canDoP;
+			}
+			return false;
+		}
+		@property
+		bool canDoD() {
+			if (_cards.isFocusControl()) {
+				return canDoT;
+			} else if (_etree.isFocusControl()) {
+				return _etree.canDoD;
+			}
+			return false;
 		}
 	}
 	void undo() {_undo.undo();}

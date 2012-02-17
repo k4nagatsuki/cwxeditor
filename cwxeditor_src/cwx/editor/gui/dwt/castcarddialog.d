@@ -443,6 +443,22 @@ private:
 		override bool canDoTCPD() {
 			return _coupons.isFocusControl();
 		}
+		@property
+		bool canDoT() {
+			return _coupons.getSelectionIndex() != -1;
+		}
+		@property
+		bool canDoC() {
+			return _coupons.getSelectionIndex() != -1;
+		}
+		@property
+		bool canDoP() {
+			return true;
+		}
+		@property
+		bool canDoD() {
+			return _coupons.getSelectionIndex() != -1;
+		}
 	}
 
 	class SelLifeC : SelectionAdapter {
@@ -611,9 +627,9 @@ private:
 				toolbar.setLayoutData(gd);
 				toolbar.addListener(SWT.Traverse, new HTBTraverse);
 				toolbar.addListener(SWT.KeyDown, new HTBKeyDown);
-				createToolItem2(toolbar, _prop.msgs.addCoupon, _prop.images.addCoupon, &addCoupon);
-				createToolItem2(toolbar, _prop.msgs.altCoupon, _prop.images.altCoupon, &altCoupon);
-				createToolItem2(toolbar, _prop.msgs.delCoupon, _prop.images.couponDelete, &delCoupon);
+				createToolItem2(_comm, toolbar, _prop.msgs.addCoupon, _prop.images.addCoupon, &addCoupon);
+				createToolItem2(_comm, toolbar, _prop.msgs.altCoupon, _prop.images.altCoupon, &altCoupon);
+				createToolItem2(_comm, toolbar, _prop.msgs.delCoupon, _prop.images.couponDelete, &delCoupon);
 				new ToolItem(toolbar, SWT.SEPARATOR);
 				createToolItem(_comm, toolbar, MenuID.Up, &upCoupon);
 				createToolItem(_comm, toolbar, MenuID.Down, &downCoupon);

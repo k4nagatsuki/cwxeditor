@@ -1441,6 +1441,22 @@ public:
 		bool canDoTCPD() {
 			return flags.isFocusControl();
 		}
+		@property
+		bool canDoT() {
+			return flags.getSelectionIndex() != -1;
+		}
+		@property
+		bool canDoC() {
+			return canDoT;
+		}
+		@property
+		bool canDoP() {
+			return true;
+		}
+		@property
+		bool canDoD() {
+			return canDoT;
+		}
 	}
 	void undo() {
 		_undo.undo();

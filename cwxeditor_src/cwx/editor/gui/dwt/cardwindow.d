@@ -424,9 +424,9 @@ public:
 					createMenuItem(_comm, mv, MenuID.Refresh, &__refresh);
 					new MenuItem(mv, SWT.SEPARATOR);
 				}
-				_lifeM = createMenuItem(_comm, mv, MenuID.ShowCardProp, &showCardLife, SWT.RADIO);
-				_listM = createMenuItem(_comm, mv, MenuID.ShowCardImage, &showCardList, SWT.RADIO);
-				_tblM = createMenuItem(_comm, mv, MenuID.ShowCardDetail, &showCardTable, SWT.RADIO);
+				_lifeM = createMenuItem(_comm, mv, MenuID.ShowCardProp, &showCardLife, null, SWT.RADIO);
+				_listM = createMenuItem(_comm, mv, MenuID.ShowCardImage, &showCardList, null, SWT.RADIO);
+				_tblM = createMenuItem(_comm, mv, MenuID.ShowCardDetail, &showCardTable, null, SWT.RADIO);
 
 				static if (EditMode) {
 					auto mt = createMenu(_comm, bar, MenuID.Card);
@@ -465,9 +465,9 @@ public:
 					createToolItem(_comm, bar, MenuID.Import, &addCard);
 				}
 				new ToolItem(bar, SWT.SEPARATOR);
-				_lifeT = createToolItem(_comm, bar, MenuID.ShowCardProp, &showCardLife, SWT.RADIO);
-				_listT = createToolItem(_comm, bar, MenuID.ShowCardImage, &showCardList, SWT.RADIO);
-				_tblT = createToolItem(_comm, bar, MenuID.ShowCardDetail, &showCardTable, SWT.RADIO);
+				_lifeT = createToolItem(_comm, bar, MenuID.ShowCardProp, &showCardLife, null, SWT.RADIO);
+				_listT = createToolItem(_comm, bar, MenuID.ShowCardImage, &showCardList, null, SWT.RADIO);
+				_tblT = createToolItem(_comm, bar, MenuID.ShowCardDetail, &showCardTable, null, SWT.RADIO);
 			}
 		} else {
 			static if (EditMode) {
@@ -1030,6 +1030,34 @@ public:
 		}
 		bool canDoTCPD() {
 			return EditMode;
+		}
+		@property
+		bool canDoT() {
+			foreach (c; _tcpd) {
+				if (c.canDoTCPD) return c.canDoT;
+			}
+			return false;
+		}
+		@property
+		bool canDoC() {
+			foreach (c; _tcpd) {
+				if (c.canDoTCPD) return c.canDoC;
+			}
+			return false;
+		}
+		@property
+		bool canDoP() {
+			foreach (c; _tcpd) {
+				if (c.canDoTCPD) return c.canDoP;
+			}
+			return false;
+		}
+		@property
+		bool canDoD() {
+			foreach (c; _tcpd) {
+				if (c.canDoTCPD) return c.canDoD;
+			}
+			return false;
 		}
 	}
 	static if (EditMode) {

@@ -1254,11 +1254,11 @@ private:
 		auto cursor = new Cursor(Display.getCurrent(), imgData, imgData.width / 2, imgData.height / 2);
 		_cursors ~= cursor;
 		auto ce = new CreateEvent(this, type, cursor);
-		auto itm = createToolItem2(bar, text, img, &ce.create, SWT.RADIO);
+		auto itm = createToolItem2(_comm, bar, text, img, &ce.create, null, SWT.RADIO);
 		ce.ti = itm;
 		g.append(itm);
 		if (type != CType.START) {
-			ce.convMenuItem = createMenuItem2(convMenu, text, img, &ce.convert);
+			ce.convMenuItem = createMenuItem2(_comm, convMenu, text, img, &ce.convert);
 			ce.convMenuItem.setEnabled(false);
 			_conts ~= ce;
 		}
@@ -1623,11 +1623,11 @@ public:
 					new MenuItem(popup, SWT.SEPARATOR);
 					createMenuItem(_comm, popup, MenuID.StartToPackage, &startToPackage);
 					void delegate() dlg = null;
-					auto convMI = createMenuItem(_comm, popup, MenuID.ConvertContent, dlg, SWT.CASCADE);
+					auto convMI = createMenuItem(_comm, popup, MenuID.ConvertContent, dlg, null, SWT.CASCADE);
 					_convM = new Menu(_tree.getShell(), SWT.DROP_DOWN);
 					debug {
 						new MenuItem(popup, SWT.SEPARATOR);
-						createMenuItem2(popup, "debug: Create CWX &Path", null, &createCWXPath);
+						createMenuItem2(_comm, popup, "debug: Create CWX &Path", null, &createCWXPath);
 					}
 					convMI.setMenu(_convM);
 
@@ -1710,7 +1710,7 @@ public:
 			_radioGroup = g;
 			void delegate() dlg = null;
 			Menu convMenu(CTypeGroup g) {
-				auto mi = createMenuItem(_comm, _convM, cTypeGroupToMenuID(g), dlg, SWT.CASCADE);
+				auto mi = createMenuItem(_comm, _convM, cTypeGroupToMenuID(g), dlg, null, SWT.CASCADE);
 				auto m = new Menu(_tree.getShell(), SWT.DROP_DOWN);
 				mi.setMenu(m);
 				return m;
@@ -1718,16 +1718,16 @@ public:
 
 			auto atm = new ToolBar(cbar, SWT.FLAT);
 			atm.addMouseListener(new TMListener);
-			_arrowTI = createToolItem2(atm, _prop.msgs.evtArrow, _prop.images.evtArrow, &arrow, SWT.RADIO);
+			_arrowTI = createToolItem2(_comm, atm, _prop.msgs.evtArrow, _prop.images.evtArrow, &arrow, null, SWT.RADIO);
 			_arrowTI.setSelection(true);
 			g.append(_arrowTI);
 			createCoolItem(cbar, atm);
 
 			auto mode = new ToolBar(cbar, SWT.FLAT);
 			mode.addMouseListener(new TMListener);
-			_contiTI = createToolItem2(mode, _prop.msgs.evtAddContinue, _prop.images.evtAddContinue, &addContinue, SWT.CHECK);
+			_contiTI = createToolItem2(_comm, mode, _prop.msgs.evtAddContinue, _prop.images.evtAddContinue, &addContinue, null, SWT.CHECK);
 			_contiTI.setSelection(_conti);
-			_autoOpenTI = createToolItem2(mode, _prop.msgs.evtAutoOpen, _prop.images.evtAutoOpen, &autoOpen, SWT.CHECK);
+			_autoOpenTI = createToolItem2(_comm, mode, _prop.msgs.evtAutoOpen, _prop.images.evtAutoOpen, &autoOpen, null, SWT.CHECK);
 			_autoOpenTI.setSelection(_autoOpen);
 			createCoolItem(cbar, mode);
 
@@ -2424,6 +2424,23 @@ public:
 		@property
 		bool canDoTCPD() {
 			return _tree.isFocusControl();
+		}
+		@property
+		bool canDoT() {
+			auto itm = selection;
+			return itm && itm !is _tree.getItems()[0];
+		}
+		@property
+		bool canDoC() {
+			return selection !is null;
+		}
+		@property
+		bool canDoP() {
+			return true;
+		}
+		@property
+		bool canDoD() {
+			return canDoT;
 		}
 	}
 	private void delImpl(TreeItem itm, bool store) {

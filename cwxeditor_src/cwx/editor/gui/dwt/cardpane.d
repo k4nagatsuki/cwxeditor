@@ -535,8 +535,25 @@ private:
 				}
 			}
 		}
+		@property
 		override bool canDoTCPD() {
 			return widget.isFocusControl();
+		}
+		@property
+		override bool canDoT() {
+			return selectedCards.length > 0;
+		}
+		@property
+		override bool canDoC() {
+			return canDoT;
+		}
+		@property
+		override bool canDoP() {
+			return true;
+		}
+		@property
+		override bool canDoD() {
+			return canDoT;
 		}
 	}
 	static if (EditMode) {
@@ -1717,6 +1734,34 @@ public:
 		@property
 		bool canDoTCPD() {
 			return _list.isVisible() || _tbl.isVisible();
+		}
+		@property
+		bool canDoT() {
+			foreach (c; _tcpd) {
+				if (c.canDoTCPD) return c.canDoT;
+			}
+			return false;
+		}
+		@property
+		bool canDoC() {
+			foreach (c; _tcpd) {
+				if (c.canDoTCPD) return c.canDoC;
+			}
+			return false;
+		}
+		@property
+		bool canDoP() {
+			foreach (c; _tcpd) {
+				if (c.canDoTCPD) return c.canDoP;
+			}
+			return false;
+		}
+		@property
+		bool canDoD() {
+			foreach (c; _tcpd) {
+				if (c.canDoTCPD) return c.canDoD;
+			}
+			return false;
 		}
 	}
 	static if (EditMode) {

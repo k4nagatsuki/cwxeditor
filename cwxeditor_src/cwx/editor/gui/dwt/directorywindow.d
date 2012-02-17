@@ -1018,7 +1018,7 @@ private:
 			}
 		}
 		this (Menu menu, OuterTool tool) {
-			createMenuItem2(menu, tool.name, null, &run);
+			createMenuItem2(_comm, menu, tool.name, null, &run);
 			_tool = tool;
 		}
 	}
@@ -2090,6 +2090,33 @@ public:
 	@property
 	override bool canDoTCPD() {
 		return _dirs.isFocusControl() || _files.isFocusControl();
+	}
+	@property
+	bool canDoT() {
+		if (_dirs.isFocusControl()) {
+			auto sels = _dirs.getSelection();
+			return sels.length > 0 && sels[0].getParentItem();
+		} else if (_files.isFocusControl()) {
+			return _files.getSelectionIndex() != -1;
+		}
+		return false;
+	}
+	@property
+	bool canDoC() {
+		if (_dirs.isFocusControl()) {
+			return _dirs.getSelection().length > 0;
+		} else if (_files.isFocusControl()) {
+			return _files.getSelectionIndex() != -1;
+		}
+		return false;
+	}
+	@property
+	bool canDoP() {
+		return true;
+	}
+	@property
+	bool canDoD() {
+		return canDoT;
 	}
 
 	override bool openCWXPath(string path, bool shellActivate) {

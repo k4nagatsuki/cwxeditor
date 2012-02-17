@@ -8,9 +8,9 @@ import cwx.background;
 import cwx.structs;
 import cwx.settings;
 import cwx.menu;
+import cwx.variables;
 
 import cwx.editor.gui.dwt.dockingfolder;
-import cwx.editor.gui.dwt.variables;
 
 import std.conv;
 import std.string;

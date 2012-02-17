@@ -566,6 +566,22 @@ public:
 		bool canDoTCPD() {
 			return dirs.isFocusControl();
 		}
+		@property
+		bool canDoT() {
+			return dirs.getSelection().length > 0 && current !is root;
+		}
+		@property
+		bool canDoC() {
+			return dirs.getSelection().length > 0;
+		}
+		@property
+		bool canDoP() {
+			return true;
+		}
+		@property
+		bool canDoD() {
+			return canDoT;
+		}
 	}
 
 	/// Returns: ルートディレクトリを返す。

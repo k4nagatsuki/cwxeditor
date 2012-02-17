@@ -190,7 +190,7 @@ private:
 			_menu[MenuID.ExecEngine] = createMenuItem(_comm, menu, MenuID.ExecEngineAuto, &execEngine);
 		}
 		void putMenu(string path, string name, Image img) {
-			createMenuItem2(menu, name, img, {
+			createMenuItem2(_comm, menu, name, img, {
 				if (path.length) {
 					execEngineP(path);
 				}
@@ -890,7 +890,7 @@ private:
 			} else {
 				nstr = to!(string)(num);
 			}
-			createMenuItem2(menu, nstr ~ " " ~ text, img, &run);
+			createMenuItem2(_comm, menu, nstr ~ " " ~ text, img, &run);
 			_hist = hist;
 		}
 		private void run() {
@@ -1611,8 +1611,8 @@ public:
 					mixin (MenuAction!("ma", MenuID.EditSummary, SWT.PUSH, "_tableWin.editSummary"));
 					new MenuItem(ma, SWT.SEPARATOR);
 					if (!_prop.var.etc.bindSceneWithEvent) {
-						mixin (MenuAction!("ma", MenuID.EditSceneArea));
-						mixin (MenuAction!("ma", MenuID.EditEventArea));
+						mixin (MenuAction!("ma", MenuID.EditScene));
+						mixin (MenuAction!("ma", MenuID.EditEvent));
 						new MenuItem(ma, SWT.SEPARATOR);
 					}
 					mixin (MenuAction!("ma", MenuID.NewArea, SWT.PUSH, "_tableWin.createArea"));
@@ -1656,7 +1656,7 @@ public:
 
 				auto mt = createMenu(_comm, bar, MenuID.Tool);
 				void delegate(SelectionEvent) dummy = null;
-				auto eemi = createMenuItem(_comm, mt, MenuID.ExecEngine, dummy, SWT.CASCADE);
+				auto eemi = createMenuItem(_comm, mt, MenuID.ExecEngine, dummy, null, SWT.CASCADE);
 				_mExecEngine = new Menu(eemi);
 				eemi.setMenu(_mExecEngine);
 				new MenuItem(mt, SWT.SEPARATOR);
@@ -1675,11 +1675,11 @@ public:
 				_mainMenu.add(MenuID.CardView);
 				auto ti = createDropDownItem(_comm, bar, MenuID.CardView, &openCardWindow, tmOpenCardWin);
 				_tool[MenuID.CardView] = ti;
-				createMenuItem2(tmOpenCardWin, _prop.msgs.casts, _prop.images.casts, &openCast);
-				createMenuItem2(tmOpenCardWin, _prop.msgs.skill, _prop.images.skill, &openSkill);
-				createMenuItem2(tmOpenCardWin, _prop.msgs.item, _prop.images.item, &openItem);
-				createMenuItem2(tmOpenCardWin, _prop.msgs.beast, _prop.images.beast, &openBeast);
-				createMenuItem2(tmOpenCardWin, _prop.msgs.info, _prop.images.info, &openInfo);
+				createMenuItem2(_comm, tmOpenCardWin, _prop.msgs.casts, _prop.images.casts, &openCast);
+				createMenuItem2(_comm, tmOpenCardWin, _prop.msgs.skill, _prop.images.skill, &openSkill);
+				createMenuItem2(_comm, tmOpenCardWin, _prop.msgs.item, _prop.images.item, &openItem);
+				createMenuItem2(_comm, tmOpenCardWin, _prop.msgs.beast, _prop.images.beast, &openBeast);
+				createMenuItem2(_comm, tmOpenCardWin, _prop.msgs.info, _prop.images.info, &openInfo);
 			}
 			void createExecEngineTI(ToolBar bar) {
 				_mainMenu.add(MenuID.ExecEngine);
@@ -2195,20 +2195,20 @@ public:
 		static if (Act.length) {
 			static const MenuAction = "_mainMenu.add(" ~ Id.stringof ~ ");"
 				~ "_menu[" ~ Id.stringof ~ "] = createMenuItem(_comm, " ~ M ~ ", " ~ Id.stringof ~ ", &"
-				~ Act ~ ", " ~ ToString!(Style) ~ ");";
+				~ Act ~ ", null, " ~ ToString!(Style) ~ ");";
 		} else {
 			static const MenuAction = "_menu[" ~ Id.stringof ~ "] = createMenuItem(_comm, " ~ M ~ ", " ~ Id.stringof ~ ", "
-				~ "&menuAction!(" ~ Id.stringof ~ "), " ~ ToString!(Style) ~ ");";
+				~ "&menuAction!(" ~ Id.stringof ~ "), null, " ~ ToString!(Style) ~ ");";
 		}
 	}
 	private template ToolAction(string T, MenuID Id, int Style = SWT.PUSH, string Act = "") {
 		static if (Act.length) {
 			static const ToolAction = "_mainMenu.add(" ~ Id.stringof ~ ");"
 				~ "_tool[" ~ Id.stringof ~ "] = createToolItem(_comm, " ~ T ~ ", " ~ Id.stringof ~ ", &"
-				~ Act ~ ", " ~ ToString!(Style) ~ ");";
+				~ Act ~ ", null, " ~ ToString!(Style) ~ ");";
 		} else {
 			static const ToolAction = "_tool[" ~ Id.stringof ~ "] = createToolItem(_comm, " ~ T ~ ", " ~ Id.stringof ~ ", "
-				~ "&menuAction!(" ~ Id.stringof ~ "), " ~ ToString!(Style) ~ ");";
+				~ "&menuAction!(" ~ Id.stringof ~ "), null, " ~ ToString!(Style) ~ ");";
 		}
 	}
 	private void menuActionAfterImpl(MenuID ID, T)(T[MenuID] tools, RadioGroup!(T)[] rg) {

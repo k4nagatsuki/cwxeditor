@@ -400,7 +400,7 @@ private:
 		auto mt = new MT;
 		mt.v = v;
 		mt.type = type;
-		createToolItem2(tbar, tt, _prop.images.motion(type), &mt.create);
+		createToolItem2(_comm, tbar, tt, _prop.images.motion(type), &mt.create);
 	}
 	int indexOf(Motion m) {
 		foreach (i, itm; _motions.getItems()) {
@@ -831,7 +831,7 @@ public:
 				bar.addListener(SWT.KeyDown, new class Listener {
 					override void handleEvent(Event e) {e.doit = true;}
 				});
-				createToolItem2(bar, _prop.msgs.msnDelete, _prop.images.msnDelete, &removeMotion);
+				createToolItem2(_comm, bar, _prop.msgs.msnDelete, _prop.images.msnDelete, &removeMotion);
 				new ToolItem(bar, SWT.SEPARATOR);
 				createToolItem(_comm, bar, MenuID.Up, &up);
 				createToolItem(_comm, bar, MenuID.Down, &down);
@@ -1176,6 +1176,22 @@ public:
 		override bool canDoTCPD() {
 			return _motions.isFocusControl();
 		}
+		@property
+		override bool canDoT() {
+			return _motions.getSelectionIndex() > 0;
+		}
+		@property
+		override bool canDoC() {
+			return canDoT;
+		}
+		@property
+		override bool canDoP() {
+			return true;
+		}
+		@property
+		override bool canDoD() {
+			return canDoT;
+		}
 	}
 	private void pasteBeast(ref XNode node) {
 		auto m = selection;
@@ -1241,6 +1257,22 @@ public:
 		@property
 		override bool canDoTCPD() {
 			return _beastImg.isFocusControl();
+		}
+		@property
+		override bool canDoT() {
+			return selection !is null;
+		}
+		@property
+		override bool canDoC() {
+			return selection !is null;
+		}
+		@property
+		override bool canDoP() {
+			return true;
+		}
+		@property
+		override bool canDoD() {
+			return selection !is null;
 		}
 	}
 	void undo() {

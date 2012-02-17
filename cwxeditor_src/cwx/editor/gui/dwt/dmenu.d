@@ -19,6 +19,7 @@ import cwx.graphics;
 import cwx.path;
 import cwx.msgs;
 import cwx.menu;
+import cwx.variables;
 
 import cwx.editor.gui.sound;
 import cwx.editor.gui.dwt.images;
@@ -32,7 +33,6 @@ import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.jpyimage;
 import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.customtext;
-import cwx.editor.gui.dwt.variables;
 
 import core.thread;
 
@@ -185,8 +185,11 @@ public:
 	void copy(SelectionEvent se);
 	void paste(SelectionEvent se);
 	void del(SelectionEvent se);
-	@property
-	bool canDoTCPD();
+	@property bool canDoTCPD();
+	@property bool canDoT();
+	@property bool canDoC();
+	@property bool canDoP();
+	@property bool canDoD();
 }
 
 private class InTCPD {
@@ -424,7 +427,9 @@ private void addRefMenu(Commons comm, MenuItem itm) {
 		enforce(d);
 		enforce(d.id != MenuID.None);
 		if (d.id != id) return;
-		itm.setText(comm.prop.buildMenu(d.id));
+		string t = comm.prop.buildMenu(d.id);
+		if (d.format) t = d.format(t);
+		itm.setText(t);
 	}
 	class RefMenu : DisposeListener {
 		override void widgetDisposed(DisposeEvent d) {
@@ -434,8 +439,8 @@ private void addRefMenu(Commons comm, MenuItem itm) {
 	comm.refMenu.add(&refMenu);
 	itm.addDisposeListener(new RefMenu);
 }
-private MenuItem createMenuItemImpl(Dlg)(Menu sub, string text, Image img,
-		Dlg func, int style, MenuID id) {
+private MenuItem createMenuItemImpl(Dlg)(Commons comm, Menu sub, string text, Image img,
+	Dlg func, int style, MenuID id, bool delegate() enabled) {
 	auto itm = new MenuItem(sub, style);
 	itm.setText(text);
 	if (func) {
@@ -447,27 +452,27 @@ private MenuItem createMenuItemImpl(Dlg)(Menu sub, string text, Image img,
 	itm.setData(d);
 	return itm;
 }
-MenuItem createMenuItem2(Menu sub, string text, Image img,
-		void delegate(SelectionEvent se) func, int style = SWT.PUSH) {
-	return createMenuItemImpl(sub, text, img, func, style, MenuID.None);
+MenuItem createMenuItem2(Commons comm, Menu sub, string text, Image img,
+		void delegate(SelectionEvent se) func, bool delegate() enabled = null, int style = SWT.PUSH) {
+	return createMenuItemImpl(comm, sub, text, img, func, style, MenuID.None, enabled);
 }
-MenuItem createMenuItem2(Menu sub, string text, Image img,
-		void delegate() func, int style = SWT.PUSH) {
-	return createMenuItemImpl(sub, text, img, func, style, MenuID.None);
+MenuItem createMenuItem2(Commons comm, Menu sub, string text, Image img,
+		void delegate() func, bool delegate() enabled = null, int style = SWT.PUSH) {
+	return createMenuItemImpl(comm, sub, text, img, func, style, MenuID.None, enabled);
 }
 MenuItem createMenuItem(Commons comm, Menu sub, MenuID id,
-		void delegate(SelectionEvent se) func, int style = SWT.PUSH) {
-	auto mi = createMenuItemImpl(sub, comm.prop.buildMenu(id), comm.prop.images.menu(id), func, style, id);
+		void delegate(SelectionEvent se) func, bool delegate() enabled = null, int style = SWT.PUSH) {
+	auto mi = createMenuItemImpl(comm, sub, comm.prop.buildMenu(id), comm.prop.images.menu(id), func, style, id, enabled);
 	addRefMenu(comm, mi);
 	return mi;
 }
 MenuItem createMenuItem(Commons comm, Menu sub, MenuID id,
-		void delegate() func, int style = SWT.PUSH) {
-	auto mi = createMenuItemImpl(sub, comm.prop.buildMenu(id), comm.prop.images.menu(id), func, style, id);
+		void delegate() func, bool delegate() enabled = null, int style = SWT.PUSH) {
+	auto mi = createMenuItemImpl(comm, sub, comm.prop.buildMenu(id), comm.prop.images.menu(id), func, style, id, enabled);
 	addRefMenu(comm, mi);
 	return mi;
 }
-private Menu createMenu2(Menu bar, string text, out MenuItem mi) {
+private Menu createMenu2(Commons comm, Menu bar, string text, out MenuItem mi) {
 	auto menu = new Menu(bar.getShell(), SWT.DROP_DOWN);
 	mi = new MenuItem(bar, SWT.CASCADE);
 	mi.setText(text);
@@ -479,16 +484,16 @@ private Menu createMenu2(Menu bar, string text, out MenuItem mi) {
 }
 Menu createMenu(Commons comm, Menu bar, MenuID id) {
 	MenuItem mi;
-	auto m = createMenu2(bar, comm.prop.buildMenu(id), mi);
+	auto m = createMenu2(comm, bar, comm.prop.buildMenu(id), mi);
 	(cast(MenuData) mi.getData()).id = id;
 	addRefMenu(comm, mi);
 	return m;
 }
 
-ToolItem createDropDownItem(Commons comm, ToolBar bar, MenuID id, void delegate() func, out Menu menu) {
-	return createDropDownItem2(bar, comm.prop.buildTool(id), comm.prop.images.menu(id), func, menu, id);
+ToolItem createDropDownItem(Commons comm, ToolBar bar, MenuID id, void delegate() func, out Menu menu, bool delegate() enabled = null) {
+	return createDropDownItem2(comm, bar, comm.prop.buildTool(id), comm.prop.images.menu(id), func, menu, id, enabled);
 }
-private ToolItem createDropDownItem2(ToolBar bar, string text, Image img, void delegate() func, out Menu menu, MenuID id) {
+private ToolItem createDropDownItem2(Commons comm, ToolBar bar, string text, Image img, void delegate() func, out Menu menu, MenuID id, bool delegate() enabled = null) {
 	auto ti = new ToolItem(bar, SWT.DROP_DOWN);
 	ti.setToolTipText(text);
 	ti.setImage(img);
@@ -511,8 +516,8 @@ private ToolItem createDropDownItem2(ToolBar bar, string text, Image img, void d
 	ti.setData(d);
 	return ti;
 }
-private ToolItem createToolItemImpl(Dlg)(ToolBar bar, string tip, string text, Image img,
-		Dlg func, int style, MenuID id) {
+private ToolItem createToolItemImpl(Dlg)(Commons comm, ToolBar bar, string tip, string text, Image img,
+		Dlg func, int style, MenuID id, bool delegate() enabled) {
 	auto itm = new ToolItem(bar, style);
 	itm.setText(text);
 	itm.setToolTipText(tip);
@@ -525,29 +530,29 @@ private ToolItem createToolItemImpl(Dlg)(ToolBar bar, string tip, string text, I
 	itm.setData(d);
 	return itm;
 }
-ToolItem createToolItem2(ToolBar bar, string tip, string text, Image img,
-		void delegate(SelectionEvent se) func, int style = SWT.PUSH) {
-	return createToolItemImpl(bar, tip, text, img, func, style, MenuID.None);
+ToolItem createToolItem2(Commons comm, ToolBar bar, string tip, string text, Image img,
+		void delegate(SelectionEvent se) func, bool delegate() enabled = null, int style = SWT.PUSH) {
+	return createToolItemImpl(comm, bar, tip, text, img, func, style, MenuID.None, enabled);
 }
-ToolItem createToolItem2(ToolBar bar, string tip, string text, Image img,
-		void delegate() func, int style = SWT.PUSH) {
-	return createToolItemImpl(bar, tip, text, img, func, style, MenuID.None);
+ToolItem createToolItem2(Commons comm, ToolBar bar, string tip, string text, Image img,
+		void delegate() func, bool delegate() enabled = null, int style = SWT.PUSH) {
+	return createToolItemImpl(comm, bar, tip, text, img, func, style, MenuID.None, enabled);
 }
-ToolItem createToolItem2(ToolBar bar, string text, Image img,
-		void delegate(SelectionEvent se) func, int style = SWT.PUSH) {
-	return createToolItemImpl!(void delegate(SelectionEvent))(bar, text, null, img, func, style, MenuID.None);
+ToolItem createToolItem2(Commons comm, ToolBar bar, string text, Image img,
+		void delegate(SelectionEvent se) func, bool delegate() enabled = null, int style = SWT.PUSH) {
+	return createToolItemImpl!(void delegate(SelectionEvent))(comm, bar, text, null, img, func, style, MenuID.None, enabled);
 }
-ToolItem createToolItem2(ToolBar bar, string text, Image img,
-		void delegate() func, int style = SWT.PUSH) {
-	return createToolItemImpl!(void delegate())(bar, text, null, img, func, style, MenuID.None);
+ToolItem createToolItem2(Commons comm, ToolBar bar, string text, Image img,
+		void delegate() func, bool delegate() enabled = null, int style = SWT.PUSH) {
+	return createToolItemImpl!(void delegate())(comm, bar, text, null, img, func, style, MenuID.None, enabled);
 }
 private class ToolSel : SelectionAdapter {
 	private void delegate(ToolItem) _func;
 	public this(void delegate(ToolItem) func) {_func = func;}
 	public override void widgetSelected(SelectionEvent e) {_func(cast(ToolItem) e.widget);}
 }
-ToolItem createToolItem2(ToolBar bar, string tip, string text, Image img,
-		void delegate(ToolItem) func, int style = SWT.PUSH) {
+ToolItem createToolItem2(Commons comm, ToolBar bar, string tip, string text, Image img,
+		void delegate(ToolItem) func, bool delegate() enabled = null, int style = SWT.PUSH) {
 	auto itm = new ToolItem(bar, style);
 	itm.setText(text);
 	itm.setToolTipText(tip);
@@ -562,18 +567,18 @@ ToolItem createToolItem2(ToolBar bar, string tip, string text, Image img,
 }
 
 ToolItem createToolItem(Commons comm, ToolBar bar, MenuID id,
-		void delegate(ToolItem) func, int style = SWT.PUSH) {
-	auto m = createToolItem2(bar, comm.prop.buildMenu(id), null, comm.prop.images.menu(id), func, style);
+		void delegate(ToolItem) func, bool delegate() enabled = null, int style = SWT.PUSH) {
+	auto m = createToolItem2(comm, bar, comm.prop.buildMenu(id), null, comm.prop.images.menu(id), func, enabled, style);
 	(cast(MenuData) m.getData()).id = id;
 	return m;
 }
 ToolItem createToolItem(Commons comm, ToolBar bar, MenuID id,
-		void delegate(SelectionEvent se) func, int style = SWT.PUSH) {
-	return createToolItemImpl(bar, comm.prop.buildMenu(id), null, comm.prop.images.menu(id), func, style, id);
+		void delegate(SelectionEvent se) func, bool delegate() enabled = null, int style = SWT.PUSH) {
+	return createToolItemImpl(comm, bar, comm.prop.buildMenu(id), null, comm.prop.images.menu(id), func, style, id, enabled);
 }
 ToolItem createToolItem(Commons comm, ToolBar bar, MenuID id,
-		void delegate() func, int style = SWT.PUSH) {
-	return createToolItemImpl(bar, comm.prop.buildMenu(id), null, comm.prop.images.menu(id), func, style, id);
+		void delegate() func, bool delegate() enabled = null, int style = SWT.PUSH) {
+	return createToolItemImpl(comm, bar, comm.prop.buildMenu(id), null, comm.prop.images.menu(id), func, style, id, enabled);
 }
 
 private class CBarListener(string Name) : ControlAdapter, DisposeListener {
@@ -632,7 +637,7 @@ CoolBar createCoolBar(string Name)(Commons comm, Composite parent,
 	cbar.addDisposeListener(ls);
 
 	auto menu = new Menu(parent.getShell(), SWT.POP_UP);
-	ls._lock = createMenuItem(comm, menu, MenuID.LockToolBar, &ls.lock, SWT.CHECK);
+	ls._lock = createMenuItem(comm, menu, MenuID.LockToolBar, &ls.lock, null, SWT.CHECK);
 	new MenuItem(menu, SWT.SEPARATOR);
 	createMenuItem(comm, menu, MenuID.ResetToolBar, &ls.reset);
 	cbar.setMenu(menu);

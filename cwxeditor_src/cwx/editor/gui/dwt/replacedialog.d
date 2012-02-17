@@ -668,7 +668,7 @@ private:
 					auto text = _prop.msgs.content(cType);
 					auto img = _prop.images.content(cType);
 					void delegate() func = null;
-					auto ti = createToolItem2(bar, text, img, func, SWT.CHECK);;
+					auto ti = createToolItem2(_comm, bar, text, img, func, null, SWT.CHECK);
 					_contents[cType] = ti;
 					checked.buttons ~= ti;
 					ti.addSelectionListener(checked);

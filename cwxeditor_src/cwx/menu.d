@@ -87,10 +87,8 @@ enum MenuID {
 	NewPackage,
 	ReNumberingAll,
 	ReNumbering,
-	EditSceneArea,
-	EditSceneBattle,
-	EditEventArea,
-	EditEventBattle,
+	EditScene,
+	EditEvent,
 	NewFlagDir,
 	NewFlag,
 	NewStep,
@@ -152,10 +150,6 @@ enum MenuID {
 	CreateArchive,
 	ToScript,
 	ToScriptAll,
-	NewEvent,
-	NewIgnition,
-	ExpandTree,
-	FoldTree,
 }
 
 /// エディタのメニュー。
@@ -245,10 +239,8 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.NewPackage] = "K";
 		_mnemonic[MenuID.ReNumberingAll] = "A";
 		_mnemonic[MenuID.ReNumbering] = "N";
-		_mnemonic[MenuID.EditSceneArea] = "S";
-		_mnemonic[MenuID.EditSceneBattle] = "S";
-		_mnemonic[MenuID.EditEventArea] = "E";
-		_mnemonic[MenuID.EditEventBattle] = "E";
+		_mnemonic[MenuID.EditScene] = "S";
+		_mnemonic[MenuID.EditEvent] = "E";
 		_mnemonic[MenuID.NewFlagDir] = "N";
 		_mnemonic[MenuID.NewFlag] = "F";
 		_mnemonic[MenuID.NewStep] = "S";
@@ -310,10 +302,6 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.CreateArchive] = "A";
 		_mnemonic[MenuID.ToScript] = "S";
 		_mnemonic[MenuID.ToScriptAll] = "P";
-		_mnemonic[MenuID.NewEvent] = "E";
-		_mnemonic[MenuID.NewIgnition] = "I";
-		_mnemonic[MenuID.ExpandTree] = "O";
-		_mnemonic[MenuID.FoldTree] = "C";
 
 		_hotkey[MenuID.None] = "";
 		_hotkey[MenuID.File] = "";
@@ -387,10 +375,8 @@ class MenuProps : Properties {
 		_hotkey[MenuID.NewPackage] = "";
 		_hotkey[MenuID.ReNumberingAll] = "";
 		_hotkey[MenuID.ReNumbering] = "";
-		_hotkey[MenuID.EditSceneArea] = "F3";
-		_hotkey[MenuID.EditSceneBattle] = "F3";
-		_hotkey[MenuID.EditEventArea] = "F4";
-		_hotkey[MenuID.EditEventBattle] = "F4";
+		_hotkey[MenuID.EditScene] = "F3";
+		_hotkey[MenuID.EditEvent] = "F4";
 		_hotkey[MenuID.NewFlagDir] = "";
 		_hotkey[MenuID.NewFlag] = "Ctrl+L";
 		_hotkey[MenuID.NewStep] = "Ctrl+P";
@@ -452,10 +438,6 @@ class MenuProps : Properties {
 		_hotkey[MenuID.CreateArchive] = "";
 		_hotkey[MenuID.ToScript] = "Ctrl+G";
 		_hotkey[MenuID.ToScriptAll] = "Ctrl+B";
-		_hotkey[MenuID.NewEvent] = "";
-		_hotkey[MenuID.NewIgnition] = "";
-		_hotkey[MenuID.ExpandTree] = "";
-		_hotkey[MenuID.FoldTree] = "";
 
 		_mnemonic_init = _mnemonic.idup;
 		_hotkey_init = _hotkey.idup;
@@ -512,6 +494,30 @@ class MenuProps : Properties {
 			r ~= "...";
 		}
 		if (h.length) r ~= "\t" ~ h;
+		return r;
+	}
+	/// ditto
+	const
+	string buildMenuSample(in CProps prop, MenuID id) {
+		return buildMenuSample(prop, id, _mnemonic[id], _hotkey[id]);
+	}
+	/// ditto
+	static string buildMenuSample(in CProps prop, MenuID id, string mnemonic, string hotkey) {
+		string r = prop.msgs.menuTextSample(id);
+		string a = mnemonic;
+		string h = hotkey;
+		if (a.length) {
+			int i = r.indexOf(a, CaseSensitive.no);
+			if (-1 == i) {
+				r ~= "(&" ~ a ~ ")";
+			} else {
+				r = r[0 .. i] ~ "&" ~ r[i .. $];
+			}
+		}
+		if (isPMenu(id)) {
+			r ~= "...";
+		}
+		if (h.length) r ~= " " ~ h;
 		return r;
 	}
 
@@ -600,17 +606,7 @@ bool isPMenu(MenuID id) {
 
 /// キーバインドを設定できないメニュー。
 bool isNoKeyBindMenu(MenuID id) {
-	switch (id) {
-	case MenuID.None:
-	case MenuID.CloseWin:
-	case MenuID.NewEvent:
-	case MenuID.NewIgnition:
-	case MenuID.ExpandTree:
-	case MenuID.FoldTree:
-		return true;
-	default:
-		return false;
-	}
+	return id is MenuID.None;
 }
 
 /// CTypeGroupに対応するMenuIDを返す。
@@ -630,4 +626,5 @@ MenuID cTypeGroupToMenuID(CTypeGroup g) {
 /// MenuIDを持つオブジェクト。
 class MenuData {
 	MenuID id = MenuID.None;
+	string delegate(string) format = null;
 }

@@ -1,13 +1,8 @@
 
-module cwx.editor.gui.dwt.variables;
+module cwx.variables;
 
-import cwx.utils;
 import cwx.xml;
-import cwx.skin;
-import cwx.background;
 import cwx.structs;
-import cwx.msgs;
-import cwx.graphics;
 
 import cwx.settings;
 

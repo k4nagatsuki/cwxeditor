@@ -7,14 +7,6 @@ import cwx.utils;
 import std.string;
 import std.random;
 
-/// 壁紙のスタイル。
-enum WallpaperStyle {
-	Center = 0, /// 中央に表示。
-	Tile = 1, /// 並べて表示。
-	Expand = 2, /// 拡大して表示。
-	ExpandFull = 3 /// はみ出さないように拡大。
-}
-
 /// ダイレクトパレットのBitmap。
 struct Pixels {
 	/// 設定対象の配列。

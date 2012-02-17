@@ -10,6 +10,7 @@ import cwx.msgs;
 import cwx.graphics;
 import cwx.structs;
 import cwx.menu;
+import cwx.variables;
 
 import cwx.editor.gui.sound;
 
@@ -27,7 +28,6 @@ import cwx.editor.gui.dwt.xmlbytestransfer;
 import cwx.editor.gui.dwt.dockingfolder;
 import cwx.editor.gui.dwt.customtext;
 import cwx.editor.gui.dwt.undo;
-import cwx.editor.gui.dwt.variables;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.customtable;
 
@@ -1176,8 +1176,25 @@ private:
 		void del(SelectionEvent se) {
 			delBgImage();
 		}
+		@property
 		bool canDoTCPD() {
 			return _bgStgsL.isFocusControl();
+		}
+		@property
+		bool canDoT() {
+			return _bgStgsL.getSelectionIndex() > 0;
+		}
+		@property
+		bool canDoC() {
+			return canDoT;
+		}
+		@property
+		bool canDoP() {
+			return true;
+		}
+		@property
+		bool canDoD() {
+			return canDoT;
 		}
 	}
 	void modB(C)(Button button, List list, C ctrl) {
@@ -1444,8 +1461,25 @@ private:
 		void del(SelectionEvent se) {
 			delTool();
 		}
+		@property
 		bool canDoTCPD() {
 			return _toolsL.isFocusControl();
+		}
+		@property
+		bool canDoT() {
+			return _toolsL.getSelectionIndex() > 0;
+		}
+		@property
+		bool canDoC() {
+			return canDoT;
+		}
+		@property
+		bool canDoP() {
+			return true;
+		}
+		@property
+		bool canDoD() {
+			return canDoT;
 		}
 	}
 
@@ -1563,8 +1597,25 @@ private:
 		void del(SelectionEvent se) {
 			delCEngine();
 		}
+		@property
 		bool canDoTCPD() {
 			return _cEnginesL.isFocusControl();
+		}
+		@property
+		bool canDoT() {
+			return _cEnginesL.getSelectionIndex() > 0;
+		}
+		@property
+		bool canDoC() {
+			return canDoT;
+		}
+		@property
+		bool canDoP() {
+			return true;
+		}
+		@property
+		bool canDoD() {
+			return canDoT;
 		}
 	}
 	class PushCEngineDataDirRef : SelectionAdapter {
@@ -1908,7 +1959,7 @@ private:
 		auto data = cast(SMenuData) itm.getData();
 		data.mnemonic = _mnemonic.getText();
 		data.hotkey = _hotkey.acceleratorText;
-		itm.setText(MenuProps.buildMenu(_prop.parent, data.id, data.mnemonic, data.hotkey).replace("\t", " "));
+		itm.setText(MenuProps.buildMenuSample(_prop.parent, data.id, data.mnemonic, data.hotkey));
 		_menuApply.setEnabled(false);
 		applyEnabled();
 	}
@@ -2071,7 +2122,7 @@ private:
 					if (id == MenuID.None) continue;
 					if (isNoKeyBindMenu(id)) continue;
 					auto itm = new TableItem(_menu, SWT.NONE);
-					itm.setText(_prop.buildMenu(id).replace("\t", " "));
+					itm.setText(_prop.var.menu.buildMenuSample(_prop.parent, id));
 					itm.setImage(_prop.images.menu(id));
 					auto data = new SMenuData();
 					data.id = id;
@@ -2082,6 +2133,8 @@ private:
 				_menu.select(0);
 				selectMenu();
 				_menu.addSelectionListener(new SelectMenu);
+
+				grp.setTabList([_menuApply, _menuDel, _menu]);
 			}
 			{
 				auto grp = new Group(sash, SWT.NONE);

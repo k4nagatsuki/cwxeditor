@@ -19,6 +19,7 @@ import cwx.graphics;
 import cwx.path;
 import cwx.msgs;
 import cwx.menu;
+import cwx.variables;
 
 import cwx.editor.gui.sound;
 import cwx.editor.gui.dwt.images;
@@ -32,7 +33,6 @@ import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.jpyimage;
 import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.customtext;
-import cwx.editor.gui.dwt.variables;
 import cwx.editor.gui.dwt.dmenu;
 
 import core.thread;

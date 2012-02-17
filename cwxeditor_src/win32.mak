@@ -32,6 +32,7 @@ SRC = cwxeditor.d \
 	cwx\msgutils.d \
 	cwx\settings.d \
 	cwx\menu.d \
+	cwx\variables.d \
 	cwx\editor\gui\sound.d \
 	cwx\editor\gui\dwt\sbshell.d \
 	cwx\editor\gui\dwt\mainwindow.d \
@@ -82,7 +83,6 @@ SRC = cwxeditor.d \
 	cwx\editor\gui\dwt\textdialog.d \
 	cwx\editor\gui\dwt\imagelistwindow.d \
 	cwx\editor\gui\dwt\smalldialogs.d \
-	cwx\editor\gui\dwt\variables.d \
 	cwx\editor\gui\dwt\image.d \
 	cwx\editor\gui\dwt\cardpane.d \
 	cwx\editor\gui\dwt\loader.d \
@@ -124,6 +124,7 @@ OBJ = objs\cwxeditor.obj \
 	objs\cwx\msgutils.obj \
 	objs\cwx\settings.obj \
 	objs\cwx\menu.obj \
+	objs\cwx\variables.obj \
 	objs\cwx\editor\gui\sound.obj \
 	objs\cwx\editor\gui\dwt\sbshell.obj \
 	objs\cwx\editor\gui\dwt\mainwindow.obj \
@@ -174,7 +175,6 @@ OBJ = objs\cwxeditor.obj \
 	objs\cwx\editor\gui\dwt\textdialog.obj \
 	objs\cwx\editor\gui\dwt\imagelistwindow.obj \
 	objs\cwx\editor\gui\dwt\smalldialogs.obj \
-	objs\cwx\editor\gui\dwt\variables.obj \
 	objs\cwx\editor\gui\dwt\image.obj \
 	objs\cwx\editor\gui\dwt\cardpane.obj \
 	objs\cwx\editor\gui\dwt\loader.obj \

@@ -433,11 +433,16 @@ public:
 	@property const string imageMessage() {return "イメージ付きメッセージ";}
 	@property const string noImageMessage() {return "イメージ無しメッセージ";}
 	@property const string spCharsTitle() {return "特殊文字";}
-	@property const string defaultColor() {return "デフォルト(&W)";}
-	@property const string red() {return "赤(&R)";}
-	@property const string blue() {return "青(&B)";}
-	@property const string green() {return "緑(&G)";}
-	@property const string yellow() {return "黄(&Y)";}
+	const string color(dchar c) {
+		switch (c) {
+		case 'W': return "デフォルト(&W)";
+		case 'R': return "赤(&R)";
+		case 'B': return "青(&B)";
+		case 'G': return "緑(&G)";;
+		case 'Y': return "黄(&Y)";
+		default: return "";
+		}
+	}
 	const string scTalker(Talker talker) {
 		final switch (talker) {
 		case Talker.SELECTED:
@@ -2354,10 +2359,8 @@ public:
 		case MenuID.NewPackage: return "パッケージの作成";
 		case MenuID.ReNumberingAll: return "全てのIDを1から振り直す";
 		case MenuID.ReNumbering: return "IDの振り直し";
-		case MenuID.EditSceneArea: return "シーンビューを開く";
-		case MenuID.EditSceneBattle: return "シーンビューを開く";
-		case MenuID.EditEventArea: return "イベントビューを開く";
-		case MenuID.EditEventBattle: return "イベントビューを開く";
+		case MenuID.EditScene: return "シーンビューを開く";
+		case MenuID.EditEvent: return "イベントビューを開く";
 		case MenuID.NewFlagDir: return "フォルダの作成";
 		case MenuID.NewFlag: return "フラグの作成";
 		case MenuID.NewStep: return "ステップの作成";
@@ -2419,10 +2422,16 @@ public:
 		case MenuID.CreateArchive: return "シナリオを圧縮";
 		case MenuID.ToScript: return "スクリプトに変換してコピー";
 		case MenuID.ToScriptAll: return "全てをスクリプトに変換してコピー";
-		case MenuID.NewEvent: return "イベントの作成";
-		case MenuID.NewIgnition: return "イベント発火条件の作成";
-		case MenuID.ExpandTree: return "全コンテントツリーを開く";
-		case MenuID.FoldTree: return "全コンテントツリーを閉じる";
 		}
 	}
+	const string menuTextSample(MenuID id) {
+		if (MenuID.StopBGM is id) {
+			return .tryFormat(menuText(id), "BGM");
+		}
+		return menuText(id);
+	}
+	@property const string newEvent() {return "イベントの作成";}
+	@property const string newIgnition() {return "イベント発火条件の作成";}
+	@property const string expandTree() {return "全コンテントツリーを開く";}
+	@property const string foldTree() {return "全コンテントツリーを閉じる";}
 }

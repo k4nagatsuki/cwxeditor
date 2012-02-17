@@ -152,8 +152,8 @@ public:
 
 				auto me = createMenu(_comm, bar, MenuID.Edit);
 				static if (UseArea) {
-					createMenuItem(_comm, me, MenuID.EditSceneArea, &openAreaScene);
-					createMenuItem(_comm, me, MenuID.EditEventArea, &openAreaEvent);
+					createMenuItem(_comm, me, MenuID.EditScene, &openAreaScene);
+					createMenuItem(_comm, me, MenuID.EditEvent, &openAreaEvent);
 					new MenuItem(me, SWT.SEPARATOR);
 				}
 				createMenuItem(_comm, me, MenuID.Undo, &undo);
@@ -218,8 +218,8 @@ public:
 				putMenuAction(MenuID.EditSummary, &editSummary);
 			}
 			static if (UseArea) {
-				putMenuAction(MenuID.EditSceneArea, &openAreaScene);
-				putMenuAction(MenuID.EditEventArea, &openAreaEvent);
+				putMenuAction(MenuID.EditScene, &openAreaScene);
+				putMenuAction(MenuID.EditEvent, &openAreaEvent);
 				putMenuAction(MenuID.NewArea, &createArea);
 				putMenuAction(MenuID.NewBattle, &createBattle);
 				putMenuAction(MenuID.NewPackage, &createPackage);
@@ -531,6 +531,34 @@ public:
 		}
 		bool canDoTCPD() {
 			return .hasFocus(_win);
+		}
+		@property
+		bool canDoT() {
+			foreach (c; _tcpd) {
+				if (c.canDoTCPD) return c.canDoT;
+			}
+			return false;
+		}
+		@property
+		bool canDoC() {
+			foreach (c; _tcpd) {
+				if (c.canDoTCPD) return c.canDoC;
+			}
+			return false;
+		}
+		@property
+		bool canDoP() {
+			foreach (c; _tcpd) {
+				if (c.canDoTCPD) return c.canDoP;
+			}
+			return false;
+		}
+		@property
+		bool canDoD() {
+			foreach (c; _tcpd) {
+				if (c.canDoTCPD) return c.canDoD;
+			}
+			return false;
 		}
 	}
 

@@ -1,10 +1,10 @@
 
 module cwx.editor.gui.dwt.image;
 
-public import org.eclipse.swt.SWT;
-public import org.eclipse.swt.graphics.Point;
-public import org.eclipse.swt.graphics.RGB;
-public import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.graphics.FontData;
 
 import cwx.flag;
 import cwx.types;
@@ -22,8 +22,6 @@ import cwx.structs;
 import cwx.msgs;
 import cwx.menu;
 
-import cwx.editor.gui.dwt.properties;
-
 import std.file;
 import std.path;
 
@@ -33,7 +31,7 @@ import org.eclipse.swt.graphics.ImageData;
 import java.lang.all;
 import java.io.ByteArrayInputStream;
 
-public class Images {
+class Images {
 private:
 	string _appPath;
 	Image[string] _imgReg;
@@ -43,7 +41,7 @@ private:
 			return *p;
 		} else {
 			string dir = _appPath.dirName;
-			string dynPath = dir.buildPath(resourceDir).buildPath(Path);
+			string dynPath = dir.buildPath("resource").buildPath(Path);
 			ImageData imgData = null;
 			if (.exists(dynPath)) {
 				try {
@@ -65,8 +63,6 @@ private:
 			return img;
 		}
 	}
-	@property
-	static string resourceDir() {return "resource";}
 public:
 	this (string appPath) {
 		_appPath = appPath;
@@ -289,6 +285,10 @@ public:
 	@property Image defStart() {return imgd!("def_start.png");}
 	@property Image keyCode() {return imgd!("key_code.png");}
 	@property Image round() {return imgd!("round.png");}
+	@property Image newEvent() {return imgd!("event_tree.png");}
+	@property Image newIgnition() {return imgd!("def_start.png");}
+	@property Image expandTree() {return imgd!("tree_open.png");}
+	@property Image foldTree() {return imgd!("tree_close.png");}
 
 	@property Image addCoupon() {return imgd!("coupon.png");}
 	@property Image altCoupon() {return imgd!("alt_coupon.png");}
@@ -299,11 +299,16 @@ public:
 	@property Image sound() {return imgd!("evt_se.png");}
 
 	@property Image setTalkerCoupon() {return imgd!("set_beast.png");}
-	@property Image defaultColor() {return imgd!("cc_w.png");}
-	@property Image red() {return imgd!("cc_r.png");}
-	@property Image blue() {return imgd!("cc_b.png");}
-	@property Image green() {return imgd!("cc_g.png");}
-	@property Image yellow() {return imgd!("cc_y.png");}
+	Image color(dchar c) {
+		switch (c) {
+		case 'W': return imgd!("cc_w.png");
+		case 'R': return imgd!("cc_r.png");
+		case 'B': return imgd!("cc_b.png");
+		case 'G': return imgd!("cc_g.png");
+		case 'Y': return imgd!("cc_y.png");
+		default: return null;
+		}
+	}
 	Image scTalker(Talker talker) {
 		final switch (talker) {
 		case Talker.SELECTED:
@@ -333,6 +338,9 @@ public:
 	@property Image classic() {return imgd!("classic.png");}
 
 	@property Image script() {return imgd!("script.png");}
+
+	@property Image editSceneBattle() {return imgd!("battle_cards.png");}
+	@property Image editEventBattle() {return imgd!("battle_event.png");}
 
 	Image menu(MenuID id) {
 		final switch (id) {
@@ -410,10 +418,8 @@ public:
 		case MenuID.NewPackage: return imgd!("package_new.png");
 		case MenuID.ReNumberingAll: return imgd!("renum_all.png");
 		case MenuID.ReNumbering: return imgd!("renum.png");
-		case MenuID.EditSceneArea: return imgd!("area_cards.png");
-		case MenuID.EditEventArea: return imgd!("area_event.png");
-		case MenuID.EditSceneBattle: return imgd!("battle_cards.png");
-		case MenuID.EditEventBattle: return imgd!("battle_event.png");
+		case MenuID.EditScene: return imgd!("area_cards.png");
+		case MenuID.EditEvent: return imgd!("area_event.png");
 		case MenuID.NewFlagDir: return imgd!("flagdir_new.png");
 		case MenuID.NewFlag: return imgd!("flag_new.png");
 		case MenuID.NewStep: return imgd!("step_new.png");
@@ -475,10 +481,6 @@ public:
 		case MenuID.CreateArchive: return imgd!("create_archive.png");
 		case MenuID.ToScript: return imgd!("script.png");
 		case MenuID.ToScriptAll: return imgd!("script_all.png");
-		case MenuID.NewEvent: return imgd!("event_tree.png");
-		case MenuID.NewIgnition: return imgd!("def_start.png");
-		case MenuID.ExpandTree: return imgd!("tree_open.png");
-		case MenuID.FoldTree: return imgd!("tree_close.png");
 		}
 	}
 }
