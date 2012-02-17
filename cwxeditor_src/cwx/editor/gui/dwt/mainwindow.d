@@ -1876,6 +1876,11 @@ public:
 				setupMenu(_tool);
 				dStr ~= " - " ~ .text(__LINE__);
 			}
+			d.addFilter(SWT.FocusIn, new class Listener {
+				override void handleEvent(Event e) {
+					_comm.refreshToolBar();
+				}
+			});
 			d.addFilter(SWT.KeyDown, new KeyDownFilter);
 			d.addFilter(SWT.MouseWheel, new SwitchTab);
 			refreshExecEngine();
@@ -2253,6 +2258,22 @@ public:
 		} else {
 			static const ToolAction = "_tool[" ~ Id.stringof ~ "] = createToolItem(_comm, " ~ T ~ ", " ~ Id.stringof ~ ", "
 				~ "&menuAction!(" ~ Id.stringof ~ "), " ~ Can ~ ", " ~ ToString!(Style) ~ ");";
+		}
+	}
+	void refreshToolBar() {
+		foreach (bar; _toolBar) {
+			foreach (itm; bar.getItems()) {
+				if (itm.getStyle() & SWT.SEPARATOR) continue;
+				auto d = cast(MenuData) itm.getData();
+				if (!d) continue;
+				// TODO: ツールバーの対応が出来たら有効にする
+/+				if (d.enabled) {
+					itm.setEnabled(d.enabled());
+				} else {
+					auto enabled = _tlp.menuEnabled(d.id);
+					if (enabled) itm.setEnabled(enabled());
+				}
++/			}
 		}
 	}
 	private class MenuShown : MenuAdapter {

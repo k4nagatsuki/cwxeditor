@@ -825,6 +825,7 @@ public:
 			mtabf.setLayoutData(gd);
 			ToolBar createBar(string name) {
 				auto bar = new ToolBar(mtabf, SWT.FLAT);
+				_comm.put(bar);
 				bar.addListener(SWT.Traverse, new class Listener {
 					override void handleEvent(Event e) {e.doit = true;}
 				});

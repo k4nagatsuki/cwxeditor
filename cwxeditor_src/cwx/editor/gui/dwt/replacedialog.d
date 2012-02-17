@@ -662,6 +662,7 @@ private:
 			comp3.setLayoutData(new GridData(GridData.FILL_BOTH));
 			comp3.setLayout(windowGridLayout(1, true));
 			auto bar = new ToolBar(comp3, SWT.HORIZONTAL | SWT.FLAT | SWT.WRAP);
+			_comm.put(bar);
 			bar.setLayoutData(new GridData(GridData.FILL_BOTH));
 			foreach (cGrp, cs; CTYPE_GROUP) {
 				foreach (cType; cs) {

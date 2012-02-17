@@ -909,6 +909,7 @@ public:
 		setLayout(gl);
 
 		auto toolbar = new ToolBar(this, SWT.FLAT);
+		_comm.put(toolbar);
 		toolbar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 		_sash = new SplitPane(this, SWT.HORIZONTAL);

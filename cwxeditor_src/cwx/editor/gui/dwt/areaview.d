@@ -1746,6 +1746,7 @@ public:
 		if (_tlp) setupTLP(_tlp);
 		{
 			auto toolbar = new ToolBar(this, SWT.FLAT);
+			_comm.put(toolbar);
 			toolbar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			setupToolBar(toolbar);
 		}

@@ -622,6 +622,7 @@ private:
 			grp.setLayout(new GridLayout(2, false));
 			{
 				auto toolbar = new ToolBar(grp, SWT.FLAT);
+				_comm.put(toolbar);
 				auto gd = new GridData(GridData.FILL_HORIZONTAL);
 				gd.horizontalSpan = 2;
 				toolbar.setLayoutData(gd);

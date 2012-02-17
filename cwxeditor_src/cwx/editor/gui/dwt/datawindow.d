@@ -190,6 +190,7 @@ public:
 			}
 			{
 				auto bar = new ToolBar(contPane, SWT.FLAT);
+				_comm.put(bar);
 				bar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 				static if (UseArea && UseFlag) {

@@ -1500,6 +1500,7 @@ public:
 		}
 		if (shell) {
 			auto bar = new ToolBar(contPane, SWT.FLAT);
+			_comm.put(bar);
 			bar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 			createToolItem(_comm, bar, MenuID.OpenDir, &openDirectory, &canOpenDirectory);

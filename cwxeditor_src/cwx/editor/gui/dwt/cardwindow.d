@@ -444,6 +444,7 @@ public:
 			}
 			{
 				auto bar = new ToolBar(_comp, SWT.FLAT);
+				_comm.put(bar);
 				static if (EditMode) {
 					static if (is (CardOwner == Summary)) {
 						createToolItem(_comm, bar, MenuID.OpenImportSource, &addScenario, () => _summ !is null);

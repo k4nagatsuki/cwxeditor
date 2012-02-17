@@ -1735,6 +1735,7 @@ public:
 			}
 
 			auto atm = new ToolBar(cbar, SWT.FLAT);
+			_comm.put(atm);
 			atm.addMouseListener(new TMListener);
 			_arrowTI = createToolItem2(_comm, atm, _prop.msgs.evtArrow, _prop.images.evtArrow, &arrow, () => !_arrowMode, SWT.RADIO);
 			_arrowTI.setSelection(true);
@@ -1742,6 +1743,7 @@ public:
 			createCoolItem(cbar, atm);
 
 			auto mode = new ToolBar(cbar, SWT.FLAT);
+			_comm.put(mode);
 			mode.addMouseListener(new TMListener);
 			_contiTI = createToolItem2(_comm, mode, _prop.msgs.evtAddContinue, _prop.images.evtAddContinue, &addContinue, null, SWT.CHECK);
 			_contiTI.setSelection(_conti);
@@ -1752,6 +1754,7 @@ public:
 			auto tml = new TMListener;
 			foreach (cGrp, cs; CTYPE_GROUP) {
 				auto eBar = new ToolBar(cbar, SWT.FLAT);
+				_comm.put(eBar);
 				eBar.addMouseListener(tml);
 				auto conv = convMenu(cGrp);
 				foreach (cType; cs) {

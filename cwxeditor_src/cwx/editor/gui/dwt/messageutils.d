@@ -576,6 +576,7 @@ protected:
 			_dlgsL.setMenu(menu);
 
 			auto bar = new ToolBar(comp, SWT.FLAT | SWT.VERTICAL);
+			comm.put(bar);
 			bar.setLayoutData(new GridData(GridData.FILL_VERTICAL));
 			bar.addListener(SWT.Traverse, new class Listener {
 				override void handleEvent(Event e) {e.doit = true;}
@@ -1090,6 +1091,7 @@ private class PutColor {
 private ToolBar createSCharBar(Commons comm, Composite parent,
 		void delegate(string) insert, void delegate(dchar) putColor, Props prop, Skin skin) {
 	auto bar = new ToolBar(parent, SWT.FLAT);
+	comm.put(bar);
 	bar.addListener(SWT.Traverse, new class Listener {
 		override void handleEvent(Event e) {e.doit = true;}
 	});
@@ -1116,6 +1118,7 @@ private ToolBar createSCharBar(Commons comm, Composite parent,
 
 private ToolBar createSkinSCharBar(Commons comm, Composite parent, void delegate(string) insert, Props prop, Skin skin) {
 	auto bar = new ToolBar(parent, SWT.FLAT);
+	comm.put(bar);
 	bar.addListener(SWT.Traverse, new class Listener {
 		override void handleEvent(Event e) {e.doit = true;}
 	});

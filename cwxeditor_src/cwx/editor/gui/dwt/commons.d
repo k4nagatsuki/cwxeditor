@@ -39,6 +39,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.DisposeEvent;
@@ -300,6 +301,7 @@ class Commons {
 		_prop = prop;
 		_ws = new HashSet!(Composite);
 		_aws = new HashSet!(Composite);
+		_toolbars = new HashSet!(ToolBar);
 		foreach (i, fld; this.tupleof) {
 			static if (is(typeof(typeof(fld).ID)) && typeof(fld).ID == "cwx.editor.gui.dwt.commons.Dlg") {
 				this.tupleof[i] = new typeof(fld);
@@ -325,6 +327,26 @@ class Commons {
 
 	private Clipboard _clipboard = null;
 
+	private HashSet!ToolBar _toolbars;
+	void put(ToolBar bar) {
+		_toolbars.add(bar);
+		bar.addDisposeListener(new CloseRemover!ToolBar(_toolbars, bar));
+	}
+	void refreshToolBar() {
+		foreach (bar; _toolbars) {
+			if (!bar.isVisible()) continue;
+			foreach (itm; bar.getItems()) {
+				if (itm.getStyle() & SWT.SEPARATOR) continue;
+				auto d = cast(MenuData) itm.getData();
+				if (!d) continue;
+				if (d.enabled) {
+					// TODO: ツールバーの対応が出来たら有効にする
+/+					itm.setEnabled(d.enabled());
++/				}
+			}
+		}
+		_main.refreshToolBar();
+	}
 	void baseShell(MainWindow main, DataWindow dataWin, MainCardWindow cardWin, DirectoryWindow dirWin) {
 		_main = main;
 		_dataWin = dataWin;
