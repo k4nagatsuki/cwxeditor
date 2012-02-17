@@ -69,6 +69,30 @@ private:
 	void refresh() {
 		_aview.refresh();
 	}
+	@property
+	bool canUp() {
+		static if (WithEventView) {
+			if (_tabA !is null && _tabf.getSelectionIndex() == 0) {
+				return _aview.canUp;
+			} else {
+				return _eview.canUp;
+			}
+		} else {
+			return _aview.canUp;
+		}
+	}
+	@property
+	bool canDown() {
+		static if (WithEventView) {
+			if (_tabA !is null && _tabf.getSelectionIndex() == 0) {
+				return _aview.canDown;
+			} else {
+				return _eview.canDown;
+			}
+		} else {
+			return _aview.canDown;
+		}
+	}
 	void up() {
 		static if (WithEventView) {
 			if (_tabA !is null && _tabf.getSelectionIndex() == 0) {
@@ -211,32 +235,32 @@ public:
 
 			auto mf = createMenu(_comm, bar, MenuID.File);
 			static if (is(A : Area) && !WithEventView) {
-				createMenuItem(_comm, mf, MenuID.EditEvent, &openEvent);
+				createMenuItem(_comm, mf, MenuID.EditEvent, &openEvent, null);
 				new MenuItem(mf, SWT.SEPARATOR);
 			} else static if (is(A : Battle) && !WithEventView) {
-				auto itm = createMenuItem(_comm, mf, MenuID.EditEvent, &openEvent);
+				auto itm = createMenuItem(_comm, mf, MenuID.EditEvent, &openEvent, null);
 				itm.setImage(_prop.images.editEventBattle);
 				new MenuItem(mf, SWT.SEPARATOR);
 			}
-			createMenuItem(_comm, mf, MenuID.CloseWin, &shell.close);
+			createMenuItem(_comm, mf, MenuID.CloseWin, &shell.close, null);
 
 			auto me = createMenu(_comm, bar, MenuID.Edit);
-			createMenuItem(_comm, me, MenuID.Undo, &this.undo);
-			createMenuItem(_comm, me, MenuID.Redo, &this.redo);
+			createMenuItem(_comm, me, MenuID.Undo, &this.undo, &_undo.canUndo);
+			createMenuItem(_comm, me, MenuID.Redo, &this.redo, &_undo.canRedo);
 			new MenuItem(me, SWT.SEPARATOR);
-			createMenuItem(_comm, me, MenuID.Up, &up);
-			createMenuItem(_comm, me, MenuID.Down, &down);
+			createMenuItem(_comm, me, MenuID.Up, &up, &canUp);
+			createMenuItem(_comm, me, MenuID.Down, &down, &canDown);
 			new MenuItem(me, SWT.SEPARATOR);
 			appendMenuTCPD(_comm, me, this, true, true, true, true);
 			static if (WithEventView) {
 				new MenuItem(me, SWT.SEPARATOR);
-				createMenuItem(_comm, me, MenuID.Comment, &writeComment);
+				createMenuItem(_comm, me, MenuID.Comment, &writeComment, &canWriteComment);
 				new MenuItem(me, SWT.SEPARATOR);
-				createMenuItem(_comm, me, MenuID.ToScript, &toScript);
-				createMenuItem(_comm, me, MenuID.ToScriptAll, &toScriptAll);
+				createMenuItem(_comm, me, MenuID.ToScript, &toScript, &canToScript);
+				createMenuItem(_comm, me, MenuID.ToScriptAll, &toScriptAll, &canToScriptAll);
 			}
 			auto mv = createMenu(_comm, bar, MenuID.View);
-			createMenuItem(_comm, mv, MenuID.Refresh, &refresh);
+			createMenuItem(_comm, mv, MenuID.Refresh, &refresh, null);
 
 			shell.setMenuBar(bar);
 		} else {
@@ -436,6 +460,18 @@ public:
 			selectedTabImpl();
 		}
 
+		private bool canToScript() {
+			_eview.initial();
+			return _eview.canToScript();
+		}
+		private bool canToScriptAll() {
+			_eview.initial();
+			return _eview.canToScriptAll();
+		}
+		private bool canWriteComment() {
+			_eview.initial();
+			return _eview.canWriteComment();
+		}
 		private void toScript() {
 			_eview.initial();
 			_eview.toScript();

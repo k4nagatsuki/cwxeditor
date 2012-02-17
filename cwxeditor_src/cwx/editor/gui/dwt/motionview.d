@@ -400,7 +400,7 @@ private:
 		auto mt = new MT;
 		mt.v = v;
 		mt.type = type;
-		createToolItem2(_comm, tbar, tt, _prop.images.motion(type), &mt.create);
+		createToolItem2(_comm, tbar, tt, _prop.images.motion(type), &mt.create, null);
 	}
 	int indexOf(Motion m) {
 		foreach (i, itm; _motions.getItems()) {
@@ -831,10 +831,10 @@ public:
 				bar.addListener(SWT.KeyDown, new class Listener {
 					override void handleEvent(Event e) {e.doit = true;}
 				});
-				createToolItem2(_comm, bar, _prop.msgs.msnDelete, _prop.images.msnDelete, &removeMotion);
+				createToolItem2(_comm, bar, _prop.msgs.msnDelete, _prop.images.msnDelete, &removeMotion, () => _motions.getSelectionIndex() != -1);
 				new ToolItem(bar, SWT.SEPARATOR);
-				createToolItem(_comm, bar, MenuID.Up, &up);
-				createToolItem(_comm, bar, MenuID.Down, &down);
+				createToolItem(_comm, bar, MenuID.Up, &up, () => _motions.getSelectionIndex() != -1 && 0 < _motions.getSelectionIndex());
+				createToolItem(_comm, bar, MenuID.Down, &down, () => _motions.getSelectionIndex() != -1 && _motions.getSelectionIndex() + 1 < _motions.getItemCount());
 				new ToolItem(bar, SWT.SEPARATOR);
 				auto tab = new CTabItem(mtabf, SWT.NONE);
 				tab.setControl(bar);
@@ -925,11 +925,11 @@ public:
 			_motions.setLayoutData(gd);
 			_motions.setHeaderVisible(true);
 			auto menu = new Menu(_motions);
-			createMenuItem(_comm, menu, MenuID.Undo, &this.undo);
-			createMenuItem(_comm, menu, MenuID.Redo, &this.redo);
+			createMenuItem(_comm, menu, MenuID.Undo, &this.undo, &_undo.canUndo);
+			createMenuItem(_comm, menu, MenuID.Redo, &this.redo, &_undo.canRedo);
 			new MenuItem(menu, SWT.SEPARATOR);
-			createMenuItem(_comm, menu, MenuID.Up, &up);
-			createMenuItem(_comm, menu, MenuID.Down, &down);
+			createMenuItem(_comm, menu, MenuID.Up, &up, () => _motions.getSelectionIndex() != -1 && 0 < _motions.getSelectionIndex());
+			createMenuItem(_comm, menu, MenuID.Down, &down, () => _motions.getSelectionIndex() != -1 && _motions.getSelectionIndex() + 1 < _motions.getItemCount());
 			new MenuItem(menu, SWT.SEPARATOR);
 			appendMenuTCPD(_comm, menu, new MotionTCPD, true, true, true, true);
 			_motions.setMenu(menu);
@@ -952,8 +952,8 @@ public:
 				itm.setData(new Integer(elm));
 			}
 			auto menu = new Menu(_motionElm);
-			createMenuItem(_comm, menu, MenuID.Undo, &this.undo);
-			createMenuItem(_comm, menu, MenuID.Redo, &this.redo);
+			createMenuItem(_comm, menu, MenuID.Undo, &this.undo, &_undo.canUndo);
+			createMenuItem(_comm, menu, MenuID.Redo, &this.redo, &_undo.canRedo);
 			_motionElm.setMenu(menu);
 		}
 		{
@@ -1010,12 +1010,12 @@ public:
 				_beastImg.addMouseListener(eb);
 				_beastImg.addKeyListener(eb);
 				auto menu = new Menu(_beastImg);
-				createMenuItem(_comm, menu, MenuID.EditProp, &editBeastM);
+				createMenuItem(_comm, menu, MenuID.EditProp, &editBeastM, () => selection !is null && selection.beast !is null);
 				new MenuItem(menu, SWT.SEPARATOR);
-				createMenuItem(_comm, menu, MenuID.EditEventAtTimeOfUsing, &editBeastUseEvent);
+				createMenuItem(_comm, menu, MenuID.EditEventAtTimeOfUsing, &editBeastUseEvent, () => selection !is null && selection.beast !is null);
 				new MenuItem(menu, SWT.SEPARATOR);
-				createMenuItem(_comm, menu, MenuID.Undo, &this.undo);
-				createMenuItem(_comm, menu, MenuID.Redo, &this.redo);
+				createMenuItem(_comm, menu, MenuID.Undo, &this.undo, &_undo.canUndo);
+				createMenuItem(_comm, menu, MenuID.Redo, &this.redo, &_undo.canRedo);
 				new MenuItem(menu, SWT.SEPARATOR);
 				appendMenuTCPD(_comm, menu, new BeastTCPD, true, true, true, true);
 				_beastImg.setMenu(menu);

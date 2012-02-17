@@ -1131,14 +1131,14 @@ public:
 			_result.addKeyListener(new KL);
 			new FullTableColumn(_result, SWT.NONE);
 			auto menu = new Menu(_win, SWT.POP_UP);
-			createMenuItem(_comm, menu, MenuID.Undo, &undo);
-			createMenuItem(_comm, menu, MenuID.Redo, &redo);
+			createMenuItem(_comm, menu, MenuID.Undo, &undo, &_undo.canUndo);
+			createMenuItem(_comm, menu, MenuID.Redo, &redo, &_undo.canRedo);
 			new MenuItem(menu, SWT.SEPARATOR);
-			createMenuItem(_comm, menu, MenuID.CopyAsText, &copyResult);
+			createMenuItem(_comm, menu, MenuID.CopyAsText, &copyResult, () => _result.getSelectionIndex() != -1);
 			new MenuItem(menu, SWT.SEPARATOR);
-			createMenuItem(_comm, menu, MenuID.SelectAll, &_result.selectAll);
+			createMenuItem(_comm, menu, MenuID.SelectAll, &_result.selectAll, () => _result.getItemCount() > 0);
 			new MenuItem(menu, SWT.SEPARATOR);
-			createMenuItem(_comm, menu, MenuID.OpenAtView, &openPath);
+			createMenuItem(_comm, menu, MenuID.OpenAtView, &openPath, &canOpenPath);
 			_result.setMenu(menu);
 		}
 		{
@@ -1170,7 +1170,7 @@ public:
 			_range.addKeyListener(openPath);
 			_range.addMouseListener(openPath);
 			auto menu = new Menu(_win, SWT.POP_UP);
-			createMenuItem(_comm, menu, MenuID.OpenAtView, &openRangePath);
+			createMenuItem(_comm, menu, MenuID.OpenAtView, &openRangePath, () => _range.getSelection().length > 0);
 			_range.setMenu(menu);
 		}
 		{
@@ -2332,10 +2332,21 @@ public:
 	}
 	private bool _replMode = false;
 
+	private bool canOpenPath() {
+		auto sels = _result.getSelection();
+		if (!sels.length) return false;
+		foreach (itm; sels) {
+			auto d = itm.getData();
+			if (cast(CWXPathString) d !is null || cast(PathString) d !is null) {
+				return true;
+			}
+		}
+		return false;
+	}
 	private void openPath() {
 		auto i = _result.getSelectionIndex();
-		if (-1 != i) {
-			auto itm = _result.getItem(i);
+		if (-1 == i) return;
+		foreach (itm; [_result.getItem(i)] ~ _result.getItems()) {
 			auto d = itm.getData();
 			auto rp = cast(CWXPathString) d;
 			if (rp) {
@@ -2352,6 +2363,7 @@ public:
 					debugln(e);
 				}
 				MessageBox.showWarning(_prop.msgs.cwxPathOpenError(path), _prop.msgs.dlgTitWarning, _win);
+				return;
 			}
 			auto p = cast(PathString) d;
 			if (p) {
@@ -2361,6 +2373,7 @@ public:
 					return;
 				}
 				MessageBox.showWarning(_prop.msgs.filePathOpenError(path), _prop.msgs.dlgTitWarning, _win);
+				return;
 			}
 		}
 	}

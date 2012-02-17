@@ -400,6 +400,12 @@ class DockingFolder(TabF, int Style) {
 		}
 		return false;
 	}
+	/// keyに該当しないControlがあるか。
+	bool hasEtc(string key) {
+		auto tab = this.tab(key);
+		if (!tab) return false;
+		return tab.getParent().getItems().length > 1;
+	}
 	/// keyに該当しないControlを閉じる。
 	void closeEtc(string key) {
 		auto tab = this.tab(key);
@@ -411,6 +417,14 @@ class DockingFolder(TabF, int Style) {
 			}
 		}
 	}
+	/// keyの左側のControlがあるか。
+	bool hasLeft(string key) {
+		auto tab = this.tab(key);
+		if (!tab) return false;
+		auto i = tab.getParent().indexOf(tab);
+		if (-1 == i) return false;
+		return 0 < i;
+	}
 	/// keyの左側のControlを閉じる。
 	void closeLeft(string key) {
 		auto tab = this.tab(key);
@@ -421,6 +435,14 @@ class DockingFolder(TabF, int Style) {
 			close(t);
 			t.dispose();
 		}
+	}
+	/// keyの右側のControlがあるか。
+	bool hasRight(string key) {
+		auto tab = this.tab(key);
+		if (!tab) return false;
+		auto i = tab.getParent().indexOf(tab);
+		if (-1 == i) return false;
+		return i + 1 < tab.getParent().getItemCount();
 	}
 	/// keyの右側のControlを閉じる。
 	void closeRight(string key) {

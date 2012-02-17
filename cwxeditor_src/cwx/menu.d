@@ -627,4 +627,5 @@ MenuID cTypeGroupToMenuID(CTypeGroup g) {
 class MenuData {
 	MenuID id = MenuID.None;
 	string delegate(string) format = null;
+	bool delegate() enabled = null;
 }

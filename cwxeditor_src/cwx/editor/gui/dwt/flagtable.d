@@ -1168,10 +1168,10 @@ public:
 		flags.addKeyListener(new KListener);
 		flags.addMouseListener(new MListener);
 		auto menu = new Menu(flags.getShell(), SWT.POP_UP);
-		createMenuItem(_comm, menu, MenuID.EditProp, &edit);
+		createMenuItem(_comm, menu, MenuID.EditProp, &edit, () => flags.getSelectionIndex() != -1);
 		new MenuItem(menu, SWT.SEPARATOR);
-		createMenuItem(_comm, menu, MenuID.Undo, &this.undo);
-		createMenuItem(_comm, menu, MenuID.Redo, &this.redo);
+		createMenuItem(_comm, menu, MenuID.Undo, &this.undo, &_undo.canUndo);
+		createMenuItem(_comm, menu, MenuID.Redo, &this.redo, &_undo.canRedo);
 		new MenuItem(menu, SWT.SEPARATOR);
 		appendMenuTCPD(_comm, menu, this, true, true, true, true);
 		flags.setMenu(menu);

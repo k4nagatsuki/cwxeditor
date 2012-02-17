@@ -307,9 +307,9 @@ protected:
 		_list.addMouseListener(new OpenView);
 		auto menu = new Menu(_list.getShell(), SWT.POP_UP);
 		static if (is(A : Area) || is(A : Battle) || is(A : Package)) {
-			createMenuItem(comm, menu, MenuID.OpenAtTableView, &openView);
+			createMenuItem(comm, menu, MenuID.OpenAtTableView, &openView, () => _list.getSelectionIndex() != -1);
 		} else static if (is(A : CastCard) || is(A : InfoCard)) {
-			createMenuItem(comm, menu, MenuID.OpenAtCardView, &openView);
+			createMenuItem(comm, menu, MenuID.OpenAtCardView, &openView, () => _list.getSelectionIndex() != -1);
 		} else static assert (0);
 		_list.setMenu(menu);
 		refreshList();
@@ -475,7 +475,7 @@ protected:
 		_list.setLayoutData(gd);
 		_list.addMouseListener(new OpenView);
 		auto menu = new Menu(_list.getShell(), SWT.POP_UP);
-		createMenuItem(comm, menu, MenuID.OpenAtEventView, &openView);
+		createMenuItem(comm, menu, MenuID.OpenAtEventView, &openView, () => _list.getSelectionIndex() != -1);
 		_list.setMenu(menu);
 
 		refreshStarts();
@@ -1338,7 +1338,7 @@ protected:
 
 			_flags.addMouseListener(new OpenView);
 			auto menu = new Menu(_flags.getShell(), SWT.POP_UP);
-			createMenuItem(comm, menu, MenuID.OpenAtVarView, &openView);
+			createMenuItem(comm, menu, MenuID.OpenAtVarView, &openView, () => _flags.getSelectionIndex() != -1);
 			_flags.setMenu(menu);
 		}
 		{
@@ -1905,7 +1905,7 @@ protected:
 
 			_list.addMouseListener(new OpenView);
 			auto menu = new Menu(_list.getShell(), SWT.POP_UP);
-			createMenuItem(comm, menu, MenuID.OpenAtCardView, &openView);
+			createMenuItem(comm, menu, MenuID.OpenAtCardView, &openView, () => _list.getSelectionIndex() != -1);
 			_list.setMenu(menu);
 
 			refreshList();

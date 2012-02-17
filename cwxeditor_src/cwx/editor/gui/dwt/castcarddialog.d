@@ -272,8 +272,8 @@ private:
 			}
 			storeCoupons();
 			appendCoupon(new Coupon(_newCoupon.getText(), _couponVal.getSelection()), _coupons.getSelectionIndex());
+			applyEnabled();
 		}
-		applyEnabled();
 	}
 	void altCoupon() {
 		int index = _coupons.getSelectionIndex();
@@ -627,12 +627,12 @@ private:
 				toolbar.setLayoutData(gd);
 				toolbar.addListener(SWT.Traverse, new HTBTraverse);
 				toolbar.addListener(SWT.KeyDown, new HTBKeyDown);
-				createToolItem2(_comm, toolbar, _prop.msgs.addCoupon, _prop.images.addCoupon, &addCoupon);
-				createToolItem2(_comm, toolbar, _prop.msgs.altCoupon, _prop.images.altCoupon, &altCoupon);
-				createToolItem2(_comm, toolbar, _prop.msgs.delCoupon, _prop.images.couponDelete, &delCoupon);
+				createToolItem2(_comm, toolbar, _prop.msgs.addCoupon, _prop.images.addCoupon, &addCoupon, () => _newCoupon.getText().length > 0);
+				createToolItem2(_comm, toolbar, _prop.msgs.altCoupon, _prop.images.altCoupon, &altCoupon, () => _newCoupon.getText().length > 0 && _coupons.getSelectionIndex() != -1);
+				createToolItem2(_comm, toolbar, _prop.msgs.delCoupon, _prop.images.couponDelete, &delCoupon, () => _coupons.getSelectionIndex() != -1);
 				new ToolItem(toolbar, SWT.SEPARATOR);
-				createToolItem(_comm, toolbar, MenuID.Up, &upCoupon);
-				createToolItem(_comm, toolbar, MenuID.Down, &downCoupon);
+				createToolItem(_comm, toolbar, MenuID.Up, &upCoupon, () => _coupons.getSelectionIndex() != -1 && 0 < _coupons.getSelectionIndex());
+				createToolItem(_comm, toolbar, MenuID.Down, &downCoupon, () => _coupons.getSelectionIndex() != -1 && _coupons.getSelectionIndex() + 1 < _coupons.getItemCount());
 			}
 			{
 				_newCoupon = new Text(grp, SWT.BORDER);
@@ -653,11 +653,11 @@ private:
 				cv.setWidth(40);
 				saveColumnWidth!("prop.var.etc.couponValueColumn")(_prop, cv);
 				auto menu = new Menu(_coupons);
-				createMenuItem(_comm, menu, MenuID.Undo, &undoCoupons);
-				createMenuItem(_comm, menu, MenuID.Redo, &redoCoupons);
+				createMenuItem(_comm, menu, MenuID.Undo, &undoCoupons, &_undoCoupons.canUndo);
+				createMenuItem(_comm, menu, MenuID.Redo, &redoCoupons, &_undoCoupons.canRedo);
 				new MenuItem(menu, SWT.SEPARATOR);
-				createMenuItem(_comm, menu, MenuID.Up, &upCoupon);
-				createMenuItem(_comm, menu, MenuID.Down, &downCoupon);
+				createMenuItem(_comm, menu, MenuID.Up, &upCoupon, () => _coupons.getSelectionIndex() != -1 && 0 < _coupons.getSelectionIndex());
+				createMenuItem(_comm, menu, MenuID.Down, &downCoupon, () => _coupons.getSelectionIndex() != -1 && _coupons.getSelectionIndex() + 1 < _coupons.getItemCount());
 				new MenuItem(menu, SWT.SEPARATOR);
 				appendMenuTCPD(_comm, menu, new CouponTCPD, true, true, true, true);
 				_coupons.setMenu(menu);

@@ -402,26 +402,26 @@ public:
 				auto bar = new Menu(shell, SWT.BAR);
 
 				auto mf = createMenu(_comm, bar, MenuID.File);
-				createMenuItem(_comm, mf, MenuID.CloseWin, &shell.close);
+				createMenuItem(_comm, mf, MenuID.CloseWin, &shell.close, null);
 
 				auto me = createMenu(_comm, bar, MenuID.Edit);
 				static if (EditMode) {
-					createMenuItem(_comm, me, MenuID.Undo, &undo);
-					createMenuItem(_comm, me, MenuID.Redo, &redo);
+					createMenuItem(_comm, me, MenuID.Undo, &undo, &canUndo);
+					createMenuItem(_comm, me, MenuID.Redo, &redo, &canRedo);
 					new MenuItem(me, SWT.SEPARATOR);
 					appendMenuTCPD(_comm, me, this, true, true, true, true);
 					new MenuItem(me, SWT.SEPARATOR);
-					createMenuItem(_comm, me, MenuID.Up, &up);
-					createMenuItem(_comm, me, MenuID.Down, &down);
+					createMenuItem(_comm, me, MenuID.Up, &up, &canUp);
+					createMenuItem(_comm, me, MenuID.Down, &down, &canDown);
 				} else {
-					createMenuItem(_comm, me, MenuID.Import, &addCard);
+					createMenuItem(_comm, me, MenuID.Import, &addCard, &isSelected);
 					new MenuItem(me, SWT.SEPARATOR);
 					appendMenuTCPD(_comm, me, this, false, true, false, false);
 				}
 
 				auto mv = createMenu(_comm, bar, MenuID.View);
 				static if (EditMode) {
-					createMenuItem(_comm, mv, MenuID.Refresh, &__refresh);
+					createMenuItem(_comm, mv, MenuID.Refresh, &__refresh, () => _summ !is null);
 					new MenuItem(mv, SWT.SEPARATOR);
 				}
 				_lifeM = createMenuItem(_comm, mv, MenuID.ShowCardProp, &showCardLife, null, SWT.RADIO);
@@ -431,14 +431,14 @@ public:
 				static if (EditMode) {
 					auto mt = createMenu(_comm, bar, MenuID.Card);
 					static if (is (CardOwner == Summary)) {
-						createMenuItem(_comm, mt, MenuID.OpenImportSource, &addScenario);
+						createMenuItem(_comm, mt, MenuID.OpenImportSource, &addScenario, () => _summ !is null);
 						new MenuItem(mt, SWT.SEPARATOR);
 					}
-					static if (UseCast) createMenuItem(_comm, mt, MenuID.NewCast, &create!(CAST));
-					static if (UseSkill) createMenuItem(_comm, mt, MenuID.NewSkill, &create!(SKILL));
-					static if (UseItem) createMenuItem(_comm, mt, MenuID.NewItem, &create!(ITEM));
-					static if (UseBeast) createMenuItem(_comm, mt, MenuID.NewBeast, &create!(BEAST));
-					static if (UseInfo) createMenuItem(_comm, mt, MenuID.NewInfo, &create!(INFO));
+					static if (UseCast) createMenuItem(_comm, mt, MenuID.NewCast, &create!(CAST), () => _summ !is null);
+					static if (UseSkill) createMenuItem(_comm, mt, MenuID.NewSkill, &create!(SKILL), () => _summ !is null);
+					static if (UseItem) createMenuItem(_comm, mt, MenuID.NewItem, &create!(ITEM), () => _summ !is null);
+					static if (UseBeast) createMenuItem(_comm, mt, MenuID.NewBeast, &create!(BEAST), () => _summ !is null);
+					static if (UseInfo) createMenuItem(_comm, mt, MenuID.NewInfo, &create!(INFO), () => _summ !is null);
 				}
 				shell.setMenuBar(bar);
 			}
@@ -446,23 +446,23 @@ public:
 				auto bar = new ToolBar(_comp, SWT.FLAT);
 				static if (EditMode) {
 					static if (is (CardOwner == Summary)) {
-						createToolItem(_comm, bar, MenuID.OpenImportSource, &addScenario);
+						createToolItem(_comm, bar, MenuID.OpenImportSource, &addScenario, () => _summ !is null);
 						new ToolItem(bar, SWT.SEPARATOR);
 					}
 				}
 				static if (EditMode) {
-					createToolItem(_comm, bar, MenuID.Refresh, &__refresh);
+					createToolItem(_comm, bar, MenuID.Refresh, &__refresh, () => _summ !is null);
 					new ToolItem(bar, SWT.SEPARATOR);
-					createToolItem(_comm, bar, MenuID.Up, &up);
-					createToolItem(_comm, bar, MenuID.Down, &down);
+					createToolItem(_comm, bar, MenuID.Up, &up, &canUp);
+					createToolItem(_comm, bar, MenuID.Down, &down, &canDown);
 					new ToolItem(bar, SWT.SEPARATOR);
-					static if (UseCast) createToolItem(_comm, bar, MenuID.NewCast, &create!(CAST));
-					static if (UseSkill) createToolItem(_comm, bar, MenuID.NewSkill, &create!(SKILL));
-					static if (UseItem) createToolItem(_comm, bar, MenuID.NewItem, &create!(ITEM));
-					static if (UseBeast) createToolItem(_comm, bar, MenuID.NewBeast, &create!(BEAST));
-					static if (UseInfo) createToolItem(_comm, bar, MenuID.NewInfo, &create!(INFO));
+					static if (UseCast) createToolItem(_comm, bar, MenuID.NewCast, &create!(CAST), () => _summ !is null);
+					static if (UseSkill) createToolItem(_comm, bar, MenuID.NewSkill, &create!(SKILL), () => _summ !is null);
+					static if (UseItem) createToolItem(_comm, bar, MenuID.NewItem, &create!(ITEM), () => _summ !is null);
+					static if (UseBeast) createToolItem(_comm, bar, MenuID.NewBeast, &create!(BEAST), () => _summ !is null);
+					static if (UseInfo) createToolItem(_comm, bar, MenuID.NewInfo, &create!(INFO), () => _summ !is null);
 				} else {
-					createToolItem(_comm, bar, MenuID.Import, &addCard);
+					createToolItem(_comm, bar, MenuID.Import, &addCard, &isSelected);
 				}
 				new ToolItem(bar, SWT.SEPARATOR);
 				_lifeT = createToolItem(_comm, bar, MenuID.ShowCardProp, &showCardLife, null, SWT.RADIO);
@@ -1061,6 +1061,52 @@ public:
 		}
 	}
 	static if (EditMode) {
+		bool canUndo() {
+			static if (1 < Cards.length) {
+				int i = _tabf.getSelectionIndex();
+				static if (UseCast) {
+					if (i == CAST) return _pane[CAST].canUndo();
+				}
+				static if (UseSkill) {
+					if (i == SKILL) return _pane[SKILL].canUndo();
+				}
+				static if (UseItem) {
+					if (i == ITEM) return _pane[ITEM].canUndo();
+				}
+				static if (UseBeast) {
+					if (i == BEAST) return _pane[BEAST].canUndo();
+				}
+				static if (UseInfo) {
+					if (i == INFO) return _pane[INFO].canUndo();
+				}
+				return false;
+			} else {
+				return _pane[0].canUndo();
+			}
+		}
+		bool canRedo() {
+			static if (1 < Cards.length) {
+				int i = _tabf.getSelectionIndex();
+				static if (UseCast) {
+					if (i == CAST) return _pane[CAST].canRedo();
+				}
+				static if (UseSkill) {
+					if (i == SKILL) return _pane[SKILL].canRedo();
+				}
+				static if (UseItem) {
+					if (i == ITEM) return _pane[ITEM].canRedo();
+				}
+				static if (UseBeast) {
+					if (i == BEAST) return _pane[BEAST].canRedo();
+				}
+				static if (UseInfo) {
+					if (i == INFO) return _pane[INFO].canRedo();
+				}
+				return false;
+			} else {
+				return _pane[0].canRedo();
+			}
+		}
 		void undo() {
 			static if (1 < Cards.length) {
 				int i = _tabf.getSelectionIndex();
@@ -1103,6 +1149,52 @@ public:
 				}
 			} else {
 				_pane[0].redo();
+			}
+		}
+		bool canUp() {
+			static if (1 < Cards.length) {
+				int i = _tabf.getSelectionIndex();
+				static if (UseCast) {
+					if (i == CAST) return _pane[CAST].canUp();
+				}
+				static if (UseSkill) {
+					if (i == SKILL) return _pane[SKILL].canUp();
+				}
+				static if (UseItem) {
+					if (i == ITEM) return _pane[ITEM].canUp();
+				}
+				static if (UseBeast) {
+					if (i == BEAST) return _pane[BEAST].canUp();
+				}
+				static if (UseInfo) {
+					if (i == INFO) return _pane[INFO].canUp();
+				}
+				return false;
+			} else {
+				return _pane[0].canUp();
+			}
+		}
+		bool canDown() {
+			static if (1 < Cards.length) {
+				int i = _tabf.getSelectionIndex();
+				static if (UseCast) {
+					if (i == CAST) return _pane[CAST].canDown();
+				}
+				static if (UseSkill) {
+					if (i == SKILL) return _pane[SKILL].canDown();
+				}
+				static if (UseItem) {
+					if (i == ITEM) return _pane[ITEM].canDown();
+				}
+				static if (UseBeast) {
+					if (i == BEAST) return _pane[BEAST].canDown();
+				}
+				static if (UseInfo) {
+					if (i == INFO) return _pane[INFO].canDown();
+				}
+				return false;
+			} else {
+				return _pane[0].canDown();
 			}
 		}
 		void up() {
@@ -1148,6 +1240,29 @@ public:
 			} else {
 				_pane[0].down();
 			}
+		}
+	}
+	bool isSelected() {
+		static if (1 < Cards.length) {
+			int i = _tabf.getSelectionIndex();
+			static if (UseCast) {
+				if (i == CAST) return _pane[CAST].isSelected();
+			}
+			static if (UseSkill) {
+				if (i == SKILL) return _pane[SKILL].isSelected();
+			}
+			static if (UseItem) {
+				if (i == ITEM) return _pane[ITEM].isSelected();
+			}
+			static if (UseBeast) {
+				if (i == BEAST) return _pane[BEAST].isSelected();
+			}
+			static if (UseInfo) {
+				if (i == INFO) return _pane[INFO].isSelected();
+			}
+			return false;
+		} else {
+			return _pane[0].isSelected();
 		}
 	}
 

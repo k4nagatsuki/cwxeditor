@@ -1183,7 +1183,7 @@ public:
 	} else {
 		static assert (0);
 	}
-	
+
 	void reconstruct(Composite parent) {
 		_parent = parent;
 		createCardList(parent);
@@ -1245,32 +1245,32 @@ public:
 			});
 			auto pop = new Menu(parent.getShell(), SWT.POP_UP);
 			static if (is (C == CastCard)) {
-				createMenuItem(_comm, pop, MenuID.EditProp, &editM);
+				createMenuItem(_comm, pop, MenuID.EditProp, &editM, () => selection !is null);
 				new MenuItem(pop, SWT.SEPARATOR);
-				createMenuItem(_comm, pop, MenuID.OpenHand, &editHand);
+				createMenuItem(_comm, pop, MenuID.OpenHand, &editHand, () => selection !is null);
 			} else static if (is (C == SkillCard) || is (C == ItemCard) || is (C == BeastCard)) {
-				createMenuItem(_comm, pop, MenuID.EditProp, &editM);
+				createMenuItem(_comm, pop, MenuID.EditProp, &editM, () => selection !is null);
 				new MenuItem(pop, SWT.SEPARATOR);
-				createMenuItem(_comm, pop, MenuID.EditEventAtTimeOfUsing, &editUseEvent);
+				createMenuItem(_comm, pop, MenuID.EditEventAtTimeOfUsing, &editUseEvent, () => selection !is null);
 			} else static if (is (C == InfoCard)) {
-				createMenuItem(_comm, pop, MenuID.EditProp, &editM);
+				createMenuItem(_comm, pop, MenuID.EditProp, &editM, () => selection !is null);
 			} else {
 				static assert (0);
 			}
 			new MenuItem(pop, SWT.SEPARATOR);
-			createMenuItem(_comm, pop, MenuID.Undo, &undo);
-			createMenuItem(_comm, pop, MenuID.Redo, &redo);
+			createMenuItem(_comm, pop, MenuID.Undo, &undo, &_undo.canUndo);
+			createMenuItem(_comm, pop, MenuID.Redo, &redo, &_undo.canRedo);
 			new MenuItem(pop, SWT.SEPARATOR);
 			appendMenuTCPD(_comm, pop, this, true, true, true, true);
 			new MenuItem(pop, SWT.SEPARATOR);
-			createMenuItem(_comm, pop, MenuID.ReNumbering, &reNumbering);
+			createMenuItem(_comm, pop, MenuID.ReNumbering, &reNumbering, () => selection !is null);
 		} else {
 			auto pop = new Menu(parent.getShell(), SWT.POP_UP);
 			static if (is (C == CastCard)) {
-				createMenuItem(_comm, pop, MenuID.OpenHand, _openHand);
+				createMenuItem(_comm, pop, MenuID.OpenHand, _openHand, () => selection !is null);
 				new MenuItem(pop, SWT.SEPARATOR);
 			}
-			createMenuItem(_comm, pop, MenuID.Import, &addCard);
+			createMenuItem(_comm, pop, MenuID.Import, &addCard, () => selection !is null);
 			new MenuItem(pop, SWT.SEPARATOR);
 			appendMenuTCPD(_comm, pop, this, false, true, false, false);
 		}
@@ -1684,6 +1684,14 @@ public:
 			refCard(arr[index2]);
 			select(index2);
 		}
+		bool canUp() {
+			int sel = selectionIndex;
+			return sel != -1 && 0 < sel;
+		}
+		bool canDown() {
+			int sel = selectionIndex;
+			return sel != -1 && sel + 1 < cards.length;
+		}
 		void up() {
 			int sel = selectionIndex;
 			if (-1 == sel) return;
@@ -1694,6 +1702,9 @@ public:
 			if (-1 == sel) return;
 			udImpl(sel, sel + 1);
 		}
+	}
+	bool isSelected() {
+		return selectionIndex != -1;
 	}
 
 	override {
@@ -1770,6 +1781,12 @@ public:
 		}
 		void redo() {
 			_undo.redo();
+		}
+		bool canUndo() {
+			return _undo.canUndo();
+		}
+		bool canRedo() {
+			return _undo.canRedo();
 		}
 	}
 

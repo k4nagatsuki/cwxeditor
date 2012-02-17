@@ -839,6 +839,13 @@ private:
 		dlg.open();
 	}
 
+	@property
+	bool canEdit() {
+		auto itm = selection;
+		if (!itm) return false;
+		auto evt = cast(Content) itm.getData();
+		return hasDialog(evt.type) && checkOpenDialog(evt.type);
+	}
 	EventDialog edit(Content evt) {
 		if (!hasDialog(evt.type) || !checkOpenDialog(evt.type)) return null;
 		auto p = evt in _editDlgs;
@@ -1258,7 +1265,7 @@ private:
 		ce.ti = itm;
 		g.append(itm);
 		if (type != CType.START) {
-			ce.convMenuItem = createMenuItem2(_comm, convMenu, text, img, &ce.convert);
+			ce.convMenuItem = createMenuItem2(_comm, convMenu, text, img, &ce.convert, null);
 			ce.convMenuItem.setEnabled(false);
 			_conts ~= ce;
 		}
@@ -1609,25 +1616,30 @@ public:
 				Menu popup = null;
 				try {
 					popup = new Menu(parent.getShell(), SWT.POP_UP);
-					createMenuItem(_comm, popup, MenuID.EditProp, &editM);
+					createMenuItem(_comm, popup, MenuID.EditProp, &editM, &canEdit);
 					new MenuItem(popup, SWT.SEPARATOR);
-					createMenuItem(_comm, popup, MenuID.Comment, &writeComment);
+					createMenuItem(_comm, popup, MenuID.Comment, &writeComment, &canWriteComment);
 					new MenuItem(popup, SWT.SEPARATOR);
-					createMenuItem(_comm, popup, MenuID.Undo, &this.undo);
-					createMenuItem(_comm, popup, MenuID.Redo, &this.redo);
+					createMenuItem(_comm, popup, MenuID.Undo, &this.undo, &_undo.canUndo);
+					createMenuItem(_comm, popup, MenuID.Redo, &this.redo, &_undo.canRedo);
 					new MenuItem(popup, SWT.SEPARATOR);
 					appendMenuTCPD(_comm, popup, this, true, true, true, true);
 					new MenuItem(popup, SWT.SEPARATOR);
-					createMenuItem(_comm, popup, MenuID.ToScript, &toScript);
-					createMenuItem(_comm, popup, MenuID.ToScriptAll, &toScriptAll);
+					createMenuItem(_comm, popup, MenuID.ToScript, &toScript, &canToScript);
+					createMenuItem(_comm, popup, MenuID.ToScriptAll, &toScriptAll, &canToScriptAll);
 					new MenuItem(popup, SWT.SEPARATOR);
-					createMenuItem(_comm, popup, MenuID.StartToPackage, &startToPackage);
+					createMenuItem(_comm, popup, MenuID.StartToPackage, &startToPackage, () => selection !is null);
 					void delegate() dlg = null;
-					auto convMI = createMenuItem(_comm, popup, MenuID.ConvertContent, dlg, null, SWT.CASCADE);
+					auto convMI = createMenuItem(_comm, popup, MenuID.ConvertContent, dlg, {
+						auto itm = selection;
+						if (!itm) return false;
+						auto evt = cast(Content) itm.getData();
+						return evt.type is CType.START;
+					}, SWT.CASCADE);
 					_convM = new Menu(_tree.getShell(), SWT.DROP_DOWN);
 					debug {
 						new MenuItem(popup, SWT.SEPARATOR);
-						createMenuItem2(_comm, popup, "debug: Create CWX &Path", null, &createCWXPath);
+						createMenuItem2(_comm, popup, "debug: Create CWX &Path", null, &createCWXPath, () => selection !is null);
 					}
 					convMI.setMenu(_convM);
 
@@ -1710,7 +1722,13 @@ public:
 			_radioGroup = g;
 			void delegate() dlg = null;
 			Menu convMenu(CTypeGroup g) {
-				auto mi = createMenuItem(_comm, _convM, cTypeGroupToMenuID(g), dlg, null, SWT.CASCADE);
+				auto mi = createMenuItem(_comm, _convM, cTypeGroupToMenuID(g), dlg, {
+					auto itm = selection;
+					if (!itm) return false;
+					if (g !is CTypeGroup.Terminal) return true;
+					auto evt = cast(Content) itm.getData();
+					return !evt.next.length;
+				}, SWT.CASCADE);
 				auto m = new Menu(_tree.getShell(), SWT.DROP_DOWN);
 				mi.setMenu(m);
 				return m;
@@ -1718,7 +1736,7 @@ public:
 
 			auto atm = new ToolBar(cbar, SWT.FLAT);
 			atm.addMouseListener(new TMListener);
-			_arrowTI = createToolItem2(_comm, atm, _prop.msgs.evtArrow, _prop.images.evtArrow, &arrow, null, SWT.RADIO);
+			_arrowTI = createToolItem2(_comm, atm, _prop.msgs.evtArrow, _prop.images.evtArrow, &arrow, () => !_arrowMode, SWT.RADIO);
 			_arrowTI.setSelection(true);
 			g.append(_arrowTI);
 			createCoolItem(cbar, atm);
@@ -1792,6 +1810,14 @@ public:
 			}
 		}
 	}
+	@property
+	bool canToScript() {
+		return selection !is null;
+	}
+	@property
+	bool canToScriptAll() {
+		return _et !is null;
+	}
 	void toScript() {
 		auto itm = selection;
 		if (!itm) return;
@@ -1809,6 +1835,10 @@ public:
 		_comm.clipboard.setContents([new ArrayWrapperString(text ~ "\n")], [TextTransfer.getInstance()]);
 	}
 	private ContentCommentDialog[Content] _commentDlgs;
+	@property
+	bool canWriteComment() {
+		return selection !is null;
+	}
 	void writeComment() {
 		auto itm = selection;
 		if (!itm) return;
@@ -1930,6 +1960,24 @@ public:
 		foreach (itm; _tree.getItems()) {
 			itm.setExpanded(false);
 		}
+	}
+	@property
+	bool canExpandTree() {
+		foreach (itm; _tree.getItems()) {
+			if (itm.getItems().length && !itm.getExpanded()) {
+				return true;
+			}
+		}
+		return false;
+	}
+	@property
+	bool canFoldTree() {
+		foreach (itm; _tree.getItems()) {
+			if (itm.getItems().length && itm.getExpanded()) {
+				return true;
+			}
+		}
+		return false;
 	}
 	private void editEnd(TreeItem itm, Control c) {
 		auto t = cast(Text) c;
@@ -2255,6 +2303,29 @@ public:
 			if (!pc && (i == 0 || j == 0)) {
 				v._refreshTopStart();
 			}
+		}
+	}
+	@property
+	bool canUp() {
+		auto itm = selection;
+		if (!itm) return false;
+		auto par = itm.getParentItem();
+		if (par) {
+			return 0 < par.indexOf(itm);
+		} else {
+			return 0 < itm.getParent().indexOf(itm);
+		}
+	}
+	@property
+	bool canDown() {
+		auto itm = selection;
+		if (!itm) return false;
+		auto par = itm.getParentItem();
+		if (par) {
+			return par.indexOf(itm) + 1 < par.getItemCount();
+		} else {
+			auto tree = itm.getParent();
+			return tree.indexOf(itm) + 1 < tree.getItemCount();
 		}
 	}
 	private void up(TreeItem itm, bool store) {

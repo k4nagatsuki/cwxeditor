@@ -1257,11 +1257,11 @@ private:
 				_bgStgsL.addSelectionListener(new SelBgImgStg);
 
 				auto menu = new Menu(_bgStgsL);
-				createMenuItem(_comm, menu, MenuID.Undo, &undoBgStgs);
-				createMenuItem(_comm, menu, MenuID.Redo, &redoBgStgs);
+				createMenuItem(_comm, menu, MenuID.Undo, &undoBgStgs, &_undoBgStgs.canUndo);
+				createMenuItem(_comm, menu, MenuID.Redo, &redoBgStgs, &_undoBgStgs.canRedo);
 				new MenuItem(menu, SWT.SEPARATOR);
-				createMenuItem(_comm, menu, MenuID.Up, &upBgImage);
-				createMenuItem(_comm, menu, MenuID.Down, &downBgImage);
+				createMenuItem(_comm, menu, MenuID.Up, &upBgImage, () => _bgStgsL.getSelectionIndex() != -1 && 0 < _bgStgsL.getSelectionIndex());
+				createMenuItem(_comm, menu, MenuID.Down, &downBgImage, () => _bgStgsL.getSelectionIndex() != -1 && _bgStgsL.getSelectionIndex() + 1 < _bgStgsL.getItemCount());
 				new MenuItem(menu, SWT.SEPARATOR);
 				appendMenuTCPD(_comm, menu, new BgImagesTCPD, true, true, true, true);
 				_bgStgsL.setMenu(menu);
@@ -1661,11 +1661,11 @@ private:
 				_cEnginesL.addSelectionListener(new SelCEngine);
 
 				auto menu = new Menu(_cEnginesL);
-				createMenuItem(_comm, menu, MenuID.Undo, &undoCEngines);
-				createMenuItem(_comm, menu, MenuID.Redo, &undoCEngines);
+				createMenuItem(_comm, menu, MenuID.Undo, &undoCEngines, &_undoCEngines.canUndo);
+				createMenuItem(_comm, menu, MenuID.Redo, &undoCEngines, &_undoCEngines.canRedo);
 				new MenuItem(menu, SWT.SEPARATOR);
-				createMenuItem(_comm, menu, MenuID.Up, &upCEngine);
-				createMenuItem(_comm, menu, MenuID.Down, &downCEngine);
+				createMenuItem(_comm, menu, MenuID.Up, &upCEngine, () => _cEnginesL.getSelectionIndex() != -1 && 0 < _cEnginesL.getSelectionIndex());
+				createMenuItem(_comm, menu, MenuID.Down, &downCEngine, () => _cEnginesL.getSelectionIndex() != -1 && _cEnginesL.getSelectionIndex() + 1 < _cEnginesL.getItemCount());
 				new MenuItem(menu, SWT.SEPARATOR);
 				appendMenuTCPD(_comm, menu, new CEnginesTCPD, true, true, true, true);
 				_cEnginesL.setMenu(menu);
@@ -1798,11 +1798,11 @@ private:
 				_toolsL.addSelectionListener(new SelOutTools);
 
 				auto menu = new Menu(_toolsL);
-				createMenuItem(_comm, menu, MenuID.Undo, &undoTools);
-				createMenuItem(_comm, menu, MenuID.Redo, &redoTools);
+				createMenuItem(_comm, menu, MenuID.Undo, &undoTools, &_undoTools.canUndo);
+				createMenuItem(_comm, menu, MenuID.Redo, &redoTools, &_undoTools.canRedo);
 				new MenuItem(menu, SWT.SEPARATOR);
-				createMenuItem(_comm, menu, MenuID.Up, &upTool);
-				createMenuItem(_comm, menu, MenuID.Down, &downTool);
+				createMenuItem(_comm, menu, MenuID.Up, &upTool, () => _toolsL.getSelectionIndex() != -1 && 0 < _toolsL.getSelectionIndex());
+				createMenuItem(_comm, menu, MenuID.Down, &downTool, () => _toolsL.getSelectionIndex() != -1 && _toolsL.getSelectionIndex() + 1 < _toolsL.getItemCount());
 				new MenuItem(menu, SWT.SEPARATOR);
 				appendMenuTCPD(_comm, menu, new ToolsTCPD, true, true, true, true);
 				_toolsL.setMenu(menu);

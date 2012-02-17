@@ -151,27 +151,27 @@ public:
 
 			auto mf = createMenu(_comm, bar, MenuID.File);
 			static if (is(A : Area)) {
-				createMenuItem(_comm, mf, MenuID.EditScene, &openScene);
+				createMenuItem(_comm, mf, MenuID.EditScene, &openScene, null);
 				new MenuItem(mf, SWT.SEPARATOR);
 			} else static if (is(A : Battle)) {
-				createMenuItem(_comm, mf, MenuID.EditScene, &openScene);
+				createMenuItem(_comm, mf, MenuID.EditScene, &openScene, null);
 				new MenuItem(mf, SWT.SEPARATOR);
 			}
-			createMenuItem(_comm, mf, MenuID.CloseWin, &shell.close);
+			createMenuItem(_comm, mf, MenuID.CloseWin, &shell.close, null);
 
 			auto me = createMenu(_comm, bar, MenuID.Edit);
-			createMenuItem(_comm, me, MenuID.Undo, &_eview.undo);
-			createMenuItem(_comm, me, MenuID.Redo, &_eview.redo);
+			createMenuItem(_comm, me, MenuID.Undo, &_eview.undo, &_undo.canUndo);
+			createMenuItem(_comm, me, MenuID.Redo, &_eview.redo, &_undo.canRedo);
 			new MenuItem(me, SWT.SEPARATOR);
-			createMenuItem(_comm, me, MenuID.Up, &_eview.up);
-			createMenuItem(_comm, me, MenuID.Down, &_eview.down);
+			createMenuItem(_comm, me, MenuID.Up, &_eview.up, &_eview.canUp);
+			createMenuItem(_comm, me, MenuID.Down, &_eview.down, &_eview.canDown);
 			new MenuItem(me, SWT.SEPARATOR);
 			appendMenuTCPD(_comm, me, this, true, true, true, true);
 			new MenuItem(me, SWT.SEPARATOR);
-			createMenuItem(_comm, me, MenuID.Comment, &_eview.writeComment);
+			createMenuItem(_comm, me, MenuID.Comment, &_eview.writeComment, &_eview.canWriteComment);
 			new MenuItem(me, SWT.SEPARATOR);
-			createMenuItem(_comm, me, MenuID.ToScript, &_eview.toScript);
-			createMenuItem(_comm, me, MenuID.ToScriptAll, &_eview.toScriptAll);
+			createMenuItem(_comm, me, MenuID.ToScript, &_eview.toScript, &_eview.canToScript);
+			createMenuItem(_comm, me, MenuID.ToScriptAll, &_eview.toScriptAll, &_eview.canToScriptAll);
 
 			shell.setMenuBar(bar);
 		} else {

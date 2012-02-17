@@ -223,15 +223,15 @@ BgImagesView createBgImagesViewAndMenu(Commons comm, Props prop, Summary summ, B
 	auto bar = new Menu(parent.getShell(), SWT.BAR);
 	parent.getShell().setMenuBar(bar);
 	auto me = createMenu(comm, bar, MenuID.Edit);
-	createMenuItem(comm, me, MenuID.Undo, &view.undo);
-	createMenuItem(comm, me, MenuID.Redo, &view.redo);
+	createMenuItem(comm, me, MenuID.Undo, &view.undo, &undo.canUndo);
+	createMenuItem(comm, me, MenuID.Redo, &view.redo, &undo.canRedo);
 	new MenuItem(me, SWT.SEPARATOR);
-	createMenuItem(comm, me, MenuID.Up, &view.up);
-	createMenuItem(comm, me, MenuID.Down, &view.down);
+	createMenuItem(comm, me, MenuID.Up, &view.up, &view.canUp);
+	createMenuItem(comm, me, MenuID.Down, &view.down, &view.canDown);
 	new MenuItem(me, SWT.SEPARATOR);
 	appendMenuTCPD(comm, me, view, true, true, true, true);
 	auto mv = createMenu(comm, bar, MenuID.View);
-	createMenuItem(comm, mv, MenuID.Refresh, &view.refresh);
+	createMenuItem(comm, mv, MenuID.Refresh, &view.refresh, null);
 	view.setupMenu(bar);
 	return view;
 }

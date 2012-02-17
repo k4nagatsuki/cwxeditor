@@ -393,8 +393,8 @@ public:
 
 		dirs.addSelectionListener(new DirSelection);
 		auto menu = new Menu(dirs.getShell(), SWT.POP_UP);
-		createMenuItem(_comm, menu, MenuID.Undo, &this.undo);
-		createMenuItem(_comm, menu, MenuID.Redo, &this.redo);
+		createMenuItem(_comm, menu, MenuID.Undo, &this.undo, &_undo.canUndo);
+		createMenuItem(_comm, menu, MenuID.Redo, &this.redo, &_undo.canRedo);
 		new MenuItem(menu, SWT.SEPARATOR);
 		appendMenuTCPD(_comm, menu, this, true, true, true, true);
 		dirs.setMenu(menu);
@@ -458,6 +458,18 @@ public:
 		return root;
 	}
 
+	private bool canUdImpl(int plus) {
+		auto sel = selectedItem;
+		if (!sel) return false;
+		auto dir = cast(FlagDir) sel.getData();
+		auto par = dir.parent;
+		if (!par) return false;
+		int index1 = par.indexOf(dir.name);
+		assert (-1 != index1);
+		int index2 = index1 + plus;
+		if (index2 < 0 || par.subDirs.length <= index2) return false;
+		return true;
+	}
 	private void udImpl(int plus) {
 		auto sel = selectedItem;
 		if (!sel) return;
@@ -486,6 +498,14 @@ public:
 	}
 	void down() {
 		udImpl(1);
+	}
+	@property
+	bool canUp() {
+		return canUdImpl(-1);
+	}
+	@property
+	bool canDown() {
+		return canUdImpl(1);
 	}
 
 	override {

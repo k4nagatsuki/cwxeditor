@@ -844,20 +844,20 @@ public:
 
 		auto menu = new Menu(parent.getShell(), SWT.POP_UP);
 		if (!_comm.singleWindowMode(_prop) || _prop.var.etc.bindSceneWithEvent) {
-			createMenuItem(_comm, menu, MenuID.EditProp, {openAreaScene(true);});
+			createMenuItem(_comm, menu, MenuID.EditProp, {openAreaScene(true);}, () => _areas.getSelectionIndex() > 0);
 		} else {
-			createMenuItem(_comm, menu, MenuID.EditScene, {openAreaScene(true);});
-			createMenuItem(_comm, menu, MenuID.EditEvent, {openAreaEvent(true);});
+			createMenuItem(_comm, menu, MenuID.EditScene, {openAreaScene(true);}, &canOpenAreaScene);
+			createMenuItem(_comm, menu, MenuID.EditEvent, {openAreaEvent(true);}, &canOpenAreaEvent);
 		}
 		new MenuItem(menu, SWT.SEPARATOR);
-		createMenuItem(_comm, menu, MenuID.EditSummary, &editSummary);
+		createMenuItem(_comm, menu, MenuID.EditSummary, &editSummary, () => _summ !is null);
 		new MenuItem(menu, SWT.SEPARATOR);
-		createMenuItem(_comm, menu, MenuID.Undo, &undo);
-		createMenuItem(_comm, menu, MenuID.Redo, &redo);
+		createMenuItem(_comm, menu, MenuID.Undo, &undo, &_undo.canUndo);
+		createMenuItem(_comm, menu, MenuID.Redo, &redo, &_undo.canRedo);
 		new MenuItem(menu, SWT.SEPARATOR);
 		appendMenuTCPD(_comm, menu, this, true, true, true, true);
 		new MenuItem(menu, SWT.SEPARATOR);
-		createMenuItem(_comm, menu, MenuID.ReNumbering, &reNumbering);
+		createMenuItem(_comm, menu, MenuID.ReNumbering, &reNumbering, () => _areas.getSelectionIndex() > 0);
 		_areas.setMenu(menu);
 
 		_areas.addMouseListener(new MListener);
@@ -1091,6 +1091,14 @@ public:
 		}
 	}
 
+	@property
+	bool canOpenAreaScene() {
+		return _areas.getSelectionIndex() > 0;
+	}
+	@property
+	bool canOpenAreaEvent() {
+		return _areas.getSelectionIndex() > 0;
+	}
 	void openAreaScene(bool shellActivate) {
 		auto area = getSelectionArea();
 		if (area) {
@@ -1175,6 +1183,27 @@ public:
 		_comm.openArea(_prop, _summ, _summ.cwPackage(id), shellActivate);
 	}
 
+	private bool canUdImpl(int index1, int index2) {
+		if (index1 < 0 || _areas.getItemCount() <= index1) return false;
+		if (index2 < 0 || _areas.getItemCount() <= index2) return false;
+		auto area1 = areaFromIndex(_summ, index1);
+		auto area2 = areaFromIndex(_summ, index2);
+		if (cast(Area) area1 && cast(Area) area2) {
+			return canUdImpl2!Area(index1, index2);
+		}
+		if (cast(Battle) area1 && cast(Battle) area2) {
+			return canUdImpl2!Battle(index1, index2);
+		}
+		if (cast(Package) area1 && cast(Package) area2) {
+			return canUdImpl2!Package(index1, index2);
+		}
+		return false;
+	}
+	private bool canUdImpl2(A)(int index1, int index2) {
+		auto a1 = cast(A) areaFromIndex(_summ, index1);
+		auto a2 = cast(A) areaFromIndex(_summ, index2);
+		return a1 && a2;
+	}
 	private void udImpl(int index1, int index2) {
 		if (index1 < 0 || _areas.getItemCount() <= index1) return;
 		if (index2 < 0 || _areas.getItemCount() <= index2) return;
@@ -1212,6 +1241,18 @@ public:
 			_comm.refPackage.call(a1);
 			_comm.refPackage.call(a2);
 		} else static assert (0);
+	}
+	@property
+	bool canUp() {
+		int sel = _areas.getSelectionIndex();
+		if (-1 == sel) return false;
+		return canUdImpl(sel, sel - 1);
+	}
+	@property
+	bool canDown() {
+		int sel = _areas.getSelectionIndex();
+		if (-1 == sel) return false;
+		return canUdImpl(sel, sel + 1);
 	}
 	void up() {
 		int sel = _areas.getSelectionIndex();
@@ -1330,6 +1371,14 @@ public:
 				break;
 			}
 		}
+	}
+	@property
+	bool canUndo() {
+		return _undo.canUndo();
+	}
+	@property
+	bool canRedo() {
+		return _undo.canRedo();
 	}
 	void undo() {
 		_undo.undo();

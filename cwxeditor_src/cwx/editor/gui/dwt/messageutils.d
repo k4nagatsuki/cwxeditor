@@ -566,11 +566,11 @@ protected:
 			drop.addDropListener(new DDropListener);
 
 			auto menu = new Menu(_dlgsL);
-			createMenuItem(comm, menu, MenuID.Undo, {_undo.undo();});
-			createMenuItem(comm, menu, MenuID.Redo, {_undo.redo();});
+			createMenuItem(comm, menu, MenuID.Undo, {_undo.undo();}, &_undo.canUndo);
+			createMenuItem(comm, menu, MenuID.Redo, {_undo.redo();}, &_undo.canRedo);
 			new MenuItem(menu, SWT.SEPARATOR);
-			createMenuItem(comm, menu, MenuID.Up, &up);
-			createMenuItem(comm, menu, MenuID.Down, &down);
+			createMenuItem(comm, menu, MenuID.Up, &up, () => _dlgsL.getSelectionIndex() != -1 && 0 < _dlgsL.getSelectionIndex());
+			createMenuItem(comm, menu, MenuID.Down, &down, () => _dlgsL.getSelectionIndex() != -1 && _dlgsL.getSelectionIndex() + 1 < _dlgsL.getItemCount());
 			new MenuItem(menu, SWT.SEPARATOR);
 			appendMenuTCPD(comm, menu, new DialogsTCPD, true, true, true, true);
 			_dlgsL.setMenu(menu);
@@ -583,15 +583,15 @@ protected:
 			bar.addListener(SWT.KeyDown, new class Listener {
 				override void handleEvent(Event e) {e.doit = true;}
 			});
-			createToolItem2(comm, bar, prop.msgs.createDialog, prop.images.createDialog, &createDialog);
-			createToolItem2(comm, bar, prop.msgs.deleteDialog, prop.images.deleteDialog, &deleteDialogSel);
+			createToolItem2(comm, bar, prop.msgs.createDialog, prop.images.createDialog, &createDialog, null);
+			createToolItem2(comm, bar, prop.msgs.deleteDialog, prop.images.deleteDialog, &deleteDialogSel, () => _dlgsL.getSelectionIndex() != -1);
 			new ToolItem(bar, SWT.SEPARATOR);
-			createToolItem(comm, bar, MenuID.Up, &up);
-			createToolItem(comm, bar, MenuID.Down, &down);
+			createToolItem(comm, bar, MenuID.Up, &up, () => _dlgsL.getSelectionIndex() != -1 && 0 < _dlgsL.getSelectionIndex());
+			createToolItem(comm, bar, MenuID.Down, &down, () => _dlgsL.getSelectionIndex() != -1 && _dlgsL.getSelectionIndex() + 1 < _dlgsL.getItemCount());
 			new ToolItem(bar, SWT.SEPARATOR);
-			createToolItem2(comm, bar, prop.msgs.copyToDialogs, prop.images.copyToDialogs, &copyToDialogs);
-			createToolItem2(comm, bar, prop.msgs.copyToUpper, prop.images.copyToUpper, &copyToUpper);
-			createToolItem2(comm, bar, prop.msgs.copyToLower, prop.images.copyToLower, &copyToLower);
+			createToolItem2(comm, bar, prop.msgs.copyToDialogs, prop.images.copyToDialogs, &copyToDialogs, () => _dlgsL.getSelectionIndex() != -1 && _dlgsL.getItemCount() > 1);
+			createToolItem2(comm, bar, prop.msgs.copyToUpper, prop.images.copyToUpper, &copyToUpper, () => _dlgsL.getSelectionIndex() != -1 && 0 < _dlgsL.getSelectionIndex());
+			createToolItem2(comm, bar, prop.msgs.copyToLower, prop.images.copyToLower, &copyToLower, () => _dlgsL.getSelectionIndex() != -1 && _dlgsL.getSelectionIndex() + 1 < _dlgsL.getItemCount());
 		}
 		auto skin = comm.skin;
 		{
@@ -1097,20 +1097,20 @@ private ToolBar createSCharBar(Commons comm, Composite parent,
 		override void handleEvent(Event e) {e.doit = true;}
 	});
 	foreach (c; ['W', 'R', 'B', 'G', 'Y']) {
-		createToolItem2(comm, bar, prop.msgs.color(c), prop.images.color(c), &(new PutColor(putColor, c)).put);
+		createToolItem2(comm, bar, prop.msgs.color(c), prop.images.color(c), &(new PutColor(putColor, c)).put, null);
 	}
 	new ToolItem(bar, SWT.SEPARATOR);
-	createToolItem2(comm, bar, prop.msgs.scRef, prop.images.scRef, &(new PutC(insert, "#I")).put);
+	createToolItem2(comm, bar, prop.msgs.scRef, prop.images.scRef, &(new PutC(insert, "#I")).put, null);
 	createToolItem2(comm, bar, prop.msgs.scTalker(Talker.SELECTED), prop.images.scTalker(Talker.SELECTED),
-		&(new PutC(insert, "#M")).put);
+		&(new PutC(insert, "#M")).put, null);
 	createToolItem2(comm, bar, prop.msgs.scTalker(Talker.UNSELECTED), prop.images.scTalker(Talker.UNSELECTED),
-		&(new PutC(insert, "#U")).put);
+		&(new PutC(insert, "#U")).put, null);
 	createToolItem2(comm, bar, prop.msgs.scTalker(Talker.RANDOM), prop.images.scTalker(Talker.RANDOM),
-		&(new PutC(insert, "#R")).put);
+		&(new PutC(insert, "#R")).put, null);
 	createToolItem2(comm, bar, prop.msgs.scTalker(Talker.CARD), prop.images.scTalker(Talker.CARD),
-		&(new PutC(insert, "#C")).put);
-	createToolItem2(comm, bar, prop.msgs.scTeam, prop.images.scTeam, &(new PutC(insert, "#T")).put);
-	createToolItem2(comm, bar, prop.msgs.scYado, prop.images.scYado, &(new PutC(insert, "#Y")).put);
+		&(new PutC(insert, "#C")).put, null);
+	createToolItem2(comm, bar, prop.msgs.scTeam, prop.images.scTeam, &(new PutC(insert, "#T")).put, null);
+	createToolItem2(comm, bar, prop.msgs.scYado, prop.images.scYado, &(new PutC(insert, "#Y")).put, null);
 	return bar;
 }
 
@@ -1127,7 +1127,7 @@ private ToolBar createSkinSCharBar(Commons comm, Composite parent, void delegate
 		auto img = new Image(Display.getCurrent(), spChar(skin, spc));
 		string name = toUTF8("#"d ~ spc);
 		auto scp = new PutC(insert, name);
-		createToolItem2(comm, bar, name, img, &scp.put);
+		createToolItem2(comm, bar, name, img, &scp.put, null);
 		imgs ~= img;
 	}
 	bar.addDisposeListener(new class DisposeListener {

@@ -148,12 +148,16 @@ TextMenuModify createTextMenu(T = Text)(Commons comm, Props prop, T text, bool d
 	}
 
 	auto menu = new Menu(text.getShell(), SWT.POP_UP);
-	auto u = createMenuItem(comm, menu, MenuID.Undo, {undo.undo();});
-	auto r = createMenuItem(comm, menu, MenuID.Redo, {undo.redo();});
+	auto u = createMenuItem(comm, menu, MenuID.Undo, {undo.undo();}, () => undo !is null && undo.canUndo);
+	auto r = createMenuItem(comm, menu, MenuID.Redo, {undo.redo();}, () => undo !is null && undo.canRedo);
 	new MenuItem(menu, SWT.SEPARATOR);
-	auto t = createMenuItem(comm, menu, MenuID.Cut, &text.cut);
-	auto c = createMenuItem(comm, menu, MenuID.Copy, &text.copy);
-	auto p = createMenuItem(comm, menu, MenuID.Paste, &text.paste);
+	bool sel() {
+		auto p = text.getSelection();
+		return p.y > p.x;
+	}
+	auto t = createMenuItem(comm, menu, MenuID.Cut, &text.cut, () => !readOnly && sel());
+	auto c = createMenuItem(comm, menu, MenuID.Copy, &text.copy, &sel);
+	auto p = createMenuItem(comm, menu, MenuID.Paste, &text.paste, () => !readOnly);
 	auto d = createMenuItem(comm, menu, MenuID.Delete, {
 		auto p = text.getSelection();
 		auto t = to!dstring(text.getText());
@@ -164,11 +168,11 @@ TextMenuModify createTextMenu(T = Text)(Commons comm, Props prop, T text, bool d
 			text.setText(to!string(t[0 .. p.x] ~ t[p.y + 1 .. $]));
 		}
 		text.setSelection(new Point(p.x, p.x));
-	});
+	}, () => !readOnly && sel());
 	new MenuItem(menu, SWT.SEPARATOR);
 	auto a = createMenuItem(comm, menu, MenuID.SelectAll, {
 		text.setSelection(new Point(0, text.getText().length));
-	});
+	}, null);
 	u.setEnabled(!readOnly);
 	r.setEnabled(!readOnly);
 	t.setEnabled(!readOnly);
@@ -256,10 +260,10 @@ void appendMenuTCPD(Commons comm, Menu me, TCPD tcpd,
 		bool t = true, bool c = true, bool p = true, bool d = false) {
 	auto itcpd = new InTCPD;
 	itcpd.tcpd = tcpd;
-	if (t) createMenuItem(comm, me, MenuID.Cut, &itcpd.cut);
-	if (c) createMenuItem(comm, me, MenuID.Copy, &itcpd.copy);
-	if (p) createMenuItem(comm, me, MenuID.Paste, &itcpd.paste);
-	if (d) createMenuItem(comm, me, MenuID.Delete, &itcpd.del);
+	if (t) createMenuItem(comm, me, MenuID.Cut, &itcpd.cut, &tcpd.canDoT);
+	if (c) createMenuItem(comm, me, MenuID.Copy, &itcpd.copy, &tcpd.canDoC);
+	if (p) createMenuItem(comm, me, MenuID.Paste, &itcpd.paste, &tcpd.canDoP);
+	if (d) createMenuItem(comm, me, MenuID.Delete, &itcpd.del, &tcpd.canDoD);
 }
 
 interface IgnoreHotkey {
@@ -449,6 +453,7 @@ private MenuItem createMenuItemImpl(Dlg)(Commons comm, Menu sub, string text, Im
 	if (img) itm.setImage(img);
 	auto d = new MenuData();
 	d.id = id;
+	d.enabled = enabled;
 	itm.setData(d);
 	return itm;
 }
@@ -513,6 +518,7 @@ private ToolItem createDropDownItem2(Commons comm, ToolBar bar, string text, Ima
 	ti.addSelectionListener(new Push);
 	auto d = new MenuData;
 	d.id = id;
+	d.enabled = enabled;
 	ti.setData(d);
 	return ti;
 }
@@ -527,6 +533,7 @@ private ToolItem createToolItemImpl(Dlg)(Commons comm, ToolBar bar, string tip, 
 	}
 	auto d = new MenuData;
 	d.id = id;
+	d.enabled = enabled;
 	itm.setData(d);
 	return itm;
 }
@@ -562,6 +569,7 @@ ToolItem createToolItem2(Commons comm, ToolBar bar, string tip, string text, Ima
 	}
 	auto d = new MenuData;
 	d.id = MenuID.None;
+	d.enabled = enabled;
 	itm.setData(d);
 	return itm;
 }
@@ -639,7 +647,7 @@ CoolBar createCoolBar(string Name)(Commons comm, Composite parent,
 	auto menu = new Menu(parent.getShell(), SWT.POP_UP);
 	ls._lock = createMenuItem(comm, menu, MenuID.LockToolBar, &ls.lock, null, SWT.CHECK);
 	new MenuItem(menu, SWT.SEPARATOR);
-	createMenuItem(comm, menu, MenuID.ResetToolBar, &ls.reset);
+	createMenuItem(comm, menu, MenuID.ResetToolBar, &ls.reset, null);
 	cbar.setMenu(menu);
 
 	foreach (itm; cbar.getItems()) {

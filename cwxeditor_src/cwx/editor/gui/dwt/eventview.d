@@ -458,6 +458,15 @@ private:
 			return itm.getParentItem();
 		}
 	}
+	static if (is(A : Area) || is(A : Battle)) {
+		@property
+		private TreeItem selectionKeyCode() {
+			auto itm = selection;
+			if (!itm) return null;
+			auto data = itm.getData();
+			return cast(KeyCodeObj) data ? itm : null;
+		}
+	}
 	void createEventTree() {
 		createEventTree([]);
 	}
@@ -988,19 +997,23 @@ public:
 					static if (is(A : Area) || is(A : Battle)) {
 						new MenuItem(menu, SWT.SEPARATOR);
 						void delegate() dlg = null;
-						auto cascade = createMenuItem(_comm, menu, MenuID.KeyCodeTiming, dlg, null, SWT.CASCADE);
+						auto cascade = createMenuItem(_comm, menu, MenuID.KeyCodeTiming, dlg, () => selectionKeyCode !is null, SWT.CASCADE);
 						auto sub = new Menu(parent.getShell(), SWT.DROP_DOWN);
 						cascade.setMenu(sub);
-						createMenuItem(_comm, sub, MenuID.KeyCodeTimingUse, &keyCodeTimUse);
-						createMenuItem(_comm, sub, MenuID.KeyCodeTimingSuccess, &keyCodeTimSuccess);
-						createMenuItem(_comm, sub, MenuID.KeyCodeTimingFailure, &keyCodeTimFailure);
+						createMenuItem(_comm, sub, MenuID.KeyCodeTimingUse, &keyCodeTimUse, () => selectionKeyCode !is null);
+						createMenuItem(_comm, sub, MenuID.KeyCodeTimingSuccess, &keyCodeTimSuccess, () => selectionKeyCode !is null);
+						createMenuItem(_comm, sub, MenuID.KeyCodeTimingFailure, &keyCodeTimFailure, () => selectionKeyCode !is null);
 					}
 					new MenuItem(menu, SWT.SEPARATOR);
-					createMenuItem(_comm, menu, MenuID.ToScript, &toScript);
-					createMenuItem(_comm, menu, MenuID.ToScriptAll, &toScriptAll);
+					createMenuItem(_comm, menu, MenuID.ToScript, &toScript, &canToScript);
+					createMenuItem(_comm, menu, MenuID.ToScriptAll, &toScriptAll, &canToScriptAll);
 					static if (is (A == Battle)) {
 						new MenuItem(menu, SWT.SEPARATOR);
-						createMenuItem(_comm, menu, MenuID.AddRangeOfRound, &addManyRounds);
+						createMenuItem(_comm, menu, MenuID.AddRangeOfRound, &addManyRounds, {
+							auto etItm = selectionEventTree;
+							if (!etItm) return false;
+							return (cast(EventTree) etItm.getData()).owner is _area;
+						});
 					}
 					_cards.setMenu(menu);
 					break;
@@ -1200,6 +1213,26 @@ public:
 		}
 		if (openToolWin) openToolWindow();
 	}
+	private bool canUdImpl(string BeforeAfter, string CanSwapKeyCode)(TreeItem itm) {
+		if (itm && itm.getParentItem()) {
+			auto data = itm.getData();
+			auto parent = itm.getParentItem();
+			int from = parent.indexOf(itm);
+			int to = mixin (BeforeAfter);
+			if (to >= 0) {
+				if (cast(EventTree) data) {
+					return true;
+				} else {
+					static if (UseFire) {
+						if (cast(KeyCodeObj) data) {
+							return true;
+						}
+					}
+				}
+			}
+		}
+		return false;
+	}
 	private void udImpl(string BeforeAfter, string CanSwapKeyCode)
 			(TreeItem itm, int function(TreeItem) treeSwap, bool store) {
 		if (itm && itm.getParentItem()) {
@@ -1248,6 +1281,24 @@ public:
 		comm.refEventTree.call(eto.trees[from]);
 		comm.refEventTree.call(eto.trees[to]);
 	}
+	@property
+	bool canUp() {
+		if (_etree.isFocusControl()) {
+			return _etree.canUp();
+		} else if (_cards.isFocusControl()) {
+			return canUdImpl!("before(parent, from)", "to >= 0")(selection);
+		}
+		return false;
+	}
+	@property
+	bool canDown() {
+		if (_etree.isFocusControl()) {
+			return _etree.canDown();
+		} else if (_cards.isFocusControl()) {
+			return canUdImpl!("after(parent, from)", "to < keyCodeLen")(selection);
+		}
+		return false;
+	}
 	void up() {
 		initial();
 		up(selection, true);
@@ -1281,22 +1332,22 @@ public:
 		_toolbar = bar;
 		static if (is(A : Area)) {
 			if (cast(AreaEventWindow) tlpData(this).tlp) {
-				createToolItem(_comm, bar, MenuID.EditScene, &openScene);
+				createToolItem(_comm, bar, MenuID.EditScene, &openScene, null);
 				new ToolItem(bar, SWT.SEPARATOR);
 			}
 		} else static if (is(A : Battle)) {
 			if (cast(BattleEventWindow) tlpData(this).tlp) {
-				auto itm = createToolItem(_comm, bar, MenuID.EditScene, &openScene);
+				auto itm = createToolItem(_comm, bar, MenuID.EditScene, &openScene, null);
 				itm.setImage(_prop.images.editSceneBattle);
 				new ToolItem(bar, SWT.SEPARATOR);
 			}
 		}
 		if (!_comm.singleWindowMode(_prop)) {
-			createToolItem(_comm, bar, MenuID.Undo, &undo);
-			createToolItem(_comm, bar, MenuID.Redo, &redo);
+			createToolItem(_comm, bar, MenuID.Undo, &undo, &_undo.canUndo);
+			createToolItem(_comm, bar, MenuID.Redo, &redo, &_undo.canRedo);
 			new ToolItem(bar, SWT.SEPARATOR);
-			createToolItem(_comm, bar, MenuID.Up, &up);
-			createToolItem(_comm, bar, MenuID.Down, &down);
+			createToolItem(_comm, bar, MenuID.Up, &up, &canUp);
+			createToolItem(_comm, bar, MenuID.Down, &down, &canDown);
 			new ToolItem(bar, SWT.SEPARATOR);
 		}
 		{
@@ -1337,13 +1388,13 @@ public:
 			}
 		}
 		new ToolItem(bar, SWT.SEPARATOR);
-		createToolItem2(_comm, bar, _prop.msgs.newEvent, _prop.images.newEvent, &createEventTree);
+		createToolItem2(_comm, bar, _prop.msgs.newEvent, _prop.images.newEvent, &createEventTree, null);
 		static if (UseFire) {
-			createToolItem2(_comm, bar, _prop.msgs.newIgnition, _prop.images.newIgnition, &createEventFire);
+			createToolItem2(_comm, bar, _prop.msgs.newIgnition, _prop.images.newIgnition, &createEventFire, () => selectionEventTree !is null);
 		}
 		new ToolItem(bar, SWT.SEPARATOR);
-		createToolItem2(_comm, bar, _prop.msgs.expandTree, _prop.images.expandTree, &_etree.treeOpen);
-		createToolItem2(_comm, bar,_prop.msgs.foldTree,  _prop.images.foldTree, &_etree.treeClose);
+		createToolItem2(_comm, bar, _prop.msgs.expandTree, _prop.images.expandTree, &_etree.treeOpen, &_etree.canExpandTree);
+		createToolItem2(_comm, bar,_prop.msgs.foldTree,  _prop.images.foldTree, &_etree.treeClose, &_etree.canFoldTree);
 	}
 	private void setFireControl(Control c) {
 		if (_fireItm.getControl()) _fireItm.getControl().dispose();
@@ -1463,6 +1514,18 @@ public:
 	}
 	void toScriptAll() {
 		_etree.toScriptAll();
+	}
+	@property
+	bool canToScript() {
+		return _etree.canToScript();
+	}
+	@property
+	bool canToScriptAll() {
+		return _etree.canToScriptAll();
+	}
+	@property
+	bool canWriteComment() {
+		return _etree.canWriteComment;
 	}
 	void writeComment() {
 		_etree.writeComment();

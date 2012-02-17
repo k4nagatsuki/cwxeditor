@@ -175,6 +175,14 @@ public:
 		return _flags;
 	}
 
+	@property
+	bool canUp() {
+		return _dirs.canUp;
+	}
+	@property
+	bool canDown() {
+		return _dirs.canDown;
+	}
 	void up() {
 		_dirs.up();
 	}
@@ -182,6 +190,14 @@ public:
 		_dirs.down();
 	}
 
+	@property
+	bool canUndo() {
+		return _undo.canUndo();
+	}
+	@property
+	bool canRedo() {
+		return _undo.canRedo();
+	}
 	void undo() {
 		_undo.undo();
 	}

@@ -138,17 +138,17 @@ public:
 			}
 		}
 		auto menu = new Menu(_fileList.getShell(), SWT.POP_UP);
-		createMenuItem(_comm, menu, MenuID.OpenAtFileView, &openFilePath);
-		createMenuItem(_comm, menu, MenuID.CopyFilePath, &copyFilePath);
+		createMenuItem(_comm, menu, MenuID.OpenAtFileView, &openFilePath, () => _fileList.getSelectionIndex() != -1);
+		createMenuItem(_comm, menu, MenuID.CopyFilePath, &copyFilePath, () => _fileList.getSelectionIndex() != -1);
 		static if (Type == MtType.BGM) {
 			new MenuItem(menu, SWT.SEPARATOR);
-			_bgmMenu = createMenuItem(_comm, menu, MenuID.PlayBGM, &playBGM);
+			_bgmMenu = createMenuItem(_comm, menu, MenuID.PlayBGM, &playBGM, () => _playing ? true : _fileList.getSelectionIndex() != -1);
 			auto data = cast(MenuData) _bgmMenu.getData();
 			data.format = (string t) {return data.id is MenuID.StopBGM ? .tryFormat(t, _playing) : t;};
 		} else static if (Type == MtType.SE) {
 			new MenuItem(menu, SWT.SEPARATOR);
-			createMenuItem(_comm, menu, MenuID.PlaySE, &playSE);
-			createMenuItem(_comm, menu, MenuID.StopSE, &stopSE);
+			createMenuItem(_comm, menu, MenuID.PlaySE, &playSE, () => _fileList.getSelectionIndex() != -1);
+			createMenuItem(_comm, menu, MenuID.StopSE, &stopSE, null);
 		}
 		_fileList.setMenu(menu);
 		new class(_fileList) FileDropTarget {
@@ -192,9 +192,9 @@ public:
 		private MenuItem _bgmMenu;
 		private ToolItem _bgmTMenu;
 		private Button _bgmBtn;
-		string _playing;
+		string _playing = null;
 		void createPlayToolItem(ToolBar bar) {
-			_bgmTMenu = createToolItem(_comm, bar, MenuID.PlayBGM, &playBGM, null, SWT.CHECK);
+			_bgmTMenu = createToolItem(_comm, bar, MenuID.PlayBGM, &playBGM, () => _playing ? true : _fileList.getSelectionIndex() != -1, SWT.CHECK);
 			auto data = cast(MenuData) _bgmTMenu.getData();
 			data.format = (string t) {return data.id is MenuID.StopBGM ? .tryFormat(t, _playing) : t;};
 		}
@@ -273,7 +273,7 @@ public:
 		}
 	} else static if (Type == MtType.SE) {
 		void createPlayToolItem(ToolBar bar) {
-			createToolItem(_comm, bar, MenuID.PlaySE, &playSE);
+			createToolItem(_comm, bar, MenuID.PlaySE, &playSE, () => _fileList.getSelectionIndex() != -1);
 		}
 		Button createPlayButton(Composite parent) {
 			auto seBtn = new Button(parent, SWT.PUSH);

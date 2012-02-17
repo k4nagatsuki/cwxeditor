@@ -148,43 +148,43 @@ public:
 				auto bar = new Menu(shell, SWT.BAR);
 
 				auto mf = createMenu(_comm, bar, MenuID.File);
-				createMenuItem(_comm, mf, MenuID.CloseWin, &shell.close);
+				createMenuItem(_comm, mf, MenuID.CloseWin, &shell.close, null);
 
 				auto me = createMenu(_comm, bar, MenuID.Edit);
 				static if (UseArea) {
-					createMenuItem(_comm, me, MenuID.EditScene, &openAreaScene);
-					createMenuItem(_comm, me, MenuID.EditEvent, &openAreaEvent);
+					createMenuItem(_comm, me, MenuID.EditScene, &openAreaScene, &_areas.canOpenAreaScene);
+					createMenuItem(_comm, me, MenuID.EditEvent, &openAreaEvent, &_areas.canOpenAreaEvent);
 					new MenuItem(me, SWT.SEPARATOR);
 				}
-				createMenuItem(_comm, me, MenuID.Undo, &undo);
-				createMenuItem(_comm, me, MenuID.Redo, &redo);
+				createMenuItem(_comm, me, MenuID.Undo, &undo, &canUndo);
+				createMenuItem(_comm, me, MenuID.Redo, &redo, &canRedo);
 				new MenuItem(me, SWT.SEPARATOR);
 				appendMenuTCPD(_comm, me, this, true, true, true, true);
 				new MenuItem(me, SWT.SEPARATOR);
-				createMenuItem(_comm, me, MenuID.Up, &up);
-				createMenuItem(_comm, me, MenuID.Down, &down);
+				createMenuItem(_comm, me, MenuID.Up, &up, &canUp);
+				createMenuItem(_comm, me, MenuID.Down, &down, &canDown);
 
 				static if (UseFlag) {
 					auto mi = createMenu(_comm, bar, MenuID.View);
-					createMenuItem(_comm, mi, MenuID.ChangeVH, &changeVHSide);
+					createMenuItem(_comm, mi, MenuID.ChangeVH, &changeVHSide, null);
 				}
 
 				static if (UseArea) {
 					auto mt = createMenu(_comm, bar, MenuID.Table);
 					static if (UseFlag) {
-						createMenuItem(_comm, mt, MenuID.EditSummary, &editSummary);
+						createMenuItem(_comm, mt, MenuID.EditSummary, &editSummary, &canEditSummary);
 						new MenuItem(mt, SWT.SEPARATOR);
 					}
-					createMenuItem(_comm, mt, MenuID.NewArea, &createArea);
-					createMenuItem(_comm, mt, MenuID.NewBattle, &createBattle);
-					createMenuItem(_comm, mt, MenuID.NewPackage, &createPackage);
+					createMenuItem(_comm, mt, MenuID.NewArea, &createArea, &canCreateArea);
+					createMenuItem(_comm, mt, MenuID.NewBattle, &createBattle, &canCreateBattle);
+					createMenuItem(_comm, mt, MenuID.NewPackage, &createPackage, &canCreatePackage);
 				}
 				static if (UseFlag) {
 					auto mv = createMenu(_comm, bar, MenuID.Variable);
-					createMenuItem(_comm, mv, MenuID.NewFlagDir, &createFlagDir);
+					createMenuItem(_comm, mv, MenuID.NewFlagDir, &createFlagDir, &canCreateFlagDir);
 					new MenuItem(mv, SWT.SEPARATOR);
-					createMenuItem(_comm, mv, MenuID.NewFlag, &createFlag);
-					createMenuItem(_comm, mv, MenuID.NewStep, &createStep);
+					createMenuItem(_comm, mv, MenuID.NewFlag, &createFlag, &canCreateFlag);
+					createMenuItem(_comm, mv, MenuID.NewStep, &createStep, &canCreateStep);
 				}
 				shell.setMenuBar(bar);
 			}
@@ -193,23 +193,23 @@ public:
 				bar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 				static if (UseArea && UseFlag) {
-					createToolItem(_comm, bar, MenuID.EditSummary, &editSummary);
+					createToolItem(_comm, bar, MenuID.EditSummary, &editSummary, &canEditSummary);
 				}
-				createToolItem(_comm, bar, MenuID.Up, &up);
-				createToolItem(_comm, bar, MenuID.Down, &down);
+				createToolItem(_comm, bar, MenuID.Up, &up, &canUp);
+				createToolItem(_comm, bar, MenuID.Down, &down, &canDown);
 				static if (UseArea) {
 					new ToolItem(bar, SWT.SEPARATOR);
-					createToolItem(_comm, bar, MenuID.NewArea, &createArea);
-					createToolItem(_comm, bar, MenuID.NewBattle, &createBattle);
-					createToolItem(_comm, bar, MenuID.NewPackage, &createPackage);
+					createToolItem(_comm, bar, MenuID.NewArea, &createArea, &canCreateArea);
+					createToolItem(_comm, bar, MenuID.NewBattle, &createBattle, &canCreateBattle);
+					createToolItem(_comm, bar, MenuID.NewPackage, &createPackage, &canCreatePackage);
 				}
 				static if (UseFlag) {
 					new ToolItem(bar, SWT.SEPARATOR);
-					createToolItem(_comm, bar, MenuID.NewFlag, &createFlag);
-					createToolItem(_comm, bar, MenuID.NewStep, &createStep);
-					createToolItem(_comm, bar, MenuID.NewFlagDir, &createFlagDir);
+					createToolItem(_comm, bar, MenuID.NewFlag, &createFlag, &canCreateFlag);
+					createToolItem(_comm, bar, MenuID.NewStep, &createStep, &canCreateStep);
+					createToolItem(_comm, bar, MenuID.NewFlagDir, &createFlagDir, &canCreateFlagDir);
 					new ToolItem(bar, SWT.SEPARATOR);
-					createToolItem(_comm, bar, MenuID.ChangeVH, &changeVHSide);
+					createToolItem(_comm, bar, MenuID.ChangeVH, &changeVHSide, null);
 				}
 			}
 		} else {
@@ -311,6 +311,18 @@ public:
 	Composite shell() {return _win;}
 
 	static if (UseArea) {
+		@property
+		bool canEditSummary() {
+			return _summ !is null;
+		}
+		@property
+		bool canCreateArea() {
+			return _summ !is null;
+		}
+		@property
+		alias canCreateArea canCreateBattle;
+		@property
+		alias canCreateArea canCreatePackage;
 		void editSummary() {
 			if (!_summ) return;
 			if (_win && !_win.isDisposed()) {
@@ -373,6 +385,15 @@ public:
 		}
 	}
 	static if (UseFlag) {
+		@property
+		bool canCreateFlagDir() {
+			return _summ !is null;
+		}
+		@property
+		alias canCreateFlagDir canCreateFlag;
+		@property
+		alias canCreateFlagDir canCreateStep;
+
 		void createFlagDir() {
 			if (!_summ) return;
 			_flags.dirs.createDir();
@@ -453,6 +474,36 @@ public:
 		}
 	}
 
+	@property
+	bool canUp() {
+		static if (UseArea && UseFlag) {
+			if (tabf.getSelection() is tabA) {
+				return _areas.canUp();
+			} else {
+				assert (tabf.getSelection() is tabF);
+				return _flags.canUp();
+			}
+		} else static if (UseArea) {
+			return _areas.canUp();
+		} else static if (UseFlag) {
+			return _flags.canUp();
+		} else static assert (0);
+	}
+	@property
+	bool canDown() {
+		static if (UseArea && UseFlag) {
+			if (tabf.getSelection() is tabA) {
+				return _areas.canDown();
+			} else {
+				assert (tabf.getSelection() is tabF);
+				return _flags.canDown();
+			}
+		} else static if (UseArea) {
+			return _areas.canDown();
+		} else static if (UseFlag) {
+			return _flags.canDown();
+		} else static assert (0);
+	}
 	void up() {
 		static if (UseArea && UseFlag) {
 			if (tabf.getSelection() is tabA) {
@@ -713,6 +764,36 @@ public:
 		return r;
 	}
 
+	@property
+	bool canUndo() {
+		static if (UseArea && UseFlag) {
+			if (tabf.getSelection() is tabA) {
+				return _areas.canUndo();
+			} else {
+				assert (tabf.getSelection() is tabF);
+				return _flags.canUndo();
+			}
+		} else static if (UseArea) {
+			return _areas.canUndo();
+		} else static if (UseFlag) {
+			return _flags.canUndo();
+		} else static assert (0);
+	}
+	@property
+	bool canRedo() {
+		static if (UseArea && UseFlag) {
+			if (tabf.getSelection() is tabA) {
+				return _areas.canRedo();
+			} else {
+				assert (tabf.getSelection() is tabF);
+				return _flags.canRedo();
+			}
+		} else static if (UseArea) {
+			return _areas.canRedo();
+		} else static if (UseFlag) {
+			return _flags.canRedo();
+		} else static assert (0);
+	}
 	void undo() {
 		static if (UseArea && UseFlag) {
 			if (tabf.getSelection() is tabA) {
