@@ -215,24 +215,24 @@ public:
 		} else {
 			appendMenuTCPD(_comm, this, this, true, true, true, true);
 			static if (UseArea && UseFlag) {
-				putMenuAction(MenuID.EditSummary, &editSummary);
+				putMenuAction(MenuID.EditSummary, &editSummary, &canEditSummary);
 			}
 			static if (UseArea) {
-				putMenuAction(MenuID.EditScene, &openAreaScene);
-				putMenuAction(MenuID.EditEvent, &openAreaEvent);
-				putMenuAction(MenuID.NewArea, &createArea);
-				putMenuAction(MenuID.NewBattle, &createBattle);
-				putMenuAction(MenuID.NewPackage, &createPackage);
+				putMenuAction(MenuID.EditScene, &openAreaScene, &_areas.canOpenAreaScene);
+				putMenuAction(MenuID.EditEvent, &openAreaEvent, &_areas.canOpenAreaEvent);
+				putMenuAction(MenuID.NewArea, &createArea, &canCreateArea);
+				putMenuAction(MenuID.NewBattle, &createBattle, &canCreateBattle);
+				putMenuAction(MenuID.NewPackage, &createPackage, &canCreatePackage);
 			}
 			static if (UseFlag) {
-				putMenuAction(MenuID.NewFlagDir, &createFlagDir);
-				putMenuAction(MenuID.NewFlag, &createFlag);
-				putMenuAction(MenuID.NewStep, &createStep);
+				putMenuAction(MenuID.NewFlagDir, &createFlagDir, &canCreateFlagDir);
+				putMenuAction(MenuID.NewFlag, &createFlag, &canCreateFlag);
+				putMenuAction(MenuID.NewStep, &createStep, &canCreateStep);
 			}
-			putMenuAction(MenuID.Undo, &undo);
-			putMenuAction(MenuID.Redo, &redo);
-			putMenuAction(MenuID.Up, &up);
-			putMenuAction(MenuID.Down, &down);
+			putMenuAction(MenuID.Undo, &undo, &canUndo);
+			putMenuAction(MenuID.Redo, &redo, &canRedo);
+			putMenuAction(MenuID.Up, &up, &canUp);
+			putMenuAction(MenuID.Down, &down, &canDown);
 		}
 		{
 			static if (UseArea && UseFlag) {

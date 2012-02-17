@@ -1490,13 +1490,13 @@ public:
 			shell.setMenuBar(bar);
 		} else {
 			appendMenuTCPD(_comm, this, this, true, true, true, true);
-			putMenuAction(MenuID.ReplFilePath, &replace);
-			putMenuAction(MenuID.Refresh, &__refresh);
-			putMenuAction(MenuID.OpenDir, &openDirectory);
-			putMenuAction(MenuID.NewDir, &createNewFolder);
-			putMenuAction(MenuID.CreateArchive, &createArchive);
-			putMenuAction(MenuID.ChangeVH, &changeVHSide);
-			putMenuAction(MenuID.DelNotUsedFile, &deleteUnuse);
+			putMenuAction(MenuID.ReplFilePath, &replace, () => _summ !is null);
+			putMenuAction(MenuID.Refresh, &__refresh, () => _summ !is null);
+			putMenuAction(MenuID.OpenDir, &openDirectory, &canOpenDirectory);
+			putMenuAction(MenuID.NewDir, &createNewFolder, &canCreateNewFolder);
+			putMenuAction(MenuID.CreateArchive, &createArchive, &canCreateArchive);
+			putMenuAction(MenuID.ChangeVH, &changeVHSide, null);
+			putMenuAction(MenuID.DelNotUsedFile, &deleteUnuse, &canDeleteUnuse);
 		}
 		if (shell) {
 			auto bar = new ToolBar(contPane, SWT.FLAT);

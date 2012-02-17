@@ -177,15 +177,15 @@ public:
 		} else {
 			appendMenuTCPD(_comm, this, this, true, true, true, true);
 			static if (is(A : Area) || is(A : Battle)) {
-				putMenuAction(MenuID.EditScene, &openScene);
+				putMenuAction(MenuID.EditScene, &openScene, null);
 			}
-			putMenuAction(MenuID.Undo, &_eview.undo);
-			putMenuAction(MenuID.Redo, &_eview.redo);
-			putMenuAction(MenuID.Up, &_eview.up);
-			putMenuAction(MenuID.Down, &_eview.down);
-			putMenuAction(MenuID.Comment, &_eview.writeComment);
-			putMenuAction(MenuID.ToScript, &_eview.toScript);
-			putMenuAction(MenuID.ToScriptAll, &_eview.toScriptAll);
+			putMenuAction(MenuID.Undo, &_eview.undo, &_undo.canUndo);
+			putMenuAction(MenuID.Redo, &_eview.redo, &_undo.canRedo);
+			putMenuAction(MenuID.Up, &_eview.up, &_eview.canUp);
+			putMenuAction(MenuID.Down, &_eview.down, &_eview.canDown);
+			putMenuAction(MenuID.Comment, &_eview.writeComment, &_eview.canWriteComment);
+			putMenuAction(MenuID.ToScript, &_eview.toScript, &_eview.canToScript);
+			putMenuAction(MenuID.ToScriptAll, &_eview.toScriptAll, &_eview.canToScriptAll);
 		}
 
 		if (shell) {

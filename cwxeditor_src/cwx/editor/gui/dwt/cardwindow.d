@@ -472,25 +472,25 @@ public:
 		} else {
 			static if (EditMode) {
 				appendMenuTCPD(_comm, this, this, true, true, true, true);
-				putMenuAction(MenuID.Refresh, &__refresh);
+				putMenuAction(MenuID.Refresh, &__refresh, () => _summ !is null);
 				static if (is (CardOwner == Summary)) {
-					putMenuAction(MenuID.OpenImportSource, &addScenario);
+					putMenuAction(MenuID.OpenImportSource, &addScenario, () => _summ !is null);
 				}
-				putMenuAction(MenuID.Undo, &undo);
-				putMenuAction(MenuID.Redo, &redo);
-				static if (UseCast) putMenuAction(MenuID.NewCast, &create!(CAST));
-				static if (UseSkill) putMenuAction(MenuID.NewSkill, &create!(SKILL));
-				static if (UseItem) putMenuAction(MenuID.NewItem, &create!(ITEM));
-				static if (UseBeast) putMenuAction(MenuID.NewBeast, &create!(BEAST));
-				static if (UseInfo) putMenuAction(MenuID.NewInfo, &create!(INFO));
-				putMenuAction(MenuID.Up, &up);
-				putMenuAction(MenuID.Down, &down);
+				putMenuAction(MenuID.Undo, &undo, &canUndo);
+				putMenuAction(MenuID.Redo, &redo, &canRedo);
+				static if (UseCast) putMenuAction(MenuID.NewCast, &create!(CAST), () => _summ !is null);
+				static if (UseSkill) putMenuAction(MenuID.NewSkill, &create!(SKILL), () => _summ !is null);
+				static if (UseItem) putMenuAction(MenuID.NewItem, &create!(ITEM), () => _summ !is null);
+				static if (UseBeast) putMenuAction(MenuID.NewBeast, &create!(BEAST), () => _summ !is null);
+				static if (UseInfo) putMenuAction(MenuID.NewInfo, &create!(INFO), () => _summ !is null);
+				putMenuAction(MenuID.Up, &up, &canUp);
+				putMenuAction(MenuID.Down, &down, &canDown);
 			} else {
 				appendMenuTCPD(_comm, this, this, false, true, false, false);
 			}
-			putMenuChecked(MenuID.ShowCardProp, &showCardLife, &isViewLife);
-			putMenuChecked(MenuID.ShowCardImage, &showCardList, &isViewList);
-			putMenuChecked(MenuID.ShowCardDetail, &showCardTable, &isViewTable);
+			putMenuChecked(MenuID.ShowCardProp, &showCardLife, &isViewLife, null);
+			putMenuChecked(MenuID.ShowCardImage, &showCardList, &isViewList, null);
+			putMenuChecked(MenuID.ShowCardDetail, &showCardTable, &isViewTable, null);
 		}
 		static if (1 < Cards.length) {
 			_tabf = new CTabFolder(_comp, SWT.BORDER);

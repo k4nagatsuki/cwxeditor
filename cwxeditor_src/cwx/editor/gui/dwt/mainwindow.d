@@ -73,6 +73,8 @@ import org.eclipse.swt.events.ShellAdapter;
 import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.events.MenuAdapter;
+import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Combo;
@@ -1549,11 +1551,13 @@ public:
 				dStr ~= " - " ~ .text(__LINE__);
 
 				_menuFile = createMenu(_comm, bar, MenuID.File);
+				setupMenuListener(_menuFile);
 				dStr ~= " - " ~ .text(__LINE__);
 				createFileMenu();
 				dStr ~= " - " ~ .text(__LINE__);
 
 				auto me = createMenu(_comm, bar, MenuID.Edit);
+				setupMenuListener(me);
 				if (_prop.var.etc.singleWindow) {
 					mixin (MenuAction!("me", MenuID.OpenDir, SWT.PUSH, "openDirectory", "&canOpenDirectory"));
 					new MenuItem(me, SWT.SEPARATOR);
@@ -1586,6 +1590,7 @@ public:
 				}
 
 				auto mv = createMenu(_comm, bar, MenuID.View);
+				setupMenuListener(mv);
 				mixin (MenuAction!("mv", MenuID.TableView, SWT.PUSH, "openDataWindow", "null"));
 				if (_prop.var.etc.singleWindow) {
 					mixin (MenuAction!("mv", MenuID.VarView, SWT.PUSH, "openFlagWindow", "null"));
@@ -1613,6 +1618,7 @@ public:
 
 				if (_prop.var.etc.singleWindow) {
 					auto ma = createMenu(_comm, bar, MenuID.Table);
+					setupMenuListener(ma);
 					mixin (MenuAction!("ma", MenuID.EditSummary, SWT.PUSH, "_tableWin.editSummary", "&_tableWin.canEditSummary"));
 					new MenuItem(ma, SWT.SEPARATOR);
 					if (!_prop.var.etc.bindSceneWithEvent) {
@@ -1625,11 +1631,13 @@ public:
 					mixin (MenuAction!("ma", MenuID.NewPackage, SWT.PUSH, "_tableWin.createPackage", "&_tableWin.canCreatePackage"));
 
 					auto mf = createMenu(_comm, bar, MenuID.Variable);
+					setupMenuListener(mf);
 					mixin (MenuAction!("mf", MenuID.NewFlagDir, SWT.PUSH, "_flagWin.createFlagDir", "&_flagWin.canCreateFlagDir"));
 					mixin (MenuAction!("mf", MenuID.NewFlag, SWT.PUSH, "_flagWin.createFlag", "&_flagWin.canCreateFlag"));
 					mixin (MenuAction!("mf", MenuID.NewStep, SWT.PUSH, "_flagWin.createStep", "&_flagWin.canCreateStep"));
 
 					auto mc = createMenu(_comm, bar, MenuID.Card);
+					setupMenuListener(mc);
 					auto g = new RadioGroup!(MenuItem);
 					mixin (MenuAction!("mc", MenuID.ShowCardProp, SWT.RADIO, "showCardLife", "null"));
 					auto scf = _menu[MenuID.ShowCardProp];
@@ -1660,6 +1668,7 @@ public:
 				dStr ~= " - " ~ .text(__LINE__);
 
 				auto mt = createMenu(_comm, bar, MenuID.Tool);
+				setupMenuListener(mt);
 				void delegate(SelectionEvent) dummy = null;
 				auto eemi = createMenuItem(_comm, mt, MenuID.ExecEngine, dummy, () => canExecEngine || _prop.var.etc.classicEngines.length, SWT.CASCADE);
 				_mExecEngine = new Menu(eemi);
@@ -1668,6 +1677,7 @@ public:
 				mixin (MenuAction!("mt", MenuID.Settings, SWT.PUSH, "settings", "null"));
 
 				auto mh = createMenu(_comm, bar, MenuID.Help);
+				setupMenuListener(mh);
 				mixin (MenuAction!("mh", MenuID.VersionInfo, SWT.PUSH, "versionInfo", "null"));
 
 				_win.setMenuBar(bar);
@@ -2244,6 +2254,24 @@ public:
 			static const ToolAction = "_tool[" ~ Id.stringof ~ "] = createToolItem(_comm, " ~ T ~ ", " ~ Id.stringof ~ ", "
 				~ "&menuAction!(" ~ Id.stringof ~ "), " ~ Can ~ ", " ~ ToString!(Style) ~ ");";
 		}
+	}
+	private class MenuShown : MenuAdapter {
+		override void menuShown(MenuEvent e) {
+			auto menu = cast(Menu) e.widget;
+			foreach (itm; menu.getItems()) {
+				if (itm.getStyle() & SWT.SEPARATOR) continue;
+				auto d = cast(MenuData) itm.getData();
+				assert (d !is null);
+				if (d.enabled) continue; // createMenuItem()内の処理に任せる
+				auto enabled = _tlp.menuEnabled(d.id);
+				if (!enabled) continue;
+				// TODO: ツールバーの対応が出来たら有効にする
+/+				itm.setEnabled(enabled());
++/			}
+		}
+	}
+	private void setupMenuListener(Menu menu) {
+		menu.addMenuListener(new MenuShown);
 	}
 	private void menuActionAfterImpl(MenuID ID, T)(T[MenuID] tools, RadioGroup!(T)[] rg) {
 		if (!_tlp) return;

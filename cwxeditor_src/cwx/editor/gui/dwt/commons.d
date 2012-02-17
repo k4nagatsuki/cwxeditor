@@ -148,25 +148,34 @@ abstract class TopLevelPanel {
 		}
 		void call(SelectionEvent se) {_dlg();}
 	}
+	private bool delegate()[MenuID] _enabled;
 	private void delegate(SelectionEvent)[MenuID] _act;
-	void putMenuAction(MenuID menuID, void delegate() dlg) {
+	void putMenuAction(MenuID menuID, void delegate() dlg, bool delegate() enabled) {
 		if (!(menuID in _act)) {
 			_act[menuID] = &(new WrapDlg(dlg)).call;
+			_enabled[menuID] = enabled;
 		}
 	}
-	void putMenuAction(MenuID menuID, void delegate(SelectionEvent se) dlg) {
+	void putMenuAction(MenuID menuID, void delegate(SelectionEvent se) dlg, bool delegate() enabled) {
 		if (!(menuID in _act)) _act[menuID] = dlg;
+		_enabled[menuID] = enabled;
 	}
 	private bool delegate()[MenuID] _chk;
-	void putMenuChecked(MenuID menuID, void delegate() dlg, bool delegate() get) {
+	void putMenuChecked(MenuID menuID, void delegate() dlg, bool delegate() get, bool delegate() enabled) {
 		if (!(menuID in _act)) {
 			_act[menuID] = &(new WrapDlg(dlg)).call;
+			_enabled[menuID] = enabled;
 		}
 		if (!(menuID in _chk)) _chk[menuID] = get;
 	}
-	void putMenuChecked(MenuID menuID, void delegate(SelectionEvent se) dlg, bool delegate() get) {
-		if (!(menuID in _act)) _act[menuID] = dlg;
-		if (!(menuID in _chk)) _chk[menuID] = get;
+	void putMenuChecked(MenuID menuID, void delegate(SelectionEvent se) dlg, bool delegate() get, bool delegate() enabled) {
+		if (!(menuID in _act)) {
+			_act[menuID] = dlg;
+			_enabled[menuID] = enabled;
+		}
+		if (!(menuID in _chk)) {
+			_chk[menuID] = get;
+		}
 	}
 	void delegate(SelectionEvent) menuAction(MenuID menuID) {
 		auto p = menuID in _act;
@@ -174,6 +183,10 @@ abstract class TopLevelPanel {
 	}
 	bool delegate() menuChecked(MenuID menuID) {
 		auto p = menuID in _chk;
+		return p ? *p : null;
+	}
+	bool delegate() menuEnabled(MenuID menuID) {
+		auto p = menuID in _enabled;
 		return p ? *p : null;
 	}
 	private string _status = "";

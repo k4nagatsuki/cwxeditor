@@ -264,19 +264,19 @@ public:
 
 			shell.setMenuBar(bar);
 		} else {
-			putMenuAction(MenuID.Undo, &this.undo);
-			putMenuAction(MenuID.Redo, &this.redo);
-			putMenuAction(MenuID.Up, &up);
-			putMenuAction(MenuID.Down, &down);
+			putMenuAction(MenuID.Undo, &this.undo, &_undo.canUndo);
+			putMenuAction(MenuID.Redo, &this.redo, &_undo.canRedo);
+			putMenuAction(MenuID.Up, &up, &canUp);
+			putMenuAction(MenuID.Down, &down, &canDown);
 			appendMenuTCPD(_comm, this, this, true, true, true, true);
 			static if (WithEventView) {
-				putMenuAction(MenuID.Comment, &writeComment);
-				putMenuAction(MenuID.ToScript, &toScript);
-				putMenuAction(MenuID.ToScriptAll, &toScriptAll);
+				putMenuAction(MenuID.Comment, &writeComment, &canWriteComment);
+				putMenuAction(MenuID.ToScript, &toScript, &canToScript);
+				putMenuAction(MenuID.ToScriptAll, &toScriptAll, &canToScriptAll);
 			} else {
-				putMenuAction(MenuID.EditEvent, &openEvent);
+				putMenuAction(MenuID.EditEvent, &openEvent, null);
 			}
-			putMenuAction(MenuID.Refresh, &refresh);
+			putMenuAction(MenuID.Refresh, &refresh, null);
 		}
 		{
 			static if (WithEventView) {

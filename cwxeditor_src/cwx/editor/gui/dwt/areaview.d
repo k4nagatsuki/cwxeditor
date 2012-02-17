@@ -2594,21 +2594,21 @@ public:
 		bool spCustom() {return !_area.spAuto;}
 	}
 	private void setupTLP(TopLevelPanel tlp) {
-		_tlp.putMenuChecked(MenuID.ShowParty, &reverseViewParty, &isViewParty);
-		_tlp.putMenuChecked(MenuID.FixedImage, &reverseFixed, &isFixed);
+		_tlp.putMenuChecked(MenuID.ShowParty, &reverseViewParty, &isViewParty, null);
+		_tlp.putMenuChecked(MenuID.FixedImage, &reverseFixed, &isFixed, null);
 		static if (UseCards && UseBacks) {
-			_tlp.putMenuChecked(MenuID.ShowCard, &reverseViewCards, &isViewCards);
-			_tlp.putMenuChecked(MenuID.ShowBack, &reverseViewBacks, &isViewBacks);
+			_tlp.putMenuChecked(MenuID.ShowCard, &reverseViewCards, &isViewCards, null);
+			_tlp.putMenuChecked(MenuID.ShowBack, &reverseViewBacks, &isViewBacks, null);
 		}
 		static if (UseCards) {
-			_tlp.putMenuChecked(MenuID.AutoArrange, &setAuto, &_area.spAuto);
-			_tlp.putMenuChecked(MenuID.ManualArrange, &setCustom, &spCustom);
+			_tlp.putMenuChecked(MenuID.AutoArrange, &setAuto, &_area.spAuto, null);
+			_tlp.putMenuChecked(MenuID.ManualArrange, &setCustom, &spCustom, null);
 		}
-		_tlp.putMenuAction(MenuID.Refresh, &refresh);
-		_tlp.putMenuAction(MenuID.Undo, &undo);
-		_tlp.putMenuAction(MenuID.Redo, &redo);
-		_tlp.putMenuAction(MenuID.Up, &up);
-		_tlp.putMenuAction(MenuID.Down, &down);
+		_tlp.putMenuAction(MenuID.Refresh, &refresh, null);
+		_tlp.putMenuAction(MenuID.Undo, &undo, &_undo.canUndo);
+		_tlp.putMenuAction(MenuID.Redo, &redo, &_undo.canRedo);
+		_tlp.putMenuAction(MenuID.Up, &up, &canUp);
+		_tlp.putMenuAction(MenuID.Down, &down, &canDown);
 	}
 
 	/// メニューにAreaViewで使用するアイテムを設定する。

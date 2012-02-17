@@ -126,7 +126,7 @@ public:
 		}
 	}
 	void setupTLP(TopLevelPanel tlp) {
-		tlp.putMenuAction(MenuID.ChangeVH, &changeVHSide);
+		tlp.putMenuAction(MenuID.ChangeVH, &changeVHSide, null);
 	}
 
 	@property
