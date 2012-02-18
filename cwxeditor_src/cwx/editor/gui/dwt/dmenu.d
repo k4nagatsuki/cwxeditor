@@ -181,7 +181,12 @@ TextMenuModify createTextMenu(T = Text)(Commons comm, Props prop, T text, bool d
 	new MenuItem(menu, SWT.SEPARATOR);
 	auto a = createMenuItem(comm, menu, MenuID.SelectAll, {
 		text.setSelection(new Point(0, text.getText().length));
-	}, null);
+	}, {
+		auto t = text.getText();
+		if (t.length == 0) return false;
+		auto p = text.getSelection();
+		return p.x != 0 || p.y != to!dstring(text.getText()).length;
+	});
 	u.setEnabled(!readOnly);
 	r.setEnabled(!readOnly);
 	t.setEnabled(!readOnly);
