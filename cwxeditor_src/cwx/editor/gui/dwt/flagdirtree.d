@@ -98,6 +98,7 @@ private:
 	class DirSelection : SelectionAdapter {
 		public override void widgetSelected(SelectionEvent e) {
 			flags.setDir(current);
+			_comm.refreshToolBar();
 		}
 	}
 
@@ -120,6 +121,7 @@ private:
 				_moveDir.parent.remove(_moveDir);
 				refresh();
 				_comm.delFlagAndStep.call(_moveDir.allFlags, _moveDir.allSteps);
+				_comm.refreshToolBar();
 			}
 			_moveDir = null;
 		}
@@ -229,6 +231,7 @@ private:
 					}
 					_comm.refFlagAndStep.call(cFlags.values, cSteps.values);
 				}
+				_comm.refreshToolBar();
 			} else {
 				e.detail = DND.DROP_NONE;
 			}
@@ -245,6 +248,7 @@ private:
 			storeEditDir(dir, oldName);
 			itm.setText(dir.name);
 			_comm.refFlagDir.call(this, [dir]);
+			_comm.refreshToolBar();
 		}
 	}
 
@@ -310,6 +314,7 @@ private:
 			}
 			if (sel) current = sel;
 		}
+		_comm.refreshToolBar();
 	}
 	private TreeItem findImpl(TreeItem parent, FlagDir dir) {
 		if (parent.getData() is dir) return parent;
@@ -329,6 +334,7 @@ private:
 		auto itm = find(dir);
 		if (itm) {
 			dirs.select(itm);
+			_comm.refreshToolBar();
 		}
 	}
 	void refreshD(Object sender, FlagDir[] dirs) {
@@ -435,6 +441,7 @@ public:
 		refreshDirs(cur);
 		current = dir;
 		edit.startEdit();
+		_comm.refreshToolBar();
 	}
 
 	@property
@@ -445,6 +452,7 @@ public:
 			dirs.showSelection();
 		}
 		flags.setDir(dir);
+		_comm.refreshToolBar();
 	}
 
 	@property
@@ -492,6 +500,7 @@ public:
 		itm2.setText(dir2.name);
 		refresh(dir2.path);
 		_comm.refFlagAndStep.call(dir1.allFlags ~ dir2.allFlags, dir1.allSteps ~ dir2.allSteps);
+		_comm.refreshToolBar();
 	}
 	void up() {
 		udImpl(-1);
@@ -560,6 +569,7 @@ public:
 					default:
 					}
 					_comm.refFlagAndStep.call(cFlags.values, cSteps.values);
+					_comm.refreshToolBar();
 				} catch (Exception e) {
 					debugln(e);
 				}
@@ -580,6 +590,7 @@ public:
 				refreshDirs(p);
 				_comm.delFlagAndStep.call(cFlags, cSteps);
 				_comm.delFlagDir.call([cur]);
+				_comm.refreshToolBar();
 			}
 		}
 		@property
@@ -621,6 +632,7 @@ public:
 		if (dirs && !dirs.isDisposed()) {
 			treeExpandedAll(dirs);
 		}
+		_comm.refreshToolBar();
 	}
 
 	private bool openCWXPathImpl(FlagDir dir, string path, bool shellActivate) {
@@ -637,6 +649,7 @@ public:
 			} else {
 				flags.select(dir.flags[index], false);
 			}
+			_comm.refreshToolBar();
 			return true;
 		} break;
 		case "step": {
@@ -649,6 +662,7 @@ public:
 			} else {
 				flags.select(dir.steps[index], false);
 			}
+			_comm.refreshToolBar();
 			return true;
 		} break;
 		case "dir": {
@@ -680,8 +694,10 @@ public:
 	}
 	void undo() {
 		_undo.undo();
+		_comm.refreshToolBar();
 	}
 	void redo() {
 		_undo.redo();
+		_comm.refreshToolBar();
 	}
 }

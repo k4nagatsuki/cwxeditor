@@ -68,7 +68,7 @@ private:
 		_undo.max = _prop.var.etc.undoMaxEvent;
 	}
 public:
-	this(Commons comm, Props prop, Summary summ, Composite parent, Shell parent2, A eto, UndoManager undo) {
+	this (Commons comm, Props prop, Summary summ, Composite parent, Shell parent2, A eto, UndoManager undo) {
 		Shell shell = null;
 		auto parShl = cast(Shell) parent;
 		Composite contPane;

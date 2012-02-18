@@ -170,6 +170,7 @@ private:
 					v.refreshStatusLine();
 				}
 				comm.refUseCount.call();
+				comm.refreshToolBar();
 			}
 			protected CardPane view() {
 				return _v;
@@ -429,6 +430,7 @@ private:
 			c.name = newText;
 			refresh();
 			refCard(c);
+			_comm.refreshToolBar();
 		}
 	}
 	void __refreshR(string from, string to) {
@@ -530,6 +532,7 @@ private:
 						} catch {}
 					}
 					refreshStatusLine();
+					_comm.refreshToolBar();
 				} catch (Exception e) {
 					debugln(e);
 				}
@@ -590,6 +593,7 @@ private:
 					_owner.remove(c);
 					refresh();
 					delCard(c);
+					_comm.refreshToolBar();
 				}
 			}
 		}
@@ -672,6 +676,7 @@ private:
 					_tbl.getItem(i).dispose();
 					_tbl.redraw();
 					delCard(c);
+					_comm.refreshToolBar();
 				}
 			}
 		}
@@ -696,6 +701,7 @@ private:
 							auto pc = card in oldIDs;
 							if (pc && *pc != card.id) refCard(card); 
 						}
+						_comm.refreshToolBar();
 					}
 					if (sameSc && samePane) {
 						// 同一リスト内で移動。
@@ -1007,6 +1013,7 @@ private:
 	private class SelChanged : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
 			refreshStatusLine();
+			_comm.refreshToolBar();
 		}
 	}
 	static if (is(CardOwner : Summary)) {
@@ -1036,11 +1043,15 @@ private:
 			}
 		}
 	}
+	void selectChanged() {
+		refreshStatusLine();
+		_comm.refreshToolBar();
+	}
 	void createCardList(Composite parent) {
 		_list = new CardList!(C)(parent, SWT.VIRTUAL | SWT.V_SCROLL | (EditMode ? SWT.SINGLE : SWT.MULTI) | SWT.BORDER);
 		_list.setLayoutValues(_prop.var.etc.cardsMarginX, _prop.var.etc.cardsSpaceX,
 			_prop.var.etc.cardsMarginY, _prop.var.etc.cardsSpaceY, _prop.var.etc.cardsDefaultWrap);
-		_list.selectChanged(&refreshStatusLine);
+		_list.selectChanged(&selectChanged);
 		_tbl = new Table(parent, SWT.FULL_SELECTION | (EditMode ? SWT.SINGLE : SWT.MULTI) | SWT.BORDER);
 		_tbl.addSelectionListener(new SelChanged);
 		_tbl.setHeaderVisible(true);
@@ -1154,7 +1165,7 @@ private:
 public:
 	static if (!EditMode) {
 		static if (is (C == CastCard)) {
-			this(Commons comm, Props prop, PCardOwner summ, Composite parent, ToCardOwner toc, void delegate() openHand) {
+			this (Commons comm, Props prop, PCardOwner summ, Composite parent, ToCardOwner toc, void delegate() openHand) {
 				_parent = parent;
 				_toc = toc;
 				_openHand = openHand;
@@ -1162,7 +1173,7 @@ public:
 				construct1(comm, prop, summ);
 			}
 		} else {
-			this(Commons comm, Props prop, PCardOwner summ, Composite parent, ToCardOwner toc) {
+			this (Commons comm, Props prop, PCardOwner summ, Composite parent, ToCardOwner toc) {
 				_parent = parent;
 				_toc = toc;
 				_skinTemp = findSkin(comm, prop, summ);
@@ -1173,7 +1184,7 @@ public:
 			reconstruct(_parent);
 		}
 	} else static if (is (C : Card)) {
-		this(Commons comm, Props prop, PCardOwner summ, Composite parent) {
+		this (Commons comm, Props prop, PCardOwner summ, Composite parent) {
 			_parent = parent;
 			construct1(comm, prop, summ);
 		}
@@ -1366,6 +1377,7 @@ public:
 	}
 	@property
 	int selectionIndex() {
+		if (!_summ) return -1;
 		if (_viewMode == CViewMode.TABLE) {
 			return _tbl.getSelectionIndex();
 		} else {
@@ -1374,6 +1386,7 @@ public:
 	}
 	@property
 	C selection() {
+		if (!_summ) return null;
 		if (_viewMode == CViewMode.TABLE) {
 			int i = _tbl.getSelectionIndex();
 			return -1 != i ? cast(C) _tbl.getItem(i).getData() : null;
@@ -1406,6 +1419,7 @@ public:
 					cWin.open!(cWin.BEAST)(shellActivate);
 				}
 			} else static assert (0);
+			_comm.refreshToolBar();
 		}
 		void create() {
 			static if (is (C == CastCard)) {
@@ -1454,6 +1468,7 @@ public:
 				dlg.appliedEvent ~= {
 					refresh();
 					refCard(c);
+					_comm.refreshToolBar();
 				};
 			};
 			_editDlgs[c] = dlg;
@@ -1540,6 +1555,7 @@ public:
 				_list.scroll(_list.count - 1);
 			}
 			refreshStatusLine();
+			_comm.refreshToolBar();
 		}
 	} else {
 		private void delegate(ref XNode, string) _addc;
@@ -1554,6 +1570,7 @@ public:
 			auto doc = XNode.create(C.XML_NAME_M);
 			toNode(doc, cs);
 			_addc(doc, LATEST_VERSION);
+			_comm.refreshToolBar();
 		}
 	}
 	void refreshAll(PCardOwner summ, CardOwner owner) {
@@ -1604,6 +1621,7 @@ public:
 			}
 			refreshIDs();
 			if (refIDs) _undo ~= undo;
+			_comm.refreshToolBar();
 		}
 
 		static if (is (C == CastCard)) {
@@ -1633,6 +1651,7 @@ public:
 			dlg.appliedEvent ~= {
 				refresh();
 				refCard(c);
+				_comm.refreshToolBar();
 			};
 			dlg.closeEvent ~= {
 				_editDlgs.remove(c);
@@ -1696,11 +1715,13 @@ public:
 			int sel = selectionIndex;
 			if (-1 == sel) return;
 			udImpl(sel, sel - 1);
+			_comm.refreshToolBar();
 		}
 		void down() {
 			int sel = selectionIndex;
 			if (-1 == sel) return;
 			udImpl(sel, sel + 1);
+			_comm.refreshToolBar();
 		}
 	}
 	bool isSelected() {
@@ -1778,9 +1799,11 @@ public:
 	static if (EditMode) {
 		void undo() {
 			_undo.undo();
+			_comm.refreshToolBar();
 		}
 		void redo() {
 			_undo.redo();
+			_comm.refreshToolBar();
 		}
 		bool canUndo() {
 			return _undo.canUndo();

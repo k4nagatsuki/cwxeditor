@@ -200,8 +200,10 @@ public:
 	}
 	void undo() {
 		_undo.undo();
+		_comm.refreshToolBar();
 	}
 	void redo() {
 		_undo.redo();
+		_comm.refreshToolBar();
 	}
 }

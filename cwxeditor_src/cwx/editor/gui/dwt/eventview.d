@@ -143,6 +143,7 @@ private:
 			_selPath2 = getSelPath(v);
 		}
 		protected void uda(EventView v) {
+			scope (exit) comm.refreshToolBar();
 			if (!v) return;
 			if (_selPath) {
 				auto itm = v._cards.getItem(_selPath[0]);
@@ -398,6 +399,7 @@ private:
 			}
 		}
 		if (isVisible()) openToolWindow();
+		_comm.refreshToolBar();
 	}
 
 	void refreshTopStart() {
@@ -532,6 +534,7 @@ private:
 		if (starts.length) {
 			_comm.refUseCount.call();
 		}
+		_comm.refreshToolBar();
 	}
 	private static void appendTreeImpl(Commons comm, EventTreeOwner eto, EventTree tree, int index) {
 		eto.insert(index, tree);
@@ -552,6 +555,7 @@ private:
 			appendTreeItem(parItm, index, null);
 		}
 		parItm.setExpanded(true);
+		_comm.refreshToolBar();
 	}
 	TreeItem appendTreeItem(TreeItem parItm, int index, Object defFire) {
 		auto par = cast(EventTreeOwner) parItm.getData();
@@ -586,6 +590,7 @@ private:
 			tree.name = text;
 			_etree.refreshTreeName();
 			_comm.refEventTree.call(tree);
+			_comm.refreshToolBar();
 			return;
 		}
 		static if (UseFire) {
@@ -598,6 +603,7 @@ private:
 			itm.setImage(keyCodeImage(text));
 			obj.array = text.dup;
 			_comm.refEventTree.call(tree);
+			_comm.refreshToolBar();
 		}
 	}
 	static if (UseFire) {
@@ -608,6 +614,7 @@ private:
 				if (!sel) {
 					eItm.setExpanded(expand);
 				}
+				_comm.refreshToolBar();
 			}
 			eItm.removeAll();
 			static if (is (A == Area)) {
@@ -745,6 +752,7 @@ private:
 			store(tree);
 			addFire(treeItm, fire);
 			refreshFires(treeItm, fire);
+			_comm.refreshToolBar();
 		}
 		void addFire(TreeItem treeItm, Object fire) {
 			auto tree = cast(EventTree) treeItm.getData();
@@ -863,6 +871,7 @@ private:
 				refreshFires(etItm);
 				etItm.setExpanded(true);
 				_comm.refEventTree.call(et);
+				_comm.refreshToolBar();
 			}
 		}
 	}
@@ -884,6 +893,7 @@ private:
 			et.setKeyCode(i, keyCode);
 			itm.setText(keyCode);
 			itm.setImage(keyCodeImage(keyCode));
+			_comm.refreshToolBar();
 		}
 		void keyCodeTimUse() {
 			keyCodeTimImpl(FKCKind.Use);
@@ -895,9 +905,14 @@ private:
 			keyCodeTimImpl(FKCKind.Failure);
 		}
 	}
+	bool curIsKeyCode(FKCKind Kind)() {
+		auto itm = selectionKeyCode;
+		if (!itm) return false;
+		return Kind !is _prop.sys.fireKeyCodeKind((cast(KeyCodeObj) selectionKeyCode.getData()).array.idup);
+	}
 public:
-	this(Commons comm, Props prop, Summary summ, A area, Composite parent, UndoManager undo) {
-		super(parent, SWT.NONE);
+	this (Commons comm, Props prop, Summary summ, A area, Composite parent, UndoManager undo) {
+		super (parent, SWT.NONE);
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
@@ -1001,9 +1016,9 @@ public:
 						auto cascade = createMenuItem(_comm, menu, MenuID.KeyCodeTiming, dlg, () => selectionKeyCode !is null, SWT.CASCADE);
 						auto sub = new Menu(parent.getShell(), SWT.DROP_DOWN);
 						cascade.setMenu(sub);
-						createMenuItem(_comm, sub, MenuID.KeyCodeTimingUse, &keyCodeTimUse, () => selectionKeyCode !is null);
-						createMenuItem(_comm, sub, MenuID.KeyCodeTimingSuccess, &keyCodeTimSuccess, () => selectionKeyCode !is null);
-						createMenuItem(_comm, sub, MenuID.KeyCodeTimingFailure, &keyCodeTimFailure, () => selectionKeyCode !is null);
+						createMenuItem(_comm, sub, MenuID.KeyCodeTimingUse, &keyCodeTimUse, &curIsKeyCode!(FKCKind.Use));
+						createMenuItem(_comm, sub, MenuID.KeyCodeTimingSuccess, &keyCodeTimSuccess, &curIsKeyCode!(FKCKind.Success));
+						createMenuItem(_comm, sub, MenuID.KeyCodeTimingFailure, &keyCodeTimFailure, &curIsKeyCode!(FKCKind.Failure));
 					}
 					new MenuItem(menu, SWT.SEPARATOR);
 					createMenuItem(_comm, menu, MenuID.ToScript, &toScript, &canToScript);
@@ -1078,30 +1093,30 @@ public:
 				return castCard ? castCard.name : "";
 			}
 		}
-		void addCard(string cwxPath) {
+		private void addCard(string cwxPath) {
 			if (!cpeq(_area.cwxPath, cpparent(cwxPath))) return;
 			size_t i = cpindex(cpbottom(cwxPath));
 			appendCard(i, _area.cards[i]);
 		}
-		void refCard(string cwxPath) {
+		private void refCard(string cwxPath) {
 			if (!cpeq(_area.cwxPath, cpparent(cwxPath))) return;
 			size_t i = cpindex(cpbottom(cwxPath));
 			renameCard(i);
 		}
-		void delCard(string cwxPath) {
+		private void delCard(string cwxPath) {
 			if (!cpeq(_area.cwxPath, cpparent(cwxPath))) return;
 			size_t i = cpindex(cpbottom(cwxPath));
 			removeCard(i);
 		}
-		void upCard(string cwxPath, int[] indices, int count) {
+		private void upCard(string cwxPath, int[] indices, int count) {
 			if (!cpeq(_area.cwxPath, cwxPath)) return;
 			upCard(indices, count);
 		}
-		void downCard(string cwxPath, int[] indices, int count) {
+		private void downCard(string cwxPath, int[] indices, int count) {
 			if (!cpeq(_area.cwxPath, cwxPath)) return;
 			downCard(indices, count);
 		}
-		void appendCard(int index, C c) {
+		private void appendCard(int index, C c) {
 			if (initial()) return;
 			Image imgCard;
 			static if (is (C == MenuCard)) {
@@ -1112,7 +1127,7 @@ public:
 			auto itm = createTreeItem(_cards, c, cardName(c), imgCard, index + 1);
 			refreshTrees(itm);
 		}
-		void removeCard(int index) {
+		private void removeCard(int index) {
 			if (initial()) return;
 			if (_selItm && !_selItm.isDisposed()
 					&& _selItm.getParentItem() is _cards.getItems()[index + 1]) {
@@ -1121,12 +1136,12 @@ public:
 			}
 			_cards.getItems()[index + 1].dispose();
 		}
-		void renameCard(int index) {
+		private void renameCard(int index) {
 			if (initial()) return;
 			auto itm = _cards.getItems()[index + 1];
 			itm.setText(cardName(cast(C) itm.getData()));
 		}
-		void __udCard(int[] indices, int function(TreeItem) ud, int udVal, int count) {
+		private void __udCard(int[] indices, int function(TreeItem) ud, int udVal, int count) {
 			foreach (j; 0 .. count) {
 				foreach (i; indices) {
 					i += udVal * j;
@@ -1140,11 +1155,11 @@ public:
 				}
 			}
 		}
-		void upCard(int[] indices, int count) {
+		private void upCard(int[] indices, int count) {
 			if (initial()) return;
 			__udCard(indices, &treeItemUp, -1, count);
 		}
-		void downCard(int[] indices, int count) {
+		private void downCard(int[] indices, int count) {
 			if (initial()) return;
 			__udCard(indices, &treeItemDown, 1, count);
 		}
@@ -1213,6 +1228,7 @@ public:
 			}
 		}
 		if (openToolWin) openToolWindow();
+		_comm.refreshToolBar();
 	}
 	private bool canUdImpl(string BeforeAfter, string CanSwapKeyCode)(TreeItem itm) {
 		if (itm && itm.getParentItem()) {
@@ -1226,7 +1242,12 @@ public:
 				} else {
 					static if (UseFire) {
 						if (cast(KeyCodeObj) data) {
-							return true;
+							// キーコード
+							auto tree = cast(EventTree) parent.getData();
+							int keyCodeLen = tree.keyCodes.length;
+							from -= keyCodesIndex(parent);
+							to -= keyCodesIndex(parent);
+							return mixin (CanSwapKeyCode);
 						}
 					}
 				}
@@ -1309,6 +1330,7 @@ public:
 			_etree.up();
 		} else if (_cards.isFocusControl()) {
 			udImpl!("before(parent, from)", "to >= 0")(itm, &treeItemUp, store);
+			_comm.refreshToolBar();
 		}
 	}
 	void down() {
@@ -1320,6 +1342,7 @@ public:
 			_etree.down();
 		} else if (_cards.isFocusControl()) {
 			udImpl!("after(parent, from)", "to < keyCodeLen")(itm, &treeItemDown, store);
+			_comm.refreshToolBar();
 		}
 	}
 
@@ -1400,6 +1423,7 @@ public:
 	private void setFireControl(Control c) {
 		if (_fireItm.getControl()) _fireItm.getControl().dispose();
 		_fireItm.setControl(c);
+		_comm.refreshToolBar();
 	}
 	@property
 	private string[] areaDefVals() {
@@ -1646,6 +1670,7 @@ public:
 								}
 							}
 						}
+						_comm.refreshToolBar();
 					} catch (Exception e) {
 						debugln(e);
 					}
@@ -1694,6 +1719,7 @@ public:
 				}
 				itm.dispose();
 				_comm.refUseCount.call();
+				_comm.refreshToolBar();
 			}
 		}
 		@property
@@ -1737,8 +1763,14 @@ public:
 			return false;
 		}
 	}
-	void undo() {_undo.undo();}
-	void redo() {_undo.redo();}
+	void undo() {
+		_undo.undo();
+		_comm.refreshToolBar();
+	}
+	void redo() {
+		_undo.redo();
+		_comm.refreshToolBar();
+	}
 
 	bool openCWXPath(string path, bool shellActivate) {
 		initial();
@@ -1785,6 +1817,7 @@ public:
 		} break;
 		case "": {
 			.forceFocus(_cards, shellActivate);
+			_comm.refreshToolBar();
 			return true;
 		} break;
 		default: break;

@@ -159,6 +159,7 @@ private:
 				v.refreshStatusLine();
 			}
 			comm.refUseCount.call();
+			comm.refreshToolBar();
 		}
 		protected AreaTable view() {
 			return _v;
@@ -440,6 +441,7 @@ private:
 				assert (cast(Package) area);
 				_comm.refPackage.call(cast(Package) area);
 			}
+			_comm.refreshToolBar();
 		}
 	}
 	private static const ID = 0;
@@ -575,6 +577,7 @@ private:
 					_comm.delPackage.call(cast(Package) area);
 				}
 				refreshStatusLine();
+				_comm.refreshToolBar();
 			}
 		}
 	}
@@ -660,6 +663,7 @@ private:
 					callRefArea(area);
 					refreshIDs(true);
 					refreshStatusLine();
+					_comm.refreshToolBar();
 					e.detail = DND.DROP_NONE;
 				} else {
 					// 他のリストからのコピー
@@ -690,6 +694,7 @@ private:
 					refreshIDs(true);
 					_comm.refUseCount.call();
 					refreshStatusLine();
+					_comm.refreshToolBar();
 				}
 			} catch (Exception e) {
 				debugln(e);
@@ -802,6 +807,7 @@ private:
 	private class SListener : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
 			refreshStatusLine();
+			_comm.refreshToolBar();
 		}
 	}
 	void refScenario(Summary summ) {
@@ -954,6 +960,7 @@ public:
 			if (dlg.open()) {
 				reNumberingArea(ai, dlg.newId);
 			}
+			_comm.refreshToolBar();
 			return;
 		}
 		int bi = toBattleIndex(index);
@@ -963,6 +970,7 @@ public:
 			if (dlg.open()) {
 				reNumberingBattle(bi, dlg.newId);
 			}
+			_comm.refreshToolBar();
 			return;
 		}
 		int pi = toPackageIndex(index);
@@ -972,6 +980,7 @@ public:
 			if (dlg.open()) {
 				reNumberingPackage(pi, dlg.newId);
 			}
+			_comm.refreshToolBar();
 			return;
 		}
 	}
@@ -1012,6 +1021,7 @@ public:
 	void summary(Summary summ) {
 		_summ = summ;
 		refreshAreas();
+		_comm.refreshToolBar();
 	}
 
 	/// 新規エリアが作成され、名前の入力待ちになる。
@@ -1032,6 +1042,7 @@ public:
 		_comm.refArea.call(area);
 		_areasEdit.startEdit();
 		refreshStatusLine();
+		_comm.refreshToolBar();
 	}
 
 	/// 新規バトルが作成され、名前の入力待ちになる。
@@ -1045,6 +1056,7 @@ public:
 		_comm.refBattle.call(btl);
 		_areasEdit.startEdit();
 		refreshStatusLine();
+		_comm.refreshToolBar();
 	}
 
 	/// 新規パッケージが作成され、名前の入力待ちになる。
@@ -1065,22 +1077,26 @@ public:
 		_comm.refPackage.call(pkg);
 		_areasEdit.startEdit();
 		refreshStatusLine();
+		_comm.refreshToolBar();
 		return pkg.id;
 	}
 	@property
 	private void selArea(int index) {
 		_areas.setSelection(index);
 		_areas.showSelection();
+		_comm.refreshToolBar();
 	}
 	@property
 	private void selBattle(int index) {
 		_areas.setSelection(_summ.areas.length + index);
 		_areas.showSelection();
+		_comm.refreshToolBar();
 	}
 	@property
 	private void selPackage(int index) {
 		_areas.setSelection(_summ.areas.length + _summ.battles.length + index);
 		_areas.showSelection();
+		_comm.refreshToolBar();
 	}
 	@property
 	void select(AbstractArea a) {
@@ -1088,6 +1104,7 @@ public:
 		if (0 <= i) {
 			_areas.select(i);
 			_areas.showSelection();
+			_comm.refreshToolBar();
 		}
 	}
 
@@ -1218,6 +1235,7 @@ public:
 		if (cast(Package) area1 && cast(Package) area2) {
 			udImpl2!Package(index1, index2);
 		}
+		_comm.refreshToolBar();
 	}
 	private void udImpl2(A)(int index1, int index2) {
 		auto a1 = cast(A) areaFromIndex(_summ, index1);
@@ -1318,6 +1336,7 @@ public:
 						if (_flags) _flags.refresh();
 						_comm.refUseCount.call();
 						refreshStatusLine();
+						_comm.refreshToolBar();
 					}
 				} catch (Exception e) {
 					debugln(e);
@@ -1341,6 +1360,7 @@ public:
 				if (_flags) _flags.refresh();
 				_comm.refUseCount.call();
 				refreshStatusLine();
+				_comm.refreshToolBar();
 			}
 		}
 		@property
@@ -1382,9 +1402,11 @@ public:
 	}
 	void undo() {
 		_undo.undo();
+		_comm.refreshToolBar();
 	}
 	void redo() {
 		_undo.redo();
+		_comm.refreshToolBar();
 	}
 
 	@property

@@ -109,6 +109,7 @@ private:
 			save(v);
 		}
 		protected void uda(MotionView v) {
+			scope (exit) comm.refreshToolBar();
 			if (!v || v.isDisposed()) return;
 			v._motions.select(_selectedB);
 			v._motions.showSelection();
@@ -477,6 +478,7 @@ private:
 		if (index > 0) {
 			swap(index, index - 1, true);
 			_motions.select(index - 1);
+			_comm.refreshToolBar();
 		}
 	}
 	void down() {
@@ -484,6 +486,7 @@ private:
 		if (index >= 0 && index + 1 < _motions.getItemCount()) {
 			swap(index, index + 1, true);
 			_motions.select(index + 1);
+			_comm.refreshToolBar();
 		}
 	}
 	void removeMotion() {
@@ -495,6 +498,7 @@ private:
 			if (callEvent && oldVan != hasVan) {
 				foreach (we; warningEvent) we();
 			}
+			_comm.refreshToolBar();
 		}
 		if (-1 == index) {
 			index = _motions.getSelectionIndex();
@@ -528,6 +532,7 @@ private:
 			if (callEvent && oldVan != hasVan) {
 				foreach (we; warningEvent) we();
 			}
+			_comm.refreshToolBar();
 		}
 		TableItem itm;
 		if (store) {
@@ -607,11 +612,22 @@ private:
 				}
 			}
 		}
+		_comm.refreshToolBar();
 	}
 	class ParamPaneChange : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
 			refreshSels();
 		}
+	}
+	bool canSetBeast() {
+		int index = _beasts.getSelectionIndex();
+		if (index > 0) {
+			int mi = _motions.getSelectionIndex();
+			auto sb = cast(Motion) _motions.getItem(mi).getData();
+			auto b = _beastTbl[index];
+			return sb.beast || b;
+		}
+		return false;
 	}
 	class SetBeast : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
@@ -718,6 +734,7 @@ private:
 				_itm.dispose();
 				_motions.redraw();
 				foreach (dlg; modEvent) dlg();
+				_comm.refreshToolBar();
 			}
 		}
 	}
@@ -975,11 +992,17 @@ public:
 				grp.setText(_prop.msgs.motionBeast);
 				_beasts = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 				_beasts.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				_beasts.addSelectionListener(new class SelectionAdapter {
+					override void widgetSelected(SelectionEvent e) {
+						_comm.refreshToolBar();
+					}
+				});
 				refBeasts();
 				auto setBeast = new Button(grp, SWT.PUSH);
 				setBeast.setImage(_prop.images.setBeast);
 				setBeast.setToolTipText(_prop.msgs.setBeast);
 				setBeast.addSelectionListener(new SetBeast);
+				_comm.put(setBeast, &canSetBeast);
 				_beastImg = new Canvas(grp, SWT.BORDER | SWT.DOUBLE_BUFFERED);
 				_beastImg.addListener(SWT.Traverse, new class Listener {
 					override void handleEvent(Event e) {
@@ -1130,6 +1153,7 @@ public:
 		}
 		foreach (dlg; modEvent) dlg();
 		_motions.setRedraw(true);
+		_comm.refreshToolBar();
 	}
 	@property
 	Motion[] motions() {
@@ -1167,6 +1191,7 @@ public:
 					} else {
 						pasteBeast(node);
 					}
+					_comm.refreshToolBar();
 				} catch {}
 			}
 		}
@@ -1239,6 +1264,7 @@ public:
 				try {
 					auto node = XNode.parse(xml);
 					pasteBeast(node);
+					_comm.refreshToolBar();
 				} catch {}
 			}
 		}
@@ -1252,6 +1278,7 @@ public:
 					m.beast = null;
 					_beastImg.redraw();
 					foreach (dlg; modEvent) dlg();
+					_comm.refreshToolBar();
 				}
 			}
 		}
@@ -1292,7 +1319,10 @@ public:
 			refreshSels();
 			path = cpbottom(path);
 			.forceFocus(_motions, shellActivate);
-			if (cpempty(path)) return true;
+			if (cpempty(path)) {
+				_comm.refreshToolBar();
+				return true;
+			}
 			auto m = selection;
 			if (m.beast) {
 				switch (cpcategory(path)) {
@@ -1307,12 +1337,14 @@ public:
 				path = cpbottom(path);
 				if ("event" == cpcategory(path)) {
 					auto w = openBeastEventWin(m.beast);
+					_comm.refreshToolBar();
 					return w.openCWXPath(path, shellActivate);
 				} else {
 					if (cphasattr(path, "opendialog")) {
 						auto d = editBeast();
 						return d.openCWXPath(path, shellActivate);
 					}
+					_comm.refreshToolBar();
 					return true;
 				}
 			}

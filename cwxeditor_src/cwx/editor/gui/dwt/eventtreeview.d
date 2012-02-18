@@ -74,6 +74,8 @@ import org.eclipse.swt.events.ShellAdapter;
 import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.TreeListener;
+import org.eclipse.swt.events.TreeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.PaintListener;
@@ -174,10 +176,12 @@ private:
 					if (c.parent) {
 						_tree.setSelection([itm]);
 						create(itm);
+						_comm.refreshToolBar();
 					}
 				}
 			} else if (e.button == 3) {
 				arrow();
+				_comm.refreshToolBar();
 			}
 		}
 	}
@@ -209,6 +213,7 @@ private:
 			_selPath2 = sel ? (cast(Content) sel.getData()).ctPath : null;
 		}
 		void uda(EventTreeView v) {
+			scope (exit) comm.refreshToolBar();
 			if (!v) return;
 			if (_selPath) v._tree.select(v.fromPath(_selPath));
 			_selPath = _selPath2;
@@ -461,6 +466,7 @@ private:
 		_comm.refContent.call(c);
 		_comm.refUseCount.call();
 		refreshStatusLine();
+		_comm.refreshToolBar();
 	}
 	void editM() {edit();}
 	EventDialog edit() {
@@ -497,6 +503,7 @@ private:
 					refreshConvMenu();
 					refreshStatusLine();
 					if (!_conti) arrow();
+					_comm.refreshToolBar();
 				});
 			} else {
 				if (insertTo && !CDetail.fromType(_cType).owner) return;
@@ -531,6 +538,7 @@ private:
 						refreshConvMenu();
 						refreshStatusLine();
 						if (!_conti) arrow();
+						_comm.refreshToolBar();
 					}
 					if (insertTo) {
 						create(owner, _cType, (cast(Content) insertTo.getData()).name, &applied);
@@ -601,7 +609,10 @@ private:
 
 	void create(Content parent, CType type, string name, void delegate(Content) applied) {
 		assert (parent is null || parent.detail.owner);
-		if (!_conti) arrow();
+		if (!_conti) {
+			arrow();
+			_comm.refreshToolBar();
+		}
 		void initial(Content c) {
 			if (type is CType.CHANGE_BG_IMAGE) {
 				c.backs = createBgImages(_comm.skin, _prop.var.etc.bgImagesDefault);
@@ -1076,11 +1087,20 @@ private:
 		}
 		_comm.setStatusLine(_tree, _statusLine);
 	}
+	class TListener : TreeListener {
+		override void treeCollapsed(TreeEvent e) {
+			_comm.refreshToolBar();
+		}
+		override void treeExpanded(TreeEvent e) {
+			_comm.refreshToolBar();
+		}
+	}
 	class SListener : SelectionAdapter {
 		public override void widgetSelected(SelectionEvent e) {
 			assert (cast(Content) e.item.getData());
 			refreshConvMenu();
 			refreshStatusLine();
+			_comm.refreshToolBar();
 		}
 	}
 	private TreeItem _dragItm = null;
@@ -1124,6 +1144,7 @@ private:
 				itm.dispose();
 				_tree.setRedraw(true);
 				_comm.refUseCount.call();
+				_comm.refreshToolBar();
 			}
 		}
 	}
@@ -1178,6 +1199,7 @@ private:
 						_tree.setRedraw(true);
 						refreshStatusLine();
 						e.detail = DND.DROP_MOVE;
+						_comm.refreshToolBar();
 					}
 				}
 			}
@@ -1222,6 +1244,7 @@ private:
 				_v._arrowMode = false;
 				_v._cType = type;
 				_v._evtTI = _itm;
+				_comm.refreshToolBar();
 			}
 		}
 		@property
@@ -1252,6 +1275,7 @@ private:
 			refreshConvMenu();
 			refreshStatusLine();
 			_comm.refUseCount.call();
+			_comm.refreshToolBar();
 		}
 	}
 	ToolItem createEI(CType type, ToolBar bar, RadioGroup!(ToolItem) g, Menu convMenu) {
@@ -1358,6 +1382,7 @@ private:
 			}
 			_comm.actToolWin = _toolWin;
 			_toolWin.setVisible(_toolWinVisible);
+			_comm.refreshToolBar();
 		}
 	}
 	class TRDListener : DisposeListener {
@@ -1420,6 +1445,7 @@ private:
 		override void mouseDown(MouseEvent e) {
 			if (e.button == 3) {
 				arrow();
+				_comm.refreshToolBar();
 			}
 		}
 	}
@@ -1564,7 +1590,7 @@ private:
 		}
 	}
 public:
-	this(Commons comm, Props prop, Summary summ, Composite parent, UndoManager undo,
+	this (Commons comm, Props prop, Summary summ, Composite parent, UndoManager undo,
 			void delegate(size_t[]) forceSel,
 			void delegate() refreshTopStart,
 			Composite contentsBoxArea) {
@@ -1634,7 +1660,7 @@ public:
 						auto itm = selection;
 						if (!itm) return false;
 						auto evt = cast(Content) itm.getData();
-						return evt.type is CType.START;
+						return evt.type !is CType.START;
 					}, SWT.CASCADE);
 					_convM = new Menu(_tree.getShell(), SWT.DROP_DOWN);
 					debug {
@@ -1662,6 +1688,7 @@ public:
 				}
 			}
 		}
+		_tree.addTreeListener(new TListener);
 		_tree.addSelectionListener(new SListener);
 
 		_comm.refCast.add(&__refreshCast);
@@ -1708,6 +1735,12 @@ public:
 	private Composite _cbarPar;
 	private Menu _convM;
 	private bool _constructTools = false;
+	private bool canConvTerminal() {
+		auto itm = selection;
+		if (!itm) return false;
+		auto evt = cast(Content) itm.getData();
+		return !evt.next.length;
+	}
 	void constructTools() {
 		if (_tree.isDisposed() || _constructTools) return;
 		_constructTools = true;
@@ -1722,28 +1755,20 @@ public:
 			_radioGroup = g;
 			void delegate() dlg = null;
 			Menu convMenu(CTypeGroup g) {
-				auto mi = createMenuItem(_comm, _convM, cTypeGroupToMenuID(g), dlg, {
-					auto itm = selection;
-					if (!itm) return false;
-					if (g !is CTypeGroup.Terminal) return true;
-					auto evt = cast(Content) itm.getData();
-					return !evt.next.length;
-				}, SWT.CASCADE);
+				auto mi = createMenuItem(_comm, _convM, cTypeGroupToMenuID(g), dlg, g is CTypeGroup.Terminal ? &canConvTerminal : null, SWT.CASCADE);
 				auto m = new Menu(_tree.getShell(), SWT.DROP_DOWN);
 				mi.setMenu(m);
 				return m;
 			}
 
 			auto atm = new ToolBar(cbar, SWT.FLAT);
-			_comm.put(atm);
 			atm.addMouseListener(new TMListener);
-			_arrowTI = createToolItem2(_comm, atm, _prop.msgs.evtArrow, _prop.images.evtArrow, &arrow, () => !_arrowMode, SWT.RADIO);
+			_arrowTI = createToolItem2(_comm, atm, _prop.msgs.evtArrow, _prop.images.evtArrow, &arrow, null, SWT.RADIO);
 			_arrowTI.setSelection(true);
 			g.append(_arrowTI);
 			createCoolItem(cbar, atm);
 
 			auto mode = new ToolBar(cbar, SWT.FLAT);
-			_comm.put(mode);
 			mode.addMouseListener(new TMListener);
 			_contiTI = createToolItem2(_comm, mode, _prop.msgs.evtAddContinue, _prop.images.evtAddContinue, &addContinue, null, SWT.CHECK);
 			_contiTI.setSelection(_conti);
@@ -1754,7 +1779,6 @@ public:
 			auto tml = new TMListener;
 			foreach (cGrp, cs; CTYPE_GROUP) {
 				auto eBar = new ToolBar(cbar, SWT.FLAT);
-				_comm.put(eBar);
 				eBar.addMouseListener(tml);
 				auto conv = convMenu(cGrp);
 				foreach (cType; cs) {
@@ -1802,8 +1826,14 @@ public:
 	@property
 	string statusLine() {return _statusLine;}
 
-	void undo() {_undo.undo();}
-	void redo() {_undo.redo();}
+	void undo() {
+		_undo.undo();
+		_comm.refreshToolBar();
+	}
+	void redo() {
+		_undo.redo();
+		_comm.refreshToolBar();
+	}
 	debug {
 		void createCWXPath() {
 			auto itm = selection;
@@ -1925,6 +1955,7 @@ public:
 		}
 		refreshStatusLine();
 		_comm.refUseCount.call();
+		_comm.refreshToolBar();
 	}
 
 	void refresh(EventTree et) {
@@ -1954,15 +1985,18 @@ public:
 			}
 			_tree.setRedraw(true);
 			refreshStatusLine();
+			_comm.refreshToolBar();
 		}
 	}
 	void treeOpen() {
 		treeExpandedAll(_tree);
+		_comm.refreshToolBar();
 	}
 	void treeClose() {
 		foreach (itm; _tree.getItems()) {
 			itm.setExpanded(false);
 		}
+		_comm.refreshToolBar();
 	}
 	@property
 	bool canExpandTree() {
@@ -2048,6 +2082,7 @@ public:
 		}
 		_comm.refContent.call(evt);
 		refreshStatusLine();
+		_comm.refreshToolBar();
 	}
 	private CCombo createBoolEditor(string Create)(Content evt, Content child) {
 		string[] vals;
@@ -2334,6 +2369,7 @@ public:
 	private void up(TreeItem itm, bool store) {
 		if (!itm) return;
 		udImpl!(-1)(this, _comm, _et, cast(Content) itm.getData(), store);
+		_comm.refreshToolBar();
 	}
 	void up() {
 		auto itm = selection;
@@ -2342,6 +2378,7 @@ public:
 	private void down(TreeItem itm, bool store) {
 		if (!itm) return;
 		udImpl!(1)(this, _comm, _et, cast(Content) itm.getData(), store);
+		_comm.refreshToolBar();
 	}
 	void down() {
 		auto itm = selection;
@@ -2363,6 +2400,7 @@ public:
 			} else {
 				_toolWinVisible = true;
 			}
+			_comm.refreshToolBar();
 		}
 	}
 	void closeToolWindow() {
@@ -2394,6 +2432,7 @@ public:
 		createChilds(itm, owner, true);
 		_comm.refUseCount.call();
 		refreshStatusLine();
+		_comm.refreshToolBar();
 	}
 	private void addStarts(Content[] cs ...) {
 		_tree.setRedraw(false);
@@ -2428,6 +2467,7 @@ public:
 		_tree.showSelection();
 		_comm.refUseCount.call();
 		refreshStatusLine();
+		_comm.refreshToolBar();
 	}
 
 	override {
@@ -2493,6 +2533,7 @@ public:
 				scope(exit) _tree.setRedraw(true);
 				delImpl(itm, true);
 				_comm.refUseCount.call();
+				_comm.refreshToolBar();
 			}
 		}
 		@property
@@ -2620,12 +2661,14 @@ public:
 					auto d = edit();
 					if (d) {
 						// ダイアログ無し、もしくは開けない状態のコンテント
+						_comm.refreshToolBar();
 						return true;
 					}
 					if (!cpempty(path)) {
 						return d.openCWXPath(path, shellActivate);
 					}
 				}
+				_comm.refreshToolBar();
 				return true;
 			} else {
 				return openCWXPathImpl(child, path, shellActivate);

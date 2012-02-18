@@ -493,6 +493,7 @@ private abstract class FTVUndo : Undo {
 			v.refreshStatusLine();
 		}
 		selDir = null;
+		comm.refreshToolBar();
 	}
 	FlagTable view() {
 		return _v;
@@ -932,6 +933,7 @@ private:
 			_comm.openCWXPath(flag.cwxPath, false);
 			refresh(flag.name);
 			_comm.refFlagAndStep.call([flag], []);
+			_comm.refreshToolBar();
 		};
 		_editDlgsF[flag] = dlg;
 		dlg.closeEvent ~= {
@@ -976,6 +978,7 @@ private:
 			_comm.openCWXPath(step.cwxPath, false);
 			refresh(step.name);
 			_comm.refFlagAndStep.call([], [step]);
+			_comm.refreshToolBar();
 		};
 		_editDlgsS[step] = dlg;
 		dlg.closeEvent ~= {
@@ -1048,6 +1051,7 @@ private:
 				}
 				refresh();
 				_comm.delFlagAndStep.call(_dragFlags, _dragSteps);
+				_comm.refreshToolBar();
 			}
 			_dragFlags.length = 0;
 			_dragSteps.length = 0;
@@ -1056,6 +1060,7 @@ private:
 	class SListener : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
 			refreshStatusLine();
+			_comm.refreshToolBar();
 		}
 	}
 	class DListener : DisposeListener {
@@ -1074,6 +1079,7 @@ private:
 			f.name = f.parent.createNewFlagName(text);
 			itm.setText(column, f.name);
 			uc.change(oldId, toFlagId(f.path), true);
+			_comm.refreshToolBar();
 			return;
 		}
 		auto s = cast(Step) itm.getData();
@@ -1084,6 +1090,7 @@ private:
 			s.name = s.parent.createNewStepName(text);
 			itm.setText(column, s.name);
 			uc.change(oldId, toStepId(s.path), true);
+			_comm.refreshToolBar();
 			return;
 		}
 	}
@@ -1114,6 +1121,7 @@ private:
 			storeEdit(flags.indexOf(itm));
 			f.onOff = 0 == i;
 			itm.setText(column, f.onOff ? f.on : f.off);
+			_comm.refreshToolBar();
 			return;
 		}
 		auto s = cast(Step) itm.getData();
@@ -1122,6 +1130,7 @@ private:
 			storeEdit(flags.indexOf(itm));
 			s.select(i);
 			itm.setText(column, s.value);
+			_comm.refreshToolBar();
 			return;
 		}
 	}
@@ -1347,6 +1356,7 @@ public:
 			}
 		}
 		flags.showSelection();
+		_comm.refreshToolBar();
 	}
 	/// フラグを選択する。
 	void select(Flag flag, bool deselect) {
@@ -1409,6 +1419,7 @@ public:
 						storeInsert(sels, flagName, stepName);
 						refresh();
 						_comm.refFlagAndStep.call(cFlags.values, cSteps.values);
+						_comm.refreshToolBar();
 					}
 				} catch (Exception e) {
 					debugln(e);
@@ -1436,6 +1447,7 @@ public:
 			storeDelete(sels, fs, ss);
 			_comm.delFlagAndStep.call(fs, ss);
 			refresh();
+			_comm.refreshToolBar();
 		}
 		@property
 		bool canDoTCPD() {
@@ -1460,9 +1472,11 @@ public:
 	}
 	void undo() {
 		_undo.undo();
+		_comm.refreshToolBar();
 	}
 	void redo() {
 		_undo.redo();
+		_comm.refreshToolBar();
 	}
 
 	@property

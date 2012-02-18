@@ -1674,7 +1674,7 @@ class CloseRemover(Window) : DisposeListener {
 	public override void widgetDisposed(DisposeEvent e) {
 		if (_ws.contains(_w)) {
 			_ws.remove(_w);
-		}
+		} else assert (0);
 	}
 }
 

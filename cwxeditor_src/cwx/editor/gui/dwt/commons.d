@@ -40,6 +40,8 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.swt.widgets.Widget;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.DisposeEvent;
@@ -187,6 +189,7 @@ abstract class TopLevelPanel {
 		return p ? *p : null;
 	}
 	bool delegate() menuEnabled(MenuID menuID) {
+		if (shell.isDisposed()) return null;
 		auto p = menuID in _enabled;
 		return p ? *p : null;
 	}
@@ -301,7 +304,7 @@ class Commons {
 		_prop = prop;
 		_ws = new HashSet!(Composite);
 		_aws = new HashSet!(Composite);
-		_toolbars = new HashSet!(ToolBar);
+		_toolbars = new HashSet!(Control);
 		foreach (i, fld; this.tupleof) {
 			static if (is(typeof(typeof(fld).ID)) && typeof(fld).ID == "cwx.editor.gui.dwt.commons.Dlg") {
 				this.tupleof[i] = new typeof(fld);
@@ -327,22 +330,46 @@ class Commons {
 
 	private Clipboard _clipboard = null;
 
-	private HashSet!ToolBar _toolbars;
+	private HashSet!Control _toolbars;
 	void put(ToolBar bar) {
 		_toolbars.add(bar);
-		bar.addDisposeListener(new CloseRemover!ToolBar(_toolbars, bar));
+		bar.addDisposeListener(new CloseRemover!Control(_toolbars, bar));
+	}
+	void put(Control w, bool delegate() enabled) {
+		auto d = new MenuData();
+		d.enabled = enabled;
+		w.setData(d);
+		_toolbars.add(w);
+		w.addDisposeListener(new CloseRemover!Control(_toolbars, w));
 	}
 	void refreshToolBar() {
-		foreach (bar; _toolbars) {
-			if (!bar.isVisible()) continue;
-			foreach (itm; bar.getItems()) {
-				if (itm.getStyle() & SWT.SEPARATOR) continue;
-				auto d = cast(MenuData) itm.getData();
-				if (!d) continue;
-				if (d.enabled) {
-					// TODO: ツールバーの対応が出来たら有効にする
-/+					itm.setEnabled(d.enabled());
-+/				}
+		void s(Widget itm) {
+			auto d = cast(MenuData) itm.getData();
+			if (!d) return;
+			try {
+				if (d.enabled !is null) {
+					auto toolItm = cast(ToolItem) itm;
+					if (toolItm) {
+						toolItm.setEnabled(d.enabled());
+					} else {
+						auto ctrl = cast(Control) itm;
+						ctrl.setEnabled(d.enabled());
+					}
+				}
+			} catch (Throwable e) {
+				debugln(std.conv.text(d.id));
+				debugln(e);
+			}
+		}
+		foreach (w; _toolbars) {
+			auto bar = cast(ToolBar) w;
+			if (bar) {
+				if (!bar.isVisible()) continue;
+				foreach (itm; bar.getItems()) {
+					s(itm);
+				}
+			} else {
+				s(w);
 			}
 		}
 		_main.refreshToolBar();

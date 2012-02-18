@@ -344,6 +344,7 @@ private:
 		array[i] = temp;
 		list.select(i - 1);
 		applyEnabled();
+		_comm.refreshToolBar();
 	}
 	void down(T)(List list, ref T[] array) {
 		int i = list.getSelectionIndex();
@@ -356,6 +357,7 @@ private:
 		array[i] = temp;
 		list.select(i + 1);
 		applyEnabled();
+		_comm.refreshToolBar();
 	}
 	void upBgImage() {
 		storeBgStgs();
@@ -663,6 +665,7 @@ private:
 		foreach (tm; _bgImgTMs) {
 			tm.reset();
 		}
+		_comm.refreshToolBar();
 	}
 	void selectOuterTool() {
 		ignoreMod = true;
@@ -682,6 +685,7 @@ private:
 		foreach (tm; _toolTMs) {
 			tm.reset();
 		}
+		_comm.refreshToolBar();
 	}
 	void selectCEngine() {
 		ignoreMod = true;
@@ -703,6 +707,7 @@ private:
 		foreach (tm; _cEngineTMs) {
 			tm.reset();
 		}
+		_comm.refreshToolBar();
 	}
 	class SelEngine : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {selectEngine();}
@@ -789,6 +794,7 @@ private:
 		open.setToolTipText(_prop.buildTool(dir ? MenuID.OpenDir : MenuID.OpenPlace));
 		open.setImage(_prop.images.menu(MenuID.OpenDir));
 		open.addSelectionListener(new OpenDir(path, false));
+		_comm.put(open, () => path.getText().length > 0);
 		return open;
 	}
 	Button createCEngineSubOpenButton(Composite parent, Text path, bool dir) {
@@ -1091,6 +1097,7 @@ private:
 		_bgStgsL.select(index);
 		selectBgImageSetting();
 		applyEnabled();
+		_comm.refreshToolBar();
 	}
 	class NewBgImgStg : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
@@ -1116,6 +1123,7 @@ private:
 		_bgStgs[i].height = _bgImgH.getSelection();
 		_bgImgAlt.setEnabled(false);
 		applyEnabled();
+		_comm.refreshToolBar();
 	}
 	void delBgImage() {
 		int i = _bgStgsL.getSelectionIndex();
@@ -1128,6 +1136,7 @@ private:
 		}
 		selectBgImageSetting();
 		applyEnabled();
+		_comm.refreshToolBar();
 	}
 	class AltBgImgStg : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
@@ -1260,8 +1269,14 @@ private:
 				createMenuItem(_comm, menu, MenuID.Undo, &undoBgStgs, &_undoBgStgs.canUndo);
 				createMenuItem(_comm, menu, MenuID.Redo, &redoBgStgs, &_undoBgStgs.canRedo);
 				new MenuItem(menu, SWT.SEPARATOR);
-				createMenuItem(_comm, menu, MenuID.Up, &upBgImage, () => _bgStgsL.getSelectionIndex() != -1 && 0 < _bgStgsL.getSelectionIndex());
-				createMenuItem(_comm, menu, MenuID.Down, &downBgImage, () => _bgStgsL.getSelectionIndex() != -1 && _bgStgsL.getSelectionIndex() + 1 < _bgStgsL.getItemCount());
+				bool canUp() {
+					return _bgStgsL.getSelectionIndex() != -1 && 0 < _bgStgsL.getSelectionIndex();
+				}
+				bool canDown() {
+					return _bgStgsL.getSelectionIndex() != -1 && _bgStgsL.getSelectionIndex() + 1 < _bgStgsL.getItemCount();
+				}
+				createMenuItem(_comm, menu, MenuID.Up, &upBgImage, &canUp);
+				createMenuItem(_comm, menu, MenuID.Down, &downBgImage, &canDown);
 				new MenuItem(menu, SWT.SEPARATOR);
 				appendMenuTCPD(_comm, menu, new BgImagesTCPD, true, true, true, true);
 				_bgStgsL.setMenu(menu);
@@ -1271,11 +1286,13 @@ private:
 				up.setText(_prop.buildTool(MenuID.Up));
 				up.setImage(_prop.images.menu(MenuID.Up));
 				up.addSelectionListener(new UpBgImgStg);
+				_comm.put(up, &canUp);
 				auto down = new Button(left, SWT.PUSH);
 				down.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				down.setText(_prop.buildTool(MenuID.Down));
 				down.setImage(_prop.images.menu(MenuID.Down));
 				down.addSelectionListener(new DownBgImgStg);
+				_comm.put(down, &canDown);
 			}
 			leftSash.setWeights([_prop.var.etc.bgImageSettingsSashL, _prop.var.etc.bgImageSettingsSashR]);
 			leftSash.addDisposeListener(new DBgImgStg);
@@ -1382,6 +1399,7 @@ private:
 		_toolsL.select(index);
 		selectOuterTool();
 		applyEnabled();
+		_comm.refreshToolBar();
 	}
 	class NewOutTool : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
@@ -1401,6 +1419,7 @@ private:
 		_tools[i].workDir = _toolWorkDir.getText();
 		_toolAlt.setEnabled(false);
 		applyEnabled();
+		_comm.refreshToolBar();
 	}
 	void delTool() {
 		int i = _toolsL.getSelectionIndex();
@@ -1413,6 +1432,7 @@ private:
 		}
 		selectOuterTool();
 		applyEnabled();
+		_comm.refreshToolBar();
 	}
 	class AltOutTool : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
@@ -1507,6 +1527,7 @@ private:
 		_cEnginesL.select(index);
 		selectCEngine();
 		applyEnabled();
+		_comm.refreshToolBar();
 	}
 	class NewCEngine : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
@@ -1528,6 +1549,7 @@ private:
 		_cEngines[i].execute = _cEngineExecute.getText();
 		_cEngineAlt.setEnabled(false);
 		applyEnabled();
+		_comm.refreshToolBar();
 	}
 	void delCEngine() {
 		int i = _cEnginesL.getSelectionIndex();
@@ -1540,6 +1562,7 @@ private:
 		}
 		selectCEngine();
 		applyEnabled();
+		_comm.refreshToolBar();
 	}
 	class AltCEngine : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
@@ -1664,8 +1687,14 @@ private:
 				createMenuItem(_comm, menu, MenuID.Undo, &undoCEngines, &_undoCEngines.canUndo);
 				createMenuItem(_comm, menu, MenuID.Redo, &undoCEngines, &_undoCEngines.canRedo);
 				new MenuItem(menu, SWT.SEPARATOR);
-				createMenuItem(_comm, menu, MenuID.Up, &upCEngine, () => _cEnginesL.getSelectionIndex() != -1 && 0 < _cEnginesL.getSelectionIndex());
-				createMenuItem(_comm, menu, MenuID.Down, &downCEngine, () => _cEnginesL.getSelectionIndex() != -1 && _cEnginesL.getSelectionIndex() + 1 < _cEnginesL.getItemCount());
+				bool canUp() {
+					return _cEnginesL.getSelectionIndex() != -1 && 0 < _cEnginesL.getSelectionIndex();
+				}
+				bool canDown() {
+					return _cEnginesL.getSelectionIndex() != -1 && _cEnginesL.getSelectionIndex() + 1 < _cEnginesL.getItemCount();
+				}
+				createMenuItem(_comm, menu, MenuID.Up, &upCEngine, &canUp);
+				createMenuItem(_comm, menu, MenuID.Down, &downCEngine, &canDown);
 				new MenuItem(menu, SWT.SEPARATOR);
 				appendMenuTCPD(_comm, menu, new CEnginesTCPD, true, true, true, true);
 				_cEnginesL.setMenu(menu);
@@ -1675,11 +1704,13 @@ private:
 				up.setText(_prop.buildTool(MenuID.Up));
 				up.setImage(_prop.images.menu(MenuID.Up));
 				up.addSelectionListener(new UpCEngines);
+				_comm.put(up, &canUp);
 				auto down = new Button(left, SWT.PUSH);
 				down.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				down.setText(_prop.buildTool(MenuID.Down));
 				down.setImage(_prop.images.menu(MenuID.Down));
 				down.addSelectionListener(new DownCEngines);
+				_comm.put(down, &canDown);
 			}
 			auto right = new Composite(sash, SWT.NONE);
 			right.setLayout(zeroMarginGridLayout(1, true));
@@ -1801,8 +1832,14 @@ private:
 				createMenuItem(_comm, menu, MenuID.Undo, &undoTools, &_undoTools.canUndo);
 				createMenuItem(_comm, menu, MenuID.Redo, &redoTools, &_undoTools.canRedo);
 				new MenuItem(menu, SWT.SEPARATOR);
-				createMenuItem(_comm, menu, MenuID.Up, &upTool, () => _toolsL.getSelectionIndex() != -1 && 0 < _toolsL.getSelectionIndex());
-				createMenuItem(_comm, menu, MenuID.Down, &downTool, () => _toolsL.getSelectionIndex() != -1 && _toolsL.getSelectionIndex() + 1 < _toolsL.getItemCount());
+				bool canUp() {
+					return _toolsL.getSelectionIndex() != -1 && 0 < _toolsL.getSelectionIndex();
+				}
+				bool canDown() {
+					return _toolsL.getSelectionIndex() != -1 && _toolsL.getSelectionIndex() + 1 < _toolsL.getItemCount();
+				}
+				createMenuItem(_comm, menu, MenuID.Up, &upTool, &canUp);
+				createMenuItem(_comm, menu, MenuID.Down, &downTool, &canDown);
 				new MenuItem(menu, SWT.SEPARATOR);
 				appendMenuTCPD(_comm, menu, new ToolsTCPD, true, true, true, true);
 				_toolsL.setMenu(menu);
@@ -1812,11 +1849,13 @@ private:
 				up.setText(_prop.buildTool(MenuID.Up));
 				up.setImage(_prop.images.menu(MenuID.Up));
 				up.addSelectionListener(new UpOutTools);
+				_comm.put(up, &canUp);
 				auto down = new Button(left, SWT.PUSH);
 				down.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				down.setText(_prop.buildTool(MenuID.Down));
 				down.setImage(_prop.images.menu(MenuID.Down));
 				down.addSelectionListener(new DownOutTools);
+				_comm.put(down, &canDown);
 			}
 			auto right = new Composite(sash, SWT.NONE);
 			right.setLayout(zeroMarginGridLayout(1, true));

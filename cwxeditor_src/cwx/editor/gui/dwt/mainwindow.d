@@ -1876,6 +1876,13 @@ public:
 				setupMenu(_tool);
 				dStr ~= " - " ~ .text(__LINE__);
 			}
+			d.addFilter(SWT.Selection, new class Listener {
+				override void handleEvent(Event e) {
+					if (cast(CTabFolder) e.widget || cast(TabFolder) e.widget) {
+						_comm.refreshToolBar();
+					}
+				}
+			});
 			d.addFilter(SWT.FocusIn, new class Listener {
 				override void handleEvent(Event e) {
 					_comm.refreshToolBar();
@@ -2266,14 +2273,18 @@ public:
 				if (itm.getStyle() & SWT.SEPARATOR) continue;
 				auto d = cast(MenuData) itm.getData();
 				if (!d) continue;
-				// TODO: ツールバーの対応が出来たら有効にする
-/+				if (d.enabled) {
-					itm.setEnabled(d.enabled());
-				} else {
-					auto enabled = _tlp.menuEnabled(d.id);
-					if (enabled) itm.setEnabled(enabled());
+				try {
+					if (d.enabled !is null) {
+						itm.setEnabled(d.enabled());
+					} else {
+						auto enabled = _tlp.menuEnabled(d.id);
+						if (enabled) itm.setEnabled(enabled());
+					}
+				} catch (Throwable e) {
+					debugln(.text(d.id));
+					debugln(e);
 				}
-+/			}
+			}
 		}
 	}
 	private class MenuShown : MenuAdapter {
@@ -2286,9 +2297,8 @@ public:
 				if (d.enabled) continue; // createMenuItem()内の処理に任せる
 				auto enabled = _tlp.menuEnabled(d.id);
 				if (!enabled) continue;
-				// TODO: ツールバーの対応が出来たら有効にする
-/+				itm.setEnabled(enabled());
-+/			}
+				itm.setEnabled(enabled());
+			}
 		}
 	}
 	private void setupMenuListener(Menu menu) {

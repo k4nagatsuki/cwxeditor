@@ -477,8 +477,22 @@ class TextMenuModify : ModifyListener {
 	private bool delegate() _canSaveHistory;
 	private UndoManager _undo;
 	private class SelectChanged : Listener {
+		private bool _mouseDown = false;
 		override void handleEvent(Event e) {
-			_oldSel = _text.getSelection();
+			if (e.type is SWT.MouseMove) {
+				if (!_mouseDown) return;
+			} else if (e.type is SWT.MouseUp) {
+				_mouseDown = false;
+				return;
+			} else if (e.type is SWT.MouseDown) {
+				_mouseDown = true;
+				return;
+			}
+			auto sel = _text.getSelection();
+			if (sel.x != _oldSel.x || sel.y != _oldSel.y) {
+				_oldSel = sel;
+				if (selectChanged) selectChanged();
+			}
 		}
 	}
 
@@ -493,6 +507,7 @@ class TextMenuModify : ModifyListener {
 		text.addListener(SWT.MouseDown, sc);
 		text.addListener(SWT.MouseUp, sc);
 		text.addListener(SWT.MouseMove, sc);
+		text.addListener(SWT.MouseDoubleClick, sc);
 
 		save();
 	}
@@ -504,6 +519,8 @@ class TextMenuModify : ModifyListener {
 
 	const
 	bool inProc() {return _inProc;}
+
+	void delegate() selectChanged;
 
 	void reset() {
 		_undo.reset();

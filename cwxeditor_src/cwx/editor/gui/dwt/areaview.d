@@ -344,6 +344,7 @@ private:
 			.forceFocus(v._imgp, false);
 		}
 		protected void uda(AbstractAreaView v) {
+			scope (exit) comm.refreshToolBar();
 			if (!v) return;
 			static if (UseCards) if (!v._viewCards) v._cards.deselectAll();
 			static if (UseBacks) if (!v._viewBacks) v._backs.deselectAll();
@@ -716,6 +717,7 @@ private:
 			_area.music = _bgm.path;
 			_comm.refUseCount.call();
 			callModEvent();
+			_comm.refreshToolBar();
 		}
 	}
 
@@ -879,6 +881,7 @@ private:
 		}
 		refreshControls();
 		_imgp.redraw();
+		_comm.refreshToolBar();
 	}
 
 	void __editSpn(string T, B)(int value, int[B] edits, int startIndex) {
@@ -1373,6 +1376,7 @@ private:
 	}
 	void changingImages() {
 		_undo ~= createUndoEdit();
+		_comm.refreshToolBar();
 	}
 
 	void refreshControls() {
@@ -1496,6 +1500,7 @@ private:
 			static assert (0);
 		}
 		refreshStatusLine();
+		_comm.refreshToolBar();
 	}
 	void refreshStatusLine() {
 		static if (UseCards && UseBacks) {
@@ -2035,6 +2040,7 @@ public:
 		appendPartyCards();
 		_imgp.select(sels);
 		_imgp.redraw();
+		_comm.refreshToolBar();
 	}
 	private void appendPartyCards() {
 		static if (RefCards) {
@@ -2077,6 +2083,7 @@ public:
 		tbl.remove(_imgp.images[startIndex + index]);
 		_imgp.remove(startIndex + index);
 		callModEvent();
+		_comm.refreshToolBar();
 	}
 	private void removeRangeImpl(T)(int fromIndex, int toIndex, ref T[PileImage] tbl, int startIndex) {
 		for (int i = fromIndex + startIndex; i < toIndex + startIndex; i++) {
@@ -2084,6 +2091,7 @@ public:
 		}
 		_imgp.removeRange(startIndex + fromIndex, startIndex + toIndex);
 		callModEvent();
+		_comm.refreshToolBar();
 	}
 	static if (UseCards) {
 		private static void removeCard(AbstractAreaView v, Commons comm, A area, ref C[PileImage] tbl, int index) {
@@ -2112,35 +2120,37 @@ public:
 
 	@property
 	bool canUp() {
+		int[] cIdcs, bIdcs;
 		static if (UseCards) {
 			if (_viewCards) {
-				auto cIdcs = _cards.getSelectionIndices().sort;
+				cIdcs = _cards.getSelectionIndices().sort;
 				if (cIdcs.length && cIdcs[0] <= 0) return false;
 			}
 		}
 		static if (UseBacks) {
 			if (_viewBacks) {
-				auto bIdcs = _backs.getSelectionIndices().sort;
+				bIdcs = _backs.getSelectionIndices().sort;
 				if (bIdcs.length && bIdcs[0] <= 0) return false;
 			}
 		}
-		return true;
+		return cIdcs.length || bIdcs.length;
 	}
 	@property
 	bool canDown() {
+		int[] cIdcs, bIdcs;
 		static if (UseCards) {
 			if (_viewCards) {
-				auto cIdcs = _cards.getSelectionIndices().sort;
+				cIdcs = _cards.getSelectionIndices().sort;
 				if (cIdcs.length && _cards.getItemCount() - 1 <= cIdcs[$ - 1]) return false;
 			}
 		}
 		static if (UseBacks) {
 			if (_viewBacks) {
-				auto bIdcs = _backs.getSelectionIndices().sort;
+				bIdcs = _backs.getSelectionIndices().sort;
 				if (bIdcs.length && _backs.getItemCount() - 1 <= bIdcs[$ - 1]) return false;
 			}
 		}
-		return true;
+		return cIdcs.length || bIdcs.length;
 	}
 	void up() {
 		up(1, true, true);
@@ -2169,6 +2179,7 @@ public:
 		if ((!cIdcs.length && !bIdcs.length) || 0 >= count) return;
 		_undo ~= new UndoUp(this, _comm, _area, _summ, cIdcs, bIdcs, count);
 		upImpl(this, _comm, _area, cIdcs, bIdcs, count, true);
+		_comm.refreshToolBar();
 	}
 	private static void upImpl(AbstractAreaView v, Commons comm, A area, int[] cIdcs, int[] bIdcs, int count, bool sel) {
 		static if (UseCards) {
@@ -2225,6 +2236,7 @@ public:
 		if ((!cIdcs.length && !bIdcs.length) || 0 >= count) return;
 		_undo ~= new UndoDown(this, _comm, _area, _summ, cIdcs, bIdcs, count);
 		downImpl(this, _comm, _area, cIdcs, bIdcs, count, true);
+		_comm.refreshToolBar();
 	}
 	private static void downImpl(AbstractAreaView v, Commons comm, A area, int[] cIdcs, int[] bIdcs, int count, bool sel) {
 		static if (UseCards) {
@@ -2301,6 +2313,7 @@ public:
 					_comm.refUseCount.call();
 					_imgp.redraw();
 					callModEvent();
+					_comm.refreshToolBar();
 					return;
 				}
 			}
@@ -2377,6 +2390,7 @@ public:
 				refreshPanel();
 				_comm.refMenuCard.call(c.cwxPath);
 				callModEvent();
+				_comm.refreshToolBar();
 			}
 		} else static if (is(C : EnemyCard)) {
 			void enemyEditEnd(TableItem itm, int column, CCombo combo) {
@@ -2391,6 +2405,7 @@ public:
 				refreshPanel();
 				_comm.refMenuCard.call(c.cwxPath);
 				callModEvent();
+				_comm.refreshToolBar();
 			}
 			void createEnemyCombo(TableItem itm, int column, out string[] strs, out string str) {
 				assert (_summ);
@@ -2463,6 +2478,7 @@ public:
 					_comm.refUseCount.call();
 					_imgp.redraw();
 					callModEvent();
+					_comm.refreshToolBar();
 					return;
 				}
 			}
@@ -2545,6 +2561,7 @@ public:
 			refreshPanel();
 			_comm.refBgImage.call(b.cwxPath);
 			callModEvent();
+			_comm.refreshToolBar();
 		}
 		void createBgImageCombo(TableItem itm, int column, out string[] strs, out string str) {
 			auto b = cast(BgImage) itm.getData();
@@ -2961,6 +2978,7 @@ public:
 							auto undo = new UndoInsert(this.outer, _comm, _area, _summ, addC, []);
 							_comm.refPaths.call(_comm.skin.materialPath);
 						}
+						_comm.refreshToolBar();
 						return;
 					} else if (isXMLBytes(e.data)) {
 						int[] ci, bi;
@@ -2970,6 +2988,7 @@ public:
 						if (ci.length || bi.length) {
 							_undo ~= new UndoInsert(this.outer, _comm, _area, _summ, ci, bi);
 						}
+						_comm.refreshToolBar();
 					}
 				}
 				private bool doFile(string path) {
@@ -3116,6 +3135,7 @@ public:
 						auto undo = new UndoInsert(this.outer, _comm, _area, _summ, [], addB);
 						_comm.refPaths.call(_comm.skin.materialPath);
 					}
+					_comm.refreshToolBar();
 					return;
 				} else if (isXMLBytes(e.data)) {
 					int[] ci, bi;
@@ -3125,6 +3145,7 @@ public:
 					if (ci.length || bi.length) {
 						_undo ~= new UndoInsert(this.outer, _comm, _area, _summ, ci, bi);
 					}
+					_comm.refreshToolBar();
 				}
 			}
 			private bool doFile(string path) {
@@ -3208,6 +3229,7 @@ public:
 						}
 					}
 					_comm.refUseCount.call();
+					_comm.refreshToolBar();
 					return;
 				}
 				static if (is(C : MenuCard)) {
@@ -3222,6 +3244,7 @@ public:
 							ci ~= si + i;
 						}
 						_comm.refUseCount.call();
+						_comm.refreshToolBar();
 						return;
 					}
 				}
@@ -3237,6 +3260,7 @@ public:
 							bi ~= si + i;
 						}
 						_comm.refUseCount.call();
+						_comm.refreshToolBar();
 						return;
 					}
 				}
@@ -3265,6 +3289,7 @@ public:
 							ci ~= si + i;
 						}
 						_comm.refUseCount.call();
+						_comm.refreshToolBar();
 						return;
 					}
 					return;
@@ -3292,6 +3317,7 @@ public:
 							ci ~= appendCard(card, true, true, toImgp);
 						}
 						_comm.refUseCount.call();
+						_comm.refreshToolBar();
 					}
 					return;
 				}
@@ -3315,6 +3341,7 @@ public:
 					card.y = cy;
 					ci ~= appendCard(card, true, true, toImgp);
 				}
+				_comm.refreshToolBar();
 			}
 		} catch (Exception e) {
 			debugln(e);
@@ -3345,6 +3372,7 @@ public:
 				if (append > 0) {
 					_undo ~= new UndoInsert(this.outer, _comm, _area, _summ, addC, addB);
 					_comm.refPaths.call(_comm.skin.materialPath);
+					_comm.refreshToolBar();
 				}
 				return;
 			}
@@ -3354,6 +3382,7 @@ public:
 				appendFromXML(bytesToXML(e.data), p.x, p.y, DropTarg.ImagePane, ci, bi);
 				if (ci.length || bi.length) {
 					_undo ~= new UndoInsert(this.outer, _comm, _area, _summ, ci, bi);
+					_comm.refreshToolBar();
 				}
 			}
 		}
@@ -3399,6 +3428,7 @@ public:
 					}
 				}
 			}
+			_comm.refreshToolBar();
 			return true;
 		}
 	}
@@ -3454,6 +3484,7 @@ public:
 					appendFromXML(arr, p.x, p.y, imgp ? DropTarg.ImagePane : DropTarg.Card, ci, bi);
 					if (ci.length || bi.length) {
 						_undo ~= new UndoInsert(this.outer, _comm, _area, _summ, ci, bi);
+						_comm.refreshToolBar();
 					}
 				}
 			}
@@ -3583,6 +3614,7 @@ public:
 							refreshSelected();
 							_comm.refUseCount.call();
 							_undo ~= new UndoInsert(this.outer, _comm, _area, _summ, addC, addB);
+							_comm.refreshToolBar();
 						}
 					} catch (Exception e) {
 						debugln(e);
@@ -3591,6 +3623,7 @@ public:
 			}
 			void del(SelectionEvent se) {
 				delImpl2(this.outer, _comm, _area, _cards.getSelectionIndices(), _backs.getSelectionIndices(), true);
+				_comm.refreshToolBar();
 			}
 			@property
 			bool canDoTCPD() {
@@ -3652,6 +3685,7 @@ public:
 								refreshSelected();
 								_comm.refUseCount.call();
 								_undo ~= new UndoInsert(this.outer, _comm, _area, _summ, addC, []);
+								_comm.refreshToolBar();
 							}
 						} catch (Exception e) {
 							debugln(e);
@@ -3661,6 +3695,7 @@ public:
 			}
 			void del(SelectionEvent se) {
 				delImpl2(this.outer, _comm, _area, _cards.getSelectionIndices(), [], true);
+				_comm.refreshToolBar();
 			}
 			@property
 			bool canDoTCPD() {
@@ -3721,6 +3756,7 @@ public:
 								refreshSelected();
 								_comm.refUseCount.call();
 								_undo ~= new UndoInsert(this.outer, _comm, _area, _summ, [], addB);
+								_comm.refreshToolBar();
 							}
 						} catch (Exception e) {
 							debugln(e);
@@ -3730,6 +3766,7 @@ public:
 			}
 			void del(SelectionEvent se) {
 				delImpl2(this.outer, _comm, _area, [], _backs.getSelectionIndices(), true);
+				_comm.refreshToolBar();
 			}
 			@property
 			bool canDoTCPD() {
@@ -3759,6 +3796,7 @@ public:
 	bool openCWXPath(string path, bool shellActivate) {
 		if (cpempty(path)) {
 			.forceFocus(_imgp, shellActivate);
+			_comm.refreshToolBar();
 			return true;
 		}
 		auto cate = cpcategory(path);
@@ -3768,6 +3806,7 @@ public:
 			.forceFocus(_imgp, shellActivate);
 			list.select(index);
 			list.showSelection();
+			_comm.refreshToolBar();
 			return true;
 		}
 		static if (UseCards && is(C : MenuCard)) {

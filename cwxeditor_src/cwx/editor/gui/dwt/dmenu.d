@@ -146,7 +146,14 @@ TextMenuModify createTextMenu(T = Text)(Commons comm, Props prop, T text, bool d
 	TextMenuModify ml = null;
 	if (!readOnly) {
 		ml = new TextMenuModify(TMM(text), canSaveHistory, undo, apd);
+		ml.selectChanged = &comm.refreshToolBar;
 		text.addModifyListener(ml);
+		class Modify : ModifyListener {
+			override void modifyText(ModifyEvent e) {
+				comm.refreshToolBar();
+			}
+		}
+		text.addModifyListener(new Modify);
 	}
 
 	auto menu = new Menu(text.getShell(), SWT.POP_UP);
@@ -454,9 +461,8 @@ class MenuShown : MenuAdapter {
 		auto d = cast(MenuData) _itm.getData();
 		if (!d) return;
 		if (!d.enabled) return;
-		// TODO: ツールバーの対応が出来たら有効にする
-/+		_itm.setEnabled(d.enabled());
-+/	}
+		_itm.setEnabled(d.enabled());
+	}
 }
 private MenuItem createMenuItemImpl(Dlg)(Commons comm, Menu sub, string text, Image img,
 	Dlg func, int style, MenuID id, bool delegate() enabled) {

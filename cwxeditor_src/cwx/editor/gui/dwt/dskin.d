@@ -113,7 +113,7 @@ version (Windows) {
 			return ca.value;
 		} else {
 			if (!.exists(legacyEngine)) return null;
-			// TODO lEnginePathからリソース読込み
+			// lEnginePathからリソース読込み
 			HINSTANCE handle;
 			handle = LoadLibraryExW(toUTFz!(wchar*)(legacyEngine), null, LOAD_LIBRARY_AS_DATAFILE | LOAD_WITH_ALTERED_SEARCH_PATH);
 			if (!handle) return null;

@@ -64,7 +64,7 @@ public:
 	/// refresh = 選択が変更された際のコールバック関数。
 	/// defs = 画像以外の選択肢。nullの場合は「イメージ無し」と「格納イメージの保存」になる。
 	/// createDefImage = 画像以外の選択肢が選ばれた際に表示するイメージ。
-	this(Composite parent, int style, Commons comm, Props prop, Summary summ,
+	this (Composite parent, int style, Commons comm, Props prop, Summary summ,
 			int w, int h, bool canIncluding, string saveName, void delegate() refresh = null,
 			string[] defs = null, ImageData delegate(size_t defIndex) createDefImage = null) {
 		_comm = comm;

@@ -1072,7 +1072,7 @@ class DockingFolder(TabF, int Style) {
 			try {
 				dStr ~= " - " ~ .text(__LINE__);
 				auto key = node.attr("key", true);
-				dStr ~= " - " ~ .text(__LINE__);
+				dStr ~= " - " ~ key ~ " - " ~ .text(__LINE__);
 				auto tabf = r.newTabf(par, key);
 				dStr ~= " - " ~ .text(__LINE__);
 				node.onTag["tab"] = (ref XNode node) {

@@ -218,6 +218,7 @@ private:
 			}
 			this.outer._coupons.select(selected);
 			this.outer._coupons.showSelection();
+			_comm.refreshToolBar();
 		}
 		override void undo() {impl();}
 		override void redo() {impl();}
@@ -230,9 +231,11 @@ private:
 	}
 	void undoCoupons() {
 		_undoCoupons.undo();
+		_comm.refreshToolBar();
 	}
 	void redoCoupons() {
 		_undoCoupons.redo();
+		_comm.refreshToolBar();
 	}
 	@property
 	Coupon[] coupons() {
@@ -261,6 +264,7 @@ private:
 		itm.setData(coupon);
 		_coupons.setSelection([itm]);
 		_coupons.showSelection();
+		_comm.refreshToolBar();
 	}
 	void addCoupon() {
 		if (_newCoupon.getText().length > 0) {
@@ -273,6 +277,7 @@ private:
 			storeCoupons();
 			appendCoupon(new Coupon(_newCoupon.getText(), _couponVal.getSelection()), _coupons.getSelectionIndex());
 			applyEnabled();
+			_comm.refreshToolBar();
 		}
 	}
 	void altCoupon() {
@@ -292,6 +297,7 @@ private:
 			itm.setText(1, to!(string)(coupon.value));
 			itm.setData(coupon);
 			applyEnabled();
+			_comm.refreshToolBar();
 		}
 	}
 	void delCoupon() {
@@ -305,6 +311,7 @@ private:
 				selCoupon();
 			}
 			applyEnabled();
+			_comm.refreshToolBar();
 		}
 	}
 	void selCoupon() {
@@ -315,6 +322,7 @@ private:
 			_newCouponTM.reset();
 			_couponVal.setSelection(c.value);
 		}
+		_comm.refreshToolBar();
 	}
 	void swapCoupon(int index1, int index2) {
 		auto itm1 = _coupons.getItem(index1);
@@ -339,6 +347,7 @@ private:
 			storeCoupons();
 			swapCoupon(index, index - 1);
 			_coupons.select(index - 1);
+			_comm.refreshToolBar();
 		}
 	}
 	void downCoupon() {
@@ -347,6 +356,7 @@ private:
 			storeCoupons();
 			swapCoupon(index, index + 1);
 			_coupons.select(index + 1);
+			_comm.refreshToolBar();
 		}
 	}
 
@@ -374,7 +384,10 @@ private:
 					e.detail = DND.DROP_MOVE;
 				}
 				applyEnabled();
-			} catch {}
+				_comm.refreshToolBar();
+			} catch (Exception e) {
+				debugln(e);
+			}
 		}
 	}
 	class CDragListener : DragSourceAdapter {
@@ -399,6 +412,7 @@ private:
 			if (e.detail == DND.DROP_MOVE) {
 				_itm.dispose();
 				_coupons.redraw();
+				_comm.refreshToolBar();
 			}
 		}
 	}

@@ -591,11 +591,13 @@ private:
 	class DirsSelection : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
 			refreshFiles([]);
+			_comm.refreshToolBar();
 		}
 	}
 	class FilesSelection : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
 			refreshStatusLine();
+			_comm.refreshToolBar();
 		}
 	}
 	class FileSelect : KeyAdapter, MouseListener {
@@ -1716,6 +1718,7 @@ public:
 		dlg.setText(_prop.msgs.dlgTitQuestion);
 		if (SWT.YES == dlg.open()) {
 			removeFiles(files, recycle);
+			_comm.refreshToolBar();
 		}
 	}
 
@@ -1777,6 +1780,7 @@ public:
 			_dirs.showSelection();
 			refCheckPaths();
 			__refreshTitle();
+			_comm.refreshToolBar();
 		}
 	}
 
@@ -1838,9 +1842,11 @@ public:
 			if (cfnmatch(fno.array, path)) {
 				_dirs.select(itm);
 				refreshFiles(selFiles);
+				_comm.refreshToolBar();
 				return true;
 			}
 			if (selectImpl(itm, path)) {
+				_comm.refreshToolBar();
 				return true;
 			}
 		}
@@ -1861,6 +1867,7 @@ public:
 							if (cfnmatch(fno.array, path)) {
 								_files.select(i);
 								_files.showSelection();
+								_comm.refreshToolBar();
 								return true;
 							}
 						}
@@ -2005,6 +2012,7 @@ public:
 				}
 				if (isdir) refreshDirs(selDirPath);
 			}
+			_comm.refreshToolBar();
 		}
 	}
 	override void copy(SelectionEvent se) {
@@ -2044,6 +2052,7 @@ public:
 			if (__paste(selDirPath, cast(FileNames) c, false, fromOut)) {
 				clearCut();
 				if (_summ.useTemp) _summ.changed();
+				_comm.refreshToolBar();
 			}
 		}
 	}
@@ -2103,6 +2112,7 @@ public:
 		_comm.delPaths.call(this);
 		if (_summ.useTemp) _summ.changed();
 		clearCut();
+		_comm.refreshToolBar();
 	}
 	@property
 	override bool canDoTCPD() {

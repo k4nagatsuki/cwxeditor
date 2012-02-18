@@ -1981,7 +1981,7 @@ public:
 	@property const string motionDamageType() {return "タイプ";}
 	@property const string motionValue() {return "値";}
 	@property const string motionBeast() {return "召喚するカード";}
-	@property const string beastNone() {return "召喚獣無し";}
+	@property const string beastNone() {return "[召喚獣無し]";}
 	@property const string setBeast() {return "選択";}
 	@property const string motionRound() {return "継続時間 (ラウンド数)";}
 	@property const string motionEnhValue() {return "変化値";}

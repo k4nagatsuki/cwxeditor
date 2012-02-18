@@ -186,6 +186,7 @@ private:
 		_rCoupons.setText(rcs);
 		_text.setText(dlg.text);
 		refreshPreview();
+		comm.refreshToolBar();
 	}
 	void createDialog(SDialog dlg) {
 		insertDialog(dlg, _dlgsL.getSelectionIndex());
@@ -213,6 +214,8 @@ private:
 		if (sel) {
 			_dlgsL.select(index < _dlgs.length ? index : _dlgs.length - 1);
 			selectChanged();
+		} else {
+			comm.refreshToolBar();
 		}
 		applyEnabled();
 	}
@@ -231,6 +234,7 @@ private:
 			_dlgsL.getItem(index).setText(tempL);
 			_dlgsL.select(index - 1);
 			applyEnabled();
+			comm.refreshToolBar();
 		}
 	}
 	void down() {
@@ -245,6 +249,7 @@ private:
 			_dlgsL.getItem(index).setText(tempL);
 			_dlgsL.select(index + 1);
 			applyEnabled();
+			comm.refreshToolBar();
 		}
 	}
 	void copyToUpper() {
@@ -257,6 +262,7 @@ private:
 			_dlgs[i].text = text;
 		}
 		applyEnabled();
+		comm.refreshToolBar();
 	}
 	void copyToLower() {
 		storeEdit();
@@ -268,6 +274,7 @@ private:
 			_dlgs[i].text = text;
 		}
 		applyEnabled();
+		comm.refreshToolBar();
 	}
 	void copyToDialogs() {
 		storeEdit();
@@ -281,6 +288,7 @@ private:
 			}
 		}
 		applyEnabled();
+		comm.refreshToolBar();
 	}
 	void put(dchar put) {
 		putColor(_text, put);
@@ -457,6 +465,8 @@ private:
 		}
 		if (selIndex != _dlgsL.getSelectionIndex()) {
 			selectChanged();
+		} else {
+			comm.refreshToolBar();
 		}
 	}
 	class SelPrev : SelectionAdapter {
@@ -585,7 +595,7 @@ protected:
 				override void handleEvent(Event e) {e.doit = true;}
 			});
 			createToolItem2(comm, bar, prop.msgs.createDialog, prop.images.createDialog, &createDialog, null);
-			createToolItem2(comm, bar, prop.msgs.deleteDialog, prop.images.deleteDialog, &deleteDialogSel, () => _dlgsL.getSelectionIndex() != -1);
+			createToolItem2(comm, bar, prop.msgs.deleteDialog, prop.images.deleteDialog, &deleteDialogSel, () => _dlgsL.getItemCount() > 1 && _dlgsL.getSelectionIndex() != -1);
 			new ToolItem(bar, SWT.SEPARATOR);
 			createToolItem(comm, bar, MenuID.Up, &up, () => _dlgsL.getSelectionIndex() != -1 && 0 < _dlgsL.getSelectionIndex());
 			createToolItem(comm, bar, MenuID.Down, &down, () => _dlgsL.getSelectionIndex() != -1 && _dlgsL.getSelectionIndex() + 1 < _dlgsL.getItemCount());

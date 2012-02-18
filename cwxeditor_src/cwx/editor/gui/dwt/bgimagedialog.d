@@ -85,6 +85,7 @@ private:
 					_w.setSelection(x);
 					_h.setSelection(y);
 					_selected = true;
+					_comm.refreshToolBar();
 				} catch {}
 			}
 		}
@@ -121,6 +122,7 @@ private:
 				_imgPath.mask = s.mask;
 				applyEnabled();
 			}
+			_comm.refreshToolBar();
 		}
 	}
 	class SDListener : DisposeListener {
@@ -142,7 +144,7 @@ private:
 		}
 	}
 public:
-	this(Commons comm, Props prop, Shell shell, Summary summ, BgImage back) {
+	this (Commons comm, Props prop, Shell shell, Summary summ, BgImage back) {
 		_comm = comm;
 		_summ = summ;
 		_back = back;

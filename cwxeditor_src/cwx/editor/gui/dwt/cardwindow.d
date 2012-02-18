@@ -513,6 +513,7 @@ public:
 		private class SelChanged : SelectionAdapter {
 			override void widgetSelected(SelectionEvent e) {
 				refreshStatusLine();
+				_comm.refreshToolBar();
 			}
 		}
 	}
@@ -1285,6 +1286,7 @@ public:
 		if (cpempty(path) || (is(CType : MotionOwner) && "motion" == cpcategory(path))) {
 			.forceFocus(_pane[C].widget, shellActivate);
 			_pane[C].select(index);
+			_comm.refreshToolBar();
 			static if (EditMode) {
 				if (cphasattr(path, "opendialog")) {
 					auto dlg = _pane[C].edit();

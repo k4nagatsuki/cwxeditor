@@ -360,6 +360,7 @@ private:
 		override void shellActivated(ShellEvent e) {
 			setupIDs();
 			setupPaths();
+			_comm.refreshToolBar();
 		}
 	}
 	class SelID : SelectionAdapter {
@@ -368,12 +369,14 @@ private:
 		override void widgetSelected(SelectionEvent e) {
 			auto combo = cast(Combo) e.widget;
 			_spn.setEnabled(combo.getSelectionIndex() == 0);
+			_comm.refreshToolBar();
 		}
 	}
 	class SelIDKind : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
 			setupIDs();
 			_prop.var.etc.searchIDKind = _idKind.getSelectionIndex();
+			_comm.refreshToolBar();
 		}
 	}
 	private void tabChanged() {
@@ -392,6 +395,7 @@ private:
 		_replace.setEnabled(sel !is _tabContents && sel !is _tabCoupon && sel !is _tabUnuse && sel !is _tabError);
 		_range.setEnabled(sel !is _tabUnuse);
 		_rangeAllCheck.setEnabled(_range.getEnabled());
+		_comm.refreshToolBar();
 	}
 	class TSListener : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
@@ -956,6 +960,7 @@ private:
 			add(null, a.name, a);
 		}
 		_range.showSelection();
+		_comm.refreshToolBar();
 	}
 	void refreshRangeAllCheck() {
 		bool recurse(TreeItem itm) {
@@ -1031,6 +1036,7 @@ public:
 			refreshRangeTree();
 		}
 		_undo.reset();
+		_comm.refreshToolBar();
 	}
 
 	void open() {
@@ -1205,8 +1211,11 @@ public:
 				b.addSelectionListener(sa);
 				return b;
 			}
-			_win.setDefaultButton(createButton(_prop.msgs.search, &search));
+			auto find = createButton(_prop.msgs.search, &search);
+			_comm.put(find, &canFind);
+			_win.setDefaultButton(find);
 			_replace = createButton(_prop.msgs.replace, &replace);
+			_comm.put(_replace, &canReplace);
 			createButton(_prop.msgs.replaceExit, &exit);
 		}
 		setComboItems(_from, _prop.var.etc.searchHistories.dup);
@@ -1513,6 +1522,7 @@ public:
 	private void changed() {
 		if (!_inProc) {
 			_undo.reset();
+			_comm.refreshToolBar();
 		}
 	}
 	private void undo() {
@@ -1524,6 +1534,7 @@ public:
 		refContentText();
 		_status.setText(_prop.msgs.replaceUndo(_result.getItemCount()));
 		_comm.replText.call();
+		_comm.refreshToolBar();
 	}
 	private void redo() {
 		if (!_undo.canRedo) return;
@@ -1534,6 +1545,7 @@ public:
 		refContentText();
 		_status.setText(_prop.msgs.replaceRedo(_result.getItemCount()));
 		_comm.replText.call();
+		_comm.refreshToolBar();
 	}
 	private void search() {
 		_replMode = false;
@@ -1550,6 +1562,35 @@ public:
 		} else {
 			_status.setText(_prop.msgs.searchResult(0, ""));
 		}
+		_comm.refreshToolBar();
+	}
+	@property
+	private bool canFind() {
+		if (!_tabf || _tabf.isDisposed()) return false;
+		auto sel = _tabf.getSelection();
+		if (!sel) return false;
+		if (sel is _tabText) {
+			return _from.getText().length > 0;
+		} else if (sel is _tabID) {
+			return getID(_fromID, _fromIDVal, _fromIDTbl) !is 0;
+		} else if (sel is _tabPath) {
+			return _fromPath.getText().length > 0;
+		} else if (sel is _tabContents) {
+			return true;
+		} else if (sel is _tabCoupon) {
+			return true;
+		} else if (sel is _tabUnuse) {
+			return true;
+		} else if (sel is _tabError) {
+			return true;
+		} else assert (0);
+	}
+	@property
+	private bool canReplace() {
+		if (!_tabf || _tabf.isDisposed()) return false;
+		auto sel = _tabf.getSelection();
+		if (!sel) return false;
+		return canFind && (sel is _tabText || sel is _tabID || sel is _tabPath);
 	}
 	private void replaceImpl() {
 		_inProc = true;
@@ -1581,6 +1622,7 @@ public:
 		}
 		_rUndo = [];
 		_after = [];
+		_comm.refreshToolBar();
 	}
 	private void searchRange(ref uint count,
 			void delegate(CWXPath path, ref uint count) dlg) {
@@ -1697,14 +1739,14 @@ public:
 			}
 		}
 	}
-	private void replaceIDImpl() {
-		ulong getID(Combo combo, Spinner spn, ulong[int] tbl) {
-			if (combo.getSelectionIndex() == 0) {
-				return spn.getSelection();
-			} else {
-				return tbl[combo.getSelectionIndex()];
-			}
+	private ulong getID(Combo combo, Spinner spn, ulong[int] tbl) {
+		if (combo.getSelectionIndex() == 0) {
+			return spn.getSelection();
+		} else {
+			return tbl[combo.getSelectionIndex()];
 		}
+	}
+	private void replaceIDImpl() {
 		ulong from = getID(_fromID, _fromIDVal, _fromIDTbl);
 		ulong to = getID(_toID, _toIDVal, _toIDTbl);
 		if (from == to) _replMode = false;

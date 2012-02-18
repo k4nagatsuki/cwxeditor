@@ -81,6 +81,7 @@ private:
 				assert (tabf.getSelection() is tabF);
 				_comm.setStatusLine(tabf, _flags.statusLine);
 			}
+			_comm.refreshToolBar();
 		}
 		class SListener : SelectionAdapter {
 			override void widgetSelected(SelectionEvent e) {
@@ -619,6 +620,7 @@ public:
 		if (cpattr(path).contains("shallow") && cpempty(path)) {
 			.forceFocus(_areas.table, shellActivate);
 			_areas.select(a);
+			_comm.refreshToolBar();
 			return true;
 		}
 		return false;
@@ -664,6 +666,7 @@ public:
 		if (w) {
 			static if (UseArea && UseFlag) {
 				tabf.setSelection(tabA);
+				_comm.refreshToolBar();
 			}
 			return w.openCWXPath(path, shellActivate);
 		}

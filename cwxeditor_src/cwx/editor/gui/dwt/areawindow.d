@@ -140,6 +140,7 @@ private:
 				_comm.setStatusLine(_win, _aview.statusLine);
 				_eview.closeToolWindow();
 			}
+			_comm.refreshToolBar();
 		}
 		class TabSel : SelectionAdapter {
 			override void widgetSelected(SelectionEvent e) {

@@ -138,16 +138,16 @@ public:
 			}
 		}
 		auto menu = new Menu(_fileList.getShell(), SWT.POP_UP);
-		createMenuItem(_comm, menu, MenuID.OpenAtFileView, &openFilePath, () => _fileList.getSelectionIndex() != -1);
-		createMenuItem(_comm, menu, MenuID.CopyFilePath, &copyFilePath, () => _fileList.getSelectionIndex() != -1);
+		createMenuItem(_comm, menu, MenuID.OpenAtFileView, &openFilePath, () => filePath.length > 0);
+		createMenuItem(_comm, menu, MenuID.CopyFilePath, &copyFilePath, () => filePath.length > 0);
 		static if (Type == MtType.BGM) {
 			new MenuItem(menu, SWT.SEPARATOR);
-			_bgmMenu = createMenuItem(_comm, menu, MenuID.PlayBGM, &playBGM, () => _playing ? true : _fileList.getSelectionIndex() != -1);
+			_bgmMenu = createMenuItem(_comm, menu, MenuID.PlayBGM, &playBGM, &canPlay);
 			auto data = cast(MenuData) _bgmMenu.getData();
 			data.format = (string t) {return data.id is MenuID.StopBGM ? .tryFormat(t, _playing) : t;};
 		} else static if (Type == MtType.SE) {
 			new MenuItem(menu, SWT.SEPARATOR);
-			createMenuItem(_comm, menu, MenuID.PlaySE, &playSE, () => _fileList.getSelectionIndex() != -1);
+			createMenuItem(_comm, menu, MenuID.PlaySE, &playSE, &canPlay);
 			createMenuItem(_comm, menu, MenuID.StopSE, &stopSE, null);
 		}
 		_fileList.setMenu(menu);
@@ -188,13 +188,15 @@ public:
 		};
 		return _fileList;
 	}
+	static if (Type == MtType.BGM || Type == MtType.SE) {
+		private Button _bgmBtn;
+	}
 	static if (Type == MtType.BGM) {
 		private MenuItem _bgmMenu;
 		private ToolItem _bgmTMenu;
-		private Button _bgmBtn;
 		string _playing = null;
 		void createPlayToolItem(ToolBar bar) {
-			_bgmTMenu = createToolItem(_comm, bar, MenuID.PlayBGM, &playBGM, () => _playing ? true : _fileList.getSelectionIndex() != -1, SWT.CHECK);
+			_bgmTMenu = createToolItem(_comm, bar, MenuID.PlayBGM, &playBGM, &canPlay, SWT.CHECK);
 			auto data = cast(MenuData) _bgmTMenu.getData();
 			data.format = (string t) {return data.id is MenuID.StopBGM ? .tryFormat(t, _playing) : t;};
 		}
@@ -205,7 +207,12 @@ public:
 			_bgmBtn.setImage(_prop.images.menu(MenuID.PlayBGM));
 			auto pbgm = new Play;
 			_bgmBtn.addSelectionListener(pbgm);
+			_comm.put(_bgmBtn, &canPlay);
 			return _bgmBtn;
+		}
+		@property
+		bool canPlay() {
+			return _playing ? true : filePath.length > 0;
 		}
 		void playBGM() {
 			string p = filePath;
@@ -273,15 +280,16 @@ public:
 		}
 	} else static if (Type == MtType.SE) {
 		void createPlayToolItem(ToolBar bar) {
-			createToolItem(_comm, bar, MenuID.PlaySE, &playSE, () => _fileList.getSelectionIndex() != -1);
+			createToolItem(_comm, bar, MenuID.PlaySE, &playSE, &canPlay);
 		}
 		Button createPlayButton(Composite parent) {
-			auto seBtn = new Button(parent, SWT.PUSH);
-			seBtn.setToolTipText(_prop.buildTool(MenuID.PlaySE));
-			seBtn.setImage(_prop.images.menu(MenuID.PlaySE));
+			_bgmBtn = new Button(parent, SWT.PUSH);
+			_bgmBtn.setToolTipText(_prop.buildTool(MenuID.PlaySE));
+			_bgmBtn.setImage(_prop.images.menu(MenuID.PlaySE));
 			auto play = new Play;
-			seBtn.addSelectionListener(play);
-			return seBtn;
+			_bgmBtn.addSelectionListener(play);
+			_comm.put(_bgmBtn, &canPlay);
+			return _bgmBtn;
 		}
 		Button createStopButton(Composite parent) {
 			auto stop = new Button(parent, SWT.PUSH);
@@ -291,6 +299,10 @@ public:
 			stop.addSelectionListener(sse);
 			stop.addDisposeListener(sse);
 			return stop;
+		}
+		@property
+		bool canPlay() {
+			return filePath.length > 0;
 		}
 		void playSE() {
 			string p = filePath;
@@ -332,16 +344,16 @@ public:
 		return refBtn;
 	}
 	Button createDirectoryButton(Composite parent, bool text) {
-		auto dirBtn = new Button(parent, SWT.PUSH);
-		dirBtn.setLayoutData(new GridData(GridData.FILL_VERTICAL));
-		dirBtn.setImage(_prop.images.folder);
-		dirBtn.addSelectionListener(new DSListener);
+		_dirBtn = new Button(parent, SWT.PUSH);
+		_dirBtn.setLayoutData(new GridData(GridData.FILL_VERTICAL));
+		_dirBtn.setImage(_prop.images.folder);
+		_dirBtn.addSelectionListener(new DSListener);
 		if (text) {
-			dirBtn.setText(_prop.buildTool(MenuID.OpenDir));
+			_dirBtn.setText(_prop.buildTool(MenuID.OpenDir));
 		} else {
-			dirBtn.setToolTipText(_prop.buildTool(MenuID.OpenDir));
+			_dirBtn.setToolTipText(_prop.buildTool(MenuID.OpenDir));
 		}
-		return dirBtn;
+		return _dirBtn;
 	}
 	@property
 	string path() {
@@ -352,6 +364,8 @@ public:
 	}
 	@property
 	string filePath() {
+		if (!_dirs || _dirs.isDisposed()) return "";
+		if (!_fileList || _fileList.isDisposed()) return "";
 		if (_dirs.getSelectionIndex() == _including && isBinImg(_oldPath)) {
 			return _oldPath;
 		}
@@ -455,6 +469,7 @@ public:
 	void selectDir(int sel) {
 		_dirs.select(sel);
 		refreshList();
+		scope (exit) refreshButtons();
 		if (sel < _defs.length) {
 			_path = "";
 			if (_selDir != sel) {
@@ -550,6 +565,7 @@ private:
 				if (old != _path) {
 					foreach (dlg; modEvent) dlg();
 				}
+				refreshButtons();
 			}
 			if (_allList) {
 				string s = fileText(_fileList.getItem(index));
@@ -912,11 +928,15 @@ private:
 			refreshPaths();
 		}
 	}
+	void refreshButtons() {
+		_comm.refreshToolBar();
+	}
 
 	Props _prop;
 	Commons _comm;
 	D _dirs;
 	Summary _summ;
+	Button _dirBtn;
 	string _path = "";
 	string _oldPath = "";
 	string[] _defs;
