@@ -343,12 +343,14 @@ public:
 
 private class EditEnd : KeyAdapter, FocusListener {
 private:
+	Commons _comm;
 	Control ctrl;
 	void delegate(Control) end;
 
 public:
-	this(Composite parent, Control ctrl, void delegate(Control) end) {
+	this(Commons comm, Composite parent, Control ctrl, void delegate(Control) end) {
 		try {
+			_comm = comm;
 			this.end = end;
 			this.ctrl = ctrl;
 			ctrl.addFocusListener(this);
@@ -415,6 +417,9 @@ public:
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
+	void cancel() {
+		ctrl.dispose();
+	}
 }
 
 Text createTextEditor(Commons comm, Props prop, Composite parent, string str) {
@@ -452,6 +457,7 @@ C createComboEditor(C = CCombo)(Commons comm, Props prop, Composite parent, stri
 /// ダブルクリック、またはF2キーの押下で編集開始。
 abstract class AbstractTableEdit {
 private:
+	Commons _comm;
 	Table table;
 	TableEditor editor;
 	EditEnd _tee = null;
@@ -505,9 +511,10 @@ public:
 	/// editC = 編集対象の列。
 	/// canEdit = テーブルアイテムが編集可能か否かを判定する関数。nullを指定した場合、
 	///           すべてのセルが編集可能になる。
-	this(Table table, int editC,
+	this (Commons comm, Table table, int editC,
 			bool delegate(TableItem itm, int column) canEdit = null) {
 		try {
+			_comm = comm;
 			this.table = table;
 			this.editC = editC;
 			this.canEdit = canEdit;
@@ -539,7 +546,7 @@ public:
 			if (_tee !is null && !_tee.isExit) _tee.enter();
 			auto sel = itm;
 			if (canEdit is null || canEdit(sel, editC)) {
-				_tee = new EditEnd(table, createEditor(sel, editC), &endImpl);
+				_tee = new EditEnd(_comm, table, createEditor(sel, editC), &endImpl);
 				editor.setEditor(_tee.editor, sel, editC);
 				_tee.setFocus();
 			}
@@ -554,6 +561,10 @@ public:
 		} catch (Exception e) {
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
+	}
+	void cancel() {
+		if (!isEditing) return;
+		_tee.cancel();
 	}
 	protected Control createEditor(TableItem itm, int editC);
 	protected void end(Control c);
@@ -577,7 +588,7 @@ public:
 			void delegate(TableItem itm, int column, string text) editEnd = null,
 			bool delegate(TableItem itm, int column) canEdit = null) {
 		try {
-			super (table, editC, canEdit);
+			super (comm, table, editC, canEdit);
 			_comm = comm;
 			_prop = prop;
 			this.editEnd = editEnd;
@@ -627,7 +638,7 @@ public:
 			void delegate(TableItem itm, int column, C combo) editEnd = null,
 			bool delegate(TableItem itm, int column) canEdit = null) {
 		try {
-			super (table, editC, canEdit);
+			super (comm, table, editC, canEdit);
 			_comm = comm;
 			_prop = prop;
 			this.createCombo = createCombo;
@@ -664,12 +675,12 @@ private:
 	void delegate(TableItem itm, int column, Control ctrl) editEnd = null;
 
 public:
-	this(Table table, int editC,
+	this(Commons comm, Table table, int editC,
 			Control delegate(TableItem itm, int editC) createEditor,
 			void delegate(TableItem itm, int column, Control ctrl) editEnd = null,
 			bool delegate(TableItem itm, int column) canEdit = null) {
 		try {
-			super (table, editC, canEdit);
+			super (comm, table, editC, canEdit);
 			_createEditor = createEditor;
 			this.editEnd = editEnd;
 		} catch (Exception e) {
@@ -706,6 +717,7 @@ public:
 /// ダブルクリック、またはF2キーの押下で編集開始。
 class TreeEdit {
 private:
+	Commons _comm;
 	Tree tree;
 	TreeEditor editor;
 	EditEnd _tee;
@@ -752,7 +764,7 @@ private:
 			auto sel = cast(TreeItem) itm;
 			auto c = createEditor(sel);
 			if (c) {
-				_tee = new EditEnd(tree, c, &end);
+				_tee = new EditEnd(_comm, tree, c, &end);
 				editor.setEditor(_tee.editor, sel);
 				_tee.setFocus();
 			}
@@ -765,9 +777,10 @@ public:
 	/// editEnd = 編集終了時に実行される関数。
 	/// createEditor = ツリーアイテムが編集するコンポーネントを生成する関数。
 	///                nullを返した場合、編集は開始されない。
-	this(Tree tree, void delegate(TreeItem itm, Control ctrl) editEnd,
+	this(Commons comm, Tree tree, void delegate(TreeItem itm, Control ctrl) editEnd,
 			Control delegate(TreeItem itm) createEditor = null) {
 		try {
+			_comm = comm;
 			this.tree = tree;
 			this.editEnd = editEnd;
 			this.createEditor = createEditor;

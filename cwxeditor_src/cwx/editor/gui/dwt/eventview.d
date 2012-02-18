@@ -1052,7 +1052,7 @@ public:
 		}
 		{
 			_etree = new EventTreeView(comm, prop, summ, _sash, _undo, &forceSel, &refreshTopStart, toolbar);
-			auto _edit = new TreeEdit(_cards, &editEnd, &createEditor);
+			auto _edit = new TreeEdit(_comm, _cards, &editEnd, &createEditor);
 			setupToolBar(toolbar);
 		}
 		static if (is (A == Area)) {

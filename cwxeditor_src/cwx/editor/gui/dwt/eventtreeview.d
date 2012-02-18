@@ -1630,7 +1630,7 @@ public:
 		initTree(_tree, true);
 		_tree.setLayoutData(new GridData(GridData.FILL_BOTH));
 		_tree.addPaintListener(new PaintTree);
-		new TreeEdit(_tree, &editEnd, &createEditor);
+		new TreeEdit(_comm, _tree, &editEnd, &createEditor);
 		_tree.addDisposeListener(new TRDListener);
 		_tree.addMouseListener(new CreateL);
 		auto editl = new EditL;

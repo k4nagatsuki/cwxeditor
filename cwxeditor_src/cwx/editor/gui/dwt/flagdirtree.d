@@ -395,7 +395,7 @@ public:
 		dirs = new Tree(_comp, SWT.SINGLE | SWT.BORDER);
 		initTree(dirs, false);
 
-		edit = new TreeEdit(dirs, &editEnd, &createEditor);
+		edit = new TreeEdit(_comm, dirs, &editEnd, &createEditor);
 
 		dirs.addSelectionListener(new DirSelection);
 		auto menu = new Menu(dirs.getShell(), SWT.POP_UP);

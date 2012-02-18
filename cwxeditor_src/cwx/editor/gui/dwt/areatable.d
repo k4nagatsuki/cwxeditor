@@ -1262,22 +1262,28 @@ public:
 	}
 	@property
 	bool canUp() {
+		if (!_areas.isFocusControl()) return false;
 		int sel = _areas.getSelectionIndex();
 		if (-1 == sel) return false;
 		return canUdImpl(sel, sel - 1);
 	}
 	@property
 	bool canDown() {
+		if (!_areas.isFocusControl()) return false;
 		int sel = _areas.getSelectionIndex();
 		if (-1 == sel) return false;
 		return canUdImpl(sel, sel + 1);
 	}
 	void up() {
+		if (!_areas.isFocusControl()) return;
+		_areasEdit.cancel();
 		int sel = _areas.getSelectionIndex();
 		if (-1 == sel) return;
 		udImpl(sel, sel - 1);
 	}
 	void down() {
+		if (!_areas.isFocusControl()) return;
+		_areasEdit.cancel();
 		int sel = _areas.getSelectionIndex();
 		if (-1 == sel) return;
 		udImpl(sel, sel + 1);

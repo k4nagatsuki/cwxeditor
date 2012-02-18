@@ -1530,7 +1530,7 @@ public:
 		initTree(_dirs, false);
 		{
 			_dirs.addSelectionListener(new DirsSelection);
-			_dirsEdit = new TreeEdit(_dirs, &dirsEditEnd, &dirsCreateEditor);
+			_dirsEdit = new TreeEdit(_comm, _dirs, &dirsEditEnd, &dirsCreateEditor);
 
 			auto drop = new DropTarget
 				(_dirs, DND.DROP_DEFAULT | DND.DROP_COPY | DND.DROP_MOVE);

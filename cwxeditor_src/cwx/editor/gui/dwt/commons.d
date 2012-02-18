@@ -343,18 +343,44 @@ class Commons {
 		w.addDisposeListener(new CloseRemover!Control(_toolbars, w));
 	}
 	void refreshToolBar() {
+		refreshToolBar(null);
+	}
+	void refreshToolBar(Control fc) {
+		if (!fc) {
+			auto display = _main.shell.getDisplay();
+			fc = display.getFocusControl();
+		}
+		bool delegate()[MenuID] cMenuTbl;
+		if (fc) {
+			auto menu = fc.getMenu();
+			if (menu) {
+				foreach (itm; menu.getItems()) {
+					auto d = cast(MenuData) itm.getData();
+					if (d && d.enabled) {
+						cMenuTbl[d.id] = d.enabled;
+					}
+				}
+			}
+		}
 		void s(Widget itm) {
 			auto d = cast(MenuData) itm.getData();
 			if (!d) return;
 			try {
-				if (d.enabled !is null) {
-					auto toolItm = cast(ToolItem) itm;
-					if (toolItm) {
-						toolItm.setEnabled(d.enabled());
-					} else {
-						auto ctrl = cast(Control) itm;
-						ctrl.setEnabled(d.enabled());
-					}
+				bool enbl;
+				auto cMenuE = d.id in cMenuTbl;
+				if (cMenuE) {
+					enbl = (*cMenuE)();
+				} else if (d.enabled) {
+					enbl = d.enabled();
+				} else {
+					return;
+				}
+				auto toolItm = cast(ToolItem) itm;
+				if (toolItm) {
+					toolItm.setEnabled(enbl);
+				} else {
+					auto ctrl = cast(Control) itm;
+					ctrl.setEnabled(enbl);
 				}
 			} catch (Throwable e) {
 				debugln(std.conv.text(d.id));
@@ -372,7 +398,7 @@ class Commons {
 				s(w);
 			}
 		}
-		_main.refreshToolBar();
+		_main.refreshToolBar(cMenuTbl);
 	}
 	void baseShell(MainWindow main, DataWindow dataWin, MainCardWindow cardWin, DirectoryWindow dirWin) {
 		_main = main;

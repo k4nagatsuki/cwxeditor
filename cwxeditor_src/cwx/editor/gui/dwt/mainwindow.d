@@ -2267,14 +2267,17 @@ public:
 				~ "&menuAction!(" ~ Id.stringof ~ "), " ~ Can ~ ", " ~ ToString!(Style) ~ ");";
 		}
 	}
-	void refreshToolBar() {
+	void refreshToolBar(bool delegate()[MenuID] cMenuTbl) {
 		foreach (bar; _toolBar) {
 			foreach (itm; bar.getItems()) {
 				if (itm.getStyle() & SWT.SEPARATOR) continue;
 				auto d = cast(MenuData) itm.getData();
 				if (!d) continue;
 				try {
-					if (d.enabled !is null) {
+					auto cMenuE = d.id in cMenuTbl;
+					if (cMenuE) {
+						itm.setEnabled((*cMenuE)());
+					} else if (d.enabled) {
 						itm.setEnabled(d.enabled());
 					} else {
 						auto enabled = _tlp.menuEnabled(d.id);

@@ -1522,7 +1522,7 @@ class MsgPreview {
 		_comm.delFlagAndStep.add(&refFlagAndStep);
 		_comm.refSkin.add(&refresh);
 
-		new TableTCEdit(_values, 1, &createEditor, &editEnd, null);
+		new TableTCEdit(_comm, _values, 1, &createEditor, &editEnd, null);
 	}
 	private void saveWin() {
 		auto winProps = _size;

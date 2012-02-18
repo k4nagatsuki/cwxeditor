@@ -486,7 +486,6 @@ class TextMenuModify : ModifyListener {
 				return;
 			} else if (e.type is SWT.MouseDown) {
 				_mouseDown = true;
-				return;
 			}
 			auto sel = _text.getSelection();
 			if (sel.x != _oldSel.x || sel.y != _oldSel.y) {
