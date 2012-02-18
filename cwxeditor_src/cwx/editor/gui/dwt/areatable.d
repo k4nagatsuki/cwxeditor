@@ -850,7 +850,7 @@ public:
 
 		auto menu = new Menu(parent.getShell(), SWT.POP_UP);
 		if (!_comm.singleWindowMode(_prop) || _prop.var.etc.bindSceneWithEvent) {
-			createMenuItem(_comm, menu, MenuID.EditProp, {openAreaScene(true);}, () => _areas.getSelectionIndex() > 0);
+			createMenuItem(_comm, menu, MenuID.EditProp, {openAreaScene(true);}, () => _areas.getSelectionIndex() != -1);
 		} else {
 			createMenuItem(_comm, menu, MenuID.EditScene, {openAreaScene(true);}, &canOpenAreaScene);
 			createMenuItem(_comm, menu, MenuID.EditEvent, {openAreaEvent(true);}, &canOpenAreaEvent);
@@ -863,7 +863,7 @@ public:
 		new MenuItem(menu, SWT.SEPARATOR);
 		appendMenuTCPD(_comm, menu, this, true, true, true, true);
 		new MenuItem(menu, SWT.SEPARATOR);
-		createMenuItem(_comm, menu, MenuID.ReNumbering, &reNumbering, () => _areas.getSelectionIndex() > 0);
+		createMenuItem(_comm, menu, MenuID.ReNumbering, &reNumbering, () => _areas.getSelectionIndex() != -1);
 		_areas.setMenu(menu);
 
 		_areas.addMouseListener(new MListener);
@@ -1110,11 +1110,11 @@ public:
 
 	@property
 	bool canOpenAreaScene() {
-		return _areas.getSelectionIndex() > 0;
+		return _areas.getSelectionIndex() != -1;
 	}
 	@property
 	bool canOpenAreaEvent() {
-		return _areas.getSelectionIndex() > 0;
+		return _areas.getSelectionIndex() != -1;
 	}
 	void openAreaScene(bool shellActivate) {
 		auto area = getSelectionArea();

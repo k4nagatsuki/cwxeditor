@@ -229,6 +229,9 @@ private:
 	private SysTime _lastBackup;
 	void backupThr() {
 		try {
+			version (Console) {
+				debug std.stdio.writeln("Start Backup Thread");
+			}
 			_lastBackup = Clock.currTime();
 			while (!_quit) {
 				if (_lastBackup + dur!"minutes"(_prop.var.etc.backupInterval) <= Clock.currTime()) {
@@ -1016,6 +1019,9 @@ private:
 	}
 	void pipeThr() {
 		try {
+			version (Console) {
+				debug std.stdio.writeln("Start Pipe Thread");
+			}
 			auto openPath = new OpenCWXPath;
 			auto reloadSettings = new ReloadSettings;
 			createPipeName();
@@ -2602,6 +2608,9 @@ public:
 		if (!_win) return;
 		string dStr = .text(__LINE__);;
 		try {
+			version (Console) {
+				debug std.stdio.writeln("Start Main Thread");
+			}
 			auto d = _win.getDisplay();
 			_win.open();
 			dStr ~= " - " ~ .text(__LINE__);

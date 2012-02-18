@@ -101,6 +101,9 @@ S loadLScenario(S)(string p, string skin, bool doubleIO, string newName = null) 
 		string[] files;
 		ulong wait = 0L;
 		void load() {
+			version (Console) {
+				debug std.stdio.writeln("Start Classic Load Thread");
+			}
 			foreach (file; this.files) {
 				try {
 					auto f = ByteIO(std.file.read(file));
@@ -134,6 +137,9 @@ S loadLScenario(S)(string p, string skin, bool doubleIO, string newName = null) 
 					debugln(file ~ " - " ~ e.msg);
 					throw e;
 				}
+			}
+			version (Console) {
+				debug std.stdio.writeln("Exit Classic Load Thread");
 			}
 		}
 	}
@@ -1550,6 +1556,9 @@ void saveLScenario(Summary summ, bool doubleIO, bool saveInnerImagePath = false)
 		InfoCard[] infos;
 		string[] wids;
 		void save() {
+			version (Console) {
+				debug std.stdio.writeln("Start Classic Load Thread");
+			}
 			foreach (a; areas) {
 				auto file = "~Area" ~ to!(string)(a.id) ~ ".wid";
 				ByteIO f;
@@ -1605,6 +1614,9 @@ void saveLScenario(Summary summ, bool doubleIO, bool saveInnerImagePath = false)
 				writeInfo(d, f, c);
 				std.file.write(std.path.buildPath(d.sPath, file), f.bytes);
 				wids ~= file;
+			}
+			version (Console) {
+				debug std.stdio.writeln("Exit Classic Save Thread");
 			}
 		}
 		void rename() {

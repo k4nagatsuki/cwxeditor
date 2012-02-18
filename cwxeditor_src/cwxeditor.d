@@ -147,10 +147,14 @@ void main(string[] args) {
 		dStr ~= " - " ~ .text(__LINE__);
 		main.doCWX();
 		dStr ~= " - " ~ .text(__LINE__);
+		version (Console) {
+			debug writeln("Exit main()");
+		}
 	} catch (Throwable e) {
 		fdebugln(dStr);
 		// FIXME: リンクエラー！
 //		fdebugln(e);
 		throw e;
 	}
+	std.c.stdlib.exit(0);
 }

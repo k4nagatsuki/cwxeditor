@@ -1200,6 +1200,9 @@ private:
 	}
 	private void trace() {
 		try {
+			version (Console) {
+				debug std.stdio.writeln("Start Trace Thread");
+			}
 			Summary summ = null;
 			void sleep() {
 				version (Windows) {

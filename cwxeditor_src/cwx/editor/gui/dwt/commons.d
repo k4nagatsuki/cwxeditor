@@ -42,6 +42,9 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.swt.widgets.Widget;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.DisposeEvent;
@@ -351,7 +354,7 @@ class Commons {
 			fc = display.getFocusControl();
 		}
 		bool delegate()[MenuID] cMenuTbl;
-		if (fc) {
+		if (cast(Text) fc || cast(Combo) fc || cast(CCombo) fc) {
 			auto menu = fc.getMenu();
 			if (menu) {
 				foreach (itm; menu.getItems()) {

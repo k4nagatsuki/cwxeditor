@@ -244,6 +244,9 @@ private class LSFFThr(S, bool Array) {
 		display.asyncExec(working);
 	}
 	void run() {
+		version (Console) {
+			debug std.stdio.writeln("Start Load Thread");
+		}
 		scope (exit) {
 			display.syncExec(new Exit);
 		}
@@ -278,6 +281,9 @@ private class LSFFThr(S, bool Array) {
 			} catch (SummaryException e) {
 				display.syncExec(new SError(e));
 			}
+		}
+		version (Console) {
+			debug std.stdio.writeln("Exit Load Thread");
 		}
 	}
 }
