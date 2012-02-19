@@ -537,8 +537,14 @@ version (Windows) {
 		}
 	}
 	shared static ~this () {
+		version (Console) {
+			debug std.stdio.writeln("Release cabinet.dll Start");
+		}
 		if (_cabinet) {
 			ExeModule_Release(_cabinet);
+		}
+		version (Console) {
+			debug std.stdio.writeln("Release cabinet.dll Exit");
 		}
 	}
 } else {

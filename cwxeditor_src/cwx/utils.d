@@ -147,8 +147,14 @@ shared void fdebugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) {
 	}
 }
 shared static ~this () {
+	version (Console) {
+		debug std.stdio.writeln("Close Debug log file Start");
+	}
 	synchronized {
 		if (debugLogFile) debugLogFile.close();
+	}
+	version (Console) {
+		debug std.stdio.writeln("Close Debug log file Exit");
 	}
 }
 /// debugコンパイルされている際は デバグログに文字列を出力すると

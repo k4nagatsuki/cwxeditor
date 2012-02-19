@@ -787,6 +787,49 @@ struct Jptx {
 	}
 }
 
+/// JPTXの設定内からテキスト部分を抽出する。
+string jptxText(string jptxAll) {
+	string r = "";
+	bool inText = false;
+	foreach (line; jptxAll.splitLines(KeepTerminator.yes)) {
+		if (!inText && chomp(line).icmp("[jptx:begin]") == 0) {
+			inText = true;
+		} else if (inText && chomp(line).icmp("[jptx:end]") == 0) {
+			inText = false;
+		} else if (inText) {
+			r ~= line;
+		}
+	}
+	return r;
+} unittest {
+	assert (jptxText("[jptx:init]\nline1\nline2\r\n\n[jptx:begin]\r\na\nbcd\r\nefg\r\n[jptx:end]")
+		== "a\nbcd\r\nefg\r\n");
+}
+/// JPTXの設定内のテキスト部分を置換する。
+string jptxText(string jptxAll, string jptxText) {
+	string r = "";
+	bool inText = false, put = false;
+	foreach (line; jptxAll.splitLines(KeepTerminator.yes)) {
+		if (!inText && chomp(line).icmp("[jptx:begin]") == 0) {
+			inText = true;
+			r ~= line;
+			if (!put) {
+				r ~= jptxText;
+				put = true;
+			}
+		} else if (inText && chomp(line).icmp("[jptx:end]") == 0) {
+			inText = false;
+			r ~= line;
+		} else if (!inText) {
+			r ~= line;
+		}
+	}
+	return r;
+} unittest {
+	assert (jptxText("[jptx:init]\nline1\nline2\r\n\n[jptx:begin]\r\na\nbcd\r\nefg\r\n[jptx:end]", "a\rbc\r\n")
+		== "[jptx:init]\nline1\nline2\r\n\n[jptx:begin]\r\na\rbc\r\n[jptx:end]");
+}
+
 enum Copymode {
 	AUTO = 0,
 	BEFORE_SCREEN = 1,

@@ -156,5 +156,4 @@ void main(string[] args) {
 //		fdebugln(e);
 		throw e;
 	}
-	std.c.stdlib.exit(0);
 }
