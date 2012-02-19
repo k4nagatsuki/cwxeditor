@@ -1391,6 +1391,11 @@ Composite createDefSoundCombo(Commons comm, Props prop, Summary summ, Composite 
 			}
 		}
 	}
+	class Select : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			comm.refreshToolBar();
+		}
+	}
 	auto comp2 = new Composite(parent, SWT.NONE);
 	if (title) {
 		comp2.setLayout(zeroMarginGridLayout(2, true));
@@ -1425,6 +1430,7 @@ Composite createDefSoundCombo(Commons comm, Props prop, Summary summ, Composite 
 			comm.refSkin.remove(&refSkin);
 		}
 	}
+	combo.addSelectionListener(new Select);
 	combo.addDisposeListener(new Dispose);
 	auto stop = new Button(comp2, SWT.PUSH);
 	if (title) {
@@ -1442,6 +1448,7 @@ Composite createDefSoundCombo(Commons comm, Props prop, Summary summ, Composite 
 	play.setImage(prop.images.menu(MenuID.PlaySE));
 	play.setToolTipText(prop.buildTool(MenuID.PlaySE));
 	play.addSelectionListener(new PlaySE(comm, summ, prop, combo));
+	comm.put(play, () => combo.getSelectionIndex() != -1 && combo.getSelectionIndex() > 0);
 	return comp2;
 }
 Composite createSuccessRateScale(Props prop, Composite parent, out Scale sucRate) {
