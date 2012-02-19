@@ -17,6 +17,7 @@ import cwx.skin;
 import cwx.msgutils;
 import cwx.flag;
 import cwx.menu;
+import cwx.jpy;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dutils;
@@ -90,25 +91,35 @@ private class CWXPathString {
 class ReplaceDialog {
 private:
 	class RUndo : Undo {
-		private CWXPath _path;
+		private CWXPath _path = null;
+		private string _filePath = null;
 		private Undo[] _uArr;
 		this (CWXPath path, Undo[] uArr) {
 			_path = path;
 			_uArr = uArr;
 		}
+		this (string filePath, Undo[] uArr) {
+			_filePath = filePath;
+			_uArr = uArr;
+		}
 		void undo() {
 			foreach_reverse (u; _uArr) u.undo();
 			if (_path) addResult(_path);
+			if (_filePath) addResult(_filePath);
 		}
 		void redo() {
 			foreach_reverse (u; _uArr) u.redo();
 			if (_path) addResult(_path);
+			if (_filePath) addResult(_filePath);
 		}
 		void dispose() {
 			foreach (u; _uArr) u.dispose();
 		}
 	}
 
+	void store(string filePath, Undo[] uArr) {
+		_rUndo ~= new RUndo(filePath, uArr);
+	}
 	void store(CWXPath path, Undo[] uArr) {
 		_rUndo ~= new RUndo(path, uArr);
 	}
@@ -209,6 +220,8 @@ private:
 	Button _file;
 	/// コメント
 	Button _comment;
+	/// JPTXファイル
+	Button _jptx;
 
 	Button _unuseFlag;
 	Button _unuseStep;
@@ -529,6 +542,7 @@ private:
 				_keyCode = createB(_prop.msgs.replTextKeyCode, 'D');
 				_file = createB(_prop.msgs.replTextFile, 'E');
 				_comment = createB(_prop.msgs.replTextComment, 'G');
+				_jptx = createB(_prop.msgs.replTextJptx, 'H');
 			}
 			auto sep = new Label(grp, SWT.SEPARATOR | SWT.HORIZONTAL);
 			sep.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -1237,6 +1251,7 @@ public:
 		_keyCode.setSelection(_prop.var.etc.replaceTextKeyCode);
 		_file.setSelection(_prop.var.etc.replaceTextFile);
 		_comment.setSelection(_prop.var.etc.replaceTextComment);
+		_jptx.setSelection(_prop.var.etc.replaceTextJptx);
 
 		_contents[CType.START].setSelection(_prop.var.etc.searchContentsStart);
 		_contents[CType.START_BATTLE].setSelection(_prop.var.etc.searchContentsStartBattle);
@@ -1412,6 +1427,7 @@ public:
 			_prop.var.etc.replaceTextKeyCode = _keyCode.getSelection();
 			_prop.var.etc.replaceTextFile = _file.getSelection();
 			_prop.var.etc.replaceTextComment = _comment.getSelection();
+			_prop.var.etc.replaceTextJptx = _jptx.getSelection();
 
 			_prop.var.etc.searchContentsStart = _contents[CType.START].getSelection();
 			_prop.var.etc.searchContentsStartBattle = _contents[CType.START_BATTLE].getSelection();
@@ -2279,6 +2295,34 @@ public:
 		scope (exit) _result.setRedraw(true);
 		reset();
 		searchRange(count, &replaceTextImpl);
+		if (_jptx.getSelection()) {
+			foreach (string file; .dirEntries(_summ.scenarioPath, SpanMode.depth, false)) {
+				if (cfnmatch(cwx.utils.getExt(file), "jptx")) {
+					try {
+						bool isSJIS;
+						string value = readJPYFile(file, isSJIS);
+						auto jText = jptxText(value);
+						Undo[] uArr;
+						string file2 = file;
+						bool r = repl(null, jText, (string jText) {
+							string value = jptxText(value, jText);
+							try {
+								writeJPYFile(file2, value, isSJIS);
+							} catch (Exception e) {
+								debugln(e);
+							}
+						}, count, uArr, true);
+						if (r) {
+							file = abs2rel(_summ.scenarioPath, file);
+							addResult(file);
+							store(file, uArr);
+						}
+					} catch (Exception e) {
+						debugln(e);
+					}
+				}
+			}
+		}
 		setResultStatus(count);
 		if (!_after.length) _comm.replText.call();
 

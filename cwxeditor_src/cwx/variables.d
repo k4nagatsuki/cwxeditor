@@ -199,6 +199,7 @@ class FlexEtcProps : Properties {
 	mixin Property!("replaceTextKeyCode", bool, true);
 	mixin Property!("replaceTextFile", bool, false);
 	mixin Property!("replaceTextComment", bool, true);
+	mixin Property!("replaceTextJptx", bool, false);
 
 	mixin Property!("replaceNameCoupon", bool, true);
 	mixin Property!("replaceNameGossip", bool, true);

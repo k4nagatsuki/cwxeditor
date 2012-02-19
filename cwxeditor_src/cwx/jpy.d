@@ -149,6 +149,19 @@ private {
 	bool boolVal(string value) {return value == "1";}
 }
 
+/// pathのファイルを読み込む。
+string readJPYFile(string path, out bool isSJIS) {
+	auto value = cast(char[]) std.file.read(path);
+	try {
+		validate(value);
+		isSJIS = false;
+		return assumeUnique(value);
+	} catch {
+		isSJIS = true;
+		return touni(value);
+	}
+}
+/// ditto
 private string readJPYFile(string path) {
 	auto value = cast(char[]) std.file.read(path);
 	try {
@@ -157,6 +170,13 @@ private string readJPYFile(string path) {
 	} catch {
 		return touni(value);
 	}
+}
+/// pathへ書き込む。
+void writeJPYFile(string path, string value, bool isSJIS) {
+	if (isSJIS) {
+		value = tosjis(value);
+	}
+	std.file.write(path, value);
 }
 
 private string stripValue(string eqAfter) {

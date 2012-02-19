@@ -225,8 +225,9 @@ public:
 	@property const string replTextEndScenario() {return "終了印";}
 	@property const string replTextAreaName() {return "エリア/バトル/パッケージ名";}
 	@property const string replTextKeyCode() {return "キーコード";}
-	@property const string replTextFile() {return "ファイル";}
+	@property const string replTextFile() {return "ファイル名";}
 	@property const string replTextComment() {return "コメント";}
+	@property const string replTextJptx() {return "JPTXテキスト";}
 
 	@property const string replID() {return "検索/置換対象";}
 	@property const string replIDKind() {return "対象";}
