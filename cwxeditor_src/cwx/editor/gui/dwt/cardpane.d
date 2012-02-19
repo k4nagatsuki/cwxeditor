@@ -1704,20 +1704,24 @@ public:
 			select(index2);
 		}
 		bool canUp() {
+			if (!_list.isFocusControl() && !_tbl.isFocusControl()) return false;
 			int sel = selectionIndex;
 			return sel != -1 && 0 < sel;
 		}
 		bool canDown() {
+			if (!_list.isFocusControl() && !_tbl.isFocusControl()) return false;
 			int sel = selectionIndex;
 			return sel != -1 && sel + 1 < cards.length;
 		}
 		void up() {
+			if (!_list.isFocusControl() && !_tbl.isFocusControl()) return;
 			int sel = selectionIndex;
 			if (-1 == sel) return;
 			udImpl(sel, sel - 1);
 			_comm.refreshToolBar();
 		}
 		void down() {
+			if (!_list.isFocusControl() && !_tbl.isFocusControl()) return;
 			int sel = selectionIndex;
 			if (-1 == sel) return;
 			udImpl(sel, sel + 1);

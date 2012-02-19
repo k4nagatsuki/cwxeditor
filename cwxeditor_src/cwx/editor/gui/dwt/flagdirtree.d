@@ -467,6 +467,7 @@ public:
 	}
 
 	private bool canUdImpl(int plus) {
+		if (!dirs.isFocusControl()) return false;
 		auto sel = selectedItem;
 		if (!sel) return false;
 		auto dir = cast(FlagDir) sel.getData();
@@ -479,6 +480,7 @@ public:
 		return true;
 	}
 	private void udImpl(int plus) {
+		if (!dirs.isFocusControl()) return;
 		auto sel = selectedItem;
 		if (!sel) return;
 		auto dir = cast(FlagDir) sel.getData();

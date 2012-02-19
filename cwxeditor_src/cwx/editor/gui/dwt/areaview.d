@@ -2119,7 +2119,20 @@ public:
 	}
 
 	@property
+	bool isFocusOnListOrPane() {
+		static if (UseCards) {
+			if (_cards.isFocusControl()) return true;
+		}
+		static if (UseBacks) {
+			if (_backs.isFocusControl()) return true;
+		}
+		if (_imgp.isFocusControl()) return true;
+		return false;
+	}
+
+	@property
 	bool canUp() {
+		if (!isFocusOnListOrPane()) return false;
 		int[] cIdcs, bIdcs;
 		static if (UseCards) {
 			if (_viewCards) {
@@ -2137,6 +2150,7 @@ public:
 	}
 	@property
 	bool canDown() {
+		if (!isFocusOnListOrPane()) return false;
 		int[] cIdcs, bIdcs;
 		static if (UseCards) {
 			if (_viewCards) {
@@ -2156,6 +2170,7 @@ public:
 		up(1, true, true);
 	}
 	void up(int count, bool cards, bool backs) {
+		if (!isFocusOnListOrPane()) return;
 		int[] cIdcs;
 		int[] bIdcs;
 		static if (UseCards) {
@@ -2213,6 +2228,7 @@ public:
 		down(1, true, true);
 	}
 	void down(int count, bool cards, bool backs) {
+		if (!isFocusOnListOrPane()) return;
 		int[] cIdcs;
 		int[] bIdcs;
 		static if (UseCards) {
