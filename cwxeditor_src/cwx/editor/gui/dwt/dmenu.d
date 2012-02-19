@@ -612,17 +612,17 @@ ToolItem createToolItem2(Commons comm, ToolBar bar, string tip, string text, Ima
 
 ToolItem createToolItem(Commons comm, ToolBar bar, MenuID id,
 		void delegate(ToolItem) func, bool delegate() enabled, int style = SWT.PUSH) {
-	auto m = createToolItem2(comm, bar, comm.prop.buildMenu(id), null, comm.prop.images.menu(id), func, enabled, style);
+	auto m = createToolItem2(comm, bar, comm.prop.buildTool(id), null, comm.prop.images.menu(id), func, enabled, style);
 	(cast(MenuData) m.getData()).id = id;
 	return m;
 }
 ToolItem createToolItem(Commons comm, ToolBar bar, MenuID id,
 		void delegate(SelectionEvent se) func, bool delegate() enabled, int style = SWT.PUSH) {
-	return createToolItemImpl(comm, bar, comm.prop.buildMenu(id), null, comm.prop.images.menu(id), func, style, id, enabled);
+	return createToolItemImpl(comm, bar, comm.prop.buildTool(id), null, comm.prop.images.menu(id), func, style, id, enabled);
 }
 ToolItem createToolItem(Commons comm, ToolBar bar, MenuID id,
 		void delegate() func, bool delegate() enabled, int style = SWT.PUSH) {
-	return createToolItemImpl(comm, bar, comm.prop.buildMenu(id), null, comm.prop.images.menu(id), func, style, id, enabled);
+	return createToolItemImpl(comm, bar, comm.prop.buildTool(id), null, comm.prop.images.menu(id), func, style, id, enabled);
 }
 
 private class CBarListener(string Name) : ControlAdapter, DisposeListener {
