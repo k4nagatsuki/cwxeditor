@@ -78,9 +78,11 @@ void main(string[] args) {
 		if (sc < args.length) {
 			auto main = new MainWindow(appPath, ini, sys, args[sc], openPaths);
 			main.doCWX;
+			std.c.stdlib.exit(0);
 			return;
 		}
 	}
 	auto main = new MainWindow(appPath, ini, sys);
 	main.doCWX;
+	std.c.stdlib.exit(0);
 }
