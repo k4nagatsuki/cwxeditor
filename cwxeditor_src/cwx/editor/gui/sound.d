@@ -171,16 +171,17 @@ shared static ~this () {
 			debug std.stdio.writeln("Release DLLs for sound Start");
 		}
 		if (sdl) {
-			// FIXME: VirtualMIDISynthを使用していると以下の二件の呼び出しで停止する
+			// FIXME: VirtualMIDISynthを使用していると以下の二件の
+			//        呼び出しで停止するため、システムに任せる
 /+			try {
 				getSymbol!(Mix_CloseAudio)(mixer, "Mix_CloseAudio")();
 				getSymbol!(SDL_Quit)(sdl, "SDL_Quit")();
 			} catch (Exception e) {
 				debugln(e.msg);
 			}
-+/			ExeModule_Release(mixer);
+			ExeModule_Release(mixer);
 			ExeModule_Release(sdl);
-		}
++/		}
 		if (winmm) {
 			ExeModule_Release(winmm);
 		}
