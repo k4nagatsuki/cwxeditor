@@ -1491,7 +1491,7 @@ public:
 			drop.setTransfer([FileTransfer.getInstance]);
 			drop.addDropListener(new FilesDrop!(Table));
 			auto drag = new DragSource
-				(_files, DND.DROP_DEFAULT | DND.DROP_COPY | DND.DROP_MOVE);
+				(_files, DND.DROP_DEFAULT | DND.DROP_COPY | DND.DROP_MOVE | DND.DROP_LINK);
 			drag.setTransfer([FileTransfer.getInstance]);
 			drag.addDragListener(new FilesDrag!(Table));
 
