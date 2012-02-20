@@ -151,13 +151,14 @@ private {
 
 /// pathのファイルを読み込む。
 string readJPYFile(string path, out bool isSJIS) {
-	auto value = cast(char[]) std.file.read(path);
+	char[] value;
 	try {
-		validate(value);
+		value = cast(char[]) std.file.readText(path);
 		isSJIS = false;
 		return assumeUnique(value);
 	} catch {
 		isSJIS = true;
+		value = cast(char[]) std.file.read(path);
 		return touni(value);
 	}
 }
