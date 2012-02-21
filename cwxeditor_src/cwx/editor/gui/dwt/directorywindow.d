@@ -739,7 +739,11 @@ private:
 					auto dlg = new MessageBox
 						(_win.getShell(), SWT.ICON_QUESTION | SWT.YES | SWT.NO | SWT.CANCEL);
 					dlg.setText(_prop.msgs.dlgTitQuestion);
-					dlg.setMessage(_prop.msgs.dlgMsgDropOverWriteFiles(exists));
+					if (1 == exists.length) {
+						dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgDropOverWriteFile, exists[0]));
+					} else {
+						dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgDropOverWriteFiles, exists.length));
+					}
 					int r = dlg.open();
 					if (r == SWT.YES) {
 						over = true;
@@ -1711,12 +1715,12 @@ public:
 		auto dlg = new MessageBox(shl, SWT.ICON_QUESTION | SWT.YES | SWT.NO);
 		version (Windows) {
 			if (recycle) {
-				dlg.setMessage(_prop.msgs.dlgMsgDeleteRecycleUnuse(files));
+				dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgDeleteRecycleUnuse, files.length));
 			} else {
-				dlg.setMessage(_prop.msgs.dlgMsgDeleteUnuse(files));
+				dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgDeleteUnuse, files.length));
 			}
 		} else {
-			dlg.setMessage(_prop.msgs.dlgMsgDeleteUnuse(files));
+			dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgDeleteUnuse, files.length));
 		}
 		dlg.setText(_prop.msgs.dlgTitQuestion);
 		if (SWT.YES == dlg.open()) {
@@ -2080,12 +2084,12 @@ public:
 			if (!dir) return;
 			version (Windows) {
 				if (recycle) {
-					dlg.setMessage(_prop.msgs.dlgMsgDeleteRecycle([nabs(dir)]));
+					dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgDeleteFileRecycle, nabs(dir)));
 				} else {
-					dlg.setMessage(_prop.msgs.dlgMsgDelete([nabs(dir)]));
+					dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgDeleteFile, nabs(dir)));
 				}
 			} else {
-				dlg.setMessage(_prop.msgs.dlgMsgDelete([nabs(dir)]));
+				dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgDeleteFile, nabs(dir)));
 			}
 			if (SWT.OK == dlg.open()) {
 				removeFiles([nabs(dir)], recycle);
@@ -2096,13 +2100,25 @@ public:
 			assert (_files.isFocusControl());
 			if (file.length == 0) return;
 			version (Windows) {
-				if (recycle) {
-					dlg.setMessage(_prop.msgs.dlgMsgDeleteRecycle(fileNames));
+				if (1 == fileNames.length) {
+					if (recycle) {
+						dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgDeleteFileRecycle, fileNames[0]));
+					} else {
+						dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgDeleteFile, fileNames[0]));
+					}
 				} else {
-					dlg.setMessage(_prop.msgs.dlgMsgDelete(fileNames));
+					if (recycle) {
+						dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgDeleteFilesRecycle, fileNames.length));
+					} else {
+						dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgDeleteFiles, fileNames.length));
+					}
 				}
 			} else {
-				dlg.setMessage(_prop.msgs.dlgMsgDelete(fileNames));
+				if (1 == fileNames.length) {
+					dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgDeleteFile, fileNames[0]));
+				} else {
+					dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgDeleteFiles, fileNames.length));
+				}
 			}
 			if (SWT.OK == dlg.open()) {
 				removeFiles(file, recycle);

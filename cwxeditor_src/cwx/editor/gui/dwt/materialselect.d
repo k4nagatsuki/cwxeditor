@@ -167,7 +167,11 @@ public:
 				}
 				if (r.length > 0) {
 					auto dlg = new MessageBox(control.getShell(), SWT.ICON_QUESTION | SWT.YES | SWT.NO);
-					dlg.setMessage(_prop.msgs.dlgMsgDropFiles(r));
+					if (1 == r.length) {
+						dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgDropFile, r[0]));
+					} else {
+						dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgDropFiles, r.length));
+					}
 					dlg.setText(_prop.msgs.dlgTitDropFiles);
 					if (SWT.YES == dlg.open()) {
 						return r;

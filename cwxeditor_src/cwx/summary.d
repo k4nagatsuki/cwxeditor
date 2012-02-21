@@ -351,7 +351,7 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 					throw e;
 				}
 			}
-			throw new SummaryException(prop.msgs.notScenario(fname));
+			throw new SummaryException(.tryFormat(prop.msgs.notScenario, fname));
 		}
 		if (fname) {
 			if (newName || exists(fname)) {
@@ -415,16 +415,16 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 					}
 				} catch (ZipException e) {
 					debugln(e);
-					throw new SummaryException(prop.msgs.zipError(fname));
+					throw new SummaryException(.tryFormat(prop.msgs.zipError, fname));
 				} catch (FileLoadException e) {
 					debugln(e);
-					throw new SummaryException(prop.msgs.loadError(e.path));
+					throw new SummaryException(.tryFormat(prop.msgs.loadError, e.path));
 				} catch (Exception e) {
 					debugln(e);
-					throw new SummaryException(prop.msgs.loadError(fname));
+					throw new SummaryException(.tryFormat(prop.msgs.loadError, fname));
 				}
 			} else {
-				throw new SummaryException(prop.msgs.loadError(fname));
+				throw new SummaryException(.tryFormat(prop.msgs.loadError, fname));
 			}
 		}
 		return null;
@@ -1632,7 +1632,7 @@ public:
 			auto temp = classicToX(prop, tempPath, defSkin, copyFail);
 			foreach (fail; copyFail) {
 				// 一部コピー失敗しても中断しない
-				showWarn(prop.msgs.fileCopyError(fail));
+				showWarn(.tryFormat(prop.msgs.fileCopyError, fail));
 			}
 			scope (failure) delAll(temp);
 			if (!type.length) type = defSkin.type;
@@ -1707,7 +1707,7 @@ public:
 			}
 		} catch (Exception e) {
 			debugln(e);
-			throw new SummaryException(prop.msgs.saveError(scenarioName));
+			throw new SummaryException(.tryFormat(prop.msgs.saveError, scenarioName));
 		}
 	}
 	/// データを保存せずにシナリオのフォルダのアーカイブを作成する。

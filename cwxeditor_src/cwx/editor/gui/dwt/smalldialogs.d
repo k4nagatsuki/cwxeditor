@@ -121,7 +121,7 @@ protected:
 						if (clistdir(path).length) {
 							auto q = new MessageBox(getShell(), SWT.OK | SWT.CANCEL | SWT.ICON_QUESTION);
 							q.setText(_prop.msgs.dlgTitQuestion);
-							q.setMessage(_prop.msgs.notEmptyDir(path));
+							q.setMessage(.tryFormat(_prop.msgs.notEmptyDir, path));
 							if (SWT.OK != q.open()) continue;
 						}
 						_prop.var.etc.scenarioPath = dlg.getFilterPath();

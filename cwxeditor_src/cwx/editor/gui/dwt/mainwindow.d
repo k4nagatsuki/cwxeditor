@@ -220,9 +220,13 @@ private:
 	void refreshTitle() {
 		if (summary) {
 			string path = summary.scenarioPath;
-			_win.setText(_prop.msgs.mainWindowName(summary.scenarioName, path, summary.isChanged));
+			if (summary.isChanged) {
+				_win.setText(.tryFormat(_prop.msgs.mainWindowName, summary.scenarioName, path));
+			} else {
+				_win.setText(.tryFormat(_prop.msgs.mainWindowNameChanged, summary.scenarioName, path));
+			}
 		} else {
-			_win.setText(_prop.msgs.mainWindowName(null, null, false));
+			_win.setText(_prop.msgs.mainWindowNameEmpty);
 		}
 	}
 
@@ -329,7 +333,7 @@ private:
 		if (!summary) return;
 		auto old = summary;
 		if (old.useTemp && !old.zipName.length) {
-			MessageBox.showWarning(_prop.msgs.reloadBeforeSaveError(old.scenarioName),
+			MessageBox.showWarning(.tryFormat(_prop.msgs.reloadBeforeSaveError, old.scenarioName),
 				_prop.msgs.dlgTitWarning, _win);
 			return;
 		}
@@ -342,8 +346,8 @@ private:
 						openScenario(old.reloadXMLs(_prop.var.etc.doubleIO));
 					} catch (Exception e) {
 						debugln(e);
-						MessageBox.showWarning(_prop.msgs.reloadError
-							(summary.scenarioPath) ~ "\n" ~ e.msg,
+						MessageBox.showWarning(.tryFormat(_prop.msgs.reloadError, summary.scenarioPath)
+							~ "\n" ~ e.msg,
 							_prop.msgs.dlgTitWarning, _win);
 					}
 				} else {
@@ -355,8 +359,8 @@ private:
 					openScenario(old.reloadXMLs(_prop.var.etc.doubleIO));
 				} catch (Exception e) {
 					debugln(e);
-					MessageBox.showWarning(_prop.msgs.reloadError
-						(summary.scenarioPath) ~ "\n" ~ e.msg,
+					MessageBox.showWarning(.tryFormat(_prop.msgs.reloadError, summary.scenarioPath)
+						~ "\n" ~ e.msg,
 						_prop.msgs.dlgTitWarning, _win);
 				}
 			} else {
@@ -394,7 +398,7 @@ private:
 		}
 		if (summ.type.length && !hasSkin(_prop, summ.type)
 				&& summ.type != _prop.var.etc.defaultSkin) {
-			MessageBox.showWarning(_prop.msgs.useDefaultSkin(summ.type, _prop.var.etc.defaultSkin),
+			MessageBox.showWarning(.tryFormat(_prop.msgs.useDefaultSkin, summ.type, _prop.var.etc.defaultSkin),
 				_prop.msgs.dlgTitWarning, _win);
 			summ.type = _prop.var.etc.defaultSkin;
 		}
@@ -433,14 +437,14 @@ private:
 		if (_prop.var.etc.reconstruction) {
 			auto paths = fullHistToCWXPaths(fullHist);
 			if (paths.length) {
-				statusLine = _prop.msgs.reconstructionStatus(0, paths.length);
+				statusLine = .tryFormat(_prop.msgs.reconstructionStatus, 0, paths.length);
 				foreach (i, cwxPath; paths) {
 					if (openCWXPath(cwxPath, false)) {
 						opened = true;
 						openedS = statusLine;
-						statusLine = _prop.msgs.reconstructionStatus(i + 1, paths.length);
+						statusLine = .tryFormat(_prop.msgs.reconstructionStatus, i + 1, paths.length);
 					} else {
-						statusLine = _prop.msgs.reconstructionStatus(i + 1, paths.length);
+						statusLine = .tryFormat(_prop.msgs.reconstructionStatus, i + 1, paths.length);
 					}
 				}
 			}
@@ -456,7 +460,7 @@ private:
 			debugln(e);
 		}
 		if (!opened || !openedS.length) {
-			statusLine = _prop.msgs.loaded(summ.scenarioName);
+			statusLine = .tryFormat(_prop.msgs.loaded, summ.scenarioName);
 		} else {
 			statusLine = openedS;
 		}
@@ -480,7 +484,7 @@ private:
 				} catch (Exception e) {
 					debugln(e);
 				}
-				MessageBox.showWarning(_prop.msgs.cwxPathOpenError(path), _prop.msgs.dlgTitWarning, _win);
+				MessageBox.showWarning(.tryFormat(_prop.msgs.cwxPathOpenError, path), _prop.msgs.dlgTitWarning, _win);
 			}
 			_openPaths.length = 0u;
 		}
@@ -594,7 +598,7 @@ private:
 	}
 	void execEngineP(string path) {
 		if (!exec(path, dirName(nabs(path)))) {
-			MessageBox.showWarning(_prop.msgs.errorExecEngine(path),
+			MessageBox.showWarning(.tryFormat(_prop.msgs.errorExecEngine, .baseName(path)),
 				_prop.msgs.dlgTitWarning, _win);
 		}
 	}
@@ -654,10 +658,10 @@ private:
 			MessageBox dlg;
 			if (reload) {
 				dlg = new MessageBox(_win, SWT.OK | SWT.CANCEL | SWT.ICON_QUESTION);
-				dlg.setMessage(_prop.msgs.dlgMsgIsSaveBeforeReload(summary.scenarioName));
+				dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgIsSaveBeforeReload, summary.scenarioName));
 			} else {
 				dlg = new MessageBox(_win, SWT.YES | SWT.NO | SWT.CANCEL | SWT.ICON_QUESTION);
-				dlg.setMessage(_prop.msgs.dlgMsgIsSaveBeforeExit(summary.scenarioName));
+				dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgIsSaveBeforeExit, summary.scenarioName));
 			}
 			dlg.setText(_prop.msgs.dlgTitQuestion);
 			_win.setMinimized(false);
@@ -915,7 +919,7 @@ private:
 			if (cfnmatch(ext, "xml") || cfnmatch(ext, "wsm") || cfnmatch(ext, "wid")) {
 				h = dirName(h);
 			}
-			dlg.setMessage(_prop.msgs.scenarioNotFound(h));
+			dlg.setMessage(.tryFormat(_prop.msgs.scenarioNotFound, h));
 			dlg.setText(_prop.msgs.dlgTitQuestion);
 			if (SWT.YES == dlg.open()) {
 				this.outer.delHist(_hist);
@@ -1273,7 +1277,7 @@ public:
 				engineDir = dirName(nabs(_prop.enginePath));
 				auto skinTable = .skinTable(_prop);
 				if (!(_prop.var.etc.defaultSkin in skinTable)) {
-					MessageBox.showWarning(_prop.msgs.loadSkinError(_prop.var.etc.defaultSkin),
+					MessageBox.showWarning(.tryFormat(_prop.msgs.loadSkinError, _prop.var.etc.defaultSkin),
 						_prop.msgs.dlgTitWarning, null);
 				}
 			}
@@ -1306,7 +1310,7 @@ public:
 				d.loadFont(std.path.buildPath(engineDir, f));
 			}
 			dStr ~= " - " ~ .text(__LINE__);
-			_win.setText(_prop.msgs.mainWindowName(null, null, false));
+			_win.setText(_prop.msgs.mainWindowNameEmpty);
 			if (_prop.var.etc.singleWindow) {
 				_sbshl.contentPane.setLayout(zeroGridLayout(1, true));
 			} else {
@@ -1696,7 +1700,7 @@ public:
 				_mainMenu.add(MenuID.CardView);
 				auto ti = createDropDownItem(_comm, bar, MenuID.CardView, &openCardWindow, tmOpenCardWin, null);
 				_tool[MenuID.CardView] = ti;
-				createMenuItem2(_comm, tmOpenCardWin, _prop.msgs.casts, _prop.images.casts, &openCast, null);
+				createMenuItem2(_comm, tmOpenCardWin, _prop.msgs.cwCast, _prop.images.casts, &openCast, null);
 				createMenuItem2(_comm, tmOpenCardWin, _prop.msgs.skill, _prop.images.skill, &openSkill, null);
 				createMenuItem2(_comm, tmOpenCardWin, _prop.msgs.item, _prop.images.item, &openItem, null);
 				createMenuItem2(_comm, tmOpenCardWin, _prop.msgs.beast, _prop.images.beast, &openBeast, null);

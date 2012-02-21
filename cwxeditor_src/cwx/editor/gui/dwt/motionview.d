@@ -380,7 +380,7 @@ private:
 
 	void createMT(MotionView v, ToolBar tbar, string group, MType type) {
 		string tt = _prop.msgs.motionName(type);
-		_descs[type] = _prop.msgs.msnDesc(group, tt);
+		_descs[type] = .tryFormat(_prop.msgs.msnDesc, group, tt);
 		class MT {
 			// FIXME: アクセス違反に対処
 			MotionView v;

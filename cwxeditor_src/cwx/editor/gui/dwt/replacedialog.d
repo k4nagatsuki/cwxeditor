@@ -1100,7 +1100,7 @@ public:
 		path = cpaddattr(path, "shallow");
 		auto r = _comm.openCWXPath(path, false);
 		if (!r) {
-			MessageBox.showWarning(_prop.msgs.cwxPathOpenError(path), _prop.msgs.dlgTitWarning, _win);
+			MessageBox.showWarning(.tryFormat(_prop.msgs.cwxPathOpenError, path), _prop.msgs.dlgTitWarning, _win);
 		}
 	}
 	private class OpenPath : MouseAdapter, KeyListener {
@@ -1203,7 +1203,7 @@ public:
 			bArea.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			bArea.setLayout(new GridLayout(2, false));
 			_status = new Label(bArea, SWT.NONE);
-			_status.setText(_prop.msgs.searchResult(0, ""));
+			_status.setText(_prop.msgs.searchResultEmpty);
 			_status.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			auto comp = new Composite(bArea, SWT.NONE);
 			comp.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
@@ -1548,7 +1548,7 @@ public:
 		reset();
 		_undo.undo();
 		refContentText();
-		_status.setText(_prop.msgs.replaceUndo(_result.getItemCount()));
+		_status.setText(.tryFormat(_prop.msgs.replaceUndo, _result.getItemCount()));
 		_comm.replText.call();
 		_comm.refreshToolBar();
 	}
@@ -1559,7 +1559,7 @@ public:
 		reset();
 		_undo.redo();
 		refContentText();
-		_status.setText(_prop.msgs.replaceRedo(_result.getItemCount()));
+		_status.setText(.tryFormat(_prop.msgs.replaceRedo, _result.getItemCount()));
 		_comm.replText.call();
 		_comm.refreshToolBar();
 	}
@@ -1574,9 +1574,9 @@ public:
 	private void reset() {
 		_result.removeAll();
 		if (_replMode) {
-			_status.setText(_prop.msgs.replResult(0, ""));
+			_status.setText(_prop.msgs.replResultEmpty);
 		} else {
-			_status.setText(_prop.msgs.searchResult(0, ""));
+			_status.setText(_prop.msgs.searchResultEmpty);
 		}
 		_comm.refreshToolBar();
 	}
@@ -1631,7 +1631,7 @@ public:
 		foreach (a; _after) a();
 		if (_after.length) {
 			refContentText();
-			_comm.replText.call();
+			if (_replMode) _comm.replText.call();
 		}
 		if (_replMode && _rUndo.length) {
 			_undo ~= new UndoArr(_rUndo, false);
@@ -1706,9 +1706,9 @@ public:
 		}
 		string kind = _tabf.getSelection().getText();
 		if (_replMode) {
-			_status.setText(_prop.msgs.replResult(count, kind));
+			_status.setText(.tryFormat(_prop.msgs.replResult, count, kind));
 		} else {
-			_status.setText(_prop.msgs.searchResult(count, kind));
+			_status.setText(.tryFormat(_prop.msgs.searchResult, count, kind));
 		}
 	}
 	private void replaceIDImpl2(ID)(ID from, ID to) {
@@ -2324,7 +2324,7 @@ public:
 			}
 		}
 		setResultStatus(count);
-		if (!_after.length) _comm.replText.call();
+		if (_replMode && !_after.length) _comm.replText.call();
 
 		static void addHist(Combo combo, void delegate(string[]) set,
 				string[] delegate() get, int max, string text) {
@@ -2449,7 +2449,7 @@ public:
 				} catch (Exception e) {
 					debugln(e);
 				}
-				MessageBox.showWarning(_prop.msgs.cwxPathOpenError(path), _prop.msgs.dlgTitWarning, _win);
+				MessageBox.showWarning(.tryFormat(_prop.msgs.cwxPathOpenError, path), _prop.msgs.dlgTitWarning, _win);
 				return;
 			}
 			auto p = cast(PathString) d;
@@ -2459,7 +2459,7 @@ public:
 					_win.setActive();
 					return;
 				}
-				MessageBox.showWarning(_prop.msgs.filePathOpenError(path), _prop.msgs.dlgTitWarning, _win);
+				MessageBox.showWarning(.tryFormat(_prop.msgs.filePathOpenError, path), _prop.msgs.dlgTitWarning, _win);
 				return;
 			}
 		}
@@ -2524,47 +2524,47 @@ public:
 		auto bgi = cast(BgImage) path;
 		if (bgi && !par) {
 			img = _prop.images.backs;
-			text = _prop.msgs.searchResultBgImage(bgi);
+			text = .tryFormat(_prop.msgs.searchResultBgImage, encodePath(bgi.path));
 		}
 		auto are = cast(Area) path;
 		if (are) {
 			img = _prop.images.area;
-			text = _prop.msgs.searchResultIds(are);
+			text = .tryFormat(_prop.msgs.searchResultIds, _prop.msgs.area, are.id, are.name);
 		}
 		auto bat = cast(Battle) path;
 		if (bat) {
 			img = _prop.images.battle;
-			text = _prop.msgs.searchResultIds(bat);
+			text = .tryFormat(_prop.msgs.searchResultIds, _prop.msgs.battle, bat.id, bat.name);
 		}
 		auto pac = cast(Package) path;
 		if (pac) {
 			img = _prop.images.packages;
-			text = _prop.msgs.searchResultIds(pac);
+			text = .tryFormat(_prop.msgs.searchResultIds, _prop.msgs.cwPackage, pac.id, pac.name);
 		}
 		auto cas = cast(CastCard) path;
 		if (cas) {
 			img = _prop.images.casts;
-			text = _prop.msgs.searchResultIds(cas);
+			text = .tryFormat(_prop.msgs.searchResultIds, _prop.msgs.cwCast, cas.id, cas.name);
 		}
 		auto ski = cast(SkillCard) path;
 		if (ski) {
 			img = _prop.images.skill;
-			text = _prop.msgs.searchResultIds(ski);
+			text = .tryFormat(_prop.msgs.searchResultIds, _prop.msgs.skill, ski.id, ski.name);
 		}
 		auto ite = cast(ItemCard) path;
 		if (ite) {
 			img = _prop.images.item;
-			text = _prop.msgs.searchResultIds(ite);
+			text = .tryFormat(_prop.msgs.searchResultIds, _prop.msgs.item, ite.id, ite.name);
 		}
 		auto bea = cast(BeastCard) path;
 		if (bea) {
 			img = _prop.images.beast;
-			text = _prop.msgs.searchResultIds(bea);
+			text = .tryFormat(_prop.msgs.searchResultIds, _prop.msgs.beast, bea.id, bea.name);
 		}
 		auto inf = cast(InfoCard) path;
 		if (inf) {
 			img = _prop.images.info;
-			text = _prop.msgs.searchResultIds(inf);
+			text = .tryFormat(_prop.msgs.searchResultIds, _prop.msgs.info, inf.id, inf.name);
 		}
 		auto con = cast(Content) path;
 		if (con && !par) {
@@ -2593,32 +2593,33 @@ public:
 		auto fla = cast(Flag) path;
 		if (fla && !par) {
 			img = _prop.images.flag;
-			text = _prop.msgs.searchResultFlags(fla);
+			text = .tryFormat(_prop.msgs.searchResultFlag, fla.path);
 		}
 		auto ste = cast(Step) path;
 		if (ste && !par) {
 			img = _prop.images.step;
-			text = _prop.msgs.searchResultFlags(ste);
+			text = .tryFormat(_prop.msgs.searchResultStep, ste.path);
 		}
 		auto fld = cast(FlagDir) path;
 		if (fld && !par) {
 			img = _prop.images.flagDir;
-			text = _prop.msgs.searchResultFlags(fld);
+			text = .tryFormat(_prop.msgs.searchResultFlagDir, fld.path);
 		}
 		auto eve = cast(EventTree) path;
 		if (eve && !par) {
 			img = _prop.images.eventTree;
-			text = _prop.msgs.searchResultEventTree(eve);
+			text = .tryFormat(_prop.msgs.searchResultEventTree, eve.name);
 		}
 		auto men = cast(MenuCard) path;
 		if (men) {
 			img = _prop.images.cards;
-			text = _prop.msgs.searchResultMenuCard(men);
+			text = .tryFormat(_prop.msgs.searchResultMenuCard, men.name);
 		}
 		auto ene = cast(EnemyCard) path;
 		if (ene) {
+			auto card = _summ.cwCast(ene.id);
 			img = _prop.images.cards;
-			text = _prop.msgs.searchResultEnemyCard(ene, _summ);
+			text = .tryFormat(_prop.msgs.searchResultEnemyCard, card ? card.name : _prop.msgs.noID);
 		}
 		assert (par || img);
 		string parText = "";

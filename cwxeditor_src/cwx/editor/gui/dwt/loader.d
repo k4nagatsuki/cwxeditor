@@ -144,7 +144,7 @@ private class LSFFThr(S, bool Array) {
 	void delegate(string) status;
 	class Start : Runnable {
 		void run() {
-			status(prop.msgs.loading(fname));
+			status(.tryFormat(prop.msgs.loading, fname));
 		}
 	}
 	class Exit : Runnable {
@@ -159,9 +159,13 @@ private class LSFFThr(S, bool Array) {
 	class Failed : Runnable {
 		void run() {
 			static if (Array) {
-				status(prop.msgs.loadErrorStatus(files));
+				if (1 == files.length) {
+					status(.tryFormat(prop.msgs.loadErrorStatus, files[0]));
+				} else {
+					status(.tryFormat(prop.msgs.loadErrorStatusCount, files.length));
+				}
 			} else {
-				status(prop.msgs.loadErrorStatus(fname));
+				status(.tryFormat(prop.msgs.loadErrorStatus, fname));
 			}
 			if (failure) failure();
 		}
@@ -171,7 +175,7 @@ private class LSFFThr(S, bool Array) {
 	class Working : Runnable {
 		void run() {
 			try {
-				status(prop.msgs.loadProgress(fname, max, worked));
+				status(.tryFormat(prop.msgs.loadProgress, baseName(fname), roundTo!int(cast(real) worked / max * 100.0)));
 			} catch {
 				clear();
 			}
@@ -192,12 +196,12 @@ private class LSFFThr(S, bool Array) {
 				try {
 					static if (Array) {
 						if (r.length == 1) {
-							status(prop.msgs.loaded(r[0].scenarioName));
+							status(.tryFormat(prop.msgs.loaded, r[0].scenarioName));
 						} else {
-							status(prop.msgs.loaded(r.length));
+							status(.tryFormat(prop.msgs.loadedCount, r.length));
 						}
 					} else {
-						status(prop.msgs.loaded(r.scenarioName));
+						status(.tryFormat(prop.msgs.loaded, r.scenarioName));
 					}
 					loaded(r);
 				} catch (Exception e) {
@@ -208,9 +212,13 @@ private class LSFFThr(S, bool Array) {
 						foreach (s; r) {
 							names ~= s.scenarioName;
 						}
-						status(prop.msgs.loadErrorStatus(names));
+						if (1 == names.length) {
+							status(.tryFormat(prop.msgs.loadErrorStatus, names[0]));
+						} else {
+							status(.tryFormat(prop.msgs.loadErrorStatusCount, names.length));
+						}
 					} else {
-						status(prop.msgs.loadErrorStatus(r.scenarioName));
+						status(.tryFormat(prop.msgs.loadErrorStatus, r.scenarioName));
 					}
 				} catch {
 					clear();
@@ -228,9 +236,13 @@ private class LSFFThr(S, bool Array) {
 				clear();
 			}
 			static if (Array) {
-				status(prop.msgs.loadErrorStatus(files));
+				if (1 == files.length) {
+					status(.tryFormat(prop.msgs.loadErrorStatus, files[0]));
+				} else {
+					status(.tryFormat(prop.msgs.loadErrorStatus, files.length));
+				}
 			} else {
-				status(prop.msgs.loadErrorStatus(fname));
+				status(.tryFormat(prop.msgs.loadErrorStatus, fname));
 			}
 		}
 	}
@@ -299,12 +311,22 @@ string[] scenarioFilter() {
 	r ~= "*.xml;*.wid";
 	return r;
 }
+string[] scenarioFilterDesc(Props prop) {
+	string[] r;
+	if (canUncab) {
+		r ~= .tryFormat(prop.msgs.filterScenario, "*.wsn;Summary.xml;*.cab;*.zip;Summary.wsm");
+	} else {
+		r ~= .tryFormat(prop.msgs.filterScenario, "*.wsn;Summary.xml;*.zip;Summary.wsm");
+	}
+	r ~= .tryFormat(prop.msgs.filterParts, "*.xml;*.wid");
+	return r;
+}
 
 S[] loadScenarios(S)(Props prop, Shell w, void delegate(string) status,
 		bool expandXMLs, string dlgTitle, void delegate(S[]) loaded = null, void delegate() failure = null, bool oThr = true) {
 	auto dlg = new FileDialog(w, SWT.PRIMARY_MODAL | SWT.APPLICATION_MODAL | SWT.MULTI | SWT.OPEN);
 	dlg.setFilterExtensions(scenarioFilter);
-	dlg.setFilterNames(prop.msgs.filterScenario);
+	dlg.setFilterNames(scenarioFilterDesc(prop));
 	dlg.setText(dlgTitle);
 	dlg.setFilterPath(scenarioFilterPath(prop));
 	string fname = dlg.open();
@@ -385,7 +407,7 @@ S loadScenario(S)(Props prop, Shell w, void delegate(string) status,
 		bool expandXMLs, S old, string dlgTitle, ref string[] openPaths, void delegate(S) loaded = null, void delegate() failure = null, bool oThr = true) {
 	auto dlg = new FileDialog(w, SWT.PRIMARY_MODAL | SWT.APPLICATION_MODAL | SWT.SINGLE | SWT.OPEN);
 	dlg.setFilterExtensions(scenarioFilter);
-	dlg.setFilterNames(prop.msgs.filterScenario);
+	dlg.setFilterNames(scenarioFilterDesc(prop));
 	dlg.setText(dlgTitle);
 	dlg.setFilterPath(scenarioFilterPath(prop));
 	string fname = dlg.open();
@@ -444,7 +466,7 @@ private S loadScenarioFromFileImpl(S)(Props prop, Shell w, void delegate(string)
 				prop.tempPath, old, setMax, worked,
 				isDir(fname) ? baseName(fname) : baseName(dirName(fname)));
 		} catch (SummaryException e) {
-			status(prop.msgs.loadErrorStatus(fname));
+			status(.tryFormat(prop.msgs.loadErrorStatus, fname));
 			if (failure) failure();
 		}
 	}

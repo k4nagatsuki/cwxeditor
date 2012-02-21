@@ -21,20 +21,23 @@ import cwx.menu;
 
 import std.conv;
 import std.path;
-import std.math;
 import std.string;
 
 class Msgs {
 private:
 	version (Windows) {
+		static immutable CARD_WIRTH_PY_EXE = "CardWirthPy.exe";
+		static immutable CWX_EDITOR_EXE = "cwxeditor.exe";
 		static immutable DIR = "フォルダ";
 	} else {
+		static immutable CARD_WIRTH_PY_EXE = "CardWirthPy";
+		static immutable CWX_EDITOR_EXE = "cwxeditor";
 		static immutable DIR = "ディレクトリ";
 	}
 public:
 	@property const string application() {return "CWXEditor";}
 	@property const string dlgTitVersion() {return "バージョン情報";}
-	@property const string appDesc() {return "Scenario editor for CardWirthPy.";}
+	@property const string appDesc() {return "CardWirthPy向けシナリオエディタ";}
 
 	@property const string dlgTitUsage() {return "使い方 - CWXEditor";}
 	@property const string usage() {
@@ -55,15 +58,9 @@ public:
 	@property const string dlgTitError() {return "エラー - CWXEditor";}
 	@property const string dlgTitWarning() {return "警告 - CWXEditor";}
 	@property const string dlgTitQuestion() {return "確認 - CWXEditor";}
-	@property const string unknownError() {
-		version (Windows) {
-			static const CWX_EDITOR = "cwxeditor.exe";
-		} else {
-			static const CWX_EDITOR = "cwxeditor";
-		}
-		return "処理の途中で" ~ application ~ "の制作者が意図していないエラーが発生しました。"
+	@property const string unknownError() {		return "処理の途中で" ~ application ~ "の制作者が意図していないエラーが発生しました。"
 			~ "データが壊れている可能性を考慮して、シナリオを保存せずに終了する事をお勧めします。\n"
-			~ "エラー内容は" ~ CWX_EDITOR ~ "と同じ" ~ DIR ~ "にあるcwxeditor_error.logに記録されます。";
+			~ "エラー内容は" ~ CWX_EDITOR_EXE ~ "と同じ" ~ DIR ~ "にあるcwxeditor_error.logに記録されます。";
 	}
 	@property const string shutdown() {return "強制終了";}
 
@@ -78,27 +75,20 @@ public:
 		return "すべてのファイル (*.*)";
 	}
 
-	const string fileCopyError(string path) {return path ~ "のコピー中にエラーが発生しました。";}
-	const string reloadError(string path) {return path ~ "の再読込中にエラーが発生しました。";}
-	const string loadProgress(string fname, uint max, uint worked) {
-		return to!(string)(rndtol(cast(real) worked / max * 100.0)) ~ "% 完了 - " ~ baseName(fname) ~ "を展開中";
-	}
-	const string loading(string fname) {return fname ~ "の読込みを開始";}
-	const string loaded(string sName) {return sName ~ "の読込みを完了";}
-	const string loaded(size_t count) {return format("%d件の読込みを完了", count);}
-	const string reconstructionStatus(size_t count, size_t max) {return .format("編集状態を復元中 (%d/%d)", count, max);}
-	const string cwxPathOpenError(string path) {return "パス [" ~ path ~ "] を開けません。";}
-	const string filePathOpenError(string path) {return "パス [" ~ path ~ "] を開けません。";}
+	@property const string fileCopyError() {return "%1$sのコピー中にエラーが発生しました。";}
+	@property const string reloadError() {return "%1$sの再読込中にエラーが発生しました。";}
+	@property const string loadProgress() {return "%2$s%% 完了 - %1$sを展開中";}
+	@property const string loading() {return "%1$sの読込みを開始";}
+	@property const string loaded() {return "%1$sの読込みを完了";}
+	@property const string loadedCount() {return "%1$s件の読込みを完了";}
+	@property const string reconstructionStatus() {return "編集状態を復元中 (%1$s/%2$s)";}
+	@property const string cwxPathOpenError() {return "パス [%1$s] を開けません。";}
+	@property const string filePathOpenError() {return "パス [%1$s] を開けません。";}
 
-	const string loadSkinError(string name) {
-		version (Windows) {
-			string cwp = "CardWirthPy.exe";
-		} else {
-			string cwp = "CardWirthPy";
-		}
-		return "デフォルトのスキン「" ~ name ~ "」が見つかりません。\n" ~ cwp ~ "の場所が正しくないか、Data" ~ DIR ~ "が正しく配置されていない可能性があります。\nこのまま開始すると、一部リソース画像が非表示になります。";
+	@property const string loadSkinError() {
+		return "デフォルトのスキン「%1$s」が見つかりません。\n" ~ CARD_WIRTH_PY_EXE ~ "の場所が正しくないか、Data" ~ DIR ~ "が正しく配置されていない可能性があります。\nこのまま開始すると、一部リソース画像が非表示になります。";
 	}
-	const string useDefaultSkin(string name, string defSkin) {return "スキン「" ~ name ~ "」が見つかりません。\nデフォルトのスキン「" ~ defSkin ~ "」を使用します。";}
+	@property const string useDefaultSkin() {return "スキン「%1$s」が見つかりません。\nデフォルトのスキン「%1$s」を使用します。";}
 	@property const string scenarioName() {return "シナリオ名";}
 	@property const string type() {return "タイプ";}
 	@property const string classic() {return "[クラシック]";}
@@ -108,8 +98,8 @@ public:
 	@property const string newClassicDirDesc() {
 		return "シナリオを作成する" ~ DIR ~ "を選択してください。";
 	}
-	const string notEmptyDir(string dir) {
-		return dir ~ "は空ではありません。\n本当にここでシナリオを作成しますか？";
+	@property const string notEmptyDir() {
+		return "%1$sは空ではありません。\n本当にここでシナリオを作成しますか？";
 	}
 
 	@property const string newScenarioName() {return "新規シナリオ";}
@@ -123,23 +113,25 @@ public:
 
 	@property const string newFolder() {return "新規" ~ DIR;}
 
-	const string dlgMsgDelete(string[] files) {
-		return files.length == 1
-			? baseName(files[0]) ~ "を完全に削除しますか？"
-			: to!(string)(files.length) ~ "個の項目を完全に削除しますか？";
+	@property const string dlgMsgDeleteFile() {
+		return "%1$sを完全に削除しますか？";
+	}
+	@property const string dlgMsgDeleteFiles() {
+		return "%1$s個の項目を完全に削除しますか？";
 	}
 	version (Windows) {
-		const string dlgMsgDeleteRecycle(string[] files) {
-			return files.length == 1
-				? baseName(files[0]) ~ "をごみ箱に移動しますか？"
-				: to!(string)(files.length) ~ "個の項目をごみ箱に移動しますか？";
+		@property const string dlgMsgDeleteFileRecycle() {
+			return "%1$sをごみ箱に移動しますか？";
+		}
+		@property const string dlgMsgDeleteFilesRecycle() {
+			return "%1$s個の項目をごみ箱に移動しますか？";
 		}
 	}
-	const string dlgMsgDeleteUnuse(string[] files) {
-		return .format("%d個の未使用ファイルを完全に削除しますか？", files.length);
+	@property const string dlgMsgDeleteUnuse() {
+		return "%1$s個の未使用ファイルを完全に削除しますか？";
 	}
-	const string dlgMsgDeleteRecycleUnuse(string[] files) {
-		return .format("%d個の未使用ファイルをごみ箱に移動しますか？", files.length);
+	@property const string dlgMsgDeleteRecycleUnuse() {
+		return "%1$s個の未使用ファイルをごみ箱に移動しますか？";
 	}
 
 	@property const string image() {return "イメージ";}
@@ -150,36 +142,28 @@ public:
 	@property const string seNone() {return "[サウンド無し]";}
 	@property const string bgmStop() {return "[BGM停止]";}
 	@property const string bgmNone() {return "[BGM無し]";}
-	const string dlgMsgIsSaveBeforeReload(string name) {return "「" ~ name ~ "」は変更されています。再読込しますか？";}
-	const string reloadBeforeSaveError(string name) {return "「" ~ name ~ "」は保存されていないため、再読込できません。";}
-	const string dlgMsgIsSaveBeforeExit(string name) {return "「" ~ name ~ "」は変更されています。保存しますか？";}
-	const string dlgMsgDropFiles(string[] paths) {
-		return (paths.length == 1 ? paths[0] : (to!(string)(paths.length) ~ "個のファイル"))
-			~ "をシナリオ" ~ DIR ~ "にコピーしますか？";
+	@property const string dlgMsgIsSaveBeforeReload() {return "「%1$s」は変更されています。再読込しますか？";}
+	@property const string reloadBeforeSaveError() {return "「%1$s」は保存されていないため、再読込できません。";}
+	@property const string dlgMsgIsSaveBeforeExit() {return "「%1$s」は変更されています。保存しますか？";}
+	@property const string dlgMsgDropFile() {
+		return "%1$sをシナリオ" ~ DIR ~ "にコピーしますか？";
 	}
-	const string dlgMsgDropOverWriteFiles(string[] paths) {
-		return (paths.length == 1
-			? paths[0] ~ "は"
-			: (to!(string)(paths.length) ~ "個の項目が"))
-			~ "すでに存在します。上書きしますか？";
+	@property const string dlgMsgDropFiles() {
+		return "%1$s個のファイルをシナリオ" ~ DIR ~ "にコピーしますか？";
+	}
+	@property const string dlgMsgDropOverWriteFile() {
+		return "%1$sはすでに存在します。上書きしますか？";
+	}
+	@property const string dlgMsgDropOverWriteFiles() {
+		return "%1$s個の項目がすでに存在します。上書きしますか？";
 	}
 	@property const string dlgTitDropFiles() {return "素材ファイルの追加";}
 	@property const string dlgMsgCopyError() {return "いくつかのファイルのコピーに失敗しました。";}
 
-	const string dlgMsgCopyMaterial(string[] fromPath, uint binImgCount) {
-		if (!fromPath.length && binImgCount) {
-			return "格納画像もコピーしますか？";
-		} else if (fromPath.length && !binImgCount) {
-			if (fromPath.length == 1u) {
-				return "素材もコピーしますか？\n" ~ fromPath[0];
-			} else {
-				return "素材もコピーしますか？\n" ~ to!(string)(fromPath.length) ~ "個のファイル";
-			}
-		} else {
-			return "素材もコピーしますか？\n"
-				~ to!(string)(fromPath.length) ~ "個のファイルと" ~ to!(string)(binImgCount) ~ "個の格納画像";
-		}
-	}
+	@property const string dlgMsgCopyMaterial1() {return "格納画像もコピーしますか？";}
+	@property const string dlgMsgCopyMaterial2() {return "素材もコピーしますか？\n%1$s";}
+	@property const string dlgMsgCopyMaterial3() {return "素材もコピーしますか？\n%1$s個のファイル";}
+	@property const string dlgMsgCopyMaterial4() {return "素材もコピーしますか？\n%1$s個のファイルと%2$s個の格納画像";}
 
 	@property const string dlgTitSettings() {return "CWXEditorの設定";}
 
@@ -188,7 +172,7 @@ public:
 	@property const string summary() {return "シナリオの設定";}
 	@property const string area() {return "エリア";}
 	@property const string battle() {return "バトル";}
-	@property const string packages() {return "パッケージ";}
+	@property const string cwPackage() {return "パッケージ";}
 
 	@property const string dlgTitReplaceText() {return "検索と置換";}
 	@property const string replForText() {return "テキスト検索";}
@@ -265,64 +249,22 @@ public:
 	@property const string search() {return "検索(&F)";}
 	@property const string replace() {return "全て置換(&R)";}
 	@property const string replaceExit() {return "閉じる";}
-	const string searchResult(size_t count, string kind) {
-		string r = to!(string)(count) ~ "件の検索結果";
-		return kind.length ? r ~ "(" ~ kind ~ ")" : r;
-	}
-	const string replResult(size_t count, string kind) {
-		string r = to!(string)(count) ~ "箇所の置換";
-		return kind.length ? r ~ "(" ~ kind ~ ")" : r;
-	}
-	const string replaceUndo(size_t count) {
-		return to!(string)(count) ~ "件を元に戻しました";
-	}
-	const string replaceRedo(size_t count) {
-		return to!(string)(count) ~ "件をやり直しました";
-	}
+	@property const string searchResultEmpty() {return "0件の検索結果";}
+	@property const string searchResult() {return "%1$s件の検索結果(%2$s)";}
+	@property const string replResultEmpty() {return "0箇所の置換";}
+	@property const string replResult() {return "%1$s箇所の置換(%2$s)";}
+	@property const string replaceUndo() {return "%1$s件を元に戻しました";}
+	@property const string replaceRedo() {return "%1$s件をやり直しました";}
 
-	const string searchResultBgImage(in BgImage back) {
-		return "背景画像 [" ~ encodePath(back.path) ~ "]";
-	}
-	const string searchResultIds(C)(in C c) {
-		string name;
-		static if (is(C : Area)) {
-			name = "エリア";
-		} else static if (is(C : Battle)) {
-			name = "バトル";
-		} else static if (is(C : Package)) {
-			name = "パッケージ";
-		} else static if (is(C : CastCard)) {
-			name = "キャスト";
-		} else static if (is(C : SkillCard)) {
-			name = "スキル";
-		} else static if (is(C : ItemCard)) {
-			name = "アイテム";
-		} else static if (is(C : BeastCard)) {
-			name = "召喚獣";
-		} else static if (is(C : InfoCard)) {
-			name = "情報";
-		} else static assert (0);
-		return name ~ " [" ~ to!(string)(c.id) ~ "." ~ c.name ~ "]";
-	}
-	const string searchResultFlags(F)(in F f) {
-		static if (is(F : Flag)) {
-			return "フラグ [" ~ f.path ~ "]";
-		} else static if (is(F : Step)) {
-			return "ステップ [" ~ f.path ~ "]";
-		} else static if (is(F : FlagDir)) {
-			return "ディレクトリ [" ~ f.path ~ "]";
-		} else static assert (0);
-	}
-	const string searchResultEventTree(in EventTree evt) {
-		return "イベントツリー [" ~ evt.name ~ "]";
-	}
-	const string searchResultMenuCard(in MenuCard c) {
-		return "メニューカード [" ~ c.name ~ "]";
-	}
-	const string searchResultEnemyCard(in EnemyCard c, in Summary summ) {
-		auto card = summ.cwCast(c.id);
-		return "エネミーカード [" ~ (card ? card.name : "対象無し") ~ "]";
-	}
+	@property const string searchResultBgImage() {return "背景画像 [%1$s]";}
+	@property const string searchResultIds() {return "%1$s [%2$s.%3$s]";}
+
+	@property const string searchResultFlag() {return "フラグ [%1$s]";}
+	@property const string searchResultStep() {return "ステップ [%1$s]";}
+	@property const string searchResultFlagDir() {return "ディレクトリ [%1$s]";}
+	@property const string searchResultEventTree() {return "イベントツリー [%1$s]";}
+	@property const string searchResultMenuCard() {return "メニューカード [%1$s]";}
+	@property const string searchResultEnemyCard() {return "エネミーカード [%1$s]";}
 
 	@property const string searchErrorNoImage() {return "イメージ指定無し";}
 	@property const string searchErrorImageNotFound() {return "イメージファイルが見つからない";}
@@ -426,7 +368,7 @@ public:
 
 	@property const string couponName() {return "クーポン名";}
 	@property const string couponValue() {return "得点";}
-	const string couponValueRange(uint r) {return "(" ~ to!(string)(-(cast(int) r)) ~ "～" ~ to!(string)(r) ~ ")";}
+	@property const string couponValueRange() {return "(%1$s～%2$s)";}
 	@property const string range() {return "適用範囲";}
 	@property const string gossipName() {return "ゴシップ名";}
 	@property const string endName() {return "シナリオ名";}
@@ -610,7 +552,7 @@ public:
 
 	@property const string msnDelete() {return "効果削除";}
 
-	const string msnDesc(string group, string name) {return group ~ " - " ~ name;}
+	@property const string msnDesc() {return "%1$s - %2$s";}
 
 	const string motionName(MType type) {
 		switch (type) {
@@ -1002,58 +944,30 @@ public:
 	@property const string defaultStartName() {return "イベント開始";}
 
 	/// メインウィンドウ。
-	const string mainWindowName(string name, string path, bool changed) {
-		if (name && path) {
-			string buf;
-			if (changed) {
-				buf ~= "*";
-			}
-			return buf ~ name ~ " [ " ~ path ~ " ] - CWXEditor";
-		} else {
-			return "CWXEditor";
-		}
-	}
-	const string errorExecEngine(string enginePath) {
-		return baseName(enginePath) ~ "の起動に失敗しました。";
-	}
+	@property const string mainWindowName() {return "%1$s [ %2$s ] - CWXEditor";}
+	@property const string mainWindowNameChanged() {return "*%1$s [ %2$s ] - CWXEditor";}
+	@property const string mainWindowNameEmpty() {return "CWXEditor";}
+	@property const string errorExecEngine() {return "%1$sの起動に失敗しました。";}
 
 	/// シナリオ選択ダイアログ
 	@property const string dlgTitNewScenario() {return "新規シナリオの作成";}
-	const string createError(string path) {return path ~ "でシナリオの作成に失敗しました。";}
 	@property const string dlgTitOpenScenario() {return "シナリオを開く";}
-	@property const string[] filterScenario() {
-		string[] r;
-		if (canUncab) {
-			r ~= "シナリオファイル (*.wsn;Summary.xml;*.cab;*.zip;Summary.wsm)";
-		} else {
-			r ~= "シナリオファイル (*.wsn;Summary.xml;*.zip;Summary.wsm)";
-		}
-		r ~= "エリア・カードファイル (*.xml;*.wid)";
-		return r;
-	}
+	@property const string filterScenario() {return "シナリオファイル (%1$s)";}
+	@property const string filterParts() {return "エリア・カードファイル (%1$s)";}
 	@property const string dlgTitSaveScenario() {return "名前を付けて保存";}
 	@property const string filterScenarioSave() {return "XMLシナリオファイル (*.wsn)";}
-	const string notScenario(string name) {return name ~ "はシナリオ圧縮ファイルではありません";}
-	const string zipError(string name) {return name ~ "の展開に失敗しました。";}
-	const string loadError(string name) {return name ~ "の読込みに失敗しました。";}
-	const string saveError(string name) {return name ~ "の保存に失敗しました。";}
-	@property const string dlgTitUnzip() {return "圧縮ファイルの展開 - CWXEditor";}
-	const string unzip(string name) {return name ~ "を展開しています……";}
-	const string loadErrorStatus(string name) {return name ~ "の読込みに失敗";}
-	const string loadErrorStatus(in string[] name) {
-		if (name.length == 1) {
-			return loadErrorStatus(name[0]);
-		}
-		return to!(string)(name.length) ~ "件のシナリオの読込みに失敗";
-	}
-	const string scenarioNotFound(string fname) {
-		return fname ~ "は存在しないか、シナリオではありません。履歴から削除しますか？";
+	@property const string notScenario() {return "%1$sはシナリオ圧縮ファイルではありません";}
+	@property const string zipError() {return "%1$sの展開に失敗しました。";}
+	@property const string loadError() {return "%1$sの読込みに失敗しました。";}
+	@property const string saveError() {return "%1$sの保存に失敗しました。";}
+	@property const string loadErrorStatus() {return "%1$sの読込みに失敗";}
+	@property const string loadErrorStatusCount() {return "%1$s件のシナリオの読込みに失敗";}
+	@property const string scenarioNotFound() {
+		return "%1$sは存在しないか、シナリオではありません。履歴から削除しますか？";
 	}
 
 	/// データウィンドウ
-	const string dataTabName(in Summary summ) {
-		return "データ";
-	}
+	@property const string dataTabName() {return "データ";}
 	const string dataWindowName(in Summary summ) {
 		if (summ) {
 			return "データ - [ " ~ summ.scenarioName ~ " ] - " ~ summ.scenarioPath;
@@ -1061,9 +975,7 @@ public:
 			return "データ";
 		}
 	}
-	const string areasTabName(in Summary summ) {
-		return "テーブル";
-	}
+	@property const string areasTabName() {return "テーブル";}
 	const string areasWindowName(in Summary summ) {
 		if (summ) {
 			return "テーブル - [ " ~ summ.scenarioName ~ " ] - " ~ summ.scenarioPath;
@@ -1083,9 +995,7 @@ public:
 		}
 		return r;
 	}
-	const string flagTabName(in Summary summ) {
-		return "状態変数";
-	}
+	@property const string flagTabName() {return "状態変数";}
 	const string flagWindowName(in Summary summ) {
 		if (summ) {
 			return "状態変数 - [ " ~ summ.scenarioName ~ " ] - " ~ summ.scenarioPath;
@@ -1875,11 +1785,13 @@ public:
 		return to!(string)(cardCount) ~ "枚のカード (有効枚数 = " ~ to!(string)(max) ~ ")";
 	}
 
-	@property const string casts() {return "キャスト";}
-	@property const string skill() {return "スキル";}
+	@property const string cwCast() {return "キャスト";}
+	@property const string skill() {return "特殊技能";}
 	@property const string item() {return "アイテム";}
 	@property const string beast() {return "召喚獣";}
 	@property const string info() {return "情報";}
+
+	@property const string noID() {return "対象無し";}
 
 	@property const string cardId() {return "ID";}
 	@property const string cardName() {return "名称";}

@@ -620,7 +620,7 @@ protected:
 					_value.setMinimum(Content.couponValue_min);
 					auto lr = new Label(comp, SWT.LEFT);
 					lr.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-					lr.setText(_prop.msgs.couponValueRange(Content.couponValue_max));
+					lr.setText(.tryFormat(_prop.msgs.couponValueRange, -(cast(int) Content.couponValue_max), Content.couponValue_max));
 				}
 			}
 		}

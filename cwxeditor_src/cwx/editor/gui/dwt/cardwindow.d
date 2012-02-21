@@ -759,7 +759,7 @@ public:
 				_tab[i] = new CTabItem(_tabf, SWT.NONE);
 				static if (UseCast) {
 					if (i == CAST) {
-						_tab[i].setText(_prop.msgs.casts);
+						_tab[i].setText(_prop.msgs.cwCast);
 						_tab[i].setImage(_prop.images.casts);
 					}
 				}

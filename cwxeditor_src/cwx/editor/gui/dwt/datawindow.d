@@ -441,17 +441,17 @@ public:
 			if (shl) {
 				return _prop.msgs.dataWindowName(_summ);
 			}
-			return _prop.msgs.dataTabName(_summ);
+			return _prop.msgs.dataTabName;
 		} else static if (UseArea) {
 			if (shl) {
 				return _prop.msgs.areasWindowName(_summ);
 			}
-			return _prop.msgs.areasTabName(_summ);
+			return _prop.msgs.areasTabName;
 		} else static if (UseFlag) {
 			if (shl) {
 				return _prop.msgs.flagWindowName(_summ);
 			}
-			return _prop.msgs.flagTabName(_summ);
+			return _prop.msgs.flagTabName;
 		} else static assert (0);
 	}
 	@property

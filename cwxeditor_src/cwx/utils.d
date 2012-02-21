@@ -344,6 +344,7 @@ string tryFormat(T ...)(string s, T vals) {
 		formattedWrite(a, s, vals);
 		return a.data;
 	} catch (Exception e) {
+		debugln(s);
 		debugln(e);
 		return s;
 	}

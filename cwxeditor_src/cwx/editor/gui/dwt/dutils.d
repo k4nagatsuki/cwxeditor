@@ -186,6 +186,31 @@ ImageData blankImage() {
 	return data;
 }
 
+Listener listener(Widget w, int type, void delegate(Event) l) {
+	auto listener = .listener(l);
+	w.addListener(type, listener);
+	return listener;
+}
+Listener listener(Widget w, int type, void delegate() l) {
+	auto listener = .listener(l);
+	w.addListener(type, listener);
+	return listener;
+}
+Listener listener(void delegate(Event) l) {
+	return new class Listener {
+		override void handleEvent(Event e) {
+			l(e);
+		}
+	};
+}
+Listener listener(void delegate() l) {
+	return new class Listener {
+		override void handleEvent(Event e) {
+			l();
+		}
+	};
+}
+
 class SpinnerEdit {
 private:
 	Spinner _spn;
@@ -1300,7 +1325,17 @@ bool qMaterialCopy(Props prop, Skin skin, Shell shell,
 			msgPaths ~= std.path.buildPath(fromSPath, p);
 		}
 	}
-	copyM.setMessage(prop.msgs.dlgMsgCopyMaterial(msgPaths, bin));
+	if (!msgPaths.length && bin) {
+		copyM.setMessage(prop.msgs.dlgMsgCopyMaterial1);
+	} else if (msgPaths.length && !bin) {
+		if (1 == msgPaths.length) {
+			copyM.setMessage(.tryFormat(prop.msgs.dlgMsgCopyMaterial2, msgPaths[0]));
+		} else {
+			copyM.setMessage(.tryFormat(prop.msgs.dlgMsgCopyMaterial3, msgPaths.length));
+		}
+	} else {
+		copyM.setMessage(.tryFormat(prop.msgs.dlgMsgCopyMaterial4, msgPaths.length, bin));
+	}
 	switch (copyM.open()) {
 	case SWT.YES:
 		bool err = false;
