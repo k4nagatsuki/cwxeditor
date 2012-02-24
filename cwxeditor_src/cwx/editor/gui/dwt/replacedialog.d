@@ -482,7 +482,7 @@ private:
 			auto lf = new Label(grp, SWT.NONE);
 			lf.setText(_prop.msgs.replFrom);
 			_from = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN);
-			_from.setVisibleItemCount(20);
+			_from.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 			createTextMenu!Combo(_comm, _prop, _from, &catchMod);
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
 			gd.widthHint = _prop.var.etc.nameWidth;
@@ -490,7 +490,7 @@ private:
 			auto lt = new Label(grp, SWT.NONE);
 			lt.setText(_prop.msgs.replTo);
 			_to = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN);
-			_to.setVisibleItemCount(20);
+			_to.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 			createTextMenu!Combo(_comm, _prop, _to, &catchMod);
 			_to.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		}
@@ -575,7 +575,7 @@ private:
 				auto l = new Label(grp, SWT.NONE);
 				l.setText(_prop.msgs.replIDKind);
 				_idKind = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
-				_idKind.setVisibleItemCount(20);
+				_idKind.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 				_idKind.add(_prop.msgs.replIDArea);
 				_idKind.add(_prop.msgs.replIDBattle);
 				_idKind.add(_prop.msgs.replIDPackage);
@@ -603,7 +603,7 @@ private:
 				auto l = new Label(grp, SWT.NONE);
 				l.setText(text);
 				combo = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
-				combo.setVisibleItemCount(20);
+				combo.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 				auto gd = new GridData(GridData.FILL_HORIZONTAL);
 				gd.widthHint = _prop.var.etc.nameWidth;
 				combo.setLayoutData(gd);
@@ -640,7 +640,7 @@ private:
 				auto l = new Label(grp, SWT.NONE);
 				l.setText(text);
 				auto combo = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN);
-				combo.setVisibleItemCount(20);
+				combo.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 				createTextMenu!Combo(_comm, _prop, combo, &catchMod);
 				auto gd = new GridData(GridData.FILL_HORIZONTAL);
 				gd.widthHint = _prop.var.etc.nameWidth;
@@ -684,7 +684,7 @@ private:
 			bar.setLayoutData(new GridData(GridData.FILL_BOTH));
 			foreach (cGrp, cs; CTYPE_GROUP) {
 				foreach (cType; cs) {
-					auto text = _prop.msgs.content(cType);
+					auto text = _prop.msgs.contentName(cType);
 					auto img = _prop.images.content(cType);
 					void delegate() func = null;
 					auto ti = createToolItem2(_comm, bar, text, img, func, null, SWT.CHECK);
@@ -1935,7 +1935,11 @@ public:
 			});
 		}
 		if (_unusePath.getSelection()) {
-			searchUnuseImpl2!("toPathId(o)")(allMaterials(true), count);
+			auto files = _summ.notUsedFiles(_comm.skin, _prop.var.etc.ignorePaths, _prop.var.etc.logicalSort);
+			foreach (file; files) {
+				addResult(encodePath(file));
+				count++;
+			}
 		}
 		setResultStatus(count);
 	}
@@ -2569,7 +2573,7 @@ public:
 		auto con = cast(Content) path;
 		if (con && !par) {
 			img = _prop.images.content(con.type);
-			text = _prop.msgs.contentText(_comm.skin, con, _summ, _prop.var.etc.dialogStatus);
+			text = .contentText(_comm, con);
 		}
 		auto tex = cast(TextHolder) path;
 		if (tex && !par) {
@@ -2580,7 +2584,7 @@ public:
 			}
 			if (c) {
 				img = _prop.images.content(c.type);
-				text = _prop.msgs.contentText(_comm.skin, c, _summ, _prop.var.etc.dialogStatus);
+				text = .contentText(_comm, c);
 			}
 		}
 		auto sdlg = cast(SDialog) path;
@@ -2588,7 +2592,12 @@ public:
 			con = sdlg.parent;
 			assert (con);
 			img = _prop.images.content(con.type);
-			text = _prop.msgs.dialogText(sdlg);
+			string t = std.array.replace(sdlg.text, "\n", "");
+			if (sdlg.rCoupons.length) {
+				text = .tryFormat(_prop.msgs.dialogText, t, std.string.join(sdlg.rCoupons.dup, " "));
+			} else {
+				text = .tryFormat(_prop.msgs.dialogTextNoCoupon, t);
+			}
 		}
 		auto fla = cast(Flag) path;
 		if (fla && !par) {
@@ -2617,9 +2626,15 @@ public:
 		}
 		auto ene = cast(EnemyCard) path;
 		if (ene) {
-			auto card = _summ.cwCast(ene.id);
 			img = _prop.images.cards;
-			text = .tryFormat(_prop.msgs.searchResultEnemyCard, card ? card.name : _prop.msgs.noID);
+			string cName = _prop.msgs.noSelectCast;
+			if (0 != ene.id) {
+				auto card = _summ.cwCast(ene.id);
+				if (card) {
+					cName = card ? card.name : .tryFormat(_prop.msgs.noCast, ene.id);
+				}
+			}
+			text = .tryFormat(_prop.msgs.searchResultEnemyCard, cName);
 		}
 		assert (par || img);
 		string parText = "";

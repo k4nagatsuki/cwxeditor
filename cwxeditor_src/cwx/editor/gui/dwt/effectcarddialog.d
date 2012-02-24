@@ -153,7 +153,7 @@ private:
 	void refreshWarning() {
 		string[] ws;
 		if (_name.over) {
-			ws ~= _prop.msgs.warningNameLenOver(_prop.looks.nameLimit);
+			ws ~= .tryFormat(_prop.msgs.warningNameLenOver, _prop.looks.nameLimit, _prop.looks.nameLimit / 2);
 		}
 		if (_effTyp[EffectType.NONE].getSelection()) {
 			ws ~= _prop.msgs.warningEffectTypeNone;
@@ -204,7 +204,7 @@ private:
 				gd.widthHint = _name.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
 				_name.widget.setLayoutData(gd);
 				auto l = new Label(grp, SWT.NONE);
-				l.setText(_prop.msgs.nameLimit(_prop.looks.nameLimit));
+				l.setText(.tryFormat(_prop.msgs.nameLimit, _prop.looks.nameLimit, _prop.looks.nameLimit / 2));
 			}
 			{
 				auto skin = _comm.skin;
@@ -246,7 +246,7 @@ private:
 					} else {
 						radio.setLayoutData(new GridData(GridData.FILL_BOTH));
 					}
-					radio.setText(_prop.msgs.effectType(eff));
+					radio.setText(.tryFormat(_prop.msgs.effectTypeElement, _prop.msgs.effectTypeName(eff)));
 					radio.addSelectionListener(new SelEffectType);
 					_effTyp[eff] = radio;
 				}
@@ -260,7 +260,7 @@ private:
 					auto radio = new Button(grp, SWT.RADIO);
 					mod(radio);
 					radio.setLayoutData(new GridData(GridData.FILL_BOTH));
-					radio.setText(_prop.msgs.resist(res));
+					radio.setText(_prop.msgs.resistName(res));
 					_res[res] = radio;
 				}
 			}
@@ -286,7 +286,7 @@ private:
 				_level.setMaximum(_prop.looks.skillLevelMax);
 				_level.setMinimum(0);
 				auto l = new Label(comp2, SWT.NONE);
-				l.setText(_prop.msgs.rangeHint(0, _prop.looks.skillLevelMax));
+				l.setText(.tryFormat(_prop.msgs.rangeHint, 0, _prop.looks.skillLevelMax));
 			}
 		} else static if (is (C == ItemCard) || is (C == BeastCard)) {
 			{
@@ -301,7 +301,7 @@ private:
 				_useCount.setMaximum(_prop.looks.useCountMax);
 				_useCount.setMinimum(0);
 				auto l = new Label(comp2, SWT.NONE);
-				l.setText(_prop.msgs.useCountRange(_prop.looks.useCountMax));
+				l.setText(.tryFormat(_prop.msgs.useCountRange, _prop.looks.useCountMax));
 			}
 		} else {
 			static assert (0);
@@ -331,7 +331,7 @@ private:
 				_price.setMaximum(_prop.looks.priceMax);
 				_price.setMinimum(0);
 				auto l = new Label(comp2, SWT.NONE);
-				l.setText(_prop.msgs.rangeHint(0, _prop.looks.priceMax));
+				l.setText(.tryFormat(_prop.msgs.rangeHint, 0, _prop.looks.priceMax));
 			} else {
 				static assert (0);
 			}
@@ -446,7 +446,7 @@ private:
 		names.length = Es.length;
 		foreach (i, enh; Es) {
 			tbl[enh] = i;
-			names[i] = _prop.msgs.enhanceBonus(enh);
+			names[i] = .tryFormat(_prop.msgs.enhanceBonus, _prop.msgs.enhanceName(enh));
 		}
 		useMod.setRadar(_prop.looks.enhanceMax * 2 + 1,
 			names, cast(int) _prop.looks.enhanceMax * -1);
@@ -521,7 +521,7 @@ private:
 						auto radio = new Button(comp3, SWT.RADIO);
 						mod(radio);
 						radio.setLayoutData(new GridData(GridData.FILL_BOTH));
-						radio.setText(_prop.msgs.cardTarget(t));
+						radio.setText(_prop.msgs.cardTargetName(t));
 						radio.addSelectionListener(new OASelect);
 						_targ[t] = radio;
 					}
@@ -558,7 +558,7 @@ private:
 					auto radio = new Button(grp, SWT.RADIO);
 					mod(radio);
 					radio.setLayoutData(new GridData(GridData.FILL_BOTH));
-					radio.setText(_prop.msgs.cardVisual(v));
+					radio.setText(_prop.msgs.cardVisualName(v));
 					_vis[v] = radio;
 				}
 			}
@@ -571,7 +571,7 @@ private:
 					auto radio = new Button(grp, SWT.RADIO);
 					mod(radio);
 					radio.setLayoutData(new GridData(GridData.FILL_BOTH));
-					radio.setText(_prop.msgs.premium(p));
+					radio.setText(_prop.msgs.premiumName(p));
 					_prem[p] = radio;
 				}
 			}
@@ -612,7 +612,7 @@ private:
 			for (int i = 0; i < _keyCodes.length; i++) {
 				_keyCodes[i] = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN);
 				mod(_keyCodes[i]);
-				_keyCodes[i].setVisibleItemCount(20);
+				_keyCodes[i].setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 				createTextMenu!Combo(_comm, _prop, _keyCodes[i], &catchMod);
 				_keyCodes[i].setLayoutData(new GridData(GridData.FILL_BOTH));
 				//  FIXME: Argument not valid, java\lang\exceptions.d, 28
@@ -696,15 +696,15 @@ public:
 		_card = card;
 		_prop = prop;
 		static if (is (C == SkillCard)) {
-			string text = _card ? _prop.msgs.dlgTitSkill(_card.name) : _prop.msgs.dlgTitNewSkill;
+			string text = _card ? .tryFormat(_prop.msgs.dlgTitSkill, _card.name) : _prop.msgs.dlgTitNewSkill;
 			auto img = _prop.images.skill;
 			auto size = _prop.var.skillCardDlg;
 		} else static if (is (C == ItemCard)) {
-			string text = _card ? _prop.msgs.dlgTitItem(_card.name) : _prop.msgs.dlgTitNewItem;
+			string text = _card ? .tryFormat(_prop.msgs.dlgTitItem, _card.name) : _prop.msgs.dlgTitNewItem;
 			auto img = _prop.images.item;
 			auto size = _prop.var.itemCardDlg;
 		} else static if (is (C == BeastCard)) {
-			string text = _card ? _prop.msgs.dlgTitBeast(_card.name) : _prop.msgs.dlgTitNewBeast;
+			string text = _card ? .tryFormat(_prop.msgs.dlgTitBeast, _card.name) : _prop.msgs.dlgTitNewBeast;
 			auto img = _prop.images.beast;
 			auto size = _prop.var.beastCardDlg;
 		} else {

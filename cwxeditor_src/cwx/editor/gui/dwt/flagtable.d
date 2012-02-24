@@ -168,7 +168,7 @@ protected:
 			(new Label(comp, SWT.NULL)).setText(prop.msgs.dlgLblStepInit);
 			stepInit = new Combo(comp, SWT.READ_ONLY);
 			mod(stepInit);
-			stepInit.setVisibleItemCount(20);
+			stepInit.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
 			setGridMinW(stepInit, prop.var.etc.flagInitWidth);
 		}
 		(new Label(area, SWT.SEPARATOR | SWT.HORIZONTAL))
@@ -194,7 +194,7 @@ protected:
 					valsComp.setLayout(new GridLayout(2, false));
 					gdc++;
 				}
-				(new Label(valsComp, SWT.NULL)).setText(prop.msgs.dlgLblStep(i));
+				(new Label(valsComp, SWT.NULL)).setText(.tryFormat(prop.msgs.dlgLblStep, i));
 				auto t = new Text(valsComp, SWT.BORDER);
 				createTextMenu!Text(_comm, prop, t, &catchMod);
 				stepVals ~= t;
@@ -223,14 +223,14 @@ protected:
 				if (i < _step.count) {
 					stepVal.setText(_step.getValue(i));
 				} else {
-					stepVal.setText(prop.msgs.dlgTxtStep(i));
+					stepVal.setText(.tryFormat(prop.msgs.dlgTxtStep, i));
 				}
 				vals ~= stepVal.getText();
 			}
 		} else {
 			stepName.setText("");
 			foreach (i, stepVal; stepVals) {
-				stepVal.setText(prop.msgs.dlgTxtStep(i));
+				stepVal.setText(.tryFormat(prop.msgs.dlgTxtStep, i));
 				vals ~= stepVal.getText();
 			}
 		}
@@ -381,7 +381,7 @@ protected:
 			flagTrue = new Combo(comp, SWT.NULL);
 			mod(flagTrue);
 			setComboItems(flagTrue, prop.var.etc.flagTrues.dup);
-			flagTrue.setVisibleItemCount(20);
+			flagTrue.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
 			createTextMenu!Combo(_comm, prop, flagTrue, &catchMod);
 			auto tmod = new ModOnOff(0);
 			flagTrue.addModifyListener(tmod);
@@ -392,7 +392,7 @@ protected:
 			flagFalse = new Combo(comp, SWT.NULL);
 			mod(flagFalse);
 			setComboItems(flagFalse, prop.var.etc.flagFalses.dup);
-			flagFalse.setVisibleItemCount(20);
+			flagFalse.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
 			createTextMenu!Combo(_comm, prop, flagFalse, &catchMod);
 			auto fmod = new ModOnOff(1);
 			flagFalse.addModifyListener(fmod);
@@ -947,7 +947,7 @@ private:
 		if (!step) {
 			string[] vals;
 			foreach (i; 0 .. prop.looks.stepMaxCount) {
-				vals ~= prop.msgs.dlgTxtStep(i);
+				vals ~= .tryFormat(prop.msgs.dlgTxtStep, i);
 			}
 			step = new Step("", vals, 0);
 		}
@@ -1211,16 +1211,23 @@ public:
 	package Step[] dragSteps() {return _dragSteps;}
 
 	private void refreshStatusLine() {
-		Flag[] fs;
-		Step[] ss;
+		string s = "";
+		void put(lazy string name, size_t count) {
+			if (!count) return;
+			if (s.length) s ~= " ";
+			s ~= .tryFormat(prop.msgs.flagStatus, name, count);
+		}
 		if (_dir) {
-			fs = _dir.flags;
-			ss = _dir.steps;
+			put(prop.msgs.flag, _dir.flags.length);
+			put(prop.msgs.step, _dir.steps.length);
 		}
 		Flag[] selFlags;
 		Step[] selSteps;
 		getSelectionFlagAndStep(selFlags, selSteps);
-		_statusLine = prop.msgs.flagStatus(fs, ss, selFlags, selSteps);
+		if (selFlags.length || selSteps.length) {
+			s = .tryFormat(prop.msgs.flagStatusSel, s, selFlags.length + selSteps.length);
+		}
+		_statusLine = s;
 		_comm.setStatusLine(flags, _statusLine);
 	}
 	@property

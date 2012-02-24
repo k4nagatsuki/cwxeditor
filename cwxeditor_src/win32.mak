@@ -65,7 +65,6 @@ SRC = cwxeditor.d \
 	cwx\editor\gui\dwt\effectcarddialog.d \
 	cwx\editor\gui\dwt\radarspinner.d \
 	cwx\editor\gui\dwt\cardwindow.d \
-	cwx\editor\gui\dwt\commondialog.d \
 	cwx\editor\gui\dwt\cardlist.d \
 	cwx\editor\gui\dwt\eventwindow.d \
 	cwx\editor\gui\dwt\castcarddialog.d \
@@ -157,7 +156,6 @@ OBJ = objs\cwxeditor.obj \
 	objs\cwx\editor\gui\dwt\effectcarddialog.obj \
 	objs\cwx\editor\gui\dwt\radarspinner.obj \
 	objs\cwx\editor\gui\dwt\cardwindow.obj \
-	objs\cwx\editor\gui\dwt\commondialog.obj \
 	objs\cwx\editor\gui\dwt\cardlist.obj \
 	objs\cwx\editor\gui\dwt\eventwindow.obj \
 	objs\cwx\editor\gui\dwt\castcarddialog.obj \

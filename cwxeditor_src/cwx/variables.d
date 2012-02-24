@@ -11,6 +11,7 @@ class FlexEtcProps : Properties {
 	mixin Property!("toolsLock", bool, false);
 	mixin Property!("toolsOrder", int[], []);
 	mixin Property!("toolsWrapIndices", int[], [8]);
+	mixin Property!("comboVisibleItemCount", int, 20, true);
 	mixin Property!("directorySashL", int, 2);
 	mixin Property!("directorySashR", int, 5);
 	mixin Property!("directorySashV", bool, false);
@@ -117,6 +118,8 @@ class FlexEtcProps : Properties {
 	mixin Property!("bgImageSettingsNameHeight", int, 250, true);
 	mixin Property!("outerToolsNameWidth", int, 150, true);
 	mixin Property!("outerToolsNameHeight", int, 150, true);
+	mixin Property!("scenarioTemplatesNameWidth", int, 150, true);
+	mixin Property!("scenarioTemplatesNameHeight", int, 150, true);
 	mixin Property!("classicEnginesNameWidth", int, 150, true);
 	mixin Property!("classicEnginesNameHeight", int, 250, true);
 
@@ -134,6 +137,10 @@ class FlexEtcProps : Properties {
 	mixin Property!("outerToolsSashR", int, 2);
 	mixin Property!("classicEnginesSashL", int, 1);
 	mixin Property!("classicEnginesSashR", int, 2);
+	mixin Property!("scenarioTemplatesSashL", int, 1);
+	mixin Property!("scenarioTemplatesSashR", int, 2);
+	mixin Property!("toolsTemplatesSashL", int, 1);
+	mixin Property!("toolsTemplatesSashR", int, 1);
 	mixin Property!("keyCodeWidth", int, 100, true);
 	mixin Property!("scenarioPath", string, "");
 	mixin Property!("tempPath", string, "temp");
@@ -421,6 +428,10 @@ class FlexEtcProps : Properties {
 	mixin Property!("messageVarRef", string, "[話者------14]");
 	mixin Property!("messageVarTeam", string, "[チーム名------------------30]");
 	mixin Property!("messageVarYado", string, "[宿屋名--------18]");
+
+	mixin Property!("scenarioTemplates", ScTemplate[], []);
+	mixin Property!("defaultScenarioTemplate", string, "");
+	mixin Property!("defaultIsTemplate", bool, false);
 
 	mixin XMLFuncs!(FlexEtcProps);
 }

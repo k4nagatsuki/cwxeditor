@@ -503,7 +503,11 @@ class MenuProps : Properties {
 	}
 	/// ditto
 	static string buildMenuSample(in CProps prop, MenuID id, string mnemonic, string hotkey) {
-		string r = prop.msgs.menuTextSample(id);
+		string r = prop.msgs.menuText(id);
+		if (MenuID.StopBGM is id) {
+			// 唯一パラメータを持つメニューテキスト
+			r = .tryFormat(r, prop.msgs.bgm);
+		}
 		string a = mnemonic;
 		string h = hotkey;
 		if (a.length) {

@@ -352,32 +352,16 @@ public:
 	@property
 	string title() {
 		auto shl = cast(Shell) _win;
-		static if (is (A == Area)) {
-			static if (WithEventView) {
-				if (shl) {
-					return _prop.msgs.areaViewName(_area.id, _area.name);
-				}
-				return _prop.msgs.areaViewNameTab(_area.id, _area.name);
-			} else {
-				if (shl) {
-					return _prop.msgs.areaSceneViewName(_area.id, _area.name);
-				}
-				return _prop.msgs.areaSceneViewNameTab(_area.id, _area.name);
+		static if (WithEventView) {
+			if (shl) {
+				return .tryFormat(_prop.msgs.viewName, .objName!A(_prop), _area.id, _area.name);
 			}
-		} else static if (is (A == Battle)) {
-			static if (WithEventView) {
-				if (shl) {
-					return _prop.msgs.battleViewName(_area.id, _area.name);
-				}
-				return _prop.msgs.battleViewNameTab(_area.id, _area.name);
-			} else {
-				if (shl) {
-					return _prop.msgs.battleSceneViewName(_area.id, _area.name);
-				}
-				return _prop.msgs.battleSceneViewNameTab(_area.id, _area.name);
-			}
+			return .tryFormat(_prop.msgs.viewNameTab, .objName!A(_prop), _area.id, _area.name);
 		} else {
-			static assert (0);
+			if (shl) {
+				return .tryFormat(_prop.msgs.viewNameScene, .objName!A(_prop), _area.id, _area.name);
+			}
+			return .tryFormat(_prop.msgs.viewNameSceneTab, .objName!A(_prop), _area.id, _area.name);
 		}
 	}
 	@property

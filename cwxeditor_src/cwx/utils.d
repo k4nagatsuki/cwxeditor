@@ -1126,7 +1126,7 @@ void copyAll(string a, string b) in {
 string[] clistdir(string dir) {
 	string[] r;
 	if (!.exists(dir)) return r;
-	foreach (string file; dirEntries(dir, SpanMode.shallow)) {
+	foreach (string file; dirEntries(dir, SpanMode.shallow, false)) {
 		r ~= file.baseName;
 	}
 	return r;

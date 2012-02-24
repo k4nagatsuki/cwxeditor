@@ -949,7 +949,7 @@ private Composite createTalkerPane2(Composite parent, Commons comm, Props prop, 
 		}
 	}
 	couponCombo = new Combo(comp, SWT.DROP_DOWN | SWT.BORDER);
-	couponCombo.setVisibleItemCount(20);
+	couponCombo.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
 	createTextMenu!Combo(comm, prop, couponCombo, null);
 	auto push = new Button(comp, SWT.PUSH);
 	auto skin = comm.skin;
@@ -1109,17 +1109,25 @@ private ToolBar createSCharBar(Commons comm, Composite parent,
 		override void handleEvent(Event e) {e.doit = true;}
 	});
 	foreach (c; ['W', 'R', 'B', 'G', 'Y']) {
-		createToolItem2(comm, bar, prop.msgs.color(c), prop.images.color(c), &(new PutColor(putColor, c)).put, null);
+		string t;
+		final switch (c) {
+		case 'W': t = prop.msgs.colorW; break;
+		case 'R': t = prop.msgs.colorR; break;
+		case 'B': t = prop.msgs.colorB; break;
+		case 'G': t = prop.msgs.colorG; break;
+		case 'Y': t = prop.msgs.colorY; break;
+		}
+		createToolItem2(comm, bar, t, prop.images.color(c), &(new PutColor(putColor, c)).put, null);
 	}
 	new ToolItem(bar, SWT.SEPARATOR);
 	createToolItem2(comm, bar, prop.msgs.scRef, prop.images.scRef, &(new PutC(insert, "#I")).put, null);
-	createToolItem2(comm, bar, prop.msgs.scTalker(Talker.SELECTED), prop.images.scTalker(Talker.SELECTED),
+	createToolItem2(comm, bar, prop.msgs.scTalkerName(Talker.SELECTED), prop.images.scTalker(Talker.SELECTED),
 		&(new PutC(insert, "#M")).put, null);
-	createToolItem2(comm, bar, prop.msgs.scTalker(Talker.UNSELECTED), prop.images.scTalker(Talker.UNSELECTED),
+	createToolItem2(comm, bar, prop.msgs.scTalkerName(Talker.UNSELECTED), prop.images.scTalker(Talker.UNSELECTED),
 		&(new PutC(insert, "#U")).put, null);
-	createToolItem2(comm, bar, prop.msgs.scTalker(Talker.RANDOM), prop.images.scTalker(Talker.RANDOM),
+	createToolItem2(comm, bar, prop.msgs.scTalkerName(Talker.RANDOM), prop.images.scTalker(Talker.RANDOM),
 		&(new PutC(insert, "#R")).put, null);
-	createToolItem2(comm, bar, prop.msgs.scTalker(Talker.CARD), prop.images.scTalker(Talker.CARD),
+	createToolItem2(comm, bar, prop.msgs.scTalkerName(Talker.CARD), prop.images.scTalker(Talker.CARD),
 		&(new PutC(insert, "#C")).put, null);
 	createToolItem2(comm, bar, prop.msgs.scTeam, prop.images.scTeam, &(new PutC(insert, "#T")).put, null);
 	createToolItem2(comm, bar, prop.msgs.scYado, prop.images.scYado, &(new PutC(insert, "#Y")).put, null);
@@ -1163,7 +1171,7 @@ private Composite createFlagStepBar(Composite parent, void delegate(string) inse
 		comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		comp.setLayout(zeroMarginGridLayout(2, false));
 		list = new Combo(comp, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
-		list.setVisibleItemCount(20);
+		list.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
 		list.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		put = new Button(comp, SWT.PUSH);
 		put.setToolTipText(puts);
@@ -1482,22 +1490,22 @@ class MsgPreview {
 			final switch (cast(C) i) {
 			case C.M:
 				itm.setImage(0, _prop.images.scTalker(Talker.SELECTED));
-				itm.setText(0, _prop.msgs.scTalker(Talker.SELECTED));
+				itm.setText(0, _prop.msgs.scTalkerName(Talker.SELECTED));
 				itm.setText(1, _prop.var.etc.messageVarSelected);
 				break;
 			case C.U:
 				itm.setImage(0, _prop.images.scTalker(Talker.UNSELECTED));
-				itm.setText(0, _prop.msgs.scTalker(Talker.UNSELECTED));
+				itm.setText(0, _prop.msgs.scTalkerName(Talker.UNSELECTED));
 				itm.setText(1, _prop.var.etc.messageVarUnselected);
 				break;
 			case C.R:
 				itm.setImage(0, _prop.images.scTalker(Talker.RANDOM));
-				itm.setText(0, _prop.msgs.scTalker(Talker.RANDOM));
+				itm.setText(0, _prop.msgs.scTalkerName(Talker.RANDOM));
 				itm.setText(1, _prop.var.etc.messageVarRandom);
 				break;
 			case C.C:
 				itm.setImage(0, _prop.images.scTalker(Talker.CARD));
-				itm.setText(0, _prop.msgs.scTalker(Talker.CARD));
+				itm.setText(0, _prop.msgs.scTalkerName(Talker.CARD));
 				itm.setText(1, _prop.var.etc.messageVarCard);
 				break;
 			case C.I:

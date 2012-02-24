@@ -12,7 +12,7 @@ import cwx.path;
 import cwx.motion;
 import cwx.menu;
 
-import cwx.editor.gui.dwt.commondialog;
+import cwx.editor.gui.dwt.smalldialogs;
 import cwx.editor.gui.dwt.images;
 import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.cardlist;
@@ -408,14 +408,29 @@ private:
 		if (_owner) {
 			auto c = cards.length;
 			auto s = selectedCards;
-			static if (is (C == SkillCard) && is (CardOwner == CastCard)) {
-				_statusLine = _prop.msgs.handCardStatus(c, s, _prop.looks.skillCardMaxNum(owner.level));
-			} else static if (is (C == ItemCard) && is (CardOwner == CastCard)) {
-				_statusLine = _prop.msgs.handCardStatus(c, s, _prop.looks.itemCardMaxNum(owner.level));
-			} else static if (is (C == BeastCard) && is (CardOwner == CastCard)) {
-				_statusLine = _prop.msgs.handCardStatus(c, s, _prop.looks.beastCardMaxNum(owner.level));
+			static if (is(CardOwner:CastCard)) {
+				static if (is (C == SkillCard)) {
+					int vc = _prop.looks.skillCardMaxNum(owner.level);
+				} else static if (is (C == ItemCard)) {
+					int vc = _prop.looks.itemCardMaxNum(owner.level);
+				} else static if (is (C == BeastCard)) {
+					int vc = _prop.looks.beastCardMaxNum(owner.level);
+				}
+				if (1 == s.length) {
+					_statusLine = .tryFormat(_prop.msgs.handCardStatusSelOne, c, vc, s[0].id);
+				} else if (1 < s.length) {
+					_statusLine = .tryFormat(_prop.msgs.handCardStatusSelMulti, c, vc, s.length);
+				} else {
+					_statusLine = .tryFormat(_prop.msgs.handCardStatus, c, vc);
+				}
 			} else {
-				_statusLine = _prop.msgs.cardStatus(c, s);
+				if (1 == s.length) {
+					_statusLine = .tryFormat(_prop.msgs.cardStatusSelOne, c, s[0].id);
+				} else if (1 < s.length) {
+					_statusLine = .tryFormat(_prop.msgs.cardStatusSelMulti, c, s.length);
+				} else {
+					_statusLine = .tryFormat(_prop.msgs.cardStatus, c);
+				}
 			}
 		} else {
 			_statusLine = "";

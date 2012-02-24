@@ -31,6 +31,7 @@ import cwx.editor.gui.dwt.dmenu;
 import std.algorithm : max;
 import std.string;
 import std.exception;
+import std.conv;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Control;
@@ -507,10 +508,10 @@ private:
 			} else if (fire is LOSE) {
 				treeName = _prop.msgs.loseTree;
 			} else if (cast(KeyCodeObj) fire) {
-				treeName = _prop.msgs.keyCodeTree((cast(KeyCodeObj) fire).array.idup);
+				treeName = .tryFormat(_prop.msgs.keyCodeTree, (cast(KeyCodeObj) fire).array.idup);
 			} else {
 				assert (cast(RoundObj) fire);
-				treeName = _prop.msgs.roundTree((cast(RoundObj) fire).intValue());
+				treeName = .tryFormat(_prop.msgs.roundTree, (cast(RoundObj) fire).intValue());
 			}
 		} else {
 			Object fire = null;
@@ -647,7 +648,7 @@ private:
 				createKeyCodeItem(eItm, t);
 				if (cast(A) eItm.getParentItem().getData()) {
 					foreach (r; t.rounds) {
-						createTreeItem(eItm, new RoundObj(r), _prop.msgs.startRound(r), _prop.images.round);
+						createTreeItem(eItm, new RoundObj(r), .tryFormat(_prop.msgs.startRound, r), _prop.images.round);
 					}
 				}
 			} else static if (is (A == Package)) {
@@ -1004,12 +1005,17 @@ public:
 			initTree(_cards, false);
 			_cards.addSelectionListener(new SListener);
 
+			auto shell = _cards.getShell();
 			uint retry = 0;
 			while (true) {
 				Menu menu = null;
+				string dStr = .text(__LINE__); // ログ
 				try {
-					menu = new Menu(parent.getShell(), SWT.POP_UP);
+					dStr ~= " - " ~ .text(__LINE__);
+					menu = new Menu(shell, SWT.POP_UP);
+					dStr ~= " - " ~ .text(__LINE__);
 					appendMenuTCPD(_comm, menu, this, true, true, true, true);
+					dStr ~= " - " ~ .text(__LINE__);
 					static if (is(A : Area) || is(A : Battle)) {
 						new MenuItem(menu, SWT.SEPARATOR);
 						void delegate() dlg = null;
@@ -1020,9 +1026,11 @@ public:
 						createMenuItem(_comm, sub, MenuID.KeyCodeTimingSuccess, &keyCodeTimSuccess, &curIsKeyCode!(FKCKind.Success));
 						createMenuItem(_comm, sub, MenuID.KeyCodeTimingFailure, &keyCodeTimFailure, &curIsKeyCode!(FKCKind.Failure));
 					}
+					dStr ~= " - " ~ .text(__LINE__);
 					new MenuItem(menu, SWT.SEPARATOR);
 					createMenuItem(_comm, menu, MenuID.ToScript, &toScript, &canToScript);
 					createMenuItem(_comm, menu, MenuID.ToScriptAll, &toScriptAll, &canToScriptAll);
+					dStr ~= " - " ~ .text(__LINE__);
 					static if (is (A == Battle)) {
 						new MenuItem(menu, SWT.SEPARATOR);
 						createMenuItem(_comm, menu, MenuID.AddRangeOfRound, &addManyRounds, {
@@ -1031,11 +1039,14 @@ public:
 							return (cast(EventTree) etItm.getData()).owner is _area;
 						});
 					}
+					dStr ~= " - " ~ .text(__LINE__);
 					_cards.setMenu(menu);
+					dStr ~= " - " ~ .text(__LINE__);
 					break;
 				} catch (Throwable e) {
 					// 環境によってはMenuが異常な状態になり、
 					// MenuItemの追加で落ちることがある模様
+					debugln(dStr);
 					debugln(e);
 					try {
 						if (menu) menu.dispose();
@@ -1463,7 +1474,7 @@ public:
 		int style = SWT.BORDER | SWT.DROP_DOWN;
 		if (readOnly) style |= SWT.READ_ONLY;
 		auto c = new CCombo(_toolbar, style);
-		if (visLong) c.setVisibleItemCount(20);
+		if (visLong) c.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 		foreach (i, v; vals) {
 			c.add(v);
 			if (i == 0) c.setText(v);
@@ -1911,7 +1922,7 @@ protected:
 			_to.setMaximum(_prop.looks.roundMax);
 			_to.addSelectionListener(new SelMax);
 			auto l2 = new Label(comp, SWT.NONE);
-			l2.setText(_prop.msgs.rangeHint(1, _prop.looks.roundMax));
+			l2.setText(.tryFormat(_prop.msgs.rangeHint, 1, _prop.looks.roundMax));
 		}
 	}
 	override bool close(bool ok) {

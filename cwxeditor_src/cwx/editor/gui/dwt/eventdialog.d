@@ -96,7 +96,7 @@ abstract class EventDialog : AbsDialog {
 		assert (!evt || evt.type is type);
 		assert (summ);
 	} body {
-		super (prop, shell, false, prop.msgs.dlgTitContent(type), prop.images.content(type), resizable, size, true);
+		super (prop, shell, false, .tryFormat(prop.msgs.dlgTitContent, prop.msgs.contentName(type)), prop.images.content(type), resizable, size, true);
 		enterClose = eClose;
 		_comm = comm;
 		_prop = prop;
@@ -324,7 +324,7 @@ protected:
 				auto tgd = new GridData;
 				tgd.horizontalSpan = 2;
 				_ts.setLayoutData(tgd);
-				_ts.setVisibleItemCount(20);
+				_ts.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
 				foreach (i, t; ALL_TRANSITION) {
 					_ts.add(_prop.msgs.transitionName(t));
 					_tsTbl[i] = t;
@@ -336,7 +336,7 @@ protected:
 				_tsSpeed.setMaximum(Content.transitionSpeed_max);
 				_tsSpeed.setMinimum(Content.transitionSpeed_min);
 				auto hint = new Label(comp, SWT.NONE);
-				hint.setText(_prop.msgs.rangeHint(Content.transitionSpeed_min, Content.transitionSpeed_max));
+				hint.setText(.tryFormat(_prop.msgs.rangeHint, Content.transitionSpeed_min, Content.transitionSpeed_max));
 			}
 			if (_evt) {
 				_tsSpeed.setSelection(_evt.transitionSpeed);
@@ -601,7 +601,7 @@ protected:
 				{
 					_name = new Combo(comp, SWT.BORDER | SWT.DROP_DOWN);
 					mod(_name);
-					_name.setVisibleItemCount(20);
+					_name.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
 					createTextMenu!Combo(_comm, _prop, _name, &catchMod);
 					auto gd = new GridData(GridData.FILL_HORIZONTAL);
 					gd.horizontalSpan = 3;
@@ -763,7 +763,7 @@ protected:
 			lt.setText(_prop.msgs.transition);
 			_ts = new Combo(comp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 			mod(_ts);
-			_ts.setVisibleItemCount(20);
+			_ts.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
 			foreach (i, t; ALL_TRANSITION) {
 				_ts.add(_prop.msgs.transitionName(t));
 				_tsTbl[i] = t;
@@ -776,7 +776,7 @@ protected:
 			_tsSpeed.setMaximum(Content.transitionSpeed_max);
 			_tsSpeed.setMinimum(Content.transitionSpeed_min);
 			auto hint = new Label(comp, SWT.NONE);
-			hint.setText(_prop.msgs.rangeHint(Content.transitionSpeed_min, Content.transitionSpeed_max));
+			hint.setText(.tryFormat(_prop.msgs.rangeHint, Content.transitionSpeed_min, Content.transitionSpeed_max));
 		}
 		refreshTS();
 
@@ -941,7 +941,7 @@ protected:
 				}
 			}
 			auto l = new Label(comp, SWT.NONE);
-			l.setText(_prop.msgs.rangeHint(Min, _value.getMaximum()));
+			l.setText(.tryFormat(_prop.msgs.rangeHint, Min, _value.getMaximum()));
 		}
 
 		ignoreMod = true;
@@ -1031,7 +1031,7 @@ protected:
 					_lev.setMinimum(Content.signedLevel_min);
 					_lev.setMaximum(Content.signedLevel_max);
 					auto l = new Label(grp, SWT.NONE);
-					l.setText(_prop.msgs.rangeHint(_lev.getMinimum(), _lev.getMaximum()));
+					l.setText(.tryFormat(_prop.msgs.rangeHint, _lev.getMinimum(), _lev.getMaximum()));
 				}
 				{
 					auto grp = new Group(comp2, SWT.NONE);
@@ -1048,7 +1048,7 @@ protected:
 							gd.horizontalSpan = 2;
 						}
 						radio.setLayoutData(gd);
-						radio.setText(_prop.msgs.effectType(eff));
+						radio.setText(.tryFormat(_prop.msgs.effectTypeElement, _prop.msgs.effectTypeName(eff)));
 						_effTyp[eff] = radio;
 					}
 				}
@@ -1060,7 +1060,7 @@ protected:
 					foreach (res; [Resist.AVOID, Resist.RESIST, Resist.UNFAIL]) {
 						auto radio = new Button(grp, SWT.RADIO);
 						mod(radio);
-						radio.setText(_prop.msgs.resist(res));
+						radio.setText(_prop.msgs.resistName(res));
 						radio.setLayoutData(new GridData(GridData.FILL_BOTH));
 						_res[res] = radio;
 					}
@@ -1079,7 +1079,7 @@ protected:
 						auto radio = new Button(grp, SWT.RADIO);
 						mod(radio);
 						radio.setLayoutData(new GridData(GridData.FILL_BOTH));
-						radio.setText(_prop.msgs.cardVisual(v));
+						radio.setText(_prop.msgs.cardVisualName(v));
 						_vis[v] = radio;
 					}
 				}
@@ -1511,7 +1511,7 @@ protected:
 				_lev.setMinimum(Content.signedLevel_min);
 				_lev.setMaximum(Content.signedLevel_max);
 				auto l = new Label(grp, SWT.NONE);
-				l.setText(_prop.msgs.rangeHint(_lev.getMinimum(), _lev.getMaximum()));
+				l.setText(.tryFormat(_prop.msgs.rangeHint, _lev.getMinimum(), _lev.getMaximum()));
 			}
 			{
 				auto grp = new Group(comp, SWT.NONE);
@@ -1646,7 +1646,7 @@ protected:
 			_lev.setMinimum(Content.unsignedLevel_min);
 			_lev.setMaximum(Content.unsignedLevel_max);
 			auto l = new Label(comp, SWT.NONE);
-			l.setText(_prop.msgs.rangeHint(_lev.getMinimum(), _lev.getMaximum()));
+			l.setText(.tryFormat(_prop.msgs.rangeHint, _lev.getMinimum(), _lev.getMaximum()));
 		}
 
 		ignoreMod = true;
@@ -1866,7 +1866,7 @@ protected:
 				_num.setMinimum(1);
 				_num.setMaximum(Content.cardNumber_max);
 				auto l = new Label(comp2, SWT.NONE);
-				l.setText(_prop.msgs.rangeHint(_num.getMinimum(), _num.getMaximum()));
+				l.setText(.tryFormat(_prop.msgs.rangeHint, _num.getMinimum(), _num.getMaximum()));
 				static if (Delete) {
 					_allDel = new Button(comp2, SWT.CHECK);
 					mod(_allDel);
@@ -2017,7 +2017,7 @@ protected:
 			auto gd = new GridData;
 			gd.horizontalSpan = 2;
 			_ts.setLayoutData(gd);
-			_ts.setVisibleItemCount(20);
+			_ts.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
 			foreach (i, t; ALL_TRANSITION) {
 				_ts.add(_prop.msgs.transitionName(t));
 				_tsTbl[i] = t;
@@ -2030,7 +2030,7 @@ protected:
 			_tsSpeed.setMaximum(Content.transitionSpeed_max);
 			_tsSpeed.setMinimum(Content.transitionSpeed_min);
 			auto hint = new Label(comp, SWT.NONE);
-			hint.setText(_prop.msgs.rangeHint(Content.transitionSpeed_min, Content.transitionSpeed_max));
+			hint.setText(.tryFormat(_prop.msgs.rangeHint, Content.transitionSpeed_min, Content.transitionSpeed_max));
 		}
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;

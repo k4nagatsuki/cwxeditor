@@ -78,10 +78,10 @@ public:
 	D createDirsCombo(Composite parent) {
 		static if (is (D == Combo)) {
 			_dirs = new D(parent, SWT.BORDER | SWT.READ_ONLY | SWT.DROP_DOWN);
-			_dirs.setVisibleItemCount(20);
+			_dirs.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 		} else static if (is (D == CCombo)) {
 			_dirs = new D(parent, SWT.BORDER | SWT.READ_ONLY);
-			_dirs.setVisibleItemCount(20);
+			_dirs.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 			createTextMenu!D(_comm, _prop, _dirs, null);
 		} else {
 			static assert (0);
@@ -112,10 +112,10 @@ public:
 			new FullTableColumn(_fileList, SWT.NONE);
 		} else static if (is (C == Combo)) {
 			_fileList = new C(parent, SWT.BORDER | SWT.READ_ONLY | SWT.DROP_DOWN);
-			_fileList.setVisibleItemCount(20);
+			_fileList.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 		} else static if (is (C == CCombo)) {
 			_fileList = new C(parent, SWT.BORDER | SWT.READ_ONLY);
-			_fileList.setVisibleItemCount(20);
+			_fileList.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 			createTextMenu!CCombo(_comm, _prop, _fileList, null);
 		} else {
 			static assert (0);

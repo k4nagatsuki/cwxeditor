@@ -419,3 +419,35 @@ struct ClassicEngine {
 		execute = node.attr!(string)("execute", true);
 	}
 }
+
+/// シナリオのテンプレートの情報。
+struct ScTemplate {
+	static const XML_NAME = "scenarioTemplate";
+	string name; /// 情報名。
+	string path = ""; /// ファイル・ディレクトリのパス。
+	/// XMLノードとして取り扱うための関数群。
+	const
+	XNode toNode() {
+		auto e = XNode.create(XML_NAME);
+		toNodeImpl(e);
+		return e;
+	}
+	/// ditto
+	const
+	void toNode(ref XNode node) {
+		auto e = node.newElement(XML_NAME);
+		toNodeImpl(e);
+	}
+	/// ditto
+	const
+	private void toNodeImpl(ref XNode e) {
+		e.newAttr("name", name);
+		e.newAttr("path", path);
+	}
+	/// ditto
+	void fromNode(ref XNode node) {
+		if (node.name != "scenarioTemplate") throw new Exception("Node is not scenarioTemplate");
+		name = node.attr!(string)("name", true);
+		path = node.attr!(string)("path", true);
+	}
+}

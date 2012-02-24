@@ -184,7 +184,6 @@ PImg createCastCardImage(PImg)(Props prop, Skin skin, CastCard card,
 		r = createCardImageCommon!PImg(prop, castCard(skin),
 			matPad, x, y, scale, smoothing);
 	}
-	r.setTitle(card ? card.name : "", dwtData(prop.looks.castCardNameFont(skin.legacy)), dwtData(prop.looks.castCardNamePoint));
 	static if (is(PImg : FlexImage)) {
 		r.resize();
 	} else {

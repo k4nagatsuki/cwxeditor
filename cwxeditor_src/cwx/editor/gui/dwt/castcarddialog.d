@@ -143,7 +143,7 @@ private:
 	void refreshWarning() {
 		string[] ws;
 		if (_name.over) {
-			ws ~= _prop.msgs.warningNameLenOver(_prop.looks.castNameLimit);
+			ws ~= .tryFormat(_prop.msgs.warningNameLenOver, _prop.looks.castNameLimit, _prop.looks.castNameLimit / 2);
 		}
 		warning = ws;
 	}
@@ -505,7 +505,7 @@ private:
 				gd.widthHint = _name.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
 				_name.widget.setLayoutData(gd);
 				auto l = new Label(grp, SWT.NONE);
-				l.setText(_prop.msgs.nameLimit(_prop.looks.castNameLimit));
+				l.setText(.tryFormat(_prop.msgs.nameLimit, _prop.looks.castNameLimit, _prop.looks.castNameLimit / 2));
 			}
 			{
 				bool including = _card && isBinImg(_card.path);
@@ -533,7 +533,7 @@ private:
 				_level.setMinimum(1);
 				_level.setMaximum(_prop.looks.castLevelMax);
 				auto hint = new Label(comp2, SWT.RIGHT);
-				hint.setText(_prop.msgs.rangeHint(1, _prop.looks.castLevelMax));
+				hint.setText(.tryFormat(_prop.msgs.rangeHint, 1, _prop.looks.castLevelMax));
 			}
 			{
 				auto grp = new Group(compr, SWT.NONE);
@@ -549,7 +549,7 @@ private:
 				_lifeMax.setMaximum(_prop.looks.lifeMax);
 				_lifeMax.addModifyListener(new LifeMaxL);
 				auto hint = new Label(comp2, SWT.RIGHT);
-				hint.setText(_prop.msgs.rangeHint(1, _prop.looks.lifeMax));
+				hint.setText(.tryFormat(_prop.msgs.rangeHint, 1, _prop.looks.lifeMax));
 				auto lifec = new Button(comp2, SWT.PUSH);
 				mod(lifec);
 				auto lgd = new GridData(GridData.FILL_HORIZONTAL);
@@ -566,7 +566,7 @@ private:
 			grp.setLayout(cl);
 			_race = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 			mod(_race);
-			_race.setVisibleItemCount(20);
+			_race.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 			_race.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			_race.add(_prop.msgs.noRace);
 			foreach (race; skin.races) {
@@ -826,8 +826,9 @@ private:
 				_unholy = createC(bcomp, _prop.msgs.unholy, _prop.msgs.descUnholy);
 				_constructure = createC(bcomp, _prop.msgs.constructure, _prop.msgs.descConstructure);
 				foreach (e; [Element.FIRE, Element.ICE]) {
-					auto res = createC(bcomp, _prop.msgs.resistName(e), _prop.msgs.descResist(e));
-					auto weak = createC(bcomp, _prop.msgs.weaknessName(e), _prop.msgs.descWeakness(e));
+					string eName = _prop.msgs.elementName(e);
+					auto res = createC(bcomp, .tryFormat(_prop.msgs.resistText, eName), .tryFormat(_prop.msgs.descResist, eName));
+					auto weak = createC(bcomp, .tryFormat(_prop.msgs.weaknessText, eName), .tryFormat(_prop.msgs.descWeakness, eName));
 					res.addSelectionListener(new ESListener(weak));
 					weak.addSelectionListener(new ESListener(res));
 					_res[e] = res;
@@ -1029,7 +1030,7 @@ private:
 			names.length = Es.length;
 			foreach (i, enh; Es) {
 				_enhTbl[enh] = i;
-				names[i] = _prop.msgs.enhanceBonus(enh);
+				names[i] = .tryFormat(_prop.msgs.enhanceBonus, _prop.msgs.enhanceName(enh));
 			}
 			_enh.setRadar(_prop.looks.enhanceMax * 2 + 1,
 				names, cast(int) _prop.looks.enhanceMax * -1);
@@ -1105,7 +1106,7 @@ private:
 				lbls1 ~= lm;
 				_mtly = new Combo(comp2, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 				mod(_mtly);
-				_mtly.setVisibleItemCount(20);
+				_mtly.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 				foreach (i, mtly; [Mentality.NORMAL, Mentality.SLEEP, Mentality.CONFUSE,
 						Mentality.OVERHEAT, Mentality.BRAVE, Mentality.PANIC]) {
 					_mtly.add(_prop.msgs.mentalityName(mtly));
@@ -1338,7 +1339,7 @@ public:
 		_card = card;
 		_prop = prop;
 		_undoCoupons = new UndoManager(_prop.var.etc.undoMaxEtc);
-		super(prop, shell, false, _card ? _prop.msgs.dlgTitCast(_card.name) : _prop.msgs.dlgTitNewCast,
+		super(prop, shell, false, _card ? .tryFormat(_prop.msgs.dlgTitCast, _card.name) : _prop.msgs.dlgTitNewCast,
 			_prop.images.casts, true, _prop.var.castCardDlg, true);
 	}
 
@@ -1440,7 +1441,7 @@ protected:
 				}
 				if (_race) {
 					foreach (i, r; _comm.skin.races) {
-						if (c.name == _prop.msgs.raceCoupon(r)) {
+						if (c.name == _prop.sys.raceCoupon(r.name)) {
 							_race.select(i + 1);
 							raceToolTip();
 							continue cp;
@@ -1542,7 +1543,7 @@ protected:
 		if (sex) cs ~= sex;
 		auto race = selectedRace;
 		if (race) {
-			cs ~= new Coupon(_prop.msgs.raceCoupon(race), 0);
+			cs ~= new Coupon(_prop.sys.raceCoupon(race.name), 0);
 		}
 		auto period = createCoupon!(Period)(_period, &_prop.sys.periodCoupon, legacyName);
 		if (period) cs ~= period;

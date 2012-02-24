@@ -166,9 +166,22 @@ private:
 				scope c = new Color(d, dwtData(_prop.looks.summaryLevelColor, alpha));
 				gc.setForeground(c);
 				gc.setAlpha(alpha);
+				int levL = _levMin.getSelection();
+				int levH = _levMax.getSelection();
+				string levText;
+				if (levL > 0 && levL == levH) {
+					levText = .tryFormat(_prop.msgs.targetLevelSame, levL);
+				} else if (levL > 0 && levH > 0) {
+					levText = .tryFormat(_prop.msgs.targetLevelHL, levL, levH);
+				} else if (levL > 0 && levH == 0) {
+					levText = .tryFormat(_prop.msgs.targetLevelL, levL);
+				} else if (levL == 0 && levH > 0) {
+					levText = .tryFormat(_prop.msgs.targetLevelH, levH);
+				} else {
+					levText = "";
+				}
 				drawCenterText(dwtData(_prop.looks.summaryLevelFont(skin.legacy)),
-					_prop.msgs.targetLevelText(_levMin.getSelection(), _levMax.getSelection()),
-					_prop.looks.summaryLevelY);
+					levText, _prop.looks.summaryLevelY);
 				c.dispose();
 				gc.setAlpha(255);
 				gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
@@ -335,7 +348,7 @@ private:
 					_typeClassic.addSelectionListener(refTypes);
 					_type = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 					mod(_type);
-					_type.setVisibleItemCount(20);
+					_type.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 					_type.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 					refreshTypes();
 				}
@@ -536,7 +549,7 @@ private:
 				}
 			}
 			if (cur) {
-				_type.add(_prop.msgs.currentEngineSkin(lEnginePath), 0);
+				_type.add(.tryFormat(_prop.msgs.currentEngineSkin, lEnginePath), 0);
 				_hasLegacySkin = true;
 			}
 			if (!_type.getItemCount()) {
@@ -558,7 +571,7 @@ public:
 		_comm = comm;
 		_summ = summ;
 		_prop = prop;
-		super(prop, shell, false, _prop.msgs.dlgTitSummary(_summ.scenarioName),
+		super(prop, shell, false, .tryFormat(_prop.msgs.dlgTitSummary, _summ.scenarioName),
 			_prop.images.summary, true, _prop.var.summaryDlg, true);
 	}
 
@@ -580,36 +593,6 @@ protected:
 		area.addDisposeListener(new Dispose);
 	}
 
-	private void setNamesOne(C : EffectCard)(ref C card) {
-		if (card.scenario == _summ.scenarioName && card.author == _summ.author) {
-			card.author = _author.getText();
-			card.scenario = _sname.getText();
-		}
-	}
-	private void setNames(C)(C[] cards) {
-		foreach (ref card; cards) {
-			setNamesOne(card);
-		}
-		setContentNames(cards);
-	}
-	private void setContentNames(C : EventTreeOwner)(C[] etos) {
-		void setContentNames(Content c) {
-			foreach (m; c.motions) {
-				auto beast = m.beast;
-				if (beast) {
-					setNamesOne(beast);
-				}
-			}
-			foreach (n; c.next) setContentNames(n);
-		}
-		foreach (ref eto; etos) {
-			foreach (ref tree; eto.trees) {
-				foreach (ref start; tree.starts) {
-					setContentNames(start);
-				}
-			}
-		}
-	}
 	override bool apply() {
 		string oldName = _summ.scenarioName;
 		string oldResDir = nabs(_comm.skin.resDir);
@@ -618,21 +601,7 @@ protected:
 			if (!cfnmatch(oldResDir, nabs(_comm.skin.resDir))) _comm.refSkin.call(this);
 			_comm.refUseCount.call();
 		}
-		setNames(_summ.skills);
-		setNames(_summ.items);
-		setNames(_summ.beasts);
-		foreach (card; _summ.casts) {
-			setNames(card.skills);
-			setNames(card.items);
-			setNames(card.beasts);
-		}
-		setContentNames(_summ.areas);
-		foreach (area; _summ.areas) setContentNames(area.cards);
-		setContentNames(_summ.battles);
-		foreach (area; _summ.battles) setContentNames(area.cards);
-		setContentNames(_summ.packages);
-		_summ.scenarioName = _sname.getText();
-		_summ.author = _author.getText();
+		_summ.setBaseParams(_sname.getText(), _author.getText());
 		_summ.desc = _desc.getRRText();
 		_summ.imagePath = _imgPath.image;
 		_summ.levelMin = _levMin.getSelection();

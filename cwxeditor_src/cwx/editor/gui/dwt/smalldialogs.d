@@ -5,6 +5,7 @@ import cwx.utils;
 import cwx.versioninfo;
 import cwx.structs;
 import cwx.menu;
+import cwx.summary;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.absdialog;
@@ -15,6 +16,8 @@ import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.dmenu;
 
 import std.string;
+import std.path;
+import std.file;
 
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Combo;
@@ -25,6 +28,9 @@ import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Link;
+import org.eclipse.swt.widgets.Spinner;
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridLayout;
@@ -38,7 +44,13 @@ private:
 
 	Text _name;
 	Combo _skinC;
+	Combo _templateC;
 	string _nameVal, _skinVal, _classicFolder;
+	Button _baseSkin;
+	Button _baseTemplate;
+	ScTemplate[int] _tTbl;
+
+	Summary _fromTemplate = null;
 
 public:
 	this (Commons comm, Props prop, Shell shell) {
@@ -57,6 +69,10 @@ public:
 		return _skinVal;
 	}
 	@property
+	Summary fromTemplate() {
+		return _fromTemplate;
+	}
+	@property
 	bool legacy() {return _skinVal.length == 0;}
 	@property
 	string classicFolder() {
@@ -68,11 +84,14 @@ protected:
 		cl.fillHorizontal = true;
 		area.setLayout(cl);
 		auto comp = new Composite(area, SWT.NONE);
-		comp.setLayout(new GridLayout(2, false));
+		comp.setLayout(new GridLayout(1, true));
 		{
-			auto l = new Label(comp, SWT.NONE);
-			l.setText(_prop.msgs.scenarioName);
-			_name = new Text(comp, SWT.BORDER);
+			auto grp = new Group(comp, SWT.NONE);
+			grp.setText(_prop.msgs.scenarioName);
+			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			grp.setLayout(new GridLayout(1, true));
+
+			_name = new Text(grp, SWT.BORDER);
 			createTextMenu!Text(_comm, _prop, _name, &catchMod);
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
 			gd.widthHint = _prop.var.etc.nameWidth;
@@ -80,9 +99,20 @@ protected:
 			checker(_name);
 		}
 		{
-			auto l = new Label(comp, SWT.NONE);
-			l.setText(_prop.msgs.type);
-			_skinC = new Combo(comp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
+			auto grp = new Group(comp, SWT.NONE);
+			grp.setText(_prop.msgs.initialize);
+			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			grp.setLayout(new GridLayout(2, false));
+
+			void refRadio() {
+				_skinC.setEnabled(_baseSkin.getSelection());
+				_templateC.setEnabled(_baseTemplate.getSelection());
+			}
+
+			_baseSkin = new Button(grp, SWT.RADIO);
+			_baseSkin.setText(_prop.msgs.type);
+			listener(_baseSkin, SWT.Selection, &refRadio);
+			_skinC = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 			_skinC.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			auto skins = skinTable(_prop).keys;
 			if (_prop.var.etc.logicalSort) {
@@ -101,16 +131,39 @@ protected:
 				_skinC.add(_prop.msgs.classic);
 			}
 			_skinC.setText(_prop.var.etc.defaultSkin);
+			_skinVal = _prop.var.etc.defaultSkin;
 			if (_skinC.getSelectionIndex() == -1) _skinC.select(0);
-			checker(_skinC);
+
+			_baseTemplate = new Button(grp, SWT.RADIO);
+			_baseTemplate.setText(_prop.msgs.scenarioTemplate);
+			listener(_baseTemplate, SWT.Selection, &refRadio);
+			_templateC = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
+			_templateC.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
+			auto tgd = new GridData(GridData.FILL_HORIZONTAL);
+			tgd.widthHint = 0;
+			_templateC.setLayoutData(tgd);
+			foreach (i, sct; _prop.var.etc.scenarioTemplates) {
+				_templateC.add(.tryFormat(_prop.msgs.templateDesc, sct.name, sct.path));
+				if (cfnmatch(sct.path, _prop.var.etc.defaultScenarioTemplate)) {
+					_templateC.select(i);
+				}
+				_tTbl[i] = sct;
+			}
+			bool tenbl = _templateC.getItemCount() > 0;
+			if (!tenbl) _templateC.add(_prop.msgs.noTemplate);
+			if (_templateC.getSelectionIndex() == -1) _templateC.select(0);
+			_baseTemplate.setEnabled(tenbl);
+
+			_baseSkin.setSelection(!tenbl || !_prop.var.etc.defaultIsTemplate);
+			_baseTemplate.setSelection(!_baseSkin.getSelection());
+			_skinC.setEnabled(_baseSkin.getSelection());
+			_templateC.setEnabled(_baseTemplate.getSelection());
 		}
 	}
 
 	override bool close(bool ok, out bool cancel) {
 		if (ok) {
-			_nameVal = _name.getText();
-			if (_prop.var.etc.canCreateClassic && _skinC.getSelectionIndex() == _skinC.getItemCount() - 1) {
-				_skinVal = "";
+			string createClassicDir() {
 				auto dlg = new DirectoryDialog(getShell());
 				dlg.setText(_prop.msgs.newClassicDir);
 				dlg.setMessage(_prop.msgs.newClassicDirDesc);
@@ -126,14 +179,54 @@ protected:
 						}
 						_prop.var.etc.scenarioPath = dlg.getFilterPath();
 						_classicFolder = path;
+						return _classicFolder;
 					} else {
 						ok = false;
 						cancel = true;
 					}
 					break;
 				}
+				return null;
+			}
+			_nameVal = _name.getText();
+			if (_baseTemplate.getSelection()) {
+				Summary summ = null;
+				string tPath = _tTbl[_templateC.getSelectionIndex()].path;
+				if (!.exists(tPath)) {
+					ok = false;
+					cancel = true;
+				} else if (.isDir(tPath) && !tPath.buildPath("Summary.wsm").exists && !tPath.buildPath("Summary.xml").exists) {
+					// 非シナリオのディレクトリをベースとする
+					summ = Summary.createScenario(_prop.tempPath, name, findSkin2(_prop, _skinVal));
+					tPath.copyAll(summ.scenarioPath);
+				} else {
+					try {
+						summ = Summary.loadScenarioFromFile(_prop.parent, _prop.var.etc.doubleIO,
+							tPath, _prop.var.etc.expandXMLs, _prop.tempPath,
+							&createClassicDir);
+					} catch (SummaryException e) {
+						// Nothing;
+					}
+				}
+				if (ok) {
+					if (!summ) {
+						summ = Summary.createScenario(_prop.tempPath, name, findSkin2(_prop, _skinVal));
+					}
+					summ.setBaseParams(name, _prop.var.etc.defaultAuthor);
+					_prop.var.etc.defaultScenarioTemplate = tPath;
+					_prop.var.etc.defaultIsTemplate = true;
+					_fromTemplate = summ;
+				}
 			} else {
-				_skinVal = _skinC.getText();
+				if (_prop.var.etc.canCreateClassic && _skinC.getSelectionIndex() == _skinC.getItemCount() - 1) {
+					_skinVal = "";
+					createClassicDir();
+				} else {
+					_skinVal = _skinC.getText();
+				}
+				if (ok) {
+					_prop.var.etc.defaultIsTemplate = false;
+				}
 			}
 		}
 		return ok;
@@ -237,5 +330,55 @@ class ErrorDialog : AbsDialog {
 		msgL.horizontalSpan = 2;
 		msg.setLayoutData(msgL);
 		msg.setText(_desc);
+	}
+}
+
+private class ReNumDialog(A) : AbsDialog {
+private:
+	Props _prop;
+	A _area;
+	ulong _minId;
+
+	Spinner _id;
+
+	ulong _newId;
+public:
+	this (Props prop, Shell shell, A area, ulong minId) {
+		_prop = prop;
+		_area = area;
+		_minId = minId;
+		super(prop, shell, prop.msgs.dlgTitReNumbering, prop.images.menu(MenuID.ReNumbering), false);
+		enterClose = true;
+	}
+
+	@property
+	ulong newId() {
+		return _newId;
+	}
+protected:
+	override void setup(Composite area) {
+		area.setLayout(new GridLayout(1, false));
+		{
+			auto grp = new Group(area, SWT.NONE);
+			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			grp.setText(_prop.msgs.reNumbering);
+			grp.setLayout(new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0));
+			auto comp = new Composite(grp, SWT.NONE);
+			comp.setLayout(new GridLayout(3, false));
+			string cName = objName!A(_prop);
+			auto l1 = new Label(comp, SWT.NONE);
+			l1.setText(.tryFormat(_prop.msgs.reNumbering1, cName, _area.name));
+			_id = new Spinner(comp, SWT.BORDER);
+			_id.setMaximum(_prop.looks.idMax);
+			_id.setMinimum(cast(int) _minId);
+			auto l2 = new Label(comp, SWT.NONE);
+			l2.setText(.tryFormat(_prop.msgs.reNumbering2, cName, _area.name));
+		}
+	}
+	override bool close(bool ok) {
+		if (ok) {
+			_newId = _id.getSelection();
+		}
+		return ok;
 	}
 }

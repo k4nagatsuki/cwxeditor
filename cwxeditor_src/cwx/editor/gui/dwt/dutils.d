@@ -2,6 +2,7 @@
 module cwx.editor.gui.dwt.dutils;
 
 import cwx.cwl;
+import cwx.area;
 import cwx.card;
 import cwx.types;
 import cwx.utils;
@@ -462,7 +463,7 @@ Text createTextEditor(Commons comm, Props prop, Composite parent, string str) {
 C createComboEditor(C = CCombo)(Commons comm, Props prop, Composite parent, string[] strs, string str) {
 	try {
 		auto combo = new C(parent, SWT.BORDER | SWT.READ_ONLY);
-		combo.setVisibleItemCount(20);
+		combo.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
 		static if (is(C : CCombo)) {
 			createTextMenu!C(comm, prop, combo, null);
 		}
@@ -1444,7 +1445,7 @@ Composite createDefSoundCombo(Commons comm, Props prop, Summary summ, Composite 
 		comp2.setLayout(zeroMarginGridLayout(3, false));
 	}
 	combo = new Combo(comp2, SWT.BORDER | SWT.READ_ONLY | SWT.DROP_DOWN);
-	combo.setVisibleItemCount(20);
+	combo.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
 	auto gdc = new GridData(GridData.FILL_HORIZONTAL);
 	if (title) {
 		gdc.horizontalSpan = 2;
@@ -1932,4 +1933,387 @@ RGB alphaColor(in RGB c, in RGB b, int a) {
 		return mn + (mx - mn) - cast(int) ((mx - mn) * (a / 255.0));
 	}
 	return new RGB(oc(c.red, b.red), oc(c.green, b.green), oc(c.blue, b.blue));
+}
+
+string objName(A)(in Props prop) {
+	static if (is(A : Area)) {
+		return prop.msgs.area;
+	} else static if (is(A : Battle)) {
+		return prop.msgs.battle;
+	} else static if (is(A : Package)) {
+		return prop.msgs.cwPackage;
+	} else static if (is(A : CastCard)) {
+		return prop.msgs.cwCast;
+	} else static if (is(A : SkillCard)) {
+		return prop.msgs.skill;
+	} else static if (is(A : ItemCard)) {
+		return prop.msgs.item;
+	} else static if (is(A : BeastCard)) {
+		return prop.msgs.beast;
+	} else static if (is(A : InfoCard)) {
+		return prop.msgs.info;
+	} else static assert (0);
+}
+
+enum CIDKind {
+	Area,
+	Battle,
+	Package,
+	Cast,
+	Skill,
+	Item,
+	Beast,
+	Info,
+	Image,
+	BGM,
+	SE,
+	Flag,
+	Step,
+	Start,
+}
+string contentTextUseID(CIDKind Kind, ID)(Commons comm, ID id, string msg, in Content evt) {
+	string noSelect;
+	string noID;
+	bool use;
+	bool delegate() find;
+	static if (CIDKind.Area == Kind) {
+		noSelect = comm.prop.msgs.noSelectArea;
+		noID = comm.prop.msgs.noArea;
+		use = 0 != id;
+		find = () => comm.summary.area(id) !is null;
+	} else static if (CIDKind.Battle == Kind) {
+		noSelect = comm.prop.msgs.noSelectBattle;
+		noID = comm.prop.msgs.noBattle;
+		use = 0 != id;
+		find = () => comm.summary.battle(id) !is null;
+	} else static if (CIDKind.Package == Kind) {
+		noSelect = comm.prop.msgs.noSelectPackage;
+		noID = comm.prop.msgs.noPackage;
+		use = 0 != id;
+		find = () => comm.summary.cwPackage(id) !is null;
+	} else static if (CIDKind.Cast == Kind) {
+		noSelect = comm.prop.msgs.noSelectCast;
+		noID = comm.prop.msgs.noCast;
+		use = 0 != id;
+		find = () => comm.summary.cwCast(id) !is null;
+	} else static if (CIDKind.Skill == Kind) {
+		noSelect = comm.prop.msgs.noSelectSkill;
+		noID = comm.prop.msgs.noSkill;
+		find = () => comm.summary.skill(id) !is null;
+		use = 0 != id;
+	} else static if (CIDKind.Item == Kind) {
+		noSelect = comm.prop.msgs.noSelectItem;
+		noID = comm.prop.msgs.noItem;
+		find = () => comm.summary.item(id) !is null;
+		use = 0 != id;
+	} else static if (CIDKind.Beast == Kind) {
+		noSelect = comm.prop.msgs.noSelectBeast;
+		noID = comm.prop.msgs.noBeast;
+		find = () => comm.summary.beast(id) !is null;
+		use = 0 != id;
+	} else static if (CIDKind.Info == Kind) {
+		noSelect = comm.prop.msgs.noSelectInfo;
+		noID = comm.prop.msgs.noInfo;
+		find = () => comm.summary.info(id) !is null;
+		use = 0 != id;
+	} else static if (CIDKind.Image == Kind) {
+		noSelect = comm.prop.msgs.noSelectImage;
+		noID = comm.prop.msgs.noImage;
+		find = () => comm.skin.findImagePath(id, comm.summary.scenarioPath).length > 0;
+		use = id && id.length;
+	} else static if (CIDKind.BGM == Kind) {
+		noSelect = comm.prop.msgs.noSelectBGM;
+		noID = comm.prop.msgs.noBGM;
+		find = () => comm.skin.findPath(id, comm.skin.extBgm, comm.skin.bgmDir, comm.summary.scenarioPath).length > 0;
+		use = id && id.length;
+	} else static if (CIDKind.SE == Kind) {
+		noSelect = comm.prop.msgs.noSelectSE;
+		noID = comm.prop.msgs.noSE;
+		find = () => comm.skin.findPath(id, comm.skin.extSound, comm.skin.seDir, comm.summary.scenarioPath).length > 0;
+		use = id && id.length;
+	} else static if (CIDKind.Flag == Kind) {
+		noSelect = comm.prop.msgs.noSelectFlag;
+		noID = comm.prop.msgs.noFlag;
+		find = () => comm.summary.flagDirRoot.findFlag(id) !is null;
+		use = id && id.length;
+	} else static if (CIDKind.Step == Kind) {
+		noSelect = comm.prop.msgs.noSelectStep;
+		noID = comm.prop.msgs.noStep;
+		find = () => comm.summary.flagDirRoot.findStep(id) !is null;
+		use = id && id.length;
+	} else static if (CIDKind.Start == Kind) {
+		noSelect = comm.prop.msgs.noSelectStart;
+		noID = comm.prop.msgs.noStart;
+		find = () => evt.tree.hasStart(id);
+		use = id && id.length;
+	} else static assert (0);
+	if (!use) return .tryFormat(msg, noSelect);
+	bool exists = find();
+	static if (CIDKind.Image == Kind || CIDKind.BGM == Kind || CIDKind.SE == Kind) {
+		id = .encodePath(id);
+	}
+	if (exists) {
+		return .tryFormat(msg, id);
+	} else {
+		return .tryFormat(msg, .tryFormat(noID, id));
+	}
+}
+
+string contentText(Commons comm, in Content evt) {
+	string loseCardCount() {
+		return evt.cardNumber == 0 ? comm.prop.msgs.ctLoseCardAll : .tryFormat(comm.prop.msgs.ctLoseCardCount, evt.cardNumber);
+	}
+	final switch (evt.type) {
+	case CType.START: {
+		return .tryFormat(comm.prop.msgs.ctStart, evt.name);
+	} case CType.START_BATTLE: {
+		return contentTextUseID!(CIDKind.Battle)(comm, evt.battle, comm.prop.msgs.ctStartBattle, evt);
+	} case CType.END: {
+		return evt.complete ? comm.prop.msgs.ctEndComplete : comm.prop.msgs.ctEndNoComplete;
+	} case CType.END_BAD_END: {
+		return comm.prop.msgs.ctGameOver;
+	} case CType.CHANGE_AREA: {
+		return contentTextUseID!(CIDKind.Area)(comm, evt.area, comm.prop.msgs.ctChangeArea, evt);
+	} case CType.CHANGE_BG_IMAGE: {
+		string buf;
+		foreach (i, b; evt.backs) {
+			buf ~= contentTextUseID!(CIDKind.Image)(comm, b.path, comm.prop.msgs.ctChangeBgImageFile, null);
+			if (i + 1 < evt.backs.length) buf ~= " ";
+		}
+		return .tryFormat(comm.prop.msgs.ctChangeBgImage, buf);
+	} case CType.EFFECT: {
+		string tt = comm.prop.msgs.targetName(evt.targetNS.m);
+		int tl = evt.signedLevel;
+		string tet = comm.prop.msgs.effectTypeName(evt.effectType);
+		string tr = comm.prop.msgs.resistName(evt.resist);
+		string tsf = evt.successRate >= 0 ? "+" : "-";
+		int ts = std.math.abs(evt.successRate);
+		string tsnd = contentTextUseID!(CIDKind.SE)(comm, evt.soundPath, comm.prop.msgs.ctEffectSound, evt);
+		string tcv = comm.prop.msgs.cardVisualName(evt.cardVisual);
+		string teff = "";
+		foreach (i, m; evt.motions) {
+			teff ~= .tryFormat(comm.prop.msgs.ctEffectMotion, comm.prop.msgs.motionName(m.type));
+			if (i + 1 < evt.motions.length) teff ~= " ";
+		}
+		return .tryFormat(comm.prop.msgs.ctEffect, tt, tl, tet, tr, tsf, ts, tsnd, tcv, teff);
+	} case CType.EFFECT_BREAK: {
+		return comm.prop.msgs.ctEffectBreak;
+	} case CType.LINK_START: {
+		return contentTextUseID!(CIDKind.Start)(comm, evt.start, comm.prop.msgs.ctLinkStart, evt);
+	} case CType.LINK_PACKAGE: {
+		return contentTextUseID!(CIDKind.Package)(comm, evt.packages, comm.prop.msgs.ctLinkPackage, evt);
+	} case CType.TALK_MESSAGE: {
+		string text = evt.text;
+		text = std.array.replace(text, "\n", "");
+		final switch (evt.talkerC) {
+		case Talker.NARRATION:
+			return text;
+		case Talker.SELECTED:
+		case Talker.UNSELECTED:
+		case Talker.RANDOM:
+		case Talker.CARD:
+			return .tryFormat(comm.prop.msgs.ctTalkMessage, comm.prop.msgs.talkerName(evt.talkerC), text);
+		case Talker.IMAGE:
+			string t = contentTextUseID!(CIDKind.Image)(comm, evt.cardPath, "%s", evt);
+			return .tryFormat(comm.prop.msgs.ctTalkMessage, t, text);
+		}
+	} case CType.TALK_DIALOG: {
+		string r(in SDialog sdlg) {
+			string tt = comm.prop.msgs.talkerName(evt.talkerNC);
+			string t = std.array.replace(sdlg.text, "\n", "");
+			if (sdlg.rCoupons.length) {
+				return .tryFormat(comm.prop.msgs.ctTalkDialog, tt, std.string.join(sdlg.rCoupons.dup, " "), t);
+			} else {
+				return .tryFormat(comm.prop.msgs.ctTalkDialogNoCoupon, tt, t);
+			}
+		}
+		assert (evt.dialogs.length);
+		final switch (comm.prop.var.etc.dialogStatus) {
+		case DialogStatus.Top:
+			return r(evt.dialogs[0]);
+		case DialogStatus.Under:
+			return r(evt.dialogs[$ - 1]);
+		case DialogStatus.UnderWithCoupon:
+			foreach_reverse (dlg; evt.dialogs) {
+				if (dlg.rCoupons.length) {
+					return r(dlg);
+				}
+			}
+			return r(evt.dialogs[$ - 1]);
+		}
+	} case CType.PLAY_BGM: {
+		return contentTextUseID!(CIDKind.BGM)(comm, evt.bgmPath, comm.prop.msgs.ctPlayBGM, evt);
+	} case CType.PLAY_SOUND: {
+		return contentTextUseID!(CIDKind.SE)(comm, evt.soundPath, comm.prop.msgs.ctPlaySound, evt);
+	} case CType.WAIT: {
+		return .tryFormat(comm.prop.msgs.ctWait, evt.wait);
+	} case CType.ELAPSE_TIME: {
+		return comm.prop.msgs.ctElapseTime;
+	} case CType.CALL_START: {
+		return contentTextUseID!(CIDKind.Start)(comm, evt.start, comm.prop.msgs.ctCallStart, evt);
+	} case CType.CALL_PACKAGE: {
+		return contentTextUseID!(CIDKind.Package)(comm, evt.packages, comm.prop.msgs.ctCallPackage, evt);
+	} case CType.BRANCH_FLAG: {
+		return contentTextUseID!(CIDKind.Flag)(comm, evt.flag, comm.prop.msgs.ctBranchFlag, evt);
+	} case CType.BRANCH_MULTI_STEP: {
+		return contentTextUseID!(CIDKind.Step)(comm, evt.step, comm.prop.msgs.ctBranchMultiStep, evt);
+	} case CType.BRANCH_STEP: {
+		string s = contentTextUseID!(CIDKind.Step)(comm, evt.step, "%s", evt);
+		auto step = comm.summary.flagDirRoot.findStep(evt.step);
+		string v = step ? step.getValue(evt.stepValue) : .tryFormat(comm.prop.msgs.dlgLblStep, evt.stepValue);
+		return .tryFormat(comm.prop.msgs.ctBranchStep, s, v);
+	} case CType.BRANCH_SELECT: {
+		string t = evt.targetAll ? comm.prop.msgs.ctBranchSelectAll : comm.prop.msgs.ctBranchSelectActive;
+		string r = evt.random ? comm.prop.msgs.ctBranchSelectAuto : comm.prop.msgs.ctBranchSelectManual;
+		return .tryFormat(comm.prop.msgs.ctBranchSelect, t, r);
+	} case CType.BRANCH_ABILITY: {
+		string t = comm.prop.msgs.targetName(evt.targetS.m);
+		string p = comm.prop.msgs.physicalName(evt.physical);
+		string m = comm.prop.msgs.mentalName(evt.mental);
+		auto l = evt.signedLevel;
+		return .tryFormat(comm.prop.msgs.ctBranchAbility, t, p, m, l);
+	} case CType.BRANCH_RANDOM: {
+		return .tryFormat(comm.prop.msgs.ctBranchRandom, evt.percent);
+	} case CType.BRANCH_LEVEL: {
+		string a = evt.average ? comm.prop.msgs.ctBranchLevelAverage : comm.prop.msgs.ctBranchLevelSelected;
+		auto l = evt.unsignedLevel;
+		return .tryFormat(comm.prop.msgs.ctBranchLevel, a, l);
+	} case CType.BRANCH_STATUS: {
+		string t = comm.prop.msgs.targetName(evt.targetNS.m);
+		string s = comm.prop.msgs.statusName(evt.status);
+		return .tryFormat(comm.prop.msgs.ctBranchStatus, t, s);
+	} case CType.BRANCH_PARTY_NUMBER: {
+		return .tryFormat(comm.prop.msgs.ctBranchPartyNumber, evt.partyNumber);
+	} case CType.BRANCH_AREA: {
+		return comm.prop.msgs.ctBranchArea;
+	} case CType.BRANCH_BATTLE: {
+		return comm.prop.msgs.ctBranchBattle;
+	} case CType.BRANCH_IS_BATTLE: {
+		return comm.prop.msgs.ctBranchIsBattle;
+	} case CType.BRANCH_CAST: {
+		return contentTextUseID!(CIDKind.Cast)(comm, evt.casts, comm.prop.msgs.ctBranchCast, evt);
+	} case CType.BRANCH_ITEM: {
+		string name = contentTextUseID!(CIDKind.Item)(comm, evt.item, "%s", evt);
+		return .tryFormat(comm.prop.msgs.ctBranchItem, name, comm.prop.msgs.rangeName(evt.range), evt.cardNumber);
+	} case CType.BRANCH_SKILL: {
+		string name = contentTextUseID!(CIDKind.Skill)(comm, evt.skill, "%s", evt);
+		return .tryFormat(comm.prop.msgs.ctBranchSkill, name, comm.prop.msgs.rangeName(evt.range), evt.cardNumber);
+	} case CType.BRANCH_INFO: {
+		return contentTextUseID!(CIDKind.Info)(comm, evt.info, comm.prop.msgs.ctBranchInfo, evt);
+	} case CType.BRANCH_BEAST: {
+		string name = contentTextUseID!(CIDKind.Beast)(comm, evt.beast, "%s", evt);
+		return .tryFormat(comm.prop.msgs.ctBranchBeast, name, comm.prop.msgs.rangeName(evt.range), evt.cardNumber);
+	} case CType.BRANCH_MONEY: {
+		return .tryFormat(comm.prop.msgs.ctBranchMoney, evt.money);
+	} case CType.BRANCH_COUPON: {
+		string c = evt.coupon;
+		if (!c || !c.length) c = comm.prop.msgs.noSelectCoupon;
+		return .tryFormat(comm.prop.msgs.ctBranchCoupon, c, comm.prop.msgs.rangeName(evt.range));
+	} case CType.BRANCH_COMPLETE_STAMP: {
+		string c = evt.completeStamp;
+		if (!c || !c.length) c = comm.prop.msgs.noSelectCompleteStamp;
+		return .tryFormat(comm.prop.msgs.ctBranchCompleteStamp, c);
+	} case CType.BRANCH_GOSSIP: {
+		string c = evt.gossip;
+		if (!c || !c.length) c = comm.prop.msgs.noSelectGossip;
+		return .tryFormat(comm.prop.msgs.ctBranchGossip, c);
+	} case CType.SET_FLAG: {
+		string name = contentTextUseID!(CIDKind.Flag)(comm, evt.flag, "%s", evt);
+		string on = comm.prop.msgs.flagOn;
+		string off = comm.prop.msgs.flagOff;
+		auto o = comm.summary.flagDirRoot.findFlag(evt.flag);
+		if (o) {
+			on = o.on;
+			off = o.off;
+		}
+		return .tryFormat(comm.prop.msgs.ctSetFlag, name, evt.flagValue ? on : off);
+	} case CType.SET_STEP: {
+		string name = contentTextUseID!(CIDKind.Step)(comm, evt.step, "%s", evt);
+		string value;
+		auto o = comm.summary.flagDirRoot.findStep(evt.step);
+		if (o) {
+			value = o.getValue(evt.stepValue);
+		} else {
+			value = .tryFormat(comm.prop.msgs.dlgLblStep, evt.stepValue);
+		}
+		return .tryFormat(comm.prop.msgs.ctSetStep, name, value);
+	} case CType.SET_STEP_UP: {
+		return contentTextUseID!(CIDKind.Step)(comm, evt.step, comm.prop.msgs.ctSetStepUp, evt);
+	} case CType.SET_STEP_DOWN: {
+		return contentTextUseID!(CIDKind.Step)(comm, evt.step, comm.prop.msgs.ctSetStepDown, evt);
+	} case CType.REVERSE_FLAG: {
+		return contentTextUseID!(CIDKind.Flag)(comm, evt.flag, comm.prop.msgs.ctReverseFlag, evt);
+	} case CType.CHECK_FLAG: {
+		string name = contentTextUseID!(CIDKind.Flag)(comm, evt.flag, "%s", evt);
+		string on = comm.prop.msgs.flagOn;
+		auto o = comm.summary.flagDirRoot.findFlag(evt.flag);
+		if (o) {
+			on = o.on;
+		}
+		return .tryFormat(comm.prop.msgs.ctCheckFlag, name, on);
+	} case CType.GET_CAST: {
+		return contentTextUseID!(CIDKind.Cast)(comm, evt.casts, comm.prop.msgs.ctGetCast, evt);
+	} case CType.GET_ITEM: {
+		string name = contentTextUseID!(CIDKind.Item)(comm, evt.item, "%s", evt);
+		return .tryFormat(comm.prop.msgs.ctGetItem, name, comm.prop.msgs.rangeName(evt.range), evt.cardNumber);
+	} case CType.GET_SKILL: {
+		string name = contentTextUseID!(CIDKind.Skill)(comm, evt.skill, "%s", evt);
+		return .tryFormat(comm.prop.msgs.ctGetSkill, name, comm.prop.msgs.rangeName(evt.range), evt.cardNumber);
+	} case CType.GET_INFO: {
+		return contentTextUseID!(CIDKind.Info)(comm, evt.info, comm.prop.msgs.ctGetInfo, evt);
+	} case CType.GET_BEAST: {
+		string name = contentTextUseID!(CIDKind.Beast)(comm, evt.beast, "%s", evt);
+		return .tryFormat(comm.prop.msgs.ctGetBeast, name, comm.prop.msgs.rangeName(evt.range), evt.cardNumber);
+	} case CType.GET_MONEY: {
+		return .tryFormat(comm.prop.msgs.ctGetMoney, evt.money);
+	} case CType.GET_COUPON: {
+		string c = evt.coupon;
+		if (!c || !c.length) c = comm.prop.msgs.noSelectCoupon;
+		return .tryFormat(comm.prop.msgs.ctGetCoupon, c, comm.prop.msgs.rangeName(evt.range));
+	} case CType.GET_COMPLETE_STAMP: {
+		string c = evt.completeStamp;
+		if (!c || !c.length) c = comm.prop.msgs.noSelectCompleteStamp;
+		return .tryFormat(comm.prop.msgs.ctGetCompleteStamp, c);
+	} case CType.GET_GOSSIP: {
+		string c = evt.gossip;
+		if (!c || !c.length) c = comm.prop.msgs.noSelectGossip;
+		return .tryFormat(comm.prop.msgs.ctGetGossip, c);
+	} case CType.LOSE_CAST: {
+		return contentTextUseID!(CIDKind.Cast)(comm, evt.casts, comm.prop.msgs.ctLoseCast, evt);
+	} case CType.LOSE_ITEM: {
+		string name = contentTextUseID!(CIDKind.Item)(comm, evt.item, "%s", evt);
+		string count = loseCardCount();
+		return .tryFormat(comm.prop.msgs.ctLoseItem, name, comm.prop.msgs.rangeName(evt.range), count);
+	} case CType.LOSE_SKILL: {
+		string name = contentTextUseID!(CIDKind.Skill)(comm, evt.skill, "%s", evt);
+		string count = loseCardCount();
+		return .tryFormat(comm.prop.msgs.ctLoseSkill, name, comm.prop.msgs.rangeName(evt.range), count);
+	} case CType.LOSE_INFO: {
+		return contentTextUseID!(CIDKind.Info)(comm, evt.info, comm.prop.msgs.ctLoseInfo, evt);
+	} case CType.LOSE_BEAST: {
+		string name = contentTextUseID!(CIDKind.Beast)(comm, evt.beast, "%s", evt);
+		string count = loseCardCount();
+		return .tryFormat(comm.prop.msgs.ctLoseBeast, name, comm.prop.msgs.rangeName(evt.range), count);
+	} case CType.LOSE_MONEY: {
+		return .tryFormat(comm.prop.msgs.ctLoseMoney, evt.money);
+	} case CType.LOSE_COUPON: {
+		string c = evt.coupon;
+		if (!c || !c.length) c = comm.prop.msgs.noSelectCoupon;
+		return .tryFormat(comm.prop.msgs.ctLoseCoupon, c, comm.prop.msgs.rangeName(evt.range));
+	} case CType.LOSE_COMPLETE_STAMP: {
+		string c = evt.completeStamp;
+		if (!c || !c.length) c = comm.prop.msgs.noSelectCompleteStamp;
+		return .tryFormat(comm.prop.msgs.ctLoseCompleteStamp, c);
+	} case CType.LOSE_GOSSIP: {
+		string c = evt.gossip;
+		if (!c || !c.length) c = comm.prop.msgs.noSelectGossip;
+		return .tryFormat(comm.prop.msgs.ctLoseGossip, c);
+	} case CType.SHOW_PARTY: {
+		return comm.prop.msgs.ctShowParty;
+	} case CType.HIDE_PARTY: {
+		return comm.prop.msgs.ctHideParty;
+	} case CType.REDISPLAY: {
+		return comm.prop.msgs.ctRedisplay;
+	}
+	}
 }

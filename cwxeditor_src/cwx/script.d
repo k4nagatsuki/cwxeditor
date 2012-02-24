@@ -1863,13 +1863,13 @@ fi`;
 			}
 			switch (valStr) {
 			case "default":
-				r = _prop.msgs.evtChildDefault;
+				r = _prop.sys.evtChildDefault;
 				break;
 			case "select", "over", "true", "success", "yes", "has", "on":
-				r = _prop.msgs.evtChildTrue;
+				r = _prop.sys.evtChildTrue;
 				break;
 			case "cancel", "under", "false", "failure", "no", "hasnot", "off":
-				r = _prop.msgs.evtChildFalse;
+				r = _prop.sys.evtChildFalse;
 				break;
 			default:
 				throwError(_prop.msgs.scriptErrorUndefinedSymbol, node.token);
@@ -2660,7 +2660,7 @@ fi`;
 			if (!useIf) {
 				foreach (chld; c.next) {
 					if (chld.name.length) {
-						if (detail.nextType is CNextType.TEXT && chld.name == _prop.msgs.evtChildOK) {
+						if (detail.nextType is CNextType.TEXT && chld.name == _prop.sys.evtChildOK) {
 							continue;
 						}
 						useIf = true;
@@ -2687,12 +2687,12 @@ fi`;
 						buf ~= `"` ~ encodeString(chld.name) ~ `"`;
 						break;
 					case CNextType.BOOL:
-						buf ~= icmp(chld.name, _prop.msgs.evtChildTrue) == 0 ? "true" : "false";
+						buf ~= icmp(chld.name, _prop.sys.evtChildTrue) == 0 ? "true" : "false";
 						break;
 					case CNextType.STEP:
 					case CNextType.ID_AREA:
 					case CNextType.ID_BATTLE:
-						if (icmp(chld.name, _prop.msgs.evtChildDefault) == 0) {
+						if (icmp(chld.name, _prop.sys.evtChildDefault) == 0) {
 							buf ~= "default";
 						} else {
 							buf ~= chld.name;

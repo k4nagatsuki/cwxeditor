@@ -14,7 +14,7 @@ import cwx.path;
 import cwx.structs;
 import cwx.menu;
 
-import cwx.editor.gui.dwt.commondialog;
+import cwx.editor.gui.dwt.smalldialogs;
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.dskin;
@@ -460,15 +460,18 @@ private:
 
 	string _statusLine = "";
 	void refreshStatusLine() {
-		Area[] areas;
-		Battle[] battles;
-		Package[] packages;
-		if (_summ) {
-			areas = _summ.areas;
-			battles = _summ.battles;
-			packages = _summ.packages;
+		string s = "";
+		void put(lazy string name, size_t count) {
+			if (!count) return;
+			if (s.length) s ~= " ";
+			s ~= .tryFormat(_prop.msgs.areaStatus, name, count);
 		}
-		_statusLine = _prop.msgs.areaStatus(areas, battles, packages, getSelectionArea());
+		if (_summ) {
+			put(_prop.msgs.area, _summ.areas.length);
+			put(_prop.msgs.battle, _summ.battles.length);
+			put(_prop.msgs.cwPackage, _summ.packages.length);
+		}
+		_statusLine = s;
 		_comm.setStatusLine(_areas, _statusLine);
 	}
 

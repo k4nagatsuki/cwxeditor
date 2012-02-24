@@ -65,7 +65,6 @@ SRC = cwxeditor.d \
 	cwx/editor/gui/dwt/effectcarddialog.d \
 	cwx/editor/gui/dwt/radarspinner.d \
 	cwx/editor/gui/dwt/cardwindow.d \
-	cwx/editor/gui/dwt/commondialog.d \
 	cwx/editor/gui/dwt/cardlist.d \
 	cwx/editor/gui/dwt/eventwindow.d \
 	cwx/editor/gui/dwt/castcarddialog.d \

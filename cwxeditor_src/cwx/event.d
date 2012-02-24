@@ -860,33 +860,33 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	}
 	/// コンテントの型を変換。
 	void convertType(CType type, in CProps prop) {
-		if (!canConvert(type)) throw new Exception("can not convert: " ~ prop.msgs.content(type));
+		if (!canConvert(type)) throw new Exception("can not convert: " ~ prop.msgs.contentName(type));
 		if (_type == type) return;
 		changed();
 		auto od = detail;
 		auto d = CONTENT_DETAILS[type];
 		foreach (n; next) {
 			void setNum() {
-				if (prop.msgs.evtChildDefault != n.name && !std.string.isNumeric(n.name) || n.name == "0") {
-					n.name = prop.msgs.evtChildDefault;
+				if (prop.sys.evtChildDefault != n.name && !std.string.isNumeric(n.name) || n.name == "0") {
+					n.name = prop.sys.evtChildDefault;
 				}
 			}
 			final switch (d.nextType) {
 			case CNextType.NONE: n.name = ""; break;
 			case CNextType.TEXT: break;
 			case CNextType.BOOL: {
-				if (prop.msgs.evtChildTrue != n.name && prop.msgs.evtChildFalse != n.name) {
-					n.name = prop.msgs.evtChildTrue;
+				if (prop.sys.evtChildTrue != n.name && prop.sys.evtChildFalse != n.name) {
+					n.name = prop.sys.evtChildTrue;
 				}
 			} break;
 			case CNextType.STEP: {
-				if (prop.msgs.evtChildDefault != n.name && !std.string.isNumeric(n.name)) {
-					n.name = prop.msgs.evtChildDefault;
+				if (prop.sys.evtChildDefault != n.name && !std.string.isNumeric(n.name)) {
+					n.name = prop.sys.evtChildDefault;
 				}
 			} break;
 			case CNextType.ID_AREA: {
 				setNum();
-				if (n.name != prop.msgs.evtChildDefault) {
+				if (n.name != prop.sys.evtChildDefault) {
 					try {
 						n.area = to!(ulong)(n.name);
 					} catch {
@@ -898,7 +898,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			} break;
 			case CNextType.ID_BATTLE: {
 				setNum();
-				if (n.name != prop.msgs.evtChildDefault) {
+				if (n.name != prop.sys.evtChildDefault) {
 					try {
 						n.battle = to!(ulong)(n.name);
 					} catch {

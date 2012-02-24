@@ -286,7 +286,7 @@ private class LSFFThr(S, bool Array) {
 			try {
 				S r = S.loadScenarioFromFile(prop.parent, prop.var.etc.doubleIO,
 					fname, prop.var.etc.expandXMLs,
-					prop.tempPath, old, &setMax, &setWork,
+					prop.tempPath, null, old, &setMax, &setWork,
 					isDir(fname) ? baseName(fname) : baseName(dirName(fname)));
 				temp = r.useTemp ? r.scenarioPath : "";
 				display.syncExec(new Load(r));
@@ -463,7 +463,7 @@ private S loadScenarioFromFileImpl(S)(Props prop, Shell w, void delegate(string)
 		try {
 			return S.loadScenarioFromFile(prop.parent, prop.var.etc.doubleIO,
 				fname, prop.var.etc.expandXMLs,
-				prop.tempPath, old, setMax, worked,
+				prop.tempPath, null, old, setMax, worked,
 				isDir(fname) ? baseName(fname) : baseName(dirName(fname)));
 		} catch (SummaryException e) {
 			status(.tryFormat(prop.msgs.loadErrorStatus, fname));

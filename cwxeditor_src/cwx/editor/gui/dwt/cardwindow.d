@@ -13,7 +13,7 @@ import cwx.motion;
 import cwx.msgs;
 import cwx.menu;
 
-import cwx.editor.gui.dwt.commondialog;
+import cwx.editor.gui.dwt.smalldialogs;
 import cwx.editor.gui.dwt.images;
 import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.cardlist;
@@ -105,8 +105,19 @@ interface ICardWindow {
 	void createInfo();
 }
 
-class CardWindow(string ShellTitle, string Title, string ShellImage,
-		PCardOwner, CardOwner, ToCardOwner, Cards ...)
+enum CardWindowKind {
+	Main,
+	Cast,
+	Skill,
+	Item,
+	Beast,
+	Info,
+	Hand,
+	ImportSource,
+	ImportSourceHand,
+}
+
+class CardWindow(CardWindowKind CWKind, PCardOwner, CardOwner, ToCardOwner, Cards ...)
 		: TopLevelPanel, TCPD, ICardWindow {
 private:
 	static const bool EditMode = is (ToCardOwner == void);
@@ -881,15 +892,59 @@ public:
 
 	@property
 	Image image() {
-		return mixin ("_prop.images." ~ ShellImage);
+		final switch (CWKind) {
+		case CardWindowKind.Main: return _prop.images.menu(MenuID.CardView);
+		case CardWindowKind.Cast: return _prop.images.menu(MenuID.CastView);
+		case CardWindowKind.Skill: return _prop.images.menu(MenuID.SkillView);
+		case CardWindowKind.Item: return _prop.images.menu(MenuID.ItemView);
+		case CardWindowKind.Beast: return _prop.images.menu(MenuID.BeastView);
+		case CardWindowKind.Info: return _prop.images.menu(MenuID.InfoView);
+		case CardWindowKind.Hand: return _prop.images.menu(MenuID.OpenHand);
+		case CardWindowKind.ImportSource: return _prop.images.menu(MenuID.OpenImportSource);
+		case CardWindowKind.ImportSourceHand: return _prop.images.menu(MenuID.OpenImportSource);
+		}
 	}
 	@property
 	string title() {
 		auto shl = cast(Shell) _win;
 		if (shl) {
-			return mixin ("_prop.msgs." ~ ShellTitle);
+			static if (CWKind == CardWindowKind.Main) {
+				if (_summ) {
+					return .tryFormat(_prop.msgs.mainCardWindowName, _summ.scenarioName, _summ.scenarioPath);
+				} else {
+					return _prop.msgs.mainCardWindowNameNoSummary;
+				}
+			} else static if (CWKind == CardWindowKind.Cast || CWKind == CardWindowKind.Skill || CWKind == CardWindowKind.Item || CWKind == CardWindowKind.Beast || CWKind == CardWindowKind.Info) {
+				if (_summ) {
+					return .tryFormat(_prop.msgs.cardWindowName, .objName!(Cards[0])(_prop), _summ.scenarioName, _summ.scenarioPath);
+				} else {
+					return .tryFormat(_prop.msgs.cardWindowNameNoSummary, .objName!(Cards[0])(_prop));
+				}
+			} else static if (CWKind == CardWindowKind.Hand) {
+				static if (CWKind == CardWindowKind.Hand) {
+					return .tryFormat(_prop.msgs.handCardWindowName, owner.id, owner.name);
+				} else {
+					assert (0);
+				}
+			} else static if (CWKind == CardWindowKind.ImportSource) {
+				assert (_summ !is null);
+				return .tryFormat(_prop.msgs.importSourceWindowName, _summ.scenarioName, _summ.scenarioPath);
+			} else static if (CWKind == CardWindowKind.ImportSourceHand) {
+				return .tryFormat(_prop.msgs.handCardWindowName, owner.id, owner.name);
+			} else static assert (0);
 		}
-		return mixin ("_prop.msgs." ~ Title);
+		static if (CWKind == CardWindowKind.Main) {
+			return _prop.msgs.mainCardTabName;
+		} else static if (CWKind == CardWindowKind.Cast || CWKind == CardWindowKind.Skill || CWKind == CardWindowKind.Item || CWKind == CardWindowKind.Beast || CWKind == CardWindowKind.Info) {
+			return .tryFormat(_prop.msgs.cardTabName, .objName!(Cards[0])(_prop));
+		} else static if (CWKind == CardWindowKind.Hand) {
+			return .tryFormat(_prop.msgs.handCardTabName, owner.id, owner.name);
+		} else static if (CWKind == CardWindowKind.ImportSource) {
+			assert (_summ !is null);
+			return .tryFormat(_prop.msgs.importSourceTabName, _summ.scenarioName, _summ.scenarioPath);
+		} else static if (CWKind == CardWindowKind.ImportSourceHand) {
+			return .tryFormat(_prop.msgs.handCardTabName, owner.id, owner.name);
+		} else static assert (0);
 	}
 	@property
 	void delegate(string) statusText() {return _sbshl ? &_sbshl.statusLine : null;}
@@ -1369,28 +1424,25 @@ public:
 	}
 }
 
-alias CardWindow!("handCards(owner.id, owner.name)", "handCardsTab(owner.id, owner.name)",
-	"menu(MenuID.OpenImportSource)", Importable, CastCard, Summary, SkillCard, ItemCard, BeastCard) AddHandCardWindow;
+alias CardWindow!(CardWindowKind.ImportSourceHand, Importable, CastCard, Summary, SkillCard, ItemCard, BeastCard) AddHandCardWindow;
 
 // FIXME: 以下の二つをaliasにすると前方参照のエラーが発生する
-class HandCardWindow : CardWindow!("handCards(owner.id, owner.name)",
-		"handCardsTab(owner.id, owner.name)", "menu(MenuID.OpenHand)",
+class HandCardWindow : CardWindow!(CardWindowKind.Hand,
 		Summary, CastCard, void, SkillCard, ItemCard, BeastCard) {
 	this (Commons comm, Props prop, Summary summ, Composite parent) {
 		super (comm, prop, summ, parent);
 	}
 }
-class MainCardWindow : CardWindow!("cardWindowName(owner)", "cardTabName(owner)",
-		"menu(MenuID.CardView)", Summary, Summary, void, CastCard, SkillCard, ItemCard, BeastCard, InfoCard) {
+class MainCardWindow : CardWindow!(CardWindowKind.Main, Summary, Summary, void, CastCard, SkillCard, ItemCard, BeastCard, InfoCard) {
 	this (Commons comm, Props prop, Composite parent) {
 		super (comm, prop, parent);
 	}
 }
-alias CardWindow!("castWindowName(owner)", "castTabName(owner)", "menu(MenuID.CastView)", Summary, Summary, void, CastCard) CastCardWindow;
-alias CardWindow!("skillWindowName(owner)", "skillTabName(owner)", "menu(MenuID.SkillView)", Summary, Summary, void, SkillCard) SkillCardWindow;
-alias CardWindow!("itemWindowName(owner)", "itemTabName(owner)", "menu(MenuID.ItemView)", Summary, Summary, void, ItemCard) ItemCardWindow;
-alias CardWindow!("beastWindowName(owner)", "beastTabName(owner)", "menu(MenuID.BeastView)", Summary, Summary, void, BeastCard) BeastCardWindow;
-alias CardWindow!("infoWindowName(owner)", "infoTabName(owner)", "menu(MenuID.InfoView)", Summary, Summary, void, InfoCard) InfoCardWindow;
+alias CardWindow!(CardWindowKind.Cast, Summary, Summary, void, CastCard) CastCardWindow;
+alias CardWindow!(CardWindowKind.Skill, Summary, Summary, void, SkillCard) SkillCardWindow;
+alias CardWindow!(CardWindowKind.Item, Summary, Summary, void, ItemCard) ItemCardWindow;
+alias CardWindow!(CardWindowKind.Beast, Summary, Summary, void, BeastCard) BeastCardWindow;
+alias CardWindow!(CardWindowKind.Info, Summary, Summary, void, InfoCard) InfoCardWindow;
 
 private class DelTemp(CC) : DisposeListener {
 	private CC _cc;
@@ -1408,9 +1460,7 @@ private class DelTemp(CC) : DisposeListener {
 private class AddCard {
 private:
 	alias CardContainer!(true, true, true, true, true) CC;
-	alias CardWindow!("addCardWindow(owner.scenarioName, owner.scenarioPath)",
-		"addCardTab(owner.scenarioName, owner.scenarioPath)", "menu(MenuID.OpenImportSource)",
-		CC, CC, Summary, CastCard, SkillCard, ItemCard, BeastCard, InfoCard) ACW;
+	alias CardWindow!(CardWindowKind.ImportSource, CC, CC, Summary, CastCard, SkillCard, ItemCard, BeastCard, InfoCard) ACW;
 	static class AddS {
 		Commons comm;
 		Props prop;

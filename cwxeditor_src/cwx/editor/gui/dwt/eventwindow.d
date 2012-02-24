@@ -289,38 +289,16 @@ public:
 	@property
 	string title() {
 		auto shl = cast(Shell) _win;
-		static if (is (A == Area)) {
+		static if (is (A == Area) || is (A == Battle)) {
 			if (shl) {
-				return _prop.msgs.areaEventViewName(_eto.id, _eto.name);
+				return .tryFormat(_prop.msgs.viewNameEvent, .objName!A(_prop), _eto.id, _eto.name);
 			}
-			return _prop.msgs.areaEventViewNameTab(_eto.id, _eto.name);
-		} else static if (is (A == Battle)) {
-			if (shl) {
-				return _prop.msgs.battleEventViewName(_eto.id, _eto.name);
-			}
-			return _prop.msgs.packageViewNameTab(_eto.id, _eto.name);
-		} else static if (is (A == Package)) {
-			if (shl) {
-				return _prop.msgs.packageViewName(_eto.id, _eto.name);
-			}
-			return _prop.msgs.packageViewNameTab(_eto.id, _eto.name);
-		} else static if (is (A == SkillCard)) {
-			if (shl) {
-				return _prop.msgs.skillViewName(_eto.id, _eto.name);
-			}
-			return _prop.msgs.skillViewNameTab(_eto.id, _eto.name);
-		} else static if (is (A == ItemCard)) {
-			if (shl) {
-				return _prop.msgs.itemViewName(_eto.id, _eto.name);
-			}
-			return _prop.msgs.itemViewNameTab(_eto.id, _eto.name);
-		} else static if (is (A == BeastCard)) {
-			if (shl) {
-				return _prop.msgs.beastViewName(_eto.id, _eto.name);
-			}
-			return _prop.msgs.beastViewNameTab(_eto.id, _eto.name);
+			return .tryFormat(_prop.msgs.viewNameEventTab, .objName!A(_prop), _eto.id, _eto.name);
 		} else {
-			static assert (0);
+			if (shl) {
+				return .tryFormat(_prop.msgs.viewName, .objName!A(_prop), _eto.id, _eto.name);
+			}
+			return .tryFormat(_prop.msgs.viewNameEventTab, .objName!A(_prop), _eto.id, _eto.name);
 		}
 	}
 	@property

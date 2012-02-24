@@ -1019,7 +1019,7 @@ private:
 			auto cmd = OuterTool.parse(_tool.command, file, sp);
 			if (!exec(cmd, wd)) {
 				MessageBox.showWarning
-					(_prop.msgs.errorExec(_tool.name),
+					(.tryFormat(_prop.msgs.errorExec, _tool.name),
 					_prop.msgs.dlgTitWarning, _win.getShell());
 			}
 		}
@@ -1412,8 +1412,16 @@ private:
 			auto d = cast(FileNameObj) itm.getData();
 			size += d.size;
 		}
-		_comm.setStatusLine(_win, _prop.msgs.dirStatus(_files.getItemCount(), size, selFiles),
-			_dirs.isFocusControl() || _files.isFocusControl());
+		string sizeKB = formatNum(size / 1024) ~ " KB";
+		int fileCount = _files.getItemCount();
+		int selCount = selFiles.length;
+		string s;
+		if (0 < selCount) {
+			s = .tryFormat(_prop.msgs.dirStatusSel, fileCount, sizeKB, selCount);
+		} else {
+			s = .tryFormat(_prop.msgs.dirStatus, fileCount, sizeKB);
+		}
+		_comm.setStatusLine(_win, s, _dirs.isFocusControl() || _files.isFocusControl());
 	}
 	@property
 	Shell dlgParShl() {
@@ -1694,22 +1702,11 @@ public:
 	}
 	void deleteUnuse(SelectionEvent se) {
 		if (!_summ) return;
-		string[] files;
-		string abs = nabs(_summ.scenarioPath);
-		foreach (string file; _summ.scenarioPath.dirEntries(SpanMode.breadth)) {
-			auto full = nabs(file);
-			bool sp = cast(bool) cfnmatch(full, abs);
-			auto p = new FileNameObj(file);
-			if (sp) {
-				if (isDef(p.array, p.dir)) continue;
-			} else {
-				if (isIgnore(p.array)) continue;
-			}
-			if (!p.dir && p.material && !_summ.useCounter.get(p.pathId)) {
-				files ~= full;
-			}
-		}
+		auto files = _summ.notUsedFiles(_comm.skin, _prop.var.etc.ignorePaths, _prop.var.etc.logicalSort);
 		if (!files.length) return;
+		foreach (ref file; files) {
+			file = _summ.scenarioPath.buildPath(file);
+		}
 		bool recycle = (se.stateMask & SWT.SHIFT) == 0;
 		auto shl = dlgParShl.getShell();
 		auto dlg = new MessageBox(shl, SWT.ICON_QUESTION | SWT.YES | SWT.NO);
@@ -1740,9 +1737,9 @@ public:
 	string title() {
 		auto shl = cast(Shell) _win;
 		if (shl) {
-			return _prop.msgs.dirWindowName(_summ);
+			return .tryFormat(_prop.msgs.dirWindowName, _summ.scenarioName, _summ.scenarioPath);
 		}
-		return _prop.msgs.dirTabName(_summ);
+		return _prop.msgs.dirTabName;
 	}
 	@property
 	void delegate(string) statusText() {return _sbshl ? &_sbshl.statusLine : null;}
@@ -1909,7 +1906,7 @@ public:
 		if (_comm.isChanged) {
 			auto dlg = new MessageBox(shl, SWT.YES | SWT.NO | SWT.CANCEL | SWT.ICON_QUESTION);
 			dlg.setText(_prop.msgs.dlgTitQuestion);
-			dlg.setMessage(_prop.msgs.dlgMsgIsSaveBeforeCreateArchive(_summ.scenarioName));
+			dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgIsSaveBeforeCreateArchive, _summ.scenarioName));
 			shl.setMinimized(false);
 			switch (dlg.open()) {
 			case SWT.YES, SWT.OK:
@@ -1926,16 +1923,17 @@ public:
 		int zip, cab, wsn;
 		if (canUncab) {
 			dlg.setFilterExtensions(["*.zip", "*.cab", "*.wsn"]);
+			dlg.setFilterNames([_prop.msgs.filterDescZip, _prop.msgs.filterDescCab, _prop.msgs.filterDescWsn]);
 			zip = 0;
 			cab = 1;
 			wsn = 2;
 		} else {
 			dlg.setFilterExtensions(["*.zip", "*.wsn"]);
+			dlg.setFilterNames([_prop.msgs.filterDescZip, _prop.msgs.filterDescWsn]);
 			zip = 0;
 			cab = -1;
 			wsn = 1;
 		}
-		dlg.setFilterNames(_prop.msgs.filterArchive);
 		dlg.setText(_prop.msgs.dlgTitCreateArchive);
 		dlg.setFilterPath(getcwd());
 		switch (_prop.var.etc.selectedArchiveFilter) {

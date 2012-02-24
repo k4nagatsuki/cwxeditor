@@ -1072,7 +1072,7 @@ public:
 			}
 			Spinner createRoundC(Composite parent) {
 				return createSpinner(parent, _prop.msgs.motionRound, Motion.round_max,
-					_prop.msgs.rangeHint(1, Motion.round_max), &roundEnter, &roundCancel);
+					.tryFormat(_prop.msgs.rangeHint, 1, Motion.round_max), &roundEnter, &roundCancel);
 			}
 			_abilityComp = createC();
 			{
@@ -1112,12 +1112,12 @@ public:
 				auto dtl = new DamageTypeListener;
 				foreach (typ; [DamageType.LEVEL_RATIO, DamageType.NORMAL, DamageType.MAX]) {
 					auto radio = new Button(comp, SWT.RADIO);
-					radio.setText(_prop.msgs.damageType(typ));
+					radio.setText(_prop.msgs.damageTypeName(typ));
 					radio.addSelectionListener(dtl);
 					_dmgTyp[typ] = radio;
 				}
 				_valValue = createSpinner(_valueComp, _prop.msgs.motionValue, Motion.uValue_max,
-					_prop.msgs.rangeHint(Motion.uValue_min, Motion.uValue_max), &valEnter, &valCancel);
+					.tryFormat(_prop.msgs.rangeHint, Motion.uValue_min, Motion.uValue_max), &valEnter, &valCancel);
 			}
 			_noneComp = createC();
 			motionStack.topControl = _noneComp;

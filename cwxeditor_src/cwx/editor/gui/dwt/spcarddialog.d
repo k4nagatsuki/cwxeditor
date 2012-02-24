@@ -165,14 +165,14 @@ public:
 		_card = card;
 		_prop = prop;
 		static if (is (C == MenuCard)) {
-			string text = _card ? _prop.msgs.dlgTitMenuCard(_card.name) : _prop.msgs.dlgTitNewMenuCard;
+			string text = _card ? .tryFormat(_prop.msgs.dlgTitMenuCard, _card.name) : _prop.msgs.dlgTitNewMenuCard;
 			auto size = _prop.var.menuCardDlg;
 		} else static if (is (C == EnemyCard)) {
 			auto size = _prop.var.enemyCardDlg;
 			string text;
 			if (_card) {
 				auto c = _summ ? _summ.cwCast(_card.id) : null;
-				text = c ? _prop.msgs.dlgTitEnemyCard(c.name) : _prop.msgs.dlgTitNewEnemyCard;
+				text = c ? .tryFormat(_prop.msgs.dlgTitEnemyCard, c.name) : _prop.msgs.dlgTitNewEnemyCard;
 			} else {
 				text = _prop.msgs.dlgTitNewEnemyCard;
 			}
@@ -319,7 +319,7 @@ protected:
 		}
 
 		auto nof = new TableItem(_flag, SWT.NONE);
-		nof.setText(_prop.msgs.noFlag);
+		nof.setText(_prop.msgs.noFlagRef);
 		if (_summ) {
 			foreach (flag; _summ.flagDirRoot.allFlags) {
 				auto itm = new TableItem(_flag, SWT.NONE);

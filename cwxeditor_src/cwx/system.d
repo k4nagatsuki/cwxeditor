@@ -257,4 +257,18 @@ class System {
 			}
 		}
 	}
+	/// 種族名をクーポンに変換する。
+	const
+	string raceCoupon(string raceName) {
+		return "＠Ｒ" ~ raceName;
+	}
+
+	/// 後続イベントコンテントのTrue値。
+	@property const string evtChildTrue() {return "○";}
+	/// 後続イベントコンテントのFalse値。
+	@property const string evtChildFalse() {return "×";}
+	/// 後続イベントコンテントのDefault値。
+	@property const string evtChildDefault() {return "Default";}
+	/// 後続イベントコンテントのメッセージ送り標準値。
+	@property const string evtChildOK() {return "ＯＫ";}
 }

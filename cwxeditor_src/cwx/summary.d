@@ -25,6 +25,7 @@ import cwx.skin;
 import cwx.path;
 import cwx.cab;
 import cwx.sjis;
+import cwx.event;
 
 public:
 
@@ -239,9 +240,22 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 		std.file.write(std.path.buildPath(temp, "cwxeditor.lock"), []);
 	}
 
-	static S loadScenarioFromFile(in CProps prop, bool doubleIO, string fname, bool expand, string tempPath, S old,
-			void delegate(uint) setMax, void delegate(uint) worked, string newName = null) {
+	static Summary createScenario(string tempPath, string name, Skin skin) {
+		auto p = Summary.createTempDir(tempPath, name);
+		auto mFPath = std.path.buildPath(p, skin.materialPath);
+		if (!exists(mFPath) || !isDir(mFPath)) std.file.mkdir(mFPath);
+		auto summ = new Summary(name, skin.type, p, true, false);
+		if (summ.expandXMLs) {
+			summ.saveXMLs(summ.scenarioPath);
+		}
+		return summ;
+	}
+
+	static S loadScenarioFromFile(in CProps prop, bool doubleIO, string fname, bool expand, string tempPath,
+			string delegate() createClassicDir = null,
+			S old = null, void delegate(uint) setMax = null, void delegate(uint) worked = null, string newName = null) {
 		string[string][string] xmls;
+		bool scTemplate = createClassicDir !is null;
 		string sunzip(string fname, ZipArchive arc, out bool cancel = false) {
 			auto temp = createTempDir(tempPath, baseName(stripExtension(fname)));
 			if (expand) {
@@ -314,7 +328,9 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 				delAll(temp);
 				return null;
 			}
-			createLockFile(temp);
+			if (!scTemplate) {
+				createLockFile(temp);
+			}
 			return temp;
 		}
 		S load(string p) {
@@ -333,6 +349,22 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 			S r = loadLScenario!(S)(p, "", doubleIO, newName);
 			return r;
 		}
+		S createFromTemplate(S r) {
+			// テンプレートからの生成
+			string scDir = createClassicDir();
+			if (scDir) {
+				copyAll(r.scenarioPath, scDir);
+				if (r.useTemp) {
+					r._useTemp = false;
+					delAll(r.scenarioPath);
+				}
+				r._sPath = scDir;
+				r._zipName = "";
+				r._tempPath = scDir;
+				return r;
+			}
+			return null;
+		}
 		S legacyCommon() {
 			string summPath;
 			string fn = suncab(fname, summPath);
@@ -344,8 +376,12 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 					r._legacy = true;
 					r._zipName = fname;
 					r._tempPath = fn;
-					r.lock();
-					return r;
+					if (scTemplate) {
+						return createFromTemplate(r);
+					} else {
+						r.lock();
+						return r;
+					}
 				} catch (Exception e) {
 					delAll(fn);
 					throw e;
@@ -369,7 +405,11 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 						r._useTemp = false;
 						r._legacy = true;
 						r._zipName = "";
-						return r;
+						if (scTemplate) {
+							return createFromTemplate(r);
+						} else {
+							return r;
+						}
 					}
 					if (cfnmatch(baseName(fname), "Summary.wsm")) {
 						return ll(dirName(fname));
@@ -382,6 +422,13 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 						r._useTemp = false;
 						r._legacy = false;
 						r._zipName = "";
+						if (scTemplate) {
+							auto temp = createTempDir(tempPath, r.scenarioName);
+							copyAll(r.scenarioPath, temp);
+							r._tempPath = temp;
+							r._useTemp = true;
+							r.lock();
+						}
 						return r;
 					} else if (isDir(fname)) {
 						return ll(fname);
@@ -400,6 +447,9 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 									r._tempPath = fname;
 									r._legacy = false;
 									r.lock();
+									if (scTemplate) {
+										r._zipName = "";
+									}
 									return r;
 								} catch (Exception e) {
 									delAll(fname);
@@ -742,17 +792,66 @@ public:
 	/// ditto
 	private void dataVersion(string ver) {_dataVersion = ver;}
 
-	/// シナリオの作者名。
-	@property
-	void author(string author) {
-		if (_author != author) changeHandler();
-		_author = author;
+	private void setNamesOne(C : EffectCard)(ref C card, string newAuthor, string newScenario) {
+		if (card.scenario == scenarioName && card.author == author) {
+			card.author = newAuthor;
+			card.scenario = newScenario;
+		}
 	}
-	/// ditto
+	private void setNames(C)(C[] cards, string newAuthor, string newScenario) {
+		foreach (ref card; cards) {
+			setNamesOne(card, newAuthor, newScenario);
+		}
+		setContentNames(cards, newAuthor, newScenario);
+	}
+	private void setContentNames(C : EventTreeOwner)(C[] etos, string newAuthor, string newScenario) {
+		void setContentNames(Content c) {
+			foreach (m; c.motions) {
+				auto beast = m.beast;
+				if (beast) {
+					setNamesOne(beast, newAuthor, newScenario);
+				}
+			}
+			foreach (n; c.next) setContentNames(n);
+		}
+		foreach (ref eto; etos) {
+			foreach (ref tree; eto.trees) {
+				foreach (ref start; tree.starts) {
+					setContentNames(start);
+				}
+			}
+		}
+	}
+	/// シナリオ名と作者名を設定する。
+	void setBaseParams(string newScenarioName, string newAuthor) {
+		setNames(skills, newAuthor, newScenarioName);
+		setNames(items, newAuthor, newScenarioName);
+		setNames(beasts, newAuthor, newScenarioName);
+		foreach (card; casts) {
+			setNames(card.skills, newAuthor, newScenarioName);
+			setNames(card.items, newAuthor, newScenarioName);
+			setNames(card.beasts, newAuthor, newScenarioName);
+		}
+		setContentNames(areas, newAuthor, newScenarioName);
+		foreach (area; areas) setContentNames(area.cards, newAuthor, newScenarioName);
+		setContentNames(battles, newAuthor, newScenarioName);
+		foreach (area; battles) setContentNames(area.cards, newAuthor, newScenarioName);
+		setContentNames(packages, newAuthor, newScenarioName);
+
+		_sname = newScenarioName;
+		_author = newAuthor;
+	}
+
+	/// シナリオの作者名。
 	@property
 	const
 	string author() {
 		return _author;
+	}
+	/// ditto
+	@property
+	void author(string author) {
+		setBaseParams(scenarioName, author);
 	}
 
 	/// シナリオのタイプ。スキンを決定する。
@@ -1488,11 +1587,10 @@ public:
 	string scenarioName() {
 		return _sname;
 	}
-	/// シナリオ名。
+	/// ditto
 	@property
-	void scenarioName(string sname) {
-		if (_sname != sname) changeHandler();
-		_sname = sname;
+	void scenarioName(string scenarioName) {
+		setBaseParams(scenarioName, author);
 	}
 
 	/// カード画像のマップを生成して返す。
@@ -1763,6 +1861,50 @@ public:
 
 	/// ファイルシステム上に展開されなかったXMLデータ。
 	private string[string][string] _oldXMLs;
+
+	/// シナリオディレクトリ内の未使用ファイル・ディレクトリのリストを返す。
+	string[] notUsedFiles(in Skin skin, in string[] ignorePaths, bool logicalSort) {
+		string[] r;
+		int dirS(string p) {
+			if (.isDir(p)) {
+				string[] list = clistdir(p);
+				if (logicalSort) {
+					list = sort!(fnncmp)(list);
+				} else {
+					list = sort!(fncmp)(list);
+				}
+				int c = 0;
+				foreach (string file; list) {
+					c += dirS(p.buildPath(file));
+				}
+				auto rel = abs2rel(scenarioPath, p);
+				if ("" == rel || fnmatch(rel, skin.materialPath)) {
+					c++;
+				}
+				if (0 == c) {
+					// 未使用ディレクトリ
+					r ~= rel;
+				}
+				return c;
+			} else {
+				if (isSystemFile(p) || containsPath(ignorePaths, baseName(p))) {
+					return 1;
+				}
+				if (!skin.isMaterial(p)) {
+					return 1;
+				}
+				auto p2 = abs2rel(scenarioPath, p);
+				auto pathId = toPathId(p2);
+				if (0 == useCounter.get(pathId)) {
+					r ~= p2;
+					return 0;
+				}
+				return 1;
+			}
+		}
+		dirS(scenarioPath);
+		return r;
+	}
 }
 
 /// カードのみのシナリオデータ。

@@ -316,6 +316,9 @@ class Commons {
 	}
 	@property
 	Props prop() {return _prop;}
+	@property
+	const
+	const(Props) prop() {return _prop;}
 	void dispose() {
 		if (_wallpaper) _wallpaper.dispose();
 	}

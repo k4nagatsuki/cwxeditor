@@ -438,18 +438,18 @@ public:
 	string title() {
 		auto shl = cast(Shell) _win;
 		static if (UseArea && UseFlag) {
-			if (shl) {
-				return _prop.msgs.dataWindowName(_summ);
+			if (shl && _summ) {
+				return .tryFormat(_prop.msgs.dataWindowName, _summ.scenarioName, _summ.scenarioPath);
 			}
 			return _prop.msgs.dataTabName;
 		} else static if (UseArea) {
-			if (shl) {
-				return _prop.msgs.areasWindowName(_summ);
+			if (shl && _summ) {
+				return .tryFormat(_prop.msgs.areasWindowName, _summ.scenarioName, _summ.scenarioPath);
 			}
 			return _prop.msgs.areasTabName;
 		} else static if (UseFlag) {
-			if (shl) {
-				return _prop.msgs.flagWindowName(_summ);
+			if (shl && _summ) {
+				return .tryFormat(_prop.msgs.flagWindowName, _summ.scenarioName, _summ.scenarioPath);
 			}
 			return _prop.msgs.flagTabName;
 		} else static assert (0);

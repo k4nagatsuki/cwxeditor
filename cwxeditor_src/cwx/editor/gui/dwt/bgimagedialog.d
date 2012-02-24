@@ -241,7 +241,7 @@ protected:
 				auto l = new Label(comp2, SWT.NONE);
 				l.setText(_prop.msgs.bgImageSettings);
 				_easy = new Combo(comp2, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
-				_easy.setVisibleItemCount(20);
+				_easy.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 				_easy.add(_prop.msgs.bgImageSettingCustom);
 				_easy.add(_prop.msgs.bgImageSettingOriginal);
 				foreach (bs; _prop.var.etc.bgImageSettings) {
@@ -263,7 +263,7 @@ protected:
 
 		if (_flag) {
 			auto nof = new TableItem(_flag, SWT.NONE);
-			nof.setText(_prop.msgs.noFlag);
+			nof.setText(_prop.msgs.noFlagRef);
 			foreach (flag; _summ.flagDirRoot.allFlags) {
 				auto itm = new TableItem(_flag, SWT.NONE);
 				itm.setImage(_prop.images.flag);

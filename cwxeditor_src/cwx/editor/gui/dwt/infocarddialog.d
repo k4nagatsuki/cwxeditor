@@ -75,7 +75,7 @@ public:
 		_summ = summ;
 		_card = card;
 		_prop = prop;
-		super(prop, shell, false, _card ? _prop.msgs.dlgTitInfo(_card.name) : _prop.msgs.dlgTitNewInfo,
+		super(prop, shell, false, _card ? .tryFormat(_prop.msgs.dlgTitInfo, _card.name) : _prop.msgs.dlgTitNewInfo,
 			_prop.images.info, true, _prop.var.infoCardDlg, true);
 		enterClose = true;
 	}

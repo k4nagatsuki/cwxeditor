@@ -1081,7 +1081,7 @@ private:
 	void refreshStatusLine() {
 		auto itm = selection;
 		if (itm) {
-			_statusLine = _prop.msgs.contentText(_comm.skin, cast(Content) itm.getData(), _summ, _prop.var.etc.dialogStatus);
+			_statusLine = .contentText(_comm, cast(Content) itm.getData());
 		} else {
 			_statusLine = "";
 		}
@@ -1279,7 +1279,7 @@ private:
 		}
 	}
 	ToolItem createEI(CType type, ToolBar bar, RadioGroup!(ToolItem) g, Menu convMenu) {
-		auto text = _prop.msgs.content(type);
+		auto text = _prop.msgs.contentName(type);
 		auto img = _prop.images.content(type);
 		auto imgData = img.getImageData();
 		auto cursor = new Cursor(Display.getCurrent(), imgData, imgData.width / 2, imgData.height / 2);
@@ -1636,25 +1636,36 @@ public:
 		auto editl = new EditL;
 		_tree.addKeyListener(editl);
 		_tree.addMouseListener(editl);
+
+		auto shell = _tree.getShell();
 		{
 			uint retry = 0;
 			while (true) {
 				Menu popup = null;
+				string dStr = .text(__LINE__); // ログ
 				try {
-					popup = new Menu(parent.getShell(), SWT.POP_UP);
+					dStr ~= " - " ~ .text(__LINE__);
+					popup = new Menu(shell, SWT.POP_UP);
+					dStr ~= " - " ~ .text(__LINE__);
 					createMenuItem(_comm, popup, MenuID.EditProp, &editM, &canEdit);
 					new MenuItem(popup, SWT.SEPARATOR);
+					dStr ~= " - " ~ .text(__LINE__);
 					createMenuItem(_comm, popup, MenuID.Comment, &writeComment, &canWriteComment);
 					new MenuItem(popup, SWT.SEPARATOR);
+					dStr ~= " - " ~ .text(__LINE__);
 					createMenuItem(_comm, popup, MenuID.Undo, &this.undo, &_undo.canUndo);
 					createMenuItem(_comm, popup, MenuID.Redo, &this.redo, &_undo.canRedo);
 					new MenuItem(popup, SWT.SEPARATOR);
+					dStr ~= " - " ~ .text(__LINE__);
 					appendMenuTCPD(_comm, popup, this, true, true, true, true);
 					new MenuItem(popup, SWT.SEPARATOR);
+					dStr ~= " - " ~ .text(__LINE__);
 					createMenuItem(_comm, popup, MenuID.ToScript, &toScript, &canToScript);
 					createMenuItem(_comm, popup, MenuID.ToScriptAll, &toScriptAll, &canToScriptAll);
 					new MenuItem(popup, SWT.SEPARATOR);
+					dStr ~= " - " ~ .text(__LINE__);
 					createMenuItem(_comm, popup, MenuID.StartToPackage, &startToPackage, () => selection !is null);
+					dStr ~= " - " ~ .text(__LINE__);
 					void delegate() dlg = null;
 					auto convMI = createMenuItem(_comm, popup, MenuID.ConvertContent, dlg, {
 						auto itm = selection;
@@ -1662,18 +1673,23 @@ public:
 						auto evt = cast(Content) itm.getData();
 						return evt.type !is CType.START;
 					}, SWT.CASCADE);
+					dStr ~= " - " ~ .text(__LINE__);
 					_convM = new Menu(_tree.getShell(), SWT.DROP_DOWN);
 					debug {
 						new MenuItem(popup, SWT.SEPARATOR);
 						createMenuItem2(_comm, popup, "debug: Create CWX &Path", null, &createCWXPath, () => selection !is null);
 					}
+					dStr ~= " - " ~ .text(__LINE__);
 					convMI.setMenu(_convM);
+					dStr ~= " - " ~ .text(__LINE__);
 
 					_tree.setMenu(popup);
+					dStr ~= " - " ~ .text(__LINE__);
 					break;
 				} catch (Throwable e) {
 					// 環境によってはMenuが異常な状態になり、
 					// MenuItemの追加で落ちることがある模様
+					debugln(dStr);
 					debugln(e);
 					try {
 						if (popup) popup.dispose();
@@ -2051,7 +2067,7 @@ public:
 					name = to!(string)(index);
 				} else {
 					assert (index + 1 == combo.getItemCount());
-					name = _prop.msgs.evtChildDefault;
+					name = _prop.sys.evtChildDefault;
 				}
 				break;
 			} case CType.BRANCH_AREA: {
@@ -2059,7 +2075,7 @@ public:
 					name = to!(string)(_summ.areas[index].id);
 				} else {
 					assert (index == _summ.areas.length);
-					name = _prop.msgs.evtChildDefault;
+					name = _prop.sys.evtChildDefault;
 				}
 				break;
 			} case CType.BRANCH_BATTLE: {
@@ -2067,12 +2083,12 @@ public:
 					name = to!(string)(_summ.battles[index].id);
 				} else {
 					assert (index == _summ.battles.length);
-					name = _prop.msgs.evtChildDefault;
+					name = _prop.sys.evtChildDefault;
 				}
 				break;
 			} default:
 				assert (combo.getItemCount() == 2);
-				name = index == 0 ? _prop.msgs.evtChildTrue : _prop.msgs.evtChildFalse;
+				name = index == 0 ? _prop.sys.evtChildTrue : _prop.sys.evtChildFalse;
 			}
 			if (name == evt.name) return;
 			store(evt);
@@ -2087,20 +2103,20 @@ public:
 	private CCombo createBoolEditor(string Create)(Content evt, Content child) {
 		string[] vals;
 		vals.length = 2;
-		string name = _prop.msgs.evtChildTrue;
+		string name = _prop.sys.evtChildTrue;
 		vals[0] = mixin (Create);
-		name = _prop.msgs.evtChildFalse;
+		name = _prop.sys.evtChildFalse;
 		vals[1] = mixin (Create);
-		return createComboEditor(_comm, _prop, _tree, vals, vals[child.name == _prop.msgs.evtChildTrue ? 0 : 1]);
+		return createComboEditor(_comm, _prop, _tree, vals, vals[child.name == _prop.sys.evtChildTrue ? 0 : 1]);
 	}
 	private CCombo createBoolEditor2(string Create)(Content evt, Content child) {
 		string[] vals;
 		vals.length = 2;
-		string name = _prop.msgs.evtChildTrue;
+		string name = _prop.sys.evtChildTrue;
 		vals[0] = mixin (Create);
-		name = _prop.msgs.evtChildFalse;
+		name = _prop.sys.evtChildFalse;
 		vals[1] = mixin (Create);
-		return createComboEditor(_comm, _prop, _tree, vals, vals[child.name == _prop.msgs.evtChildTrue ? 0 : 1]);
+		return createComboEditor(_comm, _prop, _tree, vals, vals[child.name == _prop.sys.evtChildTrue ? 0 : 1]);
 	}
 	private CCombo createNumEditor(string Create)(Content evt, Content child, ulong[] nums) {
 		string[] vals;
@@ -2113,7 +2129,7 @@ public:
 				index = i;
 			}
 		}
-		string name = _prop.msgs.evtChildDefault;
+		string name = _prop.sys.evtChildDefault;
 		vals[$ - 1] = mixin (Create);
 		return createComboEditor(_comm, _prop, _tree, vals, vals[index]);
 	}
@@ -2140,7 +2156,7 @@ public:
 		auto c = cast(Content) itm.getData();
 		switch (data.type) {
 		case CType.BRANCH_FLAG: {
-			return createBoolEditor!("_prop.msgs.evtChildBrFlag(_summ.flagDirRoot.findFlag(evt.flag), name)")(data, c);
+			return createBoolEditor!("evtChildBrFlag(_prop, _summ, evt.flag, name)")(data, c);
 		} case CType.BRANCH_MULTI_STEP: {
 			Step step = _summ.flagDirRoot.findStep(data.step);
 			ulong[] nums;
@@ -2148,45 +2164,45 @@ public:
 			for (ulong i = 0; i < count; i++) {
 				nums ~= i;
 			}
-			return createNumEditor!("_prop.msgs.evtChildBrStepN(_summ.flagDirRoot.findStep(evt.step), name)")(data, c, nums);
+			return createNumEditor!("evtChildBrStepN(_prop, _summ, evt.step, name)")(data, c, nums);
 		} case CType.BRANCH_STEP: {
-			return createBoolEditor!("_prop.msgs.evtChildBrStepUL(_summ.flagDirRoot.findStep(evt.step), evt.stepValue, name)")(data, c);
+			return createBoolEditor!("evtChildBrStepUL(_prop, _summ, evt.step, evt.stepValue, name)")(data, c);
 		} case CType.BRANCH_SELECT: {
-			return createBoolEditor!("_prop.msgs.evtChildBrMember(evt.targetAll, evt.random, name)")(data, c);
+			return createBoolEditor!("evtChildBrMember(_prop, evt.targetAll, evt.random, name)")(data, c);
 		} case CType.BRANCH_ABILITY: {
-			return createBoolEditor!("_prop.msgs.evtChildBrPower(evt.targetS, evt.physical, evt.mental, evt.signedLevel, name)")(data, c);
+			return createBoolEditor!("evtChildBrPower(_prop, evt.targetS, evt.physical, evt.mental, evt.signedLevel, name)")(data, c);
 		} case CType.BRANCH_RANDOM: {
-			return createBoolEditor!("_prop.msgs.evtChildBrRandom(evt.percent, name)")(data, c);
+			return createBoolEditor!("evtChildBrRandom(_prop, evt.percent, name)")(data, c);
 		} case CType.BRANCH_LEVEL: {
-			return createBoolEditor!("_prop.msgs.evtChildBrLevel(evt.unsignedLevel, evt.average, name)")(data, c);
+			return createBoolEditor!("evtChildBrLevel(_prop, evt.unsignedLevel, evt.average, name)")(data, c);
 		} case CType.BRANCH_STATUS: {
-			return createBoolEditor!("_prop.msgs.evtChildBrState(evt.targetNS, evt.status, name)")(data, c);
+			return createBoolEditor!("evtChildBrState(_prop, evt.targetNS, evt.status, name)")(data, c);
 		} case CType.BRANCH_PARTY_NUMBER: {
-			return createBoolEditor!("_prop.msgs.evtChildBrNum(evt.partyNumber, name)")(data, c);
+			return createBoolEditor!("evtChildBrNum(_prop, evt.partyNumber, name)")(data, c);
 		} case CType.BRANCH_AREA: {
-			return createAreaSelectEditor!("_prop.msgs.evtChildBrArea(_summ.areas, name)")(data, c, _summ.areas);
+			return createAreaSelectEditor!("evtChildBrArea(_prop, _summ.areas, name)")(data, c, _summ.areas);
 		} case CType.BRANCH_BATTLE: {
-			return createAreaSelectEditor!("_prop.msgs.evtChildBrBattle(_summ.battles, name)")(data, c, _summ.battles);
+			return createAreaSelectEditor!("evtChildBrBattle(_prop, _summ.battles, name)")(data, c, _summ.battles);
 		} case CType.BRANCH_IS_BATTLE: {
-			return createBoolEditor!("_prop.msgs.evtChildBrOnBattle(name)")(data, c);
+			return createBoolEditor!("evtChildBrOnBattle(_prop, name)")(data, c);
 		} case CType.BRANCH_CAST: {
-			return createBoolEditor!("_prop.msgs.evtChildBrCast(_summ.cwCast(evt.casts), name)")(data, c);
+			return createBoolEditor!("evtChildBrCast(_prop, _summ, evt.casts, name)")(data, c);
 		} case CType.BRANCH_ITEM: {
-			return createBoolEditor!("_prop.msgs.evtChildBrItem(_summ.item(evt.item), evt.range, evt.cardNumber, name)")(data, c);
+			return createBoolEditor!("evtChildBrItem(_prop, _summ, evt.item, evt.range, evt.cardNumber, name)")(data, c);
 		} case CType.BRANCH_SKILL: {
-			return createBoolEditor!("_prop.msgs.evtChildBrSkill( _summ.skill(evt.skill), evt.range, evt.cardNumber, name)")(data, c);
+			return createBoolEditor!("evtChildBrSkill(_prop,  _summ, evt.skill, evt.range, evt.cardNumber, name)")(data, c);
 		} case CType.BRANCH_BEAST: {
-			return createBoolEditor!("_prop.msgs.evtChildBrBeast(_summ.beast(evt.beast), evt.range, evt.cardNumber, name)")(data, c);
+			return createBoolEditor!("evtChildBrBeast(_prop, _summ, evt.beast, evt.range, evt.cardNumber, name)")(data, c);
 		} case CType.BRANCH_INFO: {
-			return createBoolEditor!("_prop.msgs.evtChildBrInfo(_summ.info(evt.info), name)")(data, c);
+			return createBoolEditor!("evtChildBrInfo(_prop, _summ, evt.info, name)")(data, c);
 		} case CType.BRANCH_MONEY: {
-			return createBoolEditor!("_prop.msgs.evtChildBrMoney(evt.money, name)")(data, c);
+			return createBoolEditor!("evtChildBrMoney(_prop, evt.money, name)")(data, c);
 		} case CType.BRANCH_COUPON: {
-			return createBoolEditor!("_prop.msgs.evtChildBrCoupon(evt.range, evt.coupon, name)")(data, c);
+			return createBoolEditor!("evtChildBrCoupon(_prop, evt.range, evt.coupon, name)")(data, c);
 		} case CType.BRANCH_COMPLETE_STAMP: {
-			return createBoolEditor!("_prop.msgs.evtChildBrEnd(evt.completeStamp, name)")(data, c);
+			return createBoolEditor!("evtChildBrEnd(_prop, evt.completeStamp, name)")(data, c);
 		} case CType.BRANCH_GOSSIP: {
-			return createBoolEditor!("_prop.msgs.evtChildBrGossip(evt.gossip, name)")(data, c);
+			return createBoolEditor!("evtChildBrGossip(_prop, evt.gossip, name)")(data, c);
 		} default:
 		}
 		return null;
@@ -2209,67 +2225,67 @@ public:
 		string r;
 		switch (parent.type) {
 		case CType.BRANCH_FLAG: {
-			r = prop.msgs.evtChildBrFlag(summ.flagDirRoot.findFlag(parent.flag), name);
+			r = evtChildBrFlag(prop, summ, parent.flag, name);
 			break;
 		} case CType.BRANCH_MULTI_STEP: {
-			r = prop.msgs.evtChildBrStepN(summ.flagDirRoot.findStep(parent.step), name);
+			r = evtChildBrStepN(prop, summ, parent.step, name);
 			break;
 		} case CType.BRANCH_STEP: {
-			r = prop.msgs.evtChildBrStepUL(summ.flagDirRoot.findStep(parent.step), parent.stepValue, name);
+			r = evtChildBrStepUL(prop, summ, parent.step, parent.stepValue, name);
 			break;
 		} case CType.BRANCH_SELECT: {
-			r = prop.msgs.evtChildBrMember(parent.targetAll, parent.random, name);
+			r = evtChildBrMember(prop, parent.targetAll, parent.random, name);
 			break;
 		} case CType.BRANCH_ABILITY: {
-			r = prop.msgs.evtChildBrPower(parent.targetS, parent.physical, parent.mental, parent.signedLevel, name);
+			r = evtChildBrPower(prop, parent.targetS, parent.physical, parent.mental, parent.signedLevel, name);
 			break;
 		} case CType.BRANCH_RANDOM: {
-			r = prop.msgs.evtChildBrRandom(parent.percent, name);
+			r = evtChildBrRandom(prop, parent.percent, name);
 			break;
 		} case CType.BRANCH_LEVEL: {
-			r = prop.msgs.evtChildBrLevel(parent.unsignedLevel, parent.average, name);
+			r = evtChildBrLevel(prop, parent.unsignedLevel, parent.average, name);
 			break;
 		} case CType.BRANCH_STATUS: {
-			r = prop.msgs.evtChildBrState(parent.targetNS, parent.status, name);
+			r = evtChildBrState(prop, parent.targetNS, parent.status, name);
 			break;
 		} case CType.BRANCH_PARTY_NUMBER: {
-			r = prop.msgs.evtChildBrNum(parent.partyNumber, name);
+			r = evtChildBrNum(prop, parent.partyNumber, name);
 			break;
 		} case CType.BRANCH_AREA: {
-			r = prop.msgs.evtChildBrArea(summ.areas, name);
+			r = evtChildBrArea(prop, summ.areas, name);
 			break;
 		} case CType.BRANCH_BATTLE: {
-			r = prop.msgs.evtChildBrBattle(summ.battles, name);
+			r = evtChildBrBattle(prop, summ.battles, name);
 			break;
 		} case CType.BRANCH_IS_BATTLE: {
-			r = prop.msgs.evtChildBrOnBattle(name);
+			r = evtChildBrOnBattle(prop, name);
 			break;
 		} case CType.BRANCH_CAST: {
-			r = prop.msgs.evtChildBrCast(summ.cwCast(parent.casts), name);
+			r = evtChildBrCast(prop, summ, parent.casts, name);
 			break;
 		} case CType.BRANCH_ITEM: {
-			r = prop.msgs.evtChildBrItem(summ.item(parent.item), parent.range, parent.cardNumber, name);
+			r = evtChildBrItem(prop, summ, parent.item, parent.range, parent.cardNumber, name);
 			break;
 		} case CType.BRANCH_SKILL: {
-			r = prop.msgs.evtChildBrSkill(summ.skill(parent.skill), parent.range, parent.cardNumber, name);
+			r = evtChildBrSkill(prop, summ, parent.skill, parent.range, parent.cardNumber, name);
 			break;
 		} case CType.BRANCH_BEAST: {
-			r = prop.msgs.evtChildBrBeast(summ.beast(parent.beast), parent.range, parent.cardNumber, name);
+			r = evtChildBrBeast(prop, summ, parent.beast, parent.range, parent.cardNumber, name);
 			break;
 		} case CType.BRANCH_INFO: {
-			r = prop.msgs.evtChildBrInfo(summ.info(parent.info), name);
+			r = evtChildBrInfo(prop, summ, parent.info, name);
 			break;
 		} case CType.BRANCH_MONEY: {
-			r = prop.msgs.evtChildBrMoney(parent.money, name);
+			r = evtChildBrMoney(prop, parent.money, name);
 			break;
 		} case CType.BRANCH_COUPON: {
-			r = prop.msgs.evtChildBrCoupon(parent.range, parent.coupon, name);
+			r = evtChildBrCoupon(prop, parent.range, parent.coupon, name);
 			break;
 		} case CType.BRANCH_COMPLETE_STAMP: {
-			r = prop.msgs.evtChildBrEnd(parent.completeStamp, name);
+			r = evtChildBrEnd(prop, parent.completeStamp, name);
 			break;
 		} case CType.BRANCH_GOSSIP: {
-			r = prop.msgs.evtChildBrGossip(parent.gossip, name);
+			r = evtChildBrGossip(prop, parent.gossip, name);
 			break;
 		} default:
 			name = "";
@@ -2291,6 +2307,284 @@ public:
 				createChilds(itm, c, select);
 			}
 			itm.setExpanded(true);
+		}
+	}
+	private static string evtChildBrFlag(in Props prop, in Summary summ, string path, ref string text) {
+		bool val = (text != prop.sys.evtChildFalse);
+		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+		string name = prop.msgs.noSelectFlag;
+		string on = prop.msgs.flagOn;
+		string off = prop.msgs.flagOff;
+		if (path.length) {
+			auto o = summ.flagDirRoot.findFlag(path);
+			if (o) {
+				name = path;
+				on = o.on;
+				off = o.off;
+			} else {
+				name = .tryFormat(prop.msgs.noFlag, path);
+			}
+		}
+		return .tryFormat(prop.msgs.evtChildBrVar, name, (val ? on : off));
+	}
+	private static string evtChildBrStepN(in Props prop, in Summary summ, string path, ref string text) {
+		int val = -1;
+		try {
+			val = text == prop.sys.evtChildDefault ? -1 : (isNumeric(text) ? to!(int)(text) : -1);
+		} catch {
+			// Nothing
+		}
+		string name = prop.msgs.noSelectStep;
+		string value = val >= 0 ? .tryFormat(prop.msgs.dlgLblStep, val) : prop.msgs.etc;
+		if (path.length) {
+			auto o = summ.flagDirRoot.findStep(path);
+			if (o) {
+				if (o.count <= val) {
+					val = -1;
+					text = prop.sys.evtChildDefault;
+				}
+				name = path;
+				if (0 <= val) value = o.getValue(val);
+			} else {
+				name = .tryFormat(prop.msgs.noStep, path);
+			}
+		}
+		return .tryFormat(prop.msgs.evtChildBrVar, name, value);
+	}
+	private static string evtChildBrStepUL(in Props prop, in Summary summ, string path, int num, ref string text) {
+		bool val = (text != prop.sys.evtChildFalse);
+		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+		string name = prop.msgs.noSelectStep;
+		string value = .tryFormat(prop.msgs.dlgLblStep, num);
+		if (path.length) {
+			auto o = summ.flagDirRoot.findStep(path);
+			if (o) {
+				name = path;
+				if (0 <= num && num < o.count) value = o.getValue(val);
+			} else {
+				name = .tryFormat(prop.msgs.noStep, path);
+			}
+		}
+		if (val) {
+			return .tryFormat(prop.msgs.stepMoreThan, path, value);
+		} else {
+			return .tryFormat(prop.msgs.stepLessThan, path, value);
+		}
+	}
+	private static string evtChildBrMember(in Props prop, bool all, bool random, ref string text) {
+		bool val = (text != prop.sys.evtChildFalse);
+		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+		string mem = all ? prop.msgs.partyAll : prop.msgs.partyActive;
+		string am = random ? prop.msgs.autoSelect : prop.msgs.manualSelect;
+		if (val) {
+			return .tryFormat(prop.msgs.selectMemberSuccess, mem, am);
+		} else {
+			return .tryFormat(prop.msgs.selectMemberFailure, mem, am);
+		}
+	}
+	private static string evtChildBrPower(in Props prop, Target targ, Physical p, Mental m, int lev, ref string text) {
+		bool val = (text != prop.sys.evtChildFalse);
+		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+		string tt = prop.msgs.targetName(targ.m);
+		string tp = prop.msgs.physicalName(p);
+		string tm = prop.msgs.mentalName(m);
+		if (val) {
+			return .tryFormat(prop.msgs.branchAbilitySuccess, t, lev, tp, tm);
+		} else {
+			return .tryFormat(prop.msgs.branchAbilityFailure, t, lev, tp, tm);
+		}
+	}
+	private static string evtChildBrRandom(in Props prop, int percent, ref string text) {
+		bool val = (text != prop.sys.evtChildFalse);
+		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+		if (val) {
+			return .tryFormat(prop.msgs.branchRandomSuccess, percent);
+		} else {
+			return .tryFormat(prop.msgs.branchRandomFailure, percent);
+		}
+	}
+	private static string evtChildBrLevel(in Props prop, int lev, bool avg, ref string text) {
+		bool val = (text != prop.sys.evtChildFalse);
+		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+		string ta = avg  ? prop.msgs.levelAverage : prop.msgs.levelSelected;
+		if (val) {
+			return .tryFormat(prop.msgs.branchLevelSuccess, ta, lev);
+		} else {
+			return .tryFormat(prop.msgs.branchLevelFailure, ta, lev);
+		}
+	}
+	private static string evtChildBrState(in Props prop, Target targ, Status stat, ref string text) {
+		bool val = (text != prop.sys.evtChildFalse);
+		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+		string tt = prop.msgs.targetName(targ.m);
+		string ts = prop.msgs.statusName(stat);
+		if (val) {
+			return .tryFormat(prop.msgs.branchStatusSuccess, tt, ts);
+		} else {
+			return .tryFormat(prop.msgs.branchStatusFailure, tt, ts);
+		}
+	}
+	private static string evtChildBrNum(in Props prop, int num, ref string text) {
+		bool val = (text != prop.sys.evtChildFalse);
+		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+		if (val) {
+			return .tryFormat(prop.msgs.branchNumberSuccess, num);
+		} else {
+			return .tryFormat(prop.msgs.branchNumberFailure, num);
+		}
+	}
+	private static string evtChildBrArea(in Props prop, in Area[] areas, ref string text) {
+		if (text.length > 0) {
+			try {
+				long val = text == prop.sys.evtChildDefault ? -1 : (isNumeric(text) ? to!(long)(text) : -1);
+				if (val >= 0) {
+					foreach (a; areas) {
+						if (a.id == val) {
+							return .tryFormat(prop.msgs.branchArea, a.name);
+						}
+					}
+				}
+			} catch {}
+		}
+		text = prop.sys.evtChildDefault;
+		return .tryFormat(prop.msgs.branchArea, prop.msgs.etc);
+	}
+	private static string evtChildBrBattle(in Props prop, in Battle[] btls, ref string text) {
+		if (text.length > 0) {
+			try {
+				long val = text == prop.sys.evtChildDefault ? -1 : (isNumeric(text) ? to!(long)(text) : -1);
+				if (val >= 0) {
+					foreach (b; btls) {
+						if (b.id == val) {
+							return .tryFormat(prop.msgs.branchBattle, b.name);
+						}
+					}
+				}
+			} catch {}
+		}
+		text = prop.sys.evtChildDefault;
+		return .tryFormat(prop.msgs.branchBattle, prop.msgs.etc);
+	}
+	private static string evtChildBrOnBattle(in Props prop, ref string text) {
+		bool val = (text != prop.sys.evtChildFalse);
+		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+		if (val) {
+			return prop.msgs.branchOnBattleSuccess;
+		} else {
+			return prop.msgs.branchOnBattleFailure;
+		}
+	}
+	private static string evtChildBrCast(in Props prop, in Summary summ, ulong id, ref string text) {
+		bool val = (text != prop.sys.evtChildFalse);
+		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+		string name = prop.msgs.noSelectCast;
+		if (0 != id) {
+			auto c = summ.cwCast(id);
+			name = c ? c.name : .tryFormat(prop.msgs.noCast, id);
+		}
+		if (val) {
+			return .tryFormat(prop.msgs.branchCastSuccess, name);
+		} else {
+			return .tryFormat(prop.msgs.branchCastFailure, name);
+		}
+	}
+	private static string evtChildBrItem(in Props prop, in Summary summ, ulong id, Range r, uint num, ref string text) {
+		bool val = (text != prop.sys.evtChildFalse);
+		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+		string tr = prop.msgs.rangeName(r);
+		string name = prop.msgs.noSelectItem;
+		if (0 != id) {
+			auto c = summ.item(id);
+			name = c ? c.name : .tryFormat(prop.msgs.noItem, id);
+		}
+		if (val) {
+			return .tryFormat(prop.msgs.branchEffectCardSuccess, name);
+		} else {
+			return .tryFormat(prop.msgs.branchEffectCardFailure, name);
+		}
+	}
+	private static string evtChildBrSkill(in Props prop, in Summary summ, ulong id, Range r, uint num, ref string text) {
+		bool val = (text != prop.sys.evtChildFalse);
+		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+		string tr = prop.msgs.rangeName(r);
+		string name = prop.msgs.noSelectSkill;
+		if (0 != id) {
+			auto c = summ.skill(id);
+			name = c ? c.name : .tryFormat(prop.msgs.noSkill, id);
+		}
+		if (val) {
+			return .tryFormat(prop.msgs.branchEffectCardSuccess, name);
+		} else {
+			return .tryFormat(prop.msgs.branchEffectCardFailure, name);
+		}
+	}
+	private static string evtChildBrBeast(in Props prop, in Summary summ, ulong id, Range r, uint num, ref string text) {
+		bool val = (text != prop.sys.evtChildFalse);
+		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+		string tr = prop.msgs.rangeName(r);
+		string name = prop.msgs.noSelectBeast;
+		if (0 != id) {
+			auto c = summ.beast(id);
+			name = c ? c.name : .tryFormat(prop.msgs.noBeast, id);
+		}
+		if (val) {
+			return .tryFormat(prop.msgs.branchEffectCardSuccess, name);
+		} else {
+			return .tryFormat(prop.msgs.branchEffectCardFailure, name);
+		}
+	}
+	private static string evtChildBrInfo(in Props prop, in Summary summ, ulong id, ref string text) {
+		bool val = (text != prop.sys.evtChildFalse);
+		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+		string name = prop.msgs.noSelectInfo;
+		if (0 != id) {
+			auto c = summ.info(id);
+			name = c ? c.name : .tryFormat(prop.msgs.noInfo, id);
+		}
+		if (val) {
+			return .tryFormat(prop.msgs.branchInfoSuccess, name);
+		} else {
+			return .tryFormat(prop.msgs.branchInfoFailure, name);
+		}
+	}
+	private static string evtChildBrMoney(in Props prop, uint sp, ref string text) {
+		bool val = (text != prop.sys.evtChildFalse);
+		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+		if (val) {
+			return .tryFormat(prop.msgs.branchMoneySuccess, sp);
+		} else {
+			return .tryFormat(prop.msgs.branchMoneyFailure, sp);
+		}
+	}
+	private static string evtChildBrCoupon(in Props prop, Range r, string coupon, ref string text) {
+		bool val = (text != prop.sys.evtChildFalse);
+		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+		if (!coupon || !coupon.length) coupon = prop.msgs.noSelectCoupon;
+		string tr = prop.msgs.rangeName(r);
+		if (val) {
+			return .tryFormat(prop.msgs.branchCouponSuccess, tr, coupon);
+		} else {
+			return .tryFormat(prop.msgs.branchCouponFailure, tr, coupon);
+		}
+	}
+	private static string evtChildBrEnd(in Props prop, string scenario, ref string text) {
+		bool val = (text != prop.sys.evtChildFalse);
+		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+		if (!scenario || !scenario.length) scenario = prop.msgs.noSelectCompleteStamp;
+		if (val) {
+			return .tryFormat(prop.msgs.branchCompleteSuccess, scenario);
+		} else {
+			return .tryFormat(prop.msgs.branchCompleteFailure, scenario);
+		}
+	}
+	private static string evtChildBrGossip(in Props prop, string gossip, ref string text) {
+		bool val = (text != prop.sys.evtChildFalse);
+		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+		if (!gossip || !gossip.length) gossip = prop.msgs.noSelectGossip;
+		if (val) {
+			return .tryFormat(prop.msgs.branchGossipSuccess, gossip);
+		} else {
+			return .tryFormat(prop.msgs.branchGossipFailure, gossip);
 		}
 	}
 
@@ -2538,7 +2832,7 @@ public:
 		}
 		@property
 		bool canDoTCPD() {
-			return _tree.isFocusControl();
+			return _et !is null && _tree.isFocusControl();
 		}
 		@property
 		bool canDoT() {
@@ -2551,7 +2845,7 @@ public:
 		}
 		@property
 		bool canDoP() {
-			return true;
+			return _et !is null;
 		}
 		@property
 		bool canDoD() {

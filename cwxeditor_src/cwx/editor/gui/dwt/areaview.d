@@ -1503,13 +1503,90 @@ private:
 		_comm.refreshToolBar();
 	}
 	void refreshStatusLine() {
-		static if (UseCards && UseBacks) {
-			statusLine = _prop.msgs.areaViewStatus(_summ, cast(AbstractSpCard[]) _editC.keys, _editB.keys, _summ !is null);
-		} else static if (UseCards) {
-			statusLine = _prop.msgs.areaViewStatus(_summ, cast(AbstractSpCard[]) _editC.keys, cast(BgImage[]) [], _summ !is null);
-		} else static if (UseBacks) {
-			statusLine = _prop.msgs.areaViewStatus(_summ, cast(AbstractSpCard[]) [], _editB.keys, _summ !is null);
+		string line = "";
+		string flag(string path) {
+			if (!path.length) return _prop.msgs.areaViewStatusNoFlag;
+			if (_summ) {
+				auto f = _summ.flagDirRoot.findFlag(path);
+				if (f) return .tryFormat(_prop.msgs.areaViewStatusWithFlag, path);
+			}
+			return .tryFormat(_prop.msgs.areaViewStatusInvalidFlag, path);
 		}
+		static if (is(C : MenuCard)) {
+			string cardName = _prop.msgs.menuCard;
+			string path(in C card) {
+				string path = card.path;
+				if (!path.length) return _prop.msgs.noSelectImage;
+				if (isBinImg(path)) return _prop.msgs.areaViewStatusImageIncluding;
+				if (!_comm.skin.findImagePath(path, _summ ? _summ.scenarioPath : "").length) {
+					return .tryFormat(_prop.msgs.noImage, encodePath(path));
+				}
+				return encodePath(path);
+			}
+		} else static if (is(C : EnemyCard)) {
+			string cardName = _prop.msgs.enemyCard;
+			string path(in C card) {
+				if (_summ) {
+					if (0 == card.id) return _prop.msgs.noSelectCast;
+					auto c = _summ.cwCast(card.id);
+					if (!c) return .tryFormat(_prop.msgs.noCast, card.id);
+					return .tryFormat(_prop.msgs.areaViewStatusEnemyCard, c.id, c.name);
+				}
+				assert (0);
+			}
+		}
+		static if (UseCards) {
+			void putOneCard(in C card) {
+				if (_summ) {
+					line = .tryFormat(_prop.msgs.areaViewStatus, cardName, path(card), flag(card.flag));
+				} else {
+					line = .tryFormat(_prop.msgs.areaViewStatusNoSummary, cardName, path(card));
+				}
+			}
+		}
+		static if (UseBacks) {
+			void putOneBack(in BgImage back) {
+				string path = encodePath(back.path);
+				if (!path.length) {
+					path = _prop.msgs.noSelectImage;
+				} else if (!_comm.skin.findImagePath(path, _summ ? _summ.scenarioPath : "").length) {
+					path = .tryFormat(_prop.msgs.noImage, encodePath(path));
+				}
+				if (_summ) {
+					line = .tryFormat(_prop.msgs.areaViewStatus, _prop.msgs.back, path, flag(back.flag));
+				} else {
+					line = .tryFormat(_prop.msgs.areaViewStatusNoSummary, _prop.msgs.back, path);
+				}
+			}
+		}
+		static if (UseCards && UseBacks) {
+			if (_editC.length == 1 && !_editB.length) {
+				putOneCard(_editC.keys[0]);
+			} else if (!_editC.length && _editB.length == 1) {
+				putOneBack(_editB.keys[0]);
+			} else if (_editC.length + _editB.length) {
+				if (_editC.length) {
+					line = .tryFormat(_prop.msgs.areaViewStatusSelCard, _editC.length);
+				}
+				if (_editB.length) {
+					if (line.length) line ~= " ";
+					line ~= .tryFormat(_prop.msgs.areaViewStatusSelBack, _editB.length);
+				}
+			}
+		} else static if (UseCards) {
+			if (1 == _editC.length) {
+				putOneCard(_editC.keys[0]);
+			} else if (1 < _editC.length) {
+				line = .tryFormat(_prop.msgs.areaViewStatusSelCard, _editC.length);
+			}
+		} else static if (UseBacks) {
+			if (1 == _editB.length) {
+				putOneBack(_editB.keys[0]);
+			} else if (1 < _editB.length) {
+				line = .tryFormat(_prop.msgs.areaViewStatusSelBack, _editB.length);
+			}
+		}
+		statusLine = line;
 	}
 	static if (UseCards) {
 		static int staticCardsIndex(A area) {
@@ -1844,9 +1921,9 @@ public:
 			auto lFlag = new Label(left, SWT.NONE);
 			lFlag.setText(_prop.msgs.areaViewFlagDesc);
 			_flag = new Combo(left, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
-			_flag.setVisibleItemCount(20);
+			_flag.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 			_flag.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			_flag.add(_prop.msgs.noFlag);
+			_flag.add(_prop.msgs.noFlagRef);
 			refreshFlag();
 			_flag.addSelectionListener(new SelFlag);
 			_comm.refFlagAndStep.add(&refFlag);
@@ -1861,7 +1938,7 @@ public:
 				auto lRef = new Label(left, SWT.NONE);
 				lRef.setText(_prop.msgs.areaViewRefAreaDesc);
 				_refAreas = new Combo(left, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
-				_refAreas.setVisibleItemCount(20);
+				_refAreas.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 				_refAreas.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				_refAreas.add(_prop.msgs.noRefArea);
 				refreshRefAreas();
@@ -1991,12 +2068,23 @@ public:
 	}
 	private void replText() {
 		static if (UseCards) {
+			auto skin = _comm.skin;
 			foreach (i, c; _area.cards) {
-				auto img = _imgp.images[cardsIndex + i];
 				string name = cardName(c);
-				img.title = name;
-				img.createImage();
-				cardList.getItem(i).setText(name);
+				auto itm = cardList.getItem(i);
+				if (itm.getText() != name) {
+					auto img = _imgp.images[cardsIndex + i];
+					static if (is(C:EnemyCard)) {
+						auto castCard = _summ.cwCast(c.id);
+						if (!castCard) continue; // カード名が表示されないため不要
+						img.setImageData(castCardImage(_prop, skin, castCard, _summ ? _summ.scenarioPath : "", _dbgMode));
+					} else {
+						img.title = name;
+					}
+					img.createImage();
+					itm.setText(name);
+					_comm.refMenuCard.call(c.cwxPath);
+				}
 			}
 			_imgp.redraw();
 		}
@@ -2844,7 +2932,7 @@ public:
 		if (!_flag) return;
 		string f = _flag.getText();
 		_flag.removeAll();
-		_flag.add(_prop.msgs.noFlag);
+		_flag.add(_prop.msgs.noFlagRef);
 		_flag.select(0);
 		foreach (i, fl; _summ.flagDirRoot.allFlags) {
 			auto path = fl.path;
@@ -2959,7 +3047,7 @@ public:
 				if (!_summ) return -1;
 				if (!hasPath(_summ.scenarioPath, fname)) {
 					auto dlg = new MessageBox(getShell(), SWT.ICON_QUESTION | SWT.YES | SWT.NO | SWT.CANCEL);
-					dlg.setMessage(_prop.msgs.dlgMsgDropCard(fname));
+					dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgDropCard, fname));
 					dlg.setText(_prop.msgs.dlgTitDropCard);
 					auto ret = dlg.open();
 					if (SWT.YES == ret) {
@@ -3118,7 +3206,7 @@ public:
 			if (!_summ) return -1;
 			if (!hasPath(_summ.scenarioPath, fname)) {
 				auto dlg = new MessageBox(getShell(), SWT.ICON_QUESTION | SWT.YES | SWT.NO | SWT.CANCEL);
-				dlg.setMessage(_prop.msgs.dlgMsgDropBack(fname));
+				dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgDropBack, fname));
 				dlg.setText(_prop.msgs.dlgTitDropBack);
 				auto ret = dlg.open();
 				if (SWT.YES == ret) {

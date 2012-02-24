@@ -221,9 +221,9 @@ private:
 		if (summary) {
 			string path = summary.scenarioPath;
 			if (summary.isChanged) {
-				_win.setText(.tryFormat(_prop.msgs.mainWindowName, summary.scenarioName, path));
-			} else {
 				_win.setText(.tryFormat(_prop.msgs.mainWindowNameChanged, summary.scenarioName, path));
+			} else {
+				_win.setText(.tryFormat(_prop.msgs.mainWindowName, summary.scenarioName, path));
 			}
 		} else {
 			_win.setText(_prop.msgs.mainWindowNameEmpty);
@@ -300,16 +300,12 @@ private:
 			auto dlg = new CreateScenarioDialog(_comm, _prop, _win);
 			if (!dlg.open()) return;
 			Summary summ;
-			if (dlg.legacy) {
+			if (dlg.fromTemplate) {
+				summ = dlg.fromTemplate;
+			} else if (dlg.legacy) {
 				summ = new Summary(dlg.name, dlg.skin, dlg.classicFolder, false, true);
 			} else {
-				auto p = Summary.createTempDir(_prop.tempPath, dlg.name);
-				auto mFPath = std.path.buildPath(p, findSkin2(_prop, dlg.skin).materialPath);
-				if (!exists(mFPath) || !isDir(mFPath)) std.file.mkdir(mFPath);
-				summ = new Summary(dlg.name, dlg.skin, p, true, false);
-				if (summ.expandXMLs) {
-					summ.saveXMLs(summ.scenarioPath);
-				}
+				summ = Summary.createScenario(_prop.tempPath, dlg.name, findSkin2(_prop, dlg.skin));
 			}
 			summ.author = _prop.var.etc.defaultAuthor;
 			openScenario(summ);
