@@ -241,6 +241,7 @@ class Commons {
 	Dlg!() refClassicSkin;
 	Dlg!() refStandardKeyCodes;
 	Dlg!() refOuterTools;
+	Dlg!() refEventTemplates;
 	Dlg!(string, string, bool) refPath;
 	Dlg!(string) refPaths;
 	Dlg!() delPaths;

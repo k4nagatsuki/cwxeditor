@@ -114,6 +114,7 @@ private:
 	bool _toolWinVisible = false;
 	bool _opened = false;
 	Composite _contentsBoxArea;
+	Menu _templMenu;
 
 	bool _autoOpen;
 	bool _conti;
@@ -1416,6 +1417,7 @@ private:
 			_comm.replText.remove(&__refreshEventText);
 			_comm.replID.remove(&__refreshCard);
 			_comm.refContentText.remove(&refreshStatusLine);
+			_comm.refEventTemplates.remove(&refreshTemplates);
 			if (_toolWin) {
 				saveToolWinPos();
 				_toolWin.dispose();
@@ -1446,6 +1448,29 @@ private:
 			if (e.button == 3) {
 				arrow();
 				_comm.refreshToolBar();
+			}
+		}
+	}
+	void refreshTemplates() {
+		foreach (itm; _templMenu.getItems()) {
+			itm.dispose();
+		}
+		foreach (t; _prop.var.etc.eventTemplates) {
+			try {
+				auto cs = cwx.script.compile(_prop.parent, null, t.script);
+				if (cs.length) {
+					createMenuItem2(_comm, _templMenu, t.name, _prop.images.content(cs[0].type), {
+						putContents(cs);
+					}, () => _et !is null);
+				} else {
+					// 内容の無いスクリプト
+					createMenuItem2(_comm, _templMenu, t.name, null, {}, () => false);
+				}
+			} catch (CWXScriptException e) {
+				// エラーのあるスクリプト
+				createMenuItem2(_comm, _templMenu, t.name, null, {
+					pasteScript(t.script);
+				}, () => _et !is null);
 			}
 		}
 	}
@@ -1733,6 +1758,7 @@ public:
 		_comm.replText.add(&__refreshEventText);
 		_comm.replID.add(&__refreshCard);
 		_comm.refContentText.add(&refreshStatusLine);
+		_comm.refEventTemplates.add(&refreshTemplates);
 
 		auto dt = new DropTarget(_tree, DND.DROP_DEFAULT | DND.DROP_MOVE);
 		dt.setTransfer([XMLBytesTransfer.getInstance()]);
@@ -1790,6 +1816,9 @@ public:
 			_contiTI.setSelection(_conti);
 			_autoOpenTI = createToolItem2(_comm, mode, _prop.msgs.evtAutoOpen, _prop.images.evtAutoOpen, &autoOpen, null, SWT.CHECK);
 			_autoOpenTI.setSelection(_autoOpen);
+			new ToolItem(mode, SWT.SEPARATOR);
+			createDropDownItem(_comm, mode, MenuID.EvTemplates, null, _templMenu, () => _et && _templMenu.getItemCount() > 0);
+			refreshTemplates();
 			createCoolItem(cbar, mode);
 
 			auto tml = new TMListener;
@@ -2799,6 +2828,7 @@ public:
 					} else {
 						addContents(evt);
 					}
+					_comm.refreshToolBar();
 					return;
 				} catch (Exception e) {
 					debugln(e);
@@ -2806,18 +2836,7 @@ public:
 			}
 			auto script = cast(ArrayWrapperString) _comm.clipboard.getContents(TextTransfer.getInstance());
 			if (script) {
-				try {
-					auto cs = cwx.script.compile(_prop.parent, _summ, script.array.idup);
-					if (!cs.length) return;
-					if (cs[0].type is CType.START) {
-						addStarts(cs);
-					} else {
-						addContents(cs);
-					}
-				} catch (CWXScriptException e) {
-					auto dlg = new ScriptErrorDialog(_comm, _prop, _tree, e);
-					dlg.open();
-				}
+				pasteScript(script.array.idup);
 			}
 		}
 		void del(SelectionEvent se) {
@@ -2851,6 +2870,26 @@ public:
 		bool canDoD() {
 			return canDoT;
 		}
+	}
+	void pasteScript(string script) {
+		if (!_et) return;
+		try {
+			auto cs = cwx.script.compile(_prop.parent, _summ, script.idup);
+			putContents(cs);
+		} catch (CWXScriptException e) {
+			auto dlg = new ScriptErrorDialog(_comm, _prop, _tree, e);
+			dlg.open();
+		}
+	}
+	void putContents(Content[] cs) {
+		if (!_et) return;
+		if (!cs.length) return;
+		if (cs[0].type is CType.START) {
+			addStarts(cs);
+		} else {
+			addContents(cs);
+		}
+		_comm.refreshToolBar();
 	}
 	private void delImpl(TreeItem itm, bool store) {
 		auto ownerItm = itm.getParentItem();

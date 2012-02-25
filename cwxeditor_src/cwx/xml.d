@@ -49,6 +49,11 @@ struct XNode {
 	}
 	/// ditto
 	@property
+	void value(string text) {
+		_el ~= new Text(text);
+	}
+	/// ditto
+	@property
 	const
 	T valueTo(T)() {return to!(T)(value);}
 

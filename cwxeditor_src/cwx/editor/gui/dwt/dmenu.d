@@ -130,6 +130,9 @@ import java.io.ByteArrayInputStream;
 /// Text/Combo/CComboに、アンドゥ・リドゥ及び
 /// 切り取り・コピー・貼り付け・削除のメニューをつける。
 TextMenuModify createTextMenu(T = Text)(Commons comm, Props prop, T text, bool delegate() canSaveHistory, UndoManager undo = null, TMAppendData apd = TMAppendData()) {
+	static if (is(T:Text)) {
+		text.setTabs(prop.var.etc.textTabs);
+	}
 	bool readOnly = (text.getStyle() & SWT.READ_ONLY) != 0;
 	if (!readOnly && !undo) {
 		undo = new UndoManager(prop.var.etc.undoMaxEtc);
@@ -541,12 +544,12 @@ private ToolItem createDropDownItem2(Commons comm, ToolBar bar, string text, Ima
 	menu = new Menu(bar.getShell());
 	class Push : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			if (SWT.ARROW == e.detail && 0 < menu.getItemCount()) {
+			if ((!func || SWT.ARROW == e.detail) && 0 < menu.getItemCount()) {
 				auto b = ti.getBounds();
 				auto pt = bar.toDisplay(b.x, b.y + b.height);
 				menu.setLocation(pt);
 				menu.setVisible(true);
-			} else {
+			} else if (func) {
 				func();
 			}
 		}

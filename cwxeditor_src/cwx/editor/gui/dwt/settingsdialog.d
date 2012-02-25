@@ -12,6 +12,7 @@ import cwx.structs;
 import cwx.menu;
 import cwx.variables;
 import cwx.cab;
+import cwx.script;
 
 import cwx.editor.gui.sound;
 
@@ -32,6 +33,7 @@ import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.loader;
+import cwx.editor.gui.dwt.scripterrordialog;
 
 import std.path;
 import std.file;
@@ -73,6 +75,7 @@ import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.FileTransfer;
@@ -154,6 +157,8 @@ private:
 			Text _templPath;
 			Button _templPathRef;
 			Button _templPathDirOpen;
+		} else static if (is(T:EvTemplate)) {
+			Text _templScript;
 		} else static assert (0);
 
 		Button _alt;
@@ -217,6 +222,8 @@ private:
 					_cEngineExecute.setText(_array[i].execute);
 				} else static if (is(T:ScTemplate)) {
 					_templPath.setText(_array[i].path);
+				} else static if (is(T:EvTemplate)) {
+					_templScript.setText(_array[i].script);
 				} else static assert (0);
 			} else {
 				_name.setText("");
@@ -235,6 +242,8 @@ private:
 					_cEngineExecute.setText("");
 				} else static if (is(T:ScTemplate)) {
 					_templPath.setText("");
+				} else static if (is(T:EvTemplate)) {
+					_templScript.setText("");
 				} else static assert (0);
 			}
 			_alt.setEnabled(false);
@@ -255,6 +264,7 @@ private:
 			_comm.refreshToolBar();
 		}
 		void create() {
+			if (!checkData()) return;
 			string name = _name.getText();
 			static if (is(T:BgImageSetting)) {
 				bool mask = _bgImgMask.getSelection();
@@ -275,11 +285,15 @@ private:
 			} else static if (is(T:ScTemplate)) {
 				string path = _templPath.getText();
 				add(ScTemplate(name, path));
+			} else static if (is(T:EvTemplate)) {
+				string script = _templScript.getText();
+				add(EvTemplate(name, script));
 			} else static assert (0);
 		}
 		void alt() {
 			int i = _list.getSelectionIndex();
 			if (-1 == i) return;
+			if (!checkData()) return;
 			store();
 			_array[i].name = _name.getText();
 			_list.setItem(i, _array[i].name);
@@ -298,6 +312,8 @@ private:
 				_array[i].execute = _cEngineExecute.getText();
 			} else static if (is(T:ScTemplate)) {
 				_array[i].path = _templPath.getText();
+			} else static if (is(T:EvTemplate)) {
+				_array[i].script = _templScript.getText();
 			} else static assert (0);
 			_alt.setEnabled(false);
 			applyEnabled();
@@ -368,7 +384,22 @@ private:
 				return canDoT;
 			}
 		}
-		private void refUndoMax() {
+		static if (is(T:EvTemplate)) {
+			bool checkData() {
+				try {
+					cwx.script.compile(_prop.parent, null, _templScript.getText());
+					return true;
+				} catch (CWXScriptException e) {
+					auto dlg = new ScriptErrorDialog(_comm, _prop, this, e);
+					dlg.open();
+					return false;
+				}
+				return true;
+			}
+		} else {
+			bool checkData() {return true;}
+		}
+		void refUndoMax() {
 			_undo.max = _prop.var.etc.undoMaxEtc;
 		}
 
@@ -408,9 +439,7 @@ private:
 				comp3.setLayout(zeroMarginGridLayout(2, false));
 				_name = new Text(comp3, SWT.BORDER);
 				_tms ~= createTextMenu!Text(_comm, _prop, _name, &catchMod);
-				auto ngd = new GridData(GridData.FILL_HORIZONTAL);
-				ngd.widthHint = _prop.var.etc.bgImageSettingsNameWidth;
-				_name.setLayoutData(ngd);
+				_name.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				_bgImgMask = new Button(comp3, SWT.TOGGLE);
 				_bgImgMask.setImage(_prop.images.menu(MenuID.Mask));
 				_bgImgMask.setToolTipText(_prop.buildTool(MenuID.Mask));
@@ -604,7 +633,6 @@ private:
 					_tms ~= createTextMenu!Text(_comm, _prop, _name, &catchMod);
 					auto gd = new GridData(GridData.FILL_HORIZONTAL);
 					gd.horizontalSpan = 3;
-					gd.widthHint = _prop.var.etc.classicEnginesNameWidth;
 					_name.setLayoutData(gd);
 				}
 				{
@@ -700,6 +728,37 @@ private:
 					setupDropFile(_templPath, _templPath, &dropTemplate);
 				}
 			}
+		} else static if (is(T:EvTemplate)) {
+			void setupRight(Composite parent) {
+				parent.setLayoutData(new GridData(GridData.FILL_BOTH));
+				{
+					auto l = new Label(parent, SWT.NONE);
+					l.setText(_prop.msgs.eventTemplateName);
+					_name = new Text(parent, SWT.BORDER);
+					_tms ~= createTextMenu!Text(_comm, _prop, _name, &catchMod);
+					auto gd = new GridData(GridData.FILL_HORIZONTAL);
+					gd.horizontalSpan = 3;
+					_name.setLayoutData(gd);
+				}
+				{
+					auto l = new Label(parent, SWT.NONE);
+					l.setText(_prop.msgs.eventTemplateScript);
+					_templScript = new Text(parent, SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.H_SCROLL | SWT.V_SCROLL);
+					_tms ~= createTextMenu!Text(_comm, _prop, _templScript, &catchMod);
+					auto gd = new GridData(GridData.FILL_BOTH);
+					gd.widthHint = 0;
+					gd.horizontalSpan = 3;
+					_templScript.setLayoutData(gd);
+
+					auto font = _templScript.getFont();
+					auto fSize = font ? cast(uint) font.getFontData()[0].height : 0;
+					auto font2 = new Font(Display.getCurrent(), dwtData(CFont(_prop.looks.monospace, fSize, false, false)));
+					_templScript.setFont(font2);
+					listener(_templScript, SWT.Dispose, {
+						font2.dispose();
+					});
+				}
+			}
 		} else static assert (0);
 	public:
 		this (Composite parent, int style) {
@@ -715,20 +774,14 @@ private:
 			grp.setLayout(new GridLayout(1, true));
 			static if (is(T:BgImageSetting)) {
 				grp.setText(_prop.msgs.bgImageSettings);
-				int widthHint = _prop.var.etc.bgImageSettingsNameWidth;
-				int heightHint = _prop.var.etc.bgImageSettingsNameHeight;
 			} else static if (is(T:OuterTool)) {
 				grp.setText(_prop.msgs.classicEnginesTitle);
-				int widthHint = _prop.var.etc.classicEnginesNameWidth;
-				int heightHint = _prop.var.etc.classicEnginesNameHeight;
 			} else static if (is(T:ClassicEngine)) {
 				grp.setText(_prop.msgs.outerToolsTitle);
-				int widthHint = _prop.var.etc.outerToolsNameWidth;
-				int heightHint = _prop.var.etc.outerToolsNameHeight;
 			} else static if (is(T:ScTemplate)) {
 				grp.setText(_prop.msgs.scenarioTemplatesTitle);
-				int widthHint = _prop.var.etc.scenarioTemplatesNameWidth;
-				int heightHint = _prop.var.etc.scenarioTemplatesNameHeight;
+			} else static if (is(T:EvTemplate)) {
+				grp.setText(_prop.msgs.eventTemplatesTitle);
 			} else static assert (0);
 			auto leftSash = new SplitPane(grp, SWT.HORIZONTAL);
 			leftSash.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -737,8 +790,8 @@ private:
 				left.setLayout(zeroMarginGridLayout(2, true));
 				_list = new List(left, SWT.BORDER | SWT.SINGLE | SWT.V_SCROLL);
 				auto gd = new GridData(GridData.FILL_BOTH);
-				gd.widthHint = widthHint;
-				gd.heightHint = heightHint;
+				gd.widthHint = _prop.var.etc.settingListWidth;
+				gd.heightHint = _prop.var.etc.settingListHeight;
 				gd.horizontalSpan = 2;
 				_list.setLayoutData(gd);
 				listener(_list, SWT.Selection, &selected);
@@ -853,6 +906,15 @@ private:
 					_prop.var.etc.scenarioTemplatesSashR = ws[1];
 				});
 				auto l = _prop.var.etc.scenarioTemplates;
+			} else static if (is(T:EvTemplate)) {
+				modB(_alt, _list, _templScript);
+				leftSash.setWeights([_prop.var.etc.eventTemplatesSashL, _prop.var.etc.eventTemplatesSashR]);
+				listener(leftSash, SWT.Dispose, (Event e) {
+					auto ws = (cast(SplitPane) e.widget).getWeights();
+					_prop.var.etc.eventTemplatesSashL = ws[0];
+					_prop.var.etc.eventTemplatesSashR = ws[1];
+				});
+				auto l = _prop.var.etc.eventTemplates;
 			} else static assert (0);
 
 			_array.length = l.length;
@@ -906,10 +968,11 @@ private:
 
 	CTabItem _tabT;
 	ToolsPane!OuterTool _tools;
-	ToolsPane!ScTemplate _templs;
+	ToolsPane!ClassicEngine _cEngines;
 
 	CTabItem _tabC;
-	ToolsPane!ClassicEngine _cEngines;
+	ToolsPane!ScTemplate _scTempls;
+	ToolsPane!EvTemplate _evTempls;
 
 	CTabItem _tabE;
 	Text _ignorePaths;
@@ -1534,33 +1597,46 @@ private:
 	void construct3(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout(new GridLayout(1, false));
-		_tabC = new CTabItem(tabf, SWT.NONE);
-		_tabC.setText(_prop.msgs.classicEngines);
-		_tabC.setControl(comp);
-		{
-			_cEngines = new ToolsPane!ClassicEngine(comp, SWT.NONE);
-			_cEngines.setLayoutData(new GridData(GridData.FILL_BOTH));
-		}
+		_tabT = new CTabItem(tabf, SWT.NONE);
+		_tabT.setText(_prop.msgs.templates);
+		_tabT.setControl(comp);
+
+		auto sash = new SplitPane(comp, SWT.VERTICAL);
+		sash.setLayoutData(new GridData(GridData.FILL_BOTH));
+
+		_evTempls = new ToolsPane!EvTemplate(sash, SWT.NONE);
+		_evTempls.setLayoutData(new GridData(GridData.FILL_BOTH));
+		_scTempls = new ToolsPane!ScTemplate(sash, SWT.NONE);
+		_scTempls.setLayoutData(new GridData(GridData.FILL_BOTH));
+
+		sash.setWeights([_prop.var.etc.templatesSashL, _prop.var.etc.templatesSashR]);
+		listener(sash, SWT.Dispose, {
+			auto ws = sash.getWeights();
+			_prop.var.etc.templatesSashL = ws[0];
+			_prop.var.etc.templatesSashR = ws[1];
+		});
 	}
 
 	void construct4(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout(new GridLayout(1, false));
-		_tabT = new CTabItem(tabf, SWT.NONE);
-		_tabT.setText(_prop.msgs.outerTools);
-		_tabT.setControl(comp);
+		_tabC = new CTabItem(tabf, SWT.NONE);
+		_tabC.setText(_prop.msgs.outerToolsAndClassicEngines);
+		_tabC.setControl(comp);
 
 		auto sash = new SplitPane(comp, SWT.VERTICAL);
 		sash.setLayoutData(new GridData(GridData.FILL_BOTH));
+
 		_tools = new ToolsPane!OuterTool(sash, SWT.NONE);
 		_tools.setLayoutData(new GridData(GridData.FILL_BOTH));
-		_templs = new ToolsPane!ScTemplate(sash, SWT.NONE);
-		_templs.setLayoutData(new GridData(GridData.FILL_BOTH));
-		sash.setWeights([_prop.var.etc.toolsTemplatesSashL, _prop.var.etc.toolsTemplatesSashR]);
+		_cEngines = new ToolsPane!ClassicEngine(sash, SWT.NONE);
+		_cEngines.setLayoutData(new GridData(GridData.FILL_BOTH));
+
+		sash.setWeights([_prop.var.etc.toolsClassicEnginesSashL, _prop.var.etc.toolsClassicEnginesSashR]);
 		listener(sash, SWT.Dispose, {
 			auto ws = sash.getWeights();
-			_prop.var.etc.toolsTemplatesSashL = ws[0];
-			_prop.var.etc.toolsTemplatesSashR = ws[1];
+			_prop.var.etc.toolsClassicEnginesSashL = ws[0];
+			_prop.var.etc.toolsClassicEnginesSashR = ws[1];
 		});
 	}
 
@@ -1855,7 +1931,8 @@ protected:
 		_bgStgs.setup();
 		_cEngines.setup();
 		_tools.setup();
-		_templs.setup();
+		_scTempls.setup();
+		_evTempls.setup();
 
 		_enginePath.setText(_prop.var.etc.enginePath);
 		_tempDir.setText(_prop.var.etc.tempPath);
@@ -2036,7 +2113,8 @@ protected:
 		}
 		_prop.var.etc.outerTools = _tools.array;
 		_prop.var.etc.classicEngines = _cEngines.array;
-		_prop.var.etc.scenarioTemplates = _templs.array;
+		_prop.var.etc.eventTemplates = _evTempls.array;
+		_prop.var.etc.scenarioTemplates = _scTempls.array;
 		foreach (itm; _menu.getItems()) {
 			auto data = cast(SMenuData) itm.getData();
 			_prop.var.menu.mnemonic(data.id, data.mnemonic);
@@ -2056,6 +2134,7 @@ struct OldSettings {
 	const string[] oldKeyCodes;
 	const OuterTool[] tools;
 	const ClassicEngine[] cEngines;
+	const EvTemplate[] eventTemplates;
 	const string[] oldIgnorePaths;
 	bool oldSmoothingCard;
 	bool oldLogicalSort;
@@ -2077,6 +2156,7 @@ struct OldSettings {
 		this.oldKeyCodes = prop.var.etc.standardKeyCodes;
 		this.tools = prop.var.etc.outerTools;
 		this.cEngines = prop.var.etc.classicEngines;
+		this.eventTemplates = prop.var.etc.eventTemplates;
 		this.oldIgnorePaths = prop.var.etc.ignorePaths;
 		this.oldSmoothingCard = prop.var.etc.smoothingCard;
 		this.oldLogicalSort = prop.var.etc.logicalSort;
@@ -2113,6 +2193,9 @@ struct OldSettings {
 		}
 		if (cEngines != prop.var.etc.classicEngines) {
 			refSkin = true;
+		}
+		if (eventTemplates != prop.var.etc.eventTemplates) {
+			comm.refEventTemplates.call();
 		}
 		if (oldIgnorePaths != prop.var.etc.ignorePaths) {
 			comm.refIgnorePaths.call();

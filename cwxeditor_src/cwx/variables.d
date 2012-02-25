@@ -104,6 +104,7 @@ class FlexEtcProps : Properties {
 	mixin Property!("msgForeR", int, 255, true);
 	mixin Property!("msgForeG", int, 255, true);
 	mixin Property!("msgForeB", int, 255, true);
+	mixin Property!("textTabs", int, 4, true);
 
 	mixin Property!("contentsOrder", int[], []);
 	mixin Property!("contentsLock", bool, false);
@@ -114,14 +115,8 @@ class FlexEtcProps : Properties {
 	mixin Property!("contentsAutoHide", bool, false);
 	mixin Property!("smoothingCard", bool, true);
 	mixin Property!("ignorePathsWidth", int, 50, false);
-	mixin Property!("bgImageSettingsNameWidth", int, 150, true);
-	mixin Property!("bgImageSettingsNameHeight", int, 250, true);
-	mixin Property!("outerToolsNameWidth", int, 150, true);
-	mixin Property!("outerToolsNameHeight", int, 150, true);
-	mixin Property!("scenarioTemplatesNameWidth", int, 150, true);
-	mixin Property!("scenarioTemplatesNameHeight", int, 150, true);
-	mixin Property!("classicEnginesNameWidth", int, 150, true);
-	mixin Property!("classicEnginesNameHeight", int, 250, true);
+	mixin Property!("settingListWidth", int, 150, true);
+	mixin Property!("settingListHeight", int, 150, true);
 
 	mixin Property!("wallpaper", string, "");
 	mixin Property!("wallpaperStyle", WallpaperStyle, WallpaperStyle.Tile);
@@ -137,10 +132,14 @@ class FlexEtcProps : Properties {
 	mixin Property!("outerToolsSashR", int, 2);
 	mixin Property!("classicEnginesSashL", int, 1);
 	mixin Property!("classicEnginesSashR", int, 2);
+	mixin Property!("eventTemplatesSashL", int, 1);
+	mixin Property!("eventTemplatesSashR", int, 2);
 	mixin Property!("scenarioTemplatesSashL", int, 1);
 	mixin Property!("scenarioTemplatesSashR", int, 2);
-	mixin Property!("toolsTemplatesSashL", int, 1);
-	mixin Property!("toolsTemplatesSashR", int, 1);
+	mixin Property!("templatesSashL", int, 1);
+	mixin Property!("templatesSashR", int, 1);
+	mixin Property!("toolsClassicEnginesSashL", int, 1);
+	mixin Property!("toolsClassicEnginesSashR", int, 1);
 	mixin Property!("keyCodeWidth", int, 100, true);
 	mixin Property!("scenarioPath", string, "");
 	mixin Property!("tempPath", string, "temp");
@@ -432,6 +431,8 @@ class FlexEtcProps : Properties {
 	mixin Property!("scenarioTemplates", ScTemplate[], []);
 	mixin Property!("defaultScenarioTemplate", string, "");
 	mixin Property!("defaultIsTemplate", bool, false);
+
+	mixin Property!("eventTemplates", EvTemplate[], []);
 
 	mixin XMLFuncs!(FlexEtcProps);
 }

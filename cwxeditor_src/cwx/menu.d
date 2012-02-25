@@ -150,6 +150,7 @@ enum MenuID {
 	CreateArchive,
 	ToScript,
 	ToScriptAll,
+	EvTemplates,
 }
 
 /// エディタのメニュー。
@@ -302,6 +303,7 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.CreateArchive] = "A";
 		_mnemonic[MenuID.ToScript] = "S";
 		_mnemonic[MenuID.ToScriptAll] = "P";
+		_mnemonic[MenuID.EvTemplates] = "";
 
 		_hotkey[MenuID.None] = "";
 		_hotkey[MenuID.File] = "";
@@ -438,6 +440,7 @@ class MenuProps : Properties {
 		_hotkey[MenuID.CreateArchive] = "";
 		_hotkey[MenuID.ToScript] = "Ctrl+G";
 		_hotkey[MenuID.ToScriptAll] = "Ctrl+B";
+		_hotkey[MenuID.EvTemplates] = "";
 
 		_mnemonic_init = _mnemonic.idup;
 		_hotkey_init = _hotkey.idup;

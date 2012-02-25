@@ -481,6 +481,7 @@ public:
 		case MenuID.CreateArchive: return imgd!("create_archive.png");
 		case MenuID.ToScript: return imgd!("script.png");
 		case MenuID.ToScriptAll: return imgd!("script_all.png");
+		case MenuID.EvTemplates: return imgd!("ev_tmpl.png");
 		}
 	}
 }

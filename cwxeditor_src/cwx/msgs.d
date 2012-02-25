@@ -23,7 +23,7 @@ private:
 public:
 	@property const string application() {return "CWXEditor";}
 	@property const string dlgTitVersion() {return "バージョン情報";}
-	@property const string appDesc() {return "CardWirthPy向け フル機能シナリオエディタ";}
+	@property const string appDesc() {return "CardWirthPy向けシナリオエディタ";}
 
 	@property const string dlgTitUsage() {return "使い方 - CWXEditor";}
 	@property const string usage() {
@@ -1293,7 +1293,7 @@ public:
 	@property const string sAlt() {return "上書き";}
 	@property const string sDel() {return "削除";}
 
-	@property const string outerTools() {return "外部ツールとテンプレート";}
+	@property const string outerToolsAndClassicEngines() {return "外部ツールとクラシックエンジン";}
 	@property const string outerToolsTitle() {return "外部ツールの設定";}
 	@property const string outerToolName() {return "外部ツール名";}
 	@property const string outerToolCommand() {return "コマンド";}
@@ -1305,6 +1305,11 @@ public:
 	@property const string toolWorkDirDesc() {return "外部ツールの作業" ~ DIR ~ "を選択してください。";}
 	@property const string toolsHint2() {return "$S = シナリオの" ~ DIR;}
 
+	@property const string templates() {return "テンプレート";}
+	@property const string eventTemplatesTitle() {return "イベントテンプレートの設定";}
+	@property const string eventTemplateName() {return "テンプレート名";}
+	@property const string eventTemplateScript() {return "スクリプト";}
+
 	@property const string scenarioTemplatesTitle() {return "シナリオテンプレートの設定";}
 	@property const string scenarioTemplateName() {return "テンプレート名";}
 	@property const string scenarioTemplatePath() {return "シナリオの場所";}
@@ -1313,7 +1318,6 @@ public:
 	@property const string exeFileDescExe() {return "実行ファイル (*.exe)";}
 	@property const string exeFileDescAll() {return "すべてのファイル (*.*)";}
 
-	@property const string classicEngines() {return "クラシックエンジン";}
 	@property const string classicEnginesTitle() {return "クラシックエンジンの設定";}
 	@property const string classicEngineName() {return "エンジン名";}
 	@property const string classicEnginePath() {return "実行ファイルパス";}
@@ -1544,6 +1548,7 @@ public:
 		case MenuID.CreateArchive: return "シナリオを圧縮";
 		case MenuID.ToScript: return "スクリプトに変換してコピー";
 		case MenuID.ToScriptAll: return "全てをスクリプトに変換してコピー";
+		case MenuID.EvTemplates: return "テンプレートから作成";
 		}
 	}
 	@property const string bgm() {return "BGM";}

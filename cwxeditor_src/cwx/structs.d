@@ -446,8 +446,40 @@ struct ScTemplate {
 	}
 	/// ditto
 	void fromNode(ref XNode node) {
-		if (node.name != "scenarioTemplate") throw new Exception("Node is not scenarioTemplate");
+		if (node.name != XML_NAME) throw new Exception("Node is not scenarioTemplate");
 		name = node.attr!(string)("name", true);
 		path = node.attr!(string)("path", true);
+	}
+}
+
+/// イベントのテンプレートの情報。
+struct EvTemplate {
+	static const XML_NAME = "eventTemplate";
+	string name; /// 情報名。
+	string script = ""; /// スクリプト。
+
+	/// XMLノードとして取り扱うための関数群。
+	const
+	XNode toNode() {
+		auto e = XNode.create(XML_NAME, script);
+		toNodeImpl(e);
+		return e;
+	}
+	/// ditto
+	const
+	void toNode(ref XNode node) {
+		auto e = node.newElement(XML_NAME, script);
+		toNodeImpl(e);
+	}
+	/// ditto
+	const
+	private void toNodeImpl(ref XNode e) {
+		e.newAttr("name", name);
+	}
+	/// ditto
+	void fromNode(ref XNode node) {
+		if (node.name != XML_NAME) throw new Exception("Node is not eventTemplate");
+		name = node.attr!(string)("name", true);
+		script = node.value;
 	}
 }
