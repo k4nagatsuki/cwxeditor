@@ -1,4 +1,4 @@
-
+/// エディタの設定を行なうダイアログ。
 module cwx.editor.gui.dwt.settingsdialog;
 
 import cwx.background;
@@ -1846,6 +1846,7 @@ private:
 				_menu.setData(new CIgnoreHotkey); // 間違いやすいので
 				auto mgd = new GridData(GridData.FILL_BOTH);
 				mgd.horizontalSpan = 4;
+				mgd.heightHint = _prop.var.etc.menuSettingsHeight;
 				_menu.setLayoutData(mgd);
 				new FullTableColumn(_menu, SWT.NONE);
 				foreach (id; EnumMembers!MenuID) {

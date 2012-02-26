@@ -130,10 +130,14 @@ public class FlexProps {
 	FlexEtcProps etc;
 
 	private enum IniLocation {
-		STANDARD, LOCAL, COPY
+		STANDARD, LOCAL, COPY, NOTHING
 	}
 
 	private string _path;
+
+	private bool _noFile = false;
+	private string _noFileTemp;
+
 	this (string appPath, string confFileName) {
 		string dStr = .text(__LINE__);
 		try {
@@ -159,6 +163,8 @@ public class FlexProps {
 							loc = IniLocation.LOCAL;
 						} else if (0 == icmp(node.value, "copy")) {
 							loc = IniLocation.COPY;
+						} else if (0 == icmp(node.value, "nothing")) {
+							loc = IniLocation.NOTHING;
 						}
 					};
 					node.onTag["file"] = (ref XNode node) {
@@ -200,11 +206,17 @@ public class FlexProps {
 					}
 				}
 				break;
+			case IniLocation.NOTHING:
+				_noFile = true;
+				dStr ~= " - " ~ .text(__LINE__);
+				dir = appDataDir(appPath);
+				dir = std.path.buildPath(dir, "cwxeditor");
+				break;
 			}
 			dStr ~= " - " ~ .text(__LINE__);
 
 			_path = std.path.buildPath(dir, iniFileName);
-			if (exists(_path)) {
+			if (!_noFile && exists(_path)) {
 				dStr ~= " - " ~ .text(__LINE__);
 				if (!reloadImpl(false, dStr)) {
 					dStr ~= " - " ~ .text(__LINE__);
@@ -220,9 +232,8 @@ public class FlexProps {
 				foreach (i, fld; this.tupleof) {
 					this.tupleof[i] = newField(fld);
 				}
-				dStr ~= " - " ~ .text(__LINE__);
 
-				// この二つの設定だけは環境によって初期値が変わる
+				// tempとbackupの設定だけは環境によって初期値が変わる
 				final switch (loc) {
 				case IniLocation.STANDARD, IniLocation.COPY:
 					dStr ~= " - " ~ .text(__LINE__);
@@ -230,6 +241,13 @@ public class FlexProps {
 					dir = std.path.buildPath(dir, "cwxeditor");
 					etc.tempPath = std.path.buildPath(dir, "temp");
 					etc.backupPath = std.path.buildPath(dir, "backup");
+					break;
+				case IniLocation.NOTHING:
+					_noFileTemp = createNewFileName(std.path.buildPath(appDataDir(appPath), "cwxeditor_no_settings"), true);
+					dStr ~= " - " ~ .text(__LINE__);
+					etc.tempPath = std.path.buildPath(_noFileTemp, "temp");
+					etc.backupPath = std.path.buildPath(_noFileTemp, "backup");
+					_noFileTemp = dir;
 					break;
 				case IniLocation.LOCAL:
 					dStr ~= " - " ~ .text(__LINE__);
@@ -246,11 +264,17 @@ public class FlexProps {
 			throw new Exception(dStr, __FILE__, __LINE__);
 		}
 	}
+	void cleanup() {
+		if (!_noFile) return;
+		delAll(_noFileTemp);
+	}
 	bool reload() {
+		if (_noFile) return true;
 		string dStr = .text(__LINE__);
 		return reloadImpl(true, dStr);
 	}
 	private bool reloadImpl(bool force, ref string dStr) {
+		if (_noFile) return true;
 		try {
 			dStr ~= " - " ~ .text(__LINE__);
 			auto node = XNode.parse(std.file.readText(_path));
@@ -278,7 +302,7 @@ public class FlexProps {
 		return t;
 	}
 	private T newField(T)(T t) {
-		static if (is(typeof(new T))) {
+		static if (is(T == class)) {
 			if (!t) {
 				return new T;
 			}
@@ -286,6 +310,7 @@ public class FlexProps {
 		return t;
 	}
 	DockingFolderCTC loadDock(Composite parent, int style, Control delegate(Composite, string) create) {
+		if (_noFile) return null;
 		string dStr = .text(__LINE__);
 		try {
 			dStr ~= " - " ~ .text(__LINE__);
@@ -339,6 +364,7 @@ public class FlexProps {
 		}
 	}
 	private void createBackup() {
+		if (_noFile) return;
 		auto d = Clock.currTime();
 		string bakPath = format("%s.bak.%04d%02d%02d%02d%02d%02d", _path, d.year, d.month, d.day, d.hour, d.minute, d.second);
 		try {
@@ -348,9 +374,11 @@ public class FlexProps {
 		}
 	}
 	void save(DockingFolderCTC dock) {
+		if (_noFile) return;
 		save(_path, dock);
 	}
 	void save(string xmlFileName, DockingFolderCTC dock) {
+		if (_noFile) return;
 		auto node = XNode.create("cwxeditor");
 		foreach (i, fld; this.tupleof) {
 			toNode(node, fld);

@@ -73,7 +73,7 @@ class FlexEtcProps : Properties {
 	mixin Property!("nameTableHeight", int, 250, true);
 	mixin Property!("flagEventSashL", int, 3);
 	mixin Property!("flagEventSashR", int, 2);
-	mixin Property!("nameWidth", int, 200, true);
+	mixin Property!("nameWidth", int, 300, true);
 	mixin Property!("firesWidth", int, 120, true);
 	mixin Property!("flagNameWidth", int, 150, true);
 	mixin Property!("flagInitWidth", int, 50, true);
@@ -85,6 +85,7 @@ class FlexEtcProps : Properties {
 	mixin Property!("filesHeight", int, 150, true);
 	mixin Property!("talkersWidth", int, 100, true);
 	mixin Property!("motionsWidth", int, 150, true);
+
 	mixin Property!("imageListWidth", int, 380);
 	mixin Property!("imageListHeight", int, 300);
 	mixin Property!("cardLife", bool, false);
@@ -114,7 +115,8 @@ class FlexEtcProps : Properties {
 	mixin Property!("contentsFloat", bool, false);
 	mixin Property!("contentsAutoHide", bool, false);
 	mixin Property!("smoothingCard", bool, true);
-	mixin Property!("ignorePathsWidth", int, 50, false);
+	mixin Property!("ignorePathsWidth", int, 50, true);
+	mixin Property!("menuSettingsHeight", int, 150, true);
 	mixin Property!("settingListWidth", int, 150, true);
 	mixin Property!("settingListHeight", int, 150, true);
 

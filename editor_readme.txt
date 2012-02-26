@@ -21,10 +21,8 @@
 　CWXEditorのフォルダを丸ごと消してください。
 
 　通常、CWXEditorは、設定ファイルをユーザ固有のアプリケーションデータ
-フォルダに生成します。Windows Vista以降であれば、普通は以下の場所です。
-　 C:\Users\<ユーザ名>\AppData\Roaming\cwxeditor
-　Windows XPの場合、一般的に以下の場所になります。
-　 C:\Documents and Settings\<ユーザ名>\Application Data\cwxeditor
+フォルダに生成します。通常、次のパスでアクセスできます。
+　 %APPDATA%\cwxeditor
 　ゴミが残るようで気になる方は、このフォルダも削除してください。
 
 
@@ -115,6 +113,7 @@ CWXPath:
 が見つかった場合、デフォルトでlocalを指定したのと同じように動作します。
 　copyを指定した場合、ユーザ毎の設定ファイルが見つからなかった場合に限り、
 CWXEditor本体のフォルダにあるcwxeditor.xmlをユーザ毎のフォルダにコピーします。
+　nothingを指定した場合、設定ファイルの読込・保存を行いません。
 
 
 [ CardWirth本体の探し方のルール ]

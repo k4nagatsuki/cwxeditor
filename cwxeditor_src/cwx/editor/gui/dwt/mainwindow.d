@@ -2695,6 +2695,7 @@ public:
 			_prop.var.save(dock);
 			dStr ~= " - " ~ .text(__LINE__);
 			sendReloadProps();
+			_prop.var.cleanup();
 			version (Console) {
 				debug writeln("Exit Main Thread");
 			}
