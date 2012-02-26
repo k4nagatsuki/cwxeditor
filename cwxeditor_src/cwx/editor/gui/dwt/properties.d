@@ -210,7 +210,7 @@ public class FlexProps {
 				_noFile = true;
 				dStr ~= " - " ~ .text(__LINE__);
 				dir = appDataDir(appPath);
-				dir = std.path.buildPath(dir, "cwxeditor");
+				dir = std.path.buildPath(dir, "cwxeditor_no_settings");
 				break;
 			}
 			dStr ~= " - " ~ .text(__LINE__);
@@ -243,11 +243,10 @@ public class FlexProps {
 					etc.backupPath = std.path.buildPath(dir, "backup");
 					break;
 				case IniLocation.NOTHING:
-					_noFileTemp = createNewFileName(std.path.buildPath(appDataDir(appPath), "cwxeditor_no_settings"), true);
+					_noFileTemp = createNewFileName(dir, true);
 					dStr ~= " - " ~ .text(__LINE__);
 					etc.tempPath = std.path.buildPath(_noFileTemp, "temp");
 					etc.backupPath = std.path.buildPath(_noFileTemp, "backup");
-					_noFileTemp = dir;
 					break;
 				case IniLocation.LOCAL:
 					dStr ~= " - " ~ .text(__LINE__);

@@ -67,7 +67,7 @@ void unzip(ZipArchive arc,
 		string nml = replace(name, "/", sep);
 		if (name.length > 0 && !hasParDir(nml)) {
 			// 属性が不思議なことになってるので0x10だけで判断するのは避ける
-			bool isDir = ((am.externalAttributes & 0x10) != 0 || name[$ - 1] == '\\') && am.expandedSize == 0;
+			bool isDir = ((am.externalAttributes & 0x10) != 0 || std.algorithm.endsWith(nml, sep)) && am.expandedSize == 0;
 			fileProc(nml, arc.expand(am), isDir);
 		}
 		if (progress !is null) {
