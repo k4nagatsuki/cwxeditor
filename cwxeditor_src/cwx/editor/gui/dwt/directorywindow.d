@@ -1935,7 +1935,11 @@ public:
 			wsn = 1;
 		}
 		dlg.setText(_prop.msgs.dlgTitCreateArchive);
-		dlg.setFilterPath(getcwd());
+		if (_prop.var.etc.archivePath.length) {
+			dlg.setFilterPath(_prop.var.etc.archivePath);
+		} else {
+			dlg.setFilterPath(getcwd());
+		}
 		switch (_prop.var.etc.selectedArchiveFilter) {
 		case "cab":
 			if (!canUncab) {
@@ -1978,6 +1982,7 @@ public:
 				_prop.var.etc.selectedArchiveFilter = "zip";
 				break;
 			}
+			_prop.var.etc.archivePath = dlg.getFilterPath();
 		} catch (Exception e) {
 			debugln(e);
 			_comm.setStatusLine(_win, _prop.msgs.failedCreateArchive);

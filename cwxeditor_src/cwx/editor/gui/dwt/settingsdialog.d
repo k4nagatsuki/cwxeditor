@@ -775,9 +775,9 @@ private:
 			static if (is(T:BgImageSetting)) {
 				grp.setText(_prop.msgs.bgImageSettings);
 			} else static if (is(T:OuterTool)) {
-				grp.setText(_prop.msgs.classicEnginesTitle);
-			} else static if (is(T:ClassicEngine)) {
 				grp.setText(_prop.msgs.outerToolsTitle);
+			} else static if (is(T:ClassicEngine)) {
+				grp.setText(_prop.msgs.classicEnginesTitle);
 			} else static if (is(T:ScTemplate)) {
 				grp.setText(_prop.msgs.scenarioTemplatesTitle);
 			} else static if (is(T:EvTemplate)) {

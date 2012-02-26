@@ -436,5 +436,7 @@ class FlexEtcProps : Properties {
 
 	mixin Property!("eventTemplates", EvTemplate[], []);
 
+	mixin Property!("archivePath", string, "");
+
 	mixin XMLFuncs!(FlexEtcProps);
 }
