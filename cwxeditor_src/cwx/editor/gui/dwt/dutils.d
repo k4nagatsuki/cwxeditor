@@ -2114,7 +2114,7 @@ string contentText(Commons comm, in Content evt) {
 		case Talker.CARD:
 			return .tryFormat(comm.prop.msgs.ctTalkMessage, comm.prop.msgs.talkerName(evt.talkerC), text);
 		case Talker.IMAGE:
-			string t = contentTextUseID!(CIDKind.Image)(comm, evt.cardPath, "%s", evt);
+			string t = contentTextUseID!(CIDKind.Image)(comm, evt.cardPath, comm.prop.msgs.ctTalkMessageImage, evt);
 			return .tryFormat(comm.prop.msgs.ctTalkMessage, t, text);
 		}
 	} case CType.TALK_DIALOG: {

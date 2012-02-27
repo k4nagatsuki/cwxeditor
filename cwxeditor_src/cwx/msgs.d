@@ -524,6 +524,7 @@ public:
 	@property const string ctLinkStart() {return "スタートコンテント「%1$s」へのリンク";}
 	@property const string ctLinkPackage() {return "パッケージ「%1$s」へのリンク";}
 	@property const string ctTalkMessage() {return "%1$s: %2$s";}
+	@property const string ctTalkMessageImage() {return "[%1$s]";}
 	@property const string ctTalkDialog() {return "%1$s %2$s: %3$s";}
 	@property const string ctTalkDialogNoCoupon() {return "%1$s: %2$s";}
 	@property const string ctPlayBGM() {return "BGMとして「%1$s」を演奏";}
