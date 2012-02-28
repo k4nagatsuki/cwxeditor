@@ -33,6 +33,8 @@ enum MenuID {
 	ClosePaneAll,
 	New,
 	Open,
+	NewAtNewWindow,
+	OpenAtNewWindow,
 	Close,
 	CloseWin,
 	Save,
@@ -186,6 +188,8 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.ClosePaneAll] = "A";
 		_mnemonic[MenuID.New] = "N";
 		_mnemonic[MenuID.Open] = "O";
+		_mnemonic[MenuID.NewAtNewWindow] = "E";
+		_mnemonic[MenuID.OpenAtNewWindow] = "P";
 		_mnemonic[MenuID.Close] = "C";
 		_mnemonic[MenuID.CloseWin] = "C";
 		_mnemonic[MenuID.Save] = "S";
@@ -300,7 +304,7 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.NewDir] = "I";
 		_mnemonic[MenuID.CopyFilePath] = "M";
 		_mnemonic[MenuID.ReplFilePath] = "R";
-		_mnemonic[MenuID.CreateArchive] = "A";
+		_mnemonic[MenuID.CreateArchive] = "V";
 		_mnemonic[MenuID.ToScript] = "S";
 		_mnemonic[MenuID.ToScriptAll] = "P";
 		_mnemonic[MenuID.EvTemplates] = "";
@@ -323,6 +327,8 @@ class MenuProps : Properties {
 		_hotkey[MenuID.ClosePaneAll] = "";
 		_hotkey[MenuID.New] = "Ctrl+N";
 		_hotkey[MenuID.Open] = "Ctrl+O";
+		_hotkey[MenuID.NewAtNewWindow] = "";
+		_hotkey[MenuID.OpenAtNewWindow] = "";
 		_hotkey[MenuID.Close] = "";
 		_hotkey[MenuID.CloseWin] = "";
 		_hotkey[MenuID.Save] = "Ctrl+S";
@@ -587,6 +593,8 @@ bool isPMenu(MenuID id) {
 	switch (id) {
 	case MenuID.New:
 	case MenuID.Open:
+	case MenuID.NewAtNewWindow:
+	case MenuID.OpenAtNewWindow:
 	case MenuID.SaveAs:
 	case MenuID.Find:
 	case MenuID.Settings:

@@ -364,6 +364,8 @@ public:
 		case MenuID.ClosePaneAll: return imgd!("close_pane_a.png");
 		case MenuID.New: return imgd!("new.png");
 		case MenuID.Open: return imgd!("open.png");
+		case MenuID.NewAtNewWindow: return imgd!("new_new_win.png");
+		case MenuID.OpenAtNewWindow: return imgd!("open_new_win.png");
 		case MenuID.Close: return imgd!("close.png");
 		case MenuID.CloseWin: return imgd!("close_win.png");
 		case MenuID.Save: return imgd!("save.png");

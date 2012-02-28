@@ -403,14 +403,18 @@ string scenarioFilterPath(Props prop) {
 	}
 }
 
-S loadScenario(S)(Props prop, Shell w, void delegate(string) status,
-		bool expandXMLs, S old, string dlgTitle, ref string[] openPaths, void delegate(S) loaded = null, void delegate() failure = null, bool oThr = true) {
+string selectScenario(Props prop, Shell w, string dlgTitle) {
 	auto dlg = new FileDialog(w, SWT.PRIMARY_MODAL | SWT.APPLICATION_MODAL | SWT.SINGLE | SWT.OPEN);
 	dlg.setFilterExtensions(scenarioFilter);
 	dlg.setFilterNames(scenarioFilterDesc(prop));
 	dlg.setText(dlgTitle);
 	dlg.setFilterPath(scenarioFilterPath(prop));
-	string fname = dlg.open();
+	return dlg.open();
+}
+
+S loadScenario(S)(Props prop, Shell w, void delegate(string) status,
+		bool expandXMLs, S old, string dlgTitle, ref string[] openPaths, void delegate(S) loaded = null, void delegate() failure = null, bool oThr = true) {
+	string fname = selectScenario(prop, w, dlgTitle);
 	if (fname) {
 		decScenarioPath(fname, openPaths);
 		auto put = new class Object {

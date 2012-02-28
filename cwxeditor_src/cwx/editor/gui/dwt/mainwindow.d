@@ -1,23 +1,6 @@
 
 module cwx.editor.gui.dwt.mainwindow;
 
-import core.memory;
-import core.thread;
-
-import std.conv;
-import std.file;
-import std.path;
-import std.zip;
-import std.utf;
-import std.process;
-import std.metastrings;
-import std.string;
-import std.datetime;
-import std.regex;
-import std.array;
-import std.algorithm;
-debug import std.stdio;
-
 import cwx.cwl;
 import cwx.area;
 import cwx.card;
@@ -33,6 +16,7 @@ import cwx.path;
 import cwx.graphics;
 import cwx.msgs;
 import cwx.menu;
+import cwx.structs;
 
 import cwx.editor.gui.sound;
 
@@ -56,6 +40,23 @@ import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.smalldialogs;
 import cwx.editor.gui.dwt.loader;
 import cwx.editor.gui.dwt.dmenu;
+
+import core.memory;
+import core.thread;
+
+import std.conv;
+import std.file;
+import std.path;
+import std.zip;
+import std.utf;
+import std.process;
+import std.metastrings;
+import std.string;
+import std.datetime;
+import std.regex;
+import std.array;
+import std.algorithm;
+debug import std.stdio;
 
 import org.eclipse.swt.SWTException;
 import org.eclipse.swt.events.SelectionListener;
@@ -295,9 +296,34 @@ private:
 		}
 	}
 
+	void openScenarioNewWin() {
+		auto fname = selectScenario(_prop, _win, _prop.msgs.dlgTitOpenScenarioAtNewWin);
+		if (!fname) return;
+		bool r = exec(_prop.parent.appPath ~ " " ~ fname);
+		if (!r) {
+			MessageBox.showWarning
+				(.tryFormat(_prop.msgs.errorExec, baseName(_prop.parent.appPath)),
+				_prop.msgs.dlgTitWarning, _win);
+		}
+	}
+	void createScenarioNewWin() {
+		auto dlg = new CreateScenarioDialog(_comm, _prop, _win, false);
+		if (!dlg.open()) return;
+		bool r;
+		if (dlg.legacy) {
+			r = exec(_prop.parent.appPath ~ " -createclassic " ~ dlg.name ~ " " ~ dlg.classicFolder);
+		} else {
+			r = exec(_prop.parent.appPath ~ " -create " ~ dlg.name ~ " " ~ dlg.skin);
+		}
+		if (!r) {
+			MessageBox.showWarning
+				(.tryFormat(_prop.msgs.errorExec, baseName(_prop.parent.appPath)),
+				_prop.msgs.dlgTitWarning, _win);
+		}
+	}
 	void createScenario() {
 		if (qSave()) {
-			auto dlg = new CreateScenarioDialog(_comm, _prop, _win);
+			auto dlg = new CreateScenarioDialog(_comm, _prop, _win, true);
 			if (!dlg.open()) return;
 			Summary summ;
 			if (dlg.fromTemplate) {
@@ -466,13 +492,12 @@ private:
 		GC.collect();
 		_win.redraw();
 	}
-	string _firstScenarioPath = null;
-	string[] _openPaths;
+	LaunchOption _opt;
 
 	void openScenarioImpl(Summary summ) {
 		if (summ) {
 			openScenario(summ);
-			foreach (path; _openPaths) {
+			foreach (path; _opt.openPaths) {
 				try {
 					if (openCWXPath(path, true)) {
 						continue;
@@ -482,20 +507,20 @@ private:
 				}
 				MessageBox.showWarning(.tryFormat(_prop.msgs.cwxPathOpenError, path), _prop.msgs.dlgTitWarning, _win);
 			}
-			_openPaths.length = 0u;
+			_opt.openPaths.length = 0u;
 		}
 	}
 	void openScenario() {
 		auto old = summary;
 		loadScenario!(Summary)(_prop, _comm.mainShell, &setStatusLine,
 			_prop.var.etc.expandXMLs, old, _prop.msgs.dlgTitOpenScenario,
-			_openPaths, &openScenarioImpl, null);
+			_opt.openPaths, &openScenarioImpl, null);
 	}
 	void openScenario(string fname, void delegate() failure = null) {
 		if (cfnmatch(cwx.utils.getExt(fname), "wsm") && !.exists(fname)) {
 			fname = dirName(fname);
 		}
-		decScenarioPath(fname, _openPaths);
+		decScenarioPath(fname, _opt.openPaths);
 		auto old = summary;
 		loadScenarioFromFile!(Summary)(_prop, _comm.mainShell, &setStatusLine,
 			_prop.var.etc.expandXMLs, old, fname, &openScenarioImpl, failure);
@@ -980,6 +1005,9 @@ private:
 		mixin (MenuAction!("_menuFile", MenuID.Save, SWT.PUSH, "saveScenario", "() => summary !is null"));
 		mixin (MenuAction!("_menuFile", MenuID.SaveAs, SWT.PUSH, "saveScenarioA", "() => summary !is null"));
 		new MenuItem(_menuFile, SWT.SEPARATOR);
+		mixin (MenuAction!("_menuFile", MenuID.NewAtNewWindow, SWT.PUSH, "createScenarioNewWin", "null"));
+		mixin (MenuAction!("_menuFile", MenuID.OpenAtNewWindow, SWT.PUSH, "openScenarioNewWin", "null"));
+		new MenuItem(_menuFile, SWT.SEPARATOR);
 		mixin (MenuAction!("_menuFile", MenuID.CreateArchive, SWT.PUSH, "_dirWin.createArchive", "&_dirWin.canCreateArchive"));
 		new MenuItem(_menuFile, SWT.SEPARATOR);
 		mixin (MenuAction!("_menuFile", MenuID.Reload, SWT.PUSH, "reload", "() => summary !is null"));
@@ -1187,19 +1215,19 @@ private:
 		}
 	}
 public:
-	this (string appPath, string confFilePath, cwx.system.System sys,
-			string firstScenarioPath = null, string[] openPaths = []) {
+	this (string appPath, cwx.system.System sys, LaunchOption opt) {
 		string dStr = .text(__LINE__); // 起動ログ
 		try {
+			_opt = opt;
 			dStr ~= " - " ~ .text(__LINE__);
-			decScenarioPath(firstScenarioPath, openPaths);
-			/// すでにfirstScenarioPathを開いている
+			decScenarioPath(opt.scenario, opt.openPaths);
+			/// すでにopt.scenarioを開いている
 			/// 既存のcwxeditorプロセスがある場合、
 			/// そちらを開くようにする。
 			string path1 = "";
 			dStr ~= " - " ~ .text(__LINE__);
-			if (firstScenarioPath && .exists(firstScenarioPath)) {
-				path1 = nabs(firstScenarioPath);
+			if (opt.scenario && .exists(opt.scenario)) {
+				path1 = nabs(opt.scenario);
 				auto ext = cwx.utils.getExt(path1);
 				if (!.isDir(path1)
 						&& (cfnmatch(ext, "xml") || cfnmatch(ext, "wsm") || cfnmatch(ext, "wid"))) {
@@ -1214,7 +1242,7 @@ public:
 				} else if (std.string.startsWith(recv, "opened scenario ")) {
 					if (cfnmatch(path1, nabs(recv["opened scenario ".length .. $]))) {
 						string send = "open cwxpath ";
-						foreach (j, s; openPaths) {
+						foreach (j, s; opt.openPaths) {
 							if (j > 0) send ~= CWXPATH_SEP;
 							send ~= s;
 						}
@@ -1232,11 +1260,9 @@ public:
 			});
 			dStr ~= " - " ~ .text(__LINE__);
 			if (!execute) return;
-			_firstScenarioPath = firstScenarioPath;
-			_openPaths = openPaths;
 			_saveSync = new Object;
 			dStr ~= " - " ~ .text(__LINE__);
-			_prop = new Props(confFilePath, new CProps(appPath, sys));
+			_prop = new Props(opt.conf, new CProps(appPath, sys));
 			if (exists(_prop.tempPath)) {
 				dStr ~= " - " ~ .text(__LINE__);
 				foreach (temp; clistdir(_prop.tempPath)) {
@@ -2614,9 +2640,34 @@ public:
 			auto d = _win.getDisplay();
 			_win.open();
 			dStr ~= " - " ~ .text(__LINE__);
-			if (_firstScenarioPath) {
+			if (_opt.create) {
+				string name = _opt.createName is null ? _prop.msgs.newScenarioName : _opt.createName;
+				string skin = _opt.createSkin is null ? _prop.var.etc.defaultSkin : _opt.createSkin;
+				auto summ = Summary.createScenario(_prop.tempPath, name, findSkin2(_prop, skin));
+				summ.author = _prop.var.etc.defaultAuthor;
+				openScenario(summ);
+				statusLine = "";
+			} else if (_opt.createclassic) {
+				string name = _opt.createName is null ? _prop.msgs.newScenarioName : _opt.createName;
+				if (_opt.createclassicPath is null || !_opt.createclassicPath.length) {
+					_opt.createclassicPath = CreateScenarioDialog.createClassicDir(_prop, _win);
+				}
+				if (_opt.createclassicPath !is null && _opt.createclassicPath.length) {
+					try {
+						if (!.exists(_opt.createclassicPath)) {
+							mkdirRecurse(_opt.createclassicPath);
+						}
+						auto summ = new Summary(name, _prop.var.etc.defaultSkin, _opt.createclassicPath, false, true);
+						summ.author = _prop.var.etc.defaultAuthor;
+						openScenario(summ);
+						statusLine = "";
+					} catch (Exception e) {
+						debugln(e);
+					}
+				}
+			} else if (_opt.scenario) {
 				dStr ~= " - " ~ .text(__LINE__);
-				openScenario(_firstScenarioPath);
+				openScenario(_opt.scenario);
 			} else if (_prop.var.etc.openLastScenario && _prop.var.etc.lastScenario.length) {
 				dStr ~= " - " ~ .text(__LINE__);
 				openScenario(_prop.var.etc.lastScenario);

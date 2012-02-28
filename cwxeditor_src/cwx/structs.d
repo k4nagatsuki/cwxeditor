@@ -29,6 +29,74 @@ enum DialogStatus {
 	UnderWithCoupon = 2, /// 最下位(条件クーポンあり)を表示。
 }
 
+/// 起動オプション。
+struct LaunchOption {
+	string conf;
+	bool create = false;
+	bool createclassic = false;
+	string createName = null;
+	string createSkin = null;
+	string createclassicPath = "";
+	string[] openPaths = [];
+	string scenario = null;
+	bool help = false;
+
+	void parseStrings(string[] args) {
+		size_t sc = 0u;
+		for (int i = 0; i < args.length; i++) {
+			bool help = false;
+			try {
+				switch (args[i]) {
+				case "-a": // エリア表示
+					if (i + 1 < args.length) openPaths ~= "area:id:" ~ args[i + 1];
+					sc = i + 2u;
+					break;
+				case "-b": // バトル表示
+					if (i + 1 < args.length) openPaths ~= "battle:id:" ~ args[i + 1];
+					sc = i + 2u;
+					break;
+				case "-p": // パッケージ表示
+					if (i + 1 < args.length) openPaths ~= "package:id:" ~ args[i + 1];
+					sc = i + 2u;
+					break;
+				case "-conf": // 設定ファイル指定
+					if (i + 1 < args.length) conf = args[i + 1];
+					sc = i + 2u;
+					break;
+				case "-create": // 起動と同時に新規作成
+					create = true;
+					if (i + 1 < args.length) createName = args[i + 1];
+					if (i + 2 < args.length) createSkin = args[i + 2];
+					sc = i + 3u;
+					break;
+				case "-createclassic": // 起動と同時に新規作成(クラシック)
+					createclassic = true;
+					if (i + 1 < args.length) createName = args[i + 1];
+					if (i + 2 < args.length) createclassicPath = args[i + 2];
+					sc = i + 3u;
+					break;
+				case "-help", "-h", "/?": // usage
+					help = true;
+					break;
+				default:
+					if (i > sc) {
+						openPaths ~= args[i];
+					}
+					break;
+				}
+			} catch (Exception e) {
+				debugln(e);
+			}
+		}
+		if (sc < args.length) {
+			scenario = args[sc];
+		}
+		if (create || createclassic) {
+			scenario = null;
+		}
+	}
+}
+
 /// サイズを持つオブジェクト。
 interface DSize {
 	/// 幅。

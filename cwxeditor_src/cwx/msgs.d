@@ -27,10 +27,13 @@ public:
 
 	@property const string dlgTitUsage() {return "使い方 - CWXEditor";}
 	@property const string usage() {
-		return "使い方: cwxeditor [-help | -conf <PATH> | <OpenID ...>] <SCENARIO> [<CWXPath ...>]\n"
+		return "使い方: cwxeditor cwxeditor [-help | -conf <PATH> | -create <NAME> [<SKIN>] | -createclassic <NAME> [<PATH>]] <SCENARIO> [<CWXPath ...>]\n"
 			~ "オプション:\n"
 			~ "  -help         起動オプションの説明を表示して終了します。\n"
 			~ "  -conf <PATH>  指定されたパスの基本設定ファイルを使用します。\n"
+			~ "  -create        <NAME> [<SKIN>]  起動後にシナリオを新規作成します。\n"
+			~ "  -createclassic <NAME> [<PATH>]  起動後、<PATH>で指定されたフォルダに\n"
+			~ "                                  クラシックなシナリオを新規作成します。\n"
 			~ "  <SCENARIO>    起動と同時に指定されたシナリオを開きます。\n"
 			~ "                (*.wsn/Summary.xml/Summary.wsm/[フォルダ])\n"
 			~ "OpenID:\n"
@@ -600,7 +603,9 @@ public:
 
 	/// シナリオ選択ダイアログ
 	@property const string dlgTitNewScenario() {return "新規シナリオの作成";}
+	@property const string dlgTitNewScenarioAtNewWin() {return "新しいウィンドウで新規シナリオの作成";}
 	@property const string dlgTitOpenScenario() {return "シナリオを開く";}
+	@property const string dlgTitOpenScenarioAtNewWin() {return "新しいウィンドウでシナリオを開く";}
 	@property const string filterScenario() {return "シナリオファイル (%1$s)";}
 	@property const string filterParts() {return "エリア・カードファイル (%1$s)";}
 	@property const string dlgTitSaveScenario() {return "名前を付けて保存";}
@@ -1432,6 +1437,8 @@ public:
 		case MenuID.ClosePaneAll: return "全てのタブを閉じる";
 		case MenuID.New: return "新規作成";
 		case MenuID.Open: return "開く";
+		case MenuID.NewAtNewWindow: return "新しいウィンドウで新規作成";
+		case MenuID.OpenAtNewWindow: return "新しいウィンドウで開く";
 		case MenuID.Close: return "閉じる";
 		case MenuID.CloseWin: return "閉じる";
 		case MenuID.Save: return "上書き保存";

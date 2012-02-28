@@ -50,13 +50,17 @@ private:
 	Button _baseTemplate;
 	ScTemplate[int] _tTbl;
 
+	bool _useTemplate;
 	Summary _fromTemplate = null;
 
 public:
-	this (Commons comm, Props prop, Shell shell) {
+	this (Commons comm, Props prop, Shell shell, bool currentWin) {
 		_comm = comm;
 		_prop = prop;
-		super(_prop, shell, _prop.msgs.dlgTitNewScenario, _prop.images.menu(MenuID.New), true, _prop.var.newScDlg);
+		_useTemplate = currentWin;
+		string title = currentWin ? _prop.msgs.dlgTitNewScenario : _prop.msgs.dlgTitNewScenarioAtNewWin;
+		auto img = currentWin ? _prop.images.menu(MenuID.New) : _prop.images.menu(MenuID.NewAtNewWindow);
+		super(_prop, shell, title, img, true, _prop.var.newScDlg);
 		enterClose = true;
 	}
 
@@ -76,6 +80,32 @@ public:
 	bool legacy() {return _skinVal.length == 0;}
 	@property
 	string classicFolder() {
+		return _classicFolder;
+	}
+
+	static string createClassicDir(Props prop, Shell parent) {
+		auto dlg = new DirectoryDialog(parent);
+		dlg.setText(prop.msgs.newClassicDir);
+		dlg.setMessage(prop.msgs.newClassicDirDesc);
+		dlg.setFilterPath(prop.var.etc.scenarioPath);
+		while (true) {
+			auto path = dlg.open();
+			if (path) {
+				if (clistdir(path).length) {
+					auto q = new MessageBox(parent, SWT.OK | SWT.CANCEL | SWT.ICON_QUESTION);
+					q.setText(prop.msgs.dlgTitQuestion);
+					q.setMessage(.tryFormat(prop.msgs.notEmptyDir, path));
+					if (SWT.OK != q.open()) continue;
+				}
+				prop.var.etc.scenarioPath = dlg.getFilterPath();
+				return path;
+			}
+			break;
+		}
+		return null;
+	}
+	string createClassicDir() {
+		_classicFolder = createClassicDir(_prop, getShell());
 		return _classicFolder;
 	}
 protected:
@@ -149,7 +179,7 @@ protected:
 				}
 				_tTbl[i] = sct;
 			}
-			bool tenbl = _templateC.getItemCount() > 0;
+			bool tenbl = _templateC.getItemCount() > 0 && _useTemplate;
 			if (!tenbl) _templateC.add(_prop.msgs.noTemplate);
 			if (_templateC.getSelectionIndex() == -1) _templateC.select(0);
 			_baseTemplate.setEnabled(tenbl);
@@ -163,30 +193,13 @@ protected:
 
 	override bool close(bool ok, out bool cancel) {
 		if (ok) {
-			string createClassicDir() {
-				auto dlg = new DirectoryDialog(getShell());
-				dlg.setText(_prop.msgs.newClassicDir);
-				dlg.setMessage(_prop.msgs.newClassicDirDesc);
-				dlg.setFilterPath(_prop.var.etc.scenarioPath);
-				while (true) {
-					auto path = dlg.open();
-					if (path) {
-						if (clistdir(path).length) {
-							auto q = new MessageBox(getShell(), SWT.OK | SWT.CANCEL | SWT.ICON_QUESTION);
-							q.setText(_prop.msgs.dlgTitQuestion);
-							q.setMessage(.tryFormat(_prop.msgs.notEmptyDir, path));
-							if (SWT.OK != q.open()) continue;
-						}
-						_prop.var.etc.scenarioPath = dlg.getFilterPath();
-						_classicFolder = path;
-						return _classicFolder;
-					} else {
-						ok = false;
-						cancel = true;
-					}
-					break;
+			string createClassicDirInner() {
+				string s = createClassicDir();
+				if (s is null) {
+					ok = false;
+					cancel = true;
 				}
-				return null;
+				return s;
 			}
 			_nameVal = _name.getText();
 			if (_baseTemplate.getSelection()) {
@@ -203,7 +216,7 @@ protected:
 					try {
 						summ = Summary.loadScenarioFromFile(_prop.parent, _prop.var.etc.doubleIO,
 							tPath, _prop.var.etc.expandXMLs, _prop.tempPath,
-							&createClassicDir);
+							&createClassicDirInner);
 					} catch (SummaryException e) {
 						// Nothing;
 					}
@@ -220,7 +233,7 @@ protected:
 			} else {
 				if (_prop.var.etc.canCreateClassic && _skinC.getSelectionIndex() == _skinC.getItemCount() - 1) {
 					_skinVal = "";
-					createClassicDir();
+					createClassicDirInner();
 				} else {
 					_skinVal = _skinC.getText();
 				}
