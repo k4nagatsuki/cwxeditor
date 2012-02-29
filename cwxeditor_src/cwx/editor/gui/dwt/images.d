@@ -1004,6 +1004,8 @@ private:
 	WallpaperStyle _wallpaperStyle = WallpaperStyle.Tile;
 
 	PileImage[] backs = [];
+	Image[] _appends = [];
+	bool _showAppends = true;
 
 	class DListener : DisposeListener {
 		public override void widgetDisposed(DisposeEvent e)  {
@@ -1322,6 +1324,11 @@ private:
 			foreach (bmp; backs) {
 				bmp.draw(gc);
 			}
+			if (_showAppends) {
+				foreach (a; _appends) {
+					gc.drawImage(a, 0, 0);
+				}
+			}
 
 			e.gc.drawImage(buf, 0, 0);
 			buf.dispose();
@@ -1567,6 +1574,31 @@ public:
 	@property
 	void wallpaperStyle(WallpaperStyle v) {
 		_wallpaperStyle = v;
+		redraw();
+	}
+
+	/// 追加的に表示するイメージ。
+	@property
+	Image[] appends() {
+		return _appends;
+	}
+	/// ditto
+	@property
+	void appends(Image[] v) {
+		_appends = v;
+		redraw();
+	}
+
+	/// 追加イメージを表示するか。
+	@property
+	const
+	bool showAppends() {
+		return _showAppends;
+	}
+	/// ditto
+	@property
+	void showAppends(bool v) {
+		_showAppends = v;
 		redraw();
 	}
 

@@ -223,7 +223,6 @@ private:
 	/// 他のエリアのカード配置を参照する。
 	static const RefCards = !UseCards && UseBacks;
 	static if (RefCards) {
-		Image _refMat = null;
 		Combo _refAreas;
 		AbstractArea[] _refAreasArr;
 		AbstractArea _refTarget = null;
@@ -246,8 +245,10 @@ private:
 			}
 			if (0 == _refAreas.getSelectionIndex()) {
 				_refTarget = null;
-				if (_refMat) _refMat.dispose();
-				_refMat = null;
+				foreach (a; _imgp.appends) {
+					a.dispose();
+				}
+				_imgp.appends = [];
 			}
 		}
 		void refreshRefAreasA(Area a) {refreshRefAreas();}
@@ -664,9 +665,6 @@ private:
 	ImagePane _imgp;
 
 	bool _viewMsg = false;
-	static if (RefCards) {
-		bool _viewRefCards = true;
-	}
 	bool _viewParty = true;
 	bool _fixed = false;
 
@@ -1309,13 +1307,10 @@ private:
 		sc.setLayoutData(new GridData(GridData.FILL_BOTH));
 		_imgp = new ImagePane(sc, SWT.BORDER | SWT.NO_BACKGROUND | SWT.DOUBLE_BUFFERED);
 		static if (RefCards) {
-			listener(_imgp, SWT.Paint, (Event e) {
-				if (_viewRefCards && _refMat) {
-					e.gc.drawImage(_refMat, 0, 0);
-				}
-			});
 			listener(_imgp, SWT.Dispose, {
-				if (_refMat) _refMat.dispose();
+				foreach (a; _imgp.appends) {
+					a.dispose();
+				}
 			});
 		}
 		auto rgb = new RGB(_prop.var.etc.wallColorR,
@@ -1781,9 +1776,6 @@ public:
 		} else {
 			static assert (0);
 		}
-		static if (RefCards) {
-			_viewRefCards = _prop.var.etc.viewReferenceCards;
-		}
 		static if (is(C : EnemyCard) || RefCards) {
 			_dbgMode = _prop.var.etc.viewEnemyCardDebug;
 		}
@@ -1805,7 +1797,7 @@ public:
 					static assert (0);
 				}
 				static if (RefCards) {
-					_prop.var.etc.viewReferenceCards = _viewRefCards;
+					_prop.var.etc.viewReferenceCards = _imgp.showAppends;
 				}
 				static if (is(C : EnemyCard) || RefCards) {
 					_prop.var.etc.viewEnemyCardDebug = _dbgMode;
@@ -1837,12 +1829,10 @@ public:
 		}
 
 		if (_tlp) setupTLP(_tlp);
-		{
-			auto toolbar = new ToolBar(this, SWT.FLAT);
-			_comm.put(toolbar);
-			toolbar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			setupToolBar(toolbar);
-		}
+		auto toolbar = new ToolBar(this, SWT.FLAT);
+		_comm.put(toolbar);
+		toolbar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
 		auto lrSash = new SplitPane(this, SWT.HORIZONTAL);
 		lrSash.setLayoutData(new GridData(GridData.FILL_BOTH));
 		auto left = new Composite(lrSash, SWT.NONE);
@@ -1957,6 +1947,12 @@ public:
 					override void widgetSelected(SelectionEvent e) {
 						int sel = _refAreas.getSelectionIndex();
 						_refTarget = sel <= 0 ? null : _refAreasArr[sel - 1];
+						if (!_refTarget) {
+							foreach (a; _imgp.appends) {
+								a.dispose();
+							}
+							_imgp.appends = [];
+						}
 						refreshPanel();
 					}
 				});
@@ -2003,7 +1999,11 @@ public:
 			static if (UseBacks) appendBgImages(0, area.backs, false, false);
 			static if (UseCards) appendCards(0, area.cards, false, false);
 			appendPartyCards();
+			static if (RefCards) {
+				_imgp.showAppends = _prop.var.etc.viewReferenceCards;
+			}
 		}
+		setupToolBar(toolbar);
 		static if (is(A : Battle) && is(C : EnemyCard)) {
 			{
 				auto target = new DropTarget(imagePane, DND.DROP_DEFAULT | DND.DROP_COPY | DND.DROP_LINK);
@@ -2162,20 +2162,24 @@ public:
 	}
 	static if (RefCards) {
 		void addRefCards(C2)(in C2[] cs) {
-			if (_refMat) _refMat.dispose();
-			_refMat = createRefCardImpl!C2(cs);
+			foreach (a; _imgp.appends) {
+				a.dispose();
+			}
+			_imgp.appends = [createRefCardImpl!C2(cs)];
 		}
 		void createRefCard() {
-			if (_refMat) _refMat.dispose();
+			foreach (a; _imgp.appends) {
+				a.dispose();
+			}
+			_imgp.appends = [];
 			auto area = cast(Area) _refTarget;
 			if (area) {
-				_refMat = createRefCardImpl(area.cards);
+				_imgp.appends = [createRefCardImpl(area.cards)];
 			}
 			auto battle = cast(Battle) _refTarget;
 			if (battle) {
-				_refMat = createRefCardImpl(battle.cards);
+				_imgp.appends = [createRefCardImpl(battle.cards)];
 			}
-			_refMat = null;
 		}
 		Image createRefCardImpl(C2)(in C2[] cs) {
 			auto d = getDisplay();
@@ -2754,7 +2758,7 @@ public:
 	bool isViewParty() {return _viewParty;}
 	static if (RefCards) {
 		@property
-		bool isViewRefCards() {return _viewRefCards;}
+		bool isViewRefCards() {return _imgp.showAppends;}
 	}
 	@property
 	bool isFixed() {return _fixed;}
@@ -2791,7 +2795,7 @@ public:
 		_vmMenu.setSelection(_viewMsg);
 		static if (RefCards) {
 			_vrMenu = createMenuItem(_comm, mv, MenuID.ShowRefCards, &reverseViewRefCards, null, SWT.CHECK);
-			_vrMenu.setSelection(_viewRefCards);
+			_vrMenu.setSelection(_imgp.showAppends);
 		}
 		new MenuItem(mv, SWT.SEPARATOR);
 		_vfMenu = createMenuItem(_comm, mv, MenuID.FixedImage, &reverseFixed, null, SWT.CHECK);
@@ -2854,7 +2858,7 @@ public:
 		_vmTMenu.setSelection(_viewMsg);
 		static if (RefCards) {
 			_vrTMenu = createToolItem(_comm, bar, MenuID.ShowRefCards, &reverseViewRefCards, null, SWT.CHECK);
-			_vrTMenu.setSelection(_viewRefCards);
+			_vrTMenu.setSelection(_imgp.showAppends);
 		}
 		new ToolItem(bar, SWT.SEPARATOR);
 		_vfTMenu = createToolItem(_comm, bar, MenuID.FixedImage, &reverseFixed, null, SWT.CHECK);
@@ -3016,9 +3020,9 @@ public:
 	}
 	static if (RefCards) {
 		void reverseViewRefCards() {
-			_viewRefCards = !_viewRefCards;
-			if (_vmMenu) _vmMenu.setSelection(_viewRefCards);
-			if (_vmTMenu) _vmTMenu.setSelection(_viewRefCards);
+			_imgp.showAppends = !_imgp.showAppends;
+			if (_vmMenu) _vmMenu.setSelection(_imgp.showAppends);
+			if (_vmTMenu) _vmTMenu.setSelection(_imgp.showAppends);
 			_imgp.redraw();
 		}
 	}
