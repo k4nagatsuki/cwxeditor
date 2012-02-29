@@ -130,30 +130,50 @@ private ImageData loadJPYImageImpl(Skin skin, string path, string[] stratum) {
 		}
 		data = dimg.getImageData;
 		if (sec.colorexchange != Colorexchange.NONE) {
-			data.data = cast(byte[]) colorexchange(sec.colorexchange, cast(ubyte[]) data.data, data.depth, data.width, data.height, data.bytesPerLine);
+			auto bdata = cast(ubyte[]) data.data;
+			auto balpha = cast(ubyte[]) data.alphaData;
+			data.data = cast(byte[]) colorexchange(sec.colorexchange, bdata, balpha, data.depth, data.width, data.height, data.bytesPerLine);
+			data.alphaData = cast(byte[]) balpha;
 		}
 		if (sec.filter != Filter.NONE) {
-			data.data = cast(byte[]) filter(sec.filter, cast(ubyte[]) data.data, data.depth, data.width, data.height, data.bytesPerLine);
+			auto bdata = cast(ubyte[]) data.data;
+			auto balpha = cast(ubyte[]) data.alphaData;
+			data.data = cast(byte[]) filter(sec.filter, bdata, balpha, data.depth, data.width, data.height, data.bytesPerLine);
+			data.alphaData = cast(byte[]) balpha;
 		}
 		if (sec.colormap != Colormap.NONE) {
-			data.data = cast(byte[]) colormap(sec.colormap, cast(ubyte[]) data.data, data.depth, data.width, data.height, data.bytesPerLine);
+			auto bdata = cast(ubyte[]) data.data;
+			auto balpha = cast(ubyte[]) data.alphaData;
+			data.data = cast(byte[]) colormap(sec.colormap, bdata, balpha, data.depth, data.width, data.height, data.bytesPerLine);
+			data.alphaData = cast(byte[]) balpha;
 		}
 		if (sec.flip) {
-			data.data = cast(byte[]) flip(cast(ubyte[]) data.data, data.depth, data.width, data.height, data.bytesPerLine);
+			auto bdata = cast(ubyte[]) data.data;
+			auto balpha = cast(ubyte[]) data.alphaData;
+			data.data = cast(byte[]) flip(bdata, balpha, data.depth, data.width, data.height, data.bytesPerLine);
+			data.alphaData = cast(byte[]) balpha;
 		}
 		if (sec.mirror) {
-			data.data = cast(byte[]) mirror(cast(ubyte[]) data.data, data.depth, data.width, data.height, data.bytesPerLine);
+			auto bdata = cast(ubyte[]) data.data;
+			auto balpha = cast(ubyte[]) data.alphaData;
+			data.data = cast(byte[]) mirror(bdata, balpha, data.depth, data.width, data.height, data.bytesPerLine);
+			data.alphaData = cast(byte[]) balpha;
 		}
 		if (sec.noise != Noise.NONE && sec.noisepoint != 0) {
-			data.data = cast(byte[]) noise(sec.noise, sec.noisepoint, cast(ubyte[]) data.data, data.depth, data.width, data.height, data.bytesPerLine);
+			auto bdata = cast(ubyte[]) data.data;
+			auto balpha = cast(ubyte[]) data.alphaData;
+			data.data = cast(byte[]) noise(sec.noise, sec.noisepoint, bdata, balpha, data.depth, data.width, data.height, data.bytesPerLine);
+			data.alphaData = cast(byte[]) balpha;
 		}
 		if (sec.turn != Turn.NONE) {
 			ubyte[] bytes = cast(ubyte[]) data.data;
+			auto balpha = cast(ubyte[]) data.alphaData;
 			size_t dw = data.width;
 			size_t dh = data.height;
 			size_t bpl = data.bytesPerLine;
-			turn(bytes, dw, dh, bpl, sec.turn, data.depth);
+			turn(bytes, balpha, dw, dh, bpl, sec.turn, data.depth);
 			data.data = cast(byte[]) bytes;
+			data.alphaData = cast(byte[]) balpha;
 			data.width = dw;
 			data.height = dh;
 			data.bytesPerLine = bpl;
@@ -164,8 +184,11 @@ private ImageData loadJPYImageImpl(Skin skin, string path, string[] stratum) {
 		if (sw != data.width || sh != data.height) {
 			if (sec.smooth) {
 				size_t bpl;
-				data.data = cast(byte[]) smoothResize(sw, sh, cast(ubyte[]) data.data, data.depth, data.width, data.height,
+				ubyte[] bytes = cast(ubyte[]) data.data;
+				auto balpha = cast(ubyte[]) data.alphaData;
+				data.data = cast(byte[]) smoothResize(sw, sh, bytes, balpha, data.depth, data.width, data.height,
 					data.bytesPerLine, bpl);
+				data.alphaData = cast(byte[]) balpha;
 				data.width = sw;
 				data.height = sh;
 				data.bytesPerLine = bpl;
@@ -174,7 +197,10 @@ private ImageData loadJPYImageImpl(Skin skin, string path, string[] stratum) {
 			}
 		}
 		if (sec.mask != Mask.NONE) {
-			data.data = cast(byte[]) mask(sec.mask, cast(ubyte[]) data.data, data.depth, data.width, data.height, data.bytesPerLine);
+			ubyte[] bytes = cast(ubyte[]) data.data;
+			auto balpha = cast(ubyte[]) data.alphaData;
+			data.data = cast(byte[]) mask(sec.mask, bytes, balpha, data.depth, data.width, data.height, data.bytesPerLine);
+			data.alphaData = cast(byte[]) balpha;
 		}
 		void fill(bool delegate(ubyte r, ubyte g, ubyte b) isMask) {
 			size_t bpp = data.bytesPerLine / data.width;

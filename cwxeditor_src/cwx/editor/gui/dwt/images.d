@@ -357,9 +357,11 @@ public:
 			}
 			if (smoothing) {
 				auto data = cast(ubyte[]) bmpData.data;
+				auto alpha = cast(ubyte[]) bmpData.alphaData;
 				size_t bpl;
-				bmpData.data = cast(byte[]) smoothResize(width, height, data,
+				bmpData.data = cast(byte[]) smoothResize(width, height, data, alpha,
 					bmpData.depth, bmpData.width, bmpData.height, bmpData.bytesPerLine, bpl);
+				bmpData.alphaData = cast(byte[]) alpha;
 				bmpData.width = width;
 				bmpData.height = height;
 				bmpData.bytesPerLine = bpl;
