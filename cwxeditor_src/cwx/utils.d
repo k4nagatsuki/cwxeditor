@@ -164,16 +164,33 @@ void debugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) {
 		fdebugln!(F, L, T)(vals);
 	}
 }
+
 /// コンソール上にデバグログを出力する。
 void cdebugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) {
-	debug {
+	version (Console) {
+		debug {
+			synchronized {
+				string log = createDebugln!(F, L)(vals);
+				version (Windows) {
+					printf("%s\n\0".ptr, toMBSz(log));
+					dout.flush();
+				} else {
+					writeln(log);
+				}
+			}
+		}
+	}
+}
+
+/// コンソール上に文字列を出力する。
+void cwriteln(string s) {
+	version (Console) {
 		synchronized {
-			string log = createDebugln!(F, L)(vals);
 			version (Windows) {
-				printf("%s\n\0".ptr, toMBSz(log));
+				printf("%s\n\0".ptr, toMBSz(s));
 				dout.flush();
 			} else {
-				writeln(log);
+				writeln(s);
 			}
 		}
 	}

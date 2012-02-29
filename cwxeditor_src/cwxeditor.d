@@ -55,39 +55,20 @@ void main(string[] args) {
 		dStr ~= " - " ~ .text(__LINE__);
 		opt.parseStrings(args[1 .. $]);
 		if (opt.help) {
+			dStr ~= " - " ~ .text(__LINE__);
+			auto prop = new Props(opt.conf, new CProps(appPath, sys));
 			version (Console) {
 				try {
-					string dir;
-					version (Windows) {
-						dir = "Folder";
-					} else {
-						dir = "Directory";
-					}
-					writeln("Usage: cwxeditor [-help | -conf <PATH> | -create <NAME> [<SKIN>] | -createclassic <NAME> [<PATH>]] <SCENARIO> [<CWXPath ...>]");
-					writeln("");
-					writeln("  Options:");
-					writeln("    -help         print help");
-					writeln("    -conf <PATH>  set config file path");
-					writeln("    -create <NAME> [<SKIN>]         create scenario after launch");
-					writeln("    -createclassic <NAME> [<PATH>]  create scenario after launch (classic),");
-					writeln("                             in directory at <PATH>");
-					writeln("    <SCENARIO>    read scenario (*.wsn/Summary.xml/Summary.wsm/[" ~ dir ~ "])");
-					writeln("  OpenID:");
-					writeln("    -a   <ID>     open area from <ID>");
-					writeln("    -b   <ID>     open battle from <ID>");
-					writeln("    -p   <ID>     open package from <ID>");
-					writeln("  OpenPath:");
-					writeln("    <CWXPath>     open resource from <CWXPath>");
+					cwriteln(prop.msgs.usage);
 				} catch (Exception e) {
 					debugln(e);
 				}
 			}
 			try {
 				dStr ~= " - " ~ .text(__LINE__);
-				auto prop = new Props(opt.conf, new CProps(appPath, sys));
 				auto comm = new Commons(prop);
 				dStr ~= " - " ~ .text(__LINE__);
-				auto dlg = new TextDialog(comm, prop, null, prop.msgs.dlgTitUsage, prop.images.app, prop.msgs.usage);
+				auto dlg = new TextDialog(comm, prop, null, prop.msgs.dlgTitUsage, prop.images.app, prop.msgs.usage ~ "\n");
 				dlg.open();
 				dStr ~= " - " ~ .text(__LINE__);
 				prop.images.disposeImages();

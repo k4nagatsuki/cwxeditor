@@ -121,7 +121,7 @@ class FlexEtcProps : Properties {
 	mixin Property!("settingListHeight", int, 150, true);
 
 	mixin Property!("wallpaper", string, "");
-	mixin Property!("wallpaperStyle", WallpaperStyle, WallpaperStyle.Tile);
+	mixin Property!("wallpaperStyle", int, WallpaperStyle.Tile);
 	mixin Property!("wallColorR", int, 0);
 	mixin Property!("wallColorG", int, 0);
 	mixin Property!("wallColorB", int, 128);
@@ -415,7 +415,7 @@ class FlexEtcProps : Properties {
 	mixin Property!("undoMaxLimit", int, short.max);
 	mixin Property!("undoMaxReplace", int, 16);
 
-	mixin Property!("dialogStatus", DialogStatus, DialogStatus.Top);
+	mixin Property!("dialogStatus", int, DialogStatus.Top);
 
 	mixin Property!("showDialogPreview", bool, false);
 	mixin Property!("showMessagePreview", bool, false);

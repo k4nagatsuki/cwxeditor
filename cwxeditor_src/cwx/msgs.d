@@ -27,7 +27,8 @@ public:
 
 	@property const string dlgTitUsage() {return "使い方 - CWXEditor";}
 	@property const string usage() {
-		return "使い方: cwxeditor cwxeditor [-help | -conf <PATH> | -create <NAME> [<SKIN>] | -createclassic <NAME> [<PATH>]] <SCENARIO> [<CWXPath ...>]\n"
+		return "使い方: cwxeditor [-help | -conf <PATH> | -create <NAME> [<SKIN>]\n"
+			~ "                   | -createclassic <NAME> [<PATH>]] <SCENARIO> [<CWXPath ...>]\n"
 			~ "オプション:\n"
 			~ "  -help         起動オプションの説明を表示して終了します。\n"
 			~ "  -conf <PATH>  指定されたパスの基本設定ファイルを使用します。\n"

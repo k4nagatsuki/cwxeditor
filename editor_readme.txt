@@ -80,10 +80,14 @@
 　クリックだの何だので普通に起動しますが、何気なくコマンドラインオプションを
 付けられるようになってます。
 
-使い方: cwxeditor [-help | -conf <PATH> | <OpenID ...>] <SCENARIO> [<CWXPath ...>]
+使い方: cwxeditor [-help | -conf <PATH> | -create <NAME> [<SKIN>]
+                   | -createclassic <NAME> [<PATH>]] <SCENARIO> [<CWXPath ...>]
 オプション:
   -help         起動オプションの説明を表示して終了します。
   -conf <PATH>  指定されたパスの基本設定ファイルを使用します。
+  -create        <NAME> [<SKIN>]  起動後にシナリオを新規作成します。
+  -createclassic <NAME> [<PATH>]  起動後、<PATH>で指定されたフォルダに
+                                  クラシックなシナリオを新規作成します。
   <SCENARIO>    起動と同時に指定されたシナリオを開きます。
                 (*.wsn/Summary.xml/Summary.wsm/[フォルダ])
 OpenID:

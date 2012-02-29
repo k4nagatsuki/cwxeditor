@@ -11,6 +11,8 @@ import std.random;
 struct Pixels {
 	/// 設定対象の配列。
 	ubyte[] data;
+	/// 設定対象のアルファ値配列。
+	ubyte[] alpha;
 	/// 縦幅。
 	size_t width;
 	/// 横幅。
@@ -24,23 +26,24 @@ struct Pixels {
 	/// Pixelを取得する。
 	FC get(size_t x, size_t y) {
 		size_t i = y * bytesPerLine + x * bpp;
+		ubyte a = alpha.length ? alpha[y * width + x] : 0;
 		switch (depth) {
 		case 32:
-			return FC(data[i + 2], data[i + 1], data[i]);
+			return FC(data[i + 2], data[i + 1], data[i], a);
 		case 24:
-			return FC(data[i + 2], data[i + 1], data[i]);
+			return FC(data[i + 2], data[i + 1], data[i], a);
 		case 16:
 			size_t d1 = data[i];
 			size_t d2 = data[i + 1];
 			return FC(cast(ubyte) ((d2 << 1) & 0xF8),
 				cast(ubyte) ((d2 << 6) | ((d1 & 0xC0) >> 2)),
-				cast(ubyte) (d1 << 3));
+				cast(ubyte) (d1 << 3), a);
 		default:
 			throw new Exception(.format("bit depth: %d", depth), __FILE__, __LINE__);
 		}
 	}
 	/// Pixelを設定する。
-	void set(size_t x, size_t y, ubyte r, ubyte g, ubyte b) {
+	void set(size_t x, size_t y, ubyte r, ubyte g, ubyte b, ubyte a) {
 		size_t i = y * bytesPerLine + x * bpp;
 		switch (depth) {
 		case 24, 32:
@@ -55,14 +58,17 @@ struct Pixels {
 		default:
 			throw new Exception(.format("bit depth: %d", depth), __FILE__, __LINE__);
 		}
+		if (alpha.length) {
+			alpha[y * width + x] = a;
+		}
 	}
 	/// ditto
-	void set(size_t x, size_t y, uint r, uint g, uint b) {
-		set(x, y, cast(ubyte) r, cast(ubyte) g, cast(ubyte) b);
+	void set(size_t x, size_t y, uint r, uint g, uint b, uint a) {
+		set(x, y, cast(ubyte) r, cast(ubyte) g, cast(ubyte) b, cast(ubyte) a);
 	}
 	/// ditto
 	void set(size_t x, size_t y, in FC fc) {
-		set(x, y, fc.r, fc.g, fc.b);
+		set(x, y, fc.r, fc.g, fc.b, fc.a);
 	}
 	/// Pixelを交換する。
 	void swap(size_t x1, size_t y1, size_t x2, size_t y2) {
@@ -74,21 +80,21 @@ struct Pixels {
 
 /// RGB。
 struct FC {
-	ubyte r, g, b;
+	ubyte r, g, b, a;
 }
 
 /// intを使用するRGB。
 struct FCu {
-	int r, g, b;
+	int r, g, b, a;
 	@property
 	const
 	FC fc() {
-		return FC(cast(ubyte) r, cast(ubyte) g, cast(ubyte) b);
+		return FC(cast(ubyte) r, cast(ubyte) g, cast(ubyte) b, cast(ubyte) a);
 	}
 }
 
 /// Turnの効果を適用する。
-void turn(ref ubyte[] data, ref size_t width, ref size_t height, ref size_t bytesPerLine, Turn f, size_t depth) {
+void turn(ref ubyte[] data, ref ubyte[] alpha, ref size_t width, ref size_t height, ref size_t bytesPerLine, Turn f, size_t depth) {
 	if (f is Turn.NONE || width < 1 || height < 1) return;
 	size_t bpp = bytesPerLine / width;
 	size_t nw = height;
@@ -97,8 +103,8 @@ void turn(ref ubyte[] data, ref size_t width, ref size_t height, ref size_t byte
 	if (newBytesPerLine % 4 != 0) {
 		newBytesPerLine = newBytesPerLine - (newBytesPerLine % 4) + 4;
 	}
-	auto base = Pixels(data, width, height, depth, bytesPerLine, bpp);
-	auto r = Pixels(new ubyte[newBytesPerLine * nw], nw, nh, depth, newBytesPerLine, bpp);
+	auto base = Pixels(data, alpha, width, height, depth, bytesPerLine, bpp);
+	auto r = Pixels(new ubyte[newBytesPerLine * nw], alpha.length ? new ubyte[nw * nh] : new ubyte[0], nw, nh, depth, newBytesPerLine, bpp);
 	for (size_t y = 0; y < height; y++) {
 		for (size_t x = 0; x < width; x++) {
 			size_t xt;
@@ -118,34 +124,39 @@ void turn(ref ubyte[] data, ref size_t width, ref size_t height, ref size_t byte
 		}
 	}
 	data = r.data;
+	alpha = r.alpha;
 	width = nw;
 	height = nh;
 	bytesPerLine = newBytesPerLine;
 }
 /// Flipの効果を適用する。
-ubyte[] flip(ubyte[] data, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
+ubyte[] flip(ref ubyte[] data, ref ubyte[] alpha, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
 	if (width < 1 || height < 1) return data;
 	size_t bpp = bytesPerLine / width;
-	auto r = Pixels(data, width, height, depth, bytesPerLine, bpp);
+	auto r = Pixels(data, alpha, width, height, depth, bytesPerLine, bpp);
 	for (size_t y1 = 0; y1 < height / 2; y1++) {
 		for (size_t x = 0; x < width; x++) {
 			size_t y2 = height - y1 - 1;
 			r.swap(x, y1, x, y2);
 		}
 	}
+	data = r.data;
+	alpha = r.alpha;
 	return r.data;
 }
 /// Mirrorの効果を適用する。
-ubyte[] mirror(ubyte[] data, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
+ubyte[] mirror(ref ubyte[] data, ref ubyte[] alpha, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
 	if (width < 1 || height < 1) return data;
 	size_t bpp = bytesPerLine / width;
-	auto r = Pixels(data, width, height, depth, bytesPerLine, bpp);
+	auto r = Pixels(data, alpha, width, height, depth, bytesPerLine, bpp);
 	for (size_t y = 0; y < height; y++) {
 		for (size_t x1 = 0; x1 < width / 2; x1++) {
 			size_t x2 = width - x1 - 1;
 			r.swap(x1, y, x2, y);
 		}
 	}
+	data = r.data;
+	alpha = r.alpha;
 	return r.data;
 }
 void pixelProcImpl(T)(T f, ref FCu rgb) {
@@ -225,12 +236,14 @@ private void round(ref FCu rgb) {
 	if (rgb.g > 255) rgb.g = 255;
 	if (rgb.b < 0) rgb.b = 0;
 	if (rgb.b > 255) rgb.b = 255;
+	if (rgb.a < 0) rgb.a = 0;
+	if (rgb.a > 255) rgb.a = 255;
 }
 /// Colorexchange・Colormap・Filter・Maskの効果を適用する。
-private ubyte[] pixelProc(T)(T f, ubyte[] data, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
+private ubyte[] pixelProc(T)(T f, ref ubyte[] data, ref ubyte[] alpha, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
 	if (width < 1 || height < 1) return data;
 	size_t bpp = bytesPerLine / width;
-	auto r = Pixels(data, width, height, depth, bytesPerLine, bpp);
+	auto r = Pixels(data, alpha, width, height, depth, bytesPerLine, bpp);
 	for (size_t y = 0; y < height; y++) {
 		for (size_t x = 0; x < width; x++) {
 			auto rgb = r.get(x, y);
@@ -239,20 +252,22 @@ private ubyte[] pixelProc(T)(T f, ubyte[] data, size_t depth, size_t width, size
 			r.set(x, y, fc.fc);
 		}
 	}
+	data = r.data;
+	alpha = r.alpha;
 	return r.data;
 }
 /// Colorexchangeの効果を適用する。
-ubyte[] colorexchange(Colorexchange f, ubyte[] data, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
-	return pixelProc(f, data, depth, width, height, bytesPerLine);
+ubyte[] colorexchange(Colorexchange f, ref ubyte[] data, ref ubyte[] alpha, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
+	return pixelProc(f, data, alpha, depth, width, height, bytesPerLine);
 }
 /// Colormapの効果を適用する。
-ubyte[] colormap(Colormap f, ubyte[] data, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
-	return pixelProc(f, data, depth, width, height, bytesPerLine);
+ubyte[] colormap(Colormap f, ref ubyte[] data, ref ubyte[] alpha, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
+	return pixelProc(f, data, alpha, depth, width, height, bytesPerLine);
 }
-private ubyte[] emboss(ubyte[] data, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
+private ubyte[] emboss(ref ubyte[] data, ref ubyte[] alpha, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
 	if (width < 1 || height < 1) return data;
 	size_t bpp = bytesPerLine / width;
-	auto r = Pixels(data, width, height, depth, bytesPerLine, bpp);
+	auto r = Pixels(data, alpha, width, height, depth, bytesPerLine, bpp);
 	for (size_t y = 0; y < height; y++) {
 		for (size_t x = 0; x < width; x++) {
 			int jx = x + 1 < width ? x + 1 : x;
@@ -261,18 +276,20 @@ private ubyte[] emboss(ubyte[] data, size_t depth, size_t width, size_t height, 
 			auto j = r.get(jx, jy);
 			int val = (j.r + j.g + j.b) / 3 - (i.r + i.g + i.b) / 3 + 128;
 			if (val < 0 || val > 255) val = 0;
-			r.set(x, y, cast(ubyte) val, cast(ubyte) val, cast(ubyte) val);
+			r.set(x, y, cast(ubyte) val, cast(ubyte) val, cast(ubyte) val, i.a);
 		}
 	}
+	data = r.data;
+	alpha = r.alpha;
 	return r.data;
 }
-private ubyte[] deffusion(ubyte[] data, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
+private ubyte[] deffusion(ref ubyte[] data, ref ubyte[] alpha, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
 	if (width < 1 || height < 1) return data;
 	Random rnd;
 	rnd.seed(1); // 拡散値を固定する
 	size_t bpp = bytesPerLine / width;
-	auto base = Pixels(data, width, height, depth, bytesPerLine, bpp);
-	auto r = Pixels(new ubyte[data.length], width, height, depth, bytesPerLine, bpp);
+	auto base = Pixels(data, alpha, width, height, depth, bytesPerLine, bpp);
+	auto r = Pixels(new ubyte[data.length], new ubyte[alpha.length], width, height, depth, bytesPerLine, bpp);
 	for (size_t y = 0; y < height; y++) {
 		// cwconv.dllの実装では縦方向への拡散が微妙だがそれに合わせる
 		// 真に拡散させたい場合、jyの計算はxのループの内側にあるべき
@@ -286,17 +303,19 @@ private ubyte[] deffusion(ubyte[] data, size_t depth, size_t width, size_t heigh
 			r.set(x, y, r.get(jx, jy));
 		}
 	}
+	data = r.data;
+	alpha = r.alpha;
 	return r.data;
 }
 /// Filterの効果を適用する。
-ubyte[] filter(Filter f, ubyte[] data, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
+ubyte[] filter(Filter f, ref ubyte[] data, ref ubyte[] alpha, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
 	if (f is Filter.NONE || width < 1 || height < 1) return data;
 	switch (f) {
 	case Filter.MONO, Filter.NEGA: {
-		return pixelProc(f, data, depth, width, height, bytesPerLine);
+		return pixelProc(f, data, alpha, depth, width, height, bytesPerLine);
 	}
-	case Filter.DIFFUSION: return deffusion(data, depth, width, height, bytesPerLine);
-	case Filter.EMBOSS: return emboss(data, depth, width, height, bytesPerLine);
+	case Filter.DIFFUSION: return deffusion(data, alpha, depth, width, height, bytesPerLine);
+	case Filter.EMBOSS: return emboss(data, alpha, depth, width, height, bytesPerLine);
 	default: break;
 	}
 	int[3][3] ft;
@@ -367,8 +386,8 @@ ubyte[] filter(Filter f, ubyte[] data, size_t depth, size_t width, size_t height
 	default: assert (0);
 	}
 	size_t bpp = bytesPerLine / width;
-	auto base = Pixels(data, width, height, depth, bytesPerLine, bpp);
-	auto result = Pixels(new ubyte[data.length], width, height, depth, bytesPerLine, bpp);
+	auto base = Pixels(data, alpha, width, height, depth, bytesPerLine, bpp);
+	auto result = Pixels(new ubyte[data.length], alpha.length ? new ubyte[width * height] : new ubyte[0], width, height, depth, bytesPerLine, bpp);
 	for (size_t y = 0; y < height; y++) {
 		for (size_t x = 0; x < width; x++) {
 			int r = 0, g = 0, b = 0;
@@ -394,22 +413,26 @@ ubyte[] filter(Filter f, ubyte[] data, size_t depth, size_t width, size_t height
 			result.set(x, y, fc.fc);
 		}
 	}
+	data = result.data;
+	alpha = result.alpha;
 	return result.data;
 }
 /// Maskの効果を適用する。
-ubyte[] mask(Mask f, ubyte[] data, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
+ubyte[] mask(Mask f, ref ubyte[] data, ref ubyte[] alpha, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
 	if (width < 1 || height < 1) return data;
 	size_t bpp = bytesPerLine / width;
-	auto r = Pixels(data, width, height, depth, bytesPerLine, bpp);
+	auto r = Pixels(data, alpha, width, height, depth, bytesPerLine, bpp);
 	for (size_t y = 0; y < height; y++) {
 		for (size_t x = 0; x < width; x++) {
 			size_t i = y * bytesPerLine + x * bpp;
 			if (((f is Mask.V_LINE || f is Mask.MESH) && !(x & 0x1))
 					|| ((f is Mask.H_LINE || f is Mask.MESH) && !(y & 0x1))) {
-				r.set(x, y, cast(ubyte) 0, cast(ubyte) 0, cast(ubyte) 0);
+				r.set(x, y, cast(ubyte) 0, cast(ubyte) 0, cast(ubyte) 0, cast(ubyte) 0);
 			}
 		}
 	}
+	data = r.data;
+	alpha = r.alpha;
 	return r.data;
 }
 void noiseImpl(ref Random rnd, Noise f, ref FCu rgb, int value) {
@@ -455,7 +478,7 @@ void noiseImpl(ref Random rnd, Noise f, ref FCu rgb, int value) {
 	round(rgb);
 }
 /// Noiseの効果を適用する。
-ubyte[] noise(Noise f, int value, ubyte[] data, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
+ubyte[] noise(Noise f, int value, ref ubyte[] data, ref ubyte[] alpha, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
 	if (f is Noise.NONE || value == 0 || width < 1 || height < 1) {
 		return data;
 	}
@@ -464,7 +487,7 @@ ubyte[] noise(Noise f, int value, ubyte[] data, size_t depth, size_t width, size
 	Random rnd;
 	rnd.seed(42); // ノイズを固定する
 	size_t bpp = bytesPerLine / width;
-	auto r = Pixels(data, width, height, depth, bytesPerLine, bpp);
+	auto r = Pixels(data, alpha, width, height, depth, bytesPerLine, bpp);
 	for (size_t y = 0; y < height; y++) {
 		for (size_t x = 0; x < width; x++) {
 			if (f is Noise.MOSAIC) {
@@ -481,12 +504,14 @@ ubyte[] noise(Noise f, int value, ubyte[] data, size_t depth, size_t width, size
 			}
 		}
 	}
+	data = r.data;
+	alpha = r.alpha;
 	return r.data;
 }
 /// 拡大・縮小した結果を返す。
 /// スムージングは行わない。
 ubyte[] resize(size_t newWidth, size_t newHeight,
-		ubyte[] data, size_t depth, size_t width, size_t height, size_t bytesPerLine,
+		ref ubyte[] data, ref ubyte[] alpha, size_t depth, size_t width, size_t height, size_t bytesPerLine,
 		out size_t newBytesPerLine) {
 	if (width < 1 || height < 1) return data;
 	if (width == newWidth && height == newHeight) {
@@ -500,8 +525,8 @@ ubyte[] resize(size_t newWidth, size_t newHeight,
 	if (newBytesPerLine % 4 != 0) {
 		newBytesPerLine = newBytesPerLine - (newBytesPerLine % 4) + 4;
 	}
-	auto base = Pixels(data, width, height, depth, bytesPerLine, bpp);
-	auto r = Pixels(new ubyte[newHeight * newBytesPerLine], newHeight, newHeight, depth, newBytesPerLine, bpp);
+	auto base = Pixels(data, alpha, width, height, depth, bytesPerLine, bpp);
+	auto r = Pixels(new ubyte[newHeight * newBytesPerLine], alpha.length ? new ubyte[newWidth * newHeight] : new ubyte[0], newHeight, newHeight, depth, newBytesPerLine, bpp);
 	for (size_t y = 0; y < newHeight; y++) {
 		size_t ty = cast(size_t) (y / ph);
 		for (size_t x = 0; x < newWidth; x++) {
@@ -509,12 +534,14 @@ ubyte[] resize(size_t newWidth, size_t newHeight,
 			r.set(x, y, base.get(tx, ty));
 		}
 	}
+	data = r.data;
+	alpha = r.alpha;
 	return r.data;
 }
 
 /// 滑らかに拡大・縮小した結果を返す。
 ubyte[] smoothResize(size_t newWidth, size_t newHeight,
-		ubyte[] data, size_t depth, size_t width, size_t height, size_t bytesPerLine,
+		ref ubyte[] data, ref ubyte[] alpha, size_t depth, size_t width, size_t height, size_t bytesPerLine,
 		out size_t newBytesPerLine) {
 	if (width < 1 || height < 1) return data;
 	if (width == newWidth && height == newHeight) {
@@ -529,8 +556,8 @@ ubyte[] smoothResize(size_t newWidth, size_t newHeight,
 	if (newBytesPerLine % 4 != 0) {
 		newBytesPerLine = newBytesPerLine - (newBytesPerLine % 4) + 4;
 	}
-	auto base = Pixels(data, width, height, depth, bytesPerLine, bpp);
-	auto result = Pixels(new ubyte[newHeight * newBytesPerLine], newWidth, newHeight, depth, newBytesPerLine, bpp);
+	auto base = Pixels(data, alpha, width, height, depth, bytesPerLine, bpp);
+	auto result = Pixels(new ubyte[newHeight * newBytesPerLine], alpha.length ? new ubyte[newWidth * newHeight] : new ubyte[0], newWidth, newHeight, depth, newBytesPerLine, bpp);
 	for (size_t y = 0; y < newHeight; y++) {
 		real ty = y / ph;
 		int bby = cast(int) ty;
@@ -554,6 +581,7 @@ ubyte[] smoothResize(size_t newWidth, size_t newHeight,
 					a[i][j].r = rgb.r;
 					a[i][j].g = rgb.g;
 					a[i][j].b = rgb.b;
+					a[i][j].a = rgb.a;
 				}
 			}
 			int r = cast(int) (xbm * (a[0][0].r * ybm + a[1][0].r * yb)
@@ -562,10 +590,14 @@ ubyte[] smoothResize(size_t newWidth, size_t newHeight,
 				+ xb * (a[0][1].g * ybm + a[1][1].g * yb));
 			int b = cast(int) (xbm * (a[0][0].b * ybm + a[1][0].b * yb)
 				+ xb * (a[0][1].b * ybm + a[1][1].b * yb));
-			auto fc = FCu(r, g, b);
+			int al = cast(int) (xbm * (a[0][0].a * ybm + a[1][0].a * yb)
+				+ xb * (a[0][1].a * ybm + a[1][1].a * yb));
+			auto fc = FCu(r, g, b, al);
 			round(fc);
 			result.set(x, y, fc.fc);
 		}
 	}
+	data = result.data;
+	alpha = result.alpha;
 	return result.data;
 }

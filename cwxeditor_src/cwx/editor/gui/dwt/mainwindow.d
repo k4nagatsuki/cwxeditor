@@ -2139,7 +2139,11 @@ public:
 			auto tabf = cast(CTabFolder) e.widget;
 			if (!tabf || tabf.getItemCount() > 0) return;
 			auto rect = tabf.getClientArea();
-			drawWallpaper(e.gc, _comm.wallpaper, rect, _prop.var.etc.wallpaperStyle);
+			if (_prop.var.etc.wallpaperStyle < WallpaperStyle.min || WallpaperStyle.max < _prop.var.etc.wallpaperStyle) {
+				_prop.var.etc.wallpaperStyle = WallpaperStyle.Tile;
+			}
+			auto style = cast(WallpaperStyle) _prop.var.etc.wallpaperStyle;
+			drawWallpaper(e.gc, _comm.wallpaper, rect, style);
 		}
 	}
 	private class TabMenu {

@@ -1683,8 +1683,11 @@ void drawWallpaper(GC gc, Image img, Rectangle rect, WallpaperStyle style) {
 				data = buf.getImageData();
 			}
 			size_t bpl;
-			data.data = cast(byte[]) cwx.graphics.smoothResize(wi, hi, cast(ubyte[]) data.data,
+			auto bdata = cast(ubyte[]) data.data;
+			auto alpha = cast(ubyte[]) data.alphaData;
+			data.data = cast(byte[]) cwx.graphics.smoothResize(wi, hi, bdata, alpha,
 				data.depth, data.width, data.height, data.bytesPerLine, bpl);
+			data.alphaData = cast(byte[]) alpha;
 			data.width = wi;
 			data.height = hi;
 			data.bytesPerLine = bpl;

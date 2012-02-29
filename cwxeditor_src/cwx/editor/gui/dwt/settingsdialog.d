@@ -2131,7 +2131,7 @@ struct OldSettings {
 	Props prop;
 	string oldEnginePath;
 	string oldWallpaper;
-	WallpaperStyle oldWallpaperStyle;
+	int oldWallpaperStyle;
 	const string[] oldKeyCodes;
 	const OuterTool[] tools;
 	const ClassicEngine[] cEngines;
@@ -2146,7 +2146,7 @@ struct OldSettings {
 	int oldUndoMaxEvent;
 	int oldUndoMaxReplace;
 	int oldUndoMaxEtc;
-	DialogStatus oldDialogStatus;
+	int oldDialogStatus;
 	string[MenuID] oldMnemonic;
 	string[MenuID] oldHotkey;
 	this (Props prop) {

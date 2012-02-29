@@ -1300,7 +1300,10 @@ private:
 	}
 	void refreshWallpaper() {
 		_imgp.setBackgroundImage(_comm.wallpaper);
-		_imgp.wallpaperStyle = _prop.var.etc.wallpaperStyle;
+		if (_prop.var.etc.wallpaperStyle < WallpaperStyle.min || WallpaperStyle.max < _prop.var.etc.wallpaperStyle) {
+			_prop.var.etc.wallpaperStyle = WallpaperStyle.Tile;
+		}
+		_imgp.wallpaperStyle = cast(WallpaperStyle) _prop.var.etc.wallpaperStyle;
 	}
 	Control createImagePane(Composite parent) {
 		auto sc = new ScrolledComposite(parent, SWT.H_SCROLL | SWT.V_SCROLL);

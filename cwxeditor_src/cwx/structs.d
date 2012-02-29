@@ -44,7 +44,6 @@ struct LaunchOption {
 	void parseStrings(string[] args) {
 		size_t sc = 0u;
 		for (int i = 0; i < args.length; i++) {
-			bool help = false;
 			try {
 				switch (args[i]) {
 				case "-a": // エリア表示

@@ -102,6 +102,7 @@ public:
 /// イベントコンテントツリー。
 class EventTreeView : TCPD {
 private:
+	MouseTrack _mTrack = null;
 	Shell _toolWin = null;
 	Shell _autoHideTools = null;
 	Composite _comp;
@@ -1364,7 +1365,9 @@ private:
 			ca1.y = 0;
 			auto p1 = _contentsBoxArea.toControl(p);
 			if (ca1.contains(p1) || ca2.contains(p2)) {
-				if (!_autoHideTools.isVisible()) {
+				if (e.type is SWT.MouseDown && _autoHideTools.isVisible()) {
+				_autoHideTools.setVisible(false);
+ 				} else if ((e.type is SWT.MouseDown || _tree.isFocusControl()) && !_autoHideTools.isVisible()) {
 					calcAutoHideSize();
 					_autoHideTools.setVisible(true);
 				}
@@ -1422,10 +1425,10 @@ private:
 				saveToolWinPos();
 				_toolWin.dispose();
 			}
-			if (_autoHideTools) {
-				auto mTrack = new MouseTrack;
-				_autoHideTools.getDisplay().removeFilter(SWT.MouseEnter, mTrack);
-				_autoHideTools.getDisplay().removeFilter(SWT.MouseExit, mTrack);
+			if (_autoHideTools && _mTrack) {
+				_autoHideTools.getDisplay().removeFilter(SWT.MouseDown, _mTrack);
+				_autoHideTools.getDisplay().removeFilter(SWT.MouseEnter, _mTrack);
+				_autoHideTools.getDisplay().removeFilter(SWT.MouseExit, _mTrack);
 			}
 			foreach (dlg; _editDlgs.values) {
 				dlg.forceCancel();
@@ -1641,9 +1644,10 @@ public:
 			_autoHideTools.setLayout(zeroGridLayout(1));
 			_autoHideTools.addMouseListener(new TMListener);
 			_cbarPar = new Composite(_autoHideTools, SWT.NONE);
-			auto mTrack = new MouseTrack;
-			_autoHideTools.getDisplay().addFilter(SWT.MouseEnter, mTrack);
-			_autoHideTools.getDisplay().addFilter(SWT.MouseExit, mTrack);
+			_mTrack = new MouseTrack;
+			_autoHideTools.getDisplay().addFilter(SWT.MouseDown, _mTrack);
+			_autoHideTools.getDisplay().addFilter(SWT.MouseEnter, _mTrack);
+			_autoHideTools.getDisplay().addFilter(SWT.MouseExit, _mTrack);
 		} else {
 			_cbarPar = new Composite(_comp, SWT.NONE);
 		}
