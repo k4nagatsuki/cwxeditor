@@ -1503,6 +1503,7 @@ public:
 		case MenuID.Down: return "下へ";
 		case MenuID.ShowParty: return "パーティカードの表示";
 		case MenuID.ShowMsg: return "メッセージ枠の表示";
+		case MenuID.ShowRefCards: return "カード参照の表示";
 		case MenuID.FixedImage: return "イメージの固定";
 		case MenuID.ShowEnemyCardProp: return "レベルとライフを表示";
 		case MenuID.ShowCard: return "カードの表示";

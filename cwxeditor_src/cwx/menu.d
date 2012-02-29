@@ -98,6 +98,7 @@ enum MenuID {
 	Down,
 	ShowParty,
 	ShowMsg,
+	ShowRefCards,
 	FixedImage,
 	ShowEnemyCardProp,
 	ShowCard,
@@ -253,6 +254,7 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.Down] = "D";
 		_mnemonic[MenuID.ShowParty] = "P";
 		_mnemonic[MenuID.ShowMsg] = "M";
+		_mnemonic[MenuID.ShowRefCards] = "R";
 		_mnemonic[MenuID.FixedImage] = "F";
 		_mnemonic[MenuID.ShowEnemyCardProp] = "L";
 		_mnemonic[MenuID.ShowCard] = "V";
@@ -392,6 +394,7 @@ class MenuProps : Properties {
 		_hotkey[MenuID.Down] = "Ctrl+Arrow_Down";
 		_hotkey[MenuID.ShowParty] = "";
 		_hotkey[MenuID.ShowMsg] = "";
+		_hotkey[MenuID.ShowRefCards] = "";
 		_hotkey[MenuID.FixedImage] = "";
 		_hotkey[MenuID.ShowEnemyCardProp] = "";
 		_hotkey[MenuID.ShowCard] = "";

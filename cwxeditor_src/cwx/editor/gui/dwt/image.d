@@ -429,6 +429,7 @@ public:
 		case MenuID.Down: return imgd!("down.png");
 		case MenuID.ShowParty: return imgd!("party_cards.png");
 		case MenuID.ShowMsg: return imgd!("view_msg.png");
+		case MenuID.ShowRefCards: return imgd!("view_ref.png");
 		case MenuID.FixedImage: return imgd!("fixed.png");
 		case MenuID.ShowEnemyCardProp: return imgd!("card_life.png");
 		case MenuID.ShowCard: return imgd!("cards.png");
