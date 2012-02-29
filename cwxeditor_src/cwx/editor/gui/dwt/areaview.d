@@ -1305,7 +1305,7 @@ private:
 		sc.getHorizontalBar().setPageIncrement(vs.width / 5);
 		sc.getVerticalBar().setPageIncrement(vs.height / 5);
 		sc.setLayoutData(new GridData(GridData.FILL_BOTH));
-		_imgp = new ImagePane(sc, SWT.BORDER | SWT.NO_BACKGROUND | SWT.DOUBLE_BUFFERED);
+		_imgp = new ImagePane(sc, SWT.BORDER | SWT.NO_BACKGROUND);
 		static if (RefCards) {
 			listener(_imgp, SWT.Dispose, {
 				foreach (a; _imgp.appends) {
