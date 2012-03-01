@@ -997,37 +997,6 @@ private:
 	void saveScenario() {
 		_comm.save.call(dlgParShl.getShell());
 	}
-	class Exec {
-		private OuterTool _tool;
-		private void run() {
-			string file = "";
-			string[] sf = selFiles;
-			foreach (i, f; sf) {
-				file ~= `"` ~ f ~ `"`;
-				if (i + 1 < sf.length) file ~= " ";
-			}
-			string sp = _summ ? _summ.scenarioPath : std.file.getcwd();
-			auto cwd = std.file.getcwd();
-			string wd = OuterTool.parse(_tool.workDir, file, sp);
-			if (wd.length > 0) {
-				if (!cwx.utils.isabs(wd)) {
-					wd = std.path.buildPath(std.path.dirName(_prop.parent.appPath), wd);
-				}
-			} else {
-				wd = dirName(_prop.parent.appPath);
-			}
-			auto cmd = OuterTool.parse(_tool.command, file, sp);
-			if (!exec(cmd, wd)) {
-				MessageBox.showWarning
-					(.tryFormat(_prop.msgs.errorExec, _tool.name),
-					_prop.msgs.dlgTitWarning, _win.getShell());
-			}
-		}
-		this (Menu menu, OuterTool tool) {
-			createMenuItem2(_comm, menu, tool.name, null, &run, null);
-			_tool = tool;
-		}
-	}
 	void createFilesMenu() {
 		if (_files.getMenu()) _files.getMenu().dispose();
 		auto menu = new Menu(_win.getShell(), SWT.POP_UP);
@@ -1038,7 +1007,7 @@ private:
 		createMenuItem(_comm, menu, MenuID.CreateArchive, &createArchive, &canCreateArchive);
 		new MenuItem(menu, SWT.SEPARATOR);
 		foreach (tool; _prop.var.etc.outerTools) {
-			new Exec(menu, tool);
+			new Exec(this, menu, tool);
 		}
 		if (_prop.var.etc.outerTools.length > 0) new MenuItem(menu, SWT.SEPARATOR);
 		appendMenuTCPD(_comm, menu, this, true, true, true, true);
@@ -2195,5 +2164,39 @@ version (Windows) {
 			LPVOID  hNameMappings;
 			LPCWSTR lpszProgressTitle;
 		}
+	}
+}
+
+class Exec {
+	private DirectoryWindow _dirWin;
+	private OuterTool _tool;
+	private void run() {
+		string file = "";
+		string[] sf = _dirWin.selFiles;
+		foreach (i, f; sf) {
+			file ~= `"` ~ f ~ `"`;
+			if (i + 1 < sf.length) file ~= " ";
+		}
+		string sp = _dirWin._summ ? _dirWin._summ.scenarioPath : std.file.getcwd();
+		auto cwd = std.file.getcwd();
+		string wd = OuterTool.parse(_tool.workDir, file, sp);
+		if (wd.length > 0) {
+			if (!cwx.utils.isabs(wd)) {
+				wd = std.path.buildPath(std.path.dirName(_dirWin._prop.parent.appPath), wd);
+			}
+		} else {
+			wd = dirName(_dirWin._prop.parent.appPath);
+		}
+		auto cmd = OuterTool.parse(_tool.command, file, sp);
+		if (!exec(cmd, wd)) {
+			MessageBox.showWarning
+				(.tryFormat(_dirWin._prop.msgs.errorExec, _tool.name),
+				_dirWin._prop.msgs.dlgTitWarning, _dirWin._win.getShell());
+		}
+	}
+	this (DirectoryWindow dirWin, Menu menu, OuterTool tool) {
+		createMenuItem2(dirWin._comm, menu, tool.name, null, &run, null);
+		_dirWin = dirWin;
+		_tool = tool;
 	}
 }

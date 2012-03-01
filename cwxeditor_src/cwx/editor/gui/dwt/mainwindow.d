@@ -218,6 +218,23 @@ private:
 		}
 	}
 
+	Menu _mOuterTools;
+	Menu _tmOuterTools;
+	void refreshOuterTools() {
+		refreshOuterToolsImpl(_mOuterTools);
+		refreshOuterToolsImpl(_tmOuterTools);
+		setupMenu(_menu);
+		setupMenu(_tool);
+	}
+	void refreshOuterToolsImpl(Menu menu) {
+		foreach (itm; menu.getItems()) {
+			itm.dispose();
+		}
+		foreach (tool; _prop.var.etc.outerTools) {
+			new Exec(_dirWin, menu, tool);
+		}
+	}
+
 	void refreshTitle() {
 		if (summary) {
 			string path = summary.scenarioPath;
@@ -721,6 +738,7 @@ private:
 			_comm.refWallpaper.remove(&redrawAll);
 			_comm.replText.remove(&refreshTitle);
 			_comm.refClassicSkin.remove(&refreshExecEngine);
+			_comm.refOuterTools.remove(&refreshOuterTools);
 			_comm.refHistories.remove(&createFileMenu);
 			auto b = _win.getBounds();
 			_prop.var.mainWin.x = b.x;
@@ -1323,6 +1341,7 @@ public:
 			_comm.refWallpaper.add(&redrawAll);
 			_comm.replText.add(&refreshTitle);
 			_comm.refClassicSkin.add(&refreshExecEngine);
+			_comm.refOuterTools.add(&refreshOuterTools);
 			_comm.refHistories.add(&createFileMenu);
 			_win.addDisposeListener(new DListener);
 			_win.addShellListener(new SListener);
@@ -1706,6 +1725,10 @@ public:
 				_mExecEngine = new Menu(eemi);
 				eemi.setMenu(_mExecEngine);
 				new MenuItem(mt, SWT.SEPARATOR);
+				auto otmi = createMenuItem(_comm, mt, MenuID.OuterTools, dummy, () => _prop.var.etc.outerTools.length > 0, SWT.CASCADE);
+				_mOuterTools = new Menu(otmi);
+				otmi.setMenu(_mOuterTools);
+				new MenuItem(mt, SWT.SEPARATOR);
 				mixin (MenuAction!("mt", MenuID.Settings, SWT.PUSH, "settings", "null"));
 
 				auto mh = createMenu(_comm, bar, MenuID.Help);
@@ -1732,6 +1755,11 @@ public:
 				_mainMenu.add(MenuID.ExecEngine);
 				auto ti = createDropDownItem(_comm, bar, MenuID.ExecEngine, &execEngine, _tmExecEngine, () => canExecEngine || _prop.var.etc.classicEngines.length);
 				_tool[MenuID.ExecEngine] = ti;
+			}
+			void createOuterToolsTI(ToolBar bar) {
+				_mainMenu.add(MenuID.OuterTools);
+				auto ti = createDropDownItem(_comm, bar, MenuID.OuterTools, null, _tmOuterTools, () => _prop.var.etc.outerTools.length > 0);
+				_tool[MenuID.OuterTools] = ti;
 			}
 
 			if (_prop.var.etc.singleWindow) {
@@ -1863,6 +1891,8 @@ public:
 						auto bar = new ToolBar(cbar, SWT.FLAT);
 						createExecEngineTI(bar);
 						new ToolItem(bar, SWT.SEPARATOR);
+						createOuterToolsTI(bar);
+						new ToolItem(bar, SWT.SEPARATOR);
 						mixin (ToolAction!("bar", MenuID.Settings, SWT.PUSH, "settings", "null"));
 						createCoolItem(cbar, bar);
 					}
@@ -1894,6 +1924,8 @@ public:
 				new ToolItem(bar, SWT.SEPARATOR);
 				createExecEngineTI(bar);
 				new ToolItem(bar, SWT.SEPARATOR);
+				createOuterToolsTI(bar);
+				new ToolItem(bar, SWT.SEPARATOR);
 				mixin (ToolAction!("bar", MenuID.Settings, SWT.PUSH, "settings", "null"));
 				new ToolItem(bar, SWT.SEPARATOR);
 				mixin (ToolAction!("bar", MenuID.Close, SWT.PUSH, "exitAll", "null"));
@@ -1923,6 +1955,7 @@ public:
 			d.addFilter(SWT.KeyDown, new KeyDownFilter);
 			d.addFilter(SWT.MouseWheel, new SwitchTab);
 			refreshExecEngine();
+			refreshOuterTools();
 
 			dStr ~= " - " ~ .text(__LINE__);
 			int tx = _prop.var.mainWin.x == SWT.DEFAULT ? _win.getBounds().x : _prop.var.mainWin.x;
@@ -2377,6 +2410,10 @@ public:
 		foreach (id, itm; menus) {
 			if (id is MenuID.ExecEngine) {
 				itm.setEnabled(_prop.var.etc.enginePath.length || _prop.var.etc.classicEngines.length);
+				continue;
+			}
+			if (id is MenuID.OuterTools) {
+				itm.setEnabled(_prop.var.etc.outerTools.length > 0);
 				continue;
 			}
 			if (_tlp) {

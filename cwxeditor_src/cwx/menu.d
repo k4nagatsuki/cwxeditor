@@ -67,6 +67,7 @@ enum MenuID {
 	FileView,
 	ExecEngine,
 	ExecEngineAuto,
+	OuterTools,
 	Settings,
 	VersionInfo,
 	LockToolBar,
@@ -223,6 +224,7 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.FileView] = "F";
 		_mnemonic[MenuID.ExecEngine] = "G";
 		_mnemonic[MenuID.ExecEngineAuto] = "G";
+		_mnemonic[MenuID.OuterTools] = "T";
 		_mnemonic[MenuID.Settings] = "O";
 		_mnemonic[MenuID.VersionInfo] = "A";
 		_mnemonic[MenuID.LockToolBar] = "L";
@@ -363,6 +365,7 @@ class MenuProps : Properties {
 		_hotkey[MenuID.FileView] = "";
 		_hotkey[MenuID.ExecEngine] = "";
 		_hotkey[MenuID.ExecEngineAuto] = "F9";
+		_hotkey[MenuID.OuterTools] = "";
 		_hotkey[MenuID.Settings] = "";
 		_hotkey[MenuID.VersionInfo] = "";
 		_hotkey[MenuID.LockToolBar] = "";
