@@ -860,6 +860,7 @@ private:
 		}
 		return hist;
 	} unittest {
+		debug mixin(UTPerf);
 		assert (fullHistToHist(r"C:\test\test1") == r"C:\test\test1");
 		assert (fullHistToHist(`"C:\test\test1" aaa`) == r"C:\test\test1");
 	}
@@ -873,6 +874,7 @@ private:
 		}
 		return [];
 	} unittest {
+		debug mixin(UTPerf);
 		assert (fullHistToCWXPaths(r"C:\test\test1") == []);
 		assert (fullHistToCWXPaths(`"C:\test\test1" aaa&bbb`) == ["aaa", "bbb"]);
 	}
@@ -978,6 +980,7 @@ private:
 				return hist;
 			}
 		} unittest {
+			debug mixin(UTPerf);
 			version (Windows) {
 				string result;
 				result = cuthist(r"C:\Documents and Settings\aaaaaaaaaaaa\bbbbbbbbbb\test.file", 30);

@@ -995,6 +995,7 @@ public:
 		}
 		return path;
 	} unittest {
+		debug mixin(UTPerf);
 		assert (FlagDir.basename("\\test\\") == "test");
 		assert (FlagDir.basename("\\aaa\\test") == "test");
 		assert (FlagDir.basename("test") == "test");
@@ -1013,6 +1014,7 @@ public:
 		int sepLen = SEPARATOR.length;
 		return (len <= tlen) && (tpath[0 .. len] == path);
 	} unittest {
+		debug mixin(UTPerf);
 		auto dir1 = new FlagDir(cast(CWXPath) null);
 		auto dir2 = new FlagDir("aaaaA");
 		dir1.add(dir2);
@@ -1084,6 +1086,7 @@ public:
 		}
 		return "";
 	} unittest {
+		debug mixin(UTPerf);
 		assert (FlagDir.up("test\\") == "");
 		assert (FlagDir.up("\\aaa\\test") == "\\aaa\\");
 		assert (FlagDir.up("\\aaa\\test\\t\\") == "\\aaa\\test\\");

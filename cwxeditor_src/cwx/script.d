@@ -248,6 +248,7 @@ class CWXScript {
 		}
 		return decode(tok.value[1 .. $ - 1], tok.value[0]);
 	} unittest {
+		debug mixin(UTPerf);
 		auto s = new CWXScript(new CProps("", null), null);
 		assert (s.stringValue(Token(0, 0, Kind.STRING, `"abc"`), 0) == "abc");
 		assert (s.stringValue(Token(0, 0, Kind.STRING, `"a""bc"`), 0) == "a\"bc");
@@ -480,6 +481,7 @@ class CWXScript {
 		if (post.length) throwErrorToken(_prop.msgs.scriptErrorInvalidToken, i, pos, "");
 		return r;
 	} unittest {
+		debug mixin(UTPerf);
 		auto s = new CWXScript(new CProps("", null), null);
 		assert (s.tokenize("/*/*\n*/*/").length == 0);
 		auto tokens = s.tokenize("/*c*/start, 12.3 \ntest1 [$void] =\"str\ning//\"\n\r //comment\nELIF if\n1/2+3*4%(5-6)");
@@ -759,6 +761,7 @@ class CWXScript {
 		assert (i < tokens.length);
 		return calcImpl(0, tokens, i, varTable, strWidth);
 	} unittest {
+		debug mixin(UTPerf);
 		size_t i;
 		Token[] tokens;
 		Token[string] varTable;
@@ -1140,6 +1143,7 @@ class CWXScript {
 		}
 		return r;
 	} unittest {
+		debug mixin(UTPerf);
 		auto s = new CWXScript(new CProps("", null), null);
 		string statement
 = `
@@ -1369,6 +1373,7 @@ fi`;
 		}
 		return r;
 	} unittest {
+		debug mixin(UTPerf);
 		auto s = new CWXScript(new CProps("", null), null);
 		Token[] tokens;
 		size_t i;

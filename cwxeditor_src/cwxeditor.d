@@ -32,17 +32,15 @@ void main(string[] args) {
 			appPath = fromMBSz(pathBuf.idup.ptr);
 		} else {
 			version (Console) {
-				writeln("GetModuleFileName failure!");
+				cwriteln("GetModuleFileName failure!");
 			}
 		}
 	}
 	version (Console) {
 		string log = "Executed: " ~ appPath;
-		version (Windows) {
-			printf("%s\n\0".ptr, toMBSz(log));
-			dout.flush();
-		} else {
-			writeln(log);
+		cwriteln(log);
+		debug {
+			cwriteln(.tryFormat("unittest success: %d msec", utperf));
 		}
 	}
 	LaunchOption opt;

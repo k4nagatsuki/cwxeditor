@@ -86,6 +86,7 @@ string formatMsg(in string text,
 	}
 	return to!string(assumeUnique(result));
 } unittest {
+	debug mixin(UTPerf);
 	string[size_t] rFonts;
 	char[size_t] rColors;
 	string result = formatMsg("%flag1%, %flag2%, $step1$, $step2$, &R, &W, #m, #r, #v, #+", (string flag) {
@@ -118,6 +119,7 @@ void textUseItems(in string text,
 	}, null, rFonts, rColors);
 	fonts = rFonts.values;
 } unittest {
+	debug mixin(UTPerf);
 	string[] flags, steps, fonts;
 	textUseItems("#M#R#U#C#I#T#Yaaa$test$$あああ\t2$$#tes%t3$%tes#t%#a#Z#1#2#33d$dd%aaa%%#%#;%vv%#表%#", flags, steps, fonts);
 	assert(flags.sort == ["tes#t", "aaa", "#", "vv"].sort, .text(flags));
@@ -192,6 +194,7 @@ private string __replTextFlagStep(char Ch1, char Ch2)
 string replTextUseFlag(string text, string oldFlag, string newFlag) {
 	return __replTextFlagStep!('%', '$')(text, oldFlag, newFlag);
 } unittest {
+	debug mixin(UTPerf);
 	assert(replTextUseFlag("「%置 換 前%」", "置 換 前", "置 換 後") == "「%置 換 後%」");
 	assert(replTextUseFlag("aaa%aaa%$%置換前%$%置換前%a#%置換前%%aa$%置換前%", "置換前", "置換no後")
 		== "aaa%aaa%$%置換前%$%置換no後%a#%置換前%%aa$%置換no後%");
@@ -204,6 +207,7 @@ string replTextUseFlag(string text, string oldFlag, string newFlag) {
 string replTextUseStep(string text, string oldStep, string newStep) {
 	return __replTextFlagStep!('$', '%')(text, oldStep, newStep);
 } unittest {
+	debug mixin(UTPerf);
 	assert(replTextUseStep("「$置 換 前$」", "置 換 前", "置 換 後") == "「$置 換 後$」");
 	assert(replTextUseStep("aaa$aaa$%$置換前$%$置換前$a#$置換前$$aa%$置換前$", "置換前", "置換no後")
 		== "aaa$aaa$%$置換前$%$置換no後$a#$置換前$$aa%$置換no後$");
@@ -255,6 +259,7 @@ in {
 	}
 	return toUTF8(buf);
 } unittest {
+	debug mixin(UTPerf);
 	assert(replTextUseFont("#a#置$#置$#b%#置%#置", "font_置.bmp", "Font_換.bmp")
 		== "#a#換$#置$#b%#置%#換");
 	assert(replTextUseFont("#a#c$#c$#b%#C%#C", "fonT_c.bmp", "font_F.Bmp")
@@ -284,6 +289,7 @@ dstring putColor(dstring text, dchar color, size_t start, size_t end) {
 	return text[0u .. start] ~ cast(dchar) '&' ~ color
 		~ text[start .. end] ~ cast(dchar) '&' ~ defColor ~ text[end .. $];
 } unittest {
+	debug mixin(UTPerf);
 	assert (putColor("テストテスト"d, 'R', 1, 4) == "テ&Rストテ&Wスト"d);
 	assert (putColor("テストテスト"d, 'B', 2, 5) == "テス&Bトテス&Wト"d);
 	assert (putColor("&Rテストテスト"d, 'Y', 4, 7) == "&Rテス&Yトテス&Rト"d);

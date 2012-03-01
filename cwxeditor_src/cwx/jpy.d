@@ -333,6 +333,7 @@ private struct JptxTag {
 		}
 		return tag;
 	} unittest {
+		debug mixin(UTPerf);
 		auto t1 = JptxTag.parse("<b>");
 		assert (t1.name == "b");
 		auto t2 = JptxTag.parse("<lineheight=\"80\">");
@@ -518,6 +519,7 @@ struct Jptx {
 	bool fonttransparent = false;
 
 	unittest {
+		debug mixin(UTPerf);
 		Jptx jptx;
 		jptx.text = "Jptxのテスト。<br>改行した後、<b>太字<i>かつ斜体</i></b><s>打ち消し</s>"
 			~ "<font color=\"$000000\" face=\"font!\" pixels=\"28\">font!の黒の28px"
@@ -823,6 +825,7 @@ string jptxText(string jptxAll) {
 	}
 	return r;
 } unittest {
+	debug mixin(UTPerf);
 	assert (jptxText("[jptx:init]\nline1\nline2\r\n\n[jptx:begin]\r\na\nbcd\r\nefg\r\n[jptx:end]")
 		== "a\nbcd\r\nefg\r\n");
 }
@@ -847,6 +850,7 @@ string jptxText(string jptxAll, string jptxText) {
 	}
 	return r;
 } unittest {
+	debug mixin(UTPerf);
 	assert (jptxText("[jptx:init]\nline1\nline2\r\n\n[jptx:begin]\r\na\nbcd\r\nefg\r\n[jptx:end]", "a\rbc\r\n")
 		== "[jptx:init]\nline1\nline2\r\n\n[jptx:begin]\r\na\rbc\r\n[jptx:end]");
 }

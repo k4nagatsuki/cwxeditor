@@ -2090,6 +2090,7 @@ public:
 alias CardContainer!(true, true, true, true, true) Importable;
 alias CardContainer!(false, true, true, true, false) HandCards;
 unittest {
+	debug mixin(UTPerf);
 	new Importable("", "", false);
 	new HandCards("", "", false);
 }

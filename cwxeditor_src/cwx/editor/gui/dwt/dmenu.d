@@ -424,6 +424,7 @@ int convertAccelerator(string text) {
 	}
 	return 0;
 } unittest {
+	debug mixin(UTPerf);
 	assert (convertAccelerator("test\tCTRL+ARROW_UP") == (SWT.ARROW_UP | SWT.CTRL));
 	assert (convertAccelerator("test\tShift+A") == (SWT.SHIFT | 'A'));
 }

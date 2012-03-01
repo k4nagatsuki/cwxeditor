@@ -221,6 +221,7 @@ string appDataDir(string appPath) {
 }
 
 debug {
+	__gshared ulong utperf = 0;
 	__gshared ulong t[1024u];
 	shared static ~this () {
 		foreach (i, time; t) {
@@ -231,20 +232,26 @@ debug {
 	}
 	template FPerf(int I) {
 		static const FPerf
-			= "scope f_timer = StopWatch(AutoStart.yes);"
+			= "scope f_timer = std.datetime.StopWatch(std.datetime.AutoStart.yes);"
 			~ "scope (exit) {"
-			~ "f_timer.stop;"
-			~ ".t[" ~ .toStringNow!(I) ~ "] += f_timer.peek.mses;"
+			~ "f_timer.stop();"
+			~ ".t[" ~ .toStringNow!(I) ~ "] += f_timer.peek().msecs;"
 			~ "}";
 	}
-	const BPerfS = "scope b_timer = new StopWatch(AutoStart.yes);";
+	const BPerfS = "scope b_timer = new std.datetime.StopWatch(std.datetime.AutoStart.yes);";
 	template BPerf(int I) {
 		static const BPerf
-			= "b_timer.stop;"
-			~ ".t[" ~ .toStringNow!(I) ~ "] += b_timer.peek.mses;"
-			~ "b_timer.reset;"
-			~ "b_timer.start;";
+			= "b_timer.stop();"
+			~ ".t[" ~ .toStringNow!(I) ~ "] += b_timer.peek().msecs;"
+			~ "b_timer.reset();"
+			~ "b_timer.start();";
 	}
+	static const UTPerf
+		= "scope f_timer = std.datetime.StopWatch(std.datetime.AutoStart.yes);"
+		~ "scope (exit) {"
+		~ "f_timer.stop();"
+		~ ".utperf += f_timer.peek().msecs;"
+		~ "}";
 	static assert (FPerf!(10));
 	static assert (BPerf!(10));
 }
@@ -278,6 +285,7 @@ int xtoi(string x) {
 	}
 	return i;
 } unittest {
+	debug mixin(UTPerf);
 	assert (xtoi("FF") == 255, to!(string)(xtoi("FF")));
 	assert (xtoi("ff") == 255);
 	assert (xtoi("FFFE") == 65534);
@@ -300,6 +308,7 @@ string enumToString(E)(E e) {
 		~ enumToStringImpl!(E, 0)
 		~ "}");
 } unittest {
+	debug mixin(UTPerf);
 	enum En {
 		Abc, Def
 	}
@@ -325,6 +334,7 @@ E stringToEnum(E)(string name) {
 		~ "default: return E.init;"
 		~ "}");
 } unittest {
+	debug mixin(UTPerf);
 	enum En {
 		Abc, Def
 	}
@@ -530,6 +540,7 @@ class Wildcard {
 		return wild;
 	}
 } unittest {
+	debug mixin(UTPerf);
 	assert (Wildcard("test").find("test") == 0);
 	assert (Wildcard("test").find("atest") == 1);
 	assert (Wildcard("te?t").find("test") == 0);
@@ -591,6 +602,7 @@ bool containsPath(in string[] list, string path) {
 	}
 	return false;
 } unittest {
+	debug mixin(UTPerf);
 	assert (containsPath(["*.txt"], "test.txt"));
 	assert (containsPath([".*"], ".svn"));
 }
@@ -644,6 +656,7 @@ string normal(string path) {
 	}
 	return expandTilde(std.string.join(buf, sep));
 } unittest {
+	debug mixin(UTPerf);
 	version (Windows) {
 		assert (normal("C:/aaaa/./bbbb/../ccc../dd/test.d/..") == `C:\aaaa\ccc..\dd`);
 		assert (normal(`C:\./,/..\aaa/bbb/cc\../...\..\`) == `C:\aaa\bbb`);
@@ -690,6 +703,7 @@ string abs2rel(string base, string path) {
 	if (df < pathsp.length) r ~= pathsp[df .. $];
 	return std.string.join(r, sep);
 } unittest {
+	debug mixin(UTPerf);
 	version (Windows) {
 		assert (abs2rel(`c:\windows\system`, `c:\windows\system\test`) == `test`);
 		assert (abs2rel(`c:\windows\system`, `c:\windows\system\test\test.txt`) == `test\test.txt`);
@@ -731,6 +745,7 @@ string lastRet(string text) {
 	}
 	return text;
 } unittest {
+	debug mixin(UTPerf);
 	assert (lastRet("test\n\n\n") == "test\n");
 	assert (lastRet("test") == "test\n");
 	assert (lastRet("t\n\nes\nt\n\n") == "t\n\nes\nt\n");
@@ -768,6 +783,7 @@ T[] sortDlg(T, Dlg)(T[] arr, Dlg lmin) {
 	}
 	return sortDlg!(T)(arr[0u .. l], lmin) ~ sortDlg!(T)(arr[l .. $], lmin);
 } unittest {
+	debug mixin(UTPerf);
 	assert (sortDlg!(int)([8, 1, 4, 6, 5, 3, 2, 9, 7, 0], (in int a, in int b) {return a < b;})
 		== [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
 	int[] arr = [5, 2, 3, 4, 6, 7, 9, 1, 0, 8];
@@ -794,6 +810,7 @@ int qsearch(T)(in T[] ds, T c) {
 		return i;
 	}
 } unittest {
+	debug mixin(UTPerf);
 	assert (qsearch([1, 2, 4, 8, 16, 32, 64, 128], 0) == -1);
 	assert (qsearch([1, 2, 4, 8, 16, 32, 64, 128], 1) == 0);
 	assert (qsearch([1, 2, 4, 8, 16, 32, 64, 128], 2) == 1);
@@ -862,6 +879,7 @@ string createNewName(string base, bool delegate(string) use, bool space = true) 
 	}
 	return name;
 } unittest {
+	debug mixin(UTPerf);
 	assert (createNewName("aaa", (string n) {return n != "aaa" && n != "aaa (2)";}, true) == "aaa (3)");
 	assert (createNewName("aaa", (string n) {return n != "aaa" && n != "aaa(2)";}, false) == "aaa(3)");
 	assert (createNewName("aaa (2)", (string n) {return n != "aaa (2)" && n != "aaa (3)";}, true) == "aaa (4)");
@@ -889,6 +907,7 @@ string encodeLf(string s) {
 	s = replace(s, "\n", "\\n");
 	return s;
 } unittest {
+	debug mixin(UTPerf);
 	assert (encodeLf("\\\\\n\n\\") == "\\\\\\\\\\n\\n\\\\");
 }
 /// strsを\nを結合子にして結合する。
@@ -903,6 +922,7 @@ string encodeLf(in string[] strs, bool lastLf = true) {
 	}
 	return r;
 } unittest {
+	debug mixin(UTPerf);
 	assert (encodeLf(decodeLf("t\\\\e\\\\st\\ntest\\\\n\\\\")) == "t\\\\e\\\\st\\ntest\\\\n\\\\\\n");
 	assert (encodeLf(decodeLf("t\\\\e\\\\st\\ntest\\\\n\\\\"), false) == "t\\\\e\\\\st\\ntest\\\\n\\\\");
 }
@@ -933,6 +953,7 @@ string decodeLf2(string str) {
 	}
 	return toUTF8(buf);
 } unittest {
+	debug mixin(UTPerf);
 	assert (decodeLf("t\\\\e\\st\\ntest\\\\n\\") == ["t\\e\\st", "test\\n\\"]);
 	assert (decodeLf("t\\\\e\\st\\n\\\\ntest\\\\n\\\\n\\n") == ["t\\e\\st", "\\ntest\\n\\n"]);
 }
@@ -958,6 +979,7 @@ string[] decodeLf(string str, bool useEmpty = false) {
 	}
 	return r;
 } unittest {
+	debug mixin(UTPerf);
 	assert (decodeLf("t\\\\e\\st\\ntest\\\\n\\") == ["t\\e\\st", "test\\n\\"]);
 	assert (decodeLf("t\\\\e\\st\\n\\\\ntest\\\\n\\\\n\\n") == ["t\\e\\st", "\\ntest\\n\\n"]);
 }
@@ -999,6 +1021,7 @@ bool isSortedDlg(T, Dlg)(in T[] arr, Dlg cmp) {
 	}
 	return true;
 } unittest {
+	debug mixin(UTPerf);
 	assert (isSorted([1, 2, 3]));
 	assert (!isSorted([1, 3, 2]));
 }
@@ -1019,6 +1042,7 @@ string toHex(string str) {
 	}
 	return r;
 } unittest {
+	debug mixin(UTPerf);
 	string result;
 	result = toHex("aBc");
 	assert (result == "%61%42%63", result);
@@ -1248,6 +1272,7 @@ private int ncmpImpl(C1, C2, alias Cmp)(in C1[] a, in C2[] b) {
 	}
 	return 0;
 } unittest {
+	debug mixin(UTPerf);
 	assert (ncmp("42", "2") > 0);
 	assert (ncmp("02", "2") < 0);
 	assert (ncmp("abc42", "abc4") > 0);
@@ -1264,6 +1289,7 @@ private C[] zfill_(C)(in C[] str, size_t width) {
 	r[n .. $] = str;
 	return cast(C[]) r;
 } unittest {
+	debug mixin(UTPerf);
 	assert (zfill_("abc", 2) == "abc");
 	assert (zfill_("abc", 3) == "abc");
 	assert (zfill_("abc", 4) == "0abc");
@@ -1398,6 +1424,7 @@ bool hasPath(string sPath, string path) {
 	return cwx.utils.fnstartsWith(path, sPath)
 		&& (path.length == sPath.length || startsWith(path[sPath.length .. $], sep));
 } unittest {
+	debug mixin(UTPerf);
 	version (Windows) {
 		assert (hasPath(`c:\test\aaa`, `c:\test\aaa\bbb`));
 		assert (!hasPath(`c:\test\aaa`, `c:\test\aaaaaa`));
@@ -1489,6 +1516,7 @@ size_t icount(string s, string sub) {
 		s = s[i + sub.length .. $];
 	}
 } unittest {
+	debug mixin(UTPerf);
 	assert (icount("test", "Es") == 1);
 	assert (icount("aaaaaaa", "AA") == 3);
 }
@@ -1504,6 +1532,7 @@ string ireplace(string s, string from, string to) {
 		s = s[i + from.length .. $];
 	}
 } unittest {
+	debug mixin(UTPerf);
 	assert (ireplace("testte", "te", "tea") == "teasttea");
 	assert (ireplace("test", "Es", "TT") == "tTTt");
 	assert (ireplace("aaaaaaa", "AA", "BB") == "BBBBBBa");
@@ -1522,6 +1551,7 @@ string formatNum(N, size_t Count = 3, string Sep = ",")(N num) {
 	buf = s ~ buf;
 	return buf;
 } unittest {
+	debug mixin(UTPerf);
 	assert (formatNum(123) == "123");
 	assert (formatNum(123456) == "123,456");
 	assert (formatNum(1234567) == "1,234,567");
@@ -1555,6 +1585,7 @@ size_t lengthJ(in char[] text) {
 	}
 	return len;
 } unittest {
+	debug mixin(UTPerf);
 	assert (lengthJ("斉") == 2);
 	assert (lengthJ("大秦") == 4);
 	assert (lengthJ("1万") == 3);
@@ -1574,6 +1605,7 @@ size_t lineCount(in string[] lines) {
 	}
 	return to - from;
 } unittest {
+	debug mixin(UTPerf);
 	assert (lineCount(splitLines!string("\na\nb\n\nc\n\n")) == 4);
 }
 /// std.algorithm.countUntilはconst配列に対する検索が通らない
@@ -1626,6 +1658,7 @@ string sliceJ(string text, size_t from, size_t to) {
 	if (!ok) te();
 	return text[s .. e];
 } unittest {
+	debug mixin(UTPerf);
 	assert (sliceJ("あいうえお", 2, 10) == "いうえお");
 	assert (sliceJ("あいうeお", 2, 9) == "いうeお");
 	assert (sliceJ("あいうえお", 2, 9) == "いうえ");
@@ -1669,6 +1702,7 @@ bool cfnmatch(string a, string b) {
 	b = b.replace("\\", "\\\\");
 	return Wildcard(b, 0 == filenameCharCmp('A', 'a')).match(a);
 } unittest {
+	debug mixin(UTPerf);
 	assert (cfnmatch(r"C:\path", r"C:\path"));
 }
 

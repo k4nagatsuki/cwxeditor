@@ -1,6 +1,8 @@
 
 module cwx.sjis;
 
+import cwx.utils;
+
 import std.exception;
 
 /// Shift JIS -> Unicode 変換テーブル。
@@ -51,6 +53,7 @@ bool valid(CP CPage)(dchar c) {
 		return std.utf.isValidDchar(c);
 	} else static assert (0);
 } unittest {
+	debug mixin(UTPerf);
 	assert (valid!(CP.SJIS)(0xB1));
 	assert (!valid!(CP.SJIS)(0xFC4C));
 	assert (!valid!(CP.SJIS)(0x80));
@@ -142,6 +145,7 @@ char[] convTo(CP CP1, CP CP2)(in char[] s) {
 		}
 	}
 } unittest {
+	debug mixin(UTPerf);
 	assert (convTo!(CP.UNI, CP.SJIS)(cast(char[]) [0x95, 0x5C, 0x8E, 0xA6]) == "表示");
 	assert (convTo!(CP.SJIS, CP.UNI)("表示") == cast(char[]) [0x95, 0x5C, 0x8E, 0xA6]);
 	assert (convTo!(CP.UNI, CP.SJIS)(convTo!(CP.SJIS, CP.UNI)("表示")) == "表示");

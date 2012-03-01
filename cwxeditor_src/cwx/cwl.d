@@ -29,6 +29,7 @@ import cwx.utils;
 import cwx.sjis;
 
 unittest {
+	debug mixin(UTPerf);
 	try {
 		loadLScenario!(Summary)("", "", true, null);
 		loadLScenario!(Importable)("", "", true, null);

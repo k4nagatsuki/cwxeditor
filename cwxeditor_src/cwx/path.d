@@ -53,6 +53,7 @@ string[] cpattr(string path) {
 	}
 	return attrs;
 } unittest {
+	debug mixin(UTPerf);
 	string path = "area:3/event:0/:5/:0/:1;shallow;deep";
 	assert (cpattr(path).sort == ["deep", "shallow"]);
 	path = "area:3/event:0/:5/:0/:1";
@@ -70,6 +71,7 @@ private string cpattrRef(ref string path) {
 	path = path[0 .. index];
 	return attr;
 } unittest {
+	debug mixin(UTPerf);
 	string path = "area:3/event:0/:5/:0/:1;shallow;deep";
 	assert (cpattrRef(path) == ";shallow;deep");
 	assert (path == "area:3/event:0/:5/:0/:1");
@@ -86,6 +88,7 @@ string cpbody(string path) {
 	}
 	return path;
 } unittest {
+	debug mixin(UTPerf);
 	string path = "area:3/event:0/:5/:0/:1;shallow;deep";
 	assert (cpbody(path) == "area:3/event:0/:5/:0/:1");
 	path = "area:3/event:0/:5/:0/:1";
@@ -112,6 +115,7 @@ bool cpempty(string path) {
 	int index = std.string.indexOf(path, ";");
 	return 0 == index;
 } unittest {
+	debug mixin(UTPerf);
 	assert (cpempty(""));
 	assert (cpempty(";shallow;deep"));
 	assert (!cpempty("area:3"));
@@ -124,6 +128,7 @@ string cpparent(string path) {
 	int index = std.string.lastIndexOf(path, "/");
 	return (index >= 0 ? path[0 .. index] : "") ~ attrs;
 } unittest {
+	debug mixin(UTPerf);
 	assert (cpparent("area:3/event:0/:5/:0/:1") == "area:3/event:0/:5/:0");
 }
 
@@ -133,6 +138,7 @@ string cptop(string path) {
 	int index = std.string.indexOf(path, "/");
 	return (index >= 0 ? path[0 .. index] : path) ~ attrs;
 } unittest {
+	debug mixin(UTPerf);
 	assert (cptop("area:3/event:0/:5/:0/:1") == "area:3");
 }
 /// シナリオ内パスの先頭部分以外を返す。
@@ -141,6 +147,7 @@ string cpbottom(string path) {
 	int index = std.string.indexOf(path, "/");
 	return (index >= 0 ? path[index + 1 .. $] : "") ~ attrs;
 } unittest {
+	debug mixin(UTPerf);
 	assert (cpbottom("area:3/event:0/:5/:0/:1") == "event:0/:5/:0/:1");
 }
 /// シナリオ内パスの先頭のカテゴリを返す。
@@ -149,6 +156,7 @@ string cpcategory(string path) {
 	int index = std.string.lastIndexOf(top, ":");
 	return index >= 0 ? top[0 .. index] : top;
 } unittest {
+	debug mixin(UTPerf);
 	assert (cpcategory("area:3/event:0/:5/:0/:1") == "area");
 }
 /// シナリオ内パスの先頭のindexを返す。
@@ -157,6 +165,7 @@ size_t cpindex(string path) {
 	int index = std.string.lastIndexOf(top, ":");
 	return index >= 0 ? to!(size_t)(top[index + 1 .. $]) : 0;
 } unittest {
+	debug mixin(UTPerf);
 	assert (cpindex("area:3/event:0/:5/:0/:1") == 3);
 }
 /// path1がpath2そのもの、

@@ -401,6 +401,7 @@ class RadarSpinner : Composite {
 		if (n < 0) r += minusMarkLen;
 		return r;
 	} unittest {
+		debug mixin(UTPerf);
 		assert (figure(100, 1, 10) == 3);
 		assert (figure(99, 1, 10) == 2);
 		assert (figure(123, 1, 10) == 3);
