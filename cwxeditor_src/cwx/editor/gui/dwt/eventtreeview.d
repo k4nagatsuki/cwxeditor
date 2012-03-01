@@ -2422,9 +2422,9 @@ public:
 		string tp = prop.msgs.physicalName(p);
 		string tm = prop.msgs.mentalName(m);
 		if (val) {
-			return .tryFormat(prop.msgs.branchAbilitySuccess, t, lev, tp, tm);
+			return .tryFormat(prop.msgs.branchAbilitySuccess, tt, lev, tp, tm);
 		} else {
-			return .tryFormat(prop.msgs.branchAbilityFailure, t, lev, tp, tm);
+			return .tryFormat(prop.msgs.branchAbilityFailure, tt, lev, tp, tm);
 		}
 	}
 	private static string evtChildBrRandom(in Props prop, int percent, ref string text) {
