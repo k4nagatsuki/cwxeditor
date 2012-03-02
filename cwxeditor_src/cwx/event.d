@@ -979,28 +979,6 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			if (_type is CType.START && _tree) {
 				_tree.startUseCounter.change(toStartId(_name), toStartId(name), true);
 			}
-			if (_parent && _parent.detail.nextType == CNextType.ID_AREA) {
-				if (icmp(name, "default") == 0) {
-					area = 0;
-				} else if (std.string.isNumeric(name)) {
-					try {
-						area = to!(ulong)(name);
-					} catch {
-						area = 0;
-					}
-				}
-			}
-			if (_parent && _parent.detail.nextType == CNextType.ID_BATTLE) {
-				if (icmp(name, "default") == 0) {
-					battle = 0;
-				} else if (std.string.isNumeric(name)) {
-					try {
-						battle = to!(ulong)(name);
-					} catch {
-						battle = 0;
-					}
-				}
-			}
 		}
 		_name = name;
 	}

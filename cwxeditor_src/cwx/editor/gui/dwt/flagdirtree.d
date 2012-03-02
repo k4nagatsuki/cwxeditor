@@ -597,7 +597,7 @@ public:
 		}
 		@property
 		bool canDoTCPD() {
-			return dirs.isFocusControl();
+			return _comm.summary && dirs.isFocusControl();
 		}
 		@property
 		bool canDoT() {
@@ -609,7 +609,7 @@ public:
 		}
 		@property
 		bool canDoP() {
-			return true;
+			return _comm.summary !is null;
 		}
 		@property
 		bool canDoD() {

@@ -1458,7 +1458,7 @@ public:
 		}
 		@property
 		bool canDoTCPD() {
-			return flags.isFocusControl();
+			return _comm.summary && flags.isFocusControl();
 		}
 		@property
 		bool canDoT() {
@@ -1470,7 +1470,7 @@ public:
 		}
 		@property
 		bool canDoP() {
-			return true;
+			return _comm.summary !is null;
 		}
 		@property
 		bool canDoD() {

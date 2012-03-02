@@ -1374,7 +1374,7 @@ public:
 		}
 		@property
 		bool canDoTCPD() {
-			return _areas.isFocusControl();
+			return _summ && _areas.isFocusControl();
 		}
 		@property
 		bool canDoT() {
@@ -1386,7 +1386,7 @@ public:
 		}
 		@property
 		bool canDoP() {
-			return true;
+			return _summ !is null;
 		}
 		@property
 		bool canDoD() {

@@ -2111,6 +2111,7 @@ public:
 	}
 	@property
 	bool canDoT() {
+		if (!_summ) return false;
 		if (_dirs.isFocusControl()) {
 			auto sels = _dirs.getSelection();
 			return sels.length > 0 && sels[0].getParentItem();
@@ -2121,6 +2122,7 @@ public:
 	}
 	@property
 	bool canDoC() {
+		if (!_summ) return false;
 		if (_dirs.isFocusControl()) {
 			return _dirs.getSelection().length > 0;
 		} else if (_files.isFocusControl()) {
@@ -2130,7 +2132,7 @@ public:
 	}
 	@property
 	bool canDoP() {
-		return true;
+		return _summ !is null;
 	}
 	@property
 	bool canDoD() {

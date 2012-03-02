@@ -555,7 +555,7 @@ private:
 		}
 		@property
 		override bool canDoTCPD() {
-			return widget.isFocusControl();
+			return _summ && widget.isFocusControl();
 		}
 		@property
 		override bool canDoT() {
@@ -567,7 +567,7 @@ private:
 		}
 		@property
 		override bool canDoP() {
-			return true;
+			return _summ !is null;
 		}
 		@property
 		override bool canDoD() {
