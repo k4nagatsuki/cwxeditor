@@ -1940,13 +1940,13 @@ public:
 				break;
 			case wsn:
 				synchronized (_comm.saveSync) {
-					_summ.createZip(fname, _prop.var.etc.ignorePaths, false);
+					_summ.createZip(fname, _prop.var.etc.ignorePaths, true);
 				}
 				_prop.var.etc.selectedArchiveFilter = "wsn";
 				break;
 			default:
 				synchronized (_comm.saveSync) {
-					_summ.createZip(fname, _prop.var.etc.ignorePaths, true);
+					_summ.createZip(fname, _prop.var.etc.ignorePaths, false);
 				}
 				_prop.var.etc.selectedArchiveFilter = "zip";
 				break;

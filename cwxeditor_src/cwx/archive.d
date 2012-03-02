@@ -112,7 +112,7 @@ ArchiveMember archive(string name, ubyte[] data, bool isDir, bool useSysEnc = fa
 /// ignorePath = このdelegeteがtrueを返したパスは除外される。
 /// useSysEnc = trueにするとファイル名にシステムの文字コードをそのまま使用する。
 ///             falseの場合はUTF-8を使用する。
-ZipArchive zip(string targ, bool top, bool delegate(string path) ignorePath = null, bool useSysEnc = false) {
+ZipArchive zip(string targ, bool top, bool delegate(string path) ignorePath, bool useSysEnc) {
 	auto arc = new ZipArchive;
 	scope path = nabs(targ);
 	size_t cut;
@@ -179,11 +179,11 @@ ZipArchive zip(string targ, bool top, string[] excludePath = [], bool useSysEnc 
 }
 
 /// targをzip圧縮し、パスzipに保存する。
-void zip(string targ, string zip, bool top, bool delegate(string path) ignorePath = null, bool useSysEnc = false) {
-	scope arc = .zip(targ, top, ignorePath);
+void zip(string targ, string zip, bool top, bool delegate(string path) ignorePath, bool useSysEnc) {
+	scope arc = .zip(targ, top, ignorePath, useSysEnc);
 	std.file.write(zip, arc.build());
 }
-void zip(string targ, string zip, bool top, string[] excludePath = [], bool useSysEnc = false) {
+void zip(string targ, string zip, bool top, string[] excludePath, bool useSysEnc) {
 	foreach (i, ex; excludePath) {
 		excludePath[i] = nabs(ex);
 	}
