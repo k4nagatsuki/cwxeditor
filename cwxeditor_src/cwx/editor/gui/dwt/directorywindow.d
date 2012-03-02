@@ -67,6 +67,7 @@ import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -2168,6 +2169,12 @@ version (Windows) {
 		}
 	}
 }
+version (Windows) {
+	extern (Windows) {
+		void PathRemoveArgsW(LPWSTR);
+		void PathUnquoteSpacesW(LPWSTR);
+	}
+}
 
 class Exec {
 	private DirectoryWindow _dirWin;
@@ -2197,7 +2204,29 @@ class Exec {
 		}
 	}
 	this (DirectoryWindow dirWin, Menu menu, OuterTool tool) {
-		createMenuItem2(dirWin._comm, menu, tool.name, null, &run, null);
+		auto icon = dirWin._prop.images.menu(MenuID.OuterTools);
+		version (Windows) {
+			auto mi = createMenuItem2(dirWin._comm, menu, tool.name, icon, &run, null);
+			auto com = toUTF16(tool.command);
+			auto wcom = new wchar[com.length + 1];
+			wcom[0 .. com.length] = com[];
+			wcom[$ - 1] = '\0';
+			PathRemoveArgsW(wcom.ptr);
+			PathUnquoteSpacesW(wcom.ptr);
+			com = wcom[0 .. std.algorithm.countUntil(wcom, '\0')].idup;
+			if (com.length) {
+				auto exeIcon = loadIcon(to!string(com), 16, 16);
+				if (exeIcon) {
+					auto img = new Image(mi.getDisplay(), exeIcon);
+					listener(mi, SWT.Dispose, {
+						img.dispose();
+					});
+					mi.setImage(img);
+				}
+			}
+		} else {
+			createMenuItem2(dirWin._comm, menu, tool.name, icon, &run, null);
+		}
 		_dirWin = dirWin;
 		_tool = tool;
 	}

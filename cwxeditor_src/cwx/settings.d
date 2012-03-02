@@ -143,7 +143,7 @@ abstract class Properties {
 			}
 			foreach (fld; this.tupleof) {
 				static if (is(typeof(fld.READ_ONLY))) {
-					if (!fld.READ_ONLY || fld() != fld.init) {
+					if (fld() != fld.init) {
 						fld.toNode(e);
 					}
 				}

@@ -104,6 +104,54 @@ version (Windows) {
 		const DWORD LOAD_LIBRARY_AS_DATAFILE = 0x2;
 		const DWORD LOAD_WITH_ALTERED_SEARCH_PATH = 0x8;
 		HBITMAP LoadBitmapW(HINSTANCE, LPCWSTR);
+		const DWORD LR_DEFAULTSIZE = 0x0040;
+		LPWSTR MAKEINTRESOURCEW(WORD w) {return cast(LPWSTR) w;}
+		struct SHFILEINFO {
+			HICON hIcon = null;
+			INT iIcon;
+			DWORD dwAttributes;
+			WCHAR[MAX_PATH] szDisplayName;
+			WCHAR[80] szTypeName;
+		}
+		DWORD* SHGetFileInfoW(in LPCWSTR pszPath, DWORD dwFileAttributes, SHFILEINFO *psfi, UINT cbFileInfo, UINT uFlags);
+		const DWORD SHGFI_ICON = 0x0100;
+		const DWORD SHGFI_LARGEICON = 0x0000;
+		const DWORD SHGFI_SMALLICON = 0x0001;
+		const DWORD ASSOCSTR_EXECUTABLE = 2;
+		void PathRemoveArgsW(LPWSTR);
+		void PathUnquoteSpacesW(LPWSTR);
+	}
+
+	ImageData loadIcon(string exe, int w, int h) {
+		alias org.eclipse.swt.internal.win32.OS.OS OS;
+		alias org.eclipse.swt.internal.win32.WINAPI WINAPI;
+		alias org.eclipse.swt.internal.win32.WINTYPES WINTYPES;
+		mixin FileCache!(ImageData);
+		auto ca = cache(exe);
+		if (ca) {
+			return ca.value;
+		} else {
+			if (!cwx.utils.isabs(exe)) {
+				auto path = new wchar[MAX_PATH];
+				DWORD cchOut = path.length;
+				auto r = WINAPI.AssocQueryStringW(ASSOCSTR_EXECUTABLE, OS.ASSOCSTR_COMMAND, toUTFz!(wchar*)(exe), null, path.ptr, &cchOut);
+				if (FAILED(r) || 0 == cchOut) return null;
+				PathRemoveArgsW(path.ptr);
+				PathUnquoteSpacesW(path.ptr);
+				exe = std.conv.to!string(path[0 .. std.algorithm.countUntil(path, '\0')]);
+			}
+			if (!.exists(exe)) return null;
+			SHFILEINFO info;
+			SHGetFileInfoW(toUTFz!(wchar*)(exe), 0, &info, info.sizeof, SHGFI_ICON | SHGFI_SMALLICON);
+			HICON hbmp = info.hIcon;
+			if (!hbmp) return null;
+			scope (exit) DeleteObject(hbmp);
+			auto img = Image.win32_new(Display.getCurrent(), SWT.ICON, hbmp);
+			auto data = img.getImageData();
+			img.destroy();
+			putCache(exe, data);
+			return data;
+		}
 	}
 	private static ImageData imgr(string legacyEngine, string resName, bool mask, bool rmask) {
 		mixin FileCache!(ImageData);
