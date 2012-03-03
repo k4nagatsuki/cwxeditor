@@ -1007,8 +1007,8 @@ private:
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.CreateArchive, &createArchive, &canCreateArchive);
 		new MenuItem(menu, SWT.SEPARATOR);
-		foreach (tool; _prop.var.etc.outerTools) {
-			new Exec(this, menu, tool);
+		foreach (i, tool; _prop.var.etc.outerTools) {
+			new Exec(this, menu, tool, i);
 		}
 		if (_prop.var.etc.outerTools.length > 0) new MenuItem(menu, SWT.SEPARATOR);
 		appendMenuTCPD(_comm, menu, this, true, true, true, true);
@@ -2203,10 +2203,16 @@ class Exec {
 				_dirWin._prop.msgs.dlgTitWarning, _dirWin._win.getShell());
 		}
 	}
-	this (DirectoryWindow dirWin, Menu menu, OuterTool tool) {
+	this (DirectoryWindow dirWin, Menu menu, OuterTool tool, int index) {
 		auto icon = dirWin._prop.images.menu(MenuID.OuterTools);
+		string name = tool.name;
+		if (index + 1 <= 9) {
+			name = .tryFormat("&%d ", index + 1) ~ name;
+		} else {
+			name = "&" ~ name;
+		}
 		version (Windows) {
-			auto mi = createMenuItem2(dirWin._comm, menu, tool.name, icon, &run, null);
+			auto mi = createMenuItem2(dirWin._comm, menu, name, icon, &run, null);
 			auto com = toUTF16(tool.command);
 			auto wcom = new wchar[com.length + 1];
 			wcom[0 .. com.length] = com[];
@@ -2225,7 +2231,7 @@ class Exec {
 				}
 			}
 		} else {
-			createMenuItem2(dirWin._comm, menu, tool.name, icon, &run, null);
+			createMenuItem2(dirWin._comm, menu, name, icon, &run, null);
 		}
 		_dirWin = dirWin;
 		_tool = tool;

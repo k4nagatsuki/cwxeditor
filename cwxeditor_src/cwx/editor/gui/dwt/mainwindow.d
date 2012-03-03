@@ -271,8 +271,8 @@ private:
 		foreach (itm; menu.getItems()) {
 			itm.dispose();
 		}
-		foreach (tool; _prop.var.etc.outerTools) {
-			new Exec(_dirWin, menu, tool);
+		foreach (i, tool; _prop.var.etc.outerTools) {
+			new Exec(_dirWin, menu, tool, i);
 		}
 	}
 
