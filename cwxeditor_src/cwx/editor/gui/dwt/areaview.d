@@ -1942,19 +1942,16 @@ public:
 				_refAreas.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 				_refAreas.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				_refAreas.add(_prop.msgs.noRefArea);
-				refreshRefAreas();
-				_refAreas.addSelectionListener(new class SelectionAdapter {
-					override void widgetSelected(SelectionEvent e) {
-						int sel = _refAreas.getSelectionIndex();
-						_refTarget = sel <= 0 ? null : _refAreasArr[sel - 1];
-						if (!_refTarget) {
-							foreach (a; _imgp.appends) {
-								a.dispose();
-							}
-							_imgp.appends = [];
+				listener(_refAreas,  SWT.Selection, {
+					int sel = _refAreas.getSelectionIndex();
+					_refTarget = sel <= 0 ? null : _refAreasArr[sel - 1];
+					if (!_refTarget) {
+						foreach (a; _imgp.appends) {
+							a.dispose();
 						}
-						refreshPanel();
+						_imgp.appends = [];
 					}
+					refreshPanel();
 				});
 				{
 					auto menu = new Menu(_refAreas.getShell(), SWT.POP_UP);
@@ -1970,18 +1967,16 @@ public:
 				_comm.delMenuCard.add(&delRefMenuCard);
 				_comm.upMenuCard.add(&upRefMenuCards);
 				_comm.downMenuCard.add(&downRefMenuCards);
-				_refAreas.addDisposeListener(new class DisposeListener {
-					override void widgetDisposed(DisposeEvent e) {
-						_comm.refArea.remove(&refreshRefAreasA);
-						_comm.delArea.remove(&refreshRefAreasA);
-						_comm.refBattle.remove(&refreshRefAreasB);
-						_comm.delBattle.remove(&refreshRefAreasB);
-						_comm.refMenuCard.remove(&refRefMenuCard);
-						_comm.addMenuCard.remove(&addRefMenuCard);
-						_comm.delMenuCard.remove(&delRefMenuCard);
-						_comm.upMenuCard.remove(&upRefMenuCards);
-						_comm.downMenuCard.remove(&downRefMenuCards);
-					}
+				listener(_refAreas, SWT.Dispose, {
+					_comm.refArea.remove(&refreshRefAreasA);
+					_comm.delArea.remove(&refreshRefAreasA);
+					_comm.refBattle.remove(&refreshRefAreasB);
+					_comm.delBattle.remove(&refreshRefAreasB);
+					_comm.refMenuCard.remove(&refRefMenuCard);
+					_comm.addMenuCard.remove(&addRefMenuCard);
+					_comm.delMenuCard.remove(&delRefMenuCard);
+					_comm.upMenuCard.remove(&upRefMenuCards);
+					_comm.downMenuCard.remove(&downRefMenuCards);
 				});
 			}
 		}
@@ -2037,6 +2032,9 @@ public:
 		});
 		static if (UseCards) refreshCards();
 		static if (UseBacks) refreshBacks();
+		static if (RefCards) {
+			refreshRefAreas();
+		}
 	}
 	private string _statusLine;
 	@property
@@ -2165,7 +2163,12 @@ public:
 			foreach (a; _imgp.appends) {
 				a.dispose();
 			}
-			_imgp.appends = [createRefCardImpl!C2(cs)];
+			auto a = createRefCardImpl!C2(cs);
+			if (a) {
+				_imgp.appends = [a];
+			} else {
+				_imgp.appends = [];
+			}
 		}
 		void createRefCard() {
 			foreach (a; _imgp.appends) {
@@ -2174,11 +2177,13 @@ public:
 			_imgp.appends = [];
 			auto area = cast(Area) _refTarget;
 			if (area) {
-				_imgp.appends = [createRefCardImpl(area.cards)];
+				auto a = createRefCardImpl(area.cards);
+				if (a) _imgp.appends = [a];
 			}
 			auto battle = cast(Battle) _refTarget;
 			if (battle) {
-				_imgp.appends = [createRefCardImpl(battle.cards)];
+				auto a = createRefCardImpl(battle.cards);
+				if (a) _imgp.appends = [a];
 			}
 		}
 		Image createRefCardImpl(C2)(in C2[] cs) {
