@@ -440,14 +440,14 @@ struct ClassicEngine {
 	string execute = ""; /// 実行ファイルの代わりに実行されるファイルの名称。
 	/// エンジンを実行する。
 	const
-	string executePath(string appPath) {
+	string executePath(string appPath, bool engine) {
 		if (!enginePath.length) return "";
 		string path = enginePath;
 		if (!cwx.utils.isabs(path)) {
 			auto dir = appPath.dirName;
 			path = std.path.buildPath(dir, path);
 		}
-		if (execute.length) {
+		if (!engine && execute.length) {
 			if (cwx.utils.isabs(execute)) {
 				path = execute;
 			} else {

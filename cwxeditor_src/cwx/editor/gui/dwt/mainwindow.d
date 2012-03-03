@@ -179,43 +179,84 @@ private:
 
 	Menu _mExecEngine;
 	Menu _tmExecEngine;
+	ToolItem _tiExecEngine;
 	void refreshExecEngine() {
 		refreshExecEngineImpl(_mExecEngine, true);
-		refreshExecEngineImpl(_tmExecEngine, false);
+		auto ePath = refreshExecEngineImpl(_tmExecEngine, false);
+		version (Windows) {
+			// ツールボタンのアイコン
+			auto exeIcon = loadIcon(ePath, 16, 16);
+			if (exeIcon) {
+				auto img = _tiExecEngine.getImage();
+				if (_prop.images.menu(MenuID.ExecEngineAuto) !is img) {
+					img.dispose();
+				}
+				auto img2 = new Image(_tiExecEngine.getDisplay(), exeIcon);
+				_tiExecEngine.setImage(img2);
+			}
+		}
 		setupMenu(_menu);
 		setupMenu(_tool);
 	}
-	void refreshExecEngineImpl(Menu menu, bool autoSelect) {
+	string refreshExecEngineImpl(Menu menu, bool autoSelect) {
 		foreach (itm; menu.getItems()) {
 			itm.dispose();
 		}
-		if (autoSelect) {
-			_menu[MenuID.ExecEngine] = createMenuItem(_comm, menu, MenuID.ExecEngineAuto, &execEngine, &canExecEngine);
+		void putIcon(MenuItem mi, string ePath) {
+			version (Windows) {
+				// 実行ファイルのアイコンを取得
+				auto exeIcon = loadIcon(ePath, 16, 16);
+				if (exeIcon) {
+					auto img2 = new Image(mi.getDisplay(), exeIcon);
+					listener(mi, SWT.Dispose, {
+						img2.dispose();
+					});
+					mi.setImage(img2);
+				}
+			}
 		}
-		void putMenu(string path, string name, Image img) {
-			createMenuItem2(_comm, menu, name, img, {
+		MenuItem autoMI = null;
+		string autoE = nabs(execEnginePath);
+		if (autoSelect) {
+			autoMI = createMenuItem(_comm, menu, MenuID.ExecEngineAuto, &execEngine, &canExecEngine);
+			_menu[MenuID.ExecEngine] = autoMI;
+		}
+		void putMenu(string path, string ePath, string name, Image img) {
+			auto mi = createMenuItem2(_comm, menu, name, img, {
 				if (path.length) {
 					execEngineP(path);
 				}
 			}, () => path.length > 0);
+			putIcon(mi, ePath);
 		}
 		if (_prop.var.etc.enginePath.length) {
 			if (0 < menu.getItemCount()) {
 				new MenuItem(menu, SWT.SEPARATOR);
 			}
-			putMenu(_prop.enginePath, "&0 " ~ _prop.enginePath.baseName.stripExtension, _prop.images.menu(MenuID.ExecEngine));
+			putMenu(_prop.enginePath, _prop.enginePath, "&0 " ~ _prop.enginePath.baseName.stripExtension, _prop.images.menu(MenuID.ExecEngine));
 		}
-		if (!_prop.var.etc.classicEngines.length) return;
-		if (0 < menu.getItemCount()) {
-			new MenuItem(menu, SWT.SEPARATOR);
-		}
-		foreach (i, ce; _prop.var.etc.classicEngines) {
-			string name = .text(i + 1) ~ " " ~ ce.name;
-			if (i + 1 <= 9) {
-				name = "&" ~ name;
+		if (_prop.var.etc.classicEngines.length) {
+			if (0 < menu.getItemCount()) {
+				new MenuItem(menu, SWT.SEPARATOR);
 			}
-			putMenu(ce.executePath(_prop.parent.appPath), name, _prop.images.classicEngine);
+			foreach (i, ce; _prop.var.etc.classicEngines) {
+				string name = .text(i + 1) ~ " " ~ ce.name;
+				if (i + 1 <= 9) {
+					name = "&" ~ name;
+				}
+				auto p = nabs(ce.executePath(_prop.parent.appPath, false)); // 代替実行
+				auto e = ce.executePath(_prop.parent.appPath, true); // エンジン本体
+				if (autoE.length && cfnmatch(p, autoE)) {
+					// 自動実行のアイコンは代替実行ファイルではなくエンジン本体のものとする
+					autoE = e;
+				}
+				putMenu(p, e, name, _prop.images.classicEngine);
+			}
 		}
+		if (autoMI) {
+			putIcon(autoMI, autoE);
+		}
+		return autoE;
 	}
 
 	Menu _mOuterTools;
@@ -506,6 +547,7 @@ private:
 		summ.changedEventForce ~= &_comm.changed.call;
 		summ.changedEvent ~= &refreshTitle;
 		refreshTitle();
+		refreshExecEngine();
 		GC.collect();
 		_win.redraw();
 	}
@@ -642,14 +684,18 @@ private:
 	}
 	@property
 	bool canExecEngine() {
-		string engine = summary ? _comm.skin.executeEngine : _prop.enginePath;
+		string engine = execEnginePath;
 		return engine.length > 0;
 	}
 	void execEngine() {
-		string engine = summary ? _comm.skin.executeEngine : _prop.enginePath;
+		string engine = execEnginePath;
 		if (engine.length) {
 			execEngineP(engine);
 		}
+	}
+	@property
+	string execEnginePath() {
+		return summary ? _comm.skin.executeEngine : _prop.enginePath;
 	}
 	private void openDataWindow() {
 		if (summary || dock) {
@@ -1756,8 +1802,14 @@ public:
 			}
 			void createExecEngineTI(ToolBar bar) {
 				_mainMenu.add(MenuID.ExecEngine);
-				auto ti = createDropDownItem(_comm, bar, MenuID.ExecEngine, &execEngine, _tmExecEngine, () => canExecEngine || _prop.var.etc.classicEngines.length);
-				_tool[MenuID.ExecEngine] = ti;
+				_tiExecEngine = createDropDownItem(_comm, bar, MenuID.ExecEngine, &execEngine, _tmExecEngine, () => canExecEngine || _prop.var.etc.classicEngines.length);
+				_tool[MenuID.ExecEngine] = _tiExecEngine;
+				listener(_tiExecEngine, SWT.Dispose, {
+					auto img = _tiExecEngine.getImage();
+					if (_prop.images.menu(MenuID.ExecEngineAuto) !is img) {
+						img.dispose();
+					}
+				});
 			}
 			void createOuterToolsTI(ToolBar bar) {
 				_mainMenu.add(MenuID.OuterTools);
