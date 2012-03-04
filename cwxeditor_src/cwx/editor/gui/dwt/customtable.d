@@ -114,7 +114,7 @@ class TableSorter(DataT) {
 
 class FullTableColumn {
 	private TableColumn _column;
-	private int _packWidth = 0;
+	private int _packWidth = -1;
 	private Listener _rl;
 	this (Table tbl, int style) {
 		_column = new TableColumn(tbl, style);
@@ -127,13 +127,17 @@ class FullTableColumn {
 		return _column;
 	}
 	private bool _ed = false;
-	private void __resize() {
+	private void resize() {
 		auto tbl = _column.getParent();
+		_column.pack();
+		_packWidth = _column.getWidth();
 		auto trim = tbl.computeTrim(SWT.DEFAULT, SWT.DEFAULT, SWT.DEFAULT, SWT.DEFAULT);
 		int width = tbl.getSize().x;
-		foreach (c; tbl.getColumns()) {
-			if (c !is _column) {
-				width -= c.getWidth();
+		if (1 < tbl.getColumnCount()) {
+			foreach (c; tbl.getColumns()) {
+				if (c !is _column) {
+					width -= c.getWidth();
+				}
 			}
 		}
 		width += trim.x;
@@ -142,7 +146,7 @@ class FullTableColumn {
 	}
 	private class RL : Listener {
 		override void handleEvent(Event e) {
-			__resize();
+			resize();
 		}
 	}
 }
