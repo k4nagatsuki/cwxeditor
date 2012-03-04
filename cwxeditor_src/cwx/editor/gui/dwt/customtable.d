@@ -1,7 +1,7 @@
 
 module cwx.editor.gui.dwt.customtable;
 
-import cwx.utils : debugln;
+import cwx.utils : debugln, cdebugln;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Event;
@@ -114,7 +114,7 @@ class TableSorter(DataT) {
 
 class FullTableColumn {
 	private TableColumn _column;
-	private int _packWidth = -1;
+	private int _packWidth = 50;
 	private Listener _rl;
 	this (Table tbl, int style) {
 		_column = new TableColumn(tbl, style);
@@ -129,8 +129,6 @@ class FullTableColumn {
 	private bool _ed = false;
 	private void resize() {
 		auto tbl = _column.getParent();
-		_column.pack();
-		_packWidth = _column.getWidth();
 		auto trim = tbl.computeTrim(SWT.DEFAULT, SWT.DEFAULT, SWT.DEFAULT, SWT.DEFAULT);
 		int width = tbl.getSize().x;
 		if (1 < tbl.getColumnCount()) {
@@ -143,6 +141,7 @@ class FullTableColumn {
 		width += trim.x;
 		width -= trim.width;
 		_column.setWidth(_packWidth > width ? _packWidth : width);
+		tbl.redraw();
 	}
 	private class RL : Listener {
 		override void handleEvent(Event e) {
