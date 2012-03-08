@@ -2531,9 +2531,9 @@ public:
 			name = c ? c.name : .tryFormat(prop.msgs.noItem, id);
 		}
 		if (val) {
-			return .tryFormat(prop.msgs.branchEffectCardSuccess, name);
+			return .tryFormat(prop.msgs.branchEffectCardSuccess, tr, name);
 		} else {
-			return .tryFormat(prop.msgs.branchEffectCardFailure, name);
+			return .tryFormat(prop.msgs.branchEffectCardFailure, tr, name);
 		}
 	}
 	private static string evtChildBrSkill(in Props prop, in Summary summ, ulong id, Range r, uint num, ref string text) {
@@ -2546,9 +2546,9 @@ public:
 			name = c ? c.name : .tryFormat(prop.msgs.noSkill, id);
 		}
 		if (val) {
-			return .tryFormat(prop.msgs.branchEffectCardSuccess, name);
+			return .tryFormat(prop.msgs.branchEffectCardSuccess, tr, name);
 		} else {
-			return .tryFormat(prop.msgs.branchEffectCardFailure, name);
+			return .tryFormat(prop.msgs.branchEffectCardFailure, tr, name);
 		}
 	}
 	private static string evtChildBrBeast(in Props prop, in Summary summ, ulong id, Range r, uint num, ref string text) {
@@ -2561,9 +2561,9 @@ public:
 			name = c ? c.name : .tryFormat(prop.msgs.noBeast, id);
 		}
 		if (val) {
-			return .tryFormat(prop.msgs.branchEffectCardSuccess, name);
+			return .tryFormat(prop.msgs.branchEffectCardSuccess, tr, name);
 		} else {
-			return .tryFormat(prop.msgs.branchEffectCardFailure, name);
+			return .tryFormat(prop.msgs.branchEffectCardFailure, tr, name);
 		}
 	}
 	private static string evtChildBrInfo(in Props prop, in Summary summ, ulong id, ref string text) {
