@@ -516,7 +516,7 @@ public:
 	@property const string ctChangeArea() {return "エリア移動「%1$s」";}
 	@property const string ctEndComplete() {return "済印をつけて終了";}
 	@property const string ctEndNoComplete() {return "済印をつけずに終了";}
-	@property const string ctGameOver() {return "済印をつけずに終了";}
+	@property const string ctGameOver() {return "ゲームオーバーコンテント";}
 	@property const string ctChangeBgImage() {return "背景ファイル = %1$s";}
 	@property const string ctChangeBgImageFile() {return "[%1$s]";}
 	@property const string ctEffectSound() {return "「%1$s」を再生";}
@@ -545,7 +545,7 @@ public:
 	@property const string ctBranchSelectAuto() {return "ランダム";}
 	@property const string ctBranchSelectManual() {return "手動";}
 	@property const string ctBranchSelect() {return "%1$sから%2$sでメンバを選択";}
-	@property const string ctBranchAbility() {return "%1$sの%2$sと%3$sで能力判定(レベル%4$s)";}
+	@property const string ctBranchAbility() {return "%1$s(%2$s)の%3$sと%4$sで能力判定(レベル%5$s)";}
 	@property const string ctBranchRandom() {return "確率 = %1$s%%";}
 	@property const string ctBranchLevelAverage() {return "パーティ全員";}
 	@property const string ctBranchLevelSelected() {return "選択中のメンバ";}
@@ -812,8 +812,8 @@ public:
 	@property const string branchAbilityFailure() {return "%1$sがレベル%2$sで%3$sと%4$sで行う判定に失敗";}
 	@property const string branchRandomSuccess() {return "%1$s%%成功";}
 	@property const string branchRandomFailure() {return "%1$s%%失敗";}
-	@property const string levelAverage() {return "全員の平均値";}
-	@property const string levelSelected() {return "全員の平均値";}
+	@property const string levelAverage() {return "パーティ全員の平均値";}
+	@property const string levelSelected() {return "選択中のメンバ";}
 	@property const string branchLevelSuccess() {return "%1$sがレベル%2$s以上";}
 	@property const string branchLevelFailure() {return "%1$sがレベル%2$s未満";}
 	@property const string branchStatusSuccess() {return "%1$sでの「%2$s」の判定に成功";}

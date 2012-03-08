@@ -1979,84 +1979,108 @@ string contentTextUseID(CIDKind Kind, ID)(Commons comm, ID id, string msg, in Co
 	string noID;
 	bool use;
 	bool delegate() find;
+	string name;
 	static if (CIDKind.Area == Kind) {
 		noSelect = comm.prop.msgs.noSelectArea;
 		noID = comm.prop.msgs.noArea;
 		use = 0 != id;
-		find = () => comm.summary.area(id) !is null;
+		auto a = comm.summary.area(id);
+		find = () => a !is null;
+		name = a ? a.name : "";
 	} else static if (CIDKind.Battle == Kind) {
 		noSelect = comm.prop.msgs.noSelectBattle;
 		noID = comm.prop.msgs.noBattle;
 		use = 0 != id;
-		find = () => comm.summary.battle(id) !is null;
+		auto a = comm.summary.battle(id);
+		find = () => a !is null;
+		name = a ? a.name : "";
 	} else static if (CIDKind.Package == Kind) {
 		noSelect = comm.prop.msgs.noSelectPackage;
 		noID = comm.prop.msgs.noPackage;
 		use = 0 != id;
-		find = () => comm.summary.cwPackage(id) !is null;
+		auto a = comm.summary.cwPackage(id);
+		find = () => a !is null;
+		name = a ? a.name : "";
 	} else static if (CIDKind.Cast == Kind) {
 		noSelect = comm.prop.msgs.noSelectCast;
 		noID = comm.prop.msgs.noCast;
 		use = 0 != id;
-		find = () => comm.summary.cwCast(id) !is null;
+		auto a = comm.summary.cwCast(id);
+		find = () => a !is null;
+		name = a ? a.name : "";
 	} else static if (CIDKind.Skill == Kind) {
 		noSelect = comm.prop.msgs.noSelectSkill;
 		noID = comm.prop.msgs.noSkill;
-		find = () => comm.summary.skill(id) !is null;
+		auto a = comm.summary.skill(id);
+		find = () => a !is null;
 		use = 0 != id;
+		name = a ? a.name : "";
 	} else static if (CIDKind.Item == Kind) {
 		noSelect = comm.prop.msgs.noSelectItem;
 		noID = comm.prop.msgs.noItem;
-		find = () => comm.summary.item(id) !is null;
+		auto a = comm.summary.item(id);
+		find = () => a !is null;
 		use = 0 != id;
+		name = a ? a.name : "";
 	} else static if (CIDKind.Beast == Kind) {
 		noSelect = comm.prop.msgs.noSelectBeast;
 		noID = comm.prop.msgs.noBeast;
-		find = () => comm.summary.beast(id) !is null;
+		auto a = comm.summary.beast(id);
+		find = () => a !is null;
 		use = 0 != id;
+		name = a ? a.name : "";
 	} else static if (CIDKind.Info == Kind) {
 		noSelect = comm.prop.msgs.noSelectInfo;
 		noID = comm.prop.msgs.noInfo;
-		find = () => comm.summary.info(id) !is null;
+		auto a = comm.summary.info(id);
+		find = () => a !is null;
 		use = 0 != id;
+		name = a ? a.name : "";
 	} else static if (CIDKind.Image == Kind) {
 		noSelect = comm.prop.msgs.noSelectImage;
 		noID = comm.prop.msgs.noImage;
 		find = () => comm.skin.findImagePath(id, comm.summary.scenarioPath).length > 0;
 		use = id && id.length;
+		name = id;
 	} else static if (CIDKind.BGM == Kind) {
 		noSelect = comm.prop.msgs.noSelectBGM;
 		noID = comm.prop.msgs.noBGM;
 		find = () => comm.skin.findPath(id, comm.skin.extBgm, comm.skin.bgmDir, comm.summary.scenarioPath).length > 0;
 		use = id && id.length;
+		name = id;
 	} else static if (CIDKind.SE == Kind) {
 		noSelect = comm.prop.msgs.noSelectSE;
 		noID = comm.prop.msgs.noSE;
 		find = () => comm.skin.findPath(id, comm.skin.extSound, comm.skin.seDir, comm.summary.scenarioPath).length > 0;
 		use = id && id.length;
+		name = id;
 	} else static if (CIDKind.Flag == Kind) {
 		noSelect = comm.prop.msgs.noSelectFlag;
 		noID = comm.prop.msgs.noFlag;
 		find = () => comm.summary.flagDirRoot.findFlag(id) !is null;
 		use = id && id.length;
+		name = id;
 	} else static if (CIDKind.Step == Kind) {
 		noSelect = comm.prop.msgs.noSelectStep;
 		noID = comm.prop.msgs.noStep;
 		find = () => comm.summary.flagDirRoot.findStep(id) !is null;
 		use = id && id.length;
+		name = id;
 	} else static if (CIDKind.Start == Kind) {
 		noSelect = comm.prop.msgs.noSelectStart;
 		noID = comm.prop.msgs.noStart;
 		find = () => evt.tree.hasStart(id);
 		use = id && id.length;
+		name = id;
 	} else static assert (0);
 	if (!use) return .tryFormat(msg, noSelect);
 	bool exists = find();
 	static if (CIDKind.Image == Kind || CIDKind.BGM == Kind || CIDKind.SE == Kind) {
-		id = .encodePath(id);
+		name = .encodePath(name);
+		id = name;
 	}
 	if (exists) {
-		return .tryFormat(msg, id);
+		return .tryFormat(msg, name);
 	} else {
 		return .tryFormat(msg, .tryFormat(noID, id));
 	}
@@ -2173,8 +2197,9 @@ string contentText(Commons comm, in Content evt) {
 		string t = comm.prop.msgs.targetName(evt.targetS.m);
 		string p = comm.prop.msgs.physicalName(evt.physical);
 		string m = comm.prop.msgs.mentalName(evt.mental);
+		string s = evt.targetS.sleep ? comm.prop.msgs.sleepEnabled : comm.prop.msgs.sleepDisabled;
 		auto l = evt.signedLevel;
-		return .tryFormat(comm.prop.msgs.ctBranchAbility, t, p, m, l);
+		return .tryFormat(comm.prop.msgs.ctBranchAbility, t, s, p, m, l);
 	} case CType.BRANCH_RANDOM: {
 		return .tryFormat(comm.prop.msgs.ctBranchRandom, evt.percent);
 	} case CType.BRANCH_LEVEL: {

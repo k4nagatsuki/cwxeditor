@@ -2393,7 +2393,7 @@ public:
 			auto o = summ.flagDirRoot.findStep(path);
 			if (o) {
 				name = path;
-				if (0 <= num && num < o.count) value = o.getValue(val);
+				if (0 <= num && num < o.count) value = o.getValue(num);
 			} else {
 				name = .tryFormat(prop.msgs.noStep, path);
 			}
