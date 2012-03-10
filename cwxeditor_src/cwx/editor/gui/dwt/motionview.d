@@ -753,8 +753,9 @@ private:
 		override void widgetSelected(SelectionEvent e) {
 			auto m = selection;
 			if (m) {
-				int i = _motions.getSelectionIndex();
-				storeEdit(i);
+				int i = _motionElm.getSelectionIndex();
+				if (-1 == i) return;
+				storeEdit(_motions.getSelectionIndex());
 				bool oldVan = hasVan;
 				scope (exit) {
 					if (oldVan != hasVan) {
