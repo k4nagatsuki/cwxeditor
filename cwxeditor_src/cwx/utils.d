@@ -221,6 +221,11 @@ string appDataDir(string appPath) {
 }
 
 debug {
+	StopWatch initTimer;
+	static this () {
+		initTimer.start();
+	}
+
 	__gshared ulong utperf = 0;
 	__gshared ulong t[1024u];
 	shared static ~this () {

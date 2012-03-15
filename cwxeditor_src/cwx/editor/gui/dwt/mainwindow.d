@@ -2797,6 +2797,10 @@ public:
 			}
 			dStr ~= " - " ~ .text(__LINE__);
 			bool openErrDlg = false;
+			debug {
+				initTimer.stop();
+				cwriteln(.format("Starting time: %d msecs", initTimer.peek().msecs));
+			}
 			while (!_win.isDisposed()) {
 				version (nocatch) {
 					if (!d.readAndDispatch()) {
