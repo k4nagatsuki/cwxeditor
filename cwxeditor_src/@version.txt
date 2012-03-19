@@ -1,2 +1,2 @@
-Version.2.0 Beta 5
+Version.2.0 Beta 6
 http://bitbucket.org/k4nagatsuki/cwxeditor/
