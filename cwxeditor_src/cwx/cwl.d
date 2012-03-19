@@ -220,18 +220,28 @@ TypeInfo getType(string file, out ulong id) {
 	return null;
 }
 
-private Target toTarget(byte b) {
+private Target toTargetT(byte b) {
 	switch (b) {
 	case 0: return Target(Target.M.SELECTED, false);
 	case 1: return Target(Target.M.RANDOM, false);
 	case 2: return Target(Target.M.UNSELECTED, false);
+	default: throw new SummaryException("Unknown target T: " ~ to!(string)(b));
+	}
+}
+private Target toTargetE(byte b) {
+	switch (b) {
+	case 0: return Target(Target.M.SELECTED, false);
+	case 1: return Target(Target.M.RANDOM, false);
+	case 2: return Target(Target.M.PARTY, false);
 	case 3: return Target(Target.M.SELECTED, true);
 	case 4: return Target(Target.M.RANDOM, true);
 	case 5: return Target(Target.M.PARTY, true);
 	case 6: return Target(Target.M.PARTY, false);
-	default: throw new SummaryException("Unknown target: " ~ to!(string)(b));
+	default: throw new SummaryException("Unknown target A: " ~ to!(string)(b));
 	}
 }
+private alias toTargetE toTargetA;
+
 private EffectType toEffectType(byte b) {
 	switch (b) {
 	case 0: return EffectType.PHYSIC;
@@ -745,7 +755,7 @@ private Content readContent(ref RData d, ref ByteIO f) {
 		}
 		e = new Content(CType.EFFECT, name);
 		e.signedLevel = effLev;
-		e.targetNS = toTarget(effTarget);
+		e.targetNS = toTargetE(effTarget);
 		e.effectType = toEffectType(effType);
 		e.resist = toResist(effResist);
 		e.successRate = effSuc;
@@ -768,7 +778,7 @@ private Content readContent(ref RData d, ref ByteIO f) {
 		uint phy = f.readUIntL;
 		int mtl = f.readIntL;
 		e = new Content(CType.BRANCH_ABILITY, name);
-		e.targetS = toTarget(targ);
+		e.targetS = toTargetA(targ);
 		e.mental = toMental(mtl);
 		e.physical = toPhysical(phy);
 		e.signedLevel = val;
@@ -1022,7 +1032,7 @@ private Content readContent(ref RData d, ref ByteIO f) {
 	case 40: {
 		byte targ = f.readByte;
 		Talker t;
-		switch (toTarget(targ).m) {
+		switch (toTargetT(targ).m) {
 		case Target.M.SELECTED: t = Talker.SELECTED; break;
 		case Target.M.UNSELECTED: t = Talker.UNSELECTED; break;
 		case Target.M.RANDOM: t = Talker.RANDOM; break;
@@ -1075,7 +1085,7 @@ private Content readContent(ref RData d, ref ByteIO f) {
 		byte stat = f.readByte;
 		byte targ = f.readByte;
 		e = new Content(CType.BRANCH_STATUS, name);
-		e.targetNS = toTarget(targ);
+		e.targetNS = toTargetA(targ);
 		e.status = toStatus(stat);
 		break;
 	}
@@ -1672,24 +1682,42 @@ void saveLScenario(Summary summ, bool doubleIO, bool saveInnerImagePath = false)
 	save2.rename();
 }
 
-private byte fromTarget(Target v) {
-	if (v.m == Target.M.UNSELECTED) return 2;
+private byte fromTargetT(Target v) {
+	switch (v.m) {
+	case Target.M.SELECTED: return 0;
+	case Target.M.RANDOM: return 1;
+	case Target.M.UNSELECTED: return 2;
+	default: throw new SummaryException("Unknown target T value: " ~ to!(string)(cast(int) v.m));
+	}
+}
+private byte fromTargetE(Target v) {
+	if (v.m == Target.M.UNSELECTED) throw new SummaryException("Unknown target E value with sleep: " ~ to!(string)(cast(int) v.m));
+	switch (v.m) {
+	case Target.M.SELECTED: return 0;
+	case Target.M.RANDOM: return 1;
+	case Target.M.PARTY: return 6;
+	default: throw new SummaryException("Unknown target E value: " ~ to!(string)(cast(int) v.m));
+	}
+}
+private byte fromTargetA(Target v) {
+	if (v.m == Target.M.UNSELECTED) throw new SummaryException("Unknown target A value with sleep: " ~ to!(string)(cast(int) v.m));
 	if (v.sleep) {
 		switch (v.m) {
 		case Target.M.SELECTED: return 3;
 		case Target.M.RANDOM: return 4;
 		case Target.M.PARTY: return 5;
-		default: throw new SummaryException("Unknown target value with sleep: " ~ to!(string)(cast(int) v.m));
+		default: throw new SummaryException("Unknown target A value with sleep: " ~ to!(string)(cast(int) v.m));
 		}
 	} else {
 		switch (v.m) {
 		case Target.M.SELECTED: return 0;
 		case Target.M.RANDOM: return 1;
-		case Target.M.PARTY: return 6;
-		default: throw new SummaryException("Unknown target value: " ~ to!(string)(cast(int) v.m));
+		case Target.M.PARTY: return 2;
+		default: throw new SummaryException("Unknown target A value: " ~ to!(string)(cast(int) v.m));
 		}
 	}
 }
+
 private byte fromEffectType(EffectType v) {
 	switch (v) {
 	case EffectType.PHYSIC: return 0;
@@ -2217,7 +2245,7 @@ private void writeContent(in SData d, ref ByteIO f, Content e) {
 	} else if (e.type is CType.EFFECT) {
 		wb(11);
 		f.writeL(cast(int) e.signedLevel);
-		byte targ = fromTarget(e.targetNS);
+		byte targ = fromTargetE(e.targetNS);
 		if (targ == 6) targ = 2;
 		f.write(targ);
 		f.write(fromEffectType(e.effectType));
@@ -2236,7 +2264,7 @@ private void writeContent(in SData d, ref ByteIO f, Content e) {
 	} else if (e.type is CType.BRANCH_ABILITY) {
 		wb(13);
 		f.writeL(cast(int) e.signedLevel);
-		f.write(fromTarget(e.targetS));
+		f.write(fromTargetA(e.targetS));
 		f.writeL(cast(uint) fromPhysical(e.physical));
 		f.writeL(cast(int) fromMental(e.mental));
 	} else if (e.type is CType.BRANCH_RANDOM) {
@@ -2378,7 +2406,7 @@ private void writeContent(in SData d, ref ByteIO f, Content e) {
 	} else if (e.type is CType.BRANCH_STATUS) {
 		wb(47);
 		f.write(fromStatus(e.status));
-		f.write(fromTarget(e.targetNS));
+		f.write(fromTargetA(e.targetNS));
 	} else if (e.type is CType.BRANCH_PARTY_NUMBER) {
 		wb(48);
 		f.writeL(cast(uint) e.partyNumber);
