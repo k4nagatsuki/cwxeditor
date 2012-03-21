@@ -106,7 +106,7 @@ private:
 				_array = old;
 				_list.removeAll();
 				foreach (o; old) {
-					_list.add(o.name);
+					_list.add(createName(o));
 				}
 				_list.select(sels);
 				_list.showSelection();
@@ -143,6 +143,8 @@ private:
 			Text _toolWorkDir;
 			Button _toolWorkDirRef;
 			Button _toolWorkDirOpen;
+			Text _mnemonic;
+			HotKeyField _hotkey;
 		} else static if (is(T:ClassicEngine)) {
 			Text _cEnginePath;
 			Button _cEnginePathRef;
@@ -153,6 +155,8 @@ private:
 			Text _cEngineExecute;
 			Button _cEngineExecuteRef;
 			Button _cEngineExecuteDirOpen;
+			Text _mnemonic;
+			HotKeyField _hotkey;
 		} else static if (is(T:ScTemplate)) {
 			Text _templPath;
 			Button _templPathRef;
@@ -216,10 +220,14 @@ private:
 				} else static if (is(T:OuterTool)) {
 					_toolCommand.setText(_array[i].command);
 					_toolWorkDir.setText(_array[i].workDir);
+					_mnemonic.setText(_array[i].mnemonic);
+					_hotkey.accelerator = _array[i].hotkey;
 				} else static if (is(T:ClassicEngine)) {
 					_cEnginePath.setText(_array[i].enginePath);
 					_cEngineDataDir.setText(_array[i].dataDirName);
 					_cEngineExecute.setText(_array[i].execute);
+					_mnemonic.setText(_array[i].mnemonic);
+					_hotkey.accelerator = _array[i].hotkey;
 				} else static if (is(T:ScTemplate)) {
 					_templPath.setText(_array[i].path);
 				} else static if (is(T:EvTemplate)) {
@@ -236,10 +244,14 @@ private:
 				} else static if (is(T:OuterTool)) {
 					_toolCommand.setText("");
 					_toolWorkDir.setText("");
+					_mnemonic.setText("");
+					_hotkey.accelerator = "";
 				} else static if (is(T:ClassicEngine)) {
 					_cEnginePath.setText("");
 					_cEngineDataDir.setText("");
 					_cEngineExecute.setText("");
+					_mnemonic.setText("");
+					_hotkey.accelerator = "";
 				} else static if (is(T:ScTemplate)) {
 					_templPath.setText("");
 				} else static if (is(T:EvTemplate)) {
@@ -257,7 +269,7 @@ private:
 			store();
 			int index = _list.getItemCount();
 			_array ~= t;
-			_list.add(t.name);
+			_list.add(createName(t));
 			_list.select(index);
 			selected();
 			applyEnabled();
@@ -276,12 +288,16 @@ private:
 			} else static if (is(T:OuterTool)) {
 				string commnad = _toolCommand.getText();
 				string workDir = _toolWorkDir.getText();
-				add(OuterTool(name, commnad, workDir));
+				string mnemonic = _mnemonic.getText();
+				string hotkey = _hotkey.acceleratorText();
+				add(OuterTool(name, commnad, workDir, mnemonic, hotkey));
 			} else static if (is(T:ClassicEngine)) {
 				string path = _cEnginePath.getText();
 				string dataDir = _cEngineDataDir.getText();
 				string execute = _cEngineExecute.getText();
-				add(ClassicEngine(name, path, dataDir, execute));
+				string mnemonic = _mnemonic.getText();
+				string hotkey = _hotkey.acceleratorText();
+				add(ClassicEngine(name, path, dataDir, execute, mnemonic, hotkey));
 			} else static if (is(T:ScTemplate)) {
 				string path = _templPath.getText();
 				add(ScTemplate(name, path));
@@ -296,7 +312,6 @@ private:
 			if (!checkData()) return;
 			store();
 			_array[i].name = _name.getText();
-			_list.setItem(i, _array[i].name);
 			static if (is(T:BgImageSetting)) {
 				_array[i].mask = _bgImgMask.getSelection();
 				_array[i].x = _bgImgX.getSelection();
@@ -306,15 +321,20 @@ private:
 			} else static if (is(T:OuterTool)) {
 				_array[i].command = _toolCommand.getText();
 				_array[i].workDir = _toolWorkDir.getText();
+				_array[i].mnemonic = _mnemonic.getText();
+				_array[i].hotkey = _hotkey.acceleratorText();
 			} else static if (is(T:ClassicEngine)) {
 				_array[i].enginePath = _cEnginePath.getText();
 				_array[i].dataDirName = _cEngineDataDir.getText();
 				_array[i].execute = _cEngineExecute.getText();
+				_array[i].mnemonic = _mnemonic.getText();
+				_array[i].hotkey = _hotkey.acceleratorText();
 			} else static if (is(T:ScTemplate)) {
 				_array[i].path = _templPath.getText();
 			} else static if (is(T:EvTemplate)) {
 				_array[i].script = _templScript.getText();
 			} else static assert (0);
+			_list.setItem(i, createName(_array[i]));
 			_alt.setEnabled(false);
 			applyEnabled();
 			_comm.refreshToolBar();
@@ -430,6 +450,49 @@ private:
 			if (id == MenuID.Redo) _redoAcc = convertAccelerator(_prop.buildMenu(MenuID.Redo));
 		}
 
+		static if (is(T:OuterTool) || is(T:ClassicEngine)) {
+			string createName(ref const T t) {
+				return MenuProps.buildMenuSample(t.name, t.mnemonic, t.hotkey, false);
+			}
+			void setupShortcut(Composite parent) {
+				auto l1 = new Label(parent, SWT.NONE);
+				l1.setText(_prop.msgs.mnemonic);
+
+				auto sash = new SplitPane(parent, SWT.HORIZONTAL);
+				auto gd = new GridData(GridData.FILL_HORIZONTAL);
+				gd.horizontalSpan = 3;
+				sash.setLayoutData(gd);
+				_mnemonic = mnemonicText(sash, SWT.BORDER);
+				createTextMenu!Text(_comm, _prop, _mnemonic, &catchMod);
+				auto hotkeyComp = new Composite(sash, SWT.NONE);
+				hotkeyComp.setLayout(zeroMarginGridLayout(2, false));
+				auto l2 = new Label(hotkeyComp, SWT.NONE);
+				l2.setText(_prop.msgs.hotkey);
+				_hotkey = new HotKeyField(hotkeyComp, SWT.BORDER);
+				createTextMenu!Text(_comm, _prop, _hotkey.widget, &catchMod);
+				_hotkey.widget.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+				static if (is(T:OuterTool)) {
+					sash.setWeights([_prop.var.etc.outerToolShortcutSashL, _prop.var.etc.outerToolShortcutSashR]);
+					.listener(sash, SWT.Dispose, {
+						auto ws = sash.getWeights();
+						_prop.var.etc.outerToolShortcutSashL = ws[0];
+						_prop.var.etc.outerToolShortcutSashR = ws[1];
+					});
+				} else static if (is(T:ClassicEngine)) {
+					sash.setWeights([_prop.var.etc.classicEngineShortcutSashL, _prop.var.etc.classicEngineShortcutSashR]);
+					.listener(sash, SWT.Dispose, {
+						auto ws = sash.getWeights();
+						_prop.var.etc.classicEngineShortcutSashL = ws[0];
+						_prop.var.etc.classicEngineShortcutSashR = ws[1];
+					});
+				} else static assert (0);
+			}
+		} else {
+			string createName(ref const T t) {
+				return t.name;
+			}
+		}
 		static if (is(T:BgImageSetting)) {
 			void setupRight(Composite parent) {
 				auto comp3 = new Composite(parent, SWT.NONE);
@@ -475,6 +538,7 @@ private:
 					gd.horizontalSpan = 3;
 					_name.setLayoutData(gd);
 				}
+				setupShortcut(parent);
 				{
 					auto l = new Label(parent, SWT.NONE);
 					l.setText(_prop.msgs.outerToolCommand);
@@ -635,6 +699,7 @@ private:
 					gd.horizontalSpan = 3;
 					_name.setLayoutData(gd);
 				}
+				setupShortcut(parent);
 				{
 					auto l = new Label(parent, SWT.NONE);
 					l.setText(_prop.msgs.classicEnginePath);
@@ -879,6 +944,8 @@ private:
 			} else static if (is(T:OuterTool)) {
 				modB(_alt, _list, _toolCommand);
 				modB(_alt, _list, _toolWorkDir);
+				modB(_alt, _list, _mnemonic);
+				modB(_alt, _list, _hotkey.widget);
 				leftSash.setWeights([_prop.var.etc.outerToolsSashL, _prop.var.etc.outerToolsSashR]);
 				listener(leftSash, SWT.Dispose, (Event e) {
 					auto ws = (cast(SplitPane) e.widget).getWeights();
@@ -890,6 +957,8 @@ private:
 				modB(_alt, _list, _cEnginePath);
 				modB(_alt, _list, _cEngineDataDir);
 				modB(_alt, _list, _cEngineExecute);
+				modB(_alt, _list, _mnemonic);
+				modB(_alt, _list, _hotkey.widget);
 				leftSash.setWeights([_prop.var.etc.classicEnginesSashL, _prop.var.etc.classicEnginesSashR]);
 				listener(leftSash, SWT.Dispose, (Event e) {
 					auto ws = (cast(SplitPane) e.widget).getWeights();
@@ -919,7 +988,7 @@ private:
 
 			_array.length = l.length;
 			foreach (i, t; l) {
-				_list.add(t.name);
+				_list.add(createName(t));
 				_array[i] = t;
 			}
 			if (_array.length > 0) _list.select(0);

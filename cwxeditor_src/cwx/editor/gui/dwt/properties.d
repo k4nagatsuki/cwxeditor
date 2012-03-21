@@ -134,6 +134,7 @@ public class FlexProps {
 	}
 
 	private string _path;
+	private XNode _node;
 
 	private bool _noFile = false;
 	private string _noFileTemp;
@@ -272,16 +273,20 @@ public class FlexProps {
 		string dStr = .text(__LINE__);
 		return reloadImpl(true, dStr);
 	}
+	void delNodeTemp() {
+		XNode node;
+		_node = node;
+	}
 	private bool reloadImpl(bool force, ref string dStr) {
 		if (_noFile) return true;
 		try {
 			dStr ~= " - " ~ .text(__LINE__);
-			auto node = XNode.parse(std.file.readText(_path));
+			_node = XNode.parse(std.file.readText(_path));
 			dStr ~= " - " ~ .text(__LINE__);
-			if (node.name == "cwxeditor" || node.name == "CWXEditor") {
+			if (_node.name == "cwxeditor" || _node.name == "CWXEditor") {
 				dStr ~= " - " ~ .text(__LINE__);
 				foreach (i, fld; this.tupleof) {
-					this.tupleof[i] = fromNode(node, fld, force);
+					this.tupleof[i] = fromNode(_node, fld, force);
 				}
 				dStr ~= " - " ~ .text(__LINE__);
 			}
@@ -320,9 +325,15 @@ public class FlexProps {
 				while (!r) {
 					try {
 						dStr ~= " - " ~ .text(__LINE__);
-						auto text = std.file.readText(_path);
+						XNode node;
+						if (_node.valid) {
+							node = _node;
+						} else {
+							auto text = std.file.readText(_path);
+							dStr ~= " - " ~ .text(__LINE__);
+							node = XNode.parse(text);
+						}
 						dStr ~= " - " ~ .text(__LINE__);
-						auto node = XNode.parse(text);
 						void df(ref XNode node) {
 							dStr ~= " - " ~ .text(__LINE__);
 							r = DockingFolderCTC.fromNode(node, parent, style, create);

@@ -67,6 +67,7 @@ enum MenuID {
 	FileView,
 	ExecEngine,
 	ExecEngineAuto,
+	ExecEngineMain,
 	OuterTools,
 	Settings,
 	VersionInfo,
@@ -224,6 +225,7 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.FileView] = "F";
 		_mnemonic[MenuID.ExecEngine] = "G";
 		_mnemonic[MenuID.ExecEngineAuto] = "G";
+		_mnemonic[MenuID.ExecEngineMain] = "P";
 		_mnemonic[MenuID.OuterTools] = "T";
 		_mnemonic[MenuID.Settings] = "O";
 		_mnemonic[MenuID.VersionInfo] = "A";
@@ -365,6 +367,7 @@ class MenuProps : Properties {
 		_hotkey[MenuID.FileView] = "";
 		_hotkey[MenuID.ExecEngine] = "";
 		_hotkey[MenuID.ExecEngineAuto] = "F9";
+		_hotkey[MenuID.ExecEngineMain] = "";
 		_hotkey[MenuID.OuterTools] = "";
 		_hotkey[MenuID.Settings] = "";
 		_hotkey[MenuID.VersionInfo] = "";
@@ -494,7 +497,11 @@ class MenuProps : Properties {
 	}
 	/// ditto
 	static string buildMenu(in CProps prop, MenuID id, string mnemonic, string hotkey) {
-		string r = prop.msgs.menuText(id).replace("&", "&&");
+		return buildMenu(prop.msgs.menuText(id), mnemonic, hotkey, isPMenu(id));
+	}
+	/// ditto
+	static string buildMenu(string r, string mnemonic, string hotkey, bool m) {
+		r = r.replace("&", "&&");
 		string a = mnemonic;
 		string h = hotkey;
 		if (a.length) {
@@ -505,7 +512,7 @@ class MenuProps : Properties {
 				r = r[0 .. i] ~ "&" ~ r[i .. $];
 			}
 		}
-		if (isPMenu(id)) {
+		if (m) {
 			r ~= "...";
 		}
 		if (h.length) r ~= "\t" ~ h;
@@ -523,6 +530,10 @@ class MenuProps : Properties {
 			// 唯一パラメータを持つメニューテキスト
 			r = .tryFormat(r, prop.msgs.bgm);
 		}
+		return buildMenuSample(r, mnemonic, hotkey, isPMenu(id));
+	}
+	/// ditto
+	static string buildMenuSample(string r, string mnemonic, string hotkey, bool m) {
 		string a = mnemonic;
 		string h = hotkey;
 		if (a.length) {
@@ -533,7 +544,7 @@ class MenuProps : Properties {
 				r = r[0 .. i] ~ "&" ~ r[i .. $];
 			}
 		}
-		if (isPMenu(id)) {
+		if (m) {
 			r ~= "...";
 		}
 		if (h.length) r ~= " " ~ h;

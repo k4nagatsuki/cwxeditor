@@ -398,6 +398,7 @@ public:
 		case MenuID.FileView: return imgd!("dir_win.png");
 		case MenuID.ExecEngine: return imgd!("exec_engine.png");
 		case MenuID.ExecEngineAuto: return imgd!("exec_engine.png");
+		case MenuID.ExecEngineMain: return imgd!("exec_engine.png");
 		case MenuID.OuterTools: return imgd!("outer_tool.png");
 		case MenuID.Settings: return imgd!("settings.png");
 		case MenuID.VersionInfo: return imgd!("version.png");

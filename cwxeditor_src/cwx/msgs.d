@@ -1472,6 +1472,7 @@ public:
 		case MenuID.FileView: return "ファイルビュー";
 		case MenuID.ExecEngine: return "エンジン起動";
 		case MenuID.ExecEngineAuto: return "自動選択";
+		case MenuID.ExecEngineMain: return "CardWirthPy";
 		case MenuID.OuterTools: return "外部ツール";
 		case MenuID.Settings: return "エディタ設定";
 		case MenuID.VersionInfo: return "バージョン情報";

@@ -326,6 +326,8 @@ struct OuterTool {
 	string name; /// 設定名。
 	string command; /// コマンド。
 	string workDir; /// 実行ディレクトリ。
+	string mnemonic; /// アクセスキー。
+	string hotkey; /// ショートカット。
 	/// コピーを作成する。
 	@property
 	const
@@ -334,13 +336,17 @@ struct OuterTool {
 		r.name = name;
 		r.command = command;
 		r.workDir = workDir;
+		r.mnemonic = mnemonic;
+		r.hotkey = hotkey;
 		return r;
 	}
-	static OuterTool opCall(string name, string command, string workDir) {
+	static OuterTool opCall(string name, string command, string workDir, string mnemonic, string hotkey) {
 		OuterTool r;
 		r.name = name;
 		r.command = command;
 		r.workDir = workDir;
+		r.mnemonic = mnemonic;
+		r.hotkey = hotkey;
 		return r;
 	}
 	/// XMLノードとして取り扱うための関数群。
@@ -362,12 +368,16 @@ struct OuterTool {
 		e.newElement("name", name);
 		e.newElement("command", command);
 		e.newElement("workDir", workDir);
+		if (mnemonic.length) e.newAttr("mnemonic", mnemonic);
+		if (hotkey.length) e.newAttr("hotkey", hotkey);
 	}
 	/// ditto
 	void fromNode(ref XNode node) {
 		name = node.childText("name", true);
 		command = node.childText("command", true);
 		workDir = node.childText("workDir", true);
+		mnemonic = node.attr!string("mnemonic", false, "");
+		hotkey = node.attr!string("hotkey", false, "");
 	}
 	/// コマンドをパースする。$Fをファイル名に置換、$Sをシナリオ名に置換する。
 	static string parse(string str, string file, string sPath) {
@@ -438,6 +448,8 @@ struct ClassicEngine {
 	string enginePath = ""; /// 実行ファイルのパス。
 	string dataDirName = ""; /// データフォルダのパス。
 	string execute = ""; /// 実行ファイルの代わりに実行されるファイルの名称。
+	string mnemonic; /// アクセスキー。
+	string hotkey; /// ショートカット。
 	/// エンジンを実行する。
 	const
 	string executePath(string appPath, bool engine) {
@@ -476,6 +488,8 @@ struct ClassicEngine {
 		e.newAttr("enginePath", enginePath);
 		e.newAttr("dataDirName", dataDirName);
 		e.newAttr("execute", execute);
+		if (mnemonic.length) e.newAttr("mnemonic", mnemonic);
+		if (hotkey.length) e.newAttr("hotkey", hotkey);
 	}
 	/// ditto
 	void fromNode(ref XNode node) {
@@ -484,6 +498,8 @@ struct ClassicEngine {
 		enginePath = node.attr!(string)("enginePath", true);
 		dataDirName = node.attr!(string)("dataDirName", true);
 		execute = node.attr!(string)("execute", true);
+		mnemonic = node.attr!string("mnemonic", false, "");
+		hotkey = node.attr!string("hotkey", false, "");
 	}
 }
 

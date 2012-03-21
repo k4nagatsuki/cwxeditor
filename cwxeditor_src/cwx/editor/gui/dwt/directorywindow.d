@@ -66,6 +66,8 @@ import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MenuAdapter;
+import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.layout.FillLayout;
@@ -2205,31 +2207,42 @@ class Exec {
 	}
 	this (DirectoryWindow dirWin, Menu menu, OuterTool tool, int index) {
 		auto icon = dirWin._prop.images.menu(MenuID.OuterTools);
-		string name = tool.name;
-		if (index + 1 <= 9) {
-			name = .tryFormat("&%d ", index + 1) ~ name;
-		} else {
-			name = "&" ~ name;
-		}
+		string name = MenuProps.buildMenu(tool.name, tool.mnemonic, tool.hotkey, false);
 		version (Windows) {
 			auto mi = createMenuItem2(dirWin._comm, menu, name, icon, &run, null);
-			auto com = toUTF16(tool.command);
-			auto wcom = new wchar[com.length + 1];
-			wcom[0 .. com.length] = com[];
-			wcom[$ - 1] = '\0';
-			PathRemoveArgsW(wcom.ptr);
-			PathUnquoteSpacesW(wcom.ptr);
-			com = wcom[0 .. std.algorithm.countUntil(wcom, '\0')].idup;
-			if (com.length) {
-				auto exeIcon = loadIcon(to!string(com), 16, 16);
-				if (exeIcon) {
-					auto img = new Image(mi.getDisplay(), exeIcon);
-					listener(mi, SWT.Dispose, {
-						img.dispose();
-					});
-					mi.setImage(img);
+
+			// loadIcon()は低速のため、メニューを開いた際に呼ぶようにする
+			bool rmv = false;
+			MenuAdapter mShown;
+			mShown = new class MenuAdapter {
+				override void menuShown(MenuEvent e) {
+					auto com = toUTF16(tool.command);
+					auto wcom = new wchar[com.length + 1];
+					wcom[0 .. com.length] = com[];
+					wcom[$ - 1] = '\0';
+					PathRemoveArgsW(wcom.ptr);
+					PathUnquoteSpacesW(wcom.ptr);
+					com = wcom[0 .. std.algorithm.countUntil(wcom, '\0')].idup;
+					if (com.length) {
+						auto exeIcon = loadIcon(to!string(com), 16, 16);
+						if (exeIcon) {
+							auto img = new Image(mi.getDisplay(), exeIcon);
+							listener(mi, SWT.Dispose, {
+								img.dispose();
+							});
+							mi.setImage(img);
+						}
+					}
+					menu.removeMenuListener(mShown);
+					rmv = true;
 				}
-			}
+			};
+			menu.addMenuListener(mShown);
+			mi.addDisposeListener(new class DisposeListener {
+				override void widgetDisposed(DisposeEvent e) {
+					if (!rmv) menu.removeMenuListener(mShown);
+				}
+			});
 		} else {
 			createMenuItem2(dirWin._comm, menu, name, icon, &run, null);
 		}

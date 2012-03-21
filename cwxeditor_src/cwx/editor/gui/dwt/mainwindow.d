@@ -204,15 +204,30 @@ private:
 		}
 		void putIcon(MenuItem mi, string ePath) {
 			version (Windows) {
-				// 実行ファイルのアイコンを取得
-				auto exeIcon = loadIcon(ePath, 16, 16);
-				if (exeIcon) {
-					auto img2 = new Image(mi.getDisplay(), exeIcon);
-					listener(mi, SWT.Dispose, {
-						img2.dispose();
-					});
-					mi.setImage(img2);
-				}
+				// loadIcon()は低速のため、メニューを開いた際に呼ぶようにする
+				bool rmv = false;
+				MenuAdapter mShown;
+				mShown = new class MenuAdapter {
+					override void menuShown(MenuEvent e) {
+						// 実行ファイルのアイコンを取得
+						auto exeIcon = loadIcon(ePath, 16, 16);
+						if (exeIcon) {
+							auto img2 = new Image(mi.getDisplay(), exeIcon);
+							listener(mi, SWT.Dispose, {
+								img2.dispose();
+							});
+							mi.setImage(img2);
+						}
+						menu.removeMenuListener(mShown);
+						rmv = true;
+					}
+				};
+				menu.addMenuListener(mShown);
+				mi.addDisposeListener(new class DisposeListener {
+					override void widgetDisposed(DisposeEvent e) {
+						if (!rmv) menu.removeMenuListener(mShown);
+					}
+				});
 			}
 		}
 		MenuItem autoMI = null;
@@ -233,17 +248,19 @@ private:
 			if (0 < menu.getItemCount()) {
 				new MenuItem(menu, SWT.SEPARATOR);
 			}
-			putMenu(_prop.enginePath, _prop.enginePath, "&0 " ~ _prop.enginePath.baseName.stripExtension, _prop.images.menu(MenuID.ExecEngine));
+			auto mi = createMenuItem(_comm, menu, MenuID.ExecEngineMain, {
+				if (_prop.enginePath.length) {
+					execEngineP(_prop.enginePath);
+				}
+			}, () => _prop.enginePath.length > 0);
+			putIcon(mi, _prop.enginePath);
 		}
 		if (_prop.var.etc.classicEngines.length) {
 			if (0 < menu.getItemCount()) {
 				new MenuItem(menu, SWT.SEPARATOR);
 			}
 			foreach (i, ce; _prop.var.etc.classicEngines) {
-				string name = .text(i + 1) ~ " " ~ ce.name;
-				if (i + 1 <= 9) {
-					name = "&" ~ name;
-				}
+				string name = MenuProps.buildMenu(ce.name, ce.mnemonic, ce.hotkey, false);
 				auto p = nabs(ce.executePath(_prop.parent.appPath, false)); // 代替実行
 				auto e = ce.executePath(_prop.parent.appPath, true); // エンジン本体
 				if (autoE.length && cfnmatch(p, autoE)) {
@@ -1505,6 +1522,7 @@ public:
 					_dock.addCreatePaneEvent(&createPaneEvent);
 					_dock.area.setLayoutData(new GridData(GridData.FILL_BOTH));
 					dStr ~= " - " ~ .text(__LINE__);
+					_prop.var.delNodeTemp();
 				}
 				if (_dock) {
 					dStr ~= " - " ~ .text(__LINE__);

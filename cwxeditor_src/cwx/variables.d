@@ -133,8 +133,12 @@ class FlexEtcProps : Properties {
 	mixin Property!("bgImageKeyCodeSashR", int, 1);
 	mixin Property!("outerToolsSashL", int, 1);
 	mixin Property!("outerToolsSashR", int, 2);
+	mixin Property!("outerToolShortcutSashL", int, 1);
+	mixin Property!("outerToolShortcutSashR", int, 3);
 	mixin Property!("classicEnginesSashL", int, 1);
 	mixin Property!("classicEnginesSashR", int, 2);
+	mixin Property!("classicEngineShortcutSashL", int, 1);
+	mixin Property!("classicEngineShortcutSashR", int, 3);
 	mixin Property!("eventTemplatesSashL", int, 1);
 	mixin Property!("eventTemplatesSashR", int, 2);
 	mixin Property!("scenarioTemplatesSashL", int, 1);
@@ -375,8 +379,8 @@ class FlexEtcProps : Properties {
 	]);
 	version (Windows) {
 		mixin Property!("outerTools", OuterTool[], [
-			OuterTool("メモ帳", "notepad $F", ""),
-			OuterTool("ペイント", "mspaint $F", "")
+			OuterTool("メモ帳", "notepad $F", "", "", ""),
+			OuterTool("ペイント", "mspaint $F", "", "", "")
 		]);
 	} else {
 		mixin Property!("outerTools", OuterTool[], []);
