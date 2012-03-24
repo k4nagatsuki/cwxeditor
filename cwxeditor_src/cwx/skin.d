@@ -535,6 +535,7 @@ class Skin {
 		auto ext = cwx.utils.getExt(path);
 		if (legacy && !cfnmatch(ext, "mid")
 				&& !cfnmatch(ext, "midi")
+				&& !cfnmatch(ext, "mp3")
 				&& !cfnmatch(ext, "mpg")) {
 			return false;
 		}
