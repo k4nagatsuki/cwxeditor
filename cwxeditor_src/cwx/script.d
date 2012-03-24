@@ -77,11 +77,13 @@ class CWXScript {
 	private const(CProps) _prop;
 	private const(Summary) _summ;
 	private string _text;
+	private size_t _maxError;
 	/// 唯一のコンストラクタ。
-	this (const(CProps) prop, const(Summary) summ, string text = "") {
+	this (const(CProps) prop, const(Summary) summ, string text = "", size_t maxError = 100) {
 		_prop = prop;
 		_summ = summ;
 		_text = text;
+		_maxError = maxError;
 	}
 	private CWXSError[] _errors;
 	/// 各メソッド呼び出しで蓄積されたエラーを返す。
@@ -91,15 +93,17 @@ class CWXScript {
 
 	private void throwError(string File = __FILE__, size_t Line = __LINE__)
 			(lazy string message, in Token tok) {
+		if (!_maxError) return;
 		throwErrorToken(message, tok.line, tok.pos, tok.value);
 	}
 	private void throwErrorToken(string File = __FILE__, size_t Line = __LINE__)
 			(lazy string message, size_t line, size_t pos, string value) {
+		if (!_maxError) return;
 		if (_errors.length && _errors[$ - 1].errLine == line && _errors[$ - 1].errPos == pos) {
 			// 同一箇所でのエラーは一つだけにする
 			return;
 		}
-		if (100 <= _errors.length) {
+		if (_maxError <= _errors.length) {
 			throw new CWXScriptException(__FILE__, __LINE__, _text, errors, true);
 		}
 		_errors ~= CWXSError(message, line, pos, File, Line);
@@ -127,8 +131,10 @@ class CWXScript {
 		RES, /// %
 		CAT, /// ~
 		O_PAR, /// (
-		C_PAR /// )
+		C_PAR, /// )
+		COMMENT /// コメント
 	}
+
 	/// スクリプトのトークン。
 	static struct Token {
 		size_t line; /// トークンのある行。
@@ -259,6 +265,7 @@ class CWXScript {
 
 	/// textをTokenに分割する。
 	Token[] tokenize(string text) {
+		if (!text.length) return [];
 		Token[] r;
 		text = std.array.replace(text, "\r\n", "\n");
 		text = std.array.replace(text, "\r", "\n");
@@ -273,6 +280,7 @@ class CWXScript {
 		dstring post;
 		bool spaceAfter = false;
 		string docComment = "";
+		string fullComment = "";
 		dstring tPre;
 		// FIXME: 最初の一つしかヒットしない
 /+		foreach (cap; .match(dtext, reg)) {
@@ -314,6 +322,9 @@ class CWXScript {
 					}
 				}
 			}
+			if (0 < commentLevel) {
+				fullComment ~= .text(pre[hits .. $]) ~ str;
+			}
 			bool commentStart = false;
 			if (str == "/*") {
 				// multi line comment (open)
@@ -324,6 +335,7 @@ class CWXScript {
 					lastCommentPos = pos;
 				}
 				pos += dstr.length;
+				if (0 == commentLevel) fullComment = str;
 				commentLevel++;
 			} else if (str == "*/") {
 				// multi line comment (close)
@@ -333,6 +345,9 @@ class CWXScript {
 					throwErrorToken(_prop.msgs.scriptErrorUnOpenComment, i, pos, str);
 				}
 				commentLevel--;
+				if (0 == commentLevel) {
+					r ~= Token(lastCommentLine, lastCommentPos, Kind.COMMENT, fullComment, "");
+				}
 			} else if (0 < commentLevel) {
 				spaceAfter = true;
 				retCount();
@@ -427,6 +442,7 @@ class CWXScript {
 				if (dstr.length >= 2 && str[1] == '/') {
 					// line comment
 					spaceAfter = true;
+					r ~= Token(i, pos, Kind.COMMENT, str, "");
 					i++;
 					pos = 0;
 					if (2 < str.length) docComment ~= str[2 .. $];
@@ -483,10 +499,14 @@ class CWXScript {
 	} unittest {
 		debug mixin(UTPerf);
 		auto s = new CWXScript(new CProps("", null), null);
-		assert (s.tokenize("/*/*\n*/*/").length == 0);
-		auto tokens = s.tokenize("/*c*/start, 12.3 \ntest1 [$void] =\"str\ning//\"\n\r //comment\nELIF if\n1/2+3*4%(5-6)");
+		auto tokens = s.tokenize("");
+		assert (tokens == [], to!string(tokens));
+		tokens = s.tokenize("/*/*\n*/*/");
+		assert (tokens == [Token(0, 0, Kind.COMMENT, "/*/*\n*/*/", "")], to!string(tokens));
+		tokens = s.tokenize("/*c*/start, 12.3 \ntest1 [$void] =\"str\ning//\"\n\r //comment\nELIF if\n1/2+3*4%(5-6)");
 		assert (tokens
 			== [
+				Token(0, 0, Kind.COMMENT, "/*c*/", ""),
 				Token(0, 5, Kind.START, "start", "c"),
 				Token(0, 10, Kind.COMMA, ","),
 				Token(0, 12, Kind.NUMBER, "12.3"),
@@ -496,6 +516,7 @@ class CWXScript {
 				Token(1, 12, Kind.C_BRA, "]"),
 				Token(1, 14, Kind.EQ, "="),
 				Token(1, 15, Kind.STRING, "\"str\ning//\""),
+				Token(4, 1, Kind.COMMENT, "//comment\n", ""),
 				Token(5, 0, Kind.ELIF, "ELIF", "comment\n"),
 				Token(5, 5, Kind.IF, "if"),
 				Token(6, 0, Kind.NUMBER, "1"),
@@ -1106,14 +1127,20 @@ class CWXScript {
 		Node[] r;
 		size_t i = 0;
 		Node[] vars;
-		while (i < tokens.length) {
-			auto tok = tokens[i];
+		const(Token)[] tokens2;
+		foreach (ref tok; tokens) {
+			if (tok.kind !is Kind.COMMENT) {
+				tokens2 ~= tok;
+			}
+		}
+		while (i < tokens2.length) {
+			auto tok = tokens2[i];
 			if (tok.kind is Kind.VAR_NAME) {
-				vars ~= analyzeSyntaxVar(tokens, i, KEYS);
+				vars ~= analyzeSyntaxVar(tokens2, i, KEYS);
 				continue;
 			}
 			if (tok.kind !is Kind.START) {
-				r ~= analyzeSyntaxBranch(tokens, i, KEYS);
+				r ~= analyzeSyntaxBranch(tokens2, i, KEYS);
 				r[$ - 1].beforeVars = vars;
 				vars = [];
 				continue;
@@ -1122,20 +1149,20 @@ class CWXScript {
 			Node node;
 			node.type = NodeType.START;
 			node.token = tok;
-			node.texts = analyzeSyntaxValue(tokens, i, KEYS);
+			node.texts = analyzeSyntaxValue(tokens2, i, KEYS);
 			if (!node.texts.length) {
 				throwError(_prop.msgs.scriptErrorNoStartText, tok);
 			}
 			node.beforeVars = vars;
-			c: while (i < tokens.length) {
+			c: while (i < tokens2.length) {
 				string cText = "";
-				switch (tokens[i].kind) {
+				switch (tokens2[i].kind) {
 				case Kind.START, Kind.FI, Kind.VAR_NAME: break c;
 				case Kind.IF, Kind.ELIF, Kind.SYMBOL, Kind.SIF:
-					node.childs ~= analyzeSyntaxBranch(tokens, i, KEYS);
+					node.childs ~= analyzeSyntaxBranch(tokens2, i, KEYS);
 					continue;
 				default:
-					throwError(_prop.msgs.scriptErrorInvalidStatement, tokens[i]);
+					throwError(_prop.msgs.scriptErrorInvalidStatement, tokens2[i]);
 				}
 			}
 			r ~= node;
