@@ -676,7 +676,6 @@ public:
 
 	/// 貼り紙設定ダイアログ関連。
 	@property const string dlgTitSummary() {return "概略の設定 - [ %1$s ]";}
-	@property const string summaryImage() {return "表示イメージ";}
 	@property const string baseData() {return "基本データ";}
 	@property const string etcData() {return "詳細データ";}
 	@property const string targetLevelSame() {return "対象レベル %1$s";}

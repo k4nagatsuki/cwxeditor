@@ -71,6 +71,7 @@ private:
 
 	Canvas _summImage;
 	Image _summImageBuf = null;
+	ImageData _bufImgData = null;
 	string _bufImagePath = null;
 
 	Text _sname;
@@ -139,10 +140,11 @@ private:
 
 			auto skin = selectedSkin();
 			auto path = nabs(skin.findImagePath(_imgPath.image, _summ.scenarioPath));
-			if (!_bufImagePath || !_summImageBuf || !.cfnmatch(_bufImagePath, path)) {
+			if (!_bufImagePath || !_summImageBuf || !.cfnmatch(_bufImagePath, path) || summary(skin) !is _bufImgData) {
 				if (_summImageBuf) _summImageBuf.dispose();
 				_bufImagePath = path;
-				_summImageBuf = new Image(d, summary(skin));
+				_bufImgData = summary(skin);
+				_summImageBuf = new Image(d, _bufImgData);
 			}
 			gc.drawImage(_summImageBuf, 0, 0);
 
@@ -228,16 +230,14 @@ private:
 			e.gc.drawImage(buf, bx, by);
 		}
 	}
-	void constructTab1(CTabFolder tabf) {
-		auto comp = new Composite(tabf, SWT.NONE);
+	void constructImage(Composite area) {
+		auto comp = new Composite(area, SWT.NONE);
+		comp.setLayoutData(new GridData(GridData.FILL_VERTICAL));
 		auto size = _prop.looks.summarySize;
 		comp.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0));
 		_summImage = new Canvas(comp, SWT.BORDER | SWT.DOUBLE_BUFFERED);
 		_summImage.setLayoutData(_summImage.computeSize(size.width, size.height));
 		_summImage.addPaintListener(new PListener);
-		auto tab = new CTabItem(tabf, SWT.NONE);
-		tab.setText(_prop.msgs.summaryImage);
-		tab.setControl(comp);
 	}
 	private void setCDataX(Control c, GridData data) {
 		auto p = c.computeSize(SWT.DEFAULT, SWT.DEFAULT);
@@ -250,7 +250,7 @@ private:
 		data.heightHint = p.y;
 		c.setLayoutData(data);
 	}
-	void constructTab2(CTabFolder tabf) {
+	void constructTab1(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout(new GridLayout(1, true));
 		{
@@ -264,6 +264,7 @@ private:
 					_prop.looks.cardSize.width, _prop.looks.cardSize.height, including, saveName, &clearBuf);
 				mod(_imgPath);
 				_imgPath.image = _summ.imagePath;
+				_imgPath.modEvent ~= &_summImage.redraw;
 			}
 			{
 				auto comp2 = new Composite(_tab2Sash, SWT.NONE);
@@ -277,6 +278,7 @@ private:
 					setCDataX(_sname, new GridData(GridData.FILL_HORIZONTAL));
 					_sname.setText(_summ.scenarioName);
 					checker(_sname);
+					.listener(_sname, SWT.Modify, &_summImage.redraw);
 				}
 				{
 					auto grp = centerGroup(comp2, _prop.msgs.author, true, false, new GridData(GridData.FILL_BOTH));
@@ -305,6 +307,8 @@ private:
 					_levMax.setMinimum(0);
 					_levMax.setMaximum(_prop.looks.levelMax);
 					new SpinnerEdit(_levMax, &levMaxEnter);
+					.listener(_levMin, SWT.Modify, &_summImage.redraw);
+					.listener(_levMax, SWT.Modify, &_summImage.redraw);
 				}
 			}
 			_tab2Sash.setWeights([_prop.var.etc.summaryParamSashL, _prop.var.etc.summaryParamSashR]);
@@ -319,12 +323,13 @@ private:
 			mod(_desc.widget);
 			_desc.widget.setLayoutData(_desc.computeTextBaseSize(_prop.looks.summaryDescLine));
 			_desc.setText(_summ.desc);
+			.listener(_desc.widget, SWT.Modify, &_summImage.redraw);
 		}
 		auto tab = new CTabItem(tabf, SWT.NONE);
 		tab.setText(_prop.msgs.baseData);
 		tab.setControl(comp);
 	}
-	void constructTab3(CTabFolder tabf) {
+	void constructTab2(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout(new GridLayout(1, true));
 		{
@@ -351,6 +356,9 @@ private:
 					_type.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 					_type.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 					refreshTypes();
+					.listener(_typeSkin, SWT.Selection, &_summImage.redraw);
+					.listener(_typeClassic, SWT.Selection, &_summImage.redraw);
+					.listener(_type, SWT.Modify, &_summImage.redraw);
 				}
 				{
 					auto grp = new Group(comp2, SWT.NONE);
@@ -577,12 +585,13 @@ public:
 
 protected:
 	override void setup(Composite area) {
-		area.setLayout(windowGridLayout(1, true));
+		area.setLayout(windowGridLayout(2, false));
+		constructImage(area);
+
 		auto tabf = new CTabFolder(area, SWT.BORDER);
 		tabf.setLayoutData(new GridData(GridData.FILL_BOTH));
 		constructTab1(tabf);
 		constructTab2(tabf);
-		constructTab3(tabf);
 
 		_comm.refSkin.add(&clearBuf);
 		_comm.refArea.add(&refArea);
