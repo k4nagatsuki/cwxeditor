@@ -1454,6 +1454,24 @@ private:
 			}
 		}
 	}
+	private class PutContents {
+		private Content[] _cs;
+		this (Content[] cs) {
+			_cs = cs;
+		}
+		void put() {
+			putContents(_cs);
+		}
+	}
+	private class PutScript {
+		private string _script;
+		this (string script) {
+			_script = script;
+		}
+		void put() {
+			pasteScript(_script);
+		}
+	}
 	void refreshTemplates() {
 		foreach (itm; _templMenu.getItems()) {
 			itm.dispose();
@@ -1462,18 +1480,16 @@ private:
 			try {
 				auto cs = cwx.script.compile(_prop.parent, null, t.script);
 				if (cs.length) {
-					createMenuItem2(_comm, _templMenu, t.name, _prop.images.content(cs[0].type), {
-						putContents(cs);
-					}, () => _et !is null);
+					auto c = new PutContents(cs);
+					createMenuItem2(_comm, _templMenu, t.name, _prop.images.content(cs[0].type), &c.put, () => _et !is null);
 				} else {
 					// 内容の無いスクリプト
 					createMenuItem2(_comm, _templMenu, t.name, null, {}, () => false);
 				}
 			} catch (CWXScriptException e) {
 				// エラーのあるスクリプト
-				createMenuItem2(_comm, _templMenu, t.name, null, {
-					pasteScript(t.script);
-				}, () => _et !is null);
+				auto c = new PutScript(t.script);
+				createMenuItem2(_comm, _templMenu, t.name, null, &c.put, () => _et !is null);
 			}
 		}
 	}
