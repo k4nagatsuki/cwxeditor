@@ -231,11 +231,12 @@ private:
 		}
 	}
 	void constructImage(Composite area) {
-		auto comp = new Composite(area, SWT.NONE);
-		comp.setLayoutData(new GridData(GridData.FILL_VERTICAL));
+		auto grp = new Group(area, SWT.NONE);
+		grp.setLayoutData(new GridData(GridData.FILL_VERTICAL));
+		grp.setText(_prop.msgs.summaryPreview);
 		auto size = _prop.looks.summarySize;
-		comp.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0));
-		_summImage = new Canvas(comp, SWT.BORDER | SWT.DOUBLE_BUFFERED);
+		grp.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL));
+		_summImage = new Canvas(grp, SWT.BORDER | SWT.DOUBLE_BUFFERED);
 		_summImage.setLayoutData(_summImage.computeSize(size.width, size.height));
 		_summImage.addPaintListener(new PListener);
 	}
