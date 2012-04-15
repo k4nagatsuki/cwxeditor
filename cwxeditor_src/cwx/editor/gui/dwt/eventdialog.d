@@ -79,6 +79,7 @@ abstract class EventDialog : AbsDialog {
 	private Summary _summ;
 	private Content _parent;
 	private Content _evt;
+	private CType _type;
 
 	private class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
@@ -92,15 +93,16 @@ abstract class EventDialog : AbsDialog {
 		}
 	}
 
-	this (Commons comm, Props prop, Shell shell, Summary summ, CType type, Content parent, Content evt, bool resizable, DSize size, bool eClose) in {
+	this (Commons comm, Props prop, Shell shell, Summary summ, CType type, Content parent, Content evt, bool resizable, DSize size, bool eClose, bool rightGroup = false) in {
 		assert (!evt || evt.type is type);
 		assert (summ);
 	} body {
-		super (prop, shell, false, .tryFormat(prop.msgs.dlgTitContent, prop.msgs.contentName(type)), prop.images.content(type), resizable, size, true);
+		super (prop, shell, false, .tryFormat(prop.msgs.dlgTitContent, prop.msgs.contentName(type)), prop.images.content(type), resizable, size, true, true, [], rightGroup);
 		enterClose = eClose;
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
+		_type = type;
 		_parent = parent;
 		_evt = evt;
 		_comm.delContent.add(&delContent);
@@ -117,6 +119,7 @@ abstract class EventDialog : AbsDialog {
 	@property protected Summary summ() {return _summ;}
 	@property protected Content evt() {return _evt;}
 	@property protected void evt(Content evt) {_evt = evt;}
+	@property protected CType type() {return _type;}
 
 	protected void refSkin() {}
 

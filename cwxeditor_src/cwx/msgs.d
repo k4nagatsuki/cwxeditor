@@ -1261,6 +1261,7 @@ public:
 	@property const string logicalSort() {return "数値参照型ソートを行う(1, 10, 2, 3, ... → 1, 2, 3, 10, ...)";}
 	@property const string copyDesc() {return "カードをエリアに貼り付け・ドロップした時、解説もコピーする";}
 	@property const string refCardsAtEditBgImage() {return "背景変更コンテントの編集を開始する際、最初からカード配置の参照を行う";}
+	@property const string floatMessagePreview() {return "台詞・メッセージのプレビューをフロートさせる";}
 	@property const string addNewClassicEngine() {return "未知のクラシックエンジンを見つけたら記憶する";}
 	@property const string doubleIO() {return "分割読込・保存を行う(デュアルコア以上の環境で高速化)";}
 	@property const string switchTabWheel() {return "マウスホイールでタブ切替を行う";}

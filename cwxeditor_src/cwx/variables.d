@@ -422,6 +422,7 @@ class FlexEtcProps : Properties {
 
 	mixin Property!("dialogStatus", int, DialogStatus.Top);
 
+	mixin Property!("floatMessagePreview", bool, false);
 	mixin Property!("showDialogPreview", bool, false);
 	mixin Property!("showMessagePreview", bool, false);
 	mixin Property!("messageVarKindColumn", int, 200);

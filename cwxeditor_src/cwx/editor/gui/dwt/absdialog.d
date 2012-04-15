@@ -48,12 +48,13 @@ abstract class AbsDialog {
 	private DSize _size;
 	private Composite _area;
 	private Composite _addition;
+	private Composite _rightGroup;
 	private bool _modal;
 	private bool _hasApply;
 	this (Props prop, Shell parent, string text, Image img, bool resizable, DSize size = null, bool apply = false, bool cancel = true, ButtonInfo[] button = []) {
 		this (prop, parent, true, text, img, resizable, size, apply, cancel, button);
 	}
-	this (Props prop, Shell parent, bool modal, string text, Image img, bool resizable, DSize size = null, bool apply = false, bool cancel = true, ButtonInfo[] button = []) {
+	this (Props prop, Shell parent, bool modal, string text, Image img, bool resizable, DSize size = null, bool apply = false, bool cancel = true, ButtonInfo[] button = [], bool rightGroup = false) {
 		_prop = prop;
 		_size = size;
 		_modal = modal;
@@ -65,13 +66,26 @@ abstract class AbsDialog {
 		_win = new Shell(parent, style);
 		_win.setText(text);
 		_win.setImage(img);
-		_win.setLayout(zeroGridLayout(2, false));
+		if (rightGroup) {
+			_win.setLayout(zeroGridLayout(3, false));
+		} else {
+			_win.setLayout(zeroGridLayout(2, false));
+		}
 		_win.addShellListener(new SListener);
 
 		_area = new Composite(_win, SWT.NONE);
 		auto agd = new GridData(GridData.FILL_BOTH);
 		agd.horizontalSpan = 2;
 		_area.setLayoutData(agd);
+
+		if (rightGroup) {
+			_rightGroup = new Composite(_win, SWT.NONE);
+			auto rgd = new GridData(GridData.FILL_VERTICAL);
+			rgd.verticalSpan = 3;
+			rgd.widthHint = 0;
+			rgd.heightHint = 0;
+			_rightGroup.setLayoutData(rgd);
+		}
 
 		auto sep = new Label(_win, SWT.SEPARATOR | SWT.HORIZONTAL);
 		auto sgd = new GridData(GridData.FILL_HORIZONTAL);
@@ -104,6 +118,18 @@ abstract class AbsDialog {
 	}
 	@property
 	Composite addition() {return _addition;}
+	@property
+	Composite rightGroup() {return _rightGroup;}
+	void rightGroupSize(int width, int height) {
+		if (!_rightGroup) throw new Exception("rightGroup is null", __FILE__, __LINE__);
+
+		getShell().setRedraw(false);
+		scope (exit) getShell().setRedraw(true);
+		auto rgd = cast(GridData) _rightGroup.getLayoutData();
+		rgd.widthHint = width;
+		rgd.heightHint = height;
+		_rightGroup.getParent().layout();
+	}
 
 	private Button createButton(Composite parent, string text, void delegate() push) {
 		auto b = new Button(parent, SWT.PUSH);

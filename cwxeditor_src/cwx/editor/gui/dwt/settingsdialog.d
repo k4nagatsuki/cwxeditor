@@ -1057,6 +1057,7 @@ private:
 	Button _logicalSort;
 	Button _copyDesc;
 	Button _refCardsAtEditBgImage;
+	Button _floatMessagePreview;
 	Button _addNewClassicEngine;
 	Button _doubleIO;
 	Button _switchTabWheel;
@@ -1829,6 +1830,7 @@ private:
 				_logicalSort = createB(_prop.msgs.logicalSort);
 				_copyDesc = createB(_prop.msgs.copyDesc);
 				_refCardsAtEditBgImage = createB(_prop.msgs.refCardsAtEditBgImage);
+				_floatMessagePreview = createB(_prop.msgs.floatMessagePreview);
 				_addNewClassicEngine = createB(_prop.msgs.addNewClassicEngine);
 				_doubleIO = createB(_prop.msgs.doubleIO);
 				_switchTabWheel = createB(_prop.msgs.switchTabWheel);
@@ -2043,6 +2045,7 @@ protected:
 		_logicalSort.setSelection(_prop.var.etc.logicalSort);
 		_copyDesc.setSelection(_prop.var.etc.copyDesc);
 		_refCardsAtEditBgImage.setSelection(_prop.var.etc.refCardsAtEditBgImage);
+		_floatMessagePreview.setSelection(_prop.var.etc.floatMessagePreview);
 		_addNewClassicEngine.setSelection(_prop.var.etc.addNewClassicEngine);
 		_doubleIO.setSelection(_prop.var.etc.doubleIO);
 		_switchTabWheel.setSelection(_prop.var.etc.switchTabWheel);
@@ -2150,6 +2153,7 @@ protected:
 		_prop.var.etc.logicalSort = _logicalSort.getSelection();
 		_prop.var.etc.copyDesc = _copyDesc.getSelection();
 		_prop.var.etc.refCardsAtEditBgImage = _refCardsAtEditBgImage.getSelection();
+		_prop.var.etc.floatMessagePreview = _floatMessagePreview.getSelection();
 		_prop.var.etc.addNewClassicEngine = _addNewClassicEngine.getSelection();
 		_prop.var.etc.doubleIO = _doubleIO.getSelection();
 		_prop.var.etc.switchTabWheel = _switchTabWheel.getSelection();
@@ -2218,6 +2222,7 @@ struct OldSettings {
 	int oldDialogStatus;
 	string[MenuID] oldMnemonic;
 	string[MenuID] oldHotkey;
+	bool floatMessagePreview;
 	this (Props prop) {
 		this.prop = prop;
 		this.oldEnginePath = prop.var.etc.enginePath;
@@ -2243,6 +2248,7 @@ struct OldSettings {
 			oldMnemonic[id] = prop.var.menu.mnemonic(id);
 			oldHotkey[id] = prop.var.menu.hotkey(id);
 		}
+		this.floatMessagePreview = prop.var.etc.floatMessagePreview;
 	}
 	void raiseEvent(Commons comm) {
 		bool refSkin = false;
@@ -2311,6 +2317,20 @@ struct OldSettings {
 			if (isNoKeyBindMenu(id)) continue;
 			if (oldMnemonic[id] != prop.var.menu.mnemonic(id) || oldHotkey[id] != prop.var.menu.hotkey(id)) {
 				comm.refMenu.call(id);
+			}
+		}
+		if (this.floatMessagePreview != prop.var.etc.floatMessagePreview) {
+			int wg;
+			if (prop.var.etc.floatMessagePreview) {
+				wg = -(cast(int) prop.looks.messageBounds.width);
+			} else {
+				wg = prop.looks.messageBounds.width;
+			}
+			if (prop.var.etc.showMessagePreview) {
+				prop.var.msgDlg.width = prop.var.msgDlg.width + wg;
+			}
+			if (prop.var.etc.showDialogPreview) {
+				prop.var.speakDlg.width = prop.var.speakDlg.width + wg;
 			}
 		}
 	}

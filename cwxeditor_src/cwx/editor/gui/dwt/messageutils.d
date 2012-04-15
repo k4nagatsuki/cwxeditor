@@ -90,8 +90,178 @@ import org.eclipse.swt.dnd.DropTarget;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.Transfer;
 
+class AbstractMessageDialog : EventDialog {
+	private KeyDownFilter _kdFilter;
+	private MsgPreviewWindow _previewWin = null;
+	private MsgPreview _preview = null;
+	private UndoManager _undo;
+
+	private class SelPrev : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			auto btn = cast(Button) e.widget;
+			if (btn.getSelection()) {
+				auto s = wrapReturnCode(text);
+				if (_previewWin) {
+					if (_previewWin.isVisible()) return;
+					_previewWin.text(selectedTalker, "", s);
+					_previewWin.open();
+				} else {
+					if (rightGroup.isVisible()) return;
+					_preview.text(selectedTalker, imgPath, s);
+					setPreviewLData(true);
+				}
+			} else {
+				if (_previewWin) {
+					if (!_previewWin.isVisible()) return;
+					_previewWin.close();
+				} else {
+					if (!rightGroup.isVisible()) return;
+					setPreviewLData(false);
+				}
+			}
+		}
+	}
+	private void setPreviewLData(bool visible, bool regWin = true) {
+		bool oVisible = rightGroup.isVisible();
+		assert (_preview);
+		rightGroup.setVisible(visible);
+		int pvw;
+		if (!visible) {
+			pvw = rightGroup.getSize().x;
+		}
+		int w = visible ? prop.looks.messageBounds.width : 0;
+		int h = 0;
+		rightGroupSize(w, h);
+
+		getShell().setRedraw(false);
+		scope (exit) getShell().setRedraw(true);
+		if (regWin && oVisible != visible) {
+			auto ws = getShell().getSize();
+			if (visible) {
+				pvw = rightGroup.getSize().x;
+			}
+			if (visible) {
+				ws.x += pvw;
+			} else {
+				ws.x -= pvw;
+			}
+			getShell().setSize(ws);
+		}
+	}
+	private class Dispose : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			comm.refMenu.remove(&refMenu);
+			comm.refUndoMax.remove(&refUndoMax);
+			getShell().getDisplay().removeFilter(SWT.KeyDown, _kdFilter);
+			if (_preview) {
+				if (type is CType.TALK_MESSAGE) {
+					prop.var.etc.showMessagePreview = _preview.isVisible();
+				} else if (type is CType.TALK_DIALOG) {
+					prop.var.etc.showDialogPreview = _preview.isVisible();
+				} else assert (0);
+			}
+		}
+	}
+
+	private class KeyDownFilter : Listener {
+		this () {
+			refMenu(MenuID.Undo);
+			refMenu(MenuID.Redo);
+		}
+		override void handleEvent(Event e) {
+			auto c = cast(Control) e.widget;
+			if (!c || c.getShell() !is getShell()) return;
+			if (eqAcc(_undoAcc, e.keyCode, e.character, e.stateMask)) {
+				_undo.undo();
+				e.doit = false;
+			} else if (eqAcc(_redoAcc, e.keyCode, e.character, e.stateMask)) {
+				_undo.redo();
+				e.doit = false;
+			}
+		}
+	}
+	private int _undoAcc;
+	private int _redoAcc;
+	private void refMenu(MenuID id) {
+		if (id == MenuID.Undo) _undoAcc = convertAccelerator(prop.buildMenu(MenuID.Undo));
+		if (id == MenuID.Redo) _redoAcc = convertAccelerator(prop.buildMenu(MenuID.Redo));
+	}
+	private void refUndoMax() {
+		_undo.max = prop.var.etc.undoMaxEtc;
+	}
+
+	protected void initPreview(Composite area, WSize size) {
+		auto aComp = addition();
+		aComp.setLayout(new GridLayout(1, true));
+		auto prev = new Button(aComp, SWT.TOGGLE);
+		prev.setText(prop.msgs.messagePreview);
+		bool show;
+		if (type is CType.TALK_MESSAGE) {
+			show = prop.var.etc.showMessagePreview;
+		} else if (type is CType.TALK_DIALOG) {
+			show = prop.var.etc.showDialogPreview;
+		} else assert (0);
+		prev.setSelection(show);
+		prev.addSelectionListener(new SelPrev);
+
+		if (prop.var.etc.floatMessagePreview) {
+			_previewWin = new MsgPreviewWindow(getShell(), comm, prop, summ, prev, size);
+		} else {
+			_preview = new MsgPreview(rightGroup, comm, prop, summ);
+			rightGroup.setLayout(zeroGridLayout(1, false));
+			_preview.setLayoutData(new GridData(GridData.FILL_BOTH));
+			setPreviewLData(show, false);
+		}
+		refreshPreview();
+	}
+
+	this (Commons comm, Props prop, Shell shell, Summary summ, CType type, Content parent, Content evt, DSize size) {
+		super (comm, prop, shell, summ, type, parent, evt, true, size, false, !prop.var.etc.floatMessagePreview);
+		_undo = new UndoManager(prop.var.etc.undoMaxEtc);
+	}
+
+	override
+	protected void opened() {
+		if (!_previewWin) return;
+		if (prop.var.etc.showDialogPreview) _previewWin.open();
+		closeEvent ~= {
+			prop.var.etc.showDialogPreview = _previewWin.isVisible();
+		};
+	}
+
+	protected override void setup(Composite area) {
+		area.addDisposeListener(new Dispose);
+		_kdFilter = new KeyDownFilter;
+		area.getDisplay().addFilter(SWT.KeyDown, _kdFilter);
+		comm.refMenu.add(&refMenu);
+		comm.refUndoMax.add(&refUndoMax);
+
+	}
+
+	void refreshPreview() {
+		if (!_previewWin && !_preview) return;
+		auto s = wrapReturnCode(text);
+		if (_previewWin) {
+			_previewWin.text(selectedTalker, imgPath, s);
+			_previewWin.refresh();
+		} else {
+			_preview.text(selectedTalker, imgPath, s);
+			_preview.refresh();
+		}
+	}
+
+	@property
+	abstract string text();
+
+	@property
+	abstract Talker selectedTalker();
+
+	@property
+	abstract string imgPath();
+}
+
 /// 台詞コンテントの設定ダイアログ。
-class SpeakDialog : EventDialog {
+class SpeakDialog : AbstractMessageDialog {
 private:
 	class APData {
 		string text;
@@ -168,10 +338,7 @@ private:
 	Text _rCoupons;
 	Combo _rCouponsList;
 	FixedWidthText _text;
-	UndoManager _undo;
-	Listener _kdFilter;
 	TextMenuModify _textTM, _rCouponsTM;
-	MsgPreview _preview = null;
 
 	void selectChanged() {
 		bool oldIgnoreMod = ignoreMod;
@@ -469,63 +636,18 @@ private:
 			comm.refreshToolBar();
 		}
 	}
-	class SelPrev : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
-			auto btn = cast(Button) e.widget;
-			if (btn.getSelection()) {
-				_preview.open();
-			} else {
-				_preview.close();
-			}
-		}
-	}
-	void refreshPreview() {
-		if (_preview) {
-			_preview.text(selectedTalker, "", wrapReturnCode(_text.getText()));
-		}
-	}
 	class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
 			auto sash = cast(SplitPane) e.widget;
 			auto ws = sash.getWeights();
 			prop.var.etc.talkSashL = ws[0];
 			prop.var.etc.talkSashR = ws[1];
-			sash.getDisplay().removeFilter(SWT.KeyDown, _kdFilter);
-			comm.refMenu.remove(&refMenu);
-			comm.refUndoMax.remove(&refUndoMax);
 		}
-	}
-	private class KeyDownFilter : Listener {
-		this () {
-			refMenu(MenuID.Undo);
-			refMenu(MenuID.Redo);
-		}
-		override void handleEvent(Event e) {
-			auto c = cast(Control) e.widget;
-			if (!c || c.getShell() !is getShell()) return;
-			if (eqAcc(_undoAcc, e.keyCode, e.character, e.stateMask)) {
-				_undo.undo();
-				e.doit = false;
-			} else if (eqAcc(_redoAcc, e.keyCode, e.character, e.stateMask)) {
-				_undo.redo();
-				e.doit = false;
-			}
-		}
-	}
-	private int _undoAcc;
-	private int _redoAcc;
-	void refMenu(MenuID id) {
-		if (id == MenuID.Undo) _undoAcc = convertAccelerator(prop.buildMenu(MenuID.Undo));
-		if (id == MenuID.Redo) _redoAcc = convertAccelerator(prop.buildMenu(MenuID.Redo));
-	}
-	void refUndoMax() {
-		_undo.max = prop.var.etc.undoMaxEtc;
 	}
 public:
-	this(Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
+	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
 		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime());
-		super(comm, prop, shell, summ, CType.TALK_DIALOG, parent, evt, true, prop.var.speakDlg, false);
-		_undo = new UndoManager(prop.var.etc.undoMaxEtc);
+		super(comm, prop, shell, summ, CType.TALK_DIALOG, parent, evt, prop.var.speakDlg);
 	}
 
 	override
@@ -544,6 +666,11 @@ public:
 	}
 
 	@property
+	string text() {
+		return wrapReturnCode(_text.getText());
+	}
+
+	@property
 	Talker selectedTalker() {
 		switch (_talkers.getSelectionIndex()) {
 		case 0: return Talker.SELECTED;
@@ -552,8 +679,15 @@ public:
 		default: assert (0);
 		}
 	}
+
+	@property
+	string imgPath() {
+		return "";
+	}
 protected:
 	override void setup(Composite area) {
+		super.setup(area);
+
 		area.setLayout(windowGridLayout(1, true));
 		auto sash = new SplitPane(area, SWT.VERTICAL);
 		sash.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -640,18 +774,9 @@ protected:
 			auto bar = createFlagStepBar(area, &insert, comm, prop);
 			bar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		}
-		auto aComp = addition();
-		aComp.setLayout(new GridLayout(1, true));
-		auto prev = new Button(aComp, SWT.TOGGLE);
-		prev.setText(prop.msgs.messagePreview);
-		prev.addSelectionListener(new SelPrev);
 
 		sash.addDisposeListener(new Dispose);
 		sash.setWeights([prop.var.etc.talkSashL, prop.var.etc.talkSashR]);
-		_kdFilter = new KeyDownFilter;
-		sash.getDisplay().addFilter(SWT.KeyDown, _kdFilter);
-		comm.refMenu.add(&refMenu);
-		comm.refUndoMax.add(&refUndoMax);
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
@@ -667,15 +792,7 @@ protected:
 		_textTM = createTextMenu!Text(comm, prop, _rCoupons, &catchMod, _undo, TMAppendData(&readAPD, &writeAPD));
 		_rCouponsTM = createTextMenu!Text(comm, prop, _text.widget, &catchMod, _undo, TMAppendData(&readAPD, &writeAPD));
 
-		_preview = new MsgPreview(getShell(), comm, prop, summ, prev, prop.var.dlgPrev);
-		refreshPreview();
-	}
-	override
-	protected void opened() {
-		if (prop.var.etc.showDialogPreview) _preview.open();
-		closeEvent ~= {
-			prop.var.etc.showDialogPreview = _preview.isVisible();
-		};
+		initPreview(area, prop.var.dlgPrev);
 	}
 
 	override bool apply() {
@@ -687,15 +804,12 @@ protected:
 }
 
 /// メッセージコンテントの設定ダイアログ。
-class MessageDialog : EventDialog {
+class MessageDialog : AbstractMessageDialog {
 private:
 	CTabFolder _tabf;
 	Composite _msgCompA, _msgCompB;
 	FixedWidthText _text;
 	ImageSelect!(MtType.CARD, Combo) _msel;
-	UndoManager _undo;
-	KeyDownFilter _kdFilter;
-	MsgPreview _preview = null;
 
 	void tabChanged() {
 		switch (_tabf.getSelectionIndex()) {
@@ -716,16 +830,6 @@ private:
 		}
 		refreshPreview();
 	}
-	class SelPrev : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
-			auto btn = cast(Button) e.widget;
-			if (btn.getSelection()) {
-				_preview.open();
-			} else {
-				_preview.close();
-			}
-		}
-	}
 	class SL : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
 			tabChanged();
@@ -742,59 +846,15 @@ private:
 	void insert(string put) {
 		_text.insert(put);
 	}
-	void refreshPreview() {
-		if (_preview) {
-			Talker talker;
-			string imgPath;
-			selectedTalker(talker, imgPath);
-			_preview.text(talker, imgPath, wrapReturnCode(_text.getText()));
-		}
-	}
 	protected override void refSkin() {
 		_text.font = dwtData(prop.looks.messageFont(summ.legacy));
 	}
-	class Dispose : DisposeListener {
-		override void widgetDisposed(DisposeEvent e) {
-			auto c = cast(Control) e.widget;
-			assert (c);
-			c.getDisplay().removeFilter(SWT.KeyDown, _kdFilter);
-			comm.refMenu.remove(&refMenu);
-			comm.refUndoMax.remove(&refUndoMax);
-		}
-	}
-	private class KeyDownFilter : Listener {
-		this () {
-			refMenu(MenuID.Undo);
-			refMenu(MenuID.Redo);
-		}
-		override void handleEvent(Event e) {
-			auto c = cast(Control) e.widget;
-			if (!c || c.getShell() !is getShell()) return;
-			if (eqAcc(_undoAcc, e.keyCode, e.character, e.stateMask)) {
-				_undo.undo();
-				e.doit = false;
-			} else if (eqAcc(_redoAcc, e.keyCode, e.character, e.stateMask)) {
-				_undo.redo();
-				e.doit = false;
-			}
-		}
-	}
-	private int _undoAcc;
-	private int _redoAcc;
-	void refMenu(MenuID id) {
-		if (id == MenuID.Undo) _undoAcc = convertAccelerator(prop.buildMenu(MenuID.Undo));
-		if (id == MenuID.Redo) _redoAcc = convertAccelerator(prop.buildMenu(MenuID.Redo));
-	}
-	void refUndoMax() {
-		_undo.max = prop.var.etc.undoMaxEtc;
-	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
-		super(comm, prop, shell, summ, CType.TALK_MESSAGE, parent, evt, true, prop.var.msgDlg, false);
-		_undo = new UndoManager(prop.var.etc.undoMaxEtc);
+		super(comm, prop, shell, summ, CType.TALK_MESSAGE, parent, evt, prop.var.msgDlg);
 	}
 
-	void selectedTalker(out Talker talker, out string imgPath) {
+	void selectedTalkerParam(out Talker talker, out string imgPath) {
 		imgPath = "";
 		switch (_tabf.getSelectionIndex()) {
 		case 0:
@@ -822,8 +882,29 @@ public:
 		default: assert (0);
 		}
 	}
+
+	@property
+	override Talker selectedTalker() {
+		Talker talker;
+		string imgPath;
+		selectedTalkerParam(talker, imgPath);
+		return talker;
+	}
+	@property
+	override string imgPath() {
+		Talker talker;
+		string imgPath;
+		selectedTalkerParam(talker, imgPath);
+		return imgPath;
+	}
+	@property
+	override string text() {
+		return wrapReturnCode(_text.getText());
+	}
 protected:
 	override void setup(Composite area) {
+		super.setup(area);
+
 		area.setLayout(new GridLayout(1, true));
 		_tabf = new CTabFolder(area, SWT.BORDER);
 		mod(_tabf);
@@ -870,18 +951,8 @@ protected:
 			auto bar = createFlagStepBar(area, &insert, comm, prop);
 			bar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		}
-		auto aComp = addition();
-		aComp.setLayout(new GridLayout(1, true));
-		auto prev = new Button(aComp, SWT.TOGGLE);
-		prev.setText(prop.msgs.messagePreview);
-		prev.addSelectionListener(new SelPrev);
 
 		_tabf.addSelectionListener(new SL);
-		_tabf.addDisposeListener(new Dispose);
-		_kdFilter = new KeyDownFilter;
-		_tabf.getDisplay().addFilter(SWT.KeyDown, _kdFilter);
-		comm.refMenu.add(&refMenu);
-		comm.refUndoMax.add(&refUndoMax);
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
@@ -896,23 +967,15 @@ protected:
 		}
 		tabChanged();
 
-		_preview = new MsgPreview(getShell(), comm, prop, summ, prev, prop.var.msgPrev);
-		refreshPreview();
+		initPreview(area, prop.var.msgPrev);
 		_msel.modEvent ~= &refreshPreview;
-	}
-	override
-	protected void opened() {
-		if (prop.var.etc.showMessagePreview) _preview.open();
-		closeEvent ~= {
-			prop.var.etc.showMessagePreview = _preview.isVisible();
-		};
 	}
 
 	override bool apply() {
 		string text;
 		string path = "";
 		Talker talker;
-		selectedTalker(talker, path);
+		selectedTalkerParam(talker, path);
 		text = lastRet(wrapReturnCode(_text.getText()));
 		if (!evt) evt = new Content(CType.TALK_MESSAGE, "");
 		evt.text = text;
@@ -1233,7 +1296,99 @@ private void putColor(FixedWidthText text, dchar put) {
 	text.widget.setSelection(nSel);
 }
 
-class MsgPreview {
+class MsgPreviewWindow {
+	private MsgPreview _preview;
+
+	private Button _toggle;
+	private WSize _size;
+	private Shell _win;
+	private ControlListener _winL;
+	private int _parX, _parY;
+
+	private class Dispose : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			_win.getParent().removeControlListener(_winL);
+			saveWin();
+		}
+	}
+	private class PShellL : ControlAdapter {
+		override void controlMoved(ControlEvent e) {
+			auto pb = _win.getParent().getBounds();
+			auto tb = _win.getBounds();
+			_win.setBounds(tb.x + pb.x - _parX, tb.y + pb.y - _parY, tb.width, tb.height);
+			_parX = pb.x;
+			_parY = pb.y;
+		}
+	}
+	private class ShellL : ShellAdapter {
+		override void shellClosed(ShellEvent e) {
+			close();
+			e.doit = false;
+		}
+	}
+
+	this (Shell parent, Commons comm, Props prop, Summary summ, Button toggle, WSize size) {
+		_size = size;
+		_toggle = toggle;
+
+		_winL = new PShellL;
+		parent.addControlListener(_winL);
+
+		_win = new Shell(parent, SWT.TITLE | SWT.RESIZE | SWT.TOOL | SWT.CLOSE);
+		_win.setText(prop.msgs.dlgTitMessagePreview);
+		auto cl = new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0);
+		cl.fillHorizontal = true;
+		cl.fillVertical = true;
+		_win.setLayout(cl);
+		_win.addShellListener(new ShellL);
+		_win.addDisposeListener(new Dispose);
+
+		_preview = new MsgPreview(_win, comm, prop, summ);
+	}
+
+	private void saveWin() {
+		auto winProps = _size;
+		winProps.width = _win.getSize().x;
+		winProps.height = _win.getSize().y;
+		winProps.x = _win.getBounds().x - _win.getParent().getBounds().x;
+		winProps.y = _win.getBounds().y - _win.getParent().getBounds().y;
+	}
+	bool isVisible() {return _win.isVisible();}
+
+	void open() {
+		if (_win.isVisible()) return;
+		auto pb = _win.getParent().getBounds();
+		_parX = pb.x;
+		_parY = pb.y;
+		auto winProps = _size;
+		scope wp = _win.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+		int width = winProps.width == SWT.DEFAULT ? wp.x : winProps.width;
+		int height = winProps.height == SWT.DEFAULT ? wp.y : winProps.height;
+		int x = winProps.x == SWT.DEFAULT ? pb.x + pb.width : winProps.x + pb.x;
+		int y = winProps.y == SWT.DEFAULT ? pb.y : winProps.y + pb.y;
+		intoDisplay(x, y, width, height);
+		_win.setBounds(x, y, width, height);
+		refresh();
+		_win.setVisible(true);
+		_toggle.setSelection(true);
+	}
+	void close() {
+		if (!_win.isVisible()) return;
+		saveWin();
+		_win.setVisible(false);
+		_toggle.setSelection(false);
+	}
+
+	void text(Talker talker, string imgPath, string message) {
+		_preview.text(talker, imgPath, message);
+	}
+
+	private void refresh() {
+		_preview.refresh();
+	}
+}
+
+class MsgPreview : Composite {
 	private static class FlagData {
 		Flag flag;
 		bool onOff;
@@ -1264,12 +1419,7 @@ class MsgPreview {
 	private Commons _comm;
 	private Props _prop;
 	private Summary _summ;
-	private WSize _size;
-	private Button _toggle;
 
-	private Shell _win;
-	private ControlListener _winL;
-	private int _parX, _parY;
 	private Canvas _canvas;
 	private Table _values;
 	private Image _img = null;
@@ -1287,7 +1437,6 @@ class MsgPreview {
 	}
 	private class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
-			_win.getParent().removeControlListener(_winL);
 			if (_img) _img.dispose();
 			_comm.refFlagAndStep.remove(&refFlagAndStep);
 			_comm.delFlagAndStep.remove(&refFlagAndStep);
@@ -1301,22 +1450,6 @@ class MsgPreview {
 			_prop.var.etc.messageVarYado = _values.getItem(C.Y).getText(1);
 			_prop.var.etc.messageVarKindColumn = _values.getColumn(0).getWidth();
 			_prop.var.etc.messageVarValueColumn = _values.getColumn(1).getWidth();
-			saveWin();
-		}
-	}
-	private class PShellL : ControlAdapter {
-		override void controlMoved(ControlEvent e) {
-			auto pb = _win.getParent().getBounds();
-			auto tb = _win.getBounds();
-			_win.setBounds(tb.x + pb.x - _parX, tb.y + pb.y - _parY, tb.width, tb.height);
-			_parX = pb.x;
-			_parY = pb.y;
-		}
-	}
-	private class ShellL : ShellAdapter {
-		override void shellClosed(ShellEvent e) {
-			close();
-			e.doit = false;
 		}
 	}
 	private class Mod : ModifyListener {
@@ -1449,22 +1582,16 @@ class MsgPreview {
 		if (old != itm.getText()) refresh();
 	}
 
-	this (Shell parent, Commons comm, Props prop, Summary summ, Button toggle, WSize size) {
+	this (Composite parent, Commons comm, Props prop, Summary summ) {
+		super (parent, SWT.NONE);
+
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
-		_size = size;
-		_toggle = toggle;
 
-		_winL = new PShellL;
-		parent.addControlListener(_winL);
+		this.setLayout(zeroGridLayout(1, true));
 
-		_win = new Shell(parent, SWT.TITLE | SWT.RESIZE | SWT.TOOL | SWT.CLOSE);
-		_win.setText(_prop.msgs.dlgTitMessagePreview);
-		_win.setLayout(zeroGridLayout(1, true));
-		_win.addShellListener(new ShellL);
-
-		_canvas = new Canvas(_win, SWT.DOUBLE_BUFFERED);
+		_canvas = new Canvas(this, SWT.DOUBLE_BUFFERED);
 		auto cgd = new GridData(GridData.FILL_HORIZONTAL);
 		auto rect = _prop.looks.messageBounds;
 		cgd.widthHint = rect.width;
@@ -1473,7 +1600,7 @@ class MsgPreview {
 		_canvas.addPaintListener(new Paint);
 		_canvas.addDisposeListener(new Dispose);
 
-		_values = new Table(_win, SWT.BORDER | SWT.FULL_SELECTION);
+		_values = new Table(this, SWT.BORDER | SWT.FULL_SELECTION);
 		auto vgd = new GridData(GridData.FILL_BOTH);
 		vgd.heightHint = _prop.var.etc.messageVarTableHeight;
 		_values.setLayoutData(vgd);
@@ -1531,39 +1658,6 @@ class MsgPreview {
 		_comm.refSkin.add(&refresh);
 
 		new TableTCEdit(_comm, _values, 1, &createEditor, &editEnd, null);
-	}
-	private void saveWin() {
-		auto winProps = _size;
-		winProps.width = _win.getSize().x;
-		winProps.height = _win.getSize().y;
-		winProps.x = _win.getBounds().x - _win.getParent().getBounds().x;
-		winProps.y = _win.getBounds().y - _win.getParent().getBounds().y;
-	}
-
-	bool isVisible() {return _win.isVisible();}
-
-	void open() {
-		if (_win.isVisible()) return;
-		auto pb = _win.getParent().getBounds();
-		_parX = pb.x;
-		_parY = pb.y;
-		auto winProps = _size;
-		scope wp = _win.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-		int width = winProps.width == SWT.DEFAULT ? wp.x : winProps.width;
-		int height = winProps.height == SWT.DEFAULT ? wp.y : winProps.height;
-		int x = winProps.x == SWT.DEFAULT ? pb.x + pb.width : winProps.x + pb.x;
-		int y = winProps.y == SWT.DEFAULT ? pb.y : winProps.y + pb.y;
-		intoDisplay(x, y, width, height);
-		_win.setBounds(x, y, width, height);
-		refresh();
-		_win.setVisible(true);
-		_toggle.setSelection(true);
-	}
-	void close() {
-		if (!_win.isVisible()) return;
-		saveWin();
-		_win.setVisible(false);
-		_toggle.setSelection(false);
 	}
 
 	void text(Talker talker, string imgPath, string message) {
