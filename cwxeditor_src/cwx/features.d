@@ -3,6 +3,15 @@ module cwx.features;
 
 import cwx.types;
 
+/// クーポンのタイプ
+enum CouponType {
+	Normal, /// 通常。
+	Hide, /// 隠蔽クーポン。
+	System, /// システムクーポン。
+	Dur, /// 次元クーポン。
+	DurBattle, /// 戦闘中限定時限クーポン。
+}
+
 /// 性別。
 enum Sex {
 	MALE, /// 男。

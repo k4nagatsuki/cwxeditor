@@ -298,6 +298,22 @@ public:
 	@property const string gossipName() {return "ゴシップ名";}
 	@property const string endName() {return "シナリオ名";}
 
+	@property const string couponHide() {return "隠蔽クーポン";}
+	const string couponTypeDesc(CouponType type) {
+		final switch (type) {
+		case CouponType.Normal:
+			return "ノーマル";
+		case CouponType.Hide:
+			return "[＿...] 隠蔽(称号一覧で非表示)";
+		case CouponType.System:
+			return "[＠...] システム";
+		case CouponType.Dur:
+			return "[：...] 時限(点数分の時間経過及びシナリオ終了時に消滅)";
+		case CouponType.DurBattle:
+			return "[；...] 戦闘中時限(点数分の時間経過及び戦闘終了時に消滅)";
+		}
+	}
+
 	@property const string imageMessage() {return "イメージ付きメッセージ";}
 	@property const string noImageMessage() {return "イメージ無しメッセージ";}
 	@property const string spCharsTitle() {return "特殊文字";}

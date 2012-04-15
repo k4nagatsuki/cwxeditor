@@ -552,9 +552,20 @@ protected:
 class CouponEventDialog(CType Type, bool EditValue) : EventDialog {
 private:
 	Button[Range] _range;
+	Button[CouponType] _type;
 	Combo _name;
 	static if (EditValue) {
 		Spinner _value;
+	}
+
+	class SelType : SelectionAdapter {
+		private CouponType _coType;
+		this (CouponType coType) {
+			_coType = coType;
+		}
+		override void widgetSelected(SelectionEvent e) {
+			_name.setText(prop.sys.convCoupon(_name.getText(), _coType));
+		}
 	}
 
 	protected override void refSkin() {
@@ -578,9 +589,17 @@ protected:
 	override void setup(Composite area) {
 		area.setLayout(new GridLayout(2, false));
 		auto skin = _comm.skin;
+
+		auto leftComp = new Composite(area, SWT.NONE);
+		leftComp.setLayout(zeroMarginGridLayout(1, true));
+		leftComp.setLayoutData(new GridData(GridData.FILL_VERTICAL));
 		{
-			auto grp = new Group(area, SWT.NONE);
-			grp.setLayoutData(new GridData(GridData.FILL_VERTICAL));
+			auto grp = new Group(leftComp, SWT.NONE);
+			static if (EditValue) {
+				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			} else {
+				grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			}
 			grp.setText(_prop.msgs.range);
 			grp.setLayout(new GridLayout(1, true));
 			foreach (r; RANGE_MEMBER) {
@@ -612,24 +631,44 @@ protected:
 					_name.setLayoutData(gd);
 					refreshCoupons();
 				}
-				static if (EditValue) {
-					auto ll = new Label(comp, SWT.RIGHT);
-					ll.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-					ll.setText(_prop.msgs.couponValue);
-					_value = new Spinner(comp, SWT.BORDER);
-					mod(_value);
-					_value.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_CENTER));
-					_value.setMaximum(Content.couponValue_max);
-					_value.setMinimum(Content.couponValue_min);
-					auto lr = new Label(comp, SWT.LEFT);
-					lr.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-					lr.setText(.tryFormat(_prop.msgs.couponValueRange, -(cast(int) Content.couponValue_max), Content.couponValue_max));
+				foreach (coType; [CouponType.Normal, CouponType.Hide, CouponType.Dur, CouponType.DurBattle]) {
+					auto b = new Button(comp, SWT.RADIO);
+					b.setText(_prop.msgs.couponTypeDesc(coType));
+					auto gd = new GridData(GridData.FILL_HORIZONTAL);
+					gd.horizontalSpan = 3;
+					b.setLayoutData(gd);
+					b.addSelectionListener(new SelType(coType));
+					_type[coType] = b;
 				}
+				.listener(_name, SWT.Modify, {
+					auto t = prop.sys.couponType(_name.getText());
+					foreach (coType; _type.keys) {
+						_type[coType].setSelection(coType == t);
+					}
+				});
+			}
+		}
+		static if (EditValue) {
+			{
+				auto grp = new Group(leftComp, SWT.NONE);
+				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+				grp.setText(_prop.msgs.couponValue);
+				grp.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL));
+				auto comp = new Composite(grp, SWT.NONE);
+				comp.setLayout(zeroMarginGridLayout(2, false));
+				_value = new Spinner(comp, SWT.BORDER);
+				mod(_value);
+				_value.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				_value.setMaximum(Content.couponValue_max);
+				_value.setMinimum(Content.couponValue_min);
+				auto lr = new Label(comp, SWT.LEFT);
+				lr.setText(.tryFormat(_prop.msgs.couponValueRange, -(cast(int) Content.couponValue_max), Content.couponValue_max));
 			}
 		}
 
 		if (_evt) {
 			_range[_evt.range].setSelection(true);
+			_type[prop.sys.couponType(_evt.coupon)].setSelection(true);
 			_name.setText(_evt.coupon);
 			_name.add(_evt.coupon, 0);
 			static if (EditValue) {
@@ -637,6 +676,7 @@ protected:
 			}
 		} else {
 			_range[Range.SELECTED].setSelection(true);
+			_type[CouponType.Normal].setSelection(true);
 			static if (EditValue) {
 				_value.setSelection(0);
 			}

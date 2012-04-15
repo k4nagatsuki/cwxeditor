@@ -101,6 +101,7 @@ private:
 	Spinner _lifeMax;
 	Text _newCoupon;
 	TextMenuModify _newCouponTM;
+	Button _couponHide;
 	Spinner _couponVal;
 	Composite _couponView;
 	Table _coupons;
@@ -321,6 +322,7 @@ private:
 			_newCoupon.setText(c.name);
 			_newCouponTM.reset();
 			_couponVal.setSelection(c.value);
+			_couponHide.setSelection(_prop.sys.isCouponType(c.name, CouponType.Hide));
 		}
 		_comm.refreshToolBar();
 	}
@@ -633,13 +635,10 @@ private:
 			_couponView = grp;
 			grp.setText(_prop.msgs.coupons);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-			grp.setLayout(new GridLayout(2, false));
+			grp.setLayout(new GridLayout(3, false));
+			auto toolbar = new ToolBar(grp, SWT.FLAT);
 			{
-				auto toolbar = new ToolBar(grp, SWT.FLAT);
 				_comm.put(toolbar);
-				auto gd = new GridData(GridData.FILL_HORIZONTAL);
-				gd.horizontalSpan = 2;
-				toolbar.setLayoutData(gd);
 				toolbar.addListener(SWT.Traverse, new HTBTraverse);
 				toolbar.addListener(SWT.KeyDown, new HTBKeyDown);
 				createToolItem2(_comm, toolbar, _prop.msgs.addCoupon, _prop.images.addCoupon, &addCoupon, () => _newCoupon.getText().length > 0);
@@ -648,11 +647,26 @@ private:
 				new ToolItem(toolbar, SWT.SEPARATOR);
 				createToolItem(_comm, toolbar, MenuID.Up, &upCoupon, () => _coupons.getSelectionIndex() != -1 && 0 < _coupons.getSelectionIndex());
 				createToolItem(_comm, toolbar, MenuID.Down, &downCoupon, () => _coupons.getSelectionIndex() != -1 && _coupons.getSelectionIndex() + 1 < _coupons.getItemCount());
+
+				_couponHide = new Button(grp, SWT.CHECK);
+				auto gd = new GridData(GridData.HORIZONTAL_ALIGN_END);
+				gd.horizontalSpan = 2;
+				_couponHide.setLayoutData(gd);
+				_couponHide.setText(_prop.msgs.couponHide);
+				.listener(_couponHide, SWT.Selection, {
+					if (_couponHide.getSelection()) {
+						_newCoupon.setText(_prop.sys.convCoupon(_newCoupon.getText(), CouponType.Hide));
+					} else {
+						_newCoupon.setText(_prop.sys.convCoupon(_newCoupon.getText(), CouponType.Normal));
+					}
+				});
 			}
 			{
 				_newCoupon = new Text(grp, SWT.BORDER);
 				_newCouponTM = createTextMenu!Text(_comm, _prop, _newCoupon, &catchMod);
-				_newCoupon.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				auto gd = new GridData(GridData.FILL_HORIZONTAL);
+				gd.horizontalSpan = 2;
+				_newCoupon.setLayoutData(gd);
 				_couponVal = new Spinner(grp, SWT.BORDER);
 				_couponVal.setMinimum(cast(int) _prop.looks.couponValueMax * -1);
 				_couponVal.setMaximum(_prop.looks.couponValueMax);
@@ -660,7 +674,7 @@ private:
 			{
 				_coupons = new Table(grp, SWT.BORDER | SWT.SINGLE | SWT.FULL_SELECTION);
 				auto gd = new GridData(GridData.FILL_BOTH);
-				gd.horizontalSpan = 2;
+				gd.horizontalSpan = 3;
 				gd.widthHint = _prop.var.etc.couponWidth;
 				_coupons.setLayoutData(gd);
 				auto cc = new FullTableColumn(_coupons, SWT.NONE);
@@ -678,6 +692,8 @@ private:
 				_coupons.setMenu(menu);
 			}
 			_coupons.addSelectionListener(new SelCoupon);
+			grp.setTabList([toolbar, _newCoupon, _couponHide, _couponVal, _coupons]);
+
 			auto drag = new DragSource(_coupons, DND.DROP_MOVE | DND.DROP_COPY);
 			drag.setTransfer([XMLBytesTransfer.getInstance()]);
 			drag.addDragListener(new CDragListener);

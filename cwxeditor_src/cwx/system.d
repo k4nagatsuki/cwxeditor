@@ -271,4 +271,87 @@ class System {
 	@property const string evtChildDefault() {return "Default";}
 	/// 後続イベントコンテントのメッセージ送り標準値。
 	@property const string evtChildOK() {return "ＯＫ";}
+
+	/// クーポンの型を判別する。
+	const CouponType couponType(string coupon) {
+		foreach (coType; [CouponType.Hide, CouponType.System, CouponType.Dur, CouponType.DurBattle]) {
+			if (isCouponType(coupon, coType)) {
+				return coType;
+			}
+		}
+		return CouponType.Normal;
+	}
+	/// ditto
+	const bool isCouponType(string coupon, CouponType type) {
+		final switch (type) {
+		case CouponType.Normal:
+			return !isCouponType(coupon, CouponType.Hide)
+				&& !isCouponType(coupon, CouponType.System)
+				&& !isCouponType(coupon, CouponType.Dur)
+				&& !isCouponType(coupon, CouponType.DurBattle);
+		case CouponType.Hide:
+			return std.string.startsWith(coupon, couponHide);
+		case CouponType.System:
+			return std.string.startsWith(coupon, couponSystem);
+		case CouponType.Dur:
+			return std.string.startsWith(coupon, couponDur);
+		case CouponType.DurBattle:
+			return std.string.startsWith(coupon, couponDurBattle);
+		}
+	}
+	/// クーポンの型を変換する。
+	const string convCoupon(string coupon, CouponType type) {
+		final switch (type) {
+		case CouponType.Normal:
+			if (isCouponType(coupon, CouponType.Hide)) {
+				return coupon[couponHide.length .. $];
+			}
+			if (isCouponType(coupon, CouponType.System)) {
+				return coupon[couponSystem.length .. $];
+			}
+			if (isCouponType(coupon, CouponType.Dur)) {
+				return coupon[couponDur.length .. $];
+			}
+			if (isCouponType(coupon, CouponType.DurBattle)) {
+				return coupon[couponDurBattle.length .. $];
+			}
+			return coupon;
+		case CouponType.Hide:
+			if (isCouponType(coupon, CouponType.Hide)) {
+				return coupon;
+			}
+			return couponHide ~ convCoupon(coupon, CouponType.Normal);
+		case CouponType.System:
+			if (isCouponType(coupon, CouponType.System)) {
+				return coupon;
+			}
+			return couponSystem ~ convCoupon(coupon, CouponType.Normal);
+		case CouponType.Dur:
+			if (isCouponType(coupon, CouponType.Dur)) {
+				return coupon;
+			}
+			return couponDur ~ convCoupon(coupon, CouponType.Normal);
+		case CouponType.DurBattle:
+			if (isCouponType(coupon, CouponType.DurBattle)) {
+				return coupon;
+			}
+			return couponDurBattle ~ convCoupon(coupon, CouponType.Normal);
+		}
+	}
+	/// 各クーポンの型を表現する文字列。
+	@property const string couponHide() {
+		return "＿";
+	}
+	/// ditto
+	@property const string couponSystem() {
+		return "＠";
+	}
+	/// ditto
+	@property const string couponDur() {
+		return "：";
+	}
+	/// ditto
+	@property const string couponDurBattle() {
+		return "；";
+	}
 }

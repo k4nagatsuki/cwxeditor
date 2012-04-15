@@ -318,7 +318,7 @@ class FlexEtcProps : Properties {
 		BgImageSetting("Qubes 右前", 320, 80, 240, 200, true)
 	]);
 	mixin Property!("standardCoupons", string[], [
-		"：Ｒ", "＿１", "＿２", "＿３", "＿４", "＿５", "＿６"
+		"：Ｒ", "＿１", "＿２", "＿３", "＿４", "＿５", "＿６", "＿消滅予約", "：レベル補正中"
 	], true);
 	mixin Property!("standardKeyCodes", string[], [
 		"攻撃",
@@ -376,6 +376,9 @@ class FlexEtcProps : Properties {
 		"カード交換",
 		"ペナルティ",
 		"リサイクル"
+		"",
+		"一撃",
+		"守備",
 	]);
 	version (Windows) {
 		mixin Property!("outerTools", OuterTool[], [
@@ -423,8 +426,8 @@ class FlexEtcProps : Properties {
 	mixin Property!("dialogStatus", int, DialogStatus.Top);
 
 	mixin Property!("floatMessagePreview", bool, false);
-	mixin Property!("showDialogPreview", bool, false);
-	mixin Property!("showMessagePreview", bool, false);
+	mixin Property!("showDialogPreview", bool, true);
+	mixin Property!("showMessagePreview", bool, true);
 	mixin Property!("messageVarKindColumn", int, 200);
 	mixin Property!("messageVarValueColumn", int, 250);
 	mixin Property!("messageVarTableHeight", int, 300, true);
