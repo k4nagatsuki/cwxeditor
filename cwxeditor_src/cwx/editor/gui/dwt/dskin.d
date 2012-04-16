@@ -155,6 +155,29 @@ version (Windows) {
 	}
 	private static ImageData imgr(string legacyEngine, string resName, bool mask, bool rmask) {
 		mixin FileCache!(ImageData);
+		void setMask(ImageData data) {
+			if (mask) {
+				data.transparentPixel = data.getPixel(0, 0);
+			}
+			if (rmask) {
+				data.transparentPixel = data.getPixel(data.width - 1, 0);
+			}
+		}
+
+		/// リソースオーバーライド変更に対応
+		string oPath = legacyEngine.dirName.buildPath("Data").buildPath("Resource").buildPath(resName.addExt("bmp"));
+		if (.exists(oPath)) {
+			auto ca = cache(oPath);
+			if (ca) {
+				return ca.value;
+			} else {
+				auto data = loadImage(oPath, false);
+				setMask(data);
+				putCache(oPath, data);
+				return data;
+			}
+		}
+
 		string path = std.path.buildPath(legacyEngine, resName);
 		auto ca = cache(path);
 		if (ca) {
@@ -173,12 +196,7 @@ version (Windows) {
 			auto img = Image.win32_new(Display.getCurrent(), SWT.BITMAP, hbmp);
 			auto data = img.getImageData();
 			img.destroy();
-			if (mask) {
-				data.transparentPixel = data.getPixel(0, 0);
-			}
-			if (rmask) {
-				data.transparentPixel = data.getPixel(data.width - 1, 0);
-			}
+			setMask(data);
 			putCache(path, data);
 			return data;
 		}
