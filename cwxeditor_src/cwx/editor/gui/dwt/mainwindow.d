@@ -1429,6 +1429,30 @@ public:
 			toolComp.setLayout(new FillLayout);
 			if (_prop.var.etc.singleWindow) {
 				dStr ~= " - " ~ .text(__LINE__);
+				_tableWin = new TableWindow(_comm, _prop, _win, null);
+				dStr ~= " - " ~ .text(__LINE__);
+				_flagWin = new FlagWindow(_comm, _prop, _win, null);
+				dStr ~= " - " ~ .text(__LINE__);
+				if (_prop.var.etc.bindCardViews) {
+					dStr ~= " - " ~ .text(__LINE__);
+					_cardWin = new MainCardWindow(_comm, _prop, null);
+				} else {
+					dStr ~= " - " ~ .text(__LINE__);
+					_castWin = new CastCardWindow(_comm, _prop, null);
+					dStr ~= " - " ~ .text(__LINE__);
+					_skillWin = new SkillCardWindow(_comm, _prop, null);
+					dStr ~= " - " ~ .text(__LINE__);
+					_itemWin = new ItemCardWindow(_comm, _prop, null);
+					dStr ~= " - " ~ .text(__LINE__);
+					_beastWin = new BeastCardWindow(_comm, _prop, null);
+					dStr ~= " - " ~ .text(__LINE__);
+					_infoWin = new InfoCardWindow(_comm, _prop, null);
+				}
+				dStr ~= " - " ~ .text(__LINE__);
+				dStr ~= " - " ~ .text(__LINE__);
+				_dirWin = new DirectoryWindow(_comm, _prop, null);
+
+				dStr ~= " - " ~ .text(__LINE__);
 				auto dockComp = new Composite(_sbshl.contentPane, SWT.NONE);
 				dockComp.setLayoutData(new GridData(GridData.FILL_BOTH));
 				dockComp.setLayout(windowGridLayout(1, true));
@@ -1440,18 +1464,18 @@ public:
 					switch (key) {
 					case "data": {
 						dStr ~= " - " ~ .text(__LINE__);
-						_tableWin = new TableWindow(_comm, _prop, _win, parent);
+						_tableWin.reconstruct(parent);
 						return _tableWin.shell;
 					}
 					case "flag": {
 						dStr ~= " - " ~ .text(__LINE__);
-						_flagWin = new FlagWindow(_comm, _prop, _win, parent);
+						_flagWin.reconstruct(parent);
 						return _flagWin.shell;
 					}
 					case "card": {
 						dStr ~= " - " ~ .text(__LINE__);
 						if (_prop.var.etc.bindCardViews) {
-							_cardWin = new MainCardWindow(_comm, _prop, parent);
+							_cardWin.reconstruct(parent);
 							return _cardWin.shell;
 						}
 						return null;
@@ -1459,7 +1483,7 @@ public:
 					case "castCard": {
 						dStr ~= " - " ~ .text(__LINE__);
 						if (!_prop.var.etc.bindCardViews) {
-							_castWin = new CastCardWindow(_comm, _prop, parent);
+							_castWin.reconstruct(parent);
 							return _castWin.shell;
 						}
 						return null;
@@ -1467,7 +1491,7 @@ public:
 					case "skillCard": {
 						dStr ~= " - " ~ .text(__LINE__);
 						if (!_prop.var.etc.bindCardViews) {
-							_skillWin = new SkillCardWindow(_comm, _prop, parent);
+							_skillWin.reconstruct(parent);
 							return _skillWin.shell;
 						}
 						return null;
@@ -1475,7 +1499,7 @@ public:
 					case "itemCard": {
 						dStr ~= " - " ~ .text(__LINE__);
 						if (!_prop.var.etc.bindCardViews) {
-							_itemWin = new ItemCardWindow(_comm, _prop, parent);
+							_itemWin.reconstruct(parent);
 							return _itemWin.shell;
 						}
 						return null;
@@ -1483,7 +1507,7 @@ public:
 					case "beastCard": {
 						dStr ~= " - " ~ .text(__LINE__);
 						if (!_prop.var.etc.bindCardViews) {
-							_beastWin = new BeastCardWindow(_comm, _prop, parent);
+							_beastWin.reconstruct(parent);
 							return _beastWin.shell;
 						}
 						return null;
@@ -1491,14 +1515,14 @@ public:
 					case "infoCard": {
 						dStr ~= " - " ~ .text(__LINE__);
 						if (!_prop.var.etc.bindCardViews) {
-							_infoWin = new InfoCardWindow(_comm, _prop, parent);
+							_infoWin.reconstruct(parent);
 							return _infoWin.shell;
 						}
 						return null;
 					}
 					case "file": {
 						dStr ~= " - " ~ .text(__LINE__);
-						_dirWin = new DirectoryWindow(_comm, _prop, parent);
+						_dirWin.reconstruct(parent);
 						return _dirWin.shell;
 					}
 					default:
@@ -1528,74 +1552,38 @@ public:
 					dStr ~= " - " ~ .text(__LINE__);
 					initDock();
 					dStr ~= " - " ~ .text(__LINE__);
-					if (_tableWin) {
-						dStr ~= " - " ~ .text(__LINE__);
-						_dock.tabImage("data", _tableWin.image);
-						_dock.tabText("data", _tableWin.title);
-					} else {
-						dStr ~= " - " ~ .text(__LINE__);
-						_tableWin = new TableWindow(_comm, _prop, _win, null);
-					}
 					dStr ~= " - " ~ .text(__LINE__);
-					if (_flagWin) {
-						dStr ~= " - " ~ .text(__LINE__);
-						_dock.tabImage("flag", _flagWin.image);
-						_dock.tabText("flag", _flagWin.title);
-					} else {
-						dStr ~= " - " ~ .text(__LINE__);
-						_flagWin = new FlagWindow(_comm, _prop, _win, null);
-					}
+					_dock.tabImage("data", _tableWin.image);
+					_dock.tabText("data", _tableWin.title);
+					dStr ~= " - " ~ .text(__LINE__);
+					dStr ~= " - " ~ .text(__LINE__);
+					_dock.tabImage("flag", _flagWin.image);
+					_dock.tabText("flag", _flagWin.title);
 					dStr ~= " - " ~ .text(__LINE__);
 					if (_prop.var.etc.bindCardViews) {
 						dStr ~= " - " ~ .text(__LINE__);
-						if (_cardWin) {
-							_dock.tabImage("card", _cardWin.image);
-							_dock.tabText("card", _cardWin.title);
-						} else {
-							_cardWin = new MainCardWindow(_comm, _prop, null);
-						}
+						_dock.tabImage("card", _cardWin.image);
+						_dock.tabText("card", _cardWin.title);
 					} else {
 						dStr ~= " - " ~ .text(__LINE__);
-						if (_castWin) {
-							_dock.tabImage("castCard", _castWin.image);
-							_dock.tabText("castCard", _castWin.title);
-						} else {
-							_castWin = new CastCardWindow(_comm, _prop, null);
-						}
-						if (_skillWin) {
-							_dock.tabImage("skillCard", _skillWin.image);
-							_dock.tabText("skillCard", _skillWin.title);
-						} else {
-							_skillWin = new SkillCardWindow(_comm, _prop, null);
-						}
-						if (_itemWin) {
-							_dock.tabImage("itemCard", _itemWin.image);
-							_dock.tabText("itemCard", _itemWin.title);
-						} else {
-							_itemWin = new ItemCardWindow(_comm, _prop, null);
-						}
-						if (_beastWin) {
-							_dock.tabImage("beastCard", _beastWin.image);
-							_dock.tabText("beastCard", _beastWin.title);
-						} else {
-							_beastWin = new BeastCardWindow(_comm, _prop, null);
-						}
-						if (_infoWin) {
-							_dock.tabImage("infoCard", _infoWin.image);
-							_dock.tabText("infoCard", _infoWin.title);
-						} else {
-							_infoWin = new InfoCardWindow(_comm, _prop, null);
-						}
+						_dock.tabImage("castCard", _castWin.image);
+						_dock.tabText("castCard", _castWin.title);
+						dStr ~= " - " ~ .text(__LINE__);
+						_dock.tabImage("skillCard", _skillWin.image);
+						_dock.tabText("skillCard", _skillWin.title);
+						dStr ~= " - " ~ .text(__LINE__);
+						_dock.tabImage("itemCard", _itemWin.image);
+						_dock.tabText("itemCard", _itemWin.title);
+						dStr ~= " - " ~ .text(__LINE__);
+						_dock.tabImage("beastCard", _beastWin.image);
+						_dock.tabText("beastCard", _beastWin.title);
+						dStr ~= " - " ~ .text(__LINE__);
+						_dock.tabImage("infoCard", _infoWin.image);
+						_dock.tabText("infoCard", _infoWin.title);
 					}
 					dStr ~= " - " ~ .text(__LINE__);
-					if (_dirWin) {
-						dStr ~= " - " ~ .text(__LINE__);
-						_dock.tabImage("file", _dirWin.image);
-						_dock.tabText("file", _dirWin.title);
-					} else {
-						dStr ~= " - " ~ .text(__LINE__);
-						_dirWin = new DirectoryWindow(_comm, _prop, null);
-					}
+					_dock.tabImage("file", _dirWin.image);
+					_dock.tabText("file", _dirWin.title);
 					dStr ~= " - " ~ .text(__LINE__);
 				} else {
 					dStr ~= " - " ~ .text(__LINE__);

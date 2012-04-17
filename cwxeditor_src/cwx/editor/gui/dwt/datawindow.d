@@ -90,7 +90,7 @@ private:
 		}
 	}
 public:
-	this(Commons comm, Props prop, Shell parentShell, Composite parent) {
+	this (Commons comm, Props prop, Shell parentShell, Composite parent) {
 		_parentShell = parentShell;
 		_prop = prop;
 		_comm = comm;
