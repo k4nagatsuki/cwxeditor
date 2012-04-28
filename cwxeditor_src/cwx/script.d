@@ -78,12 +78,14 @@ class CWXScript {
 	private const(Summary) _summ;
 	private string _text;
 	private size_t _maxError;
+	private size_t _autoWrap;
 	/// 唯一のコンストラクタ。
-	this (const(CProps) prop, const(Summary) summ, string text = "", size_t maxError = 100) {
+	this (const(CProps) prop, const(Summary) summ, string text = "", size_t maxError = 100, size_t autoWrap = 250) {
 		_prop = prop;
 		_summ = summ;
 		_text = text;
 		_maxError = maxError;
+		_autoWrap = autoWrap;
 	}
 	private CWXSError[] _errors;
 	/// 各メソッド呼び出しで蓄積されたエラーを返す。
@@ -1975,9 +1977,11 @@ fi`;
 	Content[] analyzeSemantics(in Node[] nodes) {
 		Token[string] varTable;
 		size_t autoWrapCount = 0;
-		return analyzeSemanticsImpl(nodes, KEYS, varTable, 0, autoWrapCount);
+		string[] startNames;
+		Content[] dummy;
+		return analyzeSemanticsImpl(nodes, KEYS, varTable, 0, autoWrapCount, startNames, dummy, true);
 	}
-	private Content[] analyzeSemanticsImpl(in Node[] nodes, in Keywords keys, Token[string] varTable, size_t stack, ref size_t autoWrapCount) {
+	private Content[] analyzeSemanticsImpl(in Node[] nodes, in Keywords keys, Token[string] varTable, size_t stack, ref size_t autoWrapCount, ref string[] startNames, ref Content[] topGroup, bool isTop) {
 		Content[] r;
 		auto commentReg = .regex(`^[\s|\*|\/]*(.*)[\s|\*|\/]*$`);
 		string parseComment(string comment) {
@@ -2020,6 +2024,17 @@ fi`;
 			}
 			string comment = node.token.comment;
 			auto c = new Content(*cmdPtr, parseNextValue(node, keys, varTable));
+			if (node.type is NodeType.START) {
+				c.name = createNewName(c.name, (string name) {
+					foreach (sn; startNames) {
+						if (0 == icmp(sn, name)) {
+							return false;
+						}
+					}
+					return true;
+				});
+				startNames ~= c.name;
+			}
 			c.comment = parseComment(comment);
 			size_t i = 0;
 			auto detail = c.detail;
@@ -2175,19 +2190,46 @@ fi`;
 			if (detail.use(CArg.TRANSITION)) {
 				c.transition = parseAttr!(Transition)(node.attr, i, c.transition, varTable);
 			}
+			Content autoWrap(Content c) {
+				if (!c.detail.owner) {
+					throwError(_prop.msgs.scriptErrorCanNotHaveContent, node.token);
+				}
+				if (_autoWrap <= stack) {
+					autoWrapCount++;
+					stack = 0;
+					auto s = new Content(CType.START, .createNewName(.format("Auto wrap (%d)", autoWrapCount), (string name) {
+						foreach (sn; startNames) {
+							if (0 == icmp(sn, name)) {
+								return false;
+							}
+						}
+						return true;
+					}));
+					startNames ~= s.name;
+					auto link = new Content(CType.LINK_START, c.name);
+					link.start = s.name;
+					c.add(link);
+					if (isTop) {
+						r ~= s;
+					} else {
+						topGroup ~= s;
+					}
+					return s;
+				}
+				return c;
+			}
 			if (nextIsChild) {
 				/// 一つ前の分析結果は nextIsChild is true 。
-				lastParent.add(c);
+				auto parent = autoWrap(lastParent);
+				parent.add(c);
 				stack++;
 			} else {
 				r ~= c;
 			}
 			if (node.childs.length) {
-				foreach (chld; analyzeSemanticsImpl(node.childs, keys, varTable, stack + 1, autoWrapCount)) {
-					if (!c.detail.owner) {
-						throwError(_prop.msgs.scriptErrorCanNotHaveContent, node.token);
-					}
-					c.add(chld);
+				auto parent = autoWrap(c);
+				foreach (chld; analyzeSemanticsImpl(node.childs, keys, varTable, stack + 1, autoWrapCount, startNames, isTop ? r : topGroup, false)) {
+					parent.add(chld);
 				}
 			}
 			nextIsChild = node.nextIsChild;

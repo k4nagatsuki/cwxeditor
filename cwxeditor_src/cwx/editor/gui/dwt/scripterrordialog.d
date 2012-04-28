@@ -70,6 +70,9 @@ protected:
 		foreach (err; _ex.errors) {
 			buf ~= "\n";
 			buf ~= err.message ~ "\n";
+			if (!_ex.text.length) {
+				continue;
+			}
 			debug {
 				buf ~= .format("Debug info: %s, %d\n", err.file, err.line);
 			}

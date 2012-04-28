@@ -2841,14 +2841,34 @@ public:
 		TreeItem sItm = null;
 		foreach (i, c; cs2) {
 			if (!c.type is CType.START) continue;
+			auto oldName = c.name;
 			c.name = createNewName(c.name, (string name) {
 				foreach (s; _et.starts) {
 					if (icmp(s.name, name) == 0) {
 						return false;
 					}
 				}
+				foreach (s; cs2) {
+					if (s is c) continue;
+					if (icmp(s.name, name) == 0) {
+						return false;
+					}
+				}
 				return true;
 			}, true);
+			if (c.name != oldName) {
+				void recurse(Content[] cs) {
+					foreach (ct; cs) {
+						if (ct.startUseCounter) continue;
+						if (ct.start == oldName) {
+							ct.start = c.name;
+						}
+						recurse(ct.next);
+					}
+				}
+				recurse(cs);
+				_et.startUseCounter.change(oldName, c.name);
+			}
 			_et.insert(index + i, c);
 			sItm = createTreeItem(_tree, c, c.name, _prop.images.content(c.type), index + i);
 			createChilds(sItm, c, true);
@@ -2944,8 +2964,12 @@ public:
 	void pasteScript(string script) {
 		if (!_et) return;
 		try {
-			auto cs = cwx.script.compile(_prop.parent, _summ, script.idup);
-			putContents(cs);
+			try {
+				auto cs = cwx.script.compile(_prop.parent, _summ, script);
+				putContents(cs);
+			} catch {
+				throw new CWXScriptException(__FILE__, __LINE__, "", [CWXSError(_prop.msgs.scriptErrorSystem, 0, 0, __FILE__, __LINE__)], false);
+			}
 		} catch (CWXScriptException e) {
 			auto dlg = new ScriptErrorDialog(_comm, _prop, _tree, e);
 			dlg.open();
