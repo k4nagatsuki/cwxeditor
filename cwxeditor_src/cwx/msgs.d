@@ -1421,8 +1421,8 @@ public:
 	@property const string scriptErrorInvalidDialog() {return "台詞が正しくありません。";}
 	@property const string scriptErrorInvalidTalker() {return "話者が正しくありません。";}
 	@property const string scriptErrorUndefinedSymbol() {return "未知のシンボルです。";}
-	@property const string scriptErrorStartsMixedContent() {return "スタートコンテントの中に他のコンテントが混入しています。";}
-	@property const string scriptErrorContentsMixedStart() {return "ここにスタートコンテントが現れる事はできません。";}
+	@property const string scriptErrorInvalidSif() {return "ここにsifが現れる事はできません。";}
+	@property const string scriptErrorNoSifText() {return "sifのテキストが見つかりません。";}
 	@property const string scriptErrorInvalidCommand() {return "命令が正しくありません。";}
 	@property const string scriptErrorCanNotHaveContent() {return "このコンテントが後続コンテントを持つ事はできません。";}
 	@property const string scriptErrorInvalidStr() {return "文字列が正しくありません。";}

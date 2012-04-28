@@ -35,5 +35,5 @@ shared const string APP_BUILD = "Build: "
 		][__DATE__[0 .. 3]]
 		~ "-" ~ (__DATE__[4 .. 5] == " " ? "0" : __DATE__[4 .. 5]) ~ __DATE__[5 .. 6]
 		~ " " ~ __TIME__ ~ " "
-		~ DR ~ linesep
+		~ DR ~ .text(std.uni.lineSep)
 		~ "Compiled by " ~ __VENDOR__ ~ " " ~ .text(__VERSION__);

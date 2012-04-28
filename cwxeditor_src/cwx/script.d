@@ -94,7 +94,7 @@ class CWXScript {
 	private void throwError(string File = __FILE__, size_t Line = __LINE__)
 			(lazy string message, in Token tok) {
 		if (!_maxError) return;
-		throwErrorToken(message, tok.line, tok.pos, tok.value);
+		throwErrorToken!(File, Line)(message, tok.line, tok.pos, tok.value);
 	}
 	private void throwErrorToken(string File = __FILE__, size_t Line = __LINE__)
 			(lazy string message, size_t line, size_t pos, string value) {
@@ -734,6 +734,10 @@ class CWXScript {
 				switch (tok.kind) {
 				case Kind.CAT:
 					i++;
+					if (tokens.length < i) {
+						throwError(_prop.msgs.scriptErrorInvalidCalc, tok);
+						return r;
+					}
 					r.cat(_prop, tok, calcImpl(1, tokens, i, varTable, strWidth));
 					break;
 				default:
@@ -744,10 +748,18 @@ class CWXScript {
 				switch (tok.kind) {
 				case Kind.PLU:
 					i++;
+					if (tokens.length < i) {
+						throwError(_prop.msgs.scriptErrorInvalidCalc, tok);
+						return r;
+					}
 					r.add(_prop, tok, calcImpl(1, tokens, i, varTable, strWidth));
 					break;
 				case Kind.MIN:
 					i++;
+					if (tokens.length < i) {
+						throwError(_prop.msgs.scriptErrorInvalidCalc, tok);
+						return r;
+					}
 					r.min(_prop, tok, calcImpl(1, tokens, i, varTable, strWidth));
 					break;
 				default:
@@ -758,14 +770,26 @@ class CWXScript {
 				switch (tok.kind) {
 				case Kind.MUL:
 					i++;
+					if (tokens.length < i) {
+						throwError(_prop.msgs.scriptErrorInvalidCalc, tok);
+						return r;
+					}
 					r.mul(_prop, tok, calcPar(tokens, i, varTable, strWidth));
 					break;
 				case Kind.DIV:
 					i++;
+					if (tokens.length < i) {
+						throwError(_prop.msgs.scriptErrorInvalidCalc, tok);
+						return r;
+					}
 					r.div(_prop, tok, calcPar(tokens, i, varTable, strWidth));
 					break;
 				case Kind.RES:
 					i++;
+					if (tokens.length < i) {
+						throwError(_prop.msgs.scriptErrorInvalidCalc, tok);
+						return r;
+					}
 					r.res(_prop, tok, calcPar(tokens, i, varTable, strWidth));
 					break;
 				default:
@@ -922,6 +946,7 @@ class CWXScript {
 		Token[] texts = []; /// テキスト。
 		Node[] attr; /// 属性。
 		Node[] childs; /// 子ノード。
+		bool nextIsChild; /// 唯一の子ノードが次にあるか。
 		alias childs values; /// ノードがVALUESの場合は格納されたVALUEノードの配列。
 		Token[] calc; /// 計算式。
 		alias calc var; /// 変数。
@@ -935,12 +960,10 @@ class CWXScript {
 		}
 		/// 文字列表現。
 		const
-		string toString() {return code("    ");}
-		/// このノードをスクリプトコードにして返す。
-		const
-		string code(string indent) {return code("    ", "");}
-		const
-		private string code(string indent, string indentValue) {
+		string toString() {return token.toString();}
+		/// ノード群をスクリプトコードにして返す。
+		static string code(string indent, in Node[] array) {return code("    ", "", "", array, "sif");}
+		private static string code(string indent, string bIndentValue, string indentValue, in Node[] array, string ifString) {
 			string calcCode(in Token[] calc) {
 				char[] calcBuf;
 				foreach (i, tok; calc) {
@@ -954,94 +977,91 @@ class CWXScript {
 				}
 				return assumeUnique(calcBuf);
 			}
-			if (type is NodeType.VAR_SET) {
-				enforce(var.length > 0, new Exception("Invalid node", __FILE__, __LINE__));
-				if (var[0].kind is Kind.STRING) {
-					return .format("%s%s = %s", indentValue, token.value, var[0].value);
-				} else {
-					return .format("%s%s = %s", token.value, indentValue, calcCode(calc));
-				}
-			} else if (type is NodeType.VALUE) {
-				if (var.length <= 1) {
-					return token.value;
-				} else {
-					return calcCode(calc);
-				}
-			} else if (type is NodeType.VALUES) {
-				string vals = "[";
-				foreach (i, c; values) {
-					if (i > 0) vals ~= ", ";
-					vals ~= c.code(indent);
-				}
-				vals ~= "]";
-				return vals;
-			}
 			string buf = "";
-			foreach (var; beforeVars) {
-				buf ~= .format("%s%s\n", indentValue, var.code(indent));
-			}
-			string attrs = "";
-			if (token.kind is Kind.START) {
-				attrs = " " ~ calcCode(texts);
-			} else {
-				foreach (i, a; attr) {
-					auto ac = a.code(indent);
-					if (a.type is NodeType.VALUES && i > 0) {
-						attrs ~= "\n";
-						attrs ~= indentValue;
-						attrs ~= .rightJustify("", token.value.length + 1);
-						attrs ~= ac;
+			if (!array.length) return buf;
+
+			foreach (node; array) {
+				if (buf.length) {
+					buf ~= "\n";
+				}
+				if (node.type is NodeType.COMMAND && node.texts.length) {
+					buf ~= .format("%s%s %s\n", ifString == "sif" ? indentValue : bIndentValue, ifString, calcCode(node.texts));
+					ifString = "sif";
+				}
+				if (node.type is NodeType.VAR_SET) {
+					enforce(node.var.length > 0, new Exception("Invalid node", __FILE__, __LINE__));
+					if (node.var[0].kind is Kind.STRING) {
+						buf ~= .format("%s%s = %s", indentValue, node.token.value, node.var[0].value);
 					} else {
-						attrs ~= " ";
-						attrs ~= ac;
+						buf ~= .format("%s%s = %s", node.token.value, indentValue, calcCode(node.calc));
 					}
-				}
-			}
-			buf ~= .format("%s%s%s", indentValue, token.value, attrs);
-			size_t clen = 0;
-			size_t first;
-			bool setFirst = false;
-			foreach (i, c; childs) {
-				if (c.type !is NodeType.VAR_SET) {
-					clen++;
-					if (!setFirst) {
-						first = i;
-						setFirst = true;
-					}
-				}
-			}
-			if (clen > 1) {
-				size_t j = 0;
-				foreach (c; childs) {
-					if (c.type is NodeType.VAR_SET) {
-						buf ~= "\n";
-						buf ~= c.code(indent, indentValue);
+					continue;
+				} else if (node.type is NodeType.VALUE) {
+					if (node.var.length <= 1) {
+						buf ~= node.token.value;
 					} else {
-						buf ~= "\n";
-						string f = j == 0 ? "if" : "elif";
-						buf ~= .format("%s%s %s\n", indentValue, f, calcCode(c.texts));
-						buf ~= c.code(indent, indentValue ~ indent);
-						j++;
+						buf ~= calcCode(node.calc);
+					}
+					continue;
+				} else if (node.type is NodeType.VALUES) {
+					string vals = "[";
+					foreach (i, c; node.values) {
+						if (i > 0) vals ~= ", ";
+						vals ~= Node.code(indent, [c]);
+					}
+					vals ~= "]";
+					buf ~= vals;
+					continue;
+				}
+				foreach (i, var; node.beforeVars) {
+					buf ~= .format("%s%s\n", indentValue, Node.code(indent, [var]));
+				}
+				string attrs = "";
+				if (node.token.kind is Kind.START) {
+					attrs = " " ~ calcCode(node.texts);
+				} else {
+					foreach (i, a; node.attr) {
+						auto ac = Node.code(indent, [a]);
+						if (a.type is NodeType.VALUES && i > 0) {
+							attrs ~= "\n";
+							attrs ~= indentValue;
+							attrs ~= .rightJustify("", node.token.value.length + 1);
+							attrs ~= ac;
+						} else {
+							attrs ~= " ";
+							attrs ~= ac;
+						}
 					}
 				}
-				if (clen) {
-					buf ~= "\n";
-					buf ~= indentValue;
+				buf ~= .format("%s%s%s", indentValue, node.token.value, attrs);
+
+				if (node.nextIsChild) continue;
+
+				bool startBlock = true;
+				bool nextIsStartPoint = true;
+				const(Node)[][] block;
+				foreach (i, c; node.childs) {
+					if (startBlock && nextIsStartPoint) {
+						block ~= new const(Node)[0];
+					}
+					startBlock = false;
+					if (c.type !is NodeType.VAR_SET) {
+						nextIsStartPoint = !c.nextIsChild;
+						startBlock = true;
+					}
+					block[$ - 1] ~= c;
 				}
-				buf ~= "fi";
-			} else if (clen == 1) {
-				if (childs[first].texts.length) {
+				if (block.length > 1) {
+					foreach (i, b; block) {
+						string f = i == 0 ? "if" : "elif";
+						buf ~= "\n";
+						buf ~= Node.code(indent, indentValue, indentValue ~ indent, b, f);
+					}
 					buf ~= "\n";
-					buf ~= indentValue;
-					buf ~= "sif ";
-					buf ~= calcCode(childs[first].texts);
-				}
-				if (token.kind is Kind.START) {
-					indentValue ~= indent;
-				}
-				foreach (i, c; childs) {
+					buf ~= indentValue ~ "fi";
+				} else if (block.length == 1) {
 					buf ~= "\n";
-					buf ~= c.code(indent, indentValue);
+					buf ~= Node.code(indent, indentValue, node.token.kind is Kind.START ? indentValue ~ indent : indentValue, block[0], "sif");
 				}
 			}
 			return buf;
@@ -1134,7 +1154,7 @@ class CWXScript {
 			}
 		}
 		while (i < tokens2.length) {
-			auto tok = tokens2[i];
+			Token tok = tokens2[i];
 			if (tok.kind is Kind.VAR_NAME) {
 				vars ~= analyzeSyntaxVar(tokens2, i, KEYS);
 				continue;
@@ -1154,6 +1174,7 @@ class CWXScript {
 				throwError(_prop.msgs.scriptErrorNoStartText, tok);
 			}
 			node.beforeVars = vars;
+			node.nextIsChild = false;
 			c: while (i < tokens2.length) {
 				string cText = "";
 				switch (tokens2[i].kind) {
@@ -1163,6 +1184,7 @@ class CWXScript {
 					continue;
 				default:
 					throwError(_prop.msgs.scriptErrorInvalidStatement, tokens2[i]);
+					i++;
 				}
 			}
 			r ~= node;
@@ -1208,7 +1230,7 @@ start "second start"
     getskill 1`;
 		auto tokens = s.tokenize(statement);
 		auto starts = s.analyzeSyntax(tokens);
-		assert (starts[0].code("    ")
+		assert (Node.code("    ", starts)
 			== "$var1 = 'oops'\n"
 			~ "Start \"First start\"\n"
 			~ "if 'abc'\n"
@@ -1234,12 +1256,11 @@ start "second start"
 			~ "    fi\n"
 			~ "elif 'def'\n"
 			~ "    effect 1 2 3 + 2\n"
-			~ "fi");
-		assert (starts[1].code("    ")
-			== "$var4 = true\n"
+			~ "fi\n"
+			~ "$var4 = true\n"
 			~ "start \"second start\"\n"
 			~ "    showparty\n"
-			~ "    getskill 1");
+			~ "    getskill 1", Node.code("    ", starts));
 
 		string statement2
 = `
@@ -1254,7 +1275,7 @@ elif false
 fi`;
 		auto tokens2 = s.tokenize(statement2);
 		auto contents = s.analyzeSyntax(tokens2);
-		assert (contents[0].code("    ")
+		assert (Node.code("    ", contents)
 			== "brflag 'card\\mate1'\n"
 			~ "if true\n"
 			~ "    $var3 = 'what?'\n"
@@ -1266,21 +1287,24 @@ fi`;
 
 		// 無限ループに陥るバグの修正テスト
 		s.analyzeSyntax(s.tokenize("dialog M, @c\n...\n@]"));
+
+		string statement3 = `chback [] goarea 1`;
+		auto tokens3 = s.tokenize(statement3);
+		auto contents2 = s.analyzeSyntax(tokens3);
+		assert (contents2.length == 2);
+		assert (contents2[0].nextIsChild);
+		assert (!contents2[1].nextIsChild);
 	}
 
 	private Node[] analyzeSyntaxBranch(in Token[] tokens, ref size_t i, in Keywords keys) {
 		Node[] r;
 		auto tok = tokens[i];
-		bool sif = false;
 		switch (tok.kind) {
 		case Kind.START: return r;
-		case Kind.SIF:
-			sif = true;
-			goto case Kind.IF;
 		case Kind.IF, Kind.VAR_NAME:
 			while (i < tokens.length) {
 				Token[] texts;
-				if (tokens[i].kind is Kind.IF || tokens[i].kind is Kind.ELIF || tokens[i].kind is Kind.SIF) {
+				if (tokens[i].kind is Kind.IF || tokens[i].kind is Kind.ELIF) {
 					i++;
 					texts = analyzeSyntaxValue(tokens, i, keys);
 					if (!texts.length) {
@@ -1291,9 +1315,10 @@ fi`;
 					}
 				}
 				auto node = analyzeSyntaxStatement(tokens, i, keys);
-				node.texts = texts;
+				if (node.length) {
+					node[0].texts = texts;
+				}
 				r ~= node;
-				if (sif) return r;
 				if (tokens.length <= i) return r;
 				switch (tokens[i].kind) {
 				case Kind.START: return r;
@@ -1305,7 +1330,7 @@ fi`;
 				}
 			}
 			break;
-		case Kind.SYMBOL:
+		case Kind.SYMBOL, Kind.SIF:
 			r ~= analyzeSyntaxStatement(tokens, i, keys);
 			break;
 		default:
@@ -1322,48 +1347,78 @@ fi`;
 		}
 		return r;
 	}
-	private Node analyzeSyntaxStatement(in Token[] tokens, ref size_t i, in Keywords keys) {
-		assert (i < tokens.length);
-		auto vars = eatVarSet(tokens, i, keys);
-		auto tok = tokens[i];
-		if (tok.kind !is Kind.SYMBOL) {
-			throwError(_prop.msgs.scriptErrorInvalidStatement, tok);
-		}
-		Node node;
-		node.type = NodeType.COMMAND;
-		node.token = tok;
-		auto symbol = std.string.toLower(tok.value);
-		if (!(symbol in keys.keywords)) {
-			throwError(_prop.msgs.scriptErrorInvalidKeyword, tok);
-		}
-		node.beforeVars = vars;
-		i++;
-		if (tokens.length <= i) return node;
-		node.attr = analyzeSyntaxAttr(tokens, i, keys);
-		if (tokens.length <= i) return node;
-		switch (tokens[i].kind) {
-		case Kind.START, Kind.ELIF, Kind.FI:
-			break;
-		case Kind.VAR_NAME:
-			size_t j = i;
-			auto cVars = eatVarSet(tokens, j, keys);
-			if (tokens.length <= j) return node;
-			if (tokens[j].kind is Kind.START) return node;
-			i = j;
-			if (tokens[i].kind is Kind.IF || tokens[i].kind is Kind.SIF || tokens[i].kind is Kind.SYMBOL) {
-				node.childs ~= analyzeSyntaxBranch(tokens, i, keys);
-				node.childs[0].beforeVars = cVars;
-				break;
+	private Node[] analyzeSyntaxStatement(in Token[] tokens, ref size_t i, in Keywords keys) {
+		Node[] r;
+		Node[] vars;
+		while (true) {
+			assert (i < tokens.length);
+			vars ~= eatVarSet(tokens, i, keys);
+			Token tok = tokens[i];
+			Token[] sifTexts;
+			if (tok.kind is Kind.SIF) {
+				i++;
+				if (tokens.length <= i) {
+					throwError(_prop.msgs.scriptErrorNoSifText, tok);
+					return r;
+				}
+				sifTexts = analyzeSyntaxValue(tokens, i, keys);
+				if (tokens.length <= i) {
+					throwError(_prop.msgs.scriptErrorInvalidSif, tok);
+				}
+				tok = tokens[i];
+			} else if (tok.kind !is Kind.SYMBOL) {
+				throwError(_prop.msgs.scriptErrorInvalidStatement, tok);
 			}
-			break;
-		case Kind.IF, Kind.SIF, Kind.SYMBOL:
-			node.childs ~= analyzeSyntaxBranch(tokens, i, keys);
-			break;
-		default:
-			throwError(_prop.msgs.scriptErrorInvalidStatement, tok);
+			Node node;
+			node.type = NodeType.COMMAND;
+			node.token = tok;
+			node.texts = sifTexts;
+			node.nextIsChild = false;
+			auto symbol = std.string.toLower(tok.value);
+			if (!(symbol in keys.keywords)) {
+				throwError(_prop.msgs.scriptErrorInvalidKeyword, tok);
+			}
+			node.beforeVars = vars;
+			vars = [];
 			i++;
+			if (tokens.length <= i) return r ~ node;
+			node.attr = analyzeSyntaxAttr(tokens, i, keys);
+			if (tokens.length <= i) return r ~ node;
+			switch (tokens[i].kind) {
+			case Kind.START, Kind.ELIF, Kind.FI:
+				return r ~ node;
+			case Kind.VAR_NAME:
+				size_t j = i;
+				vars = eatVarSet(tokens, j, keys);
+				if (tokens.length <= j) return r ~ node;
+				if (tokens[j].kind is Kind.START) return r ~ node;
+				i = j;
+				if (tokens[i].kind is Kind.SIF) {
+					goto case Kind.SIF;
+				}
+				if (tokens[i].kind is Kind.SYMBOL) {
+					goto case Kind.SYMBOL;
+				}
+				if (tokens[i].kind is Kind.IF) {
+					node.childs ~= analyzeSyntaxBranch(tokens, i, keys);
+					node.childs[0].beforeVars = vars;
+					break;
+				}
+				return r ~ node;
+			case Kind.IF:
+				node.childs ~= analyzeSyntaxBranch(tokens, i, keys);
+				return r ~ node;
+			case Kind.SIF, Kind.SYMBOL:
+				node.nextIsChild = true;
+				r ~= node;
+				continue;
+			default:
+				throwError(_prop.msgs.scriptErrorInvalidStatement, tok);
+				i++;
+				return r ~ node;
+			}
 		}
-		return node;
+		return r;
 	}
 	private Node[] analyzeSyntaxAttr(in Token[] tokens, ref size_t i, in Keywords keys) {
 		Node[] r;
@@ -1919,22 +1974,10 @@ fi`;
 	/// Nodeツリーをコンテント群にして返す。
 	Content[] analyzeSemantics(in Node[] nodes) {
 		Token[string] varTable;
-		auto cs = analyzeSemanticsImpl(nodes, KEYS, varTable);
-		if (cs.length) {
-			bool starts = cs[0].type is CType.START;
-			foreach (c; cs[1 .. $]) {
-				if ((c.type is CType.START) !is starts) {
-					if (starts) {
-						throwError(_prop.msgs.scriptErrorStartsMixedContent, nodes[0].token);
-					} else {
-						throwError(_prop.msgs.scriptErrorContentsMixedStart, nodes[0].token);
-					}
-				}
-			}
-		}
-		return cs;
+		size_t autoWrapCount = 0;
+		return analyzeSemanticsImpl(nodes, KEYS, varTable, 0, autoWrapCount);
 	}
-	private Content[] analyzeSemanticsImpl(in Node[] nodes, in Keywords keys, Token[string] varTable) {
+	private Content[] analyzeSemanticsImpl(in Node[] nodes, in Keywords keys, Token[string] varTable, size_t stack, ref size_t autoWrapCount) {
 		Content[] r;
 		auto commentReg = .regex(`^[\s|\*|\/]*(.*)[\s|\*|\/]*$`);
 		string parseComment(string comment) {
@@ -1951,6 +1994,8 @@ fi`;
 			}
 			return lastRet(r);
 		}
+		Content lastParent = null;
+		bool nextIsChild = false;
 		foreach (node; nodes) {
 			foreach (var; node.beforeVars) {
 				if (var.type !is NodeType.VAR_SET) {
@@ -1964,6 +2009,9 @@ fi`;
 			}
 			if (node.type !is NodeType.COMMAND && node.type !is NodeType.START) {
 				throwError(_prop.msgs.scriptErrorInvalidCommand, node.token);
+			}
+			if (node.type is NodeType.START) {
+				stack = 0;
 			}
 			string val = std.string.toLower(node.token.value);
 			auto cmdPtr = val in KEYS.keywords;
@@ -2127,13 +2175,25 @@ fi`;
 			if (detail.use(CArg.TRANSITION)) {
 				c.transition = parseAttr!(Transition)(node.attr, i, c.transition, varTable);
 			}
-			foreach (chld; analyzeSemanticsImpl(node.childs, keys, varTable)) {
-				if (!c.detail.owner) {
-					throwError(_prop.msgs.scriptErrorCanNotHaveContent, node.token);
-				}
-				c.add(chld);
+			if (nextIsChild) {
+				/// 一つ前の分析結果は nextIsChild is true 。
+				lastParent.add(c);
+				stack++;
+			} else {
+				r ~= c;
 			}
-			r ~= c;
+			if (node.childs.length) {
+				foreach (chld; analyzeSemanticsImpl(node.childs, keys, varTable, stack + 1, autoWrapCount)) {
+					if (!c.detail.owner) {
+						throwError(_prop.msgs.scriptErrorCanNotHaveContent, node.token);
+					}
+					c.add(chld);
+				}
+			}
+			nextIsChild = node.nextIsChild;
+			if (nextIsChild) {
+				lastParent = c;
+			}
 		}
 		return r;
 	}

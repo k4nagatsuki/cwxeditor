@@ -452,6 +452,30 @@ private:
 			_undoD.dispose();
 		}
 	}
+	static class UndoContentAndInsert : ETVUndo {
+		private UndoContent _undoC;
+		private UndoInsert _undoI;
+		this (EventTreeView v, Commons comm, Props prop, Summary summ, EventTree et, Content owner, int insertIndex, int count) {
+			super (v, comm, prop, summ, et);
+			_undoC = new UndoContent(v, comm, prop, summ, et, [owner]);
+			_undoI = new UndoInsert(v, comm, prop, summ, et, insertIndex, count);
+		}
+		override void undo() {
+			_undoI.undo();
+			_undoC.undo();
+		}
+		override void redo() {
+			_undoC.redo();
+			_undoI.redo();
+		}
+		override void dispose() {
+			_undoC.dispose();
+			_undoI.dispose();
+		}
+	}
+	void storeContentAndInsert(Content owner, int insertIndex, int count) {
+		_undo ~= new UndoContentAndInsert(this, _comm, _prop, _summ, _et, owner, insertIndex, count);
+	}
 
 	private EventDialog[Content] _editDlgs;
 	void appliedEdit(UndoContent undo, Content c) {
@@ -2759,16 +2783,30 @@ public:
 		refreshStatusLine();
 	}
 
-	private void addContents(Content[] cs ...) {
+	@property
+	private Content insertOwner() {
 		auto itm = selection;
-		if (!itm) return;
+		if (!itm) return null;
 		auto owner = cast(Content) itm.getData();
 		assert (owner);
-		if (!owner.detail.owner) return;
+		if (owner.detail.owner) return owner;
+		return null;
+	}
+	private void addContents(bool stored, Content[] cs ...) {
+		auto itm = selection;
+		if (!itm) return;
+		auto owner = insertOwner;
+		if (!owner) return;
+		Content[] cs2;
+		foreach (ct; cs) {
+			if (ct.type is CType.START) continue;
+			cs2 ~= ct;
+		}
+		if (!cs2.length) return;
 		_tree.setRedraw(false);
 		scope (exit) _tree.setRedraw(true);
-		store(owner);
-		foreach (ct; cs) {
+		if (stored) store(owner);
+		foreach (ct; cs2) {
 			owner.add(ct);
 			_comm.refContent.call(ct);
 		}
@@ -2777,20 +2815,32 @@ public:
 		refreshStatusLine();
 		_comm.refreshToolBar();
 	}
-	private void addStarts(Content[] cs ...) {
+	@property
+	private int insertStartIndex() {
+		auto sel = selection;
+		if (sel) {
+			return _tree.indexOf(topItem(sel)) + 1;
+		} else {
+			return 1;
+		}
+	}
+	private void addStarts(bool stored, Content[] cs ...) {
 		_tree.setRedraw(false);
 		scope (exit) _tree.setRedraw(true);
 		auto sel = selection;
-		int index;
-		if (sel) {
-			index = _tree.indexOf(topItem(sel)) + 1;
-		} else {
-			index = 1;
+		int index = insertStartIndex;
+		Content[] cs2;
+		foreach (ct; cs) {
+			if (ct.type !is CType.START) continue;
+			cs2 ~= ct;
 		}
+		if (!cs2.length) return;
+
 		auto top = _tree.getTopItem();
-		storeInsert(index, cs.length);
+		if (stored) storeInsert(index, cs2.length);
 		TreeItem sItm = null;
-		foreach (i, c; cs) {
+		foreach (i, c; cs2) {
+			if (!c.type is CType.START) continue;
 			c.name = createNewName(c.name, (string name) {
 				foreach (s; _et.starts) {
 					if (icmp(s.name, name) == 0) {
@@ -2844,9 +2894,9 @@ public:
 					auto evt = Content.createFromXML(c, LATEST_VERSION, id);
 					if (!evt) return;
 					if (evt.type == CType.START) {
-						addStarts(evt);
+						addStarts(true, evt);
 					} else {
-						addContents(evt);
+						addContents(true, evt);
 					}
 					_comm.refreshToolBar();
 					return;
@@ -2904,10 +2954,29 @@ public:
 	void putContents(Content[] cs) {
 		if (!_et) return;
 		if (!cs.length) return;
-		if (cs[0].type is CType.START) {
-			addStarts(cs);
+		Content[] starts;
+		Content[] contents;
+		foreach (c; cs) {
+			if (c.type is CType.START) {
+				starts ~= c;
+			} else {
+				contents ~= c;
+			}
+		}
+		int si = insertStartIndex;
+		auto owner = insertOwner;
+		bool s = starts.length > 0;
+		bool c = contents.length && owner;
+		if (s && c) {
+			storeContentAndInsert(owner, si, starts.length);
+			addContents(false, contents);
+			addStarts(false, starts);
+		} else if (s) {
+			addStarts(true, starts);
+		} else if (c) {
+			addContents(true, contents);
 		} else {
-			addContents(cs);
+			return;
 		}
 		_comm.refreshToolBar();
 	}
