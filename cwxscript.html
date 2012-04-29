@@ -232,13 +232,6 @@
 <h1><a name="TITLE" id="TITLE">CWXスクリプト リファレンスマニュアル</a></h1>
 
 <p><em>CWXスクリプト</em>とは、CardWirthのイベントツリーを記述するための専用スクリプト言語です。</p>
-<p>CWXEditor 1.0にはテスト版として搭載されています。使用したい場合は、"cwxeditor.exe"と同じフォルダに生成される設定ファイル"cwxeditor.xml"をテキストエディタで開き、項目<code class="keywords">useCWXScript</code>を探して書き換えてください。</p>
-
-<pre><code><span class="comment">&lt;!-- useCWXScript&gt;false&lt;/useCWXScript --&gt;</span>
-<span class="comment">&lt;!-- ↑この行を下↓のように書き換える --&gt;</span>
-&lt;<span class="keywords">useCWXScript</span>&gt;<span class="code">true</span>&lt;/<span class="keywords">useCWXScript</span>&gt;
-</code></pre>
-<p>使用はバグや仕様変更等が大量にあるであろう事を承知した上でお願いいたします。</p>
 
 <h2><a name="TOC" id="TOC">目次</a></h2>
 
@@ -260,7 +253,8 @@
 					</li>
 					<li><a href="#NUM_DESC">数値(または計算式)</a></li>
 					<li><a href="#KEY_DESC">キーワード</a></li>
-					<li><a href="#ARR_DESC">複合パラメータ</a></li>
+					<li><a href="#STRUCT_DESC">複合パラメータ</a></li>
+					<li><a href="#ARRAY_DESC">配列</a></li>
 					<li><a href="#VAR_DESC">変数</a></li>
 				</ol>
 			</li>
@@ -411,7 +405,7 @@
 
 <h3><a name="PARAMS" id="PARAMS">パラメータの種類</a></h3>
 
-<p>パラメータには、指定する内容に応じて四つの表現があります。</p>
+<p>パラメータには、指定する内容に応じて次のような種類があります。</p>
 
 <dl>
 	<dt class="paramname"><a href="#STR_DESC">文字列</a></dt>
@@ -420,8 +414,10 @@
 	<dd class="paramdesc">カードやエリアのID、枚数、クーポンの点数、金額など。</dd>
 	<dt class="paramname"><a href="#KEY_DESC">キーワード</a></dt>
 	<dd class="paramdesc"><code class="code">true/false</code>の真偽値や、話者、属性、効果のダメージタイプなど。</dd>
-	<dt class="paramname"><a href="#ARR_DESC">複合パラメータ</a></dt>
+	<dt class="paramname"><a href="#STRUCT_DESC">複合パラメータ</a></dt>
 	<dd class="paramdesc">いくつかのパラメータを一纏めにしたもの。</dd>
+	<dt class="paramname"><a href="#ARRAY_DESC">配列</a></dt>
+	<dd class="paramdesc">同じ種類のパラメータを任意数並べたもの。</dd>
 	<dt class="paramname"><a href="#VAR_DESC">変数</a></dt>
 	<dd class="paramdesc">以上の値を格納し、後で参照する事ができる。</dd>
 </dl>
@@ -556,17 +552,28 @@
 <p>パラメータに応じて多数用意されています。</p>
 <p>具体的な語句や、どのパラメータにどのキーワードを用いる事ができるか等は、各コンテントのパラメータ解説を参照してください。</p>
 
-<h4><a name="ARR_DESC" id="ARR_DESC">複合パラメータ</a></h4>
+<h4><a name="STRUCT_DESC" id="STRUCT_DESC">複合パラメータ</a></h4>
 
 <p>例えば、背景変更コンテント<code class="keywords">chback</code>は、パラメータとして0枚以上の背景画像を持っています。</p>
 <p>背景画像にはさらに複数のパラメータ、つまり画像のファイル名、X座標、Y座標、サイズ……などが含まれています。</p>
 <p>これを表現するために、次のような書式が用意されています。</p>
 
-<pre><code class="samplecode"><span class="keywords">chback</span> [<span class="str">"MapOfWirth.bmp"</span>, <span class="str">""</span>, <span class="num">0</span>, <span class="num">0</span>, <span class="num">632</span>, <span class="num">420</span>, <span class="code">false</span>],
+<pre><code class="samplecode"><span class="keywords">chback</span> [<span class="str">"MapOfWirth.bmp"</span>, <span class="str">""</span>, <span class="num">0</span>, <span class="num">0</span>, <span class="num">632</span>, <span class="num">420</span>, <span class="code">false</span>]
        [<span class="str">"AdventurersInn.bmp"</span>, <span class="str">""</span>, <span class="num">116</span>, <span class="num">15</span>, <span class="num">400</span>, <span class="num">260</span>, <span class="code">false</span>]</code></pre>
 
 <p>一組の<code class="code">[]</code>で囲われた部分が、一枚の背景画像のパラメータになります。</p>
 <p>これによって、複数のパラメータを一纏めにして取り回す事ができます。</p>
+
+<h4><a name="ARRAY_DESC" id="ARRAY_DESC">配列</a></h4>
+
+<p>例えば、効果コンテント<code class="keywords">effect</code>は、パラメータとして0個以上の効果を持っています。</p>
+<p>この効果はいくつでも存在する事ができ、その後にはカードの動きなどのパラメータが続きます。</p>
+<p><code class="keywords">effect</code>における効果や、<code class="keywords">chback</code>の背景画像のように、「ある種のパラメータが任意数繰り返される」というパターンを表現するために、以下のような書式が用意されています。</p>
+
+<pre><code class="samplecode"><span class="keywords">effect</span> M, [<span class="code">damage</span>, <span class="code">level</span>, <span class="num">1</span>] [<span class="code">damage</span>, <span class="code">level</span>, <span class="num">1</span>] [<span class="code">damage</span>, <span class="code">level</span>, <span class="num">1</span>], <span class="code">none</span>, <span class="num">0</span>, <span class="num">5</span></code></pre>
+
+<p>三つある <code>[<code class="code">damage</code>, <code class="code">level</code>, <span class="num">1</span>]</code> の間が、カンマで区切られていない事に注目してください。</p>
+<p>カンマで区切らずにパラメータを列挙すると、それはひとまとまりの配列として扱われます。</p>
 
 <h4><a name="VAR_DESC" id="VAR_DESC">変数</a></h4>
 
@@ -661,9 +668,9 @@
 	<dd>ゲームオーバー</dd>
 	<dt class="content"><a href="#GOAREA">goarea <span class="args"><span class="arg">&lt;ID&gt;</span>, <span class="arg">&lt;画面切替スピード&gt;</span>, <span class="arg">&lt;切替方式&gt;</span></span></a></dt>
 	<dd>エリアの移動</dd>
-	<dt class="content"><a href="#CHGBACK">chback <span class="args"><span class="array">[<span class="arg">&lt;画像パス&gt;</span>, <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>, <span class="arg">&lt;透明化有無&gt;</span>] ...</span> <span class="arg">&lt;画面切替スピード&gt;</span>, <span class="arg">&lt;切替方式&gt;</span></span></a></dt>
+	<dt class="content"><a href="#CHGBACK">chback <span class="args"><span class="array">[<span class="arg">&lt;画像パス&gt;</span>, <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>, <span class="arg">&lt;透明化有無&gt;</span>] ...</span>, <span class="arg">&lt;画面切替スピード&gt;</span>, <span class="arg">&lt;切替方式&gt;</span></span></a></dt>
 	<dd>背景の変更</dd>
-	<dt class="content"><a href="#EFFECT">effect <span class="args"> <span class="arg">&lt;効果対象&gt;</span>, <span class="array">[<span class="arg">&lt;効果種別&gt;</span>, (<span class="arg">&lt;ダメージタイプ&gt;</span>, <span class="arg">&lt;値&gt;</span>, | <span class="arg">&lt;継続時間&gt;</span>, | <span class="arg">&lt;増減値&gt;</span>, <span class="arg">&lt;継続時間&gt;</span>, | <span class="arg">&lt;召喚獣ID&gt;</span>, ) <span class="arg">&lt;属性&gt;</span>] ...</span> <span class="arg">&lt;視覚効果&gt;</span>, <span class="arg">&lt;効果レベル&gt;</span>, <span class="arg">&lt;成功率&gt;</span>, <span class="arg">&lt;効果属性&gt;</span>, <span class="arg">&lt;抵抗属性&gt;</span>, <span class="arg">&lt;音声パス&gt;</span></span></a></dt>
+	<dt class="content"><a href="#EFFECT">effect <span class="args"> <span class="arg">&lt;効果対象&gt;</span>, <span class="array">[<span class="arg">&lt;効果種別&gt;</span>, (<span class="arg">&lt;ダメージタイプ&gt;</span>, <span class="arg">&lt;値&gt;</span> | <span class="arg">&lt;継続時間&gt;</span> | <span class="arg">&lt;増減値&gt;</span>, <span class="arg">&lt;継続時間&gt;</span> | <span class="arg">&lt;召喚獣ID&gt;</span>), <span class="arg">&lt;属性&gt;</span>] ...</span>, <span class="arg">&lt;視覚効果&gt;</span>, <span class="arg">&lt;効果レベル&gt;</span>, <span class="arg">&lt;成功率&gt;</span>, <span class="arg">&lt;効果属性&gt;</span>, <span class="arg">&lt;抵抗属性&gt;</span>, <span class="arg">&lt;音声パス&gt;</span></span></a></dt>
 	<dd>効果</dd>
 	<dt class="content"><a href="#BREA">break</a></dt>
 	<dd>イベントの中断</dd>
@@ -872,7 +879,7 @@
 
 <pre><code class="samplecode"><span class="keywords">goarea</span> <span class="num">2</span>, <span class="num">10</span>, <span class="code">fade</span> <span class="comment">// 画面をフェード式でゆっくりと切り替えながらエリア2へ移動</span></code></pre>
 
-<h3 class="content"><a id="CHGBACK" name="CHGBACK">chback <span class="args"><span class="array">[<span class="arg">&lt;画像パス&gt;</span>, <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>, <span class="arg">&lt;透明化有無&gt;</span>] ...</span> <span class="arg">&lt;画面切替スピード&gt;</span>, <span class="arg">&lt;切替方式&gt;</span></span></a></h3>
+<h3 class="content"><a id="CHGBACK" name="CHGBACK">chback <span class="args"><span class="array">[<span class="arg">&lt;画像パス&gt;</span>, <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>, <span class="arg">&lt;透明化有無&gt;</span>] ...</span>, <span class="arg">&lt;画面切替スピード&gt;</span>, <span class="arg">&lt;切替方式&gt;</span></span></a></h3>
 
 <p class="fullname">(Change background)</p>
 <p class="desc">背景を切替えます。</p>
@@ -906,11 +913,12 @@
 <h4 class="example">例</h4>
 
 <pre><code class="samplecode"><span class="comment">// 宿の背景を遅めの背景切替で表示する</span>
-<span class="keywords">chback</span> [<span class="str">"MapOfWirth.bmp"</span>], <span class="comment">// MapOfWirth.bmpを画面一杯に表示</span>
+<span class="keywords">chback</span> <span class="comment">// 次の二つのパラメータは配列のため、カンマで区切らない</span>
+       [<span class="str">"MapOfWirth.bmp"</span>] <span class="comment">// MapOfWirth.bmpを画面一杯に表示</span>
        [<span class="str">"AdventurersInn.bmp"</span>, <span class="str">""</span>, <span class="num">116</span>, <span class="num">15</span>, <span class="num">400</span>, <span class="num">260</span>, <span class="code">false</span>], <span class="comment">// 宿の画像を標準の位置に表示</span>
        <span class="num">8</span> <span class="comment">// ゆっくり背景を切り替える</span></code></pre>
 
-<h3 class="content"><a id="EFFECT" name="EFFECT">effect <span class="args"><span class="arg">&lt;効果対象&gt;</span>, <span class="array">[<span class="arg">&lt;効果種別&gt;</span>, (<span class="arg">&lt;ダメージタイプ&gt;</span>, <span class="arg">&lt;値&gt;</span>, | <span class="arg">&lt;継続時間&gt;</span>, | <span class="arg">&lt;増減値&gt;</span>, <span class="arg">&lt;継続時間&gt;</span>, | <span class="arg">&lt;召喚獣ID&gt;</span>, ) <span class="arg">&lt;属性&gt;</span>] ...</span>  <span class="arg">&lt;視覚効果&gt;</span>, <span class="arg">&lt;効果レベル&gt;</span>, <span class="arg">&lt;成功率&gt;</span>, <span class="arg">&lt;効果属性&gt;</span>, <span class="arg">&lt;抵抗属性&gt;</span>, <span class="arg">&lt;音声パス&gt;</span></span></a></h3>
+<h3 class="content"><a id="EFFECT" name="EFFECT">effect <span class="args"><span class="arg">&lt;効果対象&gt;</span>, <span class="array">[<span class="arg">&lt;効果種別&gt;</span>, (<span class="arg">&lt;ダメージタイプ&gt;</span>, <span class="arg">&lt;値&gt;</span> | <span class="arg">&lt;継続時間&gt;</span> | <span class="arg">&lt;増減値&gt;</span>, <span class="arg">&lt;継続時間&gt;</span> | <span class="arg">&lt;召喚獣ID&gt;</span>), <span class="arg">&lt;属性&gt;</span>] ...</span>, <span class="arg">&lt;視覚効果&gt;</span>, <span class="arg">&lt;効果レベル&gt;</span>, <span class="arg">&lt;成功率&gt;</span>, <span class="arg">&lt;効果属性&gt;</span>, <span class="arg">&lt;抵抗属性&gt;</span>, <span class="arg">&lt;音声パス&gt;</span></span></a></h3>
 
 <p class="fullname">(Effect)</p>
 <p class="desc">パーティや選択中のメンバに対して回復やダメージ、カード配布等の効果を適用します。</p>
@@ -1092,7 +1100,8 @@
 <h4 class="example">例</h4>
 
 <pre><code class="samplecode"><span class="keywords">effect</span> <span class="code">T</span>, <span class="comment">// パーティ全体が対象</span>
-       [<span class="code">damage</span>, <span class="code">level</span>, <span class="num">5</span>], <span class="comment">// レベル比5のダメージ</span>
+       <span class="comment">// 次の二つのパラメータは配列のため、カンマで区切らない</span>
+       [<span class="code">damage</span>, <span class="code">level</span>, <span class="num">5</span>] <span class="comment">// レベル比5のダメージ</span>
        [<span class="code">enhaction</span>, <span class="num">-5</span>, <span class="num">10</span>, <span class="code">phy</span>], <span class="comment">// 肉体を持つのであれば、10ラウンドの間、行動力が5低下。</span>
        <span class="code">hswing</span>, <span class="comment">// 横振動</span>
        <span class="num">3</span>, <span class="comment">// 効果レベル3</span>
@@ -1216,23 +1225,24 @@
 
 <h4 class="example">例</h4>
 
-<pre><code class="samplecode"><span class="keywords">dialog</span> <span class="code">R</span>, <span class="comment">// ランダムなメンバに喋らせる</span>
+<pre><code class="samplecode"><span class="comment">// パラメータは配列なので、カンマで区切らない</span>
+<span class="keywords">dialog</span> <span class="code">R</span>, <span class="comment">// ランダムなメンバに喋らせる</span>
 <span class="comment">// クーポン群として文字列を一件指定した場合、';'によって分割される</span>
 [<span class="str">"＿♀;＿上品"</span>, <span class="str">@ <span class="code">center</span>
 「ゴブリンの姿が見えます。
 　間違いない、この洞窟ですわ」
-@</span>],
+@</span>]
 <span class="comment">// []で囲って複数クーポンを指定する事も可能</span>
 [[<span class="str">"＿♂"</span>, <span class="str">"＿上品"</span>], <span class="str">@ <span class="code">center</span>
 「ゴブリンの姿が見えます。
 　間違いなく、この洞窟でございますな」
-@</span>],
+@</span>]
 <span class="comment">// メッセージは先に記述した方から優先的に選択され、話者が指定された
 // クーポンをすべて持っていなければ次のメッセージが選択される</span>
 [<span class="str">"＿♀"</span>, <span class="str">@ <span class="code">center</span>
 「ゴブリンの姿が見えるわ。
 　間違いない、この洞窟よ」
-@</span>],
+@</span>]
 <span class="comment">// 文字列が一つだけの場合は指定クーポン無し
 // あらゆる話者がこのメッセージを喋る事ができる</span>
 [<span class="str">@ <span class="code">center</span>
