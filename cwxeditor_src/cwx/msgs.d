@@ -1381,6 +1381,7 @@ public:
 	@property const string scriptError() {return "CWXスクリプトのコンパイル中にエラーが発生しました。";}
 	@property const string scriptErrorOver100Error() {return "エラーが100件を超えたため、スクリプトの解析を終了します。";}
 	@property const string scriptErrorInvalidToken() {return "スクリプトに使用できない文字が含まれています。";}
+	@property const string scriptErrorInvalidSyntax() {return "構文が正しくありません。";}
 	@property const string scriptErrorInvalidString() {return "ここに文字列が必要です。";}
 	@property const string scriptErrorUnCloseString() {return "文字列が閉じられていません。";}
 	@property const string scriptErrorUnOpenComment() {return "コメントは開始されていません。";}

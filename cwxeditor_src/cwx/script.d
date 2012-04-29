@@ -272,7 +272,7 @@ class CWXScript {
 		text = std.array.replace(text, "\r\n", "\n");
 		text = std.array.replace(text, "\r", "\n");
 		dstring dtext = .to!dstring(text);
-		auto reg = .regex("(" ~ std.string.join(TOKENS.dup, ")|(") ~ ")", "i");
+		auto reg = .regex("(" ~ std.string.join(TOKENS.dup, ")|(") ~ ")", "gi");
 		size_t i = 0;
 		size_t hits = 0;
 		size_t pos = 0;
@@ -284,15 +284,10 @@ class CWXScript {
 		string docComment = "";
 		string fullComment = "";
 		dstring tPre;
-		// FIXME: 最初の一つしかヒットしない
-/+		foreach (cap; .match(dtext, reg)) {
-+/		while (true) {
-			auto token = .match(dtext, reg);
-			if(token.empty) break;
-			dtext = token.post;
+		foreach (token; .match(dtext, reg)) {
 			post = token.post;
-			dstring pre = tPre ~ token.pre;
-			tPre = tPre ~ token.pre ~ token.hit;
+			dstring pre = token.pre;
+			tPre = pre ~ token.hit;
 			auto dstr = token.hit;
 			void retCount2(dstring dstr) {
 				size_t count = .count(dstr, "\n"d);
@@ -772,7 +767,7 @@ class CWXScript {
 				switch (tok.kind) {
 				case Kind.MUL:
 					i++;
-					if (tokens.length < i) {
+					if (tokens.length <= i) {
 						throwError(_prop.msgs.scriptErrorInvalidCalc, tok);
 						return r;
 					}
@@ -780,7 +775,7 @@ class CWXScript {
 					break;
 				case Kind.DIV:
 					i++;
-					if (tokens.length < i) {
+					if (tokens.length <= i) {
 						throwError(_prop.msgs.scriptErrorInvalidCalc, tok);
 						return r;
 					}
@@ -788,7 +783,7 @@ class CWXScript {
 					break;
 				case Kind.RES:
 					i++;
-					if (tokens.length < i) {
+					if (tokens.length <= i) {
 						throwError(_prop.msgs.scriptErrorInvalidCalc, tok);
 						return r;
 					}
@@ -1163,7 +1158,11 @@ class CWXScript {
 			}
 			if (tok.kind !is Kind.START) {
 				r ~= analyzeSyntaxBranch(tokens2, i, KEYS);
-				r[$ - 1].beforeVars = vars;
+				if (r.length) {
+					r[$ - 1].beforeVars = vars;
+				} else {
+					throwError(_prop.msgs.scriptErrorInvalidSyntax, tok);
+				}
 				vars = [];
 				continue;
 			}

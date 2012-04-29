@@ -162,9 +162,9 @@ abstract class Properties {
 						auto n = e.child(fld.key, false);
 						if (n.valid) {
 							try {
-								// FIXME: fld.fromNode()だと上手く行かない？
 								r.tupleof[i].fromNode(n);
-							} catch {
+							} catch (Exception e) {
+								debugln(e);
 							}
 						}
 					}

@@ -1,4 +1,4 @@
-/// FIXME: リンクエラー対策のためcwx.editor.gui.dwt.messageから移動。
+
 module cwx.editor.gui.dwt.messageutils;
 
 import cwx.utils;
@@ -90,6 +90,7 @@ import org.eclipse.swt.dnd.DropTarget;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.Transfer;
 
+/// 台詞コンテント・メッセージコンテントのダイアログの親クラス。
 class AbstractMessageDialog : EventDialog {
 	private KeyDownFilter _kdFilter;
 	private MsgPreviewWindow _previewWin = null;
@@ -1709,7 +1710,7 @@ class MsgPreview : Composite {
 }
 
 /// メッセージのプレビューを生成する。
-ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talker, string message, in string[] sel, in string[char] names, /+ FIXME: リンクエラー！ +//+in +/string[string] flags) {
+ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talker, string message, in string[] sel, in string[char] names, in string[string] flags) {
 	auto d = Display.getCurrent();
 	version (Windows) {
 		bool legacy = comm.skin.legacy;

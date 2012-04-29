@@ -21,7 +21,6 @@ import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.eventdialog;
-import cwx.editor.gui.dwt.message;
 import cwx.editor.gui.dwt.messageutils;
 import cwx.editor.gui.dwt.xmlbytestransfer;
 import cwx.editor.gui.dwt.undo;
@@ -2972,7 +2971,8 @@ public:
 			} catch (Exception e) {
 				debugln(e);
 				throw e;
-			} catch {
+			} catch (Throwable e) {
+				debugln(e);
 				throw new CWXScriptException(__FILE__, __LINE__, "", [CWXSError(_prop.msgs.scriptErrorSystem, 0, 0, __FILE__, __LINE__)], false);
 			}
 		} catch (CWXScriptException e) {

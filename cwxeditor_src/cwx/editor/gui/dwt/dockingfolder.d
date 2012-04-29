@@ -1061,9 +1061,8 @@ class DockingFolder(TabF, int Style) {
 				sash.setWeights([node.attr!(int)("lWeight", true), node.attr!(int)("rWeight", true)]);
 				dStr ~= " - " ~ .text(__LINE__);
 			} catch (Throwable e) {
-				// FIXME: リンクエラー！
-//				fdebugln(dStr);
-//				fdebugln(e);
+				fdebugln(dStr);
+				fdebugln(e);
 				throw new Exception(dStr, __FILE__, __LINE__);
 			}
 		}
@@ -1096,9 +1095,8 @@ class DockingFolder(TabF, int Style) {
 				}
 				dStr ~= " - " ~ .text(__LINE__);
 			} catch (Throwable e) {
-				// FIXME: リンクエラー！
-//				fdebugln(dStr);
-//				fdebugln(e);
+				fdebugln(dStr);
+				fdebugln(e);
 				throw new Exception(dStr, __FILE__, __LINE__);
 			}
 		}
@@ -1141,9 +1139,8 @@ class DockingFolder(TabF, int Style) {
 			}
 			dStr ~= " - " ~ .text(__LINE__);
 		} catch (Throwable e) {
-			// FIXME: リンクエラー！
-//			fdebugln(dStr);
-//			fdebugln(e);
+			fdebugln(dStr);
+			fdebugln(e);
 			throw new Exception(dStr, __FILE__, __LINE__);
 		}
 	}

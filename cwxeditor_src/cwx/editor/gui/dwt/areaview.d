@@ -36,7 +36,7 @@ import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.jpyimage;
 import cwx.editor.gui.dwt.areawindow;
-import cwx.editor.gui.dwt.message;
+import cwx.editor.gui.dwt.messageutils;
 import cwx.editor.gui.dwt.areaviewutils;
 import cwx.editor.gui.dwt.dmenu;
 
@@ -754,7 +754,6 @@ private:
 		}
 		class SCListener : SelectionAdapter {
 			public override void widgetSelected(SelectionEvent e) {
-				// FIXME: ここから直接selectListItemをインスタンス化して呼ぶとアクセス違反に。
 				listSelectC();
 			}
 		}
@@ -815,7 +814,6 @@ private:
 		}
 		class SBListener : SelectionAdapter {
 			public override void widgetSelected(SelectionEvent e) {
-				// FIXME: ここから直接selectListItemをインスタンス化して呼ぶとアクセス違反に。
 				listSelectB();
 			}
 		}

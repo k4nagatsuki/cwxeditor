@@ -51,9 +51,8 @@ public:
 			_var = new FlexProps(parent.appPath, confFilePath);
 			dStr ~= " - " ~ .text(__LINE__);
 		} catch (Throwable e) {
-			// FIXME: リンクエラー！
-//			fdebugln(dStr);
-//			fdebugln(e);
+			fdebugln(dStr);
+			fdebugln(e);
 			throw new Exception(dStr, __FILE__, __LINE__);
 		}
 	}

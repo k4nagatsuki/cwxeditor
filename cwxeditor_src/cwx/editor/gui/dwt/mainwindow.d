@@ -2836,7 +2836,7 @@ public:
 					}
 				}
 			}
-			// FIXME: quitTrace()をbackup.join()より先に行うと時々アクセス違反
+			// 各要素が絡み合うため、必ずこの順序で各スレッドとリソースを解放する
 			_quit = true;
 			dStr ~= " - " ~ .text(__LINE__);
 			backup.join();

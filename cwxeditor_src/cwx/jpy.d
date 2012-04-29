@@ -321,11 +321,8 @@ private struct JptxTag {
 			p = p[ei + 4 .. $];
 		}
 		static const ATTR = " *([A-Z]+)=\"([^\"]+)\""d;
-		auto attrReg = .regex!(dstring)(ATTR, "i");
-		// FIXME: 最初の一つしかヒットしない
-/+		foreach (cap; .match(p, attrReg)) {
-+/		while (true) {
-			auto m = .match(p, attrReg);
+		auto attrReg = .regex!(dstring)(ATTR, "gi");
+		foreach (m; .match(p, attrReg)) {
 			if(m.empty) break;
 			p = m.post;
 			auto cap = m.captures;

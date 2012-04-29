@@ -58,7 +58,6 @@ SRC = cwxeditor.d \
 	cwx\editor\gui\dwt\jpyimage.d \
 	cwx\editor\gui\dwt\areawindow.d \
 	cwx\editor\gui\dwt\eventview.d \
-	cwx\editor\gui\dwt\message.d \
 	cwx\editor\gui\dwt\eventtreeview.d \
 	cwx\editor\gui\dwt\eventdialog.d \
 	cwx\editor\gui\dwt\motionview.d \
@@ -149,7 +148,6 @@ OBJ = objs\cwxeditor.obj \
 	objs\cwx\editor\gui\dwt\jpyimage.obj \
 	objs\cwx\editor\gui\dwt\areawindow.obj \
 	objs\cwx\editor\gui\dwt\eventview.obj \
-	objs\cwx\editor\gui\dwt\message.obj \
 	objs\cwx\editor\gui\dwt\eventtreeview.obj \
 	objs\cwx\editor\gui\dwt\eventdialog.obj \
 	objs\cwx\editor\gui\dwt\motionview.obj \

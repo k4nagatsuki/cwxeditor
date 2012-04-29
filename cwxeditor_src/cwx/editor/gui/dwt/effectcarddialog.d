@@ -615,7 +615,6 @@ private:
 				_keyCodes[i].setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 				createTextMenu!Combo(_comm, _prop, _keyCodes[i], &catchMod);
 				_keyCodes[i].setLayoutData(new GridData(GridData.FILL_BOTH));
-				//  FIXME: Argument not valid, java\lang\exceptions.d, 28
 				setComboItems(_keyCodes[i], stdKCs);
 			}
 			setKeyCodesEnabled();

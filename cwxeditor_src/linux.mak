@@ -58,7 +58,6 @@ SRC = cwxeditor.d \
 	cwx/editor/gui/dwt/jpyimage.d \
 	cwx/editor/gui/dwt/areawindow.d \
 	cwx/editor/gui/dwt/eventview.d \
-	cwx/editor/gui/dwt/message.d \
 	cwx/editor/gui/dwt/eventtreeview.d \
 	cwx/editor/gui/dwt/eventdialog.d \
 	cwx/editor/gui/dwt/motionview.d \

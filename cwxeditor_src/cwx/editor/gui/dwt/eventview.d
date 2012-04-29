@@ -17,7 +17,7 @@ import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.commons;
-import cwx.editor.gui.dwt.message;
+import cwx.editor.gui.dwt.messageutils;
 import cwx.editor.gui.dwt.eventtreeview;
 import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.xmlbytestransfer;

@@ -86,8 +86,7 @@ void main(string[] args) {
 		}
 	} catch (Throwable e) {
 		fdebugln(dStr);
-		// FIXME: リンクエラー！
-//		fdebugln(e);
+		fdebugln(e);
 		throw e;
 	}
 }

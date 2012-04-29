@@ -117,6 +117,7 @@ enum CardWindowKind {
 	ImportSourceHand,
 }
 
+/// カード関係の表示・編集領域。
 class CardWindow(CardWindowKind CWKind, PCardOwner, CardOwner, ToCardOwner, Cards ...)
 		: TopLevelPanel, TCPD, ICardWindow {
 private:
@@ -1425,19 +1426,8 @@ public:
 }
 
 alias CardWindow!(CardWindowKind.ImportSourceHand, Importable, CastCard, Summary, SkillCard, ItemCard, BeastCard) AddHandCardWindow;
-
-// FIXME: 以下の二つをaliasにすると前方参照のエラーが発生する
-class HandCardWindow : CardWindow!(CardWindowKind.Hand,
-		Summary, CastCard, void, SkillCard, ItemCard, BeastCard) {
-	this (Commons comm, Props prop, Summary summ, Composite parent) {
-		super (comm, prop, summ, parent);
-	}
-}
-class MainCardWindow : CardWindow!(CardWindowKind.Main, Summary, Summary, void, CastCard, SkillCard, ItemCard, BeastCard, InfoCard) {
-	this (Commons comm, Props prop, Composite parent) {
-		super (comm, prop, parent);
-	}
-}
+alias CardWindow!(CardWindowKind.Hand, Summary, CastCard, void, SkillCard, ItemCard, BeastCard) HandCardWindow;
+alias CardWindow!(CardWindowKind.Main, Summary, Summary, void, CastCard, SkillCard, ItemCard, BeastCard, InfoCard) MainCardWindow;
 alias CardWindow!(CardWindowKind.Cast, Summary, Summary, void, CastCard) CastCardWindow;
 alias CardWindow!(CardWindowKind.Skill, Summary, Summary, void, SkillCard) SkillCardWindow;
 alias CardWindow!(CardWindowKind.Item, Summary, Summary, void, ItemCard) ItemCardWindow;
