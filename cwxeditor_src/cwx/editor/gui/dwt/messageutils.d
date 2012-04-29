@@ -1737,7 +1737,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 
 	// 改行置換
 	if (.contains(message, '\r')) {
-		message = message.splitLines.join("\n");
+		message = message.splitLines().join("\n");
 	}
 	// 特殊文字・フラグ・ステップ・色
 	string[size_t] rFonts;

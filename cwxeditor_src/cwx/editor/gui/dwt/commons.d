@@ -1025,7 +1025,7 @@ class Commons {
 				return;
 			}
 			if (!cwx.utils.isabs(w)) {
-				w = std.path.buildPath(prop.parent.appPath.dirName, w);
+				w = std.path.buildPath(prop.parent.appPath.dirName(), w);
 			}
 			if (!w.length || !.exists(w)) {
 				if (_wallpaper) _wallpaper.dispose();

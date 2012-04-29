@@ -2,7 +2,7 @@
 [[[ CWXEditor ビルドガイド ]]]
 
 ビルドツール:
-	・dmd 2.058
+	・dmd 2.059
 	・rake
 	・Digital Mars rcc
 ライブラリ:
@@ -115,16 +115,3 @@ make -f linux.mak release
 ---
 
 　後はどうかDWTが死なないことを私と一緒に祈ってください。
-
-
-[ avoids_error_in_optlink.patch について ]
-
-　おそらくOPTLINKのバグにより、DWTをDEBUGビルドするとリンクに失敗します。
-　これはその失敗を避けるための改造を入れたパッチです。
-　以下のようにして適用できます。
----
-cd dwt
-patch -p1 < avoids_error_in_optlink.patch
----
-
-　これが無いとデバグにどれほど苦労する事やら……あっても苦労するけど。

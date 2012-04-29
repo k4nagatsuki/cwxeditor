@@ -456,14 +456,14 @@ struct ClassicEngine {
 		if (!enginePath.length) return "";
 		string path = enginePath;
 		if (!cwx.utils.isabs(path)) {
-			auto dir = appPath.dirName;
+			auto dir = appPath.dirName();
 			path = std.path.buildPath(dir, path);
 		}
 		if (!engine && execute.length) {
 			if (cwx.utils.isabs(execute)) {
 				path = execute;
 			} else {
-				path = std.path.buildPath(path.dirName, execute);
+				path = std.path.buildPath(path.dirName(), execute);
 			}
 		}
 		return path;

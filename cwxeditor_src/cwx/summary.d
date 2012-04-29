@@ -129,7 +129,7 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 			/// ditto
 			const
 			const(CastCard) cwCast(ulong id) {
-				return find(_cast, id);
+				return find!(const CastCard)(_cast, id);
 			}
 		}
 		static if (UseSkill) {
@@ -145,7 +145,7 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 			/// ditto
 			const
 			const(SkillCard) skill(ulong id) {
-				return find(_skl, id);
+				return find!(const SkillCard)(_skl, id);
 			}
 		}
 		static if (UseItem) {
@@ -161,7 +161,7 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 			/// ditto
 			const
 			const(ItemCard) item(ulong id) {
-				return find(_itm, id);
+				return find!(const ItemCard)(_itm, id);
 			}
 		}
 		static if (UseBeast) {
@@ -176,7 +176,7 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 			}
 			const
 			const(BeastCard) beast(ulong id) {
-				return find(_bst, id);
+				return find!(const BeastCard)(_bst, id);
 			}
 		}
 		static if (UseInfo) {
@@ -192,7 +192,7 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 			/// ditto
 			const
 			const(InfoCard) info(ulong id) {
-				return find(_info, id);
+				return find!(const InfoCard)(_info, id);
 			}
 		}
 	}
@@ -291,7 +291,7 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 				} catch {
 					name = touni(am.name);
 				}
-				name = replace(name, "/", sep);
+				name = replace(name, "/", dirSeparator);
 				if (cfnmatch(baseName(name), setExtension("Summary", ext))) {
 					return arc;
 				}
@@ -973,7 +973,7 @@ public:
 		return _btl;
 	}
 
-	private static bool hasId(T)(T[] arr, ulong id) {
+	private static bool hasId(T)(const T[] arr, ulong id) {
 		foreach (a; arr) {
 			if (a.id == id) {
 				return true;
@@ -1012,7 +1012,7 @@ public:
 	}
 	const
 	const(Area) area(ulong id) {
-		return find(_area, id);
+		return find!(const Area)(_area, id);
 	}
 	/// バトル。
 	Battle battle(ulong id) {
@@ -1020,7 +1020,7 @@ public:
 	}
 	const
 	const(Battle) battle(ulong id) {
-		return find(_btl, id);
+		return find!(const Battle)(_btl, id);
 	}
 	/// パッケージ。
 	Package cwPackage(ulong id) {
@@ -1028,23 +1028,23 @@ public:
 	}
 	const
 	const(Package) cwPackage(ulong id) {
-		return find(_pkg, id);
+		return find!(const Package)(_pkg, id);
 	}
 
 	/// 指定されたIDのエリア・バトル・パッケージがあればtrue。
 	const
 	bool hasAreaId(ulong id) {
-		return hasId(_area, id);
+		return hasId!(const Area)(_area, id);
 	}
 	/// ditto
 	const
 	bool hasBattleId(ulong id) {
-		return hasId(_btl, id);
+		return hasId!(const Battle)(_btl, id);
 	}
 	/// ditto
 	const
 	bool hasPackageId(ulong id) {
-		return hasId(_pkg, id);
+		return hasId!(const Package)(_pkg, id);
 	}
 
 	/// 指定された召喚獣カードと同等の性能を持つ召喚獣カードを探して返す。
@@ -1058,26 +1058,29 @@ public:
 		return null;
 	}
 
+	private static ulong newIdImpl(T)(in T[] arr) {
+		return arr.length > 0 ? arr[$ - 1].id + 1 : 1;
+	}
 	/// 今現在このシナリオに含まれていないTのIDを生成して返す。
 	@property
 	const
 	ulong newId(T)() {
 		static if (is (T == CastCard)) {
-			return newIdImpl(_cast);
+			return newIdImpl!(const CastCard)(_cast);
 		} else static if (is (T == SkillCard)) {
-			return newIdImpl(_skl);
+			return newIdImpl!(const SkillCard)(_skl);
 		} else static if (is (T == ItemCard)) {
-			return newIdImpl(_itm);
+			return newIdImpl!(const ItemCard)(_itm);
 		} else static if (is (T == BeastCard)) {
-			return newIdImpl(_bst);
+			return newIdImpl!(const BeastCard)(_bst);
 		} else static if (is (T == InfoCard)) {
-			return newIdImpl(_info);
+			return newIdImpl!(const InfoCard)(_info);
 		} else static if (is (T == Area)) {
-			return newIdImpl(_area);
+			return newIdImpl!(const Area)(_area);
 		} else static if (is (T == Battle)) {
-			return newIdImpl(_btl);
+			return newIdImpl!(const Battle)(_btl);
 		} else static if (is (T == Package)) {
-			return newIdImpl(_pkg);
+			return newIdImpl!(const Package)(_pkg);
 		} else {
 			static assert (0);
 		}
@@ -1086,22 +1089,19 @@ public:
 	@property
 	const
 	ulong newAreaId() {
-		return newIdImpl(_area);
+		return newIdImpl!(const Area)(_area);
 	}
 	/// ditto
 	@property
 	const
 	ulong newBattleId() {
-		return newIdImpl(_btl);
+		return newIdImpl!(const Battle)(_btl);
 	}
 	/// ditto
 	@property
 	const
 	ulong newPackageId() {
-		return newIdImpl(_pkg);
-	}
-	private static ulong newIdImpl(T)(T[] arr) {
-		return arr.length > 0 ? arr[$ - 1].id + 1 : 1;
+		return newIdImpl!(const Package)(_pkg);
 	}
 
 	private ulong insertImpl(T, alias ToID)(ref T[] arr, int index, T c) {
@@ -1369,19 +1369,19 @@ public:
 				r[parent] = p;
 			}
 		}
-		put(PATH_AREA, toXMLsImpl(_area));
-		put(PATH_BATTLE, toXMLsImpl(_btl));
-		put(PATH_PACKAGE, toXMLsImpl(_pkg));
+		put(PATH_AREA, toXMLsImpl!(const Area)(_area));
+		put(PATH_BATTLE, toXMLsImpl!(const Battle)(_btl));
+		put(PATH_PACKAGE, toXMLsImpl!(const Package)(_pkg));
 
-		put(PATH_CAST, toXMLsImpl(_cast));
-		put(PATH_SKILL, toXMLsImpl(_skl));
-		put(PATH_ITEM, toXMLsImpl(_itm));
-		put(PATH_BEAST, toXMLsImpl(_bst));
-		put(PATH_INFO, toXMLsImpl(_info));
+		put(PATH_CAST, toXMLsImpl!(const CastCard)(_cast));
+		put(PATH_SKILL, toXMLsImpl!(const SkillCard)(_skl));
+		put(PATH_ITEM, toXMLsImpl!(const ItemCard)(_itm));
+		put(PATH_BEAST, toXMLsImpl!(const BeastCard)(_bst));
+		put(PATH_INFO, toXMLsImpl!(const InfoCard)(_info));
 
 		return r;
 	}
-	private static string[string] toXMLsImpl(A)(A[] targs) {
+	private static string[string] toXMLsImpl(A)(in A[] targs) {
 		string[string] r;
 		foreach (targ; targs) {
 			auto fname = format("%02d", targ.id) ~ ".xml";
@@ -1813,7 +1813,7 @@ public:
 		auto lock = std.path.buildPath(scenarioPath, "cwxeditor.lock");
 		auto arc = .zip(scenarioPath, true, (string file) {
 			return cfnmatch(file, lock)
-				|| containsPath(ignorePaths, file.baseName);
+				|| containsPath(ignorePaths, file.baseName());
 		}, useSysEnc);
 		if (useTemp && !expandXMLs) {
 			foreach (path, files; _oldXMLs) {
@@ -1855,7 +1855,7 @@ public:
 
 		.cab(scenarioPath, cabName, (string file) {
 			return !cfnmatch(baseName(file), "cwxeditor.lock")
-				&& !containsPath(ignorePaths, file.baseName);
+				&& !containsPath(ignorePaths, file.baseName());
 		});
 	}
 
@@ -1878,7 +1878,7 @@ public:
 					c += dirS(p.buildPath(file));
 				}
 				auto rel = abs2rel(scenarioPath, p);
-				if ("" == rel || fnmatch(rel, skin.materialPath)) {
+				if ("" == rel || cfnmatch(rel, skin.materialPath)) {
 					c++;
 				}
 				if (0 == c) {

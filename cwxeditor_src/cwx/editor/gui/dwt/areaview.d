@@ -2738,7 +2738,7 @@ public:
 					string full = std.path.buildPath(dir, file);
 					string sFile = sDir ~ file;
 					if (isDir(full)) {
-						recurse(full, sFile ~ std.path.sep);
+						recurse(full, sFile ~ std.path.dirSeparator);
 					} else {
 						if (!_comm.skin.isBgImage(file)) continue;
 						if (containsPath(_prop.var.etc.ignorePaths, file)) continue;
@@ -2750,7 +2750,7 @@ public:
 					}
 				}
 			}
-			recurse(_summ.scenarioPath, std.path.sep);
+			recurse(_summ.scenarioPath, std.path.dirSeparator);
 		}
 		bool isViewBacks() {
 			return _viewBacks;

@@ -14,9 +14,9 @@ public class Looks {
 public:
 	@property const string[] fontFiles() {
 		return [
-			"Data" ~ sep.idup ~ "Font" ~ sep.idup ~ "gothic.ttf",
-			"Data" ~ sep.idup ~ "Font" ~ sep.idup ~ "mincho.ttf",
-			"Data" ~ sep.idup ~ "Font" ~ sep.idup ~ "uigothic.ttf"
+			"Data" ~ dirSeparator.idup ~ "Font" ~ dirSeparator.idup ~ "gothic.ttf",
+			"Data" ~ dirSeparator.idup ~ "Font" ~ dirSeparator.idup ~ "mincho.ttf",
+			"Data" ~ dirSeparator.idup ~ "Font" ~ dirSeparator.idup ~ "uigothic.ttf"
 		];
 	}
 	@property const CPoint castCardNamePoint() {return CPoint(5, 5);}

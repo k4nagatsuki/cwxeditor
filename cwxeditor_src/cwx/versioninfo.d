@@ -4,6 +4,7 @@ module cwx.versioninfo;
 import std.string;
 import std.path;
 import std.conv;
+import std.ascii;
 
 shared const string APP_VERSION = splitLines!string(import("@version.txt"))[0];
 shared const string APP_WEB_SITE_URI =  splitLines!string(import("@version.txt"))[1];
@@ -35,5 +36,5 @@ shared const string APP_BUILD = "Build: "
 		][__DATE__[0 .. 3]]
 		~ "-" ~ (__DATE__[4 .. 5] == " " ? "0" : __DATE__[4 .. 5]) ~ __DATE__[5 .. 6]
 		~ " " ~ __TIME__ ~ " "
-		~ DR ~ .text(std.uni.lineSep)
+		~ DR ~ .newline
 		~ "Compiled by " ~ __VENDOR__ ~ " " ~ .text(__VERSION__);

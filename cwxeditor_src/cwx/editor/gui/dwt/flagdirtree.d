@@ -274,7 +274,7 @@ private:
 		bool[string]  r;
 		void all(TreeItem itm) {
 			auto dir = cast(FlagDir) itm.getData();
-			r[dir.path.toLower] = itm.getItemCount() == 0 || itm.getExpanded();
+			r[dir.path.toLower()] = itm.getItemCount() == 0 || itm.getExpanded();
 			foreach (sub; itm.getItems()) {
 				all(sub);
 			}

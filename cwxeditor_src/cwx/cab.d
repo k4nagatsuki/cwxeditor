@@ -17,6 +17,7 @@ import std.path;
 import std.c.string;
 
 version (Windows) {
+	import std.windows.charset;
 	import std.c.windows.windows;
 
 	/// uncab()が行える状態であればtrueを返す。
@@ -36,7 +37,7 @@ version (Windows) {
 		auto h = fciCreate(nabs(cab));
 		if (!h) return false;
 		scope (exit) destroyFCI(h);
-		string cut = dirName(src) ~ sep.idup;
+		string cut = dirName(src) ~ dirSeparator.idup;
 		bool adds(string file) {
 			if (isArc && !isArc(file)) return true;
 			bool isdir = isDir(file);
@@ -478,7 +479,7 @@ version (Windows) {
 	}
 	private bool copyFiles(HFDI hfdi, string cab, string dir, string delegate(string) expand = null) {
 		cab = nabs(cab);
-		dir = nabs(dir) ~ sep.idup;
+		dir = nabs(dir) ~ dirSeparator.idup;
 		Prm prm;
 		prm.dest = toMBSz(dir);
 		prm.expand = expand;

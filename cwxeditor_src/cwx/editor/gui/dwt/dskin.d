@@ -47,8 +47,8 @@ Skin findSkin(S = Summary)(Commons comm, Props prop, in S summ, bool appendClass
 						return;
 					}
 				}
-				string dataDirName = abs2rel(lEngine.dirName, skin.legacyDataPath);
-				auto ce = ClassicEngine(lEngine.baseName.stripExtension, lEngine, dataDirName, "");
+				string dataDirName = abs2rel(lEngine.dirName(), skin.legacyDataPath);
+				auto ce = ClassicEngine(lEngine.baseName().stripExtension(), lEngine, dataDirName, "");
 				prop.var.etc.classicEngines = prop.var.etc.classicEngines.dup ~ ce;
 				comm.refClassicSkin.call();
 			}
@@ -165,7 +165,7 @@ version (Windows) {
 		}
 
 		/// リソースオーバーライド変更に対応
-		string oPath = legacyEngine.dirName.buildPath("Data").buildPath("Resource").buildPath(resName.addExt("bmp"));
+		string oPath = legacyEngine.dirName().buildPath("Data").buildPath("Resource").buildPath(resName.setExtension("bmp"));
 		if (.exists(oPath)) {
 			auto ca = cache(oPath);
 			if (ca) {

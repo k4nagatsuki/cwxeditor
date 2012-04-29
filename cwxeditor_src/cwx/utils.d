@@ -30,6 +30,7 @@ import std.stdint;
 import std.stream;
 
 private version (Windows) {
+	import std.windows.charset;
 	import std.c.stdio;
 	extern (Windows) {
 		import std.c.windows.windows;
@@ -73,6 +74,16 @@ shared string LATEST_VERSION = "";
 
 shared string debugLog = "cwxeditor_error.log";
 private __gshared BufferedFile debugLogFile = null;
+
+/// FIXME: 2.059以降altsep不在
+version (Windows) {
+	immutable altDirSeparator = "/";
+} else version (Posix) {
+	immutable altDirSeparator = " ";
+} else static assert (0);
+
+immutable curdir = ".";
+immutable pardir = "..";
 
 /// デバグログを生成する。
 string debugString(T)(ref T v) {
@@ -201,17 +212,17 @@ string appDataDir(string appPath) {
 	version (Windows) {
 		auto shl = ExeModule_Load("shell32.dll");
 		if (!shl) {
-			return appPath.dirName;
+			return appPath.dirName();
 		}
 		scope (exit) ExeModule_Release(shl);
 		auto getFolderPath = cast(SHGetFolderPathW) ExeModule_GetSymbol(shl, "SHGetFolderPathW");
 		if (!getFolderPath) {
-			return appPath.dirName;
+			return appPath.dirName();
 		}
 		wchar[MAX_PATH] appDataBuf;
 		auto gfr = getFolderPath(null, CSIDL_APPDATA, null, SHGFP_TYPE_CURRENT, appDataBuf.ptr);
 		if (0 != gfr) {
-			return appPath.dirName;
+			return appPath.dirName();
 		}
 		auto p = to!string(appDataBuf[0 .. appDataBuf.indexOf('\0')]);
 		return assumeUnique(p);
@@ -641,10 +652,10 @@ bool isabs(string path) {
 
 /// 正規化を行う。
 string normal(string path) {
-	static if (altsep.length) {
-		path = replace(path, altsep, sep);
+	static if (altDirSeparator.length) {
+		path = replace(path, altDirSeparator, dirSeparator);
 	}
-	scope spl = std.string.split(path, sep);
+	scope spl = std.string.split(path, dirSeparator);
 	string[] buf;
 	foreach (i, str; spl) {
 		if (str == curdir) {
@@ -659,7 +670,7 @@ string normal(string path) {
 			buf ~= str;
 		}
 	}
-	return expandTilde(std.string.join(buf, sep));
+	return expandTilde(std.string.join(buf, dirSeparator));
 } unittest {
 	debug mixin(UTPerf);
 	version (Windows) {
@@ -689,11 +700,11 @@ string abs2rel(string base, string path) {
 	}
 	if (fnstartsWith(path, base)) {
 		path = path[base.length .. $];
-		if (fnstartsWith(path, sep)) path = path[sep.length .. $];
+		if (fnstartsWith(path, dirSeparator)) path = path[dirSeparator.length .. $];
 		return path;
 	}
-	auto basesp = std.array.split(base, sep);
-	auto pathsp = std.array.split(path, sep);
+	auto basesp = std.array.split(base, dirSeparator);
+	auto pathsp = std.array.split(path, dirSeparator);
 	size_t df = 0;
 	foreach (i, b; basesp) {
 		if (i >= pathsp.length || !cfnmatch(b, pathsp[i])) {
@@ -706,7 +717,7 @@ string abs2rel(string base, string path) {
 		r ~= pardir;
 	}
 	if (df < pathsp.length) r ~= pathsp[df .. $];
-	return std.string.join(r, sep);
+	return std.string.join(r, dirSeparator);
 } unittest {
 	debug mixin(UTPerf);
 	version (Windows) {
@@ -722,11 +733,11 @@ string abs2rel(string base, string path) {
 
 /// 素材パスをencodeする。
 string encodePath(string path) {
-	return isBinImg(path) ? path : replace(path, sep, "/");
+	return isBinImg(path) ? path : replace(path, dirSeparator, "/");
 }
 /// 素材パスをdecodeする。
 string decodePath(string path) {
-	return isBinImg(path) ? path : replace(path, "/", sep);
+	return isBinImg(path) ? path : replace(path, "/", dirSeparator);
 }
 
 /// 末尾に改行文字が複数あったら纏める。
@@ -1070,9 +1081,9 @@ string getenv(string env) {
 
 private string createFileImpl(bool Dir)(string parent, string name, string ext, string prefix) {
 	string clean(string name) {
-		name = replace(name, sep, "");
-		static if (altsep.length) {
-			name = replace(name, altsep, "");
+		name = replace(name, dirSeparator, "");
+		static if (altDirSeparator.length) {
+			name = replace(name, altDirSeparator, "");
 		}
 		name = replace(name, ".", "");
 		name = replace(name, " ", "");
@@ -1173,7 +1184,7 @@ string[] clistdir(string dir) {
 	string[] r;
 	if (!.exists(dir)) return r;
 	foreach (string file; dirEntries(dir, SpanMode.shallow, false)) {
-		r ~= file.baseName;
+		r ~= file.baseName();
 	}
 	return r;
 }
@@ -1427,7 +1438,7 @@ bool hasPath(string sPath, string path) {
 	path = nabs(path);
 	sPath = nabs(sPath);
 	return cwx.utils.fnstartsWith(path, sPath)
-		&& (path.length == sPath.length || startsWith(path[sPath.length .. $], sep));
+		&& (path.length == sPath.length || startsWith(path[sPath.length .. $], dirSeparator));
 } unittest {
 	debug mixin(UTPerf);
 	version (Windows) {
@@ -1505,8 +1516,8 @@ template FileCache(T ...) {
 /// 親ディレクトリへの移動が含まれているパスであればtrueを返す。
 bool hasParDir(string path) {
 	path = normal(path);
-	if (startsWith(path, pardir ~ sep)) return true;
-	if (.countUntil(path, sep ~ pardir ~ sep) != -1) return true;
+	if (startsWith(path, pardir ~ dirSeparator)) return true;
+	if (.countUntil(path, dirSeparator ~ pardir ~ dirSeparator) != -1) return true;
 	return false;
 }
 
@@ -1681,7 +1692,7 @@ string sliceJ(string text, size_t from, size_t to) {
 
 /// strip()と同様に動作するが、全角空白を空白文字として扱わない。
 string astrip(string s) {
-	return s.astripl.astripr;
+	return s.astripl().astripr();
 }
 /// ditto
 string astripl(string s) {

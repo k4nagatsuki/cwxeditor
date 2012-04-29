@@ -580,7 +580,7 @@ private:
 	private bool isCutted(string file) {
 		static if (0 == filenameCharCmp('A', 'a')) {
 			file = cwx.utils.toLower(file);
-			file = file.nabs;
+			file = file.nabs();
 			return _cuts.contains(file);
 		} else {
 			return _cuts.contains(nabs(file));
@@ -589,7 +589,7 @@ private:
 	string toRelPath(string file) {
 		file = nabs(file);
 		auto sc = nabs(_summ.scenarioPath);
-		return file.length == sc.length ? "" : file[(sc ~ sep).length .. $];
+		return file.length == sc.length ? "" : file[(sc ~ dirSeparator).length .. $];
 	}
 	class DirsSelection : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
@@ -872,9 +872,9 @@ private:
 		auto path = (cast(FileNameObj) itm.getData()).array;
 		string frp = toRelPath(path);
 		string frd = nabs(path);
-		newName = std.array.replace(newName, sep, "");
-		static if (altsep.length) {
-			newName = std.array.replace(newName, altsep, "");
+		newName = std.array.replace(newName, dirSeparator, "");
+		static if (altDirSeparator.length) {
+			newName = std.array.replace(newName, altDirSeparator, "");
 		}
 		auto to = std.path.buildPath(dirName(path), newName);
 		bool isdir = cast(bool) .isDir(path);

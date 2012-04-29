@@ -616,7 +616,7 @@ struct PathId {
 	const
 	string opCast() {
 		string id = this.id;
-		return isBinImg ? binImg : replace(id, "/", sep);
+		return isBinImg ? binImg : replace(id, "/", dirSeparator);
 	}
 	const
 	hash_t toHash() {
@@ -676,9 +676,9 @@ PathId toPathId(string id) {
 	if (isBinImg(id)) {
 		return PathId(BI_PATH_ID, id);
 	} else {
-		id = replace(id, sep, "/");
-		static if (altsep.length) {
-			id = replace(id, altsep, "/");
+		id = replace(id, dirSeparator, "/");
+		static if (altDirSeparator.length) {
+			id = replace(id, altDirSeparator, "/");
 		}
 		return PathId(id);
 	}

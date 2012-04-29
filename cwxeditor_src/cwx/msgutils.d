@@ -13,13 +13,13 @@ import std.algorithm;
 /// "font_X.bmp"から"X"の部分を抽出する。
 dchar decodeFontPath(string path) {
 	enforce(istartsWith(path, "font_"));
-	auto dpath = to!dstring(path["font_".length .. $].stripExtension);
+	auto dpath = to!dstring(path["font_".length .. $].stripExtension());
 	enforce(1 == dpath.length);
 	return std.uni.toUpper(dpath[0]);
 }
 /// cを"font_X.bmp"等に変換する。
 string encodeFontPath(dchar c, string ext) {
-	return ("font_" ~ to!string(c)).addExt(ext);
+	return ("font_" ~ to!string(c)).setExtension(ext);
 }
 
 /// テキストの中で使用されているフラグ・ステップ・画像パス・名前を置換し、
@@ -219,8 +219,8 @@ string replTextUseStep(string text, string oldStep, string newStep) {
 /// newFont = 置換後の画像パス。
 string replTextUseFont(string text, string oldFont, string newFont)
 in {
-	dstring dold = toUTF32(toLower(oldFont.baseName));
-	dstring dnew = toUTF32(toLower(newFont.baseName));
+	dstring dold = toUTF32(toLower(oldFont.baseName()));
+	dstring dnew = toUTF32(toLower(newFont.baseName()));
 	assert(dold.length == 10, .text(dold));
 	assert(startsWith(dold, "font_"d));
 	assert(endsWith(dold, ".bmp"d));
@@ -229,8 +229,8 @@ in {
 	assert(endsWith(dnew, ".bmp"d));
 } body {
 	dstring dtext = toUTF32(text);
-	dchar dold = toUTF32(oldFont.baseName)[5];
-	dchar dnew = toUTF32(newFont.baseName)[5];
+	dchar dold = toUTF32(oldFont.baseName())[5];
+	dchar dnew = toUTF32(newFont.baseName())[5];
 	dstring buf;
 	for (size_t i; i < dtext.length; i++) {
 		dchar c = dtext[i];

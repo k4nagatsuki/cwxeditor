@@ -644,15 +644,15 @@ private:
 		}
 	}
 	private static string fromViewPath(string s) {
-		static if (sep != "/" && altsep == "/") {
-			return replace(s, "/", sep);
+		static if (dirSeparator != "/" && altDirSeparator == "/") {
+			return replace(s, "/", dirSeparator);
 		} else {
 			return s;
 		}
 	}
 	private static string toViewPath(string s) {
-		static if (sep != "/" && altsep == "/") {
-			return replace(replace(s, sep, "/"), altsep, "/");
+		static if (dirSeparator != "/" && altDirSeparator == "/") {
+			return replace(replace(s, dirSeparator, "/"), altDirSeparator, "/");
 		} else {
 			return s;
 		}
@@ -709,7 +709,7 @@ private:
 			} else {
 				assert (_summ);
 				parent = abs2rel(_summ.scenarioPath, path);
-				parent = sep.idup ~ parent;
+				parent = dirSeparator.idup ~ parent;
 			}
 			string[] s = targs(path, forceRefresh);
 			if (_prop.var.etc.logicalSort) {
@@ -827,10 +827,10 @@ private:
 		if (_summ) {
 			string st = _summ.scenarioPath;
 			cut = st.length;
-			static if (altsep.length) {
-				if (!endsWith(st, sep) && !endsWith(st, altsep)) cut++;
+			static if (altDirSeparator.length) {
+				if (!endsWith(st, dirSeparator) && !endsWith(st, altDirSeparator)) cut++;
 			} else {
-				if (!endsWith(st, sep)) cut++;
+				if (!endsWith(st, dirSeparator)) cut++;
 			}
 			searchTarg(_summ.scenarioPath, cut);
 		}
@@ -862,7 +862,7 @@ private:
 						}
 					} else if (_summ) {
 						string pt = dirName(p);
-						pt = pt.length <= cut ? sep.idup : pt[cut .. $];
+						pt = pt.length <= cut ? dirSeparator.idup : pt[cut .. $];
 						pt = toViewPath(pt);
 						_dirs.select(dirsIndexOf(pt));
 					}

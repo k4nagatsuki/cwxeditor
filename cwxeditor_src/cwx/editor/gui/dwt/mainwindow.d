@@ -339,7 +339,7 @@ private:
 				string sPath = summ.scenarioPath;
 				auto d = Clock.currTime();
 				string file = .format("cwxeditor_backup_%04d%02d%02d%02d%02d%02d[%s].zip",
-					d.year, d.month, d.day, d.hour, d.minute, d.second, sPath.baseName);
+					d.year, d.month, d.day, d.hour, d.minute, d.second, sPath.baseName());
 				string zFile = std.path.buildPath(parent, file);
 				if (!parent.exists) mkdirRecurse(parent);
 				synchronized (_saveSync) {
@@ -987,13 +987,13 @@ private:
 			Image img;
 			auto snipLen = _prop.var.etc.historySnipLength;
 			if (cfnmatch(baseName(hist), "Summary.xml")) {
-				text = cuthist(hist[0u .. $ - "Summary.xml".length - std.path.sep.length], snipLen);
+				text = cuthist(hist[0u .. $ - "Summary.xml".length - std.path.dirSeparator.length], snipLen);
 				img = _prop.images.summaryFile;
 			} else if (cfnmatch(cwx.utils.getExt(hist), "wsn")) {
 				text = cuthist(hist, snipLen);
 				img = _prop.images.scenarioArchive;
 			} else if (cfnmatch(baseName(hist), "Summary.wsm")) {
-				text = cuthist(hist[0u .. $ - "Summary.wsm".length - std.path.sep.length], snipLen);
+				text = cuthist(hist[0u .. $ - "Summary.wsm".length - std.path.dirSeparator.length], snipLen);
 				img = _prop.images.classic;
 			} else if (cfnmatch(cwx.utils.getExt(hist), "cab") || cfnmatch(cwx.utils.getExt(hist), "zip")) {
 				text = cuthist(hist, snipLen);

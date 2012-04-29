@@ -1946,14 +1946,14 @@ public:
 		auto c = cast(Content) itm.getData();
 		auto script = new CWXScript(_prop.parent, _summ);
 		auto text = script.toScript([c], _summ.legacy, "\t");
-		text = std.array.replace(text, "\n", std.path.linesep);
+		text = std.array.replace(text, "\n", .newline);
 		_comm.clipboard.setContents([new ArrayWrapperString(text ~ "\n")], [TextTransfer.getInstance()]);
 	}
 	void toScriptAll() {
 		if (!_et) return;
 		auto script = new CWXScript(_prop.parent, _summ);
 		auto text = script.toScript(_et.starts, _summ.legacy, "\t");
-		text = std.array.replace(text, "\n", std.path.linesep);
+		text = std.array.replace(text, "\n", .newline);
 		_comm.clipboard.setContents([new ArrayWrapperString(text ~ "\n")], [TextTransfer.getInstance()]);
 	}
 	private ContentCommentDialog[Content] _commentDlgs;
@@ -2967,6 +2967,11 @@ public:
 			try {
 				auto cs = cwx.script.compile(_prop.parent, _summ, script);
 				putContents(cs);
+			} catch (CWXScriptException e) {
+				throw e;
+			} catch (Exception e) {
+				debugln(e);
+				throw e;
 			} catch {
 				throw new CWXScriptException(__FILE__, __LINE__, "", [CWXSError(_prop.msgs.scriptErrorSystem, 0, 0, __FILE__, __LINE__)], false);
 			}

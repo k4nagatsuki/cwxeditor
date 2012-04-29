@@ -145,7 +145,7 @@ public class FlexProps {
 			dStr ~= " - " ~ .text(__LINE__);
 			IniLocation loc = IniLocation.STANDARD;
 			string iniFileName = "cwxeditor.xml";
-			string iniPath = std.path.buildPath(appPath.dirName, iniFileName);
+			string iniPath = std.path.buildPath(appPath.dirName(), iniFileName);
 			dStr ~= " - " ~ iniPath;
 			if (.exists(iniPath)) {
 				// 1.0との互換性を維持するため、アプリケーションのディレクトリに
@@ -190,11 +190,11 @@ public class FlexProps {
 				break;
 			case IniLocation.LOCAL:
 				dStr ~= " - " ~ .text(__LINE__);
-				dir = appPath.dirName;
+				dir = appPath.dirName();
 				break;
 			case IniLocation.COPY:
 				dStr ~= " - " ~ .text(__LINE__);
-				string base = std.path.buildPath(appPath.dirName, iniFileName);
+				string base = std.path.buildPath(appPath.dirName(), iniFileName);
 				dir = appDataDir(appPath);
 				dir = std.path.buildPath(dir, "cwxeditor");
 				string dest = std.path.buildPath(dir, iniFileName);
@@ -396,7 +396,7 @@ public class FlexProps {
 		if (dock) {
 			dock.toNode(node, ["work"]);
 		}
-		auto dir = xmlFileName.dirName;
+		auto dir = xmlFileName.dirName();
 		if (!.exists(dir)) mkdirRecurse(dir);
 		write(xmlFileName, node.text);
 	}

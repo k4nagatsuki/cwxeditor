@@ -126,7 +126,7 @@ Distributed under the Boost Software License, Version 1.0.
    (See accompanying file LICENSE_1_0.txt or copy at
          http://www.boost.org/LICENSE_1_0.txt)
 */
-module d2std.xml;
+module std.xml;
 
 import std.array;
 import std.ascii;
@@ -597,7 +597,7 @@ class Document : Element
             const doc = toType!(const Document)(o);
             return
                 (prolog != doc.prolog            ) ? false : (
-                (super  != cast(const Element)doc) ? false : (
+                (cast()super  != cast()cast(const Element)doc) ? false : (
                 (epilog != doc.epilog            ) ? false : (
             true )));
         }
@@ -620,8 +620,8 @@ class Document : Element
             return
                 ((prolog != doc.prolog            )
                     ? ( prolog < doc.prolog             ? -1 : 1 ) :
-                ((super  != cast(const Element)doc)
-                    ? ( cast()super  < cast(const Element)doc ? -1 : 1 ) :
+                ((cast()super  != cast()cast(const Element)doc)
+                    ? ( cast()super  < cast()cast(const Element)doc ? -1 : 1 ) :
                 ((epilog != doc.epilog            )
                     ? ( epilog < doc.epilog             ? -1 : 1 ) :
             0 )));
@@ -633,7 +633,7 @@ class Document : Element
          * You should rarely need to call this function. It exists so that
          * Documents can be used as associative array keys.
          */
-        override hash_t toHash()
+        override hash_t toHash() @trusted
         {
             return hash(prolog, hash(epilog, (cast()super).toHash()));
         }
@@ -830,7 +830,7 @@ class Element : Item
         if (len != element.items.length) return false;
         foreach (i; 0 .. len)
         {
-            if (!items[i].opEquals(element.items[i])) return false;
+            if (!items[i].opEquals(cast()element.items[i])) return false;
         }
         return true;
     }
@@ -855,8 +855,8 @@ class Element : Item
             if (i == items.length && i == element.items.length) return 0;
             if (i == items.length) return -1;
             if (i == element.items.length) return 1;
-            if (items[i] != element.items[i])
-                return items[i].opCmp(element.items[i]);
+            if (items[i] != cast()element.items[i])
+                return items[i].opCmp(cast()element.items[i]);
         }
     }
 
@@ -1127,9 +1127,7 @@ class Tag
          */
         override hash_t toHash()
         {
-            hash_t hash = 0;
-            foreach(dchar c;name) hash = hash * 11 + c;
-            return hash;
+            return typeid(name).getHash(&name);
         }
 
         /**
@@ -1822,7 +1820,7 @@ class ElementParser
      * };
      * --------------
      */
-    void onText(Handler handler) { textHandler = handler; }
+    @property void onText(Handler handler) { textHandler = handler; }
 
     /**
      * Register an alternative handler which will be called whenever text
@@ -1869,7 +1867,7 @@ class ElementParser
      * };
      * --------------
      */
-    void onCData(Handler handler) { cdataHandler = handler; }
+    @property void onCData(Handler handler) { cdataHandler = handler; }
 
     /**
      * Register a handler which will be called whenever a comment is
@@ -1890,7 +1888,7 @@ class ElementParser
      * };
      * --------------
      */
-    void onComment(Handler handler) { commentHandler = handler; }
+    @property void onComment(Handler handler) { commentHandler = handler; }
 
     /**
      * Register a handler which will be called whenever a processing
@@ -1911,7 +1909,7 @@ class ElementParser
      * };
      * --------------
      */
-    void onPI(Handler handler) { piHandler = handler; }
+    @property void onPI(Handler handler) { piHandler = handler; }
 
     /**
      * Register a handler which will be called whenever an XML instruction is
@@ -1934,7 +1932,7 @@ class ElementParser
      * };
      * --------------
      */
-    void onXI(Handler handler) { xiHandler = handler; }
+    @property void onXI(Handler handler) { xiHandler = handler; }
 
     /**
      * Parse an XML element.
@@ -2848,10 +2846,9 @@ private
         s = s[1..$];
     }
 
-    hash_t hash(string s,hash_t h=0)
+    hash_t hash(string s,hash_t h=0) @trusted nothrow
     {
-        foreach(dchar c;s) h = h * 11 + c;
-        return h;
+        return typeid(s).getHash(&s) + h;
     }
 
     // Definitions from the XML specification
@@ -2961,4 +2958,3 @@ private
         throw new XMLException(s);
     }
 }
-

@@ -1838,22 +1838,22 @@ public:
 				}
 			}
 		});
-		foreach (n; coupons.sort.uniq) {
+		foreach (n; coupons.sort.uniq()) {
 			if (!n.length) continue;
 			addResult(n, _prop.images.couponNormal);
 			count++;
 		}
-		foreach (n; gossips.sort.uniq) {
+		foreach (n; gossips.sort.uniq()) {
 			if (!n.length) continue;
 			addResult(n, _prop.images.gossip);
 			count++;
 		}
-		foreach (n; scenarios.sort.uniq) {
+		foreach (n; scenarios.sort.uniq()) {
 			if (!n.length) continue;
 			addResult(n, _prop.images.endScenario);
 			count++;
 		}
-		foreach (n; keyCodes.sort.uniq) {
+		foreach (n; keyCodes.sort.uniq()) {
 			if (!n.length) continue;
 			addResult(n, _prop.images.keyCode);
 			count++;
@@ -2492,10 +2492,10 @@ public:
 	private void copyResult() {
 		string[] t;
 		foreach (itm; _result.getSelection()) {
-			t ~= itm.getText().replace("\n", linesep);
+			t ~= itm.getText().replace("\n", .newline);
 		}
 		if (!t.length) return;
-		auto text = new ArrayWrapperString(std.string.join(t, linesep));
+		auto text = new ArrayWrapperString(std.string.join(t, .newline));
 		_comm.clipboard.setContents([text], [TextTransfer.getInstance()]);
 	}
 	private void addResult(string path) {

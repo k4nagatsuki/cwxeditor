@@ -40,7 +40,7 @@ private:
 		if (p) {
 			return *p;
 		} else {
-			string dir = _appPath.dirName;
+			string dir = _appPath.dirName();
 			string dynPath = dir.buildPath("resource").buildPath(Path);
 			ImageData imgData = null;
 			if (.exists(dynPath)) {

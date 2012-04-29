@@ -47,7 +47,7 @@ class Skin {
 		if (p) {
 			return *p;
 		} else {
-			auto skinsDir = std.path.buildPath(dirName(enginePath), buildPath("Data", "Skin") ~ sep);
+			auto skinsDir = std.path.buildPath(dirName(enginePath), buildPath("Data", "Skin") ~ dirSeparator);
 			Skin[string] r;
 			if (.exists(skinsDir) && .isDir(skinsDir)) {
 				try {
@@ -85,7 +85,7 @@ class Skin {
 		} else {
 			skin = new Skin(prop, enginePath);
 		}
-		skin.setupLegacy(lEnginePath, lEnginePath.dirName.buildPath(dataDirName));
+		skin.setupLegacy(lEnginePath, lEnginePath.dirName().buildPath(dataDirName));
 		skin._execute = execute;
 		return skin;
 	}
@@ -105,7 +105,7 @@ class Skin {
 		if (p) {
 			return *p;
 		} else {
-			string dataDirName = resDir.length ? abs2rel(lEnginePath.dirName, resDir) : "";
+			string dataDirName = resDir.length ? abs2rel(lEnginePath.dirName(), resDir) : "";
 			auto skin = createLegacySkin(prop, enginePath, lEnginePath, dataDirName, "");
 			lSkins[resDir] = skin;
 			return skin;
@@ -141,14 +141,14 @@ class Skin {
 	/// 含まれていればディレクトリ名を返す。
 	static string findResDir(string path) {
 		auto p = path;
-		if (std.file.exists(buildPath(p, buildPath("Data", "Table") ~ sep ~ "MapOfWirth.BMP"))) {
+		if (std.file.exists(buildPath(p, buildPath("Data", "Table") ~ dirSeparator ~ "MapOfWirth.BMP"))) {
 			return "Data";
 		}
 		for (char c = 'A'; c < 'Z'; c++) {
-			if (std.file.exists(buildPath(p, buildPath("D_" ~ c ~ "1", "Table") ~ sep ~ "MapOfWirth.BMP"))) {
+			if (std.file.exists(buildPath(p, buildPath("D_" ~ c ~ "1", "Table") ~ dirSeparator ~ "MapOfWirth.BMP"))) {
 				return "D_" ~ c ~ "1";
 			}
-			if (std.file.exists(buildPath(p, [c] ~ buildPath("_dt", "Table") ~ sep ~ "MapOfWirth.BMP"))) {
+			if (std.file.exists(buildPath(p, [c] ~ buildPath("_dt", "Table") ~ dirSeparator ~ "MapOfWirth.BMP"))) {
 				return [c].idup ~ "_dt";
 			}
 		}
@@ -461,7 +461,7 @@ class Skin {
 	string executeEngine() {
 		if (_legacyEngine.length) {
 			if (_execute.length) {
-				return _legacyEngine.dirName.buildPath(_execute);
+				return _legacyEngine.dirName().buildPath(_execute);
 			}
 			return legacyEngine();
 		} else {
@@ -840,7 +840,7 @@ class Skin {
 			foreach (path; clistdir(fd)) {
 				path = std.path.buildPath(fd, path);
 				if (!isDir(path) && cfnmatch(cwx.utils.getExt(path), _resExtImg)) {
-					auto dp = toUTF32(getName(baseName(path)));
+					auto dp = toUTF32(stripExtension(baseName(path)));
 					auto c = std.uni.toUpper(dp[0]);
 					switch (c) {
 					case 'M', 'R', 'U', 'C', 'I', 'T', 'Y':

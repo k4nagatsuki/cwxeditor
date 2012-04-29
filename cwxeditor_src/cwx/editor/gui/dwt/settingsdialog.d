@@ -609,12 +609,12 @@ private:
 				string path = _cEnginePath.getText();
 				if (!path.length) return path;
 				if (cwx.utils.isabs(path)) return path;
-				return std.path.buildPath(nabs(_prop.parent.appPath).dirName, path);
+				return std.path.buildPath(nabs(_prop.parent.appPath).dirName(), path);
 			}
 			string dropCEngineSub(string file) {
 				string engine = curCEnginePath;
 				if (!engine.length) return file;
-				return abs2rel(engine.dirName, file);
+				return abs2rel(engine.dirName(), file);
 			}
 			string dropCEngineDataDir(string[] files) {
 				return dropCEngineSub(dropDir(files));
@@ -638,7 +638,7 @@ private:
 				}
 			}
 			void dropCEnginePath(string path) {
-				string resDir = Skin.findResDir(path.dirName);
+				string resDir = Skin.findResDir(path.dirName());
 				if (resDir.length) {
 					_cEngineDataDir.setText(resDir);
 				}
@@ -646,7 +646,7 @@ private:
 			void selectCEngineDataDir() {
 				string path = _cEngineDataDir.getText();
 				if (_cEnginePath.getText().length && !cwx.utils.isabs(path)) {
-					path = std.path.buildPath(_cEnginePath.getText().dirName, path);
+					path = std.path.buildPath(_cEnginePath.getText().dirName(), path);
 				}
 				path = nabs(path);
 				string fname = selectDir(_cEngineDataDir, _prop.msgs.classicEngineDataDirName, _prop.msgs.classicEngineDataDirNameDesc, path, false);
@@ -668,12 +668,12 @@ private:
 				string path = _cEngineExecute.getText();
 				string fileName = "";
 				if (path.length) {
-					fileName = path.baseName;
+					fileName = path.baseName();
 					if (_cEnginePath.getText().length && !cwx.utils.isabs(path)) {
-						path = std.path.buildPath(_cEnginePath.getText().dirName, path);
+						path = std.path.buildPath(_cEnginePath.getText().dirName(), path);
 					}
 				} else {
-					path = std.path.buildPath(_cEnginePath.getText().dirName, "*.exe");
+					path = std.path.buildPath(_cEnginePath.getText().dirName(), "*.exe");
 				}
 				path = nabs(path);
 				string fname = selectFile(_cEngineExecute, desc, ext, fileName, _prop.msgs.dlgTitClassicEngineExecute, path);
@@ -753,12 +753,12 @@ private:
 				if (!files.length) return "";
 				string file = files[0];
 				if (.isDir(file)) return file;
-				auto bn = file.baseName;
-				if (fnmatch(bn, "Summary.wsm") || fnmatch(bn, "Summary.xml")) {
+				auto bn = file.baseName();
+				if (cfnmatch(bn, "Summary.wsm") || cfnmatch(bn, "Summary.xml")) {
 					return file;
 				}
 				auto ext = cwx.utils.getExt(bn);
-				if (fnmatch(ext, "zip") || fnmatch(ext, "wsn") || (fnmatch(ext, "cab") && canUncab)) {
+				if (cfnmatch(ext, "zip") || cfnmatch(ext, "wsn") || (cfnmatch(ext, "cab") && canUncab)) {
 					return file;
 				}
 				return "";
@@ -1303,14 +1303,14 @@ private:
 				if (_cEngineSub) {
 					auto engine = _cEngines.curCEnginePath;
 					if (engine.length) {
-						file = std.path.buildPath(engine.dirName, file);
+						file = std.path.buildPath(engine.dirName(), file);
 					}
 				} else {
-					file = std.path.buildPath(_prop.parent.appPath.dirName, file);
+					file = std.path.buildPath(_prop.parent.appPath.dirName(), file);
 				}
 			}
 			if (!.exists(file) || !isDir(file)) {
-				file = file.dirName;
+				file = file.dirName();
 			}
 			if (!.exists(file)) return;
 			openFolder(file);

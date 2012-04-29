@@ -64,10 +64,10 @@ void unzip(ZipArchive arc,
 			name = touni(name);
 			validate(name);
 		}
-		string nml = replace(name, "/", sep);
+		string nml = replace(name, "/", dirSeparator);
 		if (name.length > 0 && !hasParDir(nml)) {
 			// 属性が不思議なことになってるので0x10だけで判断するのは避ける
-			bool isDir = ((am.externalAttributes & 0x10) != 0 || std.algorithm.endsWith(nml, sep)) && am.expandedSize == 0;
+			bool isDir = ((am.externalAttributes & 0x10) != 0 || std.algorithm.endsWith(nml, dirSeparator)) && am.expandedSize == 0;
 			fileProc(nml, arc.expand(am), isDir);
 		}
 		if (progress !is null) {
@@ -80,9 +80,9 @@ void unzip(ZipArchive arc,
 /// ファイルとしては存在しないデータをアーカイブ化する。
 ArchiveMember archive(string name, ubyte[] data, bool isDir, bool useSysEnc = false) {
 	if (data.length && isDir) throw new Exception("not directory");
-	name = std.array.replace(name, sep, "/");
-	static if (altsep.length) {
-		name = std.array.replace(name, altsep, "/");
+	name = std.array.replace(name, dirSeparator, "/");
+	static if (altDirSeparator.length) {
+		name = std.array.replace(name, altDirSeparator, "/");
 	}
 	auto am = new ArchiveMember;
 	am.time = SysTimeToDosFileTime(Clock.currTime());
@@ -134,7 +134,7 @@ ZipArchive zip(string targ, bool top, bool delegate(string path) ignorePath, boo
 		am.compressionMethod = 8;
 		auto name = file;
 		if (isDir(file)) {
-			name ~= sep;
+			name ~= dirSeparator;
 		}
 		// Attributes: Directory = 0x10, File = 0x20, ReadOnly = 0x01
 		am.externalAttributes = getAttributes(file);
@@ -158,11 +158,11 @@ ZipArchive zip(string targ, bool top, bool delegate(string path) ignorePath, boo
 	}
 	if (top || !isDir(path)) {
 		auto par = dirName(path);
-		if (par.length && !endsWith(par, sep)) par ~= sep;
+		if (par.length && !endsWith(par, dirSeparator)) par ~= dirSeparator;
 		cut = par.length;
 		archive(path);
 	} else {
-		cut = path.length + sep.length;
+		cut = path.length + dirSeparator.length;
 		foreach (c; clistdir(path)) {
 			archive(std.path.buildPath(path, c));
 		}

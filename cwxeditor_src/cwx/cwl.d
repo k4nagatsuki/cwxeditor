@@ -46,10 +46,10 @@ private bool sWith(string f, string s, out ulong id) {
 }
 private string encodePathLegacy(string path) {
 	// エフェクトブースターは'/'区切りのパスを受け付けない
-	return isBinImg(path) ? path : replace(path, sep, "\\");
+	return isBinImg(path) ? path : replace(path, dirSeparator, "\\");
 }
 private string decodePathLegacy(string path) {
-	return isBinImg(path) ? path : replace(path, "\\", sep);
+	return isBinImg(path) ? path : replace(path, "\\", dirSeparator);
 }
 
 private struct RData {
