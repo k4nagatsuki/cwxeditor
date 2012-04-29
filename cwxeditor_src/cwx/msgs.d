@@ -1286,8 +1286,8 @@ public:
 	@property const string openLastScenario() {return "終了時に開いていたシナリオを次の起動時に開く";}
 	@property const string soundPlayType() {return "音声再生方法";}
 	@property const string soundPlayTypeDef() {return "自動選択";}
-	@property const string soundPlayTypeSDL() {return "SDL(CardWirthPy形式)";}
-	@property const string soundPlayTypeMCI() {return "MCI(CardWirth形式)";}
+	@property const string soundPlayTypeSDL() {return "SDL(CardWirthPy方式)";}
+	@property const string soundPlayTypeMCI() {return "WinMM(CardWirth方式)";}
 	@property const string soundPlayTypeApp() {return "関連付けされたアプリケーションで開く";}
 	@property const string keyBind() {return "キーバインド";}
 	@property const string mnemonic() {return "アクセスキー";}
