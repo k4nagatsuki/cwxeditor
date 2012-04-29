@@ -1508,10 +1508,9 @@ fi`;
 				return r;
 			}
 			if (r.values.length > 0) {
-				if (tok.kind !is Kind.COMMA) {
-					throwError(_prop.msgs.scriptErrorCommaNotFound, tok);
+				if (tok.kind is Kind.COMMA) {
+					i++;
 				}
-				i++;
 				tok = tokens[i];
 			}
 			switch (tok.kind) {
@@ -1563,7 +1562,7 @@ fi`;
 				if (!num) return r;
 				goto case Kind.NUMBER;
 			case Kind.NUMBER, Kind.STRING:
-				if (!num) throwError(_prop.msgs.scriptErrorInvalidCalc, tok);
+				if (!num) return r;
 				r ~= tok;
 				i++;
 				calcin = true;
@@ -1582,18 +1581,18 @@ fi`;
 					goto case Kind.MUL;
 				}
 			case Kind.O_PAR:
-				if (!num && calcin) throwError(_prop.msgs.scriptErrorInvalidCalc, tok);
+				if (!num && calcin) return r;
 				r ~= tok;
 				i++;
 				calcin = true;
 				break;
 			case Kind.C_PAR:
-				if (num) throwError(_prop.msgs.scriptErrorInvalidCalc, tok);
+				if (num) return r;
 				r ~= tok;
 				i++;
 				break;
 			case Kind.MUL, Kind.DIV, Kind.RES, Kind.CAT:
-				if (num) throwError(_prop.msgs.scriptErrorInvalidCalc, tok);
+				if (num) return r;
 				r ~= tok;
 				num = true;
 				i++;
@@ -1887,8 +1886,17 @@ fi`;
 			size_t j = 0;
 			auto vals = attr[i].values;
 			auto r = new SDialog;
-			if (vals.length > 1) {
+			if (vals.length > 2) {
+				// 複数の条件クーポン
+				string[] cs;
+				foreach (v; vals[0 .. $ - 1]) {
+					cs ~= parseAttr!(string)(vals, j, "", varTable, msgWidth);
+				}
+				r.rCoupons = cs;
+			} else if (vals.length > 1) {
+				// 一つの条件クーポン
 				if (vals[j].type is NodeType.VALUES) {
+					// 互換性のため、複合パラメータを解釈する
 					string[] cs;
 					foreach (v; vals[j].values) {
 						cs ~= attrValue(v, varTable, 0);
@@ -1896,6 +1904,7 @@ fi`;
 					r.rCoupons = cs;
 					j++;
 				} else {
+					// ';'で分割されるパターン
 					r.rCoupons = std.string.split(parseAttr!(string)(vals, j, "", varTable, msgWidth), ";");
 				}
 			}

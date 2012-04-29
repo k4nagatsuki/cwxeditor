@@ -680,7 +680,7 @@
 	<dd>パッケージへの移動</dd>
 	<dt class="content"><a href="#MSG">msg <span class="args"><span class="arg">&lt;話者&gt;</span>, <span class="arg">&lt;テキスト&gt;</span></span></a></dt>
 	<dd>メッセージ</dd>
-	<dt class="content"><a href="#DIALOG">dialog <span class="args"><span class="arg">&lt;話者&gt;</span>, <span class="array">[<span class="arg">&lt;クーポン&gt;</span>, <span class="arg">&lt;メッセージ&gt;</span>] ...</span></span></a></dt>
+	<dt class="content"><a href="#DIALOG">dialog <span class="args"><span class="arg">&lt;話者&gt;</span>, <span class="array">[<span class="arg">&lt;クーポン&gt;</span> ..., <span class="arg">&lt;メッセージ&gt;</span>] ...</span></span></a></dt>
 	<dd>台詞</dd>
 	<dt class="content"><a href="#BGM">bgm <span class="args"><span class="arg">&lt;ファイル名&gt;</span></span></a></dt>
 	<dd>BGMの演奏</dd>
@@ -1204,7 +1204,7 @@
     <span class="keywords">break</span>
 <code class="code">fi</code> <span class="comment">// 分岐終了</span></code></pre>
 
-<h3 class="content"><a id="DIALOG" name="DIALOG">dialog <span class="args"><span class="arg">&lt;話者&gt;</span>, <span class="array">[<span class="arg">&lt;クーポン&gt;</span>, <span class="arg">&lt;メッセージ&gt;</span>] ...</span></span></a></h3>
+<h3 class="content"><a id="DIALOG" name="DIALOG">dialog <span class="args"><span class="arg">&lt;話者&gt;</span>, <span class="array">[<span class="arg">&lt;クーポン&gt;</span> ..., <span class="arg">&lt;メッセージ&gt;</span>] ...</span></span></a></h3>
 
 <p class="fullname">(Dialog)</p>
 <p class="desc">口調分けして台詞を表示します。</p>
@@ -1232,8 +1232,8 @@
 「ゴブリンの姿が見えます。
 　間違いない、この洞窟ですわ」
 @</span>]
-<span class="comment">// []で囲って複数クーポンを指定する事も可能</span>
-[[<span class="str">"＿♂"</span>, <span class="str">"＿上品"</span>], <span class="str">@ <span class="code">center</span>
+<span class="comment">// 配列として複数クーポンを指定する事も可能。複数あった場合は';'で分割されない</span>
+[<span class="str">"＿♂"</span> <span class="str">"＿上品"</span>, <span class="str">@ <span class="code">center</span>
 「ゴブリンの姿が見えます。
 　間違いなく、この洞窟でございますな」
 @</span>]
