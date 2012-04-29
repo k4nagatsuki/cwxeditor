@@ -1431,7 +1431,6 @@ public:
 	@property const string scriptErrorReqID() {return "ここにIDが必要です。";}
 	@property const string scriptErrorUndefinedVar() {return "存在しない変数です。";}
 	@property const string scriptErrorInvalidValue() {return "値が正しくありません。";}
-	@property const string scriptErrorCommaNotFound() {return "パラメータの区切りにカンマがありません。";}
 	@property const string scriptErrorSystem() {return "サイズが大きすぎるため、CWXスクリプトをコンパイルできません。";}
 
 	/// メニュー。
