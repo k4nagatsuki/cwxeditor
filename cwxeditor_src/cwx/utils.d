@@ -112,7 +112,7 @@ string debugString(T)(ref T v) {
 	}
 }
 /// ditto
-string createDebugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) {
+string createDebugln(bool BuildInfo = true, string F = __FILE__, size_t L = __LINE__, T ...)(T vals) {
 	char[] buf = format("%s:%d ", F, L).dup;
 	foreach (v; vals) {
 		static if (is(typeof(v) : Throwable)) {
@@ -130,7 +130,11 @@ string createDebugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) {
 	int hour = d.hour;
 	int min = d.minute;
 	int second = d.second;
-	buf = format("%04d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, min, second) ~ " [" ~ .splitLines!string(APP_BUILD)[0] ~ "]\t" ~ buf;
+	static if (BuildInfo) {
+		buf = format("%04d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, min, second) ~ " [" ~ .splitLines!string(APP_BUILD)[0] ~ "]\t" ~ buf;
+	} else {
+		buf = format("%04d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, min, second) ~ " " ~ buf;
+	}
 	return assumeUnique(buf);
 }
 
@@ -138,7 +142,7 @@ string createDebugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) {
 shared void fdebugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) {
 	try {
 		synchronized {
-			string log = createDebugln!(F, L)(vals);
+			string log = createDebugln!(true, F, L)(vals);
 			version (Console) {
 				version (Windows) {
 					printf("%s\n\0".ptr, toMBSz(log));
@@ -181,7 +185,7 @@ void cdebugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) {
 	version (Console) {
 		debug {
 			synchronized {
-				string log = createDebugln!(F, L)(vals);
+				string log = createDebugln!(false, F, L)(vals);
 				version (Windows) {
 					printf("%s\n\0".ptr, toMBSz(log));
 					dout.flush();
