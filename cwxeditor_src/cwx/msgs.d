@@ -1284,11 +1284,14 @@ public:
 	@property const string openTabAtRightOfCurrentTab() {return "新しいタブを現在のタブの直後に開く";}
 	@property const string reconstruction() {return "シナリオごとにタブの配置を記憶する";}
 	@property const string openLastScenario() {return "終了時に開いていたシナリオを次の起動時に開く";}
-	@property const string soundPlayType() {return "音声再生方法";}
+	@property const string soundPlayType() {return "BGM再生方式";}
 	@property const string soundPlayTypeDef() {return "自動選択";}
 	@property const string soundPlayTypeSDL() {return "SDL(CardWirthPy方式)";}
 	@property const string soundPlayTypeMCI() {return "WinMM(CardWirth方式)";}
 	@property const string soundPlayTypeApp() {return "関連付けされたアプリケーションで開く";}
+	@property const string soundEffectPlayType() {return "効果音再生方式";}
+	@property const string soundPlaySameBGM() {return "BGMに合わせる";}
+
 	@property const string keyBind() {return "キーバインド";}
 	@property const string mnemonic() {return "アクセスキー";}
 	@property const string hotkey() {return "ショートカット";}

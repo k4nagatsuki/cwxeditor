@@ -1067,6 +1067,9 @@ private:
 	Combo _soundPlayType;
 	int[int] _soundPlayTypeTbl;
 	int[int] _soundPlayTypeTbl2;
+	Combo _soundEffectPlayType;
+	int[int] _soundEffectPlayTypeTbl;
+	int[int] _soundEffectPlayTypeTbl2;
 	Combo _dialogStatus;
 	int[int] _dialogStatusTbl;
 	int[int] _dialogStatusTbl2;
@@ -1844,31 +1847,32 @@ private:
 				sep.setLayoutData(sepgd);
 
 				version (Windows) {
-					const int[] soundPlayTypeVals = [
+					immutable int[] soundPlayTypeVals = [
 						SOUND_TYPE_AUTO,
 						SOUND_TYPE_SDL,
 						SOUND_TYPE_MCI,
 						SOUND_TYPE_APP
 					];
-					string[] soundPlayTypeNames = [
+					immutable string[] soundPlayTypeNames = [
 						_prop.msgs.soundPlayTypeDef,
 						_prop.msgs.soundPlayTypeSDL,
 						_prop.msgs.soundPlayTypeMCI,
 						_prop.msgs.soundPlayTypeApp
 					];
 				} else {
-					const int[] soundPlayTypeVals = [
+					immutable int[] soundPlayTypeVals = [
 						SOUND_TYPE_AUTO,
 						SOUND_TYPE_SDL,
 						SOUND_TYPE_APP
 					];
-					string[] soundPlayTypeNames = [
+					immutable string[] soundPlayTypeNames = [
 						_prop.msgs.soundPlayTypeDef,
 						_prop.msgs.soundPlayTypeSDL,
 						_prop.msgs.soundPlayTypeApp
 					];
 				}
 				_soundPlayType = createEnumC(grp, _prop.msgs.soundPlayType, soundPlayTypeVals, soundPlayTypeNames, _soundPlayTypeTbl, _soundPlayTypeTbl2);
+				_soundEffectPlayType = createEnumC(grp, _prop.msgs.soundEffectPlayType, [SOUND_TYPE_SAME_BGM] ~ soundPlayTypeVals, [_prop.msgs.soundPlaySameBGM] ~ soundPlayTypeNames, _soundEffectPlayTypeTbl, _soundEffectPlayTypeTbl2);
 				_dialogStatus = createEnumC(grp, _prop.msgs.dialogStatus, [
 					cast(int) DialogStatus.Top,
 					cast(int) DialogStatus.Under,
@@ -2058,6 +2062,12 @@ protected:
 		} else {
 			_soundPlayType.select(0);
 		}
+		auto septp = _prop.var.etc.soundEffectPlayType in _soundEffectPlayTypeTbl;
+		if (septp) {
+			_soundEffectPlayType.select(*septp);
+		} else {
+			_soundEffectPlayType.select(0);
+		}
 		auto dsp = _prop.var.etc.dialogStatus in _dialogStatusTbl;
 		if (dsp) {
 			_dialogStatus.select(*dsp);
@@ -2163,6 +2173,7 @@ protected:
 		_prop.var.etc.contentsFloat = _contentsFloat.getSelection();
 		_prop.var.etc.contentsAutoHide = _contentsAutoHide.getSelection();
 		_prop.var.etc.soundPlayType = _soundPlayTypeTbl2[_soundPlayType.getSelectionIndex()];
+		_prop.var.etc.soundEffectPlayType = _soundEffectPlayTypeTbl2[_soundEffectPlayType.getSelectionIndex()];
 		_prop.var.etc.dialogStatus = cast(DialogStatus) _dialogStatusTbl2[_dialogStatus.getSelectionIndex()];
 		_prop.var.etc.savedSound = _savedSound.getText();
 		if (_prop.var.etc.historyMax < _prop.var.etc.openHistories.length) {

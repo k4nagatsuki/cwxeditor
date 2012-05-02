@@ -186,6 +186,7 @@ class FlexEtcProps : Properties {
 	mixin Property!("openTabAtRightOfCurrentTab", bool, true);
 
 	mixin Property!("soundPlayType", int, 0);
+	mixin Property!("soundEffectPlayType", int, -1);
 
 	mixin Property!("searchPlan", int, 0);
 	mixin Property!("searchIDKind", int, 0);

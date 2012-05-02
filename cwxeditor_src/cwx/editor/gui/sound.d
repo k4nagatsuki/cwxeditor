@@ -4,16 +4,20 @@ module cwx.editor.gui.sound;
 import std.loader;
 import std.utf;
 import std.stdint;
+import std.string;
 
 import cwx.sjis;
 import cwx.utils : cdebugln, debugln, enforce;
 
-immutable SOUND_TYPE_AUTO = 0;
-immutable SOUND_TYPE_SDL = 1;
-version (Windows) {
-	immutable SOUND_TYPE_MCI = 2;
+enum {
+	SOUND_TYPE_AUTO = 0,
+	SOUND_TYPE_SDL = 1,
+	SOUND_TYPE_APP = 3,
+	SOUND_TYPE_SAME_BGM = -1
 }
-immutable SOUND_TYPE_APP = 3;
+version (Windows) {
+	enum SOUND_TYPE_MCI = 2;
+}
 
 version (Windows) {
 	import std.windows.charset;
@@ -29,7 +33,7 @@ version (Windows) {
 	private HWND _mciNotifyHandle = null;
 	/// ditto
 	private extern (Windows) LRESULT mciNotifyWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
-		if (!_mciNotifyHandle || !winmm || !_mciSendString || !_playingMCI || MM_MCINOTIFY != message || MCI_NOTIFY_SUCCESSFUL != wParam) {
+		if (!_mciNotifyHandle || !winmm || !_mciSendString || !_bgmPlayingMCI || MM_MCINOTIFY != message || MCI_NOTIFY_SUCCESSFUL != wParam) {
 			return DefWindowProcW(hWnd, message, wParam, lParam);
 		}
 		synchronized (winmmSync) {
@@ -56,6 +60,8 @@ private extern (C) {
 	alias void Mix_Music;
 	alias void Mix_Chunk;
 
+	struct SDL_RWops {}
+
 	alias intptr_t function(Uint32) SDL_Init;
 	alias void function() SDL_Quit;
 	alias intptr_t function(intptr_t, Uint16, intptr_t, intptr_t) Mix_OpenAudio;
@@ -65,11 +71,14 @@ private extern (C) {
 	alias Mix_Chunk* function(Uint8* mem) Mix_QuickLoad_WAV;
 	alias intptr_t function(Mix_Music* music, intptr_t loops) Mix_PlayMusic;
 	alias intptr_t function(intptr_t channel, Mix_Chunk *chunk, intptr_t loops, intptr_t ticks) Mix_PlayChannelTimed;
-	alias intptr_t function(Mix_Chunk *chunk, intptr_t volume) Mix_VolumeChunk;
+	alias intptr_t function(Mix_Chunk* chunk, intptr_t volume) Mix_VolumeChunk;
+	alias intptr_t function(intptr_t channel, intptr_t volume) Mix_Volume;
 	alias void function(Mix_Music* music) Mix_FreeMusic;
 	alias intptr_t function() Mix_HaltMusic;
 	alias intptr_t function(intptr_t channel) Mix_HaltChannel;
-	alias void function(Mix_Chunk *chunk) Mix_FreeChunk;
+	alias void function(Mix_Chunk* chunk) Mix_FreeChunk;
+	alias Mix_Chunk* function(SDL_RWops* src, int freesrc) Mix_LoadWAV_RW;
+	alias SDL_RWops* function(const char* file, const char* mode) SDL_RWFromFile;
 }
 
 private __gshared HXModule sdl = null;
@@ -83,11 +92,12 @@ private T getSymbol(T)(HXModule mod, string name) {
 	return r;
 }
 
+private __gshared bool _bgmPlayingMCI = false;
+private __gshared bool _sePlayingMCI = false;
 version (Windows) {
 	private __gshared Object winmmSync = null;
 	private __gshared HXModule winmm = null;
 	private __gshared mciSendStringW _mciSendString = null;
-	private __gshared bool _playingMCI = false;
 	private void initWinmm() {
 		if (winmm) return;
 		winmmSync = new Object;
@@ -130,7 +140,7 @@ private void initSdl() {
 		try {
 			if (0 == getSymbol!(SDL_Init)(sdl, "SDL_Init")(SDL_INIT_AUDIO)) {
 				if (0 == getSymbol!(Mix_OpenAudio)(mixer, "Mix_OpenAudio")(44100, MIX_DEFAULT_FORMAT, 2, 4092)) {
-					if (0 < getSymbol!(Mix_AllocateChannels)(mixer, "Mix_AllocateChannels")(1)) {
+					if (0 < getSymbol!(Mix_AllocateChannels)(mixer, "Mix_AllocateChannels")(2)) {
 						return;
 					}
 					getSymbol!(Mix_CloseAudio)(mixer, "Mix_CloseAudio")();
@@ -193,13 +203,18 @@ shared static ~this () {
 	}
 }
 
-private __gshared bool onLegacy = false;
-private __gshared Mix_Music *music = null;
-private __gshared Mix_Chunk *chunk = null;
-private __gshared intptr_t channel = -1;
+private __gshared bool bgmOnLegacy = false;
+private __gshared Mix_Music* bgmMusic = null;
+private __gshared Mix_Chunk* bgmChunk = null;
+private __gshared intptr_t bgmChannel = -1;
 
-private void __play(string file, bool loop, bool legacy) {
-	stopBGM();
+private __gshared bool seOnLegacy = false;
+private __gshared Mix_Music* seMusic = null;
+private __gshared Mix_Chunk* seChunk = null;
+private __gshared intptr_t seChannel = -1;
+
+private void __play(ref Mix_Music* music, ref Mix_Chunk* chunk, ref intptr_t channel, string mciName, ref bool onLegacy, ref bool playingMCI, string file, bool loop, bool legacy) {
+	__stop(music, chunk, channel, mciName, onLegacy, playingMCI);
 	try {
 		version (Windows) {
 			if (winmm && (legacy || !sdl)) {
@@ -207,9 +222,9 @@ private void __play(string file, bool loop, bool legacy) {
 					onLegacy = true;
 					// typeにmpegvideoを指定するとリピート再生する事もできるが、
 					// 一部環境でアプリケーションが丸ごと落ちる
-					enforce(0 == _mciSendString(toUTFz!(wchar*)("open \"" ~ file ~ "\" alias cws"), null, 0, null),
+					enforce(0 == _mciSendString(toUTFz!(wchar*)("open \"" ~ file ~ "\" alias " ~ mciName), null, 0, null),
 						new Exception("MCI open: " ~ file));
-					string p = "play cws";
+					string p = "play " ~ mciName;
 					if (loop && _mciNotifyHandle) {
 						p ~= " notify";
 						enforce(0 == _mciSendString(toUTFz!(wchar*)(p), null, 0, _mciNotifyHandle),
@@ -218,7 +233,7 @@ private void __play(string file, bool loop, bool legacy) {
 						enforce(0 == _mciSendString(toUTFz!(wchar*)(p), null, 0, null),
 							new Exception("MCI play: " ~ file));
 					}
-					_playingMCI = true;
+					playingMCI = true;
 					return;
 				}
 			}
@@ -236,14 +251,33 @@ private void __play(string file, bool loop, bool legacy) {
 				} else {
 					const char* filez = (file ~ "\0").ptr;
 				}
-				music = getSymbol!(Mix_LoadMUS)(mixer, "Mix_LoadMUS")(filez);
-				if (!music) {
-					debugln("error: Mix_LoadMUS, " ~ file);
-					return;
-				}
-				if (0 != getSymbol!(Mix_PlayMusic)(mixer, "Mix_PlayMusic")(music, loop ? -1 : 1)) {
-					debugln("error: Mix_PlayMusic, " ~ file);
-					return;
+
+				if (loop) {
+					music = getSymbol!(Mix_LoadMUS)(mixer, "Mix_LoadMUS")(filez);
+					if (!music) {
+						debugln("error: Mix_LoadMUS, " ~ file);
+						return;
+					}
+					if (0 != getSymbol!(Mix_PlayMusic)(mixer, "Mix_PlayMusic")(music, -1)) {
+						debugln("error: Mix_PlayMusic, " ~ file);
+						return;
+					}
+				} else {
+					auto ops = getSymbol!(SDL_RWFromFile)(sdl, "SDL_RWFromFile")(filez, "rb".toStringz());
+					if (!ops) {
+						debugln("error: SDL_RWFromFile, " ~ file);
+						return;
+					}
+					chunk = getSymbol!(Mix_LoadWAV_RW)(mixer, "Mix_LoadWAV_RW")(ops, 1);
+					if (!chunk) {
+						debugln("error: Mix_LoadWAV_RW, " ~ file);
+						return;
+					}
+					channel = getSymbol!(Mix_PlayChannelTimed)(mixer, "Mix_PlayChannelTimed")(channel, chunk, 0, -1);
+					if (-1 == channel) {
+						debugln("error: Mix_PlayChannelTimed, " ~ file);
+						return;
+					}
 				}
 			}
 		}
@@ -252,14 +286,14 @@ private void __play(string file, bool loop, bool legacy) {
 	}
 }
 
-private void __stop() {
+private void __stop(ref Mix_Music* music, ref Mix_Chunk* chunk, ref intptr_t channel, string mciName, bool onLegacy, ref bool playingMCI) {
 	try {
 		version (Windows) {
 			if (onLegacy) {
 				synchronized (winmmSync) {
-					_playingMCI = false;
-					_mciSendString(toUTFz!(wchar*)("stop cws"), null, 0, null);
-					_mciSendString(toUTFz!(wchar*)("close cws"), null, 0, null);
+					playingMCI = false;
+					_mciSendString(toUTFz!(wchar*)("stop " ~ mciName), null, 0, null);
+					_mciSendString(toUTFz!(wchar*)("close " ~ mciName), null, 0, null);
 					return;
 				}
 			}
@@ -273,7 +307,7 @@ private void __stop() {
 					debugln("error: Mix_HaltMusic");
 				}
 			}
-			if (-1 == channel) {
+			if (-1 != channel) {
 				getSymbol!(Mix_HaltChannel)(mixer, "Mix_HaltChannel")(channel);
 				channel = -1;
 			}
@@ -290,7 +324,7 @@ private void __stop() {
 /// BGMを再生する。
 void playBGM(string path, bool legacy) {
 	try {
-		__play(path, true, legacy);
+		__play(bgmMusic, bgmChunk, bgmChannel, "cwbgm", bgmOnLegacy, _bgmPlayingMCI, path, true, legacy);
 	} catch (Throwable e) {
 		debugln(e);
 	}
@@ -299,7 +333,7 @@ void playBGM(string path, bool legacy) {
 /// BGMを停止する。
 void stopBGM() {
 	try {
-		__stop();
+		__stop(bgmMusic, bgmChunk, bgmChannel, "cwbgm", bgmOnLegacy, _bgmPlayingMCI);
 	} catch (Throwable e) {
 		debugln(e);
 	}
@@ -308,7 +342,7 @@ void stopBGM() {
 /// 効果音を再生する。
 void playSE(string path, bool legacy) {
 	try {
-		__play(path, false, legacy);
+		__play(seMusic, seChunk, seChannel, "cwse", seOnLegacy, _sePlayingMCI, path, false, legacy);
 	} catch (Throwable e) {
 		debugln(e);
 	}
@@ -317,7 +351,7 @@ void playSE(string path, bool legacy) {
 /// 効果音を停止する。
 void stopSE() {
 	try {
-		__stop();
+		__stop(seMusic, seChunk, seChannel, "cwse", seOnLegacy, _sePlayingMCI, );
 	} catch (Throwable e) {
 		debugln(e);
 	}

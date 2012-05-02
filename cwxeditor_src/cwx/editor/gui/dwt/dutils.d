@@ -1847,7 +1847,7 @@ Composite centerGroup(Composite parent, string text, bool fillH = true, bool fil
 
 class StopBGM : SelectionAdapter, DisposeListener {
 	override void widgetSelected(SelectionEvent e) {
-		stopSE();
+		stopBGM();
 	}
 	override void widgetDisposed(DisposeEvent e) {
 		stopBGM();
@@ -1878,7 +1878,11 @@ bool playBGMCW(Props prop, string path, bool legacy) {
 }
 
 void playSECW(Props prop, string path, bool legacy) {
-	switch (prop.var.etc.soundPlayType) {
+	int type = prop.var.etc.soundEffectPlayType;
+	if (SOUND_TYPE_SAME_BGM == type) {
+		type = prop.var.etc.soundPlayType;
+	}
+	switch (type) {
 	case SOUND_TYPE_SDL: playSE(path, false); break;
 	case SOUND_TYPE_MCI:
 		version (Windows) {
