@@ -1,10 +1,12 @@
 
 module cwx.editor.gui.sound;
 
+import std.algorithm : min;
 import std.loader;
 import std.utf;
 import std.stdint;
 import std.string;
+import std.conv;
 
 import cwx.sjis;
 import cwx.utils : cdebugln, debugln, enforce;
@@ -60,6 +62,8 @@ private extern (C) {
 	alias void Mix_Music;
 	alias void Mix_Chunk;
 
+	immutable MIX_MAX_VOLUME = 128;
+
 	struct SDL_RWops {}
 
 	alias intptr_t function(Uint32) SDL_Init;
@@ -72,6 +76,7 @@ private extern (C) {
 	alias intptr_t function(Mix_Music* music, intptr_t loops) Mix_PlayMusic;
 	alias intptr_t function(intptr_t channel, Mix_Chunk *chunk, intptr_t loops, intptr_t ticks) Mix_PlayChannelTimed;
 	alias intptr_t function(Mix_Chunk* chunk, intptr_t volume) Mix_VolumeChunk;
+	alias intptr_t function(intptr_t volume) Mix_VolumeMusic;
 	alias intptr_t function(intptr_t channel, intptr_t volume) Mix_Volume;
 	alias void function(Mix_Music* music) Mix_FreeMusic;
 	alias intptr_t function() Mix_HaltMusic;
@@ -83,6 +88,9 @@ private extern (C) {
 
 private __gshared HXModule sdl = null;
 private __gshared HXModule mixer = null;
+
+private __gshared uint _bgmVolume = 100;
+private __gshared uint _seVolume = 100;
 
 private T getSymbol(T)(HXModule mod, string name) {
 	void* symbol = ExeModule_GetSymbol(mod, name);
@@ -213,18 +221,21 @@ private __gshared Mix_Music* seMusic = null;
 private __gshared Mix_Chunk* seChunk = null;
 private __gshared intptr_t seChannel = -1;
 
-private void __play(ref Mix_Music* music, ref Mix_Chunk* chunk, ref intptr_t channel, string mciName, ref bool onLegacy, ref bool playingMCI, string file, bool loop, bool legacy) {
+private void __play(ref Mix_Music* music, ref Mix_Chunk* chunk, ref intptr_t channel, string mciName, ref bool onLegacy, ref bool playingMCI, string file, bool loop, bool legacy, uint volume) {
 	__stop(music, chunk, channel, mciName, onLegacy, playingMCI);
 	try {
 		version (Windows) {
 			if (winmm && (legacy || !sdl)) {
 				synchronized (winmmSync) {
 					onLegacy = true;
-					// typeにmpegvideoを指定するとリピート再生する事もできるが、
+					// typeにmpegvideoを指定するとリピート再生や音量の調節ができるが、
 					// 一部環境でアプリケーションが丸ごと落ちる
 					enforce(0 == _mciSendString(toUTFz!(wchar*)("open \"" ~ file ~ "\" alias " ~ mciName), null, 0, null),
 						new Exception("MCI open: " ~ file));
-					string p = "play " ~ mciName;
+/+					if (0 != _mciSendString(toUTFz!(wchar*)(.format("setaudio %s volume to %d", mciName, volume * 10)), null, 0, null)) {
+						debugln("error MCI setaudio");
+					}
++/					string p = "play " ~ mciName;
 					if (loop && _mciNotifyHandle) {
 						p ~= " notify";
 						enforce(0 == _mciSendString(toUTFz!(wchar*)(p), null, 0, _mciNotifyHandle),
@@ -258,6 +269,7 @@ private void __play(ref Mix_Music* music, ref Mix_Chunk* chunk, ref intptr_t cha
 						debugln("error: Mix_LoadMUS, " ~ file);
 						return;
 					}
+					getSymbol!(Mix_VolumeMusic)(mixer, "Mix_VolumeMusic")(.roundTo!intptr_t((volume / 100.0) * MIX_MAX_VOLUME));
 					if (0 != getSymbol!(Mix_PlayMusic)(mixer, "Mix_PlayMusic")(music, -1)) {
 						debugln("error: Mix_PlayMusic, " ~ file);
 						return;
@@ -273,6 +285,7 @@ private void __play(ref Mix_Music* music, ref Mix_Chunk* chunk, ref intptr_t cha
 						debugln("error: Mix_LoadWAV_RW, " ~ file);
 						return;
 					}
+					getSymbol!(Mix_VolumeChunk)(mixer, "Mix_VolumeChunk")(chunk, .roundTo!intptr_t((volume / 100.0) * MIX_MAX_VOLUME));
 					channel = getSymbol!(Mix_PlayChannelTimed)(mixer, "Mix_PlayChannelTimed")(channel, chunk, 0, -1);
 					if (-1 == channel) {
 						debugln("error: Mix_PlayChannelTimed, " ~ file);
@@ -324,7 +337,7 @@ private void __stop(ref Mix_Music* music, ref Mix_Chunk* chunk, ref intptr_t cha
 /// BGMを再生する。
 void playBGM(string path, bool legacy) {
 	try {
-		__play(bgmMusic, bgmChunk, bgmChannel, "cwbgm", bgmOnLegacy, _bgmPlayingMCI, path, true, legacy);
+		__play(bgmMusic, bgmChunk, bgmChannel, "cwbgm", bgmOnLegacy, _bgmPlayingMCI, path, true, legacy, _bgmVolume);
 	} catch (Throwable e) {
 		debugln(e);
 	}
@@ -339,10 +352,30 @@ void stopBGM() {
 	}
 }
 
+/// BGMの音量(%)を設定する。
+@property
+void bgmVolume(uint volume) {
+	_bgmVolume = .min(volume, 100);
+	if (mixer) {
+		auto sdlvol = .roundTo!intptr_t((_bgmVolume / 100.0) * MIX_MAX_VOLUME);
+		getSymbol!(Mix_VolumeMusic)(mixer, "Mix_VolumeMusic")(sdlvol);
+	}
+/+	version (Windows) {
+		if (_mciSendString) {
+			synchronized (winmmSync) {
+				if (0 != _mciSendString(toUTFz!(wchar*)(.format("setaudio %s volume to %d", "cwbgm", _bgmVolume * 10)), null, 0, null)) {
+					debugln("error MCI setaudio");
+				}
+			}
+		}
+	}
++/
+}
+
 /// 効果音を再生する。
 void playSE(string path, bool legacy) {
 	try {
-		__play(seMusic, seChunk, seChannel, "cwse", seOnLegacy, _sePlayingMCI, path, false, legacy);
+		__play(seMusic, seChunk, seChannel, "cwse", seOnLegacy, _sePlayingMCI, path, false, legacy, _seVolume);
 	} catch (Throwable e) {
 		debugln(e);
 	}
@@ -351,8 +384,28 @@ void playSE(string path, bool legacy) {
 /// 効果音を停止する。
 void stopSE() {
 	try {
-		__stop(seMusic, seChunk, seChannel, "cwse", seOnLegacy, _sePlayingMCI, );
+		__stop(seMusic, seChunk, seChannel, "cwse", seOnLegacy, _sePlayingMCI);
 	} catch (Throwable e) {
 		debugln(e);
 	}
+}
+
+/// 効果音の音量(%)を設定する。
+@property
+void seVolume(uint volume) {
+	_seVolume = .min(volume, 100);
+	if (mixer && -1 != seChannel) {
+		auto sdlvol =.roundTo!intptr_t((_seVolume / 100.0) * MIX_MAX_VOLUME);
+		getSymbol!(Mix_Volume)(mixer, "Mix_Volume")(seChannel, sdlvol);
+	}
+/+	version (Windows) {
+		if (_mciSendString) {
+			synchronized (winmmSync) {
+				if (0 != _mciSendString(toUTFz!(wchar*)(.format("setaudio %s volume to %d", "cwse", _seVolume * 10)), null, 0, null)) {
+					debugln("error MCI setaudio");
+				}
+			}
+		}
+	}
++/
 }

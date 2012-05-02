@@ -187,6 +187,8 @@ class FlexEtcProps : Properties {
 
 	mixin Property!("soundPlayType", int, 0);
 	mixin Property!("soundEffectPlayType", int, -1);
+	mixin Property!("bgmVolume", int, 100);
+	mixin Property!("seVolume", int, 100);
 
 	mixin Property!("searchPlan", int, 0);
 	mixin Property!("searchIDKind", int, 0);

@@ -1067,9 +1067,11 @@ private:
 	Combo _soundPlayType;
 	int[int] _soundPlayTypeTbl;
 	int[int] _soundPlayTypeTbl2;
+	Spinner _bgmVolume;
 	Combo _soundEffectPlayType;
 	int[int] _soundEffectPlayTypeTbl;
 	int[int] _soundEffectPlayTypeTbl2;
+	Spinner _seVolume;
 	Combo _dialogStatus;
 	int[int] _dialogStatusTbl;
 	int[int] _dialogStatusTbl2;
@@ -1719,13 +1721,15 @@ private:
 		}
 	}
 
-	Combo createEnumC(Composite grp, string title, in int[] values, in string[] names, ref int[int] tblA, ref int[int] tblB) {
+	Combo createEnumC(Composite grp, string title, in int[] values, in string[] names, ref int[int] tblA, ref int[int] tblB, int hSpan = 1) {
 		assert (values.length == names.length);
 		auto l = new Label(grp, SWT.NONE);
 		l.setText(title);
 		auto combo = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 		mod(combo);
-		combo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		auto gd = new GridData(GridData.FILL_HORIZONTAL);
+		gd.horizontalSpan = hSpan;
+		combo.setLayoutData(gd);
 		combo.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 		foreach (i, val; values) {
 			tblA[val] = i;
@@ -1807,13 +1811,13 @@ private:
 				auto grp = new Group(comp2, SWT.NONE);
 				grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				grp.setText(_prop.msgs.etcSettingsTitle);
-				grp.setLayout(new GridLayout(2, false));
+				grp.setLayout(new GridLayout(5, false));
 				Button createB(string text) {
 					auto btn = new Button(grp, SWT.CHECK);
 					btn.setText(text);
 					mod(btn);
 					auto gd = new GridData;
-					gd.horizontalSpan = 2;
+					gd.horizontalSpan = 5;
 					btn.setLayoutData(gd);
 					return btn;
 				}
@@ -1843,7 +1847,7 @@ private:
 
 				auto sep = new Label(grp, SWT.SEPARATOR | SWT.HORIZONTAL);
 				auto sepgd = new GridData(GridData.FILL_HORIZONTAL);
-				sepgd.horizontalSpan = 2;
+				sepgd.horizontalSpan = 5;
 				sep.setLayoutData(sepgd);
 
 				version (Windows) {
@@ -1871,8 +1875,32 @@ private:
 						_prop.msgs.soundPlayTypeApp
 					];
 				}
+				Spinner createVolume() {
+					auto l1 = new Label(grp, SWT.CENTER);
+					l1.setText(_prop.msgs.soundVolume);
+					auto spn = new Spinner(grp, SWT.BORDER);
+					spn.setMinimum(0);
+					spn.setMaximum(100);
+					mod(spn);
+					auto l2 = new Label(grp, SWT.CENTER);
+					l2.setText(_prop.msgs.soundVolumePer);
+					return spn;
+				}
 				_soundPlayType = createEnumC(grp, _prop.msgs.soundPlayType, soundPlayTypeVals, soundPlayTypeNames, _soundPlayTypeTbl, _soundPlayTypeTbl2);
+				_bgmVolume = createVolume();
 				_soundEffectPlayType = createEnumC(grp, _prop.msgs.soundEffectPlayType, [SOUND_TYPE_SAME_BGM] ~ soundPlayTypeVals, [_prop.msgs.soundPlaySameBGM] ~ soundPlayTypeNames, _soundEffectPlayTypeTbl, _soundEffectPlayTypeTbl2);
+				_seVolume = createVolume();
+				auto dummy = new Composite(grp, SWT.NONE);
+				auto dgd = new GridData(GridData.FILL_BOTH);
+				dgd.widthHint = 0;
+				dgd.heightHint = 0;
+				dummy.setLayoutData(dgd);
+				auto volc = new Label(grp, SWT.NONE);
+				volc.setText(_prop.msgs.soundCaution);
+				auto volcgd = new GridData(GridData.FILL_HORIZONTAL);
+				volcgd.horizontalSpan = 4;
+				volc.setLayoutData(volcgd);
+
 				_dialogStatus = createEnumC(grp, _prop.msgs.dialogStatus, [
 					cast(int) DialogStatus.Top,
 					cast(int) DialogStatus.Under,
@@ -1881,7 +1909,7 @@ private:
 					_prop.msgs.dialogStatusName(DialogStatus.Top),
 					_prop.msgs.dialogStatusName(DialogStatus.Under),
 					_prop.msgs.dialogStatusName(DialogStatus.UnderWithCoupon),
-				], _dialogStatusTbl, _dialogStatusTbl2);
+				], _dialogStatusTbl, _dialogStatusTbl2, 4);
 			}
 		}
 		{
@@ -2062,12 +2090,14 @@ protected:
 		} else {
 			_soundPlayType.select(0);
 		}
+		_bgmVolume.setSelection(_prop.var.etc.bgmVolume);
 		auto septp = _prop.var.etc.soundEffectPlayType in _soundEffectPlayTypeTbl;
 		if (septp) {
 			_soundEffectPlayType.select(*septp);
 		} else {
 			_soundEffectPlayType.select(0);
 		}
+		_seVolume.setSelection(_prop.var.etc.seVolume);
 		auto dsp = _prop.var.etc.dialogStatus in _dialogStatusTbl;
 		if (dsp) {
 			_dialogStatus.select(*dsp);
@@ -2173,7 +2203,9 @@ protected:
 		_prop.var.etc.contentsFloat = _contentsFloat.getSelection();
 		_prop.var.etc.contentsAutoHide = _contentsAutoHide.getSelection();
 		_prop.var.etc.soundPlayType = _soundPlayTypeTbl2[_soundPlayType.getSelectionIndex()];
+		_prop.var.etc.bgmVolume = _bgmVolume.getSelection();
 		_prop.var.etc.soundEffectPlayType = _soundEffectPlayTypeTbl2[_soundEffectPlayType.getSelectionIndex()];
+		_prop.var.etc.seVolume = _seVolume.getSelection();
 		_prop.var.etc.dialogStatus = cast(DialogStatus) _dialogStatusTbl2[_dialogStatus.getSelectionIndex()];
 		_prop.var.etc.savedSound = _savedSound.getText();
 		if (_prop.var.etc.historyMax < _prop.var.etc.openHistories.length) {
@@ -2234,6 +2266,8 @@ struct OldSettings {
 	string[MenuID] oldMnemonic;
 	string[MenuID] oldHotkey;
 	bool floatMessagePreview;
+	int bgmVolume;
+	int seVolume;
 	this (Props prop) {
 		this.prop = prop;
 		this.oldEnginePath = prop.var.etc.enginePath;
@@ -2260,6 +2294,8 @@ struct OldSettings {
 			oldHotkey[id] = prop.var.menu.hotkey(id);
 		}
 		this.floatMessagePreview = prop.var.etc.floatMessagePreview;
+		this.bgmVolume = prop.var.etc.bgmVolume;
+		this.seVolume = prop.var.etc.seVolume;
 	}
 	void raiseEvent(Commons comm) {
 		bool refSkin = false;
@@ -2343,6 +2379,12 @@ struct OldSettings {
 			if (prop.var.etc.showDialogPreview) {
 				prop.var.speakDlg.width = prop.var.speakDlg.width + wg;
 			}
+		}
+		if (this.bgmVolume != prop.var.etc.bgmVolume) {
+			.bgmVolume = prop.var.etc.bgmVolume;
+		}
+		if (this.seVolume != prop.var.etc.seVolume) {
+			.seVolume = prop.var.etc.seVolume;
 		}
 	}
 }

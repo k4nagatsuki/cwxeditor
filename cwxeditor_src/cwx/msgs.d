@@ -1291,6 +1291,9 @@ public:
 	@property const string soundPlayTypeApp() {return "関連付けされたアプリケーションで開く";}
 	@property const string soundEffectPlayType() {return "効果音再生方式";}
 	@property const string soundPlaySameBGM() {return "BGMに合わせる";}
+	@property const string soundVolume() {return "音量";}
+	@property const string soundVolumePer() {return "%";}
+	@property const string soundCaution() {return "※ WinMM方式の時、音量は反映されません";}
 
 	@property const string keyBind() {return "キーバインド";}
 	@property const string mnemonic() {return "アクセスキー";}

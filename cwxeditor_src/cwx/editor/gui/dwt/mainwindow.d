@@ -2032,6 +2032,9 @@ public:
 				_win.setBounds(tx, ty, _win.getSize().x, _win.getSize().y);
 			}
 			dStr ~= " - " ~ .text(__LINE__);
+			.bgmVolume = _prop.var.etc.bgmVolume;
+			.seVolume = _prop.var.etc.seVolume;
+			dStr ~= " - " ~ .text(__LINE__);
 			if (_dock) {
 				if (_dock.pane("data")) {
 					dockSelect("data");
