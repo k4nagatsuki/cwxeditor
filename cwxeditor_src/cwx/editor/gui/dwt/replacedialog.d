@@ -152,6 +152,7 @@ private:
 	CTabItem _tabCoupon;
 	CTabItem _tabUnuse;
 	CTabItem _tabError;
+	Button _find;
 	Button _replace;
 	Button _rangeAllCheck;
 
@@ -1225,9 +1226,9 @@ public:
 				b.addSelectionListener(sa);
 				return b;
 			}
-			auto find = createButton(_prop.msgs.search, &search);
-			_comm.put(find, &canFind);
-			_win.setDefaultButton(find);
+			_find = createButton(_prop.msgs.search, &search);
+			_comm.put(_find, &canFind);
+			_win.setDefaultButton(_find);
 			_replace = createButton(_prop.msgs.replace, &replace);
 			_comm.put(_replace, &canReplace);
 			createButton(_prop.msgs.replaceExit, &exit);
@@ -1564,12 +1565,16 @@ public:
 		_comm.refreshToolBar();
 	}
 	private void search() {
+		auto c = _win.getDisplay().getFocusControl();
 		_replMode = false;
 		replaceImpl();
+		if (c) .forceFocus(c, false);
 	}
 	private void replace() {
+		auto c = _win.getDisplay().getFocusControl();
 		_replMode = true;
 		replaceImpl();
+		if (c) .forceFocus(_replace, false);
 	}
 	private void reset() {
 		_result.removeAll();
