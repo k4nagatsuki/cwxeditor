@@ -612,6 +612,9 @@ public:
 
 	@property const string defaultStartName() {return "イベント開始";}
 
+	@property const string oggMayNotCorrespond() {return "Oggはプレイヤーの環境によって再生できない事があります。";}
+	@property const string mp3LoopMayNotCorrespond() {return "MP3はプレイヤーの環境によってループ再生されない事があります。";}
+
 	/// メインウィンドウ。
 	@property const string mainWindowName() {return "%1$s [ %2$s ] - CWXEditor";}
 	@property const string mainWindowNameChanged() {return "*%1$s [ %2$s ] - CWXEditor";}

@@ -270,6 +270,7 @@ class Commons {
 	Dlg!(TableColumn, int) refCardTableColumnWidth;
 	Dlg!() refUndoMax;
 	Dlg!(MenuID) refMenu;
+	Dlg!() refSoundType;
 
 	Dlg!(Area) refArea;
 	Dlg!(Area) delArea;

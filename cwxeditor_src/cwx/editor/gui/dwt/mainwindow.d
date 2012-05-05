@@ -177,6 +177,8 @@ private:
 	InfoCardWindow _infoWin = null;
 	DirectoryWindow _dirWin = null;
 
+	string _bassDir = "";
+
 	Menu _mExecEngine;
 	Menu _tmExecEngine;
 	ToolItem _tiExecEngine;
@@ -604,7 +606,7 @@ private:
 	void playSavedSound() {
 		string file = _prop.var.etc.savedSound;
 		if (file.length && .exists(file)) {
-			playSE(file, false);
+			playSE(file, SOUND_TYPE_SDL);
 		}
 	}
 	void saveScenario() {
@@ -803,6 +805,9 @@ private:
 			_comm.refClassicSkin.remove(&refreshExecEngine);
 			_comm.refOuterTools.remove(&refreshOuterTools);
 			_comm.refHistories.remove(&createFileMenu);
+			_comm.refSkin.remove(&refSkin);
+			_comm.refScenario.remove(&refScenario);
+			_comm.refSoundType.remove(&refSoundType);
 			auto b = _win.getBounds();
 			_prop.var.mainWin.x = b.x;
 			_prop.var.mainWin.y = b.y;
@@ -1298,6 +1303,74 @@ private:
 			}
 		}
 	}
+	void refSkin() {
+		refSoundType();
+	}
+	void refScenario(Summary summ) {
+		assert (summ is summary);
+		refSoundType();
+	}
+	/// 音声再生方式を判別し、関係DLLの初期化・解放を行う。
+	void refSoundType() {
+		// FIXME: BGM再生中にBASSから他形式へ切替えた後、
+		//        再生ボタンを連打(停止->再生)すると落ちる事があるため、
+		//        ここで停止しておく
+		stopBGM();
+		stopSE();
+		if (!summary) {
+			toggleDisposeBass();
+			_bassDir = "";
+			return;
+		}
+		int bgmType = _prop.var.etc.soundPlayType;
+		int seType = _prop.var.etc.soundEffectPlayType;
+		if (SOUND_TYPE_SAME_BGM == seType) seType = bgmType;
+		version (Windows) {
+			int engineType = summary.legacy ? SOUND_TYPE_SDL : SOUND_TYPE_MCI;
+			string sfont = "";
+		} else {
+			int engineType = SOUND_TYPE_SDL;
+		}
+		if (SOUND_TYPE_AUTO == bgmType || SOUND_TYPE_AUTO == seType) {
+			if (summary.legacy) {
+				auto settings = _comm.skin.loadEngineSettings();
+				switch (cwx.utils.toLower(settings.get("soundapi", ""))) {
+				case "winmm":
+					version (Windows) {
+						engineType = SOUND_TYPE_MCI;
+					}
+					break;
+				case "bass":
+					version (Windows) {
+						engineType = SOUND_TYPE_BASS;
+						sfont = settings.get("soundfont", "");
+					}
+					break;
+				default:
+					break;
+				}
+			}
+		}
+		if (SOUND_TYPE_AUTO == bgmType) bgmType = engineType;
+		if (SOUND_TYPE_AUTO == seType) seType = engineType;
+		version (Windows) {
+			if (SOUND_TYPE_BASS == bgmType || SOUND_TYPE_BASS == seType) {
+				string dir = _comm.skin.legacyEngine.nabs().dirName();
+				if (_bassDir != dir) {
+					if (initBass(dir, sfont)) {
+						_bassDir = dir;
+					} else {
+						if (SOUND_TYPE_BASS == bgmType) bgmType = SOUND_TYPE_MCI;
+						if (SOUND_TYPE_BASS == seType) seType = SOUND_TYPE_MCI;
+					}
+				}
+			}
+			if (SOUND_TYPE_BASS != bgmType && SOUND_TYPE_BASS != seType) {
+				toggleDisposeBass();
+				_bassDir = "";
+			}
+		}
+	}
 public:
 	this (string appPath, cwx.system.System sys, LaunchOption opt) {
 		string dStr = .text(__LINE__); // 起動ログ
@@ -1409,6 +1482,9 @@ public:
 			_comm.refClassicSkin.add(&refreshExecEngine);
 			_comm.refOuterTools.add(&refreshOuterTools);
 			_comm.refHistories.add(&createFileMenu);
+			_comm.refSkin.add(&refSkin);
+			_comm.refScenario.add(&refScenario);
+			_comm.refSoundType.add(&refSoundType);
 			_win.addDisposeListener(new DListener);
 			_win.addShellListener(new SListener);
 			_comm.refreshWallpaper(_prop);

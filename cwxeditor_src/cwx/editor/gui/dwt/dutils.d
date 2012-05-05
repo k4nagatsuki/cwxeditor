@@ -1864,16 +1864,30 @@ class StopSE : SelectionAdapter, DisposeListener {
 
 bool playBGMCW(Props prop, string path, bool legacy) {
 	switch (prop.var.etc.soundPlayType) {
-	case SOUND_TYPE_SDL: playBGM(path, false); return true;
+	case SOUND_TYPE_SDL: playBGM(path, SOUND_TYPE_SDL); return true;
 	case SOUND_TYPE_MCI:
 		version (Windows) {
-			playBGM(path, true);
+			playBGM(path, SOUND_TYPE_MCI);
 			return true;
 		} else {
 			goto default;
 		}
 	case SOUND_TYPE_APP: Program.launch(path); return false;
-	default: playBGM(path, legacy); return true;
+	default:
+		// auto
+		int type;
+		if (legacy) {
+			type = SOUND_TYPE_MCI;
+			version (Windows) {
+				if (.canPlayBass(path)) {
+					type = SOUND_TYPE_BASS;
+				}
+			}
+		} else {
+			type = SOUND_TYPE_SDL;
+		}
+		playBGM(path, type);
+		return true;
 	}
 }
 
@@ -1883,16 +1897,29 @@ void playSECW(Props prop, string path, bool legacy) {
 		type = prop.var.etc.soundPlayType;
 	}
 	switch (type) {
-	case SOUND_TYPE_SDL: playSE(path, false); break;
+	case SOUND_TYPE_SDL: playSE(path, SOUND_TYPE_SDL); break;
 	case SOUND_TYPE_MCI:
 		version (Windows) {
-			playSE(path, true);
+			playSE(path, SOUND_TYPE_MCI);
 			break;
 		} else {
 			goto default;
 		}
 	case SOUND_TYPE_APP: Program.launch(path); break;
-	default: playSE(path, legacy); break;
+	default:
+		// auto
+		if (legacy) {
+			type = SOUND_TYPE_MCI;
+			version (Windows) {
+				if (.canPlayBass(path)) {
+					type = SOUND_TYPE_BASS;
+				}
+			}
+		} else {
+			type = SOUND_TYPE_SDL;
+		}
+		playSE(path, type);
+		break;
 	}
 }
 

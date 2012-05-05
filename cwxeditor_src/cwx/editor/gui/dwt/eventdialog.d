@@ -861,6 +861,9 @@ protected:
 				(_comm, _prop, _summ, null, [_prop.msgs.bgmStop]);
 			_msel.createDirsCombo(area).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			mod(_msel);
+			_msel.modEvent ~= {
+				warning = comm.skin.warningBGM(prop.parent, _msel.filePath, summ.legacy);
+			};
 
 			_msel.createPlayButton(area).setLayoutData(new GridData);
 			_msel.createRefreshButton(area, false).setLayoutData(new GridData);
@@ -903,6 +906,9 @@ protected:
 				(_comm, _prop, _summ, null, []);
 			_msel.createDirsCombo(area).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			mod(_msel);
+			_msel.modEvent ~= {
+				warning = comm.skin.warningSE(prop.parent, _msel.filePath, summ.legacy);
+			};
 
 			_msel.createStopButton(area).setLayoutData(new GridData);
 			_msel.createPlayButton(area).setLayoutData(new GridData);

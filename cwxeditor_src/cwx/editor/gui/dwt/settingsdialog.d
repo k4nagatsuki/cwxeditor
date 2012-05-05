@@ -2268,6 +2268,8 @@ struct OldSettings {
 	bool floatMessagePreview;
 	int bgmVolume;
 	int seVolume;
+	int soundPlayType;
+	int soundEffectPlayType;
 	this (Props prop) {
 		this.prop = prop;
 		this.oldEnginePath = prop.var.etc.enginePath;
@@ -2296,6 +2298,8 @@ struct OldSettings {
 		this.floatMessagePreview = prop.var.etc.floatMessagePreview;
 		this.bgmVolume = prop.var.etc.bgmVolume;
 		this.seVolume = prop.var.etc.seVolume;
+		this.soundPlayType = prop.var.etc.soundPlayType;
+		this.soundEffectPlayType = prop.var.etc.soundEffectPlayType;
 	}
 	void raiseEvent(Commons comm) {
 		bool refSkin = false;
@@ -2385,6 +2389,9 @@ struct OldSettings {
 		}
 		if (this.seVolume != prop.var.etc.seVolume) {
 			.seVolume = prop.var.etc.seVolume;
+		}
+		if (this.soundPlayType != prop.var.etc.soundPlayType || this.soundEffectPlayType != prop.var.etc.soundEffectPlayType) {
+			comm.refSoundType.call();
 		}
 	}
 }

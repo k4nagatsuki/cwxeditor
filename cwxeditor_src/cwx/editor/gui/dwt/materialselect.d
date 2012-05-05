@@ -94,6 +94,9 @@ public:
 		_comm.delPaths.add(&__delPaths);
 		_comm.replPath.add(&__replPath);
 		_comm.refIgnorePaths.add(&refresh);
+		static if (Type == MtType.BGM) {
+			stopBGMEvent ~= &stopBGM;
+		}
 		_dirs.addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) {
 				_comm.refSkin.remove(&refresh);
@@ -102,9 +105,19 @@ public:
 				_comm.delPaths.remove(&__delPaths);
 				_comm.replPath.remove(&__replPath);
 				_comm.refIgnorePaths.remove(&refresh);
+				static if (Type == MtType.BGM) {
+					cwx.utils.remove(stopBGMEvent, &stopBGM);
+				}
 			}
 		});
 		return _dirs;
+	}
+	static if (Type == MtType.BGM) {
+		private void stopBGM() {
+			if (_playing) {
+				playBGM();
+			}
+		}
 	}
 	C createFileList(Composite parent) {
 		static if (is (C == Table)) {
@@ -261,7 +274,7 @@ public:
 				_bgmBtn.setImage(_prop.images.menu(MenuID.PlayBGM));
 				_bgmBtn.setSelection(false);
 			}
-			stopBGM();
+			.stopBGM();
 			_playing = null;
 		}
 		private class Play : SelectionAdapter, KeyListener, MouseListener {

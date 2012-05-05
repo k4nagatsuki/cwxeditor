@@ -9,11 +9,14 @@ import cwx.imagesize;
 import cwx.xml;
 import cwx.types;
 
+import std.exception;
 import std.ascii;
 import std.file;
 import std.path;
 import std.utf;
 import std.uni;
+import std.string;
+import std.array;
 
 public:
 
@@ -485,6 +488,25 @@ class Skin {
 	const
 	bool legacy() {return _legacy;}
 
+	/// エンジンの設定を読み込んで返す。
+	const
+	string[string] loadEngineSettings() {
+		typeof(return) r;
+		if (_legacyEngine.length) {
+			auto ini = _legacyEngine.dirName().buildPath("cwex.ini");
+			if (!ini.exists()) return r;
+			/// UTF-8とは限らないため、バイナリで読み込む
+			foreach (line; (cast(const char[]) std.file.read(ini)).splitLines()) {
+				auto ln = line.split("=");
+				if (2 != ln.length) continue;
+				auto key = ln[0].strip();
+				auto value = ln[1].strip();
+				r[cwx.utils.toLower(assumeUnique(key))] = assumeUnique(value);
+			}
+		}
+		return r;
+	}
+
 	/// エンジン内のリソースを使用している場合はtrue。
 	@property
 	const
@@ -514,10 +536,19 @@ class Skin {
 	/// pathが効果音として使用可能か。
 	const
 	bool isSE(string path, bool check = false) {
-		auto ext = cwx.utils.getExt(path);
-		if (legacy && !cfnmatch(ext, "wav")) return false;
+		auto ext = cwx.utils.toLower(cwx.utils.getExt(path));
+		if (legacy) {
+			switch (ext) {
+			case "mp3": // MP3
+			case "ogg", "ogv", "oga", "ogx": // Ogg
+			case "wav": // WAV/RIFF
+				return true;
+			default:
+				return false;
+			}
+		}
 		// pygameの仕様で効果音にMP3は使えない
-		switch (toLower(ext)) {
+		switch (ext) {
 		case "aiff": // AIFF
 		case "mid", "midi": // MIDI
 		case "mod", "s3m", "xm", "it", "mt2", "669", "med": // MOD
@@ -529,17 +560,36 @@ class Skin {
 			return false;
 		}
 	}
+	/// pathを使用する際の警告(一部環境で再生不可等)。
+	static string[] warningSE(in CProps prop, string path, bool legacy) {
+		auto ext = cwx.utils.toLower(cwx.utils.getExt(path));
+		if (legacy) {
+			switch (ext) {
+			case "ogg", "ogv", "oga", "ogx": // Ogg
+				return [prop.msgs.oggMayNotCorrespond];
+			default:
+				return [];
+			}
+		}
+		return [];
+	}
 	/// pathがBGMとして使用可能か。
 	const
 	bool isBGM(string path, bool check = false) {
-		auto ext = cwx.utils.getExt(path);
-		if (legacy && !cfnmatch(ext, "mid")
-				&& !cfnmatch(ext, "midi")
-				&& !cfnmatch(ext, "mp3")
-				&& !cfnmatch(ext, "mpg")) {
-			return false;
+		auto ext = cwx.utils.toLower(cwx.utils.getExt(path));
+		if (legacy) {
+			switch (ext) {
+			case "mid", "midi": // MIDI
+			case "mp3": // MP3
+			case "ogg", "ogv", "oga", "ogx": // Ogg
+			case "wav": // WAV/RIFF
+			case "mpg": // MPEG
+				return true;
+			default:
+				return false;
+			}
 		}
-		switch (toLower(ext)) {
+		switch (ext) {
 		case "aiff": // AIFF
 		case "mid", "midi": // MIDI
 		case "mod", "s3m", "xm", "it", "mt2", "669", "med": // MOD
@@ -552,6 +602,21 @@ class Skin {
 		default:
 			return false;
 		}
+	}
+	/// pathを使用する際の警告(一部環境で再生不可等)。
+	static string[] warningBGM(in CProps prop, string path, bool legacy) {
+		auto ext = cwx.utils.toLower(cwx.utils.getExt(path));
+		if (legacy) {
+			switch (ext) {
+			case "mp3": // MP3
+				return [prop.msgs.mp3LoopMayNotCorrespond];
+			case "ogg", "ogv", "oga", "ogx": // Ogg
+				return [prop.msgs.oggMayNotCorrespond];
+			default:
+				return [];
+			}
+		}
+		return [];
 	}
 	/// pathがカード画像として使用可能か。
 	const
