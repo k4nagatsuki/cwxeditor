@@ -1326,33 +1326,46 @@ private:
 		int seType = _prop.var.etc.soundEffectPlayType;
 		if (SOUND_TYPE_SAME_BGM == seType) seType = bgmType;
 		version (Windows) {
-			int engineType = summary.legacy ? SOUND_TYPE_SDL : SOUND_TYPE_MCI;
-			string sfont = "";
+			int engineTypeBGM = summary.legacy ? SOUND_TYPE_SDL : SOUND_TYPE_MCI;
+			string sfont[] = [];
 		} else {
-			int engineType = SOUND_TYPE_SDL;
+			int engineTypeBGM = SOUND_TYPE_SDL;
 		}
+		int engineTypeSE = engineTypeBGM;
 		if (SOUND_TYPE_AUTO == bgmType || SOUND_TYPE_AUTO == seType) {
-			if (summary.legacy) {
-				auto settings = _comm.skin.loadEngineSettings();
-				switch (cwx.utils.toLower(settings.get("soundapi", ""))) {
-				case "winmm":
-					version (Windows) {
-						engineType = SOUND_TYPE_MCI;
+			version (Windows) {
+				if (summary.legacy) {
+					auto settings = _comm.skin.loadEngineSettings();
+					switch (cwx.utils.toLower(settings.get("soundapibgm", ""))) {
+					case "winmm":
+						engineTypeBGM = SOUND_TYPE_MCI;
+						break;
+					case "bass":
+						engineTypeBGM = SOUND_TYPE_BASS;
+						break;
+					default:
+						break;
 					}
-					break;
-				case "bass":
-					version (Windows) {
-						engineType = SOUND_TYPE_BASS;
-						sfont = settings.get("soundfont", "");
+					switch (cwx.utils.toLower(settings.get("soundapise", ""))) {
+					case "winmm":
+						engineTypeSE = SOUND_TYPE_MCI;
+						break;
+					case "bass":
+						engineTypeSE = SOUND_TYPE_BASS;
+						break;
+					default:
+						break;
 					}
-					break;
-				default:
-					break;
+					if (SOUND_TYPE_BASS == engineTypeBGM || SOUND_TYPE_BASS == engineTypeSE) {
+						foreach (s; std.string.split(settings.get("soundfont", ""), ",")) {
+							sfont ~= s.strip();
+						}
+					}
 				}
 			}
 		}
-		if (SOUND_TYPE_AUTO == bgmType) bgmType = engineType;
-		if (SOUND_TYPE_AUTO == seType) seType = engineType;
+		if (SOUND_TYPE_AUTO == bgmType) bgmType = engineTypeBGM;
+		if (SOUND_TYPE_AUTO == seType) seType = engineTypeSE;
 		version (Windows) {
 			if (SOUND_TYPE_BASS == bgmType || SOUND_TYPE_BASS == seType) {
 				string dir = _comm.skin.legacyEngine.nabs().dirName();

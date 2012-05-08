@@ -354,12 +354,12 @@ __gshared void delegate()[] stopBGMEvent;
 __gshared void delegate()[] stopSEEvent;
 
 /// 指定されたディレクトリにあるBASSのDLLをロードし、初期化する。
-bool initBass(string dir, string soundFont) {
+bool initBass(string dir, in string[] soundFonts) {
 	synchronized (mutex) {
 		if (bass) {
 			_toggleInitBass = true;
 			_initBassDir = dir;
-			_initBassSFont = soundFont;
+			_initBassSFont = soundFonts.dup;
 			return true;
 		}
 		version (Windows) {
@@ -370,7 +370,7 @@ bool initBass(string dir, string soundFont) {
 						disposeBass();
 						return false;
 					}
-					if (soundFont.length) {
+					if (soundFonts.length) {
 						bassMidi = ExeModule_Load(dir.buildPath("bassmidi.dll")); // 読込失敗でも続行
 					}
 					if (!getSymbol!(BASS_Init)(bass, "BASS_Init")(-1, 44100, BASS_DEVICE_DEFAULT, null, null)) {
@@ -378,7 +378,7 @@ bool initBass(string dir, string soundFont) {
 						return false;
 					}
 				}
-				if (!bassMidi || !soundFont.length || !loadBassSoundFont(soundFont)) {
+				if (!bassMidi || !soundFonts.length || !loadBassSoundFont(soundFonts)) {
 					// MIDI再生のみ無効とする
 					return true;
 				}
@@ -391,15 +391,17 @@ bool initBass(string dir, string soundFont) {
 	}
 }
 /// BASSのMIDI再生で使用するサウンドフォントを変更する。
-private bool loadBassSoundFont(string soundFont) {
+private bool loadBassSoundFont(in string[] soundFonts) {
 	version (Windows) {
 		try {
 			if (!bassMidi) return false;
 			releaseBassSoundFont();
-			auto sfont = getSymbol!(BASS_MIDI_FontInit)(bassMidi, "BASS_MIDI_FontInit")(soundFont.toMBSz(), 0);
-			if (!sfont) return false;
-			soundFonts = [BASS_MIDI_FONT(sfont, -1, 0)];
-			return true;
+			foreach (soundFont; soundFonts) {
+				auto sfont = getSymbol!(BASS_MIDI_FontInit)(bassMidi, "BASS_MIDI_FontInit")(soundFont.toMBSz(), 0);
+				if (!sfont) continue;
+				.soundFonts ~= BASS_MIDI_FONT(sfont, -1, 0);
+			}
+			return 0 < .soundFonts.length;
 		} catch (Exception e) {
 			debugln(e);
 		}
@@ -448,7 +450,7 @@ void disposeBass() {
 				_toggleInitBass = false;
 				initBass(_initBassDir, _initBassSFont);
 				_initBassDir = "";
-				_initBassSFont = "";
+				_initBassSFont = [];
 			}
 		}
 	}
@@ -476,7 +478,7 @@ version (Windows) {
 	private __gshared _toggleDisposeBass = false;
 	private __gshared _toggleInitBass = false;
 	private __gshared _initBassDir = "";
-	private __gshared _initBassSFont = "";
+	private __gshared const(string)[] _initBassSFont = [];
 }
 
 /// fileがMIDIファイルであればtrue。
