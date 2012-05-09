@@ -926,7 +926,7 @@ class Element : Item
                 string[] b = item.pretty(indent);
                 foreach(s;b)
                 {
-                    a ~= rightJustify(s,s.length + indent);
+                    a ~= rightJustify("", indent) ~ s;
                 }
             }
             a ~= tag.toEndString();
