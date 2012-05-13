@@ -106,6 +106,7 @@ private:
 	Shell _autoHideTools = null;
 	Composite _comp;
 	Tree _tree;
+	Color _grayFont;
 
 	Props _prop;
 	Commons _comm;
@@ -283,6 +284,7 @@ private:
 					} else {
 						itm = createTreeItem(v._tree, c, text, prop.images.content(c.type), index);
 					}
+					v.procTreeItem(itm);
 					v.createChilds(itm, c, false);
 					itm.setExpanded(true);
 				}
@@ -485,7 +487,9 @@ private:
 			auto par = cast(Content) itm.getData();
 			assert (par.detail.owner);
 			childItm.setText(eventText(par, cast(Content) childItm.getData()));
+			procTreeItem(childItm);
 		}
+		procTreeItem(itm);
 		_tree.select(itm);
 		.forceFocus(_tree, false);
 		_comm.refContent.call(c);
@@ -556,6 +560,7 @@ private:
 							createChilds(itm, evt, false);
 							itm.setExpanded(true);
 						}
+						procTreeItem(itm);
 						_tree.showSelection();
 						.forceFocus(_tree, false);
 						_comm.refContent.call(evt);
@@ -1214,6 +1219,7 @@ private:
 						_comm.refContent.call(evt);
 						_tree.setRedraw(false);
 						auto itm = createTreeItem(ti, evt, eventText(owner, evt), _prop.images.content(evt.type));
+						procTreeItem(itm);
 						_tree.setSelection([itm]);
 						refreshStatusLine();
 						_comm.refUseCount.call();
@@ -1296,7 +1302,9 @@ private:
 			sel.setImage(_prop.images.content(type));
 			foreach (itm; sel.getItems()) {
 				itm.setText(eventText(c, cast(Content) itm.getData()));
+				procTreeItem(itm);
 			}
+			procTreeItem(sel);
 			refreshConvMenu();
 			refreshStatusLine();
 			_comm.refUseCount.call();
@@ -1444,6 +1452,7 @@ private:
 			_comm.replID.remove(&__refreshCard);
 			_comm.refContentText.remove(&refreshStatusLine);
 			_comm.refEventTemplates.remove(&refreshTemplates);
+			_grayFont.dispose();
 			if (_toolWin) {
 				saveToolWinPos();
 				_toolWin.dispose();
@@ -1649,10 +1658,8 @@ private:
 			auto back = e.gc.getBackground();
 			auto lineColor = new Color(d, alphaColor(fore.getRGB(), back.getRGB(), 64));
 			scope (exit) lineColor.dispose();
-			auto fontColor = new Color(d, alphaColor(fore.getRGB(), back.getRGB(), 128));
-			scope (exit) fontColor.dispose();
 
-			drawStartInfo(e, lineColor, fontColor);
+			drawStartInfo(e, lineColor, _grayFont);
 			drawComment(e, lineColor);
 		}
 	}
@@ -1802,6 +1809,7 @@ public:
 		_comm.replID.add(&__refreshCard);
 		_comm.refContentText.add(&refreshStatusLine);
 		_comm.refEventTemplates.add(&refreshTemplates);
+		_grayFont = new Color(_tree.getDisplay(), alphaColor(_tree.getForeground().getRGB(), _tree.getBackground().getRGB(), 128));
 
 		auto dt = new DropTarget(_tree, DND.DROP_DEFAULT | DND.DROP_MOVE);
 		dt.setTransfer([XMLBytesTransfer.getInstance()]);
@@ -1944,14 +1952,14 @@ public:
 		if (!itm) return;
 		auto c = cast(Content) itm.getData();
 		auto script = new CWXScript(_prop.parent, _summ);
-		auto text = script.toScript([c], _summ.legacy, "\t");
+		auto text = script.toScript([c], _prop.sys.evtChildOK(_comm.skin.legacyName), _summ.legacy, "\t");
 		text = std.array.replace(text, "\n", .newline);
 		_comm.clipboard.setContents([new ArrayWrapperString(text ~ "\n")], [TextTransfer.getInstance()]);
 	}
 	void toScriptAll() {
 		if (!_et) return;
 		auto script = new CWXScript(_prop.parent, _summ);
-		auto text = script.toScript(_et.starts, _summ.legacy, "\t");
+		auto text = script.toScript(_et.starts, _prop.sys.evtChildOK(_comm.skin.legacyName), _summ.legacy, "\t");
 		text = std.array.replace(text, "\n", .newline);
 		_comm.clipboard.setContents([new ArrayWrapperString(text ~ "\n")], [TextTransfer.getInstance()]);
 	}
@@ -2168,6 +2176,7 @@ public:
 			itm.setText(combo.getText());
 			_comm.refUseCount.call();
 		}
+		procTreeItem(itm);
 		_comm.refContent.call(evt);
 		refreshStatusLine();
 		_comm.refreshToolBar();
@@ -2291,7 +2300,7 @@ public:
 	} body {
 		if (!parent) return e.name;
 		if (parent.detail.nextType == CNextType.TEXT) {
-			return e.name.length > 0 ? e.name : " ";
+			return e.name;
 		}
 		string name = e.name;
 		string r;
@@ -2367,6 +2376,23 @@ public:
 		comm.refContent.call(e);
 		return r;
 	}
+	/// 空のテキストは入力ガイドを代わりに表示。
+	private void procTreeItem(TreeItem itm) {
+		auto c = cast(Content) itm.getData();
+		assert (c !is null);
+		if (c.parent && c.parent.detail.nextType == CNextType.TEXT) {
+			if (c.name.length) {
+				itm.setForeground(_tree.getForeground());
+			} else {
+				itm.setForeground(_grayFont);
+				if (_prop.var.etc.showInputGuide) {
+					itm.setText(_prop.sys.evtChildOK(_comm.skin.legacyName));
+				} else {
+					itm.setText(" ");
+				}
+			}
+		}
+	}
 	private void createChilds(TreeItem parent, Content evt, bool select = false) {
 		if (!evt.detail.owner) return;
 		parent.removeAll();
@@ -2378,6 +2404,7 @@ public:
 			if (c.detail.owner) {
 				createChilds(itm, c, select);
 			}
+			procTreeItem(itm);
 			itm.setExpanded(true);
 		}
 	}
@@ -3042,6 +3069,7 @@ public:
 			if (child.detail.owner) {
 				__refreshCardImpl(childItm);
 			}
+			procTreeItem(childItm);
 		}
 	}
 	private void __refreshCard() {
@@ -3065,6 +3093,7 @@ public:
 		} else {
 			assert (!itm.getItems().length);
 		}
+		procTreeItem(itm);
 	}
 	private void __refreshEventText() {
 		if (_et) {

@@ -428,6 +428,8 @@ class FlexEtcProps : Properties {
 
 	mixin Property!("dialogStatus", int, DialogStatus.Top);
 
+	mixin Property!("showInputGuide", bool, true);
+
 	mixin Property!("floatMessagePreview", bool, false);
 	mixin Property!("showDialogPreview", bool, true);
 	mixin Property!("showMessagePreview", bool, true);

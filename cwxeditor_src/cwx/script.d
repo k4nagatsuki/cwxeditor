@@ -2310,10 +2310,10 @@ fi`;
 		return r;
 	}
 	const
-	string toScript(in Content[] cs, bool legacy, string indent = "\t") {
+	string toScript(in Content[] cs, string evtChildOK, bool legacy, string indent = "\t") {
 		char[] buf;
 		auto table = new VarTable;
-		toScriptImpl(buf, cs, indent, "", KEYS, table, legacy);
+		toScriptImpl(evtChildOK, buf, cs, indent, "", KEYS, table, legacy);
 		auto vars = table.vars();
 		if (vars.length) {
 			buf = std.string.join(vars, "\n") ~ "\n\n" ~ buf;
@@ -2673,7 +2673,7 @@ fi`;
 		}
 	}
 	const
-	private void toScriptImpl(ref char[] buf, in Content[] cs, string indent, string indentValue, in Keywords keys, VarTable vars, bool legacy) {
+	private void toScriptImpl(string evtChildOK, ref char[] buf, in Content[] cs, string indent, string indentValue, in Keywords keys, VarTable vars, bool legacy) {
 		foreach (i, c; cs) {
 			if (i > 0) buf ~= "\n\n";
 			buf ~= indentValue;
@@ -2865,7 +2865,7 @@ fi`;
 			if (!useIf) {
 				foreach (chld; c.next) {
 					if (chld.name.length) {
-						if (detail.nextType is CNextType.TEXT && chld.name == _prop.sys.evtChildOK) {
+						if (detail.nextType is CNextType.TEXT && chld.name == evtChildOK) {
 							continue;
 						}
 						useIf = true;
@@ -2907,13 +2907,13 @@ fi`;
 					}
 					buf ~= "\n";
 					auto nextIndent = useSif ? indentValue : indentValue ~ indent;
-					toScriptImpl(buf, [chld], indent, nextIndent, keys, vars, legacy);
+					toScriptImpl(evtChildOK, buf, [chld], indent, nextIndent, keys, vars, legacy);
 				} else {
 					buf ~= "\n";
 					if (c.type is CType.START) {
-						toScriptImpl(buf, [chld], indent, indentValue ~ indent, keys, vars, legacy);
+						toScriptImpl(evtChildOK, buf, [chld], indent, indentValue ~ indent, keys, vars, legacy);
 					} else {
-						toScriptImpl(buf, [chld], indent, indentValue, keys, vars, legacy);
+						toScriptImpl(evtChildOK, buf, [chld], indent, indentValue, keys, vars, legacy);
 					}
 				}
 			}
