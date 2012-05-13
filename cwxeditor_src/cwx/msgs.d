@@ -815,7 +815,6 @@ public:
 
 	@property const string startUseCount() {return "利用数";}
 
-	@property const string inputTextGuide() {return "クリックしてテキストを入力";}
 	@property const string flagOn() {return "TRUE";}
 	@property const string flagOff() {return "FALSE";}
 	@property const string evtChildBrVar() {return "%1$s = %2$s";}

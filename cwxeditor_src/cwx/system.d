@@ -270,7 +270,14 @@ class System {
 	/// 後続イベントコンテントのDefault値。
 	@property const string evtChildDefault() {return "Default";}
 	/// 後続イベントコンテントのメッセージ送り標準値。
-	@property const string evtChildOK(string legacyName) {return "ＯＫ";}
+	@property const string evtChildOK(string legacyName) {
+		switch (toLower(legacyName)) {
+		case "oedowirth":
+			return " 是 ";
+		default:
+			return "ＯＫ";
+		}
+	}
 
 	/// クーポンの型を判別する。
 	const CouponType couponType(string coupon) {
