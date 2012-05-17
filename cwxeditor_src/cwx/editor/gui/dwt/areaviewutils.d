@@ -157,10 +157,10 @@ PImg createCardImageCommon(PImg)(Props prop, ImageData card,
 	r.transparent = false;
 	r.smoothing = smoothing;
 	static if (is(PImg : FlexImage)) {
-		r.minimumWidth = cast(int) rndtol(w * prop.looks.cardSizeMin);
-		r.minimumHeight = cast(int) rndtol(h * prop.looks.cardSizeMin);
-		r.maximumWidth = cast(int) rndtol(w * prop.looks.cardSizeMax);
-		r.maximumHeight = cast(int) rndtol(h * prop.looks.cardSizeMax);
+		r.minimumWidth = cast(int) rndtol(w * (prop.var.etc.cardScaleMin / 100.0));
+		r.minimumHeight = cast(int) rndtol(h * (prop.var.etc.cardScaleMin / 100.0));
+		r.maximumWidth = cast(int) rndtol(w * (prop.var.etc.cardScaleMax / 100.0));
+		r.maximumHeight = cast(int) rndtol(h * (prop.var.etc.cardScaleMax / 100.0));
 		r.ratioFix = true;
 		r.newWidth = cast(int) rndtol(w * scale);
 		r.newHeight = cast(int) rndtol(h * scale);

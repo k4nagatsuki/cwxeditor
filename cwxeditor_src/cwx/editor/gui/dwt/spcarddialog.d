@@ -299,9 +299,7 @@ protected:
 				}
 				_x = createS(_prop.msgs.left, _prop.looks.posLeftMax, _prop.looks.posLeftMin);
 				_y = createS(_prop.msgs.top, _prop.looks.posTopMax, _prop.looks.posTopMin);
-				_scale = createS(_prop.msgs.scale,
-					cast(int) rndtol(_prop.looks.cardSizeMax * 100), cast(int) rndtol(_prop.looks.cardSizeMin * 100),
-					true);
+				_scale = createS(_prop.msgs.scale, _prop.var.etc.cardScaleMax, _prop.var.etc.cardScaleMin, true);
 			}
 			static if (is (C == MenuCard)) {
 				{

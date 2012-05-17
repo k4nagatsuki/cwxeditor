@@ -1137,13 +1137,13 @@ private:
 			callModEvent();
 		}
 		private void __scaleCMax() {
-			__scaleC(_prop.looks.cardSizeMax);
+			__scaleC(_prop.var.etc.cardScaleMax / 100.0);
 		}
 		private void __scaleCMiddle() {
 			__scaleC(1.0);
 		}
 		private void __scaleCMin() {
-			__scaleC(_prop.looks.cardSizeMin);
+			__scaleC(_prop.var.etc.cardScaleMin / 100.0);
 		}
 	}
 	void __scaleEven(int First, string Cmp, string CSet, T)(int startIndex, T[] cs) {
@@ -2926,8 +2926,7 @@ public:
 		}
 		static if (UseCards) {
 			new ToolItem(bar, SWT.SEPARATOR);
-			_scaleSpn = createSpinner(bar, _prop.msgs.scale,
-				cast(int) rndtol(_prop.looks.cardSizeMax * 100), cast(int) rndtol(_prop.looks.cardSizeMin * 100), 100,
+			_scaleSpn = createSpinner(bar, _prop.msgs.scale, _prop.var.etc.cardScaleMax, _prop.var.etc.cardScaleMin, 100,
 				&editSpnCard!("a.scale = value / 100.0;"),
 				&enterSpnCard!("a.scale = value / 100.0;", "a.scale = value / 100.0;"),
 				&cancelSpnCard!("cast(int) rndtol(a.scale * 100.0)"));

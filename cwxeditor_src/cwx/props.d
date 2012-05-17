@@ -40,8 +40,6 @@ public:
 	@property const int backWidthMin() {return -9999;}
 	@property const int backHeightMax() {return 9999;}
 	@property const int backHeightMin() {return -9999;}
-	@property const double cardSizeMin(){return 0.50;}
-	@property const double cardSizeMax(){return 3.0;}
 	@property const CInsets castCardInsets(){return CInsets(18, 11, 18, 10);}
 	@property const CInsets menuCardInsets(){return CInsets(13, 3, 3, 3);}
 	@property const CInsets cardInsets(){return menuCardInsets;}
