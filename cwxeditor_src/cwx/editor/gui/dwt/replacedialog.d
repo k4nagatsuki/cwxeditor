@@ -1549,7 +1549,7 @@ public:
 		reset();
 		_undo.undo();
 		refContentText();
-		_status.setText(.tryFormat(_prop.msgs.replaceUndo, _result.getItemCount()));
+		_status.setText(.tryFormat(_prop.msgs.replaceUndo, .formatNum(_result.getItemCount())));
 		_comm.replText.call();
 		_comm.refreshToolBar();
 	}
@@ -1560,7 +1560,7 @@ public:
 		reset();
 		_undo.redo();
 		refContentText();
-		_status.setText(.tryFormat(_prop.msgs.replaceRedo, _result.getItemCount()));
+		_status.setText(.tryFormat(_prop.msgs.replaceRedo, .formatNum(_result.getItemCount())));
 		_comm.replText.call();
 		_comm.refreshToolBar();
 	}
@@ -1711,9 +1711,9 @@ public:
 		}
 		string kind = _tabf.getSelection().getText();
 		if (_replMode) {
-			_status.setText(.tryFormat(_prop.msgs.replResult, count, kind));
+			_status.setText(.tryFormat(_prop.msgs.replResult, .formatNum(count), kind));
 		} else {
-			_status.setText(.tryFormat(_prop.msgs.searchResult, count, kind));
+			_status.setText(.tryFormat(_prop.msgs.searchResult, .formatNum(count), kind));
 		}
 	}
 	private void replaceIDImpl2(ID)(ID from, ID to) {
