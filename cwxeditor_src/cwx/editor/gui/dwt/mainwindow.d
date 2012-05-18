@@ -1369,6 +1369,11 @@ private:
 		version (Windows) {
 			if (SOUND_TYPE_BASS == bgmType || SOUND_TYPE_BASS == seType) {
 				string dir = _comm.skin.legacyEngine.nabs().dirName();
+				foreach (ref s; sfont) {
+					if (!cwx.utils.isabs(s)) {
+						s = dir.buildPath(s);
+					}
+				}
 				if (_bassDir != dir) {
 					if (initBass(dir, sfont)) {
 						_bassDir = dir;
