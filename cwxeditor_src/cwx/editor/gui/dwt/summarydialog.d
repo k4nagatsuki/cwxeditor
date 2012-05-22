@@ -69,10 +69,7 @@ private:
 	Props _prop;
 	Summary _summ;
 
-	Canvas _summImage;
-	Image _summImageBuf = null;
-	ImageData _bufImgData = null;
-	string _bufImagePath = null;
+	SummaryPreview _summImage;
 
 	Text _sname;
 	ImageSelect!(MtType.CARD) _imgPath;
@@ -93,12 +90,6 @@ private:
 
 	void refreshWarning()  {
 		warning = _comm.skin.warningImage(_prop.parent, _imgPath.filePath, _summ.legacy);
-	}
-
-	void clearBuf() {
-		if (_summImageBuf) _summImageBuf.dispose();
-		_summImageBuf = null;
-		_bufImagePath = null;
 	}
 
 	void levMaxEnter(int enter) {
@@ -131,118 +122,12 @@ private:
 		}
 		return .findSkin2(_prop, _prop.var.etc.defaultSkin);
 	}
-	class PListener : PaintListener {
-		override void paintControl(PaintEvent e) {
-			auto d = Display.getCurrent();
-			auto size = _prop.looks.summarySize;
-			auto rect = _summImage.getClientArea();
-
-			scope buf = new Image(d, size.width, size.height);
-			scope (exit) buf.dispose();
-			scope gc = new GC(buf);
-			scope (exit) gc.dispose();
-
-			auto skin = selectedSkin();
-			auto path = nabs(skin.findImagePath(_imgPath.image, _summ.scenarioPath));
-			if (!_bufImagePath || !_summImageBuf || !.cfnmatch(_bufImagePath, path) || summary(skin) !is _bufImgData) {
-				if (_summImageBuf) _summImageBuf.dispose();
-				_bufImagePath = path;
-				_bufImgData = summary(skin);
-				_summImageBuf = new Image(d, _bufImgData);
-			}
-			gc.drawImage(_summImageBuf, 0, 0);
-
-			if (_imgPath.image !is null && _imgPath.image.length > 0) {
-				string imgPath = skin.findImagePath(_imgPath.image, _summ.scenarioPath);
-				if (imgPath.length) {
-					scope img = new Image(d, loadImage(skin, imgPath));
-					gc.drawImage(img, _prop.looks.summaryImageXY.x, _prop.looks.summaryImageXY.y);
-					img.dispose();
-				}
-			}
-			{
-				void drawCenterText(FontData fontData, string text, int y) {
-					scope font = new Font(d, fontData);
-					gc.setFont(font);
-					scope p = gc.stringExtent(text);
-					gc.drawString(text, (size.width - p.x) / 2, y, true);
-					font.dispose();
-				}
-				int alpha;
-				scope c = new Color(d, dwtData(_prop.looks.summaryLevelColor, alpha));
-				gc.setForeground(c);
-				gc.setAlpha(alpha);
-				int levL = _levMin.getSelection();
-				int levH = _levMax.getSelection();
-				string levText;
-				if (levL > 0 && levL == levH) {
-					levText = .tryFormat(_prop.msgs.targetLevelSame, levL);
-				} else if (levL > 0 && levH > 0) {
-					levText = .tryFormat(_prop.msgs.targetLevelHL, levL, levH);
-				} else if (levL > 0 && levH == 0) {
-					levText = .tryFormat(_prop.msgs.targetLevelL, levL);
-				} else if (levL == 0 && levH > 0) {
-					levText = .tryFormat(_prop.msgs.targetLevelH, levH);
-				} else {
-					levText = "";
-				}
-				drawCenterText(dwtData(_prop.looks.summaryLevelFont(skin.legacy)),
-					levText, _prop.looks.summaryLevelY);
-				c.dispose();
-				gc.setAlpha(255);
-				gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
-				drawCenterText(dwtData(_prop.looks.summaryTitleFont(skin.legacy)),
-					_sname.getText(), _prop.looks.summaryTitleY);
-				scope font = new Font(d, dwtData(_prop.looks.summaryDescFont(skin.legacy)));
-				gc.setFont(font);
-				int hig = gc.getFontMetrics().getHeight();
-				int x = _prop.looks.summaryDescXY.x;
-				int y = _prop.looks.summaryDescXY.y;
-				if (_comm.skin.legacy) {
-					foreach (line; splitLines!string(_desc.getRRText())) {
-						gc.drawText(line, x, y, SWT.DRAW_DELIMITER | SWT.DRAW_TRANSPARENT);
-						y += _prop.looks.summaryDescLineHeightClassic;
-					}
-				} else {
-					gc.drawText(_desc.getRRText(), x, y, SWT.DRAW_DELIMITER | SWT.DRAW_TRANSPARENT);
-				}
-				gc.setFont(null);
-				font.dispose();
-				drawCenterText(dwtData(_prop.looks.summaryPageFont(skin.legacy)),
-					_prop.msgs.summaryPageDummy, _prop.looks.summaryPageY);
-			}
-			if (rect.width < size.width || rect.height < size.height) {
-				real wp = cast(real) rect.width / size.width;
-				real hp = cast(real) rect.height / size.height;
-				ImageData data;
-				if (wp < hp) {
-					size.width = rect.width;
-					size.height = cast(int) (size.height * wp);
-				} else {
-					size.width = cast(int) (size.width * hp);
-					size.height = rect.height;
-				}
-				data = _summImageBuf.getImageData().scaledTo(size.width, size.height);
-				_summImageBuf.dispose();
-				_summImageBuf = null;
-				if (size.width > 0 && size.height > 0) {
-					_summImageBuf = new Image(d, data);
-				}
-			}
-			auto bx = (rect.width - size.width) / 2;
-			auto by = (rect.height - size.height) / 2;
-			e.gc.drawImage(buf, bx, by);
-		}
-	}
 	void constructImage(Composite area) {
-		auto grp = new Group(area, SWT.NONE);
-		grp.setLayoutData(new GridData(GridData.FILL_VERTICAL));
-		grp.setText(_prop.msgs.summaryPreview);
-		auto size = _prop.looks.summarySize;
-		grp.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL));
-		_summImage = new Canvas(grp, SWT.BORDER | SWT.DOUBLE_BUFFERED);
-		_summImage.setLayoutData(_summImage.computeSize(size.width, size.height));
-		_summImage.addPaintListener(new PListener);
+		_summImage = new SummaryPreview(_comm, area, SWT.NONE);
+		_summImage.setLayoutData(new GridData(GridData.FILL_VERTICAL));
+	}
+	void clearBuf() {
+		_summImage.clearBuf();
 	}
 	private void setCDataX(Control c, GridData data) {
 		auto p = c.computeSize(SWT.DEFAULT, SWT.DEFAULT);
@@ -270,7 +155,7 @@ private:
 				mod(_imgPath);
 				_imgPath.modEvent ~= &refreshWarning;
 				_imgPath.image = _summ.imagePath;
-				_imgPath.modEvent ~= &_summImage.redraw;
+				_imgPath.modEvent ~= &_summImage.redrawImage;
 			}
 			{
 				auto comp2 = new Composite(_tab2Sash, SWT.NONE);
@@ -284,7 +169,7 @@ private:
 					setCDataX(_sname, new GridData(GridData.FILL_HORIZONTAL));
 					_sname.setText(_summ.scenarioName);
 					checker(_sname);
-					.listener(_sname, SWT.Modify, &_summImage.redraw);
+					.listener(_sname, SWT.Modify, &_summImage.redrawImage);
 				}
 				{
 					auto grp = centerGroup(comp2, _prop.msgs.author, true, false, new GridData(GridData.FILL_BOTH));
@@ -313,8 +198,8 @@ private:
 					_levMax.setMinimum(0);
 					_levMax.setMaximum(_prop.looks.levelMax);
 					new SpinnerEdit(_levMax, &levMaxEnter);
-					.listener(_levMin, SWT.Modify, &_summImage.redraw);
-					.listener(_levMax, SWT.Modify, &_summImage.redraw);
+					.listener(_levMin, SWT.Modify, &_summImage.redrawImage);
+					.listener(_levMax, SWT.Modify, &_summImage.redrawImage);
 				}
 			}
 			_tab2Sash.setWeights([_prop.var.etc.summaryParamSashL, _prop.var.etc.summaryParamSashR]);
@@ -329,7 +214,7 @@ private:
 			mod(_desc.widget);
 			_desc.widget.setLayoutData(_desc.computeTextBaseSize(_prop.looks.summaryDescLine));
 			_desc.setText(_summ.desc);
-			.listener(_desc.widget, SWT.Modify, &_summImage.redraw);
+			.listener(_desc.widget, SWT.Modify, &_summImage.redrawImage);
 		}
 		auto tab = new CTabItem(tabf, SWT.NONE);
 		tab.setText(_prop.msgs.baseData);
@@ -362,9 +247,9 @@ private:
 					_type.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 					_type.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 					refreshTypes();
-					.listener(_typeSkin, SWT.Selection, &_summImage.redraw);
-					.listener(_typeClassic, SWT.Selection, &_summImage.redraw);
-					.listener(_type, SWT.Modify, &_summImage.redraw);
+					.listener(_typeSkin, SWT.Selection, &_summImage.redrawImage);
+					.listener(_typeClassic, SWT.Selection, &_summImage.redrawImage);
+					.listener(_type, SWT.Modify, &_summImage.redrawImage);
 				}
 				{
 					auto grp = new Group(comp2, SWT.NONE);
@@ -430,10 +315,6 @@ private:
 	}
 	class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
-			_comm.refSkin.remove(&clearBuf);
-			if (_summImageBuf) {
-				_summImageBuf.dispose();
-			}
 			auto ws1 = _tab2Sash.getWeights();
 			_prop.var.etc.summaryParamSashL = ws1[0];
 			_prop.var.etc.summaryParamSashR = ws1[1];
@@ -485,7 +366,7 @@ private:
 		forceCancel();
 	}
 	void refSkin(Object sender) {
-		_summImage.redraw();
+		_summImage.redrawImage();
 		_desc.font = dwtData(_prop.looks.summaryDescFont(_summ.legacy));
 		if (sender is this) return;
 		refreshTypes();
@@ -599,7 +480,8 @@ protected:
 		constructTab1(tabf);
 		constructTab2(tabf);
 
-		_comm.refSkin.add(&clearBuf);
+		_summImage.setImageSelect(&_sname.getText, &_imgPath.image, &selectedSkin, {return _desc.getRRText();}, &_levMin.getSelection, &_levMax.getSelection);
+
 		_comm.refArea.add(&refArea);
 		_comm.delArea.add(&refArea);
 		_comm.refScenario.add(&refScenario);
@@ -639,5 +521,173 @@ protected:
 		}
 		_comm.skin = selectedSkin;
 		return true;
+	}
+}
+
+private class SummaryPreview : Composite {
+
+	private Commons _comm;
+	private Props _prop;
+	private Summary _summ;
+
+	private Canvas _summImage;
+	private string delegate() _sname = null;
+	private string delegate() _imgPath = null;
+	private Skin delegate() _selectedSkin = null;
+	private string delegate() _desc = null;
+	private int delegate() _levMin = null;
+	private int delegate() _levMax = null;
+
+	private Image _summImageBuf = null;
+	private ImageData _bufImgData = null;
+	private string _bufImagePath = null;
+
+	private class PListener : PaintListener {
+		override void paintControl(PaintEvent e) {
+			if (!_imgPath) return;
+			auto d = Display.getCurrent();
+			auto size = _prop.looks.summarySize;
+			auto rect = _summImage.getClientArea();
+			scope buf = new Image(d, size.width, size.height);
+			scope (exit) buf.dispose();
+			scope gc = new GC(buf);
+			scope (exit) gc.dispose();
+
+			auto skin = _selectedSkin();
+			auto imgPath = _imgPath();
+			auto path = nabs(skin.findImagePath(imgPath, _summ.scenarioPath));
+			if (!_bufImagePath || !_summImageBuf || !.cfnmatch(_bufImagePath, path) || summary(skin) !is _bufImgData) {
+				if (_summImageBuf) _summImageBuf.dispose();
+				_bufImagePath = path;
+				_bufImgData = summary(skin);
+				_summImageBuf = new Image(d, _bufImgData);
+			}
+			gc.drawImage(_summImageBuf, 0, 0);
+
+			if (imgPath !is null && imgPath.length > 0) {
+				string p = skin.findImagePath(imgPath, _summ.scenarioPath);
+				if (p.length) {
+					scope img = new Image(d, loadImage(skin, p));
+					gc.drawImage(img, _prop.looks.summaryImageXY.x, _prop.looks.summaryImageXY.y);
+					img.dispose();
+				}
+			}
+			{
+				void drawCenterText(FontData fontData, string text, int y) {
+					scope font = new Font(d, fontData);
+					gc.setFont(font);
+					scope p = gc.stringExtent(text);
+					gc.drawString(text, (size.width - p.x) / 2, y, true);
+					font.dispose();
+				}
+				int alpha;
+				scope c = new Color(d, dwtData(_prop.looks.summaryLevelColor, alpha));
+				gc.setForeground(c);
+				gc.setAlpha(alpha);
+				int levL = _levMin();
+				int levH = _levMax();
+				string levText;
+				if (levL > 0 && levL == levH) {
+					levText = .tryFormat(_prop.msgs.targetLevelSame, levL);
+				} else if (levL > 0 && levH > 0) {
+					levText = .tryFormat(_prop.msgs.targetLevelHL, levL, levH);
+				} else if (levL > 0 && levH == 0) {
+					levText = .tryFormat(_prop.msgs.targetLevelL, levL);
+				} else if (levL == 0 && levH > 0) {
+					levText = .tryFormat(_prop.msgs.targetLevelH, levH);
+				} else {
+					levText = "";
+				}
+				drawCenterText(dwtData(_prop.looks.summaryLevelFont(skin.legacy)),
+					levText, _prop.looks.summaryLevelY);
+				c.dispose();
+				gc.setAlpha(255);
+				gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
+				drawCenterText(dwtData(_prop.looks.summaryTitleFont(skin.legacy)), _sname(), _prop.looks.summaryTitleY);
+				scope font = new Font(d, dwtData(_prop.looks.summaryDescFont(skin.legacy)));
+				gc.setFont(font);
+				int hig = gc.getFontMetrics().getHeight();
+				int x = _prop.looks.summaryDescXY.x;
+				int y = _prop.looks.summaryDescXY.y;
+				string desc = _desc();
+				if (_comm.skin.legacy) {
+					foreach (line; splitLines!string(desc)) {
+						gc.drawText(line, x, y, SWT.DRAW_DELIMITER | SWT.DRAW_TRANSPARENT);
+						y += _prop.looks.summaryDescLineHeightClassic;
+					}
+				} else {
+					gc.drawText(desc, x, y, SWT.DRAW_DELIMITER | SWT.DRAW_TRANSPARENT);
+				}
+				gc.setFont(null);
+				font.dispose();
+				drawCenterText(dwtData(_prop.looks.summaryPageFont(skin.legacy)),
+					_prop.msgs.summaryPageDummy, _prop.looks.summaryPageY);
+			}
+			if (rect.width < size.width || rect.height < size.height) {
+				real wp = cast(real) rect.width / size.width;
+				real hp = cast(real) rect.height / size.height;
+				ImageData data;
+				if (wp < hp) {
+					size.width = rect.width;
+					size.height = cast(int) (size.height * wp);
+				} else {
+					size.width = cast(int) (size.width * hp);
+					size.height = rect.height;
+				}
+				data = _summImageBuf.getImageData().scaledTo(size.width, size.height);
+				_summImageBuf.dispose();
+				_summImageBuf = null;
+				if (size.width > 0 && size.height > 0) {
+					_summImageBuf = new Image(d, data);
+				}
+			}
+			auto bx = (rect.width - size.width) / 2;
+			auto by = (rect.height - size.height) / 2;
+			e.gc.drawImage(buf, bx, by);
+		}
+	}
+
+	this (Commons comm, Composite parent, int style) {
+		super (parent, style);
+		_comm = comm;
+		_prop = comm.prop;
+		_summ = comm.summary;
+
+		this.setLayout(new FillLayout());
+
+		auto grp = new Group(this, SWT.NONE);
+		grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+		grp.setText(_prop.msgs.summaryPreview);
+		grp.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL));
+
+		auto size = _prop.looks.summarySize;
+		_summImage = new Canvas(grp, SWT.BORDER | SWT.DOUBLE_BUFFERED);
+		_summImage.setLayoutData(_summImage.computeSize(size.width, size.height));
+		_summImage.addPaintListener(new PListener);
+
+		_comm.refSkin.add(&clearBuf);
+		.listener(this, SWT.Dispose, {
+			_comm.refSkin.remove(&clearBuf);
+			clearBuf();
+		});
+	}
+
+	void setImageSelect(string delegate() sname, string delegate() imgPath, Skin delegate() selectedSkin, string delegate() desc, int delegate() levMin, int delegate() levMax) {
+		_sname = sname;
+		_imgPath = imgPath;
+		_selectedSkin = selectedSkin;
+		_desc = desc;
+		_levMin = levMin;
+		_levMax = levMax;
+	}
+
+	void redrawImage() {
+		_summImage.redraw();
+	}
+
+	void clearBuf() {
+		if (_summImageBuf) _summImageBuf.dispose();
+		_summImageBuf = null;
+		_bufImagePath = null;
 	}
 }
