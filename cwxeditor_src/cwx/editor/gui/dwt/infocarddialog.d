@@ -47,7 +47,10 @@ private:
 	GBLimitText _name;
 
 	void refreshWarning() {
-		// 情報カード名はメッセージに表示されないため制限無し
+		// 情報カード名はメッセージに表示されないため長さ制限無し
+		string[] ws;
+		ws ~= _comm.skin.warningImage(_prop.parent, _imgPath.filePath, _summ.legacy);
+		warning = ws;
 	}
 
 	void delCard(InfoCard c) {

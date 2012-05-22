@@ -91,6 +91,10 @@ private:
 	// TODO Tag
 	// TODO Label
 
+	void refreshWarning()  {
+		warning = _comm.skin.warningImage(_prop.parent, _imgPath.filePath, _summ.legacy);
+	}
+
 	void clearBuf() {
 		if (_summImageBuf) _summImageBuf.dispose();
 		_summImageBuf = null;
@@ -264,6 +268,7 @@ private:
 				_imgPath = new ImageSelect!(MtType.CARD)(_tab2Sash, SWT.NONE, _comm, _prop, _summ,
 					_prop.looks.cardSize.width, _prop.looks.cardSize.height, including, saveName, &clearBuf);
 				mod(_imgPath);
+				_imgPath.modEvent ~= &refreshWarning;
 				_imgPath.image = _summ.imagePath;
 				_imgPath.modEvent ~= &_summImage.redraw;
 			}

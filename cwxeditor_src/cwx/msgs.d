@@ -718,6 +718,8 @@ public:
 	@property const string sTypeClassic() {return "クラシックエンジンを使用";}
 	@property const string currentEngineSkin() {return "[%1$s]";}
 
+	@property const string pngMayNotCorrespond() {return "PNGイメージはプレイヤーの環境によって表示エラーとなる事があります。";}
+
 	/// エリア・戦闘・パッケージウィンドウ。
 	@property const string noRefArea() {return "[カード配置参照無し]";}
 	@property const string areaViewFlagDesc() {return "フラグ";}

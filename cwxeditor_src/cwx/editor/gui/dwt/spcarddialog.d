@@ -70,6 +70,10 @@ private:
 		ImageSelect!(MtType.CARD) _imgPath;
 		FixedWidthText _desc;
 		Text _name;
+
+		void refreshWarning() {
+			warning = _comm.skin.warningImage(_prop.parent, _imgPath.filePath, _summ.legacy);
+		}
 	} else static if (is (C == EnemyCard)) {
 		Combo _casts;
 		Button _escape;
@@ -238,6 +242,7 @@ protected:
 							_imgPath = new ImageSelect!(MtType.CARD)(comp2, SWT.NONE, _comm, _prop, _summ,
 								_prop.looks.cardSize.width, _prop.looks.cardSize.height, including, saveName);
 							mod(_imgPath);
+							_imgPath.modEvent ~= &refreshWarning;
 							_imgPath.widget.setLayoutData(new GridData(GridData.FILL_BOTH));
 						} else static if (is (C == EnemyCard)) {
 							auto grp = new Group(comp2, SWT.NONE);

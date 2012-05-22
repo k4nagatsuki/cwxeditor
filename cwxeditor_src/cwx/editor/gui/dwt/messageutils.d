@@ -812,6 +812,9 @@ private:
 	FixedWidthText _text;
 	ImageSelect!(MtType.CARD, Combo) _msel;
 
+	void refreshWarning() {
+		warning = comm.skin.warningImage(prop.parent, _msel.filePath, summ.legacy);
+	}
 	void tabChanged() {
 		switch (_tabf.getSelectionIndex()) {
 		case 0:
@@ -921,6 +924,7 @@ protected:
 				tp = createTalkerPane(comp, comm, prop, summ, Talker.SELECTED, "", _msel);
 			}
 			mod(_msel);
+			_msel.modEvent ~= &refreshWarning;
 			tp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			_msgCompA = new Composite(comp, SWT.NONE);
 			_msgCompA.setLayoutData(new GridData(GridData.FILL_VERTICAL));

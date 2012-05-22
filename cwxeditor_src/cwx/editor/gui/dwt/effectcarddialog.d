@@ -155,6 +155,7 @@ private:
 		if (_name.over) {
 			ws ~= .tryFormat(_prop.msgs.warningNameLenOver, _prop.looks.nameLimit, _prop.looks.nameLimit / 2);
 		}
+		ws ~= _comm.skin.warningImage(_prop.parent, _imgPath.filePath, _summ.legacy);
 		if (_effTyp[EffectType.NONE].getSelection()) {
 			ws ~= _prop.msgs.warningEffectTypeNone;
 		}

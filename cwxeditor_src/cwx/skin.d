@@ -657,6 +657,19 @@ class Skin {
 		}
 		return false;
 	}
+	/// pathを使用する際の警告(一部環境で表示不可等)。
+	static string[] warningImage(in CProps prop, string path, bool legacy) {
+		auto ext = cwx.utils.toLower(cwx.utils.getExt(path));
+		if (legacy) {
+			switch (ext) {
+			case "png": // PNG
+				return [prop.msgs.pngMayNotCorrespond];
+			default:
+				return [];
+			}
+		}
+		return [];
+	}
 
 	/// 特殊文字の情報。
 	@property

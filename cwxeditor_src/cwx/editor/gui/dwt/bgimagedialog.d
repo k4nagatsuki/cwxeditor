@@ -75,6 +75,10 @@ private:
 	Combo _easy;
 	bool _selected;
 
+	void refreshWarning() {
+		warning = _comm.skin.warningImage(_prop.parent, _imgPath.filePath, _summ.legacy);
+	}
+
 	void select() {
 		if (!_selected || _easy.getSelectionIndex() == 1) {
 			string file = _imgPath.filePath;
@@ -177,6 +181,7 @@ protected:
 				_imgPath = new ImageSelect!(MtType.BG_IMG)(parent, SWT.NONE, _comm, _prop, _summ,
 					_prop.var.etc.bgImageSampleWidth, _prop.var.etc.bgImageSampleHeight, false, "", &select);
 				mod(_imgPath);
+				_imgPath.modEvent ~= &refreshWarning;
 			}
 			if (_summ) {
 				auto sash = new SplitPane(comp, SWT.HORIZONTAL);
