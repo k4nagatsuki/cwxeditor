@@ -433,6 +433,8 @@ class FlexEtcProps : Properties {
 
 	mixin Property!("showInputGuide", bool, true);
 
+	mixin Property!("showSummaryPreview", bool, true);
+
 	mixin Property!("floatMessagePreview", bool, false);
 	mixin Property!("showDialogPreview", bool, true);
 	mixin Property!("showMessagePreview", bool, true);

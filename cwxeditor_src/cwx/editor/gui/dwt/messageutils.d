@@ -224,10 +224,17 @@ class AbstractMessageDialog : EventDialog {
 	override
 	protected void opened() {
 		if (!_previewWin) return;
-		if (prop.var.etc.showDialogPreview) _previewWin.open();
-		closeEvent ~= {
-			prop.var.etc.showDialogPreview = _previewWin.isVisible();
-		};
+		if (type is CType.TALK_MESSAGE) {
+			if (prop.var.etc.showMessagePreview) _previewWin.open();
+			closeEvent ~= {
+				prop.var.etc.showMessagePreview = _previewWin.isVisible();
+			};
+		} else if (type is CType.TALK_DIALOG) {
+			if (prop.var.etc.showDialogPreview) _previewWin.open();
+			closeEvent ~= {
+				prop.var.etc.showDialogPreview = _previewWin.isVisible();
+			};
+		} else assert (0);
 	}
 
 	protected override void setup(Composite area) {

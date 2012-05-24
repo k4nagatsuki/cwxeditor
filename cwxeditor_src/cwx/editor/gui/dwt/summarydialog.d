@@ -69,7 +69,8 @@ private:
 	Props _prop;
 	Summary _summ;
 
-	SummaryPreview _summImage;
+	SummaryPreview _summImage = null;
+	Composite _imgArea;
 
 	Text _sname;
 	ImageSelect!(MtType.CARD) _imgPath;
@@ -123,8 +124,49 @@ private:
 		return .findSkin2(_prop, _prop.var.etc.defaultSkin);
 	}
 	void constructImage(Composite area) {
-		_summImage = new SummaryPreview(_comm, area, SWT.NONE);
-		_summImage.setLayoutData(new GridData(GridData.FILL_VERTICAL));
+		_imgArea = area;
+
+		auto aComp = addition();
+		aComp.setLayout(new GridLayout(1, true));
+		auto prev = new Button(aComp, SWT.TOGGLE);
+		prev.setText(_prop.msgs.messagePreview);
+		prev.setSelection(_prop.var.etc.showSummaryPreview);
+		.listener(prev, SWT.Selection, {
+			showImagePreview(prev.getSelection());
+		});
+		showImagePreview(_prop.var.etc.showSummaryPreview, false);
+	}
+	void showImagePreview(bool visible, bool regWin = true) {
+		getShell().setRedraw(false);
+		scope (exit) getShell().setRedraw(true);
+
+		int w;
+		if (visible) {
+			if (_summImage) return;
+			_summImage = new SummaryPreview(_comm, _imgArea, SWT.NONE);
+			_summImage.setImageSelect(&_sname.getText, &_imgPath.image, &selectedSkin, {return _desc.getRRText();}, &_levMin.getSelection, &_levMax.getSelection);
+			_summImage.setLayoutData(new GridData(GridData.FILL_VERTICAL));
+			w = _summImage.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
+		} else {
+			if (!_summImage) return;
+			w = _summImage.getSize().x;
+			if (_summImage) _summImage.dispose();
+			_summImage = null;
+		}
+		_prop.var.etc.showSummaryPreview = visible;
+
+		if (regWin) {
+			auto ws = getShell().getSize();
+			if (visible) {
+				ws.x += w;
+			} else {
+				ws.x -= w;
+			}
+			getShell().setSize(ws);
+		}
+	}
+	void refreshPreview() {
+		_summImage.redrawImage();
 	}
 	void clearBuf() {
 		_summImage.clearBuf();
@@ -155,7 +197,7 @@ private:
 				mod(_imgPath);
 				_imgPath.modEvent ~= &refreshWarning;
 				_imgPath.image = _summ.imagePath;
-				_imgPath.modEvent ~= &_summImage.redrawImage;
+				_imgPath.modEvent ~= &refreshPreview;
 			}
 			{
 				auto comp2 = new Composite(_tab2Sash, SWT.NONE);
@@ -169,7 +211,7 @@ private:
 					setCDataX(_sname, new GridData(GridData.FILL_HORIZONTAL));
 					_sname.setText(_summ.scenarioName);
 					checker(_sname);
-					.listener(_sname, SWT.Modify, &_summImage.redrawImage);
+					.listener(_sname, SWT.Modify, &refreshPreview);
 				}
 				{
 					auto grp = centerGroup(comp2, _prop.msgs.author, true, false, new GridData(GridData.FILL_BOTH));
@@ -198,8 +240,8 @@ private:
 					_levMax.setMinimum(0);
 					_levMax.setMaximum(_prop.looks.levelMax);
 					new SpinnerEdit(_levMax, &levMaxEnter);
-					.listener(_levMin, SWT.Modify, &_summImage.redrawImage);
-					.listener(_levMax, SWT.Modify, &_summImage.redrawImage);
+					.listener(_levMin, SWT.Modify, &refreshPreview);
+					.listener(_levMax, SWT.Modify, &refreshPreview);
 				}
 			}
 			_tab2Sash.setWeights([_prop.var.etc.summaryParamSashL, _prop.var.etc.summaryParamSashR]);
@@ -214,7 +256,7 @@ private:
 			mod(_desc.widget);
 			_desc.widget.setLayoutData(_desc.computeTextBaseSize(_prop.looks.summaryDescLine));
 			_desc.setText(_summ.desc);
-			.listener(_desc.widget, SWT.Modify, &_summImage.redrawImage);
+			.listener(_desc.widget, SWT.Modify, &refreshPreview);
 		}
 		auto tab = new CTabItem(tabf, SWT.NONE);
 		tab.setText(_prop.msgs.baseData);
@@ -247,9 +289,9 @@ private:
 					_type.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 					_type.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 					refreshTypes();
-					.listener(_typeSkin, SWT.Selection, &_summImage.redrawImage);
-					.listener(_typeClassic, SWT.Selection, &_summImage.redrawImage);
-					.listener(_type, SWT.Modify, &_summImage.redrawImage);
+					.listener(_typeSkin, SWT.Selection, &refreshPreview);
+					.listener(_typeClassic, SWT.Selection, &refreshPreview);
+					.listener(_type, SWT.Modify, &refreshPreview);
 				}
 				{
 					auto grp = new Group(comp2, SWT.NONE);
@@ -366,7 +408,7 @@ private:
 		forceCancel();
 	}
 	void refSkin(Object sender) {
-		_summImage.redrawImage();
+		refreshPreview();
 		_desc.font = dwtData(_prop.looks.summaryDescFont(_summ.legacy));
 		if (sender is this) return;
 		refreshTypes();
@@ -473,14 +515,12 @@ public:
 protected:
 	override void setup(Composite area) {
 		area.setLayout(windowGridLayout(2, false));
-		constructImage(area);
 
 		auto tabf = new CTabFolder(area, SWT.BORDER);
 		tabf.setLayoutData(new GridData(GridData.FILL_BOTH));
 		constructTab1(tabf);
 		constructTab2(tabf);
-
-		_summImage.setImageSelect(&_sname.getText, &_imgPath.image, &selectedSkin, {return _desc.getRRText();}, &_levMin.getSelection, &_levMax.getSelection);
+		constructImage(area);
 
 		_comm.refArea.add(&refArea);
 		_comm.delArea.add(&refArea);
