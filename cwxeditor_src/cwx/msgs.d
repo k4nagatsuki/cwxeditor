@@ -529,11 +529,13 @@ public:
 
 	@property const string ctStart() {return "スタートコンテント「%1$s」";}
 	@property const string ctStartBattle() {return "バトルの開始「%1$s」";}
-	@property const string ctChangeArea() {return "エリア移動「%1$s」";}
+	@property const string ctChangeArea() {return "エリア移動「%1$s」 切替方式 = %2$s ウェイト = %3$s";}
+	@property const string ctChangeAreaClassic() {return "エリア移動「%1$s」";}
 	@property const string ctEndComplete() {return "済印をつけて終了";}
 	@property const string ctEndNoComplete() {return "済印をつけずに終了";}
 	@property const string ctGameOver() {return "ゲームオーバーコンテント";}
-	@property const string ctChangeBgImage() {return "背景ファイル = %1$s";}
+	@property const string ctChangeBgImage() {return "背景ファイル = %1$s 切替方式 = %2$s ウェイト = %3$s";}
+	@property const string ctChangeBgImageClassic() {return "背景ファイル = %1$s";}
 	@property const string ctChangeBgImageFile() {return "[%1$s]";}
 	@property const string ctEffectSound() {return "「%1$s」を再生";}
 	@property const string ctEffectNoSound() {return "音声無し";}
@@ -608,7 +610,8 @@ public:
 	@property const string ctLoseGossip() {return "ゴシップ「%1$s」を喪失";}
 	@property const string ctShowParty() {return "パーティ表示コンテント";}
 	@property const string ctHideParty() {return "パーティ隠蔽コンテント";}
-	@property const string ctRedisplay() {return "画面再構築コンテント";}
+	@property const string ctRedisplay() {return "切替方式 = %1$s ウェイト = %2$s";}
+	@property const string ctRedisplayClassic() {return "画面再構築コンテント";}
 
 	@property const string defaultStartName() {return "イベント開始";}
 

@@ -2131,14 +2131,25 @@ string contentText(Commons comm, in Content evt) {
 	} case CType.END_BAD_END: {
 		return comm.prop.msgs.ctGameOver;
 	} case CType.CHANGE_AREA: {
-		return contentTextUseID!(CIDKind.Area)(comm, evt.area, comm.prop.msgs.ctChangeArea, evt);
+		if (comm.summary && comm.summary.legacy) {
+			return contentTextUseID!(CIDKind.Area)(comm, evt.area, comm.prop.msgs.ctChangeAreaClassic, evt);
+		} else {
+			string a = contentTextUseID!(CIDKind.Area)(comm, evt.area, "%s", evt);
+			string v = comm.prop.msgs.transitionName(evt.transition);
+			return .tryFormat(comm.prop.msgs.ctChangeArea, a, v, evt.transitionSpeed);
+		}
 	} case CType.CHANGE_BG_IMAGE: {
 		string buf;
 		foreach (i, b; evt.backs) {
 			buf ~= contentTextUseID!(CIDKind.Image)(comm, b.path, comm.prop.msgs.ctChangeBgImageFile, null);
 			if (i + 1 < evt.backs.length) buf ~= " ";
 		}
-		return .tryFormat(comm.prop.msgs.ctChangeBgImage, buf);
+		if (comm.summary && comm.summary.legacy) {
+			return .tryFormat(comm.prop.msgs.ctChangeBgImageClassic, buf);
+		} else {
+			string v = comm.prop.msgs.transitionName(evt.transition);
+			return .tryFormat(comm.prop.msgs.ctChangeBgImage, buf, v, evt.transitionSpeed);
+		}
 	} case CType.EFFECT: {
 		string tt = comm.prop.msgs.targetName(evt.targetNS.m);
 		int tl = evt.signedLevel;
@@ -2372,7 +2383,12 @@ string contentText(Commons comm, in Content evt) {
 	} case CType.HIDE_PARTY: {
 		return comm.prop.msgs.ctHideParty;
 	} case CType.REDISPLAY: {
-		return comm.prop.msgs.ctRedisplay;
+		if (comm.summary && comm.summary.legacy) {
+			return comm.prop.msgs.ctRedisplayClassic;
+		} else {
+			string v = comm.prop.msgs.transitionName(evt.transition);
+			return .tryFormat(comm.prop.msgs.ctRedisplay, v, evt.transitionSpeed);
+		}
 	}
 	}
 }

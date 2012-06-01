@@ -1648,9 +1648,9 @@ fi`;
 			while (i < attr.length) {
 				auto values = var(attr[i], varTable);
 				size_t i2 = 0;
+				if (values.length <= i2 || values[0].type !is NodeType.VALUES) break;
 				while (i2 < values.length) {
 					if (!values.length) break;
-					if (values[0].type !is NodeType.VALUES) break;
 					if (values[0].token.kind is Kind.COMMA) {
 						// 空の配列
 						break;
