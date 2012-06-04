@@ -166,10 +166,14 @@ private:
 		}
 	}
 	void refreshPreview() {
-		_summImage.redrawImage();
+		if (_summImage) {
+			_summImage.redrawImage();
+		}
 	}
 	void clearBuf() {
-		_summImage.clearBuf();
+		if (_summImage) {
+			_summImage.clearBuf();
+		}
 	}
 	private void setCDataX(Control c, GridData data) {
 		auto p = c.computeSize(SWT.DEFAULT, SWT.DEFAULT);
