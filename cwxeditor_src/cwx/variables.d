@@ -65,10 +65,6 @@ class FlexEtcProps : Properties {
 	mixin Property!("cardCountColumn", int, 60);
 	mixin Property!("couponWidth", int, 150, true);
 	mixin Property!("couponValueColumn", int, 40, true);
-	mixin Property!("physicalRadarWidth", int, 230, true);
-	mixin Property!("physicalRadarHeight", int, 160, true);
-	mixin Property!("enhanceRadarWidth", int, 230, true);
-	mixin Property!("enhanceRadarHeight", int, 175, true);
 	mixin Property!("idColumn", int, 50);
 	mixin Property!("nameTableWidth", int, 250, true);
 	mixin Property!("nameTableHeight", int, 250, true);

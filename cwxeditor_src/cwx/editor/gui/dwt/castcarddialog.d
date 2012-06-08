@@ -185,6 +185,17 @@ private:
 					_res[el].setSelection(race.resist(el));
 					_weak[el].setSelection(race.weakness(el));
 				}
+			} else {
+				_automaton.setSelection(false);
+				_constructure.setSelection(false);
+				_undead.setSelection(false);
+				_unholy.setSelection(false);
+				_resW.setSelection(false);
+				_resM.setSelection(false);
+				foreach (el; _res.keys) {
+					_res[el].setSelection(false);
+					_weak[el].setSelection(false);
+				}
 			}
 		}
 	}
@@ -194,6 +205,10 @@ private:
 			if (race) {
 				foreach (enh, i; _enhTbl) {
 					_enh.setValue(i, race.defaultEnhance(enh));
+				}
+			} else {
+				foreach (enh, i; _enhTbl) {
+					_enh.setValue(i, 0);
 				}
 			}
 		}
@@ -879,6 +894,8 @@ private:
 			grp.setText(_prop.msgs.physicalParams);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			auto cl = new CenterLayout;
+			cl.fillHorizontal = true;
+			cl.fillVertical = true;
 			grp.setLayout(cl);
 			_phy = new RadarSpinner(grp, SWT.NONE);
 			mod(_phy);
@@ -891,7 +908,6 @@ private:
 				names[i] = _prop.msgs.physicalName(p);
 			}
 			_phy.setRadar(_prop.looks.physicalMax + 1, names, 0);
-			_phy.setRadarSize(_prop.var.etc.physicalRadarWidth, _prop.var.etc.physicalRadarHeight);
 			_phy.antialias = true;
 			_phy.borderlines = cast(int[]) _prop.looks.physicalBorders;
 			_phy.lineStep = _prop.looks.physicalMax / 5;
@@ -1039,7 +1055,10 @@ private:
 			auto grp = new Group(comp, SWT.NONE);
 			grp.setText(_prop.msgs.castEnhance);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-			grp.setLayout(new CenterLayout);
+			auto cl = new CenterLayout;
+			cl.fillHorizontal = true;
+			cl.fillVertical = true;
+			grp.setLayout(cl);
 			_enh = new RadarSpinner(grp, SWT.NONE);
 			mod(_enh);
 			static const Es = [Enhance.AVOID, Enhance.RESIST, Enhance.DEFENSE];
@@ -1051,7 +1070,6 @@ private:
 			}
 			_enh.setRadar(_prop.looks.enhanceMax * 2 + 1,
 				names, cast(int) _prop.looks.enhanceMax * -1);
-			_enh.setRadarSize(_prop.var.etc.enhanceRadarWidth, _prop.var.etc.enhanceRadarHeight);
 			_enh.antialias = true;
 			_enh.borderlines = [0];
 			_enh.lineStep = _prop.looks.enhanceMax / 2;

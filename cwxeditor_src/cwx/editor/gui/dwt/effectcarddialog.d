@@ -439,7 +439,10 @@ private:
 		auto grp = new Group(comp, SWT.NONE);
 		grp.setText(title);
 		grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-		grp.setLayout(new CenterLayout);
+		auto cl = new CenterLayout;
+		cl.fillHorizontal = true;
+		cl.fillVertical = true;
+		grp.setLayout(cl);
 		auto useMod = new RadarSpinner(grp, SWT.NONE);
 		mod(useMod);
 		static const Es = [Enhance.AVOID, Enhance.RESIST, Enhance.DEFENSE];
@@ -451,7 +454,6 @@ private:
 		}
 		useMod.setRadar(_prop.looks.enhanceMax * 2 + 1,
 			names, cast(int) _prop.looks.enhanceMax * -1);
-		useMod.setRadarSize(_prop.var.etc.enhanceRadarWidth, _prop.var.etc.enhanceRadarHeight);
 		useMod.antialias = true;
 		useMod.borderlines = [0];
 		useMod.lineStep = _prop.looks.enhanceMax / 2;

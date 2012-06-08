@@ -1121,7 +1121,7 @@ public:
 	@property const string race() {return "種族";}
 	@property const string noRace() {return "[未指定]";}
 	@property const string nature() {return "素質";}
-	@property const string makings() {return "特徴";}
+	@property const string makings() {return "特性";}
 	@property const string tolerant() {return "対属性";}
 	@property const string tolerantBase() {return "対カード属性";}
 	@property const string tolerantElement() {return "対効果属性";}
