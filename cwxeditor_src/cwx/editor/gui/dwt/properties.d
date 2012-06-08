@@ -9,6 +9,7 @@ import cwx.structs;
 import cwx.settings;
 import cwx.menu;
 import cwx.variables;
+import cwx.versioninfo;
 
 import cwx.editor.gui.dwt.dockingfolder;
 
@@ -388,6 +389,7 @@ public class FlexProps {
 	void save(string xmlFileName, DockingFolderCTC dock) {
 		if (_noFile) return;
 		auto node = XNode.create("cwxeditor");
+		node.newAttr("version", APP_VERSION_NUM);
 		foreach (i, fld; this.tupleof) {
 			toNode(node, fld);
 		}
