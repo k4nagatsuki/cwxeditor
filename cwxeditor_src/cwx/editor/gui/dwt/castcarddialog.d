@@ -165,6 +165,17 @@ private:
 					_res[el].setSelection = race.resist(el);
 					_weak[el].setSelection = race.weakness(el);
 				}
+			} else {
+				_automaton.setSelection = false;
+				_constructure.setSelection = false;
+				_undead.setSelection = false;
+				_unholy.setSelection = false;
+				_resW.setSelection = false;
+				_resM.setSelection = false;
+				foreach (el; _res.keys) {
+					_res[el].setSelection = false;
+					_weak[el].setSelection = false;
+				}
 			}
 		}
 	}
@@ -174,6 +185,10 @@ private:
 			if (race) {
 				foreach (enh, i; _enhTbl) {
 					_enh.setValue(i, race.defaultEnhance(enh));
+				}
+			} else {
+				foreach (enh, i; _enhTbl) {
+					_enh.setValue(i, false);
 				}
 			}
 		}
@@ -475,6 +490,8 @@ private:
 		if (_lifeUseMax.getSelection) {
 			_life.setSelection = _lifeMax.getSelection;
 		}
+		_life.getParent().layout();
+		_life.setSelection(_life.getSelection());
 	}
 	class LifeMaxL : ModifyListener {
 		public override void modifyText(ModifyEvent e) {
