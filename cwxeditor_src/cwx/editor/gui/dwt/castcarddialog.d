@@ -602,6 +602,8 @@ private:
 		if (_lifeUseMax.getSelection()) {
 			_life.setSelection(_lifeMax.getSelection());
 		}
+		_life.getParent().layout();
+		_life.setSelection(_life.getSelection());
 	}
 	class LifeMaxL : ModifyListener {
 		public override void modifyText(ModifyEvent e) {
