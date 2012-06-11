@@ -1484,6 +1484,7 @@ public:
 		case MenuID.ChangeVH: return "分割領域の縦横を切替";
 		case MenuID.Find: return "検索と置換";
 		case MenuID.IncSearch: return "ワイルドカードで絞り込む";
+		case MenuID.CloseIncSearch: return "閉じる";
 		case MenuID.EditProp: return "編集";
 		case MenuID.Refresh: return "最新の情報に更新";
 		case MenuID.Undo: return "元に戻す";

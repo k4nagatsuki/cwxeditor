@@ -47,6 +47,7 @@ enum MenuID {
 	ChangeVH,
 	Find,
 	IncSearch,
+	CloseIncSearch,
 	EditProp,
 	Refresh,
 	Undo,
@@ -194,8 +195,8 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.Open] = "O";
 		_mnemonic[MenuID.NewAtNewWindow] = "E";
 		_mnemonic[MenuID.OpenAtNewWindow] = "P";
-		_mnemonic[MenuID.Close] = "C";
-		_mnemonic[MenuID.CloseWin] = "C";
+		_mnemonic[MenuID.Close] = "X";
+		_mnemonic[MenuID.CloseWin] = "X";
 		_mnemonic[MenuID.Save] = "S";
 		_mnemonic[MenuID.SaveAs] = "A";
 		_mnemonic[MenuID.Reload] = "R";
@@ -206,6 +207,7 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.ChangeVH] = "H";
 		_mnemonic[MenuID.Find] = "F";
 		_mnemonic[MenuID.IncSearch] = "W";
+		_mnemonic[MenuID.CloseIncSearch] = "X";
 		_mnemonic[MenuID.EditProp] = "E";
 		_mnemonic[MenuID.Refresh] = "R";
 		_mnemonic[MenuID.Undo] = "U";
@@ -349,6 +351,7 @@ class MenuProps : Properties {
 		_hotkey[MenuID.ChangeVH] = "";
 		_hotkey[MenuID.Find] = "Ctrl+F";
 		_hotkey[MenuID.IncSearch] = "Ctrl+I";
+		_hotkey[MenuID.CloseIncSearch] = "Escape";
 		_hotkey[MenuID.EditProp] = "Enter";
 		_hotkey[MenuID.Refresh] = "F5";
 		_hotkey[MenuID.Undo] = "Ctrl+Z";

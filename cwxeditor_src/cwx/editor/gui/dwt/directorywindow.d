@@ -1005,6 +1005,7 @@ private:
 		_comm.save.call(dlgParShl.getShell());
 	}
 	void incSearch() {
+		.forceFocus(_files, true);
 		_incSearch.startIncSearch();
 	}
 	void createFilesMenu() {

@@ -15,6 +15,7 @@ import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.dmenu;
+import cwx.editor.gui.dwt.incsearch;
 
 import std.array;
 import std.file;
@@ -110,6 +111,9 @@ public:
 				}
 			}
 		});
+		auto menu = new Menu(_dirs.getShell(), SWT.POP_UP);
+		createMenuItem(_comm, menu, MenuID.IncSearch, &startIncSearch, null);
+		_dirs.setMenu(menu);
 		return _dirs;
 	}
 	static if (Type == MtType.BGM) {
@@ -151,6 +155,8 @@ public:
 			}
 		}
 		auto menu = new Menu(_fileList.getShell(), SWT.POP_UP);
+		createMenuItem(_comm, menu, MenuID.IncSearch, &startIncSearch, null);
+		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.OpenAtFileView, &openFilePath, () => filePath.length > 0);
 		createMenuItem(_comm, menu, MenuID.CopyFilePath, &copyFilePath, () => filePath.length > 0);
 		static if (Type == MtType.BGM) {
@@ -202,6 +208,10 @@ public:
 				refreshPaths(_comm.skin.materialPath);
 				_comm.refPaths.call(this.outer, _comm.skin.materialPath);
 			}
+		};
+		_incSearch = new IncSearch(_comm, _fileList);
+		_incSearch.modEvent ~= {
+			refreshList();
 		};
 		return _fileList;
 	}
@@ -512,34 +522,41 @@ public:
 			_selDir = sel;
 		}
 	}
+
+	@property
+	IncSearch incSearch() {return _incSearch;}
+	void startIncSearch() {
+		.forceFocus(_fileList, true);
+		_incSearch.startIncSearch();
+	}
 private:
 	static if (Type == MtType.CARD) {
 		@property string defExt() {return _comm.skin.extImage;}
 		@property string defDir() {return _comm.skin.tableDir;}
 		bool isTarg(string p) {return _comm.skin.isCardImage(p);}
 		bool hasTarg(string p) {return _comm.skin.hasCardImage(p);}
-		string[] targs(string dir, bool re) {return _comm.skin.cards(dir, re);}
+		string[] targsImpl(string dir, bool re) {return _comm.skin.cards(dir, re);}
 		@property Image image() {return _prop.images.cards;}
 	} else static if (Type == MtType.BG_IMG) {
 		@property string defExt() {return _comm.skin.extImage;}
 		@property string defDir() {return _comm.skin.tableDir;}
 		bool isTarg(string p) {return _comm.skin.isBgImage(p);}
 		bool hasTarg(string p) {return _comm.skin.hasBgImage(p);}
-		string[] targs(string dir, bool re) {return _comm.skin.tables(dir, re);}
+		string[] targsImpl(string dir, bool re) {return _comm.skin.tables(dir, re);}
 		@property Image image() {return _prop.images.backs;}
 	} else static if (Type == MtType.BGM) {
 		@property string defExt() {return _comm.skin.extBgm;}
 		@property string defDir() {return _comm.skin.bgmDir;}
 		bool isTarg(string p) {return _comm.skin.isBGM(p);}
 		bool hasTarg(string p) {return _comm.skin.hasBGM(p);}
-		string[] targs(string dir, bool re) {return _comm.skin.musics(dir, re);}
+		string[] targsImpl(string dir, bool re) {return _comm.skin.musics(dir, re);}
 		@property Image image() {return _prop.images.bgm;}
 	} else static if (Type == MtType.SE) {
 		@property string defExt() {return _comm.skin.extSound;}
 		@property string defDir() {return _comm.skin.seDir;}
 		bool isTarg(string p) {return _comm.skin.isSE(p);}
 		bool hasTarg(string p) {return _comm.skin.hasSE(p);}
-		string[] targs(string dir, bool re) {return _comm.skin.sounds(dir, re);}
+		string[] targsImpl(string dir, bool re) {return _comm.skin.sounds(dir, re);}
 		@property Image image() {return _prop.images.se;}
 	} else static assert (0);
 
@@ -702,6 +719,15 @@ private:
 	}
 	int dirsIndexOf(string path) {
 		return indexOf(_dirs, path);
+	}
+	string[] targs(string path, bool forceRefresh) {
+		string[] r;
+		foreach (f; targsImpl(path, forceRefresh)) {
+			if (_incSearch.match(f.baseName())) {
+				r ~= f;
+			}
+		}
+		return r;
 	}
 	void __refreshList(string path, bool forceRefresh) {
 		string[] s = targs(path, forceRefresh);
@@ -954,6 +980,7 @@ private:
 	D _dirs;
 	Summary _summ;
 	Button _dirBtn;
+	IncSearch _incSearch;
 	string _path = "";
 	string _oldPath = "";
 	string[] _defs;

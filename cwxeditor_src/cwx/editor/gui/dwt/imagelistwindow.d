@@ -77,6 +77,8 @@ class ImageListWindow(MtType Type) {
 
 	@property
 	Shell shell() {return _shl;}
+	@property
+	ImageList widget() {return _list;}
 
 	private ImageData createImage(string path, bool mask) {
 		bool def;

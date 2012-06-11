@@ -378,6 +378,7 @@ public:
 		case MenuID.ChangeVH: return imgd!("chg_vh.png");
 		case MenuID.Find: return imgd!("replace.png");
 		case MenuID.IncSearch: return imgd!("inc_search.png");
+		case MenuID.CloseIncSearch: return imgd!("close_win.png");
 		case MenuID.EditProp: return imgd!("edit.png");
 		case MenuID.Refresh: return imgd!("refresh.png");
 		case MenuID.Undo: return imgd!("undo.png");

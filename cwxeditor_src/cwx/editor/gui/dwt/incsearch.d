@@ -2,6 +2,7 @@
 module cwx.editor.gui.dwt.incsearch;
 
 import cwx.utils;
+import cwx.menu;
 
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.customtext;
@@ -28,6 +29,7 @@ class IncSearch {
 	private Text _text;
 	private Control _parent;
 	private Wildcard _wild = null;
+	private bool _open = false;
 
 	this (Commons comm, Control parent) {
 		_parent = parent;
@@ -38,26 +40,24 @@ class IncSearch {
 		gd.widthHint = comm.prop.var.etc.incrementalSearchBoxWidth;
 		_text.setLayoutData(gd);
 		createTextMenu!Text(comm, comm.prop, _text, null);
+		auto menu = _text.getMenu();
+		new MenuItem(menu, SWT.SEPARATOR);
+		createMenuItem(comm, menu, MenuID.CloseIncSearch, &close, null);
 
 		.listener(_text, SWT.Modify, {
-			if (_wild && !_text.getText().length) {
-				close();
-			} else if (_text.getText().length) {
-				_wild = Wildcard(_text.getText());
-				auto gc = new GC(_text);
-				scope (exit) gc.dispose();
-				auto gd = new GridData(GridData.FILL_BOTH);
-				gd.widthHint = .max(comm.prop.var.etc.incrementalSearchBoxWidth, gc.textExtent(_text.getText()).x);
-				_text.setLayoutData(gd);
-				_win.pack();
-			}
+			if (!_open) return;
+			if (!_win.isVisible()) return;
+			_wild = Wildcard(_text.getText());
+			auto gc = new GC(_text);
+			scope (exit) gc.dispose();
+			auto gd = new GridData(GridData.FILL_BOTH);
+			gd.widthHint = .max(comm.prop.var.etc.incrementalSearchBoxWidth, gc.textExtent(_text.getText()).x);
+			_text.setLayoutData(gd);
+			_win.pack();
 			foreach (dlg; modEvent) {
 				dlg();
 			}
 		});
-		void resize() {
-			_win.setLocation(parent.toDisplay(0, -_win.getSize().y));
-		}
 		auto l = new class Listener {
 			override void handleEvent(Event e) {
 				resize();
@@ -65,6 +65,8 @@ class IncSearch {
 		};
 		auto rmFocus = new class Listener {
 			override void handleEvent(Event e) {
+				if (!_open) return;
+				if (!_win.isVisible()) return;
 				auto c = parent.getDisplay().getFocusControl();
 				if (c is _text) return;
 				auto comp = cast(Composite) parent;
@@ -94,20 +96,38 @@ class IncSearch {
 			d.removeListener(SWT.FocusOut, rmFocus);
 			d.removeListener(SWT.FocusOut, rmFocus);
 		});
+		.listener(_win, SWT.Close, (Event e) {
+			e.doit = false;
+			close();
+		});
 
 		_win.pack();
 		resize();
 	}
+	private void resize() {
+		_win.setLocation(_parent.toDisplay(0, -_win.getSize().y));
+	}
 
 	void startIncSearch(string first = "") {
-		_text.setText(first);
-		_win.setVisible(true);
-		_text.setFocus();
+		if (!_win.isVisible()) {
+			_text.setText(first);
+			resize();
+			_win.setVisible(true);
+		}
+		.forceFocus(_text, true);
+		_open = true;
 	}
 	void close() {
-		_win.setVisible(false);
-		_wild = null;
-		if (_text.getText().length) _text.setText("");
-		_parent.setFocus();
+		if (_win.isVisible()) {
+			_win.setVisible(false);
+			_wild = null;
+			if (_text.getText().length) {
+				_text.setText("");
+				foreach (dlg; modEvent) {
+					dlg();
+				}
+			}
+			_open = false;
+		}
 	}
 }

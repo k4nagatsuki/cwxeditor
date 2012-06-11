@@ -30,6 +30,7 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.FileDialog;
+import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.graphics.Image;
@@ -166,6 +167,7 @@ public:
 				gd.heightHint = fileList.computeSize(SWT.DEFAULT, SWT.DEFAULT).y;
 				fileList.setLayoutData(gd);
 				fileList.addSelectionListener(new FileSelect);
+				_msel.incSearch.modEvent ~= &refreshImageList;
 			}
 		}
 	} 
@@ -223,8 +225,11 @@ private:
 		auto dirs = dirsCombo;
 		if (-1 == sel && _oldDirSel == sel) return;
 		_oldDirSel = sel;
+		refreshImageList();
+	}
+	void refreshImageList() {
 		if (_imgList && !_imgList.shell.isDisposed()) {
-			_imgList.images(dirs.getText(), _msel.showingPaths);
+			_imgList.images(dirsCombo.getText(), _msel.showingPaths);
 			_imgList.select(_msel.path);
 		}
 	}
@@ -248,6 +253,10 @@ private:
 			}
 			auto parent = (cast(Control) e.widget).getShell();
 			_imgList = new ImageListWindow!Type(_prop, _comm, _summ, parent, &image);
+			auto menu = new Menu(_imgList.shell, SWT.POP_UP);
+			createMenuItem(_comm, menu, MenuID.IncSearch, &_msel.startIncSearch, null);
+			_imgList.widget.setMenu(menu);
+
 			_imgList.shell.open();
 
 			auto cloc = Display.getCurrent().getCursorLocation();
@@ -333,10 +342,7 @@ private:
 		if (_refresh) _refresh();
 		_paintedPath = null;
 		_image.redraw();
-		if (_imgList && !_imgList.shell.isDisposed()) {
-			_imgList.images(dirsCombo.getText(), _msel.showingPaths);
-			_imgList.select(_msel.path);
-		}
+		refreshImageList();
 	}
 	string _paintedPath = null;
 	Composite _group;
