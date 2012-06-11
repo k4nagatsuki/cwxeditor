@@ -87,6 +87,7 @@ SRC = cwxeditor.d \
 	cwx/editor/gui/dwt/areaviewutils.d \
 	cwx/editor/gui/dwt/messageutils.d \
 	cwx/editor/gui/dwt/dmenu.d \
+	cwx/editor/gui/dwt/incsearch.d \
 	d2std/xml.d \
 	d2std/xml2.d \
 

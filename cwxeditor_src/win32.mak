@@ -87,6 +87,7 @@ SRC = cwxeditor.d \
 	cwx\editor\gui\dwt\areaviewutils.d \
 	cwx\editor\gui\dwt\messageutils.d \
 	cwx\editor\gui\dwt\dmenu.d \
+	cwx\editor\gui\dwt\incsearch.d \
 
 OBJ = objs\cwxeditor.obj \
 	objs\cwx\utils.obj \
@@ -177,6 +178,7 @@ OBJ = objs\cwxeditor.obj \
 	objs\cwx\editor\gui\dwt\areaviewutils.obj \
 	objs\cwx\editor\gui\dwt\messageutils.obj \
 	objs\cwx\editor\gui\dwt\dmenu.obj \
+	objs\cwx\editor\gui\dwt\incsearch.obj \
 	objs\xml.obj \
 
 DMD = dmd

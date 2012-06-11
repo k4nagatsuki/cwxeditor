@@ -46,6 +46,7 @@ enum MenuID {
 	LookImages,
 	ChangeVH,
 	Find,
+	IncSearch,
 	EditProp,
 	Refresh,
 	Undo,
@@ -204,6 +205,7 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.LookImages] = "L";
 		_mnemonic[MenuID.ChangeVH] = "H";
 		_mnemonic[MenuID.Find] = "F";
+		_mnemonic[MenuID.IncSearch] = "W";
 		_mnemonic[MenuID.EditProp] = "E";
 		_mnemonic[MenuID.Refresh] = "R";
 		_mnemonic[MenuID.Undo] = "U";
@@ -346,6 +348,7 @@ class MenuProps : Properties {
 		_hotkey[MenuID.LookImages] = "";
 		_hotkey[MenuID.ChangeVH] = "";
 		_hotkey[MenuID.Find] = "Ctrl+F";
+		_hotkey[MenuID.IncSearch] = "Ctrl+I";
 		_hotkey[MenuID.EditProp] = "Enter";
 		_hotkey[MenuID.Refresh] = "F5";
 		_hotkey[MenuID.Undo] = "Ctrl+Z";

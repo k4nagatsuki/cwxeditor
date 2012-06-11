@@ -21,6 +21,7 @@ import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.sbshell;
 import cwx.editor.gui.dwt.dmenu;
+import cwx.editor.gui.dwt.incsearch;
 
 import core.thread;
 
@@ -366,7 +367,9 @@ private:
 				auto path = (cast(FileNameObj) selDirs[0].getData()).array;
 				FileNameObj[] list;
 				foreach (f; clistdir(path)) {
-					list ~= new FileNameObj(path, f);
+					if (_incSearch.match(f.stripExtension())) {
+						list ~= new FileNameObj(path, f);
+					}
 				}
 				if (_files.getSortColumn() is _sortName.column) {
 					if (_files.getSortDirection() == SWT.UP) {
@@ -858,6 +861,7 @@ private:
 	TableSorter!(FileNameObj) _sortName;
 	TableSorter!(FileNameObj) _sortExt;
 	TableSorter!(FileNameObj) _sortCount;
+	IncSearch _incSearch;
 
 	HashSet!(string) _cuts;
 	Image _sImgFolder, _sImgCards, _sImgBacks, _sImgBgm, _sImgSe, _sImgText, _sImgUnknown;
@@ -1000,9 +1004,14 @@ private:
 	void saveScenario() {
 		_comm.save.call(dlgParShl.getShell());
 	}
+	void incSearch() {
+		_incSearch.startIncSearch();
+	}
 	void createFilesMenu() {
 		if (_files.getMenu()) _files.getMenu().dispose();
 		auto menu = new Menu(_win.getShell(), SWT.POP_UP);
+		createMenuItem(_comm, menu, MenuID.IncSearch, &incSearch, () => _summ !is null);
+		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.ReplFilePath, &replace, () => _summ !is null);
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.NewDir, &createDirFiles, () => _summ !is null);
@@ -1620,6 +1629,8 @@ public:
 			shell.setBounds(x, y, width, height);
 			shell.addControlListener(new SCListener);
 		}
+		_incSearch = new IncSearch(_comm, _files);
+		_incSearch.modEvent ~= {refreshFiles(null);};
 	}
 	private class SCListener : ControlAdapter {
 		override void controlMoved(ControlEvent e) {

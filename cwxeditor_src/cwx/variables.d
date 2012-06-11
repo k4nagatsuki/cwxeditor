@@ -82,6 +82,7 @@ class FlexEtcProps : Properties {
 	mixin Property!("filesHeight", int, 150, true);
 	mixin Property!("talkersWidth", int, 100, true);
 	mixin Property!("motionsWidth", int, 150, true);
+	mixin Property!("incrementalSearchBoxWidth", int, 100, true);
 
 	mixin Property!("cardScaleMax", int, 300);
 	mixin Property!("cardScaleMin", int, 50);

@@ -847,10 +847,10 @@ class CWXScript {
 	}
 
 	private static struct Keywords {
-		CType[string] keywords;
-		string[CType] commands;
+		immutable CType[string] keywords;
+		immutable string[CType] commands;
 	}
-	private static __gshared const Keywords KEYS;
+	private static shared immutable Keywords KEYS;
 	shared static this () {
 		auto keywords = [
 			cast(string) "start":CType.START,
@@ -924,7 +924,7 @@ class CWXScript {
 		foreach (name, type; keywords) {
 			commands[type] = name;
 		}
-		KEYS = Keywords(keywords, commands);
+		KEYS = Keywords(.assumeUnique(keywords), .assumeUnique(commands));
 	}
 
 	/// ノードの型。
