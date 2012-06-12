@@ -44,9 +44,16 @@ class IncSearch {
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(comm, menu, MenuID.CloseIncSearch, &close, null);
 
+		bool inMod = false;
 		.listener(_text, SWT.Modify, {
+			if (inMod) return;
 			if (!_open) return;
 			if (!_win.isVisible()) return;
+			inMod = true;
+			scope (exit) inMod = false;
+			_win.setRedraw(false);
+			scope (exit) _win.setRedraw(true);
+
 			_wild = Wildcard(_text.getText());
 			auto gc = new GC(_text);
 			scope (exit) gc.dispose();
@@ -54,6 +61,12 @@ class IncSearch {
 			gd.widthHint = .max(comm.prop.var.etc.incrementalSearchBoxWidth, gc.textExtent(_text.getText()).x);
 			_text.setLayoutData(gd);
 			_win.pack();
+
+			// テキストの末尾位置がずれるため調整
+			auto sel = _text.getSelection();
+			_text.setText(_text.getText());
+			_text.setSelection(sel);
+
 			foreach (dlg; modEvent) {
 				dlg();
 			}
