@@ -206,7 +206,7 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.LookImages] = "L";
 		_mnemonic[MenuID.ChangeVH] = "H";
 		_mnemonic[MenuID.Find] = "F";
-		_mnemonic[MenuID.IncSearch] = "W";
+		_mnemonic[MenuID.IncSearch] = "N";
 		_mnemonic[MenuID.CloseIncSearch] = "X";
 		_mnemonic[MenuID.EditProp] = "E";
 		_mnemonic[MenuID.Refresh] = "R";
