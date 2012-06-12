@@ -159,6 +159,10 @@ public:
 	@property const string dlgMsgCopyMaterial3() {return "素材もコピーしますか？\n%1$s個のファイル";}
 	@property const string dlgMsgCopyMaterial4() {return "素材もコピーしますか？\n%1$s個のファイルと%2$s個の格納画像";}
 
+	@property const string incSearchContains() {return "名前の一部";}
+	@property const string incSearchWildcard() {return "ワイルドカード";}
+	@property const string incSearchRegex() {return "正規表現";}
+
 	@property const string dlgTitSettings() {return "CWXEditorの設定";}
 
 	@property const string refreshS() {return "更新";}
@@ -1483,7 +1487,7 @@ public:
 		case MenuID.LookImages: return "画像を一覧表示";
 		case MenuID.ChangeVH: return "分割領域の縦横を切替";
 		case MenuID.Find: return "検索と置換";
-		case MenuID.IncSearch: return "ワイルドカードで絞り込む";
+		case MenuID.IncSearch: return "絞り込み検索";
 		case MenuID.CloseIncSearch: return "閉じる";
 		case MenuID.EditProp: return "編集";
 		case MenuID.Refresh: return "最新の情報に更新";

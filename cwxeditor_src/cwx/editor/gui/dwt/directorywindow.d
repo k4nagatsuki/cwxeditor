@@ -367,7 +367,7 @@ private:
 				auto path = (cast(FileNameObj) selDirs[0].getData()).array;
 				FileNameObj[] list;
 				foreach (f; clistdir(path)) {
-					if (_incSearch.match(f.stripExtension())) {
+					if (_incSearch.match(f)) {
 						list ~= new FileNameObj(path, f);
 					}
 				}

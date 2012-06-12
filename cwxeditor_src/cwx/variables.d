@@ -303,6 +303,8 @@ class FlexEtcProps : Properties {
 	mixin Property!("searchUnusedPath", bool, true);
 	mixin Property!("searchOpenDialog", bool, false);
 
+	mixin Property!("incrementalSearchType", int, 0);
+
 	mixin Property!("flagTrues", string[], ["TRUE", "表示", "ON", "有", "可", "済み"], true);
 	mixin Property!("flagFalses", string[], ["FALSE", "非表示", "OFF", "無", "不可", "まだ"], true);
 

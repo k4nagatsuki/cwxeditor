@@ -11,6 +11,9 @@ import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dutils;
 
 import std.algorithm;
+import std.conv;
+import std.string;
+import std.regex;
 
 import org.eclipse.swt.all;
 
@@ -22,27 +25,55 @@ class IncSearch {
 	bool match(string text) {
 		if (!_wild) return true;
 		if (!_text.getText().length) return true;
-		return _wild.match(text);
+		switch (_type.getSelectionIndex()) {
+		case 0: return .indexOf(text, _text.getText(), CaseSensitive.no) != -1;
+		case 1: return _wild.match(text);
+		case 2:
+			if (_regexErr) return false;
+			return !.match(to!dstring(text), _regex).empty;
+		default: assert (0);
+		}
 	}
 
 	private Shell _win;
 	private Text _text;
+	private CCombo _type;
 	private Control _parent;
 	private Wildcard _wild = null;
+	private Regex!dchar _regex;
+	private bool _regexErr = false;
 	private bool _open = false;
 
 	this (Commons comm, Control parent) {
 		_parent = parent;
 		_win = new Shell(parent.getShell(), SWT.BORDER | SWT.MODELESS);
-		_win.setLayout(zeroGridLayout(1, true));
-		_text = new Text(_win, SWT.NONE);
-		auto gd = new GridData(GridData.FILL_BOTH);
+		_win.setLayout(zeroGridLayout(2, false));
+		_text = new Text(_win, SWT.BORDER);
+		auto gd = new GridData(GridData.FILL_HORIZONTAL);
 		gd.widthHint = comm.prop.var.etc.incrementalSearchBoxWidth;
 		_text.setLayoutData(gd);
 		createTextMenu!Text(comm, comm.prop, _text, null);
 		auto menu = _text.getMenu();
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(comm, menu, MenuID.CloseIncSearch, &close, null);
+
+		_type = new CCombo(_win, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
+		createTextMenu!CCombo(comm, comm.prop, _type, null);
+		_type.add(comm.prop.msgs.incSearchContains);
+		_type.add(comm.prop.msgs.incSearchWildcard);
+		_type.add(comm.prop.msgs.incSearchRegex);
+		_type.select(.min(_type.getItemCount() - 1, .max(0, comm.prop.var.etc.incrementalSearchType)));
+		auto menuc = _text.getMenu();
+		new MenuItem(menuc, SWT.SEPARATOR);
+		createMenuItem(comm, menuc, MenuID.CloseIncSearch, &close, null);
+		.listener(_type, SWT.Selection, {
+			comm.prop.var.etc.incrementalSearchType = _type.getSelectionIndex();
+			if (!_open) return;
+			if (!_win.isVisible()) return;
+			foreach (dlg; modEvent) {
+				dlg();
+			}
+		});
 
 		bool inMod = false;
 		.listener(_text, SWT.Modify, {
@@ -55,6 +86,13 @@ class IncSearch {
 			scope (exit) _win.setRedraw(true);
 
 			_wild = Wildcard(_text.getText());
+			try {
+				_regex = .regex(to!dstring(_text.getText()), "i");
+				_regexErr = false;
+			} catch (Exception e) {
+				_regexErr = true;
+			}
+
 			auto gc = new GC(_text);
 			scope (exit) gc.dispose();
 			auto gd = new GridData(GridData.FILL_BOTH);
@@ -81,7 +119,7 @@ class IncSearch {
 				if (!_open) return;
 				if (!_win.isVisible()) return;
 				auto c = parent.getDisplay().getFocusControl();
-				if (c is _text) return;
+				if (isDescendant(_win, c)) return;
 				auto comp = cast(Composite) parent;
 				if (comp) {
 					if (!isDescendant(comp, c)) {
