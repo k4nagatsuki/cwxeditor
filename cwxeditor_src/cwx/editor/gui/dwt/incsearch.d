@@ -63,7 +63,7 @@ class IncSearch {
 		_type.add(comm.prop.msgs.incSearchWildcard);
 		_type.add(comm.prop.msgs.incSearchRegex);
 		_type.select(.min(_type.getItemCount() - 1, .max(0, comm.prop.var.etc.incrementalSearchType)));
-		auto menuc = _text.getMenu();
+		auto menuc = _type.getMenu();
 		new MenuItem(menuc, SWT.SEPARATOR);
 		createMenuItem(comm, menuc, MenuID.CloseIncSearch, &close, null);
 		.listener(_type, SWT.Selection, {
