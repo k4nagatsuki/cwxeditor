@@ -1771,7 +1771,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 		}
 		return "";
 	}, (string path) {
-		return comm.skin.findImagePath(path, comm.summary.scenarioPath).length != 0;
+		return comm.skin.findImagePath(path, comm.summary.scenarioPath).length != 0 || decodeFontPath(path) in comm.skin.spChars;
 	}, rFonts, rColors);
 	auto dmsg = to!dstring(message);
 
