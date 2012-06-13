@@ -192,7 +192,7 @@ abstract class TopLevelPanel {
 		return p ? *p : null;
 	}
 	bool delegate() menuEnabled(MenuID menuID) {
-		if (shell.isDisposed()) return null;
+		if (!shell || shell.isDisposed()) return null;
 		auto p = menuID in _enabled;
 		return p ? *p : null;
 	}

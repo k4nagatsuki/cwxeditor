@@ -47,7 +47,7 @@ class IncSearch {
 	this (Commons comm, Control parent) {
 		_parent = parent;
 		_win = new Shell(parent.getShell(), SWT.BORDER | SWT.MODELESS);
-		_win.setLayout(zeroGridLayout(2, false));
+		_win.setLayout(zeroGridLayout(3, false));
 		_text = new Text(_win, SWT.BORDER);
 		auto gd = new GridData(GridData.FILL_HORIZONTAL);
 		gd.widthHint = comm.prop.var.etc.incrementalSearchBoxWidth;
@@ -74,6 +74,9 @@ class IncSearch {
 				dlg();
 			}
 		});
+		auto bar = new ToolBar(_win, SWT.FLAT);
+		comm.put(bar);
+		createToolItem(comm, bar, MenuID.CloseIncSearch, &close, null);
 
 		bool inMod = false;
 		.listener(_text, SWT.Modify, {
@@ -96,7 +99,7 @@ class IncSearch {
 			auto gc = new GC(_text);
 			scope (exit) gc.dispose();
 			auto gd = new GridData(GridData.FILL_BOTH);
-			gd.widthHint = .max(comm.prop.var.etc.incrementalSearchBoxWidth, gc.textExtent(_text.getText()).x);
+			gd.widthHint = .max(comm.prop.var.etc.incrementalSearchBoxWidth, _text.computeSize(gc.textExtent(_text.getText()).x, SWT.DEFAULT).x);
 			_text.setLayoutData(gd);
 			_win.pack();
 
@@ -146,6 +149,9 @@ class IncSearch {
 			parent.removeListener(SWT.Move, l);
 			d.removeListener(SWT.FocusOut, rmFocus);
 			d.removeListener(SWT.FocusOut, rmFocus);
+		});
+		.listener(parent, SWT.Dispose, {
+			_win.dispose();
 		});
 		.listener(_win, SWT.Close, (Event e) {
 			e.doit = false;
