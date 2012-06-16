@@ -2885,7 +2885,6 @@ public:
 			if (c.name != oldName) {
 				void recurse(Content[] cs) {
 					foreach (ct; cs) {
-						if (ct.startUseCounter) continue;
 						if (ct.start == oldName) {
 							ct.start = c.name;
 						}
@@ -2893,7 +2892,6 @@ public:
 					}
 				}
 				recurse(cs);
-				_et.startUseCounter.change(oldName, c.name);
 			}
 			_et.insert(index + i, c);
 			sItm = createTreeItem(_tree, c, c.name, _prop.images.content(c.type), index + i);
