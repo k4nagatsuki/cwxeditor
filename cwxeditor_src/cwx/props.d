@@ -2161,9 +2161,9 @@ public:
 	int posTopMax() {return 9999;}
 	int posTopMin() {return -9999;}
 	int backWidthMax() {return 9999;}
-	int backWidthMin() {return -9999;}
+	int backWidthMin() {return 0;}
 	int backHeightMax() {return 9999;}
-	int backHeightMin() {return -9999;}
+	int backHeightMin() {return 0;}
 	double cardSizeMin(){return 0.50;}
 	double cardSizeMax(){return 3.0;}
 	CInsets castCardInsets(){return CInsets(18, 11, 18, 10);}
