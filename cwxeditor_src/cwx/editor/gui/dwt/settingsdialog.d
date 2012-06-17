@@ -1483,7 +1483,7 @@ private:
 					auto grp = new Group(comp3, SWT.NONE);
 					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 					grp.setText(_prop.msgs.systemSounds);
-					grp.setLayout(new GridLayout(4, false));
+					grp.setLayout(new GridLayout(7, false));
 					auto l = new Label(grp, SWT.NONE);
 					l.setText(_prop.msgs.soundSaved);
 					_savedSound = new Text(grp, SWT.BORDER);
@@ -1494,7 +1494,28 @@ private:
 					refr.setText(_prop.msgs.reference);
 					refr.addSelectionListener(new SelSysSound(_savedSound));
 					createOpenButton(grp, _savedSound, false);
-					setupDropFile(grp, _savedSound, &dropSysSound);	
+					setupDropFile(grp, _savedSound, &dropSysSound);
+
+					auto sep = new Label(grp, SWT.SEPARATOR);
+					auto sgd = new GridData(GridData.FILL_VERTICAL);
+					sgd.heightHint = 0;
+					sep.setLayoutData(sgd);
+
+					auto play = new Button(grp, SWT.PUSH);
+					play.setToolTipText(_prop.msgs.menuText(MenuID.PlaySE));
+					play.setImage(_prop.images.menu(MenuID.PlaySE));
+					.listener(play, SWT.Selection, {
+						string file = _savedSound.getText();
+						if (file.length && .exists(file)) {
+							playSE(file, SOUND_TYPE_SDL);
+						}
+					});
+					auto stop = new Button(grp, SWT.PUSH);
+					stop.setToolTipText(_prop.msgs.menuText(MenuID.StopSE));
+					stop.setImage(_prop.images.menu(MenuID.StopSE));
+					.listener(stop, SWT.Selection, {
+						stopSE();
+					});
 				}
 			}
 			{
