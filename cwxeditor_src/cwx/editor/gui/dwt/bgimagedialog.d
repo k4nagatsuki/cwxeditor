@@ -229,10 +229,10 @@ protected:
 					spn.setSelection(0);
 					return spn;
 				}
-				_x = createS(_prop.msgs.left, _prop.looks.posLeftMax, _prop.looks.posLeftMin);
-				_y = createS(_prop.msgs.top, _prop.looks.posTopMax, _prop.looks.posTopMin);
-				_w = createS(_prop.msgs.width, _prop.looks.backWidthMax, _prop.looks.backWidthMin);
-				_h = createS(_prop.msgs.height, _prop.looks.backHeightMax, _prop.looks.backHeightMin);
+				_x = createS(_prop.msgs.left, _prop.var.etc.posLeftMax, -(cast(int) _prop.var.etc.posLeftMax));
+				_y = createS(_prop.msgs.top, _prop.var.etc.posTopMax, -(cast(int) _prop.var.etc.posTopMax));
+				_w = createS(_prop.msgs.width, _prop.var.etc.backWidthMax, 0);
+				_h = createS(_prop.msgs.height, _prop.var.etc.backHeightMax, 0);
 				_mask = new Button(comp2, SWT.TOGGLE);
 				mod(_mask);
 				_mask.setImage(_prop.images.menu(MenuID.Mask));

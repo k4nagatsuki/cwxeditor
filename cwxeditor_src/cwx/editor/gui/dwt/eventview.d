@@ -1928,16 +1928,16 @@ protected:
 			comp.setLayout(new GridLayout(4, false));
 			_from = new Spinner(comp, SWT.BORDER);
 			_from.setMinimum(1);
-			_from.setMaximum(_prop.looks.roundMax);
+			_from.setMaximum(_prop.var.etc.roundMax);
 			_from.addSelectionListener(new SelMin);
 			auto l1 = new Label(comp, SWT.NONE);
 			l1.setText(_prop.msgs.roundSep);
 			_to = new Spinner(comp, SWT.BORDER);
 			_to.setMinimum(1);
-			_to.setMaximum(_prop.looks.roundMax);
+			_to.setMaximum(_prop.var.etc.roundMax);
 			_to.addSelectionListener(new SelMax);
 			auto l2 = new Label(comp, SWT.NONE);
-			l2.setText(.tryFormat(_prop.msgs.rangeHint, 1, _prop.looks.roundMax));
+			l2.setText(.tryFormat(_prop.msgs.rangeHint, 1, _prop.var.etc.roundMax));
 		}
 	}
 	override bool close(bool ok) {

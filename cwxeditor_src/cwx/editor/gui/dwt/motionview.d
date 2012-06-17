@@ -1072,8 +1072,8 @@ public:
 				return round;
 			}
 			Spinner createRoundC(Composite parent) {
-				return createSpinner(parent, _prop.msgs.motionRound, Motion.round_max,
-					.tryFormat(_prop.msgs.rangeHint, 1, Motion.round_max), &roundEnter, &roundCancel);
+				return createSpinner(parent, _prop.msgs.motionRound, _prop.var.etc.roundMax,
+					.tryFormat(_prop.msgs.rangeHint, 1, _prop.var.etc.roundMax), &roundEnter, &roundCancel);
 			}
 			_abilityComp = createC();
 			{
@@ -1117,8 +1117,8 @@ public:
 					radio.addSelectionListener(dtl);
 					_dmgTyp[typ] = radio;
 				}
-				_valValue = createSpinner(_valueComp, _prop.msgs.motionValue, Motion.uValue_max,
-					.tryFormat(_prop.msgs.rangeHint, Motion.uValue_min, Motion.uValue_max), &valEnter, &valCancel);
+				_valValue = createSpinner(_valueComp, _prop.msgs.motionValue, _prop.var.etc.uValueMax,
+					.tryFormat(_prop.msgs.rangeHint, Motion.uValue_min, _prop.var.etc.uValueMax), &valEnter, &valCancel);
 			}
 			_noneComp = createC();
 			motionStack.topControl = _noneComp;

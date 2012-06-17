@@ -15,67 +15,55 @@ import std.utf;
 import std.datetime;
 import std.traits;
 
-private struct PropValue(string PKey, T, T Default, bool ReadOnly) {
-	private T _value = Default;
-	@property
-	const
-	string key() {
-		return PKey;
+private void toNode(T)(ref XNode node, string key, in T value) {
+	static if (is (typeof(value.toNode))) {
+		value.toNode(node);
+	} else static if (isVArray!(T)) {
+		auto e = node.newElement(key);
+		foreach (v; value) {
+			static if (is (typeof(v.toNode))) {
+				v.toNode(e);
+			} else {
+				e.newElement("value", to!(string)(v));
+			}
+		}
+	} else {
+		node.newElement(key, to!(string)(value));
 	}
-	static const bool READ_ONLY = ReadOnly;
+}
+private void fromNode(T)(ref XNode node, string key, ref T value) {
+	static if (is (typeof(value.fromNode))) {
+		value.fromNode(node);
+	} else static if (isVArray!(T)) {
+		value = [];
+		node.onTag[null] = (ref XNode v) {
+			static if (is (typeof(value[0].fromNode))) {
+				typeof(value[0]) val;
+				val.fromNode(v);
+				value ~= val;
+			} else {
+				value ~= to!(typeof(value[0]))(v.value);
+			}
+		};
+		node.parse();
+	} else {
+		value = to!(T)(node.value);
+	}
+}
 
-	static if (!ReadOnly) {
-		void opAssign(T value) {
-			_value = value;
-		}
-		void opCall(T value) {
-			_value = value;
-		}
-	}
-	@property
-	static T init() {return Default;}
+private struct PropValue(string PKey, T, T Default, bool ReadOnly) {
+	static immutable string KEY = PKey;
+	static immutable T INIT = Default;
+	static immutable bool READ_ONLY = ReadOnly;
+
+	T value = Default;
+
 	const
 	void toNode(ref XNode node) {
-		static if (is (typeof(_value.toNode))) {
-			_value.toNode(node);
-		} else static if (isVArray!(T)) {
-			auto e = node.newElement(key);
-			foreach (v; _value) {
-				static if (is (typeof(v.toNode))) {
-					v.toNode(e);
-				} else {
-					e.newElement("value", to!(string)(v));
-				}
-			}
-		} else {
-			node.newElement(key, to!(string)(_value));
-		}
-	}
-	T opCall() {
-		return _value;
-	}
-	const
-	const(T) opCall() {
-		return _value;
+		.toNode(node, KEY, value);
 	}
 	void fromNode(ref XNode node) {
-		static if (is (typeof(_value.fromNode))) {
-			_value.fromNode(node);
-		} else static if (isVArray!(T)) {
-			_value = [];
-			node.onTag[null] = (ref XNode v) {
-				static if (is (typeof(_value[0].fromNode))) {
-					typeof(_value[0]) val;
-					val.fromNode(v);
-					_value ~= val;
-				} else {
-					_value ~= to!(typeof(_value[0]))(v.value);
-				}
-			};
-			node.parse();
-		} else {
-			_value = to!(T)(node.value);
-		}
+		.fromNode(node, KEY, value);
 	}
 }
 
@@ -90,10 +78,10 @@ abstract class Properties {
 	/// ---
 	/// private final PropValue!("width", int, 100) _width;
 	/// int width() {
-	/// 	return _width();
+	/// 	return _width.value;
 	/// }
 	/// void width(int value) {
-	/// 	_width = value;
+	/// 	_width.value = value;
 	/// }
 	/// ---
 	/// Params:
@@ -104,10 +92,10 @@ abstract class Properties {
 		mixin ("private PropValue!("
 			~ "\"" ~ Name ~ "\", " ~ VType.stringof ~ ", " ~ Default.stringof ~ ", " ~ ReadOnly.stringof ~ ") "
 			~ "_" ~ Name ~ ";");
-		mixin ("@property const const(" ~ VType.stringof ~ ") " ~ Name ~ "() {return _" ~ Name ~ "();}");
+		mixin ("@property const const(" ~ VType.stringof ~ ") " ~ Name ~ "() {return _" ~ Name ~ ".value;}");
 		mixin ("@property const const(" ~ VType.stringof ~ ") " ~ Name ~ "_init() {return Default;}");
 		static if (!ReadOnly) {
-			mixin ("@property void " ~ Name ~ "(" ~ VType.stringof ~ " value) {_" ~ Name ~ " = value;}");
+			mixin ("@property void " ~ Name ~ "(" ~ VType.stringof ~ " value) {_" ~ Name ~ ".value = value;}");
 		}
 	}
 	/// mixinによってXML化する関数及びXMLからプロパティ群をロードする関数を生成する。
@@ -119,7 +107,7 @@ abstract class Properties {
 			string toXML() {
 				auto e = XNode.create(Root);
 				foreach (fld; this.tupleof) {
-					if (!fld.READ_ONLY || fld() != fld.init) {
+					if (!fld.READ_ONLY || fld.value != fld.INIT) {
 						fld.toNode(e);
 					}
 				}
@@ -143,7 +131,7 @@ abstract class Properties {
 			}
 			foreach (fld; this.tupleof) {
 				static if (is(typeof(fld.READ_ONLY))) {
-					if (fld() != fld.init) {
+					if (fld.value != fld.INIT) {
 						fld.toNode(e);
 					}
 				}
@@ -159,7 +147,7 @@ abstract class Properties {
 			if (e.valid) {
 				foreach (i, fld; r.tupleof) {
 					static if (is(typeof(fld.READ_ONLY))) {
-						auto n = e.child(fld.key, false);
+						auto n = e.child(fld.KEY, false);
 						if (n.valid) {
 							try {
 								r.tupleof[i].fromNode(n);

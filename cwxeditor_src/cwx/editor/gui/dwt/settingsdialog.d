@@ -507,10 +507,10 @@ private:
 				_bgImgMask.setImage(_prop.images.menu(MenuID.Mask));
 				_bgImgMask.setToolTipText(_prop.buildTool(MenuID.Mask));
 
-				_bgImgX = createS(parent, _prop.msgs.left, _prop.looks.posLeftMax, _prop.looks.posLeftMin);
-				_bgImgY = createS(parent, _prop.msgs.top, _prop.looks.posTopMax, _prop.looks.posTopMin);
-				_bgImgW = createS(parent, _prop.msgs.width, _prop.looks.backWidthMax, _prop.looks.backWidthMin);
-				_bgImgH = createS(parent, _prop.msgs.height, _prop.looks.backHeightMax, _prop.looks.backHeightMin);
+				_bgImgX = createS(parent, _prop.msgs.left, _prop.var.etc.posLeftMax, -(cast(int) _prop.var.etc.posLeftMax));
+				_bgImgY = createS(parent, _prop.msgs.top, _prop.var.etc.posTopMax, -(cast(int) _prop.var.etc.posTopMax));
+				_bgImgW = createS(parent, _prop.msgs.width, _prop.var.etc.backWidthMax, 0);
+				_bgImgH = createS(parent, _prop.msgs.height, _prop.var.etc.backHeightMax, 0);
 			}
 		} else static if (is(T:OuterTool)) {
 			void selectProgram() {

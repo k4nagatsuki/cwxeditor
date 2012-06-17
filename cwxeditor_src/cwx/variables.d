@@ -87,8 +87,28 @@ class FlexEtcProps : Properties {
 	mixin Property!("showSceneToolBar", bool, true);
 	mixin Property!("showEventToolBar", bool, true);
 
+	mixin Property!("partyMax", uint, 6, true);
 	mixin Property!("cardScaleMax", int, 300);
 	mixin Property!("cardScaleMin", int, 50);
+	mixin Property!("posLeftMax", uint, 9999, true);
+	mixin Property!("posTopMax", uint, 9999, true);
+	mixin Property!("backWidthMax", uint, 9999, true);
+	mixin Property!("backHeightMax", uint, 9999, true);
+	mixin Property!("castLevelMax", uint, 99, true);
+	mixin Property!("lifeMax", uint, 999, true);
+	mixin Property!("couponValueMax", uint, 999, true);
+	mixin Property!("physicalMax", uint, 15, true);
+	mixin Property!("mentalMax", uint, 4, true);
+	mixin Property!("skillLevelMax", uint, 999, true);
+	mixin Property!("useCountMax", uint, 999, true);
+	mixin Property!("priceMax", uint, 999999, true);
+	mixin Property!("enhanceMax", uint, 10, true);
+	mixin Property!("roundMax", uint, 999, true);
+	mixin Property!("paralyzeMax", uint, 40, true);
+	mixin Property!("poisonMax", uint, 40, true);
+	mixin Property!("cardNumberMax", uint, 99, true);
+	mixin Property!("waitMax", uint, 1000, true);
+	mixin Property!("uValueMax", uint, 999, true);
 
 	mixin Property!("imageListWidth", int, 380);
 	mixin Property!("imageListHeight", int, 300);

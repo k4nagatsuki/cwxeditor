@@ -32,18 +32,9 @@ public:
 	@property const int summaryDescLine() {return 11;}
 	@property const int summaryPageY() {return 340;}
 	@property const CRGB summaryLevelColor() {return CRGB(32, 128, 128);}
-	@property const int posLeftMax() {return 9999;}
-	@property const int posLeftMin() {return -9999;}
-	@property const int posTopMax() {return 9999;}
-	@property const int posTopMin() {return -9999;}
-	@property const int backWidthMax() {return 9999;}
-	@property const int backWidthMin() {return -9999;}
-	@property const int backHeightMax() {return 9999;}
-	@property const int backHeightMin() {return -9999;}
 	@property const CInsets castCardInsets(){return CInsets(18, 11, 18, 10);}
 	@property const CInsets menuCardInsets(){return CInsets(13, 3, 3, 3);}
 	@property const CInsets cardInsets(){return menuCardInsets;}
-	@property const uint partyMax() {return 6;}
 	@property const CPoint[] partyCardXY() {
 		return [
 			CPoint(8, 285),
@@ -103,33 +94,21 @@ public:
 
 	@property const uint castNameLimit() {return 14;}
 	@property const uint nameLimit() {return 12;}
-	@property const uint castLevelMax() {return 99;}
-	@property const uint lifeMax() {return 999;}
 	const uint lifeCalc(uint lev, uint vit, uint spi) {
 		return cast(uint) (((lev + 1.0) * (vit / 2.0 + 4.0)) + (spi / 2.0));
 	}
-	@property const uint couponValueMax() {return Content.couponValue_max;}
-	@property const uint physicalMax() {return 15;}
 	@property const uint physicalCutMin() {return 1;}
 	@property const uint physicalCutMaxBase() {return 6;}
 	@property const uint physicalNormal() {return 6;}
 	@property const uint[] physicalBorders() {return [1, 6, 12];}
-	@property const uint mentalMax() {return 4;}
 	@property const uint mentalCut() {return 3;}
 	@property const uint[] mentalBorders() {return [3];}
 
-	@property const uint skillLevelMax() {return 999;}
 	const int skillPrice(int lev) {return (lev + 2) * 200;}
 	@property const int beastPrice() {return 500;}
-	@property const uint useCountMax() {return 999;}
-	@property const uint priceMax() {return Content.money_max;}
-	@property const uint enhanceMax() {return 10;}
 	@property const int keyCodesMaxLegacy() {return 5;}
 	@property const int keyCodesMax() {return 10;}
 	@property const uint motionRoundDefault() {return 10;}
-	@property const uint roundMax() {return 999;}
-	@property const uint paralyzeMax() {return 40;}
-	@property const uint poisonMax() {return 40;}
 	@property const uint stoneBorder() {return 20;}
 
 	@property const uint idMax() {return 99999;}

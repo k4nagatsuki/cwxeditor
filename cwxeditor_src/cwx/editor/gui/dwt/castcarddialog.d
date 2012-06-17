@@ -549,9 +549,9 @@ private:
 				mod(_level);
 				_level.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				_level.setMinimum(1);
-				_level.setMaximum(_prop.looks.castLevelMax);
+				_level.setMaximum(_prop.var.etc.castLevelMax);
 				auto hint = new Label(comp2, SWT.RIGHT);
-				hint.setText(.tryFormat(_prop.msgs.rangeHint, 1, _prop.looks.castLevelMax));
+				hint.setText(.tryFormat(_prop.msgs.rangeHint, 1, _prop.var.etc.castLevelMax));
 			}
 			{
 				auto grp = new Group(compr, SWT.NONE);
@@ -564,10 +564,10 @@ private:
 				mod(_lifeMax);
 				_lifeMax.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				_lifeMax.setMinimum(1);
-				_lifeMax.setMaximum(_prop.looks.lifeMax);
+				_lifeMax.setMaximum(_prop.var.etc.lifeMax);
 				_lifeMax.addModifyListener(new LifeMaxL);
 				auto hint = new Label(comp2, SWT.RIGHT);
-				hint.setText(.tryFormat(_prop.msgs.rangeHint, 1, _prop.looks.lifeMax));
+				hint.setText(.tryFormat(_prop.msgs.rangeHint, 1, _prop.var.etc.lifeMax));
 				auto lifec = new Button(comp2, SWT.PUSH);
 				mod(lifec);
 				auto lgd = new GridData(GridData.FILL_HORIZONTAL);
@@ -686,8 +686,8 @@ private:
 				gd.horizontalSpan = 2;
 				_newCoupon.setLayoutData(gd);
 				_couponVal = new Spinner(grp, SWT.BORDER);
-				_couponVal.setMinimum(cast(int) _prop.looks.couponValueMax * -1);
-				_couponVal.setMaximum(_prop.looks.couponValueMax);
+				_couponVal.setMinimum(cast(int) _prop.var.etc.couponValueMax * -1);
+				_couponVal.setMaximum(_prop.var.etc.couponValueMax);
 			}
 			{
 				_coupons = new Table(grp, SWT.BORDER | SWT.SINGLE | SWT.FULL_SELECTION);
@@ -909,10 +909,10 @@ private:
 				_phyTbl[p] = i;
 				names[i] = _prop.msgs.physicalName(p);
 			}
-			_phy.setRadar(_prop.looks.physicalMax + 1, names, 0);
+			_phy.setRadar(_prop.var.etc.physicalMax + 1, names, 0);
 			_phy.antialias = true;
 			_phy.borderlines = cast(int[]) _prop.looks.physicalBorders;
-			_phy.lineStep = _prop.looks.physicalMax / 5;
+			_phy.lineStep = _prop.var.etc.physicalMax / 5;
 		}
 		{
 			auto basic = new Button(comp, SWT.PUSH);
@@ -947,7 +947,7 @@ private:
 				if (race) {
 					int v = race.physical(phy);
 					pmax = v + _prop.looks.physicalCutMaxBase;
-					if (pmax > _prop.looks.physicalMax) pmax = _prop.looks.physicalMax;
+					if (pmax > _prop.var.etc.physicalMax) pmax = _prop.var.etc.physicalMax;
 					if (v < pmin) pmin = v;
 					p[phy] = v;
 				} else {
@@ -994,10 +994,10 @@ private:
 				auto scale = new Scale(grp, SWT.NONE);
 				mod(scale);
 				scale.setLayoutData(new GridData(GridData.FILL_BOTH));
-				scale.setMaximum(_prop.looks.mentalMax * 2);
+				scale.setMaximum(_prop.var.etc.mentalMax * 2);
 				scale.setMinimum(0);
 				scale.setIncrement(1);
-				scale.setPageIncrement(_prop.looks.mentalMax);
+				scale.setPageIncrement(_prop.var.etc.mentalMax);
 				auto maxl = new Label(grp, SWT.NONE);
 				maxl.setText(_prop.msgs.mentalName(m));
 				_mtl[m] = scale;
@@ -1046,7 +1046,7 @@ private:
 				int v = cast(int) val;
 				if (v < min) v = min;
 				if (v > max) v = max;
-				scale.setSelection(v + _prop.looks.mentalMax);
+				scale.setSelection(v + _prop.var.etc.mentalMax);
 			}
 		}
 	}
@@ -1070,11 +1070,11 @@ private:
 				_enhTbl[enh] = i;
 				names[i] = .tryFormat(_prop.msgs.enhanceBonus, _prop.msgs.enhanceName(enh));
 			}
-			_enh.setRadar(_prop.looks.enhanceMax * 2 + 1,
-				names, cast(int) _prop.looks.enhanceMax * -1);
+			_enh.setRadar(_prop.var.etc.enhanceMax * 2 + 1,
+				names, cast(int) _prop.var.etc.enhanceMax * -1);
 			_enh.antialias = true;
 			_enh.borderlines = [0];
-			_enh.lineStep = _prop.looks.enhanceMax / 2;
+			_enh.lineStep = _prop.var.etc.enhanceMax / 2;
 		}
 		{
 			auto basic = new Button(comp, SWT.PUSH);
@@ -1155,7 +1155,7 @@ private:
 				if (_mtly.getSelectionIndex() < 0) _mtly.select(0);
 				_mtly.addSelectionListener(new SelMentality);
 				_mtlyRound = createSpn(comp2);
-				_mtlyRound.setMaximum(Motion.round_max);
+				_mtlyRound.setMaximum(_prop.var.etc.roundMax);
 				_mtlyRound.setMinimum(Motion.round_min);
 				spns ~= _mtlyRound;
 				auto lm2  = new Label(comp2, SWT.NONE);
@@ -1170,12 +1170,12 @@ private:
 				l.setText(_prop.msgs.enhanceLiveBonusName(enh));
 				lbls1 ~= l;
 				auto spn = createSpn(comp2);
-				spn.setMaximum(_prop.looks.enhanceMax);
-				spn.setMinimum(-(cast(int) _prop.looks.enhanceMax));
+				spn.setMaximum(_prop.var.etc.enhanceMax);
+				spn.setMinimum(-(cast(int) _prop.var.etc.enhanceMax));
 				spns ~= spn;
 				_liveEnh[enh] = spn;
 				auto rnd = createSpn(comp2);
-				rnd.setMaximum(Motion.round_max);
+				rnd.setMaximum(_prop.var.etc.roundMax);
 				rnd.setMinimum(Motion.round_min);
 				spns ~= rnd;
 				_enhRound[enh] = rnd;
@@ -1200,12 +1200,12 @@ private:
 		}
 		{
 			auto grp = createGrp(_prop.msgs.status);
-			_paralyze = createStSpn(grp, _prop.msgs.paralyze, _prop.looks.paralyzeMax, _prop.msgs.unitValue);
-			_poison = createStSpn(grp, _prop.msgs.poison, _prop.looks.poisonMax, _prop.msgs.unitValue);
-			_bind = createStSpn(grp, _prop.msgs.bind, Motion.round_max, _prop.msgs.unitRound);
-			_silence = createStSpn(grp, _prop.msgs.silence, Motion.round_max, _prop.msgs.unitRound);
-			_faceUp = createStSpn(grp, _prop.msgs.faceUp, Motion.round_max, _prop.msgs.unitRound);
-			_antiMagic = createStSpn(grp, _prop.msgs.antiMagic, Motion.round_max, _prop.msgs.unitRound);
+			_paralyze = createStSpn(grp, _prop.msgs.paralyze, _prop.var.etc.paralyzeMax, _prop.msgs.unitValue);
+			_poison = createStSpn(grp, _prop.msgs.poison, _prop.var.etc.poisonMax, _prop.msgs.unitValue);
+			_bind = createStSpn(grp, _prop.msgs.bind, _prop.var.etc.roundMax, _prop.msgs.unitRound);
+			_silence = createStSpn(grp, _prop.msgs.silence, _prop.var.etc.roundMax, _prop.msgs.unitRound);
+			_faceUp = createStSpn(grp, _prop.msgs.faceUp, _prop.var.etc.roundMax, _prop.msgs.unitRound);
+			_antiMagic = createStSpn(grp, _prop.msgs.antiMagic, _prop.var.etc.roundMax, _prop.msgs.unitRound);
 		}
 		void setlblw(Control[] lbls) {
 			int maxW = 0;
@@ -1506,7 +1506,7 @@ protected:
 				_phy.setValue(i, _card.physical(phy));
 			}
 			foreach (mtl, scale; _mtl) {
-				scale.setSelection(_prop.looks.mentalMax + _card.mental(mtl));
+				scale.setSelection(_prop.var.etc.mentalMax + _card.mental(mtl));
 			}
 			foreach (enh, i; _enhTbl) {
 				_enh.setValue(i, _card.defaultEnhance(enh));
@@ -1541,7 +1541,7 @@ protected:
 			phys[] = _prop.looks.physicalNormal;
 			_phy.setValues(phys);
 			foreach (radio; _mtl) {
-				radio.setSelection(_prop.looks.mentalMax);
+				radio.setSelection(_prop.var.etc.mentalMax);
 			}
 			int[] bonus;
 			bonus.length = _enh.paramCount;
@@ -1609,7 +1609,7 @@ protected:
 			_card.physical(phy, _phy.getValue(i));
 		}
 		foreach (mtl, scale; _mtl) {
-			_card.mental(mtl, cast(int) scale.getSelection() - _prop.looks.mentalMax);
+			_card.mental(mtl, cast(int) scale.getSelection() - _prop.var.etc.mentalMax);
 		}
 		foreach (enh, i; _enhTbl) {
 			_card.defaultEnhance(enh, _enh.getValue(i));

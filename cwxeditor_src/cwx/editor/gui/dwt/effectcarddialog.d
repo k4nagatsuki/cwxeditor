@@ -284,10 +284,10 @@ private:
 				comp2.setLayout(new GridLayout(2, false));
 				_level = new Spinner(comp2, SWT.BORDER);
 				mod(_level);
-				_level.setMaximum(_prop.looks.skillLevelMax);
+				_level.setMaximum(_prop.var.etc.skillLevelMax);
 				_level.setMinimum(0);
 				auto l = new Label(comp2, SWT.NONE);
-				l.setText(.tryFormat(_prop.msgs.rangeHint, 0, _prop.looks.skillLevelMax));
+				l.setText(.tryFormat(_prop.msgs.rangeHint, 0, _prop.var.etc.skillLevelMax));
 			}
 		} else static if (is (C == ItemCard) || is (C == BeastCard)) {
 			{
@@ -299,10 +299,10 @@ private:
 				comp2.setLayout(new GridLayout(2, false));
 				_useCount = new Spinner(comp2, SWT.BORDER);
 				mod(_useCount);
-				_useCount.setMaximum(_prop.looks.useCountMax);
+				_useCount.setMaximum(_prop.var.etc.useCountMax);
 				_useCount.setMinimum(0);
 				auto l = new Label(comp2, SWT.NONE);
-				l.setText(.tryFormat(_prop.msgs.useCountRange, _prop.looks.useCountMax));
+				l.setText(.tryFormat(_prop.msgs.useCountRange, _prop.var.etc.useCountMax));
 			}
 		} else {
 			static assert (0);
@@ -316,7 +316,7 @@ private:
 			comp2.setLayout(new GridLayout(2, false));
 			static if (is (C == SkillCard) || is (C == BeastCard)) {
 				_price = new Spinner(comp2, SWT.BORDER | SWT.READ_ONLY);
-				_price.setMaximum(_prop.looks.priceMax);
+				_price.setMaximum(_prop.var.etc.priceMax);
 				static if (is (C == SkillCard)) {
 					new SpinnerEdit(_level, &calcPrice, &calcPrice, &priceCancel);
 				} else static if (is (C == BeastCard)) {
@@ -329,10 +329,10 @@ private:
 			} else static if (is (C == ItemCard)) {
 				_price = new Spinner(comp2, SWT.BORDER);
 				mod(_price);
-				_price.setMaximum(_prop.looks.priceMax);
+				_price.setMaximum(_prop.var.etc.priceMax);
 				_price.setMinimum(0);
 				auto l = new Label(comp2, SWT.NONE);
-				l.setText(.tryFormat(_prop.msgs.rangeHint, 0, _prop.looks.priceMax));
+				l.setText(.tryFormat(_prop.msgs.rangeHint, 0, _prop.var.etc.priceMax));
 			} else {
 				static assert (0);
 			}
@@ -452,11 +452,11 @@ private:
 			tbl[enh] = i;
 			names[i] = .tryFormat(_prop.msgs.enhanceBonus, _prop.msgs.enhanceName(enh));
 		}
-		useMod.setRadar(_prop.looks.enhanceMax * 2 + 1,
-			names, cast(int) _prop.looks.enhanceMax * -1);
+		useMod.setRadar(_prop.var.etc.enhanceMax * 2 + 1,
+			names, cast(int) _prop.var.etc.enhanceMax * -1);
 		useMod.antialias = true;
 		useMod.borderlines = [0];
-		useMod.lineStep = _prop.looks.enhanceMax / 2;
+		useMod.lineStep = _prop.var.etc.enhanceMax / 2;
 		return useMod;
 	}
 	CTabItem constructUseModify(CTabFolder tabf) {

@@ -214,12 +214,12 @@ LIB = /rc:cwxeditor \
 FLAGS = -J. -Jresource -op -c -property
 
 $(OUT) : $(SRC) $(RES)
-	$(DMD) $(FLAGS) $(SRC) -g -gs -debug -unittest -version="Console" -odobjs
+	$(DMD) $(FLAGS) $(SRC) -gs -debug -unittest -version="Console" -odobjs
 	$(DMD) -c -O -inline -release d2std\xml.d -odobjs
 	$(DMD) $(OBJ) -L"$(LIB)" -gs -debug -of"$(OUT)" -L/exet:nt/su:console:4.0
 
 debug_windows : $(SRC) $(RES)
-	$(DMD) $(FLAGS) $(SRC) -g -gs -debug -unittest -odobjs
+	$(DMD) $(FLAGS) $(SRC) -gs -debug -unittest -odobjs
 	$(DMD) -c -O -inline -release d2std\xml.d -odobjs
 	$(DMD) $(OBJ) -L"$(LIB)" -gs -of"$(OUT)" -L/exet:nt/su:windows:4.0
 

@@ -2921,20 +2921,20 @@ public:
 			createToolItem(_comm, bar, MenuID.NewBack, &createBackground, null);
 		}
 		new ToolItem(bar, SWT.SEPARATOR);
-		_xSpn = createSpinner(bar, _prop.msgs.left, _prop.looks.posLeftMax, _prop.looks.posLeftMin, 0,
+		_xSpn = createSpinner(bar, _prop.msgs.left, _prop.var.etc.posLeftMax, -(cast(int) _prop.var.etc.posLeftMax), 0,
 			&editSpn!("a.newX = value;"), &enterSpn!("a.x = value;", "a.newX = value;"),
 			&cancelSpn!("a.x"));
 		new ToolItem(bar, SWT.SEPARATOR);
-		_ySpn = createSpinner(bar, _prop.msgs.top, _prop.looks.posTopMax, _prop.looks.posTopMin, 0,
+		_ySpn = createSpinner(bar, _prop.msgs.top, _prop.var.etc.posTopMax, -(cast(int) _prop.var.etc.posTopMax), 0,
 			&editSpn!("a.newY = value;"), &enterSpn!("a.y = value;", "a.newY = value;"),
 			&cancelSpn!("a.y"));
 		static if (UseBacks) {
 			new ToolItem(bar, SWT.SEPARATOR);
-			_wSpn = createSpinner(bar, _prop.msgs.width, _prop.looks.backWidthMax, _prop.looks.backWidthMin, 0,
+			_wSpn = createSpinner(bar, _prop.msgs.width, _prop.var.etc.backWidthMax, 0, 0,
 				&editSpnBack!("a.newWidth = value;"), &enterSpnBack!("a.width = value;", "a.newWidth = value;"),
 				&cancelSpnBack!("a.width"));
 			new ToolItem(bar, SWT.SEPARATOR);
-			_hSpn = createSpinner(bar, _prop.msgs.height, _prop.looks.backHeightMax, _prop.looks.backHeightMin, 0,
+			_hSpn = createSpinner(bar, _prop.msgs.height, _prop.var.etc.backHeightMax, 0, 0,
 				&editSpnBack!("a.newHeight = value;"), &enterSpnBack!("a.height = value;", "a.newHeight = value;"),
 				&cancelSpnBack!("a.height"));
 		}

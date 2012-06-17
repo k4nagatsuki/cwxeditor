@@ -1426,10 +1426,10 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 	/// レベル。
 	mixin Prop!(int, "unsignedLevel", 1);
-	mixin MaxMin!(int, "unsignedLevel", 99, 1);
+	mixin MaxMin!(int, "unsignedLevel", int.max, 1);
 	/// マイナスにする事が可能なレベル。
 	mixin Prop!(int, "signedLevel", 0);
-	mixin MaxMin!(int, "signedLevel", 99, -99);
+	mixin MaxMin!(int, "signedLevel", int.max, int.min);
 	/// 命中補正。-5～+5。
 	mixin Prop!(int, "successRate", 5);
 	mixin MaxMin!(int, "successRate", 5, -5);
@@ -1446,19 +1446,19 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	mixin MaxMin!(int, "stepValue", int.max, 0);
 	/// クーポン点。
 	mixin Prop!(int, "couponValue", 0);
-	mixin MaxMin!(int, "couponValue", 999, -999);
+	mixin MaxMin!(int, "couponValue", int.max, int.min);
 	/// 人数。
 	mixin Prop!(int, "partyNumber", 1u);
 	mixin MaxMin!(int, "partyNumber", int.max, 1);
 	/// カード枚数。
 	mixin Prop!(int, "cardNumber", 1u);
-	mixin MaxMin!(int, "cardNumber", 99, 0);
+	mixin MaxMin!(int, "cardNumber", int.max, 0);
 	/// 金額。
 	mixin Prop!(int, "money", 0u);
-	mixin MaxMin!(int, "money", 999999, 0);
+	mixin MaxMin!(int, "money", int.max, 0);
 	/// 停止時間。0.1秒単位。
 	mixin Prop!(int, "wait", 0u);
-	mixin MaxMin!(int, "wait", 1000, 0);
+	mixin MaxMin!(int, "wait", int.max, 0);
 
 	/// 背景画像群。
 	mixin Prop!(BgImage[], "backs", []);

@@ -302,8 +302,8 @@ protected:
 					}
 					return spn;
 				}
-				_x = createS(_prop.msgs.left, _prop.looks.posLeftMax, _prop.looks.posLeftMin);
-				_y = createS(_prop.msgs.top, _prop.looks.posTopMax, _prop.looks.posTopMin);
+				_x = createS(_prop.msgs.left, _prop.var.etc.posLeftMax, -(cast(int) _prop.var.etc.posLeftMax));
+				_y = createS(_prop.msgs.top, _prop.var.etc.posTopMax, -(cast(int) _prop.var.etc.posTopMax));
 				_scale = createS(_prop.msgs.scale, _prop.var.etc.cardScaleMax, _prop.var.etc.cardScaleMin, true);
 			}
 			static if (is (C == MenuCard)) {

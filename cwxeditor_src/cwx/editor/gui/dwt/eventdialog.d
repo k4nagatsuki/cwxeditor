@@ -659,10 +659,10 @@ protected:
 				_value = new Spinner(comp, SWT.BORDER);
 				mod(_value);
 				_value.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-				_value.setMaximum(Content.couponValue_max);
-				_value.setMinimum(Content.couponValue_min);
+				_value.setMaximum(_prop.var.etc.couponValueMax);
+				_value.setMinimum(-(cast(int) _prop.var.etc.couponValueMax));
 				auto lr = new Label(comp, SWT.LEFT);
-				lr.setText(.tryFormat(_prop.msgs.couponValueRange, -(cast(int) Content.couponValue_max), Content.couponValue_max));
+				lr.setText(.tryFormat(_prop.msgs.couponValueRange, -(cast(int) prop.var.etc.couponValueMax), prop.var.etc.couponValueMax));
 			}
 		}
 
@@ -1011,17 +1011,17 @@ protected:
 }
 
 alias NumericEventDialog!(CType.WAIT, "_prop.msgs.waitName",
-		"Content.wait_max", "_evt.wait", "_evt.wait = value;") WaitEventDialog;
+		"_prop.var.etc.waitMax", "_evt.wait", "_evt.wait = value;") WaitEventDialog;
 
 alias NumericEventDialog!(CType.BRANCH_RANDOM, "_prop.msgs.randomName",
 		"100", "_evt.percent", "_evt.percent = value;", 0, 50) BrRandomEventDialog;
 
 alias NumericEventDialog!(CType.BRANCH_PARTY_NUMBER, "_prop.msgs.partyNumName",
-		"_prop.looks.partyMax", "_evt.partyNumber", "_evt.partyNumber = value;", 1, 1) BrNumEventDialog;
+		"_prop.var.etc.partyMax", "_evt.partyNumber", "_evt.partyNumber = value;", 1, 1) BrNumEventDialog;
 
 template MoneyEventDialog(CType Type) {
 	alias NumericEventDialog!(Type, "_prop.msgs.moneyName",
-		"Content.money_max", "_evt.money", "_evt.money = value;") MoneyEventDialog;
+		"_prop.var.etc.priceMax", "_evt.money", "_evt.money = value;") MoneyEventDialog;
 }
 
 /// 効果イベントの設定を行うダイアログ。
@@ -1077,8 +1077,8 @@ protected:
 					_lev = new Spinner(grp, SWT.BORDER);
 					mod(_lev);
 					_lev.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-					_lev.setMinimum(Content.signedLevel_min);
-					_lev.setMaximum(Content.signedLevel_max);
+					_lev.setMinimum(-(cast(int) _prop.var.etc.castLevelMax));
+					_lev.setMaximum(_prop.var.etc.castLevelMax);
 					auto l = new Label(grp, SWT.NONE);
 					l.setText(.tryFormat(_prop.msgs.rangeHint, _lev.getMinimum(), _lev.getMaximum()));
 				}
@@ -1557,8 +1557,8 @@ protected:
 				_lev = new Spinner(grp, SWT.BORDER);
 				mod(_lev);
 				_lev.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-				_lev.setMinimum(Content.signedLevel_min);
-				_lev.setMaximum(Content.signedLevel_max);
+				_lev.setMinimum(-(cast(int) _prop.var.etc.castLevelMax));
+				_lev.setMaximum(_prop.var.etc.castLevelMax);
 				auto l = new Label(grp, SWT.NONE);
 				l.setText(.tryFormat(_prop.msgs.rangeHint, _lev.getMinimum(), _lev.getMaximum()));
 			}
@@ -1693,7 +1693,7 @@ protected:
 			mod(_lev);
 			_lev.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			_lev.setMinimum(Content.unsignedLevel_min);
-			_lev.setMaximum(Content.unsignedLevel_max);
+			_lev.setMaximum(_prop.var.etc.castLevelMax);
 			auto l = new Label(comp, SWT.NONE);
 			l.setText(.tryFormat(_prop.msgs.rangeHint, _lev.getMinimum(), _lev.getMaximum()));
 		}
@@ -1913,7 +1913,7 @@ protected:
 				mod(_num);
 				_num.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				_num.setMinimum(1);
-				_num.setMaximum(Content.cardNumber_max);
+				_num.setMaximum(_prop.var.etc.cardNumberMax);
 				auto l = new Label(comp2, SWT.NONE);
 				l.setText(.tryFormat(_prop.msgs.rangeHint, _num.getMinimum(), _num.getMaximum()));
 				static if (Delete) {

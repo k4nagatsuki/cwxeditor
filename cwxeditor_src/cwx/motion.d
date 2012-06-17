@@ -358,7 +358,7 @@ public:
 	/// ditto
 	static const uValue_min = 1;
 	/// ditto
-	static const uValue_max = 999;
+	static const uValue_max = int.max;
 	/// ditto
 	@property
 	void uValue(int val) {
@@ -389,7 +389,7 @@ public:
 	/// ditto
 	static const round_min = 1;
 	/// ditto
-	static const round_max = 999;
+	static const round_max = int.max;
 	/// 召喚獣。
 	@property
 	BeastCard beast() {return _beast;}
