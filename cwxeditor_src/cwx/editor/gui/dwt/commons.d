@@ -271,6 +271,7 @@ class Commons {
 	Dlg!() refUndoMax;
 	Dlg!(MenuID) refMenu;
 	Dlg!() refSoundType;
+	Dlg!() refShowToolBar;
 
 	Dlg!(Area) refArea;
 	Dlg!(Area) delArea;

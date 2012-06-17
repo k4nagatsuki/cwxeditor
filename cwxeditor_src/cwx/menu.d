@@ -44,6 +44,9 @@ enum MenuID {
 	OpenPlace,
 	SaveImage,
 	LookImages,
+	ShowMainToolBar,
+	ShowSceneToolBar,
+	ShowEventToolBar,
 	ChangeVH,
 	Find,
 	IncSearch,
@@ -204,6 +207,9 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.OpenPlace] = "O";
 		_mnemonic[MenuID.SaveImage] = "I";
 		_mnemonic[MenuID.LookImages] = "L";
+		_mnemonic[MenuID.ShowMainToolBar] = "M";
+		_mnemonic[MenuID.ShowSceneToolBar] = "E";
+		_mnemonic[MenuID.ShowEventToolBar] = "T";
 		_mnemonic[MenuID.ChangeVH] = "H";
 		_mnemonic[MenuID.Find] = "F";
 		_mnemonic[MenuID.IncSearch] = "N";
@@ -348,6 +354,9 @@ class MenuProps : Properties {
 		_hotkey[MenuID.OpenPlace] = "";
 		_hotkey[MenuID.SaveImage] = "";
 		_hotkey[MenuID.LookImages] = "";
+		_hotkey[MenuID.ShowMainToolBar] = "Ctrl+Shift+M";
+		_hotkey[MenuID.ShowSceneToolBar] = "Ctrl+Shift+S";
+		_hotkey[MenuID.ShowEventToolBar] = "Ctrl+Shift+E";
 		_hotkey[MenuID.ChangeVH] = "";
 		_hotkey[MenuID.Find] = "Ctrl+F";
 		_hotkey[MenuID.IncSearch] = "Ctrl+I";

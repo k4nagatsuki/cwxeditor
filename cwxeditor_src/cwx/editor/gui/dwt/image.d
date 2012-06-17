@@ -375,6 +375,9 @@ public:
 		case MenuID.OpenPlace: return imgd!("folder.png");
 		case MenuID.SaveImage: return imgd!("save_inc_img.png");
 		case MenuID.LookImages: return imgd!("img_list.png");
+		case MenuID.ShowMainToolBar: return imgd!("main_tools.png");
+		case MenuID.ShowSceneToolBar: return imgd!("scene_tools.png");
+		case MenuID.ShowEventToolBar: return imgd!("event_tools.png");
 		case MenuID.ChangeVH: return imgd!("chg_vh.png");
 		case MenuID.Find: return imgd!("replace.png");
 		case MenuID.IncSearch: return imgd!("inc_search.png");

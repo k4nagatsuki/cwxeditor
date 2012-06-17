@@ -83,6 +83,9 @@ class FlexEtcProps : Properties {
 	mixin Property!("talkersWidth", int, 100, true);
 	mixin Property!("motionsWidth", int, 150, true);
 	mixin Property!("incrementalSearchBoxWidth", int, 100, true);
+	mixin Property!("showMainToolBar", bool, true);
+	mixin Property!("showSceneToolBar", bool, true);
+	mixin Property!("showEventToolBar", bool, true);
 
 	mixin Property!("cardScaleMax", int, 300);
 	mixin Property!("cardScaleMin", int, 50);
@@ -115,6 +118,7 @@ class FlexEtcProps : Properties {
 	mixin Property!("contentsContinue", bool, false);
 	mixin Property!("contentsFloat", bool, false);
 	mixin Property!("contentsAutoHide", bool, false);
+	mixin Property!("showContentsBoxHeightWhenNoToolBar", int, 8, true);
 	mixin Property!("smoothingCard", bool, true);
 	mixin Property!("ignorePathsWidth", int, 50, true);
 	mixin Property!("menuSettingsHeight", int, 150, true);

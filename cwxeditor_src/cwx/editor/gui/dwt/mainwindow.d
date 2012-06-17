@@ -586,6 +586,7 @@ private:
 				MessageBox.showWarning(.tryFormat(_prop.msgs.cwxPathOpenError, path), _prop.msgs.dlgTitWarning, _win);
 			}
 			_opt.openPaths.length = 0u;
+			_comm.refreshToolBar();
 		}
 	}
 	void openScenario() {
@@ -781,6 +782,36 @@ private:
 		return true;
 	}
 
+	void revShowMainToolBar(SelectionEvent e) {
+		if (!_comm.singleWindowMode(_prop)) return;
+		auto item = cast(MenuItem) e.widget;
+		_prop.var.etc.showMainToolBar = item.getSelection();
+		_comm.refShowToolBar.call();
+	}
+	void revShowSceneToolBar(SelectionEvent e) {
+		if (!_comm.singleWindowMode(_prop)) return;
+		auto item = cast(MenuItem) e.widget;
+		_prop.var.etc.showSceneToolBar = item.getSelection();
+		_comm.refShowToolBar.call();
+	}
+	void revShowEventToolBar(SelectionEvent e) {
+		if (!_comm.singleWindowMode(_prop)) return;
+		auto item = cast(MenuItem) e.widget;
+		_prop.var.etc.showEventToolBar = item.getSelection();
+		_comm.refShowToolBar.call();
+	}
+
+	void refShowMainToolBar() {
+		if (!_comm.singleWindowMode(_prop)) return;
+		auto gd = new GridData(GridData.FILL_HORIZONTAL);
+		if (!_prop.var.etc.showMainToolBar) {
+			gd.heightHint = 0;
+		}
+		_toolComp.setLayoutData(gd);
+		_toolComp.setVisible(_prop.var.etc.showMainToolBar);
+		_toolComp.getParent().layout();
+	}
+	Composite _toolComp;
 	private CoolBar _cbar = null;
 	class SListener : ShellAdapter {
 		override void shellClosed(ShellEvent e) {
@@ -808,6 +839,7 @@ private:
 			_comm.refSkin.remove(&refSkin);
 			_comm.refScenario.remove(&refScenario);
 			_comm.refSoundType.remove(&refSoundType);
+			_comm.refShowToolBar.remove(&refShowMainToolBar);
 			auto b = _win.getBounds();
 			_prop.var.mainWin.x = b.x;
 			_prop.var.mainWin.y = b.y;
@@ -1503,6 +1535,7 @@ public:
 			_comm.refSkin.add(&refSkin);
 			_comm.refScenario.add(&refScenario);
 			_comm.refSoundType.add(&refSoundType);
+			_comm.refShowToolBar.add(&refShowMainToolBar);
 			_win.addDisposeListener(new DListener);
 			_win.addShellListener(new SListener);
 			_comm.refreshWallpaper(_prop);
@@ -1518,9 +1551,8 @@ public:
 				_sbshl.contentPane.setLayout(windowGridLayout(1, true));
 			}
 			dStr ~= " - " ~ .text(__LINE__);
-			auto toolComp = new Composite(_sbshl.contentPane, SWT.NONE);
-			toolComp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			toolComp.setLayout(new FillLayout);
+			_toolComp = new Composite(_sbshl.contentPane, SWT.NONE);
+			_toolComp.setLayout(new FillLayout);
 			if (_prop.var.etc.singleWindow) {
 				dStr ~= " - " ~ .text(__LINE__);
 				_tableWin = new TableWindow(_comm, _prop, _win, null);
@@ -1712,6 +1744,7 @@ public:
 					dStr ~= " - " ~ .text(__LINE__);
 				}
 			} else {
+				_toolComp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				dStr ~= " - " ~ .text(__LINE__);
 				_dataWin = new DataWindow(_comm, _prop, _win, _win);
 				_cardWin = new MainCardWindow(_comm, _prop, _win);
@@ -1811,6 +1844,16 @@ public:
 					dStr ~= " - " ~ .text(__LINE__);
 					new MenuItem(mv, SWT.SEPARATOR);
 					mixin (MenuAction!("mv", MenuID.Refresh, SWT.PUSH, "refreshAll", "() => summary !is null"));
+					new MenuItem(mv, SWT.SEPARATOR);
+					mixin (MenuAction!("mv", MenuID.ShowMainToolBar, SWT.CHECK, "revShowMainToolBar", "null"));
+					auto mtm = _menu[MenuID.ShowMainToolBar];
+					mtm.setSelection(_prop.var.etc.showMainToolBar);
+					mixin (MenuAction!("mv", MenuID.ShowSceneToolBar, SWT.CHECK, "revShowSceneToolBar", "null"));
+					auto stm = _menu[MenuID.ShowSceneToolBar];
+					stm.setSelection(_prop.var.etc.showSceneToolBar);
+					mixin (MenuAction!("mv", MenuID.ShowEventToolBar, SWT.CHECK, "revShowEventToolBar", "null"));
+					auto etm = _menu[MenuID.ShowEventToolBar];
+					etm.setSelection(_prop.var.etc.showEventToolBar);
 					new MenuItem(mv, SWT.SEPARATOR);
 					mixin (MenuAction!("mv", MenuID.ChangeVH));
 				}
@@ -1919,7 +1962,7 @@ public:
 
 			if (_prop.var.etc.singleWindow) {
 				dStr ~= " - " ~ .text(__LINE__);
-				_cbar = createCoolBar!("tools")(_comm, toolComp, (CoolBar cbar) {
+				_cbar = createCoolBar!("tools")(_comm, _toolComp, (CoolBar cbar) {
 					void createCoolItem(CoolBar cbar, ToolBar tbar) {
 						.createCoolItem(cbar, tbar);
 						_toolBar ~= tbar;
@@ -2061,7 +2104,7 @@ public:
 				dStr ~= " - " ~ .text(__LINE__);
 			} else {
 				dStr ~= " - " ~ .text(__LINE__);
-				auto bar = new ToolBar(toolComp, SWT.FLAT);
+				auto bar = new ToolBar(_toolComp, SWT.FLAT);
 				mixin (ToolAction!("bar", MenuID.New, SWT.PUSH, "createScenario", "null"));
 				mixin (ToolAction!("bar", MenuID.Open, SWT.PUSH, "openScenarioM", "null"));
 				mixin (ToolAction!("bar", MenuID.Save, SWT.PUSH, "saveScenario", "() => summary !is null"));
@@ -2128,6 +2171,8 @@ public:
 			dStr ~= " - " ~ .text(__LINE__);
 			.bgmVolume = _prop.var.etc.bgmVolume;
 			.seVolume = _prop.var.etc.seVolume;
+			dStr ~= " - " ~ .text(__LINE__);
+			refShowMainToolBar();
 			dStr ~= " - " ~ .text(__LINE__);
 			if (_dock) {
 				if (_dock.pane("data")) {

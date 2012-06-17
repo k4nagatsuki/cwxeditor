@@ -1485,6 +1485,9 @@ public:
 		case MenuID.OpenPlace: return "ファイルの場所を開く";
 		case MenuID.SaveImage: return "格納イメージをファイルに保存";
 		case MenuID.LookImages: return "画像を一覧表示";
+		case MenuID.ShowMainToolBar: return "全体ツールバーを表示";
+		case MenuID.ShowSceneToolBar: return "シーンビューのツールバーを表示";
+		case MenuID.ShowEventToolBar: return "イベントビューのツールバーを表示";
 		case MenuID.ChangeVH: return "分割領域の縦横を切替";
 		case MenuID.Find: return "検索と置換";
 		case MenuID.IncSearch: return "絞り込み検索";

@@ -1,4 +1,5 @@
-
+/// イベントを編集するためのビュー。
+/// 左側にイベントと発火条件を設定するビューを、右側にEventTreeViewを配置する。
 module cwx.editor.gui.dwt.eventview;
 
 import cwx.area;
@@ -911,6 +912,22 @@ private:
 		if (!itm) return false;
 		return Kind !is _prop.sys.fireKeyCodeKind((cast(KeyCodeObj) selectionKeyCode.getData()).array.idup);
 	}
+
+	void refShowToolBar() {
+		if (!_comm.singleWindowMode(_prop)) return;
+		auto gl = windowGridLayout(1, true);
+		gl.marginWidth = 0;
+		gl.marginHeight = 0;
+		auto gd = new GridData(GridData.FILL_HORIZONTAL);
+		if (!_prop.var.etc.showEventToolBar) {
+			gl.verticalSpacing = 0;
+			gd.heightHint = 0;
+		}
+		setLayout(gl);
+		_toolbar.setVisible(_prop.var.etc.showEventToolBar);
+		_toolbar.setLayoutData(gd);
+		layout();
+	}
 public:
 	this (Commons comm, Props prop, Summary summ, A area, Composite parent, UndoManager undo) {
 		super (parent, SWT.NONE);
@@ -919,14 +936,9 @@ public:
 		_summ = summ;
 		_area = area;
 		_undo = undo;
-		auto gl = windowGridLayout(1);
-		gl.marginWidth = 0;
-		gl.marginHeight = 0;
-		setLayout(gl);
 
-		auto toolbar = new ToolBar(this, SWT.FLAT);
-		_comm.put(toolbar);
-		toolbar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		_toolbar = new ToolBar(this, SWT.FLAT);
+		_comm.put(_toolbar);
 
 		_sash = new SplitPane(this, SWT.HORIZONTAL);
 		static if (is (A == Area) || is (A == Battle)) {
@@ -934,6 +946,7 @@ public:
 		}
 		_comm.replText.add(&replText);
 		_comm.replID.add(&replText);
+		_comm.refShowToolBar.add(&refShowToolBar);
 		static if (!is(C == void)) {
 			_comm.addMenuCard.add(&addCard);
 			_comm.refMenuCard.add(&refCard);
@@ -977,6 +990,7 @@ public:
 				}
 				_comm.replText.remove(&replText);
 				_comm.replID.remove(&replText);
+				_comm.refShowToolBar.remove(&refShowToolBar);
 				static if (!is(C == void)) {
 					_comm.addMenuCard.remove(&addCard);
 					_comm.refMenuCard.remove(&refCard);
@@ -1062,9 +1076,9 @@ public:
 			}
 		}
 		{
-			_etree = new EventTreeView(comm, prop, summ, _sash, _undo, &forceSel, &refreshTopStart, toolbar);
+			_etree = new EventTreeView(comm, prop, summ, _sash, _undo, &forceSel, &refreshTopStart, _toolbar);
 			auto _edit = new TreeEdit(_comm, _cards, &editEnd, &createEditor);
-			setupToolBar(toolbar);
+			setupToolBar();
 		}
 		static if (is (A == Area)) {
 			_sash.setWeights([_prop.var.areaWin.eventSashL, _prop.var.areaWin.eventSashR]);
@@ -1077,6 +1091,7 @@ public:
 		} else {
 			static assert (0);
 		}
+		refShowToolBar();
 	}
 	@property
 	EventTreeView eventTreeView() {
@@ -1363,8 +1378,8 @@ public:
 		}
 	}
 
-	private void setupToolBar(ToolBar bar) {
-		_toolbar = bar;
+	private void setupToolBar() {
+		auto bar = _toolbar;
 		static if (is(A : Area)) {
 			if (cast(AreaEventWindow) tlpData(this).tlp) {
 				createToolItem(_comm, bar, MenuID.EditScene, &openScene, null);

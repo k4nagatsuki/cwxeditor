@@ -662,6 +662,7 @@ private:
 	@property
 	protected Summary summ() {return _summ;}
 
+	ToolBar _toolbar;
 	ImagePane _imgp;
 
 	bool _viewMsg = false;
@@ -1703,16 +1704,27 @@ private:
 			debugln(e);
 		}
 	}
+	void refShowToolBar() {
+		if (!_comm.singleWindowMode(_prop)) return;
+		auto gl = windowGridLayout(1, true);
+		gl.marginWidth = 0;
+		gl.marginHeight = 0;
+		auto gd = new GridData(GridData.FILL_HORIZONTAL);
+		if (!_prop.var.etc.showSceneToolBar) {
+			gl.verticalSpacing = 0;
+			gd.heightHint = 0;
+		}
+		setLayout(gl);
+		_toolbar.setVisible(_prop.var.etc.showSceneToolBar);
+		_toolbar.setLayoutData(gd);
+		layout();
+	}
 
 	private TopLevelPanel _tlp;
 public:
 	this(Commons comm, Props prop, Summary summ, A area, Composite parent, TopLevelPanel tlp, UndoManager undo) {
 		super(parent, SWT.NONE);
 		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime());
-		auto gl = windowGridLayout(1);
-		gl.marginWidth = 0;
-		gl.marginHeight = 0;
-		setLayout(gl);
 		_prop = prop;
 		_summ = summ;
 		_area = area;
@@ -1724,6 +1736,7 @@ public:
 		_comm.replPath.add(&refreshR);
 		_comm.replText.add(&replText);
 		_comm.replID.add(&replText);
+		_comm.refShowToolBar.add(&refShowToolBar);
 		static if (UseCards) {
 			_comm.refCardState.add(&refreshCardState);
 		}
@@ -1736,6 +1749,7 @@ public:
 				_comm.replPath.remove(&refreshR);
 				_comm.replText.remove(&replText);
 				_comm.replID.remove(&replText);
+				_comm.refShowToolBar.remove(&refShowToolBar);
 				static if (UseCards) {
 					_comm.refCardState.remove(&refreshCardState);
 					foreach (dlg; _editDlgsC.values) {
@@ -1827,9 +1841,8 @@ public:
 		}
 
 		if (_tlp) setupTLP(_tlp);
-		auto toolbar = new ToolBar(this, SWT.FLAT);
-		_comm.put(toolbar);
-		toolbar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		_toolbar = new ToolBar(this, SWT.FLAT);
+		_comm.put(_toolbar);
 
 		auto lrSash = new SplitPane(this, SWT.HORIZONTAL);
 		lrSash.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -1996,7 +2009,7 @@ public:
 				_imgp.showAppends = _prop.var.etc.viewReferenceCards;
 			}
 		}
-		setupToolBar(toolbar);
+		setupToolBar(_toolbar);
 		static if (is(A : Battle) && is(C : EnemyCard)) {
 			{
 				auto target = new DropTarget(imagePane, DND.DROP_DEFAULT | DND.DROP_COPY | DND.DROP_LINK);
@@ -2028,6 +2041,7 @@ public:
 				_prop.var.etc.areaViewR = ws[1];
 			}
 		});
+		refShowToolBar();
 		static if (UseCards) refreshCards();
 		static if (UseBacks) refreshBacks();
 		static if (RefCards) {

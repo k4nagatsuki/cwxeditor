@@ -1378,7 +1378,8 @@ private:
 		override void handleEvent(Event e) {
 			auto c = cast(Control) e.widget;
 			if (!c || !_autoHideTools) return;
-			if (!isDescendant(_autoHideTools, c) && !isDescendant(_contentsBoxArea, c)) {
+			if (e.type is SWT.MouseMove && _contentsBoxArea.isVisible()) return;
+			if (c !is _tree && !isDescendant(_autoHideTools, c) && !isDescendant(_contentsBoxArea, c)) {
 				_autoHideTools.setVisible(false);
 				return;
 			}
@@ -1394,6 +1395,9 @@ private:
 			auto ca1 = _contentsBoxArea.getBounds();
 			ca1.x = 0;
 			ca1.y = 0;
+			if (0 == ca1.height) {
+				ca1.height = _prop.var.etc.showContentsBoxHeightWhenNoToolBar;
+			}
 			auto p1 = _contentsBoxArea.toControl(p);
 			if (ca1.contains(p1) || ca2.contains(p2)) {
 				if (e.type is SWT.MouseDown && _autoHideTools.isVisible()) {
@@ -1781,6 +1785,9 @@ public:
 		}
 		_tree.addTreeListener(new TListener);
 		_tree.addSelectionListener(new SListener);
+		if (_mTrack) {
+			_tree.addListener(SWT.MouseMove, _mTrack);
+		}
 
 		_comm.refCast.add(&__refreshCast);
 		_comm.delCast.add(&__refreshCast);
