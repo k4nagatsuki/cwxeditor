@@ -1585,8 +1585,10 @@ private:
 		TreeItem[] itms;
 		void recurse(TreeItem itm) {
 			itms ~= itm;
-			foreach (chld; itm.getItems()) {
-				recurse(chld);
+			if (itm.getExpanded()) {
+				foreach (chld; itm.getItems()) {
+					recurse(chld);
+				}
 			}
 		}
 		foreach (itm; _tree.getItems()) {
