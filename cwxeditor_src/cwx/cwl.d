@@ -22,6 +22,7 @@ import cwx.event;
 import cwx.types;
 import cwx.utils;
 import cwx.sjis;
+import cwx.xml;
 
 unittest {
 	try {
@@ -173,6 +174,7 @@ S loadLScenario(S)(string p, string skin, string newName = null) {
 		foreach (a; items.sort) summ.add(a, false);
 		foreach (a; beasts.sort) summ.add(a, false);
 		foreach (a; infos.sort) summ.add(a, false);
+		loadImageRef(summ);
 		summ.startArea = startAreaId;
 		summ.resetChanged;
 	} else {
@@ -186,6 +188,35 @@ S loadLScenario(S)(string p, string skin, string newName = null) {
 		static if (IN) foreach (a; infos.sort) summ.add(a);
 	}
 	return summ;
+}
+
+private const string INVALID_CWX_PATH = "InvalidCWXPath";
+
+/// 拡張情報"ImageRef.widx"を読み込む。
+void loadImageRef(Summary summ) {
+	string file = std.path.join(summ.scenarioPath, "ImageRef.widx");
+	if (!.exists(file)) return;
+	auto node = XNode.parse(cast(string) std.file.read(file));
+	if ("imagerefs" == node.name) {
+		node.onTag["imageref"] = (ref XNode node) {
+			string path = node.attr("path", false, INVALID_CWX_PATH);
+			if (INVALID_CWX_PATH == path) return;
+			auto cp = summ.findCWXPath(path);
+			auto card = cast(Card) cp;
+			if (card) {
+				card.path = node.value;
+			}
+			auto mCard = cast(MenuCard) cp;
+			if (mCard) {
+				mCard.path = node.value;
+			}
+			auto summ2 = cast(Summary) cp;
+			if (summ2) {
+				summ2.imagePath = node.value;
+			}
+		};
+		node.parse();
+	}
 }
 
 /// fileのIDと型を返す。
@@ -1616,7 +1647,7 @@ void saveLScenario(Summary summ, bool saveInnerImagePath = false) {
 		save1.save;
 		save2.save;
 	}
-	scope regex = std.regexp.RegExp("^(Area|Battle|Package|Mate|Skill|Item|Beast|Info)[0-9]+\\.wid$");
+	scope regex = std.regexp.RegExp("^(((Area|Battle|Package|Mate|Skill|Item|Beast|Info)[0-9]+\\.wid)|ImageRef\\.widx)$");
 	foreach (file; clistdir(d.sPath)) {
 		if (regex.test(file, 0) || cfnmatch(file, "Summary.wsm")) {
 			scope path = std.path.join(d.sPath, file);
