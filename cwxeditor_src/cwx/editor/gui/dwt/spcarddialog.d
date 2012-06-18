@@ -153,7 +153,7 @@ private:
 		}
 	}
 	void delMenuCard(string cwxPath) {
-		if (_card && _card.cwxPath == cwxPath) {
+		if (_card && _card.cwxPath(true) == cwxPath) {
 			forceCancel();
 		}
 	}

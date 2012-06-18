@@ -241,7 +241,7 @@ public:
 		e.newElement("False", off);
 	}
 	@property
-	override string cwxPath() {
+	override string cwxPath(bool id) {
 		return cpjoin(_parent, "flag", .cCountUntil!("a is b")(_parent.flags, this));
 	}
 	override CWXPath findCWXPath(string path) {
@@ -438,7 +438,7 @@ public:
 		}
 	}
 	@property
-	override string cwxPath() {
+	override string cwxPath(bool id) {
 		return cpjoin(_parent, "step", .cCountUntil!("a is b")(_parent.steps, this));
 	}
 	override CWXPath findCWXPath(string path) {
@@ -505,7 +505,7 @@ public:
 		}
 	}
 	@property
-	override string cwxPath() {
+	override string cwxPath(bool id) {
 		if (_owner) {
 			return cpjoin(_owner, "variable");
 		} else if (_parent) {

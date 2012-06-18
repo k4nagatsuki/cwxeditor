@@ -1057,7 +1057,7 @@ private:
 			auto dlg = new MessageBox(_win, SWT.ICON_QUESTION | SWT.YES | SWT.NO);
 			string h = _hist;
 			string ext = cwx.utils.getExt(h);
-			if (cfnmatch(ext, "xml") || cfnmatch(ext, "wsm") || cfnmatch(ext, "wid")) {
+			if (cfnmatch(ext, "xml") || cfnmatch(ext, "wsm") || cfnmatch(ext, "wid") || cfnmatch(ext, "widx")) {
 				h = dirName(h);
 			}
 			dlg.setMessage(.tryFormat(_prop.msgs.scenarioNotFound, h));
@@ -1437,7 +1437,7 @@ public:
 				path1 = nabs(opt.scenario);
 				auto ext = cwx.utils.getExt(path1);
 				if (!.isDir(path1)
-						&& (cfnmatch(ext, "xml") || cfnmatch(ext, "wsm") || cfnmatch(ext, "wid"))) {
+						&& (cfnmatch(ext, "xml") || cfnmatch(ext, "wsm") || cfnmatch(ext, "wid") || cfnmatch(ext, "widx"))) {
 					path1 = nabs(dirName(path1));
 				}
 			}

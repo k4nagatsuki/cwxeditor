@@ -170,7 +170,7 @@ private:
 			}
 		}
 		protected EventView view() {
-			return comm.eventViewFrom!(A, C, UseFire)(area.cwxPath, false);
+			return comm.eventViewFrom!(A, C, UseFire)(area.cwxPath(true), false);
 		}
 	}
 	static class UndoTreeData : EVUndo {
@@ -1120,26 +1120,26 @@ public:
 			}
 		}
 		private void addCard(string cwxPath) {
-			if (!cpeq(_area.cwxPath, cpparent(cwxPath))) return;
+			if (!cpeq(_area.cwxPath(true), cpparent(cwxPath))) return;
 			size_t i = cpindex(cpbottom(cwxPath));
 			appendCard(i, _area.cards[i]);
 		}
 		private void refCard(string cwxPath) {
-			if (!cpeq(_area.cwxPath, cpparent(cwxPath))) return;
+			if (!cpeq(_area.cwxPath(true), cpparent(cwxPath))) return;
 			size_t i = cpindex(cpbottom(cwxPath));
 			renameCard(i);
 		}
 		private void delCard(string cwxPath) {
-			if (!cpeq(_area.cwxPath, cpparent(cwxPath))) return;
+			if (!cpeq(_area.cwxPath(true), cpparent(cwxPath))) return;
 			size_t i = cpindex(cpbottom(cwxPath));
 			removeCard(i);
 		}
 		private void upCard(string cwxPath, int[] indices, int count) {
-			if (!cpeq(_area.cwxPath, cwxPath)) return;
+			if (!cpeq(_area.cwxPath(true), cwxPath)) return;
 			upCard(indices, count);
 		}
 		private void downCard(string cwxPath, int[] indices, int count) {
-			if (!cpeq(_area.cwxPath, cwxPath)) return;
+			if (!cpeq(_area.cwxPath(true), cwxPath)) return;
 			downCard(indices, count);
 		}
 		private void appendCard(int index, C c) {
@@ -1857,23 +1857,23 @@ public:
 		if (etItm) {
 			auto et = cast(EventTree) etItm.getData();
 			assert (et);
-			r ~= et.cwxPath;
+			r ~= et.cwxPath(true);
 		} else {
 			auto cardItm = selectionParent;
 			if (cardItm) {
 				auto d = cardItm.getData();;
 				auto area = cast(A) d;
 				if (area) {
-					r ~= cpaddattr(area.cwxPath, "eventview");
+					r ~= cpaddattr(area.cwxPath(true), "eventview");
 				}
 				static if (!is(C : void)) {
 					auto card = cast(C) d;
 					if (card) {
-						r ~= cpaddattr(card.cwxPath, "eventview");
+						r ~= cpaddattr(card.cwxPath(true), "eventview");
 					}
 				}
 			} else {
-				r ~= cpaddattr(_area.cwxPath, "eventview");
+				r ~= cpaddattr(_area.cwxPath(true), "eventview");
 			}
 		}
 		r ~= _etree.openedCWXPath;

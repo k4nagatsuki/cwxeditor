@@ -278,7 +278,7 @@ public:
 	@property
 	package void owner(BgImageOwner owner) {_owner = owner;}
 	@property
-	override string cwxPath() {
+	override string cwxPath(bool id) {
 		return _owner ? cpjoin(_owner, "background", .cCountUntil!("a is b")(_owner.backs, this)) : "";
 	}
 	override CWXPath findCWXPath(string path) {
@@ -310,7 +310,7 @@ public:
 		_bgImgs = bgImgs;
 	}
 	@property
-	override string cwxPath() {return "";}
+	override string cwxPath(bool id) {return "";}
 	override CWXPath findCWXPath(string path) {
 		if (cpempty(path)) return this;
 		auto cate = cpcategory(path);

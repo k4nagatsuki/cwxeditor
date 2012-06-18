@@ -9,11 +9,14 @@ import std.string;
 /// 複数のCWXパスを列挙する際のセパレータ。
 immutable CWXPATH_SEP = "&";
 
+/// 不正なCWXパス。
+immutable INVALID_CWX_PATH = "InvalidCWXPath";
+
 /// シナリオ内パスを取得できるオブジェクトである事を示す。
 interface CWXPath {
 	/// シナリオ内パス。
 	@property
-	string cwxPath();
+	string cwxPath(bool id);
 	/// パスが示すオブジェクトを返す。
 	/// 見つからない場合はnullを返す。
 	CWXPath findCWXPath(string);
@@ -31,15 +34,24 @@ string cpjoin(CWXPath owner, int index) {
 }
 /// ditto
 string cpjoin(CWXPath owner, string category, int index) {
-	auto ocp = owner.cwxPath;
-	string cn;
-	cn = category ~ ":" ~ to!(string)(index);
+	auto ocp = owner.cwxPath(false);
+	string cn = category ~ ":" ~ to!(string)(index);
 	return ocp.length ? ocp ~ "/" ~ cn : cn;
 }
 /// ditto
 string cpjoin(CWXPath owner, string name) {
-	auto ocp = owner.cwxPath;
+	auto ocp = owner.cwxPath(false);
 	return ocp.length ? ocp ~ "/" ~ name : name;
+}
+/// ditto
+string cpjoinid(CWXPath owner, ulong id) {
+	return cpjoinid(owner, "", id);
+}
+/// ditto
+string cpjoinid(CWXPath owner, string category, ulong id) {
+	auto ocp = owner.cwxPath(true);
+	string cn = category ~ ":id:" ~ to!(string)(id);
+	return ocp.length ? ocp ~ "/" ~ cn : cn;
 }
 
 /// シナリオ内パスの属性を返す。

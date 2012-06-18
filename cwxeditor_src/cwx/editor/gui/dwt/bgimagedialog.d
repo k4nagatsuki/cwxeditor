@@ -138,7 +138,7 @@ private:
 		}
 	}
 	void delBgImage(string cwxPath) {
-		if (_back && _back.cwxPath == cwxPath) {
+		if (_back && _back.cwxPath(true) == cwxPath) {
 			forceCancel();
 		}
 	}

@@ -464,7 +464,7 @@ private abstract class FTVUndo : Undo {
 	private void saveSelected(FlagTable v) {
 		auto dir = this.dir();
 		if (!dir) return;
-		_selectedDir = dir.cwxPath;
+		_selectedDir = dir.cwxPath(true);
 		if (v && v.flags && !v.flags.isDisposed()) {
 			_selected = v.flags.getSelectionIndices();
 		} else {
@@ -481,7 +481,7 @@ private abstract class FTVUndo : Undo {
 	void uda(FlagTable v) {
 		if (v && v.flags && !v.flags.isDisposed()) {
 			if (selDir) {
-				if (comm.openCWXPath(selDir.cwxPath, true)) {
+				if (comm.openCWXPath(selDir.cwxPath(true), true)) {
 					v.flags.deselectAll();
 				}
 			} else {
@@ -930,7 +930,7 @@ private:
 				storeInsert(indices, [flag.name], []);
 				createMode = false;
 			}
-			_comm.openCWXPath(flag.cwxPath, false);
+			_comm.openCWXPath(flag.cwxPath(true), false);
 			refresh(flag.name);
 			_comm.refFlagAndStep.call([flag], []);
 			_comm.refreshToolBar();
@@ -975,7 +975,7 @@ private:
 				storeInsert(indices, [step.name], []);
 				createMode = false;
 			}
-			_comm.openCWXPath(step.cwxPath, false);
+			_comm.openCWXPath(step.cwxPath(true), false);
 			refresh(step.name);
 			_comm.refFlagAndStep.call([], [step]);
 			_comm.refreshToolBar();
@@ -1493,10 +1493,10 @@ public:
 		Step[] ss;
 		getSelectionFlagAndStep(fs, ss);
 		foreach (f; fs) {
-			r ~= f.cwxPath;
+			r ~= f.cwxPath(true);
 		}
 		foreach (s; ss) {
-			r ~= s.cwxPath;
+			r ~= s.cwxPath(true);
 		}
 		return r;
 	}

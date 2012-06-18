@@ -1284,7 +1284,7 @@ public:
 	@property const string contentsFloat() {return "コンテンツボックスを別ウィンドウで表示する";}
 	@property const string contentsAutoHide() {return "コンテンツボックスを自動的に隠す";}
 	@property const string xmlCopy() {return "コピーや切り取りを常にXML形式で行う";}
-	@property const string saveInnerImagePath() {return "クラシックなシナリオで格納イメージにファイルパスを埋め込む";}
+	@property const string saveInnerImagePath() {return "クラシックなシナリオで格納イメージのファイルパスを保存する";}
 	@property const string traceDirectories() {return "ファイル・" ~ DIR ~ "の変更を自動的に追跡する";}
 	@property const string logicalSort() {return "数値参照型ソートを行う(1, 10, 2, 3, ... → 1, 2, 3, 10, ...)";}
 	@property const string copyDesc() {return "カードをエリアに貼り付け・ドロップした時、解説もコピーする";}

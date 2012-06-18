@@ -27,6 +27,8 @@ import cwx.event;
 import cwx.types;
 import cwx.utils;
 import cwx.sjis;
+import cwx.xml;
+import cwx.path;
 
 unittest {
 	debug mixin(UTPerf);
@@ -185,6 +187,8 @@ S loadLScenario(S)(string p, string skin, bool doubleIO, string newName = null) 
 		foreach (a; items.sort) summ.add(a, false);
 		foreach (a; beasts.sort) summ.add(a, false);
 		foreach (a; infos.sort) summ.add(a, false);
+		loadComment(summ);
+		loadImageRef(summ);
 		summ.startArea = startAreaId;
 		summ.resetChanged();
 	} else {
@@ -198,6 +202,50 @@ S loadLScenario(S)(string p, string skin, bool doubleIO, string newName = null) 
 		static if (IN) foreach (a; infos.sort) summ.add(a);
 	}
 	return summ;
+}
+
+/// 拡張情報"Comment.widx"を読み込む。
+void loadComment(Summary summ) {
+	string file = summ.scenarioPath.buildPath("Comment.widx");
+	if (!.exists(file)) return;
+	auto node = XNode.parse(readText(file));
+	if ("comments" == node.name) {
+		node.onTag["comment"] = (ref XNode node) {
+			string path = node.attr("path", false, INVALID_CWX_PATH);
+			if (INVALID_CWX_PATH == path) return;
+			auto ct = cast(Content) summ.findCWXPath(path);
+			if (!ct) return;
+			ct.comment = node.value;
+		};
+		node.parse();
+	}
+}
+
+/// 拡張情報"ImageRef.widx"を読み込む。
+void loadImageRef(Summary summ) {
+	string file = summ.scenarioPath.buildPath("ImageRef.widx");
+	if (!.exists(file)) return;
+	auto node = XNode.parse(readText(file));
+	if ("imagerefs" == node.name) {
+		node.onTag["imageref"] = (ref XNode node) {
+			string path = node.attr("path", false, INVALID_CWX_PATH);
+			if (INVALID_CWX_PATH == path) return;
+			auto cp = summ.findCWXPath(path);
+			auto card = cast(Card) cp;
+			if (card) {
+				card.path = node.value;
+			}
+			auto mCard = cast(MenuCard) cp;
+			if (mCard) {
+				mCard.path = node.value;
+			}
+			auto summ2 = cast(Summary) cp;
+			if (summ2) {
+				summ2.imagePath = node.value;
+			}
+		};
+		node.parse();
+	}
 }
 
 /// fileのIDと型を返す。
@@ -1552,6 +1600,8 @@ private InfoCard loadInfo(ref RData d, ref ByteIO f, ulong fid) {
 struct SData {
 	string sPath;
 	bool saveInnerImagePath;
+	string[string] comment;
+	string[string] imageRef;
 }
 /// 4.0形式のCardWirthシナリオを保存する。
 void saveLScenario(Summary summ, bool doubleIO, bool saveInnerImagePath = false) {
@@ -1670,9 +1720,25 @@ void saveLScenario(Summary summ, bool doubleIO, bool saveInnerImagePath = false)
 		save1.save();
 		save2.save();
 	}
+
+	string[] renames;
+	string comment = saveComment(d);
+	if (comment.length) {
+		auto file = "~Comment.widx";
+		std.file.write(d.sPath.buildPath(file), cast(immutable byte[]) comment);
+		renames ~= file;
+	}
+	string imageRef = saveImageRef(d);
+	if (imageRef.length) {
+		auto file = "~ImageRef.widx";
+		std.file.write(d.sPath.buildPath(file), cast(immutable byte[]) imageRef);
+		renames ~= file;
+	}
+
+	auto sysFName = .regex!(dstring)("^(((Area|Battle|Package|Mate|Skill|Item|Beast|Info)[0-9]+\\.wid)|((Comment|ImageRef)\\.widx))$"d);
 	foreach (file; clistdir(d.sPath)) {
 		if (cfnmatch(file, "Summary.wsm")
-				|| !std.regex.match(toUTF32(file), .regex!(dstring)("^(Area|Battle|Package|Mate|Skill|Item|Beast|Info)[0-9]+\\.wid$"d)).empty) {
+				|| !std.regex.match(toUTF32(file), sysFName).empty) {
 			scope path = std.path.buildPath(d.sPath, file);
 			preRemove(path);
 			std.file.remove(path);
@@ -1680,6 +1746,31 @@ void saveLScenario(Summary summ, bool doubleIO, bool saveInnerImagePath = false)
 	}
 	save1.rename();
 	save2.rename();
+	foreach (file; renames) {
+		std.file.rename(std.path.buildPath(d.sPath, file), std.path.buildPath(d.sPath, file[1u .. $]));
+	}
+}
+
+/// 拡張情報"Comment.widx"を保存する。
+string saveComment(in SData d) {
+	if (!d.comment.length) return "";
+	auto node = XNode.create("comments");
+	foreach (cwxPath, comment; d.comment) {
+		auto e = node.newElement("comment", comment);
+		e.newAttr("path", cwxPath);
+	}
+	return node.text;
+}
+/// 拡張情報"ImageRef.widx"を保存する。
+string saveImageRef(in SData d) {
+	if (!d.saveInnerImagePath) return "";
+	if (!d.imageRef.length) return "";
+	auto node = XNode.create("imagerefs");
+	foreach (cwxPath, imgPath; d.imageRef) {
+		auto e = node.newElement("imageref", imgPath);
+		e.newAttr("path", cwxPath);
+	}
+	return node.text;
 }
 
 private byte fromTargetT(Target v) {
@@ -1852,7 +1943,7 @@ private const B_IMG_REF = ":INNER_BINARY_IMAGE";
 private void writeBool(ref ByteIO f, bool b) {
 	f.writeL(cast(byte) (b ? 1 : 0));
 }
-private void writeImage(in SData d, ref ByteIO f, string imgPath) {
+private void writeImage(ref SData d, ref ByteIO f, CWXPath cp, string imgPath) {
 	if (!imgPath.length) {
 		f.writeL(cast(uint) 0);
 		return;
@@ -1864,59 +1955,9 @@ private void writeImage(in SData d, ref ByteIO f, string imgPath) {
 		auto path = std.path.buildPath(d.sPath, imgPath);
 		if (exists(path)) {
 			bytes = cast(ubyte[]) std.file.read(path);
-			if (d.saveInnerImagePath) {
-				bytes ~= '\0';
-				bytes ~= cast(ubyte[]) (imgPath ~ B_IMG_REF);
-			}
-		} else if (d.saveInnerImagePath) {
-			// 空のイメージを作成し、パスを保存しておく
-			ByteIO f2;
-			struct BITMAPFILEHEADER {
-				ushort bfType = ('B' << 0) | ('M' << 8);
-				uint bfSize = 14 + 40 + 4 * 16 + 1;
-				ushort bfReserved1 = 0;
-				ushort bfReserved2 = 0;
-				uint bfOffBits = 54 + 4 * 16;
-			}
-			struct BITMAPINFOHEADER {
-				uint biSize = 40;
-				int biWidth = 1;
-				int biHeight = 1;
-				ushort biPlanes = 1;
-				ushort biBitCount = 8;
-				uint biCompression = 0;
-				uint biSizeImage = 1;
-				int biXPixPerMeter = 0;
-				int biYPixPerMeter = 0;
-				// CWでは16色パレットが必要。
-				// ダイレクト形式で縦横1ドットのデータはエラーになる。
-				uint biClrUsed = 16;
-				uint biCirImportant = 0;
-			}
-			struct RGBQUAD {
-				ubyte rgbBlue = 0;
-				ubyte rgbGreen = 0;
-				ubyte rgbRed = 0;
-				ubyte rgbReserved = 0;
-			}
-			BITMAPFILEHEADER h1;
-			BITMAPINFOHEADER h2;
-			foreach (val; h1.tupleof) {
-				f2.writeL(val);
-			}
-			foreach (val; h2.tupleof) {
-				f2.writeL(val);
-			}
-			for (size_t i = 0; i < 16; i++) {
-				RGBQUAD rgb;
-				foreach (val; rgb.tupleof) {
-					f2.writeL(val);
-				}
-			}
-			f2.writeL(cast(ubyte) 0); // Image data
-			bytes ~= f2.bytes;
-			bytes ~= '\0';
-			bytes ~= cast(ubyte[]) (imgPath ~ B_IMG_REF);
+		}
+		if (d.saveInnerImagePath) {
+			d.imageRef[cp.cwxPath(true)] = imgPath;
 		}
 	}
 	f.writeL(cast(uint) bytes.length);
@@ -1951,8 +1992,8 @@ private void writeStrings(ref ByteIO f, string[] strs) {
 	}
 }
 
-private void writeSummary(in SData d, ref ByteIO f, Summary summ) {
-	writeImage(d, f, summ.imagePath);
+private void writeSummary(ref SData d, ref ByteIO f, Summary summ) {
+	writeImage(d, f, summ, summ.imagePath);
 	writeString(f, summ.scenarioName);
 	writeString(f, summ.desc, true);
 	writeString(f, summ.author);
@@ -1984,7 +2025,7 @@ private void writeSummary(in SData d, ref ByteIO f, Summary summ) {
 	f.writeL(cast(uint) summ.levelMin);
 	f.writeL(cast(uint) summ.levelMax);
 }
-private void writeMotion(in SData d, ref ByteIO f, Motion m) {
+private void writeMotion(ref SData d, ref ByteIO f, Motion m) {
 	byte tType;
 	byte type;
 	switch (m.type) {
@@ -2184,13 +2225,15 @@ private void writeMotion(in SData d, ref ByteIO f, Motion m) {
 	default: throw new SummaryException("Unknown motion: " ~ to!(string)(tType) ~ ", " ~ to!(string)(type));
 	}
 }
-private void writeContent(in SData d, ref ByteIO f, Content e) {
+private void writeContent(ref SData d, ref ByteIO f, Content e) {
 	auto dt = e.detail;
 	void wb(byte type) {
 		f.write(type);
 		string name = e.name;
-		if (e.comment.length) name ~= "\0" ~ "comment:" ~ e.comment;
 		writeString(f, name);
+		if (e.comment.length) {
+			d.comment[e.cwxPath(true)] = e.comment;
+		}
 		if (dt.owner) {
 			f.writeL(cast(uint) 40000 + e.next.length);
 			foreach (child; e.next) {
@@ -2458,13 +2501,13 @@ private void writeContent(in SData d, ref ByteIO f, Content e) {
 		assert (0, "event");
 	}
 }
-private void writeCEventTree(in SData d, ref ByteIO f, EventTree tree) {
+private void writeCEventTree(ref SData d, ref ByteIO f, EventTree tree) {
 	f.writeL(cast(uint) tree.starts.length);
 	foreach (evt; tree.starts) {
 		writeContent(d, f, evt);
 	}
 }
-private void writeEventTree(in SData d, ref ByteIO f, EventTree tree) {
+private void writeEventTree(ref SData d, ref ByteIO f, EventTree tree) {
 	f.writeL(cast(uint) tree.starts.length);
 	foreach (evt; tree.starts) {
 		writeContent(d, f, evt);
@@ -2505,7 +2548,7 @@ private void writeBgImages(ref ByteIO f, BgImage[] backs) {
 		writeBgImage(f, b);
 	}
 }
-private void writeArea(in SData d, ref ByteIO f, Area a) {
+private void writeArea(ref SData d, ref ByteIO f, Area a) {
 	f.writeL(cast(byte) 0x0);
 	f.writeL(cast(uint) 0x0);
 	writeString(f, a.name);
@@ -2518,7 +2561,7 @@ private void writeArea(in SData d, ref ByteIO f, Area a) {
 	f.writeL(cast(uint) a.cards.length);
 	foreach (c; a.cards) {
 		f.writeL(cast(byte) 0x0);
-		writeImage(d, f, isBinImg(c.path) ? c.path : "");
+		writeImage(d, f, c, isBinImg(c.path) ? c.path : "");
 		writeString(f, c.name);
 		f.writeL(cast(byte) 0x40);
 		f.writeL(cast(byte) 0x9C);
@@ -2537,7 +2580,7 @@ private void writeArea(in SData d, ref ByteIO f, Area a) {
 	}
 	writeBgImages(f, a.backs);
 }
-private void writeBattle(in SData d, ref ByteIO f, Battle a) {
+private void writeBattle(ref SData d, ref ByteIO f, Battle a) {
 	f.writeL(cast(byte) 0x1);
 	f.writeL(cast(uint) 0x0);
 	writeString(f, a.name);
@@ -2562,7 +2605,7 @@ private void writeBattle(in SData d, ref ByteIO f, Battle a) {
 	}
 	writeString(f, encodePathLegacy(a.music));
 }
-private void writePackage(in SData d, ref ByteIO f, Package a) {
+private void writePackage(ref SData d, ref ByteIO f, Package a) {
 	f.writeL(cast(uint) 0x4);
 	writeString(f, a.name);
 	f.writeL(cast(uint) a.id);
@@ -2571,9 +2614,9 @@ private void writePackage(in SData d, ref ByteIO f, Package a) {
 		writeCEventTree(d, f, tree);
 	}
 }
-private void writeCast(in SData d, ref ByteIO f, CastCard c) {
+private void writeCast(ref SData d, ref ByteIO f, CastCard c) {
 	f.writeL(cast(byte) 0x2);
-	writeImage(d, f, c.path);
+	writeImage(d, f, c, c.path);
 	writeString(f, c.name);
 	f.writeL(cast(uint) (c.id + 40000u));
 	writeBool(f, c.weaponResist);
@@ -2639,9 +2682,9 @@ private void writeCast(in SData d, ref ByteIO f, CastCard c) {
 		f.writeL(cast(int) cc.value);
 	}
 }
-private void writeEffCard(in SData d, ref ByteIO f, EffectCard c, byte type) {
+private void writeEffCard(ref SData d, ref ByteIO f, EffectCard c, byte type) {
 	f.write(type);
-	writeImage(d, f, c.path);
+	writeImage(d, f, c, c.path);
 	writeString(f, c.name);
 	f.writeL(cast(uint) (c.id + 40000u));
 	writeString(f, c.desc);
@@ -2678,13 +2721,13 @@ private void writeEffCard(in SData d, ref ByteIO f, EffectCard c, byte type) {
 		writeCEventTree(d, f, tree);
 	}
 }
-private void writeSkill(in SData d, ref ByteIO f, SkillCard c) {
+private void writeSkill(ref SData d, ref ByteIO f, SkillCard c) {
 	writeEffCard(d, f, c, 0x5);
 	writeBool(f, c.hold);
 	f.writeL(cast(uint) c.level);
 	f.writeL(cast(uint) c.useLimit);
 }
-private void writeItem(in SData d, ref ByteIO f, ItemCard c) {
+private void writeItem(ref SData d, ref ByteIO f, ItemCard c) {
 	writeEffCard(d, f, c, 0x3);
 	writeBool(f, c.hold);
 	f.writeL(cast(uint) c.useLimit);
@@ -2694,14 +2737,14 @@ private void writeItem(in SData d, ref ByteIO f, ItemCard c) {
 	f.writeL(cast(int) c.enhanceOwner(Enhance.RESIST));
 	f.writeL(cast(int) c.enhanceOwner(Enhance.DEFENSE));
 }
-private void writeBeast(in SData d, ref ByteIO f, BeastCard c) {
+private void writeBeast(ref SData d, ref ByteIO f, BeastCard c) {
 	writeEffCard(d, f, c, 0x6);
 	writeBool(f, false); // Hold
 	f.writeL(cast(uint) c.useLimit);
 }
-private void writeInfo(in SData d, ref ByteIO f, InfoCard c) {
+private void writeInfo(ref SData d, ref ByteIO f, InfoCard c) {
 	f.writeL(cast(byte) 0x4);
-	writeImage(d, f, c.path);
+	writeImage(d, f, c, c.path);
 	writeString(f, c.name);
 	f.writeL(cast(uint) (c.id + 40000u));
 	writeString(f, c.desc);

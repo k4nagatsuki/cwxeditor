@@ -1836,7 +1836,7 @@ public:
 	string[] openedCWXPath() {
 		string[] r;
 		foreach (c; selectedCards) {
-			r ~= c.cwxPath;
+			r ~= c.cwxPath(true);
 		}
 		return r;
 	}

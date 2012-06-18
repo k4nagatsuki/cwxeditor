@@ -433,7 +433,7 @@ public:
 	void createDir() {
 		auto cur = current;
 		if (!cur) return;
-		_comm.openCWXPath(cur.cwxPath, true);
+		_comm.openCWXPath(cur.cwxPath(true), true);
 		string name = cur.createNewDirName(prop.msgs.flagDirNew);
 		storeInsert(cur, flags.selected, [cast(int) cur.subDirs.length], [], []);
 		auto dir = new FlagDir(name);
@@ -690,7 +690,7 @@ public:
 		string[] r;
 		auto cur = current;
 		if (cur) {
-			r ~= cur.cwxPath;
+			r ~= cur.cwxPath(true);
 		}
 		return r;
 	}

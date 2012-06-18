@@ -815,6 +815,7 @@ private:
 			if (!dirs.length) {
 				_fileList.setEnabled(false);
 			} else {
+				_fileList.setEnabled(true);
 				__refreshList(dirs, forceRefresh);
 				static if (is(C : Combo) || is(C : CCombo)) {
 					_fileList.add(_prop.msgs.fileNone, 0);

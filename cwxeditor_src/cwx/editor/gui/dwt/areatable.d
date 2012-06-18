@@ -1423,7 +1423,7 @@ public:
 		string[] r;
 		auto a = getSelectionArea();
 		if (a) {
-			r ~= cpaddattr(a.cwxPath, "shallow");
+			r ~= cpaddattr(a.cwxPath(true), "shallow");
 		}
 		return r;
 	}

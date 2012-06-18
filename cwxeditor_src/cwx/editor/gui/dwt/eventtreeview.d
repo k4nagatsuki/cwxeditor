@@ -222,7 +222,7 @@ private:
 			v.refreshStatusLine();
 		}
 		EventTreeView view() {
-			return comm.eventTreeViewFrom(et.cwxPath, false);
+			return comm.eventTreeViewFrom(et.cwxPath(true), false);
 		}
 		abstract override void undo();
 		abstract override void redo();
@@ -481,7 +481,7 @@ private:
 	private EventDialog[Content] _editDlgs;
 	void appliedEdit(UndoContent undo, Content c) {
 		_undo ~= undo;
-		auto itm = fromPath(c.cwxPath);
+		auto itm = fromPath(c.cwxPath(true));
 		assert (c is itm.getData());
 		foreach (childItm; itm.getItems()) {
 			auto par = cast(Content) itm.getData();
@@ -1944,7 +1944,7 @@ public:
 			auto itm = selection;
 			if (itm) {
 				auto c = cast(Content) itm.getData();
-				_comm.clipboard.setContents([new ArrayWrapperString(c.cwxPath)], [TextTransfer.getInstance()]);
+				_comm.clipboard.setContents([new ArrayWrapperString(c.cwxPath(true))], [TextTransfer.getInstance()]);
 			}
 		}
 	}
@@ -3174,9 +3174,9 @@ public:
 			if (e) {
 				auto c = cast(Content) e.getData();
 				assert (c);
-				r ~= c.cwxPath;
+				r ~= c.cwxPath(true);
 			} else {
-				r ~= _et.cwxPath;
+				r ~= _et.cwxPath(true);
 			}
 		}
 		return r;

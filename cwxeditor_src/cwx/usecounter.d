@@ -171,7 +171,7 @@ public:
 	CWXPath owner() {return _cwxPath;}
 	/// このオブジェクトの所有者のリソースパス。
 	@property
-	string cwxPath() {return _cwxPath.cwxPath;}
+	string cwxPath(bool id) {return _cwxPath.cwxPath(id);}
 
 	/// IDを設定する。
 	/// 所有者がChgFlagCallbackであればコールバックが行われる。
@@ -283,7 +283,7 @@ public:
 	CWXPath owner() {return _cwxPath;}
 	/// このオブジェクトの所有者のリソースパス。
 	@property
-	string cwxPath() {return _cwxPath.cwxPath;}
+	string cwxPath(bool id) {return _cwxPath.cwxPath(id);}
 
 	/// IDを設定する。
 	/// 所有者がChgStepCallbackであればコールバックが行われる。
@@ -368,7 +368,7 @@ public:
 	CWXPath owner() {return _cwxPath;}
 	/// このオブジェクトの所有者のリソースパス。
 	@property
-	string cwxPath() {return _cwxPath.cwxPath;}
+	string cwxPath(bool id) {return _cwxPath.cwxPath(id);}
 
 	/// IDを設定する。
 	@property
@@ -451,7 +451,7 @@ public:
 	CWXPath owner() {return _cwxPath;}
 	/// このオブジェクトの所有者のリソースパス。
 	@property
-	string cwxPath() {return _cwxPath.cwxPath;}
+	string cwxPath(bool id) {return _cwxPath.cwxPath(id);}
 
 	/// IDを設定する。
 	@property
@@ -534,7 +534,7 @@ public:
 	CWXPath owner() {return _cwxPath;}
 	/// このオブジェクトの所有者のリソースパス。
 	@property
-	string cwxPath() {return _cwxPath.cwxPath;}
+	string cwxPath(bool id) {return _cwxPath.cwxPath(id);}
 
 	/// IDを設定する。
 	@property
@@ -702,7 +702,7 @@ public:
 	CWXPath owner() {return _cwxPath;}
 	/// このオブジェクトの所有者のリソースパス。
 	@property
-	string cwxPath() {return _cwxPath.cwxPath;}
+	string cwxPath(bool id) {return _cwxPath.cwxPath(id);}
 
 	/// IDを設定する。
 	/// 所有者がChgPathCallbackであればコールバックが行われる。
@@ -788,7 +788,7 @@ public:
 	CWXPath owner() {return _cwxPath;}
 	/// このオブジェクトの所有者のリソースパス。
 	@property
-	string cwxPath() {return _cwxPath.cwxPath;}
+	string cwxPath(bool id) {return _cwxPath.cwxPath(id);}
 
 	/// IDを設定する。
 	@property
@@ -866,7 +866,7 @@ public:
 	CWXPath owner() {return _cwxPath;}
 	/// このオブジェクトの所有者のリソースパス。
 	@property
-	string cwxPath() {return _cwxPath.cwxPath;}
+	string cwxPath(bool id) {return _cwxPath.cwxPath(id);}
 
 	/// IDを設定する。
 	@property
@@ -944,7 +944,7 @@ public:
 	CWXPath owner() {return _cwxPath;}
 	/// このオブジェクトの所有者のリソースパス。
 	@property
-	string cwxPath() {return _cwxPath.cwxPath;}
+	string cwxPath(bool id) {return _cwxPath.cwxPath(id);}
 
 	/// IDを設定する。
 	@property
@@ -1022,7 +1022,7 @@ public:
 	CWXPath owner() {return _cwxPath;}
 	/// このオブジェクトの所有者のリソースパス。
 	@property
-	string cwxPath() {return _cwxPath.cwxPath;}
+	string cwxPath(bool id) {return _cwxPath.cwxPath(id);}
 
 	/// IDを設定する。
 	@property
@@ -1100,7 +1100,7 @@ public:
 	CWXPath owner() {return _cwxPath;}
 	/// このオブジェクトの所有者のリソースパス。
 	@property
-	string cwxPath() {return _cwxPath.cwxPath;}
+	string cwxPath(bool id) {return _cwxPath.cwxPath(id);}
 
 	/// IDを設定する。
 	@property

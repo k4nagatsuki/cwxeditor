@@ -262,32 +262,32 @@ private:
 		}
 		void refRefMenuCard(string a) {
 			if (!_refTarget) return;
-			if (!cpeq(_refTarget.cwxPath, cpparent(a))) return;
+			if (!cpeq(_refTarget.cwxPath(true), cpparent(a))) return;
 			createRefCard();
 			_imgp.redraw();
 		}
 		void addRefMenuCard(string a) {
 			if (!_refTarget) return;
-			if (!cpeq(_refTarget.cwxPath, cpparent(a))) return;
+			if (!cpeq(_refTarget.cwxPath(true), cpparent(a))) return;
 			createRefCard();
 			_imgp.redraw();
 		}
 		void delRefMenuCard(string a) {
 			if (!_refTarget) return;
-			if (!cpeq(_refTarget.cwxPath, cpparent(a))) return;
+			if (!cpeq(_refTarget.cwxPath(true), cpparent(a))) return;
 			createRefCard();
 			_imgp.redraw();
 		}
 		void upRefMenuCards(string a, int[] indices, int count) {
 			if (!_refTarget) return;
-			if (!cpeq(_refTarget.cwxPath, a)) return;
+			if (!cpeq(_refTarget.cwxPath(true), a)) return;
 			if (!indices.length) return;
 			createRefCard();
 			_imgp.redraw();
 		}
 		void downRefMenuCards(string a, int[] indices, int count) {
 			if (!_refTarget) return;
-			if (!cpeq(_refTarget.cwxPath, a)) return;
+			if (!cpeq(_refTarget.cwxPath(true), a)) return;
 			if (!indices.length) return;
 			createRefCard();
 			_imgp.redraw();
@@ -295,7 +295,7 @@ private:
 		void openRefAreaView() {
 			if (!_refTarget) return;
 			try {
-				_comm.openCWXPath(cpaddattr(_refTarget.cwxPath, "shallow"), false);
+				_comm.openCWXPath(cpaddattr(_refTarget.cwxPath(true), "shallow"), false);
 			} catch (Exception e) {
 				debugln(e);
 			}
@@ -338,7 +338,7 @@ private:
 		}
 		protected AbstractAreaView view() {
 			static if (is(A : Area) || is(A : Battle)) {
-				return comm.areaViewFrom!(A, C, UseCards, UseBacks)(area.cwxPath, false);
+				return comm.areaViewFrom!(A, C, UseCards, UseBacks)(area.cwxPath(true), false);
 			} else {
 				return _v;
 			}
@@ -374,7 +374,7 @@ private:
 	static if (is(A == Battle)) {
 		static class MCWXPath : CWXPath {
 			@property
-			override string cwxPath() {return "";}
+			override string cwxPath(bool id) {return "";}
 			override CWXPath findCWXPath(string path) {return null;}
 			@property
 			override CWXPath[] cwxChilds() {return [];}
@@ -607,7 +607,7 @@ private:
 						ac.y = c.y;
 						ac.scale = c.scale;
 					} else static assert (0);
-					comm.refMenuCard.call(ac.cwxPath);
+					comm.refMenuCard.call(ac.cwxPath(true));
 				}
 				_cs = cs;
 			}
@@ -623,7 +623,7 @@ private:
 					ab.width = b.width;
 					ab.height = b.height;
 					ab.mask = b.mask;
-					comm.refBgImage.call(ab.cwxPath);
+					comm.refBgImage.call(ab.cwxPath(true));
 				}
 				_bs = bs;
 			}
@@ -767,7 +767,7 @@ private:
 			card.y = y;
 			card.scale = scale;
 			refreshControls();
-			_comm.refMenuCard.call(card.cwxPath);
+			_comm.refMenuCard.call(card.cwxPath(true));
 			callModEvent();
 		}
 		void selectImageC(FlexImage img) {
@@ -828,7 +828,7 @@ private:
 			back.width = w;
 			back.height = h;
 			refreshControls();
-			_comm.refBgImage.call(back.cwxPath);
+			_comm.refBgImage.call(back.cwxPath(true));
 			callModEvent();
 		}
 		void selectImageB(FlexImage img) {
@@ -840,7 +840,7 @@ private:
 				back.mask = _maskTMenu.getSelection();
 				_imgp.images[i].transparent = back.mask;
 				_imgp.images[i].createImage();
-				_comm.refBgImage.call(back.cwxPath);
+				_comm.refBgImage.call(back.cwxPath(true));
 			}
 			_imgp.redraw();
 			callModEvent();
@@ -890,9 +890,9 @@ private:
 				mixin (N);
 				a.resize(false);
 				static if (is(B : AbstractSpCard)) {
-					_comm.refMenuCard.call(c.cwxPath);
+					_comm.refMenuCard.call(c.cwxPath(true));
 				} else static if (is(B : BgImage)) {
-					_comm.refBgImage.call(c.cwxPath);
+					_comm.refBgImage.call(c.cwxPath(true));
 				} else static assert (0);
 			}
 		}
@@ -1066,9 +1066,9 @@ private:
 				auto c = cs[i - startIndex];
 				mixin (CSet ~ ";");
 				static if (is(T : AbstractSpCard)) {
-					_comm.refMenuCard.call(c.cwxPath);
+					_comm.refMenuCard.call(c.cwxPath(true));
 				} else static if (is(T : BgImage)) {
-					_comm.refBgImage.call(c.cwxPath);
+					_comm.refBgImage.call(c.cwxPath(true));
 				} else static assert (0);
 			}
 		}
@@ -1113,9 +1113,9 @@ private:
 				auto c = cs[indices[a]];
 				mixin (XC ~ ";");
 				static if (is(T : AbstractSpCard)) {
-					_comm.refMenuCard.call(c.cwxPath);
+					_comm.refMenuCard.call(c.cwxPath(true));
 				} else static if (is(T : BgImage)) {
-					_comm.refBgImage.call(c.cwxPath);
+					_comm.refBgImage.call(c.cwxPath(true));
 				} else static assert (0);
 			}
 		}
@@ -1131,7 +1131,7 @@ private:
 					fi.scale = s;
 					fi.resize();
 				}
-				_comm.refMenuCard.call(c.cwxPath);
+				_comm.refMenuCard.call(c.cwxPath(true));
 			}
 			refreshControls();
 			_imgp.redraw();
@@ -1170,7 +1170,7 @@ private:
 				fi.resize();
 				auto a = cs[i];
 				mixin (CSet);
-				_comm.refMenuCard.call(a.cwxPath);
+				_comm.refMenuCard.call(a.cwxPath(true));
 			}
 		}
 		callModEvent();
@@ -1699,7 +1699,7 @@ private:
 		auto flag = _summ.flagDirRoot.findFlag(_flag.getText());
 		if (!flag) return;
 		try {
-			_comm.openCWXPath(flag.cwxPath, false);
+			_comm.openCWXPath(flag.cwxPath(true), false);
 		} catch (Exception e) {
 			debugln(e);
 		}
@@ -2073,12 +2073,12 @@ public:
 			if (-1 != i) {
 				auto card = cast(C) _cards.getItem(i).getData();
 				if (card.trees.length) {
-					path = card.trees[0].cwxPath;
+					path = card.trees[0].cwxPath(true);
 				} else {
-					path = card.cwxPath;
+					path = card.cwxPath(true);
 				}
 			} else {
-				path = area.cwxPath;
+				path = area.cwxPath(true);
 			}
 			path = cpaddattr(path, "eventview");
 			_comm.openCWXPath(path, true);
@@ -2104,7 +2104,7 @@ public:
 					}
 					img.createImage();
 					itm.setText(name);
-					_comm.refMenuCard.call(c.cwxPath);
+					_comm.refMenuCard.call(c.cwxPath(true));
 				}
 			}
 			_imgp.redraw();
@@ -2248,24 +2248,24 @@ public:
 	static if (UseCards) {
 		private static void removeCard(AbstractAreaView v, Commons comm, A area, ref C[PileImage] tbl, int index) {
 			if (v) v.removeImpl(index, tbl, staticCardsIndex(area));
-			comm.delMenuCard.call(area.cards[index].cwxPath);
+			comm.delMenuCard.call(area.cards[index].cwxPath(true));
 		}
 		private void removeCardRange(int fromIndex, int toIndex) {
 			removeRangeImpl(fromIndex, toIndex, _cardTbl, cardsIndex);
 			for (int i = toIndex; i >= fromIndex; i--) {
-				_comm.delMenuCard.call(_area.cards[i].cwxPath);
+				_comm.delMenuCard.call(_area.cards[i].cwxPath(true));
 			}
 		}
 	}
 	static if (UseBacks) {
 		private static void removeBack(AbstractAreaView v, Commons comm, A area, ref BgImage[PileImage] tbl, int index) {
 			if (v) v.removeImpl(index, tbl, 0);
-			comm.delBgImage.call(area.backs[index].cwxPath);
+			comm.delBgImage.call(area.backs[index].cwxPath(true));
 		}
 		private void removeBackRange(int fromIndex, int toIndex) {
 			removeRangeImpl(fromIndex, toIndex, _backTbl, 0);
 			for (int i = toIndex; i >= fromIndex; i--) {
-				_comm.delBgImage.call(_area.backs[i].cwxPath);
+				_comm.delBgImage.call(_area.backs[i].cwxPath(true));
 			}
 		}
 	}
@@ -2351,11 +2351,11 @@ public:
 	private static void upImpl(AbstractAreaView v, Commons comm, A area, int[] cIdcs, int[] bIdcs, int count, bool sel) {
 		static if (UseCards) {
 			upImpl2!(C)(v, v ? v._cards : null, &area.swapCards, staticCardsIndex(area), cIdcs, count);
-			comm.upMenuCard.call(area.cwxPath, cIdcs, count);
+			comm.upMenuCard.call(area.cwxPath(true), cIdcs, count);
 		}
 		static if (UseBacks) {
 			upImpl2!(BgImage)(v, v ? v._backs : null, &area.swapBacks, 0, bIdcs, count);
-			comm.upBgImage.call(area.cwxPath, bIdcs, count);
+			comm.upBgImage.call(area.cwxPath(true), bIdcs, count);
 		}
 		if (v) {
 			if (sel) {
@@ -2409,11 +2409,11 @@ public:
 	private static void downImpl(AbstractAreaView v, Commons comm, A area, int[] cIdcs, int[] bIdcs, int count, bool sel) {
 		static if (UseCards) {
 			downImpl2!(C)(v, v ? v._cards : null, &area.swapCards, staticCardsIndex(area), cIdcs, area.cards.length, count);
-			comm.downMenuCard.call(area.cwxPath, cIdcs, count);
+			comm.downMenuCard.call(area.cwxPath(true), cIdcs, count);
 		}
 		static if (UseBacks) {
 			downImpl2!(BgImage)(v, v ? v._backs : null, &area.swapBacks, 0, bIdcs, area.backs.length, count);
-			comm.downBgImage.call(area.cwxPath, bIdcs, count);
+			comm.downBgImage.call(area.cwxPath(true), bIdcs, count);
 		}
 		if (v) {
 			if (sel) {
@@ -2477,7 +2477,7 @@ public:
 					_cards.getItem(i).setText(fi.title);
 					_cards.getItem(i).setData(c);
 					refreshControls();
-					_comm.refMenuCard.call(c.cwxPath);
+					_comm.refMenuCard.call(c.cwxPath(true));
 					_comm.refUseCount.call();
 					_imgp.redraw();
 					callModEvent();
@@ -2556,7 +2556,7 @@ public:
 				c.name = newText;
 				itm.setText(column, c.name);
 				refreshPanel();
-				_comm.refMenuCard.call(c.cwxPath);
+				_comm.refMenuCard.call(c.cwxPath(true));
 				callModEvent();
 				_comm.refreshToolBar();
 			}
@@ -2571,7 +2571,7 @@ public:
 				c.id = _summ.casts[i].id;
 				itm.setText(column, cardName(c));
 				refreshPanel();
-				_comm.refMenuCard.call(c.cwxPath);
+				_comm.refMenuCard.call(c.cwxPath(true));
 				callModEvent();
 				_comm.refreshToolBar();
 			}
@@ -2642,7 +2642,7 @@ public:
 					_backs.getItem(i).setText(baseName(back.path));
 					_backs.getItem(i).setData(b);
 					refreshControls();
-					_comm.refBgImage.call(b.cwxPath);
+					_comm.refBgImage.call(b.cwxPath(true));
 					_comm.refUseCount.call();
 					_imgp.redraw();
 					callModEvent();
@@ -2727,7 +2727,7 @@ public:
 				itm.setText(column, baseName(decodePath(mt)));
 			}
 			refreshPanel();
-			_comm.refBgImage.call(b.cwxPath);
+			_comm.refBgImage.call(b.cwxPath(true));
 			callModEvent();
 			_comm.refreshToolBar();
 		}
@@ -3094,7 +3094,7 @@ public:
 				}
 				v._imgp.redraw();
 			}
-			comm.addMenuCard.call(card.cwxPath);
+			comm.addMenuCard.call(card.cwxPath(true));
 			comm.refUseCount.call();
 			if (v) v.callModEvent();
 		}
@@ -3112,7 +3112,7 @@ public:
 			foreach (i, card; cards) {
 				auto img = create(card);
 				imgs ~= img;
-				if (raiseEvent) _comm.addMenuCard.call(card.cwxPath);
+				if (raiseEvent) _comm.addMenuCard.call(card.cwxPath(true));
 			}
 			_imgp.insert(cardsIndex + index, cast(PileImage[]) imgs);
 			foreach (i, c; cards) {
@@ -3252,7 +3252,7 @@ public:
 				}
 				v._imgp.redraw();
 			}
-			comm.addBgImage.call(back.cwxPath);
+			comm.addBgImage.call(back.cwxPath(true));
 			comm.refUseCount.call();
 			if (v) v.callModEvent();
 		}
@@ -3280,7 +3280,7 @@ public:
 				itm.setData(b);
 				itm.setChecked(true);
 				itm.setText(baseName(b.path));
-				if (raiseEvent) _comm.addBgImage.call(b.cwxPath);
+				if (raiseEvent) _comm.addBgImage.call(b.cwxPath(true));
 			}
 			if (select && _viewBacks) _imgp.select(imgs);
 			callModEvent();
@@ -3630,7 +3630,7 @@ public:
 					img.createImage();
 					if (cardList.getItem(i).getText() != castCard.name) {
 						cardList.getItem(i).setText(castCard.name);
-						_comm.refMenuCard.call(_area.cards[i].cwxPath);
+						_comm.refMenuCard.call(_area.cards[i].cwxPath(true));
 					}
 				}
 			}
@@ -4045,15 +4045,15 @@ public:
 		string[] r;
 		static if (UseCards) {
 			foreach (i; _cards.getSelectionIndices()) {
-				r ~= _area.cards[i].cwxPath;
+				r ~= _area.cards[i].cwxPath(true);
 			}
 		}
 		static if (UseBacks) {
 			foreach (i; _backs.getSelectionIndices()) {
-				r ~= _area.backs[i].cwxPath;
+				r ~= _area.backs[i].cwxPath(true);
 			}
 		}
-		return r.length ? r : [_area.cwxPath];
+		return r.length ? r : [_area.cwxPath(true)];
 	}
 }
 

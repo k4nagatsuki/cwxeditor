@@ -636,7 +636,7 @@ public:
 		if (isScene && cphasattr(path, "eventview")) {
 			isScene = false;
 		}
-		string aPath = a.cwxPath;
+		string aPath = a.cwxPath(true);
 		if (isScene) {
 			auto sw2 = _comm.areaWindowFrom(aPath, shellActivate);
 			if (sw2) {

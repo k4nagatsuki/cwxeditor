@@ -1097,7 +1097,7 @@ public:
 	private void openRangePath() {
 		auto sels = _range.getSelection();
 		if (!sels.length) return;
-		string path = (cast(CWXPath) sels[0].getData()).cwxPath;
+		string path = (cast(CWXPath) sels[0].getData()).cwxPath(true);
 		path = cpaddattr(path, "shallow");
 		auto r = _comm.openCWXPath(path, false);
 		if (!r) {
@@ -2661,7 +2661,7 @@ public:
 		itm.setImage(img);
 		if (desc.length) text = desc ~ " - " ~ text;
 		itm.setText(text);
-		itm.setData(new CWXPathString(path, path.cwxPath));
+		itm.setData(new CWXPathString(path, path.cwxPath(true)));
 	}
 	private void addResult(string name, Image image, int index = -1) {
 		auto itm = new TableItem(_result, SWT.NONE, -1 == index ? _result.getItemCount() : index);

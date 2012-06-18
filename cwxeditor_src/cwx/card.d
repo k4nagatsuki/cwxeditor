@@ -816,8 +816,12 @@ public:
 	@property
 	package void owner(CastOwner owner) {_owner = owner;}
 	@property
-	string cwxPath() {
-		return _owner ? cpjoin(_owner, "castcard", .cCountUntil!("a is b")(_owner.casts, this)) : "";
+	string cwxPath(bool id) {
+		if (id) {
+			return _owner ? cpjoinid(_owner, "castcard", this.id) : "";
+		} else {
+			return _owner ? cpjoin(_owner, "castcard", .cCountUntil!("a is b")(_owner.casts, this)) : "";
+		}
 	}
 	CWXPath findCWXPath(string path) {
 		if (cpempty(path)) return this;
@@ -909,7 +913,7 @@ private:
 		@property
 		override size_t[] areaPath() {return [0];}
 		@property
-		string cwxPath() {return this.outer.cwxPath();}
+		string cwxPath(bool id) {return this.outer.cwxPath(id);}
 		@property
 		CWXPath cwxParent() {return this.outer.cwxParent();}
 	}
@@ -1383,8 +1387,12 @@ public:
 	@property
 	package void owner(SkillOwner owner) {_owner = owner;}
 	@property
-	string cwxPath() {
-		return _owner ? cpjoin(_owner, "skillcard", .cCountUntil!("a is b")(_owner.skills, this)) : "";
+	string cwxPath(bool id) {
+		if (id) {
+			return _owner ? cpjoinid(_owner, "skillcard", this.id) : "";
+		} else {
+			return _owner ? cpjoin(_owner, "skillcard", .cCountUntil!("a is b")(_owner.skills, this)) : "";
+		}
 	}
 	@property
 	CWXPath cwxParent() {return _owner;}
@@ -1541,8 +1549,12 @@ public:
 	@property
 	package void owner(ItemOwner owner) {_owner = owner;}
 	@property
-	string cwxPath() {
-		return _owner ? cpjoin(_owner, "itemcard", .cCountUntil!("a is b")(_owner.items, this)) : "";
+	string cwxPath(bool id) {
+		if (id) {
+			return _owner ? cpjoinid(_owner, "itemcard", this.id) : "";
+		} else {
+			return _owner ? cpjoin(_owner, "itemcard", .cCountUntil!("a is b")(_owner.items, this)) : "";
+		}
 	}
 	@property
 	CWXPath cwxParent() {return _owner;}
@@ -1645,8 +1657,12 @@ public:
 	@property
 	package void owner(BeastOwner owner) {_owner = owner;}
 	@property
-	string cwxPath() {
-		return _owner ? cpjoin(_owner, "beastcard", .cCountUntil!("a is b")(_owner.beasts, this)) : "";
+	string cwxPath(bool id) {
+		if (id) {
+			return _owner ? cpjoinid(_owner, "beastcard", this.id) : "";
+		} else {
+			return _owner ? cpjoin(_owner, "beastcard", .cCountUntil!("a is b")(_owner.beasts, this)) : "";
+		}
 	}
 	@property
 	CWXPath cwxParent() {return _owner;}
@@ -1717,8 +1733,12 @@ public:
 	@property
 	package void owner(InfoOwner owner) {_owner = owner;}
 	@property
-	string cwxPath() {
-		return _owner ? cpjoin(_owner, "infocard", .cCountUntil!("a is b")(_owner.infos, this)) : "";
+	string cwxPath(bool id) {
+		if (id) {
+			return _owner ? cpjoinid(_owner, "infocard", this.id) : "";
+		} else {
+			return _owner ? cpjoin(_owner, "infocard", .cCountUntil!("a is b")(_owner.infos, this)) : "";
+		}
 	}
 	CWXPath findCWXPath(string path) {
 		if (cpempty(path)) return this;

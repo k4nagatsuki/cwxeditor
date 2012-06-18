@@ -159,7 +159,7 @@ public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
 	this (MotionOwner cwxPath) {_cwxPath = cwxPath;}
 	@property
-	string cwxPath() {return _cwxPath.cwxPath;}
+	string cwxPath(bool id) {return _cwxPath.cwxPath(id);}
 
 	/// 変更ハンドラを登録する。
 	@property
@@ -493,7 +493,7 @@ public:
 	}
 
 	@property
-	override string cwxPath() {
+	override string cwxPath(bool id) {
 		return _owner ? cpjoin(_owner, "motion", .cCountUntil!("a is b")(_owner.motions, this)) : "";
 	}
 	override CWXPath findCWXPath(string path) {

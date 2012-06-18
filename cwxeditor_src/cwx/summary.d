@@ -673,7 +673,7 @@ public:
 	void delegate()[] changedEventForce;
 
 	@property
-	override string cwxPath() {return "";}
+	override string cwxPath(bool id) {return "";}
 	override CWXPath findCWXPath(string path) {
 		if (cpempty(path)) return this;
 		auto cate = cpcategory(path);
@@ -761,7 +761,7 @@ public:
 		if (legacy) {
 			if (isdir) return false;
 			auto ext = cwx.utils.getExt(p);
-			return .cfnmatch(ext, "wid") || .cfnmatch(ext, "wsm");
+			return .cfnmatch(ext, "wid") || .cfnmatch(ext, "widx") || .cfnmatch(ext, "wsm");
 		} else {
 			string fl = baseName(p);
 			if (isdir) {
@@ -1674,7 +1674,7 @@ public:
 					auto top = std.path.buildPath(mt, baseName(p));
 					mkdir(top);
 					copyAll(p, top);
-				} else if (!cfnmatch(cwx.utils.getExt(p), "wsm") && !cfnmatch(cwx.utils.getExt(p), "wid")) {
+				} else if (!cfnmatch(cwx.utils.getExt(p), "wsm") && !cfnmatch(cwx.utils.getExt(p), "wid") && !cfnmatch(cwx.utils.getExt(p), "widx")) {
 					if (toSkin.isCardImage(p)
 							|| toSkin.isBgImage(p)
 							|| toSkin.isBGM(p)
@@ -1951,7 +1951,7 @@ public:
 		_legacy = legacy;
 	}
 	@property
-	override string cwxPath() {return "";}
+	override string cwxPath(bool id) {return "";}
 	override CWXPath findCWXPath(string path) {
 		if (cpempty(path)) return this;
 		return findCWXPathImpl(path, cpcategory(path));
@@ -2167,6 +2167,8 @@ void decScenarioPath(ref string scenarioPath, ref string[] openPaths) {
 			ts ~= ":id:" ~ to!(string)(id);
 			openPaths ~= ts;
 		}
+		scenarioPath = dirName(scenarioPath);
+	} else if (scenarioPath && cfnmatch(cwx.utils.getExt(scenarioPath), "widx")) {
 		scenarioPath = dirName(scenarioPath);
 	}
 }

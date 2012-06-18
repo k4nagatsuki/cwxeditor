@@ -514,7 +514,7 @@ public:
 	@property
 	private void owner(CWXPath owner) {_owner = owner;}
 	@property
-	string cwxPath() {
+	string cwxPath(bool id) {
 		if (_owner) {
 			return cpjoin(_owner, "text");
 		}
@@ -715,7 +715,7 @@ public:
 		return new SDialog(text, rCoupons);
 	}
 	@property
-	string cwxPath() {
+	string cwxPath(bool id) {
 		return _parent ? cpjoin(_parent, "dialog", .cCountUntil!("a is b")(_parent.dialogs, this)) : "";
 	}
 	override CWXPath findCWXPath(string path) {
@@ -1049,7 +1049,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	const
 	const(Content) parent() {return _parent;}
 	@property
-	override string cwxPath() {
+	override string cwxPath(bool id) {
 		if (_parent) {
 			return cpjoin(_parent, .cCountUntil!("a is b")(_parent.next, this));
 		} else if (_tree) {
@@ -2009,7 +2009,7 @@ public:
 	@property
 	EventTreeOwner owner() {return _owner;}
 	@property
-	override string cwxPath() {
+	override string cwxPath(bool id) {
 		return _owner ? cpjoin(_owner, "event", .cCountUntil!("a is b")(_owner.trees, this)) : "";
 	}
 	CWXPath findCWXPath(string path) {
