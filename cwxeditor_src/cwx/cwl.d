@@ -226,8 +226,8 @@ void loadImageRef(Summary summ) {
 	string file = summ.scenarioPath.buildPath("ImageRef.widx");
 	if (!.exists(file)) return;
 	auto node = XNode.parse(readText(file));
-	if ("imagerefs" == node.name) {
-		node.onTag["imageref"] = (ref XNode node) {
+	if ("imageRefs" == node.name) {
+		node.onTag["imageRef"] = (ref XNode node) {
 			string path = node.attr("path", false, INVALID_CWX_PATH);
 			if (INVALID_CWX_PATH == path) return;
 			auto cp = summ.findCWXPath(path);
@@ -1765,9 +1765,9 @@ string saveComment(in SData d) {
 string saveImageRef(in SData d) {
 	if (!d.saveInnerImagePath) return "";
 	if (!d.imageRef.length) return "";
-	auto node = XNode.create("imagerefs");
+	auto node = XNode.create("imageRefs");
 	foreach (cwxPath, imgPath; d.imageRef) {
-		auto e = node.newElement("imageref", imgPath);
+		auto e = node.newElement("imageRef", imgPath);
 		e.newAttr("path", cwxPath);
 	}
 	return node.text;
