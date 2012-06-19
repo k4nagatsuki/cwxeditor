@@ -427,6 +427,7 @@ int convertAccelerator(string text) {
 	debug mixin(UTPerf);
 	assert (convertAccelerator("test\tCTRL+ARROW_UP") == (SWT.ARROW_UP | SWT.CTRL));
 	assert (convertAccelerator("test\tShift+A") == (SWT.SHIFT | 'A'));
+	assert (convertAccelerator("test\tCtrl+Shift+A") == (SWT.CTRL | SWT.SHIFT | 'A'));
 }
 private class MenuSel(Dlg) : SelectionAdapter {
 	private Dlg _func;

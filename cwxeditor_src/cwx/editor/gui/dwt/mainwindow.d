@@ -803,6 +803,8 @@ private:
 
 	void refShowMainToolBar() {
 		if (!_comm.singleWindowMode(_prop)) return;
+		_win.setRedraw(false);
+		scope (exit) _win.setRedraw(true);
 		auto gd = new GridData(GridData.FILL_HORIZONTAL);
 		if (!_prop.var.etc.showMainToolBar) {
 			gd.heightHint = 0;
@@ -2226,6 +2228,19 @@ public:
 				return;
 			}
 			void raiseEvent(MenuItem menu) {
+				if (menu.getStyle() & SWT.CHECK) {
+					menu.setSelection(!menu.getSelection());
+				}
+				if (menu.getStyle() & SWT.RADIO) {
+					menu.setSelection(!menu.getSelection());
+					if (menu.getSelection()) {
+						foreach (etc; menu.getParent().getItems()) {
+							if (etc !is menu) {
+								menu.setSelection(false);
+							}
+						}
+					}
+				}
 				scope se = new Event;
 				se.type = SWT.Selection;
 				se.widget = menu;
