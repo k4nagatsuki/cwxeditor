@@ -197,8 +197,8 @@ void loadImageRef(Summary summ) {
 	string file = std.path.join(summ.scenarioPath, "ImageRef.widx");
 	if (!.exists(file)) return;
 	auto node = XNode.parse(cast(string) std.file.read(file));
-	if ("imagerefs" == node.name) {
-		node.onTag["imageref"] = (ref XNode node) {
+	if ("imageRefs" == node.name) {
+		node.onTag["imageRef"] = (ref XNode node) {
 			string path = node.attr("path", false, INVALID_CWX_PATH);
 			if (INVALID_CWX_PATH == path) return;
 			auto cp = summ.findCWXPath(path);
