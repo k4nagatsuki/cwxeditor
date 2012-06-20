@@ -761,7 +761,7 @@ public:
 		if (legacy) {
 			if (isdir) return false;
 			auto ext = cwx.utils.getExt(p);
-			return .cfnmatch(ext, "wid") || .cfnmatch(ext, "widx") || .cfnmatch(ext, "wsm");
+			return .cfnmatch(ext, "wid") || .cfnmatch(ext, "wex") || .cfnmatch(ext, "wsm");
 		} else {
 			string fl = baseName(p);
 			if (isdir) {
@@ -1674,7 +1674,7 @@ public:
 					auto top = std.path.buildPath(mt, baseName(p));
 					mkdir(top);
 					copyAll(p, top);
-				} else if (!cfnmatch(cwx.utils.getExt(p), "wsm") && !cfnmatch(cwx.utils.getExt(p), "wid") && !cfnmatch(cwx.utils.getExt(p), "widx")) {
+				} else if (!cfnmatch(cwx.utils.getExt(p), "wsm") && !cfnmatch(cwx.utils.getExt(p), "wid") && !cfnmatch(cwx.utils.getExt(p), "wex")) {
 					if (toSkin.isCardImage(p)
 							|| toSkin.isBgImage(p)
 							|| toSkin.isBGM(p)
@@ -2168,7 +2168,7 @@ void decScenarioPath(ref string scenarioPath, ref string[] openPaths) {
 			openPaths ~= ts;
 		}
 		scenarioPath = dirName(scenarioPath);
-	} else if (scenarioPath && cfnmatch(cwx.utils.getExt(scenarioPath), "widx")) {
+	} else if (scenarioPath && cfnmatch(cwx.utils.getExt(scenarioPath), "wex")) {
 		scenarioPath = dirName(scenarioPath);
 	}
 }

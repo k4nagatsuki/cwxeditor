@@ -204,9 +204,9 @@ S loadLScenario(S)(string p, string skin, bool doubleIO, string newName = null) 
 	return summ;
 }
 
-/// 拡張情報"Comment.widx"を読み込む。
+/// 拡張情報"Comment.wex"を読み込む。
 void loadComment(Summary summ) {
-	string file = summ.scenarioPath.buildPath("Comment.widx");
+	string file = summ.scenarioPath.buildPath("Comment.wex");
 	if (!.exists(file)) return;
 	auto node = XNode.parse(readText(file));
 	if ("comments" == node.name) {
@@ -221,9 +221,9 @@ void loadComment(Summary summ) {
 	}
 }
 
-/// 拡張情報"ImageRef.widx"を読み込む。
+/// 拡張情報"ImageRef.wex"を読み込む。
 void loadImageRef(Summary summ) {
-	string file = summ.scenarioPath.buildPath("ImageRef.widx");
+	string file = summ.scenarioPath.buildPath("ImageRef.wex");
 	if (!.exists(file)) return;
 	auto node = XNode.parse(readText(file));
 	if ("imageRefs" == node.name) {
@@ -1724,18 +1724,18 @@ void saveLScenario(Summary summ, bool doubleIO, bool saveInnerImagePath = false)
 	string[] renames;
 	string comment = saveComment(d);
 	if (comment.length) {
-		auto file = "~Comment.widx";
+		auto file = "~Comment.wex";
 		std.file.write(d.sPath.buildPath(file), cast(immutable byte[]) comment);
 		renames ~= file;
 	}
 	string imageRef = saveImageRef(d);
 	if (imageRef.length) {
-		auto file = "~ImageRef.widx";
+		auto file = "~ImageRef.wex";
 		std.file.write(d.sPath.buildPath(file), cast(immutable byte[]) imageRef);
 		renames ~= file;
 	}
 
-	auto sysFName = .regex!(dstring)("^(((Area|Battle|Package|Mate|Skill|Item|Beast|Info)[0-9]+\\.wid)|((Comment|ImageRef)\\.widx))$"d);
+	auto sysFName = .regex!(dstring)("^(((Area|Battle|Package|Mate|Skill|Item|Beast|Info)[0-9]+\\.wid)|((Comment|ImageRef)\\.wex))$"d);
 	foreach (file; clistdir(d.sPath)) {
 		if (cfnmatch(file, "Summary.wsm")
 				|| !std.regex.match(toUTF32(file), sysFName).empty) {
@@ -1751,7 +1751,7 @@ void saveLScenario(Summary summ, bool doubleIO, bool saveInnerImagePath = false)
 	}
 }
 
-/// 拡張情報"Comment.widx"を保存する。
+/// 拡張情報"Comment.wex"を保存する。
 string saveComment(in SData d) {
 	if (!d.comment.length) return "";
 	auto node = XNode.create("comments");
@@ -1761,7 +1761,7 @@ string saveComment(in SData d) {
 	}
 	return node.text;
 }
-/// 拡張情報"ImageRef.widx"を保存する。
+/// 拡張情報"ImageRef.wex"を保存する。
 string saveImageRef(in SData d) {
 	if (!d.saveInnerImagePath) return "";
 	if (!d.imageRef.length) return "";
