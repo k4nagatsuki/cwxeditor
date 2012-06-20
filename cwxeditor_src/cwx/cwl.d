@@ -1755,6 +1755,7 @@ void saveLScenario(Summary summ, bool doubleIO, bool saveInnerImagePath = false)
 string saveComment(in SData d) {
 	if (!d.comment.length) return "";
 	auto node = XNode.create("comments");
+	node.newAttr("dataVersion", 1);
 	foreach (cwxPath, comment; d.comment) {
 		auto e = node.newElement("comment", comment);
 		e.newAttr("path", cwxPath);
@@ -1766,6 +1767,7 @@ string saveImageRef(in SData d) {
 	if (!d.saveInnerImagePath) return "";
 	if (!d.imageRef.length) return "";
 	auto node = XNode.create("imageRefs");
+	node.newAttr("dataVersion", 1);
 	foreach (cwxPath, imgPath; d.imageRef) {
 		auto e = node.newElement("imageRef", imgPath);
 		e.newAttr("path", cwxPath);
