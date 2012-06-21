@@ -186,6 +186,7 @@ S loadLScenario(S)(string p, string skin, string newName = null) {
 		static if (IT) foreach (a; items.sort) summ.add(a);
 		static if (BE) foreach (a; beasts.sort) summ.add(a);
 		static if (IN) foreach (a; infos.sort) summ.add(a);
+		loadImageRef(summ);
 	}
 	return summ;
 }
@@ -193,7 +194,7 @@ S loadLScenario(S)(string p, string skin, string newName = null) {
 private const string INVALID_CWX_PATH = "InvalidCWXPath";
 
 /// 拡張情報"ImageRef.widx"を読み込む。
-void loadImageRef(Summary summ) {
+void loadImageRef(S)(S summ) {
 	string file = std.path.join(summ.scenarioPath, "ImageRef.widx");
 	if (!.exists(file)) return;
 	auto node = XNode.parse(cast(string) std.file.read(file));
