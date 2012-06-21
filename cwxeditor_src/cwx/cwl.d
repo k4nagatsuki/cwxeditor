@@ -200,12 +200,14 @@ S loadLScenario(S)(string p, string skin, bool doubleIO, string newName = null) 
 		static if (IT) foreach (a; items.sort) summ.add(a);
 		static if (BE) foreach (a; beasts.sort) summ.add(a);
 		static if (IN) foreach (a; infos.sort) summ.add(a);
+		loadComment(summ);
+		loadImageRef(summ);
 	}
 	return summ;
 }
 
 /// 拡張情報"Comment.wex"を読み込む。
-void loadComment(Summary summ) {
+void loadComment(S)(S summ) {
 	string file = summ.scenarioPath.buildPath("Comment.wex");
 	if (!.exists(file)) return;
 	auto node = XNode.parse(readText(file));
@@ -222,7 +224,7 @@ void loadComment(Summary summ) {
 }
 
 /// 拡張情報"ImageRef.wex"を読み込む。
-void loadImageRef(Summary summ) {
+void loadImageRef(S)(S summ) {
 	string file = summ.scenarioPath.buildPath("ImageRef.wex");
 	if (!.exists(file)) return;
 	auto node = XNode.parse(readText(file));
