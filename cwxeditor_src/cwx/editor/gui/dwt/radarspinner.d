@@ -485,10 +485,8 @@ class RadarSpinner : Composite {
 			real x3sq = x3 * x3;
 			real y3sq = y3 * y3;
 
-			real cx = (((x1sq + y1sq) - (x2sq + y2sq)) * (y2 - y3) - ((x2sq + y2sq) - (x3sq + y3sq)) * (y1-y2))
-				/ (((x1 - x2) * (y2 - y3) - (x2 - x3) * (y1 - y2)) * 2);
-			real cy = (((y1sq + x1sq) - (y2sq + x2sq)) * (x2 - x3) - ((y2sq + x2sq) - (y3sq + x3sq)) * (x1-x2))
-				/ (((y1 - y2) * (x2 - x3) - (y2 - y3) * (x1 - x2)) * 2);
+			real cx = (x1 + x2 + x3) / 3.0;
+			real cy = (y1 + y2 + y3) / 3.0;
 			real r1 = atan2(y1 - cy, x1 - cx);
 			real r2 = atan2(y2 - cy, x2 - cx);
 			real r3 = atan2(y3 - cy, x3 - cx);
