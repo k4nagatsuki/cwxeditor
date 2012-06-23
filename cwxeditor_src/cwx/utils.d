@@ -648,7 +648,7 @@ bool fnendsWith(string a, string b) {
 /// 絶対パスであればtrueを返す。
 bool isabs(string path) {
 	version (Windows) {
-		return startsWith(path, `\`) || std.path.isAbsolute(path);
+		return startsWith(path, "\\") || std.path.isAbsolute(path);
 	} else {
 		return std.path.isAbsolute(path) != 0;
 	}
@@ -679,9 +679,9 @@ string normal(string path) {
 	debug mixin(UTPerf);
 	version (Windows) {
 		assert (normal("C:/aaaa/./bbbb/../ccc../dd/test.d/..") == `C:\aaaa\ccc..\dd`);
-		assert (normal(`C:\./,/..\aaa/bbb/cc\../...\..\`) == `C:\aaa\bbb`);
-		assert (normal(`..\..\./,/..\aaa/bbb/cc\../...\..\`) == `..\..\aaa\bbb`);
-		assert (normal(`\\./,/..\aaa/bbb/cc\../...\..\`) == `\\aaa\bbb`);
+		assert (normal("C:\\./,/..\\aaa/bbb/cc\\../...\\..\\") == `C:\aaa\bbb`);
+		assert (normal("..\\..\\./,/..\\aaa/bbb/cc\\../...\\..\\") == `..\..\aaa\bbb`);
+		assert (normal("\\\\./,/..\\aaa/bbb/cc\\../...\\..\\") == `\\aaa\bbb`);
 	} else {
 		assert (normal("/aaaa/./bbbb/../ccc../dd/test.d/..") == `/aaaa/ccc../dd`);
 		assert (normal(`/./,/../aaa/bbb/cc/../.../../`) == `/aaa/bbb`);
@@ -727,7 +727,7 @@ string abs2rel(string base, string path) {
 	version (Windows) {
 		assert (abs2rel(`c:\windows\system`, `c:\windows\system\test`) == `test`);
 		assert (abs2rel(`c:\windows\system`, `c:\windows\system\test\test.txt`) == `test\test.txt`);
-		assert (abs2rel(`c:\windows\system`, `c:\`) == `..\..`);
+		assert (abs2rel(`c:\windows\system`, "c:\\") == `..\..`);
 		assert (abs2rel(`c:\windows\system`, `c:\windows`) == `..`);
 		assert (abs2rel(`c:\windows\system`, `c:\winnt`) == `..\..\winnt`);
 		assert (abs2rel(`c:\windows\system`, `c:\winnt\system\temp`) == `..\..\winnt\system\temp`);
@@ -1422,7 +1422,7 @@ version (Windows) {
 	/// プロセスを起動する。成功した場合はtrueを返す。
 	/// FIXME: まったくテストしていない
 	bool exec(string process, string workDir = "", bool console = true, bool wait = false) {
-		auto pid = fork;
+		auto pid = fork();
 		if (pid < 0) {
 			return false;
 		} else if (pid > 0) {
@@ -1433,6 +1433,7 @@ version (Windows) {
 			if (execv(process, null) == -1) {
 				exit(-1);
 			}
+            return true;
 		}
 	}
 }

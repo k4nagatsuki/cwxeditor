@@ -23,6 +23,8 @@ version (Windows) {
 		SOUND_TYPE_MCI = 2,
 		SOUND_TYPE_BASS = 4,
 	}
+} else {
+    private alias uint DWORD;
 }
 
 version (Windows) {
@@ -207,9 +209,11 @@ shared static ~this () {
 			ExeModule_Release(mixer);
 			ExeModule_Release(sdl);
 +/		}
-		if (winmm) {
-			ExeModule_Release(winmm);
-		}
+        version (Windows) {
+		    if (winmm) {
+			    ExeModule_Release(winmm);
+		    }
+        }
 		disposeBass();
 		version (Console) {
 			debug std.stdio.writeln("Release DLLs for sound Exit");
@@ -231,13 +235,15 @@ private __gshared intptr_t seChannel = -1;
 
 private void play(ref Mix_Music* music, ref Mix_Chunk* chunk, ref intptr_t channel, string mciName, ref bool onLegacy, ref bool playingMCI, string file, bool loop, int soundPlayType, uint volume, ref HSTREAM bassStream) {
 	stop(music, chunk, channel, mciName, onLegacy, playingMCI, bassStream);
-	if (SOUND_TYPE_BASS == soundPlayType) {
-		// BASSがロードされている場合はBASSで再生する
-		if (playBass(file, loop, bassStream, volume)) {
-			return;
-		}
-		// ここへ来たら再生失敗
-	}
+    version (Windows) {
+	    if (SOUND_TYPE_BASS == soundPlayType) {
+		    // BASSがロードされている場合はBASSで再生する
+		    if (playBass(file, loop, bassStream, volume)) {
+			    return;
+		    }
+		    // ここへ来たら再生失敗
+	    }
+    }
 	try {
 		version (Windows) {
 			if (winmm && (SOUND_TYPE_MCI == soundPlayType || !sdl)) {
@@ -316,8 +322,8 @@ private void play(ref Mix_Music* music, ref Mix_Chunk* chunk, ref intptr_t chann
 
 private void stop(ref Mix_Music* music, ref Mix_Chunk* chunk, ref intptr_t channel, string mciName, bool onLegacy, ref bool playingMCI, ref HSTREAM bassStream) {
 	try {
-		stopBass(bassStream);
 		version (Windows) {
+    		stopBass(bassStream);
 			if (onLegacy && playingMCI) {
 				synchronized (winmmSync) {
 					playingMCI = false;
@@ -356,13 +362,13 @@ __gshared void delegate()[] stopSEEvent;
 /// 指定されたディレクトリにあるBASSのDLLをロードし、初期化する。
 bool initBass(string dir, in string[] soundFonts) {
 	synchronized (mutex) {
-		if (bass) {
-			_toggleInitBass = true;
-			_initBassDir = dir;
-			_initBassSFont = soundFonts.dup;
-			return true;
-		}
-		version (Windows) {
+        version (Windows) {
+		    if (bass) {
+			    _toggleInitBass = true;
+			    _initBassDir = dir;
+			    _initBassSFont = soundFonts.dup;
+			    return true;
+		    }
 			try {
 				if (!bass) {
 					bass = ExeModule_Load(dir.buildPath("bass.dll"));
@@ -595,6 +601,7 @@ bool canPlayBass(string file) {
 		version (Windows) {
 			return .useBass && (isMidi(file) ? (bassMidi && soundFonts.length) : true);
 		}
+        return false;
 	}
 }
 
@@ -602,7 +609,12 @@ bool canPlayBass(string file) {
 void playBGM(string path, int soundPlayType) {
 	synchronized (mutex) {
 		try {
-			play(bgmMusic, bgmChunk, bgmChannel, "cwbgm", bgmOnLegacy, _bgmPlayingMCI, path, true, soundPlayType, _bgmVolume, bassBGMStream);
+            version (Windows) {
+                HSTREAM bass = bassBGMStream;
+            } else {
+                HSTREAM bass = 0;
+            }
+			play(bgmMusic, bgmChunk, bgmChannel, "cwbgm", bgmOnLegacy, _bgmPlayingMCI, path, true, soundPlayType, _bgmVolume, bass);
 		} catch (Throwable e) {
 			debugln(e);
 		}
@@ -613,7 +625,12 @@ void playBGM(string path, int soundPlayType) {
 void stopBGM() {
 	synchronized (mutex) {
 		try {
-			stop(bgmMusic, bgmChunk, bgmChannel, "cwbgm", bgmOnLegacy, _bgmPlayingMCI, bassBGMStream);
+            version (Windows) {
+                HSTREAM bass = bassBGMStream;
+            } else {
+                HSTREAM bass = 0;
+            }
+			stop(bgmMusic, bgmChunk, bgmChannel, "cwbgm", bgmOnLegacy, _bgmPlayingMCI, bass);
 		} catch (Throwable e) {
 			debugln(e);
 		}
@@ -662,7 +679,12 @@ void bgmVolume(uint volume) {
 void playSE(string path, int soundPlayType) {
 	synchronized (mutex) {
 		try {
-			play(seMusic, seChunk, seChannel, "cwse", seOnLegacy, _sePlayingMCI, path, false, soundPlayType, _seVolume, bassSEStream);
+            version (Windows) {
+                HSTREAM bass = bassSEStream;
+            } else {
+                HSTREAM bass = 0;
+            }
+			play(seMusic, seChunk, seChannel, "cwse", seOnLegacy, _sePlayingMCI, path, false, soundPlayType, _seVolume, bass);
 		} catch (Throwable e) {
 			debugln(e);
 		}
@@ -673,7 +695,12 @@ void playSE(string path, int soundPlayType) {
 void stopSE() {
 	synchronized (mutex) {
 		try {
-			stop(seMusic, seChunk, seChannel, "cwse", seOnLegacy, _sePlayingMCI, bassSEStream);
+            version (Windows) {
+                HSTREAM bass = bassSEStream;
+            } else {
+                HSTREAM bass = 0;
+            }
+			stop(seMusic, seChunk, seChannel, "cwse", seOnLegacy, _sePlayingMCI, bass);
 		} catch (Throwable e) {
 			debugln(e);
 		}

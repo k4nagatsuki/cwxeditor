@@ -8,10 +8,10 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Composite;
 
 version (Windows) {
-	import std.stdio;
-	import std.string;
-	import std.utf;
-	import std.windows.charset;
+    import std.string;
+    import std.stdio;
+    import std.utf;
+    import std.windows.charset;
 
 	import org.eclipse.swt.widgets.Display;
 	import org.eclipse.swt.layout.FormLayout;
@@ -111,7 +111,7 @@ class SBShell {
 		}
 		@property
 		void statusLine(string text) {
-			_sbar.setText(std.string.replace(text, "&", "&&"));
+			_sbar.setText(std.array.replace(text, "&", "&&"));
 		}
 	}
 }

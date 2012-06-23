@@ -103,7 +103,7 @@ version (Windows) {
 	private extern (C) {
 		uintptr_t sleep(uintptr_t);
 		intptr_t inotify_init();
-		intptr_t inotify_add_watch(intptr_t, char*, uintptr_t);
+		intptr_t inotify_add_watch(intptr_t, in char*, uintptr_t);
 		const IN_NONBLOCK = 0x4000;
 		const IN_MODIFY = 0x0002;
 		const IN_ATTRIB = 0x0004;
@@ -1175,7 +1175,7 @@ private:
 	} else version (linux) {
 		private int _traceHandle = -1;
 		private void closeTraceHandle() {
-			synchronized (_refreshThr) closeTraceHandleImpl;
+			synchronized (_refreshThr) closeTraceHandleImpl();
 		}
 		private void closeTraceHandleImpl() {
 			if (_traceHandle !is -1) close(_traceHandle);

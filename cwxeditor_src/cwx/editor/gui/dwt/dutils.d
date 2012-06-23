@@ -1863,6 +1863,7 @@ class StopSE : SelectionAdapter, DisposeListener {
 }
 
 bool playBGMCW(Props prop, string path, bool legacy) {
+    version (Windows) {} else {immutable SOUND_TYPE_MCI = -1;}
 	switch (prop.var.etc.soundPlayType) {
 	case SOUND_TYPE_SDL: playBGM(path, SOUND_TYPE_SDL); return true;
 	case SOUND_TYPE_MCI:
@@ -1892,6 +1893,7 @@ bool playBGMCW(Props prop, string path, bool legacy) {
 }
 
 void playSECW(Props prop, string path, bool legacy) {
+    version (Windows) {} else {immutable SOUND_TYPE_MCI = -1;}
 	int type = prop.var.etc.soundEffectPlayType;
 	if (SOUND_TYPE_SAME_BGM == type) {
 		type = prop.var.etc.soundPlayType;

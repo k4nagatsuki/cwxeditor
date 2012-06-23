@@ -1316,7 +1316,7 @@ private:
 			_prop.var.etc.wallColorG,
 			_prop.var.etc.wallColorB);
 		auto color = new Color(Display.getCurrent(), rgb);
-		_imgp.setBackgroundColor(color);
+		_imgp.setBackgroundColor2(color);
 		_comm.refWallpaper.add(&refreshWallpaper);
 		_imgp.addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) {
@@ -1367,7 +1367,7 @@ private:
 				auto pane = cast(ImagePane) e.widget;
 				auto img = pane.getBackgroundImage();
 				if (img) img.dispose();
-				auto color = pane.getBackgroundColor();
+				auto color = pane.getBackgroundColor2();
 				if (color) color.dispose();
 			}
 		});

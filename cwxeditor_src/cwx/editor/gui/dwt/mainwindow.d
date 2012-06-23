@@ -1223,14 +1223,14 @@ private:
 					}
 				}
 			} else {
-				auto pipe = socket(PF_UNIX, SOCK_STREAM, 0);
-				if (pipe == -1) return -1;
+				auto pipe = socket(AF_UNIX, SOCK_STREAM, 0);
+				if (pipe == -1) return;
 				scope (exit) close(pipe);
 				sockaddr_un laddr;
 				laddr.sun_family = AF_UNIX;
 				strcpy(&(laddr.sun_path[1]), _pipeName.ptr);
 				if (0 != cbind(pipe, cast(sockaddr*) &laddr, laddr.sizeof)) return;
-				if (0 != listen(pipe, 1)) return -1;
+				if (0 != listen(pipe, 1)) return;
 				char[4096] buf;
 				int len;
 				typeof(pipe) rsock;
@@ -1241,7 +1241,7 @@ private:
 					scope (exit) close(rsock);
 					while (true) {
 						if (-1 == (len = cread(pipe, buf.ptr, buf.length))) break;
-						string recv = buf[0 .. len];
+						char[] recv = buf[0 .. len];
 						string send = recvSend(recv, quit);
 						if (quit) break;
 						if (!send) break;
@@ -1273,7 +1273,7 @@ private:
 		} else {
 			for (size_t i = 0; i < PIPE_APP_MAX; i++) {
 				string pipeName = r"/pipe/cwxeditor_" ~ to!(string)(i);
-				auto p = socket(PF_UNIX, SOCK_STREAM, 0);
+				auto p = socket(AF_UNIX, SOCK_STREAM, 0);
 				if (-1 == p) continue;
 				scope (exit) close(p);
 				sockaddr_un raddr;
@@ -1316,7 +1316,7 @@ private:
 				if (!next()) break;
 				string pipeName = r"/pipe/cwxeditor_" ~ to!(string)(i);
 				if (_pipeName == pipeName) continue;
-				auto p = socket(PF_UNIX, SOCK_STREAM, 0);
+				auto p = socket(AF_UNIX, SOCK_STREAM, 0);
 				if (-1 == p) continue;
 				scope (exit) close(p);
 				sockaddr_un raddr;

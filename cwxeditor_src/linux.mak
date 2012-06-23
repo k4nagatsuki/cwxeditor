@@ -89,7 +89,6 @@ SRC = cwxeditor.d \
 	cwx/editor/gui/dwt/dmenu.d \
 	cwx/editor/gui/dwt/incsearch.d \
 	d2std/xml.d \
-	d2std/xml2.d \
 
 OBJ = $(SRC:%.d=%.o)
 DMD = dmd
@@ -98,7 +97,6 @@ OUT = cwxeditor
 
 LIB = org.eclipse.swt.gtk.linux.x86.a \
 	dwt-base.a \
-	-L-ltangobos \
 	-L-lgnomeui-2 \
 	-L-lcairo \
 	-L-lglib-2.0 \

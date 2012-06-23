@@ -1362,8 +1362,8 @@ private:
 
 	private Color _backColor = null;
 public:
-	void setBackgroundColor(Color backColor) {_backColor = backColor;}
-	Color getBackgroundColor() {return _backColor;}
+	void setBackgroundColor2(Color backColor) {_backColor = backColor;}
+	Color getBackgroundColor2() {return _backColor;}
 
 	@property
 	PileImage[] images() {
