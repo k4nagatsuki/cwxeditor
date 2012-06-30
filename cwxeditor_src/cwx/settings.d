@@ -66,6 +66,21 @@ private struct PropValue(string PKey, T, T Default, bool ReadOnly) {
 		.fromNode(node, KEY, value);
 	}
 }
+private struct PropValueAttr(string PKey, T, T Default, bool ReadOnly) {
+	static immutable string ATTR_KEY = PKey;
+	static immutable T INIT = Default;
+	static immutable bool READ_ONLY = ReadOnly;
+
+	T value = Default;
+
+	const
+	void toNode(ref XNode node) {
+		.toNode(node, ATTR_KEY, value);
+	}
+	void fromNode(ref XNode node) {
+		.fromNode(node, ATTR_KEY, value);
+	}
+}
 
 /// Propertyを持つためのクラス。
 abstract class Properties {
@@ -98,63 +113,95 @@ abstract class Properties {
 			mixin ("@property void " ~ Name ~ "(" ~ VType.stringof ~ " value) {_" ~ Name ~ ".value = value;}");
 		}
 	}
+	/// Propertyと同様だが、XML化の際は属性として扱われる。
+	protected template PropertyAttr(string Name, VType, VType Default, bool ReadOnly = false) {
+		mixin ("private PropValueAttr!("
+			~ "\"" ~ Name ~ "\", " ~ VType.stringof ~ ", " ~ Default.stringof ~ ", " ~ ReadOnly.stringof ~ ") "
+			~ "_" ~ Name ~ ";");
+		mixin ("@property const const(" ~ VType.stringof ~ ") " ~ Name ~ "() {return _" ~ Name ~ ".value;}");
+		mixin ("@property const const(" ~ VType.stringof ~ ") " ~ Name ~ "_init() {return Default;}");
+		static if (!ReadOnly) {
+			mixin ("@property void " ~ Name ~ "(" ~ VType.stringof ~ " value) {_" ~ Name ~ ".value = value;}");
+		}
+	}
 	/// mixinによってXML化する関数及びXMLからプロパティ群をロードする関数を生成する。
 	/// Params:
 	/// SubClass = Propertiesのサブクラス。
 	/// Root = ルート要素の名前。
 	protected template XMLFuncs(SubClass : Properties, string Root = "") {
 		static if (Root.length > 0) {
+			const
 			string toXML() {
+				return toXML(false);
+			}
+			const
+			string toXML(bool writeAll) {
 				auto e = XNode.create(Root);
-				foreach (fld; this.tupleof) {
-					if (!fld.READ_ONLY || fld.value != fld.INIT) {
-						fld.toNode(e);
-					}
-				}
+				toNodeImpl(e, writeAll);
 				return e.text;
 			}
 			static SubClass fromXML(string xml) {
 				try {
 					auto node = XNode.parse(xml);
-					return fromNode(node);
-				} catch (Exception) {
+					return fromNodeImpl(node);
+				} catch (Exception e) {
+					debugln(e);
 					SubClass r;
 					return r;
 				}
 			}
 		}
-		void toNode(ref XNode node) {
+		const
+		void toNode(ref XNode node, bool writeAll) {
 			static if (Root == "") {
 				auto e = node;
 			} else {
 				auto e = node.newElement(Root);
 			}
+			toNodeImpl(e, writeAll);
+		}
+		const
+		void toNode(ref XNode node) {
+			toNode(node, false);
+		}
+		const
+		private void toNodeImpl(ref XNode e, bool writeAll) {
 			foreach (fld; this.tupleof) {
-				static if (is(typeof(fld.READ_ONLY))) {
-					if (fld.value != fld.INIT) {
+				static if (is(typeof(fld.KEY))) {
+					if (writeAll || fld.value != fld.INIT) {
 						fld.toNode(e);
+					}
+				} else static if (is(typeof(fld.ATTR_KEY))) {
+					if (writeAll || fld.value != fld.INIT) {
+						e.newAttr(fld.ATTR_KEY, to!string(fld.value));
 					}
 				}
 			}
 		}
 		static SubClass fromNode(ref XNode node) {
-			auto r = new SubClass;
 			static if (Root == "") {
 				auto e = node;
 			} else {
 				auto e = node.child(Root, false);
 			}
+			return fromNodeImpl(e);
+		}
+		private static SubClass fromNodeImpl(ref XNode e) {
+			auto r = new SubClass;
 			if (e.valid) {
-				foreach (i, fld; r.tupleof) {
-					static if (is(typeof(fld.READ_ONLY))) {
+				foreach (i, ref fld; r.tupleof) {
+					static if (is(typeof(fld.KEY))) {
 						auto n = e.child(fld.KEY, false);
 						if (n.valid) {
 							try {
-								r.tupleof[i].fromNode(n);
+								fld.fromNode(n);
 							} catch (Exception e) {
 								debugln(e);
 							}
 						}
+					} else static if (is(typeof(fld.ATTR_KEY))) {
+						auto attr = e.attr(fld.ATTR_KEY, false, to!string(fld.INIT));
+						fld.value = to!(typeof(fld.value))(attr);
 					}
 				}
 			}

@@ -9,6 +9,7 @@ import cwx.event;
 
 import std.path;
 import std.conv;
+import std.file;
 
 public class Looks {
 public:
@@ -222,12 +223,62 @@ public:
 			throw new Exception(dStr, __FILE__, __LINE__);
 		}
 	}
+	/// アプリケーションの実行ファイルのパス。
 	@property const string appPath() {return _appPath;}
+	/// CardWirthのシステム情報。
 	@property const const(cwx.system.System) sys() {return _sys;}
+	/// 各種メッセージ情報。
 	@property const const(Msgs) msgs() {return _msgs;}
+	/// ditto
+	@property void msgs(Msgs msgs) {_msgs = msgs;}
+	/// 各種外観情報。
 	@property const const(Looks) looks() {return _looks;}
+
+	/// pathをアプリケーションの実行ファイルからの相対パスと見做してフルパスに変換する。
 	const string toAppAbs(string path) {
 		if (cwx.utils.isabs(path)) return nabs(path);
-		return nabs(std.path.buildPath(_appPath, path));
+		return nabs(std.path.buildPath(_appPath.dirName(), path));
+	}
+
+	/// 言語ファイルを読み込む。
+	void loadMsgs(string relPath) {
+		auto path = toAppAbs(relPath);
+		try {
+			_msgs = Msgs.fromXML(std.file.readText(path));
+		} catch (Exception e) {
+			debugln(e);
+		}
+	}
+
+	/// 言語ファイルの一覧を得る。
+	const
+	Msgs[string] msgsTable(string languageDir, ref string[string] msgsTableFile, out string defLocale) {
+		Msgs[string] msgsTable;
+		auto def = new Msgs;
+		defLocale = def.locale;
+		msgsTableFile[def.locale] = "";
+		try {
+			auto dir = toAppAbs(languageDir);
+			if (.exists(dir)) {
+				foreach (file; clistdir(dir)) {
+					if (!cfnmatch(cwx.utils.getExt(file), "xml")) continue;
+					try {
+						auto msgs = Msgs.fromXML(std.file.readText(dir.buildPath(file)));
+						if (def.locale == msgs.locale) {
+							def = msgs;
+						} else {
+							msgsTable[msgs.locale] = msgs;
+						}
+						msgsTableFile[msgs.locale] = file;
+					} catch (Exception e) {
+						debugln(e);
+					}
+				}
+			}
+		} catch (Exception e) {
+			debugln(e);
+		}
+		msgsTable[def.locale] = def;
+		return msgsTable;
 	}
 }

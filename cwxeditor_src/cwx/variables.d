@@ -7,6 +7,10 @@ import cwx.structs;
 import cwx.settings;
 
 class FlexEtcProps : Properties {
+	mixin Property!("languageDir", string, "lang", true);
+	mixin Property!("languageFile", string, "");
+	mixin Property!("useSystemLanguage", bool, true);
+
 	mixin Property!("singleWindow", bool, true);
 	mixin Property!("toolsLock", bool, false);
 	mixin Property!("toolsOrder", int[], []);

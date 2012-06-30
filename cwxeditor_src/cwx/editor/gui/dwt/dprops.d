@@ -34,6 +34,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import java.lang.all;
 import java.io.ByteArrayInputStream;
+import java.nonstandard.Locale;
 
 public class Props {
 private:
@@ -46,14 +47,35 @@ public:
 		try {
 			_parent = parent;
 			dStr ~= " - " ~ .text(__LINE__);
-			_images = new Images(parent.appPath);
+			_images = new Images(_parent.appPath);
 			dStr ~= " - " ~ .text(__LINE__);
-			_var = new FlexProps(parent.appPath, confFilePath);
+			_var = new FlexProps(_parent.appPath, confFilePath);
 			dStr ~= " - " ~ .text(__LINE__);
 		} catch (Throwable e) {
 			fdebugln(dStr);
 			fdebugln(e);
 			throw new Exception(dStr, __FILE__, __LINE__);
+		}
+
+		// システムの言語
+		string[string] msgsTableFile;
+		string defLocale;
+		auto msgsTable = _parent.msgsTable(var.etc.languageDir, msgsTableFile, defLocale);
+		auto msgs = msgsTable.get(.caltureName(), null);
+		if (msgs) {
+			_parent.msgs = msgs;
+		}
+
+		// 設定された言語
+		if (!var.etc.useSystemLanguage && var.etc.languageFile.length) {
+			auto langFile = toAppAbs(var.etc.languageDir).buildPath(var.etc.languageFile);
+			if (.exists(langFile)) {
+				try {
+					_parent.loadMsgs(langFile);
+				} catch (Exception e) {
+					debugln(e);
+				}
+			}
 		}
 	}
 	@property

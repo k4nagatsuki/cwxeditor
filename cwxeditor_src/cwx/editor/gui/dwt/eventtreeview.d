@@ -1582,8 +1582,10 @@ private:
 		auto fSize = font ? cast(uint) font.getFontData()[0].height : 0;
 		e.gc.setFont(new Font(_tree.getDisplay(), dwtData(_prop.looks.textDlgFont(fSize))));
 		scope (exit) e.gc.getFont().dispose();
+		Rectangle[] boxes;
 		TreeItem[] itms;
 		void recurse(TreeItem itm) {
+			boxes ~= itm.getBounds();
 			itms ~= itm;
 			if (itm.getExpanded()) {
 				foreach (chld; itm.getItems()) {
@@ -1631,6 +1633,15 @@ private:
 					ty -= by + bh - mxy;
 					by = ty - MARGIN_T;
 				}
+				auto box = new Rectangle(bx, by, bw, bh);
+				foreach (b; boxes) {
+					if (b.intersects(box)) {
+						bx = b.x + b.width + MARGIN_L;
+						box.x = bx;
+						tx = bx + MARGIN_L;
+						dis = tx - ib.x - ib.width;
+					}
+				}
 
 				e.gc.setAlpha(128);
 				e.gc.fillRectangle(bx, by, bw, bh);
@@ -1654,6 +1665,7 @@ private:
 				e.gc.fillRectangle(bx, by + bh - 1, bw, 1);
 				e.gc.fillRectangle(bx, by + 1, 1, bh - 2);
 				e.gc.fillRectangle(bx + bw - 1, by + 1, 1, bh - 2);
+				boxes ~= box;
 			}
 		}
 	}

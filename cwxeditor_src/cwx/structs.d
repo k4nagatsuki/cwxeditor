@@ -39,6 +39,7 @@ struct LaunchOption {
 	string createclassicPath = "";
 	string[] openPaths = [];
 	string scenario = null;
+	string putlangfile = "";
 	bool help = false;
 
 	void parseStrings(string[] args) {
@@ -73,6 +74,10 @@ struct LaunchOption {
 					if (i + 1 < args.length) createName = args[i + 1];
 					if (i + 2 < args.length) createclassicPath = args[i + 2];
 					sc = i + 3u;
+					break;
+				case "-putlangfile": // 起動と同時に言語ファイルを出力して終了
+					if (i + 1 < args.length) putlangfile = args[i + 1];
+					sc = i + 1u;
 					break;
 				case "-help", "-h", "/?": // usage
 					help = true;

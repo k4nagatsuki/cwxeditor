@@ -13,6 +13,8 @@ import cwx.menu;
 import cwx.variables;
 import cwx.cab;
 import cwx.script;
+import cwx.msgs;
+import cwx.props;
 
 import cwx.editor.gui.sound;
 
@@ -1044,6 +1046,9 @@ private:
 	ToolsPane!EvTemplate _evTempls;
 
 	CTabItem _tabE;
+	Combo _language;
+	string[int] _msgsTableIndex;
+	string[string] _msgsTableFile;
 	Text _ignorePaths;
 	Button _singleWindow = null;
 	Button _smoothingCard;
@@ -1233,13 +1238,12 @@ private:
 		selectDir(_backupDir, _prop.msgs.backupDir, _prop.msgs.backupDirDesc, _prop.backupPath);
 	}
 	void selectWallpaper() {
-		auto filterName = [_prop.msgs.filterWallpaper, _prop.msgs.filterAll];
+		string[] filterName = [_prop.msgs.filterWallpaper, _prop.msgs.filterAll];
 		string[] filter = [
 			"*." ~ std.string.join(WALLPAPER_EXT.dup, ";*."),
 			"*"
 		];
-		selectFile(_wallpaper, filterName, filter,
-			_prop.var.etc.wallpaper, _prop.msgs.dlgTitWallpaper, getcwd());
+		selectFile(_wallpaper, filterName, filter, _prop.var.etc.wallpaper, _prop.msgs.dlgTitWallpaper, getcwd());
 	}
 	class SelEngine : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {selectEngine();}
@@ -1336,24 +1340,53 @@ private:
 		_tabB.setText(_prop.msgs.baseSettings);
 		_tabB.setControl(comp);
 		{
-			auto grp = new Group(comp, SWT.NONE);
-			grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			grp.setLayout(new GridLayout(3, false));
-			grp.setText(.tryFormat(_prop.msgs.enginePath, _prop.var.etc.engine));
-			_enginePath = new Text(grp, SWT.BORDER);
-			createTextMenu!Text(_comm, _prop, _enginePath, &catchMod);
-			_enginePath.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			mod(_enginePath);
-			auto refr = new Button(grp, SWT.PUSH);
-			refr.setText(_prop.msgs.reference);
-			refr.addSelectionListener(new SelEngine);
-			createOpenButton(grp, _enginePath, false);
-			auto l = new Label(grp, SWT.NONE);
-			l.setText(_prop.msgs.enginePathAtten);
-			auto gd = new GridData;
-			gd.horizontalSpan = 3;
-			l.setLayoutData(gd);
-			setupDropFile(grp, _enginePath, &dropEngine);
+			auto comp2 = new Composite(comp, SWT.NONE);
+			comp2.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			comp2.setLayout(zeroMarginGridLayout(2, false));
+			{
+				auto grp = new Group(comp2, SWT.NONE);
+				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+				grp.setLayout(new GridLayout(3, false));
+				grp.setText(.tryFormat(_prop.msgs.enginePath, _prop.var.etc.engine));
+				_enginePath = new Text(grp, SWT.BORDER);
+				createTextMenu!Text(_comm, _prop, _enginePath, &catchMod);
+				_enginePath.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				mod(_enginePath);
+				auto refr = new Button(grp, SWT.PUSH);
+				refr.setText(_prop.msgs.reference);
+				refr.addSelectionListener(new SelEngine);
+				createOpenButton(grp, _enginePath, false);
+				auto l = new Label(grp, SWT.NONE);
+				l.setText(_prop.msgs.enginePathAtten);
+				auto gd = new GridData;
+				gd.horizontalSpan = 3;
+				l.setLayoutData(gd);
+				setupDropFile(grp, _enginePath, &dropEngine);
+			}
+			{
+				auto grp = new Group(comp2, SWT.NONE);
+				grp.setLayoutData(new GridData(GridData.FILL_VERTICAL));
+				grp.setText(_prop.msgs.languageSetting);
+				grp.setLayout(new GridLayout(1, true));
+				string defLocale;
+				auto msgsTable = _prop.parent.msgsTable(_prop.var.etc.languageDir, _msgsTableFile, defLocale);
+				_language = new Combo(grp, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
+				mod(_language);
+				_language.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
+				_language.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				_language.add(_prop.msgs.languageSystem);
+				_language.select(0);
+				foreach (locale; msgsTable.keys.sort) {
+					_language.add(msgsTable[locale].localeName);
+					int index = _language.getItemCount() - 1;
+					_msgsTableIndex[index] = locale;
+					if (!_prop.var.etc.useSystemLanguage && _prop.msgs.locale == locale) {
+						_language.select(index);
+					}
+				}
+				auto l = new Label(grp, SWT.NONE);
+				l.setText(_prop.msgs.languageCaution);
+			}
 		}
 		{
 			auto grp = new Group(comp, SWT.NONE);
@@ -2178,6 +2211,13 @@ protected:
 			oldStgs.raiseEvent(_comm);
 		}
 		_prop.var.etc.enginePath = engine;
+		if (_language.getSelectionIndex() <= 0) {
+			_prop.var.etc.languageFile = "";
+			_prop.var.etc.useSystemLanguage = true;
+		} else {
+			_prop.var.etc.languageFile = _msgsTableFile[_msgsTableIndex[_language.getSelectionIndex()]];
+			_prop.var.etc.useSystemLanguage = false;
+		}
 		_prop.var.etc.tempPath = temp;
 		_prop.var.etc.backupPath = backup;
 		_prop.var.etc.backupEnabled = _backupEnabled.getSelection();

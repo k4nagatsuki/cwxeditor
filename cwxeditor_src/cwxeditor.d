@@ -5,6 +5,7 @@ import cwx.utils;
 import cwx.system;
 import cwx.props;
 import cwx.structs;
+import cwx.msgs;
 
 import cwx.editor.gui.dwt.mainwindow;
 import cwx.editor.gui.dwt.textdialog;
@@ -53,6 +54,7 @@ void main(string[] args) {
 		dStr ~= " - " ~ .text(__LINE__);
 		opt.parseStrings(args[1 .. $]);
 		if (opt.help) {
+			/// usage
 			dStr ~= " - " ~ .text(__LINE__);
 			auto prop = new Props(opt.conf, new CProps(appPath, sys));
 			version (Console) {
@@ -74,6 +76,16 @@ void main(string[] args) {
 				debugln(e);
 			}
 			dStr ~= " - " ~ .text(__LINE__);
+			return;
+		}
+		if (opt.putlangfile.length) {
+			// 言語ファイルを保存する
+			auto prop = new Props(opt.conf, new CProps(appPath, sys));
+			try {
+				std.file.write(opt.putlangfile, prop.msgs.toXML(true));
+			} catch (Exception e) {
+				debugln(e);
+			}
 			return;
 		}
 		dStr ~= " - " ~ .text(__LINE__);

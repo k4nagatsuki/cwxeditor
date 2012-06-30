@@ -80,10 +80,12 @@
 　クリックだの何だので普通に起動しますが、何気なくコマンドラインオプション
 を付けられるようになってます。
 
-使い方: cwxeditor [-help | -conf <PATH> | -create <NAME> [<SKIN>]
-                   | -createclassic <NAME> [<PATH>]] <SCENARIO> [<CWXPath ...>]
+使い方: cwxeditor [-help | -putlangfile <PATH> | -conf <PATH>
+                   | -create <NAME> [<SKIN>] | -createclassic <NAME> [<PATH>]]
+                   <SCENARIO> [<CWXPath ...>]
 オプション:
   -help         起動オプションの説明を表示して終了します。
+  -putlangfile <PATH> デフォルトの言語設定ファイル<PAHT>を出力して終了します。
   -conf <PATH>  指定されたパスの基本設定ファイルを使用します。
   -create        <NAME> [<SKIN>]  起動後にシナリオを新規作成します。
   -createclassic <NAME> [<PATH>]  起動後、<PATH>で指定されたフォルダに
@@ -262,3 +264,20 @@ area:3/event:0/:5/:1
 れます。これにより、全てのアイコンを好みのものに変更する事ができます。
 　ファイル名については、CWXEditorのソースコードのアーカイブに含まれている
 resourceフォルダ内を参考にしてください。
+
+
+[ 多言語化について ]
+
+　cwxeditor.exeのあるフォルダにlangというフォルダを作成し、そこに言語ファ
+イルを入れておく事により、各種メッセージの多言語化を行えます。
+　言語の切替は設定ダイアログから行う事ができます。
+
+　以下のようなオプションを付けて起動すると、CWXEditorはファイルen-US.xml
+に全メッセージの設定情報を書きだして終了します。
+---
+cwxeditor -putlangfile en-US.xml
+---
+　こうして出力されたファイルを改造する事により、CWXEditorの言語ファイルを
+作成する事ができます。
+　言語ファイルの内容はバージョンアップの際に変更される可能性があるため、
+ご注意ください。
