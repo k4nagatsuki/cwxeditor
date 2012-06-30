@@ -1177,6 +1177,7 @@ public:
 			auto m = selection;
 			if (m) {
 				XMLtoCB(_prop, _comm.clipboard, m.toXML());
+				_comm.refreshToolBar();
 			}
 		}
 		override void paste(SelectionEvent se) {
@@ -1213,7 +1214,7 @@ public:
 		}
 		@property
 		override bool canDoP() {
-			return true;
+			return CBisXML(_comm.clipboard);
 		}
 		@property
 		override bool canDoD() {
@@ -1246,6 +1247,7 @@ public:
 					node.newAttr("scenarioPath", nabs(_summ.scenarioPath));
 					m.beast.toNode(node);
 					XMLtoCB(_prop, _comm.clipboard, node.text);
+					_comm.refreshToolBar();
 					return true;
 				}
 			}
@@ -1297,7 +1299,7 @@ public:
 		}
 		@property
 		override bool canDoP() {
-			return true;
+			return CBisXML(_comm.clipboard);
 		}
 		@property
 		override bool canDoD() {

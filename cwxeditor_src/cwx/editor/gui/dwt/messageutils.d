@@ -531,6 +531,7 @@ private:
 			auto d = selection;
 			if (d) {
 				XMLtoCB(prop, comm.clipboard, d.toNode().text);
+				comm.refreshToolBar();
 			}
 		}
 		void paste(SelectionEvent se) {
@@ -550,7 +551,7 @@ private:
 		@property bool canDoTCPD() {return _dlgsL.isFocusControl();}
 		@property bool canDoT() {return _dlgsL.getSelectionIndex() > 0;}
 		@property bool canDoC() {return canDoT;}
-		@property bool canDoP() {return true;}
+		@property bool canDoP() {return CBisXML(comm.clipboard);}
 		@property bool canDoD() {return canDoT;}
 	}
 	class DDropListener : DropTargetAdapter {

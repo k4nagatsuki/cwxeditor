@@ -3748,7 +3748,7 @@ public:
 	}
 	@property
 	bool canDoP() {
-		return true;
+		return CBisXML(_comm.clipboard);
 	}
 	@property
 	bool canDoD() {
@@ -3771,6 +3771,7 @@ public:
 				}
 				if (cards.length > 0 || backs.length > 0) {
 					XMLtoCB(_prop, _comm.clipboard, Area.CBtoXML(cards, backs));
+					_comm.refreshToolBar();
 				}
 			}
 			void paste(SelectionEvent se) {
@@ -3826,7 +3827,7 @@ public:
 			}
 			@property
 			bool canDoP() {
-				return true;
+				return CBisXML(_comm.clipboard);
 			}
 			@property
 			bool canDoD() {
@@ -3848,6 +3849,7 @@ public:
 				}
 				if (cards.length > 0) {
 					XMLtoCB(_prop, _comm.clipboard, A.CtoXML(cards));
+					_comm.refreshToolBar();
 				}
 			}
 			void paste(SelectionEvent se) {
@@ -3898,7 +3900,7 @@ public:
 			}
 			@property
 			bool canDoP() {
-				return true;
+				return CBisXML(_comm.clipboard);
 			}
 			@property
 			bool canDoD() {
@@ -3919,6 +3921,7 @@ public:
 				}
 				if (backs.length > 0) {
 					XMLtoCB(_prop, _comm.clipboard, A.BtoXML(backs));
+					_comm.refreshToolBar();
 				}
 			}
 			void paste(SelectionEvent se) {
@@ -3969,7 +3972,7 @@ public:
 			}
 			@property
 			bool canDoP() {
-				return true;
+				return CBisXML(_comm.clipboard);
 			}
 			@property
 			bool canDoD() {

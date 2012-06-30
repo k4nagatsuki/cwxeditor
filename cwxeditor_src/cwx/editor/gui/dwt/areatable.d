@@ -1301,6 +1301,7 @@ public:
 			auto area = getSelectionArea();
 			if (area !is null) {
 				XMLtoCB(_prop, _comm.clipboard, area.toXML(_summ.id));
+				_comm.refreshToolBar();
 			}
 		}
 		void paste(SelectionEvent se) {
@@ -1386,7 +1387,7 @@ public:
 		}
 		@property
 		bool canDoP() {
-			return _summ !is null;
+			return _summ !is null && CBisXML(_comm.clipboard);
 		}
 		@property
 		bool canDoD() {

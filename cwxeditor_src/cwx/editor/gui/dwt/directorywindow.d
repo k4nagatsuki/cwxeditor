@@ -1735,6 +1735,7 @@ public:
 		auto fno = cast(FileNameObj) _files.getItem(sel).getData();
 		_comm.clipboard.setContents([new PathString(encodePath(fno.relPath))],
 			[TextTransfer.getInstance()]);
+		_comm.refreshToolBar();
 	}
 	void replace() {
 		if (!_summ) return;
@@ -2020,6 +2021,7 @@ public:
 			if (dir) {
 				_comm.clipboard.setContents([new FileNames([nabs(dir)])],
 					[FileTransfer.getInstance()]);
+				_comm.refreshToolBar();
 				return true;
 			}
 		} else {
@@ -2033,6 +2035,7 @@ public:
 				}
 				_comm.clipboard.setContents([new FileNames(arr)],
 					[FileTransfer.getInstance()]);
+				_comm.refreshToolBar();
 				return true;
 			}
 		}
@@ -2147,7 +2150,7 @@ public:
 	}
 	@property
 	bool canDoP() {
-		return _summ !is null;
+		return _summ !is null && CBisFile(_comm.clipboard);
 	}
 	@property
 	bool canDoD() {

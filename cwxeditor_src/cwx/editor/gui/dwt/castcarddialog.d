@@ -451,6 +451,7 @@ private:
 			auto c = selection;
 			if (c) {
 				XMLtoCB(_prop, _comm.clipboard, c.toNode().text);
+				_comm.refreshToolBar();
 			}
 		}
 		override void paste(SelectionEvent se) {
@@ -485,7 +486,7 @@ private:
 		}
 		@property
 		bool canDoP() {
-			return true;
+			return CBisXML(_comm.clipboard);
 		}
 		@property
 		bool canDoD() {

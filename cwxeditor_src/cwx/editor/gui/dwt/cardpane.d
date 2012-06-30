@@ -533,6 +533,7 @@ private:
 			auto cs = selectedCards;
 			if (cs.length > 0) {
 				XMLtoCB(_prop, _comm.clipboard, toXML(cs));
+				_comm.refreshToolBar();
 			}
 		}
 		override void paste(SelectionEvent se) {
@@ -567,7 +568,7 @@ private:
 		}
 		@property
 		override bool canDoP() {
-			return _summ !is null;
+			return _summ !is null && CBisXML(_comm.clipboard);
 		}
 		@property
 		override bool canDoD() {

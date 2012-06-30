@@ -490,6 +490,7 @@ public:
 		if (!p.length) return;
 		_comm.clipboard.setContents([new PathString(encodePath(p))],
 			[TextTransfer.getInstance()]);
+		_comm.refreshToolBar();
 	}
 
 	@property

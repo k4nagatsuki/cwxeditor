@@ -754,6 +754,7 @@ private:
 		auto c = _comm.clipboard.getContents(XMLBytesTransfer.getInstance());
 		if (c !is null && isXMLBytes(c)) {
 			_comm.clipboard.setContents([new ArrayWrapperString(bytesToXML(c))], [TextTransfer.getInstance()]);
+			_comm.refreshToolBar();
 		}
 	}
 

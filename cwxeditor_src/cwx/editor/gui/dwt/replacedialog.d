@@ -2502,6 +2502,7 @@ public:
 		if (!t.length) return;
 		auto text = new ArrayWrapperString(std.string.join(t, .newline));
 		_comm.clipboard.setContents([text], [TextTransfer.getInstance()]);
+		_comm.refreshToolBar();
 	}
 	private void addResult(string path) {
 		auto itm = new TableItem(_result, SWT.NONE);

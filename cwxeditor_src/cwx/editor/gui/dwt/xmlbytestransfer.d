@@ -46,6 +46,17 @@ string CBtoXML(Clipboard cb) {
 	}
 	return null;
 }
+bool CBisXML(Clipboard cb) {
+	auto c = cb.getContents(XMLBytesTransfer.getInstance());
+	if (c && isXMLBytes(c)) {
+		return true;
+	}
+	c = cb.getContents(TextTransfer.getInstance());
+	if (c && std.algorithm.startsWith((cast(ArrayWrapperString) c).array, XML_HEADER)) {
+		return true;
+	}
+	return false;
+}
 
 ArrayWrapperByte bytesFromXML(string xml) {
 	return new ArrayWrapperByte(cast(byte[]) xml);

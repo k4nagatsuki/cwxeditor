@@ -1639,6 +1639,7 @@ public:
 					}
 				}
 				XMLtoCB(_prop, _comm.clipboard, xml);
+				_comm.refreshToolBar();
 			}
 		}
 		void paste(SelectionEvent se) {
@@ -1773,7 +1774,7 @@ public:
 		@property
 		bool canDoP() {
 			if (_cards.isFocusControl()) {
-				return true;
+				return CBisXML(_comm.clipboard) || CBisText(_comm.clipboard);
 			} else if (_etree.isFocusControl()) {
 				return _etree.canDoP;
 			}

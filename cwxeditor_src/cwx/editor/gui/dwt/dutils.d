@@ -118,6 +118,8 @@ import org.eclipse.swt.dnd.DropTargetAdapter;
 import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.dnd.DropTarget;
 import org.eclipse.swt.dnd.FileTransfer;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Clipboard;
 
 version (Windows) {
 	import org.eclipse.swt.internal.win32.OS;
@@ -2393,4 +2395,19 @@ string contentText(Commons comm, in Content evt) {
 		}
 	}
 	}
+}
+
+bool CBisText(Clipboard cb) {
+	auto t = TextTransfer.getInstance();
+	foreach (data; cb.getAvailableTypes()) {
+		if (t.isSupportedType(data)) return true;
+	}
+	return false;
+}
+bool CBisFile(Clipboard cb) {
+	auto t = FileTransfer.getInstance();
+	foreach (data; cb.getAvailableTypes()) {
+		if (t.isSupportedType(data)) return true;
+	}
+	return false;
 }

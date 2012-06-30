@@ -1957,6 +1957,7 @@ public:
 			if (itm) {
 				auto c = cast(Content) itm.getData();
 				_comm.clipboard.setContents([new ArrayWrapperString(c.cwxPath(true))], [TextTransfer.getInstance()]);
+				_comm.refreshToolBar();
 			}
 		}
 	}
@@ -1976,6 +1977,7 @@ public:
 		auto text = script.toScript([c], _prop.sys.evtChildOK(_comm.skin.legacyName), _summ.legacy, "\t");
 		text = std.array.replace(text, "\n", .newline);
 		_comm.clipboard.setContents([new ArrayWrapperString(text ~ "\n")], [TextTransfer.getInstance()]);
+		_comm.refreshToolBar();
 	}
 	void toScriptAll() {
 		if (!_et) return;
@@ -1983,6 +1985,7 @@ public:
 		auto text = script.toScript(_et.starts, _prop.sys.evtChildOK(_comm.skin.legacyName), _summ.legacy, "\t");
 		text = std.array.replace(text, "\n", .newline);
 		_comm.clipboard.setContents([new ArrayWrapperString(text ~ "\n")], [TextTransfer.getInstance()]);
+		_comm.refreshToolBar();
 	}
 	private ContentCommentDialog[Content] _commentDlgs;
 	@property
@@ -2941,6 +2944,7 @@ public:
 			if (itm) {
 				string xml = (cast(Content) itm.getData()).toXML();
 				XMLtoCB(_prop, _comm.clipboard, xml);
+				_comm.refreshToolBar();
 			}
 		}
 		void paste(SelectionEvent se) {
@@ -2999,7 +3003,7 @@ public:
 		}
 		@property
 		bool canDoP() {
-			return _et !is null;
+			return _et !is null && (CBisXML(_comm.clipboard) || CBisText(_comm.clipboard));
 		}
 		@property
 		bool canDoD() {

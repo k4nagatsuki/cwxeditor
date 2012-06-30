@@ -1401,6 +1401,7 @@ public:
 			Step[] ss;
 			if (getSelectionFlagAndStep(fs, ss)) {
 				XMLtoCB(prop, _comm.clipboard, getXML(_dir, fs, ss));
+				_comm.refreshToolBar();
 			}
 		}
 		void paste(SelectionEvent se) {
@@ -1470,7 +1471,7 @@ public:
 		}
 		@property
 		bool canDoP() {
-			return _comm.summary !is null;
+			return _comm.summary !is null && CBisXML(_comm.clipboard);
 		}
 		@property
 		bool canDoD() {

@@ -531,6 +531,7 @@ public:
 			if (!root) return;
 			if (dirs.getSelection().length > 0) {
 				XMLtoCB(prop, _comm.clipboard, getXML(prop.msgs.flagDirRoot, current));
+				_comm.refreshToolBar();
 			}
 		}
 		void paste(SelectionEvent se) {
@@ -609,7 +610,7 @@ public:
 		}
 		@property
 		bool canDoP() {
-			return _comm.summary !is null;
+			return _comm.summary !is null && CBisXML(_comm.clipboard);
 		}
 		@property
 		bool canDoD() {

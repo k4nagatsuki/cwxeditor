@@ -366,6 +366,7 @@ private:
 				int i = _list.getSelectionIndex();
 				if (i < 0) return;
 				XMLtoCB(_prop, _comm.clipboard, _array[i].toNode().text);
+				_comm.refreshToolBar();
 			}
 			void paste(SelectionEvent se) {
 				auto xml = CBtoXML(_comm.clipboard);
@@ -399,7 +400,7 @@ private:
 			}
 			@property
 			bool canDoP() {
-				return true;
+				return CBisXML(_comm.clipboard);
 			}
 			@property
 			bool canDoD() {
