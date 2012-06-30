@@ -9,17 +9,16 @@ import cwx.structs;
 import cwx.menu;
 import cwx.utils;
 
+version (Windows) {
+	private immutable CARD_WIRTH_PY_EXE = "CardWirthPy.exe";
+	private immutable CWX_EDITOR_EXE = "cwxeditor.exe";
+	private immutable DIR = "フォルダ";
+} else {
+	private immutable CARD_WIRTH_PY_EXE = "CardWirthPy";
+	private immutable CWX_EDITOR_EXE = "cwxeditor";
+	private immutable DIR = "ディレクトリ";
+}
 class Msgs {
-private:
-	version (Windows) {
-		static immutable CARD_WIRTH_PY_EXE = "CardWirthPy.exe";
-		static immutable CWX_EDITOR_EXE = "cwxeditor.exe";
-		static immutable DIR = "フォルダ";
-	} else {
-		static immutable CARD_WIRTH_PY_EXE = "CardWirthPy";
-		static immutable CWX_EDITOR_EXE = "cwxeditor";
-		static immutable DIR = "ディレクトリ";
-	}
 public:
 	@property const string application() {return "CWXEditor";}
 	@property const string dlgTitVersion() {return "バージョン情報";}
@@ -113,13 +112,11 @@ public:
 	@property const string dlgMsgDeleteFiles() {
 		return "%1$s個の項目を完全に削除しますか？";
 	}
-	version (Windows) {
-		@property const string dlgMsgDeleteFileRecycle() {
-			return "%1$sをごみ箱に移動しますか？";
-		}
-		@property const string dlgMsgDeleteFilesRecycle() {
-			return "%1$s個の項目をごみ箱に移動しますか？";
-		}
+	@property const string dlgMsgDeleteFileRecycle() {
+		return "%1$sをごみ箱に移動しますか？";
+	}
+	@property const string dlgMsgDeleteFilesRecycle() {
+		return "%1$s個の項目をごみ箱に移動しますか？";
 	}
 	@property const string dlgMsgDeleteUnuse() {
 		return "%1$s個の未使用ファイル・" ~ DIR ~ "を完全に削除しますか？";
@@ -303,20 +300,13 @@ public:
 	@property const string endName() {return "シナリオ名";}
 
 	@property const string couponHide() {return "隠蔽クーポン";}
-	const string couponTypeDesc(CouponType type) {
-		final switch (type) {
-		case CouponType.Normal:
-			return "ノーマル";
-		case CouponType.Hide:
-			return "[＿...] 隠蔽(称号一覧で非表示)";
-		case CouponType.System:
-			return "[＠...] システム";
-		case CouponType.Dur:
-			return "[：...] 時限(点数分の時間経過及びシナリオ終了時に消滅)";
-		case CouponType.DurBattle:
-			return "[；...] 戦闘中時限(点数分の時間経過及び戦闘終了時に消滅)";
-		}
-	}
+
+	mixin(EnumToStringMethod!(CouponType, "couponTypeDesc", "couponTypeDesc"));
+	@property const string couponTypeDescNormal() {return "ノーマル";}
+	@property const string couponTypeDescHide() {return "[＿...] 隠蔽(称号一覧で非表示)";}
+	@property const string couponTypeDescSystem() {return "[＠...] システム";}
+	@property const string couponTypeDescDur() {return "[：...] 時限(点数分の時間経過及びシナリオ終了時に消滅)";}
+	@property const string couponTypeDescDurBattle() {return "[；...] 戦闘中時限(点数分の時間経過及び戦闘終了時に消滅)";}
 
 	@property const string imageMessage() {return "イメージ付きメッセージ";}
 	@property const string noImageMessage() {return "イメージ無しメッセージ";}
@@ -326,16 +316,13 @@ public:
 	@property const string colorB() {return "青(&B)";}
 	@property const string colorG() {return "緑(&G)";}
 	@property const string colorY() {return "黄(&Y)";}
-	const string scTalkerName(Talker talker) {
-		final switch (talker) {
-		case Talker.SELECTED: return "選択メンバ名(#M)";
-		case Talker.UNSELECTED: return "選択外ランダムメンバ名(#U)";
-		case Talker.RANDOM: return "ランダムメンバ名(#R)";
-		case Talker.CARD: return "選択カード名(#C)";
-		case Talker.NARRATION: return "話者無し";
-		case Talker.IMAGE: return "画像";
-		}
-	}
+	mixin(EnumToStringMethod!(Talker, "scTalkerName", "scTalkerName"));
+	@property const string scTalkerNameSelected() {return "選択メンバ名(#M)";}
+	@property const string scTalkerNameUnselected() {return "選択外ランダムメンバ名(#U)";}
+	@property const string scTalkerNameRandom() {return "ランダムメンバ名(#R)";}
+	@property const string scTalkerNameCard() {return "選択カード名(#C)";}
+	@property const string scTalkerNameNarration() {return "話者無し";}
+	@property const string scTalkerNameImage() {return "画像";}
 	@property const string scRef() {return "話者(#I)";}
 	@property const string scTeam() {return "チーム名(#T)";}
 	@property const string scYado() {return "宿屋名(#Y)";}
@@ -353,15 +340,12 @@ public:
 	@property const string messageVarValueColumn() {return "サンプル値";}
 
 	@property const string transition() {return "背景切替方式";}
-	const string transitionName(Transition t) {
-		final switch (t) {
-		case Transition.DEFAULT: return "[プレイヤーの設定を使用]";
-		case Transition.NONE: return "アニメーション無し";
-		case Transition.FADE: return "フェード式";
-		case Transition.PIXEL_DISSOLVE: return "ピクセルディゾルブ式";
-		case Transition.BLINDS: return "ブラインド式";
-		}
-	}
+	mixin(EnumToStringMethod!(Transition, "transitionName", "transitionName"));
+	@property const string transitionNameDefault() {return "[プレイヤーの設定を使用]";}
+	@property const string transitionNameNone() {return "アニメーション無し";}
+	@property const string transitionNameFade() {return "フェード式";}
+	@property const string transitionNamePixelDissolve() {return "ピクセルディゾルブ式";}
+	@property const string transitionNameBlinds() {return "ブラインド式";}
 	@property const string transitionSpeed() {return "背景切替ウェイト";}
 	@property const string waitName() {return "空白時間(0.1秒単位)";}
 	@property const string moneyName() {return "金額";}
@@ -397,77 +381,73 @@ public:
 	@property const string evtAddContinue() {return "連続で配置";}
 	@property const string evtAutoOpen() {return "配置と同時に編集";}
 
-	const string contentName(CType type) {
-		switch (type) {
-		case CType.START: return "スタート";
-		case CType.START_BATTLE: return "バトル開始";
-		case CType.END: return "シナリオクリア";
-		case CType.END_BAD_END: return "ゲームオーバー";
-		case CType.CHANGE_AREA: return "エリア移動";
-		case CType.CHANGE_BG_IMAGE: return "背景変更";
-		case CType.EFFECT: return "効果";
-		case CType.EFFECT_BREAK: return "効果中断";
-		case CType.LINK_START: return "スタートへのリンク";
-		case CType.LINK_PACKAGE: return "パッケージへのリンク";
-		case CType.TALK_MESSAGE: return "メッセージ";
-		case CType.TALK_DIALOG: return "セリフ";
-		case CType.PLAY_BGM: return "BGM変更";
-		case CType.PLAY_SOUND: return "効果音";
-		case CType.WAIT: return "空白時間挿入";
-		case CType.ELAPSE_TIME: return "時間経過";
-		case CType.CALL_START: return "スタートの呼び出し";
-		case CType.CALL_PACKAGE: return "パッケージの呼び出し";
-		case CType.BRANCH_FLAG: return "フラグ分岐";
-		case CType.BRANCH_MULTI_STEP: return "ステップ多岐分岐";
-		case CType.BRANCH_STEP: return "ステップ上下分岐";
-		case CType.BRANCH_SELECT: return "メンバ選択分岐";
-		case CType.BRANCH_ABILITY: return "能力判定分岐";
-		case CType.BRANCH_RANDOM: return "ランダム分岐";
-		case CType.BRANCH_LEVEL: return "レベル判定分岐";
-		case CType.BRANCH_STATUS: return "状態判定分岐";
-		case CType.BRANCH_PARTY_NUMBER: return "人数判定分岐";
-		case CType.BRANCH_AREA: return "エリア分岐";
-		case CType.BRANCH_BATTLE: return "バトル分岐";
-		case CType.BRANCH_IS_BATTLE: return "バトル判定分岐";
-		case CType.BRANCH_CAST: return "キャスト存在分岐";
-		case CType.BRANCH_ITEM: return "アイテム所持分岐";
-		case CType.BRANCH_SKILL: return "スキル所持分岐";
-		case CType.BRANCH_INFO: return "情報所持分岐";
-		case CType.BRANCH_BEAST: return "召喚獣存在分岐";
-		case CType.BRANCH_MONEY: return "所持金分岐";
-		case CType.BRANCH_COUPON: return "クーポン分岐";
-		case CType.BRANCH_COMPLETE_STAMP: return "終了シナリオ分岐";
-		case CType.BRANCH_GOSSIP: return "ゴシップ分岐";
-		case CType.SET_FLAG: return "フラグ変更";
-		case CType.SET_STEP: return "ステップ変更";
-		case CType.SET_STEP_UP: return "ステップ増加";
-		case CType.SET_STEP_DOWN: return "ステップ減少";
-		case CType.REVERSE_FLAG: return "フラグ反転";
-		case CType.CHECK_FLAG: return "フラグ判定";
-		case CType.GET_CAST: return "キャスト加入";
-		case CType.GET_ITEM: return "アイテム入手";
-		case CType.GET_SKILL: return "スキル取得";
-		case CType.GET_INFO: return "情報入手";
-		case CType.GET_BEAST: return "召喚獣獲得";
-		case CType.GET_MONEY: return "所持金増加";
-		case CType.GET_COUPON: return "クーポン取得";
-		case CType.GET_COMPLETE_STAMP: return "終了シナリオ設定";
-		case CType.GET_GOSSIP: return "ゴシップ追加";
-		case CType.LOSE_CAST: return "キャスト離脱";
-		case CType.LOSE_ITEM: return "アイテム喪失";
-		case CType.LOSE_SKILL: return "スキル喪失";
-		case CType.LOSE_INFO: return "情報喪失";
-		case CType.LOSE_BEAST: return "召喚獣消去";
-		case CType.LOSE_MONEY: return "所持金減少";
-		case CType.LOSE_COUPON: return "クーポン削除";
-		case CType.LOSE_COMPLETE_STAMP: return "終了シナリオ削除";
-		case CType.LOSE_GOSSIP: return "ゴシップ削除";
-		case CType.SHOW_PARTY: return "パーティ表示";
-		case CType.HIDE_PARTY: return "パーティ隠蔽";
-		case CType.REDISPLAY: return "画面再構築";
-		default: assert (0);
-		}
-	}
+	mixin(EnumToStringMethod!(CType, "contentName", "contentName"));
+	@property const string contentNameStart() {return "スタート";}
+	@property const string contentNameStartBattle() {return "バトル開始";}
+	@property const string contentNameEnd() {return "シナリオクリア";}
+	@property const string contentNameEndBadEnd() {return "ゲームオーバー";}
+	@property const string contentNameChangeArea() {return "エリア移動";}
+	@property const string contentNameChangeBgImage() {return "背景変更";}
+	@property const string contentNameEffect() {return "効果";}
+	@property const string contentNameEffectBreak() {return "効果中断";}
+	@property const string contentNameLinkStart() {return "スタートへのリンク";}
+	@property const string contentNameLinkPackage() {return "パッケージへのリンク";}
+	@property const string contentNameTalkMessage() {return "メッセージ";}
+	@property const string contentNameTalkDialog() {return "セリフ";}
+	@property const string contentNamePlayBgm() {return "BGM変更";}
+	@property const string contentNamePlaySound() {return "効果音";}
+	@property const string contentNameWait() {return "空白時間挿入";}
+	@property const string contentNameElapseTime() {return "時間経過";}
+	@property const string contentNameCallStart() {return "スタートの呼び出し";}
+	@property const string contentNameCallPackage() {return "パッケージの呼び出し";}
+	@property const string contentNameBranchFlag() {return "フラグ分岐";}
+	@property const string contentNameBranchMultiStep() {return "ステップ多岐分岐";}
+	@property const string contentNameBranchStep() {return "ステップ上下分岐";}
+	@property const string contentNameBranchSelect() {return "メンバ選択分岐";}
+	@property const string contentNameBranchAbility() {return "能力判定分岐";}
+	@property const string contentNameBranchRandom() {return "ランダム分岐";}
+	@property const string contentNameBranchLevel() {return "レベル判定分岐";}
+	@property const string contentNameBranchStatus() {return "状態判定分岐";}
+	@property const string contentNameBranchPartyNumber() {return "人数判定分岐";}
+	@property const string contentNameBranchArea() {return "エリア分岐";}
+	@property const string contentNameBranchBattle() {return "バトル分岐";}
+	@property const string contentNameBranchIsBattle() {return "バトル判定分岐";}
+	@property const string contentNameBranchCast() {return "キャスト存在分岐";}
+	@property const string contentNameBranchItem() {return "アイテム所持分岐";}
+	@property const string contentNameBranchSkill() {return "スキル所持分岐";}
+	@property const string contentNameBranchInfo() {return "情報所持分岐";}
+	@property const string contentNameBranchBeast() {return "召喚獣存在分岐";}
+	@property const string contentNameBranchMoney() {return "所持金分岐";}
+	@property const string contentNameBranchCoupon() {return "クーポン分岐";}
+	@property const string contentNameBranchCompleteStamp() {return "終了シナリオ分岐";}
+	@property const string contentNameBranchGossip() {return "ゴシップ分岐";}
+	@property const string contentNameSetFlag() {return "フラグ変更";}
+	@property const string contentNameSetStep() {return "ステップ変更";}
+	@property const string contentNameSetStepUp() {return "ステップ増加";}
+	@property const string contentNameSetStepDown() {return "ステップ減少";}
+	@property const string contentNameReverseFlag() {return "フラグ反転";}
+	@property const string contentNameCheckFlag() {return "フラグ判定";}
+	@property const string contentNameGetCast() {return "キャスト加入";}
+	@property const string contentNameGetItem() {return "アイテム入手";}
+	@property const string contentNameGetSkill() {return "スキル取得";}
+	@property const string contentNameGetInfo() {return "情報入手";}
+	@property const string contentNameGetBeast() {return "召喚獣獲得";}
+	@property const string contentNameGetMoney() {return "所持金増加";}
+	@property const string contentNameGetCoupon() {return "クーポン取得";}
+	@property const string contentNameGetCompleteStamp() {return "終了シナリオ設定";}
+	@property const string contentNameGetGossip() {return "ゴシップ追加";}
+	@property const string contentNameLoseCast() {return "キャスト離脱";}
+	@property const string contentNameLoseItem() {return "アイテム喪失";}
+	@property const string contentNameLoseSkill() {return "スキル喪失";}
+	@property const string contentNameLoseInfo() {return "情報喪失";}
+	@property const string contentNameLoseBeast() {return "召喚獣消去";}
+	@property const string contentNameLoseMoney() {return "所持金減少";}
+	@property const string contentNameLoseCoupon() {return "クーポン削除";}
+	@property const string contentNameLoseCompleteStamp() {return "終了シナリオ削除";}
+	@property const string contentNameLoseGossip() {return "ゴシップ削除";}
+	@property const string contentNameShowParty() {return "パーティ表示";}
+	@property const string contentNameHideParty() {return "パーティ隠蔽";}
+	@property const string contentNameRedisplay() {return "画面再構築";}
 
 	@property const string msnGroupVitality() {return "生命力";}
 	@property const string msnGroupPhysical() {return "肉体";}
@@ -483,50 +463,46 @@ public:
 
 	@property const string msnDesc() {return "%1$s - %2$s";}
 
-	const string motionName(MType type) {
-		switch (type) {
-		case MType.HEAL: return "回復";
-		case MType.DAMAGE: return "ダメージ";
-		case MType.ABSORB: return "吸収";
-		case MType.PARALYZE: return "麻痺";
-		case MType.DIS_PARALYZE: return "麻痺解除";
-		case MType.POISON: return "中毒";
-		case MType.DIS_POISON: return "中毒解除";
-		case MType.GET_SKILL_POWER: return "精神力回復";
-		case MType.LOSE_SKILL_POWER: return "精神力喪失";
-		case MType.SLEEP: return "睡眠状態";
-		case MType.CONFUSE: return "混乱状態";
-		case MType.OVERHEAT: return "激昂状態";
-		case MType.BRAVE: return "勇敢状態";
-		case MType.PANIC: return "恐慌状態";
-		case MType.NORMAL: return "正常状態";
-		case MType.BIND: return "呪縛";
-		case MType.DIS_BIND: return "呪縛解除";
-		case MType.SILENCE: return "沈黙";
-		case MType.DIS_SILENCE: return "沈黙解除";
-		case MType.FACE_UP: return "暴露";
-		case MType.FACE_DOWN: return "暴露解除";
-		case MType.ANTI_MAGIC: return "魔法無効化";
-		case MType.DIS_ANTI_MAGIC: return "魔法無効化解除";
-		case MType.ENHANCE_ACTION: return "行動力変化";
-		case MType.ENHANCE_AVOID: return "回避力変化";
-		case MType.ENHANCE_DEFENSE: return "防御力変化";
-		case MType.ENHANCE_RESIST: return "抵抗力変化";
-		case MType.VANISH_TARGET: return "対象消去";
-		case MType.VANISH_CARD: return "手札消去";
-		case MType.VANISH_BEAST: return "召喚獣消去";
-		case MType.DEAL_ATTACK_CARD: return "通常攻撃";
-		case MType.DEAL_POWERFUL_ATTACK_CARD: return "渾身の一撃";
-		case MType.DEAL_CRITICAL_ATTACK_CARD: return "会心の一撃";
-		case MType.DEAL_FEINT_CARD: return "フェイント";
-		case MType.DEAL_DEFENSE_CARD: return "防御";
-		case MType.DEAL_DISTANCE_CARD: return "見切り";
-		case MType.DEAL_CONFUSE_CARD: return "混乱";
-		case MType.DEAL_SKILL_CARD: return "特殊技能";
-		case MType.SUMMON_BEAST: return "召喚獣召喚";
-		default: assert (0);
-		}
-	}
+	mixin(EnumToStringMethod!(MType, "motionName", "motionName"));
+	@property const string motionNameHeal() {return "回復";}
+	@property const string motionNameDamage() {return "ダメージ";}
+	@property const string motionNameAbsorb() {return "吸収";}
+	@property const string motionNameParalyze() {return "麻痺";}
+	@property const string motionNameDisParalyze() {return "麻痺解除";}
+	@property const string motionNamePoison() {return "中毒";}
+	@property const string motionNameDisPoison() {return "中毒解除";}
+	@property const string motionNameGetSkillPower() {return "精神力回復";}
+	@property const string motionNameLoseSkillPower() {return "精神力喪失";}
+	@property const string motionNameSleep() {return "睡眠状態";}
+	@property const string motionNameConfuse() {return "混乱状態";}
+	@property const string motionNameOverheat() {return "激昂状態";}
+	@property const string motionNameBrave() {return "勇敢状態";}
+	@property const string motionNamePanic() {return "恐慌状態";}
+	@property const string motionNameNormal() {return "正常状態";}
+	@property const string motionNameBind() {return "呪縛";}
+	@property const string motionNameDisBind() {return "呪縛解除";}
+	@property const string motionNameSilence() {return "沈黙";}
+	@property const string motionNameDisSilence() {return "沈黙解除";}
+	@property const string motionNameFaceUp() {return "暴露";}
+	@property const string motionNameFaceDown() {return "暴露解除";}
+	@property const string motionNameAntiMagic() {return "魔法無効化";}
+	@property const string motionNameDisAntiMagic() {return "魔法無効化解除";}
+	@property const string motionNameEnhanceAction() {return "行動力変化";}
+	@property const string motionNameEnhanceAvoid() {return "回避力変化";}
+	@property const string motionNameEnhanceDefense() {return "防御力変化";}
+	@property const string motionNameEnhanceResist() {return "抵抗力変化";}
+	@property const string motionNameVanishTarget() {return "対象消去";}
+	@property const string motionNameVanishCard() {return "手札消去";}
+	@property const string motionNameVanishBeast() {return "召喚獣消去";}
+	@property const string motionNameDealAttackCard() {return "通常攻撃";}
+	@property const string motionNameDealPowerfulAttackCard() {return "渾身の一撃";}
+	@property const string motionNameDealCriticalAttackCard() {return "会心の一撃";}
+	@property const string motionNameDealFeintCard() {return "フェイント";}
+	@property const string motionNameDealDefenseCard() {return "防御";}
+	@property const string motionNameDealDistanceCard() {return "見切り";}
+	@property const string motionNameDealConfuseCard() {return "混乱";}
+	@property const string motionNameDealSkillCard() {return "特殊技能";}
+	@property const string motionNameSummonBeast() {return "召喚獣召喚";}
 
 	@property const string dialogText() {return "%2$s: %1$s";}
 	@property const string dialogTextNoCoupon() {return "%1$s";}
@@ -766,6 +742,7 @@ public:
 	@property const string menuCard() {return "メニューカード";}
 	@property const string enemyCard() {return "エネミーカード";}
 	@property const string back() {return "背景画像";}
+
 	/// カード/背景配置領域関連。
 	@property const string dlgTitDropCard() {return "カード画像の追加";}
 	@property const string dlgMsgDropCard() {return "カード画像をシナリオ" ~ DIR ~ "にコピーしますか？\n%1$s";}
@@ -867,169 +844,121 @@ public:
 	@property const string branchGossipSuccess() {return "ゴシップ「%1$s」が宿屋にある";}
 	@property const string branchGossipFailure() {return "ゴシップ「%1$s」が宿屋に無い";}
 
-	const string physicalName(Physical p) {
-		final switch (p) {
-		case Physical.DEX: return "器用度";
-		case Physical.AGL: return "敏捷度";
-		case Physical.INT: return "知力";
-		case Physical.STR: return "筋力";
-		case Physical.VIT: return "生命力";
-		case Physical.MIN: return "精神力";
-		}
-	}
-	const string mentalName(Mental m) {
-		final switch (m) {
-		case Mental.AGGRESSIVE: return "好戦性";
-		case Mental.UNAGGRESSIVE: return "平和性";
-		case Mental.CHEERFUL: return "社交性";
-		case Mental.UNCHEERFUL: return "内向性";
-		case Mental.BRAVE: return "勇猛性";
-		case Mental.UNBRAVE: return "臆病性";
-		case Mental.CAUTIOUS: return "慎重性";
-		case Mental.UNCAUTIOUS: return "大胆性";
-		case Mental.TRICKISH: return "狡猾性";
-		case Mental.UNTRICKISH: return "正直性";
-		}
-	}
-	const string statusName(Status stat) {
-		final switch (stat) {
-		case Status.ACTIVE: return "行動可能";
-		case Status.INACTIVE: return "行動不可";
-		case Status.ALIVE: return "生存";
-		case Status.DEAD: return "非生存";
-		case Status.FINE: return "健康";
-		case Status.INJURED: return "負傷";
-		case Status.HEAVY_INJURED: return "重傷";
-		case Status.UNCONSCIOUS: return "意識不明";
-		case Status.POISON: return "中毒";
-		case Status.SLEEP: return "眠り";
-		case Status.BIND: return "呪縛";
-		case Status.PARALYZE: return "麻痺/石化";
-		}
-	}
+	mixin(EnumToStringMethod!(Physical, "physicalName", "physicalName"));
+	@property const string physicalNameDex() {return "器用度";}
+	@property const string physicalNameAgl() {return "敏捷度";}
+	@property const string physicalNameInt() {return "知力";}
+	@property const string physicalNameStr() {return "筋力";}
+	@property const string physicalNameVit() {return "生命力";}
+	@property const string physicalNameMin() {return "精神力";}
+	mixin(EnumToStringMethod!(Mental, "mentalName", "mentalName"));
+	@property const string mentalNameAggressive() {return "好戦性";}
+	@property const string mentalNameUnaggressive() {return "平和性";}
+	@property const string mentalNameCheerful() {return "社交性";}
+	@property const string mentalNameUncheerful() {return "内向性";}
+	@property const string mentalNameBrave() {return "勇猛性";}
+	@property const string mentalNameUnbrave() {return "臆病性";}
+	@property const string mentalNameCautious() {return "慎重性";}
+	@property const string mentalNameUncautious() {return "大胆性";}
+	@property const string mentalNameTrickish() {return "狡猾性";}
+	@property const string mentalNameUntrickish() {return "正直性";}
+	mixin(EnumToStringMethod!(Status, "statusName", "statusName"));
+	@property const string statusNameActive() {return "行動可能";}
+	@property const string statusNameInactive() {return "行動不可";}
+	@property const string statusNameAlive() {return "生存";}
+	@property const string statusNameDead() {return "非生存";}
+	@property const string statusNameFine() {return "健康";}
+	@property const string statusNameInjured() {return "負傷";}
+	@property const string statusNameHeavyInjured() {return "重傷";}
+	@property const string statusNameUnconscious() {return "意識不明";}
+	@property const string statusNamePoison() {return "中毒";}
+	@property const string statusNameSleep() {return "眠り";}
+	@property const string statusNameBind() {return "呪縛";}
+	@property const string statusNameParalyze() {return "麻痺/石化";}
 	@property const string effectTypeElement() {return "%1$s属性";}
-	const string effectTypeName(EffectType t) {
-		final switch (t) {
-		case EffectType.PHYSIC: return "物理";
-		case EffectType.MAGIC: return "魔法";
-		case EffectType.MAGICAL_PHYSIC: return "魔法的物理";
-		case EffectType.PHYSICAL_MAGIC: return "物理的魔法";
-		case EffectType.NONE: return "無";
-		}
-	}
-	const string resistName(Resist r) {
-		final switch (r) {
-		case Resist.AVOID: return "回避属性";
-		case Resist.RESIST: return "抵抗属性";
-		case Resist.UNFAIL: return "必中属性";
-		}
-	}
-	const string cardTargetName(CardTarget r) {
-		final switch (r) {
-		case CardTarget.NONE: return "対象無し";
-		case CardTarget.USER: return "使用者";
-		case CardTarget.PARTY: return "味方";
-		case CardTarget.ENEMY: return "敵方";
-		case CardTarget.BOTH: return "双方";
-		}
-	}
+	mixin(EnumToStringMethod!(EffectType, "effectTypeName", "effectTypeName"));
+	@property const string effectTypeNamePhysic() {return "物理";}
+	@property const string effectTypeNameMagic() {return "魔法";}
+	@property const string effectTypeNameMagicalPhysic() {return "魔法的物理";}
+	@property const string effectTypeNamePhysicalMagic() {return "物理的魔法";}
+	@property const string effectTypeNameNone() {return "無";}
+	mixin(EnumToStringMethod!(Resist, "resistName", "resistName"));
+	@property const string resistNameAvoid() {return "回避属性";}
+	@property const string resistNameResist() {return "抵抗属性";}
+	@property const string resistNameUnfail() {return "必中属性";}
+	mixin(EnumToStringMethod!(CardTarget, "cardTargetName", "cardTargetName"));
+	@property const string cardTargetNameNone() {return "対象無し";}
+	@property const string cardTargetNameUser() {return "使用者";}
+	@property const string cardTargetNameParty() {return "味方";}
+	@property const string cardTargetNameEnemy() {return "敵方";}
+	@property const string cardTargetNameBoth() {return "双方";}
 	@property const string cardTargetOne() {return "一体";}
 	@property const string cardTargetAll() {return "全体";}
-	const string cardVisualName(CardVisual vis) {
-		final switch (vis) {
-		case CardVisual.NONE: return "視覚効果無し";
-		case CardVisual.REVERSE: return "対象を反転";
-		case CardVisual.HORIZONTAL: return "対象を横に震動";
-		case CardVisual.VERTICAL: return "対象を縦に震動";
-		}
-	}
-	const string premiumName(Premium r) {
-		final switch (r) {
-		case Premium.NORMAL: return "日用品 (買戻し不可/破棄可)";
-		case Premium.RARE: return "希少品 (買戻し可/破棄可)";
-		case Premium.PREMIUM: return "貴重品 (買戻し可/破棄不可)";
-		}
-	}
-	const string enhanceName(Enhance r) {
-		final switch (r) {
-		case Enhance.ACTION: return "行動";
-		case Enhance.AVOID: return "回避";
-		case Enhance.RESIST: return "抵抗";
-		case Enhance.DEFENSE: return "防御";
-		}
-	}
+	mixin(EnumToStringMethod!(CardVisual, "cardVisualName", "cardVisualName"));
+	@property const string cardVisualNameNone() {return "視覚効果無し";}
+	@property const string cardVisualNameReverse() {return "対象を反転";}
+	@property const string cardVisualNameHorizontal() {return "対象を横に震動";}
+	@property const string cardVisualNameVertical() {return "対象を縦に震動";}
+	mixin(EnumToStringMethod!(Premium, "premiumName", "premiumName"));
+	@property const string premiumNameNormal() {return "日用品 (買戻し不可/破棄可)";}
+	@property const string premiumNameRare() {return "希少品 (買戻し可/破棄可)";}
+	@property const string premiumNamePremium() {return "貴重品 (買戻し可/破棄不可)";}
+	mixin(EnumToStringMethod!(Enhance, "enhanceName", "enhanceName"));
+	@property const string enhanceNameAction() {return "行動";}
+	@property const string enhanceNameAvoid() {return "回避";}
+	@property const string enhanceNameResist() {return "抵抗";}
+	@property const string enhanceNameDefense() {return "防御";}
 	@property const string mentality() {
 		return "精神状態";
 	}
-	const string mentalityName(Mentality m) {
-		final switch (m) {
-		case Mentality.NORMAL: return "正常";
-		case Mentality.SLEEP: return "睡眠";
-		case Mentality.CONFUSE: return "混乱";
-		case Mentality.OVERHEAT: return "激昂";
-		case Mentality.BRAVE: return "勇敢";
-		case Mentality.PANIC: return "恐慌";
-		}
-	}
+	mixin(EnumToStringMethod!(Mentality, "mentalityName", "mentalityName"));
+	@property const string mentalityNameNormal() {return "正常";}
+	@property const string mentalityNameSleep() {return "睡眠";}
+	@property const string mentalityNameConfuse() {return "混乱";}
+	@property const string mentalityNameOverheat() {return "激昂";}
+	@property const string mentalityNameBrave() {return "勇敢";}
+	@property const string mentalityNamePanic() {return "恐慌";}
 
 	@property const string enhanceBonus() {return "%1$sボーナス";}
 	@property const string statusActive() {return "※ 行動可能 = (健康 | 負傷 | 重傷 | 中毒)";}
 	@property const string statusInactive() {return "※ 行動不可 = (意識不明 | 麻痺/石化 | 呪縛 | 眠り)";}
 	@property const string statusAlive() {return "※ 生存 = (健康 | 負傷 | 重傷 | 中毒 | 呪縛 | 眠り)";}
 	@property const string statusDead() {return "※ 非生存 = (意識不明 | 麻痺/石化)";}
-	const string targetName(Target.M m) {
-		final switch (m) {
-		case Target.M.SELECTED: return "選択中のメンバ";
-		case Target.M.UNSELECTED: return "選択中以外のメンバ";
-		case Target.M.RANDOM: return "誰か一人";
-		case Target.M.PARTY: return "パーティ全員";
-		}
-	}
-	const string talkerName(Talker talker) {
-		final switch (talker) {
-		case Talker.SELECTED: return "[選択中]";
-		case Talker.UNSELECTED: return "[選択中以外]";
-		case Talker.RANDOM: return "[ランダム]";
-		case Talker.CARD: return "[カード]";
-		case Talker.NARRATION: return "[話者無し]";
-		case Talker.IMAGE: return "[画像]";
-		}
-	}
-	const string rangeName(Range r) {
-		final switch (r) {
-		case Range.SELECTED: return "現在選択中のメンバ";
-		case Range.RANDOM: return "パーティの誰か一人";
-		case Range.PARTY: return "パーティの全員";
-		case Range.BACKPACK: return "荷物袋";
-		case Range.PARTY_AND_BACKPACK: return "全体(荷物袋含む)";
-		case Range.FIELD: return "フィールド全体";
-		}
-	}
-	const string damageTypeName(DamageType dtyp) {
-		final switch (dtyp) {
-		case DamageType.LEVEL_RATIO: return "レベルに対応する値";
-		case DamageType.NORMAL: return "値の直接入力";
-		case DamageType.MAX: return "最大値処理";
-		}
-	}
-	const string elementName(Element el) {
-		final switch (el) {
-		case Element.ALL: return "全";
-		case Element.HEALTH: return "肉体";
-		case Element.MIND: return "精神";
-		case Element.MIRACLE: return "神聖";
-		case Element.MAGIC: return "魔力";
-		case Element.FIRE: return "炎";
-		case Element.ICE: return "冷気";
-		}
-	}
+	mixin(EnumToStringMethod2!(Target.M, "Target.M", "targetName", "targetName"));
+	@property const string targetNameSelected() {return "選択中のメンバ";}
+	@property const string targetNameUnselected() {return "選択中以外のメンバ";}
+	@property const string targetNameRandom() {return "誰か一人";}
+	@property const string targetNameParty() {return "パーティ全員";}
+	mixin(EnumToStringMethod!(Talker, "talkerName", "talkerName"));
+	@property const string talkerNameSelected() {return "[選択中]";}
+	@property const string talkerNameUnselected() {return "[選択中以外]";}
+	@property const string talkerNameRandom() {return "[ランダム]";}
+	@property const string talkerNameCard() {return "[カード]";}
+	@property const string talkerNameNarration() {return "[話者無し]";}
+	@property const string talkerNameImage() {return "[画像]";}
+	mixin(EnumToStringMethod!(Range, "rangeName", "rangeName"));
+	@property const string rangeNameSelected() {return "現在選択中のメンバ";}
+	@property const string rangeNameRandom() {return "パーティの誰か一人";}
+	@property const string rangeNameParty() {return "パーティの全員";}
+	@property const string rangeNameBackpack() {return "荷物袋";}
+	@property const string rangeNamePartyAndBackpack() {return "全体(荷物袋含む)";}
+	@property const string rangeNameField() {return "フィールド全体";}
+	mixin(EnumToStringMethod!(DamageType, "damageTypeName", "damageTypeName"));
+	@property const string damageTypeNameLevelRatio() {return "レベルに対応する値";}
+	@property const string damageTypeNameNormal() {return "値の直接入力";}
+	@property const string damageTypeNameMax() {return "最大値処理";}
+	mixin(EnumToStringMethod!(Element, "elementName", "elementName"));
+	@property const string elementNameAll() {return "全";}
+	@property const string elementNameHealth() {return "肉体";}
+	@property const string elementNameMind() {return "精神";}
+	@property const string elementNameMiracle() {return "神聖";}
+	@property const string elementNameMagic() {return "魔力";}
+	@property const string elementNameFire() {return "炎";}
+	@property const string elementNameIce() {return "冷気";}
 
-	const string sexName(Sex s) {
-		final switch (s) {
-		case Sex.MALE: return "男/♂";
-		case Sex.FEMALE: return "女/♀";
-		}
-	}
+	mixin(EnumToStringMethod!(Sex, "sexName", "sexName"));
+	@property const string sexNameMale() {return "男/♂";}
+	@property const string sexNameFemale() {return "女/♀";}
 	@property const string sexUnknown() {return "謎/？";}
 	@property const string periodUnknown() {return "不明";}
 	@property const string natureUnknown() {return "その他";}
@@ -1156,15 +1085,11 @@ public:
 	@property const string liveStatus() {return "初期状態";}
 	@property const string lifeAndMentality() {return "体力と精神状態";}
 	@property const string enhanceLiveBonus() {return "能力ボーナス/ペナルティ";}
-	const string enhanceLiveBonusName(Enhance enh) {
-		switch (enh) {
-		case Enhance.ACTION: return "行動";
-		case Enhance.AVOID: return "回避";
-		case Enhance.RESIST: return "抵抗";
-		case Enhance.DEFENSE: return "防御";
-		default: assert (0);
-		}
-	}
+	mixin(EnumToStringMethod!(Enhance, "enhanceLiveBonusName", "enhanceLiveBonusName"));
+	@property const string enhanceLiveBonusNameAction() {return "行動";}
+	@property const string enhanceLiveBonusNameAvoid() {return "回避";}
+	@property const string enhanceLiveBonusNameResist() {return "抵抗";}
+	@property const string enhanceLiveBonusNameDefense() {return "防御";}
 	@property const string useMax() {return "最大値を使用";}
 	@property const string status() {return "異常状態";}
 	@property const string paralyze() {return "麻痺/石化";}
@@ -1315,14 +1240,11 @@ public:
 	@property const string filterWallpaper() {return "画像ファイル (*.bmp;*.jpg;*.jpeg;*.png;*.tif;*.tiff;*.ico;*.icon)";}
 	@property const string dlgTitWallpaper() {return "壁紙画像の選択";}
 	@property const string wallpaperStyle() {return "表示形式";}
-	const string wallpaperStyleName(WallpaperStyle s) {
-		final switch (s) {
-		case WallpaperStyle.Center: return "中央に表示";
-		case WallpaperStyle.Tile: return "並べて表示";
-		case WallpaperStyle.ExpandFull: return "拡大して表示";
-		case WallpaperStyle.Expand: return "はみ出さないように拡大";
-		}
-	}
+	mixin(EnumToStringMethod!(WallpaperStyle, "wallpaperStyleName", "wallpaperStyleName"));
+	@property const string wallpaperStyleNameCenter() {return "中央に表示";}
+	@property const string wallpaperStyleNameTile() {return "並べて表示";}
+	@property const string wallpaperStyleNameExpandFull() {return "拡大して表示";}
+	@property const string wallpaperStyleNameExpand() {return "はみ出さないように拡大";}
 
 	@property const string bgImageAndKeyCode() {return "背景とキーコード";}
 	@property const string standardKeyCode() {return "標準のキーコード";}
@@ -1386,13 +1308,10 @@ public:
 	@property const string undoMaxEtc() {return "テキスト/その他";}
 
 	@property const string dialogStatus() {return "台詞コンテントのステータス";}
-	const string dialogStatusName(DialogStatus dlgStat) {
-		final switch (dlgStat) {
-		case DialogStatus.Top: return "最上位の台詞";
-		case DialogStatus.Under: return "最下位の台詞";
-		case DialogStatus.UnderWithCoupon: return "最下位の台詞(条件クーポン設定あり)";
-		}
-	}
+	mixin(EnumToStringMethod!(DialogStatus, "dialogStatusName", "dialogStatusName"));
+	@property const string dialogStatusNameTop() {return "最上位の台詞";}
+	@property const string dialogStatusNameUnder() {return "最下位の台詞";}
+	@property const string dialogStatusNameUnderWithCoupon() {return "最下位の台詞(条件クーポン設定あり)";}
 
 	/// スクリプト関係。
 	@property const string dlgTitScriptError() {return "CWXスクリプトエラー";}
@@ -1452,158 +1371,157 @@ public:
 	@property const string scriptErrorSystem() {return "サイズが大きすぎるため、CWXスクリプトをコンパイルできません。";}
 
 	/// メニュー。
-	const string menuText(MenuID id) {
-		final switch (id) {
-		case MenuID.None: return "";
+	mixin(EnumToStringMethod!(MenuID, "menuText", "menuText"));
 
-		case MenuID.File: return "ファイル";
-		case MenuID.Edit: return "編集";
-		case MenuID.View: return "表示";
-		case MenuID.Tool: return "ツール";
-		case MenuID.Table: return "テーブル";
-		case MenuID.Variable: return "状態変数";
-		case MenuID.Help: return "ヘルプ";
-		case MenuID.Card: return "カード";
-		case MenuID.CardsAndBacks: return "カードと背景";
+	@property const string menuTextNone() {return "";}
 
-		case MenuID.DelNotUsedFile: return "未使用のファイルを削除";
-		case MenuID.ClosePane: return "閉じる";
-		case MenuID.ClosePaneExcept: return "他のタブを閉じる";
-		case MenuID.ClosePaneLeft: return "左側のタブを閉じる";
-		case MenuID.ClosePaneRight: return "右側のタブを閉じる";
-		case MenuID.ClosePaneAll: return "全てのタブを閉じる";
-		case MenuID.New: return "新規作成";
-		case MenuID.Open: return "開く";
-		case MenuID.NewAtNewWindow: return "新しいウィンドウで新規作成";
-		case MenuID.OpenAtNewWindow: return "新しいウィンドウで開く";
-		case MenuID.Close: return "閉じる";
-		case MenuID.CloseWin: return "閉じる";
-		case MenuID.Save: return "上書き保存";
-		case MenuID.SaveAs: return "名前を付けて保存";
-		case MenuID.Reload: return "再読込";
-		case MenuID.OpenDir: return DIR ~ "を開く";
-		case MenuID.OpenPlace: return "ファイルの場所を開く";
-		case MenuID.SaveImage: return "格納イメージをファイルに保存";
-		case MenuID.LookImages: return "画像を一覧表示";
-		case MenuID.ShowMainToolBar: return "全体ツールバーを表示";
-		case MenuID.ShowSceneToolBar: return "シーンビューのツールバーを表示";
-		case MenuID.ShowEventToolBar: return "イベントビューのツールバーを表示";
-		case MenuID.ChangeVH: return "分割領域の縦横を切替";
-		case MenuID.Find: return "検索と置換";
-		case MenuID.IncSearch: return "絞り込み検索";
-		case MenuID.CloseIncSearch: return "閉じる";
-		case MenuID.EditProp: return "編集";
-		case MenuID.Refresh: return "最新の情報に更新";
-		case MenuID.Undo: return "元に戻す";
-		case MenuID.Redo: return "やり直し";
-		case MenuID.Cut: return "切り取り";
-		case MenuID.Copy: return "コピー";
-		case MenuID.Paste: return "貼り付け";
-		case MenuID.Delete: return "削除";
-		case MenuID.SelectAll: return "すべて選択";
-		case MenuID.ToXMLText: return "コピーしたデータをXMLに変換";
-		case MenuID.TableView: return "テーブルビュー";
-		case MenuID.VarView: return "状態変数ビュー";
-		case MenuID.CardView: return "カードビュー";
-		case MenuID.CastView: return "キャストカードビュー";
-		case MenuID.SkillView: return "特殊技能カードビュー";
-		case MenuID.ItemView: return "アイテムカードビュー";
-		case MenuID.BeastView: return "召喚獣カードビュー";
-		case MenuID.InfoView: return "情報カードビュー";
-		case MenuID.FileView: return "ファイルビュー";
-		case MenuID.ExecEngine: return "エンジン起動";
-		case MenuID.ExecEngineAuto: return "自動選択";
-		case MenuID.ExecEngineMain: return "CardWirthPy";
-		case MenuID.OuterTools: return "外部ツール";
-		case MenuID.Settings: return "エディタ設定";
-		case MenuID.VersionInfo: return "バージョン情報";
-		case MenuID.LockToolBar: return "ツールバーを固定";
-		case MenuID.ResetToolBar: return "配置をリセット";
-		case MenuID.CopyAsText: return "テキストとしてコピー";
-		case MenuID.OpenAtView: return "ビューで開く";
-		case MenuID.StartToPackage: return "このツリーをパッケージ化する";
-		case MenuID.ConvertContent: return "変換";
-		case MenuID.CGroupTerminal: return "開始/終端";
-		case MenuID.CGroupStandard: return "基本";
-		case MenuID.CGroupData: return "変数操作/分岐";
-		case MenuID.CGroupUtility: return "状況分岐";
-		case MenuID.CGroupBranch: return "保有分岐";
-		case MenuID.CGroupGet: return "取得";
-		case MenuID.CGroupLost: return "喪失";
-		case MenuID.CGroupVisual: return "外観操作";
-		case MenuID.EditSummary: return "シナリオの設定";
-		case MenuID.NewArea: return "エリアの作成";
-		case MenuID.NewBattle: return "バトルの作成";
-		case MenuID.NewPackage: return "パッケージの作成";
-		case MenuID.ReNumberingAll: return "全てのIDを1から振り直す";
-		case MenuID.ReNumbering: return "IDの振り直し";
-		case MenuID.EditScene: return "シーンビューを開く";
-		case MenuID.EditEvent: return "イベントビューを開く";
-		case MenuID.NewFlagDir: return "フォルダの作成";
-		case MenuID.NewFlag: return "フラグの作成";
-		case MenuID.NewStep: return "ステップの作成";
-		case MenuID.Up: return "上へ";
-		case MenuID.Down: return "下へ";
-		case MenuID.ShowParty: return "パーティカードの表示";
-		case MenuID.ShowMsg: return "メッセージ枠の表示";
-		case MenuID.ShowRefCards: return "カード参照の表示";
-		case MenuID.FixedImage: return "イメージの固定";
-		case MenuID.ShowEnemyCardProp: return "レベルとライフを表示";
-		case MenuID.ShowCard: return "カードの表示";
-		case MenuID.ShowBack: return "背景の表示";
-		case MenuID.NewMenuCard: return "メニューカードの作成";
-		case MenuID.NewEnemyCard: return "エネミーカードの作成";
-		case MenuID.NewBack: return "背景の作成";
-		case MenuID.AutoArrange: return "カードを自動的に並べる";
-		case MenuID.ManualArrange: return "カードの位置を自分で決定する";
-		case MenuID.Mask: return "透明色を使用";
-		case MenuID.Escape: return "逃走の有無";
-		case MenuID.PosTop: return "上に揃える";
-		case MenuID.PosBottom: return "下に揃える";
-		case MenuID.PosLeft: return "左に揃える";
-		case MenuID.PosRight: return "右に揃える";
-		case MenuID.PosEven: return "等間隔に並べる";
-		case MenuID.ScaleMin: return "最小のカードスケール";
-		case MenuID.ScaleMiddle: return "標準のカードスケール";
-		case MenuID.ScaleMax: return "最大のカードスケール";
-		case MenuID.ScaleBig: return "大きく揃える";
-		case MenuID.ScaleSmall: return "小さく揃える";
-		case MenuID.StopBGM: return "%1$sの再生を停止";
-		case MenuID.PlayBGM: return "再生";
-		case MenuID.KeyCodeTiming: return "キーコード発火タイミング";
-		case MenuID.KeyCodeTimingUse: return "使用";
-		case MenuID.KeyCodeTimingSuccess: return "成功";
-		case MenuID.KeyCodeTimingFailure: return "失敗";
-		case MenuID.AddRangeOfRound: return "複数のラウンドを追加";
-		case MenuID.OpenAtTableView: return "テーブルビューで開く";
-		case MenuID.OpenAtVarView: return "状態変数ビューで開く";
-		case MenuID.OpenAtCardView: return "カードビューで開く";
-		case MenuID.OpenAtFileView: return "ファイルビューで開く";
-		case MenuID.OpenAtEventView: return "イベントビューで開く";
-		case MenuID.Comment: return "コメントを記述";
-		case MenuID.ShowCardProp: return "レベルとライフを表示";
-		case MenuID.ShowCardImage: return "カード表示";
-		case MenuID.ShowCardDetail: return "詳細表示";
-		case MenuID.OpenImportSource: return "外部シナリオから追加";
-		case MenuID.NewCast: return "キャストカードの作成";
-		case MenuID.NewSkill: return "スキルカードの作成";
-		case MenuID.NewItem: return "アイテムカードの作成";
-		case MenuID.NewBeast: return "召喚獣カードの作成";
-		case MenuID.NewInfo: return "情報カードの作成";
-		case MenuID.Import: return "シナリオに追加";
-		case MenuID.OpenHand: return "所有カード";
-		case MenuID.EditEventAtTimeOfUsing: return "使用時イベントの設定";
-		case MenuID.PlaySE: return "再生";
-		case MenuID.StopSE: return "停止";
-		case MenuID.NewDir: return "新規" ~ DIR;
-		case MenuID.CopyFilePath: return "素材のパスをコピー";
-		case MenuID.ReplFilePath: return "素材の差替え";
-		case MenuID.CreateArchive: return "シナリオを圧縮";
-		case MenuID.ToScript: return "スクリプトに変換してコピー";
-		case MenuID.ToScriptAll: return "全てをスクリプトに変換してコピー";
-		case MenuID.EvTemplates: return "テンプレートから作成";
-		}
-	}
+	@property const string menuTextFile() {return "ファイル";}
+	@property const string menuTextEdit() {return "編集";}
+	@property const string menuTextView() {return "表示";}
+	@property const string menuTextTool() {return "ツール";}
+	@property const string menuTextTable() {return "テーブル";}
+	@property const string menuTextVariable() {return "状態変数";}
+	@property const string menuTextHelp() {return "ヘルプ";}
+	@property const string menuTextCard() {return "カード";}
+	@property const string menuTextCardsAndBacks() {return "カードと背景";}
+
+	@property const string menuTextDelNotUsedFile() {return "未使用のファイルを削除";}
+	@property const string menuTextClosePane() {return "閉じる";}
+	@property const string menuTextClosePaneExcept() {return "他のタブを閉じる";}
+	@property const string menuTextClosePaneLeft() {return "左側のタブを閉じる";}
+	@property const string menuTextClosePaneRight() {return "右側のタブを閉じる";}
+	@property const string menuTextClosePaneAll() {return "全てのタブを閉じる";}
+	@property const string menuTextNew() {return "新規作成";}
+	@property const string menuTextOpen() {return "開く";}
+	@property const string menuTextNewAtNewWindow() {return "新しいウィンドウで新規作成";}
+	@property const string menuTextOpenAtNewWindow() {return "新しいウィンドウで開く";}
+	@property const string menuTextClose() {return "閉じる";}
+	@property const string menuTextCloseWin() {return "閉じる";}
+	@property const string menuTextSave() {return "上書き保存";}
+	@property const string menuTextSaveAs() {return "名前を付けて保存";}
+	@property const string menuTextReload() {return "再読込";}
+	@property const string menuTextOpenDir() {return DIR ~ "を開く";}
+	@property const string menuTextOpenPlace() {return "ファイルの場所を開く";}
+	@property const string menuTextSaveImage() {return "格納イメージをファイルに保存";}
+	@property const string menuTextLookImages() {return "画像を一覧表示";}
+	@property const string menuTextShowMainToolBar() {return "全体ツールバーを表示";}
+	@property const string menuTextShowSceneToolBar() {return "シーンビューのツールバーを表示";}
+	@property const string menuTextShowEventToolBar() {return "イベントビューのツールバーを表示";}
+	@property const string menuTextChangeVH() {return "分割領域の縦横を切替";}
+	@property const string menuTextFind() {return "検索と置換";}
+	@property const string menuTextIncSearch() {return "絞り込み検索";}
+	@property const string menuTextCloseIncSearch() {return "閉じる";}
+	@property const string menuTextEditProp() {return "編集";}
+	@property const string menuTextRefresh() {return "最新の情報に更新";}
+	@property const string menuTextUndo() {return "元に戻す";}
+	@property const string menuTextRedo() {return "やり直し";}
+	@property const string menuTextCut() {return "切り取り";}
+	@property const string menuTextCopy() {return "コピー";}
+	@property const string menuTextPaste() {return "貼り付け";}
+	@property const string menuTextDelete() {return "削除";}
+	@property const string menuTextSelectAll() {return "すべて選択";}
+	@property const string menuTextToXMLText() {return "コピーしたデータをXMLに変換";}
+	@property const string menuTextTableView() {return "テーブルビュー";}
+	@property const string menuTextVarView() {return "状態変数ビュー";}
+	@property const string menuTextCardView() {return "カードビュー";}
+	@property const string menuTextCastView() {return "キャストカードビュー";}
+	@property const string menuTextSkillView() {return "特殊技能カードビュー";}
+	@property const string menuTextItemView() {return "アイテムカードビュー";}
+	@property const string menuTextBeastView() {return "召喚獣カードビュー";}
+	@property const string menuTextInfoView() {return "情報カードビュー";}
+	@property const string menuTextFileView() {return "ファイルビュー";}
+	@property const string menuTextExecEngine() {return "エンジン起動";}
+	@property const string menuTextExecEngineAuto() {return "自動選択";}
+	@property const string menuTextExecEngineMain() {return "CardWirthPy";}
+	@property const string menuTextOuterTools() {return "外部ツール";}
+	@property const string menuTextSettings() {return "エディタ設定";}
+	@property const string menuTextVersionInfo() {return "バージョン情報";}
+	@property const string menuTextLockToolBar() {return "ツールバーを固定";}
+	@property const string menuTextResetToolBar() {return "配置をリセット";}
+	@property const string menuTextCopyAsText() {return "テキストとしてコピー";}
+	@property const string menuTextOpenAtView() {return "ビューで開く";}
+	@property const string menuTextStartToPackage() {return "このツリーをパッケージ化する";}
+	@property const string menuTextConvertContent() {return "変換";}
+	@property const string menuTextCGroupTerminal() {return "開始/終端";}
+	@property const string menuTextCGroupStandard() {return "基本";}
+	@property const string menuTextCGroupData() {return "変数操作/分岐";}
+	@property const string menuTextCGroupUtility() {return "状況分岐";}
+	@property const string menuTextCGroupBranch() {return "保有分岐";}
+	@property const string menuTextCGroupGet() {return "取得";}
+	@property const string menuTextCGroupLost() {return "喪失";}
+	@property const string menuTextCGroupVisual() {return "外観操作";}
+	@property const string menuTextEditSummary() {return "シナリオの設定";}
+	@property const string menuTextNewArea() {return "エリアの作成";}
+	@property const string menuTextNewBattle() {return "バトルの作成";}
+	@property const string menuTextNewPackage() {return "パッケージの作成";}
+	@property const string menuTextReNumberingAll() {return "全てのIDを1から振り直す";}
+	@property const string menuTextReNumbering() {return "IDの振り直し";}
+	@property const string menuTextEditScene() {return "シーンビューを開く";}
+	@property const string menuTextEditEvent() {return "イベントビューを開く";}
+	@property const string menuTextNewFlagDir() {return "フォルダの作成";}
+	@property const string menuTextNewFlag() {return "フラグの作成";}
+	@property const string menuTextNewStep() {return "ステップの作成";}
+	@property const string menuTextUp() {return "上へ";}
+	@property const string menuTextDown() {return "下へ";}
+	@property const string menuTextShowParty() {return "パーティカードの表示";}
+	@property const string menuTextShowMsg() {return "メッセージ枠の表示";}
+	@property const string menuTextShowRefCards() {return "カード参照の表示";}
+	@property const string menuTextFixedImage() {return "イメージの固定";}
+	@property const string menuTextShowEnemyCardProp() {return "レベルとライフを表示";}
+	@property const string menuTextShowCard() {return "カードの表示";}
+	@property const string menuTextShowBack() {return "背景の表示";}
+	@property const string menuTextNewMenuCard() {return "メニューカードの作成";}
+	@property const string menuTextNewEnemyCard() {return "エネミーカードの作成";}
+	@property const string menuTextNewBack() {return "背景の作成";}
+	@property const string menuTextAutoArrange() {return "カードを自動的に並べる";}
+	@property const string menuTextManualArrange() {return "カードの位置を自分で決定する";}
+	@property const string menuTextMask() {return "透明色を使用";}
+	@property const string menuTextEscape() {return "逃走の有無";}
+	@property const string menuTextPosTop() {return "上に揃える";}
+	@property const string menuTextPosBottom() {return "下に揃える";}
+	@property const string menuTextPosLeft() {return "左に揃える";}
+	@property const string menuTextPosRight() {return "右に揃える";}
+	@property const string menuTextPosEven() {return "等間隔に並べる";}
+	@property const string menuTextScaleMin() {return "最小のカードスケール";}
+	@property const string menuTextScaleMiddle() {return "標準のカードスケール";}
+	@property const string menuTextScaleMax() {return "最大のカードスケール";}
+	@property const string menuTextScaleBig() {return "大きく揃える";}
+	@property const string menuTextScaleSmall() {return "小さく揃える";}
+	@property const string menuTextStopBGM() {return "%1$sの再生を停止";}
+	@property const string menuTextPlayBGM() {return "再生";}
+	@property const string menuTextKeyCodeTiming() {return "キーコード発火タイミング";}
+	@property const string menuTextKeyCodeTimingUse() {return "使用";}
+	@property const string menuTextKeyCodeTimingSuccess() {return "成功";}
+	@property const string menuTextKeyCodeTimingFailure() {return "失敗";}
+	@property const string menuTextAddRangeOfRound() {return "複数のラウンドを追加";}
+	@property const string menuTextOpenAtTableView() {return "テーブルビューで開く";}
+	@property const string menuTextOpenAtVarView() {return "状態変数ビューで開く";}
+	@property const string menuTextOpenAtCardView() {return "カードビューで開く";}
+	@property const string menuTextOpenAtFileView() {return "ファイルビューで開く";}
+	@property const string menuTextOpenAtEventView() {return "イベントビューで開く";}
+	@property const string menuTextComment() {return "コメントを記述";}
+	@property const string menuTextShowCardProp() {return "レベルとライフを表示";}
+	@property const string menuTextShowCardImage() {return "カード表示";}
+	@property const string menuTextShowCardDetail() {return "詳細表示";}
+	@property const string menuTextOpenImportSource() {return "外部シナリオから追加";}
+	@property const string menuTextNewCast() {return "キャストカードの作成";}
+	@property const string menuTextNewSkill() {return "スキルカードの作成";}
+	@property const string menuTextNewItem() {return "アイテムカードの作成";}
+	@property const string menuTextNewBeast() {return "召喚獣カードの作成";}
+	@property const string menuTextNewInfo() {return "情報カードの作成";}
+	@property const string menuTextImport() {return "シナリオに追加";}
+	@property const string menuTextOpenHand() {return "所有カード";}
+	@property const string menuTextEditEventAtTimeOfUsing() {return "使用時イベントの設定";}
+	@property const string menuTextPlaySE() {return "再生";}
+	@property const string menuTextStopSE() {return "停止";}
+	@property const string menuTextNewDir() {return "新規" ~ DIR;}
+	@property const string menuTextCopyFilePath() {return "素材のパスをコピー";}
+	@property const string menuTextReplFilePath() {return "素材の差替え";}
+	@property const string menuTextCreateArchive() {return "シナリオを圧縮";}
+	@property const string menuTextToScript() {return "スクリプトに変換してコピー";}
+	@property const string menuTextToScriptAll() {return "全てをスクリプトに変換してコピー";}
+	@property const string menuTextEvTemplates() {return "テンプレートから作成";}
+
 	@property const string bgm() {return "BGM";}
 	@property const string newEvent() {return "イベントの作成";}
 	@property const string newIgnition() {return "イベント発火条件の作成";}

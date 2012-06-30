@@ -371,6 +371,59 @@ private template stringToEnumImpl(E, size_t Index) {
 	}
 }
 
+/// switch文でenumのメンバ毎のメソッド呼出のメソッドに置換する。
+template EnumToStringMethod2(E, string EName, string MethodName, string Prefix) {
+	immutable EnumToStringMethod2 = "const string " ~ MethodName ~ "(" ~ EName ~ " id) {\n"
+		~ "final switch (id) {\n"
+		~ EnumToStringCase!(E, EName, Prefix, 0)
+		~ "}\n"
+		~ "}";
+}
+/// ditto
+template EnumToStringMethod(E, string MethodName, string Prefix) {
+	immutable EnumToStringMethod = EnumToStringMethod2!(E, E.stringof, MethodName, Prefix);
+}
+private template EnumToStringCase(E, string EName, string Prefix, size_t Index) {
+	private import std.traits;
+	private import std.conv;
+	private immutable Case = "case " ~ EName ~ "." ~ EnumMembers!E[Index].stringof ~ ": return " ~ Prefix ~ .upperToCap(std.conv.text(EnumMembers!E[Index])) ~ "();\n";
+	static if (Index + 1 < EnumMembers!E.length) {
+		immutable EnumToStringCase = Case ~ EnumToStringCase!(E, EName, Prefix, Index + 1);
+	} else {
+		immutable EnumToStringCase = Case;
+	}
+}
+
+/// 文字列がすべて大文字の形式であれば単語の始まりのみ大文字の形式に変更する。
+string upperToCap(string s) {
+	if (!s.length) return s;
+	bool isCap = true;
+	foreach (c; s) {
+		if (std.ascii.isLower(c)) {
+			isCap = false;
+			break;
+		}
+	}
+	if (!isCap) return s;
+
+	bool ul = true;
+	char[] buf;
+	foreach (i, c; s) {
+		if (ul) {
+			buf ~= c;
+			ul = false;
+		} else if ('_' == c) {
+			ul = true;
+		} else {
+			buf ~= std.ascii.toLower(c);
+		}
+	}
+	return .assumeUnique(buf);
+} unittest {
+	assert (upperToCap("UPPER_TO_CAP") == "UpperToCap");
+	assert (upperToCap("UpperToCap") == "UpperToCap");
+}
+
 /// sの先頭1文字を小文字にする。
 string capLower(string s) {
 	if (!s.length) return s;

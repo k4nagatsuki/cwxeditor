@@ -1,4 +1,4 @@
-SRC = cwxeditor.d \
+SRC1 = cwxeditor.d \
 	cwx\utils.d \
 	cwx\sjis.d \
 	cwx\system.d \
@@ -34,7 +34,9 @@ SRC = cwxeditor.d \
 	cwx\menu.d \
 	cwx\variables.d \
 	cwx\editor\gui\sound.d \
-	cwx\editor\gui\dwt\sbshell.d \
+	cwx\editor\gui\dwt\summarydialog.d \
+
+SRC2 = cwx\editor\gui\dwt\sbshell.d \
 	cwx\editor\gui\dwt\mainwindow.d \
 	cwx\editor\gui\dwt\images.d \
 	cwx\editor\gui\dwt\dutils.d \
@@ -72,7 +74,6 @@ SRC = cwxeditor.d \
 	cwx\editor\gui\dwt\datawindow.d \
 	cwx\editor\gui\dwt\areatable.d \
 	cwx\editor\gui\dwt\flagtable.d \
-	cwx\editor\gui\dwt\summarydialog.d \
 	cwx\editor\gui\dwt\flagspane.d \
 	cwx\editor\gui\dwt\flagdirtree.d \
 	cwx\editor\gui\dwt\settingsdialog.d \
@@ -213,18 +214,21 @@ LIB = /rc:cwxeditor \
 
 FLAGS = -J. -Jresource -op -c -property
 
-$(OUT) : $(SRC) $(RES)
-	$(DMD) $(FLAGS) $(SRC) -gs -debug -unittest -version="Console" -odobjs
+$(OUT) : $(SRC1) $(SRC2) $(RES)
+	$(DMD) $(FLAGS) $(SRC1) -gs -debug -unittest -version="Console" -odobjs
+	$(DMD) $(FLAGS) $(SRC2) -gs -debug -unittest -version="Console" -odobjs
 	$(DMD) -c -O -inline -release d2std\xml.d -odobjs
 	$(DMD) $(OBJ) -L"$(LIB)" -gs -debug -of"$(OUT)" -L/exet:nt/su:console:4.0
 
-debug_windows : $(SRC) $(RES)
-	$(DMD) $(FLAGS) $(SRC) -gs -debug -unittest -odobjs
+debug_windows : $(SRC1) $(SRC2) $(RES)
+	$(DMD) $(FLAGS) $(SRC1) -gs -debug -unittest -odobjs
+	$(DMD) $(FLAGS) $(SRC2) -gs -debug -unittest -odobjs
 	$(DMD) -c -O -inline -release d2std\xml.d -odobjs
 	$(DMD) $(OBJ) -L"$(LIB)" -gs -of"$(OUT)" -L/exet:nt/su:windows:4.0
 
-release : $(SRC) $(RES)
-	$(DMD) $(FLAGS) $(SRC) -release -odobjs
+release : $(SRC1) $(SRC2) $(RES)
+	$(DMD) $(FLAGS) $(SRC1) -release -odobjs
+	$(DMD) $(FLAGS) $(SRC2) -release -odobjs
 	$(DMD) -c -O -inline -release d2std\xml.d -odobjs
 	$(DMD) $(OBJ) -L"$(LIB)" -of"$(OUT)" -L/exet:nt/su:windows:4.0 -O
 
