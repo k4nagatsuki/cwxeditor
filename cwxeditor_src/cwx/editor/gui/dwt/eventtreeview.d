@@ -1602,12 +1602,14 @@ private:
 		int mxy = bb.y + bb.height;
 		int alpha = e.gc.getAlpha();
 		auto lineHeight = e.gc.getFontMetrics().getHeight();
+		Rectangle[] bs;
+		string[][] texts;
+		static const MARGIN_L = 5;
+		static const MARGIN_T = 4;
 		foreach (i, itm; itms) {
 			auto c = cast(Content) itm.getData();
 			string cm = c.comment;
 			if (cm.length) {
-				static const MARGIN_L = 5;
-				static const MARGIN_T = 4;
 				int dis = _prop.var.etc.commentBoxDistance;
 				auto ib = itm.getBounds();
 				cm = std.string.chomp(cm);
@@ -1643,30 +1645,46 @@ private:
 					}
 				}
 
-				e.gc.setAlpha(128);
-				e.gc.fillRectangle(bx, by, bw, bh);
-				e.gc.setAlpha(alpha);
-
-				// FIXME: 場合によって改行が反映されない
-//				e.gc.drawString(cm, tx, ty, true);
-				foreach (line; lines) {
-					e.gc.drawString(line, tx, ty, true);
-					ty += lineHeight;
-				}
-				int px = ib.x + ib.width + 2;
-				int py = ib.y + ib.height / 2 - 1;
-				// FIXME: 一度でもsetAlpha()を呼び出すと描画されなくなる
-//				e.gc.drawRectangle(bx, by, bw, bh);
-//				e.gc.drawLine(px, py, px + dis - MARGIN_L - 2, py);
+				/// ラインのみを先行描画
 				e.gc.setBackground(lineColor);
 				scope (exit) e.gc.setBackground(back);
+				int px = ib.x + ib.width + 2;
+				int py = ib.y + ib.height / 2 - 1;
 				e.gc.fillRectangle(px, py, dis - MARGIN_L - 2, 1);
-				e.gc.fillRectangle(bx, by, bw, 1);
-				e.gc.fillRectangle(bx, by + bh - 1, bw, 1);
-				e.gc.fillRectangle(bx, by + 1, 1, bh - 2);
-				e.gc.fillRectangle(bx + bw - 1, by + 1, 1, bh - 2);
+
 				boxes ~= box;
+				bs ~= box;
+				texts ~= lines;
 			}
+		}
+		foreach (i, lines; texts) {
+			auto b = bs[i];
+			int bx = b.x;
+			int by = b.y;
+			int bw = b.width;
+			int bh = b.height;
+			int tx = b.x + MARGIN_L;
+			int ty = b.y + MARGIN_T;
+
+			e.gc.setAlpha(128);
+			e.gc.fillRectangle(bx, by, bw, bh);
+			e.gc.setAlpha(alpha);
+
+			// FIXME: 場合によって改行が反映されない
+//			e.gc.drawString(cm, tx, ty, true);
+			foreach (line; lines) {
+				e.gc.drawString(line, tx, ty, true);
+				ty += lineHeight;
+			}
+			// FIXME: 一度でもsetAlpha()を呼び出すと描画されなくなる
+			e.gc.setBackground(lineColor);
+			scope (exit) e.gc.setBackground(back);
+//			e.gc.drawRectangle(bx, by, bw, bh);
+//			e.gc.drawLine(px, py, px + dis - MARGIN_L - 2, py);
+			e.gc.fillRectangle(bx, by, bw, 1);
+			e.gc.fillRectangle(bx, by + bh - 1, bw, 1);
+			e.gc.fillRectangle(bx, by + 1, 1, bh - 2);
+			e.gc.fillRectangle(bx + bw - 1, by + 1, 1, bh - 2);
 		}
 	}
 	class PaintTree : PaintListener {
