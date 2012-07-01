@@ -17,6 +17,7 @@ syntax: regexp
 ^cwxeditor_src/Scenario/.*$
 ^cwxeditor_src/temp/.*$
 ^cwxeditor_src/backup/.*$
+^cwxeditor_src/lang/.*$
 ^cwxeditor_src/.*\.dll$
 ^cwxeditor_src/.*\.bat$
 ^cwxeditor_src/.*\.config$
