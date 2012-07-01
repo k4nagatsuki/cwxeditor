@@ -1381,7 +1381,7 @@ private:
 					_language.add(msgsTable[locale].localeName);
 					int index = _language.getItemCount() - 1;
 					_msgsTableIndex[index] = locale;
-					if (!_prop.var.etc.useSystemLanguage && _prop.msgs.locale == locale) {
+					if (!_prop.var.etc.useSystemLanguage && 0 == icmp(_prop.msgs.locale, locale)) {
 						_language.select(index);
 					}
 				}

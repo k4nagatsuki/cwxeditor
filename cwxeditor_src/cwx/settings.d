@@ -81,6 +81,33 @@ private struct PropValueAttr(string PKey, T, T Default, bool ReadOnly) {
 		.fromNode(node, ATTR_KEY, value);
 	}
 }
+private struct AAProp(string PKey, Key, string KeyName, Value, string ValueName, string Default) {
+	static immutable string AA_KEY = PKey;
+	static immutable Value[Key] INIT;
+	shared static this () {
+		INIT = mixin(Default);
+	}
+
+	Value[Key] value;
+
+	const
+	void toNode(ref XNode node) {
+		auto e = node.newElement(PKey);
+		foreach (key; value.keys.sort) {
+			auto c = e.newElement(ValueName, to!string(value[key]));
+			c.newAttr(KeyName, key);
+		}
+	}
+	void fromNode(ref XNode node) {
+		node.onTag[ValueName] = (ref XNode e) {
+			auto key = e.attr!string(KeyName, false, null);
+			if (key !is null) {
+				value[key] = to!Value(e.value);
+			}
+		};
+		node.parse();
+	}
+}
 
 /// Propertyを持つためのクラス。
 abstract class Properties {
@@ -123,6 +150,19 @@ abstract class Properties {
 		static if (!ReadOnly) {
 			mixin ("@property void " ~ Name ~ "(" ~ VType.stringof ~ " value) {_" ~ Name ~ ".value = value;}");
 		}
+	}
+	/// 連想配列のプロパティ。常にReadOnly。
+	protected template AAProperty(string Name, Key, Value, string Default, string KeyName = "key", string ValueName = "value") {
+		mixin ("private AAProp!("
+			~ "\"" ~ Name ~ "\", "
+			~ Key.stringof ~ ", "
+			~ KeyName.stringof ~ ", "
+			~ Value.stringof ~ ", "
+			~ ValueName.stringof ~ ", "
+			~ Default.stringof ~ ") "
+			~ "_" ~ Name ~ ";");
+		mixin ("@property const const(" ~ Value.stringof ~ "[" ~ Key.stringof ~ "]) " ~ Name ~ "() {return _" ~ Name ~ ".value;}");
+		mixin ("@property void init_" ~ Name ~ "() {_" ~ Name ~ ".value = " ~ Default ~ ";}");
 	}
 	/// mixinによってXML化する関数及びXMLからプロパティ群をロードする関数を生成する。
 	/// Params:
@@ -175,6 +215,8 @@ abstract class Properties {
 					if (writeAll || fld.value != fld.INIT) {
 						e.newAttr(fld.ATTR_KEY, to!string(fld.value));
 					}
+				} else static if (is(typeof(fld.AA_KEY))) {
+					fld.toNode(e);
 				}
 			}
 		}
@@ -202,6 +244,15 @@ abstract class Properties {
 					} else static if (is(typeof(fld.ATTR_KEY))) {
 						auto attr = e.attr(fld.ATTR_KEY, false, to!string(fld.INIT));
 						fld.value = to!(typeof(fld.value))(attr);
+					} else static if (is(typeof(fld.AA_KEY))) {
+						auto n = e.child(fld.AA_KEY, false);
+						if (n.valid) {
+							try {
+								fld.fromNode(n);
+							} catch (Exception e) {
+								debugln(e);
+							}
+						}
 					}
 				}
 			}

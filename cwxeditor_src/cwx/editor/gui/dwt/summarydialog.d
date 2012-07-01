@@ -451,7 +451,12 @@ private:
 		_type.removeAll();
 		void initSkin() {
 			// XML形式のスキン
-			auto skins = skinTable(_prop).keys;
+			string[] skins;
+			foreach (key, value; skinTable(_prop)) {
+				skins ~= key;
+			}
+			// FIXME: リンクに失敗する
+//			auto skins = table.keys;
 			if (_prop.var.etc.logicalSort) {
 				skins = sort!(ncmp)(skins);
 			} else {

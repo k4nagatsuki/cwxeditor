@@ -144,7 +144,12 @@ protected:
 			listener(_baseSkin, SWT.Selection, &refRadio);
 			_skinC = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 			_skinC.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			auto skins = skinTable(_prop).keys;
+			string[] skins;
+			foreach (key, value; skinTable(_prop)) {
+				skins ~= key;
+			}
+			// FIXME: リンクに失敗する
+//			auto skins = skinTable(_prop).keys;
 			if (_prop.var.etc.logicalSort) {
 				skins = sort!(ncmp)(skins);
 			} else {

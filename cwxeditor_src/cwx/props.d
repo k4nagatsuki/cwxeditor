@@ -255,8 +255,8 @@ public:
 	Msgs[string] msgsTable(string languageDir, ref string[string] msgsTableFile, out string defLocale) {
 		Msgs[string] msgsTable;
 		auto def = new Msgs;
-		defLocale = def.locale;
-		msgsTableFile[def.locale] = "";
+		defLocale = std.string.toLower(def.locale);
+		msgsTableFile[defLocale] = "";
 		try {
 			auto dir = toAppAbs(languageDir);
 			if (.exists(dir)) {
@@ -264,12 +264,13 @@ public:
 					if (!cfnmatch(cwx.utils.getExt(file), "xml")) continue;
 					try {
 						auto msgs = Msgs.fromXML(std.file.readText(dir.buildPath(file)));
-						if (def.locale == msgs.locale) {
+						auto msgsLocale = std.string.toLower(msgs.locale);
+						if (defLocale == msgsLocale) {
 							def = msgs;
 						} else {
-							msgsTable[msgs.locale] = msgs;
+							msgsTable[msgsLocale] = msgs;
 						}
-						msgsTableFile[msgs.locale] = file;
+						msgsTableFile[msgsLocale] = file;
 					} catch (Exception e) {
 						debugln(e);
 					}
@@ -278,7 +279,7 @@ public:
 		} catch (Exception e) {
 			debugln(e);
 		}
-		msgsTable[def.locale] = def;
+		msgsTable[defLocale] = def;
 		return msgsTable;
 	}
 }

@@ -34,7 +34,6 @@ SRC1 = cwxeditor.d \
 	cwx\menu.d \
 	cwx\variables.d \
 	cwx\editor\gui\sound.d \
-	cwx\editor\gui\dwt\summarydialog.d \
 
 SRC2 = cwx\editor\gui\dwt\sbshell.d \
 	cwx\editor\gui\dwt\mainwindow.d \
@@ -89,6 +88,7 @@ SRC2 = cwx\editor\gui\dwt\sbshell.d \
 	cwx\editor\gui\dwt\messageutils.d \
 	cwx\editor\gui\dwt\dmenu.d \
 	cwx\editor\gui\dwt\incsearch.d \
+	cwx\editor\gui\dwt\summarydialog.d \
 
 OBJ = objs\cwxeditor.obj \
 	objs\cwx\utils.obj \

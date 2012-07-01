@@ -732,23 +732,26 @@ private:
 				return radio;
 			}
 			{
-				auto comp3 = createButtonGroup(comp2, _prop.msgs.sex, 1, 1);
+				auto comp3 = createButtonGroup(comp2, _prop.msgs.sexTitle, 1, 1);
 				foreach (s; SEX_ALL) {
-					_sex[s] = createR(comp3, _prop.sys.sexName(s, skin.legacyName));
+					auto name = _prop.sys.sexName(s, skin.legacyName);
+					_sex[s] = createR(comp3, _prop.msgs.sex.get(name, name));
 				}
 				_sexU = createR(comp3, _prop.msgs.sexUnknown);
 			}
 			{
-				auto comp3 = createButtonGroup(comp2, _prop.msgs.period, 2, 1);
+				auto comp3 = createButtonGroup(comp2, _prop.msgs.periodTitle, 2, 1);
 				foreach (p; PERIOD_ALL) {
-					_period[p] = createR(comp3, _prop.sys.periodName(p, skin.legacyName));
+					auto name = _prop.sys.periodName(p, skin.legacyName);
+					_period[p] = createR(comp3, _prop.msgs.period.get(name, name));
 				}
 				_periodU = createR(comp3, _prop.msgs.periodUnknown);
 			}
 			{
-				auto comp3 = createButtonGroup(comp2, _prop.msgs.nature, 2, 2);
+				auto comp3 = createButtonGroup(comp2, _prop.msgs.natureTitle, 2, 2);
 				foreach (n; NATURE_DEF) {
-					_nature[n] = createR(comp3, _prop.sys.natureName(n, skin.legacyName));
+					auto name = _prop.sys.natureName(n, skin.legacyName);
+					_nature[n] = createR(comp3, _prop.msgs.nature.get(name, name));
 				}
 				_natureU = createR(comp3, _prop.msgs.natureUnknown);
 			}
@@ -779,7 +782,8 @@ private:
 					auto radio = new Button(comp3, SWT.CHECK);
 					mod(radio);
 					radio.setLayoutData(new GridData(GridData.FILL_BOTH));
-					radio.setText(_prop.sys.makingsName(m, skin.legacyName));
+					auto name = _prop.sys.makingsName(m, skin.legacyName);
+					radio.setText(_prop.msgs.makings.get(name, name));
 					radio.setData(new Integer(m));
 					radio.addSelectionListener(sl);
 					_makings[m] = radio;
@@ -789,7 +793,7 @@ private:
 			}
 		}
 		auto tab = new CTabItem(tabf, SWT.NONE);
-		tab.setText(_prop.msgs.makings);
+		tab.setText(_prop.msgs.makingsTitle);
 		tab.setControl(comp);
 	}
 	Composite createButtonGroup(Composite parent, string name,
@@ -1342,23 +1346,27 @@ private:
 	}
 	void refreshSex() {
 		foreach (s; SEX_ALL) {
-			_sex[s].setText(_prop.sys.sexName(s, _comm.skin.legacyName));
+			auto name = _prop.sys.sexName(s, _comm.skin.legacyName);
+			_sex[s].setText(_prop.msgs.sex.get(name, name));
 		}
 	}
 	void refreshPeriod() {
 		foreach (p; PERIOD_ALL) {
-			_period[p].setText(_prop.sys.periodName(p, _comm.skin.legacyName));
+			auto name = _prop.sys.periodName(p, _comm.skin.legacyName);
+			_period[p].setText(_prop.msgs.period.get(name, name));
 		}
 	}
 	void refreshNature() {
 		foreach (n; NATURE_DEF) {
-			_nature[n].setText(_prop.sys.natureName(n, _comm.skin.legacyName));
+			auto name = _prop.sys.natureName(n, _comm.skin.legacyName);
+			_nature[n].setText(_prop.msgs.nature.get(name, name));
 		}
 	}
 	void refreshMakings() {
 		foreach (m; MAKINGS_LEFT) {
 			void refresh(Makings m) {
-				_makings[m].setText(_prop.sys.makingsName(m, _comm.skin.legacyName));
+				auto name = _prop.sys.makingsName(m, _comm.skin.legacyName);
+				_makings[m].setText(_prop.msgs.makings.get(name, name));
 			}
 			refresh(m);
 			refresh(reverseMakings(m));
