@@ -131,28 +131,34 @@ abstract class Properties {
 	/// VType = プロパティの型。
 	/// Default = プロパティのデフォルト値。
 	protected template Property(string Name, VType, VType Default, bool ReadOnly = false) {
+		private import cwx.xml;
+		private import cwx.utils;
 		mixin ("private PropValue!("
 			~ "\"" ~ Name ~ "\", " ~ VType.stringof ~ ", " ~ Default.stringof ~ ", " ~ ReadOnly.stringof ~ ") "
 			~ "_" ~ Name ~ ";");
-		mixin ("@property const const(" ~ VType.stringof ~ ") " ~ Name ~ "() {return _" ~ Name ~ ".value;}");
+		mixin ("@property const const(" ~ VType.stringof ~ ") " ~ variableName!Name ~ "() {return _" ~ Name ~ ".value;}");
 		mixin ("@property const const(" ~ VType.stringof ~ ") " ~ Name ~ "_init() {return Default;}");
 		static if (!ReadOnly) {
-			mixin ("@property void " ~ Name ~ "(" ~ VType.stringof ~ " value) {_" ~ Name ~ ".value = value;}");
+			mixin ("@property void " ~ variableName!Name ~ "(" ~ VType.stringof ~ " value) {_" ~ Name ~ ".value = value;}");
 		}
 	}
 	/// Propertyと同様だが、XML化の際は属性として扱われる。
 	protected template PropertyAttr(string Name, VType, VType Default, bool ReadOnly = false) {
+		private import cwx.xml;
+		private import cwx.utils;
 		mixin ("private PropValueAttr!("
 			~ "\"" ~ Name ~ "\", " ~ VType.stringof ~ ", " ~ Default.stringof ~ ", " ~ ReadOnly.stringof ~ ") "
 			~ "_" ~ Name ~ ";");
-		mixin ("@property const const(" ~ VType.stringof ~ ") " ~ Name ~ "() {return _" ~ Name ~ ".value;}");
+		mixin ("@property const const(" ~ VType.stringof ~ ") " ~ variableName!Name ~ "() {return _" ~ Name ~ ".value;}");
 		mixin ("@property const const(" ~ VType.stringof ~ ") " ~ Name ~ "_init() {return Default;}");
 		static if (!ReadOnly) {
-			mixin ("@property void " ~ Name ~ "(" ~ VType.stringof ~ " value) {_" ~ Name ~ ".value = value;}");
+			mixin ("@property void " ~ variableName!Name ~ "(" ~ VType.stringof ~ " value) {_" ~ Name ~ ".value = value;}");
 		}
 	}
 	/// 連想配列のプロパティ。常にReadOnly。
 	protected template AAProperty(string Name, Key, Value, string Default, string KeyName = "key", string ValueName = "value") {
+		private import cwx.xml;
+		private import cwx.utils;
 		mixin ("private AAProp!("
 			~ "\"" ~ Name ~ "\", "
 			~ Key.stringof ~ ", "
@@ -161,7 +167,7 @@ abstract class Properties {
 			~ ValueName.stringof ~ ", "
 			~ Default.stringof ~ ") "
 			~ "_" ~ Name ~ ";");
-		mixin ("@property const const(" ~ Value.stringof ~ "[" ~ Key.stringof ~ "]) " ~ Name ~ "() {return _" ~ Name ~ ".value;}");
+		mixin ("@property const const(" ~ Value.stringof ~ "[" ~ Key.stringof ~ "]) " ~ variableName!Name ~ "() {return _" ~ Name ~ ".value;}");
 		mixin ("@property void init_" ~ Name ~ "() {_" ~ Name ~ ".value = " ~ Default ~ ";}");
 	}
 	/// mixinによってXML化する関数及びXMLからプロパティ群をロードする関数を生成する。

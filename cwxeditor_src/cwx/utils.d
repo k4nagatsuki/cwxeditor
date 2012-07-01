@@ -1786,3 +1786,17 @@ string getExt(string path) {
 	if (i == -1) return "";
 	return path[i + 1 .. $];
 }
+
+/// Nameを変数名として使用できる場合はtrue。
+template isVariableName(string Name) {
+	immutable isVariableName = is(typeof({mixin("int " ~ Name ~ ";");}));
+}
+static assert (!isVariableName!("version"));
+static assert (isVariableName!("version_"));
+
+/// Nameを変数名として使用できない場合は末尾に'_'を追加する。
+template variableName(string Name) {
+	immutable variableName = isVariableName!Name ? Name : Name ~ "_";
+}
+static assert (variableName!("version") == "version_");
+static assert (variableName!("versio") == "versio");

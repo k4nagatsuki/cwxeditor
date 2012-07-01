@@ -9,7 +9,7 @@ import cwx.structs;
 import cwx.menu;
 import cwx.utils;
 import cwx.settings;
-import cwx.xml;
+import cwx.versioninfo;
 
 version (Windows) {
 	private immutable CARD_WIRTH_PY_EXE = "CardWirthPy.exe";
@@ -27,6 +27,7 @@ class Msgs : Properties {
 	}
 
 	mixin PropertyAttr!("locale", string, "ja-JP", true);
+	mixin PropertyAttr!("version", ulong, APP_VERSION_NUM, true);
 
 	mixin Msg!("application", "CWXEditor");
 	mixin Msg!("localeName", "日本語");
