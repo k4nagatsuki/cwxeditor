@@ -174,8 +174,8 @@ void main(string[] args) {
 	bool clean = args.has("clean");
 
 	// 前回のフラグと比較・保存
-	bool mod = "build.log".exists() && args != "build.log".readText().splitLines();
-	"build.log".write(args.join("\n"));
+	bool mod = "build.log".exists() && args[1 .. $] != "build.log".readText().splitLines();
+	"build.log".write(args[1 .. $].join("\n"));
 
 	if (clean || mod) {
 		// クリーン
