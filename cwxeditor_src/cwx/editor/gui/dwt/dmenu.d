@@ -33,6 +33,7 @@ import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.jpyimage;
 import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.customtext;
+import cwx.editor.gui.dwt.dutils;
 
 import core.thread;
 
@@ -167,9 +168,18 @@ TextMenuModify createTextMenu(T = Text)(Commons comm, Props prop, T text, bool d
 		auto p = text.getSelection();
 		return p.y > p.x;
 	}
-	auto t = createMenuItem(comm, menu, MenuID.Cut, &text.cut, () => !readOnly && sel());
-	auto c = createMenuItem(comm, menu, MenuID.Copy, &text.copy, &sel);
-	auto p = createMenuItem(comm, menu, MenuID.Paste, &text.paste, () => !readOnly);
+	auto t = createMenuItem(comm, menu, MenuID.Cut, {
+		text.cut();
+		comm.refreshToolBar();
+	}, () => !readOnly && sel());
+	auto c = createMenuItem(comm, menu, MenuID.Copy, {
+		text.copy();
+		comm.refreshToolBar();
+	}, &sel);
+	auto p = createMenuItem(comm, menu, MenuID.Paste, {
+		text.paste();
+		comm.refreshToolBar();
+	}, () => !readOnly && CBisText(comm.clipboard));
 	auto d = createMenuItem(comm, menu, MenuID.Delete, {
 		auto p = text.getSelection();
 		auto t = to!dstring(text.getText());
@@ -180,6 +190,7 @@ TextMenuModify createTextMenu(T = Text)(Commons comm, Props prop, T text, bool d
 			text.setText(to!string(t[0 .. p.x] ~ t[p.y + 1 .. $]));
 		}
 		text.setSelection(new Point(p.x, p.x));
+		comm.refreshToolBar();
 	}, () => !readOnly && sel());
 	new MenuItem(menu, SWT.SEPARATOR);
 	auto a = createMenuItem(comm, menu, MenuID.SelectAll, {
