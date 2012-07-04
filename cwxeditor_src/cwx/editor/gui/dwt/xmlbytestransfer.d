@@ -3,9 +3,8 @@ module cwx.editor.gui.dwt.xmlbytestransfer;
 
 import cwx.editor.gui.dwt.dprops;
 
-import org.eclipse.swt.dnd.Clipboard;
-import org.eclipse.swt.dnd.TextTransfer;
-import org.eclipse.swt.dnd.ByteArrayTransfer;
+import org.eclipse.swt.all;
+
 import java.lang.all;
 
 import std.algorithm;

@@ -16,15 +16,7 @@ import std.path;
 import std.string;
 import std.utf;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.SWTException;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.ImageData;
-import org.eclipse.swt.graphics.PaletteData;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.all;
 
 /// JPYの動作をエミュレートするが、甚だ不完全。
 ImageData loadJPYImage(Skin skin, string path, string[] stratum) {

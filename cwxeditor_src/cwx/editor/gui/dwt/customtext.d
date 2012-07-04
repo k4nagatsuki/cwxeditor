@@ -13,31 +13,8 @@ import std.array;
 import std.ascii;
 import std.conv;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.SWTException;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Text;
-import org.eclipse.swt.widgets.Item;
-import org.eclipse.swt.widgets.Widget;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Combo;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.custom.CCombo;
-import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.KeyAdapter;
-import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.FontData;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.all;
+
 import java.lang.all;
 
 Text mnemonicText(Composite parent, int style) {

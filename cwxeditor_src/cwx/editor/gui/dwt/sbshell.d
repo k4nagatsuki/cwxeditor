@@ -3,9 +3,7 @@ module cwx.editor.gui.dwt.sbshell;
 
 import cwx.sjis;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.all;
 
 version (Windows) {
     import std.string;
@@ -13,24 +11,11 @@ version (Windows) {
     import std.utf;
     import std.windows.charset;
 
-	import org.eclipse.swt.widgets.Display;
-	import org.eclipse.swt.layout.FormLayout;
-	import org.eclipse.swt.layout.FormData;
-	import org.eclipse.swt.layout.FormAttachment;
-	import org.eclipse.swt.graphics.Rectangle;
-	import org.eclipse.swt.events.ControlEvent;
-	import org.eclipse.swt.events.ControlAdapter;
-	import org.eclipse.swt.events.DisposeEvent;
-	import org.eclipse.swt.events.DisposeListener;
 	import org.eclipse.swt.internal.win32.OS;
 	import org.eclipse.swt.internal.win32.WINTYPES;
 	extern (Windows) {
 		HWND CreateStatusWindowW(LONG, LPCWSTR, HWND, UINT);
 	}
-} else {
-	import org.eclipse.swt.widgets.Label;
-	import org.eclipse.swt.layout.GridLayout;
-	import org.eclipse.swt.layout.GridData;
 }
 
 /// ステータスバーつきのShell。

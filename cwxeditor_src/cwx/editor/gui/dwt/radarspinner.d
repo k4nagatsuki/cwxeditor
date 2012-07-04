@@ -10,27 +10,8 @@ import std.math;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Spinner;
-import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.events.PaintListener;
-import org.eclipse.swt.events.PaintEvent;
-import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.VerifyListener;
-import org.eclipse.swt.events.VerifyEvent;
-import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.all;
+
 import java.lang.all;
 
 public:

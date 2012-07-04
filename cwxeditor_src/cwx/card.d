@@ -4,7 +4,6 @@ module cwx.card;
 import cwx.coupon;
 import cwx.event;
 import cwx.motion;
-import cwx.flag;
 import cwx.utils;
 import cwx.usecounter;
 import cwx.types;

@@ -1,7 +1,6 @@
 
 module cwx.usecounter;
 
-import cwx.flag;
 import cwx.utils;
 import cwx.path;
 

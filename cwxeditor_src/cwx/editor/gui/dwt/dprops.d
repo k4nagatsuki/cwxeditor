@@ -1,22 +1,7 @@
 
 module cwx.editor.gui.dwt.dprops;
 
-public import org.eclipse.swt.SWT;
-public import org.eclipse.swt.graphics.Point;
-public import org.eclipse.swt.graphics.RGB;
-public import org.eclipse.swt.graphics.FontData;
-
-import cwx.flag;
-import cwx.types;
-import cwx.features;
 import cwx.utils;
-import cwx.area;
-import cwx.card;
-import cwx.summary;
-import cwx.event;
-import cwx.race;
-import cwx.system;
-import cwx.motion;
 import cwx.props;
 import cwx.structs;
 import cwx.msgs;
@@ -29,9 +14,8 @@ import std.file;
 import std.path;
 import std.conv;
 
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.all;
+
 import java.lang.all;
 import java.io.ByteArrayInputStream;
 import java.nonstandard.Locale;

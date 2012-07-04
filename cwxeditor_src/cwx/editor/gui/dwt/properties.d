@@ -20,9 +20,7 @@ import std.path;
 import std.utf;
 import std.datetime;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.all;
 
 /// ウィンドウ状態のプロパティ。
 class WindowProps(string PropName, int Width, int Height)

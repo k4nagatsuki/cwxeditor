@@ -14,27 +14,7 @@ import std.conv;
 import std.exception;
 import std.path;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.ImageData;
-import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.ControlAdapter;
-import org.eclipse.swt.events.ControlEvent;
-import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.PaintListener;
-import org.eclipse.swt.events.PaintEvent;
-import org.eclipse.swt.events.MouseAdapter;
-import org.eclipse.swt.events.MouseMoveListener;
-import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.all;
 
 /// イメージの一覧を表示し、選択を促す。
 class ImageListWindow(MtType Type) {

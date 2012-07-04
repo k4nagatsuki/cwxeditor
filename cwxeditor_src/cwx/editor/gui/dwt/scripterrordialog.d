@@ -14,15 +14,8 @@ import cwx.editor.gui.dwt.dmenu;
 import std.array;
 import std.string;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Text;
-import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.all;
+
 import java.lang.all;
 
 class ScriptErrorDialog : AbsDialog {

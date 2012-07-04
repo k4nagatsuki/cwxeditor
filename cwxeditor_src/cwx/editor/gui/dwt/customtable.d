@@ -3,14 +3,7 @@ module cwx.editor.gui.dwt.customtable;
 
 import cwx.utils : debugln, cdebugln;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Table;
-import org.eclipse.swt.widgets.TableColumn;
-import org.eclipse.swt.widgets.TableItem;
-import org.eclipse.swt.custom.TableCursor;
-import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.all;
 
 class TableSorter(DataT) {
 	private TableColumn _col;

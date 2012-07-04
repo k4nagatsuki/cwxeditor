@@ -58,63 +58,8 @@ import std.array;
 import std.algorithm;
 debug import std.stdio;
 
-import org.eclipse.swt.SWTException;
-import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.KeyListener;
-import org.eclipse.swt.events.ControlAdapter;
-import org.eclipse.swt.events.ControlEvent;
-import org.eclipse.swt.events.MouseMoveListener;
-import org.eclipse.swt.events.MouseAdapter;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.ShellAdapter;
-import org.eclipse.swt.events.ShellEvent;
-import org.eclipse.swt.events.PaintListener;
-import org.eclipse.swt.events.PaintEvent;
-import org.eclipse.swt.events.MenuAdapter;
-import org.eclipse.swt.events.MenuEvent;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Combo;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.CoolBar;
-import org.eclipse.swt.widgets.CoolItem;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.ToolBar;
-import org.eclipse.swt.widgets.ToolItem;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.MenuItem;
-import org.eclipse.swt.widgets.FileDialog;
-import org.eclipse.swt.widgets.DirectoryDialog;
-import org.eclipse.swt.widgets.MessageBox;
-import org.eclipse.swt.widgets.Text;
-import org.eclipse.swt.widgets.Link;
-import org.eclipse.swt.widgets.TabFolder;
-import org.eclipse.swt.widgets.Spinner;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.custom.CTabFolder;
-import org.eclipse.swt.custom.CCombo;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Cursor;
-import org.eclipse.swt.program.Program;
-import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.layout.RowLayout;
-import org.eclipse.swt.layout.RowData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.dnd.DND;
-import org.eclipse.swt.dnd.Clipboard;
-import org.eclipse.swt.dnd.DropTarget;
-import org.eclipse.swt.dnd.DropTargetEvent;
-import org.eclipse.swt.dnd.DropTargetAdapter;
-import org.eclipse.swt.dnd.FileTransfer;
-import org.eclipse.swt.dnd.TextTransfer;
-import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.all;
+
 import java.lang.all;
 
 version (Windows) {
@@ -567,7 +512,7 @@ private:
 		summ.changedEvent ~= &refreshTitle;
 		refreshTitle();
 		refreshExecEngine();
-		GC.collect();
+		core.memory.GC.collect();
 		_win.redraw();
 	}
 	LaunchOption _opt;
@@ -638,7 +583,7 @@ private:
 					_comm.saved.call();
 					refreshTitle();
 					addHistory();
-					GC.collect();
+					core.memory.GC.collect();
 					playSavedSound();
 					return true;
 				} catch (SummaryException e) {
@@ -686,7 +631,7 @@ private:
 					_comm.refSkin.call();
 					_comm.refPaths.call("");
 					addHistory();
-					GC.collect();
+					core.memory.GC.collect();
 					playSavedSound();
 				} catch (SummaryException e) {
 					debugln(e);

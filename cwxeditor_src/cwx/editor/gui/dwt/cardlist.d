@@ -3,21 +3,7 @@ module cwx.editor.gui.dwt.cardlist;
 
 import cwx.utils;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.ScrollBar;
-import org.eclipse.swt.widgets.Item;
-import org.eclipse.swt.graphics.ImageData;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.dnd.DragSource;
-import org.eclipse.swt.dnd.DragSourceEvent;
-import org.eclipse.swt.dnd.DragSourceEffect;
+import org.eclipse.swt.all;
 
 public:
 

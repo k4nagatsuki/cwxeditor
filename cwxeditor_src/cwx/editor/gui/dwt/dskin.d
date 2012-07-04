@@ -21,9 +21,7 @@ import std.ascii;
 import std.file;
 import std.path;
 
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.graphics.ImageData;
-import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.all;
 
 Skin createClassicSkin(in Props prop, in ClassicEngine ce) {
 	return Skin.createLegacySkin(prop.parent, prop.enginePath, ce.enginePath, ce.dataDirName, ce.execute);;

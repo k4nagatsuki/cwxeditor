@@ -21,3 +21,4 @@ syntax: regexp
 ^cwxeditor_src/.*\.bat$
 ^cwxeditor_src/.*\.config$
 ^cwxeditor_src/lang/.*$
+^cwxeditor_src/.*\.deps$
