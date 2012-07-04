@@ -445,6 +445,7 @@ class FlexEtcProps : Properties {
 
 	mixin Property!("bindCardViews", bool, false);
 	mixin Property!("bindSceneWithEvent", bool, false);
+	mixin Property!("connContentTools", bool, true);
 
 	mixin Property!("previewAlpha", int, 255, true);
 	mixin Property!("previewMaxWidth", int, 150, true);

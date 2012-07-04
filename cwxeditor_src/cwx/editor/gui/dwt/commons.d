@@ -290,6 +290,7 @@ class Commons {
 	Dlg!(string) delBgImage;
 	Dlg!(string, int[], int) upBgImage;
 	Dlg!(string, int[], int) downBgImage;
+	Dlg!(bool, CType, bool, bool) selContentTool;
 
 	Dlg!(EventTree) refEventTree;
 	Dlg!(EventTree) delEventTree;
