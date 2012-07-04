@@ -9,6 +9,7 @@ cwxeditor_src/dwt-base.a
 cwxeditor_src/org.eclipse.swt.gtk.linux.x86.a
 cwxeditor_src/Makefile
 cwxeditor_src/memo.txt
+cwxeditor_src/build.log
 
 syntax: regexp
 .*.obj$

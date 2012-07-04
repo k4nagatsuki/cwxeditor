@@ -7,7 +7,8 @@ import std.path : filenameCmp, extension, setExtension, buildPath;
 import std.process;
 import std.exception;
 import std.array;
-import std.stdio;
+import std.string : splitLines;
+import std.stdio : writeln, writefln;
 import std.datetime;
 
 immutable DMD = "dmd";
@@ -133,15 +134,18 @@ void exec(string[] cmd) {
 	timer.stop();
 	writefln("%d msecs", timer.peek().msecs);
 }
+void put(string file, ref string[] array, ref string[string] objs) {
+	string obj = "objs".buildPath(file).setExtension(O);
+	if (file.newer(obj)) {
+		array ~= file;
+	}
+	objs[file] = obj;
+}
 string[] sources(string path, bool shallow, ref string[string] objs) {
 	string[] arr;
 	foreach (string file; path.dirEntries(shallow ? SpanMode.shallow : SpanMode.depth)) {
 		if (0 == filenameCmp(file.extension(), ".d")) {
-			string obj = "objs".buildPath(file).setExtension(O);
-			if (file.newer(obj)) {
-				arr ~= file;
-			}
-			objs[file] = obj;
+			put(file, arr, objs);
 		}
 	}
 	return arr;
@@ -164,28 +168,30 @@ void removeFile(string path) {
 
 void main(string[] args) {
 	// ビルドフラグ
+	args = args.sort;
 	bool release = args.has("release");
 	bool window = release || args.has("gui");
 	bool clean = args.has("clean");
 
+	// 前回のフラグと比較・保存
+	bool mod = "build.log".exists() && args != "build.log".readText().splitLines();
+	"build.log".write(args.join("\n"));
+
 	string[] cmd;
-	if (clean || release) {
+	if (clean || mod) {
+		// クリーン
 		EXE.removeFile();
 		RES.removeFile();
 		"objs".removeFile();
 		if (clean) return;
 	}
 
+	// ソースコードとオブジェクトファイルのリスト
 	string[string] objs;
 	string[] cwx = sources("cwx", true, objs);
 	string[] editor = sources("cwx".buildPath("editor"), false, objs);
 	string[] d2std = sources("d2std", false, objs);
-
-	string obj = "objs".buildPath("cwxeditor.d").setExtension(O);
-	if ("cwxeditor.d".newer(obj)) {
-		editor ~= "cwxeditor.d";
-	}
-	objs["cwxeditor.d"] = obj;
+	put("cwxeditor.d", editor, objs);
 
 	version (Windows) {
 		// リソースファイル
@@ -195,12 +201,12 @@ void main(string[] args) {
 		}
 	}
 
+	cmd = [DMD];
+
+	// *.dのコンパイル
 	string[] flags = FLAGS.dup;
 	flags ~= release ? RELEASE_FLAGS : DEBUG_FLAGS;
-	flags ~= window ? CONSOLE_FLAGS : WINDOW_FLAGS;
-
-	cmd = [DMD];
-	// *.dのコンパイル
+	flags ~= window ? WINDOW_FLAGS : CONSOLE_FLAGS;
 	if (d2std.length) exec(cmd ~ D2STD_FLAGS ~ d2std ~ "-odobjs");
 	if (cwx.length) exec(cmd ~ flags ~ cwx ~ "-odobjs");
 	if (editor.length) exec(cmd ~ flags ~ editor ~ "-odobjs");
