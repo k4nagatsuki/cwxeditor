@@ -116,6 +116,7 @@ private:
 	bool _opened = false;
 	Composite _contentsBoxArea;
 	Menu _templMenu;
+	ToolItem _templTI;
 
 	bool _autoOpen;
 	bool _conti;
@@ -137,9 +138,11 @@ private:
 
 	void autoOpen() {
 		_autoOpen = _autoOpenTI.getSelection();
+		_comm.selContentTool.call(this, _arrowMode, _cType, _autoOpen, _conti);
 	}
 	void addContinue() {
 		_conti = _contiTI.getSelection();
+		_comm.selContentTool.call(this, _arrowMode, _cType, _autoOpen, _conti);
 	}
 
 	@property
@@ -589,6 +592,27 @@ private:
 			_autoHideTools.setCursor(null);
 		}
 		_radioGroup.select(_arrowTI);
+		_comm.selContentTool.call(this, _arrowMode, _cType, _autoOpen, _conti);
+	}
+	void selContentTool(Object sender, bool arrowMode, CType cType, bool autoOpen, bool conti) {
+		if (!_prop.var.etc.connContentTools) return;
+		if (sender is this) return;
+		if (!_arrowMode && arrowMode) {
+			arrow();
+		}
+		if ((_arrowMode && !arrowMode) || (_cType != cType)) {
+			auto ce = _conts[cType];
+			_radioGroup.select(ce.ti);
+			ce.create();
+		}
+		if (_autoOpen != autoOpen) {
+			_autoOpenTI.setSelection(autoOpen);
+			this.autoOpen();
+		}
+		if (_conti != conti) {
+			_contiTI.setSelection(conti);
+			this.addContinue();
+		}
 	}
 
 	bool hasDialog(CType type) {
@@ -1248,7 +1272,7 @@ private:
 			return null;
 		}
 	}
-	private CreateEvent[] _conts;
+	private CreateEvent[CType] _conts;
 	private class CreateEvent {
 		CType type;
 		MenuItem convMenuItem;
@@ -1275,13 +1299,16 @@ private:
 				_v._arrowMode = false;
 				_v._cType = type;
 				_v._evtTI = _itm;
-				_comm.refreshToolBar();
+				_v._comm.refreshToolBar();
+				_v._comm.selContentTool.call(_v._arrowMode, _v._cType, _v._autoOpen, _v._conti);
 			}
 		}
 		@property
 		void ti(ToolItem ti) {
 			_itm = ti;
 		}
+		@property
+		ToolItem ti() {return _itm;}
 		void convert() {
 			auto sel = selection;
 			if (!sel) return;
@@ -1324,8 +1351,8 @@ private:
 		if (type != CType.START) {
 			ce.convMenuItem = createMenuItem2(_comm, convMenu, text, img, &ce.convert, null);
 			ce.convMenuItem.setEnabled(false);
-			_conts ~= ce;
 		}
+		_conts[type] = ce;
 		return itm;
 	}
 	class CDListener : DisposeListener {
@@ -1456,6 +1483,7 @@ private:
 			_comm.replID.remove(&__refreshCard);
 			_comm.refContentText.remove(&refreshStatusLine);
 			_comm.refEventTemplates.remove(&refreshTemplates);
+			_comm.selContentTool.remove(&selContentTool);
 			_grayFont.dispose();
 			if (_toolWin) {
 				saveToolWinPos();
@@ -1528,6 +1556,7 @@ private:
 				createMenuItem2(_comm, _templMenu, t.name, null, &c.put, () => _et !is null);
 			}
 		}
+		_templTI.setEnabled(0 < _templMenu.getItemCount());
 	}
 
 	/// 使用数とツリー毎の区切り線の描画。
@@ -1848,6 +1877,7 @@ public:
 		_comm.replID.add(&__refreshCard);
 		_comm.refContentText.add(&refreshStatusLine);
 		_comm.refEventTemplates.add(&refreshTemplates);
+		_comm.selContentTool.add(&selContentTool);
 		_grayFont = new Color(_tree.getDisplay(), alphaColor(_tree.getForeground().getRGB(), _tree.getBackground().getRGB(), 128));
 
 		auto dt = new DropTarget(_tree, DND.DROP_DEFAULT | DND.DROP_MOVE);
@@ -1907,7 +1937,7 @@ public:
 			_autoOpenTI = createToolItem2(_comm, mode, _prop.msgs.evtAutoOpen, _prop.images.evtAutoOpen, &autoOpen, null, SWT.CHECK);
 			_autoOpenTI.setSelection(_autoOpen);
 			new ToolItem(mode, SWT.SEPARATOR);
-			createDropDownItem(_comm, mode, MenuID.EvTemplates, null, _templMenu, () => _et && _templMenu.getItemCount() > 0);
+			_templTI = createDropDownItem(_comm, mode, MenuID.EvTemplates, null, _templMenu, () => _et && _prop.var.etc.eventTemplates.length > 0);
 			refreshTemplates();
 			createCoolItem(cbar, mode);
 
@@ -2036,13 +2066,13 @@ public:
 
 	private void refreshConvMenu() {
 		if (!_et || !selection) {
-			foreach (ce; _conts) {
-				ce.convMenuItem.setEnabled(false);
+			foreach (ce; _conts.values) {
+				if (ce.convMenuItem) ce.convMenuItem.setEnabled(false);
 			}
 		} else {
 			auto c = cast(Content) selection.getData();
-			foreach (ce; _conts) {
-				ce.convMenuItem.setEnabled(c.canConvert(ce.type));
+			foreach (ce; _conts.values) {
+				if (ce.convMenuItem) ce.convMenuItem.setEnabled(c.canConvert(ce.type));
 			}
 		}
 	}

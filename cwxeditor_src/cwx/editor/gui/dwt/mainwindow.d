@@ -1771,6 +1771,9 @@ public:
 				_noSummMenu.add(MenuID.BeastView);
 				_noSummMenu.add(MenuID.InfoView);
 				_noSummMenu.add(MenuID.FileView);
+				_noSummMenu.add(MenuID.ShowMainToolBar);
+				_noSummMenu.add(MenuID.ShowSceneToolBar);
+				_noSummMenu.add(MenuID.ShowEventToolBar);
 			}
 			_noSummMenu.add(MenuID.ChangeVH);
 			_noSummMenu.add(MenuID.ShowCardProp);
