@@ -177,7 +177,6 @@ void main(string[] args) {
 	bool mod = "build.log".exists() && args != "build.log".readText().splitLines();
 	"build.log".write(args.join("\n"));
 
-	string[] cmd;
 	if (clean || mod) {
 		// クリーン
 		EXE.removeFile();
@@ -192,6 +191,8 @@ void main(string[] args) {
 	string[] editor = sources("cwx".buildPath("editor"), false, objs);
 	string[] d2std = sources("d2std", false, objs);
 	put("cwxeditor.d", editor, objs);
+
+	string[] cmd;
 
 	version (Windows) {
 		// リソースファイル
