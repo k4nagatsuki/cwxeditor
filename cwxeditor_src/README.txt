@@ -45,14 +45,22 @@ LINKCMD=%@P%\link.exe
 　http://www.digitalmars.com//download/freecompiler.html
 
 　これでようやく準備完了です。
-　cwxeditor本体のビルドはDigital Marsのmakeで行います。
-　Makefileはwin32.makです。
+　cwxeditor本体のビルドはビルドスクリプトbuild.dで行います。
+　rdmd等で実行してください。
 ---
-make -f win32.mak
+rdmd build
 ---
 　リリースビルドなら:
 ---
-make -f win32.mak release
+rdmd build release
+---
+　クリーンするなら:
+---
+rdmd build clean
+---
+　デバグビルドでコンソールを出さないなら:
+---
+rdmd build gui
 ---
 
 　後はどうかDWTが死なないことを私と一緒に祈ってください。
@@ -85,11 +93,6 @@ cd dwt
 git submodule update --init
 git submodule foreach git pull origin master
 ---
-　さらに、org.eclipse.swt.browserがあると余計な依存関係が発生するので、
-消すか、どこかへ移動してしまう必要があります。
----
-mv org.eclipse.swt.gtk.linux.x86/src/org/eclipse/swt/browser .
----
 
 　DWTはビルドにrakeを使います。
 　rakeで"base"と"swt"をビルドし、ライブラリを作りましょう。
@@ -101,17 +104,26 @@ mv org.eclipse.swt.gtk.linux.x86/src/org/eclipse/swt/browser .
 あるんでしょうか。自分は完膚無きまでにタコなので、分かっている人は教えて
 くださると助かります。
 
-　後はTangoの"bin/sc.ini"のDFLAGSを弄くってDWTのインポートフォルダやら
-リソースフォルダやらを探しに行くようにしておきましょう。
+　後は"/etc/dmd.conf"のDFLAGSを弄くってDWTのインポートフォルダやらリソー
+スやらを探しに行くようにしておきましょう。
 
-　ここまで準備をすれば、後はmakeするだけ。
-　Makefileはlinux.makです。
+　これでようやく準備完了です。
+　cwxeditor本体のビルドはビルドスクリプトbuild.dで行います。
+　rdmd等で実行してください。
 ---
-make -f linux.mak
+rdmd build
 ---
 　リリースビルドなら:
 ---
-make -f linux.mak release
+rdmd build release
+---
+　クリーンするなら:
+---
+rdmd build clean
+---
+　デバグビルドでコンソールを出さないなら:
+---
+rdmd build gui
 ---
 
 　後はどうかDWTが死なないことを私と一緒に祈ってください。
