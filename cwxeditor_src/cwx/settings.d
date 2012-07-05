@@ -51,12 +51,19 @@ private void fromNode(T)(ref XNode node, string key, ref T value) {
 	}
 }
 
-private struct PropValue(string PKey, T, T Default, bool ReadOnly) {
-	static immutable string KEY = PKey;
-	static immutable T INIT = Default;
-	static immutable bool READ_ONLY = ReadOnly;
+private struct PropValue(T) {
+	immutable string KEY;
+	immutable T INIT;
+	immutable bool READ_ONLY;
 
-	T value = Default;
+	T value;
+
+	this (string pkey, immutable(T) defaultValue, T firstValue, bool readOnly) {
+		KEY = pkey;
+		INIT = defaultValue;
+		value = firstValue;
+		READ_ONLY = readOnly;
+	}
 
 	const
 	void toNode(ref XNode node) {
@@ -66,12 +73,19 @@ private struct PropValue(string PKey, T, T Default, bool ReadOnly) {
 		.fromNode(node, KEY, value);
 	}
 }
-private struct PropValueAttr(string PKey, T, T Default, bool ReadOnly) {
-	static immutable string ATTR_KEY = PKey;
-	static immutable T INIT = Default;
-	static immutable bool READ_ONLY = ReadOnly;
+private struct PropValueAttr(T) {
+	immutable string ATTR_KEY;
+	immutable T INIT;
+	immutable bool READ_ONLY;
 
-	T value = Default;
+	T value;
+
+	this (string pkey, immutable(T) defaultValue, T firstValue, bool readOnly) {
+		ATTR_KEY = pkey;
+		INIT = defaultValue;
+		value = firstValue;
+		READ_ONLY = readOnly;
+	}
 
 	const
 	void toNode(ref XNode node) {
@@ -81,26 +95,30 @@ private struct PropValueAttr(string PKey, T, T Default, bool ReadOnly) {
 		.fromNode(node, ATTR_KEY, value);
 	}
 }
-private struct AAProp(string PKey, Key, string KeyName, Value, string ValueName, string Default) {
-	static immutable string AA_KEY = PKey;
-	static immutable Value[Key] INIT;
-	shared static this () {
-		INIT = mixin(Default);
-	}
+private struct AAProp(Key, Value) {
+	immutable string AA_KEY;
+	immutable string KEY_NAME;
+	immutable string VALUE_NAME;
 
 	Value[Key] value;
 
+	this (string pkey, string keyName, string valueName) {
+		AA_KEY = pkey;
+		KEY_NAME = keyName;
+		VALUE_NAME = valueName;
+	}
+
 	const
 	void toNode(ref XNode node) {
-		auto e = node.newElement(PKey);
+		auto e = node.newElement(AA_KEY);
 		foreach (key; value.keys.sort) {
-			auto c = e.newElement(ValueName, to!string(value[key]));
-			c.newAttr(KeyName, key);
+			auto c = e.newElement(VALUE_NAME, to!string(value[key]));
+			c.newAttr(KEY_NAME, key);
 		}
 	}
 	void fromNode(ref XNode node) {
-		node.onTag[ValueName] = (ref XNode e) {
-			auto key = e.attr!string(KeyName, false, null);
+		node.onTag[VALUE_NAME] = (ref XNode e) {
+			auto key = e.attr!string(KEY_NAME, false, null);
 			if (key !is null) {
 				value[key] = to!Value(e.value);
 			}
@@ -133,40 +151,29 @@ abstract class Properties {
 	protected template Property(string Name, VType, VType Default, bool ReadOnly = false) {
 		private import cwx.xml;
 		private import cwx.utils;
-		mixin ("private PropValue!("
-			~ "\"" ~ Name ~ "\", " ~ VType.stringof ~ ", " ~ Default.stringof ~ ", " ~ ReadOnly.stringof ~ ") "
-			~ "_" ~ Name ~ ";");
-		mixin ("@property const const(" ~ VType.stringof ~ ") " ~ variableName!Name ~ "() {return _" ~ Name ~ ".value;}");
-		mixin ("@property const const(" ~ VType.stringof ~ ") " ~ Name ~ "_init() {return Default;}");
+		mixin ("private PropValue!(VType) _" ~ Name ~ " = PropValue!(VType)(Name, Default, Default, ReadOnly);");
+		mixin ("@property const const(VType) " ~ variableName!Name ~ "() {return _" ~ Name ~ ".value;}");
+		mixin ("@property const const(VType) " ~ Name ~ "_init() {return Default;}");
 		static if (!ReadOnly) {
-			mixin ("@property void " ~ variableName!Name ~ "(" ~ VType.stringof ~ " value) {_" ~ Name ~ ".value = value;}");
+			mixin ("@property void " ~ variableName!Name ~ "(VType value) {_" ~ Name ~ ".value = value;}");
 		}
 	}
 	/// Propertyと同様だが、XML化の際は属性として扱われる。
 	protected template PropertyAttr(string Name, VType, VType Default, bool ReadOnly = false) {
 		private import cwx.xml;
 		private import cwx.utils;
-		mixin ("private PropValueAttr!("
-			~ "\"" ~ Name ~ "\", " ~ VType.stringof ~ ", " ~ Default.stringof ~ ", " ~ ReadOnly.stringof ~ ") "
-			~ "_" ~ Name ~ ";");
-		mixin ("@property const const(" ~ VType.stringof ~ ") " ~ variableName!Name ~ "() {return _" ~ Name ~ ".value;}");
-		mixin ("@property const const(" ~ VType.stringof ~ ") " ~ Name ~ "_init() {return Default;}");
+		mixin ("private PropValueAttr!(VType) _" ~ Name ~ " = PropValueAttr!(VType)(Name, Default, Default, ReadOnly);");
+		mixin ("@property const const(VType) " ~ variableName!Name ~ "() {return _" ~ Name ~ ".value;}");
+		mixin ("@property const const(VType) " ~ Name ~ "_init() {return Default;}");
 		static if (!ReadOnly) {
-			mixin ("@property void " ~ variableName!Name ~ "(" ~ VType.stringof ~ " value) {_" ~ Name ~ ".value = value;}");
+			mixin ("@property void " ~ variableName!Name ~ "(VType value) {_" ~ Name ~ ".value = value;}");
 		}
 	}
 	/// 連想配列のプロパティ。常にReadOnly。
 	protected template AAProperty(string Name, Key, Value, string Default, string KeyName = "key", string ValueName = "value") {
 		private import cwx.xml;
 		private import cwx.utils;
-		mixin ("private AAProp!("
-			~ "\"" ~ Name ~ "\", "
-			~ Key.stringof ~ ", "
-			~ KeyName.stringof ~ ", "
-			~ Value.stringof ~ ", "
-			~ ValueName.stringof ~ ", "
-			~ Default.stringof ~ ") "
-			~ "_" ~ Name ~ ";");
+		mixin ("private AAProp!(Key, Value) _" ~ Name ~ " = AAProp!(Key, Value)(Name, KeyName, ValueName);");
 		mixin ("@property const const(" ~ Value.stringof ~ "[" ~ Key.stringof ~ "]) " ~ variableName!Name ~ "() {return _" ~ Name ~ ".value;}");
 		mixin ("@property void init_" ~ Name ~ "() {_" ~ Name ~ ".value = " ~ Default ~ ";}");
 	}

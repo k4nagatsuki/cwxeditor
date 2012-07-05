@@ -1,3 +1,4 @@
+#!/usr/bin/rdmd
 /// CWXEditorのビルドスクリプト。
 module build;
 
