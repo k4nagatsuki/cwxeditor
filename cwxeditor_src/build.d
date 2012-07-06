@@ -140,7 +140,7 @@ immutable string[] RELEASE_FLAGS_L = [
 	"-O",
 ];
 
-void exec(string[] cmd) {
+void exec(string[] cmd ...) {
 	string line = cmd.join(" ");
 	writeln(line);
 	auto timer = StopWatch(AutoStart.yes);
@@ -199,7 +199,7 @@ void main(string[] args) {
 			RES.removeFile();
 		}
 		"objs".removeFile();
-		if (clean) return;
+		if (clean && 1 == args.length) return;
 	}
 
 	// ソースコードとオブジェクトファイルのリスト
@@ -236,6 +236,6 @@ void main(string[] args) {
 	exec(cmd ~ flags ~ objs.values);
 
 	if (run) {
-		exec([EXE]);
+		exec(".".buildPath(EXE));
 	}
 }
