@@ -1121,8 +1121,6 @@ private:
 			}
 			auto openPath = new OpenCWXPath;
 			auto reloadSettings = new ReloadSettings;
-			createPipeName();
-			if (!_pipeName.length) return;
 			Summary summ = null;
 			string recvSend(in char[] recv, out bool quit) {
 				quit = false;
@@ -1204,15 +1202,14 @@ private:
 		}
 	}
 	/// このプロセスが待ち受けする際のパイプ名を生成。
-	void createPipeName() {
+	string createPipeName() {
 		version (Windows) {
 			for (size_t i = 0; i < PIPE_APP_MAX; i++) {
 				string pipeName = r"\\.\pipe\cwxeditor_" ~ to!(string)(i);
 				auto p = CreateFileW(toUTFz!(wchar*)(pipeName),
 					GENERIC_READ | GENERIC_WRITE, 0, null, OPEN_EXISTING, 0, null);
 				if (p == INVALID_HANDLE_VALUE) {
-					_pipeName = pipeName;
-					break;
+					return pipeName;
 				}
 				CloseHandle(p);
 			}
@@ -1226,11 +1223,11 @@ private:
 				raddr.sun_family = AF_INET;
 				strcpy(&(raddr.sun_path[1]), pipeName.ptr);
 				if (-1 == connect(p, cast(sockaddr*) &raddr, raddr.sizeof)) {
-					_pipeName = pipeName;
-					break;
+					return pipeName;
 				}
 			}
 		}
+		return "";
 	}
 	/// CWXEditorのプロセスに対してパイプを通じてメッセージを送る。
 	void sendToPipe(string delegate(string) sendRecv, bool delegate() next) {
@@ -2882,8 +2879,11 @@ public:
 			}
 			dStr ~= " - " ~ .text(__LINE__);
 
+			_pipeName = createPipeName();
 			auto pipe = new core.thread.Thread(&pipeThr);
-			pipe.start();
+			if (_pipeName.length) {
+				pipe.start();
+			}
 			auto backup = new core.thread.Thread(&backupThr);
 			backup.start();
 			version (Windows) {
