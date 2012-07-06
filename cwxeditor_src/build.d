@@ -186,6 +186,7 @@ void main(string[] args) {
 	bool release = args.has("release");
 	bool window = release || args.has("gui");
 	bool clean = args.has("clean");
+	bool run = args.has("run");
 
 	// 前回のフラグと比較・保存
 	bool mod = "build.log".exists() && args != "build.log".readText().splitLines();
@@ -233,4 +234,8 @@ void main(string[] args) {
 	flags ~= release ? RELEASE_FLAGS_L : DEBUG_FLAGS_L;
 	flags ~= window ? WINDOW_FLAGS_L : CONSOLE_FLAGS_L;
 	exec(cmd ~ flags ~ objs.values);
+
+	if (run) {
+		exec([EXE]);
+	}
 }
