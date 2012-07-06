@@ -40,6 +40,16 @@ version (Windows) {
 		"-L+dwt-base.lib",
 		"-L+org.eclipse.swt.win32.win32.x86.lib",
 	];
+	immutable DEBUG_FLAGS = [
+		"-gs",
+		"-debug",
+		"-unittest",
+	];
+	immutable string[] DEBUG_FLAGS_L = [
+		"-gs",
+		"-debug",
+		"-unittest",
+	];
 	immutable CONSOLE_FLAGS_L = [
 		"-of" ~ EXE,
 		"-L/exet:nt/su:console:4.0",
@@ -80,6 +90,19 @@ version (Windows) {
 		"-L-lgdk-x11-2.0",
 		"-L-lgtk-x11-2.0",
 	];
+	immutable DEBUG_FLAGS = [
+		"-g",
+		// FIXME: std.conv.to!int("3")がエラーになってしまう
+//		"-gs",
+		"-debug",
+		"-unittest",
+	];
+	immutable string[] DEBUG_FLAGS_L = [
+		"-g",
+		"-gs",
+		"-debug",
+		"-unittest",
+	];
 	immutable CONSOLE_FLAGS_L = [
 		"-of" ~ EXE,
 	];
@@ -103,11 +126,6 @@ immutable D2STD_FLAGS = [
 	"-inline",
 	"-op",
 ];
-immutable DEBUG_FLAGS = [
-	"-gs",
-	"-debug",
-	"-unittest",
-];
 immutable RELEASE_FLAGS = [
 	"-release",
 ];
@@ -116,11 +134,6 @@ immutable CONSOLE_FLAGS = [
 	"-version=Console",
 ];
 immutable string[] WINDOW_FLAGS = [
-];
-immutable string[] DEBUG_FLAGS_L = [
-	"-gs",
-	"-debug",
-	"-unittest",
 ];
 immutable string[] RELEASE_FLAGS_L = [
 	"-release",
@@ -181,7 +194,9 @@ void main(string[] args) {
 	if (clean || mod) {
 		// クリーン
 		EXE.removeFile();
-		RES.removeFile();
+		version (Windows) {
+			RES.removeFile();
+		}
 		"objs".removeFile();
 		if (clean) return;
 	}
