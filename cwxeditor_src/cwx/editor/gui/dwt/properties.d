@@ -138,6 +138,14 @@ public class FlexProps {
 	private bool _noFile = false;
 	private string _noFileTemp;
 
+	version (Windows) {
+		private immutable CWX_DIR = "cwxeditor";
+		private immutable CWX_DIR_NOS = "cwxeditor_no_settings";
+	} else {
+		private immutable CWX_DIR = ".cwxeditor";
+		private immutable CWX_DIR_NOS = ".cwxeditor_no_settings";
+	}
+
 	this (string appPath, string confFileName) {
 		string dStr = .text(__LINE__);
 		try {
@@ -185,7 +193,7 @@ public class FlexProps {
 			case IniLocation.STANDARD:
 				dStr ~= " - " ~ .text(__LINE__);
 				dir = appDataDir(appPath);
-				dir = std.path.buildPath(dir, "cwxeditor");
+				dir = std.path.buildPath(dir, CWX_DIR);
 				break;
 			case IniLocation.LOCAL:
 				dStr ~= " - " ~ .text(__LINE__);
@@ -195,7 +203,7 @@ public class FlexProps {
 				dStr ~= " - " ~ .text(__LINE__);
 				string base = std.path.buildPath(appPath.dirName(), iniFileName);
 				dir = appDataDir(appPath);
-				dir = std.path.buildPath(dir, "cwxeditor");
+				dir = std.path.buildPath(dir, CWX_DIR);
 				string dest = std.path.buildPath(dir, iniFileName);
 				if (.exists(base) && !.exists(dest)) {
 					try {
@@ -210,7 +218,7 @@ public class FlexProps {
 				_noFile = true;
 				dStr ~= " - " ~ .text(__LINE__);
 				dir = appDataDir(appPath);
-				dir = std.path.buildPath(dir, "cwxeditor_no_settings");
+				dir = std.path.buildPath(dir, CWX_DIR_NOS);
 				break;
 			}
 			dStr ~= " - " ~ .text(__LINE__);
@@ -238,7 +246,7 @@ public class FlexProps {
 				case IniLocation.STANDARD, IniLocation.COPY:
 					dStr ~= " - " ~ .text(__LINE__);
 					dir = appDataDir(appPath);
-					dir = std.path.buildPath(dir, "cwxeditor");
+					dir = std.path.buildPath(dir, CWX_DIR);
 					etc.tempPath = std.path.buildPath(dir, "temp");
 					etc.backupPath = std.path.buildPath(dir, "backup");
 					break;

@@ -68,6 +68,9 @@ private version (Windows) {
 		const SHGFP_TYPE_CURRENT = 0;
 	}
 	import std.loader;
+} else {
+	import core.sys.posix.unistd;
+	import core.sys.posix.pwd;
 }
 
 shared string LATEST_VERSION = "";
@@ -231,7 +234,7 @@ string appDataDir(string appPath) {
 		auto p = to!string(appDataBuf[0 .. appDataBuf.indexOf('\0')]);
 		return assumeUnique(p);
 	} else {
-		return "~";
+		return to!string(getpwuid(getuid()).pw_dir);
 	}
 }
 
