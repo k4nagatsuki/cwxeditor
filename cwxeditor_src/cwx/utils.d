@@ -1784,10 +1784,11 @@ bool cfnmatch(string a, string b) {
 }
 
 /// pathの拡張子部分を返す。'.'は含めない。
-string getExt(string path) {
+string getExt(string path, bool tolower = true) {
 	int i = lastIndexOf(path, '.');
 	if (i == -1) return "";
-	return path[i + 1 .. $];
+	string r = path[i + 1 .. $];
+	return tolower ? cwx.utils.toLower(r) : r;
 }
 
 /// Nameを変数名として使用できる場合はtrue。

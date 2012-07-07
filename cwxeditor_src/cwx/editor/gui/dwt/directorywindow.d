@@ -100,6 +100,7 @@ private:
 		private this () {
 			this.relPath = toRelPath(this.array);
 			this.ext = cwx.utils.getExt(this.basename);
+			this.extl = cwx.utils.getExt(this.basename, false);
 			this.pathId = toPathId(this.relPath);
 			this.dir = isDir(this.array) != 0;
 			if (this.dir) {
@@ -124,6 +125,7 @@ private:
 		string basename;
 		string relPath;
 		string ext;
+		string extl;
 		PathId pathId;
 		bool dir;
 		bool material;
@@ -369,11 +371,11 @@ private:
 						itm.setText(2, "");
 					} else if (p.material) {
 						itm.setText(0, stripExtension(p.basename));
-						itm.setText(1, p.ext);
+						itm.setText(1, p.extl);
 						itm.setText(2, to!(string)(_summ.useCounter.path.get(p.pathId)));
 					} else {
 						itm.setText(0, stripExtension(p.basename));
-						itm.setText(1, p.ext);
+						itm.setText(1, p.extl);
 						itm.setText(2, "");
 					}
 					p.array = nabs(p.array);
