@@ -29,18 +29,18 @@ interface CWXPath {
 }
 
 /// シナリオ内パスを結合する。
-string cpjoin(CWXPath owner, int index) {
-	return cpjoin(owner, "", index);
+string cpjoin(CWXPath owner, int index, bool id) {
+	return cpjoin(owner, "", index, id);
 }
 /// ditto
-string cpjoin(CWXPath owner, string category, int index) {
-	auto ocp = owner.cwxPath(false);
+string cpjoin(CWXPath owner, string category, int index, bool id) {
+	auto ocp = owner.cwxPath(id);
 	string cn = category ~ ":" ~ to!(string)(index);
 	return ocp.length ? ocp ~ "/" ~ cn : cn;
 }
 /// ditto
-string cpjoin(CWXPath owner, string name) {
-	auto ocp = owner.cwxPath(false);
+string cpjoin(CWXPath owner, string name, bool id) {
+	auto ocp = owner.cwxPath(id);
 	return ocp.length ? ocp ~ "/" ~ name : name;
 }
 /// ditto

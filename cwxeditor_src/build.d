@@ -184,7 +184,8 @@ void main(string[] args) {
 	// ビルドフラグ
 	args = args[1 .. $].sort;
 	bool release = args.has("release");
-	bool window = release || args.has("gui");
+	bool console = args.has("cui");
+	bool window = (release && !console) || args.has("gui");
 	bool clean = args.has("clean");
 	bool run = args.has("run");
 

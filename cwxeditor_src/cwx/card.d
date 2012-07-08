@@ -820,7 +820,7 @@ public:
 		if (id) {
 			return _owner ? cpjoinid(_owner, "castcard", this.id) : "";
 		} else {
-			return _owner ? cpjoin(_owner, "castcard", .cCountUntil!("a is b")(_owner.casts, this)) : "";
+			return _owner ? cpjoin(_owner, "castcard", .cCountUntil!("a is b")(_owner.casts, this), id) : "";
 		}
 	}
 	CWXPath findCWXPath(string path) {
@@ -1391,7 +1391,7 @@ public:
 		if (id) {
 			return _owner ? cpjoinid(_owner, "skillcard", this.id) : "";
 		} else {
-			return _owner ? cpjoin(_owner, "skillcard", .cCountUntil!("a is b")(_owner.skills, this)) : "";
+			return _owner ? cpjoin(_owner, "skillcard", .cCountUntil!("a is b")(_owner.skills, this), id) : "";
 		}
 	}
 	@property
@@ -1553,7 +1553,7 @@ public:
 		if (id) {
 			return _owner ? cpjoinid(_owner, "itemcard", this.id) : "";
 		} else {
-			return _owner ? cpjoin(_owner, "itemcard", .cCountUntil!("a is b")(_owner.items, this)) : "";
+			return _owner ? cpjoin(_owner, "itemcard", .cCountUntil!("a is b")(_owner.items, this), id) : "";
 		}
 	}
 	@property
@@ -1661,7 +1661,7 @@ public:
 		if (id) {
 			return _owner ? cpjoinid(_owner, "beastcard", this.id) : "";
 		} else {
-			return _owner ? cpjoin(_owner, "beastcard", .cCountUntil!("a is b")(_owner.beasts, this)) : "";
+			return _owner ? cpjoin(_owner, "beastcard", .cCountUntil!("a is b")(_owner.beasts, this), id) : "";
 		}
 	}
 	@property
@@ -1737,7 +1737,7 @@ public:
 		if (id) {
 			return _owner ? cpjoinid(_owner, "infocard", this.id) : "";
 		} else {
-			return _owner ? cpjoin(_owner, "infocard", .cCountUntil!("a is b")(_owner.infos, this)) : "";
+			return _owner ? cpjoin(_owner, "infocard", .cCountUntil!("a is b")(_owner.infos, this), id) : "";
 		}
 	}
 	CWXPath findCWXPath(string path) {

@@ -516,7 +516,7 @@ public:
 	@property
 	string cwxPath(bool id) {
 		if (_owner) {
-			return cpjoin(_owner, "text");
+			return cpjoin(_owner, "text", id);
 		}
 		return "";
 	}
@@ -716,7 +716,7 @@ public:
 	}
 	@property
 	string cwxPath(bool id) {
-		return _parent ? cpjoin(_parent, "dialog", .cCountUntil!("a is b")(_parent.dialogs, this)) : "";
+		return _parent ? cpjoin(_parent, "dialog", .cCountUntil!("a is b")(_parent.dialogs, this), id) : "";
 	}
 	override CWXPath findCWXPath(string path) {
 		if (cpempty(path)) return this;
@@ -1051,9 +1051,9 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	@property
 	override string cwxPath(bool id) {
 		if (_parent) {
-			return cpjoin(_parent, .cCountUntil!("a is b")(_parent.next, this));
+			return cpjoin(_parent, .cCountUntil!("a is b")(_parent.next, this), id);
 		} else if (_tree) {
-			return cpjoin(_tree, .cCountUntil!("a is b")(_tree.starts, this));
+			return cpjoin(_tree, .cCountUntil!("a is b")(_tree.starts, this), id);
 		}
 		return "";
 	}
@@ -2010,7 +2010,7 @@ public:
 	EventTreeOwner owner() {return _owner;}
 	@property
 	override string cwxPath(bool id) {
-		return _owner ? cpjoin(_owner, "event", .cCountUntil!("a is b")(_owner.trees, this)) : "";
+		return _owner ? cpjoin(_owner, "event", .cCountUntil!("a is b")(_owner.trees, this), id) : "";
 	}
 	CWXPath findCWXPath(string path) {
 		if (cpempty(path)) return this;

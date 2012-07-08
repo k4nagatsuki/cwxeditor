@@ -279,7 +279,7 @@ public:
 	package void owner(BgImageOwner owner) {_owner = owner;}
 	@property
 	override string cwxPath(bool id) {
-		return _owner ? cpjoin(_owner, "background", .cCountUntil!("a is b")(_owner.backs, this)) : "";
+		return _owner ? cpjoin(_owner, "background", .cCountUntil!("a is b")(_owner.backs, this), id) : "";
 	}
 	override CWXPath findCWXPath(string path) {
 		if (cpempty(path)) return this;

@@ -242,7 +242,7 @@ public:
 	}
 	@property
 	override string cwxPath(bool id) {
-		return cpjoin(_parent, "flag", .cCountUntil!("a is b")(_parent.flags, this));
+		return cpjoin(_parent, "flag", .cCountUntil!("a is b")(_parent.flags, this), id);
 	}
 	override CWXPath findCWXPath(string path) {
 		if (cpempty(path)) return this;
@@ -439,7 +439,7 @@ public:
 	}
 	@property
 	override string cwxPath(bool id) {
-		return cpjoin(_parent, "step", .cCountUntil!("a is b")(_parent.steps, this));
+		return cpjoin(_parent, "step", .cCountUntil!("a is b")(_parent.steps, this), id);
 	}
 	override CWXPath findCWXPath(string path) {
 		if (cpempty(path)) return this;
@@ -507,9 +507,9 @@ public:
 	@property
 	override string cwxPath(bool id) {
 		if (_owner) {
-			return cpjoin(_owner, "variable");
+			return cpjoin(_owner, "variable", id);
 		} else if (_parent) {
-			return cpjoin(_parent, "dir", .cCountUntil!("a is b")(_parent.subDirs, this));
+			return cpjoin(_parent, "dir", .cCountUntil!("a is b")(_parent.subDirs, this), id);
 		}
 		return "";
 	}
