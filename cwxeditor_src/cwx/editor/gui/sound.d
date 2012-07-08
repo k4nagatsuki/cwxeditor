@@ -147,8 +147,8 @@ private void initSdl() {
 		static __gshared const SDL = "SDL.dll";
 		static __gshared const MIXER = "SDL_mixer.dll";
 	} else {
-		static __gshared const SDL = "SDL.so";
-		static __gshared const MIXER = "SDL_mixer.so";
+		static __gshared const SDL = "libSDL.so";
+		static __gshared const MIXER = "libSDL_mixer.so";
 	}
 	sdl = ExeModule_Load(SDL);
 	mixer = ExeModule_Load(MIXER);
@@ -198,17 +198,19 @@ shared static ~this () {
 			debug std.stdio.writeln("Release DLLs for sound Start");
 		}
 		if (sdl) {
-			// FIXME: VirtualMIDISynthを使用していると以下の二件の
+			// FIXME: WindowsでVirtualMIDISynthを使用していると以下の二件の
 			//        呼び出しで停止するため、システムに任せる
-/+			try {
-				getSymbol!(Mix_CloseAudio)(mixer, "Mix_CloseAudio")();
-				getSymbol!(SDL_Quit)(sdl, "SDL_Quit")();
-			} catch (Exception e) {
-				debugln(e.msg);
+			version (Windows) {} else {
+				try {
+					getSymbol!(Mix_CloseAudio)(mixer, "Mix_CloseAudio")();
+					getSymbol!(SDL_Quit)(sdl, "SDL_Quit")();
+				} catch (Exception e) {
+					debugln(e.msg);
+				}
+				ExeModule_Release(mixer);
+				ExeModule_Release(sdl);
 			}
-			ExeModule_Release(mixer);
-			ExeModule_Release(sdl);
-+/		}
+		}
         version (Windows) {
 		    if (winmm) {
 			    ExeModule_Release(winmm);
