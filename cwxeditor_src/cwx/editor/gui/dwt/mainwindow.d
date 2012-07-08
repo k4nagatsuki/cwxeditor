@@ -1194,11 +1194,9 @@ private:
 					fd_set fdr;
 					FD_ZERO(&fdr);
 					FD_SET(pipe, &fdr);
-					auto selret = select(pipe + 1, &fdr, null, null, &tout);
-					if (-1 == selret) {
-						if (errno == EINTR) continue;
-						break;
-					}
+					auto selret = select(FD_SETSIZE, &fdr, null, null, &tout);
+					if (-1 == selret && EINTR == errno) continue;
+					if (-1 == selret) break;
 					if (0 == selret) continue;
 					if (!FD_ISSET(pipe, &fdr)) continue;
 					rsock = accept(pipe, cast(sockaddr*) &raddr, &rsocklen);
