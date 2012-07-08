@@ -50,6 +50,7 @@ version (Windows) {
 		BOOL FindCloseChangeNotification(HANDLE);
 	}
 } else version (linux) {
+	import core.stdc.errno;
 	import std.c.linux.linux;
 	private extern (C) {
 		uintptr_t sleep(uintptr_t);
@@ -1265,6 +1266,22 @@ private:
 						byte[inotify_event.sizeof * 1024] buf;
 						int len;
 						synchronized (_refreshThr) {
+							timeval tout;
+							tout.tv_sec = 1;
+							tout.tv_usec = 0;
+							fd_set fdr;
+							FD_ZERO(&fdr);
+							FD_SET(_traceHandle, &fdr);
+							auto selret = .select(_traceHandle + 1, &fdr, null, null, &tout);
+							if (-1 == selret) break;
+							if (0 == selret) {
+								sleep();
+								continue;
+							}
+							if (!FD_ISSET(_traceHandle, &fdr)) {
+								sleep();
+								continue;
+							}
 							len = std.c.linux.linux.read(_traceHandle, buf.ptr, buf.sizeof);
 						}
 						if (-1 == len) break;
