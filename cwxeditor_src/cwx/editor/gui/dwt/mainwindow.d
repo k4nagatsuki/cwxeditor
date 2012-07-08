@@ -75,6 +75,7 @@ version (Windows) {
 		const PIPE_WAIT = 0x0;
 	}
 } else {
+	import core.stdc.errno;
 	version (linux) {
 		import std.c.linux.linux;
 		import std.c.linux.socket;
@@ -1167,13 +1168,18 @@ private:
 					}
 				}
 			} else {
+				unlink(std.string.toStringz(_pipeName));
 				auto pipe = socket(AF_UNIX, SOCK_STREAM, 0);
 				if (pipe == -1) return;
-				scope (exit) close(pipe);
 				sockaddr_un laddr;
 				laddr.sun_family = AF_UNIX;
-				strcpy(&(laddr.sun_path[1]), _pipeName.ptr);
-				if (0 != cbind(pipe, cast(sockaddr*) &laddr, laddr.sizeof)) return;
+				scope (exit) {
+					close(pipe);
+					shutdown(pipe, 2);
+					unlink(std.string.toStringz(_pipeName));
+				}
+				strcpy(laddr.sun_path.ptr, std.string.toStringz(_pipeName));
+				if (0 != cbind(pipe, cast(sockaddr*) &laddr, laddr.sun_family.sizeof + strlen(laddr.sun_path.ptr))) return;
 				if (0 != listen(pipe, 1)) return;
 				char[4096] buf;
 				int len;
@@ -1181,7 +1187,22 @@ private:
 				sockaddr_un raddr;
 				socklen_t rsocklen;
 				bool quit = false;
-				while (!quit && -1 != (rsock = accept(pipe, cast(sockaddr*) &raddr, &rsocklen))) {
+				while (!quit && !_quit) {
+					timeval tout;
+					tout.tv_sec = 1;
+					tout.tv_usec = 0;
+					fd_set fdr;
+					FD_ZERO(&fdr);
+					FD_SET(pipe, &fdr);
+					auto selret = select(pipe + 1, &fdr, null, null, &tout);
+					if (-1 == selret) {
+						if (errno == EINTR) continue;
+						break;
+					}
+					if (0 == selret) continue;
+					if (!FD_ISSET(pipe, &fdr)) continue;
+					rsock = accept(pipe, cast(sockaddr*) &raddr, &rsocklen);
+					if (-1 == rsock) break;
 					scope (exit) close(rsock);
 					while (true) {
 						if (-1 == (len = cread(pipe, buf.ptr, buf.length))) break;
@@ -1192,7 +1213,6 @@ private:
 						if (-1 == cwrite(pipe, send.ptr, send.length)) break;
 					}
 				}
-				close(pipe);
 			}
 			version (Console) {
 				debug writeln("Exit Pipe Thread");
@@ -1201,6 +1221,7 @@ private:
 			debugln(e);
 		}
 	}
+
 	/// このプロセスが待ち受けする際のパイプ名を生成。
 	string createPipeName() {
 		version (Windows) {
@@ -1215,10 +1236,13 @@ private:
 			}
 		} else {
 			for (size_t i = 0; i < PIPE_APP_MAX; i++) {
-				string pipeName = r"/pipe/cwxeditor_" ~ to!(string)(i);
+				string pipeName = r"cwxeditor_" ~ to!(string)(i);
 				auto p = socket(AF_UNIX, SOCK_STREAM, 0);
 				if (-1 == p) continue;
-				scope (exit) close(p);
+				scope (exit) {
+					shutdown(p, 2);
+					close(p);
+				}
 				sockaddr_un raddr;
 				raddr.sun_family = AF_INET;
 				strcpy(&(raddr.sun_path[1]), pipeName.ptr);
@@ -1257,7 +1281,7 @@ private:
 			char[4096] buf;
 			for (size_t i = 0; i < PIPE_APP_MAX; i++) {
 				if (!next()) break;
-				string pipeName = r"/pipe/cwxeditor_" ~ to!(string)(i);
+				string pipeName = r"cwxeditor_" ~ to!(string)(i);
 				if (_pipeName == pipeName) continue;
 				auto p = socket(AF_UNIX, SOCK_STREAM, 0);
 				if (-1 == p) continue;
