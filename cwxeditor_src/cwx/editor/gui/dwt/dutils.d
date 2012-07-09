@@ -1385,7 +1385,7 @@ Composite createDefSoundCombo(Commons comm, Props prop, Summary summ, Composite 
 	combo.setLayoutData(gdc);
 	void refSkin() {
 		string se = combo.getText();
-		setComboItems(combo, prop.msgs.soundNone ~ comm.skin.sounds());
+		setComboItems(combo, prop.msgs.soundNone ~ comm.skin.sounds(prop.var.etc.logicalSort));
 		se = comm.skin.findPath(se, comm.skin.extSound, comm.skin.seDir, null);
 		se = abs2rel(comm.skin.seDir, se);
 		int i = combo.indexOf(se);

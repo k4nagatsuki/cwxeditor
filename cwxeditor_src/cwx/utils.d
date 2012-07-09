@@ -674,7 +674,7 @@ bool iendsWith(in char[] a, in char[] b) {
 /// pathがlistに含まれていればtrueを返す。
 bool containsPath(in string[] list, string path) {
 	foreach (l; list) {
-		if (cfnmatch(path, l)) return true;
+		if (cglobMatch(path, l)) return true;
 	}
 	return false;
 } unittest {
@@ -1509,38 +1509,6 @@ bool hasPath(string sPath, string path) {
 	}
 }
 
-private struct FCPt {
-	string path;
-	hash_t toHash() {
-		hash_t r = 0;
-		foreach (char c; std.path.baseName(path)) {
-			r *= 31;
-			r += c;
-		}
-		return r;
-	}
-	const
-	bool opEquals(ref const(FCPt) s) {
-		auto r = cfnmatch(baseName(s.path), baseName(path));
-		if (r) {
-			r = cfnmatch(dirName(s.path), dirName(path));
-		}
-		return r;
-	}
-	const
-	int opCmp(ref const(FCPt) s) {
-		static if (0 == filenameCharCmp('A', 'a')) {
-			alias std.string.icmp cp;
-		} else {
-			alias std.string.cmp cp;
-		}
-		int r = cp(baseName(s.path), baseName(path));
-		if (r == 0) {
-			r = cp(dirName(s.path), dirName(path));
-		}
-		return r;
-	}
-}
 /// ファイルパスから取得する何らかのデータをキャッシュするための
 /// 一連の変数と関数を定義する。
 template FileCache(T ...) {
@@ -1553,24 +1521,30 @@ template FileCache(T ...) {
 		}
 	}
 	static const CACHE_MAX = 1024;
-	static Cache[FCPt] caches;
+	static Cache[string] caches;
 	static string[] cachePaths;
 	void putCache(string path, T v) {
 		if (!exists(path)) return;
 		path = nabs(path);
+		static if (0 == filenameCharCmp('A', 'a')) {
+			path = cwx.utils.toLower(path);
+		}
 		if (cachePaths.length >= CACHE_MAX) {
-			caches.remove(FCPt(cachePaths[0u]));
+			caches.remove(cachePaths[0u]);
 			cachePaths = cachePaths[1u .. $];
 		}
-		caches[FCPt(path)] = Cache(timeLastModified(path), v);
+		caches[path] = Cache(timeLastModified(path), v);
 		cachePaths ~= path;
 	}
 	Cache* cache(string path) {
 		if (!exists(path)) return null;
 		path = nabs(path);
-		auto cache = FCPt(path) in caches;
-		auto ftm = timeLastModified(path);
-		return cache && cache.ftm == ftm ? cache : null;
+		static if (0 == filenameCharCmp('A', 'a')) {
+			path = cwx.utils.toLower(path);
+		}
+		auto cache = path in caches;
+		if (!cache) return null;
+		return cache.ftm == timeLastModified(path) ? cache : null;
 	}
 }
 
@@ -1775,12 +1749,16 @@ string astripr(string s) {
 }
 
 /// '[' ']'を含むファイル名が存在するため、globMatch()の代替を用意する必要がある。
-bool cfnmatch(string a, string b) {
+bool cglobMatch(string a, string b) {
 	b = b.replace("\\", "\\\\");
 	return Wildcard(b, 0 == filenameCharCmp('A', 'a')).match(a);
 } unittest {
 	debug mixin(UTPerf);
 	assert (cfnmatch(r"C:\path", r"C:\path"));
+}
+/// ファイル名が一致するか。
+bool cfnmatch(string a, string b) {
+	return 0 == filenameCmp(a, b);
 }
 
 /// pathの拡張子部分を返す。'.'は含めない。

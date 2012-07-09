@@ -299,15 +299,15 @@ private:
 		find(sPath);
 		if (!scenarioOnly) {
 			auto skin = _comm.skin;
-			foreach (p; skin.tables()) {
+			foreach (p; skin.tables(_prop.var.etc.logicalSort)) {
 				tbl.add(toPathId(p));
 				paths ~= encodePath(p);
 			}
-			foreach (p; skin.musics()) {
+			foreach (p; skin.musics(_prop.var.etc.logicalSort)) {
 				tbl.add(toPathId(p));
 				paths ~= encodePath(p);
 			}
-			foreach (p; skin.sounds()) {
+			foreach (p; skin.sounds(_prop.var.etc.logicalSort)) {
 				tbl.add(toPathId(p));
 				paths ~= encodePath(p);
 			}

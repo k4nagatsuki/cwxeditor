@@ -506,28 +506,28 @@ private:
 		@property string defDir() {return _comm.skin.tableDir;}
 		bool isTarg(string p) {return _comm.skin.isCardImage(p);}
 		bool hasTarg(string p) {return _comm.skin.hasCardImage(p);}
-		string[] targsImpl(string dir, bool re) {return _comm.skin.cards(dir, re);}
+		string[] targsImpl(string dir, bool re) {return _comm.skin.cards(dir, _prop.var.etc.logicalSort, re);}
 		@property Image image() {return _prop.images.cards;}
 	} else static if (Type == MtType.BG_IMG) {
 		@property string defExt() {return _comm.skin.extImage;}
 		@property string defDir() {return _comm.skin.tableDir;}
 		bool isTarg(string p) {return _comm.skin.isBgImage(p);}
 		bool hasTarg(string p) {return _comm.skin.hasBgImage(p);}
-		string[] targsImpl(string dir, bool re) {return _comm.skin.tables(dir, re);}
+		string[] targsImpl(string dir, bool re) {return _comm.skin.tables(dir, _prop.var.etc.logicalSort, re);}
 		@property Image image() {return _prop.images.backs;}
 	} else static if (Type == MtType.BGM) {
 		@property string defExt() {return _comm.skin.extBgm;}
 		@property string defDir() {return _comm.skin.bgmDir;}
 		bool isTarg(string p) {return _comm.skin.isBGM(p);}
 		bool hasTarg(string p) {return _comm.skin.hasBGM(p);}
-		string[] targsImpl(string dir, bool re) {return _comm.skin.musics(dir, re);}
+		string[] targsImpl(string dir, bool re) {return _comm.skin.musics(dir, _prop.var.etc.logicalSort, re);}
 		@property Image image() {return _prop.images.bgm;}
 	} else static if (Type == MtType.SE) {
 		@property string defExt() {return _comm.skin.extSound;}
 		@property string defDir() {return _comm.skin.seDir;}
 		bool isTarg(string p) {return _comm.skin.isSE(p);}
 		bool hasTarg(string p) {return _comm.skin.hasSE(p);}
-		string[] targsImpl(string dir, bool re) {return _comm.skin.sounds(dir, re);}
+		string[] targsImpl(string dir, bool re) {return _comm.skin.sounds(dir, _prop.var.etc.logicalSort, re);}
 		@property Image image() {return _prop.images.se;}
 	} else static assert (0);
 
@@ -701,13 +701,7 @@ private:
 		return r;
 	}
 	void __refreshList(string path, bool forceRefresh) {
-		string[] s = targs(path, forceRefresh);
-		if (_prop.var.etc.logicalSort) {
-			s = sort!(fnncmp)(s);
-		} else {
-			s = sort!(fncmp)(s);
-		}
-		__refreshListImpl(s);
+		__refreshListImpl(targs(path, forceRefresh));
 		_allList = false;
 	}
 	void __refreshList(string[] paths, bool forceRefresh) {
@@ -722,11 +716,6 @@ private:
 				parent = dirSeparator.idup ~ parent;
 			}
 			string[] s = targs(path, forceRefresh);
-			if (_prop.var.etc.logicalSort) {
-				s = sort!(fnncmp)(s);
-			} else {
-				s = sort!(fncmp)(s);
-			}
 			foreach (ref f; s) {
 				f = encodePath(std.path.buildPath(parent, f));
 			}

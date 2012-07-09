@@ -427,6 +427,25 @@ private:
 	}
 	void openScenario(Summary summ) {
 		assert (summ);
+		auto skin = findSkin(_comm, _prop, summ);
+		if (_prop.var.etc.doubleIO) {
+			auto listup = new core.thread.Thread({
+				// 素材リストのキャッシュを生成しておく
+				try {
+					foreach (path; dirEntries(summ.scenarioPath, SpanMode.depth)) {
+						if (isDir(path)) {
+							skin.cards(path, _prop.var.etc.logicalSort, true);
+							skin.tables(path, _prop.var.etc.logicalSort, true);
+							skin.musics(path, _prop.var.etc.logicalSort, true);
+							skin.sounds(path, _prop.var.etc.logicalSort, true);
+						}
+					}
+				} catch (Exception e) {
+					debugln(e);
+				}
+			});
+			listup.start();
+		}
 		_lastBackup = Clock.currTime();
 		_dirWin.stopTrace();
 		scope (exit) _dirWin.resumeTrace();
@@ -448,7 +467,7 @@ private:
 			summ.type = _prop.var.etc.defaultSkin;
 		}
 		summ.resetChanged();
-		_comm.skin = findSkin(_comm, _prop, summ);
+		_comm.skin = skin;
 		_comm.closeAll();
 		if (_dataWin) {
 			_dataWin.load(summ);

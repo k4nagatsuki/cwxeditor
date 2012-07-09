@@ -698,53 +698,63 @@ class Skin {
 	bool hasSE(string dir) {return has!(isSE)(dir);}
 
 	const
-	private string[] list(alias isT)(string dir, bool forceRefresh) {
-		mixin FileCache!(string[]);
-		if (!forceRefresh) {
-			auto ca = cache(dir);
-			if (ca) {
-				return ca.value;
+	private string[] list(alias isT)(string dir, bool logicalSort, bool forceRefresh) {
+		synchronized {
+			static struct Files {
+				bool logicalSort;
+				string[] files;
 			}
-		}
-		string[] r;
-		foreach (fp; clistdir(dir)) {
-			fp = std.path.buildPath(dir, fp);
-			if (isT(fp)) {
-				r ~= baseName(fp);
+			mixin FileCache!(Files);
+			if (!forceRefresh) {
+				auto ca = cache(dir);
+				if (ca && ca.value.logicalSort == logicalSort) {
+					return ca.value.files;
+				}
 			}
+			string[] r;
+			foreach (fp; clistdir(dir)) {
+				fp = std.path.buildPath(dir, fp);
+				if (isT(fp)) {
+					r ~= baseName(fp);
+				}
+			}
+			if (logicalSort) {
+				r = sort!(fnncmp)(r);
+			} else {
+				r = sort!(fncmp)(r);
+			}
+			putCache(dir, Files(logicalSort, r));
+			return r;
 		}
-		r = r.sort;
-		putCache(dir, r);
-		return r;
 	}
 
 	/// dirに含まれるカード画像の一覧。
 	const
-	string[] cards(string dir, bool forceRefresh) {return list!(isCardImage)(dir, forceRefresh);}
+	string[] cards(string dir, bool logicalSort, bool forceRefresh) {return list!(isCardImage)(dir, logicalSort, forceRefresh);}
 
 	/// 標準の背景画像。
 	const
-	string[] tables(bool forceRefresh = false) {return list!(isBgImage)(tableDir, forceRefresh);}
+	string[] tables(bool logicalSort, bool forceRefresh = false) {return list!(isBgImage)(tableDir, logicalSort, forceRefresh);}
 
 	/// dirに含まれる背景画像の一覧。
 	const
-	string[] tables(string dir, bool forceRefresh) {return list!(isBgImage)(dir, forceRefresh);}
+	string[] tables(string dir, bool logicalSort, bool forceRefresh) {return list!(isBgImage)(dir, logicalSort, forceRefresh);}
 
 	/// 標準のBGM。
 	const
-	string[] musics(bool forceRefresh = false) {return list!(isBGM)(bgmDir, forceRefresh);}
+	string[] musics(bool logicalSort, bool forceRefresh = false) {return list!(isBGM)(bgmDir, logicalSort, forceRefresh);}
 
 	/// dirに含まれるBGMの一覧。
 	const
-	string[] musics(string dir, bool forceRefresh) {return list!(isBGM)(dir, forceRefresh);}
+	string[] musics(string dir, bool logicalSort, bool forceRefresh) {return list!(isBGM)(dir, logicalSort, forceRefresh);}
 
 	/// 標準のSE。
 	const
-	string[] sounds(bool forceRefresh = false) {return list!(isSE)(seDir, forceRefresh);}
+	string[] sounds(bool logicalSort, bool forceRefresh = false) {return list!(isSE)(seDir, logicalSort, forceRefresh);}
 
 	/// dirに含まれるSEの一覧。
 	const
-	string[] sounds(string dir, bool forceRefresh) {return list!(isSE)(dir, forceRefresh);}
+	string[] sounds(string dir, bool logicalSort, bool forceRefresh) {return list!(isSE)(dir, logicalSort, forceRefresh);}
 
 	/// 標準素材ディレクトリのルート。
 	@property

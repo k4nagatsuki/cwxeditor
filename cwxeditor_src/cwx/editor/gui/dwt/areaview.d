@@ -2676,7 +2676,7 @@ public:
 			bool def;
 			string p = _comm.skin.findImagePathF(b.path, _summ ? _summ.scenarioPath : null, def);
 			p = nabs(p);
-			foreach (t; _comm.skin.tables()) {
+			foreach (t; _comm.skin.tables(_prop.var.etc.logicalSort)) {
 				strs ~= t;
 				if (cfnmatch(p, nabs(std.path.buildPath(_comm.skin.tableDir, t)))) {
 					str = t;
