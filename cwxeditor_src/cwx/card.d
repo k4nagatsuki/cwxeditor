@@ -614,6 +614,7 @@ public:
 				sNode.onTag["AntiMagic"] = (ref XNode n) {
 					r.antiMagicRound =  n.attr!(int)("duration", true);
 				};
+				sNode.parse();
 			};
 			pNode.onTag["Enhance"] = (ref XNode n) {
 				void setEnh(ref XNode n, Enhance enh) {
