@@ -78,8 +78,10 @@ class ImageListWindow(MtType Type) {
 	}
 
 	void images(string dir, string[] path) {
-		_shl.setRedraw(false);
-		scope (exit) _shl.setRedraw(true);
+		if (_shl.isVisible()) _shl.setRedraw(false);
+		scope (exit) {
+			if (_shl.isVisible()) _shl.setRedraw(true);
+		}
 
 		_shl.setText(dir);
 		_list.removeAll();

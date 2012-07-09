@@ -769,8 +769,10 @@ private:
 
 	void refShowMainToolBar() {
 		if (!_comm.singleWindowMode(_prop)) return;
-		_win.setRedraw(false);
-		scope (exit) _win.setRedraw(true);
+		if (_win.isVisible()) _win.setRedraw(false);
+		scope (exit) {
+			if (_win.isVisible()) _win.setRedraw(true);
+		}
 		auto gd = new GridData(GridData.FILL_HORIZONTAL);
 		if (!_prop.var.etc.showMainToolBar) {
 			gd.heightHint = 0;
@@ -2776,8 +2778,10 @@ public:
 
 	bool openCWXPath(string path, bool shellActivate) {
 		if (!summary) return false;
-		_win.setRedraw(false);
-		scope (exit) _win.setRedraw(true);
+		if (_win.isVisible()) _win.setRedraw(false);
+		scope (exit) {
+			if (_win.isVisible()) _win.setRedraw(true);
+		}
 		bool open() {
 			path = cwx.utils.toLower(path);
 			if (cpempty(path)) {

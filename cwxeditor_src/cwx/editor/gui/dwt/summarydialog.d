@@ -107,8 +107,10 @@ private:
 		showImagePreview(_prop.var.etc.showSummaryPreview, false);
 	}
 	void showImagePreview(bool visible, bool regWin = true) {
-		getShell().setRedraw(false);
-		scope (exit) getShell().setRedraw(true);
+		if (getShell().isVisible()) getShell().setRedraw(false);
+		scope (exit) {
+			if (getShell().isVisible()) getShell().setRedraw(true);
+		}
 
 		int w;
 		if (visible) {

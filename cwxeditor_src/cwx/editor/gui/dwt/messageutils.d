@@ -82,8 +82,10 @@ class AbstractMessageDialog : EventDialog {
 		int h = 0;
 		rightGroupSize(w, h);
 
-		getShell().setRedraw(false);
-		scope (exit) getShell().setRedraw(true);
+		if (getShell().isVisible()) getShell().setRedraw(false);
+		scope (exit) {
+			if (getShell().isVisible()) getShell().setRedraw(true);
+		}
 		if (regWin && oVisible != visible) {
 			auto ws = getShell().getSize();
 			if (visible) {

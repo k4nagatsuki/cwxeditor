@@ -103,8 +103,10 @@ abstract class AbsDialog {
 	void rightGroupSize(int width, int height) {
 		if (!_rightGroup) throw new Exception("rightGroup is null", __FILE__, __LINE__);
 
-		getShell().setRedraw(false);
-		scope (exit) getShell().setRedraw(true);
+		if (getShell().isVisible()) getShell().setRedraw(false);
+		scope (exit) {
+			if (getShell().isVisible()) getShell().setRedraw(true);
+		}
 		auto rgd = cast(GridData) _rightGroup.getLayoutData();
 		rgd.widthHint = width;
 		rgd.heightHint = height;

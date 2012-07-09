@@ -1437,6 +1437,9 @@ private:
 				_autoHideTools.getDisplay().removeFilter(SWT.MouseEnter, _mTrack);
 				_autoHideTools.getDisplay().removeFilter(SWT.MouseExit, _mTrack);
 			}
+			if (_autoHideTools) {
+				_autoHideTools.dispose();
+			}
 			foreach (dlg; _editDlgs.values) {
 				dlg.forceCancel();
 			}
