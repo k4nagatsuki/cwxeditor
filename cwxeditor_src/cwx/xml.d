@@ -70,7 +70,7 @@ struct XNode {
 	/// 属性nameの値を返す。
 	/// nothingIsErrorにtrueを指定すると、nameが存在しなかった際に例外を投げる。
 	const
-	T attr(T = string)(string name, bool nothingIsError, T defaultValue = T.init) {
+	T attr(T = string)(string name, bool nothingIsError, lazy T defaultValue = T.init) {
 		auto p = name in _el.tag.attr;
 		if (nothingIsError && !p) throw new Exception(name ~ " not found");
 		if (!p) return defaultValue;

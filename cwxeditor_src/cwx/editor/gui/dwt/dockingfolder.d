@@ -1096,6 +1096,7 @@ class DockingFolder(TabF, int Style) {
 		string name;
 	}
 	private static struct Sashf {
+		string key;
 		bool vertical;
 		int lWeight;
 		int rWeight;
@@ -1120,6 +1121,7 @@ class DockingFolder(TabF, int Style) {
 		if (sash) {
 			sa = new Sashf;
 			ta = null;
+			sa.key = _sashs[sash];
 			sa.vertical = (sash.getStyle() & SWT.VERTICAL) != 0;
 			auto weights = sash.getWeights();
 			sa.lWeight = weights[0];
@@ -1203,6 +1205,7 @@ class DockingFolder(TabF, int Style) {
 	}
 	private XNode toNodeImpl(ref XNode parent, Sashf* sa, string[] exclude) {
 		auto r = parent.newElement("sash");
+		r.newAttr("key", sa.key);
 		r.newAttr("type", sa.vertical ? VERTICAL : HORIZONTAL);
 		r.newAttr("lWeight", sa.lWeight);
 		r.newAttr("rWeight", sa.rWeight);
@@ -1249,7 +1252,7 @@ class DockingFolder(TabF, int Style) {
 				/// FIXME: たまに type == VERTICAL の所でアクセス違反が起きる？
 				dStr ~= " - " ~ .text(__LINE__);
 				auto sash = new SplitPane(par, type == VERTICAL ? SWT.VERTICAL : SWT.HORIZONTAL);
-				r.putSashTable(sash, r.newSashKey);
+				r.putSashTable(sash, node.attr("key", false, r.newSashKey));
 				dStr ~= " - " ~ .text(__LINE__);
 				Proc proc;
 				proc.r = r;
