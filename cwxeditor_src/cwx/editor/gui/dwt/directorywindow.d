@@ -10,6 +10,7 @@ import cwx.cab;
 import cwx.structs;
 import cwx.msgs;
 import cwx.menu;
+import cwx.path;
 
 import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.commons;
@@ -2128,11 +2129,18 @@ public:
 	}
 
 	override bool openCWXPath(string path, bool shellActivate) {
-		return false;
+		auto cate = cpcategory(path);
+		switch (cate) {
+		case "file":
+			.forceFocus(_files, shellActivate);
+			return true;
+		default:
+			return false;
+		}
 	}
 	@property
 	override string[] openedCWXPath() {
-		return [];
+		return ["file"];
 	}
 }
 

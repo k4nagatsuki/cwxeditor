@@ -2846,6 +2846,10 @@ public:
 						return false;
 					}
 				}
+			} case "file": {
+				if (_dirWin) {
+					return _dirWin.openCWXPath(path, shellActivate);
+				}
 			} default: return false;
 			}
 		}
