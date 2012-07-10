@@ -1646,6 +1646,21 @@ public:
 					}
 				});
 				dStr ~= " - " ~ .text(__LINE__);
+				bool isSystemPaneName(string key) {
+					return std.string.startsWith(key, "data")
+						|| std.string.startsWith(key, "side");
+				}
+				bool isSystemCtrlName(string key) {
+					return std.string.startsWith(key, "data")
+						|| std.string.startsWith(key, "flag")
+						|| std.string.startsWith(key, "card")
+						|| std.string.startsWith(key, "castCard")
+						|| std.string.startsWith(key, "skillCard")
+						|| std.string.startsWith(key, "itemCard")
+						|| std.string.startsWith(key, "beastCard")
+						|| std.string.startsWith(key, "infoCard")
+						|| std.string.startsWith(key, "file");
+				}
 				void initDock() {
 					dStr ~= " - " ~ .text(__LINE__);
 					if (!_dock.findPane("work").length) {
@@ -1657,6 +1672,8 @@ public:
 					_dock.canVanish = &dockCanVanish;
 					_dock.selectEvent ~= &dockSelect;
 					_dock.closeCtrlEvent ~= &dockCloseCtrl;
+					_dock.memoryPane = &isSystemPaneName;
+					_dock.memoryControl = &isSystemCtrlName;
 					_dock.addCreatePaneEvent(&createPaneEvent);
 					_dock.area.setLayoutData(new GridData(GridData.FILL_BOTH));
 					dStr ~= " - " ~ .text(__LINE__);

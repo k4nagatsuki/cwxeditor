@@ -15,6 +15,7 @@ import std.algorithm;
 import std.file;
 import std.string;
 import std.conv;
+import std.ascii;
 
 debug alias DockingFolder!(TabFolder, SWT.NONE) DockingFolderT;
 debug alias DockingFolder!(CTabFolder, SWT.BORDER | SWT.FLAT) DockingFolderCT;
@@ -27,11 +28,45 @@ enum Dir {
 	S, /// 南。
 	W /// 西。
 }
+private string dirToString(Dir dir) {
+	final switch (dir) {
+	case Dir.N: return "north";
+	case Dir.E: return "east";
+	case Dir.S: return "south";
+	case Dir.W: return "west";
+	}
+}
+private Dir stringToDir(string s) {
+	switch (cwx.utils.toLower(s)) {
+	case "north": return Dir.N;
+	case "east": return Dir.E;
+	case "south": return Dir.S;
+	case "west": return Dir.W;
+	default: return Dir.N;
+	}
+}
 
 /// Controlを新規追加した際、新たに生成されるタブの位置。
 enum NewCtrlLocation {
 	Right, /// 現在選択中のタブの一つ右。
 	Last /// タブリストの末尾。
+}
+
+/// 閉じたコントロールの位置情報の記録。
+private struct CtrlMemory {
+	string pane;
+	string pairPane;
+	Dir dir;
+	int lWeight = 1;
+	int rWeight = 1;
+}
+
+/// 閉じたペインの位置情報の記録。
+private struct PaneMemory {
+	string pairPane;
+	Dir dir;
+	int lWeight = 1;
+	int rWeight = 1;
 }
 
 class DockingFolder(TabF, int Style) {
@@ -50,6 +85,10 @@ class DockingFolder(TabF, int Style) {
 	private string[TabF] _tabfs;
 	private TabF[string] _tKeys;
 	private TabF[] _tabfList;
+	private string[SplitPane] _sashs;
+	private SplitPane[string] _sKeys;
+	private CtrlMemory[string] _cMemories;
+	private PaneMemory[string] _pMemories;
 
 	private Canvas _canvas;
 
@@ -92,13 +131,28 @@ class DockingFolder(TabF, int Style) {
 	this (Composite parent, int style, string firstPaneKey = "") {
 		this (parent, style, true, firstPaneKey);
 	}
+
+	/// keyから末尾の数値部分を取り除く。
+	private static string prefix(string key) {
+		while (key.length && (.isDigit(key[$ - 1]) || '_' == key[$ - 1])) {
+			auto u = '_' == key[$ - 1];
+			key = key[0 .. $ - 1];
+			if (u) break;
+		}
+		return key;
+	} unittest {
+		assert (prefix("abc_123") == "abc");
+		assert (prefix("ab_c_123") == "ab_c");
+		assert (prefix("abc") == "abc");
+	}
+
 	/// 新しくペインのkeyを生成して返す。
 	string newPaneKey(string prefix) {
 		int i = 0;
 		string key = prefix;
-		while (key in _tKeys) {
+		while (key in _tKeys && key in _sKeys) {
 			i++;
-			key = prefix ~ to!(string)(i);
+			key = .format("%s_%s", prefix, i);
 		}
 		return key;
 	}
@@ -108,7 +162,7 @@ class DockingFolder(TabF, int Style) {
 		string key = prefix;
 		while (key in _keys) {
 			i++;
-			key = prefix ~ to!(string)(i);
+			key = .format("%s_%s", prefix, i);
 		}
 		return key;
 	}
@@ -122,12 +176,11 @@ class DockingFolder(TabF, int Style) {
 	/// ""を返すと自動的に生成される。
 	string delegate (string ctrlKey, string basePane, Dir dir) newPaneName = null;
 
-	@property
-	private string newTabfKey() {
+	private string newTabfKey(string prefix = "t") {
 		string key;
 		int i = _tabfs.length;
 		do {
-			key = format("t%d", i);
+			key = .format("%s_%d", prefix, i);
 			i++;
 		} while (key in _tKeys);
 		return key;
@@ -277,8 +330,12 @@ class DockingFolder(TabF, int Style) {
 	}
 	/// keyのペインが空になった際に呼び出される。
 	/// falseを返す事で、ペインの消去を回避する事ができる。
-	/// ditto
 	bool delegate(string key) canVanish = null;
+
+	/// 位置を保存するべきコントロールまたはペインであればtrueを返す。
+	bool delegate(string key) memoryControl = null;
+	/// ditto
+	bool delegate(string key) memoryPane = null;
 
 	/// ペインbaseに対して、dir方向にペインを追加する。
 	/// Param:
@@ -291,15 +348,39 @@ class DockingFolder(TabF, int Style) {
 	}
 	/// ditto
 	Composite addPane(Composite base, Dir dir, int lWeight = 1, int rWeight = 1, string key = "") {
-		auto tabf = cast(TabF) base;
-		if (!tabf && !(tabf in _tabfs)) throw new Exception("invalid base");
-		if (key in _tKeys) throw new Exception("invalid key");
+		_comp.setRedraw(false);
+		scope (exit) _comp.setRedraw(true);
+		if (key in _tKeys || key in _sKeys) throw new Exception("invalid key");
 		int style = dir == Dir.N || dir == Dir.S ? SWT.VERTICAL : SWT.HORIZONTAL;
 		bool before = dir == Dir.N || dir == Dir.W;
-		if (!key.length) key = newTabfKey;
-		auto r = newSash(tabf, style, before, lWeight, rWeight, key);
+		if (!key.length) key = newTabfKey("t");
+		auto r = newSash(base, style, before, lWeight, rWeight, key);
 		_area.layout(true);
 		return r;
+	}
+	/// keyを接頭辞に持つペインが存在すればそれを返す。
+	/// keyを接頭辞に持つペインが以前閉じられたものであれば元々あった場所に追加する。
+	/// そうでない場合はbaseの指定された方向に追加して返す。
+	Composite addPaneFromMemory(string base, Dir dir, int lWeight, int rWeight, string key) {
+		auto s = findPane2(key);
+		if (s) return s;
+
+		auto preKey = prefix(key);
+		auto memory = preKey in _pMemories;
+		scope (exit) {
+			if (memory) _pMemories.remove(preKey);
+		}
+		auto tPane = base;
+		if (memory) {
+			dir = memory.dir;
+			base = memory.pairPane;
+			lWeight = memory.lWeight;
+			rWeight = memory.rWeight;
+		}
+		auto pair = findPane2(base);
+		if (!pair) pair = this.pane(findPane(tPane)[0]);
+
+		return addPane(pair, dir, lWeight, rWeight, newPaneKey(key));
 	}
 	/// Controlを追加する。
 	/// ctrlの親は必ずこのインスタンスに含まれるペインでなくてはならない。
@@ -334,6 +415,47 @@ class DockingFolder(TabF, int Style) {
 			}
 		}
 	}
+	/// 指定されたControlが以前配置された事があればその場所に追加する。
+	/// 追加された事がなければまずpaneを探して追加しようと試み、
+	/// paneが無ければpairPaneの指定された方向に新規ペインを作成して追加する。
+	void addFromMemory(Control delegate(Composite) createControl, string tabText, Image tabImage, string key, string pane, string pairPane, Dir dir, bool select = false, NewCtrlLocation loc = NewCtrlLocation.Last) {
+		if (!key.length || (key in _keys)) throw new Exception("invalid key: " ~ key);
+		Composite p;
+		auto memory = key in _cMemories;
+		scope (exit) {
+			if (memory) _cMemories.remove(key);
+		}
+		auto tPane = pairPane;
+		if (memory) {
+			pane = memory.pane;
+			dir = memory.dir;
+			pairPane = memory.pairPane;
+		}
+
+		p = findPane2(pane);
+		if (!p) {
+			int l, r;
+			auto pair = findPane2(pairPane);
+			if (!pair) pair = this.pane(findPane(tPane)[0]);
+			if (memory) {
+				l = memory.lWeight;
+				r = memory.rWeight;
+			} else {
+				if (dir == Dir.N || dir == Dir.W) {
+					l = 1;
+					r = dir == Dir.N ? 3 : 4;
+				} else {
+					l = dir == Dir.S ? 3 : 4;
+					r = 1;
+				}
+			}
+			p = addPane(pair, dir, l, r, newPaneKey(pane));
+		}
+		auto c = createControl(p);
+		if (!c) throw new Exception("No control: " ~ key);
+		this.add(c, tabText, tabImage, key, select, loc);
+	}
+
 	/// keyに該当するペインにmenuを登録する。
 	void setMenu(string key, Menu menu) {
 		auto p = pane(key);
@@ -349,6 +471,15 @@ class DockingFolder(TabF, int Style) {
 		}
 		return r;
 	}
+	/// prefixから始まるペイン、または一致するsashを返す。
+	private Composite findPane2(string prefix) {
+		auto p = prefix in _sKeys;
+		if (p) return *p;
+		auto p2 = prefix in _tKeys;
+		if (p2) return *p2;
+		auto panes = findPane(prefix);
+		return panes.length ? pane(panes[0]) : null;
+	}
 	/// prefixから始まるControlのkeyを全て返す。
 	string[] findCtrl(string prefix) {
 		string[] r;
@@ -361,6 +492,8 @@ class DockingFolder(TabF, int Style) {
 	}
 	/// Controlを閉じる。閉じる事が可能な該当するControlが無かった場合はfalseを返す。
 	bool close(string key) {
+		_comp.setRedraw(false);
+		scope (exit) _comp.setRedraw(true);
 		auto t = tab(key);
 		if (t) {
 			close(t);
@@ -377,6 +510,8 @@ class DockingFolder(TabF, int Style) {
 	}
 	/// keyに該当しないControlを閉じる。
 	void closeEtc(string key) {
+		_comp.setRedraw(false);
+		scope (exit) _comp.setRedraw(true);
 		auto tab = this.tab(key);
 		if (!tab) return;
 		foreach (i, t; tab.getParent().getItems()) {
@@ -396,6 +531,8 @@ class DockingFolder(TabF, int Style) {
 	}
 	/// keyの左側のControlを閉じる。
 	void closeLeft(string key) {
+		_comp.setRedraw(false);
+		scope (exit) _comp.setRedraw(true);
 		auto tab = this.tab(key);
 		if (!tab) return;
 		auto i = tab.getParent().indexOf(tab);
@@ -415,6 +552,8 @@ class DockingFolder(TabF, int Style) {
 	}
 	/// keyの右側のControlを閉じる。
 	void closeRight(string key) {
+		_comp.setRedraw(false);
+		scope (exit) _comp.setRedraw(true);
 		auto tab = this.tab(key);
 		if (!tab) return;
 		auto i = tab.getParent().indexOf(tab);
@@ -426,6 +565,8 @@ class DockingFolder(TabF, int Style) {
 	}
 	/// keyを含むペインの全てのControlを閉じる。
 	void closeAll(string key) {
+		_comp.setRedraw(false);
+		scope (exit) _comp.setRedraw(true);
 		auto tab = this.tab(key);
 		if (!tab) return;
 		foreach (t; tab.getParent().getItems()) {
@@ -452,7 +593,7 @@ class DockingFolder(TabF, int Style) {
 	bool delegate(string)[] closeCtrlEvent;
 
 	private TabF newTabf(Composite parent, string key) {
-		if (!key.length) key = newTabfKey;
+		if (!key.length) key = newTabfKey("t");
 		auto tabf = new TabF(parent, Style | SWT.NO_MERGE_PAINTS);
 		_tKeys[key] = tabf;
 		_tabfs[tabf] = key;
@@ -480,7 +621,15 @@ class DockingFolder(TabF, int Style) {
 	private DPos _dropPos = DPos.NONE;
 	private DPos _drawPos = DPos.NONE;
 	private TabF _drawTabf = null;
-	private void removeTabf(TabF tabf) {
+	private void removeTabf(TabF tabf, bool memory) {
+		if (memory && memoryPane && memoryPane(_tabfs[tabf])) {
+			PaneMemory m;
+			m.pairPane = pairKey(tabf, m.dir, m.lWeight, m.rWeight);
+			if ("" != m.pairPane) {
+				_pMemories[prefix(_tabfs[tabf])] = m;
+			}
+		}
+
 		tabf.dispose();
 		_tabfList = cwx.utils.remove!("a is b")(_tabfList, tabf);
 		auto key = _tabfs[tabf];
@@ -490,25 +639,84 @@ class DockingFolder(TabF, int Style) {
 	}
 	private class CTFL :  CTabFolderListener {
 		void itemClosed(CTabFolderEvent e) {
+			_comp.setRedraw(false);
+			scope (exit) _comp.setRedraw(true);
 			close(cast(Tab) e.item);
 		}
 	}
+	/// tabfが分割領域の一部であれば分割相手のキーとtabfの方向を返す。
+	/// そうでなければ""を返す。
+	private string pairKey(TabF tabf, out Dir dir, out int lWeight, out int rWeight) {
+		auto comp = cast(SplitPane) tabf.getParent();
+		if (comp) {
+			auto ws = comp.getWeights();
+			lWeight = ws[0];
+			rWeight = ws[1];
+			auto cs = comp.getChildren();
+			if (comp.getStyle() & SWT.VERTICAL) {
+				dir = cs[0] is tabf ? Dir.N : Dir.S;
+			} else {
+				dir = cs[0] is tabf ? Dir.W : Dir.E;
+			}
+			Control pair;
+			if (cs[0] is tabf) {
+				pair = cs[1];
+			} else {
+				pair = cs[0];
+			}
+			return cast(TabF) pair ? _tabfs[cast(TabF) pair] : _sashs[cast(SplitPane) pair];
+		}
+		return "";
+	}
 	private void close(Tab tab) {
-		auto ctrlKey = keyFromCtrl(tab.getControl());
+		auto ctrl = tab.getControl();
+		auto ctrlKey = keyFromCtrl(ctrl);
 		foreach (evt; closeCtrlEvent) {
 			if (!evt(ctrlKey)) return;
 		}
 		auto tabf = tab.getParent();
+		auto key = _tabfs[tabf];
+		auto van = vanish(key);
+
+		// 記録
+		if (van && memoryControl && memoryControl(ctrlKey)) {
+			CtrlMemory memory;
+			memory.pairPane = pairKey(tabf, memory.dir, memory.lWeight, memory.rWeight);
+			if ("" != memory.pairPane) {
+				memory.pane = _tabfs[tabf];
+				_cMemories[ctrlKey] = memory;
+			}
+		}
+
+		// 削除
 		_ctrls.remove(tab.getControl());
 		_keys.remove(ctrlKey);
 		tab.getControl().dispose();
 		if (tabf.getItemCount() == 1 && _area.getChildren()[0] !is tabf) {
-			auto key = _tabfs[tabf];
-			if (vanish(key)) {
-				removeTabf(tabf);
+			if (van) {
+				removeTabf(tabf, true);
 				_area.layout(true);
 			}
 		}
+	}
+	@property
+	private string newSashKey() {
+		int i = 0;
+		while (true) {
+			string sKey = .format("sash_%d", i);
+			if (sKey !in _sKeys && sKey !in _tKeys) return sKey;
+			i++;
+		}
+	}
+	private void putSashTable(SplitPane sash, string sKey) {
+		_sKeys[sKey] = sash;
+		_sashs[sash] = sKey;
+		sash.addDisposeListener(new class DisposeListener {
+			override void widgetDisposed(DisposeEvent e) {
+				_sKeys.remove(sKey);
+				_sashs.remove(sash);
+			}
+		});
 	}
 	/// Controlツリーの再構築。
 	private void reconstruct() {
@@ -533,11 +741,13 @@ class DockingFolder(TabF, int Style) {
 				auto aft = afters(comp);
 				auto weights = comp.getWeights();
 				auto sash = new SplitPane(comp.getParent(), comp.getStyle());
+				auto key = _sashs[comp];
 				addAfters(aft);
 				foreach (c; children) {
 					c.setParent(sash);
 				}
 				comp.dispose();
+				putSashTable(sash, key);
 				foreach (child; children) tree(child);
 				sash.setWeights(weights);
 			} else {
@@ -608,7 +818,7 @@ class DockingFolder(TabF, int Style) {
 				_dragItm.dispose();
 				_dragItm = null;
 				if (tabf.getItemCount() == 0 && vanish(_tabfs[tabf])) {
-					removeTabf(tabf);
+					removeTabf(tabf, false);
 				}
 				_area.layout(true);
 			}
@@ -761,7 +971,6 @@ class DockingFolder(TabF, int Style) {
 				if (dropTarg is _dragItm.getParent() && dropTarg.getItemCount() == 1) {
 					return DND.DROP_NONE;
 				}
-				string newKey = "";
 				if (newPaneName) {
 					auto ctrlKey = _ctrls[_dragItm.getControl()];
 					Dir dir;
@@ -772,9 +981,8 @@ class DockingFolder(TabF, int Style) {
 					case DPos.W: dir = Dir.W; break;
 					default: assert (0);
 					}
-					newKey = newPaneName(ctrlKey, key(dropTarg), dir);
 				}
-				if (!newKey.length) newKey = newTabfKey;
+				string newKey = newTabfKey(prefix(key(_dragItm.getParent())));
 				auto tabf = newSash(dropTarg, style, before, 1, 1, newKey);
 				newTab(tabf, -1);
 				if (tabf.getShell() is tabf.getDisplay().getActiveShell()) {
@@ -856,7 +1064,7 @@ class DockingFolder(TabF, int Style) {
 			}
 		}
 	}
-	private TabF newSash(TabF targ, int style, bool before, int lWeight, int rWeight, string key) {
+	private TabF newSash(Composite targ, int style, bool before, int lWeight, int rWeight, string key) {
 		auto parent = targ.getParent();
 		int[] weights;
 		auto sashf = cast(SplitPane) parent;
@@ -864,6 +1072,7 @@ class DockingFolder(TabF, int Style) {
 		scope (exit) if(sashf) sashf.setWeights(weights);
 		auto aft = afters(targ);
 		auto nSash = new SplitPane(parent, style);
+		putSashTable(nSash, newSashKey);
 		addAfters(aft);
 		TabF r;
 		if (before) {
@@ -962,6 +1171,29 @@ class DockingFolder(TabF, int Style) {
 		if (!_area.isDisposed()) {
 			saveTree();
 		}
+
+		if (_cMemories.length) {
+			auto ctrlM = r.newElement("controlMemories");
+			foreach (key, memory; _cMemories) {
+				auto e = ctrlM.newElement("controlMemory", key);
+				e.newAttr("pane", memory.pane);
+				e.newAttr("pairPane", memory.pairPane);
+				e.newAttr("dir", dirToString(memory.dir));
+				e.newAttr("lWeight", memory.lWeight);
+				e.newAttr("rWeight", memory.rWeight);
+			}
+		}
+		if (_pMemories.length) {
+			auto paneM = r.newElement("paneMemories");
+			foreach (key, memory; _pMemories) {
+				auto e = paneM.newElement("paneMemory", key);
+				e.newAttr("pairPane", memory.pairPane);
+				e.newAttr("dir", dirToString(memory.dir));
+				e.newAttr("lWeight", memory.lWeight);
+				e.newAttr("rWeight", memory.rWeight);
+			}
+		}
+
 		assert (_tree, "dockingfolder#toNodeImpl");
 		if (_tree.sash) {
 			return toNodeImpl(r, _tree.sash, exclude);
@@ -1017,6 +1249,7 @@ class DockingFolder(TabF, int Style) {
 				/// FIXME: たまに type == VERTICAL の所でアクセス違反が起きる？
 				dStr ~= " - " ~ .text(__LINE__);
 				auto sash = new SplitPane(par, type == VERTICAL ? SWT.VERTICAL : SWT.HORIZONTAL);
+				r.putSashTable(sash, r.newSashKey);
 				dStr ~= " - " ~ .text(__LINE__);
 				Proc proc;
 				proc.r = r;
@@ -1084,6 +1317,37 @@ class DockingFolder(TabF, int Style) {
 			DockingFolder r = null;
 			try {
 				r = new DockingFolder(parent, style, false);
+
+				node.onTag["controlMemories"] = (ref XNode node) {
+					node.onTag["controlMemory"] = (ref XNode e) {
+						string key = e.value;
+						CtrlMemory memory;
+						memory.pane = e.attr("pane", false);
+						memory.pairPane = e.attr("pairPane", false);
+						memory.dir = stringToDir(e.attr("dir", false));
+						string lw = e.attr("lWeight", false);
+						string rw = e.attr("rWeight", false);
+						if (lw.length && isNumeric(lw)) memory.lWeight = .parse!int(lw);
+						if (rw.length && isNumeric(rw)) memory.rWeight = .parse!int(rw);
+						r._cMemories[key] = memory;
+					};
+					node.parse();
+				};
+				node.onTag["paneMemories"] = (ref XNode node) {
+					node.onTag["paneMemory"] = (ref XNode e) {
+						string key = e.value;
+						PaneMemory memory;
+						memory.pairPane = e.attr("pairPane", false);
+						memory.dir = stringToDir(e.attr("dir", false));
+						string lw = e.attr("lWeight", false);
+						string rw = e.attr("rWeight", false);
+						if (lw.length && isNumeric(lw)) memory.lWeight = .parse!int(lw);
+						if (rw.length && isNumeric(rw)) memory.rWeight = .parse!int(rw);
+						r._pMemories[key] = memory;
+					};
+					node.parse();
+				};
+
 				dStr ~= " - " ~ .text(__LINE__);
 				if (createPaneEvent) r.createPaneEvent ~= createPaneEvent;
 				Proc proc;

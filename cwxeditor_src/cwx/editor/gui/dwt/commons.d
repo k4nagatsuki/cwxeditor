@@ -529,9 +529,7 @@ class Commons {
 	@property
 	Composite sidePane() {
 		if (!_main.dock) return _main.shell;
-		auto s = _main.dock.findPane("side");
-		if (s.length) return _main.dock.pane(s[0]);
-		return _main.dock.addPane(workPane, Dir.E, 3, 1, _main.dock.newCtrlKey("side"));
+		return _main.dock.addPaneFromMemory(workPaneKey, Dir.E, 3, 1, "side");
 	}
 	private Window __openArea(A, Window)(Props prop, Summary summ, A area, UndoManager undo, bool shellActivate) {
 		if (!area) return null;
@@ -651,23 +649,13 @@ class Commons {
 				.forceFocus(c, shellActivate);
 				return;
 			}
-			Composite p;
-			string[] ps = _main.dock.findPane(pane);
-			if (ps.length) {
-				p = _main.dock.pane(ps[0]);
-			} else {
-				int l, r;
-				if (dir == Dir.N || dir == Dir.W) {
-					l = 1;
-					r = dir == Dir.N ? 3 : 4;
-				} else {
-					l = dir == Dir.S ? 3 : 4;
-					r = 1;
-				}
-				p = _main.dock.addPane(workPane, dir, l, r, _main.dock.newPaneKey(pane));
-			}
-			auto tlp = create(p);
-			_main.dock.add(tlp.shell, text, tlp.image, key, true, loc);
+			Image image;
+			_main.dock.addFromMemory((Composite p) {
+				auto tlp = create(p);
+				image = tlp.image;
+				return tlp.shell;
+			}, text, null, key, pane, workPaneKey, dir, true, loc);
+			_main.dock.tabImage(key, image);
 		}
 	}
 	@property
