@@ -26,7 +26,7 @@ import org.eclipse.swt.all;
 
 public:
 
-class TAreaWindow(V, A, C, bool WithEventView) : TopLevelPanel, TCPD {
+class TAreaWindow(V, A, C, bool WithEventView) : TopLevelPanel, SashPanel, TCPD {
 private:
 	Commons _comm;
 

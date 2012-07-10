@@ -193,6 +193,7 @@ abstract class TopLevelPanel {
 	@property
 	abstract string[] openedCWXPath();
 }
+interface SashPanel {}
 class TLPData {
 	TopLevelPanel tlp;
 	Object main = null;
@@ -445,6 +446,13 @@ class Commons {
 	}
 
 	void closeAll() {
+		foreach (w; _ws.toArray()) {
+			// 分割領域のサイズを保存するためそれ以外を優先して閉じる
+			auto tlpData = cast(TLPData) w.getData();
+			if (!(cast(SashPanel) tlpData.tlp)) {
+				close(w);
+			}
+		}
 		foreach (w; _ws.toArray()) {
 			close(w);
 		}

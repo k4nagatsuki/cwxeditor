@@ -95,7 +95,7 @@ private struct FC {
 	}
 }
 
-class DirectoryWindow : TopLevelPanel, TCPD {
+class DirectoryWindow : TopLevelPanel, SashPanel, TCPD {
 private:
 	class FileNameObj {
 		private this () {

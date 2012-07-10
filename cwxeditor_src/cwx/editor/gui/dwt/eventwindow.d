@@ -28,7 +28,7 @@ interface IEventWindow {
 	EventTreeView eventTreeView();
 }
 
-class EventWindow(A : EventTreeOwner) : TopLevelPanel, IEventWindow, TCPD {
+class EventWindow(A : EventTreeOwner) : TopLevelPanel, IEventWindow, SashPanel, TCPD {
 private:
 	Summary _summ;
 	A _eto;

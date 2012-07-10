@@ -26,7 +26,7 @@ import std.path;
 
 import org.eclipse.swt.all;
 
-class AbstractDataWindow(bool UseArea, bool UseFlag) : TopLevelPanel, TCPD {
+class AbstractDataWindow(bool UseArea, bool UseFlag) : TopLevelPanel, SashPanel, TCPD {
 private:
 	Shell _parentShell;
 	Commons _comm;
