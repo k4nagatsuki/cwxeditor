@@ -425,7 +425,7 @@ class DockingFolder(TabF, int Style) {
 		scope (exit) {
 			if (memory) _cMemories.remove(key);
 		}
-		auto tPane = pairPane;
+		pane = newPaneKey(pane);
 		if (memory) {
 			pane = memory.pane;
 			dir = memory.dir;
@@ -435,8 +435,6 @@ class DockingFolder(TabF, int Style) {
 		p = findPane2(pane);
 		if (!p) {
 			int l, r;
-			auto pair = findPane2(pairPane);
-			if (!pair) pair = this.pane(findPane(tPane)[0]);
 			if (memory) {
 				l = memory.lWeight;
 				r = memory.rWeight;
@@ -449,7 +447,7 @@ class DockingFolder(TabF, int Style) {
 					r = 1;
 				}
 			}
-			p = addPane(pair, dir, l, r, newPaneKey(pane));
+			p = addPaneFromMemory(pairPane, dir, l, r, pane);
 		}
 		auto c = createControl(p);
 		if (!c) throw new Exception("No control: " ~ key);

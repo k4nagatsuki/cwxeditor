@@ -2572,7 +2572,7 @@ public:
 						itm.setEnabled((*cMenuE)());
 					} else if (d.enabled) {
 						itm.setEnabled(d.enabled());
-					} else {
+					} else if (_tlp) {
 						auto enabled = _tlp.menuEnabled(d.id);
 						if (enabled) itm.setEnabled(enabled());
 					}
