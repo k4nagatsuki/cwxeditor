@@ -716,9 +716,21 @@ public:
 					a, path, shellActivate);
 			}
 		} break;
+		case "tableview": {
+			static if (UseArea) {
+				.forceFocus(_areas.table, shellActivate);
+				return true;
+			}
+		} break;
 		case "variable": {
 			static if (UseFlag) {
 				return _flags.openCWXPath(cpbottom(path), shellActivate);
+			}
+		} break;
+		case "variableview": {
+			static if (UseFlag) {
+				.forceFocus(_flags.flags.widget, shellActivate);
+				return true;
 			}
 		} break;
 		default: break;
@@ -730,15 +742,19 @@ public:
 		string[] r;
 		static if (UseArea && UseFlag) {
 			if (tabf.getSelection() is tabA) {
+				r ~= "tableview";
 				r ~= _areas.openedCWXPath;
 				r ~= _flags.openedCWXPath;
 			} else {
+				r ~= "variableview";
 				r ~= _flags.openedCWXPath;
 				r ~= _areas.openedCWXPath;
 			}
 		} else static if (UseArea) {
+			r ~= "tableview";
 			r ~= _areas.openedCWXPath;
 		} else static if (UseFlag) {
+			r ~= "variableview";
 			r ~= _flags.openedCWXPath;
 		} else static assert (0);
 		return r;

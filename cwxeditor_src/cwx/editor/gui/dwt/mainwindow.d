@@ -2813,16 +2813,18 @@ public:
 			}
 			auto cate = cpcategory(path);
 			switch (cate) {
-			case "area", "battle", "package", "area:id", "battle:id", "package:id", "variable": {
+			case "area", "battle", "package", "area:id", "battle:id", "package:id", "variable",
+					"tableview", "variableview": {
 				if (_dataWin) {
 					return _dataWin.openCWXPath(path, shellActivate);
-				} else if (cate == "variable") {
+				} else if (cate == "variable" || cate == "variableview") {
 					return _flagWin.openCWXPath(path, shellActivate);
 				} else {
 					return _tableWin.openCWXPath(path, shellActivate);
 				}
 			} case "castcard", "skillcard", "itemcard", "beastcard", "infocard",
-					"castcard:id", "skillcard:id", "itemcard:id", "beastcard:id", "infocard:id": {
+					"castcard:id", "skillcard:id", "itemcard:id", "beastcard:id", "infocard:id",
+					"castcardview", "skillcardview", "itemcardview", "beastcardview", "infocardview": {
 				if (_cardWin) {
 					return _cardWin.openCWXPath(path, shellActivate);
 				} else {
@@ -2832,21 +2834,21 @@ public:
 					assert (_beastWin);
 					assert (_infoWin);
 					switch (cate) {
-					case "castcard", "castcard:id":
+					case "castcard", "castcard:id", "castcardview":
 						return _castWin.openCWXPath(path, shellActivate);
-					case "skillcard", "skillcard:id":
+					case "skillcard", "skillcard:id", "skillcardview":
 						return _skillWin.openCWXPath(path, shellActivate);
-					case "itemcard", "itemcard:id":
+					case "itemcard", "itemcard:id", "itemcardview":
 						return _itemWin.openCWXPath(path, shellActivate);
-					case "beastcard", "beastcard:id":
+					case "beastcard", "beastcard:id", "beastcardview":
 						return _beastWin.openCWXPath(path, shellActivate);
-					case "infocard", "infocard:id":
+					case "infocard", "infocard:id", "infocardview":
 						return _infoWin.openCWXPath(path, shellActivate);
 					default:
 						return false;
 					}
 				}
-			} case "file": {
+			} case "fileview": {
 				if (_dirWin) {
 					return _dirWin.openCWXPath(path, shellActivate);
 				}

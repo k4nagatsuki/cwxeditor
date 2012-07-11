@@ -1795,6 +1795,17 @@ public:
 	@property
 	string[] openedCWXPath() {
 		string[] r;
+		static if (is(C:CastCard)) {
+			r ~= "castcardview";
+		} else static if (is(C:SkillCard)) {
+			r ~= "skillcardview";
+		} else static if (is(C:ItemCard)) {
+			r ~= "itemcardview";
+		} else static if (is(C:BeastCard)) {
+			r ~= "beastcardview";
+		} else static if (is(C:InfoCard)) {
+			r ~= "infocardview";
+		} else static assert (0);
 		foreach (c; selectedCards) {
 			r ~= c.cwxPath(true);
 		}

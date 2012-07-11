@@ -2131,7 +2131,7 @@ public:
 	override bool openCWXPath(string path, bool shellActivate) {
 		auto cate = cpcategory(path);
 		switch (cate) {
-		case "file":
+		case "fileview":
 			.forceFocus(_files, shellActivate);
 			return true;
 		default:
@@ -2140,7 +2140,7 @@ public:
 	}
 	@property
 	override string[] openedCWXPath() {
-		return ["file"];
+		return ["fileview"];
 	}
 }
 

@@ -1285,6 +1285,10 @@ public:
 
 	private bool openCWXPathEff(int C)(string path, bool shellActivate) {
 		auto cate = cpcategory(path);
+		if (std.string.endsWith(cate, "view")) {
+			.forceFocus(_pane[C].widget, shellActivate);
+			return true;
+		}
 		auto index = cpindex(path);
 		bool isId = std.string.endsWith(cate, ":id") != 0;
 		alias typeof(_pane[C].cards()[0]) CType;
@@ -1335,27 +1339,27 @@ public:
 	bool openCWXPath(string path, bool shellActivate) {
 		auto cate = cpcategory(path);
 		switch (cate) {
-		case "castcard", "castcard:id": {
+		case "castcard", "castcard:id", "castcardview": {
 			static if (UseCast) {
 				return openCWXPathEff!(CAST)(path, shellActivate);
 			}
 		} break;
-		case "skillcard", "skillcard:id": {
+		case "skillcard", "skillcard:id", "skillcardview": {
 			static if (UseSkill) {
 				return openCWXPathEff!(SKILL)(path, shellActivate);
 			}
 		} break;
-		case "itemcard", "itemcard:id": {
+		case "itemcard", "itemcard:id", "itemcardview": {
 			static if (UseItem) {
 				return openCWXPathEff!(ITEM)(path, shellActivate);
 			}
 		} break;
-		case "beastcard", "beastcard:id": {
+		case "beastcard", "beastcard:id", "beastcardview": {
 			static if (UseBeast) {
 				return openCWXPathEff!(BEAST)(path, shellActivate);
 			}
 		} break;
-		case "infocard", "infocard:id": {
+		case "infocard", "infocard:id", "infocardview": {
 			static if (UseInfo) {
 				return openCWXPathEff!(INFO)(path, shellActivate);
 			}
