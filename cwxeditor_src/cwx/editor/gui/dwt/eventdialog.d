@@ -995,13 +995,18 @@ class EffectDialog : EventDialog {
 private:
 	MotionView _mview;
 	Spinner _lev;
-	Combo _se;
+	MaterialSelect!(MtType.SE, Combo, Combo) _se;
 	Scale _sucRate;
 	Button[EffectType] _effTyp;
 	Button[Resist] _res;
 	Button[CardVisual] _vis;
 	Button[Target.M] _targ;
 
+	void refreshWarning() {
+		string[] ws;
+		if (_se.path != "" && !_se.selectedDefDir) ws ~= prop.msgs.warningNotDefaultSE;
+		warning = ws ~ comm.skin.warningSE(prop.parent, _se.filePath, summ.legacy);
+	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
 		super (comm, prop, shell, summ, CType.EFFECT, parent, evt, true, prop.var.effEvtDlg, true);
@@ -1114,13 +1119,19 @@ protected:
 				{
 					auto grp = new Group(comp2, SWT.NONE);
 					grp.setText(_prop.msgs.se);
-					auto gd = new GridData(GridData.FILL_BOTH);
+					auto gd = new GridData(GridData.FILL_HORIZONTAL);
 					gd.horizontalSpan = 2;
 					grp.setLayoutData(gd);
-					grp.setLayout(new GridLayout(1, true));
-					createDefSoundCombo(_comm, _prop, _summ, grp, _se)
-						.setLayoutData(new GridData(GridData.FILL_BOTH));
+					grp.setLayout(new GridLayout(3, false));
+					_se = new MaterialSelect!(MtType.SE, Combo, Combo)(comm, prop, summ, null, [prop.msgs.soundNone]);
 					mod(_se);
+					_se.modEvent ~= &refreshWarning;
+					_se.createDirsCombo(grp).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+					_se.createStopButton(grp);
+					_se.createPlayButton(grp);
+					auto gdfl = new GridData(GridData.FILL_HORIZONTAL);
+					gdfl.horizontalSpan = 4;
+					_se.createFileList(grp).setLayoutData(gdfl);
 				}
 				{
 					auto gd = new GridData(GridData.FILL_BOTH);
@@ -1136,8 +1147,7 @@ protected:
 		if (_evt) {
 			_mview.motions = _evt.motions;
 			_lev.setSelection(_evt.signedLevel);
-			int sei = _se.indexOf(baseName(_evt.soundPath));
-			_se.select(sei >= 0 ? sei : 0);
+			_se.path = _evt.soundPath;
 			_sucRate.setSelection(_evt.successRate + Content.successRate_max);
 			_effTyp[_evt.effectType].setSelection(true);
 			_res[_evt.resist].setSelection(true);
@@ -1146,7 +1156,7 @@ protected:
 		} else {
 			_mview.motions = [];
 			_lev.setSelection(0);
-			_se.select(0);
+			_se.path = "";
 			_sucRate.setSelection(Content.successRate_max + Content.successRate_max);
 			_effTyp[EffectType.NONE].setSelection(true);
 			_res[Resist.UNFAIL].setSelection(true);
@@ -1159,7 +1169,7 @@ protected:
 		if (!_evt) _evt = new Content(CType.EFFECT, "");
 		_evt.motions = _mview.motions;
 		_evt.signedLevel = _lev.getSelection();
-		_evt.soundPath = _se.getSelectionIndex() > 0 ? _se.getText() : "";
+		_evt.soundPath = _se.path;
 		_evt.successRate = cast(int) _sucRate.getSelection() - Content.successRate_max;
 		_evt.effectType = getRadioValue!(EffectType)(_effTyp);
 		_evt.resist = getRadioValue!(Resist)(_res);

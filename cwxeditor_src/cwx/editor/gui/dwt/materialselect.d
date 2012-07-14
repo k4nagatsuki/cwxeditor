@@ -464,6 +464,11 @@ public:
 	}
 
 	@property
+	bool selectedDefDir() {
+		return _selDir == _tbl;
+	}
+
+	@property
 	void selectDir(int sel) {
 		_dirs.select(sel);
 		refreshList();

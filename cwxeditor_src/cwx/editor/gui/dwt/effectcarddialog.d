@@ -93,8 +93,8 @@ private:
 	Button[CardVisual] _vis;
 	Button[Premium] _prem;
 	Scale _sucRate;
-	Combo _se1;
-	Combo _se2;
+	MaterialSelect!(MtType.SE, Combo, Combo) _se1;
+	MaterialSelect!(MtType.SE, Combo, Combo) _se2;
 	Combo[] _keyCodes;
 	Text _scenario;
 	TextMenuModify _scenarioTM;
@@ -134,6 +134,9 @@ private:
 				ws ~= _prop.msgs.warningVanishCast;
 				break;
 			}
+		}
+		if ((_se1.path != "" && !_se1.selectedDefDir) || (_se2.path != "" && !_se2.selectedDefDir)) {
+			ws ~= _prop.msgs.warningNotDefaultSE;
 		}
 		if (_card && _card.trees.length) {
 			if (_scenario.getText() != _summ.scenarioName || _author.getText() != _summ.author) {
@@ -570,10 +573,33 @@ private:
 			grp.setText(_prop.msgs.se);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			grp.setLayout(new GridLayout(1, false));
-			createDefSoundCombo(_comm, _prop, _summ, grp, _se1, _prop.msgs.se1).setLayoutData(new GridData(GridData.FILL_BOTH));
-			mod(_se1);
-			createDefSoundCombo(_comm, _prop, _summ, grp, _se2, _prop.msgs.se2).setLayoutData(new GridData(GridData.FILL_BOTH));
-			mod(_se2);
+			MaterialSelect!(MtType.SE, Combo, Combo) createSE(string title) {
+				auto comp = new Composite(grp, SWT.NONE);
+				comp.setLayoutData(new GridData(GridData.FILL_BOTH));
+				comp.setLayout(zeroMarginGridLayout(2, true));
+
+				auto l = new CLabel(comp, SWT.NONE);
+				auto gdl = new GridData(GridData.FILL_HORIZONTAL);
+				gdl.horizontalSpan = 2;
+				l.setLayoutData(gdl);
+				l.setImage(_prop.images.sound);
+				l.setText(title);
+
+				auto se = new MaterialSelect!(MtType.SE, Combo, Combo)(_comm, _prop, _summ, null, [_prop.msgs.soundNone]);
+				mod(se);
+				se.modEvent ~= &refreshWarning;
+				auto gddc = new GridData(GridData.FILL_HORIZONTAL);
+				gddc.horizontalSpan = 2;
+				se.createDirsCombo(comp).setLayoutData(gddc);
+				auto gdfl = new GridData(GridData.FILL_HORIZONTAL);
+				gdfl.horizontalSpan = 2;
+				se.createFileList(comp).setLayoutData(gdfl);
+				se.createStopButton(comp).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				se.createPlayButton(comp).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				return se;
+			}
+			_se1 = createSE(_prop.msgs.se1);
+			_se2 = createSE(_prop.msgs.se2);
 		}
 		{
 			auto grp = new Group(sash, SWT.NONE);
@@ -788,10 +814,8 @@ protected:
 			string findPath(string path) {
 				return baseName(skin.findPath(baseName(path), skin.extSound, skin.seDir, ""));
 			}
-			int se1i = _se1.indexOf(findPath(_card.soundPath1));
-			_se1.select(se1i >= 0 ? se1i : 0);
-			int se2i = _se2.indexOf(findPath(_card.soundPath2));
-			_se2.select(se2i >= 0 ? se2i : 0);
+			_se1.path = _card.soundPath1;
+			_se2.path = _card.soundPath2;
 			foreach (i, kc; _card.keyCodes) {
 				_keyCodes[i].setText(kc);
 				if (!contains(_keyCodes[i].getItems(), kc)) {
@@ -824,8 +848,8 @@ protected:
 			_vis[CardVisual.NONE].setSelection(true);
 			_prem[Premium.NORMAL].setSelection(true);
 			_sucRate.setSelection(Content.successRate_max);
-			_se1.select(0);
-			_se2.select(0);
+			_se1.path = "";
+			_se2.path = "";
 		}
 		static if (is (C == SkillCard)) {
 			calcPrice(_level.getSelection());
@@ -881,8 +905,8 @@ protected:
 		putRadioValue!(CardVisual)(_vis, &_card.visual);
 		putRadioValue!(Premium)(_prem, &_card.premium);
 		_card.successRate = cast(int) _sucRate.getSelection() - Content.successRate_max;
-		_card.soundPath1 = _se1.getSelectionIndex() > 0 ? _se1.getText() : "";
-		_card.soundPath2 = _se2.getSelectionIndex() > 0 ? _se2.getText() : "";
+		_card.soundPath1 = _se1.path;
+		_card.soundPath2 = _se2.path;
 		string[] keyCodes;
 		int last = 0;
 		foreach (i, c; _keyCodes) {

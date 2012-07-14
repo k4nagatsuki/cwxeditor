@@ -1106,6 +1106,7 @@ class Msgs : Properties {
 	mixin Msg!("soundNone", "[効果音無し]");
 	mixin Msg!("keyCodes", "イベント発火のキーコード");
 
+	mixin Msg!("warningNotDefaultSE", "標準以外の効果音はシナリオの外では鳴らない可能性があります。");
 	mixin Msg!("warningEffectTypeNone", "無属性のカードをシナリオ外に持ち出した場合、予期せぬ動作の原因になります。");
 	mixin Msg!("warningVanishCast", "神聖属性以外の対象消去効果を持つカードをシナリオ外に持ち出した場合、予期せぬ動作の原因になります。");
 	mixin Msg!("warningNameLenOver", "名前の長さが%2$s文字を超えています。メッセージにカード名が表示された際に不具合が発生する可能性があります。"); // %1$s = 文字数、%2$s = 文字数 / 2
