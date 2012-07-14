@@ -106,6 +106,8 @@ ImageData loadImage(Skin skin, string path, bool mask = true, int maskX = 0, int
 			if (mask) data.transparentPixel = data.getPixel(maskX, maskY);
 			return data;
 		} catch (SWTException e) {
+			cdebugln(e.file);
+			cdebugln(e.line);
 			debugln(e);
 		}
 	}

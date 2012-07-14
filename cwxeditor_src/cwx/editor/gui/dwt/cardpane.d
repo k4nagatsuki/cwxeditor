@@ -46,7 +46,8 @@ private enum CViewMode {INIT, LIFE, CARD, TABLE}
 
 private class CardPane(PCardOwner, CardOwner, C : Card, ToCardOwner, string GetAll, string GetFromId) : TCPD {
 private:
-	static const bool EditMode = is (ToCardOwner == void);
+	static immutable EditMode = is (ToCardOwner == void);
+	static immutable CanHold = is(CardOwner:CastCard) && (is(C:SkillCard) || is(C:ItemCard));
 	private static C[] cardsFrom(CardOwner owner) {mixin ("return owner." ~ GetAll ~ ";");}
 	@property
 	public C[] cards() {return cardsFrom(owner);}
@@ -716,6 +717,9 @@ private:
 						if (qCardMaterialCopy(node, adds)) {
 							int[] indices;
 							foreach (i, card; adds) {
+								static if (!CanHold && is(typeof(card.hold))) {
+									card.hold = false;
+								}
 								_owner.insert(index, card);
 								adds[i] = cards[index];
 								indices ~= index;
@@ -1137,6 +1141,15 @@ private:
 			_cimg = prop.images.info;
 		}
 	}
+	static if (CanHold) {
+		void hold(SelectionEvent e) {
+			auto card = selection;
+			if (!card) return;
+			auto mi = cast(MenuItem) e.widget;
+			card.hold = mi.getSelection();
+			refresh();
+		}
+	}
 public:
 	static if (!EditMode) {
 		static if (is (C == CastCard)) {
@@ -1242,6 +1255,14 @@ public:
 				createMenuItem(_comm, pop, MenuID.EditProp, &editM, () => selection !is null);
 			} else {
 				static assert (0);
+			}
+			static if (CanHold) {
+				new MenuItem(pop, SWT.SEPARATOR);
+				auto holdMI = createMenuItem(_comm, pop, MenuID.Hold, &hold, () => selection !is null, SWT.CHECK);
+				.listener(pop, SWT.Show, {
+					auto card = selection;
+					holdMI.setSelection(card && card.hold);
+				});
 			}
 			new MenuItem(pop, SWT.SEPARATOR);
 			createMenuItem(_comm, pop, MenuID.Undo, &undo, &_undo.canUndo);
@@ -1488,7 +1509,10 @@ public:
 			int[] indices;
 			foreach (card; adds) {
 				indices ~= cards.length;
-				static if (is (CardOwner == Summary)) {
+				static if (!CanHold && is(typeof(card.hold))) {
+					card.hold = false;
+				}
+				static if (is(CardOwner:Summary)) {
 					ulong oldId = _owner.add(card);
 					if (ids) {
 						// 同じペイン内でコピー&ペースト
