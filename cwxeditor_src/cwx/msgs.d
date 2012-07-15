@@ -1186,6 +1186,7 @@ class Msgs : Properties {
 	mixin Msg!("contentsAutoHide", "コンテンツボックスを自動的に隠す");
 	mixin Msg!("xmlCopy", "コピーや切り取りを常にXML形式で行う");
 	mixin Msg!("saveInnerImagePath", "クラシックなシナリオで格納イメージのファイルパスを保存する");
+	mixin Msg!("linkHandCard", "キャストの所有カードを参照で設定する");
 	mixin Msg!("traceDirectories", "ファイル・" ~ DIR ~ "の変更を自動的に追跡する");
 	mixin Msg!("logicalSort", "数値参照型ソートを行う(1, 10, 2, 3, ... → 1, 2, 3, 10, ...)");
 	mixin Msg!("copyDesc", "カードをエリアに貼り付け・ドロップした時、解説もコピーする");

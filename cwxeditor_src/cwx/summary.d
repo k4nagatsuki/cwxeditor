@@ -1757,6 +1757,9 @@ public:
 	private void saveProc(in CProps prop, bool doubleIO, bool saveInnerImagePath, bool archive,
 			string zipName, string temp, bool legacyToX, bool defExpandXMLs) {
 		try {
+			foreach (c; casts) {
+				c.refreshAllHands(this);
+			}
 			bool expand = false;
 			if (legacy && !legacyToX) {
 				saveLScenario(this, doubleIO, saveInnerImagePath);

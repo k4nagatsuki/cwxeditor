@@ -189,6 +189,7 @@ S loadLScenario(S)(string p, string skin, bool doubleIO, string newName = null) 
 		foreach (a; infos.sort) summ.add(a, false);
 		loadComment(summ);
 		loadImageRef(summ);
+		loadCardRef(summ);
 		summ.startArea = startAreaId;
 		summ.resetChanged();
 	} else {
@@ -202,6 +203,7 @@ S loadLScenario(S)(string p, string skin, bool doubleIO, string newName = null) 
 		static if (IN) foreach (a; infos.sort) summ.add(a);
 		loadComment(summ);
 		loadImageRef(summ);
+		loadCardRef(summ);
 	}
 	return summ;
 }
@@ -222,7 +224,6 @@ void loadComment(S)(S summ) {
 		node.parse();
 	}
 }
-
 /// 拡張情報"ImageRef.wex"を読み込む。
 void loadImageRef(S)(S summ) {
 	string file = summ.scenarioPath.buildPath("ImageRef.wex");
@@ -244,6 +245,47 @@ void loadImageRef(S)(S summ) {
 			auto summ2 = cast(Summary) cp;
 			if (summ2) {
 				summ2.imagePath = node.value;
+			}
+		};
+		node.parse();
+	}
+}
+/// 拡張情報"CardRef.wex"を読み込む。
+void loadCardRef(S)(S summ) {
+	string file = summ.scenarioPath.buildPath("CardRef.wex");
+	if (!.exists(file)) return;
+	auto node = XNode.parse(readText(file));
+	if ("cardRefs" == node.name) {
+		node.onTag["cardRef"] = (ref XNode node) {
+			string path = node.attr("path", false, INVALID_CWX_PATH);
+			if (INVALID_CWX_PATH == path) return;
+			auto cp = summ.findCWXPath(path);
+			string value = node.value;
+			try {
+				auto id = .to!ulong(value);
+				auto skill = cast(SkillCard) cp;
+				if (skill) {
+					auto sskill = summ.skill(id);
+					if (skill.name == sskill.name && skill.desc == sskill.desc) {
+						skill.linkId = id;
+					}
+				}
+				auto item = cast(ItemCard) cp;
+				if (item) {
+					auto sitem = summ.item(id);
+					if (item.name == sitem.name && item.desc == sitem.desc) {
+						item.linkId = id;
+					}
+				}
+				auto beast = cast(BeastCard) cp;
+				if (beast) {
+					auto sbeast = summ.beast(id);
+					if (beast.name == sbeast.name && beast.desc == sbeast.desc) {
+						beast.linkId = id;
+					}
+				}
+			} catch (ConvException e) {
+				debugln(e);
 			}
 		};
 		node.parse();
@@ -1604,6 +1646,7 @@ struct SData {
 	bool saveInnerImagePath;
 	string[string] comment;
 	string[string] imageRef;
+	ulong[string] cardRef;
 }
 /// 4.0形式のCardWirthシナリオを保存する。
 void saveLScenario(Summary summ, bool doubleIO, bool saveInnerImagePath = false) {
@@ -1736,8 +1779,14 @@ void saveLScenario(Summary summ, bool doubleIO, bool saveInnerImagePath = false)
 		std.file.write(d.sPath.buildPath(file), cast(immutable byte[]) imageRef);
 		renames ~= file;
 	}
+	string cardRef = saveCardRef(d);
+	if (cardRef.length) {
+		auto file = "~CardRef.wex";
+		std.file.write(d.sPath.buildPath(file), cast(immutable byte[]) cardRef);
+		renames ~= file;
+	}
 
-	auto sysFName = .regex!(dstring)("^(((Area|Battle|Package|Mate|Skill|Item|Beast|Info)[0-9]+\\.wid)|((Comment|ImageRef)\\.wex))$"d);
+	auto sysFName = .regex!(dstring)("^(((Area|Battle|Package|Mate|Skill|Item|Beast|Info)[0-9]+\\.wid)|((Comment|ImageRef|CardRef)\\.wex))$"d);
 	foreach (file; clistdir(d.sPath)) {
 		if (cfnmatch(file, "Summary.wsm")
 				|| !std.regex.match(toUTF32(file), sysFName).empty) {
@@ -1772,6 +1821,17 @@ string saveImageRef(in SData d) {
 	node.newAttr("dataVersion", 1);
 	foreach (cwxPath, imgPath; d.imageRef) {
 		auto e = node.newElement("imageRef", imgPath);
+		e.newAttr("path", cwxPath);
+	}
+	return node.text;
+}
+/// 拡張情報"CardRef.wex"を保存する。
+string saveCardRef(in SData d) {
+	if (!d.cardRef.length) return "";
+	auto node = XNode.create("cardRefs");
+	node.newAttr("dataVersion", 1);
+	foreach (cwxPath, linkId; d.cardRef) {
+		auto e = node.newElement("cardRef", .text(linkId));
 		e.newAttr("path", cwxPath);
 	}
 	return node.text;
@@ -2688,6 +2748,9 @@ private void writeCast(ref SData d, ref ByteIO f, CastCard c) {
 }
 private void writeEffCard(ref SData d, ref ByteIO f, EffectCard c, byte type) {
 	f.write(type);
+	if (0 != c.linkId) {
+		d.cardRef[c.cwxPath(true)] = c.linkId;
+	}
 	writeImage(d, f, c, c.path);
 	writeString(f, c.name);
 	f.writeL(cast(uint) (c.id + 40000u));

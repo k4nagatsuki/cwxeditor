@@ -19,6 +19,7 @@ import cwx.editor.gui.dwt.areaview;
 import cwx.editor.gui.dwt.mainwindow;
 import cwx.editor.gui.dwt.areawindow;
 import cwx.editor.gui.dwt.cardwindow;
+import cwx.editor.gui.dwt.cardpane;
 import cwx.editor.gui.dwt.eventwindow;
 import cwx.editor.gui.dwt.eventview;
 import cwx.editor.gui.dwt.eventtreeview;
@@ -697,46 +698,52 @@ class Commons {
 	void openBindCardWin(bool shellActivate) {
 		openMain!("card", "data", Dir.N)(_cardWin, shellActivate);
 	}
-	void openCastWin(bool shellActivate) {
+	MainCastCardPane openCastWin(bool shellActivate) {
 		if (_cardWin) {
 			openBindCardWin(shellActivate);
-			_cardWin.openCast(shellActivate);
+			return _cardWin.openCast(shellActivate);
 		} else {
 			openMain!("castCard", "data", Dir.N)(_castWin, shellActivate);
+			return _castWin.paneCast;
 		}
 	}
-	void openSkillWin(bool shellActivate) {
+	MainSkillCardPane openSkillWin(bool shellActivate) {
 		if (_cardWin) {
 			openBindCardWin(shellActivate);
-			_cardWin.openSkill(shellActivate);
+			return _cardWin.openSkill(shellActivate);
 		} else {
 			openMain!("skillCard", "data", Dir.N)(_skillWin, shellActivate);
+			return _skillWin.paneSkill;
 		}
 	}
-	void openItemWin(bool shellActivate) {
+	MainItemCardPane openItemWin(bool shellActivate) {
 		if (_cardWin) {
 			openBindCardWin(shellActivate);
-			_cardWin.openItem(shellActivate);
+			return _cardWin.openItem(shellActivate);
 		} else {
 			openMain!("itemCard", "data", Dir.N)(_itemWin, shellActivate);
+			return _itemWin.paneItem;
 		}
 	}
-	void openBeastWin(bool shellActivate) {
+	MainBeastCardPane openBeastWin(bool shellActivate) {
 		if (_cardWin) {
 			openBindCardWin(shellActivate);
-			_cardWin.openBeast(shellActivate);
+			return _cardWin.openBeast(shellActivate);
 		} else {
 			openMain!("beastCard", "data", Dir.N)(_beastWin, shellActivate);
+			return _beastWin.paneBeast;
 		}
 	}
-	void openInfoWin(bool shellActivate) {
+	MainInfoCardPane openInfoWin(bool shellActivate) {
 		if (_cardWin) {
 			openBindCardWin(shellActivate);
-			_cardWin.openInfo(shellActivate);
+			return _cardWin.openInfo(shellActivate);
 		} else {
 			openMain!("infoCard", "data", Dir.N)(_infoWin, shellActivate);
+			return _infoWin.paneInfo;
 		}
 	}
+
 	void openDirWin(bool shellActivate) {
 		openMain!("file", "data", Dir.N)(_dirWin, shellActivate);
 	}

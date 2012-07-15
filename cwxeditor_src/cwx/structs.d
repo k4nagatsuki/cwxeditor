@@ -143,6 +143,7 @@ interface WSize : DSize {
 struct CPoint {
 	int x;
 	int y;
+	const
 	void toNode(ref XNode e) {
 		auto r = e.newElement("point");
 		r.newAttr("x", x);
@@ -159,6 +160,7 @@ struct CPoint {
 struct CSize {
 	uint width;
 	uint height;
+	const
 	void toNode(ref XNode e) {
 		auto r = e.newElement("size");
 		r.newAttr("width", width);
@@ -177,6 +179,7 @@ struct CRect {
 	int y;
 	int width;
 	int height;
+	const
 	void toNode(ref XNode e) {
 		auto r = e.newElement("rect");
 		r.newAttr("x", x);
@@ -199,6 +202,7 @@ struct CInsets {
 	int e; /// 右。
 	int s; /// 下。
 	int w; /// 左。
+	const
 	void toNode(ref XNode e) {
 		auto r = e.newElement("insets");
 		r.newAttr("n", n);
@@ -221,6 +225,7 @@ struct CRGB {
 	uint g;
 	uint b;
 	uint a = 255;
+	const
 	void toNode(ref XNode e) {
 		auto r = e.newElement("rgb");
 		r.newAttr("r", this.r);
@@ -243,6 +248,7 @@ struct CFont {
 	uint point;
 	bool bold;
 	bool italic;
+	const
 	void toNode(ref XNode e) {
 		auto r = e.newElement("font");
 		r.newAttr("name", name);

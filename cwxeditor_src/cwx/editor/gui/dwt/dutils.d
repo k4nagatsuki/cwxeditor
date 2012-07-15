@@ -1147,6 +1147,12 @@ ImageData cardImage(C)(Props prop, Skin skin, C c, string sPath, CastCard owner 
 		}
 	}
 	r.append(skin.findImagePath(c.path, sPath), matPad, true);
+	static if (is(typeof(c.linkId))) {
+		if (0 != c.linkId) {
+			auto mc = prop.var.etc.linkCardMaskColor;
+			r.colorMask(mc.r, mc.g, mc.b, mc.a);
+		}
+	}
 	static if (!is(C == InfoCard)) {
 		if (prop.sys.isPenalty(c)) {
 			auto pid = cardPenalty(skin);

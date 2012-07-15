@@ -462,12 +462,28 @@ public:
 			return c;
 		}
 	}
+	private C replaceImpl(C)(ref C[] arr, int i, C c) {
+		auto node = c.toNode();
+		c = C.createFromNode(node, LATEST_VERSION);
+		c.id = arr[i].id;
+		arr[i].removeUseCounter();
+		arr[i].changeHandler = null;
+		arr[i].owner = null;
+		c.setUseCounter = useCounter;
+		c.changeHandler = changeHandler;
+		c.owner = this;
+		arr[i] = c;
+		changed();
+		return c;
+	}
 
 	/// 所持アイテム。
 	@property
 	ItemCard[] items() {return _items;}
 	/// ditto
 	ItemCard add(ItemCard card) {return __add(_items, card);}
+	/// ditto
+	ItemCard replace(int index, ItemCard card) {return replaceImpl(_items, index, card);}
 	/// ditto
 	void removeItem(ulong id) {__remove(_items, id);}
 	/// ditto
@@ -488,6 +504,8 @@ public:
 	/// ditto
 	SkillCard add(SkillCard card) {return __add(_skills, card);}
 	/// ditto
+	SkillCard replace(int index, SkillCard card) {return replaceImpl(_skills, index, card);}
+	/// ditto
 	void removeSkill(ulong id) {__remove(_skills, id);}
 	/// ditto
 	SkillCard skill(ulong id) {
@@ -507,6 +525,8 @@ public:
 	/// ditto
 	BeastCard add(BeastCard card) {return __add(_beasts, card);}
 	/// ditto
+	BeastCard replace(int index, BeastCard card) {return replaceImpl(_beasts, index, card);}
+	/// ditto
 	void removeBeast(ulong id) {__remove(_beasts, id);}
 	/// ditto
 	BeastCard beast(ulong id) {
@@ -519,6 +539,27 @@ public:
 	/// ditto
 	BeastCard insert(int index, BeastCard c) {
 		return __insert!(BeastCard, toBeastId)(_beasts, index, c);
+	}
+
+	private void refreshHandsImpl(C)(ref C[] arr, C delegate(ulong) get) {
+		foreach (i, c; arr.dup) {
+			auto id = c.linkId;
+			if (0 == id) continue;
+			auto c2 = get(id);
+			static if (is(typeof(c.hold))) auto hold = c.hold;
+			auto c3 = replaceImpl(arr, i, c2);
+			c3.linkId = id;
+			static if (is(typeof(c.hold))) c3.hold = hold;
+		}
+	}
+	/// 参照IDを持つ手札を最新状態にする。
+	void refreshAllHands(S)(S summ) {
+		refreshHandsImpl(_skills, &summ.skill);
+		refreshHandsImpl(_items, &summ.item);
+		refreshHandsImpl(_beasts, &summ.beast);
+	}
+	/// ditto
+	void refreshHandSkill(S)(S summ, int index) {
 	}
 
 	/// 指定された要素のindexを検索する。
@@ -935,6 +976,7 @@ public:
 	/// cからパラメータをコピーする。
 	protected void shallowCopyEffectCard(EffectCard c) {
 		shallowCopyCard(c);
+		linkId = c.linkId;
 		scenario = c.scenario;
 		author = c.author;
 		physical = c.physical;
@@ -959,6 +1001,12 @@ public:
 		}
 		motions = ms;
 	}
+
+	@property
+	const
+	abstract ulong linkId();
+	@property
+	abstract void linkId(ulong);
 
 	/// カードが属するシナリオ名、及びカードの製作者。
 	/// 他のシナリオからのインポート等があるため、
@@ -1145,16 +1193,20 @@ public:
 	}
 	@property
 	override void setUseCounter(UseCounter uc) {
+		setUseCounterImpl(uc);
 		_ceto.setUseCounter = uc;
 		_muser.setUseCounter = uc;
 		super.setUseCounter = uc;
 	}
 	@property
 	override void removeUseCounter() {
+		removeUseCounterImpl();
 		_ceto.removeUseCounter();
 		_muser.removeUseCounter();
 		super.removeUseCounter();
 	}
+	protected abstract void setUseCounterImpl(UseCounter uc);
+	protected abstract void removeUseCounterImpl();
 
 	@property
 	override EventTree[] trees() {return _ceto.trees;}
@@ -1193,6 +1245,7 @@ public:
 	const
 	protected XNode setEffProp(ref XNode node, ulong forceId = 0UL) {
 		auto pNode = setProp(node, forceId);
+		pNode.newElement("LinkId", linkId);
 		pNode.newElement("Scenario", scenario);
 		pNode.newElement("Author", author);
 		auto a = pNode.newElement("Ability");
@@ -1221,6 +1274,7 @@ public:
 	/// 指定されたXMLノードから効果カード関連のデータを読み出す。
 	protected void loadEffProp(ref XNode pNode, string ver) {
 		assert (pNode.name == "Property");
+		pNode.onTag["LinkId"] = (ref XNode n) {linkId = .to!ulong(n.value);};
 		pNode.onTag["Scenario"] = (ref XNode n) {_scenario = n.value;};
 		pNode.onTag["Author"] = (ref XNode n) {_author = n.value;};
 		pNode.onTag["Ability"] = (ref XNode n) {
@@ -1280,6 +1334,7 @@ public:
 /// スキルカード。
 class SkillCard : EffectCard {
 private:
+	SkillUser _linkId;
 	uint _level;
 	bool _hold = false;
 	int _useLimit = 0;
@@ -1297,6 +1352,7 @@ public:
 	/// desc = 解説。
 	this (ulong id, string name, string imagePath, string desc) {
 		super(id, name, imagePath, desc);
+		_linkId = new SkillUser(this);
 	}
 	/// cからパラメータをコピーする。
 	void shallowCopy(SkillCard c) {
@@ -1304,6 +1360,23 @@ public:
 		level = c.level;
 		hold = c.hold;
 		useLimit = c.useLimit;
+	}
+
+	/// 持ち札である時のリンク先ID。0の場合は実体を持つ。
+	@property
+	const
+	override ulong linkId() {return _linkId.skill;}
+	/// ditto
+	@property
+	override void linkId(ulong linkId) {
+		if (_linkId.skill != linkId) changed();
+		_linkId.skill = linkId;
+	}
+	protected override void setUseCounterImpl(UseCounter uc) {
+		_linkId.setUseCounter(uc);
+	}
+	protected override void removeUseCounterImpl() {
+		_linkId.removeUseCounter();
 	}
 
 	/// レベル。
@@ -1401,6 +1474,7 @@ public:
 /// アイテムカード。
 class ItemCard : EffectCard {
 private:
+	ItemUser _linkId;
 	int[Enhance] _oEnh;
 	uint _price = 0;
 	uint _useLimit = 0;
@@ -1420,6 +1494,7 @@ public:
 	/// desc = 解説。
 	this (ulong id, string name, string imagePath, string desc) {
 		super(id, name, imagePath, desc);
+		_linkId = new ItemUser(this);
 		_oEnh = [Enhance.AVOID:0, Enhance.RESIST:0, Enhance.DEFENSE:0];
 	}
 	/// cからパラメータをコピーする。
@@ -1432,6 +1507,23 @@ public:
 		useLimit = c.useLimit;
 		useLimitMax = c.useLimitMax;
 		hold = c.hold;
+	}
+
+	/// 持ち札である時のリンク先ID。0の場合は実体を持つ。
+	@property
+	const
+	override ulong linkId() {return _linkId.item;}
+	/// ditto
+	@property
+	override void linkId(ulong linkId) {
+		if (_linkId.item != linkId) changed();
+		_linkId.item = linkId;
+	}
+	protected override void setUseCounterImpl(UseCounter uc) {
+		_linkId.setUseCounter(uc);
+	}
+	protected override void removeUseCounterImpl() {
+		_linkId.removeUseCounter();
 	}
 
 	/// 使用回数。0で無制限。
@@ -1563,6 +1655,7 @@ public:
 /// 召喚獣カード。
 class BeastCard : EffectCard {
 private:
+	BeastUser _linkId;
 	uint _useLimit = 0;
 public:
 	/// 召喚獣カードのXML要素名。
@@ -1578,11 +1671,29 @@ public:
 	/// desc = 解説。
 	this (ulong id, string name, string imagePath, string desc) {
 		super(id, name, imagePath, desc);
+		_linkId = new BeastUser(this);
 	}
 	/// cからパラメータをコピーする。
 	void shallowCopy(BeastCard c) {
 		shallowCopyEffectCard(c);
 		useLimit = c.useLimit;
+	}
+
+	/// 持ち札である時のリンク先ID。0の場合は実体を持つ。
+	@property
+	const
+	override ulong linkId() {return _linkId.beast;}
+	/// ditto
+	@property
+	override void linkId(ulong linkId) {
+		if (_linkId.beast != linkId) changed();
+		_linkId.beast = linkId;
+	}
+	protected override void setUseCounterImpl(UseCounter uc) {
+		_linkId.setUseCounter(uc);
+	}
+	protected override void removeUseCounterImpl() {
+		_linkId.removeUseCounter();
 	}
 
 	/// 使用回数。0で無制限。

@@ -77,6 +77,7 @@ private:
 	bool _smoothing = false;
 
 	int initW, initH;
+	int _maskR = 0, _maskG = 0, _maskB = 0, _maskA = 0;
 
 public:
 	/// 画像のファイルパス、位置、サイズを指定してインスタンスを生成する。
@@ -234,6 +235,15 @@ public:
 	string title() {
 		return this._title;
 	}
+
+	/// 全体に指定された色のフィルタをかける。
+	void colorMask(int r, int g, int b, int a) {
+		_maskR = r;
+		_maskG = g;
+		_maskB = b;
+		_maskA = a;
+	}
+
 	/// イメージ・タイトル・透明色の設定有無を設定した後に
 	/// このメソッドを呼び出すことで、画像が生成される。
 	/// See_Also: append(), setTitle(), transparent()
@@ -250,10 +260,11 @@ public:
 		auto cur = Display.getCurrent();
 		auto bmp = new Image(cur, initW, initH);
 		scope (exit) bmp.dispose();
-		auto dc = new GC(bmp);
-		scope (exit) dc.dispose();
 
 		try {
+			auto dc = new GC(bmp);
+			scope (exit) dc.dispose();
+
 			ImageData matImgData;
 			if (this.data) {
 				matImgData = this.data;
@@ -320,6 +331,18 @@ public:
 				}
 			}
 
+			if (0 != _maskA) {
+				auto color = new Color(cur, _maskR, _maskG, _maskB);
+				scope (exit) color.dispose();
+				dc.setAlpha(_maskA);
+				scope (exit) dc.setAlpha(255);
+				dc.setBackground(color);
+				dc.fillRectangle(0, 0, initW, initH);
+			}
+
+			// フォントがおかしくなる
+			dc.dispose();
+			dc = new GC(bmp);
 			if (_title !is null) {
 				auto font = new Font(cur, titFont);
 				scope (exit) font.dispose();
@@ -338,18 +361,20 @@ public:
 				bmpData.transparentPixel = bmpData.getPixel(0, 0);
 				_baseSizeData.transparentPixel = _baseSizeData.getPixel(0, 0);
 			}
-			if (smoothing) {
-				auto data = cast(ubyte[]) bmpData.data;
-				auto alpha = cast(ubyte[]) bmpData.alphaData;
-				size_t bpl;
-				bmpData.data = cast(byte[]) smoothResize(width, height, data, alpha,
-					bmpData.depth, bmpData.width, bmpData.height, bmpData.bytesPerLine, bpl);
-				bmpData.alphaData = cast(byte[]) alpha;
-				bmpData.width = width;
-				bmpData.height = height;
-				bmpData.bytesPerLine = bpl;
-			} else {
-				bmpData = bmpData.scaledTo(width, height);
+			if (bmpData.width != width || bmpData.height != height) {
+				if (smoothing) {
+					auto data = cast(ubyte[]) bmpData.data;
+					auto alpha = cast(ubyte[]) bmpData.alphaData;
+					size_t bpl;
+					bmpData.data = cast(byte[]) smoothResize(width, height, data, alpha,
+						bmpData.depth, bmpData.width, bmpData.height, bmpData.bytesPerLine, bpl);
+					bmpData.alphaData = cast(byte[]) alpha;
+					bmpData.width = width;
+					bmpData.height = height;
+					bmpData.bytesPerLine = bpl;
+				} else {
+					bmpData = bmpData.scaledTo(width, height);
+				}
 			}
 		} catch (Exception e) {
 			debugln(e);

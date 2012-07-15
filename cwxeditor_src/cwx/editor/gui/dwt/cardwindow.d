@@ -592,39 +592,74 @@ public:
 	}
 
 	static if (is(CardOwner : Summary)) {
-		void openCast(bool shellActivate) {
+		CastCardPane!(PCardOwner, CardOwner, ToCardOwner) openCast(bool shellActivate) {
 			static if (UseCast) {
 				open!(CAST)(shellActivate);
+				return _pane[CAST];
 			} else {
 				throw new Exception("can not open cast");
 			}
 		}
-		void openSkill(bool shellActivate) {
+		SkillCardPane!(PCardOwner, CardOwner, ToCardOwner) openSkill(bool shellActivate) {
 			static if (UseSkill) {
 				open!(SKILL)(shellActivate);
+				return _pane[SKILL];
 			} else {
 				throw new Exception("can not open skill");
 			}
 		}
-		void openItem(bool shellActivate) {
+		ItemCardPane!(PCardOwner, CardOwner, ToCardOwner) openItem(bool shellActivate) {
 			static if (UseItem) {
 				open!(ITEM)(shellActivate);
+				return _pane[ITEM];
 			} else {
 				throw new Exception("can not open item");
 			}
 		}
-		void openBeast(bool shellActivate) {
+		BeastCardPane!(PCardOwner, CardOwner, ToCardOwner) openBeast(bool shellActivate) {
 			static if (UseBeast) {
 				open!(BEAST)(shellActivate);
+				return _pane[BEAST];
 			} else {
 				throw new Exception("can not open beast");
 			}
 		}
-		void openInfo(bool shellActivate) {
+		InfoCardPane!(PCardOwner, CardOwner, ToCardOwner) openInfo(bool shellActivate) {
 			static if (UseInfo) {
 				open!(INFO)(shellActivate);
+				return _pane[INFO];
 			} else {
 				throw new Exception("can not open info");
+			}
+		}
+		static if (UseCast) {
+			@property
+			CastCardPane!(PCardOwner, CardOwner, ToCardOwner) paneCast() {
+				return _pane[CAST];
+			}
+		}
+		static if (UseSkill) {
+			@property
+			SkillCardPane!(PCardOwner, CardOwner, ToCardOwner) paneSkill() {
+				return _pane[SKILL];
+			}
+		}
+		static if (UseItem) {
+			@property
+			ItemCardPane!(PCardOwner, CardOwner, ToCardOwner) paneItem() {
+				return _pane[ITEM];
+			}
+		}
+		static if (UseBeast) {
+			@property
+			BeastCardPane!(PCardOwner, CardOwner, ToCardOwner) paneBeast() {
+				return _pane[BEAST];
+			}
+		}
+		static if (UseInfo) {
+			@property
+			InfoCardPane!(PCardOwner, CardOwner, ToCardOwner) paneInfo() {
+				return _pane[INFO];
 			}
 		}
 	}
@@ -1321,7 +1356,8 @@ public:
 				cate = cpcategory(path);
 				switch (cate) {
 				case "skillcard", "itemcard", "beastcard",
-						"skillcard:id", "itemcard:id", "beastcard:id": {
+						"skillcard:id", "itemcard:id", "beastcard:id",
+						"skillcardview", "itemcardview", "beastcardview": {
 					forceFocus(_pane[C].widget, shellActivate);
 					return _comm.openHands(_prop, _summ, card, shellActivate).openCWXPath(path, shellActivate);
 				} break;

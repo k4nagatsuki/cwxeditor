@@ -417,15 +417,24 @@ private:
 		if (!_tbl || _tbl.isDisposed()) return;
 		int i;
 		for (i = 0; i < cards.length; i++) {
-			if (cards[i] is c) {
-				break;
+			bool targ = cards[i] is c;
+			static if (is(CardOwner:CastCard) && is(typeof(c.linkId))) {
+				if (cast(Object) c.cwxParent is _summ && 0 != cards[i].linkId && cards[i].linkId is c.id) {
+					auto id = cards[i].linkId;
+					static if (is(typeof(c.hold))) auto hold = cards[i].hold;
+					cards[i].shallowCopy(c);
+					cards[i].linkId = id;
+					static if (is(typeof(c.hold))) cards[i].hold = hold;
+					targ = true;
+				}
 			}
-		}
-		if (i >= cards.length) return;
-		if (_viewMode == CViewMode.TABLE) {
-			refreshTableItem(c, _tbl.getItem(i));
-		} else {
-			refreshListItem(i);
+			if (targ) {
+				if (_viewMode == CViewMode.TABLE) {
+					refreshTableItem(cards[i], _tbl.getItem(i));
+				} else {
+					refreshListItem(i);
+				}
+			}
 		}
 		refreshStatusLine();
 	}
@@ -672,6 +681,7 @@ private:
 					int index = indexOf(p);
 					bool samePane = _id == node.attr("paneId", false);
 					bool sameSc = ownerId == node.attr("summId", false);
+					bool topLevel = node.attr!bool("topLevel", false, false);
 					ulong[C] oldIDs;
 					foreach (card; cards) oldIDs[card] = card.id;
 					scope (exit) {
@@ -722,6 +732,7 @@ private:
 								static if (!CanHold && is(typeof(card.hold))) {
 									card.hold = false;
 								}
+								refreshLink(card, samePane, sameSc, topLevel);
 								_owner.insert(index, card);
 								adds[i] = cards[index];
 								indices ~= index;
@@ -735,6 +746,19 @@ private:
 					}
 				} catch (Exception e) {
 					debugln(e);
+				}
+			}
+		}
+		void refreshLink(ref C card, bool samePane, bool sameSc, bool topLevel) {
+			static if (is(typeof(card.linkId))) {
+				if (sameSc && is(CardOwner:CastCard) && topLevel && _prop.var.etc.linkHandCard) {
+					card.linkId = card.id;
+				} else if (!sameSc || !is(CardOwner:CastCard)) {
+					if (0 != card.linkId) {
+						auto node = this.card(card.linkId).toNode();
+						card = C.createFromNode(node, LATEST_VERSION);
+					}
+					card.linkId = 0;
 				}
 			}
 		}
@@ -905,8 +929,16 @@ private:
 		refreshStatusLine();
 	}
 	void toNode(ref XNode sn, C[] sels) {
-		sn.newAttr("summId", ownerId);
-		sn.newAttr("paneId", _id);
+		if (!sels.length) return;
+		if (cast(Object) sels[0].cwxParent is _summ) {
+			sn.newAttr("summId", _summ.id);
+			sn.newAttr("paneId", "");
+			sn.newAttr("topLevel", true);
+		} else {
+			sn.newAttr("summId", ownerId);
+			sn.newAttr("paneId", _id);
+			sn.newAttr("topLevel", false);
+		}
 		sn.newAttr("scenarioPath", nabs(ownerScenarioPath));
 		foreach (sel; sels) {
 			sel.toNode(sn);
@@ -1160,7 +1192,7 @@ private:
 			createMenuItem2(_comm, _addHandMenu, .format("%s.%s", card.id, card.name), _cimg, {
 				.forceFocus(widget, false);
 				auto doc = XNode.create(C.XML_NAME_M);
-				card.toNode(doc);
+				toNode(doc, [card]);
 				addFromNode(doc, LATEST_VERSION);
 			}, null);
 		}
@@ -1541,10 +1573,16 @@ public:
 			if (adds.length == 0) return false;
 			open(false);
 			int[] indices;
+			bool samePane = _id == node.attr("paneId", false);
+			bool sameSc = ownerId == node.attr("summId", false);
+			bool topLevel = node.attr!bool("topLevel", false, false);
 			foreach (card; adds) {
 				indices ~= cards.length;
 				static if (!CanHold && is(typeof(card.hold))) {
 					card.hold = false;
+				}
+				static if (is(typeof(card.linkId))) {
+					refreshLink(card, samePane, sameSc, topLevel);
 				}
 				static if (is(CardOwner:Summary)) {
 					ulong oldId = _owner.add(card);
@@ -1674,6 +1712,21 @@ public:
 				p.active();
 				return *p;
 			}
+			static if (is(typeof(c.linkId))) {
+				if (0 != c.linkId) {
+					auto c2 = card(c.linkId);
+					if (c2) {
+						_comm.openCWXPath(c2.cwxPath(true), false);
+						static if (is(C:SkillCard)) {
+							return _comm.openSkillWin(false).edit(c2);
+						} else static if (is(C:ItemCard)) {
+							return _comm.openItemWin(false).edit(c2);
+						} else static if (is(C:BeastCard)) {
+							return _comm.openBeastWin(false).edit(c2);
+						} else static assert (0);
+					}
+				}
+			}
 			static if (is (C == CastCard)) {
 				auto dlg = new CastCardDialog(_comm, _prop, dlgParShl, _summ, c);
 			} else static if (is (C : EffectCard)) {
@@ -1721,9 +1774,26 @@ public:
 		static if (is (C : EffectCard)) {
 			void editUseEvent() {
 				auto sel = selection;
-				if (sel) {
-					_comm.openUseEvents(_prop, _summ, sel, true);
+				if (sel) editUseEvent(sel);
+			}
+			void editUseEvent(C c) {
+				static if (is(typeof(c.linkId))) {
+					if (0 != c.linkId) {
+						auto c2 = card(c.linkId);
+						if (c2) {
+							_comm.openCWXPath(c2.cwxPath(true), false);
+							static if (is(C:SkillCard)) {
+								_comm.openSkillWin(false).editUseEvent(c2);
+							} else static if (is(C:ItemCard)) {
+								_comm.openItemWin(false).editUseEvent(c2);
+							} else static if (is(C:BeastCard)) {
+								_comm.openBeastWin(false).editUseEvent(c2);
+							} else static assert (0);
+							return;
+						}
+					}
 				}
+				_comm.openUseEvents(_prop, _summ, c, true);
 			}
 		}
 
@@ -1857,15 +1927,15 @@ public:
 	string[] openedCWXPath() {
 		string[] r;
 		static if (is(C:CastCard)) {
-			r ~= "castcardview";
+			r ~= .cpjoin(owner, "castcardview", true);
 		} else static if (is(C:SkillCard)) {
-			r ~= "skillcardview";
+			r ~= .cpjoin(owner, "skillcardview", true);
 		} else static if (is(C:ItemCard)) {
-			r ~= "itemcardview";
+			r ~= .cpjoin(owner, "itemcardview", true);
 		} else static if (is(C:BeastCard)) {
-			r ~= "beastcardview";
+			r ~= .cpjoin(owner, "beastcardview", true);
 		} else static if (is(C:InfoCard)) {
-			r ~= "infocardview";
+			r ~= .cpjoin(owner, "infocardview", true);
 		} else static assert (0);
 		foreach (c; selectedCards) {
 			r ~= c.cwxPath(true);
@@ -1889,3 +1959,8 @@ template BeastCardPane(PCardOwner, CardOwner, ToCardOwner) {
 template InfoCardPane(PCardOwner, CardOwner, ToCardOwner) {
 	alias CardPane!(PCardOwner, CardOwner, InfoCard, ToCardOwner, "infos", "info") InfoCardPane;
 }
+alias CastCardPane!(Summary, Summary, void) MainCastCardPane;
+alias SkillCardPane!(Summary, Summary, void) MainSkillCardPane;
+alias ItemCardPane!(Summary, Summary, void) MainItemCardPane;
+alias BeastCardPane!(Summary, Summary, void) MainBeastCardPane;
+alias InfoCardPane!(Summary, Summary, void) MainInfoCardPane;

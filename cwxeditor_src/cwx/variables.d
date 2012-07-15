@@ -67,6 +67,7 @@ class FlexEtcProps : Properties {
 	mixin Property!("cardNameColumn", int, 100);
 	mixin Property!("cardDescriptionColumn", int, 280);
 	mixin Property!("cardCountColumn", int, 60);
+	mixin Property!("linkCardMaskColor", CRGB, CRGB(0, 255, 0, 64), true);
 	mixin Property!("couponWidth", int, 150, true);
 	mixin Property!("couponValueColumn", int, 40, true);
 	mixin Property!("idColumn", int, 50);
@@ -205,6 +206,7 @@ class FlexEtcProps : Properties {
 	mixin Property!("expandXMLs", bool, false);
 	mixin Property!("xmlCopy", bool, false);
 	mixin Property!("saveInnerImagePath", bool, false);
+	mixin Property!("linkHandCard", bool, false);
 	mixin Property!("traceDirectories", bool, true);
 	mixin Property!("logicalSort", bool, true);
 	mixin Property!("copyDesc", bool, false);

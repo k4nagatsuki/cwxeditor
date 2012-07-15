@@ -916,12 +916,15 @@ private:
 		foreach (a; _summ.casts) {
 			auto par = add(null, a.name, a);
 			foreach (c; a.skills) {
+				if (0 != c.linkId) continue;
 				add(par, c.name, c);
 			}
 			foreach (c; a.items) {
+				if (0 != c.linkId) continue;
 				add(par, c.name, c);
 			}
 			foreach (c; a.beasts) {
+				if (0 != c.linkId) continue;
 				add(par, c.name, c);
 			}
 			par.setExpanded(true);
