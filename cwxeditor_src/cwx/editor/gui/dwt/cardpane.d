@@ -67,6 +67,7 @@ private:
 	}
 	@property
 	private C[] pOwnerCards() {mixin ("return _summ." ~ GetAll ~ ";");}
+	private C pOwnerCard(ulong id) {mixin ("return _summ." ~ GetFromId ~ "(id);");}
 private:
 	static if (EditMode) {
 		static class CPUndo : Undo {
@@ -755,8 +756,11 @@ private:
 					card.linkId = card.id;
 				} else if (!sameSc || !is(CardOwner:CastCard)) {
 					if (0 != card.linkId) {
-						auto node = this.card(card.linkId).toNode();
-						card = C.createFromNode(node, LATEST_VERSION);
+						auto c2 = pOwnerCard(card.linkId);
+						if (c2) {
+							auto node = c2.toNode();
+							card = C.createFromNode(node, LATEST_VERSION);
+						}
 					}
 					card.linkId = 0;
 				}
@@ -941,6 +945,19 @@ private:
 		}
 		sn.newAttr("scenarioPath", nabs(ownerScenarioPath));
 		foreach (sel; sels) {
+			static if (is(typeof(sel.linkId))) {
+				if (0 != sel.linkId) {
+					auto c = pOwnerCard(sel.linkId);
+					if (c) {
+						auto node = c.toNode();
+						static if (is(typeof(sel.hold))) auto hold = sel.hold;
+						auto id = sel.linkId;
+						sel = C.createFromNode(node, LATEST_VERSION);
+						static if (is(typeof(sel.hold))) sel.hold = hold;
+						sel.linkId = id;
+					}
+				}
+			}
 			sel.toNode(sn);
 		}
 	}
