@@ -65,6 +65,8 @@ private:
 		}
 		return null;
 	}
+	@property
+	private C[] pOwnerCards() {mixin ("return _summ." ~ GetAll ~ ";");}
 private:
 	static if (EditMode) {
 		static class CPUndo : Undo {
@@ -1141,13 +1143,35 @@ private:
 			_cimg = prop.images.info;
 		}
 	}
-	static if (CanHold) {
+	static if (CanHold && EditMode) {
 		void hold(SelectionEvent e) {
 			auto card = selection;
 			if (!card) return;
 			auto mi = cast(MenuItem) e.widget;
+			if (card.hold is mi.getSelection()) return;
+			storeEdit(_owner.indexOf(card));
 			card.hold = mi.getSelection();
 			refresh();
+		}
+	}
+	static if (is(CardOwner:CastCard) && EditMode) {
+		Menu _addHandMenu;
+		void refAddHandMenu(C card) {
+			createMenuItem2(_comm, _addHandMenu, .format("%s.%s", card.id, card.name), _cimg, {
+				.forceFocus(widget, false);
+				auto doc = XNode.create(C.XML_NAME_M);
+				card.toNode(doc);
+				addFromNode(doc, LATEST_VERSION);
+			}, null);
+		}
+		void refreshAddHand() {
+			if (!_summ) return;
+			foreach (itm; _addHandMenu.getItems()) {
+				itm.dispose();
+			}
+			foreach (card; pOwnerCards) {
+				refAddHandMenu(card);
+			}
 		}
 	}
 public:
@@ -1256,13 +1280,20 @@ public:
 			} else {
 				static assert (0);
 			}
-			static if (CanHold) {
+			static if (CanHold && EditMode) {
 				new MenuItem(pop, SWT.SEPARATOR);
 				auto holdMI = createMenuItem(_comm, pop, MenuID.Hold, &hold, () => selection !is null, SWT.CHECK);
 				.listener(pop, SWT.Show, {
 					auto card = selection;
 					holdMI.setSelection(card && card.hold);
 				});
+			}
+			static if (is(CardOwner:CastCard) && EditMode) {
+				new MenuItem(pop, SWT.SEPARATOR);
+				void delegate(SelectionEvent) dummy = null;
+				auto addHandMI = createMenuItem(_comm, pop, MenuID.AddHand, dummy, () => _owner && _summ && pOwnerCards.length, SWT.CASCADE);
+				_addHandMenu = new Menu(addHandMI);
+				addHandMI.setMenu(_addHandMenu);
 			}
 			new MenuItem(pop, SWT.SEPARATOR);
 			createMenuItem(_comm, pop, MenuID.Undo, &undo, &_undo.canUndo);
@@ -1315,6 +1346,9 @@ public:
 	static if (EditMode){
 		private void refCardCallback(Object sender, C c) {
 			if (sender is this) return;
+			static if (is(CardOwner:CastCard) && EditMode) {
+				refreshAddHand();
+			}
 			refresh(c);
 		}
 	}
@@ -1576,6 +1610,9 @@ public:
 		_owner = owner;
 		_summ = summ;
 		refresh();
+		static if (is(CardOwner:CastCard) && EditMode) {
+			refreshAddHand();
+		}
 	}
 
 	@property

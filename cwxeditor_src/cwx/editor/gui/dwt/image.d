@@ -481,6 +481,7 @@ public:
 		case MenuID.NewInfo: return imgd!("info_new.png");
 		case MenuID.Import: return imgd!("add.png");
 		case MenuID.OpenHand: return imgd!("card_hand.png");
+		case MenuID.AddHand: return imgd!("add_hand.png");
 		case MenuID.EditEventAtTimeOfUsing: return imgd!("event_tree.png");
 		case MenuID.Hold: return imgd!("hold.png");
 		case MenuID.PlaySE: return imgd!("sound_play.png");

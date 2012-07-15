@@ -1487,8 +1487,9 @@ class Msgs : Properties {
 	mixin Msg!("menuTextNewInfo", "情報カードの作成");
 	mixin Msg!("menuTextImport", "シナリオに追加");
 	mixin Msg!("menuTextOpenHand", "所有カード");
+	mixin Msg!("menuTextAddHand", "所有カードの追加");
 	mixin Msg!("menuTextEditEventAtTimeOfUsing", "使用時イベントの設定");
-	mixin Msg!("menuTextHold", "手札のホールド");
+	mixin Msg!("menuTextHold", "カードのホールド");
 	mixin Msg!("menuTextPlaySE", "再生");
 	mixin Msg!("menuTextStopSE", "停止");
 	mixin Msg!("menuTextNewDir", "新規" ~ DIR);

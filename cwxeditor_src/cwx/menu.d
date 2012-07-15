@@ -151,6 +151,7 @@ enum MenuID {
 	NewInfo,
 	Import,
 	OpenHand,
+	AddHand,
 	EditEventAtTimeOfUsing,
 	Hold,
 	PlaySE,
@@ -315,6 +316,7 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.NewInfo] = "F";
 		_mnemonic[MenuID.Import] = "A";
 		_mnemonic[MenuID.OpenHand] = "H";
+		_mnemonic[MenuID.AddHand] = "A";
 		_mnemonic[MenuID.EditEventAtTimeOfUsing] = "N";
 		_mnemonic[MenuID.Hold] = "H";
 		_mnemonic[MenuID.PlaySE] = "P";
@@ -463,6 +465,7 @@ class MenuProps : Properties {
 		_hotkey[MenuID.NewInfo] = "";
 		_hotkey[MenuID.Import] = "Ctrl+I";
 		_hotkey[MenuID.OpenHand] = "";
+		_hotkey[MenuID.AddHand] = "";
 		_hotkey[MenuID.EditEventAtTimeOfUsing] = "";
 		_hotkey[MenuID.Hold] = "";
 		_hotkey[MenuID.PlaySE] = "";
