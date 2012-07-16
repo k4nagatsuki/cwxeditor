@@ -561,7 +561,7 @@ private:
 				string file = files[0];
 				if (.exists(file) && .isDir(file)) {
 					string resDir, lEnginePath;
-					if (Skin.hasClassicEngine(file, resDir, lEnginePath)) {
+					if (Skin.hasClassicEngine(file, resDir, lEnginePath, [])) {
 						return lEnginePath;
 					}
 					return file;
@@ -1074,15 +1074,19 @@ private:
 			_dropPath = dropPath;
 		}
 		override void dragEnter(DropTargetEvent e){
-			e.detail = DND.DROP_LINK;
+			if (_text.getEnabled()) {
+				e.detail = DND.DROP_LINK;
+			}
 		}
 		override void dragOver(DropTargetEvent e){
-			e.detail = DND.DROP_LINK;
+			if (_text.getEnabled()) {
+				e.detail = DND.DROP_LINK;
+			}
 		}
 		override void drop(DropTargetEvent e){
 			e.detail = DND.DROP_NONE;
 			auto str = _drop((cast(FileNames) e.data).array);
-			if (str.length && str != _text.getText()) {
+			if (_text.getEnabled() && str.length && str != _text.getText()) {
 				_text.setText(str);
 				_text.selectAll();
 				e.detail = DND.DROP_LINK;

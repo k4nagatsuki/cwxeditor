@@ -8,6 +8,7 @@ import cwx.props;
 import cwx.imagesize;
 import cwx.xml;
 import cwx.types;
+import cwx.structs;
 
 import std.exception;
 import std.ascii;
@@ -21,9 +22,9 @@ import std.array;
 public:
 
 class Skin {
-	static Skin find(in CProps prop, string enginePath, string type, string sPath, bool legacy) {
+	static Skin find(in CProps prop, string enginePath, string type, string sPath, bool legacy, in ClassicEngine[] cEngines) {
 		if (legacy && !type.length) {
-			return findLegacySkin(prop, enginePath, sPath);
+			return findLegacySkin(prop, enginePath, sPath, cEngines);
 		}
 		static Skin[string] emptySkins;
 		auto tbl = table(prop, enginePath);
@@ -35,8 +36,8 @@ class Skin {
 		emptySkins[enginePath] = r;
 		return r;
 	}
-	static Skin find2(Summary)(in CProps prop, string enginePath, in Summary summ) {
-		return find(prop, enginePath, summ.type, summ.scenarioPath, summ.legacy);
+	static Skin find2(Summary)(in CProps prop, string enginePath, in Summary summ, in ClassicEngine[] cEngines) {
+		return find(prop, enginePath, summ.type, summ.scenarioPath, summ.legacy, cEngines);
 	}
 
 	private static Skin[string][string] skinTable;
@@ -92,7 +93,7 @@ class Skin {
 		skin._execute = execute;
 		return skin;
 	}
-	static Skin findLegacySkin(in CProps prop, string enginePath, string sPath) {
+	static Skin findLegacySkin(in CProps prop, string enginePath, string sPath, in ClassicEngine[] cEngines) {
 		if (!lSkinsKey) {
 			lSkinsKey = enginePath;
 		} else if (enginePath != lSkinsKey) {
@@ -101,7 +102,7 @@ class Skin {
 			lSkinsKey = enginePath;
 		}
 		string resDir, lEnginePath;
-		findLegacy(sPath, resDir, lEnginePath);
+		findLegacy(sPath, resDir, lEnginePath, cEngines);
 		resDir = resDir.length ? nabs(resDir) : "";
 		lEnginePath = lEnginePath.length ? nabs(lEnginePath) : "";
 		auto p = resDir in lSkins;
@@ -159,7 +160,18 @@ class Skin {
 	}
 	/// 指定されたディレクトリにクラシックエンジンとリソースディレクトリが
 	/// 含まれていればtrueを返す。
-	static bool hasClassicEngine(string path, out string resDir, out string enginePath) {
+	static bool hasClassicEngine(string path, out string resDir, out string enginePath, in ClassicEngine[] cEngines) {
+		foreach (cEngine; cEngines) {
+			string e = cEngine.enginePath.baseName();
+			if (cwx.utils.isabs(cEngine.dataDirName) ? true : .exists(path.buildPath(cEngine.dataDirName))) {
+				auto p = path.buildPath(e);
+				if (p.exists()) {
+					enginePath = p;
+					resDir = cEngine.dataDirName;
+					return true;
+				}
+			}
+		}
 		auto r = findResDir(path);
 		if (!r.length) return false;
 		resDir = buildPath(path, r);
@@ -196,9 +208,9 @@ class Skin {
 
 	/// 指定されたシナリオが属すCardWirthを検索し、
 	/// そのリソースディレクトリとエンジンのパスを返す。
-	static bool findLegacy(string scPath, out string resDir, out string enginePath) {
+	static bool findLegacy(string scPath, out string resDir, out string enginePath, in ClassicEngine[] cEngines) {
 		auto path = dirName(scPath);
-		while (!hasClassicEngine(path, resDir, enginePath)) {
+		while (!hasClassicEngine(path, resDir, enginePath, cEngines)) {
 			auto old = path;
 			path = dirName(path);
 			if (old == path) {

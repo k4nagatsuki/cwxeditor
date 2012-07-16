@@ -453,7 +453,7 @@ private:
 			assert (_typeClassic.getSelection());
 			// クラシックエンジンのリソース
 			string resDir, lEnginePath;
-			auto curSkin = Skin.findLegacy(_summ.scenarioPath, resDir, lEnginePath);
+			auto curSkin = Skin.findLegacy(_summ.scenarioPath, resDir, lEnginePath, _prop.var.etc.classicEngines);
 			lEnginePath = nabs(lEnginePath);
 			bool cur = 0 != lEnginePath.length;
 			foreach (i, ce; _classicEngines) {

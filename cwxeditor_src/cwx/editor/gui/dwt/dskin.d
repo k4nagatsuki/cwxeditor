@@ -33,7 +33,7 @@ Skin findSkin(S = Summary)(Commons comm, Props prop, in S summ, bool appendClass
 			return findSkin2(prop, prop.var.etc.defaultSkin);
 		}
 		if (summ.legacy && !summ.type.length) {
-			auto skin = Skin.find2!(S)(prop.parent, prop.enginePath, summ);
+			auto skin = Skin.find2!(S)(prop.parent, prop.enginePath, summ, prop.var.etc.classicEngines);
 			void find() {
 				if (!appendClassicSkin) return;
 				if (!prop.var.etc.addNewClassicEngine) return;
