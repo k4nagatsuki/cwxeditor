@@ -2284,7 +2284,7 @@ protected:
 			_prop.var.menu.mnemonic(data.id, data.mnemonic);
 			_prop.var.menu.hotkey(data.id, data.hotkey);
 		}
-		if (_summ && findCWPy(_prop, _summ.scenarioPath)) {
+		if (_summ && findCWPy(_prop, _summ.useTemp ? _summ.zipName : _summ.scenarioPath)) {
 			_enginePath.setText(_prop.var.etc.enginePath);
 			_findEnginePath.setSelection(_prop.var.etc.findEnginePath);
 			refEngineEnabled();

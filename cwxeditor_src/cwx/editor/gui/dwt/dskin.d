@@ -41,7 +41,7 @@ bool findCWPy(Props prop, string sPath) {
 
 Skin findSkin(S = Summary)(Commons comm, Props prop, in S summ, bool appendClassicSkin = true) {
 	if (!summ.legacy) {
-		findCWPy(prop, summ.scenarioPath);
+		findCWPy(prop, summ.useTemp ? summ.zipName : summ.scenarioPath);
 	}
 	static if (is(typeof(summ.type))) {
 		if (!summ) {
