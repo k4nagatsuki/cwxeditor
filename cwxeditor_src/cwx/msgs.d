@@ -1149,7 +1149,7 @@ class Msgs : Properties {
 	mixin Msg!("baseSettings", "基本設定");
 	mixin Msg!("reference", "...");
 	mixin Msg!("enginePath", "%1$sの場所");
-	mixin Msg!("enginePathAtten", "※ クラシックなシナリオのみに使用する場合は空欄にしてください");
+	mixin Msg!("findEnginePath", "シナリオの場所から自動的に探す");
 	mixin Msg!("dlgTitEnginePath", "%1$sの場所");
 	mixin Msg!("tempDir", "シナリオの一時展開先");
 	mixin Msg!("tempDirDesc", "wsn圧縮されたシナリオの一時的な展開先を選択してください。");

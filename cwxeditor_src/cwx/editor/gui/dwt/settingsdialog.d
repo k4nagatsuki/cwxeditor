@@ -973,6 +973,8 @@ private:
 
 	CTabItem _tabB;
 	Text _enginePath;
+	Button _refEnginePath;
+	Button _findEnginePath;
 	Text _tempDir;
 	Text _backupDir;
 	Button _backupEnabled;
@@ -1319,16 +1321,25 @@ private:
 				createTextMenu!Text(_comm, _prop, _enginePath, &catchMod);
 				_enginePath.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				mod(_enginePath);
-				auto refr = new Button(grp, SWT.PUSH);
-				refr.setText(_prop.msgs.reference);
-				refr.addSelectionListener(new SelEngine);
+				_refEnginePath = new Button(grp, SWT.PUSH);
+				_refEnginePath.setText(_prop.msgs.reference);
+				_refEnginePath.addSelectionListener(new SelEngine);
 				createOpenButton(grp, _enginePath, false);
-				auto l = new Label(grp, SWT.NONE);
-				l.setText(_prop.msgs.enginePathAtten);
+				_findEnginePath = new Button(grp, SWT.CHECK);
+				mod(_findEnginePath);
+				_findEnginePath.setText(_prop.msgs.findEnginePath);
 				auto gd = new GridData;
 				gd.horizontalSpan = 3;
-				l.setLayoutData(gd);
+				_findEnginePath.setLayoutData(gd);
 				setupDropFile(grp, _enginePath, &dropEngine);
+
+				.listener(_enginePath, SWT.Modify, {
+					_findEnginePath.setEnabled(0 == _enginePath.getText().length);
+				});
+				.listener(_findEnginePath, SWT.Selection, {
+					_enginePath.setEnabled(!_findEnginePath.getSelection());
+					_refEnginePath.setEnabled(!_findEnginePath.getSelection());
+				});
 			}
 			{
 				auto grp = new Group(comp2, SWT.NONE);
@@ -2010,11 +2021,7 @@ private:
 	}
 	private RefE _refe;
 	private void refreshScenario(Summary summ) {
-		if (!summ) {
-			forceCancel();
-		} else {
-			_summ = summ;
-		}
+		_summ = summ;
 	}
 	private void refreshEnabled() {
 		_backupDir.setEnabled(_backupEnabled.getSelection());
@@ -2022,6 +2029,11 @@ private:
 		_backupCount.setEnabled(_backupEnabled.getSelection());
 		_backupRef.setEnabled(_backupEnabled.getSelection());
 		_backupDirOpen.setEnabled(_backupEnabled.getSelection());
+	}
+	void refEngineEnabled() {
+		_findEnginePath.setEnabled(0 == _enginePath.getText().length);
+		_enginePath.setEnabled(!_findEnginePath.getSelection() || _enginePath.getText().length);
+		_refEnginePath.setEnabled(_enginePath.getEnabled());
 	}
 public:
 	this (Commons comm, Props prop, Shell shell, DockingFolderCTC dock, Summary summ, void delegate() sendReloadProps) {
@@ -2061,6 +2073,9 @@ protected:
 		_evTempls.setup();
 
 		_enginePath.setText(_prop.var.etc.enginePath);
+		_findEnginePath.setSelection(_prop.var.etc.findEnginePath);
+		refEngineEnabled();
+
 		_tempDir.setText(_prop.var.etc.tempPath);
 		_backupDir.setText(_prop.var.etc.backupPath);
 		_backupEnabled.setSelection(_prop.var.etc.backupEnabled);
@@ -2180,6 +2195,7 @@ protected:
 			oldStgs.raiseEvent(_comm);
 		}
 		_prop.var.etc.enginePath = engine;
+		_prop.var.etc.findEnginePath = _findEnginePath.getSelection();
 		if (_language.getSelectionIndex() <= 0) {
 			_prop.var.etc.languageFile = "";
 			_prop.var.etc.useSystemLanguage = true;
@@ -2268,6 +2284,11 @@ protected:
 			_prop.var.menu.mnemonic(data.id, data.mnemonic);
 			_prop.var.menu.hotkey(data.id, data.hotkey);
 		}
+		if (_summ && findCWPy(_prop, _summ.scenarioPath)) {
+			_enginePath.setText(_prop.var.etc.enginePath);
+			_findEnginePath.setSelection(_prop.var.etc.findEnginePath);
+			refEngineEnabled();
+		}
 		_prop.var.save(_dock);
 		_sendReloadProps();
 		return true;
@@ -2277,6 +2298,7 @@ protected:
 struct OldSettings {
 	Props prop;
 	string oldEnginePath;
+	bool findEnginePath;
 	string oldWallpaper;
 	int oldWallpaperStyle;
 	const string[] oldKeyCodes;

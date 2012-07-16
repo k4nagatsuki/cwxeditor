@@ -221,6 +221,19 @@ class Skin {
 		}
 		return true;
 	}
+	/// 指定されたシナリオが属すCardWirthPyを検索し、そのパスを返す。
+	static string findCardWirthPy(string scPath, string exeName, string dataName) {
+		auto path = dirName(scPath);
+		while (!path.buildPath(exeName).exists() || !path.buildPath(dataName).exists()) {
+			auto old = path;
+			path = dirName(path);
+			if (old == path) {
+				return "";
+			}
+		}
+		return path.buildPath(exeName);
+	}
+
 	private bool _legacy = false;
 	private string _legacyPath = "";
 	private string _legacyEngine = "";

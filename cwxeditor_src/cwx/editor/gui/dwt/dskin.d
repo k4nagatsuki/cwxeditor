@@ -27,7 +27,22 @@ Skin createClassicSkin(in Props prop, in ClassicEngine ce) {
 	return Skin.createLegacySkin(prop.parent, prop.enginePath, ce.enginePath, ce.dataDirName, ce.execute);;
 }
 
+bool findCWPy(Props prop, string sPath) {
+	if (prop.var.etc.findEnginePath && !prop.var.etc.enginePath.length) {
+		auto p = Skin.findCardWirthPy(sPath, prop.var.etc.engine, prop.var.etc.dataDir);
+		if (p.length) {
+			prop.var.etc.enginePath = p;
+			prop.var.etc.findEnginePath = false;
+			return true;
+		}
+	}
+	return false;
+}
+
 Skin findSkin(S = Summary)(Commons comm, Props prop, in S summ, bool appendClassicSkin = true) {
+	if (!summ.legacy) {
+		findCWPy(prop, summ.scenarioPath);
+	}
 	static if (is(typeof(summ.type))) {
 		if (!summ) {
 			return findSkin2(prop, prop.var.etc.defaultSkin);

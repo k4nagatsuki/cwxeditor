@@ -194,11 +194,13 @@ class FlexEtcProps : Properties {
 	mixin Property!("searchResultTableHeight", int, 200, true);
 	version (Windows) {
 		mixin Property!("engine", string, "CardWirthPy.exe", true);
-		mixin Property!("enginePath", string, "CardWirthPy.exe");
+		mixin Property!("enginePath", string, "");
 	} else {
 		mixin Property!("engine", string, "CardWirthPy", true);
-		mixin Property!("enginePath", string, "CardWirthPy");
+		mixin Property!("enginePath", string, "");
 	}
+	mixin Property!("dataDir", string, "Data", true);
+	mixin Property!("findEnginePath", bool, true);
 	mixin Property!("defaultSkin", string, "MedievalFantasy", true);
 	mixin Property!("defaultAuthor", string, "");
 	mixin Property!("canCreateClassic", bool, false);
