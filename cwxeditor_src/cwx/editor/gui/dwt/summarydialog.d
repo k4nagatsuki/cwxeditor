@@ -89,7 +89,7 @@ private:
 				}
 				i--;
 			}
-			return .createClassicSkin(_prop, _prop.var.etc.classicEngines[i]);
+			return .createClassicSkin(_prop, _classicEngines[i]);
 		}
 		return .findSkin2(_prop, _prop.var.etc.defaultSkin);
 	}
@@ -406,7 +406,7 @@ private:
 				selType = _type.getText();
 			} else if (_typeClassic.getSelection()) {
 				int i = _type.getSelectionIndex();
-				if (-1 != i) {
+				if (-1 != i && i < _classicEngines.length) {
 					if (_hasLegacySkin) {
 						if (0 < i) {
 							selClassic = _prop.toAppAbs(_classicEngines[i - 1].enginePath);
@@ -456,7 +456,7 @@ private:
 			auto curSkin = Skin.findLegacy(_summ.scenarioPath, resDir, lEnginePath);
 			lEnginePath = nabs(lEnginePath);
 			bool cur = 0 != lEnginePath.length;
-			foreach (i, ce; _prop.var.etc.classicEngines) {
+			foreach (i, ce; _classicEngines) {
 				_type.add(ce.name);
 				if (selClassic && cfnmatch(selClassic, _prop.toAppAbs(ce.enginePath))) {
 					_type.select(i);
