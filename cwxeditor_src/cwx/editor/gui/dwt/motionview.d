@@ -584,17 +584,23 @@ private:
 		}
 		return false;
 	}
+	@property
+	BeastCard selectedBeast() {
+		int index = _beasts.getSelectionIndex();
+		if (-1 != index) return _beastTbl[index];
+		return null;
+	}
 	class SetBeast : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			int index = _beasts.getSelectionIndex();
-			if (index >= 0) {
+			auto b = selectedBeast;
+			if (b) {
 				int mi = _motions.getSelectionIndex();
 				auto sb = cast(Motion) _motions.getItem(mi).getData();
-				auto b = _beastTbl[index];
 				if (!sb.beast && !b) return;
 				storeEdit(mi);
 				if (sb.beast) _comm.delBeast.call(sb.beast);
 				sb.beast = b;
+				sb.beast.linkId = 0;
 				_beastImg.redraw();
 				foreach (dlg; modEvent) dlg();
 			}
@@ -762,6 +768,9 @@ private:
 		refBeasts();
 	}
 	void refBeasts() {
+		ulong selId = 0;
+		auto sel = selectedBeast;
+		if (sel) selId = sel.id;
 		_beasts.removeAll();
 		typeof(_beastTbl) b;
 		_beastTbl = b;
@@ -771,6 +780,7 @@ private:
 		foreach (i, c; _summ.beasts) {
 			_beastTbl[i + 1] = c;
 			_beasts.add(c.name);
+			if (c.id == selId) _beasts.select(_beasts.getItemCount() - 1);
 		}
 	}
 	bool _refUndo = false;
@@ -1185,6 +1195,7 @@ public:
 				storeEdit(_motions.getSelectionIndex());
 				if (m.beast) _comm.delBeast.call(m.beast);
 				m.setBeastFromNode(bNode, LATEST_VERSION);
+				if (m.beast) m.beast.linkId = 0;
 				_beastImg.redraw();
 				foreach (dlg; modEvent) dlg();
 			}

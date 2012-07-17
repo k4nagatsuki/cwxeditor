@@ -76,6 +76,7 @@ public:
 		desc = c.desc;
 		path = c.path;
 	}
+
 	/// 変更ハンドラを登録する。
 	@property
 	void changeHandler(void delegate() change) {
@@ -88,8 +89,11 @@ public:
 	}
 	/// 変更を通知する。
 	protected void changed() {
-		if (_change) _change();
+		if (_change && !blockChangeHandle) _change();
 	}
+	/// trueの時、変更の通知を行わない。
+	protected bool blockChangeHandle = false;
+
 	/// 使用回数カウンタ。
 	@property
 	UseCounter useCounter() {
@@ -542,12 +546,16 @@ public:
 	}
 
 	private void refreshHandsImpl(C)(ref C[] arr, C delegate(ulong) get) {
+		blockChangeHandle = true;
+		scope (exit) blockChangeHandle = false;
 		foreach (i, c; arr.dup) {
 			auto id = c.linkId;
 			if (0 == id) continue;
 			auto c2 = get(id);
 			static if (is(typeof(c.hold))) auto hold = c.hold;
 			auto c3 = replaceImpl(arr, i, c2);
+			c3.blockChangeHandle = true;
+			scope (exit) c3.blockChangeHandle = false;
 			c3.linkId = id;
 			static if (is(typeof(c.hold))) c3.hold = hold;
 		}
@@ -557,9 +565,6 @@ public:
 		refreshHandsImpl(_skills, &summ.skill);
 		refreshHandsImpl(_items, &summ.item);
 		refreshHandsImpl(_beasts, &summ.beast);
-	}
-	/// ditto
-	void refreshHandSkill(S)(S summ, int index) {
 	}
 
 	/// 指定された要素のindexを検索する。

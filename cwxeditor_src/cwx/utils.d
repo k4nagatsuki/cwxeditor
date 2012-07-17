@@ -71,6 +71,7 @@ private version (Windows) {
 } else {
 	import core.sys.posix.unistd;
 	import core.sys.posix.pwd;
+	import std.c.string;
 }
 
 shared string LATEST_VERSION = "";
@@ -1782,3 +1783,68 @@ template variableName(string Name) {
 }
 static assert (variableName!("version") == "version_");
 static assert (variableName!("versio") == "versio");
+
+version (Windows) {
+	extern (Windows) {
+		private alias UINT function(WCHAR c) PathGetCharTypeW;
+		private immutable GCT_INVALID = 0x0;
+		private immutable GCT_LFNCHAR = 0x1;
+		private immutable GCT_SHORTCHAR = 0x2;
+		private immutable GCT_WILD = 0x4;
+		private immutable GCT_SEPARATOR = 0x8;
+		private __gshared HXModule _shlwapi = null;
+		private __gshared PathGetCharTypeW _PathGetCharType = null;
+	}
+	shared static ~this() {
+		if (_shlwapi) ExeModule_Release(_shlwapi);
+	}
+}
+/// ファイル名に使用できる文字か。
+@property
+bool isFileNameChar(dchar c) {
+	version (Windows) {
+		static immutable DN = "\\/:*?\"<>|"d;
+		if (!_shlwapi) {
+			_shlwapi = ExeModule_Load("shlwapi.dll");
+		}
+		if (!_shlwapi) {
+			return -1 == std.string.indexOf(DN, c);
+		}
+		if (!_PathGetCharType) {
+			_PathGetCharType = cast(PathGetCharTypeW) ExeModule_GetSymbol(_shlwapi, "PathGetCharTypeW");
+		}
+		if (!_PathGetCharType) {
+			return -1 == std.string.indexOf(DN, c);
+		}
+		foreach (wchar wc; [c]) {
+			auto r = _PathGetCharType(wc);
+			if (!(GCT_LFNCHAR & r) && !(GCT_SHORTCHAR & r)) {
+				return false;
+			}
+		}
+		return true;
+	} else version (Posix) {
+		static immutable DN = "/"d;
+		return 0 != c && -1 == std.string.indexOf(DN, c);
+	} else static assert (0);
+}
+
+/// 実行モジュールのパスを返す。
+string exeName(string args0) {
+	version (Windows) {
+		char[MAX_PATH] pathBuf;
+		if (GetModuleFileNameA(null, pathBuf.ptr, pathBuf.length)) {
+			return fromMBSz(pathBuf.idup.ptr);
+		} else {
+			version (Console) {
+				cwriteln("GetModuleFileName failure!");
+			}
+		}
+	} else version (linux) {
+		char[1024] buf;
+		if (-1 != .readlink("/proc/self/exe", buf.ptr, buf.sizeof)) {
+			return buf[0 .. .strlen(buf)].idup;
+		}
+	}
+	return args0;
+}

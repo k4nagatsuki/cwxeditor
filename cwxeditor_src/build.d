@@ -183,11 +183,17 @@ void removeFile(string path) {
 void main(string[] args) {
 	// ビルドフラグ
 	args = args[1 .. $].sort;
+	bool help = args.has("help");
 	bool release = args.has("release");
 	bool console = args.has("cui");
 	bool window = (release && !console) || args.has("gui");
 	bool clean = args.has("clean");
 	bool run = args.has("run");
+
+	if (help) {
+		writeln("Usage: rdmd build [help | clean | cui | gui | release | run]");
+		return;
+	}
 
 	// 前回のフラグと比較・保存
 	bool mod = "build.log".exists() && args != "build.log".readText().splitLines();

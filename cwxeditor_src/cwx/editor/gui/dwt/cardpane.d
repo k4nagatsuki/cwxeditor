@@ -420,7 +420,7 @@ private:
 		for (i = 0; i < cards.length; i++) {
 			bool targ = cards[i] is c;
 			static if (is(CardOwner:CastCard) && is(typeof(c.linkId))) {
-				if (cast(Object) c.cwxParent is _summ && 0 != cards[i].linkId && cards[i].linkId is c.id) {
+				if (cast(Summary) c.cwxParent && 0 != cards[i].linkId && cards[i].linkId is c.id) {
 					auto id = cards[i].linkId;
 					static if (is(typeof(c.hold))) auto hold = cards[i].hold;
 					cards[i].shallowCopy(c);
@@ -433,7 +433,7 @@ private:
 				if (_viewMode == CViewMode.TABLE) {
 					refreshTableItem(cards[i], _tbl.getItem(i));
 				} else {
-					refreshListItem(i);
+					refreshListItem(i, cards[i]);
 				}
 			}
 		}
@@ -469,8 +469,8 @@ private:
 			: new TableItem(_tbl, SWT.NONE);
 		refreshTableItem(c, itm);
 	}
-	void refreshListItem(int index) {
-		_list.refresh(index);
+	void refreshListItem(int index, C card) {
+		_list.refresh(index, card);
 	}
 	void refreshTableItem(C c, TableItem itm) {
 		itm.setImage(0, _cimg);
@@ -751,6 +751,19 @@ private:
 			}
 		}
 		void refreshLink(ref C card, bool samePane, bool sameSc, bool topLevel) {
+			static if (is(C:CastCard)) {
+				if (!sameSc) {
+					foreach (c; card.skills) {
+						c.linkId = 0;
+					}
+					foreach (c; card.items) {
+						c.linkId = 0;
+					}
+					foreach (c; card.beasts) {
+						c.linkId = 0;
+					}
+				}
+			}
 			static if (is(typeof(card.linkId))) {
 				if (sameSc && is(CardOwner:CastCard) && topLevel && _prop.var.etc.linkHandCard) {
 					card.linkId = card.id;
@@ -945,6 +958,9 @@ private:
 		}
 		sn.newAttr("scenarioPath", nabs(ownerScenarioPath));
 		foreach (sel; sels) {
+			static if (is(C:CastCard)) {
+				sel.refreshAllHands(_summ);
+			}
 			static if (is(typeof(sel.linkId))) {
 				if (0 != sel.linkId) {
 					auto c = pOwnerCard(sel.linkId);
@@ -1598,9 +1614,7 @@ public:
 				static if (!CanHold && is(typeof(card.hold))) {
 					card.hold = false;
 				}
-				static if (is(typeof(card.linkId))) {
-					refreshLink(card, samePane, sameSc, topLevel);
-				}
+				refreshLink(card, samePane, sameSc, topLevel);
 				static if (is(CardOwner:Summary)) {
 					ulong oldId = _owner.add(card);
 					if (ids) {

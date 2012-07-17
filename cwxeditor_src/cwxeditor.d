@@ -19,24 +19,8 @@ import std.exception;
 import std.conv;
 import std.cstream;
 
-version (Windows) {
-	import std.windows.charset;
-	import std.c.windows.windows;
-	import std.c.string;
-}
-
 void main(string[] args) {
-	string appPath = args[0];
-	version (Windows) {
-		char[MAX_PATH] pathBuf;
-		if (GetModuleFileNameA(null, pathBuf.ptr, pathBuf.length)) {
-			appPath = fromMBSz(pathBuf.idup.ptr);
-		} else {
-			version (Console) {
-				cwriteln("GetModuleFileName failure!");
-			}
-		}
-	}
+	string appPath = exeName(args[0]);
 	version (Console) {
 		string log = "Executed: " ~ appPath;
 		cwriteln(log);

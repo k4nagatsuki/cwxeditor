@@ -422,6 +422,7 @@ public:
 	private void setBeastImpl(BeastCard beast) {
 		_beast = beast;
 		_beast.id = 1L;
+		_beast.linkId = 0L;
 		_beast.changeHandler = _change;
 		if (_uc) _beast.setUseCounter(_uc);
 		_beast.owner = this;

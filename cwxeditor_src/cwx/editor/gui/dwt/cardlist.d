@@ -433,7 +433,8 @@ public:
 		}
 	}
 	/// indexの画像を更新する。
-	void refresh(int index) {
+	void refresh(int index, C card) {
+		_items[index].setData(card);
 		_items[index].createImage(true);
 		redraw();
 	}

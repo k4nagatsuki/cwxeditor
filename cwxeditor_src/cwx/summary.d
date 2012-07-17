@@ -1132,6 +1132,12 @@ public:
 					chg[o] = arr[i].id;
 				}
 			}
+			static if (is(typeof(c.hold))) {
+				c.hold = false;
+			}
+			static if (is(typeof(c.linkId))) {
+				c.linkId = 0;
+			}
 			c.setUseCounter = _uc;
 			c.changeHandler = &changeHandler;
 			c.owner = this;
@@ -1190,6 +1196,12 @@ public:
 				_uc.change(ToID(oldId), ToID(area.id));
 				break;
 			}
+		}
+		static if (is(typeof(area.hold))) {
+			area.hold = false;
+		}
+		static if (is(typeof(area.linkId))) {
+			area.linkId = 0;
 		}
 		arr ~= area;
 		area.setUseCounter = _uc;
