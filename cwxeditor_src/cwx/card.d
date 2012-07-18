@@ -15,6 +15,21 @@ import cwx.path;
 import std.algorithm;
 import std.exception;
 
+/// データをXML化する時のオプション。
+class XMLOption {
+	bool includeCard = false; /// リンク先のカードの実体を格納する。
+	SkillCard delegate(ulong) skill = null; /// IDからスキルカードを取得。
+	ItemCard delegate(ulong) item = null; /// IDからアイテムカードを取得。
+	BeastCard delegate(ulong) beast = null; /// IDから召喚獣カードを取得。
+}
+/// XML化時に上書きするデータ。
+class OverData {
+	ulong id = 0UL; /// ID。0の場合は上書きしない。
+	ulong linkId = 0UL; /// 参照ID。0の場合は上書きしない。
+	bool overHold = false; /// ホールド状態を上書きするか。
+	bool hold = false; /// ホールド状態。
+}
+
 public:
 
 /// カードの所持者である事を示すインタフェース。
@@ -89,10 +104,8 @@ public:
 	}
 	/// 変更を通知する。
 	protected void changed() {
-		if (_change && !blockChangeHandle) _change();
+		if (_change) _change();
 	}
-	/// trueの時、変更の通知を行わない。
-	protected bool blockChangeHandle = false;
 
 	/// 使用回数カウンタ。
 	@property
@@ -176,9 +189,9 @@ public:
 
 	/// 指定されたXMLノードにProperty情報を追加する。
 	const
-	protected XNode setProp(ref XNode node, ulong forceId = 0UL) {
+	protected XNode setProp(ref XNode node, XMLOption opt, in OverData od = null) {
 		auto pNode = node.newElement("Property");
-		pNode.newElement("Id", forceId == 0UL ? id : forceId);
+		pNode.newElement("Id", od && od.id != 0UL ? od.id : id);
 		pNode.newElement("Name", name);
 		pNode.newElement("ImagePath", encodePath(path));
 		pNode.newElement("Description", encodeLf(desc));
@@ -397,7 +410,7 @@ public:
 			remove(c);
 		}
 		scope doc = XNode.create(C.XML_NAME);
-		c.toNodeImpl(doc);
+		c.toNodeImpl(doc, null, null);
 		c = C.createFromNode(doc, LATEST_VERSION);
 		if (arr.length > 0 && arr[$ - 1].id >= c.id) {
 			c.id = arr[$ - 1].id + 1L;
@@ -466,28 +479,12 @@ public:
 			return c;
 		}
 	}
-	private C replaceImpl(C)(ref C[] arr, int i, C c) {
-		auto node = c.toNode();
-		c = C.createFromNode(node, LATEST_VERSION);
-		c.id = arr[i].id;
-		arr[i].removeUseCounter();
-		arr[i].changeHandler = null;
-		arr[i].owner = null;
-		c.setUseCounter = useCounter;
-		c.changeHandler = changeHandler;
-		c.owner = this;
-		arr[i] = c;
-		changed();
-		return c;
-	}
 
 	/// 所持アイテム。
 	@property
 	ItemCard[] items() {return _items;}
 	/// ditto
 	ItemCard add(ItemCard card) {return __add(_items, card);}
-	/// ditto
-	ItemCard replace(int index, ItemCard card) {return replaceImpl(_items, index, card);}
 	/// ditto
 	void removeItem(ulong id) {__remove(_items, id);}
 	/// ditto
@@ -508,8 +505,6 @@ public:
 	/// ditto
 	SkillCard add(SkillCard card) {return __add(_skills, card);}
 	/// ditto
-	SkillCard replace(int index, SkillCard card) {return replaceImpl(_skills, index, card);}
-	/// ditto
 	void removeSkill(ulong id) {__remove(_skills, id);}
 	/// ditto
 	SkillCard skill(ulong id) {
@@ -529,8 +524,6 @@ public:
 	/// ditto
 	BeastCard add(BeastCard card) {return __add(_beasts, card);}
 	/// ditto
-	BeastCard replace(int index, BeastCard card) {return replaceImpl(_beasts, index, card);}
-	/// ditto
 	void removeBeast(ulong id) {__remove(_beasts, id);}
 	/// ditto
 	BeastCard beast(ulong id) {
@@ -543,28 +536,6 @@ public:
 	/// ditto
 	BeastCard insert(int index, BeastCard c) {
 		return __insert!(BeastCard, toBeastId)(_beasts, index, c);
-	}
-
-	private void refreshHandsImpl(C)(ref C[] arr, C delegate(ulong) get) {
-		blockChangeHandle = true;
-		scope (exit) blockChangeHandle = false;
-		foreach (i, c; arr.dup) {
-			auto id = c.linkId;
-			if (0 == id) continue;
-			auto c2 = get(id);
-			static if (is(typeof(c.hold))) auto hold = c.hold;
-			auto c3 = replaceImpl(arr, i, c2);
-			c3.blockChangeHandle = true;
-			scope (exit) c3.blockChangeHandle = false;
-			c3.linkId = id;
-			static if (is(typeof(c.hold))) c3.hold = hold;
-		}
-	}
-	/// 参照IDを持つ手札を最新状態にする。
-	void refreshAllHands(S)(S summ) {
-		refreshHandsImpl(_skills, &summ.skill);
-		refreshHandsImpl(_items, &summ.item);
-		refreshHandsImpl(_beasts, &summ.beast);
 	}
 
 	/// 指定された要素のindexを検索する。
@@ -701,26 +672,26 @@ public:
 
 	/// XMLテキストに変換する。
 	const
-	string toXML() {
-		return toNode().text;
+	string toXML(XMLOption opt) {
+		return toNode(opt).text;
 	}
 	/// XMLノードに変換する。
 	const
-	XNode toNode() {
+	XNode toNode(XMLOption opt) {
 		auto n = XNode.create(XML_NAME);
-		toNodeImpl(n);
+		toNodeImpl(n, opt);
 		return n;
 	}
 	/// 自身をXMLノードにして指定されたノードに追加する。
 	const
-	XNode toNode(ref XNode parent) {
+	XNode toNode(ref XNode parent, XMLOption opt) {
 		auto cNode = parent.newElement(XML_NAME);
-		toNodeImpl(cNode);
+		toNodeImpl(cNode, opt);
 		return cNode;
 	}
 	const
-	private void toNodeImpl(ref XNode cNode) {
-		auto pNode = setProp(cNode, id);
+	private void toNodeImpl(ref XNode cNode, XMLOption opt) {
+		auto pNode = setProp(cNode, opt, null);
 		pNode.newElement("Level", level);
 		pNode.newElement("Life", life).newAttr("max", lifeMax);
 		setFeature(pNode);
@@ -755,19 +726,50 @@ public:
 		{
 			auto cardNode = cNode.newElement("ItemCards");
 			foreach (c; _items) {
-				c.toNode(cardNode);
+				if (0 != c.linkId && opt && opt.includeCard) {
+					auto od = new OverData;
+					od.id = c.id;
+					od.linkId = c.linkId;
+					od.overHold = true;
+					od.hold = c.hold;
+					auto c2 = opt.item(c.linkId);
+					if (!c2) c2 = new ItemCard(id, "", "", "");
+					c2.toNode(cardNode, opt, od);
+					continue;
+				}
+				c.toNode(cardNode, opt);
 			}
 		}
 		{
 			auto cardNode = cNode.newElement("SkillCards");
 			foreach (c; _skills) {
-				c.toNode(cardNode);
+				if (0 != c.linkId && opt && opt.includeCard) {
+					auto od = new OverData;
+					od.id = c.id;
+					od.linkId = c.linkId;
+					od.overHold = true;
+					od.hold = c.hold;
+					auto c2 = opt.skill(c.linkId);
+					if (!c2) c2 = new SkillCard(id, "", "", "");
+					c2.toNode(cardNode, opt, od);
+					continue;
+				}
+				c.toNode(cardNode, opt);
 			}
 		}
 		{
 			auto cardNode = cNode.newElement("BeastCards");
 			foreach (c; _beasts) {
-				c.toNode(cardNode);
+				if (0 != c.linkId && opt && opt.includeCard) {
+					auto od = new OverData;
+					od.id = c.id;
+					od.linkId = c.linkId;
+					auto c2 = opt.beast(c.linkId);
+					if (!c2) c2 = new BeastCard(id, "", "", "");
+					c2.toNode(cardNode, opt, od);
+					continue;
+				}
+				c.toNode(cardNode, opt);
 			}
 		}
 	}
@@ -1248,9 +1250,9 @@ public:
 
 	/// 指定されたXMLノードに効果カード関連の情報を追加する。
 	const
-	protected XNode setEffProp(ref XNode node, ulong forceId = 0UL) {
-		auto pNode = setProp(node, forceId);
-		pNode.newElement("LinkId", linkId);
+	protected XNode setEffProp(ref XNode node, XMLOption opt, in OverData od = null) {
+		auto pNode = setProp(node, opt, od);
+		pNode.newElement("LinkId", od && od.linkId != 0UL ? od.linkId : linkId);
 		pNode.newElement("Scenario", scenario);
 		pNode.newElement("Author", author);
 		auto a = pNode.newElement("Ability");
@@ -1271,9 +1273,9 @@ public:
 		pNode.newElement("Premium", fromPremium(premium));
 		auto mNode = node.newElement("Motions");
 		foreach (m; _muser.motions) {
-			m.toNode(mNode);
+			m.toNode(mNode, opt);
 		}
-		_ceto.appendEventsToNode(node);
+		_ceto.appendEventsToNode(node, opt);
 		return pNode;
 	}
 	/// 指定されたXMLノードから効果カード関連のデータを読み出す。
@@ -1419,29 +1421,37 @@ public:
 
 	/// XMLテキストに変換する。
 	const
-	string toXML() {
-		return toNode().text;
+	string toXML(XMLOption opt) {
+		return toNode(opt).text;
+	}
+	/// コピーを生成する。
+	@property
+	const
+	SkillCard dup() {
+		auto node = XNode.create(SkillCard.XML_NAME);
+		toNodeImpl(node, null, null);
+		return SkillCard.createFromNode(node, LATEST_VERSION);
 	}
 	/// XMLノードに変換する。
 	const
-	XNode toNode() {
+	XNode toNode(XMLOption opt) {
 		auto n = XNode.create(XML_NAME);
-		toNodeImpl(n);
+		toNodeImpl(n, opt, null);
 		return n;
 	}
 	/// 自身をXMLノードにして指定されたノードに追加する。
 	const
-	XNode toNode(ref XNode parent) {
+	XNode toNode(ref XNode parent, XMLOption opt, in OverData od = null) {
 		auto cNode = parent.newElement(XML_NAME);
-		toNodeImpl(cNode);
+		toNodeImpl(cNode, opt, od);
 		return cNode;
 	}
 	const
-	private void toNodeImpl(ref XNode cNode) {
-		auto pNode = setEffProp(cNode, 0UL);
+	private void toNodeImpl(ref XNode cNode, XMLOption opt, in OverData od = null) {
+		auto pNode = setEffProp(cNode, opt, od);
 		pNode.newElement("Level", level);
 		pNode.newElement("UseLimit", useLimit);
-		pNode.newElement("Hold", fromBool(hold));
+		pNode.newElement("Hold", fromBool(od && od.overHold ? od.hold : hold));
 	}
 
 	/// XMLノードからインスタンスを生成する。
@@ -1586,33 +1596,41 @@ public:
 
 	/// XMLテキストに変換する。
 	const
-	string toXML() {
-		return toNode().text;
+	string toXML(XMLOption opt) {
+		return toNode(opt).text;
+	}
+	/// コピーを生成する。
+	@property
+	const
+	ItemCard dup() {
+		auto node = XNode.create(ItemCard.XML_NAME);
+		toNodeImpl(node, null, null);
+		return ItemCard.createFromNode(node, LATEST_VERSION);
 	}
 	/// XMLノードに変換する。
 	const
-	XNode toNode() {
+	XNode toNode(XMLOption opt) {
 		auto n = XNode.create(XML_NAME);
-		toNodeImpl(n);
+		toNodeImpl(n, opt, null);
 		return n;
 	}
 	/// 自身をXMLノードにして指定されたノードに追加する。
 	const
-	XNode toNode(ref XNode parent) {
+	XNode toNode(ref XNode parent, XMLOption opt, in OverData od = null) {
 		auto cNode = parent.newElement(XML_NAME);
-		toNodeImpl(cNode);
+		toNodeImpl(cNode, opt, od);
 		return cNode;
 	}
 	const
-	private void toNodeImpl(ref XNode cNode) {
-		auto pNode = setEffProp(cNode, 0UL);
+	private void toNodeImpl(ref XNode cNode, XMLOption opt, in OverData od) {
+		auto pNode = setEffProp(cNode, opt, od);
 		pNode.newElement("UseLimit", useLimit).newAttr("max", useLimitMax);
 		pNode.newElement("Price", price);
 		auto eo = pNode.newElement("EnhanceOwner");
 		eo.newAttr("avoid", enhanceOwner(Enhance.AVOID));
 		eo.newAttr("resist", enhanceOwner(Enhance.RESIST));
 		eo.newAttr("defense", enhanceOwner(Enhance.DEFENSE));
-		pNode.newElement("Hold", fromBool(hold));
+		pNode.newElement("Hold", fromBool(od && od.overHold ? od.hold : hold));
 	}
 
 	/// XMLノードからインスタンスを生成する。
@@ -1714,27 +1732,27 @@ public:
 
 	/// XMLテキストに変換する。
 	const
-	string toXML() {
-		return toNode().text;
+	string toXML(XMLOption opt) {
+		return toNode(opt).text;
 	}
 	/// XMLノードに変換する。
 	const
-	XNode toNode() {
+	XNode toNode(XMLOption opt) {
 		auto n = XNode.create(XML_NAME);
-		toNodeImpl(n);
+		toNodeImpl(n, opt, null);
 		return n;
 	}
 	/// 自身をXMLノードにして指定されたノードに追加する。
 	const
-	XNode toNode(ref XNode parent) {
+	XNode toNode(ref XNode parent, XMLOption opt, in OverData od = null) {
 		auto cNode = parent.newElement(XML_NAME);
-		toNodeImpl(cNode);
+		toNodeImpl(cNode, opt, od);
 		return cNode;
 	}
 	const
-	private void toNodeImpl(ref XNode cNode, ulong forceId = 0UL) {
+	private void toNodeImpl(ref XNode cNode, XMLOption opt, in OverData od) {
 		assert (cNode.name == XML_NAME);
-		auto pNode = setEffProp(cNode, forceId);
+		auto pNode = setEffProp(cNode, opt, od);
 		pNode.newElement("UseLimit", useLimit);
 	}
 	/// コピーを生成する。
@@ -1742,14 +1760,14 @@ public:
 	const
 	BeastCard dup() {
 		auto node = XNode.create(BeastCard.XML_NAME);
-		toNodeImpl(node);
+		toNodeImpl(node, null, null);
 		return BeastCard.createFromNode(node, LATEST_VERSION);
 	}
 	/// XMLテキストに変換する。
 	const
-	string toXML(ulong forceId = 0UL) {
+	string toXML(XMLOption opt, in OverData od = null) {
 		auto n = XNode.create(XML_NAME);
-		toNodeImpl(n, forceId);
+		toNodeImpl(n, opt, od);
 		return n.text;
 	}
 	/// XMLノードからインスタンスを生成する。
@@ -1808,26 +1826,26 @@ public:
 
 	/// XMLテキストに変換する。
 	const
-	string toXML() {
-		return toNode().text;
+	string toXML(XMLOption opt) {
+		return toNode(opt).text;
 	}
 	/// XMLノードに変換する。
 	const
-	XNode toNode() {
+	XNode toNode(XMLOption opt) {
 		auto n = XNode.create(XML_NAME);
-		toNodeImpl(n);
+		toNodeImpl(n, opt);
 		return n;
 	}
 	/// 自身をXMLノードにして指定されたノードに追加する。
 	const
-	XNode toNode(ref XNode parent) {
+	XNode toNode(ref XNode parent, XMLOption opt) {
 		auto cNode = parent.newElement(XML_NAME);
-		toNodeImpl(cNode);
+		toNodeImpl(cNode, opt);
 		return cNode;
 	}
 	const
-	private void toNodeImpl(ref XNode cNode) {
-		setProp(cNode);
+	private void toNodeImpl(ref XNode cNode, XMLOption opt) {
+		setProp(cNode, opt);
 	}
 	/// XMLノードからインスタンスを生成する。
 	/// Params:

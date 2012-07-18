@@ -292,7 +292,7 @@ private:
 		private void initUndoDelete() {
 			auto area = areaFromIndex(summ, _index);
 			_isStartArea = cast(Area) area && summ.startArea == area.id;
-			auto node = area.toNode();
+			auto node = area.toNode(null);
 			auto a = cast(Area) area;
 			if (a) {
 				_area = Area.createFromNode(node, LATEST_VERSION);
@@ -533,7 +533,7 @@ private:
 				int i = tbl.getSelectionIndex();
 				assert (-1 != i);
 				_data = cast(AbstractArea) tbl.getItem(i).getData();
-				e.data = bytesFromXML(_data.toXML(_summ.id));
+				e.data = bytesFromXML(_data.toXML(null, _summ.id));
 			}
 		}
 		override void dragFinished(DragSourceEvent e) {
@@ -1270,7 +1270,7 @@ public:
 		void copy(SelectionEvent se) {
 			auto area = getSelectionArea();
 			if (area !is null) {
-				XMLtoCB(_prop, _comm.clipboard, area.toXML(_summ.id));
+				XMLtoCB(_prop, _comm.clipboard, area.toXML(null, _summ.id));
 				_comm.refreshToolBar();
 			}
 		}

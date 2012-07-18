@@ -10,6 +10,7 @@ import cwx.xml;
 import cwx.path;
 import cwx.props;
 import cwx.msgutils;
+import cwx.card;
 
 import std.algorithm;
 import std.datetime;
@@ -1628,15 +1629,15 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 	/// コンテントをXMLテキストにして返す。
 	const
-	string toXML() {
-		return toNode().text;
+	string toXML(XMLOption opt) {
+		return toNode(opt).text;
 	}
 	/// コンテントをXMLノードにして返す。
 	const
-	XNode toNode() {
+	XNode toNode(XMLOption opt) {
 		auto d = this.detail;
 		auto doc = XNode.create(d.name);
-		toNodeImpl(doc, d);
+		toNodeImpl(doc, d, opt);
 		doc.newAttr("contentId", _id);
 		return doc;
 	}
@@ -1648,14 +1649,14 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	}
 	/// 指定されたXMLノードにインスタンスのデータを追加する。
 	const
-	XNode toNode(ref XNode parent) {
+	XNode toNode(ref XNode parent, XMLOption opt) {
 		auto d = this.detail;
 		auto e = parent.newElement(d.name);
-		toNodeImpl(e, d);
+		toNodeImpl(e, d, opt);
 		return e;
 	}
 	const
-	private void toNodeImpl(ref XNode e, in CDetail d) {
+	private void toNodeImpl(ref XNode e, in CDetail d, XMLOption opt) {
 		if (d.type.length) e.newAttr("type", d.type);
 		if (name.length) e.newAttr("name", name);
 		if (comment.length) e.newAttr("comment", comment);
@@ -1710,7 +1711,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		if (d.use(CArg.MOTIONS)) {
 			auto me = e.newElement("Motions");
 			foreach (m; motions) {
-				m.toNode(me);
+				m.toNode(me, opt);
 			}
 		}
 
@@ -1743,7 +1744,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 		auto ce = e.newElement("Contents");
 		foreach (sub; _next) {
-			sub.toNode(ce);
+			sub.toNode(ce, opt);
 		}
 	}
 	/// XMLノード(Contents)の直下にある全てのイベントを、
@@ -2001,7 +2002,7 @@ public:
 	} body {
 		_suc = new SUseCounter;
 		if (start.tree) {
-			auto node = start.toNode();
+			auto node = start.toNode(null);
 			start = start.createFromNode(node, LATEST_VERSION);
 		}
 		add(start);
@@ -2326,25 +2327,25 @@ public:
 
 	/// イベントツリーをXMLテキストにする。
 	const
-	string toXML() {
-		return toNode().text;
+	string toXML(XMLOption opt) {
+		return toNode(opt).text;
 	}
 	/// イベントツリーをXMLノードにする。
 	const
-	XNode toNode() {
+	XNode toNode(XMLOption opt) {
 		auto doc = XNode.create("Event");
-		__toNode(doc);
+		__toNode(doc, opt);
 		return doc;
 	}
 	/// 指定されたXMLノード(Events)にこのインスタンスのデータを追加する。
 	const
-	void toNode(ref XNode node) {
+	void toNode(ref XNode node, XMLOption opt) {
 		assert (node.name == "Events", node.name ~ " != Events");
 		auto e = node.newElement("Event");
-		__toNode(e);
+		__toNode(e, opt);
 	}
 	const
-	private void __toNode(ref XNode node) {
+	private void __toNode(ref XNode node, XMLOption opt) {
 		assert (node.name == "Event", node.name ~ " != Event");
 		if (_enter || _escape || _lose || _rounds.length > 0 || _keyCodes.length > 0) {
 			auto ig = node.newElement("Ignitions");
@@ -2360,7 +2361,7 @@ public:
 		}
 		auto c = node.newElement("Contents");
 		foreach (st; _starts) {
-			st.toNode(c);
+			st.toNode(c, opt);
 		}
 	}
 
@@ -2697,10 +2698,10 @@ public:
 	}
 	/// XMLノードにイベントツリー群のデータを追加する。
 	const
-	void appendEventsToNode(ref XNode node) {
+	void appendEventsToNode(ref XNode node, XMLOption opt) {
 		auto ee = node.newElement("Events");
 		foreach (evt; _evts) {
-			evt.toNode(ee);
+			evt.toNode(ee, opt);
 		}
 	}
 }

@@ -606,7 +606,6 @@ class Commons {
 	}
 
 	HandCardWindow openHands(Props prop, Summary summ, CastCard c, bool shellActivate) {
-		c.refreshAllHands(summ);
 		auto w = rOpen!(HandCardWindow)(c, shellActivate);
 		if (w) return w;
 		return __open2!("side", HandCardWindow, CastCard, "w.refresh(args[2], m);", Commons, Props, Summary, Composite)

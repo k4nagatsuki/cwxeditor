@@ -195,7 +195,7 @@ private:
 			super (v, comm, prop, summ, et);
 			foreach (c; cs) {
 				_path ~= c.ctPath;
-				auto node = c.toNode();
+				auto node = c.toNode(null);
 				_c ~= Content.createFromNode(node, LATEST_VERSION);
 				_c[$ - 1].setUseCounter(summ.useCounter.sub);
 			}
@@ -207,7 +207,7 @@ private:
 			foreach (i, c; _c.dup) {
 				int index = _path[i][$ - 1];
 				auto tc = et.fromPath(_path[i]);
-				auto node = tc.toNode();
+				auto node = tc.toNode(null);
 				_c[i] = Content.createFromNode(node, LATEST_VERSION);
 				_c[i].setUseCounter(summ.useCounter.sub);
 				auto pc = tc.parent;
@@ -288,7 +288,7 @@ private:
 			if (v) v._tree.setRedraw(false);
 			scope (exit) if (v) v._tree.setRedraw(true);
 			for (size_t i = 0; i < _count; i++) {
-				auto node = et.starts[_index].toNode();
+				auto node = et.starts[_index].toNode(null);
 				auto c = Content.createFromNode(node, LATEST_VERSION);
 				c.setUseCounter(summ.useCounter.sub);
 				_c ~= c;
@@ -324,7 +324,7 @@ private:
 		this (EventTreeView v, Commons comm, Props prop, Summary summ, EventTree et, int index, Content del) {
 			super (v, comm, prop, summ, et);
 			_index = index;
-			auto node = del.toNode();
+			auto node = del.toNode(null);
 			_c = Content.createFromNode(node, LATEST_VERSION);
 			_c.setUseCounter(summ.useCounter.sub);
 		}
@@ -1119,7 +1119,7 @@ private:
 		override void dragSetData(DragSourceEvent e) {
 			auto itm = selection;
 			if (itm && XMLBytesTransfer.getInstance().isSupportedType(e.dataType)) {
-				e.data = bytesFromXML((cast(Content) itm.getData()).toXML());
+				e.data = bytesFromXML((cast(Content) itm.getData()).toXML(null));
 			}
 		}
 		override void dragFinished(DragSourceEvent e) {
@@ -2936,7 +2936,7 @@ public:
 		void copy(SelectionEvent se) {
 			auto itm = selection;
 			if (itm) {
-				string xml = (cast(Content) itm.getData()).toXML();
+				string xml = (cast(Content) itm.getData()).toXML(null);
 				XMLtoCB(_prop, _comm.clipboard, xml);
 				_comm.refreshToolBar();
 			}

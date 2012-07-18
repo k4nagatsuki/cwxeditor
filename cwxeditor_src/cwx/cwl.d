@@ -1644,13 +1644,16 @@ private InfoCard loadInfo(ref RData d, ref ByteIO f, ulong fid) {
 struct SData {
 	string sPath;
 	bool saveInnerImagePath;
+	SkillCard delegate(ulong) skill;
+	ItemCard delegate(ulong) item;
+	BeastCard delegate(ulong) beast;
 	string[string] comment;
 	string[string] imageRef;
 	ulong[string] cardRef;
 }
 /// 4.0形式のCardWirthシナリオを保存する。
 void saveLScenario(Summary summ, bool doubleIO, bool saveInnerImagePath = false) {
-	auto d = SData(summ.scenarioPath, saveInnerImagePath);
+	auto d = SData(summ.scenarioPath, saveInnerImagePath, &summ.skill, &summ.item, &summ.beast);
 	class Save {
 		Area[] areas;
 		Battle[] battles;
@@ -2746,14 +2749,14 @@ private void writeCast(ref SData d, ref ByteIO f, CastCard c) {
 		f.writeL(cast(int) cc.value);
 	}
 }
-private void writeEffCard(ref SData d, ref ByteIO f, EffectCard c, byte type) {
+private void writeEffCard(ref SData d, ref ByteIO f, EffectCard c, byte type, ulong id, ulong linkId) {
 	f.write(type);
-	if (0 != c.linkId) {
-		d.cardRef[c.cwxPath(true)] = c.linkId;
+	if (0 != linkId) {
+		d.cardRef[c.cwxPath(true)] = linkId;
 	}
 	writeImage(d, f, c, c.path);
 	writeString(f, c.name);
-	f.writeL(cast(uint) (c.id + 40000u));
+	f.writeL(cast(uint) (id + 40000u));
 	writeString(f, c.desc);
 	f.writeL(cast(uint) fromPhysical(c.physical));
 	f.writeL(cast(int) fromMental(c.mental));
@@ -2789,14 +2792,28 @@ private void writeEffCard(ref SData d, ref ByteIO f, EffectCard c, byte type) {
 	}
 }
 private void writeSkill(ref SData d, ref ByteIO f, SkillCard c) {
-	writeEffCard(d, f, c, 0x5);
-	writeBool(f, c.hold);
+	ulong id = c.id;
+	ulong linkId = c.id;
+	bool hold = c.hold;
+	if (0 != c.linkId) {
+		c = d.skill(c.linkId);
+		if (!c) c = new SkillCard(id, "", "", "");
+	}
+	writeEffCard(d, f, c, 0x5, id, linkId);
+	writeBool(f, hold);
 	f.writeL(cast(uint) c.level);
 	f.writeL(cast(uint) c.useLimit);
 }
 private void writeItem(ref SData d, ref ByteIO f, ItemCard c) {
-	writeEffCard(d, f, c, 0x3);
-	writeBool(f, c.hold);
+	ulong id = c.id;
+	ulong linkId = c.id;
+	bool hold = c.hold;
+	if (0 != c.linkId) {
+		c = d.item(c.linkId);
+		if (!c) c = new ItemCard(id, "", "", "");
+	}
+	writeEffCard(d, f, c, 0x3, id, linkId);
+	writeBool(f, hold);
 	f.writeL(cast(uint) c.useLimit);
 	f.writeL(cast(uint) c.useLimitMax);
 	f.writeL(cast(uint) c.price);
@@ -2805,7 +2822,13 @@ private void writeItem(ref SData d, ref ByteIO f, ItemCard c) {
 	f.writeL(cast(int) c.enhanceOwner(Enhance.DEFENSE));
 }
 private void writeBeast(ref SData d, ref ByteIO f, BeastCard c) {
-	writeEffCard(d, f, c, 0x6);
+	ulong id = c.id;
+	ulong linkId = c.id;
+	if (0 != c.linkId) {
+		c = d.beast(c.linkId);
+		if (!c) c = new BeastCard(id, "", "", "");
+	}
+	writeEffCard(d, f, c, 0x6, id, linkId);
 	writeBool(f, false); // Hold
 	f.writeL(cast(uint) c.useLimit);
 }

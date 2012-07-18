@@ -150,7 +150,7 @@ public:
 
 	/// 指定されたノードにProperty情報を追加する。
 	const
-	protected void appendProp(ref XNode pNode) {
+	protected void appendProp(ref XNode pNode, XMLOption opt) {
 		assert (pNode.name == "Property", pNode.name ~ " != Property");
 		pNode.newElement("Flag", _user.flag);
 		auto ln = pNode.newElement("Location");
@@ -281,26 +281,26 @@ public:
 
 	/// XMLノードにして返す。
 	const
-	XNode toNode() {
+	XNode toNode(XMLOption opt) {
 		auto e = XNode.create(XML_NAME);
-		toNodeImpl(e);
+		toNodeImpl(e, opt);
 		return e;
 	}
 	/// XMLノード(EnemyCards)にインスタンスのデータを追加する。
 	const
-	XNode toNode(ref XNode node) {
+	XNode toNode(ref XNode node, XMLOption opt) {
 		assert (node.name == XML_NAME_M, node.name ~ " != EnemyCards");
 		auto e = node.newElement(XML_NAME);
-		toNodeImpl(e);
+		toNodeImpl(e, opt);
 		return e;
 	}
 	const
-	private void toNodeImpl(ref XNode e) {
+	private void toNodeImpl(ref XNode e, XMLOption opt) {
 		e.newAttr("escape", fromBool(escape));
 		auto pe = e.newElement("Property");
 		pe.newElement("Id", _user.casts);
-		appendProp(pe);
-		appendEventsToNode(e);
+		appendProp(pe, opt);
+		appendEventsToNode(e, opt);
 	}
 	/// XMLノード(EnemyCard)からインスタンスを生成。
 	/// Throws:
@@ -482,27 +482,27 @@ public:
 
 	/// XMLノードにして返す。
 	const
-	XNode toNode() {
+	XNode toNode(XMLOption opt) {
 		auto e = XNode.create(XML_NAME);
-		toNodeImpl(e);
+		toNodeImpl(e, opt);
 		return e;
 	}
 	/// XMLノード(MenuCards)にインスタンスのデータを追加する。
 	const
-	XNode toNode(ref XNode node) {
+	XNode toNode(ref XNode node, XMLOption opt) {
 		assert (node.name == XML_NAME_M, node.name ~ " != MenuCards");
 		auto e = node.newElement(XML_NAME);
-		toNodeImpl(e);
+		toNodeImpl(e, opt);
 		return e;
 	}
 	const
-	private void toNodeImpl(ref XNode e) {
+	private void toNodeImpl(ref XNode e, XMLOption opt) {
 		auto pe = e.newElement("Property");
 		pe.newElement("Name", _name);
 		pe.newElement("ImagePath", encodePath(_user.path));
 		pe.newElement("Description", _desc);
-		appendProp(pe);
-		appendEventsToNode(e);
+		appendProp(pe, opt);
+		appendEventsToNode(e, opt);
 	}
 
 	/// XMLノード(MenuCard)からインスタンスを生成。
@@ -589,28 +589,28 @@ public:
 	/// Params:
 	/// summId = テキストに付与するID。nullを指定すると付与しない。
 	const
-	string toXML(string summId = null) {
+	string toXML(XMLOption opt, string summId = null) {
 		scope doc = XNode.create(rootName);
-		toNodeImpl(doc);
+		toNodeImpl(doc, opt);
 		if (summId) doc.newAttr("summaryId", summId);
 		return doc.text;
 	}
 
 	/// XMLノード化して返す。
 	const
-	XNode toNode() {
+	XNode toNode(XMLOption opt) {
 		auto e = XNode.create(rootName);
-		toNodeImpl(e);
+		toNodeImpl(e, opt);
 		return e;
 	}
 	const
-	XNode toNode(ref XNode parent) {
+	XNode toNode(ref XNode parent, XMLOption opt) {
 		auto e = parent.newElement(rootName);
-		toNodeImpl(e);
+		toNodeImpl(e, opt);
 		return e;
 	}
 	const
-	abstract void toNodeImpl(ref XNode e);
+	abstract void toNodeImpl(ref XNode e, XMLOption opt);
 
 	/// toXML()でsummIdを指定されたノードを渡すと、summIdを読み出して返す。
 	static string summaryId(in XNode node) {
@@ -619,7 +619,7 @@ public:
 
 	/// 指定されたノードにProperty情報を追加する。
 	const
-	protected void appendProp(ref XNode pNode) {
+	protected void appendProp(ref XNode pNode, XMLOption opt) {
 		assert (pNode.name == "Property", pNode.name ~ " != Property");
 		pNode.newElement("Id", _id);
 		pNode.newElement("Name", _name);
@@ -831,17 +831,17 @@ public:
 	override string rootName() {return "Area";}
 
 	const
-	override void toNodeImpl(ref XNode e) {
+	override void toNodeImpl(ref XNode e, XMLOption opt) {
 		auto pNode = e.newElement("Property");
-		appendProp(pNode);
+		appendProp(pNode, opt);
 
 		BgImage.toNode(_bgImgs, e);
 		auto ce = e.newElement("MenuCards");
 		ce.newAttr("spreadtype", _auto ? "Auto" : "Custom");
 		foreach (c; _cards) {
-			c.toNode(ce);
+			c.toNode(ce, opt);
 		}
-		appendEventsToNode(e);
+		appendEventsToNode(e, opt);
 	}
 
 	/// XMLファイルからエリアデータをロードする。
@@ -900,12 +900,12 @@ public:
 	}
 
 	/// メニューカード群をXMLデータにして返す。
-	static string CtoXML(MenuCard[] cards) {
-		return CtoNode(cards).text;
+	static string CtoXML(MenuCard[] cards, XMLOption opt) {
+		return CtoNode(cards, opt).text;
 	}
 	/// ditto
-	static XNode CtoNode(MenuCard[] cards) {
-		return CBtoNode(cards, []);
+	static XNode CtoNode(MenuCard[] cards, XMLOption opt) {
+		return CBtoNode(cards, [], opt);
 	}
 	/// 背景イメージ群をXMLデータにして返す。
 	static string BtoXML(BgImage[] backs) {
@@ -913,19 +913,19 @@ public:
 	}
 	/// ditto
 	static XNode BtoNode(BgImage[] backs) {
-		return CBtoNode([], backs);
+		return CBtoNode([], backs, null);
 	}
 	/// メニューカード群と背景イメージ群をXMLデータにして返す。
-	static string CBtoXML(MenuCard[] cards, BgImage[] backs) {
-		return CBtoNode(cards, backs).text;
+	static string CBtoXML(MenuCard[] cards, BgImage[] backs, XMLOption opt) {
+		return CBtoNode(cards, backs, opt).text;
 	}
 	/// ditto
-	static XNode CBtoNode(MenuCard[] cards, BgImage[] backs) {
+	static XNode CBtoNode(MenuCard[] cards, BgImage[] backs, XMLOption opt) {
 		auto e = XNode.create("MenuCardsAndBgImages");
 		if (cards.length > 0) {
 			auto me = e.newElement("MenuCards");
 			foreach (c; cards) {
-				c.toNode(me);
+				c.toNode(me, opt);
 			}
 		}
 		if (backs.length > 0) {
@@ -1062,10 +1062,10 @@ public:
 	const
 	override string rootName() {return "Package";}
 	const
-	override void toNodeImpl(ref XNode e) {
+	override void toNodeImpl(ref XNode e, XMLOption opt) {
 		auto pNode = e.newElement("Property");
-		appendProp(pNode);
-		appendEventsToNode(e);
+		appendProp(pNode, opt);
+		appendEventsToNode(e, opt);
 	}
 
 	/// XMLファイルからパッケージデータをロードする。
@@ -1260,18 +1260,18 @@ public:
 	const
 	override string rootName() {return "Battle";}
 	const
-	override void toNodeImpl(ref XNode e) {
+	override void toNodeImpl(ref XNode e, XMLOption opt) {
 		auto pe = e.newElement("Property");
-		appendProp(pe);
+		appendProp(pe, opt);
 		pe.newElement("MusicPath", encodePath(_music.path));
 	
 		auto ce = e.newElement("EnemyCards");
 		ce.newAttr("spreadtype", _auto ? "Auto" : "Custom");
 		foreach (c; _cards) {
-			c.toNode(ce);
+			c.toNode(ce, opt);
 		}
 
-		appendEventsToNode(e);
+		appendEventsToNode(e, opt);
 	}
 
 	/// XMLファイルからバトルデータをロードする。
@@ -1324,14 +1324,14 @@ public:
 	}
 
 	/// エネミーカード群をXMLデータにして返す。
-	static string CtoXML(EnemyCard[] cards) {
-		return CtoNode(cards).text;
+	static string CtoXML(EnemyCard[] cards, XMLOption opt) {
+		return CtoNode(cards, opt).text;
 	}
 	/// ditto
-	static XNode CtoNode(EnemyCard[] cards) {
+	static XNode CtoNode(EnemyCard[] cards, XMLOption opt) {
 		auto doc = XNode.create("EnemyCards");
 		foreach (c; cards) {
-			c.toNode(doc);
+			c.toNode(doc, opt);
 		}
 		return doc;
 	}

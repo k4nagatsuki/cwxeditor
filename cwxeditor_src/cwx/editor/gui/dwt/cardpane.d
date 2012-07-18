@@ -275,7 +275,7 @@ private:
 				_cards.length = 0;
 				foreach (index; _indices) {
 					auto c = cardsFrom(owner)[index];
-					auto node = c.toNode();
+					auto node = c.toNode(null);
 					auto card = C.createFromNode(node, LATEST_VERSION);
 					card.setUseCounter(comm.summary.useCounter.sub);
 					_cards ~= card;
@@ -421,11 +421,6 @@ private:
 			bool targ = cards[i] is c;
 			static if (is(CardOwner:CastCard) && is(typeof(c.linkId))) {
 				if (cast(Summary) c.cwxParent && 0 != cards[i].linkId && cards[i].linkId is c.id) {
-					auto id = cards[i].linkId;
-					static if (is(typeof(c.hold))) auto hold = cards[i].hold;
-					cards[i].shallowCopy(c);
-					cards[i].linkId = id;
-					static if (is(typeof(c.hold))) cards[i].hold = hold;
 					targ = true;
 				}
 			}
@@ -455,7 +450,7 @@ private:
 			}
 			_tbl.showSelection();
 		} else {
-			_list.refresh(__cards, &__cardImage);
+			_list.refresh(__cards, &cardImage);
 			int sel = _list.selection;
 			if (sel >= 0) {
 				_list.scroll(sel);
@@ -730,9 +725,6 @@ private:
 						if (qCardMaterialCopy(node, adds)) {
 							int[] indices;
 							foreach (i, card; adds) {
-								static if (!CanHold && is(typeof(card.hold))) {
-									card.hold = false;
-								}
 								refreshLink(card, samePane, sameSc, topLevel);
 								_owner.insert(index, card);
 								adds[i] = cards[index];
@@ -751,31 +743,18 @@ private:
 			}
 		}
 		void refreshLink(ref C card, bool samePane, bool sameSc, bool topLevel) {
-			static if (is(C:CastCard)) {
-				if (!sameSc) {
-					foreach (c; card.skills) {
-						c.linkId = 0;
-					}
-					foreach (c; card.items) {
-						c.linkId = 0;
-					}
-					foreach (c; card.beasts) {
-						c.linkId = 0;
-					}
-				}
-			}
 			static if (is(typeof(card.linkId))) {
-				if (sameSc && is(CardOwner:CastCard) && topLevel && _prop.var.etc.linkHandCard) {
-					card.linkId = card.id;
-				} else if (!sameSc || !is(CardOwner:CastCard)) {
-					if (0 != card.linkId) {
-						auto c2 = pOwnerCard(card.linkId);
-						if (c2) {
-							auto node = c2.toNode();
-							card = C.createFromNode(node, LATEST_VERSION);
-						}
+				if (sameSc && !is(CardOwner:CastCard) && 0 != card.linkId) {
+					card = pOwnerCard(card.linkId);
+					if (card) {
+						card = card.dup;
+					} else {
+						card = new C(1UL, "", "", "");
 					}
-					card.linkId = 0;
+				} else if (sameSc && is(CardOwner:CastCard) && topLevel && _prop.var.etc.linkHandCard) {
+					auto id = card.id;
+					card = new C(1UL, "", "", "");
+					card.linkId = id;
 				}
 			}
 		}
@@ -905,14 +884,14 @@ private:
 		}
 	}
 	private Skin _skinTemp = null;
-	ImageData __cardImage(C c) {
+	ImageData cardImage(C c) {
 		Skin skin = _skinTemp ? _skinTemp : _comm.skin;
 		static if (is (C == CastCard)) {
 			return castCardImage(_prop, skin, c, ownerScenarioPath, _viewMode == CViewMode.LIFE);
 		} else static if (!is (C == InfoCard) && is (CardOwner == CastCard)) {
-			return cardImage!(C)(_prop, skin, c, ownerScenarioPath, _owner);
+			return .cardImage!(C)(_prop, skin, c, ownerScenarioPath, _owner, &pOwnerCard);
 		} else {
-			return cardImage!(C)(_prop, skin, c, ownerScenarioPath, cast(CastCard) null);
+			return .cardImage!(C)(_prop, skin, c, ownerScenarioPath, cast(CastCard) null, &pOwnerCard);
 		}
 	}
 
@@ -958,23 +937,7 @@ private:
 		}
 		sn.newAttr("scenarioPath", nabs(ownerScenarioPath));
 		foreach (sel; sels) {
-			static if (is(C:CastCard)) {
-				sel.refreshAllHands(_summ);
-			}
-			static if (is(typeof(sel.linkId))) {
-				if (0 != sel.linkId) {
-					auto c = pOwnerCard(sel.linkId);
-					if (c) {
-						auto node = c.toNode();
-						static if (is(typeof(sel.hold))) auto hold = sel.hold;
-						auto id = sel.linkId;
-						sel = C.createFromNode(node, LATEST_VERSION);
-						static if (is(typeof(sel.hold))) sel.hold = hold;
-						sel.linkId = id;
-					}
-				}
-			}
-			sel.toNode(sn);
+			sel.toNode(sn, null);
 		}
 	}
 	string toXML(C[] sels) {
@@ -1611,9 +1574,6 @@ public:
 			bool topLevel = node.attr!bool("topLevel", false, false);
 			foreach (card; adds) {
 				indices ~= cards.length;
-				static if (!CanHold && is(typeof(card.hold))) {
-					card.hold = false;
-				}
 				refreshLink(card, samePane, sameSc, topLevel);
 				static if (is(CardOwner:Summary)) {
 					ulong oldId = _owner.add(card);

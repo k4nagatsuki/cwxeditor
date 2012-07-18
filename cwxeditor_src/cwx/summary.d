@@ -1051,9 +1051,14 @@ public:
 	/// 見つからなければnullを返す。
 	const
 	const(BeastCard) findSomeBeast(in BeastCard beast) {
-		string a = beast.toXML(1UL);
+		auto od = new OverData;
+		od.id = 1UL;
+		od.linkId = 0UL;
+		od.overHold = true;
+		od.hold = false;
+		string a = beast.toXML(null, od);
 		foreach (b; _bst) {
-			if (a == b.toXML(1UL)) return b;
+			if (a == b.toXML(null, od)) return b;
 		}
 		return null;
 	}
@@ -1375,29 +1380,34 @@ public:
 		string e = "";
 		string[string] s = ["Summary.xml":summaryToXML()];
 		string[string][string] r = [e:s];
+		auto opt = new XMLOption;
+		opt.includeCard = true;
+		opt.skill = &skill;
+		opt.item = &item;
+		opt.beast = &beast;
 
 		void put(string parent, string[string] p) {
 			if (p.length) {
 				r[parent] = p;
 			}
 		}
-		put(PATH_AREA, toXMLsImpl!(const Area)(_area));
-		put(PATH_BATTLE, toXMLsImpl!(const Battle)(_btl));
-		put(PATH_PACKAGE, toXMLsImpl!(const Package)(_pkg));
+		put(PATH_AREA, toXMLsImpl!(const Area)(_area, opt));
+		put(PATH_BATTLE, toXMLsImpl!(const Battle)(_btl, opt));
+		put(PATH_PACKAGE, toXMLsImpl!(const Package)(_pkg, opt));
 
-		put(PATH_CAST, toXMLsImpl!(const CastCard)(_cast));
-		put(PATH_SKILL, toXMLsImpl!(const SkillCard)(_skl));
-		put(PATH_ITEM, toXMLsImpl!(const ItemCard)(_itm));
-		put(PATH_BEAST, toXMLsImpl!(const BeastCard)(_bst));
-		put(PATH_INFO, toXMLsImpl!(const InfoCard)(_info));
+		put(PATH_CAST, toXMLsImpl!(const CastCard)(_cast, opt));
+		put(PATH_SKILL, toXMLsImpl!(const SkillCard)(_skl, opt));
+		put(PATH_ITEM, toXMLsImpl!(const ItemCard)(_itm, opt));
+		put(PATH_BEAST, toXMLsImpl!(const BeastCard)(_bst, opt));
+		put(PATH_INFO, toXMLsImpl!(const InfoCard)(_info, opt));
 
 		return r;
 	}
-	private static string[string] toXMLsImpl(A)(in A[] targs) {
+	private static string[string] toXMLsImpl(A)(in A[] targs, XMLOption opt) {
 		string[string] r;
 		foreach (targ; targs) {
 			auto fname = format("%02d", targ.id) ~ ".xml";
-			r[fname] = targ.toXML();
+			r[fname] = targ.toXML(opt);
 		}
 		return r;
 	}
@@ -1410,16 +1420,21 @@ public:
 	/// FileException = ファイル削除時・保存時例外発生時。
 	void saveXMLs(string path) {
 		std.file.write(std.path.buildPath(path, "Summary.xml"), summaryToXML());
+		auto opt = new XMLOption;
+		opt.includeCard = true;
+		opt.skill = &skill;
+		opt.item = &item;
+		opt.beast = &beast;
 
-		saveXML(std.path.buildPath(path, PATH_AREA), _area);
-		saveXML(std.path.buildPath(path, PATH_BATTLE), _btl);
-		saveXML(std.path.buildPath(path, PATH_PACKAGE), _pkg);
+		saveXML(std.path.buildPath(path, PATH_AREA), _area, opt);
+		saveXML(std.path.buildPath(path, PATH_BATTLE), _btl, opt);
+		saveXML(std.path.buildPath(path, PATH_PACKAGE), _pkg, opt);
 
-		saveXML(std.path.buildPath(path, PATH_CAST), _cast);
-		saveXML(std.path.buildPath(path, PATH_SKILL), _skl);
-		saveXML(std.path.buildPath(path, PATH_ITEM), _itm);
-		saveXML(std.path.buildPath(path, PATH_BEAST), _bst);
-		saveXML(std.path.buildPath(path, PATH_INFO), _info);
+		saveXML(std.path.buildPath(path, PATH_CAST), _cast, opt);
+		saveXML(std.path.buildPath(path, PATH_SKILL), _skl, opt);
+		saveXML(std.path.buildPath(path, PATH_ITEM), _itm, opt);
+		saveXML(std.path.buildPath(path, PATH_BEAST), _bst, opt);
+		saveXML(std.path.buildPath(path, PATH_INFO), _info, opt);
 	}
 	/// ditto
 	void saveXMLs() {
@@ -1433,7 +1448,7 @@ public:
 			}
 		}
 	}
-	private static void saveXML(A)(string path, A[] targs) {
+	private static void saveXML(A)(string path, A[] targs, XMLOption opt) {
 		if (targs.length == 0) {
 			if (exists(path) && isDir(path)) {
 				delAllXML(path);
@@ -1449,7 +1464,7 @@ public:
 			}
 			foreach (targ; targs) {
 				auto p = createFileI(path, targ.name, "xml", format("%02d", targ.id) ~ "_");
-				std.file.write(p, targ.toXML());
+				std.file.write(p, targ.toXML(opt));
 			}
 		}
 	}
@@ -1769,9 +1784,6 @@ public:
 	private void saveProc(in CProps prop, bool doubleIO, bool saveInnerImagePath, bool archive,
 			string zipName, string temp, bool legacyToX, bool defExpandXMLs) {
 		try {
-			foreach (c; casts) {
-				c.refreshAllHands(this);
-			}
 			bool expand = false;
 			if (legacy && !legacyToX) {
 				saveLScenario(this, doubleIO, saveInnerImagePath);

@@ -433,7 +433,7 @@ private:
 			super (v, comm, area, summ);
 			static if (UseCards) {
 				foreach (i; cIdcs) {
-					auto node = area.cards[i].toNode();
+					auto node = area.cards[i].toNode(null);
 					auto c = C.createFromNode(node, LATEST_VERSION);
 					if (summ) c.setUseCounter(summ.useCounter.sub);
 					_cs[i] = c;
@@ -3149,7 +3149,7 @@ public:
 					foreach (itm; tbl.getSelection()) {
 						cs ~= cast(C) itm.getData();
 					}
-					auto node = A.CtoNode(cs);
+					auto node = A.CtoNode(cs, null);
 					node.newAttr("paneId", _id);
 					if (curItm) node.newAttr("cursorIndex", tbl.indexOf(curItm));
 					e.data = bytesFromXML(node.text);
@@ -3714,7 +3714,7 @@ public:
 					backs ~= _area.backs[i];
 				}
 				if (cards.length > 0 || backs.length > 0) {
-					XMLtoCB(_prop, _comm.clipboard, Area.CBtoXML(cards, backs));
+					XMLtoCB(_prop, _comm.clipboard, Area.CBtoXML(cards, backs, null));
 					_comm.refreshToolBar();
 				}
 			}
@@ -3792,7 +3792,7 @@ public:
 					cards ~= _area.cards[i];
 				}
 				if (cards.length > 0) {
-					XMLtoCB(_prop, _comm.clipboard, A.CtoXML(cards));
+					XMLtoCB(_prop, _comm.clipboard, A.CtoXML(cards, null));
 					_comm.refreshToolBar();
 				}
 			}

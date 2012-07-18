@@ -264,7 +264,7 @@ private:
 			auto owner = tree.owner;
 			_ownerIndex = .cCountUntil!("a is b")(etos(area), owner);
 			_treeIndex = .cCountUntil!("a is b")(owner.trees, tree);
-			auto node = tree.toNode();
+			auto node = tree.toNode(null);
 			_tree = EventTree.createFromNode(node, LATEST_VERSION);
 			_tree.setUseCounter(summ.useCounter.sub);
 		}
@@ -1583,7 +1583,7 @@ public:
 				auto data = itm.getData();
 				string xml;
 				if (cast(EventTree) data) {
-					xml = (cast(EventTree) data).toXML();
+					xml = (cast(EventTree) data).toXML(null);
 				} else {
 					static if (UseFire) {
 						if (ENTER is data) {

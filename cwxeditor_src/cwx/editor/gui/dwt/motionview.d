@@ -676,7 +676,7 @@ private:
 				if (index >= 0) {
 					auto m = cast(Motion) c.getItem(index).getData();
 					_dragIndex = index;
-					auto node = m.toNode();
+					auto node = m.toNode(null);
 					node.newAttr("paneId", _id);
 					e.data = bytesFromXML(node.text);
 					_itm = c.getItem(index);
@@ -1141,7 +1141,7 @@ public:
 		override void copy(SelectionEvent se) {
 			auto m = selection;
 			if (m) {
-				XMLtoCB(_prop, _comm.clipboard, m.toXML());
+				XMLtoCB(_prop, _comm.clipboard, m.toXML(null));
 				_comm.refreshToolBar();
 			}
 		}
@@ -1211,7 +1211,7 @@ public:
 					node.newAttr("summId", _summ.id);
 					node.newAttr("paneId", "");
 					node.newAttr("scenarioPath", nabs(_summ.scenarioPath));
-					m.beast.toNode(node);
+					m.beast.toNode(node, null);
 					XMLtoCB(_prop, _comm.clipboard, node.text);
 					_comm.refreshToolBar();
 					return true;

@@ -323,7 +323,7 @@ public:
 		if (m.round != round) return false;
 		if (_beast) {
 			if (m._beast) {
-				return _beast.toXML() == m._beast.toXML();
+				return _beast.toXML(null) == m._beast.toXML(null);
 			}
 			return false;
 		} else {
@@ -434,26 +434,26 @@ public:
 
 	/// XMLテキスト化して返す。
 	const
-	string toXML() {
-		return toNode().text;
+	string toXML(XMLOption opt) {
+		return toNode(opt).text;
 	}
 	/// XMLノード化して返す。
 	const
-	XNode toNode() {
+	XNode toNode(XMLOption opt) {
 		auto e = XNode.create(XML_NAME);
-		toNodeImpl(e);
+		toNodeImpl(e, opt);
 		return e;
 	}
 	/// XMLノードに自身のデータをノード化して追加し、
 	/// そのノードを返す。
 	const
-	XNode toNode(ref XNode node) {
+	XNode toNode(ref XNode node, XMLOption opt) {
 		auto e = node.newElement(XML_NAME);
-		toNodeImpl(e);
+		toNodeImpl(e, opt);
 		return e;
 	}
 	const
-	private XNode toNodeImpl(ref XNode e) {
+	private XNode toNodeImpl(ref XNode e, XMLOption opt) {
 		auto d = detail;
 		e.newAttr("type", d.name);
 		e.newAttr("element", fromElement(element));
@@ -464,7 +464,7 @@ public:
 		if (d.use(MArg.BEAST)) {
 			auto be = e.newElement("Beasts");
 			if (_beast) {
-				_beast.toNode(be);
+				_beast.toNode(be, opt);
 			}
 		}
 		return e;

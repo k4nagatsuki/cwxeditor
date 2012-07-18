@@ -1116,10 +1116,12 @@ ImageData castCardImage(Props prop, Skin skin, CastCard c, string sPath, bool db
 	r.setTitle(c.name, dwtData(prop.looks.castCardNameFont(skin.legacy)), dwtData(prop.looks.castCardNamePoint));
 	return r.createImageData();
 }
-ImageData cardImage(C)(Props prop, Skin skin, C c, string sPath, CastCard owner = null) {
+ImageData cardImage(C)(Props prop, Skin skin, C c, string sPath, CastCard owner = null, C delegate(ulong) get = null) {
 	static if (is (C == SkillCard)) {
+		bool hold = c.hold;
 		auto card = skillCard(skin);
 	} else static if (is (C == ItemCard)) {
+		bool hold = c.hold;
 		auto card = itemCard(skin);
 	} else static if (is (C == BeastCard)) {
 		auto card = beastCard(skin);
@@ -1127,6 +1129,14 @@ ImageData cardImage(C)(Props prop, Skin skin, C c, string sPath, CastCard owner 
 		auto card = infoCard(skin);
 	} else {
 		static assert (0);
+	}
+	bool link = false;
+	static if (is(typeof(c.linkId))) {
+		if (get && 0 != c.linkId) {
+			link = true;
+			c = get(c.linkId);
+			if (!c) c = new C(1UL, "", "", "");
+		}
 	}
 	auto cardSize = prop.looks.cardSize;
 	auto matPad = prop.looks.cardInsets;
@@ -1148,7 +1158,7 @@ ImageData cardImage(C)(Props prop, Skin skin, C c, string sPath, CastCard owner 
 	}
 	r.append(skin.findImagePath(c.path, sPath), matPad, true);
 	static if (is(typeof(c.linkId))) {
-		if (0 != c.linkId) {
+		if (link) {
 			auto mc = prop.var.etc.linkCardMaskColor;
 			r.colorMask(mc.r, mc.g, mc.b, mc.a);
 		}
@@ -1160,7 +1170,7 @@ ImageData cardImage(C)(Props prop, Skin skin, C c, string sPath, CastCard owner 
 			r.append(pid, CPoint(0, 0));
 		}
 		static if (is(typeof(c.hold))) {
-			if (c.hold) {
+			if (hold) {
 				auto hid = cardHold(skin);
 				hid.transparentPixel = hid.getPixel(hid.width / 2, hid.height / 2);
 				r.append(hid, CPoint(0, 0));
