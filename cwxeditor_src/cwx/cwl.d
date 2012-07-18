@@ -2749,11 +2749,8 @@ private void writeCast(ref SData d, ref ByteIO f, CastCard c) {
 		f.writeL(cast(int) cc.value);
 	}
 }
-private void writeEffCard(ref SData d, ref ByteIO f, EffectCard c, byte type, ulong id, ulong linkId) {
+private void writeEffCard(ref SData d, ref ByteIO f, EffectCard c, byte type, ulong id) {
 	f.write(type);
-	if (0 != linkId) {
-		d.cardRef[c.cwxPath(true)] = linkId;
-	}
 	writeImage(d, f, c, c.path);
 	writeString(f, c.name);
 	f.writeL(cast(uint) (id + 40000u));
@@ -2796,10 +2793,11 @@ private void writeSkill(ref SData d, ref ByteIO f, SkillCard c) {
 	ulong linkId = c.id;
 	bool hold = c.hold;
 	if (0 != c.linkId) {
+		d.cardRef[c.cwxPath(true)] = linkId;
 		c = d.skill(c.linkId);
 		if (!c) c = new SkillCard(id, "", "", "");
 	}
-	writeEffCard(d, f, c, 0x5, id, linkId);
+	writeEffCard(d, f, c, 0x5, id);
 	writeBool(f, hold);
 	f.writeL(cast(uint) c.level);
 	f.writeL(cast(uint) c.useLimit);
@@ -2809,10 +2807,11 @@ private void writeItem(ref SData d, ref ByteIO f, ItemCard c) {
 	ulong linkId = c.id;
 	bool hold = c.hold;
 	if (0 != c.linkId) {
+		d.cardRef[c.cwxPath(true)] = linkId;
 		c = d.item(c.linkId);
 		if (!c) c = new ItemCard(id, "", "", "");
 	}
-	writeEffCard(d, f, c, 0x3, id, linkId);
+	writeEffCard(d, f, c, 0x3, id);
 	writeBool(f, hold);
 	f.writeL(cast(uint) c.useLimit);
 	f.writeL(cast(uint) c.useLimitMax);
@@ -2825,10 +2824,11 @@ private void writeBeast(ref SData d, ref ByteIO f, BeastCard c) {
 	ulong id = c.id;
 	ulong linkId = c.id;
 	if (0 != c.linkId) {
+		d.cardRef[c.cwxPath(true)] = linkId;
 		c = d.beast(c.linkId);
 		if (!c) c = new BeastCard(id, "", "", "");
 	}
-	writeEffCard(d, f, c, 0x6, id, linkId);
+	writeEffCard(d, f, c, 0x6, id);
 	writeBool(f, false); // Hold
 	f.writeL(cast(uint) c.useLimit);
 }
