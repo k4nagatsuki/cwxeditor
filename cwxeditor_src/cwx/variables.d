@@ -208,7 +208,7 @@ class FlexEtcProps : Properties {
 	mixin Property!("expandXMLs", bool, false);
 	mixin Property!("xmlCopy", bool, false);
 	mixin Property!("saveInnerImagePath", bool, false);
-	mixin Property!("linkHandCard", bool, false);
+	mixin Property!("linkCard", bool, false);
 	mixin Property!("traceDirectories", bool, true);
 	mixin Property!("logicalSort", bool, true);
 	mixin Property!("copyDesc", bool, false);

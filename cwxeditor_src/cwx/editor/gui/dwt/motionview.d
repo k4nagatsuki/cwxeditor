@@ -242,6 +242,11 @@ private:
 
 	HashSet!BeastEventWindow _beWin;
 	BeastEventWindow openBeastEventWin(BeastCard beast) {
+		if (0 != beast.linkId) {
+			auto b = _summ.beast(beast.linkId);
+			if (!b) return null;
+			return _comm.openUseEvents(_prop, _summ, b, true);
+		}
 		auto w = _comm.openUseEvents(_prop, _summ, beast, true);
 		if (_beWin.contains(w)) return w;
 		w.shell.addDisposeListener(new CloseRemover!(BeastEventWindow)(_beWin, w));
@@ -254,6 +259,12 @@ private:
 		auto b = m.beast;
 		if (!b) return;
 		openBeastEventWin(b);
+	}
+	bool canEditBeast() {
+		auto m = selection;
+		if (!m || !m.beast) return false;
+		if (0 != m.beast.linkId && !_summ.beast(m.beast.linkId)) return false;
+		return true;
 	}
 
 	Motion motion(int index) {
@@ -373,6 +384,14 @@ private:
 		if (m && m.detail.use(MArg.BEAST)) {
 			auto b = m.beast;
 			if (b) {
+				if (0 != b.linkId) {
+					auto b2 = _summ.beast(b.linkId);
+					if (b2) {
+						_comm.openCWXPath(b2.cwxPath(true), false);
+						return _comm.openBeastWin(false).edit(b2);
+					}
+					return null;
+				}
 				if (_beastDlg) {
 					_beastDlg.active();
 				} else {
@@ -599,8 +618,12 @@ private:
 				if (!sb.beast && !b) return;
 				storeEdit(mi);
 				if (sb.beast) _comm.delBeast.call(sb.beast);
-				sb.beast = b;
-				sb.beast.linkId = 0;
+				if (_prop.var.etc.linkCard) {
+					sb.beast = new BeastCard(1UL, "", "", "");
+					sb.beast.linkId = b.id;
+				} else {
+					sb.beast = b;
+				}
 				_beastImg.redraw();
 				foreach (dlg; modEvent) dlg();
 			}
@@ -611,7 +634,7 @@ private:
 			auto beast = selection.beast;
 			if (beast) {
 				scope img = new Image(Display.getCurrent(),
-					cardImage!(BeastCard)(_prop, _comm.skin, beast, _summ.scenarioPath));
+					cardImage!(BeastCard)(_prop, _comm.skin, beast, _summ.scenarioPath, null, &_summ.beast));
 				scope data = img.getImageData();
 				auto pane = cast(Canvas) e.widget;
 				scope rect = pane.getClientArea();
@@ -768,6 +791,8 @@ private:
 		refBeasts();
 	}
 	void refBeasts() {
+		setRedraw(false);
+		scope (exit) setRedraw(true);
 		ulong selId = 0;
 		auto sel = selectedBeast;
 		if (sel) selId = sel.id;
@@ -1000,9 +1025,9 @@ public:
 				_beastImg.addMouseListener(eb);
 				_beastImg.addKeyListener(eb);
 				auto menu = new Menu(_beastImg);
-				createMenuItem(_comm, menu, MenuID.EditProp, &editBeastM, () => selection !is null && selection.beast !is null);
+				createMenuItem(_comm, menu, MenuID.EditProp, &editBeastM, &canEditBeast);
 				new MenuItem(menu, SWT.SEPARATOR);
-				createMenuItem(_comm, menu, MenuID.EditEventAtTimeOfUsing, &editBeastUseEvent, () => selection !is null && selection.beast !is null);
+				createMenuItem(_comm, menu, MenuID.EditEventAtTimeOfUsing, &editBeastUseEvent, &canEditBeast);
 				new MenuItem(menu, SWT.SEPARATOR);
 				createMenuItem(_comm, menu, MenuID.Undo, &this.undo, &_undo.canUndo);
 				createMenuItem(_comm, menu, MenuID.Redo, &this.redo, &_undo.canRedo);
@@ -1189,15 +1214,25 @@ public:
 	private void pasteBeast(ref XNode node) {
 		auto m = selection;
 		if (m && m.detail.use(MArg.BEAST)) {
-			if (node.name == BeastCard.XML_NAME_M) {
-				auto bNode = node.child(BeastCard.XML_NAME, false);
-				if (!bNode.valid) return;
-				storeEdit(_motions.getSelectionIndex());
-				if (m.beast) _comm.delBeast.call(m.beast);
-				m.setBeastFromNode(bNode, LATEST_VERSION);
-				if (m.beast) m.beast.linkId = 0;
-				_beastImg.redraw();
-				foreach (dlg; modEvent) dlg();
+			try {
+				bool sameSc = _summ.id == node.attr("summId", false);
+				bool topLevel = node.attr!bool("topLevel", false, false);
+				if (node.name == BeastCard.XML_NAME_M) {
+					auto bNode = node.child(BeastCard.XML_NAME, false);
+					if (!bNode.valid) return;
+					storeEdit(_motions.getSelectionIndex());
+					if (m.beast) _comm.delBeast.call(m.beast);
+					m.beast = null;
+					auto bid = m.setBeastFromNode(bNode, LATEST_VERSION);
+					if (bid && sameSc && topLevel && _prop.var.etc.linkCard) {
+						m.beast = new BeastCard(1UL, "", "", "");
+						m.beast.linkId = bid;
+					}
+					_beastImg.redraw();
+					foreach (dlg; modEvent) dlg();
+				}
+			} catch (Exception e) {
+				debugln(e);
 			}
 		}
 	}
@@ -1306,11 +1341,13 @@ public:
 				path = cpbottom(path);
 				if ("event" == cpcategory(path)) {
 					auto w = openBeastEventWin(m.beast);
+					if (!w) return false;
 					_comm.refreshToolBar();
 					return w.openCWXPath(path, shellActivate);
 				} else {
 					if (cphasattr(path, "opendialog")) {
 						auto d = editBeast();
+						if (!d) return false;
 						return d.openCWXPath(path, shellActivate);
 					}
 					_comm.refreshToolBar();

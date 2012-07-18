@@ -751,7 +751,7 @@ private:
 					} else {
 						card = new C(1UL, "", "", "");
 					}
-				} else if (sameSc && is(CardOwner:CastCard) && topLevel && _prop.var.etc.linkHandCard) {
+				} else if (sameSc && is(CardOwner:CastCard) && topLevel && _prop.var.etc.linkCard) {
 					auto id = card.id;
 					card = new C(1UL, "", "", "");
 					card.linkId = id;
@@ -948,6 +948,14 @@ private:
 	static if (EditMode) {
 		private void editM() {
 			edit();
+		}
+		private bool canEdit() {
+			auto c = selection;
+			if (!c) return false;
+			static if (is(typeof(c.linkId))) {
+				if (0 != c.linkId && !pOwnerCard(c.linkId)) return false;
+			}
+			return true;
 		}
 	}
 	class LMouse : MouseAdapter {
@@ -1296,15 +1304,15 @@ public:
 			});
 			auto pop = new Menu(parent.getShell(), SWT.POP_UP);
 			static if (is (C == CastCard)) {
-				createMenuItem(_comm, pop, MenuID.EditProp, &editM, () => selection !is null);
+				createMenuItem(_comm, pop, MenuID.EditProp, &editM, &canEdit);
 				new MenuItem(pop, SWT.SEPARATOR);
-				createMenuItem(_comm, pop, MenuID.OpenHand, &editHand, () => selection !is null);
+				createMenuItem(_comm, pop, MenuID.OpenHand, &editHand, &canEdit);
 			} else static if (is (C == SkillCard) || is (C == ItemCard) || is (C == BeastCard)) {
-				createMenuItem(_comm, pop, MenuID.EditProp, &editM, () => selection !is null);
+				createMenuItem(_comm, pop, MenuID.EditProp, &editM, &canEdit);
 				new MenuItem(pop, SWT.SEPARATOR);
-				createMenuItem(_comm, pop, MenuID.EditEventAtTimeOfUsing, &editUseEvent, () => selection !is null);
+				createMenuItem(_comm, pop, MenuID.EditEventAtTimeOfUsing, &editUseEvent, &canEdit);
 			} else static if (is (C == InfoCard)) {
-				createMenuItem(_comm, pop, MenuID.EditProp, &editM, () => selection !is null);
+				createMenuItem(_comm, pop, MenuID.EditProp, &editM, &canEdit);
 			} else {
 				static assert (0);
 			}
@@ -1716,6 +1724,7 @@ public:
 							return _comm.openBeastWin(false).edit(c2);
 						} else static assert (0);
 					}
+					return null;
 				}
 			}
 			static if (is (C == CastCard)) {
@@ -1782,6 +1791,7 @@ public:
 							} else static assert (0);
 							return;
 						}
+						return;
 					}
 				}
 				_comm.openUseEvents(_prop, _summ, c, true);

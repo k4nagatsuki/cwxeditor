@@ -258,6 +258,7 @@ class Msgs : Properties {
 	mixin Msg!("searchErrorInfoNotFound", "情報カードが見つからない");
 	mixin Msg!("searchErrorStartNotFound", "スタートコンテントが見つからない");
 	mixin Msg!("searchErrorIgnoreWait", "後続コンテントが無いため、空白時間が無視される");
+	mixin Msg!("searchErrorLinkIdNotFound", "参照先のカードが見つからない");
 	mixin Msg!("searchOpenDialog", "検索結果へジャンプする時、ダイアログを開く");
 
 	/// イベント設定。
@@ -1186,7 +1187,7 @@ class Msgs : Properties {
 	mixin Msg!("contentsAutoHide", "コンテンツボックスを自動的に隠す");
 	mixin Msg!("xmlCopy", "コピーや切り取りを常にXML形式で行う");
 	mixin Msg!("saveInnerImagePath", "クラシックなシナリオで格納イメージのファイルパスを保存する");
-	mixin Msg!("linkHandCard", "キャストの所有カードを参照で設定する");
+	mixin Msg!("linkCard", "キャストの所有カードや召喚対象のカードを参照で設定する");
 	mixin Msg!("traceDirectories", "ファイル・" ~ DIR ~ "の変更を自動的に追跡する");
 	mixin Msg!("logicalSort", "数値参照型ソートを行う(1, 10, 2, 3, ... → 1, 2, 3, 10, ...)");
 	mixin Msg!("copyDesc", "カードをエリアに貼り付け・ドロップした時、解説もコピーする");

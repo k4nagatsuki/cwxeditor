@@ -1664,7 +1664,7 @@ public:
 		auto mo = cast(MotionOwner) path;
 		if (mo) {
 			foreach (m; mo.motions) {
-				if (m.beast) {
+				if (m.beast && 0 == m.beast.linkId) {
 					searchAll(m.beast, count, dlg);
 				}
 			}
@@ -1937,6 +1937,32 @@ public:
 					return;
 				}
 			}
+			auto casts = cast(CastCard) path;
+			if (casts) {
+				bool r = false;
+				foreach (c; casts.skills) {
+					if (0 != c.linkId && !_summ.skill(c.linkId)) {
+						addResult(path, _prop.msgs.searchErrorLinkIdNotFound);
+						count++;
+						r = true;
+					}
+				}
+				foreach (c; casts.items) {
+					if (0 != c.linkId && !_summ.item(c.linkId)) {
+						addResult(path, _prop.msgs.searchErrorLinkIdNotFound);
+						count++;
+						r = true;
+					}
+				}
+				foreach (c; casts.beasts) {
+					if (0 != c.linkId && !_summ.beast(c.linkId)) {
+						addResult(path, _prop.msgs.searchErrorLinkIdNotFound);
+						count++;
+						r = true;
+					}
+				}
+				if (r) return;
+			}
 			auto card = cast(Card) path;
 			if (card) {
 				if (card.path != "" && !isBinImg(card.path) && !skin.findPath(card.path, skin.extImage, skin.tableDir, sPath).length) {
@@ -2138,6 +2164,11 @@ public:
 			foreach (m; c.motions) {
 				if (m.type == MType.SUMMON_BEAST && !m.beast) {
 					addResult(path, _prop.msgs.searchErrorNoBeast);
+					count++;
+					return;
+				}
+				if (m.type == MType.SUMMON_BEAST && m.beast && 0 != m.beast.linkId && !_summ.beast(m.beast.linkId)) {
+					addResult(path, _prop.msgs.searchErrorLinkIdNotFound);
 					count++;
 					return;
 				}

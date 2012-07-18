@@ -1344,6 +1344,7 @@ public:
 			static if (EditMode) {
 				if (cphasattr(path, "opendialog")) {
 					auto dlg = _pane[C].edit();
+					if (!dlg) return false;
 					if (!cpempty(path)) {
 						return dlg.openCWXPath(path, shellActivate);
 					}

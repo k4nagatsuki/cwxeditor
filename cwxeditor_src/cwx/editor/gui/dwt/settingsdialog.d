@@ -1022,7 +1022,7 @@ private:
 	Button _contentsAutoHide;
 	Button _xmlCopy;
 	Button _saveInnerImagePath;
-	Button _linkHandCard;
+	Button _linkCard;
 	Button _traceDirectories;
 	Button _logicalSort;
 	Button _copyDesc;
@@ -1865,7 +1865,7 @@ private:
 				_contentsAutoHide.setEnabled(!_contentsFloat.getSelection());
 				_xmlCopy = createB(_prop.msgs.xmlCopy);
 				_saveInnerImagePath = createB(_prop.msgs.saveInnerImagePath);
-				_linkHandCard = createB(_prop.msgs.linkHandCard);
+				_linkCard = createB(_prop.msgs.linkCard);
 				_traceDirectories = createB(_prop.msgs.traceDirectories);
 				_logicalSort = createB(_prop.msgs.logicalSort);
 				_copyDesc = createB(_prop.msgs.copyDesc);
@@ -2110,7 +2110,7 @@ protected:
 		_contentsAutoHide.setSelection(_prop.var.etc.contentsAutoHide);
 		_xmlCopy.setSelection(_prop.var.etc.xmlCopy);
 		_saveInnerImagePath.setSelection(_prop.var.etc.saveInnerImagePath);
-		_linkHandCard.setSelection(_prop.var.etc.linkHandCard);
+		_linkCard.setSelection(_prop.var.etc.linkCard);
 		_traceDirectories.setSelection(_prop.var.etc.traceDirectories);
 		_logicalSort.setSelection(_prop.var.etc.logicalSort);
 		_copyDesc.setSelection(_prop.var.etc.copyDesc);
@@ -2235,7 +2235,7 @@ protected:
 		_prop.var.etc.expandXMLs = _expandXMLs.getSelection();
 		_prop.var.etc.xmlCopy = _xmlCopy.getSelection();
 		_prop.var.etc.saveInnerImagePath = _saveInnerImagePath.getSelection();
-		_prop.var.etc.linkHandCard = _linkHandCard.getSelection();
+		_prop.var.etc.linkCard = _linkCard.getSelection();
 		_prop.var.etc.traceDirectories = _traceDirectories.getSelection();
 		_prop.var.etc.logicalSort = _logicalSort.getSelection();
 		_prop.var.etc.copyDesc = _copyDesc.getSelection();

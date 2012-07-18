@@ -415,14 +415,17 @@ public:
 		}
 	}
 	/// XMLノードから召喚獣を読み出して設定する。
-	void setBeastFromNode(ref XNode node, string ver) {
+	/// ノードから生成された召喚獣のIDを返す。
+	ulong setBeastFromNode(ref XNode node, string ver) {
 		assert (node.name == "BeastCard", "setBeastFromNode: " ~ node.name);
-		setBeastImpl(BeastCard.createFromNode(node, ver));
+		auto b = BeastCard.createFromNode(node, ver);
+		ulong bid = b.id;
+		setBeastImpl(b);
+		return bid;
 	}
 	private void setBeastImpl(BeastCard beast) {
 		_beast = beast;
 		_beast.id = 1L;
-		_beast.linkId = 0L;
 		_beast.changeHandler = _change;
 		if (_uc) _beast.setUseCounter(_uc);
 		_beast.owner = this;
@@ -464,7 +467,20 @@ public:
 		if (d.use(MArg.BEAST)) {
 			auto be = e.newElement("Beasts");
 			if (_beast) {
-				_beast.toNode(be, opt);
+				if (opt && opt.includeCard && 0 != _beast.linkId) {
+					auto nestCount = opt.nestCount.get(_beast.linkId, 0) + 1;
+					opt.nestCount[_beast.linkId] = nestCount;
+					if (nestCount < opt.maxNest) {
+						_beast.toNode(be, opt);
+					}
+					if (1 >= nestCount) {
+						opt.nestCount.remove(_beast.linkId);
+					} else {
+						opt.nestCount[_beast.linkId] = nestCount - 1;
+					}
+				} else {
+					_beast.toNode(be, opt);
+				}
 			}
 		}
 		return e;
@@ -504,6 +520,9 @@ public:
 		case "beastcard": {
 			auto index = cpindex(path);
 			return index == 0 && beast ? beast.findCWXPath(cpbottom(path)) : null;
+		}
+		case "beastcard:id": {
+			return beast && beast.id == cpindex(path) ? beast.findCWXPath(cpbottom(path)) : null;
 		}
 		default: break;
 		}

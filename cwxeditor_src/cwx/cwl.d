@@ -265,24 +265,15 @@ void loadCardRef(S)(S summ) {
 				auto id = .to!ulong(value);
 				auto skill = cast(SkillCard) cp;
 				if (skill) {
-					auto sskill = summ.skill(id);
-					if (skill.name == sskill.name && skill.desc == sskill.desc) {
-						skill.linkId = id;
-					}
+					skill.linkId = id;
 				}
 				auto item = cast(ItemCard) cp;
 				if (item) {
-					auto sitem = summ.item(id);
-					if (item.name == sitem.name && item.desc == sitem.desc) {
-						item.linkId = id;
-					}
+					item.linkId = id;
 				}
 				auto beast = cast(BeastCard) cp;
 				if (beast) {
-					auto sbeast = summ.beast(id);
-					if (beast.name == sbeast.name && beast.desc == sbeast.desc) {
-						beast.linkId = id;
-					}
+					beast.linkId = id;
 				}
 			} catch (ConvException e) {
 				debugln(e);
@@ -1650,6 +1641,8 @@ struct SData {
 	string[string] comment;
 	string[string] imageRef;
 	ulong[string] cardRef;
+	uint maxNest = 16; /// 同一の召喚獣カードの最大ネスト数。
+	uint[ulong] nestCount; /// 召喚獣カードのCWXパスとネストされた回数。
 }
 /// 4.0形式のCardWirthシナリオを保存する。
 void saveLScenario(Summary summ, bool doubleIO, bool saveInnerImagePath = false) {
@@ -2283,8 +2276,24 @@ private void writeMotion(ref SData d, ref ByteIO f, Motion m) {
 	case 8:
 		auto beast = m.beast;
 		if (beast) {
-			f.writeL(cast(uint) 0x1);
-			writeBeast(d, f, beast);
+			if (0 != beast.linkId) {
+				auto nestCount = d.nestCount.get(beast.linkId, 0) + 1;
+				d.nestCount[beast.linkId] = nestCount;
+				if (nestCount < d.maxNest) {
+					f.writeL(cast(uint) 0x1);
+					writeBeast(d, f, beast);
+				} else {
+					f.writeL(cast(uint) 0x0);
+				}
+				if (1 >= nestCount) {
+					d.nestCount.remove(beast.linkId);
+				} else {
+					d.nestCount[beast.linkId] = nestCount - 1;
+				}
+			} else {
+				f.writeL(cast(uint) 0x1);
+				writeBeast(d, f, beast);
+			}
 		} else {
 			f.writeL(cast(uint) 0x0);
 		}
@@ -2790,7 +2799,7 @@ private void writeEffCard(ref SData d, ref ByteIO f, EffectCard c, byte type, ul
 }
 private void writeSkill(ref SData d, ref ByteIO f, SkillCard c) {
 	ulong id = c.id;
-	ulong linkId = c.id;
+	ulong linkId = c.linkId;
 	bool hold = c.hold;
 	if (0 != c.linkId) {
 		d.cardRef[c.cwxPath(true)] = linkId;
@@ -2804,7 +2813,7 @@ private void writeSkill(ref SData d, ref ByteIO f, SkillCard c) {
 }
 private void writeItem(ref SData d, ref ByteIO f, ItemCard c) {
 	ulong id = c.id;
-	ulong linkId = c.id;
+	ulong linkId = c.linkId;
 	bool hold = c.hold;
 	if (0 != c.linkId) {
 		d.cardRef[c.cwxPath(true)] = linkId;
@@ -2822,7 +2831,7 @@ private void writeItem(ref SData d, ref ByteIO f, ItemCard c) {
 }
 private void writeBeast(ref SData d, ref ByteIO f, BeastCard c) {
 	ulong id = c.id;
-	ulong linkId = c.id;
+	ulong linkId = c.linkId;
 	if (0 != c.linkId) {
 		d.cardRef[c.cwxPath(true)] = linkId;
 		c = d.beast(c.linkId);

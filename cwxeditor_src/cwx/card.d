@@ -21,6 +21,8 @@ class XMLOption {
 	SkillCard delegate(ulong) skill = null; /// IDからスキルカードを取得。
 	ItemCard delegate(ulong) item = null; /// IDからアイテムカードを取得。
 	BeastCard delegate(ulong) beast = null; /// IDから召喚獣カードを取得。
+	uint maxNest = 16; /// 同一の召喚獣カードの最大ネスト数。
+	uint[ulong] nestCount; /// 召喚獣カードのCWXパスとネストされた回数。
 }
 /// XML化時に上書きするデータ。
 class OverData {
@@ -1327,7 +1329,19 @@ public:
 	}
 	CWXPath findCWXPath(string path) {
 		if (cpempty(path)) return this;
-		return _ceto.findCWXPath(path);
+		auto cate = cpcategory(path);
+		switch (cate) {
+		case "event": {
+			return _ceto.findCWXPath(cpbottom(path));
+		}
+		case "motion": {
+			auto index = cpindex(path);
+			if (index >= motions.length) return null;
+			return motions[index].findCWXPath(cpbottom(path));
+		}
+		default: break;
+		}
+		return null;
 	}
 	@property
 	CWXPath[] cwxChilds() {
