@@ -1139,9 +1139,11 @@ public:
 		}
 		_motions.setRedraw(false);
 		_undo.reset();
-		foreach (m; motions) {
+		foreach (i, m; motions) {
 			appendMotion(m.dup, -1, false, false, false);
+			if (0 == i) _motions.select(0);
 		}
+		refreshSels();
 		foreach (dlg; modEvent) dlg();
 		_motions.setRedraw(true);
 		_comm.refreshToolBar();

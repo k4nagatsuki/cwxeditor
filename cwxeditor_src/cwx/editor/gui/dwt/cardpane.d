@@ -275,8 +275,7 @@ private:
 				_cards.length = 0;
 				foreach (index; _indices) {
 					auto c = cardsFrom(owner)[index];
-					auto node = c.toNode(null);
-					auto card = C.createFromNode(node, LATEST_VERSION);
+					auto card = c.dup;
 					card.setUseCounter(comm.summary.useCounter.sub);
 					_cards ~= card;
 				}

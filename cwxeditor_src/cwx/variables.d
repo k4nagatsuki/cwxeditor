@@ -114,6 +114,7 @@ class FlexEtcProps : Properties {
 	mixin Property!("cardNumberMax", uint, 99, true);
 	mixin Property!("waitMax", uint, 1000, true);
 	mixin Property!("uValueMax", uint, 999, true);
+	mixin Property!("beastMaxNest", uint, 99, true);
 
 	mixin Property!("imageListWidth", int, 380);
 	mixin Property!("imageListHeight", int, 300);

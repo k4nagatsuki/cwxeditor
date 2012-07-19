@@ -371,7 +371,8 @@ private:
 		static if (is(T:EvTemplate)) {
 			bool checkData() {
 				try {
-					cwx.script.compile(_prop.parent, null, _templScript.getText());
+					CompileOption opt;
+					cwx.script.compile(_prop.parent, null, _templScript.getText(), opt);
 					return true;
 				} catch (CWXScriptException e) {
 					auto dlg = new ScriptErrorDialog(_comm, _prop, this, e);

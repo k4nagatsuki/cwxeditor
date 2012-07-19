@@ -1488,7 +1488,9 @@ private:
 		}
 		foreach (t; _prop.var.etc.eventTemplates) {
 			try {
-				auto cs = cwx.script.compile(_prop.parent, null, t.script);
+				CompileOption opt;
+				opt.linkId = _prop.var.etc.linkCard;
+				auto cs = cwx.script.compile(_prop.parent, null, t.script, opt);
 				if (cs.length) {
 					auto c = new PutContents(cs);
 					createMenuItem2(_comm, _templMenu, t.name, _prop.images.content(cs[0].type), &c.put, () => _et !is null);
@@ -3008,7 +3010,9 @@ public:
 		if (!_et) return;
 		try {
 			try {
-				auto cs = cwx.script.compile(_prop.parent, _summ, script);
+				CompileOption opt;
+				opt.linkId = _prop.var.etc.linkCard;
+				auto cs = cwx.script.compile(_prop.parent, _summ, script, opt);
 				putContents(cs);
 			} catch (CWXScriptException e) {
 				throw e;

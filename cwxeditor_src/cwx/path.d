@@ -34,9 +34,7 @@ string cpjoin(CWXPath owner, int index, bool id) {
 }
 /// ditto
 string cpjoin(CWXPath owner, string category, int index, bool id) {
-	auto ocp = owner.cwxPath(id);
-	string cn = category ~ ":" ~ to!(string)(index);
-	return ocp.length ? ocp ~ "/" ~ cn : cn;
+	return cpjoin(owner.cwxPath(id), category, index);
 }
 /// ditto
 string cpjoin(CWXPath owner, string name, bool id) {
@@ -49,9 +47,17 @@ string cpjoinid(CWXPath owner, ulong id) {
 }
 /// ditto
 string cpjoinid(CWXPath owner, string category, ulong id) {
-	auto ocp = owner.cwxPath(true);
+	return cpjoinid(owner.cwxPath(true), category, id);
+}
+/// ditto
+string cpjoin(string ownerPath, string category, int index) {
+	string cn = category ~ ":" ~ to!(string)(index);
+	return ownerPath.length ? ownerPath ~ "/" ~ cn : cn;
+}
+/// ditto
+string cpjoinid(string ownerPath, string category, ulong id) {
 	string cn = category ~ ":id:" ~ to!(string)(id);
-	return ocp.length ? ocp ~ "/" ~ cn : cn;
+	return ownerPath.length ? ownerPath ~ "/" ~ cn : cn;
 }
 
 /// シナリオ内パスの属性を返す。

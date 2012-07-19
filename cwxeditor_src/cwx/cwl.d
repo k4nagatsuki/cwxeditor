@@ -265,14 +265,21 @@ void loadCardRef(S)(S summ) {
 				auto id = .to!ulong(value);
 				auto skill = cast(SkillCard) cp;
 				if (skill) {
+					bool hold = skill.hold;
+					skill.clearData();
 					skill.linkId = id;
+					skill.hold = hold;
 				}
 				auto item = cast(ItemCard) cp;
 				if (item) {
+					bool hold = item.hold;
+					item.clearData();
 					item.linkId = id;
+					item.hold = hold;
 				}
 				auto beast = cast(BeastCard) cp;
 				if (beast) {
+					beast.clearData();
 					beast.linkId = id;
 				}
 			} catch (ConvException e) {
@@ -601,7 +608,7 @@ private S loadSummary(S)(ref RData d, ref ByteIO f, out ulong startAreaId) {
 		return new S(d.sPath, readString(f), true);
 	}
 }
-private Motion readMotion(ref RData d, ref ByteIO f) {
+private Motion readMotion(ref RData d, ref ByteIO f, size_t index) {
 	byte tType = f.readByte;
 	if (d.dataVersion > 2) {
 		f.readByte;
@@ -741,7 +748,7 @@ private Motion readMotion(ref RData d, ref ByteIO f) {
 	default: throw new SummaryException("Unknown motion: " ~ to!(string)(tType) ~ ", " ~ to!(string)(type));
 	}
 }
-private Content readContent(ref RData d, ref ByteIO f) {
+private Content readContent(ref RData d, ref ByteIO f, size_t index) {
 	byte type = f.readByte;
 	string[string] info;
 	string name = readString(f, info, false, false);
@@ -754,7 +761,7 @@ private Content readContent(ref RData d, ref ByteIO f) {
 	Content[] childs;
 	childs.length = cNum;
 	for (uint i = 0u; i < cNum; i++) {
-		childs[i] = readContent(d, f);
+		childs[i] = readContent(d, f, i);
 	}
 	Content e;
 	switch (type) {
@@ -834,7 +841,7 @@ private Content readContent(ref RData d, ref ByteIO f) {
 		Motion[] effMotions;
 		effMotions.length = effMotionNum;
 		for (uint i = 0u; i < effMotionNum; i++) {
-			effMotions[i] = readMotion(d, f);
+			effMotions[i] = readMotion(d, f, i);
 		}
 		e = new Content(CType.EFFECT, name);
 		e.signedLevel = effLev;
@@ -1252,22 +1259,22 @@ private Content readContent(ref RData d, ref ByteIO f) {
 	}
 	return e;
 }
-private EventTree readCEventTree(ref RData d, ref ByteIO f) {
+private EventTree readCEventTree(ref RData d, ref ByteIO f, size_t index) {
 	auto tree = new EventTree("");
 	auto dest = tree.starts[0u];
 	uint cNum = f.readUIntL;
 	for (uint i = 0u; i < cNum; i++) {
-		tree.add(readContent(d, f));
+		tree.add(readContent(d, f, i));
 	}
 	tree.remove(dest);
 	return tree;
 }
-private EventTree readEventTree(ref RData d, ref ByteIO f, bool enemyCard) {
+private EventTree readEventTree(ref RData d, ref ByteIO f, bool enemyCard, size_t index) {
 	auto tree = new EventTree("");
 	auto dest = tree.starts[0u];
 	uint cNum = f.readUIntL;
 	for (uint i = 0u; i < cNum; i++) {
-		tree.add(readContent(d, f));
+		tree.add(readContent(d, f, i));
 	}
 	tree.remove(dest);
 	uint igNum = f.readUIntL;
@@ -1354,7 +1361,7 @@ private Area loadArea(ref RData d, ref ByteIO f, ulong fid) {
 	auto a = new Area(id, name);
 	uint evtNum = f.readUIntL;
 	for (uint i = 0; i < evtNum; i++) {
-		a.add(readEventTree(d, f, false));
+		a.add(readEventTree(d, f, false, i));
 	}
 	a.spAuto = !readBool(f);
 	uint cNum = f.readUIntL;
@@ -1368,7 +1375,7 @@ private Area loadArea(ref RData d, ref ByteIO f, ulong fid) {
 		EventTree[] trees;
 		trees.length = cEvtNum;
 		for (uint j = 0; j < cEvtNum; j++) {
-			trees[j] = readEventTree(d, f, false);
+			trees[j] = readEventTree(d, f, false, j);
 		}
 		string flag = readString(f);
 		real scale = f.readUIntL / 100.0;
@@ -1398,7 +1405,7 @@ private Battle loadBattle(ref RData d, ref ByteIO f, ulong fid) {
 	auto r = new Battle(id, name, "");
 	uint evtNum = f.readUIntL;
 	for (uint i = 0u; i < evtNum; i++) {
-		r.add(readEventTree(d, f, false));
+		r.add(readEventTree(d, f, false, i));
 	}
 	r.spAuto = !readBool(f);
 	uint cNum = f.readUIntL;
@@ -1408,7 +1415,7 @@ private Battle loadBattle(ref RData d, ref ByteIO f, ulong fid) {
 		EventTree[] cTrees;
 		cTrees.length = cEvtNum;
 		for (uint j = 0u; j < cEvtNum; j++) {
-			cTrees[j] = readEventTree(d, f, true);
+			cTrees[j] = readEventTree(d, f, true, j);
 		}
 		string flag = readString(f);
 		real scale = f.readUIntL / 100.0;
@@ -1433,7 +1440,7 @@ private Package loadPackage(ref RData d, ref ByteIO f, ulong fid) {
 	auto r = new Package(id, name);
 	uint evtNum = f.readUIntL;
 	for (uint i = 0u; i < evtNum; i++) {
-		r.add(readCEventTree(d, f));
+		r.add(readCEventTree(d, f, i));
 	}
 	return r;
 }
@@ -1555,7 +1562,7 @@ private C readEffCard(C)(ref RData d, ref ByteIO f) {
 	Motion[] motions;
 	motions.length = mNum;
 	for (uint i = 0u; i < mNum; i++) {
-		motions[i] = readMotion(d, f);
+		motions[i] = readMotion(d, f, i);
 	}
 	r.motions = motions;
 	r.enhance(Enhance.AVOID, f.readIntL);
@@ -1577,7 +1584,7 @@ private C readEffCard(C)(ref RData d, ref ByteIO f) {
 		r.author = readString(f);
 		uint evtNum = f.readUIntL;
 		for (uint i = 0u; i < evtNum; i++) {
-			r.add(readCEventTree(d, f));
+			r.add(readCEventTree(d, f, i));
 		}
 	}
 	return r;
@@ -1641,7 +1648,6 @@ struct SData {
 	string[string] comment;
 	string[string] imageRef;
 	ulong[string] cardRef;
-	uint maxNest = 16; /// 同一の召喚獣カードの最大ネスト数。
 	uint[ulong] nestCount; /// 召喚獣カードのCWXパスとネストされた回数。
 }
 /// 4.0形式のCardWirthシナリオを保存する。
@@ -2279,7 +2285,7 @@ private void writeMotion(ref SData d, ref ByteIO f, Motion m) {
 			if (0 != beast.linkId) {
 				auto nestCount = d.nestCount.get(beast.linkId, 0) + 1;
 				d.nestCount[beast.linkId] = nestCount;
-				if (nestCount < d.maxNest) {
+				if (nestCount <= beast.maxNest) {
 					f.writeL(cast(uint) 0x1);
 					writeBeast(d, f, beast);
 				} else {

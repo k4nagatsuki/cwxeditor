@@ -93,6 +93,35 @@ template RaceParam(bool Set) {
 		defaultEnhance(Enhance.DEFENSE, r.defaultEnhance(Enhance.DEFENSE));
 	}
 
+	/// パラメータを比較する。
+	const
+	bool equalsRace(T)(T r) {
+		return automaton == r.automaton
+			&& constructure == r.constructure
+			&& undead == r.undead
+			&& unholy == r.unholy
+			&& weaponResist == r.weaponResist
+			&& magicResist == r.magicResist
+			&& resist(Element.FIRE) == r.resist(Element.FIRE)
+			&& resist(Element.ICE) == r.resist(Element.ICE)
+			&& weakness(Element.FIRE) == r.weakness(Element.FIRE)
+			&& weakness(Element.ICE) == r.weakness(Element.ICE)
+			&& physical(Physical.DEX) == r.physical(Physical.DEX)
+			&& physical(Physical.AGL) == r.physical(Physical.AGL)
+			&& physical(Physical.INT) == r.physical(Physical.INT)
+			&& physical(Physical.STR) == r.physical(Physical.STR)
+			&& physical(Physical.VIT) == r.physical(Physical.VIT)
+			&& physical(Physical.MIN) == r.physical(Physical.MIN)
+			&& mental(Mental.AGGRESSIVE) == r.mental(Mental.AGGRESSIVE)
+			&& mental(Mental.CHEERFUL) == r.mental(Mental.CHEERFUL)
+			&& mental(Mental.BRAVE) == r.mental(Mental.BRAVE)
+			&& mental(Mental.CAUTIOUS) == r.mental(Mental.CAUTIOUS)
+			&& mental(Mental.TRICKISH) == r.mental(Mental.TRICKISH)
+			&& defaultEnhance(Enhance.AVOID) ==r.defaultEnhance(Enhance.AVOID)
+			&& defaultEnhance(Enhance.RESIST) == r.defaultEnhance(Enhance.RESIST)
+			&& defaultEnhance(Enhance.DEFENSE) == r.defaultEnhance(Enhance.DEFENSE);
+	}
+
 	public {
 		/// 命を持たないか。
 		@property

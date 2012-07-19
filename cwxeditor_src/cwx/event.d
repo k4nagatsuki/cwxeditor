@@ -829,6 +829,76 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 		return copy;
 	}
+
+	const
+	bool opEquals(ref const(Object) o) {
+		auto c = cast(const(Content)) o;
+		if (!c) return false;
+		return type == c.type
+			&& name == c.name
+			&& comment == c.comment
+
+			&& area == c.area
+			&& battle == c.battle
+			&& packages == c.packages
+			&& flag == c.flag
+			&& step == c.step
+			&& bgmPath == c.bgmPath
+			&& soundPath == c.soundPath
+			&& casts == c.casts
+			&& item == c.item
+			&& skill == c.skill
+			&& beast == c.beast
+			&& info == c.info
+
+			&& start == c.start
+			&& coupon == c.coupon
+			&& gossip == c.gossip
+			&& completeStamp == c.completeStamp
+
+			&& mental == c.mental
+			&& physical == c.physical
+			&& status == c.status
+			&& range == c.range
+			&& cardVisual == c.cardVisual
+			&& effectType == c.effectType
+			&& resist == c.resist
+			&& transition == c.transition
+
+			&& targetAll == c.targetAll
+			&& random == c.random
+			&& average == c.average
+			&& complete == c.complete
+
+			&& unsignedLevel == c.unsignedLevel
+			&& signedLevel == c.signedLevel
+			&& successRate == c.successRate
+			&& transitionSpeed == c.transitionSpeed
+			&& percent == c.percent
+			&& flagValue == c.flagValue
+			&& stepValue == c.stepValue
+			&& couponValue == c.couponValue
+			&& partyNumber == c.partyNumber
+			&& cardNumber == c.cardNumber
+			&& money == c.money
+			&& wait == c.wait
+
+			&& motions == c.motions
+
+			&& text == c.text
+
+			&& dialogs == c.dialogs
+
+			&& targetS == c.targetS
+			&& targetNS == c.targetNS
+			&& talkerC == c.talkerC
+			&& talkerNC == c.talkerNC
+
+			&& backs == c.backs
+
+			&& next == c.next;
+	}
+
 	private string _id;
 	/// イベントID。ドラッグ&ドロップ等でイベントを移動するとき、
 	/// 自分自身を識別するために使用する。
@@ -2007,8 +2077,38 @@ public:
 		}
 		add(start);
 	}
+	/// このツリーの所有者。
 	@property
 	EventTreeOwner owner() {return _owner;}
+
+	/// ディープコピーを作成する。
+	@property
+	const
+	EventTree dup() {
+		auto copy = new EventTree;
+		copy.enter = fireEnter;
+		copy.escape = fireEscape;
+		copy.lose = fireLose;
+		copy.rounds = rounds.dup;
+		copy.keyCodes = keyCodes.dup;
+		foreach (s; starts) {
+			copy.add(s.dup);
+		}
+		return copy;
+	}
+
+	const
+	bool opEquals(ref const(Object) o) {
+		auto c = cast(const(EventTree)) o;
+		if (!c) return false;
+		return fireEnter == c.fireEnter
+			&& fireEscape == c.fireEscape
+			&& fireLose == c.fireLose
+			&& rounds == c.rounds
+			&& keyCodes == c.keyCodes
+			&& starts == c.starts;
+	}
+
 	@property
 	override string cwxPath(bool id) {
 		return _owner ? cpjoin(_owner, "event", .cCountUntil!("a is b")(_owner.trees, this), id) : "";
@@ -2132,6 +2232,16 @@ public:
 	/// スタートコンテント群。
 	@property
 	Content[] starts() out (r) {
+		foreach (c; r) {
+			assert (c.type is CType.START);
+		}
+	} body {
+		return _starts;
+	}
+	/// ditto
+	@property
+	const
+	const(Content)[] starts() out (r) {
 		foreach (c; r) {
 			assert (c.type is CType.START);
 		}
@@ -2264,6 +2374,18 @@ public:
 	uint[] rounds() {
 		return _rounds;
 	}
+	/// ditto
+	@property
+	const
+	const(uint)[] rounds() {
+		return _rounds;
+	}
+	/// ditto
+	@property
+	void rounds(uint[] rounds) {
+		if (_rounds != rounds) changed();
+		_rounds = rounds;
+	}
 	/// 発火ラウンドを除去。
 	void removeRound(uint round) {
 		foreach (i, r; _rounds) {
@@ -2302,6 +2424,12 @@ public:
 	/// 発火キーコード群。
 	@property
 	string[] keyCodes() {
+		return _keyCodes;
+	}
+	/// ditto
+	@property
+	const
+	const(string)[] keyCodes() {
 		return _keyCodes;
 	}
 	/// ditto
@@ -2499,6 +2627,10 @@ public interface EventTreeOwner : CWXPath {
 	/// イベントツリー群。
 	@property
 	EventTree[] trees();
+	/// ditto
+	@property
+	const
+	const(EventTree)[] trees();
 
 	/// 発火条件「到着時」に対応しているか。
 	@property
@@ -2592,6 +2724,11 @@ public:
 
 	@property
 	EventTree[] trees() {
+		return _evts;
+	}
+	@property
+	const
+	const(EventTree)[] trees() {
 		return _evts;
 	}
 

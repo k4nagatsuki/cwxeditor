@@ -123,6 +123,12 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 				return _cast;
 			}
 			/// ditto
+			@property
+			const
+			const(CastCard)[] casts() {
+				return _cast;
+			}
+			/// ditto
 			CastCard cwCast(ulong id) {
 				return find(_cast, id);
 			}
@@ -136,6 +142,12 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 			/// スキル。
 			@property
 			SkillCard[] skills() {
+				return _skl;
+			}
+			/// ditto
+			@property
+			const
+			const(SkillCard)[] skills() {
 				return _skl;
 			}
 			/// ditto
@@ -155,6 +167,12 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 				return _itm;
 			}
 			/// ditto
+			@property
+			const
+			const(ItemCard)[] items() {
+				return _itm;
+			}
+			/// ditto
 			ItemCard item(ulong id) {
 				return find(_itm, id);
 			}
@@ -171,6 +189,12 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 				return _bst;
 			}
 			/// ditto
+			@property
+			const
+			const(BeastCard)[] beasts() {
+				return _bst;
+			}
+			/// ditto
 			BeastCard beast(ulong id) {
 				return find(_bst, id);
 			}
@@ -183,6 +207,12 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 			/// 情報カード。
 			@property
 			InfoCard[] infos() {
+				return _info;
+			}
+			/// ditto
+			@property
+			const
+			const(InfoCard)[] infos() {
 				return _info;
 			}
 			/// ditto
@@ -1050,15 +1080,12 @@ public:
 	/// 指定された召喚獣カードと同等の性能を持つ召喚獣カードを探して返す。
 	/// 見つからなければnullを返す。
 	const
-	const(BeastCard) findSomeBeast(in BeastCard beast) {
-		auto od = new OverData;
-		od.id = 1UL;
-		od.linkId = 0UL;
-		od.overHold = true;
-		od.hold = false;
-		string a = beast.toXML(null, od);
+	const(BeastCard) findSameBeast(in BeastCard beast) {
+		if (0 != beast.linkId) {
+			return this.beast(beast.linkId);
+		}
 		foreach (b; _bst) {
-			if (a == b.toXML(null, od)) return b;
+			if (beast.equalsExcludeId(b)) return b;
 		}
 		return null;
 	}

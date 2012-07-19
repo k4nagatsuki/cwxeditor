@@ -323,7 +323,7 @@ public:
 		if (m.round != round) return false;
 		if (_beast) {
 			if (m._beast) {
-				return _beast.toXML(null) == m._beast.toXML(null);
+				return _beast == m._beast;
 			}
 			return false;
 		} else {
@@ -402,6 +402,10 @@ public:
 	BeastCard[] beasts() {return _beast ? [_beast] : [];}
 	/// ditto
 	@property
+	const
+	const(BeastCard)[] beasts() {return _beast ? [_beast] : [];}
+	/// ditto
+	@property
 	void beast(in BeastCard beast) {
 		if (_beast) {
 			_beast.changeHandler = null;
@@ -470,7 +474,7 @@ public:
 				if (opt && opt.includeCard && 0 != _beast.linkId) {
 					auto nestCount = opt.nestCount.get(_beast.linkId, 0) + 1;
 					opt.nestCount[_beast.linkId] = nestCount;
-					if (nestCount < opt.maxNest) {
+					if (nestCount <= _beast.maxNest) {
 						_beast.toNode(be, opt);
 					}
 					if (1 >= nestCount) {

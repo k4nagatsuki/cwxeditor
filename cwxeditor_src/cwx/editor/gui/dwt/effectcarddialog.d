@@ -49,6 +49,7 @@ private:
 	Button _needSpell;
 	Button[EffectType] _effTyp;
 	Button[Resist] _res;
+	static if (is(C:BeastCard)) Spinner _maxNest;
 	Button[Physical] _phy;
 	Button[Mental] _mtl;
 	static if (is (C == SkillCard)) {
@@ -236,6 +237,21 @@ private:
 					radio.setLayoutData(new GridData(GridData.FILL_BOTH));
 					radio.setText(_prop.msgs.resistName(res));
 					_res[res] = radio;
+				}
+			}
+			static if (is(C:BeastCard)) {
+				{
+					auto grp = new Group(comp2, SWT.NONE);
+					grp.setText(_prop.msgs.linkOption);
+					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+					grp.setLayout(new CenterLayout);
+					auto comp3 = new Composite(grp, SWT.NONE);
+					comp3.setLayout(zeroMarginGridLayout(2, false));
+					auto l = new Label(comp3, SWT.NONE);
+					l.setText(_prop.msgs.beastMaxNest);
+					_maxNest = new Spinner(comp3, SWT.BORDER);
+					_maxNest.setMinimum(1);
+					_maxNest.setMaximum(_prop.var.etc.beastMaxNest);
 				}
 			}
 		}
@@ -782,6 +798,7 @@ protected:
 			_needSpell.setSelection(_card.spell);
 			_effTyp[_card.effectType].setSelection(true);
 			_res[_card.resist].setSelection(true);
+			static if (is(C:BeastCard)) _maxNest.setSelection(_card.maxNest);
 			_phy[_card.physical].setSelection(true);
 			_mtl[_card.mental].setSelection(true);
 			static if (is (C == SkillCard)) {
@@ -829,6 +846,7 @@ protected:
 			_author.setText(_summ.author);
 			_effTyp[EffectType.PHYSIC].setSelection(true);
 			_res[Resist.AVOID].setSelection(true);
+			static if (is(C:BeastCard)) _maxNest.setSelection(BeastCard.maxNest_init);
 			_phy[Physical.DEX].setSelection(true);
 			_mtl[Mental.AGGRESSIVE].setSelection(true);
 			static if (is (C == SkillCard)) {
@@ -877,6 +895,7 @@ protected:
 		_card.spell = _needSpell.getSelection();
 		putRadioValue!(EffectType)(_effTyp, &_card.effectType);
 		putRadioValue!(Resist)(_res, &_card.resist);
+		static if (is(C:BeastCard)) _card.maxNest = _maxNest.getSelection();
 		putRadioValue!(Physical)(_phy, &_card.physical);
 		putRadioValue!(Mental)(_mtl, &_card.mental);
 		static if (is (C == SkillCard)) {

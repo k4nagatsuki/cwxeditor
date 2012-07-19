@@ -1075,6 +1075,8 @@ class Msgs : Properties {
 	mixin Msg!("needSpellGroup", "発声による発動");
 	mixin Msg!("needSpell", "沈黙時に使用不可");
 	mixin Msg!("elementProps", "効果属性");
+	mixin Msg!("linkOption", "参照設定");
+	mixin Msg!("beastMaxNest", "ネスト可能回数");
 	mixin Msg!("resistProps", "抵抗属性");
 	mixin Msg!("aptPhysical", "身体的要素");
 	mixin Msg!("aptMental", "精神的要素");

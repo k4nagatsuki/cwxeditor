@@ -18,7 +18,7 @@ public:
 		_val = val;
 	}
 	/// コピーコンストラクタ。
-	this (Coupon c) {
+	this (in Coupon c) {
 		_name = c.name;
 		_val = c.value;
 	}

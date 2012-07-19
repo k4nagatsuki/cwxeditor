@@ -252,7 +252,7 @@ public:
 		return r;
 	}
 	const
-	bool opEquals(ref const(Target) t) {
+	bool opEquals(const(Target) t) {
 		return t.m == m && t.sleep == sleep;
 	}
 private:

@@ -59,15 +59,20 @@ class CWXScriptException : Exception {
 	bool over100() {return _over100;}
 }
 
+/// コンパイルオプション。
+struct CompileOption {
+	bool linkId = false; /// カードを参照で設定するか。
+}
+
 /// スクリプトを解析し、コンテント群にして返す。
 /// 解析中にエラーがあった場合はCWXScriptExceptionを投げる。
-static Content[] compile(const(CProps) prop, const(Summary) summ, string script) {
+static Content[] compile(const(CProps) prop, const(Summary) summ, string script, in CompileOption opt) {
 	auto compiler = new CWXScript(prop, summ, script);
 	auto tokens = compiler.tokenize(script);
 	if (compiler.errors.length) throw new CWXScriptException(__FILE__, __LINE__, script, compiler.errors, false);
 	auto nodes = compiler.analyzeSyntax(tokens);
 	if (compiler.errors.length) throw new CWXScriptException(__FILE__, __LINE__, script, compiler.errors, false);
-	auto r = compiler.analyzeSemantics(nodes);
+	auto r = compiler.analyzeSemantics(nodes, opt);
 	if (compiler.errors.length) throw new CWXScriptException(__FILE__, __LINE__, script, compiler.errors, false);
 	return r;
 }
@@ -1632,7 +1637,7 @@ fi`;
 		return r;
 	}
 
-	private T parseAttr(T, bool Within = false)(in Node[] attr, ref size_t i, lazy T defValue, in const(Node)[][string] varTable, size_t msgWidth) {
+	private T parseAttr(T, bool Within = false)(in CompileOption opt, in Node[] attr, ref size_t i, lazy T defValue, in const(Node)[][string] varTable, size_t msgWidth) {
 		if (attr.length <= i) return defValue;
 		static if (is(T == string)) {
 			auto value = attrValue(attr[i], varTable, msgWidth);
@@ -1655,7 +1660,7 @@ fi`;
 						// 空の配列
 						break;
 					}
-					r ~= parseAttr!(typeof(T[0]), Within)(values, i2, typeof(T[0]).init, varTable, msgWidth);
+					r ~= parseAttr!(typeof(T[0]), Within)(opt, values, i2, typeof(T[0]).init, varTable, msgWidth);
 					if (0 == i2) break;
 				}
 				i++;
@@ -1725,7 +1730,7 @@ fi`;
 			static if (!Within) {
 				// 睡眠者対象
 				size_t j = i + 1;
-				sleep = parseAttr!(bool)(attr, j, false, varTable, msgWidth);
+				sleep = parseAttr!(bool)(opt, attr, j, false, varTable, msgWidth);
 			}
 			switch (value) {
 			case "m", "selected":
@@ -1872,14 +1877,14 @@ fi`;
 			}
 			size_t j = 0;
 			auto vals = attr[i].values;
-			string path = decodePath(parseAttr!(string)(vals, j, "", varTable, msgWidth));
-			string flag = parseAttr!(string)(vals, j, "", varTable, msgWidth);
-			int x = parseAttr!(int)(vals, j, 0, varTable, msgWidth);
-			int y = parseAttr!(int)(vals, j, 0, varTable, msgWidth);
+			string path = decodePath(parseAttr!(string)(opt, vals, j, "", varTable, msgWidth));
+			string flag = parseAttr!(string)(opt, vals, j, "", varTable, msgWidth);
+			int x = parseAttr!(int)(opt, vals, j, 0, varTable, msgWidth);
+			int y = parseAttr!(int)(opt, vals, j, 0, varTable, msgWidth);
 			auto size = _prop.looks.viewSize;
-			int w = parseAttr!(int)(vals, j, cast(int) size.width, varTable, msgWidth);
-			int h = parseAttr!(int)(vals, j, cast(int) size.height, varTable, msgWidth);
-			bool mask = parseAttr!(bool)(vals, j, false, varTable, msgWidth);
+			int w = parseAttr!(int)(opt, vals, j, cast(int) size.width, varTable, msgWidth);
+			int h = parseAttr!(int)(opt, vals, j, cast(int) size.height, varTable, msgWidth);
+			bool mask = parseAttr!(bool)(opt, vals, j, false, varTable, msgWidth);
 			auto r = new BgImage(path, flag, x, y, w, h, mask);
 			i++;
 			return r;
@@ -1889,26 +1894,33 @@ fi`;
 			}
 			size_t j = 0;
 			auto vals = attr[i].values;
-			MType type = parseAttr!(MType)(vals, j, MType.HEAL, varTable, msgWidth);
+			MType type = parseAttr!(MType)(opt, vals, j, MType.HEAL, varTable, msgWidth);
 			auto r = new Motion(type, Element.ALL);
 			auto detail = r.detail;
 			if (detail.use(MArg.VALUE_TYPE)) {
-				r.damageType = parseAttr!(DamageType)(vals, j, r.damageType, varTable, msgWidth);
+				r.damageType = parseAttr!(DamageType)(opt, vals, j, r.damageType, varTable, msgWidth);
 			}
 			if (detail.use(MArg.U_VALUE)) {
-				r.uValue = parseAttr!(int)(vals, j, cast(int) r.uValue, varTable, msgWidth);
+				r.uValue = parseAttr!(int)(opt, vals, j, cast(int) r.uValue, varTable, msgWidth);
 			}
 			if (detail.use(MArg.A_VALUE)) {
-				r.aValue = parseAttr!(int)(vals, j, r.aValue, varTable, msgWidth);
+				r.aValue = parseAttr!(int)(opt, vals, j, r.aValue, varTable, msgWidth);
 			}
 			if (detail.use(MArg.ROUND)) {
-				r.round = parseAttr!(int)(vals, j, r.round, varTable, msgWidth);
+				r.round = parseAttr!(int)(opt, vals, j, r.round, varTable, msgWidth);
 			}
 			if (detail.use(MArg.BEAST)) {
-				ulong beast = parseAttr!(ulong)(vals, j, 0UL, varTable, msgWidth);
-				if (beast != 0 && _summ) r.beast = _summ.beast(beast);
+				ulong beast = parseAttr!(ulong)(opt, vals, j, 0UL, varTable, msgWidth);
+				if (beast != 0 && _summ) {
+					if (opt.linkId) {
+						r.beast = new BeastCard(1UL, "", "", "");
+						r.beast.linkId = beast;
+					} else {
+						r.beast = _summ.beast(beast);
+					}
+				}
 			}
-			r.element = parseAttr!(Element)(vals, j, Element.ALL, varTable, msgWidth);
+			r.element = parseAttr!(Element)(opt, vals, j, Element.ALL, varTable, msgWidth);
 			i++;
 			return r;
 		} else static if (is(T == SDialog)) {
@@ -1922,7 +1934,7 @@ fi`;
 				// 複数の条件クーポン
 				string[] cs;
 				foreach (v; vals[0 .. $ - 1]) {
-					cs ~= parseAttr!(string)(vals, j, "", varTable, msgWidth);
+					cs ~= parseAttr!(string)(opt, vals, j, "", varTable, msgWidth);
 				}
 				r.rCoupons = cs;
 			} else if (vals.length > 1) {
@@ -1937,10 +1949,10 @@ fi`;
 					j++;
 				} else {
 					// ';'で分割されるパターン
-					r.rCoupons = std.string.split(parseAttr!(string)(vals, j, "", varTable, msgWidth), ";");
+					r.rCoupons = std.string.split(parseAttr!(string)(opt, vals, j, "", varTable, msgWidth), ";");
 				}
 			}
-			r.text = parseAttr!(string)(vals, j, r.text, varTable, msgWidth);
+			r.text = parseAttr!(string)(opt, vals, j, r.text, varTable, msgWidth);
 			i++;
 			return r;
 		} else static if (is(T == int)) {
@@ -2036,14 +2048,14 @@ fi`;
 	}
 
 	/// Nodeツリーをコンテント群にして返す。
-	Content[] analyzeSemantics(in Node[] nodes) {
+	Content[] analyzeSemantics(in Node[] nodes, in CompileOption opt) {
 		const(Node)[][string] varTable;
 		size_t autoWrapCount = 0;
 		string[] startNames;
 		Content[] dummy;
-		return analyzeSemanticsImpl(nodes, KEYS, varTable, 0, autoWrapCount, startNames, dummy, true);
+		return analyzeSemanticsImpl(opt, nodes, KEYS, varTable, 0, autoWrapCount, startNames, dummy, true);
 	}
-	private Content[] analyzeSemanticsImpl(in Node[] nodes, in Keywords keys, ref const(Node)[][string] varTable, size_t stack, ref size_t autoWrapCount, ref string[] startNames, ref Content[] topGroup, bool isTop) {
+	private Content[] analyzeSemanticsImpl(in CompileOption opt, in Node[] nodes, in Keywords keys, ref const(Node)[][string] varTable, size_t stack, ref size_t autoWrapCount, ref string[] startNames, ref Content[] topGroup, bool isTop) {
 		Content[] r;
 		auto commentReg = .regex(`^[\s|\*|\/]*(.*)[\s|\*|\/]*$`);
 		string parseComment(string comment) {
@@ -2116,149 +2128,149 @@ fi`;
 				c.cardPath = decodePath(path);
 			}
 			if (detail.use(CArg.TEXT)) {
-				c.text = parseAttr!(string)(node.attr, i, c.text, varTable,
+				c.text = parseAttr!(string)(opt, node.attr, i, c.text, varTable,
 					c.talkerC is Talker.NARRATION ? _prop.looks.messageLen : _prop.looks.messageImageLen);
 			}
 			if (detail.use(CArg.TALKER_NC)) {
-				c.talkerNC = parseAttr!(Talker, true)(node.attr, i, c.talkerNC, varTable, 0);
+				c.talkerNC = parseAttr!(Talker, true)(opt, node.attr, i, c.talkerNC, varTable, 0);
 			}
 			if (detail.use(CArg.DIALOGS)) {
-				c.dialogs = parseAttr!(SDialog[])(node.attr, i, c.dialogs, varTable, _prop.looks.messageImageLen);
+				c.dialogs = parseAttr!(SDialog[])(opt, node.attr, i, c.dialogs, varTable, _prop.looks.messageImageLen);
 				if (!c.dialogs.length) {
 					c.dialogs = [new SDialog];
 				}
 			}
 			if (detail.use(CArg.BG_IMAGES)) {
-				c.backs = parseAttr!(BgImage[])(node.attr, i, c.backs, varTable, 0);
+				c.backs = parseAttr!(BgImage[])(opt, node.attr, i, c.backs, varTable, 0);
 			}
 			if (detail.use(CArg.TARGET_NS)) {
-				c.targetNS = parseAttr!(Target, true)(node.attr, i, c.targetNS, varTable, 0);
+				c.targetNS = parseAttr!(Target, true)(opt, node.attr, i, c.targetNS, varTable, 0);
 			}
 			if (detail.use(CArg.TARGET_S)) {
-				c.targetS = parseAttr!(Target)(node.attr, i, c.targetS, varTable, 0);
+				c.targetS = parseAttr!(Target)(opt, node.attr, i, c.targetS, varTable, 0);
 			}
 			if (detail.use(CArg.RANGE)) {
-				c.range = parseAttr!(Range)(node.attr, i, c.range, varTable, 0);
+				c.range = parseAttr!(Range)(opt, node.attr, i, c.range, varTable, 0);
 			}
 			if (detail.use(CArg.AREA)) {
-				c.area = parseAttr!(ulong)(node.attr, i, c.area, varTable, 0);
+				c.area = parseAttr!(ulong)(opt, node.attr, i, c.area, varTable, 0);
 			}
 			if (detail.use(CArg.BATTLE)) {
-				c.battle = parseAttr!(ulong)(node.attr, i, c.battle, varTable, 0);
+				c.battle = parseAttr!(ulong)(opt, node.attr, i, c.battle, varTable, 0);
 			}
 			if (detail.use(CArg.PACKAGE)) {
-				c.packages = parseAttr!(ulong)(node.attr, i, c.packages, varTable, 0);
+				c.packages = parseAttr!(ulong)(opt, node.attr, i, c.packages, varTable, 0);
 			}
 			if (detail.use(CArg.CAST)) {
-				c.casts = parseAttr!(ulong)(node.attr, i, c.casts, varTable, 0);
+				c.casts = parseAttr!(ulong)(opt, node.attr, i, c.casts, varTable, 0);
 			}
 			if (detail.use(CArg.ITEM)) {
-				c.item = parseAttr!(ulong)(node.attr, i, c.item, varTable, 0);
+				c.item = parseAttr!(ulong)(opt, node.attr, i, c.item, varTable, 0);
 			}
 			if (detail.use(CArg.SKILL)) {
-				c.skill = parseAttr!(ulong)(node.attr, i, c.skill, varTable, 0);
+				c.skill = parseAttr!(ulong)(opt, node.attr, i, c.skill, varTable, 0);
 			}
 			if (detail.use(CArg.INFO)) {
-				c.info = parseAttr!(ulong)(node.attr, i, c.info, varTable, 0);
+				c.info = parseAttr!(ulong)(opt, node.attr, i, c.info, varTable, 0);
 			}
 			if (detail.use(CArg.BEAST)) {
-				c.beast = parseAttr!(ulong)(node.attr, i, c.beast, varTable, 0);
+				c.beast = parseAttr!(ulong)(opt, node.attr, i, c.beast, varTable, 0);
 			}
 			if (detail.use(CArg.START)) {
-				c.start = parseAttr!(string)(node.attr, i, c.start, varTable, 0);
+				c.start = parseAttr!(string)(opt, node.attr, i, c.start, varTable, 0);
 			}
 			if (detail.use(CArg.COMPLETE)) {
-				c.complete = parseAttr!(bool)(node.attr, i, c.complete, varTable, 0);
+				c.complete = parseAttr!(bool)(opt, node.attr, i, c.complete, varTable, 0);
 			}
 			if (detail.use(CArg.MONEY)) {
-				c.money = parseAttr!(int)(node.attr, i, c.money, varTable, 0);
+				c.money = parseAttr!(int)(opt, node.attr, i, c.money, varTable, 0);
 			}
 			if (detail.use(CArg.COUPON)) {
-				c.coupon = parseAttr!(string)(node.attr, i, c.coupon, varTable, 0);
+				c.coupon = parseAttr!(string)(opt, node.attr, i, c.coupon, varTable, 0);
 			}
 			if (detail.use(CArg.COUPON_VALUE)) {
-				c.couponValue = parseAttr!(int)(node.attr, i, c.couponValue, varTable, 0);
+				c.couponValue = parseAttr!(int)(opt, node.attr, i, c.couponValue, varTable, 0);
 			}
 			if (detail.use(CArg.COMPLETE_STAMP)) {
-				c.completeStamp = parseAttr!(string)(node.attr, i, c.completeStamp, varTable, 0);
+				c.completeStamp = parseAttr!(string)(opt, node.attr, i, c.completeStamp, varTable, 0);
 			}
 			if (detail.use(CArg.GOSSIP)) {
-				c.gossip = parseAttr!(string)(node.attr, i, c.gossip, varTable, 0);
+				c.gossip = parseAttr!(string)(opt, node.attr, i, c.gossip, varTable, 0);
 			}
 			if (detail.use(CArg.FLAG)) {
-				c.flag = parseAttr!(string)(node.attr, i, c.flag, varTable, 0);
+				c.flag = parseAttr!(string)(opt, node.attr, i, c.flag, varTable, 0);
 			}
 			if (detail.use(CArg.FLAG_VALUE)) {
-				c.flagValue = parseAttr!(bool)(node.attr, i, c.flagValue, varTable, 0);
+				c.flagValue = parseAttr!(bool)(opt, node.attr, i, c.flagValue, varTable, 0);
 			}
 			if (detail.use(CArg.STEP)) {
-				c.step = parseAttr!(string)(node.attr, i, c.step, varTable, 0);
+				c.step = parseAttr!(string)(opt, node.attr, i, c.step, varTable, 0);
 			}
 			if (detail.use(CArg.STEP_VALUE)) {
-				c.stepValue = parseAttr!(int)(node.attr, i, c.stepValue, varTable, 0);
+				c.stepValue = parseAttr!(int)(opt, node.attr, i, c.stepValue, varTable, 0);
 			}
 			if (detail.use(CArg.CARD_NUMBER)) {
-				c.cardNumber = parseAttr!(int)(node.attr, i, c.cardNumber, varTable, 0);
+				c.cardNumber = parseAttr!(int)(opt, node.attr, i, c.cardNumber, varTable, 0);
 			}
 			if (detail.use(CArg.MOTIONS)) {
-				c.motions = parseAttr!(Motion[])(node.attr, i, c.motions, varTable, 0);
+				c.motions = parseAttr!(Motion[])(opt, node.attr, i, c.motions, varTable, 0);
 			}
 			if (detail.use(CArg.CARD_VISUAL)) {
-				c.cardVisual = parseAttr!(CardVisual)(node.attr, i, c.cardVisual, varTable, 0);
+				c.cardVisual = parseAttr!(CardVisual)(opt, node.attr, i, c.cardVisual, varTable, 0);
 			}
 			if (detail.use(CArg.UNSIGNED_LEVEL)) {
-				c.unsignedLevel = parseAttr!(int)(node.attr, i, c.unsignedLevel, varTable, 0);
+				c.unsignedLevel = parseAttr!(int)(opt, node.attr, i, c.unsignedLevel, varTable, 0);
 			}
 			if (detail.use(CArg.SIGNED_LEVEL)) {
-				c.signedLevel = parseAttr!(int)(node.attr, i, c.signedLevel, varTable, 0);
+				c.signedLevel = parseAttr!(int)(opt, node.attr, i, c.signedLevel, varTable, 0);
 			}
 			if (detail.use(CArg.PHYSICAL)) {
-				c.physical = parseAttr!(Physical)(node.attr, i, c.physical, varTable, 0);
+				c.physical = parseAttr!(Physical)(opt, node.attr, i, c.physical, varTable, 0);
 			}
 			if (detail.use(CArg.MENTAL)) {
-				c.mental = parseAttr!(Mental)(node.attr, i, c.mental, varTable, 0);
+				c.mental = parseAttr!(Mental)(opt, node.attr, i, c.mental, varTable, 0);
 			}
 			if (detail.use(CArg.WAIT)) {
-				c.wait = parseAttr!(int)(node.attr, i, c.wait, varTable, 0);
+				c.wait = parseAttr!(int)(opt, node.attr, i, c.wait, varTable, 0);
 			}
 			if (detail.use(CArg.PERCENT)) {
-				c.percent = parseAttr!(int)(node.attr, i, c.percent, varTable, 0);
+				c.percent = parseAttr!(int)(opt, node.attr, i, c.percent, varTable, 0);
 			}
 			if (detail.use(CArg.TARGET_ALL)) {
-				c.targetAll = parseAttr!(bool)(node.attr, i, c.targetAll, varTable, 0);
+				c.targetAll = parseAttr!(bool)(opt, node.attr, i, c.targetAll, varTable, 0);
 			}
 			if (detail.use(CArg.RANDOM)) {
-				c.random = parseAttr!(bool)(node.attr, i, c.random, varTable, 0);
+				c.random = parseAttr!(bool)(opt, node.attr, i, c.random, varTable, 0);
 			}
 			if (detail.use(CArg.AVERAGE)) {
-				c.average = parseAttr!(bool)(node.attr, i, c.average, varTable, 0);
+				c.average = parseAttr!(bool)(opt, node.attr, i, c.average, varTable, 0);
 			}
 			if (detail.use(CArg.PARTY_NUMBER)) {
-				c.partyNumber = parseAttr!(int)(node.attr, i, c.partyNumber, varTable, 0);
+				c.partyNumber = parseAttr!(int)(opt, node.attr, i, c.partyNumber, varTable, 0);
 			}
 			if (detail.use(CArg.SUCCESS_RATE)) {
-				c.successRate = parseAttr!(int)(node.attr, i, c.successRate, varTable, 0);
+				c.successRate = parseAttr!(int)(opt, node.attr, i, c.successRate, varTable, 0);
 			}
 			if (detail.use(CArg.EFFECT_TYPE)) {
-				c.effectType = parseAttr!(EffectType)(node.attr, i, c.effectType, varTable, 0);
+				c.effectType = parseAttr!(EffectType)(opt, node.attr, i, c.effectType, varTable, 0);
 			}
 			if (detail.use(CArg.RESIST)) {
-				c.resist = parseAttr!(Resist)(node.attr, i, c.resist, varTable, 0);
+				c.resist = parseAttr!(Resist)(opt, node.attr, i, c.resist, varTable, 0);
 			}
 			if (detail.use(CArg.STATUS)) {
-				c.status = parseAttr!(Status)(node.attr, i, c.status, varTable, 0);
+				c.status = parseAttr!(Status)(opt, node.attr, i, c.status, varTable, 0);
 			}
 			if (detail.use(CArg.BGM_PATH)) {
-				c.bgmPath = encodePath(parseAttr!(string)(node.attr, i, decodePath(c.bgmPath), varTable, 0));
+				c.bgmPath = encodePath(parseAttr!(string)(opt, node.attr, i, decodePath(c.bgmPath), varTable, 0));
 			}
 			if (detail.use(CArg.SOUND_PATH)) {
-				c.soundPath = encodePath(parseAttr!(string)(node.attr, i, decodePath(c.soundPath), varTable, 0));
+				c.soundPath = encodePath(parseAttr!(string)(opt, node.attr, i, decodePath(c.soundPath), varTable, 0));
 			}
 			if (detail.use(CArg.TRANSITION_SPEED)) {
-				c.transitionSpeed = parseAttr!(int)(node.attr, i, c.transitionSpeed, varTable, 0);
+				c.transitionSpeed = parseAttr!(int)(opt, node.attr, i, c.transitionSpeed, varTable, 0);
 			}
 			if (detail.use(CArg.TRANSITION)) {
-				c.transition = parseAttr!(Transition)(node.attr, i, c.transition, varTable, 0);
+				c.transition = parseAttr!(Transition)(opt, node.attr, i, c.transition, varTable, 0);
 			}
 			Content autoWrap(Content c) {
 				if (!c.detail.owner) {
@@ -2298,7 +2310,7 @@ fi`;
 			}
 			if (node.childs.length) {
 				auto parent = autoWrap(c);
-				foreach (chld; analyzeSemanticsImpl(node.childs, keys, varTable, stack + 1, autoWrapCount, startNames, isTop ? r : topGroup, false)) {
+				foreach (chld; analyzeSemanticsImpl(opt, node.childs, keys, varTable, stack + 1, autoWrapCount, startNames, isTop ? r : topGroup, false)) {
 					parent.add(chld);
 				}
 			}
@@ -2561,7 +2573,7 @@ fi`;
 			}
 			if (detail.use(MArg.BEAST)) {
 				if (value.beast) {
-					attrs2 ~= toAttr(vars.id(_summ.findSomeBeast(value.beast), 0UL), command, indentValue, vars);
+					attrs2 ~= toAttr(vars.id(_summ.findSameBeast(value.beast), value.beast.linkId), command, indentValue, vars);
 				} else {
 					attrs2 ~= toAttr(cast(Symbol) "0", command, indentValue, vars);
 				}

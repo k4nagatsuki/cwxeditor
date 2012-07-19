@@ -21,7 +21,6 @@ class XMLOption {
 	SkillCard delegate(ulong) skill = null; /// IDからスキルカードを取得。
 	ItemCard delegate(ulong) item = null; /// IDからアイテムカードを取得。
 	BeastCard delegate(ulong) beast = null; /// IDから召喚獣カードを取得。
-	uint maxNest = 16; /// 同一の召喚獣カードの最大ネスト数。
 	uint[ulong] nestCount; /// 召喚獣カードのCWXパスとネストされた回数。
 }
 /// XML化時に上書きするデータ。
@@ -38,22 +37,37 @@ public:
 interface CastOwner : CWXPath {
 	@property
 	CastCard[] casts();
+	@property
+	const
+	const(CastCard)[] casts();
 }
 interface SkillOwner : CWXPath {
 	@property
 	SkillCard[] skills();
+	@property
+	const
+	const(SkillCard)[] skills();
 }
 interface ItemOwner : CWXPath {
 	@property
 	ItemCard[] items();
+	@property
+	const
+	const(ItemCard)[] items();
 }
 interface BeastOwner : CWXPath {
 	@property
 	BeastCard[] beasts();
+	@property
+	const
+	const(BeastCard)[] beasts();
 }
 interface InfoOwner : CWXPath {
 	@property
 	InfoCard[] infos();
+	@property
+	const
+	const(InfoCard)[] infos();
 }
 
 /// カード絡みの例外。
@@ -87,11 +101,34 @@ public:
 		_path.path = imagePath;
 	}
 	/// cからパラメータをコピーする。
-	protected void shallowCopyCard(Card c) {
+	protected void shallowCopyCard(in Card c) {
 		id = c.id;
 		name = c.name;
 		desc = c.desc;
 		path = c.path;
+	}
+
+	const
+	bool opEquals(ref const(Object) o) {
+		auto c = cast(const Card) o;
+		if (!c) return false;
+		return id == c.id
+			&& equalsExcludeIdCard(c);
+	}
+	/// ID以外を比較する。
+	const
+	protected bool equalsExcludeIdCard(const(Card) c) {
+		if (!c) return false;
+		return name == c.name
+			&& desc == c.desc
+			&& path == c.path;
+	}
+
+	/// IDを除く内部データをクリアする。
+	protected void clearData() {
+		name = "";
+		desc = "";
+		path = "";
 	}
 
 	/// 変更ハンドラを登録する。
@@ -187,6 +224,25 @@ public:
 		string idStr = pNode.childText("Id", false);
 		if (!idStr) return 0UL;
 		return to!(ulong)(idStr);
+	}
+	/// nodeからID、参照先ID、ホールド情報を抽出する。存在しない場合は0。
+	private static ulong readLinkInfo(ref XNode node, out ulong linkId, out bool hold) {
+		auto pNode = node.child("Property", false);
+		if (!pNode.valid) return 0UL;
+		ulong id = 0UL;
+		linkId = 0UL;
+		hold = false;
+		pNode.onTag["Id"] = (ref XNode e) {
+			id = to!ulong(e.value);
+		};
+		pNode.onTag["LinkId"] = (ref XNode e) {
+			linkId = to!ulong(e.value);
+		};
+		pNode.onTag["Hold"] = (ref XNode e) {
+			hold = parseBool(e.value);
+		};
+		pNode.parse();
+		return id;
 	}
 
 	/// 指定されたXMLノードにProperty情報を追加する。
@@ -301,7 +357,7 @@ public:
 		this (id, name, imagePath, desc, 1, 1);
 	}
 	/// cからパラメータをコピーする。
-	void shallowCopy(CastCard c) {
+	void shallowCopy(in CastCard c) {
 		shallowCopyCard(c);
 		copyRaceParam(c);
 		level = c.level;
@@ -315,19 +371,82 @@ public:
 		silenceRound = c.silenceRound;
 		faceUpRound = c.faceUpRound;
 		antiMagicRound = c.antiMagicRound;
-		enhance(Enhance.ACTION,  c.enhance(Enhance.ACTION));
-		enhanceRound(Enhance.ACTION,  c.enhanceRound(Enhance.ACTION));
-		enhance(Enhance.AVOID,  c.enhance(Enhance.AVOID));
-		enhanceRound(Enhance.AVOID,  c.enhanceRound(Enhance.AVOID));
-		enhance(Enhance.RESIST,  c.enhance(Enhance.RESIST));
-		enhanceRound(Enhance.RESIST,  c.enhanceRound(Enhance.RESIST));
-		enhance(Enhance.DEFENSE,  c.enhance(Enhance.DEFENSE));
-		enhanceRound(Enhance.DEFENSE,  c.enhanceRound(Enhance.DEFENSE));
+		enhance(Enhance.ACTION, c.enhance(Enhance.ACTION));
+		enhanceRound(Enhance.ACTION, c.enhanceRound(Enhance.ACTION));
+		enhance(Enhance.AVOID, c.enhance(Enhance.AVOID));
+		enhanceRound(Enhance.AVOID, c.enhanceRound(Enhance.AVOID));
+		enhance(Enhance.RESIST, c.enhance(Enhance.RESIST));
+		enhanceRound(Enhance.RESIST, c.enhanceRound(Enhance.RESIST));
+		enhance(Enhance.DEFENSE, c.enhance(Enhance.DEFENSE));
+		enhanceRound(Enhance.DEFENSE, c.enhanceRound(Enhance.DEFENSE));
 		Coupon[] cps;
 		foreach (cp; c.coupons) {
 			cps ~= new Coupon(cp);
 		}
 		coupons = cps;
+	}
+	/// ditto
+	void deepCopy(in CastCard c) {
+		shallowCopy(c);
+		foreach (s; skills) {
+			add(s.dup);
+		}
+		foreach (s; items) {
+			add(s.dup);
+		}
+		foreach (s; beasts) {
+			add(s.dup);
+		}
+	}
+
+	const
+	bool opEquals(ref const(Object) o) {
+		auto c = cast(const CastCard) o;
+		if (!c) return false;
+		if (!super.opEquals(o)) return false;
+		return eqImpl(c);
+	}
+	/// ID以外を比較する。
+	const
+	bool equalsExcludeId(const(CastCard) c) {
+		if (!super.equalsExcludeIdCard(c)) return false;
+		return eqImpl(c);
+	}
+	const
+	private bool eqImpl(ref const(CastCard) c) {
+		if (!equalsRace(c)) return false;
+		return level == c.level
+			&& life == c.life
+			&& lifeMax == c.lifeMax
+			&& mentality == c.mentality
+			&& mentalityRound == c.mentalityRound
+			&& paralyze == c.paralyze
+			&& poison == c.poison
+			&& bindRound == c.bindRound
+			&& silenceRound == c.silenceRound
+			&& faceUpRound == c.faceUpRound
+			&& antiMagicRound == c.antiMagicRound
+			&& enhance(Enhance.ACTION) == c.enhance(Enhance.ACTION)
+			&& enhanceRound(Enhance.ACTION) == c.enhanceRound(Enhance.ACTION)
+			&& enhance(Enhance.AVOID) == c.enhance(Enhance.AVOID)
+			&& enhanceRound(Enhance.AVOID) == c.enhanceRound(Enhance.AVOID)
+			&& enhance(Enhance.RESIST) == c.enhance(Enhance.RESIST)
+			&& enhanceRound(Enhance.RESIST) == c.enhanceRound(Enhance.RESIST)
+			&& enhance(Enhance.DEFENSE) == c.enhance(Enhance.DEFENSE)
+			&& enhanceRound(Enhance.DEFENSE) == c.enhanceRound(Enhance.DEFENSE)
+			&& coupons == c.coupons
+			&& skills == c.skills
+			&& items == c.items
+			&& beasts == c.beasts;
+	}
+
+	/// ディープコピーを作成する。
+	@property
+	const
+	CastCard dup() {
+		auto copy = new CastCard(0UL, "", "", "");
+		copy.deepCopy(this);
+		return copy;
 	}
 	/// 使用回数カウンタ。
 	@property
@@ -400,6 +519,10 @@ public:
 	/// 所持するクーポン。
 	@property
 	Coupon[] coupons() {return _coupon;}
+	/// ditto
+	@property
+	const
+	const(Coupon)[] coupons() {return _coupon;}
 	/// ditto
 	@property
 	void coupons(Coupon[] coupon) {
@@ -486,6 +609,10 @@ public:
 	@property
 	ItemCard[] items() {return _items;}
 	/// ditto
+	@property
+	const
+	const(ItemCard)[] items() {return _items;}
+	/// ditto
 	ItemCard add(ItemCard card) {return __add(_items, card);}
 	/// ditto
 	void removeItem(ulong id) {__remove(_items, id);}
@@ -505,6 +632,10 @@ public:
 	@property
 	SkillCard[] skills() {return _skills;}
 	/// ditto
+	@property
+	const
+	const(SkillCard)[] skills() {return _skills;}
+	/// ditto
 	SkillCard add(SkillCard card) {return __add(_skills, card);}
 	/// ditto
 	void removeSkill(ulong id) {__remove(_skills, id);}
@@ -523,6 +654,10 @@ public:
 	/// 所持召喚獣。
 	@property
 	BeastCard[] beasts() {return _beasts;}
+	/// ditto
+	@property
+	const
+	const(BeastCard)[] beasts() {return _beasts;}
 	/// ditto
 	BeastCard add(BeastCard card) {return __add(_beasts, card);}
 	/// ditto
@@ -983,7 +1118,7 @@ public:
 		_enh = [Enhance.AVOID:0, Enhance.RESIST:0, Enhance.DEFENSE:0];
 	}
 	/// cからパラメータをコピーする。
-	protected void shallowCopyEffectCard(EffectCard c) {
+	protected void shallowCopyEffectCard(in EffectCard c) {
 		shallowCopyCard(c);
 		linkId = c.linkId;
 		scenario = c.scenario;
@@ -1009,6 +1144,78 @@ public:
 			ms ~= m.dup;
 		}
 		motions = ms;
+	}
+	/// ditto
+	protected void deepCopyEffectCard(in EffectCard c) {
+		shallowCopyEffectCard(c);
+		foreach (tree; c.trees) {
+			add(tree.dup);
+		}
+	}
+	/// IDを除く内部データをクリアする。
+	protected override void clearData() {
+		super.clearData();
+		linkId = 0;
+		scenario = "";
+		author = "";
+		physical = Physical.DEX;
+		mental = Mental.AGGRESSIVE;
+		target = CardTarget.NONE;
+		allRange = false;
+		spell = false;
+		effectType = EffectType.PHYSIC;
+		resist = Resist.AVOID;
+		successRate = 0;
+		visual = CardVisual.NONE;
+		enhance(Enhance.AVOID, 0);
+		enhance(Enhance.RESIST, 0);
+		enhance(Enhance.DEFENSE, 0);
+		soundPath1 = "";
+		soundPath2 = "";
+		keyCodes = [];
+		premium = Premium.NORMAL;
+		motions = [];
+	}
+
+	const
+	bool opEquals(ref const(Object) o) {
+		auto c = cast(const EffectCard) o;
+		if (!c) return false;
+		if (0 != linkId) return linkId == c.linkId;
+		if (!super.opEquals(o)) return false;
+		return eqImpl(c);
+	}
+	/// ID以外を比較する。
+	const
+	protected bool equalsExcludeIdEffect(const(EffectCard) c) {
+		if (!c) return false;
+		if (0 != linkId) return linkId == c.linkId;
+		if (!super.equalsExcludeIdCard(c)) return false;
+		return eqImpl(c);
+	}
+	const
+	private bool eqImpl(const(EffectCard) c) {
+		return linkId == c.linkId
+			&& scenario == c.scenario
+			&& author == c.author
+			&& physical == c.physical
+			&& mental == c.mental
+			&& target == c.target
+			&& allRange == c.allRange
+			&& spell == c.spell
+			&& effectType == c.effectType
+			&& resist == c.resist
+			&& successRate == c.successRate
+			&& visual == c.visual
+			&& enhance(Enhance.AVOID) == c.enhance(Enhance.AVOID)
+			&& enhance(Enhance.RESIST) == c.enhance(Enhance.RESIST)
+			&& enhance(Enhance.DEFENSE) == c.enhance(Enhance.DEFENSE)
+			&& soundPath1 == c.soundPath1
+			&& soundPath2 == c.soundPath2
+			&& keyCodes == c.keyCodes.dup
+			&& premium == c.premium
+			&& motions == c.motions
+			&& trees == c.trees;
 	}
 
 	@property
@@ -1164,6 +1371,10 @@ public:
 	string[] keyCodes() {return _keyCodes;}
 	/// ditto
 	@property
+	const
+	const(string)[] keyCodes() {return _keyCodes;}
+	/// ditto
+	@property
 	void keyCodes(string[] keyCodes) {
 		if (_keyCodes != keyCodes) changed();
 		_keyCodes = keyCodes;
@@ -1219,6 +1430,9 @@ public:
 
 	@property
 	override EventTree[] trees() {return _ceto.trees;}
+	@property
+	const
+	override const(EventTree)[] trees() {return _ceto.trees;}
 
 	@property
 	const
@@ -1356,7 +1570,7 @@ public:
 class SkillCard : EffectCard {
 private:
 	SkillUser _linkId;
-	uint _level;
+	uint _level = 0;
 	bool _hold = false;
 	int _useLimit = 0;
 public:
@@ -1376,11 +1590,46 @@ public:
 		_linkId = new SkillUser(this);
 	}
 	/// cからパラメータをコピーする。
-	void shallowCopy(SkillCard c) {
+	void shallowCopy(in SkillCard c) {
 		shallowCopyEffectCard(c);
 		level = c.level;
 		hold = c.hold;
 		useLimit = c.useLimit;
+	}
+	/// ditto
+	void deepCopy(in SkillCard c) {
+		deepCopyEffectCard(c);
+		level = c.level;
+		hold = c.hold;
+		useLimit = c.useLimit;
+	}
+	/// IDを除く内部データをクリアする。
+	override void clearData() {
+		super.clearData();
+		level = 0;
+		hold = false;
+		useLimit = 0;
+	}
+
+	const
+	bool opEquals(ref const(Object) o) {
+		auto c = cast(const SkillCard) o;
+		if (!c) return false;
+		if (0 != linkId) return linkId == c.linkId && hold == c.hold;
+		return eqImpl(c) && super.opEquals(o);
+	}
+	/// ID以外を比較する。
+	const
+	bool equalsExcludeId(const(SkillCard) c) {
+		if (!c) return false;
+		if (0 != linkId) return linkId == c.linkId && hold == c.hold;
+		return eqImpl(c) && super.equalsExcludeIdEffect(c);
+	}
+	const
+	private bool eqImpl(const(SkillCard) c) {
+		return level == c.level
+			&& hold == c.hold
+			&& useLimit == c.useLimit;
 	}
 
 	/// 持ち札である時のリンク先ID。0の場合は実体を持つ。
@@ -1442,9 +1691,9 @@ public:
 	@property
 	const
 	SkillCard dup() {
-		auto node = XNode.create(SkillCard.XML_NAME);
-		toNodeImpl(node, null, null);
-		return SkillCard.createFromNode(node, LATEST_VERSION);
+		auto copy = new SkillCard(0UL, "", "", "");
+		copy.deepCopy(this);
+		return copy;
 	}
 	/// XMLノードに変換する。
 	const
@@ -1475,6 +1724,15 @@ public:
 	static SkillCard createFromNode(ref XNode cNode, string ver) {
 		if (cNode.name != XML_NAME) throw new CardException("Node is not skill card: " ~ cNode.name);
 		auto r = new SkillCard(0, "", "", "");
+		ulong id = 0UL, linkId = 0UL;
+		bool hold = false;
+		id = readLinkInfo(cNode, linkId, hold);
+		if (0 != linkId) {
+			r.id = id;
+			r.linkId = linkId;
+			r.hold = hold;
+			return r;
+		}
 		cNode.onTag["Property"] = (ref XNode pNode) {
 			pNode.onTag["Level"] = (ref XNode n) {r._level = n.valueTo!(int);};
 			pNode.onTag["UseLimit"] = (ref XNode n) {r._useLimit = n.valueTo!(int);};
@@ -1526,9 +1784,7 @@ public:
 		_linkId = new ItemUser(this);
 		_oEnh = [Enhance.AVOID:0, Enhance.RESIST:0, Enhance.DEFENSE:0];
 	}
-	/// cからパラメータをコピーする。
-	void shallowCopy(ItemCard c) {
-		shallowCopyEffectCard(c);
+	private void copyImpl(in ItemCard c) {
 		enhanceOwner(Enhance.AVOID, c.enhanceOwner(Enhance.AVOID));
 		enhanceOwner(Enhance.RESIST, c.enhanceOwner(Enhance.RESIST));
 		enhanceOwner(Enhance.DEFENSE, c.enhanceOwner(Enhance.DEFENSE));
@@ -1536,6 +1792,52 @@ public:
 		useLimit = c.useLimit;
 		useLimitMax = c.useLimitMax;
 		hold = c.hold;
+	}
+	/// cからパラメータをコピーする。
+	void shallowCopy(in ItemCard c) {
+		shallowCopyEffectCard(c);
+		copyImpl(c);
+	}
+	/// ditto
+	void deepCopy(in ItemCard c) {
+		deepCopyEffectCard(c);
+		copyImpl(c);
+	}
+	/// IDを除く内部データをクリアする。
+	override void clearData() {
+		super.clearData();
+		enhanceOwner(Enhance.AVOID, 0);
+		enhanceOwner(Enhance.RESIST, 0);
+		enhanceOwner(Enhance.DEFENSE, 0);
+		price = 0;
+		useLimit = 0;
+		useLimitMax = 0;
+		hold = false;
+	}
+
+	const
+	bool opEquals(ref const(Object) o) {
+		auto c = cast(const ItemCard) o;
+		if (!c) return false;
+		if (0 != linkId) return linkId == c.linkId && hold == c.hold;
+		return eqImpl(c) && super.opEquals(o);
+	}
+	/// ID以外を比較する。
+	const
+	bool equalsExcludeId(const(ItemCard) c) {
+		if (!c) return false;
+		if (0 != linkId) return linkId == c.linkId && hold == c.hold;
+		return eqImpl(c) && super.equalsExcludeIdEffect(c);
+	}
+	const
+	private bool eqImpl(const(ItemCard) c) {
+		return enhanceOwner(Enhance.AVOID) == c.enhanceOwner(Enhance.AVOID)
+			&& enhanceOwner(Enhance.RESIST) == c.enhanceOwner(Enhance.RESIST)
+			&& enhanceOwner(Enhance.DEFENSE) == c.enhanceOwner(Enhance.DEFENSE)
+			&& price == c.price
+			&& useLimit == c.useLimit
+			&& useLimitMax == c.useLimitMax
+			&& hold == c.hold;
 	}
 
 	/// 持ち札である時のリンク先ID。0の場合は実体を持つ。
@@ -1617,9 +1919,9 @@ public:
 	@property
 	const
 	ItemCard dup() {
-		auto node = XNode.create(ItemCard.XML_NAME);
-		toNodeImpl(node, null, null);
-		return ItemCard.createFromNode(node, LATEST_VERSION);
+		auto copy = new ItemCard(0UL, "", "", "");
+		copy.deepCopy(this);
+		return copy;
 	}
 	/// XMLノードに変換する。
 	const
@@ -1656,6 +1958,15 @@ public:
 	static ItemCard createFromNode(ref XNode cNode, string ver) {
 		if (cNode.name != XML_NAME) throw new CardException("Node is not item card: " ~ cNode.name);
 		auto r = new ItemCard(0, "", "", "");
+		ulong id = 0UL, linkId = 0UL;
+		bool hold = false;
+		id = readLinkInfo(cNode, linkId, hold);
+		if (0 != linkId) {
+			r.id = id;
+			r.linkId = linkId;
+			r.hold = hold;
+			return r;
+		}
 		cNode.onTag["Property"] = (ref XNode pNode) {
 			pNode.onTag["UseLimit"] = (ref XNode n) {
 				r._useLimit = n.valueTo!(int);
@@ -1694,6 +2005,7 @@ class BeastCard : EffectCard {
 private:
 	BeastUser _linkId;
 	uint _useLimit = 0;
+	uint _maxNest = maxNest_init;
 public:
 	/// 召喚獣カードのXML要素名。
 	static const string XML_NAME = "BeastCard";
@@ -1711,9 +2023,39 @@ public:
 		_linkId = new BeastUser(this);
 	}
 	/// cからパラメータをコピーする。
-	void shallowCopy(BeastCard c) {
+	void shallowCopy(in BeastCard c) {
 		shallowCopyEffectCard(c);
 		useLimit = c.useLimit;
+	}
+	/// ditto
+	void deepCopy(in BeastCard c) {
+		deepCopyEffectCard(c);
+		useLimit = c.useLimit;
+	}
+	/// IDを除く内部データをクリアする。
+	override void clearData() {
+		super.clearData();
+		useLimit = 0;
+	}
+
+	const
+	bool opEquals(ref const(Object) o) {
+		auto c = cast(const BeastCard) o;
+		if (!c) return false;
+		if (0 != linkId) return linkId == c.linkId;
+		return eqImpl(c) && super.opEquals(o);
+	}
+	/// ID以外を比較する。
+	const
+	bool equalsExcludeId(const(BeastCard) c) {
+		if (!c) return false;
+		if (0 != linkId) return linkId == c.linkId;
+		return eqImpl(c) && super.equalsExcludeIdEffect(c);
+	}
+	const
+	private bool eqImpl(const(BeastCard) c) {
+		return useLimit == c.useLimit
+			&& maxNest == c.maxNest;
 	}
 
 	/// 持ち札である時のリンク先ID。0の場合は実体を持つ。
@@ -1744,6 +2086,19 @@ public:
 		_useLimit = useLimit;
 	}
 
+	/// 参照IDを使用する時、同一の召喚獣カードを何回までネストできるか。
+	@property
+	const
+	uint maxNest() {return _maxNest;}
+	/// ditto
+	@property
+	void maxNest(uint maxNest) {
+		if (_maxNest != maxNest) changed();
+		_maxNest = maxNest;
+	}
+	/// ネスト可能回数の初期値。
+	static immutable maxNest_init = 1;
+
 	/// XMLテキストに変換する。
 	const
 	string toXML(XMLOption opt) {
@@ -1773,9 +2128,9 @@ public:
 	@property
 	const
 	BeastCard dup() {
-		auto node = XNode.create(BeastCard.XML_NAME);
-		toNodeImpl(node, null, null);
-		return BeastCard.createFromNode(node, LATEST_VERSION);
+		auto copy = new BeastCard(0UL, "", "", "");
+		copy.deepCopy(this);
+		return copy;
 	}
 	/// XMLテキストに変換する。
 	const
@@ -1793,6 +2148,14 @@ public:
 	static BeastCard createFromNode(ref XNode cNode, string ver) {
 		if (cNode.name != XML_NAME) throw new CardException("Node is not beast card: " ~ cNode.name);
 		auto r = new BeastCard(0, "", "", "");
+		ulong id = 0UL, linkId = 0UL;
+		bool hold = false;
+		id = readLinkInfo(cNode, linkId, hold);
+		if (0 != linkId) {
+			r.id = id;
+			r.linkId = linkId;
+			return r;
+		}
 		cNode.onTag["Property"] = (ref XNode pNode) {
 			pNode.onTag["UseLimit"] = (ref XNode n) {r._useLimit = n.valueTo!(int);};
 			r.loadEffProp(pNode, ver);
@@ -1834,8 +2197,32 @@ public:
 		super(id, name, imagePath, desc);
 	}
 	/// cからパラメータをコピーする。
-	void shallowCopy(InfoCard c) {
+	void shallowCopy(in InfoCard c) {
 		shallowCopyCard(c);
+	}
+	/// ditto
+	alias shallowCopy deepCopy;
+
+	const
+	bool opEquals(ref const(Object) o) {
+		auto c = cast(const InfoCard) o;
+		if (!c) return false;
+		return super.opEquals(o);
+	}
+	/// ID以外を比較する。
+	const
+	bool equalsExcludeId(const(InfoCard) c) {
+		if (!c) return false;
+		return super.equalsExcludeIdCard(c);
+	}
+
+	/// ディープコピーを作成する。
+	@property
+	const
+	InfoCard dup() {
+		auto copy = new InfoCard(0UL, "", "", "");
+		copy.deepCopy(this);
+		return copy;
 	}
 
 	/// XMLテキストに変換する。

@@ -1551,7 +1551,9 @@ public:
 		auto script = cast(ArrayWrapperString) cb.getContents(TextTransfer.getInstance());
 		if (!script) return;
 		try {
-			auto cs = cwx.script.compile(_prop.parent, _summ, script.array.idup);
+			CompileOption opt;
+			opt.linkId = _prop.var.etc.linkCard;
+			auto cs = cwx.script.compile(_prop.parent, _summ, script.array.idup, opt);
 			if (!cs.length) return;
 			if (cs[0].type !is CType.START) return;
 			createEventTree(cs);
