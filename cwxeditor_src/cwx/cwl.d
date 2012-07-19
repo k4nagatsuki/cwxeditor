@@ -256,6 +256,18 @@ void loadCardRef(S)(S summ) {
 	if (!.exists(file)) return;
 	auto node = XNode.parse(readText(file));
 	if ("cardRefs" == node.name) {
+		node.onTag["maxNest"] = (ref XNode node) {
+			string path = node.attr("path", false, INVALID_CWX_PATH);
+			if (INVALID_CWX_PATH == path) return;
+			auto beast = cast(BeastCard) summ.findCWXPath(path);
+			if (!beast) return;
+			string value = node.value;
+			try {
+				beast.maxNest = .to!uint(value);
+			} catch (ConvException e) {
+				debugln(e);
+			}
+		};
 		node.onTag["cardRef"] = (ref XNode node) {
 			string path = node.attr("path", false, INVALID_CWX_PATH);
 			if (INVALID_CWX_PATH == path) return;
@@ -1648,6 +1660,7 @@ struct SData {
 	string[string] comment;
 	string[string] imageRef;
 	ulong[string] cardRef;
+	uint[string] maxNest;
 	uint[ulong] nestCount; /// 召喚獣カードのCWXパスとネストされた回数。
 }
 /// 4.0形式のCardWirthシナリオを保存する。
@@ -1832,6 +1845,10 @@ string saveCardRef(in SData d) {
 	if (!d.cardRef.length) return "";
 	auto node = XNode.create("cardRefs");
 	node.newAttr("dataVersion", 1);
+	foreach (cwxPath, maxNest; d.maxNest) {
+		auto e = node.newElement("maxNest", .text(maxNest));
+		e.newAttr("path", cwxPath);
+	}
 	foreach (cwxPath, linkId; d.cardRef) {
 		auto e = node.newElement("cardRef", .text(linkId));
 		e.newAttr("path", cwxPath);
@@ -2838,11 +2855,13 @@ private void writeItem(ref SData d, ref ByteIO f, ItemCard c) {
 private void writeBeast(ref SData d, ref ByteIO f, BeastCard c) {
 	ulong id = c.id;
 	ulong linkId = c.linkId;
+	auto cwxPath = c.cwxPath(true);
 	if (0 != c.linkId) {
-		d.cardRef[c.cwxPath(true)] = linkId;
+		d.cardRef[cwxPath] = linkId;
 		c = d.beast(c.linkId);
 		if (!c) c = new BeastCard(id, "", "", "");
 	}
+	d.maxNest[cwxPath] = c.maxNest;
 	writeEffCard(d, f, c, 0x6, id);
 	writeBool(f, false); // Hold
 	f.writeL(cast(uint) c.useLimit);

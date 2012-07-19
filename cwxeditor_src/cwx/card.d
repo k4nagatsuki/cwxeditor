@@ -2123,6 +2123,7 @@ public:
 		assert (cNode.name == XML_NAME);
 		auto pNode = setEffProp(cNode, opt, od);
 		pNode.newElement("UseLimit", useLimit);
+		pNode.newElement("MaxNest", maxNest);
 	}
 	/// コピーを生成する。
 	@property
@@ -2158,6 +2159,7 @@ public:
 		}
 		cNode.onTag["Property"] = (ref XNode pNode) {
 			pNode.onTag["UseLimit"] = (ref XNode n) {r._useLimit = n.valueTo!(int);};
+			pNode.onTag["MaxNest"] = (ref XNode n) {r._maxNest = n.valueTo!(uint);};
 			r.loadEffProp(pNode, ver);
 		};
 		r.loadEffV(cNode, ver);

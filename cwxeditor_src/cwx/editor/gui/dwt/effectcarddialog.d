@@ -250,6 +250,7 @@ private:
 					auto l = new Label(comp3, SWT.NONE);
 					l.setText(_prop.msgs.beastMaxNest);
 					_maxNest = new Spinner(comp3, SWT.BORDER);
+					mod(_maxNest);
 					_maxNest.setMinimum(1);
 					_maxNest.setMaximum(_prop.var.etc.beastMaxNest);
 				}
