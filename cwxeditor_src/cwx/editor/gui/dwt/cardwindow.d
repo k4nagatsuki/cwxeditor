@@ -464,6 +464,22 @@ public:
 			putMenuChecked(MenuID.ShowCardImage, &showCardList, &isViewList, null);
 			putMenuChecked(MenuID.ShowCardDetail, &showCardTable, &isViewTable, null);
 		}
+		static if (CWKind == CardWindowKind.ImportSource || CWKind == CardWindowKind.ImportSourceHand) {
+			auto refMenu = new Composite(_comp, SWT.NONE);
+			refMenu.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			refMenu.setLayout(zeroMarginGridLayout(2, false));
+			auto refMenuL = new Label(refMenu, SWT.NONE);
+			refMenuL.setText(_prop.msgs.importLinkCondition);
+			auto refMenuC = new Combo(refMenu, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
+			refMenuC.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
+			refMenuC.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			refMenuC.add(_prop.msgs.importLinkConditionNoChange);
+			refMenuC.add(_prop.msgs.importLinkConditionInclude);
+			refMenuC.select(0 == _prop.var.etc.importLinkCondition ? 0 : 1);
+			.listener(refMenuC, SWT.Selection, {
+				_prop.var.etc.importLinkCondition = (1 == refMenuC.getSelectionIndex() ? 1 : 0);
+			});
+		}
 		static if (1 < Cards.length) {
 			_tabf = new CTabFolder(_comp, SWT.BORDER);
 			_tabf.addSelectionListener(new SelChanged);

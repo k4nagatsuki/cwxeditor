@@ -949,6 +949,10 @@ class Msgs : Properties {
 
 	mixin Msg!("dlgTitAddScenario", "インポート元の選択");
 
+	mixin Msg!("importLinkCondition", "参照先のカードを");
+	mixin Msg!("importLinkConditionNoChange", "参照のままにする");
+	mixin Msg!("importLinkConditionInclude", "インポート時に格納する");
+
 	mixin Msg!("cardStatus", "%1$s枚のカード");
 	mixin Msg!("cardStatusSelOne", "%1$s枚のカード (ID = %2$s)");
 	mixin Msg!("cardStatusSelMulti", "%1$s枚のカード (%2$s枚を選択中)");

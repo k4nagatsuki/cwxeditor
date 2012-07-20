@@ -1821,7 +1821,7 @@ public:
 				}
 				mixin (MenuAction!("me", MenuID.Find, SWT.PUSH, "replaceText", "() => summary !is null"));
 				mixin (MenuAction!("me", MenuID.ReNumberingAll, SWT.PUSH, "reNumberingAll", "() => summary !is null"));
-				mixin (MenuAction!("me", MenuID.ToXMLText, SWT.PUSH, "clipboardToXML", "null"));
+				mixin (MenuAction!("me", MenuID.ToXMLText, SWT.PUSH, "clipboardToXML", "() => CBisXMLOnly(_comm.clipboard)"));
 				dStr ~= " - " ~ .text(__LINE__);
 				if (_prop.var.etc.singleWindow) {
 					new MenuItem(me, SWT.SEPARATOR);
@@ -2018,7 +2018,7 @@ public:
 						new ToolItem(bar, SWT.SEPARATOR);
 						mixin (ToolAction!("bar", MenuID.ReNumberingAll, SWT.PUSH, "reNumberingAll", "() => summary !is null"));
 						new ToolItem(bar, SWT.SEPARATOR);
-						mixin (ToolAction!("bar", MenuID.ToXMLText, SWT.PUSH, "clipboardToXML", "null"));
+						mixin (ToolAction!("bar", MenuID.ToXMLText, SWT.PUSH, "clipboardToXML", "() => CBisXMLOnly(_comm.clipboard)"));
 						createCoolItem(cbar, bar);
 					}
 					{
@@ -2120,7 +2120,7 @@ public:
 				new ToolItem(bar, SWT.SEPARATOR);
 				mixin (ToolAction!("bar", MenuID.Find, SWT.PUSH, "replaceText", "() => summary !is null"));
 				mixin (ToolAction!("bar", MenuID.ReNumberingAll, SWT.PUSH, "reNumberingAll", "() => summary !is null"));
-				mixin (ToolAction!("bar", MenuID.ToXMLText, SWT.PUSH, "clipboardToXML", "null"));
+				mixin (ToolAction!("bar", MenuID.ToXMLText, SWT.PUSH, "clipboardToXML", "() => CBisXMLOnly(_comm.clipboard)"));
 				new ToolItem(bar, SWT.SEPARATOR);
 				mixin (ToolAction!("bar", MenuID.Reload, SWT.PUSH, "reload", "() => summary !is null"));
 				new ToolItem(bar, SWT.SEPARATOR);

@@ -18,6 +18,7 @@ import std.exception;
 /// データをXML化する時のオプション。
 class XMLOption {
 	bool includeCard = false; /// リンク先のカードの実体を格納する。
+	bool noLinkId = false; /// 実体を格納した時、参照IDを削除する。
 	SkillCard delegate(ulong) skill = null; /// IDからスキルカードを取得。
 	ItemCard delegate(ulong) item = null; /// IDからアイテムカードを取得。
 	BeastCard delegate(ulong) beast = null; /// IDから召喚獣カードを取得。
@@ -863,49 +864,18 @@ public:
 		{
 			auto cardNode = cNode.newElement("ItemCards");
 			foreach (c; _items) {
-				if (0 != c.linkId && opt && opt.includeCard) {
-					auto od = new OverData;
-					od.id = c.id;
-					od.linkId = c.linkId;
-					od.overHold = true;
-					od.hold = c.hold;
-					auto c2 = opt.item(c.linkId);
-					if (!c2) c2 = new ItemCard(id, "", "", "");
-					c2.toNode(cardNode, opt, od);
-					continue;
-				}
 				c.toNode(cardNode, opt);
 			}
 		}
 		{
 			auto cardNode = cNode.newElement("SkillCards");
 			foreach (c; _skills) {
-				if (0 != c.linkId && opt && opt.includeCard) {
-					auto od = new OverData;
-					od.id = c.id;
-					od.linkId = c.linkId;
-					od.overHold = true;
-					od.hold = c.hold;
-					auto c2 = opt.skill(c.linkId);
-					if (!c2) c2 = new SkillCard(id, "", "", "");
-					c2.toNode(cardNode, opt, od);
-					continue;
-				}
 				c.toNode(cardNode, opt);
 			}
 		}
 		{
 			auto cardNode = cNode.newElement("BeastCards");
 			foreach (c; _beasts) {
-				if (0 != c.linkId && opt && opt.includeCard) {
-					auto od = new OverData;
-					od.id = c.id;
-					od.linkId = c.linkId;
-					auto c2 = opt.beast(c.linkId);
-					if (!c2) c2 = new BeastCard(id, "", "", "");
-					c2.toNode(cardNode, opt, od);
-					continue;
-				}
 				c.toNode(cardNode, opt);
 			}
 		}
@@ -1711,6 +1681,17 @@ public:
 	}
 	const
 	private void toNodeImpl(ref XNode cNode, XMLOption opt, in OverData od = null) {
+		if (0 != linkId && opt && opt.includeCard) {
+			auto od2 = new OverData;
+			od2.id = id;
+			if (!opt.noLinkId) od2.linkId = linkId;
+			od2.overHold = true;
+			od2.hold = hold;
+			auto c2 = opt.skill(linkId);
+			if (!c2) c2 = new SkillCard(id, "", "", "");
+			c2.toNodeImpl(cNode, opt, od2);
+			return;
+		}
 		auto pNode = setEffProp(cNode, opt, od);
 		pNode.newElement("Level", level);
 		pNode.newElement("UseLimit", useLimit);
@@ -1939,6 +1920,17 @@ public:
 	}
 	const
 	private void toNodeImpl(ref XNode cNode, XMLOption opt, in OverData od) {
+		if (0 != linkId && opt && opt.includeCard) {
+			auto od2 = new OverData;
+			od2.id = id;
+			if (!opt.noLinkId) od2.linkId = linkId;
+			od2.overHold = true;
+			od2.hold = hold;
+			auto c2 = opt.item(linkId);
+			if (!c2) c2 = new ItemCard(id, "", "", "");
+			c2.toNodeImpl(cNode, opt, od2);
+			return;
+		}
 		auto pNode = setEffProp(cNode, opt, od);
 		pNode.newElement("UseLimit", useLimit).newAttr("max", useLimitMax);
 		pNode.newElement("Price", price);
@@ -2121,6 +2113,15 @@ public:
 	const
 	private void toNodeImpl(ref XNode cNode, XMLOption opt, in OverData od) {
 		assert (cNode.name == XML_NAME);
+		if (0 != linkId && opt && opt.includeCard) {
+			auto od2 = new OverData;
+			od2.id = id;
+			if (!opt.noLinkId) od2.linkId = linkId;
+			auto c2 = opt.beast(linkId);
+			if (!c2) c2 = new BeastCard(id, "", "", "");
+			c2.toNodeImpl(cNode, opt, od2);
+			return;
+		}
 		auto pNode = setEffProp(cNode, opt, od);
 		pNode.newElement("UseLimit", useLimit);
 		pNode.newElement("MaxNest", maxNest);

@@ -935,8 +935,19 @@ private:
 			sn.newAttr("topLevel", false);
 		}
 		sn.newAttr("scenarioPath", nabs(ownerScenarioPath));
+		auto opt = new XMLOption;
+		static if (!is(ToCardOwner == void)) {
+			if (1 == _prop.var.etc.importLinkCondition) {
+				// 参照先を格納
+				opt.includeCard = true;
+				opt.noLinkId = true;
+				opt.skill = &_summ.skill;
+				opt.item = &_summ.item;
+				opt.beast = &_summ.beast;
+			}
+		}
 		foreach (sel; sels) {
-			sel.toNode(sn, null);
+			sel.toNode(sn, opt);
 		}
 	}
 	string toXML(C[] sels) {

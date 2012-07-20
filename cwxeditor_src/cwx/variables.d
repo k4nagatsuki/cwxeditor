@@ -151,6 +151,7 @@ class FlexEtcProps : Properties {
 	mixin Property!("settingListWidth", int, 150, true);
 	mixin Property!("settingListHeight", int, 150, true);
 
+	mixin Property!("importLinkCondition", int, 1);
 	mixin Property!("wallpaper", string, "");
 	mixin Property!("wallpaperStyle", int, WallpaperStyle.Tile);
 	mixin Property!("wallColorR", int, 0);

@@ -1842,7 +1842,7 @@ string saveImageRef(in SData d) {
 }
 /// 拡張情報"CardRef.wex"を保存する。
 string saveCardRef(in SData d) {
-	if (!d.cardRef.length) return "";
+	if (!d.cardRef.length && !d.maxNest.length) return "";
 	auto node = XNode.create("cardRefs");
 	node.newAttr("dataVersion", 1);
 	foreach (cwxPath, maxNest; d.maxNest) {
