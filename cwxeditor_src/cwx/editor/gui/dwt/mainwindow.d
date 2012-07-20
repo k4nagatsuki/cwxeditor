@@ -1571,7 +1571,7 @@ public:
 				dockComp.setLayoutData(new GridData(GridData.FILL_BOTH));
 				dockComp.setLayout(windowGridLayout(1, true));
 				dStr ~= " - " ~ .text(__LINE__);
-				_dock = _prop.var.loadDock(dockComp, SWT.NONE, delegate Control(Composite parent, string key) {
+				_dock = _prop.var.loadDock(dockComp, SWT.NONE, &dockCanVanish, delegate Control(Composite parent, string key) {
 					scope (exit) {
 						dStr ~= " - " ~ .text(__LINE__);
 					}
@@ -2676,6 +2676,12 @@ public:
 		} else {
 			return !iswa;
 		}
+	}
+	private bool dockCanVanish(DockingFolderCTC dock, string key) {
+		if (std.string.startsWith(key, "work")) {
+			return dock.findPane("work").length > 1;
+		}
+		return true;
 	}
 	private bool dockCanVanish(string key) {
 		if (std.string.startsWith(key, "work")) {

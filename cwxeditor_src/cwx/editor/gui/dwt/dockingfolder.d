@@ -1242,6 +1242,7 @@ class DockingFolder(TabF, int Style) {
 		DockingFolder r;
 		Composite par;
 		Control delegate(Composite, string) create;
+		void delegate(string, TabF) addRemoveList;
 		void sash(ref XNode node) {
 			string dStr = .text(__LINE__);
 			try {
@@ -1256,6 +1257,7 @@ class DockingFolder(TabF, int Style) {
 				proc.r = r;
 				proc.par = sash;
 				proc.create = create;
+				proc.addRemoveList = addRemoveList;
 				node.onTag["sash"] = &proc.sash;
 				node.onTag["tabs"] = &proc.tabs;
 				dStr ~= " - " ~ .text(__LINE__);
@@ -1295,6 +1297,8 @@ class DockingFolder(TabF, int Style) {
 					i = std.algorithm.max(i, 0);
 					i = std.algorithm.min(i, tabf.getItemCount() - 1);
 					tabf.setSelection(i);
+				} else {
+					addRemoveList(key, tabf);
 				}
 				dStr ~= " - " ~ .text(__LINE__);
 			} catch (Throwable e) {
@@ -1309,6 +1313,7 @@ class DockingFolder(TabF, int Style) {
 	///  create = XMLノード内にControlのkeyが見つかった時に
 	///           呼出され、Controlを生成して返すdelegate。
 	static DockingFolder fromNode(ref XNode node, Composite parent, int style,
+			bool delegate(typeof(this), string) canVanish,
 			Control delegate(Composite, string) create,
 			void delegate(string) createPaneEvent = null) {
 		string dStr = .text(__LINE__);
@@ -1351,14 +1356,24 @@ class DockingFolder(TabF, int Style) {
 
 				dStr ~= " - " ~ .text(__LINE__);
 				if (createPaneEvent) r.createPaneEvent ~= createPaneEvent;
+				TabF[] removeList;
 				Proc proc;
 				proc.r = r;
 				proc.par = r._area;
 				proc.create = create;
+				proc.addRemoveList = (string key, TabF tabf) {
+					if (!canVanish || canVanish(r, key)) {
+						removeList ~= tabf;
+					}
+				};
 				node.onTag["sash"] = &proc.sash;
 				node.onTag["tabs"] = &proc.tabs;
 				dStr ~= " - " ~ .text(__LINE__);
 				node.parse();
+				dStr ~= " - " ~ .text(__LINE__);
+				foreach (tabf; removeList) {
+					r.removeTabf(tabf, true);
+				}
 				dStr ~= " - " ~ .text(__LINE__);
 				return r;
 			} catch (Exception e) {

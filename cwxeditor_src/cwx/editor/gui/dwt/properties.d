@@ -319,7 +319,7 @@ public class FlexProps {
 		}
 		return t;
 	}
-	DockingFolderCTC loadDock(Composite parent, int style, Control delegate(Composite, string) create) {
+	DockingFolderCTC loadDock(Composite parent, int style, bool delegate(DockingFolderCTC, string) canVanish, Control delegate(Composite, string) create) {
 		if (_noFile) return null;
 		string dStr = .text(__LINE__);
 		try {
@@ -342,7 +342,7 @@ public class FlexProps {
 						dStr ~= " - " ~ .text(__LINE__);
 						void df(ref XNode node) {
 							dStr ~= " - " ~ .text(__LINE__);
-							r = DockingFolderCTC.fromNode(node, parent, style, create);
+							r = DockingFolderCTC.fromNode(node, parent, style, canVanish, create);
 							dStr ~= " - " ~ .text(__LINE__);
 						}
 						node.onTag["dockingFolder"] = &df;
