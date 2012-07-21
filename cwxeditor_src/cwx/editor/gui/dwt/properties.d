@@ -96,7 +96,7 @@ public class FlexProps {
 	PackageWin packageWin;
 	CardEventWin cardEventWin;
 	ContWin contentsWin;
-	DialogParam!("settingsDialog") settingsDlg;
+	DialogParam!("settingsDialog", SWT.DEFAULT, SWT.DEFAULT, 2012072100) settingsDlg;
 	WindowProps!("replaceDialog", 600, SWT.DEFAULT) replaceDlg;
 	DialogParam!("summaryDialog") summaryDlg;
 	DialogParam!("menuCardDialog") menuCardDlg;
