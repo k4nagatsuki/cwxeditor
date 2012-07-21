@@ -974,7 +974,11 @@ private:
 			_array.length = l.length;
 			foreach (i, t; l) {
 				_list.add(createName(t));
-				_array[i] = t;
+				static if (is(typeof(t.dup))) {
+					_array[i] = t.dup;
+				} else {
+					_array[i] = t;
+				}
 			}
 			if (_array.length > 0) _list.select(0);
 			selected();

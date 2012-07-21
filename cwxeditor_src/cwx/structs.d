@@ -461,6 +461,32 @@ struct ClassicEngine {
 	string execute = ""; /// 実行ファイルの代わりに実行されるファイルの名称。
 	string mnemonic; /// アクセスキー。
 	string hotkey; /// ショートカット。
+
+	string okName = null;
+	string[string] sexName;
+	string[string] periodName;
+	string[string] natureName;
+	string[string] makingsName;
+
+	/// コピーを生成する。
+	@property
+	const
+	ClassicEngine dup() {
+		ClassicEngine ce;
+		ce.name = name;
+		ce.enginePath = enginePath;
+		ce.dataDirName = dataDirName;
+		ce.execute = execute;
+		ce.mnemonic = mnemonic;
+		ce.hotkey = hotkey;
+		ce.okName = okName;
+		foreach (key, value; sexName) ce.sexName[key] = value;
+		foreach (key, value; periodName) ce.periodName[key] = value;
+		foreach (key, value; natureName) ce.natureName[key] = value;
+		foreach (key, value; makingsName) ce.makingsName[key] = value;
+		return ce;
+	}
+
 	/// エンジンを実行する。
 	const
 	string executePath(string appPath, bool engine) {
@@ -501,6 +527,35 @@ struct ClassicEngine {
 		e.newAttr("execute", execute);
 		if (mnemonic.length) e.newAttr("mnemonic", mnemonic);
 		if (hotkey.length) e.newAttr("hotkey", hotkey);
+		if (okName !is null) e.newAttr("okName", okName);
+		if (sexName.length) {
+			auto ee = e.newElement("sexName");
+			foreach (key, value; sexName) {
+				auto ne = ee.newElement("name", value);
+				ne.newAttr("key", key);
+			}
+		}
+		if (periodName.length) {
+			auto ee = e.newElement("periodName");
+			foreach (key, value; periodName) {
+				auto ne = ee.newElement("name", value);
+				ne.newAttr("key", key);
+			}
+		}
+		if (natureName.length) {
+			auto ee = e.newElement("natureName");
+			foreach (key, value; natureName) {
+				auto ne = ee.newElement("name", value);
+				ne.newAttr("key", key);
+			}
+		}
+		if (makingsName.length) {
+			auto ee = e.newElement("makingsName");
+			foreach (key, value; makingsName) {
+				auto ne = ee.newElement("name", value);
+				ne.newAttr("key", key);
+			}
+		}
 	}
 	/// ditto
 	void fromNode(ref XNode node) {
@@ -511,6 +566,36 @@ struct ClassicEngine {
 		execute = node.attr!(string)("execute", true);
 		mnemonic = node.attr!string("mnemonic", false, "");
 		hotkey = node.attr!string("hotkey", false, "");
+		okName = node.attr!string("okName", false, null);
+		node.onTag["sexName"] = (ref XNode node) {
+			node.onTag["name"] = (ref XNode node) {
+				string key = node.attr!string("key", false, null);
+				if (key !is null) sexName[key] = node.value;
+			};
+			node.parse();
+		};
+		node.onTag["periodName"] = (ref XNode node) {
+			node.onTag["name"] = (ref XNode node) {
+				string key = node.attr!string("key", false, null);
+				if (key !is null) periodName[key] = node.value;
+			};
+			node.parse();
+		};
+		node.onTag["natureName"] = (ref XNode node) {
+			node.onTag["name"] = (ref XNode node) {
+				string key = node.attr!string("key", false, null);
+				if (key !is null) natureName[key] = node.value;
+			};
+			node.parse();
+		};
+		node.onTag["makingsName"] = (ref XNode node) {
+			node.onTag["name"] = (ref XNode node) {
+				string key = node.attr!string("key", false, null);
+				if (key !is null) makingsName[key] = node.value;
+			};
+			node.parse();
+		};
+		node.parse();
 	}
 }
 

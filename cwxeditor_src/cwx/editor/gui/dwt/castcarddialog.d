@@ -691,7 +691,7 @@ private:
 			{
 				auto comp3 = createButtonGroup(comp2, _prop.msgs.sexTitle, 1, 1);
 				foreach (s; SEX_ALL) {
-					auto name = _prop.sys.sexName(s, skin.legacyName);
+					auto name = skin.sexName(s);
 					_sex[s] = createR(comp3, _prop.msgs.sex.get(name, name));
 				}
 				_sexU = createR(comp3, _prop.msgs.sexUnknown);
@@ -699,7 +699,7 @@ private:
 			{
 				auto comp3 = createButtonGroup(comp2, _prop.msgs.periodTitle, 2, 1);
 				foreach (p; PERIOD_ALL) {
-					auto name = _prop.sys.periodName(p, skin.legacyName);
+					auto name = skin.periodName(p);
 					_period[p] = createR(comp3, _prop.msgs.period.get(name, name));
 				}
 				_periodU = createR(comp3, _prop.msgs.periodUnknown);
@@ -707,7 +707,7 @@ private:
 			{
 				auto comp3 = createButtonGroup(comp2, _prop.msgs.natureTitle, 2, 2);
 				foreach (n; NATURE_DEF) {
-					auto name = _prop.sys.natureName(n, skin.legacyName);
+					auto name = skin.natureName(n);
 					_nature[n] = createR(comp3, _prop.msgs.nature.get(name, name));
 				}
 				_natureU = createR(comp3, _prop.msgs.natureUnknown);
@@ -739,7 +739,7 @@ private:
 					auto radio = new Button(comp3, SWT.CHECK);
 					mod(radio);
 					radio.setLayoutData(new GridData(GridData.FILL_BOTH));
-					auto name = _prop.sys.makingsName(m, skin.legacyName);
+					auto name = skin.makingsName(m);
 					radio.setText(_prop.msgs.makings.get(name, name));
 					radio.setData(new Integer(m));
 					radio.addSelectionListener(sl);
@@ -1303,26 +1303,26 @@ private:
 	}
 	void refreshSex() {
 		foreach (s; SEX_ALL) {
-			auto name = _prop.sys.sexName(s, _comm.skin.legacyName);
+			auto name = _comm.skin.sexName(s);
 			_sex[s].setText(_prop.msgs.sex.get(name, name));
 		}
 	}
 	void refreshPeriod() {
 		foreach (p; PERIOD_ALL) {
-			auto name = _prop.sys.periodName(p, _comm.skin.legacyName);
+			auto name = _comm.skin.periodName(p);
 			_period[p].setText(_prop.msgs.period.get(name, name));
 		}
 	}
 	void refreshNature() {
 		foreach (n; NATURE_DEF) {
-			auto name = _prop.sys.natureName(n, _comm.skin.legacyName);
+			auto name = _comm.skin.natureName(n);
 			_nature[n].setText(_prop.msgs.nature.get(name, name));
 		}
 	}
 	void refreshMakings() {
 		foreach (m; MAKINGS_LEFT) {
 			void refresh(Makings m) {
-				auto name = _prop.sys.makingsName(m, _comm.skin.legacyName);
+				auto name = _comm.skin.makingsName(m);
 				_makings[m].setText(_prop.msgs.makings.get(name, name));
 			}
 			refresh(m);
@@ -1409,34 +1409,34 @@ protected:
 			scope makings = new HashSet!(Makings);
 			cp: foreach (c; _card.coupons) {
 				foreach (s; SEX_ALL) {
-					if (c.name == _prop.sys.sexCoupon(s, skin.legacyName)) {
+					if (c.name == skin.sexCoupon(s)) {
 						if (!sex) _sex[s].setSelection(true);
 						sex = true;
 						continue cp;
 					}
 				}
 				foreach (per; PERIOD_ALL) {
-					if (c.name == _prop.sys.periodCoupon(per, skin.legacyName)) {
+					if (c.name == skin.periodCoupon(per)) {
 						if (!period) _period[per].setSelection(true);
 						period = true;
 						continue cp;
 					}
 				}
 				foreach (nat; NATURE_DEF) {
-					if (c.name == _prop.sys.natureCoupon(nat, skin.legacyName)) {
+					if (c.name == skin.natureCoupon(nat)) {
 						if (!nature) _nature[nat].setSelection(true);
 						nature = true;
 						continue cp;
 					}
 				}
 				foreach (m; MAKINGS_LEFT) {
-					if (c.name == _prop.sys.makingsCoupon(m, skin.legacyName)) {
+					if (c.name == skin.makingsCoupon(m)) {
 						if (!makings.contains(m)) _makings[m].setSelection(true);
 						makings.add(m);
 						continue cp;
 					}
 					auto r = reverseMakings(m);
-					if (c.name == _prop.sys.makingsCoupon(r, skin.legacyName)) {
+					if (c.name == skin.makingsCoupon(r)) {
 						if (!makings.contains(m)) _makings[r].setSelection(true);
 						makings.add(m);
 						continue cp;
@@ -1519,10 +1519,10 @@ protected:
 		setMaxLife();
 	}
 
-	private Coupon createCoupon(E)(Button[E] radios, string delegate(E, string) coupon, string legacyName) {
+	private Coupon createCoupon(E)(Button[E] radios, string delegate(E) coupon) {
 		foreach (e, radio; radios) {
 			if (radio.getSelection()) {
-				return new Coupon(coupon(e, legacyName), 0);
+				return new Coupon(coupon(e), 0);
 			}
 		}
 		return null;
@@ -1542,19 +1542,19 @@ protected:
 		auto skin = _comm.skin;
 		string legacyName = skin.legacyName;
 		Coupon[] cs;
-		auto sex = createCoupon!(Sex)(_sex, &_prop.sys.sexCoupon, legacyName);
+		auto sex = createCoupon!(Sex)(_sex, &skin.sexCoupon);
 		if (sex) cs ~= sex;
 		auto race = selectedRace;
 		if (race) {
 			cs ~= new Coupon(_prop.sys.raceCoupon(race.name), 0);
 		}
-		auto period = createCoupon!(Period)(_period, &_prop.sys.periodCoupon, legacyName);
+		auto period = createCoupon!(Period)(_period, &skin.periodCoupon);
 		if (period) cs ~= period;
-		auto nature = createCoupon!(Nature)(_nature, &_prop.sys.natureCoupon, legacyName);
+		auto nature = createCoupon!(Nature)(_nature, &skin.natureCoupon);
 		if (nature) cs ~= nature;
 		foreach (m, radio; _makings) {
 			if (radio.getSelection()) {
-				cs ~= new Coupon(_prop.sys.makingsCoupon(m, legacyName), 0);
+				cs ~= new Coupon(skin.makingsCoupon(m), 0);
 			}
 		}
 		cs ~= coupons;

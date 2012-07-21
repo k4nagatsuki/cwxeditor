@@ -556,7 +556,7 @@ private:
 	void refreshCoupons() {
 		auto c = _rCouponsList.getText();
 		_rCouponsList.removeAll();
-		addCastCoupons(_rCouponsList, prop, true, comm.skin.legacyName);
+		addCastCoupons(_rCouponsList, comm, true, comm.skin.legacyName);
 		_rCouponsList.select(0);
 		if (c.length && -1 == _rCouponsList.indexOf(c)) {
 			_rCouponsList.add(c, 0);

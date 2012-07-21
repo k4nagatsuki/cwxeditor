@@ -1399,6 +1399,7 @@ private:
 			foreach (cur; _cursors) {
 				cur.dispose();
 			}
+			_comm.refSkin.remove(&refSkin);
 			_comm.refCast.remove(&__refreshCast);
 			_comm.delCast.remove(&__refreshCast);
 			_comm.refSkill.remove(&__refreshSkill);
@@ -1798,6 +1799,7 @@ public:
 			_tree.addListener(SWT.MouseMove, _mTrack);
 		}
 
+		_comm.refSkin.add(&refSkin);
 		_comm.refCast.add(&__refreshCast);
 		_comm.delCast.add(&__refreshCast);
 		_comm.refSkill.add(&__refreshSkill);
@@ -1970,7 +1972,7 @@ public:
 		if (!itm) return;
 		auto c = cast(Content) itm.getData();
 		auto script = new CWXScript(_prop.parent, _summ);
-		auto text = script.toScript([c], _prop.sys.evtChildOK(_comm.skin.legacyName), _summ.legacy, "\t");
+		auto text = script.toScript([c], _comm.skin.evtChildOK, _summ.legacy, "\t");
 		text = std.array.replace(text, "\n", .newline);
 		_comm.clipboard.setContents([new ArrayWrapperString(text ~ "\n")], [TextTransfer.getInstance()]);
 		_comm.refreshToolBar();
@@ -1978,7 +1980,7 @@ public:
 	void toScriptAll() {
 		if (!_et) return;
 		auto script = new CWXScript(_prop.parent, _summ);
-		auto text = script.toScript(_et.starts, _prop.sys.evtChildOK(_comm.skin.legacyName), _summ.legacy, "\t");
+		auto text = script.toScript(_et.starts, _comm.skin.evtChildOK, _summ.legacy, "\t");
 		text = std.array.replace(text, "\n", .newline);
 		_comm.clipboard.setContents([new ArrayWrapperString(text ~ "\n")], [TextTransfer.getInstance()]);
 		_comm.refreshToolBar();
@@ -2406,7 +2408,7 @@ public:
 			} else {
 				itm.setForeground(_grayFont);
 				if (_prop.var.etc.showInputGuide) {
-					itm.setText(_prop.sys.evtChildOK(_comm.skin.legacyName));
+					itm.setText(_comm.skin.evtChildOK);
 				} else {
 					itm.setText(" ");
 				}
@@ -3129,6 +3131,7 @@ public:
 			refreshStatusLine();
 		}
 	}
+	private void refSkin() {__refreshCard();}
 	private void __refreshCast(CastCard c) {__refreshCard();}
 	private void __refreshSkill(SkillCard c) {__refreshCard();}
 	private void __refreshItem(ItemCard c) {__refreshCard();}

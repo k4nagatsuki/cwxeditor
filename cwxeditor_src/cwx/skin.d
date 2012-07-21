@@ -9,6 +9,7 @@ import cwx.imagesize;
 import cwx.xml;
 import cwx.types;
 import cwx.structs;
+import cwx.features;
 
 import std.exception;
 import std.ascii;
@@ -76,47 +77,40 @@ class Skin {
 			return r;
 		}
 	}
-	private static string lSkinsKey = null;
-	private static Skin[string] lSkins;
-	static Skin createLegacySkin(in CProps prop, string enginePath, string lEnginePath, string dataDirName, string execute) {
+	static Skin createLegacySkin(in CProps prop, string enginePath, string lEnginePath, string dataDirName, string execute, in ClassicEngine[] cEngines) {
 		// 標準のスキンをベースにする
 		if (enginePath.length) enginePath = prop.toAppAbs(enginePath);
-		if (lEnginePath.length) lEnginePath = prop.toAppAbs(lEnginePath);
+		if (lEnginePath.length) lEnginePath = nabs(prop.toAppAbs(lEnginePath));
 		auto tbl = table(prop, enginePath);
 		auto sp = "MedievalFantasy" in tbl;
+		ClassicEngine cEngine;
+		foreach (ce; cEngines) {
+			if (cfnmatch(nabs(prop.toAppAbs(ce.enginePath)), lEnginePath)) {
+				cEngine = ce.dup;
+				break;
+			}
+		}
 		Skin skin;
 		if (sp) {
 			skin = new Skin(prop, sp.skinFile, enginePath);
 		} else {
 			skin = new Skin(prop, enginePath);
 		}
-		skin.setupLegacy(lEnginePath, lEnginePath.dirName().buildPath(dataDirName));
+		skin.setupLegacy(lEnginePath, lEnginePath.dirName().buildPath(dataDirName), cEngine);
 		skin._execute = execute;
 		return skin;
 	}
 	static Skin findLegacySkin(in CProps prop, string enginePath, string sPath, string classicEngineRegex, string classicDataDirRegex, string classicMatchKey, in ClassicEngine[] cEngines) {
-		if (!lSkinsKey) {
-			lSkinsKey = enginePath;
-		} else if (enginePath != lSkinsKey) {
-			typeof(lSkins) init;
-			lSkins = init;
-			lSkinsKey = enginePath;
-		}
 		string resDir, lEnginePath;
 		findLegacy(sPath, resDir, lEnginePath, classicEngineRegex, classicDataDirRegex, classicMatchKey, cEngines);
 		resDir = resDir.length ? nabs(resDir) : "";
 		lEnginePath = lEnginePath.length ? nabs(lEnginePath) : "";
-		auto p = resDir in lSkins;
-		if (p) {
-			return *p;
-		} else {
-			string dataDirName = resDir.length ? abs2rel(lEnginePath.dirName(), resDir) : "";
-			auto skin = createLegacySkin(prop, enginePath, lEnginePath, dataDirName, "");
-			lSkins[resDir] = skin;
-			return skin;
-		}
+
+		string dataDirName = resDir.length ? abs2rel(lEnginePath.dirName(), resDir) : "";
+		return createLegacySkin(prop, enginePath, lEnginePath, dataDirName, "", cEngines);
 	}
-	private void setupLegacy(string lEnginePath, string resDir) {
+	private void setupLegacy(string lEnginePath, string resDir, ClassicEngine cEngine) {
+		_cEngine = cEngine;
 		_extImg = "bmp";
 		_extBgm = "mid";
 		_extSound = "wav";
@@ -148,10 +142,14 @@ class Skin {
 		auto p = path;
 		auto regDir = .regex(to!dstring(classicDataDirRegex), 0 == filenameCharCmp('A', 'a') ? "i" : "");
 		foreach (dir; clistdir(path)) {
-			if (.isDir(path.buildPath(dir))) {
-				if (!to!dstring(dir).match(regDir).empty && path.buildPath(dir).buildPath(classicMatchKey).exists()) {
-					return dir;
+			try {
+				if (.isDir(path.buildPath(dir))) {
+					if (!to!dstring(dir).match(regDir).empty && path.buildPath(dir).buildPath(classicMatchKey).exists()) {
+						return dir;
+					}
 				}
+			} catch (Exception e) {
+				debugln(e);
 			}
 		}
 		return "";
@@ -178,9 +176,13 @@ class Skin {
 
 		foreach (file; clistdir(path)) {
 			string p = path.buildPath(file);
-			if (!.isDir(p) && !to!dstring(file).match(regExe).empty) {
-				enginePath = p;
-				return true;
+			try {
+				if (!.isDir(p) && !to!dstring(file).match(regExe).empty) {
+					enginePath = p;
+					return true;
+				}
+			} catch (Exception e) {
+				debugln(e);
 			}
 		}
 
@@ -224,6 +226,7 @@ class Skin {
 
 	private const(CProps) _prop;
 	private string _enginePath;
+	private ClassicEngine _cEngine;
 
 	private string _path;
 	private string _skinFile;
@@ -895,6 +898,52 @@ class Skin {
 	string findPath(string path, string ext, string defDir, string sPath) {
 		bool dummy;
 		return findPathF(path, ext, defDir, sPath, dummy);
+	}
+
+	/// 標準のメッセージ送りテキストを返す。
+	@property
+	const
+	string evtChildOK() {return _cEngine.okName is null ? _prop.sys.evtChildOK(legacyName) : _cEngine.okName;}
+
+	/// このスキンでの特徴の名前を返す。
+	const
+	string sexName(Sex e) {
+		return _cEngine.sexName.get(_prop.sys.sexName(e, ""), _prop.sys.sexName(e, legacyName));
+	}
+	/// ditto
+	const
+	string periodName(Period e) {
+		return _cEngine.periodName.get(_prop.sys.periodName(e, ""), _prop.sys.periodName(e, legacyName));
+	}
+	/// ditto
+	const
+	string natureName(Nature e) {
+		return _cEngine.natureName.get(_prop.sys.natureName(e, ""), _prop.sys.natureName(e, legacyName));
+	}
+	/// ditto
+	const
+	string makingsName(Makings e) {
+		return _cEngine.makingsName.get(_prop.sys.makingsName(e, ""), _prop.sys.makingsName(e, legacyName));
+	}
+	/// このスキンでの特徴のクーポンを返す。
+	const
+	string sexCoupon(Sex e) {
+		return _prop.sys.convCoupon(sexName(e), CouponType.Hide);
+	}
+	/// ditto
+	const
+	string periodCoupon(Period e) {
+		return _prop.sys.convCoupon(periodName(e), CouponType.Hide);
+	}
+	/// ditto
+	const
+	string natureCoupon(Nature e) {
+		return _prop.sys.convCoupon(natureName(e), CouponType.Hide);
+	}
+	/// ditto
+	const
+	string makingsCoupon(Makings e) {
+		return _prop.sys.convCoupon(makingsName(e), CouponType.Hide);
 	}
 
 	/// XMLファイルからスキンデータをロードする。

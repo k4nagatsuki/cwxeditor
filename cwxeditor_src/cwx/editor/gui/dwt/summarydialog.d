@@ -418,7 +418,10 @@ private:
 				if (selClassic) selClassic = nabs(selClassic);
 			}
 		}
-		_classicEngines = _prop.var.etc.classicEngines.dup;
+		_classicEngines = [];
+		foreach (e; _prop.var.etc.classicEngines) {
+			_classicEngines ~= e.dup;
+		}
 
 		_type.removeAll();
 		void initSkin() {
