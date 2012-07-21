@@ -73,6 +73,15 @@ class EventWin(string Name, int Width, int Height, ulong SizeChgVersion = 0) : P
 
 	mixin XMLFuncs!(EventWin, Name);
 }
+class ToolWin(string PropName, int Width, int Height, ulong SizeChgVersion = 0)
+		: Properties, DSize {
+	mixin Property!("x", int, SWT.DEFAULT);
+	mixin Property!("y", int, SWT.DEFAULT);
+	mixin Property!("width", int, Width, false, SizeChgVersion);
+	mixin Property!("height", int, Height, false, SizeChgVersion);
+
+	mixin XMLFuncs!(ToolWin, PropName);
+}
 alias EventWin!("areaWindow", SWT.DEFAULT, SWT.DEFAULT) AreaWin;
 alias EventWin!("areaSceneWindow", SWT.DEFAULT, SWT.DEFAULT) AreaSceneWin;
 alias EventWin!("areaEventWindow", SWT.DEFAULT, SWT.DEFAULT) AreaEventWin;
@@ -97,6 +106,7 @@ public class FlexProps {
 	CardEventWin cardEventWin;
 	ContWin contentsWin;
 	DialogParam!("settingsDialog", SWT.DEFAULT, SWT.DEFAULT, 2012072100) settingsDlg;
+	ToolWin!("featuresWindow", SWT.DEFAULT, 300) featuresWin;
 	WindowProps!("replaceDialog", 600, SWT.DEFAULT) replaceDlg;
 	DialogParam!("summaryDialog") summaryDlg;
 	DialogParam!("menuCardDialog") menuCardDlg;

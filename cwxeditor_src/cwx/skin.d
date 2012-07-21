@@ -903,7 +903,7 @@ class Skin {
 	/// 標準のメッセージ送りテキストを返す。
 	@property
 	const
-	string evtChildOK() {return _cEngine.okName is null ? _prop.sys.evtChildOK(legacyName) : _cEngine.okName;}
+	string evtChildOK() {return _cEngine.okText is null ? _prop.sys.evtChildOK(legacyName) : _cEngine.okText;}
 
 	/// このスキンでの特徴の名前を返す。
 	const

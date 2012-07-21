@@ -23,6 +23,11 @@ abstract class AbsDialog {
 	/// OKまたは適用ボタンが押され、その処理がキャンセルされなかった際に呼び出される。
 	void delegate()[] appliedEvent;
 
+	/// サイズが計算された際に呼び出される。
+	void delegate(int x, int y, int w, int h)[] calcBoundsEvent;
+	/// ダイアログが開かれた際に呼び出される。
+	void delegate()[] openedEvent;
+
 	private Props _prop;
 	private Shell _win;
 	private DSize _size;
@@ -297,6 +302,10 @@ abstract class AbsDialog {
 		if (winProps) {
 			_win.setMaximized(winProps.maximized);
 		}
+		_win.layout(true);
+		foreach (dlg; calcBoundsEvent) {
+			dlg(x, y, width, height);
+		}
 	}
 	bool open() {
 		setup(_area);
@@ -313,6 +322,9 @@ abstract class AbsDialog {
 		_win.open();
 		if (firstFocusIsOK) _okBtn.setFocus();
 		opened();
+		foreach (dlg; openedEvent) {
+			dlg();
+		}
 		if (!_modal) return false;
 		auto d = _win.getDisplay();
 		scope (failure) {

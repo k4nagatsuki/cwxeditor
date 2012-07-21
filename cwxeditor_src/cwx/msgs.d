@@ -1278,6 +1278,12 @@ class Msgs : Properties {
 	mixin Msg!("dlgTitClassicEnginePath", "クラシックエンジンの選択");
 	mixin Msg!("dlgTitClassicEngineExecute", "代替実行ファイルの選択");
 
+	mixin Msg!("featureName", "特徴の名称");
+	mixin Msg!("dlgTitFeatureName", "特徴の名称");
+	mixin Msg!("featureDefaultName", "標準名");
+	mixin Msg!("featureVariantName", "バリアント名");
+	mixin Msg!("featureManualName", "ユーザ設定名");
+
 	mixin Msg!("bgImagesDefault", "デフォルト背景");
 	mixin Msg!("setBgImagesDefault", "デフォルト背景の設定...");
 	mixin Msg!("dlgTitBgImagesDefault", "デフォルト背景の設定");

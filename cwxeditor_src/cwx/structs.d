@@ -462,7 +462,7 @@ struct ClassicEngine {
 	string mnemonic; /// アクセスキー。
 	string hotkey; /// ショートカット。
 
-	string okName = null;
+	string okText = null;
 	string[string] sexName;
 	string[string] periodName;
 	string[string] natureName;
@@ -479,7 +479,7 @@ struct ClassicEngine {
 		ce.execute = execute;
 		ce.mnemonic = mnemonic;
 		ce.hotkey = hotkey;
-		ce.okName = okName;
+		ce.okText = okText;
 		foreach (key, value; sexName) ce.sexName[key] = value;
 		foreach (key, value; periodName) ce.periodName[key] = value;
 		foreach (key, value; natureName) ce.natureName[key] = value;
@@ -527,7 +527,7 @@ struct ClassicEngine {
 		e.newAttr("execute", execute);
 		if (mnemonic.length) e.newAttr("mnemonic", mnemonic);
 		if (hotkey.length) e.newAttr("hotkey", hotkey);
-		if (okName !is null) e.newAttr("okName", okName);
+		if (okText !is null) e.newAttr("okText", okText);
 		if (sexName.length) {
 			auto ee = e.newElement("sexName");
 			foreach (key, value; sexName) {
@@ -557,16 +557,39 @@ struct ClassicEngine {
 			}
 		}
 	}
+
+	/// エンジンの実行ファイル名から拡張子を取り戻した文字列を返す。
+	@property
+	const
+	string legacyName() {
+		return enginePath.baseName().stripExtension();
+	}
+
+	/// 特徴名をクリアする。
+	void clearFeatures() {
+		okText = null;
+		typeof(sexName) sexName;
+		this.sexName = sexName;
+		typeof(periodName) periodName;
+		this.periodName = periodName;
+		typeof(natureName) natureName;
+		this.natureName = natureName;
+		typeof(makingsName) makingsName;
+		this.makingsName = makingsName;
+	}
+
 	/// ditto
 	void fromNode(ref XNode node) {
 		if (node.name != "classicEngine") throw new Exception("Node is not classicEngine");
+		clearFeatures();
+
 		name = node.attr!(string)("name", true);
 		enginePath = node.attr!(string)("enginePath", true);
 		dataDirName = node.attr!(string)("dataDirName", true);
 		execute = node.attr!(string)("execute", true);
 		mnemonic = node.attr!string("mnemonic", false, "");
 		hotkey = node.attr!string("hotkey", false, "");
-		okName = node.attr!string("okName", false, null);
+		okText = node.attr!string("okText", false, null);
 		node.onTag["sexName"] = (ref XNode node) {
 			node.onTag["name"] = (ref XNode node) {
 				string key = node.attr!string("key", false, null);

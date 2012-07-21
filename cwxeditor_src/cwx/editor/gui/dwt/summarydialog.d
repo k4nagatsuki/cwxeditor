@@ -85,7 +85,7 @@ private:
 			int i = _type.getSelectionIndex();
 			if (_hasLegacySkin) {
 				if (i == 0) {
-					return .findSkin(_comm, _prop, _summ, false);
+					return .findSkin(_comm, _prop, _summ, "", false);
 				}
 				i--;
 			}

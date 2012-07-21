@@ -172,6 +172,9 @@ class FlexEtcProps : Properties {
 	mixin Property!("classicEnginesSashR", int, 2);
 	mixin Property!("classicEngineShortcutSashL", int, 1);
 	mixin Property!("classicEngineShortcutSashR", int, 3);
+	mixin Property!("featureDefaultNameWidth", int, 100);
+	mixin Property!("featureVariantNameWidth", int, 100);
+	mixin Property!("featureManualNameWidth", int, 100);
 	mixin Property!("eventTemplatesSashL", int, 1);
 	mixin Property!("eventTemplatesSashR", int, 2);
 	mixin Property!("scenarioTemplatesSashL", int, 1);

@@ -15,6 +15,7 @@ import cwx.cab;
 import cwx.script;
 import cwx.msgs;
 import cwx.props;
+import cwx.features;
 
 import cwx.editor.gui.sound;
 
@@ -57,7 +58,14 @@ private:
 				save();
 			}
 			private void save() {
-				_old = _array.dup;
+				static if (is(typeof(_array[0].dup))) {
+					_old = [];
+					foreach (a; _array) {
+						_old ~= a.dup;
+					}
+				} else {
+					_old = _array.dup;
+				}
 				_selected = _list.getSelectionIndex();
 			}
 			private void impl() {
@@ -120,6 +128,20 @@ private:
 			Button _cEngineExecuteDirOpen;
 			Text _mnemonic;
 			HotKeyField _hotkey;
+
+			Shell _ceNameWin;
+			Table _featureName;
+			TableItem _okText;
+			TableItem[Sex] _sexName;
+			TableItem[Period] _periodName;
+			TableItem[Nature] _natureName;
+			TableItem[Makings] _makingsName;
+			void featuresEnd(TableItem itm, int column, string newText) {
+				itm.setText(column, newText);
+				if (0 < _list.getItemCount()) {
+					_alt.setEnabled(true);
+				}
+			}
 		} else static if (is(T:ScTemplate)) {
 			Text _templPath;
 			Button _templPathRef;
@@ -191,6 +213,27 @@ private:
 					_cEngineExecute.setText(_array[i].execute);
 					_mnemonic.setText(_array[i].mnemonic);
 					_hotkey.accelerator = _array[i].hotkey;
+
+					auto n = _array[i].legacyName;
+					_okText.setText(1, _prop.sys.evtChildOK(n));
+					_okText.setText(2, _array[i].okText is null ? "" : _array[i].okText);
+					foreach (f, itm; _sexName) {
+						itm.setText(1, _prop.sys.sexName(f, n));
+						itm.setText(2, _array[i].sexName.get(_prop.sys.sexName(f, ""), ""));
+					}
+					foreach (f, itm; _periodName) {
+						itm.setText(1, _prop.sys.periodName(f, n));
+						itm.setText(2, _array[i].periodName.get(_prop.sys.periodName(f, ""), ""));
+					}
+					foreach (f, itm; _natureName) {
+						itm.setText(1, _prop.sys.natureName(f, n));
+						itm.setText(2, _array[i].natureName.get(_prop.sys.natureName(f, ""), ""));
+					}
+					foreach (f, itm; _makingsName) {
+						itm.setText(1, _prop.sys.makingsName(f, n));
+						itm.setText(2, _array[i].makingsName.get(_prop.sys.makingsName(f, ""), ""));
+					}
+					
 				} else static if (is(T:ScTemplate)) {
 					_templPath.setText(_array[i].path);
 				} else static if (is(T:EvTemplate)) {
@@ -292,6 +335,27 @@ private:
 				_array[i].execute = _cEngineExecute.getText();
 				_array[i].mnemonic = _mnemonic.getText();
 				_array[i].hotkey = _hotkey.acceleratorText();
+				_array[i].clearFeatures();
+				if (_okText.getText(2).length) _array[i].okText = _okText.getText(2);
+				foreach (f; SEX_ALL) {
+					auto t = _sexName[f].getText(2);
+					if (t.length) _array[i].sexName[_prop.sys.sexName(f, "")] = t;
+				}
+				foreach (f; PERIOD_ALL) {
+					auto t = _periodName[f].getText(2);
+					if (t.length) _array[i].periodName[_prop.sys.periodName(f, "")] = t;
+				}
+				foreach (f; NATURE_DEF) {
+					auto t = _natureName[f].getText(2);
+					if (t.length) _array[i].natureName[_prop.sys.natureName(f, "")] = t;
+				}
+				foreach (Makings f; MAKINGS_LEFT) {
+					auto t = _makingsName[f].getText(2);
+					if (t.length) _array[i].makingsName[_prop.sys.makingsName(f, "")] = t;
+					f = reverseMakings(f);
+					t = _makingsName[f].getText(2);
+					if (t.length) _array[i].makingsName[_prop.sys.makingsName(f, "")] = t;
+				}
 			} else static if (is(T:ScTemplate)) {
 				_array[i].path = _templPath.getText();
 			} else static if (is(T:EvTemplate)) {
@@ -816,7 +880,7 @@ private:
 			_undo = new UndoManager(_prop.var.etc.undoMaxEtc);
 		}
 
-		void setup() {
+		void setup(CTabItem tab) {
 			this.setLayout(zeroMarginGridLayout(1, true));
 
 			auto grp = new Group(this, SWT.NONE);
@@ -877,16 +941,27 @@ private:
 			}
 
 			auto right = new Composite(leftSash, SWT.NONE);
-			right.setLayout(zeroMarginGridLayout(1, true));
+			right.setLayout(zeroMarginGridLayout(2, true));
 			{
 				auto comp2 = new Composite(right, SWT.NONE);
-				comp2.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				auto gd = new GridData(GridData.FILL_HORIZONTAL);
+				gd.horizontalSpan = 2;
+				comp2.setLayoutData(gd);
 				comp2.setLayout(zeroMarginGridLayout(4, false));
 				setupRight(comp2);
 			}
+			static if (is(T:ClassicEngine)) {
+				auto features = new Button(right, SWT.TOGGLE);
+				features.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));
+				features.setText(_prop.msgs.featureName);
+			}
 			{
 				auto buttons = new Composite(right, SWT.NONE);
-				buttons.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+				auto gd = new GridData(GridData.HORIZONTAL_ALIGN_END);
+				static if (!is(T:ClassicEngine)) {
+					gd.horizontalSpan = 2;
+				}
+				buttons.setLayoutData(gd);
 				buttons.setLayout(zeroMarginGridLayout(3, true));
 				auto create = new Button(buttons, SWT.PUSH);
 				create.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -900,6 +975,114 @@ private:
 				_del.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				_del.setText(_prop.msgs.sDel);
 				listener(_del, SWT.Selection, &del);
+			}
+			static if (is(T:ClassicEngine)) {
+				{
+					_ceNameWin = new Shell(parent.getShell(), SWT.TITLE | SWT.RESIZE | SWT.TOOL | SWT.CLOSE);
+					_ceNameWin.setLayout(new FillLayout);
+					_ceNameWin.setText(_prop.msgs.dlgTitFeatureName);
+					.listener(_ceNameWin, SWT.Close, (Event e) {
+						_ceNameWin.setVisible(false);
+						features.setSelection(false);
+						e.doit = false;
+					});
+					_featureName = new Table(_ceNameWin, SWT.FULL_SELECTION | SWT.SINGLE | SWT.V_SCROLL);
+					_featureName.setLayoutData(new GridData(GridData.FILL_BOTH));
+					_featureName.setHeaderVisible(true);
+					_featureName.setLinesVisible(true);
+					auto col1 = new TableColumn(_featureName, SWT.NONE);
+					col1.setText(_prop.msgs.featureDefaultName);
+					saveColumnWidth!("prop.var.etc.featureDefaultNameWidth")(_prop, col1);
+					auto col2 = new TableColumn(_featureName, SWT.NONE);
+					col2.setText(_prop.msgs.featureVariantName);
+					saveColumnWidth!("prop.var.etc.featureVariantNameWidth")(_prop, col2);
+					auto col3 = new TableColumn(_featureName, SWT.NONE);
+					col3.setText(_prop.msgs.featureManualName);
+					saveColumnWidth!("prop.var.etc.featureManualNameWidth")(_prop, col3);
+
+					_okText = new TableItem(_featureName, SWT.NONE);
+					_okText.setText(0, _prop.sys.evtChildOK(""));
+					foreach (f; SEX_ALL) {
+						auto itm = new TableItem(_featureName, SWT.NONE);
+						itm.setText(0, _prop.sys.sexName(f, ""));
+						_sexName[f] = itm;
+					}
+					foreach (f; PERIOD_ALL) {
+						auto itm = new TableItem(_featureName, SWT.NONE);
+						itm.setText(0, _prop.sys.periodName(f, ""));
+						_periodName[f] = itm;
+					}
+					foreach (f; NATURE_DEF) {
+						auto itm = new TableItem(_featureName, SWT.NONE);
+						itm.setText(0, _prop.sys.natureName(f, ""));
+						_natureName[f] = itm;
+					}
+					foreach (Makings f; MAKINGS_LEFT) {
+						auto itm = new TableItem(_featureName, SWT.NONE);
+						itm.setText(0, _prop.sys.makingsName(f, ""));
+						_makingsName[f] = itm;
+						f = reverseMakings(f);
+						auto itmR = new TableItem(_featureName, SWT.NONE);
+						itmR.setText(0, _prop.sys.makingsName(f, ""));
+						_makingsName[f] = itmR;
+					}
+					new TableTextEdit(_comm, _prop, _featureName, 2, &featuresEnd, null);
+
+					auto winProps = _prop.var.featuresWin;
+					auto shell = _ceNameWin;
+					.listener(_ceNameWin, SWT.Dispose, {
+						winProps.width = shell.getSize().x;
+						winProps.height = shell.getSize().y;
+						winProps.x = shell.getBounds().x - shell.getParent().getBounds().x;
+						winProps.y = shell.getBounds().y - shell.getParent().getBounds().y;
+					});
+					int parX, parY;
+					bool first = true;
+					.listener(features, SWT.Selection, {
+						if (first) {
+							first = false;
+							auto pb = _ceNameWin.getParent().getBounds();
+							int px = pb.x;
+							int py = pb.y;
+							int pw = pb.width;
+							int ph = pb.height;
+							parX = px;
+							parY = py;
+
+							scope wp = shell.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+							int width = winProps.width == SWT.DEFAULT ? wp.x : winProps.width;
+							int height = winProps.height == SWT.DEFAULT ? wp.y : winProps.height;
+							int x = winProps.x == SWT.DEFAULT ? SWT.DEFAULT : winProps.x + shell.getParent().getBounds().x;
+							int y = winProps.y == SWT.DEFAULT ? SWT.DEFAULT : winProps.y + shell.getParent().getBounds().y;
+							if (SWT.DEFAULT == x) {
+								auto fb = features.getBounds();
+								auto p = features.toDisplay(fb.x, fb.y);
+								x = p.x + fb.width;
+							}
+							if (SWT.DEFAULT == y) {
+								y = py + ph - height;
+							}
+							intoDisplay(x, y, width, height);
+							shell.setBounds(x, y, width, height);
+						}
+
+						_ceNameWin.setVisible(features.getSelection());
+					});
+					.listener(getShell(), SWT.Move, {
+						if (!getShell().isVisible()) return;
+						auto pb = _ceNameWin.getParent().getBounds();
+						auto tb = _ceNameWin.getBounds();
+						_ceNameWin.setBounds(tb.x + pb.x - parX, tb.y + pb.y - parY, tb.width, tb.height);
+						parX = pb.x;
+						parY = pb.y;
+					});
+					.listener(_tabf, SWT.Selection, {
+						if (_tabf.getSelection() !is tab && _ceNameWin.getVisible()) {
+							_ceNameWin.setVisible(false);
+							features.setSelection(false);
+						}
+					});
+				}
 			}
 
 			_kdFilter = new KeyDownFilter();
@@ -985,8 +1168,18 @@ private:
 		}
 
 		@property
+		const
 		T[] array() {
-			return _array;
+			T[] arr;
+			arr.length = _array.length;
+			foreach (i, t; _array) {
+				static if (is(typeof(t.dup))) {
+					arr[i] = t.dup;
+				} else {
+					arr[i] = t;
+				}
+			}
+			return arr;
 		}
 	}
 
@@ -1020,6 +1213,8 @@ private:
 	Spinner _undoMaxEvent;
 	Spinner _undoMaxReplace;
 	Spinner _undoMaxEtc;
+
+	CTabFolder _tabf;
 
 	CTabItem _tabS;
 	BgImageS[] _bgImagesDefault;
@@ -1968,19 +2163,19 @@ protected:
 				_comm.refSearchHistories.remove(&refSearchHistories);
 			}
 		});
-		auto tabf = new CTabFolder(area, SWT.BORDER);
-		tabf.setLayoutData(new GridData(GridData.FILL_BOTH));
+		_tabf = new CTabFolder(area, SWT.BORDER);
+		_tabf.setLayoutData(new GridData(GridData.FILL_BOTH));
 		_refe = new RefE;
-		construct1(tabf);
-		construct2(tabf);
-		construct3(tabf);
-		construct4(tabf);
-		construct5(tabf);
-		_bgStgs.setup();
-		_cEngines.setup();
-		_tools.setup();
-		_scTempls.setup();
-		_evTempls.setup();
+		construct1(_tabf);
+		construct2(_tabf);
+		construct3(_tabf);
+		construct4(_tabf);
+		construct5(_tabf);
+		_bgStgs.setup(_tabS);
+		_cEngines.setup(_tabC);
+		_tools.setup(_tabC);
+		_scTempls.setup(_tabT);
+		_evTempls.setup(_tabT);
 
 		_enginePath.setText(_prop.var.etc.enginePath);
 		_findEnginePath.setSelection(_prop.var.etc.findEnginePath);
@@ -2308,7 +2503,7 @@ struct OldSettings {
 			comm.refSortCondition.call();
 		}
 		if (refSkin) {
-			comm.skin = findSkin(comm, prop, comm.summary, false);
+			comm.skin = findSkin(comm, prop, comm.summary, comm.skin.legacyEngine, false);
 			comm.refSkin.call();
 		}
 		comm.refClassicSkin.call();

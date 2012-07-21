@@ -39,7 +39,7 @@ bool findCWPy(Props prop, string sPath) {
 	return false;
 }
 
-Skin findSkin(S = Summary)(Commons comm, Props prop, in S summ, bool appendClassicSkin = true) {
+Skin findSkin(S = Summary)(Commons comm, Props prop, in S summ, string legacyEngine = "", bool appendClassicSkin = true) {
 	if (summ && !summ.legacy) {
 		findCWPy(prop, summ.useTemp ? summ.zipName : summ.scenarioPath);
 	}
@@ -48,14 +48,22 @@ Skin findSkin(S = Summary)(Commons comm, Props prop, in S summ, bool appendClass
 			return findSkin2(prop, prop.var.etc.defaultSkin);
 		}
 		if (summ.legacy && !summ.type.length) {
+			if (legacyEngine.length) {
+				auto lEngine = prop.toAppAbs(legacyEngine);
+				foreach (ce; prop.var.etc.classicEngines) {
+					if (cfnmatch(prop.toAppAbs(ce.enginePath), lEngine)) {
+						return createClassicSkin(prop, ce);
+					}
+				}
+			}
 			auto skin = Skin.find2!(S)(prop.parent, prop.enginePath, summ, prop.var.etc.classicEngineRegex, prop.var.etc.classicDataDirRegex, prop.var.etc.classicMatchKey, prop.var.etc.classicEngines);
 			void find() {
 				if (!appendClassicSkin) return;
 				if (!prop.var.etc.addNewClassicEngine) return;
 				if (!skin.legacyEngine.length) return;
-				auto lEngine = nabs(skin.legacyEngine);
+				auto lEngine = prop.toAppAbs(skin.legacyEngine);
 				foreach (ce; prop.var.etc.classicEngines) {
-					if (cfnmatch(nabs(ce.enginePath), lEngine)) {
+					if (cfnmatch(prop.toAppAbs(ce.enginePath), lEngine)) {
 						skin = createClassicSkin(prop, ce);
 						return;
 					}
