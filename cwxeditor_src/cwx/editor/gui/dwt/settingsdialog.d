@@ -562,7 +562,7 @@ private:
 				string file = files[0];
 				if (.exists(file) && .isDir(file)) {
 					string resDir, lEnginePath;
-					if (Skin.hasClassicEngine(file, resDir, lEnginePath, [])) {
+					if (Skin.hasClassicEngine(file, resDir, lEnginePath, _prop.var.etc.classicEngineRegex, _prop.var.etc.classicDataDirRegex, _prop.var.etc.classicMatchKey, _array)) {
 						return lEnginePath;
 					}
 					return file;
@@ -603,7 +603,7 @@ private:
 				}
 			}
 			void dropCEnginePath(string path) {
-				string resDir = Skin.findResDir(path.dirName());
+				string resDir = Skin.findResDir(path.dirName(), _prop.var.etc.classicDataDirRegex,  _prop.var.etc.classicMatchKey);
 				if (resDir.length) {
 					_cEngineDataDir.setText(resDir);
 				}

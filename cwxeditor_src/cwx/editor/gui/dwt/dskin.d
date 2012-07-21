@@ -24,7 +24,7 @@ import std.path;
 import org.eclipse.swt.all;
 
 Skin createClassicSkin(in Props prop, in ClassicEngine ce) {
-	return Skin.createLegacySkin(prop.parent, prop.enginePath, ce.enginePath, ce.dataDirName, ce.execute);;
+	return Skin.createLegacySkin(prop.parent, prop.enginePath, ce.enginePath, ce.dataDirName, ce.execute);
 }
 
 bool findCWPy(Props prop, string sPath) {
@@ -40,7 +40,7 @@ bool findCWPy(Props prop, string sPath) {
 }
 
 Skin findSkin(S = Summary)(Commons comm, Props prop, in S summ, bool appendClassicSkin = true) {
-	if (!summ.legacy) {
+	if (summ && !summ.legacy) {
 		findCWPy(prop, summ.useTemp ? summ.zipName : summ.scenarioPath);
 	}
 	static if (is(typeof(summ.type))) {
@@ -48,7 +48,7 @@ Skin findSkin(S = Summary)(Commons comm, Props prop, in S summ, bool appendClass
 			return findSkin2(prop, prop.var.etc.defaultSkin);
 		}
 		if (summ.legacy && !summ.type.length) {
-			auto skin = Skin.find2!(S)(prop.parent, prop.enginePath, summ, prop.var.etc.classicEngines);
+			auto skin = Skin.find2!(S)(prop.parent, prop.enginePath, summ, prop.var.etc.classicEngineRegex, prop.var.etc.classicDataDirRegex, prop.var.etc.classicMatchKey, prop.var.etc.classicEngines);
 			void find() {
 				if (!appendClassicSkin) return;
 				if (!prop.var.etc.addNewClassicEngine) return;

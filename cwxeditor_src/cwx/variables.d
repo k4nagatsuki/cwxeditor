@@ -6,6 +6,8 @@ import cwx.structs;
 
 import cwx.settings;
 
+import std.path;
+
 class FlexEtcProps : Properties {
 	mixin Property!("languageDir", string, "lang", true);
 	mixin Property!("languageFile", string, "");
@@ -205,6 +207,10 @@ class FlexEtcProps : Properties {
 	mixin Property!("findEnginePath", bool, true);
 	mixin Property!("defaultSkin", string, "MedievalFantasy", true);
 	mixin Property!("defaultAuthor", string, "");
+
+	mixin Property!("classicEngineRegex", string, "^.+Wirth(_.+)?\\.exe$");
+	mixin Property!("classicDataDirRegex", string, "^Data|D_[A-Z]1|[A-Z]_dt$");
+	mixin Property!("classicMatchKey", string, "Table".buildPath("MapOfWirth.BMP"), true);
 
 	mixin Property!("expandXMLs", bool, false);
 	mixin Property!("xmlCopy", bool, false);

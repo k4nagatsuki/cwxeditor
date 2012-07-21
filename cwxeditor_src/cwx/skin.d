@@ -18,13 +18,14 @@ import std.utf;
 import std.uni;
 import std.string;
 import std.array;
+import std.regex : regex, match;
 
 public:
 
 class Skin {
-	static Skin find(in CProps prop, string enginePath, string type, string sPath, bool legacy, in ClassicEngine[] cEngines) {
+	static Skin find(in CProps prop, string enginePath, string type, string sPath, bool legacy, string classicEngineRegex, string classicDataDirRegex, string classicMatchKey, in ClassicEngine[] cEngines) {
 		if (legacy && !type.length) {
-			return findLegacySkin(prop, enginePath, sPath, cEngines);
+			return findLegacySkin(prop, enginePath, sPath, classicEngineRegex, classicDataDirRegex, classicMatchKey, cEngines);
 		}
 		static Skin[string] emptySkins;
 		auto tbl = table(prop, enginePath);
@@ -36,8 +37,8 @@ class Skin {
 		emptySkins[enginePath] = r;
 		return r;
 	}
-	static Skin find2(Summary)(in CProps prop, string enginePath, in Summary summ, in ClassicEngine[] cEngines) {
-		return find(prop, enginePath, summ.type, summ.scenarioPath, summ.legacy, cEngines);
+	static Skin find2(Summary)(in CProps prop, string enginePath, in Summary summ, string classicEngineRegex, string classicDataDirRegex, string classicMatchKey, in ClassicEngine[] cEngines) {
+		return find(prop, enginePath, summ.type, summ.scenarioPath, summ.legacy, classicEngineRegex, classicDataDirRegex, classicMatchKey, cEngines);
 	}
 
 	private static Skin[string][string] skinTable;
@@ -93,7 +94,7 @@ class Skin {
 		skin._execute = execute;
 		return skin;
 	}
-	static Skin findLegacySkin(in CProps prop, string enginePath, string sPath, in ClassicEngine[] cEngines) {
+	static Skin findLegacySkin(in CProps prop, string enginePath, string sPath, string classicEngineRegex, string classicDataDirRegex, string classicMatchKey, in ClassicEngine[] cEngines) {
 		if (!lSkinsKey) {
 			lSkinsKey = enginePath;
 		} else if (enginePath != lSkinsKey) {
@@ -102,7 +103,7 @@ class Skin {
 			lSkinsKey = enginePath;
 		}
 		string resDir, lEnginePath;
-		findLegacy(sPath, resDir, lEnginePath, cEngines);
+		findLegacy(sPath, resDir, lEnginePath, classicEngineRegex, classicDataDirRegex, classicMatchKey, cEngines);
 		resDir = resDir.length ? nabs(resDir) : "";
 		lEnginePath = lEnginePath.length ? nabs(lEnginePath) : "";
 		auto p = resDir in lSkins;
@@ -143,74 +144,56 @@ class Skin {
 	}
 	/// 指定されたディレクトリにリソースディレクトリが
 	/// 含まれていればディレクトリ名を返す。
-	static string findResDir(string path) {
+	static string findResDir(string path, string classicDataDirRegex, string classicMatchKey) {
 		auto p = path;
-		if (std.file.exists(buildPath(p, buildPath("Data", "Table") ~ dirSeparator ~ "MapOfWirth.BMP"))) {
-			return "Data";
-		}
-		for (char c = 'A'; c < 'Z'; c++) {
-			if (std.file.exists(buildPath(p, buildPath("D_" ~ c ~ "1", "Table") ~ dirSeparator ~ "MapOfWirth.BMP"))) {
-				return "D_" ~ c ~ "1";
-			}
-			if (std.file.exists(buildPath(p, [c] ~ buildPath("_dt", "Table") ~ dirSeparator ~ "MapOfWirth.BMP"))) {
-				return [c].idup ~ "_dt";
+		auto regDir = .regex(to!dstring(classicDataDirRegex), 0 == filenameCharCmp('A', 'a') ? "i" : "");
+		foreach (dir; clistdir(path)) {
+			if (.isDir(path.buildPath(dir))) {
+				if (!to!dstring(dir).match(regDir).empty && path.buildPath(dir).buildPath(classicMatchKey).exists()) {
+					return dir;
+				}
 			}
 		}
 		return "";
 	}
 	/// 指定されたディレクトリにクラシックエンジンとリソースディレクトリが
 	/// 含まれていればtrueを返す。
-	static bool hasClassicEngine(string path, out string resDir, out string enginePath, in ClassicEngine[] cEngines) {
+	static bool hasClassicEngine(string path, out string resDir, out string enginePath, string classicEngineRegex, string classicDataDirRegex, string classicMatchKey, in ClassicEngine[] cEngines) {
 		foreach (cEngine; cEngines) {
 			string e = cEngine.enginePath.baseName();
 			if (cwx.utils.isabs(cEngine.dataDirName) ? true : .exists(path.buildPath(cEngine.dataDirName))) {
 				auto p = path.buildPath(e);
 				if (p.exists()) {
 					enginePath = p;
-					resDir = cEngine.dataDirName;
+					resDir = path.buildPath(cEngine.dataDirName);
 					return true;
 				}
 			}
 		}
-		auto r = findResDir(path);
+		auto r = findResDir(path, classicDataDirRegex, classicMatchKey);
 		if (!r.length) return false;
 		resDir = buildPath(path, r);
 
-		auto cw = buildPath(path, "CardWirth.exe");
-		if (std.file.exists(cw)) {
-			enginePath = cw;
-			return true;
-		} else {
-			auto list = clistdir(path);
-			foreach (file; list) {
-				if (fnendsWith(file, "Wirth.exe")) {
-					enginePath = buildPath(path, file);
-					return true;
-				}
+		auto regExe = .regex(to!dstring(classicEngineRegex), 0 == filenameCharCmp('A', 'a') ? "i" : "");
+
+		foreach (file; clistdir(path)) {
+			string p = path.buildPath(file);
+			if (!.isDir(p) && !to!dstring(file).match(regExe).empty) {
+				enginePath = p;
+				return true;
 			}
-			foreach (file; list) {
-				if (cfnmatch(cwx.utils.getExt(file), "exe") && fnstartsWith(file, "CardWirth_")) {
-					enginePath = buildPath(path, file);
-					return true;
-				}
-			}
-			foreach (file; list) {
-				if (cfnmatch(cwx.utils.getExt(file), "exe") && fnstartsWith(file, "CW")) {
-					enginePath = buildPath(path, file);
-					return true;
-				}
-			}
-			enginePath = "";
-			resDir = "";
-			return false;
 		}
+
+		enginePath = "";
+		resDir = "";
+		return false;
 	}
 
 	/// 指定されたシナリオが属すCardWirthを検索し、
 	/// そのリソースディレクトリとエンジンのパスを返す。
-	static bool findLegacy(string scPath, out string resDir, out string enginePath, in ClassicEngine[] cEngines) {
+	static bool findLegacy(string scPath, out string resDir, out string enginePath, string classicEngineRegex, string classicDataDirRegex, string classicMatchKey, in ClassicEngine[] cEngines) {
 		auto path = dirName(scPath);
-		while (!hasClassicEngine(path, resDir, enginePath, cEngines)) {
+		while (!hasClassicEngine(path, resDir, enginePath, classicEngineRegex, classicDataDirRegex, classicMatchKey, cEngines)) {
 			auto old = path;
 			path = dirName(path);
 			if (old == path) {
