@@ -6,6 +6,8 @@ import cwx.versioninfo;
 import cwx.structs;
 import cwx.menu;
 import cwx.summary;
+import cwx.archive;
+import cwx.cab;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.absdialog;
@@ -18,6 +20,7 @@ import cwx.editor.gui.dwt.dmenu;
 import std.string;
 import std.path;
 import std.file;
+import std.functional;
 
 import org.eclipse.swt.all;
 
@@ -29,14 +32,66 @@ private:
 	Text _name;
 	Combo _skinC;
 	Combo _templateC;
-	string _nameVal, _skinVal, _classicFolder;
+	string _nameVal, _skinVal;
 	Button _baseSkin;
 	Button _baseTemplate;
 	ScTemplate[int] _tTbl;
+	bool[string] _isClassic;
 
 	bool _useTemplate;
 	Summary _fromTemplate = null;
 
+	Text _dir;
+	Button _dirRef;
+	Button _dirOpen;
+	Button _createScDir;
+	string _dirVal;
+	bool _classic = false;
+
+	void enabledClassicDir() {
+		_dir.setEnabled(legacy);
+		_dirRef.setEnabled(legacy);
+		_createScDir.setEnabled(legacy);
+	}
+	void refSkinVal() {
+		if (_skinC.getSelectionIndex() == _skinC.getItemCount() - 1) {
+			_skinVal = "";
+		} else {
+			_skinVal = _skinC.getText();
+		}
+	}
+	void refClassic() {
+		refSkinVal();
+		scope (exit) enabledClassicDir();
+		if (_baseTemplate.getSelection()) {
+			string tPath = _tTbl[_templateC.getSelectionIndex()].path;
+			if (!.exists(tPath)) {
+				_classic = false;
+			} else {
+				auto p = tPath in _isClassic;
+				if (p) {
+					_classic = *p;
+				} else {
+					bool r;
+					if (.isDir(tPath)) {
+						r = tPath.buildPath("Summary.wsm").exists();
+					} else if (.fnstartsWith(tPath.baseName(), "Summary")) {
+						r = tPath.baseName().cfnmatch("Summary.wsm");
+					} else {
+						if (cwx.utils.getExt(tPath).cfnmatch("cab") && canUncab) {
+							r = cabHasFile(tPath, "Summary.wsm");
+						} else {
+							r = zipHasFile(tPath, "Summary.wsm");
+						}
+					}
+					_isClassic[tPath] = r;
+					_classic = r;
+				}
+			}
+		} else {
+			_classic = skin.length == 0;
+		}
+	}
 public:
 	this (Commons comm, Props prop, Shell shell, bool currentWin) {
 		_comm = comm;
@@ -61,10 +116,16 @@ public:
 		return _fromTemplate;
 	}
 	@property
-	bool legacy() {return _skinVal.length == 0;}
+	bool legacy() {
+		return _classic;
+	}
 	@property
-	string classicFolder() {
-		return _classicFolder;
+	string classicDir() {
+		auto dir = nabs(_prop.toAppAbs(_dirVal));
+		if (_prop.var.etc.createScenarioDir) {
+			dir = dir.buildPath(toFileName(name)).createNewFileName(true);
+		}
+		return dir;
 	}
 
 	static string createClassicDir(Props prop, Shell parent) {
@@ -87,10 +148,6 @@ public:
 			break;
 		}
 		return null;
-	}
-	string createClassicDir() {
-		_classicFolder = createClassicDir(_prop, getShell());
-		return _classicFolder;
 	}
 protected:
 	override void setup(Composite area) {
@@ -121,6 +178,7 @@ protected:
 			void refRadio() {
 				_skinC.setEnabled(_baseSkin.getSelection());
 				_templateC.setEnabled(_baseTemplate.getSelection());
+				enabledClassicDir();
 			}
 
 			_baseSkin = new Button(grp, SWT.RADIO);
@@ -146,9 +204,7 @@ protected:
 				// スキンが無い
 				_skinC.add(_prop.var.etc.defaultSkin);
 			}
-			if (_prop.var.etc.canCreateClassic) {
-				_skinC.add(_prop.msgs.classic);
-			}
+			_skinC.add(_prop.msgs.classic);
 			_skinC.setText(_prop.var.etc.defaultSkin);
 			_skinVal = _prop.var.etc.defaultSkin;
 			if (_skinC.getSelectionIndex() == -1) _skinC.select(0);
@@ -177,58 +233,103 @@ protected:
 			_baseTemplate.setSelection(!_baseSkin.getSelection());
 			_skinC.setEnabled(_baseSkin.getSelection());
 			_templateC.setEnabled(_baseTemplate.getSelection());
+
+			.listener(_skinC, SWT.Selection, &refClassic);
+			.listener(_baseTemplate, SWT.Selection, &refClassic);
+			.listener(_templateC, SWT.Selection, &refClassic);
 		}
+		{
+			auto grp = new Group(comp, SWT.NONE);
+			grp.setText(_prop.msgs.createClassicDir);
+			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			grp.setLayout(new GridLayout(3, false));
+
+			_dir = new Text(grp, SWT.BORDER);
+			.listener(_dir, SWT.Modify, {
+				_dirVal = _dir.getText();
+			});
+			createTextMenu!Text(_comm, _prop, _dir, &catchMod);
+			_dir.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			_dirRef = new Button(grp, SWT.PUSH);
+			_dirRef.setText(_prop.msgs.reference);
+			.listener(_dirRef, SWT.Selection, {
+				selectDir(_prop, _dir, _prop.msgs.newClassicDir, _prop.msgs.newClassicDirDesc, _dir.getText());
+			});
+			_dirOpen = createOpenButton(_comm, grp, _dir, true);
+
+			_createScDir = new Button(grp, SWT.CHECK);
+			_createScDir.setText(_prop.msgs.createScenarioNameDir);
+			auto gd = new GridData;
+			gd.horizontalSpan = 3;
+			_createScDir.setLayoutData(gd);
+			.listener(_createScDir, SWT.Selection, {
+				_prop.var.etc.createScenarioDir = _createScDir.getSelection();
+			});
+
+			setupDropFile(grp, _dir, toDelegate(&dropDir));
+		}
+
+		_dir.setText(_prop.var.etc.scenarioPath);
+		_createScDir.setSelection(_prop.var.etc.createScenarioDir);
+
+		refClassic();
 	}
 
 	override bool close(bool ok, out bool cancel) {
 		if (ok) {
-			string createClassicDirInner() {
-				string s = createClassicDir();
-				if (s is null) {
-					ok = false;
-					cancel = true;
-				}
-				return s;
-			}
 			_nameVal = _name.getText();
+
+			auto dir = classicDir;
+			if (legacy) {
+				if (dir.exists() && clistdir(dir).length) {
+					auto q = new MessageBox(getShell(), SWT.OK | SWT.CANCEL | SWT.ICON_QUESTION);
+					q.setText(_prop.msgs.dlgTitQuestion);
+					q.setMessage(.tryFormat(_prop.msgs.notEmptyDir, dir));
+					if (SWT.OK != q.open()) {
+						cancel = true;
+						return false;
+					}
+				}
+			}
+
 			if (_baseTemplate.getSelection()) {
 				Summary summ = null;
 				string tPath = _tTbl[_templateC.getSelectionIndex()].path;
 				if (!.exists(tPath)) {
-					ok = false;
-					cancel = true;
+					if (!dir.exists()) mkdirRecurse(dir);
+					summ = new Summary(_nameVal, skin, dir, false, true);
 				} else if (.isDir(tPath) && !tPath.buildPath("Summary.wsm").exists && !tPath.buildPath("Summary.xml").exists) {
+					auto cursors = setWaitCursors(topShell(getShell()));
+					scope (exit) {
+						resetCursors(cursors);
+					}
 					// 非シナリオのディレクトリをベースとする
-					summ = Summary.createScenario(_prop.tempPath, name, findSkin2(_prop, _skinVal));
+					summ = Summary.createScenario(_prop.tempPath, name, findSkin2(_prop, skin));
 					tPath.copyAll(summ.scenarioPath);
 				} else {
+					auto cursors = setWaitCursors(topShell(getShell()));
+					scope (exit) {
+						resetCursors(cursors);
+					}
 					try {
 						summ = Summary.loadScenarioFromFile(_prop.parent, _prop.var.etc.doubleIO,
-							tPath, _prop.var.etc.expandXMLs, _prop.tempPath,
-							&createClassicDirInner);
+							tPath, _prop.var.etc.expandXMLs, _prop.tempPath, () => dir);
 					} catch (SummaryException e) {
 						// Nothing;
+						debugln(e);
 					}
 				}
 				if (ok) {
 					if (!summ) {
-						summ = Summary.createScenario(_prop.tempPath, name, findSkin2(_prop, _skinVal));
+						summ = Summary.createScenario(_prop.tempPath, name, findSkin2(_prop, skin));
 					}
 					summ.setBaseParams(name, _prop.var.etc.defaultAuthor);
 					_prop.var.etc.defaultScenarioTemplate = tPath;
 					_prop.var.etc.defaultIsTemplate = true;
 					_fromTemplate = summ;
 				}
-			} else {
-				if (_prop.var.etc.canCreateClassic && _skinC.getSelectionIndex() == _skinC.getItemCount() - 1) {
-					_skinVal = "";
-					createClassicDirInner();
-				} else {
-					_skinVal = _skinC.getText();
-				}
-				if (ok) {
-					_prop.var.etc.defaultIsTemplate = false;
-				}
+			} else if (ok) {
+				_prop.var.etc.defaultIsTemplate = false;
 			}
 		}
 		return ok;

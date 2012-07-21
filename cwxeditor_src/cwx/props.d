@@ -244,7 +244,7 @@ public:
 	void loadMsgs(string relPath) {
 		auto path = toAppAbs(relPath);
 		try {
-			_msgs = Msgs.fromXML(std.file.readText(path));
+			_msgs = Msgs.fromXML(std.file.readText(path), 0);
 		} catch (Exception e) {
 			debugln(e);
 		}
@@ -263,7 +263,7 @@ public:
 				foreach (file; clistdir(dir)) {
 					if (!cfnmatch(cwx.utils.getExt(file), "xml")) continue;
 					try {
-						auto msgs = Msgs.fromXML(std.file.readText(dir.buildPath(file)));
+						auto msgs = Msgs.fromXML(std.file.readText(dir.buildPath(file)), 0);
 						auto msgsLocale = std.string.toLower(msgs.locale);
 						if (defLocale == msgsLocale) {
 							def = msgs;

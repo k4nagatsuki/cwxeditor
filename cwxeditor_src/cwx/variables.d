@@ -205,7 +205,6 @@ class FlexEtcProps : Properties {
 	mixin Property!("findEnginePath", bool, true);
 	mixin Property!("defaultSkin", string, "MedievalFantasy", true);
 	mixin Property!("defaultAuthor", string, "");
-	mixin Property!("canCreateClassic", bool, false);
 
 	mixin Property!("expandXMLs", bool, false);
 	mixin Property!("xmlCopy", bool, false);
@@ -486,6 +485,7 @@ class FlexEtcProps : Properties {
 	mixin Property!("scenarioTemplates", ScTemplate[], []);
 	mixin Property!("defaultScenarioTemplate", string, "");
 	mixin Property!("defaultIsTemplate", bool, false);
+	mixin Property!("createScenarioDir", bool, true);
 
 	mixin Property!("eventTemplates", EvTemplate[], []);
 

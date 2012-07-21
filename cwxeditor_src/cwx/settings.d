@@ -6,6 +6,7 @@ import cwx.xml;
 import cwx.skin;
 import cwx.background;
 import cwx.structs;
+import cwx.versioninfo;
 
 import std.conv;
 import std.string;
@@ -55,57 +56,67 @@ private struct PropValue(T) {
 	immutable string KEY;
 	immutable T INIT;
 	immutable bool READ_ONLY;
+	immutable ulong CHG_VERSION;
 
 	T value;
 
-	this (string pkey, immutable(T) defaultValue, T firstValue, bool readOnly) {
+	this (string pkey, immutable(T) defaultValue, T firstValue, bool readOnly, ulong chgVersion) {
 		KEY = pkey;
 		INIT = defaultValue;
 		value = firstValue;
 		READ_ONLY = readOnly;
+		CHG_VERSION = chgVersion;
 	}
 
 	const
 	void toNode(ref XNode node) {
 		.toNode(node, KEY, value);
 	}
-	void fromNode(ref XNode node) {
-		.fromNode(node, KEY, value);
+	void fromNode(ref XNode node, ulong dataVersion) {
+		if (CHG_VERSION <= dataVersion) {
+			.fromNode(node, KEY, value);
+		}
 	}
 }
 private struct PropValueAttr(T) {
 	immutable string ATTR_KEY;
 	immutable T INIT;
 	immutable bool READ_ONLY;
+	immutable ulong CHG_VERSION;
 
 	T value;
 
-	this (string pkey, immutable(T) defaultValue, T firstValue, bool readOnly) {
+	this (string pkey, immutable(T) defaultValue, T firstValue, bool readOnly, ulong chgVersion) {
 		ATTR_KEY = pkey;
 		INIT = defaultValue;
 		value = firstValue;
 		READ_ONLY = readOnly;
+		CHG_VERSION = chgVersion;
 	}
 
 	const
 	void toNode(ref XNode node) {
 		.toNode(node, ATTR_KEY, value);
 	}
-	void fromNode(ref XNode node) {
-		.fromNode(node, ATTR_KEY, value);
+	void fromNode(ref XNode node, ulong dataVersion) {
+		if (CHG_VERSION <= dataVersion) {
+			.fromNode(node, ATTR_KEY, value);
+		}
 	}
 }
 private struct AAProp(Key, Value) {
 	immutable string AA_KEY;
 	immutable string KEY_NAME;
 	immutable string VALUE_NAME;
+	immutable ulong CHG_VERSION;
 
 	Value[Key] value;
 
-	this (string pkey, string keyName, string valueName) {
+	this (string pkey, string keyName, string valueName, ulong chgVersion) {
 		AA_KEY = pkey;
 		KEY_NAME = keyName;
 		VALUE_NAME = valueName;
+		CHG_VERSION = chgVersion;
 	}
 
 	const
@@ -116,14 +127,16 @@ private struct AAProp(Key, Value) {
 			c.newAttr(KEY_NAME, key);
 		}
 	}
-	void fromNode(ref XNode node) {
-		node.onTag[VALUE_NAME] = (ref XNode e) {
-			auto key = e.attr!string(KEY_NAME, false, null);
-			if (key !is null) {
-				value[key] = to!Value(e.value);
-			}
-		};
-		node.parse();
+	void fromNode(ref XNode node, ulong dataVersion) {
+		if (CHG_VERSION <= dataVersion) {
+			node.onTag[VALUE_NAME] = (ref XNode e) {
+				auto key = e.attr!string(KEY_NAME, false, null);
+				if (key !is null) {
+					value[key] = to!Value(e.value);
+				}
+			};
+			node.parse();
+		}
 	}
 }
 
@@ -148,10 +161,10 @@ abstract class Properties {
 	/// Name = プロパティ名。
 	/// VType = プロパティの型。
 	/// Default = プロパティのデフォルト値。
-	protected template Property(string Name, VType, VType Default, bool ReadOnly = false) {
+	protected template Property(string Name, VType, VType Default, bool ReadOnly = false, ulong ChgVersion = 0) {
 		private import cwx.xml;
 		private import cwx.utils;
-		mixin ("private PropValue!(VType) _" ~ Name ~ " = PropValue!(VType)(Name, Default, Default, ReadOnly);");
+		mixin ("private PropValue!(VType) _" ~ Name ~ " = PropValue!(VType)(Name, Default, Default, ReadOnly, ChgVersion);");
 		mixin ("@property const const(VType) " ~ variableName!Name ~ "() {return _" ~ Name ~ ".value;}");
 		mixin ("@property const const(VType) " ~ Name ~ "_init() {return Default;}");
 		static if (!ReadOnly) {
@@ -159,10 +172,10 @@ abstract class Properties {
 		}
 	}
 	/// Propertyと同様だが、XML化の際は属性として扱われる。
-	protected template PropertyAttr(string Name, VType, VType Default, bool ReadOnly = false) {
+	protected template PropertyAttr(string Name, VType, VType Default, bool ReadOnly = false, ulong ChgVersion = 0) {
 		private import cwx.xml;
 		private import cwx.utils;
-		mixin ("private PropValueAttr!(VType) _" ~ Name ~ " = PropValueAttr!(VType)(Name, Default, Default, ReadOnly);");
+		mixin ("private PropValueAttr!(VType) _" ~ Name ~ " = PropValueAttr!(VType)(Name, Default, Default, ReadOnly, ChgVersion);");
 		mixin ("@property const const(VType) " ~ variableName!Name ~ "() {return _" ~ Name ~ ".value;}");
 		mixin ("@property const const(VType) " ~ Name ~ "_init() {return Default;}");
 		static if (!ReadOnly) {
@@ -170,10 +183,10 @@ abstract class Properties {
 		}
 	}
 	/// 連想配列のプロパティ。常にReadOnly。
-	protected template AAProperty(string Name, Key, Value, string Default, string KeyName = "key", string ValueName = "value") {
+	protected template AAProperty(string Name, Key, Value, string Default, string KeyName = "key", string ValueName = "value", ulong ChgVersion = 0) {
 		private import cwx.xml;
 		private import cwx.utils;
-		mixin ("private AAProp!(Key, Value) _" ~ Name ~ " = AAProp!(Key, Value)(Name, KeyName, ValueName);");
+		mixin ("private AAProp!(Key, Value) _" ~ Name ~ " = AAProp!(Key, Value)(Name, KeyName, ValueName, ChgVersion);");
 		mixin ("@property const const(" ~ Value.stringof ~ "[" ~ Key.stringof ~ "]) " ~ variableName!Name ~ "() {return _" ~ Name ~ ".value;}");
 		mixin ("@property void init_" ~ Name ~ "() {_" ~ Name ~ ".value = " ~ Default ~ ";}");
 	}
@@ -193,10 +206,10 @@ abstract class Properties {
 				toNodeImpl(e, writeAll);
 				return e.text;
 			}
-			static SubClass fromXML(string xml) {
+			static SubClass fromXML(string xml, ulong dataVersion) {
 				try {
 					auto node = XNode.parse(xml);
-					return fromNodeImpl(node);
+					return fromNodeImpl(node, dataVersion);
 				} catch (Exception e) {
 					debugln(e);
 					SubClass r;
@@ -233,15 +246,15 @@ abstract class Properties {
 				}
 			}
 		}
-		static SubClass fromNode(ref XNode node) {
+		static SubClass fromNode(ref XNode node, ulong dataVersion) {
 			static if (Root == "") {
 				auto e = node;
 			} else {
 				auto e = node.child(Root, false);
 			}
-			return fromNodeImpl(e);
+			return fromNodeImpl(e, dataVersion);
 		}
-		private static SubClass fromNodeImpl(ref XNode e) {
+		private static SubClass fromNodeImpl(ref XNode e, ulong dataVersion) {
 			auto r = new SubClass;
 			if (e.valid) {
 				foreach (i, ref fld; r.tupleof) {
@@ -249,7 +262,7 @@ abstract class Properties {
 						auto n = e.child(fld.KEY, false);
 						if (n.valid) {
 							try {
-								fld.fromNode(n);
+								fld.fromNode(n, dataVersion);
 							} catch (Exception e) {
 								debugln(e);
 							}
@@ -261,7 +274,7 @@ abstract class Properties {
 						auto n = e.child(fld.AA_KEY, false);
 						if (n.valid) {
 							try {
-								fld.fromNode(n);
+								fld.fromNode(n, dataVersion);
 							} catch (Exception e) {
 								debugln(e);
 							}

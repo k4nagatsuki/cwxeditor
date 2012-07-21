@@ -56,14 +56,7 @@ void unzip(ZipArchive arc,
 	}
 	int count = 1;
 	foreach (am; arc.directory) {
-		string name = am.name;
-		// ファイル名の文字コードがShift JISだったりするのを何とかする
-		try {
-			validate(name);
-		} catch (UtfException e) {
-			name = touni(name);
-			validate(name);
-		}
+		string name = memberName(am.name);
 		string nml = replace(name, "/", dirSeparator);
 		if (name.length > 0 && !hasParDir(nml)) {
 			// 属性が不思議なことになってるので0x10だけで判断するのは避ける
@@ -169,6 +162,7 @@ ZipArchive zip(string targ, bool top, bool delegate(string path) ignorePath, boo
 	}
 	return arc;
 }
+/// ditto
 ZipArchive zip(string targ, bool top, string[] excludePath = [], bool useSysEnc = false) {
 	foreach (i, ex; excludePath) {
 		excludePath[i] = nabs(ex);
@@ -176,6 +170,34 @@ ZipArchive zip(string targ, bool top, string[] excludePath = [], bool useSysEnc 
 	return .zip(targ, top, (string path) {
 		return containsPath(excludePath, path);
 	}, useSysEnc);
+}
+
+// ファイル名の文字コードをUTF-8に統一する。
+string memberName(string name) {
+	try {
+		validate(name);
+	} catch (UtfException e) {
+		name = touni(name);
+		validate(name);
+	}
+	return name;
+}
+
+/// 指定されたファイルが含まれているか。
+bool zipHasFile(string zip, string fileName) {
+	if (!zip.exists()) return false;
+	try {
+		scope arc = new ZipArchive(read(zip));
+		foreach (am; arc.directory) {
+			string name = memberName(am.name);
+			if (cfnmatch(replace(name, "/", dirSeparator).baseName(), fileName)) {
+				return true;
+			}
+		}
+	} catch (Exception e) {
+		debugln(e);
+	}
+	return false;
 }
 
 /// targをzip圧縮し、パスzipに保存する。

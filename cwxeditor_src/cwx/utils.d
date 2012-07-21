@@ -1758,7 +1758,7 @@ bool cglobMatch(string a, string b) {
 	assert (cfnmatch(r"C:\path", r"C:\path"));
 }
 /// ファイル名が一致するか。
-bool cfnmatch(string a, string b) {
+bool cfnmatch(in char[] a, in char[] b) {
 	return 0 == filenameCmp(a, b);
 }
 
@@ -1808,12 +1808,14 @@ bool isFileNameChar(dchar c) {
 			_shlwapi = ExeModule_Load("shlwapi.dll");
 		}
 		if (!_shlwapi) {
+			debugln("not found: shlwapi.dll");
 			return -1 == std.string.indexOf(DN, c);
 		}
 		if (!_PathGetCharType) {
 			_PathGetCharType = cast(PathGetCharTypeW) ExeModule_GetSymbol(_shlwapi, "PathGetCharTypeW");
 		}
 		if (!_PathGetCharType) {
+			debugln("not found: PathGetCharTypeW");
 			return -1 == std.string.indexOf(DN, c);
 		}
 		foreach (wchar wc; [c]) {
@@ -1827,6 +1829,15 @@ bool isFileNameChar(dchar c) {
 		static immutable DN = "/"d;
 		return 0 != c && -1 == std.string.indexOf(DN, c);
 	} else static assert (0);
+}
+
+/// ファイル名に使用ない文字があったらcに置換する。
+string toFileName(string name, dchar c = '_') {
+	dchar[] buf;
+	foreach (dchar n; name) {
+		buf ~= isFileNameChar(n) ? n : c;
+	}
+	return to!string(buf);
 }
 
 /// 実行モジュールのパスを返す。

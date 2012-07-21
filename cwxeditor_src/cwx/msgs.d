@@ -90,9 +90,11 @@ class Msgs : Properties {
 	mixin Msg!("scenarioTemplate", "テンプレート");
 	mixin Msg!("templateDesc", "%1$s [%2$s]");
 	mixin Msg!("noTemplate", "[テンプレート無し]");
+	mixin Msg!("createClassicDir", "シナリオの作成先");
 	mixin Msg!("newClassicDir", "シナリオ作成先の選択");
 	mixin Msg!("newClassicDirDesc", "シナリオを作成する" ~ DIR ~ "を選択してください。");
 	mixin Msg!("notEmptyDir", "%1$sは空ではありません。\n本当にここでシナリオを作成しますか？");
+	mixin Msg!("createScenarioNameDir", "シナリオの" ~ DIR ~ "を新規作成する");
 
 	mixin Msg!("newScenarioName", "新規シナリオ");
 

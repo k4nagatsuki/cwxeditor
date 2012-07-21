@@ -48,6 +48,7 @@ import std.file;
 import std.datetime;
 import std.path;
 import std.process;
+import std.functional;
 
 import org.eclipse.swt.all;
 
@@ -2280,4 +2281,120 @@ bool CBisFile(Clipboard cb) {
 		if (t.isSupportedType(data)) return true;
 	}
 	return false;
+}
+
+private class DropFiles : DropTargetAdapter {
+	private Text _text;
+	private string delegate(string[] files) _drop;
+	private void delegate(string) _dropPath;
+	this (Text text, string delegate(string[] files) drop, void delegate(string) dropPath = null) {
+		_text = text;
+		_drop = drop;
+		_dropPath = dropPath;
+	}
+	override void dragEnter(DropTargetEvent e){
+		if (_text.getEnabled()) {
+			e.detail = DND.DROP_LINK;
+		}
+	}
+	override void dragOver(DropTargetEvent e){
+		if (_text.getEnabled()) {
+			e.detail = DND.DROP_LINK;
+		}
+	}
+	override void drop(DropTargetEvent e){
+		e.detail = DND.DROP_NONE;
+		auto str = _drop((cast(FileNames) e.data).array);
+		if (_text.getEnabled() && str.length && str != _text.getText()) {
+			_text.setText(str);
+			_text.selectAll();
+			e.detail = DND.DROP_LINK;
+			if (_dropPath) _dropPath(str);
+		}
+	}
+}
+/// cにファイルやディレクトリがドロップされるのを受け付ける。
+void setupDropFile(Control c, Text text, string delegate(string[] files) drop, void delegate(string) dropPath = null) {
+	auto dropt = new DropTarget(c, DND.DROP_DEFAULT | DND.DROP_LINK);
+	dropt.setTransfer([FileTransfer.getInstance()]);
+	if (!drop) drop = toDelegate(&dropDefault);
+	dropt.addDropListener(new DropFiles(text, drop, dropPath));
+}
+/// filesの最初の値を返す。配列の内容が無ければ""を返す。
+/// 値がファイルであれば、その上位のディレクトリを返す。
+string dropDir(string[] files) {
+	if (!files.length) return "";
+	string file = files[0];
+	if (!.exists(file)) return "";
+	if (.isDir(file)) {
+		return file;
+	} else {
+		return dirName(file);
+	}
+}
+/// filesの最初の値を返す。配列の内容が無ければ""を返す。
+string dropDefault(string[] files) {
+	return files.length ? files[0] : "";
+}
+/// ファイルの選択を行う。
+string selectFile(Text file, string[] name, string[] ext, string fileName, string title, string p) {
+	auto dlg = new FileDialog(file.getShell(), SWT.PRIMARY_MODAL | SWT.APPLICATION_MODAL | SWT.SINGLE | SWT.OPEN);
+	dlg.setFilterExtensions(ext);
+	dlg.setFilterNames(name);
+	dlg.setText(title);
+	dlg.setFilterPath(dirName(nabs(p)));
+	dlg.setFileName(fileName);
+	string fname = dlg.open();
+	if (fname) {
+		file.setText(fname);
+	}
+	return fname;
+}
+/// ディレクトリの選択を行う。
+string selectDir(Props prop, Text dir, string title, string msg, string p, bool appPath = true) {
+	auto dlg = new DirectoryDialog(dir.getShell());
+	dlg.setText(title);
+	dlg.setMessage(msg);
+	string path = p;
+	if (appPath) {
+		auto d = dir.getText();
+		if (!cwx.utils.isabs(d)) {
+			d = std.path.buildPath(std.path.dirName(prop.parent.appPath), d);
+		}
+		path = d;
+	}
+	dlg.setFilterPath(nabs(path));
+	string fname = dlg.open();
+	if (fname) {
+		dir.setText(fname);
+	}
+	return fname;
+}
+/// ファイルやディレクトリを開くボタンを作成する。
+Button createOpenButton(Commons comm, Composite parent, Text path, bool dir) {
+	auto open = new Button(parent, SWT.PUSH);
+	open.setToolTipText(comm.prop.buildTool(dir ? MenuID.OpenDir : MenuID.OpenPlace));
+	open.setImage(comm.prop.images.menu(MenuID.OpenDir));
+	open.addSelectionListener(new OpenDir(comm, path));
+	comm.put(open, () => path.getText().length > 0);
+	return open;
+}
+private class OpenDir : SelectionAdapter {
+	private Commons _comm;
+	private Text _text;
+	this (Commons comm, Text text) {
+		_comm = comm;
+		_text = text;
+	}
+	override void widgetSelected(SelectionEvent e) {
+		string file = _text.getText();
+		if (!cwx.utils.isabs(file)) {
+			file = std.path.buildPath(_comm.prop.parent.appPath.dirName(), file);
+		}
+		if (!.exists(file) || !isDir(file)) {
+			file = file.dirName();
+		}
+		if (!.exists(file)) return;
+		openFolder(file);
+	}
 }

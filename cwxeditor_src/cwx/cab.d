@@ -1,15 +1,14 @@
 
 module cwx.cab;
 
-import cwx.utils : nabs, cdebugln, debugln, clistdir;
+import cwx.utils;
 import cwx.sjis;
 
 import std.conv;
 import std.stdio;
 import std.array;
-
+import std.stream;
 import std.exception;
-
 import std.file;
 import std.loader;
 import std.path;
@@ -382,6 +381,7 @@ version (Windows) {
 			INT FNFDIDECRYPT(FDIDECRYPT* pfdid) {
 				return 0;
 			}
+
 			alias HFCI function (
 			    ERF* perf,
 			    typeof(&FNFCIFILEPLACED) pfnfiledest,
@@ -548,6 +548,88 @@ version (Windows) {
 			debug std.stdio.writeln("Release cabinet.dll Exit");
 		}
 	}
+
+	/// 指定されたファイルが含まれているか。
+	bool cabHasFile(string cab, string fileName) {
+		if (!canUncab) return false;
+		if (!.exists(cab)) return false;
+
+		CFHEADER head;
+		auto buf = new ubyte[CFHEADER.sizeof];
+
+		try {
+			auto stream = new BufferedFile(cab, FileMode.In);
+			scope (exit) stream.close();
+			if (buf.length != stream.read(buf)) {
+				// Cabinetではない
+				return false;
+			}
+			memcpy(&head, buf.ptr, buf.length);
+			if ('M' != head.signature[0]) return false;
+			if ('S' != head.signature[1]) return false;
+			if ('C' != head.signature[2]) return false;
+			if ('F' != head.signature[3]) return false;
+
+			if (head.coffFiles != stream.seekSet(head.coffFiles)) {
+				return false;
+			}
+
+			buf = new ubyte[CFFILE.sizeof];
+			CFFILE fl;
+			foreach (i; 0 .. head.cFiles) {
+				if (buf.length != stream.read(buf)) {
+					return false;
+				}
+				memcpy(&fl, buf.ptr, buf.length);
+				char[] name;
+				char c;
+				stream.read(c);
+				while ('\0' != c) {
+					name ~= c;
+					stream.read(c);
+				}
+				string utfName;
+				if (fl.attribs & _A_NAME_IS_UTF) {
+					utfName = .text(name);
+				} else {
+					utfName = touni(name);
+				}
+				if (.cfnmatch(fileName, utfName.baseName())) return true;
+			}
+			return true;
+		} catch (Exception e) {
+			debugln(e);
+		}
+		return false;
+	}
+
+	extern (Windows) {
+		private immutable _A_NAME_IS_UTF = 0x80;
+		private struct CFHEADER {
+			BYTE signature[4];
+			DWORD reserved1;
+			DWORD cbCabinet;
+			DWORD reserved2;
+			DWORD coffFiles;
+			DWORD reserved3;
+			BYTE versionMinor;
+			BYTE versionMajor;
+			WORD cFolders;
+			WORD cFiles;
+			WORD flags;
+			WORD setID;
+			WORD iCabinet;
+		}
+		private struct CFFILE {
+			DWORD cbFile;
+			DWORD uoffFolderStart;
+			WORD iFolder;
+			WORD date;
+			WORD time;
+			WORD attribs;
+			BYTE szName[0];
+		}
+	}
 } else {
 	/// uncab()が行える状態であればtrueを返す。
 	/// Windows以外のOSでは必ずfalseを返す。
@@ -562,6 +644,11 @@ version (Windows) {
 	/// CAB書庫fileをフォルダdestに展開する。
 	/// Windows以外のOSでは必ず失敗し、falseを返す。
 	bool uncab(string file, string dest, string delegate(string) expand = null) {
+		return false;
+	}
+
+	/// 指定されたファイルが含まれているか。
+	bool cabHasName(string cab, string fileName) {
 		return false;
 	}
 }

@@ -282,10 +282,10 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 	}
 
 	static S loadScenarioFromFile(in CProps prop, bool doubleIO, string fname, bool expand, string tempPath,
-			string delegate() createClassicDir = null,
+			string delegate() classicDir = null,
 			S old = null, void delegate(uint) setMax = null, void delegate(uint) worked = null, string newName = null) {
 		string[string][string] xmls;
-		bool scTemplate = createClassicDir !is null;
+		bool scTemplate = classicDir !is null;
 		string sunzip(string fname, ZipArchive arc, out bool cancel = false) {
 			auto temp = createTempDir(tempPath, baseName(stripExtension(fname)));
 			if (expand) {
@@ -381,7 +381,8 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 		}
 		S createFromTemplate(S r) {
 			// テンプレートからの生成
-			string scDir = createClassicDir();
+			string scDir = classicDir();
+			if (!.exists(scDir)) mkdirRecurse(scDir);
 			if (scDir) {
 				copyAll(r.scenarioPath, scDir);
 				if (r.useTemp) {

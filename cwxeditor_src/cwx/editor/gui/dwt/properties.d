@@ -23,14 +23,14 @@ import std.datetime;
 import org.eclipse.swt.all;
 
 /// ウィンドウ状態のプロパティ。
-class WindowProps(string PropName, int Width, int Height)
+class WindowProps(string PropName, int Width, int Height, ulong SizeChgVersion = 0)
 		: Properties, WSize {
 	mixin Property!("maximized", bool, false);
 	mixin Property!("minimized", bool, false);
 	mixin Property!("x", int, SWT.DEFAULT);
 	mixin Property!("y", int, SWT.DEFAULT);
-	mixin Property!("width", int, Width);
-	mixin Property!("height", int, Height);
+	mixin Property!("width", int, Width, false, SizeChgVersion);
+	mixin Property!("height", int, Height, false, SizeChgVersion);
 	mixin Property!("visible", bool, true);
 
 	mixin XMLFuncs!(WindowProps, PropName);
@@ -53,20 +53,20 @@ class ContWin : Properties {
 	mixin XMLFuncs!(ContWin, "contentsWindow");
 }
 
-class DialogParam(string Name, int WidthDef = SWT.DEFAULT, int HeightDef = SWT.DEFAULT)
+class DialogParam(string Name, int WidthDef = SWT.DEFAULT, int HeightDef = SWT.DEFAULT, ulong SizeChgVersion = 0)
 		: Properties, DSize {
-	mixin Property!("width", int, WidthDef);
-	mixin Property!("height", int, HeightDef);
+	mixin Property!("width", int, WidthDef, false, SizeChgVersion);
+	mixin Property!("height", int, HeightDef, false, SizeChgVersion);
 
 	mixin XMLFuncs!(DialogParam, Name);
 }
 
-class EventWin(string Name, int Width, int Height) : Properties, WSize {
+class EventWin(string Name, int Width, int Height, ulong SizeChgVersion = 0) : Properties, WSize {
 	mixin Property!("x", int, SWT.DEFAULT);
 	mixin Property!("y", int, SWT.DEFAULT);
 	mixin Property!("maximized", bool, false);
-	mixin Property!("width", int, Width);
-	mixin Property!("height", int, Height);
+	mixin Property!("width", int, Width, false, SizeChgVersion);
+	mixin Property!("height", int, Height, false, SizeChgVersion);
 
 	mixin Property!("eventSashL", int, 2);
 	mixin Property!("eventSashR", int, 7);
@@ -111,7 +111,7 @@ public class FlexProps {
 	DialogParam!("bgImagesDialog", 850) bgImagesDlg;
 	DialogParam!("flagDialog") flagDlg;
 	DialogParam!("stepDialog") stepDlg;
-	DialogParam!("newScenarioDialog") newScDlg;
+	DialogParam!("newScenarioDialog", SWT.DEFAULT, SWT.DEFAULT, 20120710) newScDlg;
 	WindowProps!("speakDialog", SWT.DEFAULT, SWT.DEFAULT) speakDlg;
 	WindowProps!("messageDialog", SWT.DEFAULT, SWT.DEFAULT) msgDlg;
 	DialogParam!("cardEventDialog") cardEvtDlg;
@@ -290,9 +290,10 @@ public class FlexProps {
 			_node = XNode.parse(std.file.readText(_path));
 			dStr ~= " - " ~ .text(__LINE__);
 			if (_node.name == "cwxeditor" || _node.name == "CWXEditor") {
+				ulong dataVersion = _node.attr("version", false, 0);
 				dStr ~= " - " ~ .text(__LINE__);
 				foreach (i, fld; this.tupleof) {
-					this.tupleof[i] = fromNode(_node, fld, force);
+					this.tupleof[i] = fromNode(_node, fld, force, dataVersion);
 				}
 				dStr ~= " - " ~ .text(__LINE__);
 			}
@@ -303,8 +304,12 @@ public class FlexProps {
 			return false;
 		}
 	}
-	private T fromNode(T)(ref XNode node, T t, bool force) {
-		static if (is(typeof(T.fromNode(node)))) {
+	private T fromNode(T)(ref XNode node, T t, bool force, ulong dataVersion) {
+		static if (is(typeof(T.fromNode(node, dataVersion)))) {
+			if (!t || force) {
+				return T.fromNode(node, dataVersion);
+			}
+		} else static if (is(typeof(T.fromNode(node)))) {
 			if (!t || force) {
 				return T.fromNode(node);
 			}

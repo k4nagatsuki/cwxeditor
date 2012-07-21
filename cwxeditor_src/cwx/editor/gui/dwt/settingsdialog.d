@@ -491,7 +491,7 @@ private:
 				selectFile(_toolCommand, desc, ext, "", _prop.msgs.dlgTitOuterTool, _toolCommand.getText());
 			}
 			void selectWorkDir() {
-				selectDir(_toolWorkDir, _prop.msgs.toolWorkDir, _prop.msgs.toolWorkDirDesc, _toolWorkDir.getText());
+				selectDir(_prop, _toolWorkDir, _prop.msgs.toolWorkDir, _prop.msgs.toolWorkDirDesc, _toolWorkDir.getText());
 			}
 			void setupRight(Composite parent) {
 				{
@@ -515,8 +515,8 @@ private:
 					_toolCommandRef = new Button(parent, SWT.PUSH);
 					_toolCommandRef.setText(_prop.msgs.reference);
 					listener(_toolCommandRef, SWT.Selection, &selectProgram);
-					_toolCommandDirOpen = createOpenButton(parent, _toolCommand, false);
-					setupDropFile(_toolCommand, _toolCommand, &dropDefault);
+					_toolCommandDirOpen = createOpenButton(_comm, parent, _toolCommand, false);
+					setupDropFile(_toolCommand, _toolCommand, toDelegate(&dropDefault));
 				}
 				{
 					auto l = new Label(parent, SWT.NONE);
@@ -529,8 +529,8 @@ private:
 					_toolWorkDirRef = new Button(parent, SWT.PUSH);
 					_toolWorkDirRef.setText(_prop.msgs.reference);
  					listener(_toolWorkDirRef, SWT.Selection, &selectWorkDir);
-					_toolWorkDirOpen = createOpenButton(parent, _toolWorkDir, true);
-					setupDropFile(_toolWorkDir, _toolWorkDir, &dropDir);
+					_toolWorkDirOpen = createOpenButton(_comm, parent, _toolWorkDir, true);
+					setupDropFile(_toolWorkDir, _toolWorkDir, toDelegate(&dropDir));
 				}
 				{
 					auto dummy = new Composite(parent, SWT.NONE);
@@ -614,7 +614,7 @@ private:
 					path = std.path.buildPath(_cEnginePath.getText().dirName(), path);
 				}
 				path = nabs(path);
-				string fname = selectDir(_cEngineDataDir, _prop.msgs.classicEngineDataDirName, _prop.msgs.classicEngineDataDirNameDesc, path, false);
+				string fname = selectDir(_prop, _cEngineDataDir, _prop.msgs.classicEngineDataDirName, _prop.msgs.classicEngineDataDirNameDesc, path, false);
 				if (fname) {
 					fname = dropCEngineSub(fname);
 					_cEngineDataDir.setText(fname);
@@ -647,11 +647,31 @@ private:
 					_cEngineExecute.setText(fname);
 				}
 			}
+			private class CEOpenDir : SelectionAdapter {
+				private Text _text;
+				this (Text text) {
+					_text = text;
+				}
+				override void widgetSelected(SelectionEvent e) {
+					string file = _text.getText();
+					if (!cwx.utils.isabs(file)) {
+						auto engine = _cEngines.curCEnginePath;
+						if (engine.length) {
+							file = std.path.buildPath(engine.dirName(), file);
+						}
+					}
+					if (!.exists(file) || !isDir(file)) {
+						file = file.dirName();
+					}
+					if (!.exists(file)) return;
+					openFolder(file);
+				}
+			}
 			Button createCEngineSubOpenButton(Composite parent, Text path, bool dir) {
 				auto open = new Button(parent, SWT.PUSH);
 				open.setToolTipText(_prop.buildTool(dir ? MenuID.OpenDir : MenuID.OpenPlace));
 				open.setImage(_prop.images.menu(MenuID.OpenDir));
-				open.addSelectionListener(new OpenDir(path, true));
+				open.addSelectionListener(new CEOpenDir(path));
 				return open;
 			}
 			void setupRight(Composite parent) {
@@ -676,7 +696,7 @@ private:
 					_cEnginePathRef = new Button(parent, SWT.PUSH);
 					_cEnginePathRef.setText(_prop.msgs.reference);
 					listener(_cEnginePathRef, SWT.Selection, &selectCEnginePath);
-					_cEnginePathDirOpen = createOpenButton(parent, _cEnginePath, false);
+					_cEnginePathDirOpen = createOpenButton(_comm, parent, _cEnginePath, false);
 					setupDropFile(_cEnginePath, _cEnginePath, &dropCEnginePath, &dropCEnginePath);
 				}
 				{
@@ -754,7 +774,7 @@ private:
 					_templPathRef = new Button(parent, SWT.PUSH);
 					_templPathRef.setText(_prop.msgs.reference);
 					listener(_templPathRef, SWT.Selection, &selectTemplate);
-					_templPathDirOpen = createOpenButton(parent, _templPath, false);
+					_templPathDirOpen = createOpenButton(_comm, parent, _templPath, false);
 					setupDropFile(_templPath, _templPath, &dropTemplate);
 				}
 			}
@@ -1067,45 +1087,6 @@ private:
 			refreshEnabled();
 		}
 	}
-	class DropFiles : DropTargetAdapter {
-		private Text _text;
-		private string delegate(string[] files) _drop;
-		private void delegate(string) _dropPath;
-		this (Text text, string delegate(string[] files) drop, void delegate(string) dropPath = null) {
-			_text = text;
-			_drop = drop;
-			_dropPath = dropPath;
-		}
-		override void dragEnter(DropTargetEvent e){
-			if (_text.getEnabled()) {
-				e.detail = DND.DROP_LINK;
-			}
-		}
-		override void dragOver(DropTargetEvent e){
-			if (_text.getEnabled()) {
-				e.detail = DND.DROP_LINK;
-			}
-		}
-		override void drop(DropTargetEvent e){
-			e.detail = DND.DROP_NONE;
-			auto str = _drop((cast(FileNames) e.data).array);
-			if (_text.getEnabled() && str.length && str != _text.getText()) {
-				_text.setText(str);
-				_text.selectAll();
-				e.detail = DND.DROP_LINK;
-				if (_dropPath) _dropPath(str);
-			}
-		}
-	}
-	void setupDropFile(Control c, Text text, string delegate(string[] files) drop, void delegate(string) dropPath = null) {
-		auto dropt = new DropTarget(c, DND.DROP_DEFAULT | DND.DROP_LINK);
-		dropt.setTransfer([FileTransfer.getInstance()]);
-		if (!drop) drop = &dropDefault;
-		dropt.addDropListener(new DropFiles(text, drop, dropPath));
-	}
-	string dropDefault(string[] files) {
-		return files.length ? files[0] : "";
-	}
 	string dropEngine(string[] files) {
 		if (!files.length) return "";
 		string file = files[0];
@@ -1133,16 +1114,6 @@ private:
 		}
 		return "";
 	}
-	string dropDir(string[] files) {
-		if (!files.length) return "";
-		string file = files[0];
-		if (!.exists(file)) return "";
-		if (.isDir(file)) {
-			return file;
-		} else {
-			return dirName(file);
-		}
-	}
 
 	const WALLPAPER_EXT = ["bmp", "ico", "icon", "jpg", "jpeg", "gif", "png", "tif", "tiff"];
 	string dropWallpaper(string[] files) {
@@ -1153,19 +1124,6 @@ private:
 			}
 		}
 		return "";
-	}
-	static string selectFile(Text file, string[] name, string[] ext, string fileName, string title, string p) {
-		auto dlg = new FileDialog(file.getShell(), SWT.PRIMARY_MODAL | SWT.APPLICATION_MODAL | SWT.SINGLE | SWT.OPEN);
-		dlg.setFilterExtensions(ext);
-		dlg.setFilterNames(name);
-		dlg.setText(title);
-		dlg.setFilterPath(dirName(nabs(p)));
-		dlg.setFileName(fileName);
-		string fname = dlg.open();
-		if (fname) {
-			file.setText(fname);
-		}
-		return fname;
 	}
 	void selectEngine() {
 		selectFile(_enginePath, [_prop.var.etc.engine], [_prop.var.etc.engine],
@@ -1182,30 +1140,11 @@ private:
 			baseName(widget.getText()), _prop.msgs.dlgTitSystemSound,
 			widget.getText());
 	}
-	string selectDir(Text dir, string title, string msg, string p, bool appPath = true) {
-		auto dlg = new DirectoryDialog(dir.getShell());
-		dlg.setText(title);
-		dlg.setMessage(msg);
-		string path = p;
-		if (appPath) {
-			auto d = dir.getText();
-			if (!cwx.utils.isabs(d)) {
-				d = std.path.buildPath(std.path.dirName(_prop.parent.appPath), d);
-			}
-			path = d;
-		}
-		dlg.setFilterPath(nabs(path));
-		string fname = dlg.open();
-		if (fname) {
-			dir.setText(fname);
-		}
-		return fname;
-	}
 	void selectTemp() {
-		selectDir(_tempDir, _prop.msgs.tempDir, _prop.msgs.tempDirDesc, _prop.tempPath);
+		selectDir(_prop, _tempDir, _prop.msgs.tempDir, _prop.msgs.tempDirDesc, _prop.tempPath);
 	}
 	void selectBackup() {
-		selectDir(_backupDir, _prop.msgs.backupDir, _prop.msgs.backupDirDesc, _prop.backupPath);
+		selectDir(_prop, _backupDir, _prop.msgs.backupDir, _prop.msgs.backupDirDesc, _prop.backupPath);
 	}
 	void selectWallpaper() {
 		string[] filterName = [_prop.msgs.filterWallpaper, _prop.msgs.filterAll];
@@ -1269,40 +1208,6 @@ private:
 			}
 		}
 	}
-	class OpenDir : SelectionAdapter {
-		private bool _cEngineSub;
-		private Text _text;
-		this (Text text, bool cEngineSub) {
-			_text = text;
-			_cEngineSub = cEngineSub;
-		}
-		override void widgetSelected(SelectionEvent e) {
-			string file = _text.getText();
-			if (!cwx.utils.isabs(file)) {
-				if (_cEngineSub) {
-					auto engine = _cEngines.curCEnginePath;
-					if (engine.length) {
-						file = std.path.buildPath(engine.dirName(), file);
-					}
-				} else {
-					file = std.path.buildPath(_prop.parent.appPath.dirName(), file);
-				}
-			}
-			if (!.exists(file) || !isDir(file)) {
-				file = file.dirName();
-			}
-			if (!.exists(file)) return;
-			openFolder(file);
-		}
-	}
-	Button createOpenButton(Composite parent, Text path, bool dir) {
-		auto open = new Button(parent, SWT.PUSH);
-		open.setToolTipText(_prop.buildTool(dir ? MenuID.OpenDir : MenuID.OpenPlace));
-		open.setImage(_prop.images.menu(MenuID.OpenDir));
-		open.addSelectionListener(new OpenDir(path, false));
-		_comm.put(open, () => path.getText().length > 0);
-		return open;
-	}
 	void construct1(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout(new GridLayout(1, false));
@@ -1325,7 +1230,7 @@ private:
 				_refEnginePath = new Button(grp, SWT.PUSH);
 				_refEnginePath.setText(_prop.msgs.reference);
 				_refEnginePath.addSelectionListener(new SelEngine);
-				createOpenButton(grp, _enginePath, false);
+				createOpenButton(_comm, grp, _enginePath, false);
 				_findEnginePath = new Button(grp, SWT.CHECK);
 				mod(_findEnginePath);
 				_findEnginePath.setText(_prop.msgs.findEnginePath);
@@ -1379,8 +1284,8 @@ private:
 			auto refr = new Button(grp, SWT.PUSH);
 			refr.setText(_prop.msgs.reference);
 			refr.addSelectionListener(new SelTemp);
-			createOpenButton(grp, _tempDir, true);
-			setupDropFile(grp, _tempDir, &dropDir);
+			createOpenButton(_comm, grp, _tempDir, true);
+			setupDropFile(grp, _tempDir, toDelegate(&dropDir));
 		}
 		{
 			auto grp = new Group(comp, SWT.NONE);
@@ -1435,8 +1340,8 @@ private:
 				_backupRef = new Button(comp2, SWT.PUSH);
 				_backupRef.setText(_prop.msgs.reference);
 				_backupRef.addSelectionListener(new SelBackup);
-				_backupDirOpen = createOpenButton(comp2, _backupDir, true);
-				setupDropFile(grp, _backupDir, &dropDir);
+				_backupDirOpen = createOpenButton(_comm, comp2, _backupDir, true);
+				setupDropFile(grp, _backupDir, toDelegate(&dropDir));
 			}
 		}
 		{
@@ -1474,7 +1379,7 @@ private:
 						auto refr = new Button(comp4, SWT.PUSH);
 						refr.setText(_prop.msgs.reference);
 						refr.addSelectionListener(new SelWallpaper);
-						createOpenButton(comp4, _wallpaper, false);
+						createOpenButton(_comm, comp4, _wallpaper, false);
 					}
 					{
 						auto comp4 = new Composite(grp, SWT.NONE);
@@ -1505,7 +1410,7 @@ private:
 					auto refr = new Button(grp, SWT.PUSH);
 					refr.setText(_prop.msgs.reference);
 					refr.addSelectionListener(new SelSysSound(_savedSound));
-					createOpenButton(grp, _savedSound, false);
+					createOpenButton(_comm, grp, _savedSound, false);
 					setupDropFile(grp, _savedSound, &dropSysSound);
 
 					auto sep = new Label(grp, SWT.SEPARATOR);

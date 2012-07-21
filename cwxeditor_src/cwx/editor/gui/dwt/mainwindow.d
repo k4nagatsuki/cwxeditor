@@ -334,7 +334,7 @@ private:
 		if (!dlg.open()) return;
 		bool r;
 		if (dlg.legacy) {
-			r = exec(_prop.parent.appPath ~ " -createclassic " ~ dlg.name ~ " " ~ dlg.classicFolder);
+			r = exec(_prop.parent.appPath ~ " -createclassic " ~ dlg.name ~ " " ~ dlg.classicDir);
 		} else {
 			r = exec(_prop.parent.appPath ~ " -create " ~ dlg.name ~ " " ~ dlg.skin);
 		}
@@ -352,7 +352,9 @@ private:
 			if (dlg.fromTemplate) {
 				summ = dlg.fromTemplate;
 			} else if (dlg.legacy) {
-				summ = new Summary(dlg.name, dlg.skin, dlg.classicFolder, false, true);
+				auto dir = dlg.classicDir;
+				if (!dir.exists()) mkdirRecurse(dir);
+				summ = new Summary(dlg.name, dlg.skin, dir, false, true);
 			} else {
 				summ = Summary.createScenario(_prop.tempPath, dlg.name, findSkin2(_prop, dlg.skin));
 			}
