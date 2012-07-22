@@ -1973,16 +1973,16 @@ public:
 		auto c = cast(Content) itm.getData();
 		auto script = new CWXScript(_prop.parent, _summ);
 		auto text = script.toScript([c], _comm.skin.evtChildOK, _summ.legacy, "\t");
-		text = std.array.replace(text, "\n", .newline);
-		_comm.clipboard.setContents([new ArrayWrapperString(text ~ "\n")], [TextTransfer.getInstance()]);
+		text = std.array.replace(text ~ "\n", "\n", .newline);
+		_comm.clipboard.setContents([new ArrayWrapperString(text)], [TextTransfer.getInstance()]);
 		_comm.refreshToolBar();
 	}
 	void toScriptAll() {
 		if (!_et) return;
 		auto script = new CWXScript(_prop.parent, _summ);
 		auto text = script.toScript(_et.starts, _comm.skin.evtChildOK, _summ.legacy, "\t");
-		text = std.array.replace(text, "\n", .newline);
-		_comm.clipboard.setContents([new ArrayWrapperString(text ~ "\n")], [TextTransfer.getInstance()]);
+		text = std.array.replace(text ~ "\n", "\n", .newline);
+		_comm.clipboard.setContents([new ArrayWrapperString(text)], [TextTransfer.getInstance()]);
 		_comm.refreshToolBar();
 	}
 	private ContentCommentDialog[Content] _commentDlgs;

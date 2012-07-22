@@ -44,8 +44,12 @@ import std.string;
 import std.functional;
 import std.traits;
 import std.array;
+import std.ascii;
+import std.exception;
+import std.algorithm : iota;
 
 import org.eclipse.swt.all;
+import java.lang.all;
 
 class SettingsDialog : AbsDialog {
 private:
@@ -131,15 +135,135 @@ private:
 
 			Shell _ceNameWin;
 			Table _featureName;
+			UndoManager _featureUndo;
 			TableItem _okText;
 			TableItem[Sex] _sexName;
 			TableItem[Period] _periodName;
 			TableItem[Nature] _natureName;
 			TableItem[Makings] _makingsName;
-			void featuresEnd(TableItem itm, int column, string newText) {
-				itm.setText(column, newText);
+			void refAlt() {
 				if (0 < _list.getItemCount()) {
 					_alt.setEnabled(true);
+				}
+			}
+			void featuresEnd(TableItem itm, int column, string newText) {
+				if (itm.getText(column) == newText) return;
+				storeFeatures();
+				itm.setText(column, newText);
+				refAlt();
+			}
+			class UndoFeature : Undo {
+				private string[] _features;
+				private int[] _selected;
+				this () {
+					save();
+				}
+				private void save() {
+					_features = [];
+					foreach (itm; _featureName.getItems()) {
+						_features ~= itm.getText(2);
+					}
+					_selected = _featureName.getSelectionIndices();
+				}
+				private void impl() {
+					auto features = _features.dup;
+					auto selected = _selected.dup;
+					save();
+					_featureName.setRedraw(false);
+					scope (exit) _featureName.setRedraw(true);
+					foreach (i, itm; _featureName.getItems()) {
+						itm.setText(2, features[i]);
+					}
+					_featureName.deselectAll();
+					_featureName.select(selected);
+					_featureName.showSelection();
+					_comm.refreshToolBar();
+				}
+				void undo() {impl();}
+				void redo() {impl();}
+				override void dispose() {
+					// Nothing
+				}
+			}
+			void storeFeatures() {
+				_featureUndo ~= new UndoFeature;
+			}
+			void undoFeatures() {
+				_featureUndo.undo();
+			}
+			void redoFeatures() {
+				_featureUndo.redo();
+			}
+			class FTCPD : TCPD {
+				void cut(SelectionEvent e) {
+					copy(e);
+					del(e);
+				}
+				void copy(SelectionEvent e) {
+					auto indices = _featureName.getSelectionIndices().sort;
+					if (!indices.length) return;
+					string text;
+					int i = 0;
+					foreach (sel; indices[0] .. indices[$ - 1] + 1) {
+						auto itm = _featureName.getItem(sel);
+						text ~= itm.getText(2);
+						text ~= newline;
+						i++;
+					}
+					_comm.clipboard.setContents([new ArrayWrapperString(text)], [TextTransfer.getInstance()]);
+					_comm.refreshToolBar();
+				}
+				void paste(SelectionEvent e) {
+					auto indices = _featureName.getSelectionIndices().sort;
+					if (!indices.length) return;
+					int i = indices[0];
+					auto a = cast(ArrayWrapperString) _comm.clipboard.getContents(TextTransfer.getInstance());
+					if (!a) return;
+					auto linesu = a.array.splitLines();
+					if (!linesu.length) return;
+					storeFeatures();
+					auto lines = assumeUnique(linesu);
+					int[] sels;
+					foreach (line; lines) {
+						if (_featureName.getItemCount() <= i) break;
+						_featureName.getItem(i).setText(2, line);
+						sels ~= i;
+						i++;
+					}
+					_featureName.deselectAll();
+					_featureName.select(sels);
+					_featureName.showSelection();
+					refAlt();
+					_comm.refreshToolBar();
+				}
+				void del(SelectionEvent e) {
+					if(-1 == _featureName.getSelectionIndex()) return;
+					storeFeatures();
+					foreach (itm; _featureName.getSelection()) {
+						itm.setText(2, "");
+					}
+					refAlt();
+					_comm.refreshToolBar();
+				}
+				@property
+				bool canDoTCPD() {
+					return _featureName.isFocusControl();
+				}
+				@property
+				bool canDoT() {
+					return -1 != _featureName.getSelectionIndex();
+				}
+				@property
+				bool canDoC() {
+					return canDoT;
+				}
+				@property
+				bool canDoP() {
+					return -1 != _featureName.getSelectionIndex() && CBisText(_comm.clipboard);
+				}
+				@property
+				bool canDoD() {
+					return canDoT;
 				}
 			}
 		} else static if (is(T:ScTemplate)) {
@@ -233,7 +357,7 @@ private:
 						itm.setText(1, _prop.sys.makingsName(f, n));
 						itm.setText(2, _array[i].makingsName.get(_prop.sys.makingsName(f, ""), ""));
 					}
-					
+					_featureUndo.reset();
 				} else static if (is(T:ScTemplate)) {
 					_templPath.setText(_array[i].path);
 				} else static if (is(T:EvTemplate)) {
@@ -986,7 +1110,17 @@ private:
 						features.setSelection(false);
 						e.doit = false;
 					});
-					_featureName = new Table(_ceNameWin, SWT.FULL_SELECTION | SWT.SINGLE | SWT.V_SCROLL);
+					_featureName = new Table(_ceNameWin, SWT.FULL_SELECTION | SWT.MULTI | SWT.V_SCROLL);
+					_featureUndo = new UndoManager(_prop.var.etc.undoMaxEtc);
+					auto menu = new Menu(_featureName.getShell(), SWT.POP_UP);
+					createMenuItem(_comm, menu, MenuID.Undo, &undoFeatures, &_featureUndo.canUndo);
+					createMenuItem(_comm, menu, MenuID.Redo, &redoFeatures, &_featureUndo.canRedo);
+					new MenuItem(menu, SWT.SEPARATOR);
+					appendMenuTCPD(_comm, menu, new FTCPD, true, true, true, true);
+					createMenuItem(_comm, menu, MenuID.SelectAll, {
+						_featureName.select(iota(0, _featureName.getItemCount(), 1).array());
+					}, () => _featureName.getSelection().length < _featureName.getItemCount());
+					_featureName.setMenu(menu);
 					_featureName.setLayoutData(new GridData(GridData.FILL_BOTH));
 					_featureName.setHeaderVisible(true);
 					_featureName.setLinesVisible(true);
@@ -1030,14 +1164,15 @@ private:
 
 					auto winProps = _prop.var.featuresWin;
 					auto shell = _ceNameWin;
+					bool first = true;
 					.listener(_ceNameWin, SWT.Dispose, {
+						if (first) return;
 						winProps.width = shell.getSize().x;
 						winProps.height = shell.getSize().y;
 						winProps.x = shell.getBounds().x - shell.getParent().getBounds().x;
 						winProps.y = shell.getBounds().y - shell.getParent().getBounds().y;
 					});
 					int parX, parY;
-					bool first = true;
 					.listener(features, SWT.Selection, {
 						if (first) {
 							first = false;

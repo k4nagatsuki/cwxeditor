@@ -1830,6 +1830,8 @@ public:
 					mixin (MenuAction!("me", MenuID.Paste));
 					mixin (MenuAction!("me", MenuID.Delete));
 					new MenuItem(me, SWT.SEPARATOR);
+					mixin (MenuAction!("me", MenuID.SelectAll));
+					new MenuItem(me, SWT.SEPARATOR);
 					mixin (MenuAction!("me", MenuID.Comment));
 					new MenuItem(me, SWT.SEPARATOR);
 					mixin (MenuAction!("me", MenuID.ToScript));

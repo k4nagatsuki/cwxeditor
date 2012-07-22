@@ -9,10 +9,20 @@ import java.lang.all;
 
 import std.algorithm;
 import std.string;
+import std.array;
+import std.ascii;
 import std.exception;
 
 private static const string XML_HEADER_S = `<?xml `;
 private static const(byte)[] XML_HEADER = cast(byte[]) XML_HEADER_S;
+
+string sysRet(string text) {
+	static if ("\n" == newline) {
+		return text;
+	} else {
+		return std.array.replace(text, "\n", newline);
+	}
+}
 
 bool isXMLBytes(Object o) {
 	if (!o) return false;
@@ -23,7 +33,7 @@ bool isXMLBytes(Object o) {
 
 void XMLtoCB(Props prop, Clipboard cb, string xml) {
 	if (prop.var.etc.xmlCopy) {
-		cb.setContents([new ArrayWrapperString(xml)], [TextTransfer.getInstance()]);
+		cb.setContents([new ArrayWrapperString(sysRet(xml))], [TextTransfer.getInstance()]);
 	} else {
 		cb.setContents([bytesFromXML(xml)], [XMLBytesTransfer.getInstance()]);
 	}
@@ -69,7 +79,7 @@ ArrayWrapperByte bytesFromXML(string xml) {
 
 string bytesToXML(Object o) {
 	assert (isXMLBytes(o));
-	return cast(string) (cast(ArrayWrapperByte) o).array;
+	return sysRet(cast(string) (cast(ArrayWrapperByte) o).array);
 }
 
 class XMLBytesTransfer : ByteArrayTransfer {
