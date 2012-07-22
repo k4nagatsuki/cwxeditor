@@ -941,7 +941,7 @@ private:
 			}
 
 			auto right = new Composite(leftSash, SWT.NONE);
-			right.setLayout(zeroMarginGridLayout(2, true));
+			right.setLayout(zeroMarginGridLayout(2, false));
 			{
 				auto comp2 = new Composite(right, SWT.NONE);
 				auto gd = new GridData(GridData.FILL_HORIZONTAL);
