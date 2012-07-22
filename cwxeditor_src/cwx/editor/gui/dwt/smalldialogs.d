@@ -167,7 +167,6 @@ protected:
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
 			gd.widthHint = _prop.var.etc.nameWidth;
 			_name.setLayoutData(gd);
-			checker(_name);
 		}
 		{
 			auto grp = new Group(comp, SWT.NONE);
@@ -278,6 +277,7 @@ protected:
 	override bool close(bool ok, out bool cancel) {
 		if (ok) {
 			_nameVal = _name.getText();
+			if (!_nameVal.length) _nameVal = _prop.msgs.newScenarioName;
 
 			auto dir = classicDir;
 			if (legacy) {
