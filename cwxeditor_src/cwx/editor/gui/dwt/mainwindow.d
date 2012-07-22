@@ -430,7 +430,7 @@ private:
 	void openScenario(Summary summ) {
 		assert (summ);
 		OpenHistory hist;
-		if (_prop.var.etc.reconstruction) {
+		if (_prop.var.etc.reconstruction && !_opt.noload) {
 			hist = findHist(createHistString(summ));
 			summ.type = hist.skinName;
 		}

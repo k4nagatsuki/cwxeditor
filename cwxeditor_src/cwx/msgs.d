@@ -36,8 +36,8 @@ class Msgs : Properties {
 
 	mixin Msg!("dlgTitUsage", "使い方 - CWXEditor");
 	mixin Msg!("usage", "使い方: cwxeditor [-help | -putlangfile <PATH> | -conf <PATH>\n"
-		"                   | -create <NAME> [<SKIN>] | -createclassic <NAME> [<PATH>]]\n"
-		"                   <SCENARIO> [<CWXPath ...>]\n"
+		"                   | -create <NAME> [<SKIN>] | -createclassic <NAME> [<PATH>]\n"
+		"                   | -noload] <SCENARIO> [<CWXPath ...>]\n"
 		"オプション:\n"
 		"  -help         起動オプションの説明を表示して終了します。\n"
 		"  -putlangfile <PATH> デフォルトの言語設定ファイル<PAHT>を出力して終了します。\n"
@@ -45,6 +45,7 @@ class Msgs : Properties {
 		"  -create        <NAME> [<SKIN>]  起動後にシナリオを新規作成します。\n"
 		"  -createclassic <NAME> [<PATH>]  起動後、<PATH>で指定されたフォルダに\n"
 		"                                  クラシックなシナリオを新規作成します。\n"
+		"  -noload       起動後、前回終了時の編集状態を復元しません。\n"
 		"  <SCENARIO>    起動と同時に指定されたシナリオを開きます。\n"
 		"                (*.wsn/Summary.xml/Summary.wsm/[フォルダ])\n"
 		"OpenID:\n"

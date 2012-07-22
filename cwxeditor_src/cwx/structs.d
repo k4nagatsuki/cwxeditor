@@ -40,6 +40,7 @@ struct LaunchOption {
 	string[] openPaths = [];
 	string scenario = null;
 	string putlangfile = "";
+	bool noload = false;
 	bool help = false;
 
 	void parseStrings(string[] args) {
@@ -77,6 +78,10 @@ struct LaunchOption {
 					break;
 				case "-putlangfile": // 起動と同時に言語ファイルを出力して終了
 					if (i + 1 < args.length) putlangfile = args[i + 1];
+					sc = i + 1u;
+					break;
+				case "-noreload": // 最後に開いていたシナリオを開かない
+					noload = true;
 					sc = i + 1u;
 					break;
 				case "-help", "-h", "/?": // usage
