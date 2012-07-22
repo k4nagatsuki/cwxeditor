@@ -1,4 +1,4 @@
-
+/// CWXEditorの変数。
 module cwx.variables;
 
 import cwx.xml;
@@ -193,7 +193,7 @@ class FlexEtcProps : Properties {
 	mixin Property!("ignoreMenuSashL", int, 2);
 	mixin Property!("ignoreMenuSashR", int, 1);
 
-	mixin Property!("openHistories", string[], []);
+	mixin Property!("openHistories", OpenHistory[], []);
 	mixin Property!("historyMax", int, 9);
 	mixin Property!("historySnipLength", int, 30);
 	mixin Property!("lastScenario", string, "");

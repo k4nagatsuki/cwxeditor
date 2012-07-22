@@ -685,3 +685,40 @@ struct EvTemplate {
 		script = node.value;
 	}
 }
+
+/// 開いたシナリオの履歴。
+struct OpenHistory {
+	static const XML_NAME = "openHistory";
+	string path; /// シナリオのパス。
+	string skinName = ""; /// スキン名。skinEngineより優先される。
+	string skinEngine = ""; /// リソースを使用するエンジン名。
+
+	/// XMLノードとして取り扱うための関数群。
+	const
+	XNode toNode() {
+		auto e = XNode.create(XML_NAME, path);
+		toNodeImpl(e);
+		return e;
+	}
+	/// ditto
+	const
+	void toNode(ref XNode node) {
+		auto e = node.newElement(XML_NAME, path);
+		toNodeImpl(e);
+	}
+	/// ditto
+	const
+	private void toNodeImpl(ref XNode e) {
+		if (skinName.length) e.newAttr("skinName", skinName);
+		if (skinEngine.length) e.newAttr("skinEngine", skinEngine);
+	}
+	/// ditto
+	void fromNode(ref XNode node) {
+		// 以前のバージョンでは要素名が"value"になっている
+		// 可能性があるため、チェックしない
+
+		skinName = node.attr!(string)("skinName", false, "");
+		skinEngine = node.attr!(string)("skinEngine", false, "");
+		path = node.value;
+	}
+}

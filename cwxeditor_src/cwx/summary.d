@@ -894,7 +894,8 @@ public:
 	/// ditto
 	@property
 	void type(string type) {
-		if (_type != type) changeHandler();
+		/// クラシックなシナリオの場合はタイプは保存されない
+		if (_type != type && !legacy) changeHandler();
 		_type = type;
 	}
 

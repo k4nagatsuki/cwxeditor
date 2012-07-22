@@ -429,7 +429,12 @@ private:
 	}
 	void openScenario(Summary summ) {
 		assert (summ);
-		auto skin = findSkin(_comm, _prop, summ);
+		OpenHistory hist;
+		if (_prop.var.etc.reconstruction) {
+			hist = findHist(createHistString(summ));
+			summ.type = hist.skinName;
+		}
+		auto skin = findSkin(_comm, _prop, summ, hist.skinEngine);
 		if (_prop.var.etc.doubleIO) {
 			auto listup = new core.thread.Thread({
 				// 素材リストのキャッシュを生成しておく
@@ -494,14 +499,10 @@ private:
 		}
 		setupMenu(_menu);
 		setupMenu(_tool);
-		string fullHist = "";
-		if (_prop.var.etc.reconstruction) {
-			fullHist = findFullHist(createHistString(summary));
-		}
 		bool opened = false;
 		string openedS = "";
 		if (_prop.var.etc.reconstruction) {
-			auto paths = fullHistToCWXPaths(fullHist);
+			auto paths = fullHistToCWXPaths(hist.path);
 			if (paths.length) {
 				statusLine = .tryFormat(_prop.msgs.reconstructionStatus, 0, paths.length);
 				foreach (i, cwxPath; paths) {
@@ -870,16 +871,32 @@ private:
 		}
 	}
 
-	string findFullHist(string hist) {
-		if ("" == hist) return hist;
+	void setHistSkin() {
+		string skinName = summary.type;
+		string skinEngine = _comm.skin.legacyEngine;
+		auto hist = createHistString(summary);
 		auto hists = _prop.var.etc.openHistories.dup;
-		foreach (i, h; hists) {
-			if (cfnmatch(fullHistToHist(h), hist)) {
-				hist = h;
+		foreach (i, ref h; hists) {
+			if (cfnmatch(fullHistToHist(h.path), hist)) {
+				h.skinName = skinName;
+				h.skinEngine = skinEngine;
 				break;
 			}
 		}
-		return hist;
+		_prop.var.etc.openHistories = hists;
+	}
+	OpenHistory findHist(string hist) {
+		if ("" == hist) return OpenHistory("");
+		auto hists = _prop.var.etc.openHistories;
+		foreach (i, h; hists) {
+			if (cfnmatch(fullHistToHist(h.path), hist)) {
+				return h;
+			}
+		}
+		return OpenHistory("");
+	}
+	string findFullHist(string hist) {
+		return findHist(hist).path;
 	}
 	static string createHistString(Summary summary) {
 		if (!summary) return "";
@@ -911,11 +928,11 @@ private:
 		if ("" == hist) return;
 		auto hists = _prop.var.etc.openHistories.dup;
 		foreach (i, h; hists) {
-			if (cfnmatch(fullHistToHist(h), hist)) {
+			if (cfnmatch(fullHistToHist(h.path), hist)) {
 				if (_prop.var.etc.reconstruction) {
-					hists[i] = createFullHistString();
+					hists[i].path = createFullHistString();
 				} else {
-					hists[i] = hist;
+					hists[i].path = hist;
 				}
 				_prop.var.etc.openHistories = hists;
 				break;
@@ -953,9 +970,9 @@ private:
 	void delHist(string fullHist) {
 		auto hists = _prop.var.etc.openHistories.dup;
 		string hist = fullHistToHist(fullHist);
-		string[] hists2;
+		OpenHistory[] hists2;
 		foreach (i, h; hists) {
-			if (!cfnmatch(fullHistToHist(h), hist)) {
+			if (!cfnmatch(fullHistToHist(h.path), hist)) {
 				hists2 ~= h;
 			}
 		}
@@ -966,13 +983,13 @@ private:
 		_comm.refHistories.call();
 	}
 	void addHistory() {
-		string hist = createFullHistString();
-		if ("" == hist) return;
-		string p = fullHistToHist(hist);
+		auto hist = OpenHistory(createFullHistString());
+		if ("" == hist.path) return;
+		string p = fullHistToHist(hist.path);
 		_prop.var.etc.scenarioPath = summary.useTemp ? dirName(p) : dirName(dirName(p));
 		auto hists = _prop.var.etc.openHistories.dup;
 		foreach (i, h; hists) {
-			if (cfnmatch(fullHistToHist(h), p)) {
+			if (cfnmatch(fullHistToHist(h.path), p)) {
 				// すでに履歴中に存在するため、最新位置に移動
 				hist = h;
 				_prop.var.etc.openHistories = hists[0 .. i] ~ hists[i + 1 .. $];
@@ -1107,7 +1124,7 @@ private:
 		new MenuItem(_menuFile, SWT.SEPARATOR);
 		auto hists = _prop.var.etc.openHistories;
 		foreach (i, hist; hists) {
-			new Hist(_menuFile, i + 1, hist);
+			new Hist(_menuFile, i + 1, hist.path);
 		}
 		if (hists.length > 0) new MenuItem(_menuFile, SWT.SEPARATOR);
 		createMenuItem(_comm, _menuFile, MenuID.Close, &exitAll, null);
@@ -1327,6 +1344,7 @@ private:
 	}
 	void refSkin() {
 		refSoundType();
+		setHistSkin();
 	}
 	void refScenario(Summary summ) {
 		assert (summ is summary);

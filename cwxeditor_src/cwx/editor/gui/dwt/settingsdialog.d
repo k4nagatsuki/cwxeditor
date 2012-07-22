@@ -2413,7 +2413,7 @@ struct OldSettings {
 	const string[] oldIgnorePaths;
 	bool oldSmoothingCard;
 	bool oldLogicalSort;
-	const string[] oldOpenHistories;
+	const OpenHistory[] oldOpenHistories;
 	const string[] oldSearchHistories;
 	const string[] oldReplaceHistories;
 	int oldUndoMaxMainView;
