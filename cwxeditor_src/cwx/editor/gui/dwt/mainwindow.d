@@ -2219,6 +2219,11 @@ public:
 	}
 	private class KeyDownFilter : Listener {
 		override void handleEvent(Event e) {
+			auto text = cast(Text) e.widget;
+			if (text && cast(CCombo) text.getParent()) {
+				// CComboは本体に加えて内部のTextからもイベントが発生する
+				return;
+			}
 			static const F = [
 				SWT.F1, SWT.F2, SWT.F3, SWT.F4, SWT.F5,
 				SWT.F6, SWT.F7, SWT.F8, SWT.F9, SWT.F10,
