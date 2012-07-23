@@ -1,13 +1,10 @@
 
 module cwx.msgs;
 
+import cwx.imsgs;
 import cwx.types;
 import cwx.features;
-import cwx.event;
-import cwx.motion;
 import cwx.structs;
-import cwx.menu;
-import cwx.utils;
 import cwx.settings;
 import cwx.versioninfo;
 
@@ -21,10 +18,14 @@ version (Windows) {
 	private immutable DIR = "ディレクトリ";
 }
 
-class Msgs : Properties {
+class MsgsImpl : Properties, Msgs {
 	private template Msg(string Name, string Default) {
 		mixin Property!(Name, string, Default, true);
 	}
+
+	@property
+	const
+	Msgs dup() {return new MsgsImpl;}
 
 	mixin PropertyAttr!("locale", string, "ja-JP", true);
 	mixin PropertyAttr!("version", ulong, APP_VERSION_NUM, true);

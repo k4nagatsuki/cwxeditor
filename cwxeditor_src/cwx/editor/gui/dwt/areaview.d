@@ -16,7 +16,7 @@ import cwx.path;
 import cwx.structs;
 import cwx.sjis;
 import cwx.graphics;
-import cwx.msgs;
+import cwx.types;
 import cwx.menu;
 
 import cwx.editor.gui.sound;
@@ -47,6 +47,7 @@ import std.file;
 import std.traits;
 import std.datetime;
 import std.string;
+import std.conv;
 
 import org.eclipse.swt.all;
 

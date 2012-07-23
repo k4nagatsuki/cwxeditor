@@ -1,8 +1,9 @@
 
 module cwx.path;
 
-import cwx.utils;
+import cwx.perf;
 
+import std.algorithm;
 import std.conv;
 import std.string;
 
@@ -119,7 +120,7 @@ string cpaddattr(string path, string attr) {
 
 /// シナリオ内パスに指定された属性が含まれているか。
 bool cphasattr(string path, string attr) {
-	return cpattr(path).contains(attr);
+	return 0 < cpattr(path).find(attr).length;
 }
 
 /// シナリオ内パスを属性を除いて比較する。

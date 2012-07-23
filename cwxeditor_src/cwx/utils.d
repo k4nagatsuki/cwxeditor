@@ -1,7 +1,8 @@
 
 module cwx.utils;
 
-import cwx.structs;
+public import cwx.perf;
+
 import cwx.sjis;
 import cwx.versioninfo;
 
@@ -237,47 +238,6 @@ string appDataDir(string appPath) {
 	} else {
 		return to!string(getpwuid(getuid()).pw_dir);
 	}
-}
-
-debug {
-	StopWatch initTimer;
-	static this () {
-		initTimer.start();
-	}
-
-	__gshared ulong utperf = 0;
-	__gshared ulong t[1024u];
-	shared static ~this () {
-		foreach (i, time; t) {
-			if (time > 0u) {
-				debugln(format("%04d = ", i), time);
-			}
-		}
-	}
-	template FPerf(int I) {
-		static const FPerf
-			= "scope f_timer = std.datetime.StopWatch(std.datetime.AutoStart.yes);"
-			~ "scope (exit) {"
-			~ "f_timer.stop();"
-			~ ".t[" ~ .toStringNow!(I) ~ "] += f_timer.peek().msecs;"
-			~ "}";
-	}
-	const BPerfS = "scope b_timer = new std.datetime.StopWatch(std.datetime.AutoStart.yes);";
-	template BPerf(int I) {
-		static const BPerf
-			= "b_timer.stop();"
-			~ ".t[" ~ .toStringNow!(I) ~ "] += b_timer.peek().msecs;"
-			~ "b_timer.reset();"
-			~ "b_timer.start();";
-	}
-	static const UTPerf
-		= "scope f_timer = std.datetime.StopWatch(std.datetime.AutoStart.yes);"
-		~ "scope (exit) {"
-		~ "f_timer.stop();"
-		~ ".utperf += f_timer.peek().msecs;"
-		~ "}";
-	static assert (FPerf!(10));
-	static assert (BPerf!(10));
 }
 
 static const B_IMG = "binaryimage://";

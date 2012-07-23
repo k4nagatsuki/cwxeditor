@@ -10,8 +10,8 @@ import cwx.xml;
 import cwx.skin;
 import cwx.path;
 import cwx.motion;
-import cwx.msgs;
 import cwx.menu;
+import cwx.types;
 
 import cwx.editor.gui.dwt.smalldialogs;
 import cwx.editor.gui.dwt.images;

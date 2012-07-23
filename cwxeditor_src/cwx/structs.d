@@ -2,7 +2,6 @@
 module cwx.structs;
 
 import cwx.xml;
-import cwx.utils;
 
 import std.conv;
 import std.path;

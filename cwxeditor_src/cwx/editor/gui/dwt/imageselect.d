@@ -5,6 +5,7 @@ import cwx.utils;
 import cwx.summary;
 import cwx.skin;
 import cwx.menu;
+import cwx.types;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dutils;

@@ -14,6 +14,7 @@ import cwx.path;
 
 import std.algorithm;
 import std.exception;
+import std.conv;
 
 /// データをXML化する時のオプション。
 class XMLOption {

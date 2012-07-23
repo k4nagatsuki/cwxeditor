@@ -15,6 +15,7 @@ import cwx.skin;
 import cwx.path;
 import cwx.structs;
 import cwx.menu;
+import cwx.types;
 
 import cwx.editor.gui.sound;
 
@@ -38,6 +39,8 @@ import std.math;
 import std.path;
 
 import org.eclipse.swt.all;
+
+immutable transitionSpeedDef = Content.transitionSpeed_min + ((Content.transitionSpeed_max - Content.transitionSpeed_min) / 2);
 
 abstract class EventDialog : AbsDialog {
 	private Commons _comm;
@@ -311,7 +314,7 @@ protected:
 				_tsSpeed.setSelection(_evt.transitionSpeed);
 			} else {
 				_ts.select(0);
-				_tsSpeed.setSelection(_prop.looks.transitionSpeedDef);
+				_tsSpeed.setSelection(.transitionSpeedDef);
 			}
 			refreshTS();
 		}
@@ -795,7 +798,7 @@ protected:
 			_tsSpeed.setSelection(_evt.transitionSpeed);
 		} else {
 			_ts.select(0);
-			_tsSpeed.setSelection(_prop.looks.transitionSpeedDef);
+			_tsSpeed.setSelection(.transitionSpeedDef);
 		}
 	}
 
@@ -2063,7 +2066,7 @@ protected:
 			_tsSpeed.setSelection(_evt.transitionSpeed);
 		} else {
 			_ts.select(0);
-			_tsSpeed.setSelection(_prop.looks.transitionSpeedDef);
+			_tsSpeed.setSelection(.transitionSpeedDef);
 		}
 	}
 

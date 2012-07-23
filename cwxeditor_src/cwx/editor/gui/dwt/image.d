@@ -19,7 +19,6 @@ import cwx.system;
 import cwx.motion;
 import cwx.props;
 import cwx.structs;
-import cwx.msgs;
 import cwx.menu;
 
 import std.file;

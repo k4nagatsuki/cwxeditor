@@ -6,16 +6,15 @@ import cwx.utils;
 import cwx.xml;
 import cwx.summary;
 import cwx.skin;
-import cwx.msgs;
 import cwx.graphics;
 import cwx.structs;
 import cwx.menu;
 import cwx.variables;
 import cwx.cab;
 import cwx.script;
-import cwx.msgs;
 import cwx.props;
 import cwx.features;
+import cwx.types;
 
 import cwx.editor.gui.sound;
 

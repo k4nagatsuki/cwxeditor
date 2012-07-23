@@ -11,6 +11,7 @@ import cwx.skin;
 import cwx.path;
 import cwx.motion;
 import cwx.menu;
+import cwx.types;
 
 import cwx.editor.gui.dwt.smalldialogs;
 import cwx.editor.gui.dwt.images;
@@ -37,6 +38,7 @@ import std.string;
 import std.datetime;
 import std.typetuple;
 import std.path;
+import std.conv;
 
 import org.eclipse.swt.all;
 

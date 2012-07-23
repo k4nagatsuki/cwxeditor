@@ -100,11 +100,13 @@ class CWXScript {
 
 	private void throwError(string File = __FILE__, size_t Line = __LINE__)
 			(lazy string message, in Token tok) {
+		if (!_prop.msgs) return;
 		if (!_maxError) return;
 		throwErrorToken!(File, Line)(message, tok.line, tok.pos, tok.value);
 	}
 	private void throwErrorToken(string File = __FILE__, size_t Line = __LINE__)
 			(lazy string message, size_t line, size_t pos, string value) {
+		if (!_prop.msgs) return;
 		if (!_maxError) return;
 		if (_errors.length && _errors[$ - 1].errLine == line && _errors[$ - 1].errPos == pos) {
 			// 同一箇所でのエラーは一つだけにする
@@ -262,7 +264,7 @@ class CWXScript {
 		return decode(tok.value[1 .. $ - 1], tok.value[0]);
 	} unittest {
 		debug mixin(UTPerf);
-		auto s = new CWXScript(new CProps("", null), null);
+		auto s = new CWXScript(new CProps("", null, null, null), null);
 		assert (s.stringValue(Token(0, 0, Kind.STRING, `"abc"`), 0) == "abc");
 		assert (s.stringValue(Token(0, 0, Kind.STRING, `"a""bc"`), 0) == "a\"bc");
 		assert (s.stringValue(Token(0, 0, Kind.STRING, `'ab''c'`), 0) == "ab'c");
@@ -500,7 +502,7 @@ class CWXScript {
 		return r;
 	} unittest {
 		debug mixin(UTPerf);
-		auto s = new CWXScript(new CProps("", null), null);
+		auto s = new CWXScript(new CProps("", null, null, null), null);
 		auto tokens = s.tokenize("");
 		assert (tokens == [], to!string(tokens));
 		tokens = s.tokenize("/*/*\n*/*/");
@@ -814,7 +816,7 @@ class CWXScript {
 		const(Node)[][string] varTable;
 		varTable["$abc"] = [Node(NodeType.VALUE, Token(0, 0, Kind.NUMBER, "15"))];
 		varTable["$s"] = [Node(NodeType.VALUE, Token(0, 0, Kind.NUMBER, "0"))];
-		auto s = new CWXScript(new CProps("", null), null);
+		auto s = new CWXScript(new CProps("", null, null, null), null);
 		i = 0;
 		assert (s.calc(s.tokenize("(-42)"), i, varTable, 0) == -42);
 		i = 0;
@@ -1231,7 +1233,7 @@ class CWXScript {
 		return r;
 	} unittest {
 		debug mixin(UTPerf);
-		auto s = new CWXScript(new CProps("", null), null);
+		auto s = new CWXScript(new CProps("", null, null, null), null);
 		string statement
 = `
 $var1 = 'oops'
@@ -1489,7 +1491,7 @@ fi`;
 		return r;
 	} unittest {
 		debug mixin(UTPerf);
-		auto s = new CWXScript(new CProps("", null), null);
+		auto s = new CWXScript(new CProps("", null, null, null), null);
 		Token[] tokens;
 		size_t i;
 		tokens = s.tokenize(`goarea`);

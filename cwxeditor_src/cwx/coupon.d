@@ -1,8 +1,9 @@
 
 module cwx.coupon;
 
-import cwx.utils;
 import cwx.xml;
+
+import std.conv;
 
 /// クーポン。
 class Coupon {

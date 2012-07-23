@@ -12,6 +12,7 @@ import cwx.path;
 import cwx.structs;
 import cwx.msgutils;
 import cwx.menu;
+import cwx.types;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;
@@ -35,6 +36,7 @@ import std.array;
 import std.utf;
 import std.string;
 import std.datetime;
+import std.conv;
 
 import org.eclipse.swt.all;
 

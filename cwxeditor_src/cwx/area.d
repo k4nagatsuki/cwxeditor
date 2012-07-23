@@ -11,6 +11,7 @@ import cwx.card;
 import cwx.path;
 
 import std.math;
+import std.conv;
 
 /// エリア等の所持者を示すインタフェース。
 interface AreaOwner : CWXPath {

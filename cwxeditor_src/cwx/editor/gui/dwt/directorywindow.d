@@ -8,7 +8,7 @@ import cwx.skin;
 import cwx.sjis;
 import cwx.cab;
 import cwx.structs;
-import cwx.msgs;
+import cwx.types;
 import cwx.menu;
 import cwx.path;
 

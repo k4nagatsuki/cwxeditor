@@ -1,12 +1,7 @@
 
 module cwx.settings;
 
-import cwx.utils;
 import cwx.xml;
-import cwx.skin;
-import cwx.background;
-import cwx.structs;
-import cwx.versioninfo;
 
 import std.conv;
 import std.string;
@@ -17,6 +12,7 @@ import std.datetime;
 import std.traits;
 
 private void toNode(T)(ref XNode node, string key, in T value) {
+	import cwx.utils;
 	static if (is (typeof(value.toNode))) {
 		value.toNode(node);
 	} else static if (isVArray!(T)) {
@@ -33,6 +29,7 @@ private void toNode(T)(ref XNode node, string key, in T value) {
 	}
 }
 private void fromNode(T)(ref XNode node, string key, ref T value) {
+	import cwx.utils;
 	static if (is (typeof(value.fromNode))) {
 		value.fromNode(node);
 	} else static if (isVArray!(T)) {
@@ -195,6 +192,7 @@ abstract class Properties {
 	/// SubClass = Propertiesのサブクラス。
 	/// Root = ルート要素の名前。
 	protected template XMLFuncs(SubClass : Properties, string Root = "") {
+		import cwx.xml;
 		static if (Root.length > 0) {
 			const
 			string toXML() {
@@ -232,6 +230,7 @@ abstract class Properties {
 		}
 		const
 		private void toNodeImpl(ref XNode e, bool writeAll) {
+			import std.conv;
 			foreach (fld; this.tupleof) {
 				static if (is(typeof(fld.KEY))) {
 					if (writeAll || fld.value != fld.INIT) {
@@ -255,6 +254,7 @@ abstract class Properties {
 			return fromNodeImpl(e, dataVersion);
 		}
 		private static SubClass fromNodeImpl(ref XNode e, ulong dataVersion) {
+			import std.conv;
 			auto r = new SubClass;
 			if (e.valid) {
 				foreach (i, ref fld; r.tupleof) {

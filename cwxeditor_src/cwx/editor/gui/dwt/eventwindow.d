@@ -8,7 +8,7 @@ import cwx.summary;
 import cwx.skin;
 import cwx.utils;
 import cwx.path;
-import cwx.msgs;
+import cwx.types;
 import cwx.menu;
 
 import cwx.editor.gui.dwt.dutils;
@@ -20,6 +20,8 @@ import cwx.editor.gui.dwt.eventtreeview;
 import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.sbshell;
 import cwx.editor.gui.dwt.dmenu;
+
+import std.conv;
 
 import org.eclipse.swt.all;
 

@@ -7,6 +7,7 @@ import cwx.utils;
 import cwx.summary;
 import cwx.card;
 import cwx.menu;
+import cwx.types;
 
 import cwx.editor.gui.sound;
 

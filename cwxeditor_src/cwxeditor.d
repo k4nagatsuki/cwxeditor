@@ -37,10 +37,11 @@ void main(string[] args) {
 		opt.conf = buildPath(dirName(appPath), "cwxeditor.config");
 		dStr ~= " - " ~ .text(__LINE__);
 		opt.parseStrings(args[1 .. $]);
+		auto cprops = new CProps(appPath, sys, new MsgsImpl, &MsgsImpl.fromXML);
 		if (opt.help) {
 			/// usage
 			dStr ~= " - " ~ .text(__LINE__);
-			auto prop = new Props(opt.conf, new CProps(appPath, sys));
+			auto prop = new Props(opt.conf, cprops);
 			version (Console) {
 				try {
 					cwriteln(prop.msgs.usage);
@@ -64,7 +65,7 @@ void main(string[] args) {
 		}
 		if (opt.putlangfile.length) {
 			// 言語ファイルを保存する
-			auto prop = new Props(opt.conf, new CProps(appPath, sys));
+			auto prop = new Props(opt.conf, cprops);
 			try {
 				std.file.write(opt.putlangfile, prop.msgs.toXML(true));
 			} catch (Exception e) {
@@ -73,7 +74,7 @@ void main(string[] args) {
 			return;
 		}
 		dStr ~= " - " ~ .text(__LINE__);
-		auto main = new MainWindow(appPath, sys, opt);
+		auto main = new MainWindow(appPath, sys, cprops, opt);
 		dStr ~= " - " ~ .text(__LINE__);
 		main.doCWX();
 		dStr ~= " - " ~ .text(__LINE__);

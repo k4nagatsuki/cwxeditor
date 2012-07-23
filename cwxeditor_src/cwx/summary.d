@@ -1,17 +1,6 @@
 
 module cwx.summary;
 
-import std.array;
-import std.file;
-import std.stream;
-import std.path;
-import std.zip;
-import std.datetime;
-import std.string;
-import std.utf;
-import std.traits;
-import std.exception;
-
 import cwx.cwl;
 import cwx.flag;
 import cwx.utils;
@@ -26,6 +15,18 @@ import cwx.path;
 import cwx.cab;
 import cwx.sjis;
 import cwx.event;
+
+import std.array;
+import std.file;
+import std.stream;
+import std.path;
+import std.zip;
+import std.datetime;
+import std.string;
+import std.utf;
+import std.traits;
+import std.exception;
+import std.conv;
 
 public:
 

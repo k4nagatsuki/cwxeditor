@@ -4,7 +4,7 @@ module build;
 
 import std.algorithm;
 import std.file;
-import std.path : filenameCmp, extension, setExtension, buildPath;
+import std.path : filenameCmp, extension, setExtension, buildPath, baseName;
 import std.process;
 import std.exception;
 import std.array;
@@ -148,18 +148,27 @@ void exec(string[] cmd ...) {
 	timer.stop();
 	writefln("%d msecs", timer.peek().msecs);
 }
-void put(string file, ref string[] array, ref string[string] objs) {
-	string obj = "objs".buildPath(file).setExtension(O);
-	if (file.newer(obj)) {
-		array ~= file;
-	}
-	objs[file] = obj;
+bool equalsFilename(string a, string b) {
+	return 0 == a.filenameCmp(b);
 }
-string[] sources(string path, bool shallow, ref string[string] objs) {
+void put(string file, ref string[] array, ref string[string] objs, in string[] qual) {
+	string obj = "objs".buildPath(file).setExtension(O);
+	objs[file] = obj;
+	if (qual.length) {
+		if (!qual.find!equalsFilename(file.baseName()).empty) {
+			array ~= file;
+		}
+	} else {
+		if (file.newer(obj)) {
+			array ~= file;
+		}
+	}
+}
+string[] sources(string path, bool shallow, ref string[string] objs, in string[] qual) {
 	string[] arr;
 	foreach (string file; path.dirEntries(shallow ? SpanMode.shallow : SpanMode.depth)) {
-		if (0 == filenameCmp(file.extension(), ".d")) {
-			put(file, arr, objs);
+		if (file.extension().equalsFilename(".d")) {
+			put(file, arr, objs, qual);
 		}
 	}
 	return arr;
@@ -180,24 +189,43 @@ void removeFile(string path) {
 	writefln("removed: %s", path);
 }
 
+void divide(in string[] args, out string[] file, out string[] option) {
+	foreach (a; args) {
+		if (0 == a.extension().filenameCmp(".d")) {
+			file ~= a;
+		} else {
+			option ~= a;
+		}
+	}
+}
+
 void main(string[] args) {
 	// ビルドフラグ
-	args = args[1 .. $].sort;
-	bool help = args.has("help");
-	bool release = args.has("release");
-	bool console = args.has("cui");
-	bool window = (release && !console) || args.has("gui");
-	bool clean = args.has("clean");
-	bool run = args.has("run");
+	string[] file, option;
+	divide(args[1 .. $], file, option);
+	file = file.sort;
+	option = option.sort;
+	bool help = option.has("help");
+	bool release = option.has("release");
+	bool console = option.has("cui");
+	bool window = (release && !console) || option.has("gui");
+	bool clean = option.has("clean");
+	bool run = option.has("run");
 
 	if (help) {
-		writeln("Usage: rdmd build [help | clean | cui | gui | release | run]");
+		writeln("Usage: rdmd build [help | clean | cui | gui | release | run | *.d]");
 		return;
 	}
 
 	// 前回のフラグと比較・保存
-	bool mod = "build.log".exists() && args != "build.log".readText().splitLines();
-	"build.log".write(args.join("\n"));
+	bool mod = false;
+	if (file.length) {
+		auto option2 = option.dup;
+		option2 = std.algorithm.remove!(a => a == "clean")(option2);
+		option2 = std.algorithm.remove!(a => a == "run")(option2);
+		mod = "build.log".exists() && option2 != "build.log".readText().splitLines();
+		"build.log".write(option2.join("\n"));
+	}
 
 	if (clean || mod) {
 		// クリーン
@@ -206,15 +234,16 @@ void main(string[] args) {
 			RES.removeFile();
 		}
 		"objs".removeFile();
-		if (clean && 1 == args.length) return;
+		if (clean && 1 == file.length + option.length) return;
 	}
 
 	// ソースコードとオブジェクトファイルのリスト
 	string[string] objs;
-	string[] cwx = sources("cwx", true, objs);
-	string[] editor = sources("cwx".buildPath("editor"), false, objs);
-	string[] d2std = sources("d2std", false, objs);
-	put("cwxeditor.d", editor, objs);
+	string[] cwx = sources("cwx", true, objs, file);
+	string[] editor = sources("cwx".buildPath("editor"), false, objs, file);
+	string[] d2std = sources("d2std", false, objs, file);
+	string[] main;
+	put("cwxeditor.d", main, objs, file);
 
 	string[] cmd;
 
@@ -235,6 +264,10 @@ void main(string[] args) {
 	if (d2std.length) exec(cmd ~ D2STD_FLAGS ~ d2std ~ "-odobjs");
 	if (cwx.length) exec(cmd ~ flags ~ cwx ~ "-odobjs");
 	if (editor.length) exec(cmd ~ flags ~ editor ~ "-odobjs");
+	if (main.length) exec(cmd ~ flags ~ main ~ "-odobjs");
+
+	// ファイルが指定されている場合はコンパイルテストなのでここで終了
+	if (file.length) return;
 
 	// リンク
 	flags = LIB.dup;

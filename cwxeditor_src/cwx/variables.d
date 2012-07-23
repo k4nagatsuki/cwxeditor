@@ -3,7 +3,6 @@ module cwx.variables;
 
 import cwx.xml;
 import cwx.structs;
-
 import cwx.settings;
 
 import std.path;

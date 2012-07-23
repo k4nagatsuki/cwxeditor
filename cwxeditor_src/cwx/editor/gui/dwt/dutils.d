@@ -18,7 +18,6 @@ import cwx.structs;
 import cwx.event;
 import cwx.graphics;
 import cwx.path;
-import cwx.msgs;
 import cwx.menu;
 import cwx.variables;
 
@@ -1165,7 +1164,7 @@ ImageData cardImage(C)(Props prop, Skin skin, C c, string sPath, CastCard owner 
 		}
 	}
 	static if (!is(C == InfoCard)) {
-		if (prop.sys.isPenalty(c)) {
+		if (prop.sys.isPenalty(c.keyCodes)) {
 			auto pid = cardPenalty(skin);
 			pid.transparentPixel = pid.getPixel(pid.width / 2, pid.height / 2);
 			r.append(pid, CPoint(0, 0));
@@ -1215,7 +1214,7 @@ ImageData cardImage(C)(Props prop, Skin skin, C c, string sPath, CastCard owner 
 			auto font = new Font(d, dwtData(prop.looks.useCountFont(skin.legacy)));
 			scope (exit) font.dispose();
 			gc.setFont(font);
-			bool res = prop.sys.isRecycle(c);
+			bool res = prop.sys.isRecycle(c.keyCodes);
 			int alpha;
 			auto color = res
 				? new Color(d, dwtData(prop.looks.recycleNumColor, alpha))

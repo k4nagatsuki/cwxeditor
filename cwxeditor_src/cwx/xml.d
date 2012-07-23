@@ -1,8 +1,9 @@
 
 module cwx.xml;
 
-import cwx.utils : to, debugln;
+import cwx.utils : debugln;
 
+import std.conv;
 import std.string;
 import d2std.xml;
 

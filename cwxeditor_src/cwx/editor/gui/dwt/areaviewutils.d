@@ -16,6 +16,7 @@ import cwx.path;
 import cwx.structs;
 import cwx.sjis;
 import cwx.menu;
+import cwx.types;
 
 import cwx.editor.gui.sound;
 

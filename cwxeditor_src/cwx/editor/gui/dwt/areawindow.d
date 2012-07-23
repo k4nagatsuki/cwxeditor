@@ -6,7 +6,7 @@ import cwx.summary;
 import cwx.skin;
 import cwx.utils;
 import cwx.path;
-import cwx.msgs;
+import cwx.types;
 import cwx.menu;
 
 import cwx.editor.gui.dwt.areaview;

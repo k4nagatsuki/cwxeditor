@@ -8,58 +8,6 @@ import cwx.utils;
 import cwx.xml;
 import cwx.path;
 
-public:
-
-enum MType {
-	HEAL,
-	DAMAGE,
-	ABSORB,
-	PARALYZE,
-	DIS_PARALYZE,
-	POISON,
-	DIS_POISON,
-	GET_SKILL_POWER,
-	LOSE_SKILL_POWER,
-	SLEEP,
-	CONFUSE,
-	OVERHEAT,
-	BRAVE,
-	PANIC,
-	NORMAL,
-	BIND,
-	DIS_BIND,
-	SILENCE,
-	DIS_SILENCE,
-	FACE_UP,
-	FACE_DOWN,
-	ANTI_MAGIC,
-	DIS_ANTI_MAGIC,
-	ENHANCE_ACTION,
-	ENHANCE_AVOID,
-	ENHANCE_RESIST,
-	ENHANCE_DEFENSE,
-	VANISH_TARGET,
-	VANISH_CARD,
-	VANISH_BEAST,
-	DEAL_ATTACK_CARD,
-	DEAL_POWERFUL_ATTACK_CARD,
-	DEAL_CRITICAL_ATTACK_CARD,
-	DEAL_FEINT_CARD,
-	DEAL_DEFENSE_CARD,
-	DEAL_DISTANCE_CARD,
-	DEAL_CONFUSE_CARD,
-	DEAL_SKILL_CARD,
-	SUMMON_BEAST
-}
-
-enum MArg {
-	VALUE_TYPE, /// レベル比・直接等、値のタイプ。
-	U_VALUE, /// ダメージ・回復量。
-	A_VALUE, /// ボーナス値。
-	ROUND, /// 継続ラウンド数。
-	BEAST /// 召喚獣カード。
-}
-
 private bool static_this_completed = false;
 private void static_this () {
 	if (static_this_completed) return;

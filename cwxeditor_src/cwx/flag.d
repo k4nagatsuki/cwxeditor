@@ -11,6 +11,7 @@ import std.datetime;
 import std.string;
 import std.typecons;
 import std.exception;
+import std.conv;
 
 private static const {
 	string XML_ROOT_FLAGS_AND_STEPS = "FlagsAndSteps";

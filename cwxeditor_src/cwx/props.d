@@ -2,10 +2,11 @@
 module cwx.props;
 
 import cwx.system;
-import cwx.msgs;
+import cwx.imsgs;
 import cwx.utils;
 import cwx.structs;
-import cwx.event;
+import cwx.types;
+import cwx.features;
 
 import std.path;
 import std.conv;
@@ -114,11 +115,6 @@ public:
 
 	@property const uint idMax() {return 99999;}
 
-	@property const uint transitionSpeedDef() {
-		return Content.transitionSpeed_min
-			+ ((Content.transitionSpeed_max - Content.transitionSpeed_min) / 2);
-	}
-
 	@property const CSize viewSize() {return CSize(632, 420);}
 
 	@property const string monospace() {
@@ -203,17 +199,21 @@ public class CProps {
 private:
 	cwx.system.System _sys;
 	Msgs _msgs;
+	Msgs _defaultMsgs;
+	Msgs function(string xml, ulong dataVersion) _msgFromXML;
 	Looks _looks;
 	string _appPath;
 public:
-	this (string appPath, cwx.system.System sys) {
+	this (string appPath, cwx.system.System sys, Msgs msgs, Msgs function(string xml, ulong dataVersion) msgFromXML) {
 		string dStr = .text(__LINE__);
 		try {
 			dStr ~= " - " ~ .text(__LINE__);
 			_appPath = appPath;
 			_sys = sys;
 			dStr ~= " - " ~ .text(__LINE__);
-			_msgs = new Msgs;
+			_msgs = msgs;
+			_defaultMsgs = msgs;
+			_msgFromXML = msgFromXML;
 			dStr ~= " - " ~ .text(__LINE__);
 			_looks = new Looks;
 			dStr ~= " - " ~ .text(__LINE__);
@@ -244,7 +244,7 @@ public:
 	void loadMsgs(string relPath) {
 		auto path = toAppAbs(relPath);
 		try {
-			_msgs = Msgs.fromXML(std.file.readText(path), 0);
+			_msgs = _msgFromXML(std.file.readText(path), 0);
 		} catch (Exception e) {
 			debugln(e);
 		}
@@ -254,7 +254,7 @@ public:
 	const
 	Msgs[string] msgsTable(string languageDir, ref string[string] msgsTableFile, out string defLocale) {
 		Msgs[string] msgsTable;
-		auto def = new Msgs;
+		auto def = _defaultMsgs.dup;
 		defLocale = std.string.toLower(def.locale);
 		msgsTableFile[defLocale] = "";
 		try {
@@ -263,7 +263,7 @@ public:
 				foreach (file; clistdir(dir)) {
 					if (!cfnmatch(cwx.utils.getExt(file), "xml")) continue;
 					try {
-						auto msgs = Msgs.fromXML(std.file.readText(dir.buildPath(file)), 0);
+						auto msgs = _msgFromXML(std.file.readText(dir.buildPath(file)), 0);
 						auto msgsLocale = std.string.toLower(msgs.locale);
 						if (defLocale == msgsLocale) {
 							def = msgs;

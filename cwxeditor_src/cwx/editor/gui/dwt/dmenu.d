@@ -17,7 +17,6 @@ import cwx.structs;
 import cwx.event;
 import cwx.graphics;
 import cwx.path;
-import cwx.msgs;
 import cwx.menu;
 import cwx.variables;
 

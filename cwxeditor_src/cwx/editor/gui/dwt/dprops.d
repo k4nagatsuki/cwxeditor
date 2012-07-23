@@ -4,8 +4,9 @@ module cwx.editor.gui.dwt.dprops;
 import cwx.utils;
 import cwx.props;
 import cwx.structs;
-import cwx.msgs;
 import cwx.menu;
+import cwx.types;
+import cwx.imsgs;
 
 import cwx.editor.gui.dwt.image;
 import cwx.editor.gui.dwt.properties;

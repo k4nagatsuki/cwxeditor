@@ -13,6 +13,7 @@ import cwx.path;
 import cwx.script;
 import cwx.system;
 import cwx.menu;
+import cwx.types;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;

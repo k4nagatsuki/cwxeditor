@@ -6,6 +6,7 @@ import cwx.utils;
 import cwx.summary;
 import cwx.skin;
 import cwx.menu;
+import cwx.types;
 
 import cwx.editor.gui.sound;
 import cwx.editor.gui.dwt.dprops;
@@ -21,6 +22,7 @@ import std.array;
 import std.file;
 import std.path;
 import std.string;
+import std.conv;
 
 import org.eclipse.swt.all;
 

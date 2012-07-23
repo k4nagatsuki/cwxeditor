@@ -3,6 +3,7 @@ module cwx.editor.gui.dwt.incsearch;
 
 import cwx.utils;
 import cwx.menu;
+import cwx.types;
 
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.customtext;

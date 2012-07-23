@@ -6,6 +6,7 @@ import cwx.flag;
 import cwx.usecounter;
 import cwx.path;
 import cwx.menu;
+import cwx.types;
 
 import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.dprops;
@@ -14,6 +15,8 @@ import cwx.editor.gui.dwt.flagtable;
 import cwx.editor.gui.dwt.xmlbytestransfer;
 import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.dmenu;
+
+import std.conv;
 
 import org.eclipse.swt.all;
 

@@ -8,6 +8,7 @@ import cwx.menu;
 import cwx.summary;
 import cwx.archive;
 import cwx.cab;
+import cwx.types;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.absdialog;

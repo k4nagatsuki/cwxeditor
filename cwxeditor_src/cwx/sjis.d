@@ -1,7 +1,7 @@
 
 module cwx.sjis;
 
-import cwx.utils;
+import cwx.perf;
 
 import std.exception;
 

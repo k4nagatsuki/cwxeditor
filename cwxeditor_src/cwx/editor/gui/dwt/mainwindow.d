@@ -14,9 +14,9 @@ import cwx.props;
 import cwx.skin;
 import cwx.path;
 import cwx.graphics;
-import cwx.msgs;
 import cwx.menu;
 import cwx.structs;
+import cwx.types;
 
 import cwx.editor.gui.sound;
 
@@ -1412,7 +1412,7 @@ private:
 		}
 	}
 public:
-	this (string appPath, cwx.system.System sys, LaunchOption opt) {
+	this (string appPath, cwx.system.System sys, CProps cprops, LaunchOption opt) {
 		string dStr = .text(__LINE__); // 起動ログ
 		try {
 			_opt = opt;
@@ -1459,7 +1459,7 @@ public:
 			if (!execute) return;
 			_saveSync = new Object;
 			dStr ~= " - " ~ .text(__LINE__);
-			_prop = new Props(opt.conf, new CProps(appPath, sys));
+			_prop = new Props(opt.conf, cprops);
 			if (exists(_prop.tempPath)) {
 				dStr ~= " - " ~ .text(__LINE__);
 				foreach (temp; clistdir(_prop.tempPath)) {

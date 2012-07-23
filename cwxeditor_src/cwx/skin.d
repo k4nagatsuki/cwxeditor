@@ -1,7 +1,6 @@
 
 module cwx.skin;
 
-import cwx.cwl;
 import cwx.race;
 import cwx.utils;
 import cwx.props;
@@ -12,6 +11,7 @@ import cwx.structs;
 import cwx.features;
 
 import std.exception;
+import std.conv;
 import std.ascii;
 import std.file;
 import std.path;
@@ -20,8 +20,6 @@ import std.uni;
 import std.string;
 import std.array;
 import std.regex : regex, match;
-
-public:
 
 class Skin {
 	static Skin find(in CProps prop, string enginePath, string type, string sPath, bool legacy, string classicEngineRegex, string classicDataDirRegex, string classicMatchKey, in ClassicEngine[] cEngines) {

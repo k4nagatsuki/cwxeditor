@@ -13,6 +13,7 @@ import cwx.skin;
 import cwx.path;
 import cwx.structs;
 import cwx.menu;
+import cwx.types;
 
 import cwx.editor.gui.dwt.smalldialogs;
 import cwx.editor.gui.dwt.dprops;
@@ -28,6 +29,8 @@ import cwx.editor.gui.dwt.properties;
 import cwx.editor.gui.dwt.xmlbytestransfer;
 import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.dmenu;
+
+import std.conv;
 
 import org.eclipse.swt.all;
 

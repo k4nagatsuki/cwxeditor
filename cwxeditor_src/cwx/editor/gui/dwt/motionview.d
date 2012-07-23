@@ -11,6 +11,7 @@ import cwx.skin;
 import cwx.event;
 import cwx.path;
 import cwx.menu;
+import cwx.types;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;
@@ -26,6 +27,7 @@ import cwx.editor.gui.dwt.dmenu;
 
 import std.string;
 import std.datetime;
+import std.conv;
 
 import org.eclipse.swt.all;
 

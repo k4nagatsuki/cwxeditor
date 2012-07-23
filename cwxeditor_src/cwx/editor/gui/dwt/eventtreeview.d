@@ -15,6 +15,7 @@ import cwx.path;
 import cwx.script;
 import cwx.structs;
 import cwx.menu;
+import cwx.types;
 
 import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.dprops;

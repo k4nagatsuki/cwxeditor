@@ -10,6 +10,7 @@ import cwx.imagesize;
 import cwx.skin;
 import cwx.structs;
 import cwx.menu;
+import cwx.types;
 
 import cwx.editor.gui.dwt.properties;
 import cwx.editor.gui.dwt.dprops;

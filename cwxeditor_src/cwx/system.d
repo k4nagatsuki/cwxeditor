@@ -1,9 +1,10 @@
 
 module cwx.system;
 
-import cwx.card;
 import cwx.features;
-import cwx.utils;
+
+import std.string;
+import std.algorithm;
 
 /// 発火条件キーコードの種別。
 enum FKCKind {
@@ -213,13 +214,13 @@ class System {
 
 	/// ペナルティカードであればtrue。
 	const
-	bool isPenalty(EffectCard card) {
-		return contains(card.keyCodes, "ペナルティ");
+	bool isPenalty(in string[] keyCodes) {
+		return 0 < keyCodes.find("ペナルティ").length;
 	}
 	/// リサイクルカードであればtrue。
 	const
-	bool isRecycle(EffectCard card) {
-		return contains(card.keyCodes, "リサイクル");
+	bool isRecycle(in string[] keyCodes) {
+		return 0 < keyCodes.find("リサイクル").length;
 	}
 
 	private immutable FKC_SUCCESS = "○";
@@ -227,7 +228,7 @@ class System {
 	/// キーコード発火条件の種別を返す。
 	const
 	FKCKind fireKeyCodeKind(string keyCode) {
-		if (std.string.endsWith(keyCode, FKC_SUCCESS.idup)) {
+		if (.endsWith(keyCode, FKC_SUCCESS.idup)) {
 			return FKCKind.Success;
 		} else if (std.string.endsWith(keyCode, FKC_FAILURE.idup)) {
 			return FKCKind.Failure;
@@ -237,13 +238,13 @@ class System {
 	/// キーコード発火条件を変換する。
 	const
 	string convFireKeyCode(string keyCode, FKCKind kind) {
-		if (std.string.endsWith(keyCode, FKC_SUCCESS.idup)) {
+		if (.endsWith(keyCode, FKC_SUCCESS.idup)) {
 			final switch (kind) {
 			case FKCKind.Use: return keyCode[0 .. $ - FKC_SUCCESS.length];
 			case FKCKind.Success: return keyCode;
 			case FKCKind.Failure: return keyCode[0 .. $ - FKC_SUCCESS.length] ~ FKC_FAILURE;
 			}
-		} else if (std.string.endsWith(keyCode, FKC_FAILURE.idup)) {
+		} else if (.endsWith(keyCode, FKC_FAILURE.idup)) {
 			final switch (kind) {
 			case FKCKind.Use: return keyCode[0 .. $ - FKC_FAILURE.length];
 			case FKCKind.Success: return keyCode[0 .. $ - FKC_FAILURE.length] ~ FKC_SUCCESS;
