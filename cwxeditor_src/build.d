@@ -223,7 +223,7 @@ void main(string[] args) {
 
 	// 前回のフラグと比較・保存
 	bool mod = false;
-	if (file.length) {
+	if (!file.length) {
 		auto option2 = option.dup;
 		option2 = std.algorithm.remove!(a => a == "clean")(option2);
 		option2 = std.algorithm.remove!(a => a == "run")(option2);
