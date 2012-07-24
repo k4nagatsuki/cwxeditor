@@ -2992,7 +2992,7 @@ public:
 			}
 			dStr ~= " - " ~ .text(__LINE__);
 			bool openErrDlg = false;
-			debug {
+			version (Console) debug {
 				initTimer.stop();
 				cwriteln(.format("Starting time: %d msecs", initTimer.peek().msecs));
 			}

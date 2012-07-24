@@ -1,8 +1,8 @@
 /// パフォーマンスカウンタ。コンソール/デバグビルドでない場合は無効。
 module cwx.perf;
 
-version (Console) {
-	debug {
+debug {
+	version (Console) {
 		import std.datetime;
 		import std.string;
 		import std.metastrings;
@@ -49,5 +49,7 @@ version (Console) {
 			~ "}";
 		static assert (FPerf!(10));
 		static assert (BPerf!(10));
+	} else {
+		static immutable UTPerf = "";
 	}
 }
