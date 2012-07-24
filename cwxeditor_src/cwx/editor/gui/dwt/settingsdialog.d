@@ -760,13 +760,13 @@ private:
 			string curCEnginePath() {
 				string path = _cEnginePath.getText();
 				if (!path.length) return path;
-				if (cwx.utils.isabs(path)) return path;
+				if (isAbsolute(path)) return path;
 				return std.path.buildPath(nabs(_prop.parent.appPath).dirName(), path);
 			}
 			string dropCEngineSub(string file) {
 				string engine = curCEnginePath;
 				if (!engine.length) return file;
-				return abs2rel(engine.dirName(), file);
+				return relativePath(file, engine.dirName());
 			}
 			string dropCEngineDataDir(string[] files) {
 				return dropCEngineSub(dropDir(files));
@@ -797,7 +797,7 @@ private:
 			}
 			void selectCEngineDataDir() {
 				string path = _cEngineDataDir.getText();
-				if (_cEnginePath.getText().length && !cwx.utils.isabs(path)) {
+				if (_cEnginePath.getText().length && !isAbsolute(path)) {
 					path = std.path.buildPath(_cEnginePath.getText().dirName(), path);
 				}
 				path = nabs(path);
@@ -821,7 +821,7 @@ private:
 				string fileName = "";
 				if (path.length) {
 					fileName = path.baseName();
-					if (_cEnginePath.getText().length && !cwx.utils.isabs(path)) {
+					if (_cEnginePath.getText().length && !isAbsolute(path)) {
 						path = std.path.buildPath(_cEnginePath.getText().dirName(), path);
 					}
 				} else {
@@ -841,7 +841,7 @@ private:
 				}
 				override void widgetSelected(SelectionEvent e) {
 					string file = _text.getText();
-					if (!cwx.utils.isabs(file)) {
+					if (!isAbsolute(file)) {
 						auto engine = _cEngines.curCEnginePath;
 						if (engine.length) {
 							file = std.path.buildPath(engine.dirName(), file);
@@ -929,8 +929,8 @@ private:
 				if (cfnmatch(bn, "Summary.wsm") || cfnmatch(bn, "Summary.xml")) {
 					return file;
 				}
-				auto ext = cwx.utils.getExt(bn);
-				if (cfnmatch(ext, "zip") || cfnmatch(ext, "wsn") || (cfnmatch(ext, "cab") && canUncab)) {
+				auto ext = .extension(bn);
+				if (cfnmatch(ext, ".zip") || cfnmatch(ext, ".wsn") || (cfnmatch(ext, ".cab") && canUncab)) {
 					return file;
 				}
 				return "";
@@ -1430,17 +1430,17 @@ private:
 		}
 	}
 	const SYSTEM_SOUND_EXT = [
-		"aiff", // AIFF
-		"mid", "midi", // MIDI
-		"mod", "s3m", "xm", "it", "mt2", "669", "med", // MOD
-		"ogg", "ogv", "oga", "ogx", // Ogg
-		"voc", // VOC
-		"wav" // WAV/RIFF
+		".aiff", // AIFF
+		".mid", ".midi", // MIDI
+		".mod", ".s3m", ".xm", ".it", ".mt2", ".669", ".med", // MOD
+		".ogg", ".ogv", ".oga", ".ogx", // Ogg
+		".voc", // VOC
+		".wav" // WAV/RIFF
 	];
 	string dropSysSound(string[] files) {
 		if (!files.length) return "";
 		foreach (file; files) {
-			string ext = cwx.utils.toLower(cwx.utils.getExt(file));
+			string ext = .toLower(.extension(file));
 			if (.contains!("a == b", string, string)(SYSTEM_SOUND_EXT, ext)) {
 				return file;
 			}
@@ -1448,11 +1448,11 @@ private:
 		return "";
 	}
 
-	const WALLPAPER_EXT = ["bmp", "ico", "icon", "jpg", "jpeg", "gif", "png", "tif", "tiff"];
+	const WALLPAPER_EXT = [".bmp", ".ico", ".icon", ".jpg", ".jpeg", ".gif", ".png", ".tif", ".tiff"];
 	string dropWallpaper(string[] files) {
 		if (!files.length) return "";
 		foreach (file; files) {
-			if (.contains!("a == b", string, string)(WALLPAPER_EXT, cwx.utils.toLower(cwx.utils.getExt(file)))) {
+			if (.contains!("a == b", string, string)(WALLPAPER_EXT, .toLower(.extension(file)))) {
 				return file;
 			}
 		}
@@ -2160,7 +2160,8 @@ private:
 				}
 				_soundPlayType = createEnumC(grp, _prop.msgs.soundPlayType, soundPlayTypeVals, soundPlayTypeNames, _soundPlayTypeTbl, _soundPlayTypeTbl2);
 				_bgmVolume = createVolume();
-				_soundEffectPlayType = createEnumC(grp, _prop.msgs.soundEffectPlayType, [SOUND_TYPE_SAME_BGM] ~ soundPlayTypeVals, [_prop.msgs.soundPlaySameBGM] ~ soundPlayTypeNames, _soundEffectPlayTypeTbl, _soundEffectPlayTypeTbl2);
+				string sameBGM = _prop.msgs.soundPlaySameBGM;
+				_soundEffectPlayType = createEnumC(grp, _prop.msgs.soundEffectPlayType, [SOUND_TYPE_SAME_BGM] ~ soundPlayTypeVals, sameBGM ~ soundPlayTypeNames, _soundEffectPlayTypeTbl, _soundEffectPlayTypeTbl2);
 				_seVolume = createVolume();
 				auto dummy = new Composite(grp, SWT.NONE);
 				auto dgd = new GridData(GridData.FILL_BOTH);

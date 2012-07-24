@@ -49,6 +49,100 @@ private void fromNode(T)(ref XNode node, string key, ref T value) {
 	}
 }
 
+/// T型のプロパティ。
+struct Prop(T, bool ReadOnly = false) {
+	immutable string KEY;
+	const T INIT;
+	immutable bool READ_ONLY = ReadOnly;
+	immutable ulong CHG_VERSION;
+
+	T value;
+	alias value this;
+	void opAssign(T value) {
+		this.value = value;
+	}
+
+	this (string pkey, T firstValue, ulong chgVersion = 0) {
+		KEY = pkey;
+		INIT = firstValue;
+		value = firstValue;
+		CHG_VERSION = chgVersion;
+	}
+
+	const
+	void toNode(ref XNode node) {
+		.toNode(node, KEY, value);
+	}
+	void fromNode(ref XNode node, ulong dataVersion) {
+		if (CHG_VERSION <= dataVersion) {
+			.fromNode(node, KEY, value);
+		}
+	}
+}
+/// ditto
+struct PropAttr(T, bool ReadOnly = false) {
+	immutable string ATTR_KEY;
+	const T INIT;
+	immutable bool READ_ONLY = ReadOnly;
+	immutable ulong CHG_VERSION;
+
+	T value;
+	alias value this;
+
+	this (string pkey, T firstValue, ulong chgVersion = 0) {
+		ATTR_KEY = pkey;
+		INIT = firstValue;
+		value = firstValue;
+		CHG_VERSION = chgVersion;
+	}
+
+	const
+	void toNode(ref XNode node) {
+		.toNode(node, ATTR_KEY, value);
+	}
+	void fromNode(ref XNode node, ulong dataVersion) {
+		if (CHG_VERSION <= dataVersion) {
+			.fromNode(node, ATTR_KEY, value);
+		}
+	}
+}
+/// KeyとValueからなる連想配列のプロパティ。
+struct AAProp(Key, Value) {
+	immutable string AA_KEY;
+	immutable string KEY_NAME;
+	immutable string VALUE_NAME;
+	immutable ulong CHG_VERSION;
+
+	Value[Key] value;
+	alias value this;
+
+	this (string pkey, string keyName, string valueName, ulong chgVersion = 0) {
+		AA_KEY = pkey;
+		KEY_NAME = keyName;
+		VALUE_NAME = valueName;
+		CHG_VERSION = chgVersion;
+	}
+
+	const
+	void toNode(ref XNode node) {
+		auto e = node.newElement(AA_KEY);
+		foreach (key; value.keys.sort) {
+			auto c = e.newElement(VALUE_NAME, to!string(value[key]));
+			c.newAttr(KEY_NAME, key);
+		}
+	}
+	void fromNode(ref XNode node, ulong dataVersion) {
+		if (CHG_VERSION <= dataVersion) {
+			node.onTag[VALUE_NAME] = (ref XNode e) {
+				auto key = e.attr!string(KEY_NAME, false, null);
+				if (key !is null) {
+					value[key] = to!Value(e.value);
+				}
+			};
+			node.parse();
+		}
+	}
+}
 private struct PropValue(T) {
 	immutable string KEY;
 	immutable T INIT;
@@ -57,7 +151,7 @@ private struct PropValue(T) {
 
 	T value;
 
-	this (string pkey, immutable(T) defaultValue, T firstValue, bool readOnly, ulong chgVersion) {
+	this (string pkey, T firstValue, immutable(T) defaultValue, bool readOnly, ulong chgVersion) {
 		KEY = pkey;
 		INIT = defaultValue;
 		value = firstValue;
@@ -83,7 +177,7 @@ private struct PropValueAttr(T) {
 
 	T value;
 
-	this (string pkey, immutable(T) defaultValue, T firstValue, bool readOnly, ulong chgVersion) {
+	this (string pkey, T firstValue, immutable(T) defaultValue, bool readOnly, ulong chgVersion) {
 		ATTR_KEY = pkey;
 		INIT = defaultValue;
 		value = firstValue;
@@ -101,7 +195,7 @@ private struct PropValueAttr(T) {
 		}
 	}
 }
-private struct AAProp(Key, Value) {
+private struct AAProperty(Key, Value) {
 	immutable string AA_KEY;
 	immutable string KEY_NAME;
 	immutable string VALUE_NAME;
@@ -183,7 +277,7 @@ abstract class Properties {
 	protected template AAProperty(string Name, Key, Value, string Default, string KeyName = "key", string ValueName = "value", ulong ChgVersion = 0) {
 		private import cwx.xml;
 		private import cwx.utils;
-		mixin ("private AAProp!(Key, Value) _" ~ Name ~ " = AAProp!(Key, Value)(Name, KeyName, ValueName, ChgVersion);");
+		mixin ("private AAProperty!(Key, Value) _" ~ Name ~ " = AAProperty!(Key, Value)(Name, KeyName, ValueName, ChgVersion);");
 		mixin ("@property const const(" ~ Value.stringof ~ "[" ~ Key.stringof ~ "]) " ~ variableName!Name ~ "() {return _" ~ Name ~ ".value;}");
 		mixin ("@property void init_" ~ Name ~ "() {_" ~ Name ~ ".value = " ~ Default ~ ";}");
 	}

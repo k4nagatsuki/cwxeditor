@@ -4,9 +4,10 @@ module cwx.motion;
 import cwx.types;
 import cwx.card;
 import cwx.usecounter;
-import cwx.utils;
 import cwx.xml;
 import cwx.path;
+
+import std.algorithm;
 
 private bool static_this_completed = false;
 private void static_this () {
@@ -420,7 +421,12 @@ public:
 			auto be = e.newElement("Beasts");
 			if (_beast) {
 				if (opt && opt.includeCard && 0 != _beast.linkId) {
-					auto nestCount = opt.nestCount.get(_beast.linkId, 0) + 1;
+				// FIXME: リンクに失敗する
+//					auto nestCount = opt.nestCount.get(_beast.linkId, 0) + 1;
+					auto p = _beast.linkId in opt.nestCount;
+					uint nestCount = p ? *p : 0;
+					nestCount++;
+
 					opt.nestCount[_beast.linkId] = nestCount;
 					if (nestCount <= _beast.maxNest) {
 						_beast.toNode(be, opt);
@@ -463,7 +469,7 @@ public:
 
 	@property
 	override string cwxPath(bool id) {
-		return _owner ? cpjoin(_owner, "motion", .cCountUntil!("a is b")(_owner.motions, this), id) : "";
+		return _owner ? cpjoin(_owner, "motion", .countUntil!("a is b")(_owner.motions, this), id) : "";
 	}
 	override CWXPath findCWXPath(string path) {
 		if (cpempty(path)) return this;

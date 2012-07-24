@@ -1,8 +1,6 @@
 
 module cwx.editor.gui.dwt.centerlayout;
 
-import cwx.utils;
-import cwx.props;
 import cwx.structs;
 
 import org.eclipse.swt.all;

@@ -11,6 +11,7 @@ import cwx.race;
 import cwx.xml;
 import cwx.utils;
 import cwx.path;
+import cwx.structs;
 
 import std.algorithm;
 import std.exception;
@@ -25,6 +26,7 @@ class XMLOption {
 	BeastCard delegate(ulong) beast = null; /// IDから召喚獣カードを取得。
 	uint[ulong] nestCount; /// 召喚獣カードのCWXパスとネストされた回数。
 }
+
 /// XML化時に上書きするデータ。
 class OverData {
 	ulong id = 0UL; /// ID。0の場合は上書きしない。

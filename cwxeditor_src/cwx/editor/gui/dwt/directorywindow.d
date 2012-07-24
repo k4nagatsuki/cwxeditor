@@ -92,7 +92,7 @@ private struct FC {
 	}
 	const
 	string toString() {
-		return time.toISOExtString() ~ "\t" ~ path;
+		return path;
 	}
 }
 
@@ -209,21 +209,21 @@ private:
 		FC[] fcs;
 		if (_summ) {
 			try {
-				void list(string path) {
+				void list(string path, string relPath) {
 					FC fc;
-					fc.path = path;
+					fc.path = relPath;
 					if (.isDir(path)) {
 						fc.time = SysTime.init;
 						fcs ~= fc;
 						foreach (c; clistdir(path)) {
-							list(std.path.buildPath(path, c));
+							list(std.path.buildPath(path, c), relPath.buildPath(c));
 						}
 					} else {
 						fc.time = timeLastModified(path);
 						fcs ~= fc;
 					}
 				}
-				list(_summ.scenarioPath);
+				list(_summ.scenarioPath, "");
 			} catch (Exception e) {
 				debugln(e);
 			}
@@ -403,7 +403,7 @@ private:
 	bool addp(T)(T parItm, string path, string sel, string top, ref TreeItem topItm) {
 		auto itm = new TreeItem(parItm, SWT.NONE);
 		auto full = nabs(path);
-		if (0 == filenameCharCmp('A', 'a') ? _cuts.contains(cwx.utils.toLower(full)) : _cuts.contains(full)) {
+		if (0 == filenameCharCmp('A', 'a') ? _cuts.contains(.toLower(full)) : _cuts.contains(full)) {
 			itm.setImage(_sImgFolder);
 		} else {
 			itm.setImage(_prop.images.folder);
@@ -491,7 +491,7 @@ private:
 			return _prop.images.bgm;
 		} else if (skin.isSE(file)) {
 			return _prop.images.se;
-		} else if (cfnmatch(cwx.utils.getExt(file), "txt")) {
+		} else if (cfnmatch(.extension(file), ".txt")) {
 			return _prop.images.text;
 		} else {
 			return _prop.images.unknown;
@@ -529,7 +529,7 @@ private:
 			return _sImgBgm;
 		} else if (skin.isSE(file)) {
 			return _sImgSe;
-		} else if (cfnmatch(cwx.utils.getExt(file), "txt")) {
+		} else if (cfnmatch(.extension(file), ".txt")) {
 			return _sImgText;
 		} else {
 			return _sImgUnknown;
@@ -537,7 +537,7 @@ private:
 	}
 	private bool isCutted(string file) {
 		static if (0 == filenameCharCmp('A', 'a')) {
-			file = cwx.utils.toLower(file);
+			file = .toLower(file);
 			file = file.nabs();
 			return _cuts.contains(file);
 		} else {
@@ -684,7 +684,7 @@ private:
 							auto par = dirName(file);
 							if (cfnmatch(par, targ)) {
 								if (!move && !(0 == filenameCharCmp('A', 'a')
-										? _cuts.contains(cwx.utils.toLower(file)) : _cuts.contains(file))) {
+										? _cuts.contains(.toLower(file)) : _cuts.contains(file))) {
 									copys ~= file;
 								}
 								continue;
@@ -717,7 +717,7 @@ private:
 				string[] selfs;
 				foreach (file; paths) {
 					bool fout = !(0 == filenameCharCmp('A', 'a')
-						? _cuts.contains(cwx.utils.toLower(file))
+						? _cuts.contains(.toLower(file))
 						: _cuts.contains(file))
 						&& (!move || !hasPath(pfull, file));
 					fromOut |= fout;
@@ -837,8 +837,8 @@ private:
 		}
 		auto to = std.path.buildPath(dirName(path), newName);
 		bool isdir = cast(bool) .isDir(path);
-		if (!isdir && cwx.utils.getExt(path).length > 0) {
-			to = setExtension(to, cwx.utils.getExt(path));
+		if (!isdir && .extension(path).length > 0) {
+			to = setExtension(to, .extension(path));
 		}
 		if (.exists(to) && cast(bool) .isDir(to) == cast(bool) .isDir(path)) return null;
 		try {
@@ -1552,7 +1552,8 @@ public:
 			_sortExt = new TableSorter!(FileNameObj)(extc, &compFExt, &revCompFExt);
 			_sortCount = new TableSorter!(FileNameObj)(cc, &compFCount, &revCompFCount);
 			TableSorter!(FileNameObj) st;
-			switch (_prop.var.etc.filesSortColumn) {
+			int sortColumn = _prop.var.etc.filesSortColumn;
+			switch (sortColumn) {
 			case 0:
 				st = _sortName;
 				break;
@@ -1564,7 +1565,8 @@ public:
 				break;
 			default:
 			}
-			switch (_prop.var.etc.filesSortDirection) {
+			int sortDir = _prop.var.etc.filesSortDirection;
+			switch (sortDir) {
 			case SortDir.Up:
 				st.doSort(SWT.UP);
 				break;
@@ -1731,14 +1733,17 @@ public:
 
 	void refresh(Summary summ) {
 		_summ = summ;
+		refCheckPaths();
 		if (_win && !_win.isDisposed()) {
 			refreshDirs(std.path.buildPath(_summ.scenarioPath, _comm.skin.materialPath));
 			refreshFiles(null);
 			auto root = _dirs.getItem(0);
 			root.setExpanded(true);
-			_dirs.setSelection([root]);
+			if (!_dirs.getSelection().length) {
+				_dirs.setSelection([root]);
+				refreshFiles(null);
+			}
 			_dirs.showSelection();
-			refCheckPaths();
 			__refreshTitle();
 			_comm.refreshToolBar();
 		}
@@ -1806,7 +1811,6 @@ public:
 				return true;
 			}
 			if (selectImpl(itm, path)) {
-				_comm.refreshToolBar();
 				return true;
 			}
 		}
@@ -1896,7 +1900,8 @@ public:
 		} else {
 			dlg.setFilterPath(getcwd());
 		}
-		switch (_prop.var.etc.selectedArchiveFilter) {
+		string filter = _prop.var.etc.selectedArchiveFilter;
+		switch (filter) {
 		case "cab":
 			if (!canUncab) {
 				goto default;
@@ -1959,7 +1964,7 @@ public:
 				auto dir = selDirPath;
 				sels[0].setImage(sfimage(dir));
 				static if (0 == filenameCharCmp('A', 'a')) {
-					_cuts.add(cwx.utils.toLower(nabs(dir)));
+					_cuts.add(.toLower(nabs(dir)));
 				} else {
 					_cuts.add(nabs(dir));
 				}
@@ -1970,7 +1975,7 @@ public:
 					auto p = (cast(FileNameObj) itm.getData()).array;
 					itm.setImage(sfimage(itm.getImage()));
 					static if (0 == filenameCharCmp('A', 'a')) {
-						_cuts.add(cwx.utils.toLower(nabs(p)));
+						_cuts.add(.toLower(nabs(p)));
 					} else {
 						_cuts.add(nabs(p));
 					}
@@ -2185,7 +2190,7 @@ class Exec {
 		auto cwd = std.file.getcwd();
 		string wd = OuterTool.parse(_tool.workDir, file, sp);
 		if (wd.length > 0) {
-			if (!cwx.utils.isabs(wd)) {
+			if (!isAbsolute(wd)) {
 				wd = std.path.buildPath(std.path.dirName(_dirWin._prop.parent.appPath), wd);
 			}
 		} else {

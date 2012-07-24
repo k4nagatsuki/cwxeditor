@@ -1444,7 +1444,7 @@ class MsgPreview : Composite {
 		if (C.max + 1 < _values.getItemCount()) {
 			foreach (i; C.max .. _values.getItemCount()) {
 				auto itm = _values.getItem(i);
-				string key = cwx.utils.toLower(itm.getText(0));
+				string key = .toLower(itm.getText(0));
 				auto o = itm.getData();
 				auto f = cast(FlagData) o;
 				if (f) pvs[key] = f.onOff ? 1 : 0;
@@ -1466,7 +1466,7 @@ class MsgPreview : Composite {
 			itm.setData(d);
 			d.flag = f;
 			d.onOff = f.onOff;
-			string lpath = cwx.utils.toLower(path);
+			string lpath = .toLower(path);
 			auto p = lpath in pvs;
 			if (p) {
 				if (*p == 1) {
@@ -1491,7 +1491,7 @@ class MsgPreview : Composite {
 			itm.setData(d);
 			d.step = f;
 			d.select = f.select;
-			string lpath = cwx.utils.toLower(path);
+			string lpath = .toLower(path);
 			auto p = lpath in pvs;
 			if (p) {
 				if (0 <= *p && *p < f.values.length) {

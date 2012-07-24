@@ -281,8 +281,8 @@ S[] loadScenarios(S)(Props prop, Shell w, void delegate(string) status,
 		put.loaded = loaded;
 		auto files = new HashSet!(string);
 		foreach (file; dlg.getFileNames()) {
-			auto ext = cwx.utils.getExt(file);
-			if (cfnmatch(ext, "wid") || cfnmatch(ext, "wex")) {
+			auto ext = .extension(file);
+			if (cfnmatch(ext, ".wid") || cfnmatch(ext, ".wex")) {
 				file = dirName(file);
 			}
 			files.add(nabs(std.path.buildPath(dlg.getFilterPath(), file)));

@@ -6,20 +6,8 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.FontData;
 
-import cwx.flag;
 import cwx.types;
-import cwx.features;
 import cwx.utils;
-import cwx.area;
-import cwx.card;
-import cwx.summary;
-import cwx.event;
-import cwx.race;
-import cwx.system;
-import cwx.motion;
-import cwx.props;
-import cwx.structs;
-import cwx.menu;
 
 import std.file;
 import std.path;

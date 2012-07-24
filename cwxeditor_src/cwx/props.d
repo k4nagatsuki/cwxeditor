@@ -2,7 +2,7 @@
 module cwx.props;
 
 import cwx.system;
-import cwx.imsgs;
+import cwx.msgs;
 import cwx.utils;
 import cwx.structs;
 import cwx.types;
@@ -11,6 +11,7 @@ import cwx.features;
 import std.path;
 import std.conv;
 import std.file;
+import std.string;
 
 public class Looks {
 public:
@@ -199,21 +200,17 @@ public class CProps {
 private:
 	cwx.system.System _sys;
 	Msgs _msgs;
-	Msgs _defaultMsgs;
-	Msgs function(string xml, ulong dataVersion) _msgFromXML;
 	Looks _looks;
 	string _appPath;
 public:
-	this (string appPath, cwx.system.System sys, Msgs msgs, Msgs function(string xml, ulong dataVersion) msgFromXML) {
+	this (string appPath, cwx.system.System sys) {
 		string dStr = .text(__LINE__);
 		try {
 			dStr ~= " - " ~ .text(__LINE__);
 			_appPath = appPath;
 			_sys = sys;
 			dStr ~= " - " ~ .text(__LINE__);
-			_msgs = msgs;
-			_defaultMsgs = msgs;
-			_msgFromXML = msgFromXML;
+			_msgs = new Msgs;
 			dStr ~= " - " ~ .text(__LINE__);
 			_looks = new Looks;
 			dStr ~= " - " ~ .text(__LINE__);
@@ -236,7 +233,7 @@ public:
 
 	/// pathをアプリケーションの実行ファイルからの相対パスと見做してフルパスに変換する。
 	const string toAppAbs(string path) {
-		if (cwx.utils.isabs(path)) return nabs(path);
+		if (.isAbsolute(path)) return nabs(path);
 		return nabs(std.path.buildPath(_appPath.dirName(), path));
 	}
 
@@ -244,7 +241,7 @@ public:
 	void loadMsgs(string relPath) {
 		auto path = toAppAbs(relPath);
 		try {
-			_msgs = _msgFromXML(std.file.readText(path), 0);
+			_msgs = Msgs.fromXML(std.file.readText(path), 0);
 		} catch (Exception e) {
 			debugln(e);
 		}
@@ -254,17 +251,19 @@ public:
 	const
 	Msgs[string] msgsTable(string languageDir, ref string[string] msgsTableFile, out string defLocale) {
 		Msgs[string] msgsTable;
-		auto def = _defaultMsgs.dup;
-		defLocale = std.string.toLower(def.locale);
+		auto def = new Msgs;
+		string loc = def.locale;
+		defLocale = .toLower(loc);
 		msgsTableFile[defLocale] = "";
 		try {
 			auto dir = toAppAbs(languageDir);
 			if (.exists(dir)) {
 				foreach (file; clistdir(dir)) {
-					if (!cfnmatch(cwx.utils.getExt(file), "xml")) continue;
+					if (!cfnmatch(extension(file), ".xml")) continue;
 					try {
-						auto msgs = _msgFromXML(std.file.readText(dir.buildPath(file)), 0);
-						auto msgsLocale = std.string.toLower(msgs.locale);
+						auto msgs = Msgs.fromXML(std.file.readText(dir.buildPath(file)), 0);
+						loc = msgs.locale;
+						auto msgsLocale = .toLower(loc);
 						if (defLocale == msgsLocale) {
 							def = msgs;
 						} else {

@@ -60,10 +60,10 @@ import java.lang.all;
 import java.io.ByteArrayInputStream;
 
 bool dwtImageSize(Skin skin, string path, out uint width, out uint height) {
-	auto ext = cwx.utils.getExt(path);
-	if (cfnmatch(ext, "jpy1")
-			|| cfnmatch(ext, "jptx")
-			|| cfnmatch(ext, "jpdc")) {
+	auto ext = .extension(path);
+	if (cfnmatch(ext, ".jpy1")
+			|| cfnmatch(ext, ".jptx")
+			|| cfnmatch(ext, ".jpdc")) {
 		auto img = loadJPYImage(skin, path, []);
 		if (img) {
 			width = img.width;
@@ -84,10 +84,10 @@ ImageData loadImage(Skin skin, string path, bool mask = true, int maskX = 0, int
 		return blankImage;
 	}
 	if (path !is null && path.length > 0) {
-		string ext = cwx.utils.getExt(path);
-		if (cfnmatch(ext, "jpy1")
-				|| cfnmatch(ext, "jptx")
-				|| cfnmatch(ext, "jpdc")) {
+		string ext = .extension(path);
+		if (cfnmatch(ext, ".jpy1")
+				|| cfnmatch(ext, ".jptx")
+				|| cfnmatch(ext, ".jpdc")) {
 			auto data = loadJPYImage(skin, path, stratum);
 			if (mask) data.transparentPixel = data.getPixel(maskX, maskY);
 			return data;
@@ -1736,7 +1736,8 @@ class StopSE : SelectionAdapter, DisposeListener {
 
 bool playBGMCW(Props prop, string path, bool legacy) {
     version (Windows) {} else {immutable SOUND_TYPE_MCI = -1;}
-	switch (prop.var.etc.soundPlayType) {
+	int playType = prop.var.etc.soundPlayType;
+	switch (playType) {
 	case SOUND_TYPE_SDL: playBGM(path, SOUND_TYPE_SDL); return true;
 	case SOUND_TYPE_MCI:
 		version (Windows) {
@@ -2071,7 +2072,8 @@ string contentText(Commons comm, in Content evt) {
 			}
 		}
 		assert (evt.dialogs.length);
-		final switch (comm.prop.var.etc.dialogStatus) {
+		int status = comm.prop.var.etc.dialogStatus;
+		switch (status) {
 		case DialogStatus.Top:
 			return r(evt.dialogs[0]);
 		case DialogStatus.Under:
@@ -2083,6 +2085,8 @@ string contentText(Commons comm, in Content evt) {
 				}
 			}
 			return r(evt.dialogs[$ - 1]);
+		default:
+			return r(evt.dialogs[0]);
 		}
 	} case CType.PLAY_BGM: {
 		return contentTextUseID!(CIDKind.BGM)(comm, evt.bgmPath, comm.prop.msgs.ctPlayBGM, evt);
@@ -2357,7 +2361,7 @@ string selectDir(Props prop, Text dir, string title, string msg, string p, bool 
 	string path = p;
 	if (appPath) {
 		auto d = dir.getText();
-		if (!cwx.utils.isabs(d)) {
+		if (!isAbsolute(d)) {
 			d = std.path.buildPath(std.path.dirName(prop.parent.appPath), d);
 		}
 		path = d;
@@ -2387,7 +2391,7 @@ private class OpenDir : SelectionAdapter {
 	}
 	override void widgetSelected(SelectionEvent e) {
 		string file = _text.getText();
-		if (!cwx.utils.isabs(file)) {
+		if (!isAbsolute(file)) {
 			file = std.path.buildPath(_comm.prop.parent.appPath.dirName(), file);
 		}
 		if (!.exists(file) || !isDir(file)) {

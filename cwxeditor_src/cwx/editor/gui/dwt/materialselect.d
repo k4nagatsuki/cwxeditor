@@ -719,7 +719,7 @@ private:
 				parent = "";
 			} else {
 				assert (_summ);
-				parent = abs2rel(_summ.scenarioPath, path);
+				parent = relativePath(path, _summ.scenarioPath);
 				parent = dirSeparator.idup ~ parent;
 			}
 			string[] s = targs(path, forceRefresh);

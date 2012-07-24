@@ -149,7 +149,7 @@ S loadLScenario(S)(string p, string skin, bool doubleIO, string newName = null) 
 	auto load1 = new Load;
 	auto load2 = new Load;
 	foreach (file; clistdir(sPath)) {
-		if (cfnmatch(cwx.utils.getExt(file), "wid")) {
+		if (cfnmatch(extension(file), ".wid")) {
 			file = std.path.buildPath(sPath, file);
 			auto size = std.file.getSize(file);
 			if (load1.wait < load2.wait) {
@@ -2300,7 +2300,12 @@ private void writeMotion(ref SData d, ref ByteIO f, Motion m) {
 		auto beast = m.beast;
 		if (beast) {
 			if (0 != beast.linkId) {
-				auto nestCount = d.nestCount.get(beast.linkId, 0) + 1;
+				// FIXME: リンクに失敗する
+//				auto nestCount = d.nestCount.get(beast.linkId, 0) + 1;
+				auto p = beast.linkId in d.nestCount;
+				uint nestCount = p ? *p : 0;
+				nestCount++;
+
 				d.nestCount[beast.linkId] = nestCount;
 				if (nestCount <= beast.maxNest) {
 					f.writeL(cast(uint) 0x1);

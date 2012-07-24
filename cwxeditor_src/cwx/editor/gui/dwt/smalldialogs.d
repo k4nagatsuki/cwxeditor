@@ -79,7 +79,7 @@ private:
 					} else if (.fnstartsWith(tPath.baseName(), "Summary")) {
 						r = tPath.baseName().cfnmatch("Summary.wsm");
 					} else {
-						if (cwx.utils.getExt(tPath).cfnmatch("cab") && canUncab) {
+						if (.extension(tPath).cfnmatch(".cab") && canUncab) {
 							r = cabHasFile(tPath, "Summary.wsm");
 						} else {
 							r = zipHasFile(tPath, "Summary.wsm");

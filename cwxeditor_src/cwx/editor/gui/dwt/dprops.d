@@ -6,7 +6,7 @@ import cwx.props;
 import cwx.structs;
 import cwx.menu;
 import cwx.types;
-import cwx.imsgs;
+import cwx.msgs;
 
 import cwx.editor.gui.dwt.image;
 import cwx.editor.gui.dwt.properties;
@@ -67,7 +67,7 @@ public:
 	const
 	string enginePath() {
 		if (!var.etc.enginePath.length) return "";
-		if (cwx.utils.isabs(var.etc.enginePath)) {
+		if (isAbsolute(var.etc.enginePath)) {
 			return var.etc.enginePath;
 		} else {
 			return std.path.buildPath(std.path.dirName(parent.appPath), var.etc.enginePath);
@@ -77,7 +77,7 @@ public:
 	const
 	string tempPath() {
 		if (!var.etc.tempPath.length) return "";
-		if (cwx.utils.isabs(var.etc.tempPath)) {
+		if (isAbsolute(var.etc.tempPath)) {
 			return var.etc.tempPath;
 		} else {
 			return std.path.buildPath(std.path.dirName(parent.appPath), var.etc.tempPath);
@@ -87,7 +87,7 @@ public:
 	const
 	string backupPath() {
 		if (!var.etc.backupPath.length) return "";
-		if (cwx.utils.isabs(var.etc.backupPath)) {
+		if (isAbsolute(var.etc.backupPath)) {
 			return var.etc.backupPath;
 		} else {
 			return std.path.buildPath(std.path.dirName(parent.appPath), var.etc.backupPath);

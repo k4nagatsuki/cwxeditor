@@ -5,7 +5,6 @@ import cwx.utils;
 import cwx.system;
 import cwx.props;
 import cwx.structs;
-import cwx.msgs;
 
 import cwx.editor.gui.dwt.mainwindow;
 import cwx.editor.gui.dwt.textdialog;
@@ -37,7 +36,7 @@ void main(string[] args) {
 		opt.conf = buildPath(dirName(appPath), "cwxeditor.config");
 		dStr ~= " - " ~ .text(__LINE__);
 		opt.parseStrings(args[1 .. $]);
-		auto cprops = new CProps(appPath, sys, new MsgsImpl, &MsgsImpl.fromXML);
+		auto cprops = new CProps(appPath, sys);
 		if (opt.help) {
 			/// usage
 			dStr ~= " - " ~ .text(__LINE__);

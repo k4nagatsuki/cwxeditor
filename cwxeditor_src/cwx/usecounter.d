@@ -132,7 +132,7 @@ private struct FlagId {
 	const
 	hash_t toHash() {
 		hash_t hash = 0;
-		foreach (c; cwx.utils.toLower(id)) {
+		foreach (c; .toLower(id)) {
 			hash = (hash * 9) + c;
 		}
 		return hash;
@@ -244,7 +244,7 @@ private struct StepId {
 	const
 	hash_t toHash() {
 		hash_t hash = 0;
-		foreach (c; cwx.utils.toLower(id)) {
+		foreach (c; .toLower(id)) {
 			hash = (hash * 9) + c;
 		}
 		return hash;
@@ -625,7 +625,7 @@ struct PathId {
 			s = binImg;
 		} else {
 			static if (0 == filenameCharCmp('A', 'a')) {
-				s = cwx.utils.toLower(id);
+				s = .toLower(id);
 			} else {
 				s = id;
 			}

@@ -17,8 +17,6 @@ import std.string;
 import std.conv;
 import std.ascii;
 
-debug alias DockingFolder!(TabFolder, SWT.NONE) DockingFolderT;
-debug alias DockingFolder!(CTabFolder, SWT.BORDER | SWT.FLAT) DockingFolderCT;
 alias DockingFolder!(CTabFolder, SWT.BORDER | SWT.FLAT | SWT.CLOSE) DockingFolderCTC;
 
 /// 方角。
@@ -37,7 +35,7 @@ private string dirToString(Dir dir) {
 	}
 }
 private Dir stringToDir(string s) {
-	switch (cwx.utils.toLower(s)) {
+	switch (.toLower(s)) {
 	case "north": return Dir.N;
 	case "east": return Dir.E;
 	case "south": return Dir.S;
@@ -360,8 +358,8 @@ class DockingFolder(TabF, int Style) {
 	}
 	/// keyを接頭辞に持つペインが存在すればそれを返す。
 	/// keyを接頭辞に持つペインが以前閉じられたものであれば元々あった場所に追加する。
-	/// そうでない場合はbaseの指定された方向に追加して返す。
-	Composite addPaneFromMemory(string base, Dir dir, int lWeight, int rWeight, string key) {
+	/// そうでない場合はbase1またはbase2の指定された方向に追加して返す。
+	Composite addPaneFromMemory(string base1, string base2, Dir dir, int lWeight, int rWeight, string key) {
 		auto s = findPane2(key);
 		if (s) return s;
 
@@ -370,7 +368,7 @@ class DockingFolder(TabF, int Style) {
 		scope (exit) {
 			if (memory) _pMemories.remove(preKey);
 		}
-		auto tPane = base;
+		auto base = base1;
 		if (memory) {
 			dir = memory.dir;
 			base = memory.pairPane;
@@ -378,7 +376,13 @@ class DockingFolder(TabF, int Style) {
 			rWeight = memory.rWeight;
 		}
 		auto pair = findPane2(base);
-		if (!pair) pair = this.pane(findPane(tPane)[0]);
+		if (!pair) {
+			auto panes = findPane(base1);
+			if (!panes.length) {
+				panes = findPane(base2);
+			}
+			pair = this.pane(panes[0]);
+		}
 
 		return addPane(pair, dir, lWeight, rWeight, newPaneKey(key));
 	}
@@ -425,13 +429,13 @@ class DockingFolder(TabF, int Style) {
 		scope (exit) {
 			if (memory) _cMemories.remove(key);
 		}
+		string tPane = pairPane;
 		pane = newPaneKey(pane);
 		if (memory) {
 			pane = memory.pane;
 			dir = memory.dir;
 			pairPane = memory.pairPane;
 		}
-
 		p = findPane2(pane);
 		if (!p) {
 			int l, r;
@@ -447,7 +451,7 @@ class DockingFolder(TabF, int Style) {
 					r = 1;
 				}
 			}
-			p = addPaneFromMemory(pairPane, dir, l, r, pane);
+			p = addPaneFromMemory(pairPane, tPane, dir, l, r, pane);
 		}
 		auto c = createControl(p);
 		if (!c) throw new Exception("No control: " ~ key);

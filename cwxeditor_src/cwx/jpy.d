@@ -132,7 +132,7 @@ private {
 		auto sr = value[1 .. 3];
 		auto sg = value[3 .. 5];
 		auto sb = value[5 .. 7];
-		return CRGB(xtoi(sr), xtoi(sg), xtoi(sb));
+		return CRGB(toImpl!int(sr, 16), toImpl!int(sg, 16), toImpl!int(sb, 16));
 	}
 	Enum enumVal(Enum)(string value) {
 		return cast(Enum) to!(int)(value);
@@ -212,7 +212,7 @@ struct Jpy1 {
 				if (eq == -1) throw new Exception("invalid line: " ~ line);
 				auto key = astrip(line[0 .. eq]);
 				auto value = stripValue(line[eq + 1 .. $]);
-				switch (cwx.utils.toLower(key)) {
+				switch (.toLower(key)) {
 				case "backwidth": backwidth = intVal(value); break;
 				case "backheight": backheight = intVal(value); break;
 				case "backcolor": backcolor = rgbVal(value); break;
@@ -311,7 +311,7 @@ private struct JptxTag {
 		auto reg = .match(toUTF32(startTag), .regex!(dstring)("^<[A-Z]+"d, "i"));
 		if (reg.empty) throw new Exception("invalid start tag: " ~ startTag);
 		JptxTag tag;
-		tag.name = cwx.utils.toLower(toUTF8(reg.hit[1 .. $]));
+		tag.name = .toLower(toUTF8(reg.hit[1 .. $]));
 		dstring p = reg.post;
 		if (!p.length) throw new Exception("invalid start tag: " ~ startTag);
 		if (startsWith(p, "=\""d)) {
@@ -326,7 +326,7 @@ private struct JptxTag {
 			if(m.empty) break;
 			p = m.post;
 			auto cap = m.captures;
-			tag.attr[cwx.utils.toLower(to!string(cap[1]))] = to!string(cap[2]);
+			tag.attr[.toLower(to!string(cap[1]))] = to!string(cap[2]);
 		}
 		return tag;
 	} unittest {
@@ -413,7 +413,7 @@ private struct JptxParser {
 	}
 	private void endTag(string tagText) {
 		auto tag = tagText[2 .. $ - 1];
-		switch (cwx.utils.toLower(tag)) {
+		switch (.toLower(tag)) {
 		case "b": {
 			if (onEndB) onEndB();
 		} break;
@@ -770,7 +770,7 @@ struct Jptx {
 					if (eq == -1) throw new Exception("invalid line: " ~ line);
 					auto key = astrip(sline[0 .. eq]);
 					auto value = stripValue(sline[eq + 1 .. $]);
-					switch (cwx.utils.toLower(key)) {
+					switch (.toLower(key)) {
 					case "backcolor": backcolor = rgbVal(value); break;
 					case "backwidth": backwidth = intVal(value); break;
 					case "backheight": backheight = intVal(value); break;
@@ -893,7 +893,7 @@ struct Jpdc {
 					if (eq == -1) throw new Exception("invalid line: " ~ line);
 					auto key = astrip(line[0 .. eq]);
 					auto value = stripValue(line[eq + 1 .. $]);
-					switch (cwx.utils.toLower(key)) {
+					switch (.toLower(key)) {
 					case "clip": clip = rectVal(value); break;
 					case "copymode": copymode = enumVal!(Copymode)(value); break;
 					case "savefilename": saveFileName = strVal(value); break;

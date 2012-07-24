@@ -496,12 +496,12 @@ struct ClassicEngine {
 	string executePath(string appPath, bool engine) {
 		if (!enginePath.length) return "";
 		string path = enginePath;
-		if (!cwx.utils.isabs(path)) {
+		if (!.isAbsolute(path)) {
 			auto dir = appPath.dirName();
 			path = std.path.buildPath(dir, path);
 		}
 		if (!engine && execute.length) {
-			if (cwx.utils.isabs(execute)) {
+			if (.isAbsolute(execute)) {
 				path = execute;
 			} else {
 				path = std.path.buildPath(path.dirName(), execute);

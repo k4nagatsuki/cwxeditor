@@ -1,8 +1,6 @@
 
 module cwx.editor.gui.dwt.undo;
 
-import cwx.utils;
-
 interface Undo {
 	void undo();
 	void redo();

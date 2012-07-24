@@ -80,7 +80,7 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 			if (exists(targPath)) {
 				foreach (p; clistdir(targPath)) {
 					p = std.path.buildPath(targPath, p);
-					if (!isDir(p) && cfnmatch(cwx.utils.getExt(p), "xml")) {
+					if (!isDir(p) && cfnmatch(.extension(p), ".xml")) {
 						try {
 							loadXMLCommon(std.file.readText(p), name, areas, uc, change, ver);
 						} catch (Exception e) {
@@ -296,7 +296,7 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 					if (!isDir) {
 						if (cfnmatch(path, "Summary.xml")) {
 							xmls[""][path] = cast(string) data;
-						} else if (cfnmatch(cwx.utils.getExt(path), "xml") && isScenarioSystemDir(dirName(path))) {
+						} else if (cfnmatch(.extension(path), ".xml") && isScenarioSystemDir(dirName(path))) {
 							xmls[dirName(path)][baseName(path)] = cast(string) data;
 						} else {
 							path = std.path.buildPath(temp, path);
@@ -331,7 +331,7 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 		}
 		string suncab(string fname, out string summPath) {
 			string temp;
-			if (cfnmatch(cwx.utils.getExt(fname), "cab")) {
+			if (cfnmatch(.extension(fname), ".cab")) {
 				temp = createTempDir(tempPath, baseName(stripExtension(fname)), false);
 				if (!.uncab(fname, temp)) {
 					delAll(temp);
@@ -339,7 +339,7 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 				}
 			} else {
 				// zipと仮定
-				auto arc = scArc(fname, "wsm");
+				auto arc = scArc(fname, ".wsm");
 				if (!arc) return null;
 				temp = createTempDir(tempPath, baseName(stripExtension(fname)), false);
 				try {
@@ -445,7 +445,7 @@ private template STemplate(bool UseCast, bool UseSkill, bool UseItem, bool UseBe
 					}
 					if (cfnmatch(baseName(fname), "Summary.wsm")) {
 						return ll(dirName(fname));
- 					} else if (canUncab && cfnmatch(cwx.utils.getExt(fname), "cab")) {
+ 					} else if (canUncab && cfnmatch(.extension(fname), ".cab")) {
  						return legacyCommon();
 					} else if (cfnmatch(baseName(fname), "Summary.xml")) {
 						expand = true;
@@ -792,8 +792,8 @@ public:
 		}
 		if (legacy) {
 			if (isdir) return false;
-			auto ext = cwx.utils.getExt(p);
-			return .cfnmatch(ext, "wid") || .cfnmatch(ext, "wex") || .cfnmatch(ext, "wsm");
+			auto ext = .extension(p);
+			return .cfnmatch(ext, ".wid") || .cfnmatch(ext, ".wex") || .cfnmatch(ext, ".wsm");
 		} else {
 			string fl = baseName(p);
 			if (isdir) {
@@ -1473,7 +1473,7 @@ public:
 	private static void delAllXML(string p) {
 		foreach (t; clistdir(p)) {
 			t = std.path.buildPath(p, t);
-			if (!isDir(t) && cfnmatch(cwx.utils.getExt(t), "xml")) {
+			if (!isDir(t) && cfnmatch(.extension(t), ".xml")) {
 				std.file.remove(t);
 			}
 		}
@@ -1731,7 +1731,7 @@ public:
 					auto top = std.path.buildPath(mt, baseName(p));
 					mkdir(top);
 					copyAll(p, top);
-				} else if (!cfnmatch(cwx.utils.getExt(p), "wsm") && !cfnmatch(cwx.utils.getExt(p), "wid") && !cfnmatch(cwx.utils.getExt(p), "wex")) {
+				} else if (!cfnmatch(.extension(p), ".wsm") && !cfnmatch(.extension(p), ".wid") && !cfnmatch(.extension(p), ".wex")) {
 					if (toSkin.isCardImage(p)
 							|| toSkin.isBgImage(p)
 							|| toSkin.isBGM(p)
@@ -1779,7 +1779,7 @@ public:
 	/// 名前をつけて保存。
 	void saveWithName(in CProps prop, bool doubleIO, bool saveInnerImagePath, string fname, string tempPath,
 			bool defExpandXMLs, Skin defSkin, void delegate(string) showWarn) in {
-		assert (cfnmatch(cwx.utils.getExt(fname), "wsn"));
+		assert (cfnmatch(.extension(fname), ".wsn"));
 	} body {
 		if (legacy) {
 			// クラシック形式からXML形式に変換
@@ -1818,7 +1818,7 @@ public:
 			if (legacy && !legacyToX) {
 				saveLScenario(this, doubleIO, saveInnerImagePath);
 				if (useTemp) {
-					if (cfnmatch(cwx.utils.getExt(zipName), "cab")) {
+					if (cfnmatch(.extension(zipName), ".cab")) {
 						.cab(temp, zipName, (string file) {
 							return !cfnmatch(baseName(file), "cwxeditor.lock");
 						});
@@ -1934,7 +1934,7 @@ public:
 				foreach (string file; list) {
 					c += dirS(p.buildPath(file));
 				}
-				auto rel = abs2rel(scenarioPath, p);
+				auto rel = relativePath(scenarioPath, p);
 				if ("" == rel || cfnmatch(rel, skin.materialPath)) {
 					c++;
 				}
@@ -1950,7 +1950,7 @@ public:
 				if (!skin.isMaterial(p)) {
 					return 1;
 				}
-				auto p2 = abs2rel(scenarioPath, p);
+				auto p2 = relativePath(scenarioPath, p);
 				auto pathId = toPathId(p2);
 				if (0 == useCounter.get(pathId)) {
 					r ~= p2;
@@ -2199,7 +2199,7 @@ bool isScenarioSystemDir(string dir) {
 /// シナリオ関連ファイルのパスを分解し、シナリオフォルダと
 /// パスに含まれるリソースパスに分ける。
 void decScenarioPath(ref string scenarioPath, ref string[] openPaths) {
-	if (scenarioPath && cfnmatch(cwx.utils.getExt(scenarioPath), "wid")) {
+	if (scenarioPath && cfnmatch(.extension(scenarioPath), ".wid")) {
 		ulong id;
 		auto type = cwx.cwl.getType(scenarioPath, id);
 		if (type) {
@@ -2225,7 +2225,7 @@ void decScenarioPath(ref string scenarioPath, ref string[] openPaths) {
 			openPaths ~= ts;
 		}
 		scenarioPath = dirName(scenarioPath);
-	} else if (scenarioPath && cfnmatch(cwx.utils.getExt(scenarioPath), "wex")) {
+	} else if (scenarioPath && cfnmatch(.extension(scenarioPath), ".wex")) {
 		scenarioPath = dirName(scenarioPath);
 	}
 }

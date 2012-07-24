@@ -3,8 +3,6 @@ module cwx.editor.gui.dwt.properties;
 
 import cwx.utils;
 import cwx.xml;
-import cwx.skin;
-import cwx.background;
 import cwx.structs;
 import cwx.settings;
 import cwx.menu;

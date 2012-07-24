@@ -56,8 +56,8 @@ import java.lang.all;
 FlexImage createBackgroundImage
 		(Skin skin, string path, int x, int y, int w, int h, bool transparent) {
 	FlexImage r;
-	auto ext = cwx.utils.getExt(path);
-	if (cfnmatch(ext, "jpy1") || cfnmatch(ext, "jptx") || cfnmatch(ext, "jpdc")) {
+	auto ext = .extension(path);
+	if (cfnmatch(ext, ".jpy1") || cfnmatch(ext, ".jptx") || cfnmatch(ext, ".jpdc")) {
 		auto data = loadJPYImage(skin, path, []);
 		r = new FlexImage(data, x, y, data.width, data.height);
 	} else {

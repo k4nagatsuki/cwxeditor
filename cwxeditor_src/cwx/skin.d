@@ -9,6 +9,7 @@ import cwx.xml;
 import cwx.types;
 import cwx.structs;
 import cwx.features;
+import cwx.background;
 
 import std.exception;
 import std.conv;
@@ -21,7 +22,34 @@ import std.string;
 import std.array;
 import std.regex : regex, match;
 
+/// BgImageをBgImageSに変換する。
+BgImageS[] createBgImageSs(in BgImage[] bgs) {
+	BgImageS[] r;
+	r.length = bgs.length;
+	foreach (i, b; bgs) {
+		r[i] = BgImageS(stripExtension(b.path), b.x, b.y, b.width, b.height, b.mask);
+	}
+	return r;
+}
+/// BgImageSをBgImageに変換する。
+BgImage[] createBgImages(in Skin skin, in BgImageS[] bgs) {
+	BgImage[] r;
+	r.length = bgs.length;
+	foreach (i, b; bgs) {
+		auto path = skin.findImagePath(setExtension(b.name, skin.extImage), "");
+		if (path.length) {
+			path = relativePath(skin.tableDir, nabs(path));
+		} else {
+			path = setExtension(b.name, skin.extImage);
+		}
+		r[i] = new BgImage(path, "", b.x, b.y, b.width, b.height, b.mask);
+	}
+	return r;
+}
+
+/// シナリオの外観の情報。
 class Skin {
+	/// 設定に該当するスキンを探す。
 	static Skin find(in CProps prop, string enginePath, string type, string sPath, bool legacy, string classicEngineRegex, string classicDataDirRegex, string classicMatchKey, in ClassicEngine[] cEngines) {
 		if (legacy && !type.length) {
 			return findLegacySkin(prop, enginePath, sPath, classicEngineRegex, classicDataDirRegex, classicMatchKey, cEngines);
@@ -36,11 +64,13 @@ class Skin {
 		emptySkins[enginePath] = r;
 		return r;
 	}
+	/// ditto
 	static Skin find2(Summary)(in CProps prop, string enginePath, in Summary summ, string classicEngineRegex, string classicDataDirRegex, string classicMatchKey, in ClassicEngine[] cEngines) {
 		return find(prop, enginePath, summ.type, summ.scenarioPath, summ.legacy, classicEngineRegex, classicDataDirRegex, classicMatchKey, cEngines);
 	}
 
 	private static Skin[string][string] skinTable;
+	/// スキンの一覧を返す。
 	static Skin[string] table(const(CProps) prop, string enginePath) {
 		if (!enginePath.length || !.exists(enginePath)) {
 			Skin[string] tbl;
@@ -75,6 +105,7 @@ class Skin {
 			return r;
 		}
 	}
+	/// クラシックなエンジンのスキンを返す。
 	static Skin createLegacySkin(in CProps prop, string enginePath, string lEnginePath, string dataDirName, string execute, in ClassicEngine[] cEngines) {
 		// 標準のスキンをベースにする
 		if (enginePath.length) enginePath = prop.toAppAbs(enginePath);
@@ -98,13 +129,14 @@ class Skin {
 		skin._execute = execute;
 		return skin;
 	}
+	/// クラシックなエンジンのスキンを探して返す。
 	static Skin findLegacySkin(in CProps prop, string enginePath, string sPath, string classicEngineRegex, string classicDataDirRegex, string classicMatchKey, in ClassicEngine[] cEngines) {
 		string resDir, lEnginePath;
 		findLegacy(sPath, resDir, lEnginePath, classicEngineRegex, classicDataDirRegex, classicMatchKey, cEngines);
 		resDir = resDir.length ? nabs(resDir) : "";
 		lEnginePath = lEnginePath.length ? nabs(lEnginePath) : "";
 
-		string dataDirName = resDir.length ? abs2rel(lEnginePath.dirName(), resDir) : "";
+		string dataDirName = resDir.length ? relativePath(lEnginePath.dirName(), resDir) : "";
 		return createLegacySkin(prop, enginePath, lEnginePath, dataDirName, "", cEngines);
 	}
 	private void setupLegacy(string lEnginePath, string resDir, ClassicEngine cEngine) {
@@ -157,7 +189,7 @@ class Skin {
 	static bool hasClassicEngine(string path, out string resDir, out string enginePath, string classicEngineRegex, string classicDataDirRegex, string classicMatchKey, in ClassicEngine[] cEngines) {
 		foreach (cEngine; cEngines) {
 			string e = cEngine.enginePath.baseName();
-			if (cwx.utils.isabs(cEngine.dataDirName) ? true : .exists(path.buildPath(cEngine.dataDirName))) {
+			if (.isAbsolute(cEngine.dataDirName) ? true : .exists(path.buildPath(cEngine.dataDirName))) {
 				auto p = path.buildPath(e);
 				if (p.exists()) {
 					enginePath = p;
@@ -510,7 +542,7 @@ class Skin {
 				if (2 != ln.length) continue;
 				auto key = ln[0].strip();
 				auto value = ln[1].strip();
-				r[cwx.utils.toLower(assumeUnique(key))] = assumeUnique(value);
+				r[.toLower(assumeUnique(key))] = assumeUnique(value);
 			}
 		}
 		return r;
@@ -545,12 +577,12 @@ class Skin {
 	/// pathが効果音として使用可能か。
 	const
 	bool isSE(string path, bool check = false) {
-		auto ext = cwx.utils.toLower(cwx.utils.getExt(path));
+		auto ext = .toLower(.extension(path));
 		if (legacy) {
 			switch (ext) {
-			case "mp3": // MP3
-			case "ogg", "ogv", "oga", "ogx": // Ogg
-			case "wav": // WAV/RIFF
+			case ".mp3": // MP3
+			case ".ogg", ".ogv", ".oga", ".ogx": // Ogg
+			case ".wav": // WAV/RIFF
 				return true;
 			default:
 				return false;
@@ -558,12 +590,12 @@ class Skin {
 		}
 		// pygameの仕様で効果音にMP3は使えない
 		switch (ext) {
-		case "aiff": // AIFF
-		case "mid", "midi": // MIDI
-		case "mod", "s3m", "xm", "it", "mt2", "669", "med": // MOD
-		case "ogg", "ogv", "oga", "ogx": // Ogg
-		case "voc": // VOC
-		case "wav": // WAV/RIFF
+		case ".aiff": // AIFF
+		case ".mid", ".midi": // MIDI
+		case ".mod", ".s3m", ".xm", ".it", ".mt2", ".669", ".med": // MOD
+		case ".ogg", ".ogv", ".oga", ".ogx": // Ogg
+		case ".voc": // VOC
+		case ".wav": // WAV/RIFF
 			return true;
 		default:
 			return false;
@@ -571,10 +603,10 @@ class Skin {
 	}
 	/// pathを使用する際の警告(一部環境で再生不可等)。
 	static string[] warningSE(in CProps prop, string path, bool legacy) {
-		auto ext = cwx.utils.toLower(cwx.utils.getExt(path));
+		auto ext = .toLower(.extension(path));
 		if (legacy) {
 			switch (ext) {
-			case "ogg", "ogv", "oga", "ogx": // Ogg
+			case ".ogg", ".ogv", ".oga", ".ogx": // Ogg
 				return [prop.msgs.oggMayNotCorrespond];
 			default:
 				return [];
@@ -585,28 +617,28 @@ class Skin {
 	/// pathがBGMとして使用可能か。
 	const
 	bool isBGM(string path, bool check = false) {
-		auto ext = cwx.utils.toLower(cwx.utils.getExt(path));
+		auto ext = .toLower(.extension(path));
 		if (legacy) {
 			switch (ext) {
-			case "mid", "midi": // MIDI
-			case "mp3": // MP3
-			case "ogg", "ogv", "oga", "ogx": // Ogg
-			case "wav": // WAV/RIFF
-			case "mpg": // MPEG
+			case ".mid", ".midi": // MIDI
+			case ".mp3": // MP3
+			case ".ogg", ".ogv", ".oga", ".ogx": // Ogg
+			case ".wav": // WAV/RIFF
+			case ".mpg": // MPEG
 				return true;
 			default:
 				return false;
 			}
 		}
 		switch (ext) {
-		case "aiff": // AIFF
-		case "mid", "midi": // MIDI
-		case "mod", "s3m", "xm", "it", "mt2", "669", "med": // MOD
-		case "mp3": // MP3
-		case "ogg", "ogv", "oga", "ogx": // Ogg
-		case "voc": // VOC
-		case "wav": // WAV/RIFF
-		case "mpg": // MPEG
+		case ".aiff": // AIFF
+		case ".mid", ".midi": // MIDI
+		case ".mod", ".s3m", ".xm", ".it", ".mt2", ".669", ".med": // MOD
+		case ".mp3": // MP3
+		case ".ogg", ".ogv", ".oga", ".ogx": // Ogg
+		case ".voc": // VOC
+		case ".wav": // WAV/RIFF
+		case ".mpg": // MPEG
 			return true;
 		default:
 			return false;
@@ -614,12 +646,12 @@ class Skin {
 	}
 	/// pathを使用する際の警告(一部環境で再生不可等)。
 	static string[] warningBGM(in CProps prop, string path, bool legacy) {
-		auto ext = cwx.utils.toLower(cwx.utils.getExt(path));
+		auto ext = .toLower(.extension(path));
 		if (legacy) {
 			switch (ext) {
-			case "mp3": // MP3
+			case ".mp3": // MP3
 				return [prop.msgs.mp3LoopMayNotCorrespond];
-			case "ogg", "ogv", "oga", "ogx": // Ogg
+			case ".ogg", ".ogv", ".oga", ".ogx": // Ogg
 				return [prop.msgs.oggMayNotCorrespond];
 			default:
 				return [];
@@ -631,7 +663,7 @@ class Skin {
 	const
 	bool isCardImage(string path) {
 		if (isBinImg(path)) return true;
-		if (legacy && !cfnmatch(cwx.utils.getExt(path), "bmp")) return false;
+		if (legacy && !cfnmatch(.extension(path), ".bmp")) return false;
 		try {
 			uint x, y;
 			return imageSize(path, x, y)
@@ -644,15 +676,15 @@ class Skin {
 	/// pathが背景画像として使用可能か。
 	const
 	bool isBgImage(string path, bool check = false) {
-		auto ext = cwx.utils.getExt(path);
-		if (cfnmatch(ext, "jpy1")
-				|| cfnmatch(ext, "jptx")
-				|| cfnmatch(ext, "jpdc")) {
+		auto ext = .extension(path);
+		if (cfnmatch(ext, ".jpy1")
+				|| cfnmatch(ext, ".jptx")
+				|| cfnmatch(ext, ".jpdc")) {
 			return true;
 		}
-		if (legacy && !cfnmatch(ext, "bmp")
-				&& !cfnmatch(ext, "jpg")
-				&& !cfnmatch(ext, "jpeg")) {
+		if (legacy && !cfnmatch(ext, ".bmp")
+				&& !cfnmatch(ext, ".jpg")
+				&& !cfnmatch(ext, ".jpeg")) {
 			return false;
 		}
 		if (check) {
@@ -668,10 +700,10 @@ class Skin {
 	}
 	/// pathを使用する際の警告(一部環境で表示不可等)。
 	static string[] warningImage(in CProps prop, string path, bool legacy) {
-		auto ext = cwx.utils.toLower(cwx.utils.getExt(path));
+		auto ext = .toLower(.extension(path));
 		if (legacy) {
 			switch (ext) {
-			case "png": // PNG
+			case ".png": // PNG
 				return [prop.msgs.pngMayNotCorrespond];
 			default:
 				return [];

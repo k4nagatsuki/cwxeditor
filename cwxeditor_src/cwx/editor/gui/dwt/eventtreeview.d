@@ -2841,7 +2841,7 @@ public:
 		if (owner.detail.owner) return owner;
 		return null;
 	}
-	private void addContents(bool stored, Content[] cs ...) {
+	private void addContents(bool stored, Content[] cs, Content[] refCS = []) {
 		auto itm = selection;
 		if (!itm) return;
 		auto owner = insertOwner;
@@ -2873,7 +2873,7 @@ public:
 			return 1;
 		}
 	}
-	private void addStarts(bool stored, Content[] cs ...) {
+	private void addStarts(bool stored, Content[] cs, Content[] refCS = []) {
 		_tree.setRedraw(false);
 		scope (exit) _tree.setRedraw(true);
 		auto sel = selection;
@@ -2914,7 +2914,7 @@ public:
 						recurse(ct.next);
 					}
 				}
-				recurse(cs);
+				recurse(refCS);
 			}
 			_et.insert(index + i, c);
 			sItm = createTreeItem(_tree, c, c.name, _prop.images.content(c.type), index + i);
@@ -2962,9 +2962,9 @@ public:
 					auto evt = Content.createFromXML(c, LATEST_VERSION, id);
 					if (!evt) return;
 					if (evt.type == CType.START) {
-						addStarts(true, evt);
+						addStarts(true, [evt]);
 					} else {
-						addContents(true, evt);
+						addContents(true, [evt]);
 					}
 					_comm.refreshToolBar();
 					return;
@@ -3049,8 +3049,8 @@ public:
 		bool c = contents.length && owner;
 		if (s && c) {
 			storeContentAndInsert(owner, si, starts.length);
-			addContents(false, contents);
-			addStarts(false, starts);
+			addContents(false, contents, cs);
+			addStarts(false, starts, cs);
 		} else if (s) {
 			addStarts(true, starts);
 		} else if (c) {

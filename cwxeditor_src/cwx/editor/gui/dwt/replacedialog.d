@@ -291,7 +291,7 @@ private:
 					find(std.path.buildPath(p, l));
 				}
 			} else if (_comm.skin.isMaterial(p)) {
-				auto path = abs2rel(sPath, p);
+				auto path = relativePath(p, sPath);
 				paths ~= encodePath(path);
 				tbl.add(toPathId(path));
 			}
@@ -2304,7 +2304,7 @@ public:
 		searchRange(count, &replaceTextImpl);
 		if (_jptx.getSelection()) {
 			foreach (string file; .dirEntries(_summ.scenarioPath, SpanMode.depth, false)) {
-				if (cfnmatch(cwx.utils.getExt(file), "jptx")) {
+				if (cfnmatch(.extension(file), ".jptx")) {
 					try {
 						bool isSJIS;
 						string value = readJPYFile(file, isSJIS);
@@ -2320,7 +2320,7 @@ public:
 							}
 						}, count, uArr, true);
 						if (r) {
-							file = abs2rel(_summ.scenarioPath, file);
+							file = relativePath(file, _summ.scenarioPath);
 							addResult(file);
 							store(file, uArr);
 						}
@@ -2349,11 +2349,11 @@ public:
 				combo.select(0);
 			}
 		}
-		addHist(_from, &_prop.var.etc.searchHistories,
+		addHist(_from, (string[] s) {_prop.var.etc.searchHistories = s;},
 			{return _prop.var.etc.searchHistories.dup;},
 			_prop.var.etc.searchHistoryMax, from);
 		if (_replMode) {
-			addHist(_to, &_prop.var.etc.replaceHistories,
+			addHist(_to, (string[] s) {_prop.var.etc.replaceHistories = s;},
 				{return _prop.var.etc.replaceHistories.dup;},
 				_prop.var.etc.searchHistoryMax, to);
 		}

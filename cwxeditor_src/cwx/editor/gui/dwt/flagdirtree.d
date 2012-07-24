@@ -17,6 +17,7 @@ import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.dmenu;
 
 import std.conv;
+import std.string;
 
 import org.eclipse.swt.all;
 

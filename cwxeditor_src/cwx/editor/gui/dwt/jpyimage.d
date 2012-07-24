@@ -20,13 +20,13 @@ import org.eclipse.swt.all;
 
 /// JPYの動作をエミュレートするが、甚だ不完全。
 ImageData loadJPYImage(Skin skin, string path, string[] stratum) {
-	auto ext = cwx.utils.getExt(path);
+	auto ext = .extension(path);
 	try {
-		if (cfnmatch(ext, "jpy1")) {
+		if (cfnmatch(ext, ".jpy1")) {
 			return loadJPYImageImpl(skin, path, stratum);
-		} else if (cfnmatch(ext, "jptx")) {
+		} else if (cfnmatch(ext, ".jptx")) {
 			return loadJPTXImage(path);
-		} else if (cfnmatch(ext, "jpdc")) {
+		} else if (cfnmatch(ext, ".jpdc")) {
 			return loadJPDCImage(path);
 		}
 	} catch (Exception e) {
@@ -57,7 +57,7 @@ private ImageData loadJPYImageImpl(Skin skin, string path, string[] stratum) {
 			auto p = sec.loadcache in cache;
 			data = p ? *p : null;
 		}
-		if (!data && sec.filename.length && !cfnmatch(cwx.utils.getExt(sec.filename), "wav")) {
+		if (!data && sec.filename.length && !cfnmatch(.extension(sec.filename), ".wav")) {
 			string dir;
 			switch (sec.dirtype) {
 			case Dirtype.CURRENT: {

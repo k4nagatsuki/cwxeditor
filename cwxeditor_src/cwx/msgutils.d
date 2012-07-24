@@ -9,6 +9,7 @@ import std.path;
 import std.uni;
 import std.utf;
 import std.algorithm;
+import std.string;
 
 /// "font_X.bmp"から"X"の部分を抽出する。
 dchar decodeFontPath(string path) {
@@ -219,8 +220,8 @@ string replTextUseStep(string text, string oldStep, string newStep) {
 /// newFont = 置換後の画像パス。
 string replTextUseFont(string text, string oldFont, string newFont)
 in {
-	dstring dold = toUTF32(toLower(oldFont.baseName()));
-	dstring dnew = toUTF32(toLower(newFont.baseName()));
+	dstring dold = toUTF32(.toLower(oldFont.baseName()));
+	dstring dnew = toUTF32(.toLower(newFont.baseName()));
 	assert(dold.length == 10, .text(dold));
 	assert(startsWith(dold, "font_"d));
 	assert(endsWith(dold, ".bmp"d));
@@ -238,7 +239,7 @@ in {
 		case '#':
 			buf ~= c;
 			if (i + 1 < dtext.length) {
-				if (std.string.toLower([dtext[i + 1]]) == std.string.toLower([dold])) {
+				if (.toLower([dtext[i + 1]]) == .toLower([dold])) {
 					buf ~= dnew;
 				} else {
 					buf ~= dtext[i + 1];

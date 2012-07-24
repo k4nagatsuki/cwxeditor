@@ -6,7 +6,6 @@ import cwx.structs;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dutils;
-import cwx.editor.gui.dwt.dmenu;
 
 import org.eclipse.swt.all;
 

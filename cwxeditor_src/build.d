@@ -189,10 +189,12 @@ void removeFile(string path) {
 	writefln("removed: %s", path);
 }
 
-void divide(in string[] args, out string[] file, out string[] option) {
+void divide(in string[] args, out string[] file, out string[] option, out string[] dmdOption) {
 	foreach (a; args) {
 		if (0 == a.extension().filenameCmp(".d")) {
 			file ~= a;
+		} else if (a.startsWith("-")) {
+			dmdOption ~= a;
 		} else {
 			option ~= a;
 		}
@@ -200,9 +202,11 @@ void divide(in string[] args, out string[] file, out string[] option) {
 }
 
 void main(string[] args) {
+	auto timer = StopWatch(AutoStart.yes);
+
 	// ビルドフラグ
-	string[] file, option;
-	divide(args[1 .. $], file, option);
+	string[] file, option, dmdOption;
+	divide(args[1 .. $], file, option, dmdOption);
 	file = file.sort;
 	option = option.sort;
 	bool help = option.has("help");
@@ -261,19 +265,26 @@ void main(string[] args) {
 	string[] flags = FLAGS.dup;
 	flags ~= release ? RELEASE_FLAGS : DEBUG_FLAGS;
 	flags ~= window ? WINDOW_FLAGS : CONSOLE_FLAGS;
-	if (d2std.length) exec(cmd ~ D2STD_FLAGS ~ d2std ~ "-odobjs");
-	if (cwx.length) exec(cmd ~ flags ~ cwx ~ "-odobjs");
-	if (editor.length) exec(cmd ~ flags ~ editor ~ "-odobjs");
-	if (main.length) exec(cmd ~ flags ~ main ~ "-odobjs");
+	if (d2std.length) exec(cmd ~ D2STD_FLAGS ~ d2std ~ "-odobjs" ~ dmdOption);
+	if (cwx.length) exec(cmd ~ flags ~ cwx ~ "-odobjs" ~ dmdOption);
+	if (editor.length) exec(cmd ~ flags ~ editor ~ "-odobjs" ~ dmdOption);
+	if (main.length) exec(cmd ~ flags ~ main ~ "-odobjs" ~ dmdOption);
 
 	// ファイルが指定されている場合はコンパイルテストなのでここで終了
-	if (file.length) return;
+	if (file.length) {
+		timer.stop();
+		writefln("Compiled: %d msecs", timer.peek().msecs);
+		return;
+	}
 
 	// リンク
 	flags = LIB.dup;
 	flags ~= release ? RELEASE_FLAGS_L : DEBUG_FLAGS_L;
 	flags ~= window ? WINDOW_FLAGS_L : CONSOLE_FLAGS_L;
 	exec(cmd ~ flags ~ objs.values);
+
+	timer.stop();
+	writefln("Compiled: %d msecs", timer.peek().msecs);
 
 	if (run) {
 		exec(".".buildPath(EXE));

@@ -11,6 +11,7 @@ import cwx.skin;
 import cwx.xml;
 import cwx.menu;
 import cwx.types;
+import cwx.structs;
 
 import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.dprops;
@@ -35,6 +36,60 @@ import std.path;
 import std.file;
 
 import org.eclipse.swt.all;
+
+Skin findSkin(S = Summary)(Commons comm, Props prop, in S summ, string legacyEngine = "", bool appendClassicSkin = true) {
+	if (summ && !summ.legacy) {
+		findCWPy(prop, summ.useTemp ? summ.zipName : summ.scenarioPath);
+	}
+	static if (is(typeof(summ.type))) {
+		if (!summ) {
+			return findSkin2(prop, prop.var.etc.defaultSkin);
+		}
+		if (summ.legacy && !summ.type.length) {
+			if (legacyEngine.length) {
+				auto lEngine = prop.toAppAbs(legacyEngine);
+				foreach (ce; prop.var.etc.classicEngines) {
+					if (cfnmatch(prop.toAppAbs(ce.enginePath), lEngine)) {
+						return createClassicSkin(prop, ce);
+					}
+				}
+			}
+			auto skin = Skin.find2!(S)(prop.parent, prop.enginePath, summ, prop.var.etc.classicEngineRegex, prop.var.etc.classicDataDirRegex, prop.var.etc.classicMatchKey, prop.var.etc.classicEngines);
+			void find() {
+				if (!appendClassicSkin) return;
+				if (!prop.var.etc.addNewClassicEngine) return;
+				if (!skin.legacyEngine.length) return;
+				auto lEngine = prop.toAppAbs(skin.legacyEngine);
+				foreach (ce; prop.var.etc.classicEngines) {
+					if (cfnmatch(prop.toAppAbs(ce.enginePath), lEngine)) {
+						skin = createClassicSkin(prop, ce);
+						return;
+					}
+				}
+				string dataDirName = relativePath(skin.legacyDataPath, lEngine.dirName());
+				auto ce = ClassicEngine(lEngine.baseName().stripExtension(), lEngine, dataDirName, "");
+				ClassicEngine[] arr;
+				foreach (e; prop.var.etc.classicEngines) {
+					arr ~= e.dup;
+				}
+				prop.var.etc.classicEngines = arr ~ ce;
+				comm.refClassicSkin.call();
+			}
+			if (skin.legacyEngine.length) {
+				find();
+			} else {
+				if (prop.var.etc.classicEngines.length) {
+					auto ce = prop.var.etc.classicEngines[0];
+					skin = createClassicSkin(prop, ce);
+				}
+			}
+			return skin;
+		}
+		return findSkin2(prop, summ.type);
+	} else {
+		return findSkin2(prop, prop.var.etc.defaultSkin);
+	}
+}
 
 private class Dlg(Arg ...) {
 	private static const ID = "cwx.editor.gui.dwt.commons.Dlg";
@@ -538,7 +593,8 @@ class Commons {
 	@property
 	Composite sidePane() {
 		if (!_main.dock) return _main.shell;
-		return _main.dock.addPaneFromMemory(workPaneKey, Dir.E, 3, 1, "side");
+		auto pane = workPaneKey;
+		return _main.dock.addPaneFromMemory(pane, pane, Dir.E, 3, 1, "side");
 	}
 	private Window __openArea(A, Window)(Props prop, Summary summ, A area, UndoManager undo, bool shellActivate) {
 		if (!area) return null;
@@ -1014,7 +1070,7 @@ class Commons {
 				_wallpaper = null;
 				return;
 			}
-			if (!cwx.utils.isabs(w)) {
+			if (!isAbsolute(w)) {
 				w = std.path.buildPath(prop.parent.appPath.dirName(), w);
 			}
 			if (!w.length || !.exists(w)) {

@@ -1008,8 +1008,8 @@ public:
 	/// 指定されたパスのディレクトリが含まれていればtrueを返す。
 	/// 同一のディレクトリツリーかどうかは考慮されない。
 	bool has(string path) {
-		path = cwx.utils.toLower(path);
-		auto tpath = cwx.utils.toLower(this.path);
+		path = .toLower(path);
+		auto tpath = .toLower(this.path);
 		int len = path.length;
 		int tlen = tpath.length;
 		int sepLen = SEPARATOR.length;

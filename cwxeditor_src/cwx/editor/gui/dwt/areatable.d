@@ -218,7 +218,7 @@ private:
 			if (b) summ.insert(toBattleIndex(summ, from), b);
 			auto p = cast(Package) area;
 			if (p) summ.insert(toPackageIndex(summ, from), p);
-			swap(_from, _to);
+			std.algorithm.swap(_from, _to);
 		}
 		override void undo() {
 			impl();
@@ -262,7 +262,7 @@ private:
 				comm.refPackage.call(cast(Package) area1);
 				comm.refPackage.call(cast(Package) area2);
 			}
-			swap(_index1, _index2);
+			std.algorithm.swap(_index1, _index2);
 		}
 		override void undo() {
 			impl();

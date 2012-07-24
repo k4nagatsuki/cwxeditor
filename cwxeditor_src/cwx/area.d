@@ -1,7 +1,6 @@
 
 module cwx.area;
 
-import cwx.flag;
 import cwx.utils;
 import cwx.event;
 import cwx.usecounter;

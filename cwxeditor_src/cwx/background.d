@@ -5,7 +5,6 @@ import cwx.usecounter;
 import cwx.utils;
 import cwx.xml;
 import cwx.path;
-import cwx.skin;
 import cwx.structs;
 
 import std.path;
@@ -16,31 +15,6 @@ public:
 	this(string msg) {
 		super(msg);
 	}
-}
-
-/// BgImageをBgImageSに変換する。
-BgImageS[] createBgImageSs(BgImage[] bgs) {
-	BgImageS[] r;
-	r.length = bgs.length;
-	foreach (i, b; bgs) {
-		r[i] = BgImageS(stripExtension(b.path), b.x, b.y, b.width, b.height, b.mask);
-	}
-	return r;
-}
-/// BgImageSをBgImageに変換する。
-BgImage[] createBgImages(Skin skin, in BgImageS[] bgs) {
-	BgImage[] r;
-	r.length = bgs.length;
-	foreach (i, b; bgs) {
-		auto path = skin.findImagePath(setExtension(b.name, skin.extImage), "");
-		if (path.length) {
-			path = abs2rel(skin.tableDir, nabs(path));
-		} else {
-			path = setExtension(b.name, skin.extImage);
-		}
-		r[i] = new BgImage(path, "", b.x, b.y, b.width, b.height, b.mask);
-	}
-	return r;
 }
 
 /// 背景イメージ。

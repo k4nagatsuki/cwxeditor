@@ -252,38 +252,6 @@ string bImgToStr(in ubyte[] bimg) {
 	return assumeUnique(r);
 }
 
-/// 16進数文字列xを整数に変換する。
-int xtoi(string x) {
-	int i = 0;
-	foreach (char c; x) {
-		i <<= 4;
-		if ('a' <= c && c <= 'z') {
-			i += c - 'a' + 10;
-		} else if ('A' <= c && c <= 'Z') {
-			i += c - 'A' + 10;
-		} else if ('0' <= c && c <= '9') {
-			i += c - '0';
-		} else {
-			throw new Exception("invalid x: " ~ x);
-		}
-	}
-	return i;
-} unittest {
-	debug mixin(UTPerf);
-	assert (xtoi("FF") == 255, to!(string)(xtoi("FF")));
-	assert (xtoi("ff") == 255);
-	assert (xtoi("FFFE") == 65534);
-	assert (xtoi("0F") == 15);
-	assert (xtoi("10") == 16);
-}
-
-/// t1とt2を入替える。
-void swap(T)(ref T t1, ref T t2) {
-	T temp = t1;
-	t1 = t2;
-	t2 = temp;
-}
-
 /// Enumメンバ名の先頭を小文字にして文字列に変換する。
 @safe
 pure
@@ -335,12 +303,22 @@ private template stringToEnumImpl(E, size_t Index) {
 	}
 }
 
-/// switch文でenumのメンバ毎のメソッド呼出のメソッドに置換する。
+/// enumのメンバ毎のメソッド呼出のswitch文を生成する。
+template EnumToStringSwitch2(E, string EName, string Prefix) {
+	immutable EnumToStringSwitch2 = "final switch (id) {\n"
+		~ EnumToStringCase!(E, EName, Prefix, 0)
+		~ "}";
+}
+/// ditto
+template EnumToStringSwitch(E, string Prefix) {
+	immutable EnumToStringSwitch = EnumToStringSwitch2!(E, E.stringof, Prefix);
+}
+/// switch文でenumのメンバ毎のメソッド呼出のメソッドを生成する。
 template EnumToStringMethod2(E, string EName, string MethodName, string Prefix) {
 	immutable EnumToStringMethod2 = "const string " ~ MethodName ~ "(" ~ EName ~ " id) {\n"
-		~ "final switch (id) {\n"
+		~ "\tfinal switch (id) {\n"
 		~ EnumToStringCase!(E, EName, Prefix, 0)
-		~ "}\n"
+		~ "\t}\n"
 		~ "}";
 }
 /// ditto
@@ -350,7 +328,7 @@ template EnumToStringMethod(E, string MethodName, string Prefix) {
 private template EnumToStringCase(E, string EName, string Prefix, size_t Index) {
 	private import std.traits;
 	private import std.conv;
-	private immutable Case = "case " ~ EName ~ "." ~ EnumMembers!E[Index].stringof ~ ": return " ~ Prefix ~ .upperToCap(std.conv.text(EnumMembers!E[Index])) ~ "();\n";
+	private immutable Case = "\tcase " ~ EName ~ "." ~ EnumMembers!E[Index].stringof ~ ": return " ~ Prefix ~ .upperToCap(std.conv.text(EnumMembers!E[Index])) ~ ";\n";
 	static if (Index + 1 < EnumMembers!E.length) {
 		immutable EnumToStringCase = Case ~ EnumToStringCase!(E, EName, Prefix, Index + 1);
 	} else {
@@ -619,7 +597,7 @@ class Wildcard {
 
 /// 絶対パス化と正規化を行う。
 string nabs(string path) {
-	return normal(absolutePath(path));
+	return buildNormalizedPath(absolutePath(path));
 }
 
 /// 大/小文字を区別しないstartsWith。
@@ -662,96 +640,6 @@ bool fnendsWith(string a, string b) {
 	}
 }
 
-/// 絶対パスであればtrueを返す。
-bool isabs(string path) {
-	version (Windows) {
-		return startsWith(path, "\\") || std.path.isAbsolute(path);
-	} else {
-		return std.path.isAbsolute(path) != 0;
-	}
-}
-
-/// 正規化を行う。
-string normal(string path) {
-	static if (altDirSeparator.length) {
-		path = replace(path, altDirSeparator, dirSeparator);
-	}
-	scope spl = std.string.split(path, dirSeparator);
-	string[] buf;
-	foreach (i, str; spl) {
-		if (str == curdir) {
-			continue;
-		} else if (str == pardir) {
-			if (buf.length && buf[$ - 1] != pardir) {
-				buf = buf[0 .. $ - 1];
-			} else {
-				buf ~= str;
-			}
-		} else if (str.length || i + 1 < spl.length) {
-			buf ~= str;
-		}
-	}
-	return expandTilde(std.string.join(buf, dirSeparator));
-} unittest {
-	debug mixin(UTPerf);
-	version (Windows) {
-		assert (normal("C:/aaaa/./bbbb/../ccc../dd/test.d/..") == `C:\aaaa\ccc..\dd`);
-		assert (normal("C:\\./,/..\\aaa/bbb/cc\\../...\\..\\") == `C:\aaa\bbb`);
-		assert (normal("..\\..\\./,/..\\aaa/bbb/cc\\../...\\..\\") == `..\..\aaa\bbb`);
-		assert (normal("\\\\./,/..\\aaa/bbb/cc\\../...\\..\\") == `\\aaa\bbb`);
-	} else {
-		assert (normal("/aaaa/./bbbb/../ccc../dd/test.d/..") == `/aaaa/ccc../dd`);
-		assert (normal(`/./,/../aaa/bbb/cc/../.../../`) == `/aaa/bbb`);
-		assert (normal(`../.././,/../aaa/bbb/cc/../.../../`) == `../../aaa/bbb`);
-	}
-}
-
-/// 絶対パスをbaseからの相対パスに変換する。
-/// baseを指定しなかった場合は現在の作業ディレクトリが用いられる。
-string abs2rel(string path) {
-	return abs2rel(getcwd(), path);
-}
-/// ditto
-string abs2rel(string base, string path) {
-	if (!path.length) return base;
-	base = nabs(base);
-	path = nabs(path);
-	if (driveName(base) != driveName(path)) {
-		return path;
-	}
-	if (fnstartsWith(path, base)) {
-		path = path[base.length .. $];
-		if (fnstartsWith(path, dirSeparator)) path = path[dirSeparator.length .. $];
-		return path;
-	}
-	auto basesp = std.array.split(base, dirSeparator);
-	auto pathsp = std.array.split(path, dirSeparator);
-	size_t df = 0;
-	foreach (i, b; basesp) {
-		if (i >= pathsp.length || !cfnmatch(b, pathsp[i])) {
-			df = i;
-			break;
-		}
-	}
-	string[] r;
-	for (size_t i = df; i < basesp.length; i++) {
-		r ~= pardir;
-	}
-	if (df < pathsp.length) r ~= pathsp[df .. $];
-	return std.string.join(r, dirSeparator);
-} unittest {
-	debug mixin(UTPerf);
-	version (Windows) {
-		assert (abs2rel(`c:\windows\system`, `c:\windows\system\test`) == `test`);
-		assert (abs2rel(`c:\windows\system`, `c:\windows\system\test\test.txt`) == `test\test.txt`);
-		assert (abs2rel(`c:\windows\system`, "c:\\") == `..\..`);
-		assert (abs2rel(`c:\windows\system`, `c:\windows`) == `..`);
-		assert (abs2rel(`c:\windows\system`, `c:\winnt`) == `..\..\winnt`);
-		assert (abs2rel(`c:\windows\system`, `c:\winnt\system\temp`) == `..\..\winnt\system\temp`);
-		assert (abs2rel(`c:\windows\system`, `\\winnt`) == `\\winnt`);
-	}
-}
-
 /// 素材パスをencodeする。
 string encodePath(string path) {
 	return isBinImg(path) ? path : replace(path, dirSeparator, "/");
@@ -787,15 +675,6 @@ string lastRet(string text) {
 	assert (lastRet("test") == "test\n");
 	assert (lastRet("t\n\nes\nt\n\n") == "t\n\nes\nt\n");
 	assert (lastRet("test\n") == "test\n");
-}
-
-/// Unicode文字列をすべて小文字にする。
-string toLower(string s) {
-	dstring r;
-	foreach (dchar c; s) {
-		r ~= std.uni.toLower(c);
-	}
-	return toUTF8(r);
 }
 
 /// arrをin-placeでソートして返す。
@@ -926,7 +805,7 @@ string createNewName(string base, bool delegate(string) use, bool space = true) 
 string createNewFileName(string path, bool isdir) {
 	string parent = dirName(path);
 	string name = baseName(path);
-	string ext = isdir ? "" : cwx.utils.getExt(name);
+	string ext = isdir ? "" : .extension(name);
 	if (!isdir) name = stripExtension(name);
 	name = createNewName(name, (string name) {
 		name = std.path.buildPath(parent, name);
@@ -1488,7 +1367,7 @@ template FileCache(T ...) {
 		if (!exists(path)) return;
 		path = nabs(path);
 		static if (0 == filenameCharCmp('A', 'a')) {
-			path = cwx.utils.toLower(path);
+			path = std.string.toLower(path);
 		}
 		if (cachePaths.length >= CACHE_MAX) {
 			caches.remove(cachePaths[0u]);
@@ -1501,7 +1380,7 @@ template FileCache(T ...) {
 		if (!exists(path)) return null;
 		path = nabs(path);
 		static if (0 == filenameCharCmp('A', 'a')) {
-			path = cwx.utils.toLower(path);
+			path = std.string.toLower(path);
 		}
 		auto cache = path in caches;
 		if (!cache) return null;
@@ -1511,7 +1390,7 @@ template FileCache(T ...) {
 
 /// 親ディレクトリへの移動が含まれているパスであればtrueを返す。
 bool hasParDir(string path) {
-	path = normal(path);
+	path = buildNormalizedPath(path);
 	if (startsWith(path, pardir ~ dirSeparator)) return true;
 	if (.countUntil(path, dirSeparator ~ pardir ~ dirSeparator) != -1) return true;
 	return false;
@@ -1727,7 +1606,7 @@ string getExt(string path, bool tolower = true) {
 	int i = lastIndexOf(path, '.');
 	if (i == -1) return "";
 	string r = path[i + 1 .. $];
-	return tolower ? cwx.utils.toLower(r) : r;
+	return tolower ? std.string.toLower(r) : r;
 }
 
 /// Nameを変数名として使用できる場合はtrue。

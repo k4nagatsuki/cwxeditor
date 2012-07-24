@@ -546,7 +546,7 @@ private:
 			_opt.openPaths, &openScenarioImpl, null);
 	}
 	void openScenario(string fname, void delegate() failure = null) {
-		if (cfnmatch(cwx.utils.getExt(fname), "wsm") && !.exists(fname)) {
+		if (cfnmatch(.extension(fname), ".wsm") && !.exists(fname)) {
 			fname = dirName(fname);
 		}
 		decScenarioPath(fname, _opt.openPaths);
@@ -997,13 +997,13 @@ private:
 			if (cfnmatch(baseName(hist), "Summary.xml")) {
 				text = cuthist(hist[0u .. $ - "Summary.xml".length - std.path.dirSeparator.length], snipLen);
 				img = _prop.images.summaryFile;
-			} else if (cfnmatch(cwx.utils.getExt(hist), "wsn")) {
+			} else if (cfnmatch(.extension(hist), ".wsn")) {
 				text = cuthist(hist, snipLen);
 				img = _prop.images.scenarioArchive;
 			} else if (cfnmatch(baseName(hist), "Summary.wsm")) {
 				text = cuthist(hist[0u .. $ - "Summary.wsm".length - std.path.dirSeparator.length], snipLen);
 				img = _prop.images.classic;
-			} else if (cfnmatch(cwx.utils.getExt(hist), "cab") || cfnmatch(cwx.utils.getExt(hist), "zip")) {
+			} else if (cfnmatch(.extension(hist), ".cab") || cfnmatch(.extension(hist), ".zip")) {
 				text = cuthist(hist, snipLen);
 				img = _prop.images.scenarioArchive;
 			} else {
@@ -1027,8 +1027,8 @@ private:
 		private void delHist() {
 			auto dlg = new MessageBox(_win, SWT.ICON_QUESTION | SWT.YES | SWT.NO);
 			string h = _hist;
-			string ext = cwx.utils.getExt(h);
-			if (cfnmatch(ext, "xml") || cfnmatch(ext, "wsm") || cfnmatch(ext, "wid") || cfnmatch(ext, "wex")) {
+			string ext = .extension(h);
+			if (cfnmatch(ext, ".xml") || cfnmatch(ext, ".wsm") || cfnmatch(ext, ".wid") || cfnmatch(ext, ".wex")) {
 				h = dirName(h);
 			}
 			dlg.setMessage(.tryFormat(_prop.msgs.scenarioNotFound, h));
@@ -1358,7 +1358,7 @@ private:
 			version (Windows) {
 				if (summary.legacy) {
 					auto settings = _comm.skin.loadEngineSettings();
-					switch (cwx.utils.toLower(settings.get("soundapibgm", ""))) {
+					switch (.toLower(settings.get("soundapibgm", ""))) {
 					case "winmm":
 						engineTypeBGM = SOUND_TYPE_MCI;
 						break;
@@ -1368,7 +1368,7 @@ private:
 					default:
 						break;
 					}
-					switch (cwx.utils.toLower(settings.get("soundapise", ""))) {
+					switch (.toLower(settings.get("soundapise", ""))) {
 					case "winmm":
 						engineTypeSE = SOUND_TYPE_MCI;
 						break;
@@ -1392,7 +1392,7 @@ private:
 			if (SOUND_TYPE_BASS == bgmType || SOUND_TYPE_BASS == seType) {
 				string dir = _comm.skin.legacyEngine.nabs().dirName();
 				foreach (ref s; sfont) {
-					if (!cwx.utils.isabs(s)) {
+					if (!isAbsolute(s)) {
 						s = dir.buildPath(s);
 					}
 				}
@@ -1425,9 +1425,9 @@ public:
 			dStr ~= " - " ~ .text(__LINE__);
 			if (opt.scenario && .exists(opt.scenario)) {
 				path1 = nabs(opt.scenario);
-				auto ext = cwx.utils.getExt(path1);
+				auto ext = .extension(path1);
 				if (!.isDir(path1)
-						&& (cfnmatch(ext, "xml") || cfnmatch(ext, "wsm") || cfnmatch(ext, "wid") || cfnmatch(ext, "wex"))) {
+						&& (cfnmatch(ext, ".xml") || cfnmatch(ext, ".wsm") || cfnmatch(ext, ".wid") || cfnmatch(ext, ".wex"))) {
 					path1 = nabs(dirName(path1));
 				}
 			}
@@ -2367,7 +2367,7 @@ public:
 			~ "} else if (_cardWin) {"
 			~ "    _cardWin.create" ~ Name ~ "();"
 			~ "} else {"
-			~ "    _" ~ std.string.toLower(Name) ~ "Win.create" ~ Name ~ "();"
+			~ "    _" ~ .toLower(Name) ~ "Win.create" ~ Name ~ "();"
 			~ "}";
 	}
 	private void openCast() {
@@ -2815,7 +2815,7 @@ public:
 			if (_win.isVisible()) _win.setRedraw(true);
 		}
 		bool open() {
-			path = cwx.utils.toLower(path);
+			path = .toLower(path);
 			if (cpempty(path)) {
 				if (cphasattr(path, "opendialog")) {
 					if (_dataWin) {

@@ -5,8 +5,6 @@ import std.math;
 
 import org.eclipse.swt.all;
 
-import cwx.utils;
-
 /// SashFormはウィンドウサイズ変更時に左側のサイズを固定する等の
 /// 設定が出来ないので再実装。
 class SplitPane : Composite {

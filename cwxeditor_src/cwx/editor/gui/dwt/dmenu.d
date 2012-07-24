@@ -1,42 +1,20 @@
 /// FIXME: リンクエラーを避けるためdutils.dを分割
 module cwx.editor.gui.dwt.dmenu;
 
-import cwx.cwl;
-import cwx.card;
 import cwx.types;
 import cwx.utils;
-import cwx.features;
-import cwx.archive;
-import cwx.summary;
-import cwx.usecounter;
-import cwx.props;
-import cwx.imagesize;
-import cwx.skin;
-import cwx.cab;
-import cwx.structs;
-import cwx.event;
-import cwx.graphics;
-import cwx.path;
 import cwx.menu;
-import cwx.variables;
 
-import cwx.editor.gui.sound;
-import cwx.editor.gui.dwt.images;
-import cwx.editor.gui.dwt.dprops;
-import cwx.editor.gui.dwt.properties;
-import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.commons;
-import cwx.editor.gui.dwt.splitpane;
-import cwx.editor.gui.dwt.xmlbytestransfer;
-import cwx.editor.gui.dwt.centerlayout;
-import cwx.editor.gui.dwt.jpyimage;
-import cwx.editor.gui.dwt.undo;
-import cwx.editor.gui.dwt.customtext;
 import cwx.editor.gui.dwt.dutils;
+import cwx.editor.gui.dwt.dprops;
+import cwx.editor.gui.dwt.customtext;
+import cwx.editor.gui.dwt.undo;
 
 import core.thread;
 
 import std.algorithm : lastIndexOf;
+import std.exception;
 import std.array;
 import std.conv;
 import std.utf;
@@ -291,7 +269,7 @@ int convertAccelerator2(string acc_text) {
 	int acc = 0;
 	string kc;
 	int mod(string s) {
-		switch (toLower(s)) {
+		switch (std.string.toLower(s)) {
 		case "control", "ctrl": return SWT.CONTROL;
 		case "shift": return SWT.SHIFT;
 		case "alt": return SWT.ALT;
@@ -310,7 +288,7 @@ int convertAccelerator2(string acc_text) {
 		}
 	}
 	int ek(string s) {
-		switch (toLower(s)) {
+		switch (std.string.toLower(s)) {
 		case "backspace": return SWT.BS;
 		case "enter", "return": return SWT.CR;
 		case "delete": return SWT.DEL;
@@ -602,7 +580,7 @@ private class CBarListener(string Name) : ControlAdapter, DisposeListener {
 			ixs ~= i;
 		}
 		_cbar.setItemOrder(ixs);
-		_cbar.setWrapIndices(mixin ("_prop.var.etc." ~ Name ~ "WrapIndices_init.dup"));
+		_cbar.setWrapIndices(mixin ("_prop.var.etc." ~ Name ~ "WrapIndices.INIT.dup"));
 		foreach_reverse (i; _cbar.getItemOrder()) {
 			resetCISize(_cbar.getItem(i));
 		}
