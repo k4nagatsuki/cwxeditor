@@ -168,10 +168,12 @@ class Skin {
 	}
 	/// ファイルにアクセス可能か。
 	private static bool canAccess(string file) {
-		import std.c.windows.windows;
-		immutable INVALID_FILE_ATTRIBUTES = -1;
-		if (INVALID_FILE_ATTRIBUTES == GetFileAttributesW(toUTFz!(wchar*)(file))) {
-			return false;
+		version (Windows) {
+			import std.c.windows.windows;
+			immutable INVALID_FILE_ATTRIBUTES = -1;
+			if (INVALID_FILE_ATTRIBUTES == GetFileAttributesW(toUTFz!(wchar*)(file))) {
+				return false;
+			}
 		}
 		return true;
 	}
