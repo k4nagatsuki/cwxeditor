@@ -166,15 +166,26 @@ class Skin {
 		if (!('X' in _spChars)) _spChars['X'] = "";
 		if (!('Z' in _spChars)) _spChars['Z'] = "";
 	}
+	/// ファイルにアクセス可能か。
+	private static bool canAccess(string file) {
+		import std.c.windows.windows;
+		immutable INVALID_FILE_ATTRIBUTES = -1;
+		if (INVALID_FILE_ATTRIBUTES == GetFileAttributesW(toUTFz!(wchar*)(file))) {
+			return false;
+		}
+		return true;
+	}
 	/// 指定されたディレクトリにリソースディレクトリが
 	/// 含まれていればディレクトリ名を返す。
 	static string findResDir(string path, string classicDataDirRegex, string classicMatchKey) {
 		auto p = path;
 		auto regDir = .regex(to!dstring(classicDataDirRegex), 0 == filenameCharCmp('A', 'a') ? "i" : "");
 		foreach (dir; clistdir(path)) {
+			auto pd = path.buildPath(dir);
+			if (!canAccess(pd)) continue;
 			try {
-				if (.isDir(path.buildPath(dir))) {
-					if (!to!dstring(dir).match(regDir).empty && path.buildPath(dir).buildPath(classicMatchKey).exists()) {
+				if (.isDir(pd)) {
+					if (!to!dstring(dir).match(regDir).empty && pd.buildPath(classicMatchKey).exists()) {
 						return dir;
 					}
 				}
@@ -206,6 +217,7 @@ class Skin {
 
 		foreach (file; clistdir(path)) {
 			string p = path.buildPath(file);
+			if (!canAccess(p)) continue;
 			try {
 				if (!.isDir(p) && !to!dstring(file).match(regExe).empty) {
 					enginePath = p;

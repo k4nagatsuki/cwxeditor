@@ -46,11 +46,23 @@ import java.lang.all;
 
 private enum CViewMode {INIT, LIFE, CARD, TABLE}
 
-private class CardPane(PCardOwner, CardOwner, C : Card, ToCardOwner, string GetAll, string GetFromId) : TCPD {
+private class CardPane(PCardOwner, CardOwner, C : Card, ToCardOwner) : TCPD {
 private:
 	static immutable EditMode = is (ToCardOwner == void);
 	static immutable CanHold = is(CardOwner:CastCard) && (is(C:SkillCard) || is(C:ItemCard));
-	private static C[] cardsFrom(CardOwner owner) {mixin ("return owner." ~ GetAll ~ ";");}
+	private static C[] cardsFrom(CardOwner)(CardOwner owner) {
+		static if (is(C:CastCard)) {
+			return owner.casts;
+		} else static if (is(C:SkillCard)) {
+			return owner.skills;
+		} else static if (is(C:ItemCard)) {
+			return owner.items;
+		} else static if (is(C:BeastCard)) {
+			return owner.beasts;
+		} else static if (is(C:InfoCard)) {
+			return owner.infos;
+		} else static assert (0);
+	}
 	@property
 	public C[] cards() {return cardsFrom(owner);}
 	@property
@@ -60,7 +72,22 @@ private:
 		}
 		return [];
 	}
-	public C card(ulong id) {mixin ("return owner." ~ GetFromId ~ "(id);");}
+	public C cardFrom(CardOwner)(CardOwner owner, ulong id) {
+		static if (is(C:CastCard)) {
+			return owner.cwCast(id);
+		} else static if (is(C:SkillCard)) {
+			return owner.skill(id);
+		} else static if (is(C:ItemCard)) {
+			return owner.item(id);
+		} else static if (is(C:BeastCard)) {
+			return owner.beast(id);
+		} else static if (is(C:InfoCard)) {
+			return owner.info(id);
+		} else static assert (0);
+	}
+	public C card(ulong id) {
+		return cardFrom(_owner, id);
+	}
 	private C __card(ulong id) {
 		if (_owner) {
 			return card(id);
@@ -68,8 +95,8 @@ private:
 		return null;
 	}
 	@property
-	private C[] pOwnerCards() {mixin ("return _summ." ~ GetAll ~ ";");}
-	private C pOwnerCard(ulong id) {mixin ("return _summ." ~ GetFromId ~ "(id);");}
+	private C[] pOwnerCards() {return cardsFrom(_summ);}
+	private C pOwnerCard(ulong id) {return cardFrom(_summ, id);}
 private:
 	static if (EditMode) {
 		static class CPUndo : Undo {
@@ -1958,19 +1985,19 @@ public:
 }
 
 template CastCardPane(PCardOwner, CardOwner, ToCardOwner) {
-	alias CardPane!(PCardOwner, CardOwner, CastCard, ToCardOwner, "casts", "cwCast") CastCardPane;
+	alias CardPane!(PCardOwner, CardOwner, CastCard, ToCardOwner) CastCardPane;
 }
 template SkillCardPane(PCardOwner, CardOwner, ToCardOwner) {
-	alias CardPane!(PCardOwner, CardOwner, SkillCard, ToCardOwner, "skills", "skill") SkillCardPane;
+	alias CardPane!(PCardOwner, CardOwner, SkillCard, ToCardOwner) SkillCardPane;
 }
 template ItemCardPane(PCardOwner, CardOwner, ToCardOwner) {
-	alias CardPane!(PCardOwner, CardOwner, ItemCard, ToCardOwner, "items", "item") ItemCardPane;
+	alias CardPane!(PCardOwner, CardOwner, ItemCard, ToCardOwner) ItemCardPane;
 }
 template BeastCardPane(PCardOwner, CardOwner, ToCardOwner) {
-	alias CardPane!(PCardOwner, CardOwner, BeastCard, ToCardOwner, "beasts", "beast") BeastCardPane;
+	alias CardPane!(PCardOwner, CardOwner, BeastCard, ToCardOwner) BeastCardPane;
 }
 template InfoCardPane(PCardOwner, CardOwner, ToCardOwner) {
-	alias CardPane!(PCardOwner, CardOwner, InfoCard, ToCardOwner, "infos", "info") InfoCardPane;
+	alias CardPane!(PCardOwner, CardOwner, InfoCard, ToCardOwner) InfoCardPane;
 }
 alias CastCardPane!(Summary, Summary, void) MainCastCardPane;
 alias SkillCardPane!(Summary, Summary, void) MainSkillCardPane;
