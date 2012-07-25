@@ -1404,9 +1404,34 @@ public:
 			}
 		}
 		new ToolItem(bar, SWT.SEPARATOR);
-		createToolItem2(_comm, bar, _prop.msgs.newEvent, _prop.images.newEvent, &createEventTree, null);
+		createToolItem2(_comm, bar, _prop.msgs.newEvent, _prop.images.newEvent, &createEventTree, {
+			auto par = selectionParent;
+			if (!par) return false;
+			static if (is(A:Battle)) {
+				auto eto = cast(EventTreeOwner) par.getData();
+				assert (eto !is null);
+				if (cast(C) eto && 2 == _treeKind.getSelectionIndex()) {
+					// エネミーカード選択中、かつラウンド条件選択中
+					return false;
+				}
+			}
+			return true;
+		});
 		static if (UseFire) {
-			createToolItem2(_comm, bar, _prop.msgs.newIgnition, _prop.images.newIgnition, &createEventFire, () => selectionEventTree !is null);
+			createToolItem2(_comm, bar, _prop.msgs.newIgnition, _prop.images.newIgnition, &createEventFire, {
+				if (selectionEventTree is null) return false;
+				static if (is(A:Battle)) {
+					auto par = selectionParent;
+					assert (par !is null);
+					auto eto = cast(EventTreeOwner) par.getData();
+					assert (eto !is null);
+					if (cast(C) eto && 2 == _treeKind.getSelectionIndex()) {
+						// エネミーカード選択中、かつラウンド条件選択中
+						return false;
+					}
+				}
+				return true;
+			});
 		}
 		new ToolItem(bar, SWT.SEPARATOR);
 		createToolItem2(_comm, bar, _prop.msgs.expandTree, _prop.images.expandTree, &_etree.treeOpen, &_etree.canExpandTree);
