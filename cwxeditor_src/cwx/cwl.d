@@ -1630,8 +1630,8 @@ struct SData {
 	uint[ulong] nestCount; /// 召喚獣カードのCWXパスとネストされた回数。
 }
 /// 4.0形式のCardWirthシナリオを保存する。
-void saveLScenario(Summary summ, bool doubleIO, bool saveInnerImagePath = false) {
-	auto d = SData(summ.scenarioPath, saveInnerImagePath, &summ.skill, &summ.item, &summ.beast);
+void saveLScenario(Summary summ, in SaveOption opt) {
+	auto d = SData(summ.scenarioPath, opt.saveInnerImagePath, &summ.skill, &summ.item, &summ.beast);
 	class Save {
 		Area[] areas;
 		Battle[] battles;
@@ -1737,7 +1737,7 @@ void saveLScenario(Summary summ, bool doubleIO, bool saveInnerImagePath = false)
 	save2.beasts = summ.beasts[$ / 2 .. $];
 	save1.infos = summ.infos[0 .. $ / 2];
 	save2.infos = summ.infos[$ / 2 .. $];
-	if (doubleIO) {
+	if (opt.doubleIO) {
 		auto thr = new core.thread.Thread(&save2.save);
 		thr.start();
 		save1.save();
@@ -1768,10 +1768,20 @@ void saveLScenario(Summary summ, bool doubleIO, bool saveInnerImagePath = false)
 	}
 
 	auto sysFName = .regex!(dstring)("^(((Area|Battle|Package|Mate|Skill|Item|Beast|Info)[0-9]+\\.wid)|((Comment|ImageRef|CardRef)\\.wex))$"d);
+	bool canBackup = opt.backup && (!opt.backupDir.exists() || opt.backupDir.isDir());
+	if (canBackup) {
+		foreach (file; clistdir(opt.backupDir)) {
+			delAll(opt.backupDir.buildPath(file));
+		}
+	}
 	foreach (file; clistdir(d.sPath)) {
 		if (cfnmatch(file, "Summary.wsm")
 				|| !std.regex.match(toUTF32(file), sysFName).empty) {
 			scope path = std.path.buildPath(d.sPath, file);
+			if (canBackup) {
+				if (!opt.backupDir.exists()) opt.backupDir.mkdirRecurse();
+				path.copy(opt.backupDir.buildPath(file));
+			}
 			preRemove(path);
 			std.file.remove(path);
 		}

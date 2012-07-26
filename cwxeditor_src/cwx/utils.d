@@ -1032,24 +1032,13 @@ private string createFileImpl(bool Dir)(string parent, string name, string ext, 
 	string r;
 	void create() {
 		r = prefix ~ name;
+		r = r.toFileName();
 		if (ext.length) r = setExtension(r, ext);
 		r = std.path.buildPath(parent, r);
 		r = createNewFileName(r, Dir);
-		static if (Dir) {
-			mkdir(r);
-			rmdir(r);
-		} else {
-			std.file.write(r, []);
-			std.file.remove(r);
-		}
 	}
 	name = clean(name);
-	try {
-		create();
-	} catch (Exception e) {
-		name = toHex(name);
-		create();
-	}
+	create();
 	return r;
 }
 /// 存在しないファイル名を生成して返す。

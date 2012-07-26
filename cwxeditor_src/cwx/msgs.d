@@ -1210,6 +1210,11 @@ class Msgs : Properties {
 	auto backupInterval = Msg("backupInterval", "保存間隔");
 	auto minute = Msg("minute", "分");
 	auto backupCount = Msg("backupCount", "最大保存数");
+	auto backupBeforeSaveDir = Msg("backupBeforeSaveDir", "保存時バックアップ");
+	auto backupBeforeSave = Msg("backupBeforeSave", "保存時バックアップ");
+	auto backupBeforeSaveDirDesc = Msg("backupDirDesc", "シナリオファイルのバックアップコピーを作成する" ~ DIR ~ "を選択してください。");
+	auto backupBeforeSaveEnabled = Msg("backupBeforeSaveEnabled", "保存時にシナリオファイルのバックアップコピーを作成する");
+	auto backupBeforeSavePath = Msg("backupBeforeSavePath", "保存先");
 	auto skin = Msg("skin", "スキン");
 	auto scenarioAuthor = Msg("scenarioAuthor", "シナリオ作者(新規作成時に自動設定されます)");
 	auto historiesSettings = Msg("historiesSettings", "履歴");
@@ -1281,6 +1286,7 @@ class Msgs : Properties {
 	auto errorEnginePath = Msg("errorEnginePath", "%1$sの場所が正しくありません。");
 	auto errorTempPath = Msg("errorTempPath", "一時展開先が正しくありません。");
 	auto errorBackupPath = Msg("errorBackupPath", "自動バックアップ先が正しくありません。");
+	auto errorBackupBeforeSavePath = Msg("errorBackupBeforeSavePath", "保存時バックアップ先が正しくありません。");
 
 	auto sNew = Msg("sNew", "新規作成");
 	auto sAlt = Msg("sAlt", "上書き");

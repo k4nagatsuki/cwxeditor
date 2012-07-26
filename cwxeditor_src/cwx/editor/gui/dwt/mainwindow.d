@@ -574,6 +574,14 @@ private:
 	void savec(Shell shell) {
 		save(shell);
 	}
+	SaveOption createSaveOpt() {
+		SaveOption opt;
+		opt.doubleIO = _prop.var.etc.doubleIO;
+		opt.saveInnerImagePath = _prop.var.etc.saveInnerImagePath;
+		opt.backup = _prop.var.etc.backupBeforeSaveEnabled;
+		opt.backupDir = _prop.backupBeforeSavePath.buildPath(_prop.var.etc.backupBeforeSaveDir);
+		return opt;
+	}
 	bool save(Shell shell) {
 		if (summary) {
 			_dirWin.pauseTrace();
@@ -590,7 +598,7 @@ private:
 				}
 				try {
 					synchronized (_saveSync) {
-						summary.saveOverwrite(_prop.parent, _prop.var.etc.doubleIO, _prop.var.etc.saveInnerImagePath);
+						summary.saveOverwrite(_prop.parent, createSaveOpt());
 					}
 					_comm.saved.call();
 					refreshTitle();
@@ -630,8 +638,7 @@ private:
 				Skin defSkin = .findSkin2(_prop, _prop.var.etc.defaultSkin);
 				try {
 					synchronized (_saveSync) {
-						summary.saveWithName(_prop.parent, _prop.var.etc.doubleIO,
-							_prop.var.etc.saveInnerImagePath,
+						summary.saveWithName(_prop.parent, createSaveOpt(),
 							fname, tempPath, expandXMLs, defSkin, (string msg) {
 								MessageBox.showWarning(msg, _prop.msgs.dlgTitWarning, shell);
 							});

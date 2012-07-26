@@ -105,6 +105,16 @@ public:
 	}
 	@property
 	const
+	string backupBeforeSavePath() {
+		if (!var.etc.backupBeforeSavePath.length) return "";
+		if (isAbsolute(var.etc.backupBeforeSavePath)) {
+			return var.etc.backupBeforeSavePath;
+		} else {
+			return std.path.buildPath(std.path.dirName(parent.appPath), var.etc.backupBeforeSavePath);
+		}
+	}
+	@property
+	const
 	const(CProps) parent() {return _parent;}
 	@property
 	const

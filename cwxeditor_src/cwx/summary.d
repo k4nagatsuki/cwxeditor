@@ -57,6 +57,14 @@ public const {
 	string PATH_INFO = "InfoCard";
 }
 
+/// 保存時オプション。
+struct SaveOption {
+	bool doubleIO; /// 書き込みの多重化を行うか。
+	bool saveInnerImagePath; /// 格納イメージの参照先を保存するか。
+	bool backup; /// 保存時バックアップを行うか。
+	string backupDir; /// 保存時バックアップ先。
+}
+
 /// 貼り紙。シナリオの情報が入る。
 class Summary : CWXPath, AreaOwner, BattleOwner, PackageOwner,
 		CastOwner, SkillOwner, ItemOwner, BeastOwner, InfoOwner {
@@ -199,7 +207,8 @@ public:
 		if (!exists(mFPath) || !isDir(mFPath)) std.file.mkdir(mFPath);
 		auto summ = new Summary(name, skin.type, p, true, false);
 		if (summ.expandXMLs) {
-			summ.saveXMLs(summ.scenarioPath);
+			SaveOption opt;
+			summ.saveXMLs(summ.scenarioPath, opt);
 		}
 		return summ;
 	}
@@ -1363,53 +1372,71 @@ public:
 	/// path = 保存先のパス。
 	/// Throws:
 	/// FileException = ファイル削除時・保存時例外発生時。
-	void saveXMLs(string path) {
+	void saveXMLs(string path, in SaveOption opt) {
 		std.file.write(std.path.buildPath(path, "Summary.xml"), summaryToXML());
-		auto opt = new XMLOption;
-		opt.includeCard = true;
-		opt.skill = &skill;
-		opt.item = &item;
-		opt.beast = &beast;
+		auto xOpt = new XMLOption;
+		xOpt.includeCard = true;
+		xOpt.skill = &skill;
+		xOpt.item = &item;
+		xOpt.beast = &beast;
 
-		saveXML(std.path.buildPath(path, PATH_AREA), _area, opt);
-		saveXML(std.path.buildPath(path, PATH_BATTLE), _btl, opt);
-		saveXML(std.path.buildPath(path, PATH_PACKAGE), _pkg, opt);
-
-		saveXML(std.path.buildPath(path, PATH_CAST), _cast, opt);
-		saveXML(std.path.buildPath(path, PATH_SKILL), _skl, opt);
-		saveXML(std.path.buildPath(path, PATH_ITEM), _itm, opt);
-		saveXML(std.path.buildPath(path, PATH_BEAST), _bst, opt);
-		saveXML(std.path.buildPath(path, PATH_INFO), _info, opt);
-	}
-	/// ditto
-	void saveXMLs() {
-		saveXMLs(_sPath);
-	}
-	private static void delAllXML(string p) {
-		foreach (t; clistdir(p)) {
-			t = std.path.buildPath(p, t);
-			if (!isDir(t) && cfnmatch(.extension(t), ".xml")) {
-				std.file.remove(t);
+		bool canBackup = opt.backup && (!opt.backupDir.exists() || opt.backupDir.isDir());
+		if (canBackup) {
+			foreach (file; clistdir(opt.backupDir)) {
+				.delAll(opt.backupDir.buildPath(file));
 			}
 		}
+
+		saveXML(std.path.buildPath(path, PATH_AREA), _area, opt, xOpt);
+		saveXML(std.path.buildPath(path, PATH_BATTLE), _btl, opt, xOpt);
+		saveXML(std.path.buildPath(path, PATH_PACKAGE), _pkg, opt, xOpt);
+
+		saveXML(std.path.buildPath(path, PATH_CAST), _cast, opt, xOpt);
+		saveXML(std.path.buildPath(path, PATH_SKILL), _skl, opt, xOpt);
+		saveXML(std.path.buildPath(path, PATH_ITEM), _itm, opt, xOpt);
+		saveXML(std.path.buildPath(path, PATH_BEAST), _bst, opt, xOpt);
+		saveXML(std.path.buildPath(path, PATH_INFO), _info, opt, xOpt);
 	}
-	private static void saveXML(A)(string path, A[] targs, XMLOption opt) {
+	/// ditto
+	void saveXMLs(in SaveOption opt) {
+		saveXMLs(_sPath, opt);
+	}
+	private static void delAllXML(string p, in SaveOption opt) {
+		bool canBackup = opt.backup && (!opt.backupDir.exists() || opt.backupDir.isDir());
+		string backupDir = "";
+		if (canBackup) {
+			backupDir = opt.backupDir.buildPath(p.baseName());
+		}
+		foreach (t; clistdir(p)) {
+			auto file = std.path.buildPath(p, t);
+			if (isDir(file) || !cfnmatch(.extension(file), ".xml")) continue;
+
+			if (canBackup) {
+				if (!backupDir.exists()) backupDir.mkdirRecurse();
+				auto backFile = backupDir.buildPath(t);
+				file.copy(backFile);
+			}
+
+			std.file.remove(file);
+		}
+	}
+	private static void saveXML(A)(string path, A[] targs, in SaveOption opt, XMLOption xOpt) {
 		if (targs.length == 0) {
 			if (exists(path) && isDir(path)) {
-				delAllXML(path);
+				delAllXML(path, opt);
 				if (clistdir(path).length == 0) {
 					rmdir(path);
 				}
 			}
 		} else {
 			if (exists(path) && isDir(path)) {
-				delAllXML(path);
+				delAllXML(path, opt);
 			} else {
 				mkdir(path);
 			}
 			foreach (targ; targs) {
 				auto p = createFileI(path, targ.name, "xml", format("%02d", targ.id) ~ "_");
-				std.file.write(p, targ.toXML(opt));
+				std.file.write(p, targ.toXML(xOpt));
 			}
 		}
 	}
@@ -1732,13 +1759,13 @@ public:
 		return !useTemp || zipName.length;
 	}
 	/// 上書き保存。
-	void saveOverwrite(in CProps prop, bool doubleIO, bool saveInnerImagePath) in {
+	void saveOverwrite(in CProps prop, in SaveOption opt) in {
 		assert (isSaved);
 	} body {
-		saveProc(prop, doubleIO, saveInnerImagePath, false, zipName, scenarioPath, false, expandXMLs);
+		saveProc(prop, opt, false, zipName, scenarioPath, false, expandXMLs);
 	}
 	/// 名前をつけて保存。
-	void saveWithName(in CProps prop, bool doubleIO, bool saveInnerImagePath, string fname, string tempPath,
+	void saveWithName(in CProps prop, in SaveOption opt, string fname, string tempPath,
 			bool defExpandXMLs, Skin defSkin, void delegate(string) showWarn) in {
 		assert (cfnmatch(.extension(fname), ".wsn"));
 	} body {
@@ -1752,13 +1779,13 @@ public:
 			}
 			scope (failure) delAll(temp);
 			if (!type.length) type = defSkin.type;
-			saveProc(prop, doubleIO, saveInnerImagePath, true, fname, temp, true, defExpandXMLs);
+			saveProc(prop, opt, true, fname, temp, true, defExpandXMLs);
 		} else if (useTemp) {
 			// 新しいアーカイブを作成
 			string oldZip = _zipName;
 			_zipName = fname;
 			scope (failure) _zipName = oldZip;
-			saveProc(prop, doubleIO, saveInnerImagePath, false, zipName, scenarioPath, false, defExpandXMLs);
+			saveProc(prop, opt, false, zipName, scenarioPath, false, defExpandXMLs);
 		} else {
 			// 展開済みシナリオからアーカイブに変換
 			auto oldPath = scenarioPath;
@@ -1769,15 +1796,15 @@ public:
 				scenarioPath = oldPath;
 				delAll(p);
 			}
-			saveProc(prop, doubleIO, saveInnerImagePath, true, fname, p, false, defExpandXMLs);
+			saveProc(prop, opt, true, fname, p, false, defExpandXMLs);
 		}
 	}
-	private void saveProc(in CProps prop, bool doubleIO, bool saveInnerImagePath, bool archive,
+	private void saveProc(in CProps prop, in SaveOption opt, bool archive,
 			string zipName, string temp, bool legacyToX, bool defExpandXMLs) {
 		try {
 			bool expand = false;
 			if (legacy && !legacyToX) {
-				saveLScenario(this, doubleIO, saveInnerImagePath);
+				saveLScenario(this, opt);
 				if (useTemp) {
 					if (cfnmatch(.extension(zipName), ".cab")) {
 						.cab(temp, zipName, (string file) {
@@ -1791,12 +1818,12 @@ public:
 			} else if (archive || useTemp || legacyToX) {
 				auto oldPath = scenarioPath;
 				if (expandXMLs) {
-					saveXMLs();
+					saveXMLs(opt);
 					expand = true;
 				} else if (legacyToX && defExpandXMLs) {
 					scenarioPath = temp;
 					scope (failure) scenarioPath = oldPath;
-					saveXMLs();
+					saveXMLs(opt);
 					expand = true;
 				}
 				auto lock = std.path.buildPath(scenarioPath, "cwxeditor.lock");
@@ -1814,7 +1841,7 @@ public:
 				std.file.write(zipName, arc.build());
 			} else {
 				assert (expandXMLs);
-				saveXMLs();
+				saveXMLs(opt);
 			}
 			dataVersion = LATEST_VERSION;
 			resetChanged();

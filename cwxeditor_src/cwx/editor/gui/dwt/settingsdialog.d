@@ -1334,6 +1334,10 @@ private:
 	Spinner _backupCount;
 	Button _backupRef;
 	Button _backupDirOpen;
+	Text _backupBeforeSaveDir;
+	Button _backupBeforeSaveEnabled;
+	Button _backupBeforeSaveRef;
+	Button _backupBeforeSaveDirOpen;
 	Text _author;
 	Text _wallpaper;
 	Combo _wallpaperStyle;
@@ -1479,6 +1483,9 @@ private:
 	void selectBackup() {
 		selectDir(_prop, _backupDir, _prop.msgs.backupDir, _prop.msgs.backupDirDesc, _prop.backupPath);
 	}
+	void selectBackupBeforeSave() {
+		selectDir(_prop, _backupBeforeSaveDir, _prop.msgs.backupBeforeSaveDir, _prop.msgs.backupBeforeSaveDirDesc, _prop.backupBeforeSavePath);
+	}
 	void selectWallpaper() {
 		string[] filterName = [_prop.msgs.filterWallpaper, _prop.msgs.filterAll];
 		string[] filter = [
@@ -1495,6 +1502,9 @@ private:
 	}
 	class SelBackup : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {selectBackup();}
+	}
+	class SelBackupBeforeSave : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {selectBackupBeforeSave();}
 	}
 	class SelWallpaper : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {selectWallpaper();}
@@ -1675,6 +1685,37 @@ private:
 				_backupRef.addSelectionListener(new SelBackup);
 				_backupDirOpen = createOpenButton(_comm, comp2, _backupDir, true);
 				setupDropFile(grp, _backupDir, toDelegate(&dropDir));
+			}
+		}
+		{
+			auto grp = new Group(comp, SWT.NONE);
+			grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			grp.setText(_prop.msgs.backupBeforeSaveDir);
+			grp.setLayout(new GridLayout(1, false));
+
+			{
+				_backupBeforeSaveEnabled = new Button(grp, SWT.CHECK);
+				_backupBeforeSaveEnabled.setText(_prop.msgs.backupBeforeSaveEnabled);
+				mod(_backupBeforeSaveEnabled);
+				_backupBeforeSaveEnabled.addSelectionListener(_refe);
+			}
+			{
+				auto comp2 = new Composite(grp, SWT.NONE);
+				auto gd = new GridData(GridData.FILL_HORIZONTAL);
+				gd.horizontalSpan = 3;
+				comp2.setLayoutData(gd);
+				comp2.setLayout(zeroMarginGridLayout(4, false));
+				auto l = new Label(comp2, SWT.NONE);
+				l.setText(_prop.msgs.backupBeforeSavePath);
+				_backupBeforeSaveDir = new Text(comp2, SWT.BORDER);
+				createTextMenu!Text(_comm, _prop, _backupBeforeSaveDir, &catchMod);
+				_backupBeforeSaveDir.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				mod(_backupBeforeSaveDir);
+				_backupBeforeSaveRef = new Button(comp2, SWT.PUSH);
+				_backupBeforeSaveRef.setText(_prop.msgs.reference);
+				_backupBeforeSaveRef.addSelectionListener(new SelBackupBeforeSave);
+				_backupBeforeSaveDirOpen = createOpenButton(_comm, comp2, _backupBeforeSaveDir, true);
+				setupDropFile(grp, _backupBeforeSaveDir, toDelegate(&dropDir));
 			}
 		}
 		{
@@ -2268,7 +2309,9 @@ private:
 		_backupInterval.setEnabled(_backupEnabled.getSelection());
 		_backupCount.setEnabled(_backupEnabled.getSelection());
 		_backupRef.setEnabled(_backupEnabled.getSelection());
-		_backupDirOpen.setEnabled(_backupEnabled.getSelection());
+
+		_backupBeforeSaveDir.setEnabled(_backupBeforeSaveEnabled.getSelection());
+		_backupBeforeSaveRef.setEnabled(_backupBeforeSaveEnabled.getSelection());
 	}
 	void refEngineEnabled() {
 		_findEnginePath.setEnabled(0 == _enginePath.getText().length);
@@ -2317,10 +2360,15 @@ protected:
 		refEngineEnabled();
 
 		_tempDir.setText(_prop.var.etc.tempPath);
+
 		_backupDir.setText(_prop.var.etc.backupPath);
 		_backupEnabled.setSelection(_prop.var.etc.backupEnabled);
 		_backupInterval.setSelection(_prop.var.etc.backupInterval);
 		_backupCount.setSelection(_prop.var.etc.backupCount);
+
+		_backupBeforeSaveDir.setText(_prop.var.etc.backupBeforeSavePath);
+		_backupBeforeSaveEnabled.setSelection(_prop.var.etc.backupBeforeSaveEnabled);
+
 		_author.setText(_prop.var.etc.defaultAuthor);
 		_wallpaper.setText(_prop.var.etc.wallpaper);
 		auto wsp = _prop.var.etc.wallpaperStyle in _wallpaperStyleTbl;
@@ -2430,6 +2478,13 @@ protected:
 			err(_tabB, _backupDir, _prop.msgs.errorBackupPath);
 			return false;
 		}
+		string backupBeforeSave;
+		try {
+			backupBeforeSave = _backupBeforeSaveDir.getText();
+		} catch {
+			err(_tabB, _backupBeforeSaveDir, _prop.msgs.errorBackupBeforeSavePath);
+			return false;
+		}
 		auto oldStgs = OldSettings(_prop);
 		scope (exit) {
 			oldStgs.raiseEvent(_comm);
@@ -2444,10 +2499,15 @@ protected:
 			_prop.var.etc.useSystemLanguage = false;
 		}
 		_prop.var.etc.tempPath = temp;
+
 		_prop.var.etc.backupPath = backup;
 		_prop.var.etc.backupEnabled = _backupEnabled.getSelection();
 		_prop.var.etc.backupInterval = _backupInterval.getSelection();
 		_prop.var.etc.backupCount = _backupCount.getSelection();
+
+		_prop.var.etc.backupBeforeSavePath = backupBeforeSave;
+		_prop.var.etc.backupBeforeSaveEnabled = _backupBeforeSaveEnabled.getSelection();
+
 		_prop.var.etc.defaultAuthor = _author.getText();
 		_prop.var.etc.wallpaper = _wallpaper.getText();
 		_prop.var.etc.wallpaperStyle = cast(WallpaperStyle) _wallpaperStyleTbl2[_wallpaperStyle.getSelectionIndex()];
