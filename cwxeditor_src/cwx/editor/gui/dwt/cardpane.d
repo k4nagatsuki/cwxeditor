@@ -501,7 +501,7 @@ private:
 		itm.setText(1, c.name);
 		string desc = std.array.replace(c.desc, "\n", "");
 		itm.setText(2, desc);
-		static if (is (CardOwner == Summary)) {
+		static if (EditMode && is (CardOwner == Summary)) {
 			itm.setText(3, to!(string)(_summ.useCounter.get(C.toID(c.id))));
 		}
 		itm.setData(c);
@@ -1072,7 +1072,7 @@ private:
 			_comm.refreshToolBar();
 		}
 	}
-	static if (is(CardOwner : Summary)) {
+	static if (EditMode && is(CardOwner : Summary)) {
 		private bool _procRefColW = false;
 		void refColumnWidth(TableColumn c, int width) {
 			if (_procRefColW) return;
@@ -1114,30 +1114,28 @@ private:
 		auto idCol = new TableColumn(_tbl, SWT.NONE);
 		idCol.setText(_prop.msgs.cardId);
 		idCol.setWidth(_prop.var.etc.cardIdColumn);
-		static if (is(CardOwner : Summary)) {
+		static if (EditMode && is(CardOwner : Summary)) {
 			idCol.addControlListener(new ColResize!("cardIdColumn"));
 		}
 		auto nameCol = new TableColumn(_tbl, SWT.NONE);
 		nameCol.setText(_prop.msgs.cardName);
 		nameCol.setWidth(_prop.var.etc.cardNameColumn);
-		static if (is(CardOwner : Summary)) {
+		static if (EditMode && is(CardOwner : Summary)) {
 			nameCol.addControlListener(new ColResize!("cardNameColumn"));
 		}
 		auto descCol = new TableColumn(_tbl, SWT.NONE);
 		descCol.setText(_prop.msgs.cardDesc);
 		descCol.setWidth(_prop.var.etc.cardDescriptionColumn);
-		static if (is(CardOwner : Summary)) {
+		static if (EditMode && is(CardOwner : Summary)) {
 			descCol.addControlListener(new ColResize!("cardDescriptionColumn"));
 		}
-		static if (is (CardOwner == Summary)) {
+		static if (EditMode && is (CardOwner == Summary)) {
 			auto ucCol = new TableColumn(_tbl, SWT.NONE);
 			ucCol.setText(_prop.msgs.cardCount);
 			ucCol.setWidth(_prop.var.etc.cardCountColumn);
-			static if (is(CardOwner : Summary)) {
-				ucCol.addControlListener(new ColResize!("cardCountColumn"));
-			}
+			ucCol.addControlListener(new ColResize!("cardCountColumn"));
 		}
-		static if (is(CardOwner : Summary)) {
+		static if (EditMode && is(CardOwner : Summary)) {
 			_comm.refCardTableColumnWidth.add(&refColumnWidth);
 			_tbl.addDisposeListener(new DisposeTable);
 		}
@@ -1256,14 +1254,14 @@ public:
 				_parent = parent;
 				_toc = toc;
 				_openHand = openHand;
-				_skinTemp = findSkin(comm, prop, summ);
+				_skinTemp = comm.findSkinFromHistory(summ);
 				construct1(comm, prop, summ);
 			}
 		} else {
 			this (Commons comm, Props prop, PCardOwner summ, Composite parent, ToCardOwner toc) {
 				_parent = parent;
 				_toc = toc;
-				_skinTemp = findSkin(comm, prop, summ);
+				_skinTemp = comm.findSkinFromHistory(summ);
 				construct1(comm, prop, summ);
 			}
 		}
@@ -1285,7 +1283,7 @@ public:
 	void reconstruct(Composite parent) {
 		_parent = parent;
 		createCardList(parent);
-		static if (is (PCardOwner == Summary)) {
+		static if (EditMode && is (PCardOwner == Summary)) {
 			_comm.refSkin.add(&__refresh);
 			_comm.delPaths.add(&__refresh);
 			_comm.replPath.add(&__refreshR);
@@ -1299,7 +1297,7 @@ public:
 				}
 			});
 		}
-		static if (is (CardOwner == Summary)) {
+		static if (EditMode && is (CardOwner == Summary)) {
 			_comm.refUseCount.add(&__refreshUseCount);
 			_list.addDisposeListener(new class DisposeListener {
 				override void widgetDisposed(DisposeEvent e) {
@@ -1966,19 +1964,21 @@ public:
 	@property
 	string[] openedCWXPath() {
 		string[] r;
-		static if (is(C:CastCard)) {
-			r ~= .cpjoin(owner, "castcardview", true);
-		} else static if (is(C:SkillCard)) {
-			r ~= .cpjoin(owner, "skillcardview", true);
-		} else static if (is(C:ItemCard)) {
-			r ~= .cpjoin(owner, "itemcardview", true);
-		} else static if (is(C:BeastCard)) {
-			r ~= .cpjoin(owner, "beastcardview", true);
-		} else static if (is(C:InfoCard)) {
-			r ~= .cpjoin(owner, "infocardview", true);
-		} else static assert (0);
 		foreach (c; selectedCards) {
 			r ~= c.cwxPath(true);
+		}
+		if (!r.length) {
+			static if (is(C:CastCard)) {
+				r ~= .cpjoin(owner, "castcardview", true);
+			} else static if (is(C:SkillCard)) {
+				r ~= .cpjoin(owner, "skillcardview", true);
+			} else static if (is(C:ItemCard)) {
+				r ~= .cpjoin(owner, "itemcardview", true);
+			} else static if (is(C:BeastCard)) {
+				r ~= .cpjoin(owner, "beastcardview", true);
+			} else static if (is(C:InfoCard)) {
+				r ~= .cpjoin(owner, "infocardview", true);
+			} else static assert (0);
 		}
 		return r;
 	}

@@ -68,7 +68,6 @@ private version (Windows) {
 		const CSIDL_APPDATA = 0x1A;
 		const SHGFP_TYPE_CURRENT = 0;
 	}
-	import std.loader;
 } else {
 	import core.sys.posix.unistd;
 	import core.sys.posix.pwd;
@@ -216,15 +215,53 @@ void cwriteln(string s) {
 	}
 }
 
+version (Windows) {
+	import core.sys.windows.windows;
+
+	/// 共有ライブラリを読み込む。
+	void* dlopen(string lib) {
+		return LoadLibraryW(.toUTFz!(wchar*)(lib));
+	}
+	/// 共有ライブラリからシンボルを取得。
+	void* dlsym(void* lib, string sym) {
+		if (!lib) return null;
+		return GetProcAddress(lib, .toStringz(sym));
+	}
+	/// 共有ライブラリを解放する。
+	void dlclose(ref void* lib) {
+		if (!lib) return;
+		FreeLibrary(lib);
+		lib = null;
+	}
+} else version (Posix) {
+	import core.sys.posix.dlfcn;
+
+	/// 共有ライブラリを読み込む。
+	void* dlopen(string lib) {
+		return core.sys.posix.dlopen(.toStringz(lib), RTLD_NOW);
+	}
+	/// 共有ライブラリからシンボルを取得。
+	void* dlsym(void* lib, string sym) {
+		if (!lib) return null;
+		return core.sys.posix.dlsym(lib, .toStringz(sym));
+	}
+	/// 共有ライブラリを解放する。
+	void dlclose(ref void* lib) {
+		if (!lib) return;
+		core.sys.posix.dlfcn.dlclose(lib);
+		lib = null;
+	}
+} else static assert (0);
+
 /// アプリケーションデータを格納する環境標準のディレクトリを返す。
 string appDataDir(string appPath) {
 	version (Windows) {
-		auto shl = ExeModule_Load("shell32.dll");
+		auto shl = dlopen("shell32.dll");
 		if (!shl) {
 			return appPath.dirName();
 		}
-		scope (exit) ExeModule_Release(shl);
-		auto getFolderPath = cast(SHGetFolderPathW) ExeModule_GetSymbol(shl, "SHGetFolderPathW");
+		scope (exit) dlclose(shl);
+		auto getFolderPath = cast(SHGetFolderPathW) dlsym(shl, "SHGetFolderPathW");
 		if (!getFolderPath) {
 			return appPath.dirName();
 		}
@@ -1631,11 +1668,11 @@ version (Windows) {
 		private immutable GCT_SHORTCHAR = 0x2;
 		private immutable GCT_WILD = 0x4;
 		private immutable GCT_SEPARATOR = 0x8;
-		private __gshared HXModule _shlwapi = null;
+		private __gshared void* _shlwapi = null;
 		private __gshared PathGetCharTypeW _PathGetCharType = null;
 	}
 	shared static ~this() {
-		if (_shlwapi) ExeModule_Release(_shlwapi);
+		if (_shlwapi) dlclose(_shlwapi);
 	}
 }
 /// ファイル名に使用できる文字か。
@@ -1644,14 +1681,14 @@ bool isFileNameChar(dchar c) {
 	version (Windows) {
 		static immutable DN = "\\/:*?\"<>|"d;
 		if (!_shlwapi) {
-			_shlwapi = ExeModule_Load("shlwapi.dll");
+			_shlwapi = dlopen("shlwapi.dll");
 		}
 		if (!_shlwapi) {
 			debugln("not found: shlwapi.dll");
 			return -1 == std.string.indexOf(DN, c);
 		}
 		if (!_PathGetCharType) {
-			_PathGetCharType = cast(PathGetCharTypeW) ExeModule_GetSymbol(_shlwapi, "PathGetCharTypeW");
+			_PathGetCharType = cast(PathGetCharTypeW) dlsym(_shlwapi, "PathGetCharTypeW");
 		}
 		if (!_PathGetCharType) {
 			debugln("not found: PathGetCharTypeW");

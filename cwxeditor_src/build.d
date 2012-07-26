@@ -238,6 +238,8 @@ void main(string[] args) {
 			RES.removeFile();
 		}
 		"objs".removeFile();
+		"build.d.deps".removeFile();
+		"build.log".removeFile();
 		if (clean && 1 == file.length + option.length) return;
 	}
 
@@ -272,6 +274,10 @@ void main(string[] args) {
 
 	// ファイルが指定されている場合はコンパイルテストなのでここで終了
 	if (file.length) {
+		foreach (f; d2std ~ cwx ~ editor ~ main) {
+			auto obj = objs[f];
+			writefln("%s: %s KB", obj, obj.getSize() / 1024);
+		}
 		timer.stop();
 		writefln("Compiled: %d msecs", timer.peek().msecs);
 		return;

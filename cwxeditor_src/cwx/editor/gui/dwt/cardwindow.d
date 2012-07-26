@@ -336,7 +336,7 @@ public:
 					}
 				});
 			}
-			static if (is (CardOwner == Importable)) {
+			static if (is (CardOwner == Summary)) {
 				_win.addDisposeListener(new class DisposeListener {
 					override void widgetDisposed(DisposeEvent e) {
 						_comm.closeAdds.call(_summ);
@@ -533,7 +533,7 @@ public:
 					}
 				}
 			}
-			static if (is (CardOwner == Summary)) {
+			static if (EditMode && is (CardOwner == Summary)) {
 				_prop.var.etc.cardLife = true;
 				_prop.var.etc.cardDetails = false;
 			}
@@ -562,7 +562,7 @@ public:
 					}
 				}
 			}
-			static if (is (CardOwner == Summary)) {
+			static if (EditMode && is (CardOwner == Summary)) {
 				_prop.var.etc.cardLife = false;
 				_prop.var.etc.cardDetails = false;
 			}
@@ -591,7 +591,7 @@ public:
 					}
 				}
 			}
-			static if (is (CardOwner == Summary)) {
+			static if (EditMode && is (CardOwner == Summary)) {
 				_prop.var.etc.cardLife = false;
 				_prop.var.etc.cardDetails = true;
 			}
@@ -607,7 +607,7 @@ public:
 		_comm.setStatusLine(w, status);
 	}
 
-	static if (is(CardOwner : Summary)) {
+	static if (EditMode && is(CardOwner : Summary)) {
 		CastCardPane!(PCardOwner, CardOwner, ToCardOwner) openCast(bool shellActivate) {
 			static if (UseCast) {
 				open!(CAST)(shellActivate);
@@ -741,7 +741,7 @@ public:
 	private bool isViewTable() {
 		return _viewMode == CViewMode.TABLE;
 	}
-	static if (!is(CardOwner : Summary)) {
+	static if (!EditMode || !is(CardOwner : Summary)) {
 		private static class ColResize : ControlAdapter {
 			bool procRefColWidth = false;
 			Commons comm;
@@ -762,7 +762,7 @@ public:
 	}
 	private void construct2() {
 		newPane!(0)();
-		static if (!is(CardOwner : Summary)) {
+		static if (!EditMode || !is(CardOwner : Summary)) {
 			ColResize[] colR;
 			colR.length = (is (CardOwner == Summary)) ? 4 : 3;
 			foreach (i, c; colR) {
@@ -811,7 +811,7 @@ public:
 				}
 			}
 			_tcpd ~= f;
-			static if (!is(CardOwner : Summary)) {
+			static if (!EditMode || !is(CardOwner : Summary)) {
 				addTable(f.cardTable);
 			}
 		}
@@ -830,7 +830,7 @@ public:
 		if (shell) {
 			scope wp = shell.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 			int width = _prop.var.cardWin.width == SWT.DEFAULT ? wp.x : _prop.var.cardWin.width;
-			static if (is (CardOwner == Summary)) {
+			static if (EditMode && is (CardOwner == Summary)) {
 				shell.setMaximized(_prop.var.cardWin.maximized);
 				shell.setMinimized(_prop.var.cardWin.minimized);
 				int x = _prop.var.cardWin.x == SWT.DEFAULT ? shell.getBounds().x : _prop.var.cardWin.x + shell.getParent().getBounds().x;
@@ -868,7 +868,7 @@ public:
 		}
 	}
 	static if (!EditMode && is(CardOwner == CastCard)) {
-		private void __closeAdds(Importable importable) {
+		private void __closeAdds(Summary importable) {
 			if (_summ is importable) {
 				_comm.close(_win);
 			}
@@ -1441,7 +1441,7 @@ public:
 	}
 }
 
-alias CardWindow!(CardWindowKind.ImportSourceHand, Importable, CastCard, Summary, SkillCard, ItemCard, BeastCard) AddHandCardWindow;
+alias CardWindow!(CardWindowKind.ImportSourceHand, Summary, CastCard, Summary, SkillCard, ItemCard, BeastCard) AddHandCardWindow;
 alias CardWindow!(CardWindowKind.Hand, Summary, CastCard, void, SkillCard, ItemCard, BeastCard) HandCardWindow;
 alias CardWindow!(CardWindowKind.Main, Summary, Summary, void, CastCard, SkillCard, ItemCard, BeastCard, InfoCard) MainCardWindow;
 alias CardWindow!(CardWindowKind.Cast, Summary, Summary, void, CastCard) CastCardWindow;
@@ -1450,9 +1450,9 @@ alias CardWindow!(CardWindowKind.Item, Summary, Summary, void, ItemCard) ItemCar
 alias CardWindow!(CardWindowKind.Beast, Summary, Summary, void, BeastCard) BeastCardWindow;
 alias CardWindow!(CardWindowKind.Info, Summary, Summary, void, InfoCard) InfoCardWindow;
 
-private class DelTemp(CC) : DisposeListener {
-	private CC _cc;
-	this (CC cc) {
+private class DelTemp : DisposeListener {
+	private Summary _cc;
+	this (Summary cc) {
 		_cc = cc;
 	}
 	override void widgetDisposed(DisposeEvent dse) {
@@ -1465,8 +1465,7 @@ private class DelTemp(CC) : DisposeListener {
 }
 private class AddCard {
 private:
-	alias CardContainer!(true, true, true, true, true) CC;
-	alias CardWindow!(CardWindowKind.ImportSource, CC, CC, Summary, CastCard, SkillCard, ItemCard, BeastCard, InfoCard) ACW;
+	alias CardWindow!(CardWindowKind.ImportSource, Summary, Summary, Summary, CastCard, SkillCard, ItemCard, BeastCard, InfoCard) ACW;
 	static class AddS {
 		Commons comm;
 		Props prop;
@@ -1481,14 +1480,14 @@ private:
 			this.toc = toc;
 			this.addScenario = addScenario;
 		}
-		void addS(CC[] ccs) {
+		void addS(Summary[] ccs) {
 			ACW[] r;
 			foreach (i, cc; ccs) {
 				if (cc) {
 					auto shl = cast(Shell) parent;
 					auto pane = shl && !comm.singleWindowMode(prop) ? parent : comm.sidePane;
 					auto acw = new ACW(comm, prop, pane, cc, cc, toc);
-					acw.shell.addDisposeListener(new DelTemp!(CC)(cc));
+					acw.shell.addDisposeListener(new DelTemp(cc));
 					r ~= acw;
 				}
 			}
@@ -1509,12 +1508,12 @@ public:
 			Summary summ, Summary toc, void delegate(Object[]) addScenario) {
 		parent = pane(parent);
 		auto addS = new AddS(comm, prop, parent, toc, addScenario);
-		loadScenarios!(CC)(prop, comm.mainShell, status, false, prop.msgs.dlgTitAddScenario, &addS.addS);
+		loadScenarios(prop, true, comm.mainShell, status, false, prop.msgs.dlgTitAddScenario, &addS.addS);
 	}
 	static void openScenario(Commons comm, Props prop, Composite parent, void delegate(string) status,
 			Summary summ, Summary toc, string[] files, void delegate(Object[]) addScenario) {
 		parent = pane(parent);
 		auto addS = new AddS(comm, prop, parent, toc, addScenario);
-		loadScenariosFromFile!(CC)(prop, comm.mainShell, status, false, files, &addS.addS);
+		loadScenariosFromFile(prop, true, comm.mainShell, status, false, files, &addS.addS);
 	}
 }

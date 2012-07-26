@@ -29,18 +29,24 @@ void main(string[] args) {
 	}
 	LaunchOption opt;
 
-	cwx.utils.debugLog = buildPath(dirName(appPath), cwx.utils.debugLog);
+	string debugName = cwx.utils.debugLog;
+	cwx.utils.debugLog = buildPath(dirName(appPath), debugName);
 	string dStr = .text(__LINE__); // 起動ログ
 	try {
 		auto sys = new System;
 		opt.conf = buildPath(dirName(appPath), "cwxeditor.config");
 		dStr ~= " - " ~ .text(__LINE__);
 		opt.parseStrings(args[1 .. $]);
+		dStr ~= " - " ~ .text(__LINE__);
 		auto cprops = new CProps(appPath, sys);
+		dStr ~= " - " ~ .text(__LINE__);
+		auto prop = new Props(opt.conf, cprops);
+		dStr ~= " - " ~ .text(__LINE__);
+		if (prop.var.cwxDir) cwx.utils.debugLog = buildPath(prop.var.cwxDir, debugName);
+		dStr ~= " - " ~ .text(__LINE__);
 		if (opt.help) {
 			/// usage
 			dStr ~= " - " ~ .text(__LINE__);
-			auto prop = new Props(opt.conf, cprops);
 			version (Console) {
 				try {
 					cwriteln(prop.msgs.usage);
@@ -64,7 +70,6 @@ void main(string[] args) {
 		}
 		if (opt.putlangfile.length) {
 			// 言語ファイルを保存する
-			auto prop = new Props(opt.conf, cprops);
 			try {
 				std.file.write(opt.putlangfile, prop.msgs.toXML(true));
 			} catch (Exception e) {
@@ -73,7 +78,7 @@ void main(string[] args) {
 			return;
 		}
 		dStr ~= " - " ~ .text(__LINE__);
-		auto main = new MainWindow(appPath, sys, cprops, opt);
+		auto main = new MainWindow(appPath, sys, prop, opt);
 		dStr ~= " - " ~ .text(__LINE__);
 		main.doCWX();
 		dStr ~= " - " ~ .text(__LINE__);

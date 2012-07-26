@@ -313,7 +313,7 @@ protected:
 						resetCursors(cursors);
 					}
 					try {
-						summ = Summary.loadScenarioFromFile(_prop.parent, _prop.var.etc.doubleIO,
+						summ = Summary.loadScenarioFromFile(_prop.parent, false, _prop.var.etc.doubleIO,
 							tPath, _prop.var.etc.expandXMLs, _prop.tempPath, () => dir);
 					} catch (SummaryException e) {
 						// Nothing;
@@ -424,9 +424,22 @@ class ErrorDialog : AbsDialog {
 			auto img = new Label(comp, SWT.NONE);
 			img.setImage(d.getSystemImage(SWT.ICON_ERROR));
 		}
-		auto l = new Label(area, SWT.WRAP);
+		auto l = new Link(area, SWT.WRAP);
 		l.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		l.setText(_prop.msgs.unknownError);
+		l.setText(.tryFormat(_prop.msgs.unknownError, "<a>" ~ nabs(cwx.utils.debugLog) ~ "</a>"));
+		.listener(l, SWT.Selection, (Event e) {
+			auto prog = Program.findProgram("log");
+			if (prog) {
+				prog.execute(e.text);
+			} else {
+				prog = Program.findProgram("txt");
+				if (prog) {
+					prog.execute(e.text);
+				} else {
+					openFolder(cwx.utils.debugLog.dirName());
+				}
+			}
+		});
 
 		auto msg = new Text(area, SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL | SWT.READ_ONLY);
 		createTextMenu!Text(_comm, _prop, msg, null);

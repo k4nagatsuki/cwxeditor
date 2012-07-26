@@ -10,7 +10,6 @@ import std.array;
 import std.stream;
 import std.exception;
 import std.file;
-import std.loader;
 import std.path;
 
 import std.c.string;
@@ -507,28 +506,28 @@ version (Windows) {
 	private __gshared FDI_D FDIDestroy = null;
 
 	private __gshared bool init = false;
-	private __gshared HXModule _cabinet = null;
+	private __gshared void* _cabinet = null;
 	shared static this () {
 		if (init) return;
 		if (_cabinet) return;
-		_cabinet = ExeModule_Load("cabinet.dll");
+		_cabinet = dlopen("cabinet.dll");
 		if (_cabinet) {
-			FCICreate = cast(FCI_C) ExeModule_GetSymbol(_cabinet, "FCICreate");
+			FCICreate = cast(FCI_C) dlsym(_cabinet, "FCICreate");
 			if (!FCICreate) debugln("Not found: FCICreate");
-			FCIAddFile = cast(FCI_A) ExeModule_GetSymbol(_cabinet, "FCIAddFile");
+			FCIAddFile = cast(FCI_A) dlsym(_cabinet, "FCIAddFile");
 			if (!FCIAddFile) debugln("Not found: FCIAddFile");
-			FCIFlushCabinet = cast(FCI_F) ExeModule_GetSymbol(_cabinet, "FCIFlushCabinet");
+			FCIFlushCabinet = cast(FCI_F) dlsym(_cabinet, "FCIFlushCabinet");
 			if (!FCIFlushCabinet) debugln("Not found: FCIFlushCabinet");
-			FCIDestroy = cast(FCI_D) ExeModule_GetSymbol(_cabinet, "FCIDestroy");
+			FCIDestroy = cast(FCI_D) dlsym(_cabinet, "FCIDestroy");
 			if (!FCIDestroy) debugln("Not found: FCIDestroy");
 
-			FDICreate = cast(FDI_C) ExeModule_GetSymbol(_cabinet, "FDICreate");
+			FDICreate = cast(FDI_C) dlsym(_cabinet, "FDICreate");
 			if (!FDICreate) debugln("Not found: FDICreate");
-			FDIIsCabinet = cast(FDI_I) ExeModule_GetSymbol(_cabinet, "FDIIsCabinet");
+			FDIIsCabinet = cast(FDI_I) dlsym(_cabinet, "FDIIsCabinet");
 			if (!FDIIsCabinet) debugln("Not found: FDIIsCabinet");
-			FDICopy = cast(FDI_O) ExeModule_GetSymbol(_cabinet, "FDICopy");
+			FDICopy = cast(FDI_O) dlsym(_cabinet, "FDICopy");
 			if (!FDICopy) debugln("Not found: FDICopy");
-			FDIDestroy = cast(FDI_D) ExeModule_GetSymbol(_cabinet, "FDIDestroy");
+			FDIDestroy = cast(FDI_D) dlsym(_cabinet, "FDIDestroy");
 			if (!FDIDestroy) debugln("Not found: FDIDestroy");
 
 			usable = true;
@@ -542,7 +541,7 @@ version (Windows) {
 			debug std.stdio.writeln("Release cabinet.dll Start");
 		}
 		if (_cabinet) {
-			ExeModule_Release(_cabinet);
+			dlclose(_cabinet);
 		}
 		version (Console) {
 			debug std.stdio.writeln("Release cabinet.dll Exit");

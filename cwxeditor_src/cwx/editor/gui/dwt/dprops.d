@@ -36,31 +36,41 @@ public:
 			dStr ~= " - " ~ .text(__LINE__);
 			_var = new FlexProps(_parent.appPath, confFilePath);
 			dStr ~= " - " ~ .text(__LINE__);
+
+			// システムの言語
+			string[string] msgsTableFile;
+			string defLocale;
+			dStr ~= " - " ~ .text(__LINE__);
+			auto msgsTable = _parent.msgsTable(var.etc.languageDir, msgsTableFile, defLocale);
+			dStr ~= " - " ~ .text(__LINE__);
+			auto msgs = msgsTable.get(.caltureName(), null);
+			dStr ~= " - " ~ .text(__LINE__);
+			if (msgs) {
+				_parent.msgs = msgs;
+			}
+			dStr ~= " - " ~ .text(__LINE__);
+
+			// 設定された言語
+			if (!var.etc.useSystemLanguage && var.etc.languageFile.length) {
+				dStr ~= " - " ~ .text(__LINE__);
+				auto langFile = toAppAbs(var.etc.languageDir).buildPath(var.etc.languageFile);
+				dStr ~= " - " ~ .text(__LINE__);
+				if (.exists(langFile)) {
+					try {
+						dStr ~= " - " ~ .text(__LINE__);
+						_parent.loadMsgs(langFile);
+					} catch (Exception e) {
+						debugln(e);
+					}
+					dStr ~= " - " ~ .text(__LINE__);
+				}
+				dStr ~= " - " ~ .text(__LINE__);
+			}
+			dStr ~= " - " ~ .text(__LINE__);
 		} catch (Throwable e) {
 			fdebugln(dStr);
 			fdebugln(e);
 			throw new Exception(dStr, __FILE__, __LINE__);
-		}
-
-		// システムの言語
-		string[string] msgsTableFile;
-		string defLocale;
-		auto msgsTable = _parent.msgsTable(var.etc.languageDir, msgsTableFile, defLocale);
-		auto msgs = msgsTable.get(.caltureName(), null);
-		if (msgs) {
-			_parent.msgs = msgs;
-		}
-
-		// 設定された言語
-		if (!var.etc.useSystemLanguage && var.etc.languageFile.length) {
-			auto langFile = toAppAbs(var.etc.languageDir).buildPath(var.etc.languageFile);
-			if (.exists(langFile)) {
-				try {
-					_parent.loadMsgs(langFile);
-				} catch (Exception e) {
-					debugln(e);
-				}
-			}
 		}
 	}
 	@property

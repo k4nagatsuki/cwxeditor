@@ -390,7 +390,7 @@ private:
 				auto wsm = std.path.buildPath(old.scenarioPath, "Summary.wsm");
 				if (old.useTemp) {
 					try {
-						openScenario(old.reloadXMLs(_prop.var.etc.doubleIO));
+						openScenario(old.reloadXMLs(false, _prop.var.etc.doubleIO));
 					} catch (Exception e) {
 						debugln(e);
 						MessageBox.showWarning(.tryFormat(_prop.msgs.reloadError, summary.scenarioPath)
@@ -399,11 +399,11 @@ private:
 					}
 				} else {
 					if (!.exists(wsm)) wsm = old.scenarioPath;
-					loadScenarioFromFile!(Summary)(_prop, _comm.mainShell, &setStatusLine, expand, old, wsm, &openScenario, null);
+					loadScenarioFromFile(_prop, false, _comm.mainShell, &setStatusLine, expand, old, wsm, &openScenario, null);
 				}
 			} else if (expand) {
 				try {
-					openScenario(old.reloadXMLs(_prop.var.etc.doubleIO));
+					openScenario(old.reloadXMLs(false, _prop.var.etc.doubleIO));
 				} catch (Exception e) {
 					debugln(e);
 					MessageBox.showWarning(.tryFormat(_prop.msgs.reloadError, summary.scenarioPath)
@@ -412,7 +412,7 @@ private:
 				}
 			} else {
 				assert (old.zipName.length);
-				loadScenarioFromFile!(Summary)(_prop, _comm.mainShell, &setStatusLine, expand, old, old.zipName, &openScenario, null);
+				loadScenarioFromFile(_prop, false, _comm.mainShell, &setStatusLine, expand, old, old.zipName, &openScenario, null);
 			}
 		}
 	}
@@ -427,14 +427,21 @@ private:
 	int ncmp(string a, string b) {
 		return cwx.utils.ncmp(a, b);
 	}
+	public Skin findSkinFromHistory(in Summary summ, out OpenHistory hist) {
+		hist = findHist(createHistString(summ));
+		if (hist.path.length) {
+			return findSkin(_comm, _prop, summ, hist.skinName, hist.skinEngine);
+		} else {
+			return findSkin(_comm, _prop, summ);
+		}
+	}
 	void openScenario(Summary summ) {
 		assert (summ);
 		OpenHistory hist;
-		if (_prop.var.etc.reconstruction && !_opt.noload) {
-			hist = findHist(createHistString(summ));
+		auto skin = findSkinFromHistory(summ, hist);
+		if (hist.path.length) {
 			summ.type = hist.skinName;
 		}
-		auto skin = findSkin(_comm, _prop, summ, hist.skinEngine);
 		_lastBackup = Clock.currTime();
 		_dirWin.stopTrace();
 		scope (exit) _dirWin.resumeTrace();
@@ -483,7 +490,7 @@ private:
 		setupMenu(_tool);
 		bool opened = false;
 		string openedS = "";
-		if (_prop.var.etc.reconstruction) {
+		if (_prop.var.etc.reconstruction && !_opt.noload) {
 			auto paths = fullHistToCWXPaths(hist.path);
 			if (paths.length) {
 				statusLine = .tryFormat(_prop.msgs.reconstructionStatus, 0, paths.length);
@@ -541,7 +548,7 @@ private:
 	}
 	void openScenario() {
 		auto old = summary;
-		loadScenario!(Summary)(_prop, _comm.mainShell, &setStatusLine,
+		loadScenario(_prop, false, _comm.mainShell, &setStatusLine,
 			_prop.var.etc.expandXMLs, old, _prop.msgs.dlgTitOpenScenario,
 			_opt.openPaths, &openScenarioImpl, null);
 	}
@@ -551,7 +558,7 @@ private:
 		}
 		decScenarioPath(fname, _opt.openPaths);
 		auto old = summary;
-		loadScenarioFromFile!(Summary)(_prop, _comm.mainShell, &setStatusLine,
+		loadScenarioFromFile(_prop, false, _comm.mainShell, &setStatusLine,
 			_prop.var.etc.expandXMLs, old, fname, &openScenarioImpl, failure);
 	}
 	void playSavedSound() {
@@ -880,7 +887,7 @@ private:
 	string findFullHist(string hist) {
 		return findHist(hist).path;
 	}
-	static string createHistString(Summary summary) {
+	static string createHistString(in Summary summary) {
 		if (!summary) return "";
 		string hist;
 		if (summary.legacy) {
@@ -1112,7 +1119,6 @@ private:
 		createMenuItem(_comm, _menuFile, MenuID.Close, &exitAll, null);
 		setupMenu(_menu);
 	}
-	static const PIPE_APP_MAX = 256;
 	string _pipeName = "";
 	class OpenCWXPath : Runnable {
 		string path;
@@ -1138,6 +1144,7 @@ private:
 		}
 	}
 	void pipeThr() {
+		if (0 >= _prop.var.etc.pipeAppMax) return;
 		try {
 			version (Console) {
 				debug std.stdio.writeln("Start Pipe Thread");
@@ -1245,7 +1252,7 @@ private:
 	/// このプロセスが待ち受けする際のパイプ名を生成。
 	string createPipeName() {
 		version (Windows) {
-			for (size_t i = 0; i < PIPE_APP_MAX; i++) {
+			for (size_t i = 0; i < _prop.var.etc.pipeAppMax; i++) {
 				string pipeName = r"\\.\pipe\cwxeditor_" ~ to!(string)(i);
 				auto p = CreateFileW(toUTFz!(wchar*)(pipeName),
 					GENERIC_READ | GENERIC_WRITE, 0, null, OPEN_EXISTING, 0, null);
@@ -1255,7 +1262,7 @@ private:
 				CloseHandle(p);
 			}
 		} else {
-			for (size_t i = 0; i < PIPE_APP_MAX; i++) {
+			for (size_t i = 0; i < _prop.var.etc.pipeAppMax; i++) {
 				string pipeName = r"cwxeditor_" ~ to!(string)(i);
 				auto p = socket(AF_UNIX, SOCK_STREAM, 0);
 				if (-1 == p) continue;
@@ -1278,7 +1285,7 @@ private:
 		version (Windows) {
 			char[MAX_PATH] buf;
 			DWORD len;
-			for (size_t i = 0; i < PIPE_APP_MAX; i++) {
+			for (size_t i = 0; i < _prop.var.etc.pipeAppMax; i++) {
 				if (!next()) break;
 				string pipeName = r"\\.\pipe\cwxeditor_" ~ to!(string)(i);
 				if (_pipeName == pipeName) continue;
@@ -1299,7 +1306,7 @@ private:
 			}
 		} else {
 			char[4096] buf;
-			for (size_t i = 0; i < PIPE_APP_MAX; i++) {
+			for (size_t i = 0; i < _prop.var.etc.pipeAppMax; i++) {
 				if (!next()) break;
 				string pipeName = r"cwxeditor_" ~ to!(string)(i);
 				if (_pipeName == pipeName) continue;
@@ -1412,9 +1419,10 @@ private:
 		}
 	}
 public:
-	this (string appPath, cwx.system.System sys, CProps cprops, LaunchOption opt) {
+	this (string appPath, cwx.system.System sys, Props prop, LaunchOption opt) {
 		string dStr = .text(__LINE__); // 起動ログ
 		try {
+			_prop = prop;
 			_opt = opt;
 			dStr ~= " - " ~ .text(__LINE__);
 			decScenarioPath(opt.scenario, opt.openPaths);
@@ -1459,7 +1467,6 @@ public:
 			if (!execute) return;
 			_saveSync = new Object;
 			dStr ~= " - " ~ .text(__LINE__);
-			_prop = new Props(opt.conf, cprops);
 			if (exists(_prop.tempPath)) {
 				dStr ~= " - " ~ .text(__LINE__);
 				foreach (temp; clistdir(_prop.tempPath)) {
@@ -2181,6 +2188,7 @@ public:
 				_win.setBounds(tx, ty, _win.getSize().x, _win.getSize().y);
 			}
 			dStr ~= " - " ~ .text(__LINE__);
+			initSound();
 			.bgmVolume = _prop.var.etc.bgmVolume;
 			.seVolume = _prop.var.etc.seVolume;
 			dStr ~= " - " ~ .text(__LINE__);

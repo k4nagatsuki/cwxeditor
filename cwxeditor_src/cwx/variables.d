@@ -12,6 +12,8 @@ class FlexEtcProps : Properties {
 	auto languageFile = Prop!(string)("languageFile", "");
 	auto useSystemLanguage = Prop!(bool)("useSystemLanguage", true);
 
+	auto pipeAppMax = Prop!(int)("pipeAppMax", 256);
+
 	auto singleWindow = Prop!(bool)("singleWindow", true);
 	auto toolsLock = Prop!(bool)("toolsLock", false);
 	auto toolsOrder = Prop!(int[])("toolsOrder", []);

@@ -1,12 +1,8 @@
 
 module cwx.editor.gui.dwt.dskin;
 
-//import cwx.cwl;
-//import cwx.race;
 import cwx.utils;
 import cwx.skin;
-//import cwx.summary;
-//import cwx.imagesize;
 import cwx.types;
 import cwx.structs;
 

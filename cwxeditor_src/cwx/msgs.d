@@ -56,7 +56,7 @@ class Msgs : Properties {
 	auto dlgTitQuestion = Msg("dlgTitQuestion", "確認 - CWXEditor");
 	auto unknownError = Msg("unknownError", "処理の途中でCWXEditorの制作者が意図していないエラーが発生しました。"
 		"データが壊れている可能性を考慮して、シナリオを保存せずに終了する事をお勧めします。\n"
-		"エラー内容は" ~ CWX_EDITOR_EXE ~ "と同じ" ~ DIR ~ "にあるcwxeditor_error.logに記録されます。");
+		"エラーの内容は%1$sに記録されます。");
 	auto shutdown = Msg("shutdown", "強制終了");
 
 	auto dlgTextOK = Msg("dlgTextOK", "&OK");

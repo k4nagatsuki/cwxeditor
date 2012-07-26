@@ -2638,7 +2638,7 @@ struct OldSettings {
 			comm.refSortCondition.call();
 		}
 		if (refSkin) {
-			comm.skin = findSkin(comm, prop, comm.summary, comm.skin.legacyEngine, false);
+			comm.skin = findSkin(comm, prop, comm.summary, null, comm.skin.legacyEngine, false);
 			comm.refSkin.call();
 		}
 		comm.refClassicSkin.call();

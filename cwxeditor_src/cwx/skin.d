@@ -64,10 +64,6 @@ class Skin {
 		emptySkins[enginePath] = r;
 		return r;
 	}
-	/// ditto
-	static Skin find2(Summary)(in CProps prop, string enginePath, in Summary summ, string classicEngineRegex, string classicDataDirRegex, string classicMatchKey, in ClassicEngine[] cEngines) {
-		return find(prop, enginePath, summ.type, summ.scenarioPath, summ.legacy, classicEngineRegex, classicDataDirRegex, classicMatchKey, cEngines);
-	}
 
 	private static Skin[string][string] skinTable;
 	/// スキンの一覧を返す。

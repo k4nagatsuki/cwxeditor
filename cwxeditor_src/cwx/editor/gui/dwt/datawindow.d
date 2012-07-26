@@ -742,20 +742,24 @@ public:
 		string[] r;
 		static if (UseArea && UseFlag) {
 			if (tabf.getSelection() is tabA) {
-				r ~= "tableview";
-				r ~= _areas.openedCWXPath;
-				r ~= _flags.openedCWXPath;
+				auto a = _areas.openedCWXPath;
+				auto b = _flags.openedCWXPath;
+				if (!a.length) r ~= "tableview";
+				if (!b.length) r ~= "variableview";
+				r ~= a ~ b;
 			} else {
-				r ~= "variableview";
-				r ~= _flags.openedCWXPath;
-				r ~= _areas.openedCWXPath;
+				auto a = _flags.openedCWXPath;
+				auto b = _areas.openedCWXPath;
+				if (!a.length) r ~= "variableview";
+				if (!b.length) r ~= "tableview";
+				r ~= a ~ b;
 			}
 		} else static if (UseArea) {
-			r ~= "tableview";
 			r ~= _areas.openedCWXPath;
+			if (!r.length) r ~= "tableview";
 		} else static if (UseFlag) {
-			r ~= "variableview";
 			r ~= _flags.openedCWXPath;
+			if (!r.length) r ~= "variableview";
 		} else static assert (0);
 		return r;
 	}

@@ -214,7 +214,10 @@ public class FlexProps {
 		STANDARD, LOCAL, COPY, NOTHING
 	}
 
+	private IniLocation _loc;
 	private string _path;
+	private string _appPath;
+	private string _cwxDir = null;
 	private XNode _node;
 
 	private bool _noFile = false;
@@ -229,17 +232,18 @@ public class FlexProps {
 	}
 
 	this (string appPath, string confFileName) {
+		_appPath = appPath;
 		string dStr = .text(__LINE__);
 		try {
 			dStr ~= " - " ~ .text(__LINE__);
-			IniLocation loc = IniLocation.STANDARD;
+			_loc = IniLocation.STANDARD;
 			string iniFileName = "cwxeditor.xml";
 			string iniPath = std.path.buildPath(appPath.dirName(), iniFileName);
 			dStr ~= " - " ~ iniPath;
 			if (.exists(iniPath)) {
 				// 1.0との互換性を維持するため、アプリケーションのディレクトリに
 				// cwxeditor.xmlがあった場合、LOCALをデフォルトにする。
-				loc = IniLocation.LOCAL;
+				_loc = IniLocation.LOCAL;
 			}
 			dStr ~= " - " ~ .text(__LINE__);
 			try {
@@ -248,13 +252,13 @@ public class FlexProps {
 					auto node = XNode.parse(std.file.readText(confFileName));
 					node.onTag["location"] = (ref XNode node) {
 						if (0 == icmp(node.value, "standard")) {
-							loc = IniLocation.STANDARD;
+							_loc = IniLocation.STANDARD;
 						} else if (0 == icmp(node.value, "local")) {
-							loc = IniLocation.LOCAL;
+							_loc = IniLocation.LOCAL;
 						} else if (0 == icmp(node.value, "copy")) {
-							loc = IniLocation.COPY;
+							_loc = IniLocation.COPY;
 						} else if (0 == icmp(node.value, "nothing")) {
-							loc = IniLocation.NOTHING;
+							_loc = IniLocation.NOTHING;
 						}
 					};
 					node.onTag["file"] = (ref XNode node) {
@@ -271,7 +275,7 @@ public class FlexProps {
 
 			string dir;
 			dStr ~= " - " ~ .text(__LINE__);
-			final switch (loc) {
+			final switch (_loc) {
 			case IniLocation.STANDARD:
 				dStr ~= " - " ~ .text(__LINE__);
 				dir = appDataDir(appPath);
@@ -306,6 +310,8 @@ public class FlexProps {
 			dStr ~= " - " ~ .text(__LINE__);
 
 			_path = std.path.buildPath(dir, iniFileName);
+			_cwxDir = dir;
+			dStr ~= " - " ~ .text(__LINE__);
 			if (!_noFile && exists(_path)) {
 				dStr ~= " - " ~ .text(__LINE__);
 				if (!reloadImpl(false, dStr)) {
@@ -324,16 +330,14 @@ public class FlexProps {
 				}
 
 				// tempとbackupの設定だけは環境によって初期値が変わる
-				final switch (loc) {
+				final switch (_loc) {
 				case IniLocation.STANDARD, IniLocation.COPY:
 					dStr ~= " - " ~ .text(__LINE__);
-					dir = appDataDir(appPath);
-					dir = std.path.buildPath(dir, CWX_DIR);
-					etc.tempPath = std.path.buildPath(dir, "temp");
-					etc.backupPath = std.path.buildPath(dir, "backup");
+					etc.tempPath = std.path.buildPath(cwxDir, "temp");
+					etc.backupPath = std.path.buildPath(cwxDir, "backup");
 					break;
 				case IniLocation.NOTHING:
-					_noFileTemp = createNewFileName(dir, true);
+					_noFileTemp = createNewFileName(cwxDir, true);
 					dStr ~= " - " ~ .text(__LINE__);
 					etc.tempPath = std.path.buildPath(_noFileTemp, "temp");
 					etc.backupPath = std.path.buildPath(_noFileTemp, "backup");
@@ -352,6 +356,12 @@ public class FlexProps {
 			throw new Exception(dStr, __FILE__, __LINE__);
 		}
 	}
+
+	@property
+	string cwxDir() {
+		return _cwxDir;
+	}
+
 	void cleanup() {
 		if (!_noFile) return;
 		delAll(_noFileTemp);

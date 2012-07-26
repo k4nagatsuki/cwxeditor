@@ -30,14 +30,6 @@ import cwx.sjis;
 import cwx.xml;
 import cwx.path;
 
-unittest {
-	debug mixin(UTPerf);
-	try {
-		loadLScenario!(Summary)("", "", true, null);
-		loadLScenario!(Importable)("", "", true, null);
-	} catch {}
-}
-
 private bool sWith(string f, string s, out ulong id) {
 	if (!fnstartsWith(f, s)) return false;
 	if (!fnendsWith(f, ".wid")) return false;
@@ -55,6 +47,7 @@ private string decodePathLegacy(string path) {
 }
 
 private struct RData {
+	bool cardOnly;
 	string sPath;
 	string skin;
 	int dataVersion;
@@ -63,44 +56,32 @@ private struct RData {
 /// Params:
 /// newName = シナリオ名。null以外が指定された場合、
 ///           Summary.wsmが存在しない際はこの名前で新規に作成する。
-S loadLScenario(S)(string p, string skin, bool doubleIO, string newName = null) {
-	static const bool AR = is (S : AreaOwner);
-	static const bool BA = is (S : BattleOwner);
-	static const bool PA = is (S : PackageOwner);
-	static const bool CA = is (S : CastOwner);
-	static const bool SK = is (S : SkillOwner);
-	static const bool IT = is (S : ItemOwner);
-	static const bool BE = is (S : BeastOwner);
-	static const bool IN = is (S : InfoOwner);
+Summary loadLScenario(string p, string skin, bool cardOnly, bool doubleIO, string newName = null) {
 	auto sPath = p;
 	string summPath = std.path.buildPath(p, "Summary.wsm");
-	S summ;
+	Summary summ;
 	RData d;
 	ulong startAreaId;
 	if (.exists(summPath)) {
-		d = RData(sPath, skin);
+		d = RData(cardOnly, sPath, skin);
 		{
 			auto bytes = ByteIO(std.file.read(summPath));
-			summ = loadSummary!(S)(d, bytes, startAreaId);
+			summ = loadSummary(d, bytes, startAreaId);
 		}
 	} else {
 		if (!newName) throw new SummaryException("Not Scenario: " ~ p);
-		d = RData(sPath, skin);
-		static if (is(S == Summary)) {
-			summ = new Summary(newName, d.skin, d.sPath, false, true);
-		} else {
-			summ = new S(d.sPath, newName, true);
-		}
+		d = RData(cardOnly, sPath, skin);
+		summ = new Summary(newName, d.skin, d.sPath, false, true);
 	}
 	class Load {
-		static if (AR) Area[] areas;
-		static if (BA) Battle[] battles;
-		static if (PA) Package[] packages;
-		static if (CA) CastCard[] casts;
-		static if (SK) SkillCard[] skills;
-		static if (IT) ItemCard[] items;
-		static if (BE) BeastCard[] beasts;
-		static if (IN) InfoCard[] infos;
+		Area[] areas;
+		Battle[] battles;
+		Package[] packages;
+		CastCard[] casts;
+		SkillCard[] skills;
+		ItemCard[] items;
+		BeastCard[] beasts;
+		InfoCard[] infos;
 		string[] files;
 		ulong wait = 0L;
 		void load() {
@@ -112,28 +93,30 @@ S loadLScenario(S)(string p, string skin, bool doubleIO, string newName = null) 
 					auto f = ByteIO(std.file.read(file));
 					auto base = baseName(file);
 					ulong id;
-					static if (AR) if (sWith(base, "Area", id)) {
-						areas ~= .loadArea(d, f, id);
+					if (!cardOnly) {
+						if (sWith(base, "Area", id)) {
+							areas ~= .loadArea(d, f, id);
+						}
+						if (sWith(base, "Battle", id)) {
+							battles ~= .loadBattle(d, f, id);
+						}
+						if (sWith(base, "Package", id)) {
+							packages ~= .loadPackage(d, f, id);
+						}
 					}
-					static if (BA) if (sWith(base, "Battle", id)) {
-						battles ~= .loadBattle(d, f, id);
-					}
-					static if (PA) if (sWith(base, "Package", id)) {
-						packages ~= .loadPackage(d, f, id);
-					}
-					static if (CA) if (sWith(base, "Mate", id)) {
+					if (sWith(base, "Mate", id)) {
 						casts ~= .loadCast(d, f, id);
 					}
-					static if (SK) if (sWith(base, "Skill", id)) {
+					if (sWith(base, "Skill", id)) {
 						skills ~= .loadSkill(d, f, id);
 					}
-					static if (IT) if (sWith(base, "Item", id)) {
+					if (sWith(base, "Item", id)) {
 						items ~= .loadItem(d, f, id);
 					}
-					static if (BE) if (sWith(base, "Beast", id)) {
+					if (sWith(base, "Beast", id)) {
 						beasts ~= .loadBeast(d, f, id);
 					}
-					static if (IN) if (sWith(base, "Info", id)) {
+					if (sWith(base, "Info", id)) {
 						infos ~= .loadInfo(d, f, id);
 					}
 				} catch (Exception e) {
@@ -170,46 +153,32 @@ S loadLScenario(S)(string p, string skin, bool doubleIO, string newName = null) 
 		load1.load();
 		load2.load();
 	}
-	static if (AR) Area[] areas = load1.areas ~ load2.areas;
-	static if (BA) Battle[] battles = load1.battles ~ load2.battles;
-	static if (PA) Package[] packages = load1.packages ~ load2.packages;
-	static if (CA) CastCard[] casts = load1.casts ~ load2.casts;
-	static if (SK) SkillCard[] skills = load1.skills ~ load2.skills;
-	static if (IT) ItemCard[] items = load1.items ~ load2.items;
-	static if (BE) BeastCard[] beasts = load1.beasts ~ load2.beasts;
-	static if (IN) InfoCard[] infos = load1.infos ~ load2.infos;
-	static if (is (S == Summary)) {
-		foreach (a; areas.sort) summ.add(a, false);
-		foreach (a; battles.sort) summ.add(a, false);
-		foreach (a; packages.sort) summ.add(a, false);
-		foreach (a; casts.sort) summ.add(a, false);
-		foreach (a; skills.sort) summ.add(a, false);
-		foreach (a; items.sort) summ.add(a, false);
-		foreach (a; beasts.sort) summ.add(a, false);
-		foreach (a; infos.sort) summ.add(a, false);
-		loadComment(summ);
-		loadImageRef(summ);
-		loadCardRef(summ);
-		summ.startArea = startAreaId;
-		summ.resetChanged();
-	} else {
-		static if (AR) foreach (a; areas.sort) summ.add(a);
-		static if (BA) foreach (a; battles.sort) summ.add(a);
-		static if (PA) foreach (a; packages.sort) summ.add(a);
-		static if (CA) foreach (a; casts.sort) summ.add(a);
-		static if (SK) foreach (a; skills.sort) summ.add(a);
-		static if (IT) foreach (a; items.sort) summ.add(a);
-		static if (BE) foreach (a; beasts.sort) summ.add(a);
-		static if (IN) foreach (a; infos.sort) summ.add(a);
-		loadComment(summ);
-		loadImageRef(summ);
-		loadCardRef(summ);
-	}
+	Area[] areas = load1.areas ~ load2.areas;
+	Battle[] battles = load1.battles ~ load2.battles;
+	Package[] packages = load1.packages ~ load2.packages;
+	CastCard[] casts = load1.casts ~ load2.casts;
+	SkillCard[] skills = load1.skills ~ load2.skills;
+	ItemCard[] items = load1.items ~ load2.items;
+	BeastCard[] beasts = load1.beasts ~ load2.beasts;
+	InfoCard[] infos = load1.infos ~ load2.infos;
+	foreach (a; areas.sort) summ.add(a, false);
+	foreach (a; battles.sort) summ.add(a, false);
+	foreach (a; packages.sort) summ.add(a, false);
+	foreach (a; casts.sort) summ.add(a, false);
+	foreach (a; skills.sort) summ.add(a, false);
+	foreach (a; items.sort) summ.add(a, false);
+	foreach (a; beasts.sort) summ.add(a, false);
+	foreach (a; infos.sort) summ.add(a, false);
+	loadComment(summ);
+	loadImageRef(summ);
+	loadCardRef(summ);
+	summ.startArea = startAreaId;
+	summ.resetChanged();
 	return summ;
 }
 
 /// 拡張情報"Comment.wex"を読み込む。
-void loadComment(S)(S summ) {
+void loadComment(Summary summ) {
 	string file = summ.scenarioPath.buildPath("Comment.wex");
 	if (!.exists(file)) return;
 	auto node = XNode.parse(readText(file));
@@ -225,7 +194,7 @@ void loadComment(S)(S summ) {
 	}
 }
 /// 拡張情報"ImageRef.wex"を読み込む。
-void loadImageRef(S)(S summ) {
+void loadImageRef(Summary summ) {
 	string file = summ.scenarioPath.buildPath("ImageRef.wex");
 	if (!.exists(file)) return;
 	auto node = XNode.parse(readText(file));
@@ -251,7 +220,7 @@ void loadImageRef(S)(S summ) {
 	}
 }
 /// 拡張情報"CardRef.wex"を読み込む。
-void loadCardRef(S)(S summ) {
+void loadCardRef(Summary summ) {
 	string file = summ.scenarioPath.buildPath("CardRef.wex");
 	if (!.exists(file)) return;
 	auto node = XNode.parse(readText(file));
@@ -548,77 +517,74 @@ private string[] readStrings(ref ByteIO f) {
 	auto str = readString(f, true);
 	return str.length ? splitLines!string(str) : cast(string[]) [];
 }
-private S loadSummary(S)(ref RData d, ref ByteIO f, out ulong startAreaId) {
+private Summary loadSummary(ref RData d, ref ByteIO f, out ulong startAreaId) {
 	string img = readImage(d, f);
-	static if (is (S == Summary)) {
-		byte b;
-		auto summ = new Summary(readString(f), d.skin, d.sPath, false, true);
-		summ.imagePath = img;
-		summ.desc = readString(f, true);
-		summ.author = readString(f);
-		summ.rCoupons = readStrings(f);
-		summ.rCouponNum = f.readUIntL;
-		auto area = f.readUIntL;
-		if (area < 19999) {
-			d.dataVersion = 0;
-		} else if (area < 39999) {
-			d.dataVersion = 2;
-			startAreaId = area - 20000u;
-		} else {
-			d.dataVersion = 4;
-			startAreaId = area - 40000u;
-		}
-		FlagDir flagsParent(string path) {
-			FlagDir dir = summ.flagDirRoot;
-			string par = FlagDir.up(path);
-			if (par.length) {
-				string[] spPath = std.string.split(par, "\\")[0u .. $ - 1u];
-				while (spPath.length) {
-					auto sub = dir.getSubDir(spPath[0u]);
-					if (!sub) {
-						sub = new FlagDir(spPath[0u]);
-						if (!dir.add(sub)) throw new SummaryException("Invalid flag and step directory: " ~ path);
-					}
-					dir = sub;
-					spPath = spPath[1u .. $];
-				}
-			}
-			return dir;
-		}
-		uint stepNum = f.readUIntL;
-		for (uint i = 0u; i < stepNum; i++) {
-			string path = readString(f);
-			uint sel = f.readUIntL;
-			string[] vals;
-			vals.length = 10u;
-			for (uint j = 0u; j < 10u; j++) {
-				vals[j] = readString(f);
-			}
-			if (!flagsParent(path).add(new Step(FlagDir.basename(path), vals, sel))) {
-				throw new SummaryException("Invalid step path: " ~ path);
-			}
-		}
-		summ.flagDirRoot.sortSteps(true);
-		uint flagNum = f.readUIntL;
-		for (uint i = 0u; i < flagNum; i++) {
-			string path = readString(f);
-			bool sel = readBool(f);
-			string on = readString(f);
-			string off = readString(f);
-			if (!flagsParent(path).add(new Flag(FlagDir.basename(path), on, off, sel))) {
-				throw new SummaryException("Invalid flag path: " ~ path);
-			}
-		}
-		summ.flagDirRoot.sortFlags(true);
-		f.readUIntL;
-		if (d.dataVersion != 0) {
-			summ.levelMin = f.readUIntL;
-			summ.levelMax = f.readUIntL;
-		}
-		return summ;
+	byte b;
+	auto summ = new Summary(readString(f), d.skin, d.sPath, false, true);
+	if (d.cardOnly) return summ;
+	summ.imagePath = img;
+	summ.desc = readString(f, true);
+	summ.author = readString(f);
+	summ.rCoupons = readStrings(f);
+	summ.rCouponNum = f.readUIntL;
+	auto area = f.readUIntL;
+	if (area < 19999) {
+		d.dataVersion = 0;
+	} else if (area < 39999) {
+		d.dataVersion = 2;
+		startAreaId = area - 20000u;
 	} else {
-		return new S(d.sPath, readString(f), true);
+		d.dataVersion = 4;
+		startAreaId = area - 40000u;
 	}
+	FlagDir flagsParent(string path) {
+		FlagDir dir = summ.flagDirRoot;
+		string par = FlagDir.up(path);
+		if (par.length) {
+			string[] spPath = std.string.split(par, "\\")[0u .. $ - 1u];
+			while (spPath.length) {
+				auto sub = dir.getSubDir(spPath[0u]);
+				if (!sub) {
+					sub = new FlagDir(spPath[0u]);
+					if (!dir.add(sub)) throw new SummaryException("Invalid flag and step directory: " ~ path);
+				}
+				dir = sub;
+				spPath = spPath[1u .. $];
+			}
+		}
+		return dir;
+	}
+	uint stepNum = f.readUIntL;
+	for (uint i = 0u; i < stepNum; i++) {
+		string path = readString(f);
+		uint sel = f.readUIntL;
+		string[] vals;
+		vals.length = 10u;
+		for (uint j = 0u; j < 10u; j++) {
+			vals[j] = readString(f);
+		}
+		if (!flagsParent(path).add(new Step(FlagDir.basename(path), vals, sel))) {
+			throw new SummaryException("Invalid step path: " ~ path);
+		}
+	}
+	summ.flagDirRoot.sortSteps(true);
+	uint flagNum = f.readUIntL;
+	for (uint i = 0u; i < flagNum; i++) {
+		string path = readString(f);
+		bool sel = readBool(f);
+		string on = readString(f);
+		string off = readString(f);
+		if (!flagsParent(path).add(new Flag(FlagDir.basename(path), on, off, sel))) {
+			throw new SummaryException("Invalid flag path: " ~ path);
+		}
+	}
+	summ.flagDirRoot.sortFlags(true);
+	f.readUIntL;
+	if (d.dataVersion != 0) {
+		summ.levelMin = f.readUIntL;
+		summ.levelMax = f.readUIntL;
+	}
+	return summ;
 }
 private Motion readMotion(ref RData d, ref ByteIO f, size_t index) {
 	byte tType = f.readByte;

@@ -2,15 +2,15 @@
 module cwx.editor.gui.sound;
 
 import std.algorithm : min;
-import std.loader;
 import std.utf;
 import std.stdint;
 import std.string;
 import std.conv;
 import std.path;
+import std.exception;
 
 import cwx.sjis;
-import cwx.utils : cdebugln, debugln, enforce;
+import cwx.utils;
 
 enum {
 	SOUND_TYPE_AUTO = 0,
@@ -24,7 +24,7 @@ version (Windows) {
 		SOUND_TYPE_BASS = 4,
 	}
 } else {
-    private alias uint DWORD;
+	private alias uint DWORD;
 }
 
 version (Windows) {
@@ -92,16 +92,16 @@ private extern (C) {
 	alias SDL_RWops* function(const char* file, const char* mode) SDL_RWFromFile;
 }
 
-private __gshared HXModule sdl = null;
-private __gshared HXModule mixer = null;
+private __gshared void* sdl = null;
+private __gshared void* mixer = null;
 
 private __gshared uint _bgmVolume = 100;
 private __gshared uint _seVolume = 100;
 
 private __gshared Object mutex = null;
 
-private T getSymbol(T)(HXModule mod, string name) {
-	void* symbol = ExeModule_GetSymbol(mod, name);
+private T getSymbol(T)(void* mod, string name) {
+	void* symbol = dlsym(mod, name);
 	if (!symbol) throw new Exception("Symbol " ~ name ~ " is not found.");
 	T r = cast(T) symbol;
 	if (!r) throw new Exception("Symbol " ~ name ~ " is invalid function.");
@@ -112,19 +112,19 @@ private __gshared bool _bgmPlayingMCI = false;
 private __gshared bool _sePlayingMCI = false;
 version (Windows) {
 	private __gshared Object winmmSync = null;
-	private __gshared HXModule winmm = null;
+	private __gshared void* winmm = null;
 	private __gshared mciSendStringW _mciSendString = null;
 	private void initWinmm() {
 		if (winmm) return;
 		winmmSync = new Object;
-		winmm = ExeModule_Load("winmm.dll");
+		winmm = dlopen("winmm.dll");
 		if (!winmm) {
 			debugln("error: winmm.dll initialize");
 		}
 		_mciSendString = getSymbol!(mciSendStringW)(winmm, "mciSendStringW");
 		if (!_mciSendString) {
 			debugln("mciSendStringW() not found");
-			ExeModule_Release(winmm);
+			dlclose(winmm);
 			winmm = null;
 			return;
 		}
@@ -150,8 +150,8 @@ private void initSdl() {
 		static __gshared const SDL = "libSDL.so";
 		static __gshared const MIXER = "libSDL_mixer.so";
 	}
-	sdl = ExeModule_Load(SDL);
-	mixer = ExeModule_Load(MIXER);
+	sdl = dlopen(SDL);
+	mixer = dlopen(MIXER);
 	if (sdl && mixer) {
 		try {
 			if (0 == getSymbol!(SDL_Init)(sdl, "SDL_Init")(SDL_INIT_AUDIO)) {
@@ -171,16 +171,16 @@ private void initSdl() {
 		if (!mixer) debugln("not found: " ~ MIXER);
 	}
 	if (sdl) {
-		ExeModule_Release(sdl);
+		dlclose(sdl);
 		sdl = null;
 	}
 	if (mixer) {
-		ExeModule_Release(mixer);
+		dlclose(mixer);
 		mixer = null;
 	}
 	debugln("error: SDL_mixer initialize");
 }
-shared static this () {
+shared void initSound() {
 	try {
 		mutex = new Object;
 		version (Windows) {
@@ -202,20 +202,20 @@ shared static ~this () {
 			//        呼び出しで停止するため、システムに任せる
 			version (Windows) {} else {
 				try {
-					getSymbol!(Mix_CloseAudio)(mixer, "Mix_CloseAudio")();
-					getSymbol!(SDL_Quit)(sdl, "SDL_Quit")();
+					if (mixer) getSymbol!(Mix_CloseAudio)(mixer, "Mix_CloseAudio")();
+					if (sdl) getSymbol!(SDL_Quit)(sdl, "SDL_Quit")();
 				} catch (Exception e) {
 					debugln(e.msg);
 				}
-				ExeModule_Release(mixer);
-				ExeModule_Release(sdl);
+				if (mixer) dlclose(mixer);
+				if (sdl) dlclose(sdl);
 			}
 		}
-        version (Windows) {
-		    if (winmm) {
-			    ExeModule_Release(winmm);
-		    }
-        }
+		version (Windows) {
+			if (winmm) {
+				dlclose(winmm);
+			}
+		}
 		disposeBass();
 		version (Console) {
 			debug std.stdio.writeln("Release DLLs for sound Exit");
@@ -237,15 +237,15 @@ private __gshared intptr_t seChannel = -1;
 
 private void play(ref Mix_Music* music, ref Mix_Chunk* chunk, ref intptr_t channel, string mciName, ref bool onLegacy, ref bool playingMCI, string file, bool loop, int soundPlayType, uint volume, ref HSTREAM bassStream) {
 	stop(music, chunk, channel, mciName, onLegacy, playingMCI, bassStream);
-    version (Windows) {
-	    if (SOUND_TYPE_BASS == soundPlayType) {
-		    // BASSがロードされている場合はBASSで再生する
-		    if (playBass(file, loop, bassStream, volume)) {
-			    return;
-		    }
-		    // ここへ来たら再生失敗
-	    }
-    }
+	version (Windows) {
+		if (SOUND_TYPE_BASS == soundPlayType) {
+			// BASSがロードされている場合はBASSで再生する
+			if (playBass(file, loop, bassStream, volume)) {
+				return;
+			}
+			// ここへ来たら再生失敗
+		}
+	}
 	try {
 		version (Windows) {
 			if (winmm && (SOUND_TYPE_MCI == soundPlayType || !sdl)) {
@@ -325,7 +325,7 @@ private void play(ref Mix_Music* music, ref Mix_Chunk* chunk, ref intptr_t chann
 private void stop(ref Mix_Music* music, ref Mix_Chunk* chunk, ref intptr_t channel, string mciName, bool onLegacy, ref bool playingMCI, ref HSTREAM bassStream) {
 	try {
 		version (Windows) {
-    		stopBass(bassStream);
+			stopBass(bassStream);
 			if (onLegacy && playingMCI) {
 				synchronized (winmmSync) {
 					playingMCI = false;
@@ -363,23 +363,24 @@ __gshared void delegate()[] stopSEEvent;
 
 /// 指定されたディレクトリにあるBASSのDLLをロードし、初期化する。
 bool initBass(string dir, in string[] soundFonts) {
+	if (!mutex) return false;
 	synchronized (mutex) {
-        version (Windows) {
-		    if (bass) {
-			    _toggleInitBass = true;
-			    _initBassDir = dir;
-			    _initBassSFont = soundFonts.dup;
-			    return true;
-		    }
+		version (Windows) {
+			if (bass) {
+				_toggleInitBass = true;
+				_initBassDir = dir;
+				_initBassSFont = soundFonts.dup;
+				return true;
+			}
 			try {
 				if (!bass) {
-					bass = ExeModule_Load(dir.buildPath("bass.dll"));
+					bass = dlopen(dir.buildPath("bass.dll"));
 					if (!bass) {
 						disposeBass();
 						return false;
 					}
 					if (soundFonts.length) {
-						bassMidi = ExeModule_Load(dir.buildPath("bassmidi.dll")); // 読込失敗でも続行
+						bassMidi = dlopen(dir.buildPath("bassmidi.dll")); // 読込失敗でも続行
 					}
 					if (!getSymbol!(BASS_Init)(bass, "BASS_Init")(-1, 44100, BASS_DEVICE_DEFAULT, null, null)) {
 						disposeBass();
@@ -433,6 +434,7 @@ private void releaseBassSoundFont() {
 }
 /// BASSのサウンドフォントとDLLを解放する。
 void disposeBass() {
+	if (!mutex) return;
 	synchronized (mutex) {
 		version (Windows) {
 			_toggleDisposeBass = false;
@@ -441,14 +443,14 @@ void disposeBass() {
 				stopSE();
 				if (bassMidi) {
 					releaseBassSoundFont();
-					ExeModule_Release(bassMidi);
+					dlclose(bassMidi);
 					bassMidi = null;
 				}
 				if (bass) {
 					if (!getSymbol!(BASS_Free)(bass, "BASS_Free")())  {
 						debugln("BASS_Free");
 					}
-					ExeModule_Release(bass);
+					dlclose(bass);
 					bass = null;
 				}
 			} catch (Exception e) {
@@ -465,6 +467,7 @@ void disposeBass() {
 }
 /// BGMと音声の停止後にdisposeBass()を行う。
 void toggleDisposeBass() {
+	if (!mutex) return;
 	synchronized (mutex) {
 		version (Windows) {
 			if (bassBGMStream || bassSEStream) {
@@ -478,8 +481,8 @@ void toggleDisposeBass() {
 
 // BASS関係
 version (Windows) {
-	private __gshared HXModule bass = null;
-	private __gshared HXModule bassMidi = null;
+	private __gshared void* bass = null;
+	private __gshared void* bassMidi = null;
 	private __gshared BASS_MIDI_FONT[] soundFonts = [];
 	private __gshared HSTREAM bassBGMStream = 0;
 	private __gshared HSTREAM bassSEStream = 0;
@@ -590,6 +593,7 @@ version (Windows) {
 /// BASSを使用する状態であればtrue。
 @property
 bool useBass() {
+	if (!mutex) return false;
 	synchronized (mutex) {
 		version (Windows) {
 			return bass !is null && !_toggleDisposeBass;
@@ -599,23 +603,25 @@ bool useBass() {
 }
 /// BASSでfileを再生できる状態であればtrue。
 bool canPlayBass(string file) {
+	if (!mutex) return false;
 	synchronized (mutex) {
 		version (Windows) {
 			return .useBass && (isMidi(file) ? (bassMidi && soundFonts.length) : true);
 		}
-        return false;
+		return false;
 	}
 }
 
 /// BGMを再生する。
 void playBGM(string path, int soundPlayType) {
+	if (!mutex) return;
 	synchronized (mutex) {
 		try {
-            version (Windows) {
-                HSTREAM bass = bassBGMStream;
-            } else {
-                HSTREAM bass = 0;
-            }
+			version (Windows) {
+				HSTREAM bass = bassBGMStream;
+			} else {
+				HSTREAM bass = 0;
+			}
 			play(bgmMusic, bgmChunk, bgmChannel, "cwbgm", bgmOnLegacy, _bgmPlayingMCI, path, true, soundPlayType, _bgmVolume, bass);
 		} catch (Throwable e) {
 			debugln(e);
@@ -625,13 +631,14 @@ void playBGM(string path, int soundPlayType) {
 
 /// BGMを停止する。
 void stopBGM() {
+	if (!mutex) return;
 	synchronized (mutex) {
 		try {
-            version (Windows) {
-                HSTREAM bass = bassBGMStream;
-            } else {
-                HSTREAM bass = 0;
-            }
+			version (Windows) {
+				HSTREAM bass = bassBGMStream;
+			} else {
+				HSTREAM bass = 0;
+			}
 			stop(bgmMusic, bgmChunk, bgmChannel, "cwbgm", bgmOnLegacy, _bgmPlayingMCI, bass);
 		} catch (Throwable e) {
 			debugln(e);
@@ -654,6 +661,7 @@ private __gshared inStopBGM = false;
 /// BGMの音量(%)を設定する。
 @property
 void bgmVolume(uint volume) {
+	if (!mutex) return;
 	synchronized (mutex) {
 		_bgmVolume = .min(volume, 100);
 		if (mixer) {
@@ -679,13 +687,14 @@ void bgmVolume(uint volume) {
 
 /// 効果音を再生する。
 void playSE(string path, int soundPlayType) {
+	if (!mutex) return;
 	synchronized (mutex) {
 		try {
-            version (Windows) {
-                HSTREAM bass = bassSEStream;
-            } else {
-                HSTREAM bass = 0;
-            }
+			version (Windows) {
+				HSTREAM bass = bassSEStream;
+			} else {
+				HSTREAM bass = 0;
+			}
 			play(seMusic, seChunk, seChannel, "cwse", seOnLegacy, _sePlayingMCI, path, false, soundPlayType, _seVolume, bass);
 		} catch (Throwable e) {
 			debugln(e);
@@ -695,13 +704,14 @@ void playSE(string path, int soundPlayType) {
 
 /// 効果音を停止する。
 void stopSE() {
+	if (!mutex) return;
 	synchronized (mutex) {
 		try {
-            version (Windows) {
-                HSTREAM bass = bassSEStream;
-            } else {
-                HSTREAM bass = 0;
-            }
+			version (Windows) {
+				HSTREAM bass = bassSEStream;
+			} else {
+				HSTREAM bass = 0;
+			}
 			stop(seMusic, seChunk, seChannel, "cwse", seOnLegacy, _sePlayingMCI, bass);
 		} catch (Throwable e) {
 			debugln(e);
@@ -724,6 +734,7 @@ private __gshared inStopSE = false;
 /// 効果音の音量(%)を設定する。
 @property
 void seVolume(uint volume) {
+	if (!mutex) return;
 	synchronized (mutex) {
 		_seVolume = .min(volume, 100);
 		if (mixer && -1 != seChannel) {
