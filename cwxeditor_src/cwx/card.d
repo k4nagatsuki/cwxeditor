@@ -2000,7 +2000,6 @@ class BeastCard : EffectCard {
 private:
 	BeastUser _linkId;
 	uint _useLimit = 0;
-	uint _maxNest = maxNest_init;
 public:
 	/// 召喚獣カードのXML要素名。
 	static const string XML_NAME = "BeastCard";
@@ -2049,8 +2048,7 @@ public:
 	}
 	const
 	private bool eqImpl(const(BeastCard) c) {
-		return useLimit == c.useLimit
-			&& maxNest == c.maxNest;
+		return useLimit == c.useLimit;
 	}
 
 	/// 持ち札である時のリンク先ID。0の場合は実体を持つ。
@@ -2080,19 +2078,6 @@ public:
 		if (_useLimit != useLimit) changed();
 		_useLimit = useLimit;
 	}
-
-	/// 参照IDを使用する時、同一の召喚獣カードを何回までネストできるか。
-	@property
-	const
-	uint maxNest() {return _maxNest;}
-	/// ditto
-	@property
-	void maxNest(uint maxNest) {
-		if (_maxNest != maxNest) changed();
-		_maxNest = maxNest;
-	}
-	/// ネスト可能回数の初期値。
-	static immutable maxNest_init = 1;
 
 	/// XMLテキストに変換する。
 	const
@@ -2127,7 +2112,6 @@ public:
 		}
 		auto pNode = setEffProp(cNode, opt, od);
 		pNode.newElement("UseLimit", useLimit);
-		pNode.newElement("MaxNest", maxNest);
 	}
 	/// コピーを生成する。
 	@property
@@ -2163,7 +2147,6 @@ public:
 		}
 		cNode.onTag["Property"] = (ref XNode pNode) {
 			pNode.onTag["UseLimit"] = (ref XNode n) {r._useLimit = n.valueTo!(int);};
-			pNode.onTag["MaxNest"] = (ref XNode n) {r._maxNest = n.valueTo!(uint);};
 			r.loadEffProp(pNode, ver);
 		};
 		r.loadEffV(cNode, ver);

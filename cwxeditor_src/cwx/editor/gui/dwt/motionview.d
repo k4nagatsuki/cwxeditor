@@ -230,6 +230,7 @@ private:
 	Combo _beasts;
 	BeastCard[int] _beastTbl;
 	Canvas _beastImg;
+	Spinner _maxNest;
 
 	string[MType] _descs;
 
@@ -534,6 +535,7 @@ private:
 	Composite _summonComp;
 	int _oldIndex = -1;
 	void refreshSels(bool force = false) {
+		scope(exit) refEnabled();
 		auto sels = _motions.getSelection();
 		auto stack = cast(StackLayout) _editComp.getLayout();
 		_motionElm.setEnabled(sels.length > 0);
@@ -554,6 +556,7 @@ private:
 			auto d = m.detail;
 			if (d.use(MArg.BEAST)) {
 				_beasts.select(0);
+				_maxNest.setSelection(m.maxNest);
 				_beastImg.redraw();
 				if (stack.topControl !is _summonComp) {
 					stack.topControl = _summonComp;
@@ -626,10 +629,27 @@ private:
 				} else {
 					sb.beast = b;
 				}
+				resetMaxNest(sb);
 				_beastImg.redraw();
 				foreach (dlg; modEvent) dlg();
+				refEnabled();
 			}
 		}
+	}
+	void removeRef() {
+		auto m = selection;
+		if (!m || !m.beast || 0 == m.beast.linkId) return;
+		auto targ = _summ.beast(m.beast.linkId);
+		if (!targ) return;
+		auto id = m.beast.id;
+		m.beast.deepCopy(targ);
+		m.beast.id = id;
+		m.beast.linkId = 0;
+
+		resetMaxNest(m);
+		_beastImg.redraw();
+		foreach (dlg; modEvent) dlg();
+		refEnabled();
 	}
 	class PaintBeast : PaintListener {
 		override void paintControl(PaintEvent e) {
@@ -809,6 +829,7 @@ private:
 			_beasts.add(c.name);
 			if (c.id == selId) _beasts.select(_beasts.getItemCount() - 1);
 		}
+		refEnabled();
 	}
 	bool _refUndo = false;
 	void refUndoMax() {
@@ -1031,6 +1052,8 @@ public:
 				new MenuItem(menu, SWT.SEPARATOR);
 				createMenuItem(_comm, menu, MenuID.EditEventAtTimeOfUsing, &editBeastUseEvent, &canEditBeast);
 				new MenuItem(menu, SWT.SEPARATOR);
+				createMenuItem(_comm, menu, MenuID.RemoveRef, &removeRef, () => selection && selection.beast && 0 != selection.beast.linkId && _summ.beast(selection.beast.linkId));
+				new MenuItem(menu, SWT.SEPARATOR);
 				createMenuItem(_comm, menu, MenuID.Undo, &this.undo, &_undo.canUndo);
 				createMenuItem(_comm, menu, MenuID.Redo, &this.redo, &_undo.canRedo);
 				new MenuItem(menu, SWT.SEPARATOR);
@@ -1046,6 +1069,26 @@ public:
 				gd.widthHint = rect.width;
 				gd.heightHint = rect.height;
 				_beastImg.setLayoutData(gd);
+
+				auto grp2 = new Group(_summonComp, SWT.NONE);
+				grp2.setText(_prop.msgs.linkOption);
+				auto gd2 = new GridData(GridData.FILL_HORIZONTAL);
+				gd2.horizontalSpan = 2;
+				grp2.setLayoutData(gd2);
+				grp2.setLayout(new CenterLayout);
+				auto comp2 = new Composite(grp2, SWT.NONE);
+				comp2.setLayout(zeroMarginGridLayout(2, false));
+				auto l = new Label(comp2, SWT.NONE);
+				l.setText(_prop.msgs.beastMaxNest);
+				_maxNest = new Spinner(comp2, SWT.BORDER);
+				.listener(_maxNest, SWT.Modify, {
+					auto m = selection;
+					if (!m) return;
+					m.maxNest = _maxNest.getSelection();
+					foreach (dlg; modEvent) dlg();
+				});
+				_maxNest.setMinimum(1);
+				_maxNest.setMaximum(_prop.var.etc.beastMaxNest);
 			}
 			Spinner createSpinner(Composite parent, string name, int max, string hint,
 					void delegate(int) edit, int delegate(int) cancel) {
@@ -1130,6 +1173,10 @@ public:
 		_comm.delBeast.add(&refBeast);
 		_comm.refUndoMax.add(&refUndoMax);
 		getDisplay().addFilter(SWT.KeyDown, _kdFilter);
+	}
+	void refEnabled() {
+		auto m = selection();
+		if (_maxNest) _maxNest.setEnabled(m && m.beast && 0 != m.beast.linkId);
 	}
 	@property
 	void motions(Motion[] motions) {
@@ -1232,12 +1279,20 @@ public:
 						m.beast = new BeastCard(1UL, "", "", "");
 						m.beast.linkId = bid;
 					}
+					resetMaxNest(m);
 					_beastImg.redraw();
 					foreach (dlg; modEvent) dlg();
+					refEnabled();
 				}
 			} catch (Exception e) {
 				debugln(e);
 			}
+		}
+	}
+	private void resetMaxNest(Motion m) {
+		if (!m.beast || 0 == m.beast.linkId) {
+			m.maxNest = Motion.maxNest_init;
+			_maxNest.setSelection(m.maxNest);
 		}
 	}
 	private class BeastTCPD : TCPD {
@@ -1284,9 +1339,11 @@ public:
 					storeEdit(_motions.getSelectionIndex());
 					if (m.beast) _comm.delBeast.call(m.beast);
 					m.beast = null;
+					resetMaxNest(m);
 					_beastImg.redraw();
 					foreach (dlg; modEvent) dlg();
 					_comm.refreshToolBar();
+					refEnabled();
 				}
 			}
 		}

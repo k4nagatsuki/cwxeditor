@@ -1298,7 +1298,7 @@ public:
 	alias swap!InfoCard swapInfo;
 
 	const
-	private string summaryToXML() {
+	private string summaryToXML(in XMLOption opt) {
 		auto root = XNode.create("Summary");
 		auto pNode = root.newElement("Property");
 		pNode.newElement("Name", _sname);
@@ -1331,14 +1331,15 @@ public:
 	/// ---
 	const
 	string[string][string] toXMLs() {
-		string e = "";
-		string[string] s = ["Summary.xml":summaryToXML()];
-		string[string][string] r = [e:s];
 		auto opt = new XMLOption;
 		opt.includeCard = true;
 		opt.skill = &skill;
 		opt.item = &item;
 		opt.beast = &beast;
+
+		string e = "";
+		string[string] s = ["Summary.xml":summaryToXML(opt)];
+		string[string][string] r = [e:s];
 
 		void put(string parent, string[string] p) {
 			if (p.length) {
@@ -1373,19 +1374,24 @@ public:
 	/// Throws:
 	/// FileException = ファイル削除時・保存時例外発生時。
 	void saveXMLs(string path, in SaveOption opt) {
-		std.file.write(std.path.buildPath(path, "Summary.xml"), summaryToXML());
-		auto xOpt = new XMLOption;
-		xOpt.includeCard = true;
-		xOpt.skill = &skill;
-		xOpt.item = &item;
-		xOpt.beast = &beast;
+		string summFile = std.path.buildPath(path, "Summary.xml");
 
 		bool canBackup = opt.backup && (!opt.backupDir.exists() || opt.backupDir.isDir());
 		if (canBackup) {
 			foreach (file; clistdir(opt.backupDir)) {
 				.delAll(opt.backupDir.buildPath(file));
 			}
+			if (summFile.exists() && !summFile.isDir()) {
+				summFile.copy(opt.backupDir.buildPath(summFile.baseName()));
+			}
 		}
+
+		auto xOpt = new XMLOption;
+		xOpt.includeCard = true;
+		xOpt.skill = &skill;
+		xOpt.item = &item;
+		xOpt.beast = &beast;
+		std.file.write(summFile, summaryToXML(xOpt));
 
 		saveXML(std.path.buildPath(path, PATH_AREA), _area, opt, xOpt);
 		saveXML(std.path.buildPath(path, PATH_BATTLE), _btl, opt, xOpt);

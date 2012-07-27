@@ -335,23 +335,21 @@ public class FlexProps {
 					dStr ~= " - " ~ .text(__LINE__);
 					etc.tempPath = std.path.buildPath(cwxDir, "temp");
 					etc.backupPath = std.path.buildPath(cwxDir, "backup");
-					etc.backupBeforeSavePath = etc.backupPath.buildPath("save");
 					break;
 				case IniLocation.NOTHING:
 					_noFileTemp = createNewFileName(cwxDir, true);
 					dStr ~= " - " ~ .text(__LINE__);
 					etc.tempPath = std.path.buildPath(_noFileTemp, "temp");
 					etc.backupPath = std.path.buildPath(_noFileTemp, "backup");
-					etc.backupBeforeSavePath = etc.backupPath.buildPath("save");
 					break;
 				case IniLocation.LOCAL:
 					dStr ~= " - " ~ .text(__LINE__);
 					etc.tempPath = "temp";
 					etc.backupPath = "backup";
-					etc.backupBeforeSavePath = etc.backupPath.buildPath("save");
 					break;
 				}
 				dStr ~= " - " ~ .text(__LINE__);
+				etc.backupBeforeSavePath = etc.backupPath;
 			}
 		} catch (Throwable e) {
 			fdebugln(dStr);
@@ -389,6 +387,9 @@ public class FlexProps {
 				dStr ~= " - " ~ .text(__LINE__);
 				foreach (i, fld; this.tupleof) {
 					this.tupleof[i] = fromNode(_node, fld, force, dataVersion);
+				}
+				if (dataVersion < 2012072700) {
+					etc.backupBeforeSavePath = etc.backupPath;
 				}
 				dStr ~= " - " ~ .text(__LINE__);
 			}

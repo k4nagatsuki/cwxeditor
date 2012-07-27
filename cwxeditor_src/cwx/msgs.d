@@ -1557,6 +1557,7 @@ class Msgs : Properties {
 	auto menuTextImport = Msg("menuTextImport", "シナリオに追加");
 	auto menuTextOpenHand = Msg("menuTextOpenHand", "所有カード");
 	auto menuTextAddHand = Msg("menuTextAddHand", "所有カードの追加");
+	auto menuTextRemoveRef = Msg("menuTextRemoveRef", "参照から格納へ変更する");
 	auto menuTextEditEventAtTimeOfUsing = Msg("menuTextEditEventAtTimeOfUsing", "使用時イベントの設定");
 	auto menuTextHold = Msg("menuTextHold", "カードのホールド");
 	auto menuTextPlaySE = Msg("menuTextPlaySE", "再生");

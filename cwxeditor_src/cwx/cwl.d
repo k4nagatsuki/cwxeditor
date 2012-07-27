@@ -228,11 +228,11 @@ void loadCardRef(Summary summ) {
 		node.onTag["maxNest"] = (ref XNode node) {
 			string path = node.attr("path", false, INVALID_CWX_PATH);
 			if (INVALID_CWX_PATH == path) return;
-			auto beast = cast(BeastCard) summ.findCWXPath(path);
-			if (!beast) return;
+			auto m = cast(Motion) summ.findCWXPath(path);
+			if (!m) return;
 			string value = node.value;
 			try {
-				beast.maxNest = .to!uint(value);
+				m.maxNest = .to!uint(value);
 			} catch (ConvException e) {
 				debugln(e);
 			}
@@ -2273,6 +2273,9 @@ private void writeMotion(ref SData d, ref ByteIO f, Motion m) {
 	case 6, 7:
 		break;
 	case 8:
+		if (Motion.maxNest_init != m.maxNest) {
+			d.maxNest[m.cwxPath(true)] = m.maxNest;
+		}
 		auto beast = m.beast;
 		if (beast) {
 			if (0 != beast.linkId) {
@@ -2283,7 +2286,7 @@ private void writeMotion(ref SData d, ref ByteIO f, Motion m) {
 				nestCount++;
 
 				d.nestCount[beast.linkId] = nestCount;
-				if (nestCount <= beast.maxNest) {
+				if (nestCount <= m.maxNest) {
 					f.writeL(cast(uint) 0x1);
 					writeBeast(d, f, beast);
 				} else {
@@ -2836,13 +2839,11 @@ private void writeItem(ref SData d, ref ByteIO f, ItemCard c) {
 private void writeBeast(ref SData d, ref ByteIO f, BeastCard c) {
 	ulong id = c.id;
 	ulong linkId = c.linkId;
-	auto cwxPath = c.cwxPath(true);
 	if (0 != c.linkId) {
-		d.cardRef[cwxPath] = linkId;
+		d.cardRef[c.cwxPath(true)] = linkId;
 		c = d.beast(c.linkId);
 		if (!c) c = new BeastCard(id, "", "", "");
 	}
-	d.maxNest[cwxPath] = c.maxNest;
 	writeEffCard(d, f, c, 0x6, id);
 	writeBool(f, false); // Hold
 	f.writeL(cast(uint) c.useLimit);

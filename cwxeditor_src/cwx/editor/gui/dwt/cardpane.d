@@ -1246,6 +1246,22 @@ private:
 				refAddHandMenu(card);
 			}
 		}
+		void removeRef() {
+			auto card = selection;
+			if (!card || 0 == card.linkId) return;
+			auto targ = pOwnerCard(card.linkId);
+			if (!targ) return;
+			auto id = card.id;
+			static if (is(typeof(card.hold))) auto hold = card.hold;
+			card.deepCopy(targ);
+			card.id = id;
+			card.linkId = 0;
+			static if (is(typeof(card.hold))) card.hold = hold;
+
+			refresh();
+			refCard(card);
+			_comm.refreshToolBar();
+		}
 	}
 public:
 	static if (!EditMode) {
@@ -1367,6 +1383,8 @@ public:
 				auto addHandMI = createMenuItem(_comm, pop, MenuID.AddHand, dummy, () => _owner && _summ && pOwnerCards.length, SWT.CASCADE);
 				_addHandMenu = new Menu(addHandMI);
 				addHandMI.setMenu(_addHandMenu);
+				new MenuItem(pop, SWT.SEPARATOR);
+				createMenuItem(_comm, pop, MenuID.RemoveRef, &removeRef, () => selection && 0 != selection.linkId && pOwnerCard(selection.linkId));
 			}
 			new MenuItem(pop, SWT.SEPARATOR);
 			createMenuItem(_comm, pop, MenuID.Undo, &undo, &_undo.canUndo);
@@ -1564,6 +1582,7 @@ public:
 				static if (is (CardOwner : CastCard) && is (C : BeastCard)) {
 					_comm.refCast.call(_owner);
 				}
+				_comm.refreshToolBar();
 				dlg.appliedEvent.length = 0;
 				dlg.applyEvent ~= {
 					storeEdit(_owner.indexOf(c));

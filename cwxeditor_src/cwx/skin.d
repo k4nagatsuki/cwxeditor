@@ -77,7 +77,7 @@ class Skin {
 		if (p) {
 			return *p;
 		} else {
-			auto skinsDir = std.path.buildPath(dirName(enginePath), buildPath("Data", "Skin") ~ dirSeparator);
+			auto skinsDir = std.path.buildPath(dirName(enginePath), buildPath("Data", "Skin"));
 			Skin[string] r;
 			if (.exists(skinsDir) && .isDir(skinsDir)) {
 				try {

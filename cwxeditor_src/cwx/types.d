@@ -1051,6 +1051,7 @@ enum MenuID {
 	Import,
 	OpenHand,
 	AddHand,
+	RemoveRef,
 	EditEventAtTimeOfUsing,
 	Hold,
 	PlaySE,

@@ -429,17 +429,16 @@ private:
 	}
 	public Skin findSkinFromHistory(in Summary summ, out OpenHistory hist) {
 		hist = findHist(createHistString(summ));
-		if (hist.path.length) {
+		if (summ.legacy && hist.path.length && (hist.skinName.length || hist.skinEngine.length)) {
 			return findSkin(_comm, _prop, summ, hist.skinName, hist.skinEngine);
-		} else {
-			return findSkin(_comm, _prop, summ);
 		}
+		return findSkin(_comm, _prop, summ);
 	}
 	void openScenario(Summary summ) {
 		assert (summ);
 		OpenHistory hist;
 		auto skin = findSkinFromHistory(summ, hist);
-		if (hist.path.length) {
+		if (summ.legacy && hist.path.length && (hist.skinName.length || hist.skinEngine.length)) {
 			summ.type = hist.skinName;
 		}
 		_lastBackup = Clock.currTime();

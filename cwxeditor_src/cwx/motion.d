@@ -199,6 +199,7 @@ private:
 	int _aValue = 0;
 	uint _round = 10u;
 	BeastCard _beast = null;
+	uint _maxNest = maxNest_init;
 
 	MotionOwner _owner = null;
 public:
@@ -255,6 +256,7 @@ public:
 		r.uValue = uValue;
 		r.aValue = aValue;
 		r.round = round;
+		r.maxNest = maxNest;
 		if (_beast) {
 			r.beast = _beast.dup;
 		}
@@ -270,6 +272,7 @@ public:
 		if (m.uValue != uValue) return false;
 		if (m.aValue != aValue) return false;
 		if (m.round != round) return false;
+		if (m.maxNest != maxNest) return false;
 		if (_beast) {
 			if (m._beast) {
 				return _beast == m._beast;
@@ -388,6 +391,22 @@ public:
 		_beast.change(id);
 	}
 
+	/// 参照IDを使用する時、同一の召喚獣カードを何回までネストできるか。
+	@property
+	const
+	uint maxNest() {return _maxNest;}
+	/// ditto
+	@property
+	void maxNest(uint val) {
+		_maxNest = roundValue(val, maxNest_max, maxNest_min);
+	}
+	/// ネスト可能回数の初期値、最小値、最大値。
+	static immutable maxNest_init = 1;
+	/// ditto
+	static immutable maxNest_min = 0;
+	/// ditto
+	static immutable maxNest_max = 999;
+
 	/// XMLテキスト化して返す。
 	const
 	string toXML(XMLOption opt) {
@@ -419,6 +438,7 @@ public:
 		if (d.use(MArg.ROUND)) e.newAttr(d.attr(MArg.ROUND), round);
 		if (d.use(MArg.BEAST)) {
 			auto be = e.newElement("Beasts");
+			be.newAttr("maxNest", maxNest);
 			if (_beast) {
 				if (opt && opt.includeCard && 0 != _beast.linkId) {
 				// FIXME: リンクに失敗する
@@ -428,7 +448,7 @@ public:
 					nestCount++;
 
 					opt.nestCount[_beast.linkId] = nestCount;
-					if (nestCount <= _beast.maxNest) {
+					if (nestCount <= maxNest) {
 						_beast.toNode(be, opt);
 					}
 					if (1 >= nestCount) {
@@ -457,6 +477,8 @@ public:
 		if (d.use(MArg.ROUND)) r.round = node.attr!(uint)(d.attr(MArg.ROUND), true);
 		if (d.use(MArg.BEAST)) {
 			node.onTag["Beasts"] = (ref XNode node) {
+				int maxNestInit = maxNest_init;
+				r.maxNest = node.attr("maxNest", false, maxNestInit);
 				node.onTag["BeastCard"] = (ref XNode node) {
 					r.setBeastFromNode(node, ver);
 				};
