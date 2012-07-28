@@ -1503,17 +1503,25 @@ private:
 			return parent;
 		}
 	}
+	static LoadOption loadOption(in Props prop) {
+		LoadOption opt;
+		opt.cardOnly = true;
+		opt.textOnly = false;
+		opt.doubleIO = prop.var.etc.doubleIO;
+		opt.expandXMLs = false;
+		return opt;
+	}
 public:
 	static void openScenario(Commons comm, Props prop, Composite parent, void delegate(string) status,
 			Summary summ, Summary toc, void delegate(Object[]) addScenario) {
 		parent = pane(parent);
 		auto addS = new AddS(comm, prop, parent, toc, addScenario);
-		loadScenarios(prop, true, comm.mainShell, status, false, prop.msgs.dlgTitAddScenario, &addS.addS);
+		loadScenarios(prop, loadOption(prop), comm.mainShell, status, prop.msgs.dlgTitAddScenario, &addS.addS);
 	}
 	static void openScenario(Commons comm, Props prop, Composite parent, void delegate(string) status,
 			Summary summ, Summary toc, string[] files, void delegate(Object[]) addScenario) {
 		parent = pane(parent);
 		auto addS = new AddS(comm, prop, parent, toc, addScenario);
-		loadScenariosFromFile(prop, true, comm.mainShell, status, false, files, &addS.addS);
+		loadScenariosFromFile(prop, loadOption(prop), comm.mainShell, status, files, &addS.addS);
 	}
 }

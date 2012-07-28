@@ -376,6 +376,15 @@ private:
 			}
 		}
 	}
+	@property
+	LoadOption loadOption(in Summary old) {
+		LoadOption opt;
+		opt.cardOnly = false;
+		opt.textOnly = false;
+		opt.doubleIO = _prop.var.etc.doubleIO;
+		opt.expandXMLs = old ? old.expandXMLs : _prop.var.etc.expandXMLs;
+		return opt;
+	}
 	void reload() {
 		if (!summary) return;
 		auto old = summary;
@@ -390,7 +399,7 @@ private:
 				auto wsm = std.path.buildPath(old.scenarioPath, "Summary.wsm");
 				if (old.useTemp) {
 					try {
-						openScenario(old.reloadXMLs(false, _prop.var.etc.doubleIO));
+						openScenario(old.reloadXMLs(loadOption(old)));
 					} catch (Exception e) {
 						debugln(e);
 						MessageBox.showWarning(.tryFormat(_prop.msgs.reloadError, summary.scenarioPath)
@@ -399,11 +408,11 @@ private:
 					}
 				} else {
 					if (!.exists(wsm)) wsm = old.scenarioPath;
-					loadScenarioFromFile(_prop, false, _comm.mainShell, &setStatusLine, expand, old, wsm, &openScenario, null);
+					loadScenarioFromFile(_prop, loadOption(old), _comm.mainShell, &setStatusLine, old, wsm, &openScenario, null);
 				}
 			} else if (expand) {
 				try {
-					openScenario(old.reloadXMLs(false, _prop.var.etc.doubleIO));
+					openScenario(old.reloadXMLs(loadOption(old)));
 				} catch (Exception e) {
 					debugln(e);
 					MessageBox.showWarning(.tryFormat(_prop.msgs.reloadError, summary.scenarioPath)
@@ -412,7 +421,7 @@ private:
 				}
 			} else {
 				assert (old.zipName.length);
-				loadScenarioFromFile(_prop, false, _comm.mainShell, &setStatusLine, expand, old, old.zipName, &openScenario, null);
+				loadScenarioFromFile(_prop, loadOption(old), _comm.mainShell, &setStatusLine, old, old.zipName, &openScenario, null);
 			}
 		}
 	}
@@ -547,8 +556,8 @@ private:
 	}
 	void openScenario() {
 		auto old = summary;
-		loadScenario(_prop, false, _comm.mainShell, &setStatusLine,
-			_prop.var.etc.expandXMLs, old, _prop.msgs.dlgTitOpenScenario,
+		loadScenario(_prop, loadOption(null), _comm.mainShell, &setStatusLine,
+			old, _prop.msgs.dlgTitOpenScenario,
 			_opt.openPaths, &openScenarioImpl, null);
 	}
 	void openScenario(string fname, void delegate() failure = null) {
@@ -557,8 +566,8 @@ private:
 		}
 		decScenarioPath(fname, _opt.openPaths);
 		auto old = summary;
-		loadScenarioFromFile(_prop, false, _comm.mainShell, &setStatusLine,
-			_prop.var.etc.expandXMLs, old, fname, &openScenarioImpl, failure);
+		loadScenarioFromFile(_prop, loadOption(null), _comm.mainShell, &setStatusLine,
+			old, fname, &openScenarioImpl, failure);
 	}
 	void playSavedSound() {
 		string file = _prop.var.etc.savedSound;
@@ -624,7 +633,7 @@ private:
 			dlg.setFilterNames([_prop.msgs.filterScenarioSave]);
 			dlg.setText(_prop.msgs.dlgTitSaveScenario);
 			dlg.setFilterPath(scenarioFilterPath(_prop));
-			dlg.setFileName(setExtension(summary.scenarioName, "wsn"));
+			dlg.setFileName(setExtension(summary.scenarioName, ".wsn"));
 			dlg.setOverwrite(true);
 			string fname = dlg.open();
 			if (fname) {

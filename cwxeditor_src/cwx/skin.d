@@ -137,9 +137,9 @@ class Skin {
 	}
 	private void setupLegacy(string lEnginePath, string resDir, ClassicEngine cEngine) {
 		_cEngine = cEngine;
-		_extImg = "bmp";
-		_extBgm = "mid";
-		_extSound = "wav";
+		_extImg = ".bmp";
+		_extBgm = ".mid";
+		_extSound = ".wav";
 		_legacy = true;
 		_legacyPath = resDir;
 		_legacyEngine = lEnginePath;
@@ -274,12 +274,12 @@ class Skin {
 	private string _type;
 	private string _author;
 	private string _desc;
-	private string _extImg = "png";
-	private string _resExtImg = "png";
-	private string _extBgm = "mid";
-	private string _resExtBgm = "mid";
-	private string _extSound = "wav";
-	private string _resExtSound = "wav";
+	private string _extImg = ".png";
+	private string _resExtImg = ".png";
+	private string _extBgm = ".mid";
+	private string _resExtBgm = ".mid";
+	private string _extSound = ".wav";
+	private string _resExtSound = ".wav";
 	private string[dchar] _spChars;
 	private Race[] _races;
 
@@ -923,11 +923,11 @@ class Skin {
 			}
 			string r = f(ext);
 			if (r.length) return r;
-			if (ext == _extImg) {
+			if (cfnmatch(ext, _extImg)) {
 				return f(_resExtImg);
-			} else if (ext == _extBgm) {
+			} else if (cfnmatch(ext, _extBgm)) {
 				return f(_resExtBgm);
-			} else if (ext == _extSound) {
+			} else if (cfnmatch(ext, _extSound)) {
 				return f(_resExtSound);
 			}
 		}
@@ -1002,7 +1002,7 @@ class Skin {
 					void readExt(string name, ref string ext1, ref string ext2) {
 						string ext = n.attr(name, false);
 						if (!ext && !ext.length) return;
-						if (ext[0] == '.') ext = ext[1 .. $];
+						if (ext[0] != '.') ext = "." ~ ext;
 						ext1 = ext;
 						ext2 = ext;
 					}
@@ -1024,7 +1024,7 @@ class Skin {
 			auto fd = std.path.buildPath(resourceDir, "Font");
 			foreach (path; clistdir(fd)) {
 				path = std.path.buildPath(fd, path);
-				if (!isDir(path) && cfnmatch(cwx.utils.getExt(path), _resExtImg)) {
+				if (!isDir(path) && cfnmatch(.extension(path), _resExtImg)) {
 					auto dp = toUTF32(stripExtension(baseName(path)));
 					auto c = std.uni.toUpper(dp[0]);
 					switch (c) {

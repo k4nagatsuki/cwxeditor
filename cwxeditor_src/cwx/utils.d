@@ -1627,14 +1627,6 @@ bool cfnmatch(in char[] a, in char[] b) {
 	return 0 == filenameCmp(a, b);
 }
 
-/// pathの拡張子部分を返す。'.'は含めない。
-string getExt(string path, bool tolower = true) {
-	int i = lastIndexOf(path, '.');
-	if (i == -1) return "";
-	string r = path[i + 1 .. $];
-	return tolower ? std.string.toLower(r) : r;
-}
-
 /// Nameを変数名として使用できる場合はtrue。
 template isVariableName(string Name) {
 	immutable isVariableName = is(typeof({mixin("int " ~ Name ~ ";");}));

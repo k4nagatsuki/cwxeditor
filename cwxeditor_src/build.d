@@ -212,12 +212,13 @@ void main(string[] args) {
 	bool help = option.has("help");
 	bool release = option.has("release");
 	bool console = option.has("cui");
+	bool uionly = option.has("uionly");
 	bool window = (release && !console) || option.has("gui");
 	bool clean = option.has("clean");
 	bool run = option.has("run");
 
 	if (help) {
-		writeln("Usage: rdmd build [help | clean | cui | gui | release | run | *.d]");
+		writeln("Usage: rdmd build [help | clean | uionly | cui | gui | release | run | *.d]");
 		return;
 	}
 
@@ -267,8 +268,10 @@ void main(string[] args) {
 	string[] flags = FLAGS.dup;
 	flags ~= release ? RELEASE_FLAGS : DEBUG_FLAGS;
 	flags ~= window ? WINDOW_FLAGS : CONSOLE_FLAGS;
-	if (d2std.length) exec(cmd ~ D2STD_FLAGS ~ d2std ~ "-odobjs" ~ dmdOption);
-	if (cwx.length) exec(cmd ~ flags ~ cwx ~ "-odobjs" ~ dmdOption);
+	if (!uionly) {
+		if (d2std.length) exec(cmd ~ D2STD_FLAGS ~ d2std ~ "-odobjs" ~ dmdOption);
+		if (cwx.length) exec(cmd ~ flags ~ cwx ~ "-odobjs" ~ dmdOption);
+	}
 	if (editor.length) exec(cmd ~ flags ~ editor ~ "-odobjs" ~ dmdOption);
 	if (main.length) exec(cmd ~ flags ~ main ~ "-odobjs" ~ dmdOption);
 

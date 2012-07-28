@@ -55,7 +55,7 @@ string formatMsg(in string text,
 				i++;
 				continue;
 			default:
-				string path = encodeFontPath(dtext[i + 1], "bmp");
+				string path = encodeFontPath(dtext[i + 1], ".bmp");
 				if (!hasMaterial || hasMaterial(path)) {
 					fonts[result.length] = path;
 				}

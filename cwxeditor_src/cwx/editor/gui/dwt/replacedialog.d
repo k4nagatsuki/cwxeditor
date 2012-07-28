@@ -2864,7 +2864,7 @@ public:
 				auto ps = th.fontsInText;
 				foreach (i, p; ps) {
 					auto c = decodeFontPath(p);
-					string ext = cwx.utils.getExt(p);
+					string ext = .extension(p);
 					r |= repl(null, .to!string(c), (string s) {
 						dstring ds = .to!dstring(s);
 						if (!ds.length) return;

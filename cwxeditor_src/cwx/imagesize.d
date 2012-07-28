@@ -50,7 +50,7 @@ bool imageSize(string path, out uint x, out uint y) {
 		return .jpgSize(path, x, y);
 	case ".gif":
 		return .gifSize(path, x, y);
-	case ".tiff", "tif":
+	case ".tiff", ".tif":
 		return .tifSize(path, x, y);
 	case ".bmp":
 		return .bmpSize(path, x, y);

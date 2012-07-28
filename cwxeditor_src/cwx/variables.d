@@ -445,7 +445,7 @@ class FlexEtcProps : Properties {
 		auto ignorePaths = Prop!(string[])("ignorePaths", [".*"]);
 	}
 
-	auto selectedArchiveFilter = Prop!(string)("selectedArchiveFilter", "zip");
+	auto selectedArchiveFilter = Prop!(string)("selectedArchiveFilter", ".zip");
 
 	auto classicEngines = Prop!(ClassicEngine[])("classicEngines", []);
 	auto addNewClassicEngine = Prop!(bool)("addNewClassicEngine", true);

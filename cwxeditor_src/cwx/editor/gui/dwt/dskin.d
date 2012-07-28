@@ -131,8 +131,8 @@ version (Windows) {
 			}
 		}
 
-		/// リソースオーバーライド変更に対応
-		string oPath = legacyEngine.dirName().buildPath("Data").buildPath("Resource").buildPath(resName.setExtension("bmp"));
+		/// リソースオーバーライドに対応
+		string oPath = legacyEngine.dirName().buildPath("Data").buildPath("Resource").buildPath(resName.setExtension(".bmp"));
 		if (.exists(oPath)) {
 			auto ca = cache(oPath);
 			if (ca) {

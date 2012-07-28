@@ -57,12 +57,20 @@ public const {
 	string PATH_INFO = "InfoCard";
 }
 
+/// 読込時オプション。
+struct LoadOption {
+	bool doubleIO = false; /// 読込みの多重化を行うか。
+	bool cardOnly = false; /// エリア・バトル・パッケージを無視するか。
+	bool textOnly = false; /// 素材を無視するか。
+	bool expandXMLs = true; /// XMLファイルを展開するか。
+}
+
 /// 保存時オプション。
 struct SaveOption {
-	bool doubleIO; /// 書き込みの多重化を行うか。
-	bool saveInnerImagePath; /// 格納イメージの参照先を保存するか。
-	bool backup; /// 保存時バックアップを行うか。
-	string backupDir; /// 保存時バックアップ先。
+	bool doubleIO = false; /// 書込みの多重化を行うか。
+	bool saveInnerImagePath = false; /// 格納イメージの参照先を保存するか。
+	bool backup = false; /// 保存時バックアップを行うか。
+	string backupDir = ""; /// 保存時バックアップ先。
 }
 
 /// 貼り紙。シナリオの情報が入る。
@@ -214,10 +222,11 @@ public:
 	}
 
 	/// シナリオを読込む。
-	static Summary loadScenarioFromFile(in CProps prop, bool cardOnly, bool doubleIO, string fname, bool expand, string tempPath,
+	static Summary loadScenarioFromFile(in CProps prop, in LoadOption opt, string fname, string tempPath,
 			string delegate() classicDir = null,
 			Summary old = null, void delegate(uint) setMax = null, void delegate(uint) worked = null, string newName = null) {
 		string[string][string] xmls;
+		bool expand = opt.expandXMLs;
 		bool scTemplate = classicDir !is null;
 		string sunzip(string fname, ZipArchive arc, out bool cancel = false) {
 			auto temp = createTempDir(tempPath, baseName(stripExtension(fname)));
@@ -299,15 +308,15 @@ public:
 		Summary load(string p) {
 			Summary r;
 			if (expand) {
-				r = Summary.fromXMLs(std.path.buildPath(p, "Summary.xml"), cardOnly);
+				r = Summary.fromXMLs(std.path.buildPath(p, "Summary.xml"), opt);
 			} else {
-				r = Summary.fromXMLs(p, xmls, cardOnly);
+				r = Summary.fromXMLs(p, xmls, opt);
 				r._oldXMLs = xmls;
 			}
 			return r;
 		}
 		Summary loadLegacy(string p) {
-			Summary r = loadLScenario(p, "", cardOnly, doubleIO, newName);
+			Summary r = loadLScenario(p, "", opt, newName);
 			return r;
 		}
 		Summary createFromTemplate(Summary r) {
@@ -395,7 +404,7 @@ public:
 					} else if (isDir(fname)) {
 						return ll(fname);
 					} else {
-						auto arc = scArc(fname, "xml");
+						auto arc = scArc(fname, ".xml");
 						if (arc) {
 							bool cancel;
 							string zipname = fname;
@@ -1441,7 +1450,7 @@ public:
 				mkdir(path);
 			}
 			foreach (targ; targs) {
-				auto p = createFileI(path, targ.name, "xml", format("%02d", targ.id) ~ "_");
+				auto p = createFileI(path, targ.name, ".xml", format("%02d", targ.id) ~ "_");
 				std.file.write(p, targ.toXML(xOpt));
 			}
 		}
@@ -1536,14 +1545,14 @@ public:
 	/// SummaryException = xmlsにSummary定義のXML文書が含まれていない、または壊れている。
 	/// XmlException = XMLパースエラー発生時。
 	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
-	private static Summary fromXMLs(string sPath, string[string][string] xmls, bool cardOnly) {
+	private static Summary fromXMLs(string sPath, string[string][string] xmls, in LoadOption opt) {
 		auto parent = "" in xmls;
 		if (!parent) throw new SummaryException("invalid xmls");
 		auto summXML = "Summary.xml" in *parent;
 		if (!summXML) throw new SummaryException("invalid parent of xmls");
 		Summary summ = summaryFromXML(sPath, *summXML);
 
-		if (!cardOnly) {
+		if (!opt.cardOnly) {
 			summ.loadXML2(xmls, PATH_AREA, "Area", summ._area, summ.useCounter, &summ.changeHandler, summ.dataVersion);
 			summ.checkStartArea();
 			summ.loadXML2(xmls, PATH_BATTLE, "Battle", summ._btl, summ.useCounter, &summ.changeHandler, summ.dataVersion);
@@ -1558,9 +1567,9 @@ public:
 
 		return summ;
 	}
-	private static void fromXMLs(Summary summ, bool cardOnly) {
+	private static void fromXMLs(Summary summ, in LoadOption opt) {
 		auto path = summ.scenarioPath;
-		if (!cardOnly) {
+		if (!opt.cardOnly) {
 			summ.loadXML1(std.path.buildPath(path, PATH_AREA), "Area", summ._area, summ.useCounter, &summ.changeHandler, summ.dataVersion);
 			summ.checkStartArea();
 			summ.loadXML1(std.path.buildPath(path, PATH_BATTLE), "Battle", summ._btl, summ.useCounter, &summ.changeHandler, summ.dataVersion);
@@ -1583,21 +1592,21 @@ public:
 	/// XmlException = XMLパースエラー発生時。
 	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
 	/// FileLoadException = Summary.xml以外での読込例外発生時。
-	private static Summary fromXMLs(string path, bool cardOnly) {
+	private static Summary fromXMLs(string path, in LoadOption opt) {
 		auto summ = summaryFromXML(dirName(path), std.file.readText(path));
-		fromXMLs(summ, cardOnly);
+		fromXMLs(summ, opt);
 		return summ;
 	}
 
 	/// XMLファイルまたはクラシックなシナリオを再読込し、新しいSummaryを生成して返す。
-	Summary reloadXMLs(bool cardOnly, bool doubleIO) {
+	Summary reloadXMLs(in LoadOption opt) {
 		Summary summ;
 		if (legacy) {
-			summ = loadLScenario(scenarioPath, "", cardOnly, doubleIO, scenarioName);
+			summ = loadLScenario(scenarioPath, "", opt, scenarioName);
 		} else {
 			summ = summaryFromXML(scenarioPath,
 				std.file.readText(std.path.buildPath(scenarioPath, "Summary.xml")));
-			fromXMLs(summ, cardOnly);
+			fromXMLs(summ, opt);
 		}
 		summ._expandXMLs = expandXMLs;
 		summ._zipName = zipName;
@@ -1692,7 +1701,7 @@ public:
 				assert (files.length);
 				targ.path = (*files)[0u];
 			} else {
-				auto file = createFileI(mt, fname, "bmp", "");
+				auto file = createFileI(mt, fname, ".bmp", "");
 				std.file.write(file, bytes);
 				targ.path = std.path.buildPath(toSkin.materialPath, baseName(file));
 				cis[assumeUnique(bytes)] ~= targ.path;

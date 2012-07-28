@@ -313,8 +313,12 @@ protected:
 						resetCursors(cursors);
 					}
 					try {
-						summ = Summary.loadScenarioFromFile(_prop.parent, false, _prop.var.etc.doubleIO,
-							tPath, _prop.var.etc.expandXMLs, _prop.tempPath, () => dir);
+						LoadOption opt;
+						opt.cardOnly = false;
+						opt.textOnly = false;
+						opt.doubleIO = _prop.var.etc.doubleIO;
+						opt.expandXMLs = _prop.var.etc.expandXMLs;
+						summ = Summary.loadScenarioFromFile(_prop.parent, opt, tPath, _prop.tempPath, () => dir);
 					} catch (SummaryException e) {
 						// Nothing;
 						debugln(e);

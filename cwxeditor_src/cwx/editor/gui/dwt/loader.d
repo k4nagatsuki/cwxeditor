@@ -54,10 +54,9 @@ private class LSFFThr(bool Array) {
 	Display display;
 	Display current;
 	Props prop;
-	bool cardOnly;
+	LoadOption opt;
 	Shell w;
 	Cursor[Shell] cursors;
-	bool expandXMLs;
 	string fname;
 	static if (Array) {
 		string[] files;
@@ -205,7 +204,7 @@ private class LSFFThr(bool Array) {
 			foreach (i, path; files) {
 				fname = path;
 				display.syncExec(new Start);
-				Summary s = loadScenarioFromFileImpl(prop, cardOnly, w, status, expandXMLs,
+				Summary s = loadScenarioFromFileImpl(prop, opt, w, status,
 					null, path, null, null, false, display, &setMax, &setWork);
 				if (s) {
 					r ~= s;
@@ -218,9 +217,8 @@ private class LSFFThr(bool Array) {
 		} else {
 			display.syncExec(new Start);
 			try {
-				Summary r = Summary.loadScenarioFromFile(prop.parent, cardOnly, prop.var.etc.doubleIO,
-					fname, prop.var.etc.expandXMLs,
-					prop.tempPath, null, old, &setMax, &setWork,
+				Summary r = Summary.loadScenarioFromFile(prop.parent, opt,
+					fname, prop.tempPath, null, old, &setMax, &setWork,
 					isDir(fname) ? baseName(fname) : baseName(dirName(fname)));
 				temp = r.useTemp ? r.scenarioPath : "";
 				display.syncExec(new Load(r));
@@ -256,8 +254,8 @@ string[] scenarioFilterDesc(Props prop) {
 	return r;
 }
 
-Summary[] loadScenarios(Props prop, bool cardOnly, Shell w, void delegate(string) status,
-		bool expandXMLs, string dlgTitle, void delegate(Summary[]) loaded = null, void delegate() failure = null, bool oThr = true) {
+Summary[] loadScenarios(Props prop, in LoadOption opt, Shell w, void delegate(string) status,
+		string dlgTitle, void delegate(Summary[]) loaded = null, void delegate() failure = null, bool oThr = true) {
 	auto dlg = new FileDialog(w, SWT.PRIMARY_MODAL | SWT.APPLICATION_MODAL | SWT.MULTI | SWT.OPEN);
 	dlg.setFilterExtensions(scenarioFilter);
 	dlg.setFilterNames(scenarioFilterDesc(prop));
@@ -288,7 +286,7 @@ Summary[] loadScenarios(Props prop, bool cardOnly, Shell w, void delegate(string
 			}
 			files.add(nabs(std.path.buildPath(dlg.getFilterPath(), file)));
 		}
-		Summary[] r = loadScenariosFromFile(prop, cardOnly, w, status, expandXMLs,
+		Summary[] r = loadScenariosFromFile(prop, opt, w, status,
 			files.toArray(), &put.put, failure, oThr);
 		if (!oThr && r.length) put.put(r);
 		return r;
@@ -296,16 +294,15 @@ Summary[] loadScenarios(Props prop, bool cardOnly, Shell w, void delegate(string
 	return [];
 }
 
-Summary[] loadScenariosFromFile(Props prop, bool cardOnly, Shell w, void delegate(string) status,
-		bool expandXMLs, string[] files, void delegate(Summary[]) loaded = null, void delegate() failure = null, bool oThr = true) {
+Summary[] loadScenariosFromFile(Props prop, in LoadOption opt, Shell w, void delegate(string) status,
+		string[] files, void delegate(Summary[]) loaded = null, void delegate() failure = null, bool oThr = true) {
 	auto display = Display.getCurrent();
 	if (oThr && loaded) {
 		auto thr = new LSFFThr!(true);
 		thr.display = display;
 		thr.prop = prop;
-		thr.cardOnly = cardOnly;
+		thr.opt = opt;
 		thr.w = w;
-		thr.expandXMLs = expandXMLs;
 		thr.files = files;
 		thr.loaded = loaded;
 		thr.failure = failure;
@@ -319,7 +316,7 @@ Summary[] loadScenariosFromFile(Props prop, bool cardOnly, Shell w, void delegat
 		scope (exit) resetCursors(cursors);
 		Summary[] r;
 		foreach (i, path; files) {
-			Summary s = loadScenarioFromFileImpl(prop, cardOnly, w, status, expandXMLs, null, path, null, null, false, display);
+			Summary s = loadScenarioFromFileImpl(prop, opt, w, status, null, path, null, null, false, display);
 			if (s) {
 				r ~= s;
 			} else {
@@ -348,8 +345,8 @@ string selectScenario(Props prop, Shell w, string dlgTitle) {
 	return dlg.open();
 }
 
-Summary loadScenario(Props prop, bool cardOnly, Shell w, void delegate(string) status,
-		bool expandXMLs, Summary old, string dlgTitle, ref string[] openPaths, void delegate(Summary) loaded = null, void delegate() failure = null, bool oThr = true) {
+Summary loadScenario(Props prop, in LoadOption opt, Shell w, void delegate(string) status,
+		Summary old, string dlgTitle, ref string[] openPaths, void delegate(Summary) loaded = null, void delegate() failure = null, bool oThr = true) {
 	string fname = selectScenario(prop, w, dlgTitle);
 	if (fname) {
 		decScenarioPath(fname, openPaths);
@@ -360,28 +357,27 @@ Summary loadScenario(Props prop, bool cardOnly, Shell w, void delegate(string) s
 			}
 		};
 		put.loaded = loaded;
-		Summary r = loadScenarioFromFile(prop, cardOnly, w, status, expandXMLs, old, fname, &put.put, failure, oThr);
+		Summary r = loadScenarioFromFile(prop, opt, w, status, old, fname, &put.put, failure, oThr);
 		if (!oThr && r) put.put(r);
 		return r;
 	}
 	return null;
 }
 
-Summary loadScenarioFromFile(Props prop, bool cardOnly, Shell w, void delegate(string) status,
-		bool expandXMLs, Summary old, string fname, void delegate(Summary) loaded = null, void delegate() failure = null, bool oThr = true) {
-	return loadScenarioFromFileImpl(prop, cardOnly, w, status, expandXMLs, old, fname, loaded, failure, oThr, null);
+Summary loadScenarioFromFile(Props prop, in LoadOption opt, Shell w, void delegate(string) status,
+		Summary old, string fname, void delegate(Summary) loaded = null, void delegate() failure = null, bool oThr = true) {
+	return loadScenarioFromFileImpl(prop, opt, w, status, old, fname, loaded, failure, oThr, null);
 }
-private Summary loadScenarioFromFileImpl(Props prop, bool cardOnly, Shell w, void delegate(string) status,
-		bool expandXMLs, Summary old, string fname, void delegate(Summary) loaded = null, void delegate() failure = null, bool oThr = true, Display current = null,
+private Summary loadScenarioFromFileImpl(Props prop, in LoadOption opt, Shell w, void delegate(string) status,
+		Summary old, string fname, void delegate(Summary) loaded = null, void delegate() failure = null, bool oThr = true, Display current = null,
 		void delegate (uint) setMax = null, void delegate (uint) worked = null) {
 	if (oThr && loaded) {
 		auto thr = new LSFFThr!(false);
 		thr.display = current ? current : Display.getCurrent();
 		thr.current = current;
 		thr.prop = prop;
-		thr.cardOnly = cardOnly;
+		thr.opt = opt;
 		thr.w = w;
-		thr.expandXMLs = expandXMLs;
 		thr.old = old;
 		thr.fname = fname;
 		thr.loaded = loaded;
@@ -402,8 +398,7 @@ private Summary loadScenarioFromFileImpl(Props prop, bool cardOnly, Shell w, voi
 			if (!current) resetCursors(cursors);
 		}
 		try {
-			return Summary.loadScenarioFromFile(prop.parent, cardOnly, prop.var.etc.doubleIO,
-				fname, prop.var.etc.expandXMLs,
+			return Summary.loadScenarioFromFile(prop.parent, opt, fname,
 				prop.tempPath, null, old, setMax, worked,
 				isDir(fname) ? baseName(fname) : baseName(dirName(fname)));
 		} catch (SummaryException e) {

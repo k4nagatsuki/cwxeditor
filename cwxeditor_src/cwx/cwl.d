@@ -56,21 +56,21 @@ private struct RData {
 /// Params:
 /// newName = シナリオ名。null以外が指定された場合、
 ///           Summary.wsmが存在しない際はこの名前で新規に作成する。
-Summary loadLScenario(string p, string skin, bool cardOnly, bool doubleIO, string newName = null) {
+Summary loadLScenario(string p, string skin, in LoadOption opt, string newName = null) {
 	auto sPath = p;
 	string summPath = std.path.buildPath(p, "Summary.wsm");
 	Summary summ;
 	RData d;
 	ulong startAreaId;
 	if (.exists(summPath)) {
-		d = RData(cardOnly, sPath, skin);
+		d = RData(opt.cardOnly, sPath, skin);
 		{
 			auto bytes = ByteIO(std.file.read(summPath));
 			summ = loadSummary(d, bytes, startAreaId);
 		}
 	} else {
 		if (!newName) throw new SummaryException("Not Scenario: " ~ p);
-		d = RData(cardOnly, sPath, skin);
+		d = RData(opt.cardOnly, sPath, skin);
 		summ = new Summary(newName, d.skin, d.sPath, false, true);
 	}
 	class Load {
@@ -93,7 +93,7 @@ Summary loadLScenario(string p, string skin, bool cardOnly, bool doubleIO, strin
 					auto f = ByteIO(std.file.read(file));
 					auto base = baseName(file);
 					ulong id;
-					if (!cardOnly) {
+					if (!d.cardOnly) {
 						if (sWith(base, "Area", id)) {
 							areas ~= .loadArea(d, f, id);
 						}
@@ -144,7 +144,7 @@ Summary loadLScenario(string p, string skin, bool cardOnly, bool doubleIO, strin
 			}
 		}
 	}
-	if (doubleIO) {
+	if (opt.doubleIO) {
 		auto thr = new core.thread.Thread(&load2.load);
 		thr.start();
 		load1.load();

@@ -101,8 +101,8 @@ private:
 	class FileNameObj {
 		private this () {
 			this.relPath = toRelPath(this.array);
-			this.ext = cwx.utils.getExt(this.basename);
-			this.extl = cwx.utils.getExt(this.basename, false);
+			this.ext = .extension(this.basename);
+			this.extl = .extension(this.basename).toLower();
 			this.pathId = toPathId(this.relPath);
 			this.dir = isDir(this.array) != 0;
 			if (this.dir) {
@@ -367,17 +367,22 @@ private:
 					}
 					auto img = fimage(skin, p.array, p.dir);
 					itm.setImage(0, img);
+					string wrapExt(string ext) {
+						if (!ext.length) return ext;
+						if ('.' == ext[0]) return ext[1 .. $];
+						return ext;
+					}
 					if (p.dir) {
 						itm.setText(0, p.basename);
 						itm.setText(1, "");
 						itm.setText(2, "");
 					} else if (p.material) {
 						itm.setText(0, stripExtension(p.basename));
-						itm.setText(1, p.extl);
+						itm.setText(1, wrapExt(p.ext));
 						itm.setText(2, to!(string)(_summ.useCounter.path.get(p.pathId)));
 					} else {
 						itm.setText(0, stripExtension(p.basename));
-						itm.setText(1, p.extl);
+						itm.setText(1, wrapExt(p.ext));
 						itm.setText(2, "");
 					}
 					p.array = nabs(p.array);
@@ -1902,20 +1907,20 @@ public:
 		}
 		string filter = _prop.var.etc.selectedArchiveFilter;
 		switch (filter) {
-		case "cab":
+		case ".cab":
 			if (!canUncab) {
 				goto default;
 			}
 			dlg.setFilterIndex(cab);
-			dlg.setFileName(setExtension(_summ.scenarioName, "cab"));
+			dlg.setFileName(setExtension(_summ.scenarioName, ".cab"));
 			break;
-		case "wsn":
+		case ".wsn":
 			dlg.setFilterIndex(wsn);
-			dlg.setFileName(setExtension(_summ.scenarioName, "wsn"));
+			dlg.setFileName(setExtension(_summ.scenarioName, ".wsn"));
 			break;
 		default:
 			dlg.setFilterIndex(zip);
-			dlg.setFileName(setExtension(_summ.scenarioName, "zip"));
+			dlg.setFileName(setExtension(_summ.scenarioName, ".zip"));
 			break;
 		}
 		dlg.setOverwrite(true);
@@ -1928,19 +1933,19 @@ public:
 				synchronized (_comm.saveSync) {
 					_summ.createCab(fname, _prop.var.etc.ignorePaths);
 				}
-				_prop.var.etc.selectedArchiveFilter = "cab";
+				_prop.var.etc.selectedArchiveFilter = ".cab";
 				break;
 			case wsn:
 				synchronized (_comm.saveSync) {
 					_summ.createZip(fname, _prop.var.etc.ignorePaths, false);
 				}
-				_prop.var.etc.selectedArchiveFilter = "wsn";
+				_prop.var.etc.selectedArchiveFilter = ".wsn";
 				break;
 			default:
 				synchronized (_comm.saveSync) {
 					_summ.createZip(fname, _prop.var.etc.ignorePaths, true);
 				}
-				_prop.var.etc.selectedArchiveFilter = "zip";
+				_prop.var.etc.selectedArchiveFilter = ".zip";
 				break;
 			}
 			_prop.var.etc.archivePath = dlg.getFilterPath();
