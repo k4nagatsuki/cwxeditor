@@ -1793,6 +1793,7 @@ public:
 			_noSummMenu.add(MenuID.New);
 			_noSummMenu.add(MenuID.Open);
 			_noSummMenu.add(MenuID.Close);
+			_noSummMenu.add(MenuID.Find);
 			_noSummMenu.add(MenuID.ToXMLText);
 			if (_prop.var.etc.singleWindow) {
 				_noSummMenu.add(MenuID.TableView);
@@ -1852,7 +1853,7 @@ public:
 					mixin (MenuAction!("me", MenuID.Down));
 					new MenuItem(me, SWT.SEPARATOR);
 				}
-				mixin (MenuAction!("me", MenuID.Find, SWT.PUSH, "replaceText", "() => summary !is null"));
+				mixin (MenuAction!("me", MenuID.Find, SWT.PUSH, "replaceText", "null"));
 				mixin (MenuAction!("me", MenuID.ReNumberingAll, SWT.PUSH, "reNumberingAll", "() => summary !is null"));
 				mixin (MenuAction!("me", MenuID.ToXMLText, SWT.PUSH, "clipboardToXML", "() => CBisXMLOnly(_comm.clipboard)"));
 				dStr ~= " - " ~ .text(__LINE__);
@@ -2047,7 +2048,7 @@ public:
 					}
 					{
 						auto bar = new ToolBar(cbar, SWT.FLAT);
-						mixin (ToolAction!("bar", MenuID.Find, SWT.PUSH, "replaceText", "() => summary !is null"));
+						mixin (ToolAction!("bar", MenuID.Find, SWT.PUSH, "replaceText", "null"));
 						new ToolItem(bar, SWT.SEPARATOR);
 						mixin (ToolAction!("bar", MenuID.ReNumberingAll, SWT.PUSH, "reNumberingAll", "() => summary !is null"));
 						new ToolItem(bar, SWT.SEPARATOR);
@@ -2151,7 +2152,7 @@ public:
 				mixin (ToolAction!("bar", MenuID.Save, SWT.PUSH, "saveScenario", "() => summary !is null"));
 				mixin (ToolAction!("bar", MenuID.SaveAs, SWT.PUSH, "saveScenarioA", "() => summary !is null"));
 				new ToolItem(bar, SWT.SEPARATOR);
-				mixin (ToolAction!("bar", MenuID.Find, SWT.PUSH, "replaceText", "() => summary !is null"));
+				mixin (ToolAction!("bar", MenuID.Find, SWT.PUSH, "replaceText", "null"));
 				mixin (ToolAction!("bar", MenuID.ReNumberingAll, SWT.PUSH, "reNumberingAll", "() => summary !is null"));
 				mixin (ToolAction!("bar", MenuID.ToXMLText, SWT.PUSH, "clipboardToXML", "() => CBisXMLOnly(_comm.clipboard)"));
 				new ToolItem(bar, SWT.SEPARATOR);
@@ -2825,17 +2826,14 @@ public:
 	}
 
 	ReplaceDialog openReplWin() {
-		if (summary) {
-			if (!_replDlg || _replDlg.widget.isDisposed()) {
-				_replDlg = new ReplaceDialog(_comm, _prop, _win, summary);
-				_replDlg.open();
-			} else {
-				_replDlg.widget.setMinimized(false);
-				_replDlg.widget.setActive();
-			}
-			return _replDlg;
+		if (!_replDlg || _replDlg.widget.isDisposed()) {
+			_replDlg = new ReplaceDialog(_comm, _prop, _win, summary);
+			_replDlg.open();
+		} else {
+			_replDlg.widget.setMinimized(false);
+			_replDlg.widget.setActive();
 		}
-		return null;
+		return _replDlg;
 	}
 
 	bool openCWXPath(string path, bool shellActivate) {

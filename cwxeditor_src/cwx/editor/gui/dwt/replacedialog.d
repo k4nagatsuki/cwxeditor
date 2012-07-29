@@ -113,6 +113,7 @@ private:
 	UndoManager _undo;
 
 	Summary _grepSumm = null;
+	Skin _grepSkin = null;
 	string _grepFile = "";
 	bool _inGrep = false;
 
@@ -258,7 +259,12 @@ private:
 			if (cancel) return;
 			auto itm = new TableItem(_result, SWT.NONE);
 			auto summ = _grepSumm ? _grepSumm : _summ;
-			itm.setImage(fimage(std.path.buildPath(summ.scenarioPath, path)));
+			if (_grepSumm) {
+				if (!_grepSkin) _grepSkin = findSkin(_comm, _prop, summ);
+				itm.setImage(fimage(std.path.buildPath(summ.scenarioPath, path), _grepSkin));
+			} else {
+				itm.setImage(fimage(std.path.buildPath(summ.scenarioPath, path), _comm.skin));
+			}
 			itm.setText(encodePath(path));
 			itm.setData(new PathString(path));
 			refResultStatus(count, false);
@@ -346,6 +352,17 @@ private:
 		setupIDsImpl2(arr, _toID, _toIDVal, _toIDTbl);
 	}
 	private void setupIDs() {
+		if (!_summ) {
+			_fromID.removeAll();
+			_fromID.setEnabled(false);
+			_fromIDVal.setEnabled(false);
+			_toID.removeAll();
+			_toID.setEnabled(false);
+			_toIDVal.setEnabled(false);
+			return;
+		}
+		_fromID.setEnabled(true);
+		_toID.setEnabled(true);
 		switch (_idKind.getSelectionIndex()) {
 		case ID_AREA: setupIDsImpl1(_summ.areas); break;
 		case ID_BATTLE: setupIDsImpl1(_summ.battles); break;
@@ -359,6 +376,7 @@ private:
 		}
 	}
 	private string[] allMaterials(bool scenarioOnly) {
+		if (!_summ) return [];
 		auto sPath = nabs(_summ.scenarioPath);
 		auto tbl = new HashSet!(PathId);
 		string[] paths;
@@ -971,9 +989,11 @@ private:
 		_comps[tab] = comp2;
 	}
 	void setGrepCurrentDir() {
-		auto sc = _summ.scenarioPath.dirName();
-		if (_summ.useTemp) sc = _summ.zipName.dirName();
-		_grepDir.setText(sc);
+		if (_summ) {
+			auto sc = _summ.scenarioPath.dirName();
+			if (_summ.useTemp) sc = _summ.zipName.dirName();
+			_grepDir.setText(sc);
+		}
 	}
 
 	void refFunc(bool Del, A : CWXPath)(A a) {
@@ -1081,6 +1101,10 @@ private:
 		return r;
 	}
 	void refreshRangeTree() {
+		if (!_summ) {
+			_range.removeAll();
+			return;
+		}
 		CWXPath sel = null;
 		auto selItm = _range.getSelection();
 		if (selItm.length) {
@@ -1223,6 +1247,7 @@ public:
 			_summ = summ;
 			reset();
 			refreshRangeTree();
+			setupIDs();
 		}
 		_undo.reset();
 		_comm.refreshToolBar();
@@ -1785,19 +1810,19 @@ public:
 		auto sel = _tabf.getSelection();
 		if (!sel) return false;
 		if (sel is _tabText) {
-			return _from.getText().length > 0;
+			return _summ && _from.getText().length > 0;
 		} else if (sel is _tabID) {
-			return getID(_fromID, _fromIDVal, _fromIDTbl) !is 0;
+			return _summ && getID(_fromID, _fromIDVal, _fromIDTbl) !is 0;
 		} else if (sel is _tabPath) {
-			return _fromPath.getText().length > 0;
+			return _summ && _fromPath.getText().length > 0;
 		} else if (sel is _tabContents) {
-			return true;
+			return _summ !is null;
 		} else if (sel is _tabCoupon) {
-			return true;
+			return _summ !is null;
 		} else if (sel is _tabUnuse) {
-			return true;
+			return _summ !is null;
 		} else if (sel is _tabError) {
-			return true;
+			return _summ !is null;
 		} else if (sel is _tabGrep) {
 			return true;
 		} else assert (0);
@@ -1808,6 +1833,7 @@ public:
 		if (!_tabf || _tabf.isDisposed()) return false;
 		auto sel = _tabf.getSelection();
 		if (!sel) return false;
+		if (!_summ) return false;
 		return canFind && (sel is _tabText || sel is _tabID || sel is _tabPath);
 	}
 	private bool canCancel() {
@@ -1934,7 +1960,7 @@ public:
 	private void setResultStatus(uint count) {
 		_result.setRedraw(true);
 		if (count > 0) {
-			if (_replMode) {
+			if (_replMode && _summ) {
 				_summ.changed();
 				_comm.refUseCount.call();
 			}
@@ -1968,6 +1994,7 @@ public:
 		});
 	}
 	private void replaceIDImpl2(ID)(ID from, ID to) {
+		if (!_summ) return;
 		reset();
 		bool[CWXPath] range;
 		void recurse(TreeItem itm) {
@@ -2026,15 +2053,20 @@ public:
 		thr.start();
 	}
 	private ulong getID(Combo combo, Spinner spn, ulong[int] tbl) {
+		if (!_summ) return 0;
 		if (combo.getSelectionIndex() == 0) {
 			return spn.getSelection();
 		} else {
-			return tbl[combo.getSelectionIndex()];
+			auto p = combo.getSelectionIndex() in tbl;
+			if (!p) return 0;
+			return *p;
 		}
 	}
 	private void replaceIDImpl() {
+		if (!_summ) return;
 		ulong from = getID(_fromID, _fromIDVal, _fromIDTbl);
 		ulong to = getID(_toID, _toIDVal, _toIDTbl);
+		if (0 == from) return;
 		if (from == to) _replMode = false;
 		switch (_idKind.getSelectionIndex()) {
 		case ID_AREA: replaceIDImpl2(toAreaId(from), toAreaId(to)); break;
@@ -2049,6 +2081,7 @@ public:
 		}
 	}
 	private void replacePathImpl() {
+		if (!_summ) return;
 		if (!_fromPath.getText().length) return;
 		auto from = toPathId(_fromPath.getText());
 		auto to = toPathId(_toPath.getText());
@@ -2057,6 +2090,7 @@ public:
 	}
 
 	private void searchCoupon() {
+		if (!_summ) return;
 		uint count = 0;
 		reset();
 		string[] coupons;
@@ -2157,6 +2191,7 @@ public:
 	}
 
 	private void searchContents() {
+		if (!_summ) return;
 		uint count = 0;
 		reset();
 		auto range = searchRange;
@@ -2194,6 +2229,7 @@ public:
 	}
 
 	private void searchUnuseImpl2(string ToId, T)(T[] all, ref uint count) {
+		if (!_summ) return;
 		foreach (o; all) {
 			if (cancel) break;
 			if (_summ.useCounter.get(mixin (ToId)) == 0) {
@@ -2202,6 +2238,7 @@ public:
 		}
 	}
 	private void searchUnuseImpl() {
+		if (!_summ) return;
 		_replMode = false;
 		uint count = 0;
 		reset();
@@ -2294,6 +2331,7 @@ public:
 		thr.start();
 	}
 	private void searchErrorImpl() {
+		if (!_summ) return;
 		uint count = 0;
 		auto froot = _summ.flagDirRoot;
 		auto sPath = _summ.scenarioPath;
@@ -2677,6 +2715,7 @@ public:
 		}
 	}
 	private void replaceTextImpl() {
+		if (!_summ) return;
 		string from = _from.getText();
 		string to = _to.getText();
 		if (!from.length) return;
@@ -2792,6 +2831,7 @@ public:
 			scope (exit) {
 				_grepSumm.delTemp();
 				_grepSumm = null;
+				_grepSkin = null;
 			}
 			if (!_fromText.length) {
 				addResult(summ, count);
@@ -2967,6 +3007,7 @@ public:
 					exec(_prop.parent.appPath ~ " " ~ rp.scPath ~ " " ~ path);
 					return;
 				}
+				if (!_summ) return;
 				try {
 					if (_comm.openCWXPath(path, false)) {
 						if (!_prop.var.etc.searchOpenDialog) _win.setActive();
@@ -2978,6 +3019,7 @@ public:
 				MessageBox.showWarning(.tryFormat(_prop.msgs.cwxPathOpenError, path), _prop.msgs.dlgTitWarning, _win);
 				return;
 			}
+			if (!_summ) return;
 			auto p = cast(PathString) d;
 			if (p) {
 				auto path = nabs(std.path.buildPath(_summ.scenarioPath, p.array));
@@ -2990,10 +3032,9 @@ public:
 			}
 		}
 	}
-	Image fimage(string file) {
+	Image fimage(string file, Skin skin) {
 		try {
 			if (.exists(file)) {
-				auto skin = _comm.skin;
 				if (.isDir(file)) {
 					return _prop.images.folder;
 				} else if (skin.isCardImage(file)) {
