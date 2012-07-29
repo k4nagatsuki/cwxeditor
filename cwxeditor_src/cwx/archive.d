@@ -25,16 +25,22 @@ import std.c.string : strlen;
 /// UtfException = アーカイブに含まれるファイル名の文字コード解決が出来なかった。
 /// FileException = ファイル入出力に失敗した。
 void unzip(string parent, string zip,
+		string delegate(string, bool) expand = null,
 		void delegate(uint) setProgressNum = null,
 		void delegate(uint) progress = null) {
 	scope arc = new ZipArchive(read(zip));
-	unzip(parent, arc, setProgressNum, progress);
+	unzip(parent, arc, expand, setProgressNum, progress);
 }
 /// ditto
 void unzip(string parent, ZipArchive arc,
+		string delegate(string, bool) expand = null,
 		void delegate(uint) setProgressNum = null,
 		void delegate(uint) progress = null) {
 	unzip(arc, (string path, ubyte[] data, bool isDir) {
+		if (expand) {
+			path = expand(path, isDir);
+			if (!path.length) return;
+		}
 		path = std.path.buildPath(parent, path);
 		if (isDir) {
 			assert (!data.length);

@@ -702,7 +702,7 @@ private:
 					_toolCommandRef = new Button(parent, SWT.PUSH);
 					_toolCommandRef.setText(_prop.msgs.reference);
 					listener(_toolCommandRef, SWT.Selection, &selectProgram);
-					_toolCommandDirOpen = createOpenButton(_comm, parent, _toolCommand, false);
+					_toolCommandDirOpen = createOpenButton(_comm, parent, &_toolCommand.getText, false);
 					setupDropFile(_toolCommand, _toolCommand, toDelegate(&dropDefault));
 				}
 				{
@@ -716,7 +716,7 @@ private:
 					_toolWorkDirRef = new Button(parent, SWT.PUSH);
 					_toolWorkDirRef.setText(_prop.msgs.reference);
  					listener(_toolWorkDirRef, SWT.Selection, &selectWorkDir);
-					_toolWorkDirOpen = createOpenButton(_comm, parent, _toolWorkDir, true);
+					_toolWorkDirOpen = createOpenButton(_comm, parent, &_toolWorkDir.getText, true);
 					setupDropFile(_toolWorkDir, _toolWorkDir, toDelegate(&dropDir));
 				}
 				{
@@ -766,7 +766,7 @@ private:
 			string dropCEngineSub(string file) {
 				string engine = curCEnginePath;
 				if (!engine.length) return file;
-				return relativePath(file, engine.dirName());
+				return abs2rel(file, engine.dirName());
 			}
 			string dropCEngineDataDir(string[] files) {
 				return dropCEngineSub(dropDir(files));
@@ -883,7 +883,7 @@ private:
 					_cEnginePathRef = new Button(parent, SWT.PUSH);
 					_cEnginePathRef.setText(_prop.msgs.reference);
 					listener(_cEnginePathRef, SWT.Selection, &selectCEnginePath);
-					_cEnginePathDirOpen = createOpenButton(_comm, parent, _cEnginePath, false);
+					_cEnginePathDirOpen = createOpenButton(_comm, parent, &_cEnginePath.getText, false);
 					setupDropFile(_cEnginePath, _cEnginePath, &dropCEnginePath, &dropCEnginePath);
 				}
 				{
@@ -961,7 +961,7 @@ private:
 					_templPathRef = new Button(parent, SWT.PUSH);
 					_templPathRef.setText(_prop.msgs.reference);
 					listener(_templPathRef, SWT.Selection, &selectTemplate);
-					_templPathDirOpen = createOpenButton(_comm, parent, _templPath, false);
+					_templPathDirOpen = createOpenButton(_comm, parent, &_templPath.getText, false);
 					setupDropFile(_templPath, _templPath, &dropTemplate);
 				}
 			}
@@ -1545,6 +1545,7 @@ private:
 			if (SWT.OK == dlg.open()) {
 				_prop.var.etc.searchHistories = [];
 				_prop.var.etc.replaceHistories = [];
+				_prop.var.etc.grepDirHistories = [];
 				_comm.refSearchHistories.call();
 				_prop.var.save(_dock);
 				_sendReloadProps();
@@ -1573,7 +1574,7 @@ private:
 				_refEnginePath = new Button(grp, SWT.PUSH);
 				_refEnginePath.setText(_prop.msgs.reference);
 				_refEnginePath.addSelectionListener(new SelEngine);
-				createOpenButton(_comm, grp, _enginePath, false);
+				createOpenButton(_comm, grp, &_enginePath.getText, false);
 				_findEnginePath = new Button(grp, SWT.CHECK);
 				mod(_findEnginePath);
 				_findEnginePath.setText(_prop.msgs.findEnginePath);
@@ -1627,7 +1628,7 @@ private:
 			auto refr = new Button(grp, SWT.PUSH);
 			refr.setText(_prop.msgs.reference);
 			refr.addSelectionListener(new SelTemp);
-			createOpenButton(_comm, grp, _tempDir, true);
+			createOpenButton(_comm, grp, &_tempDir.getText, true);
 			setupDropFile(grp, _tempDir, toDelegate(&dropDir));
 		}
 		{
@@ -1683,7 +1684,7 @@ private:
 				_backupRef = new Button(comp2, SWT.PUSH);
 				_backupRef.setText(_prop.msgs.reference);
 				_backupRef.addSelectionListener(new SelBackup);
-				_backupDirOpen = createOpenButton(_comm, comp2, _backupDir, true);
+				_backupDirOpen = createOpenButton(_comm, comp2, &_backupDir.getText, true);
 				setupDropFile(grp, _backupDir, toDelegate(&dropDir));
 			}
 		}
@@ -1714,7 +1715,7 @@ private:
 				_backupBeforeSaveRef = new Button(comp2, SWT.PUSH);
 				_backupBeforeSaveRef.setText(_prop.msgs.reference);
 				_backupBeforeSaveRef.addSelectionListener(new SelBackupBeforeSave);
-				_backupBeforeSaveDirOpen = createOpenButton(_comm, comp2, _backupBeforeSaveDir, true);
+				_backupBeforeSaveDirOpen = createOpenButton(_comm, comp2, &_backupBeforeSaveDir.getText, true);
 				setupDropFile(grp, _backupBeforeSaveDir, toDelegate(&dropDir));
 			}
 		}
@@ -1753,7 +1754,7 @@ private:
 						auto refr = new Button(comp4, SWT.PUSH);
 						refr.setText(_prop.msgs.reference);
 						refr.addSelectionListener(new SelWallpaper);
-						createOpenButton(_comm, comp4, _wallpaper, false);
+						createOpenButton(_comm, comp4, &_wallpaper.getText, false);
 					}
 					{
 						auto comp4 = new Composite(grp, SWT.NONE);
@@ -1784,7 +1785,7 @@ private:
 					auto refr = new Button(grp, SWT.PUSH);
 					refr.setText(_prop.msgs.reference);
 					refr.addSelectionListener(new SelSysSound(_savedSound));
-					createOpenButton(_comm, grp, _savedSound, false);
+					createOpenButton(_comm, grp, &_savedSound.getText, false);
 					setupDropFile(grp, _savedSound, &dropSysSound);
 
 					auto sep = new Label(grp, SWT.SEPARATOR);
@@ -1850,7 +1851,7 @@ private:
 						_sHistMax.setMaximum(99);
 						mod(_sHistMax);
 						_clearSHist = new Button(grp, SWT.PUSH);
-						_clearSHist.setEnabled(_prop.var.etc.searchHistories.length > 0);
+						_clearSHist.setEnabled(_prop.var.etc.searchHistories.length || _prop.var.etc.grepDirHistories.length);
 						_clearSHist.setText(_prop.msgs.searchHistoryClear);
 						_clearSHist.addSelectionListener(new ClearSHist);
 					}
@@ -2563,6 +2564,10 @@ protected:
 			_prop.var.etc.searchHistories
 				= _prop.var.etc.searchHistories[0 .. _prop.var.etc.searchHistoryMax].dup;
 		}
+		if (_prop.var.etc.searchHistoryMax < _prop.var.etc.grepDirHistories.length) {
+			_prop.var.etc.grepDirHistories
+				= _prop.var.etc.grepDirHistories[0 .. _prop.var.etc.searchHistoryMax].dup;
+		}
 		_prop.var.etc.bgImageSettings = _bgStgs.array;
 		_prop.var.etc.bgImagesDefault = _bgImagesDefault;
 		string[] lines = splitLines!string(_keyCodes.getText());
@@ -2611,6 +2616,7 @@ struct OldSettings {
 	const OpenHistory[] oldOpenHistories;
 	const string[] oldSearchHistories;
 	const string[] oldReplaceHistories;
+	const string[] oldGrepDirHistories;
 	int oldUndoMaxMainView;
 	int oldUndoMaxEvent;
 	int oldUndoMaxReplace;
@@ -2637,6 +2643,7 @@ struct OldSettings {
 		this.oldLogicalSort = prop.var.etc.logicalSort;
 		this.oldOpenHistories = prop.var.etc.openHistories;
 		this.oldSearchHistories = prop.var.etc.searchHistories;
+		this.oldGrepDirHistories = prop.var.etc.grepDirHistories;
 		this.oldReplaceHistories = prop.var.etc.replaceHistories;
 		this.oldUndoMaxMainView = prop.var.etc.undoMaxMainView;
 		this.oldUndoMaxEvent = prop.var.etc.undoMaxEvent;
@@ -2705,7 +2712,7 @@ struct OldSettings {
 		if (oldOpenHistories != prop.var.etc.openHistories) {
 			comm.refHistories.call();
 		}
-		if (oldSearchHistories != prop.var.etc.searchHistories || oldReplaceHistories != prop.var.etc.replaceHistories) {
+		if (oldSearchHistories != prop.var.etc.searchHistories || oldReplaceHistories != prop.var.etc.replaceHistories || oldGrepDirHistories != prop.var.etc.grepDirHistories) {
 			comm.refSearchHistories.call();
 		}
 		if (oldUndoMaxMainView != prop.var.etc.undoMaxMainView

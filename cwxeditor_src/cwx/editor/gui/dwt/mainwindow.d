@@ -124,6 +124,7 @@ private:
 	DirectoryWindow _dirWin = null;
 
 	string _bassDir = "";
+	RefreshTitle _refreshTitle;
 
 	Menu _mExecEngine;
 	Menu _tmExecEngine;
@@ -241,17 +242,22 @@ private:
 		}
 	}
 
-	void refreshTitle() {
-		if (summary) {
-			string path = summary.scenarioPath;
-			if (summary.isChanged) {
-				_win.setText(.tryFormat(_prop.msgs.mainWindowNameChanged, summary.scenarioName, path));
+	class RefreshTitle : Runnable {
+		void run() {
+			if (summary) {
+				string path = summary.scenarioPath;
+				if (summary.isChanged) {
+					_win.setText(.tryFormat(_prop.msgs.mainWindowNameChanged, summary.scenarioName, path));
+				} else {
+					_win.setText(.tryFormat(_prop.msgs.mainWindowName, summary.scenarioName, path));
+				}
 			} else {
-				_win.setText(.tryFormat(_prop.msgs.mainWindowName, summary.scenarioName, path));
+				_win.setText(_prop.msgs.mainWindowNameEmpty);
 			}
-		} else {
-			_win.setText(_prop.msgs.mainWindowNameEmpty);
 		}
+	}
+	void refreshTitle() {
+		_display.syncExec(_refreshTitle);
 	}
 
 	private SysTime _lastBackup;
@@ -1501,6 +1507,7 @@ public:
 					}
 				}
 			}
+			_refreshTitle = new RefreshTitle;
 
 			dStr ~= " - " ~ .text(__LINE__);
 			_comm = new Commons(_prop);

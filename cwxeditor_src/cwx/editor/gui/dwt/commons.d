@@ -66,7 +66,7 @@ Skin findSkin(Commons comm, Props prop, in Summary summ, string type = null, str
 					return;
 				}
 			}
-			string dataDirName = relativePath(skin.legacyDataPath, lEngine.dirName());
+			string dataDirName = abs2rel(skin.legacyDataPath, lEngine.dirName());
 			auto ce = ClassicEngine(lEngine.baseName().stripExtension(), lEngine, dataDirName, "");
 			ClassicEngine[] arr;
 			foreach (e; prop.var.etc.classicEngines) {

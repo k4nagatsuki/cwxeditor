@@ -255,7 +255,7 @@ protected:
 			.listener(_dirRef, SWT.Selection, {
 				selectDir(_prop, _dir, _prop.msgs.newClassicDir, _prop.msgs.newClassicDirDesc, _dir.getText());
 			});
-			_dirOpen = createOpenButton(_comm, grp, _dir, true);
+			_dirOpen = createOpenButton(_comm, grp, &_dir.getText, true);
 
 			_createScDir = new Button(grp, SWT.CHECK);
 			_createScDir.setText(_prop.msgs.createScenarioNameDir);

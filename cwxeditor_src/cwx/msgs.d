@@ -151,6 +151,7 @@ class Msgs : Properties {
 	auto replForCoupon = Msg("replForCoupon", "称号・名称一覧");
 	auto replForUnuse = Msg("replForUnuse", "未使用検索");
 	auto replForError = Msg("replForError", "誤り検索");
+	auto replGrep = Msg("replGrep", "外部シナリオ");
 
 	auto searchRange = Msg("searchRange", "検索対象");
 	auto flagsAndSteps = Msg("flagsAndSteps", "フラグとステップ");
@@ -163,6 +164,7 @@ class Msgs : Properties {
 
 	auto replFrom = Msg("replFrom", "検索(置換前)");
 	auto replTo = Msg("replTo", "置換後");
+	auto grepFrom = Msg("replFrom", "検索");
 
 	auto replText = Msg("replText", "検索/置換するテキスト");
 	auto replTextTarget = Msg("replTextTarget", "検索/置換対象");
@@ -217,13 +219,23 @@ class Msgs : Properties {
 	auto replCond = Msg("replCond", "検索条件");
 	auto search = Msg("search", "検索(&F)");
 	auto replace = Msg("replace", "全て置換(&R)");
+	auto searchCancel = Msg("searchCancel", "キャンセル(&C)");
 	auto replaceExit = Msg("replaceExit", "閉じる");
 	auto searchResultEmpty = Msg("searchResultEmpty", "0件の検索結果");
 	auto searchResult = Msg("searchResult", "%1$s件の検索結果(%2$s)");
+	auto searchResultGrep1 = Msg("searchResultGrep1", "%1$s件の検索結果(%2$sを読込中...)");
+	auto searchResultGrep2 = Msg("searchResultGrep2", "%1$s件の検索結果(%2$sを検索中...)");
 	auto replResultEmpty = Msg("replResultEmpty", "0箇所の置換");
 	auto replResult = Msg("replResult", "%1$s箇所の置換(%2$s)");
 	auto replaceUndo = Msg("replaceUndo", "%1$s件を元に戻しました");
 	auto replaceRedo = Msg("replaceRedo", "%1$s件をやり直しました");
+
+	auto grepText = Msg("grepText", "検索するテキスト");
+	auto grepTarget = Msg("grepTarget", "検索対象");
+	auto grepDir = Msg("grepDir", "外部シナリオ検索");
+	auto grepDirDesc = Msg("grepDirDesc", "検索対象のシナリオが含まれる" ~ DIR ~ "を選択してください。");
+	auto grepCurrent = Msg("grepCurrent", "現" ~ DIR);
+	auto grepSubDir = Msg("grepSubDir", "サブ" ~ DIR ~ "も検索する");
 
 	auto searchResultBgImage = Msg("searchResultBgImage", "背景画像 [%1$s]");
 	auto searchResultIds = Msg("searchResultIds", "%1$s [%2$s.%3$s]");

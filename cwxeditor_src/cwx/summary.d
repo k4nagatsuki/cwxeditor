@@ -63,6 +63,7 @@ struct LoadOption {
 	bool cardOnly = false; /// エリア・バトル・パッケージを無視するか。
 	bool textOnly = false; /// 素材を無視するか。
 	bool expandXMLs = true; /// XMLファイルを展開するか。
+	bool summaryOnly = false; /// 概要のみを読み込むか。
 }
 
 /// 保存時オプション。
@@ -228,16 +229,51 @@ public:
 		string[string][string] xmls;
 		bool expand = opt.expandXMLs;
 		bool scTemplate = classicDir !is null;
+		bool classic = false;
+
+		bool isXMLSystem(string path) {
+			return cfnmatch(.extension(path), ".xml") && isScenarioSystemDir(dirName(path));
+		}
+		string expandDir;
+		string expandName(string path, bool isDir) {
+			if (opt.summaryOnly) {
+				if (classic) {
+					if (cfnmatch(path.baseName(), "Summary.wsm")) return path;
+				} else {
+					if (cfnmatch(path.baseName(), "Summary.xml")) return path;
+				}
+				return "";
+			}
+			if (!opt.textOnly) return path;
+			if (classic) {
+				auto ext = path.extension();
+				if (cfnmatch(ext, ".wsm") || cfnmatch(ext, ".wid") || cfnmatch(ext, ".wex") || cfnmatch(ext, ".jptx")) return path;
+			} else {
+				if (cfnmatch(path.baseName(), "Summary.xml")) return path;
+				if (isXMLSystem(path)) return path;
+			}
+			if (!isDir) {
+				// 素材が見つからないというエラーを避けるため、ダミーの空ファイルを作る
+				auto p = expandDir.buildPath(path);
+				string dir = p.dirName();
+				if (!dir.exists()) dir.mkdirRecurse();
+				std.file.write(p, []);
+			}
+			return "";
+		}
 		string sunzip(string fname, ZipArchive arc, out bool cancel = false) {
 			auto temp = createTempDir(tempPath, baseName(stripExtension(fname)));
+			expandDir = temp;
 			if (expand) {
-				.unzip(temp, arc, setMax, worked);
+				.unzip(temp, arc, &expandName, setMax, worked);
 			} else {
 				.unzip(arc, (string path, ubyte[] data, bool isDir) {
+					path = expandName(path, isDir);
+					if (!path.length) return;
 					if (!isDir) {
 						if (cfnmatch(path, "Summary.xml")) {
 							xmls[""][path] = cast(string) data;
-						} else if (cfnmatch(.extension(path), ".xml") && isScenarioSystemDir(dirName(path))) {
+						} else if (isXMLSystem(path)) {
 							xmls[dirName(path)][baseName(path)] = cast(string) data;
 						} else {
 							path = std.path.buildPath(temp, path);
@@ -271,10 +307,12 @@ public:
 			return null;
 		}
 		string suncab(string fname, out string summPath) {
+			classic = true;
 			string temp;
 			if (cfnmatch(.extension(fname), ".cab")) {
 				temp = createTempDir(tempPath, baseName(stripExtension(fname)), false);
-				if (!.uncab(fname, temp)) {
+				expandDir = temp;
+				if (!.uncab(fname, temp, (string file) {return expandName(file, false);})) {
 					delAll(temp);
 					return null;
 				}
@@ -284,7 +322,8 @@ public:
 				if (!arc) return null;
 				temp = createTempDir(tempPath, baseName(stripExtension(fname)), false);
 				try {
-					.unzip(temp, arc);
+					expandDir = temp;
+					.unzip(temp, arc, &expandName);
 				} catch {
 					delAll(temp);
 					return null;
@@ -358,6 +397,7 @@ public:
 					throw e;
 				}
 			}
+			if (opt.textOnly) return null;
 			throw new SummaryException(.tryFormat(prop.msgs.notScenario, fname));
 		}
 		if (fname) {
@@ -408,6 +448,7 @@ public:
 						if (arc) {
 							bool cancel;
 							string zipname = fname;
+							classic = false;
 							fname = sunzip(baseName(fname), arc, cancel);
 							if (fname.length) {
 								try {
@@ -1552,6 +1593,7 @@ public:
 		if (!summXML) throw new SummaryException("invalid parent of xmls");
 		Summary summ = summaryFromXML(sPath, *summXML);
 
+		if (opt.summaryOnly) return summ;
 		if (!opt.cardOnly) {
 			summ.loadXML2(xmls, PATH_AREA, "Area", summ._area, summ.useCounter, &summ.changeHandler, summ.dataVersion);
 			summ.checkStartArea();
@@ -1568,6 +1610,7 @@ public:
 		return summ;
 	}
 	private static void fromXMLs(Summary summ, in LoadOption opt) {
+		if (opt.summaryOnly) return;
 		auto path = summ.scenarioPath;
 		if (!opt.cardOnly) {
 			summ.loadXML1(std.path.buildPath(path, PATH_AREA), "Area", summ._area, summ.useCounter, &summ.changeHandler, summ.dataVersion);
@@ -1594,6 +1637,7 @@ public:
 	/// FileLoadException = Summary.xml以外での読込例外発生時。
 	private static Summary fromXMLs(string path, in LoadOption opt) {
 		auto summ = summaryFromXML(dirName(path), std.file.readText(path));
+		if (opt.summaryOnly) return summ;
 		fromXMLs(summ, opt);
 		return summ;
 	}
@@ -1937,7 +1981,7 @@ public:
 				foreach (string file; list) {
 					c += dirS(p.buildPath(file));
 				}
-				auto rel = relativePath(scenarioPath, p);
+				auto rel = abs2rel(scenarioPath, p);
 				if ("" == rel || cfnmatch(rel, skin.materialPath)) {
 					c++;
 				}
@@ -1953,7 +1997,7 @@ public:
 				if (!skin.isMaterial(p)) {
 					return 1;
 				}
-				auto p2 = relativePath(scenarioPath, p);
+				auto p2 = abs2rel(p, scenarioPath);
 				auto pathId = toPathId(p2);
 				if (0 == useCounter.get(pathId)) {
 					r ~= p2;

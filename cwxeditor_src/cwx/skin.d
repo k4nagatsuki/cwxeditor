@@ -38,7 +38,7 @@ BgImage[] createBgImages(in Skin skin, in BgImageS[] bgs) {
 	foreach (i, b; bgs) {
 		auto path = skin.findImagePath(setExtension(b.name, skin.extImage), "");
 		if (path.length) {
-			path = relativePath(skin.tableDir, nabs(path));
+			path = abs2rel(skin.tableDir, nabs(path));
 		} else {
 			path = setExtension(b.name, skin.extImage);
 		}
@@ -132,7 +132,7 @@ class Skin {
 		resDir = resDir.length ? nabs(resDir) : "";
 		lEnginePath = lEnginePath.length ? nabs(lEnginePath) : "";
 
-		string dataDirName = resDir.length ? relativePath(lEnginePath.dirName(), resDir) : "";
+		string dataDirName = resDir.length ? abs2rel(lEnginePath.dirName(), resDir) : "";
 		return createLegacySkin(prop, enginePath, lEnginePath, dataDirName, "", cEngines);
 	}
 	private void setupLegacy(string lEnginePath, string resDir, ClassicEngine cEngine) {

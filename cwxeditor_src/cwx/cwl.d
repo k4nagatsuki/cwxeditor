@@ -129,6 +129,7 @@ Summary loadLScenario(string p, string skin, in LoadOption opt, string newName =
 			}
 		}
 	}
+	if (opt.summaryOnly) return summ;
 	auto load1 = new Load;
 	auto load2 = new Load;
 	foreach (file; clistdir(sPath)) {

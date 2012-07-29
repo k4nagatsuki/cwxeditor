@@ -1880,7 +1880,7 @@ enum CIDKind {
 	Step,
 	Start,
 }
-string contentTextUseID(CIDKind Kind, ID)(Commons comm, ID id, string msg, in Content evt) {
+string contentTextUseID(CIDKind Kind, ID)(Commons comm, Summary summ, ID id, string msg, in Content evt) {
 	string noSelect;
 	string noID;
 	bool use;
@@ -1890,86 +1890,86 @@ string contentTextUseID(CIDKind Kind, ID)(Commons comm, ID id, string msg, in Co
 		noSelect = comm.prop.msgs.noSelectArea;
 		noID = comm.prop.msgs.noArea;
 		use = 0 != id;
-		auto a = comm.summary.area(id);
+		auto a = summ.area(id);
 		find = () => a !is null;
 		name = a ? a.name : "";
 	} else static if (CIDKind.Battle == Kind) {
 		noSelect = comm.prop.msgs.noSelectBattle;
 		noID = comm.prop.msgs.noBattle;
 		use = 0 != id;
-		auto a = comm.summary.battle(id);
+		auto a = summ.battle(id);
 		find = () => a !is null;
 		name = a ? a.name : "";
 	} else static if (CIDKind.Package == Kind) {
 		noSelect = comm.prop.msgs.noSelectPackage;
 		noID = comm.prop.msgs.noPackage;
 		use = 0 != id;
-		auto a = comm.summary.cwPackage(id);
+		auto a = summ.cwPackage(id);
 		find = () => a !is null;
 		name = a ? a.name : "";
 	} else static if (CIDKind.Cast == Kind) {
 		noSelect = comm.prop.msgs.noSelectCast;
 		noID = comm.prop.msgs.noCast;
 		use = 0 != id;
-		auto a = comm.summary.cwCast(id);
+		auto a = summ.cwCast(id);
 		find = () => a !is null;
 		name = a ? a.name : "";
 	} else static if (CIDKind.Skill == Kind) {
 		noSelect = comm.prop.msgs.noSelectSkill;
 		noID = comm.prop.msgs.noSkill;
-		auto a = comm.summary.skill(id);
+		auto a = summ.skill(id);
 		find = () => a !is null;
 		use = 0 != id;
 		name = a ? a.name : "";
 	} else static if (CIDKind.Item == Kind) {
 		noSelect = comm.prop.msgs.noSelectItem;
 		noID = comm.prop.msgs.noItem;
-		auto a = comm.summary.item(id);
+		auto a = summ.item(id);
 		find = () => a !is null;
 		use = 0 != id;
 		name = a ? a.name : "";
 	} else static if (CIDKind.Beast == Kind) {
 		noSelect = comm.prop.msgs.noSelectBeast;
 		noID = comm.prop.msgs.noBeast;
-		auto a = comm.summary.beast(id);
+		auto a = summ.beast(id);
 		find = () => a !is null;
 		use = 0 != id;
 		name = a ? a.name : "";
 	} else static if (CIDKind.Info == Kind) {
 		noSelect = comm.prop.msgs.noSelectInfo;
 		noID = comm.prop.msgs.noInfo;
-		auto a = comm.summary.info(id);
+		auto a = summ.info(id);
 		find = () => a !is null;
 		use = 0 != id;
 		name = a ? a.name : "";
 	} else static if (CIDKind.Image == Kind) {
 		noSelect = comm.prop.msgs.noSelectImage;
 		noID = comm.prop.msgs.noImage;
-		find = () => comm.skin.findImagePath(id, comm.summary.scenarioPath).length > 0;
+		find = () => comm.skin.findImagePath(id, summ.scenarioPath).length > 0;
 		use = id && id.length;
 		name = id;
 	} else static if (CIDKind.BGM == Kind) {
 		noSelect = comm.prop.msgs.noSelectBGM;
 		noID = comm.prop.msgs.noBGM;
-		find = () => comm.skin.findPath(id, comm.skin.extBgm, comm.skin.bgmDir, comm.summary.scenarioPath).length > 0;
+		find = () => comm.skin.findPath(id, comm.skin.extBgm, comm.skin.bgmDir, summ.scenarioPath).length > 0;
 		use = id && id.length;
 		name = id;
 	} else static if (CIDKind.SE == Kind) {
 		noSelect = comm.prop.msgs.noSelectSE;
 		noID = comm.prop.msgs.noSE;
-		find = () => comm.skin.findPath(id, comm.skin.extSound, comm.skin.seDir, comm.summary.scenarioPath).length > 0;
+		find = () => comm.skin.findPath(id, comm.skin.extSound, comm.skin.seDir, summ.scenarioPath).length > 0;
 		use = id && id.length;
 		name = id;
 	} else static if (CIDKind.Flag == Kind) {
 		noSelect = comm.prop.msgs.noSelectFlag;
 		noID = comm.prop.msgs.noFlag;
-		find = () => comm.summary.flagDirRoot.findFlag(id) !is null;
+		find = () => summ.flagDirRoot.findFlag(id) !is null;
 		use = id && id.length;
 		name = id;
 	} else static if (CIDKind.Step == Kind) {
 		noSelect = comm.prop.msgs.noSelectStep;
 		noID = comm.prop.msgs.noStep;
-		find = () => comm.summary.flagDirRoot.findStep(id) !is null;
+		find = () => summ.flagDirRoot.findStep(id) !is null;
 		use = id && id.length;
 		name = id;
 	} else static if (CIDKind.Start == Kind) {
@@ -1992,7 +1992,8 @@ string contentTextUseID(CIDKind Kind, ID)(Commons comm, ID id, string msg, in Co
 	}
 }
 
-string contentText(Commons comm, in Content evt) {
+string contentText(Commons comm, in Content evt, Summary summ = null) {
+	if (!summ) summ = comm.summary;
 	string loseCardCount() {
 		return evt.cardNumber == 0 ? comm.prop.msgs.ctLoseCardAll : .tryFormat(comm.prop.msgs.ctLoseCardCount, evt.cardNumber);
 	}
@@ -2000,26 +2001,26 @@ string contentText(Commons comm, in Content evt) {
 	case CType.START: {
 		return .tryFormat(comm.prop.msgs.ctStart, evt.name);
 	} case CType.START_BATTLE: {
-		return contentTextUseID!(CIDKind.Battle)(comm, evt.battle, comm.prop.msgs.ctStartBattle, evt);
+		return contentTextUseID!(CIDKind.Battle)(comm, summ, evt.battle, comm.prop.msgs.ctStartBattle, evt);
 	} case CType.END: {
 		return evt.complete ? comm.prop.msgs.ctEndComplete : comm.prop.msgs.ctEndNoComplete;
 	} case CType.END_BAD_END: {
 		return comm.prop.msgs.ctGameOver;
 	} case CType.CHANGE_AREA: {
-		if (comm.summary && comm.summary.legacy) {
-			return contentTextUseID!(CIDKind.Area)(comm, evt.area, comm.prop.msgs.ctChangeAreaClassic, evt);
+		if (summ && summ.legacy) {
+			return contentTextUseID!(CIDKind.Area)(comm, summ, evt.area, comm.prop.msgs.ctChangeAreaClassic, evt);
 		} else {
-			string a = contentTextUseID!(CIDKind.Area)(comm, evt.area, "%s", evt);
+			string a = contentTextUseID!(CIDKind.Area)(comm, summ, evt.area, "%s", evt);
 			string v = comm.prop.msgs.transitionName(evt.transition);
 			return .tryFormat(comm.prop.msgs.ctChangeArea, a, v, evt.transitionSpeed);
 		}
 	} case CType.CHANGE_BG_IMAGE: {
 		string buf;
 		foreach (i, b; evt.backs) {
-			buf ~= contentTextUseID!(CIDKind.Image)(comm, b.path, comm.prop.msgs.ctChangeBgImageFile, null);
+			buf ~= contentTextUseID!(CIDKind.Image)(comm, summ, b.path, comm.prop.msgs.ctChangeBgImageFile, null);
 			if (i + 1 < evt.backs.length) buf ~= " ";
 		}
-		if (comm.summary && comm.summary.legacy) {
+		if (summ && summ.legacy) {
 			return .tryFormat(comm.prop.msgs.ctChangeBgImageClassic, buf);
 		} else {
 			string v = comm.prop.msgs.transitionName(evt.transition);
@@ -2032,7 +2033,7 @@ string contentText(Commons comm, in Content evt) {
 		string tr = comm.prop.msgs.resistName(evt.resist);
 		string tsf = evt.successRate >= 0 ? "+" : "-";
 		int ts = std.math.abs(evt.successRate);
-		string tsnd = contentTextUseID!(CIDKind.SE)(comm, evt.soundPath, comm.prop.msgs.ctEffectSound, evt);
+		string tsnd = contentTextUseID!(CIDKind.SE)(comm, summ, evt.soundPath, comm.prop.msgs.ctEffectSound, evt);
 		string tcv = comm.prop.msgs.cardVisualName(evt.cardVisual);
 		string teff = "";
 		foreach (i, m; evt.motions) {
@@ -2043,9 +2044,9 @@ string contentText(Commons comm, in Content evt) {
 	} case CType.EFFECT_BREAK: {
 		return comm.prop.msgs.ctEffectBreak;
 	} case CType.LINK_START: {
-		return contentTextUseID!(CIDKind.Start)(comm, evt.start, comm.prop.msgs.ctLinkStart, evt);
+		return contentTextUseID!(CIDKind.Start)(comm, summ, evt.start, comm.prop.msgs.ctLinkStart, evt);
 	} case CType.LINK_PACKAGE: {
-		return contentTextUseID!(CIDKind.Package)(comm, evt.packages, comm.prop.msgs.ctLinkPackage, evt);
+		return contentTextUseID!(CIDKind.Package)(comm, summ, evt.packages, comm.prop.msgs.ctLinkPackage, evt);
 	} case CType.TALK_MESSAGE: {
 		string text = evt.text;
 		text = std.array.replace(text, "\n", "");
@@ -2058,7 +2059,7 @@ string contentText(Commons comm, in Content evt) {
 		case Talker.CARD:
 			return .tryFormat(comm.prop.msgs.ctTalkMessage, comm.prop.msgs.talkerName(evt.talkerC), text);
 		case Talker.IMAGE:
-			string t = contentTextUseID!(CIDKind.Image)(comm, evt.cardPath, comm.prop.msgs.ctTalkMessageImage, evt);
+			string t = contentTextUseID!(CIDKind.Image)(comm, summ, evt.cardPath, comm.prop.msgs.ctTalkMessageImage, evt);
 			return .tryFormat(comm.prop.msgs.ctTalkMessage, t, text);
 		}
 	} case CType.TALK_DIALOG: {
@@ -2089,24 +2090,24 @@ string contentText(Commons comm, in Content evt) {
 			return r(evt.dialogs[0]);
 		}
 	} case CType.PLAY_BGM: {
-		return contentTextUseID!(CIDKind.BGM)(comm, evt.bgmPath, comm.prop.msgs.ctPlayBGM, evt);
+		return contentTextUseID!(CIDKind.BGM)(comm, summ, evt.bgmPath, comm.prop.msgs.ctPlayBGM, evt);
 	} case CType.PLAY_SOUND: {
-		return contentTextUseID!(CIDKind.SE)(comm, evt.soundPath, comm.prop.msgs.ctPlaySound, evt);
+		return contentTextUseID!(CIDKind.SE)(comm, summ, evt.soundPath, comm.prop.msgs.ctPlaySound, evt);
 	} case CType.WAIT: {
 		return .tryFormat(comm.prop.msgs.ctWait, evt.wait);
 	} case CType.ELAPSE_TIME: {
 		return comm.prop.msgs.ctElapseTime;
 	} case CType.CALL_START: {
-		return contentTextUseID!(CIDKind.Start)(comm, evt.start, comm.prop.msgs.ctCallStart, evt);
+		return contentTextUseID!(CIDKind.Start)(comm, summ, evt.start, comm.prop.msgs.ctCallStart, evt);
 	} case CType.CALL_PACKAGE: {
-		return contentTextUseID!(CIDKind.Package)(comm, evt.packages, comm.prop.msgs.ctCallPackage, evt);
+		return contentTextUseID!(CIDKind.Package)(comm, summ, evt.packages, comm.prop.msgs.ctCallPackage, evt);
 	} case CType.BRANCH_FLAG: {
-		return contentTextUseID!(CIDKind.Flag)(comm, evt.flag, comm.prop.msgs.ctBranchFlag, evt);
+		return contentTextUseID!(CIDKind.Flag)(comm, summ, evt.flag, comm.prop.msgs.ctBranchFlag, evt);
 	} case CType.BRANCH_MULTI_STEP: {
-		return contentTextUseID!(CIDKind.Step)(comm, evt.step, comm.prop.msgs.ctBranchMultiStep, evt);
+		return contentTextUseID!(CIDKind.Step)(comm, summ, evt.step, comm.prop.msgs.ctBranchMultiStep, evt);
 	} case CType.BRANCH_STEP: {
-		string s = contentTextUseID!(CIDKind.Step)(comm, evt.step, "%s", evt);
-		auto step = comm.summary.flagDirRoot.findStep(evt.step);
+		string s = contentTextUseID!(CIDKind.Step)(comm, summ, evt.step, "%s", evt);
+		auto step = summ.flagDirRoot.findStep(evt.step);
 		string v = step ? step.getValue(evt.stepValue) : .tryFormat(comm.prop.msgs.dlgLblStep, evt.stepValue);
 		return .tryFormat(comm.prop.msgs.ctBranchStep, s, v);
 	} case CType.BRANCH_SELECT: {
@@ -2139,17 +2140,17 @@ string contentText(Commons comm, in Content evt) {
 	} case CType.BRANCH_IS_BATTLE: {
 		return comm.prop.msgs.ctBranchIsBattle;
 	} case CType.BRANCH_CAST: {
-		return contentTextUseID!(CIDKind.Cast)(comm, evt.casts, comm.prop.msgs.ctBranchCast, evt);
+		return contentTextUseID!(CIDKind.Cast)(comm, summ, evt.casts, comm.prop.msgs.ctBranchCast, evt);
 	} case CType.BRANCH_ITEM: {
-		string name = contentTextUseID!(CIDKind.Item)(comm, evt.item, "%s", evt);
+		string name = contentTextUseID!(CIDKind.Item)(comm, summ, evt.item, "%s", evt);
 		return .tryFormat(comm.prop.msgs.ctBranchItem, name, comm.prop.msgs.rangeName(evt.range), evt.cardNumber);
 	} case CType.BRANCH_SKILL: {
-		string name = contentTextUseID!(CIDKind.Skill)(comm, evt.skill, "%s", evt);
+		string name = contentTextUseID!(CIDKind.Skill)(comm, summ, evt.skill, "%s", evt);
 		return .tryFormat(comm.prop.msgs.ctBranchSkill, name, comm.prop.msgs.rangeName(evt.range), evt.cardNumber);
 	} case CType.BRANCH_INFO: {
-		return contentTextUseID!(CIDKind.Info)(comm, evt.info, comm.prop.msgs.ctBranchInfo, evt);
+		return contentTextUseID!(CIDKind.Info)(comm, summ, evt.info, comm.prop.msgs.ctBranchInfo, evt);
 	} case CType.BRANCH_BEAST: {
-		string name = contentTextUseID!(CIDKind.Beast)(comm, evt.beast, "%s", evt);
+		string name = contentTextUseID!(CIDKind.Beast)(comm, summ, evt.beast, "%s", evt);
 		return .tryFormat(comm.prop.msgs.ctBranchBeast, name, comm.prop.msgs.rangeName(evt.range), evt.cardNumber);
 	} case CType.BRANCH_MONEY: {
 		return .tryFormat(comm.prop.msgs.ctBranchMoney, evt.money);
@@ -2166,19 +2167,19 @@ string contentText(Commons comm, in Content evt) {
 		if (!c || !c.length) c = comm.prop.msgs.noSelectGossip;
 		return .tryFormat(comm.prop.msgs.ctBranchGossip, c);
 	} case CType.SET_FLAG: {
-		string name = contentTextUseID!(CIDKind.Flag)(comm, evt.flag, "%s", evt);
+		string name = contentTextUseID!(CIDKind.Flag)(comm, summ, evt.flag, "%s", evt);
 		string on = comm.prop.msgs.flagOn;
 		string off = comm.prop.msgs.flagOff;
-		auto o = comm.summary.flagDirRoot.findFlag(evt.flag);
+		auto o = summ.flagDirRoot.findFlag(evt.flag);
 		if (o) {
 			on = o.on;
 			off = o.off;
 		}
 		return .tryFormat(comm.prop.msgs.ctSetFlag, name, evt.flagValue ? on : off);
 	} case CType.SET_STEP: {
-		string name = contentTextUseID!(CIDKind.Step)(comm, evt.step, "%s", evt);
+		string name = contentTextUseID!(CIDKind.Step)(comm, summ, evt.step, "%s", evt);
 		string value;
-		auto o = comm.summary.flagDirRoot.findStep(evt.step);
+		auto o = summ.flagDirRoot.findStep(evt.step);
 		if (o) {
 			value = o.getValue(evt.stepValue);
 		} else {
@@ -2186,31 +2187,31 @@ string contentText(Commons comm, in Content evt) {
 		}
 		return .tryFormat(comm.prop.msgs.ctSetStep, name, value);
 	} case CType.SET_STEP_UP: {
-		return contentTextUseID!(CIDKind.Step)(comm, evt.step, comm.prop.msgs.ctSetStepUp, evt);
+		return contentTextUseID!(CIDKind.Step)(comm, summ, evt.step, comm.prop.msgs.ctSetStepUp, evt);
 	} case CType.SET_STEP_DOWN: {
-		return contentTextUseID!(CIDKind.Step)(comm, evt.step, comm.prop.msgs.ctSetStepDown, evt);
+		return contentTextUseID!(CIDKind.Step)(comm, summ, evt.step, comm.prop.msgs.ctSetStepDown, evt);
 	} case CType.REVERSE_FLAG: {
-		return contentTextUseID!(CIDKind.Flag)(comm, evt.flag, comm.prop.msgs.ctReverseFlag, evt);
+		return contentTextUseID!(CIDKind.Flag)(comm, summ, evt.flag, comm.prop.msgs.ctReverseFlag, evt);
 	} case CType.CHECK_FLAG: {
-		string name = contentTextUseID!(CIDKind.Flag)(comm, evt.flag, "%s", evt);
+		string name = contentTextUseID!(CIDKind.Flag)(comm, summ, evt.flag, "%s", evt);
 		string on = comm.prop.msgs.flagOn;
-		auto o = comm.summary.flagDirRoot.findFlag(evt.flag);
+		auto o = summ.flagDirRoot.findFlag(evt.flag);
 		if (o) {
 			on = o.on;
 		}
 		return .tryFormat(comm.prop.msgs.ctCheckFlag, name, on);
 	} case CType.GET_CAST: {
-		return contentTextUseID!(CIDKind.Cast)(comm, evt.casts, comm.prop.msgs.ctGetCast, evt);
+		return contentTextUseID!(CIDKind.Cast)(comm, summ, evt.casts, comm.prop.msgs.ctGetCast, evt);
 	} case CType.GET_ITEM: {
-		string name = contentTextUseID!(CIDKind.Item)(comm, evt.item, "%s", evt);
+		string name = contentTextUseID!(CIDKind.Item)(comm, summ, evt.item, "%s", evt);
 		return .tryFormat(comm.prop.msgs.ctGetItem, name, comm.prop.msgs.rangeName(evt.range), evt.cardNumber);
 	} case CType.GET_SKILL: {
-		string name = contentTextUseID!(CIDKind.Skill)(comm, evt.skill, "%s", evt);
+		string name = contentTextUseID!(CIDKind.Skill)(comm, summ, evt.skill, "%s", evt);
 		return .tryFormat(comm.prop.msgs.ctGetSkill, name, comm.prop.msgs.rangeName(evt.range), evt.cardNumber);
 	} case CType.GET_INFO: {
-		return contentTextUseID!(CIDKind.Info)(comm, evt.info, comm.prop.msgs.ctGetInfo, evt);
+		return contentTextUseID!(CIDKind.Info)(comm, summ, evt.info, comm.prop.msgs.ctGetInfo, evt);
 	} case CType.GET_BEAST: {
-		string name = contentTextUseID!(CIDKind.Beast)(comm, evt.beast, "%s", evt);
+		string name = contentTextUseID!(CIDKind.Beast)(comm, summ, evt.beast, "%s", evt);
 		return .tryFormat(comm.prop.msgs.ctGetBeast, name, comm.prop.msgs.rangeName(evt.range), evt.cardNumber);
 	} case CType.GET_MONEY: {
 		return .tryFormat(comm.prop.msgs.ctGetMoney, evt.money);
@@ -2227,19 +2228,19 @@ string contentText(Commons comm, in Content evt) {
 		if (!c || !c.length) c = comm.prop.msgs.noSelectGossip;
 		return .tryFormat(comm.prop.msgs.ctGetGossip, c);
 	} case CType.LOSE_CAST: {
-		return contentTextUseID!(CIDKind.Cast)(comm, evt.casts, comm.prop.msgs.ctLoseCast, evt);
+		return contentTextUseID!(CIDKind.Cast)(comm, summ, evt.casts, comm.prop.msgs.ctLoseCast, evt);
 	} case CType.LOSE_ITEM: {
-		string name = contentTextUseID!(CIDKind.Item)(comm, evt.item, "%s", evt);
+		string name = contentTextUseID!(CIDKind.Item)(comm, summ, evt.item, "%s", evt);
 		string count = loseCardCount();
 		return .tryFormat(comm.prop.msgs.ctLoseItem, name, comm.prop.msgs.rangeName(evt.range), count);
 	} case CType.LOSE_SKILL: {
-		string name = contentTextUseID!(CIDKind.Skill)(comm, evt.skill, "%s", evt);
+		string name = contentTextUseID!(CIDKind.Skill)(comm, summ, evt.skill, "%s", evt);
 		string count = loseCardCount();
 		return .tryFormat(comm.prop.msgs.ctLoseSkill, name, comm.prop.msgs.rangeName(evt.range), count);
 	} case CType.LOSE_INFO: {
-		return contentTextUseID!(CIDKind.Info)(comm, evt.info, comm.prop.msgs.ctLoseInfo, evt);
+		return contentTextUseID!(CIDKind.Info)(comm, summ, evt.info, comm.prop.msgs.ctLoseInfo, evt);
 	} case CType.LOSE_BEAST: {
-		string name = contentTextUseID!(CIDKind.Beast)(comm, evt.beast, "%s", evt);
+		string name = contentTextUseID!(CIDKind.Beast)(comm, summ, evt.beast, "%s", evt);
 		string count = loseCardCount();
 		return .tryFormat(comm.prop.msgs.ctLoseBeast, name, comm.prop.msgs.rangeName(evt.range), count);
 	} case CType.LOSE_MONEY: {
@@ -2261,7 +2262,7 @@ string contentText(Commons comm, in Content evt) {
 	} case CType.HIDE_PARTY: {
 		return comm.prop.msgs.ctHideParty;
 	} case CType.REDISPLAY: {
-		if (comm.summary && comm.summary.legacy) {
+		if (summ && summ.legacy) {
 			return comm.prop.msgs.ctRedisplayClassic;
 		} else {
 			string v = comm.prop.msgs.transitionName(evt.transition);
@@ -2354,7 +2355,7 @@ string selectFile(Text file, string[] name, string[] ext, string fileName, strin
 	return fname;
 }
 /// ディレクトリの選択を行う。
-string selectDir(Props prop, Text dir, string title, string msg, string p, bool appPath = true) {
+string selectDir(T)(Props prop, T dir, string title, string msg, string p, bool appPath = true) {
 	auto dlg = new DirectoryDialog(dir.getShell());
 	dlg.setText(title);
 	dlg.setMessage(msg);
@@ -2374,23 +2375,23 @@ string selectDir(Props prop, Text dir, string title, string msg, string p, bool 
 	return fname;
 }
 /// ファイルやディレクトリを開くボタンを作成する。
-Button createOpenButton(Commons comm, Composite parent, Text path, bool dir) {
+Button createOpenButton(Commons comm, Composite parent, string delegate() getText, bool dir) {
 	auto open = new Button(parent, SWT.PUSH);
 	open.setToolTipText(comm.prop.buildTool(dir ? MenuID.OpenDir : MenuID.OpenPlace));
 	open.setImage(comm.prop.images.menu(MenuID.OpenDir));
-	open.addSelectionListener(new OpenDir(comm, path));
-	comm.put(open, () => path.getText().length > 0);
+	open.addSelectionListener(new OpenDir(comm, getText));
+	comm.put(open, () => getText().length > 0);
 	return open;
 }
 private class OpenDir : SelectionAdapter {
 	private Commons _comm;
-	private Text _text;
-	this (Commons comm, Text text) {
+	private string delegate() _text;
+	this (Commons comm, string delegate() text) {
 		_comm = comm;
 		_text = text;
 	}
 	override void widgetSelected(SelectionEvent e) {
-		string file = _text.getText();
+		string file = _text();
 		if (!isAbsolute(file)) {
 			file = std.path.buildPath(_comm.prop.parent.appPath.dirName(), file);
 		}

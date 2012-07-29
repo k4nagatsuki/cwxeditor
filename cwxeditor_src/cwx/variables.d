@@ -246,6 +246,10 @@ class FlexEtcProps : Properties {
 	auto replaceTextNotIgnoreCase = Prop!(bool)("replaceTextNotIgnoreCase", false);
 	auto replaceTextRegExp = Prop!(bool)("replaceTextRegExp", false);
 	auto replaceTextWildcard = Prop!(bool)("replaceTextWildcard", false);
+	auto grepDir = Prop!(string)("grepDir", "");
+	auto grepDirHistories = Prop!(string[])("grepDirHistories", []);
+	auto grepSubDir = Prop!(bool)("grepSubDir", true);
+	auto searchResultRefreshCount = Prop!(int, true)("searchResultRefreshCount", 100);
 
 	auto replaceTextSummary = Prop!(bool)("replaceTextSummary", true);
 	auto replaceTextMessage = Prop!(bool)("replaceTextMessage", true);

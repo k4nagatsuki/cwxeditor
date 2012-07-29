@@ -18,6 +18,7 @@ import cwx.msgutils;
 import cwx.flag;
 import cwx.menu;
 import cwx.jpy;
+import cwx.cab;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dutils;
@@ -37,15 +38,18 @@ import std.path;
 import std.regex : Regex, regex, RegexMatch, match;
 import std.utf;
 import std.algorithm : uniq;
+import std.traits;
 
 import org.eclipse.swt.all;
 
 import java.lang.all;
 
 private class CWXPathString {
+	string scPath;
 	CWXPath path;
 	string array;
-	this (CWXPath path, string array) {
+	this (string scPath, CWXPath path, string array) {
+		this.scPath = scPath;
 		this.path = path;
 		this.array = array;
 	}
@@ -67,14 +71,16 @@ private:
 			_uArr = uArr;
 		}
 		void undo() {
+			size_t dmy = 0;
 			foreach_reverse (u; _uArr) u.undo();
-			if (_path) addResult(_path);
-			if (_filePath) addResult(_filePath);
+			if (_path) addResult(_path, dmy);
+			if (_filePath) addResult(_filePath, dmy);
 		}
 		void redo() {
+			size_t dmy = 0;
 			foreach_reverse (u; _uArr) u.redo();
-			if (_path) addResult(_path);
-			if (_filePath) addResult(_filePath);
+			if (_path) addResult(_path, dmy);
+			if (_filePath) addResult(_filePath, dmy);
 		}
 		void dispose() {
 			foreach (u; _uArr) u.dispose();
@@ -106,6 +112,12 @@ private:
 	Summary _summ;
 	UndoManager _undo;
 
+	Summary _grepSumm = null;
+	string _grepFile = "";
+	bool _inGrep = false;
+
+	bool _cancel = false;
+
 	Shell _win;
 	Composite _parent;
 	CTabFolder _tabf;
@@ -116,12 +128,14 @@ private:
 	CTabItem _tabCoupon;
 	CTabItem _tabUnuse;
 	CTabItem _tabError;
+	CTabItem _tabGrep;
 	Button _find;
 	Button _replace;
 	Button _rangeAllCheck;
 
 	bool ignoreMod = false;
 
+	Composite _textGrp1, _textGrp2, _textFromComp, _grepFromComp;
 	Combo _from;
 	Combo _to;
 	Combo _idKind;
@@ -133,6 +147,8 @@ private:
 	ulong[int] _toIDTbl;
 	Combo _fromPath;
 	Combo _toPath;
+	Combo _grepDir;
+	Button _grepSubDir;
 
 	Button _notIgnoreCase;
 	Button _useRegex;
@@ -188,6 +204,8 @@ private:
 	/// JPTXファイル
 	Button _jptx;
 
+	Button[] _noSummText;
+
 	Button _unuseFlag;
 	Button _unuseStep;
 	Button _unuseArea;
@@ -214,6 +232,75 @@ private:
 	ToolItem[CType] _contents;
 
 	Label _status;
+
+	bool _notIgnoreCaseSel;
+	bool _summarySel;
+	bool _msgSel;
+	bool _cardNameSel;
+	bool _cardDescSel;
+	bool _eventSel;
+	bool _startSel;
+	bool _flagSel;
+	bool _couponSel;
+	bool _gossipSel;
+	bool _endSel;
+	bool _areaSel;
+	bool _keyCodeSel;
+	bool _fileSel;
+	bool _commentSel;
+	string _fromText;
+	string _toText;
+
+	class AddResultPath : Runnable {
+		size_t count = 0;
+		string path;
+		void run() {
+			if (cancel) return;
+			auto itm = new TableItem(_result, SWT.NONE);
+			auto summ = _grepSumm ? _grepSumm : _summ;
+			itm.setImage(fimage(std.path.buildPath(summ.scenarioPath, path)));
+			itm.setText(encodePath(path));
+			itm.setData(new PathString(path));
+			refResultStatus(count, false);
+		}
+	}
+	class AddResultCWXPath : Runnable {
+		CWXPath path;
+		int index;
+		string desc;
+		size_t count = 0;
+		void run() {
+			if (cancel) return;
+			auto itm = new TableItem(_result, SWT.NONE, -1 == index ? _result.getItemCount() : index);
+			string text;
+			Image img;
+			getPathParams(path, text, img);
+			itm.setImage(img);
+			if (desc.length) text = desc ~ " - " ~ text;
+			string scPath = null;
+			if (_grepSumm) {
+				scPath = _grepSumm.useTemp ? _grepSumm.zipName : _grepSumm.scenarioPath;
+				text = _grepSumm.scenarioName ~ " - " ~ text;
+			}
+			itm.setText(text);
+			itm.setData(new CWXPathString(scPath, path, path.cwxPath(true)));
+			refResultStatus(count, false);
+		}
+	}
+	class AddResultMsg : Runnable {
+		string name;
+		Image delegate() image;
+		int index;
+		size_t count = 0;
+		void run() {
+			if (cancel) return;
+			auto itm = new TableItem(_result, SWT.NONE, -1 == index ? _result.getItemCount() : index);
+			itm.setText(name);
+			itm.setImage(image());
+			refResultStatus(count, false);
+		}
+	}
+	Display _display;
 
 	class ML : MouseAdapter {
 		public override void mouseDoubleClick(MouseEvent e) {
@@ -291,7 +378,7 @@ private:
 					find(std.path.buildPath(p, l));
 				}
 			} else if (_comm.skin.isMaterial(p)) {
-				auto path = relativePath(p, sPath);
+				auto path = abs2rel(p, sPath);
 				paths ~= encodePath(path);
 				tbl.add(toPathId(path));
 			}
@@ -360,7 +447,20 @@ private:
 	private void tabChanged() {
 		auto sel = _tabf.getSelection();
 		if (!sel) return;
+
+		_parent.setRedraw(false);
+		scope (exit) _parent.setRedraw(true);
+
 		_prop.var.etc.searchPlan = _tabf.getSelectionIndex();
+		if (sel is _tabText || sel is _tabGrep) {
+			auto comp = _comps[sel is _tabGrep ? _tabGrep : _tabText];
+			if (_textGrp1.getParent() !is comp) _textGrp1.setParent(comp);
+			if (_textGrp2.getParent() !is comp) _textGrp2.setParent(comp);
+			auto fromComp = sel is _tabGrep ? _grepFromComp : _textFromComp;
+			if (_from.getParent() !is fromComp) {
+				_from.setParent(fromComp);
+			}
+		}
 		foreach (tab, comp; _comps) {
 			auto gd = cast(GridData) comp.getLayoutData();
 			if (tab is sel) {
@@ -371,7 +471,7 @@ private:
 		}
 		_parent.layout(true);
 		_replace.setEnabled(sel !is _tabContents && sel !is _tabCoupon && sel !is _tabUnuse && sel !is _tabError);
-		_range.setEnabled(sel !is _tabUnuse);
+		_range.setEnabled(sel !is _tabUnuse && sel !is _tabGrep);
 		_rangeAllCheck.setEnabled(_range.getEnabled());
 		_comm.refreshToolBar();
 	}
@@ -444,14 +544,16 @@ private:
 			grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			grp.setText(_prop.msgs.replText);
 			grp.setLayout(new GridLayout(2, false));
-			auto lf = new Label(grp, SWT.NONE);
-			lf.setText(_prop.msgs.replFrom);
+			auto fl = new Label(grp, SWT.NONE);
+			fl.setText(_prop.msgs.replFrom);
+			_textFromComp = new Composite(grp, SWT.NONE);
+			_textFromComp.setLayout(new FillLayout);
 			_from = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN);
 			_from.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 			createTextMenu!Combo(_comm, _prop, _from, &catchMod);
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
 			gd.widthHint = _prop.var.etc.nameWidth;
-			_from.setLayoutData(gd);
+			_textFromComp.setLayoutData(gd);
 			auto lt = new Label(grp, SWT.NONE);
 			lt.setText(_prop.msgs.replTo);
 			_to = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN);
@@ -461,6 +563,7 @@ private:
 		}
 		{
 			auto grp = new Group(comp2, SWT.NONE);
+			_textGrp1 = grp;
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
 			gd.widthHint = _prop.var.etc.searchResultTableWidth;
 			grp.setLayoutData(gd);
@@ -477,6 +580,7 @@ private:
 		}
 		{
 			auto grp = new Group(comp2, SWT.NONE);
+			_textGrp2 = grp;
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
 			gd.widthHint = _prop.var.etc.searchResultTableWidth;
 			grp.setLayoutData(gd);
@@ -486,14 +590,15 @@ private:
 			_checked ~= checked;
 			{
 				auto btns = addButtonLine(grp);
-				Button createB(string text, char accr) {
+				Button createB(string text, char accr, bool summ = false) {
 					auto b = new Button(btns, SWT.CHECK);
 					b.setText(text ~ "(&" ~ accr ~ ")");
 					checked.buttons ~= b;
 					b.addSelectionListener(checked);
+					if (!summ) _noSummText ~= b;
 					return b;
 				}
-				_summary = createB(_prop.msgs.replTextSummary, '1');
+				_summary = createB(_prop.msgs.replTextSummary, '1', true);
 				_msg = createB(_prop.msgs.replTextMessage, '2');
 				_cardName = createB(_prop.msgs.replTextCardName, '3');
 				_cardDesc = createB(_prop.msgs.replTextCardDesc, '4');
@@ -799,6 +904,77 @@ private:
 		comp2.setLayoutData(gd);
 		_comps[tab] = comp2;
 	}
+	void constructGrep(CTabFolder tabf) {
+		auto comp = new Composite(tabf, SWT.NONE);
+		comp.setLayout(new GridLayout(1, true));
+		auto comp2 = new Composite(comp, SWT.NONE);
+		auto comp2gl = windowGridLayout(1, true);
+		comp2gl.marginWidth = 0;
+		comp2gl.marginHeight = 0;
+		comp2.setLayout(comp2gl);
+
+		{
+			auto grp = new Group(comp2, SWT.NONE);
+			grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			grp.setText(_prop.msgs.grepText);
+			grp.setLayout(new GridLayout(2, false));
+			auto fl = new Label(grp, SWT.NONE);
+			fl.setText(_prop.msgs.grepFrom);
+			_grepFromComp = new Composite(grp, SWT.NONE);
+			_grepFromComp.setLayout(new FillLayout);
+			auto gd = new GridData(GridData.FILL_HORIZONTAL);
+			gd.widthHint = _prop.var.etc.nameWidth;
+			_grepFromComp.setLayoutData(gd);
+		}
+		{
+			auto grp = new Group(comp2, SWT.NONE);
+			grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			grp.setText(_prop.msgs.grepTarget);
+			grp.setLayout(new GridLayout(4, false));
+
+			_grepDir = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN);
+			_grepDir.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
+			createTextMenu!Combo(_comm, _prop, _grepDir, &catchMod);
+			_grepDir.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			auto grepDirRef = new Button(grp, SWT.PUSH);
+			grepDirRef.setText(_prop.msgs.reference);
+			.listener(grepDirRef, SWT.Selection, {
+				selectDir(_prop, _grepDir, _prop.msgs.grepDir, _prop.msgs.grepDirDesc, _grepDir.getText());
+			});
+			createOpenButton(_comm, grp, &_grepDir.getText, true);
+
+			auto grepCurrent = new Button(grp, SWT.PUSH);
+			grepCurrent.setText(_prop.msgs.grepCurrent);
+			.listener(grepCurrent, SWT.Selection, &setGrepCurrentDir);
+			_grepSubDir = new Button(grp, SWT.CHECK);
+			auto gd = new GridData(GridData.HORIZONTAL_ALIGN_END);
+			gd.horizontalSpan = 4;
+			_grepSubDir.setLayoutData(gd);
+			_grepSubDir.setText(_prop.msgs.grepSubDir);
+			.listener(_grepDir, SWT.Modify, {
+				if (ignoreMod) return;
+				_prop.var.etc.grepDir = _grepDir.getText();
+			});
+			.listener(_grepSubDir, SWT.Selection, {
+				if (ignoreMod) return;
+				_prop.var.etc.grepSubDir = _grepSubDir.getSelection();
+			});
+		}
+
+		auto tab = new CTabItem(tabf, SWT.NONE);
+		tab.setText(_prop.msgs.replGrep);
+		tab.setControl(comp);
+		_tabGrep = tab;
+
+		auto gd = new GridData(GridData.FILL_BOTH);
+		comp2.setLayoutData(gd);
+		_comps[tab] = comp2;
+	}
+	void setGrepCurrentDir() {
+		auto sc = _summ.scenarioPath.dirName();
+		if (_summ.useTemp) sc = _summ.zipName.dirName();
+		_grepDir.setText(sc);
+	}
 
 	void refFunc(bool Del, A : CWXPath)(A a) {
 		bool recurse(TreeItem itm) {
@@ -875,6 +1051,34 @@ private:
 	}
 	void refInfo(InfoCard a) {
 		refFunc!false(a);
+	}
+	static CWXPath[] rangeTree(Summary summ) {
+		CWXPath[] r;
+		r ~= summ;
+		r ~= summ.flagDirRoot;
+		foreach (a; summ.areas) r ~= a;
+		foreach (a; summ.battles) r ~= a;
+		foreach (a; summ.packages) r ~= a;
+		foreach (a; summ.casts) {
+			r ~= a;
+			foreach (c; a.skills) {
+				if (0 != c.linkId) continue;
+				r ~= c;
+			}
+			foreach (c; a.items) {
+				if (0 != c.linkId) continue;
+				r ~= c;
+			}
+			foreach (c; a.beasts) {
+				if (0 != c.linkId) continue;
+				r ~= c;
+			}
+		}
+		foreach (a; summ.skills) r ~= a;
+		foreach (a; summ.items) r ~= a;
+		foreach (a; summ.beasts) r ~= a;
+		foreach (a; summ.infos) r ~= a;
+		return r;
 	}
 	void refreshRangeTree() {
 		CWXPath sel = null;
@@ -999,6 +1203,9 @@ public:
 		}
 		_win.setText(_prop.msgs.dlgTitReplaceText);
 		_win.setImage(prop.images.menu(MenuID.Find));
+
+		_display = shell.getDisplay();
+
 		setup();
 		_win.open();
 		_win.setActive();
@@ -1039,6 +1246,8 @@ public:
 			// Nothing
 		} else if (tab is _tabError) {
 			// Nothing
+		} else if (tab is _tabGrep) {
+			_from.setFocus();
 		} else assert (0);
 	}
 	void replaceText(string from, bool start = false) {
@@ -1108,6 +1317,7 @@ public:
 			constructCoupon(_tabf);
 			constructUnuse(_tabf);
 			constructError(_tabf);
+			constructGrep(_tabf);
 			_tabf.addSelectionListener(new TSListener);
 		}
 		{
@@ -1175,7 +1385,7 @@ public:
 			_status.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			auto comp = new Composite(bArea, SWT.NONE);
 			comp.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
-			auto gl = new GridLayout(3, true);
+			auto gl = new GridLayout(4, true);
 			gl.marginWidth = 0;
 			gl.marginHeight = 0;
 			comp.setLayout(gl);
@@ -1199,9 +1409,15 @@ public:
 			_replace = createButton(_prop.msgs.replace, &replace);
 			_comm.put(_replace, &canReplace);
 			createButton(_prop.msgs.replaceExit, &exit);
+			auto cancel = createButton(_prop.msgs.searchCancel, {_cancel = true;});
+			_comm.put(cancel, &canCancel);
 		}
+
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
 		setComboItems(_from, _prop.var.etc.searchHistories.dup);
 		setComboItems(_to, _prop.var.etc.replaceHistories.dup);
+		setComboItems(_grepDir, _prop.var.etc.grepDirHistories.dup);
 		_notIgnoreCase.setSelection(_prop.var.etc.replaceTextNotIgnoreCase);
 		_useRegex.setSelection(_prop.var.etc.replaceTextRegExp);
 		_useWildcard.setSelection(_prop.var.etc.replaceTextWildcard);
@@ -1220,6 +1436,12 @@ public:
 		_file.setSelection(_prop.var.etc.replaceTextFile);
 		_comment.setSelection(_prop.var.etc.replaceTextComment);
 		_jptx.setSelection(_prop.var.etc.replaceTextJptx);
+		if (_prop.var.etc.grepDir.length) {
+			_grepDir.setText(_prop.var.etc.grepDir);
+		} else {
+			setGrepCurrentDir();
+		}
+		_grepSubDir.setSelection(_prop.var.etc.grepSubDir);
 
 		_contents[CType.START].setSelection(_prop.var.etc.searchContentsStart);
 		_contents[CType.START_BATTLE].setSelection(_prop.var.etc.searchContentsStartBattle);
@@ -1375,6 +1597,7 @@ public:
 	}
 	private class DL : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
+			_cancel = true;
 			_comm.changed.remove(&changed);
 			_comm.refScenario.remove(&summary);
 			saveWin();
@@ -1504,8 +1727,11 @@ public:
 		}
 	}
 	private void changed() {
-		if (!_inProc) {
-			_undo.reset();
+		_undo.reset();
+		if (_inGrep) return;
+		if (_inProc) {
+			_cancel = true;
+		} else {
 			_comm.refreshToolBar();
 		}
 	}
@@ -1554,6 +1780,7 @@ public:
 	}
 	@property
 	private bool canFind() {
+		if (_inProc) return false;
 		if (!_tabf || _tabf.isDisposed()) return false;
 		auto sel = _tabf.getSelection();
 		if (!sel) return false;
@@ -1571,20 +1798,44 @@ public:
 			return true;
 		} else if (sel is _tabError) {
 			return true;
+		} else if (sel is _tabGrep) {
+			return true;
 		} else assert (0);
 	}
 	@property
 	private bool canReplace() {
+		if (_inProc) return false;
 		if (!_tabf || _tabf.isDisposed()) return false;
 		auto sel = _tabf.getSelection();
 		if (!sel) return false;
 		return canFind && (sel is _tabText || sel is _tabID || sel is _tabPath);
 	}
+	private bool canCancel() {
+		return _inProc;
+	}
 	private void replaceImpl() {
-		_inProc = true;
-		scope (exit) _inProc = false;
 		_rUndo.length = 0;
 		_after.length = 0;
+
+		_notIgnoreCaseSel = _notIgnoreCase.getSelection();
+		_summarySel = _summary.getSelection();
+		_msgSel = _msg.getSelection();
+		_cardNameSel = _cardName.getSelection();
+		_cardDescSel = _cardDesc.getSelection();
+		_eventSel = _event.getSelection();
+		_startSel = _start.getSelection();
+		_flagSel = _flag.getSelection();
+		_couponSel = _coupon.getSelection();
+		_gossipSel = _gossip.getSelection();
+		_endSel = _end.getSelection();
+		_areaSel = _area.getSelection();
+		_keyCodeSel = _keyCode.getSelection();
+		_fileSel = _file.getSelection();
+		_commentSel = _comment.getSelection();
+		_fromText = _from.getText();
+		_toText = _to.getText();
+
+		_cancel = false;
 		if (_tabf.getSelection() is _tabText) {
 			replaceTextImpl();
 		} else if (_tabf.getSelection() is _tabID) {
@@ -1599,6 +1850,8 @@ public:
 			searchUnuseImpl();
 		} else if (_tabf.getSelection() is _tabError) {
 			searchErrorImpl();
+		} else if (_tabf.getSelection() is _tabGrep) {
+			grepImpl();
 		} else assert (0);
 		foreach (a; _after) a();
 		if (_after.length) {
@@ -1612,11 +1865,11 @@ public:
 		_after = [];
 		_comm.refreshToolBar();
 	}
-	private void searchRange(ref uint count,
-			void delegate(CWXPath path, ref uint count) dlg) {
+	@property
+	private CWXPath[] searchRange() {
+		CWXPath[] r;
 		void recurse(TreeItem itm) {
-			auto path = cast(CWXPath) itm.getData();
-			searchAll(path, count, dlg);
+			r ~= cast(CWXPath) itm.getData();
 			foreach (child; itm.getItems()) {
 				if (child.getChecked()) {
 					recurse(child);
@@ -1628,9 +1881,11 @@ public:
 				recurse(itm);
 			}
 		}
+		return r;
 	}
 	private void searchAll(CWXPath path, ref uint count,
 			void delegate(CWXPath path, ref uint count) dlg) {
+		if (cancel) return;
 		dlg(path, count);
 		// _rangeに含まれる要素は再帰的検索から除外する
 		auto fdir = cast(FlagDir) path;
@@ -1671,17 +1926,46 @@ public:
 		}
 	}
 
+	@property
+	private bool cancel() {
+		return _cancel;
+	}
+
 	private void setResultStatus(uint count) {
+		_result.setRedraw(true);
 		if (count > 0) {
-			if (_replMode) _summ.changed();
-			_comm.refUseCount.call();
+			if (_replMode) {
+				_summ.changed();
+				_comm.refUseCount.call();
+			}
 		}
-		string kind = _tabf.getSelection().getText();
-		if (_replMode) {
-			_status.setText(.tryFormat(_prop.msgs.replResult, .formatNum(count), kind));
-		} else {
-			_status.setText(.tryFormat(_prop.msgs.searchResult, .formatNum(count), kind));
-		}
+		refResultStatus(count, true);
+	}
+	private void refResultStatus(uint count, bool force) {
+		if (!force && 0 != (count % _prop.var.etc.searchResultRefreshCount)) return;
+		_display.syncExec(new class Runnable {
+			void run() {
+				if (!_win || _win.isDisposed()) return;
+				if (force) _result.setRedraw(true);
+				string text;
+				string num = .formatNum(count);
+				if (_replMode) {
+					string kind = _tabf.getSelection().getText();
+					text = .tryFormat(_prop.msgs.replResult, num, kind);
+				} else {
+					if (_grepSumm) {
+						text = .tryFormat(_prop.msgs.searchResultGrep2, num, _grepFile);
+					} else if (_grepFile.length) {
+						text = .tryFormat(_prop.msgs.searchResultGrep1, num, _grepFile);
+					} else {
+						string kind = _tabf.getSelection().getText();
+						text = .tryFormat(_prop.msgs.searchResult, num, kind);
+					}
+				}
+				_status.setText(text);
+				if (force && _inProc) _result.setRedraw(false);
+			}
+		});
 	}
 	private void replaceIDImpl2(ID)(ID from, ID to) {
 		reset();
@@ -1707,25 +1991,39 @@ public:
 		auto uc = _summ.useCounter;
 		auto users = uc.values(from);
 		_result.setRedraw(false);
-		scope (exit) _result.setRedraw(true);
+		_inProc = true;
+		scope (exit) _inProc = false;
 		size_t count = 0;
-		foreach (u; users) {
-			if (!dec(u.owner)) continue;
-			if (_replMode) {
-				u.id = to;
-				storeID(u.owner, u, from, to, &u.id);
+
+		auto cursors = setWaitCursors(_win);
+		auto thr = new core.thread.Thread({
+			auto exit = new class Runnable {
+				override void run() {
+					_inProc = false;
+					setResultStatus(count);
+					if (count) {
+						static if (is(ID : PathId)) {
+							_comm.replPath.call(cast(string) from, cast(string) to);
+						} else {
+							_comm.replID.call();
+						}
+					}
+					resetCursors(cursors);
+					_comm.refreshToolBar();
+				}
+			};
+			scope (exit) _display.syncExec(exit);
+
+			foreach (u; users) {
+				if (!dec(u.owner)) continue;
+				if (_replMode) {
+					u.id = to;
+					storeID(u.owner, u, from, to, &u.id);
+				}
+				addResult(u.owner, count);
 			}
-			addResult(u.owner);
-			count++;
-		}
-		setResultStatus(count);
-		if (count) {
-			static if (is(ID : PathId)) {
-				_comm.replPath.call(cast(string) from, cast(string) to);
-			} else {
-				_comm.replID.call();
-			}
-		}
+		});
+		thr.start();
 	}
 	private ulong getID(Combo combo, Spinner spn, ulong[int] tbl) {
 		if (combo.getSelectionIndex() == 0) {
@@ -1761,159 +2059,239 @@ public:
 	private void searchCoupon() {
 		uint count = 0;
 		reset();
-		_result.setRedraw(false);
-		scope (exit) _result.setRedraw(true);
 		string[] coupons;
 		string[] gossips;
 		string[] scenarios;
 		string[] keyCodes;
-		searchRange(count, (CWXPath path, ref uint count) {
-			auto summ = cast(Summary) path;
-			if (summ) {
-				if (_cCoupon.getSelection()) {
-					coupons ~= summ.rCoupons;
-				}
-			}
-			auto casts = cast(CastCard) path;
-			if (casts) {
-				if (_cCoupon.getSelection()) {
-					foreach (c; casts.coupons) {
-						coupons ~= c.name;
+		auto range = searchRange;
+		bool cCouponSel = _cCoupon.getSelection();
+		bool cKeyCodeSel = _cKeyCode.getSelection();
+		bool cGossipSel = _cGossip.getSelection();
+		bool cEndSel = _cEnd.getSelection();
+		void search() {
+			foreach (path; range) {
+				searchAll(path, count, (CWXPath path, ref uint count) {
+					if (cancel) return;
+					auto summ = cast(Summary) path;
+					if (summ) {
+						if (cCouponSel) {
+							coupons ~= summ.rCoupons;
+						}
 					}
-				}
-			}
-			auto eff = cast(EffectCard) path;
-			if (eff) {
-				if (_cKeyCode.getSelection()) {
-					keyCodes ~= eff.keyCodes;
-				}
-			}
-			auto et = cast(EventTree) path;
-			if (et) {
-				if (_cKeyCode.getSelection()) {
-					keyCodes ~= et.keyCodes;
-				}
-			}
-			auto c = cast(Content) path;
-			if (c) {
-				if (_cCoupon.getSelection()) {
-					if (c.coupon.length) coupons ~= c.coupon;
-					foreach (dlg; c.dialogs) {
-						coupons ~= dlg.rCoupons;
+					auto casts = cast(CastCard) path;
+					if (casts) {
+						if (cCouponSel) {
+							foreach (c; casts.coupons) {
+								coupons ~= c.name;
+							}
+						}
 					}
-				}
-				if (_cGossip.getSelection()) {
-					if (c.gossip.length) gossips ~= c.gossip;
-				}
-				if (_cEnd.getSelection()) {
-					if (c.completeStamp.length) scenarios ~= c.completeStamp;
-				}
+					auto eff = cast(EffectCard) path;
+					if (eff) {
+						if (cKeyCodeSel) {
+							keyCodes ~= eff.keyCodes;
+						}
+					}
+					auto et = cast(EventTree) path;
+					if (et) {
+						if (cKeyCodeSel) {
+							keyCodes ~= et.keyCodes;
+						}
+					}
+					auto c = cast(Content) path;
+					if (c) {
+						if (cCouponSel) {
+							if (c.coupon.length) coupons ~= c.coupon;
+							foreach (dlg; c.dialogs) {
+								coupons ~= dlg.rCoupons;
+							}
+						}
+						if (cGossipSel) {
+							if (c.gossip.length) gossips ~= c.gossip;
+						}
+						if (cEndSel) {
+							if (c.completeStamp.length) scenarios ~= c.completeStamp;
+						}
+					}
+				});
 			}
+			foreach (n; coupons.sort.uniq()) {
+				if (cancel) break;
+				if (!n.length) continue;
+				addResult(n, &_prop.images.couponNormal, count);
+			}
+			foreach (n; gossips.sort.uniq()) {
+				if (cancel) break;
+				if (!n.length) continue;
+				addResult(n, &_prop.images.gossip, count);
+			}
+			foreach (n; scenarios.sort.uniq()) {
+				if (cancel) break;
+				if (!n.length) continue;
+				addResult(n, &_prop.images.endScenario, count);
+			}
+			foreach (n; keyCodes.sort.uniq()) {
+				if (cancel) break;
+				if (!n.length) continue;
+				addResult(n, &_prop.images.keyCode, count);
+			}
+		}
+
+		_inProc = true;
+		_comm.refreshToolBar();
+		_result.setRedraw(false);
+		auto cursors = setWaitCursors(_win);
+		auto thr = new core.thread.Thread({
+			auto exit = new class Runnable {
+				override void run() {
+					_inProc = false;
+					setResultStatus(count);
+					resetCursors(cursors);
+					_comm.refreshToolBar();
+				}
+			};
+			scope (exit) _display.syncExec(exit);
+			search();
 		});
-		foreach (n; coupons.sort.uniq()) {
-			if (!n.length) continue;
-			addResult(n, _prop.images.couponNormal);
-			count++;
-		}
-		foreach (n; gossips.sort.uniq()) {
-			if (!n.length) continue;
-			addResult(n, _prop.images.gossip);
-			count++;
-		}
-		foreach (n; scenarios.sort.uniq()) {
-			if (!n.length) continue;
-			addResult(n, _prop.images.endScenario);
-			count++;
-		}
-		foreach (n; keyCodes.sort.uniq()) {
-			if (!n.length) continue;
-			addResult(n, _prop.images.keyCode);
-			count++;
-		}
-		setResultStatus(count);
+		thr.start();
 	}
 
 	private void searchContents() {
 		uint count = 0;
 		reset();
+		auto range = searchRange;
+
+		_inProc = true;
+		_comm.refreshToolBar();
 		_result.setRedraw(false);
-		scope (exit) _result.setRedraw(true);
-		searchRange(count, (CWXPath path, ref uint count) {
-			auto c = cast(Content) path;
-			if (!c) return;
-			assert (c.type in _contents);
-			if (!_contents[c.type].getSelection()) return;
-			addResult(path);
-			count++;
+		auto cursors = setWaitCursors(_win);
+		bool[CType] contents;
+		foreach (type; EnumMembers!CType) {
+			contents[type] = _contents[type].getSelection();
+		}
+		auto thr = new core.thread.Thread({
+			auto exit = new class Runnable {
+				override void run() {
+					_inProc = false;
+					setResultStatus(count);
+					resetCursors(cursors);
+					_comm.refreshToolBar();
+				}
+			};
+			scope (exit) _display.syncExec(exit);
+			foreach (path; range) {
+				searchAll(path, count, (CWXPath path, ref uint count) {
+					if (cancel) return;
+					auto c = cast(Content) path;
+					if (!c) return;
+					assert (c.type in _contents);
+					if (!contents[c.type]) return;
+					addResult(path, count);
+				});
+			}
 		});
-		setResultStatus(count);
+		thr.start();
 	}
 
 	private void searchUnuseImpl2(string ToId, T)(T[] all, ref uint count) {
 		foreach (o; all) {
+			if (cancel) break;
 			if (_summ.useCounter.get(mixin (ToId)) == 0) {
-				addResult(o);
-				count++;
+				addResult(o, count);
 			}
 		}
 	}
 	private void searchUnuseImpl() {
 		_replMode = false;
 		uint count = 0;
-		_result.setRedraw(false);
-		scope (exit) _result.setRedraw(true);
 		reset();
-		if (_unuseFlag.getSelection()) {
-			searchUnuseImpl2!("toFlagId(o.path)")(_summ.flagDirRoot.allFlags, count);
-		}
-		if (_unuseStep.getSelection()) {
-			searchUnuseImpl2!("toStepId(o.path)")(_summ.flagDirRoot.allSteps, count);
-		}
-		if (_unuseArea.getSelection()) {
-			searchUnuseImpl2!("toAreaId(o.id)")(_summ.areas, count);
-		}
-		if (_unuseBattle.getSelection()) {
-			searchUnuseImpl2!("toBattleId(o.id)")(_summ.battles, count);
-		}
-		if (_unusePackage.getSelection()) {
-			searchUnuseImpl2!("toPackageId(o.id)")(_summ.packages, count);
-		}
-		if (_unuseCast.getSelection()) {
-			searchUnuseImpl2!("toCastId(o.id)")(_summ.casts, count);
-		}
-		if (_unuseSkill.getSelection()) {
-			searchUnuseImpl2!("toSkillId(o.id)")(_summ.skills, count);
-		}
-		if (_unuseItem.getSelection()) {
-			searchUnuseImpl2!("toItemId(o.id)")(_summ.items, count);
-		}
-		if (_unuseBeast.getSelection()) {
-			searchUnuseImpl2!("toBeastId(o.id)")(_summ.beasts, count);
-		}
-		if (_unuseInfo.getSelection()) {
-			searchUnuseImpl2!("toInfoId(o.id)")(_summ.infos, count);
-		}
-		if (_unuseStart.getSelection()) {
-			searchRange(count, (CWXPath path, ref uint count) {
-				auto et = cast(EventTree) path;
-				if (et) {
-					foreach (s; et.starts[1 .. $]) {
-						if (et.startUseCounter.get(toStartId(s.name)) == 0) {
-							addResult(s);
-							count++;
+		auto range = searchRange();
+
+		bool unuseFlagSel = _unuseFlag.getSelection();
+		bool unuseStepSel = _unuseStep.getSelection();
+		bool unuseAreaSel = _unuseArea.getSelection();
+		bool unuseBattleSel = _unuseBattle.getSelection();
+		bool unusePackageSel = _unusePackage.getSelection();
+		bool unuseCastSel = _unuseCast.getSelection();
+		bool unuseSkillSel = _unuseSkill.getSelection();
+		bool unuseItemSel = _unuseItem.getSelection();
+		bool unuseBeastSel = _unuseBeast.getSelection();
+		bool unuseInfoSel = _unuseInfo.getSelection();
+		bool unuseStartSel = _unuseStart.getSelection();
+		bool unusePathSel = _unusePath.getSelection();
+
+		void search() {
+			if (unuseFlagSel) {
+				searchUnuseImpl2!("toFlagId(o.path)")(_summ.flagDirRoot.allFlags, count);
+			}
+			if (unuseStepSel) {
+				searchUnuseImpl2!("toStepId(o.path)")(_summ.flagDirRoot.allSteps, count);
+			}
+			if (unuseAreaSel) {
+				searchUnuseImpl2!("toAreaId(o.id)")(_summ.areas, count);
+			}
+			if (unuseBattleSel) {
+				searchUnuseImpl2!("toBattleId(o.id)")(_summ.battles, count);
+			}
+			if (unusePackageSel) {
+				searchUnuseImpl2!("toPackageId(o.id)")(_summ.packages, count);
+			}
+			if (unuseCastSel) {
+				searchUnuseImpl2!("toCastId(o.id)")(_summ.casts, count);
+			}
+			if (unuseSkillSel) {
+				searchUnuseImpl2!("toSkillId(o.id)")(_summ.skills, count);
+			}
+			if (unuseItemSel) {
+				searchUnuseImpl2!("toItemId(o.id)")(_summ.items, count);
+			}
+			if (unuseBeastSel) {
+				searchUnuseImpl2!("toBeastId(o.id)")(_summ.beasts, count);
+			}
+			if (unuseInfoSel) {
+				searchUnuseImpl2!("toInfoId(o.id)")(_summ.infos, count);
+			}
+			if (unuseStartSel) {
+				foreach (path; range) {
+					searchAll(path, count, (CWXPath path, ref uint count) {
+						if (cancel) return;
+						auto et = cast(EventTree) path;
+						if (et) {
+							foreach (s; et.starts[1 .. $]) {
+								if (et.startUseCounter.get(toStartId(s.name)) == 0) {
+									addResult(s, count);
+								}
+							}
 						}
-					}
+					});
 				}
-			});
-		}
-		if (_unusePath.getSelection()) {
-			auto files = _summ.notUsedFiles(_comm.skin, _prop.var.etc.ignorePaths, _prop.var.etc.logicalSort);
-			foreach (file; files) {
-				addResult(encodePath(file));
-				count++;
+			}
+			if (unusePathSel) {
+				auto files = _summ.notUsedFiles(_comm.skin, _prop.var.etc.ignorePaths, _prop.var.etc.logicalSort);
+				foreach (file; files) {
+					if (cancel) break;
+					addResult(encodePath(file), count);
+				}
 			}
 		}
-		setResultStatus(count);
+
+		_inProc = true;
+		_comm.refreshToolBar();
+		_result.setRedraw(false);
+		auto cursors = setWaitCursors(_win);
+		auto thr = new core.thread.Thread({
+			auto exit = new class Runnable {
+				override void run() {
+					_inProc = false;
+					setResultStatus(count);
+					resetCursors(cursors);
+					_comm.refreshToolBar();
+				}
+			};
+			scope (exit) _display.syncExec(exit);
+			search();
+		});
+		thr.start();
 	}
 	private void searchErrorImpl() {
 		uint count = 0;
@@ -1921,287 +2299,275 @@ public:
 		auto sPath = _summ.scenarioPath;
 		auto skin = _comm.skin;
 		reset();
-		_result.setRedraw(false);
-		scope (exit) _result.setRedraw(true);
-		searchRange(count, (CWXPath path, ref uint count) {
-			auto summ = cast(Summary) path;
-			if (summ) {
-				if (summ.imagePath != "" && !isBinImg(summ.imagePath) && !skin.findPath(summ.imagePath, skin.extImage, skin.tableDir, sPath).length) {
-					addResult(path, _prop.msgs.searchErrorImageNotFound);
-					count++;
-					return;
-				}
-				if (!summ.area(summ.startArea)) {
-					addResult(path, _prop.msgs.searchErrorStartAreaNotFound);
-					count++;
-					return;
-				}
-			}
-			auto casts = cast(CastCard) path;
-			if (casts) {
-				bool r = false;
-				foreach (c; casts.skills) {
-					if (0 != c.linkId && !_summ.skill(c.linkId)) {
-						addResult(path, _prop.msgs.searchErrorLinkIdNotFound);
-						count++;
-						r = true;
-					}
-				}
-				foreach (c; casts.items) {
-					if (0 != c.linkId && !_summ.item(c.linkId)) {
-						addResult(path, _prop.msgs.searchErrorLinkIdNotFound);
-						count++;
-						r = true;
-					}
-				}
-				foreach (c; casts.beasts) {
-					if (0 != c.linkId && !_summ.beast(c.linkId)) {
-						addResult(path, _prop.msgs.searchErrorLinkIdNotFound);
-						count++;
-						r = true;
-					}
-				}
-				if (r) return;
-			}
-			auto card = cast(Card) path;
-			if (card) {
-				if (card.path != "" && !isBinImg(card.path) && !skin.findPath(card.path, skin.extImage, skin.tableDir, sPath).length) {
-					addResult(path, _prop.msgs.searchErrorImageNotFound);
-					count++;
-					return;
-				}
-			}
-			auto bi = cast(BgImage) path;
-			if (bi) {
-				if (!bi.path.length) {
-					addResult(path, _prop.msgs.searchErrorNoImage);
-					count++;
-					return;
-				}
-				if (!skin.findPath(bi.path, skin.extImage, skin.tableDir, sPath).length) {
-					addResult(path, _prop.msgs.searchErrorImageNotFound);
-					count++;
-					return;
-				}
-				if (bi.flag != "" && !froot.findFlag(bi.flag)) {
-					addResult(path, _prop.msgs.searchErrorFlagNotFound);
-					count++;
-					return;
-				}
-			}
-			auto mc = cast(MenuCard) path;
-			if (mc) {
-				if (mc.path != "" && !isBinImg(mc.path) && !skin.findPath(mc.path, skin.extImage, skin.tableDir, sPath).length) {
-					addResult(path, _prop.msgs.searchErrorImageNotFound);
-					count++;
-					return;
-				}
-				if (mc.flag != "" && !froot.findFlag(mc.flag)) {
-					addResult(path, _prop.msgs.searchErrorFlagNotFound);
-					count++;
-					return;
-				}
-			}
-			auto ec = cast(EnemyCard) path;
-			if (ec) {
-				if (ec.id == 0) {
-					addResult(path, _prop.msgs.searchErrorNoCast);
-					count++;
-					return;
-				}
-				if (!_summ.cwCast(ec.id)) {
-					addResult(path, _prop.msgs.searchErrorCastNotFound);
-					count++;
-					return;
-				}
-				if (ec.flag != "" && !froot.findFlag(ec.flag)) {
-					addResult(path, _prop.msgs.searchErrorFlagNotFound);
-					count++;
-					return;
-				}
-			}
-			auto c = cast(Content) path;
-			if (!c) return;
-			if (_summ.legacy && c.type == CType.WAIT && !c.next.length) {
-				addResult(path, _prop.msgs.searchErrorIgnoreWait);
-				count++;
-				return;
-			}
-			if (c.detail.owner && c.detail.nextType != CNextType.TEXT) {
-				auto set = new HashSet!(string);
-				foreach (cld; c.next) {
-					if (cld.name == "") continue;
-					if (set.contains(cld.name)) {
-						addResult(path, _prop.msgs.searchErrorDupNextContent);
-						count++;
+		auto range = searchRange;
+
+		void search(CWXPath path) {
+			searchAll(path, count, (CWXPath path, ref uint count) {
+				if (cancel) return;
+				auto summ = cast(Summary) path;
+				if (summ) {
+					if (summ.imagePath != "" && !isBinImg(summ.imagePath) && !skin.findPath(summ.imagePath, skin.extImage, skin.tableDir, sPath).length) {
+						addResult(path, count, _prop.msgs.searchErrorImageNotFound);
 						return;
 					}
-					set.add(cld.name);
-				}
-			}
-			auto spChars = _comm.skin.spChars;
-			string checkTextRes(string[] fonts, string[] flags, string[] steps) {
-				foreach (font; fonts) {
-					dchar c = decodeFontPath(font);
-					if (c in spChars) continue;
-					if (!skin.findPath(font, skin.extImage, skin.tableDir, sPath).length) {
-						return _prop.msgs.searchErrorSPFontNotFound;
+					if (!summ.area(summ.startArea)) {
+						addResult(path, count, _prop.msgs.searchErrorStartAreaNotFound);
+						return;
 					}
 				}
-				foreach (flag; flags) {
-					if (!froot.findFlag(flag)) {
-						return _prop.msgs.searchErrorFlagNotFound;
-					}
-				}
-				foreach (step; steps) {
-					if (!froot.findStep(step)) {
-						return _prop.msgs.searchErrorStepNotFound;
-					}
-				}
-				return null;
-			}
-			if (c.type == CType.TALK_DIALOG) {
-				if (c.dialogs.length) {
-					foreach (i, dlg; c.dialogs) {
-						if (i + 1 < c.dialogs.length && !dlg.rCoupons.length) {
-							// 最後以外にクーポンが設定されていない場合
-							addResult(path, _prop.msgs.searchErrorNoRCouponsDialog);
-							count++;
-							return;
-						}
-						string err = checkTextRes(dlg.fontsInText, dlg.flagsInText, dlg.stepsInText);
-						if (err) {
-							addResult(path, err);
-							count++;
-							return;
+				auto casts = cast(CastCard) path;
+				if (casts) {
+					bool r = false;
+					foreach (c; casts.skills) {
+						if (0 != c.linkId && !_summ.skill(c.linkId)) {
+							addResult(path, count, _prop.msgs.searchErrorLinkIdNotFound);
+							r = true;
 						}
 					}
+					foreach (c; casts.items) {
+						if (0 != c.linkId && !_summ.item(c.linkId)) {
+							addResult(path, count, _prop.msgs.searchErrorLinkIdNotFound);
+							r = true;
+						}
+					}
+					foreach (c; casts.beasts) {
+						if (0 != c.linkId && !_summ.beast(c.linkId)) {
+							addResult(path, count, _prop.msgs.searchErrorLinkIdNotFound);
+							r = true;
+						}
+					}
+					if (r) return;
 				}
-			}
-			string textErr = checkTextRes(c.fontsInText, c.flagsInText, c.stepsInText);
-			if (textErr) {
-				addResult(path, textErr);
-				count++;
-				return;
-			}
-			bool hasStart() {
-				foreach (s; c.tree.starts) {
-					if (s.name == c.start) return true;
+				auto card = cast(Card) path;
+				if (card) {
+					if (card.path != "" && !isBinImg(card.path) && !skin.findPath(card.path, skin.extImage, skin.tableDir, sPath).length) {
+						addResult(path, count, _prop.msgs.searchErrorImageNotFound);
+						return;
+					}
 				}
-				return false;
-			}
-			if (c.flag != "" && !froot.findFlag(c.flag)) {
-				addResult(path, _prop.msgs.searchErrorFlagNotFound);
-				count++;
-				return;
-			}
-			if (c.step != "" && !froot.findStep(c.step)) {
-				addResult(path, _prop.msgs.searchErrorStepNotFound);
-				count++;
-				return;
-			}
-			if (c.type == CType.TALK_MESSAGE && c.talkerC == Talker.IMAGE
-					&& c.cardPath != "" && !skin.findPath(c.cardPath, skin.extImage, skin.tableDir, sPath).length) {
-				addResult(path, _prop.msgs.searchErrorImageNotFound);
-				count++;
-				return;
-			}
-			if (c.bgmPath != "" && !skin.findPath(c.bgmPath, skin.extBgm, skin.bgmDir, sPath).length) {
-				addResult(path, _prop.msgs.searchErrorBGMNotFound);
-				count++;
-				return;
-			}
-			if (c.soundPath != "" && !skin.findPath(c.soundPath, skin.extSound, skin.seDir, sPath).length) {
-				addResult(path, _prop.msgs.searchErrorSENotFound);
-				count++;
-				return;
-			}
-			if (c.area != 0 && !_summ.area(c.area)) {
-				addResult(path, _prop.msgs.searchErrorAreaNotFound);
-				count++;
-				return;
-			}
-			if (c.battle != 0 && !_summ.battle(c.battle)) {
-				addResult(path, _prop.msgs.searchErrorBattleNotFound);
-				count++;
-				return;
-			}
-			if (c.packages != 0 && !_summ.cwPackage(c.packages)) {
-				addResult(path, _prop.msgs.searchErrorPackageNotFound);
-				count++;
-				return;
-			}
-			if (c.casts != 0 && !_summ.cwCast(c.casts)) {
-				addResult(path, _prop.msgs.searchErrorCastNotFound);
-				count++;
-				return;
-			}
-			if (c.item != 0 && !_summ.item(c.item)) {
-				addResult(path, _prop.msgs.searchErrorItemNotFound);
-				count++;
-				return;
-			}
-			if (c.skill != 0 && !_summ.skill(c.skill)) {
-				addResult(path, _prop.msgs.searchErrorSkillNotFound);
-				count++;
-				return;
-			}
-			if (c.beast != 0 && !_summ.beast(c.beast)) {
-				addResult(path, _prop.msgs.searchErrorBeastNotFound);
-				count++;
-				return;
-			}
-			if (c.info != 0 && !_summ.info(c.info)) {
-				addResult(path, _prop.msgs.searchErrorInfoNotFound);
-				count++;
-				return;
-			}
-			if (c.start != "" && !hasStart()) {
-				addResult(path, _prop.msgs.searchErrorStartNotFound);
-				count++;
-				return;
-			}
-			foreach (m; c.motions) {
-				if (m.type == MType.SUMMON_BEAST && !m.beast) {
-					addResult(path, _prop.msgs.searchErrorNoBeast);
-					count++;
+				auto bi = cast(BgImage) path;
+				if (bi) {
+					if (!bi.path.length) {
+						addResult(path, count, _prop.msgs.searchErrorNoImage);
+						return;
+					}
+					if (!skin.findPath(bi.path, skin.extImage, skin.tableDir, sPath).length) {
+						addResult(path, count, _prop.msgs.searchErrorImageNotFound);
+						return;
+					}
+					if (bi.flag != "" && !froot.findFlag(bi.flag)) {
+						addResult(path, count, _prop.msgs.searchErrorFlagNotFound);
+						return;
+					}
+				}
+				auto mc = cast(MenuCard) path;
+				if (mc) {
+					if (mc.path != "" && !isBinImg(mc.path) && !skin.findPath(mc.path, skin.extImage, skin.tableDir, sPath).length) {
+						addResult(path, count, _prop.msgs.searchErrorImageNotFound);
+						return;
+					}
+					if (mc.flag != "" && !froot.findFlag(mc.flag)) {
+						addResult(path, count, _prop.msgs.searchErrorFlagNotFound);
+						return;
+					}
+				}
+				auto ec = cast(EnemyCard) path;
+				if (ec) {
+					if (ec.id == 0) {
+						addResult(path, count, _prop.msgs.searchErrorNoCast);
+						return;
+					}
+					if (!_summ.cwCast(ec.id)) {
+						addResult(path, count, _prop.msgs.searchErrorCastNotFound);
+						return;
+					}
+					if (ec.flag != "" && !froot.findFlag(ec.flag)) {
+						addResult(path, count, _prop.msgs.searchErrorFlagNotFound);
+						return;
+					}
+				}
+				auto c = cast(Content) path;
+				if (!c) return;
+				if (_summ.legacy && c.type == CType.WAIT && !c.next.length) {
+					addResult(path, count, _prop.msgs.searchErrorIgnoreWait);
 					return;
 				}
-				if (m.type == MType.SUMMON_BEAST && m.beast && 0 != m.beast.linkId && !_summ.beast(m.beast.linkId)) {
-					addResult(path, _prop.msgs.searchErrorLinkIdNotFound);
-					count++;
+				if (c.detail.owner && c.detail.nextType != CNextType.TEXT) {
+					auto set = new HashSet!(string);
+					foreach (cld; c.next) {
+						if (cld.name == "") continue;
+						if (set.contains(cld.name)) {
+							addResult(path, count, _prop.msgs.searchErrorDupNextContent);
+							return;
+						}
+						set.add(cld.name);
+					}
+				}
+				auto spChars = _comm.skin.spChars;
+				string checkTextRes(string[] fonts, string[] flags, string[] steps) {
+					foreach (font; fonts) {
+						dchar c = decodeFontPath(font);
+						if (c in spChars) continue;
+						if (!skin.findPath(font, skin.extImage, skin.tableDir, sPath).length) {
+							return _prop.msgs.searchErrorSPFontNotFound;
+						}
+					}
+					foreach (flag; flags) {
+						if (!froot.findFlag(flag)) {
+							return _prop.msgs.searchErrorFlagNotFound;
+						}
+					}
+					foreach (step; steps) {
+						if (!froot.findStep(step)) {
+							return _prop.msgs.searchErrorStepNotFound;
+						}
+					}
+					return null;
+				}
+				if (c.type == CType.TALK_DIALOG) {
+					if (c.dialogs.length) {
+						foreach (i, dlg; c.dialogs) {
+							if (i + 1 < c.dialogs.length && !dlg.rCoupons.length) {
+								// 最後以外にクーポンが設定されていない場合
+								addResult(path, count, _prop.msgs.searchErrorNoRCouponsDialog);
+								return;
+							}
+							string err = checkTextRes(dlg.fontsInText, dlg.flagsInText, dlg.stepsInText);
+							if (err) {
+								addResult(path, count, err);
+								return;
+							}
+						}
+					}
+				}
+				string textErr = checkTextRes(c.fontsInText, c.flagsInText, c.stepsInText);
+				if (textErr) {
+					addResult(path, count, textErr);
 					return;
 				}
+				bool hasStart() {
+					foreach (s; c.tree.starts) {
+						if (s.name == c.start) return true;
+					}
+					return false;
+				}
+				if (c.flag != "" && !froot.findFlag(c.flag)) {
+					addResult(path, count, _prop.msgs.searchErrorFlagNotFound);
+					return;
+				}
+				if (c.step != "" && !froot.findStep(c.step)) {
+					addResult(path, count, _prop.msgs.searchErrorStepNotFound);
+					return;
+				}
+				if (c.type == CType.TALK_MESSAGE && c.talkerC == Talker.IMAGE
+						&& c.cardPath != "" && !skin.findPath(c.cardPath, skin.extImage, skin.tableDir, sPath).length) {
+					addResult(path, count, _prop.msgs.searchErrorImageNotFound);
+					return;
+				}
+				if (c.bgmPath != "" && !skin.findPath(c.bgmPath, skin.extBgm, skin.bgmDir, sPath).length) {
+					addResult(path, count, _prop.msgs.searchErrorBGMNotFound);
+					return;
+				}
+				if (c.soundPath != "" && !skin.findPath(c.soundPath, skin.extSound, skin.seDir, sPath).length) {
+					addResult(path, count, _prop.msgs.searchErrorSENotFound);
+					return;
+				}
+				if (c.area != 0 && !_summ.area(c.area)) {
+					addResult(path, count, _prop.msgs.searchErrorAreaNotFound);
+					return;
+				}
+				if (c.battle != 0 && !_summ.battle(c.battle)) {
+					addResult(path, count, _prop.msgs.searchErrorBattleNotFound);
+					return;
+				}
+				if (c.packages != 0 && !_summ.cwPackage(c.packages)) {
+					addResult(path, count, _prop.msgs.searchErrorPackageNotFound);
+					return;
+				}
+				if (c.casts != 0 && !_summ.cwCast(c.casts)) {
+					addResult(path, count, _prop.msgs.searchErrorCastNotFound);
+					return;
+				}
+				if (c.item != 0 && !_summ.item(c.item)) {
+					addResult(path, count, _prop.msgs.searchErrorItemNotFound);
+					return;
+				}
+				if (c.skill != 0 && !_summ.skill(c.skill)) {
+					addResult(path, count, _prop.msgs.searchErrorSkillNotFound);
+					return;
+				}
+				if (c.beast != 0 && !_summ.beast(c.beast)) {
+					addResult(path, count, _prop.msgs.searchErrorBeastNotFound);
+					return;
+				}
+				if (c.info != 0 && !_summ.info(c.info)) {
+					addResult(path, count, _prop.msgs.searchErrorInfoNotFound);
+					return;
+				}
+				if (c.start != "" && !hasStart()) {
+					addResult(path, count, _prop.msgs.searchErrorStartNotFound);
+					return;
+				}
+				foreach (m; c.motions) {
+					if (m.type == MType.SUMMON_BEAST && !m.beast) {
+						addResult(path, count, _prop.msgs.searchErrorNoBeast);
+						return;
+					}
+					if (m.type == MType.SUMMON_BEAST && m.beast && 0 != m.beast.linkId && !_summ.beast(m.beast.linkId)) {
+						addResult(path, count, _prop.msgs.searchErrorLinkIdNotFound);
+						return;
+					}
+				}
+			});
+		}
+
+		_inProc = true;
+		_comm.refreshToolBar();
+		_result.setRedraw(false);
+		auto cursors = setWaitCursors(_win);
+		auto thr = new core.thread.Thread({
+			auto exit = new class Runnable {
+				override void run() {
+					_inProc = false;
+					setResultStatus(count);
+					resetCursors(cursors);
+					_comm.refreshToolBar();
+				}
+			};
+			scope (exit) _display.syncExec(exit);
+			foreach (path; range) {
+				search(path);
 			}
 		});
-		setResultStatus(count);
+		thr.start();
 	}
 	private void replaceTextImpl(CWXPath c, ref size_t count) {
+		if (cancel) return;
 		bool oldIgnoreMod = ignoreMod;
 		ignoreMod = true;
 		scope (exit) ignoreMod = oldIgnoreMod;
-
+		size_t dmy = 0;
 		auto summ = cast(Summary) c;
 		if (summ) {
 			bool sr = false;
 			Undo[] uArr;
-			if (_summary.getSelection()) {
+			if (_summarySel) {
 				sr |= repl(null, summ.scenarioName, &summ.scenarioName, count, uArr);
 				sr |= repl(null, summ.desc, &summ.desc, count, uArr);
 			}
-			if (_coupon.getSelection()) {
-				sr |= replRqCoupons!(Summary)(null, _summ, count, uArr);
+			if (_couponSel) {
+				sr |= replRqCoupons(null, summ, count, uArr);
 			}
 			if (sr) {
 				if (_replMode) store(summ, uArr);
-				addResult(summ);
+				addResult(summ, dmy);
 			}
 		}
 		auto cc = cast(CastCard) c;
 		if (cc) {
 			Undo[] uArr;
 			bool r = replCard!(CastCard)(null, cc, count, uArr);
-			if (_coupon.getSelection()) {
+			if (_couponSel) {
 				auto coupons = cc.coupons.dup;
 				foreach (i, cp; coupons) {
 					r |= repl(null, cp.name,
@@ -2212,7 +2578,7 @@ public:
 			}
 			if (r) {
 				if (_replMode) store(cc, uArr);
-				addResult(cc);
+				addResult(cc, dmy);
 			}
 		}
 		Undo[] nArr;
@@ -2226,7 +2592,7 @@ public:
 		}
 		auto a = cast(AbstractArea) c;
 		if (a) {
-			if (_area.getSelection()) {
+			if (_areaSel) {
 				repl(a, a.name, &a.name, count, nArr);
 			}
 		}
@@ -2239,18 +2605,18 @@ public:
 			replBgImage(back, back, count, nArr);
 		}
 		auto f = cast(Flag) c;
-		if (f && _flag.getSelection()) {
+		if (f && _flagSel) {
 			Undo[] uArr = new Undo[0];
 			bool r = replFlagName!Flag(f.parent, f, count, uArr);
 			r |= repl(null, f.on, &f.on, count, uArr);
 			r |= repl(null, f.off, &f.off, count, uArr);
 			if (r) {
 				if (_replMode) store(f, uArr);
-				addResult(f);
+				addResult(f, dmy);
 			}
 		}
 		auto s = cast(Step) c;
-		if (s && _flag.getSelection()) {
+		if (s && _flagSel) {
 			Undo[] uArr;
 			bool r = replFlagName!Step(s.parent, s, count, uArr);
 			foreach (i, v; s.values) {
@@ -2258,7 +2624,7 @@ public:
 			}
 			if (r) {
 				if (_replMode) store(s, uArr);
-				addResult(s);
+				addResult(s, dmy);
 			}
 		}
 		auto et = cast(EventTree) c;
@@ -2270,10 +2636,7 @@ public:
 			replContent(content, count);
 		}
 	}
-	private void replaceTextImpl() {
-		string from = _from.getText();
-		string to = _to.getText();
-		if (!from.length) return;
+	private void initText(string from, string to) {
 		if (_useRegex.getSelection()) {
 			try {
 				_regex = .regex!(dstring)(toUTF32(from), _notIgnoreCase.getSelection() ? "gm" : "gim");
@@ -2290,65 +2653,44 @@ public:
 		} else {
 			if (from == to) _replMode = false;
 		}
-		scope (exit) {
-			_regex = typeof(_regex).init;
-			_regexTarg = false;
-			_toTemp = ""d;
+	}
+	private void exitText() {
+		_wildcard = null;
+		_regex = typeof(_regex).init;
+		_regexTarg = false;
+		_toTemp = ""d;
+	}
+	private static void addHist(Combo combo, void delegate(string[]) set,
+			string[] delegate() get, int max, string text) {
+		if (text.length) {
+			string[] list = get();
+			if (.contains(list, text)) {
+				list = cwx.utils.remove(list, text);
+			}
+			list = [text] ~ list;
+			if (list.length > max) {
+				list = list[0 .. $ - 1];
+			}
+			set(list);
+			setComboItems(combo, list);
+			combo.select(0);
 		}
-		scope (exit) _wildcard = null;
+	}
+	private void replaceTextImpl() {
+		string from = _from.getText();
+		string to = _to.getText();
+		if (!from.length) return;
+		initText(from, to);
+		scope (exit) exitText();
 
 		size_t count = 0;
-		_result.setRedraw(false);
-		scope (exit) _result.setRedraw(true);
 		reset();
-		searchRange(count, &replaceTextImpl);
-		if (_jptx.getSelection()) {
-			foreach (string file; .dirEntries(_summ.scenarioPath, SpanMode.depth, false)) {
-				if (cfnmatch(.extension(file), ".jptx")) {
-					try {
-						bool isSJIS;
-						string value = readJPYFile(file, isSJIS);
-						auto jText = jptxText(value);
-						Undo[] uArr;
-						string file2 = file;
-						bool r = repl(null, jText, (string jText) {
-							string value = jptxText(value, jText);
-							try {
-								writeJPYFile(file2, value, isSJIS);
-							} catch (Exception e) {
-								debugln(e);
-							}
-						}, count, uArr, true);
-						if (r) {
-							file = relativePath(file, _summ.scenarioPath);
-							addResult(file);
-							store(file, uArr);
-						}
-					} catch (Exception e) {
-						debugln(e);
-					}
-				}
-			}
-		}
-		setResultStatus(count);
-		if (_replMode && !_after.length) _comm.replText.call();
 
-		static void addHist(Combo combo, void delegate(string[]) set,
-				string[] delegate() get, int max, string text) {
-			if (text.length) {
-				string[] list = get();
-				if (.contains(list, text)) {
-					list = cwx.utils.remove(list, text);
-				}
-				list = [text] ~ list;
-				if (list.length > max) {
-					list = list[0 .. $ - 1];
-				}
-				set(list);
-				setComboItems(combo, list);
-				combo.select(0);
-			}
-		}
+		auto range = searchRange;
+		bool jptx = _jptx.getSelection();
+		_inProc = true;
+		_comm.refreshToolBar();
+		_result.setRedraw(false);
 		addHist(_from, (string[] s) {_prop.var.etc.searchHistories = s;},
 			{return _prop.var.etc.searchHistories.dup;},
 			_prop.var.etc.searchHistoryMax, from);
@@ -2358,6 +2700,178 @@ public:
 				_prop.var.etc.searchHistoryMax, to);
 		}
 		_comm.refSearchHistories.call(this);
+		auto cursors = setWaitCursors(_win);
+		auto thr = new core.thread.Thread({
+			auto exit = new class Runnable {
+				override void run() {
+					_inProc = false;
+					setResultStatus(count);
+					if (_replMode && !_after.length) _comm.replText.call();
+
+					resetCursors(cursors);
+					_comm.refreshToolBar();
+				}
+			};
+			scope (exit) _display.syncExec(exit);
+
+			foreach (path; range) {
+				searchAll(path, count, &replaceTextImpl);
+			}
+			if (jptx) {
+				foreach (string file; .dirEntries(_summ.scenarioPath, SpanMode.depth, false)) {
+					if (cancel) break;
+					if (cfnmatch(.extension(file), ".jptx")) {
+						try {
+							bool isSJIS;
+							string value = readJPYFile(file, isSJIS);
+							auto jText = jptxText(value);
+							Undo[] uArr;
+							string file2 = file;
+							bool r = repl(null, jText, (string jText) {
+								string value = jptxText(value, jText);
+								try {
+									writeJPYFile(file2, value, isSJIS);
+								} catch (Exception e) {
+									debugln(e);
+								}
+							}, count, uArr, true);
+							if (r) {
+								file = abs2rel(file, _summ.scenarioPath);
+								size_t dmy = 0;
+								addResult(file, dmy);
+								store(file, uArr);
+							}
+						} catch (Exception e) {
+							debugln(e);
+						}
+					}
+				}
+			}
+		});
+		thr.start();
+	}
+	private void grepImpl() {
+		string from = _from.getText();
+		auto dir = _grepDir.getText();
+		if (!dir.length) return;
+		dir = _prop.toAppAbs(dir);
+		initText(from, "");
+		scope (exit) exitText();
+		_replMode = false;
+
+		size_t count = 0;
+		reset();
+
+		if (!dir.exists()) return;
+		LoadOption opt;
+		opt.doubleIO = _prop.var.etc.doubleIO;
+		opt.cardOnly = false;
+		opt.textOnly = true;
+		opt.expandXMLs = false;
+		opt.summaryOnly = true;
+		foreach (b; _noSummText) {
+			if (b.getSelection()) {
+				opt.summaryOnly = false;
+				break;
+			}
+		}
+		if (0 == from.length) {
+			opt.summaryOnly = true;
+		}
+		bool jptx = _jptx.getSelection();
+		bool subDir = _grepSubDir.getSelection();
+
+		void findSumm(string summFile) {
+			if (cancel) return;
+			_grepFile = summFile;
+			scope (exit) _grepFile = "";
+			refResultStatus(count, true);
+			auto summ = Summary.loadScenarioFromFile(_prop.parent, opt, summFile, _prop.tempPath);
+			if (!summ) return;
+			_grepSumm = summ;
+			scope (exit) {
+				_grepSumm.delTemp();
+				_grepSumm = null;
+			}
+			if (!_fromText.length) {
+				addResult(summ, count);
+				return;
+			}
+			refResultStatus(count, true);
+			auto range = rangeTree(summ);
+			foreach (path; range) {
+				if (cancel) return;
+				searchAll(path, count, &replaceTextImpl);
+			}
+			if (jptx) {
+				foreach (string file; .dirEntries(summ.scenarioPath, SpanMode.depth, false)) {
+					if (cancel) break;
+					if (cfnmatch(.extension(file), ".jptx")) {
+						bool isSJIS;
+						string value = readJPYFile(file, isSJIS);
+						auto jText = jptxText(value);
+						Undo[] uArr;
+						string file2 = file;
+						bool r = repl(null, jText, null, count, uArr, true);
+						if (r) {
+							file = abs2rel(file, summ.scenarioPath);
+							size_t dmy = 0;
+							addResult(file, dmy);
+						}
+					}
+				}
+			}
+			refResultStatus(count, true);
+		}
+		void recurse(string dir, uint rec) {
+			if (cancel) return;
+			if (dir.buildPath("Summary.xml").exists() || dir.buildPath("Summary.wsm").exists()) {
+				try {
+					findSumm(dir);
+				} catch (Exception e) {
+					debugln(e);
+				}
+			}
+			foreach (file; clistdir(dir)) {
+				if (cancel) break;
+				try {
+					file = dir.buildPath(file);
+					if (file.isDir()) {
+						if (subDir || 0 == rec) recurse(file, rec + 1);
+					} else {
+						auto ext = file.extension();
+						if (cfnmatch(ext, ".wsn") || cfnmatch(ext, ".zip") || (canUncab && cfnmatch(ext, ".cab"))) {
+							findSumm(file);
+						}
+					}
+				} catch (Exception e) {
+					debugln(e);
+				}
+			}
+		}
+		_inProc = true;
+		_inGrep = true;
+		_result.setRedraw(false);
+		_comm.refreshToolBar();
+		addHist(_grepDir, (string[] s) {_prop.var.etc.grepDirHistories = s;},
+			{return _prop.var.etc.grepDirHistories.dup;},
+			_prop.var.etc.searchHistoryMax, dir);
+		_comm.refSearchHistories.call(this);
+		auto cursors = setWaitCursors(_win);
+		auto thr = new core.thread.Thread({
+			auto exit = new class Runnable {
+				override void run() {
+					_inProc = false;
+					_inGrep = false;
+					setResultStatus(count);
+					resetCursors(cursors);
+					_comm.refreshToolBar();
+				}
+			};
+			scope (exit) _display.syncExec(exit);
+			recurse(dir, 0);
+		});
+		thr.start();
 	}
 	private void refSearchHistories(Object sender) {
 		if (sender is this) return;
@@ -2365,6 +2879,7 @@ public:
 		string tt = _to.getText();
 		setComboItems(_from, _prop.var.etc.searchHistories.dup);
 		setComboItems(_to, _prop.var.etc.replaceHistories.dup);
+		setComboItems(_grepDir, _prop.var.etc.grepDirHistories.dup);
 		_from.setText(ft);
 		_to.setText(tt);
 	}
@@ -2387,12 +2902,12 @@ public:
 		if (_regexTarg) {
 			return toUTF8(impReplace(toUTF32(s), _regex, _toTemp));
 		}
-		string to = _to.getText();
+		string to = _toText;
 		if (_wildcard) {
 			return _wildcard.replace(s, to);
 		}
-		string from = _from.getText();
-		if (_notIgnoreCase.getSelection()) {
+		string from = _fromText;
+		if (_notIgnoreCaseSel) {
 			return .replace(s, from, to);
 		} else {
 			return .ireplace(s, from, to);
@@ -2406,7 +2921,7 @@ public:
 					c++;
 				}
 			} catch (Throwable e) {
- 				debugln(_from.getText(), " -> ", s);
+ 				debugln(_fromText, " -> ", s);
 				throw e;
 			}
 			return c;
@@ -2414,8 +2929,8 @@ public:
 		if (_wildcard) {
 			return _wildcard.count(s);
 		}
-		string from = _from.getText();
-		if (_notIgnoreCase.getSelection()) {
+		string from = _fromText;
+		if (_notIgnoreCaseSel) {
 			return std.algorithm.count(s, from);
 		} else {
 			return .icount(s, from);
@@ -2447,6 +2962,10 @@ public:
 				auto path = rp.array;
 				if (_prop.var.etc.searchOpenDialog) {
 					path = cpaddattr(path, "opendialog");
+				}
+				if (rp.scPath !is null) {
+					exec(_prop.parent.appPath ~ " " ~ rp.scPath ~ " " ~ path);
+					return;
 				}
 				try {
 					if (_comm.openCWXPath(path, false)) {
@@ -2502,11 +3021,13 @@ public:
 		_comm.clipboard.setContents([text], [TextTransfer.getInstance()]);
 		_comm.refreshToolBar();
 	}
-	private void addResult(string path) {
-		auto itm = new TableItem(_result, SWT.NONE);
-		itm.setImage(fimage(std.path.buildPath(_summ.scenarioPath, path)));
-		itm.setText(encodePath(path));
-		itm.setData(new PathString(path));
+	private void addResult(string path, ref size_t count) {
+		if (cancel) return;
+		count++;
+		auto addResultPath = new AddResultPath;
+		addResultPath.path = path;
+		addResultPath.count = count;
+		_display.syncExec(addResultPath);
 	}
 	private void refContentText() {
 		foreach (itm; _result.getItems()) {
@@ -2521,6 +3042,7 @@ public:
 		}
 	}
 	private void getPathParams(CWXPath path, out string text, out Image img, bool par = false) {
+		auto summ = _grepSumm ? _grepSumm : _summ;
 		img = null;
 		text = par ? "" : "*Error*";
 		if (!path) return;
@@ -2577,7 +3099,7 @@ public:
 		auto con = cast(Content) path;
 		if (con && !par) {
 			img = _prop.images.content(con.type);
-			text = .contentText(_comm, con);
+			text = .contentText(_comm, con, summ);
 		}
 		auto tex = cast(TextHolder) path;
 		if (tex && !par) {
@@ -2588,7 +3110,7 @@ public:
 			}
 			if (c) {
 				img = _prop.images.content(c.type);
-				text = .contentText(_comm, c);
+				text = .contentText(_comm, c, summ);
 			}
 		}
 		auto sdlg = cast(SDialog) path;
@@ -2633,7 +3155,7 @@ public:
 			img = _prop.images.cards;
 			string cName = _prop.msgs.noSelectCast;
 			if (0 != ene.id) {
-				auto card = _summ.cwCast(ene.id);
+				auto card = summ.cwCast(ene.id);
 				if (card) {
 					cName = card ? card.name : .tryFormat(_prop.msgs.noCast, ene.id);
 				}
@@ -2652,20 +3174,25 @@ public:
 			}
 		}
 	}
-	private void addResult(CWXPath path, string desc = "", int index = -1) {
-		auto itm = new TableItem(_result, SWT.NONE, -1 == index ? _result.getItemCount() : index);
-		string text;
-		Image img;
-		getPathParams(path, text, img);
-		itm.setImage(img);
-		if (desc.length) text = desc ~ " - " ~ text;
-		itm.setText(text);
-		itm.setData(new CWXPathString(path, path.cwxPath(true)));
+	private void addResult(CWXPath path, ref size_t count, string desc = "", int index = -1) {
+		if (cancel) return;
+		count++;
+		auto addResultCWXPath = new AddResultCWXPath;
+		addResultCWXPath.path = path;
+		addResultCWXPath.index = index;
+		addResultCWXPath.desc = desc;
+		addResultCWXPath.count = count;
+		_display.syncExec(addResultCWXPath);
 	}
-	private void addResult(string name, Image image, int index = -1) {
-		auto itm = new TableItem(_result, SWT.NONE, -1 == index ? _result.getItemCount() : index);
-		itm.setText(name);
-		itm.setImage(image);
+	private void addResult(string name, Image delegate() image, ref size_t count, int index = -1) {
+		if (cancel) return;
+		count++;
+		auto addResultMsg = new AddResultMsg;
+		addResultMsg.name = name;
+		addResultMsg.image = image;
+		addResultMsg.index = index;
+		addResultMsg.count = count;
+		_display.syncExec(addResultMsg);
 	}
 	private bool repl(CWXPath path, string text, void delegate(string) set, ref size_t count, ref Undo[] uArr, bool storeToArr = false) {
 		auto c = fTextCount(text);
@@ -2679,7 +3206,8 @@ public:
 			}
 			if (path) {
 				if (_replMode && set && !storeToArr) store(path, text, n, set);
-				addResult(path);
+				size_t dmy = 0;
+				addResult(path, dmy);
 			}
 			return true;
 		}
@@ -2748,7 +3276,8 @@ public:
 			}
 			if (path) {
 				if (_replMode && !storeToArr) store(path, old, coupons.dup, &targ.rCoupons);
-				addResult(targ);
+				size_t dmy = 0;
+				addResult(targ, dmy);
 			}
 			return true;
 		}
@@ -2756,7 +3285,7 @@ public:
 	}
 
 	private bool replKeyCode(C)(CWXPath path, C targ, ref size_t count, ref Undo[] uArr) {
-		if (_keyCode.getSelection()) {
+		if (_keyCodeSel) {
 			auto kcs = targ.keyCodes.dup;
 			auto old = targ.keyCodes.dup;
 			bool r = false;
@@ -2772,7 +3301,8 @@ public:
 				}
 				if (path) {
 					if (_replMode) store(path, old, kcs.dup, &targ.keyCodes);
-					addResult(path);
+					size_t dmy = 0;
+					addResult(path, dmy);
 				}
 				return true;
 			}
@@ -2783,15 +3313,16 @@ public:
 	private bool replBgImage(CWXPath path, BgImage back, ref size_t count, ref Undo[] uArr) {
 		bool r = false;
 		Undo[] uArr2;
-		if (_flag.getSelection()) {
+		if (_flagSel) {
 			r |= repl(null, back.flag, &back.flag, count, uArr2);
 		}
-		if (_file.getSelection()) {
+		if (_fileSel) {
 			r |= replFilePath(back.path, &back.path, count, uArr2);
 		}
 		if (r && path) {
 			if (_replMode) store(path, uArr2);
-			addResult(path);
+			size_t dmy = 0;
+			addResult(path, dmy);
 		} else {
 			uArr ~= uArr2;
 		}
@@ -2800,18 +3331,18 @@ public:
 	private bool replCard(C)(CWXPath path, C card, ref size_t count, ref Undo[] uArr) {
 		bool r = false;
 		Undo[] uArr2;
-		if (_cardName.getSelection()) {
+		if (_cardNameSel) {
 			r |= repl(null, card.name, &card.name, count, uArr2);
 		}
-		if (_cardDesc.getSelection()) {
+		if (_cardDescSel) {
 			r |= repl(null, card.desc, &card.desc, count, uArr2);
 		}
-		if (_flag.getSelection()) {
+		if (_flagSel) {
 			static if (is (C : IFlagUser)) {
 				r |= repl(null, card.flag, &card.flag, count, uArr2);
 			}
 		}
-		if (_file.getSelection()) {
+		if (_fileSel) {
 			r |= replFilePath(card.path, &card.path, count, uArr2);
 		}
 		static if (is (C : EffectCard)) {
@@ -2819,7 +3350,8 @@ public:
 		}
 		if (r && path) {
 			if (_replMode) store(path, uArr2);
-			addResult(path);
+			size_t dmy = 0;
+			addResult(path, dmy);
 		} else {
 			uArr ~= uArr2;
 		}
@@ -2830,37 +3362,37 @@ public:
 		assert (!eo || eo.detail.owner);
 		bool r = false;
 		Undo[] uArr2;
-		if (_event.getSelection() && (!eo || eo.detail.nextType == CNextType.TEXT)) {
+		if (_eventSel && (!eo || eo.detail.nextType == CNextType.TEXT)) {
 			r |= repl(null, e.name, &e.name, count, uArr2);
 		}
-		if (_flag.getSelection()) {
+		if (_flagSel) {
 			// Flag/StepについてはUseCounter経由で置換される
 			r |= repl(null, e.flag, null, count, uArr2);
 			r |= repl(null, e.step, null, count, uArr2);
 		}
-		if (_start.getSelection()) {
+		if (_startSel) {
 			r |= repl(null, e.start, &e.start, count, uArr2);
 			if (e.type == CType.START) {
 				r |= repl(null, e.name, &e.name, count, uArr2);
 			}
 		}
-		if (_coupon.getSelection()) {
+		if (_couponSel) {
 			r |= repl(null, e.coupon, &e.coupon, count, uArr2);
 		}
-		if (_gossip.getSelection()) {
+		if (_gossipSel) {
 			r |= repl(null, e.gossip, &e.gossip, count, uArr2);
 		}
-		if (_end.getSelection()) {
+		if (_endSel) {
 			r |= repl(null, e.completeStamp, &e.completeStamp, count, uArr2);
 		}
-		if (_msg.getSelection()) {
+		if (_msgSel) {
 			r |= repl(null, e.text, &e.text, count, uArr2);
 		}
 		bool replInText(ITextHolder th, ref Undo[] uArr) {
 			Undo[] nArr;
 			bool r = false;
 			string old = th.text;
-			if (_file.getSelection()) {
+			if (_fileSel) {
 				auto ps = th.fontsInText;
 				foreach (i, p; ps) {
 					auto c = decodeFontPath(p);
@@ -2873,7 +3405,7 @@ public:
 				}
 				uArr ~= new StrUndo(old, th.text, &th.text);
 			}
-			if (_flag.getSelection() && !_msg.getSelection()) {
+			if (_flagSel && !_msgSel) {
 				auto fps = th.flagsInText;
 				foreach (i, p; fps) {
 					r |= repl(null, p, null, count, nArr);
@@ -2887,21 +3419,22 @@ public:
 		}
 		r |= replInText(e, uArr2);
 		bool rDlg = false;
-		if (_msg.getSelection() || _coupon.getSelection() || _file.getSelection() || _flag.getSelection()) {
+		if (_msgSel || _couponSel || _fileSel || _flagSel) {
 			auto dlgs = e.dialogs;
 			foreach (dlg; dlgs) {
 				Undo[] uArrDlg;
 				auto put = dlg;
-				if (_msg.getSelection() && repl(dlg, dlg.text, &dlg.text, count, uArrDlg, true)) {
+				if (_msgSel && repl(dlg, dlg.text, &dlg.text, count, uArrDlg, true)) {
 					rDlg = true;
 					put = null;
 				}
-				if (_coupon.getSelection() && replRqCoupons!(typeof(dlg))(put, dlg, count, uArrDlg, true)) {
+				if (_couponSel && replRqCoupons!(typeof(dlg))(put, dlg, count, uArrDlg, true)) {
 					rDlg = true;
 					put = null;
 				}
 				if (replInText(dlg, uArrDlg)) {
-					if (put) addResult(put);
+					size_t dmy = 0;
+					if (put) addResult(put, dmy);
 					rDlg = true;
 					put = null;
 				}
@@ -2910,19 +3443,20 @@ public:
 				}
 			}
 		}
-		if (_file.getSelection()) {
+		if (_fileSel) {
 			r |= replFilePath(e.cardPath, &e.cardPath, count, uArr2);
 			r |= replFilePath(e.bgmPath, &e.bgmPath, count, uArr2);
 			r |= replFilePath(e.soundPath, &e.soundPath, count, uArr2);
 		}
-		if (_comment.getSelection()) {
+		if (_commentSel) {
 			r |= repl(null, e.comment, &e.comment, count, uArr2);
 		}
 		if (r) {
 			if (_replMode) {
 				store(e, uArr2);
 			}
-			addResult(e);
+			size_t dmy = 0;
+			addResult(e, dmy);
 		}
 	}
 }

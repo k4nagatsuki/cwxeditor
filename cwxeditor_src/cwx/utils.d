@@ -4,7 +4,6 @@ module cwx.utils;
 public import cwx.perf;
 
 import cwx.sjis;
-import cwx.versioninfo;
 
 import std.algorithm;
 import std.array;
@@ -29,6 +28,37 @@ import std.exception;
 import std.traits;
 import std.stdint;
 import std.stream;
+
+debug {
+	version (Console) {
+		private immutable DR = "Debug / Console";
+	} else {
+		private immutable DR = "Debug";
+	}
+} else {
+	@property
+	private immutable DR = "Release";
+}
+shared immutable string APP_BUILD = "Build: "
+		~ __DATE__[7 .. $]
+		~ "-" ~ [
+			"Jan":"01",
+			"Feb":"02",
+			"Mar":"03",
+			"Apr":"04",
+			"May":"05",
+			"Jun":"06",
+			"Jul":"07",
+			"Aug":"08",
+			"Sep":"09",
+			"Oct":"10",
+			"Nov":"11",
+			"Dec":"12"
+		][__DATE__[0 .. 3]]
+		~ "-" ~ (__DATE__[4 .. 5] == " " ? "0" : __DATE__[4 .. 5]) ~ __DATE__[5 .. 6]
+		~ " " ~ __TIME__ ~ " "
+		~ DR ~ .newline
+		~ "Compiled by " ~ __VENDOR__ ~ " " ~ .text(__VERSION__);
 
 private version (Windows) {
 	import std.windows.charset;
@@ -635,6 +665,12 @@ class Wildcard {
 /// 絶対パス化と正規化を行う。
 string nabs(string path) {
 	return buildNormalizedPath(absolutePath(path));
+}
+
+/// 絶対パス化・正規化を行いつつ相対パスを取る。
+string abs2rel(string p1, string p2) {
+	auto rel = relativePath(nabs(p1), nabs(p2));
+	return rel.buildNormalizedPath();
 }
 
 /// 大/小文字を区別しないstartsWith。
