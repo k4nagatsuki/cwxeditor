@@ -262,6 +262,7 @@ private:
 
 	bool _resultRedraw = true;
 	void resultRedraw(bool val) {
+		if (!_win || _win.isDisposed()) return;
 		if (_resultRedraw !is val) {
 			_resultRedraw = val;
 			_result.setRedraw(val);
@@ -273,6 +274,7 @@ private:
 		string path;
 		void run() {
 			if (cancel) return;
+			if (!_win || _win.isDisposed()) return;
 			if (_inProc && !_prop.var.etc.searchResultRealtime) resultRedraw(false);
 			auto itm = new TableItem(_result, SWT.NONE);
 			auto summ = _grepSumm ? _grepSumm : _summ;
@@ -301,6 +303,7 @@ private:
 		size_t count = 0;
 		void run() {
 			if (cancel) return;
+			if (!_win || _win.isDisposed()) return;
 			if (_inProc && !_prop.var.etc.searchResultRealtime) resultRedraw(false);
 			auto itm = new TableItem(_result, SWT.NONE, -1 == index ? _result.getItemCount() : index);
 			string text;
@@ -325,6 +328,7 @@ private:
 		size_t count = 0;
 		void run() {
 			if (cancel) return;
+			if (!_win || _win.isDisposed()) return;
 			if (_inProc && !_prop.var.etc.searchResultRealtime) resultRedraw(false);
 			auto itm = new TableItem(_result, SWT.NONE, -1 == index ? _result.getItemCount() : index);
 			itm.setText(name);
@@ -2751,6 +2755,7 @@ public:
 		}
 	}
 	private void exitText() {
+		if (!_win || _win.isDisposed()) return;
 		_wildcard = null;
 		_regex = typeof(_regex).init;
 		_regexTarg = false;
