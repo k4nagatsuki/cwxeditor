@@ -54,6 +54,14 @@ private class CWXPathString {
 		this.array = array;
 	}
 }
+private class FilePathString {
+	string scPath;
+	string array;
+	this (string scPath, string array) {
+		this.scPath = scPath;
+		this.array = array;
+	}
+}
 
 /// 検索と置換を行うダイアログ。
 class ReplaceDialog {
@@ -268,14 +276,21 @@ private:
 			if (_inProc && !_prop.var.etc.searchResultRealtime) resultRedraw(false);
 			auto itm = new TableItem(_result, SWT.NONE);
 			auto summ = _grepSumm ? _grepSumm : _summ;
+			auto fullPath = std.path.buildPath(summ.scenarioPath, path);
 			if (_grepSumm) {
 				if (!_grepSkin) _grepSkin = findSkin(_comm, _prop, summ);
-				itm.setImage(fimage(std.path.buildPath(summ.scenarioPath, path), _grepSkin));
+				itm.setImage(fimage(fullPath, _grepSkin));
 			} else {
-				itm.setImage(fimage(std.path.buildPath(summ.scenarioPath, path), _comm.skin));
+				itm.setImage(fimage(fullPath, _comm.skin));
 			}
-			itm.setText(encodePath(path));
-			itm.setData(new PathString(path));
+			string scPath = null;
+			string text = encodePath(path);
+			if (_grepSumm) {
+				scPath = _grepSumm.useTemp ? _grepSumm.zipName : _grepSumm.scenarioPath;
+				text = .tryFormat(_prop.msgs.grepScenario, _grepSumm.scenarioName, scPath) ~ " - " ~ text;
+			}
+			itm.setText(text);
+			itm.setData(new FilePathString(scPath, path));
 			refResultStatus(count, false);
 		}
 	}
@@ -2945,6 +2960,9 @@ public:
 		_inProc = true;
 		_inGrep = true;
 		_comm.refreshToolBar();
+		addHist(_from, (string[] s) {_prop.var.etc.searchHistories = s;},
+			{return _prop.var.etc.searchHistories.dup;},
+			_prop.var.etc.searchHistoryMax, from);
 		addHist(_grepDir, (string[] s) {_prop.var.etc.grepDirHistories = s;},
 			{return _prop.var.etc.grepDirHistories.dup;},
 			_prop.var.etc.searchHistoryMax, dir);
@@ -3042,7 +3060,7 @@ public:
 		if (!sels.length) return false;
 		foreach (itm; sels) {
 			auto d = itm.getData();
-			if (cast(CWXPathString) d !is null || cast(PathString) d !is null) {
+			if (cast(CWXPathString) d !is null || cast(FilePathString) d !is null) {
 				return true;
 			}
 		}
@@ -3076,9 +3094,13 @@ public:
 				return;
 			}
 			if (!_summ) return;
-			auto p = cast(PathString) d;
+			auto p = cast(FilePathString) d;
 			if (p) {
 				auto path = nabs(std.path.buildPath(_summ.scenarioPath, p.array));
+				if (p.scPath !is null) {
+					exec(_prop.parent.appPath ~ " " ~ p.scPath ~ " fileview");
+					return;
+				}
 				if (_comm.openFilePath(path, false)) {
 					_win.setActive();
 					return;
