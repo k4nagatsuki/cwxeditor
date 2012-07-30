@@ -245,9 +245,10 @@ public:
 				return "";
 			}
 			if (!opt.textOnly) return path;
+			auto ext = path.extension();
+			if (cfnmatch(ext, ".jptx")) return path;
 			if (classic) {
-				auto ext = path.extension();
-				if (cfnmatch(ext, ".wsm") || cfnmatch(ext, ".wid") || cfnmatch(ext, ".wex") || cfnmatch(ext, ".jptx")) return path;
+				if (cfnmatch(ext, ".wsm") || cfnmatch(ext, ".wid") || cfnmatch(ext, ".wex")) return path;
 			} else {
 				if (cfnmatch(path.baseName(), "Summary.xml")) return path;
 				if (isXMLSystem(path)) return path;

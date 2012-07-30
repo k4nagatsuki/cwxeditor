@@ -252,11 +252,20 @@ private:
 	string _fromText;
 	string _toText;
 
+	bool _resultRedraw = true;
+	void resultRedraw(bool val) {
+		if (_resultRedraw !is val) {
+			_resultRedraw = val;
+			_result.setRedraw(val);
+		}
+	}
+
 	class AddResultPath : Runnable {
 		size_t count = 0;
 		string path;
 		void run() {
 			if (cancel) return;
+			if (_inProc && !_prop.var.etc.searchResultRealtime) resultRedraw(false);
 			auto itm = new TableItem(_result, SWT.NONE);
 			auto summ = _grepSumm ? _grepSumm : _summ;
 			if (_grepSumm) {
@@ -277,6 +286,7 @@ private:
 		size_t count = 0;
 		void run() {
 			if (cancel) return;
+			if (_inProc && !_prop.var.etc.searchResultRealtime) resultRedraw(false);
 			auto itm = new TableItem(_result, SWT.NONE, -1 == index ? _result.getItemCount() : index);
 			string text;
 			Image img;
@@ -286,7 +296,7 @@ private:
 			string scPath = null;
 			if (_grepSumm) {
 				scPath = _grepSumm.useTemp ? _grepSumm.zipName : _grepSumm.scenarioPath;
-				text = _grepSumm.scenarioName ~ " - " ~ text;
+				text = .tryFormat(_prop.msgs.grepScenario, _grepSumm.scenarioName, scPath) ~ " - " ~ text;
 			}
 			itm.setText(text);
 			itm.setData(new CWXPathString(scPath, path, path.cwxPath(true)));
@@ -300,6 +310,7 @@ private:
 		size_t count = 0;
 		void run() {
 			if (cancel) return;
+			if (_inProc && !_prop.var.etc.searchResultRealtime) resultRedraw(false);
 			auto itm = new TableItem(_result, SWT.NONE, -1 == index ? _result.getItemCount() : index);
 			itm.setText(name);
 			itm.setImage(image());
@@ -1366,7 +1377,21 @@ public:
 			_result.setMenu(menu);
 		}
 		{
-			auto openDlg = new Button(left, SWT.CHECK);
+			auto comp = new Composite(left, SWT.NONE);
+			comp.setLayout(zeroMarginGridLayout(2, false));
+			comp.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+			auto realtime = new Button(comp, SWT.CHECK);
+			realtime.setText(_prop.msgs.searchResultRealtime);
+			realtime.setSelection(_prop.var.etc.searchResultRealtime);
+			.listener(realtime, SWT.Selection, {
+				_prop.var.etc.searchResultRealtime = realtime.getSelection();
+				if (_prop.var.etc.searchResultRealtime) {
+					resultRedraw(true);
+				} else if (_inProc) {
+					resultRedraw(false);
+				}
+			});
+			auto openDlg = new Button(comp, SWT.CHECK);
 			openDlg.setText(_prop.msgs.searchOpenDialog);
 			openDlg.setSelection(_prop.var.etc.searchOpenDialog);
 			openDlg.addSelectionListener(new class SelectionAdapter {
@@ -1374,7 +1399,6 @@ public:
 					_prop.var.etc.searchOpenDialog = openDlg.getSelection();
 				}
 			});
-			openDlg.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 		}
 		{
 			auto grp = new Group(right, SWT.NONE);
@@ -1434,7 +1458,10 @@ public:
 			_replace = createButton(_prop.msgs.replace, &replace);
 			_comm.put(_replace, &canReplace);
 			createButton(_prop.msgs.replaceExit, &exit);
-			auto cancel = createButton(_prop.msgs.searchCancel, {_cancel = true;});
+			auto cancel = createButton(_prop.msgs.searchCancel, {
+				_cancel = true;
+				resultRedraw(true);
+			});
 			_comm.put(cancel, &canCancel);
 		}
 
@@ -1958,21 +1985,23 @@ public:
 	}
 
 	private void setResultStatus(uint count) {
-		_result.setRedraw(true);
 		if (count > 0) {
 			if (_replMode && _summ) {
 				_summ.changed();
 				_comm.refUseCount.call();
 			}
 		}
+		_inProc = false;
+		resultRedraw(true);
 		refResultStatus(count, true);
 	}
 	private void refResultStatus(uint count, bool force) {
-		if (!force && 0 != (count % _prop.var.etc.searchResultRefreshCount)) return;
+		if (!_prop.var.etc.searchResultRealtime) {
+			if (!force && 0 != (count % _prop.var.etc.searchResultRefreshCount)) return;
+		}
 		_display.syncExec(new class Runnable {
 			void run() {
 				if (!_win || _win.isDisposed()) return;
-				if (force) _result.setRedraw(true);
 				string text;
 				string num = .formatNum(count);
 				if (_replMode) {
@@ -1989,7 +2018,6 @@ public:
 					}
 				}
 				_status.setText(text);
-				if (force && _inProc) _result.setRedraw(false);
 			}
 		});
 	}
@@ -2017,7 +2045,6 @@ public:
 
 		auto uc = _summ.useCounter;
 		auto users = uc.values(from);
-		_result.setRedraw(false);
 		_inProc = true;
 		scope (exit) _inProc = false;
 		size_t count = 0;
@@ -2041,13 +2068,17 @@ public:
 			};
 			scope (exit) _display.syncExec(exit);
 
-			foreach (u; users) {
-				if (!dec(u.owner)) continue;
-				if (_replMode) {
-					u.id = to;
-					storeID(u.owner, u, from, to, &u.id);
+			try {
+				foreach (u; users) {
+					if (!dec(u.owner)) continue;
+					if (_replMode) {
+						u.id = to;
+						storeID(u.owner, u, from, to, &u.id);
+					}
+					addResult(u.owner, count);
 				}
-				addResult(u.owner, count);
+			} catch (Throwable e) {
+				debugln(e);
 			}
 		});
 		thr.start();
@@ -2173,7 +2204,6 @@ public:
 
 		_inProc = true;
 		_comm.refreshToolBar();
-		_result.setRedraw(false);
 		auto cursors = setWaitCursors(_win);
 		auto thr = new core.thread.Thread({
 			auto exit = new class Runnable {
@@ -2185,7 +2215,11 @@ public:
 				}
 			};
 			scope (exit) _display.syncExec(exit);
-			search();
+			try {
+				search();
+			} catch (Throwable e) {
+				debugln(e);
+			}
 		});
 		thr.start();
 	}
@@ -2198,7 +2232,6 @@ public:
 
 		_inProc = true;
 		_comm.refreshToolBar();
-		_result.setRedraw(false);
 		auto cursors = setWaitCursors(_win);
 		bool[CType] contents;
 		foreach (type; EnumMembers!CType) {
@@ -2214,15 +2247,19 @@ public:
 				}
 			};
 			scope (exit) _display.syncExec(exit);
-			foreach (path; range) {
-				searchAll(path, count, (CWXPath path, ref uint count) {
-					if (cancel) return;
-					auto c = cast(Content) path;
-					if (!c) return;
-					assert (c.type in _contents);
-					if (!contents[c.type]) return;
-					addResult(path, count);
-				});
+			try {
+				foreach (path; range) {
+					searchAll(path, count, (CWXPath path, ref uint count) {
+						if (cancel) return;
+						auto c = cast(Content) path;
+						if (!c) return;
+						assert (c.type in _contents);
+						if (!contents[c.type]) return;
+						addResult(path, count);
+					});
+				}
+			} catch (Throwable e) {
+				debugln(e);
 			}
 		});
 		thr.start();
@@ -2314,7 +2351,6 @@ public:
 
 		_inProc = true;
 		_comm.refreshToolBar();
-		_result.setRedraw(false);
 		auto cursors = setWaitCursors(_win);
 		auto thr = new core.thread.Thread({
 			auto exit = new class Runnable {
@@ -2326,7 +2362,11 @@ public:
 				}
 			};
 			scope (exit) _display.syncExec(exit);
-			search();
+			try {
+				search();
+			} catch (Throwable e) {
+				debugln(e);
+			}
 		});
 		thr.start();
 	}
@@ -2561,7 +2601,6 @@ public:
 
 		_inProc = true;
 		_comm.refreshToolBar();
-		_result.setRedraw(false);
 		auto cursors = setWaitCursors(_win);
 		auto thr = new core.thread.Thread({
 			auto exit = new class Runnable {
@@ -2573,8 +2612,12 @@ public:
 				}
 			};
 			scope (exit) _display.syncExec(exit);
-			foreach (path; range) {
-				search(path);
+			try {
+				foreach (path; range) {
+					search(path);
+				}
+			} catch (Throwable e) {
+				debugln(e);
 			}
 		});
 		thr.start();
@@ -2729,7 +2772,6 @@ public:
 		bool jptx = _jptx.getSelection();
 		_inProc = true;
 		_comm.refreshToolBar();
-		_result.setRedraw(false);
 		addHist(_from, (string[] s) {_prop.var.etc.searchHistories = s;},
 			{return _prop.var.etc.searchHistories.dup;},
 			_prop.var.etc.searchHistoryMax, from);
@@ -2739,20 +2781,8 @@ public:
 				_prop.var.etc.searchHistoryMax, to);
 		}
 		_comm.refSearchHistories.call(this);
-		auto cursors = setWaitCursors(_win);
-		auto thr = new core.thread.Thread({
-			auto exit = new class Runnable {
-				override void run() {
-					_inProc = false;
-					setResultStatus(count);
-					if (_replMode && !_after.length) _comm.replText.call();
 
-					resetCursors(cursors);
-					_comm.refreshToolBar();
-				}
-			};
-			scope (exit) _display.syncExec(exit);
-
+		void search() {
 			foreach (path; range) {
 				searchAll(path, count, &replaceTextImpl);
 			}
@@ -2785,6 +2815,27 @@ public:
 						}
 					}
 				}
+			}
+		}
+
+		auto cursors = setWaitCursors(_win);
+		auto thr = new core.thread.Thread({
+			auto exit = new class Runnable {
+				override void run() {
+					_inProc = false;
+					setResultStatus(count);
+					if (_replMode && !_after.length) _comm.replText.call();
+
+					resetCursors(cursors);
+					_comm.refreshToolBar();
+				}
+			};
+			scope (exit) _display.syncExec(exit);
+
+			try {
+				search();
+			} catch (Throwable e) {
+				debugln(e);
 			}
 		});
 		thr.start();
@@ -2832,6 +2883,8 @@ public:
 				_grepSumm.delTemp();
 				_grepSumm = null;
 				_grepSkin = null;
+				delete _grepSumm;
+				core.memory.GC.collect();
 			}
 			if (!_fromText.length) {
 				addResult(summ, count);
@@ -2891,7 +2944,6 @@ public:
 		}
 		_inProc = true;
 		_inGrep = true;
-		_result.setRedraw(false);
 		_comm.refreshToolBar();
 		addHist(_grepDir, (string[] s) {_prop.var.etc.grepDirHistories = s;},
 			{return _prop.var.etc.grepDirHistories.dup;},
@@ -2909,7 +2961,11 @@ public:
 				}
 			};
 			scope (exit) _display.syncExec(exit);
-			recurse(dir, 0);
+			try {
+				recurse(dir, 0);
+			} catch (Throwable e) {
+				debugln(e);
+			}
 		});
 		thr.start();
 	}

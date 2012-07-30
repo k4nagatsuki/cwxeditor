@@ -225,6 +225,7 @@ class Msgs : Properties {
 	auto searchResult = Msg("searchResult", "%1$s件の検索結果(%2$s)");
 	auto searchResultGrep1 = Msg("searchResultGrep1", "%1$s件の検索結果(%2$sを読込中...)");
 	auto searchResultGrep2 = Msg("searchResultGrep2", "%1$s件の検索結果(%2$sを検索中...)");
+	auto searchResultRealtime = Msg("searchResultRealtime", "リアルタイム更新");
 	auto replResultEmpty = Msg("replResultEmpty", "0箇所の置換");
 	auto replResult = Msg("replResult", "%1$s箇所の置換(%2$s)");
 	auto replaceUndo = Msg("replaceUndo", "%1$s件を元に戻しました");
@@ -236,6 +237,7 @@ class Msgs : Properties {
 	auto grepDirDesc = Msg("grepDirDesc", "検索対象のシナリオが含まれる" ~ DIR ~ "を選択してください。");
 	auto grepCurrent = Msg("grepCurrent", "現" ~ DIR);
 	auto grepSubDir = Msg("grepSubDir", "サブ" ~ DIR ~ "も検索する");
+	auto grepScenario = Msg("grepScenario", "%1$s[%2$s]");
 
 	auto searchResultBgImage = Msg("searchResultBgImage", "背景画像 [%1$s]");
 	auto searchResultIds = Msg("searchResultIds", "%1$s [%2$s.%3$s]");
