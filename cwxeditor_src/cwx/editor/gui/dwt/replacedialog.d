@@ -2778,7 +2778,6 @@ public:
 		string to = _to.getText();
 		if (!from.length) return;
 		initText(from, to);
-		scope (exit) exitText();
 
 		size_t count = 0;
 		reset();
@@ -2839,6 +2838,7 @@ public:
 				override void run() {
 					_inProc = false;
 					setResultStatus(count);
+					exitText();
 					if (_replMode && !_after.length) _comm.replText.call();
 
 					resetCursors(cursors);
@@ -2861,7 +2861,6 @@ public:
 		if (!dir.length) return;
 		dir = _prop.toAppAbs(dir);
 		initText(from, "");
-		scope (exit) exitText();
 		_replMode = false;
 
 		size_t count = 0;
@@ -2973,6 +2972,7 @@ public:
 				override void run() {
 					_inProc = false;
 					_inGrep = false;
+					exitText();
 					setResultStatus(count);
 					resetCursors(cursors);
 					_comm.refreshToolBar();
