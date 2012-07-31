@@ -2209,6 +2209,7 @@ class Exec {
 		}
 	}
 	this (DirectoryWindow dirWin, Menu menu, OuterTool tool, int index) {
+		auto display = menu.getDisplay();
 		auto icon = dirWin._prop.images.menu(MenuID.OuterTools);
 		string name = MenuProps.buildMenu(tool.name, tool.mnemonic, tool.hotkey, false);
 		version (Windows) {
@@ -2227,14 +2228,28 @@ class Exec {
 					PathUnquoteSpacesW(wcom.ptr);
 					com = wcom[0 .. std.algorithm.countUntil(wcom, '\0')].idup;
 					if (com.length) {
-						auto exeIcon = loadIcon(to!string(com), 16, 16);
-						if (exeIcon) {
-							auto img = new Image(mi.getDisplay(), exeIcon);
-							listener(mi, SWT.Dispose, {
-								img.dispose();
+						auto thr = new core.thread.Thread({
+							auto exeIcon = loadIcon(to!string(com), 16, 16, (void delegate() dlg) {
+								display.syncExec(new class Runnable {
+									void run() {
+										dlg();
+									}
+								});
 							});
-							mi.setImage(img);
-						}
+							if (exeIcon) {
+								display.syncExec(new class Runnable {
+									void run() {
+										if (mi.isDisposed()) return;
+										auto img = new Image(mi.getDisplay(), exeIcon);
+										listener(mi, SWT.Dispose, {
+											img.dispose();
+										});
+										mi.setImage(img);
+									}
+								});
+							}
+						});
+						thr.start();
 					}
 					menu.removeMenuListener(mShown);
 					rmv = true;

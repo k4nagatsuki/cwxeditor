@@ -89,7 +89,7 @@ version (Windows) {
 		void PathUnquoteSpacesW(LPWSTR);
 	}
 
-	ImageData loadIcon(string exe, int w, int h) {
+	ImageData loadIcon(string exe, int w, int h, void delegate(void delegate()) syncExec = null) {
 		alias org.eclipse.swt.internal.win32.OS.OS OS;
 		alias org.eclipse.swt.internal.win32.WINAPI WINAPI;
 		alias org.eclipse.swt.internal.win32.WINTYPES WINTYPES;
@@ -113,9 +113,17 @@ version (Windows) {
 			HICON hbmp = info.hIcon;
 			if (!hbmp) return null;
 			scope (exit) DeleteObject(hbmp);
-			auto img = Image.win32_new(Display.getCurrent(), SWT.ICON, hbmp);
-			auto data = img.getImageData();
-			img.destroy();
+			ImageData data = null;
+			void put() {
+				auto img = Image.win32_new(Display.getCurrent(), SWT.ICON, hbmp);
+				data = img.getImageData();
+				img.destroy();
+			}
+			if (syncExec) {
+				syncExec(&put);
+			} else {
+				put();
+			}
 			putCache(exe, data);
 			return data;
 		}

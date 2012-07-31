@@ -159,16 +159,30 @@ private:
 				mShown = new class MenuAdapter {
 					override void menuShown(MenuEvent e) {
 						// 実行ファイルのアイコンを取得
-						auto exeIcon = loadIcon(ePath, 16, 16);
-						if (exeIcon) {
-							auto img2 = new Image(mi.getDisplay(), exeIcon);
-							listener(mi, SWT.Dispose, {
-								img2.dispose();
+						auto thr = new core.thread.Thread({
+							auto exeIcon = loadIcon(ePath, 16, 16, (void delegate() dlg) {
+								_display.syncExec(new class Runnable {
+									void run() {
+										dlg();
+									}
+								});
 							});
-							mi.setImage(img2);
-						}
+							if (exeIcon) {
+								_display.syncExec(new class Runnable {
+									void run() {
+										if (mi.isDisposed()) return;
+										auto img2 = new Image(mi.getDisplay(), exeIcon);
+										listener(mi, SWT.Dispose, {
+											img2.dispose();
+										});
+										mi.setImage(img2);
+									}
+								});
+							}
+						});
 						menu.removeMenuListener(mShown);
 						rmv = true;
+						thr.start();
 					}
 				};
 				menu.addMenuListener(mShown);
