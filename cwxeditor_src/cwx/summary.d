@@ -1982,7 +1982,7 @@ public:
 				foreach (string file; list) {
 					c += dirS(p.buildPath(file));
 				}
-				auto rel = abs2rel(scenarioPath, p);
+				auto rel = abs2rel(p, scenarioPath);
 				if ("" == rel || cfnmatch(rel, skin.materialPath)) {
 					c++;
 				}

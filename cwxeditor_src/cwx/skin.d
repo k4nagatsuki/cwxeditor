@@ -132,7 +132,7 @@ class Skin {
 		resDir = resDir.length ? nabs(resDir) : "";
 		lEnginePath = lEnginePath.length ? nabs(lEnginePath) : "";
 
-		string dataDirName = resDir.length ? abs2rel(lEnginePath.dirName(), resDir) : "";
+		string dataDirName = resDir.length ? abs2rel(resDir, lEnginePath.dirName()) : "";
 		return createLegacySkin(prop, enginePath, lEnginePath, dataDirName, "", cEngines);
 	}
 	private void setupLegacy(string lEnginePath, string resDir, ClassicEngine cEngine) {
