@@ -149,7 +149,7 @@ public:
 		protected override:
 			bool canDrop() {return _summ !is null;}
 			string[] doAll(string[] files) {
-				assert (_summ);
+				assert (_summ !is null);
 				string[] r;
 				foreach (f; files) {
 					if (isTarg(f) && !hasPath(_summ.scenarioPath, f)) {
@@ -171,12 +171,12 @@ public:
 				return [];
 			}
 			bool doFile(string path, int x, int y) {
-				assert (_summ);
+				assert (_summ !is null);
 				copyTo(_summ.scenarioPath, path, _comm.skin.materialPath);
 				return true;
 			}
 			void doExit() {
-				assert (_summ);
+				assert (_summ !is null);
 				refreshPaths(_comm.skin.materialPath);
 				_comm.refPaths.call(this.outer, _comm.skin.materialPath);
 			}
@@ -718,7 +718,7 @@ private:
 			if (cfnmatch(path, defDir)) {
 				parent = "";
 			} else {
-				assert (_summ);
+				assert (_summ !is null);
 				parent = abs2rel(path, _summ.scenarioPath);
 				parent = dirSeparator.idup ~ parent;
 			}
@@ -765,10 +765,10 @@ private:
 			if (i == _tbl) {
 				st ~= defDir;
 			} else if (t == "/") {
-				assert (_summ);
+				assert (_summ !is null);
 				st ~= nabs(_summ.scenarioPath);
 			} else {
-				assert (_summ);
+				assert (_summ !is null);
 				st ~= nabs(std.path.buildPath(_summ.scenarioPath, fromViewPath(t)));
 			}
 		}

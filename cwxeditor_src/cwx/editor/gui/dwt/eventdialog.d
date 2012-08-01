@@ -33,6 +33,7 @@ import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.dmenu;
+import cwx.editor.gui.dwt.incsearch;
 
 import std.conv;
 import std.math;
@@ -154,36 +155,32 @@ class ContentCommentDialog : AbsDialog {
 /// エリア・バトル・パッケージ・キャスト・情報の選択を行うダイアログ。
 class AreaSelectDialog(CType Type, A, string Areas) : EventDialog {
 private:
+	ulong _selectedID = 0;
 	Table _list;
+	IncSearch _incSearch;
+	void incSearch() {
+		.forceFocus(_list, true);
+		_incSearch.startIncSearch();
+	}
 
 	static if (Type == CType.CHANGE_AREA) {
 		Combo _ts;
 		Spinner _tsSpeed;
 		Transition[int] _tsTbl;
 	}
+	void selected() {
+		auto index = _list.getSelectionIndex();
+		if (-1 != index) {
+			_selectedID = (cast(A) _list.getItem(index).getData()).id;
+		}
+	}
 	void refreshList() {
 		auto summary = _summ;
-		auto index = _list.getSelectionIndex();
-		ulong id = 0;
-		if (-1 != index) {
-			id = (cast(A) _list.getItem(index).getData()).id;
-		} else if (_evt) {
-			static if (Type == CType.CHANGE_AREA) {
-				id = _evt.area;
-			} else static if (Type == CType.START_BATTLE) {
-				id = _evt.battle;
-			} else static if (Type == CType.CALL_PACKAGE || Type == CType.LINK_PACKAGE) {
-				id = _evt.packages;
-			} else static if (Type == CType.BRANCH_CAST || Type == CType.GET_CAST || Type == CType.LOSE_CAST) {
-				id = _evt.casts;
-			} else static if (Type == CType.BRANCH_INFO || Type == CType.GET_INFO || Type == CType.LOSE_INFO) {
-				id = _evt.info;
-			} else {
-				static assert (0);
-			}
-		}
+		ulong id = _selectedID;
 		_list.removeAll();
-		foreach (i, a; mixin (Areas)) {
+		size_t i = 0;
+		foreach (a; mixin (Areas)) {
+			if (!_incSearch.match(a.name)) continue;
 			auto itm = new TableItem(_list, SWT.NONE);
 			itm.setData(a);
 			static if (Type == CType.CHANGE_AREA) {
@@ -201,9 +198,10 @@ private:
 			}
 			itm.setText(0, to!(string)(a.id));
 			itm.setText(1, a.name);
-			if (i == 0) _list.select(i);
 			if (id == a.id) _list.select(i);
+			i++;
 		}
+		_list.showSelection();
 	}
 	void refA(A a) {refreshList();}
 	void delA(A a) {
@@ -277,13 +275,18 @@ protected:
 		gd.heightHint = _prop.var.etc.nameTableHeight;
 		_list.setLayoutData(gd);
 		_list.addMouseListener(new OpenView);
+		.listener(_list, SWT.Selection, &selected);
 		auto menu = new Menu(_list.getShell(), SWT.POP_UP);
+		createMenuItem(comm, menu, MenuID.IncSearch, &incSearch, null);
+		new MenuItem(menu, SWT.SEPARATOR);
 		static if (is(A : Area) || is(A : Battle) || is(A : Package)) {
 			createMenuItem(comm, menu, MenuID.OpenAtTableView, &openView, () => _list.getSelectionIndex() != -1);
 		} else static if (is(A : CastCard) || is(A : InfoCard)) {
 			createMenuItem(comm, menu, MenuID.OpenAtCardView, &openView, () => _list.getSelectionIndex() != -1);
 		} else static assert (0);
 		_list.setMenu(menu);
+		_incSearch = new IncSearch(comm, _list);
+		_incSearch.modEvent ~= &refreshList;
 		refreshList();
 		static if (Type == CType.CHANGE_AREA) {
 			{
@@ -318,7 +321,6 @@ protected:
 			}
 			refreshTS();
 		}
-		_list.showSelection();
 		static if (is(A : Area)) {
 			_comm.refArea.add(&refA);
 			_comm.delArea.add(&delA);
@@ -336,16 +338,41 @@ protected:
 			_comm.delInfo.add(&delA);
 		} else static assert (0);
 		_list.addDisposeListener(new Dispose);
+
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
+		if (_evt) {
+			static if (Type == CType.CHANGE_AREA) {
+				_selectedID = _evt.area;
+			} else static if (Type == CType.START_BATTLE) {
+				_selectedID = _evt.battle;
+			} else static if (Type == CType.CALL_PACKAGE || Type == CType.LINK_PACKAGE) {
+				_selectedID = _evt.packages;
+			} else static if (Type == CType.BRANCH_CAST || Type == CType.GET_CAST || Type == CType.LOSE_CAST) {
+				_selectedID = _evt.casts;
+			} else static if (Type == CType.BRANCH_INFO || Type == CType.GET_INFO || Type == CType.LOSE_INFO) {
+				_selectedID = _evt.info;
+			} else {
+				static assert (0);
+			}
+			foreach (i, itm; _list.getItems()) {
+				if (_selectedID == (cast(A) itm.getData()).id) {
+					_list.select(i);
+					break;
+				}
+			}
+		}
+		if (-1 == _list.getSelectionIndex()) {
+			_list.select(0);
+			_selectedID = (cast(A) _list.getItem(0).getData()).id;
+		}
+
+		_list.showSelection();
 	}
 
 	override bool apply() {
 		assert (_list.getItemCount() > 0);
-		int index = _list.getSelectionIndex();
-		if (-1 == index) {
-			index = 0;
-			_list.select(index);
-		}
-		auto id = (cast(A) _list.getItem(index).getData()).id;
+		auto id = _selectedID;
 		if (!_evt) {
 			_evt = new Content(Type, "");
 		}
@@ -373,9 +400,23 @@ protected:
 /// スタートコンテントの選択を行うダイアログ。
 class StartSelectDialog(CType Type) : EventDialog {
 private:
+	string _selected = "";
+
 	EventTree _et;
 
 	Table _list;
+
+	IncSearch _incSearch;
+	void incSearch() {
+		.forceFocus(_list, true);
+		_incSearch.startIncSearch();
+	}
+
+	void selected() {
+		int index = _list.getSelectionIndex();
+		if (-1 == index) return;
+		_selected = (cast(Content) _list.getItem(index).getData()).name;
+	}
 
 	class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
@@ -389,27 +430,27 @@ private:
 	void delContent(Content c) {
 		refreshStarts(c);
 	}
-	void refreshStarts(Content c = null) {
-		string sel;
-		if (_evt) {
-			sel = _evt.start;
-		}
-		int selIndex = _list.getSelectionIndex();
-		if (-1 != selIndex) {
-			sel = (cast(Content) _list.getItem(selIndex).getData()).name;
-		}
-		
+	void refreshStarts() {
+		refreshStarts(null);
+	}
+	void refreshStarts(Content del) {
+		string sel = _selected;
+
 		_list.removeAll();
 		int i = 0;
 		foreach (s; _et.starts) {
-			if (s is c) continue;
+			if (s is del) continue;
+			if (!_incSearch.match(s.name)) continue;
 			auto itm = new TableItem(_list, SWT.NONE);
 			itm.setData(s);
 			itm.setImage(0, _prop.images.content(CType.START));
 			itm.setText(0, s.name);
-			if (i == 0) _list.select(i);
 			if (sel == s.name) _list.select(i);
 			i++;
+		}
+		if (del && sel == del.name && _list.getItemCount()) {
+			_list.select(0);
+			_selected = (cast(Content) _list.getItem(0).getData()).name;
 		}
 		_list.showSelection();
 	}
@@ -447,25 +488,40 @@ protected:
 		_list.setLayoutData(gd);
 		_list.addMouseListener(new OpenView);
 		auto menu = new Menu(_list.getShell(), SWT.POP_UP);
+		createMenuItem(comm, menu, MenuID.IncSearch, &incSearch, null);
+		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(comm, menu, MenuID.OpenAtEventView, &openView, () => _list.getSelectionIndex() != -1);
 		_list.setMenu(menu);
+		.listener(_list, SWT.Selection, &selected);
+		_incSearch = new IncSearch(comm, _list);
+		_incSearch.modEvent ~= &refreshStarts;
 
 		refreshStarts();
 		_comm.refContent.add(&refContent);
 		_comm.delContent.add(&delContent);
 		_list.addDisposeListener(new Dispose);
+
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
+		if (_evt) {
+			_selected = _evt.start;
+			foreach (i, itm; _list.getItems()) {
+				if (_selected == (cast(Content) itm.getData()).name) {
+					_list.select(i);
+					break;
+				}
+			}
+		}
+		if (-1 == _list.getSelectionIndex()) {
+			_list.select(0);
+			_selected = (cast(Content) _list.getItem(0).getData()).name;
+		}
+		_list.showSelection();
 	}
 
 	override bool apply() {
-		assert (_list.getItemCount() > 0);
-		int index = _list.getSelectionIndex();
-		if (-1 == index) {
-			index = 0;
-			_list.select(index);
-		}
-		auto name = (cast(Content) _list.getItem(index).getData()).name;
 		if (!_evt) _evt = new Content(Type, "");
-		_evt.start = name;
+		_evt.start = _selected;
 		return true;
 	}
 }
@@ -1191,71 +1247,86 @@ private:
 	Table _flags;
 	Table _values;
 
-	static if (SelValue) {
-		int _sel;
+	string _selected;
+
+	IncSearch _incSearch;
+	void incSearch() {
+		.forceFocus(_flags, true);
+		_incSearch.startIncSearch();
 	}
 
-	void refreshValues(bool manual) {
-		static if (SelValue) {
-			if (manual && _values.getItemCount() && _sel == _flags.getSelectionIndex()) {
-				_values.select(0);
-				return;
-			}
-			_sel = _flags.getSelectionIndex();
+	@property
+	string listSelected() {
+		int index = _flags.getSelectionIndex();
+		if (-1 == index) {
+			return "";
 		}
-		F flag = cast(F) _flags.getItem(_flags.getSelectionIndex()).getData();
+		return (cast(F) _flags.getItem(index).getData()).path;
+	}
+
+	void refreshValues() {
+		static if (is(F:Flag)) {
+			F flag = summ.flagDirRoot.findFlag(_selected);
+		} else static if (is(F:Step)) {
+			F flag = summ.flagDirRoot.findStep(_selected);
+		} else static assert (0);
 		static if (SelValue) {
 			int sel = _values.getSelectionIndex();
 		}
 		_values.removeAll();
-		static if (is (F == Flag)) {
-			auto itm1 = new TableItem(_values, SWT.NONE);
-			itm1.setText(flag.on);
-			auto itm2 = new TableItem(_values, SWT.NONE);
-			itm2.setText(flag.off);
-		} else static if (is (F == Step)) {
-			foreach (val; flag.values) {
-				auto itm = new TableItem(_values, SWT.NONE);
-				itm.setText(val);
+		if (flag) {
+			static if (is (F == Flag)) {
+				auto itm1 = new TableItem(_values, SWT.NONE);
+				itm1.setText(flag.on);
+				auto itm2 = new TableItem(_values, SWT.NONE);
+				itm2.setText(flag.off);
+			} else static if (is (F == Step)) {
+				foreach (val; flag.values) {
+					auto itm = new TableItem(_values, SWT.NONE);
+					itm.setText(val);
+				}
+			} else {
+				static assert (0);
 			}
-		} else {
-			static assert (0);
-		}
-		static if (SelValue) {
-			if (sel < 0) sel = 0;
-			static if (is (F == Step)) {
-				if (sel >= flag.values.length) sel = flag.values.length - 1;
+			static if (SelValue) {
+				if (sel < 0) sel = 0;
+				static if (is (F == Step)) {
+					if (sel >= flag.values.length) sel = flag.values.length - 1;
+				}
+				_values.select(sel);
 			}
-			_values.select(sel);
 		}
 	}
 	class SListener : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			refreshValues(true);
+			int index = _flags.getSelectionIndex();
+			if (-1 != index) {
+				string selPath = (cast(F) _flags.getItem(index).getData()).path;
+				if (_selected == selPath) {
+					static if (SelValue) _values.select(0);
+				} else {
+					_selected = selPath;
+					refreshValues();
+				}
+			}
 		}
 	}
 	void refreshList() {
-		string sel = "";
-		auto ix = _flags.getSelectionIndex();
-		if (-1 != ix) {
-			sel = (cast(F) _flags.getItem(ix).getData()).path;
-		}
 		static if (is (F == Flag)) {
-			if (!sel && _evt) {
-				sel = _evt.flag;
-			}
 			auto flags = _root.allFlags;
 		} else static if (is (F == Step)) {
-			if (!sel && _evt) {
-				sel = _evt.step;
-			}
 			auto flags = _root.allSteps;
-		} else {
-			static assert (0);
-		}
+		} else static assert (0);
+		string sel = _selected;
 		_flags.removeAll();
-		foreach (i, flag; flags) {
+		bool has = false;
+		size_t i = 0;
+		foreach (flag; flags) {
 			auto path = flag.path;
+			if (!has && path == sel) {
+				has = true;
+			}
+			if (!_incSearch.match(path)) continue;
 			auto itm = new TableItem(_flags, SWT.NONE);
 			itm.setData(flag);
 			itm.setText(path);
@@ -1264,9 +1335,14 @@ private:
 			} else static if (is(F : Step)) {
 				itm.setImage(_prop.images.step);
 			} else static assert (0);
-			if (0 == i) _flags.select(i);
 			if (path == sel) _flags.select(i);
+			i++;
 		}
+		if (!has && _flags.getItemCount()) {
+			_flags.select(0);
+			_selected = (cast(F) _flags.getItem(0).getData()).path;
+		}
+		refreshValues();
 	}
 	class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
@@ -1281,7 +1357,7 @@ private:
 			if (!s.length) return;
 		}
 		int sel = _values.getSelectionIndex();
-		refreshValues(false);
+		refreshValues();
 		_values.select(sel);
 	}
 	void delFS(Flag[] f, Step[] s) {
@@ -1353,19 +1429,25 @@ protected:
 			} else {
 				static assert (0);
 			}
+			auto gd = new GridData;
+			gd.heightHint = l1.computeSize(SWT.DEFAULT, SWT.DEFAULT).y;
+			l2.setLayoutData(gd);
 		}
 		{
 			_flags = new Table(left, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.V_SCROLL);
 			mod(_flags);
+			_incSearch = new IncSearch(comm, _flags);
+			_incSearch.modEvent ~= &refreshList;
 			new FullTableColumn(_flags, SWT.NONE);
 			auto gd = new GridData(GridData.FILL_BOTH);
 			gd.heightHint = _prop.var.etc.nameTableHeight;
 			_flags.setLayoutData(gd);
-			refreshList();
 			_flags.addSelectionListener(new SListener);
 
 			_flags.addMouseListener(new OpenView);
 			auto menu = new Menu(_flags.getShell(), SWT.POP_UP);
+			createMenuItem(comm, menu, MenuID.IncSearch, &incSearch, null);
+			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(comm, menu, MenuID.OpenAtVarView, &openView, () => _flags.getSelectionIndex() != -1);
 			_flags.setMenu(menu);
 		}
@@ -1384,24 +1466,27 @@ protected:
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
+		refreshList();
 		if (_evt) {
 			static if (is (F == Flag)) {
-				string sel = _evt.flag;
+				_selected = _evt.flag;
 			} else static if (is (F == Step)) {
-				string sel = _evt.step;
+				_selected = _evt.step;
 			} else {
 				static assert (0);
 			}
 			int index = -1;
 			foreach (i, itm; _flags.getItems()) {
-				if (itm.getText() == sel) {
+				if ((cast(F) itm.getData()).path == _selected) {
 					index = i;
 					break;
 				}
 			}
-			_flags.select(index >= 0 ? index : 0);
+			index = index >= 0 ? index : 0;
+			_flags.select(index);
+			_selected = (cast(F) _flags.getItem(index).getData()).path;
 			_flags.showSelection();
-			refreshValues(false);
+			refreshValues();
 			static if (SelValue) {
 				static if (is (F == Flag)) {
 					_values.select(_evt.flagValue ? 0 : 1);
@@ -1410,12 +1495,11 @@ protected:
 				} else {
 					static assert (0);
 				}
-				_sel = _flags.getSelectionIndex();
 			}
 		} else {
 			_flags.select(0);
-			refreshValues(false);
-			static if (SelValue) _sel = 0;
+			_selected = (cast(F) _flags.getItem(0).getData()).path;
+			refreshValues();
 		}
 		_sash.setWeights([_prop.var.etc.flagEventSashL, _prop.var.etc.flagEventSashR]);
 	}
@@ -1423,18 +1507,13 @@ protected:
 	override bool apply() {
 		assert (_flags.getItemCount() > 0);
 		if (!_evt) _evt = new Content(Type, "");
-		int index = _flags.getSelectionIndex();
-		if (-1 == index) {
-			index = 0;
-			_flags.select(index);
-		}
 		static if (is (F == Flag)) {
-			_evt.flag = (cast(F) _flags.getItem(index).getData()).path;
+			_evt.flag = _selected;
 			static if (SelValue) {
 				_evt.flagValue = _values.getSelectionIndex() == 0;
 			}
 		} else static if (is (F == Step)) {
-			_evt.step = (cast(F) _flags.getItem(index).getData()).path;
+			_evt.step = _selected;
 			static if (SelValue) {
 				_evt.stepValue = _values.getSelectionIndex();
 			}
@@ -1788,25 +1867,26 @@ private:
 	}
 	Button[Range] _range;
 	Table _list;
+	IncSearch _incSearch;
+	void incSearch() {
+		.forceFocus(_list, true);
+		_incSearch.startIncSearch();
+	}
+
+	ulong _selectedID = 0;
+	void selected() {
+		auto index = _list.getSelectionIndex();
+		if (-1 != index) {
+			_selectedID = (cast(C) _list.getItem(index).getData()).id;
+		}
+	}
 
 	void refreshList() {
-		auto index = _list.getSelectionIndex();
-		ulong id = 0;
-		if (-1 != index) {
-			id = (cast(C) _list.getItem(index).getData()).id;
-		} else if (_evt) {
-			static if (is (C == SkillCard)) {
-				id = _evt.skill;
-			} else static if (is (C == ItemCard)) {
-				id = _evt.item;
-			} else static if (is (C == BeastCard)) {
-				id = _evt.beast;
-			} else {
-				static assert (0);
-			}
-		}
+		ulong id = _selectedID;
 		_list.removeAll();
-		foreach (i, c; mixin (Cards)) {
+		size_t i = 0;
+		foreach (c; mixin (Cards)) {
+			if (!_incSearch.match(c.name)) continue;
 			auto itm = new TableItem(_list, SWT.NONE);
 			itm.setData(c);
 			static if (is (C == SkillCard)) {
@@ -1820,8 +1900,8 @@ private:
 			}
 			itm.setText(0, to!(string)(c.id));
 			itm.setText(1, c.name);
-			if (i == 0) _list.select(i);
 			if (id == c.id) _list.select(i);
+			i++;
 		}
 		_list.showSelection();
 	}
@@ -1923,6 +2003,8 @@ protected:
 		{
 			_list = new Table(area, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.V_SCROLL);
 			mod(_list);
+			_incSearch = new IncSearch(comm, _list);
+			_incSearch.modEvent ~= &refreshList;
 			auto idCol = new TableColumn(_list, SWT.NONE);
 			saveColumnWidth!("prop.var.etc.idColumn")(_prop, idCol);
 			auto nameCol = new FullTableColumn(_list, SWT.NONE);
@@ -1930,9 +2012,12 @@ protected:
 			gd.widthHint = _prop.var.etc.nameTableWidth;
 			gd.heightHint = _prop.var.etc.nameTableHeight;
 			_list.setLayoutData(gd);
+			.listener(_list, SWT.Selection, &selected);
 
 			_list.addMouseListener(new OpenView);
 			auto menu = new Menu(_list.getShell(), SWT.POP_UP);
+			createMenuItem(comm, menu, MenuID.IncSearch, &incSearch, null);
+			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(comm, menu, MenuID.OpenAtCardView, &openView, () => _list.getSelectionIndex() != -1);
 			_list.setMenu(menu);
 
@@ -1953,6 +2038,22 @@ protected:
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		if (_evt) {
+			static if (is (C == SkillCard)) {
+				_selectedID = _evt.skill;
+			} else static if (is (C == ItemCard)) {
+				_selectedID = _evt.item;
+			} else static if (is (C == BeastCard)) {
+				_selectedID = _evt.beast;
+			} else {
+				static assert (0);
+			}
+			foreach (i, itm; _list.getItems()) {
+				if (_selectedID == (cast(C) itm.getData()).id) {
+					_list.select(i);
+					break;
+				}
+			}
+
 			static if (Delete) {
 				if (_evt.cardNumber == 0u) {
 					_allDel.setSelection(true);
@@ -1973,23 +2074,22 @@ protected:
 			_num.setSelection(1);
 			_range[RangeDef].setSelection(true);
 		}
+		assert (_list.getItemCount());
+		if (-1 == _list.getSelectionIndex()) {
+			_list.select(0);
+			_selectedID = (cast(C) _list.getItem(0).getData()).id;
+		}
 	}
 
 	override bool apply() {
 		assert (_list.getItemCount());
-		int index = _list.getSelectionIndex();
-		if (-1 == index) {
-			index = 0;
-			_list.select(index);
-		}
 		if (!_evt) _evt = new Content(Type, "");
-		auto id = (cast(C) _list.getItem(index).getData()).id;
 		static if (is (C == SkillCard)) {
-			_evt.skill = id;
+			_evt.skill = _selectedID;
 		} else static if (is (C == ItemCard)) {
-			_evt.item = id;
+			_evt.item = _selectedID;
 		} else static if (is (C == BeastCard)) {
-			_evt.beast = id;
+			_evt.beast = _selectedID;
 		} else {
 			static assert (0);
 		}

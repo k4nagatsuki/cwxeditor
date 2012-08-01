@@ -2419,7 +2419,7 @@ public:
 					auto fi = create(card);
 					_imgp.set(cardsIndex + i, fi);
 					if (_cards.isSelected(i) && _viewCards) _imgp.select(fi);
-					_cards.getItem(i).setText(fi.title);
+					_cards.getItem(i).setText(cardName(c));
 					_cards.getItem(i).setData(c);
 					refreshControls();
 					_comm.refMenuCard.call(c.cwxPath(true));

@@ -1823,6 +1823,9 @@ public:
 	}
 	bool select(string path) {
 		try {
+			if (!path.isAbsolute()) {
+				path = _summ.scenarioPath.buildPath(path);
+			}
 			if (.exists(path)) {
 				path = nabs(path);
 				auto isdir = .isDir(path);

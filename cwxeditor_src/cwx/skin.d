@@ -38,7 +38,7 @@ BgImage[] createBgImages(in Skin skin, in BgImageS[] bgs) {
 	foreach (i, b; bgs) {
 		auto path = skin.findImagePath(setExtension(b.name, skin.extImage), "");
 		if (path.length) {
-			path = abs2rel(skin.tableDir, nabs(path));
+			path = abs2rel(nabs(path), skin.tableDir);
 		} else {
 			path = setExtension(b.name, skin.extImage);
 		}

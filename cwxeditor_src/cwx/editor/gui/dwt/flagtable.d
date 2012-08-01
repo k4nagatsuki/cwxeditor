@@ -1028,6 +1028,7 @@ private:
 			f.name = f.parent.createNewFlagName(text);
 			itm.setText(column, f.name);
 			uc.change(oldId, toFlagId(f.path), true);
+			_comm.refFlagAndStep.call([f], []);
 			_comm.refreshToolBar();
 			return;
 		}
@@ -1039,6 +1040,7 @@ private:
 			s.name = s.parent.createNewStepName(text);
 			itm.setText(column, s.name);
 			uc.change(oldId, toStepId(s.path), true);
+			_comm.refFlagAndStep.call([], [s]);
 			_comm.refreshToolBar();
 			return;
 		}

@@ -182,7 +182,7 @@ ZipArchive zip(string targ, bool top, string[] excludePath = [], bool useSysEnc 
 string memberName(string name) {
 	try {
 		validate(name);
-	} catch (UtfException e) {
+	} catch (Exception e) {
 		name = touni(name);
 		validate(name);
 	}

@@ -98,7 +98,7 @@
 
 使い方: cwxeditor [-help | -putlangfile <PATH> | -conf <PATH>
                    | -create <NAME> [<SKIN>] | -createclassic <NAME> [<PATH>]
-                   | -noload] <SCENARIO> [<CWXPath ...>]
+                   | -selectfile <PATH> | -noload] <SCENARIO> [<CWXPath ...>]
 オプション:
   -help         起動オプションの説明を表示して終了します。
   -putlangfile <PATH> デフォルトの言語設定ファイル<PAHT>を出力して終了します。
@@ -106,6 +106,7 @@
   -create        <NAME> [<SKIN>]  起動後にシナリオを新規作成します。
   -createclassic <NAME> [<PATH>]  起動後、<PATH>で指定されたフォルダに
                                   クラシックなシナリオを新規作成します。
+  -selectfile  <PATH> 指定されたファイルをファイルビューで選択します。
   -noload       起動後、前回終了時の編集状態を復元しません。
   <SCENARIO>    起動と同時に指定されたシナリオを開きます。
                 (*.wsn/Summary.xml/Summary.wsm/[フォルダ])

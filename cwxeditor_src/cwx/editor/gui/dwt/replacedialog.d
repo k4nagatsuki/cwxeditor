@@ -3103,7 +3103,7 @@ public:
 			if (p) {
 				auto path = nabs(std.path.buildPath(_summ.scenarioPath, p.array));
 				if (p.scPath !is null) {
-					exec(_prop.parent.appPath ~ " " ~ p.scPath ~ " fileview");
+					exec(_prop.parent.appPath ~ " -selectfile " ~ p.array ~ " " ~ p.scPath);
 					return;
 				}
 				if (_comm.openFilePath(path, false)) {

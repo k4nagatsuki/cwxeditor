@@ -70,6 +70,9 @@ public:
 	}
 	/// このカードの所属先を返す。
 	@property
+	AbstractArea abstractOwner();
+	/// ditto
+	@property
 	const
 	const(AbstractArea) abstractOwner();
 
@@ -214,11 +217,20 @@ public:
 		}
 	}
 	@property
+	override AbstractArea abstractOwner() {
+		return _owner;
+	}
+	@property
 	const
 	override const(AbstractArea) abstractOwner() {
 		return _owner;
 	}
 	/// このカードの所属先を返す。
+	@property
+	Battle owner() {
+		return _owner;
+	}
+	/// ditto
 	@property
 	const
 	const(Battle) owner() {
@@ -386,11 +398,20 @@ public:
 		}
 	}
 	@property
+	override AbstractArea abstractOwner() {
+		return _owner;
+	}
+	@property
 	const
 	override const(AbstractArea) abstractOwner() {
 		return _owner;
 	}
 	/// このカードの所属先を返す。
+	@property
+	Area owner() {
+		return _owner;
+	}
+	/// ditto
 	@property
 	const
 	const(Area) owner() {

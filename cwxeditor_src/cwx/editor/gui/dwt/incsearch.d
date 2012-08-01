@@ -121,6 +121,7 @@ class IncSearch {
 		};
 		auto rmFocus = new class Listener {
 			override void handleEvent(Event e) {
+				if (_win.isDisposed()) return;
 				if (!_open) return;
 				if (!_win.isVisible()) return;
 				auto c = parent.getDisplay().getFocusControl();
@@ -153,7 +154,9 @@ class IncSearch {
 			d.removeListener(SWT.FocusOut, rmFocus);
 		});
 		.listener(parent, SWT.Dispose, {
-			_win.dispose();
+			if (!_win.isDisposed()) {
+				_win.dispose();
+			}
 		});
 		.listener(_win, SWT.Close, (Event e) {
 			e.doit = false;

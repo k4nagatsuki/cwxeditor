@@ -71,7 +71,10 @@ void main(string[] args) {
 		if (opt.putlangfile.length) {
 			// 言語ファイルを保存する
 			try {
-				std.file.write(opt.putlangfile, prop.msgs.toXML(true));
+				auto file = nabs(opt.putlangfile);
+				auto dir = file.dirName();
+				if (!dir.exists()) dir.mkdirRecurse();
+				std.file.write(file, prop.msgs.toXML(true));
 			} catch (Exception e) {
 				debugln(e);
 			}

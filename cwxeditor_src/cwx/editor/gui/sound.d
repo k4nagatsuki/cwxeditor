@@ -44,12 +44,10 @@ version (Windows) {
 		if (!_mciNotifyHandle || !winmm || !_mciSendString || !_bgmPlayingMCI || MM_MCINOTIFY != message || MCI_NOTIFY_SUCCESSFUL != wParam) {
 			return DefWindowProcW(hWnd, message, wParam, lParam);
 		}
-		synchronized (winmmSync) {
-			static const __gshared SEEK = "seek cws to 0\0"w.ptr;
-			static const __gshared PLAY = "play cws notify\0"w.ptr;
-			_mciSendString(SEEK, null, 0, null);
-			_mciSendString(PLAY, null, 0, _mciNotifyHandle);
-		}
+		static const __gshared SEEK = "seek cws to 0\0"w.ptr;
+		static const __gshared PLAY = "play cws notify\0"w.ptr;
+		_mciSendString(SEEK, null, 0, null);
+		_mciSendString(PLAY, null, 0, _mciNotifyHandle);
 		return DefWindowProcW(hWnd, message, wParam, lParam);
 	}
 }

@@ -38,6 +38,7 @@ struct LaunchOption {
 	string createclassicPath = "";
 	string[] openPaths = [];
 	string scenario = null;
+	string selectfile = "";
 	string putlangfile = "";
 	bool noload = false;
 	bool help = false;
@@ -74,6 +75,10 @@ struct LaunchOption {
 					if (i + 1 < args.length) createName = args[i + 1];
 					if (i + 2 < args.length) createclassicPath = args[i + 2];
 					sc = i + 3u;
+					break;
+				case "-selectfile": // 起動と同時にファイルを選択
+					if (i + 1 < args.length) selectfile = args[i + 1];
+					sc = i + 2u;
 					break;
 				case "-putlangfile": // 起動と同時に言語ファイルを出力して終了
 					if (i + 1 < args.length) putlangfile = args[i + 1];

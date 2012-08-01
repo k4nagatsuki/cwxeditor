@@ -61,6 +61,7 @@ public:
 		typeof(_imgReg) imgReg;
 		_imgReg = imgReg;
 	}
+	@property Image emptyIcon() {return imgd!("empty.png");}
 
 	@property Image app() {return imgd!("new.png");}
 	@property Image icon() {return imgd!("cwxeditor.ico");}

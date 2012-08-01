@@ -391,7 +391,7 @@ private:
 			auto arr = cast(FileNames) e.data;
 			if (arr && arr.array.length > 0) {
 				if (qSave()) {
-					openScenario(arr.array[0]);
+					openScenario(arr.array[0], &resetOpt);
 				}
 			}
 		}
@@ -428,7 +428,7 @@ private:
 					}
 				} else {
 					if (!.exists(wsm)) wsm = old.scenarioPath;
-					loadScenarioFromFile(_prop, loadOption(old), _comm.mainShell, &setStatusLine, old, wsm, &openScenario, null);
+					loadScenarioFromFile(_prop, loadOption(old), _comm.mainShell, &setStatusLine, old, wsm, &openScenario, &resetOpt);
 				}
 			} else if (expand) {
 				try {
@@ -441,7 +441,7 @@ private:
 				}
 			} else {
 				assert (old.zipName.length);
-				loadScenarioFromFile(_prop, loadOption(old), _comm.mainShell, &setStatusLine, old, old.zipName, &openScenario, null);
+				loadScenarioFromFile(_prop, loadOption(old), _comm.mainShell, &setStatusLine, old, old.zipName, &openScenario, &resetOpt);
 			}
 		}
 	}
@@ -533,6 +533,11 @@ private:
 				}
 			}
 		}
+		if (_opt.selectfile.length) {
+			_comm.openCWXPath("fileview", false);
+			_dirWin.select(_opt.selectfile);
+		}
+		resetOpt();
 		addHistory();
 		try {
 			if (old) {
@@ -556,6 +561,11 @@ private:
 		_win.redraw();
 	}
 	LaunchOption _opt;
+	void resetOpt() {
+		_opt.openPaths.length = 0u;
+		_opt.selectfile = "";
+		_opt.noload = false;
+	}
 
 	void openScenarioImpl(Summary summ) {
 		if (summ) {
@@ -578,9 +588,9 @@ private:
 		auto old = summary;
 		loadScenario(_prop, loadOption(null), _comm.mainShell, &setStatusLine,
 			old, _prop.msgs.dlgTitOpenScenario,
-			_opt.openPaths, &openScenarioImpl, null);
+			_opt.openPaths, &openScenarioImpl, &resetOpt);
 	}
-	void openScenario(string fname, void delegate() failure = null) {
+	void openScenario(string fname, void delegate() failure) {
 		if (cfnmatch(.extension(fname), ".wsm") && !.exists(fname)) {
 			fname = dirName(fname);
 		}
@@ -1063,7 +1073,10 @@ private:
 		}
 		private void run() {
 			if (qSave()) {
-				openScenario(_hist, &delHist);
+				openScenario(_hist, {
+					delHist();
+					resetOpt();
+				});
 			}
 		}
 		private void delHist() {
@@ -1178,6 +1191,17 @@ private:
 			}
 		}
 	}
+	class SelectFile : Runnable {
+		string path;
+		override void run() {
+			try {
+				_comm.openCWXPath("fileview", false);
+				_dirWin.select(path);
+			} catch (Throwable e) {
+				debugln (e);
+			}
+		}
+	}
 	void pipeThr() {
 		if (0 >= _prop.var.etc.pipeAppMax) return;
 		try {
@@ -1186,6 +1210,7 @@ private:
 			}
 			auto openPath = new OpenCWXPath;
 			auto reloadSettings = new ReloadSettings;
+			auto selectFile = new SelectFile;
 			Summary summ = null;
 			string recvSend(in char[] recv, out bool quit) {
 				quit = false;
@@ -1205,7 +1230,11 @@ private:
 				} else if (std.string.startsWith(recv.idup, "open cwxpath ")) {
 					openPath.path = recv["open cwxpath ".length .. $].idup;
 					_display.asyncExec(openPath);
-					return null;
+					return "opened cwxpath";
+				} else if (std.string.startsWith(recv, "select file ")) {
+					selectFile.path = recv["select file ".length .. $].idup;
+					_display.asyncExec(selectFile);
+					return "selected file";
 				} else if (recv == "reload settings") {
 					_display.asyncExec(reloadSettings);
 				}
@@ -1487,6 +1516,14 @@ public:
 							send ~= s;
 						}
 						path1 = "";
+						execute = false;
+						return send;
+					} else {
+						return "";
+					}
+				} else if (std.string.startsWith(recv, "opened cwxpath")) {
+					if (_opt.selectfile.length) {
+						string send = "select file " ~ _opt.selectfile;
 						execute = false;
 						return send;
 					} else {
@@ -2598,20 +2635,20 @@ public:
 		static if (Act.length) {
 			static const MenuAction = "_mainMenu.add(" ~ Id.stringof ~ ");"
 				~ "_menu[" ~ Id.stringof ~ "] = createMenuItem(_comm, " ~ M ~ ", " ~ Id.stringof ~ ", &"
-				~ Act ~ ", " ~ Can ~ ", " ~ ToString!(Style) ~ ");";
+				~ Act ~ ", " ~ Can ~ ", " ~ toStringNow!(Style) ~ ");";
 		} else {
 			static const MenuAction = "_menu[" ~ Id.stringof ~ "] = createMenuItem(_comm, " ~ M ~ ", " ~ Id.stringof ~ ", "
-				~ "&menuAction!(" ~ Id.stringof ~ "), " ~ Can ~ ", " ~ ToString!(Style) ~ ");";
+				~ "&menuAction!(" ~ Id.stringof ~ "), " ~ Can ~ ", " ~ toStringNow!(Style) ~ ");";
 		}
 	}
 	private template ToolAction(string T, MenuID Id, int Style = SWT.PUSH, string Act = "", string Can = "null") {
 		static if (Act.length) {
 			static const ToolAction = "_mainMenu.add(" ~ Id.stringof ~ ");"
 				~ "_tool[" ~ Id.stringof ~ "] = createToolItem(_comm, " ~ T ~ ", " ~ Id.stringof ~ ", &"
-				~ Act ~ ", " ~ Can ~ ", " ~ ToString!(Style) ~ ");";
+				~ Act ~ ", " ~ Can ~ ", " ~ toStringNow!(Style) ~ ");";
 		} else {
 			static const ToolAction = "_tool[" ~ Id.stringof ~ "] = createToolItem(_comm, " ~ T ~ ", " ~ Id.stringof ~ ", "
-				~ "&menuAction!(" ~ Id.stringof ~ "), " ~ Can ~ ", " ~ ToString!(Style) ~ ");";
+				~ "&menuAction!(" ~ Id.stringof ~ "), " ~ Can ~ ", " ~ toStringNow!(Style) ~ ");";
 		}
 	}
 	void refreshToolBar(bool delegate()[MenuID] cMenuTbl) {
@@ -2962,7 +2999,7 @@ public:
 
 	void doCWX() {
 		if (!_win) return;
-		string dStr = .text(__LINE__);;
+		string dStr = .text(__LINE__);
 		try {
 			version (Console) {
 				debug std.stdio.writeln("Start Main Thread");
@@ -2997,10 +3034,10 @@ public:
 				}
 			} else if (_opt.scenario) {
 				dStr ~= " - " ~ .text(__LINE__);
-				openScenario(_opt.scenario);
+				openScenario(_opt.scenario, &resetOpt);
 			} else if (_prop.var.etc.openLastScenario && _prop.var.etc.lastScenario.length) {
 				dStr ~= " - " ~ .text(__LINE__);
-				openScenario(_prop.var.etc.lastScenario);
+				openScenario(_prop.var.etc.lastScenario, &resetOpt);
 			}
 			dStr ~= " - " ~ .text(__LINE__);
 

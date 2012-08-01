@@ -217,7 +217,7 @@ class FlexEtcProps : Properties {
 
 	auto classicEngineRegex = Prop!(string)("classicEngineRegex", "^.+Wirth(_.+)?\\.exe$");
 	auto classicDataDirRegex = Prop!(string)("classicDataDirRegex", "^Data|D_[A-Z]1|[A-Z]_dt$");
-	auto classicMatchKey = Prop!(string, true)("classicMatchKey", "Table".buildPath("MapOfWirth.BMP"));
+	auto classicMatchKey = Prop!(string, true)("classicMatchKey", "Table" ~ dirSeparator ~ "MapOfWirth.BMP");
 
 	auto expandXMLs = Prop!(bool)("expandXMLs", false);
 	auto xmlCopy = Prop!(bool)("xmlCopy", false);
