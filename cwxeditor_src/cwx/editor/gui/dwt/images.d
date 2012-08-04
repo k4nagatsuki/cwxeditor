@@ -1165,8 +1165,22 @@ private:
 						}
 						if (1 < _grid) {
 							if (dragTgl is Toggle.MOVE) {
-								newRect.x = toGrid(newRect.x);
-								newRect.y = toGrid(newRect.y);
+								int gx = toGrid(newRect.x);
+								int gy = toGrid(newRect.y);
+								int r = newRect.x + newRect.width;
+								int b = newRect.y + newRect.height;
+								int gr = toGrid(r);
+								int gb = toGrid(b);
+								if (.abs(gx - newRect.x) <= .abs(gr - r)) {
+									newRect.x = gx;
+								} else {
+									newRect.x = gr - newRect.width;
+								}
+								if (.abs(gy - newRect.y) <= .abs(gb - b)) {
+									newRect.y = gy;
+								} else {
+									newRect.y = gb - newRect.height;
+								}
 							} else {
 								@property
 								bool isLeft() {
