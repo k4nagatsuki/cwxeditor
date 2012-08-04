@@ -1251,6 +1251,7 @@ class Msgs : Properties {
 	auto singleWindow = Msg("singleWindow", "シングルウィンドウモード(再起動後に反映されます)");
 	auto smoothingCard = Msg("smoothingCard", "カードのサイズ変更時にスムージングを行う");
 	auto showImagePreview = Msg("showImagePreview", "カードや背景のプレビュー表示を行う");
+	auto showEventTreeMark = Msg("showEventTreeMark", "カードの詳細情報表示時に使用時イベントの有無を表示する");
 	auto expandXMLs = Msg("expandXMLs", "圧縮されたシナリオの読込み時にXMLファイルを展開する");
 	auto contentsFloat = Msg("contentsFloat", "コンテンツボックスを別ウィンドウで表示する");
 	auto contentsAutoHide = Msg("contentsAutoHide", "コンテンツボックスを自動的に隠す");
@@ -1561,7 +1562,7 @@ class Msgs : Properties {
 	auto menuTextOpenAtFileView = Msg("menuTextOpenAtFileView", "ファイルビューで開く");
 	auto menuTextOpenAtEventView = Msg("menuTextOpenAtEventView", "イベントビューで開く");
 	auto menuTextComment = Msg("menuTextComment", "コメントを記述");
-	auto menuTextShowCardProp = Msg("menuTextShowCardProp", "レベルとライフを表示");
+	auto menuTextShowCardProp = Msg("menuTextShowCardProp", "詳細情報を表示");
 	auto menuTextShowCardImage = Msg("menuTextShowCardImage", "カード表示");
 	auto menuTextShowCardDetail = Msg("menuTextShowCardDetail", "詳細表示");
 	auto menuTextOpenImportSource = Msg("menuTextOpenImportSource", "外部シナリオから追加");

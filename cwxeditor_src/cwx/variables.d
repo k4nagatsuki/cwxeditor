@@ -140,7 +140,6 @@ class FlexEtcProps : Properties {
 	auto msgForeG = Prop!(int, true)("msgForeG", 255);
 	auto msgForeB = Prop!(int, true)("msgForeB", 255);
 	auto textTabs = Prop!(int, true)("textTabs", 4);
-
 	auto gridMax = Prop!(uint, true)("gridMax", 100);
 	auto grid = Prop!(uint)("grid", 10);
 
@@ -232,6 +231,7 @@ class FlexEtcProps : Properties {
 	auto copyDesc = Prop!(bool)("copyDesc", false);
 	auto refCardsAtEditBgImage = Prop!(bool)("refCardsAtEditBgImage", true);
 	auto showImagePreview = Prop!(bool)("showImagePreview", true);
+	auto showEventTreeMark = Prop!(bool)("showEventTreeMark", true);
 	auto switchTabWheel = Prop!(bool)("switchTabWheel", true);
 	auto openTabAtRightOfCurrentTab = Prop!(bool)("openTabAtRightOfCurrentTab", true);
 

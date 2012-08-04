@@ -12,6 +12,7 @@ import cwx.path;
 import cwx.motion;
 import cwx.menu;
 import cwx.types;
+import cwx.event;
 
 import cwx.editor.gui.dwt.smalldialogs;
 import cwx.editor.gui.dwt.images;
@@ -914,12 +915,13 @@ private:
 	private Skin _skinTemp = null;
 	ImageData cardImage(C c) {
 		Skin skin = _skinTemp ? _skinTemp : _comm.skin;
+		auto detail = _viewMode == CViewMode.LIFE;
 		static if (is (C == CastCard)) {
-			return castCardImage(_prop, skin, c, ownerScenarioPath, _viewMode == CViewMode.LIFE);
+			return castCardImage(_prop, skin, c, ownerScenarioPath, detail);
 		} else static if (!is (C == InfoCard) && is (CardOwner == CastCard)) {
-			return .cardImage!(C)(_prop, skin, c, ownerScenarioPath, _owner, &pOwnerCard);
+			return .cardImage!(C)(_prop, skin, c, ownerScenarioPath, _owner, &pOwnerCard, detail);
 		} else {
-			return .cardImage!(C)(_prop, skin, c, ownerScenarioPath, cast(CastCard) null, &pOwnerCard);
+			return .cardImage!(C)(_prop, skin, c, ownerScenarioPath, cast(CastCard) null, &pOwnerCard, detail);
 		}
 	}
 
@@ -1296,10 +1298,29 @@ public:
 		static assert (0);
 	}
 
+	static if (EditMode && is(C:EventTreeOwner)) {
+		void refEventTree(EventTree et) {
+			if (cast(C) et.owner || et.owner is null) {
+				__refresh();
+			}
+		}
+	}
 	void reconstruct(Composite parent) {
 		_parent = parent;
 		createCardList(parent);
-		static if (EditMode && is (PCardOwner == Summary)) {
+		_comm.refCardImageStatus.add(&__refresh);
+		.listener(_list, SWT.Dispose, {
+			_comm.refCardImageStatus.remove(&__refresh);
+		});
+		static if (EditMode && is(C:EventTreeOwner)) {
+			_comm.refEventTree.add(&refEventTree);
+			_comm.delEventTree.add(&refEventTree);
+			.listener(_list, SWT.Dispose, {
+				_comm.refEventTree.remove(&refEventTree);
+				_comm.delEventTree.remove(&refEventTree);
+			});
+		}
+		static if (EditMode && is(PCardOwner == Summary)) {
 			_comm.refSkin.add(&__refresh);
 			_comm.delPaths.add(&__refresh);
 			_comm.replPath.add(&__refreshR);

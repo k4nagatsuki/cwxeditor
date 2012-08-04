@@ -1375,6 +1375,7 @@ private:
 	Button _singleWindow = null;
 	Button _smoothingCard;
 	Button _showImagePreview;
+	Button _showEventTreeMark;
 	Button _expandXMLs;
 	Button _contentsFloat;
 	Button _contentsAutoHide;
@@ -2139,6 +2140,7 @@ private:
 				}
 				_smoothingCard = createB(_prop.msgs.smoothingCard);
 				_showImagePreview = createB(_prop.msgs.showImagePreview);
+				_showEventTreeMark = createB(_prop.msgs.showEventTreeMark);
 				_expandXMLs = createB(_prop.msgs.expandXMLs);
 				_contentsFloat = createB(_prop.msgs.contentsFloat);
 				_contentsAutoHide = createB(_prop.msgs.contentsAutoHide);
@@ -2392,6 +2394,7 @@ protected:
 		_expandXMLs.setSelection(_prop.var.etc.expandXMLs);
 		_smoothingCard.setSelection(_prop.var.etc.smoothingCard);
 		_showImagePreview.setSelection(_prop.var.etc.showImagePreview);
+		_showEventTreeMark.setSelection(_prop.var.etc.showEventTreeMark);
 		if (_singleWindow) {
 			_singleWindow.setSelection(_prop.var.etc.singleWindow);
 		}
@@ -2533,6 +2536,7 @@ protected:
 		}
 		_prop.var.etc.smoothingCard = _smoothingCard.getSelection();
 		_prop.var.etc.showImagePreview = _showImagePreview.getSelection();
+		_prop.var.etc.showEventTreeMark = _showEventTreeMark.getSelection();
 		_prop.var.etc.expandXMLs = _expandXMLs.getSelection();
 		_prop.var.etc.xmlCopy = _xmlCopy.getSelection();
 		_prop.var.etc.saveInnerImagePath = _saveInnerImagePath.getSelection();
@@ -2629,6 +2633,7 @@ struct OldSettings {
 	int seVolume;
 	int soundPlayType;
 	int soundEffectPlayType;
+	bool showEventTreeMark;
 	this (Props prop) {
 		this.prop = prop;
 		this.oldEnginePath = prop.var.etc.enginePath;
@@ -2660,6 +2665,7 @@ struct OldSettings {
 		this.seVolume = prop.var.etc.seVolume;
 		this.soundPlayType = prop.var.etc.soundPlayType;
 		this.soundEffectPlayType = prop.var.etc.soundEffectPlayType;
+		this.showEventTreeMark = prop.var.etc.showEventTreeMark;
 	}
 	void raiseEvent(Commons comm) {
 		bool refSkin = false;
@@ -2752,6 +2758,9 @@ struct OldSettings {
 		}
 		if (this.soundPlayType != prop.var.etc.soundPlayType || this.soundEffectPlayType != prop.var.etc.soundEffectPlayType) {
 			comm.refSoundType.call();
+		}
+		if (this.showEventTreeMark != prop.var.etc.showEventTreeMark) {
+			comm.refCardImageStatus.call();
 		}
 	}
 }

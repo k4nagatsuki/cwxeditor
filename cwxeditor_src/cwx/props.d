@@ -73,6 +73,9 @@ public:
 	@property const CPoint useStoneXY() {return CPoint(60, 75);}
 	@property const CPoint aptStoneXY() {return CPoint(60, 90);}
 
+	@property const CPoint eventTreeXY() {return CPoint(7, 90);}
+	@property const CPoint eventTreeXYWithCount() {return CPoint(7, 71);}
+
 	@property const CPoint premiumXY() {return CPoint(5, 5);}
 	@property const uint itemCardMaxNum(uint lev) {
 		int r = (lev + 1) / 2 + 2;

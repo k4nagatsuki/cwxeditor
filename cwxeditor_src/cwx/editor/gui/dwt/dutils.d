@@ -1116,7 +1116,7 @@ ImageData castCardImage(Props prop, Skin skin, CastCard c, string sPath, bool db
 	r.setTitle(c.name, dwtData(prop.looks.castCardNameFont(skin.legacy)), dwtData(prop.looks.castCardNamePoint));
 	return r.createImageData();
 }
-ImageData cardImage(C)(Props prop, Skin skin, C c, string sPath, CastCard owner = null, C delegate(ulong) get = null) {
+ImageData cardImage(C)(Props prop, Skin skin, C c, string sPath, CastCard owner, C delegate(ulong) get, bool detail) {
 	static if (is (C == SkillCard)) {
 		bool hold = c.hold;
 		auto card = skillCard(skin);
@@ -1176,7 +1176,7 @@ ImageData cardImage(C)(Props prop, Skin skin, C c, string sPath, CastCard owner 
 				r.append(hid, CPoint(0, 0));
 			}
 		}
-		if (owner) {
+		if (detail && owner) {
 			int apt = owner.aptitude(c.physical, c.mental);
 			ImageData aimg;
 			if (prop.looks.aptVeryHigh <= apt) {
@@ -1198,6 +1198,16 @@ ImageData cardImage(C)(Props prop, Skin skin, C c, string sPath, CastCard owner 
 		}
 	}
 	r.setTitle(c.name, dwtData(prop.looks.cardNameFont(skin.legacy)), dwtData(prop.looks.cardNamePoint));
+	void putEventTree(bool useCount) {
+		static if (is(C:EventTreeOwner)) {
+			if (!prop.var.etc.showEventTreeMark) return;
+			auto et = useCount ? prop.looks.eventTreeXYWithCount : prop.looks.eventTreeXY;
+			if (detail && c.trees.length) {
+				auto iData = prop.images.eventTree.getImageData();
+				r.append(iData, CInsets(et.y, w - et.x - iData.width, h - et.y - iData.height, et.x));
+			}
+		}
+	}
 	static if (is(C : ItemCard) || is(C : BeastCard)) {
 		static if (is(C : ItemCard)) {
 			auto ul = c.useLimitMax;
@@ -1205,6 +1215,8 @@ ImageData cardImage(C)(Props prop, Skin skin, C c, string sPath, CastCard owner 
 			auto ul = c.useLimit;
 		} else static assert (0);
 		if (ul > 0) {
+			putEventTree(true);
+
 			auto d = Display.getCurrent();
 			auto imgData = r.createImageData();
 			auto img = new Image(d, imgData);
@@ -1228,6 +1240,7 @@ ImageData cardImage(C)(Props prop, Skin skin, C c, string sPath, CastCard owner 
 			return img.getImageData();
 		}
 	}
+	putEventTree(false);
 	return r.createImageData();
 }
 

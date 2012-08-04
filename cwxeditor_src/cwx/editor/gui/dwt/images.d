@@ -59,6 +59,7 @@ private:
 		CFont font;
 		CRGB fontColor;
 		TPos textPos = TPos.LEFT;
+		byte alpha = cast(byte) 0xFF;
 	}
 	string _title = null;
 	FontData titFont = null;
@@ -67,7 +68,7 @@ private:
 	Rectangle rect;
 	bool t = false;
 	bool s = false;
-	int _alpha = 255;
+	int _alpha = 0xFF;
 	Image _img = null;
 	ImageData _baseSizeData = null;
 	string path = "";
@@ -157,28 +158,30 @@ public:
 	/// maskX = マスク色のX位置。
 	/// maskY = マスク色のY位置。
 	/// See_Also: createImage();
-	void append(string path, CInsets insets, bool transparent, int maskX = 0, int maskY = 0) {
+	void append(string path, CInsets insets, bool transparent, int maskX = 0, int maskY = 0, byte alpha = cast(byte) 0xFF) {
 		AppImg append;
 		append.insets = insets;
 		append.path = path;
 		append.transparent = transparent;
 		append.maskX = maskX;
 		append.maskY = maskY;
+		append.alpha = alpha;
 		appends ~= append;
 	}
 	/// ditto
-	void append(ImageData data, CInsets insets) {
+	void append(ImageData data, CInsets insets, byte alpha = cast(byte) 0xFF) {
 		AppImg append;
 		append.insets = insets;
 		append.data = data;
+		append.alpha = alpha;
 		appends ~= append;
 	}
 	/// ditto
-	void append(ImageData data, CPoint point) {
+	void append(ImageData data, CPoint point, byte alpha = cast(byte) 0xFF) {
 		append(data, CInsets(point.y,
 			initW - (point.x + data.width),
 			initH - (point.y + data.height),
-			point.x));
+			point.x), alpha);
 	}
 	/// 前面に文字列を追加する。
 	void append(string text, CInsets insets, CFont font, CRGB fontColor, TPos pos = TPos.LEFT) {
@@ -295,6 +298,10 @@ public:
 							initH - a.insets.n - a.insets.s);
 						auto img = new Image(cur, imgData);
 						scope (exit) img.dispose();
+						if (a.alpha != 0xFF) dc.setAlpha(a.alpha);
+						scope (exit) {
+							if (a.alpha != 0xFF) dc.setAlpha(0xFF);
+						}
 						dc.drawImage(img, a.insets.w, a.insets.n);
 					} catch (SWTException e) {
 						// ファイルが無い場合は表示しない。

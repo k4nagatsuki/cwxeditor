@@ -310,6 +310,7 @@ class Commons {
 	Dlg!(MenuID) refMenu;
 	Dlg!() refSoundType;
 	Dlg!() refShowToolBar;
+	Dlg!() refCardImageStatus;
 
 	Dlg!(Area) refArea;
 	Dlg!(Area) delArea;
