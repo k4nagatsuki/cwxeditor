@@ -232,6 +232,7 @@ class FlexEtcProps : Properties {
 	auto refCardsAtEditBgImage = Prop!(bool)("refCardsAtEditBgImage", true);
 	auto showImagePreview = Prop!(bool)("showImagePreview", true);
 	auto showEventTreeMark = Prop!(bool)("showEventTreeMark", true);
+	auto ignoreEmptyStart = Prop!(bool)("ignoreEmptyStart", true);
 	auto switchTabWheel = Prop!(bool)("switchTabWheel", true);
 	auto openTabAtRightOfCurrentTab = Prop!(bool)("openTabAtRightOfCurrentTab", true);
 

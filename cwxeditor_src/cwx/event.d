@@ -2008,6 +2008,15 @@ public:
 		if (_change) _change();
 	}
 
+	/// スタートコンテントのみが含まれている場合はtrue。
+	@property
+	bool isEmpty() {
+		foreach (s; _starts) {
+			if (s.next.length) return false;
+		}
+		return true;
+	}
+
 	/// イベントツリー名。
 	/// 最初のスタートコンテントのテキストと常に一致する。
 	@property
@@ -2525,6 +2534,11 @@ public interface EventTreeOwner : CWXPath {
 	/// 属すエリア等からの相対パス。
 	@property
 	size_t[] areaPath();
+
+	/// EventTreeが含まれていないか。
+	/// 内容が空のEventTreeしか持たない場合もtrueとなる。
+	@property
+	bool isEmpty();
 }
 
 /// EventTreeOwnerの仮の実装。
@@ -2698,6 +2712,14 @@ public:
 		foreach (evt; _evts) {
 			evt.toNode(ee, opt);
 		}
+	}
+
+	@property
+	override bool isEmpty() {
+		foreach (tree; trees) {
+			if (!tree.isEmpty) return false;
+		}
+		return true;
 	}
 }
 

@@ -1202,7 +1202,7 @@ ImageData cardImage(C)(Props prop, Skin skin, C c, string sPath, CastCard owner,
 		static if (is(C:EventTreeOwner)) {
 			if (!prop.var.etc.showEventTreeMark) return;
 			auto et = useCount ? prop.looks.eventTreeXYWithCount : prop.looks.eventTreeXY;
-			if (detail && c.trees.length) {
+			if (detail && (prop.var.etc.ignoreEmptyStart ? !c.isEmpty : 0 < c.trees.length)) {
 				auto iData = prop.images.eventTree.getImageData();
 				r.append(iData, CInsets(et.y, w - et.x - iData.width, h - et.y - iData.height, et.x));
 			}

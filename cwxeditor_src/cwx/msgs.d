@@ -1252,6 +1252,7 @@ class Msgs : Properties {
 	auto smoothingCard = Msg("smoothingCard", "カードのサイズ変更時にスムージングを行う");
 	auto showImagePreview = Msg("showImagePreview", "カードや背景のプレビュー表示を行う");
 	auto showEventTreeMark = Msg("showEventTreeMark", "カードの詳細情報表示時に使用時イベントの有無を表示する");
+	auto ignoreEmptyStart = Msg("ignoreEmptyStart", "空のイベントツリーしか持たない使用時イベントは無視する");
 	auto expandXMLs = Msg("expandXMLs", "圧縮されたシナリオの読込み時にXMLファイルを展開する");
 	auto contentsFloat = Msg("contentsFloat", "コンテンツボックスを別ウィンドウで表示する");
 	auto contentsAutoHide = Msg("contentsAutoHide", "コンテンツボックスを自動的に隠す");

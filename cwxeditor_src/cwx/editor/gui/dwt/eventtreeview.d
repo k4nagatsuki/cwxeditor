@@ -16,6 +16,7 @@ import cwx.script;
 import cwx.structs;
 import cwx.menu;
 import cwx.types;
+import cwx.xml;
 
 import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.dprops;
@@ -35,6 +36,7 @@ import cwx.editor.gui.dwt.dmenu;
 import std.algorithm;
 import std.conv;
 import std.string;
+import std.datetime;
 
 import org.eclipse.swt.all;
 
@@ -45,6 +47,8 @@ public:
 /// イベントコンテントツリー。
 class EventTreeView : TCPD {
 private:
+	string _id = "";
+
 	MouseTrack _mTrack = null;
 	Shell _toolWin = null;
 	Shell _autoHideTools = null;
@@ -178,6 +182,10 @@ private:
 	private static void insertStart(EventTreeView v, Commons comm, EventTree et, int index, Content c) {
 		if (v) v._tree.setRedraw(false);
 		scope (exit) if (v) v._tree.setRedraw(true);
+		bool empty = et.owner.isEmpty;
+		scope (exit) {
+			if (empty != et.owner.isEmpty) comm.refEventTree.call(et);
+		}
 		et.insert(index, c);
 		if (v) {
 			auto itm = createTreeItem(v._tree, c, c.name, v._prop.images.content(c.type), index);
@@ -196,8 +204,7 @@ private:
 			super (v, comm, prop, summ, et);
 			foreach (c; cs) {
 				_path ~= c.ctPath;
-				auto node = c.toNode(null);
-				_c ~= Content.createFromNode(node, LATEST_VERSION);
+				_c ~= c.dup;
 				_c[$ - 1].setUseCounter(summ.useCounter.sub);
 			}
 		}
@@ -205,11 +212,14 @@ private:
 			auto v = view();
 			udb(v);
 			scope (exit) uda(v);
+			bool empty = et.owner.isEmpty;
+			scope (exit) {
+				if (empty != et.owner.isEmpty) comm.refEventTree.call(et);
+			}
 			foreach (i, c; _c.dup) {
 				int index = _path[i][$ - 1];
 				auto tc = et.fromPath(_path[i]);
-				auto node = tc.toNode(null);
-				_c[i] = Content.createFromNode(node, LATEST_VERSION);
+				_c[i] = tc.dup;
 				_c[i].setUseCounter(summ.useCounter.sub);
 				auto pc = tc.parent;
 				string text;
@@ -462,6 +472,10 @@ private:
 				if (insertTo) return;
 				create(null, _cType, "", (Content evt) {
 					assert (evt);
+					bool empty = _et.owner.isEmpty;
+					scope (exit) {
+						if (empty != _et.owner.isEmpty) _comm.refEventTree.call(_et);
+					}
 					auto sel = selection;
 					int index;
 					if (sel) {
@@ -494,6 +508,10 @@ private:
 					}
 					auto owner = cast(Content) oItm.getData();
 					void applied(Content evt) {
+						bool empty = _et.owner.isEmpty;
+						scope (exit) {
+							if (empty != _et.owner.isEmpty) _comm.refEventTree.call(_et);
+						}
 						store(owner);
 						owner.add(evt);
 						TreeItem itm = createTreeItem(oItm, evt, eventText(owner, evt), _prop.images.content(evt.type));
@@ -1120,13 +1138,19 @@ private:
 		override void dragSetData(DragSourceEvent e) {
 			auto itm = selection;
 			if (itm && XMLBytesTransfer.getInstance().isSupportedType(e.dataType)) {
-				e.data = bytesFromXML((cast(Content) itm.getData()).toXML(null));
+				auto node = (cast(Content) itm.getData()).toNode(null);
+				node.newAttr("paneId", _id);
+				e.data = bytesFromXML(node.text);
 			}
 		}
 		override void dragFinished(DragSourceEvent e) {
 			_dragItm = null;
 			auto itm = _targ;
 			if (itm && e.detail == DND.DROP_MOVE) {
+				bool empty = _et.owner.isEmpty;
+				scope (exit) {
+					if (empty != _et.owner.isEmpty) _comm.refEventTree.call(_et);
+				}
 				auto c = cast(Content) itm.getData();
 				_comm.delContent.call(c);
 				if (_parItm) {
@@ -1164,42 +1188,52 @@ private:
 			assert (cast(TreeItem) e.item);
 			e.detail = DND.DROP_NONE;
 			if ((cast(Content) e.item.getData()).detail.owner) {
-				string id;
-				auto evt = Content.createFromXML(bytesToXML(e.data), LATEST_VERSION, id);
-				if (evt) {
-					auto owner = cast(Content) e.item.getData();
-					assert (owner.detail.owner);
-					auto ti = cast(TreeItem) e.item;
-					auto sp = selParent(ti);
-					if (!sp || sp.eventId != id) {
-						if (_dragItm) {
-							auto top = topItem(ti);
-							if (top is topItem(_dragItm)) {
-								store(cast(Content) top.getData());
-							} else {
-								store(cast(Content) _dragItm.getParentItem().getData(), owner);
+				try {
+					auto node = XNode.parse(bytesToXML(e.data));
+					bool samePane = _id == node.attr("paneId", false, "");
+					string id = node.attr("contentId", false, "");
+					auto evt = Content.createFromNode(node, LATEST_VERSION);
+					if (evt) {
+						auto owner = cast(Content) e.item.getData();
+						assert (owner.detail.owner);
+						auto ti = cast(TreeItem) e.item;
+						auto sp = selParent(ti);
+						if (!sp || sp.eventId != id) {
+							// 転送先が自分の子コンテントではないなら転送成功
+							bool empty = _et.owner.isEmpty;
+							scope (exit) {
+								if (empty != _et.owner.isEmpty) _comm.refEventTree.call(_et);
 							}
-						} else {
-							store(owner);
+							if (_dragItm) {
+								auto top = topItem(ti);
+								if (top is topItem(_dragItm)) {
+									store(cast(Content) top.getData());
+								} else {
+									store(cast(Content) _dragItm.getParentItem().getData(), owner);
+								}
+							} else {
+								store(owner);
+							}
+							owner.add(evt);
+							_comm.refContent.call(evt);
+							_tree.setRedraw(false);
+							auto itm = createTreeItem(ti, evt, eventText(owner, evt), _prop.images.content(evt.type));
+							procTreeItem(itm);
+							_tree.setSelection([itm]);
+							refreshStatusLine();
+							_comm.refUseCount.call();
+							if (evt.detail.owner) {
+								createChilds(itm, evt);
+								itm.setExpanded(true);
+							}
+							_tree.setRedraw(true);
+							refreshStatusLine();
+							e.detail = samePane ? DND.DROP_MOVE : DND.DROP_COPY;
+							_comm.refreshToolBar();
 						}
-						// 転送先が自分の子コンテントではないなら転送成功
-						owner.add(evt);
-						_comm.refContent.call(evt);
-						_tree.setRedraw(false);
-						auto itm = createTreeItem(ti, evt, eventText(owner, evt), _prop.images.content(evt.type));
-						procTreeItem(itm);
-						_tree.setSelection([itm]);
-						refreshStatusLine();
-						_comm.refUseCount.call();
-						if (evt.detail.owner) {
-							createChilds(itm, evt);
-							itm.setExpanded(true);
-						}
-						_tree.setRedraw(true);
-						refreshStatusLine();
-						e.detail = DND.DROP_MOVE;
-						_comm.refreshToolBar();
 					}
+				} catch (Exception e) {
+					debugln(e);
 				}
 			}
 		}
@@ -1683,6 +1717,8 @@ public:
 			void delegate(size_t[]) forceSel,
 			void delegate() refreshTopStart,
 			Composite contentsBoxArea) {
+		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime());
+
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
@@ -2846,6 +2882,10 @@ public:
 		if (!itm) return;
 		auto owner = insertOwner;
 		if (!owner) return;
+		bool empty = _et.owner.isEmpty;
+		scope (exit) {
+			if (empty != _et.owner.isEmpty) _comm.refEventTree.call(_et);
+		}
 		Content[] cs2;
 		foreach (ct; cs) {
 			if (ct.type is CType.START) continue;
@@ -2876,6 +2916,10 @@ public:
 	private void addStarts(bool stored, Content[] cs, Content[] refCS = []) {
 		_tree.setRedraw(false);
 		scope (exit) _tree.setRedraw(true);
+		bool empty = _et.owner.isEmpty;
+		scope (exit) {
+			if (empty != _et.owner.isEmpty) _comm.refEventTree.call(_et);
+		}
 		auto sel = selection;
 		int index = insertStartIndex;
 		Content[] cs2;
@@ -3061,6 +3105,10 @@ public:
 		_comm.refreshToolBar();
 	}
 	private void delImpl(TreeItem itm, bool store) {
+		bool empty = _et.owner.isEmpty;
+		scope (exit) {
+			if (empty != _et.owner.isEmpty) _comm.refEventTree.call(_et);
+		}
 		auto ownerItm = itm.getParentItem();
 		auto c = cast(Content) itm.getData();
 		_comm.delContent.call(c);
@@ -3078,6 +3126,10 @@ public:
 		if (v) {
 			v.delImpl(v.fromPath(c.ctPath), false);
 		} else {
+			bool empty = et.owner.isEmpty;
+			scope (exit) {
+				if (empty != et.owner.isEmpty) comm.refEventTree.call(et);
+			}
 			comm.delContent.call(c);
 			if (c.parent) {
 				c.parent.remove(c);

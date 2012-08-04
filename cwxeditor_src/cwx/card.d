@@ -1430,6 +1430,8 @@ public:
 		}
 		assert (0);
 	}
+	@property
+	override bool isEmpty() {return _ceto.isEmpty;}
 
 	override void add(EventTree evt) {return _ceto.add(evt);}
 	override void insert(int index, EventTree evt) {return _ceto.insert(index, evt);}
@@ -1519,7 +1521,7 @@ public:
 		auto cate = cpcategory(path);
 		switch (cate) {
 		case "event": {
-			return _ceto.findCWXPath(cpbottom(path));
+			return _ceto.findCWXPath(path);
 		}
 		case "motion": {
 			auto index = cpindex(path);
