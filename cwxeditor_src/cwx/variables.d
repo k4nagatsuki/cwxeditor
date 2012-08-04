@@ -51,6 +51,7 @@ class FlexEtcProps : Properties {
 	auto fixedImagesEvent = Prop!(bool)("fixedImagesEvent", false);
 	auto viewCards = Prop!(bool)("viewCards", true);
 	auto viewBgImages = Prop!(bool)("viewBgImages", true);
+	auto showGrid = Prop!(bool)("showGrid", false);
 	auto areaSashT = Prop!(int)("areaSashT", 5);
 	auto areaSashB = Prop!(int)("areaSashB", 4);
 	auto flagSashL = Prop!(int)("flagSashL", 3);
@@ -139,6 +140,9 @@ class FlexEtcProps : Properties {
 	auto msgForeG = Prop!(int, true)("msgForeG", 255);
 	auto msgForeB = Prop!(int, true)("msgForeB", 255);
 	auto textTabs = Prop!(int, true)("textTabs", 4);
+
+	auto gridMax = Prop!(uint, true)("gridMax", 100);
+	auto grid = Prop!(uint)("grid", 10);
 
 	auto contentsOrder = Prop!(int[])("contentsOrder", []);
 	auto contentsLock = Prop!(bool)("contentsLock", false);

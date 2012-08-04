@@ -1695,6 +1695,19 @@ public:
 		redraw();
 	}
 
+	/// グリッド間隔。1以下の場合はグリッドは無効。
+	@property
+	const
+	int grid() {
+		return _grid;
+	}
+	/// ditto
+	@property
+	void grid(int v) {
+		_grid = v;
+		redraw();
+	}
+
 	/// 唯一のコンストラクタ。
 	this (Composite parent, int style) {
 		super(parent, style);

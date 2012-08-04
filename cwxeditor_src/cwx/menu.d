@@ -118,6 +118,7 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.ShowMsg] = "M";
 		_mnemonic[MenuID.ShowRefCards] = "R";
 		_mnemonic[MenuID.FixedImage] = "F";
+		_mnemonic[MenuID.ShowGrid] = "G";
 		_mnemonic[MenuID.ShowEnemyCardProp] = "L";
 		_mnemonic[MenuID.ShowCard] = "V";
 		_mnemonic[MenuID.ShowBack] = "I";
@@ -268,6 +269,7 @@ class MenuProps : Properties {
 		_hotkey[MenuID.ShowMsg] = "";
 		_hotkey[MenuID.ShowRefCards] = "";
 		_hotkey[MenuID.FixedImage] = "";
+		_hotkey[MenuID.ShowGrid] = "";
 		_hotkey[MenuID.ShowEnemyCardProp] = "";
 		_hotkey[MenuID.ShowCard] = "";
 		_hotkey[MenuID.ShowBack] = "";

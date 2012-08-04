@@ -607,14 +607,19 @@ private:
 	bool _viewMsg = false;
 	bool _viewParty = true;
 	bool _fixed = false;
+	bool _showGrid = false;
+	int _grid = 0;
 
 	Summary _summ;
 	MenuItem _vmMenu;
 	MenuItem _vpMenu;
 	MenuItem _vfMenu;
+	MenuItem _sgMenu;
+	MenuItem _sgPMenu;
 	ToolItem _vmTMenu;
 	ToolItem _vpTMenu;
 	ToolItem _vfTMenu;
+	ToolItem _sgTMenu;
 	static if (RefCards) {
 		MenuItem _vrMenu;
 		ToolItem _vrTMenu;
@@ -1291,6 +1296,9 @@ private:
 				itm.setImage(_prop.images.editEventBattle);
 			}
 			new MenuItem(menu, SWT.SEPARATOR);
+			_sgPMenu = createMenuItem(_comm, menu, MenuID.ShowGrid, &reverseShowGrid, null, SWT.CHECK);
+			_sgPMenu.setSelection(_showGrid);
+			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(_comm, menu, MenuID.PosTop, &posTop, () => _imgp.selectedIndex >= 2);
 			createMenuItem(_comm, menu, MenuID.PosBottom, &posBottom, () => _imgp.selectedIndex >= 2);
 			createMenuItem(_comm, menu, MenuID.PosLeft, &posLeft, () => _imgp.selectedIndex >= 2);
@@ -1733,6 +1741,8 @@ public:
 		} else {
 			static assert (0);
 		}
+		_showGrid = _prop.var.etc.showGrid;
+		_grid = _prop.var.etc.grid;
 		static if (is(C : EnemyCard) || RefCards) {
 			_dbgMode = _prop.var.etc.viewEnemyCardDebug;
 		}
@@ -1753,6 +1763,8 @@ public:
 				} else {
 					static assert (0);
 				}
+				_prop.var.etc.showGrid = _showGrid;
+				_prop.var.etc.grid = _grid;
 				static if (RefCards) {
 					_prop.var.etc.viewReferenceCards = _imgp.showAppends;
 				}
@@ -1992,6 +2004,7 @@ public:
 		static if (RefCards) {
 			refreshRefAreas();
 		}
+		refreshGrid();
 	}
 	private string _statusLine;
 	@property
@@ -2728,6 +2741,8 @@ public:
 		@property
 		bool spCustom() {return !_area.spAuto;}
 	}
+	@property
+	bool isShowGrid() {return _showGrid;}
 	private void setupTLP(TopLevelPanel tlp) {
 		_tlp.putMenuChecked(MenuID.ShowParty, &reverseViewParty, &isViewParty, null);
 		_tlp.putMenuChecked(MenuID.FixedImage, &reverseFixed, &isFixed, null);
@@ -2739,6 +2754,7 @@ public:
 			_tlp.putMenuChecked(MenuID.AutoArrange, &setAuto, &_area.spAuto, null);
 			_tlp.putMenuChecked(MenuID.ManualArrange, &setCustom, &spCustom, null);
 		}
+		_tlp.putMenuChecked(MenuID.ShowGrid, &reverseShowGrid, &isShowGrid, null);
 		_tlp.putMenuAction(MenuID.Refresh, &refresh, null);
 		_tlp.putMenuAction(MenuID.Undo, &undo, &_undo.canUndo);
 		_tlp.putMenuAction(MenuID.Redo, &redo, &_undo.canRedo);
@@ -2783,6 +2799,9 @@ public:
 			_autoMenu.setSelection(_area.spAuto);
 			_customMenu.setSelection(!_area.spAuto);
 		}
+		new MenuItem(mv, SWT.SEPARATOR);
+		_sgMenu = createMenuItem(_comm, mv, MenuID.ShowGrid, &reverseShowGrid, null, SWT.CHECK);
+		_sgMenu.setSelection(_showGrid);
 		new MenuItem(mv, SWT.SEPARATOR);
 		static if (is (C == MenuCard)) {
 			createMenuItem(_comm, mv, MenuID.NewMenuCard, &createCard, null);
@@ -2910,6 +2929,18 @@ public:
 			_bgm.createPlayToolItem(bar);
 			_bgm.path = _area.music;
 		}
+		new ToolItem(bar, SWT.SEPARATOR);
+		_sgTMenu = createToolItem(_comm, bar, MenuID.ShowGrid, &reverseShowGrid, null, SWT.CHECK);
+		_sgTMenu.setSelection(_showGrid);
+		auto grid = new Spinner(bar, SWT.BORDER);
+		grid.setMaximum(_prop.var.etc.gridMax);
+		grid.setMinimum(1);
+		grid.setSelection(_grid);
+		.listener(grid, SWT.Selection, {
+			_grid = grid.getSelection();
+			refreshGrid();
+		});
+		createToolItemC(bar, grid);
 	}
 	private class FlagsDispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
@@ -2998,6 +3029,17 @@ public:
 		if (_vfMenu) _vfMenu.setSelection(_fixed);
 		if (_vfTMenu) _vfTMenu.setSelection(_fixed);
 		_imgp.redraw();
+	}
+	void reverseShowGrid() {
+		_showGrid = !_showGrid;
+		refreshGrid();
+		if (_sgMenu) _sgMenu.setSelection(_showGrid);
+		if (_sgTMenu) _sgTMenu.setSelection(_showGrid);
+		if (_sgPMenu) _sgPMenu.setSelection(_showGrid);
+		_imgp.redraw();
+	}
+	void refreshGrid() {
+		_imgp.grid = _showGrid ? _grid : 0;
 	}
 	private int insertIndex(Table list) {
 		int[] indices = list.getSelectionIndices().sort;

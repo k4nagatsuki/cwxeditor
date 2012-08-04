@@ -1006,6 +1006,7 @@ enum MenuID {
 	ShowMsg,
 	ShowRefCards,
 	FixedImage,
+	ShowGrid,
 	ShowEnemyCardProp,
 	ShowCard,
 	ShowBack,

@@ -1527,6 +1527,7 @@ class Msgs : Properties {
 	auto menuTextShowMsg = Msg("menuTextShowMsg", "メッセージ枠の表示");
 	auto menuTextShowRefCards = Msg("menuTextShowRefCards", "カード参照の表示");
 	auto menuTextFixedImage = Msg("menuTextFixedImage", "イメージの固定");
+	auto menuTextShowGrid = Msg("menuTextShowGrid", "グリッドの表示");
 	auto menuTextShowEnemyCardProp = Msg("menuTextShowEnemyCardProp", "レベルとライフを表示");
 	auto menuTextShowCard = Msg("menuTextShowCard", "カードの表示");
 	auto menuTextShowBack = Msg("menuTextShowBack", "背景の表示");
