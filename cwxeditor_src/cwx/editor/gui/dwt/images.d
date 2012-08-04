@@ -1003,7 +1003,7 @@ private:
 	Image[] _appends = [];
 	bool _showAppends = true;
 
-	int _grid = 0;
+	int _gridX = 0, _gridY = 0;
 
 	class DListener : DisposeListener {
 		public override void widgetDisposed(DisposeEvent e)  {
@@ -1066,10 +1066,17 @@ private:
 			}
 		}
 	}
-	int toGrid(int p) {
-		if (1 < _grid) {
-			p += _grid / 2.0;
-			p = p - (p % _grid);
+	int toGridX(int p) {
+		if (1 < _gridX) {
+			p += _gridX / 2.0;
+			p = p - (p % _gridX);
+		}
+		return p;
+	}
+	int toGridY(int p) {
+		if (1 < _gridY) {
+			p += _gridY / 2.0;
+			p = p - (p % _gridY);
 		}
 		return p;
 	}
@@ -1163,14 +1170,14 @@ private:
 						default:
 							break;
 						}
-						if (1 < _grid) {
+						if (1 < _gridX || 1 < _gridY) {
 							if (dragTgl is Toggle.MOVE) {
-								int gx = toGrid(newRect.x);
-								int gy = toGrid(newRect.y);
+								int gx = toGridX(newRect.x);
+								int gy = toGridY(newRect.y);
 								int r = newRect.x + newRect.width;
 								int b = newRect.y + newRect.height;
-								int gr = toGrid(r);
-								int gb = toGrid(b);
+								int gr = toGridX(r);
+								int gb = toGridY(b);
 								if (.abs(gx - newRect.x) <= .abs(gr - r)) {
 									newRect.x = gx;
 								} else {
@@ -1201,21 +1208,21 @@ private:
 								int r = newRect.x + newRect.width;
 								int b = newRect.y + newRect.height;
 								if (isLeft) {
-									int gx = toGrid(newRect.x);
+									int gx = toGridX(newRect.x);
 									newRect.width += newRect.x - gx;
 									newRect.x = gx;
 								}
 								if (isRight) {
-									int gr = toGrid(newRect.x + newRect.width);
+									int gr = toGridX(newRect.x + newRect.width);
 									newRect.width = gr - newRect.x;
 								}
 								if (isTop) {
-									int gy = toGrid(newRect.y);
+									int gy = toGridY(newRect.y);
 									newRect.height += newRect.y - gy;
 									newRect.y = gy;
 								}
 								if (isBottom) {
-									int gr = toGrid(newRect.y + newRect.height);
+									int gr = toGridY(newRect.y + newRect.height);
 									newRect.height = gr - newRect.y;
 								}
 
@@ -1424,20 +1431,35 @@ private:
 				}
 			}
 
-			if (1 < _grid) {
+			if (1 < _gridX || 1 < _gridY) {
+				gc.dispose();
+				gc = new GC(buf);
 				void drawLines() {
-					int x = _grid;
-					while (x < rect.width) {
-						gc.fillRectangle(x, rect.y, 1, rect.height);
-						x += _grid;
+					if (1 < _gridX) {
+						int x = _gridX;
+						while (x < rect.width) {
+							gc.drawLine(x, rect.y, x, rect.height);
+							x += _gridX;
+						}
 					}
-					int y = _grid;
-					while (y < rect.height) {
-						gc.fillRectangle(rect.x, y, rect.width, 1);
-						y += _grid;
+					if (1 < _gridY) {
+						int y = _gridY;
+						while (y < rect.height) {
+							gc.drawLine(rect.x, y, rect.width, y);
+							y += _gridY;
+						}
 					}
 				}
-				gc.setBackground(d.getSystemColor(SWT.COLOR_DARK_GRAY));
+				if (_gridDashed) {
+					gc.setLineStyle(SWT.LINE_DOT);
+				} else {
+					gc.setLineStyle(SWT.LINE_SOLID);
+				}
+				if (_gridColor) {
+					gc.setForeground(_gridColor);
+				} else {
+					gc.setForeground(d.getSystemColor(SWT.COLOR_DARK_GRAY));
+				}
 				drawLines();
 			}
 
@@ -1472,9 +1494,20 @@ private:
 	}
 
 	private Color _backColor = null;
+	private Color _gridColor = null;
+	private bool _gridDashed = true;
 public:
 	void setBackgroundColor2(Color backColor) {_backColor = backColor;}
 	Color getBackgroundColor2() {return _backColor;}
+	@property
+	void gridColor(Color gridColor) {_gridColor = gridColor;}
+	@property
+	Color gridColor() {return _gridColor;}
+	@property
+	void gridDashed(bool gridDashed) {_gridDashed = gridDashed;}
+	@property
+	const
+	bool gridDashed() {return _gridDashed;}
 
 	@property
 	PileImage[] images() {
@@ -1716,13 +1749,25 @@ public:
 	/// グリッド間隔。1以下の場合はグリッドは無効。
 	@property
 	const
-	int grid() {
-		return _grid;
+	int gridX() {
+		return _gridX;
 	}
 	/// ditto
 	@property
-	void grid(int v) {
-		_grid = v;
+	void gridX(int v) {
+		_gridX = v;
+		redraw();
+	}
+	/// ditto
+	@property
+	const
+	int gridY() {
+		return _gridY;
+	}
+	/// ditto
+	@property
+	void gridY(int v) {
+		_gridY = v;
 		redraw();
 	}
 

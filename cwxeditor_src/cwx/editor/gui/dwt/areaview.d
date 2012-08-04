@@ -608,7 +608,8 @@ private:
 	bool _viewParty = true;
 	bool _fixed = false;
 	bool _showGrid = false;
-	int _grid = 0;
+	int _gridX = 0;
+	int _gridY = 0;
 
 	Summary _summ;
 	MenuItem _vmMenu;
@@ -1267,6 +1268,10 @@ private:
 			_prop.var.etc.wallColorB);
 		auto color = new Color(Display.getCurrent(), rgb);
 		_imgp.setBackgroundColor2(color);
+		int alpha;
+		auto gridColor = new Color(Display.getCurrent(), dwtData(_prop.var.etc.gridColor, alpha));
+		_imgp.gridColor(gridColor);
+		_imgp.gridDashed = _prop.var.etc.gridDashed;
 		_comm.refWallpaper.add(&refreshWallpaper);
 		_imgp.addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) {
@@ -1322,6 +1327,8 @@ private:
 				if (img) img.dispose();
 				auto color = pane.getBackgroundColor2();
 				if (color) color.dispose();
+				auto gColor = pane.gridColor();
+				if (gColor) gColor.dispose();
 			}
 		});
 		return sc;
@@ -1742,7 +1749,8 @@ public:
 			static assert (0);
 		}
 		_showGrid = _prop.var.etc.showGrid;
-		_grid = _prop.var.etc.grid;
+		_gridX = _prop.var.etc.gridX;
+		_gridY = _prop.var.etc.gridY;
 		static if (is(C : EnemyCard) || RefCards) {
 			_dbgMode = _prop.var.etc.viewEnemyCardDebug;
 		}
@@ -1764,7 +1772,8 @@ public:
 					static assert (0);
 				}
 				_prop.var.etc.showGrid = _showGrid;
-				_prop.var.etc.grid = _grid;
+				_prop.var.etc.gridX = _gridX;
+				_prop.var.etc.gridY = _gridY;
 				static if (RefCards) {
 					_prop.var.etc.viewReferenceCards = _imgp.showAppends;
 				}
@@ -2932,15 +2941,28 @@ public:
 		new ToolItem(bar, SWT.SEPARATOR);
 		_sgTMenu = createToolItem(_comm, bar, MenuID.ShowGrid, &reverseShowGrid, null, SWT.CHECK);
 		_sgTMenu.setSelection(_showGrid);
-		auto grid = new Spinner(bar, SWT.BORDER);
-		grid.setMaximum(_prop.var.etc.gridMax);
-		grid.setMinimum(1);
-		grid.setSelection(_grid);
-		.listener(grid, SWT.Selection, {
-			_grid = grid.getSelection();
+		new ToolItem(bar, SWT.SEPARATOR);
+		createLabel(bar, _prop.msgs.left);
+		auto gridX = new Spinner(bar, SWT.BORDER);
+		gridX.setMaximum(_prop.var.etc.gridMaxX);
+		gridX.setMinimum(1);
+		gridX.setSelection(_gridX);
+		.listener(gridX, SWT.Selection, {
+			_gridX = gridX.getSelection();
 			refreshGrid();
 		});
-		createToolItemC(bar, grid);
+		createToolItemC(bar, gridX);
+		new ToolItem(bar, SWT.SEPARATOR);
+		createLabel(bar, _prop.msgs.top);
+		auto gridY = new Spinner(bar, SWT.BORDER);
+		gridY.setMaximum(_prop.var.etc.gridMaxY);
+		gridY.setMinimum(1);
+		gridY.setSelection(_gridY);
+		.listener(gridY, SWT.Selection, {
+			_gridY = gridY.getSelection();
+			refreshGrid();
+		});
+		createToolItemC(bar, gridY);
 	}
 	private class FlagsDispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
@@ -3039,7 +3061,8 @@ public:
 		_imgp.redraw();
 	}
 	void refreshGrid() {
-		_imgp.grid = _showGrid ? _grid : 0;
+		_imgp.gridX = _showGrid ? _gridX : 0;
+		_imgp.gridY = _showGrid ? _gridY : 0;
 	}
 	private int insertIndex(Table list) {
 		int[] indices = list.getSelectionIndices().sort;

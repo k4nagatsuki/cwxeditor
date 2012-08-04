@@ -140,8 +140,12 @@ class FlexEtcProps : Properties {
 	auto msgForeG = Prop!(int, true)("msgForeG", 255);
 	auto msgForeB = Prop!(int, true)("msgForeB", 255);
 	auto textTabs = Prop!(int, true)("textTabs", 4);
-	auto gridMax = Prop!(uint, true)("gridMax", 100);
-	auto grid = Prop!(uint)("grid", 10);
+	auto gridMaxX = Prop!(uint, true)("gridMaxX", 632);
+	auto gridMaxY = Prop!(uint, true)("gridMaxY", 420);
+	auto gridX = Prop!(uint)("gridX", 10);
+	auto gridY = Prop!(uint)("gridY", 10);
+	auto gridColor = Prop!(CRGB, true)("gridColor", CRGB(96, 96, 96));
+	auto gridDashed = Prop!(bool, true)("gridDashed", true);
 
 	auto contentsOrder = Prop!(int[])("contentsOrder", []);
 	auto contentsLock = Prop!(bool)("contentsLock", false);
