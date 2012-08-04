@@ -1,26 +1,34 @@
 #!/usr/bin/rdmd
-/// CWXEditorのビルドスクリプト。
+/// ビルドスクリプト。
 module build;
+
+immutable NAME = "cwxeditor";
+immutable string[] CRITICAL = [
+	"d2std" ~ dirSeparator ~ "xml.d",
+];
+immutable string[] RES_DIR = [
+	".",
+	"." ~ dirSeparator ~ "resource",
+];
 
 import std.algorithm;
 import std.file;
-import std.path : filenameCmp, extension, setExtension, buildPath, baseName;
+import std.path;
 import std.process;
 import std.exception;
 import std.array;
 import std.string : splitLines;
 import std.stdio : writeln, writefln;
 import std.datetime;
-
-immutable DMD = "dmd";
+import std.container;
 
 version (Windows) {
 	immutable RCC = "rcc";
-	immutable RC = "cwxeditor.rc";
-	immutable RES = "cwxeditor.res";
-	immutable EXE = "cwxeditor.exe";
+	immutable RC = NAME.setExtension("rc");
+	immutable RES = NAME.setExtension("res");
+	immutable EXE = NAME.setExtension("exe");
 	immutable LIB = [
-		"-L/rc:cwxeditor",
+		"-L/rc:" ~ NAME,
 		"-L/NOM",
 		"-L+advapi32.lib",
 		"-L+comctl32.lib",
@@ -41,12 +49,10 @@ version (Windows) {
 		"-L+org.eclipse.swt.win32.win32.x86.lib",
 	];
 	immutable DEBUG_FLAGS = [
-		"-gs",
 		"-debug",
 		"-unittest",
 	];
 	immutable string[] DEBUG_FLAGS_L = [
-		"-gs",
 		"-debug",
 		"-unittest",
 	];
@@ -60,7 +66,7 @@ version (Windows) {
 	];
 	immutable O = "obj";
 } else {
-	immutable EXE = "cwxeditor";
+	immutable EXE = NAME;
 	immutable LIB = [
 		"org.eclipse.swt.gtk.linux.x86.a",
 		"dwt-base.a",
@@ -92,14 +98,11 @@ version (Windows) {
 	];
 	immutable DEBUG_FLAGS = [
 		"-g",
-		// FIXME: std.conv.to!int("3")がエラーになってしまう
-//		"-gs",
 		"-debug",
 		"-unittest",
 	];
 	immutable string[] DEBUG_FLAGS_L = [
 		"-g",
-		"-gs",
 		"-debug",
 		"-unittest",
 	];
@@ -113,13 +116,11 @@ version (Windows) {
 }
 
 immutable FLAGS = [
-	"-J.",
-	"-Jresource",
 	"-op",
 	"-property",
 	"-c",
 ];
-immutable D2STD_FLAGS = [
+immutable CRITICAL_FLAGS = [
 	"-c",
 	"-release",
 	"-O",
@@ -140,6 +141,9 @@ immutable string[] RELEASE_FLAGS_L = [
 	"-O",
 ];
 
+immutable DMD = "dmd";
+
+/// コマンドを実行。
 void exec(string[] cmd ...) {
 	string line = cmd.join(" ");
 	writeln(line);
@@ -148,12 +152,15 @@ void exec(string[] cmd ...) {
 	timer.stop();
 	writefln("%d msecs", timer.peek().msecs);
 }
+/// ファイル名が一致するか。
 bool equalsFilename(string a, string b) {
 	return 0 == a.filenameCmp(b);
 }
-void put(string file, ref string[] array, ref string[string] objs, in string[] qual) {
+/// コンパイル対象の情報を格納する。
+string[] put(string file, ref string[string] objs, in string[] qual) {
 	string obj = "objs".buildPath(file).setExtension(O);
 	objs[file] = obj;
+	string[] array;
 	if (qual.length) {
 		if (!qual.find!equalsFilename(file.baseName()).empty) {
 			array ~= file;
@@ -163,22 +170,17 @@ void put(string file, ref string[] array, ref string[string] objs, in string[] q
 			array ~= file;
 		}
 	}
+	return array;
 }
-string[] sources(string path, bool shallow, ref string[string] objs, in string[] qual) {
-	string[] arr;
-	foreach (string file; path.dirEntries(shallow ? SpanMode.shallow : SpanMode.depth)) {
-		if (file.extension().equalsFilename(".d")) {
-			put(file, arr, objs, qual);
-		}
-	}
-	return arr;
-}
+/// argsにflagが含まれているか(大文字・小文字を区別しない)。
 bool has(in string[] args, string flag) {
 	return !find!("0 == icmp(a, b)")(args, flag).empty;
 }
+/// pathがtargより新しいか。
 bool newer(string path, string targ) {
 	return !targ.exists() || path.timeLastModified() > targ.timeLastModified();
 }
+/// pathを削除する。
 void removeFile(string path) {
 	if (!path.exists()) return;
 	if (path.isDir()) {
@@ -188,7 +190,7 @@ void removeFile(string path) {
 	}
 	writefln("removed: %s", path);
 }
-
+/// argsの内容を分類する。
 void divide(in string[] args, out string[] file, out string[] option, out string[] dmdOption) {
 	foreach (a; args) {
 		if (0 == a.extension().filenameCmp(".d")) {
@@ -205,26 +207,25 @@ void main(string[] args) {
 	auto timer = StopWatch(AutoStart.yes);
 
 	// ビルドフラグ
-	string[] file, option, dmdOption;
-	divide(args[1 .. $], file, option, dmdOption);
-	file = file.sort;
+	string[] test, option, dmdOption;
+	divide(args[1 .. $], test, option, dmdOption);
+	test = test.sort;
 	option = option.sort;
 	bool help = option.has("help");
 	bool release = option.has("release");
 	bool console = option.has("cui");
-	bool uionly = option.has("uionly");
 	bool window = (release && !console) || option.has("gui");
 	bool clean = option.has("clean");
 	bool run = option.has("run");
 
 	if (help) {
-		writeln("Usage: rdmd build [help | clean | uionly | cui | gui | release | run | *.d]");
+		writeln("Usage: rdmd build [help | clean | cui | gui | release | run | *.d]");
 		return;
 	}
 
 	// 前回のフラグと比較・保存
 	bool mod = false;
-	if (!file.length) {
+	if (!test.length) {
 		auto option2 = option.dup;
 		option2 = std.algorithm.remove!(a => a == "clean")(option2);
 		option2 = std.algorithm.remove!(a => a == "run")(option2);
@@ -241,22 +242,34 @@ void main(string[] args) {
 		"objs".removeFile();
 		"build.d.deps".removeFile();
 		"build.log".removeFile();
-		if (clean && 1 == file.length + option.length) return;
+		if (clean && 1 == test.length + option.length) return;
 	}
 
 	// ソースコードとオブジェクトファイルのリスト
-	string[string] objs;
-	string[] cwx = sources("cwx", true, objs, file);
-	string[] editor = sources("cwx".buildPath("editor"), false, objs, file);
-	string[] d2std = sources("d2std", false, objs, file);
-	string[] main;
-	put("cwxeditor.d", main, objs, file);
+	string[string] objs; // コンパイル対象と生成されるオブジェクトファイルのテーブル
+	string[][string] files; // コンパイル対象(ディレクトリ毎)
+	string[] critical; // 速度優先でコンパイルされるべきファイル
+	string[] res; // リソースのディレクトリ
+	foreach (string file; ".".dirEntries(SpanMode.depth)) {
+		if (file.isDir()) continue;
+		if (!file.extension().equalsFilename(".d")) continue;
+		file = file.buildNormalizedPath();
+		if (file.equalsFilename(__FILE__)) continue;
+		if (-1 != CRITICAL.countUntil!equalsFilename(file)) {
+			critical ~= put(file, objs, test);
+			continue;
+		}
+		files[file.dirName] ~= put(file, objs, test);
+	}
+	foreach (resDir; RES_DIR) {
+		res ~= "-J" ~ resDir;
+	}
 
 	string[] cmd;
 
 	version (Windows) {
 		// リソースファイル
-		if (RC.newer(RES)) {
+		if (RC.length && RC.newer(RES)) {
 			cmd = [RCC];
 			exec(cmd ~ RC);
 		}
@@ -268,16 +281,17 @@ void main(string[] args) {
 	string[] flags = FLAGS.dup;
 	flags ~= release ? RELEASE_FLAGS : DEBUG_FLAGS;
 	flags ~= window ? WINDOW_FLAGS : CONSOLE_FLAGS;
-	if (!uionly) {
-		if (d2std.length) exec(cmd ~ D2STD_FLAGS ~ d2std ~ "-odobjs" ~ dmdOption);
-		if (cwx.length) exec(cmd ~ flags ~ cwx ~ "-odobjs" ~ dmdOption);
+	if (critical.length) {
+		exec(cmd ~ CRITICAL_FLAGS ~ res.array() ~ critical ~ "-odobjs" ~ dmdOption);
 	}
-	if (editor.length) exec(cmd ~ flags ~ editor ~ "-odobjs" ~ dmdOption);
-	if (main.length) exec(cmd ~ flags ~ main ~ "-odobjs" ~ dmdOption);
+	foreach (dir, array; files) {
+		if (!files.length) continue;
+		exec(cmd ~ flags ~ array ~ res.array() ~ "-odobjs" ~ dmdOption);
+	}
 
 	// ファイルが指定されている場合はコンパイルテストなのでここで終了
-	if (file.length) {
-		foreach (f; d2std ~ cwx ~ editor ~ main) {
+	if (test.length) {
+		foreach (f; critical ~ files.values.join()) {
 			auto obj = objs[f];
 			writefln("%s: %s KB", obj, obj.getSize() / 1024);
 		}

@@ -866,16 +866,11 @@ public:
 		}
 	}
 
-	/// 自在にサイズ変更できるときのトグル。
+	/// サイズ変更のトグル。
 	Toggle[] RESIZE_TOGGLES = [
 		Toggle.LEFT_TOP, Toggle.LEFT_MIDDLE, Toggle.LEFT_BOTTOM,
 		Toggle.MIDDLE_TOP, Toggle.MIDDLE_BOTTOM,
 		Toggle.RIGHT_TOP, Toggle.RIGHT_MIDDLE, Toggle.RIGHT_BOTTOM
-	];
-	/// 縦横比固定時のトグル。
-	Toggle[] RESIZE_TOGGLES_CORNER = [
-		Toggle.LEFT_TOP, Toggle.LEFT_BOTTOM,
-		Toggle.RIGHT_TOP, Toggle.RIGHT_BOTTOM
 	];
 
 	private void retoggle() {
@@ -883,7 +878,7 @@ public:
 			typeof(this.tgls) tgls;
 			this.tgls = tgls;
 		} else {
-			Toggle[] tgls = whconst ? RESIZE_TOGGLES_CORNER : RESIZE_TOGGLES;
+			Toggle[] tgls = RESIZE_TOGGLES;
 			foreach (key; this.tgls.keys) {
 				this.tgls.remove(key);
 			}
@@ -1001,6 +996,8 @@ private:
 	Image[] _appends = [];
 	bool _showAppends = true;
 
+	int _grid = 0;
+
 	class DListener : DisposeListener {
 		public override void widgetDisposed(DisposeEvent e)  {
 			foreach (img; backs) {
@@ -1062,11 +1059,19 @@ private:
 			}
 		}
 	}
+	int toGrid(int p) {
+		if (1 < _grid) {
+			p += _grid / 2.0;
+			p = p - (p % _grid);
+		}
+		return p;
+	}
 	class MMListener : MouseMoveListener {
 		override void mouseMove(MouseEvent me) {
 			int x = me.x;
 			int y = me.y;
 			if (dragTgl != Toggle.NONE) {
+				assert (_mouseP !is null);
 				if (_ctrl && _mouseP) {
 					doSelect(_mouseP);
 				}
@@ -1076,7 +1081,7 @@ private:
 				foreach (img; dragImgs.keys) {
 					if (img.selected && !img.fixed && img.visible) {
 						auto rect = dragImgs[img];
-						Rectangle newRect = new Rectangle(img.x, img.y, img.width, img.height);
+						auto newRect = new Rectangle(img.x, img.y, img.width, img.height);
 						switch (dragTgl) {
 						case Toggle.LEFT_TOP, Toggle.LEFT_MIDDLE, Toggle.LEFT_BOTTOM:
 							int w = rect.width - movX;
@@ -1101,22 +1106,39 @@ private:
 						default:
 							break;
 						}
-						// 縦横比固定モード
-						if (ratioFix && !img.ratioFix
-								&& (dragTgl == Toggle.LEFT_TOP || dragTgl == Toggle.RIGHT_TOP
-								|| dragTgl == Toggle.RIGHT_BOTTOM || dragTgl == Toggle.RIGHT_BOTTOM)) {
-							// 元のサイズによって縦横の優先順を変更
-							if (rect.width >= rect.height) {
-								real scale = newRect.width / cast(real) rect.width;
-								newRect.height = cast(int) rndtol(rect.height * scale);
-							} else {
-								real scale = newRect.height / cast(real) rect.height;
-								newRect.width = cast(int) rndtol(rect.width * scale);
+						void roundH() {
+							real scale = newRect.width / cast(real) img.width;
+							newRect.height = cast(int) rndtol(img.height * scale);
+						}
+						void roundW() {
+							real scale = newRect.height / cast(real) img.height;
+							newRect.width = cast(int) rndtol(img.width * scale);
+						}
+						/// 縦横比固定のための調整。
+						void round(void delegate() roundW, void delegate() roundH) {
+							if (ratioFix || img.ratioFix) {
+								// イメージ自体が縦横比固定でない場合、トグルによっては縦横比の変更を許可する
+								switch (dragTgl) {
+								case Toggle.LEFT_MIDDLE, Toggle.RIGHT_MIDDLE:
+									if (img.ratioFix) roundH();
+									break;
+								case Toggle.MIDDLE_TOP, Toggle.MIDDLE_BOTTOM:
+									if (img.ratioFix) roundW();
+									break;
+								default:
+									// 元のサイズによって縦横の優先順を変更
+									if (rect.width >= rect.height) {
+										roundH();
+									} else {
+										roundW();
+									}
+								}
 							}
 						}
+						round(&roundW, &roundH);
 						switch (dragTgl) {
 						case Toggle.LEFT_TOP, Toggle.MIDDLE_TOP, Toggle.RIGHT_TOP:
-							newRect.y = rect.y + (rect.height - newRect.height);
+							newRect.y = (rect.y + rect.height) - newRect.height;
 							break;
 						case Toggle.MOVE:
 							newRect.y = rect.y + movY;
@@ -1126,7 +1148,7 @@ private:
 						}
 						switch (dragTgl) {
 						case Toggle.LEFT_TOP, Toggle.LEFT_MIDDLE, Toggle.LEFT_BOTTOM:
-							newRect.x = rect.x + (rect.width - newRect.width);
+							newRect.x = (rect.x + rect.width) - newRect.width;
 							break;
 						case Toggle.MOVE:
 							newRect.x = rect.x + movX;
@@ -1134,6 +1156,62 @@ private:
 						default:
 							break;
 						}
+						if (1 < _grid) {
+							if (dragTgl is Toggle.MOVE) {
+								newRect.x = toGrid(newRect.x);
+								newRect.y = toGrid(newRect.y);
+							} else {
+								@property
+								bool isLeft() {
+									return dragTgl is Toggle.LEFT_TOP || dragTgl is Toggle.LEFT_MIDDLE || dragTgl is Toggle.LEFT_BOTTOM;
+								}
+								@property
+								bool isTop() {
+									return dragTgl is Toggle.LEFT_TOP || dragTgl is Toggle.MIDDLE_TOP || dragTgl is Toggle.RIGHT_TOP;
+								}
+								@property
+								bool isRight() {
+									return dragTgl is Toggle.RIGHT_TOP || dragTgl is Toggle.RIGHT_MIDDLE || dragTgl is Toggle.RIGHT_BOTTOM;
+								}
+								@property
+								bool isBottom() {
+									return dragTgl is Toggle.LEFT_BOTTOM || dragTgl is Toggle.MIDDLE_BOTTOM || dragTgl is Toggle.RIGHT_BOTTOM;
+								}
+								int r = newRect.x + newRect.width;
+								int b = newRect.y + newRect.height;
+								if (isLeft) {
+									int gx = toGrid(newRect.x);
+									newRect.width += newRect.x - gx;
+									newRect.x = gx;
+								}
+								if (isRight) {
+									int gr = toGrid(newRect.x + newRect.width);
+									newRect.width = gr - newRect.x;
+								}
+								if (isTop) {
+									int gy = toGrid(newRect.y);
+									newRect.height += newRect.y - gy;
+									newRect.y = gy;
+								}
+								if (isBottom) {
+									int gr = toGrid(newRect.y + newRect.height);
+									newRect.height = gr - newRect.y;
+								}
+
+								void roundH2() {
+									if (isLeft) newRect.x = r - newRect.width;
+									roundH();
+									if (isTop) newRect.y = b - newRect.height;
+								}
+								void roundW2() {
+									if (isTop) newRect.y = b - newRect.height;
+									roundW();
+									if (isLeft) newRect.x = r - newRect.width;
+								}
+								round(&roundW2, &roundH2);
+							}
+						}
+
 						scope oldArea = img.drawNewArea;
 						img.newBounds = newRect;
 						scope newArea = img.drawNewArea;
@@ -1300,7 +1378,8 @@ private:
 	}
 	class PListener : PaintListener {
 		override void paintControl(PaintEvent e) {
-			auto buf = new Image(getShell().getDisplay(), getSize().x, getSize().y);
+			auto d = getShell().getDisplay();
+			auto buf = new Image(d, getSize().x, getSize().y);
 			auto gc = new GC(buf);
 
 			auto backImg = getBackgroundImage();
@@ -1309,7 +1388,7 @@ private:
 				gc.setBackground(_backColor);
 				gc.fillRectangle(rect.x, rect.y, rect.width, rect.height);
 			} else {
-				gc.setBackground(getShell().getDisplay().getSystemColor(SWT.COLOR_DARK_BLUE));
+				gc.setBackground(d.getSystemColor(SWT.COLOR_DARK_BLUE));
 				gc.fillRectangle(rect.x, rect.y, rect.width, rect.height);
 			}
 			if (backImg) {
@@ -1326,6 +1405,26 @@ private:
 
 			e.gc.drawImage(buf, 0, 0);
 			buf.dispose();
+
+			if (1 < _grid) {
+				e.gc.setAlpha(64);
+				void drawLines() {
+					int x = _grid;
+					while (x < rect.width) {
+						e.gc.fillRectangle(x, rect.y, 1, rect.height);
+						x += _grid;
+					}
+					int y = _grid;
+					while (y < rect.height) {
+						e.gc.fillRectangle(rect.x, y, rect.width, 1);
+						y += _grid;
+					}
+				}
+				e.gc.setBackground(d.getSystemColor(SWT.COLOR_WHITE));
+				drawLines();
+				e.gc.setBackground(d.getSystemColor(SWT.COLOR_BLACK));
+				drawLines();
+			}
 		}
 	}
 	class Traverse : Listener {

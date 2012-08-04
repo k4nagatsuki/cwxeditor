@@ -28,7 +28,7 @@ class Msgs : Properties {
 	auto application = Msg("application", "CWXEditor");
 	auto localeName = Msg("localeName", "日本語");
 	auto dlgTitVersion = Msg("dlgTitVersion", "バージョン情報");
-	auto appDesc = Msg("appDesc", "CardWirthPy向けシナリオエディタ");
+	auto appDesc = Msg("appDesc", "CardWirthPy / CardWirth向けシナリオエディタ");
 
 	auto dlgTitUsage = Msg("dlgTitUsage", "使い方 - CWXEditor");
 	auto usage = Msg("usage", "使い方: cwxeditor [-help | -putlangfile <PATH> | -conf <PATH>\n"

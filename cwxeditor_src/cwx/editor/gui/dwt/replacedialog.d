@@ -989,7 +989,7 @@ private:
 			.listener(grepDirRef, SWT.Selection, {
 				selectDir(_prop, _grepDir, _prop.msgs.grepDir, _prop.msgs.grepDirDesc, _grepDir.getText());
 			});
-			createOpenButton(_comm, grp, &_grepDir.getText, true);
+			createOpenButton(_comm, grp, {return _prop.toAppAbs(_grepDir.getText());}, true);
 
 			auto grepCurrent = new Button(grp, SWT.PUSH);
 			grepCurrent.setText(_prop.msgs.grepCurrent);
@@ -2862,9 +2862,8 @@ public:
 	}
 	private void grepImpl() {
 		string from = _from.getText();
-		auto dir = _grepDir.getText();
-		if (!dir.length) return;
-		dir = _prop.toAppAbs(dir);
+		auto dirBase = _grepDir.getText();
+		auto dir = _prop.toAppAbs(dirBase);
 		initText(from, "");
 		_replMode = false;
 
@@ -2969,7 +2968,7 @@ public:
 			_prop.var.etc.searchHistoryMax, from);
 		addHist(_grepDir, (string[] s) {_prop.var.etc.grepDirHistories = s;},
 			{return _prop.var.etc.grepDirHistories.dup;},
-			_prop.var.etc.searchHistoryMax, dir);
+			_prop.var.etc.searchHistoryMax, dirBase);
 		_comm.refSearchHistories.call(this);
 		auto cursors = setWaitCursors(_win);
 		auto thr = new core.thread.Thread({

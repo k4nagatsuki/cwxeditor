@@ -32,7 +32,7 @@ version (Windows) {
 	import std.c.windows.windows;
 	private extern (Windows) {
 		alias __gshared DWORD MCIERROR;
-		alias __gshared MCIERROR function(LPCWSTR, LPWSTR, UINT, HANDLE) mciSendStringW;
+		alias __gshared nothrow MCIERROR function(LPCWSTR, LPWSTR, UINT, HANDLE) mciSendStringW;
 	}
 	private const __gshared MCI_NOTIFY_SUCCESSFUL = 0x0001;
 	private const __gshared MM_MCINOTIFY = 0x03B9;
@@ -40,6 +40,7 @@ version (Windows) {
 	/// 再生イベントを通知する。
 	private HWND _mciNotifyHandle = null;
 	/// ditto
+	nothrow
 	private extern (Windows) LRESULT mciNotifyWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 		if (!_mciNotifyHandle || !winmm || !_mciSendString || !_bgmPlayingMCI || MM_MCINOTIFY != message || MCI_NOTIFY_SUCCESSFUL != wParam) {
 			return DefWindowProcW(hWnd, message, wParam, lParam);
