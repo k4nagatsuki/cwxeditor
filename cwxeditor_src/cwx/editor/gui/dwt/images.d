@@ -1424,28 +1424,25 @@ private:
 				}
 			}
 
-			e.gc.drawImage(buf, 0, 0);
-			buf.dispose();
-
 			if (1 < _grid) {
-				e.gc.setAlpha(64);
 				void drawLines() {
 					int x = _grid;
 					while (x < rect.width) {
-						e.gc.fillRectangle(x, rect.y, 1, rect.height);
+						gc.fillRectangle(x, rect.y, 1, rect.height);
 						x += _grid;
 					}
 					int y = _grid;
 					while (y < rect.height) {
-						e.gc.fillRectangle(rect.x, y, rect.width, 1);
+						gc.fillRectangle(rect.x, y, rect.width, 1);
 						y += _grid;
 					}
 				}
-				e.gc.setBackground(d.getSystemColor(SWT.COLOR_WHITE));
-				drawLines();
-				e.gc.setBackground(d.getSystemColor(SWT.COLOR_BLACK));
+				gc.setBackground(d.getSystemColor(SWT.COLOR_DARK_GRAY));
 				drawLines();
 			}
+
+			e.gc.drawImage(buf, 0, 0);
+			buf.dispose();
 		}
 	}
 	class Traverse : Listener {
