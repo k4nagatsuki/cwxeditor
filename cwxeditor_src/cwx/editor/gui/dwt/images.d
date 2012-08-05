@@ -1322,10 +1322,6 @@ private:
 					}
 				}
 				if (tgl !is Toggle.NONE) {
-					foreach (img, rect; dragImgs) {
-						redrawGrid(rect);
-					}
-					redrawGridHighlight();
 					_mouseP = img;
 					if (me.button == 1) {
 						if (!_ctrl) {

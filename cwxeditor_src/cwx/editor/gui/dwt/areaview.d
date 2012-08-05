@@ -2944,7 +2944,7 @@ public:
 		_sgTMenu = createToolItem(_comm, bar, MenuID.ShowGrid, &reverseShowGrid, null, SWT.CHECK);
 		_sgTMenu.setSelection(_showGrid);
 		new ToolItem(bar, SWT.SEPARATOR);
-		createLabel(bar, _prop.msgs.left);
+		createLabel(bar, _prop.msgs.left ~ ":");
 		auto gridX = new Spinner(bar, SWT.BORDER);
 		gridX.setMaximum(_prop.looks.viewSize.width);
 		gridX.setMinimum(1);
@@ -2955,7 +2955,7 @@ public:
 		});
 		createToolItemC(bar, gridX);
 		new ToolItem(bar, SWT.SEPARATOR);
-		createLabel(bar, _prop.msgs.top);
+		createLabel(bar, _prop.msgs.top ~ ":");
 		auto gridY = new Spinner(bar, SWT.BORDER);
 		gridY.setMaximum(_prop.looks.viewSize.height);
 		gridY.setMinimum(1);

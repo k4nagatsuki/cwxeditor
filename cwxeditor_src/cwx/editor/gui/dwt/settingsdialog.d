@@ -1491,7 +1491,7 @@ private:
 	void selectWallpaper() {
 		string[] filterName = [_prop.msgs.filterWallpaper, _prop.msgs.filterAll];
 		string[] filter = [
-			"*." ~ std.string.join(WALLPAPER_EXT.dup, ";*."),
+			"*" ~ std.string.join(WALLPAPER_EXT.dup, ";*"),
 			"*"
 		];
 		selectFile(_wallpaper, filterName, filter, _prop.var.etc.wallpaper, _prop.msgs.dlgTitWallpaper, getcwd());
