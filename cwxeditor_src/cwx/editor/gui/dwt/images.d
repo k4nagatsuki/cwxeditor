@@ -1004,6 +1004,8 @@ private:
 	bool _showAppends = true;
 
 	int _gridX = 0, _gridY = 0;
+	int[] _gridXH = [];
+	int[] _gridYH = [];
 
 	class DListener : DisposeListener {
 		public override void widgetDisposed(DisposeEvent e)  {
@@ -1079,6 +1081,32 @@ private:
 			p = p - (p % _gridY);
 		}
 		return p;
+	}
+	void redrawGridHighlight() {
+		auto size = getSize();
+		foreach (x; _gridXH) {
+			redraw(x, 0, 1, size.y, false);
+		}
+		foreach (y; _gridYH) {
+			redraw(0, y, size.x, 1, false);
+		}
+	}
+	void resetGrid() {
+		redrawGridHighlight();
+		_gridXH = [];
+		_gridYH = [];
+	}
+	void redrawGrid(Rectangle rect) {
+		if (1 < _gridX) {
+			int r = rect.x + rect.width;
+			if (rect.x == toGridX(rect.x)) _gridXH ~= rect.x;
+			if (r == toGridX(r)) _gridXH ~= r;
+		}
+		if (1 < _gridY) {
+			int b = rect.y + rect.height;
+			if (rect.y == toGridY(rect.y)) _gridYH ~= rect.y;
+			if (b == toGridY(b)) _gridYH ~= b;
+		}
 	}
 	class MMListener : MouseMoveListener {
 		override void mouseMove(MouseEvent me) {
@@ -1170,6 +1198,7 @@ private:
 						default:
 							break;
 						}
+						resetGrid();
 						if (1 < _gridX || 1 < _gridY) {
 							if (dragTgl is Toggle.MOVE) {
 								int gx = toGridX(newRect.x);
@@ -1222,8 +1251,8 @@ private:
 									newRect.y = gy;
 								}
 								if (isBottom) {
-									int gr = toGridY(newRect.y + newRect.height);
-									newRect.height = gr - newRect.y;
+									int gb = toGridY(newRect.y + newRect.height);
+									newRect.height = gb - newRect.y;
 								}
 
 								void roundH2() {
@@ -1238,6 +1267,7 @@ private:
 								}
 								round(&roundW2, &roundH2);
 							}
+							redrawGrid(newRect);
 						}
 
 						scope oldArea = img.drawNewArea;
@@ -1247,6 +1277,7 @@ private:
 						redraw(newArea.x, newArea.y, newArea.width, newArea.height, false);
 					}
 				}
+				redrawGridHighlight();
 				moved = true;
 			} else {
 				foreach_reverse (pimg; backs) {
@@ -1291,6 +1322,10 @@ private:
 					}
 				}
 				if (tgl !is Toggle.NONE) {
+					foreach (img, rect; dragImgs) {
+						redrawGrid(rect);
+					}
+					redrawGridHighlight();
 					_mouseP = img;
 					if (me.button == 1) {
 						if (!_ctrl) {
@@ -1317,6 +1352,7 @@ private:
 				}
 			} else if (me.button == 3) {
 				dragTgl = Toggle.NONE;
+				resetGrid();
 				redrawProc((FlexImage img) {img.reset();}, false);
 			}
 		}
@@ -1351,6 +1387,7 @@ private:
 	class FocusLost : Listener {
 		override void handleEvent(Event me) {
 			dragTgl = Toggle.NONE;
+			resetGrid();
 			redrawProc((FlexImage img) {img.resize();}, true);
 		}
 	}
@@ -1391,6 +1428,7 @@ private:
 				}
 			}
 			dragTgl = Toggle.NONE;
+			resetGrid();
 			moved = false;
 			_mouseP = null;
 		}
@@ -1450,17 +1488,26 @@ private:
 						}
 					}
 				}
-				if (_gridDashed) {
-					gc.setLineStyle(SWT.LINE_DOT);
-				} else {
-					gc.setLineStyle(SWT.LINE_SOLID);
+				void drawHLines() {
+					if (1 < _gridX) {
+						foreach (x; _gridXH) {
+							gc.drawLine(x, rect.y, x, rect.height);
+						}
+					}
+					if (1 < _gridY) {
+						foreach (y; _gridYH) {
+							gc.drawLine(rect.x, y, rect.width, y);
+						}
+					}
 				}
-				if (_gridColor) {
-					gc.setForeground(_gridColor);
-				} else {
-					gc.setForeground(d.getSystemColor(SWT.COLOR_DARK_GRAY));
-				}
+				gc.setForeground(_gridColor ? _gridColor : d.getSystemColor(SWT.COLOR_DARK_GRAY));
+				gc.setLineStyle(SWT.LINE_DOT);
 				drawLines();
+				if (_gridXH.length || _gridYH.length) {
+					gc.setForeground(_gridHighlightColor ? _gridHighlightColor : d.getSystemColor(SWT.COLOR_GRAY));
+					gc.setLineStyle(SWT.LINE_SOLID);
+					drawHLines();
+				}
 			}
 
 			e.gc.drawImage(buf, 0, 0);
@@ -1494,20 +1541,18 @@ private:
 	}
 
 	private Color _backColor = null;
-	private Color _gridColor = null;
-	private bool _gridDashed = true;
+	private Color _gridColor = null, _gridHighlightColor = null;
 public:
 	void setBackgroundColor2(Color backColor) {_backColor = backColor;}
 	Color getBackgroundColor2() {return _backColor;}
 	@property
-	void gridColor(Color gridColor) {_gridColor = gridColor;}
+	void gridColor(Color v) {_gridColor = v;}
 	@property
 	Color gridColor() {return _gridColor;}
 	@property
-	void gridDashed(bool gridDashed) {_gridDashed = gridDashed;}
+	void gridHighlightColor(Color v) {_gridHighlightColor = v;}
 	@property
-	const
-	bool gridDashed() {return _gridDashed;}
+	Color gridHighlightColor() {return _gridHighlightColor;}
 
 	@property
 	PileImage[] images() {
@@ -1756,6 +1801,7 @@ public:
 	@property
 	void gridX(int v) {
 		_gridX = v;
+		resetGrid();
 		redraw();
 	}
 	/// ditto
@@ -1768,6 +1814,7 @@ public:
 	@property
 	void gridY(int v) {
 		_gridY = v;
+		resetGrid();
 		redraw();
 	}
 

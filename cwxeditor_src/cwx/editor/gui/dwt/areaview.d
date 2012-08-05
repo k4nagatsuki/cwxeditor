@@ -1263,15 +1263,15 @@ private:
 				}
 			});
 		}
+		auto d = Display.getCurrent();
 		auto rgb = new RGB(_prop.var.etc.wallColorR,
 			_prop.var.etc.wallColorG,
 			_prop.var.etc.wallColorB);
-		auto color = new Color(Display.getCurrent(), rgb);
+		auto color = new Color(d, rgb);
 		_imgp.setBackgroundColor2(color);
 		int alpha;
-		auto gridColor = new Color(Display.getCurrent(), dwtData(_prop.var.etc.gridColor, alpha));
-		_imgp.gridColor(gridColor);
-		_imgp.gridDashed = _prop.var.etc.gridDashed;
+		_imgp.gridColor(new Color(d, dwtData(_prop.var.etc.gridColor, alpha)));
+		_imgp.gridHighlightColor(new Color(d, dwtData(_prop.var.etc.gridHighlightColor, alpha)));
 		_comm.refWallpaper.add(&refreshWallpaper);
 		_imgp.addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) {
@@ -1327,8 +1327,10 @@ private:
 				if (img) img.dispose();
 				auto color = pane.getBackgroundColor2();
 				if (color) color.dispose();
-				auto gColor = pane.gridColor();
-				if (gColor) gColor.dispose();
+				color = pane.gridColor();
+				if (color) color.dispose();
+				color = pane.gridHighlightColor();
+				if (color) color.dispose();
 			}
 		});
 		return sc;
@@ -2944,7 +2946,7 @@ public:
 		new ToolItem(bar, SWT.SEPARATOR);
 		createLabel(bar, _prop.msgs.left);
 		auto gridX = new Spinner(bar, SWT.BORDER);
-		gridX.setMaximum(_prop.var.etc.gridMaxX);
+		gridX.setMaximum(_prop.looks.viewSize.width);
 		gridX.setMinimum(1);
 		gridX.setSelection(_gridX);
 		.listener(gridX, SWT.Selection, {
@@ -2955,7 +2957,7 @@ public:
 		new ToolItem(bar, SWT.SEPARATOR);
 		createLabel(bar, _prop.msgs.top);
 		auto gridY = new Spinner(bar, SWT.BORDER);
-		gridY.setMaximum(_prop.var.etc.gridMaxY);
+		gridY.setMaximum(_prop.looks.viewSize.height);
 		gridY.setMinimum(1);
 		gridY.setSelection(_gridY);
 		.listener(gridY, SWT.Selection, {

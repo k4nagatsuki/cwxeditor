@@ -273,6 +273,8 @@ class Msgs : Properties {
 	auto searchErrorStartNotFound = Msg("searchErrorStartNotFound", "スタートコンテントが見つからない");
 	auto searchErrorIgnoreWait = Msg("searchErrorIgnoreWait", "後続コンテントが無いため、空白時間が無視される");
 	auto searchErrorLinkIdNotFound = Msg("searchErrorLinkIdNotFound", "参照先のカードが見つからない");
+	auto searchErrorEmptyFile = Msg("searchErrorEmptyFile", "ファイルの内容が存在しない");
+	auto searchErrorDupFile = Msg("searchErrorDupFile", "同一のファイル「%1$s」が存在する");
 	auto searchOpenDialog = Msg("searchOpenDialog", "検索結果へジャンプする時、ダイアログを開く");
 
 	/// イベント設定。

@@ -272,6 +272,7 @@ private:
 	class AddResultPath : Runnable {
 		size_t count = 0;
 		string path;
+		string desc;
 		void run() {
 			if (cancel) return;
 			if (!_win || _win.isDisposed()) return;
@@ -291,6 +292,7 @@ private:
 				scPath = _grepSumm.useTemp ? _grepSumm.zipName : _grepSumm.scenarioPath;
 				text = .tryFormat(_prop.msgs.grepScenario, _grepSumm.scenarioName, scPath) ~ " - " ~ text;
 			}
+			if (desc.length) text = desc ~ " - " ~ text;
 			itm.setText(text);
 			itm.setData(new FilePathString(scPath, path));
 			refResultStatus(count, false);
@@ -2617,6 +2619,41 @@ public:
 				}
 			});
 		}
+		void searchFileErrors() {
+			string sPath = _summ.scenarioPath;
+			string[string] digests;
+			void recurse(string file) {
+				try {
+					bool dir = .isDir(file);
+					if (_summ.isSystemFile(file, dir)) return;
+					if (containsPath(_prop.var.etc.ignorePaths, file.baseName())) return;
+					if (dir) {
+						foreach (string sub; clistdir(file)) {
+							recurse(file.buildPath(sub));
+						}
+					} else {
+						auto size = file.getSize();
+						if (!size) {
+							addResult(abs2rel(file, sPath), count, _prop.msgs.searchErrorEmptyFile);
+							return;
+						}
+						auto digest = file.fileToMD5Digest();
+						if (!digest.length) return;
+						digest = .format("%s-%s", digest, size);
+
+						auto p = digest in digests;
+						if (!p) {
+							digests[digest] = file;
+							return;
+						}
+						addResult(abs2rel(file, sPath), count, .tryFormat(_prop.msgs.searchErrorDupFile, abs2rel(*p, sPath)));
+					}
+				} catch (Exception e) {
+					debugln(e);
+				}
+			}
+			recurse(sPath);
+		}
 
 		_inProc = true;
 		_comm.refreshToolBar();
@@ -2635,6 +2672,7 @@ public:
 				foreach (path; range) {
 					search(path);
 				}
+				searchFileErrors();
 			} catch (Throwable e) {
 				debugln(e);
 			}
@@ -3144,11 +3182,12 @@ public:
 		_comm.clipboard.setContents([text], [TextTransfer.getInstance()]);
 		_comm.refreshToolBar();
 	}
-	private void addResult(string path, ref size_t count) {
+	private void addResult(string path, ref size_t count, string desc = "") {
 		if (cancel) return;
 		count++;
 		auto addResultPath = new AddResultPath;
 		addResultPath.path = path;
+		addResultPath.desc = desc;
 		addResultPath.count = count;
 		_display.syncExec(addResultPath);
 	}

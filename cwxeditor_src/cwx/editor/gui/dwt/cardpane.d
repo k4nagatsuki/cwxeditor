@@ -1160,11 +1160,7 @@ private:
 		_tcpd ~= ct_;
 
 		void setupDrag(Control c) {
-			static if (is (C == CastCard)) {
-				auto drag = new DragSource(c, DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_LINK);
-			} else {
-				auto drag = new DragSource(c, DND.DROP_MOVE | DND.DROP_COPY);
-			}
+			auto drag = new DragSource(c, DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_LINK);
 			drag.setTransfer([XMLBytesTransfer.getInstance()]);
 			drag.addDragListener(new CDSListener);
 		}

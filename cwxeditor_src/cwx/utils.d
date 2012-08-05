@@ -28,6 +28,7 @@ import std.exception;
 import std.traits;
 import std.stdint;
 import std.stream;
+import std.md5;
 
 debug {
 	version (Console) {
@@ -660,6 +661,19 @@ class Wildcard {
 
 	assert (Wildcard("t*s").replace("test", "A") == "At");
 	assert (Wildcard("???t").replace("testtestest", "BB") == "BBBBest");
+}
+
+/// ファイルのMD5ダイジェストを取得する。
+string fileToMD5Digest(string file) {
+	if (.exists(file)) {
+		try {
+			return getDigestString([std.file.read(file)]);
+		} catch (FileException e) {
+			// 読み込めなかった場合は空文字列を返す
+			debugln(e);
+		}
+	}
+	return "";
 }
 
 /// 絶対パス化と正規化を行う。
