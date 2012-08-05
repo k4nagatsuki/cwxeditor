@@ -647,7 +647,7 @@ version (Windows) {
 	}
 
 	/// 指定されたファイルが含まれているか。
-	bool cabHasName(string cab, string fileName) {
+	bool cabHasFile(string cab, string fileName) {
 		return false;
 	}
 }

@@ -269,12 +269,12 @@ version (Windows) {
 
 	/// 共有ライブラリを読み込む。
 	void* dlopen(string lib) {
-		return core.sys.posix.dlopen(.toStringz(lib), RTLD_NOW);
+		return core.sys.posix.dlfcn.dlopen(.toStringz(lib), RTLD_NOW);
 	}
 	/// 共有ライブラリからシンボルを取得。
 	void* dlsym(void* lib, string sym) {
 		if (!lib) return null;
-		return core.sys.posix.dlsym(lib, .toStringz(sym));
+		return core.sys.posix.dlfcn.dlsym(lib, .toStringz(sym));
 	}
 	/// 共有ライブラリを解放する。
 	void dlclose(ref void* lib) {
@@ -1760,8 +1760,10 @@ string exeName(string args0) {
 		}
 	} else version (linux) {
 		char[1024] buf;
+		buf[] = '\0';
 		if (-1 != .readlink("/proc/self/exe", buf.ptr, buf.sizeof)) {
-			return buf[0 .. .strlen(buf)].idup;
+			cdebugln(buf);
+			return buf[0 .. .strlen(buf.ptr)].idup;
 		}
 	}
 	return args0;
