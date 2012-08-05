@@ -1096,7 +1096,7 @@ private:
 		_gridXH = [];
 		_gridYH = [];
 	}
-	void redrawGrid(Rectangle rect) {
+	void redrawGrid(in Rectangle rect) {
 		if (1 < _gridX) {
 			int r = rect.x + rect.width;
 			if (rect.x == toGridX(rect.x)) _gridXH ~= rect.x;
@@ -1120,6 +1120,7 @@ private:
 				int movX = x - dragStartX;
 				int movY = y - dragStartY;
 				bool ratioFix = (me.stateMask & SWT.SHIFT) != 0;
+				resetGrid();
 				foreach (img; dragImgs.keys) {
 					if (img.selected && !img.fixed && img.visible) {
 						auto rect = dragImgs[img];
@@ -1198,7 +1199,6 @@ private:
 						default:
 							break;
 						}
-						resetGrid();
 						if (1 < _gridX || 1 < _gridY) {
 							if (dragTgl is Toggle.MOVE) {
 								int gx = toGridX(newRect.x);
