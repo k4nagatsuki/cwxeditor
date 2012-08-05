@@ -1270,6 +1270,7 @@ private:
 		auto color = new Color(d, rgb);
 		_imgp.setBackgroundColor2(color);
 		int alpha;
+		_imgp.gridRange = _prop.var.etc.gridRange;
 		_imgp.gridColor(new Color(d, dwtData(_prop.var.etc.gridColor, alpha)));
 		_imgp.gridHighlightColor(new Color(d, dwtData(_prop.var.etc.gridHighlightColor, alpha)));
 		_comm.refWallpaper.add(&refreshWallpaper);

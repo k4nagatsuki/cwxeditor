@@ -142,6 +142,7 @@ class FlexEtcProps : Properties {
 	auto textTabs = Prop!(int, true)("textTabs", 4);
 	auto gridX = Prop!(uint)("gridX", 10);
 	auto gridY = Prop!(uint)("gridY", 10);
+	auto gridRange = Prop!(uint)("gridRange", 5);
 	auto gridColor = Prop!(CRGB, true)("gridColor", CRGB(64, 64, 64));
 	auto gridHighlightColor = Prop!(CRGB, true)("gridHighlightColor", CRGB(192, 192, 192));
 

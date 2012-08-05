@@ -1004,6 +1004,7 @@ private:
 	bool _showAppends = true;
 
 	int _gridX = 0, _gridY = 0;
+	int _gridRange = 5;
 	int[] _gridXH = [];
 	int[] _gridYH = [];
 
@@ -1208,14 +1209,14 @@ private:
 								int gr = toGridX(r);
 								int gb = toGridY(b);
 								if (.abs(gx - newRect.x) <= .abs(gr - r)) {
-									newRect.x = gx;
+									if (.abs(gx - newRect.x) <= _gridRange) newRect.x = gx;
 								} else {
-									newRect.x = gr - newRect.width;
+									if (.abs(gr - r) <= _gridRange) newRect.x = gr - newRect.width;
 								}
 								if (.abs(gy - newRect.y) <= .abs(gb - b)) {
-									newRect.y = gy;
+									if (.abs(gy - newRect.y) <= _gridRange) newRect.y = gy;
 								} else {
-									newRect.y = gb - newRect.height;
+									if (.abs(gb - b) <= _gridRange) newRect.y = gb - newRect.height;
 								}
 							} else {
 								@property
@@ -1238,21 +1239,29 @@ private:
 								int b = newRect.y + newRect.height;
 								if (isLeft) {
 									int gx = toGridX(newRect.x);
-									newRect.width += newRect.x - gx;
-									newRect.x = gx;
+									if (.abs(newRect.x - gx) <= _gridRange) {
+										newRect.width += newRect.x - gx;
+										newRect.x = gx;
+									}
 								}
 								if (isRight) {
 									int gr = toGridX(newRect.x + newRect.width);
-									newRect.width = gr - newRect.x;
+									if (.abs(r - gr) <= _gridRange) {
+										newRect.width = gr - newRect.x;
+									}
 								}
 								if (isTop) {
 									int gy = toGridY(newRect.y);
-									newRect.height += newRect.y - gy;
-									newRect.y = gy;
+									if (.abs(newRect.y - gy) <= _gridRange) {
+										newRect.height += newRect.y - gy;
+										newRect.y = gy;
+									}
 								}
 								if (isBottom) {
 									int gb = toGridY(newRect.y + newRect.height);
-									newRect.height = gb - newRect.y;
+									if (.abs(b - gb) <= _gridRange) {
+										newRect.height = gb - newRect.y;
+									}
 								}
 
 								void roundH2() {
@@ -1813,6 +1822,18 @@ public:
 		resetGrid();
 		redraw();
 	}
+	/// グリッドに吸着する範囲。
+	@property
+	const
+	int gridRange() {
+		return _gridRange;
+	}
+	/// ditto
+	@property
+	void gridRange(int v) {
+		_gridRange = v;
+	}
+	
 
 	/// 唯一のコンストラクタ。
 	this (Composite parent, int style) {
