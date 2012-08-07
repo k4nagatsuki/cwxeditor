@@ -100,9 +100,8 @@ protected:
 		{
 			auto skin = _comm.skin;
 			bool including = _card && isBinImg(_card.path);
-			string saveName = including ? _card.name : "";
 			_imgPath = new ImageSelect!(MtType.CARD)(area, SWT.NONE, _comm, _prop, _summ,
-				_prop.looks.cardSize.width, _prop.looks.cardSize.height, including, saveName);
+				_prop.looks.cardSize.width, _prop.looks.cardSize.height, including, true, &_name.getText);
 			mod(_imgPath);
 			_imgPath.widget.setLayoutData(new GridData(GridData.FILL_BOTH));
 		}

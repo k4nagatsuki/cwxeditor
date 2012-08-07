@@ -167,9 +167,8 @@ private:
 			auto skin = _comm.skin;
 			{
 				bool including = isBinImg(_summ.imagePath);
-				string saveName = including ? _summ.scenarioName : "";
 				_imgPath = new ImageSelect!(MtType.CARD)(_tab2Sash, SWT.NONE, _comm, _prop, _summ,
-					_prop.looks.cardSize.width, _prop.looks.cardSize.height, including, saveName, &clearBuf);
+					_prop.looks.cardSize.width, _prop.looks.cardSize.height, including, true, () => _sname.getText(), &clearBuf);
 				mod(_imgPath);
 				_imgPath.modEvent ~= &refreshWarning;
 				_imgPath.image = _summ.imagePath;

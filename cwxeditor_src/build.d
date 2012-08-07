@@ -282,11 +282,11 @@ void main(string[] args) {
 	flags ~= release ? RELEASE_FLAGS : DEBUG_FLAGS;
 	flags ~= window ? WINDOW_FLAGS : CONSOLE_FLAGS;
 	if (critical.length) {
-		exec(cmd ~ CRITICAL_FLAGS ~ res.array() ~ critical ~ "-odobjs" ~ dmdOption);
+		exec(cmd ~ CRITICAL_FLAGS ~ res ~ critical ~ "-odobjs" ~ dmdOption);
 	}
 	foreach (dir, array; files) {
-		if (!files.length) continue;
-		exec(cmd ~ flags ~ array ~ res.array() ~ "-odobjs" ~ dmdOption);
+		if (!array.length) continue;
+		exec(cmd ~ flags ~ array ~ res ~ "-odobjs" ~ dmdOption);
 	}
 
 	// ファイルが指定されている場合はコンパイルテストなのでここで終了

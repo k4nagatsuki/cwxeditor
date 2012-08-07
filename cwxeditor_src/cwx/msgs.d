@@ -98,6 +98,7 @@ class Msgs : Properties {
 
 	auto dlgTitSaveBitmapImage = Msg("dlgTitSaveBitmapImage", "格納イメージの保存");
 	auto filterBitmapImage = Msg("filterBitmapImage", "ビットマップイメージ (*.bmp)");
+	auto dlgMsgIncludeImage = Msg("dlgMsgIncludeImage", "%1$sをシナリオファイル内にコピーしますか？\n(元のファイルは削除されません)");
 
 	auto newFolder = Msg("newFolder", "新規" ~ DIR);
 
@@ -1467,6 +1468,7 @@ class Msgs : Properties {
 	auto menuTextOpenDir = Msg("menuTextOpenDir", DIR ~ "を開く");
 	auto menuTextOpenPlace = Msg("menuTextOpenPlace", "ファイルの場所を開く");
 	auto menuTextSaveImage = Msg("menuTextSaveImage", "格納イメージをファイルに保存");
+	auto menuTextIncludeImage = Msg("menuTextIncludeImage", "イメージを格納する");
 	auto menuTextLookImages = Msg("menuTextLookImages", "画像を一覧表示");
 	auto menuTextShowMainToolBar = Msg("menuTextShowMainToolBar", "全体ツールバーを表示");
 	auto menuTextShowSceneToolBar = Msg("menuTextShowSceneToolBar", "シーンビューのツールバーを表示");

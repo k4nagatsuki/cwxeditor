@@ -1855,7 +1855,7 @@ public:
 		} else {
 			auto cardItm = selectionParent;
 			if (cardItm) {
-				auto d = cardItm.getData();;
+				auto d = cardItm.getData();
 				auto area = cast(A) d;
 				if (area) {
 					r ~= cpaddattr(area.cwxPath(true), "eventview");

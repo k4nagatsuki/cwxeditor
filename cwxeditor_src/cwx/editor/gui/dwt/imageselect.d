@@ -18,6 +18,7 @@ import cwx.editor.gui.dwt.dmenu;
 
 import std.file;
 import std.path;
+import std.string;
 
 import org.eclipse.swt.all;
 
@@ -38,13 +39,13 @@ public:
 	/// w = 画像表示欄の幅。
 	/// h = 画像表示欄の高さ。
 	/// targ = ファイルパスを受取り、選択対象であればtrueを返す関数。
-	/// canIncluding = 格納イメージを扱うならtrue。
+	/// included = 格納イメージを扱うならtrue。
 	/// saveName = 格納イメージを保存する際のデフォルト名。
 	/// refresh = 選択が変更された際のコールバック関数。
 	/// defs = 画像以外の選択肢。nullの場合は「イメージ無し」と「格納イメージの保存」になる。
 	/// createDefImage = 画像以外の選択肢が選ばれた際に表示するイメージ。
 	this (Composite parent, int style, Commons comm, Props prop, Summary summ,
-			int w, int h, bool canIncluding, string saveName, void delegate() refresh = null,
+			int w, int h, bool included, bool canInclude, string delegate() saveName, void delegate() refresh = null,
 			string[] defs = null, ImageData delegate(size_t defIndex) createDefImage = null) {
 		_comm = comm;
 		_prop = prop;
@@ -96,15 +97,15 @@ public:
 			}
 			if (defs) {
 				_msel = new MaterialSelect!(Type, Combo, C)
-					(comm, prop, summ, &__refresh, defs);
-			} else if (canIncluding) {
+					(comm, prop, summ, &__refresh, defs, -1, canInclude);
+			} else if (included) {
 				_defs = [prop.msgs.imageNone, prop.msgs.imageIncluding];
 				_msel = new MaterialSelect!(Type, Combo, C)
-					(comm, prop, summ, &__refresh, _defs, 1);
+					(comm, prop, summ, &__refresh, _defs, 1, canInclude);
 			} else {
 				_defs = [prop.msgs.imageNone];
 				_msel = new MaterialSelect!(Type, Combo, C)
-					(comm, prop, summ, &__refresh, _defs);
+					(comm, prop, summ, &__refresh, _defs, -1, canInclude);
 			}
 			_msel.modEvent ~= {
 				foreach (dlg; modEvent) dlg();
@@ -123,24 +124,40 @@ public:
 			}
 		}
 		{
-			compr.setLayout(zeroMarginGridLayout(canIncluding ? 2 : 1, false));
+			compr.setLayout(zeroMarginGridLayout(1, true));
 			{
-				auto dirs = _msel.createDirsCombo(compr);
-				dirs.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-				dirs.addSelectionListener(new DirSelect);
-				if (canIncluding) {
-					auto saveIncludeImage = new Button(compr, SWT.PUSH);
+				auto dirsComp = new Composite(compr, SWT.NONE);
+				dirsComp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+				Button saveIncludeImage = null;
+				void createSaveButton() {
+					if (saveIncludeImage) return;
+					saveIncludeImage = new Button(dirsComp, SWT.PUSH);
 					saveIncludeImage.setImage(_prop.images.menu(MenuID.SaveImage));
 					saveIncludeImage.setToolTipText(_prop.buildTool(MenuID.SaveImage));
 					saveIncludeImage.addSelectionListener(new SaveIncImg);
+				}
+
+				auto dirs = _msel.createDirsCombo(dirsComp);
+				dirs.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				dirs.addSelectionListener(new DirSelect);
+				if (included) {
+					dirsComp.setLayout(zeroMarginGridLayout(2, false));
+					createSaveButton();
+				} else {
+					dirsComp.setLayout(zeroMarginGridLayout(1, false));
+					_msel.includeEvent ~= (string fname) {
+						if (saveIncludeImage) return;
+						dirsComp.setLayout(zeroMarginGridLayout(2, false));
+						createSaveButton();
+						dirsComp.layout();
+						compr.layout();
+					};
 				}
 			}
 			{
 				auto fileList = _msel.createFileList(compr);
 				auto gd = new GridData(GridData.FILL_BOTH);
-				if (canIncluding) {
-					gd.horizontalSpan = 2;
-				}
 				gd.widthHint = _prop.var.etc.filesWidth;
 				gd.heightHint = fileList.computeSize(SWT.DEFAULT, SWT.DEFAULT).y;
 				fileList.setLayoutData(gd);
@@ -250,7 +267,7 @@ private:
 	}
 	class SaveIncImg : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			auto path = _msel.oldPath;
+			auto path = _msel.binPath;
 			if (!isBinImg(path)) return;
 			ubyte[] bytes = strToBImg(path);
 			auto dlg = new FileDialog(_image.getShell(), SWT.APPLICATION_MODAL | SWT.SINGLE | SWT.SAVE);
@@ -268,7 +285,9 @@ private:
 				if (!.exists(dir) || !isDir(dir)) dir = dirName(dir);
 			}
 			dlg.setFilterPath(dir);
-			dlg.setFileName(setExtension(_saveName.toFileName(), ".bmp"));
+			string s = _saveName().strip().toFileName();
+			if (!s.length) s = _prop.var.etc.noFileName;
+			dlg.setFileName(setExtension(s, ".bmp"));
 			dlg.setOverwrite(true);
 			string fname = dlg.open();
 			if (fname) {
@@ -333,7 +352,7 @@ private:
 	ImageData delegate(size_t defIndex) _createDefImage;
 	string[] _defs;
 	int _w, _h;
-	string _saveName;
+	string delegate() _saveName;
 	bool _mask = true;
 	void delegate() _refresh;
 	int _oldDirSel = -1;

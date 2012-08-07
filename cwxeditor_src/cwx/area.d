@@ -41,7 +41,7 @@ AbstractArea createAreaFromXML(string xml, string summId, out bool sameSummary, 
 	try {
 		scope e = XNode.parse(xml);
 		auto id = e.attr("summaryId", false);
-		sameSummary = id && id == summId;;
+		sameSummary = id && id == summId;
 		switch (e.name) {
 		case "Area": return Area.createFromNode(e, ver);
 		case "Battle": return Battle.createFromNode(e, ver);

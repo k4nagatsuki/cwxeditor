@@ -54,6 +54,7 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.OpenDir] = "O";
 		_mnemonic[MenuID.OpenPlace] = "O";
 		_mnemonic[MenuID.SaveImage] = "I";
+		_mnemonic[MenuID.IncludeImage] = "N";
 		_mnemonic[MenuID.LookImages] = "L";
 		_mnemonic[MenuID.ShowMainToolBar] = "M";
 		_mnemonic[MenuID.ShowSceneToolBar] = "E";
@@ -205,6 +206,7 @@ class MenuProps : Properties {
 		_hotkey[MenuID.OpenDir] = "";
 		_hotkey[MenuID.OpenPlace] = "";
 		_hotkey[MenuID.SaveImage] = "";
+		_hotkey[MenuID.IncludeImage] = "";
 		_hotkey[MenuID.LookImages] = "";
 		_hotkey[MenuID.ShowMainToolBar] = "Ctrl+Shift+M";
 		_hotkey[MenuID.ShowSceneToolBar] = "Ctrl+Shift+S";

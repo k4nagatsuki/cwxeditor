@@ -38,14 +38,17 @@ enum MtType {
 class MaterialSelect(MtType Type, D, C) {
 	/// パスの変更時に呼び出される。
 	void delegate()[] modEvent;
+	/// イメージ格納時に呼び出される。
+	void delegate(string file)[] includeEvent;
 public:
-	this (Commons comm, Props prop, Summary summ, void delegate() refresh, string[] defs, int including = -1) {
+	this (Commons comm, Props prop, Summary summ, void delegate() refresh, string[] defs, int including = -1, bool canInclude = false) {
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
 		_refresh = refresh;
 		_defs = defs;
 		_including = including;
+		_canInclude = canInclude;
 	}
 
 	D createDirsCombo(Composite parent) {
@@ -62,6 +65,7 @@ public:
 		_dirs.addSelectionListener(new CSListener);
 
 		_comm.refSkin.add(&refresh);
+		_comm.refSkin.add(&refreshFileListMenu);
 		_comm.refPaths.add(&__refPaths);
 		_comm.refPath.add(&__refPath);
 		_comm.delPaths.add(&__delPaths);
@@ -73,6 +77,7 @@ public:
 		_dirs.addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) {
 				_comm.refSkin.remove(&refresh);
+				_comm.refSkin.remove(&refreshFileListMenu);
 				_comm.refPaths.remove(&__refPaths);
 				_comm.refPath.remove(&__refPath);
 				_comm.delPaths.remove(&__delPaths);
@@ -126,22 +131,7 @@ public:
 				_fileList.addKeyListener(open);
 			}
 		}
-		auto menu = new Menu(_fileList.getShell(), SWT.POP_UP);
-		createMenuItem(_comm, menu, MenuID.IncSearch, &startIncSearch, null);
-		new MenuItem(menu, SWT.SEPARATOR);
-		createMenuItem(_comm, menu, MenuID.OpenAtFileView, &openFilePath, () => filePath.length > 0);
-		createMenuItem(_comm, menu, MenuID.CopyFilePath, &copyFilePath, () => filePath.length > 0);
-		static if (Type == MtType.BGM) {
-			new MenuItem(menu, SWT.SEPARATOR);
-			_bgmMenu = createMenuItem(_comm, menu, MenuID.PlayBGM, &playBGM, &canPlay);
-			auto data = cast(MenuData) _bgmMenu.getData();
-			data.format = (string t) {return data.id is MenuID.StopBGM ? .tryFormat(t, _playing) : t;};
-		} else static if (Type == MtType.SE) {
-			new MenuItem(menu, SWT.SEPARATOR);
-			createMenuItem(_comm, menu, MenuID.PlaySE, &playSE, &canPlay);
-			createMenuItem(_comm, menu, MenuID.StopSE, &stopSE, null);
-		}
-		_fileList.setMenu(menu);
+		refreshFileListMenu();
 		new class(_fileList) FileDropTarget {
 			this(Control c) {
 				super(c);
@@ -186,6 +176,59 @@ public:
 			refreshList();
 		};
 		return _fileList;
+	}
+	private void refreshFileListMenu() {
+		if (!_fileList) return;
+		auto menu = new Menu(_fileList.getShell(), SWT.POP_UP);
+		createMenuItem(_comm, menu, MenuID.IncSearch, &startIncSearch, null);
+		new MenuItem(menu, SWT.SEPARATOR);
+		createMenuItem(_comm, menu, MenuID.OpenAtFileView, &openFilePath, () => filePath.length > 0);
+		createMenuItem(_comm, menu, MenuID.CopyFilePath, &copyFilePath, () => filePath.length > 0);
+		static if (Type == MtType.CARD) {
+			if (_canInclude && _summ && _summ.legacy) {
+				new MenuItem(menu, SWT.SEPARATOR);
+				createMenuItem(_comm, menu, MenuID.IncludeImage, &includeImage, () => filePath.length > 0);
+			}
+		} else static if (Type == MtType.BGM) {
+			new MenuItem(menu, SWT.SEPARATOR);
+			_bgmMenu = createMenuItem(_comm, menu, MenuID.PlayBGM, &playBGM, &canPlay);
+			auto data = cast(MenuData) _bgmMenu.getData();
+			data.format = (string t) {return data.id is MenuID.StopBGM ? .tryFormat(t, _playing) : t;};
+		} else static if (Type == MtType.SE) {
+			new MenuItem(menu, SWT.SEPARATOR);
+			createMenuItem(_comm, menu, MenuID.PlaySE, &playSE, &canPlay);
+			createMenuItem(_comm, menu, MenuID.StopSE, &stopSE, null);
+		}
+		_fileList.setMenu(menu);
+	}
+	static if (Type == MtType.CARD) {
+		private void includeImage() {
+			if (!_canInclude) return;
+			string file = filePath;
+			if (!file.length) return;
+			auto dlg = new MessageBox(_fileList.getShell(), SWT.ICON_QUESTION | SWT.YES | SWT.NO);
+			dlg.setText(_prop.msgs.dlgTitQuestion);
+			dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgIncludeImage, this.path));
+			if (SWT.YES == dlg.open()) {
+				try {
+					if (!file.exists()) return;
+					_binPath = bImgToStr(cast(ubyte[]) std.file.read(file));
+					if (_including < 0) {
+						_including = _defs.length;
+						_defs ~= _prop.msgs.imageIncluding;
+						refreshPaths();
+						selectDir(_including);
+					} else {
+						selectDir(_including);
+					}
+					foreach (d; includeEvent) {
+						d(file);
+					}
+				} catch (Exception e) {
+					debugln(e);
+				}
+			}
+		}
 	}
 	static if (Type == MtType.BGM || Type == MtType.SE) {
 		private Button _bgmBtn;
@@ -356,8 +399,8 @@ public:
 	}
 	@property
 	string path() {
-		if (_dirs.getSelectionIndex() == _including && isBinImg(_oldPath)) {
-			return _oldPath;
+		if (_dirs.getSelectionIndex() == _including && isBinImg(_binPath)) {
+			return _binPath;
 		}
 		return _path;
 	}
@@ -365,8 +408,8 @@ public:
 	string filePath() {
 		if (!_dirs || _dirs.isDisposed()) return "";
 		if (!_fileList || _fileList.isDisposed()) return "";
-		if (_dirs.getSelectionIndex() == _including && isBinImg(_oldPath)) {
-			return _oldPath;
+		if (_dirs.getSelectionIndex() == _including && isBinImg(_binPath)) {
+			return _binPath;
 		}
 		auto p = currentDir;
 		if (p && _fileList.getSelectionIndex() >= 0) {
@@ -388,12 +431,12 @@ public:
 			}
 		}
 		_path = path;
-		_oldPath = _path;
+		_binPath = isBinImg(path) ? path : "";
 		refreshPaths();
 	}
 	@property
-	string oldPath() {
-		return _oldPath;
+	string binPath() {
+		return _binPath;
 	}
 	@property
 	D dirsCombo() {
@@ -950,10 +993,11 @@ private:
 	Button _dirBtn;
 	IncSearch _incSearch;
 	string _path = "";
-	string _oldPath = "";
+	string _binPath = "";
 	string[] _defs;
 	int _selDir;
 	int _including = -1;
+	bool _canInclude = false;
 	int _tbl = -1;
 	bool _fnone = false;
 	C _fileList;

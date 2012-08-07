@@ -1055,7 +1055,7 @@ private Composite createTalkerPane
 	];
 	auto s = prop.looks.cardSize;
 	msel = new ImageSelect!(MtType.CARD, Combo)(comp, SWT.NONE, comm, prop, summ, s.width, s.height,
-		false, "", null, defs, &createDefImage);
+		false, false, () => "", null, defs, &createDefImage);
 	auto gd = new GridData(GridData.FILL_BOTH);
 	msel.widget.setLayoutData(gd);
 	msel.image = path;

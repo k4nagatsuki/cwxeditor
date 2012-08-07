@@ -361,6 +361,7 @@ public:
 		case MenuID.OpenDir: return imgd!("folder.png");
 		case MenuID.OpenPlace: return imgd!("folder.png");
 		case MenuID.SaveImage: return imgd!("save_inc_img.png");
+		case MenuID.IncludeImage: return imgd!("inc_img.png");
 		case MenuID.LookImages: return imgd!("img_list.png");
 		case MenuID.ShowMainToolBar: return imgd!("main_tools.png");
 		case MenuID.ShowSceneToolBar: return imgd!("scene_tools.png");

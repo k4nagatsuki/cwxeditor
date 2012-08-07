@@ -146,6 +146,8 @@ class FlexEtcProps : Properties {
 	auto gridColor = Prop!(CRGB, true)("gridColor", CRGB(64, 64, 64));
 	auto gridHighlightColor = Prop!(CRGB, true)("gridHighlightColor", CRGB(192, 192, 192));
 
+	auto noFileName = Prop!(string, true)("noFileName", "_");
+
 	auto contentsOrder = Prop!(int[])("contentsOrder", []);
 	auto contentsLock = Prop!(bool)("contentsLock", false);
 	auto contentsWrapIndices = Prop!(int[])("contentsWrapIndices", [4, 6, 8]);

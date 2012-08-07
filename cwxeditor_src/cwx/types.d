@@ -942,6 +942,7 @@ enum MenuID {
 	OpenDir,
 	OpenPlace,
 	SaveImage,
+	IncludeImage,
 	LookImages,
 	ShowMainToolBar,
 	ShowSceneToolBar,
