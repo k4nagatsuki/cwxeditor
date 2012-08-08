@@ -234,6 +234,56 @@ private __gshared Mix_Music* seMusic = null;
 private __gshared Mix_Chunk* seChunk = null;
 private __gshared intptr_t seChannel = -1;
 
+private ulong pos(intptr_t channel, bool playingMCI, string mciName, HSTREAM bassStream) {
+	version (Windows) {
+		if (bassStream) {
+			return _BASS_StreamGetFilePosition(bassStream, BASS_FILEPOS_CURRENT);
+		}
+		if (playingMCI) {
+			wchar[1024] len;
+			_mciSendString(toUTFz!(wchar*)("status " ~ mciName ~ " position"), len.ptr, len.length, null);
+			return to!ulong(len[0 .. wcslen(len.ptr)]);
+		}
+		if (-1 != channel) {
+			// TODO
+		}
+		return 0;
+	}
+}
+private ulong len(intptr_t channel, bool playingMCI, string mciName, HSTREAM bassStream) {
+	version (Windows) {
+		if (bassStream) {
+			return _BASS_StreamGetFilePosition(bassStream, BASS_FILEPOS_END);
+		}
+		if (playingMCI) {
+			wchar[1024] len;
+			_mciSendString(toUTFz!(wchar*)("status " ~ mciName ~ " length"), len.ptr, len.length, null);
+			return to!ulong(len[0 .. wcslen(len.ptr)]);
+		}
+		if (-1 != channel) {
+			// TODO
+		}
+		return 0;
+	}
+}
+
+/// 現在再生中のBGMの再生位置(msecs)を取得する。
+ulong bgmPos() {
+	return pos(bgmChannel, _bgmPlayingMCI, "cwbgm", bassBGMStream);
+}
+/// 現在再生中のBGMの再生時間(msecs)を取得する。
+ulong bgmLen() {
+	return len(bgmChannel, _bgmPlayingMCI, "cwbgm", bassBGMStream);
+}
+/// 現在再生中の効果音の再生位置(msecs)を取得する。
+ulong sePos() {
+	return pos(seChannel, _sePlayingMCI, "cwse", bassSEStream);
+}
+/// 現在再生中の効果音の再生時間(msecs)を取得する。
+ulong seLen() {
+	return len(seChannel, _sePlayingMCI, "cwse", bassSEStream);
+}
+
 private void play(ref Mix_Music* music, ref Mix_Chunk* chunk, ref intptr_t channel, string mciName, ref bool onLegacy, ref bool playingMCI, string file, bool loop, int soundPlayType, uint volume, ref HSTREAM bassStream) {
 	stop(music, chunk, channel, mciName, onLegacy, playingMCI, bassStream);
 	version (Windows) {
@@ -257,7 +307,8 @@ private void play(ref Mix_Music* music, ref Mix_Chunk* chunk, ref intptr_t chann
 /+					if (0 != _mciSendString(toUTFz!(wchar*)(.format("setaudio %s volume to %d", mciName, volume * 10)), null, 0, null)) {
 						debugln("error MCI setaudio");
 					}
-+/					string p = "play " ~ mciName;
++/					_mciSendString(toUTFz!(wchar*)("set " ~ mciName ~ " time format milliseconds"), null, 0, null);
+					string p = "play " ~ mciName;
 					if (loop && _mciNotifyHandle) {
 						p ~= " notify";
 						enforce(0 == _mciSendString(toUTFz!(wchar*)(p), null, 0, _mciNotifyHandle),
@@ -386,6 +437,7 @@ bool initBass(string dir, in string[] soundFonts) {
 						return false;
 					}
 				}
+				_BASS_StreamGetFilePosition = getSymbol!(BASS_StreamGetFilePosition)(bass, "BASS_StreamGetFilePosition");
 				if (!bassMidi || !soundFonts.length || !loadBassSoundFont(soundFonts)) {
 					// MIDI再生のみ無効とする
 					return true;
@@ -573,6 +625,8 @@ version (Windows) {
 		immutable BASS_DEFAULT = 0;
 		immutable BASS_SAMPLE_LOOP = 4;
 		immutable BASS_ATTRIB_VOL = 2;
+		immutable BASS_FILEPOS_CURRENT = 0;
+		immutable BASS_FILEPOS_END = 2;
 		alias BOOL function(HSTREAM handle, BASS_MIDI_FONT *fonts, DWORD count) BASS_MIDI_StreamSetFonts;
 		alias HSOUNDFONT function(const void *file, DWORD flags) BASS_MIDI_FontInit;
 		alias BOOL function(HSOUNDFONT handle) BASS_MIDI_FontFree;
@@ -584,6 +638,8 @@ version (Windows) {
 		alias HSTREAM function(BOOL mem, const void* file, QWORD offset, QWORD length, DWORD flags, DWORD freq) BASS_MIDI_StreamCreateFile;
 		alias BOOL function(float volume) BASS_SetVolume;
 		alias BOOL function(DWORD handle, DWORD attrib, float value) BASS_ChannelSetAttribute;
+		alias QWORD function(HSTREAM handle, DWORD mode) BASS_StreamGetFilePosition;
+		BASS_StreamGetFilePosition _BASS_StreamGetFilePosition;
 	}
 } else {
 	private alias intptr_t HSTREAM;
