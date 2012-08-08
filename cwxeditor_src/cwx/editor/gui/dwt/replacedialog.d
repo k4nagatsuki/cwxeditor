@@ -112,8 +112,10 @@ private:
 	}
 
 	bool _inProc = false;
+	bool _inUndo = false;
 	Undo[] _rUndo;
 	void delegate()[] _after;
+	core.thread.Thread _uiThread;
 
 	Commons _comm;
 	Props _prop;
@@ -1249,6 +1251,7 @@ private:
 	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ) {
+		_uiThread = core.thread.Thread.getThis();
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
@@ -1800,8 +1803,11 @@ public:
 		}
 	}
 	private void changed() {
+		auto thr = core.thread.Thread.getThis();
+		if (&_uiThread !is &thr) return;
 		_undo.reset();
 		if (_inGrep) return;
+		if (_inUndo) return;
 		if (_inProc) {
 			_cancel = true;
 		} else {
@@ -1812,6 +1818,10 @@ public:
 		if (!_undo.canUndo) return;
 		_inProc = true;
 		scope (exit) _inProc = false;
+		_inUndo = true;
+		scope (exit) _inUndo = false;
+		resultRedraw(false);
+		scope (exit) resultRedraw(true);
 		reset();
 		_undo.undo();
 		refContentText();
@@ -1823,6 +1833,10 @@ public:
 		if (!_undo.canRedo) return;
 		_inProc = true;
 		scope (exit) _inProc = false;
+		_inUndo = true;
+		scope (exit) _inUndo = false;
+		resultRedraw(false);
+		scope (exit) resultRedraw(true);
 		reset();
 		_undo.redo();
 		refContentText();
@@ -1927,6 +1941,8 @@ public:
 		} else if (_tabf.getSelection() is _tabGrep) {
 			grepImpl();
 		} else assert (0);
+	}
+	private void after() {
 		foreach (a; _after) a();
 		if (_after.length) {
 			refContentText();
@@ -2084,7 +2100,7 @@ public:
 						}
 					}
 					resetCursors(cursors);
-					_comm.refreshToolBar();
+					after();
 				}
 			};
 			scope (exit) _display.syncExec(exit);
@@ -2232,7 +2248,7 @@ public:
 					_inProc = false;
 					setResultStatus(count);
 					resetCursors(cursors);
-					_comm.refreshToolBar();
+					after();
 				}
 			};
 			scope (exit) _display.syncExec(exit);
@@ -2264,7 +2280,7 @@ public:
 					_inProc = false;
 					setResultStatus(count);
 					resetCursors(cursors);
-					_comm.refreshToolBar();
+					after();
 				}
 			};
 			scope (exit) _display.syncExec(exit);
@@ -2379,7 +2395,7 @@ public:
 					_inProc = false;
 					setResultStatus(count);
 					resetCursors(cursors);
-					_comm.refreshToolBar();
+					after();
 				}
 			};
 			scope (exit) _display.syncExec(exit);
@@ -2664,7 +2680,7 @@ public:
 					_inProc = false;
 					setResultStatus(count);
 					resetCursors(cursors);
-					_comm.refreshToolBar();
+					after();
 				}
 			};
 			scope (exit) _display.syncExec(exit);
@@ -2885,7 +2901,7 @@ public:
 					if (_replMode && !_after.length) _comm.replText.call();
 
 					resetCursors(cursors);
-					_comm.refreshToolBar();
+					after();
 				}
 			};
 			scope (exit) _display.syncExec(exit);
@@ -3017,7 +3033,7 @@ public:
 					exitText();
 					setResultStatus(count);
 					resetCursors(cursors);
-					_comm.refreshToolBar();
+					after();
 				}
 			};
 			scope (exit) _display.syncExec(exit);
@@ -3524,7 +3540,7 @@ public:
 		assert (!eo || eo.detail.owner);
 		bool r = false;
 		Undo[] uArr2;
-		if (_eventSel && (!eo || eo.detail.nextType == CNextType.TEXT)) {
+		if (_eventSel && eo && eo.detail.nextType == CNextType.TEXT) {
 			r |= repl(null, e.name, &e.name, count, uArr2);
 		}
 		if (_flagSel) {

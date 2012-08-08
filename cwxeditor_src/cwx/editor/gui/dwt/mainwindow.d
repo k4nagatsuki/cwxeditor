@@ -553,8 +553,22 @@ private:
 		} else {
 			statusLine = openedS;
 		}
-		summ.changedEventForce ~= &_comm.changed.call;
-		summ.changedEvent ~= &refreshTitle;
+		auto chgEvtForce = new class Runnable {
+			override void run() {
+				_comm.changed.call();
+			}
+		};
+		auto chgEvt = new class Runnable {
+			override void run() {
+				refreshTitle();
+			}
+		};
+		summ.changedEventForce ~= {
+			_display.syncExec(chgEvtForce);
+		};
+		summ.changedEvent ~= {
+			_display.syncExec(chgEvt);
+		};
 		refreshTitle();
 		refreshExecEngine();
 		core.memory.GC.collect();
