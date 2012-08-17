@@ -1128,6 +1128,7 @@ protected:
 						}
 						radio.setLayoutData(gd);
 						radio.setText(.tryFormat(_prop.msgs.effectTypeElement, _prop.msgs.effectTypeName(eff)));
+						radio.setToolTipText(_prop.msgs.effectTypeDesc(eff));
 						_effTyp[eff] = radio;
 					}
 				}
@@ -1140,6 +1141,7 @@ protected:
 						auto radio = new Button(grp, SWT.RADIO);
 						mod(radio);
 						radio.setText(_prop.msgs.resistName(res));
+						radio.setToolTipText(_prop.msgs.resistDesc(res));
 						radio.setLayoutData(new GridData(GridData.FILL_BOTH));
 						_res[res] = radio;
 					}

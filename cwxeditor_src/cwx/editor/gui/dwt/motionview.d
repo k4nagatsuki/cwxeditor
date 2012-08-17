@@ -976,13 +976,23 @@ public:
 			_motionElm.setEnabled(false);
 			auto col = new FullTableColumn(_motionElm, SWT.NONE);
 			col.column.setText(_prop.msgs.motionElement);
-			foreach (elm; [Element.ALL, Element.HEALTH, Element.MIND,
+			string[] toolTip;
+			foreach (i, elm; [Element.ALL, Element.HEALTH, Element.MIND,
 					Element.MIRACLE, Element.MAGIC, Element.FIRE, Element.ICE]) {
 				auto itm = new TableItem(_motionElm, SWT.NONE);
 				itm.setImage(_prop.images.element(elm));
 				itm.setText(_prop.msgs.elementName(elm));
 				itm.setData(new Integer(elm));
+				toolTip ~= _prop.msgs.elementDesc(elm);
 			}
+			.listener(_motionElm, SWT.MouseMove, (Event e) {
+				auto itm = _motionElm.getItem(new Point(e.x, e.y));
+				if (itm) {
+					_motionElm.setToolTipText(toolTip[_motionElm.indexOf(itm)]);
+				} else {
+					_motionElm.setToolTipText(null);
+				}
+			});
 			auto menu = new Menu(_motionElm);
 			createMenuItem(_comm, menu, MenuID.Undo, &this.undo, &_undo.canUndo);
 			createMenuItem(_comm, menu, MenuID.Redo, &this.redo, &_undo.canRedo);

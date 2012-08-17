@@ -889,12 +889,26 @@ class Msgs : Properties {
 	auto effectTypeNameMagicalPhysic = Msg("effectTypeNameMagicalPhysic", "魔法的物理");
 	auto effectTypeNamePhysicalMagic = Msg("effectTypeNamePhysicalMagic", "物理的魔法");
 	auto effectTypeNameNone = Msg("effectTypeNameNone", "無");
+	const string effectTypeDesc(EffectType id) {
+		mixin(EnumToStringSwitch!(EffectType, "effectTypeDesc"));
+	}
+	auto effectTypeDescPhysic = Msg("effectTypeDescPhysic", "武器が効かない存在には無効");
+	auto effectTypeDescMagic = Msg("effectTypeDescMagic", "魔法が効かない存在には無効");
+	auto effectTypeDescMagicalPhysic = Msg("effectTypeDescMagicalPhysic", "武器と魔法の両方が効かない存在には無効");
+	auto effectTypeDescPhysicalMagic = Msg("effectTypeDescPhysicalMagic", "武器と魔法のどちらかが効かない存在には無効");
+	auto effectTypeDescNone = Msg("effectTypeDescNone", "全ての存在に有効");
 	const string resistName(Resist id) {
 		mixin(EnumToStringSwitch!(Resist, "resistName"));
 	}
 	auto resistNameAvoid = Msg("resistNameAvoid", "回避属性");
 	auto resistNameResist = Msg("resistNameResist", "抵抗属性");
 	auto resistNameUnfail = Msg("resistNameUnfail", "必中属性");
+	const string resistDesc(Resist id) {
+		mixin(EnumToStringSwitch!(Resist, "resistDesc"));
+	}
+	auto resistDescAvoid = Msg("resistDescAvoid", "回避された場合は効果無し");
+	auto resistDescResist = Msg("resistDescResist", "抵抗された場合は効果半減");
+	auto resistDescUnfail = Msg("resistDescUnfail", "絶対成功");
 	const string cardTargetName(CardTarget id) {
 		mixin(EnumToStringSwitch!(CardTarget, "cardTargetName"));
 	}
@@ -982,6 +996,16 @@ class Msgs : Properties {
 	auto elementNameMagic = Msg("elementNameMagic", "魔力");
 	auto elementNameFire = Msg("elementNameFire", "炎");
 	auto elementNameIce = Msg("elementNameIce", "冷気");
+	const string elementDesc(Element id) {
+		mixin(EnumToStringSwitch!(Element, "elementDesc"));
+	}
+	auto elementDescAll = Msg("elementDescAll", "全ての存在に有効");
+	auto elementDescHealth = Msg("elementDescHealth", "肉体を持つ存在に有効");
+	auto elementDescMind = Msg("elementDescMind", "精神を持つ存在に有効");
+	auto elementDescMiracle = Msg("elementDescMiracle", "不浄な存在に有効");
+	auto elementDescMagic = Msg("elementDescMagic", "魔法的な存在に有効");
+	auto elementDescFire = Msg("elementDescFire", "炎が無効でない存在に有効");
+	auto elementDescIce = Msg("elementDescIce", "冷気が無効でない存在に有効");
 
 	const string sexName(Sex id) {
 		mixin(EnumToStringSwitch!(Sex, "sexName"));
