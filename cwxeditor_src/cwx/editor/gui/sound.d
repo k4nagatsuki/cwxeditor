@@ -9,7 +9,6 @@ import std.conv;
 import std.path;
 import std.exception;
 
-import cwx.sjis;
 import cwx.utils;
 
 enum {
@@ -53,9 +52,15 @@ version (Windows) {
 	}
 }
 private extern (C) {
-	const __gshared uint SDL_INIT_AUDIO = 0x10;
-	const __gshared ushort AUDIO_S16LSB = 0x8010;
-	const __gshared ushort AUDIO_S16MSB = 0x9010;
+	immutable uint SDL_INIT_AUDIO = 0x10;
+	immutable ushort AUDIO_U8 = 0x0008;
+	immutable ushort AUDIO_S8 = 0x8008;
+	immutable ushort AUDIO_U16LSB = 0x0010;
+	immutable ushort AUDIO_S16LSB = 0x8010;
+	immutable ushort AUDIO_U16MSB = 0x1010;
+	immutable ushort AUDIO_S16MSB = 0x9010;
+	immutable ushort AUDIO_U16 = AUDIO_U16LSB;
+	immutable ushort AUDIO_S16 = AUDIO_S16LSB;
 	version (LittleEndian) {
 		const __gshared ushort MIX_DEFAULT_FORMAT = AUDIO_S16LSB;
  	} else {
@@ -65,7 +70,12 @@ private extern (C) {
 	alias ushort Uint16;
 	alias ubyte Uint8;
 	alias void Mix_Music;
-	alias void Mix_Chunk;
+	struct Mix_Chunk {
+		intptr_t allocated;
+		Uint8 *abuf;
+		Uint32 alen;
+		Uint8 volume;
+	}
 
 	immutable MIX_MAX_VOLUME = 128;
 
@@ -89,10 +99,19 @@ private extern (C) {
 	alias void function(Mix_Chunk* chunk) Mix_FreeChunk;
 	alias Mix_Chunk* function(SDL_RWops* src, int freesrc) Mix_LoadWAV_RW;
 	alias SDL_RWops* function(const char* file, const char* mode) SDL_RWFromFile;
+	alias int function(intptr_t *frequency, Uint16 *format, intptr_t *channels) Mix_QuerySpec;
+
+	immutable SDL_FREQUENCY = 44100;
+	immutable SDL_FORMAT = MIX_DEFAULT_FORMAT;
+	immutable SDL_CHANNELS = 2;
+	immutable SDL_CHUNKSIZE = 4092;
 }
 
 private __gshared void* sdl = null;
 private __gshared void* mixer = null;
+private __gshared intptr_t sdl_frequency = 0;
+private __gshared Uint16 sdl_format = 0;
+private __gshared intptr_t sdl_channels = 0;
 
 private __gshared uint _bgmVolume = 100;
 private __gshared uint _seVolume = 100;
@@ -154,9 +173,11 @@ private void initSdl() {
 	if (sdl && mixer) {
 		try {
 			if (0 == getSymbol!(SDL_Init)(sdl, "SDL_Init")(SDL_INIT_AUDIO)) {
-				if (0 == getSymbol!(Mix_OpenAudio)(mixer, "Mix_OpenAudio")(44100, MIX_DEFAULT_FORMAT, 2, 4092)) {
+				if (0 == getSymbol!(Mix_OpenAudio)(mixer, "Mix_OpenAudio")(SDL_FREQUENCY, SDL_FORMAT, SDL_CHANNELS, SDL_CHUNKSIZE)) {
 					if (0 < getSymbol!(Mix_AllocateChannels)(mixer, "Mix_AllocateChannels")(2)) {
-						return;
+						if (0 != getSymbol!(Mix_QuerySpec)(mixer, "Mix_QuerySpec")(&sdl_frequency, &sdl_format, &sdl_channels)) {
+							return;
+						}
 					}
 					getSymbol!(Mix_CloseAudio)(mixer, "Mix_CloseAudio")();
 				}
@@ -234,7 +255,7 @@ private __gshared Mix_Music* seMusic = null;
 private __gshared Mix_Chunk* seChunk = null;
 private __gshared intptr_t seChannel = -1;
 
-private ulong pos(intptr_t channel, bool playingMCI, string mciName, HSTREAM bassStream) {
+private ulong pos(in Mix_Chunk* chunk, bool playingMCI, string mciName, HSTREAM bassStream) {
 	version (Windows) {
 		if (bassStream) {
 			return _BASS_StreamGetFilePosition(bassStream, BASS_FILEPOS_CURRENT);
@@ -244,13 +265,13 @@ private ulong pos(intptr_t channel, bool playingMCI, string mciName, HSTREAM bas
 			_mciSendString(toUTFz!(wchar*)("status " ~ mciName ~ " position"), len.ptr, len.length, null);
 			return to!ulong(len[0 .. wcslen(len.ptr)]);
 		}
-		if (-1 != channel) {
+		if (chunk) {
 			// TODO
 		}
 		return 0;
 	}
 }
-private ulong len(intptr_t channel, bool playingMCI, string mciName, HSTREAM bassStream) {
+private ulong len(in Mix_Chunk* chunk, bool playingMCI, string mciName, HSTREAM bassStream) {
 	version (Windows) {
 		if (bassStream) {
 			return _BASS_StreamGetFilePosition(bassStream, BASS_FILEPOS_END);
@@ -260,28 +281,33 @@ private ulong len(intptr_t channel, bool playingMCI, string mciName, HSTREAM bas
 			_mciSendString(toUTFz!(wchar*)("status " ~ mciName ~ " length"), len.ptr, len.length, null);
 			return to!ulong(len[0 .. wcslen(len.ptr)]);
 		}
-		if (-1 != channel) {
-			// TODO
+		if (chunk) {
+			auto bps = sdl_frequency * ((sdl_format & 0xFF) == 0x08 ? 1 : 2) * sdl_channels;
+			return chunk.alen * 1000UL / bps;
 		}
 		return 0;
 	}
 }
 
 /// 現在再生中のBGMの再生位置(msecs)を取得する。
+@property
 ulong bgmPos() {
-	return pos(bgmChannel, _bgmPlayingMCI, "cwbgm", bassBGMStream);
+	return pos(bgmChunk, _bgmPlayingMCI, "cwbgm", bassBGMStream);
 }
 /// 現在再生中のBGMの再生時間(msecs)を取得する。
+@property
 ulong bgmLen() {
-	return len(bgmChannel, _bgmPlayingMCI, "cwbgm", bassBGMStream);
+	return len(bgmChunk, _bgmPlayingMCI, "cwbgm", bassBGMStream);
 }
 /// 現在再生中の効果音の再生位置(msecs)を取得する。
+@property
 ulong sePos() {
-	return pos(seChannel, _sePlayingMCI, "cwse", bassSEStream);
+	return pos(seChunk, _sePlayingMCI, "cwse", bassSEStream);
 }
 /// 現在再生中の効果音の再生時間(msecs)を取得する。
+@property
 ulong seLen() {
-	return len(seChannel, _sePlayingMCI, "cwse", bassSEStream);
+	return len(seChunk, _sePlayingMCI, "cwse", bassSEStream);
 }
 
 private void play(ref Mix_Music* music, ref Mix_Chunk* chunk, ref intptr_t channel, string mciName, ref bool onLegacy, ref bool playingMCI, string file, bool loop, int soundPlayType, uint volume, ref HSTREAM bassStream) {

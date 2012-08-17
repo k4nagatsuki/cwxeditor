@@ -1738,7 +1738,7 @@ bool isFileNameChar(dchar c) {
 	} else static assert (0);
 }
 
-/// ファイル名に使用ない文字があったらcに置換する。
+/// ファイル名に使用できない文字があったらcに置換する。
 string toFileName(string name, dchar c = '_') {
 	dchar[] buf;
 	foreach (dchar n; name) {
