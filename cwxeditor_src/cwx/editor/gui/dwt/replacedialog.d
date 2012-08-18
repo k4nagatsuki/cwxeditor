@@ -262,6 +262,8 @@ private:
 	string _fromText;
 	string _toText;
 
+	bool _flagDirOnRange = false;
+
 	bool _resultRedraw = true;
 	void resultRedraw(bool val) {
 		if (!_win || _win.isDisposed()) return;
@@ -1923,6 +1925,17 @@ public:
 		_fromText = _from.getText();
 		_toText = _to.getText();
 
+		_flagDirOnRange = false;
+		foreach (itm; _range.getItems()) {
+			if (itm.getChecked()) {
+				auto root = cast(FlagDir) itm.getData();
+				if (root) {
+					_flagDirOnRange = true;
+					break;
+				}
+			}
+		}
+
 		_cancel = false;
 		if (_tabf.getSelection() is _tabText) {
 			replaceTextImpl();
@@ -3492,7 +3505,11 @@ public:
 		bool r = false;
 		Undo[] uArr2;
 		if (_flagSel) {
-			r |= repl(null, back.flag, &back.flag, count, uArr2);
+			if (_flagDirOnRange) {
+				r |= repl(null, back.flag, null, count, uArr2);
+			} else {
+				r |= repl(null, back.flag, &back.flag, count, uArr2);
+			}
 		}
 		if (_fileSel) {
 			r |= replFilePath(back.path, &back.path, count, uArr2);
@@ -3517,7 +3534,11 @@ public:
 		}
 		if (_flagSel) {
 			static if (is (C : IFlagUser)) {
-				r |= repl(null, card.flag, &card.flag, count, uArr2);
+				if (_flagDirOnRange) {
+					r |= repl(null, card.flag, null, count, uArr2);
+				} else {
+					r |= repl(null, card.flag, &card.flag, count, uArr2);
+				}
 			}
 		}
 		if (_fileSel) {
@@ -3544,9 +3565,14 @@ public:
 			r |= repl(null, e.name, &e.name, count, uArr2);
 		}
 		if (_flagSel) {
-			// Flag/StepについてはUseCounter経由で置換される
-			r |= repl(null, e.flag, null, count, uArr2);
-			r |= repl(null, e.step, null, count, uArr2);
+			if (_flagDirOnRange) {
+				// Flag/StepについてはUseCounter経由で置換される
+				r |= repl(null, e.flag, null, count, uArr2);
+				r |= repl(null, e.step, null, count, uArr2);
+			} else {
+				r |= repl(null, e.flag, &e.flag, count, uArr2);
+				r |= repl(null, e.step, &e.step, count, uArr2);
+			}
 		}
 		if (_startSel) {
 			r |= repl(null, e.start, &e.start, count, uArr2);
@@ -3584,13 +3610,25 @@ public:
 				uArr ~= new StrUndo(old, th.text, &th.text);
 			}
 			if (_flagSel && !_msgSel) {
-				auto fps = th.flagsInText;
-				foreach (i, p; fps) {
-					r |= repl(null, p, null, count, nArr);
-				}
-				auto sps = th.stepsInText;
-				foreach (i, p; sps) {
-					r |= repl(null, p, null, count, nArr);
+				if (_flagDirOnRange) {
+					// Flag/StepについてはUseCounter経由で置換される
+					auto fps = th.flagsInText;
+					foreach (i, p; fps) {
+						r |= repl(null, p, null, count, nArr);
+					}
+					auto sps = th.stepsInText;
+					foreach (i, p; sps) {
+						r |= repl(null, p, null, count, nArr);
+					}
+				} else {
+					auto fps = th.flagsInText;
+					foreach (i, p; fps) {
+						r |= repl(null, p, (string n) {th.changeInText(i, toFlagId(p));}, count, nArr);
+					}
+					auto sps = th.stepsInText;
+					foreach (i, p; sps) {
+						r |= repl(null, p, (string n) {th.changeInText(i, toStepId(p));}, count, nArr);
+					}
 				}
 			}
 			return r;
