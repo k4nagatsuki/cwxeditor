@@ -268,7 +268,6 @@ private:
 				int from = _from;
 				if (_to <= from) from++;
 				owner.insert(from, card);
-//				_sel = _from;
 				std.algorithm.swap(_from, _to);
 			}
 			override void undo() {
