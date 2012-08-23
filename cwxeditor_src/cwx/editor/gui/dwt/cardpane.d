@@ -958,7 +958,7 @@ private:
 		if (!sels.length) return;
 		if (cast(Object) sels[0].cwxParent is _summ) {
 			sn.newAttr("summId", _summ.id);
-			sn.newAttr("paneId", "");
+			sn.newAttr("paneId", _id);
 			sn.newAttr("topLevel", true);
 		} else {
 			sn.newAttr("summId", ownerId);
