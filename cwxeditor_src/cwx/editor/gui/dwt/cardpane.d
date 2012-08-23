@@ -268,7 +268,7 @@ private:
 				int from = _from;
 				if (_to <= from) from++;
 				owner.insert(from, card);
-				_sel = _from;
+//				_sel = _from;
 				std.algorithm.swap(_from, _to);
 			}
 			override void undo() {
@@ -736,7 +736,8 @@ private:
 						if (adds.length == 0) return;
 						assert (adds.length == 1);
 						auto card = adds[0];
-						storeMove(_owner.indexOf!C(card), index);
+						int oldIndex = _owner.indexOf!C(card);
+						storeMove(oldIndex, oldIndex < index ? index - 1 : index);
 						_owner.insert(index, card);
 						insert(card, true);
 						refreshStatusLine();
