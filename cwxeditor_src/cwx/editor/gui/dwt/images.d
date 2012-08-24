@@ -251,9 +251,10 @@ public:
 	/// このメソッドを呼び出すことで、画像が生成される。
 	/// See_Also: append(), setTitle(), transparent()
 	void createImage() {
+		auto cur = Display.getCurrent();
 		if (_img) _img.dispose();
 		auto data = createImageData();
-		_img = data ? new Image(Display.getCurrent(), data) : null;
+		_img = data ? new Image(cur, data) : null;
 	}
 	/// イメージ・タイトル・透明色の設定有無を設定した後に
 	/// このメソッドを呼び出すことで、ImageDataが生成される。
@@ -261,110 +262,131 @@ public:
 	ImageData createImageData() {
 		if (width == 0 || height == 0 || initW == 0 || initH == 0) return null;
 		auto cur = Display.getCurrent();
-		auto bmp = new Image(cur, initW, initH);
-		scope (exit) bmp.dispose();
 
 		try {
-			auto dc = new GC(bmp);
-			scope (exit) dc.dispose();
-
-			ImageData matImgData;
-			if (this.data) {
-				matImgData = this.data;
-			} else {
-				if (isBinImg(path) || (path !is null && .exists(path))) {
-					matImgData = loadImage(path, false);
-					matImgData = matImgData.scaledTo(initW, initH);
+			ImageData getMat() {
+				ImageData matImgData;
+				if (this.data) {
+					matImgData = this.data;
 				} else {
-					// ファイルが無い場合は単に表示しない。
-					matImgData = blankImage;
-				}
-			}
-			auto matImg = new Image(cur, matImgData);
-			scope (exit) matImg.dispose();
-			dc.drawImage(matImg, 0, 0);
-
-			foreach (a; appends) {
-				if (a.path.length || a.data) {
-					try {
-						ImageData imgData;
-						if (a.data) {
-							imgData = a.data;
-						} else {
-							imgData = loadImage(a.path, a.transparent, a.maskX, a.maskY);
-						}
-						imgData = imgData.scaledTo
-							(initW - a.insets.w - a.insets.e,
-							initH - a.insets.n - a.insets.s);
-						auto img = new Image(cur, imgData);
-						scope (exit) img.dispose();
-						if (a.alpha != 0xFF) dc.setAlpha(a.alpha);
-						scope (exit) {
-							if (a.alpha != 0xFF) dc.setAlpha(0xFF);
-						}
-						dc.drawImage(img, a.insets.w, a.insets.n);
-					} catch (SWTException e) {
-						// ファイルが無い場合は表示しない。
-						debugln(e);
+					if (isBinImg(path) || (path !is null && .exists(path))) {
+						matImgData = loadImage(path, false);
+						matImgData = matImgData.scaledTo(initW, initH);
+					} else {
+						// ファイルが無い場合は単に表示しない。
+						matImgData = blankImage(initW, initH);
 					}
 				}
-				if (a.text.length) {
-					try {
-						auto font = new Font(cur, dwtData(a.font));
-						scope (exit) font.dispose();
-						dc.setFont(font);
-						scope (exit) dc.setFont(null);
-						int alpha;
-						auto color = new Color(cur, dwtData(a.fontColor, alpha));
-						scope (exit) color.dispose();
-						auto fore = dc.getForeground();
-						dc.setForeground(color);
-						scope (exit) dc.setForeground(fore);
-						dc.setAlpha(alpha);
-						scope (exit) dc.setAlpha(255);
-						switch (a.textPos) {
-						case TPos.LEFT: {
-							dc.drawText(a.text, a.insets.w, a.insets.n, true);
-						} break;
-						case TPos.RIGHT: {
-							int tw = dc.textExtent(a.text).x;
-							dc.drawText(a.text, initW - a.insets.e - tw, a.insets.n, true);
-						} break;
-						default: assert (0);
+				return matImgData;
+			}
+			ImageData matImgData;
+			bool noTransparent = false;
+			if (!appends.length && !_title && !this.data && transparent) {
+				// FIXME: 1.29の挙動に合わせ、マスク有効なら透明色を無効にする
+				auto data = blankImage(initW, initH);
+				data.transparentPixel = -1;
+				data.data[] = cast(byte) 255;
+				auto img = new Image(cur, data);
+				scope (exit) img.dispose();
+				auto dc = new GC(img);
+				scope (exit) dc.dispose();
+				auto img2 = new Image(cur, getMat());
+				scope (exit) img2.dispose();
+				dc.drawImage(img2, 0, 0);
+				matImgData = img.getImageData();
+				noTransparent = true;
+			} else {
+				matImgData = getMat();
+			}
+			auto bmp = new Image(cur, matImgData);
+			scope (exit) bmp.dispose();
+			ImageData bmpData;
+			if (appends.length || _title !is null) {
+				auto dc = new GC(bmp);
+				scope (exit) dc.dispose();
+
+				foreach (a; appends) {
+					if (a.path.length || a.data) {
+						try {
+							ImageData imgData;
+							if (a.data) {
+								imgData = a.data;
+							} else {
+								imgData = loadImage(a.path, a.transparent, a.maskX, a.maskY);
+							}
+							imgData = imgData.scaledTo
+								(initW - a.insets.w - a.insets.e,
+								initH - a.insets.n - a.insets.s);
+							auto img = new Image(cur, imgData);
+							scope (exit) img.dispose();
+							if (a.alpha != 0xFF) dc.setAlpha(a.alpha);
+							scope (exit) {
+								if (a.alpha != 0xFF) dc.setAlpha(0xFF);
+							}
+							dc.drawImage(img, a.insets.w, a.insets.n);
+						} catch (SWTException e) {
+							// ファイルが無い場合は表示しない。
+							debugln(e);
 						}
-					} catch (SWTException e) {
-						debugln(e);
+					}
+					if (a.text.length) {
+						try {
+							auto font = new Font(cur, dwtData(a.font));
+							scope (exit) font.dispose();
+							dc.setFont(font);
+							scope (exit) dc.setFont(null);
+							int alpha;
+							auto color = new Color(cur, dwtData(a.fontColor, alpha));
+							scope (exit) color.dispose();
+							auto fore = dc.getForeground();
+							dc.setForeground(color);
+							scope (exit) dc.setForeground(fore);
+							dc.setAlpha(alpha);
+							scope (exit) dc.setAlpha(255);
+							switch (a.textPos) {
+							case TPos.LEFT: {
+								dc.drawText(a.text, a.insets.w, a.insets.n, true);
+							} break;
+							case TPos.RIGHT: {
+								int tw = dc.textExtent(a.text).x;
+								dc.drawText(a.text, initW - a.insets.e - tw, a.insets.n, true);
+							} break;
+							default: assert (0);
+							}
+						} catch (SWTException e) {
+							debugln(e);
+						}
 					}
 				}
+
+				if (0 != _maskA) {
+					auto color = new Color(cur, _maskR, _maskG, _maskB);
+					scope (exit) color.dispose();
+					dc.setAlpha(_maskA);
+					scope (exit) dc.setAlpha(255);
+					dc.setBackground(color);
+					dc.fillRectangle(0, 0, initW, initH);
+				}
+
+				// フォントがおかしくなる
+				dc.dispose();
+				dc = new GC(bmp);
+				if (_title !is null) {
+					auto font = new Font(cur, titFont);
+					scope (exit) font.dispose();
+					dc.setFont(font);
+					dc.setForeground(cur.getSystemColor(SWT.COLOR_BLACK));
+					dc.drawText(_title, titPoint.x, titPoint.y, true);
+					dc.setFont(null);
+				}
+				bmpData = bmp.getImageData();
+				_baseSizeData = bmp.getImageData();
+			} else {
+				bmpData = matImgData;
+				_baseSizeData = matImgData;
 			}
 
-			if (0 != _maskA) {
-				auto color = new Color(cur, _maskR, _maskG, _maskB);
-				scope (exit) color.dispose();
-				dc.setAlpha(_maskA);
-				scope (exit) dc.setAlpha(255);
-				dc.setBackground(color);
-				dc.fillRectangle(0, 0, initW, initH);
-			}
-
-			// フォントがおかしくなる
-			dc.dispose();
-			dc = new GC(bmp);
-			if (_title !is null) {
-				auto font = new Font(cur, titFont);
-				scope (exit) font.dispose();
-				dc.setFont(font);
-				dc.setForeground(cur.getSystemColor(SWT.COLOR_BLACK));
-				dc.drawText(_title, titPoint.x, titPoint.y, true);
-				dc.setFont(null);
-			}
-		} catch (Exception e) {
-			debugln(e);
-		}
-		auto bmpData = bmp.getImageData();
-		_baseSizeData = bmp.getImageData();
-		try {
-			if (transparent) {
+			if (transparent && !noTransparent) {
 				bmpData.transparentPixel = bmpData.getPixel(0, 0);
 				_baseSizeData.transparentPixel = _baseSizeData.getPixel(0, 0);
 			}
@@ -383,10 +405,11 @@ public:
 					bmpData = bmpData.scaledTo(width, height);
 				}
 			}
+			return bmpData;
 		} catch (Exception e) {
 			debugln(e);
+			return blankImage;
 		}
-		return bmpData;
 	}
 	/// 画像を描画する。
 	/// Params:

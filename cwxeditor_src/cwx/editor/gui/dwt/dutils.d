@@ -103,7 +103,18 @@ ImageData loadImage(Skin skin, string path, bool mask = true, int maskX = 0, int
 			auto s = new ByteArrayInputStream(bytes);
 			scope (exit) s.close();
 			auto data = new ImageData(s);
-			if (mask) data.transparentPixel = data.getPixel(maskX, maskY);
+			if (32 == data.depth && cfnmatch(ext, ".bmp")) {
+				// アルファ値を正しく取れないので補完しておく
+				data.alphaData = new byte[data.width * data.height];
+				foreach (y; 0 .. data.height) {
+					foreach (x; 0 .. data.width) {
+						data.alphaData[y * data.width + x] = cast(ubyte) data.data[y * data.bytesPerLine + x * 4 + 3];
+					}
+				}
+			}
+			if (mask && !data.alphaData) {
+				data.transparentPixel = data.getPixel(maskX, maskY);
+			}
 			return data;
 		} catch (SWTException e) {
 			cdebugln(e.file);
@@ -115,8 +126,8 @@ ImageData loadImage(Skin skin, string path, bool mask = true, int maskX = 0, int
 }
 
 @property
-ImageData blankImage() {
-	auto data = new ImageData(1, 1, 8, new PaletteData(0, 0, 0));
+ImageData blankImage(int width = 1, int height = 1) {
+	auto data = new ImageData(width, height, 32, new PaletteData(0xFF000000, 0xFF0000, 0xFF00));
 	data.transparentPixel = data.getPixel(0, 0);
 	return data;
 }

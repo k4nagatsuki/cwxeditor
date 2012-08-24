@@ -89,7 +89,7 @@ public:
 		int r = (lev + 1) / 4 + 1;
 		return r <= 10 ? r : 10;
 	}
-	@property const int cardDescLen() {return 38;}
+	@property const int cardDescLen() {return 39;}
 	@property const int cardDescLine() {return 8;}
 
 	@property const int messageImageLen() {return 34;}
