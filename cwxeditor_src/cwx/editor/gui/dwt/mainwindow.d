@@ -464,115 +464,178 @@ private:
 		return findSkin(_comm, _prop, summ);
 	}
 	void openScenario(Summary summ) {
-		assert (summ);
-		OpenHistory hist;
-		auto skin = findSkinFromHistory(summ, hist);
-		if (summ.legacy && hist.path.length && (hist.skinName.length || hist.skinEngine.length)) {
-			summ.type = hist.skinName;
-		}
-		_lastBackup = Clock.currTime();
-		_dirWin.stopTrace();
-		scope (exit) _dirWin.resumeTrace();
-		if (_prop.var.etc.logicalSort) {
-			summ.flagDirRoot.sorter = &ncmp;
-		} else {
-			summ.flagDirRoot.sorter = &cmp;
-		}
-		summ.flagDirRoot.sortFlags(true);
-		summ.flagDirRoot.sortSteps(true);
-		auto old = summary;
-		if (old) {
-			addHistory();
-		}
-		if (summ.type.length && !hasSkin(_prop, summ.type)
-				&& summ.type != _prop.var.etc.defaultSkin) {
-			MessageBox.showWarning(.tryFormat(_prop.msgs.useDefaultSkin, summ.type, _prop.var.etc.defaultSkin),
-				_prop.msgs.dlgTitWarning, _win);
-			summ.type = _prop.var.etc.defaultSkin;
-		}
-		summ.resetChanged();
-		_comm.skin = skin;
-		_comm.closeAll();
-		if (_dataWin) {
-			_dataWin.load(summ);
-		} else {
-			_tableWin.load(summ);
-			_flagWin.load(summ);
-		}
-		if (_cardWin) _cardWin.refresh(summ);
-		if (_castWin) _castWin.refresh(summ);
-		if (_skillWin) _skillWin.refresh(summ);
-		if (_itemWin) _itemWin.refresh(summ);
-		if (_beastWin) _beastWin.refresh(summ);
-		if (_infoWin) _infoWin.refresh(summ);
-		_dirWin.refresh(summ);
-		_comm.refScenario.call(summ);
-		_comm.refScenarioName.call();
-		_comm.refScenarioPath.call();
-		if (!dock) {
-			if (_prop.var.dataWin.visible) _comm.openDataWin(false);
-			if (_prop.var.cardWin.visible) _comm.openBindCardWin(false);
-			if (_prop.var.dirWin.visible) _comm.openDirWin(false);
-		}
-		setupMenu(_menu);
-		setupMenu(_tool);
-		bool opened = false;
-		string openedS = "";
-		if (_prop.var.etc.reconstruction && !_opt.noload) {
-			auto paths = fullHistToCWXPaths(hist.path);
-			if (paths.length) {
-				statusLine = .tryFormat(_prop.msgs.reconstructionStatus, 0, paths.length);
-				foreach (i, cwxPath; paths) {
-					if (openCWXPath(cwxPath, false)) {
-						opened = true;
-						openedS = statusLine;
-						statusLine = .tryFormat(_prop.msgs.reconstructionStatus, i + 1, paths.length);
-					} else {
-						statusLine = .tryFormat(_prop.msgs.reconstructionStatus, i + 1, paths.length);
+		string dStr = .text(__LINE__);
+		try {
+			assert (summ);
+			dStr ~= " - " ~ .text(__LINE__);
+			OpenHistory hist;
+			auto skin = findSkinFromHistory(summ, hist);
+			dStr ~= " - " ~ .text(__LINE__);
+			if (summ.legacy && hist.path.length && (hist.skinName.length || hist.skinEngine.length)) {
+				summ.type = hist.skinName;
+			}
+			dStr ~= " - " ~ .text(__LINE__);
+			_lastBackup = Clock.currTime();
+			dStr ~= " - " ~ .text(__LINE__);
+			_dirWin.stopTrace();
+			dStr ~= " - " ~ .text(__LINE__);
+			scope (exit) _dirWin.resumeTrace();
+			dStr ~= " - " ~ .text(__LINE__);
+			if (_prop.var.etc.logicalSort) {
+				summ.flagDirRoot.sorter = &ncmp;
+			} else {
+				summ.flagDirRoot.sorter = &cmp;
+			}
+			dStr ~= " - " ~ .text(__LINE__);
+			summ.flagDirRoot.sortFlags(true);
+			summ.flagDirRoot.sortSteps(true);
+			dStr ~= " - " ~ .text(__LINE__);
+			auto old = summary;
+			if (old) {
+				addHistory();
+			}
+			dStr ~= " - " ~ .text(__LINE__);
+			if (summ.type.length && !hasSkin(_prop, summ.type)
+					&& summ.type != _prop.var.etc.defaultSkin) {
+				MessageBox.showWarning(.tryFormat(_prop.msgs.useDefaultSkin, summ.type, _prop.var.etc.defaultSkin),
+					_prop.msgs.dlgTitWarning, _win);
+				summ.type = _prop.var.etc.defaultSkin;
+			}
+			dStr ~= " - " ~ .text(__LINE__);
+			summ.resetChanged();
+			dStr ~= " - " ~ .text(__LINE__);
+			_comm.skin = skin;
+			dStr ~= " - " ~ .text(__LINE__);
+			_comm.closeAll();
+			dStr ~= " - " ~ .text(__LINE__);
+			if (_dataWin) {
+				dStr ~= " - " ~ .text(__LINE__);
+				_dataWin.load(summ);
+			} else {
+				dStr ~= " - " ~ .text(__LINE__);
+				_tableWin.load(summ);
+				dStr ~= " - " ~ .text(__LINE__);
+				_flagWin.load(summ);
+			}
+			dStr ~= " - " ~ .text(__LINE__);
+			if (_cardWin) _cardWin.refresh(summ);
+			dStr ~= " - " ~ .text(__LINE__);
+			if (_castWin) _castWin.refresh(summ);
+			dStr ~= " - " ~ .text(__LINE__);
+			if (_skillWin) _skillWin.refresh(summ);
+			dStr ~= " - " ~ .text(__LINE__);
+			if (_itemWin) _itemWin.refresh(summ);
+			dStr ~= " - " ~ .text(__LINE__);
+			if (_beastWin) _beastWin.refresh(summ);
+			dStr ~= " - " ~ .text(__LINE__);
+			if (_infoWin) _infoWin.refresh(summ);
+			dStr ~= " - " ~ .text(__LINE__);
+			_dirWin.refresh(summ);
+			dStr ~= " - " ~ .text(__LINE__);
+			_comm.refScenario.call(summ);
+			dStr ~= " - " ~ .text(__LINE__);
+			_comm.refScenarioName.call();
+			dStr ~= " - " ~ .text(__LINE__);
+			_comm.refScenarioPath.call();
+			dStr ~= " - " ~ .text(__LINE__);
+			if (!dock) {
+				dStr ~= " - " ~ .text(__LINE__);
+				if (_prop.var.dataWin.visible) _comm.openDataWin(false);
+				dStr ~= " - " ~ .text(__LINE__);
+				if (_prop.var.cardWin.visible) _comm.openBindCardWin(false);
+				dStr ~= " - " ~ .text(__LINE__);
+				if (_prop.var.dirWin.visible) _comm.openDirWin(false);
+				dStr ~= " - " ~ .text(__LINE__);
+			}
+			dStr ~= " - " ~ .text(__LINE__);
+			setupMenu(_menu);
+			dStr ~= " - " ~ .text(__LINE__);
+			setupMenu(_tool);
+			dStr ~= " - " ~ .text(__LINE__);
+			bool opened = false;
+			dStr ~= " - " ~ .text(__LINE__);
+			string openedS = "";
+			dStr ~= " - " ~ .text(__LINE__);
+			if (_prop.var.etc.reconstruction && !_opt.noload) {
+				dStr ~= " - " ~ .text(__LINE__);
+				auto paths = fullHistToCWXPaths(hist.path);
+				dStr ~= " - " ~ .text(__LINE__);
+				if (paths.length) {
+					statusLine = .tryFormat(_prop.msgs.reconstructionStatus, 0, paths.length);
+					dStr ~= " - " ~ .text(__LINE__);
+					foreach (i, cwxPath; paths) {
+						dStr ~= " - " ~ .text(__LINE__);
+						dStr ~= " - " ~ cwxPath;
+						if (openCWXPath(cwxPath, false)) {
+							opened = true;
+							openedS = statusLine;
+							statusLine = .tryFormat(_prop.msgs.reconstructionStatus, i + 1, paths.length);
+						} else {
+							statusLine = .tryFormat(_prop.msgs.reconstructionStatus, i + 1, paths.length);
+						}
 					}
 				}
+				dStr ~= " - " ~ .text(__LINE__);
 			}
-		}
-		if (_opt.selectfile.length) {
-			_comm.openCWXPath("fileview", false);
-			_dirWin.select(_opt.selectfile);
-		}
-		resetOpt();
-		addHistory();
-		try {
-			if (old) {
-				synchronized (_saveSync) {
-					old.delTemp();
+			dStr ~= " - " ~ .text(__LINE__);
+			if (_opt.selectfile.length) {
+				_comm.openCWXPath("fileview", false);
+				_dirWin.select(_opt.selectfile);
+			}
+			dStr ~= " - " ~ .text(__LINE__);
+			resetOpt();
+			dStr ~= " - " ~ .text(__LINE__);
+			addHistory();
+			dStr ~= " - " ~ .text(__LINE__);
+			try {
+				if (old) {
+					synchronized (_saveSync) {
+						old.delTemp();
+					}
 				}
+			} catch (Exception e) {
+				debugln(e);
 			}
-		} catch (Exception e) {
-			debugln(e);
+			dStr ~= " - " ~ .text(__LINE__);
+			if (!opened || !openedS.length) {
+				statusLine = .tryFormat(_prop.msgs.loaded, summ.scenarioName);
+			} else {
+				statusLine = openedS;
+			}
+			dStr ~= " - " ~ .text(__LINE__);
+			auto chgEvtForce = new class Runnable {
+				override void run() {
+					_comm.changed.call();
+				}
+			};
+			dStr ~= " - " ~ .text(__LINE__);
+			auto chgEvt = new class Runnable {
+				override void run() {
+					refreshTitle();
+				}
+			};
+			dStr ~= " - " ~ .text(__LINE__);
+			summ.changedEventForce ~= {
+				_display.syncExec(chgEvtForce);
+			};
+			dStr ~= " - " ~ .text(__LINE__);
+			summ.changedEvent ~= {
+				_display.syncExec(chgEvt);
+			};
+			dStr ~= " - " ~ .text(__LINE__);
+			refreshTitle();
+			dStr ~= " - " ~ .text(__LINE__);
+			refreshExecEngine();
+			dStr ~= " - " ~ .text(__LINE__);
+			core.memory.GC.collect();
+			dStr ~= " - " ~ .text(__LINE__);
+			_win.redraw();
+			dStr ~= " - " ~ .text(__LINE__);
+		} catch (Throwable e) {
+			fdebugln(dStr);
+			fdebugln(e);
+			throw e;
 		}
-		if (!opened || !openedS.length) {
-			statusLine = .tryFormat(_prop.msgs.loaded, summ.scenarioName);
-		} else {
-			statusLine = openedS;
-		}
-		auto chgEvtForce = new class Runnable {
-			override void run() {
-				_comm.changed.call();
-			}
-		};
-		auto chgEvt = new class Runnable {
-			override void run() {
-				refreshTitle();
-			}
-		};
-		summ.changedEventForce ~= {
-			_display.syncExec(chgEvtForce);
-		};
-		summ.changedEvent ~= {
-			_display.syncExec(chgEvt);
-		};
-		refreshTitle();
-		refreshExecEngine();
-		core.memory.GC.collect();
-		_win.redraw();
 	}
 	LaunchOption _opt;
 	void resetOpt() {

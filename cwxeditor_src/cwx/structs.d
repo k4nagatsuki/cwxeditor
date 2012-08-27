@@ -84,7 +84,7 @@ struct LaunchOption {
 					if (i + 1 < args.length) putlangfile = args[i + 1];
 					sc = i + 1u;
 					break;
-				case "-noreload": // 最後に開いていたシナリオを開かない
+				case "-noload": // 最後に開いていたシナリオを開かない
 					noload = true;
 					sc = i + 1u;
 					break;
