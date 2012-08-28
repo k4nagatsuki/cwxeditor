@@ -1506,7 +1506,11 @@ private:
 			_cs = cs;
 		}
 		void put() {
-			putContents(_cs);
+			auto cs = _cs.dup;
+			foreach (ref c; cs) {
+				c = c.dup;
+			}
+			putContents(cs);
 		}
 	}
 	private class PutScript {
