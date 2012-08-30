@@ -164,6 +164,7 @@ private:
 	Button _notIgnoreCase;
 	Button _useRegex;
 	Button _useWildcard;
+	Button _exact;
 	class SelRegex : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
 			if (_useRegex.getSelection()) {
@@ -245,6 +246,7 @@ private:
 	Label _status;
 
 	bool _notIgnoreCaseSel;
+	bool _exactSel;
 	bool _summarySel;
 	bool _msgSel;
 	bool _cardNameSel;
@@ -292,12 +294,17 @@ private:
 			}
 			string scPath = null;
 			string text = encodePath(path);
+			itm.setText(0, text);
+			if (desc.length) {
+				itm.setText(2, desc);
+				itm.setImage(2, _prop.images.warning);
+			}
 			if (_grepSumm) {
 				scPath = _grepSumm.useTemp ? _grepSumm.zipName : _grepSumm.scenarioPath;
-				text = .tryFormat(_prop.msgs.grepScenario, _grepSumm.scenarioName, scPath) ~ " - " ~ text;
+				text = .tryFormat(_prop.msgs.grepScenario, _grepSumm.scenarioName, scPath);
+				itm.setText(2, text);
+				itm.setImage(2, _prop.images.summary);
 			}
-			if (desc.length) text = desc ~ " - " ~ text;
-			itm.setText(text);
 			itm.setData(new FilePathString(scPath, path));
 			refResultStatus(count, false);
 		}
@@ -312,17 +319,23 @@ private:
 			if (!_win || _win.isDisposed()) return;
 			if (_inProc && !_prop.var.etc.searchResultRealtime) resultRedraw(false);
 			auto itm = new TableItem(_result, SWT.NONE, -1 == index ? _result.getItemCount() : index);
-			string text;
-			Image img;
-			getPathParams(path, text, img);
-			itm.setImage(img);
-			if (desc.length) text = desc ~ " - " ~ text;
+			string text1, text2;
+			Image img1, img2;
+			getPathParams(path, text1, text2, img1, img2);
+			itm.setImage(0, img1);
+			itm.setText(0, text1);
+			itm.setImage(1, img2);
+			itm.setText(1, text2);
+			if (desc.length) {
+				itm.setText(2, desc);
+				itm.setImage(2, _prop.images.warning);
+			}
 			string scPath = null;
 			if (_grepSumm) {
 				scPath = _grepSumm.useTemp ? _grepSumm.zipName : _grepSumm.scenarioPath;
-				text = .tryFormat(_prop.msgs.grepScenario, _grepSumm.scenarioName, scPath) ~ " - " ~ text;
+				itm.setText(2, .tryFormat(_prop.msgs.grepScenario, _grepSumm.scenarioName, scPath));
+				itm.setImage(2, _prop.images.summary);
 			}
-			itm.setText(text);
 			itm.setData(new CWXPathString(scPath, path, path.cwxPath(true)));
 			refResultStatus(count, false);
 		}
@@ -339,6 +352,23 @@ private:
 			auto itm = new TableItem(_result, SWT.NONE, -1 == index ? _result.getItemCount() : index);
 			itm.setText(name);
 			itm.setImage(image());
+			refResultStatus(count, false);
+		}
+	}
+	class AddResultUse : Runnable {
+		string name;
+		uint use;
+		Image delegate() image;
+		int index;
+		size_t count = 0;
+		void run() {
+			if (cancel) return;
+			if (!_win || _win.isDisposed()) return;
+			if (_inProc && !_prop.var.etc.searchResultRealtime) resultRedraw(false);
+			auto itm = new TableItem(_result, SWT.NONE, -1 == index ? _result.getItemCount() : index);
+			itm.setText(0, name);
+			itm.setImage(0, image());
+			itm.setText(1, .text(use));
 			refResultStatus(count, false);
 		}
 	}
@@ -622,15 +652,23 @@ private:
 			gd.widthHint = _prop.var.etc.searchResultTableWidth;
 			grp.setLayoutData(gd);
 			grp.setText(_prop.msgs.replCond);
-			grp.setLayout(new GridLayout(1, true));
+			grp.setLayout(new GridLayout(2, false));
 			_notIgnoreCase = new Button(grp, SWT.CHECK);
 			_notIgnoreCase.setText(_prop.msgs.replNotIgnoreCase);
+			_exact = new Button(grp, SWT.CHECK);
+			_exact.setText(_prop.msgs.replExactMatch);
 			_useWildcard = new Button(grp, SWT.CHECK);
 			_useWildcard.setText(_prop.msgs.replWildcard);
 			_useWildcard.addSelectionListener(new SelWildcard);
+			auto gdw = new GridData;
+			gdw.horizontalSpan = 2;
+			_useWildcard.setLayoutData(gdw);
 			_useRegex = new Button(grp, SWT.CHECK);
 			_useRegex.setText(_prop.msgs.replRegExp);
 			_useRegex.addSelectionListener(new SelRegex);
+			auto gdr = new GridData;
+			gdr.horizontalSpan = 2;
+			_useRegex.setLayoutData(gdr);
 		}
 		{
 			auto grp = new Group(comp2, SWT.NONE);
@@ -1154,11 +1192,11 @@ private:
 			} else {
 				itm = new TreeItem(_range, SWT.NONE);
 			}
-			string text;
-			Image img;
-			getPathParams(path, text, img);
+			string text1, text2;
+			Image img1, img2;
+			getPathParams(path, text1, text2, img1, img2, false);
 			itm.setText(name);
-			itm.setImage(img);
+			itm.setImage(img1);
 			itm.setData(cast(Object) path);
 			itm.setChecked(true);
 			if (sel is path) {
@@ -1390,7 +1428,6 @@ public:
 			_result.setLayoutData(gd);
 			_result.addMouseListener(new ML);
 			_result.addKeyListener(new KL);
-			new FullTableColumn(_result, SWT.NONE);
 			auto menu = new Menu(_win, SWT.POP_UP);
 			createMenuItem(_comm, menu, MenuID.Undo, &undo, &_undo.canUndo);
 			createMenuItem(_comm, menu, MenuID.Redo, &redo, &_undo.canRedo);
@@ -1497,6 +1534,7 @@ public:
 		setComboItems(_to, _prop.var.etc.replaceHistories.dup);
 		setComboItems(_grepDir, _prop.var.etc.grepDirHistories.dup);
 		_notIgnoreCase.setSelection(_prop.var.etc.replaceTextNotIgnoreCase);
+		_exact.setSelection(_prop.var.etc.replaceTextExactMatch);
 		_useRegex.setSelection(_prop.var.etc.replaceTextRegExp);
 		_useWildcard.setSelection(_prop.var.etc.replaceTextWildcard);
 		_summary.setSelection(_prop.var.etc.replaceTextSummary);
@@ -1680,6 +1718,7 @@ public:
 			_comm.refScenario.remove(&summary);
 			saveWin();
 			_prop.var.etc.replaceTextNotIgnoreCase = _notIgnoreCase.getSelection();
+			_prop.var.etc.replaceTextExactMatch = _exact.getSelection();
 			_prop.var.etc.replaceTextRegExp = _useRegex.getSelection();
 			_prop.var.etc.replaceTextWildcard = _useWildcard.getSelection();
 			_prop.var.etc.replaceTextSummary = _summary.getSelection();
@@ -1824,7 +1863,7 @@ public:
 		scope (exit) _inUndo = false;
 		resultRedraw(false);
 		scope (exit) resultRedraw(true);
-		reset();
+		reset(false);
 		_undo.undo();
 		refContentText();
 		_status.setText(.tryFormat(_prop.msgs.replaceUndo, .formatNum(_result.getItemCount())));
@@ -1839,7 +1878,7 @@ public:
 		scope (exit) _inUndo = false;
 		resultRedraw(false);
 		scope (exit) resultRedraw(true);
-		reset();
+		reset(false);
 		_undo.redo();
 		refContentText();
 		_status.setText(.tryFormat(_prop.msgs.replaceRedo, .formatNum(_result.getItemCount())));
@@ -1858,8 +1897,14 @@ public:
 		replaceImpl();
 		if (c) .forceFocus(_replace, false);
 	}
-	private void reset() {
+	private void reset(bool removeColumns = true) {
 		_result.removeAll();
+		if (removeColumns && _result.getColumnCount()) {
+			foreach (column; _result.getColumns()) {
+				column.dispose();
+			}
+			_result.setHeaderVisible(false);
+		}
 		if (_replMode) {
 			_status.setText(_prop.msgs.replResultEmpty);
 		} else {
@@ -1908,6 +1953,7 @@ public:
 		_after.length = 0;
 
 		_notIgnoreCaseSel = _notIgnoreCase.getSelection();
+		_exactSel = _exact.getSelection();
 		_summarySel = _summary.getSelection();
 		_msgSel = _msg.getSelection();
 		_cardNameSel = _cardName.getSelection();
@@ -2071,9 +2117,8 @@ public:
 			}
 		});
 	}
-	private void replaceIDImpl2(ID)(ID from, ID to) {
-		if (!_summ) return;
-		reset();
+	@property
+	private bool[CWXPath] rangeTable() {
 		bool[CWXPath] range;
 		void recurse(TreeItem itm) {
 			range[cast(CWXPath) itm.getData()] = itm.getChecked();
@@ -2084,14 +2129,33 @@ public:
 		foreach (itm; _range.getItems()) {
 			recurse(itm);
 		}
-		bool dec(CWXPath path) {
-			assert (path);
-			auto p = path in range;
-			if (p) {
-				return *p;
-			}
-			return dec(path.cwxParent);
+		return range;
+	}
+	private bool dec(CWXPath path, in bool[CWXPath] range) {
+		assert (path);
+		auto p = path in range;
+		if (p) {
+			return *p;
 		}
+		return dec(path.cwxParent, range);
+	}
+	private void replaceIDImpl2(ID)(ID from, ID to) {
+		if (!_summ) return;
+		reset();
+
+		static if (is(ID:PathId)) {
+			new FullTableColumn(_result, SWT.NONE);
+		} else {
+			_result.setHeaderVisible(true);
+			auto mainColumn = new TableColumn(_result, SWT.NONE);
+			mainColumn.setText(_prop.msgs.searchResultColumnMain);
+			saveColumnWidth!("prop.var.etc.searchResultColumnMain")(_prop, mainColumn);
+			auto subColumn = new TableColumn(_result, SWT.NONE);
+			subColumn.setText(_prop.msgs.searchResultColumnParent);
+			saveColumnWidth!("prop.var.etc.searchResultColumnParent")(_prop, subColumn);
+		}
+
+		auto range = rangeTable;
 
 		auto uc = _summ.useCounter;
 		auto users = uc.values(from);
@@ -2120,7 +2184,7 @@ public:
 
 			try {
 				foreach (u; users) {
-					if (!dec(u.owner)) continue;
+					if (!dec(u.owner, range)) continue;
 					if (_replMode) {
 						u.id = to;
 						storeID(u.owner, u, from, to, &u.id);
@@ -2170,85 +2234,53 @@ public:
 		replaceIDImpl2(from, to);
 	}
 
+	private void searchCouponImpl(KeyType)(in KeyType[] keys, UseCounter uc, in bool[CWXPath] rangeT, Image delegate() image, ref uint count) {
+		foreach (key; keys.dup.sort) {
+			if (cancel) break;
+			if (!key.length) continue;
+			uint use = 0;
+			foreach (u; uc.values(key)) {
+				if (dec(u.owner, rangeT)) {
+					use++;
+				}
+			}
+			if (use) {
+				addResult(key, use, image, count);
+			}
+		}
+	}
 	private void searchCoupon() {
 		if (!_summ) return;
 		uint count = 0;
 		reset();
-		string[] coupons;
-		string[] gossips;
-		string[] scenarios;
-		string[] keyCodes;
-		auto range = searchRange;
+
+		_result.setHeaderVisible(true);
+		auto mainColumn = new TableColumn(_result, SWT.NONE);
+		mainColumn.setText(_prop.msgs.searchResultColumnCoupon);
+		saveColumnWidth!("prop.var.etc.searchResultColumnMain")(_prop, mainColumn);
+		auto subColumn = new TableColumn(_result, SWT.NONE);
+		subColumn.setText(_prop.msgs.searchResultColumnCouponCount);
+		saveColumnWidth!("prop.var.etc.searchResultColumnCouponCount")(_prop, subColumn);
+
 		bool cCouponSel = _cCoupon.getSelection();
 		bool cKeyCodeSel = _cKeyCode.getSelection();
 		bool cGossipSel = _cGossip.getSelection();
 		bool cEndSel = _cEnd.getSelection();
+
+		auto rangeT = rangeTable;
+		auto uc = _summ.useCounter;
 		void search() {
-			foreach (path; range) {
-				searchAll(path, count, (CWXPath path, ref uint count) {
-					if (cancel) return;
-					auto summ = cast(Summary) path;
-					if (summ) {
-						if (cCouponSel) {
-							coupons ~= summ.rCoupons;
-						}
-					}
-					auto casts = cast(CastCard) path;
-					if (casts) {
-						if (cCouponSel) {
-							foreach (c; casts.coupons) {
-								coupons ~= c.name;
-							}
-						}
-					}
-					auto eff = cast(EffectCard) path;
-					if (eff) {
-						if (cKeyCodeSel) {
-							keyCodes ~= eff.keyCodes;
-						}
-					}
-					auto et = cast(EventTree) path;
-					if (et) {
-						if (cKeyCodeSel) {
-							keyCodes ~= et.keyCodes;
-						}
-					}
-					auto c = cast(Content) path;
-					if (c) {
-						if (cCouponSel) {
-							if (c.coupon.length) coupons ~= c.coupon;
-							foreach (dlg; c.dialogs) {
-								coupons ~= dlg.rCoupons;
-							}
-						}
-						if (cGossipSel) {
-							if (c.gossip.length) gossips ~= c.gossip;
-						}
-						if (cEndSel) {
-							if (c.completeStamp.length) scenarios ~= c.completeStamp;
-						}
-					}
-				});
+			if (cCouponSel) {
+				searchCouponImpl(uc.coupon.keys, uc, rangeT, &_prop.images.couponNormal, count);
 			}
-			foreach (n; coupons.sort.uniq()) {
-				if (cancel) break;
-				if (!n.length) continue;
-				addResult(n, &_prop.images.couponNormal, count);
+			if (cGossipSel) {
+				searchCouponImpl(uc.gossip.keys, uc, rangeT, &_prop.images.gossip, count);
 			}
-			foreach (n; gossips.sort.uniq()) {
-				if (cancel) break;
-				if (!n.length) continue;
-				addResult(n, &_prop.images.gossip, count);
+			if (cEndSel) {
+				searchCouponImpl(uc.completeStamp.keys, uc, rangeT, &_prop.images.endScenario, count);
 			}
-			foreach (n; scenarios.sort.uniq()) {
-				if (cancel) break;
-				if (!n.length) continue;
-				addResult(n, &_prop.images.endScenario, count);
-			}
-			foreach (n; keyCodes.sort.uniq()) {
-				if (cancel) break;
-				if (!n.length) continue;
-				addResult(n, &_prop.images.keyCode, count);
+			if (cKeyCodeSel) {
+				searchCouponImpl(uc.keyCode.keys, uc, rangeT, &_prop.images.keyCode, count);
 			}
 		}
 
@@ -2278,6 +2310,15 @@ public:
 		if (!_summ) return;
 		uint count = 0;
 		reset();
+
+		_result.setHeaderVisible(true);
+		auto mainColumn = new TableColumn(_result, SWT.NONE);
+		mainColumn.setText(_prop.msgs.searchResultColumnMain);
+		saveColumnWidth!("prop.var.etc.searchResultColumnMain")(_prop, mainColumn);
+		auto subColumn = new TableColumn(_result, SWT.NONE);
+		subColumn.setText(_prop.msgs.searchResultColumnParent);
+		saveColumnWidth!("prop.var.etc.searchResultColumnParent")(_prop, subColumn);
+
 		auto range = searchRange;
 
 		_inProc = true;
@@ -2329,6 +2370,9 @@ public:
 		_replMode = false;
 		uint count = 0;
 		reset();
+
+		new FullTableColumn(_result, SWT.NONE);
+
 		auto range = searchRange();
 
 		bool unuseFlagSel = _unuseFlag.getSelection();
@@ -2427,6 +2471,18 @@ public:
 		auto sPath = _summ.scenarioPath;
 		auto skin = _comm.skin;
 		reset();
+
+		_result.setHeaderVisible(true);
+		auto mainColumn = new TableColumn(_result, SWT.NONE);
+		mainColumn.setText(_prop.msgs.searchResultColumnError);
+		saveColumnWidth!("prop.var.etc.searchResultColumnMain")(_prop, mainColumn);
+		auto subColumn = new TableColumn(_result, SWT.NONE);
+		subColumn.setText(_prop.msgs.searchResultColumnParent);
+		saveColumnWidth!("prop.var.etc.searchResultColumnParent")(_prop, subColumn);
+		auto descColumn = new TableColumn(_result, SWT.NONE);
+		descColumn.setText(_prop.msgs.searchResultColumnErrorDesc);
+		saveColumnWidth!("prop.var.etc.searchResultColumnErrorDesc")(_prop, descColumn);
+
 		auto range = searchRange;
 
 		void search(CWXPath path) {
@@ -2735,13 +2791,15 @@ public:
 			Undo[] uArr;
 			bool r = replCard!(CastCard)(null, cc, count, uArr);
 			if (_couponSel) {
-				auto coupons = cc.coupons.dup;
-				foreach (i, cp; coupons) {
+				Coupon[] coupons = null;
+				if (_replMode) coupons = new Coupon[cc.coupons.length];
+				foreach (i, cp; cc.coupons) {
+					Coupon cp2 = null;
 					r |= repl(null, cp.name,
-						(string t) {cp = new Coupon(t, cp.value);}, count, uArr);
-					if (_replMode) coupons[i] = cp;
+						(string t) {cp2 = new Coupon(t, cp.value);}, count, uArr);
+					if (_replMode) coupons[i] = cp2 ? cp2 : new Coupon(cp);
 				}
-				cc.coupons = coupons;
+				if (_replMode) cc.coupons = coupons;
 			}
 			if (r) {
 				if (_replMode) store(cc, uArr);
@@ -2854,6 +2912,14 @@ public:
 		size_t count = 0;
 		reset();
 
+		_result.setHeaderVisible(true);
+		auto mainColumn = new TableColumn(_result, SWT.NONE);
+		mainColumn.setText(_prop.msgs.searchResultColumnMain);
+		saveColumnWidth!("prop.var.etc.searchResultColumnMain")(_prop, mainColumn);
+		auto subColumn = new TableColumn(_result, SWT.NONE);
+		subColumn.setText(_prop.msgs.searchResultColumnParent);
+		saveColumnWidth!("prop.var.etc.searchResultColumnParent")(_prop, subColumn);
+
 		auto range = searchRange;
 		bool jptx = _jptx.getSelection();
 		_inProc = true;
@@ -2936,6 +3002,17 @@ public:
 
 		size_t count = 0;
 		reset();
+
+		_result.setHeaderVisible(true);
+		auto mainColumn = new TableColumn(_result, SWT.NONE);
+		mainColumn.setText(_prop.msgs.searchResultColumnMain);
+		saveColumnWidth!("prop.var.etc.searchResultColumnMain")(_prop, mainColumn);
+		auto subColumn = new TableColumn(_result, SWT.NONE);
+		subColumn.setText(_prop.msgs.searchResultColumnParent);
+		saveColumnWidth!("prop.var.etc.searchResultColumnParent")(_prop, subColumn);
+		auto scColumn = new TableColumn(_result, SWT.NONE);
+		scColumn.setText(_prop.msgs.searchResultColumnScenario);
+		saveColumnWidth!("prop.var.etc.searchResultColumnScenario")(_prop, scColumn);
 
 		if (!dir.exists()) return;
 		LoadOption opt;
@@ -3093,9 +3170,17 @@ public:
 		}
 		string from = _fromText;
 		if (_notIgnoreCaseSel) {
-			return .replace(s, from, to);
+			if (_exactSel) {
+				return 0 == cmp(s, from) ? to : from;
+			} else {
+				return .replace(s, from, to);
+			}
 		} else {
-			return .ireplace(s, from, to);
+			if (_exactSel) {
+				return 0 == icmp(s, from) ? to : from;
+			} else {
+				return .ireplace(s, from, to);
+			}
 		}
 	}
 	private size_t fTextCount(string s) {
@@ -3116,9 +3201,17 @@ public:
 		}
 		string from = _fromText;
 		if (_notIgnoreCaseSel) {
-			return std.algorithm.count(s, from);
+			if (_exactSel) {
+				return 0 == cmp(s, from) ? 1 : 0;
+			} else {
+				return std.algorithm.count(s, from);
+			}
 		} else {
-			return .icount(s, from);
+			if (_exactSel) {
+				return 0 == icmp(s, from) ? 1 : 0;
+			} else {
+				return .icount(s, from);
+			}
 		}
 	}
 	private void exit() {
@@ -3204,7 +3297,11 @@ public:
 	private void copyResult() {
 		string[] t;
 		foreach (itm; _result.getSelection()) {
-			t ~= itm.getText().replace("\n", .newline);
+			string[] line;
+			foreach (i; 0 .. _result.getColumnCount()) {
+				line ~= itm.getText(i).replace("\n", .newline);
+			}
+			t ~= std.string.join(line, "\t");
 		}
 		if (!t.length) return;
 		auto text = new ArrayWrapperString(std.string.join(t, .newline));
@@ -3224,15 +3321,17 @@ public:
 		foreach (itm; _result.getItems()) {
 			auto c = cast(CWXPathString) itm.getData();
 			if (c) {
-				string text;
-				Image img;
-				getPathParams(c.path, text, img);
-				itm.setText(text);
-				itm.setImage(img);
+				string text1, text2;
+				Image img1, img2;
+				getPathParams(c.path, text1, text2, img1, img2);
+				itm.setImage(0, img1);
+				itm.setText(0, text1);
+				itm.setImage(1, img2);
+				itm.setText(1, text2);
 			}
 		}
 	}
-	private void getPathParams(CWXPath path, out string text, out Image img, bool par = false) {
+	private void getPathParams(CWXPath path, out string text, out string text2, out Image img, out Image img2, bool par = false) {
 		auto summ = _grepSumm ? _grepSumm : _summ;
 		img = null;
 		text = par ? "" : "*Error*";
@@ -3354,14 +3453,16 @@ public:
 			text = .tryFormat(_prop.msgs.searchResultEnemyCard, cName);
 		}
 		assert (par || img);
-		string parText = "";
-		Image parImg;
-		getPathParams(path.cwxParent, parText, parImg, true);
+		string parText = "", dummy;
+		Image parImg, dummyImg;
+		getPathParams(path.cwxParent, parText, dummy, parImg, dummyImg, true);
 		if (parText != "") {
 			if (text == "") {
 				text = parText;
+				img = parImg;
 			} else {
-				text ~= " @ " ~ parText;
+				text2 = parText;
+				img2 = parImg;
 			}
 		}
 	}
@@ -3384,6 +3485,17 @@ public:
 		addResultMsg.index = index;
 		addResultMsg.count = count;
 		_display.syncExec(addResultMsg);
+	}
+	private void addResult(string name, uint use, Image delegate() image, ref size_t count, int index = -1) {
+		if (cancel) return;
+		count++;
+		auto addResultUse = new AddResultUse;
+		addResultUse.name = name;
+		addResultUse.use = use;
+		addResultUse.image = image;
+		addResultUse.index = index;
+		addResultUse.count = count;
+		_display.syncExec(addResultUse);
 	}
 	private bool repl(CWXPath path, string text, void delegate(string) set, ref size_t count, ref Undo[] uArr, bool storeToArr = false) {
 		auto c = fTextCount(text);

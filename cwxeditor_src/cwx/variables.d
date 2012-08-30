@@ -256,6 +256,7 @@ class FlexEtcProps : Properties {
 	auto replaceTextNotIgnoreCase = Prop!(bool)("replaceTextNotIgnoreCase", false);
 	auto replaceTextRegExp = Prop!(bool)("replaceTextRegExp", false);
 	auto replaceTextWildcard = Prop!(bool)("replaceTextWildcard", false);
+	auto replaceTextExactMatch = Prop!(bool)("replaceTextExactMatch", false);
 	auto grepDir = Prop!(string)("grepDir", "");
 	auto grepDirHistories = Prop!(string[])("grepDirHistories", []);
 	auto grepSubDir = Prop!(bool)("grepSubDir", true);
@@ -364,7 +365,15 @@ class FlexEtcProps : Properties {
 	auto searchUnusedPath = Prop!(bool)("searchUnusedPath", true);
 	auto searchOpenDialog = Prop!(bool)("searchOpenDialog", false);
 
+	auto searchResultColumnMain = Prop!(int)("searchResultColumnMain", 400);
+	auto searchResultColumnParent = Prop!(int)("searchResultColumnParent", 200);
+	auto searchResultColumnCouponCount = Prop!(int)("searchResultColumnCouponCount", 60);
+	auto searchResultColumnErrorDesc = Prop!(int)("searchResultColumnErrorDesc", 500);
+	auto searchResultColumnScenario = Prop!(int)("searchResultColumnScenario", 500);
+
 	auto incrementalSearchType = Prop!(int)("incrementalSearchType", 0);
+
+	auto usedCouponToCombo = Prop!(bool, true)("usedCouponToCombo", true);
 
 	auto flagTrues = Prop!(string[])("flagTrues", ["TRUE", "表示", "ON", "有", "可", "済み"], true);
 	auto flagFalses = Prop!(string[])("flagFalses", ["FALSE", "非表示", "OFF", "無", "不可", "まだ"], true);

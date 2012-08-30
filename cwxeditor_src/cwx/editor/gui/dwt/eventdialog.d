@@ -573,7 +573,7 @@ protected:
 	}
 }
 
-/// 取得を除くクーポン関連イベントの設定を行うダイアログ。
+/// クーポン関連イベントの設定を行うダイアログ。
 class CouponEventDialog(CType Type, bool EditValue) : EventDialog {
 private:
 	Button[Range] _range;
@@ -599,7 +599,16 @@ private:
 	void refreshCoupons() {
 		auto c = _name.getText();
 		_name.removeAll();
-		addCastCoupons(_name, comm, false, comm.skin.legacyName);
+		auto cs = castCoupons(comm, false, comm.skin.legacyName);
+		string[] cs2;
+		if (prop.var.etc.usedCouponToCombo) {
+			foreach (coupon; comm.summary.useCounter.coupon.keys.sort) {
+				if (!.contains(cs2, coupon.id)) cs2 ~= coupon;
+			}
+		}
+		foreach (coupon; cs2 ~ cs) {
+			_name.add(coupon);
+		}
 		_name.select(0);
 		if (c.length && -1 == _name.indexOf(c)) {
 			_name.add(c, 0);
@@ -690,6 +699,10 @@ protected:
 				lr.setText(.tryFormat(_prop.msgs.couponValueRange, -(cast(int) prop.var.etc.couponValueMax), prop.var.etc.couponValueMax));
 			}
 		}
+		comm.refCoupons.add(&refreshCoupons);
+		.listener(_name, SWT.Dispose, {
+			comm.refCoupons.remove(&refreshCoupons);
+		});
 
 		if (_evt) {
 			_range[_evt.range].setSelection(true);
@@ -720,6 +733,7 @@ protected:
 				break;
 			}
 		}
+		comm.refCoupons.call();
 		return true;
 	}
 }
@@ -727,8 +741,28 @@ protected:
 /// 終了印とゴシップの設定を行うダイアログ。
 private class OneTextEventDialog(CType Type, string Name, string Get, string Set) : EventDialog {
 private:
-	Text _text;
+	Combo _name;
 
+	void refreshCombo() {
+		auto c = _name.getText();
+		_name.removeAll();
+
+		if (CDetail.fromType(Type).use(CArg.GOSSIP)) {
+			foreach (n; comm.summary.useCounter.gossip.keys.sort) {
+				_name.add(n);
+			}
+		}
+		if (CDetail.fromType(Type).use(CArg.COMPLETE_STAMP)) {
+			foreach (n; comm.summary.useCounter.completeStamp.keys.sort) {
+				_name.add(n);
+			}
+		}
+		_name.select(0);
+		if (c.length && -1 == _name.indexOf(c)) {
+			_name.add(c, 0);
+		}
+		_name.setText(c);
+	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
 		super (comm, prop, shell, summ, Type, parent, evt, true, prop.var.inputEvtDlg, true);
@@ -746,23 +780,43 @@ protected:
 			auto comp = new Composite(grp, SWT.NONE);
 			comp.setLayout(new GridLayout(1, true));
 
-			_text = new Text(comp, SWT.BORDER);
-			mod(_text);
-			createTextMenu!Text(_comm, _prop, _text, &catchMod);
+			_name = new Combo(comp, SWT.BORDER | SWT.DROP_DOWN);
+			mod(_name);
+			_name.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
+			createTextMenu!Combo(_comm, _prop, _name, &catchMod);
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
 			gd.widthHint = _prop.var.etc.nameWidth;
-			_text.setLayoutData(gd);
+			_name.setLayoutData(gd);
+			refreshCombo();
+		}
+		if (CDetail.fromType(Type).use(CArg.GOSSIP)) {
+			comm.refGossips.add(&refreshCombo);
+			.listener(_name, SWT.Dispose, {
+				comm.refGossips.remove(&refreshCombo);
+			});
+		}
+		if (CDetail.fromType(Type).use(CArg.COMPLETE_STAMP)) {
+			comm.refCompleteStamps.add(&refreshCombo);
+			.listener(_name, SWT.Dispose, {
+				comm.refCompleteStamps.remove(&refreshCombo);
+			});
 		}
 
 		if (_evt) {
-			_text.setText(mixin (Get));
+			_name.setText(mixin (Get));
 		}
 	}
 
 	override bool apply() {
 		if (!_evt) _evt = new Content(Type, "");
-		string text = _text.getText();
+		string text = _name.getText();
 		mixin (Set);
+		if (CDetail.fromType(Type).use(CArg.GOSSIP)) {
+			comm.refGossips.call();
+		}
+		if (CDetail.fromType(Type).use(CArg.COMPLETE_STAMP)) {
+			comm.refCompleteStamps.call();
+		}
 		return true;
 	}
 }

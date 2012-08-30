@@ -673,6 +673,7 @@ private:
 			_comm.refSkin.remove(&refSkin);
 			_comm.refScenario.remove(&refScenario);
 			_comm.refStandardKeyCodes.remove(&refStandardKeyCodes);
+			_comm.refKeyCodes.remove(&refStandardKeyCodes);
 			_comm.refEventTree.remove(&refEventTree);
 			_comm.delEventTree.remove(&refEventTree);
 		}
@@ -750,6 +751,7 @@ protected:
 		_comm.refSkin.add(&refSkin);
 		_comm.refScenario.add(&refScenario);
 		_comm.refStandardKeyCodes.add(&refStandardKeyCodes);
+		_comm.refKeyCodes.add(&refStandardKeyCodes);
 		_comm.refEventTree.add(&refEventTree);
 		_comm.delEventTree.add(&refEventTree);
 		area.addDisposeListener(new Dispose);
@@ -918,6 +920,8 @@ protected:
 		_card.scenario = _scenario.getText();
 		_card.author = _author.getText();
 		_card.keyCodes = keyCodes;
+
+		_comm.refKeyCodes.call();
 		return true;
 	}
 }

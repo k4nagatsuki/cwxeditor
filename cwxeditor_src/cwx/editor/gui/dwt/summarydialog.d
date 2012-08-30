@@ -543,6 +543,7 @@ protected:
 			_summ.type = "";
 		}
 		_comm.skin = selectedSkin;
+		_comm.refCoupons.call();
 		return true;
 	}
 }

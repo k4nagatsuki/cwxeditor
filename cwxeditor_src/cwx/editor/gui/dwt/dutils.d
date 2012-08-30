@@ -1255,25 +1255,27 @@ ImageData cardImage(C)(Props prop, Skin skin, C c, string sPath, CastCard owner,
 	return r.createImageData();
 }
 
-void addCastCoupons(Combo combo, Commons comm, bool talker, string legacyName) {
+string[] castCoupons(Commons comm, bool talker, string legacyName) {
+	string[] r;
 	if (!talker) {
 		foreach (c; comm.prop.var.etc.standardCoupons) {
-			combo.add(c);
+			r ~= c;
 		}
 	}
 	foreach (e; SEX_ALL) {
-		combo.add(comm.skin.sexCoupon(e));
+		r ~= comm.skin.sexCoupon(e);
 	}
 	foreach (e; PERIOD_ALL) {
-		combo.add(comm.skin.periodCoupon(e));
+		r ~= comm.skin.periodCoupon(e);
 	}
 	foreach (e; NATURE_DEF) {
-		combo.add(comm.skin.natureCoupon(e));
+		r ~= comm.skin.natureCoupon(e);
 	}
 	foreach (e; MAKINGS_LEFT) {
-		combo.add(comm.skin.makingsCoupon(e));
-		combo.add(comm.skin.makingsCoupon(reverseMakings(e)));
+		r ~= comm.skin.makingsCoupon(e);
+		r ~= comm.skin.makingsCoupon(reverseMakings(e));
 	}
+	return r;
 }
 
 bool qMaterialCopy(Props prop, Skin skin, Shell shell,

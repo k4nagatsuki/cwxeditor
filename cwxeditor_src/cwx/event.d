@@ -417,7 +417,7 @@ interface ITextHolder {
 /// 口調分け条件とメッセージ内容を持つクラス。
 static class SDialog : CWXPath, IPathUser, IFlagUser, IStepUser, ITextHolder {
 private:
-	string[] _rCoupons;
+	CouponUser[] _rCoupons = [];
 	TextHolder _text;
 	Content _parent;
 public:
@@ -429,16 +429,16 @@ public:
 		_text = new TextHolder;
 		_text.text = text;
 		_text.owner = this;
-		_rCoupons = rCoupons;
+		this.rCoupons = rCoupons;
 	}
 	/// コピーコンストラクタ。
 	this (in SDialog base) {
-		this (base.text, base.rCoupons.dup);
+		this (base.text, base.rCoupons);
 	}
 	const
 	bool opEquals(ref const(Object) o) {
 		auto d = cast(const(SDialog)) o;
-		return d && d._rCoupons == _rCoupons && d.text == text;
+		return d && d.rCoupons == rCoupons && d.text == text;
 	}
 	/// メッセージ。
 	@property
@@ -454,20 +454,31 @@ public:
 	}
 	/// 口調分け条件クーポン群。
 	@property
-	string[] rCoupons() {
-		return _rCoupons;
-	}
-	/// ditto
-	@property
 	const
-	const(string)[] rCoupons() {
-		return _rCoupons;
+	string[] rCoupons() {
+		auto r = new string[_rCoupons.length];
+		foreach (i, ref c; r) {
+			c = _rCoupons[i].coupon;
+		}
+		return r;
 	}
 	/// ditto
 	@property
 	void rCoupons(string[] rCoupons) {
-		if (_parent && _rCoupons != rCoupons) _parent.changed();
-		_rCoupons = rCoupons;
+		if (this.rCoupons != rCoupons) {
+			if (_parent) _parent.changed();
+			foreach (c; _rCoupons) {
+				c.removeUseCounter();
+			}
+			_rCoupons.length = rCoupons.length;
+			foreach (i, ref c; _rCoupons) {
+				c = new CouponUser(this);
+				c.coupon = rCoupons[i];
+				if (useCounter) {
+					c.setUseCounter = useCounter;
+				}
+			}
+		}
 	}
 	/// このSDialogを所持するSpeak。
 	@property
@@ -486,10 +497,16 @@ public:
 	@property
 	void setUseCounter(UseCounter uc) {
 		_text.setUseCounter(uc);
+		foreach (ref c; _rCoupons) {
+			c.setUseCounter = useCounter;
+		}
 	}
 	/// ditto
 	void removeUseCounter() {
 		_text.removeTextUseCounter();
+		foreach (ref c; _rCoupons) {
+			c.removeUseCounter();
+		}
 	}
 	override void change(PathId id) {
 		_text.change(id);
@@ -595,7 +612,8 @@ public:
 
 class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		IFlagUser, IStepUser,
-		ICastUser, IItemUser, ISkillUser, IBeastUser, IInfoUser, IStartUser,
+		ICastUser, IItemUser, ISkillUser, IBeastUser, IInfoUser,
+		ICouponUser, IGossipUser, ICompleteStampUser, IStartUser,
 		MotionOwner, BgImageOwner, ITextHolder {
 	private EventTree _tree = null;
 
@@ -1305,11 +1323,11 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	mixin Prop!(SDialog[], "dialogs", []);
 
 	/// クーポン名。
-	mixin Prop!(string, "coupon", "");
+	mixin Prop!(CouponUser, string, "coupon", "", ".coupon", ".coupon", true);
 	/// ゴシップ。
-	mixin Prop!(string, "gossip", "");
+	mixin Prop!(GossipUser, string, "gossip", "", ".gossip", ".gossip", true);
 	/// 終了印。
-	mixin Prop!(string, "completeStamp", "");
+	mixin Prop!(CompleteStampUser, string, "completeStamp", "", ".completeStamp", ".completeStamp", true);
 
 	/// 精神系能力。
 	mixin Prop!(Mental, "mental", Mental.init);
@@ -1508,6 +1526,9 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	override void change(SkillId id) {idChange(id);}
 	override void change(BeastId id) {idChange(id);}
 	override void change(InfoId id) {idChange(id);}
+	override void change(CouponId id) {idChange(id);}
+	override void change(GossipId id) {idChange(id);}
+	override void change(CompleteStampId id) {idChange(id);}
 
 	// テキスト内で使用されているfont_X.png等のパス。
 	@property
@@ -1895,7 +1916,7 @@ private:
 	bool _lose = false;
 	uint[] _rounds;
 
-	string[] _keyCodes;
+	KeyCodeUser[] _keyCodes;
 
 	Content[] _starts;
 	UseCounter _uc;
@@ -1948,7 +1969,7 @@ public:
 		copy.escape = fireEscape;
 		copy.lose = fireLose;
 		copy.rounds = rounds.dup;
-		copy.keyCodes = keyCodes.dup;
+		copy.keyCodes = keyCodes;
 		foreach (s; starts) {
 			copy.add(s.dup);
 		}
@@ -2141,15 +2162,23 @@ public:
 
 	/// 指定されたインデックスのキーコードを差し替える。
 	void setKeyCode(int index, string keyCode) {
-		if (_keyCodes[index] != keyCode) changed();
-		_keyCodes[index] = keyCode;
+		if (_keyCodes[index].keyCode != keyCode) {
+			changed();
+			_keyCodes[index].keyCode = keyCode;
+		}
 	}
 
+	/// 使用回数カウンタ。
+	@property
+	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを設定する。
 	@property
 	void setUseCounter(UseCounter uc) {
 		foreach (s; starts) {
 			s.setUseCounter(uc);
+		}
+		foreach (kc; _keyCodes) {
+			kc.setUseCounter(uc);
 		}
 		_uc = uc;
 	}
@@ -2157,6 +2186,9 @@ public:
 	void removeUseCounter() {
 		foreach (s; starts) {
 			s.removeUseCounter();
+		}
+		foreach (kc; _keyCodes) {
+			kc.removeUseCounter();
 		}
 		_uc = null;
 	}
@@ -2273,7 +2305,10 @@ public:
 	bool addKeyCode(string keyCode) {
 		if (!fireKeyCode(keyCode)) {
 			changed();
-			_keyCodes ~= keyCode;
+			auto user = new KeyCodeUser(this);
+			if (useCounter) user.setUseCounter = useCounter;
+			user.keyCode = keyCode;
+			_keyCodes ~= user;
 			return true;
 		}
 		return false;
@@ -2282,7 +2317,7 @@ public:
 	const
 	bool fireKeyCode(string keyCode) {
 		foreach (kc; _keyCodes) {
-			if (kc == keyCode) {
+			if (kc.keyCode == keyCode) {
 				return true;
 			}
 		}
@@ -2290,25 +2325,37 @@ public:
 	}
 	/// 発火キーコード群。
 	@property
-	string[] keyCodes() {
-		return _keyCodes;
-	}
-	/// ditto
-	@property
 	const
-	const(string)[] keyCodes() {
-		return _keyCodes;
+	string[] keyCodes() {
+		auto r = new string[_keyCodes.length];
+		foreach (i, ref kc; r) {
+			kc = _keyCodes[i].keyCode;
+		}
+		return r;
 	}
 	/// ditto
 	@property
 	void keyCodes(string[] keyCodes) {
-		if (_keyCodes != keyCodes) changed();
-		_keyCodes = keyCodes;
+		if (this.keyCodes != keyCodes) {
+			changed();
+			foreach (c; _keyCodes) {
+				c.removeUseCounter();
+			}
+			_keyCodes.length = keyCodes.length;
+			foreach (i, ref c; _keyCodes) {
+				c = new KeyCodeUser(this);
+				c.keyCode = keyCodes[i];
+				if (useCounter) {
+					c.setUseCounter = useCounter;
+				}
+			}
+		}
 	}
 	/// 発火キーコードを除去。
 	void removeKeyCode(string keyCode) {
 		foreach (i, kc; _keyCodes) {
-			if (kc == keyCode) {
+			if (kc.keyCode == keyCode) {
+				kc.removeUseCounter();
 				_keyCodes = _keyCodes[0 .. i] ~ _keyCodes[i + 1 .. $];
 				return;
 			}
@@ -2317,6 +2364,9 @@ public:
 	}
 	/// ditto
 	void removeKeyCodesAll() {
+		foreach (kc; _keyCodes) {
+			kc.removeUseCounter();
+		}
 		_keyCodes.length = 0;
 	}
 
@@ -2352,7 +2402,7 @@ public:
 				nums ~= ("-" ~ to!(string)(r));
 			}
 			ig.newElement("Number", encodeLf(nums, false));
-			ig.newElement("KeyCodes", encodeLf(_keyCodes));
+			ig.newElement("KeyCodes", encodeLf(keyCodes));
 		}
 		auto c = node.newElement("Contents");
 		foreach (st; _starts) {

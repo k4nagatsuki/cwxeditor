@@ -95,7 +95,7 @@ private:
 	uint _levMin = 0; /// 推奨レベル(下)
 	uint _levMax = 0; /// 推奨レベル(上)
 	uint _rCouponNum = 0; /// 前提クーポン必要数
-	string[] _rCoupons = []; /// 前提クーポン
+	CouponUser[] _rCoupons = []; /// 前提クーポン
 	AreaUser _startAreaId; /// スタートエリアのID
 	// TODO Tag
 	string _type;
@@ -830,13 +830,30 @@ public:
 	/// 開始条件クーポンの一覧。
 	@property
 	void rCoupons(string[] rCoupons) {
-		if (_rCoupons != rCoupons) changeHandler();
-		_rCoupons = rCoupons;
+		if (this.rCoupons != rCoupons) {
+			changeHandler();
+			foreach (c; _rCoupons) {
+				c.removeUseCounter();
+			}
+			_rCoupons.length = rCoupons.length;
+			foreach (i, ref c; _rCoupons) {
+				c = new CouponUser(this);
+				c.coupon = rCoupons[i];
+				if (useCounter) {
+					c.setUseCounter = useCounter;
+				}
+			}
+		}
 	}
 	/// ditto
 	@property
+	const
 	string[] rCoupons() {
-		return _rCoupons;
+		auto r = new string[_rCoupons.length];
+		foreach (i, ref c; r) {
+			c = _rCoupons[i].coupon;
+		}
+		return r;
 	}
 
 	/// シナリオの開始エリア。
@@ -1359,7 +1376,7 @@ public:
 		auto lv = pNode.newElement("Level");
 		lv.newAttr("min", _levMin);
 		lv.newAttr("max", _levMax);
-		auto rc = pNode.newElement("RequiredCoupons", encodeLf(_rCoupons));
+		auto rc = pNode.newElement("RequiredCoupons", encodeLf(rCoupons));
 		rc.newAttr("number", _rCouponNum);
 		pNode.newElement("StartAreaId", _startAreaId.area);
 		pNode.newElement("Tags");
@@ -1513,13 +1530,15 @@ public:
 					summ._levMin = node.attr!(uint)("min", true);
 					summ._levMax = node.attr!(uint)("max", true);
 				};
+				string[] rCoupons;
 				propNode.onTag["RequiredCoupons"] = (ref XNode node) {
 					summ._rCouponNum = node.attr!(uint)("number", true);
-					summ._rCoupons = decodeLf(node.value);
+					rCoupons = decodeLf(node.value);
 				};
 				propNode.onTag["StartAreaId"] = (ref XNode node) {summ._startAreaId.area = node.valueTo!(ulong);};
 				propNode.onTag["Type"] = (ref XNode node) {summ._type = node.value;};
 				propNode.parse();
+				summ.rCoupons = rCoupons;
 			};
 			summ._froot = FlagDir.fromXmlNode(summNode, summ, &summ.changeHandler, summ.dataVersion);
 			return summ;

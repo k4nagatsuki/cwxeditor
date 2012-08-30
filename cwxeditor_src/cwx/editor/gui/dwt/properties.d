@@ -179,7 +179,7 @@ public class FlexProps {
 	ContWin contentsWin;
 	DialogParam!("settingsDialog", SWT.DEFAULT, SWT.DEFAULT, 2012080500) settingsDlg;
 	ToolWin!("featuresWindow", SWT.DEFAULT, 300) featuresWin;
-	WindowProps!("replaceDialog", 600, SWT.DEFAULT) replaceDlg;
+	WindowProps!("replaceDialog", 900, SWT.DEFAULT, 2012083000) replaceDlg;
 	DialogParam!("summaryDialog") summaryDlg;
 	DialogParam!("menuCardDialog") menuCardDlg;
 	DialogParam!("areaBackgroundDialog") areaBackgroundDlg;

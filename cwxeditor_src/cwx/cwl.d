@@ -2762,7 +2762,7 @@ private void writeCast(ref SData d, ref ByteIO f, CastCard c) {
 	}
 	f.writeL(cast(uint) c.coupons.length);
 	foreach (cc; c.coupons) {
-		writeString(f, cc.name);
+		writeString(f, cc.coupon);
 		f.writeL(cast(int) cc.value);
 	}
 }

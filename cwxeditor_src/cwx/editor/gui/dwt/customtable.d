@@ -114,6 +114,14 @@ class FullTableColumn {
 		_column.setResizable(false);
 		_rl = new RL;
 		tbl.addListener(SWT.Resize, _rl);
+		_column.addListener(SWT.Dispose, new class Listener {
+			override void handleEvent(Event e) {
+				tbl.removeListener(SWT.Resize, _rl);
+			}
+		});
+		if (tbl.isVisible()) {
+			resize();
+		}
 	}
 	@property
 	TableColumn column() {

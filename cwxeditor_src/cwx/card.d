@@ -280,7 +280,7 @@ public:
 }
 
 /// キャストカード。
-class CastCard : Card, SkillOwner, ItemOwner, BeastOwner {
+class CastCard : Card, SkillOwner, ItemOwner, BeastOwner, CouponsOwner {
 private:
 	mixin RaceParam!(true);
 
@@ -298,7 +298,7 @@ private:
 	uint _antiMgcRound = 0;
 	int _rEnh[Enhance];
 	uint _rEnhRound[Enhance];
-	Coupon[] _coupon;
+	Coupon[] _coupons;
 	ItemCard[] _items;
 	SkillCard[] _skills;
 	BeastCard[] _beasts;
@@ -464,6 +464,9 @@ public:
 		foreach (c; _beasts) {
 			c.setUseCounter = uc;
 		}
+		foreach (c; _coupons) {
+			c.setUseCounter = uc;
+		}
 		super.setUseCounter = uc;
 	}
 	/// ditto
@@ -480,6 +483,9 @@ public:
 			c.removeUseCounter();
 		}
 		foreach (c; _beasts) {
+			c.removeUseCounter();
+		}
+		foreach (c; _coupons) {
 			c.removeUseCounter();
 		}
 		super.removeUseCounter();
@@ -522,16 +528,23 @@ public:
 
 	/// 所持するクーポン。
 	@property
-	Coupon[] coupons() {return _coupon;}
-	/// ditto
-	@property
 	const
-	const(Coupon)[] coupons() {return _coupon;}
+	const(Coupon)[] coupons() {return _coupons;}
 	/// ditto
 	@property
-	void coupons(Coupon[] coupon) {
-		if (_coupon != coupon) changed();
-		_coupon = coupon;
+	void coupons(Coupon[] coupons) {
+		if (_coupons != coupons) changed();
+		foreach (c; _coupons) {
+			c.owner = null;
+			c.removeUseCounter();
+		}
+		foreach (c; coupons) {
+			c.owner = this;
+			if (useCounter) {
+				c.setUseCounter = useCounter;
+			}
+		}
+		_coupons = coupons;
 	}
 
 	private C __add(C)(ref C[] arr, C c) {
@@ -860,7 +873,7 @@ public:
 		}
 		{
 			auto cpNode = pNode.newElement("Coupons");
-			foreach (c; _coupon) {
+			foreach (c; _coupons) {
 				c.toNode(cpNode);
 			}
 		}
@@ -936,13 +949,15 @@ public:
 				n.onTag["Defense"] = (ref XNode n) {setEnh(n, Enhance.DEFENSE);};
 				n.parse();
 			};
+			Coupon[] coupons;
 			pNode.onTag["Coupons"] = (ref XNode n) {
 				n.onTag["Coupon"] = (ref XNode n) {
-					r._coupon ~= Coupon.fromNode(n, ver);
+					coupons ~= Coupon.fromNode(n, ver);
 				};
 				n.parse();
 			};
 			r.loadProp(pNode, ver);
+			r.coupons = coupons;
 		};
 
 		cNode.onTag["ItemCards"] = (ref XNode n) {
@@ -1045,7 +1060,7 @@ private:
 	int[Enhance] _enh;
 	PathUser _se1;
 	PathUser _se2;
-	string[] _keyCodes = [];
+	KeyCodeUser[] _keyCodes = [];
 	Premium _premi = Premium.NORMAL;
 	MotionUser _muser;
 	AbstractEventTreeOwner _ceto;
@@ -1110,7 +1125,7 @@ public:
 		enhance(Enhance.DEFENSE, c.enhance(Enhance.DEFENSE));
 		soundPath1 = c.soundPath1;
 		soundPath2 = c.soundPath2;
-		keyCodes = c.keyCodes.dup;
+		keyCodes = c.keyCodes;
 		premium = c.premium;
 		Motion[] ms;
 		foreach (m; c.motions) {
@@ -1185,7 +1200,7 @@ public:
 			&& enhance(Enhance.DEFENSE) == c.enhance(Enhance.DEFENSE)
 			&& soundPath1 == c.soundPath1
 			&& soundPath2 == c.soundPath2
-			&& keyCodes == c.keyCodes.dup
+			&& keyCodes == c.keyCodes
 			&& premium == c.premium
 			&& motions == c.motions
 			&& trees == c.trees;
@@ -1341,16 +1356,31 @@ public:
 	}
 	/// キーコード。
 	@property
-	string[] keyCodes() {return _keyCodes;}
-	/// ditto
-	@property
 	const
-	const(string)[] keyCodes() {return _keyCodes;}
+	string[] keyCodes() {
+		auto r = new string[_keyCodes.length];
+		foreach (i, ref kc; r) {
+			kc = _keyCodes[i].keyCode;
+		}
+		return r;
+	}
 	/// ditto
 	@property
 	void keyCodes(string[] keyCodes) {
-		if (_keyCodes != keyCodes) changed();
-		_keyCodes = keyCodes;
+		if (this.keyCodes != keyCodes) {
+			changed();
+			foreach (c; _keyCodes) {
+				c.removeUseCounter();
+			}
+			_keyCodes.length = keyCodes.length;
+			foreach (i, ref c; _keyCodes) {
+				c = new KeyCodeUser(this);
+				c.keyCode = keyCodes[i];
+				if (useCounter) {
+					c.setUseCounter = useCounter;
+				}
+			}
+		}
 	}
 	/// カードの希少価値。
 	@property
@@ -1389,6 +1419,9 @@ public:
 		setUseCounterImpl(uc);
 		_ceto.setUseCounter = uc;
 		_muser.setUseCounter = uc;
+		foreach (ref kc; _keyCodes) {
+			kc.setUseCounter = uc;
+		}
 		super.setUseCounter = uc;
 	}
 	@property
@@ -1396,6 +1429,9 @@ public:
 		removeUseCounterImpl();
 		_ceto.removeUseCounter();
 		_muser.removeUseCounter();
+		foreach (ref kc; _keyCodes) {
+			kc.removeUseCounter();
+		}
 		super.removeUseCounter();
 	}
 	protected abstract void setUseCounterImpl(UseCounter uc);
@@ -1460,7 +1496,7 @@ public:
 		enh.newAttr("defense", enhance(Enhance.DEFENSE));
 		pNode.newElement("SoundPath", encodePath(soundPath1));
 		pNode.newElement("SoundPath2", encodePath(soundPath2));
-		pNode.newElement("KeyCodes", encodeLf(_keyCodes, false));
+		pNode.newElement("KeyCodes", encodeLf(keyCodes, false));
 		pNode.newElement("Premium", fromPremium(premium));
 		auto mNode = node.newElement("Motions");
 		foreach (m; _muser.motions) {
@@ -1497,7 +1533,7 @@ public:
 		};
 		pNode.onTag["SoundPath"] = (ref XNode n) {_se1.path = decodePath(n.value);};
 		pNode.onTag["SoundPath2"] = (ref XNode n) {_se2.path = decodePath(n.value);};
-		pNode.onTag["KeyCodes"] = (ref XNode n) {_keyCodes = decodeLf(n.value);};
+		pNode.onTag["KeyCodes"] = (ref XNode n) {keyCodes = decodeLf(n.value);};
 		pNode.onTag["Premium"] = (ref XNode n) {_premi = toPremium(n.value);};
 		loadProp(pNode, ver);
 	}

@@ -15,7 +15,7 @@ public:
 }
 
 /// 種族。
-class Race {
+class Race : CouponsOwner {
 private:
 	string _name;
 	string _desc;
@@ -33,7 +33,9 @@ public:
 		node.onTag["Ability"] = (ref XNode node) {r.loadAbility(node, ver);};
 		node.onTag["Coupons"] = (ref XNode node) {
 			node.onTag["Coupon"] = (ref XNode node) {
-				r._coupons ~= Coupon.fromNode(node, ver);
+				auto coupon = Coupon.fromNode(node, ver);
+				coupon.owner = r;
+				r._coupons ~= coupon;
 			};
 		};
 		node.parse();
@@ -48,6 +50,10 @@ public:
 	@property
 	const
 	string desc() {return _desc;}
+	/// 初期クーポン。
+	@property
+	const
+	const(Coupon)[] coupons() {return _coupons;}
 }
 
 /// mixinによって種族絡みのパラメータを付与する。

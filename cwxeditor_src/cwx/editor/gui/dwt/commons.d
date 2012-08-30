@@ -337,6 +337,11 @@ class Commons {
 	Dlg!(Content) delContent;
 	Dlg!() refContentText;
 
+	Dlg!() refCoupons;
+	Dlg!() refGossips;
+	Dlg!() refCompleteStamps;
+	Dlg!() refKeyCodes;
+
 	Dlg!(Summary) closeAdds;
 
 	const Object saveSync;

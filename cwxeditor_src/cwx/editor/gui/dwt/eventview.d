@@ -197,6 +197,7 @@ private:
 				}
 			}
 			comm.refEventTree.call(tree);
+			comm.refKeyCodes.call();
 		}
 		override void undo() {impl();}
 		override void redo() {impl();}
@@ -571,6 +572,7 @@ private:
 			itm.setImage(keyCodeImage(text));
 			obj.array = text.dup;
 			_comm.refEventTree.call(tree);
+			_comm.refKeyCodes.call();
 			_comm.refreshToolBar();
 		}
 	}
@@ -820,6 +822,7 @@ private:
 				}
 				if (chg) {
 					_comm.refEventTree.call(et);
+					_comm.refKeyCodes.call();
 				}
 			}
 		}
@@ -861,6 +864,7 @@ private:
 			et.setKeyCode(i, keyCode);
 			itm.setText(keyCode);
 			itm.setImage(keyCodeImage(keyCode));
+			_comm.refKeyCodes.call();
 			_comm.refreshToolBar();
 		}
 		void keyCodeTimUse() {
@@ -909,6 +913,7 @@ public:
 		_sash = new SplitPane(this, SWT.HORIZONTAL);
 		static if (is (A == Area) || is (A == Battle)) {
 			_comm.refStandardKeyCodes.add(&refKeyCodes);
+			_comm.refKeyCodes.add(&refKeyCodes);
 		}
 		_comm.replText.add(&replText);
 		_comm.replID.add(&replText);
@@ -953,6 +958,7 @@ public:
 				}
 				static if (is (A == Area) || is (A == Battle)) {
 					_comm.refStandardKeyCodes.remove(&refKeyCodes);
+					_comm.refKeyCodes.remove(&refKeyCodes);
 				}
 				_comm.replText.remove(&replText);
 				_comm.replID.remove(&replText);
@@ -1510,7 +1516,8 @@ public:
 					_keyCodeTim.setEnabled(false);
 					break;
 				case 1:
-					createCombo(false, _prop.var.etc.standardKeyCodes.dup, true);
+					createCombo(false, [], true);
+					refKeyCodes();
 					_keyCodeTim.setEnabled(true);
 					break;
 				default: assert (0);
@@ -1522,7 +1529,8 @@ public:
 					_keyCodeTim.setEnabled(false);
 					break;
 				case 1:
-					createCombo(false, _prop.var.etc.standardKeyCodes.dup, true);
+					createCombo(false, [], true);
+					refKeyCodes();
 					_keyCodeTim.setEnabled(true);
 					break;
 				case 2:
@@ -1687,6 +1695,7 @@ public:
 										}
 									}
 									_comm.refEventTree.call(tree);
+									_comm.refKeyCodes.call();
 								}
 							}
 						}

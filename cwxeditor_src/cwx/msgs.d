@@ -218,6 +218,7 @@ class Msgs : Properties {
 	auto replRegExp = Msg("replRegExp", "正規表現(&E) (. = 任意1文字, * = 直前の文字の任意数繰返し, $1 = 1つめの文字列グループ ...)");
 	auto regexError = Msg("regexError", "正規表現が正しくありません。");
 	auto replWildcard = Msg("replWildcard", "ワイルドカード(&W) (* = 任意文字列, ? = 任意1文字, \\* = *, \\? = ?, \\\\ = \\)");
+	auto replExactMatch = Msg("replExactMatch", "完全一致(&X)");
 	auto replCond = Msg("replCond", "検索条件");
 	auto search = Msg("search", "検索(&F)");
 	auto replace = Msg("replace", "全て置換(&R)");
@@ -240,6 +241,14 @@ class Msgs : Properties {
 	auto grepCurrent = Msg("grepCurrent", "現" ~ DIR);
 	auto grepSubDir = Msg("grepSubDir", "サブ" ~ DIR ~ "も検索する");
 	auto grepScenario = Msg("grepScenario", "%1$s[%2$s]");
+
+	auto searchResultColumnMain = Msg("searchResultColumnMain", "マッチ箇所");
+	auto searchResultColumnParent = Msg("searchResultColumnParent", "所属");
+	auto searchResultColumnCoupon = Msg("searchResultColumnCoupon", "称号・名称");
+	auto searchResultColumnCouponCount = Msg("searchResultColumnCouponCount", "使用数");
+	auto searchResultColumnError = Msg("searchResultColumnError", "誤り箇所");
+	auto searchResultColumnErrorDesc = Msg("searchResultColumnErrorDesc", "解説");
+	auto searchResultColumnScenario = Msg("searchResultColumnScenario", "シナリオ");
 
 	auto searchResultBgImage = Msg("searchResultBgImage", "背景画像 [%1$s]");
 	auto searchResultIds = Msg("searchResultIds", "%1$s [%2$s.%3$s]");

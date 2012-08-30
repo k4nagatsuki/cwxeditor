@@ -227,7 +227,7 @@ private:
 			: (value > 0 ? _prop.images.couponPlus
 			: (value < 0 ? _prop.images.couponMinus : _prop.images.couponNormal));
 	}
-	void appendCoupon(Coupon coupon, int index = -1) {
+	void appendCoupon(in Coupon coupon, int index = -1) {
 		TableItem itm;
 		if (index >= 0) {
 			itm = new TableItem(_coupons, SWT.NONE, index);
@@ -237,7 +237,7 @@ private:
 		itm.setImage(0, couponImage(coupon.value));
 		itm.setText(0, coupon.name);
 		itm.setText(1, to!(string)(coupon.value));
-		itm.setData(coupon);
+		itm.setData(new Coupon(coupon));
 		_coupons.setSelection([itm]);
 		_coupons.showSelection();
 		_comm.refreshToolBar();
@@ -1605,6 +1605,8 @@ protected:
 			? Mentality.NORMAL : _mtlyTbl[_mtly.getSelectionIndex()];
 		_card.mentalityRound = _card.mentality == Mentality.NORMAL
 			? 0 : _mtlyRound.getSelection();
+
+		_comm.refCoupons.call();
 		return true;
 	}
 }

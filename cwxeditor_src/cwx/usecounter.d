@@ -118,6 +118,33 @@ alias TChgCallback!(StepId) ChgStepCallback;
 /// ditto
 alias TChgCallback!(PathId) ChgPathCallback;
 
+/// テキストをそのままキーとする場合のメソッド群を実装する。
+private mixin template StringId() {
+	string opCast() {
+		return id;
+	}
+	const
+	hash_t toHash() {
+		hash_t hash = 0;
+		foreach (c; id) {
+			hash = (hash * 9) + c;
+		}
+		return hash;
+	}
+	const
+	bool opEquals(ref const(typeof(this)) s) {
+		return id == s.id;
+	}
+	const
+	int opCmp(ref const(typeof(this)) s) {
+		return cmp(this.id, s.id);
+	}
+	const
+	string toString() {
+		return id;
+	}
+}
+
 /// フラグのID。
 private struct FlagId {
 	private string id;
@@ -1153,6 +1180,298 @@ public:
 	}
 }
 
+/// クーポンのID。
+private struct CouponId {
+	string id;
+	alias id this;
+	mixin StringId;
+}
+/// 文字列をクーポンIDに変換。
+CouponId toCouponId(string id) {return CouponId(id);}
+/// クーポンの使用者。
+interface ICouponUser : User!(CouponId) {
+}
+/// クーポンを使用するクラスの雛形。
+/// 継承か委譲により、クーポンの使用者を容易に実装できる。
+class CouponUser : ICouponUser {
+private:
+	UseCounter _uc;
+	string _coupon;
+	CWXPath _cwxPath;
+public:
+	/// パスを示すオブジェクトを指定してインスタンスを生成。
+	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
+	/// このオブジェクトの所有者。
+	@property
+	CWXPath owner() {return _cwxPath;}
+	/// このオブジェクトの所有者のリソースパス。
+	@property
+	string cwxPath(bool id) {return _cwxPath.cwxPath(id);}
+
+	/// クーポンを設定する。
+	/// Params:
+	/// coupon = クーポン。
+	@property
+	void coupon(string coupon) {
+		if (_uc !is null) {
+			if (_coupon !is null) _uc.coupon.remove(toCouponId(_coupon), this);
+			if (coupon !is null) _uc.coupon.add(toCouponId(coupon), this);
+		}
+		_coupon = coupon;
+	}
+
+	/// Returns: クーポン。
+	@property
+	const
+	string coupon() {
+		return _coupon;
+	}
+
+	/// 使用回数カウンタ。
+	@property
+	UseCounter useCounter() {return _uc;}
+	/// 使用回数カウンタを登録・除去する。
+	@property
+	void setUseCounter(UseCounter uc) {
+		if (uc && _coupon) {
+			uc.coupon.add(toCouponId(_coupon), this);
+		}
+		if (_uc && _coupon) {
+			_uc.coupon.remove(toCouponId(_coupon), this);
+		}
+		_uc = uc;
+	}
+	/// ditto
+	void removeUseCounter() {
+		if (_uc && _coupon !is null) {
+			_uc.coupon.remove(toCouponId(_coupon), this);
+		}
+		_uc = null;
+	}
+	override void change(CouponId newVal) {
+		_coupon = newVal.id;
+	}
+}
+
+/// ゴシップのID。
+private struct GossipId {
+	string id;
+	alias id this;
+	mixin StringId;
+}
+/// 文字列をゴシップIDに変換。
+GossipId toGossipId(string id) {return GossipId(id);}
+/// ゴシップの使用者。
+interface IGossipUser : User!(GossipId) {
+}
+/// ゴシップを使用するクラスの雛形。
+/// 継承か委譲により、ゴシップの使用者を容易に実装できる。
+class GossipUser : IGossipUser {
+private:
+	UseCounter _uc;
+	string _gossip;
+	CWXPath _cwxPath;
+public:
+	/// パスを示すオブジェクトを指定してインスタンスを生成。
+	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
+	/// このオブジェクトの所有者。
+	@property
+	CWXPath owner() {return _cwxPath;}
+	/// このオブジェクトの所有者のリソースパス。
+	@property
+	string cwxPath(bool id) {return _cwxPath.cwxPath(id);}
+
+	/// ゴシップを設定する。
+	/// Params:
+	/// gossip = ゴシップ。
+	@property
+	void gossip(string gossip) {
+		if (_uc !is null) {
+			if (_gossip !is null) _uc.gossip.remove(toGossipId(_gossip), this);
+			if (gossip !is null) _uc.gossip.add(toGossipId(gossip), this);
+		}
+		_gossip = gossip;
+	}
+
+	/// Returns: ゴシップ。
+	@property
+	const
+	string gossip() {
+		return _gossip;
+	}
+
+	/// 使用回数カウンタ。
+	@property
+	UseCounter useCounter() {return _uc;}
+	/// 使用回数カウンタを登録・除去する。
+	@property
+	void setUseCounter(UseCounter uc) {
+		if (uc && _gossip) {
+			uc.gossip.add(toGossipId(_gossip), this);
+		}
+		if (_uc && _gossip) {
+			_uc.gossip.remove(toGossipId(_gossip), this);
+		}
+		_uc = uc;
+	}
+	/// ditto
+	void removeUseCounter() {
+		if (_uc && _gossip !is null) {
+			_uc.gossip.remove(toGossipId(_gossip), this);
+		}
+		_uc = null;
+	}
+	override void change(GossipId newVal) {
+		_gossip = newVal.id;
+	}
+}
+
+/// 終了印のID。
+private struct CompleteStampId {
+	string id;
+	alias id this;
+	mixin StringId;
+}
+/// 文字列を終了印IDに変換。
+CompleteStampId toCompleteStampId(string id) {return CompleteStampId(id);}
+/// 終了印の使用者。
+interface ICompleteStampUser : User!(CompleteStampId) {
+}
+/// 終了印を使用するクラスの雛形。
+/// 継承か委譲により、終了印の使用者を容易に実装できる。
+class CompleteStampUser : ICompleteStampUser {
+private:
+	UseCounter _uc;
+	string _completeStamp;
+	CWXPath _cwxPath;
+public:
+	/// パスを示すオブジェクトを指定してインスタンスを生成。
+	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
+	/// このオブジェクトの所有者。
+	@property
+	CWXPath owner() {return _cwxPath;}
+	/// このオブジェクトの所有者のリソースパス。
+	@property
+	string cwxPath(bool id) {return _cwxPath.cwxPath(id);}
+
+	/// 終了印を設定する。
+	/// Params:
+	/// completeStamp = 終了印。
+	@property
+	void completeStamp(string completeStamp) {
+		if (_uc !is null) {
+			if (_completeStamp !is null) _uc.completeStamp.remove(toCompleteStampId(_completeStamp), this);
+			if (completeStamp !is null) _uc.completeStamp.add(toCompleteStampId(completeStamp), this);
+		}
+		_completeStamp = completeStamp;
+	}
+
+	/// Returns: 終了印。
+	@property
+	const
+	string completeStamp() {
+		return _completeStamp;
+	}
+
+	/// 使用回数カウンタ。
+	@property
+	UseCounter useCounter() {return _uc;}
+	/// 使用回数カウンタを登録・除去する。
+	@property
+	void setUseCounter(UseCounter uc) {
+		if (uc && _completeStamp) {
+			uc.completeStamp.add(toCompleteStampId(_completeStamp), this);
+		}
+		if (_uc && _completeStamp) {
+			_uc.completeStamp.remove(toCompleteStampId(_completeStamp), this);
+		}
+		_uc = uc;
+	}
+	/// ditto
+	void removeUseCounter() {
+		if (_uc && _completeStamp !is null) {
+			_uc.completeStamp.remove(toCompleteStampId(_completeStamp), this);
+		}
+		_uc = null;
+	}
+	override void change(CompleteStampId newVal) {
+		_completeStamp = newVal.id;
+	}
+}
+
+/// キーコードのID。
+private struct KeyCodeId {
+	string id;
+	alias id this;
+	mixin StringId;
+}
+/// 文字列をキーコードIDに変換。
+KeyCodeId toKeyCodeId(string id) {return KeyCodeId(id);}
+/// キーコードの使用者。
+interface IKeyCodeUser : User!(KeyCodeId) {
+}
+/// キーコードを使用するクラスの雛形。
+/// 継承か委譲により、キーコードの使用者を容易に実装できる。
+class KeyCodeUser : IKeyCodeUser {
+private:
+	UseCounter _uc;
+	string _keyCode;
+	CWXPath _cwxPath;
+public:
+	/// パスを示すオブジェクトを指定してインスタンスを生成。
+	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
+	/// このオブジェクトの所有者。
+	@property
+	CWXPath owner() {return _cwxPath;}
+	/// このオブジェクトの所有者のリソースパス。
+	@property
+	string cwxPath(bool id) {return _cwxPath.cwxPath(id);}
+
+	/// キーコードを設定する。
+	/// Params:
+	/// keyCode = キーコード。
+	@property
+	void keyCode(string keyCode) {
+		if (_uc !is null) {
+			if (_keyCode !is null) _uc.keyCode.remove(toKeyCodeId(_keyCode), this);
+			if (keyCode !is null) _uc.keyCode.add(toKeyCodeId(keyCode), this);
+		}
+		_keyCode = keyCode;
+	}
+
+	/// Returns: キーコード。
+	@property
+	const
+	string keyCode() {
+		return _keyCode;
+	}
+
+	/// 使用回数カウンタ。
+	@property
+	UseCounter useCounter() {return _uc;}
+	/// 使用回数カウンタを登録・除去する。
+	@property
+	void setUseCounter(UseCounter uc) {
+		if (uc && _keyCode) {
+			uc.keyCode.add(toKeyCodeId(_keyCode), this);
+		}
+		if (_uc && _keyCode) {
+			_uc.keyCode.remove(toKeyCodeId(_keyCode), this);
+		}
+		_uc = uc;
+	}
+	/// ditto
+	void removeUseCounter() {
+		if (_uc && _keyCode !is null) {
+			_uc.keyCode.remove(toKeyCodeId(_keyCode), this);
+		}
+		_uc = null;
+	}
+	override void change(KeyCodeId newVal) {
+		_keyCode = newVal.id;
+	}
+}
+
 /// 使用回数カウンタ。
 /// IDやパスの変更を通知する役割も持つ。
 class UseCounter {
@@ -1168,6 +1487,10 @@ private:
 	UCCont!(ItemId, ItemUser) _item;
 	UCCont!(BeastId, BeastUser) _beast;
 	UCCont!(InfoId, InfoUser) _info;
+	UCCont!(CouponId, CouponUser) _coupon;
+	UCCont!(GossipId, GossipUser) _gossip;
+	UCCont!(CompleteStampId, CompleteStampUser) _completeStamp;
+	UCCont!(KeyCodeId, KeyCodeUser) _keyCode;
 	UseCounter _child = null;
 public:
 	/// 唯一のコンストラクタ。
@@ -1186,6 +1509,10 @@ public:
 		_item = new UCCont!(ItemId, ItemUser);
 		_beast = new UCCont!(BeastId, BeastUser);
 		_info = new UCCont!(InfoId, InfoUser);
+		_coupon = new UCCont!(CouponId, CouponUser);
+		_gossip = new UCCont!(GossipId, GossipUser);
+		_completeStamp = new UCCont!(CompleteStampId, CompleteStampUser);
+		_keyCode = new UCCont!(KeyCodeId, KeyCodeUser);
 		if (useChild) {
 			_child = new UseCounter(false);
 		}
@@ -1229,6 +1556,18 @@ public:
 	/// ditto
 	@property
 	UCCont!(InfoId, InfoUser) info() {return _info;}
+	/// ditto
+	@property
+	UCCont!(CouponId, CouponUser) coupon() {return _coupon;}
+	/// ditto
+	@property
+	UCCont!(GossipId, GossipUser) gossip() {return _gossip;}
+	/// ditto
+	@property
+	UCCont!(CompleteStampId, CompleteStampUser) completeStamp() {return _completeStamp;}
+	/// ditto
+	@property
+	UCCont!(KeyCodeId, KeyCodeUser) keyCode() {return _keyCode;}
 	/// ID・Tの変更を通知する。
 	void change(T)(T oldId, T newId, bool dup = false) {
 		static if (is (T == FlagId)) {
@@ -1253,6 +1592,14 @@ public:
 			beast.change(oldId, newId, dup);
 		} else static if (is (T == InfoId)) {
 			info.change(oldId, newId, dup);
+		} else static if (is (T == CouponId)) {
+			coupon.change(oldId, newId, dup);
+		} else static if (is (T == GossipId)) {
+			gossip.change(oldId, newId, dup);
+		} else static if (is (T == CompleteStampId)) {
+			completeStamp.change(oldId, newId, dup);
+		} else static if (is (T == KeyCodeId)) {
+			keyCode.change(oldId, newId, dup);
 		} else {
 			static assert (0);
 		}
@@ -1283,6 +1630,14 @@ public:
 			return _beast.get(id);
 		} else static if (is (T == InfoId)) {
 			return _info.get(id);
+		} else static if (is (T == CouponId)) {
+			return _coupon.get(id);
+		} else static if (is (T == GossipId)) {
+			return _gossip.get(id);
+		} else static if (is (T == CompleteStampId)) {
+			return _completeStamp.get(id);
+		} else static if (is (T == KeyCodeId)) {
+			return _keyCode.get(id);
 		} else {
 			static assert (0);
 		}
@@ -1321,4 +1676,16 @@ public:
 	@property
 	const
 	InfoUser[] values(InfoId id) {return _info.values(id);} /// ditto
+	@property
+	const
+	CouponUser[] values(CouponId id) {return _coupon.values(id);} /// ditto
+	@property
+	const
+	GossipUser[] values(GossipId id) {return _gossip.values(id);} /// ditto
+	@property
+	const
+	CompleteStampUser[] values(CompleteStampId id) {return _completeStamp.values(id);} /// ditto
+	@property
+	const
+	KeyCodeUser[] values(KeyCodeId id) {return _keyCode.values(id);} /// ditto
 }

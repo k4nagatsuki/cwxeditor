@@ -558,7 +558,10 @@ private:
 	void refreshCoupons() {
 		auto c = _rCouponsList.getText();
 		_rCouponsList.removeAll();
-		addCastCoupons(_rCouponsList, comm, true, comm.skin.legacyName);
+		auto cs = castCoupons(comm, true, comm.skin.legacyName);
+		foreach (coupon; cs) {
+			_rCouponsList.add(coupon);
+		}
 		_rCouponsList.select(0);
 		if (c.length && -1 == _rCouponsList.indexOf(c)) {
 			_rCouponsList.add(c, 0);
@@ -736,6 +739,10 @@ protected:
 			bar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		}
 
+		comm.refCoupons.add(&refreshCoupons);
+		.listener(_rCouponsList, SWT.Dispose, {
+			comm.refCoupons.remove(&refreshCoupons);
+		});
 		sash.addDisposeListener(new Dispose);
 		sash.setWeights([prop.var.etc.talkSashL, prop.var.etc.talkSashR]);
 
@@ -760,6 +767,7 @@ protected:
 		if (!evt) evt = new Content(CType.TALK_DIALOG, "");
 		evt.dialogs = _dlgs;
 		evt.talkerNC = selectedTalker;
+		comm.refCoupons.call();
 		return true;
 	}
 }
