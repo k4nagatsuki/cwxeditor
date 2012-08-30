@@ -115,6 +115,8 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.NewStep] = "S";
 		_mnemonic[MenuID.Up] = "K";
 		_mnemonic[MenuID.Down] = "J";
+		_mnemonic[MenuID.OverDialog] = "O";
+		_mnemonic[MenuID.UnderDialog] = "U";
 		_mnemonic[MenuID.ShowParty] = "P";
 		_mnemonic[MenuID.ShowMsg] = "M";
 		_mnemonic[MenuID.ShowRefCards] = "R";
@@ -267,6 +269,8 @@ class MenuProps : Properties {
 		_hotkey[MenuID.NewStep] = "Ctrl+P";
 		_hotkey[MenuID.Up] = "Ctrl+Arrow_Up";
 		_hotkey[MenuID.Down] = "Ctrl+Arrow_Down";
+		_hotkey[MenuID.OverDialog] = "Shift+Arrow_Up";
+		_hotkey[MenuID.UnderDialog] = "Shift+Arrow_Down";
 		_hotkey[MenuID.ShowParty] = "";
 		_hotkey[MenuID.ShowMsg] = "";
 		_hotkey[MenuID.ShowRefCards] = "";

@@ -1003,6 +1003,8 @@ enum MenuID {
 	NewStep,
 	Up,
 	Down,
+	OverDialog,
+	UnderDialog,
 	ShowParty,
 	ShowMsg,
 	ShowRefCards,

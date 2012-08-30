@@ -312,6 +312,8 @@ private:
 		}
 		_rCoupons.setText(rcs);
 		_text.setText(dlg.text);
+		auto len = dlg.text.to!dstring().length;
+		_text.widget.setSelection(len, len);
 		refreshPreview();
 		comm.refreshToolBar();
 	}
@@ -348,6 +350,20 @@ private:
 	}
 	void deleteDialogSel() {
 		deleteDialog(_dlgsL.getSelectionIndex());
+	}
+	void overDialog() {
+		int index = _dlgsL.getSelectionIndex();
+		if (index > 0) {
+			_dlgsL.select(index - 1);
+			selectChanged();
+		}
+	}
+	void underDialog() {
+		int index = _dlgsL.getSelectionIndex();
+		if (index + 1 < _dlgs.length) {
+			_dlgsL.select(index + 1);
+			selectChanged();
+		}
 	}
 	void up() {
 		int index = _dlgsL.getSelectionIndex();
@@ -608,6 +624,31 @@ private:
 			prop.var.etc.talkSashR = ws[1];
 		}
 	}
+
+	private class KeyDownFilter : Listener {
+		this () {
+			refMenu(MenuID.OverDialog);
+			refMenu(MenuID.UnderDialog);
+		}
+		override void handleEvent(Event e) {
+			auto c = cast(Control) e.widget;
+			if (!c || c.getShell() !is getShell()) return;
+			if (_dlgsL is c) return;
+			if (eqAcc(_overAcc, e.keyCode, e.character, e.stateMask)) {
+				overDialog();
+				e.doit = false;
+			} else if (eqAcc(_underAcc, e.keyCode, e.character, e.stateMask)) {
+				underDialog();
+				e.doit = false;
+			}
+		}
+	}
+	private int _overAcc;
+	private int _underAcc;
+	private void refMenu(MenuID id) {
+		if (id == MenuID.OverDialog) _overAcc = convertAccelerator(prop.buildMenu(MenuID.OverDialog));
+		if (id == MenuID.UnderDialog) _underAcc = convertAccelerator(prop.buildMenu(MenuID.UnderDialog));
+	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
 		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime());
@@ -680,6 +721,9 @@ protected:
 			createMenuItem(comm, menu, MenuID.Up, &up, () => _dlgsL.getSelectionIndex() != -1 && 0 < _dlgsL.getSelectionIndex());
 			createMenuItem(comm, menu, MenuID.Down, &down, () => _dlgsL.getSelectionIndex() != -1 && _dlgsL.getSelectionIndex() + 1 < _dlgsL.getItemCount());
 			new MenuItem(menu, SWT.SEPARATOR);
+			createMenuItem(comm, menu, MenuID.OverDialog, &overDialog, () => _dlgsL.getSelectionIndex() != -1 && 0 < _dlgsL.getSelectionIndex());
+			createMenuItem(comm, menu, MenuID.UnderDialog, &underDialog, () => _dlgsL.getSelectionIndex() != -1 && _dlgsL.getSelectionIndex() + 1 < _dlgsL.getItemCount());
+			new MenuItem(menu, SWT.SEPARATOR);
 			appendMenuTCPD(comm, menu, new DialogsTCPD, true, true, true, true);
 			_dlgsL.setMenu(menu);
 
@@ -745,6 +789,13 @@ protected:
 		});
 		sash.addDisposeListener(new Dispose);
 		sash.setWeights([prop.var.etc.talkSashL, prop.var.etc.talkSashR]);
+		auto kdFilter = new KeyDownFilter;
+		area.getDisplay().addFilter(SWT.KeyDown, kdFilter);
+		comm.refMenu.add(&refMenu);
+		.listener(area, SWT.Dispose, {
+			area.getDisplay().removeFilter(SWT.KeyDown, kdFilter);
+			comm.refMenu.remove(&refMenu);
+		});
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;

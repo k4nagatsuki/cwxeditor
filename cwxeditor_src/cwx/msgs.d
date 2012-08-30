@@ -1562,6 +1562,8 @@ class Msgs : Properties {
 	auto menuTextNewStep = Msg("menuTextNewStep", "ステップの作成");
 	auto menuTextUp = Msg("menuTextUp", "上へ");
 	auto menuTextDown = Msg("menuTextDown", "下へ");
+	auto menuTextOverDialog = Msg("menuTextOverDialog", "上の台詞へ移動");
+	auto menuTextUnderDialog = Msg("menuTextUnderDialog", "下の台詞へ移動");
 	auto menuTextShowParty = Msg("menuTextShowParty", "パーティカードの表示");
 	auto menuTextShowMsg = Msg("menuTextShowMsg", "メッセージ枠の表示");
 	auto menuTextShowRefCards = Msg("menuTextShowRefCards", "カード参照の表示");

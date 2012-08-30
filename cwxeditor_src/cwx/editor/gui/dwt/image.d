@@ -422,6 +422,8 @@ public:
 		case MenuID.NewStep: return imgd!("step_new.png");
 		case MenuID.Up: return imgd!("up.png");
 		case MenuID.Down: return imgd!("down.png");
+		case MenuID.OverDialog: return imgd!("over_dlg.png");
+		case MenuID.UnderDialog: return imgd!("under_dlg.png");
 		case MenuID.ShowParty: return imgd!("party_cards.png");
 		case MenuID.ShowMsg: return imgd!("view_msg.png");
 		case MenuID.ShowRefCards: return imgd!("view_ref.png");
