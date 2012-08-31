@@ -230,12 +230,14 @@ class CWXScript {
 			auto linesBase = .splitLines!string(tok.value[0 .. $ - 1].idup);
 			string firstLine = linesBase[0];
 			string[] lines;
+			string[] resultLines;
 			foreach (i, line; linesBase[1 .. $]) {
 				line = .astripl(line);
 				line = decode(line, tok.value[0]);
 				if (line.length >= 1 && line[0] == '\\') {
 					line = line[1 .. $];
 				}
+				resultLines ~= line;
 				lines ~= wrap(line, width);
 			}
 			if (firstLine.length > 1) {
@@ -255,7 +257,7 @@ class CWXScript {
 				}
 				buf[] = '\n';
 			}
-			foreach (i, line; lines) {
+			foreach (i, line; resultLines) {
 				if (i > 0) buf ~= '\n';
 				buf ~= line;
 			}
@@ -270,6 +272,7 @@ class CWXScript {
 		assert (s.stringValue(Token(0, 0, Kind.STRING, `'ab''c'`), 0) == "ab'c");
 		assert (s.stringValue(Token(0, 2, Kind.STRING, "@ 3\n\t\tte@@st\n   t\\e\\st\n\\   a\n\\\\   a@"), false)
 			 == "\n\nte@st\nt\\e\\st\n   a\n\\   a");
+		assert (s.stringValue(Token(0, 0, Kind.STRING, "@\nabcabc\n@"), 3) == "abcabc", s.stringValue(Token(0, 0, Kind.STRING, "@\nabcabc\n@"), 3));
 	}
 
 	/// textをTokenに分割する。
