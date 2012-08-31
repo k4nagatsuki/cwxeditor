@@ -3,7 +3,6 @@
 
 ビルドツール:
 	・dmd 2.060
-	・rake
 	・Digital Mars rcc
 ライブラリ:
 	・DWT at GitHub
@@ -23,13 +22,9 @@ cd dwt
 git submodule update --init
 git submodule foreach git pull origin master
 ---
-
-　DWTはビルドにrakeを使います。こいつはRuby言語のスクリプトなのですが、
-RubyInstaller for Windowsを使うとRuby本体諸共入手できるようです。
-　http://rubyinstaller.org/
-　Rubyのbinフォルダにパスを通して、DWTをビルド。baseとswtだけでOKです。
+　準備ができたらビルドします。
 ---
-rake base swt
+rdmd build base swt
 ---
 
 　後は、dmd2/windows/bin/sc.iniを弄くってDWTのインポートフォルダやら
@@ -96,9 +91,12 @@ cd dwt
 git submodule update --init
 git submodule foreach git pull origin master
 ---
-
-　DWTはビルドにrakeを使います。
-　rakeで"base"と"swt"をビルドし、ライブラリを作りましょう。
+　準備ができたらビルドします。
+---
+rdmd build base swt
+---
+　ビルドが完了すると、以下のライブラリファイルがlibディレクトリに生成され
+るはずです。
 　 dwt-base.a
 　 org.eclipse.swt.gtk.linux.x86.a
 　dwt/libにある状態では何をどうしてもリンクできなかったので、cwxeditor_src/

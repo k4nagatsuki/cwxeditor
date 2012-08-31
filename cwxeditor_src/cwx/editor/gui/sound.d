@@ -621,6 +621,9 @@ private void stopBass(ref DWORD stream) {
 		try {
 			if (!bass) return;
 			if (!stream) return;
+			if (!getSymbol!(BASS_ChannelStop)(bass, "BASS_ChannelStop")(stream)) {
+				debugln("BASS_ChannelStop");
+			}
 			if (!getSymbol!(BASS_StreamFree)(bass, "BASS_StreamFree")(stream)) {
 				debugln("BASS_StreamFree");
 			}
@@ -658,6 +661,7 @@ version (Windows) {
 		alias BOOL function(HSOUNDFONT handle) BASS_MIDI_FontFree;
 		alias BOOL function(int device, DWORD freq, DWORD flags, HWND win, GUID* clsid) BASS_Init;
 		alias BOOL function(DWORD handle, BOOL restart) BASS_ChannelPlay;
+		alias BOOL function(DWORD handle) BASS_ChannelStop;
 		alias HSTREAM function(BOOL mem, const void* file, QWORD offset, QWORD length, DWORD flags) BASS_StreamCreateFile;
 		alias BOOL function(HSTREAM handle) BASS_StreamFree;
 		alias BOOL function() BASS_Free;
@@ -700,6 +704,7 @@ void playBGM(string path, int soundPlayType) {
 		try {
 			version (Windows) {
 				HSTREAM bass = bassBGMStream;
+				scope (exit) bassBGMStream = bass;
 			} else {
 				HSTREAM bass = 0;
 			}
@@ -717,6 +722,7 @@ void stopBGM() {
 		try {
 			version (Windows) {
 				HSTREAM bass = bassBGMStream;
+				scope (exit) bassBGMStream = bass;
 			} else {
 				HSTREAM bass = 0;
 			}
@@ -773,6 +779,7 @@ void playSE(string path, int soundPlayType) {
 		try {
 			version (Windows) {
 				HSTREAM bass = bassSEStream;
+				scope (exit) bassSEStream = bass;
 			} else {
 				HSTREAM bass = 0;
 			}
@@ -790,6 +797,7 @@ void stopSE() {
 		try {
 			version (Windows) {
 				HSTREAM bass = bassSEStream;
+				scope (exit) bassSEStream = bass;
 			} else {
 				HSTREAM bass = 0;
 			}
