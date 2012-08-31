@@ -112,7 +112,7 @@ ImageData loadImage(Skin skin, string path, bool mask = true, int maskX = 0, int
 					}
 				}
 			}
-			if (mask && !data.alphaData) {
+			if (mask && (!data.alphaData || !data.alphaData.length)) {
 				data.transparentPixel = data.getPixel(maskX, maskY);
 			}
 			return data;

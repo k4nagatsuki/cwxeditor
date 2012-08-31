@@ -2237,7 +2237,6 @@ public:
 	private void searchCouponImpl(KeyType)(in KeyType[] keys, UseCounter uc, in bool[CWXPath] rangeT, Image delegate() image, ref uint count) {
 		foreach (key; keys.dup.sort) {
 			if (cancel) break;
-			if (!key.length) continue;
 			uint use = 0;
 			foreach (u; uc.values(key)) {
 				if (dec(u.owner, rangeT)) {

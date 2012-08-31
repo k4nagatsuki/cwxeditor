@@ -636,6 +636,7 @@ private:
 	}
 	void refStandardKeyCodes() {
 		string[] stdKCs = _prop.var.etc.standardKeyCodes.dup;
+		auto cKeyCodes = _card.keyCodes;
 		foreach (i, combo; _keyCodes) {
 			string text = combo.getText();
 			combo.removeAll();
@@ -643,9 +644,11 @@ private:
 				combo.add(kc);
 			}
 			combo.setText(text);
-			auto kc = _card.keyCodes[i];
-			if (_card && !contains(combo.getItems(), kc)) {
-				combo.add(kc, 0);
+			if (i < cKeyCodes.length) {
+				auto kc = cKeyCodes[i];
+				if (_card && !contains(combo.getItems(), kc)) {
+					combo.add(kc, 0);
+				}
 			}
 		}
 	}

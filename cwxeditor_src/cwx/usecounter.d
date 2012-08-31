@@ -1214,8 +1214,8 @@ public:
 	@property
 	void coupon(string coupon) {
 		if (_uc !is null) {
-			if (_coupon !is null) _uc.coupon.remove(toCouponId(_coupon), this);
-			if (coupon !is null) _uc.coupon.add(toCouponId(coupon), this);
+			if (_coupon != "") _uc.coupon.remove(toCouponId(_coupon), this);
+			if (coupon != "") _uc.coupon.add(toCouponId(coupon), this);
 		}
 		_coupon = coupon;
 	}
@@ -1233,17 +1233,17 @@ public:
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) {
-		if (uc && _coupon) {
+		if (uc && _coupon != "") {
 			uc.coupon.add(toCouponId(_coupon), this);
 		}
-		if (_uc && _coupon) {
+		if (_uc && _coupon != "") {
 			_uc.coupon.remove(toCouponId(_coupon), this);
 		}
 		_uc = uc;
 	}
 	/// ditto
 	void removeUseCounter() {
-		if (_uc && _coupon !is null) {
+		if (_uc && _coupon != "") {
 			_uc.coupon.remove(toCouponId(_coupon), this);
 		}
 		_uc = null;
@@ -1287,8 +1287,8 @@ public:
 	@property
 	void gossip(string gossip) {
 		if (_uc !is null) {
-			if (_gossip !is null) _uc.gossip.remove(toGossipId(_gossip), this);
-			if (gossip !is null) _uc.gossip.add(toGossipId(gossip), this);
+			if (_gossip != "") _uc.gossip.remove(toGossipId(_gossip), this);
+			if (gossip != "") _uc.gossip.add(toGossipId(gossip), this);
 		}
 		_gossip = gossip;
 	}
@@ -1306,17 +1306,17 @@ public:
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) {
-		if (uc && _gossip) {
+		if (uc && _gossip != "") {
 			uc.gossip.add(toGossipId(_gossip), this);
 		}
-		if (_uc && _gossip) {
+		if (_uc && _gossip != "") {
 			_uc.gossip.remove(toGossipId(_gossip), this);
 		}
 		_uc = uc;
 	}
 	/// ditto
 	void removeUseCounter() {
-		if (_uc && _gossip !is null) {
+		if (_uc && _gossip != "") {
 			_uc.gossip.remove(toGossipId(_gossip), this);
 		}
 		_uc = null;
@@ -1360,8 +1360,8 @@ public:
 	@property
 	void completeStamp(string completeStamp) {
 		if (_uc !is null) {
-			if (_completeStamp !is null) _uc.completeStamp.remove(toCompleteStampId(_completeStamp), this);
-			if (completeStamp !is null) _uc.completeStamp.add(toCompleteStampId(completeStamp), this);
+			if (_completeStamp != "") _uc.completeStamp.remove(toCompleteStampId(_completeStamp), this);
+			if (completeStamp != "") _uc.completeStamp.add(toCompleteStampId(completeStamp), this);
 		}
 		_completeStamp = completeStamp;
 	}
@@ -1379,17 +1379,17 @@ public:
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) {
-		if (uc && _completeStamp) {
+		if (uc && _completeStamp != "") {
 			uc.completeStamp.add(toCompleteStampId(_completeStamp), this);
 		}
-		if (_uc && _completeStamp) {
+		if (_uc && _completeStamp != "") {
 			_uc.completeStamp.remove(toCompleteStampId(_completeStamp), this);
 		}
 		_uc = uc;
 	}
 	/// ditto
 	void removeUseCounter() {
-		if (_uc && _completeStamp !is null) {
+		if (_uc && _completeStamp != "") {
 			_uc.completeStamp.remove(toCompleteStampId(_completeStamp), this);
 		}
 		_uc = null;
@@ -1433,8 +1433,8 @@ public:
 	@property
 	void keyCode(string keyCode) {
 		if (_uc !is null) {
-			if (_keyCode !is null) _uc.keyCode.remove(toKeyCodeId(_keyCode), this);
-			if (keyCode !is null) _uc.keyCode.add(toKeyCodeId(keyCode), this);
+			if (_keyCode != "") _uc.keyCode.remove(toKeyCodeId(_keyCode), this);
+			if (keyCode != "") _uc.keyCode.add(toKeyCodeId(keyCode), this);
 		}
 		_keyCode = keyCode;
 	}
@@ -1452,17 +1452,17 @@ public:
 	/// 使用回数カウンタを登録・除去する。
 	@property
 	void setUseCounter(UseCounter uc) {
-		if (uc && _keyCode) {
+		if (uc && _keyCode != "") {
 			uc.keyCode.add(toKeyCodeId(_keyCode), this);
 		}
-		if (_uc && _keyCode) {
+		if (_uc && _keyCode != "") {
 			_uc.keyCode.remove(toKeyCodeId(_keyCode), this);
 		}
 		_uc = uc;
 	}
 	/// ditto
 	void removeUseCounter() {
-		if (_uc && _keyCode !is null) {
+		if (_uc && _keyCode != "") {
 			_uc.keyCode.remove(toKeyCodeId(_keyCode), this);
 		}
 		_uc = null;

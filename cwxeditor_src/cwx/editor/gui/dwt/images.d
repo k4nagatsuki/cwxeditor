@@ -281,8 +281,7 @@ public:
 			}
 			ImageData matImgData;
 			bool noTransparent = false;
-			if (!appends.length && !_title && !this.data && transparent) {
-				// FIXME: 1.29の挙動に合わせ、マスク有効なら透明色を無効にする
+			void matNoTransparent() {
 				auto data = blankImage(initW, initH);
 				data.transparentPixel = -1;
 				data.data[] = cast(byte) 255;
@@ -295,6 +294,12 @@ public:
 				dc.drawImage(img2, 0, 0);
 				matImgData = img.getImageData();
 				noTransparent = true;
+			}
+			if (!appends.length && !_title && !this.data && transparent) {
+				// FIXME: 1.29の挙動に合わせ、マスク有効なら透明色を無効にする
+				matNoTransparent();
+			} else if (appends.length || _title !is null) {
+				matNoTransparent();
 			} else {
 				matImgData = getMat();
 			}
