@@ -312,7 +312,7 @@ private:
 		}
 		_rCoupons.setText(rcs);
 		_text.setText(dlg.text);
-		auto len = dlg.text.to!dstring().length;
+		auto len = dlg.text.length;
 		_text.widget.setSelection(len, len);
 		refreshPreview();
 		comm.refreshToolBar();
