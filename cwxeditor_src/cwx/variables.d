@@ -251,8 +251,8 @@ class FlexEtcProps : Properties {
 	auto searchHistories = Prop!(string[])("searchHistories", []);
 	auto replaceHistories = Prop!(string[])("replaceHistories", []);
 	auto searchHistoryMax = Prop!(int)("searchHistoryMax", 50);
-	auto replaceRangeSashL = Prop!(int)("replaceRangeSashL", 3);
-	auto replaceRangeSashR = Prop!(int)("replaceRangeSashR", 1);
+	auto replaceRangeSashL = Prop!(int)("replaceRangeSashL", 3, 2012090100);
+	auto replaceRangeSashR = Prop!(int)("replaceRangeSashR", 1, 2012090100);
 	auto replaceTextNotIgnoreCase = Prop!(bool)("replaceTextNotIgnoreCase", false);
 	auto replaceTextRegExp = Prop!(bool)("replaceTextRegExp", false);
 	auto replaceTextWildcard = Prop!(bool)("replaceTextWildcard", false);
