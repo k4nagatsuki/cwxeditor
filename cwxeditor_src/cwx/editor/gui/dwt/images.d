@@ -289,11 +289,12 @@ public:
 				scope (exit) img.dispose();
 				auto dc = new GC(img);
 				scope (exit) dc.dispose();
-				auto img2 = new Image(cur, getMat());
+				auto mat = getMat();
+				auto img2 = new Image(cur, mat);
 				scope (exit) img2.dispose();
 				dc.drawImage(img2, 0, 0);
 				matImgData = img.getImageData();
-				noTransparent = true;
+				if (mat.depth == 32) noTransparent = true;
 			}
 			if (!appends.length && !_title && !this.data && transparent) {
 				// FIXME: 1.29の挙動に合わせ、マスク有効なら透明色を無効にする
