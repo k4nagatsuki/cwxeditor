@@ -589,7 +589,7 @@ private:
 			addHistory();
 			dStr ~= " - " ~ .text(__LINE__);
 			try {
-				if (old) {
+				if (old && !.cfnmatch(old.scenarioPath.nabs(), summary.scenarioPath.nabs())) {
 					synchronized (_saveSync) {
 						old.delTemp();
 					}
