@@ -17,6 +17,7 @@ import cwx.graphics;
 import cwx.menu;
 import cwx.structs;
 import cwx.types;
+import cwx.cab;
 
 import cwx.editor.gui.sound;
 
@@ -735,14 +736,66 @@ private:
 	}
 	bool __saveScenarioA(Shell shell) {
 		if (summary) {
-			auto dlg = new FileDialog(shell, SWT.PRIMARY_MODAL | SWT.APPLICATION_MODAL | SWT.SINGLE | SWT.SAVE);
-			dlg.setFilterExtensions(["*.wsn"]);
-			dlg.setFilterNames([_prop.msgs.filterScenarioSave]);
-			dlg.setText(_prop.msgs.dlgTitSaveScenario);
-			dlg.setFilterPath(scenarioFilterPath(_prop));
-			dlg.setFileName(toFileName(setExtension(summary.scenarioName, ".wsn")));
-			dlg.setOverwrite(true);
-			string fname = dlg.open();
+			static immutable FILTER_WSN = 0;
+			static immutable FILTER_WSM = 1;
+			static immutable FILTER_ZIP = 2;
+			static immutable FILTER_CAB = 3;
+			string[] filters = ["*.wsn", "Summary.wsm", "*.zip"];
+			string[] names = [_prop.msgs.filterScenarioSave, _prop.msgs.filterScenarioSaveClassic, _prop.msgs.filterScenarioSaveZip];
+			if (canUncab) {
+				filters ~= "*.cab";
+				names ~= _prop.msgs.filterScenarioSaveCab;
+			}
+			string fname = null;
+			int filter = 0;
+			bool classic;
+			string filterPath = scenarioFilterPath(_prop);
+			string fileName = toFileName(setExtension(summary.scenarioName, ".wsn"));
+			while (true) {
+				auto fileDlg = new FileDialog(shell, SWT.PRIMARY_MODAL | SWT.APPLICATION_MODAL | SWT.SINGLE | SWT.SAVE);
+				fileDlg.setFilterExtensions(filters);
+				fileDlg.setFilterNames(names);
+				fileDlg.setFilterIndex(filter);
+				fileDlg.setText(_prop.msgs.dlgTitSaveScenario);
+				fileDlg.setFilterPath(filterPath);
+				fileDlg.setFileName(fileName);
+				fileDlg.setOverwrite(true);
+				fname = fileDlg.open();
+				if (!fname) break;
+				filterPath = fileDlg.getFilterPath();
+				fileName = fileDlg.getFileName();
+				filter = fileDlg.getFilterIndex();
+				final switch (filter) {
+				case FILTER_WSN:
+					classic = false;
+					break;
+				case FILTER_WSM:
+					string dir = fname.dirName();
+					fname = dir.buildPath("Summary.wsm");
+					if (dir.clistdir().length) {
+						auto dlg = new MessageBox(shell, SWT.ICON_QUESTION | SWT.YES | SWT.NO);
+						dlg.setMessage(.tryFormat(_prop.msgs.saveToNotEmptyDir, dir));
+						dlg.setText(_prop.msgs.dlgTitQuestion);
+						if (SWT.YES != dlg.open()) {
+							continue;
+						}
+					}
+					classic = true;
+					goto case FILTER_ZIP;
+				case FILTER_ZIP, FILTER_CAB:
+					if (!summary.legacy) {
+						auto dlg = new MessageBox(shell, SWT.ICON_QUESTION | SWT.YES | SWT.NO);
+						dlg.setMessage(_prop.msgs.warningXToClassic);
+						dlg.setText(_prop.msgs.dlgTitQuestion);
+						if (SWT.YES != dlg.open()) {
+							continue;
+						}
+					}
+					classic = true;
+					break;
+				}
+				break;
+			}
 			if (fname) {
 				auto cursors = setWaitCursors(shell);
 				scope (exit) resetCursors(cursors);
@@ -756,7 +809,7 @@ private:
 						summary.saveWithName(_prop.parent, createSaveOpt(),
 							fname, tempPath, expandXMLs, defSkin, (string msg) {
 								MessageBox.showWarning(msg, _prop.msgs.dlgTitWarning, shell);
-							});
+							}, classic);
 					}
 					_comm.skin = findSkin(_comm, _prop, summary);
 					_comm.saved.call();

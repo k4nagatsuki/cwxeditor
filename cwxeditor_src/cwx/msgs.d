@@ -624,7 +624,12 @@ class Msgs : Properties {
 	auto filterScenario = Msg("filterScenario", "シナリオファイル (%1$s)");
 	auto filterParts = Msg("filterParts", "エリア・カードファイル (%1$s)");
 	auto dlgTitSaveScenario = Msg("dlgTitSaveScenario", "名前を付けて保存");
-	auto filterScenarioSave = Msg("filterScenarioSave", "XMLシナリオファイル (*.wsn)");
+	auto filterScenarioSave = Msg("filterScenarioSave", "XML形式のシナリオ (*.wsn)");
+	auto filterScenarioSaveClassic = Msg("filterScenarioSaveClassic", "クラシックシナリオ (Summary.wsm)");
+	auto filterScenarioSaveZip = Msg("filterScenarioSaveZip", "ZIP圧縮されたクラシックシナリオ (*.zip)");
+	auto filterScenarioSaveCab = Msg("filterScenarioSaveCab", "CAB圧縮されたクラシックシナリオ (*.cab)");
+	auto warningXToClassic = Msg("warningXToClassic", "XML形式のシナリオをクラシック形式に変換すると一部データが失われる可能性があります。クラシック形式で保存しますか？");
+	auto saveToNotEmptyDir = Msg("saveToNotEmptyDir", "%1$sは空ではありません。\n本当にここにシナリオを保存しますか？");
 	auto notScenario = Msg("notScenario", "%1$sはシナリオ圧縮ファイルではありません");
 	auto zipError = Msg("zipError", "%1$sの展開に失敗しました。");
 	auto loadError = Msg("loadError", "%1$sの読込みに失敗しました。");

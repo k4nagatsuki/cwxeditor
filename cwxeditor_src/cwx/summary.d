@@ -85,7 +85,7 @@ private:
 	File _lock = null; /// 一時ディレクトリロック用オブジェクト。
 	string _zipName = ""; /// 圧縮されているシナリオなら、元ファイルのパス。
 	string _tempPath = ""; /// 圧縮されているシナリオなら、一時展開先のパス。
-	bool _legacy = false; /// クラシックなシナリオ化。
+	bool _legacy = false; /// クラシックなシナリオか。
 
 	string _sPath = null;
 	string _sname = "";
@@ -194,6 +194,12 @@ public:
 	const
 	bool legacy() {return _legacy;}
 
+	/// 一時ディレクトリを作成する。
+	static string createTempDirFromName(string tempPath, string name) {
+		auto temp = createNewFileName(std.path.buildPath(tempPath, name), true);
+		mkdirRecurse(temp);
+		return temp;
+	}
 	/// 一時ディレクトリを展開する。
 	static string createTempDir(string tempPath, string name, bool createLockFile = true) {
 		string base = cwx.utils.toHex(name);
@@ -1774,7 +1780,9 @@ public:
 		}
 		return false;
 	}
+	/// クラシックなシナリオをXML形式のシナリオに変換する。
 	public string classicToX(in CProps prop, string tempPath, Skin toSkin, out string[] copyFail) {
+		.enforce(legacy);
 		copyFail = [];
 		auto uc = useCounter;
 		auto temp = Summary.createTempDir(tempPath, scenarioName);
@@ -1831,6 +1839,42 @@ public:
 		}
 		return temp;
 	}
+	/// クラシックなシナリオとして新規にファイル・ディレクトリを作成する。
+	private string toNewClassic(in CProps prop, string fileOrDir, string tempPath, Skin toSkin, out string[] copyFail, out bool useTemp) {
+		copyFail = [];
+		auto uc = useCounter;
+		bool isDir;
+		string sPath, zipName;
+		string ext = fileOrDir.extension();
+		if (.cfnmatch(fileOrDir.baseName(), "Summary.wsm")) {
+			isDir = true;
+			sPath = fileOrDir.dirName();
+			zipName = "";
+		} else if (!(.exists(fileOrDir) && .isDir(fileOrDir)) && (ext.cfnmatch(".zip") || ext.cfnmatch(".cab"))) {
+			isDir = false;
+			sPath = Summary.createTempDirFromName(tempPath, scenarioName);
+			zipName = fileOrDir;
+		} else {
+			isDir = true;
+			sPath = fileOrDir;
+			zipName = "";
+		}
+		if (!.exists(sPath)) mkdirRecurse(sPath);
+		useTemp = !isDir;
+		foreach (file; clistdir(scenarioPath)) {
+			string p;
+			try {
+				auto full = scenarioPath.buildPath(file);
+				if (isSystemFile(full)) continue;
+				p = sPath.buildPath(file);
+				full.copyAll(p, true);
+			} catch (Exception ex) {
+				debugln(ex);
+				copyFail ~= p;
+			}
+		}
+		return sPath;
+	}
 	/// 保存場所が決まっている場合はtrue。
 	@property
 	const
@@ -1841,14 +1885,27 @@ public:
 	void saveOverwrite(in CProps prop, in SaveOption opt) in {
 		assert (isSaved);
 	} body {
-		saveProc(prop, opt, false, zipName, scenarioPath, false, expandXMLs);
+		saveProc(prop, opt, false, zipName, scenarioPath, scenarioPath, legacy, false, expandXMLs);
 	}
 	/// 名前をつけて保存。
 	void saveWithName(in CProps prop, in SaveOption opt, string fname, string tempPath,
-			bool defExpandXMLs, Skin defSkin, void delegate(string) showWarn) in {
-		assert (cfnmatch(.extension(fname), ".wsn"));
-	} body {
-		if (legacy) {
+			bool defExpandXMLs, Skin defSkin, void delegate(string) showWarn, bool classic) {
+		if (classic) {
+			// クラシック形式で保存
+			string[] copyFail;
+			bool useTemp;
+			auto sPath = toNewClassic(prop, fname, tempPath, defSkin, copyFail, useTemp);
+			foreach (fail; copyFail) {
+				// 一部コピー失敗しても中断しない
+				showWarn(.tryFormat(prop.msgs.fileCopyError, fail));
+			}
+			string zipName = useTemp ? fname : "";
+			string temp = sPath;
+			scope (failure) {
+				if (useTemp) delAll(temp);
+			}
+			saveProc(prop, opt, useTemp, zipName, temp, sPath, true, false, defExpandXMLs);
+		} else if (this.legacy) {
 			// クラシック形式からXML形式に変換
 			string[] copyFail;
 			auto temp = classicToX(prop, tempPath, defSkin, copyFail);
@@ -1858,13 +1915,13 @@ public:
 			}
 			scope (failure) delAll(temp);
 			if (!type.length) type = defSkin.type;
-			saveProc(prop, opt, true, fname, temp, true, defExpandXMLs);
+			saveProc(prop, opt, true, fname, temp, scenarioPath, legacy, true, defExpandXMLs);
 		} else if (useTemp) {
 			// 新しいアーカイブを作成
 			string oldZip = _zipName;
 			_zipName = fname;
 			scope (failure) _zipName = oldZip;
-			saveProc(prop, opt, false, zipName, scenarioPath, false, defExpandXMLs);
+			saveProc(prop, opt, false, zipName, scenarioPath, scenarioPath, legacy, false, defExpandXMLs);
 		} else {
 			// 展開済みシナリオからアーカイブに変換
 			auto oldPath = scenarioPath;
@@ -1875,15 +1932,20 @@ public:
 				scenarioPath = oldPath;
 				delAll(p);
 			}
-			saveProc(prop, opt, true, fname, p, false, defExpandXMLs);
+			saveProc(prop, opt, true, fname, p, scenarioPath, legacy, false, defExpandXMLs);
 		}
 	}
 	private void saveProc(in CProps prop, in SaveOption opt, bool archive,
-			string zipName, string temp, bool legacyToX, bool defExpandXMLs) {
+			string zipName, string temp, string sPath, bool legacy, bool legacyToX, bool defExpandXMLs) {
 		try {
 			bool expand = false;
 			if (legacy && !legacyToX) {
+				auto oldPath = scenarioPath;
+				scenarioPath = sPath;
+				scope (failure) scenarioPath = oldPath;
 				saveLScenario(this, opt);
+				bool useTemp = archive;
+				.enforce(useTemp == (0 < zipName.length));
 				if (useTemp) {
 					if (cfnmatch(.extension(zipName), ".cab")) {
 						.cab(temp, zipName, (string file) {
@@ -1894,6 +1956,16 @@ public:
 					}
 					_zipName = zipName;
 				}
+				if (useTemp && !_lock) {
+					lock();
+				}
+				_expandXMLs = false;
+				_useTemp = useTemp;
+				_legacy = legacy;
+				_zipName = zipName;
+				_tempPath = temp;
+				_legacy = true;
+				_type = "";
 			} else if (archive || useTemp || legacyToX) {
 				auto oldPath = scenarioPath;
 				if (expandXMLs) {
