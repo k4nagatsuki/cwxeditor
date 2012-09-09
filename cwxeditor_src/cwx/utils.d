@@ -1742,6 +1742,12 @@ string toFileName(string name, dchar c = '_') {
 	foreach (dchar n; name) {
 		buf ~= isFileNameChar(n) ? n : c;
 	}
+	version (Windows) {
+		// 末尾が'.'のファイル名は拒否される
+		if (buf.length && '.' == buf[$ - 1]) {
+			buf[$ - 1] = c;
+		}
+	}
 	return to!string(buf);
 }
 
