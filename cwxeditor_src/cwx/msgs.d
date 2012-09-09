@@ -625,6 +625,7 @@ class Msgs : Properties {
 	auto filterParts = Msg("filterParts", "エリア・カードファイル (%1$s)");
 	auto dlgTitSaveScenario = Msg("dlgTitSaveScenario", "名前を付けて保存");
 	auto filterScenarioSave = Msg("filterScenarioSave", "XML形式のシナリオ (*.wsn)");
+	auto filterScenarioSaveDir = Msg("filterScenarioSaveDir", "展開されたXML形式シナリオ (Summary.xml)");
 	auto filterScenarioSaveClassic = Msg("filterScenarioSaveClassic", "クラシックシナリオ (Summary.wsm)");
 	auto filterScenarioSaveZip = Msg("filterScenarioSaveZip", "ZIP圧縮されたクラシックシナリオ (*.zip)");
 	auto filterScenarioSaveCab = Msg("filterScenarioSaveCab", "CAB圧縮されたクラシックシナリオ (*.cab)");

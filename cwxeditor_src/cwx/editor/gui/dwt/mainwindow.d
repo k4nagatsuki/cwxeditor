@@ -737,11 +737,12 @@ private:
 	bool __saveScenarioA(Shell shell) {
 		if (summary) {
 			static immutable FILTER_WSN = 0;
-			static immutable FILTER_WSM = 1;
-			static immutable FILTER_ZIP = 2;
-			static immutable FILTER_CAB = 3;
-			string[] filters = ["*.wsn", "Summary.wsm", "*.zip"];
-			string[] names = [_prop.msgs.filterScenarioSave, _prop.msgs.filterScenarioSaveClassic, _prop.msgs.filterScenarioSaveZip];
+			static immutable FILTER_XML = 1;
+			static immutable FILTER_WSM = 2;
+			static immutable FILTER_ZIP = 3;
+			static immutable FILTER_CAB = 4;
+			string[] filters = ["*.wsn", "Summary.xml", "Summary.wsm", "*.zip"];
+			string[] names = [_prop.msgs.filterScenarioSave, _prop.msgs.filterScenarioSaveDir, _prop.msgs.filterScenarioSaveClassic, _prop.msgs.filterScenarioSaveZip];
 			if (canUncab) {
 				filters ~= "*.cab";
 				names ~= _prop.msgs.filterScenarioSaveCab;
@@ -765,21 +766,30 @@ private:
 				filterPath = fileDlg.getFilterPath();
 				fileName = fileDlg.getFileName();
 				filter = fileDlg.getFilterIndex();
-				final switch (filter) {
-				case FILTER_WSN:
-					classic = false;
-					break;
-				case FILTER_WSM:
-					string dir = fname.dirName();
-					fname = dir.buildPath("Summary.wsm");
+				string dir = fname.dirName();
+				bool checkDir() {
 					if (dir.clistdir().length) {
 						auto dlg = new MessageBox(shell, SWT.ICON_QUESTION | SWT.YES | SWT.NO);
 						dlg.setMessage(.tryFormat(_prop.msgs.saveToNotEmptyDir, dir));
 						dlg.setText(_prop.msgs.dlgTitQuestion);
 						if (SWT.YES != dlg.open()) {
-							continue;
+							return false;
 						}
 					}
+					return true;
+				}
+				final switch (filter) {
+				case FILTER_WSN:
+					classic = false;
+					break;
+				case FILTER_XML:
+					fname = dir.buildPath("Summary.xml");
+					if (!checkDir()) continue;
+					classic = false;
+					break;
+				case FILTER_WSM:
+					fname = dir.buildPath("Summary.wsm");
+					if (!checkDir()) continue;
 					classic = true;
 					goto case FILTER_ZIP;
 				case FILTER_ZIP, FILTER_CAB:

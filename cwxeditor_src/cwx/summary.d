@@ -1781,20 +1781,25 @@ public:
 		return false;
 	}
 	/// クラシックなシナリオをXML形式のシナリオに変換する。
-	public string classicToX(in CProps prop, string tempPath, Skin toSkin, out string[] copyFail) {
+	public string classicToX(in CProps prop, string temp, string tempPath, Skin toSkin, out string[] copyFail) {
 		.enforce(legacy);
 		copyFail = [];
 		auto uc = useCounter;
-		auto temp = Summary.createTempDir(tempPath, scenarioName);
-		auto mt = std.path.buildPath(temp, toSkin.materialPath);
-		try {
-			mkdirRecurse(mt);
-		} catch (Exception e) {
-			// 稀な条件でMaterialだけ生成されない場合がある模様
-			debugln(e);
-		}
-		if (!.exists(mt)) {
+		string mt;
+		if (std.path.buildPath(scenarioPath, toSkin.materialPath).exists()) {
+			// 元々Materialディレクトリが存在する
 			mt = temp;
+		} else {
+			mt = std.path.buildPath(temp, toSkin.materialPath);
+			try {
+				if (!mt.exists()) mkdirRecurse(mt);
+			} catch (Exception e) {
+				// 稀な条件でMaterialだけ生成されない場合がある模様
+				debugln(e);
+			}
+			if (!.exists(mt)) {
+				mt = temp;
+			}
 		}
 		foreach (file; clistdir(scenarioPath)) {
 			if (cfnmatch(file, "cwxeditor.lock")) {
@@ -1805,7 +1810,7 @@ public:
 				if (isDir(p)) {
 					auto top = std.path.buildPath(mt, baseName(p));
 					mkdir(top);
-					copyAll(p, top);
+					copyAll(p, top, true);
 				} else if (!cfnmatch(.extension(p), ".wsm") && !cfnmatch(.extension(p), ".wid") && !cfnmatch(.extension(p), ".wex")) {
 					if (toSkin.isCardImage(p)
 							|| toSkin.isBgImage(p)
@@ -1824,33 +1829,35 @@ public:
 		foreach (key; uc.path.keys) {
 			uc.change(key, toPathId(std.path.buildPath(toSkin.materialPath, cast(string) key)));
 		}
-		scope table = cardImgTable(mt, toSkin, uc);
-		foreach (p; uc.path.keys) {
-			if (p.isBinImg) {
-				int i = 0;
-				foreach (ipu; uc.path.values(p)) {
-					auto v = cast(PathUser) ipu;
-					assert (v);
-					if (moveBinImg(table, v, "@simage(" ~ to!(string)(i + 1) ~ ")", mt, toSkin)) {
-						i++;
+		if (!mt.cfnmatch(temp)) {
+			scope table = cardImgTable(mt, toSkin, uc);
+			foreach (p; uc.path.keys) {
+				if (p.isBinImg) {
+					int i = 0;
+					foreach (ipu; uc.path.values(p)) {
+						auto v = cast(PathUser) ipu;
+						assert (v);
+						if (moveBinImg(table, v, "@simage(" ~ to!(string)(i + 1) ~ ")", mt, toSkin)) {
+							i++;
+						}
 					}
 				}
 			}
 		}
 		return temp;
 	}
-	/// クラシックなシナリオとして新規にファイル・ディレクトリを作成する。
-	private string toNewClassic(in CProps prop, string fileOrDir, string tempPath, Skin toSkin, out string[] copyFail, out bool useTemp) {
+	/// 新規にシナリオのディレクトリを作成し、現在のファイルをコピーする。
+	private string toNewDirectory(in CProps prop, string fileOrDir, string tempPath, out string[] copyFail, out bool useTemp) {
 		copyFail = [];
-		auto uc = useCounter;
 		bool isDir;
 		string sPath, zipName;
 		string ext = fileOrDir.extension();
-		if (.cfnmatch(fileOrDir.baseName(), "Summary.wsm")) {
+		string baseName = fileOrDir.baseName();
+		if (.cfnmatch(baseName, "Summary.wsm") || .cfnmatch(baseName, "Summary.xml")) {
 			isDir = true;
 			sPath = fileOrDir.dirName();
 			zipName = "";
-		} else if (!(.exists(fileOrDir) && .isDir(fileOrDir)) && (ext.cfnmatch(".zip") || ext.cfnmatch(".cab"))) {
+		} else if (!(.exists(fileOrDir) && .isDir(fileOrDir)) && (ext.cfnmatch(".zip") || ext.cfnmatch(".cab") || ext.cfnmatch(".wsn"))) {
 			isDir = false;
 			sPath = Summary.createTempDirFromName(tempPath, scenarioName);
 			zipName = fileOrDir;
@@ -1894,7 +1901,7 @@ public:
 			// クラシック形式で保存
 			string[] copyFail;
 			bool useTemp;
-			auto sPath = toNewClassic(prop, fname, tempPath, defSkin, copyFail, useTemp);
+			auto sPath = toNewDirectory(prop, fname, tempPath, copyFail, useTemp);
 			foreach (fail; copyFail) {
 				// 一部コピー失敗しても中断しない
 				showWarn(.tryFormat(prop.msgs.fileCopyError, fail));
@@ -1905,10 +1912,36 @@ public:
 				if (useTemp) delAll(temp);
 			}
 			saveProc(prop, opt, useTemp, zipName, temp, sPath, true, false, defExpandXMLs);
+		} else if (fname.baseName().cfnmatch("Summary.xml") || (fname.exists() && fname.isDir())) {
+			// 新しく指定ディレクトリに保存(クラシック形式からXML形式への変換も含む)
+			string[] copyFail;
+			bool useTemp = false;
+			string sPath;
+			string temp = (fname.exists() && fname.isDir()) ? fname : fname.dirName();
+			if (!temp.exists()) temp.mkdirRecurse();
+			bool toX = false;
+			if (this.legacy) {
+				sPath = classicToX(prop, temp, tempPath, defSkin, copyFail);
+				toX = true;
+			} else {
+				sPath = toNewDirectory(prop, fname, tempPath, copyFail, useTemp);
+			}
+			foreach (fail; copyFail) {
+				// 一部コピー失敗しても中断しない
+				showWarn(.tryFormat(prop.msgs.fileCopyError, fail));
+			}
+			assert (!useTemp);
+			string zipName = "";
+			saveProc(prop, opt, useTemp, zipName, temp, sPath, false, false, defExpandXMLs);
+			if (!type.length) {
+				type = defSkin.type;
+				resetChanged();
+			}
 		} else if (this.legacy) {
 			// クラシック形式からXML形式に変換
 			string[] copyFail;
-			auto temp = classicToX(prop, tempPath, defSkin, copyFail);
+			auto temp = Summary.createTempDir(tempPath, scenarioName);
+			temp = classicToX(prop, temp, tempPath, defSkin, copyFail);
 			foreach (fail; copyFail) {
 				// 一部コピー失敗しても中断しない
 				showWarn(.tryFormat(prop.msgs.fileCopyError, fail));
@@ -1961,7 +1994,6 @@ public:
 				}
 				_expandXMLs = false;
 				_useTemp = useTemp;
-				_legacy = legacy;
 				_zipName = zipName;
 				_tempPath = temp;
 				_legacy = true;
@@ -1990,9 +2022,15 @@ public:
 					_oldXMLs = xmls;
 				}
 				std.file.write(zipName, arc.build());
-			} else {
-				assert (expandXMLs);
+			} else if (expandXMLs || !useTemp) {
+				auto oldPath = scenarioPath;
+				scenarioPath = sPath;
+				scope (failure) scenarioPath = oldPath;
 				saveXMLs(opt);
+				_useTemp = useTemp;
+				_zipName = zipName;
+				_tempPath = temp;
+				_legacy = false;
 			}
 			dataVersion = LATEST_VERSION;
 			resetChanged();
