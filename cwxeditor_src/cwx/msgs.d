@@ -629,7 +629,7 @@ class Msgs : Properties {
 	auto filterScenarioSaveClassic = Msg("filterScenarioSaveClassic", "クラシックシナリオ (Summary.wsm)");
 	auto filterScenarioSaveZip = Msg("filterScenarioSaveZip", "ZIP圧縮されたクラシックシナリオ (*.zip)");
 	auto filterScenarioSaveCab = Msg("filterScenarioSaveCab", "CAB圧縮されたクラシックシナリオ (*.cab)");
-	auto warningXToClassic = Msg("warningXToClassic", "XML形式のシナリオをクラシック形式に変換すると一部データが失われる可能性があります。クラシック形式で保存しますか？");
+	auto warningXToClassic = Msg("warningXToClassic", "XML形式のシナリオをクラシック形式に変換すると一部データが失われる可能性がある他、対応していない形式の素材で不具合が発生する恐れがあります。\nクラシック形式で保存しますか？");
 	auto saveToNotEmptyDir = Msg("saveToNotEmptyDir", "%1$sは空ではありません。\n本当にここにシナリオを保存しますか？");
 	auto notScenario = Msg("notScenario", "%1$sはシナリオ圧縮ファイルではありません");
 	auto zipError = Msg("zipError", "%1$sの展開に失敗しました。");

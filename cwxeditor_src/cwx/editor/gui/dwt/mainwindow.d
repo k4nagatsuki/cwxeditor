@@ -1000,18 +1000,22 @@ private:
 			stopSE();
 			stopBGM();
 			_win.setVisible(false);
-			scope (failure) _win.setVisible(true);
-			_comm.refScenario.call(null);
-			_comm.closeAll();
-			if (summary && summary.useTemp) {
-				_dirWin.stopTrace();
-				try {
-					synchronized (_saveSync) {
-						summary.delTemp();
+			try {
+				_comm.refScenario.call(null);
+				_comm.closeAll();
+				if (summary && summary.useTemp) {
+					_dirWin.stopTrace();
+					try {
+						synchronized (_saveSync) {
+							summary.delTemp();
+						}
+					} catch (Exception e) {
+						debugln(e);
 					}
-				} catch (Exception e) {
-					debugln(e);
 				}
+			} catch (Throwable e) {
+				debugln(e);
+				_win.setVisible(true);
 			}
 		}
 	}

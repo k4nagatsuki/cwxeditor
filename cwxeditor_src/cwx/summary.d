@@ -170,7 +170,7 @@ public:
 		_useTemp = temp;
 		if (_useTemp) {
 			_tempPath = _sPath;
-			lock();
+			lock(_tempPath, _useTemp);
 		}
 	}
 
@@ -396,7 +396,7 @@ public:
 					if (scTemplate) {
 						return createFromTemplate(r);
 					} else {
-						r.lock();
+						r.lock(r._tempPath, r._useTemp);
 						return r;
 					}
 				} catch (Exception e) {
@@ -445,7 +445,7 @@ public:
 							copyAll(r.scenarioPath, temp);
 							r._tempPath = temp;
 							r._useTemp = true;
-							r.lock();
+							r.lock(r._tempPath, r._useTemp);
 						}
 						return r;
 					} else if (isDir(fname)) {
@@ -465,7 +465,7 @@ public:
 									r._zipName = zipname;
 									r._tempPath = fname;
 									r._legacy = false;
-									r.lock();
+									r.lock(r._tempPath, r._useTemp);
 									if (scTemplate) {
 										r._zipName = "";
 									}
@@ -498,10 +498,10 @@ public:
 		}
 		return null;
 	}
-	private void lock() {
+	private void lock(string tempPath, bool useTemp) {
 		assert (!_lock);
 		if (useTemp) {
-			_lock = new File(std.path.buildPath(_tempPath, "cwxeditor.lock"), FileMode.OutNew);
+			_lock = new File(std.path.buildPath(tempPath, "cwxeditor.lock"), FileMode.OutNew);
 		}
 	}
 	/// 一時展開先を削除する。
@@ -681,7 +681,7 @@ public:
 		_legacy = false;
 		this.scenarioPath = scenarioPath;
 		_tempPath = scenarioPath;
-		if (!_lock) lock();
+		if (!_lock) lock(_tempPath, true);
 	}
 
 	/// データバージョン。
@@ -1993,11 +1993,10 @@ public:
 					} else {
 						.zip(temp, zipName, true, [std.path.buildPath(temp, "cwxeditor.lock")], true);
 					}
-					_zipName = zipName;
 				}
 				releaseLockFile();
 				if (useTemp && !_lock) {
-					lock();
+					lock(sPath, useTemp);
 				}
 				_expandXMLs = false;
 				_useTemp = useTemp;
