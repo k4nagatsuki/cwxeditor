@@ -1170,20 +1170,22 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		static if (is(typeof(val.owner(this)))) {
 			val.owner = this;
 		}
-		static if (is(typeof(val.setUseCounter(uc)))) {
-			if (val.useCounter || !uc) {
-				val.removeUseCounter();
-			}
-			if (uc) {
-				val.setUseCounter(uc);
-			}
-			static if (is(typeof(val.parent))) {
-				if (c && val.parent) throw new EventException("used other event.");
-				val.parent = c;
-			}
-		} else static if (!is(T : string) && is(typeof(val[0u]))) {
-			foreach (vc; val) {
-				setValUCs(vc, uc, c);
+		static if (!is(T : Motion)) {
+			static if (is(typeof(val.setUseCounter(uc)))) {
+				if (val.useCounter || !uc) {
+					val.removeUseCounter();
+				}
+				if (uc) {
+					val.setUseCounter(uc);
+				}
+				static if (is(typeof(val.parent))) {
+					if (c && val.parent) throw new EventException("used other event.");
+					val.parent = c;
+				}
+			} else static if (!is(T : string) && is(typeof(val[0u]))) {
+				foreach (vc; val) {
+					setValUCs(vc, uc, c);
+				}
 			}
 		}
 	}
