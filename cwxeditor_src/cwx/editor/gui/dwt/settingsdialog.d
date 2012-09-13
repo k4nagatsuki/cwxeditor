@@ -555,22 +555,8 @@ private:
 				return canDoT;
 			}
 		}
-		static if (is(T:EvTemplate)) {
-			bool checkData() {
-				try {
-					CompileOption opt;
-					cwx.script.compile(_prop.parent, null, _templScript.getText(), opt);
-					return true;
-				} catch (CWXScriptException e) {
-					auto dlg = new ScriptErrorDialog(_comm, _prop, this, e);
-					dlg.open();
-					return false;
-				}
-				return true;
-			}
-		} else {
-			bool checkData() {return true;}
-		}
+		/// ここでfalseを返した場合は不正なデータと見做す。現在未使用。
+		bool checkData() {return true;}
 		void refUndoMax() {
 			_undo.max = _prop.var.etc.undoMaxEtc;
 		}
