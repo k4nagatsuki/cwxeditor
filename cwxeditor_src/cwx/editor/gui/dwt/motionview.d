@@ -24,6 +24,7 @@ import cwx.editor.gui.dwt.xmlbytestransfer;
 import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.eventwindow;
 import cwx.editor.gui.dwt.dmenu;
+import cwx.editor.gui.dwt.incsearch;
 
 import std.string;
 import std.datetime;
@@ -228,7 +229,13 @@ private:
 
 	Table _motions;
 	Combo _beasts;
+	BeastCard _selectedBeast = null;
 	BeastCard[int] _beastTbl;
+	IncSearch _beastIncSearch;
+	void beastIncSearch() {
+		.forceFocus(_beasts, true);
+		_beastIncSearch.startIncSearch();
+	}
 	Canvas _beastImg;
 	Spinner _maxNest;
 
@@ -556,6 +563,7 @@ private:
 			auto d = m.detail;
 			if (d.use(MArg.BEAST)) {
 				_beasts.select(0);
+				_selectedBeast = null;
 				_maxNest.setSelection(m.maxNest);
 				_beastImg.redraw();
 				if (stack.topControl !is _summonComp) {
@@ -599,27 +607,22 @@ private:
 		}
 	}
 	bool canSetBeast() {
-		int index = _beasts.getSelectionIndex();
-		if (index > 0) {
-			int mi = _motions.getSelectionIndex();
-			auto sb = cast(Motion) _motions.getItem(mi).getData();
-			auto b = _beastTbl[index];
-			return sb.beast || b;
+		if (_selectedBeast) {
+			return true;
 		}
-		return false;
-	}
-	@property
-	BeastCard selectedBeast() {
-		int index = _beasts.getSelectionIndex();
-		if (-1 != index) return _beastTbl[index];
-		return null;
+		int mi = _motions.getSelectionIndex();
+		if (-1 == mi) return false;
+		auto sb = cast(Motion) _motions.getItem(mi).getData();
+		// 召喚獣無しを設定する場合
+		return sb.beast !is null;
 	}
 	class SetBeast : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			auto b = selectedBeast;
+			auto b = _selectedBeast;
+			int mi = _motions.getSelectionIndex();
+			assert (-1 != mi);
+			auto sb = cast(Motion) _motions.getItem(mi).getData();
 			if (b) {
-				int mi = _motions.getSelectionIndex();
-				auto sb = cast(Motion) _motions.getItem(mi).getData();
 				if (!sb.beast && !b) return;
 				storeEdit(mi);
 				if (sb.beast) _comm.delBeast.call(sb.beast);
@@ -629,11 +632,17 @@ private:
 				} else {
 					sb.beast = b;
 				}
-				resetMaxNest(sb);
-				_beastImg.redraw();
-				foreach (dlg; modEvent) dlg();
-				refEnabled();
+			} else {
+				if (!sb.beast) return;
+				storeEdit(mi);
+				_comm.delBeast.call(sb.beast);
+				sb.beast = null;
 			}
+			resetMaxNest(sb);
+			_beastImg.redraw();
+			foreach (dlg; modEvent) dlg();
+			refEnabled();
+			_comm.refreshToolBar();
 		}
 	}
 	void removeRef() {
@@ -816,20 +825,41 @@ private:
 		setRedraw(false);
 		scope (exit) setRedraw(true);
 		ulong selId = 0;
-		auto sel = selectedBeast;
+		auto sel = _selectedBeast;
 		if (sel) selId = sel.id;
 		_beasts.removeAll();
 		typeof(_beastTbl) b;
 		_beastTbl = b;
 		_beasts.add(_prop.msgs.beastNone);
 		_beastTbl[0] = null;
-		_beasts.select(0);
-		foreach (i, c; _summ.beasts) {
+		size_t i = 0;
+		bool has = false;
+		foreach (c; _summ.beasts) {
+			if (!has && selId == c.id) {
+				has = true;
+			}
+			if (!_beastIncSearch.match(c.name)) continue;
 			_beastTbl[i + 1] = c;
-			_beasts.add(c.name);
-			if (c.id == selId) _beasts.select(_beasts.getItemCount() - 1);
+			_beasts.add(to!string(c.id) ~ "." ~ c.name);
+			if (c.id == selId) {
+				_beasts.select(_beasts.getItemCount() - 1);
+				_selectedBeast = c;
+			}
+			i++;
+		}
+		if (!has) {
+			_beasts.select(0);
+			_selectedBeast = null;
 		}
 		refEnabled();
+	}
+	void openBeastCardView() {
+		if (!_selectedBeast) return;
+		try {
+			_comm.openCWXPath(cpaddattr(_selectedBeast.cwxPath(true), "shallow"), false);
+		} catch (Exception e) {
+			debugln(e);
+		}
 	}
 	bool _refUndo = false;
 	void refUndoMax() {
@@ -1018,10 +1048,22 @@ public:
 				_beasts.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				_beasts.addSelectionListener(new class SelectionAdapter {
 					override void widgetSelected(SelectionEvent e) {
+						auto index = _beasts.getSelectionIndex();
+						_selectedBeast = -1 != index ? _beastTbl[index] : null;
 						_comm.refreshToolBar();
 					}
 				});
+				_beastIncSearch = new IncSearch(_comm, _beasts);
+				_beastIncSearch.modEvent ~= &refBeasts;
+				{
+					auto menu = new Menu(_beasts.getShell(), SWT.POP_UP);
+					createMenuItem(_comm, menu, MenuID.IncSearch, &beastIncSearch, () => 1 < _beasts.getItemCount());
+					new MenuItem(menu, SWT.SEPARATOR);
+					createMenuItem(_comm, menu, MenuID.OpenAtCardView, &openBeastCardView, () => 0 < _beasts.getSelectionIndex());
+					_beasts.setMenu(menu);
+				}
 				refBeasts();
+
 				auto setBeast = new Button(grp, SWT.PUSH);
 				setBeast.setImage(_prop.images.setBeast);
 				setBeast.setToolTipText(_prop.msgs.setBeast);

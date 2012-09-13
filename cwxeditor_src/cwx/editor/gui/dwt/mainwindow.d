@@ -748,7 +748,10 @@ private:
 				names ~= _prop.msgs.filterScenarioSaveCab;
 			}
 			string fname = null;
-			int filter = 0;
+			int filter = _prop.var.etc.lastSaveFilter;
+			if (filter < 0 || filters.length <= filter) {
+				filter = 0;
+			}
 			bool classic;
 			string filterPath = scenarioFilterPath(_prop);
 			string fileName = toFileName(setExtension(summary.scenarioName, ".wsn"));

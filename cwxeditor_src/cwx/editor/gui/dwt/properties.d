@@ -207,6 +207,7 @@ public class FlexProps {
 	DialogParam!("commentDialog", 300, 200) commentDlg;
 	WindowProps!("dialogPreview", SWT.DEFAULT, 500) dlgPrev;
 	WindowProps!("messagePreview", SWT.DEFAULT, 500) msgPrev;
+	WindowProps!("scriptVariablesDialog", 400, 400) scriptVarSetDlg;
 	MenuProps menu;
 	FlexEtcProps etc;
 

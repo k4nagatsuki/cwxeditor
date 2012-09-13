@@ -443,53 +443,7 @@ private:
 	}
 	private string[] allMaterials(bool scenarioOnly) {
 		if (!_summ) return [];
-		auto sPath = nabs(_summ.scenarioPath);
-		auto tbl = new HashSet!(PathId);
-		string[] paths;
-		void find(string p) {
-			if (_summ.isSystemFile(p)
-					|| containsPath(_prop.var.etc.ignorePaths, baseName(p))) {
-				return;
-			}
-			if (.isDir(p)) {
-				string[] list = clistdir(p);
-				if (_prop.var.etc.logicalSort) {
-					list = sort!(fnncmp)(list);
-				} else {
-					list = sort!(fncmp)(list);
-				}
-				foreach (l; list) {
-					find(std.path.buildPath(p, l));
-				}
-			} else if (_comm.skin.isMaterial(p)) {
-				auto path = abs2rel(p, sPath);
-				paths ~= encodePath(path);
-				tbl.add(toPathId(path));
-			}
-		}
-		find(sPath);
-		if (!scenarioOnly) {
-			auto skin = _comm.skin;
-			foreach (p; skin.tables(_prop.var.etc.logicalSort)) {
-				tbl.add(toPathId(p));
-				paths ~= encodePath(p);
-			}
-			foreach (p; skin.musics(_prop.var.etc.logicalSort)) {
-				tbl.add(toPathId(p));
-				paths ~= encodePath(p);
-			}
-			foreach (p; skin.sounds(_prop.var.etc.logicalSort)) {
-				tbl.add(toPathId(p));
-				paths ~= encodePath(p);
-			}
-			foreach (path; _summ.useCounter.path.keys) {
-				auto p = cast(string) path;
-				if (!path.isBinImg && !tbl.contains(path)) {
-					paths ~= encodePath(p);
-				}
-			}
-		}
-		return paths;
+		return _summ.allMaterials(_comm.skin, _prop.var.etc.ignorePaths, _prop.var.etc.logicalSort, scenarioOnly);
 	}
 	private void setupPaths() {
 		bool oldIgnoreMod = ignoreMod;

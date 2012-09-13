@@ -265,6 +265,7 @@
 				</ol>
 			</li>
 			<li><a href="#NEXT">後続コンテントについて</a>
+			<li><a href="#EMPTY_VARS">空変数</a>
 		</ol>
 	</li>
 	<li><a href="#REFERENCE">コンテントリファレンス</a>
@@ -652,6 +653,20 @@
     <span class="keywords">msg</span> <span class="code">none</span>, <span class="str">"シナリオ終了"</span> <span class="comment">// endscは後続を持てないため、エラーになる</span></code></pre>
 
 <p>ある種のコンテントが後続コンテントを持つ事ができるかどうかは、各コンテント毎の解説を参照してください。</p>
+
+<h3><a name="EMPTY_VARS" id="EMPTY_VARS">空変数</a></h3>
+
+<p>以下のように、スクリプトの冒頭に初期値を設定していない変数の宣言がある場合、貼り付けた際にダイアログが開き、後付けで変数の値を設定する事ができます。</p>
+<p>定型のロジックではあるものの内部で使用するフラグなどは都度切り替えたい、というような場合に便利です。</p>
+
+<pre><code><span class="var">$パッケージ</span>
+<span class="var">$フラグ</span>
+<span class="var">$フラグ値</span>
+<span class="keywords">callpack</span> <span class="var">$パッケージ</span>
+<span class="keywords">setflag</span> <span class="var">$フラグ</span>, <span class="var">$フラグ値</span>
+</code></pre>
+
+<p>空変数を冒頭以外に配置した場合は、エラーです。</p>
 
 <h2><a name="REFERENCE" id="REFERENCE">コンテントリファレンス</a></h2>
 

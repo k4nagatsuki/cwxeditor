@@ -9,6 +9,8 @@ import cwx.summary;
 import cwx.archive;
 import cwx.cab;
 import cwx.types;
+import cwx.script;
+import cwx.event;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.absdialog;
@@ -17,8 +19,11 @@ import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.dmenu;
+import cwx.editor.gui.dwt.customtable;
+import cwx.editor.gui.dwt.scripterrordialog;
 
 import std.string;
+import std.conv;
 import std.path;
 import std.file;
 import std.functional;
@@ -499,6 +504,152 @@ protected:
 	override bool close(bool ok) {
 		if (ok) {
 			_newId = _id.getSelection();
+		}
+		return ok;
+	}
+}
+
+private class ScriptVarSetDialog : AbsDialog {
+private:
+	Commons _comm;
+	Summary _summ;
+	const string[] _vars;
+	string _script;
+
+	string[] _values;
+	Table _table;
+	CCombo _editor = null;
+	string[] _editorTable;
+	const CompileOption _opt;
+
+	Content[] _contents;
+
+	void editEnd(TableItem itm, int column, string text) {
+		int i = _editor.getSelectionIndex();
+		auto row = itm.getParent().indexOf(itm);
+		if (-1 == i) {
+			_values[row] = text;
+		} else {
+			_values[row] = _editorTable[i];
+		}
+		itm.setText(column, _values[row]);
+	}
+	Control createEditor(TableItem itm, int column) {
+		string[] strs;
+		_editorTable.length = 0;
+		strs ~= "true";
+		_editorTable ~= "true";
+		strs ~= "false";
+		_editorTable ~= "false";
+		if (_summ) {
+			foreach (f; _summ.flagDirRoot.allFlags) {
+				strs ~= objName!(typeof(f))(_comm.prop) ~ " - " ~ f.path;
+				_editorTable ~= CWXScript.createString(f.path);
+			}
+			foreach (f; _summ.flagDirRoot.allSteps) {
+				strs ~= objName!(typeof(f))(_comm.prop) ~ " - " ~ f.path;
+				_editorTable ~= CWXScript.createString(f.path);
+			}
+			foreach (a; _summ.areas) {
+				strs ~= objName!(typeof(a))(_comm.prop) ~ " - " ~ .text(a.id) ~ "." ~ a.name;
+				_editorTable ~= .text(a.id);
+			}
+			foreach (a; _summ.battles) {
+				strs ~= objName!(typeof(a))(_comm.prop) ~ " - " ~ .text(a.id) ~ "." ~ a.name;
+				_editorTable ~= .text(a.id);
+			}
+			foreach (a; _summ.packages) {
+				strs ~= objName!(typeof(a))(_comm.prop) ~ " - " ~ .text(a.id) ~ "." ~ a.name;
+				_editorTable ~= .text(a.id);
+			}
+			foreach (a; _summ.casts) {
+				strs ~= objName!(typeof(a))(_comm.prop) ~ " - " ~ .text(a.id) ~ "." ~ a.name;
+				_editorTable ~= .text(a.id);
+			}
+			foreach (a; _summ.skills) {
+				strs ~= objName!(typeof(a))(_comm.prop) ~ " - " ~ .text(a.id) ~ "." ~ a.name;
+				_editorTable ~= .text(a.id);
+			}
+			foreach (a; _summ.items) {
+				strs ~= objName!(typeof(a))(_comm.prop) ~ " - " ~ .text(a.id) ~ "." ~ a.name;
+				_editorTable ~= .text(a.id);
+			}
+			foreach (a; _summ.beasts) {
+				strs ~= objName!(typeof(a))(_comm.prop) ~ " - " ~ .text(a.id) ~ "." ~ a.name;
+				_editorTable ~= .text(a.id);
+			}
+			foreach (a; _summ.infos) {
+				strs ~= objName!(typeof(a))(_comm.prop) ~ " - " ~ .text(a.id) ~ "." ~ a.name;
+				_editorTable ~= .text(a.id);
+			}
+			foreach (p; _summ.allMaterials(_comm.skin, _comm.prop.var.etc.ignorePaths, _comm.prop.var.etc.logicalSort, false)) {
+				strs ~= _comm.prop.msgs.material ~ " - " ~ p;
+				_editorTable ~= CWXScript.createString(p);
+			}
+		}
+		_editor = createComboEditor(_comm, _comm.prop, _table, strs, "", false);
+		return _editor;
+	}
+
+public:
+	this (Commons comm, Summary summ, Shell shell, in string[] vars, string script, in CompileOption opt) {
+		_comm = comm;
+		_summ = summ;
+		_vars = vars;
+		_values.length = _vars.length;
+		_script = script;
+		_opt = opt;
+		auto size = comm.prop.var.scriptVarSetDlg;
+		super(comm.prop, shell, true, comm.prop.msgs.dlgTitScriptVarSet, comm.prop.images.menu(MenuID.EvTemplates), true, size);
+		enterClose = false;
+	}
+
+	@property
+	Content[] contents() {
+		return _contents;
+	}
+protected:
+	override void setup(Composite area) {
+		area.setLayout(new GridLayout(1, false));
+
+		auto grp = new Group(area, SWT.NONE);
+		grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+		grp.setText(_comm.prop.msgs.scriptVarSet);
+		grp.setLayout(new GridLayout(1, false));
+
+		_table = new Table(grp, SWT.BORDER | SWT.FULL_SELECTION);
+		auto vgd = new GridData(GridData.FILL_BOTH);
+		vgd.heightHint = _comm.prop.var.etc.scriptVarTableHeight;
+		_table.setLayoutData(vgd);
+		_table.setHeaderVisible(true);
+		auto nameCol = new TableColumn(_table, SWT.NONE);
+		nameCol.setText(_comm.prop.msgs.scriptVarNameColumn);
+		auto valueCol = new FullTableColumn(_table, SWT.NONE);
+		valueCol.column.setText(_comm.prop.msgs.scriptVarValueColumn);
+
+		foreach (var; _vars) {
+			auto itm = new TableItem(_table, SWT.NONE);
+			itm.setText(var);
+		}
+		nameCol.pack();
+
+		new TableTextEdit(_comm, _comm.prop, _table, 1, &editEnd, null, &createEditor);
+	}
+	override bool close(bool ok, out bool cancel) {
+		if (ok) {
+			try {
+				string[string] varTable;
+				foreach (i, var; _vars) {
+					varTable[var] = _values[i];
+				}
+				_contents = cwx.script.compile(_comm.prop.parent, _summ, CWXScript.pushVars(_script, varTable), _opt);
+			} catch (CWXScriptException e) {
+				debugln(e);
+				auto dlg = new ScriptErrorDialog(_comm, _comm.prop, _table, e);
+				dlg.open();
+				ok = false;
+				cancel = true;
+			}
 		}
 		return ok;
 	}

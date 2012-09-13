@@ -500,6 +500,13 @@ private:
 		itm.setText(0, to!(string)(c.id));
 		itm.setText(1, c.name);
 		string desc = std.array.replace(c.desc, "\n", "");
+		static if (is(C:EventTreeOwner)) {
+			if (_prop.var.etc.showEventTreeMark && ((_prop.var.etc.ignoreEmptyStart ? !c.isEmpty : 0 < c.trees.length))) {
+				itm.setImage(2, _prop.images.eventTree);
+			} else {
+				itm.setImage(2, null);
+			}
+		}
 		itm.setText(2, desc);
 		static if (EditMode && is (CardOwner == Summary)) {
 			itm.setText(3, to!(string)(_summ.useCounter.get(C.toID(c.id))));
@@ -1000,6 +1007,18 @@ private:
 		}
 	}
 	class LMouse : MouseAdapter {
+		static if (EditMode && is(C:EventTreeOwner)) {
+			override void mouseDown(MouseEvent e) {
+				if (e.button != 2) return;
+				int index = _list.selection;
+				if (index >= 0) {
+					scope p = _list.toControl(e.x, e.y);
+					if (_list.getBounds(index).contains(e.x, e.y)) {
+						editUseEvent(_list.card(index));
+					}
+				}
+			}
+		}
 		override void mouseDoubleClick(MouseEvent e) {
 			if (e.button != 1) return;
 			int index = _list.selection;
@@ -1016,22 +1035,24 @@ private:
 		}
 	}
 	class TMouse : MouseAdapter {
+		static if (EditMode && is(C:EventTreeOwner)) {
+			override void mouseDown(MouseEvent e) {
+				if (e.button != 2) return;
+				scope p = new Point(e.x, e.y);
+				auto itm = _tbl.getItem(p);
+				if (!itm) return;
+				editUseEvent(cast(C) itm.getData());
+			}
+		}
 		override void mouseDoubleClick(MouseEvent e) {
 			if (e.button != 1) return;
-			int index = _tbl.getSelectionIndex();
-			if (-1 != index) {
-				scope p = _tbl.toControl(e.x, e.y);
-				auto itm = _tbl.getItem(index);
-				for (int i = 0; i < _tbl.getColumnCount(); i++) {
-					if (itm.getBounds(i).contains(e.x, e.y)) {
-						static if (EditMode) {
-							edit(cast(C) itm.getData());
-						} else {
-							addCard();
-						}
-						break;
-					}
-				}
+			scope p = new Point(e.x, e.y);
+			auto itm = _tbl.getItem(p);
+			if (!itm) return;
+			static if (EditMode) {
+				edit(cast(C) itm.getData());
+			} else {
+				addCard();
 			}
 		}
 	}

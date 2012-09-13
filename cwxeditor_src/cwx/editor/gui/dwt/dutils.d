@@ -20,6 +20,7 @@ import cwx.graphics;
 import cwx.path;
 import cwx.menu;
 import cwx.variables;
+import cwx.flag;
 
 import cwx.editor.gui.sound;
 import cwx.editor.gui.dwt.images;
@@ -405,9 +406,11 @@ Text createTextEditor(Commons comm, Props prop, Composite parent, string str) {
 	}
 }
 
-C createComboEditor(C = CCombo)(Commons comm, Props prop, Composite parent, string[] strs, string str) {
+C createComboEditor(C = CCombo)(Commons comm, Props prop, Composite parent, string[] strs, string str, bool readOnly = true) {
 	try {
-		auto combo = new C(parent, SWT.BORDER | SWT.READ_ONLY);
+		int style = SWT.BORDER;
+		if (readOnly) style |= SWT.READ_ONLY;
+		auto combo = new C(parent, style);
 		combo.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
 		static if (is(C : CCombo)) {
 			createTextMenu!C(comm, prop, combo, null);
@@ -546,6 +549,7 @@ private:
 	Commons _comm;
 	Props _prop;
 	void delegate(TableItem itm, int column, string newText) editEnd = null;
+	Control delegate(TableItem itm, int editC) _createEditor = null;
 
 public:
 	/// Params:
@@ -557,23 +561,36 @@ public:
 	///           すべてのセルが編集可能になる。
 	this(Commons comm, Props prop, Table table, int editC,
 			void delegate(TableItem itm, int column, string text) editEnd = null,
-			bool delegate(TableItem itm, int column) canEdit = null) {
+			bool delegate(TableItem itm, int column) canEdit = null,
+			Control delegate(TableItem itm, int editC) createEditor = null) {
 		try {
 			super (comm, table, editC, canEdit);
 			_comm = comm;
 			_prop = prop;
 			this.editEnd = editEnd;
+			_createEditor = createEditor;
 		} catch (Exception e) {
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
 
 	protected override Control createEditor(TableItem itm, int editC) {
-		return createTextEditor(_comm, _prop, itm.getParent(), itm.getText(editC));
+		if (_createEditor) {
+			return _createEditor(itm, editC);
+		} else {
+			return createTextEditor(_comm, _prop, itm.getParent(), itm.getText(editC));
+		}
 	}
 	protected override void end(Control c) {
 		try {
-			auto newText = (cast(Text) c).getText();
+			string newText = null;
+			if (auto t = cast(Text) c) {
+				newText = t.getText();
+			} else if (auto t = cast(Combo) c) {
+				newText = t.getText();
+			} else if (auto t = cast(CCombo) c) {
+				newText = t.getText();
+			}
 			if (!newText) newText = "";
 			if (editEnd is null) {
 				if (newText.length > 0) {
@@ -1887,6 +1904,10 @@ string objName(A)(in Props prop) {
 		return prop.msgs.beast;
 	} else static if (is(A : InfoCard)) {
 		return prop.msgs.info;
+	} else static if (is(A : Flag)) {
+		return prop.msgs.flag;
+	} else static if (is(A : Step)) {
+		return prop.msgs.step;
 	} else static assert (0);
 }
 

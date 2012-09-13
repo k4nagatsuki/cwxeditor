@@ -32,6 +32,7 @@ import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.scripterrordialog;
 import cwx.editor.gui.dwt.textdialog;
 import cwx.editor.gui.dwt.dmenu;
+import cwx.editor.gui.dwt.smalldialogs;
 
 import std.algorithm;
 import std.conv;
@@ -1500,19 +1501,6 @@ private:
 			}
 		}
 	}
-	private class PutContents {
-		private Content[] _cs;
-		this (Content[] cs) {
-			_cs = cs;
-		}
-		void put() {
-			auto cs = _cs.dup;
-			foreach (ref c; cs) {
-				c = c.dup;
-			}
-			putContents(cs);
-		}
-	}
 	private class PutScript {
 		private string _script;
 		this (string script) {
@@ -1527,22 +1515,9 @@ private:
 			itm.dispose();
 		}
 		foreach (t; _prop.var.etc.eventTemplates) {
-			try {
-				CompileOption opt;
-				opt.linkId = _prop.var.etc.linkCard;
-				auto cs = cwx.script.compile(_prop.parent, null, t.script, opt);
-				if (cs.length) {
-					auto c = new PutContents(cs);
-					createMenuItem2(_comm, _templMenu, t.name, _prop.images.content(cs[0].type), &c.put, () => _et !is null);
-				} else {
-					// 内容の無いスクリプト
-					createMenuItem2(_comm, _templMenu, t.name, null, {}, () => false);
-				}
-			} catch (CWXScriptException e) {
-				// エラーのあるスクリプト
-				auto c = new PutScript(t.script);
-				createMenuItem2(_comm, _templMenu, t.name, null, &c.put, () => _et !is null);
-			}
+			// 設定でコンパイルオプションが変化する可能性があるため事前コンパイルは行わない
+			auto c = new PutScript(t.script);
+			createMenuItem2(_comm, _templMenu, t.name, null, &c.put, () => _et !is null);
 		}
 		_templTI.setEnabled(0 < _templMenu.getItemCount());
 	}
@@ -3063,8 +3038,18 @@ public:
 			try {
 				CompileOption opt;
 				opt.linkId = _prop.var.etc.linkCard;
-				auto cs = cwx.script.compile(_prop.parent, _summ, script, opt);
-				putContents(cs);
+
+				auto compiler = new CWXScript(_prop.parent, _summ);
+				auto vars = compiler.eatEmptyVars(script);
+				if (vars.length) {
+					auto dlg = new ScriptVarSetDialog(_comm, _summ, _tree.getShell(), vars, script, opt);
+					if (dlg.open()) {
+						putContents(dlg.contents);
+					}
+				} else {
+					auto cs = cwx.script.compile(_prop.parent, _summ, script, opt);
+					putContents(cs);
+				}
 			} catch (CWXScriptException e) {
 				throw e;
 			} catch (Exception e) {

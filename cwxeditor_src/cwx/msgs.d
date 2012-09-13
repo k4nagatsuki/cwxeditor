@@ -1472,6 +1472,12 @@ class Msgs : Properties {
 	auto scriptErrorInvalidValue = Msg("scriptErrorInvalidValue", "値が正しくありません。");
 	auto scriptErrorSystem = Msg("scriptErrorSystem", "サイズが大きすぎるため、CWXスクリプトをコンパイルできません。");
 
+	auto dlgTitScriptVarSet = Msg("dlgTitScriptVarSet", "値が未決定の変数の設定");
+	auto scriptVarSet = Msg("scriptVarSet", "変数に値を入力");
+	auto scriptVarNameColumn = Msg("scriptVarNameColumn", "変数名");
+	auto scriptVarValueColumn = Msg("scriptVarValueColumn", "値");
+	auto material = Msg("material", "ファイル");
+
 	/// メニュー。
 	const string menuText(MenuID id) {
 		mixin(EnumToStringSwitch!(MenuID, "menuText"));

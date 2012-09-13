@@ -2146,6 +2146,54 @@ public:
 		dirS(scenarioPath);
 		return r;
 	}
+	/// 素材の一覧を返す。
+	string[] allMaterials(in Skin skin, in string[] ignorePaths, bool logicalSort, bool scenarioOnly) {
+		auto sPath = nabs(scenarioPath);
+		auto tbl = new HashSet!(PathId);
+		string[] paths;
+		void find(string p) {
+			if (isSystemFile(p) || .containsPath(ignorePaths, baseName(p))) {
+				return;
+			}
+			if (.isDir(p)) {
+				string[] list = clistdir(p);
+				if (logicalSort) {
+					list = sort!(fnncmp)(list);
+				} else {
+					list = sort!(fncmp)(list);
+				}
+				foreach (l; list) {
+					find(std.path.buildPath(p, l));
+				}
+			} else if (skin.isMaterial(p)) {
+				auto path = abs2rel(p, sPath);
+				paths ~= encodePath(path);
+				tbl.add(toPathId(path));
+			}
+		}
+		find(sPath);
+		if (!scenarioOnly) {
+			foreach (p; skin.tables(logicalSort)) {
+				tbl.add(toPathId(p));
+				paths ~= encodePath(p);
+			}
+			foreach (p; skin.musics(logicalSort)) {
+				tbl.add(toPathId(p));
+				paths ~= encodePath(p);
+			}
+			foreach (p; skin.sounds(logicalSort)) {
+				tbl.add(toPathId(p));
+				paths ~= encodePath(p);
+			}
+			foreach (path; useCounter.path.keys) {
+				auto p = cast(string) path;
+				if (!path.isBinImg && !tbl.contains(path)) {
+					paths ~= encodePath(p);
+				}
+			}
+		}
+		return paths;
+	}
 }
 
 /// ファイル読み込み時の例外。

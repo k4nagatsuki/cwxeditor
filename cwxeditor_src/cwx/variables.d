@@ -194,6 +194,7 @@ class FlexEtcProps : Properties {
 	auto toolsClassicEnginesSashR = Prop!(int)("toolsClassicEnginesSashR", 1);
 	auto keyCodeWidth = Prop!(int, true)("keyCodeWidth", 100);
 	auto scenarioPath = Prop!(string)("scenarioPath", "");
+	auto lastSaveFilter = Prop!(int)("lastSaveFilter", 0);
 	auto tempPath = Prop!(string)("tempPath", "temp");
 	auto backupPath = Prop!(string)("backupPath", "backup");
 	auto backupEnabled = Prop!(bool)("backupEnabled", true);
@@ -525,6 +526,7 @@ class FlexEtcProps : Properties {
 	auto createScenarioDir = Prop!(bool)("createScenarioDir", true);
 
 	auto eventTemplates = Prop!(EvTemplate[])("eventTemplates", []);
+	auto scriptVarTableHeight = Prop!(int, true)("scriptVarTableHeight", 300);
 
 	auto archivePath = Prop!(string)("archivePath", "");
 
