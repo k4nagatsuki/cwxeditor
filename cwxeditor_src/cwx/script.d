@@ -904,6 +904,8 @@ class CWXScript {
 		varTable["$s"] = [Node(NodeType.VALUE, Token(0, 0, 0, Kind.NUMBER, "0"))];
 		auto s = new CWXScript(new CProps("", null), null);
 		i = 0;
+		assert (s.calc(s.tokenize("10 * $abc"), i, varTable, 0) == 150);
+		i = 0;
 		assert (s.calc(s.tokenize("(-42)"), i, varTable, 0) == -42);
 		i = 0;
 		assert (s.calc(s.tokenize("2*2+3"), i, varTable, 0) == 7);
@@ -1171,6 +1173,7 @@ class CWXScript {
 		switch (node.token.kind) {
 		case Kind.SYMBOL: return std.string.toLower(node.token.value);
 		case Kind.VAR_NAME:
+			if (1 < node.calc.length) goto case Kind.STRING;
 			auto nodes = var(node, varTable);
 			if (!nodes.length) return "";
 			auto tok = nodes[0].token;
@@ -1257,6 +1260,7 @@ class CWXScript {
 				return r;
 			}
 			throwError(_prop.msgs.scriptErrorUndefinedVar, node.token);
+			return [];
 		}
 		return [node];
 	}
