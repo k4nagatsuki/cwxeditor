@@ -1477,6 +1477,9 @@ class Msgs : Properties {
 	auto scriptVarNameColumn = Msg("scriptVarNameColumn", "変数名");
 	auto scriptVarValueColumn = Msg("scriptVarValueColumn", "値");
 	auto material = Msg("material", "ファイル");
+	auto coupon = Msg("coupon", "クーポン");
+	auto gossip = Msg("gossip", "ゴシップ");
+	auto completeStamp = Msg("completeStamp", "終了印");
 
 	/// メニュー。
 	const string menuText(MenuID id) {

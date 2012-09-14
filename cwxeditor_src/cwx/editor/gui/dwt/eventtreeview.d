@@ -3034,18 +3034,20 @@ public:
 	}
 	void pasteScript(string script) {
 		if (!_et) return;
+		string base = script;
+		CompileOption opt;
 		try {
 			try {
-				CompileOption opt;
 				opt.linkId = _prop.var.etc.linkCard;
 
 				auto compiler = new CWXScript(_prop.parent, _summ);
-				auto vars = compiler.eatEmptyVars(script);
+				auto vars = compiler.eatEmptyVars(script, opt);
 				if (vars.length) {
-					auto dlg = new ScriptVarSetDialog(_comm, _summ, _tree.getShell(), vars, script, opt);
-					if (dlg.open()) {
+					auto dlg = new ScriptVarSetDialog(_comm, _summ, _tree.getShell(), vars, script, base, opt);
+					dlg.appliedEvent ~= {
 						putContents(dlg.contents);
-					}
+					};
+					dlg.open();
 				} else {
 					auto cs = cwx.script.compile(_prop.parent, _summ, script, opt);
 					putContents(cs);
@@ -3060,7 +3062,7 @@ public:
 				throw new CWXScriptException(__FILE__, __LINE__, "", [CWXSError(_prop.msgs.scriptErrorSystem, 0, 0, __FILE__, __LINE__)], false);
 			}
 		} catch (CWXScriptException e) {
-			auto dlg = new ScriptErrorDialog(_comm, _prop, _tree, e);
+			auto dlg = new ScriptErrorDialog(_comm, _prop, _tree, e, base, opt);
 			dlg.open();
 		}
 	}

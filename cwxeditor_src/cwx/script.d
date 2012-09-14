@@ -25,14 +25,15 @@ struct CWXSError {
 	/// エラーメッセージ。
 	string message;
 	/// エラー発生行。
-	size_t errLine;
+	int errLine;
 	/// 行内の位置。
-	size_t errPos;
+	int errPos;
 	/// エラーチェック箇所の __FILE__
 	string file;
 	/// エラーチェック箇所の __LINE__
 	size_t line;
 }
+
 /// ditto
 class CWXScriptException : Exception {
 	this (string file, size_t line, string text, const CWXSError[] errors, bool over100) {
@@ -59,16 +60,25 @@ class CWXScriptException : Exception {
 	bool over100() {return _over100;}
 }
 
+/// 空変数への設定値。
+struct VarSet {
+	string var; /// 変数名。
+	string value; /// 設定値。
+}
+
 /// コンパイルオプション。
 struct CompileOption {
 	bool linkId = false; /// カードを参照で設定するか。
+	int startLine = 0; /// スクリプトの論理的な開始行(通常0)。
+	int startPos = 0; /// スクリプトの論理的な開始位置(通常0)。
+	int addLines = 0; /// スクリプトに追加した行数(通常0)。
 }
 
 /// スクリプトを解析し、コンテント群にして返す。
 /// 解析中にエラーがあった場合はCWXScriptExceptionを投げる。
 static Content[] compile(const(CProps) prop, const(Summary) summ, string script, in CompileOption opt) {
 	auto compiler = new CWXScript(prop, summ, script);
-	auto tokens = compiler.tokenize(script);
+	auto tokens = compiler.tokenize(script, opt);
 	if (compiler.errors.length) throw new CWXScriptException(__FILE__, __LINE__, script, compiler.errors, false);
 	auto nodes = compiler.analyzeSyntax(tokens);
 	if (compiler.errors.length) throw new CWXScriptException(__FILE__, __LINE__, script, compiler.errors, false);
@@ -108,7 +118,7 @@ class CWXScript {
 		throwErrorToken!(File, Line)(message, tok.line, tok.pos, tok.value);
 	}
 	private void throwErrorToken(string File = __FILE__, size_t Line = __LINE__)
-			(lazy string message, size_t line, size_t pos, string value) {
+			(lazy string message, int line, int pos, string value) {
 		if (!_maxError) return;
 		if (_errors.length && _errors[$ - 1].errLine == line && _errors[$ - 1].errPos == pos) {
 			// 同一箇所でのエラーは一つだけにする
@@ -154,8 +164,8 @@ class CWXScript {
 
 	/// スクリプトのトークン。
 	static struct Token {
-		size_t line; /// トークンのある行。
-		size_t pos; /// 行内の位置。
+		int line; /// トークンのある行。
+		int pos; /// 行内の位置。
 		size_t index; /// スクリプト全体での位置。
 		Kind kind; /// 種別。
 		string value; /// 値。
@@ -286,8 +296,8 @@ class CWXScript {
 
 	/// textから冒頭の空変数群を取得する。
 	/// 読込まれた分のスクリプトはtextから除かれる。
-	string[] eatEmptyVars(ref string text) {
-		auto tokens = tokenizeImpl(text, true);
+	string[] eatEmptyVars(ref string text, ref CompileOption opt) {
+		auto tokens = tokenizeImpl(text, true, opt);
 		// コメントを取り除く
 		Token[] tokens2;
 		foreach (tok; tokens) {
@@ -296,8 +306,10 @@ class CWXScript {
 			}
 		}
 		string[] r;
-		size_t pos = 0;
+		size_t index = 0;
 		size_t len = 0;
+		opt.startLine = 0;
+		opt.startPos = 0;
 		// 空の変数のみを取得するため、'='が現れたらその場で処理終了
 		foreach (i, tok; tokens2) {
 			if (tok.kind is Kind.EQ) {
@@ -307,39 +319,51 @@ class CWXScript {
 				if (i + 1 < tokens2.length && tokens2[i + 1].kind is Kind.EQ) {
 					break;
 				}
-				pos = tok.index;
+				index = tok.index;
 				len = tok.value.length;
+				opt.startLine = tok.line;
+				opt.startPos = tok.pos + len;
 				r ~= tok.value;
 			}
 		}
-		text = text[pos + len .. $];
+		text = text[index + len .. $];
 		return r;
 	} unittest {
 		debug mixin(UTPerf);
+		CompileOption opt;
 		auto s = new CWXScript(new CProps("", null), null);
 		auto str = "/*c1*/ $test1 $test2 //$test3\n$test4// aaa\n$test5 = a $test6 endsc true";
-		auto vars = s.eatEmptyVars(str);
+		auto vars = s.eatEmptyVars(str, opt);
 		assert (vars == ["$test1", "$test2", "$test4"], .text(vars));
 		assert (str == "// aaa\n$test5 = a $test6 endsc true", str);
+		assert (opt.startLine == 1);
+		assert (opt.startPos == 6);
 	}
 	/// textに変数 = 初期化値の定義を追加する。
-	static string pushVars(string text, in string[string] varTable) {
+	static string pushVars(string text, in VarSet[] varTable, ref CompileOption opt) {
 		string[] lines;
-		foreach (var, value; varTable) {
-			string v = value;
+		opt.addLines = 0;
+		foreach (t; varTable) {
+			string v = t.value;
 			if (!v.length) v = `""`;
-			lines ~= var ~ " = " ~ v;
+			auto l = t.var ~ " = " ~ v;
+			lines ~= l;
+			opt.addLines += v.splitLines().length;
 		}
 		lines ~= text;
+		opt.startLine -= opt.addLines;
 		return lines.join("\n");
 	} unittest {
-		auto r = pushVars("aaa bbb", ["$a":"1", "$b":"2"]);
-		assert (r == "$a = 1\n$b = 2\naaa bbb" || r == "$b = 2\n$a = 1\naaa bbb", r);
+		CompileOption opt;
+		VarSet[] varSet = [VarSet("$a", "1"), VarSet("$b", "2")];
+		auto r = pushVars("aaa bbb", varSet, opt);
+		assert (r == "$a = 1\n$b = 2\naaa bbb", r);
+		assert (opt.startLine == -2, .text(opt.startLine));
 	}
 
 	/// textをTokenに分割する。
-	Token[] tokenize(string text) {
-		return tokenizeImpl(text, false);
+	Token[] tokenize(string text, in CompileOption opt = CompileOption.init) {
+		return tokenizeImpl(text, false, opt);
 	} unittest {
 		debug mixin(UTPerf);
 		auto s = new CWXScript(new CProps("", null), null);
@@ -378,7 +402,7 @@ class CWXScript {
 				Token(6, 12, 77, Kind.C_PAR, ")")
 			], to!string(tokens));
 	}
-	private Token[] tokenizeImpl(ref string text, bool eatEmptyVarMode) {
+	private Token[] tokenizeImpl(ref string text, bool eatEmptyVarMode, in CompileOption opt) {
 		if (!text.length) return [];
 		Token[] r;
 		text = std.array.replace(text, "\r\n", "\n");
@@ -398,6 +422,8 @@ class CWXScript {
 		string docComment = "";
 		string fullComment = "";
 		dstring tPre;
+		@property int sLine() {return cast(int) i + opt.startLine;}
+		@property int sPos() {return (cast(int) i == opt.addLines) ? (cast(int) pos + opt.startPos) : pos;}
 		foreach (token; .match(dtext, reg)) {
 			post = token.post;
 			dstring pre = token.pre;
@@ -427,10 +453,10 @@ class CWXScript {
 				} else {
 					dstring lpre = pre;
 					if (lpre.length && (lpre[$ - 1] == '@' || lpre[$ - 1] == '"' || lpre[$ - 1] == '\'')) {
-						throwErrorToken(_prop.msgs.scriptErrorUnCloseString, i, pos, "");
+						throwErrorToken(_prop.msgs.scriptErrorUnCloseString, sLine, sPos, "");
 						return r;
 					} else {
-						throwErrorToken(_prop.msgs.scriptErrorInvalidToken, i, pos, "");
+						throwErrorToken(_prop.msgs.scriptErrorInvalidToken, sLine, sPos, "");
 					}
 				}
 			}
@@ -455,7 +481,7 @@ class CWXScript {
 				spaceAfter = true;
 				pos += dstr.length;
 				if (commentLevel <= 0) {
-					throwErrorToken(_prop.msgs.scriptErrorUnOpenComment, i, pos, str);
+					throwErrorToken(_prop.msgs.scriptErrorUnOpenComment, sLine, sPos, str);
 				}
 				commentLevel--;
 				if (0 == commentLevel) {
@@ -470,55 +496,55 @@ class CWXScript {
 				// symbol
 				switch (std.string.toLower(dstr)) {
 				case "start"d:
-					r ~= Token(i, pos, index, Kind.START, str, docComment);
+					r ~= Token(sLine, sPos, index, Kind.START, str, docComment);
 					break;
 				case "if"d:
-					r ~= Token(i, pos, index, Kind.IF, str, docComment);
+					r ~= Token(sLine, sPos, index, Kind.IF, str, docComment);
 					break;
 				case "elif"d:
-					r ~= Token(i, pos, index, Kind.ELIF, str, docComment);
+					r ~= Token(sLine, sPos, index, Kind.ELIF, str, docComment);
 					break;
 				case "fi"d:
-					r ~= Token(i, pos, index, Kind.FI, str, docComment);
+					r ~= Token(sLine, sPos, index, Kind.FI, str, docComment);
 					break;
 				case "sif"d:
-					r ~= Token(i, pos, index, Kind.SIF, str, docComment);
+					r ~= Token(sLine, sPos, index, Kind.SIF, str, docComment);
 					break;
 				default:
-					r ~= Token(i, pos, index, Kind.SYMBOL, str, docComment);
+					r ~= Token(sLine, sPos, index, Kind.SYMBOL, str, docComment);
 					break;
 				}
 				pos += dstr.length;
  				docComment = "";
 			} else if (c == '$') {
 				spaceAfter = false;
-				r ~= Token(i, pos, index, Kind.VAR_NAME, str, docComment);
+				r ~= Token(sLine, sPos, index, Kind.VAR_NAME, str, docComment);
 				pos += dstr.length;
  				docComment = "";
 			} else if (c == '=') {
 				spaceAfter = false;
-				r ~= Token(i, pos, index, Kind.EQ, str, docComment);
+				r ~= Token(sLine, sPos, index, Kind.EQ, str, docComment);
 				pos += dstr.length;
  				docComment = "";
 			} else if (c == '[') {
  				if (eatEmptyVarMode) return r;
 				// open bracket
 				spaceAfter = false;
-				r ~= Token(i, pos, index, Kind.O_BRA, str, docComment);
+				r ~= Token(sLine, sPos, index, Kind.O_BRA, str, docComment);
 				pos += dstr.length;
  				docComment = "";
 			} else if (c == ']') {
  				if (eatEmptyVarMode) return r;
 				// close bracket
 				spaceAfter = false;
-				r ~= Token(i, pos, index, Kind.C_BRA, str, docComment);
+				r ~= Token(sLine, sPos, index, Kind.C_BRA, str, docComment);
 				pos += dstr.length;
  				docComment = "";
 			} else if (isDigit(c)) {
  				if (eatEmptyVarMode) return r;
 				// number
 				spaceAfter = false;
-				r ~= Token(i, pos, index, Kind.NUMBER, str, docComment);
+				r ~= Token(sLine, sPos, index, Kind.NUMBER, str, docComment);
 				pos += dstr.length;
  				docComment = "";
 			} else if (c == '@' || c == '"' || c == '\'') {
@@ -529,7 +555,7 @@ class CWXScript {
 					// 直前のstringに結合
 					r[$ - 1].value ~= str;
 				} else {
-					r ~= Token(i, pos, index, Kind.STRING, str, docComment);
+					r ~= Token(sLine, sPos, index, Kind.STRING, str, docComment);
 				}
 				spaceAfter = false;
 				retCount();
@@ -542,28 +568,28 @@ class CWXScript {
  				if (eatEmptyVarMode) return r;
 				// plus
 				spaceAfter = false;
-				r ~= Token(i, pos, index, Kind.PLU, str, docComment);
+				r ~= Token(sLine, sPos, index, Kind.PLU, str, docComment);
 				pos += dstr.length;
  				docComment = "";
 			} else if (c == '-') {
  				if (eatEmptyVarMode) return r;
 				// minus
 				spaceAfter = false;
-				r ~= Token(i, pos, index, Kind.MIN, str, docComment);
+				r ~= Token(sLine, sPos, index, Kind.MIN, str, docComment);
 				pos += dstr.length;
  				docComment = "";
 			} else if (c == '*') {
  				if (eatEmptyVarMode) return r;
 				// multiply
 				spaceAfter = false;
-				r ~= Token(i, pos, index, Kind.MUL, str, docComment);
+				r ~= Token(sLine, sPos, index, Kind.MUL, str, docComment);
 				pos += dstr.length;
  				docComment = "";
 			} else if (c == '/') {
 				if (dstr.length >= 2 && str[1] == '/') {
 					// line comment
 					spaceAfter = true;
-					r ~= Token(i, pos, index, Kind.COMMENT, str, "");
+					r ~= Token(sLine, sPos, index, Kind.COMMENT, str, "");
 					i++;
 					pos = 0;
 					if (2 < str.length) docComment ~= str[2 .. $];
@@ -571,7 +597,7 @@ class CWXScript {
  					if (eatEmptyVarMode) return r;
 					// divide
 					spaceAfter = false;
-					r ~= Token(i, pos, index, Kind.DIV, str, docComment);
+					r ~= Token(sLine, sPos, index, Kind.DIV, str, docComment);
 					pos += dstr.length;
  					docComment = "";
 				}
@@ -579,35 +605,35 @@ class CWXScript {
  				if (eatEmptyVarMode) return r;
 				// residue
 				spaceAfter = false;
-				r ~= Token(i, pos, index, Kind.RES, str, docComment);
+				r ~= Token(sLine, sPos, index, Kind.RES, str, docComment);
 				pos += dstr.length;
  				docComment = "";
 			} else if (c == '~') {
  				if (eatEmptyVarMode) return r;
 				// cat
 				spaceAfter = false;
-				r ~= Token(i, pos, index, Kind.CAT, str, docComment);
+				r ~= Token(sLine, sPos, index, Kind.CAT, str, docComment);
 				pos += dstr.length;
  				docComment = "";
 			} else if (c == '(') {
  				if (eatEmptyVarMode) return r;
 				// open paren
 				spaceAfter = false;
-				r ~= Token(i, pos, index, Kind.O_PAR, str, docComment);
+				r ~= Token(sLine, sPos, index, Kind.O_PAR, str, docComment);
 				pos += dstr.length;
  				docComment = "";
 			} else if (c == ')') {
  				if (eatEmptyVarMode) return r;
 				// close paren
 				spaceAfter = false;
-				r ~= Token(i, pos, index, Kind.C_PAR, str, docComment);
+				r ~= Token(sLine, sPos, index, Kind.C_PAR, str, docComment);
 				pos += dstr.length;
  				docComment = "";
 			} else if (c == ',') {
  				if (eatEmptyVarMode) return r;
 				// comma
 				spaceAfter = false;
-				r ~= Token(i, pos, index, Kind.COMMA, str, docComment);
+				r ~= Token(sLine, sPos, index, Kind.COMMA, str, docComment);
 				pos += dstr.length;
  				docComment = "";
 			} else {
@@ -621,7 +647,7 @@ class CWXScript {
 		if (0 < commentLevel) {
 			throwErrorToken(_prop.msgs.scriptErrorUnCloseComment, lastCommentLine, lastCommentPos, "");
 		}
-		if (post.length) throwErrorToken(_prop.msgs.scriptErrorInvalidToken, i, pos, "");
+		if (post.length) throwErrorToken(_prop.msgs.scriptErrorInvalidToken, sLine, sPos, "");
 		return r;
 	}
 
@@ -671,9 +697,10 @@ class CWXScript {
 				real rvalue = rval.kind is CRKind.REAL ? rval.numReal : rval.numInt;
 				mixin ("numReal = lvalue " ~ Calc ~ " rvalue;");
 				kind = CRKind.REAL;
-			} else {
-				assert (kind is CRKind.INT && rval.kind is CRKind.INT);
+			} else if (kind is CRKind.INT && rval.kind is CRKind.INT) {
 				mixin ("numInt " ~ Calc ~ "= rval.numInt;");
+			} else {
+				throwError(prop.msgs.scriptErrorInvalidNumber, tok);
 			}
 		}
 		public alias calc!("+", false) add;
@@ -783,7 +810,6 @@ class CWXScript {
 				r.kind = CRKind.STR;
 				r.str = stringValue(tokens[i], strWidth);
 			} else {
-				assert (tokens[i].kind is Kind.VAR_NAME);
 				throwError(_prop.msgs.scriptErrorReqNumber, tokens[i]);
 			}
 			i++;

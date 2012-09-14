@@ -24,8 +24,10 @@ private:
 	Props _prop;
 	Control _parent;
 	CWXScriptException _ex;
+	string _base;
 	Text _result;
 	DisposeListener _parentClose;
+	const(CompileOption) _opt;
 
 	class ParentClose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
@@ -40,11 +42,13 @@ private:
 		}
 	}
 public:
-	this (Commons comm, Props prop, Control parent, CWXScriptException ex) {
+	this (Commons comm, Props prop, Control parent, CWXScriptException ex, string base, in CompileOption opt) {
 		_comm = comm;
 		_prop = prop;
 		_parent = parent;
 		_ex = ex;
+		_base = base;
+		_opt = opt;
 		super(prop, parent.getShell(), false, prop.msgs.dlgTitScriptError, prop.images.script, true, prop.var.scriptDlg, false, false);
 		enterClose = true;
 		firstFocusIsOK = true;
@@ -59,19 +63,23 @@ protected:
 		cl.fillVertical = true;
 		area.setLayout(cl);
 		string buf = _prop.msgs.scriptError ~ "\n";
-		auto lines = splitLines!string(_ex.text);
+		auto lines = splitLines!string(_base);
+		auto lines2 = _base != _ex.text ? splitLines!string(_ex.text) : lines;
 		foreach (err; _ex.errors) {
 			buf ~= "\n";
 			buf ~= err.message ~ "\n";
-			if (!_ex.text.length) {
-				continue;
-			}
 			debug {
 				buf ~= .format("Debug info: %s, %d\n", err.file, err.line);
 			}
-			string lStr = .format("Line %d: ", err.errLine + 1);
+			string line, lStr;
+			if ((err.errLine - _opt.startLine) < _opt.addLines) {
+				line = lines2[err.errLine - _opt.startLine];
+				lStr = .format("Line %s: ", "---");
+			} else {
+				line = lines[err.errLine];
+				lStr = .format("Line %d: ", err.errLine + 1);
+			}
 			buf ~= lStr;
-			auto line = lines[err.errLine];
 			buf ~= line;
 			string btm;
 			foreach (i, dchar c; line) {

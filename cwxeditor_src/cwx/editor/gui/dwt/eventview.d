@@ -29,6 +29,7 @@ import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.scripterrordialog;
 import cwx.editor.gui.dwt.eventwindow;
 import cwx.editor.gui.dwt.dmenu;
+import cwx.editor.gui.dwt.smalldialogs;
 
 import std.algorithm : max;
 import std.string;
@@ -1582,17 +1583,32 @@ public:
 	}
 
 	private void pasteScript(Clipboard cb) {
-		auto script = cast(ArrayWrapperString) cb.getContents(TextTransfer.getInstance());
-		if (!script) return;
+		auto array = cast(ArrayWrapperString) cb.getContents(TextTransfer.getInstance());
+		if (!array) return;
+		CompileOption opt;
+		string script = array.array.idup;
+		string base = script;
 		try {
-			CompileOption opt;
 			opt.linkId = _prop.var.etc.linkCard;
-			auto cs = cwx.script.compile(_prop.parent, _summ, script.array.idup, opt);
-			if (!cs.length) return;
-			if (cs[0].type !is CType.START) return;
-			createEventTree(cs);
+
+			void put(Content[] cs) {
+				if (!cs.length) return;
+				if (cs[0].type !is CType.START) return;
+				createEventTree(cs);
+			}
+			auto compiler = new CWXScript(_prop.parent, _summ);
+			auto vars = compiler.eatEmptyVars(script, opt);
+			if (vars.length) {
+				auto dlg = new ScriptVarSetDialog(_comm, _summ, _cards.getShell(), vars, script, base, opt);
+				dlg.appliedEvent ~= {
+					put(dlg.contents);
+				};
+				dlg.open();
+			} else {
+				put(cwx.script.compile(_prop.parent, _summ, script, opt));
+			}
 		} catch (CWXScriptException e) {
-			auto dlg = new ScriptErrorDialog(_comm, _prop, _cards, e);
+			auto dlg = new ScriptErrorDialog(_comm, _prop, _cards, e, base, opt);
 			dlg.open();
 		}
 	}

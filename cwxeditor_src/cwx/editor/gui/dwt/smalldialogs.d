@@ -511,10 +511,29 @@ protected:
 
 private class ScriptVarSetDialog : AbsDialog {
 private:
+	/// 変数の種類(現在未使用)。
+	enum VarKind {
+		Variant, /// あらゆる変数。
+		Boolean, /// true, false。
+		Flag, /// フラグ(文字列)。
+		Step, /// ステップ(文字列)。
+		Area, /// エリア(ID)。
+		Battle, /// バトル(ID)。
+		Package, /// パッケージ(ID)。
+		Cast, /// キャストカード(ID)。
+		Skill, /// スキルカード(ID)。
+		Item, /// アイテムカード(ID)。
+		Beast, /// 召喚獣カード(ID)。
+		Info, /// 情報カード(ID)。
+		Coupon, /// クーポン(文字列)。
+		Gossip, /// ゴシップ(文字列)。
+		CompleteStamp, /// 終了印(文字列)。
+		File /// ファイルパス。
+	}
 	Commons _comm;
 	Summary _summ;
 	const string[] _vars;
-	string _script;
+	string _script, _base;
 
 	string[] _values;
 	Table _table;
@@ -582,22 +601,35 @@ private:
 				strs ~= objName!(typeof(a))(_comm.prop) ~ " - " ~ .text(a.id) ~ "." ~ a.name;
 				_editorTable ~= .text(a.id);
 			}
+			foreach (a; _summ.useCounter.coupon.keys.sort) {
+				strs ~= _comm.prop.msgs.coupon ~ " - " ~ a;
+				_editorTable ~= CWXScript.createString(a);
+			}
+			foreach (a; _summ.useCounter.gossip.keys.sort) {
+				strs ~= _comm.prop.msgs.gossip ~ " - " ~ a;
+				_editorTable ~= CWXScript.createString(a);
+			}
+			foreach (a; _summ.useCounter.completeStamp.keys.sort) {
+				strs ~= _comm.prop.msgs.completeStamp ~ " - " ~ a;
+				_editorTable ~= CWXScript.createString(a);
+			}
 			foreach (p; _summ.allMaterials(_comm.skin, _comm.prop.var.etc.ignorePaths, _comm.prop.var.etc.logicalSort, false)) {
 				strs ~= _comm.prop.msgs.material ~ " - " ~ p;
 				_editorTable ~= CWXScript.createString(p);
 			}
 		}
-		_editor = createComboEditor(_comm, _comm.prop, _table, strs, "", false);
+		_editor = createComboEditor(_comm, _comm.prop, _table, strs, itm.getText(column), false);
 		return _editor;
 	}
 
 public:
-	this (Commons comm, Summary summ, Shell shell, in string[] vars, string script, in CompileOption opt) {
+	this (Commons comm, Summary summ, Shell shell, in string[] vars, string script, string base, in CompileOption opt) {
 		_comm = comm;
 		_summ = summ;
 		_vars = vars;
 		_values.length = _vars.length;
 		_script = script;
+		_base = base;
 		_opt = opt;
 		auto size = comm.prop.var.scriptVarSetDlg;
 		super(comm.prop, shell, true, comm.prop.msgs.dlgTitScriptVarSet, comm.prop.images.menu(MenuID.EvTemplates), true, size);
@@ -624,6 +656,7 @@ protected:
 		_table.setHeaderVisible(true);
 		auto nameCol = new TableColumn(_table, SWT.NONE);
 		nameCol.setText(_comm.prop.msgs.scriptVarNameColumn);
+		nameCol.setResizable(false);
 		auto valueCol = new FullTableColumn(_table, SWT.NONE);
 		valueCol.column.setText(_comm.prop.msgs.scriptVarValueColumn);
 
@@ -637,15 +670,15 @@ protected:
 	}
 	override bool close(bool ok, out bool cancel) {
 		if (ok) {
+			CompileOption opt = _opt;
 			try {
-				string[string] varTable;
+				VarSet[] varTable;
 				foreach (i, var; _vars) {
-					varTable[var] = _values[i];
+					varTable ~= VarSet(var, _values[i]);
 				}
-				_contents = cwx.script.compile(_comm.prop.parent, _summ, CWXScript.pushVars(_script, varTable), _opt);
+				_contents = cwx.script.compile(_comm.prop.parent, _summ, CWXScript.pushVars(_script, varTable, opt), opt);
 			} catch (CWXScriptException e) {
-				debugln(e);
-				auto dlg = new ScriptErrorDialog(_comm, _comm.prop, _table, e);
+				auto dlg = new ScriptErrorDialog(_comm, _comm.prop, _table, e, _base, opt);
 				dlg.open();
 				ok = false;
 				cancel = true;
