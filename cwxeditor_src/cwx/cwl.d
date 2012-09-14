@@ -1361,12 +1361,22 @@ private Area loadArea(ref RData d, ref ByteIO f, ulong fid) {
 		int x = f.readIntL;
 		int y = f.readIntL;
 		string imgPath;
+		uint pcNum = 0;
 		if (d.dataVersion <= 2) {
 			imgPath = "";
 		} else {
 			imgPath = decodePathLegacy(readString(f));
+			if (isNumeric(imgPath)) {
+				// PC画像
+				try {
+					pcNum = .to!int(imgPath);
+				} catch (Exception e) {
+					debugln(e);
+				}
+			}
 		}
 		auto c = new MenuCard(cName, imgPath.length ? imgPath : img, desc, flag, x, y, scale);
+		c.pcNumber = pcNum;
 		foreach (tree; trees) {
 			c.add(tree);
 		}
@@ -2660,7 +2670,11 @@ private void writeArea(ref SData d, ref ByteIO f, Area a) {
 		f.writeL(cast(uint) rndtol(c.scale * 100.0));
 		f.writeL(cast(int) c.x);
 		f.writeL(cast(int) c.y);
-		writeString(f, isBinImg(c.path) ? "" : encodePathLegacy(c.path));
+		if (0 == c.pcNumber) {
+			writeString(f, isBinImg(c.path) ? "" : encodePathLegacy(c.path));
+		} else {
+			writeString(f, .text(c.pcNumber));
+		}
 	}
 	writeBgImages(f, a.backs);
 }

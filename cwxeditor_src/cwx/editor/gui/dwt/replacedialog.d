@@ -2507,6 +2507,10 @@ public:
 						addResult(path, count, _prop.msgs.searchErrorFlagNotFound);
 						return;
 					}
+					if (0 != mc.pcNumber && !_summ.legacy) {
+						addResult(path, count, _prop.msgs.searchErrorPCNumber);
+						return;
+					}
 				}
 				auto ec = cast(EnemyCard) path;
 				if (ec) {

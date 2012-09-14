@@ -2566,7 +2566,7 @@ public:
 		static if (is(C2 : MenuCard) || is(C2 : const MenuCard)) {
 			return createMenuCardImage!PImg
 				(prop, _comm.skin, card.name,
-				cardImagePath(card), card.x, card.y, card.scale, smoothing);
+				cardImagePath(card), card.x, card.y, card.scale, smoothing, card.pcNumber);
 		} else static if (is(C2 : EnemyCard) || is(C2 : const EnemyCard)) {
 			auto skin = _comm.skin;
 			auto castCard = summary.cwCast(card.id);

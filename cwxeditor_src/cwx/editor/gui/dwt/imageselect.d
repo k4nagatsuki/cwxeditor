@@ -19,6 +19,7 @@ import cwx.editor.gui.dwt.dmenu;
 import std.file;
 import std.path;
 import std.string;
+import std.conv;
 
 import org.eclipse.swt.all;
 
@@ -46,7 +47,7 @@ public:
 	/// createDefImage = 画像以外の選択肢が選ばれた際に表示するイメージ。
 	this (Composite parent, int style, Commons comm, Props prop, Summary summ,
 			int w, int h, bool included, bool canInclude, string delegate() saveName, void delegate() refresh = null,
-			string[] defs = null, ImageData delegate(size_t defIndex) createDefImage = null) {
+			string[] defs = null, ImageData delegate(size_t defIndex) createDefImage = null, bool isMenuCard = false) {
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
@@ -97,15 +98,15 @@ public:
 			}
 			if (defs) {
 				_msel = new MaterialSelect!(Type, Combo, C)
-					(comm, prop, summ, &__refresh, defs, -1, canInclude);
+					(comm, prop, summ, &__refresh, defs, -1, canInclude, isMenuCard);
 			} else if (included) {
 				_defs = [prop.msgs.imageNone, prop.msgs.imageIncluding];
 				_msel = new MaterialSelect!(Type, Combo, C)
-					(comm, prop, summ, &__refresh, _defs, 1, canInclude);
+					(comm, prop, summ, &__refresh, _defs, 1, canInclude, isMenuCard);
 			} else {
 				_defs = [prop.msgs.imageNone];
 				_msel = new MaterialSelect!(Type, Combo, C)
-					(comm, prop, summ, &__refresh, _defs, -1, canInclude);
+					(comm, prop, summ, &__refresh, _defs, -1, canInclude, isMenuCard);
 			}
 			_msel.modEvent ~= {
 				foreach (dlg; modEvent) dlg();
@@ -215,6 +216,17 @@ public:
 		_msel.selectDir(sel);
 		selectDirImpl(sel);
 	}
+	static if (Type == MtType.CARD) {
+		@property
+		uint pcNumber() {
+			return _msel.pcNumber;
+		}
+		@property
+		void pcNumber(uint pcNum) {
+			_msel.pcNumber = pcNum;
+			__refresh();
+		}
+	}
 private:
 	void selectDirImpl(int sel) {
 		auto dirs = dirsCombo;
@@ -298,6 +310,13 @@ private:
 	class PListener : PaintListener {
 		private ImageData _img = null;
 		public override void paintControl(PaintEvent e) {
+			static if (is(typeof(_msel.pcNumber))) {
+				auto pcNum = _msel.pcNumber;
+				if (0 != pcNum) {
+					drawCenterText(dwtData(_prop.looks.pcNumberFont(_comm.skin.legacy)), e.gc, _image.getClientArea(), .text(pcNum));
+					return;
+				}
+			}
 			int dirsi = dirsCombo.getSelectionIndex();
 			string path = filePath;
 			ImageData imgData = null;

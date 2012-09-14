@@ -60,6 +60,7 @@ private:
 		CRGB fontColor;
 		TPos textPos = TPos.LEFT;
 		byte alpha = cast(byte) 0xFF;
+		FontData fontData = null;
 	}
 	string _title = null;
 	FontData titFont = null;
@@ -182,6 +183,14 @@ public:
 			initW - (point.x + data.width),
 			initH - (point.y + data.height),
 			point.x), alpha);
+	}
+	/// ditto
+	void append(FontData fontData, string text, CInsets insets) {
+		AppImg append;
+		append.fontData = fontData;
+		append.text = text;
+		append.insets = insets;
+		appends ~= append;
 	}
 	/// 前面に文字列を追加する。
 	void append(string text, CInsets insets, CFont font, CRGB fontColor, TPos pos = TPos.LEFT) {
@@ -312,55 +321,61 @@ public:
 				scope (exit) dc.dispose();
 
 				foreach (a; appends) {
-					if (a.path.length || a.data) {
-						try {
-							ImageData imgData;
-							if (a.data) {
-								imgData = a.data;
-							} else {
-								imgData = loadImage(a.path, a.transparent, a.maskX, a.maskY);
+					if (a.fontData) {
+						// 中央にテキストを表示
+						auto ca = new Rectangle(a.insets.w, a.insets.n, initW - a.insets.w - a.insets.e, initH - a.insets.n - a.insets.s);
+						drawCenterText(a.fontData, dc, ca, a.text);
+					} else {
+						if (a.path.length || a.data) {
+							try {
+								ImageData imgData;
+								if (a.data) {
+									imgData = a.data;
+								} else {
+									imgData = loadImage(a.path, a.transparent, a.maskX, a.maskY);
+								}
+								imgData = imgData.scaledTo
+									(initW - a.insets.w - a.insets.e,
+									initH - a.insets.n - a.insets.s);
+								auto img = new Image(cur, imgData);
+								scope (exit) img.dispose();
+								if (a.alpha != 0xFF) dc.setAlpha(a.alpha);
+								scope (exit) {
+									if (a.alpha != 0xFF) dc.setAlpha(0xFF);
+								}
+								dc.drawImage(img, a.insets.w, a.insets.n);
+							} catch (SWTException e) {
+								// ファイルが無い場合は表示しない。
+								debugln(e);
 							}
-							imgData = imgData.scaledTo
-								(initW - a.insets.w - a.insets.e,
-								initH - a.insets.n - a.insets.s);
-							auto img = new Image(cur, imgData);
-							scope (exit) img.dispose();
-							if (a.alpha != 0xFF) dc.setAlpha(a.alpha);
-							scope (exit) {
-								if (a.alpha != 0xFF) dc.setAlpha(0xFF);
-							}
-							dc.drawImage(img, a.insets.w, a.insets.n);
-						} catch (SWTException e) {
-							// ファイルが無い場合は表示しない。
-							debugln(e);
 						}
-					}
-					if (a.text.length) {
-						try {
-							auto font = new Font(cur, dwtData(a.font));
-							scope (exit) font.dispose();
-							dc.setFont(font);
-							scope (exit) dc.setFont(null);
-							int alpha;
-							auto color = new Color(cur, dwtData(a.fontColor, alpha));
-							scope (exit) color.dispose();
-							auto fore = dc.getForeground();
-							dc.setForeground(color);
-							scope (exit) dc.setForeground(fore);
-							dc.setAlpha(alpha);
-							scope (exit) dc.setAlpha(255);
-							switch (a.textPos) {
-							case TPos.LEFT: {
-								dc.drawText(a.text, a.insets.w, a.insets.n, true);
-							} break;
-							case TPos.RIGHT: {
-								int tw = dc.textExtent(a.text).x;
-								dc.drawText(a.text, initW - a.insets.e - tw, a.insets.n, true);
-							} break;
-							default: assert (0);
+						if (a.text.length) {
+							try {
+								auto font = new Font(cur, dwtData(a.font));
+								scope (exit) font.dispose();
+								dc.setFont(font);
+								scope (exit) dc.setFont(null);
+								int alpha;
+								auto color = new Color(cur, dwtData(a.fontColor, alpha));
+								scope (exit) color.dispose();
+								auto fore = dc.getForeground();
+								dc.setForeground(color);
+								scope (exit) dc.setForeground(fore);
+								dc.setAlpha(alpha);
+								scope (exit) dc.setAlpha(255);
+								switch (a.textPos) {
+								case TPos.LEFT: {
+									dc.drawText(a.text, a.insets.w, a.insets.n, true);
+								} break;
+								case TPos.RIGHT: {
+									int tw = dc.textExtent(a.text).x;
+									dc.drawText(a.text, initW - a.insets.e - tw, a.insets.n, true);
+								} break;
+								default: assert (0);
+								}
+							} catch (SWTException e) {
+								debugln(e);
 							}
-						} catch (SWTException e) {
-							debugln(e);
 						}
 					}
 				}

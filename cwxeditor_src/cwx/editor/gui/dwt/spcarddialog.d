@@ -49,7 +49,16 @@ private:
 		Text _name;
 
 		void refreshWarning() {
-			warning = _comm.skin.warningImage(_prop.parent, _imgPath.filePath, _summ.legacy);
+			string[] ws;
+			ws ~= _comm.skin.warningImage(_prop.parent, _imgPath.filePath, _summ.legacy);
+			if (0 != _imgPath.pcNumber && _summ) {
+				if (_summ.legacy) {
+					ws ~= _prop.msgs.warningPCNumberClassic;
+				} else {
+					ws ~= _prop.msgs.warningPCNumberXML;
+				}
+			}
+			warning = ws;
 		}
 	} else static if (is (C == EnemyCard)) {
 		Combo _casts;
@@ -314,7 +323,7 @@ protected:
 							auto skin = _comm.skin;
 							bool including = _card && isBinImg(_card.path);
 							_imgPath = new ImageSelect!(MtType.CARD)(comp2, SWT.NONE, _comm, _prop, _summ,
-								_prop.looks.cardSize.width, _prop.looks.cardSize.height, including, true, &_name.getText);
+								_prop.looks.cardSize.width, _prop.looks.cardSize.height, including, true, &_name.getText, null, null, null, true);
 							mod(_imgPath);
 							_imgPath.modEvent ~= &refreshWarning;
 							_imgPath.widget.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -438,6 +447,7 @@ protected:
 				_imgPath.image = _card.path;
 				_desc.setText(_card.desc);
 				_name.setText(_card.name);
+				_imgPath.pcNumber = _card.pcNumber;
 			} else static if (is (C == EnemyCard)) {
 				if (_summ) {
 					assert (_casts.getItemCount());
@@ -498,6 +508,9 @@ protected:
 			_scale.setSelection(100);
 		}
 		if (_flag) _flag.showSelection();
+		static if (is(typeof(refreshWarning))) {
+			refreshWarning();
+		}
 	}
 
 	override bool apply() {
@@ -506,6 +519,7 @@ protected:
 				_card.path = _imgPath.image;
 				_card.desc = wrapReturnCode(_desc.getText());
 				_card.name = _name.getText();
+				_card.pcNumber = _imgPath.pcNumber;
 			} else static if (is (C == EnemyCard)) {
 				_card.id = _selectedID;
 				_card.escape = _escape.getSelection();

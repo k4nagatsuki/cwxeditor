@@ -41,7 +41,7 @@ class MaterialSelect(MtType Type, D, C) {
 	/// イメージ格納時に呼び出される。
 	void delegate(string file)[] includeEvent;
 public:
-	this (Commons comm, Props prop, Summary summ, void delegate() refresh, string[] defs, int including = -1, bool canInclude = false) {
+	this (Commons comm, Props prop, Summary summ, void delegate() refresh, string[] defs, int including = -1, bool canInclude = false, bool isMenuCard = false) {
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
@@ -49,6 +49,7 @@ public:
 		_defs = defs;
 		_including = including;
 		_canInclude = canInclude;
+		_isMenuCard = isMenuCard;
 	}
 
 	D createDirsCombo(Composite parent) {
@@ -213,14 +214,8 @@ public:
 				try {
 					if (!file.exists()) return;
 					_binPath = bImgToStr(cast(ubyte[]) std.file.read(file));
-					if (_including < 0) {
-						_including = _defs.length;
-						_defs ~= _prop.msgs.imageIncluding;
-						refreshPaths();
-						selectDir(_including);
-					} else {
-						selectDir(_including);
-					}
+					refreshDefs();
+					selectDir(_including);
 					foreach (d; includeEvent) {
 						d(file);
 					}
@@ -229,6 +224,54 @@ public:
 				}
 			}
 		}
+		@property
+		uint pcNumber() {
+			if (!_isMenuCard || !_summ || !_summ.legacy) return 0;
+			auto sel = _dirs.getSelectionIndex();
+			if (0 <= _including) {
+				sel--;
+			}
+			if (0 < sel && sel <= _prop.var.etc.partyMax) {
+				return sel;
+			}
+			return 0;
+		}
+		@property
+		void pcNumber(uint pcNum) {
+			if (0 == pcNum) return;
+			if (!_isMenuCard || !_summ || !_summ.legacy) return;
+			uint num = pcNum;
+			if (0 <= _including) {
+				num++;
+			}
+			_dirs.select(num);
+		}
+	}
+	private void refreshDefs() {
+		string[] defs = [_prop.msgs.imageNone];
+		int including = _including;
+		static if (Type == MtType.CARD) {
+			uint pcNum = pcNumber;
+		}
+		if (isBinImg(_binPath)) {
+			including = defs.length;
+			defs ~= _prop.msgs.imageIncluding;
+		}
+		static if (Type == MtType.CARD) {
+			if (_isMenuCard && _summ && _summ.legacy) {
+				foreach (num; 0 .. _prop.var.etc.partyMax) {
+					defs ~= .tryFormat(_prop.msgs.pcNumber, num + 1);
+				}
+			}
+		}
+		if (defs != _defs) {
+			_defs = defs;
+			_including = including;
+			static if (Type == MtType.CARD) {
+				pcNumber = pcNum;
+			}
+		}
+		refreshPaths();
 	}
 	static if (Type == MtType.BGM || Type == MtType.SE) {
 		private Button _bgmBtn;
@@ -432,7 +475,7 @@ public:
 		}
 		_path = path;
 		_binPath = isBinImg(path) ? path : "";
-		refreshPaths();
+		refreshDefs();
 	}
 	@property
 	string binPath() {
@@ -447,7 +490,7 @@ public:
 		return _fileList;
 	}
 	void refresh() {
-		refreshPaths();
+		refreshDefs();
 		if (_refresh) _refresh();
 	}
 
@@ -517,14 +560,16 @@ public:
 	void selectDir(int sel) {
 		_dirs.select(sel);
 		refreshList();
-		scope (exit) refreshButtons();
+		scope (exit) {
+			refreshButtons();
+			if (_refresh) _refresh();
+		}
 		if (sel < _defs.length) {
 			_path = "";
 			if (_selDir != sel) {
 				foreach (dlg; modEvent) dlg();
 			}
 			_selDir = sel;
-			if (_refresh) _refresh();
 		} else {
 			static if (is(C : Combo) || is(C : CCombo)) {
 				auto old = _path;
@@ -538,7 +583,6 @@ public:
 				if (0 == _fileList.getItemCount()) return;
 				_fileList.select(0);
 				_path = std.path.buildPath(p, _fileList.getItem(0));
-				if (_refresh) _refresh();
 			}
 			_selDir = sel;
 		}
@@ -998,6 +1042,7 @@ private:
 	int _selDir;
 	int _including = -1;
 	bool _canInclude = false;
+	bool _isMenuCard = false;
 	int _tbl = -1;
 	bool _fnone = false;
 	C _fileList;

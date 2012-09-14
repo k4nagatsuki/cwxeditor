@@ -992,6 +992,18 @@ bool openFolder(string path) {
 	}
 }
 
+void drawCenterText(FontData fontData, GC gc, Rectangle ca, string str) {
+	auto oldFont = gc.getFont();
+	scope (exit) gc.setFont(oldFont);
+	auto font = new Font(Display.getCurrent(), fontData);
+	scope (exit) font.dispose();
+	gc.setFont(font);
+	auto te = gc.textExtent(str);
+	int x = ca.x + (ca.width - te.x) / 2;
+	int y = ca.y + (ca.height - te.y) / 2;
+	gc.drawText(str, x, y, true);
+}
+
 void hemming(GC gc, string s, int tx, int ty, Color color) {
 	auto d = Display.getCurrent();
 	gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));

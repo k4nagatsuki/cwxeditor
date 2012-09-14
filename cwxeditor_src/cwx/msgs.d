@@ -114,6 +114,7 @@ class Msgs : Properties {
 	auto imageNone = Msg("imageNone", "[イメージ無し]");
 	auto fileNone = Msg("fileNone", "[ファイルを選択]");
 	auto imageIncluding = Msg("imageIncluding", "[イメージ格納]");
+	auto pcNumber = Msg("pcNumber", "[プレイヤー%1$s]");
 	auto seNone = Msg("seNone", "[サウンド無し]");
 	auto bgmStop = Msg("bgmStop", "[BGM停止]");
 	auto bgmNone = Msg("bgmNone", "[BGM無し]");
@@ -285,6 +286,8 @@ class Msgs : Properties {
 	auto searchErrorLinkIdNotFound = Msg("searchErrorLinkIdNotFound", "参照先のカードが見つからない");
 	auto searchErrorEmptyFile = Msg("searchErrorEmptyFile", "ファイルの内容が存在しない");
 	auto searchErrorDupFile = Msg("searchErrorDupFile", "同一のファイル「%1$s」が存在する");
+	auto searchErrorPCNumber = Msg("searchErrorPCNumber", "CardWirthPyではプレイヤーキャラクタ画像は表示できない");
+
 	auto searchOpenDialog = Msg("searchOpenDialog", "検索結果へジャンプする時、ダイアログを開く");
 
 	/// イベント設定。
@@ -1217,6 +1220,8 @@ class Msgs : Properties {
 	auto warningEffectTypeNone = Msg("warningEffectTypeNone", "無属性のカードをシナリオ外に持ち出した場合、予期せぬ動作の原因になります。");
 	auto warningVanishCast = Msg("warningVanishCast", "神聖属性以外の対象消去効果を持つカードをシナリオ外に持ち出した場合、予期せぬ動作の原因になります。");
 	auto warningNameLenOver = Msg("warningNameLenOver", "名前の長さが%2$s文字を超えています。メッセージにカード名が表示された際に不具合が発生する可能性があります。"); // %1$s = 文字数、%2$s = 文字数 / 2
+	auto warningPCNumberClassic = Msg("warningPCNumberClassic", "プレイヤーキャラクタのイメージはプレイヤーの環境によって表示されない事があります。");
+	auto warningPCNumberXML = Msg("warningPCNumberXML", "CardWirthPyではプレイヤーキャラクタのイメージは表示されません。");
 
 	auto card = Msg("card", "カード");
 	auto apt = Msg("apt", "要素");

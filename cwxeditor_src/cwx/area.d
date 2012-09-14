@@ -358,6 +358,9 @@ private:
 	string _name;
 	string _desc;
 	PathUser _user;
+	/// PC画像を表示する場合はその位置(1～6)。
+	/// 0の場合はPC画像を使用しない。
+	uint _pcNumber = 0;
 
 public:
 	/// XML要素名。
@@ -455,6 +458,20 @@ public:
 		_user.path = path;
 	}
 
+	/// PC画像を表示する場合はその位置(1～6)。
+	/// 0の場合はPC画像を使用しない。
+	@property
+	const
+	uint pcNumber() {
+		return _pcNumber;
+	}
+	/// ditto
+	@property
+	void pcNumber(uint pcNumber) {
+		if (_pcNumber != pcNumber) changed();
+		_pcNumber = pcNumber;
+	}
+
 	@property
 	override void setUseCounter(UseCounter uc) {
 		_user.setUseCounter(uc);
@@ -475,6 +492,7 @@ public:
 			string name = null;
 			string path = "";
 			string desc = "";
+			uint pcNumber = 0;
 			pNode.onTag["Name"] = (ref XNode node) {name = node.value;};
 			pNode.onTag["ImagePath"] = (ref XNode node) {path = decodePath(node.value);};
 			if (copyDesc) {
@@ -482,9 +500,12 @@ public:
 					desc = decodeLf2(node.value);
 				};
 			}
+			pNode.onTag["PCNumber"] = (ref XNode node) {pcNumber = .to!uint(node.value);};
 			pNode.parse();
 			if (!name) return null;
-			return new MenuCard(name, path, desc, "", 0, 0, 1.0);
+			auto r = new MenuCard(name, path, desc, "", 0, 0, 1.0);
+			r.pcNumber = pcNumber;
+			return r;
 		}
 		auto pNode = node.child("Property", false);
 		if (pNode.valid) {
@@ -522,6 +543,7 @@ public:
 		pe.newElement("Name", _name);
 		pe.newElement("ImagePath", encodePath(_user.path));
 		pe.newElement("Description", _desc);
+		pe.newElement("PCNumber", .text(_pcNumber));
 		appendProp(pe, opt);
 		appendEventsToNode(e, opt);
 	}
@@ -539,12 +561,14 @@ public:
 		string flag = "";
 		int x = 0, y = 0;
 		real scale = 1.0;
+		uint pcNumber = 0;
 		EventTree[] evt;
 
 		node.onTag["Property"] = (ref XNode pNode) {
 			pNode.onTag["Name"] = (ref XNode n) {name = n.value;};
 			pNode.onTag["ImagePath"] = (ref XNode n) {path = decodePath(n.value);};
 			pNode.onTag["Description"] = (ref XNode n) {desc = n.value;};
+			pNode.onTag["PCNumber"] = (ref XNode n) {pcNumber = .to!uint(n.value);};
 			loadProp(pNode, flag, x, y, scale);
 		};
 		node.onTag["Events"] = (ref XNode node) {

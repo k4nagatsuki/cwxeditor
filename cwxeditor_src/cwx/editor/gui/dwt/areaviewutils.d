@@ -40,6 +40,7 @@ import cwx.editor.gui.dwt.areaview;
 import cwx.editor.gui.dwt.dmenu;
 
 import std.algorithm;
+import std.conv;
 import std.math;
 import std.path;
 import std.file;
@@ -136,11 +137,14 @@ PImg createCastCardImage(PImg)(Props prop, Skin skin, CastCard card,
 /// メニューカード画像を生成する。
 /// Returns: カード画像。
 PImg createMenuCardImage(PImg)(Props prop, Skin skin,
-		string title, string path, int x, int y, real scale, bool smoothing) {
+		string title, string path, int x, int y, real scale, bool smoothing, uint pcNum) {
 	auto matPad = prop.looks.menuCardInsets;
 	auto r = createCardImageCommon!PImg(prop, menuCard(skin), matPad, x, y, scale, smoothing);
 	r.append(path, matPad, true);
 	r.setTitle(title, dwtData(prop.looks.menuCardNameFont(skin.legacy)), dwtData(prop.looks.menuCardNamePoint));
+	if (0 != pcNum) {
+		r.append(dwtData(prop.looks.pcNumberFont(skin.legacy)), .text(pcNum), prop.looks.menuCardInsets);
+	}
 	static if (is(PImg : FlexImage)) {
 		r.resize();
 	} else {
