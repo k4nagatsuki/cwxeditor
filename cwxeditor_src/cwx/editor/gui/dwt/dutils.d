@@ -104,7 +104,7 @@ ImageData loadImage(Skin skin, string path, bool mask = true, int maskX = 0, int
 			auto s = new ByteArrayInputStream(bytes);
 			scope (exit) s.close();
 			auto data = new ImageData(s);
-			if (32 == data.depth && cfnmatch(ext, ".bmp")) {
+			if (32 == data.depth && 'B' == bytes[0] && 'M' == bytes[1]) {
 				// アルファ値を正しく取れないので補完しておく
 				data.alphaData = new byte[data.width * data.height];
 				foreach (y; 0 .. data.height) {
