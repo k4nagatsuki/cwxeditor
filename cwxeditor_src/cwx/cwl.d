@@ -1370,6 +1370,7 @@ private Area loadArea(ref RData d, ref ByteIO f, ulong fid) {
 				// PC画像
 				try {
 					pcNum = .to!int(imgPath);
+					if (0 != pcNum) imgPath = "";
 				} catch (Exception e) {
 					debugln(e);
 				}

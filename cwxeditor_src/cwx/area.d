@@ -577,6 +577,7 @@ public:
 		node.parse();
 		if (name is null) name = "";
 		auto r = new MenuCard(name, path, desc, flag, x, y, scale);
+		r.pcNumber = pcNumber;
 		r.addAll(evt);
 
 		return r;

@@ -157,7 +157,7 @@ public:
 	}
 	const CFont castCardNameFont(bool legacy) {return CFont(uigothic(legacy), 9, true, false);}
 	const CFont castCardLevelFont(bool legacy) {return CFont(mincho(legacy), 24, true, true);}
-	const CFont pcNumberFont(bool legacy) {return CFont(mincho(legacy), 48, true, false);}
+	const CFont pcNumberFont(bool legacy) {return CFont(mincho(legacy), 42, true, false);}
 	@property const CInsets castCardLevelInsets() {return CInsets(2, 8, 0, 0);}
 	@property const CRGB castCardLevelColor() {return CRGB(0, 0, 0, 128);}
 	@property const CPoint castLifeBarPoint() {return CPoint(8, 110);}
