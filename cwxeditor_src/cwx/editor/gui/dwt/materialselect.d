@@ -248,6 +248,10 @@ public:
 		}
 	}
 	private void refreshDefs() {
+		if (!_canInclude) {
+			refreshPaths();
+			return;
+		}
 		string[] defs = [_prop.msgs.imageNone];
 		int including = _including;
 		static if (Type == MtType.CARD) {
