@@ -635,6 +635,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		copy.packages = packages;
 		copy.flag = flag;
 		copy.step = step;
+		copy.cardPath = cardPath;
 		copy.bgmPath = bgmPath;
 		copy.soundPath = soundPath;
 		copy.casts = casts;
@@ -719,6 +720,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			&& packages == c.packages
 			&& flag == c.flag
 			&& step == c.step
+			&& cardPath == c.cardPath
 			&& bgmPath == c.bgmPath
 			&& soundPath == c.soundPath
 			&& casts == c.casts
@@ -864,6 +866,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		resetValue!(CArg.PACKAGE, ulong, 0)(d, &packages);
 		resetValue!(CArg.FLAG, string, "")(d, &flag);
 		resetValue!(CArg.STEP, string, "")(d, &step);
+		resetValue!(CArg.TALKER_C, string, "")(d, &cardPath);
 		resetValue!(CArg.BGM_PATH, string, "")(d, &bgmPath);
 		resetValue!(CArg.SOUND_PATH, string, "")(d, &soundPath);
 		resetValue!(CArg.CAST, ulong, 0)(d, &casts);

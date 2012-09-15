@@ -266,6 +266,11 @@ public:
 				foreach (num; 0 .. _prop.var.etc.partyMax) {
 					defs ~= .tryFormat(_prop.msgs.pcNumber, num + 1);
 				}
+				if (pcNum <= 0 || _prop.var.etc.partyMax < pcNum) {
+					pcNum = 0;
+				}
+			} else {
+				pcNum = 0;
 			}
 		}
 		if (defs != _defs) {
