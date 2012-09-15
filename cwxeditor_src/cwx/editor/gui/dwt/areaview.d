@@ -3147,7 +3147,7 @@ public:
 					dlg.setText(_prop.msgs.dlgTitDropCard);
 					auto ret = dlg.open();
 					if (SWT.YES == ret) {
-						fname = copyTo(_summ.scenarioPath, fname, _comm.skin.materialPath);
+						fname = copyTo(_summ.scenarioPath, fname, _comm.skin.materialPath, false);
 					} else if (SWT.CANCEL == ret) {
 						return -1;
 					}
@@ -3306,7 +3306,7 @@ public:
 				dlg.setText(_prop.msgs.dlgTitDropBack);
 				auto ret = dlg.open();
 				if (SWT.YES == ret) {
-					fname = copyTo(_summ.scenarioPath, fname, _comm.skin.materialPath);
+					fname = copyTo(_summ.scenarioPath, fname, _comm.skin.materialPath, false);
 				} else if (SWT.CANCEL == ret) {
 					return -1;
 				}

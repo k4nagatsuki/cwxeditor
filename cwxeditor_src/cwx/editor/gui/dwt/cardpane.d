@@ -883,14 +883,13 @@ private:
 				c.setUseCounter(uc);
 			}
 			bool copy;
-			auto skin = _comm.skin;
-			bool r = qMaterialCopy(_prop, skin, dlgParShl,
+			bool r = qMaterialCopy(_comm, dlgParShl,
 				uc, _summ.scenarioPath, fromSPath, copy, _summ.legacy);
 			foreach (c; cs) {
 				c.removeUseCounter();
 			}
 			if (copy) {
-				_comm.refPaths.call(skin.materialPath);
+				_comm.refPaths.call(_comm.skin.materialPath);
 			}
 			return r;
 		}

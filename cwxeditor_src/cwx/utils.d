@@ -1118,9 +1118,11 @@ void preRemove(string delpath) {
 /// sPath = シナリオのパス。
 /// path = コピー元のファイル。
 /// added = シナリオ内のどのフォルダにコピーするか。
+/// binImgToRef = 格納イメージを参照に差し替えるか。
 /// Returns: コピー後のファイルパス。
-string copyTo(string sPath, string path, string added) {
+string copyTo(string sPath, string path, string added, bool binImgToRef) {
 	bool binImg = isBinImg(path);
+	if (binImg && !binImgToRef) return path;
 	auto mtDir = std.path.buildPath(sPath, added);
 	if (!exists(mtDir)) mkdirRecurse(mtDir);
 	string to;

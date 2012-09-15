@@ -1307,8 +1307,10 @@ string[] castCoupons(Commons comm, bool talker, string legacyName) {
 	return r;
 }
 
-bool qMaterialCopy(Props prop, Skin skin, Shell shell,
+bool qMaterialCopy(Commons comm, Shell shell,
 		UseCounter uc, string toSPath, string fromSPath, out bool copy, bool toIsLegacy) {
+	auto prop = comm.prop;
+	auto skin = comm.skin;
 	copy = false;
 	string[] paths;
 	foreach (key; uc.path.keys) {
@@ -1320,8 +1322,6 @@ bool qMaterialCopy(Props prop, Skin skin, Shell shell,
 		}
 	}
 	if (paths.length == 0) return true;
-	auto copyM = new MessageBox(shell, SWT.YES | SWT.NO | SWT.CANCEL | SWT.ICON_QUESTION);
-	copyM.setText(prop.msgs.dlgTitQuestion);
 	uint bin = 0u;
 	string[] msgPaths;
 	foreach (p; paths) {
@@ -1331,47 +1331,75 @@ bool qMaterialCopy(Props prop, Skin skin, Shell shell,
 			msgPaths ~= std.path.buildPath(fromSPath, p);
 		}
 	}
+	bool cancel = false;
+	bool question(string msg) {
+		auto copyM = new MessageBox(shell, SWT.YES | SWT.NO | SWT.CANCEL | SWT.ICON_QUESTION);
+		copyM.setText(prop.msgs.dlgTitQuestion);
+		copyM.setMessage(msg);
+		switch (copyM.open()) {
+		case SWT.YES:
+			cancel = false;
+			return true;
+		case SWT.NO:
+			cancel = false;
+			return false;
+		case SWT.CANCEL:
+			cancel = true;
+			return false;
+		default:
+			assert (0);
+		}
+	}
+	bool copyMates = false;
+	bool binImgToRef = false;
 	if (!msgPaths.length && bin) {
-		copyM.setMessage(prop.msgs.dlgMsgCopyMaterial1);
-	} else if (msgPaths.length && !bin) {
-		if (1 == msgPaths.length) {
-			copyM.setMessage(.tryFormat(prop.msgs.dlgMsgCopyMaterial2, msgPaths[0]));
+		copyMates = true;
+		if (!toIsLegacy || prop.var.etc.saveInnerImagePath) {
+			binImgToRef = question(prop.msgs.dlgMsgCopyMaterial1);
 		} else {
-			copyM.setMessage(.tryFormat(prop.msgs.dlgMsgCopyMaterial3, msgPaths.length));
+			binImgToRef = true;
+		}
+	} else if (msgPaths.length && !bin) {
+		binImgToRef = false; // 格納イメージは存在しない
+		if (1 == msgPaths.length) {
+			copyMates = question(.tryFormat(prop.msgs.dlgMsgCopyMaterial2, msgPaths[0]));
+		} else {
+			copyMates = question(.tryFormat(prop.msgs.dlgMsgCopyMaterial3, msgPaths.length));
 		}
 	} else {
-		copyM.setMessage(.tryFormat(prop.msgs.dlgMsgCopyMaterial4, msgPaths.length, bin));
+		binImgToRef = !toIsLegacy || prop.var.etc.saveInnerImagePath;
+		copyMates = question(.tryFormat(prop.msgs.dlgMsgCopyMaterial4, msgPaths.length, bin));
 	}
-	switch (copyM.open()) {
-	case SWT.YES:
+	if (copyMates && !cancel) {
 		bool err = false;
 		foreach (i, key; paths) {
+			// ファイルのコピーと参照の更新
 			string path = isBinImg(key) ? key : std.path.buildPath(fromSPath, key);
 			try {
-				auto newp = copyTo(toSPath, path, skin.materialPath);
-				uc.change(toPathId(key), toPathId(newp));
+				auto newp = copyTo(toSPath, path, skin.materialPath, binImgToRef);
+				if (!isBinImg(newp) && key != newp) {
+					uc.change(toPathId(key), toPathId(newp));
+				}
 				copy = true;
 			} catch (Exception e) {
 				debugln("copy error: " ~ e.msg);
 				err = true;
 			}
 		}
-		if (err) {
-			MessageBox.showWarning(prop.msgs.dlgMsgCopyError, prop.msgs.dlgTitWarning, shell);
-		}
-		return true;
-	case SWT.NO:
 		if (!toIsLegacy) {
+			// 転送先は格納イメージ無効
 			foreach (key; uc.path.keys) {
 				if (key.isBinImg) {
 					uc.change(key, toPathId(""), true);
 				}
 			}
 		}
+		if (err) {
+			MessageBox.showWarning(prop.msgs.dlgMsgCopyError, prop.msgs.dlgTitWarning, shell);
+		}
 		return true;
-	case SWT.CANCEL:
-		return false;
-	default: assert (0);
+	} else {
+		return !cancel;
 	}
 }
 

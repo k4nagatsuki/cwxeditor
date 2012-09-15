@@ -163,7 +163,7 @@ public:
 			}
 			bool doFile(string path, int x, int y) {
 				assert (_summ !is null);
-				copyTo(_summ.scenarioPath, path, _comm.skin.materialPath);
+				copyTo(_summ.scenarioPath, path, _comm.skin.materialPath, false);
 				return true;
 			}
 			void doExit() {
