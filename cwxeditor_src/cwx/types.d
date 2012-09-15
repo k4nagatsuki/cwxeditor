@@ -784,7 +784,11 @@ enum CType {
 	LOSE_GOSSIP,
 	SHOW_PARTY,
 	HIDE_PARTY,
-	REDISPLAY
+	REDISPLAY,
+	SUBSTITUTE_STEP, /// ステップ代入(CardWirth Extender 1.30～)。
+	SUBSTITUTE_FLAG, /// フラグ代入(CardWirth Extender 1.30～)。
+	BRANCH_STEP_CMP, /// ステップ値分岐(CardWirth Extender 1.30～)。
+	BRANCH_FLAG_CMP, /// フラグ値分岐(CardWirth Extender 1.30～)。
 }
 
 /// コンテントタイプの分類。
@@ -847,7 +851,9 @@ enum CArg {
 	CARD_NUMBER,
 	MONEY,
 	WAIT,
-	BG_IMAGES
+	BG_IMAGES,
+	STEP_2, /// 操作ターゲットステップ(CardWirth Extender 1.30～)。
+	FLAG_2, /// 操作ターゲットフラグ(CardWirth Extender 1.30～)。
 }
 
 /// 後続コンテントのnameの型。
@@ -857,7 +863,8 @@ enum CNextType {
 	BOOL, /// True/False。
 	STEP, /// ステップ値。
 	ID_AREA, /// エリアID。
-	ID_BATTLE /// バトルID。
+	ID_BATTLE, /// バトルID。
+	TRIO, /// 大なり、少なり、一致(CardWirth Extender 1.30～)。
 }
 
 enum MType {

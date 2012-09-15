@@ -15,7 +15,6 @@ import cwx.path;
 import cwx.background;
 import cwx.skin;
 import cwx.msgutils;
-import cwx.flag;
 import cwx.menu;
 import cwx.jpy;
 import cwx.cab;
@@ -1579,6 +1578,10 @@ public:
 		_contents[CType.SHOW_PARTY].setSelection(_prop.var.etc.searchContentsShowParty);
 		_contents[CType.HIDE_PARTY].setSelection(_prop.var.etc.searchContentsHideParty);
 		_contents[CType.REDISPLAY].setSelection(_prop.var.etc.searchContentsRedisplay);
+		_contents[CType.SUBSTITUTE_STEP].setSelection(_prop.var.etc.searchContentsSubstituteStep);
+		_contents[CType.SUBSTITUTE_FLAG].setSelection(_prop.var.etc.searchContentsSubstituteFlag);
+		_contents[CType.BRANCH_STEP_CMP].setSelection(_prop.var.etc.searchContentsBranchStepCmp);
+		_contents[CType.BRANCH_FLAG_CMP].setSelection(_prop.var.etc.searchContentsBranchFlagCmp);
 
 		_cCoupon.setSelection(_prop.var.etc.replaceNameCoupon);
 		_cGossip.setSelection(_prop.var.etc.replaceNameGossip);
@@ -2659,6 +2662,22 @@ public:
 						return;
 					}
 				}
+				if (c.flag2 != "" && !froot.findFlag(c.flag2)) {
+					addResult(path, count, _prop.msgs.searchErrorFlagNotFound);
+					return;
+				}
+				if (c.step2 != "" && !froot.findStep(c.step2)) {
+					addResult(path, count, _prop.msgs.searchErrorStepNotFound);
+					return;
+				}
+				if (c.flag != "" && c.flag == c.flag2) {
+					addResult(path, count, _prop.msgs.searchErrorSouceIsTarget);
+					return;
+				}
+				if (c.step != "" && c.step == c.step2) {
+					addResult(path, count, _prop.msgs.searchErrorSouceIsTarget);
+					return;
+				}
 			});
 		}
 		void searchFileErrors() {
@@ -3638,9 +3657,13 @@ public:
 				// Flag/StepについてはUseCounter経由で置換される
 				r |= repl(null, e.flag, null, count, uArr2);
 				r |= repl(null, e.step, null, count, uArr2);
+				r |= repl(null, e.flag2, null, count, uArr2);
+				r |= repl(null, e.step2, null, count, uArr2);
 			} else {
 				r |= repl(null, e.flag, &e.flag, count, uArr2);
 				r |= repl(null, e.step, &e.step, count, uArr2);
+				r |= repl(null, e.flag2, &e.flag, count, uArr2);
+				r |= repl(null, e.step2, &e.step, count, uArr2);
 			}
 		}
 		if (_startSel) {

@@ -185,6 +185,10 @@ public:
 		case CType.SHOW_PARTY: return imgd!("evt_show_party.png");
 		case CType.HIDE_PARTY: return imgd!("evt_hide_party.png");
 		case CType.REDISPLAY: return imgd!("evt_refresh.png");
+		case CType.SUBSTITUTE_STEP: return imgd!("evt_cpstep.png");
+		case CType.SUBSTITUTE_FLAG: return imgd!("evt_cpflag.png");
+		case CType.BRANCH_STEP_CMP: return imgd!("evt_cmpstep.png");
+		case CType.BRANCH_FLAG_CMP: return imgd!("evt_cmpflag.png");
 		default: assert (0);
 		}
 	}

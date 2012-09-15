@@ -95,6 +95,8 @@ class FlexEtcProps : Properties {
 	auto showMainToolBar = Prop!(bool)("showMainToolBar", true);
 	auto showSceneToolBar = Prop!(bool)("showSceneToolBar", true);
 	auto showEventToolBar = Prop!(bool)("showEventToolBar", true);
+	auto flagCombiSashL = Prop!(int)("flagCombiSashL", 1);
+	auto flagCombiSashR = Prop!(int)("flagCombiSashR", 1);
 
 	auto partyMax = Prop!(uint, true)("partyMax", 6);
 	auto cardScaleMax = Prop!(int)("cardScaleMax", 300);
@@ -351,6 +353,10 @@ class FlexEtcProps : Properties {
 	auto searchContentsShowParty = Prop!(bool)("searchContentsShowParty", false);
 	auto searchContentsHideParty = Prop!(bool)("searchContentsHideParty", false);
 	auto searchContentsRedisplay = Prop!(bool)("searchContentsRedisplay", false);
+	auto searchContentsSubstituteStep = Prop!(bool)("searchContentsSubstituteStep", false);
+	auto searchContentsSubstituteFlag = Prop!(bool)("searchContentsSubstituteFlag", false);
+	auto searchContentsBranchStepCmp = Prop!(bool)("searchContentsBranchStepCmp", false);
+	auto searchContentsBranchFlagCmp = Prop!(bool)("searchContentsBranchFlagCmp", false);
 
 	auto searchUnusedFlag = Prop!(bool)("searchUnusedFlag", true);
 	auto searchUnusedStep = Prop!(bool)("searchUnusedStep", true);

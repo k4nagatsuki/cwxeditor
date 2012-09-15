@@ -602,9 +602,9 @@ private:
 			return _summ.areas.length > 0;
 		} case CType.LINK_PACKAGE, CType.CALL_PACKAGE: {
 			return _summ.packages.length > 0;
-		} case CType.BRANCH_FLAG, CType.SET_FLAG, CType.REVERSE_FLAG, CType.CHECK_FLAG: {
+		} case CType.BRANCH_FLAG, CType.SET_FLAG, CType.REVERSE_FLAG, CType.CHECK_FLAG, CType.SUBSTITUTE_FLAG, CType.BRANCH_FLAG_CMP: {
 			return _summ.flagDirRoot.allFlags.length > 0;
-		} case CType.BRANCH_MULTI_STEP, CType.BRANCH_STEP, CType.SET_STEP, CType.SET_STEP_UP, CType.SET_STEP_DOWN: {
+		} case CType.BRANCH_MULTI_STEP, CType.BRANCH_STEP, CType.SET_STEP, CType.SET_STEP_UP, CType.SET_STEP_DOWN, CType.SUBSTITUTE_STEP, CType.BRANCH_STEP_CMP: {
 			return _summ.flagDirRoot.allSteps.length > 0;
 		} case CType.BRANCH_CAST, CType.GET_CAST, CType.LOSE_CAST: {
 			return _summ.casts.length > 0;
@@ -846,6 +846,18 @@ private:
 		} case CType.REDISPLAY: {
 			dlg = new RefreshDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
 			break;
+		} case CType.SUBSTITUTE_STEP: {
+			dlg = new SubstituteStepDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt, _summ.flagDirRoot);
+			break;
+		} case CType.SUBSTITUTE_FLAG: {
+			dlg = new SubstituteFlagDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt, _summ.flagDirRoot);
+			break;
+		} case CType.BRANCH_STEP_CMP: {
+			dlg = new BrStepCmpDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt, _summ.flagDirRoot);
+			break;
+		} case CType.BRANCH_FLAG_CMP: {
+			dlg = new BrFlagCmpDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt, _summ.flagDirRoot);
+			break;
 		} default: assert (0, to!string(type));
 		}
 		assert (applied);
@@ -1064,6 +1076,18 @@ private:
 			break;
 		} case CType.REDISPLAY: {
 			dlg = new RefreshDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
+		} case CType.SUBSTITUTE_STEP: {
+			dlg = new SubstituteStepDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt, _summ.flagDirRoot);
+			break;
+		} case CType.SUBSTITUTE_FLAG: {
+			dlg = new SubstituteFlagDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt, _summ.flagDirRoot);
+			break;
+		} case CType.BRANCH_STEP_CMP: {
+			dlg = new BrStepCmpDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt, _summ.flagDirRoot);
+			break;
+		} case CType.BRANCH_FLAG_CMP: {
+			dlg = new BrFlagCmpDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt, _summ.flagDirRoot);
 			break;
 		} default: assert (0);
 		}
@@ -2204,6 +2228,21 @@ public:
 					name = _prop.sys.evtChildDefault;
 				}
 				break;
+			} case CType.BRANCH_STEP_CMP: {
+				switch (combo.getSelectionIndex()) {
+				case 0:
+					name = _prop.sys.evtChildGreater;
+					break;
+				case 1:
+					name = _prop.sys.evtChildLesser;
+					break;
+				case 2:
+					name = _prop.sys.evtChildEq;
+					break;
+				default:
+					assert (0);
+				}
+				break;
 			} default:
 				assert (combo.getItemCount() == 2);
 				name = index == 0 ? _prop.sys.evtChildTrue : _prop.sys.evtChildFalse;
@@ -2259,6 +2298,25 @@ public:
 			nums[i] = area.id;
 		}
 		return createNumEditor!(Create)(evt, child, nums);
+	}
+	private CCombo createTrioEditor(string Create)(Content evt, Content child) {
+		string[] vals;
+		vals.length = 3;
+		string name = _prop.sys.evtChildGreater;
+		vals[0] = mixin (Create);
+		name = _prop.sys.evtChildLesser;
+		vals[1] = mixin (Create);
+		name = _prop.sys.evtChildEq;
+		vals[2] = mixin (Create);
+		size_t index;
+		if (child.name == _prop.sys.evtChildEq) {
+			index = 2;
+		} else if (child.name == _prop.sys.evtChildLesser) {
+			index = 1;
+		} else {
+			index = 0;
+		}
+		return createComboEditor(_comm, _prop, _tree, vals, vals[index]);
 	}
 	private Control createEditor(TreeItem itm) {
 		auto parent = itm.getParentItem();
@@ -2322,6 +2380,10 @@ public:
 			return createBoolEditor!("evtChildBrEnd(_prop, evt.completeStamp, name)")(data, c);
 		} case CType.BRANCH_GOSSIP: {
 			return createBoolEditor!("evtChildBrGossip(_prop, evt.gossip, name)")(data, c);
+		} case CType.BRANCH_STEP_CMP: {
+			return createTrioEditor!("evtChildBrStepCmp(_prop, _summ, evt.step, evt.step2, name)")(data, c);
+		} case CType.BRANCH_FLAG_CMP: {
+			return createBoolEditor!("evtChildBrFlagCmp(_prop, _summ, evt.flag, evt.flag2, name)")(data, c);
 		} default:
 		}
 		return null;
@@ -2405,6 +2467,12 @@ public:
 			break;
 		} case CType.BRANCH_GOSSIP: {
 			r = evtChildBrGossip(prop, parent.gossip, name);
+			break;
+		} case CType.BRANCH_STEP_CMP: {
+			r = evtChildBrStepCmp(prop, summ, parent.step, parent.step2, name);
+			break;
+		} case CType.BRANCH_FLAG_CMP: {
+			r = evtChildBrFlagCmp(prop, summ, parent.flag, parent.flag2, name);
 			break;
 		} default:
 			name = "";
@@ -2722,6 +2790,66 @@ public:
 			return .tryFormat(prop.msgs.branchGossipSuccess, gossip);
 		} else {
 			return .tryFormat(prop.msgs.branchGossipFailure, gossip);
+		}
+	}
+	private static string evtChildBrStepCmp(in Props prop, in Summary summ, string step1, string step2, ref string text) {
+		int index;
+		if (text == prop.sys.evtChildEq) {
+			index = 2;
+			text = prop.sys.evtChildEq;
+		} else if (text == prop.sys.evtChildLesser) {
+			index = 1;
+			text = prop.sys.evtChildLesser;
+		} else {
+			index = 0;
+			text = prop.sys.evtChildGreater;
+		}
+		string nameFrom(string path) {
+			string name = prop.msgs.noSelectStep;
+			if (path.length) {
+				auto o = summ.flagDirRoot.findStep(path);
+				if (o) {
+					name = path;
+				} else {
+					name = .tryFormat(prop.msgs.noStep, path);
+				}
+			}
+			return name;
+		}
+		step1 = nameFrom(step1);
+		step2 = nameFrom(step2);
+		switch (index) {
+		case 0:
+			return .tryFormat(prop.msgs.branchStepCmpGreater, step1, step2);
+		case 1:
+			return .tryFormat(prop.msgs.branchStepCmpLesser, step1, step2);
+		case 2:
+			return .tryFormat(prop.msgs.branchStepCmpEq, step1, step2);
+		default:
+			assert (0);
+		}
+	}
+	private static string evtChildBrFlagCmp(in Props prop, in Summary summ, string flag1, string flag2, ref string text) {
+		bool val = (text != prop.sys.evtChildFalse);
+		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+		string nameFrom(string path) {
+			string name = prop.msgs.noSelectFlag;
+			if (path.length) {
+				auto o = summ.flagDirRoot.findFlag(path);
+				if (o) {
+					name = path;
+				} else {
+					name = .tryFormat(prop.msgs.noFlag, path);
+				}
+			}
+			return name;
+		}
+		flag1 = nameFrom(flag1);
+		flag2 = nameFrom(flag2);
+		if (val) {
+			return .tryFormat(prop.msgs.branchFlagCmpEq, flag1, flag2);
+		} else {
+			return .tryFormat(prop.msgs.branchFlagCmpNotEq, flag1, flag2);
 		}
 	}
 

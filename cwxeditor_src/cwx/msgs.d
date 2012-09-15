@@ -287,6 +287,7 @@ class Msgs : Properties {
 	auto searchErrorEmptyFile = Msg("searchErrorEmptyFile", "ファイルの内容が存在しない");
 	auto searchErrorDupFile = Msg("searchErrorDupFile", "同一のファイル「%1$s」が存在する");
 	auto searchErrorPCNumber = Msg("searchErrorPCNumber", "CardWirthPyではプレイヤーキャラクタ画像は表示できない");
+	auto searchErrorSouceIsTarget = Msg("searchErrorSouceIsTarget", "ソース変数とターゲット変数が同一");
 
 	auto searchOpenDialog = Msg("searchOpenDialog", "検索結果へジャンプする時、ダイアログを開く");
 
@@ -385,6 +386,10 @@ class Msgs : Properties {
 	auto cardAllDelete = Msg("cardAllDelete", "全て削除する");
 	auto cardEventRange = Msg("cardEventRange", "適用範囲");
 	auto transitionType = Msg("transitionType", "背景切替方式");
+	auto substituteSource = Msg("flagSubstituteSource", "ソース変数(代入元)");
+	auto substituteTarget = Msg("flagSubstituteTarget", "ターゲット変数(代入先)");
+	auto cmpSource = Msg("flagCmpSource", "ソース変数(比較元)");
+	auto cmpTarget = Msg("flagCmpTarget", "ターゲット変数(比較元)");
 
 	/// イベント。
 	auto evtArrow = Msg("evtArrow", "イベント編集");
@@ -461,6 +466,10 @@ class Msgs : Properties {
 	auto contentNameShowParty = Msg("contentNameShowParty", "パーティ表示");
 	auto contentNameHideParty = Msg("contentNameHideParty", "パーティ隠蔽");
 	auto contentNameRedisplay = Msg("contentNameRedisplay", "画面再構築");
+	auto contentNameSubstituteStep = Msg("contentNameSubstituteStep", "ステップ代入");
+	auto contentNameSubstituteFlag = Msg("contentNameSubstituteFlag", "フラグ代入");
+	auto contentNameBranchStepCmp = Msg("contentNameBranchStepCmp", "ステップ比較分岐");
+	auto contentNameBranchFlagCmp = Msg("contentNameBranchFlagCmp", "フラグ比較分岐");
 
 	auto msnGroupVitality = Msg("msnGroupVitality", "生命力");
 	auto msnGroupPhysical = Msg("msnGroupPhysical", "肉体");
@@ -607,6 +616,10 @@ class Msgs : Properties {
 	auto ctHideParty = Msg("ctHideParty", "パーティ隠蔽コンテント");
 	auto ctRedisplay = Msg("ctRedisplay", "切替方式 = %1$s ウェイト = %2$s");
 	auto ctRedisplayClassic = Msg("ctRedisplayClassic", "画面再構築コンテント");
+	auto ctSubstituteStep = Msg("ctSubstituteStep", "ステップ [%1$s] の値をステップ [%2$s] に代入");
+	auto ctSubstituteFlag = Msg("ctSubstituteFlag", "フラグ [%1$s] の値をフラグ [%2$s] に代入");
+	auto ctBranchStepCmp = Msg("ctBranchStepCmp", "ステップ [%1$s] と [%2$s] の値を比較");
+	auto ctBranchFlagCmp = Msg("ctBranchFlagCmp", "フラグ [%1$s] と [%2$s] の値を比較");
 
 	auto defaultStartName = Msg("defaultStartName", "イベント開始");
 
@@ -849,9 +862,9 @@ class Msgs : Properties {
 	auto branchCastSuccess = Msg("branchCastSuccess", "「%1$s」が加わっている");
 	auto branchCastFailure = Msg("branchCastFailure", "「%1$s」が加わっていない");
 	auto branchEffectCardSuccess = Msg("branchEffectCardSuccess", "%1$sで「%2$s」を所有している");
-	auto branchEffectCardFailure = Msg("branchEffectCardFailure", "%1$sで「%2$s」が所有していない");
+	auto branchEffectCardFailure = Msg("branchEffectCardFailure", "%1$sで「%2$s」を所有していない");
 	auto branchInfoSuccess = Msg("branchInfoSuccess", "「%1$s」を所有している");
-	auto branchInfoFailure = Msg("branchInfoFailure", "「%1$s」が所有していない");
+	auto branchInfoFailure = Msg("branchInfoFailure", "「%1$s」を所有していない");
 	auto branchMoneySuccess = Msg("branchMoneySuccess", "%1$ssp以上所持している");
 	auto branchMoneyFailure = Msg("branchMoneyFailure", "%1$ssp以上所持していない");
 	auto branchCouponSuccess = Msg("branchCouponSuccess", "%1$sがクーポン「%2$s」を所有している");
@@ -860,6 +873,11 @@ class Msgs : Properties {
 	auto branchCompleteFailure = Msg("branchCompleteFailure", "シナリオ「%1$s」が終了済みでない");
 	auto branchGossipSuccess = Msg("branchGossipSuccess", "ゴシップ「%1$s」が宿屋にある");
 	auto branchGossipFailure = Msg("branchGossipFailure", "ゴシップ「%1$s」が宿屋に無い");
+	auto branchStepCmpGreater = Msg("branchStepCmpGreater", "ステップ「%1$s」が「%2$s」より大きい");
+	auto branchStepCmpLesser = Msg("branchStepCmpLesser", "ステップ「%1$s」が「%2$s」より小さい");
+	auto branchStepCmpEq = Msg("branchStepCmpEq", "ステップ「%1$s」が「%2$s」と同値");
+	auto branchFlagCmpNotEq = Msg("branchFlagCmpNotEq", "フラグ「%1$s」と「%2$s」の値が異なる");
+	auto branchFlagCmpEq = Msg("branchFlagCmpEq", "フラグ「%1$s」が「%2$s」と同値");
 
 	const string physicalName(Physical id) {
 		mixin(EnumToStringSwitch!(Physical, "physicalName"));
@@ -1222,6 +1240,7 @@ class Msgs : Properties {
 	auto warningNameLenOver = Msg("warningNameLenOver", "名前の長さが%2$s文字を超えています。メッセージにカード名が表示された際に不具合が発生する可能性があります。"); // %1$s = 文字数、%2$s = 文字数 / 2
 	auto warningPCNumberClassic = Msg("warningPCNumberClassic", "プレイヤーキャラクタのイメージはプレイヤーの環境によって表示されない事があります。");
 	auto warningPCNumberXML = Msg("warningPCNumberXML", "CardWirthPyではプレイヤーキャラクタのイメージは表示されません。");
+	auto warningUnknownContent = Msg("warningUnknownContent", "イベント [%1$s] はプレイヤーの環境によって動作しない事があります。");
 
 	auto card = Msg("card", "カード");
 	auto apt = Msg("apt", "要素");

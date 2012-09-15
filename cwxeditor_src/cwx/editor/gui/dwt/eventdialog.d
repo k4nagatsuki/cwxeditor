@@ -1590,6 +1590,282 @@ alias FlagStepDialog!(CType.SET_STEP_DOWN, Step, false) StepMinusDialog;
 alias FlagStepDialog!(CType.REVERSE_FLAG, Flag, false) FlagRDialog;
 alias FlagStepDialog!(CType.CHECK_FLAG, Flag, false) FlagJudgeDialog;
 
+/// フラグ・ステップの組み合わせを選択するダイアログ。
+private class FlagStepCombiDialog(CType Type, F) : EventDialog {
+private:
+	FlagDir _root;
+
+	SplitPane _sash;
+	Table _flags1;
+	Table _flags2;
+
+	string _selected1;
+	string _selected2;
+
+	void refreshWarning() {
+		string[] ws;
+		ws ~= .tryFormat(_prop.msgs.warningUnknownContent, _prop.msgs.contentName(Type));
+		warning = ws;
+	}
+
+	IncSearch _incSearch1;
+	IncSearch _incSearch2;
+	void incSearch1() {
+		.forceFocus(_flags1, true);
+		_incSearch1.startIncSearch();
+	}
+	void incSearch2() {
+		.forceFocus(_flags2, true);
+		_incSearch2.startIncSearch();
+	}
+
+	@property
+	string listSelected1() {
+		int index = _flags1.getSelectionIndex();
+		if (-1 == index) return "";
+		return (cast(F) _flags1.getItem(index).getData()).path;
+	}
+	@property
+	string listSelected2() {
+		int index = _flags2.getSelectionIndex();
+		if (-1 == index) return "";
+		return (cast(F) _flags2.getItem(index).getData()).path;
+	}
+
+	class SListener : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			auto flags = cast(Table) e.widget;
+			int index = flags.getSelectionIndex();
+			if (-1 != index) {
+				string selPath = (cast(F) flags.getItem(index).getData()).path;
+				if (_flags1 is flags) {
+					_selected1 = selPath;
+				} else {
+					assert (_flags2 is flags);
+					_selected2 = selPath;
+				}
+			}
+		}
+	}
+	void refreshList() {
+		static if (is (F == Flag)) {
+			auto flags = _root.allFlags;
+		} else static if (is (F == Step)) {
+			auto flags = _root.allSteps;
+		} else static assert (0);
+		string sel1 = _selected1;
+		string sel2 = _selected2;
+		_flags1.removeAll();
+		_flags2.removeAll();
+		bool has1 = false;
+		bool has2 = false;
+		foreach (flag; flags) {
+			auto path = flag.path;
+			if (!has1 && path == sel1) has1 = true;
+			if (!has2 && path == sel2) has2 = true;
+			void put(Table flags, string sel) {
+				auto itm = new TableItem(flags, SWT.NONE);
+				itm.setData(flag);
+				itm.setText(path);
+				static if (is(F : Flag)) {
+					itm.setImage(_prop.images.flag);
+				} else static if (is(F : Step)) {
+					itm.setImage(_prop.images.step);
+				} else static assert (0);
+				if (path == sel) flags.select(flags.getItemCount() - 1);
+			}
+			if (_incSearch1.match(path)) {
+				put(_flags1, sel1);
+			}
+			if (_incSearch2.match(path)) {
+				put(_flags2, sel2);
+			}
+		}
+		if (!has1 && _flags1.getItemCount()) {
+			_flags1.select(0);
+			_selected1 = (cast(F) _flags1.getItem(0).getData()).path;
+		}
+		if (!has2 && _flags2.getItemCount()) {
+			_flags2.select(0);
+			_selected2 = (cast(F) _flags2.getItem(0).getData()).path;
+		}
+	}
+	class Dispose : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			_comm.refFlagAndStep.remove(&refFS);
+			_comm.delFlagAndStep.remove(&delFS);
+		}
+	}
+	void refFS(Flag[] f, Step[] s) {
+		static if (is(F : Flag)) {
+			if (!f.length) return;
+		} else {
+			if (!s.length) return;
+		}
+		refreshList();
+	}
+	void delFS(Flag[] f, Step[] s) {
+		static if (is(F : Flag)) {
+			if (!f.length) return;
+		} else {
+			if (!s.length) return;
+		}
+		static if (is(F : Flag)) {
+			if (!_root.allFlags.length) {
+				forceCancel();
+				return;
+			}
+		} else static if (is(F : Step)) {
+			if (!_root.allSteps.length) {
+				forceCancel();
+				return;
+			}
+		} else static assert (0);
+		refreshList();
+	}
+
+	void openViewImpl(Table flags) {
+		auto i = flags.getSelectionIndex();
+		if (-1 == i) return;
+		auto a = cast(F) flags.getItem(i).getData();
+		try {
+			_comm.openCWXPath(cpaddattr(a.cwxPath(true), "shallow"), false);
+		} catch (Exception e) {
+			debugln(e);
+		}
+	}
+	void openView1() {openViewImpl(_flags1);}
+	void openView2() {openViewImpl(_flags2);}
+	class OpenView : MouseAdapter {
+		override void mouseDoubleClick(MouseEvent e) {
+			if (1 != e.button) return;
+			openViewImpl(cast(Table) e.widget);
+		}
+	}
+public:
+	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt, FlagDir root) {
+		_root = root;
+		super (comm, prop, shell, summ, Type, parent, evt, true, prop.var.flagCombiDlg, true);
+		closeEvent ~= {
+			auto ws = _sash.getWeights();
+			_prop.var.etc.flagCombiSashL = ws[0];
+			_prop.var.etc.flagCombiSashR = ws[1];
+		};
+	}
+protected:
+	override void setup(Composite area) {
+		area.setLayout(new GridLayout(1, true));
+		_sash = new SplitPane(area, SWT.HORIZONTAL);
+		_sash.setLayoutData(new GridData(GridData.FILL_BOTH));
+		auto left = new Composite(_sash, SWT.NONE);
+		left.setLayout(zeroGridLayout(1));
+		auto right = new Composite(_sash, SWT.NONE);
+		right.setLayout(zeroGridLayout(1));
+		{
+			auto l1 = new CLabel(left, SWT.NONE);
+			auto l2 = new CLabel(right, SWT.NONE);
+			static if (Type == CType.SUBSTITUTE_STEP || Type == CType.SUBSTITUTE_FLAG) {
+				l1.setText(_prop.msgs.substituteSource);
+				l2.setText(_prop.msgs.substituteTarget);
+			} else static if (Type == CType.BRANCH_STEP_CMP || Type == CType.BRANCH_FLAG_CMP) {
+				l1.setText(_prop.msgs.cmpSource);
+				l2.setText(_prop.msgs.cmpTarget);
+			} else static assert (0);
+			static if (is (F == Flag)) {
+				l1.setImage(_prop.images.flag);
+				l2.setImage(_prop.images.flag);
+			} else static if (is (F == Step)) {
+				l1.setImage(_prop.images.step);
+				l2.setImage(_prop.images.step);
+			} else {
+				static assert (0);
+			}
+		}
+		void createList(Composite comp, ref Table flags, ref IncSearch incSearch, void delegate() openView, void delegate() startSearch) {
+			flags = new Table(comp, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.V_SCROLL);
+			mod(flags);
+			incSearch = new IncSearch(comm, flags);
+			incSearch.modEvent ~= &refreshList;
+			new FullTableColumn(flags, SWT.NONE);
+			auto gd = new GridData(GridData.FILL_BOTH);
+			gd.heightHint = _prop.var.etc.nameTableHeight;
+			flags.setLayoutData(gd);
+			flags.addSelectionListener(new SListener);
+
+			flags.addMouseListener(new OpenView);
+			auto menu = new Menu(flags.getShell(), SWT.POP_UP);
+			createMenuItem(comm, menu, MenuID.IncSearch, startSearch, null);
+			new MenuItem(menu, SWT.SEPARATOR);
+			createMenuItem(comm, menu, MenuID.OpenAtVarView, openView, () => flags.getSelectionIndex() != -1);
+			flags.setMenu(menu);
+		}
+		createList(left, _flags1, _incSearch1, &openView1, &incSearch1);
+		createList(right, _flags2, _incSearch2, &openView2, &incSearch2);
+
+		_comm.refFlagAndStep.add(&refFS);
+		_comm.delFlagAndStep.add(&delFS);
+		_sash.addDisposeListener(new Dispose);
+
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
+		refreshList();
+		if (_evt) {
+			static if (is (F == Flag)) {
+				_selected1 = _evt.flag;
+				_selected2 = _evt.flag2;
+			} else static if (is (F == Step)) {
+				_selected1 = _evt.step;
+				_selected2 = _evt.step2;
+			} else {
+				static assert (0);
+			}
+			void put(Table flags, ref string selected) {
+				int index = -1;
+				foreach (i, itm; flags.getItems()) {
+					if ((cast(F) itm.getData()).path == selected) {
+						index = i;
+						break;
+					}
+				}
+				index = index >= 0 ? index : 0;
+				flags.select(index);
+				selected = (cast(F) flags.getItem(index).getData()).path;
+				flags.showSelection();
+			}
+			put(_flags1, _selected1);
+			put(_flags2, _selected2);
+		} else {
+			_flags1.select(0);
+			_flags2.select(0);
+			_selected1 = (cast(F) _flags1.getItem(0).getData()).path;
+			_selected2 = (cast(F) _flags2.getItem(0).getData()).path;
+		}
+		refreshWarning();
+		_sash.setWeights([_prop.var.etc.flagCombiSashL, _prop.var.etc.flagCombiSashR]);
+	}
+
+	override bool apply() {
+		assert (_flags1.getItemCount() > 0);
+		assert (_flags2.getItemCount() > 0);
+		if (!_evt) _evt = new Content(Type, "");
+		static if (is (F == Flag)) {
+			_evt.flag = _selected1;
+			_evt.flag2 = _selected2;
+		} else static if (is (F == Step)) {
+			_evt.step = _selected1;
+			_evt.step2 = _selected2;
+		} else {
+			static assert (0);
+		}
+		return true;
+	}
+}
+
+alias FlagStepCombiDialog!(CType.SUBSTITUTE_STEP, Step) SubstituteStepDialog;
+alias FlagStepCombiDialog!(CType.SUBSTITUTE_FLAG, Flag) SubstituteFlagDialog;
+alias FlagStepCombiDialog!(CType.BRANCH_STEP_CMP, Step) BrStepCmpDialog;
+alias FlagStepCombiDialog!(CType.BRANCH_FLAG_CMP, Flag) BrFlagCmpDialog;
+
 /// メンバ選択分岐の設定を行うダイアログ。
 class BrMemberDialog : EventDialog {
 private:

@@ -2355,6 +2355,22 @@ string contentText(Commons comm, in Content evt, Summary summ = null) {
 			string v = comm.prop.msgs.transitionName(evt.transition);
 			return .tryFormat(comm.prop.msgs.ctRedisplay, v, evt.transitionSpeed);
 		}
+	} case CType.SUBSTITUTE_STEP: {
+		auto t1 = contentTextUseID!(CIDKind.Step)(comm, summ, evt.step, "%s", evt);
+		auto t2 = contentTextUseID!(CIDKind.Step)(comm, summ, evt.step2, "%s", evt);
+		return .tryFormat(comm.prop.msgs.ctSubstituteStep, t1, t2);
+	} case CType.SUBSTITUTE_FLAG: {
+		auto t1 = contentTextUseID!(CIDKind.Flag)(comm, summ, evt.flag, "%s", evt);
+		auto t2 = contentTextUseID!(CIDKind.Flag)(comm, summ, evt.flag2, "%s", evt);
+		return .tryFormat(comm.prop.msgs.ctSubstituteFlag, t1, t2);
+	} case CType.BRANCH_STEP_CMP: {
+		auto t1 = contentTextUseID!(CIDKind.Step)(comm, summ, evt.step, "%s", evt);
+		auto t2 = contentTextUseID!(CIDKind.Step)(comm, summ, evt.step2, "%s", evt);
+		return .tryFormat(comm.prop.msgs.ctBranchStepCmp, t1, t2);
+	} case CType.BRANCH_FLAG_CMP: {
+		auto t1 = contentTextUseID!(CIDKind.Flag)(comm, summ, evt.flag, "%s", evt);
+		auto t2 = contentTextUseID!(CIDKind.Flag)(comm, summ, evt.flag2, "%s", evt);
+		return .tryFormat(comm.prop.msgs.ctBranchFlagCmp, t1, t2);
 	}
 	}
 }

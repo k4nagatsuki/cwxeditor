@@ -279,6 +279,12 @@ class System {
 			return "ＯＫ";
 		}
 	}
+	/// 後続イベントコンテントの大なり値。
+	@property const string evtChildGreater() {return ">";}
+	/// 後続イベントコンテントの小なり値。
+	@property const string evtChildLesser() {return "<";}
+	/// 後続イベントコンテントの一致値。
+	@property const string evtChildEq() {return "=";}
 
 	/// クーポンの型を判別する。
 	const CouponType couponType(string coupon) {

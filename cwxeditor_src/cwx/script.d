@@ -1039,7 +1039,11 @@ class CWXScript {
 			cast(string) "losegossip":CType.LOSE_GOSSIP,
 			cast(string) "showparty":CType.SHOW_PARTY,
 			cast(string) "hideparty":CType.HIDE_PARTY,
-			cast(string) "redraw":CType.REDISPLAY
+			cast(string) "redraw":CType.REDISPLAY,
+			cast(string) "cpstep":CType.SUBSTITUTE_STEP,
+			cast(string) "cpflag":CType.SUBSTITUTE_FLAG,
+			cast(string) "cmpstep":CType.BRANCH_STEP_CMP,
+			cast(string) "cmpflag":CType.BRANCH_FLAG_CMP,
 		];
 		string[CType] commands;
 		foreach (name, type; keywords) {
@@ -2390,6 +2394,12 @@ fi`;
 			if (detail.use(CArg.TRANSITION)) {
 				c.transition = parseAttr!(Transition)(opt, node.attr, i, c.transition, varTable, 0);
 			}
+			if (detail.use(CArg.FLAG_2)) {
+				c.flag2 = parseAttr!(string)(opt, node.attr, i, c.flag2, varTable, 0);
+			}
+			if (detail.use(CArg.STEP_2)) {
+				c.step2 = parseAttr!(string)(opt, node.attr, i, c.step2, varTable, 0);
+			}
 			Content autoWrap(Content c) {
 				if (!c.detail.owner) {
 					throwError(_prop.msgs.scriptErrorCanNotHaveContent, node.token);
@@ -2986,6 +2996,12 @@ fi`;
 				if (detail.use(CArg.TRANSITION)) {
 					attrs ~= toAttr(c.transition, command, indentValue, vars);
 				}
+			}
+			if (detail.use(CArg.FLAG_2)) {
+				attrs ~= toAttr(c.flag2, command, indentValue, vars);
+			}
+			if (detail.use(CArg.STEP_2)) {
+				attrs ~= toAttr(c.step2, command, indentValue, vars);
 			}
 			bool useIf = c.next.length > 1;
 			bool useSif = c.next.length == 1 && c.next[0].name.length;

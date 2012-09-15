@@ -53,6 +53,10 @@ private void static_this () {
 			CType.SET_STEP_UP,
 			CType.SET_STEP_DOWN,
 			CType.CHECK_FLAG,
+			CType.SUBSTITUTE_STEP,
+			CType.SUBSTITUTE_FLAG,
+			CType.BRANCH_STEP_CMP,
+			CType.BRANCH_FLAG_CMP,
 		], CTypeGroup.Utility:[
 			CType.BRANCH_SELECT,
 			CType.BRANCH_ABILITY,
@@ -169,7 +173,11 @@ private void static_this () {
 		CType.LOSE_GOSSIP:CDetail("Lose", "Gossip", CNextType.NONE, true, [CArg.GOSSIP:"gossip"]),
 		CType.SHOW_PARTY:CDetail("Show", "Party", CNextType.NONE, true),
 		CType.HIDE_PARTY:CDetail("Hide", "Party", CNextType.NONE, true),
-		CType.REDISPLAY:CDetail("Redisplay", "", CNextType.NONE, true, [CArg.TRANSITION:_("transition"), CArg.TRANSITION_SPEED:"transitionspeed"])
+		CType.REDISPLAY:CDetail("Redisplay", "", CNextType.NONE, true, [CArg.TRANSITION:_("transition"), CArg.TRANSITION_SPEED:"transitionspeed"]),
+		CType.SUBSTITUTE_STEP:CDetail("Sbustitute", "Step", CNextType.NONE, true, [CArg.STEP:"from", CArg.STEP_2:"to"]),
+		CType.SUBSTITUTE_FLAG:CDetail("Sbustitute", "Flag", CNextType.NONE, true, [CArg.FLAG:"from", CArg.FLAG_2:"to"]),
+		CType.BRANCH_STEP_CMP:CDetail("Branch", "StepValue", CNextType.TRIO, true, [CArg.STEP:"from", CArg.STEP_2:"to"]),
+		CType.BRANCH_FLAG_CMP:CDetail("Branch", "FlagValue", CNextType.BOOL, true, [CArg.FLAG:"from", CArg.FLAG_2:"to"]),
 	];
 	foreach (cType, detail; _CONTENT_DETAILS) {
 		_CTYPE_MAP[detail.name][detail.type] = cType;
@@ -676,6 +684,9 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		copy.money = money;
 		copy.wait = wait;
 
+		copy.flag2 = flag2;
+		copy.step2 = step2;
+
 		Motion[] motions;
 		foreach (m; this.motions) {
 			motions ~= m.dup;
@@ -760,6 +771,9 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			&& cardNumber == c.cardNumber
 			&& money == c.money
 			&& wait == c.wait
+
+			&& flag2 == c.flag2
+			&& step2 == c.step2
 
 			&& motions == c.motions
 
@@ -857,6 +871,11 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 					n.battle = 0;
 				}
 			} break;
+			case CNextType.TRIO: {
+				if (prop.sys.evtChildGreater != n.name && prop.sys.evtChildLesser != n.name && prop.sys.evtChildEq != n.name) {
+					n.name = prop.sys.evtChildGreater;
+				}
+			} break;
 			}
 		}
 		_type = type;
@@ -906,6 +925,9 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		resetValue!(CArg.CARD_NUMBER, int, 1)(d, &cardNumber);
 		resetValue!(CArg.MONEY, int, 0)(d, &money);
 		resetValue!(CArg.WAIT, int, 0)(d, &wait);
+
+		resetValue!(CArg.FLAG_2, string, "")(d, &flag2);
+		resetValue!(CArg.STEP_2, string, "")(d, &step2);
 
 		resetValue!(CArg.MOTIONS, Motion[], [])(d, &motions);
 
@@ -1412,6 +1434,11 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	mixin Prop!(int, "wait", 0u);
 	mixin MaxMin!(int, "wait", int.max, 0);
 
+	/// 操作対象フラグ(CardWirth Extender 1.30～)。
+	mixin Prop!(FlagUser, string, "flag2", "", ".flag", ".flag", true);
+	/// 操作対象ステップ(CardWirth Extender 1.30～)。
+	mixin Prop!(StepUser, string, "step2", "", ".step", ".step", true);
+
 	/// 背景画像群。
 	mixin Prop!(BgImage[], "backs", []);
 
@@ -1661,6 +1688,9 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		atnPut!(CArg.MONEY, "money", "")(e, d);
 		atnPut!(CArg.WAIT, "wait", "")(e, d);
 
+		atnPut!(CArg.FLAG_2, "flag2", "")(e, d);
+		atnPut!(CArg.STEP_2, "step2", "")(e, d);
+
 		// 多少複雑なもの
 		if (d.use(CArg.MOTIONS)) {
 			auto me = e.newElement("Motions");
@@ -1779,6 +1809,9 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		cfnPut!(CArg.CARD_NUMBER, "cardNumber", "to!(int)")(en, d, r);
 		cfnPut!(CArg.MONEY, "money", "to!(int)")(en, d, r);
 		cfnPut!(CArg.WAIT, "wait", "to!(int)")(en, d, r);
+
+		cfnPut!(CArg.FLAG_2, "flag2", "")(en, d, r);
+		cfnPut!(CArg.STEP_2, "step2", "")(en, d, r);
 
 		// 多少複雑なもの
 		if (d.use(CArg.TRANSITION)) {

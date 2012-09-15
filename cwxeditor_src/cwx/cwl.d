@@ -1225,6 +1225,26 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) {
 		e = new Content(CType.CHECK_FLAG, name);
 		e.flag = readString(f);
 		break;
+	case 66:
+		e = new Content(CType.SUBSTITUTE_STEP, name);
+		e.step = readString(f);
+		e.step2 = readString(f);
+		break;
+	case 67:
+		e = new Content(CType.SUBSTITUTE_FLAG, name);
+		e.flag = readString(f);
+		e.flag2 = readString(f);
+		break;
+	case 68:
+		e = new Content(CType.BRANCH_STEP_CMP, name);
+		e.step = readString(f);
+		e.step2 = readString(f);
+		break;
+	case 69:
+		e = new Content(CType.BRANCH_FLAG_CMP, name);
+		e.flag = readString(f);
+		e.flag2 = readString(f);
+		break;
 	default: throw new SummaryException("Unknown content type: " ~ to!(string)(type));
 	}
 	if (e.detail.owner) {
@@ -2592,6 +2612,22 @@ private void writeContent(ref SData d, ref ByteIO f, Content e) {
 	} else if (e.type is CType.CHECK_FLAG) {
 		wb(65);
 		writeString(f, e.flag);
+	} else if (e.type is CType.SUBSTITUTE_STEP) {
+		wb(66);
+		writeString(f, e.step);
+		writeString(f, e.step2);
+	} else if (e.type is CType.SUBSTITUTE_FLAG) {
+		wb(67);
+		writeString(f, e.flag);
+		writeString(f, e.flag2);
+	} else if (e.type is CType.BRANCH_STEP_CMP) {
+		wb(68);
+		writeString(f, e.step);
+		writeString(f, e.step2);
+	} else if (e.type is CType.BRANCH_FLAG_CMP) {
+		wb(69);
+		writeString(f, e.flag);
+		writeString(f, e.flag2);
 	} else {
 		assert (0, "event");
 	}
