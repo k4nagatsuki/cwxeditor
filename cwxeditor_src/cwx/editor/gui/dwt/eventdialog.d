@@ -574,13 +574,23 @@ protected:
 }
 
 /// クーポン関連イベントの設定を行うダイアログ。
-class CouponEventDialog(CType Type, bool EditValue) : EventDialog {
+class CouponEventDialog(CType Type, bool EditValue, bool Field) : EventDialog {
 private:
 	Button[Range] _range;
 	Button[CouponType] _type;
 	Combo _name;
 	static if (EditValue) {
 		Spinner _value;
+	}
+
+	void refreshWarning() {
+		string[] ws;
+		static if (Field) {
+			if (_range[Range.FIELD].getSelection()) {
+				ws ~= prop.msgs.warningBranchCouponAtField;
+			}
+		}
+		warning = ws;
 	}
 
 	class SelType : SelectionAdapter {
@@ -636,11 +646,16 @@ protected:
 			}
 			grp.setText(_prop.msgs.range);
 			grp.setLayout(new GridLayout(1, true));
-			foreach (r; RANGE_MEMBER) {
+			auto ranges = RANGE_MEMBER.dup;
+			static if (Field) {
+				ranges ~= Range.FIELD;
+			}
+			foreach (r; ranges) {
 				auto radio = new Button(grp, SWT.RADIO);
 				mod(radio);
 				radio.setLayoutData(new GridData(GridData.FILL_BOTH));
 				radio.setText(_prop.msgs.rangeName(r));
+				.listener(radio, SWT.Selection, &refreshWarning);
 				_range[r] = radio;
 			}
 		}
@@ -719,6 +734,7 @@ protected:
 				_value.setSelection(0);
 			}
 		}
+		refreshWarning();
 	}
 
 	override bool apply() {
@@ -737,6 +753,10 @@ protected:
 		return true;
 	}
 }
+
+alias CouponEventDialog!(CType.BRANCH_COUPON, false, true) BranchCouponDialog;
+alias CouponEventDialog!(CType.GET_COUPON, true, false) GetCouponDialog;
+alias CouponEventDialog!(CType.LOSE_COUPON, false, false) LoseCouponDialog;
 
 /// 終了印とゴシップの設定を行うダイアログ。
 private class OneTextEventDialog(CType Type, string Name, string Get, string Set) : EventDialog {
@@ -1591,7 +1611,7 @@ alias FlagStepDialog!(CType.REVERSE_FLAG, Flag, false) FlagRDialog;
 alias FlagStepDialog!(CType.CHECK_FLAG, Flag, false) FlagJudgeDialog;
 
 /// フラグ・ステップの組み合わせを選択するダイアログ。
-private class FlagStepCombiDialog(CType Type, F) : EventDialog {
+private class FlagStepCombiDialog(CType Type, F, bool Random) : EventDialog {
 private:
 	FlagDir _root;
 
@@ -1619,17 +1639,27 @@ private:
 		_incSearch2.startIncSearch();
 	}
 
+	string getPath(TableItem itm) {
+		auto f = cast(F) itm.getData();
+		static if (Random) {
+			return f ? f.path : prop.sys.randomValue;
+		} else {
+			assert (f !is null);
+			return f.path;
+		}
+	}
+
 	@property
 	string listSelected1() {
 		int index = _flags1.getSelectionIndex();
 		if (-1 == index) return "";
-		return (cast(F) _flags1.getItem(index).getData()).path;
+		return getPath(_flags1.getItem(index));
 	}
 	@property
 	string listSelected2() {
 		int index = _flags2.getSelectionIndex();
 		if (-1 == index) return "";
-		return (cast(F) _flags2.getItem(index).getData()).path;
+		return getPath(_flags2.getItem(index));
 	}
 
 	class SListener : SelectionAdapter {
@@ -1637,7 +1667,7 @@ private:
 			auto flags = cast(Table) e.widget;
 			int index = flags.getSelectionIndex();
 			if (-1 != index) {
-				string selPath = (cast(F) flags.getItem(index).getData()).path;
+				string selPath = getPath(flags.getItem(index));
 				if (_flags1 is flags) {
 					_selected1 = selPath;
 				} else {
@@ -1659,35 +1689,44 @@ private:
 		_flags2.removeAll();
 		bool has1 = false;
 		bool has2 = false;
-		foreach (flag; flags) {
-			auto path = flag.path;
-			if (!has1 && path == sel1) has1 = true;
-			if (!has2 && path == sel2) has2 = true;
-			void put(Table flags, string sel) {
-				auto itm = new TableItem(flags, SWT.NONE);
-				itm.setData(flag);
-				itm.setText(path);
+		void put(F flag, string path, string text, Table flags, string sel) {
+			auto itm = new TableItem(flags, SWT.NONE);
+			itm.setData(flag);
+			itm.setText(text);
+			if (flag) {
 				static if (is(F : Flag)) {
 					itm.setImage(_prop.images.flag);
 				} else static if (is(F : Step)) {
 					itm.setImage(_prop.images.step);
 				} else static assert (0);
-				if (path == sel) flags.select(flags.getItemCount() - 1);
 			}
+			if (path == sel) flags.select(flags.getItemCount() - 1);
+		}
+		static if (Random) {
+			{
+				auto path = prop.sys.randomValue;
+				if (!has1 && path == sel1) has1 = true;
+				put(null, path, prop.msgs.randomValue, _flags1, sel1);
+			}
+		}
+		foreach (flag; flags) {
+			auto path = flag.path;
+			if (!has1 && path == sel1) has1 = true;
+			if (!has2 && path == sel2) has2 = true;
 			if (_incSearch1.match(path)) {
-				put(_flags1, sel1);
+				put(flag, path, path, _flags1, sel1);
 			}
 			if (_incSearch2.match(path)) {
-				put(_flags2, sel2);
+				put(flag, path, path, _flags2, sel2);
 			}
 		}
 		if (!has1 && _flags1.getItemCount()) {
 			_flags1.select(0);
-			_selected1 = (cast(F) _flags1.getItem(0).getData()).path;
+			_selected1 = getPath(_flags1.getItem(0));
 		}
 		if (!has2 && _flags2.getItemCount()) {
 			_flags2.select(0);
-			_selected2 = (cast(F) _flags2.getItem(0).getData()).path;
+			_selected2 = getPath(_flags2.getItem(0));
 		}
 	}
 	class Dispose : DisposeListener {
@@ -1822,14 +1861,14 @@ protected:
 			void put(Table flags, ref string selected) {
 				int index = -1;
 				foreach (i, itm; flags.getItems()) {
-					if ((cast(F) itm.getData()).path == selected) {
+					if (getPath(itm) == selected) {
 						index = i;
 						break;
 					}
 				}
 				index = index >= 0 ? index : 0;
 				flags.select(index);
-				selected = (cast(F) flags.getItem(index).getData()).path;
+				selected = getPath(flags.getItem(index));
 				flags.showSelection();
 			}
 			put(_flags1, _selected1);
@@ -1837,8 +1876,8 @@ protected:
 		} else {
 			_flags1.select(0);
 			_flags2.select(0);
-			_selected1 = (cast(F) _flags1.getItem(0).getData()).path;
-			_selected2 = (cast(F) _flags2.getItem(0).getData()).path;
+			_selected1 = getPath(_flags1.getItem(0));
+			_selected2 = getPath(_flags2.getItem(0));
 		}
 		refreshWarning();
 		_sash.setWeights([_prop.var.etc.flagCombiSashL, _prop.var.etc.flagCombiSashR]);
@@ -1861,10 +1900,10 @@ protected:
 	}
 }
 
-alias FlagStepCombiDialog!(CType.SUBSTITUTE_STEP, Step) SubstituteStepDialog;
-alias FlagStepCombiDialog!(CType.SUBSTITUTE_FLAG, Flag) SubstituteFlagDialog;
-alias FlagStepCombiDialog!(CType.BRANCH_STEP_CMP, Step) BrStepCmpDialog;
-alias FlagStepCombiDialog!(CType.BRANCH_FLAG_CMP, Flag) BrFlagCmpDialog;
+alias FlagStepCombiDialog!(CType.SUBSTITUTE_STEP, Step, true) SubstituteStepDialog;
+alias FlagStepCombiDialog!(CType.SUBSTITUTE_FLAG, Flag, true) SubstituteFlagDialog;
+alias FlagStepCombiDialog!(CType.BRANCH_STEP_CMP, Step, false) BrStepCmpDialog;
+alias FlagStepCombiDialog!(CType.BRANCH_FLAG_CMP, Flag, false) BrFlagCmpDialog;
 
 /// メンバ選択分岐の設定を行うダイアログ。
 class BrMemberDialog : EventDialog {

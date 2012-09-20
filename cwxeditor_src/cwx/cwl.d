@@ -950,7 +950,12 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) {
 		byte rng = f.readByte;
 		e = new Content(CType.BRANCH_COUPON, name);
 		e.coupon = coupon;
-		e.range = toRange(rng);
+		if (3 == rng) {
+			// CardWirth Extender 1.30～
+			e.range = Range.FIELD;
+		} else {
+			e.range = toRange(rng);
+		}
 		break;
 	}
 	case 26:
@@ -2470,7 +2475,12 @@ private void writeContent(ref SData d, ref ByteIO f, Content e) {
 		wb(25);
 		writeString(f, e.coupon);
 		f.writeL(cast(int) 0x0);
-		f.write(fromRange(e.range));
+		// CardWirth Extender 1.30～
+		if (Range.FIELD is e.range) {
+			f.write(cast(byte) 3);
+		} else {
+			f.write(fromRange(e.range));
+		}
 	} else if (e.type is CType.GET_CAST) {
 		wb(26);
 		f.writeL(cast(uint) e.casts);

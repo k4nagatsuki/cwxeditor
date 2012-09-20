@@ -2177,7 +2177,11 @@ string contentText(Commons comm, in Content evt, Summary summ = null) {
 			return r(evt.dialogs[0]);
 		}
 	} case CType.PLAY_BGM: {
-		return contentTextUseID!(CIDKind.BGM)(comm, summ, evt.bgmPath, comm.prop.msgs.ctPlayBGM, evt);
+		if ("" == evt.bgmPath) {
+			return  comm.prop.msgs.ctStopBGM;
+		} else {
+			return contentTextUseID!(CIDKind.BGM)(comm, summ, evt.bgmPath, comm.prop.msgs.ctPlayBGM, evt);
+		}
 	} case CType.PLAY_SOUND: {
 		return contentTextUseID!(CIDKind.SE)(comm, summ, evt.soundPath, comm.prop.msgs.ctPlaySound, evt);
 	} case CType.WAIT: {
@@ -2356,13 +2360,21 @@ string contentText(Commons comm, in Content evt, Summary summ = null) {
 			return .tryFormat(comm.prop.msgs.ctRedisplay, v, evt.transitionSpeed);
 		}
 	} case CType.SUBSTITUTE_STEP: {
-		auto t1 = contentTextUseID!(CIDKind.Step)(comm, summ, evt.step, "%s", evt);
 		auto t2 = contentTextUseID!(CIDKind.Step)(comm, summ, evt.step2, "%s", evt);
-		return .tryFormat(comm.prop.msgs.ctSubstituteStep, t1, t2);
+		if (evt.step == comm.prop.sys.randomValue) {
+			return .tryFormat(comm.prop.msgs.ctSubstituteStepFromRandom, t2);
+		} else {
+			auto t1 = contentTextUseID!(CIDKind.Step)(comm, summ, evt.step, "%s", evt);
+			return .tryFormat(comm.prop.msgs.ctSubstituteStep, t1, t2);
+		}
 	} case CType.SUBSTITUTE_FLAG: {
-		auto t1 = contentTextUseID!(CIDKind.Flag)(comm, summ, evt.flag, "%s", evt);
 		auto t2 = contentTextUseID!(CIDKind.Flag)(comm, summ, evt.flag2, "%s", evt);
-		return .tryFormat(comm.prop.msgs.ctSubstituteFlag, t1, t2);
+		if (evt.flag == comm.prop.sys.randomValue) {
+			return .tryFormat(comm.prop.msgs.ctSubstituteFlagFromRandom, t2);
+		} else {
+			auto t1 = contentTextUseID!(CIDKind.Flag)(comm, summ, evt.flag, "%s", evt);
+			return .tryFormat(comm.prop.msgs.ctSubstituteFlag, t1, t2);
+		}
 	} case CType.BRANCH_STEP_CMP: {
 		auto t1 = contentTextUseID!(CIDKind.Step)(comm, summ, evt.step, "%s", evt);
 		auto t2 = contentTextUseID!(CIDKind.Step)(comm, summ, evt.step2, "%s", evt);

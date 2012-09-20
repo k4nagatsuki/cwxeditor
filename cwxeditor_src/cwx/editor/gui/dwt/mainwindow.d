@@ -831,6 +831,7 @@ private:
 					_comm.refSkin.call();
 					_comm.refPaths.call("");
 					addHistory();
+					_prop.var.etc.lastSaveFilter = filter;
 					core.memory.GC.collect();
 					playSavedSound();
 				} catch (SummaryException e) {

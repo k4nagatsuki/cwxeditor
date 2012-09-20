@@ -546,7 +546,6 @@ class Msgs : Properties {
 	auto ctEffect = Msg("ctEffect", "%1$s レベル%2$s %3$s/%4$s 成功率%5$s%6$s %7$s %8$s 効果 = %9$s");
 	auto ctEffectMotion = Msg("ctEffectMotion", "[%1$s]");
 	auto ctEffectBreak = Msg("ctEffectBreak", "効果中断コンテント");
-	auto ctStopBGM = Msg("ctStopBGM", "BGM停止");
 	auto ctLinkStart = Msg("ctLinkStart", "スタートコンテント「%1$s」へのリンク");
 	auto ctLinkPackage = Msg("ctLinkPackage", "パッケージ「%1$s」へのリンク");
 	auto ctTalkMessage = Msg("ctTalkMessage", "%1$s: %2$s");
@@ -554,6 +553,7 @@ class Msgs : Properties {
 	auto ctTalkDialog = Msg("ctTalkDialog", "%1$s %2$s: %3$s");
 	auto ctTalkDialogNoCoupon = Msg("ctTalkDialogNoCoupon", "%1$s: %2$s");
 	auto ctPlayBGM = Msg("ctPlayBGM", "BGMとして「%1$s」を演奏");
+	auto ctStopBGM = Msg("ctStopBGM", "BGM停止");
 	auto ctPlaySound = Msg("ctPlaySound", "効果音「%1$s」を鳴らす");
 	auto ctWait = Msg("ctWait", "空白時間 = %1$s × 0.1秒");
 	auto ctElapseTime = Msg("ctElapseTime", "ターン数経過コンテント");
@@ -620,6 +620,9 @@ class Msgs : Properties {
 	auto ctSubstituteFlag = Msg("ctSubstituteFlag", "フラグ [%1$s] の値をフラグ [%2$s] に代入");
 	auto ctBranchStepCmp = Msg("ctBranchStepCmp", "ステップ [%1$s] と [%2$s] の値を比較");
 	auto ctBranchFlagCmp = Msg("ctBranchFlagCmp", "フラグ [%1$s] と [%2$s] の値を比較");
+	auto ctSubstituteStepFromRandom = Msg("ctSubstituteStepFromRandom", "ランダム値をステップ [%1$s] に代入");
+	auto ctSubstituteFlagFromRandom = Msg("ctSubstituteFlagFromRandom", "ランダム値をフラグ [%1$s] に代入");
+	auto randomValue = Msg("randomValue", "[ランダム]");
 
 	auto defaultStartName = Msg("defaultStartName", "イベント開始");
 
@@ -861,14 +864,14 @@ class Msgs : Properties {
 	auto branchOnBattleFailure = Msg("branchOnBattleFailure", "イベント発生時の状況が戦闘中以外");
 	auto branchCastSuccess = Msg("branchCastSuccess", "「%1$s」が加わっている");
 	auto branchCastFailure = Msg("branchCastFailure", "「%1$s」が加わっていない");
-	auto branchEffectCardSuccess = Msg("branchEffectCardSuccess", "%1$sで「%2$s」を所有している");
-	auto branchEffectCardFailure = Msg("branchEffectCardFailure", "%1$sで「%2$s」を所有していない");
+	auto branchEffectCardSuccess = Msg("branchEffectCardSuccess", "「%2$s」を所有している(%1$s)");
+	auto branchEffectCardFailure = Msg("branchEffectCardFailure", "「%2$s」を所有していない(%1$s)");
 	auto branchInfoSuccess = Msg("branchInfoSuccess", "「%1$s」を所有している");
 	auto branchInfoFailure = Msg("branchInfoFailure", "「%1$s」を所有していない");
 	auto branchMoneySuccess = Msg("branchMoneySuccess", "%1$ssp以上所持している");
 	auto branchMoneyFailure = Msg("branchMoneyFailure", "%1$ssp以上所持していない");
-	auto branchCouponSuccess = Msg("branchCouponSuccess", "%1$sがクーポン「%2$s」を所有している");
-	auto branchCouponFailure = Msg("branchCouponFailure", "%1$sがクーポン「%2$s」を所有していない");
+	auto branchCouponSuccess = Msg("branchCouponSuccess", "クーポン「%2$s」を所有している(%1$s)");
+	auto branchCouponFailure = Msg("branchCouponFailure", "クーポン「%2$s」を所有していない(%1$s)");
 	auto branchCompleteSuccess = Msg("branchCompleteSuccess", "シナリオ「%1$s」が終了済みである");
 	auto branchCompleteFailure = Msg("branchCompleteFailure", "シナリオ「%1$s」が終了済みでない");
 	auto branchGossipSuccess = Msg("branchGossipSuccess", "ゴシップ「%1$s」が宿屋にある");
@@ -1241,6 +1244,7 @@ class Msgs : Properties {
 	auto warningPCNumberClassic = Msg("warningPCNumberClassic", "プレイヤーキャラクタのイメージはプレイヤーの環境によって表示されない事があります。");
 	auto warningPCNumberXML = Msg("warningPCNumberXML", "CardWirthPyではプレイヤーキャラクタのイメージは表示されません。");
 	auto warningUnknownContent = Msg("warningUnknownContent", "イベント [%1$s] はプレイヤーの環境によって動作しない事があります。");
+	auto warningBranchCouponAtField = Msg("warningBranchCouponAtField", "フィールド全体でのクーポン所持判定は、プレイヤーの環境によっては動作しない事があります。");
 
 	auto card = Msg("card", "カード");
 	auto apt = Msg("apt", "要素");

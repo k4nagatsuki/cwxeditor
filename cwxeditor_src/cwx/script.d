@@ -1767,6 +1767,10 @@ fi`;
 				/// BGM停止用
 				i++;
 				return "";
+			} else if (attr[i].token.kind is Kind.SYMBOL && value == "random") {
+				/// ステップ・フラグ代入のランダム値
+				i++;
+				return _prop.sys.randomValue;
 			}
 			i++;
 			return value;

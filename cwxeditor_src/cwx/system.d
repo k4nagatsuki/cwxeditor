@@ -368,4 +368,9 @@ class System {
 	@property const string couponDurBattle() {
 		return "；";
 	}
+
+	/// フラグ・ステップ値のランダム値ソース名。
+	@property const string randomValue() {
+		return "??Random";
+	}
 }

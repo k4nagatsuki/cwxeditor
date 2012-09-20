@@ -2106,11 +2106,12 @@
 <p class="fullname">(Copy Flag)</p>
 
 <p class="desc"><em class="warning">このコンテントはCardWirth Extender 1.30以降でなければ機能しません。</em></p>
-<p class="desc">状態変数(ステップまたはフラグ)の値を別の状態変数へ代入します。</p>
+<p class="desc">状態変数(ステップまたはフラグ)の値を別の状態変数へ代入します。ランダムな値を代入する事もできます。</p>
 
 <h4 class="argments">パラメータ</h4>
 
 <p class="desc">代入元となる変数と代入先となる状態変数の名前を指定します。</p>
+<p class="desc">代入元に<code class="code">random</code>を指定すると、代入先にランダムな値がセットされます。</p>
 
 <h4 class="example">例</h4>
 
@@ -2118,7 +2119,8 @@
 <span class="keywords">cpflag</span> <span class="str">"情報A入手済み"</span>, <span class="str">"汎用フラグ"</span> <span class="comment">// フラグ「情報A入手済み」の内容を「汎用入手済み」へ代入</span>
 <span class="keywords">callpack</span> <span class="var">$pack_汎用情報処理</span> <span class="comment">// 汎用パッケージのコール</span>
 <span class="keywords">cpstep</span> <span class="str">"情報A段階"</span>, <span class="str">"汎用段階"</span> <span class="comment">// ステップ「情報A段階」へ処理結果を反映</span>
-<span class="keywords">cpflag</span> <span class="str">"情報A入手済み"</span>, <span class="str">"汎用フラグ"</span> <span class="comment">// フラグ「情報A入手済み」へ処理結果を反映</span></code></pre>
+<span class="keywords">cpflag</span> <span class="str">"情報A入手済み"</span>, <span class="str">"汎用フラグ"</span> <span class="comment">// フラグ「情報A入手済み」へ処理結果を反映</span>
+<span class="keywords">cpstep</span> <span class="code">random</span>, <span class="str">"ダイス"</span> <span class="comment">// ステップ「ダイス」へランダム値を設定</span></code></pre>
 
 <h3 class="content"><a id="CMPSTEP" name="CMPSTEP">cmpstep <span class="args"><span class="arg">&lt;比較元ステップ名&gt;</span>, <span class="arg">&lt;比較先ステップ名&gt;</span></span></a></h3>
 

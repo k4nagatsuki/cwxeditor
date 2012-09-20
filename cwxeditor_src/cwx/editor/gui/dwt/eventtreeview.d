@@ -759,7 +759,7 @@ private:
 			dlg = new MoneyEventDialog!(CType.BRANCH_MONEY)(_comm, _prop, _tree.getShell(), _summ, parent, evt);
 			break;
 		} case CType.BRANCH_COUPON: {
-			dlg = new CouponEventDialog!(CType.BRANCH_COUPON, false)(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			dlg = new BranchCouponDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
 			break;
 		} case CType.BRANCH_COMPLETE_STAMP: {
 			dlg = new EndEventDialog!(CType.BRANCH_COMPLETE_STAMP)(_comm, _prop, _tree.getShell(), _summ, parent, evt);
@@ -806,7 +806,7 @@ private:
 			dlg = new MoneyEventDialog!(CType.GET_MONEY)(_comm, _prop, _tree.getShell(), _summ, parent, evt);
 			break;
 		} case CType.GET_COUPON: {
-			dlg = new CouponEventDialog!(CType.GET_COUPON, true)(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			dlg = new GetCouponDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
 			break;
 		} case CType.GET_COMPLETE_STAMP: {
 			dlg = new EndEventDialog!(CType.GET_COMPLETE_STAMP)(_comm, _prop, _tree.getShell(), _summ, parent, evt);
@@ -835,7 +835,7 @@ private:
 			dlg = new MoneyEventDialog!(CType.LOSE_MONEY)(_comm, _prop, _tree.getShell(), _summ, parent, evt);
 			break;
 		} case CType.LOSE_COUPON: {
-			dlg = new CouponEventDialog!(CType.LOSE_COUPON, false)(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			dlg = new LoseCouponDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
 			break;
 		} case CType.LOSE_COMPLETE_STAMP: {
 			dlg = new EndEventDialog!(CType.LOSE_COMPLETE_STAMP)(_comm, _prop, _tree.getShell(), _summ, parent, evt);
@@ -990,7 +990,7 @@ private:
 			dlg = new MoneyEventDialog!(CType.BRANCH_MONEY)(_comm, _prop, _tree.getShell(), _summ, parent, evt);
 			break;
 		} case CType.BRANCH_COUPON: {
-			dlg = new CouponEventDialog!(CType.BRANCH_COUPON, false)(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			dlg = new BranchCouponDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
 			break;
 		} case CType.BRANCH_COMPLETE_STAMP: {
 			dlg = new EndEventDialog!(CType.BRANCH_COMPLETE_STAMP)(_comm, _prop, _tree.getShell(), _summ, parent, evt);
@@ -1037,7 +1037,7 @@ private:
 			dlg = new MoneyEventDialog!(CType.GET_MONEY)(_comm, _prop, _tree.getShell(), _summ, parent, evt);
 			break;
 		} case CType.GET_COUPON: {
-			dlg = new CouponEventDialog!(CType.GET_COUPON, true)(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			dlg = new GetCouponDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
 			break;
 		} case CType.GET_COMPLETE_STAMP: {
 			dlg = new EndEventDialog!(CType.GET_COMPLETE_STAMP)(_comm, _prop, _tree.getShell(), _summ, parent, evt);
@@ -1066,7 +1066,7 @@ private:
 			dlg = new MoneyEventDialog!(CType.LOSE_MONEY)(_comm, _prop, _tree.getShell(), _summ, parent, evt);
 			break;
 		} case CType.LOSE_COUPON: {
-			dlg = new CouponEventDialog!(CType.LOSE_COUPON, false)(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			dlg = new LoseCouponDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
 			break;
 		} case CType.LOSE_COMPLETE_STAMP: {
 			dlg = new EndEventDialog!(CType.LOSE_COMPLETE_STAMP)(_comm, _prop, _tree.getShell(), _summ, parent, evt);
