@@ -3029,7 +3029,7 @@ fi`;
 					} else {
 						buf ~= idx == 0 ? "if " : "elif ";
 					}
-					switch (detail.nextType) {
+					final switch (detail.nextType) {
 					case CNextType.NONE:
 						buf ~= `""`;
 						break;
@@ -3048,7 +3048,9 @@ fi`;
 							buf ~= chld.name;
 						}
 						break;
-					default: assert (0);
+					case CNextType.TRIO:
+						buf ~= createString(chld.name);
+						break;
 					}
 					buf ~= "\n";
 					auto nextIndent = useSif ? indentValue : indentValue ~ indent;

@@ -81,16 +81,16 @@ protected:
 			}
 			buf ~= lStr;
 			buf ~= line;
+
+			auto left = line[0 .. err.errPos];
 			string btm;
-			foreach (i, dchar c; line) {
-				if (btm.length < err.errPos) {
-					if (c == '\t') {
-						btm ~= "\t";
-					} else {
-						char[] str;
-						std.utf.encode(str, c);
-						btm ~= rightJustify("", lengthJ(str));
-					}
+			foreach (i, dchar c; left) {
+				if (c == '\t') {
+					btm ~= "\t";
+				} else {
+					char[] str;
+					std.utf.encode(str, c);
+					btm ~= rightJustify("", lengthJ(str));
 				}
 			}
 			buf ~= "\n";

@@ -2501,15 +2501,14 @@ public:
 	}
 	/// 末尾のアイテムを返す。
 	private TreeItem createChilds(TreeItem parent, Content evt) {
-		if (!evt.detail.owner) return null;
+		if (!evt.detail.owner) return parent;
 		parent.removeAll();
-		TreeItem itm = null;
+		TreeItem itm = parent;
 		foreach (c; evt.next) {
 			auto itm2 = createTreeItem(parent, c, eventText(evt, c), _prop.images.content(c.type));
 			itm = itm2;
 			if (c.detail.owner) {
-				auto child = createChilds(itm2, c);
-				if (child) itm = child;
+				itm = createChilds(itm2, c);
 			}
 			procTreeItem(itm2);
 			itm2.setExpanded(true);
@@ -3009,7 +3008,7 @@ public:
 			_comm.refContent.call(ct);
 		}
 		auto lastItm = createChilds(itm, owner);
-		if (lastItm) _tree.setSelection([lastItm]);
+		_tree.setSelection([lastItm]);
 		_comm.refUseCount.call();
 		refreshStatusLine();
 		_comm.refreshToolBar();
@@ -3072,9 +3071,7 @@ public:
 			}
 			_et.insert(index + i, c);
 			sItm = createTreeItem(_tree, c, c.name, _prop.images.content(c.type), index + i);
-			lastItm = sItm;
-			auto child = createChilds(sItm, c);
-			if (child) lastItm = child;
+			lastItm = createChilds(sItm, c);
 			sItm.setExpanded(true);
 			_comm.refContent.call(c);
 		}
