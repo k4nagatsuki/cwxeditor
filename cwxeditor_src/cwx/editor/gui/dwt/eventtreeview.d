@@ -190,7 +190,7 @@ private:
 		et.insert(index, c);
 		if (v) {
 			auto itm = createTreeItem(v._tree, c, c.name, v._prop.images.content(c.type), index);
-			v.createChilds(itm, c, false);
+			v.createChilds(itm, c);
 			itm.setExpanded(true);
 			v.refreshStatusLine();
 			v._refreshTopStart();
@@ -243,7 +243,7 @@ private:
 						itm = createTreeItem(v._tree, c, text, prop.images.content(c.type), index);
 					}
 					v.procTreeItem(itm);
-					v.createChilds(itm, c, false);
+					v.createChilds(itm, c);
 					itm.setExpanded(true);
 				}
 				delImpl(v, comm, et, tc);
@@ -523,7 +523,7 @@ private:
 							_comm.delContent.call(ic);
 							evt.add(ic);
 							insertTo.dispose();
-							createChilds(itm, evt, false);
+							createChilds(itm, evt);
 							itm.setExpanded(true);
 						}
 						procTreeItem(itm);
@@ -2499,20 +2499,22 @@ public:
 			}
 		}
 	}
-	private void createChilds(TreeItem parent, Content evt, bool select = false) {
-		if (!evt.detail.owner) return;
+	/// 末尾のアイテムを返す。
+	private TreeItem createChilds(TreeItem parent, Content evt) {
+		if (!evt.detail.owner) return null;
 		parent.removeAll();
+		TreeItem itm = null;
 		foreach (c; evt.next) {
-			auto itm = createTreeItem(parent, c, eventText(evt, c), _prop.images.content(c.type));
-			if (select) {
-				_tree.setSelection([itm]);
-			}
+			auto itm2 = createTreeItem(parent, c, eventText(evt, c), _prop.images.content(c.type));
+			itm = itm2;
 			if (c.detail.owner) {
-				createChilds(itm, c, select);
+				auto child = createChilds(itm2, c);
+				if (child) itm = child;
 			}
-			procTreeItem(itm);
-			itm.setExpanded(true);
+			procTreeItem(itm2);
+			itm2.setExpanded(true);
 		}
+		return itm;
 	}
 	private static string evtChildBrFlag(in Props prop, in Summary summ, string path, ref string text) {
 		bool val = (text != prop.sys.evtChildFalse);
@@ -3006,7 +3008,8 @@ public:
 			owner.add(ct);
 			_comm.refContent.call(ct);
 		}
-		createChilds(itm, owner, true);
+		auto lastItm = createChilds(itm, owner);
+		if (lastItm) _tree.setSelection([lastItm]);
 		_comm.refUseCount.call();
 		refreshStatusLine();
 		_comm.refreshToolBar();
@@ -3038,7 +3041,7 @@ public:
 
 		auto top = _tree.getTopItem();
 		if (stored) storeInsert(index, cs2.length);
-		TreeItem sItm = null;
+		TreeItem sItm = null, lastItm = null;
 		foreach (i, c; cs2) {
 			if (!c.type is CType.START) continue;
 			auto oldName = c.name;
@@ -3069,12 +3072,14 @@ public:
 			}
 			_et.insert(index + i, c);
 			sItm = createTreeItem(_tree, c, c.name, _prop.images.content(c.type), index + i);
-			createChilds(sItm, c, true);
+			lastItm = sItm;
+			auto child = createChilds(sItm, c);
+			if (child) lastItm = child;
 			sItm.setExpanded(true);
 			_comm.refContent.call(c);
 		}
 		if (!sItm) return;
-		_tree.select(sItm);
+		if (lastItm) _tree.setSelection([lastItm]);
 		_tree.showSelection();
 		_comm.refUseCount.call();
 		refreshStatusLine();

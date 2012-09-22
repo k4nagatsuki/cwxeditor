@@ -352,6 +352,15 @@ private Range toRange(byte b) {
 	default: throw new SummaryException("Unknown range: " ~ to!(string)(b));
 	}
 }
+private Range toCouponRange(byte b) {
+	switch (b) {
+	case 0: return Range.SELECTED;
+	case 1: return Range.RANDOM;
+	case 2: return Range.PARTY;
+	case 3: return Range.FIELD;
+	default: throw new SummaryException("Unknown range: " ~ to!(string)(b));
+	}
+}
 private Status toStatus(byte b) {
 	switch (b) {
 	case 0: return Status.ACTIVE;
@@ -950,12 +959,7 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) {
 		byte rng = f.readByte;
 		e = new Content(CType.BRANCH_COUPON, name);
 		e.coupon = coupon;
-		if (3 == rng) {
-			// CardWirth Extender 1.30～
-			e.range = Range.FIELD;
-		} else {
-			e.range = toRange(rng);
-		}
+		e.range = toCouponRange(rng);
 		break;
 	}
 	case 26:
@@ -1943,6 +1947,16 @@ private byte fromRange(Range v) {
 	default: throw new SummaryException("Unknown range value: " ~ to!(string)(cast(int) v));
 	}
 }
+/// CardWirth Extender 1.30～
+private byte fromCouponRange(Range v) {
+	switch (v) {
+	case Range.SELECTED: return 0;
+	case Range.RANDOM: return 1;
+	case Range.PARTY: return 2;
+	case Range.FIELD: return 3;
+	default: throw new SummaryException("Unknown range value: " ~ to!(string)(cast(int) v));
+	}
+}
 private byte fromStatus(Status v) {
 	switch (v) {
 	case Status.ACTIVE: return 0;
@@ -2475,12 +2489,7 @@ private void writeContent(ref SData d, ref ByteIO f, Content e) {
 		wb(25);
 		writeString(f, e.coupon);
 		f.writeL(cast(int) 0x0);
-		// CardWirth Extender 1.30～
-		if (Range.FIELD is e.range) {
-			f.write(cast(byte) 3);
-		} else {
-			f.write(fromRange(e.range));
-		}
+		f.write(fromCouponRange(e.range));
 	} else if (e.type is CType.GET_CAST) {
 		wb(26);
 		f.writeL(cast(uint) e.casts);

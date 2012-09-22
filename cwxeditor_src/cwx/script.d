@@ -407,7 +407,7 @@ class CWXScript {
 		Token[] r;
 		text = std.array.replace(text, "\r\n", "\n");
 		text = std.array.replace(text, "\r", "\n");
-		dstring dtext = .to!dstring(text);
+		string dtext = text;
 		auto reg = .regex("(" ~ std.string.join(TOKENS.dup, ")|(") ~ ")", "gi");
 		size_t i = 0;
 		size_t hits = 0;
@@ -417,21 +417,19 @@ class CWXScript {
 		size_t lastCommentLine = 0;
 		size_t lastCommentPos = 0;
 		size_t lastCommentIndex = 0;
-		dstring post;
+		string post;
 		bool spaceAfter = false;
 		string docComment = "";
 		string fullComment = "";
-		dstring tPre;
 		@property int sLine() {return cast(int) i + opt.startLine;}
 		@property int sPos() {return (cast(int) i == opt.addLines) ? (cast(int) pos + opt.startPos) : pos;}
 		foreach (token; .match(dtext, reg)) {
 			post = token.post;
-			dstring pre = token.pre;
-			index = .text(pre).length;
-			tPre = pre ~ token.hit;
+			string pre = token.pre;
+			index = pre.length;
 			auto dstr = token.hit;
-			void retCount2(dstring dstr) {
-				size_t count = .count(dstr, "\n"d);
+			void retCount2(string dstr) {
+				size_t count = .count(dstr, "\n");
 				if (count > 0) {
 					pos = dstr.length - std.string.lastIndexOf(dstr, '\n') - 1;
 					i += count;
@@ -451,7 +449,7 @@ class CWXScript {
 					retCount2(pre[hits .. $]);
 					hits = pre.length;
 				} else {
-					dstring lpre = pre;
+					string lpre = pre;
 					if (lpre.length && (lpre[$ - 1] == '@' || lpre[$ - 1] == '"' || lpre[$ - 1] == '\'')) {
 						throwErrorToken(_prop.msgs.scriptErrorUnCloseString, sLine, sPos, "");
 						return r;
@@ -495,19 +493,19 @@ class CWXScript {
 				spaceAfter = false;
 				// symbol
 				switch (std.string.toLower(dstr)) {
-				case "start"d:
+				case "start":
 					r ~= Token(sLine, sPos, index, Kind.START, str, docComment);
 					break;
-				case "if"d:
+				case "if":
 					r ~= Token(sLine, sPos, index, Kind.IF, str, docComment);
 					break;
-				case "elif"d:
+				case "elif":
 					r ~= Token(sLine, sPos, index, Kind.ELIF, str, docComment);
 					break;
-				case "fi"d:
+				case "fi":
 					r ~= Token(sLine, sPos, index, Kind.FI, str, docComment);
 					break;
-				case "sif"d:
+				case "sif":
 					r ~= Token(sLine, sPos, index, Kind.SIF, str, docComment);
 					break;
 				default:
@@ -3090,24 +3088,24 @@ private string validVarName(string name) {
 	return assumeUnique(buf);
 }
 
-private const dstring[] TOKENS = [
-	`[a-z_][a-z_0-9]*`d, // symbol or keyword
-	"\\$[^\b\t\n\v\f\r !\"#$%&\'\\(\\)*+,\\-./:;<=>?@\\[\\\\\\]^`{}|~]+"d, // variable
-	`=`d, // equql
-	`[0-9]+(\.[0-9]+)?`d, // number
-	`\[`d, // open bracket
-	`\]`d, // close bracket
-	`,`d, // comma
-	`"(""|[^"])*?"`d, // string
-	`'(''|[^'])*?'`d, // string
-	`@[ \t]*([0-9]+|c|center)?[ \t]*\n(([^@]|@@|\n)*\n)?[ \t]*@`d, // string
-	`[ \t\r\n]+`d, // whitespace
-	`\+`d,// plus
-	`-`d, // minus
-	`\*\/?`d, // multiply or comment end
-	`\/(\/.*(\n|$)|\*)?`d, // divide or comment start
-	`%`d, // residue
-	`~`d, // cat
-	`\(`d, // open paren
-	`\)`d // close paren
+private const string[] TOKENS = [
+	`[a-z_][a-z_0-9]*`, // symbol or keyword
+	"\\$[^\b\t\n\v\f\r !\"#$%&\'\\(\\)*+,\\-./:;<=>?@\\[\\\\\\]^`{}|~]+", // variable
+	`=`, // equql
+	`[0-9]+(\.[0-9]+)?`, // number
+	`\[`, // open bracket
+	`\]`, // close bracket
+	`,`, // comma
+	"\"(\"\"|[^\"])*?\"", // string
+	"'(''|[^'])*?'", // string
+	`@[ \t]*([0-9]+|c|center)?[ \t]*\n(([^@]|@@|\n)*\n)?[ \t]*@`, // string
+	`[ \t\r\n]+`, // whitespace
+	`\+`, // plus
+	`-`, // minus
+	`\*\/?`, // multiply or comment end
+	`\/(\/.*(\n|$)|\*)?`, // divide or comment start
+	`%`, // residue
+	`~`, // cat
+	`\(`, // open paren
+	`\)` // close paren
 ];
