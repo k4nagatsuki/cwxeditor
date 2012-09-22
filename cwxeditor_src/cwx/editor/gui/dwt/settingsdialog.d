@@ -2018,7 +2018,7 @@ private:
 
 	class SelContentsFloat : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			_contentsAutoHide.setEnabled(!_contentsFloat.getSelection());
+			refreshEnabled();
 		}
 	}
 
@@ -2303,6 +2303,8 @@ private:
 
 		_backupBeforeSaveDir.setEnabled(_backupBeforeSaveEnabled.getSelection());
 		_backupBeforeSaveRef.setEnabled(_backupBeforeSaveEnabled.getSelection());
+
+		_contentsAutoHide.setEnabled(!_contentsFloat.getSelection());
 	}
 	void refEngineEnabled() {
 		_findEnginePath.setEnabled(0 == _enginePath.getText().length);

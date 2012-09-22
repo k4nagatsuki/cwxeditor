@@ -1879,6 +1879,7 @@ public:
 	}
 	private int _parX, _parY;
 	private void saveToolWinPos() {
+		if (!_constructTools) return;
 		assert (_toolWin);
 		if (_toolWin.isDisposed()) return;
 		_prop.var.contentsWin.x = _toolWin.getBounds().x - _toolWin.getParent().getBounds().x;
