@@ -368,7 +368,6 @@ private:
 				}
 			}
 		}
-		if (isVisible()) openToolWindow();
 		_comm.refreshToolBar();
 	}
 
@@ -1166,15 +1165,13 @@ public:
 	private bool _initialed = false;
 	bool initial() {
 		if (!_initialed) {
-			refresh(true);
+			refresh();
 			return true;
 		}
 		return false;
 	}
-	void refresh(bool openToolWin = true) {
+	void refresh() {
 		_initialed = true;
-		_etree.constructTools();
-		_etree.closeToolWindow();
 		_cards.removeAll();
 		{
 			Image imgArea;
@@ -1226,7 +1223,6 @@ public:
 				cItm.setExpanded(true);
 			}
 		}
-		if (openToolWin) openToolWindow();
 		_comm.refreshToolBar();
 	}
 	private bool canUdImpl(string BeforeAfter, string CanSwapKeyCode)(TreeItem itm) {

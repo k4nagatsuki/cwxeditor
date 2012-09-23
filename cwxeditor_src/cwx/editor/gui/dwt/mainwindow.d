@@ -57,6 +57,7 @@ import std.datetime;
 import std.regex;
 import std.array;
 import std.algorithm;
+import std.csv;
 debug import std.stdio;
 
 import org.eclipse.swt.all;
@@ -1598,8 +1599,14 @@ private:
 						break;
 					}
 					if (SOUND_TYPE_BASS == engineTypeBGM || SOUND_TYPE_BASS == engineTypeSE) {
-						foreach (s; std.string.split(settings.get("soundfont", ""), ",")) {
-							sfont ~= s.strip();
+						try {
+							foreach (rec; .csvReader!string(settings.get("soundfont", "").strip())) {
+								foreach (s; rec) {
+									sfont ~= s;
+								}
+							}
+						} catch (Exception e) {
+							debugln(e);
 						}
 					}
 				}

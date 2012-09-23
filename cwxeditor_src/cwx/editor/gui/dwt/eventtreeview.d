@@ -1894,7 +1894,7 @@ public:
 		auto evt = cast(Content) itm.getData();
 		return !evt.next.length;
 	}
-	void constructTools() {
+	private void constructTools() {
 		if (_tree.isDisposed() || _constructTools) return;
 		_constructTools = true;
 		auto cbar = createCoolBar!("contents")(_comm, _cbarPar, (CoolBar cbar) {
@@ -2136,8 +2136,6 @@ public:
 					createChilds(itm, start);
 					itm.setExpanded(true);
 				}
-			} else {
-				closeToolWindow();
 			}
 			if (0 < _tree.getItemCount()) {
 				_tree.setSelection([_tree.getItem(0)]);
@@ -2947,6 +2945,7 @@ public:
 	}
 
 	void openToolWindow() {
+		constructTools();
 		if (_toolWin) {
 			if (_toolWin.isDisposed()) return;
 			if (_et) {

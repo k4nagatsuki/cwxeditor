@@ -198,6 +198,23 @@ public:
 			_parent2 = parent2;
 		}
 
+		auto d = contPane.getDisplay();
+		auto tl = new class Listener {
+			override void handleEvent(Event e) {
+				auto tabf = cast(CTabFolder) contPane.getParent();
+				if (!tabf) return;
+				if (eventTreeView.eventTree && contPane is tabf.getSelection().getControl()) {
+					_eview.openToolWindow();
+				} else {
+					_eview.closeToolWindow();
+				}
+			}
+		};
+		d.addFilter(SWT.FocusIn, tl);
+		.listener(contPane, SWT.Dispose, {
+			d.removeFilter(SWT.FocusIn, tl);
+		});
+
 		_eview.refresh();
 		__refreshTitle();
 	}
