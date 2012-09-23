@@ -1408,6 +1408,10 @@ private:
 		override void handleEvent(Event e) {
 			auto c = cast(Control) e.widget;
 			if (!c || !_autoHideTools) return;
+			if (!_et) {
+				_autoHideTools.setVisible(false);
+				return;
+			}
 			if (e.type is SWT.MouseMove && _contentsBoxArea.isVisible()) return;
 			if (c !is _tree && !isDescendant(_autoHideTools, c) && !isDescendant(_contentsBoxArea, c)) {
 				_autoHideTools.setVisible(false);
@@ -2129,6 +2133,7 @@ public:
 			}
 			_et = et;
 			_tree.setRedraw(false);
+			scope (exit) _tree.setRedraw(true);
 			_tree.removeAll();
 			if (et) {
 				foreach (start; et.starts) {
@@ -2140,7 +2145,12 @@ public:
 			if (0 < _tree.getItemCount()) {
 				_tree.setSelection([_tree.getItem(0)]);
 			}
-			_tree.setRedraw(true);
+			if (et) {
+				openToolWindow();
+			} else {
+				closeToolWindow();
+				if (_autoHideTools) _autoHideTools.setVisible(false);
+			}
 			refreshStatusLine();
 			_comm.refreshToolBar();
 		}
