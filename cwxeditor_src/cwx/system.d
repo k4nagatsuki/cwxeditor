@@ -369,6 +369,14 @@ class System {
 		return "；";
 	}
 
+	/// システム変数名の接頭辞を返す。
+	@property const string prefixSystemVarName() {
+		return "??";
+	}
+	/// システム変数名か。
+	@property const bool isSystemVar(string varName) {
+		return varName.startsWith(prefixSystemVarName);
+	}
 	/// フラグ・ステップ値のランダム値ソース名。
 	@property const string randomValue() {
 		return "??Random";

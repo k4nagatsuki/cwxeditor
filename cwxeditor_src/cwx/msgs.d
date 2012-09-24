@@ -288,6 +288,7 @@ class Msgs : Properties {
 	auto searchErrorDupFile = Msg("searchErrorDupFile", "同一のファイル「%1$s」が存在する");
 	auto searchErrorPCNumber = Msg("searchErrorPCNumber", "CardWirthPyではプレイヤーキャラクタ画像は表示できない");
 	auto searchErrorSouceIsTarget = Msg("searchErrorSouceIsTarget", "ソース変数とターゲット変数が同一");
+	auto searchErrorSystemName = Msg("searchErrorSystemName", "システムで使用されている名前のため正しく機能しない場合がある");
 
 	auto searchOpenDialog = Msg("searchOpenDialog", "検索結果へジャンプする時、ダイアログを開く");
 
@@ -1245,6 +1246,8 @@ class Msgs : Properties {
 	auto warningPCNumberXML = Msg("warningPCNumberXML", "CardWirthPyではプレイヤーキャラクタのイメージは表示されません。");
 	auto warningUnknownContent = Msg("warningUnknownContent", "イベント [%1$s] はプレイヤーの環境によって動作しない事があります。");
 	auto warningBranchCouponAtField = Msg("warningBranchCouponAtField", "フィールド全体でのクーポン所持判定は、プレイヤーの環境によっては動作しない事があります。");
+	auto warningSystemVarName = Msg("warningSystemVarName", "%1$sで始まる名前の状態変数は、プレイヤーの環境によっては正しく機能しない事があります。");
+	auto warningSystemCoupon = Msg("warningSystemCoupon", "%1$sで始まる名前のクーポンを操作する事はできません。");
 
 	auto card = Msg("card", "カード");
 	auto apt = Msg("apt", "要素");

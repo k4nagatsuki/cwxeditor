@@ -39,6 +39,14 @@ private:
 	Combo stepInit;
 	Text[] stepVals;
 
+	void refreshWarning() {
+		string[] ws;
+		if (prop.sys.isSystemVar(stepName.getText())) {
+			ws ~= .tryFormat(prop.msgs.warningSystemVarName, prop.sys.prefixSystemVarName);
+		}
+		warning = ws;
+	}
+
 	class ModValue : ModifyListener {
 	private:
 		int index;
@@ -109,6 +117,7 @@ protected:
 			createTextMenu!Text(_comm, prop, stepName, &catchMod);
 			setGridMinW(stepName, prop.var.etc.flagNameWidth, GridData.FILL_HORIZONTAL);
 			checker(stepName);
+			.listener(stepName, SWT.Modify, &refreshWarning);
 
 			auto gd = new GridData(GridData.FILL_VERTICAL);
 			gd.heightHint = 0;
@@ -222,6 +231,14 @@ private:
 	Combo flagTrue;
 	Combo flagFalse;
 
+	void refreshWarning() {
+		string[] ws;
+		if (prop.sys.isSystemVar(flagName.getText())) {
+			ws ~= .tryFormat(prop.msgs.warningSystemVarName, prop.sys.prefixSystemVarName);
+		}
+		warning = ws;
+	}
+
 	class ModOnOff : SelectionAdapter, ModifyListener {
 	private:
 		int index;
@@ -305,6 +322,7 @@ protected:
 			mod(flagName);
 			setGridMinW(flagName, prop.var.etc.flagNameWidth, GridData.FILL_HORIZONTAL);
 			checker(flagName);
+			.listener(flagName, SWT.Modify, &refreshWarning);
 
 			auto gd = new GridData(GridData.FILL_VERTICAL);
 			gd.heightHint = 0;

@@ -18,6 +18,7 @@ import cwx.msgutils;
 import cwx.menu;
 import cwx.jpy;
 import cwx.cab;
+import cwx.features;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dutils;
@@ -2455,6 +2456,27 @@ public:
 						return;
 					}
 				}
+				auto flagDir = cast(FlagDir) path;
+				if (flagDir) {
+					if (flagDir.parent is froot && _prop.sys.isSystemVar(flagDir.name)) {
+						addResult(path, count, _prop.msgs.searchErrorSystemName);
+						return;
+					}
+				}
+				auto flag = cast(Flag) path;
+				if (flag) {
+					if (flag.parent is froot && _prop.sys.isSystemVar(flag.name)) {
+						addResult(path, count, _prop.msgs.searchErrorSystemName);
+						return;
+					}
+				}
+				auto step = cast(Step) path;
+				if (step) {
+					if (step.parent is froot && _prop.sys.isSystemVar(step.name)) {
+						addResult(path, count, _prop.msgs.searchErrorSystemName);
+						return;
+					}
+				}
 				auto casts = cast(CastCard) path;
 				if (casts) {
 					bool r = false;
@@ -2676,6 +2698,10 @@ public:
 				}
 				if (c.step != "" && c.step == c.step2) {
 					addResult(path, count, _prop.msgs.searchErrorSouceIsTarget);
+					return;
+				}
+				if ((c.type is CType.GET_COUPON || c.type is CType.LOSE_COUPON) && _prop.sys.isCouponType(c.coupon, CouponType.System)) {
+					addResult(path, count, _prop.msgs.searchErrorSystemName);
 					return;
 				}
 			});
@@ -3402,9 +3428,15 @@ public:
 			text = .tryFormat(_prop.msgs.searchResultStep, ste.path);
 		}
 		auto fld = cast(FlagDir) path;
-		if (fld && !par) {
+		if (fld) {
 			img = _prop.images.flagDir;
-			text = .tryFormat(_prop.msgs.searchResultFlagDir, fld.path);
+			string fldPath = fld.path;
+			if ("" == fldPath) {
+				// Rootディレクトリ
+				text = _prop.msgs.flagsAndSteps;
+			} else {
+				text = .tryFormat(_prop.msgs.searchResultFlagDir, fldPath);
+			}
 		}
 		auto eve = cast(EventTree) path;
 		if (eve && !par) {

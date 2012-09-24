@@ -585,6 +585,11 @@ private:
 
 	void refreshWarning() {
 		string[] ws;
+		static if (Type is CType.GET_COUPON || Type is CType.LOSE_COUPON) {
+			if (prop.sys.isCouponType(_name.getText(), CouponType.System)) {
+				ws ~= .tryFormat(prop.msgs.warningSystemCoupon, prop.sys.couponSystem);
+			}
+		}
 		static if (Field) {
 			if (_range[Range.FIELD].getSelection()) {
 				ws ~= prop.msgs.warningBranchCouponAtField;
@@ -694,6 +699,7 @@ protected:
 					foreach (coType; _type.keys) {
 						_type[coType].setSelection(coType == t);
 					}
+					refreshWarning();
 				});
 			}
 		}
