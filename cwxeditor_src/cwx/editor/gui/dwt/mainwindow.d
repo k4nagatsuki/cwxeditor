@@ -297,27 +297,26 @@ private:
 			debugln(e);
 		}
 	}
+	private string _oldMD5 = "";
 	void createBackup() {
 		try {
 			if (_quit) return;
 			if (!_prop.var.etc.backupEnabled) return;
 			auto summ = summary;
 			if (!summ) return;
-			string parent = _prop.backupPath;
-			auto bc = _prop.var.etc.backupCount;
-			if (0 < bc) {
-				string sPath = summ.scenarioPath;
-				auto d = Clock.currTime();
-				string file = .format("cwxeditor_backup_%04d%02d%02d%02d%02d%02d[%s].zip",
-					d.year, d.month, d.day, d.hour, d.minute, d.second, sPath.baseName());
-				string zFile = std.path.buildPath(parent, file);
-				if (!parent.exists) mkdirRecurse(parent);
-				synchronized (_saveSync) {
-					summ.createZip(zFile, [], true);
-				}
+
+			if (_prop.var.etc.autoSave) {
+				// バックアップ前に自動セーブ
+				_display.syncExec(new class Runnable {
+					override void run() {
+						save(_win, true);
+					}
+				});
 			}
 
-			// 古いバックアップを削除する
+			string parent = _prop.backupPath;
+
+			// 既存のバックアップファイルのリスト
 			auto reg = .regex("^cwxeditor_backup_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]\\[.+\\]\\.zip$"d);
 			auto files = clistdir(parent);
 			string[] backup;
@@ -325,9 +324,33 @@ private:
 				if (match(to!dstring(f), reg).empty) continue;
 				backup ~= f;
 			}
-			if (backup.length <= bc) return;
-			// 実際の更新日時よりファイル名に記述された日付を優先する
+			// 日時でソート。実際の更新日時よりファイル名に記述された日付を優先する
 			backup = backup.sort;
+
+			auto bc = _prop.var.etc.backupCount;
+			void[] data;
+			if (0 < bc) {
+				string sPath = summ.scenarioPath;
+				auto d = Clock.currTime();
+				string file = .format("cwxeditor_backup_%04d%02d%02d%02d%02d%02d[%s].zip",
+					d.year, d.month, d.day, d.hour, d.minute, d.second, sPath.baseName());
+				string zFile = std.path.buildPath(parent, file);
+				synchronized (_saveSync) {
+					data = summ.createZipData([], true);
+				}
+				auto md5 = md5Digest(data);
+				if ((_oldMD5 != md5) && (!backup.length || data != std.file.read(parent.buildPath(backup[$ - 1])))) {
+					// 前回のバックアップと異なっていれば保存
+					if (!parent.exists()) mkdirRecurse(parent);
+					std.file.write(zFile, data);
+					_oldMD5 = md5;
+					bc--;
+				}
+			}
+
+			if (backup.length <= bc) return;
+
+			// 古いバックアップを削除する
 			foreach (f; backup[0 .. backup.length - bc]) {
 				f = std.path.buildPath(parent, f);
 				try {
@@ -699,7 +722,7 @@ private:
 		opt.backupDir = _prop.backupBeforeSavePath.buildPath(_prop.var.etc.backupBeforeSaveDir);
 		return opt;
 	}
-	bool save(Shell shell) {
+	bool save(Shell shell, bool backupSave = false) {
 		if (summary) {
 			_dirWin.pauseTrace();
 			scope (exit) {
@@ -707,6 +730,7 @@ private:
 			}
 			if (!summary.isSaved) {
 				// いまだ保存されていない場合は名前をつけて保存
+				if (backupSave) return false;
 				return __saveScenarioA(shell);
 			} else {
 				auto cursors = setWaitCursors(shell);
@@ -2471,6 +2495,9 @@ public:
 			auto fc = d.getFocusControl();
 			if (!fc) return;
 			bool ro = !(fc.getStyle() & SWT.READ_ONLY);
+			if (ro && cast(Spinner) fc) {
+				return;
+			}
 			if (ro && (cast(Spinner) fc || cast(Text) fc || cast(Combo) fc || cast(CCombo) fc)) {
 				if (!(e.stateMask & SWT.CTRL) && !.contains!("a == b", int, int)(F, e.keyCode)) {
 					return;

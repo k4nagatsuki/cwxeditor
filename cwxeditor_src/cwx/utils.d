@@ -663,11 +663,15 @@ class Wildcard {
 	assert (Wildcard("???t").replace("testtestest", "BB") == "BBBBest");
 }
 
+/// データのMD5ダイジェストを取得する。
+string md5Digest(in void[] data) {
+	return getDigestString([data]);
+}
 /// ファイルのMD5ダイジェストを取得する。
 string fileToMD5Digest(string file) {
 	if (.exists(file)) {
 		try {
-			return getDigestString([std.file.read(file)]);
+			return md5Digest(std.file.read(file));
 		} catch (FileException e) {
 			// 読み込めなかった場合は空文字列を返す
 			debugln(e);

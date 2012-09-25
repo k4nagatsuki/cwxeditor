@@ -2049,8 +2049,8 @@ public:
 			throw new SummaryException(.tryFormat(prop.msgs.saveError, scenarioName));
 		}
 	}
-	/// データを保存せずにシナリオのフォルダのアーカイブを作成する。
-	void createZip(string zipName, in string[] ignorePaths, bool useSysEnc) {
+	/// シナリオのフォルダのアーカイブを作成する。
+	void[] createZipData(in string[] ignorePaths, bool useSysEnc) {
 		auto lock = std.path.buildPath(scenarioPath, "cwxeditor.lock");
 		auto arc = .zip(scenarioPath, true, (string file) {
 			return cfnmatch(file, lock)
@@ -2064,7 +2064,11 @@ public:
 				}
 			}
 		}
-		std.file.write(zipName, arc.build());
+		return arc.build();
+	}
+	/// データを保存せずにシナリオのフォルダのアーカイブを作成する。
+	void createZip(string zipName, in string[] ignorePaths, bool useSysEnc) {
+		std.file.write(zipName, createZipData(ignorePaths, useSysEnc));
 	}
 	/// データを保存せずにシナリオのフォルダのアーカイブを作成する。
 	/// 非展開のXMLファイルは一時的に展開される。
