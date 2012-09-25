@@ -36,6 +36,7 @@ import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.loader;
 import cwx.editor.gui.dwt.scripterrordialog;
+import cwx.editor.gui.dwt.incsearch;
 
 import std.path;
 import std.file;
@@ -1404,6 +1405,10 @@ private:
 		string mnemonic;
 		string hotkey;
 	}
+	IncSearch _menuIncSearch;
+	void menuIncSearch() {
+		_menuIncSearch.startIncSearch();
+	}
 
 	class RefE : SelectionAdapter, ModifyListener {
 		override void widgetSelected(SelectionEvent e) {
@@ -2078,6 +2083,34 @@ private:
 		_menuApply.setEnabled(false);
 		applyEnabled();
 	}
+	void refreshMenu() {
+		auto selID = MenuID.None;
+		int selIndex = _menu.getSelectionIndex();
+		if (-1 != selIndex) {
+			selID = (cast(SMenuData) _menu.getItem(selIndex).getData()).id;
+		}
+		_menu.removeAll();
+		foreach (id; EnumMembers!MenuID) {
+			if (id == MenuID.None) continue;
+			if (isNoKeyBindMenu(id)) continue;
+			string name = _prop.var.menu.buildMenuSample(_prop.parent, id);
+			if (!_menuIncSearch.match(name)) continue;
+			auto itm = new TableItem(_menu, SWT.NONE);
+			itm.setText(name);
+			itm.setImage(_prop.images.menu(id));
+			auto data = new SMenuData();
+			data.id = id;
+			data.mnemonic = _prop.var.menu.mnemonic(id);
+			data.hotkey = _prop.var.menu.hotkey(id);
+			itm.setData(data);
+			if (id == selID) {
+				_menu.select(_menu.getItemCount() - 1);
+			}
+		}
+		if (-1 == _menu.getSelectionIndex()) _menu.select(0);
+		_menu.showSelection();
+		selectMenu();
+	}
 	class SelectMenu : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
 			selectMenu();
@@ -2258,27 +2291,20 @@ private:
 				_hotkey.widget.addModifyListener(new ModMenu);
 
 				_menu = new Table(grp, SWT.BORDER | SWT.SINGLE | SWT.V_SCROLL | SWT.FULL_SELECTION);
-				_menu.setData(new CIgnoreHotkey); // 間違いやすいので
 				auto mgd = new GridData(GridData.FILL_BOTH);
 				mgd.horizontalSpan = 4;
 				mgd.heightHint = _prop.var.etc.menuSettingsHeight;
 				_menu.setLayoutData(mgd);
 				new FullTableColumn(_menu, SWT.NONE);
-				foreach (id; EnumMembers!MenuID) {
-					if (id == MenuID.None) continue;
-					if (isNoKeyBindMenu(id)) continue;
-					auto itm = new TableItem(_menu, SWT.NONE);
-					itm.setText(_prop.var.menu.buildMenuSample(_prop.parent, id));
-					itm.setImage(_prop.images.menu(id));
-					auto data = new SMenuData();
-					data.id = id;
-					data.mnemonic = _prop.var.menu.mnemonic(id);
-					data.hotkey = _prop.var.menu.hotkey(id);
-					itm.setData(data);
-				}
-				_menu.select(0);
-				selectMenu();
 				_menu.addSelectionListener(new SelectMenu);
+
+				_menuIncSearch = new IncSearch(_comm, _menu);
+				_menuIncSearch.modEvent ~= &refreshMenu;
+
+				auto menu = new Menu(_menu.getShell(), SWT.POP_UP);
+				createMenuItem(_comm, menu, MenuID.IncSearch, &menuIncSearch, null);
+				_menu.setMenu(menu);
+				refreshMenu();
 
 				grp.setTabList([_menuApply, _menuDel, _menu]);
 			}
