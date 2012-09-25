@@ -305,7 +305,7 @@ private:
 			auto summ = summary;
 			if (!summ) return;
 
-			if (_prop.var.etc.autoSave) {
+			if (_prop.var.etc.autoSave && summ.isChanged) {
 				// バックアップ前に自動セーブ
 				_display.syncExec(new class Runnable {
 					override void run() {
