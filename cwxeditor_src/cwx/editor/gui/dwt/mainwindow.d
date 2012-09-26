@@ -305,6 +305,9 @@ private:
 			auto summ = summary;
 			if (!summ) return;
 
+			if (_prop.var.etc.backupRefAuthor) {
+				if (summ.author != _prop.var.etc.defaultAuthor) return;
+			}
 			if (_prop.var.etc.autoSave && summ.isChanged) {
 				// バックアップ前に自動セーブ
 				_display.syncExec(new class Runnable {

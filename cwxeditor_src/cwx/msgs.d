@@ -1294,6 +1294,7 @@ class Msgs : Properties {
 	auto backupDir = Msg("backupDir", "自動バックアップ");
 	auto backupEnabled = Msg("backupEnabled", "自動バックアップを行う");
 	auto autoSave = Msg("autoSave", "バックアップ時に上書き保存する");
+	auto backupRefAuthor = Msg("backupRefAuthor", "作者が一致したシナリオのみバックアップする");
 	auto backupPath = Msg("backupPath", "保存先");
 	auto backupDirDesc = Msg("backupDirDesc", "シナリオを定期的に自動バックアップする" ~ DIR ~ "を選択してください。");
 	auto backupInterval = Msg("backupInterval", "保存間隔");
