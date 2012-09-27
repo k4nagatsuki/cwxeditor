@@ -641,6 +641,9 @@ private:
 			{
 				_newCoupon = new Text(grp, SWT.BORDER);
 				_newCouponTM = createTextMenu!Text(_comm, _prop, _newCoupon, &catchMod);
+				.listener(_newCoupon, SWT.Modify, {
+					_couponHide.setSelection(_prop.sys.isCouponType(_newCoupon.getText(), CouponType.Hide));
+				});
 				auto gd = new GridData(GridData.FILL_HORIZONTAL);
 				gd.horizontalSpan = 2;
 				_newCoupon.setLayoutData(gd);
