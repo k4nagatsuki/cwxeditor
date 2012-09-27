@@ -173,6 +173,7 @@ private:
 				_imgPath.modEvent ~= &refreshWarning;
 				_imgPath.image = _summ.imagePath;
 				_imgPath.modEvent ~= &refreshPreview;
+				_imgPath.updateImageEvent ~= &refreshPreview;
 			}
 			{
 				auto comp2 = new Composite(_tab2Sash, SWT.NONE);

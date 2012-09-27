@@ -993,6 +993,7 @@ protected:
 
 		initPreview(area, prop.var.msgPrev);
 		_msel.modEvent ~= &refreshPreview;
+		_msel.updateImageEvent ~= &refreshPreview;
 	}
 
 	override bool apply() {

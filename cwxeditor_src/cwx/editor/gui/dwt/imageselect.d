@@ -29,6 +29,8 @@ public:
 class ImageSelect(MtType Type, C : Control = Table) {
 	/// パスの変更時に呼び出される。
 	void delegate()[] modEvent;
+	/// 画像の更新時に呼び出される。
+	void delegate()[] updateImageEvent;
 public:
 	/// Params:
 	/// parent = 親。
@@ -359,6 +361,9 @@ private:
 		_paintedPath = null;
 		_image.redraw();
 		refreshImageList();
+		foreach (dlg; updateImageEvent) {
+			dlg();
+		}
 	}
 	string _paintedPath = null;
 	Composite _group;
