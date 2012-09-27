@@ -53,6 +53,7 @@ private:
 	MouseTrack _mTrack = null;
 	Shell _toolWin = null;
 	Shell _autoHideTools = null;
+	TCListener _tcListener = null;
 	Composite _comp;
 	Tree _tree;
 	Color _grayFont;
@@ -1508,6 +1509,9 @@ private:
 				_autoHideTools.getDisplay().removeFilter(SWT.MouseEnter, _mTrack);
 				_autoHideTools.getDisplay().removeFilter(SWT.MouseExit, _mTrack);
 			}
+			if (_tcListener) {
+				_autoHideTools.getParent().removeControlListener(_tcListener);
+			}
 			if (_autoHideTools) {
 				_autoHideTools.dispose();
 			}
@@ -1981,7 +1985,8 @@ public:
 			_cbarPar.getParent().layout(true);
 			if (_autoHideTools) {
 				cbar.addControlListener(new AHTCListener);
-				_autoHideTools.getParent().addControlListener(new TCListener);
+				_tcListener = new TCListener;
+				_autoHideTools.getParent().addControlListener(_tcListener);
 			}
 		}
 	}
