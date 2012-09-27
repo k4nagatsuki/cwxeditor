@@ -442,6 +442,11 @@ enum Status {
 	SLEEP, /// 睡眠。
 	BIND, /// 呪縛。
 	PARALYZE, /// 麻痺/石化。
+	CONFUSE, /// 混乱(CardWirth Extender 1.30～)。
+	OVERHEAT, /// 激昂(CardWirth Extender 1.30～)。
+	BRAVE, /// 勇敢(CardWirth Extender 1.30～)。
+	PANIC, /// 恐慌(CardWirth Extender 1.30～)。
+	NONE, /// 状態指定無し。
 }
 /// 文字列から状態を生成。
 Status toStatus(string name) {
@@ -470,6 +475,16 @@ Status toStatus(string name) {
 		return Status.BIND;
 	case "Paralyze":
 		return Status.PARALYZE;
+	case "Confuse":
+		return Status.CONFUSE;
+	case "Overheat":
+		return Status.OVERHEAT;
+	case "Brave":
+		return Status.BRAVE;
+	case "Panic":
+		return Status.PANIC;
+	case "None":
+		return Status.NONE;
 	default:
 		throw new MotionException("Unknown status: " ~ name);
 	}
@@ -501,6 +516,16 @@ string fromStatus(Status stat) {
 		return "Bind";
 	case Status.PARALYZE:
 		return "Paralyze";
+	case Status.CONFUSE:
+		return "Confuse";
+	case Status.OVERHEAT:
+		return "Overheat";
+	case Status.BRAVE:
+		return "Brave";
+	case Status.PANIC:
+		return "Panic";
+	case Status.NONE:
+		return "None";
 	}
 }
 /// 適用範囲。
@@ -551,6 +576,36 @@ string fromRange(Range r) {
 /// 効果対象や話者選択時に現れる適用範囲。
 Range[] RANGE_MEMBER = [Range.SELECTED, Range.RANDOM, Range.PARTY];
 
+/// キャスト選択範囲。CardWirth Extender 1.30～
+enum CastRange {
+	PARTY, /// パーティ全体。
+	ENEMY, /// 敵全体。
+	FIELD, /// フィールド全体。
+}
+/// 文字列からキャスト選択範囲を生成。
+CastRange toCastRange(string name) {
+	switch (name) {
+	case "Party":
+		return CastRange.PARTY;
+	case "Enemy":
+		return CastRange.ENEMY;
+	case "Field":
+		return CastRange.FIELD;
+	default:
+		throw new MotionException("Unknown targets: " ~ name);
+	}
+}
+/// キャスト選択範囲を文字列へ変換。
+string fromCastRange(CastRange r) {
+	final switch (r) {
+	case CastRange.PARTY:
+		return "Party";
+	case CastRange.ENEMY:
+		return "Enemy";
+	case CastRange.FIELD:
+		return "Field";
+	}
+}
 /// 能力修正。
 enum Enhance {
 	ACTION, /// 行動。
@@ -789,6 +844,7 @@ enum CType {
 	SUBSTITUTE_FLAG, /// フラグ代入(CardWirth Extender 1.30～)。
 	BRANCH_STEP_CMP, /// ステップ値分岐(CardWirth Extender 1.30～)。
 	BRANCH_FLAG_CMP, /// フラグ値分岐(CardWirth Extender 1.30～)。
+	BRANCH_RANDOM_SELECT, /// ランダム選択(CardWirth Extender 1.30～)。
 }
 
 /// コンテントタイプの分類。
@@ -854,6 +910,10 @@ enum CArg {
 	BG_IMAGES,
 	STEP_2, /// 操作ターゲットステップ(CardWirth Extender 1.30～)。
 	FLAG_2, /// 操作ターゲットフラグ(CardWirth Extender 1.30～)。
+	CAST_RANGE, /// キャスト選択範囲(CardWirth Extender 1.30～)。
+	LEVEL_MIN, /// 下限レベル(CardWirth Extender 1.30～)。
+	LEVEL_MAX, /// 上限レベル(CardWirth Extender 1.30～)。
+	STATUS_2, /// キャスト選択状態条件(CardWirth Extender 1.30～)。
 }
 
 /// 後続コンテントのnameの型。

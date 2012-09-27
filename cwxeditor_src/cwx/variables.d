@@ -105,6 +105,7 @@ class FlexEtcProps : Properties {
 	auto posTopMax = Prop!(uint, true)("posTopMax", 9999);
 	auto backWidthMax = Prop!(uint, true)("backWidthMax", 9999);
 	auto backHeightMax = Prop!(uint, true)("backHeightMax", 9999);
+	auto levelMax = Prop!(uint, true)("levelMax", 15);
 	auto castLevelMax = Prop!(uint, true)("castLevelMax", 99);
 	auto lifeMax = Prop!(uint, true)("lifeMax", 999);
 	auto couponValueMax = Prop!(uint, true)("couponValueMax", 999);
@@ -359,6 +360,7 @@ class FlexEtcProps : Properties {
 	auto searchContentsSubstituteFlag = Prop!(bool)("searchContentsSubstituteFlag", false);
 	auto searchContentsBranchStepCmp = Prop!(bool)("searchContentsBranchStepCmp", false);
 	auto searchContentsBranchFlagCmp = Prop!(bool)("searchContentsBranchFlagCmp", false);
+	auto searchContentsBranchRandomSelect = Prop!(bool)("searchContentsBranchRandomSelect", false);
 
 	auto searchUnusedFlag = Prop!(bool)("searchUnusedFlag", true);
 	auto searchUnusedStep = Prop!(bool)("searchUnusedStep", true);

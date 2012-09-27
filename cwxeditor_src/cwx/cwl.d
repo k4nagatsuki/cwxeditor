@@ -352,6 +352,7 @@ private Range toRange(byte b) {
 	default: throw new SummaryException("Unknown range: " ~ to!(string)(b));
 	}
 }
+/// CardWirth Extender 1.30～
 private Range toCouponRange(byte b) {
 	switch (b) {
 	case 0: return Range.SELECTED;
@@ -359,6 +360,15 @@ private Range toCouponRange(byte b) {
 	case 2: return Range.PARTY;
 	case 3: return Range.FIELD;
 	default: throw new SummaryException("Unknown range: " ~ to!(string)(b));
+	}
+}
+/// CardWirth Extender 1.30～
+private CastRange toCastRange(byte b) {
+	switch (b) {
+	case 1: return CastRange.PARTY;
+	case 2: return CastRange.ENEMY;
+	case 3: return CastRange.FIELD;
+	default: throw new SummaryException("Unknown cast range: " ~ to!(string)(b));
 	}
 }
 private Status toStatus(byte b) {
@@ -375,6 +385,10 @@ private Status toStatus(byte b) {
 	case 9: return Status.SLEEP;
 	case 10: return Status.BIND;
 	case 11: return Status.PARALYZE;
+	case 12: return Status.CONFUSE;
+	case 13: return Status.OVERHEAT;
+	case 14: return Status.BRAVE;
+	case 15: return Status.PANIC;
 	default: throw new SummaryException("Unknown status: " ~ to!(string)(b));
 	}
 }
@@ -1254,6 +1268,23 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) {
 		e.flag = readString(f);
 		e.flag2 = readString(f);
 		break;
+	case 70:
+		e = new Content(CType.BRANCH_RANDOM_SELECT, name);
+		e.castRange = toCastRange(f.readByte);
+		ubyte style = f.readUByte;
+		if (style & 0b01) {
+			e.levelMin = f.readUIntL;
+			e.levelMax = f.readUIntL;
+		} else {
+			e.levelMin = 0;
+			e.levelMax = 0;
+		}
+		if (style & 0b10) {
+			e.status2 = toStatus(f.readByte);
+		} else {
+			e.status2 = Status.NONE;
+		}
+		break;
 	default: throw new SummaryException("Unknown content type: " ~ to!(string)(type));
 	}
 	if (e.detail.owner) {
@@ -1957,6 +1988,15 @@ private byte fromCouponRange(Range v) {
 	default: throw new SummaryException("Unknown range value: " ~ to!(string)(cast(int) v));
 	}
 }
+/// CardWirth Extender 1.30～
+private byte fromCastRange(CastRange v) {
+	switch (v) {
+	case CastRange.PARTY: return 1;
+	case CastRange.ENEMY: return 2;
+	case CastRange.FIELD: return 3;
+	default: throw new SummaryException("Unknown cast range value: " ~ to!(string)(cast(int) v));
+	}
+}
 private byte fromStatus(Status v) {
 	switch (v) {
 	case Status.ACTIVE: return 0;
@@ -1971,6 +2011,10 @@ private byte fromStatus(Status v) {
 	case Status.SLEEP: return 9;
 	case Status.BIND: return 10;
 	case Status.PARALYZE: return 11;
+	case Status.CONFUSE: return 12;
+	case Status.OVERHEAT: return 13;
+	case Status.BRAVE: return 14;
+	case Status.PANIC: return 15;
 	default: throw new SummaryException("Unknown status value: " ~ to!(string)(cast(int) v));
 	}
 }
@@ -2647,6 +2691,24 @@ private void writeContent(ref SData d, ref ByteIO f, Content e) {
 		wb(69);
 		writeString(f, e.flag);
 		writeString(f, e.flag2);
+	} else if (e.type is CType.BRANCH_RANDOM_SELECT) {
+		wb(70);
+		f.write(fromCastRange(e.castRange));
+		ubyte style = 0b00;
+		if (0 < e.levelMax) {
+			style |= 0b01;
+		}
+		if (e.status2 !is Status.NONE) {
+			style |= 0b10;
+		}
+		f.write(style);
+		if (style & 0b01) {
+			f.writeL(e.levelMin);
+			f.writeL(e.levelMax);
+		}
+		if (style & 0b10) {
+			f.write(fromStatus(e.status2));
+		}
 	} else {
 		assert (0, "event");
 	}

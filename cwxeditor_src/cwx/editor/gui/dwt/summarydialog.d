@@ -204,7 +204,7 @@ private:
 					mod(_levMin);
 					_levMin.setSelection(_summ.levelMin);
 					_levMin.setMinimum(0);
-					_levMin.setMaximum(_prop.looks.levelMax);
+					_levMin.setMaximum(_prop.var.etc.levelMax);
 					new SpinnerEdit(_levMin, &levMinEnter);
 					auto lbl = new Label(grp, SWT.NONE);
 					lbl.setText(_prop.msgs.levSep);
@@ -213,7 +213,7 @@ private:
 					mod(_levMax);
 					_levMax.setSelection(_summ.levelMax);
 					_levMax.setMinimum(0);
-					_levMax.setMaximum(_prop.looks.levelMax);
+					_levMax.setMaximum(_prop.var.etc.levelMax);
 					new SpinnerEdit(_levMax, &levMaxEnter);
 					.listener(_levMin, SWT.Modify, &refreshPreview);
 					.listener(_levMax, SWT.Modify, &refreshPreview);

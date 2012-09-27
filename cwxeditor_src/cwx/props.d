@@ -64,7 +64,6 @@ public:
 		}
 	}
 	@property const CPoint messageTalkerPos() {return CPoint(15, 43);}
-	@property const int levelMax() {return 15;}
 
 	@property const int aptVeryHigh() {return 15;}
 	@property const int aptHigh() {return 9;}

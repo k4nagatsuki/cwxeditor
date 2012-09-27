@@ -67,6 +67,7 @@ private void static_this () {
 			CType.BRANCH_AREA,
 			CType.BRANCH_BATTLE,
 			CType.BRANCH_IS_BATTLE,
+			CType.BRANCH_RANDOM_SELECT,
 		], CTypeGroup.Branch:[
 			CType.BRANCH_CAST,
 			CType.BRANCH_ITEM,
@@ -178,6 +179,7 @@ private void static_this () {
 		CType.SUBSTITUTE_FLAG:CDetail("Sbustitute", "Flag", CNextType.NONE, true, [CArg.FLAG:"from", CArg.FLAG_2:"to"]),
 		CType.BRANCH_STEP_CMP:CDetail("Branch", "StepValue", CNextType.TRIO, true, [CArg.STEP:"from", CArg.STEP_2:"to"]),
 		CType.BRANCH_FLAG_CMP:CDetail("Branch", "FlagValue", CNextType.BOOL, true, [CArg.FLAG:"from", CArg.FLAG_2:"to"]),
+		CType.BRANCH_RANDOM_SELECT:CDetail("Branch", "RandomSelect", CNextType.BOOL, true, [CArg.CAST_RANGE:"targetc", CArg.LEVEL_MIN:"minLevel", CArg.LEVEL_MAX:"maxLevel", CArg.STATUS_2:"status"]),
 	];
 	foreach (cType, detail; _CONTENT_DETAILS) {
 		_CTYPE_MAP[detail.name][detail.type] = cType;
@@ -686,6 +688,10 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 		copy.flag2 = flag2;
 		copy.step2 = step2;
+		copy.castRange = castRange;
+		copy.levelMin = levelMin;
+		copy.levelMax = levelMax;
+		copy.status2 = status2;
 
 		Motion[] motions;
 		foreach (m; this.motions) {
@@ -774,6 +780,10 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 			&& flag2 == c.flag2
 			&& step2 == c.step2
+			&& castRange == c.castRange
+			&& status2 == c.status2
+			&& levelMin == c.levelMin
+			&& levelMax == c.levelMax
 
 			&& motions == c.motions
 
@@ -913,7 +923,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		resetValue!(CArg.AVERAGE, bool, false)(d, &average);
 		resetValue!(CArg.COMPLETE, bool, false)(d, &complete);
 
-		resetValue!(CArg.UNSIGNED_LEVEL, int, 0)(d, &unsignedLevel);
+		resetValue!(CArg.UNSIGNED_LEVEL, int, 1)(d, &unsignedLevel);
 		resetValue!(CArg.SIGNED_LEVEL, int, 0)(d, &signedLevel);
 		resetValue!(CArg.SUCCESS_RATE, int, 5)(d, &successRate);
 		resetValue!(CArg.TRANSITION_SPEED, int, 5u)(d, &transitionSpeed);
@@ -928,6 +938,10 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 		resetValue!(CArg.FLAG_2, string, "")(d, &flag2);
 		resetValue!(CArg.STEP_2, string, "")(d, &step2);
+		resetValue!(CArg.CAST_RANGE, CastRange, CastRange.PARTY)(d, &castRange);
+		resetValue!(CArg.STATUS_2, Status, Status.NONE)(d, &status2);
+		resetValue!(CArg.LEVEL_MIN, int, 0)(d, &levelMin);
+		resetValue!(CArg.LEVEL_MAX, int, 0)(d, &levelMax);
 
 		resetValue!(CArg.MOTIONS, Motion[], [])(d, &motions);
 
@@ -1362,6 +1376,18 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	mixin Prop!(Physical, "physical", Physical.init);
 	/// 状態。
 	mixin Prop!(Status, "status", Status.ACTIVE);
+	private bool check_status(Status val) {
+		switch (val) {
+		case Status.CONFUSE:
+		case Status.OVERHEAT:
+		case Status.BRAVE:
+		case Status.PANIC:
+		case Status.NONE:
+			return false;
+		default:
+			return true;
+		}
+	}
 	/// 範囲。
 	mixin Prop!(Range, "range", Range.SELECTED);
 	/// カード視覚効果。
@@ -1438,6 +1464,16 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	mixin Prop!(FlagUser, string, "flag2", "", ".flag", ".flag", true);
 	/// 操作対象ステップ(CardWirth Extender 1.30～)。
 	mixin Prop!(StepUser, string, "step2", "", ".step", ".step", true);
+	/// ランダム選択範囲(CardWirth Extender 1.30～)。
+	mixin Prop!(CastRange, "castRange", CastRange.PARTY);
+	/// ランダム選択状態条件(CardWirth Extender 1.30～)。
+	mixin Prop!(Status, "status2", Status.NONE);
+	/// 下限レベル(CardWirth Extender 1.30～)。
+	mixin Prop!(int, "levelMin", 0);
+	mixin MaxMin!(int, "levelMin", int.max, 0);
+	/// 上限レベル(CardWirth Extender 1.30～)。
+	mixin Prop!(int, "levelMax", 0);
+	mixin MaxMin!(int, "levelMax", int.max, 0);
 
 	/// 背景画像群。
 	mixin Prop!(BgImage[], "backs", []);
@@ -1690,6 +1726,10 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 		atnPut!(CArg.FLAG_2, "flag2", "")(e, d);
 		atnPut!(CArg.STEP_2, "step2", "")(e, d);
+		atnPut!(CArg.CAST_RANGE, "castRange", "fromCastRange")(e, d);
+		atnPut!(CArg.STATUS_2, "status2", "fromStatus")(e, d);
+		atnPut!(CArg.LEVEL_MIN, "levelMin", "")(e, d);
+		atnPut!(CArg.LEVEL_MAX, "levelMax", "")(e, d);
 
 		// 多少複雑なもの
 		if (d.use(CArg.MOTIONS)) {
@@ -1812,6 +1852,10 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 		cfnPut!(CArg.FLAG_2, "flag2", "")(en, d, r);
 		cfnPut!(CArg.STEP_2, "step2", "")(en, d, r);
+		cfnPut!(CArg.CAST_RANGE, "castRange", "toCastRange")(en, d, r);
+		cfnPut!(CArg.STATUS_2, "status2", "toStatus")(en, d, r);
+		cfnPut!(CArg.LEVEL_MIN, "levelMin", "to!(int)")(en, d, r);
+		cfnPut!(CArg.LEVEL_MAX, "levelMax", "to!(int)")(en, d, r);
 
 		// 多少複雑なもの
 		if (d.use(CArg.TRANSITION)) {

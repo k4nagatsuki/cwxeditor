@@ -38,6 +38,7 @@ import cwx.editor.gui.dwt.incsearch;
 import std.conv;
 import std.math;
 import std.path;
+import std.traits;
 
 import org.eclipse.swt.all;
 
@@ -2127,7 +2128,7 @@ protected:
 			_lev = new Spinner(comp, SWT.BORDER);
 			mod(_lev);
 			_lev.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			_lev.setMinimum(Content.unsignedLevel_min);
+			_lev.setMinimum(1);
 			_lev.setMaximum(_prop.var.etc.castLevelMax);
 			auto l = new Label(comp, SWT.NONE);
 			l.setText(.tryFormat(_prop.msgs.rangeHint, _lev.getMinimum(), _lev.getMaximum()));
@@ -2150,6 +2151,42 @@ protected:
 		_evt.unsignedLevel = _lev.getSelection();
 		return true;
 	}
+}
+
+private Composite createStatusPane(Props prop, Composite area, bool all, ref Button[Status] stat, void delegate(Button) mod) {
+	auto grp = new Group(area, SWT.NONE);
+	grp.setText(prop.msgs.judgeState);
+	grp.setLayout(new GridLayout(4, true));
+	auto statuses = [Status.ACTIVE, Status.INACTIVE, Status.ALIVE, Status.DEAD,
+			Status.FINE, Status.INJURED, Status.HEAVY_INJURED, Status.UNCONSCIOUS,
+			Status.POISON, Status.SLEEP, Status.BIND, Status.PARALYZE];
+	if (all) {
+		statuses ~= [Status.CONFUSE, Status.OVERHEAT, Status.BRAVE, Status.PANIC];
+	}
+	foreach (s; statuses) {
+		auto radio = new Button(grp, SWT.RADIO);
+		mod(radio);
+		radio.setText(prop.msgs.statusName(s));
+		radio.setLayoutData(new GridData(GridData.FILL_BOTH));
+		stat[s] = radio;
+	}
+	return grp;
+}
+private Composite createStatusHint(Props prop, Composite area) {
+	auto grp = new Group(area, SWT.NONE);
+	grp.setText(prop.msgs.stateHint);
+	grp.setLayout(new CenterLayout);
+	auto comp = new Composite(grp, SWT.NONE);
+	comp.setLayout(zeroMarginGridLayout(1, true));
+	auto hint1 = new Label(comp, SWT.NONE);
+	hint1.setText(prop.msgs.statusActive);
+	auto hint2 = new Label(comp, SWT.NONE);
+	hint2.setText(prop.msgs.statusInactive);
+	auto hint3 = new Label(comp, SWT.NONE);
+	hint3.setText(prop.msgs.statusAlive);
+	auto hint4 = new Label(comp, SWT.NONE);
+	hint4.setText(prop.msgs.statusDead);
+	return grp;
 }
 
 /// 状態分岐の設定を行うダイアログ。
@@ -2178,37 +2215,10 @@ protected:
 				_targ[m] = radio;
 			}
 		}
-		{
-			auto grp = new Group(area, SWT.NONE);
-			grp.setText(_prop.msgs.judgeState);
-			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-			grp.setLayout(new GridLayout(4, true));
-			foreach (s; [Status.ACTIVE, Status.INACTIVE, Status.ALIVE, Status.DEAD,
-					Status.FINE, Status.INJURED, Status.HEAVY_INJURED, Status.UNCONSCIOUS,
-					Status.POISON, Status.SLEEP, Status.BIND, Status.PARALYZE]) {
-				auto radio = new Button(grp, SWT.RADIO);
-				mod(radio);
-				radio.setText(_prop.msgs.statusName(s));
-				radio.setLayoutData(new GridData(GridData.FILL_BOTH));
-				_stat[s] = radio;
-			}
-		}
-		{
-			auto grp = new Group(area, SWT.NONE);
-			grp.setText(_prop.msgs.stateHint);
-			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-			grp.setLayout(new CenterLayout);
-			auto comp = new Composite(grp, SWT.NONE);
-			comp.setLayout(zeroMarginGridLayout(1, true));
-			auto hint1 = new Label(comp, SWT.NONE);
-			hint1.setText(_prop.msgs.statusActive);
-			auto hint2 = new Label(comp, SWT.NONE);
-			hint2.setText(_prop.msgs.statusInactive);
-			auto hint3 = new Label(comp, SWT.NONE);
-			hint3.setText(_prop.msgs.statusAlive);
-			auto hint4 = new Label(comp, SWT.NONE);
-			hint4.setText(_prop.msgs.statusDead);
-		}
+		auto status = createStatusPane(prop, area, false, _stat, &mod!Button);
+		status.setLayoutData(new GridData(GridData.FILL_BOTH));
+		auto hint = createStatusHint(prop, area);
+		hint.setLayoutData(new GridData(GridData.FILL_BOTH));
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
@@ -2553,6 +2563,154 @@ protected:
 		uint tsSpeed = _tsSpeed.getSelection();
 		_evt.transition = ts;
 		_evt.transitionSpeed = tsSpeed;
+		return true;
+	}
+}
+
+/// ランダム選択分岐の設定を行うダイアログ。
+class BrRandomSelectDialog : EventDialog {
+private:
+	Button[CastRange] _castRange;
+	Button _hasLevel, _hasStatus;
+	Spinner _levMin, _levMax;
+	Button[Status] _status;
+
+	void refreshWarning()  {
+		string[] ws;
+		ws ~= .tryFormat(_prop.msgs.warningUnknownContent, _prop.msgs.contentName(CType.BRANCH_RANDOM_SELECT));
+		warning = ws;
+	}
+
+	void levMaxEnter(int enter) {
+		if (enter > 0 && _levMin.getSelection() != 0 && enter < _levMin.getSelection()) {
+			_levMin.setSelection(enter);
+		}
+	}
+	void levMinEnter(int enter) {
+		if (enter > 0 && _levMax.getSelection() != 0 && enter > _levMax.getSelection()) {
+			_levMax.setSelection(enter);
+		}
+	}
+
+	void updateEnabled() {
+		_levMin.setEnabled(_hasLevel.getSelection());
+		_levMax.setEnabled(_hasLevel.getSelection());
+		foreach (key, b; _status) {
+			b.setEnabled(_hasStatus.getSelection());
+		}
+	}
+public:
+	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
+		super (comm, prop, shell, summ, CType.BRANCH_RANDOM_SELECT, parent, evt, false, null, true);
+	}
+protected:
+	override void setup(Composite area) {
+		area.setLayout(new GridLayout(1, false));
+		{
+			auto grp = new Group(area, SWT.NONE);
+			grp.setText(_prop.msgs.selectMember);
+			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			grp.setLayout(new GridLayout(3, true));
+			foreach (r; EnumMembers!CastRange) {
+				auto radio = new Button(grp, SWT.RADIO);
+				mod(radio);
+				radio.setText(prop.msgs.castRangeName(r));
+				radio.setLayoutData(new GridData(GridData.FILL_BOTH));
+				_castRange[r] = radio;
+			}
+
+			auto sep = new Label(grp, SWT.SEPARATOR | SWT.HORIZONTAL);
+			auto sgd = new GridData(GridData.FILL_HORIZONTAL);
+			sgd.horizontalSpan = 3;
+			sep.setLayoutData(sgd);
+
+			_hasLevel = new Button(grp, SWT.CHECK);
+			mod(_hasLevel);
+			_hasLevel.setText(prop.msgs.randomSelectHasLevel);
+			_hasLevel.setLayoutData(new GridData(GridData.FILL_BOTH));
+			.listener(_hasLevel, SWT.Selection, &updateEnabled);
+
+			_hasStatus = new Button(grp, SWT.CHECK);
+			mod(_hasStatus);
+			_hasStatus.setText(prop.msgs.randomSelectHasStatus);
+			_hasStatus.setLayoutData(new GridData(GridData.FILL_BOTH));
+			.listener(_hasStatus, SWT.Selection, &updateEnabled);
+		}
+		{
+			auto grp = new Group(area, SWT.NONE);
+			grp.setText(_prop.msgs.targetLevel);
+			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			grp.setLayout(new CenterLayout);
+			auto comp = new Composite(grp, SWT.NONE);
+			comp.setLayout(zeroMarginGridLayout(4, false));
+
+			_levMin = new Spinner(comp, SWT.BORDER);
+			mod(_levMin);
+			_levMin.setMinimum(1);
+			_levMin.setMaximum(_prop.var.etc.castLevelMax);
+			new SpinnerEdit(_levMin, &levMinEnter);
+			auto lbl = new Label(comp, SWT.NONE);
+			lbl.setText(_prop.msgs.levSep);
+			_levMax = new Spinner(comp, SWT.BORDER);
+			mod(_levMax);
+			_levMax.setMinimum(1);
+			_levMax.setMaximum(_prop.var.etc.castLevelMax);
+			new SpinnerEdit(_levMax, &levMaxEnter);
+			auto lHint = new Label(comp, SWT.NONE);
+			lHint.setText(.tryFormat(_prop.msgs.rangeHint, 1, _prop.var.etc.castLevelMax));
+		}
+		auto status = createStatusPane(prop, area, true, _status, &mod!Button);
+		status.setLayoutData(new GridData(GridData.FILL_BOTH));
+		auto hint = createStatusHint(prop, area);
+		hint.setLayoutData(new GridData(GridData.FILL_BOTH));
+
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
+		if (_evt) {
+			_castRange[_evt.castRange].setSelection(true);
+			_hasLevel.setSelection(0 < _evt.levelMax);
+			_hasStatus.setSelection(Status.NONE !is _evt.status2);
+			if (_hasLevel.getSelection()) {
+				_levMin.setSelection(_evt.levelMin);
+				_levMax.setSelection(_evt.levelMax);
+			} else {
+				_levMin.setSelection(1);
+				_levMax.setSelection(1);
+			}
+			if (_hasStatus.getSelection()) {
+				_status[_evt.status2].setSelection(true);
+			} else {
+				_status[Status.ACTIVE].setSelection(true);
+			}
+		} else {
+			_castRange[CastRange.PARTY].setSelection(true);
+			_hasLevel.setSelection(false);
+			_hasStatus.setSelection(false);
+			_levMin.setSelection(1);
+			_levMax.setSelection(1);
+			_status[Status.ACTIVE].setSelection(true);
+		}
+		updateEnabled();
+		refreshWarning();
+	}
+
+	override bool apply() {
+		if (!_evt) _evt = new Content(CType.BRANCH_RANDOM_SELECT, "");
+		_evt.castRange = getRadioValue!(CastRange)(_castRange);
+		bool hasLevel = _hasLevel.getSelection();
+		bool hasStatus = _hasStatus.getSelection();
+		if (hasLevel) {
+			_evt.levelMin = _levMin.getSelection();
+			_evt.levelMax = _levMax.getSelection();
+		} else {
+			_evt.levelMin = 0;
+			_evt.levelMax = 0;
+		}
+		if (hasStatus) {
+			_evt.status2 = getRadioValue!(Status)(_status);
+		} else {
+			_evt.status2 = Status.NONE;
+		}
 		return true;
 	}
 }

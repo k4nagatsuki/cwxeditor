@@ -2383,6 +2383,25 @@ string contentText(Commons comm, in Content evt, Summary summ = null) {
 		auto t1 = contentTextUseID!(CIDKind.Flag)(comm, summ, evt.flag, "%s", evt);
 		auto t2 = contentTextUseID!(CIDKind.Flag)(comm, summ, evt.flag2, "%s", evt);
 		return .tryFormat(comm.prop.msgs.ctBranchFlagCmp, t1, t2);
+	} case CType.BRANCH_RANDOM_SELECT: {
+		string r = comm.prop.msgs.castRangeName(evt.castRange);
+		bool hasLevel = 0 < evt.levelMax;
+		bool hasStatus = evt.status2 !is Status.NONE;
+		if (hasLevel || hasStatus) {
+			string s = comm.prop.msgs.statusName(evt.status2);
+			auto l1 = evt.levelMin, l2 = evt.levelMax;
+			string cond;
+			if (hasLevel && hasStatus) {
+				cond = .tryFormat(comm.prop.msgs.randomSelectCondition3, l1, l2, s);
+			} else if (hasLevel) {
+				cond = .tryFormat(comm.prop.msgs.randomSelectCondition1, l1, l2);
+			} else if (hasStatus) {
+				cond = .tryFormat(comm.prop.msgs.randomSelectCondition2, s);
+			} else assert (0);
+			return .tryFormat(comm.prop.msgs.ctRandomSelect, r, cond);
+		} else {
+			return .tryFormat(comm.prop.msgs.ctRandomSelectN, r);
+		}
 	}
 	}
 }

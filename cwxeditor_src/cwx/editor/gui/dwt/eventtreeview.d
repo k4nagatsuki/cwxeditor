@@ -858,6 +858,9 @@ private:
 		} case CType.BRANCH_FLAG_CMP: {
 			dlg = new BrFlagCmpDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt, _summ.flagDirRoot);
 			break;
+		} case CType.BRANCH_RANDOM_SELECT: {
+			dlg = new BrRandomSelectDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} default: assert (0, to!string(type));
 		}
 		assert (applied);
@@ -1088,6 +1091,9 @@ private:
 			break;
 		} case CType.BRANCH_FLAG_CMP: {
 			dlg = new BrFlagCmpDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt, _summ.flagDirRoot);
+			break;
+		} case CType.BRANCH_RANDOM_SELECT: {
+			dlg = new BrRandomSelectDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
 			break;
 		} default: assert (0);
 		}
@@ -2393,6 +2399,8 @@ public:
 			return createTrioEditor!("evtChildBrStepCmp(_prop, _summ, evt.step, evt.step2, name)")(data, c);
 		} case CType.BRANCH_FLAG_CMP: {
 			return createBoolEditor!("evtChildBrFlagCmp(_prop, _summ, evt.flag, evt.flag2, name)")(data, c);
+		} case CType.BRANCH_RANDOM_SELECT: {
+			return createBoolEditor!("evtChildBrRandomSelect(_prop, evt, name)")(data, c);
 		} default:
 		}
 		return null;
@@ -2482,6 +2490,9 @@ public:
 			break;
 		} case CType.BRANCH_FLAG_CMP: {
 			r = evtChildBrFlagCmp(prop, summ, parent.flag, parent.flag2, name);
+			break;
+		} case CType.BRANCH_RANDOM_SELECT: {
+			r = evtChildBrRandomSelect(prop, parent, name);
 			break;
 		} default:
 			name = "";
@@ -2860,6 +2871,37 @@ public:
 			return .tryFormat(prop.msgs.branchFlagCmpEq, flag1, flag2);
 		} else {
 			return .tryFormat(prop.msgs.branchFlagCmpNotEq, flag1, flag2);
+		}
+	}
+	private static string evtChildBrRandomSelect(in Props prop, in Content evt, ref string text) {
+		bool val = (text != prop.sys.evtChildFalse);
+		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+
+		string r = prop.msgs.castRangeName(evt.castRange);
+		bool hasLevel = 0 < evt.levelMax;
+		bool hasStatus = evt.status2 !is Status.NONE;
+		if (hasLevel || hasStatus) {
+			string s = prop.msgs.statusName(evt.status2);
+			auto l1 = evt.levelMin, l2 = evt.levelMax;
+			string cond;
+			if (hasLevel && hasStatus) {
+				cond = .tryFormat(prop.msgs.randomSelectCondition3, l1, l2, s);
+			} else if (hasLevel) {
+				cond = .tryFormat(prop.msgs.randomSelectCondition1, l1, l2);
+			} else if (hasStatus) {
+				cond = .tryFormat(prop.msgs.randomSelectCondition2, s);
+			} else assert (0);
+			if (val) {
+				return .tryFormat(prop.msgs.branchRandomSelectSuccess, r, cond);
+			} else {
+				return .tryFormat(prop.msgs.branchRandomSelectFailure, r, cond);
+			}
+		} else {
+			if (val) {
+				return .tryFormat(prop.msgs.branchRandomSelectSuccessN, r);
+			} else {
+				return .tryFormat(prop.msgs.branchRandomSelectFailureN, r);
+			}
 		}
 	}
 

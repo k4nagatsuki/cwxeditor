@@ -261,6 +261,7 @@ class Msgs : Properties {
 	auto searchResultMenuCard = Msg("searchResultMenuCard", "メニューカード [%1$s]");
 	auto searchResultEnemyCard = Msg("searchResultEnemyCard", "エネミーカード [%1$s]");
 
+	auto searchErrorReversalLevel = Msg("searchErrorReversalLevel", "レベルの上限と下限が逆転している");
 	auto searchErrorNoImage = Msg("searchErrorNoImage", "イメージ指定無し");
 	auto searchErrorImageNotFound = Msg("searchErrorImageNotFound", "イメージファイルが見つからない");
 	auto searchErrorBGMNotFound = Msg("searchErrorBGMNotFound", "BGMファイルが見つからない");
@@ -391,6 +392,8 @@ class Msgs : Properties {
 	auto substituteTarget = Msg("flagSubstituteTarget", "ターゲット変数(代入先)");
 	auto cmpSource = Msg("flagCmpSource", "ソース変数(比較元)");
 	auto cmpTarget = Msg("flagCmpTarget", "ターゲット変数(比較元)");
+	auto randomSelectHasLevel = Msg("randomSelectHasLevel", "レベルを限定");
+	auto randomSelectHasStatus = Msg("randomSelectHasStatus", "状態を限定");
 
 	/// イベント。
 	auto evtArrow = Msg("evtArrow", "イベント編集");
@@ -471,6 +474,7 @@ class Msgs : Properties {
 	auto contentNameSubstituteFlag = Msg("contentNameSubstituteFlag", "フラグ代入");
 	auto contentNameBranchStepCmp = Msg("contentNameBranchStepCmp", "ステップ比較分岐");
 	auto contentNameBranchFlagCmp = Msg("contentNameBranchFlagCmp", "フラグ比較分岐");
+	auto contentNameBranchRandomSelect = Msg("contentNameBranchRandomSelect", "ランダム選択");
 
 	auto msnGroupVitality = Msg("msnGroupVitality", "生命力");
 	auto msnGroupPhysical = Msg("msnGroupPhysical", "肉体");
@@ -624,6 +628,8 @@ class Msgs : Properties {
 	auto ctSubstituteStepFromRandom = Msg("ctSubstituteStepFromRandom", "ランダム値をステップ [%1$s] に代入");
 	auto ctSubstituteFlagFromRandom = Msg("ctSubstituteFlagFromRandom", "ランダム値をフラグ [%1$s] に代入");
 	auto randomValue = Msg("randomValue", "[ランダム]");
+	auto ctRandomSelect = Msg("ctRandomSelect", "%2$sのキャラクターを選択(%1$s)");
+	auto ctRandomSelectN = Msg("ctRandomSelectN", "キャラクターを選択(%1$s)");
 
 	auto defaultStartName = Msg("defaultStartName", "イベント開始");
 
@@ -882,6 +888,13 @@ class Msgs : Properties {
 	auto branchStepCmpEq = Msg("branchStepCmpEq", "ステップ「%1$s」が「%2$s」と同値");
 	auto branchFlagCmpNotEq = Msg("branchFlagCmpNotEq", "フラグ「%1$s」と「%2$s」の値が異なる");
 	auto branchFlagCmpEq = Msg("branchFlagCmpEq", "フラグ「%1$s」が「%2$s」と同値");
+	auto branchRandomSelectSuccess = Msg("branchRandomSelectSuccess", "%2$sのキャラクターを選択(%1$s)");
+	auto branchRandomSelectFailure = Msg("branchRandomSelectFailure", "%2$sのキャラクター選択に失敗(%1$s)");
+	auto branchRandomSelectSuccessN = Msg("branchRandomSelectSuccessN", "キャラクターを選択(%1$s)");
+	auto branchRandomSelectFailureN = Msg("branchRandomSelectFailureN", "キャラクター選択に失敗(%1$s)");
+	auto randomSelectCondition1 = Msg("randomSelectCondition1", "レベル%1$s～%2$s");
+	auto randomSelectCondition2 = Msg("randomSelectCondition2", "状態が%1$s");
+	auto randomSelectCondition3 = Msg("randomSelectCondition3", "レベル%1$s～%2$sで状態が%3$s");
 
 	const string physicalName(Physical id) {
 		mixin(EnumToStringSwitch!(Physical, "physicalName"));
@@ -920,6 +933,11 @@ class Msgs : Properties {
 	auto statusNameSleep = Msg("statusNameSleep", "眠り");
 	auto statusNameBind = Msg("statusNameBind", "呪縛");
 	auto statusNameParalyze = Msg("statusNameParalyze", "麻痺/石化");
+	auto statusNameConfuse = Msg("statusNameConfuse", "混乱");
+	auto statusNameOverheat = Msg("statusNameOverheat", "激昂");
+	auto statusNameBrave = Msg("statusNameBrave", "勇敢");
+	auto statusNamePanic = Msg("statusNamePanic", "恐慌");
+	auto statusNameNone = Msg("statusNameNone", "状態指定無し");
 	auto effectTypeElement = Msg("effectTypeElement", "%1$s属性");
 	const string effectTypeName(EffectType id) {
 		mixin(EnumToStringSwitch!(EffectType, "effectTypeName"));
@@ -1020,6 +1038,12 @@ class Msgs : Properties {
 	auto rangeNameBackpack = Msg("rangeNameBackpack", "荷物袋");
 	auto rangeNamePartyAndBackpack = Msg("rangeNamePartyAndBackpack", "全体(荷物袋含む)");
 	auto rangeNameField = Msg("rangeNameField", "フィールド全体");
+	const string castRangeName(CastRange id) {
+		mixin(EnumToStringSwitch!(CastRange, "castRangeName"));
+	}
+	auto castRangeNameParty = Msg("castRangeNameParty", "パーティ全体");
+	auto castRangeNameEnemy = Msg("castRangeNameEnemy", "敵全体");
+	auto castRangeNameField = Msg("castRangeNameField", "フィールド全体");
 	const string damageTypeName(DamageType id) {
 		mixin(EnumToStringSwitch!(DamageType, "damageTypeName"));
 	}

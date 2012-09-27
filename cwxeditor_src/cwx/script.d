@@ -1042,6 +1042,7 @@ class CWXScript {
 			cast(string) "cpflag":CType.SUBSTITUTE_FLAG,
 			cast(string) "cmpstep":CType.BRANCH_STEP_CMP,
 			cast(string) "cmpflag":CType.BRANCH_FLAG_CMP,
+			cast(string) "selrandom":CType.BRANCH_RANDOM_SELECT,
 		];
 		string[CType] commands;
 		foreach (name, type; keywords) {
@@ -1831,6 +1832,14 @@ fi`;
 				return Range.FIELD;
 			default: throwError(_prop.msgs.scriptErrorInvalidRange, attr[i].token);
 			}
+		} else static if (is(T == CastRange)) {
+			auto value = attrValue(attr[i], varTable, msgWidth);
+			switch (value) {
+			case "party", "t", "team": i++; return CastRange.PARTY;
+			case "enemy": i++; return CastRange.ENEMY;
+			case "field": i++; return CastRange.FIELD;
+			default: throwError(_prop.msgs.scriptErrorInvalidRange, attr[i].token);
+			}
 		} else static if (is(T == Status)) {
 			auto value = attrValue(attr[i], varTable, msgWidth);
 			switch (value) {
@@ -1846,6 +1855,11 @@ fi`;
 			case "sleep": i++; return Status.SLEEP;
 			case "bind": i++; return Status.BIND;
 			case "paralyze": i++; return Status.PARALYZE;
+			case "confuse": i++; return Status.CONFUSE;
+			case "overheat": i++; return Status.OVERHEAT;
+			case "brave": i++; return Status.BRAVE;
+			case "panic": i++; return Status.PANIC;
+			case "none": i++; return Status.NONE;
 			default: throwError(_prop.msgs.scriptErrorInvalidStatus, attr[i].token);
 			}
 		} else static if (is(T == Target)) {
@@ -2276,6 +2290,9 @@ fi`;
 			if (detail.use(CArg.RANGE)) {
 				c.range = parseAttr!(Range)(opt, node.attr, i, c.range, varTable, 0);
 			}
+			if (detail.use(CArg.CAST_RANGE)) {
+				c.castRange = parseAttr!(CastRange)(opt, node.attr, i, c.castRange, varTable, 0);
+			}
 			if (detail.use(CArg.AREA)) {
 				c.area = parseAttr!(ulong)(opt, node.attr, i, c.area, varTable, 0);
 			}
@@ -2327,11 +2344,17 @@ fi`;
 			if (detail.use(CArg.FLAG_VALUE)) {
 				c.flagValue = parseAttr!(bool)(opt, node.attr, i, c.flagValue, varTable, 0);
 			}
+			if (detail.use(CArg.FLAG_2)) {
+				c.flag2 = parseAttr!(string)(opt, node.attr, i, c.flag2, varTable, 0);
+			}
 			if (detail.use(CArg.STEP)) {
 				c.step = parseAttr!(string)(opt, node.attr, i, c.step, varTable, 0);
 			}
 			if (detail.use(CArg.STEP_VALUE)) {
 				c.stepValue = parseAttr!(int)(opt, node.attr, i, c.stepValue, varTable, 0);
+			}
+			if (detail.use(CArg.STEP_2)) {
+				c.step2 = parseAttr!(string)(opt, node.attr, i, c.step2, varTable, 0);
 			}
 			if (detail.use(CArg.CARD_NUMBER)) {
 				c.cardNumber = parseAttr!(int)(opt, node.attr, i, c.cardNumber, varTable, 0);
@@ -2347,6 +2370,12 @@ fi`;
 			}
 			if (detail.use(CArg.SIGNED_LEVEL)) {
 				c.signedLevel = parseAttr!(int)(opt, node.attr, i, c.signedLevel, varTable, 0);
+			}
+			if (detail.use(CArg.LEVEL_MIN)) {
+				c.levelMin = parseAttr!(int)(opt, node.attr, i, c.levelMin, varTable, 0);
+			}
+			if (detail.use(CArg.LEVEL_MAX)) {
+				c.levelMax = parseAttr!(int)(opt, node.attr, i, c.levelMax, varTable, 0);
 			}
 			if (detail.use(CArg.PHYSICAL)) {
 				c.physical = parseAttr!(Physical)(opt, node.attr, i, c.physical, varTable, 0);
@@ -2384,6 +2413,9 @@ fi`;
 			if (detail.use(CArg.STATUS)) {
 				c.status = parseAttr!(Status)(opt, node.attr, i, c.status, varTable, 0);
 			}
+			if (detail.use(CArg.STATUS_2)) {
+				c.status2 = parseAttr!(Status)(opt, node.attr, i, c.status2, varTable, 0);
+			}
 			if (detail.use(CArg.BGM_PATH)) {
 				c.bgmPath = encodePath(parseAttr!(string)(opt, node.attr, i, decodePath(c.bgmPath), varTable, 0));
 			}
@@ -2395,12 +2427,6 @@ fi`;
 			}
 			if (detail.use(CArg.TRANSITION)) {
 				c.transition = parseAttr!(Transition)(opt, node.attr, i, c.transition, varTable, 0);
-			}
-			if (detail.use(CArg.FLAG_2)) {
-				c.flag2 = parseAttr!(string)(opt, node.attr, i, c.flag2, varTable, 0);
-			}
-			if (detail.use(CArg.STEP_2)) {
-				c.step2 = parseAttr!(string)(opt, node.attr, i, c.step2, varTable, 0);
 			}
 			Content autoWrap(Content c) {
 				if (!c.detail.owner) {
@@ -2534,6 +2560,13 @@ fi`;
 			case Range.FIELD: attrs ~= "field"; break;
 			default: assert (0);
 			}
+		} else static if (is(T : CastRange)) {
+			switch (value) {
+			case CastRange.PARTY: attrs ~= "party"; break;
+			case CastRange.ENEMY: attrs ~= "enemy"; break;
+			case CastRange.FIELD: attrs ~= "field"; break;
+			default: assert (0);
+			}
 		} else static if (is(T : Status)) {
 			switch (value) {
 			case Status.ACTIVE: attrs ~= "active"; break;
@@ -2548,6 +2581,11 @@ fi`;
 			case Status.SLEEP: attrs ~= "sleep"; break;
 			case Status.BIND: attrs ~= "bind"; break;
 			case Status.PARALYZE: attrs ~= "paralyze"; break;
+			case Status.CONFUSE: attrs ~= "confuse"; break;
+			case Status.OVERHEAT: attrs ~= "overheat"; break;
+			case Status.BRAVE: attrs ~= "brave"; break;
+			case Status.PANIC: attrs ~= "panic"; break;
+			case Status.NONE: attrs ~= "none"; break;
 			default: assert (0);
 			}
 		} else static if (is(T : Target)) {
@@ -2861,6 +2899,9 @@ fi`;
 			if (detail.use(CArg.RANGE)) {
 				attrs ~= toAttr(c.range, command, indentValue, vars);
 			}
+			if (detail.use(CArg.CAST_RANGE)) {
+				attrs ~= toAttr(c.castRange, command, indentValue, vars);
+			}
 			if (detail.use(CArg.AREA)) {
 				auto a = _summ.area(c.area);
 				attrs ~= toAttr(vars.id(a, c.area), command, indentValue, vars);
@@ -2915,16 +2956,38 @@ fi`;
 				attrs ~= toAttr(c.gossip, command, indentValue, vars);
 			}
 			if (detail.use(CArg.FLAG)) {
-				attrs ~= toAttr(c.flag, command, indentValue, vars);
+				if (_prop && _prop.sys.randomValue == c.flag) {
+					attrs ~= toAttr(Symbol("random"), command, indentValue, vars);
+				} else {
+					attrs ~= toAttr(c.flag, command, indentValue, vars);
+				}
 			}
 			if (detail.use(CArg.FLAG_VALUE)) {
 				attrs ~= toAttr(c.flagValue, command, indentValue, vars);
 			}
+			if (detail.use(CArg.FLAG_2)) {
+				if (_prop && _prop.sys.randomValue == c.flag2) {
+					attrs ~= toAttr(Symbol("random"), command, indentValue, vars);
+				} else {
+					attrs ~= toAttr(c.flag2, command, indentValue, vars);
+				}
+			}
 			if (detail.use(CArg.STEP)) {
-				attrs ~= toAttr(c.step, command, indentValue, vars);
+				if (_prop && _prop.sys.randomValue == c.step) {
+					attrs ~= toAttr(Symbol("random"), command, indentValue, vars);
+				} else {
+					attrs ~= toAttr(c.step, command, indentValue, vars);
+				}
 			}
 			if (detail.use(CArg.STEP_VALUE)) {
 				attrs ~= toAttr(c.stepValue, command, indentValue, vars);
+			}
+			if (detail.use(CArg.STEP_2)) {
+				if (_prop && _prop.sys.randomValue == c.step2) {
+					attrs ~= toAttr(Symbol("random"), command, indentValue, vars);
+				} else {
+					attrs ~= toAttr(c.step2, command, indentValue, vars);
+				}
 			}
 			if (detail.use(CArg.CARD_NUMBER)) {
 				if (c.cardNumber != 0) {
@@ -2944,6 +3007,12 @@ fi`;
 			}
 			if (detail.use(CArg.SIGNED_LEVEL)) {
 				attrs ~= toAttr(c.signedLevel, command, indentValue, vars);
+			}
+			if (detail.use(CArg.LEVEL_MIN)) {
+				attrs ~= toAttr(c.levelMin, command, indentValue, vars);
+			}
+			if (detail.use(CArg.LEVEL_MAX)) {
+				attrs ~= toAttr(c.levelMax, command, indentValue, vars);
 			}
 			if (detail.use(CArg.PHYSICAL)) {
 				attrs ~= toAttr(c.physical, command, indentValue, vars);
@@ -2981,6 +3050,9 @@ fi`;
 			if (detail.use(CArg.STATUS)) {
 				attrs ~= toAttr(c.status, command, indentValue, vars);
 			}
+			if (detail.use(CArg.STATUS_2)) {
+				attrs ~= toAttr(c.status2, command, indentValue, vars);
+			}
 			if (detail.use(CArg.BGM_PATH)) {
 				if (c.bgmPath.length) {
 					attrs ~= toAttr(encodePath(c.bgmPath), command, indentValue, vars);
@@ -2998,12 +3070,6 @@ fi`;
 				if (detail.use(CArg.TRANSITION)) {
 					attrs ~= toAttr(c.transition, command, indentValue, vars);
 				}
-			}
-			if (detail.use(CArg.FLAG_2)) {
-				attrs ~= toAttr(c.flag2, command, indentValue, vars);
-			}
-			if (detail.use(CArg.STEP_2)) {
-				attrs ~= toAttr(c.step2, command, indentValue, vars);
 			}
 			bool useIf = c.next.length > 1;
 			bool useSif = c.next.length == 1 && c.next[0].name.length;

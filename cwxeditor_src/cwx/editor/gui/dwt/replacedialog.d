@@ -1583,6 +1583,7 @@ public:
 		_contents[CType.SUBSTITUTE_FLAG].setSelection(_prop.var.etc.searchContentsSubstituteFlag);
 		_contents[CType.BRANCH_STEP_CMP].setSelection(_prop.var.etc.searchContentsBranchStepCmp);
 		_contents[CType.BRANCH_FLAG_CMP].setSelection(_prop.var.etc.searchContentsBranchFlagCmp);
+		_contents[CType.BRANCH_RANDOM_SELECT].setSelection(_prop.var.etc.searchContentsBranchRandomSelect);
 
 		_cCoupon.setSelection(_prop.var.etc.replaceNameCoupon);
 		_cGossip.setSelection(_prop.var.etc.replaceNameGossip);
@@ -1761,6 +1762,11 @@ public:
 			_prop.var.etc.searchContentsShowParty = _contents[CType.SHOW_PARTY].getSelection();
 			_prop.var.etc.searchContentsHideParty = _contents[CType.HIDE_PARTY].getSelection();
 			_prop.var.etc.searchContentsRedisplay = _contents[CType.REDISPLAY].getSelection();
+			_prop.var.etc.searchContentsSubstituteStep = _contents[CType.SUBSTITUTE_STEP].getSelection();
+			_prop.var.etc.searchContentsSubstituteFlag = _contents[CType.SUBSTITUTE_FLAG].getSelection();
+			_prop.var.etc.searchContentsBranchStepCmp = _contents[CType.BRANCH_STEP_CMP].getSelection();
+			_prop.var.etc.searchContentsBranchFlagCmp = _contents[CType.BRANCH_FLAG_CMP].getSelection();
+			_prop.var.etc.searchContentsBranchRandomSelect = _contents[CType.BRANCH_RANDOM_SELECT].getSelection();
 
 			_prop.var.etc.replaceNameCoupon = _cCoupon.getSelection();
 			_prop.var.etc.replaceNameGossip = _cGossip.getSelection();
@@ -2451,6 +2457,10 @@ public:
 						addResult(path, count, _prop.msgs.searchErrorImageNotFound);
 						return;
 					}
+					if (summ.levelMin > summ.levelMax) {
+						addResult(path, count, _prop.msgs.searchErrorReversalLevel);
+						return;
+					}
 					if (!summ.area(summ.startArea)) {
 						addResult(path, count, _prop.msgs.searchErrorStartAreaNotFound);
 						return;
@@ -2702,6 +2712,10 @@ public:
 				}
 				if ((c.type is CType.GET_COUPON || c.type is CType.LOSE_COUPON) && _prop.sys.isCouponType(c.coupon, CouponType.System)) {
 					addResult(path, count, _prop.msgs.searchErrorSystemName);
+					return;
+				}
+				if (c.levelMin > c.levelMax) {
+					addResult(path, count, _prop.msgs.searchErrorReversalLevel);
 					return;
 				}
 			});

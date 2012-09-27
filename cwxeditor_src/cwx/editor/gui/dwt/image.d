@@ -189,6 +189,7 @@ public:
 		case CType.SUBSTITUTE_FLAG: return imgd!("evt_cpflag.png");
 		case CType.BRANCH_STEP_CMP: return imgd!("evt_cmpstep.png");
 		case CType.BRANCH_FLAG_CMP: return imgd!("evt_cmpflag.png");
+		case CType.BRANCH_RANDOM_SELECT: return imgd!("evt_br_rndsel.png");
 		default: assert (0);
 		}
 	}
