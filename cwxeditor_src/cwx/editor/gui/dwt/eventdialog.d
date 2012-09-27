@@ -2153,16 +2153,14 @@ protected:
 	}
 }
 
-private Composite createStatusPane(Props prop, Composite area, bool all, ref Button[Status] stat, void delegate(Button) mod) {
+private Composite createStatusPane(Props prop, Composite area, ref Button[Status] stat, void delegate(Button) mod) {
 	auto grp = new Group(area, SWT.NONE);
 	grp.setText(prop.msgs.judgeState);
 	grp.setLayout(new GridLayout(4, true));
 	auto statuses = [Status.ACTIVE, Status.INACTIVE, Status.ALIVE, Status.DEAD,
 			Status.FINE, Status.INJURED, Status.HEAVY_INJURED, Status.UNCONSCIOUS,
-			Status.POISON, Status.SLEEP, Status.BIND, Status.PARALYZE];
-	if (all) {
-		statuses ~= [Status.CONFUSE, Status.OVERHEAT, Status.BRAVE, Status.PANIC];
-	}
+			Status.POISON, Status.SLEEP, Status.BIND, Status.PARALYZE,
+			Status.CONFUSE, Status.OVERHEAT, Status.BRAVE, Status.PANIC];
 	foreach (s; statuses) {
 		auto radio = new Button(grp, SWT.RADIO);
 		mod(radio);
@@ -2195,6 +2193,15 @@ private:
 	Button[Target.M] _targ;
 	Button[Status] _stat;
 
+	void refreshWarning() {
+		string[] ws;
+		foreach (st; [Status.CONFUSE, Status.OVERHEAT, Status.BRAVE, Status.PANIC]) {
+			if (_stat[st].getSelection()) {
+				ws ~= .tryFormat(prop.msgs.warningBranchStatusMental, prop.msgs.statusName(st));
+			}
+		}
+		warning = ws;
+	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
 		super (comm, prop, shell, summ, CType.BRANCH_STATUS, parent, evt, false, null, true);
@@ -2215,8 +2222,11 @@ protected:
 				_targ[m] = radio;
 			}
 		}
-		auto status = createStatusPane(prop, area, false, _stat, &mod!Button);
+		auto status = createStatusPane(prop, area, _stat, &mod!Button);
 		status.setLayoutData(new GridData(GridData.FILL_BOTH));
+		foreach (st, b; _stat) {
+			.listener(b, SWT.Selection, &refreshWarning);
+		}
 		auto hint = createStatusHint(prop, area);
 		hint.setLayoutData(new GridData(GridData.FILL_BOTH));
 
@@ -2229,6 +2239,7 @@ protected:
 			_targ[Target.M.SELECTED].setSelection(true);
 			_stat[Status.ACTIVE].setSelection(true);
 		}
+		refreshWarning();
 	}
 
 	override bool apply() {
@@ -2659,7 +2670,7 @@ protected:
 			auto lHint = new Label(comp, SWT.NONE);
 			lHint.setText(.tryFormat(_prop.msgs.rangeHint, 1, _prop.var.etc.castLevelMax));
 		}
-		auto status = createStatusPane(prop, area, true, _status, &mod!Button);
+		auto status = createStatusPane(prop, area, _status, &mod!Button);
 		status.setLayoutData(new GridData(GridData.FILL_BOTH));
 		auto hint = createStatusHint(prop, area);
 		hint.setLayoutData(new GridData(GridData.FILL_BOTH));
