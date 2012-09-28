@@ -2884,9 +2884,9 @@ public:
 
 		string r = prop.msgs.castRangeName(evt.castRange);
 		bool hasLevel = 0 < evt.levelMax;
-		bool hasStatus = evt.status2 !is Status.NONE;
+		bool hasStatus = evt.status !is Status.NONE;
 		if (hasLevel || hasStatus) {
-			string s = prop.msgs.statusName(evt.status2);
+			string s = prop.msgs.statusName(evt.status);
 			auto l1 = evt.levelMin, l2 = evt.levelMax;
 			string cond;
 			if (hasLevel && hasStatus) {

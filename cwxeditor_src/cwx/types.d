@@ -913,7 +913,6 @@ enum CArg {
 	CAST_RANGE, /// キャスト選択範囲(CardWirth Extender 1.30～)。
 	LEVEL_MIN, /// 下限レベル(CardWirth Extender 1.30～)。
 	LEVEL_MAX, /// 上限レベル(CardWirth Extender 1.30～)。
-	STATUS_2, /// キャスト選択状態条件(CardWirth Extender 1.30～)。
 }
 
 /// 後続コンテントのnameの型。

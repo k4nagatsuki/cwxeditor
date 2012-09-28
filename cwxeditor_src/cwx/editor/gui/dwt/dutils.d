@@ -2386,9 +2386,9 @@ string contentText(Commons comm, in Content evt, Summary summ = null) {
 	} case CType.BRANCH_RANDOM_SELECT: {
 		string r = comm.prop.msgs.castRangeName(evt.castRange);
 		bool hasLevel = 0 < evt.levelMax;
-		bool hasStatus = evt.status2 !is Status.NONE;
+		bool hasStatus = evt.status !is Status.NONE;
 		if (hasLevel || hasStatus) {
-			string s = comm.prop.msgs.statusName(evt.status2);
+			string s = comm.prop.msgs.statusName(evt.status);
 			auto l1 = evt.levelMin, l2 = evt.levelMax;
 			string cond;
 			if (hasLevel && hasStatus) {

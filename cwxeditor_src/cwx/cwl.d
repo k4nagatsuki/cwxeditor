@@ -1280,9 +1280,9 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) {
 			e.levelMax = 0;
 		}
 		if (style & 0b10) {
-			e.status2 = toStatus(f.readByte);
+			e.status = toStatus(f.readByte);
 		} else {
-			e.status2 = Status.NONE;
+			e.status = Status.NONE;
 		}
 		break;
 	default: throw new SummaryException("Unknown content type: " ~ to!(string)(type));
@@ -2698,7 +2698,7 @@ private void writeContent(ref SData d, ref ByteIO f, Content e) {
 		if (0 < e.levelMax) {
 			style |= 0b01;
 		}
-		if (e.status2 !is Status.NONE) {
+		if (e.status !is Status.NONE) {
 			style |= 0b10;
 		}
 		f.write(style);
@@ -2707,7 +2707,7 @@ private void writeContent(ref SData d, ref ByteIO f, Content e) {
 			f.writeL(e.levelMax);
 		}
 		if (style & 0b10) {
-			f.write(fromStatus(e.status2));
+			f.write(fromStatus(e.status));
 		}
 	} else {
 		assert (0, "event");

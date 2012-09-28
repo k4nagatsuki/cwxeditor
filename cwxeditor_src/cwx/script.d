@@ -2413,9 +2413,6 @@ fi`;
 			if (detail.use(CArg.STATUS)) {
 				c.status = parseAttr!(Status)(opt, node.attr, i, c.status, varTable, 0);
 			}
-			if (detail.use(CArg.STATUS_2)) {
-				c.status2 = parseAttr!(Status)(opt, node.attr, i, c.status2, varTable, 0);
-			}
 			if (detail.use(CArg.BGM_PATH)) {
 				c.bgmPath = encodePath(parseAttr!(string)(opt, node.attr, i, decodePath(c.bgmPath), varTable, 0));
 			}
@@ -3049,9 +3046,6 @@ fi`;
 			}
 			if (detail.use(CArg.STATUS)) {
 				attrs ~= toAttr(c.status, command, indentValue, vars);
-			}
-			if (detail.use(CArg.STATUS_2)) {
-				attrs ~= toAttr(c.status2, command, indentValue, vars);
 			}
 			if (detail.use(CArg.BGM_PATH)) {
 				if (c.bgmPath.length) {

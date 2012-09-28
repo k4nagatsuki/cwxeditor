@@ -1533,7 +1533,7 @@ public:
 		};
 		pNode.onTag["SoundPath"] = (ref XNode n) {_se1.path = decodePath(n.value);};
 		pNode.onTag["SoundPath2"] = (ref XNode n) {_se2.path = decodePath(n.value);};
-		pNode.onTag["KeyCodes"] = (ref XNode n) {keyCodes = decodeLf(n.value);};
+		pNode.onTag["KeyCodes"] = (ref XNode n) {keyCodes = decodeLf(n.value, true);};
 		pNode.onTag["Premium"] = (ref XNode n) {_premi = toPremium(n.value);};
 		loadProp(pNode, ver);
 	}

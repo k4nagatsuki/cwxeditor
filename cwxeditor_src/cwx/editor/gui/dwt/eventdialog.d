@@ -2680,7 +2680,7 @@ protected:
 		if (_evt) {
 			_castRange[_evt.castRange].setSelection(true);
 			_hasLevel.setSelection(0 < _evt.levelMax);
-			_hasStatus.setSelection(Status.NONE !is _evt.status2);
+			_hasStatus.setSelection(Status.NONE !is _evt.status);
 			if (_hasLevel.getSelection()) {
 				_levMin.setSelection(_evt.levelMin);
 				_levMax.setSelection(_evt.levelMax);
@@ -2689,7 +2689,7 @@ protected:
 				_levMax.setSelection(1);
 			}
 			if (_hasStatus.getSelection()) {
-				_status[_evt.status2].setSelection(true);
+				_status[_evt.status].setSelection(true);
 			} else {
 				_status[Status.ACTIVE].setSelection(true);
 			}
@@ -2718,9 +2718,9 @@ protected:
 			_evt.levelMax = 0;
 		}
 		if (hasStatus) {
-			_evt.status2 = getRadioValue!(Status)(_status);
+			_evt.status = getRadioValue!(Status)(_status);
 		} else {
-			_evt.status2 = Status.NONE;
+			_evt.status = Status.NONE;
 		}
 		return true;
 	}
