@@ -2413,20 +2413,44 @@ public:
 				setupMenu(_tool);
 				dStr ~= " - " ~ .text(__LINE__);
 			}
-			d.addFilter(SWT.Selection, new class Listener {
+			auto selectFilter = new class Listener {
 				override void handleEvent(Event e) {
 					if (cast(CTabFolder) e.widget || cast(TabFolder) e.widget) {
 						_comm.refreshToolBar();
 					}
 				}
-			});
-			d.addFilter(SWT.FocusIn, new class Listener {
+			};
+			auto focusInOut = new class Listener {
+				private int _imeMode = SWT.NONE;
 				override void handleEvent(Event e) {
-					_comm.refreshToolBar();
+					if (e.type is SWT.FocusIn) {
+						if (auto spn = cast(Spinner) e.widget) {
+							_imeMode = spn.getShell().getImeInputMode();
+							spn.getShell().setImeInputMode(SWT.NONE);
+						}
+						_comm.refreshToolBar();
+					} else {
+						assert (e.type is SWT.FocusOut);
+						if (auto spn = cast(Spinner) e.widget) {
+							spn.getShell().setImeInputMode(_imeMode);
+						}
+					}
 				}
+			};
+			auto keyDownFilter = new KeyDownFilter;
+			auto switchTab = new SwitchTab;
+			d.addFilter(SWT.Selection, selectFilter);
+			d.addFilter(SWT.FocusIn, focusInOut);
+			d.addFilter(SWT.FocusOut, focusInOut);
+			d.addFilter(SWT.KeyDown, keyDownFilter);
+			d.addFilter(SWT.MouseWheel, switchTab);
+			.listener(_win, SWT.Dispose, {
+				d.removeFilter(SWT.Selection, selectFilter);
+				d.removeFilter(SWT.FocusIn, focusInOut);
+				d.removeFilter(SWT.FocusOut, focusInOut);
+				d.removeFilter(SWT.KeyDown, keyDownFilter);
+				d.removeFilter(SWT.MouseWheel, switchTab);
 			});
-			d.addFilter(SWT.KeyDown, new KeyDownFilter);
-			d.addFilter(SWT.MouseWheel, new SwitchTab);
 			refreshExecEngine();
 			refreshOuterTools();
 
