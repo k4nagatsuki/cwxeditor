@@ -547,6 +547,7 @@ private:
 		}
 	}
 	void arrow() {
+		constructTools();
 		_arrowMode = true;
 		_comp.setCursor(null);
 		if (_toolWin && !_toolWin.isDisposed()) {
@@ -561,6 +562,7 @@ private:
 	void selContentTool(Object sender, bool arrowMode, CType cType, bool autoOpen, bool conti) {
 		if (!_prop.var.etc.connContentTools) return;
 		if (sender is this) return;
+		constructTools();
 		if (!_arrowMode && arrowMode) {
 			arrow();
 		}
