@@ -372,7 +372,15 @@ private:
 				try {
 					auto node = XNode.parse(xml);
 					if (node.name == Coupon.XML_NAME) {
-						appendCoupon(Coupon.fromNode(node, LATEST_VERSION), _coupons.getSelectionIndex);
+						auto coupon = Coupon.fromNode(node, LATEST_VERSION);
+						string name = createNewName(coupon.name, (string s) {
+							foreach (itm; _coupons.getItems()) {
+								auto c = cast(Coupon) itm.getData();
+								if (c.name == s) return false;
+							}
+							return true;
+						}, true);
+						appendCoupon(new Coupon(name, coupon.value), _coupons.getSelectionIndex());
 					}
 				} catch (Exception e) {
 					debugln(e);

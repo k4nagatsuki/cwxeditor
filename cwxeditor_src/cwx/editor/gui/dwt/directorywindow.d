@@ -770,6 +770,7 @@ private:
 							if (!dir) dir = to;
 						} else {
 							std.file.copy(from, to);
+							if (cfnmatch(parent, targ)) selfs ~= to;
 						}
 					}
 					renameCopy(targ, file);
