@@ -984,7 +984,7 @@ private:
 			new Exec(this, menu, tool, i);
 		}
 		if (_prop.var.etc.outerTools.length > 0) new MenuItem(menu, SWT.SEPARATOR);
-		appendMenuTCPD(_comm, menu, this, true, true, true, true, false);
+		appendMenuTCPD(_comm, menu, this, true, true, true, true, true);
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.CopyFilePath, &copyFilePath, () => _files.getSelectionIndex() != -1);
 		new MenuItem(menu, SWT.SEPARATOR);
@@ -1454,7 +1454,7 @@ public:
 			new MenuItem(me, SWT.SEPARATOR);
 			createMenuItem(_comm, me, MenuID.CreateArchive, &createArchive, &canCreateArchive);
 			new MenuItem(me, SWT.SEPARATOR);
-			appendMenuTCPD(_comm, me, this, true, true, true, true, false);
+			appendMenuTCPD(_comm, me, this, true, true, true, true, true);
 			new MenuItem(me, SWT.SEPARATOR);
 			createMenuItem(_comm, me, MenuID.DelNotUsedFile, &deleteUnuse, &canDeleteUnuse);
 
@@ -1465,7 +1465,7 @@ public:
 
 			shell.setMenuBar(bar);
 		} else {
-			appendMenuTCPD(_comm, this, this, true, true, true, true, false);
+			appendMenuTCPD(_comm, this, this, true, true, true, true, true);
 			putMenuAction(MenuID.ReplFilePath, &replace, () => _summ !is null);
 			putMenuAction(MenuID.Refresh, &__refresh, () => _summ !is null);
 			putMenuAction(MenuID.OpenDir, &openDirectory, &canOpenDirectory);
@@ -1520,7 +1520,7 @@ public:
 			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(_comm, menu, MenuID.CreateArchive, &createArchive, &canCreateArchive);
 			new MenuItem(menu, SWT.SEPARATOR);
-			appendMenuTCPD(_comm, menu, this, true, true, true, true, false);
+			appendMenuTCPD(_comm, menu, this, true, true, true, true, true);
 			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(_comm, menu, MenuID.DelNotUsedFile, &deleteUnuse, &canDeleteUnuse);
 			_dirs.setMenu(menu);
@@ -2118,7 +2118,15 @@ public:
 		_comm.refreshToolBar();
 	}
 	override void clone(SelectionEvent se) {
-		return;
+		auto files = copyImpl();
+		if (!files.length) return;
+		if (_dirs.isFocusControl()) {
+			auto parItm = _dirs.getSelection()[0].getParentItem();
+			if (parItm) {
+				select((cast(FileNameObj) parItm.getData()).array);
+			}
+		}
+		pasteImpl(files);
 	}
 	@property
 	override bool canDoTCPD() {
@@ -2155,6 +2163,13 @@ public:
 	}
 	@property
 	bool canDoClone() {
+		if (!_summ) return false;
+		if (_dirs.isFocusControl()) {
+			auto sels = _dirs.getSelection();
+			return sels.length > 0 && sels[0].getParentItem();
+		} else if (_files.isFocusControl()) {
+			return _files.getSelectionIndex() != -1;
+		}
 		return false;
 	}
 
