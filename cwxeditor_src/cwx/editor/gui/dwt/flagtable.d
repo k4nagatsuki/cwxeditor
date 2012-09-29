@@ -1151,7 +1151,7 @@ public:
 		createMenuItem(_comm, menu, MenuID.Undo, &this.undo, &_undo.canUndo);
 		createMenuItem(_comm, menu, MenuID.Redo, &this.redo, &_undo.canRedo);
 		new MenuItem(menu, SWT.SEPARATOR);
-		appendMenuTCPD(_comm, menu, this, true, true, true, true);
+		appendMenuTCPD(_comm, menu, this, true, true, true, true, true);
 		flags.setMenu(menu);
 
 		auto ds = new DragSource(flags, DND.DROP_MOVE | DND.DROP_COPY);
@@ -1426,6 +1426,12 @@ public:
 			refresh();
 			_comm.refreshToolBar();
 		}
+		void clone(SelectionEvent se) {
+			_comm.clipboard.memoryMode = true;
+			scope (exit) _comm.clipboard.memoryMode = false;
+			copy(se);
+			paste(se);
+		}
 		@property
 		bool canDoTCPD() {
 			return _comm.summary && flags.isFocusControl();
@@ -1445,6 +1451,10 @@ public:
 		@property
 		bool canDoD() {
 			return canDoT;
+		}
+		@property
+		bool canDoClone() {
+			return canDoC;
 		}
 	}
 	void undo() {

@@ -1591,6 +1591,7 @@ class Msgs : Properties {
 	auto menuTextCopy = Msg("menuTextCopy", "コピー");
 	auto menuTextPaste = Msg("menuTextPaste", "貼り付け");
 	auto menuTextDelete = Msg("menuTextDelete", "削除");
+	auto menuTextClone = Msg("menuTextClone", "複製");
 	auto menuTextSelectAll = Msg("menuTextSelectAll", "すべて選択");
 	auto menuTextToXMLText = Msg("menuTextToXMLText", "コピーしたデータをXMLに変換");
 	auto menuTextTableView = Msg("menuTextTableView", "テーブルビュー");

@@ -136,7 +136,7 @@ public:
 				createMenuItem(_comm, me, MenuID.Undo, &undo, &canUndo);
 				createMenuItem(_comm, me, MenuID.Redo, &redo, &canRedo);
 				new MenuItem(me, SWT.SEPARATOR);
-				appendMenuTCPD(_comm, me, this, true, true, true, true);
+				appendMenuTCPD(_comm, me, this, true, true, true, true, true);
 				new MenuItem(me, SWT.SEPARATOR);
 				createMenuItem(_comm, me, MenuID.Up, &up, &canUp);
 				createMenuItem(_comm, me, MenuID.Down, &down, &canDown);
@@ -191,7 +191,7 @@ public:
 				}
 			}
 		} else {
-			appendMenuTCPD(_comm, this, this, true, true, true, true);
+			appendMenuTCPD(_comm, this, this, true, true, true, true, true);
 			static if (UseArea && UseFlag) {
 				putMenuAction(MenuID.EditSummary, &editSummary, &canEditSummary);
 			}
@@ -558,6 +558,13 @@ public:
 				}
 			}
 		}
+		void clone(SelectionEvent se) {
+			foreach (c; _tcpd) {
+				if (c.canDoTCPD) {
+					c.clone(se);
+				}
+			}
+		}
 		bool canDoTCPD() {
 			return .hasFocus(_win);
 		}
@@ -586,6 +593,13 @@ public:
 		bool canDoD() {
 			foreach (c; _tcpd) {
 				if (c.canDoTCPD) return c.canDoD;
+			}
+			return false;
+		}
+		@property
+		bool canDoClone() {
+			foreach (c; _tcpd) {
+				if (c.canDoTCPD) return c.canDoClone;
 			}
 			return false;
 		}

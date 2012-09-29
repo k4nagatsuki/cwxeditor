@@ -30,6 +30,7 @@ import cwx.editor.gui.dwt.dockingfolder;
 import cwx.editor.gui.dwt.sbshell;
 import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.dmenu;
+import cwx.editor.gui.dwt.xmlbytestransfer;
 
 import std.exception;
 import std.path;
@@ -382,7 +383,7 @@ class Commons {
 	private InfoCardWindow _infoWin = null;
 	private DirectoryWindow _dirWin = null;
 
-	private Clipboard _clipboard = null;
+	private ClipData _clipboard = null;
 
 	private HashSet!Control _toolbars;
 	void put(ToolBar bar) {
@@ -459,7 +460,7 @@ class Commons {
 		_dataWin = dataWin;
 		_cardWin = cardWin;
 		_dirWin = dirWin;
-		_clipboard = new Clipboard(_main.shell.getDisplay());
+		_clipboard = new ClipData(new Clipboard(_main.shell.getDisplay()));
 	}
 	void baseShell(MainWindow main, TableWindow tableWin, FlagWindow flagWin,
 			CastCardWindow castWin, SkillCardWindow skillWin, ItemCardWindow itemWin, BeastCardWindow beastWin, InfoCardWindow infoWin,
@@ -473,7 +474,7 @@ class Commons {
 		_beastWin = beastWin;
 		_infoWin = infoWin;
 		_dirWin = dirWin;
-		_clipboard = new Clipboard(_main.shell.getDisplay());
+		_clipboard = new ClipData(new Clipboard(_main.shell.getDisplay()));
 	}
 	@property
 	MainWindow mainWin() {return _main;}
@@ -482,7 +483,7 @@ class Commons {
 	/// Clipboard#dispose()で異常が発生するため、
 	/// 新規生成は避け、常にこの唯一のインスタンスを使用する。
 	@property
-	Clipboard clipboard() {return _clipboard;}
+	ClipData clipboard() {return _clipboard;}
 
 	@property
 	Summary summary() {

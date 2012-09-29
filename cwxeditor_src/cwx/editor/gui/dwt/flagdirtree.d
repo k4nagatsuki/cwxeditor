@@ -360,7 +360,7 @@ public:
 		createMenuItem(_comm, menu, MenuID.Undo, &this.undo, &_undo.canUndo);
 		createMenuItem(_comm, menu, MenuID.Redo, &this.redo, &_undo.canRedo);
 		new MenuItem(menu, SWT.SEPARATOR);
-		appendMenuTCPD(_comm, menu, this, true, true, true, true);
+		appendMenuTCPD(_comm, menu, this, true, true, true, true, true);
 		dirs.setMenu(menu);
 
 		auto ds = new DragSource(dirs, DND.DROP_MOVE);
@@ -554,6 +554,18 @@ public:
 				_comm.refreshToolBar();
 			}
 		}
+		void clone(SelectionEvent se) {
+			auto sel = dirs.getSelection();
+			if (!sel.length) return;
+			_comm.clipboard.memoryMode = true;
+			scope (exit) _comm.clipboard.memoryMode = false;
+			copy(se);
+			auto par = current.parent;
+			if (par) {
+				current = par;
+			}
+			paste(se);
+		}
 		@property
 		bool canDoTCPD() {
 			return _comm.summary && dirs.isFocusControl();
@@ -573,6 +585,10 @@ public:
 		@property
 		bool canDoD() {
 			return canDoT;
+		}
+		@property
+		bool canDoClone() {
+			return canDoC;
 		}
 	}
 

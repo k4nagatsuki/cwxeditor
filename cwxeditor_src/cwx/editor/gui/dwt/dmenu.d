@@ -124,11 +124,13 @@ public:
 	void copy(SelectionEvent se);
 	void paste(SelectionEvent se);
 	void del(SelectionEvent se);
+	void clone(SelectionEvent se);
 	@property bool canDoTCPD();
 	@property bool canDoT();
 	@property bool canDoC();
 	@property bool canDoP();
 	@property bool canDoD();
+	@property bool canDoClone();
 }
 
 private class InTCPD {
@@ -181,24 +183,48 @@ private class InTCPD {
 			tcpd.del(se);
 		}
 	}
+	private void cloneImpl(T)(T fc) {
+		auto p = fc.getSelection();
+		if (p.x == p.y) return;
+		auto text = fc.getText();
+		auto pt = text[p.x .. p.y];
+		fc.setText(text[0 .. p.y] ~ pt ~ text[p.y .. $]);
+		fc.setSelection(new Point(p.y, p.y + pt.length));
+	}
+	void clone(SelectionEvent se) {
+		auto fc = Display.getCurrent().getFocusControl();
+		bool ro = !(fc.getStyle() & SWT.READ_ONLY);
+		if (ro && cast(Text) fc) {
+			cloneImpl(cast(Text) fc);
+		} else if (ro && cast(Combo) fc) {
+			cloneImpl(cast(Combo) fc);
+		} else if (ro && cast(CCombo) fc) {
+			cloneImpl(cast(CCombo) fc);
+		} else {
+			tcpd.clone(se);
+		}
+	}
 }
-void appendMenuTCPD(Commons comm, TopLevelPanel tlp, TCPD tcpd,
-		bool t = true, bool c = true, bool p = true, bool d = false) {
+void appendMenuTCPD(Commons comm, TopLevelPanel tlp, TCPD tcpd, bool t, bool c, bool p, bool d, bool clone) {
 	auto itcpd = new InTCPD;
 	itcpd.tcpd = tcpd;
 	if (t) tlp.putMenuAction(MenuID.Cut, &itcpd.cut, &tcpd.canDoT);
 	if (c) tlp.putMenuAction(MenuID.Copy, &itcpd.copy, &tcpd.canDoC);
 	if (p) tlp.putMenuAction(MenuID.Paste, &itcpd.paste, &tcpd.canDoP);
 	if (d) tlp.putMenuAction(MenuID.Delete, &itcpd.del, &tcpd.canDoD);
+	if (clone) tlp.putMenuAction(MenuID.Clone, &itcpd.clone, &tcpd.canDoClone);
 }
-void appendMenuTCPD(Commons comm, Menu me, TCPD tcpd,
-		bool t = true, bool c = true, bool p = true, bool d = false) {
+void appendMenuTCPD(Commons comm, Menu me, TCPD tcpd, bool t, bool c, bool p, bool d, bool clone) {
 	auto itcpd = new InTCPD;
 	itcpd.tcpd = tcpd;
 	if (t) createMenuItem(comm, me, MenuID.Cut, &itcpd.cut, &tcpd.canDoT);
 	if (c) createMenuItem(comm, me, MenuID.Copy, &itcpd.copy, &tcpd.canDoC);
 	if (p) createMenuItem(comm, me, MenuID.Paste, &itcpd.paste, &tcpd.canDoP);
 	if (d) createMenuItem(comm, me, MenuID.Delete, &itcpd.del, &tcpd.canDoD);
+	if (clone) {
+		new MenuItem(me, SWT.SEPARATOR);
+		createMenuItem(comm, me, MenuID.Clone, &itcpd.clone, &tcpd.canDoClone);
+	}
 }
 
 interface IgnoreHotkey {

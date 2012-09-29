@@ -1292,7 +1292,7 @@ private:
 			auto menu = new Menu(parent.getShell(), SWT.POP_UP);
 			createMenuItem(_comm, menu, MenuID.EditProp, &edit, () => _imgp.selectedIndex != -1);
 			new MenuItem(menu, SWT.SEPARATOR);
-			appendMenuTCPD(_comm, menu, _tcpd, true, true, true, true);
+			appendMenuTCPD(_comm, menu, _tcpd, true, true, true, true, true);
 			static if (is(A : Area)) {
 				new MenuItem(menu, SWT.SEPARATOR);
 				createMenuItem(_comm, menu, MenuID.EditEvent, &openEvent, null);
@@ -1619,7 +1619,7 @@ private:
 				edit(list.getSelectionIndices());
 			}, () => list.getSelectionIndex() != -1);
 			new MenuItem(menu, SWT.SEPARATOR);
-			appendMenuTCPD(_comm, menu, tcpd, true, true, true, true);
+			appendMenuTCPD(_comm, menu, tcpd, true, true, true, true, true);
 			static if ((is(A : Area) || is(A : Battle)) && is(C : AbstractSpCard)) {
 				new MenuItem(menu, SWT.SEPARATOR);
 				static if (is(A : Area)) {
@@ -3715,6 +3715,9 @@ public:
 	private void delImpl() {
 		_tcpd.del(null);
 	}
+	void clone(SelectionEvent se) {
+		_tcpd.clone(se);
+	}
 	private static void delImpl2(AbstractAreaView v, Commons comm, A area, int[] cIdcs, int[] bIdcs, bool store) {
 		if (store && v) v._undo ~= new UndoDelete(v, comm, area, comm.summary, cIdcs, bIdcs);
 		static if (UseCards) {
@@ -3766,6 +3769,10 @@ public:
 	@property
 	bool canDoD() {
 		return _imgp.selectedIndex != -1;
+	}
+	@property
+	bool canDoClone() {
+		return canDoC;
 	}
 	static if (UseCards && UseBacks) {
 		private class AllTCPD : TCPD {
@@ -3826,6 +3833,12 @@ public:
 				delImpl2(this.outer, _comm, _area, _cards.getSelectionIndices(), _backs.getSelectionIndices(), true);
 				_comm.refreshToolBar();
 			}
+			void clone(SelectionEvent se) {
+				_comm.clipboard.memoryMode = true;
+				scope (exit) _comm.clipboard.memoryMode = false;
+				copy(se);
+				paste(se);
+			}
 			@property
 			bool canDoTCPD() {
 				return _imgp.isVisible();
@@ -3845,6 +3858,10 @@ public:
 			@property
 			bool canDoD() {
 				return _imgp.selectedIndex != -1;
+			}
+			@property
+			bool canDoClone() {
+				return canDoC;
 			}
 		}
 	}
@@ -3899,6 +3916,12 @@ public:
 				delImpl2(this.outer, _comm, _area, _cards.getSelectionIndices(), [], true);
 				_comm.refreshToolBar();
 			}
+			void clone(SelectionEvent se) {
+				_comm.clipboard.memoryMode = true;
+				scope (exit) _comm.clipboard.memoryMode = false;
+				copy(se);
+				paste(se);
+			}
 			@property
 			bool canDoTCPD() {
 				return _cards.isVisible() && _cards.isEnabled();
@@ -3918,6 +3941,10 @@ public:
 			@property
 			bool canDoD() {
 				return _cards.getSelectionIndex() != -1;
+			}
+			@property
+			bool canDoClone() {
+				return canDoC;
 			}
 		}
 	}
@@ -3971,6 +3998,12 @@ public:
 				delImpl2(this.outer, _comm, _area, [], _backs.getSelectionIndices(), true);
 				_comm.refreshToolBar();
 			}
+			void clone(SelectionEvent se) {
+				_comm.clipboard.memoryMode = true;
+				scope (exit) _comm.clipboard.memoryMode = false;
+				copy(se);
+				paste(se);
+			}
 			@property
 			bool canDoTCPD() {
 				return _backs.isVisible() && _backs.isEnabled();
@@ -3990,6 +4023,10 @@ public:
 			@property
 			bool canDoD() {
 				return _backs.getSelectionIndex() != -1;
+			}
+			@property
+			bool canDoClone() {
+				return canDoC;
 			}
 		}
 	}

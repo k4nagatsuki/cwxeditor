@@ -556,6 +556,12 @@ private:
 				}
 			}
 		}
+		override void clone(SelectionEvent se) {
+			_comm.clipboard.memoryMode = true;
+			scope (exit) _comm.clipboard.memoryMode = false;
+			copy(se);
+			paste(se);
+		}
 		@property
 		override bool canDoTCPD() {
 			return _summ && widget.isFocusControl();
@@ -575,6 +581,10 @@ private:
 		@property
 		override bool canDoD() {
 			return canDoT;
+		}
+		@property
+		override bool canDoClone() {
+			return canDoC;
 		}
 	}
 	static if (EditMode) {
@@ -1427,7 +1437,7 @@ public:
 			createMenuItem(_comm, pop, MenuID.Undo, &undo, &_undo.canUndo);
 			createMenuItem(_comm, pop, MenuID.Redo, &redo, &_undo.canRedo);
 			new MenuItem(pop, SWT.SEPARATOR);
-			appendMenuTCPD(_comm, pop, this, true, true, true, true);
+			appendMenuTCPD(_comm, pop, this, true, true, true, true, true);
 			new MenuItem(pop, SWT.SEPARATOR);
 			createMenuItem(_comm, pop, MenuID.ReNumbering, &reNumbering, () => selection !is null);
 		} else {
@@ -1438,7 +1448,7 @@ public:
 			}
 			createMenuItem(_comm, pop, MenuID.Import, &addCard, () => selection !is null);
 			new MenuItem(pop, SWT.SEPARATOR);
-			appendMenuTCPD(_comm, pop, this, false, true, false, false);
+			appendMenuTCPD(_comm, pop, this, false, true, false, false, false);
 		}
 		_list.setMenu(pop);
 		_tbl.setMenu(pop);
@@ -1967,6 +1977,15 @@ public:
 				}
 			}
 		}
+		void clone(SelectionEvent se) {
+			static if (EditMode) {
+				foreach (c; _tcpd) {
+					if (c.canDoTCPD) {
+						c.clone(se);
+					}
+				}
+			}
+		}
 		@property
 		bool canDoTCPD() {
 			return _list.isVisible() || _tbl.isVisible();
@@ -1996,6 +2015,13 @@ public:
 		bool canDoD() {
 			foreach (c; _tcpd) {
 				if (c.canDoTCPD) return c.canDoD;
+			}
+			return false;
+		}
+		@property
+		bool canDoClone() {
+			foreach (c; _tcpd) {
+				if (c.canDoTCPD) return c.canDoClone;
 			}
 			return false;
 		}

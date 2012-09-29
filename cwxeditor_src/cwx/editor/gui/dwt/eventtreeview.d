@@ -1802,7 +1802,7 @@ public:
 					createMenuItem(_comm, popup, MenuID.Redo, &this.redo, &_undo.canRedo);
 					new MenuItem(popup, SWT.SEPARATOR);
 					dStr ~= " - " ~ .text(__LINE__);
-					appendMenuTCPD(_comm, popup, this, true, true, true, true);
+					appendMenuTCPD(_comm, popup, this, true, true, true, true, true);
 					new MenuItem(popup, SWT.SEPARATOR);
 					dStr ~= " - " ~ .text(__LINE__);
 					createMenuItem(_comm, popup, MenuID.ToScript, &toScript, &canToScript);
@@ -3199,6 +3199,17 @@ public:
 				_comm.refreshToolBar();
 			}
 		}
+		void clone(SelectionEvent se) {
+			_comm.clipboard.memoryMode = true;
+			scope (exit) _comm.clipboard.memoryMode = false;
+			copy(se);
+			auto itm = selection;
+			auto parItm = itm.getParentItem();
+			if (parItm) {
+				_tree.setSelection([parItm]);
+			}
+			paste(se);
+		}
 		@property
 		bool canDoTCPD() {
 			return _et !is null && _tree.isFocusControl();
@@ -3219,6 +3230,10 @@ public:
 		@property
 		bool canDoD() {
 			return canDoT;
+		}
+		@property
+		bool canDoClone() {
+			return canDoC;
 		}
 	}
 	void pasteScript(string script) {

@@ -516,11 +516,18 @@ private:
 			}
 		}
 		void del(SelectionEvent se) {deleteDialogSel();}
+		void clone(SelectionEvent se) {
+			comm.clipboard.memoryMode = true;
+			scope (exit) comm.clipboard.memoryMode = false;
+			copy(se);
+			paste(se);
+		}
 		@property bool canDoTCPD() {return _dlgsL.isFocusControl();}
 		@property bool canDoT() {return _dlgsL.getSelectionIndex() > 0;}
 		@property bool canDoC() {return canDoT;}
 		@property bool canDoP() {return CBisXML(comm.clipboard);}
 		@property bool canDoD() {return canDoT;}
+		@property bool canDoClone() {return canDoC;}
 	}
 	class DDropListener : DropTargetAdapter {
 		override void dragEnter(DropTargetEvent e){
@@ -724,7 +731,7 @@ protected:
 			createMenuItem(comm, menu, MenuID.OverDialog, &overDialog, () => _dlgsL.getSelectionIndex() != -1 && 0 < _dlgsL.getSelectionIndex());
 			createMenuItem(comm, menu, MenuID.UnderDialog, &underDialog, () => _dlgsL.getSelectionIndex() != -1 && _dlgsL.getSelectionIndex() + 1 < _dlgsL.getItemCount());
 			new MenuItem(menu, SWT.SEPARATOR);
-			appendMenuTCPD(comm, menu, new DialogsTCPD, true, true, true, true);
+			appendMenuTCPD(comm, menu, new DialogsTCPD, true, true, true, true, true);
 			_dlgsL.setMenu(menu);
 
 			auto bar = new ToolBar(comp, SWT.FLAT | SWT.VERTICAL);

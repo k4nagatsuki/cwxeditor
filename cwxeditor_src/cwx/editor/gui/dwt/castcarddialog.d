@@ -420,7 +420,15 @@ private:
 					auto node = XNode.parse(xml);
 					if (node.name == Coupon.XML_NAME) {
 						storeCoupons();
-						appendCoupon(Coupon.fromNode(node, LATEST_VERSION), _coupons.getSelectionIndex());
+						auto coupon = Coupon.fromNode(node, LATEST_VERSION);
+						string name = createNewName(coupon.name, (string s) {
+							foreach (itm; _coupons.getItems()) {
+								auto c = cast(Coupon) itm.getData();
+								if (c.name == s) return false;
+							}
+							return true;
+						}, true);
+						appendCoupon(new Coupon(name, coupon.value), _coupons.getSelectionIndex());
 					}
 					applyEnabled();
 				} catch (Exception e) {
@@ -430,6 +438,12 @@ private:
 		}
 		override void del(SelectionEvent se) {
 			delCoupon();
+		}
+		override void clone(SelectionEvent se) {
+			_comm.clipboard.memoryMode = true;
+			scope (exit) _comm.clipboard.memoryMode = false;
+			copy(se);
+			paste(se);
 		}
 		@property
 		override bool canDoTCPD() {
@@ -450,6 +464,10 @@ private:
 		@property
 		bool canDoD() {
 			return _coupons.getSelectionIndex() != -1;
+		}
+		@property
+		bool canDoClone() {
+			return canDoC;
 		}
 	}
 
@@ -668,7 +686,7 @@ private:
 				createMenuItem(_comm, menu, MenuID.Up, &upCoupon, () => _coupons.getSelectionIndex() != -1 && 0 < _coupons.getSelectionIndex());
 				createMenuItem(_comm, menu, MenuID.Down, &downCoupon, () => _coupons.getSelectionIndex() != -1 && _coupons.getSelectionIndex() + 1 < _coupons.getItemCount());
 				new MenuItem(menu, SWT.SEPARATOR);
-				appendMenuTCPD(_comm, menu, new CouponTCPD, true, true, true, true);
+				appendMenuTCPD(_comm, menu, new CouponTCPD, true, true, true, true, true);
 				_coupons.setMenu(menu);
 			}
 			_coupons.addSelectionListener(new SelCoupon);

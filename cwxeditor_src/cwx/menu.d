@@ -71,6 +71,7 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.Copy] = "C";
 		_mnemonic[MenuID.Paste] = "P";
 		_mnemonic[MenuID.Delete] = "D";
+		_mnemonic[MenuID.Clone] = "L";
 		_mnemonic[MenuID.SelectAll] = "A";
 		_mnemonic[MenuID.ToXMLText] = "X";
 		_mnemonic[MenuID.TableView] = "D";
@@ -225,6 +226,7 @@ class MenuProps : Properties {
 		_hotkey[MenuID.Copy] = "Ctrl+C";
 		_hotkey[MenuID.Paste] = "Ctrl+V";
 		_hotkey[MenuID.Delete] = "Delete";
+		_hotkey[MenuID.Clone] = "";
 		_hotkey[MenuID.SelectAll] = "Ctrl+A";
 		_hotkey[MenuID.ToXMLText] = "";
 		_hotkey[MenuID.TableView] = "";

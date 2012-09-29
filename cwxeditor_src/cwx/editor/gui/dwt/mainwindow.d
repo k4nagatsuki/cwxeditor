@@ -2075,6 +2075,8 @@ public:
 					mixin (MenuAction!("me", MenuID.Paste));
 					mixin (MenuAction!("me", MenuID.Delete));
 					new MenuItem(me, SWT.SEPARATOR);
+					mixin (MenuAction!("me", MenuID.Clone));
+					new MenuItem(me, SWT.SEPARATOR);
 					mixin (MenuAction!("me", MenuID.SelectAll));
 					new MenuItem(me, SWT.SEPARATOR);
 					mixin (MenuAction!("me", MenuID.Comment));
@@ -2271,6 +2273,8 @@ public:
 						mixin (ToolAction!("bar", MenuID.Copy));
 						mixin (ToolAction!("bar", MenuID.Paste));
 						mixin (ToolAction!("bar", MenuID.Delete));
+						new ToolItem(bar, SWT.SEPARATOR);
+						mixin (ToolAction!("bar", MenuID.Clone));
 						createCoolItem(cbar, bar);
 					}
 					{

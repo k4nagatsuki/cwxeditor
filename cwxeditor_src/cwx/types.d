@@ -1025,6 +1025,7 @@ enum MenuID {
 	Copy,
 	Paste,
 	Delete,
+	Clone,
 	SelectAll,
 	ToXMLText,
 	TableView,

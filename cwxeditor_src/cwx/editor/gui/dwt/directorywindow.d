@@ -774,6 +774,7 @@ private:
 							if (!dir) dir = to;
 						} else {
 							std.file.copy(from, to);
+							if (cfnmatch(parent, targ)) selfs ~= to;
 						}
 					}
 					renameCopy(targ, file);
@@ -983,7 +984,7 @@ private:
 			new Exec(this, menu, tool, i);
 		}
 		if (_prop.var.etc.outerTools.length > 0) new MenuItem(menu, SWT.SEPARATOR);
-		appendMenuTCPD(_comm, menu, this, true, true, true, true);
+		appendMenuTCPD(_comm, menu, this, true, true, true, true, false);
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.CopyFilePath, &copyFilePath, () => _files.getSelectionIndex() != -1);
 		new MenuItem(menu, SWT.SEPARATOR);
@@ -1453,7 +1454,7 @@ public:
 			new MenuItem(me, SWT.SEPARATOR);
 			createMenuItem(_comm, me, MenuID.CreateArchive, &createArchive, &canCreateArchive);
 			new MenuItem(me, SWT.SEPARATOR);
-			appendMenuTCPD(_comm, me, this, true, true, true, true);
+			appendMenuTCPD(_comm, me, this, true, true, true, true, false);
 			new MenuItem(me, SWT.SEPARATOR);
 			createMenuItem(_comm, me, MenuID.DelNotUsedFile, &deleteUnuse, &canDeleteUnuse);
 
@@ -1464,7 +1465,7 @@ public:
 
 			shell.setMenuBar(bar);
 		} else {
-			appendMenuTCPD(_comm, this, this, true, true, true, true);
+			appendMenuTCPD(_comm, this, this, true, true, true, true, false);
 			putMenuAction(MenuID.ReplFilePath, &replace, () => _summ !is null);
 			putMenuAction(MenuID.Refresh, &__refresh, () => _summ !is null);
 			putMenuAction(MenuID.OpenDir, &openDirectory, &canOpenDirectory);
@@ -1519,7 +1520,7 @@ public:
 			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(_comm, menu, MenuID.CreateArchive, &createArchive, &canCreateArchive);
 			new MenuItem(menu, SWT.SEPARATOR);
-			appendMenuTCPD(_comm, menu, this, true, true, true, true);
+			appendMenuTCPD(_comm, menu, this, true, true, true, true, false);
 			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(_comm, menu, MenuID.DelNotUsedFile, &deleteUnuse, &canDeleteUnuse);
 			_dirs.setMenu(menu);
@@ -1998,15 +1999,11 @@ public:
 		if (!canDoTCPD) return;
 		__copy();
 	}
-	private bool __copy() {
-		clearCut();
+	private string[] copyImpl() {
 		if (_dirs.isFocusControl()) {
 			auto dir = selDirPath;
 			if (dir) {
-				_comm.clipboard.setContents([new FileNames([nabs(dir)])],
-					[FileTransfer.getInstance()]);
-				_comm.refreshToolBar();
-				return true;
+				return [nabs(dir)];
 			}
 		} else {
 			assert (_files.isFocusControl());
@@ -2017,11 +2014,19 @@ public:
 				foreach (i, f; files) {
 					arr[i] = nabs(f);
 				}
-				_comm.clipboard.setContents([new FileNames(arr)],
-					[FileTransfer.getInstance()]);
-				_comm.refreshToolBar();
-				return true;
+				return arr;
 			}
+		}
+		return [];
+	}
+	private bool __copy() {
+		clearCut();
+		auto arr = copyImpl();
+		if (arr.length) {
+			_comm.clipboard.setContents([new FileNames(arr)],
+				[FileTransfer.getInstance()]);
+			_comm.refreshToolBar();
+			return true;
 		}
 		return false;
 	}
@@ -2029,12 +2034,17 @@ public:
 		if (!canDoTCPD) return;
 		auto c = _comm.clipboard.getContents(FileTransfer.getInstance());
 		if (c && cast(FileNames) c) {
-			bool fromOut;
-			if (__paste(selDirPath, cast(FileNames) c, false, fromOut)) {
-				clearCut();
-				if (_summ.useTemp) _summ.changed();
-				_comm.refreshToolBar();
-			}
+			pasteImpl((cast(FileNames) c).array);
+		}
+	}
+	private void pasteImpl(string[] array) {
+		if (!canDoTCPD) return;
+		if (!array.length) return;
+		bool fromOut;
+		if (__paste(selDirPath, new FileNames(array), false, fromOut)) {
+			clearCut();
+			if (_summ.useTemp) _summ.changed();
+			_comm.refreshToolBar();
 		}
 	}
 	override void del(SelectionEvent se) {
@@ -2107,6 +2117,9 @@ public:
 		clearCut();
 		_comm.refreshToolBar();
 	}
+	override void clone(SelectionEvent se) {
+		return;
+	}
 	@property
 	override bool canDoTCPD() {
 		return _dirs.isFocusControl() || _files.isFocusControl();
@@ -2139,6 +2152,10 @@ public:
 	@property
 	bool canDoD() {
 		return canDoT;
+	}
+	@property
+	bool canDoClone() {
+		return false;
 	}
 
 	override bool openCWXPath(string path, bool shellActivate) {

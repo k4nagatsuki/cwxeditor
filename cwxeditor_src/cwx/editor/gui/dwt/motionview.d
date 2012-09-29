@@ -993,7 +993,7 @@ public:
 			createMenuItem(_comm, menu, MenuID.Up, &up, () => _motions.getSelectionIndex() != -1 && 0 < _motions.getSelectionIndex());
 			createMenuItem(_comm, menu, MenuID.Down, &down, () => _motions.getSelectionIndex() != -1 && _motions.getSelectionIndex() + 1 < _motions.getItemCount());
 			new MenuItem(menu, SWT.SEPARATOR);
-			appendMenuTCPD(_comm, menu, new MotionTCPD, true, true, true, true);
+			appendMenuTCPD(_comm, menu, new MotionTCPD, true, true, true, true, true);
 			_motions.setMenu(menu);
 			auto col = new FullTableColumn(_motions, SWT.NONE);
 			col.column.setText(_prop.msgs.motionKind);
@@ -1109,7 +1109,7 @@ public:
 				createMenuItem(_comm, menu, MenuID.Undo, &this.undo, &_undo.canUndo);
 				createMenuItem(_comm, menu, MenuID.Redo, &this.redo, &_undo.canRedo);
 				new MenuItem(menu, SWT.SEPARATOR);
-				appendMenuTCPD(_comm, menu, new BeastTCPD, true, true, true, true);
+				appendMenuTCPD(_comm, menu, new BeastTCPD, true, true, true, true, false);
 				_beastImg.setMenu(menu);
 				auto gd = new GridData(GridData.FILL_BOTH);
 				gd.horizontalSpan = 2;
@@ -1293,6 +1293,12 @@ public:
 		override void del(SelectionEvent se) {
 			removeMotion();
 		}
+		override void clone(SelectionEvent se) {
+			_comm.clipboard.memoryMode = true;
+			scope (exit) _comm.clipboard.memoryMode = false;
+			copy(se);
+			paste(se);
+		}
 		@property
 		override bool canDoTCPD() {
 			return _motions.isFocusControl();
@@ -1312,6 +1318,10 @@ public:
 		@property
 		override bool canDoD() {
 			return canDoT;
+		}
+		@property
+		override bool canDoClone() {
+			return canDoC;
 		}
 	}
 	private void pasteBeast(ref XNode node) {
@@ -1399,6 +1409,12 @@ public:
 				}
 			}
 		}
+		override void clone(SelectionEvent se) {
+			_comm.clipboard.memoryMode = true;
+			scope (exit) _comm.clipboard.memoryMode = false;
+			copy(se);
+			paste(se);
+		}
 		@property
 		override bool canDoTCPD() {
 			return _beastImg.isFocusControl();
@@ -1418,6 +1434,10 @@ public:
 		@property
 		override bool canDoD() {
 			return selection !is null;
+		}
+		@property
+		override bool canDoClone() {
+			return false;
 		}
 	}
 	void undo() {

@@ -174,7 +174,7 @@ BgImagesView createBgImagesViewAndMenu(Commons comm, Props prop, Summary summ, B
 	createMenuItem(comm, me, MenuID.Up, &view.up, &view.canUp);
 	createMenuItem(comm, me, MenuID.Down, &view.down, &view.canDown);
 	new MenuItem(me, SWT.SEPARATOR);
-	appendMenuTCPD(comm, me, view, true, true, true, true);
+	appendMenuTCPD(comm, me, view, true, true, true, true, true);
 	auto mv = createMenu(comm, bar, MenuID.View);
 	createMenuItem(comm, mv, MenuID.Refresh, &view.refresh, null);
 	view.setupMenu(bar);

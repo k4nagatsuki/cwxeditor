@@ -380,14 +380,14 @@ public:
 					createMenuItem(_comm, me, MenuID.Undo, &undo, &canUndo);
 					createMenuItem(_comm, me, MenuID.Redo, &redo, &canRedo);
 					new MenuItem(me, SWT.SEPARATOR);
-					appendMenuTCPD(_comm, me, this, true, true, true, true);
+					appendMenuTCPD(_comm, me, this, true, true, true, true, true);
 					new MenuItem(me, SWT.SEPARATOR);
 					createMenuItem(_comm, me, MenuID.Up, &up, &canUp);
 					createMenuItem(_comm, me, MenuID.Down, &down, &canDown);
 				} else {
 					createMenuItem(_comm, me, MenuID.Import, &addCard, &isSelected);
 					new MenuItem(me, SWT.SEPARATOR);
-					appendMenuTCPD(_comm, me, this, false, true, false, false);
+					appendMenuTCPD(_comm, me, this, false, true, false, false, false);
 				}
 
 				auto mv = createMenu(_comm, bar, MenuID.View);
@@ -443,7 +443,7 @@ public:
 			}
 		} else {
 			static if (EditMode) {
-				appendMenuTCPD(_comm, this, this, true, true, true, true);
+				appendMenuTCPD(_comm, this, this, true, true, true, true, true);
 				putMenuAction(MenuID.Refresh, &__refresh, () => _summ !is null);
 				static if (is (CardOwner == Summary)) {
 					putMenuAction(MenuID.OpenImportSource, &addScenario, () => _summ !is null);
@@ -458,7 +458,7 @@ public:
 				putMenuAction(MenuID.Up, &up, &canUp);
 				putMenuAction(MenuID.Down, &down, &canDown);
 			} else {
-				appendMenuTCPD(_comm, this, this, false, true, false, false);
+				appendMenuTCPD(_comm, this, this, false, true, false, false, false);
 			}
 			putMenuChecked(MenuID.ShowCardProp, &showCardLife, &isViewLife, null);
 			putMenuChecked(MenuID.ShowCardImage, &showCardList, &isViewList, null);
@@ -1096,6 +1096,15 @@ public:
 				}
 			}
 		}
+		void clone(SelectionEvent se) {
+			static if (EditMode) {
+				foreach (c; _tcpd) {
+					if (c.canDoTCPD) {
+						c.clone(se);
+					}
+				}
+			}
+		}
 		bool canDoTCPD() {
 			return EditMode;
 		}
@@ -1124,6 +1133,13 @@ public:
 		bool canDoD() {
 			foreach (c; _tcpd) {
 				if (c.canDoTCPD) return c.canDoD;
+			}
+			return false;
+		}
+		@property
+		bool canDoClone() {
+			foreach (c; _tcpd) {
+				if (c.canDoTCPD) return c.canDoClone;
 			}
 			return false;
 		}

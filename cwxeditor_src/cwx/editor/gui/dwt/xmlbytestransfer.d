@@ -13,6 +13,16 @@ import std.array;
 import std.ascii;
 import std.exception;
 
+class ClipData {
+	this (Clipboard clipboard) {
+		this.clipboard = clipboard;
+	}
+	Clipboard clipboard = null;
+	alias clipboard this;
+	bool memoryMode = false;
+	string memory;
+}
+
 private static const string XML_HEADER_S = `<?xml `;
 private static const(byte)[] XML_HEADER = cast(byte[]) XML_HEADER_S;
 
@@ -31,15 +41,22 @@ bool isXMLBytes(Object o) {
 	return std.algorithm.startsWith(awb.array, XML_HEADER);
 }
 
-void XMLtoCB(Props prop, Clipboard cb, string xml) {
-	if (prop.var.etc.xmlCopy) {
+void XMLtoCB(Props prop, ClipData cb, string xml) {
+	if (cb.memoryMode) {
+		cb.memory = xml;
+	} else if (prop.var.etc.xmlCopy) {
 		cb.setContents([new ArrayWrapperString(sysRet(xml))], [TextTransfer.getInstance()]);
 	} else {
 		cb.setContents([bytesFromXML(xml)], [XMLBytesTransfer.getInstance()]);
 	}
 }
 
-string CBtoXML(Clipboard cb) {
+string CBtoXML(ClipData cb) {
+	if (cb.memory.length) {
+		auto r = cb.memory;
+		cb.memory = "";
+		return r;
+	}
 	auto c = cb.getContents(XMLBytesTransfer.getInstance());
 	if (c !is null && isXMLBytes(c)) {
 		return bytesToXML(c);

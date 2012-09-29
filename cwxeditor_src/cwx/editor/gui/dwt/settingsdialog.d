@@ -199,9 +199,9 @@ private:
 					copy(e);
 					del(e);
 				}
-				void copy(SelectionEvent e) {
+				private string copyImpl() {
 					auto indices = _featureName.getSelectionIndices().sort;
-					if (!indices.length) return;
+					if (!indices.length) return [];
 					string text;
 					int i = 0;
 					foreach (sel; indices[0] .. indices[$ - 1] + 1) {
@@ -210,16 +210,24 @@ private:
 						text ~= newline;
 						i++;
 					}
-					_comm.clipboard.setContents([new ArrayWrapperString(text)], [TextTransfer.getInstance()]);
+					return text;
+				}
+				void copy(SelectionEvent e) {
+					auto t = copyImpl();
+					if (!t.length) return;
+					_comm.clipboard.setContents([new ArrayWrapperString(t)], [TextTransfer.getInstance()]);
 					_comm.refreshToolBar();
 				}
 				void paste(SelectionEvent e) {
+					auto a = cast(ArrayWrapperString) _comm.clipboard.getContents(TextTransfer.getInstance());
+					if (!a) return;
+					pasteImpl(a.array);
+				}
+				void pasteImpl(in char[] array) {
 					auto indices = _featureName.getSelectionIndices().sort;
 					if (!indices.length) return;
 					int i = indices[0];
-					auto a = cast(ArrayWrapperString) _comm.clipboard.getContents(TextTransfer.getInstance());
-					if (!a) return;
-					auto linesu = a.array.splitLines();
+					auto linesu = array.splitLines();
 					if (!linesu.length) return;
 					storeFeatures();
 					auto lines = assumeUnique(linesu);
@@ -245,6 +253,9 @@ private:
 					refAlt();
 					_comm.refreshToolBar();
 				}
+				void clone(SelectionEvent e) {
+					return;
+				}
 				@property
 				bool canDoTCPD() {
 					return _featureName.isFocusControl();
@@ -264,6 +275,10 @@ private:
 				@property
 				bool canDoD() {
 					return canDoT;
+				}
+				@property
+				bool canDoClone() {
+					return false;
 				}
 			}
 		} else static if (is(T:ScTemplate)) {
@@ -535,6 +550,12 @@ private:
 			void del(SelectionEvent se) {
 				this.outer.del();
 			}
+			void clone(SelectionEvent se) {
+				_comm.clipboard.memoryMode = true;
+				scope (exit) _comm.clipboard.memoryMode = false;
+				copy(se);
+				paste(se);
+			}
 			@property
 			bool canDoTCPD() {
 				return _list.isFocusControl();
@@ -554,6 +575,10 @@ private:
 			@property
 			bool canDoD() {
 				return canDoT;
+			}
+			@property
+			bool canDoClone() {
+				return canDoC;
 			}
 		}
 		/// ここでfalseを返した場合は不正なデータと見做す。現在未使用。
@@ -1033,7 +1058,7 @@ private:
 				createMenuItem(_comm, menu, MenuID.Up, &up, &canUp);
 				createMenuItem(_comm, menu, MenuID.Down, &down, &canDown);
 				new MenuItem(menu, SWT.SEPARATOR);
-				appendMenuTCPD(_comm, menu, new UTCPD, true, true, true, true);
+				appendMenuTCPD(_comm, menu, new UTCPD, true, true, true, true, true);
 				_list.setMenu(menu);
 
 				auto up = new Button(left, SWT.PUSH);
@@ -1102,7 +1127,8 @@ private:
 					createMenuItem(_comm, menu, MenuID.Undo, &undoFeatures, &_featureUndo.canUndo);
 					createMenuItem(_comm, menu, MenuID.Redo, &redoFeatures, &_featureUndo.canRedo);
 					new MenuItem(menu, SWT.SEPARATOR);
-					appendMenuTCPD(_comm, menu, new FTCPD, true, true, true, true);
+					appendMenuTCPD(_comm, menu, new FTCPD, true, true, true, true, false);
+					new MenuItem(menu, SWT.SEPARATOR);
 					createMenuItem(_comm, menu, MenuID.SelectAll, {
 						_featureName.select(iota(0, _featureName.getItemCount(), 1).array());
 					}, () => _featureName.getSelection().length < _featureName.getItemCount());

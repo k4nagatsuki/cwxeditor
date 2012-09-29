@@ -383,6 +383,7 @@ public:
 		case MenuID.Copy: return imgd!("copy.png");
 		case MenuID.Paste: return imgd!("paste.png");
 		case MenuID.Delete: return imgd!("del.png");
+		case MenuID.Clone: return imgd!("clone.png");
 		case MenuID.SelectAll: return imgd!("select_all.png");
 		case MenuID.ToXMLText: return imgd!("toxml.png");
 		case MenuID.TableView: return imgd!("data_win.png");

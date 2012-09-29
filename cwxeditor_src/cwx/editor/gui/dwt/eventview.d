@@ -1000,7 +1000,7 @@ public:
 					dStr ~= " - " ~ .text(__LINE__);
 					menu = new Menu(shell, SWT.POP_UP);
 					dStr ~= " - " ~ .text(__LINE__);
-					appendMenuTCPD(_comm, menu, this, true, true, true, true);
+					appendMenuTCPD(_comm, menu, this, true, true, true, true, true);
 					dStr ~= " - " ~ .text(__LINE__);
 					static if (is(A : Area) || is(A : Battle)) {
 						new MenuItem(menu, SWT.SEPARATOR);
@@ -1608,201 +1608,219 @@ public:
 			dlg.open();
 		}
 	}
-	override {
-		void cut(SelectionEvent se) {
-			initial();
-			if (_etree.isFocusControl) {
-				_etree.cut(se);
-			} else {
-				copy(se);
-				del(se);
-			}
+	override void cut(SelectionEvent se) {
+		initial();
+		if (_etree.isFocusControl) {
+			_etree.cut(se);
+		} else {
+			copy(se);
+			del(se);
 		}
-		void copy(SelectionEvent se) {
-			initial();
-			if (_etree.isFocusControl) {
-				_etree.copy(se);
+	}
+	override void copy(SelectionEvent se) {
+		copyImpl(se, true);
+	}
+	private void copyImpl(SelectionEvent se, bool canFire) {
+		initial();
+		if (_etree.isFocusControl) {
+			_etree.copy(se);
+		} else {
+			auto itm = selection;
+			if (!itm) return;
+			auto parItm = itm.getParentItem();
+			if (!parItm) return;
+			auto par = parItm.getData();
+			auto data = itm.getData();
+			string xml;
+			if (cast(EventTree) data) {
+				xml = (cast(EventTree) data).toXML(null);
+			} else if (!canFire) {
+				assert (cast(EventTree) par !is null);
+				xml = (cast(EventTree) par).toXML(null);
 			} else {
-				auto itm = selection;
-				if (!itm) return;
-				auto parItm = itm.getParentItem();
-				if (!parItm) return;
-				auto par = parItm.getData();
-				auto data = itm.getData();
-				string xml;
-				if (cast(EventTree) data) {
-					xml = (cast(EventTree) data).toXML(null);
-				} else {
-					static if (UseFire) {
-						if (ENTER is data) {
-							xml = EventTree.enterToXML();
-						} else if (ESCAPE is data) {
-							xml = EventTree.escapeToXML();
-						} else if (LOSE is data) {
-							xml = EventTree.loseToXML();
-						} else if (cast(KeyCodeObj) data) {
-							xml = EventTree.keyCodeToXML((cast(KeyCodeObj) data).array.idup);
-						} else if (cast(RoundObj) data) {
-							xml = EventTree.roundToXML((cast(RoundObj) data).intValue());
-						} else {
-							assert (0);
-						}
+				static if (UseFire) {
+					if (ENTER is data) {
+						xml = EventTree.enterToXML();
+					} else if (ESCAPE is data) {
+						xml = EventTree.escapeToXML();
+					} else if (LOSE is data) {
+						xml = EventTree.loseToXML();
+					} else if (cast(KeyCodeObj) data) {
+						xml = EventTree.keyCodeToXML((cast(KeyCodeObj) data).array.idup);
+					} else if (cast(RoundObj) data) {
+						xml = EventTree.roundToXML((cast(RoundObj) data).intValue());
 					} else {
 						assert (0);
 					}
-				}
-				XMLtoCB(_prop, _comm.clipboard, xml);
-				_comm.refreshToolBar();
-			}
-		}
-		void paste(SelectionEvent se) {
-			initial();
-			if (_etree.isFocusControl) {
-				_etree.paste(se);
-			} else {
-				auto itm = selection;
-				if (!itm) return;
-				auto xml = CBtoXML(_comm.clipboard);
-				if (!xml) {
-					pasteScript(_comm.clipboard);
-					return;
-				}
-				auto parItm = selectionParent;
-				if (parItm) {
-					try {
-						auto par = cast(EventTreeOwner) parItm.getData();
-						EventTree tree = EventTree.fromXML(xml, LATEST_VERSION);
-						if (tree) {
-							storeI(_cards.indexOf(parItm), par.trees.length);
-							// イベントツリー
-							par.add(tree);
-							auto treeItm = createTreeItem(parItm, tree, tree.name, _prop.images.eventTree);
-							__select(treeItm);
-							static if (UseFire) {
-								refreshFires(treeItm);
-							}
-							_comm.refEventTree.call(tree);
-						} else {
-							static if (UseFire) {
-								if (!(cast(EventTreeOwner) itm.getData())) {
-									// 開始条件
-									auto treeItm = cast(EventTree) itm.getData() ? itm : itm.getParentItem();
-									tree = cast(EventTree) treeItm.getData();
-									store(tree);
-									if (tree.enterFromXML(par, xml)) {
-										refreshFires(treeItm, ENTER);
-									} else if (tree.escapeFromXML(par, xml)) {
-										refreshFires(treeItm, ESCAPE);
-									} else if (tree.loseFromXML(par, xml)) {
-										refreshFires(treeItm, LOSE);
-									} else {
-										int round = tree.roundFromXML(par, xml);
-										if (round >= 0) {
-											refreshFires(treeItm, new RoundObj(round));
-										} else {
-											string keyCode = tree.keyCodeFromXML(par, xml);
-											if (keyCode) {
-												refreshFires(treeItm, new KeyCodeObj(keyCode));
-											}
-										}
-									}
-									_comm.refEventTree.call(tree);
-									_comm.refKeyCodes.call();
-								}
-							}
-						}
-						_comm.refreshToolBar();
-					} catch (Exception e) {
-						debugln(e);
-					}
-				}
-			}
-		}
-		void del(SelectionEvent se) {
-			initial();
-			if (_etree.isFocusControl) {
-				_etree.del(se);
-			} else {
-				auto itm = selection;
-				if (!itm) return;
-				auto parItm = itm.getParentItem();
-				if (!parItm) return;
-				auto par = parItm.getData();
-				auto data = itm.getData();
-				auto tree = cast(EventTree) data;
-				if (tree) {
-					storeD(tree);
-					(cast(EventTreeOwner) par).remove(tree);
-					if (_selItm is itm) {
-						_selItm = null;
-						_etree.refresh(null);
-					}
-					_comm.delEventTree.call(tree);
 				} else {
-					static if (UseFire) {
-						tree = cast(EventTree) par;
-						store(tree);
-						if (ENTER is data) {
-							tree.enter = false;
-						} else if (ESCAPE is data) {
-							tree.escape = false;
-						} else if (LOSE is data) {
-							tree.lose = false;
-						} else if (cast(KeyCodeObj) data) {
-							tree.removeKeyCode((cast(KeyCodeObj) data).array.idup);
-						} else if (cast(RoundObj) data) {
-							tree.removeRound((cast(RoundObj) data).intValue());
-						} else {
-							assert (0);
+					assert (0);
+				}
+			}
+			XMLtoCB(_prop, _comm.clipboard, xml);
+			_comm.refreshToolBar();
+		}
+	}
+	override void paste(SelectionEvent se) {
+		initial();
+		if (_etree.isFocusControl) {
+			_etree.paste(se);
+		} else {
+			auto itm = selection;
+			if (!itm) return;
+			auto xml = CBtoXML(_comm.clipboard);
+			if (!xml) {
+				pasteScript(_comm.clipboard);
+				return;
+			}
+			auto parItm = selectionParent;
+			if (parItm) {
+				try {
+					auto par = cast(EventTreeOwner) parItm.getData();
+					EventTree tree = EventTree.fromXML(xml, LATEST_VERSION);
+					if (tree) {
+						storeI(_cards.indexOf(parItm), par.trees.length);
+						// イベントツリー
+						par.add(tree);
+						auto treeItm = createTreeItem(parItm, tree, tree.name, _prop.images.eventTree);
+						__select(treeItm);
+						static if (UseFire) {
+							refreshFires(treeItm);
 						}
 						_comm.refEventTree.call(tree);
+					} else {
+						static if (UseFire) {
+							if (!(cast(EventTreeOwner) itm.getData())) {
+								// 開始条件
+								auto treeItm = cast(EventTree) itm.getData() ? itm : itm.getParentItem();
+								tree = cast(EventTree) treeItm.getData();
+								store(tree);
+								if (tree.enterFromXML(par, xml)) {
+									refreshFires(treeItm, ENTER);
+								} else if (tree.escapeFromXML(par, xml)) {
+									refreshFires(treeItm, ESCAPE);
+								} else if (tree.loseFromXML(par, xml)) {
+									refreshFires(treeItm, LOSE);
+								} else {
+									int round = tree.roundFromXML(par, xml);
+									if (round >= 0) {
+										refreshFires(treeItm, new RoundObj(round));
+									} else {
+										string keyCode = tree.keyCodeFromXML(par, xml);
+										if (keyCode) {
+											refreshFires(treeItm, new KeyCodeObj(keyCode));
+										}
+									}
+								}
+								_comm.refEventTree.call(tree);
+								_comm.refKeyCodes.call();
+							}
+						}
 					}
+					_comm.refreshToolBar();
+				} catch (Exception e) {
+					debugln(e);
 				}
-				itm.dispose();
-				_comm.refUseCount.call();
-				_comm.refreshToolBar();
 			}
 		}
-		@property
-		bool canDoTCPD() {
-			return _cards.isFocusControl() || _etree.isFocusControl();
-		}
-		@property
-		bool canDoT() {
-			if (_cards.isFocusControl()) {
-				return selection && selection.getParentItem();
-			} else if (_etree.isFocusControl()) {
-				return _etree.canDoT;
+	}
+	override void del(SelectionEvent se) {
+		initial();
+		if (_etree.isFocusControl) {
+			_etree.del(se);
+		} else {
+			auto itm = selection;
+			if (!itm) return;
+			auto parItm = itm.getParentItem();
+			if (!parItm) return;
+			auto par = parItm.getData();
+			auto data = itm.getData();
+			auto tree = cast(EventTree) data;
+			if (tree) {
+				storeD(tree);
+				(cast(EventTreeOwner) par).remove(tree);
+				if (_selItm is itm) {
+					_selItm = null;
+					_etree.refresh(null);
+				}
+				_comm.delEventTree.call(tree);
+			} else {
+				static if (UseFire) {
+					tree = cast(EventTree) par;
+					store(tree);
+					if (ENTER is data) {
+						tree.enter = false;
+					} else if (ESCAPE is data) {
+						tree.escape = false;
+					} else if (LOSE is data) {
+						tree.lose = false;
+					} else if (cast(KeyCodeObj) data) {
+						tree.removeKeyCode((cast(KeyCodeObj) data).array.idup);
+					} else if (cast(RoundObj) data) {
+						tree.removeRound((cast(RoundObj) data).intValue());
+					} else {
+						assert (0);
+					}
+					_comm.refEventTree.call(tree);
+				}
 			}
-			return false;
+			itm.dispose();
+			_comm.refUseCount.call();
+			_comm.refreshToolBar();
 		}
-		@property
-		bool canDoC() {
-			if (_cards.isFocusControl()) {
-				return canDoT;
-			} else if (_etree.isFocusControl()) {
-				return _etree.canDoC;
-			}
-			return false;
+	}
+	override void clone(SelectionEvent se) {
+		if (_etree.isFocusControl) {
+			_etree.clone(se);
+		} else {
+			_comm.clipboard.memoryMode = true;
+			scope (exit) _comm.clipboard.memoryMode = false;
+			copyImpl(se, false);
+			paste(se);
 		}
-		@property
-		bool canDoP() {
-			if (_cards.isFocusControl()) {
-				return CBisXML(_comm.clipboard) || CBisText(_comm.clipboard);
-			} else if (_etree.isFocusControl()) {
-				return _etree.canDoP;
-			}
-			return false;
+	}
+	@property
+	override bool canDoTCPD() {
+		return _cards.isFocusControl() || _etree.isFocusControl();
+	}
+	@property
+	override bool canDoT() {
+		if (_cards.isFocusControl()) {
+			return selection && selection.getParentItem();
+		} else if (_etree.isFocusControl()) {
+			return _etree.canDoT;
 		}
-		@property
-		bool canDoD() {
-			if (_cards.isFocusControl()) {
-				return canDoT;
-			} else if (_etree.isFocusControl()) {
-				return _etree.canDoD;
-			}
-			return false;
+		return false;
+	}
+	@property
+	override bool canDoC() {
+		if (_cards.isFocusControl()) {
+			return canDoT;
+		} else if (_etree.isFocusControl()) {
+			return _etree.canDoC;
 		}
+		return false;
+	}
+	@property
+	override bool canDoP() {
+		if (_cards.isFocusControl()) {
+			return CBisXML(_comm.clipboard) || CBisText(_comm.clipboard);
+		} else if (_etree.isFocusControl()) {
+			return _etree.canDoP;
+		}
+		return false;
+	}
+	@property
+	override bool canDoD() {
+		if (_cards.isFocusControl()) {
+			return canDoT;
+		} else if (_etree.isFocusControl()) {
+			return _etree.canDoD;
+		}
+		return false;
+	}
+	@property
+	override bool canDoClone() {
+		return canDoC;
 	}
 	void undo() {
 		_undo.undo();

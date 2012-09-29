@@ -837,7 +837,7 @@ public:
 		createMenuItem(_comm, menu, MenuID.Undo, &undo, &_undo.canUndo);
 		createMenuItem(_comm, menu, MenuID.Redo, &redo, &_undo.canRedo);
 		new MenuItem(menu, SWT.SEPARATOR);
-		appendMenuTCPD(_comm, menu, this, true, true, true, true);
+		appendMenuTCPD(_comm, menu, this, true, true, true, true, true);
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.ReNumbering, &reNumbering, () => _areas.getSelectionIndex() != -1);
 		_areas.setMenu(menu);
@@ -1346,6 +1346,12 @@ public:
 				_comm.refreshToolBar();
 			}
 		}
+		void clone(SelectionEvent se) {
+			_comm.clipboard.memoryMode = true;
+			scope (exit) _comm.clipboard.memoryMode = false;
+			copy(se);
+			paste(se);
+		}
 		@property
 		bool canDoTCPD() {
 			return _summ && _areas.isFocusControl();
@@ -1361,6 +1367,10 @@ public:
 		@property
 		bool canDoP() {
 			return _summ !is null && CBisXML(_comm.clipboard);
+		}
+		@property
+		bool canDoClone() {
+			return canDoC;
 		}
 		@property
 		bool canDoD() {

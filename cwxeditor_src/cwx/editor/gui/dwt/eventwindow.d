@@ -154,7 +154,7 @@ public:
 			createMenuItem(_comm, me, MenuID.Up, &_eview.up, &_eview.canUp);
 			createMenuItem(_comm, me, MenuID.Down, &_eview.down, &_eview.canDown);
 			new MenuItem(me, SWT.SEPARATOR);
-			appendMenuTCPD(_comm, me, this, true, true, true, true);
+			appendMenuTCPD(_comm, me, this, true, true, true, true, true);
 			new MenuItem(me, SWT.SEPARATOR);
 			createMenuItem(_comm, me, MenuID.Comment, &_eview.writeComment, &_eview.canWriteComment);
 			new MenuItem(me, SWT.SEPARATOR);
@@ -163,7 +163,7 @@ public:
 
 			shell.setMenuBar(bar);
 		} else {
-			appendMenuTCPD(_comm, this, this, true, true, true, true);
+			appendMenuTCPD(_comm, this, this, true, true, true, true, true);
 			static if (is(A : Area) || is(A : Battle)) {
 				putMenuAction(MenuID.EditScene, &openScene, null);
 			}
@@ -339,6 +339,9 @@ public:
 		void del(SelectionEvent se) {
 			_eview.del(se);
 		}
+		void clone(SelectionEvent se) {
+			_eview.clone(se);
+		}
 		@property
 		bool canDoTCPD() {
 			return _eview.canDoTCPD;
@@ -358,6 +361,10 @@ public:
 		@property
 		bool canDoD() {
 			return _eview.canDoD;
+		}
+		@property
+		bool canDoClone() {
+			return _eview.canDoClone;
 		}
 	}
 	bool openCWXPath(string path, bool shellActivate) {
