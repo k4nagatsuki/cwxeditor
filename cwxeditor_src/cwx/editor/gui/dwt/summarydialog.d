@@ -9,6 +9,8 @@ import cwx.event;
 import cwx.skin;
 import cwx.card;
 import cwx.structs;
+import cwx.types;
+import cwx.path;
 
 import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.dutils;
@@ -23,6 +25,7 @@ import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.properties;
 import cwx.editor.gui.dwt.dmenu;
+import cwx.editor.gui.dwt.incsearch;
 
 import std.conv;
 import std.string;
@@ -48,6 +51,7 @@ private:
 	Text _author;
 	Spinner _levMin, _levMax;
 	Table _startArea;
+	ulong _startAreaID = 0;
 	Spinner _rCouponNum;
 	Text _rCoupons;
 	Button _typeSkin;
@@ -58,6 +62,12 @@ private:
 	SplitPane _tab2Sash, _tab3Sash;
 	// TODO Tag
 	// TODO Label
+
+	IncSearch _areaIncSearch;
+	void areaIncSearch() {
+		.forceFocus(_startArea, true);
+		_areaIncSearch.startIncSearch();
+	}
 
 	void refreshWarning()  {
 		warning = _comm.skin.warningImage(_prop.parent, _imgPath.filePath, _summ.legacy);
@@ -318,6 +328,27 @@ private:
 				saveColumnWidth!("prop.var.etc.idColumn")(_prop, idCol);
 				auto nameCol = new FullTableColumn(_startArea, SWT.NONE);
 				setCDataXY(_startArea, new GridData(GridData.FILL_BOTH));
+
+				.listener(_startArea, SWT.Selection, {
+					auto index = _startArea.getSelectionIndex();
+					if (-1 == index) {
+						_startAreaID = index;
+					} else {
+						auto a = cast(Area) _startArea.getItem(index).getData();
+						assert (a !is null);
+						_startAreaID = a.id;
+					}
+				});
+
+				auto menu = new Menu(_startArea.getShell(), SWT.POP_UP);
+				createMenuItem(_comm, menu, MenuID.IncSearch, &areaIncSearch, null);
+				new MenuItem(menu, SWT.SEPARATOR);
+				createMenuItem(_comm, menu, MenuID.OpenAtTableView, &openAreaAtView, () => _startArea.getSelectionIndex() != -1);
+				_startArea.setMenu(menu);
+
+				_areaIncSearch = new IncSearch(_comm, _startArea);
+				_areaIncSearch.modEvent ~= &refreshAreas;
+
 				refreshAreas();
 			}
 			_tab3Sash.setWeights([_prop.var.etc.rCouponsStartAreaSashL, _prop.var.etc.rCouponsStartAreaSashR]);
@@ -350,29 +381,40 @@ private:
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 
-		auto index = _startArea.getSelectionIndex();
-		ulong id;
-		if (-1 != index) {
-			id = (cast(Area) _startArea.getItem(index).getData()).id;
-		} else {
+		ulong id = _startAreaID;
+		if (0 == id) {
 			id = _summ.startArea;
 		}
 		_startArea.removeAll();
+		bool has = false;
 		foreach (i, area; _summ.areas) {
+			if (!has && area.id == id) {
+				has = true;
+			}
+			if (!_areaIncSearch.match(area.name)) continue;
 			auto itm = new TableItem(_startArea, SWT.NONE);
 			itm.setData(area);
 			itm.setImage(0, _prop.images.area);
 			itm.setText(0, to!(string)(area.id));
 			itm.setText(1, area.name);
 			if (area.id == id) {
-				_startArea.setSelection(i);
+				_startArea.setSelection(_startArea.getItemCount() - 1);
 			}
 		}
-		if (!_startArea.getSelection().length) {
+		if (!has && -1 == _startArea.getSelectionIndex()) {
 			foreach (i, area; _summ.areas) {
 				if (area.id == _summ.startArea) {
 					_startArea.setSelection(i);
+					has = true;
+					break;
 				}
+			}
+			if (!has && _summ.areas.length) {
+				_startArea.select(0);
+			}
+			int index = _startArea.getSelectionIndex();
+			if (-1 != index) {
+				_startAreaID = _summ.areas[index].id;
 			}
 		}
 		_startArea.showSelection();
@@ -486,6 +528,16 @@ private:
 			_type.select(0);
 		}
 	}
+	void openAreaAtView() {
+		auto i = _startArea.getSelectionIndex();
+		if (-1 == i) return;
+		auto a = cast(Area) _startArea.getItem(i).getData();
+		try {
+			_comm.openCWXPath(cpaddattr(a.cwxPath(true), "shallow"), false);
+		} catch (Exception e) {
+			debugln(e);
+		}
+	}
 public:
 	this(Commons comm, Props prop, Shell shell, Summary summ) {
 		assert (summ !is null);
@@ -535,9 +587,7 @@ protected:
 		}
 		_summ.rCoupons = rcs;
 		_summ.rCouponNum = _rCouponNum.getSelection();
-		int si = _startArea.getSelectionIndex();
-		_summ.startArea = _startArea.getItemCount() > 0 && si != -1
-			? (cast(Area) _startArea.getItem(si).getData()).id : 0;
+		_summ.startArea = _startAreaID;
 		if (_typeSkin.getSelection()) {
 			_summ.type = _type.getText();
 		} else {
