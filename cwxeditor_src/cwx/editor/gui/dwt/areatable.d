@@ -157,10 +157,51 @@ private:
 	static class UndoEdit : ATUndo {
 		private string _name;
 		private int _index;
+
+		static struct SummData {
+			string scenarioName;
+			string imagePath;
+			string author;
+			int levelMin, levelMax;
+			string desc;
+			string type;
+			string[] rCoupons;
+			uint rCouponNum;
+			ulong startArea;
+			Skin skin;
+			this (Commons comm, Summary summ) {
+				scenarioName = summ.scenarioName;
+				imagePath = summ.imagePath;
+				author = summ.author;
+				levelMin = summ.levelMin;
+				levelMax = summ.levelMax;
+				desc = summ.desc;
+				type = summ.type;
+				rCoupons = summ.rCoupons.dup;
+				rCouponNum = summ.rCouponNum;
+				startArea = summ.startArea;
+				skin = comm.skin;
+			}
+			void toSummary(Commons comm, Summary summ) {
+				summ.scenarioName = scenarioName;
+				summ.imagePath = imagePath;
+				summ.author = author;
+				summ.levelMin = levelMin;
+				summ.levelMax = levelMax;
+				summ.desc = desc;
+				summ.type = type;
+				summ.rCoupons = rCoupons;
+				summ.rCouponNum = rCouponNum;
+				summ.startArea = startArea;
+				comm.skin = skin;
+			}
+		}
+		private SummData _summData;
+
 		this (AreaTable v, Commons comm, Summary summ, int index) {
 			super (v, comm, summ);
 			if (0 == index) {
-				_name = summ.scenarioName;
+				_summData = SummData(comm, summ);
 			} else {
 				_name = areaFromIndex(summ, index).name;
 			}
@@ -171,13 +212,14 @@ private:
 			udb(v);
 			scope (exit) uda(v);
 			if (0 == _index) {
-				string oldName = summ.scenarioName;
-				summ.scenarioName = _name;
-				_name = oldName;
+				auto oldData = SummData(comm, summ);
+				_summData.toSummary(comm, summ);
+				_summData = oldData;
 				if (v && v._areas && !v._areas.isDisposed()) {
 					v._areas.getItem(_index).setText(NAME, summ.scenarioName);
 				}
 				comm.refScenarioName.call(v);
+				comm.refSkin.call();
 			} else {
 				auto area = areaFromIndex(summ, _index);
 				string oldName = area.name;
@@ -198,8 +240,8 @@ private:
 				if (p) {
 					comm.refPackage.call(v, p);
 				}
-				comm.refUseCount.call();
 			}
+			comm.refUseCount.call();
 		}
 		override void undo() {
 			impl();
@@ -1035,6 +1077,9 @@ public:
 			return;
 		}
 		_summDlg = new SummaryDialog(_comm, _prop, parent.getShell(), _summ);
+		_summDlg.applyEvent ~= {
+			storeEdit(0);
+		};
 		_summDlg.appliedEvent ~= {
 			refresh();
 		};
