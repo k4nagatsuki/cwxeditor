@@ -756,8 +756,8 @@ private:
 								_comm.refPath.call(p1, p2, false);
 								std.file.rename(from, to);
 							}
-							if (cfnmatch(parent, targ)) selfs ~= to;
 						}
+						if (cfnmatch(parent, targ)) selfs ~= to;
 					}
 					copy(targ, file);
 				}
@@ -774,8 +774,8 @@ private:
 							if (!dir) dir = to;
 						} else {
 							std.file.copy(from, to);
-							if (cfnmatch(parent, targ)) selfs ~= to;
 						}
+						if (cfnmatch(parent, targ)) selfs ~= to;
 					}
 					renameCopy(targ, file);
 				}

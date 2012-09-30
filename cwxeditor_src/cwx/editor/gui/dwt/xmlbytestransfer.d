@@ -19,8 +19,18 @@ class ClipData {
 	}
 	Clipboard clipboard = null;
 	alias clipboard this;
-	bool memoryMode = false;
-	string memory;
+	private string memory = "";
+	private bool _memoryMode = false;
+	@property
+	const
+	bool memoryMode() {return _memoryMode;}
+	@property
+	void memoryMode(bool mode) {
+		_memoryMode = mode;
+		if (!mode) {
+			memory = "";
+		}
+	}
 }
 
 private static const string XML_HEADER_S = `<?xml `;
@@ -52,10 +62,8 @@ void XMLtoCB(Props prop, ClipData cb, string xml) {
 }
 
 string CBtoXML(ClipData cb) {
-	if (cb.memory.length) {
-		auto r = cb.memory;
-		cb.memory = "";
-		return r;
+	if (cb.memoryMode) {
+		return cb.memory;
 	}
 	auto c = cb.getContents(XMLBytesTransfer.getInstance());
 	if (c !is null && isXMLBytes(c)) {
