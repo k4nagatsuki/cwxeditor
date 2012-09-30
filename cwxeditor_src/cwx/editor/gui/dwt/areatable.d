@@ -213,13 +213,14 @@ private:
 			scope (exit) uda(v);
 			if (0 == _index) {
 				auto oldData = SummData(comm, summ);
+				bool refSkin = oldData.skin !is _summData.skin;
 				_summData.toSummary(comm, summ);
 				_summData = oldData;
 				if (v && v._areas && !v._areas.isDisposed()) {
 					v._areas.getItem(_index).setText(NAME, summ.scenarioName);
 				}
 				comm.refScenarioName.call(v);
-				comm.refSkin.call();
+				if (refSkin) comm.refSkin.call();
 			} else {
 				auto area = areaFromIndex(summ, _index);
 				string oldName = area.name;
