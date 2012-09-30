@@ -528,6 +528,11 @@ public:
 	Summary summary() {
 		return _summ;
 	}
+	static if (UseArea) {
+		void selectSummary() {
+			_areas.selectSummary();
+		}
+	}
 
 	override {
 		void cut(SelectionEvent se) {
@@ -665,7 +670,7 @@ public:
 	bool openCWXPath(string path, bool shellActivate) {
 		if (cpempty(path)) {
 			static if (UseArea) {
-				_comm.openDataWin(shellActivate);
+				_comm.selectSummary(shellActivate);
 				if (cphasattr(path, "opendialog")) {
 					editSummary();
 				}

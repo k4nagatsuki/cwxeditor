@@ -1059,6 +1059,14 @@ class Commons {
 		if (replWin) replWin.replacePath(from);
 	}
 
+	void selectSummary(bool shellActivate) {
+		openDataWin(shellActivate);
+		if (_dataWin) {
+			return _dataWin.selectSummary();
+		} else {
+			return _tableWin.selectSummary();
+		}
+	}
 	ulong createPackage(Content baseStart, bool shellActivate) {
 		openDataWin(shellActivate);
 		if (_dataWin) {
