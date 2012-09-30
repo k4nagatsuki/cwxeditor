@@ -1475,8 +1475,8 @@ public:
 	@property
 	string[] openedCWXPath() {
 		string[] r;
-		if (0 == _areas.getSelectionIndex()) {
-			r ~= "";
+		if (_summ && 0 == _areas.getSelectionIndex()) {
+			r ~= _summ.cwxPath(true);
 		}
 		auto a = getSelectionArea();
 		if (a) {

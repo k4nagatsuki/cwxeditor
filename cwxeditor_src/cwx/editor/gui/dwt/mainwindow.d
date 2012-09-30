@@ -1176,6 +1176,7 @@ private:
 		debug mixin(UTPerf);
 		assert (fullHistToCWXPaths(r"C:\test\test1") == []);
 		assert (fullHistToCWXPaths(`"C:\test\test1" aaa&bbb`) == ["aaa", "bbb"]);
+		assert (fullHistToCWXPaths(`"C:\test\test1" &aaa&bbb&&`) == ["", "aaa", "bbb", "", ""]);
 	}
 	void delHist(string fullHist) {
 		auto hists = _prop.var.etc.openHistories.dup;
@@ -3115,12 +3116,12 @@ public:
 					} else {
 						_tableWin.editSummary();
 					}
+					return true;
 				}
-				return true;
 			}
 			auto cate = cpcategory(path);
 			switch (cate) {
-			case "area", "battle", "package", "area:id", "battle:id", "package:id", "variable",
+			case "", "area", "battle", "package", "area:id", "battle:id", "package:id", "variable",
 					"tableview", "variableview": {
 				if (_dataWin) {
 					return _dataWin.openCWXPath(path, shellActivate);
@@ -3163,7 +3164,13 @@ public:
 			}
 		}
 		bool r = true;
-		foreach (p; std.string.split(path, CWXPATH_SEP.idup)) {
+		string[] paths;
+		if (path.length) {
+			paths = std.string.split(path, CWXPATH_SEP.idup);
+		} else {
+			paths = [path];
+		}
+		foreach (p; paths) {
 			if (open()) {
 				_win.setMinimized(false);
 				if (shellActivate) _win.forceActive();

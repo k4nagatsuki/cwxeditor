@@ -671,6 +671,7 @@ public:
 		if (cpempty(path)) {
 			static if (UseArea) {
 				_comm.selectSummary(shellActivate);
+				.forceFocus(_areas.table, shellActivate);
 				if (cphasattr(path, "opendialog")) {
 					editSummary();
 				}
