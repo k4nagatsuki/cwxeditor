@@ -210,7 +210,7 @@ private:
 				}
 				{
 					auto grp = centerGroup(comp2, _prop.msgs.targetLevel, false, false, new GridData(GridData.FILL_BOTH));
-					grp.setLayout(new GridLayout(3, false));
+					grp.setLayout(new GridLayout(4, false));
 					_levMin = new Spinner(grp, SWT.BORDER);
 					mod(_levMin);
 					_levMin.setSelection(_summ.levelMin);
@@ -228,6 +228,9 @@ private:
 					new SpinnerEdit(_levMax, &levMaxEnter);
 					.listener(_levMin, SWT.Modify, &refreshPreview);
 					.listener(_levMax, SWT.Modify, &refreshPreview);
+
+					auto hint = new Label(grp, SWT.NONE);
+					hint.setText(.tryFormat(_prop.msgs.rangeHint, _levMin.getMinimum(), _levMin.getMaximum()));
 				}
 			}
 			_tab2Sash.setWeights([_prop.var.etc.summaryParamSashL, _prop.var.etc.summaryParamSashR]);
