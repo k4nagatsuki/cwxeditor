@@ -2044,6 +2044,7 @@ public:
 		if (__paste(selDirPath, new FileNames(array), false, fromOut)) {
 			clearCut();
 			if (_summ.useTemp) _summ.changed();
+			.forceFocus(_files, false);
 			_comm.refreshToolBar();
 		}
 	}
