@@ -251,6 +251,8 @@ class Msgs : Properties {
 	auto searchResultColumnErrorDesc = Msg("searchResultColumnErrorDesc", "解説");
 	auto searchResultColumnScenario = Msg("searchResultColumnScenario", "シナリオ");
 
+	auto searchResultSummary = Msg("searchResultSummary", "シナリオの概要 - %1$s");
+
 	auto searchResultBgImage = Msg("searchResultBgImage", "背景画像 [%1$s]");
 	auto searchResultIds = Msg("searchResultIds", "%1$s [%2$s.%3$s]");
 

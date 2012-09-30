@@ -2136,7 +2136,7 @@ string contentText(Commons comm, in Content evt, Summary summ = null) {
 		return contentTextUseID!(CIDKind.Package)(comm, summ, evt.packages, comm.prop.msgs.ctLinkPackage, evt);
 	} case CType.TALK_MESSAGE: {
 		string text = evt.text;
-		text = std.array.replace(text, "\n", "");
+		text = text.singleLine;
 		final switch (evt.talkerC) {
 		case Talker.NARRATION:
 			return text;
@@ -2152,7 +2152,7 @@ string contentText(Commons comm, in Content evt, Summary summ = null) {
 	} case CType.TALK_DIALOG: {
 		string r(in SDialog sdlg) {
 			string tt = comm.prop.msgs.talkerName(evt.talkerNC);
-			string t = std.array.replace(sdlg.text, "\n", "");
+			string t = sdlg.text.singleLine;
 			if (sdlg.rCoupons.length) {
 				return .tryFormat(comm.prop.msgs.ctTalkDialog, tt, std.string.join(sdlg.rCoupons.dup, " "), t);
 			} else {

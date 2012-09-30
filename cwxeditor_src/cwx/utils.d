@@ -908,6 +908,16 @@ string createNewFileName(string path, bool isdir) {
 	return name;
 }
 
+/// 複数行の文字列を単行へ変換する。各行の左右の空白は切り詰められる。
+@property
+string singleLine(string s) {
+	string r = "";
+	foreach (line; s.splitLines()) {
+		r ~= line.strip();
+	}
+	return r;
+}
+
 /// 改行文字を\nに置換する。
 string encodeLf(string s) {
 	s = replace(s, "\\", "\\\\");

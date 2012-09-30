@@ -462,7 +462,7 @@ private:
 		}
 	}
 	private void refreshDlgList(int index) {
-		string text = std.array.replace(wrapReturnCode(_dlgs[index].text), "\n", "");
+		string text = wrapReturnCode(_dlgs[index].text).singleLine;
 		// FIXME: ""をsetTextするとArgument cannot be null
 		if (text == "") text = " ";
 		_dlgsL.getItem(index).setText(0, text);
@@ -606,7 +606,7 @@ private:
 		foreach (dlg; _dlgs) {
 			auto itm = new TableItem(_dlgsL, SWT.NONE);
 			itm.setImage(prop.images.content(CType.TALK_DIALOG));
-			string text = std.array.replace(dlg.text, "\n", "");
+			string text = dlg.text.singleLine;
 			// FIXME: ""をsetTextするとArgument cannot be null
 			itm.setText(text.length > 0 ? text : " ");
 		}

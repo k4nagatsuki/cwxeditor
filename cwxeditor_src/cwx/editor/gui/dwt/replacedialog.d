@@ -3355,7 +3355,7 @@ public:
 		auto sum = cast(Summary) path;
 		if (sum && !par) {
 			img = _prop.images.summary;
-			text = _prop.msgs.summary;
+			text = .tryFormat(_prop.msgs.searchResultSummary, sum.desc.singleLine);
 		}
 		auto bgi = cast(BgImage) path;
 		if (bgi && !par) {
@@ -3424,7 +3424,7 @@ public:
 			con = sdlg.parent;
 			assert (con);
 			img = _prop.images.content(con.type);
-			string t = std.array.replace(sdlg.text, "\n", "");
+			string t = sdlg.text.singleLine;
 			if (sdlg.rCoupons.length) {
 				text = .tryFormat(_prop.msgs.dialogText, t, std.string.join(sdlg.rCoupons.dup, " "));
 			} else {

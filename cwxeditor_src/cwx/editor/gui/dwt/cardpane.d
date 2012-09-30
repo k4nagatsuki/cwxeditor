@@ -499,7 +499,7 @@ private:
 		itm.setImage(0, _cimg);
 		itm.setText(0, to!(string)(c.id));
 		itm.setText(1, c.name);
-		string desc = std.array.replace(c.desc, "\n", "");
+		string desc = c.desc.singleLine;
 		static if (is(C:EventTreeOwner)) {
 			if (_prop.var.etc.showEventTreeMark && ((_prop.var.etc.ignoreEmptyStart ? !c.isEmpty : 0 < c.trees.length))) {
 				itm.setImage(2, _prop.images.eventTree);
