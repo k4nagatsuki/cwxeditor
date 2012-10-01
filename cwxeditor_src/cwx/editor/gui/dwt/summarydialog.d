@@ -352,6 +352,7 @@ private:
 				_areaIncSearch = new IncSearch(_comm, _startArea);
 				_areaIncSearch.modEvent ~= &refreshAreas;
 
+				_startAreaID = _summ.startArea;
 				refreshAreas();
 			}
 			_tab3Sash.setWeights([_prop.var.etc.rCouponsStartAreaSashL, _prop.var.etc.rCouponsStartAreaSashR]);
