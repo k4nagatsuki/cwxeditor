@@ -1000,6 +1000,9 @@ public:
 					dStr ~= " - " ~ .text(__LINE__);
 					menu = new Menu(shell, SWT.POP_UP);
 					dStr ~= " - " ~ .text(__LINE__);
+					createMenuItem(_comm, menu, MenuID.Undo, &this.undo, &_undo.canUndo);
+					createMenuItem(_comm, menu, MenuID.Redo, &this.redo, &_undo.canRedo);
+					new MenuItem(menu, SWT.SEPARATOR);
 					appendMenuTCPD(_comm, menu, this, true, true, true, true, true);
 					dStr ~= " - " ~ .text(__LINE__);
 					static if (is(A : Area) || is(A : Battle)) {

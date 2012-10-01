@@ -24,11 +24,11 @@ class FlexEtcProps : Properties {
 	auto directorySashV = Prop!(bool)("directorySashV", false);
 	auto filesSortColumn = Prop!(int)("filesSortColumn", 1);
 	auto filesSortDirection = Prop!(int)("filesSortDirection", SortDir.Up);
-	auto fileNameColumn = Prop!(int)("fileNameColumn", 300);
+	auto fileNameColumn = Prop!(int)("fileNameColumn", 150);
 	auto fileExtColumn = Prop!(int)("fileExtColumn", 60);
 	auto fileCountColumn = Prop!(int)("fileCountColumn", 60);
 	auto areaIdColumn = Prop!(int)("areaIdColumn", 50);
-	auto areaNameColumn = Prop!(int)("areaNameColumn", 400);
+	auto areaNameColumn = Prop!(int)("areaNameColumn", 280);
 	auto areaCountColumn = Prop!(int)("areaCountColumn", 60);
 	auto summaryParamSashL = Prop!(int)("summaryParamSashL", 2);
 	auto summaryParamSashR = Prop!(int)("summaryParamSashR", 1);
@@ -54,8 +54,8 @@ class FlexEtcProps : Properties {
 	auto showGrid = Prop!(bool)("showGrid", false);
 	auto areaSashT = Prop!(int)("areaSashT", 5);
 	auto areaSashB = Prop!(int)("areaSashB", 4);
-	auto flagSashL = Prop!(int)("flagSashL", 3);
-	auto flagSashR = Prop!(int)("flagSashR", 7);
+	auto flagSashL = Prop!(int)("flagSashL", 1);
+	auto flagSashR = Prop!(int)("flagSashR", 4);
 	auto flagSashV = Prop!(bool)("flagSashV", false);
 	auto flagsWidth = Prop!(int, true)("flagsWidth", 150);
 	auto flagsHeight = Prop!(int, true)("flagsHeight", 200);
@@ -84,7 +84,7 @@ class FlexEtcProps : Properties {
 	auto flagNameWidth = Prop!(int, true)("flagNameWidth", 150);
 	auto flagInitWidth = Prop!(int, true)("flagInitWidth", 50);
 	auto flagValueWidth = Prop!(int, true)("flagValueWidth", 50);
-	auto flagNameColumn = Prop!(int)("flagNameColumn", 190);
+	auto flagNameColumn = Prop!(int)("flagNameColumn", 150);
 	auto flagInitColumn = Prop!(int)("flagInitColumn", 90);
 	auto flagCountColumn = Prop!(int)("flagCountColumn", 60);
 	auto filesWidth = Prop!(int, true)("filesWidth", 150);

@@ -246,7 +246,7 @@ class Msgs : Properties {
 	auto searchResultColumnMain = Msg("searchResultColumnMain", "マッチ箇所");
 	auto searchResultColumnParent = Msg("searchResultColumnParent", "所属");
 	auto searchResultColumnCoupon = Msg("searchResultColumnCoupon", "称号・名称");
-	auto searchResultColumnCouponCount = Msg("searchResultColumnCouponCount", "使用数");
+	auto searchResultColumnCouponCount = Msg("searchResultColumnCouponCount", "利用数");
 	auto searchResultColumnError = Msg("searchResultColumnError", "誤り箇所");
 	auto searchResultColumnErrorDesc = Msg("searchResultColumnErrorDesc", "解説");
 	auto searchResultColumnScenario = Msg("searchResultColumnScenario", "シナリオ");
@@ -773,7 +773,7 @@ class Msgs : Properties {
 	auto viewNameScene = Msg("viewNameScene", "[%1$s カードと背景] - %2$s - %3$s");
 	auto viewNameEvent = Msg("viewNameEvent", "[%1$s イベント] - %2$s - %3$s");
 
-	auto cardCount = Msg("cardCount", "使用数");
+	auto cardCount = Msg("cardCount", "利用数");
 
 	auto cardAndBackView = Msg("cardAndBackView", "カードと背景");
 	auto enemyCardView = Msg("enemyCardView", "エネミーカード");
@@ -1301,7 +1301,7 @@ class Msgs : Properties {
 	auto dirStatusSel = Msg("dirStatusSel", "%1$s個のファイル (%2$s) (%3$s個を選択中)");
 	auto fileName = Msg("fileName", "ファイル名");
 	auto fileExt = Msg("fileExt", "拡張子");
-	auto fileCount = Msg("fileCount", "使用数");
+	auto fileCount = Msg("fileCount", "利用数");
 	auto errorExec = Msg("errorExec", "%1$sの起動に失敗しました。");
 	auto filterDescZip = Msg("filterDescZip", "ZIP アーカイブ (*.zip)");
 	auto filterDescCab = Msg("filterDescCab", "CAB アーカイブ (*.cab)");

@@ -1986,7 +1986,7 @@ public:
 					_dock = new DockingFolderCTC(dockComp, SWT.NONE, "work");
 					initDock();
 					dStr ~= " - " ~ .text(__LINE__);
-					auto data = _dock.addPane(_dock.first, Dir.N, 1, 3, "data");
+					auto data = _dock.addPane(_dock.first, Dir.N, 3, 10, "data");
 					_tableWin = new TableWindow(_comm, _prop, _win, data);
 					_dock.add(_tableWin.shell, _tableWin.title, _tableWin.image, "data", true);
 					_flagWin = new FlagWindow(_comm, _prop, _win, data);
@@ -1996,16 +1996,17 @@ public:
 						_cardWin = new MainCardWindow(_comm, _prop, data);
 						_dock.add(_cardWin.shell, _cardWin.title, _cardWin.image, "card", false);
 					} else {
+						auto card = _dock.addPane(data, Dir.E, 5, 7, "data_2");
 						dStr ~= " - " ~ .text(__LINE__);
-						_castWin = new CastCardWindow(_comm, _prop, data);
-						_dock.add(_castWin.shell, _castWin.title, _castWin.image, "castCard", false);
-						_skillWin = new SkillCardWindow(_comm, _prop, data);
+						_castWin = new CastCardWindow(_comm, _prop, card);
+						_dock.add(_castWin.shell, _castWin.title, _castWin.image, "castCard", true);
+						_skillWin = new SkillCardWindow(_comm, _prop, card);
 						_dock.add(_skillWin.shell, _skillWin.title, _skillWin.image, "skillCard", false);
-						_itemWin = new ItemCardWindow(_comm, _prop, data);
+						_itemWin = new ItemCardWindow(_comm, _prop, card);
 						_dock.add(_itemWin.shell, _itemWin.title, _itemWin.image, "itemCard", false);
-						_beastWin = new BeastCardWindow(_comm, _prop, data);
+						_beastWin = new BeastCardWindow(_comm, _prop, card);
 						_dock.add(_beastWin.shell, _beastWin.title, _beastWin.image, "beastCard", false);
-						_infoWin = new InfoCardWindow(_comm, _prop, data);
+						_infoWin = new InfoCardWindow(_comm, _prop, card);
 						_dock.add(_infoWin.shell, _infoWin.title, _infoWin.image, "infoCard", false);
 						dStr ~= " - " ~ .text(__LINE__);
 					}
