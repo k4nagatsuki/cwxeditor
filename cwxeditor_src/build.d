@@ -10,6 +10,9 @@ immutable string[] RES_DIR = [
 	".",
 	"." ~ dirSeparator ~ "resource",
 ];
+immutable string[] IGNORE_DIR = [
+	"private",
+];
 
 import std.algorithm;
 import std.file;
@@ -158,6 +161,11 @@ bool equalsFilename(string a, string b) {
 }
 /// コンパイル対象の情報を格納する。
 string[] put(string file, ref string[string] objs, in string[] qual) {
+	foreach (ignore; IGNORE_DIR) {
+		if (file.startsWith(ignore)) {
+			return [];
+		}
+	}
 	string obj = "objs".buildPath(file).setExtension(O);
 	objs[file] = obj;
 	string[] array;
